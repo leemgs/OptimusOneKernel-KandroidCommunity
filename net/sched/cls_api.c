@@ -1,18 +1,4 @@
-/*
- * net/sched/cls_api.c	Packet classifier API.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- * Changes:
- *
- * Eduardo J. Blanco <ejbs@netlabs.com.uy> :990222: kmod support
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -30,14 +16,14 @@
 #include <net/pkt_sched.h>
 #include <net/pkt_cls.h>
 
-/* The list of all installed classifier types */
+
 
 static struct tcf_proto_ops *tcf_proto_base __read_mostly;
 
-/* Protects list of registered TC modules. It is pure SMP lock. */
+
 static DEFINE_RWLOCK(cls_mod_lock);
 
-/* Find classifier type by string name */
+
 
 static struct tcf_proto_ops *tcf_proto_lookup_ops(struct nlattr *kind)
 {
@@ -57,7 +43,7 @@ static struct tcf_proto_ops *tcf_proto_lookup_ops(struct nlattr *kind)
 	return t;
 }
 
-/* Register(unregister) new classifier type */
+
 
 int register_tcf_proto_ops(struct tcf_proto_ops *ops)
 {
@@ -102,7 +88,7 @@ static int tfilter_notify(struct sk_buff *oskb, struct nlmsghdr *n,
 			  struct tcf_proto *tp, unsigned long fh, int event);
 
 
-/* Select new prio value from the range, managed by kernel. */
+
 
 static inline u32 tcf_auto_prio(struct tcf_proto *tp)
 {
@@ -114,7 +100,7 @@ static inline u32 tcf_auto_prio(struct tcf_proto *tp)
 	return first;
 }
 
-/* Add/change/delete/get a filter node */
+
 
 static int tc_ctl_tfilter(struct sk_buff *skb, struct nlmsghdr *n, void *arg)
 {
@@ -149,15 +135,15 @@ replay:
 	cl = 0;
 
 	if (prio == 0) {
-		/* If no priority is given, user wants we allocated it. */
+		
 		if (n->nlmsg_type != RTM_NEWTFILTER || !(n->nlmsg_flags&NLM_F_CREATE))
 			return -ENOENT;
 		prio = TC_H_MAKE(0x80000000U, 0U);
 	}
 
-	/* Find head of filter chain. */
+	
 
-	/* Find link */
+	
 	dev = __dev_get_by_index(&init_net, t->tcm_ifindex);
 	if (dev == NULL)
 		return -ENODEV;
@@ -166,7 +152,7 @@ replay:
 	if (err < 0)
 		return err;
 
-	/* Find qdisc */
+	
 	if (!parent) {
 		q = dev->qdisc;
 		parent = q->handle;
@@ -176,27 +162,27 @@ replay:
 			return -EINVAL;
 	}
 
-	/* Is it classful? */
+	
 	if ((cops = q->ops->cl_ops) == NULL)
 		return -EINVAL;
 
 	if (cops->tcf_chain == NULL)
 		return -EOPNOTSUPP;
 
-	/* Do we search for filter, attached to class? */
+	
 	if (TC_H_MIN(parent)) {
 		cl = cops->get(q, parent);
 		if (cl == 0)
 			return -ENOENT;
 	}
 
-	/* And the last stroke */
+	
 	chain = cops->tcf_chain(q, cl);
 	err = -EINVAL;
 	if (chain == NULL)
 		goto errout;
 
-	/* Check the chain for existence of proto-tcf with this priority */
+	
 	for (back = chain; (tp=*back) != NULL; back = &tp->next) {
 		if (tp->prio >= prio) {
 			if (tp->prio == prio) {
@@ -211,7 +197,7 @@ replay:
 	root_lock = qdisc_root_sleeping_lock(q);
 
 	if (tp == NULL) {
-		/* Proto-tcf does not exist, create new one */
+		
 
 		if (tca[TCA_KIND] == NULL || !protocol)
 			goto errout;
@@ -221,7 +207,7 @@ replay:
 			goto errout;
 
 
-		/* Create new proto tcf */
+		
 
 		err = -ENOBUFS;
 		tp = kzalloc(sizeof(*tp), GFP_KERNEL);
@@ -240,12 +226,7 @@ replay:
 				request_module("cls_%s", name);
 				rtnl_lock();
 				tp_ops = tcf_proto_lookup_ops(kind);
-				/* We dropped the RTNL semaphore in order to
-				 * perform the module load.  So, even if we
-				 * succeeded in loading the module we have to
-				 * replay the request.  We indicate this using
-				 * -EAGAIN.
-				 */
+				
 				if (tp_ops != NULL) {
 					module_put(tp_ops->owner);
 					err = -EAGAIN;
@@ -334,7 +315,7 @@ errout:
 	if (cl)
 		cops->put(q, cl);
 	if (err == -EAGAIN)
-		/* Replay the request. */
+		
 		goto replay;
 	return err;
 }
@@ -559,11 +540,7 @@ int tcf_exts_dump(struct sk_buff *skb, struct tcf_exts *exts,
 {
 #ifdef CONFIG_NET_CLS_ACT
 	if (map->action && exts->action) {
-		/*
-		 * again for backward compatible mode - we want
-		 * to work with both old and new modes of entering
-		 * tc data even if iproute2  was newer - jhs
-		 */
+		
 		struct nlattr *nest;
 
 		if (exts->action->type != TCA_OLD_COMPAT) {

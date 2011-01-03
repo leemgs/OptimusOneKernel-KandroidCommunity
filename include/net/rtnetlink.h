@@ -22,26 +22,7 @@ static inline int rtnl_msg_family(const struct nlmsghdr *nlh)
 		return AF_UNSPEC;
 }
 
-/**
- *	struct rtnl_link_ops - rtnetlink link operations
- *
- *	@list: Used internally
- *	@kind: Identifier
- *	@maxtype: Highest device specific netlink attribute number
- *	@policy: Netlink policy for device specific attribute validation
- *	@validate: Optional validation function for netlink/changelink parameters
- *	@priv_size: sizeof net_device private space
- *	@setup: net_device setup function
- *	@newlink: Function for configuring and registering a new device
- *	@changelink: Function for changing parameters of an existing device
- *	@dellink: Function to remove a device
- *	@get_size: Function to calculate required room for dumping device
- *		   specific netlink attributes
- *	@fill_info: Function to dump device specific netlink attributes
- *	@get_xstats_size: Function to calculate required room for dumping devic
- *			  specific statistics
- *	@fill_xstats: Function to dump device specific statistics
- */
+
 struct rtnl_link_ops {
 	struct list_head	list;
 

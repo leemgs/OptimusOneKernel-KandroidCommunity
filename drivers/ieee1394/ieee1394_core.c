@@ -1,24 +1,4 @@
-/*
- * IEEE 1394 for Linux
- *
- * Core support: hpsb_packet management, packet handling and forwarding to
- *               highlevel or lowlevel code
- *
- * Copyright (C) 1999, 2000 Andreas E. Bombe
- *                     2002 Manfred Weihs <weihs@ict.tuwien.ac.at>
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- *
- *
- * Contributions:
- *
- * Manfred Weihs <weihs@ict.tuwien.ac.at>
- *        loopback functionality in hpsb_send_packet
- *        allow highlevel drivers to disable automatic response generation
- *              and to generate responses themselves (deferred)
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/list.h>
@@ -51,23 +31,21 @@
 #include "iso.h"
 #include "config_roms.h"
 
-/*
- * Disable the nodemgr detection and config rom reading functionality.
- */
+
 static int disable_nodemgr;
 module_param(disable_nodemgr, int, 0444);
 MODULE_PARM_DESC(disable_nodemgr, "Disable nodemgr functionality.");
 
-/* Disable Isochronous Resource Manager functionality */
+
 int hpsb_disable_irm = 0;
 module_param_named(disable_irm, hpsb_disable_irm, bool, 0444);
 MODULE_PARM_DESC(disable_irm,
 		 "Disable Isochronous Resource Manager functionality.");
 
-/* We are GPL, so treat us special */
+
 MODULE_LICENSE("GPL");
 
-/* Some globals used */
+
 const char *hpsb_speedto_str[] = { "S100", "S200", "S400", "S800", "S1600", "S3200" };
 struct class *hpsb_protocol_class;
 
@@ -95,17 +73,7 @@ static void abort_requests(struct hpsb_host *host);
 static void queue_packet_complete(struct hpsb_packet *packet);
 
 
-/**
- * hpsb_set_packet_complete_task - set task that runs when a packet completes
- * @packet: the packet whose completion we want the task added to
- * @routine: function to call
- * @data: data (if any) to pass to the above function
- *
- * Set the task that runs when a packet completes. You cannot call this more
- * than once on a single packet before it is sent.
- *
- * Typically, the complete @routine is responsible to call hpsb_free_packet().
- */
+
 void hpsb_set_packet_complete_task(struct hpsb_packet *packet,
 				   void (*routine)(void *), void *data)
 {
@@ -115,26 +83,7 @@ void hpsb_set_packet_complete_task(struct hpsb_packet *packet,
 	return;
 }
 
-/**
- * hpsb_alloc_packet - allocate new packet structure
- * @data_size: size of the data block to be allocated, in bytes
- *
- * This function allocates, initializes and returns a new &struct hpsb_packet.
- * It can be used in interrupt context.  A header block is always included and
- * initialized with zeros.  Its size is big enough to contain all possible 1394
- * headers.  The data block is only allocated if @data_size is not zero.
- *
- * For packets for which responses will be received the @data_size has to be big
- * enough to contain the response's data block since no further allocation
- * occurs at response matching time.
- *
- * The packet's generation value will be set to the current generation number
- * for ease of use.  Remember to overwrite it with your own recorded generation
- * number if you can not be sure that your code will not race with a bus reset.
- *
- * Return value: A pointer to a &struct hpsb_packet or NULL on allocation
- * failure.
- */
+
 struct hpsb_packet *hpsb_alloc_packet(size_t data_size)
 {
 	struct hpsb_packet *packet;
@@ -158,12 +107,7 @@ struct hpsb_packet *hpsb_alloc_packet(size_t data_size)
 	return packet;
 }
 
-/**
- * hpsb_free_packet - free packet and data associated with it
- * @packet: packet to free (is NULL safe)
- *
- * Frees @packet->data only if it was allocated through hpsb_alloc_packet().
- */
+
 void hpsb_free_packet(struct hpsb_packet *packet)
 {
 	if (packet && atomic_dec_and_test(&packet->refcnt)) {
@@ -173,13 +117,7 @@ void hpsb_free_packet(struct hpsb_packet *packet)
 	}
 }
 
-/**
- * hpsb_reset_bus - initiate bus reset on the given host
- * @host: host controller whose bus to reset
- * @type: one of enum reset_types
- *
- * Returns 1 if bus reset already in progress, 0 otherwise.
- */
+
 int hpsb_reset_bus(struct hpsb_host *host, int type)
 {
 	if (!host->in_bus_reset) {
@@ -190,19 +128,7 @@ int hpsb_reset_bus(struct hpsb_host *host, int type)
 	}
 }
 
-/**
- * hpsb_read_cycle_timer - read cycle timer register and system time
- * @host: host whose isochronous cycle timer register is read
- * @cycle_timer: address of bitfield to return the register contents
- * @local_time: address to return the system time
- *
- * The format of * @cycle_timer, is described in OHCI 1.1 clause 5.13. This
- * format is also read from non-OHCI controllers. * @local_time contains the
- * system time in microseconds since the Epoch, read at the moment when the
- * cycle timer was read.
- *
- * Return value: 0 for success or error number otherwise.
- */
+
 int hpsb_read_cycle_timer(struct hpsb_host *host, u32 *cycle_timer,
 			  u64 *local_time)
 {
@@ -230,14 +156,7 @@ int hpsb_read_cycle_timer(struct hpsb_host *host, u32 *cycle_timer,
 	return 0;
 }
 
-/**
- * hpsb_bus_reset - notify a bus reset to the core
- *
- * For host driver module usage.  Safe to use in interrupt context, although
- * quite complex; so you may want to run it in the bottom rather than top half.
- *
- * Returns 1 if bus reset already in progress, 0 otherwise.
- */
+
 int hpsb_bus_reset(struct hpsb_host *host)
 {
 	if (host->in_bus_reset) {
@@ -260,10 +179,7 @@ int hpsb_bus_reset(struct hpsb_host *host)
 }
 
 
-/*
- * Verify num_of_selfids SelfIDs and return number of nodes.  Return zero in
- * case verification failed.
- */
+
 static int check_selfids(struct hpsb_host *host)
 {
 	int nodeid = -1;
@@ -353,7 +269,7 @@ static void build_speed_map(struct hpsb_host *host, int nodecount)
 		cldcnt[i] = 0;
 	}
 
-	/* find direct children count and speed */
+	
 	for (sid = (struct selfid *)&host->topology_map[host->selfid_count-1],
 		     n = nodecount - 1;
 	     (void *)sid >= (void *)host->topology_map; sid--) {
@@ -380,13 +296,12 @@ static void build_speed_map(struct hpsb_host *host, int nodecount)
 		}
 	}
 
-	/* set self mapping */
+	
 	for (i = 0; i < nodecount; i++) {
 		map[64*i + i] = speedcap[i];
 	}
 
-	/* fix up direct children count to total children count;
-	 * also fix up speedcaps for sibling and parent communication */
+	
 	for (i = 1; i < nodecount; i++) {
 		for (j = cldcnt[i], n = i - 1; j > 0; j--) {
 			cldcnt[i] += cldcnt[n];
@@ -408,7 +323,7 @@ static void build_speed_map(struct hpsb_host *host, int nodecount)
 		}
 	}
 
-	/* assume a maximum speed for 1394b PHYs, nodemgr will correct it */
+	
 	if (local_link_speed > SELFID_SPEED_UNKNOWN)
 		for (i = 0; i < nodecount; i++)
 			if (speedcap[i] == SELFID_SPEED_UNKNOWN)
@@ -416,14 +331,7 @@ static void build_speed_map(struct hpsb_host *host, int nodecount)
 }
 
 
-/**
- * hpsb_selfid_received - hand over received selfid packet to the core
- *
- * For host driver module usage.  Safe to use in interrupt context.
- *
- * The host driver should have done a successful complement check (second
- * quadlet is complement of first) beforehand.
- */
+
 void hpsb_selfid_received(struct hpsb_host *host, quadlet_t sid)
 {
 	if (host->in_bus_reset) {
@@ -435,15 +343,7 @@ void hpsb_selfid_received(struct hpsb_host *host, quadlet_t sid)
 	}
 }
 
-/**
- * hpsb_selfid_complete - notify completion of SelfID stage to the core
- *
- * For host driver module usage.  Safe to use in interrupt context, although
- * quite complex; so you may want to run it in the bottom rather than top half.
- *
- * Notify completion of SelfID stage to the core and report new physical ID
- * and whether host is root now.
- */
+
 void hpsb_selfid_complete(struct hpsb_host *host, int phyid, int isroot)
 {
 	if (!host->in_bus_reset)
@@ -454,10 +354,10 @@ void hpsb_selfid_complete(struct hpsb_host *host, int phyid, int isroot)
 
 	if (!check_selfids(host)) {
 		if (host->reset_retries++ < 20) {
-			/* selfid stage did not complete without error */
+			
 			HPSB_NOTICE("Error in SelfID stage, resetting");
 			host->in_bus_reset = 0;
-			/* this should work from ohci1394 now... */
+			
 			hpsb_reset_bus(host, LONG_RESET);
 			return;
 		} else {
@@ -473,7 +373,7 @@ void hpsb_selfid_complete(struct hpsb_host *host, int phyid, int isroot)
 	HPSB_VERBOSE("selfid_complete called with successful SelfID stage "
 		     "... irm_id: 0x%X node_id: 0x%X",host->irm_id,host->node_id);
 
-	/* irm_id is kept up to date by check_selfids() */
+	
 	if (host->irm_id == host->node_id) {
 		host->is_irm = 1;
 	} else {
@@ -492,16 +392,7 @@ void hpsb_selfid_complete(struct hpsb_host *host, int phyid, int isroot)
 
 static DEFINE_SPINLOCK(pending_packets_lock);
 
-/**
- * hpsb_packet_sent - notify core of sending a packet
- *
- * For host driver module usage.  Safe to call from within a transmit packet
- * routine.
- *
- * Notify core of sending a packet.  Ackcode is the ack code returned for async
- * transmits or ACKX_SEND_ERROR if the transmission failed completely; ACKX_NONE
- * for other cases (internal errors that don't justify a panic).
- */
+
 void hpsb_packet_sent(struct hpsb_host *host, struct hpsb_packet *packet,
 		      int ackcode)
 {
@@ -512,14 +403,14 @@ void hpsb_packet_sent(struct hpsb_host *host, struct hpsb_packet *packet,
 	packet->ack_code = ackcode;
 
 	if (packet->no_waiter || packet->state == hpsb_complete) {
-		/* if packet->no_waiter, must not have a tlabel allocated */
+		
 		spin_unlock_irqrestore(&pending_packets_lock, flags);
 		hpsb_free_packet(packet);
 		return;
 	}
 
-	atomic_dec(&packet->refcnt);	/* drop HC's reference */
-	/* here the packet must be on the host->pending_packets queue */
+	atomic_dec(&packet->refcnt);	
+	
 
 	if (ackcode != ACK_PENDING || !packet->expect_response) {
 		packet->state = hpsb_complete;
@@ -537,17 +428,7 @@ void hpsb_packet_sent(struct hpsb_host *host, struct hpsb_packet *packet,
 	mod_timer(&host->timeout, jiffies + host->timeout_interval);
 }
 
-/**
- * hpsb_send_phy_config - transmit a PHY configuration packet on the bus
- * @host: host that PHY config packet gets sent through
- * @rootid: root whose force_root bit should get set (-1 = don't set force_root)
- * @gapcnt: gap count value to set (-1 = don't set gap count)
- *
- * This function sends a PHY config packet on the bus through the specified
- * host.
- *
- * Return value: 0 for success or negative error number otherwise.
- */
+
 int hpsb_send_phy_config(struct hpsb_host *host, int rootid, int gapcnt)
 {
 	struct hpsb_packet *packet;
@@ -577,20 +458,7 @@ int hpsb_send_phy_config(struct hpsb_host *host, int rootid, int gapcnt)
 	return retval;
 }
 
-/**
- * hpsb_send_packet - transmit a packet on the bus
- * @packet: packet to send
- *
- * The packet is sent through the host specified in the packet->host field.
- * Before sending, the packet's transmit speed is automatically determined
- * using the local speed map when it is an async, non-broadcast packet.
- *
- * Possibilities for failure are that host is either not initialized, in bus
- * reset, the packet's generation number doesn't match the current generation
- * number or the host reports a transmit error.
- *
- * Return value: 0 on success, negative errno on failure.
- */
+
 int hpsb_send_packet(struct hpsb_packet *packet)
 {
 	struct hpsb_host *host = packet->host;
@@ -603,16 +471,14 @@ int hpsb_send_packet(struct hpsb_packet *packet)
 
 	packet->state = hpsb_queued;
 
-	/* This just seems silly to me */
+	
 	WARN_ON(packet->no_waiter && packet->expect_response);
 
 	if (!packet->no_waiter || packet->expect_response) {
 		unsigned long flags;
 
 		atomic_inc(&packet->refcnt);
-		/* Set the initial "sendtime" to 10 seconds from now, to
-		   prevent premature expiry.  If a packet takes more than
-		   10 seconds to hit the wire, we have bigger problems :) */
+		
 		packet->sendtime = jiffies + 10 * HZ;
 		spin_lock_irqsave(&pending_packets_lock, flags);
 		list_add_tail(&packet->queue, &host->pending_packets);
@@ -620,7 +486,7 @@ int hpsb_send_packet(struct hpsb_packet *packet)
 	}
 
 	if (packet->node_id == host->node_id) {
-		/* it is a local request, so handle it locally */
+		
 
 		quadlet_t *data;
 		size_t size = packet->data_size + packet->header_size;
@@ -656,21 +522,14 @@ int hpsb_send_packet(struct hpsb_packet *packet)
 	return host->driver->transmit_packet(host, packet);
 }
 
-/* We could just use complete() directly as the packet complete
- * callback, but this is more typesafe, in the sense that we get a
- * compiler error if the prototype for complete() changes. */
+
 
 static void complete_packet(void *data)
 {
 	complete((struct completion *) data);
 }
 
-/**
- * hpsb_send_packet_and_wait - enqueue packet, block until transaction completes
- * @packet: packet to send
- *
- * Return value: 0 on success, negative errno on failure.
- */
+
 int hpsb_send_packet_and_wait(struct hpsb_packet *packet)
 {
 	struct completion done;
@@ -795,7 +654,7 @@ static struct hpsb_packet *create_reply_packet(struct hpsb_host *host,
 
 	p = hpsb_alloc_packet(dsize);
 	if (unlikely(p == NULL)) {
-		/* FIXME - send data_error response */
+		
 		HPSB_ERR("out of memory, cannot send response packet");
 		return NULL;
 	}
@@ -874,8 +733,7 @@ static void handle_incoming_packet(struct hpsb_host *host, int tcode,
 	u16 flags = (u16) data[0];
 	u64 addr;
 
-	/* FIXME?
-	 * Out-of-bounds lengths are left for highlevel_read|write to cap. */
+	
 
 	switch (tcode) {
 	case TCODE_WRITEQ:
@@ -892,7 +750,7 @@ handle_write_request:
 		if (rcode < 0 || write_acked ||
 		    NODEID_TO_NODE(data[0] >> 16) == NODE_MASK)
 			return;
-		/* not a broadcast write, reply */
+		
 		packet = create_reply_packet(host, data, 0);
 		if (packet) {
 			fill_async_write_resp(packet, rcode);
@@ -940,7 +798,7 @@ handle_write_request:
 			return;
 
 		if (extcode == 0 || extcode >= 7) {
-			/* let switch default handle error */
+			
 			length = 0;
 		}
 
@@ -987,20 +845,7 @@ handle_write_request:
 	}
 }
 
-/**
- * hpsb_packet_received - hand over received packet to the core
- *
- * For host driver module usage.
- *
- * The contents of data are expected to be the full packet but with the CRCs
- * left out (data block follows header immediately), with the header (i.e. the
- * first four quadlets) in machine byte order and the data block in big endian.
- * *@data can be safely overwritten after this call.
- *
- * If the packet is a write request, @write_acked is to be set to true if it was
- * ack_complete'd already, false otherwise.  This argument is ignored for any
- * other packet type.
- */
+
 void hpsb_packet_received(struct hpsb_host *host, quadlet_t *data, size_t size,
 			  int write_acked)
 {
@@ -1032,7 +877,7 @@ void hpsb_packet_received(struct hpsb_host *host, quadlet_t *data, size_t size,
 		break;
 
 	case TCODE_CYCLE_START:
-		/* simply ignore this packet if it is passed on */
+		
 		break;
 
 	default:
@@ -1082,9 +927,7 @@ void abort_timedouts(unsigned long __opaque)
 		if (time_before(packet->sendtime + expire, j))
 			list_move_tail(&packet->queue, &tmp);
 		else
-			/* Since packets are added to the tail, the oldest
-			 * ones are first, always. When we get to one that
-			 * isn't timed out, the rest aren't either. */
+			
 			break;
 	}
 	if (!list_empty(&host->pending_packets))
@@ -1120,11 +963,7 @@ static void queue_packet_complete(struct hpsb_packet *packet)
 	return;
 }
 
-/*
- * Kernel thread which handles packets that are completed.  This way the
- * packet's "complete" function is asynchronously run in process context.
- * Only packets which have a "complete" function may be sent here.
- */
+
 static int hpsbpkt_thread(void *__hi)
 {
 	struct hpsb_packet *packet, *p;
@@ -1158,7 +997,7 @@ static int __init ieee1394_init(void)
 {
 	int i, ret;
 
-	/* non-fatal error */
+	
 	if (hpsb_init_config_roms()) {
 		HPSB_ERR("Failed to initialize some config rom entries.\n");
 		HPSB_ERR("Some features may not be available\n");
@@ -1214,9 +1053,7 @@ static int __init ieee1394_init(void)
 
 	if (disable_nodemgr) {
 		HPSB_INFO("nodemgr and IRM functionality disabled");
-		/* We shouldn't contend for IRM with nodemgr disabled, since
-		   nodemgr implements functionality required of ieee1394a-2000
-		   IRMs */
+		
 		hpsb_disable_irm = 1;
 
 		return 0;
@@ -1278,16 +1115,16 @@ static void __exit ieee1394_cleanup(void)
 fs_initcall(ieee1394_init);
 module_exit(ieee1394_cleanup);
 
-/* Exported symbols */
 
-/** hosts.c **/
+
+
 EXPORT_SYMBOL(hpsb_alloc_host);
 EXPORT_SYMBOL(hpsb_add_host);
 EXPORT_SYMBOL(hpsb_resume_host);
 EXPORT_SYMBOL(hpsb_remove_host);
 EXPORT_SYMBOL(hpsb_update_config_rom_image);
 
-/** ieee1394_core.c **/
+
 EXPORT_SYMBOL(hpsb_speedto_str);
 EXPORT_SYMBOL(hpsb_protocol_class);
 EXPORT_SYMBOL(hpsb_set_packet_complete_task);
@@ -1303,7 +1140,7 @@ EXPORT_SYMBOL(hpsb_packet_sent);
 EXPORT_SYMBOL(hpsb_packet_received);
 EXPORT_SYMBOL_GPL(hpsb_disable_irm);
 
-/** ieee1394_transactions.c **/
+
 EXPORT_SYMBOL(hpsb_get_tlabel);
 EXPORT_SYMBOL(hpsb_free_tlabel);
 EXPORT_SYMBOL(hpsb_make_readpacket);
@@ -1317,7 +1154,7 @@ EXPORT_SYMBOL(hpsb_write);
 EXPORT_SYMBOL(hpsb_lock);
 EXPORT_SYMBOL(hpsb_packet_success);
 
-/** highlevel.c **/
+
 EXPORT_SYMBOL(hpsb_register_highlevel);
 EXPORT_SYMBOL(hpsb_unregister_highlevel);
 EXPORT_SYMBOL(hpsb_register_addrspace);
@@ -1330,16 +1167,16 @@ EXPORT_SYMBOL(hpsb_set_hostinfo_key);
 EXPORT_SYMBOL(hpsb_get_hostinfo_bykey);
 EXPORT_SYMBOL(hpsb_set_hostinfo);
 
-/** nodemgr.c **/
+
 EXPORT_SYMBOL(hpsb_node_fill_packet);
 EXPORT_SYMBOL(hpsb_node_write);
 EXPORT_SYMBOL(__hpsb_register_protocol);
 EXPORT_SYMBOL(hpsb_unregister_protocol);
 
-/** csr.c **/
+
 EXPORT_SYMBOL(hpsb_update_config_rom);
 
-/** dma.c **/
+
 EXPORT_SYMBOL(dma_prog_region_init);
 EXPORT_SYMBOL(dma_prog_region_alloc);
 EXPORT_SYMBOL(dma_prog_region_free);
@@ -1351,7 +1188,7 @@ EXPORT_SYMBOL(dma_region_sync_for_device);
 EXPORT_SYMBOL(dma_region_mmap);
 EXPORT_SYMBOL(dma_region_offset_to_bus);
 
-/** iso.c **/
+
 EXPORT_SYMBOL(hpsb_iso_xmit_init);
 EXPORT_SYMBOL(hpsb_iso_recv_init);
 EXPORT_SYMBOL(hpsb_iso_xmit_start);
@@ -1370,7 +1207,7 @@ EXPORT_SYMBOL(hpsb_iso_packet_received);
 EXPORT_SYMBOL(hpsb_iso_wake);
 EXPORT_SYMBOL(hpsb_iso_recv_flush);
 
-/** csr1212.c **/
+
 EXPORT_SYMBOL(csr1212_attach_keyval_to_directory);
 EXPORT_SYMBOL(csr1212_detach_keyval_from_directory);
 EXPORT_SYMBOL(csr1212_get_keyval);

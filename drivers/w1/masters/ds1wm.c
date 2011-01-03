@@ -1,15 +1,4 @@
-/*
- * 1-wire busmaster driver for DS1WM and ASICs with embedded DS1WMs
- * such as HP iPAQs (including h5xxx, h2200, and devices with ASIC3
- * like hx4700).
- *
- * Copyright (c) 2004-2005, Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
- * Copyright (c) 2004-2007, Matt Reimer <mreimer@vpop.net>
- *
- * Use consistent with the GNU GPL is permitted,
- * provided that this copyright notice is
- * preserved in its entirety in all copies and derived works.
- */
+
 
 #include <linux/module.h>
 #include <linux/interrupt.h>
@@ -27,33 +16,33 @@
 #include "../w1_int.h"
 
 
-#define DS1WM_CMD	0x00	/* R/W 4 bits command */
-#define DS1WM_DATA	0x01	/* R/W 8 bits, transmit/receive buffer */
-#define DS1WM_INT	0x02	/* R/W interrupt status */
-#define DS1WM_INT_EN	0x03	/* R/W interrupt enable */
-#define DS1WM_CLKDIV	0x04	/* R/W 5 bits of divisor and pre-scale */
+#define DS1WM_CMD	0x00	
+#define DS1WM_DATA	0x01	
+#define DS1WM_INT	0x02	
+#define DS1WM_INT_EN	0x03	
+#define DS1WM_CLKDIV	0x04	
 
-#define DS1WM_CMD_1W_RESET  (1 << 0)	/* force reset on 1-wire bus */
-#define DS1WM_CMD_SRA	    (1 << 1)	/* enable Search ROM accelerator mode */
-#define DS1WM_CMD_DQ_OUTPUT (1 << 2)	/* write only - forces bus low */
-#define DS1WM_CMD_DQ_INPUT  (1 << 3)	/* read only - reflects state of bus */
-#define DS1WM_CMD_RST	    (1 << 5)	/* software reset */
-#define DS1WM_CMD_OD	    (1 << 7)	/* overdrive */
+#define DS1WM_CMD_1W_RESET  (1 << 0)	
+#define DS1WM_CMD_SRA	    (1 << 1)	
+#define DS1WM_CMD_DQ_OUTPUT (1 << 2)	
+#define DS1WM_CMD_DQ_INPUT  (1 << 3)	
+#define DS1WM_CMD_RST	    (1 << 5)	
+#define DS1WM_CMD_OD	    (1 << 7)	
 
-#define DS1WM_INT_PD	    (1 << 0)	/* presence detect */
-#define DS1WM_INT_PDR	    (1 << 1)	/* presence detect result */
-#define DS1WM_INT_TBE	    (1 << 2)	/* tx buffer empty */
-#define DS1WM_INT_TSRE	    (1 << 3)	/* tx shift register empty */
-#define DS1WM_INT_RBF	    (1 << 4)	/* rx buffer full */
-#define DS1WM_INT_RSRF	    (1 << 5)	/* rx shift register full */
+#define DS1WM_INT_PD	    (1 << 0)	
+#define DS1WM_INT_PDR	    (1 << 1)	
+#define DS1WM_INT_TBE	    (1 << 2)	
+#define DS1WM_INT_TSRE	    (1 << 3)	
+#define DS1WM_INT_RBF	    (1 << 4)	
+#define DS1WM_INT_RSRF	    (1 << 5)	
 
-#define DS1WM_INTEN_EPD	    (1 << 0)	/* enable presence detect int */
-#define DS1WM_INTEN_IAS	    (1 << 1)	/* INTR active state */
-#define DS1WM_INTEN_ETBE    (1 << 2)	/* enable tx buffer empty int */
-#define DS1WM_INTEN_ETMT    (1 << 3)	/* enable tx shift register empty int */
-#define DS1WM_INTEN_ERBF    (1 << 4)	/* enable rx buffer full int */
-#define DS1WM_INTEN_ERSRF   (1 << 5)	/* enable rx shift register full int */
-#define DS1WM_INTEN_DQO	    (1 << 6)	/* enable direct bus driving ops */
+#define DS1WM_INTEN_EPD	    (1 << 0)	
+#define DS1WM_INTEN_IAS	    (1 << 1)	
+#define DS1WM_INTEN_ETBE    (1 << 2)	
+#define DS1WM_INTEN_ETMT    (1 << 3)	
+#define DS1WM_INTEN_ERBF    (1 << 4)	
+#define DS1WM_INTEN_ERSRF   (1 << 5)	
+#define DS1WM_INTEN_DQO	    (1 << 6)	
 
 
 #define DS1WM_TIMEOUT (HZ * 5)
@@ -87,7 +76,7 @@ static struct {
 
 struct ds1wm_data {
 	void		__iomem *map;
-	int		bus_shift; /* # of shifts to calc register offsets */
+	int		bus_shift; 
 	struct platform_device *pdev;
 	struct mfd_cell	*cell;
 	int		irq;
@@ -96,7 +85,7 @@ struct ds1wm_data {
 	void		*reset_complete;
 	void		*read_complete;
 	void		*write_complete;
-	u8		read_byte; /* last byte received */
+	u8		read_byte; 
 };
 
 static inline void ds1wm_write_register(struct ds1wm_data *ds1wm_data, u32 reg,
@@ -153,15 +142,7 @@ static int ds1wm_reset(struct ds1wm_data *ds1wm_data)
 		return 1;
 	}
 
-	/* Wait for the end of the reset. According to the specs, the time
-	 * from when the interrupt is asserted to the end of the reset is:
-	 *     tRSTH  - tPDH  - tPDL - tPDI
-	 *     625 us - 60 us - 240 us - 100 ns = 324.9 us
-	 *
-	 * We'll wait a bit longer just to be sure.
-	 * Was udelay(500), but if it is going to busywait the cpu that long,
-	 * might as well come back later.
-	 */
+	
 	msleep(1);
 
 	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN,
@@ -229,7 +210,7 @@ static void ds1wm_up(struct ds1wm_data *ds1wm_data)
 	}
 	ds1wm_write_register(ds1wm_data, DS1WM_CLKDIV, divisor);
 
-	/* Let the w1 clock stabilize. */
+	
 	msleep(1);
 
 	ds1wm_reset(ds1wm_data);
@@ -239,7 +220,7 @@ static void ds1wm_down(struct ds1wm_data *ds1wm_data)
 {
 	ds1wm_reset(ds1wm_data);
 
-	/* Disable interrupts. */
+	
 	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN,
 			     ds1wm_data->active_high ? DS1WM_INTEN_IAS : 0);
 
@@ -247,8 +228,8 @@ static void ds1wm_down(struct ds1wm_data *ds1wm_data)
 		ds1wm_data->cell->disable(ds1wm_data->pdev);
 }
 
-/* --------------------------------------------------------------------- */
-/* w1 methods */
+
+
 
 static u8 ds1wm_read_byte(void *data)
 {
@@ -280,8 +261,7 @@ static void ds1wm_search(void *data, struct w1_master *master_dev,
 	int i;
 	unsigned long long rom_id;
 
-	/* XXX We need to iterate for multiple devices per the DS1WM docs.
-	 * See http://www.maxim-ic.com/appnotes.cfm/appnote_number/120. */
+	
 	if (ds1wm_reset(ds1wm_data))
 		return;
 
@@ -315,7 +295,7 @@ static void ds1wm_search(void *data, struct w1_master *master_dev,
 	slave_found(master_dev, rom_id);
 }
 
-/* --------------------------------------------------------------------- */
+
 
 static struct w1_bus_master ds1wm_master = {
 	.read_byte  = ds1wm_read_byte,
@@ -357,7 +337,7 @@ static int ds1wm_probe(struct platform_device *pdev)
 	}
 	plat = cell->driver_data;
 
-	/* calculate bus shift from mem resource */
+	
 	ds1wm_data->bus_shift = resource_size(res) >> 3;
 
 	ds1wm_data->pdev = pdev;

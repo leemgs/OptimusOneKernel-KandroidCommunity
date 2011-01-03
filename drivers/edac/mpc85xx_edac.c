@@ -1,14 +1,4 @@
-/*
- * Freescale MPC85xx Memory Controller kenel module
- *
- * Author: Dave Jiang <djiang@mvista.com>
- *
- * 2006-2007 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
@@ -34,9 +24,7 @@ static int edac_mc_idx;
 static u32 orig_ddr_err_disable;
 static u32 orig_ddr_err_sbe;
 
-/*
- * PCI Err defines
- */
+
 #ifdef CONFIG_PCI
 static u32 orig_pci_err_cap_dr;
 static u32 orig_pci_err_en;
@@ -47,7 +35,7 @@ static u32 orig_l2_err_disable;
 static u32 orig_hid1[2];
 #endif
 
-/************************ MC SYSFS parts ***********************************/
+
 
 static ssize_t mpc85xx_mc_inject_data_hi_show(struct mem_ctl_info *mci,
 					      char *data)
@@ -133,7 +121,7 @@ static struct mcidev_sysfs_attribute mpc85xx_mc_sysfs_attributes[] = {
 	 .show = mpc85xx_mc_inject_ctrl_show,
 	 .store = mpc85xx_mc_inject_ctrl_store},
 
-	/* End of list */
+	
 	{
 	 .attr = {.name = NULL}
 	 }
@@ -144,7 +132,7 @@ static void mpc85xx_set_mc_sysfs_attributes(struct mem_ctl_info *mci)
 	mci->mc_driver_sysfs_attributes = mpc85xx_mc_sysfs_attributes;
 }
 
-/**************************** PCI Err device ***************************/
+
 #ifdef CONFIG_PCI
 
 static void mpc85xx_pci_check(struct edac_pci_ctl_info *pci)
@@ -154,7 +142,7 @@ static void mpc85xx_pci_check(struct edac_pci_ctl_info *pci)
 
 	err_detect = in_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_DR);
 
-	/* master aborts can happen during PCI config cycles */
+	
 	if (!(err_detect & ~(PCI_EDE_MULTI_ERR | PCI_EDE_MST_ABRT))) {
 		out_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_DR, err_detect);
 		return;
@@ -174,7 +162,7 @@ static void mpc85xx_pci_check(struct edac_pci_ctl_info *pci)
 	printk(KERN_ERR "PCI/X ERR_DH register: %#08x\n",
 	       in_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_DH));
 
-	/* clear error bits */
+	
 	out_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_DR, err_detect);
 
 	if (err_detect & PCI_EDE_PERR_MASK)
@@ -236,7 +224,7 @@ static int __devinit mpc85xx_pci_err_probe(struct of_device *op,
 		goto err;
 	}
 
-	/* we only need the error registers */
+	
 	r.start += 0xe00;
 
 	if (!devm_request_mem_region(&op->dev, r.start,
@@ -258,15 +246,15 @@ static int __devinit mpc85xx_pci_err_probe(struct of_device *op,
 	orig_pci_err_cap_dr =
 	    in_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_CAP_DR);
 
-	/* PCI master abort is expected during config cycles */
+	
 	out_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_CAP_DR, 0x40);
 
 	orig_pci_err_en = in_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_EN);
 
-	/* disable master abort reporting */
+	
 	out_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_EN, ~0x40);
 
-	/* clear error bits */
+	
 	out_be32(pdata->pci_vbase + MPC85XX_PCI_ERR_DR, ~0);
 
 	if (edac_pci_add_device(pci, pdata->edac_idx) > 0) {
@@ -350,11 +338,11 @@ static struct of_platform_driver mpc85xx_pci_err_driver = {
 		   },
 };
 
-#endif				/* CONFIG_PCI */
+#endif				
 
-/**************************** L2 Err device ***************************/
 
-/************************ L2 SYSFS parts ***********************************/
+
+
 
 static ssize_t mpc85xx_l2_inject_data_hi_show(struct edac_device_ctl_info
 					      *edac_dev, char *data)
@@ -442,7 +430,7 @@ static struct edac_dev_sysfs_attribute mpc85xx_l2_sysfs_attributes[] = {
 	 .show = mpc85xx_l2_inject_ctrl_show,
 	 .store = mpc85xx_l2_inject_ctrl_store},
 
-	/* End of list */
+	
 	{
 	 .attr = {.name = NULL}
 	 }
@@ -454,7 +442,7 @@ static void mpc85xx_set_l2_sysfs_attributes(struct edac_device_ctl_info
 	edac_dev->sysfs_attributes = mpc85xx_l2_sysfs_attributes;
 }
 
-/***************************** L2 ops ***********************************/
+
 
 static void mpc85xx_l2_check(struct edac_device_ctl_info *edac_dev)
 {
@@ -479,7 +467,7 @@ static void mpc85xx_l2_check(struct edac_device_ctl_info *edac_dev)
 	printk(KERN_ERR "L2 Error Address Capture Register: 0x%08x\n",
 	       in_be32(pdata->l2_vbase + MPC85XX_L2_ERRADDR));
 
-	/* clear error detect register */
+	
 	out_be32(pdata->l2_vbase + MPC85XX_L2_ERRDET, err_detect);
 
 	if (err_detect & L2_EDE_CE_MASK)
@@ -539,7 +527,7 @@ static int __devinit mpc85xx_l2_err_probe(struct of_device *op,
 		goto err;
 	}
 
-	/* we only need the error registers */
+	
 	r.start += 0xe00;
 
 	if (!devm_request_mem_region(&op->dev, r.start,
@@ -561,7 +549,7 @@ static int __devinit mpc85xx_l2_err_probe(struct of_device *op,
 
 	orig_l2_err_disable = in_be32(pdata->l2_vbase + MPC85XX_L2_ERRDIS);
 
-	/* clear the err_dis */
+	
 	out_be32(pdata->l2_vbase + MPC85XX_L2_ERRDIS, 0);
 
 	edac_dev->mod_name = EDAC_MOD_STR;
@@ -634,7 +622,7 @@ static int mpc85xx_l2_err_remove(struct of_device *op)
 }
 
 static struct of_device_id mpc85xx_l2_err_of_match[] = {
-/* deprecate the fsl,85.. forms in the future, 2.6.30? */
+
 	{ .compatible = "fsl,8540-l2-cache-controller", },
 	{ .compatible = "fsl,8541-l2-cache-controller", },
 	{ .compatible = "fsl,8544-l2-cache-controller", },
@@ -666,7 +654,7 @@ static struct of_platform_driver mpc85xx_l2_err_driver = {
 		   },
 };
 
-/**************************** MC Err device ***************************/
+
 
 static void mpc85xx_mc_check(struct mem_ctl_info *mci)
 {
@@ -685,7 +673,7 @@ static void mpc85xx_mc_check(struct mem_ctl_info *mci)
 	mpc85xx_mc_printk(mci, KERN_ERR, "Err Detect Register: %#8.8x\n",
 			  err_detect);
 
-	/* no more processing if not ECC bit errors */
+	
 	if (!(err_detect & (DDR_EDE_SBE | DDR_EDE_MBE))) {
 		out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_DETECT, err_detect);
 		return;
@@ -711,7 +699,7 @@ static void mpc85xx_mc_check(struct mem_ctl_info *mci)
 	mpc85xx_mc_printk(mci, KERN_ERR, "err addr: %#8.8x\n", err_addr);
 	mpc85xx_mc_printk(mci, KERN_ERR, "PFN: %#8.8x\n", pfn);
 
-	/* we are out of range */
+	
 	if (row_index == mci->nr_csrows)
 		mpc85xx_mc_printk(mci, KERN_ERR, "PFN out of range!\n");
 
@@ -798,7 +786,7 @@ static void __devinit mpc85xx_init_csrows(struct mem_ctl_info *mci)
 		end   = (cs_bnds & 0x0000ffff);
 
 		if (start == end)
-			continue;	/* not populated */
+			continue;	
 
 		start <<= (24 - PAGE_SHIFT);
 		end   <<= (24 - PAGE_SHIFT);
@@ -867,7 +855,7 @@ static int __devinit mpc85xx_mc_err_probe(struct of_device *op,
 
 	sdram_ctl = in_be32(pdata->mc_vbase + MPC85XX_MC_DDR_SDRAM_CFG);
 	if (!(sdram_ctl & DSC_ECC_EN)) {
-		/* no ECC */
+		
 		printk(KERN_WARNING "%s: No ECC DIMMs discovered\n", __func__);
 		res = -ENODEV;
 		goto err;
@@ -896,12 +884,12 @@ static int __devinit mpc85xx_mc_err_probe(struct of_device *op,
 	edac_mc_register_mcidev_debug((struct attribute **)debug_attr);
 #endif
 
-	/* store the original error disable bits */
+	
 	orig_ddr_err_disable =
 	    in_be32(pdata->mc_vbase + MPC85XX_MC_ERR_DISABLE);
 	out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_DISABLE, 0);
 
-	/* clear all error bits */
+	
 	out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_DETECT, ~0);
 
 	if (edac_mc_add_mc(mci)) {
@@ -913,14 +901,14 @@ static int __devinit mpc85xx_mc_err_probe(struct of_device *op,
 		out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_INT_EN,
 			 DDR_EIE_MBEE | DDR_EIE_SBEE);
 
-		/* store the original error management threshold */
+		
 		orig_ddr_err_sbe = in_be32(pdata->mc_vbase +
 					   MPC85XX_MC_ERR_SBE) & 0xff0000;
 
-		/* set threshold to 1 error per interrupt */
+		
 		out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_SBE, 0x10000);
 
-		/* register interrupts */
+		
 		pdata->irq = irq_of_parse_and_map(op->node, 0);
 		res = devm_request_irq(&op->dev, pdata->irq,
 				       mpc85xx_mc_isr,
@@ -974,7 +962,7 @@ static int mpc85xx_mc_err_remove(struct of_device *op)
 }
 
 static struct of_device_id mpc85xx_mc_err_of_match[] = {
-/* deprecate the fsl,85.. forms in the future, 2.6.30? */
+
 	{ .compatible = "fsl,8540-memory-controller", },
 	{ .compatible = "fsl,8541-memory-controller", },
 	{ .compatible = "fsl,8544-memory-controller", },
@@ -1022,7 +1010,7 @@ static int __init mpc85xx_mc_init(void)
 	printk(KERN_INFO "Freescale(R) MPC85xx EDAC driver, "
 	       "(C) 2006 Montavista Software\n");
 
-	/* make sure error reporting method is sane */
+	
 	switch (edac_op_state) {
 	case EDAC_OPSTATE_POLL:
 	case EDAC_OPSTATE_INT:
@@ -1047,10 +1035,7 @@ static int __init mpc85xx_mc_init(void)
 #endif
 
 #ifdef CONFIG_MPC85xx
-	/*
-	 * need to clear HID1[RFXE] to disable machine check int
-	 * so we can catch it
-	 */
+	
 	if (edac_op_state == EDAC_OPSTATE_INT)
 		on_each_cpu(mpc85xx_mc_clear_rfxe, NULL, 0);
 #endif

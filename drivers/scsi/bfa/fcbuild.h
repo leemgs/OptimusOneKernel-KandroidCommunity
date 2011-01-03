@@ -1,22 +1,5 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
-/*
- * fcbuild.h - FC link service frame building and parsing routines
- */
+
+
 
 #ifndef __FCBUILD_H__
 #define __FCBUILD_H__
@@ -28,9 +11,7 @@
 #include <defs/bfa_defs_port.h>
 #include <defs/bfa_defs_pport.h>
 
-/*
- * Utility Macros/functions
- */
+
 
 #define fcif_sof_set(_ifhdr, _sof)	(_ifhdr)->sof = FC_ ## _sof
 #define fcif_eof_set(_ifhdr, _eof)	(_ifhdr)->eof = FC_ ## _eof
@@ -40,21 +21,14 @@
 
 #define fc_roundup(_l, _s) (((_l) + ((_s) - 1)) & ~((_s) - 1))
 
-/*
- * Given the fc response length, this routine will return
- * the length of the actual payload bytes following the CT header.
- *
- * Assumes the input response length does not include the crc, eof, etc.
- */
+
 static inline   u32
 fc_get_ctresp_pyld_len(u32 resp_len)
 {
 	return (resp_len - sizeof(struct ct_hdr_s));
 }
 
-/*
- * Convert bfa speed to rpsc speed value.
- */
+
 static inline enum bfa_pport_speed
 fc_rpsc_operspeed_to_bfa_speed(enum fc_rpsc_op_speed_s speed)
 {
@@ -77,9 +51,7 @@ fc_rpsc_operspeed_to_bfa_speed(enum fc_rpsc_op_speed_s speed)
 	}
 }
 
-/*
- * Convert RPSC speed to bfa speed value.
- */
+
 static inline   enum fc_rpsc_op_speed_s
 fc_bfa_speed_to_rpsc_operspeed(enum bfa_pport_speed op_speed)
 {

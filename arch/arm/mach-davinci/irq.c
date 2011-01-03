@@ -1,23 +1,4 @@
-/*
- * Interrupt handler for DaVinci boards.
- *
- * Copyright (C) 2006 Texas Instruments.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -52,7 +33,7 @@ static inline void davinci_irq_writel(unsigned long value, int offset)
 	__raw_writel(value, davinci_intc_base + offset);
 }
 
-/* Disable interrupt */
+
 static void davinci_mask_irq(unsigned int irq)
 {
 	unsigned int mask;
@@ -71,7 +52,7 @@ static void davinci_mask_irq(unsigned int irq)
 	}
 }
 
-/* Enable interrupt */
+
 static void davinci_unmask_irq(unsigned int irq)
 {
 	unsigned int mask;
@@ -90,7 +71,7 @@ static void davinci_unmask_irq(unsigned int irq)
 	}
 }
 
-/* EOI interrupt */
+
 static void davinci_ack_irq(unsigned int irq)
 {
 	unsigned int mask;
@@ -110,29 +91,29 @@ static struct irq_chip davinci_irq_chip_0 = {
 	.unmask = davinci_unmask_irq,
 };
 
-/* ARM Interrupt Controller Initialization */
+
 void __init davinci_irq_init(void)
 {
 	unsigned i;
 	const u8 *davinci_def_priorities = davinci_soc_info.intc_irq_prios;
 
-	/* Clear all interrupt requests */
+	
 	davinci_irq_writel(~0x0, FIQ_REG0_OFFSET);
 	davinci_irq_writel(~0x0, FIQ_REG1_OFFSET);
 	davinci_irq_writel(~0x0, IRQ_REG0_OFFSET);
 	davinci_irq_writel(~0x0, IRQ_REG1_OFFSET);
 
-	/* Disable all interrupts */
+	
 	davinci_irq_writel(0x0, IRQ_ENT_REG0_OFFSET);
 	davinci_irq_writel(0x0, IRQ_ENT_REG1_OFFSET);
 
-	/* Interrupts disabled immediately, IRQ entry reflects all */
+	
 	davinci_irq_writel(0x0, IRQ_INCTL_REG_OFFSET);
 
-	/* we don't use the hardware vector table, just its entry addresses */
+	
 	davinci_irq_writel(0, IRQ_EABASE_REG_OFFSET);
 
-	/* Clear all interrupt requests */
+	
 	davinci_irq_writel(~0x0, FIQ_REG0_OFFSET);
 	davinci_irq_writel(~0x0, FIQ_REG1_OFFSET);
 	davinci_irq_writel(~0x0, IRQ_REG0_OFFSET);
@@ -147,7 +128,7 @@ void __init davinci_irq_init(void)
 		davinci_irq_writel(pri, i);
 	}
 
-	/* set up genirq dispatch for ARM INTC */
+	
 	for (i = 0; i < DAVINCI_N_AINTC_IRQ; i++) {
 		set_irq_chip(i, &davinci_irq_chip_0);
 		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);

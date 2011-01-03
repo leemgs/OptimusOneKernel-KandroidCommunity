@@ -1,20 +1,4 @@
-/*
- * arch/arch/mach-ixp4xx/fsg-pci.c
- *
- * FSG board-level PCI initialization
- *
- * Author: Rod Whitby <rod@whitby.id.au>
- * Maintainer: http://www.nslu2-linux.org/
- *
- * based on ixdp425-pci.c:
- *	Copyright (C) 2002 Intel Corporation.
- *	Copyright (C) 2003-2004 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/pci.h>
 #include <linux/init.h>

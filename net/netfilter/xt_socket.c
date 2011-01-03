@@ -1,14 +1,4 @@
-/*
- * Transparent proxy support for Linux/iptables
- *
- * Copyright (C) 2007-2008 BalaBit IT Ltd.
- * Author: Krisztian Kovacs
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -75,8 +65,7 @@ extract_icmp_fields(const struct sk_buff *skb,
 	if (ports == NULL)
 		return 1;
 
-	/* the inside IP packet is the one quoted from our side, thus
-	 * its saddr is the local address */
+	
 	*protocol = inside_iph->protocol;
 	*laddr = inside_iph->saddr;
 	*lport = ports[0];
@@ -123,8 +112,7 @@ socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
 	}
 
 #ifdef XT_SOCKET_HAVE_CONNTRACK
-	/* Do the lookup with the original socket address in case this is a
-	 * reply packet of an established SNAT-ted connection. */
+	
 
 	ct = nf_ct_get(skb, &ctinfo);
 	if (ct && (ct != &nf_conntrack_untracked) &&
@@ -147,12 +135,11 @@ socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
 		bool wildcard;
 		bool transparent = true;
 
-		/* Ignore sockets listening on INADDR_ANY */
+		
 		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
 			    inet_sk(sk)->rcv_saddr == 0);
 
-		/* Ignore non-transparent sockets,
-		   if XT_SOCKET_TRANSPARENT is used */
+		
 		if (info && info->flags & XT_SOCKET_TRANSPARENT)
 			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
 					inet_sk(sk)->transparent) ||

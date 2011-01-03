@@ -1,8 +1,4 @@
-/*
- * Flash memory access on AMD Alchemy evaluation boards
- *
- * (C) 2003, 2004 Pete Popov <ppopov@embeddedalley.com>
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -17,75 +13,75 @@
 
 #ifdef CONFIG_MIPS_PB1000
 #define BOARD_MAP_NAME "Pb1000 Flash"
-#define BOARD_FLASH_SIZE 0x00800000 /* 8MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x00800000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_PB1500
 #define BOARD_MAP_NAME "Pb1500 Flash"
-#define BOARD_FLASH_SIZE 0x04000000 /* 64MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x04000000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_PB1100
 #define BOARD_MAP_NAME "Pb1100 Flash"
-#define BOARD_FLASH_SIZE 0x04000000 /* 64MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x04000000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_PB1550
 #define BOARD_MAP_NAME "Pb1550 Flash"
-#define BOARD_FLASH_SIZE 0x08000000 /* 128MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x08000000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_PB1200
 #define BOARD_MAP_NAME "Pb1200 Flash"
-#define BOARD_FLASH_SIZE 0x08000000 /* 128MB */
-#define BOARD_FLASH_WIDTH 2 /* 16-bits */
+#define BOARD_FLASH_SIZE 0x08000000 
+#define BOARD_FLASH_WIDTH 2 
 #endif
 
 #ifdef CONFIG_MIPS_DB1000
 #define BOARD_MAP_NAME "Db1000 Flash"
-#define BOARD_FLASH_SIZE 0x02000000 /* 32MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x02000000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_DB1500
 #define BOARD_MAP_NAME "Db1500 Flash"
-#define BOARD_FLASH_SIZE 0x02000000 /* 32MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x02000000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_DB1100
 #define BOARD_MAP_NAME "Db1100 Flash"
-#define BOARD_FLASH_SIZE 0x02000000 /* 32MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x02000000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_DB1550
 #define BOARD_MAP_NAME "Db1550 Flash"
-#define BOARD_FLASH_SIZE 0x08000000 /* 128MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
+#define BOARD_FLASH_SIZE 0x08000000 
+#define BOARD_FLASH_WIDTH 4 
 #endif
 
 #ifdef CONFIG_MIPS_DB1200
 #define BOARD_MAP_NAME "Db1200 Flash"
-#define BOARD_FLASH_SIZE 0x04000000 /* 64MB */
-#define BOARD_FLASH_WIDTH 2 /* 16-bits */
+#define BOARD_FLASH_SIZE 0x04000000 
+#define BOARD_FLASH_WIDTH 2 
 #endif
 
 #ifdef CONFIG_MIPS_BOSPORUS
 #define BOARD_MAP_NAME "Bosporus Flash"
-#define BOARD_FLASH_SIZE 0x01000000 /* 16MB */
-#define BOARD_FLASH_WIDTH 2 /* 16-bits */
+#define BOARD_FLASH_SIZE 0x01000000 
+#define BOARD_FLASH_WIDTH 2 
 #endif
 
 #ifdef CONFIG_MIPS_MIRAGE
 #define BOARD_MAP_NAME "Mirage Flash"
-#define BOARD_FLASH_SIZE 0x04000000 /* 64MB */
-#define BOARD_FLASH_WIDTH 4 /* 32-bits */
-#define USE_LOCAL_ACCESSORS /* why? */
+#define BOARD_FLASH_SIZE 0x04000000 
+#define BOARD_FLASH_WIDTH 4 
+#define USE_LOCAL_ACCESSORS 
 #endif
 
 static struct map_info alchemy_map = {
@@ -104,7 +100,7 @@ static struct mtd_partition alchemy_partitions[] = {
                 .mask_flags = MTD_WRITEABLE
         },{
                 .name = "raw kernel",
-		.size = (0x300000 - 0x40000), /* last 256KB is yamon env */
+		.size = (0x300000 - 0x40000), 
 		.offset = MTDPART_OFS_APPEND,
         }
 };
@@ -118,23 +114,18 @@ static int __init alchemy_mtd_init(void)
 	unsigned long window_addr;
 	unsigned long window_size;
 
-	/* Default flash buswidth */
+	
 	alchemy_map.bankwidth = BOARD_FLASH_WIDTH;
 
 	window_addr = 0x20000000 - BOARD_FLASH_SIZE;
 	window_size = BOARD_FLASH_SIZE;
 
-	/*
-	 * Static partition definition selection
-	 */
+	
 	parts = alchemy_partitions;
 	nb_parts = ARRAY_SIZE(alchemy_partitions);
 	alchemy_map.size = window_size;
 
-	/*
-	 * Now let's probe for the actual flash.  Do it here since
-	 * specific machine settings might have been set above.
-	 */
+	
 	printk(KERN_NOTICE BOARD_MAP_NAME ": probing %d-bit flash bus\n",
 			alchemy_map.bankwidth*8);
 	alchemy_map.virt = ioremap(window_addr, window_size);

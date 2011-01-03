@@ -1,23 +1,4 @@
-/*
- * MXC GPIO support. (c) 2008 Daniel Mack <daniel@caiaq.de>
- * Copyright 2008 Juergen Beisert, kernel@pengutronix.de
- *
- * Based on code from Freescale,
- * Copyright 2004-2006 Freescale Semiconductor, Inc. All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/io.h>
@@ -46,7 +27,7 @@ static int gpio_table_size;
 #define GPIO_INT_FALL_EDGE	(cpu_is_mx1_mx2() ? 0x1 : 0x3)
 #define GPIO_INT_NONE		0x4
 
-/* Note: This driver assumes 32 GPIOs are handled in one register */
+
 
 static void _clear_gpio_irqstatus(struct mxc_gpio_port *port, u32 index)
 {
@@ -120,7 +101,7 @@ static int gpio_set_irq_type(u32 irq, u32 type)
 		return -EINVAL;
 	}
 
-	reg += GPIO_ICR1 + ((gpio & 0x10) >> 2); /* lower or upper register */
+	reg += GPIO_ICR1 + ((gpio & 0x10) >> 2); 
 	bit = gpio & 0xf;
 	val = __raw_readl(reg) & ~(0x3 << (bit << 1));
 	__raw_writel(val | (edge << (bit << 1)), reg);
@@ -135,7 +116,7 @@ static void mxc_flip_edge(struct mxc_gpio_port *port, u32 gpio)
 	u32 bit, val;
 	int edge;
 
-	reg += GPIO_ICR1 + ((gpio & 0x10) >> 2); /* lower or upper register */
+	reg += GPIO_ICR1 + ((gpio & 0x10) >> 2); 
 	bit = gpio & 0xf;
 	val = __raw_readl(reg);
 	edge = (val >> (bit << 1)) & 3;
@@ -157,7 +138,7 @@ static void mxc_flip_edge(struct mxc_gpio_port *port, u32 gpio)
 	__raw_writel(val | (edge << (bit << 1)), reg);
 }
 
-/* handle n interrupts in one status register */
+
 static void mxc_gpio_irq_handler(struct mxc_gpio_port *port, u32 irq_stat)
 {
 	u32 gpio_irq_no;
@@ -179,7 +160,7 @@ static void mxc_gpio_irq_handler(struct mxc_gpio_port *port, u32 irq_stat)
 	}
 }
 
-/* MX1 and MX3 has one interrupt *per* gpio port */
+
 static void mx3_gpio_irq_handler(u32 irq, struct irq_desc *desc)
 {
 	u32 irq_stat;
@@ -191,14 +172,14 @@ static void mx3_gpio_irq_handler(u32 irq, struct irq_desc *desc)
 	mxc_gpio_irq_handler(port, irq_stat);
 }
 
-/* MX2 has one interrupt *for all* gpio ports */
+
 static void mx2_gpio_irq_handler(u32 irq, struct irq_desc *desc)
 {
 	int i;
 	u32 irq_msk, irq_stat;
 	struct mxc_gpio_port *port = (struct mxc_gpio_port *)get_irq_data(irq);
 
-	/* walk through all interrupt status registers */
+	
 	for (i = 0; i < gpio_table_size; i++) {
 		irq_msk = __raw_readl(port[i].base + GPIO_IMR);
 		if (!irq_msk)
@@ -269,14 +250,14 @@ int __init mxc_gpio_init(struct mxc_gpio_port *port, int cnt)
 {
 	int i, j;
 
-	/* save for local usage */
+	
 	mxc_gpio_ports = port;
 	gpio_table_size = cnt;
 
 	printk(KERN_INFO "MXC GPIO hardware\n");
 
 	for (i = 0; i < cnt; i++) {
-		/* disable the interrupt and clear the status */
+		
 		__raw_writel(0, port[i].base + GPIO_IMR);
 		__raw_writel(~0, port[i].base + GPIO_ISR);
 		for (j = port[i].virtual_irq_start;
@@ -286,7 +267,7 @@ int __init mxc_gpio_init(struct mxc_gpio_port *port, int cnt)
 			set_irq_flags(j, IRQF_VALID);
 		}
 
-		/* register gpio chip */
+		
 		port[i].chip.direction_input = mxc_gpio_direction_input;
 		port[i].chip.direction_output = mxc_gpio_direction_output;
 		port[i].chip.get = mxc_gpio_get;
@@ -294,18 +275,18 @@ int __init mxc_gpio_init(struct mxc_gpio_port *port, int cnt)
 		port[i].chip.base = i * 32;
 		port[i].chip.ngpio = 32;
 
-		/* its a serious configuration bug when it fails */
+		
 		BUG_ON( gpiochip_add(&port[i].chip) < 0 );
 
 		if (cpu_is_mx1() || cpu_is_mx3() || cpu_is_mx25()) {
-			/* setup one handler for each entry */
+			
 			set_irq_chained_handler(port[i].irq, mx3_gpio_irq_handler);
 			set_irq_data(port[i].irq, &port[i]);
 		}
 	}
 
 	if (cpu_is_mx2()) {
-		/* setup one handler for all GPIO interrupts */
+		
 		set_irq_chained_handler(port[0].irq, mx2_gpio_irq_handler);
 		set_irq_data(port[0].irq, port);
 	}

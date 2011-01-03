@@ -1,28 +1,4 @@
-/* Linux driver for Philips webcam
-   Decompression for chipset version 2 et 3
-   (C) 2004-2006  Luc Saillard (luc@saillard.org)
 
-   NOTE: this version of pwc is an unofficial (modified) release of pwc & pcwx
-   driver and thus may have bugs that are not present in the original version.
-   Please send bug reports and support requests to <luc@saillard.org>.
-   The decompression routines have been implemented by reverse-engineering the
-   Nemosoft binary pwcx module. Caveat emptor.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-*/
 
 #include "pwc-timon.h"
 #include "pwc-kiara.h"
@@ -31,30 +7,16 @@
 
 #include <linux/string.h>
 
-/*
- * USE_LOOKUP_TABLE_TO_CLAMP
- *   0: use a C version of this tests:  {  a<0?0:(a>255?255:a) }
- *   1: use a faster lookup table for cpu with a big cache (intel)
- */
+
 #define USE_LOOKUP_TABLE_TO_CLAMP	1
-/*
- * UNROLL_LOOP_FOR_COPYING_BLOCK
- *   0: use a loop for a smaller code (but little slower)
- *   1: when unrolling the loop, gcc produces some faster code (perhaps only
- *   valid for intel processor class). Activating this option, automaticaly
- *   activate USE_LOOKUP_TABLE_TO_CLAMP
- */
+
 #define UNROLL_LOOP_FOR_COPY		1
 #if UNROLL_LOOP_FOR_COPY
 # undef USE_LOOKUP_TABLE_TO_CLAMP
 # define USE_LOOKUP_TABLE_TO_CLAMP 1
 #endif
 
-/*
- * ENABLE_BAYER_DECODER
- *   0: bayer decoder is not build (save some space)
- *   1: bayer decoder is build and can be used
- */
+
 #define ENABLE_BAYER_DECODER 0
 
 static void build_subblock_pattern(struct pwc_dec23_private *pdec)
@@ -112,7 +74,7 @@ static void build_table_color(const unsigned int romtable[16][8],
 	unsigned char *p0, *p8;
 	const unsigned int *r;
 
-	/* We have 16 compressions tables */
+	
 	for (compression_mode = 0; compression_mode < 16; compression_mode++) {
 		p0 = p0004[compression_mode];
 		p8 = p8004[compression_mode];
@@ -150,14 +112,12 @@ static void build_table_color(const unsigned int romtable[16][8],
 				p0[k + 0x50] = (-2 * pw) + 0x80;
 				p0[k + 0x60] = (-3 * pw) + 0x80;
 				p0[k + 0x70] = (-4 * pw) + 0x80;
-			}	/* end of for (k=0; k<16; k++, p8++) */
-		}	/* end of for (j=0; j<8; j++ , table++) */
-	} /* end of foreach compression_mode */
+			}	
+		}	
+	} 
 }
 
-/*
- *
- */
+
 static void fill_table_dc00_d800(struct pwc_dec23_private *pdec)
 {
 #define SCALEBITS 15
@@ -175,33 +135,7 @@ static void fill_table_dc00_d800(struct pwc_dec23_private *pdec)
 	}
 }
 
-/*
- * To decode the stream:
- *   if look_bits(2) == 0:	# op == 2 in the lookup table
- *      skip_bits(2)
- *      end of the stream
- *   elif look_bits(3) == 7:	# op == 1 in the lookup table
- *      skip_bits(3)
- *      yyyy = get_bits(4)
- *      xxxx = get_bits(8)
- *   else:			# op == 0 in the lookup table
- *      skip_bits(x)
- *
- * For speedup processing, we build a lookup table and we takes the first 6 bits.
- *
- * struct {
- *   unsigned char op;	    // operation to execute
- *   unsigned char bits;    // bits use to perform operation
- *   unsigned char offset1; // offset to add to access in the table_0004 % 16
- *   unsigned char offset2; // offset to add to access in the table_0004
- * }
- *
- * How to build this table ?
- *   op == 2 when (i%4)==0
- *   op == 1 when (i%8)==7
- *   op == 0 otherwise
- *
- */
+
 static const unsigned char hash_table_ops[64*4] = {
 	0x02, 0x00, 0x00, 0x00,
 	0x00, 0x03, 0x01, 0x00,
@@ -269,9 +203,7 @@ static const unsigned char hash_table_ops[64*4] = {
 	0x01, 0x00, 0x00, 0x00
 };
 
-/*
- *
- */
+
 static const unsigned int MulIdx[16][16] = {
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,},
 	{0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3,},
@@ -300,7 +232,7 @@ static unsigned char pwc_crop_table[256 + 2*MAX_OUTER_CROP_VALUE];
 #endif
 
 
-/* If the type or the command change, we rebuild the lookup table */
+
 int pwc_dec23_init(struct pwc_device *pwc, int type, unsigned char *cmd)
 {
 	int flags, version, shift, i;
@@ -317,7 +249,7 @@ int pwc_dec23_init(struct pwc_device *pwc, int type, unsigned char *cmd)
 	if (DEVICE_USE_CODEC3(type)) {
 		flags = cmd[2] & 0x18;
 		if (flags == 8)
-			pdec->nbits = 7;	/* More bits, mean more bits to encode the stream, but better quality */
+			pdec->nbits = 7;	
 		else if (flags == 0x10)
 			pdec->nbits = 8;
 		else
@@ -342,7 +274,7 @@ int pwc_dec23_init(struct pwc_device *pwc, int type, unsigned char *cmd)
 		build_table_color(TimonRomTable[version][1], pdec->table_0004_pass2, pdec->table_8004_pass2);
 	}
 
-	/* Informations can be coded on a variable number of bits but never less than 8 */
+	
 	shift = 8 - pdec->nbits;
 	pdec->scalebits = SCALEBITS - shift;
 	pdec->nbitsmask = 0xFF >> shift;
@@ -352,7 +284,7 @@ int pwc_dec23_init(struct pwc_device *pwc, int type, unsigned char *cmd)
 	build_bit_powermask_table(pdec);
 
 #if USE_LOOKUP_TABLE_TO_CLAMP
-	/* Build the static table to clamp value [0-255] */
+	
 	for (i=0;i<MAX_OUTER_CROP_VALUE;i++)
 		pwc_crop_table[i] = 0;
 	for (i=0; i<256; i++)
@@ -364,9 +296,7 @@ int pwc_dec23_init(struct pwc_device *pwc, int type, unsigned char *cmd)
 	return 0;
 }
 
-/*
- * Copy the 4x4 image block to Y plane buffer
- */
+
 static void copy_image_block_Y(const int *src, unsigned char *dst, unsigned int bytes_per_line, unsigned int scalebits)
 {
 #if UNROLL_LOOP_FOR_COPY
@@ -417,14 +347,11 @@ static void copy_image_block_Y(const int *src, unsigned char *dst, unsigned int 
 #endif
 }
 
-/*
- * Copy the 4x4 image block to a CrCb plane buffer
- *
- */
+
 static void copy_image_block_CrCb(const int *src, unsigned char *dst, unsigned int bytes_per_line, unsigned int scalebits)
 {
 #if UNROLL_LOOP_FOR_COPY
-	/* Unroll all loops */
+	
 	const unsigned char *cm = pwc_crop_table+MAX_OUTER_CROP_VALUE;
 	const int *c = src;
 	unsigned char *d = dst;
@@ -467,22 +394,11 @@ static void copy_image_block_CrCb(const int *src, unsigned char *dst, unsigned i
 }
 
 #if ENABLE_BAYER_DECODER
-/*
- * Format: 8x2 pixels
- *   . G . G . G . G . G . G . G
- *   . . . . . . . . . . . . . .
- *   . G . G . G . G . G . G . G
- *   . . . . . . . . . . . . . .
- *   or
- *   . . . . . . . . . . . . . .
- *   G . G . G . G . G . G . G .
- *   . . . . . . . . . . . . . .
- *   G . G . G . G . G . G . G .
-*/
+
 static void copy_image_block_Green(const int *src, unsigned char *dst, unsigned int bytes_per_line, unsigned int scalebits)
 {
 #if UNROLL_LOOP_FOR_COPY
-	/* Unroll all loops */
+	
 	const unsigned char *cm = pwc_crop_table+MAX_OUTER_CROP_VALUE;
 	unsigned char *d = dst;
 	const int *c = src;
@@ -522,17 +438,11 @@ static void copy_image_block_Green(const int *src, unsigned char *dst, unsigned 
 #endif
 
 #if ENABLE_BAYER_DECODER
-/*
- * Format: 4x4 pixels
- *   R . R . R . R
- *   . B . B . B .
- *   R . R . R . R
- *   . B . B . B .
- */
+
 static void copy_image_block_RedBlue(const int *src, unsigned char *dst, unsigned int bytes_per_line, unsigned int scalebits)
 {
 #if UNROLL_LOOP_FOR_COPY
-	/* Unroll all loops */
+	
 	const unsigned char *cm = pwc_crop_table+MAX_OUTER_CROP_VALUE;
 	unsigned char *d = dst;
 	const int *c = src;
@@ -583,15 +493,7 @@ static void copy_image_block_RedBlue(const int *src, unsigned char *dst, unsigne
 }
 #endif
 
-/*
- * To manage the stream, we keep bits in a 32 bits register.
- * fill_nbits(n): fill the reservoir with at least n bits
- * skip_bits(n): discard n bits from the reservoir
- * get_bits(n): fill the reservoir, returns the first n bits and discard the
- *              bits from the reservoir.
- * __get_nbits(n): faster version of get_bits(n), but asumes that the reservoir
- *                 contains at least n bits. bits returned is discarded.
- */
+
 #define fill_nbits(pdec, nbits_wanted) do { \
    while (pdec->nbits_in_reservoir<(nbits_wanted)) \
     { \
@@ -619,9 +521,7 @@ static void copy_image_block_RedBlue(const int *src, unsigned char *dst, unsigne
 #define look_nbits(pdec, nbits_wanted) \
    ((pdec->reservoir) & ((1U<<(nbits_wanted))-1))
 
-/*
- * Decode a 4x4 pixel block
- */
+
 static void decode_block(struct pwc_dec23_private *pdec,
 			 const unsigned char *ptable0004,
 			 const unsigned char *ptable8004)
@@ -635,14 +535,14 @@ static void decode_block(struct pwc_dec23_private *pdec,
 
 	if (look_nbits(pdec,2) == 0) {
 		skip_nbits(pdec, 2);
-		/* Very simple, the color is the same for all pixels of the square */
+		
 		for (i = 0; i < 16; i++)
 			pdec->temp_colors[i] = pdec->table_dc00[primary_color];
 
 		return;
 	}
 
-	/* This block is encoded with small pattern */
+	
 	for (i = 0; i < 16; i++)
 		pdec->temp_colors[i] = pdec->table_d800[primary_color];
 
@@ -658,12 +558,7 @@ static void decode_block(struct pwc_dec23_private *pdec,
 		unsigned int htable_idx, rows = 0;
 		const unsigned int *block;
 
-		/* [  zzzz y x x ]
-		 *     xx == 00 :=> end of the block def, remove the two bits from the stream
-		 *    yxx == 111
-		 *    yxx == any other value
-		 *
-		 */
+		
 		fill_nbits(pdec, 16);
 		htable_idx = look_nbits(pdec, 6);
 		op = hash_table_ops[htable_idx * 4];
@@ -672,25 +567,22 @@ static void decode_block(struct pwc_dec23_private *pdec,
 			skip_nbits(pdec, 2);
 
 		} else if (op == 1) {
-			/* 15bits [ xxxx xxxx yyyy 111 ]
-			 * yyy => offset in the table8004
-			 * xxx => offset in the tabled004 (tree)
-			 */
+			
 			unsigned int mask, shift;
 			unsigned int nbits, col1;
 			unsigned int yyyy;
 
 			skip_nbits(pdec, 3);
-			/* offset1 += yyyy */
+			
 			__get_nbits(pdec, 4, yyyy);
 			offset1 += 1 + yyyy;
 			offset1 &= 0x0F;
 			nbits = ptable8004[offset1 * 2];
 
-			/* col1 = xxxx xxxx */
+			
 			__get_nbits(pdec, nbits+1, col1);
 
-			/* Bit mask table */
+			
 			mask = pdec->table_bitpowermask[nbits][col1];
 			shift = ptable8004[offset1 * 2 + 1];
 			rows = ((mask << shift) + 0x80) & 0xFF;
@@ -700,9 +592,7 @@ static void decode_block(struct pwc_dec23_private *pdec,
 				pdec->temp_colors[i] += block[MulIdx[offset1][i]];
 
 		} else {
-			/* op == 0
-			 * offset1 is coded on 3 bits
-			 */
+			
 			unsigned int shift;
 
 			offset1 += hash_table_ops [htable_idx * 4 + 2];
@@ -735,17 +625,17 @@ static void DecompressBand23(struct pwc_dec23_private *pdec,
 
 	pdec->reservoir = 0;
 	pdec->nbits_in_reservoir = 0;
-	pdec->stream = rawyuv + 1;	/* The first byte of the stream is skipped */
+	pdec->stream = rawyuv + 1;	
 
 	get_nbits(pdec, 4, compression_index);
 
-	/* pass 1: uncompress Y component */
+	
 	nblocks = compressed_image_width / 4;
 
 	ptable0004 = pdec->table_0004_pass1[compression_index];
 	ptable8004 = pdec->table_8004_pass1[compression_index];
 
-	/* Each block decode a square of 4x4 */
+	
 	while (nblocks) {
 		decode_block(pdec, ptable0004, ptable8004);
 		copy_image_block_Y(pdec->temp_colors, planar_y, real_image_width, pdec->scalebits);
@@ -753,13 +643,13 @@ static void DecompressBand23(struct pwc_dec23_private *pdec,
 		nblocks--;
 	}
 
-	/* pass 2: uncompress UV component */
+	
 	nblocks = compressed_image_width / 8;
 
 	ptable0004 = pdec->table_0004_pass2[compression_index];
 	ptable8004 = pdec->table_8004_pass2[compression_index];
 
-	/* Each block decode a square of 4x4 */
+	
 	while (nblocks) {
 		decode_block(pdec, ptable0004, ptable8004);
 		copy_image_block_CrCb(pdec->temp_colors, planar_u, real_image_width/2, pdec->scalebits);
@@ -775,17 +665,7 @@ static void DecompressBand23(struct pwc_dec23_private *pdec,
 }
 
 #if ENABLE_BAYER_DECODER
-/*
- * Size need to be a multiple of 8 in width
- *
- * Return a block of four line encoded like this:
- *
- *   G R G R G R G R G R G R G R G R
- *   B G B G B G B G B G B G B G B G
- *   G R G R G R G R G R G R G R G R
- *   B G B G B G B G B G B G B G B G
- *
- */
+
 static void DecompressBandBayer(struct pwc_dec23_private *pdec,
 				const unsigned char *rawyuv,
 				unsigned char *rgbbayer,
@@ -799,18 +679,18 @@ static void DecompressBandBayer(struct pwc_dec23_private *pdec,
 
 	pdec->reservoir = 0;
 	pdec->nbits_in_reservoir = 0;
-	pdec->stream = rawyuv + 1;	/* The first byte of the stream is skipped */
+	pdec->stream = rawyuv + 1;	
 
 	get_nbits(pdec, 4, compression_index);
 
-	/* pass 1: uncompress RB component */
+	
 	nblocks = compressed_image_width / 4;
 
 	ptable0004 = pdec->table_0004_pass1[compression_index];
 	ptable8004 = pdec->table_8004_pass1[compression_index];
 	dest = rgbbayer;
 
-	/* Each block decode a square of 4x4 */
+	
 	while (nblocks) {
 		decode_block(pdec, ptable0004, ptable8004);
 		copy_image_block_RedBlue(pdec->temp_colors, rgbbayer, real_image_width, pdec->scalebits);
@@ -818,13 +698,13 @@ static void DecompressBandBayer(struct pwc_dec23_private *pdec,
 		nblocks--;
 	}
 
-	/* pass 2: uncompress G component */
+	
 	nblocks = compressed_image_width / 8;
 
 	ptable0004 = pdec->table_0004_pass2[compression_index];
 	ptable8004 = pdec->table_8004_pass2[compression_index];
 
-	/* Each block decode a square of 4x4 */
+	
 	while (nblocks) {
 		decode_block(pdec, ptable0004, ptable8004);
 		copy_image_block_Green(pdec->temp_colors, rgbbayer+1, real_image_width, pdec->scalebits);
@@ -839,18 +719,7 @@ static void DecompressBandBayer(struct pwc_dec23_private *pdec,
 #endif
 
 
-/**
- *
- * Uncompress a pwc23 buffer.
- *
- * pwc.view: size of the image wanted
- * pwc.image: size of the image returned by the camera
- * pwc.offset: (x,y) to displayer image in the view
- *
- * src: raw data
- * dst: image output
- * flags: PWCX_FLAG_PLANAR or PWCX_FLAG_BAYER
- */
+
 void pwc_dec23_decompress(const struct pwc_device *pwc,
 			  const void *src,
 			  void *dst,
@@ -863,7 +732,7 @@ void pwc_dec23_decompress(const struct pwc_device *pwc,
 
 	if (flags & PWCX_FLAG_BAYER) {
 #if ENABLE_BAYER_DECODER
-		/* RGB Bayer format */
+		
 		unsigned char *rgbout;
 
 		stride = pwc->view.x * pwc->offset.y;
@@ -886,7 +755,7 @@ void pwc_dec23_decompress(const struct pwc_device *pwc,
 #endif
 
 	} else {
-		/* YUV420P image format */
+		
 		unsigned char *pout_planar_y;
 		unsigned char *pout_planar_u;
 		unsigned char *pout_planar_v;
@@ -894,11 +763,11 @@ void pwc_dec23_decompress(const struct pwc_device *pwc,
 
 		plane_size = pwc->view.x * pwc->view.y;
 
-		/* offset in Y plane */
+		
 		stride = pwc->view.x * pwc->offset.y;
 		pout_planar_y = dst + stride + pwc->offset.x;
 
-		/* offsets in U/V planes */
+		
 		stride = (pwc->view.x * pwc->offset.y) / 4 + pwc->offset.x / 2;
 		pout_planar_u = dst + plane_size + stride;
 		pout_planar_v = dst + plane_size + plane_size / 4 + stride;
@@ -922,14 +791,11 @@ void pwc_dec23_decompress(const struct pwc_device *pwc,
 
 void pwc_dec23_exit(void)
 {
-	/* Do nothing */
+	
 
 }
 
-/**
- * Allocate a private structure used by lookup table.
- * You must call kfree() to free the memory allocated.
- */
+
 int pwc_dec23_alloc(struct pwc_device *pwc)
 {
 	pwc->decompress_data = kmalloc(sizeof(struct pwc_dec23_private), GFP_KERNEL);
@@ -938,4 +804,4 @@ int pwc_dec23_alloc(struct pwc_device *pwc)
 	return 0;
 }
 
-/* vim: set cino= formatoptions=croql cindent shiftwidth=8 tabstop=8: */
+

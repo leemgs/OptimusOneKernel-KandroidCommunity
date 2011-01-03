@@ -1,26 +1,4 @@
-/*
- * Serial Attached SCSI (SAS) Discover process
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- */
+
 
 #include <linux/scatterlist.h>
 #include <scsi/scsi_host.h>
@@ -31,7 +9,7 @@
 #include <scsi/scsi_transport_sas.h>
 #include "../scsi_sas_internal.h"
 
-/* ---------- Basic task processing for discovery purposes ---------- */
+
 
 void sas_init_dev(struct domain_device *dev)
 {
@@ -54,17 +32,9 @@ void sas_init_dev(struct domain_device *dev)
         }
 }
 
-/* ---------- Domain device discovery ---------- */
 
-/**
- * sas_get_port_device -- Discover devices which caused port creation
- * @port: pointer to struct sas_port of interest
- *
- * Devices directly attached to a HA port, have no parent.  This is
- * how we know they are (domain) "root" devices.  All other devices
- * do, and should have their "parent" pointer set appropriately as
- * soon as a child device is discovered.
- */
+
+
 static int sas_get_port_device(struct asd_sas_port *port)
 {
 	unsigned long flags;
@@ -155,7 +125,7 @@ static int sas_get_port_device(struct asd_sas_port *port)
 	return 0;
 }
 
-/* ---------- Discover and Revalidate ---------- */
+
 
 int sas_notify_lldd_dev_found(struct domain_device *dev)
 {
@@ -187,15 +157,10 @@ void sas_notify_lldd_dev_gone(struct domain_device *dev)
 		i->dft->lldd_dev_gone(dev);
 }
 
-/* ---------- Common/dispatchers ---------- */
 
 
-/**
- * sas_discover_end_dev -- discover an end device (SSP, etc)
- * @end: pointer to domain device of interest
- *
- * See comment in sas_discover_sata().
- */
+
+
 int sas_discover_end_dev(struct domain_device *dev)
 {
 	int res;
@@ -216,7 +181,7 @@ out_err2:
 	return res;
 }
 
-/* ---------- Device registration and unregistration ---------- */
+
 
 static inline void sas_unregister_common_dev(struct domain_device *dev)
 {
@@ -236,7 +201,7 @@ void sas_unregister_dev(struct domain_device *dev)
 		dev->rphy = NULL;
 	}
 	if (dev->dev_type == EDGE_DEV || dev->dev_type == FANOUT_DEV) {
-		/* remove the phys and ports, everything else should be gone */
+		
 		kfree(dev->ex_dev.ex_phy);
 		dev->ex_dev.ex_phy = NULL;
 	}
@@ -254,17 +219,9 @@ void sas_unregister_domain_devices(struct asd_sas_port *port)
 
 }
 
-/* ---------- Discovery and Revalidation ---------- */
 
-/**
- * sas_discover_domain -- discover the domain
- * @port: port to the domain of interest
- *
- * NOTE: this process _must_ quit (return) as soon as any connection
- * errors are encountered.  Connection recovery is done elsewhere.
- * Discover process only interrogates devices in order to discover the
- * domain.
- */
+
+
 static void sas_discover_domain(struct work_struct *work)
 {
 	struct domain_device *dev;
@@ -302,7 +259,7 @@ static void sas_discover_domain(struct work_struct *work)
 		break;
 #else
 		SAS_DPRINTK("ATA device seen but CONFIG_SCSI_SAS_ATA=N so cannot attach\n");
-		/* Fall through */
+		
 #endif
 	default:
 		error = -ENXIO;
@@ -318,7 +275,7 @@ static void sas_discover_domain(struct work_struct *work)
 		list_del_init(&dev->dev_list_node);
 		spin_unlock_irq(&port->dev_list_lock);
 
-		kfree(dev); /* not kobject_register-ed yet */
+		kfree(dev); 
 		port->port_dev = NULL;
 	}
 
@@ -345,7 +302,7 @@ static void sas_revalidate_domain(struct work_struct *work)
 		    port->id, task_pid_nr(current), res);
 }
 
-/* ---------- Events ---------- */
+
 
 int sas_discover_event(struct asd_sas_port *port, enum discover_event ev)
 {
@@ -363,12 +320,7 @@ int sas_discover_event(struct asd_sas_port *port, enum discover_event ev)
 	return 0;
 }
 
-/**
- * sas_init_disc -- initialize the discovery struct in the port
- * @port: pointer to struct port
- *
- * Called when the ports are being initialized.
- */
+
 void sas_init_disc(struct sas_discovery *disc, struct asd_sas_port *port)
 {
 	int i;

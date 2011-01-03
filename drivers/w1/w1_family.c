@@ -1,27 +1,8 @@
-/*
- *	w1_family.c
- *
- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <linux/spinlock.h>
 #include <linux/list.h>
-#include <linux/sched.h>	/* schedule_timeout() */
+#include <linux/sched.h>	
 #include <linux/delay.h>
 
 #include "w1_family.h"
@@ -52,7 +33,7 @@ int w1_register_family(struct w1_family *newf)
 	}
 	spin_unlock(&w1_flock);
 
-	/* check default devices against the new set of drivers */
+	
 	w1_reconnect_slaves(newf, 1);
 
 	return ret;
@@ -74,7 +55,7 @@ void w1_unregister_family(struct w1_family *fent)
 	}
 	spin_unlock(&w1_flock);
 
-	/* deatch devices using this family code */
+	
 	w1_reconnect_slaves(fent, 0);
 
 	while (atomic_read(&fent->refcnt)) {
@@ -86,9 +67,7 @@ void w1_unregister_family(struct w1_family *fent)
 	}
 }
 
-/*
- * Should be called under w1_flock held.
- */
+
 struct w1_family * w1_family_registered(u8 fid)
 {
 	struct list_head *ent, *n;
@@ -126,7 +105,7 @@ void w1_family_get(struct w1_family *f)
 	__w1_family_get(f);
 	spin_unlock(&w1_flock);
 }
-#endif  /*  0  */
+#endif  
 
 void __w1_family_get(struct w1_family *f)
 {

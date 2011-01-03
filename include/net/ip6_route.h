@@ -19,7 +19,7 @@ struct route_info {
 				reserved_h:3;
 #endif
 	__be32			lifetime;
-	__u8			prefix[0];	/* 0,8 or 16 */
+	__u8			prefix[0];	
 };
 
 #ifdef __KERNEL__
@@ -73,10 +73,7 @@ extern struct rt6_info *addrconf_dst_alloc(struct inet6_dev *idev,
 
 extern int			ip6_dst_hoplimit(struct dst_entry *dst);
 
-/*
- *	support functions for ND
- *
- */
+
 extern struct rt6_info *	rt6_get_dflt_router(struct in6_addr *addr,
 						    struct net_device *dev);
 extern struct rt6_info *	rt6_add_dflt_router(struct in6_addr *gwaddr,
@@ -115,9 +112,7 @@ extern void rt6_ifdown(struct net *net, struct net_device *dev);
 extern void rt6_mtu_change(struct net_device *dev, unsigned mtu);
 
 
-/*
- *	Store a destination cache entry in a socket
- */
+
 static inline void __ip6_dst_store(struct sock *sk, struct dst_entry *dst,
 				   struct in6_addr *daddr, struct in6_addr *saddr)
 {

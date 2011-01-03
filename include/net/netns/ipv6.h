@@ -1,6 +1,4 @@
-/*
- * ipv6 in net namespaces
- */
+
 
 #include <net/inet_frag.h>
 

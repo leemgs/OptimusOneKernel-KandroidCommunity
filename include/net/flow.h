@@ -1,8 +1,4 @@
-/*
- *
- *	Generic internet FLOW.
- *
- */
+
 
 #ifndef _NET_FLOW_H
 #define _NET_FLOW_H
@@ -77,7 +73,7 @@ struct flowi {
 #define fl_icmp_code	uli_u.icmpt.code
 #define fl_ipsec_spi	uli_u.spi
 #define fl_mh_type	uli_u.mht.type
-	__u32           secid;	/* used by xfrm; see secid.txt */
+	__u32           secid;	
 } __attribute__((__aligned__(BITS_PER_LONG/8)));
 
 #define FLOW_DIR_IN	0

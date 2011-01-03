@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-orion5x/net2big-setup.c
- *
- * LaCie 2Big Network NAS setup
- *
- * Copyright (C) 2009 Simon Guinot <sguinot@lacie.com>
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -28,24 +18,16 @@
 #include "common.h"
 #include "mpp.h"
 
-/*****************************************************************************
- * LaCie 2Big Network Info
- ****************************************************************************/
 
-/*
- * 512KB NOR flash Device bus boot chip select
- */
+
+
 
 #define NET2BIG_NOR_BOOT_BASE		0xfff80000
 #define NET2BIG_NOR_BOOT_SIZE		SZ_512K
 
-/*****************************************************************************
- * 512KB NOR Flash on Boot Device
- ****************************************************************************/
 
-/*
- * TODO: Check write support on flash MX29LV400CBTC-70G
- */
+
+
 
 static struct mtd_partition net2big_partitions[] = {
 	{
@@ -79,23 +61,15 @@ static struct platform_device net2big_nor_flash = {
 	.resource		= &net2big_nor_flash_resource,
 };
 
-/*****************************************************************************
- * Ethernet
- ****************************************************************************/
+
 
 static struct mv643xx_eth_platform_data net2big_eth_data = {
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(8),
 };
 
-/*****************************************************************************
- * I2C devices
- ****************************************************************************/
 
-/*
- * i2c addr | chip         | description
- * 0x32     | Ricoh 5C372b | RTC
- * 0x50     | HT24LC08     | eeprom (1kB)
- */
+
+
 static struct i2c_board_info __initdata net2big_i2c_devices[] = {
 	{
 		I2C_BOARD_INFO("rs5c372b", 0x32),
@@ -104,9 +78,7 @@ static struct i2c_board_info __initdata net2big_i2c_devices[] = {
 	},
 };
 
-/*****************************************************************************
- * SATA
- ****************************************************************************/
+
 
 static struct mv_sata_platform_data net2big_sata_data = {
 	.n_ports	= 2,
@@ -120,7 +92,7 @@ static void __init net2big_sata_power_init(void)
 {
 	int err;
 
-	/* Configure GPIOs over MPP max number. */
+	
 	orion_gpio_set_valid(NET2BIG_GPIO_SATA0_POWER, 1);
 	orion_gpio_set_valid(NET2BIG_GPIO_SATA1_POWER, 1);
 
@@ -162,12 +134,7 @@ static void __init net2big_sata_power_init(void)
 		return;
 	}
 
-	/*
-	 * SATA power up on both disk is done by pulling high the CPLD power
-	 * request line. The 300ms delay is related to the CPLD clock and is
-	 * needed to be sure that the CPLD has take into account the low line
-	 * status.
-	 */
+	
 	msleep(300);
 	gpio_set_value(NET2BIG_GPIO_SATA_POWER_REQ, 1);
 	pr_info("net2big: power up SATA hard disks\n");
@@ -182,26 +149,9 @@ err_free_1:
 	return;
 }
 
-/*****************************************************************************
- * GPIO LEDs
- ****************************************************************************/
 
-/*
- * The power front LEDs (blue and red) and SATA red LEDs are controlled via a
- * single GPIO line and are compatible with the leds-gpio driver.
- *
- * The SATA blue LEDs have some hardware blink capabilities which are detailled
- * in the following array:
- *
- * SATAx blue LED | SATAx activity | LED state
- *                |                |
- *       0        |       0        |  blink (rate 300ms)
- *       1        |       0        |  off
- *       ?        |       1        |  on
- *
- * Notes: The blue and the red front LED's can't be on at the same time.
- *        Blue LED have priority.
- */
+
+
 
 #define NET2BIG_GPIO_PWR_RED_LED	6
 #define NET2BIG_GPIO_PWR_BLUE_LED	16
@@ -249,7 +199,7 @@ static void __init net2big_gpio_leds_init(void)
 {
 	int err;
 
-	/* Stop initial CPLD slow red/blue blinking on power LED. */
+	
 	err = gpio_request(NET2BIG_GPIO_PWR_LED_BLINK_STOP,
 			   "Power LED blink stop");
 	if (err == 0) {
@@ -260,10 +210,7 @@ static void __init net2big_gpio_leds_init(void)
 	if (err)
 		pr_err("net2big: failed to setup power LED blink GPIO\n");
 
-	/*
-	 * Configure SATA0 and SATA1 blue LEDs to blink in relation with the
-	 * hard disk activity.
-	 */
+	
 	err = gpio_request(NET2BIG_GPIO_SATA0_BLUE_LED,
 			   "SATA0 blue LED control");
 	if (err == 0) {
@@ -287,9 +234,7 @@ static void __init net2big_gpio_leds_init(void)
 	platform_device_register(&net2big_gpio_leds);
 }
 
-/****************************************************************************
- * GPIO keys
- ****************************************************************************/
+
 
 #define NET2BIG_GPIO_PUSH_BUTTON	18
 #define NET2BIG_GPIO_POWER_SWITCH_ON	8
@@ -335,36 +280,34 @@ static struct platform_device net2big_gpio_buttons = {
 	},
 };
 
-/*****************************************************************************
- * General Setup
- ****************************************************************************/
+
 
 static struct orion5x_mpp_mode net2big_mpp_modes[] __initdata = {
-	{  0, MPP_GPIO },	/* Raid mode (bit 0) */
-	{  1, MPP_GPIO },	/* USB port 2 fuse (0 = Fail, 1 = Ok) */
-	{  2, MPP_GPIO },	/* Raid mode (bit 1) */
-	{  3, MPP_GPIO },	/* Board ID (bit 0) */
-	{  4, MPP_GPIO },	/* Fan activity (0 = Off, 1 = On) */
-	{  5, MPP_GPIO },	/* Fan fail detection */
-	{  6, MPP_GPIO },	/* Red front LED (0 = Off, 1 = On) */
-	{  7, MPP_GPIO },	/* Disable initial blinking on front LED */
-	{  8, MPP_GPIO },	/* Rear power switch (on|auto) */
-	{  9, MPP_GPIO },	/* Rear power switch (auto|off) */
-	{ 10, MPP_GPIO },	/* SATA 1 red LED (0 = Off, 1 = On) */
-	{ 11, MPP_GPIO },	/* SATA 0 red LED (0 = Off, 1 = On) */
-	{ 12, MPP_GPIO },	/* Board ID (bit 1) */
-	{ 13, MPP_GPIO },	/* SATA 1 blue LED blink control */
+	{  0, MPP_GPIO },	
+	{  1, MPP_GPIO },	
+	{  2, MPP_GPIO },	
+	{  3, MPP_GPIO },	
+	{  4, MPP_GPIO },	
+	{  5, MPP_GPIO },	
+	{  6, MPP_GPIO },	
+	{  7, MPP_GPIO },	
+	{  8, MPP_GPIO },	
+	{  9, MPP_GPIO },	
+	{ 10, MPP_GPIO },	
+	{ 11, MPP_GPIO },	
+	{ 12, MPP_GPIO },	
+	{ 13, MPP_GPIO },	
 	{ 14, MPP_SATA_LED },
 	{ 15, MPP_SATA_LED },
-	{ 16, MPP_GPIO },	/* Blue front LED control */
-	{ 17, MPP_GPIO },	/* SATA 0 blue LED blink control */
-	{ 18, MPP_GPIO },	/* Front button (0 = Released, 1 = Pushed ) */
-	{ 19, MPP_GPIO },	/* SATA{0,1} power On/Off request */
+	{ 16, MPP_GPIO },	
+	{ 17, MPP_GPIO },	
+	{ 18, MPP_GPIO },	
+	{ 19, MPP_GPIO },	
 	{ -1 }
-	/* 22: USB port 1 fuse (0 = Fail, 1 = Ok) */
-	/* 23: SATA 0 power status */
-	/* 24: Board power off */
-	/* 25: SATA 1 power status */
+	
+	
+	
+	
 };
 
 #define NET2BIG_GPIO_POWER_OFF		24
@@ -376,16 +319,12 @@ static void net2big_power_off(void)
 
 static void __init net2big_init(void)
 {
-	/*
-	 * Setup basic Orion functions. Need to be called early.
-	 */
+	
 	orion5x_init();
 
 	orion5x_mpp_conf(net2big_mpp_modes);
 
-	/*
-	 * Configure peripherals.
-	 */
+	
 	orion5x_ehci0_init();
 	orion5x_ehci1_init();
 	orion5x_eth_init(&net2big_eth_data);
@@ -417,7 +356,7 @@ static void __init net2big_init(void)
 	pr_notice("net2big: Flash writing is not yet supported.\n");
 }
 
-/* Warning: LaCie use a wrong mach-type (0x20e=526) in their bootloader. */
+
 MACHINE_START(NET2BIG, "LaCie 2Big Network")
 	.phys_io	= ORION5X_REGS_PHYS_BASE,
 	.io_pg_offst	= ((ORION5X_REGS_VIRT_BASE) >> 18) & 0xFFFC,

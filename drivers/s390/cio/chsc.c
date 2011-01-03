@@ -1,12 +1,4 @@
-/*
- *  drivers/s390/cio/chsc.c
- *   S/390 common I/O routines -- channel subsystem call
- *
- *    Copyright IBM Corp. 1999,2008
- *    Author(s): Ingo Adlung (adlung@de.ibm.com)
- *		 Cornelia Huck (cornelia.huck@de.ibm.com)
- *		 Arnd Bergmann (arndb@de.ibm.com)
- */
+
 
 #define KMSG_COMPONENT "cio"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -30,12 +22,7 @@
 
 static void *sei_page;
 
-/**
- * chsc_error_from_response() - convert a chsc response to an error
- * @response: chsc response code
- *
- * Returns an appropriate Linux error code for @response.
- */
+
 int chsc_error_from_response(int response)
 {
 	switch (response) {
@@ -61,23 +48,23 @@ struct chsc_ssd_area {
 	u16 :10;
 	u16 ssid:2;
 	u16 :4;
-	u16 f_sch;	  /* first subchannel */
+	u16 f_sch;	  
 	u16 :16;
-	u16 l_sch;	  /* last subchannel */
+	u16 l_sch;	  
 	u32 :32;
 	struct chsc_header response;
 	u32 :32;
 	u8 sch_valid : 1;
 	u8 dev_valid : 1;
-	u8 st	     : 3; /* subchannel type */
+	u8 st	     : 3; 
 	u8 zeroes    : 3;
-	u8  unit_addr;	  /* unit address */
-	u16 devno;	  /* device number */
+	u8  unit_addr;	  
+	u16 devno;	  
 	u8 path_mask;
 	u8 fla_valid_mask;
-	u16 sch;	  /* subchannel */
-	u8 chpid[8];	  /* chpids 0-7 */
-	u16 fla[8];	  /* full link addresses 0-7 */
+	u16 sch;	  
+	u8 chpid[8];	  
+	u16 fla[8];	  
 } __attribute__ ((packed));
 
 int chsc_get_ssd_info(struct subchannel_id schid, struct chsc_ssd_info *ssd)
@@ -100,7 +87,7 @@ int chsc_get_ssd_info(struct subchannel_id schid, struct chsc_ssd_info *ssd)
 	ssd_area->l_sch = schid.sch_no;
 
 	ccode = chsc(ssd_area);
-	/* Check response. */
+	
 	if (ccode > 0) {
 		ret = (ccode == 3) ? -ENODEV : -EBUSY;
 		goto out_free;
@@ -116,7 +103,7 @@ int chsc_get_ssd_info(struct subchannel_id schid, struct chsc_ssd_info *ssd)
 		ret = -ENODEV;
 		goto out_free;
 	}
-	/* Copy data */
+	
 	ret = 0;
 	memset(ssd, 0, sizeof(struct chsc_ssd_info));
 	if ((ssd_area->st != SUBCHANNEL_TYPE_IO) &&
@@ -166,7 +153,7 @@ void chsc_chp_offline(struct chp_id chpid)
 		return;
 	memset(&link, 0, sizeof(struct chp_link));
 	link.chpid = chpid;
-	/* Wait until previous actions have settled. */
+	
 	css_wait_for_slow_path();
 	for_each_subchannel_staged(s390_subchannel_remove_chpid, NULL, &link);
 }
@@ -174,19 +161,12 @@ void chsc_chp_offline(struct chp_id chpid)
 static int s390_process_res_acc_new_sch(struct subchannel_id schid, void *data)
 {
 	struct schib schib;
-	/*
-	 * We don't know the device yet, but since a path
-	 * may be available now to the device we'll have
-	 * to do recognition again.
-	 * Since we don't have any idea about which chpid
-	 * that beast may be on we'll have to do a stsch
-	 * on all devices, grr...
-	 */
+	
 	if (stsch_err(schid, &schib))
-		/* We're through */
+		
 		return -ENXIO;
 
-	/* Put it on the slow path. */
+	
 	css_schedule_eval(schid);
 	return 0;
 }
@@ -212,15 +192,9 @@ static void s390_process_res_acc(struct chp_link *link)
 		sprintf(dbf_txt, "fla%x", link->fla);
 		CIO_TRACE_EVENT( 2, dbf_txt);
 	}
-	/* Wait until previous actions have settled. */
+	
 	css_wait_for_slow_path();
-	/*
-	 * I/O resources may have become accessible.
-	 * Scan through all subchannels that may be concerned and
-	 * do a validation on those.
-	 * The more information we have (info), the less scanning
-	 * will we have to do.
-	 */
+	
 	for_each_subchannel_staged(__s390_process_res_acc,
 				   s390_process_res_acc_new_sch, link);
 }
@@ -232,25 +206,25 @@ __get_chpid_from_lir(void *data)
 		u8  iq;
 		u8  ic;
 		u16 sci;
-		/* incident-node descriptor */
+		
 		u32 indesc[28];
-		/* attached-node descriptor */
+		
 		u32 andesc[28];
-		/* incident-specific information */
+		
 		u32 isinfo[28];
 	} __attribute__ ((packed)) *lir;
 
 	lir = data;
 	if (!(lir->iq&0x80))
-		/* NULL link incident record */
+		
 		return -EINVAL;
 	if (!(lir->indesc[0]&0xc0000000))
-		/* node descriptor not valid */
+		
 		return -EINVAL;
 	if (!(lir->indesc[0]&0x10000000))
-		/* don't handle device-type nodes - FIXME */
+		
 		return -EINVAL;
-	/* Byte 3 contains the chpid. Could also be CTCA, but we don't care */
+	
 
 	return (u16) (lir->indesc[0]&0x000000ff);
 }
@@ -263,15 +237,15 @@ struct chsc_sei_area {
 	struct chsc_header response;
 	u32 reserved4;
 	u8  flags;
-	u8  vf;		/* validity flags */
-	u8  rs;		/* reporting source */
-	u8  cc;		/* content code */
-	u16 fla;	/* full link address */
-	u16 rsid;	/* reporting source id */
+	u8  vf;		
+	u8  rs;		
+	u8  cc;		
+	u16 fla;	
+	u16 rsid;	
 	u32 reserved5;
 	u32 reserved6;
-	u8 ccdf[4096 - 16 - 24];	/* content-code dependent field */
-	/* ccdf has to be big enough for a link-incident record */
+	u8 ccdf[4096 - 16 - 24];	
+	
 } __attribute__ ((packed));
 
 static void chsc_process_sei_link_incident(struct chsc_sei_area *sei_area)
@@ -305,7 +279,7 @@ static void chsc_process_sei_res_acc(struct chsc_sei_area *sei_area)
 		return;
 	chp_id_init(&chpid);
 	chpid.id = sei_area->rsid;
-	/* allocate a new channel path structure, if needed */
+	
 	status = chp_get_status(chpid);
 	if (status < 0)
 		chp_new(chpid);
@@ -316,10 +290,10 @@ static void chsc_process_sei_res_acc(struct chsc_sei_area *sei_area)
 	if ((sei_area->vf & 0xc0) != 0) {
 		link.fla = sei_area->fla;
 		if ((sei_area->vf & 0xc0) == 0xc0)
-			/* full link address */
+			
 			link.fla_mask = 0xffff;
 		else
-			/* link address */
+			
 			link.fla_mask = 0xff00;
 	}
 	s390_process_res_acc(&link);
@@ -365,23 +339,23 @@ static void chsc_process_sei_chp_config(struct chsc_sei_area *sei_area)
 
 static void chsc_process_sei(struct chsc_sei_area *sei_area)
 {
-	/* Check if we might have lost some information. */
+	
 	if (sei_area->flags & 0x40) {
 		CIO_CRW_EVENT(2, "chsc: event overflow\n");
 		css_schedule_eval_all();
 	}
-	/* which kind of information was stored? */
+	
 	switch (sei_area->cc) {
-	case 1: /* link incident*/
+	case 1: 
 		chsc_process_sei_link_incident(sei_area);
 		break;
-	case 2: /* i/o resource accessibiliy */
+	case 2: 
 		chsc_process_sei_res_acc(sei_area);
 		break;
-	case 8: /* channel-path-configuration notification */
+	case 8: 
 		chsc_process_sei_chp_config(sei_area);
 		break;
-	default: /* other stuff */
+	default: 
 		CIO_CRW_EVENT(4, "chsc: unhandled sei content code %d\n",
 			      sei_area->cc);
 		break;
@@ -402,8 +376,7 @@ static void chsc_process_crw(struct crw *crw0, struct crw *crw1, int overflow)
 		      crw0->erc, crw0->rsid);
 	if (!sei_page)
 		return;
-	/* Access to sei_page is serialized through machine check handler
-	 * thread, so no need for locking. */
+	
 	sei_area = sei_page;
 
 	CIO_TRACE_EVENT(2, "prcss");
@@ -436,7 +409,7 @@ void chsc_chp_online(struct chp_id chpid)
 	if (chp_get_status(chpid) != 0) {
 		memset(&link, 0, sizeof(struct chp_link));
 		link.chpid = chpid;
-		/* Wait until previous actions have settled. */
+		
 		css_wait_for_slow_path();
 		for_each_subchannel_staged(__s390_process_res_acc, NULL,
 					   &link);
@@ -480,29 +453,23 @@ __s390_vary_chpid_on(struct subchannel_id schid, void *data)
 	struct schib schib;
 
 	if (stsch_err(schid, &schib))
-		/* We're through */
+		
 		return -ENXIO;
-	/* Put it on the slow path. */
+	
 	css_schedule_eval(schid);
 	return 0;
 }
 
-/**
- * chsc_chp_vary - propagate channel-path vary operation to subchannels
- * @chpid: channl-path ID
- * @on: non-zero for vary online, zero for vary offline
- */
+
 int chsc_chp_vary(struct chp_id chpid, int on)
 {
 	struct chp_link link;
 
 	memset(&link, 0, sizeof(struct chp_link));
 	link.chpid = chpid;
-	/* Wait until previous actions have settled. */
+	
 	css_wait_for_slow_path();
-	/*
-	 * Redo PathVerification on the devices the chpid connects to
-	 */
+	
 
 	if (on)
 		for_each_subchannel_staged(s390_subchannel_vary_chpid_on,
@@ -689,7 +656,7 @@ int chsc_determine_channel_path_desc(struct chp_id chpid, int fmt, int rfmt,
 
 	ret = chsc_error_from_response(scpd_area->response.code);
 	if (ret == 0)
-		/* Success. */
+		
 		memcpy(resp, &scpd_area->response, scpd_area->response.length);
 	else
 		CIO_CRW_EVENT(2, "chsc: scpd failed (rc=%04x)\n",
@@ -742,7 +709,7 @@ chsc_initialize_cmg_chars(struct channel_path *chp, u8 cmcv,
 		}
 		break;
 	default:
-		/* No cmg-dependent data. */
+		
 		break;
 	}
 }
@@ -790,7 +757,7 @@ int chsc_get_channel_measurement_chars(struct channel_path *chp)
 
 	ret = chsc_error_from_response(scmc_area->response.code);
 	if (ret == 0) {
-		/* Success. */
+		
 		if (!scmc_area->not_valid) {
 			chp->cmg = scmc_area->cmg;
 			chp->shared = scmc_area->shared;

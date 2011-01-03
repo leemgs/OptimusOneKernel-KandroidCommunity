@@ -4,32 +4,14 @@
 #include <linux/if_vlan.h>
 
 
-/**
- *	struct vlan_priority_tci_mapping - vlan egress priority mappings
- *	@priority: skb priority
- *	@vlan_qos: vlan priority: (skb->priority << 13) & 0xE000
- *	@next: pointer to next struct
- */
+
 struct vlan_priority_tci_mapping {
 	u32					priority;
 	u16					vlan_qos;
 	struct vlan_priority_tci_mapping	*next;
 };
 
-/**
- *	struct vlan_dev_info - VLAN private device data
- *	@nr_ingress_mappings: number of ingress priority mappings
- *	@ingress_priority_map: ingress priority mappings
- *	@nr_egress_mappings: number of egress priority mappings
- *	@egress_priority_map: hash of egress priority mappings
- *	@vlan_id: VLAN identifier
- *	@flags: device flags
- *	@real_dev: underlying netdevice
- *	@real_dev_addr: address of underlying netdevice
- *	@dent: proc dir entry
- *	@cnt_inc_headroom_on_tx: statistic - number of skb expansions on TX
- *	@cnt_encap_on_xmit: statistic - number of skb encapsulations on TX
- */
+
 struct vlan_dev_info {
 	unsigned int				nr_ingress_mappings;
 	u32					ingress_priority_map[8];
@@ -56,20 +38,10 @@ static inline struct vlan_dev_info *vlan_dev_info(const struct net_device *dev)
 #define VLAN_GRP_HASH_SIZE	(1 << VLAN_GRP_HASH_SHIFT)
 #define VLAN_GRP_HASH_MASK	(VLAN_GRP_HASH_SIZE - 1)
 
-/*  Find a VLAN device by the MAC address of its Ethernet device, and
- *  it's VLAN ID.  The default configuration is to have VLAN's scope
- *  to be box-wide, so the MAC will be ignored.  The mac will only be
- *  looked at if we are configured to have a separate set of VLANs per
- *  each MAC addressable interface.  Note that this latter option does
- *  NOT follow the spec for VLANs, but may be useful for doing very
- *  large quantities of VLAN MUX/DEMUX onto FrameRelay or ATM PVCs.
- *
- *  Must be invoked with rcu_read_lock (ie preempt disabled)
- *  or with RTNL.
- */
+
 struct net_device *__find_vlan_dev(struct net_device *real_dev, u16 vlan_id);
 
-/* found in vlan_dev.c */
+
 int vlan_skb_recv(struct sk_buff *skb, struct net_device *dev,
 		  struct packet_type *ptype, struct net_device *orig_dev);
 void vlan_dev_set_ingress_priority(const struct net_device *dev,
@@ -125,12 +97,12 @@ extern int vlan_net_id;
 struct proc_dir_entry;
 
 struct vlan_net {
-	/* /proc/net/vlan */
+	
 	struct proc_dir_entry *proc_vlan_dir;
-	/* /proc/net/vlan/config */
+	
 	struct proc_dir_entry *proc_vlan_conf;
-	/* Determines interface naming scheme. */
+	
 	unsigned short name_type;
 };
 
-#endif /* !(__BEN_VLAN_802_1Q_INC__) */
+#endif 

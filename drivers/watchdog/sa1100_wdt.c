@@ -1,22 +1,4 @@
-/*
- *	Watchdog driver for the SA11x0/PXA2xx
- *
- *	(c) Copyright 2000 Oleg Drokin <green@crimea.edu>
- *	    Based on SoftDog driver by Alan Cox <alan@lxorguk.ukuu.org.uk>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- *	Neither Oleg Drokin nor iXcelerator.com admit liability nor provide
- *	warranty for any of this software. This material is provided
- *	"AS-IS" and at no charge.
- *
- *	(c) Copyright 2000           Oleg Drokin <green@crimea.edu>
- *
- *	27/11/2000 Initial release
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/types.h>
@@ -41,15 +23,13 @@ static unsigned long sa1100wdt_users;
 static unsigned int pre_margin;
 static int boot_status;
 
-/*
- *	Allow only one person to hold it open
- */
+
 static int sa1100dog_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(1, &sa1100wdt_users))
 		return -EBUSY;
 
-	/* Activate SA1100 Watchdog timer */
+	
 	OSMR3 = OSCR + pre_margin;
 	OSSR = OSSR_M3;
 	OWER = OWER_WME;
@@ -57,13 +37,7 @@ static int sa1100dog_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 }
 
-/*
- * The watchdog cannot be disabled.
- *
- * Previous comments suggested that turning off the interrupt by
- * clearing OIER[E3] would prevent the watchdog timing out but this
- * does not appear to be true (at least on the PXA255).
- */
+
 static int sa1100dog_release(struct inode *inode, struct file *file)
 {
 	printk(KERN_CRIT "WATCHDOG: Device closed - timer will not stop\n");
@@ -75,7 +49,7 @@ static ssize_t sa1100dog_write(struct file *file, const char __user *data,
 						size_t len, loff_t *ppos)
 {
 	if (len)
-		/* Refresh OSMR3 timer. */
+		
 		OSMR3 = OSCR + pre_margin;
 	return len;
 }
@@ -126,7 +100,7 @@ static long sa1100dog_ioctl(struct file *file, unsigned int cmd,
 
 		pre_margin = oscr_freq * time;
 		OSMR3 = OSCR + pre_margin;
-		/*fall through*/
+		
 
 	case WDIOC_GETTIMEOUT:
 		ret = put_user(pre_margin / oscr_freq, p);
@@ -150,7 +124,7 @@ static struct miscdevice sa1100dog_miscdev = {
 	.fops		= &sa1100dog_fops,
 };
 
-static int margin __initdata = 60;		/* (secs) Default is 1 minute */
+static int margin __initdata = 60;		
 
 static int __init sa1100dog_init(void)
 {
@@ -158,11 +132,7 @@ static int __init sa1100dog_init(void)
 
 	oscr_freq = get_clock_tick_rate();
 
-	/*
-	 * Read the reset status, and save it for later.  If
-	 * we suspend, RCSR will be cleared, and the watchdog
-	 * reset reason will be lost.
-	 */
+	
 	boot_status = (reset_status & RESET_STATUS_WATCHDOG) ?
 				WDIOF_CARDRESET : 0;
 	pre_margin = oscr_freq * margin;

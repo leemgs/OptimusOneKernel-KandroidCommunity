@@ -1,27 +1,16 @@
-/****************************************************************************/
-/*
- *      arch/arm/mach-l7200/include/mach/gpio.h
- *
- *      Registers and  helper functions for the L7200 Link-Up Systems
- *      GPIO.
- *
- *      (C) Copyright 2000, S A McConnell  (samcconn@cotw.com)
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License. See the file COPYING in the main directory of this archive for
- *  more details.
- */
 
-/****************************************************************************/
 
-#define GPIO_OFF   0x00005000  /* Offset from IO_START to the GPIO reg's. */
 
-/* IO_START and IO_BASE are defined in hardware.h */
 
-#define GPIO_START (IO_START_2 + GPIO_OFF) /* Physical addr of the GPIO reg. */
-#define GPIO_BASE  (IO_BASE_2  + GPIO_OFF) /* Virtual addr of the GPIO reg. */
 
-/* Offsets from the start of the GPIO for all the registers. */
+#define GPIO_OFF   0x00005000  
+
+
+
+#define GPIO_START (IO_START_2 + GPIO_OFF) 
+#define GPIO_BASE  (IO_BASE_2  + GPIO_OFF) 
+
+
 #define PADR_OFF     0x000
 #define PADDR_OFF    0x004
 #define PASBSR_OFF   0x008
@@ -61,7 +50,7 @@
 #define PEIMR_OFF    0x098
 #define PEINT_OFF    0x09c
 
-/* Define the GPIO registers for use by device drivers and the kernel. */
+
 #define PADR   (*(volatile unsigned long *)(GPIO_BASE+PADR_OFF))
 #define PADDR  (*(volatile unsigned long *)(GPIO_BASE+PADDR_OFF))
 #define PASBSR (*(volatile unsigned long *)(GPIO_BASE+PASBSR_OFF))

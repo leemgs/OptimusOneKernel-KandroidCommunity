@@ -1,11 +1,5 @@
-/* iptables module to match on related connections */
-/*
- * (C) 2001 Martin Josefsson <gandalf@wlug.westbo.se>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -41,7 +35,7 @@ helper_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 	if (!master_help)
 		return ret;
 
-	/* rcu_read_lock()ed by nf_hook_slow */
+	
 	helper = rcu_dereference(master_help->helper);
 	if (!helper)
 		return ret;

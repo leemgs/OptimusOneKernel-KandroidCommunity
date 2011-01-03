@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/plat-omap/mcbsp.c
- *
- * Copyright (C) 2004 Nokia Corporation
- * Author: Samuel Ortiz <samuel.ortiz@nokia.com>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Multichannel mode not supported.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -99,7 +87,7 @@ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
 	if (irqst_spcr2 & XSYNC_ERR) {
 		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
 			irqst_spcr2);
-		/* Writing zero to XSYNC_ERR clears the IRQ */
+		
 		OMAP_MCBSP_WRITE(mcbsp_tx->io_base, SPCR2,
 			irqst_spcr2 & ~(XSYNC_ERR));
 	} else {
@@ -120,7 +108,7 @@ static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
 	if (irqst_spcr1 & RSYNC_ERR) {
 		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
 			irqst_spcr1);
-		/* Writing zero to RSYNC_ERR clears the IRQ */
+		
 		OMAP_MCBSP_WRITE(mcbsp_rx->io_base, SPCR1,
 			irqst_spcr1 & ~(RSYNC_ERR));
 	} else {
@@ -137,7 +125,7 @@ static void omap_mcbsp_tx_dma_callback(int lch, u16 ch_status, void *data)
 	dev_dbg(mcbsp_dma_tx->dev, "TX DMA callback : 0x%x\n",
 		OMAP_MCBSP_READ(mcbsp_dma_tx->io_base, SPCR2));
 
-	/* We can free the channels */
+	
 	omap_free_dma(mcbsp_dma_tx->dma_tx_lch);
 	mcbsp_dma_tx->dma_tx_lch = -1;
 
@@ -151,19 +139,14 @@ static void omap_mcbsp_rx_dma_callback(int lch, u16 ch_status, void *data)
 	dev_dbg(mcbsp_dma_rx->dev, "RX DMA callback : 0x%x\n",
 		OMAP_MCBSP_READ(mcbsp_dma_rx->io_base, SPCR2));
 
-	/* We can free the channels */
+	
 	omap_free_dma(mcbsp_dma_rx->dma_rx_lch);
 	mcbsp_dma_rx->dma_rx_lch = -1;
 
 	complete(&mcbsp_dma_rx->rx_dma_completion);
 }
 
-/*
- * omap_mcbsp_config simply write a config to the
- * appropriate McBSP.
- * You either call this function or set the McBSP registers
- * by yourself before calling omap_mcbsp_start().
- */
+
 void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
 {
 	struct omap_mcbsp *mcbsp;
@@ -179,7 +162,7 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
 	dev_dbg(mcbsp->dev, "Configuring McBSP%d  phys_base: 0x%08lx\n",
 			mcbsp->id, mcbsp->phys_base);
 
-	/* We write the given config */
+	
 	OMAP_MCBSP_WRITE(io_base, SPCR2, config->spcr2);
 	OMAP_MCBSP_WRITE(io_base, SPCR1, config->spcr1);
 	OMAP_MCBSP_WRITE(io_base, RCR2, config->rcr2);
@@ -199,11 +182,7 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
 EXPORT_SYMBOL(omap_mcbsp_config);
 
 #ifdef CONFIG_ARCH_OMAP34XX
-/*
- * omap_mcbsp_set_tx_threshold configures how to deal
- * with transmit threshold. the threshold value and handler can be
- * configure in here.
- */
+
 void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
 {
 	struct omap_mcbsp *mcbsp;
@@ -223,11 +202,7 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
 }
 EXPORT_SYMBOL(omap_mcbsp_set_tx_threshold);
 
-/*
- * omap_mcbsp_set_rx_threshold configures how to deal
- * with receive threshold. the threshold value and handler can be
- * configure in here.
- */
+
 void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
 {
 	struct omap_mcbsp *mcbsp;
@@ -247,10 +222,7 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
 }
 EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
 
-/*
- * omap_mcbsp_get_max_tx_thres just return the current configured
- * maximum threshold for transmission
- */
+
 u16 omap_mcbsp_get_max_tx_threshold(unsigned int id)
 {
 	struct omap_mcbsp *mcbsp;
@@ -265,10 +237,7 @@ u16 omap_mcbsp_get_max_tx_threshold(unsigned int id)
 }
 EXPORT_SYMBOL(omap_mcbsp_get_max_tx_threshold);
 
-/*
- * omap_mcbsp_get_max_rx_thres just return the current configured
- * maximum threshold for reception
- */
+
 u16 omap_mcbsp_get_max_rx_threshold(unsigned int id)
 {
 	struct omap_mcbsp *mcbsp;
@@ -283,10 +252,7 @@ u16 omap_mcbsp_get_max_rx_threshold(unsigned int id)
 }
 EXPORT_SYMBOL(omap_mcbsp_get_max_rx_threshold);
 
-/*
- * omap_mcbsp_get_dma_op_mode just return the current configured
- * operating mode for the mcbsp channel
- */
+
 int omap_mcbsp_get_dma_op_mode(unsigned int id)
 {
 	struct omap_mcbsp *mcbsp;
@@ -308,10 +274,7 @@ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
 
 static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
 {
-	/*
-	 * Enable wakup behavior, smart idle and all wakeups
-	 * REVISIT: some wakeups may be unnecessary
-	 */
+	
 	if (cpu_is_omap34xx()) {
 		u16 syscon;
 
@@ -335,19 +298,13 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
 
 static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
 {
-	/*
-	 * Disable wakup behavior, smart idle and all wakeups
-	 */
+	
 	if (cpu_is_omap34xx()) {
 		u16 syscon;
 
 		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
 		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
-		/*
-		 * HW bug workaround - If no_idle mode is taken, we need to
-		 * go to smart_idle before going to always_idle, or the
-		 * device will not hit retention anymore.
-		 */
+		
 		syscon |= SIDLEMODE(0x02);
 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
 
@@ -362,10 +319,7 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp) {}
 static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp) {}
 #endif
 
-/*
- * We can choose between IRQ based or polled IO.
- * This needs to be called before omap_mcbsp_request().
- */
+
 int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type)
 {
 	struct omap_mcbsp *mcbsp;
@@ -421,18 +375,15 @@ int omap_mcbsp_request(unsigned int id)
 	clk_enable(mcbsp->iclk);
 	clk_enable(mcbsp->fclk);
 
-	/* Do procedure specific to omap34xx arch, if applicable */
+	
 	omap34xx_mcbsp_request(mcbsp);
 
-	/*
-	 * Make sure that transmitter, receiver and sample-rate generator are
-	 * not running before activating IRQs.
-	 */
+	
 	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR1, 0);
 	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR2, 0);
 
 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
-		/* We need to get IRQs here */
+		
 		init_completion(&mcbsp->tx_irq_completion);
 		err = request_irq(mcbsp->tx_irq, omap_mcbsp_tx_irq_handler,
 					0, "McBSP", (void *)mcbsp);
@@ -472,14 +423,14 @@ void omap_mcbsp_free(unsigned int id)
 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
 		mcbsp->pdata->ops->free(id);
 
-	/* Do procedure specific to omap34xx arch, if applicable */
+	
 	omap34xx_mcbsp_free(mcbsp);
 
 	clk_disable(mcbsp->fclk);
 	clk_disable(mcbsp->iclk);
 
 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
-		/* Free IRQs */
+		
 		free_irq(mcbsp->rx_irq, (void *)mcbsp);
 		free_irq(mcbsp->tx_irq, (void *)mcbsp);
 	}
@@ -497,11 +448,7 @@ void omap_mcbsp_free(unsigned int id)
 }
 EXPORT_SYMBOL(omap_mcbsp_free);
 
-/*
- * Here we start the McBSP, by enabling transmitter, receiver or both.
- * If no transmitter or receiver is active prior calling, then sample-rate
- * generator and frame sync are started.
- */
+
 void omap_mcbsp_start(unsigned int id, int tx, int rx)
 {
 	struct omap_mcbsp *mcbsp;
@@ -523,12 +470,12 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
 		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
 
 	if (idle) {
-		/* Start the sample generator */
+		
 		w = OMAP_MCBSP_READ(io_base, SPCR2);
 		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
 	}
 
-	/* Enable transmitter and receiver */
+	
 	tx &= 1;
 	w = OMAP_MCBSP_READ(io_base, SPCR2);
 	OMAP_MCBSP_WRITE(io_base, SPCR2, w | tx);
@@ -537,22 +484,17 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
 	w = OMAP_MCBSP_READ(io_base, SPCR1);
 	OMAP_MCBSP_WRITE(io_base, SPCR1, w | rx);
 
-	/*
-	 * Worst case: CLKSRG*2 = 8000khz: (1/8000) * 2 * 2 usec
-	 * REVISIT: 100us may give enough time for two CLKSRG, however
-	 * due to some unknown PM related, clock gating etc. reason it
-	 * is now at 500us.
-	 */
+	
 	udelay(500);
 
 	if (idle) {
-		/* Start frame sync */
+		
 		w = OMAP_MCBSP_READ(io_base, SPCR2);
 		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
 	}
 
 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-		/* Release the transmitter and receiver */
+		
 		w = OMAP_MCBSP_READ(io_base, XCCR);
 		w &= ~(tx ? XDISABLE : 0);
 		OMAP_MCBSP_WRITE(io_base, XCCR, w);
@@ -561,7 +503,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
 		OMAP_MCBSP_WRITE(io_base, RCCR, w);
 	}
 
-	/* Dump McBSP Regs */
+	
 	omap_mcbsp_dump_reg(id);
 }
 EXPORT_SYMBOL(omap_mcbsp_start);
@@ -581,7 +523,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
 	mcbsp = id_to_mcbsp_ptr(id);
 	io_base = mcbsp->io_base;
 
-	/* Reset transmitter */
+	
 	tx &= 1;
 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
 		w = OMAP_MCBSP_READ(io_base, XCCR);
@@ -591,7 +533,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
 	w = OMAP_MCBSP_READ(io_base, SPCR2);
 	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~tx);
 
-	/* Reset receiver */
+	
 	rx &= 1;
 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
 		w = OMAP_MCBSP_READ(io_base, RCCR);
@@ -605,14 +547,14 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
 		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
 
 	if (idle) {
-		/* Reset the sample rate generator */
+		
 		w = OMAP_MCBSP_READ(io_base, SPCR2);
 		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
 	}
 }
 EXPORT_SYMBOL(omap_mcbsp_stop);
 
-/* polled mcbsp i/o operations */
+
 int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
 {
 	struct omap_mcbsp *mcbsp;
@@ -627,15 +569,15 @@ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
 	base = mcbsp->io_base;
 
 	writew(buf, base + OMAP_MCBSP_REG_DXR1);
-	/* if frame sync error - clear the error */
+	
 	if (readw(base + OMAP_MCBSP_REG_SPCR2) & XSYNC_ERR) {
-		/* clear error */
+		
 		writew(readw(base + OMAP_MCBSP_REG_SPCR2) & (~XSYNC_ERR),
 		       base + OMAP_MCBSP_REG_SPCR2);
-		/* resend */
+		
 		return -1;
 	} else {
-		/* wait for transmit confirmation */
+		
 		int attemps = 0;
 		while (!(readw(base + OMAP_MCBSP_REG_SPCR2) & XRDY)) {
 			if (attemps++ > 1000) {
@@ -670,15 +612,15 @@ int omap_mcbsp_pollread(unsigned int id, u16 *buf)
 	mcbsp = id_to_mcbsp_ptr(id);
 
 	base = mcbsp->io_base;
-	/* if frame sync error - clear the error */
+	
 	if (readw(base + OMAP_MCBSP_REG_SPCR1) & RSYNC_ERR) {
-		/* clear error */
+		
 		writew(readw(base + OMAP_MCBSP_REG_SPCR1) & (~RSYNC_ERR),
 		       base + OMAP_MCBSP_REG_SPCR1);
-		/* resend */
+		
 		return -1;
 	} else {
-		/* wait for recieve confirmation */
+		
 		int attemps = 0;
 		while (!(readw(base + OMAP_MCBSP_REG_SPCR1) & RRDY)) {
 			if (attemps++ > 1000) {
@@ -702,9 +644,7 @@ int omap_mcbsp_pollread(unsigned int id, u16 *buf)
 }
 EXPORT_SYMBOL(omap_mcbsp_pollread);
 
-/*
- * IRQ based word transmission.
- */
+
 void omap_mcbsp_xmit_word(unsigned int id, u32 word)
 {
 	struct omap_mcbsp *mcbsp;
@@ -774,12 +714,12 @@ int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
 	if (tx_word_length != rx_word_length)
 		return -EINVAL;
 
-	/* First we wait for the transmitter to be ready */
+	
 	spcr2 = OMAP_MCBSP_READ(io_base, SPCR2);
 	while (!(spcr2 & XRDY)) {
 		spcr2 = OMAP_MCBSP_READ(io_base, SPCR2);
 		if (attempts++ > 1000) {
-			/* We must reset the transmitter */
+			
 			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 & (~XRST));
 			udelay(10);
 			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
@@ -790,17 +730,17 @@ int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
 		}
 	}
 
-	/* Now we can push the data */
+	
 	if (tx_word_length > OMAP_MCBSP_WORD_16)
 		OMAP_MCBSP_WRITE(io_base, DXR2, word >> 16);
 	OMAP_MCBSP_WRITE(io_base, DXR1, word & 0xffff);
 
-	/* We wait for the receiver to be ready */
+	
 	spcr1 = OMAP_MCBSP_READ(io_base, SPCR1);
 	while (!(spcr1 & RRDY)) {
 		spcr1 = OMAP_MCBSP_READ(io_base, SPCR1);
 		if (attempts++ > 1000) {
-			/* We must reset the receiver */
+			
 			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 & (~RRST));
 			udelay(10);
 			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
@@ -811,7 +751,7 @@ int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
 		}
 	}
 
-	/* Receiver is ready, let's read the dummy data */
+	
 	if (rx_word_length > OMAP_MCBSP_WORD_16)
 		word_msb = OMAP_MCBSP_READ(io_base, DRR2);
 	word_lsb = OMAP_MCBSP_READ(io_base, DRR1);
@@ -843,12 +783,12 @@ int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
 	if (tx_word_length != rx_word_length)
 		return -EINVAL;
 
-	/* First we wait for the transmitter to be ready */
+	
 	spcr2 = OMAP_MCBSP_READ(io_base, SPCR2);
 	while (!(spcr2 & XRDY)) {
 		spcr2 = OMAP_MCBSP_READ(io_base, SPCR2);
 		if (attempts++ > 1000) {
-			/* We must reset the transmitter */
+			
 			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 & (~XRST));
 			udelay(10);
 			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
@@ -859,17 +799,17 @@ int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
 		}
 	}
 
-	/* We first need to enable the bus clock */
+	
 	if (tx_word_length > OMAP_MCBSP_WORD_16)
 		OMAP_MCBSP_WRITE(io_base, DXR2, clock_word >> 16);
 	OMAP_MCBSP_WRITE(io_base, DXR1, clock_word & 0xffff);
 
-	/* We wait for the receiver to be ready */
+	
 	spcr1 = OMAP_MCBSP_READ(io_base, SPCR1);
 	while (!(spcr1 & RRDY)) {
 		spcr1 = OMAP_MCBSP_READ(io_base, SPCR1);
 		if (attempts++ > 1000) {
-			/* We must reset the receiver */
+			
 			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 & (~RRST));
 			udelay(10);
 			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
@@ -880,7 +820,7 @@ int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
 		}
 	}
 
-	/* Receiver is ready, there is something for us */
+	
 	if (rx_word_length > OMAP_MCBSP_WORD_16)
 		word_msb = OMAP_MCBSP_READ(io_base, DRR2);
 	word_lsb = OMAP_MCBSP_READ(io_base, DRR1);
@@ -891,13 +831,7 @@ int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
 }
 EXPORT_SYMBOL(omap_mcbsp_spi_master_recv_word_poll);
 
-/*
- * Simple DMA based buffer rx/tx routines.
- * Nothing fancy, just a single buffer tx/rx through DMA.
- * The DMA resources are released once the transfer is done.
- * For anything fancier, you should use your own customized DMA
- * routines and callbacks.
- */
+
 int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
 				unsigned int length)
 {
@@ -1024,12 +958,7 @@ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
 }
 EXPORT_SYMBOL(omap_mcbsp_recv_buffer);
 
-/*
- * SPI wrapper.
- * Since SPI setup is much simpler than the generic McBSP one,
- * this wrapper just need an omap_mcbsp_spi_cfg structure as an input.
- * Once this is done, you can call omap_mcbsp_start().
- */
+
 void omap_mcbsp_set_spi_mode(unsigned int id,
 				const struct omap_mcbsp_spi_cfg *spi_cfg)
 {
@@ -1044,17 +973,17 @@ void omap_mcbsp_set_spi_mode(unsigned int id,
 
 	memset(&mcbsp_cfg, 0, sizeof(struct omap_mcbsp_reg_cfg));
 
-	/* SPI has only one frame */
+	
 	mcbsp_cfg.rcr1 |= (RWDLEN1(spi_cfg->word_length) | RFRLEN1(0));
 	mcbsp_cfg.xcr1 |= (XWDLEN1(spi_cfg->word_length) | XFRLEN1(0));
 
-	/* Clock stop mode */
+	
 	if (spi_cfg->clk_stp_mode == OMAP_MCBSP_CLK_STP_MODE_NO_DELAY)
 		mcbsp_cfg.spcr1 |= (1 << 12);
 	else
 		mcbsp_cfg.spcr1 |= (3 << 11);
 
-	/* Set clock parities */
+	
 	if (spi_cfg->rx_clock_polarity == OMAP_MCBSP_CLK_RISING)
 		mcbsp_cfg.pcr0 |= CLKRP;
 	else
@@ -1065,11 +994,11 @@ void omap_mcbsp_set_spi_mode(unsigned int id,
 	else
 		mcbsp_cfg.pcr0 |= CLKXP;
 
-	/* Set SCLKME to 0 and CLKSM to 1 */
+	
 	mcbsp_cfg.pcr0 &= ~SCLKME;
 	mcbsp_cfg.srgr2 |= CLKSM;
 
-	/* Set FSXP */
+	
 	if (spi_cfg->fsx_polarity == OMAP_MCBSP_FS_ACTIVE_HIGH)
 		mcbsp_cfg.pcr0 &= ~FSXP;
 	else
@@ -1217,10 +1146,7 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
 	if (cpu_is_omap34xx()) {
 		mcbsp->max_tx_thres = max_thres(mcbsp);
 		mcbsp->max_rx_thres = max_thres(mcbsp);
-		/*
-		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
-		 * for mcbsp2 instances.
-		 */
+		
 		if (omap_additional_add(mcbsp->dev))
 			dev_warn(mcbsp->dev,
 				"Unable to create additional controls\n");
@@ -1238,12 +1164,9 @@ static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
 #else
 static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
 static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp) {}
-#endif /* CONFIG_ARCH_OMAP34XX */
+#endif 
 
-/*
- * McBSP1 and McBSP3 are directly mapped on 1610 and 1510.
- * 730 has only 2 McBSP, and both of them are MPU peripherals.
- */
+
 static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
 {
 	struct omap_mcbsp_platform_data *pdata = pdev->dev.platform_data;
@@ -1285,7 +1208,7 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
 		goto err_ioremap;
 	}
 
-	/* Default I/O is IRQ based */
+	
 	mcbsp->io_type = OMAP_MCBSP_IRQ_IO;
 	mcbsp->tx_irq = pdata->tx_irq;
 	mcbsp->rx_irq = pdata->rx_irq;
@@ -1311,7 +1234,7 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
 	mcbsp_ptr[id] = mcbsp;
 	platform_set_drvdata(pdev, mcbsp);
 
-	/* Initialize mcbsp properties for OMAP34XX if needed / applicable */
+	
 	omap34xx_device_init(mcbsp);
 
 	return 0;
@@ -1365,6 +1288,6 @@ static struct platform_driver omap_mcbsp_driver = {
 
 int __init omap_mcbsp_init(void)
 {
-	/* Register the McBSP driver */
+	
 	return platform_driver_register(&omap_mcbsp_driver);
 }

@@ -1,15 +1,4 @@
-/*
- * Hauppauge HD PVR USB driver
- *
- * Copyright (C) 2001-2004 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2008      Janne Grunau (j@jannau.net)
- * Copyright (C) 2008      John Poet
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -32,7 +21,7 @@ static int video_nr[HDPVR_MAX] = {[0 ... (HDPVR_MAX - 1)] = UNSET};
 module_param_array(video_nr, int, NULL, 0);
 MODULE_PARM_DESC(video_nr, "video device number (-1=Auto)");
 
-/* holds the number of currently registered devices */
+
 static atomic_t dev_nr = ATOMIC_INIT(-1);
 
 int hdpvr_debug;
@@ -54,12 +43,12 @@ module_param(boost_audio, bool, S_IRUGO|S_IWUSR);
 MODULE_PARM_DESC(boost_audio, "boost the audio signal");
 
 
-/* table of devices that work with this driver */
+
 static struct usb_device_id hdpvr_table[] = {
 	{ USB_DEVICE(HD_PVR_VENDOR_ID, HD_PVR_PRODUCT_ID) },
 	{ USB_DEVICE(HD_PVR_VENDOR_ID, HD_PVR_PRODUCT_ID1) },
 	{ USB_DEVICE(HD_PVR_VENDOR_ID, HD_PVR_PRODUCT_ID2) },
-	{ }					/* Terminating entry */
+	{ }					
 };
 MODULE_DEVICE_TABLE(usb, hdpvr_table);
 
@@ -114,7 +103,7 @@ static void challenge(u8 *bytes)
 	}
 }
 
-/* try to init the device like the windows driver */
+
 static int device_authorization(struct hdpvr_device *dev)
 {
 
@@ -204,10 +193,10 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
 	if (device_authorization(dev))
 		return -EACCES;
 
-	/* default options for init */
+	
 	hdpvr_set_options(dev);
 
-	/* set filter options */
+	
 	mutex_lock(&dev->usbc_mutex);
 	buf = dev->usbc_buf;
 	buf[0] = 0x03; buf[1] = 0x03; buf[2] = 0x00; buf[3] = 0x00;
@@ -228,7 +217,7 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
 	else
 		kfree(vidinf);
 
-	/* enable fan and bling leds */
+	
 	mutex_lock(&dev->usbc_mutex);
 	buf[0] = 0x1;
 	ret = usb_control_msg(dev->udev,
@@ -238,7 +227,7 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
 	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
 		 "control request returned %d\n", ret);
 
-	/* boost analog audio */
+	
 	buf[0] = boost_audio;
 	ret = usb_control_msg(dev->udev,
 			      usb_sndctrlpipe(dev->udev, 0),
@@ -256,8 +245,8 @@ static const struct hdpvr_options hdpvr_default_options = {
 	.video_std	= HDPVR_60HZ,
 	.video_input	= HDPVR_COMPONENT,
 	.audio_input	= HDPVR_RCA_BACK,
-	.bitrate	= 65, /* 6 mbps */
-	.peak_bitrate	= 90, /* 9 mbps */
+	.bitrate	= 65, 
+	.peak_bitrate	= 90, 
 	.bitrate_mode	= HDPVR_CONSTANT,
 	.gop_mode	= HDPVR_SIMPLE_IDR_GOP,
 	.audio_codec	= V4L2_MPEG_AUDIO_ENCODING_AAC,
@@ -278,14 +267,14 @@ static int hdpvr_probe(struct usb_interface *interface,
 	int i;
 	int retval = -ENOMEM;
 
-	/* allocate memory for our device state and initialize it */
+	
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 	if (!dev) {
 		err("Out of memory");
 		goto error;
 	}
 
-	/* register v4l2_device early so it can be used for printks */
+	
 	if (v4l2_device_register(&interface->dev, &dev->v4l2_dev)) {
 		err("v4l2_device_register failed");
 		goto error;
@@ -307,7 +296,7 @@ static int hdpvr_probe(struct usb_interface *interface,
 	if (!dev->workqueue)
 		goto error;
 
-	/* init video transfer queues */
+	
 	INIT_LIST_HEAD(&dev->free_buff_list);
 	INIT_LIST_HEAD(&dev->rec_buff_list);
 
@@ -321,16 +310,15 @@ static int hdpvr_probe(struct usb_interface *interface,
 
 	dev->udev = usb_get_dev(interface_to_usbdev(interface));
 
-	/* set up the endpoint information */
-	/* use only the first bulk-in and bulk-out endpoints */
+	
+	
 	iface_desc = interface->cur_altsetting;
 	for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
 		endpoint = &iface_desc->endpoint[i].desc;
 
 		if (!dev->bulk_in_endpointAddr &&
 		    usb_endpoint_is_bulk_in(endpoint)) {
-			/* USB interface description is buggy, reported max
-			 * packet size is 512 bytes, windows driver uses 8192 */
+			
 			buffer_size = 8192;
 			dev->bulk_in_size = buffer_size;
 			dev->bulk_in_endpointAddr = endpoint->bEndpointAddress;
@@ -342,7 +330,7 @@ static int hdpvr_probe(struct usb_interface *interface,
 		goto error;
 	}
 
-	/* init the device */
+	
 	if (hdpvr_device_init(dev)) {
 		v4l2_err(&dev->v4l2_dev, "device init failed\n");
 		goto error;
@@ -364,25 +352,25 @@ static int hdpvr_probe(struct usb_interface *interface,
 	}
 
 #ifdef CONFIG_I2C
-	/* until i2c is working properly */
-	retval = 0; /* hdpvr_register_i2c_adapter(dev); */
+	
+	retval = 0; 
 	if (retval < 0) {
 		v4l2_err(&dev->v4l2_dev, "registering i2c adapter failed\n");
 		goto error;
 	}
-#endif /* CONFIG_I2C */
+#endif 
 
-	/* save our data pointer in this interface device */
+	
 	usb_set_intfdata(interface, dev);
 
-	/* let the user know what node this device is now attached to */
+	
 	v4l2_info(&dev->v4l2_dev, "device now attached to /dev/video%d\n",
 		  dev->video_dev->minor);
 	return 0;
 
 error:
 	if (dev) {
-		/* this frees allocated memory */
+		
 		hdpvr_delete(dev);
 	}
 	return retval;
@@ -398,7 +386,7 @@ static void hdpvr_disconnect(struct usb_interface *interface)
 
 	minor = dev->video_dev->minor;
 
-	/* prevent more I/O from starting and stop any ongoing */
+	
 	mutex_lock(&dev->io_mutex);
 	dev->status = STATUS_DISCONNECTED;
 	v4l2_device_disconnect(&dev->v4l2_dev);
@@ -413,7 +401,7 @@ static void hdpvr_disconnect(struct usb_interface *interface)
 	destroy_workqueue(dev->workqueue);
 	mutex_unlock(&dev->io_mutex);
 
-	/* deregister I2C adapter */
+	
 #ifdef CONFIG_I2C
 	mutex_lock(&dev->i2c_mutex);
 	if (dev->i2c_adapter)
@@ -421,7 +409,7 @@ static void hdpvr_disconnect(struct usb_interface *interface)
 	kfree(dev->i2c_adapter);
 	dev->i2c_adapter = NULL;
 	mutex_unlock(&dev->i2c_mutex);
-#endif /* CONFIG_I2C */
+#endif 
 
 	atomic_dec(&dev_nr);
 
@@ -444,7 +432,7 @@ static int __init hdpvr_init(void)
 {
 	int result;
 
-	/* register this driver with the USB subsystem */
+	
 	result = usb_register(&hdpvr_usb_driver);
 	if (result)
 		err("usb_register failed. Error number %d", result);
@@ -454,7 +442,7 @@ static int __init hdpvr_init(void)
 
 static void __exit hdpvr_exit(void)
 {
-	/* deregister this driver with the USB subsystem */
+	
 	usb_deregister(&hdpvr_usb_driver);
 }
 

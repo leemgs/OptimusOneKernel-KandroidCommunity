@@ -1,49 +1,11 @@
-/*
- * Copyright (c) 2006, 2007 QLogic Corporation. All rights reserved.
- * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/err.h>
 #include <linux/vmalloc.h>
 
 #include "ipath_verbs.h"
 
-/**
- * ipath_cq_enter - add a new entry to the completion queue
- * @cq: completion queue
- * @entry: work completion entry to add
- * @sig: true if @entry is a solicitated entry
- *
- * This may be called with qp->s_lock held.
- */
+
 void ipath_cq_enter(struct ipath_cq *cq, struct ib_wc *entry, int solicited)
 {
 	struct ipath_cq_wc *wc;
@@ -53,10 +15,7 @@ void ipath_cq_enter(struct ipath_cq *cq, struct ib_wc *entry, int solicited)
 
 	spin_lock_irqsave(&cq->lock, flags);
 
-	/*
-	 * Note that the head pointer might be writable by user processes.
-	 * Take care to verify it is a sane value.
-	 */
+	
 	wc = cq->queue;
 	head = wc->head;
 	if (head >= (unsigned) cq->ibcq.cqe) {
@@ -91,7 +50,7 @@ void ipath_cq_enter(struct ipath_cq *cq, struct ib_wc *entry, int solicited)
 		wc->uqueue[head].sl = entry->sl;
 		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
 		wc->uqueue[head].port_num = entry->port_num;
-		/* Make sure entry is written before the head index. */
+		
 		smp_wmb();
 	} else
 		wc->kqueue[head] = *entry;
@@ -101,10 +60,7 @@ void ipath_cq_enter(struct ipath_cq *cq, struct ib_wc *entry, int solicited)
 	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
 		cq->notify = IB_CQ_NONE;
 		cq->triggered++;
-		/*
-		 * This will cause send_complete() to be called in
-		 * another thread.
-		 */
+		
 		tasklet_hi_schedule(&cq->comptask);
 	}
 
@@ -114,17 +70,7 @@ void ipath_cq_enter(struct ipath_cq *cq, struct ib_wc *entry, int solicited)
 		to_idev(cq->ibcq.device)->n_wqe_errs++;
 }
 
-/**
- * ipath_poll_cq - poll for work completion entries
- * @ibcq: the completion queue to poll
- * @num_entries: the maximum number of entries to return
- * @entry: pointer to array where work completions are placed
- *
- * Returns the number of completion entries polled.
- *
- * This may be called from interrupt context.  Also called by ib_poll_cq()
- * in the generic verbs code.
- */
+
 int ipath_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
 {
 	struct ipath_cq *cq = to_icq(ibcq);
@@ -133,7 +79,7 @@ int ipath_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
 	int npolled;
 	u32 tail;
 
-	/* The kernel can only poll a kernel completion queue */
+	
 	if (cq->ip) {
 		npolled = -EINVAL;
 		goto bail;
@@ -148,7 +94,7 @@ int ipath_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
 	for (npolled = 0; npolled < num_entries; ++npolled, ++entry) {
 		if (tail == wc->head)
 			break;
-		/* The kernel doesn't need a RMB since it has the lock. */
+		
 		*entry = wc->kqueue[tail];
 		if (tail >= cq->ibcq.cqe)
 			tail = 0;
@@ -167,13 +113,7 @@ static void send_complete(unsigned long data)
 {
 	struct ipath_cq *cq = (struct ipath_cq *)data;
 
-	/*
-	 * The completion handler will most likely rearm the notification
-	 * and poll for all pending entries.  If a new completion entry
-	 * is added while we are in this routine, tasklet_hi_schedule()
-	 * won't call us again until we return so we check triggered to
-	 * see if we need to call the handler again.
-	 */
+	
 	for (;;) {
 		u8 triggered = cq->triggered;
 
@@ -184,18 +124,7 @@ static void send_complete(unsigned long data)
 	}
 }
 
-/**
- * ipath_create_cq - create a completion queue
- * @ibdev: the device this completion queue is attached to
- * @entries: the minimum size of the completion queue
- * @context: unused by the InfiniPath driver
- * @udata: unused by the InfiniPath driver
- *
- * Returns a pointer to the completion queue or negative errno values
- * for failure.
- *
- * Called by ib_create_cq() in the generic verbs code.
- */
+
 struct ib_cq *ipath_create_cq(struct ib_device *ibdev, int entries, int comp_vector,
 			      struct ib_ucontext *context,
 			      struct ib_udata *udata)
@@ -211,20 +140,14 @@ struct ib_cq *ipath_create_cq(struct ib_device *ibdev, int entries, int comp_vec
 		goto done;
 	}
 
-	/* Allocate the completion queue structure. */
+	
 	cq = kmalloc(sizeof(*cq), GFP_KERNEL);
 	if (!cq) {
 		ret = ERR_PTR(-ENOMEM);
 		goto done;
 	}
 
-	/*
-	 * Allocate the completion queue entries and head/tail pointers.
-	 * This is allocated separately so that it can be resized and
-	 * also mapped into user space.
-	 * We need to use vmalloc() in order to support mmap and large
-	 * numbers of entries.
-	 */
+	
 	sz = sizeof(*wc);
 	if (udata && udata->outlen >= sizeof(__u64))
 		sz += sizeof(struct ib_uverbs_wc) * (entries + 1);
@@ -236,10 +159,7 @@ struct ib_cq *ipath_create_cq(struct ib_device *ibdev, int entries, int comp_vec
 		goto bail_cq;
 	}
 
-	/*
-	 * Return the address of the WC as the offset to mmap.
-	 * See ipath_mmap() for details.
-	 */
+	
 	if (udata && udata->outlen >= sizeof(__u64)) {
 		int err;
 
@@ -274,11 +194,7 @@ struct ib_cq *ipath_create_cq(struct ib_device *ibdev, int entries, int comp_vec
 		spin_unlock_irq(&dev->pending_lock);
 	}
 
-	/*
-	 * ib_create_cq() will initialize cq->ibcq except for cq->ibcq.cqe.
-	 * The number of entries should be >= the number requested or return
-	 * an error.
-	 */
+	
 	cq->ibcq.cqe = entries;
 	cq->notify = IB_CQ_NONE;
 	cq->triggered = 0;
@@ -302,14 +218,7 @@ done:
 	return ret;
 }
 
-/**
- * ipath_destroy_cq - destroy a completion queue
- * @ibcq: the completion queue to destroy.
- *
- * Returns 0 for success.
- *
- * Called by ib_destroy_cq() in the generic verbs code.
- */
+
 int ipath_destroy_cq(struct ib_cq *ibcq)
 {
 	struct ipath_ibdev *dev = to_idev(ibcq->device);
@@ -328,16 +237,7 @@ int ipath_destroy_cq(struct ib_cq *ibcq)
 	return 0;
 }
 
-/**
- * ipath_req_notify_cq - change the notification type for a completion queue
- * @ibcq: the completion queue
- * @notify_flags: the type of notification to request
- *
- * Returns 0 for success.
- *
- * This may be called from interrupt context.  Also called by
- * ib_req_notify_cq() in the generic verbs code.
- */
+
 int ipath_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
 {
 	struct ipath_cq *cq = to_icq(ibcq);
@@ -345,10 +245,7 @@ int ipath_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags
 	int ret = 0;
 
 	spin_lock_irqsave(&cq->lock, flags);
-	/*
-	 * Don't change IB_CQ_NEXT_COMP to IB_CQ_SOLICITED but allow
-	 * any other transitions (see C11-31 and C11-32 in ch. 11.4.2.2).
-	 */
+	
 	if (cq->notify != IB_CQ_NEXT_COMP)
 		cq->notify = notify_flags & IB_CQ_SOLICITED_MASK;
 
@@ -361,12 +258,7 @@ int ipath_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags
 	return ret;
 }
 
-/**
- * ipath_resize_cq - change the size of the CQ
- * @ibcq: the completion queue
- *
- * Returns 0 for success.
- */
+
 int ipath_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 {
 	struct ipath_cq *cq = to_icq(ibcq);
@@ -381,9 +273,7 @@ int ipath_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 		goto bail;
 	}
 
-	/*
-	 * Need to use vmalloc() if we want to support large #s of entries.
-	 */
+	
 	sz = sizeof(*wc);
 	if (udata && udata->outlen >= sizeof(__u64))
 		sz += sizeof(struct ib_uverbs_wc) * (cqe + 1);
@@ -395,7 +285,7 @@ int ipath_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 		goto bail;
 	}
 
-	/* Check that we can write the offset to mmap. */
+	
 	if (udata && udata->outlen >= sizeof(__u64)) {
 		__u64 offset = 0;
 
@@ -405,10 +295,7 @@ int ipath_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 	}
 
 	spin_lock_irq(&cq->lock);
-	/*
-	 * Make sure head and tail are sane since they
-	 * might be user writable.
-	 */
+	
 	old_wc = cq->queue;
 	head = old_wc->head;
 	if (head > (u32) cq->ibcq.cqe)
@@ -448,10 +335,7 @@ int ipath_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 
 		ipath_update_mmap_info(dev, ip, sz, wc);
 
-		/*
-		 * Return the offset to mmap.
-		 * See ipath_mmap() for details.
-		 */
+		
 		if (udata && udata->outlen >= sizeof(__u64)) {
 			ret = ib_copy_to_udata(udata, &ip->offset,
 					       sizeof(ip->offset));

@@ -1,25 +1,4 @@
-/*
- *  linux/arch/arm/plat-mxc/time.c
- *
- *  Copyright (C) 2000-2001 Deep Blue Solutions
- *  Copyright (C) 2002 Shane Nay (shane@minirl.com)
- *  Copyright (C) 2006-2007 Pavel Pisa (ppisa@pikron.com)
- *  Copyright (C) 2008 Juergen Beisert (kernel@pengutronix.de)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/irq.h>
@@ -30,12 +9,12 @@
 #include <asm/mach/time.h>
 #include <mach/common.h>
 
-/* defines common for all i.MX */
+
 #define MXC_TCTL		0x00
 #define MXC_TCTL_TEN		(1 << 0)
 #define MXC_TPRER		0x04
 
-/* MX1, MX21, MX27 */
+
 #define MX1_2_TCTL_CLK_PCLK1	(1 << 1)
 #define MX1_2_TCTL_IRQEN	(1 << 4)
 #define MX1_2_TCTL_FRR		(1 << 8)
@@ -43,11 +22,11 @@
 #define MX1_2_TCN		0x10
 #define MX1_2_TSTAT		0x14
 
-/* MX21, MX27 */
+
 #define MX2_TSTAT_CAPT		(1 << 1)
 #define MX2_TSTAT_COMP		(1 << 0)
 
-/* MX31, MX35, MX25, MXC91231 */
+
 #define MX3_TCTL_WAITEN		(1 << 3)
 #define MX3_TCTL_CLK_IPG	(1 << 6)
 #define MX3_TCTL_FRR		(1 << 9)
@@ -127,7 +106,7 @@ static int __init mxc_clocksource_init(struct clk *timer_clk)
 	return 0;
 }
 
-/* clock event */
+
 
 static int mx1_2_set_next_event(unsigned long evt,
 			      struct clock_event_device *unused)
@@ -162,24 +141,21 @@ static const char *clock_event_mode_label[] = {
 	[CLOCK_EVT_MODE_SHUTDOWN] = "CLOCK_EVT_MODE_SHUTDOWN",
 	[CLOCK_EVT_MODE_UNUSED]   = "CLOCK_EVT_MODE_UNUSED"
 };
-#endif /* DEBUG */
+#endif 
 
 static void mxc_set_mode(enum clock_event_mode mode,
 				struct clock_event_device *evt)
 {
 	unsigned long flags;
 
-	/*
-	 * The timer interrupt generation is disabled at least
-	 * for enough time to call mxc_set_next_event()
-	 */
+	
 	local_irq_save(flags);
 
-	/* Disable interrupt in GPT module */
+	
 	gpt_irq_disable();
 
 	if (mode != clockevent_mode) {
-		/* Set event time into far-far future */
+		
 		if (cpu_is_mx3() || cpu_is_mx25())
 			__raw_writel(__raw_readl(timer_base + MX3_TCN) - 3,
 					timer_base + MX3_TCMP);
@@ -187,7 +163,7 @@ static void mxc_set_mode(enum clock_event_mode mode,
 			__raw_writel(__raw_readl(timer_base + MX1_2_TCN) - 3,
 					timer_base + MX1_2_TCMP);
 
-		/* Clear pending interrupt */
+		
 		gpt_irq_acknowledge();
 	}
 
@@ -195,9 +171,9 @@ static void mxc_set_mode(enum clock_event_mode mode,
 	printk(KERN_INFO "mxc_set_mode: changing mode from %s to %s\n",
 		clock_event_mode_label[clockevent_mode],
 		clock_event_mode_label[mode]);
-#endif /* DEBUG */
+#endif 
 
-	/* Remember timer mode */
+	
 	clockevent_mode = mode;
 	local_irq_restore(flags);
 
@@ -207,12 +183,7 @@ static void mxc_set_mode(enum clock_event_mode mode,
 				"supported for i.MX\n");
 		break;
 	case CLOCK_EVT_MODE_ONESHOT:
-	/*
-	 * Do not put overhead of interrupt enable/disable into
-	 * mxc_set_next_event(), the core has about 4 minutes
-	 * to call mxc_set_next_event() or shutdown clock after
-	 * mode switching
-	 */
+	
 		local_irq_save(flags);
 		gpt_irq_enable();
 		local_irq_restore(flags);
@@ -220,14 +191,12 @@ static void mxc_set_mode(enum clock_event_mode mode,
 	case CLOCK_EVT_MODE_SHUTDOWN:
 	case CLOCK_EVT_MODE_UNUSED:
 	case CLOCK_EVT_MODE_RESUME:
-		/* Left event sources disabled, no more interrupts appear */
+		
 		break;
 	}
 }
 
-/*
- * IRQ handler for the timer
- */
+
 static irqreturn_t mxc_timer_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *evt = &clockevent_mxc;
@@ -289,12 +258,10 @@ void __init mxc_timer_init(struct clk *timer_clk, void __iomem *base, int irq)
 
 	timer_base = base;
 
-	/*
-	 * Initialise to a known state (all timers off, and timing reset)
-	 */
+	
 
 	__raw_writel(0, timer_base + MXC_TCTL);
-	__raw_writel(0, timer_base + MXC_TPRER); /* see datasheet note */
+	__raw_writel(0, timer_base + MXC_TPRER); 
 
 	if (cpu_is_mx3() || cpu_is_mx25())
 		tctl_val = MX3_TCTL_CLK_IPG | MX3_TCTL_FRR | MX3_TCTL_WAITEN | MXC_TCTL_TEN;
@@ -303,10 +270,10 @@ void __init mxc_timer_init(struct clk *timer_clk, void __iomem *base, int irq)
 
 	__raw_writel(tctl_val, timer_base + MXC_TCTL);
 
-	/* init and register the timer to the framework */
+	
 	mxc_clocksource_init(timer_clk);
 	mxc_clockevent_init(timer_clk);
 
-	/* Make irqs happen */
+	
 	setup_irq(irq, &mxc_timer_irq);
 }

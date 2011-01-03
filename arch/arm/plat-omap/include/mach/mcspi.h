@@ -8,7 +8,7 @@ struct omap2_mcspi_platform_config {
 struct omap2_mcspi_device_config {
 	unsigned turbo_mode:1;
 
-	/* Do we want one channel enabled at the same time? */
+	
 	unsigned single_channel:1;
 };
 

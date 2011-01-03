@@ -1,21 +1,9 @@
-/*
- * cs.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999             David A. Hinds
- */
+
 
 #ifndef _LINUX_CS_H
 #define _LINUX_CS_H
 
-/* For AccessConfigurationRegister */
+
 typedef struct conf_reg_t {
     u_char	Function;
     u_int	Action;
@@ -23,12 +11,12 @@ typedef struct conf_reg_t {
     u_int	Value;
 } conf_reg_t;
 
-/* Actions */
+
 #define CS_READ		1
 #define CS_WRITE	2
 
-/* for AdjustResourceInfo */
-/* Action field */
+
+
 #define REMOVE_MANAGED_RESOURCE		1
 #define ADD_MANAGED_RESOURCE		2
 
@@ -38,14 +26,14 @@ typedef struct event_callback_args_t {
 	void			*client_data;
 } event_callback_args_t;
 
-/* For CardValues field */
+
 #define CV_OPTION_VALUE		0x01
 #define CV_STATUS_VALUE		0x02
 #define CV_PIN_REPLACEMENT	0x04
 #define CV_COPY_VALUE		0x08
 #define CV_EXT_STATUS		0x10
 
-/* For GetFirst/NextClient */
+
 typedef struct client_req_t {
     socket_t	Socket;
     u_int	Attributes;
@@ -53,23 +41,23 @@ typedef struct client_req_t {
 
 #define CLIENT_THIS_SOCKET	0x01
 
-/* ModifyConfiguration */
+
 typedef struct modconf_t {
     u_int	Attributes;
     u_int	Vcc, Vpp1, Vpp2;
 } modconf_t;
 
-/* Attributes for ModifyConfiguration */
+
 #define CONF_IRQ_CHANGE_VALID	0x0100
 #define CONF_VCC_CHANGE_VALID	0x0200
 #define CONF_VPP1_CHANGE_VALID	0x0400
 #define CONF_VPP2_CHANGE_VALID	0x0800
 #define CONF_IO_CHANGE_WIDTH	0x1000
 
-/* For RequestConfiguration */
+
 typedef struct config_req_t {
     u_int	Attributes;
-    u_int	Vpp; /* both Vpp1 and Vpp2 */
+    u_int	Vpp; 
     u_int	IntType;
     u_int	ConfigBase;
     u_char	Status, Pin, Copy, ExtStatus;
@@ -77,19 +65,19 @@ typedef struct config_req_t {
     u_int	Present;
 } config_req_t;
 
-/* Attributes for RequestConfiguration */
+
 #define CONF_ENABLE_IRQ		0x01
 #define CONF_ENABLE_DMA		0x02
 #define CONF_ENABLE_SPKR	0x04
 #define CONF_VALID_CLIENT	0x100
 
-/* IntType field */
+
 #define INT_MEMORY		0x01
 #define INT_MEMORY_AND_IO	0x02
 #define INT_CARDBUS		0x04
 #define INT_ZOOMED_VIDEO	0x08
 
-/* For RequestIO and ReleaseIO */
+
 typedef struct io_req_t {
     u_int	BasePort1;
     u_int	NumPorts1;
@@ -100,7 +88,7 @@ typedef struct io_req_t {
     u_int	IOAddrLines;
 } io_req_t;
 
-/* Attributes for RequestIO and ReleaseIO */
+
 #define IO_SHARED		0x01
 #define IO_FIRST_SHARED		0x02
 #define IO_FORCE_ALIAS_ACCESS	0x04
@@ -109,16 +97,16 @@ typedef struct io_req_t {
 #define IO_DATA_PATH_WIDTH_16	0x08
 #define IO_DATA_PATH_WIDTH_AUTO	0x10
 
-/* For RequestIRQ and ReleaseIRQ */
+
 typedef struct irq_req_t {
     u_int	Attributes;
     u_int	AssignedIRQ;
-    u_int	IRQInfo1, IRQInfo2; /* IRQInfo2 is ignored */
+    u_int	IRQInfo1, IRQInfo2; 
     void	*Handler;
     void	*Instance;
 } irq_req_t;
 
-/* Attributes for RequestIRQ and ReleaseIRQ */
+
 #define IRQ_TYPE			0x03
 #define IRQ_TYPE_EXCLUSIVE		0x00
 #define IRQ_TYPE_TIME			0x01
@@ -128,7 +116,7 @@ typedef struct irq_req_t {
 #define IRQ_HANDLE_PRESENT		0x10
 #define IRQ_PULSE_ALLOCATED		0x100
 
-/* Bits in IRQInfo1 field */
+
 #define IRQ_MASK		0x0f
 #define IRQ_NMI_ID		0x01
 #define IRQ_IOCK_ID		0x02
@@ -146,7 +134,7 @@ typedef struct eventmask_t {
 
 #define CONF_EVENT_MASK_VALID	0x01
 
-/* Configuration registers present */
+
 #define PRESENT_OPTION		0x001
 #define PRESENT_STATUS		0x002
 #define PRESENT_PIN_REPLACE	0x004
@@ -158,19 +146,19 @@ typedef struct eventmask_t {
 #define PRESENT_IOBASE_3	0x100
 #define PRESENT_IOSIZE		0x200
 
-/* For GetMemPage, MapMemPage */
+
 typedef struct memreq_t {
     u_int	CardOffset;
     page_t	Page;
 } memreq_t;
 
-/* For ModifyWindow */
+
 typedef struct modwin_t {
     u_int	Attributes;
     u_int	AccessSpeed;
 } modwin_t;
 
-/* For RequestWindow */
+
 typedef struct win_req_t {
     u_int	Attributes;
     u_long	Base;
@@ -178,7 +166,7 @@ typedef struct win_req_t {
     u_int	AccessSpeed;
 } win_req_t;
 
-/* Attributes for RequestWindow */
+
 #define WIN_ADDR_SPACE		0x0001
 #define WIN_ADDR_SPACE_MEM	0x0000
 #define WIN_ADDR_SPACE_IO	0x0001
@@ -206,10 +194,10 @@ typedef struct error_info_t {
     int		retcode;
 } error_info_t;
 
-/* Flag to bind to all functions */
+
 #define BIND_FN_ALL	0xff
 
-/* Events */
+
 #define CS_EVENT_PRI_LOW		0
 #define CS_EVENT_PRI_HIGH		1
 
@@ -236,4 +224,4 @@ typedef struct error_info_t {
 #define CS_EVENT_3VCARD			0x200000
 #define CS_EVENT_XVCARD			0x400000
 
-#endif /* _LINUX_CS_H */
+#endif 

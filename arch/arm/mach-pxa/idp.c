@@ -1,20 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/idp.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  Copyright (c) 2001 Cliff Brake, Accelent Systems Inc.
- *
- *  2001-09-13: Cliff Brake <cbrake@accelent.com>
- *              Initial code
- *
- *  2005-02-15: Cliff Brake <cliff.brake@gmail.com>
- *  		<http://www.vibren.com> <http://bec-systems.com>
- *              Updated for 2.6 kernel
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -40,13 +24,10 @@
 #include "generic.h"
 #include "devices.h"
 
-/* TODO:
- * - add pxa2xx_audio_ops_t device structure
- * - Ethernet interrupt
- */
+
 
 static unsigned long idp_pin_config[] __initdata = {
-	/* LCD */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -67,23 +48,23 @@ static unsigned long idp_pin_config[] __initdata = {
 	GPIO75_LCD_LCLK,
 	GPIO76_LCD_PCLK,
 
-	/* BTUART */
+	
 	GPIO42_BTUART_RXD,
 	GPIO43_BTUART_TXD,
 	GPIO44_BTUART_CTS,
 	GPIO45_BTUART_RTS,
 
-	/* STUART */
+	
 	GPIO46_STUART_RXD,
 	GPIO47_STUART_TXD,
 
-	/* MMC */
+	
 	GPIO6_MMC_CLK,
 	GPIO8_MMC_CS0,
 
-	/* Ethernet */
-	GPIO33_nCS_5,	/* Ethernet CS */
-	GPIO4_GPIO,	/* Ethernet IRQ */
+	
+	GPIO33_nCS_5,	
+	GPIO4_GPIO,	
 };
 
 static struct resource smc91x_resources[] = {
@@ -132,11 +113,7 @@ static void idp_lcd_power(int on, struct fb_var_screeninfo *var)
 		IDP_CPLD_LCD &= ~(1<<0);
 	}
 
-	/* call idp_vlcd for now as core driver does not support
-	 * both power and vlcd hooks.  Note, this is not technically
-	 * the correct sequence, but seems to work.  Disclaimer:
-	 * this may eventually damage the display.
-	 */
+	
 
 	idp_vlcd(on);
 }
@@ -181,7 +158,7 @@ static void __init idp_init(void)
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(idp_pin_config));
 
 	platform_device_register(&smc91x_device);
-	//platform_device_register(&mst_audio_device);
+	
 	set_pxa_fb_info(&sharp_lm8v31);
 	pxa_set_mci_info(&idp_mci_platform_data);
 }
@@ -208,7 +185,7 @@ static void __init idp_map_io(void)
 
 
 MACHINE_START(PXA_IDP, "Vibren PXA255 IDP")
-	/* Maintainer: Vibren Technologies */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.map_io		= idp_map_io,

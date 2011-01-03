@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/dma.c
- *
- * Copyright (c) 2003-2005,2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2410 DMA core
- *
- * http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 
 #ifdef CONFIG_S3C2410_DMA_DEBUG
@@ -36,7 +24,7 @@
 #include <plat/dma-plat.h>
 #include <plat/regs-dma.h>
 
-/* io map for dma */
+
 static void __iomem *dma_base;
 static struct kmem_cache *dma_kmem;
 
@@ -45,7 +33,7 @@ static int dma_channels;
 static struct s3c24xx_dma_selection dma_sel;
 
 
-/* debugging functions */
+
 
 #define BUF_MAGIC (0xcafebabe)
 
@@ -66,7 +54,7 @@ dma_wrreg(struct s3c2410_dma_chan *chan, int reg, unsigned long val)
 
 #define dma_rdreg(chan, reg) readl((chan)->regs + (reg))
 
-/* captured register state for debug */
+
 
 struct s3c2410_dma_regstate {
 	unsigned long         dcsrc;
@@ -78,10 +66,7 @@ struct s3c2410_dma_regstate {
 
 #ifdef CONFIG_S3C2410_DMA_DEBUG
 
-/* dmadbg_showregs
- *
- * simple debug routine to print the current state of the dma registers
-*/
+
 
 static void
 dmadbg_capture(struct s3c2410_dma_chan *chan, struct s3c2410_dma_regstate *regs)
@@ -131,12 +116,9 @@ dmadbg_showregs(const char *fname, int line, struct s3c2410_dma_chan *chan)
 #else
 #define dbg_showregs(chan) do { } while(0)
 #define dbg_showchan(chan) do { } while(0)
-#endif /* CONFIG_S3C2410_DMA_DEBUG */
+#endif 
 
-/* s3c2410_dma_stats_timeout
- *
- * Update DMA stats from timeout info
-*/
+
 
 static void
 s3c2410_dma_stats_timeout(struct s3c2410_dma_stats *stats, int val)
@@ -152,10 +134,7 @@ s3c2410_dma_stats_timeout(struct s3c2410_dma_stats *stats, int val)
 	stats->timeout_avg += val;
 }
 
-/* s3c2410_dma_waitforload
- *
- * wait for the DMA engine to load a buffer, and update the state accordingly
-*/
+
 
 static int
 s3c2410_dma_waitforload(struct s3c2410_dma_chan *chan, int line)
@@ -197,10 +176,7 @@ s3c2410_dma_waitforload(struct s3c2410_dma_chan *chan, int line)
 	return 0;
 }
 
-/* s3c2410_dma_loadbuffer
- *
- * load a buffer, and update the channel state
-*/
+
 
 static inline int
 s3c2410_dma_loadbuffer(struct s3c2410_dma_chan *chan,
@@ -216,7 +192,7 @@ s3c2410_dma_loadbuffer(struct s3c2410_dma_chan *chan,
 	pr_debug("s3c2410_chan_loadbuffer: loading buff %p (0x%08lx,0x%06x)\n",
 		 buf, (unsigned long)buf->data, buf->size);
 
-	/* check the state of the channel before we do anything */
+	
 
 	if (chan->load_state == S3C2410_DMALOAD_1LOADED) {
 		dmawarn("load_state is S3C2410_DMALOAD_1LOADED\n");
@@ -226,16 +202,13 @@ s3c2410_dma_loadbuffer(struct s3c2410_dma_chan *chan,
 		dmawarn("state is S3C2410_DMALOAD_1LOADED_1RUNNING\n");
 	}
 
-	/* it would seem sensible if we are the last buffer to not bother
-	 * with the auto-reload bit, so that the DMA engine will not try
-	 * and load another transfer after this one has finished...
-	 */
+	
 	if (chan->load_state == S3C2410_DMALOAD_NONE) {
 		pr_debug("load_state is none, checking for noreload (next=%p)\n",
 			 buf->next);
 		reload = (buf->next == NULL) ? S3C2410_DCON_NORELOAD : 0;
 	} else {
-		//pr_debug("load_state is %d => autoreload\n", chan->load_state);
+		
 		reload = S3C2410_DCON_AUTORELOAD;
 	}
 
@@ -250,7 +223,7 @@ s3c2410_dma_loadbuffer(struct s3c2410_dma_chan *chan,
 
 	chan->next = buf->next;
 
-	/* update the state of the channel */
+	
 
 	switch (chan->load_state) {
 	case S3C2410_DMALOAD_NONE:
@@ -270,11 +243,7 @@ s3c2410_dma_loadbuffer(struct s3c2410_dma_chan *chan,
 	return 0;
 }
 
-/* s3c2410_dma_call_op
- *
- * small routine to call the op routine with the given op if it has been
- * registered
-*/
+
 
 static void
 s3c2410_dma_call_op(struct s3c2410_dma_chan *chan, enum s3c2410_chan_op op)
@@ -284,11 +253,7 @@ s3c2410_dma_call_op(struct s3c2410_dma_chan *chan, enum s3c2410_chan_op op)
 	}
 }
 
-/* s3c2410_dma_buffdone
- *
- * small wrapper to check if callback routine needs to be called, and
- * if so, call it
-*/
+
 
 static inline void
 s3c2410_dma_buffdone(struct s3c2410_dma_chan *chan, struct s3c2410_dma_buf *buf,
@@ -304,10 +269,7 @@ s3c2410_dma_buffdone(struct s3c2410_dma_chan *chan, struct s3c2410_dma_buf *buf,
 	}
 }
 
-/* s3c2410_dma_start
- *
- * start a dma channel going
-*/
+
 
 static int s3c2410_dma_start(struct s3c2410_dma_chan *chan)
 {
@@ -326,9 +288,7 @@ static int s3c2410_dma_start(struct s3c2410_dma_chan *chan)
 
 	chan->state = S3C2410_DMA_RUNNING;
 
-	/* check wether there is anything to load, and if not, see
-	 * if we can find anything to load
-	 */
+	
 
 	if (chan->load_state == S3C2410_DMALOAD_NONE) {
 		if (chan->next == NULL) {
@@ -344,14 +304,14 @@ static int s3c2410_dma_start(struct s3c2410_dma_chan *chan)
 
 	dbg_showchan(chan);
 
-	/* enable the channel */
+	
 
 	if (!chan->irq_enabled) {
 		enable_irq(chan->irq);
 		chan->irq_enabled = 1;
 	}
 
-	/* start the channel going */
+	
 
 	tmp = dma_rdreg(chan, S3C2410_DMA_DMASKTRIG);
 	tmp &= ~S3C2410_DMASKTRIG_STOP;
@@ -361,8 +321,7 @@ static int s3c2410_dma_start(struct s3c2410_dma_chan *chan)
 	pr_debug("dma%d: %08lx to DMASKTRIG\n", chan->number, tmp);
 
 #if 0
-	/* the dma buffer loads should take care of clearing the AUTO
-	 * reloading feature */
+	
 	tmp = dma_rdreg(chan, S3C2410_DMA_DCON);
 	tmp &= ~S3C2410_DCON_NORELOAD;
 	dma_wrreg(chan, S3C2410_DMA_DCON, tmp);
@@ -372,10 +331,7 @@ static int s3c2410_dma_start(struct s3c2410_dma_chan *chan)
 
 	dbg_showchan(chan);
 
-	/* if we've only loaded one buffer onto the channel, then chec
-	 * to see if we have another, and if so, try and load it so when
-	 * the first buffer is finished, the new one will be loaded onto
-	 * the channel */
+	
 
 	if (chan->next != NULL) {
 		if (chan->load_state == S3C2410_DMALOAD_1LOADED) {
@@ -399,10 +355,7 @@ static int s3c2410_dma_start(struct s3c2410_dma_chan *chan)
 	return 0;
 }
 
-/* s3c2410_dma_canload
- *
- * work out if we can queue another buffer into the DMA engine
-*/
+
 
 static int
 s3c2410_dma_canload(struct s3c2410_dma_chan *chan)
@@ -414,22 +367,7 @@ s3c2410_dma_canload(struct s3c2410_dma_chan *chan)
 	return 0;
 }
 
-/* s3c2410_dma_enqueue
- *
- * queue an given buffer for dma transfer.
- *
- * id         the device driver's id information for this buffer
- * data       the physical address of the buffer data
- * size       the size of the buffer in bytes
- *
- * If the channel is not running, then the flag S3C2410_DMAF_AUTOSTART
- * is checked, and if set, the channel is started. If this flag isn't set,
- * then an error will be returned.
- *
- * It is possible to queue more than one DMA buffer onto a channel at
- * once, and the code will deal with the re-loading of the next buffer
- * when necessary.
-*/
+
 
 int s3c2410_dma_enqueue(unsigned int channel, void *id,
 			dma_addr_t data, int size)
@@ -451,8 +389,8 @@ int s3c2410_dma_enqueue(unsigned int channel, void *id,
 		return -ENOMEM;
 	}
 
-	//pr_debug("%s: new buffer %p\n", __func__, buf);
-	//dbg_showchan(chan);
+	
+	
 
 	buf->next  = NULL;
 	buf->data  = buf->ptr = data;
@@ -463,7 +401,7 @@ int s3c2410_dma_enqueue(unsigned int channel, void *id,
 	local_irq_save(flags);
 
 	if (chan->curr == NULL) {
-		/* we've got nothing loaded... */
+		
 		pr_debug("%s: buffer %p queued onto empty channel\n",
 			 __func__, buf);
 
@@ -482,11 +420,11 @@ int s3c2410_dma_enqueue(unsigned int channel, void *id,
 		chan->end = buf;
 	}
 
-	/* if necessary, update the next buffer field */
+	
 	if (chan->next == NULL)
 		chan->next = buf;
 
-	/* check to see if we can load a buffer */
+	
 	if (chan->state == S3C2410_DMA_RUNNING) {
 		if (chan->load_state == S3C2410_DMALOAD_1LOADED && 1) {
 			if (s3c2410_dma_waitforload(chan, __LINE__) == 0) {
@@ -529,11 +467,7 @@ s3c2410_dma_freebuf(struct s3c2410_dma_buf *buf)
 	}
 }
 
-/* s3c2410_dma_lastxfer
- *
- * called when the system is out of buffers, to ensure that the channel
- * is prepared for shutdown.
-*/
+
 
 static inline void
 s3c2410_dma_lastxfer(struct s3c2410_dma_chan *chan)
@@ -549,7 +483,7 @@ s3c2410_dma_lastxfer(struct s3c2410_dma_chan *chan)
 
 	case S3C2410_DMALOAD_1LOADED:
 		if (s3c2410_dma_waitforload(chan, __LINE__) == 0) {
-				/* flag error? */
+				
 			printk(KERN_ERR "dma%d: timeout waiting for load (%s)\n",
 			       chan->number, __func__);
 			return;
@@ -557,9 +491,7 @@ s3c2410_dma_lastxfer(struct s3c2410_dma_chan *chan)
 		break;
 
 	case S3C2410_DMALOAD_1LOADED_1RUNNING:
-		/* I belive in this case we do not have anything to do
-		 * until the next buffer comes along, and we turn off the
-		 * reload */
+		
 		return;
 
 	default:
@@ -569,7 +501,7 @@ s3c2410_dma_lastxfer(struct s3c2410_dma_chan *chan)
 
 	}
 
-	/* hopefully this'll shut the damned thing up after the transfer... */
+	
 	dma_wrreg(chan, S3C2410_DMA_DCON, chan->dcon | S3C2410_DCON_NORELOAD);
 }
 
@@ -586,32 +518,23 @@ s3c2410_dma_irq(int irq, void *devpw)
 
 	dbg_showchan(chan);
 
-	/* modify the channel state */
+	
 
 	switch (chan->load_state) {
 	case S3C2410_DMALOAD_1RUNNING:
-		/* TODO - if we are running only one buffer, we probably
-		 * want to reload here, and then worry about the buffer
-		 * callback */
+		
 
 		chan->load_state = S3C2410_DMALOAD_NONE;
 		break;
 
 	case S3C2410_DMALOAD_1LOADED:
-		/* iirc, we should go back to NONE loaded here, we
-		 * had a buffer, and it was never verified as being
-		 * loaded.
-		 */
+		
 
 		chan->load_state = S3C2410_DMALOAD_NONE;
 		break;
 
 	case S3C2410_DMALOAD_1LOADED_1RUNNING:
-		/* we'll worry about checking to see if another buffer is
-		 * ready after we've called back the owner. This should
-		 * ensure we do not wait around too long for the DMA
-		 * engine to start the next transfer
-		 */
+		
 
 		chan->load_state = S3C2410_DMALOAD_1LOADED;
 		break;
@@ -628,9 +551,7 @@ s3c2410_dma_irq(int irq, void *devpw)
 	}
 
 	if (buf != NULL) {
-		/* update the chain to make sure that if we load any more
-		 * buffers when we call the callback function, things should
-		 * work properly */
+		
 
 		chan->curr = buf->next;
 		buf->next  = NULL;
@@ -643,33 +564,30 @@ s3c2410_dma_irq(int irq, void *devpw)
 
 		s3c2410_dma_buffdone(chan, buf, S3C2410_RES_OK);
 
-		/* free resouces */
+		
 		s3c2410_dma_freebuf(buf);
 	} else {
 	}
 
-	/* only reload if the channel is still running... our buffer done
-	 * routine may have altered the state by requesting the dma channel
-	 * to stop or shutdown... */
+	
 
-	/* todo: check that when the channel is shut-down from inside this
-	 * function, we cope with unsetting reload, etc */
+	
 
 	if (chan->next != NULL && chan->state != S3C2410_DMA_IDLE) {
 		unsigned long flags;
 
 		switch (chan->load_state) {
 		case S3C2410_DMALOAD_1RUNNING:
-			/* don't need to do anything for this state */
+			
 			break;
 
 		case S3C2410_DMALOAD_NONE:
-			/* can load buffer immediately */
+			
 			break;
 
 		case S3C2410_DMALOAD_1LOADED:
 			if (s3c2410_dma_waitforload(chan, __LINE__) == 0) {
-				/* flag error? */
+				
 				printk(KERN_ERR "dma%d: timeout waiting for load (%s)\n",
 				       chan->number, __func__);
 				return IRQ_HANDLED;
@@ -692,7 +610,7 @@ s3c2410_dma_irq(int irq, void *devpw)
 	} else {
 		s3c2410_dma_lastxfer(chan);
 
-		/* see if we can stop this channel.. */
+		
 		if (chan->load_state == S3C2410_DMALOAD_NONE) {
 			pr_debug("dma%d: end of transfer, stopping channel (%ld)\n",
 				 chan->number, jiffies);
@@ -707,10 +625,7 @@ s3c2410_dma_irq(int irq, void *devpw)
 
 static struct s3c2410_dma_chan *s3c2410_dma_map_channel(int channel);
 
-/* s3c2410_request_dma
- *
- * get control of an dma channel
-*/
+
 
 int s3c2410_dma_request(unsigned int channel,
 			struct s3c2410_dma_client *client,
@@ -763,7 +678,7 @@ int s3c2410_dma_request(unsigned int channel,
 
 	local_irq_restore(flags);
 
-	/* need to setup */
+	
 
 	pr_debug("%s: channel initialised, %p\n", __func__, chan);
 
@@ -772,16 +687,7 @@ int s3c2410_dma_request(unsigned int channel,
 
 EXPORT_SYMBOL(s3c2410_dma_request);
 
-/* s3c2410_dma_free
- *
- * release the given channel back to the system, will stop and flush
- * any outstanding transfers, and ensure the channel is ready for the
- * next claimant.
- *
- * Note, although a warning is currently printed if the freeing client
- * info is not the same as the registrant's client info, the free is still
- * allowed to go through.
-*/
+
 
 int s3c2410_dma_free(unsigned int channel, struct s3c2410_dma_client *client)
 {
@@ -798,13 +704,13 @@ int s3c2410_dma_free(unsigned int channel, struct s3c2410_dma_client *client)
 		       channel, chan->client, client);
 	}
 
-	/* sort out stopping and freeing the channel */
+	
 
 	if (chan->state != S3C2410_DMA_IDLE) {
 		pr_debug("%s: need to stop dma channel %p\n",
 		       __func__, chan);
 
-		/* possibly flush the channel */
+		
 		s3c2410_dma_ctrl(channel, S3C2410_DMAOP_STOP);
 	}
 
@@ -841,17 +747,17 @@ static int s3c2410_dma_dostop(struct s3c2410_dma_chan *chan)
 
 	tmp = dma_rdreg(chan, S3C2410_DMA_DMASKTRIG);
 	tmp |= S3C2410_DMASKTRIG_STOP;
-	//tmp &= ~S3C2410_DMASKTRIG_ON;
+	
 	dma_wrreg(chan, S3C2410_DMA_DMASKTRIG, tmp);
 
 #if 0
-	/* should also clear interrupts, according to WinCE BSP */
+	
 	tmp = dma_rdreg(chan, S3C2410_DMA_DCON);
 	tmp |= S3C2410_DCON_NORELOAD;
 	dma_wrreg(chan, S3C2410_DMA_DCON, tmp);
 #endif
 
-	/* should stop do this, or should we wait for flush? */
+	
 	chan->state      = S3C2410_DMA_IDLE;
 	chan->load_state = S3C2410_DMALOAD_NONE;
 
@@ -876,10 +782,7 @@ static void s3c2410_dma_waitforstop(struct s3c2410_dma_chan *chan)
 }
 
 
-/* s3c2410_dma_flush
- *
- * stop the channel, and remove all current and pending transfers
-*/
+
 
 static int s3c2410_dma_flush(struct s3c2410_dma_chan *chan)
 {
@@ -920,7 +823,7 @@ static int s3c2410_dma_flush(struct s3c2410_dma_chan *chan)
 	s3c2410_dma_waitforstop(chan);
 
 #if 0
-	/* should also clear interrupts, according to WinCE BSP */
+	
 	{
 		unsigned long tmp;
 
@@ -945,10 +848,7 @@ static int s3c2410_dma_started(struct s3c2410_dma_chan *chan)
 
 	dbg_showchan(chan);
 
-	/* if we've only loaded one buffer onto the channel, then chec
-	 * to see if we have another, and if so, try and load it so when
-	 * the first buffer is finished, the new one will be loaded onto
-	 * the channel */
+	
 
 	if (chan->next != NULL) {
 		if (chan->load_state == S3C2410_DMALOAD_1LOADED) {
@@ -1003,23 +903,14 @@ s3c2410_dma_ctrl(unsigned int channel, enum s3c2410_chan_op op)
 
 	}
 
-	return -ENOENT;      /* unknown, don't bother */
+	return -ENOENT;      
 }
 
 EXPORT_SYMBOL(s3c2410_dma_ctrl);
 
-/* DMA configuration for each channel
- *
- * DISRCC -> source of the DMA (AHB,APB)
- * DISRC  -> source address of the DMA
- * DIDSTC -> destination of the DMA (AHB,APD)
- * DIDST  -> destination address of the DMA
-*/
 
-/* s3c2410_dma_config
- *
- * xfersize:     size of unit in bytes (1,2,4)
-*/
+
+
 
 int s3c2410_dma_config(unsigned int channel,
 		       int xferunit)
@@ -1051,7 +942,7 @@ int s3c2410_dma_config(unsigned int channel,
 		break;
 
 	case DMACH_SDI:
-		/* note, ensure if need HANDSHAKE or not */
+		
 		dcon |= S3C2410_DCON_SYNC_PCLK;
 		break;
 
@@ -1094,15 +985,7 @@ int s3c2410_dma_config(unsigned int channel,
 EXPORT_SYMBOL(s3c2410_dma_config);
 
 
-/* s3c2410_dma_devconfig
- *
- * configure the dma source/destination hardware type and address
- *
- * source:    S3C2410_DMASRC_HW: source is hardware
- *            S3C2410_DMASRC_MEM: source is memory
- *
- * devaddr:   physical address of the source
-*/
+
 
 int s3c2410_dma_devconfig(int channel,
 			  enum s3c2410_dmasrc source,
@@ -1123,20 +1006,19 @@ int s3c2410_dma_devconfig(int channel,
 	switch (chan->req_ch) {
 	case DMACH_XD0:
 	case DMACH_XD1:
-		hwcfg = 0; /* AHB */
+		hwcfg = 0; 
 		break;
 
 	default:
 		hwcfg = S3C2410_DISRCC_APB;
 	}
 
-	/* always assume our peripheral desintation is a fixed
-	 * address in memory. */
+	
 	 hwcfg |= S3C2410_DISRCC_INC;
 
 	switch (source) {
 	case S3C2410_DMASRC_HW:
-		/* source is hardware */
+		
 		pr_debug("%s: hw source, devaddr=%08lx, hwcfg=%d\n",
 			 __func__, devaddr, hwcfg);
 		dma_wrreg(chan, S3C2410_DMA_DISRCC, hwcfg & 3);
@@ -1147,7 +1029,7 @@ int s3c2410_dma_devconfig(int channel,
 		break;
 
 	case S3C2410_DMASRC_MEM:
-		/* source is memory */
+		
 		pr_debug("%s: mem source, devaddr=%08lx, hwcfg=%d\n",
 			 __func__, devaddr, hwcfg);
 		dma_wrreg(chan, S3C2410_DMA_DISRCC, (0<<1) | (0<<0));
@@ -1172,10 +1054,7 @@ int s3c2410_dma_devconfig(int channel,
 
 EXPORT_SYMBOL(s3c2410_dma_devconfig);
 
-/* s3c2410_dma_getposition
- *
- * returns the current transfer points for the dma source and destination
-*/
+
 
 int s3c2410_dma_getposition(unsigned int channel, dma_addr_t *src, dma_addr_t *dst)
 {
@@ -1200,7 +1079,7 @@ static inline struct s3c2410_dma_chan *to_dma_chan(struct sys_device *dev)
 	return container_of(dev, struct s3c2410_dma_chan, dev);
 }
 
-/* system device class */
+
 
 #ifdef CONFIG_PM
 
@@ -1211,11 +1090,7 @@ static int s3c2410_dma_suspend(struct sys_device *dev, pm_message_t state)
 	printk(KERN_DEBUG "suspending dma channel %d\n", cp->number);
 
 	if (dma_rdreg(cp, S3C2410_DMA_DMASKTRIG) & S3C2410_DMASKTRIG_ON) {
-		/* the dma channel is still working, which is probably
-		 * a bad thing to do over suspend/resume. We stop the
-		 * channel and assume that the client is either going to
-		 * retry after resume, or that it is broken.
-		 */
+		
 
 		printk(KERN_INFO "dma: stopping channel %d due to suspend\n",
 		       cp->number);
@@ -1231,7 +1106,7 @@ static int s3c2410_dma_resume(struct sys_device *dev)
 	struct s3c2410_dma_chan *cp = to_dma_chan(dev);
 	unsigned int no = cp->number | DMACH_LOW_LEVEL;
 
-	/* restore channel's hardware configuration */
+	
 
 	if (!cp->in_use)
 		return 0;
@@ -1241,7 +1116,7 @@ static int s3c2410_dma_resume(struct sys_device *dev)
 	s3c2410_dma_config(no, cp->xfer_unit);
 	s3c2410_dma_devconfig(no, cp->source, cp->dev_addr);
 
-	/* re-select the dma source for this channel */
+	
 
 	if (cp->map != NULL)
 		dma_sel.select(cp, cp->map);
@@ -1252,7 +1127,7 @@ static int s3c2410_dma_resume(struct sys_device *dev)
 #else
 #define s3c2410_dma_suspend NULL
 #define s3c2410_dma_resume  NULL
-#endif /* CONFIG_PM */
+#endif 
 
 struct sysdev_class dma_sysclass = {
 	.name		= "s3c24xx-dma",
@@ -1260,14 +1135,14 @@ struct sysdev_class dma_sysclass = {
 	.resume		= s3c2410_dma_resume,
 };
 
-/* kmem cache implementation */
+
 
 static void s3c2410_dma_cache_ctor(void *p)
 {
 	memset(p, 0, sizeof(struct s3c2410_dma_buf));
 }
 
-/* initialisation code */
+
 
 static int __init s3c24xx_dma_sysclass_init(void)
 {
@@ -1336,16 +1211,16 @@ int __init s3c24xx_dma_init(unsigned int channels, unsigned int irq,
 
 		memset(cp, 0, sizeof(struct s3c2410_dma_chan));
 
-		/* dma channel irqs are in order.. */
+		
 		cp->number = channel;
 		cp->irq    = channel + irq;
 		cp->regs   = dma_base + (channel * stride);
 
-		/* point current stats somewhere */
+		
 		cp->stats  = &cp->stats_store;
 		cp->stats_store.timeout_shortest = LONG_MAX;
 
-		/* basic channel configuration */
+		
 
 		cp->load_timeout = 1<<18;
 
@@ -1375,15 +1250,7 @@ static inline int is_channel_valid(unsigned int channel)
 static struct s3c24xx_dma_order *dma_order;
 
 
-/* s3c2410_dma_map_channel()
- *
- * turn the virtual channel number into a real, and un-used hardware
- * channel.
- *
- * first, try the dma ordering given to us by either the relevant
- * dma code, or the board. Then just find the first usable free
- * channel
-*/
+
 
 static struct s3c2410_dma_chan *s3c2410_dma_map_channel(int channel)
 {
@@ -1397,7 +1264,7 @@ static struct s3c2410_dma_chan *s3c2410_dma_map_channel(int channel)
 
 	ch_map = dma_sel.map + channel;
 
-	/* first, try the board mapping */
+	
 
 	if (dma_order) {
 		ord = &dma_order->channels[channel];
@@ -1416,7 +1283,7 @@ static struct s3c2410_dma_chan *s3c2410_dma_map_channel(int channel)
 			return NULL;
 	}
 
-	/* second, search the channel map for first free */
+	
 
 	for (ch = 0; ch < dma_channels; ch++) {
 		if (!is_channel_valid(ch_map->channels[ch]))
@@ -1431,7 +1298,7 @@ static struct s3c2410_dma_chan *s3c2410_dma_map_channel(int channel)
 	if (ch >= dma_channels)
 		return NULL;
 
-	/* update our channel mapping */
+	
 
  found:
 	dmach = &s3c2410_chans[ch];
@@ -1439,7 +1306,7 @@ static struct s3c2410_dma_chan *s3c2410_dma_map_channel(int channel)
 	dmach->req_ch = channel;
 	s3c_dma_chan_map[channel] = dmach;
 
-	/* select the channel */
+	
 
 	(dma_sel.select)(dmach, ch_map);
 

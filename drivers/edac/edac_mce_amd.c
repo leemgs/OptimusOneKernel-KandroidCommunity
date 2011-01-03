@@ -27,11 +27,8 @@ void amd_unregister_ecc_decoder(void (*f)(int, struct err_regs *))
 }
 EXPORT_SYMBOL_GPL(amd_unregister_ecc_decoder);
 
-/*
- * string representation for the different MCA reported error types, see F3x48
- * or MSR0000_0411.
- */
-const char *tt_msgs[] = {        /* transaction type */
+
+const char *tt_msgs[] = {        
 	"instruction",
 	"data",
 	"generic",
@@ -39,7 +36,7 @@ const char *tt_msgs[] = {        /* transaction type */
 };
 EXPORT_SYMBOL_GPL(tt_msgs);
 
-const char *ll_msgs[] = {	/* cache level */
+const char *ll_msgs[] = {	
 	"L0",
 	"L1",
 	"L2",
@@ -67,7 +64,7 @@ const char *rrrr_msgs[] = {
 };
 EXPORT_SYMBOL_GPL(rrrr_msgs);
 
-const char *pp_msgs[] = {	/* participating processor */
+const char *pp_msgs[] = {	
 	"local node originated (SRC)",
 	"local node responded to request (RES)",
 	"local node observed as 3rd party (OBS)",
@@ -81,7 +78,7 @@ const char *to_msgs[] = {
 };
 EXPORT_SYMBOL_GPL(to_msgs);
 
-const char *ii_msgs[] = {	/* memory or i/o */
+const char *ii_msgs[] = {	
 	"mem access",
 	"reserved",
 	"i/o access",
@@ -89,43 +86,40 @@ const char *ii_msgs[] = {	/* memory or i/o */
 };
 EXPORT_SYMBOL_GPL(ii_msgs);
 
-/*
- * Map the 4 or 5 (family-specific) bits of Extended Error code to the
- * string table.
- */
+
 const char *ext_msgs[] = {
-	"K8 ECC error",					/* 0_0000b */
-	"CRC error on link",				/* 0_0001b */
-	"Sync error packets on link",			/* 0_0010b */
-	"Master Abort during link operation",		/* 0_0011b */
-	"Target Abort during link operation",		/* 0_0100b */
-	"Invalid GART PTE entry during table walk",	/* 0_0101b */
-	"Unsupported atomic RMW command received",	/* 0_0110b */
-	"WDT error: NB transaction timeout",		/* 0_0111b */
-	"ECC/ChipKill ECC error",			/* 0_1000b */
-	"SVM DEV Error",				/* 0_1001b */
-	"Link Data error",				/* 0_1010b */
-	"Link/L3/Probe Filter Protocol error",		/* 0_1011b */
-	"NB Internal Arrays Parity error",		/* 0_1100b */
-	"DRAM Address/Control Parity error",		/* 0_1101b */
-	"Link Transmission error",			/* 0_1110b */
-	"GART/DEV Table Walk Data error"		/* 0_1111b */
-	"Res 0x100 error",				/* 1_0000b */
-	"Res 0x101 error",				/* 1_0001b */
-	"Res 0x102 error",				/* 1_0010b */
-	"Res 0x103 error",				/* 1_0011b */
-	"Res 0x104 error",				/* 1_0100b */
-	"Res 0x105 error",				/* 1_0101b */
-	"Res 0x106 error",				/* 1_0110b */
-	"Res 0x107 error",				/* 1_0111b */
-	"Res 0x108 error",				/* 1_1000b */
-	"Res 0x109 error",				/* 1_1001b */
-	"Res 0x10A error",				/* 1_1010b */
-	"Res 0x10B error",				/* 1_1011b */
-	"ECC error in L3 Cache Data",			/* 1_1100b */
-	"L3 Cache Tag error",				/* 1_1101b */
-	"L3 Cache LRU Parity error",			/* 1_1110b */
-	"Probe Filter error"				/* 1_1111b */
+	"K8 ECC error",					
+	"CRC error on link",				
+	"Sync error packets on link",			
+	"Master Abort during link operation",		
+	"Target Abort during link operation",		
+	"Invalid GART PTE entry during table walk",	
+	"Unsupported atomic RMW command received",	
+	"WDT error: NB transaction timeout",		
+	"ECC/ChipKill ECC error",			
+	"SVM DEV Error",				
+	"Link Data error",				
+	"Link/L3/Probe Filter Protocol error",		
+	"NB Internal Arrays Parity error",		
+	"DRAM Address/Control Parity error",		
+	"Link Transmission error",			
+	"GART/DEV Table Walk Data error"		
+	"Res 0x100 error",				
+	"Res 0x101 error",				
+	"Res 0x102 error",				
+	"Res 0x103 error",				
+	"Res 0x104 error",				
+	"Res 0x105 error",				
+	"Res 0x106 error",				
+	"Res 0x107 error",				
+	"Res 0x108 error",				
+	"Res 0x109 error",				
+	"Res 0x10A error",				
+	"Res 0x10B error",				
+	"ECC error in L3 Cache Data",			
+	"L3 Cache Tag error",				
+	"L3 Cache LRU Parity error",			
+	"Probe Filter error"				
 };
 EXPORT_SYMBOL_GPL(ext_msgs);
 
@@ -148,7 +142,7 @@ static void amd_decode_dc_mce(u64 mc0_status)
 			u8 tt   = (ec >> 2) & 0x3;
 			u8 rrrr = (ec >> 4) & 0xf;
 
-			/* see F10h BKDG (31116), Table 92. */
+			
 			if (ll == 0x1) {
 				if (tt != 0x1)
 					goto wrong_dc_mce;
@@ -302,10 +296,7 @@ void amd_decode_nb_mce(int node_id, struct err_regs *regs, int handle_errors)
 
 	pr_emerg(" Northbridge Error, node %d", node_id);
 
-	/*
-	 * F10h, revD can disable ErrCpu[3:0] so check that first and also the
-	 * value encoding has changed so interpret those differently
-	 */
+	
 	if ((boot_cpu_data.x86 == 0x10) &&
 	    (boot_cpu_data.x86_model > 8)) {
 		if (regs->nbsh & K8_NBSH_ERR_CPU_VAL)
@@ -324,7 +315,7 @@ EXPORT_SYMBOL_GPL(amd_decode_nb_mce);
 
 static void amd_decode_fr_mce(u64 mc5_status)
 {
-	/* we have only one error signature so match all fields at once. */
+	
 	if ((mc5_status & 0xffff) == 0x0f0f)
 		pr_emerg(" FR Error: CPU Watchdog timer expire.\n");
 	else
@@ -334,18 +325,7 @@ static void amd_decode_fr_mce(u64 mc5_status)
 static inline void amd_decode_err_code(unsigned int ec)
 {
 	if (TLB_ERROR(ec)) {
-		/*
-		 * GART errors are intended to help graphics driver developers
-		 * to detect bad GART PTEs. It is recommended by AMD to disable
-		 * GART table walk error reporting by default[1] (currently
-		 * being disabled in mce_cpu_quirks()) and according to the
-		 * comment in mce_cpu_quirks(), such GART errors can be
-		 * incorrectly triggered. We may see these errors anyway and
-		 * unless requested by the user, they won't be reported.
-		 *
-		 * [1] section 13.10.1 on BIOS and Kernel Developers Guide for
-		 *     AMD NPT family 0Fh processors
-		 */
+		
 		if (!report_gart_errors)
 			return;
 
@@ -377,7 +357,7 @@ static void amd_decode_mce(struct mce *m)
 		 ((m->status & MCI_STATUS_MISCV) ? ""  : "in"),
 		 ((m->status & MCI_STATUS_PCC) ? "yes" : "no"));
 
-	/* do the two bits[14:13] together */
+	
 	ecc = m->status & (3ULL << 45);
 	if (ecc)
 		pr_cont(", %sECC Error", ((ecc == 2) ? "C" : "U"));
@@ -424,12 +404,10 @@ static void amd_decode_mce(struct mce *m)
 
 static int __init mce_amd_init(void)
 {
-	/*
-	 * We can decode MCEs for Opteron and later CPUs:
-	 */
+	
 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_AMD) &&
 	    (boot_cpu_data.x86 >= 0xf)) {
-		/* safe the default decode mce callback */
+		
 		orig_mce_callback = x86_mce_decode_callback;
 
 		x86_mce_decode_callback = amd_decode_mce;

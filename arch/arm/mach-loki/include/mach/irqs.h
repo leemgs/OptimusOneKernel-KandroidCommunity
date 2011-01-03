@@ -1,21 +1,11 @@
-/*
- * arch/arm/mach-loki/include/mach/irqs.h
- *
- * IRQ definitions for Marvell Loki (88RC8480) SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ASM_ARCH_IRQS_H
 #define __ASM_ARCH_IRQS_H
 
-#include "loki.h"	/* need GPIO_MAX */
+#include "loki.h"	
 
-/*
- * Interrupt Controller
- */
+
 #define IRQ_LOKI_PCIE_A_CPU_DRBL	0
 #define IRQ_LOKI_CPU_PCIE_A_DRBL	1
 #define IRQ_LOKI_PCIE_B_CPU_DRBL	2
@@ -46,9 +36,7 @@
 #define IRQ_LOKI_GPIO_23_0		30
 #define IRQ_LOKI_GPIO_25_24		31
 
-/*
- * Loki General Purpose Pins
- */
+
 #define IRQ_LOKI_GPIO_START	32
 #define NR_GPIO_IRQS		GPIO_MAX
 

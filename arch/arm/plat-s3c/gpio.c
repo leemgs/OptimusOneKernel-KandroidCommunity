@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c/gpio.c
- *
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C series GPIO core
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -32,18 +21,9 @@ static __init void s3c_gpiolib_track(struct s3c_gpio_chip *chip)
 		s3c_gpios[gpn] = chip;
 	}
 }
-#endif /* CONFIG_S3C_GPIO_TRACK */
+#endif 
 
-/* Default routines for controlling GPIO, based on the original S3C24XX
- * GPIO functions which deal with the case where each gpio bank of the
- * chip is as following:
- *
- * base + 0x00: Control register, 2 bits per gpio
- *	        gpio n: 2 bits starting at (2*n)
- *		00 = input, 01 = output, others mean special-function
- * base + 0x04: Data register, 1 bit per gpio
- *		bit n: data bit n
-*/
+
 
 static int s3c_gpiolib_input(struct gpio_chip *chip, unsigned offset)
 {
@@ -149,7 +129,7 @@ __init void s3c_gpiolib_add(struct s3c_gpio_chip *chip)
 		printk(KERN_ERR "gpio: %s has no PM function\n", gc->label);
 #endif
 
-	/* gpiochip_add() prints own failure message on error. */
+	
 	ret = gpiochip_add(gc);
 	if (ret >= 0)
 		s3c_gpiolib_track(chip);

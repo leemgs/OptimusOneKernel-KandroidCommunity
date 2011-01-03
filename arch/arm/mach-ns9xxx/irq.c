@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/irq.c
- *
- * Copyright (C) 2006,2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #include <linux/interrupt.h>
 #include <linux/kernel_stat.h>
 #include <linux/io.h>
@@ -18,13 +9,13 @@
 
 #include "generic.h"
 
-/* simple interrupt prio table: prio(x) < prio(y) <=> x < y */
+
 #define irq2prio(i) (i)
 #define prio2irq(p) (p)
 
 static void ns9xxx_mask_irq(unsigned int irq)
 {
-	/* XXX: better use cpp symbols */
+	
 	int prio = irq2prio(irq);
 	u32 ic = __raw_readl(SYS_IC(prio / 4));
 	ic &= ~(1 << (7 + 8 * (3 - (prio & 3))));
@@ -44,7 +35,7 @@ static void ns9xxx_maskack_irq(unsigned int irq)
 
 static void ns9xxx_unmask_irq(unsigned int irq)
 {
-	/* XXX: better use cpp symbols */
+	
 	int prio = irq2prio(irq);
 	u32 ic = __raw_readl(SYS_IC(prio / 4));
 	ic |= 1 << (7 + 8 * (3 - (prio & 3)));
@@ -82,9 +73,7 @@ static void handle_prio_irq(unsigned int irq, struct irq_desc *desc)
 
 	action_ret = handle_IRQ_event(irq, action);
 
-	/* XXX: There is no direct way to access noirqdebug, so check
-	 * unconditionally for spurious irqs...
-	 * Maybe this function should go to kernel/irq/chip.c? */
+	
 	note_interrupt(irq, desc, action_ret);
 
 	spin_lock(&desc->lock);
@@ -94,7 +83,7 @@ static void handle_prio_irq(unsigned int irq, struct irq_desc *desc)
 out_mask:
 		desc->chip->mask(irq);
 
-	/* ack unconditionally to unmask lower prio irqs */
+	
 	desc->chip->ack(irq);
 
 	spin_unlock(&desc->lock);
@@ -106,7 +95,7 @@ void __init ns9xxx_init_irq(void)
 {
 	int i;
 
-	/* disable all IRQs */
+	
 	for (i = 0; i < 8; ++i)
 		__raw_writel(prio2irq(4 * i) << 24 |
 				prio2irq(4 * i + 1) << 16 |

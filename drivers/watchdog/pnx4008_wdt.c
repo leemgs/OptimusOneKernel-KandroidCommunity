@@ -1,18 +1,4 @@
-/*
- * drivers/char/watchdog/pnx4008_wdt.c
- *
- * Watchdog driver for PNX4008 board
- *
- * Authors: Dmitry Chigirev <source@mvista.com>,
- * 	    Vitaly Wool <vitalywool@gmail.com>
- * Based on sa1100 driver,
- * Copyright (C) 2000 Oleg Drokin <green@crimea.edu>
- *
- * 2005-2006 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -34,12 +20,12 @@
 
 #define MODULE_NAME "PNX4008-WDT: "
 
-/* WatchDog Timer - Chapter 23 Page 207 */
+
 
 #define DEFAULT_HEARTBEAT 19
 #define MAX_HEARTBEAT     60
 
-/* Watchdog timer register set definition */
+
 #define WDTIM_INT(p)     ((p) + 0x0)
 #define WDTIM_CTRL(p)    ((p) + 0x4)
 #define WDTIM_COUNTER(p) ((p) + 0x8)
@@ -49,15 +35,15 @@
 #define WDTIM_PULSE(p)   ((p) + 0x18)
 #define WDTIM_RES(p)     ((p) + 0x1C)
 
-/* WDTIM_INT bit definitions */
+
 #define MATCH_INT      1
 
-/* WDTIM_CTRL bit definitions */
+
 #define COUNT_ENAB     1
 #define RESET_COUNT    (1 << 1)
 #define DEBUG_EN       (1 << 2)
 
-/* WDTIM_MCTRL bit definitions */
+
 #define MR0_INT        1
 #undef  RESET_COUNT0
 #define RESET_COUNT0   (1 << 2)
@@ -67,14 +53,14 @@
 #define RESFRC1        (1 << 5)
 #define RESFRC2        (1 << 6)
 
-/* WDTIM_EMR bit definitions */
+
 #define EXT_MATCH0      1
-#define MATCH_OUTPUT_HIGH (2 << 4)	/*a MATCH_CTRL setting */
+#define MATCH_OUTPUT_HIGH (2 << 4)	
 
-/* WDTIM_RES bit definitions */
-#define WDOG_RESET      1	/* read only */
 
-#define WDOG_COUNTER_RATE 13000000	/*the counter clock is 13 MHz fixed */
+#define WDOG_RESET      1	
+
+#define WDOG_COUNTER_RATE 13000000	
 
 static int nowayout = WATCHDOG_NOWAYOUT;
 static int heartbeat = DEFAULT_HEARTBEAT;
@@ -99,22 +85,22 @@ static void wdt_enable(void)
 	if (wdt_clk)
 		clk_set_rate(wdt_clk, 1);
 
-	/* stop counter, initiate counter reset */
+	
 	__raw_writel(RESET_COUNT, WDTIM_CTRL(wdt_base));
-	/*wait for reset to complete. 100% guarantee event */
+	
 	while (__raw_readl(WDTIM_COUNTER(wdt_base)))
 		cpu_relax();
-	/* internal and external reset, stop after that */
+	
 	__raw_writel(M_RES2 | STOP_COUNT0 | RESET_COUNT0,
 		WDTIM_MCTRL(wdt_base));
-	/* configure match output */
+	
 	__raw_writel(MATCH_OUTPUT_HIGH, WDTIM_EMR(wdt_base));
-	/* clear interrupt, just in case */
+	
 	__raw_writel(MATCH_INT, WDTIM_INT(wdt_base));
-	/* the longest pulse period 65541/(13*10^6) seconds ~ 5 ms. */
+	
 	__raw_writel(0xFFFF, WDTIM_PULSE(wdt_base));
 	__raw_writel(heartbeat * WDOG_COUNTER_RATE, WDTIM_MATCH0(wdt_base));
-	/*enable counter, stop when debugger active */
+	
 	__raw_writel(COUNT_ENAB | DEBUG_EN, WDTIM_CTRL(wdt_base));
 
 	spin_unlock(&io_lock);
@@ -124,7 +110,7 @@ static void wdt_disable(void)
 {
 	spin_lock(&io_lock);
 
-	__raw_writel(0, WDTIM_CTRL(wdt_base));	/*stop counter */
+	__raw_writel(0, WDTIM_CTRL(wdt_base));	
 	if (wdt_clk)
 		clk_set_rate(wdt_clk, 0);
 
@@ -210,7 +196,7 @@ static long pnx4008_wdt_ioctl(struct file *file, unsigned int cmd,
 
 		heartbeat = time;
 		wdt_enable();
-		/* Fall through */
+		
 
 	case WDIOC_GETTIMEOUT:
 		ret = put_user(heartbeat, (int *)arg);
@@ -291,7 +277,7 @@ static int __devinit pnx4008_wdt_probe(struct platform_device *pdev)
 	} else {
 		boot_status = (__raw_readl(WDTIM_RES(wdt_base)) & WDOG_RESET) ?
 		    WDIOF_CARDRESET : 0;
-		wdt_disable();		/*disable for now */
+		wdt_disable();		
 		set_bit(WDT_DEVICE_INITED, &wdt_status);
 	}
 

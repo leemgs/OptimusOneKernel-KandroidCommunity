@@ -1,19 +1,4 @@
-/* $Id: isdnl2.c,v 2.30.2.4 2004/02/11 13:21:34 keil Exp $
- *
- * Author       Karsten Keil
- *              based on the teles driver from Jan den Ouden
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * For changes and modifications please read
- * Documentation/isdn/HiSax.cert
- *
- * Thanks to    Jan den Ouden
- *              Fritz Elfert
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -621,9 +606,7 @@ l2_got_ui(struct FsmInst *fi, int event, void *arg)
 
 	skb_pull(skb, l2headersize(&st->l2, 1));
 	st->l2.l2l3(st, DL_UNIT_DATA | INDICATION, skb);
-/*	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- *		in states 1-3 for broadcast
- */
+
 
 
 }
@@ -1095,7 +1078,7 @@ l2_got_iframe(struct FsmInst *fi, int event, void *arg)
 		skb_pull(skb, l2headersize(l2, 0));
 		st->l2.l2l3(st, DL_DATA | INDICATION, skb);
 	} else {
-		/* n(s)!=v(r) */
+		
 		dev_kfree_skb(skb);
 		if (test_and_set_bit(FLG_REJEXC, &l2->flag)) {
 			if (PollFlag)
@@ -1371,7 +1354,7 @@ l2_got_FRMR(struct FsmInst *fi, int event, void *arg)
 
 	skb_pull(skb, l2addrsize(&st->l2) + 1);
 
-	if (!(skb->data[0] & 1) || ((skb->data[0] & 3) == 1) ||		/* I or S */
+	if (!(skb->data[0] & 1) || ((skb->data[0] & 3) == 1) ||		
 	    (IsUA(skb->data) && (fi->state == ST_L2_7))) {
 		st->ma.layer(st, MDL_ERROR | INDICATION, (void *) 'K');
 		establishlink(fi);
@@ -1642,10 +1625,10 @@ isdnl2_l1l2(struct PStack *st, int pr, void *arg)
 				dev_kfree_skb(skb);
 				return;
 			}
-			if (!(*datap & 1)) {	/* I-Frame */
+			if (!(*datap & 1)) {	
 				if(!(c = iframe_error(st, skb)))
 					ret = FsmEvent(&st->l2.l2m, EV_L2_I, skb);
-			} else if (IsSFrame(datap, st)) {	/* S-Frame */
+			} else if (IsSFrame(datap, st)) {	
 				if(!(c = super_error(st, skb)))
 					ret = FsmEvent(&st->l2.l2m, EV_L2_SUPER, skb);
 			} else if (IsUI(datap)) {

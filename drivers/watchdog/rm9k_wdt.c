@@ -1,24 +1,4 @@
-/*
- *  Watchdog implementation for GPI h/w found on PMC-Sierra RM9xxx
- *  chips.
- *
- *  Copyright (C) 2004 by Basler Vision Technologies AG
- *  Author: Thomas Koeller <thomas.koeller@baslerweb.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/module.h>
@@ -46,7 +26,7 @@
 #define CPGIG1ER               0x0054
 
 
-/* Function prototypes */
+
 static irqreturn_t wdt_gpi_irqhdl(int, void *);
 static void wdt_gpi_start(void);
 static void wdt_gpi_stop(void);
@@ -69,12 +49,12 @@ static int expect_close;
 static int locked;
 
 
-/* These are set from device resources */
+
 static void __iomem *wd_regs;
 static unsigned int wd_irq, wd_ctr;
 
 
-/* Module arguments */
+
 static int timeout = MAX_TIMEOUT_SECONDS;
 module_param(timeout, int, 0444);
 MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds");
@@ -96,7 +76,7 @@ module_param(nowayout, bool, 0444);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be disabled once started");
 
 
-/* Kernel interfaces */
+
 static const struct file_operations fops = {
 	.owner		= THIS_MODULE,
 	.open		= wdt_gpi_open,
@@ -116,7 +96,7 @@ static struct notifier_block wdt_gpi_shutdown = {
 };
 
 
-/* Interrupt handler */
+
 static irqreturn_t wdt_gpi_irqhdl(int irq, void *ctxt)
 {
 	if (!unlikely(__raw_readl(wd_regs + 0x0008) & 0x1))
@@ -135,7 +115,7 @@ static irqreturn_t wdt_gpi_irqhdl(int irq, void *ctxt)
 }
 
 
-/* Watchdog functions */
+
 static void wdt_gpi_start(void)
 {
 	u32 reg;
@@ -179,7 +159,7 @@ static void wdt_gpi_set_timeout(unsigned int to)
 }
 
 
-/* /dev/watchdog operations */
+
 static int wdt_gpi_open(struct inode *inode, struct file *file)
 {
 	int res;
@@ -324,7 +304,7 @@ static long wdt_gpi_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 }
 
 
-/* Shutdown notifier */
+
 static int wdt_gpi_notify(struct notifier_block *this, unsigned long code,
 			  void *unused)
 {
@@ -335,7 +315,7 @@ static int wdt_gpi_notify(struct notifier_block *this, unsigned long code,
 }
 
 
-/* Init & exit procedures */
+
 static const struct resource *wdt_gpi_get_resource(struct platform_device *pdv,
 					const char *name, unsigned int type)
 {
@@ -345,7 +325,7 @@ static const struct resource *wdt_gpi_get_resource(struct platform_device *pdv,
 	return platform_get_resource_byname(pdv, type, buf);
 }
 
-/* No hotplugging on the platform bus - use __devinit */
+
 static int __devinit wdt_gpi_probe(struct platform_device *pdv)
 {
 	int res;
@@ -385,7 +365,7 @@ static int __devexit wdt_gpi_remove(struct platform_device *dev)
 }
 
 
-/* Device driver init & exit */
+
 static struct platform_driver wgt_gpi_driver = {
 	.driver = {
 		.name		= wdt_gpi_name,

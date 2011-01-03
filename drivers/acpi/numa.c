@@ -1,27 +1,4 @@
-/*
- *  acpi_numa.c - ACPI NUMA support
- *
- *  Copyright (C) 2002 Takayoshi Kochi <t-kochi@bq.jp.nec.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -38,7 +15,7 @@ ACPI_MODULE_NAME("numa");
 
 static nodemask_t nodes_found_map = NODE_MASK_NONE;
 
-/* maps to convert between proximity domain and logical node ID */
+
 static int pxm_to_node_map[MAX_PXM_DOMAINS]
 				= { [0 ... MAX_PXM_DOMAINS - 1] = NID_INVAL };
 static int node_to_pxm_map[MAX_NUMNODES]
@@ -87,7 +64,7 @@ void __cpuinit acpi_unmap_pxm_to_node(int node)
 	node_to_pxm_map[node] = PXM_INVAL;
 	node_clear(node, nodes_found_map);
 }
-#endif  /*  0  */
+#endif  
 
 static void __init
 acpi_table_print_srat_entry(struct acpi_subtable_header *header)
@@ -112,7 +89,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 					  (p->flags & ACPI_SRAT_CPU_ENABLED)?
 					  "enabled" : "disabled"));
 		}
-#endif				/* ACPI_DEBUG_OUTPUT */
+#endif				
 		break;
 
 	case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
@@ -130,7 +107,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
 					  " hot-pluggable" : ""));
 		}
-#endif				/* ACPI_DEBUG_OUTPUT */
+#endif				
 		break;
 
 	case ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY:
@@ -146,7 +123,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 					  (p->flags & ACPI_SRAT_CPU_ENABLED) ?
 					  "enabled" : "disabled"));
 		}
-#endif				/* ACPI_DEBUG_OUTPUT */
+#endif				
 		break;
 	default:
 		printk(KERN_WARNING PREFIX
@@ -156,12 +133,7 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 	}
 }
 
-/*
- * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
- * up the NUMA heuristics which wants the local node to have a smaller
- * distance than the others.
- * Do some quick checks here and only use the SLIT if it passes.
- */
+
 static __init int slit_valid(struct acpi_table_slit *slit)
 {
 	int i, j;
@@ -218,7 +190,7 @@ acpi_parse_x2apic_affinity(struct acpi_subtable_header *header,
 
 	acpi_table_print_srat_entry(header);
 
-	/* let architecture-dependent part to do it */
+	
 	acpi_numa_x2apic_affinity_init(processor_affinity);
 
 	return 0;
@@ -236,7 +208,7 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
 
 	acpi_table_print_srat_entry(header);
 
-	/* let architecture-dependent part to do it */
+	
 	acpi_numa_processor_affinity_init(processor_affinity);
 
 	return 0;
@@ -254,7 +226,7 @@ acpi_parse_memory_affinity(struct acpi_subtable_header * header,
 
 	acpi_table_print_srat_entry(header);
 
-	/* let architecture-dependent part to do it */
+	
 	acpi_numa_memory_affinity_init(memory_affinity);
 
 	return 0;
@@ -283,7 +255,7 @@ acpi_table_parse_srat(enum acpi_srat_type id,
 
 int __init acpi_numa_init(void)
 {
-	/* SRAT: Static Resource Affinity Table */
+	
 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
 		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
 				      acpi_parse_x2apic_affinity, NR_CPUS);
@@ -294,7 +266,7 @@ int __init acpi_numa_init(void)
 				      NR_NODE_MEMBLKS);
 	}
 
-	/* SLIT: System Locality Information Table */
+	
 	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
 
 	acpi_numa_arch_fixup();

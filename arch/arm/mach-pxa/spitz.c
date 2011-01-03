@@ -1,16 +1,4 @@
-/*
- * Support for Sharp SL-Cxx00 Series of PDAs
- * Models: SL-C3000 (Spitz), SL-C1000 (Akita) and SL-C3100 (Borzoi)
- *
- * Copyright (c) 2005 Richard Purdie
- *
- * Based on Sharp's 2.4 kernel patches/lubbock.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -50,12 +38,12 @@
 #include "sharpsl.h"
 
 static unsigned long spitz_pin_config[] __initdata = {
-	/* Chip Selects */
-	GPIO78_nCS_2,	/* SCOOP #2 */
-	GPIO79_nCS_3,	/* NAND */
-	GPIO80_nCS_4,	/* SCOOP #1 */
+	
+	GPIO78_nCS_2,	
+	GPIO79_nCS_3,	
+	GPIO80_nCS_4,	
 
-	/* LCD - 16bpp Active TFT */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -76,7 +64,7 @@ static unsigned long spitz_pin_config[] __initdata = {
 	GPIO75_LCD_LCLK,
 	GPIO76_LCD_PCLK,
 
-	/* PC Card */
+	
 	GPIO48_nPOE,
 	GPIO49_nPWE,
 	GPIO50_nPIOR,
@@ -88,13 +76,13 @@ static unsigned long spitz_pin_config[] __initdata = {
 	GPIO57_nIOIS16,
 	GPIO104_PSKTSEL,
 
-	/* I2S */
+	
 	GPIO28_I2S_BITCLK_OUT,
 	GPIO29_I2S_SDATA_IN,
 	GPIO30_I2S_SDATA_OUT,
 	GPIO31_I2S_SYNC,
 
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO112_MMC_CMD,
 	GPIO92_MMC_DAT_0,
@@ -102,47 +90,45 @@ static unsigned long spitz_pin_config[] __initdata = {
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
 
-	/* GPIOs */
-	GPIO9_GPIO,	/* SPITZ_GPIO_nSD_DETECT */
-	GPIO81_GPIO,	/* SPITZ_GPIO_nSD_WP */
-	GPIO41_GPIO,	/* SPITZ_GPIO_USB_CONNECT */
-	GPIO37_GPIO,	/* SPITZ_GPIO_USB_HOST */
-	GPIO35_GPIO,	/* SPITZ_GPIO_USB_DEVICE */
-	GPIO22_GPIO,	/* SPITZ_GPIO_HSYNC */
-	GPIO94_GPIO,	/* SPITZ_GPIO_CF_CD */
-	GPIO105_GPIO,	/* SPITZ_GPIO_CF_IRQ */
-	GPIO106_GPIO,	/* SPITZ_GPIO_CF2_IRQ */
+	
+	GPIO9_GPIO,	
+	GPIO81_GPIO,	
+	GPIO41_GPIO,	
+	GPIO37_GPIO,	
+	GPIO35_GPIO,	
+	GPIO22_GPIO,	
+	GPIO94_GPIO,	
+	GPIO105_GPIO,	
+	GPIO106_GPIO,	
 
-	/* GPIO matrix keypad */
-	GPIO88_GPIO,	/* column 0 */
-	GPIO23_GPIO,	/* column 1 */
-	GPIO24_GPIO,	/* column 2 */
-	GPIO25_GPIO,	/* column 3 */
-	GPIO26_GPIO,	/* column 4 */
-	GPIO27_GPIO,	/* column 5 */
-	GPIO52_GPIO,	/* column 6 */
-	GPIO103_GPIO,	/* column 7 */
-	GPIO107_GPIO,	/* column 8 */
-	GPIO108_GPIO,	/* column 9 */
-	GPIO114_GPIO,	/* column 10 */
-	GPIO12_GPIO,	/* row 0 */
-	GPIO17_GPIO,	/* row 1 */
-	GPIO91_GPIO,	/* row 2 */
-	GPIO34_GPIO,	/* row 3 */
-	GPIO36_GPIO,	/* row 4 */
-	GPIO38_GPIO,	/* row 5 */
-	GPIO39_GPIO,	/* row 6 */
+	
+	GPIO88_GPIO,	
+	GPIO23_GPIO,	
+	GPIO24_GPIO,	
+	GPIO25_GPIO,	
+	GPIO26_GPIO,	
+	GPIO27_GPIO,	
+	GPIO52_GPIO,	
+	GPIO103_GPIO,	
+	GPIO107_GPIO,	
+	GPIO108_GPIO,	
+	GPIO114_GPIO,	
+	GPIO12_GPIO,	
+	GPIO17_GPIO,	
+	GPIO91_GPIO,	
+	GPIO34_GPIO,	
+	GPIO36_GPIO,	
+	GPIO38_GPIO,	
+	GPIO39_GPIO,	
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 
 	GPIO1_GPIO | WAKEUP_ON_EDGE_RISE,
 };
 
-/*
- * Spitz SCOOP Device #1
- */
+
 static struct resource spitz_scoop_resources[] = {
 	[0] = {
 		.start		= 0x10800000,
@@ -169,9 +155,7 @@ struct platform_device spitzscoop_device = {
 	.resource	= spitz_scoop_resources,
 };
 
-/*
- * Spitz SCOOP Device #2
- */
+
 static struct resource spitz_scoop2_resources[] = {
 	[0] = {
 		.start		= 0x08800040,
@@ -201,7 +185,7 @@ struct platform_device spitzscoop2_device = {
 #define SPITZ_PWR_SD 0x01
 #define SPITZ_PWR_CF 0x02
 
-/* Power control is shared with between one of the CF slots and SD */
+
 static void spitz_card_pwr_ctrl(int device, unsigned short new_cpr)
 {
 	unsigned short cpr = read_scoop_reg(&spitzscoop_device.dev, SCOOP_CPR);
@@ -232,7 +216,7 @@ static void spitz_card_pwr_ctrl(int device, unsigned short new_cpr)
 
 static void spitz_pcmcia_pwr(struct device *scoop, unsigned short cpr, int nr)
 {
-	/* Only need to override behaviour for slot 0 */
+	
 	if (nr == 0)
 		spitz_card_pwr_ctrl(SPITZ_PWR_CF, cpr);
 	else
@@ -261,9 +245,7 @@ static struct scoop_pcmcia_config spitz_pcmcia_config = {
 EXPORT_SYMBOL(spitzscoop_device);
 EXPORT_SYMBOL(spitzscoop2_device);
 
-/*
- * Spitz Keyboard Device
- */
+
 #define SPITZ_KEY_CALENDAR	KEY_F1
 #define SPITZ_KEY_ADDRESS	KEY_F2
 #define SPITZ_KEY_FN		KEY_F3
@@ -289,8 +271,8 @@ static const uint32_t spitzkbd_keymap[] = {
 	KEY(0, 6, KEY_9),
 	KEY(0, 7, KEY_0),
 	KEY(0, 8, KEY_BACKSPACE),
-	KEY(0, 9, SPITZ_KEY_EXOK),	/* EXOK */
-	KEY(0, 10, SPITZ_KEY_EXCANCEL),	/* EXCANCEL */
+	KEY(0, 9, SPITZ_KEY_EXOK),	
+	KEY(0, 10, SPITZ_KEY_EXCANCEL),	
 	KEY(1, 1, KEY_2),
 	KEY(1, 2, KEY_4),
 	KEY(1, 3, KEY_R),
@@ -299,8 +281,8 @@ static const uint32_t spitzkbd_keymap[] = {
 	KEY(1, 6, KEY_I),
 	KEY(1, 7, KEY_O),
 	KEY(1, 8, KEY_P),
-	KEY(1, 9, SPITZ_KEY_EXJOGDOWN),	/* EXJOGDOWN */
-	KEY(1, 10, SPITZ_KEY_EXJOGUP),	/* EXJOGUP */
+	KEY(1, 9, SPITZ_KEY_EXJOGDOWN),	
+	KEY(1, 10, SPITZ_KEY_EXJOGUP),	
 	KEY(2, 0, KEY_TAB),
 	KEY(2, 1, KEY_Q),
 	KEY(2, 2, KEY_E),
@@ -309,7 +291,7 @@ static const uint32_t spitzkbd_keymap[] = {
 	KEY(2, 5, KEY_U),
 	KEY(2, 6, KEY_J),
 	KEY(2, 7, KEY_K),
-	KEY(3, 0, SPITZ_KEY_ADDRESS),	/* ADDRESS */
+	KEY(3, 0, SPITZ_KEY_ADDRESS),	
 	KEY(3, 1, KEY_W),
 	KEY(3, 2, KEY_S),
 	KEY(3, 3, KEY_F),
@@ -318,7 +300,7 @@ static const uint32_t spitzkbd_keymap[] = {
 	KEY(3, 6, KEY_M),
 	KEY(3, 7, KEY_L),
 	KEY(3, 9, KEY_RIGHTSHIFT),
-	KEY(4, 0, SPITZ_KEY_CALENDAR),	/* CALENDAR */
+	KEY(4, 0, SPITZ_KEY_CALENDAR),	
 	KEY(4, 1, KEY_A),
 	KEY(4, 2, KEY_D),
 	KEY(4, 3, KEY_C),
@@ -327,20 +309,20 @@ static const uint32_t spitzkbd_keymap[] = {
 	KEY(4, 6, KEY_DOT),
 	KEY(4, 8, KEY_ENTER),
 	KEY(4, 9, KEY_LEFTSHIFT),
-	KEY(5, 0, SPITZ_KEY_MAIL),	/* MAIL */
+	KEY(5, 0, SPITZ_KEY_MAIL),	
 	KEY(5, 1, KEY_Z),
 	KEY(5, 2, KEY_X),
 	KEY(5, 3, KEY_MINUS),
 	KEY(5, 4, KEY_SPACE),
 	KEY(5, 5, KEY_COMMA),
 	KEY(5, 7, KEY_UP),
-	KEY(5, 10, SPITZ_KEY_FN),	/* FN */
+	KEY(5, 10, SPITZ_KEY_FN),	
 	KEY(6, 0, KEY_SYSRQ),
-	KEY(6, 1, SPITZ_KEY_JAP1),	/* JAP1 */
-	KEY(6, 2, SPITZ_KEY_JAP2),	/* JAP2 */
-	KEY(6, 3, SPITZ_KEY_CANCEL),	/* CANCEL */
-	KEY(6, 4, SPITZ_KEY_OK),	/* OK */
-	KEY(6, 5, SPITZ_KEY_MENU),	/* MENU */
+	KEY(6, 1, SPITZ_KEY_JAP1),	
+	KEY(6, 2, SPITZ_KEY_JAP2),	
+	KEY(6, 3, SPITZ_KEY_CANCEL),	
+	KEY(6, 4, SPITZ_KEY_OK),	
+	KEY(6, 5, SPITZ_KEY_MENU),	
 	KEY(6, 6, KEY_LEFT),
 	KEY(6, 7, KEY_DOWN),
 	KEY(6, 8, KEY_RIGHT),
@@ -384,7 +366,7 @@ static struct gpio_keys_button spitz_gpio_keys[] = {
 		.desc	= "On/Off",
 		.wakeup	= 1,
 	},
-	/* Two buttons detecting the lid state */
+	
 	{
 		.type	= EV_SW,
 		.code	= 0,
@@ -413,9 +395,7 @@ static struct platform_device spitz_gpio_keys_device = {
 };
 
 
-/*
- * Spitz LEDs
- */
+
 static struct gpio_led spitz_gpio_leds[] = {
 	{
 		.name			= "spitz:amber:charge",
@@ -538,12 +518,7 @@ static void __init spitz_init_spi(void)
 static inline void spitz_init_spi(void) {}
 #endif
 
-/*
- * MMC/SD Device
- *
- * The card detect interrupt isn't debounced so we delay it by 250ms
- * to give the card a chance to fully insert/eject.
- */
+
 static void spitz_mci_setpower(struct device *dev, unsigned int vdd)
 {
 	struct pxamci_platform_data* p_d = dev->platform_data;
@@ -563,9 +538,7 @@ static struct pxamci_platform_data spitz_mci_platform_data = {
 };
 
 
-/*
- * USB Host (OHCI)
- */
+
 static int spitz_ohci_init(struct device *dev)
 {
 	int err;
@@ -574,9 +547,7 @@ static int spitz_ohci_init(struct device *dev)
 	if (err)
 		return err;
 
-	/* Only Port 2 is connected
-	 * Setup USB Port 2 Output Control Register
-	 */
+	
 	UP2OCR = UP2OCR_HXS | UP2OCR_HXOE | UP2OCR_DPPDE | UP2OCR_DMPDE;
 
 	return gpio_direction_output(SPITZ_GPIO_USB_HOST, 1);
@@ -596,19 +567,15 @@ static struct pxaohci_platform_data spitz_ohci_platform_data = {
 };
 
 
-/*
- * Irda
- */
+
 
 static struct pxaficp_platform_data spitz_ficp_platform_data = {
-/* .gpio_pwdown is set in spitz_init() and akita_init() accordingly */
+
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
 
-/*
- * Spitz PXA Framebuffer
- */
+
 
 static struct pxafb_mode_info spitz_pxafb_modes[] = {
 {
@@ -740,7 +707,7 @@ static void spitz_poweroff(void)
 
 static void spitz_restart(char mode, const char *cmd)
 {
-	/* Bootloader magic for a reboot */
+	
 	if((MSC0 & 0xffff0000) == 0x7ff00000)
 		MSC0 = (MSC0 & 0xffff) | 0x7ee00000;
 
@@ -763,7 +730,7 @@ static void __init common_init(void)
 
 	PMCR = 0x00;
 
-	/* Stop 3.6MHz and drive HIGH to PCMCIA and CS */
+	
 	PCFR |= PCFR_OPDE;
 
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(spitz_pin_config));
@@ -818,9 +785,7 @@ static void __init spitz_init(void)
 #endif
 
 #ifdef CONFIG_MACH_AKITA
-/*
- * Akita IO Expander
- */
+
 static struct pca953x_platform_data akita_ioexp = {
 	.gpio_base		= AKITA_IOEXP_GPIO_BASE,
 };
@@ -840,7 +805,7 @@ static void __init akita_init(void)
 	sharpsl_nand_platform_data.badblock_pattern = &sharpsl_akita_bbt;
 	sharpsl_nand_platform_data.ecc_layout = &akita_oobinfo;
 
-	/* We just pretend the second element of the array doesn't exist */
+	
 	spitz_pcmcia_config.num_devs = 1;
 	platform_scoop_config = &spitz_pcmcia_config;
 

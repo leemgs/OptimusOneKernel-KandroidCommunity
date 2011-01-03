@@ -1,29 +1,4 @@
-/*
- * PCI HotPlug Controller Core
- *
- * Copyright (C) 2001-2002 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2001-2002 IBM Corp.
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <kristen.c.accardi@intel.com>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -51,7 +26,7 @@
 #define warn(format, arg...) printk(KERN_WARNING "%s: " format , MY_NAME , ## arg)
 
 
-/* local variables */
+
 static int debug;
 
 #define DRIVER_VERSION	"0.5"
@@ -59,35 +34,35 @@ static int debug;
 #define DRIVER_DESC	"PCI Hot Plug PCI Core"
 
 
-//////////////////////////////////////////////////////////////////
+
 
 static LIST_HEAD(pci_hotplug_slot_list);
 static DEFINE_MUTEX(pci_hp_mutex);
 
-/* these strings match up with the values in pci_bus_speed */
+
 static char *pci_bus_speed_strings[] = {
-	"33 MHz PCI",		/* 0x00 */
-	"66 MHz PCI",		/* 0x01 */
-	"66 MHz PCIX", 		/* 0x02 */
-	"100 MHz PCIX",		/* 0x03 */
-	"133 MHz PCIX",		/* 0x04 */
-	NULL,			/* 0x05 */
-	NULL,			/* 0x06 */
-	NULL,			/* 0x07 */
-	NULL,			/* 0x08 */
-	"66 MHz PCIX 266",	/* 0x09 */
-	"100 MHz PCIX 266",	/* 0x0a */
-	"133 MHz PCIX 266",	/* 0x0b */
-	NULL,			/* 0x0c */
-	NULL,			/* 0x0d */
-	NULL,			/* 0x0e */
-	NULL,			/* 0x0f */
-	NULL,			/* 0x10 */
-	"66 MHz PCIX 533",	/* 0x11 */
-	"100 MHz PCIX 533",	/* 0x12 */
-	"133 MHz PCIX 533",	/* 0x13 */
-	"2.5 GT/s PCI-E",	/* 0x14 */
-	"5.0 GT/s PCI-E",	/* 0x15 */
+	"33 MHz PCI",		
+	"66 MHz PCI",		
+	"66 MHz PCIX", 		
+	"100 MHz PCIX",		
+	"133 MHz PCIX",		
+	NULL,			
+	NULL,			
+	NULL,			
+	NULL,			
+	"66 MHz PCIX 266",	
+	"100 MHz PCIX 266",	
+	"133 MHz PCIX 266",	
+	NULL,			
+	NULL,			
+	NULL,			
+	NULL,			
+	NULL,			
+	"66 MHz PCIX 533",	
+	"100 MHz PCIX 533",	
+	"133 MHz PCIX 533",	
+	"2.5 GT/s PCI-E",	
+	"5.0 GT/s PCI-E",	
 };
 
 #ifdef CONFIG_HOTPLUG_PCI_CPCI
@@ -98,7 +73,7 @@ static inline int cpci_hotplug_init(int debug) { return 0; }
 static inline void cpci_hotplug_exit(void) { }
 #endif
 
-/* Weee, fun with macros... */
+
 #define GET_STATUS(name,type)	\
 static int get_##name (struct hotplug_slot *slot, type *value)		\
 {									\
@@ -425,7 +400,7 @@ static int fs_add_slot(struct pci_slot *slot)
 {
 	int retval = 0;
 
-	/* Create symbolic link to the hotplug driver module */
+	
 	pci_hp_create_module_link(slot);
 
 	if (has_power_file(slot)) {
@@ -550,20 +525,7 @@ static struct hotplug_slot *get_slot_from_name (const char *name)
 	return NULL;
 }
 
-/**
- * __pci_hp_register - register a hotplug_slot with the PCI hotplug subsystem
- * @bus: bus this slot is on
- * @slot: pointer to the &struct hotplug_slot to register
- * @devnr: device number
- * @name: name registered with kobject core
- * @owner: caller module owner
- * @mod_name: caller module name
- *
- * Registers a hotplug slot with the pci hotplug subsystem, which will allow
- * userspace interaction to the slot.
- *
- * Returns 0 if successful, anything else for an error.
- */
+
 int __pci_hp_register(struct hotplug_slot *slot, struct pci_bus *bus,
 		      int devnr, const char *name,
 		      struct module *owner, const char *mod_name)
@@ -585,11 +547,7 @@ int __pci_hp_register(struct hotplug_slot *slot, struct pci_bus *bus,
 	slot->ops->mod_name = mod_name;
 
 	mutex_lock(&pci_hp_mutex);
-	/*
-	 * No problems if we call this interface from both ACPI_PCI_SLOT
-	 * driver and call it here again. If we've already created the
-	 * pci_slot, the interface will simply bump the refcount.
-	 */
+	
 	pci_slot = pci_create_slot(bus, devnr, name, slot);
 	if (IS_ERR(pci_slot)) {
 		result = PTR_ERR(pci_slot);
@@ -609,15 +567,7 @@ out:
 	return result;
 }
 
-/**
- * pci_hp_deregister - deregister a hotplug_slot with the PCI hotplug subsystem
- * @hotplug: pointer to the &struct hotplug_slot to deregister
- *
- * The @slot must have been registered with the pci hotplug subsystem
- * previously with a call to pci_hp_register().
- *
- * Returns 0 if successful, anything else for an error.
- */
+
 int pci_hp_deregister(struct hotplug_slot *hotplug)
 {
 	struct hotplug_slot *temp;
@@ -647,16 +597,7 @@ int pci_hp_deregister(struct hotplug_slot *hotplug)
 	return 0;
 }
 
-/**
- * pci_hp_change_slot_info - changes the slot's information structure in the core
- * @hotplug: pointer to the slot whose info has changed
- * @info: pointer to the info copy into the slot's info structure
- *
- * @slot must have been registered with the pci 
- * hotplug subsystem previously with a call to pci_hp_register().
- *
- * Returns 0 if successful, anything else for an error.
- */
+
 int __must_check pci_hp_change_slot_info(struct hotplug_slot *hotplug,
 					 struct hotplug_slot_info *info)
 {

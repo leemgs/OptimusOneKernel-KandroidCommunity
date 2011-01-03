@@ -1,23 +1,4 @@
-/*
- * A hwmon driver for ACPI 4.0 power meters
- * Copyright (C) 2009 IBM
- *
- * Author: Darrick J. Wong <djwong@us.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/hwmon.h>
@@ -125,7 +106,7 @@ struct rw_sensor_template {
 	int index;
 };
 
-/* Averaging interval */
+
 static int update_avg_interval(struct acpi_power_meter_resource *resource)
 {
 	unsigned long long data;
@@ -190,14 +171,14 @@ static ssize_t set_avg_interval(struct device *dev,
 		return -EINVAL;
 	}
 
-	/* _PAI returns 0 on success, nonzero otherwise */
+	
 	if (data)
 		return -EINVAL;
 
 	return count;
 }
 
-/* Cap functions */
+
 static int update_cap(struct acpi_power_meter_resource *resource)
 {
 	unsigned long long data;
@@ -261,14 +242,14 @@ static ssize_t set_cap(struct device *dev, struct device_attribute *devattr,
 		return -EINVAL;
 	}
 
-	/* _SHL returns 0 on success, nonzero otherwise */
+	
 	if (data)
 		return -EINVAL;
 
 	return count;
 }
 
-/* Power meter trip points */
+
 static int set_acpi_trip(struct acpi_power_meter_resource *resource)
 {
 	union acpi_object arg_objs[] = {
@@ -279,11 +260,11 @@ static int set_acpi_trip(struct acpi_power_meter_resource *resource)
 	unsigned long long data;
 	acpi_status status;
 
-	/* Both trip levels must be set */
+	
 	if (resource->trip[0] < 0 || resource->trip[1] < 0)
 		return 0;
 
-	/* This driver stores min, max; ACPI wants max, min. */
+	
 	arg_objs[0].integer.value = resource->trip[1];
 	arg_objs[1].integer.value = resource->trip[0];
 
@@ -294,7 +275,7 @@ static int set_acpi_trip(struct acpi_power_meter_resource *resource)
 		return -EINVAL;
 	}
 
-	/* _PTP returns 0 on success, nonzero otherwise */
+	
 	if (data)
 		return -EINVAL;
 
@@ -329,7 +310,7 @@ static ssize_t set_trip(struct device *dev, struct device_attribute *devattr,
 	return count;
 }
 
-/* Power meter */
+
 static int update_meter(struct acpi_power_meter_resource *resource)
 {
 	unsigned long long data;
@@ -368,7 +349,7 @@ static ssize_t show_power(struct device *dev,
 	return sprintf(buf, "%llu\n", resource->power * 1000);
 }
 
-/* Miscellaneous */
+
 static ssize_t show_str(struct device *dev,
 			struct device_attribute *devattr,
 			char *buf)
@@ -467,7 +448,7 @@ static ssize_t show_name(struct device *dev,
 	return sprintf(buf, "%s\n", ACPI_POWER_METER_NAME);
 }
 
-/* Sensor descriptions.  If you add a sensor, update NUM_SENSORS above! */
+
 static struct ro_sensor_template meter_ro_attrs[] = {
 {POWER_AVERAGE_NAME, show_power, 0},
 {"power1_accuracy", show_accuracy, 0},
@@ -514,7 +495,7 @@ static struct ro_sensor_template misc_attrs[] = {
 {NULL, NULL, 0},
 };
 
-/* Read power domain data */
+
 static void remove_domain_devices(struct acpi_power_meter_resource *resource)
 {
 	int i;
@@ -583,11 +564,11 @@ static int read_domain_devices(struct acpi_power_meter_resource *resource)
 		struct acpi_device *obj;
 		union acpi_object *element = &(pss->package.elements[i]);
 
-		/* Refuse non-references */
+		
 		if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
 			continue;
 
-		/* Create a symlink to domain objects */
+		
 		resource->domain_devices[i] = NULL;
 		status = acpi_bus_get_device(element->reference.handle,
 					     &resource->domain_devices[i]);
@@ -615,7 +596,7 @@ end:
 	return res;
 }
 
-/* Registration and deregistration */
+
 static int register_ro_attrs(struct acpi_power_meter_resource *resource,
 			     struct ro_sensor_template *ro)
 {
@@ -783,7 +764,7 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
 		goto end;
 	}
 
-	/* Grab all the integer data at once */
+	
 	state.length = sizeof(struct acpi_power_meter_capabilities);
 	state.pointer = &resource->caps;
 
@@ -802,7 +783,7 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
 		goto end;
 	}
 
-	/* Grab the string data */
+	
 	str = &resource->model_number;
 
 	for (i = 11; i < 14; i++) {
@@ -835,7 +816,7 @@ end:
 	return res;
 }
 
-/* Handle ACPI event notifications */
+
 static void acpi_power_meter_notify(struct acpi_device *device, u32 event)
 {
 	struct acpi_power_meter_resource *resource;
@@ -973,7 +954,7 @@ static struct acpi_driver acpi_power_meter_driver = {
 		},
 };
 
-/* Module init/exit routines */
+
 static int __init enable_cap_knobs(const struct dmi_system_id *d)
 {
 	cap_in_hardware = 1;

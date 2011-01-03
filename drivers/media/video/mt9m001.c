@@ -1,12 +1,4 @@
-/*
- * Driver for MT9M001 CMOS Image Sensor from Micron
- *
- * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/videodev2.h>
 #include <linux/slab.h>
@@ -17,11 +9,9 @@
 #include <media/v4l2-chip-ident.h>
 #include <media/soc_camera.h>
 
-/* mt9m001 i2c address 0x5d
- * The platform has to define ctruct i2c_board_info objects and link to them
- * from struct soc_camera_link */
 
-/* mt9m001 selected register addresses */
+
+
 #define MT9M001_CHIP_VERSION		0x00
 #define MT9M001_ROW_START		0x01
 #define MT9M001_COLUMN_START		0x02
@@ -47,8 +37,7 @@
 #define MT9M001_ROW_SKIP		12
 
 static const struct soc_camera_data_format mt9m001_colour_formats[] = {
-	/* Order important: first natively supported,
-	 * second supported with a GPIO extender */
+	
 	{
 		.name		= "Bayer (sRGB) 10 bit",
 		.depth		= 10,
@@ -63,7 +52,7 @@ static const struct soc_camera_data_format mt9m001_colour_formats[] = {
 };
 
 static const struct soc_camera_data_format mt9m001_monochrome_formats[] = {
-	/* Order important - see above */
+	
 	{
 		.name		= "Monochrome 10 bit",
 		.depth		= 10,
@@ -77,9 +66,9 @@ static const struct soc_camera_data_format mt9m001_monochrome_formats[] = {
 
 struct mt9m001 {
 	struct v4l2_subdev subdev;
-	struct v4l2_rect rect;	/* Sensor window */
+	struct v4l2_rect rect;	
 	__u32 fourcc;
-	int model;	/* V4L2_IDENT_MT9M001* codes from v4l2-chip-ident.h */
+	int model;	
 	unsigned int gain;
 	unsigned int exposure;
 	unsigned char autoexposure;
@@ -130,15 +119,12 @@ static int mt9m001_init(struct i2c_client *client)
 
 	dev_dbg(&client->dev, "%s\n", __func__);
 
-	/*
-	 * We don't know, whether platform provides reset, issue a soft reset
-	 * too. This returns all registers to their default values.
-	 */
+	
 	ret = reg_write(client, MT9M001_RESET, 1);
 	if (!ret)
 		ret = reg_write(client, MT9M001_RESET, 0);
 
-	/* Disable chip, synchronous option update */
+	
 	if (!ret)
 		ret = reg_write(client, MT9M001_OUTPUT_CONTROL, 0);
 
@@ -149,7 +135,7 @@ static int mt9m001_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct i2c_client *client = sd->priv;
 
-	/* Switch to master "normal" mode or stop sensor readout */
+	
 	if (reg_write(client, MT9M001_OUTPUT_CONTROL, enable ? 2 : 0) < 0)
 		return -EIO;
 	return 0;
@@ -161,17 +147,14 @@ static int mt9m001_set_bus_param(struct soc_camera_device *icd,
 	struct soc_camera_link *icl = to_soc_camera_link(icd);
 	unsigned long width_flag = flags & SOCAM_DATAWIDTH_MASK;
 
-	/* Only one width bit may be set */
+	
 	if (!is_power_of_2(width_flag))
 		return -EINVAL;
 
 	if (icl->set_bus_param)
 		return icl->set_bus_param(icl, width_flag);
 
-	/*
-	 * Without board specific bus width settings we only support the
-	 * sensors native bus width
-	 */
+	
 	if (width_flag == SOCAM_DATAWIDTH_10)
 		return 0;
 
@@ -181,7 +164,7 @@ static int mt9m001_set_bus_param(struct soc_camera_device *icd,
 static unsigned long mt9m001_query_bus_param(struct soc_camera_device *icd)
 {
 	struct soc_camera_link *icl = to_soc_camera_link(icd);
-	/* MT9M001 has all capture_format parameters fixed */
+	
 	unsigned long flags = SOCAM_PCLK_SAMPLE_FALLING |
 		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
 		SOCAM_DATA_ACTIVE_HIGH | SOCAM_MASTER;
@@ -206,13 +189,10 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
 
 	if (mt9m001->fourcc == V4L2_PIX_FMT_SBGGR8 ||
 	    mt9m001->fourcc == V4L2_PIX_FMT_SBGGR16)
-		/*
-		 * Bayer format - even number of rows for simplicity,
-		 * but let the user play with the top row.
-		 */
+		
 		rect.height = ALIGN(rect.height, 2);
 
-	/* Datasheet requirement: see register description */
+	
 	rect.width = ALIGN(rect.width, 2);
 	rect.left = ALIGN(rect.left, 2);
 
@@ -224,13 +204,12 @@ static int mt9m001_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
 
 	total_h = rect.height + icd->y_skip_top + vblank;
 
-	/* Blanking and start values - default... */
+	
 	ret = reg_write(client, MT9M001_HORIZONTAL_BLANKING, hblank);
 	if (!ret)
 		ret = reg_write(client, MT9M001_VERTICAL_BLANKING, vblank);
 
-	/* The caller provides a supported format, as verified per
-	 * call to icd->try_fmt() */
+	
 	if (!ret)
 		ret = reg_write(client, MT9M001_COLUMN_START, rect.left);
 	if (!ret)
@@ -313,7 +292,7 @@ static int mt9m001_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 	};
 	int ret;
 
-	/* No support for scaling so far, just crop. TODO: use skipping */
+	
 	ret = mt9m001_s_crop(sd, &a);
 	if (!ret) {
 		pix->width = mt9m001->rect.width;
@@ -495,9 +474,9 @@ static int mt9m001_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	case V4L2_CID_GAIN:
 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
 			return -EINVAL;
-		/* See Datasheet Table 7, Gain settings. */
+		
 		if (ctrl->value <= qctrl->default_value) {
-			/* Pack it into 0..1 step 0.125, register values 0..8 */
+			
 			unsigned long range = qctrl->default_value - qctrl->minimum;
 			data = ((ctrl->value - qctrl->minimum) * 8 + range / 2) / range;
 
@@ -506,8 +485,8 @@ static int mt9m001_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 			if (data < 0)
 				return -EIO;
 		} else {
-			/* Pack it into 1.125..15 variable step, register values 9..67 */
-			/* We assume qctrl->maximum - qctrl->default_value - 1 > 0 */
+			
+			
 			unsigned long range = qctrl->maximum - qctrl->default_value - 1;
 			unsigned long gain = ((ctrl->value - qctrl->default_value - 1) *
 					       111 + range / 2) / range + 9;
@@ -526,11 +505,11 @@ static int mt9m001_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 				return -EIO;
 		}
 
-		/* Success */
+		
 		mt9m001->gain = ctrl->value;
 		break;
 	case V4L2_CID_EXPOSURE:
-		/* mt9m001 has maximum == default */
+		
 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
 			return -EINVAL;
 		else {
@@ -568,8 +547,7 @@ static int mt9m001_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	return 0;
 }
 
-/* Interface active, can use i2c. If it fails, it can indeed mean, that
- * this wasn't our capture interface, so, we wait for the right one */
+
 static int mt9m001_video_probe(struct soc_camera_device *icd,
 			       struct i2c_client *client)
 {
@@ -579,20 +557,19 @@ static int mt9m001_video_probe(struct soc_camera_device *icd,
 	unsigned long flags;
 	int ret;
 
-	/* We must have a parent by now. And it cannot be a wrong one.
-	 * So this entire test is completely redundant. */
+	
 	if (!icd->dev.parent ||
 	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface)
 		return -ENODEV;
 
-	/* Enable the chip */
+	
 	data = reg_write(client, MT9M001_CHIP_ENABLE, 1);
 	dev_dbg(&client->dev, "write: %d\n", data);
 
-	/* Read out the chip version register */
+	
 	data = reg_read(client, MT9M001_CHIP_VERSION);
 
-	/* must be 0x8411 or 0x8421 for colour sensor and 8431 for bw */
+	
 	switch (data) {
 	case 0x8411:
 	case 0x8421:
@@ -611,11 +588,7 @@ static int mt9m001_video_probe(struct soc_camera_device *icd,
 
 	icd->num_formats = 0;
 
-	/*
-	 * This is a 10bit sensor, so by default we only allow 10bit.
-	 * The platform may support different bus widths due to
-	 * different routing of the data lines.
-	 */
+	
 	if (icl->query_bus_param)
 		flags = icl->query_bus_param(icl);
 	else
@@ -638,7 +611,7 @@ static int mt9m001_video_probe(struct soc_camera_device *icd,
 	if (ret < 0)
 		dev_err(&client->dev, "Failed to initialise the camera\n");
 
-	/* mt9m001_init() has reset the chip, returning registers to defaults */
+	
 	mt9m001->gain = 64;
 	mt9m001->exposure = 255;
 
@@ -712,7 +685,7 @@ static int mt9m001_probe(struct i2c_client *client,
 
 	v4l2_i2c_subdev_init(&mt9m001->subdev, client, &mt9m001_subdev_ops);
 
-	/* Second stage probe - when a capture adapter is there */
+	
 	icd->ops		= &mt9m001_ops;
 	icd->y_skip_top		= 0;
 
@@ -721,8 +694,7 @@ static int mt9m001_probe(struct i2c_client *client,
 	mt9m001->rect.width	= MT9M001_MAX_WIDTH;
 	mt9m001->rect.height	= MT9M001_MAX_HEIGHT;
 
-	/* Simulated autoexposure. If enabled, we calculate shutter width
-	 * ourselves in the driver based on vertical blanking and frame width */
+	
 	mt9m001->autoexposure = 1;
 
 	ret = mt9m001_video_probe(icd, client);

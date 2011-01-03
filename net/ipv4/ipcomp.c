@@ -1,18 +1,4 @@
-/*
- * IP Payload Compression Protocol (IPComp) - RFC3173.
- *
- * Copyright (c) 2003 James Morris <jmorris@intercode.com.au>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * Todo:
- *   - Tunable compression parameters.
- *   - Compression stats.
- *   - Adaptive compression.
- */
+
 #include <linux/module.h>
 #include <linux/err.h>
 #include <linux/rtnetlink.h>
@@ -44,7 +30,7 @@ static void ipcomp4_err(struct sk_buff *skb, u32 info)
 	xfrm_state_put(x);
 }
 
-/* We always hold one tunnel user reference to indicate a tunnel */
+
 static struct xfrm_state *ipcomp_tunnel_create(struct xfrm_state *x)
 {
 	struct xfrm_state *t;
@@ -76,10 +62,7 @@ error:
 	goto out;
 }
 
-/*
- * Must be protected by xfrm_cfg_mutex.  State and tunnel user references are
- * always incremented on success.
- */
+
 static int ipcomp_tunnel_attach(struct xfrm_state *x)
 {
 	int err = 0;

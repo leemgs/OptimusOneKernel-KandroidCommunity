@@ -1,28 +1,12 @@
 #ifndef __ARCH_ASM_MACH_OMAP2_PRCM_COMMON_H
 #define __ARCH_ASM_MACH_OMAP2_PRCM_COMMON_H
 
-/*
- * OMAP2/3 PRCM base and module definitions
- *
- * Copyright (C) 2007-2008 Texas Instruments, Inc.
- * Copyright (C) 2007-2008 Nokia Corporation
- *
- * Written by Paul Walmsley
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
 
-/* Module offsets from both CM_BASE & PRM_BASE */
 
-/*
- * Offsets that are the same on 24xx and 34xx
- *
- * Technically, in terms of the TRM, OCP_MOD is 34xx only; PLL_MOD is
- * CCR_MOD on 3430; and GFX_MOD only exists < 3430ES2.
- */
+
+
+
 #define OCP_MOD						0x000
 #define MPU_MOD						0x100
 #define CORE_MOD					0x200
@@ -31,13 +15,13 @@
 #define PLL_MOD						0x500
 
 
-/* Chip-specific module offsets */
+
 #define OMAP24XX_GR_MOD					OCP_MOD
 #define OMAP24XX_DSP_MOD				0x800
 
 #define OMAP2430_MDM_MOD				0xc00
 
-/* IVA2 module is < base on 3430 */
+
 #define OMAP3430_IVA2_MOD				-0x800
 #define OMAP3430ES2_SGX_MOD				GFX_MOD
 #define OMAP3430_CCR_MOD				PLL_MOD
@@ -50,9 +34,9 @@
 #define OMAP3430ES2_USBHOST_MOD				0xc00
 
 
-/* 24XX register bits shared between CM & PRM registers */
 
-/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
+
+
 #define OMAP2420_EN_MMC_SHIFT				26
 #define OMAP2420_EN_MMC					(1 << 26)
 #define OMAP24XX_EN_UART2_SHIFT				22
@@ -92,7 +76,7 @@
 #define OMAP2420_EN_VLYNQ_SHIFT				3
 #define OMAP2420_EN_VLYNQ				(1 << 3)
 
-/* CM_FCLKEN2_CORE, CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
+
 #define OMAP2430_EN_GPIO5_SHIFT				10
 #define OMAP2430_EN_GPIO5				(1 << 10)
 #define OMAP2430_EN_MCSPI3_SHIFT			9
@@ -106,13 +90,13 @@
 #define OMAP24XX_EN_USB_SHIFT				0
 #define OMAP24XX_EN_USB					(1 << 0)
 
-/* CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
+
 #define OMAP2430_EN_MDM_INTC_SHIFT			11
 #define OMAP2430_EN_MDM_INTC				(1 << 11)
 #define OMAP2430_EN_USBHS_SHIFT				6
 #define OMAP2430_EN_USBHS				(1 << 6)
 
-/* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
+
 #define OMAP2420_ST_MMC_SHIFT				26
 #define OMAP2420_ST_MMC_MASK				(1 << 26)
 #define OMAP24XX_ST_UART2_SHIFT				22
@@ -148,7 +132,7 @@
 #define OMAP2420_ST_VLYNQ_SHIFT				3
 #define OMAP2420_ST_VLYNQ_MASK				(1 << 3)
 
-/* CM_IDLEST2_CORE, PM_WKST2_CORE shared bits */
+
 #define OMAP2430_ST_MDM_INTC_SHIFT			11
 #define OMAP2430_ST_MDM_INTC_MASK			(1 << 11)
 #define OMAP2430_ST_GPIO5_SHIFT				10
@@ -166,32 +150,32 @@
 #define OMAP24XX_ST_USB_SHIFT				0
 #define OMAP24XX_ST_USB_MASK				(1 << 0)
 
-/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+
 #define OMAP24XX_EN_GPIOS_SHIFT				2
 #define OMAP24XX_EN_GPIOS				(1 << 2)
 #define OMAP24XX_EN_GPT1_SHIFT				0
 #define OMAP24XX_EN_GPT1				(1 << 0)
 
-/* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
+
 #define OMAP24XX_ST_GPIOS_SHIFT				(1 << 2)
 #define OMAP24XX_ST_GPIOS_MASK				2
 #define OMAP24XX_ST_GPT1_SHIFT				(1 << 0)
 #define OMAP24XX_ST_GPT1_MASK				0
 
-/* CM_IDLEST_MDM and PM_WKST_MDM shared bits */
+
 #define OMAP2430_ST_MDM_SHIFT				(1 << 0)
 
 
-/* 3430 register bits shared between CM & PRM registers */
 
-/* CM_REVISION, PRM_REVISION shared bits */
+
+
 #define OMAP3430_REV_SHIFT				0
 #define OMAP3430_REV_MASK				(0xff << 0)
 
-/* CM_SYSCONFIG, PRM_SYSCONFIG shared bits */
+
 #define OMAP3430_AUTOIDLE				(1 << 0)
 
-/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
+
 #define OMAP3430_EN_MMC2				(1 << 25)
 #define OMAP3430_EN_MMC2_SHIFT				25
 #define OMAP3430_EN_MMC1				(1 << 24)
@@ -227,11 +211,11 @@
 #define OMAP3430_EN_D2D					(1 << 3)
 #define OMAP3430_EN_D2D_SHIFT				3
 
-/* CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
+
 #define OMAP3430_EN_HSOTGUSB				(1 << 4)
 #define OMAP3430_EN_HSOTGUSB_SHIFT				4
 
-/* PM_WKST1_CORE, CM_IDLEST1_CORE shared bits */
+
 #define OMAP3430_ST_MMC2_SHIFT				25
 #define OMAP3430_ST_MMC2_MASK				(1 << 25)
 #define OMAP3430_ST_MMC1_SHIFT				24
@@ -273,7 +257,7 @@
 #define OMAP3430_ST_D2D_SHIFT				3
 #define OMAP3430_ST_D2D_MASK				(1 << 3)
 
-/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+
 #define OMAP3430_EN_GPIO1				(1 << 3)
 #define OMAP3430_EN_GPIO1_SHIFT				3
 #define OMAP3430_EN_GPT12				(1 << 1)
@@ -281,17 +265,17 @@
 #define OMAP3430_EN_GPT1				(1 << 0)
 #define OMAP3430_EN_GPT1_SHIFT				0
 
-/* CM_FCLKEN_WKUP, PM_WKEN_WKUP shared bits */
+
 #define OMAP3430_EN_SR2					(1 << 7)
 #define OMAP3430_EN_SR2_SHIFT				7
 #define OMAP3430_EN_SR1					(1 << 6)
 #define OMAP3430_EN_SR1_SHIFT				6
 
-/* CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+
 #define OMAP3430_EN_GPT12				(1 << 1)
 #define OMAP3430_EN_GPT12_SHIFT				1
 
-/* CM_IDLEST_WKUP, PM_WKST_WKUP shared bits */
+
 #define OMAP3430_ST_SR2_SHIFT				7
 #define OMAP3430_ST_SR2_MASK				(1 << 7)
 #define OMAP3430_ST_SR1_SHIFT				6
@@ -303,15 +287,11 @@
 #define OMAP3430_ST_GPT1_SHIFT				0
 #define OMAP3430_ST_GPT1_MASK				(1 << 0)
 
-/*
- * CM_SLEEPDEP_GFX, CM_SLEEPDEP_DSS, CM_SLEEPDEP_CAM,
- * CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_GFX,
- * PM_WKDEP_DSS, PM_WKDEP_CAM, PM_WKDEP_PER, PM_WKDEP_NEON shared bits
- */
+
 #define OMAP3430_EN_MPU					(1 << 1)
 #define OMAP3430_EN_MPU_SHIFT				1
 
-/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
+
 #define OMAP3430_EN_GPIO6				(1 << 17)
 #define OMAP3430_EN_GPIO6_SHIFT				17
 #define OMAP3430_EN_GPIO5				(1 << 16)
@@ -341,9 +321,8 @@
 #define OMAP3430_EN_GPT2				(1 << 3)
 #define OMAP3430_EN_GPT2_SHIFT				3
 
-/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER, PM_WKST_PER shared bits */
-/* XXX Possible TI documentation bug: should the PM_WKST_PER EN_* bits
- * be ST_* bits instead? */
+
+
 #define OMAP3430_EN_MCBSP4				(1 << 2)
 #define OMAP3430_EN_MCBSP4_SHIFT			2
 #define OMAP3430_EN_MCBSP3				(1 << 1)
@@ -351,7 +330,7 @@
 #define OMAP3430_EN_MCBSP2				(1 << 0)
 #define OMAP3430_EN_MCBSP2_SHIFT			0
 
-/* CM_IDLEST_PER, PM_WKST_PER shared bits */
+
 #define OMAP3430_ST_GPIO6_SHIFT				17
 #define OMAP3430_ST_GPIO6_MASK				(1 << 17)
 #define OMAP3430_ST_GPIO5_SHIFT				16
@@ -381,7 +360,7 @@
 #define OMAP3430_ST_GPT2_SHIFT				3
 #define OMAP3430_ST_GPT2_MASK				(1 << 3)
 
-/* CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_MPU, PM_WKDEP_PER shared bits */
+
 #define OMAP3430_EN_CORE_SHIFT				0
 #define OMAP3430_EN_CORE_MASK				(1 << 0)
 

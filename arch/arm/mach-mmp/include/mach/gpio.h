@@ -20,11 +20,7 @@
 #define __gpio_is_inverted(gpio)	(0)
 #define __gpio_is_occupied(gpio)	(0)
 
-/* NOTE: these macros are defined here to make optimization of
- * gpio_{get,set}_value() to work when 'gpio' is a constant.
- * Usage of these macros otherwise is no longer recommended,
- * use generic GPIO API whenever possible.
- */
+
 #define GPIO_bit(gpio)	(1 << ((gpio) & 0x1f))
 
 #define GPLR(x)		GPIO_REG(BANK_OFF(gpio_to_bank(x)) + 0x00)
@@ -33,4 +29,4 @@
 #define GPCR(x)		GPIO_REG(BANK_OFF(gpio_to_bank(x)) + 0x24)
 
 #include <plat/gpio.h>
-#endif /* __ASM_MACH_GPIO_H */
+#endif 

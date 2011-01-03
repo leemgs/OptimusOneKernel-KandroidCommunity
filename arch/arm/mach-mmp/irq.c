@@ -1,16 +1,4 @@
-/*
- *  linux/arch/arm/mach-mmp/irq.c
- *
- *  Generic IRQ handling, GPIO IRQ demultiplexing, etc.
- *
- *  Author:	Bin Yang <bin.yang@marvell.com>
- *  Created:	Sep 30, 2008
- *  Copyright:	Marvell International Ltd.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/irq.h>
@@ -23,7 +11,7 @@
 #define IRQ_ROUTE_TO_AP		(ICU_INT_CONF_AP_INT | ICU_INT_CONF_IRQ)
 
 #define PRIORITY_DEFAULT	0x1
-#define PRIORITY_NONE		0x0	/* means IRQ disabled */
+#define PRIORITY_NONE		0x0	
 
 static void icu_mask_irq(unsigned int irq)
 {

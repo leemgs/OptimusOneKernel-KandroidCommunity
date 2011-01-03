@@ -1,14 +1,4 @@
-/* $Id: isurf.c,v 1.12.2.4 2004/01/13 21:46:03 keil Exp $
- *
- * low level stuff for Siemens I-Surf/I-Talk cards
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -31,7 +21,7 @@ static const char *ISurf_revision = "$Revision: 1.12.2.4 $";
 #define ISURF_ISAR_OFFSET	0
 #define ISURF_ISAC_OFFSET	0x100
 #define ISURF_IOMEM_SIZE	0x400
-/* Interface functions */
+
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -62,11 +52,7 @@ WriteISACfifo(struct IsdnCardState *cs, u_char * data, int size)
 	}
 }
 
-/* ISAR access routines
- * mode = 0 access with IRQ on
- * mode = 1 access with IRQ off
- * mode = 2 access with IRQ off and using last offset
- */
+
   
 static u_char
 ReadISAR(struct IsdnCardState *cs, int mode, u_char offset)
@@ -133,9 +119,9 @@ reset_isurf(struct IsdnCardState *cs, u_char chips)
 {
 	printk(KERN_INFO "ISurf: resetting card\n");
 
-	byteout(cs->hw.isurf.reset, chips); /* Reset On */
+	byteout(cs->hw.isurf.reset, chips); 
 	mdelay(10);
-	byteout(cs->hw.isurf.reset, ISURF_ISAR_EA); /* Reset Off */
+	byteout(cs->hw.isurf.reset, ISURF_ISAR_EA); 
 	mdelay(10);
 }
 
@@ -160,9 +146,9 @@ ISurf_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 			writeb(0, cs->hw.isurf.isar+ISAR_IRQBIT);mb();
 			initisac(cs);
 			initisar(cs);
-			/* Reenable ISAC IRQ */
+			
 			cs->writeisac(cs, ISAC_MASK, 0);
-			/* RESET Receiver and Transmitter */
+			
 			cs->writeisac(cs, ISAC_CMDR, 0x41);
 			spin_unlock_irqrestore(&cs->lock, flags);
 			return(0);

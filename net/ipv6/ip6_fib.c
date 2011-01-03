@@ -1,23 +1,6 @@
-/*
- *	Linux INET6 implementation
- *	Forwarding Information Database
- *
- *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
 
-/*
- * 	Changes:
- * 	Yuji SEKIYA @USAGI:	Support default route on router node;
- * 				remove ip6_null_entry from the top of
- * 				routing table.
- * 	Ville Nuorvala:		Fixed routing subtrees.
- */
+
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/net.h>
@@ -82,12 +65,7 @@ static struct fib6_node *fib6_repair_tree(struct net *net, struct fib6_node *fn)
 static int fib6_walk(struct fib6_walker_t *w);
 static int fib6_walk_continue(struct fib6_walker_t *w);
 
-/*
- *	A routing update causes an increase of the serial number on the
- *	affected subtree. This allows for cached routes to be asynchronously
- *	tested when modifications are made to the destination cache as a
- *	result of redirects, path MTU changes, etc.
- */
+
 
 static __u32 rt_sernum;
 
@@ -126,16 +104,9 @@ static __inline__ u32 fib6_new_sernum(void)
 	return n;
 }
 
-/*
- *	Auxiliary address test functions for the radix tree.
- *
- *	These assume a 32bit processor (although it will work on
- *	64bit processors)
- */
 
-/*
- *	test bit
- */
+
+
 
 static __inline__ __be32 addr_bit_set(void *token, int fn_bit)
 {
@@ -168,18 +139,12 @@ static void fib6_link_table(struct net *net, struct fib6_table *tb)
 {
 	unsigned int h;
 
-	/*
-	 * Initialize table lock at a single place to give lockdep a key,
-	 * tables aren't visible prior to being linked to the list.
-	 */
+	
 	rwlock_init(&tb->tb6_lock);
 
 	h = tb->tb6_id & (FIB6_TABLE_HASHSZ - 1);
 
-	/*
-	 * No protection necessary, this is the only list mutatation
-	 * operation, tables never disappear once they exist.
-	 */
+	
 	hlist_add_head_rcu(&tb->tb6_hlist, &net->ipv6.fib_table_hash[h]);
 }
 
@@ -277,7 +242,7 @@ static int fib6_dump_node(struct fib6_walker_t *w)
 	for (rt = w->leaf; rt; rt = rt->u.dst.rt6_next) {
 		res = rt6_dump_route(rt, w->args);
 		if (res < 0) {
-			/* Frame is full, suspend walking */
+			
 			w->leaf = rt;
 			return 1;
 		}
@@ -354,16 +319,11 @@ static int inet6_dump_fib(struct sk_buff *skb, struct netlink_callback *cb)
 
 	w = (void *)cb->args[2];
 	if (w == NULL) {
-		/* New dump:
-		 *
-		 * 1. hook callback destructor.
-		 */
+		
 		cb->args[3] = (long)cb->done;
 		cb->done = fib6_dump_done;
 
-		/*
-		 * 2. allocate and initialize walker.
-		 */
+		
 		w = kzalloc(sizeof(*w), GFP_ATOMIC);
 		if (w == NULL)
 			return -ENOMEM;
@@ -399,13 +359,7 @@ out:
 	return res;
 }
 
-/*
- *	Routing Table
- *
- *	return the appropriate node for a routing tree "add" operation
- *	by either creating and inserting or by returning an existing
- *	node.
- */
+
 
 static struct fib6_node * fib6_add_1(struct fib6_node *root, void *addr,
 				     int addrlen, int plen,
@@ -420,26 +374,22 @@ static struct fib6_node * fib6_add_1(struct fib6_node *root, void *addr,
 
 	RT6_TRACE("fib6_add_1\n");
 
-	/* insert node in tree */
+	
 
 	fn = root;
 
 	do {
 		key = (struct rt6key *)((u8 *)fn->leaf + offset);
 
-		/*
-		 *	Prefix match
-		 */
+		
 		if (plen < fn->fn_bit ||
 		    !ipv6_prefix_equal(&key->addr, addr, fn->fn_bit))
 			goto insert_above;
 
-		/*
-		 *	Exact match ?
-		 */
+		
 
 		if (plen == fn->fn_bit) {
-			/* clean up an intermediate node */
+			
 			if ((fn->fn_flags & RTN_RTINFO) == 0) {
 				rt6_release(fn->leaf);
 				fn->leaf = NULL;
@@ -450,21 +400,16 @@ static struct fib6_node * fib6_add_1(struct fib6_node *root, void *addr,
 			return fn;
 		}
 
-		/*
-		 *	We have more bits to go
-		 */
+		
 
-		/* Try to walk down on tree. */
+		
 		fn->fn_sernum = sernum;
 		dir = addr_bit_set(addr, fn->fn_bit);
 		pn = fn;
 		fn = dir ? fn->right: fn->left;
 	} while (fn);
 
-	/*
-	 *	We walked to the bottom of tree.
-	 *	Create new leaf node without children.
-	 */
+	
 
 	ln = node_alloc();
 
@@ -484,29 +429,15 @@ static struct fib6_node * fib6_add_1(struct fib6_node *root, void *addr,
 
 
 insert_above:
-	/*
-	 * split since we don't have a common prefix anymore or
-	 * we have a less significant route.
-	 * we've to insert an intermediate node on the list
-	 * this new node will point to the one we need to create
-	 * and the current
-	 */
+	
 
 	pn = fn->parent;
 
-	/* find 1st bit in difference between the 2 addrs.
-
-	   See comment in __ipv6_addr_diff: bit may be an invalid value,
-	   but if it is >= plen, the value is ignored in any case.
-	 */
+	
 
 	bit = __ipv6_addr_diff(addr, &key->addr, addrlen);
 
-	/*
-	 *		(intermediate)[in]
-	 *	          /	   \
-	 *	(new leaf node)[ln] (old node)[fn]
-	 */
+	
 	if (plen > bit) {
 		in = node_alloc();
 		ln = node_alloc();
@@ -519,13 +450,7 @@ insert_above:
 			return NULL;
 		}
 
-		/*
-		 * new intermediate node.
-		 * RTN_RTINFO will
-		 * be off since that an address that chooses one of
-		 * the branches would not match less specific routes
-		 * in the other branch
-		 */
+		
 
 		in->fn_bit = bit;
 
@@ -535,7 +460,7 @@ insert_above:
 
 		in->fn_sernum = sernum;
 
-		/* update parent pointer */
+		
 		if (dir)
 			pn->right = in;
 		else
@@ -555,13 +480,9 @@ insert_above:
 			in->left  = ln;
 			in->right = fn;
 		}
-	} else { /* plen <= bit */
+	} else { 
 
-		/*
-		 *		(new leaf node)[ln]
-		 *	          /	   \
-		 *	     (old node)[fn] NULL
-		 */
+		
 
 		ln = node_alloc();
 
@@ -589,9 +510,7 @@ insert_above:
 	return ln;
 }
 
-/*
- *	Insert routing information in a node.
- */
+
 
 static int fib6_add_rt2node(struct fib6_node *fn, struct rt6_info *rt,
 			    struct nl_info *info)
@@ -602,14 +521,10 @@ static int fib6_add_rt2node(struct fib6_node *fn, struct rt6_info *rt,
 	ins = &fn->leaf;
 
 	for (iter = fn->leaf; iter; iter=iter->u.dst.rt6_next) {
-		/*
-		 *	Search for duplicates
-		 */
+		
 
 		if (iter->rt6i_metric == rt->rt6i_metric) {
-			/*
-			 *	Same priority level
-			 */
+			
 
 			if (iter->rt6i_dev == rt->rt6i_dev &&
 			    iter->rt6i_idev == rt->rt6i_idev &&
@@ -632,13 +547,11 @@ static int fib6_add_rt2node(struct fib6_node *fn, struct rt6_info *rt,
 		ins = &iter->u.dst.rt6_next;
 	}
 
-	/* Reset round-robin state, if necessary */
+	
 	if (ins == &fn->leaf)
 		fn->rr_ptr = NULL;
 
-	/*
-	 *	insert node
-	 */
+	
 
 	rt->u.dst.rt6_next = iter;
 	*ins = rt;
@@ -670,11 +583,7 @@ void fib6_force_start_gc(struct net *net)
 			  jiffies + net->ipv6.sysctl.ip6_rt_gc_interval);
 }
 
-/*
- *	Add routing information to the routing tree.
- *	<destination addr>/<source addr>
- *	with source addr info in sub-trees
- */
+
 
 int fib6_add(struct fib6_node *root, struct rt6_info *rt, struct nl_info *info)
 {
@@ -696,17 +605,9 @@ int fib6_add(struct fib6_node *root, struct rt6_info *rt, struct nl_info *info)
 		if (fn->subtree == NULL) {
 			struct fib6_node *sfn;
 
-			/*
-			 * Create subtree.
-			 *
-			 *		fn[main tree]
-			 *		|
-			 *		sfn[subtree root]
-			 *		   \
-			 *		    sn[new leaf node]
-			 */
+			
 
-			/* Create subtree root node */
+			
 			sfn = node_alloc();
 			if (sfn == NULL)
 				goto st_failure;
@@ -716,22 +617,19 @@ int fib6_add(struct fib6_node *root, struct rt6_info *rt, struct nl_info *info)
 			sfn->fn_flags = RTN_ROOT;
 			sfn->fn_sernum = fib6_new_sernum();
 
-			/* Now add the first leaf node to new subtree */
+			
 
 			sn = fib6_add_1(sfn, &rt->rt6i_src.addr,
 					sizeof(struct in6_addr), rt->rt6i_src.plen,
 					offsetof(struct rt6_info, rt6i_src));
 
 			if (sn == NULL) {
-				/* If it is failed, discard just allocated
-				   root, and then (in st_failure) stale node
-				   in main tree.
-				 */
+				
 				node_free(sfn);
 				goto st_failure;
 			}
 
-			/* Now link new subtree to main tree */
+			
 			sfn->parent = fn;
 			fn->subtree = sfn;
 		} else {
@@ -762,10 +660,7 @@ int fib6_add(struct fib6_node *root, struct rt6_info *rt, struct nl_info *info)
 out:
 	if (err) {
 #ifdef CONFIG_IPV6_SUBTREES
-		/*
-		 * If fib6_add_1 has cleared the old leaf pointer in the
-		 * super-tree leaf node we have to find a new one for it.
-		 */
+		
 		if (pn != fn && pn->leaf == rt) {
 			pn->leaf = NULL;
 			atomic_dec(&rt->rt6i_ref);
@@ -786,9 +681,7 @@ out:
 	return err;
 
 #ifdef CONFIG_IPV6_SUBTREES
-	/* Subtree creation failed, probably main tree node
-	   is orphan. If it is, shoot it.
-	 */
+	
 st_failure:
 	if (fn && !(fn->fn_flags & (RTN_RTINFO|RTN_ROOT)))
 		fib6_repair_tree(info->nl_net, fn);
@@ -797,14 +690,11 @@ st_failure:
 #endif
 }
 
-/*
- *	Routing tree lookup
- *
- */
+
 
 struct lookup_args {
-	int		offset;		/* key offset on rt6_info	*/
-	struct in6_addr	*addr;		/* search key			*/
+	int		offset;		
+	struct in6_addr	*addr;		
 };
 
 static struct fib6_node * fib6_lookup_1(struct fib6_node *root,
@@ -816,9 +706,7 @@ static struct fib6_node * fib6_lookup_1(struct fib6_node *root,
 	if (unlikely(args->offset == 0))
 		return NULL;
 
-	/*
-	 *	Descend on a tree
-	 */
+	
 
 	fn = root;
 
@@ -879,7 +767,7 @@ struct fib6_node * fib6_lookup(struct fib6_node *root, struct in6_addr *daddr,
 		},
 #endif
 		{
-			.offset = 0,	/* sentinel */
+			.offset = 0,	
 		}
 	};
 
@@ -891,10 +779,7 @@ struct fib6_node * fib6_lookup(struct fib6_node *root, struct in6_addr *daddr,
 	return fn;
 }
 
-/*
- *	Get node with specified destination prefix (and source prefix,
- *	if subtrees are used)
- */
+
 
 
 static struct fib6_node * fib6_locate_1(struct fib6_node *root,
@@ -906,9 +791,7 @@ static struct fib6_node * fib6_locate_1(struct fib6_node *root,
 	for (fn = root; fn ; ) {
 		struct rt6key *key = (struct rt6key *)((u8 *)fn->leaf + offset);
 
-		/*
-		 *	Prefix match
-		 */
+		
 		if (plen < fn->fn_bit ||
 		    !ipv6_prefix_equal(&key->addr, addr, fn->fn_bit))
 			return NULL;
@@ -916,9 +799,7 @@ static struct fib6_node * fib6_locate_1(struct fib6_node *root,
 		if (plen == fn->fn_bit)
 			return fn;
 
-		/*
-		 *	We have more bits to go
-		 */
+		
 		if (addr_bit_set(addr, fn->fn_bit))
 			fn = fn->right;
 		else
@@ -952,10 +833,7 @@ struct fib6_node * fib6_locate(struct fib6_node *root,
 }
 
 
-/*
- *	Deletion
- *
- */
+
 
 static struct rt6_info *fib6_find_prefix(struct net *net, struct fib6_node *fn)
 {
@@ -974,10 +852,7 @@ static struct rt6_info *fib6_find_prefix(struct net *net, struct fib6_node *fn)
 	return NULL;
 }
 
-/*
- *	Called to trim the tree of intermediate nodes when possible. "fn"
- *	is the node we want to try and remove.
- */
+
 
 static struct fib6_node *fib6_repair_tree(struct net *net,
 					   struct fib6_node *fn)
@@ -1003,7 +878,7 @@ static struct fib6_node *fib6_repair_tree(struct net *net,
 
 		if (children == 3 || FIB6_SUBTREE(fn)
 #ifdef CONFIG_IPV6_SUBTREES
-		    /* Subtree root (i.e. fn) may have one child */
+		    
 		    || (children && fn->fn_flags&RTN_ROOT)
 #endif
 		    ) {
@@ -1089,17 +964,17 @@ static void fib6_del_route(struct fib6_node *fn, struct rt6_info **rtp,
 
 	RT6_TRACE("fib6_del_route\n");
 
-	/* Unlink it */
+	
 	*rtp = rt->u.dst.rt6_next;
 	rt->rt6i_node = NULL;
 	net->ipv6.rt6_stats->fib_rt_entries--;
 	net->ipv6.rt6_stats->fib_discarded_routes++;
 
-	/* Reset round-robin state, if necessary */
+	
 	if (fn->rr_ptr == rt)
 		fn->rr_ptr = NULL;
 
-	/* Adjust walkers */
+	
 	read_lock(&fib6_walker_lock);
 	FOR_WALKERS(w) {
 		if (w->state == FWS_C && w->leaf == rt) {
@@ -1113,7 +988,7 @@ static void fib6_del_route(struct fib6_node *fn, struct rt6_info **rtp,
 
 	rt->u.dst.rt6_next = NULL;
 
-	/* If it was last route, expunge its radix tree node */
+	
 	if (fn->leaf == NULL) {
 		fn->fn_flags &= ~RTN_RTINFO;
 		net->ipv6.rt6_stats->fib_route_nodes--;
@@ -1121,12 +996,7 @@ static void fib6_del_route(struct fib6_node *fn, struct rt6_info **rtp,
 	}
 
 	if (atomic_read(&rt->rt6i_ref) != 1) {
-		/* This route is used as dummy address holder in some split
-		 * nodes. It is not leaked, but it still holds other resources,
-		 * which must be released in time. So, scan ascendant nodes
-		 * and replace dummy references to this route with references
-		 * to still alive ones.
-		 */
+		
 		while (fn) {
 			if (!(fn->fn_flags&RTN_RTINFO) && fn->leaf == rt) {
 				fn->leaf = fib6_find_prefix(net, fn);
@@ -1135,7 +1005,7 @@ static void fib6_del_route(struct fib6_node *fn, struct rt6_info **rtp,
 			}
 			fn = fn->parent;
 		}
-		/* No more references are possible at this point. */
+		
 		BUG_ON(atomic_read(&rt->rt6i_ref) != 1);
 	}
 
@@ -1163,7 +1033,7 @@ int fib6_del(struct rt6_info *rt, struct nl_info *info)
 	if (!(rt->rt6i_flags&RTF_CACHE)) {
 		struct fib6_node *pn = fn;
 #ifdef CONFIG_IPV6_SUBTREES
-		/* clones of this route might be in another subtree */
+		
 		if (rt->rt6i_src.plen) {
 			while (!(pn->fn_flags&RTN_ROOT))
 				pn = pn->parent;
@@ -1173,9 +1043,7 @@ int fib6_del(struct rt6_info *rt, struct nl_info *info)
 		fib6_prune_clones(info->nl_net, pn, rt);
 	}
 
-	/*
-	 *	Walk the leaf entries looking for ourself
-	 */
+	
 
 	for (rtp = &fn->leaf; *rtp; rtp = &(*rtp)->u.dst.rt6_next) {
 		if (*rtp == rt) {
@@ -1186,29 +1054,7 @@ int fib6_del(struct rt6_info *rt, struct nl_info *info)
 	return -ENOENT;
 }
 
-/*
- *	Tree traversal function.
- *
- *	Certainly, it is not interrupt safe.
- *	However, it is internally reenterable wrt itself and fib6_add/fib6_del.
- *	It means, that we can modify tree during walking
- *	and use this function for garbage collection, clone pruning,
- *	cleaning tree when a device goes down etc. etc.
- *
- *	It guarantees that every node will be traversed,
- *	and that it will be traversed only once.
- *
- *	Callback function w->func may return:
- *	0 -> continue walking.
- *	positive value -> walking is suspended (used by tree dumps,
- *	and probably by gc, if it will be split to several slices)
- *	negative value -> terminate walking.
- *
- *	The function itself returns:
- *	0   -> walk is complete.
- *	>0  -> walk is incomplete (i.e. suspended)
- *	<0  -> walk is terminated by an error.
- */
+
 
 static int fib6_walk_continue(struct fib6_walker_t *w)
 {
@@ -1326,16 +1172,7 @@ static int fib6_clean_node(struct fib6_walker_t *w)
 	return 0;
 }
 
-/*
- *	Convenient frontend to tree walker.
- *
- *	func is called on each route.
- *		It may return -1 -> delete this route.
- *		              0  -> continue walking
- *
- *	prune==1 -> only immediate children of node (certainly,
- *	ignoring pure split nodes) will be scanned.
- */
+
 
 static void fib6_clean_tree(struct net *net, struct fib6_node *root,
 			    int (*func)(struct rt6_info *, void *arg),
@@ -1390,9 +1227,7 @@ static void fib6_prune_clones(struct net *net, struct fib6_node *fn,
 	fib6_clean_tree(net, fn, fib6_prune_clone, 1, rt);
 }
 
-/*
- *	Garbage collection
- */
+
 
 static struct fib6_gc_args
 {
@@ -1404,13 +1239,7 @@ static int fib6_age(struct rt6_info *rt, void *arg)
 {
 	unsigned long now = jiffies;
 
-	/*
-	 *	check addrconf expiration here.
-	 *	Routes are expired even if they are in use.
-	 *
-	 *	Also age clones. Note, that clones are aged out
-	 *	only if they are not in use now.
-	 */
+	
 
 	if (rt->rt6i_flags&RTF_EXPIRES && rt->rt6i_expires) {
 		if (time_after(now, rt->rt6i_expires)) {

@@ -1,12 +1,4 @@
-/*
- * Toshiba e740 PCMCIA specific routines.
- *
- * (c) 2004 Ian Molton <spyro@f2s.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -44,9 +36,7 @@ static int e740_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	return soc_pcmcia_request_irqs(skt, &cd_irqs[skt->nr], 1);
 }
 
-/*
- * Release all resources.
- */
+
 static void e740_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_free_irqs(skt, &cd_irqs[skt->nr], 1);
@@ -86,14 +76,14 @@ static int e740_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 	}
 
 	switch (state->Vcc) {
-	case 0:	/* Socket off */
+	case 0:	
 		if (skt->nr == 0)
 			gpio_set_value(GPIO_E740_PCMCIA_PWR0, 0);
 		else
 			gpio_set_value(GPIO_E740_PCMCIA_PWR1, 1);
 		break;
 	case 50:
-	case 33: /* socket on */
+	case 33: 
 		if (skt->nr == 0)
 			gpio_set_value(GPIO_E740_PCMCIA_PWR0, 1);
 		else
@@ -106,19 +96,13 @@ static int e740_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 	return 0;
 }
 
-/*
- * Enable card status IRQs on (re-)initialisation.  This can
- * be called at initialisation, power management event, or
- * pcmcia event.
- */
+
 static void e740_pcmcia_socket_init(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_enable_irqs(skt, cd_irqs, ARRAY_SIZE(cd_irqs));
 }
 
-/*
- * Disable card status IRQs on suspend.
- */
+
 static void e740_pcmcia_socket_suspend(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_disable_irqs(skt, cd_irqs, ARRAY_SIZE(cd_irqs));

@@ -1,10 +1,4 @@
-/*
- * zfcp device driver
- *
- * sysfs attributes.
- *
- * Copyright IBM Corporation 2008
- */
+
 
 #define KMSG_COMPONENT "zfcp"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -257,7 +251,7 @@ static ssize_t zfcp_sysfs_unit_remove_store(struct device *dev,
 	unit = zfcp_get_unit_by_lun(port, fcp_lun);
 	if (unit) {
 		write_unlock_irq(&zfcp_data.config_lock);
-		/* wait for possible timeout during SCSI probe */
+		
 		flush_work(&unit->scsi_work);
 		write_lock_irq(&zfcp_data.config_lock);
 
@@ -298,9 +292,7 @@ static struct attribute *zfcp_port_attrs[] = {
 	NULL
 };
 
-/**
- * zfcp_sysfs_port_attrs - sysfs attributes for all other ports
- */
+
 struct attribute_group zfcp_sysfs_port_attrs = {
 	.attrs = zfcp_port_attrs,
 };

@@ -1,14 +1,4 @@
-/*
- * Hardware definitions for the Toshiba eseries PDAs
- *
- * Copyright (c) 2003 Ian Molton <spyro@f2s.com>
- *
- * This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -33,7 +23,7 @@
 #include "eseries.h"
 #include "clock.h"
 
-/* ------------------------ e800 LCD definitions ------------------------- */
+
 
 static struct w100_gen_regs e800_lcd_regs = {
 	.lcd_format =            0x00008003,
@@ -85,8 +75,8 @@ static struct w100_mode e800_lcd_mode[2] = {
 		.crtc_goe        = 0x80cc0015,
 		.crtc_ps1_active = 0x00000000,
 		.pll_freq        = 100,
-		.pixclk_divider         = 6, /* Wince uses 14 which gives a */
-		.pixclk_divider_rotated = 6, /* 7MHz Pclk. We use a 14MHz one */
+		.pixclk_divider         = 6, 
+		.pixclk_divider_rotated = 6, 
 		.pixclk_src     = CLK_SRC_PLL,
 		.sysclk_divider  = 0,
 		.sysclk_src     = CLK_SRC_PLL,
@@ -155,7 +145,7 @@ static struct platform_device e800_fb_device = {
 	.resource       = e800_fb_resources,
 };
 
-/* --------------------------- UDC definitions --------------------------- */
+
 
 static struct pxa2xx_udc_mach_info e800_udc_mach_info = {
 	.gpio_vbus   = GPIO_E800_USB_DISC,
@@ -163,7 +153,7 @@ static struct pxa2xx_udc_mach_info e800_udc_mach_info = {
 	.gpio_pullup_inverted = 1
 };
 
-/* ----------------- e800 tc6393xb parameters ------------------ */
+
 
 static struct tc6393xb_platform_data e800_tc6393xb_info = {
 	.irq_base       = IRQ_BOARD_START,
@@ -186,7 +176,7 @@ static struct platform_device e800_tc6393xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static struct platform_device *devices[] __initdata = {
 	&e800_fb_device,
@@ -204,7 +194,7 @@ static void __init e800_init(void)
 }
 
 MACHINE_START(E800, "Toshiba e800")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= 0xa0000100,

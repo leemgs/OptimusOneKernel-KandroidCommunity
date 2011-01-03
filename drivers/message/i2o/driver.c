@@ -1,17 +1,4 @@
-/*
- *	Functions to handle I2O drivers (OSMs) and I2O bus type for sysfs
- *
- *	Copyright (C) 2004	Markus Lidel <Markus.Lidel@shadowconnect.com>
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the
- *	Free Software Foundation; either version 2 of the License, or (at your
- *	option) any later version.
- *
- *	Fixes/additions:
- *		Markus Lidel <Markus.Lidel@shadowconnect.com>
- *			initial version.
- */
+
 
 #include <linux/device.h>
 #include <linux/module.h>
@@ -24,25 +11,16 @@
 
 #define OSM_NAME	"i2o"
 
-/* max_drivers - Maximum I2O drivers (OSMs) which could be registered */
+
 static unsigned int i2o_max_drivers = I2O_MAX_DRIVERS;
 module_param_named(max_drivers, i2o_max_drivers, uint, 0);
 MODULE_PARM_DESC(max_drivers, "maximum number of OSM's to support");
 
-/* I2O drivers lock and array */
+
 static spinlock_t i2o_drivers_lock;
 static struct i2o_driver **i2o_drivers;
 
-/**
- *	i2o_bus_match - Tell if I2O device class id matches the class ids of the I2O driver (OSM)
- *	@dev: device which should be verified
- *	@drv: the driver to match against
- *
- *	Used by the bus to check if the driver wants to handle the device.
- *
- *	Returns 1 if the class ids of the driver match the class id of the
- *	device, otherwise 0.
- */
+
 static int i2o_bus_match(struct device *dev, struct device_driver *drv)
 {
 	struct i2o_device *i2o_dev = to_i2o_device(dev);
@@ -58,22 +36,14 @@ static int i2o_bus_match(struct device *dev, struct device_driver *drv)
 	return 0;
 };
 
-/* I2O bus type */
+
 struct bus_type i2o_bus_type = {
 	.name = "i2o",
 	.match = i2o_bus_match,
 	.dev_attrs = i2o_device_attrs
 };
 
-/**
- *	i2o_driver_register - Register a I2O driver (OSM) in the I2O core
- *	@drv: I2O driver which should be registered
- *
- *	Registers the OSM drv in the I2O core and creates an event queues if
- *	necessary.
- *
- *	Returns 0 on success or negative error code on failure.
- */
+
 int i2o_driver_register(struct i2o_driver *drv)
 {
 	struct i2o_controller *c;
@@ -133,13 +103,7 @@ int i2o_driver_register(struct i2o_driver *drv)
 	return rc;
 };
 
-/**
- *	i2o_driver_unregister - Unregister a I2O driver (OSM) from the I2O core
- *	@drv: I2O driver which should be unregistered
- *
- *	Unregisters the OSM drv from the I2O core and cleanup event queues if
- *	necessary.
- */
+
 void i2o_driver_unregister(struct i2o_driver *drv)
 {
 	struct i2o_controller *c;
@@ -169,18 +133,7 @@ void i2o_driver_unregister(struct i2o_driver *drv)
 	}
 };
 
-/**
- *	i2o_driver_dispatch - dispatch an I2O reply message
- *	@c: I2O controller of the message
- *	@m: I2O message number
- *
- *	The reply is delivered to the driver from which the original message
- *	was. This function is only called from interrupt context.
- *
- *	Returns 0 on success and the message should not be flushed. Returns > 0
- *	on success and if the message should be flushed afterwords. Returns
- *	negative error code on failure (the message will be flushed too).
- */
+
 int i2o_driver_dispatch(struct i2o_controller *c, u32 m)
 {
 	struct i2o_driver *drv;
@@ -215,7 +168,7 @@ int i2o_driver_dispatch(struct i2o_controller *c, u32 m)
 		if (!drv->event)
 			return -EIO;
 
-		/* cut of header from message size (in 32-bit words) */
+		
 		size = (le32_to_cpu(msg->u.head[0]) >> 16) - 5;
 
 		evt = kzalloc(size * 4 + sizeof(*evt), GFP_ATOMIC);
@@ -247,13 +200,7 @@ int i2o_driver_dispatch(struct i2o_controller *c, u32 m)
 	return drv->reply(c, m, msg);
 }
 
-/**
- *	i2o_driver_notify_controller_add_all - Send notify of added controller
- *	@c: newly added controller
- *
- *	Send notifications to all registered drivers that a new controller was
- *	added.
- */
+
 void i2o_driver_notify_controller_add_all(struct i2o_controller *c)
 {
 	int i;
@@ -267,13 +214,7 @@ void i2o_driver_notify_controller_add_all(struct i2o_controller *c)
 	}
 }
 
-/**
- *	i2o_driver_notify_controller_remove_all - Send notify of removed controller
- *	@c: controller that is being removed
- *
- *	Send notifications to all registered drivers that a controller was
- *	removed.
- */
+
 void i2o_driver_notify_controller_remove_all(struct i2o_controller *c)
 {
 	int i;
@@ -287,12 +228,7 @@ void i2o_driver_notify_controller_remove_all(struct i2o_controller *c)
 	}
 }
 
-/**
- *	i2o_driver_notify_device_add_all - Send notify of added device
- *	@i2o_dev: newly added I2O device
- *
- *	Send notifications to all registered drivers that a device was added.
- */
+
 void i2o_driver_notify_device_add_all(struct i2o_device *i2o_dev)
 {
 	int i;
@@ -306,12 +242,7 @@ void i2o_driver_notify_device_add_all(struct i2o_device *i2o_dev)
 	}
 }
 
-/**
- *	i2o_driver_notify_device_remove_all - Send notify of removed device
- *	@i2o_dev: device that is being removed
- *
- *	Send notifications to all registered drivers that a device was removed.
- */
+
 void i2o_driver_notify_device_remove_all(struct i2o_device *i2o_dev)
 {
 	int i;
@@ -325,13 +256,7 @@ void i2o_driver_notify_device_remove_all(struct i2o_device *i2o_dev)
 	}
 }
 
-/**
- *	i2o_driver_init - initialize I2O drivers (OSMs)
- *
- *	Registers the I2O bus and allocate memory for the array of OSMs.
- *
- *	Returns 0 on success or negative error code on failure.
- */
+
 int __init i2o_driver_init(void)
 {
 	int rc = 0;
@@ -358,11 +283,7 @@ int __init i2o_driver_init(void)
 	return rc;
 };
 
-/**
- *	i2o_driver_exit - clean up I2O drivers (OSMs)
- *
- *	Unregisters the I2O bus and frees driver array.
- */
+
 void i2o_driver_exit(void)
 {
 	bus_unregister(&i2o_bus_type);

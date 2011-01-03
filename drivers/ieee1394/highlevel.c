@@ -1,21 +1,4 @@
-/*
- * IEEE 1394 for Linux
- *
- * Copyright (C) 1999 Andreas E. Bombe
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- *
- *
- * Contributions:
- *
- * Christian Toegel <christian.toegel@gmx.at>
- *        unregister address space
- *
- * Manfred Weihs <weihs@ict.tuwien.ac.at>
- *        unregister address space
- *
- */
+
 
 #include <linux/slab.h>
 #include <linux/list.h>
@@ -66,12 +49,7 @@ static struct hl_host_info *hl_get_hostinfo(struct hpsb_highlevel *hl,
 	return NULL;
 }
 
-/**
- * hpsb_get_hostinfo - retrieve a hostinfo pointer bound to this driver/host
- *
- * Returns a per @host and @hl driver data structure that was previously stored
- * by hpsb_create_hostinfo.
- */
+
 void *hpsb_get_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host)
 {
 	struct hl_host_info *hi = hl_get_hostinfo(hl, host);
@@ -79,13 +57,7 @@ void *hpsb_get_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host)
 	return hi ? hi->data : NULL;
 }
 
-/**
- * hpsb_create_hostinfo - allocate a hostinfo pointer bound to this driver/host
- *
- * Allocate a hostinfo pointer backed by memory with @data_size and bind it to
- * to this @hl driver and @host.  If @data_size is zero, then the return here is
- * only valid for error checking.
- */
+
 void *hpsb_create_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host,
 			   size_t data_size)
 {
@@ -119,11 +91,7 @@ void *hpsb_create_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host,
 	return data;
 }
 
-/**
- * hpsb_set_hostinfo - set the hostinfo pointer to something useful
- *
- * Usually follows a call to hpsb_create_hostinfo, where the size is 0.
- */
+
 int hpsb_set_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host,
 		      void *data)
 {
@@ -143,11 +111,7 @@ int hpsb_set_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host,
 	return -EINVAL;
 }
 
-/**
- * hpsb_destroy_hostinfo - free and remove a hostinfo pointer
- *
- * Free and remove the hostinfo pointer bound to this @hl driver and @host.
- */
+
 void hpsb_destroy_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host)
 {
 	struct hl_host_info *hi;
@@ -163,12 +127,7 @@ void hpsb_destroy_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host)
 	return;
 }
 
-/**
- * hpsb_set_hostinfo_key - set an alternate lookup key for an hostinfo
- *
- * Sets an alternate lookup key for the hostinfo bound to this @hl driver and
- * @host.
- */
+
 void hpsb_set_hostinfo_key(struct hpsb_highlevel *hl, struct hpsb_host *host,
 			   unsigned long key)
 {
@@ -180,9 +139,7 @@ void hpsb_set_hostinfo_key(struct hpsb_highlevel *hl, struct hpsb_host *host,
 	return;
 }
 
-/**
- * hpsb_get_hostinfo_bykey - retrieve a hostinfo pointer by its alternate key
- */
+
 void *hpsb_get_hostinfo_bykey(struct hpsb_highlevel *hl, unsigned long key)
 {
 	struct hl_host_info *hi;
@@ -214,12 +171,7 @@ static int highlevel_for_each_host_reg(struct hpsb_host *host, void *__data)
 	return 0;
 }
 
-/**
- * hpsb_register_highlevel - register highlevel driver
- *
- * The name pointer in @hl has to stay valid at all times because the string is
- * not copied.
- */
+
 void hpsb_register_highlevel(struct hpsb_highlevel *hl)
 {
 	unsigned long flags;
@@ -254,12 +206,11 @@ static void __unregister_host(struct hpsb_highlevel *hl, struct hpsb_host *host,
 	struct list_head *lh, *next;
 	struct hpsb_address_serve *as;
 
-	/* First, let the highlevel driver unreg */
+	
 	if (hl->remove_host)
 		hl->remove_host(host);
 
-	/* Remove any addresses that are matched for this highlevel driver
-	 * and this particular host. */
+	
 	write_lock_irqsave(&addr_space_lock, flags);
 	list_for_each_safe (lh, next, &hl->addr_list) {
 		as = list_entry(lh, struct hpsb_address_serve, hl_list);
@@ -268,14 +219,13 @@ static void __unregister_host(struct hpsb_highlevel *hl, struct hpsb_host *host,
 	}
 	write_unlock_irqrestore(&addr_space_lock, flags);
 
-	/* Now update the config-rom to reflect anything removed by the
-	 * highlevel driver. */
+	
 	if (update_cr && host->update_config_rom &&
 	    hpsb_update_config_rom_image(host) < 0)
 		HPSB_ERR("Failed to generate Configuration ROM image for host "
 			 "%s-%d", hl->name, host->id);
 
-	/* Finally remove all the host info associated between these two. */
+	
 	hpsb_destroy_hostinfo(hl, host);
 }
 
@@ -287,9 +237,7 @@ static int highlevel_for_each_host_unreg(struct hpsb_host *host, void *__data)
 	return 0;
 }
 
-/**
- * hpsb_unregister_highlevel - unregister highlevel driver
- */
+
 void hpsb_unregister_highlevel(struct hpsb_highlevel *hl)
 {
 	unsigned long flags;
@@ -305,19 +253,7 @@ void hpsb_unregister_highlevel(struct hpsb_highlevel *hl)
 	nodemgr_for_each_host(hl, highlevel_for_each_host_unreg);
 }
 
-/**
- * hpsb_allocate_and_register_addrspace - alloc' and reg' a host address space
- *
- * @start and @end are 48 bit pointers and have to be quadlet aligned.
- * @end points to the first address behind the handled addresses.  This
- * function can be called multiple times for a single hpsb_highlevel @hl to
- * implement sparse register sets.  The requested region must not overlap any
- * previously allocated region, otherwise registering will fail.
- *
- * It returns true for successful allocation.  Address spaces can be
- * unregistered with hpsb_unregister_addrspace.  All remaining address spaces
- * are automatically deallocated together with the hpsb_highlevel @hl.
- */
+
 u64 hpsb_allocate_and_register_addrspace(struct hpsb_highlevel *hl,
 					 struct hpsb_host *host,
 					 const struct hpsb_address_ops *ops,
@@ -337,8 +273,7 @@ u64 hpsb_allocate_and_register_addrspace(struct hpsb_highlevel *hl,
 		return retval;
 	}
 
-	/* default range,
-	 * avoids controller's posted write area (see OHCI 1.1 clause 1.5) */
+	
 	if (start == CSR1212_INVALID_ADDR_SPACE &&
 	    end   == CSR1212_INVALID_ADDR_SPACE) {
 		start = host->middle_addr_space;
@@ -393,19 +328,7 @@ u64 hpsb_allocate_and_register_addrspace(struct hpsb_highlevel *hl,
 	return retval;
 }
 
-/**
- * hpsb_register_addrspace - register a host address space
- *
- * @start and @end are 48 bit pointers and have to be quadlet aligned.
- * @end points to the first address behind the handled addresses.  This
- * function can be called multiple times for a single hpsb_highlevel @hl to
- * implement sparse register sets.  The requested region must not overlap any
- * previously allocated region, otherwise registering will fail.
- *
- * It returns true for successful allocation.  Address spaces can be
- * unregistered with hpsb_unregister_addrspace.  All remaining address spaces
- * are automatically deallocated together with the hpsb_highlevel @hl.
- */
+
 int hpsb_register_addrspace(struct hpsb_highlevel *hl, struct hpsb_host *host,
 			    const struct hpsb_address_ops *ops,
 			    u64 start, u64 end)
@@ -480,7 +403,7 @@ int hpsb_unregister_addrspace(struct hpsb_highlevel *hl, struct hpsb_host *host,
 
 static const struct hpsb_address_ops dummy_ops;
 
-/* dummy address spaces as lower and upper bounds of the host's a.s. list */
+
 static void init_hpsb_highlevel(struct hpsb_host *host)
 {
 	INIT_LIST_HEAD(&host->dummy_zero_addr.host_list);
@@ -553,17 +476,7 @@ void highlevel_fcp_request(struct hpsb_host *host, int nodeid, int direction,
 	read_unlock_irqrestore(&hl_irqs_lock, flags);
 }
 
-/*
- * highlevel_read, highlevel_write, highlevel_lock, highlevel_lock64:
- *
- * These functions are called to handle transactions. They are called when a
- * packet arrives.  The flags argument contains the second word of the first
- * header quadlet of the incoming packet (containing transaction label, retry
- * code, transaction code and priority).  These functions either return a
- * response code or a negative number.  In the first case a response will be
- * generated.  In the latter case, no response will be sent and the driver which
- * handled the request will send the response itself.
- */
+
 int highlevel_read(struct hpsb_host *host, int nodeid, void *data, u64 addr,
 		   unsigned int length, u16 flags)
 {

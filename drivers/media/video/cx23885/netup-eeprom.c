@@ -1,27 +1,5 @@
 
-/*
- * netup-eeprom.c
- *
- * 24LC02 EEPROM driver in conjunction with NetUP Dual DVB-S2 CI card
- *
- * Copyright (C) 2009 NetUP Inc.
- * Copyright (C) 2009 Abylay Ospan <aospan@netup.ru>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #
 #include "cx23885.h"
@@ -34,7 +12,7 @@ int netup_eeprom_read(struct i2c_adapter *i2c_adap, u8 addr)
 	int ret;
 	unsigned char buf[2];
 
-	/* Read from EEPROM */
+	
 	struct i2c_msg msg[] = {
 		{
 			.addr	= EEPROM_I2C_ADDR,
@@ -68,7 +46,7 @@ int netup_eeprom_write(struct i2c_adapter *i2c_adap, u8 addr, u8 data)
 	int ret;
 	unsigned char bufw[2];
 
-	/* Write into EEPROM */
+	
 	struct i2c_msg msg[] = {
 		{
 			.addr	= EEPROM_I2C_ADDR,
@@ -88,7 +66,7 @@ int netup_eeprom_write(struct i2c_adapter *i2c_adap, u8 addr, u8 data)
 		return -1;
 	}
 
-	mdelay(10); /* prophylactic delay, datasheet write cycle time = 5 ms */
+	mdelay(10); 
 	return 0;
 };
 

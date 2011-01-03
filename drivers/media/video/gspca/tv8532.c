@@ -1,23 +1,4 @@
-/*
- * Quickcam cameras initialization data
- *
- * V4L2 by Jean-Francois Moine <http://moinejf.free.fr>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- */
+
 #define MODULE_NAME "tv8532"
 
 #include "gspca.h"
@@ -26,16 +7,16 @@ MODULE_AUTHOR("Michel Xhaard <mxhaard@users.sourceforge.net>");
 MODULE_DESCRIPTION("TV8532 USB Camera Driver");
 MODULE_LICENSE("GPL");
 
-/* specific webcam descriptor */
+
 struct sd {
-	struct gspca_dev gspca_dev;	/* !! must be the first item */
+	struct gspca_dev gspca_dev;	
 
 	__u16 brightness;
 
 	__u8 packet;
 };
 
-/* V4L2 controls supported by the driver */
+
 static int sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
 static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
 
@@ -46,7 +27,7 @@ static struct ctrl sd_ctrls[] = {
 	  .type = V4L2_CTRL_TYPE_INTEGER,
 	  .name = "Brightness",
 	  .minimum = 1,
-	  .maximum = 0x15f,	/* = 352 - 1 */
+	  .maximum = 0x15f,	
 	  .step = 1,
 #define BRIGHTNESS_DEF 0x14c
 	  .default_value = BRIGHTNESS_DEF,
@@ -69,7 +50,7 @@ static const struct v4l2_pix_format sif_mode[] = {
 		.priv = 0},
 };
 
-/* TV-8532A (ICM532A) registers (LE) */
+
 #define R00_PART_CONTROL 0x00
 #define		LATENT_CHANGE	0x80
 #define		EXPO_CHANGE	0x04
@@ -88,7 +69,7 @@ static const struct v4l2_pix_format sif_mode[] = {
 #define R0F_AD_HEIGHTH	0x0f
 #define R10_AD_COL_BEGINL 0x10
 #define R11_AD_COL_BEGINH 0x11
-#define		MIRROR		0x04	/* [10] */
+#define		MIRROR		0x04	
 #define R14_AD_ROW_BEGINL 0x14
 #define R15_AD_ROWBEGINH  0x15
 #define R1C_AD_EXPOSE_TIMEL 0x1c
@@ -106,14 +87,14 @@ static const struct v4l2_pix_format sif_mode[] = {
 #define R35_VIDH	0x35
 #define R36_PID		0x36
 #define R37_PIDH	0x37
-#define R39_Test1	0x39		/* GPIO */
-#define R3B_Test3	0x3B		/* GPIO */
+#define R39_Test1	0x39		
+#define R3B_Test3	0x3B		
 #define R83_AD_IDH	0x83
 #define R91_AD_SLOPEREG 0x91
 #define R94_AD_BITCONTROL 0x94
 
 static const u8 eeprom_data[][3] = {
-/*	dataH dataM dataL */
+
 	{0x01, 0x00, 0x01},
 	{0x01, 0x80, 0x11},
 	{0x05, 0x00, 0x14},
@@ -136,13 +117,13 @@ static int reg_r(struct gspca_dev *gspca_dev,
 			usb_rcvctrlpipe(gspca_dev->dev, 0),
 			0x03,
 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,	/* value */
+			0,	
 			index, gspca_dev->usb_buf, 1,
 			500);
 	return gspca_dev->usb_buf[0];
 }
 
-/* write 1 byte */
+
 static void reg_w1(struct gspca_dev *gspca_dev,
 		  __u16 index, __u8 value)
 {
@@ -151,11 +132,11 @@ static void reg_w1(struct gspca_dev *gspca_dev,
 			usb_sndctrlpipe(gspca_dev->dev, 0),
 			0x02,
 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,	/* value */
+			0,	
 			index, gspca_dev->usb_buf, 1, 500);
 }
 
-/* write 2 bytes */
+
 static void reg_w2(struct gspca_dev *gspca_dev,
 		  u16 index, u16 value)
 {
@@ -165,7 +146,7 @@ static void reg_w2(struct gspca_dev *gspca_dev,
 			usb_sndctrlpipe(gspca_dev->dev, 0),
 			0x02,
 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,	/* value */
+			0,	
 			index, gspca_dev->usb_buf, 2, 500);
 }
 
@@ -186,7 +167,7 @@ static void tv_8532WriteEEprom(struct gspca_dev *gspca_dev)
 	msleep(10);
 }
 
-/* this function is called at probe time */
+
 static int sd_config(struct gspca_dev *gspca_dev,
 		     const struct usb_device_id *id)
 {
@@ -238,21 +219,21 @@ static void tv_8532ReadRegisters(struct gspca_dev *gspca_dev)
 static void tv_8532_setReg(struct gspca_dev *gspca_dev)
 {
 	reg_w1(gspca_dev, R10_AD_COL_BEGINL, 0x44);
-						/* begin active line */
+						
 	reg_w1(gspca_dev, R11_AD_COL_BEGINH, 0x00);
-						/* mirror and digital gain */
+						
 	reg_w1(gspca_dev, R00_PART_CONTROL, LATENT_CHANGE | EXPO_CHANGE);
-						/* = 0x84 */
+						
 
-	reg_w1(gspca_dev, R3B_Test3, 0x0a);	/* Test0Sel = 10 */
-	/******************************************************/
+	reg_w1(gspca_dev, R3B_Test3, 0x0a);	
+	
 	reg_w1(gspca_dev, R0E_AD_HEIGHTL, 0x90);
 	reg_w1(gspca_dev, R0F_AD_HEIGHTH, 0x01);
 	reg_w2(gspca_dev, R1C_AD_EXPOSE_TIMEL, 0x018f);
 	reg_w1(gspca_dev, R10_AD_COL_BEGINL, 0x44);
-						/* begin active line */
+						
 	reg_w1(gspca_dev, R11_AD_COL_BEGINH, 0x00);
-						/* mirror and digital gain */
+						
 	reg_w1(gspca_dev, R14_AD_ROW_BEGINL, 0x0a);
 
 	reg_w1(gspca_dev, R91_AD_SLOPEREG, 0x00);
@@ -262,14 +243,14 @@ static void tv_8532_setReg(struct gspca_dev *gspca_dev)
 
 	reg_w1(gspca_dev, R91_AD_SLOPEREG, 0x00);
 	reg_w1(gspca_dev, R00_PART_CONTROL, LATENT_CHANGE | EXPO_CHANGE);
-						/* = 0x84 */
+						
 }
 
 static void tv_8532_PollReg(struct gspca_dev *gspca_dev)
 {
 	int i;
 
-	/* strange polling from tgc */
+	
 	for (i = 0; i < 10; i++) {
 		reg_w1(gspca_dev, R2C_POLARITY, 0x10);
 		reg_w1(gspca_dev, R00_PART_CONTROL,
@@ -278,13 +259,12 @@ static void tv_8532_PollReg(struct gspca_dev *gspca_dev)
 	}
 }
 
-/* this function is called at probe and resume time */
+
 static int sd_init(struct gspca_dev *gspca_dev)
 {
 	tv_8532WriteEEprom(gspca_dev);
 
-	reg_w1(gspca_dev, R91_AD_SLOPEREG, 0x32);	/* slope begin 1,7V,
-							 * slope rate 2 */
+	reg_w1(gspca_dev, R91_AD_SLOPEREG, 0x32);	
 	reg_w1(gspca_dev, R94_AD_BITCONTROL, 0x00);
 	tv_8532ReadRegisters(gspca_dev);
 	reg_w1(gspca_dev, R3B_Test3, 0x0b);
@@ -293,36 +273,36 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	reg_w1(gspca_dev, R0C_AD_WIDTHL, 0xe8);
 	reg_w1(gspca_dev, R0D_AD_WIDTHH, 0x03);
 
-	/*******************************************************************/
+	
 	reg_w1(gspca_dev, R28_QUANT, 0x90);
-					/* no compress - fixed Q - quant 0 */
+					
 	reg_w1(gspca_dev, R29_LINE, 0x81);
-					/* 0x84; // CIF | 4 packet 0x29 */
+					
 
-	/************************************************/
+	
 	reg_w1(gspca_dev, R2C_POLARITY, 0x10);
-						/* 0x48; //0x08; 0x2c */
+						
 	reg_w1(gspca_dev, R2D_POINT, 0x14);
-						/* 0x38; 0x2d */
+						
 	reg_w1(gspca_dev, R2E_POINTH, 0x01);
-						/* 0x04; 0x2e */
+						
 	reg_w1(gspca_dev, R2F_POINTB, 0x12);
-						/* 0x04; 0x2f */
+						
 	reg_w1(gspca_dev, R30_POINTBH, 0x01);
-						/* 0x04; 0x30 */
+						
 	reg_w1(gspca_dev, R00_PART_CONTROL, LATENT_CHANGE | EXPO_CHANGE);
-						/* 0x00<-0x84 */
-	/*************************************************/
-	reg_w1(gspca_dev, R31_UPD, 0x01);	/* update registers */
+						
+	
+	reg_w1(gspca_dev, R31_UPD, 0x01);	
 	msleep(200);
-	reg_w1(gspca_dev, R31_UPD, 0x00);		/* end update */
-	/*************************************************/
+	reg_w1(gspca_dev, R31_UPD, 0x00);		
+	
 	tv_8532_setReg(gspca_dev);
-	/*************************************************/
-	reg_w1(gspca_dev, R3B_Test3, 0x0b);	/* Test0Sel = 11 = GPIO */
-	/*************************************************/
+	
+	reg_w1(gspca_dev, R3B_Test3, 0x0b);	
+	
 	tv_8532_setReg(gspca_dev);
-	/*************************************************/
+	
 	tv_8532_PollReg(gspca_dev);
 	return 0;
 }
@@ -333,16 +313,15 @@ static void setbrightness(struct gspca_dev *gspca_dev)
 
 	reg_w2(gspca_dev, R1C_AD_EXPOSE_TIMEL, sd->brightness);
 	reg_w1(gspca_dev, R00_PART_CONTROL, LATENT_CHANGE | EXPO_CHANGE);
-						/* 0x84 */
+						
 }
 
-/* -- start the camera -- */
+
 static int sd_start(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	reg_w1(gspca_dev, R91_AD_SLOPEREG, 0x32);	/* slope begin 1,7V,
-							 * slope rate 2 */
+	reg_w1(gspca_dev, R91_AD_SLOPEREG, 0x32);	
 	reg_w1(gspca_dev, R94_AD_BITCONTROL, 0x00);
 	tv_8532ReadRegisters(gspca_dev);
 	reg_w1(gspca_dev, R3B_Test3, 0x0b);
@@ -350,57 +329,57 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	reg_w2(gspca_dev, R0E_AD_HEIGHTL, 0x0190);
 	setbrightness(gspca_dev);
 
-	reg_w1(gspca_dev, R0C_AD_WIDTHL, 0xe8);		/* 0x20; 0x0c */
+	reg_w1(gspca_dev, R0C_AD_WIDTHL, 0xe8);		
 	reg_w1(gspca_dev, R0D_AD_WIDTHH, 0x03);
 
-	/************************************************/
+	
 	reg_w1(gspca_dev, R28_QUANT, 0x90);
-					/* 0x72 compressed mode 0x28 */
+					
 	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv) {
-		/* 176x144 */
+		
 		reg_w1(gspca_dev, R29_LINE, 0x41);
-					/* CIF - 2 lines/packet */
+					
 	} else {
-		/* 352x288 */
+		
 		reg_w1(gspca_dev, R29_LINE, 0x81);
-					/* CIF - 2 lines/packet */
+					
 	}
-	/************************************************/
-	reg_w1(gspca_dev, R2C_POLARITY, 0x10);		/* slow clock */
+	
+	reg_w1(gspca_dev, R2C_POLARITY, 0x10);		
 	reg_w1(gspca_dev, R2D_POINT, 0x14);
 	reg_w1(gspca_dev, R2E_POINTH, 0x01);
 	reg_w1(gspca_dev, R2F_POINTB, 0x12);
 	reg_w1(gspca_dev, R30_POINTBH, 0x01);
 	reg_w1(gspca_dev, R00_PART_CONTROL, LATENT_CHANGE | EXPO_CHANGE);
-	/************************************************/
-	reg_w1(gspca_dev, R31_UPD, 0x01);	/* update registers */
+	
+	reg_w1(gspca_dev, R31_UPD, 0x01);	
 	msleep(200);
-	reg_w1(gspca_dev, R31_UPD, 0x00);		/* end update */
-	/************************************************/
+	reg_w1(gspca_dev, R31_UPD, 0x00);		
+	
 	tv_8532_setReg(gspca_dev);
-	/************************************************/
-	reg_w1(gspca_dev, R3B_Test3, 0x0b);	/* Test0Sel = 11 = GPIO */
-	/************************************************/
+	
+	reg_w1(gspca_dev, R3B_Test3, 0x0b);	
+	
 	tv_8532_setReg(gspca_dev);
-	/************************************************/
+	
 	tv_8532_PollReg(gspca_dev);
-	reg_w1(gspca_dev, R31_UPD, 0x00);	/* end update */
+	reg_w1(gspca_dev, R31_UPD, 0x00);	
 
-	gspca_dev->empty_packet = 0;		/* check the empty packets */
-	sd->packet = 0;				/* ignore the first packets */
+	gspca_dev->empty_packet = 0;		
+	sd->packet = 0;				
 
 	return 0;
 }
 
 static void sd_stopN(struct gspca_dev *gspca_dev)
 {
-	reg_w1(gspca_dev, R3B_Test3, 0x0b);	/* Test0Sel = 11 = GPIO */
+	reg_w1(gspca_dev, R3B_Test3, 0x0b);	
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			struct gspca_frame *frame,	/* target */
-			__u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+			struct gspca_frame *frame,	
+			__u8 *data,			
+			int len)			
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int packet_type0, packet_type1;
@@ -411,18 +390,12 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 		sd->packet = gspca_dev->height / 2;
 		packet_type0 = FIRST_PACKET;
 	} else if (sd->packet == 0)
-		return;			/* 2 more lines in 352x288 ! */
+		return;			
 	sd->packet--;
 	if (sd->packet == 0)
 		packet_type1 = LAST_PACKET;
 
-	/* each packet contains:
-	 * - header 2 bytes
-	 * - RGRG line
-	 * - 4 bytes
-	 * - GBGB line
-	 * - 4 bytes
-	 */
+	
 	gspca_frame_add(gspca_dev, packet_type0,
 			frame, data + 2, gspca_dev->width);
 	gspca_frame_add(gspca_dev, packet_type1,
@@ -447,7 +420,7 @@ static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val)
 	return 0;
 }
 
-/* sub-driver description */
+
 static const struct sd_desc sd_desc = {
 	.name = MODULE_NAME,
 	.ctrls = sd_ctrls,
@@ -459,7 +432,7 @@ static const struct sd_desc sd_desc = {
 	.pkt_scan = sd_pkt_scan,
 };
 
-/* -- module initialisation -- */
+
 static const __devinitdata struct usb_device_id device_table[] = {
 	{USB_DEVICE(0x046d, 0x0920)},
 	{USB_DEVICE(0x046d, 0x0921)},
@@ -471,7 +444,7 @@ static const __devinitdata struct usb_device_id device_table[] = {
 
 MODULE_DEVICE_TABLE(usb, device_table);
 
-/* -- device connect -- */
+
 static int sd_probe(struct usb_interface *intf,
 		    const struct usb_device_id *id)
 {
@@ -490,7 +463,7 @@ static struct usb_driver sd_driver = {
 #endif
 };
 
-/* -- module insert / remove -- */
+
 static int __init sd_mod_init(void)
 {
 	int ret;

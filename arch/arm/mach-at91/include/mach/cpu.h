@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-at91/include/mach/cpu.h
- *
- *  Copyright (C) 2006 SAN People
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #ifndef __ASM_ARCH_CPU_H
 #define __ASM_ARCH_CPU_H
@@ -25,8 +15,8 @@
 #define ARCH_ID_AT91SAM9G20	0x019905a0
 #define ARCH_ID_AT91SAM9RL64	0x019b03a0
 #define ARCH_ID_AT91SAM9G45	0x819b05a0
-#define ARCH_ID_AT91SAM9G45MRL	0x819b05a2	/* aka 9G45-ES2 & non ES lots */
-#define ARCH_ID_AT91SAM9G45ES	0x819b05a1	/* 9G45-ES (Engineering Sample) */
+#define ARCH_ID_AT91SAM9G45MRL	0x819b05a2	
+#define ARCH_ID_AT91SAM9G45ES	0x819b05a1	
 #define ARCH_ID_AT91CAP9	0x039A03A0
 
 #define ARCH_ID_AT91SAM9XE128	0x329973a0
@@ -141,10 +131,7 @@ static inline unsigned long at91cap9_rev_identify(void)
 #define cpu_is_at91cap9_revC()	(0)
 #endif
 
-/*
- * Since this is ARM, we will never run on any AVR32 CPU. But these
- * definitions may reduce clutter in common drivers.
- */
+
 #define cpu_is_at32ap7000()	(0)
 
 #endif

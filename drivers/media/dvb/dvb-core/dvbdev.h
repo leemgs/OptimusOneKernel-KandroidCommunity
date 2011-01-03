@@ -1,24 +1,4 @@
-/*
- * dvbdev.h
- *
- * Copyright (C) 2000 Ralph Metzler & Marcus Metzler
- *                    for convergence integrated media GmbH
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Lesser Public License
- * as published by the Free Software Foundation; either version 2.1
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- */
+
 
 #ifndef _DVBDEV_H_
 #define _DVBDEV_H_
@@ -66,9 +46,9 @@ struct dvb_adapter {
 
 	struct module *module;
 
-	int mfe_shared;			/* indicates mutually exclusive frontends */
-	struct dvb_device *mfe_dvbdev;	/* frontend device in use */
-	struct mutex mfe_lock;		/* access lock for thread creation */
+	int mfe_shared;			
+	struct dvb_device *mfe_dvbdev;	
+	struct mutex mfe_lock;		
 };
 
 
@@ -80,14 +60,13 @@ struct dvb_device {
 	int minor;
 	u32 id;
 
-	/* in theory, 'users' can vanish now,
-	   but I don't want to change too much now... */
+	
 	int readers;
 	int writers;
 	int users;
 
 	wait_queue_head_t	  wait_queue;
-	/* don't really need those !? -- FIXME: use video_usercopy  */
+	
 	int (*kernel_ioctl)(struct inode *inode, struct file *file,
 			    unsigned int cmd, void *arg);
 
@@ -113,16 +92,14 @@ extern int dvb_generic_release (struct inode *inode, struct file *file);
 extern int dvb_generic_ioctl (struct inode *inode, struct file *file,
 			      unsigned int cmd, unsigned long arg);
 
-/* we don't mess with video_usercopy() any more,
-we simply define out own dvb_usercopy(), which will hopefully become
-generic_usercopy()  someday... */
+
 
 extern int dvb_usercopy(struct inode *inode, struct file *file,
 			    unsigned int cmd, unsigned long arg,
 			    int (*func)(struct inode *inode, struct file *file,
 			    unsigned int cmd, void *arg));
 
-/** generic DVB attach function. */
+
 #ifdef CONFIG_MEDIA_ATTACH
 #define dvb_attach(FUNCTION, ARGS...) ({ \
 	void *__r = NULL; \
@@ -144,4 +121,4 @@ extern int dvb_usercopy(struct inode *inode, struct file *file,
 
 #endif
 
-#endif /* #ifndef _DVBDEV_H_ */
+#endif 

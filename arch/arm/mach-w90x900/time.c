@@ -1,19 +1,4 @@
-/*
- * linux/arch/arm/mach-w90x900/time.c
- *
- * Based on linux/arch/arm/plat-s3c24xx/time.c by Ben Dooks
- *
- * Copyright (c) 2009 Nuvoton technology corporation
- * All rights reserved.
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -40,7 +25,7 @@
 #define INTEN		(0x01 << 29)
 
 #define TICKS_PER_SEC	100
-#define PRESCALE	0x63 /* Divider = prescale + 1 */
+#define PRESCALE	0x63 
 
 unsigned int timer0_load;
 
@@ -94,13 +79,13 @@ static struct clock_event_device nuc900_clockevent_device = {
 	.rating		= 300,
 };
 
-/*IRQ handler for the timer*/
+
 
 static irqreturn_t nuc900_timer0_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *evt = &nuc900_clockevent_device;
 
-	__raw_writel(0x01, REG_TISR); /* clear TIF0 */
+	__raw_writel(0x01, REG_TISR); 
 
 	evt->event_handler(evt);
 	return IRQ_HANDLED;
@@ -165,7 +150,7 @@ static void __init nuc900_timer_init(void)
 	clk_put(ck_ext);
 	rate = rate / (PRESCALE + 0x01);
 
-	 /* set a known state */
+	 
 	__raw_writel(0x00, REG_TCSR0);
 	__raw_writel(0x00, REG_TCSR1);
 	__raw_writel(RESETINT, REG_TISR);

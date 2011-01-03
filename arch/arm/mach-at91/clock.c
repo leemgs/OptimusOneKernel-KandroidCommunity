@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-at91/clock.c
- *
- * Copyright (C) 2005 David Brownell
- * Copyright (C) 2005 Ivan Kokshaysky
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -31,11 +21,7 @@
 #include "clock.h"
 
 
-/*
- * There's a lot more which can be done with clocks, including cpufreq
- * integration, slow clock mode support (for system suspend), letting
- * PLLB be used at other rates (on boards that don't need USB), etc.
- */
+
 
 #define clk_is_primary(x)	((x)->type & CLK_TYPE_PRIMARY)
 #define clk_is_programmable(x)	((x)->type & CLK_TYPE_PROGRAMMABLE)
@@ -43,9 +29,7 @@
 #define clk_is_sys(x)		((x)->type & CLK_TYPE_SYSTEM)
 
 
-/*
- * Chips have some kind of clocks : group them by functionality
- */
+
 #define cpu_has_utmi()		(  cpu_is_at91cap9() \
 				|| cpu_is_at91sam9rl() \
 				|| cpu_is_at91sam9g45())
@@ -60,10 +44,10 @@
 
 #define cpu_has_upll()		(cpu_is_at91sam9g45())
 
-/* USB host HS & FS */
+
 #define cpu_has_uhp()		(!cpu_is_at91sam9rl())
 
-/* USB device FS only */
+
 #define cpu_has_udpfs()		(!(cpu_is_at91sam9rl() \
 				|| cpu_is_at91sam9g45()))
 
@@ -72,29 +56,24 @@ static DEFINE_SPINLOCK(clk_lock);
 
 static u32 at91_pllb_usb_init;
 
-/*
- * Four primary clock sources:  two crystal oscillators (32K, main), and
- * two PLLs.  PLLA usually runs the master clock; and PLLB must run at
- * 48 MHz (unless no USB function clocks are needed).  The main clock and
- * both PLLs are turned off to run in "slow clock mode" (system suspend).
- */
+
 static struct clk clk32k = {
 	.name		= "clk32k",
 	.rate_hz	= AT91_SLOW_CLOCK,
-	.users		= 1,		/* always on */
+	.users		= 1,		
 	.id		= 0,
 	.type		= CLK_TYPE_PRIMARY,
 };
 static struct clk main_clk = {
 	.name		= "main",
-	.pmc_mask	= AT91_PMC_MOSCS,	/* in PMC_SR */
+	.pmc_mask	= AT91_PMC_MOSCS,	
 	.id		= 1,
 	.type		= CLK_TYPE_PRIMARY,
 };
 static struct clk plla = {
 	.name		= "plla",
 	.parent		= &main_clk,
-	.pmc_mask	= AT91_PMC_LOCKA,	/* in PMC_SR */
+	.pmc_mask	= AT91_PMC_LOCKA,	
 	.id		= 2,
 	.type		= CLK_TYPE_PRIMARY | CLK_TYPE_PLL,
 };
@@ -109,7 +88,7 @@ static void pllb_mode(struct clk *clk, int is_on)
 	} else
 		value = 0;
 
-	// REVISIT: Add work-around for AT91RM9200 Errata #26 ?
+	
 	at91_sys_write(AT91_CKGR_PLLBR, value);
 
 	do {
@@ -120,7 +99,7 @@ static void pllb_mode(struct clk *clk, int is_on)
 static struct clk pllb = {
 	.name		= "pllb",
 	.parent		= &main_clk,
-	.pmc_mask	= AT91_PMC_LOCKB,	/* in PMC_SR */
+	.pmc_mask	= AT91_PMC_LOCKB,	
 	.mode		= pllb_mode,
 	.id		= 3,
 	.type		= CLK_TYPE_PRIMARY | CLK_TYPE_PLL,
@@ -156,7 +135,7 @@ static void pmc_uckr_mode(struct clk *clk, int is_on)
 	} while ((at91_sys_read(AT91_PMC_SR) & AT91_PMC_LOCKU) != is_on);
 }
 
-/* USB function clocks (PLLB must be 48 MHz) */
+
 static struct clk udpck = {
 	.name		= "udpck",
 	.parent		= &pllb,
@@ -165,25 +144,21 @@ static struct clk udpck = {
 static struct clk utmi_clk = {
 	.name		= "utmi_clk",
 	.parent		= &main_clk,
-	.pmc_mask	= AT91_PMC_UPLLEN,	/* in CKGR_UCKR */
+	.pmc_mask	= AT91_PMC_UPLLEN,	
 	.mode		= pmc_uckr_mode,
 	.type		= CLK_TYPE_PLL,
 };
 static struct clk uhpck = {
 	.name		= "uhpck",
-	/*.parent		= ... we choose parent at runtime */
+	
 	.mode		= pmc_sys_mode,
 };
 
 
-/*
- * The master clock is divided from the CPU clock (by 1-4).  It's used for
- * memory, interfaces to on-chip peripherals, the AIC, and sometimes more
- * (e.g baud rate generation).  It's sourced from one of the primary clocks.
- */
+
 static struct clk mck = {
 	.name		= "mck",
-	.pmc_mask	= AT91_PMC_MCKRDY,	/* in PMC_SR */
+	.pmc_mask	= AT91_PMC_MCKRDY,	
 };
 
 static void pmc_periph_mode(struct clk *clk, int is_on)
@@ -205,7 +180,7 @@ static struct clk __init *at91_css_to_clk(unsigned long css)
 			return &plla;
 		case AT91_PMC_CSS_PLLB:
 			if (cpu_has_upll())
-				/* CSS_PLLB == CSS_UPLL */
+				
 				return &utmi_clk;
 			else if (cpu_has_pllb())
 				return &pllb;
@@ -214,11 +189,7 @@ static struct clk __init *at91_css_to_clk(unsigned long css)
 	return NULL;
 }
 
-/*
- * Associate a particular clock with a function (eg, "uart") and device.
- * The drivers can then request the same 'function' with several different
- * devices and not care about which clock name to use.
- */
+
 void __init at91_clock_associate(const char *id, struct device *dev, const char *func)
 {
 	struct clk *clk = clk_get(NULL, id);
@@ -230,7 +201,7 @@ void __init at91_clock_associate(const char *id, struct device *dev, const char 
 	clk->dev = dev;
 }
 
-/* clocks cannot be de-registered no refcounting necessary */
+
 struct clk *clk_get(struct device *dev, const char *id)
 {
 	struct clk *clk;
@@ -306,16 +277,11 @@ unsigned long clk_get_rate(struct clk *clk)
 }
 EXPORT_SYMBOL(clk_get_rate);
 
-/*------------------------------------------------------------------------*/
+
 
 #ifdef CONFIG_AT91_PROGRAMMABLE_CLOCKS
 
-/*
- * For now, only the programmable clocks support reparenting (MCK could
- * do this too, with care) or rate changing (the PLLs could do this too,
- * ditto MCK but that's more for cpufreq).  Drivers may reparent to get
- * a better rate match; we don't.
- */
+
 
 long clk_round_rate(struct clk *clk, unsigned long rate)
 {
@@ -366,7 +332,7 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 			u32	pckr;
 
 			pckr = at91_sys_read(AT91_PMC_PCKR(clk->id));
-			pckr &= AT91_PMC_CSS;	/* clock selection */
+			pckr &= AT91_PMC_CSS;	
 			pckr |= prescale << 2;
 			at91_sys_write(AT91_PMC_PCKR(clk->id), pckr);
 			clk->rate_hz = actual;
@@ -409,7 +375,7 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 }
 EXPORT_SYMBOL(clk_set_parent);
 
-/* establish PCK0..PCKN parentage and rate */
+
 static void __init init_programmable_clock(struct clk *clk)
 {
 	struct clk	*parent;
@@ -421,9 +387,9 @@ static void __init init_programmable_clock(struct clk *clk)
 	clk->rate_hz = parent->rate_hz / (1 << ((pckr & AT91_PMC_PRES) >> 2));
 }
 
-#endif	/* CONFIG_AT91_PROGRAMMABLE_CLOCKS */
+#endif	
 
-/*------------------------------------------------------------------------*/
+
 
 #ifdef CONFIG_DEBUG_FS
 
@@ -485,7 +451,7 @@ static const struct file_operations at91_clk_operations = {
 
 static int __init at91_clk_debugfs_init(void)
 {
-	/* /sys/kernel/debug/at91_clk */
+	
 	(void) debugfs_create_file("at91_clk", S_IFREG | S_IRUGO, NULL, NULL, &at91_clk_operations);
 
 	return 0;
@@ -494,9 +460,9 @@ postcore_initcall(at91_clk_debugfs_init);
 
 #endif
 
-/*------------------------------------------------------------------------*/
 
-/* Register a new clock */
+
+
 int __init clk_register(struct clk *clk)
 {
 	if (clk_is_peripheral(clk)) {
@@ -522,7 +488,7 @@ int __init clk_register(struct clk *clk)
 }
 
 
-/*------------------------------------------------------------------------*/
+
 
 static u32 __init at91_pll_rate(struct clk *pll, u32 freq, u32 reg)
 {
@@ -552,7 +518,7 @@ static unsigned __init at91_pll_calc(unsigned main_freq, unsigned out_freq)
 	unsigned i, div = 0, mul = 0, diff = 1 << 30;
 	unsigned ret = (out_freq > 155000000) ? 0xbe00 : 0x3e00;
 
-	/* PLL output max 240 MHz (or 180 MHz per errata) */
+	
 	if (out_freq > 240000000)
 		goto fail;
 
@@ -560,11 +526,7 @@ static unsigned __init at91_pll_calc(unsigned main_freq, unsigned out_freq)
 		int diff1;
 		unsigned input, mul1;
 
-		/*
-		 * PLL input between 1MHz and 32MHz per spec, but lower
-		 * frequences seem necessary in some cases so allow 100K.
-		 * Warning: some newer products need 2MHz min.
-		 */
+		
 		input = main_freq / i;
 		if (cpu_is_at91sam9g20() && input < 2000000)
 			continue;
@@ -600,24 +562,19 @@ fail:
 }
 
 static struct clk *const standard_pmc_clocks[] __initdata = {
-	/* four primary clocks */
+	
 	&clk32k,
 	&main_clk,
 	&plla,
 
-	/* MCK */
+	
 	&mck
 };
 
-/* PLLB generated USB full speed clock init */
+
 static void __init at91_pllb_usbfs_clock_init(unsigned long main_clock)
 {
-	/*
-	 * USB clock init:  choose 48 MHz PLLB value,
-	 * disable 48MHz clock during usb peripheral suspend.
-	 *
-	 * REVISIT:  assumes MCK doesn't derive from PLLB!
-	 */
+	
 	uhpck.parent = &pllb;
 
 	at91_pllb_usb_init = at91_pll_calc(main_clock, 48000000 * 2) | AT91_PMC_USB96M;
@@ -640,20 +597,18 @@ static void __init at91_pllb_usbfs_clock_init(unsigned long main_clock)
 	uhpck.rate_hz = at91_usb_rate(&pllb, pllb.rate_hz, at91_pllb_usb_init);
 }
 
-/* UPLL generated USB full speed clock init */
+
 static void __init at91_upll_usbfs_clock_init(unsigned long main_clock)
 {
-	/*
-	 * USB clock init: choose 480 MHz from UPLL,
-	 */
+	
 	unsigned int usbr = AT91_PMC_USBS_UPLL;
 
-	/* Setup divider by 10 to reach 48 MHz */
+	
 	usbr |= ((10 - 1) << 8) & AT91_PMC_OHCIUSBDIV;
 
 	at91_sys_write(AT91_PMC_USB, usbr);
 
-	/* Now set uhpck values */
+	
 	uhpck.parent = &utmi_clk;
 	uhpck.pmc_mask = AT91SAM926x_PMC_UHP;
 	uhpck.rate_hz = utmi_clk.parent->rate_hz;
@@ -666,12 +621,7 @@ int __init at91_clock_init(unsigned long main_clock)
 	int i;
 	int pll_overclock = false;
 
-	/*
-	 * When the bootloader initialized the main oscillator correctly,
-	 * there's no problem using the cycle counter.  But if it didn't,
-	 * or when using oscillator bypass mode, we must be told the speed
-	 * of the main clock.
-	 */
+	
 	if (!main_clock) {
 		do {
 			tmp = at91_sys_read(AT91_CKGR_MCFR);
@@ -680,7 +630,7 @@ int __init at91_clock_init(unsigned long main_clock)
 	}
 	main_clk.rate_hz = main_clock;
 
-	/* report if PLLA is more than mildly overclocked */
+	
 	plla.rate_hz = at91_pll_rate(&plla, main_clock, at91_sys_read(AT91_CKGR_PLLAR));
 	if (cpu_has_300M_plla()) {
 		if (plla.rate_hz > 300000000)
@@ -697,59 +647,48 @@ int __init at91_clock_init(unsigned long main_clock)
 
 	if (cpu_is_at91sam9g45()) {
 		mckr = at91_sys_read(AT91_PMC_MCKR);
-		plla.rate_hz /= (1 << ((mckr & AT91_PMC_PLLADIV2) >> 12));	/* plla divisor by 2 */
+		plla.rate_hz /= (1 << ((mckr & AT91_PMC_PLLADIV2) >> 12));	
 	}
 
 	if (!cpu_has_pllb() && cpu_has_upll()) {
-		/* setup UTMI clock as the fourth primary clock
-		 * (instead of pllb) */
+		
 		utmi_clk.type |= CLK_TYPE_PRIMARY;
 		utmi_clk.id = 3;
 	}
 
 
-	/*
-	 * USB HS clock init
-	 */
+	
 	if (cpu_has_utmi())
-		/*
-		 * multiplier is hard-wired to 40
-		 * (obtain the USB High Speed 480 MHz when input is 12 MHz)
-		 */
+		
 		utmi_clk.rate_hz = 40 * utmi_clk.parent->rate_hz;
 
-	/*
-	 * USB FS clock init
-	 */
+	
 	if (cpu_has_pllb())
 		at91_pllb_usbfs_clock_init(main_clock);
 	if (cpu_has_upll())
-		/* assumes that we choose UPLL for USB and not PLLA */
+		
 		at91_upll_usbfs_clock_init(main_clock);
 
-	/*
-	 * MCK and CPU derive from one of those primary clocks.
-	 * For now, assume this parentage won't change.
-	 */
+	
 	mckr = at91_sys_read(AT91_PMC_MCKR);
 	mck.parent = at91_css_to_clk(mckr & AT91_PMC_CSS);
 	freq = mck.parent->rate_hz;
-	freq /= (1 << ((mckr & AT91_PMC_PRES) >> 2));				/* prescale */
+	freq /= (1 << ((mckr & AT91_PMC_PRES) >> 2));				
 	if (cpu_is_at91rm9200()) {
-		mck.rate_hz = freq / (1 + ((mckr & AT91_PMC_MDIV) >> 8));	/* mdiv */
+		mck.rate_hz = freq / (1 + ((mckr & AT91_PMC_MDIV) >> 8));	
 	} else if (cpu_is_at91sam9g20()) {
 		mck.rate_hz = (mckr & AT91_PMC_MDIV) ?
-			freq / ((mckr & AT91_PMC_MDIV) >> 7) : freq;	/* mdiv ; (x >> 7) = ((x >> 8) * 2) */
+			freq / ((mckr & AT91_PMC_MDIV) >> 7) : freq;	
 		if (mckr & AT91_PMC_PDIV)
-			freq /= 2;		/* processor clock division */
+			freq /= 2;		
 	} else if (cpu_is_at91sam9g45()) {
 		mck.rate_hz = (mckr & AT91_PMC_MDIV) == AT91SAM9_PMC_MDIV_3 ?
-			freq / 3 : freq / (1 << ((mckr & AT91_PMC_MDIV) >> 8));	/* mdiv */
+			freq / 3 : freq / (1 << ((mckr & AT91_PMC_MDIV) >> 8));	
 	} else {
-		mck.rate_hz = freq / (1 << ((mckr & AT91_PMC_MDIV) >> 8));      /* mdiv */
+		mck.rate_hz = freq / (1 << ((mckr & AT91_PMC_MDIV) >> 8));      
 	}
 
-	/* Register the PMC's standard clocks */
+	
 	for (i = 0; i < ARRAY_SIZE(standard_pmc_clocks); i++)
 		list_add_tail(&standard_pmc_clocks[i]->node, &clocks);
 
@@ -765,7 +704,7 @@ int __init at91_clock_init(unsigned long main_clock)
 	if (cpu_has_utmi())
 		list_add_tail(&utmi_clk.node, &clocks);
 
-	/* MCK and CPU clock are "always on" */
+	
 	clk_enable(&mck);
 
 	printk("Clocks: CPU %u MHz, master %u MHz, main %u.%03u MHz\n",
@@ -776,9 +715,7 @@ int __init at91_clock_init(unsigned long main_clock)
 	return 0;
 }
 
-/*
- * Several unused clocks may be active.  Turn them off.
- */
+
 static int __init at91_clock_reset(void)
 {
 	unsigned long pcdr = 0;

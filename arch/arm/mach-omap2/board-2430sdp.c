@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-2430sdp.c
- *
- * Copyright (C) 2006 Texas Instruments
- *
- * Modified from mach-omap2/board-generic.c
- *
- * Initial Code : Based on a patch from Komal Shah and Richard Woodruff
- * Updated the Code for 2430 SDP : Syed Mohammed Khasim
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -44,28 +31,28 @@
 #define SECONDARY_LCD_GPIO		147
 
 static struct mtd_partition sdp2430_partitions[] = {
-	/* bootloader (U-Boot, etc) in first sector */
+	
 	{
 		.name		= "bootloader",
 		.offset		= 0,
 		.size		= SZ_256K,
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.mask_flags	= MTD_WRITEABLE,	
 	 },
-	/* bootloader params in the next sector */
+	
 	{
 		.name		= "params",
 		.offset		= MTDPART_OFS_APPEND,
 		.size		= SZ_128K,
 		.mask_flags	= 0,
 	 },
-	/* kernel */
+	
 	{
 		.name		= "kernel",
 		.offset		= MTDPART_OFS_APPEND,
 		.size		= SZ_2M,
 		.mask_flags	= 0
 	},
-	/* file system */
+	
 	{
 		.name		= "filesystem",
 		.offset		= MTDPART_OFS_APPEND,
@@ -162,7 +149,7 @@ static struct twl4030_platform_data sdp2430_twldata = {
 	.irq_base	= TWL4030_IRQ_BASE,
 	.irq_end	= TWL4030_IRQ_END,
 
-	/* platform_data for children goes here */
+	
 	.gpio		= &sdp2430_gpio_data,
 };
 
@@ -191,7 +178,7 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
 		.gpio_wp	= -EINVAL,
 		.ext_clock	= 1,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static void __init omap_2430sdp_init(void)
@@ -206,7 +193,7 @@ static void __init omap_2430sdp_init(void)
 	usb_musb_init();
 	board_smc91x_init();
 
-	/* Turn off secondary LCD backlight */
+	
 	ret = gpio_request(SECONDARY_LCD_GPIO, "Secondary LCD backlight");
 	if (ret == 0)
 		gpio_direction_output(SECONDARY_LCD_GPIO, 0);
@@ -219,7 +206,7 @@ static void __init omap_2430sdp_map_io(void)
 }
 
 MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
-	/* Maintainer: Syed Khasim - Texas Instruments Inc */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

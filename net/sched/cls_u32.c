@@ -1,34 +1,4 @@
-/*
- * net/sched/cls_u32.c	Ugly (or Universal) 32bit key Packet Classifier.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- *	The filters are packed to hash tables of key nodes
- *	with a set of 32bit key/mask pairs at every node.
- *	Nodes reference next level hash tables etc.
- *
- *	This scheme is the best universal classifier I managed to
- *	invent; it is not super-fast, but it is not slow (provided you
- *	program it correctly), and general enough.  And its relative
- *	speed grows as the number of rules becomes larger.
- *
- *	It seems that it represents the best middle point between
- *	speed and manageability both by human and by machine.
- *
- *	It is especially useful for link sharing combined with QoS;
- *	pure RSVP doesn't need such a general approach and can use
- *	much simpler (and faster) schemes, sort of cls_rsvp.c.
- *
- *	JHS: We should remove the CONFIG_NET_CLS_IND from here
- *	eventually when the meta match extension is made available
- *
- *	nfmark match added by Catalin(ux aka Dino) BOIE <catab at umbrella.ro>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -169,7 +139,7 @@ check_terminal:
 			goto next_knode;
 		}
 
-		/* PUSH */
+		
 		if (sdepth >= TC_U32_MAXDEPTH)
 			goto deadloop;
 		stack[sdepth].knode = n;
@@ -199,7 +169,7 @@ check_terminal:
 			goto next_ht;
 	}
 
-	/* POP */
+	
 	if (sdepth--) {
 		n = stack[sdepth].knode;
 		ht = n->ht_up;

@@ -1,14 +1,4 @@
-/* Frontend part of the Linux driver for the WideView/ Yakumo/ Hama/
- * Typhoon/ Yuan DVB-T USB2.0 receiver.
- *
- * Copyright (C) 2005 Patrick Boettcher <patrick.boettcher@desy.de>
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "dtt200u.h"
 
 struct dtt200u_fe_state {
@@ -32,11 +22,11 @@ static int dtt200u_fe_read_status(struct dvb_frontend* fe, fe_status_t *stat)
 			*stat = FE_HAS_SIGNAL | FE_HAS_CARRIER |
 				FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
 			break;
-		case 0x00: /* pending */
-			*stat = FE_TIMEDOUT; /* during set_frontend */
+		case 0x00: 
+			*stat = FE_TIMEDOUT; 
 			break;
 		default:
-		case 0x02: /* failed */
+		case 0x02: 
 			*stat = 0;
 			break;
 	}
@@ -154,7 +144,7 @@ struct dvb_frontend* dtt200u_fe_attach(struct dvb_usb_device *d)
 {
 	struct dtt200u_fe_state* state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct dtt200u_fe_state), GFP_KERNEL);
 	if (state == NULL)
 		goto error;

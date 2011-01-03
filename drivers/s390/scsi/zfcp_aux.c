@@ -1,29 +1,6 @@
-/*
- * zfcp device driver
- *
- * Module interface and handling of zfcp data structures.
- *
- * Copyright IBM Corporation 2002, 2009
- */
 
-/*
- * Driver authors:
- *            Martin Peschke (originator of the driver)
- *            Raimund Schroeder
- *            Aron Zeh
- *            Wolfgang Taphorn
- *            Stefan Bader
- *            Heiko Carstens (kernel 2.6 port of the driver)
- *            Andreas Herrmann
- *            Maxim Shchetynin
- *            Volker Sameske
- *            Ralph Wuerthner
- *            Michael Loehr
- *            Swen Schillig
- *            Christof Schmitt
- *            Martin Petermann
- *            Sven Schuetz
- */
+
+
 
 #define KMSG_COMPONENT "zfcp"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -62,12 +39,7 @@ static int zfcp_reqlist_alloc(struct zfcp_adapter *adapter)
 	return 0;
 }
 
-/**
- * zfcp_reqlist_isempty - is the request list empty
- * @adapter: pointer to struct zfcp_adapter
- *
- * Returns: true if list is empty, false otherwise
- */
+
 int zfcp_reqlist_isempty(struct zfcp_adapter *adapter)
 {
 	unsigned int idx;
@@ -132,7 +104,7 @@ static void __init zfcp_init_device_setup(char *devstr)
 	char busid[ZFCP_BUS_ID_SIZE];
 	u64 wwpn, lun;
 
-	/* duplicate devstr and keep the original for sysfs presentation*/
+	
 	str_saved = kmalloc(strlen(devstr) + 1, GFP_KERNEL);
 	str = str_saved;
 	if (!str)
@@ -229,13 +201,7 @@ out:
 
 module_init(zfcp_module_init);
 
-/**
- * zfcp_get_unit_by_lun - find unit in unit list of port by FCP LUN
- * @port: pointer to port to search for unit
- * @fcp_lun: FCP LUN to search for
- *
- * Returns: pointer to zfcp_unit or NULL
- */
+
 struct zfcp_unit *zfcp_get_unit_by_lun(struct zfcp_port *port, u64 fcp_lun)
 {
 	struct zfcp_unit *unit;
@@ -247,13 +213,7 @@ struct zfcp_unit *zfcp_get_unit_by_lun(struct zfcp_port *port, u64 fcp_lun)
 	return NULL;
 }
 
-/**
- * zfcp_get_port_by_wwpn - find port in port list of adapter by wwpn
- * @adapter: pointer to adapter to search for port
- * @wwpn: wwpn to search for
- *
- * Returns: pointer to zfcp_port or NULL
- */
+
 struct zfcp_port *zfcp_get_port_by_wwpn(struct zfcp_adapter *adapter,
 					u64 wwpn)
 {
@@ -271,15 +231,7 @@ static void zfcp_sysfs_unit_release(struct device *dev)
 	kfree(container_of(dev, struct zfcp_unit, sysfs_device));
 }
 
-/**
- * zfcp_unit_enqueue - enqueue unit to unit list of a port.
- * @port: pointer to port where unit is added
- * @fcp_lun: FCP LUN of unit to be enqueued
- * Returns: pointer to enqueued unit on success, ERR_PTR on error
- * Locks: config_mutex must be held to serialize changes to the unit list
- *
- * Sets up some unit internal structures and creates sysfs entry.
- */
+
 struct zfcp_unit *zfcp_unit_enqueue(struct zfcp_port *port, u64 fcp_lun)
 {
 	struct zfcp_unit *unit;
@@ -311,7 +263,7 @@ struct zfcp_unit *zfcp_unit_enqueue(struct zfcp_port *port, u64 fcp_lun)
 	unit->sysfs_device.release = zfcp_sysfs_unit_release;
 	dev_set_drvdata(&unit->sysfs_device, unit);
 
-	/* mark unit unusable as long as sysfs registration is not complete */
+	
 	atomic_set_mask(ZFCP_STATUS_COMMON_REMOVE, &unit->status);
 
 	spin_lock_init(&unit->latencies.lock);
@@ -347,13 +299,7 @@ struct zfcp_unit *zfcp_unit_enqueue(struct zfcp_port *port, u64 fcp_lun)
 	return unit;
 }
 
-/**
- * zfcp_unit_dequeue - dequeue unit
- * @unit: pointer to zfcp_unit
- *
- * waits until all work is done on unit and removes it then from the unit->list
- * of the associated port.
- */
+
 void zfcp_unit_dequeue(struct zfcp_unit *unit)
 {
 	wait_event(unit->remove_wq, atomic_read(&unit->refcount) == 0);
@@ -367,7 +313,7 @@ void zfcp_unit_dequeue(struct zfcp_unit *unit)
 
 static int zfcp_allocate_low_mem_buffers(struct zfcp_adapter *adapter)
 {
-	/* must only be called with zfcp_data.config_mutex taken */
+	
 	adapter->pool.erp_req =
 		mempool_create_kmalloc_pool(1, sizeof(struct zfcp_fsf_req));
 	if (!adapter->pool.erp_req)
@@ -415,7 +361,7 @@ static int zfcp_allocate_low_mem_buffers(struct zfcp_adapter *adapter)
 
 static void zfcp_free_low_mem_buffers(struct zfcp_adapter *adapter)
 {
-	/* zfcp_data.config_mutex must be held */
+	
 	if (adapter->pool.erp_req)
 		mempool_destroy(adapter->pool.erp_req);
 	if (adapter->pool.scsi_req)
@@ -432,15 +378,7 @@ static void zfcp_free_low_mem_buffers(struct zfcp_adapter *adapter)
 		mempool_destroy(adapter->pool.gid_pn_data);
 }
 
-/**
- * zfcp_status_read_refill - refill the long running status_read_requests
- * @adapter: ptr to struct zfcp_adapter for which the buffers should be refilled
- *
- * Returns: 0 on success, 1 otherwise
- *
- * if there are 16 or more status_read requests missing an adapter_reopen
- * is triggered
- */
+
 int zfcp_status_read_refill(struct zfcp_adapter *adapter)
 {
 	while (atomic_read(&adapter->stat_miss) > 0)
@@ -493,25 +431,12 @@ static void zfcp_destroy_adapter_work_queue(struct zfcp_adapter *adapter)
 
 }
 
-/**
- * zfcp_adapter_enqueue - enqueue a new adapter to the list
- * @ccw_device: pointer to the struct cc_device
- *
- * Returns:	0             if a new adapter was successfully enqueued
- *		-ENOMEM       if alloc failed
- * Enqueues an adapter at the end of the adapter list in the driver data.
- * All adapter internal structures are set up.
- * Proc-fs entries are also created.
- * locks: config_mutex must be held to serialize changes to the adapter list
- */
+
 int zfcp_adapter_enqueue(struct ccw_device *ccw_device)
 {
 	struct zfcp_adapter *adapter;
 
-	/*
-	 * Note: It is safe to release the list_lock, as any list changes
-	 * are protected by the config_mutex, which must be held to get here
-	 */
+	
 
 	adapter = kzalloc(sizeof(struct zfcp_adapter), GFP_KERNEL);
 	if (!adapter)
@@ -560,7 +485,7 @@ int zfcp_adapter_enqueue(struct ccw_device *ccw_device)
 
 	adapter->service_level.seq_print = zfcp_print_sl;
 
-	/* mark adapter unusable as long as sysfs registration is not complete */
+	
 	atomic_set_mask(ZFCP_STATUS_COMMON_REMOVE, &adapter->status);
 
 	dev_set_drvdata(&ccw_device->dev, adapter);
@@ -593,11 +518,7 @@ qdio_failed:
 	return -ENOMEM;
 }
 
-/**
- * zfcp_adapter_dequeue - remove the adapter from the resource list
- * @adapter: pointer to struct zfcp_adapter which should be removed
- * locks:	adapter list write lock is assumed to be held by caller
- */
+
 void zfcp_adapter_dequeue(struct zfcp_adapter *adapter)
 {
 	int retval = 0;
@@ -608,7 +529,7 @@ void zfcp_adapter_dequeue(struct zfcp_adapter *adapter)
 	sysfs_remove_group(&adapter->ccw_device->dev.kobj,
 			   &zfcp_sysfs_adapter_attrs);
 	dev_set_drvdata(&adapter->ccw_device->dev, NULL);
-	/* sanity check: no pending FSF requests */
+	
 	spin_lock_irqsave(&adapter->req_list_lock, flags);
 	retval = zfcp_reqlist_isempty(adapter);
 	spin_unlock_irqrestore(&adapter->req_list_lock, flags);
@@ -632,19 +553,7 @@ static void zfcp_sysfs_port_release(struct device *dev)
 	kfree(container_of(dev, struct zfcp_port, sysfs_device));
 }
 
-/**
- * zfcp_port_enqueue - enqueue port to port list of adapter
- * @adapter: adapter where remote port is added
- * @wwpn: WWPN of the remote port to be enqueued
- * @status: initial status for the port
- * @d_id: destination id of the remote port to be enqueued
- * Returns: pointer to enqueued port on success, ERR_PTR on error
- * Locks: config_mutex must be held to serialize changes to the port list
- *
- * All port internal structures are set up and the sysfs entry is generated.
- * d_id is used to enqueue ports with a well known address like the Directory
- * Service for nameserver lookup.
- */
+
 struct zfcp_port *zfcp_port_enqueue(struct zfcp_adapter *adapter, u64 wwpn,
 				     u32 status, u32 d_id)
 {
@@ -672,7 +581,7 @@ struct zfcp_port *zfcp_port_enqueue(struct zfcp_adapter *adapter, u64 wwpn,
 	port->wwpn = wwpn;
 	port->rport_task = RPORT_NONE;
 
-	/* mark port unusable as long as sysfs registration is not complete */
+	
 	atomic_set_mask(status | ZFCP_STATUS_COMMON_REMOVE, &port->status);
 	atomic_set(&port->refcount, 0);
 
@@ -709,28 +618,20 @@ struct zfcp_port *zfcp_port_enqueue(struct zfcp_adapter *adapter, u64 wwpn,
 	return port;
 }
 
-/**
- * zfcp_port_dequeue - dequeues a port from the port list of the adapter
- * @port: pointer to struct zfcp_port which should be removed
- */
+
 void zfcp_port_dequeue(struct zfcp_port *port)
 {
 	write_lock_irq(&zfcp_data.config_lock);
 	list_del(&port->list);
 	write_unlock_irq(&zfcp_data.config_lock);
 	wait_event(port->remove_wq, atomic_read(&port->refcount) == 0);
-	cancel_work_sync(&port->rport_work); /* usually not necessary */
+	cancel_work_sync(&port->rport_work); 
 	zfcp_adapter_put(port->adapter);
 	sysfs_remove_group(&port->sysfs_device.kobj, &zfcp_sysfs_port_attrs);
 	device_unregister(&port->sysfs_device);
 }
 
-/**
- * zfcp_sg_free_table - free memory used by scatterlists
- * @sg: pointer to scatterlist
- * @count: number of scatterlist which are to be free'ed
- * the scatterlist are expected to reference pages always
- */
+
 void zfcp_sg_free_table(struct scatterlist *sg, int count)
 {
 	int i;
@@ -742,14 +643,7 @@ void zfcp_sg_free_table(struct scatterlist *sg, int count)
 			break;
 }
 
-/**
- * zfcp_sg_setup_table - init scatterlist and allocate, assign buffers
- * @sg: pointer to struct scatterlist
- * @count: number of scatterlists which should be assigned with buffers
- * of size page
- *
- * Returns: 0 on success, -ENOMEM otherwise
- */
+
 int zfcp_sg_setup_table(struct scatterlist *sg, int count)
 {
 	void *addr;

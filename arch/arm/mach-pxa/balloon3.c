@@ -1,17 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/balloon3.c
- *
- *  Support for Balloonboard.org Balloon3 board.
- *
- *  Author:	Nick Bane, Wookey, Jonathan McDowell
- *  Created:	June, 2006
- *  Copyright:	Toby Churchill Ltd
- *  Derived from mainstone.c, by Nico Pitre
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -100,7 +87,7 @@ static void balloon3_irq_handler(unsigned int irq, struct irq_desc *desc)
 					balloon3_irq_enabled;
 
 	do {
-		/* clear useless edge notification */
+		
 		if (desc->chip->ack)
 			desc->chip->ack(BALLOON3_AUX_NIRQ);
 		while (pending) {
@@ -118,7 +105,7 @@ static void __init balloon3_init_irq(void)
 	int irq;
 
 	pxa27x_init_irq();
-	/* setup extra Balloon3 irqs */
+	
 	for (irq = BALLOON3_IRQ(0); irq <= BALLOON3_IRQ(7); irq++) {
 		set_irq_chip(irq, &balloon3_irq_chip);
 		set_irq_handler(irq, handle_level_irq);
@@ -139,7 +126,7 @@ static void balloon3_backlight_power(int on)
 }
 
 static unsigned long balloon3_lcd_pin_config[] = {
-	/* LCD - 16bpp Active TFT */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -161,7 +148,7 @@ static unsigned long balloon3_lcd_pin_config[] = {
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
 
-	GPIO99_GPIO,		/* Backlight */
+	GPIO99_GPIO,		
 };
 
 static struct pxafb_mode_info balloon3_lcd_modes[] = {
@@ -202,10 +189,10 @@ static void balloon3_mci_setpower(struct device *dev, unsigned int vdd)
 
 	if ((1 << vdd) & p_d->ocr_mask) {
 		pr_debug("%s: on\n", __func__);
-		/* FIXME something to prod here? */
+		
 	} else {
 		pr_debug("%s: off\n", __func__);
-		/* FIXME something to prod here? */
+		
 	}
 }
 
@@ -254,16 +241,16 @@ static struct pxaohci_platform_data balloon3_ohci_platform_data = {
 };
 
 static unsigned long balloon3_pin_config[] __initdata = {
-	/* Select BTUART 'COM1/ttyS0' as IO option for pins 42/43/44/45 */
+	
 	GPIO42_BTUART_RXD,
 	GPIO43_BTUART_TXD,
 	GPIO44_BTUART_CTS,
 	GPIO45_BTUART_RTS,
 
-	/* Wakeup GPIO */
+	
 	GPIO1_GPIO | WAKEUP_ON_EDGE_BOTH,
 
-	/* NAND & IDLE LED GPIOs */
+	
 	GPIO9_GPIO,
 	GPIO10_GPIO,
 };
@@ -300,10 +287,7 @@ static void __init balloon3_init(void)
 {
 	pr_info("Initialising Balloon3\n");
 
-	/* system bus arbiter setting
-	 * - Core_Park
-	 * - LCD_wt:DMA_wt:CORE_Wt = 2:3:4
-	 */
+	
 	ARB_CNTRL = ARB_CORE_PARK | 0x234;
 
 	pxa_set_i2c_info(NULL);
@@ -335,7 +319,7 @@ static void __init balloon3_init(void)
 }
 
 static struct map_desc balloon3_io_desc[] __initdata = {
-	{	/* CPLD/FPGA */
+	{	
 		.virtual	=  BALLOON3_FPGA_VIRT,
 		.pfn		= __phys_to_pfn(BALLOON3_FPGA_PHYS),
 		.length		= BALLOON3_FPGA_LENGTH,
@@ -350,7 +334,7 @@ static void __init balloon3_map_io(void)
 }
 
 MACHINE_START(BALLOON3, "Balloon3")
-	/* Maintainer: Nick Bane. */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.map_io		= balloon3_map_io,

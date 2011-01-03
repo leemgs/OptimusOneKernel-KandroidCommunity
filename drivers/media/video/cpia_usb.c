@@ -1,28 +1,7 @@
-/*
- * cpia_usb CPiA USB driver
- *
- * Supports CPiA based parallel port Video Camera's.
- *
- * Copyright (C) 1999        Jochen Scharrlach <Jochen.Scharrlach@schwaben.de>
- * Copyright (C) 1999, 2000  Johannes Erdfelt <johannes@erdfelt.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/* define _CPIA_DEBUG_ for verbose debug output (see cpia.h) */
-/* #define _CPIA_DEBUG_  1 */
+
+
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -41,7 +20,7 @@
 #define  FORCE_FRAME_UPLOAD			1
 
 #define FRAMES_PER_DESC		10
-#define FRAME_SIZE_PER_DESC	960	/* Shouldn't be hardcoded */
+#define FRAME_SIZE_PER_DESC	960	
 #define CPIA_NUMSBUF		2
 #define STREAM_BUF_SIZE		(PAGE_SIZE * 4)
 #define SCRATCH_BUF_SIZE	(STREAM_BUF_SIZE * 2)
@@ -67,14 +46,14 @@ struct framebuf {
 };
 
 struct usb_cpia {
-	/* Device structure */
+	
 	struct usb_device *dev;
 
 	unsigned char iface;
 	wait_queue_head_t wq_stream;
 
-	int cursbuf;		/* Current receiving sbuf */
-	struct cpia_sbuf sbuf[CPIA_NUMSBUF];		/* Double buffering */
+	int cursbuf;		
+	struct cpia_sbuf sbuf[CPIA_NUMSBUF];		
 
 	int streaming;
 	int open;
@@ -167,7 +146,7 @@ static void cpia_usb_complete(struct urb *urb)
 		}
 	}
 
-	/* resubmit */
+	
 	urb->dev = ucpia->dev;
 	if ((i = usb_submit_urb(urb, GFP_ATOMIC)) != 0)
 		printk(KERN_ERR "%s: usb_submit_urb ret %d\n", __func__,  i);
@@ -208,9 +187,7 @@ static int cpia_usb_open(void *privdata)
 	ucpia->curbuff = ucpia->buffers[0];
 	ucpia->workbuff = ucpia->buffers[1];
 
-	/* We double buffer the Iso lists, and also know the polling
-	 * interval is every frame (1 == (1 << (bInterval -1))).
-	 */
+	
 	urb = usb_alloc_urb(FRAMES_PER_DESC, GFP_KERNEL);
 	if (!urb) {
 		printk(KERN_ERR "cpia_init_isoc: usb_alloc_urb 0\n");
@@ -255,7 +232,7 @@ static int cpia_usb_open(void *privdata)
 		urb->iso_frame_desc[fx].length = FRAME_SIZE_PER_DESC;
 	}
 
-	/* queue the ISO urbs, and resubmit in the completion handler */
+	
 	err = usb_submit_urb(ucpia->sbuf[0].urb, GFP_KERNEL);
 	if (err) {
 		printk(KERN_ERR "cpia_init_isoc: usb_submit_urb 0 ret %d\n",
@@ -274,10 +251,10 @@ static int cpia_usb_open(void *privdata)
 
 	return 0;
 
-error_urb1:		/* free urb 1 */
+error_urb1:		
 	usb_free_urb(ucpia->sbuf[1].urb);
 	ucpia->sbuf[1].urb = NULL;
-error_urb0:		/* free urb 0 */
+error_urb0:		
 	usb_free_urb(ucpia->sbuf[0].urb);
 	ucpia->sbuf[0].urb = NULL;
 error_1:
@@ -290,15 +267,11 @@ error_0:
 	return retval;
 }
 
-//
-// convenience functions
-//
 
-/****************************************************************************
- *
- *  WritePacket
- *
- ***************************************************************************/
+
+
+
+
 static int WritePacket(struct usb_device *udev, const u8 *packet, u8 *buf, size_t size)
 {
 	if (!packet)
@@ -311,11 +284,7 @@ static int WritePacket(struct usb_device *udev, const u8 *packet, u8 *buf, size_
 			 packet[4] + (packet[5] << 8), buf, size, 1000);
 }
 
-/****************************************************************************
- *
- *  ReadPacket
- *
- ***************************************************************************/
+
 static int ReadPacket(struct usb_device *udev, u8 *packet, u8 *buf, size_t size)
 {
 	if (!packet || size <= 0)
@@ -412,10 +381,10 @@ static int cpia_usb_streamRead(void *privdata, u8 *frame, int noblock)
 	memcpy(frame, mybuff->data, mybuff->length);
 	mybuff->status = FRAME_EMPTY;
 
-/*   DBG("read done, %d bytes, Header: %x/%x, Footer: %x%x%x%x\n",  */
-/*       mybuff->length, frame[0], frame[1], */
-/*       frame[mybuff->length-4], frame[mybuff->length-3],  */
-/*       frame[mybuff->length-2], frame[mybuff->length-1]); */
+
+
+
+
 
 	return mybuff->length;
 }
@@ -427,7 +396,7 @@ static void cpia_usb_free_resources(struct usb_cpia *ucpia, int try)
 
 	ucpia->streaming = 0;
 
-	/* Set packet size to 0 */
+	
 	if (try) {
 		int ret;
 
@@ -438,7 +407,7 @@ static void cpia_usb_free_resources(struct usb_cpia *ucpia, int try)
 		}
 	}
 
-	/* Unschedule all of the iso td's */
+	
 	if (ucpia->sbuf[1].urb) {
 		usb_kill_urb(ucpia->sbuf[1].urb);
 		usb_free_urb(ucpia->sbuf[1].urb);
@@ -467,14 +436,13 @@ static int cpia_usb_close(void *privdata)
 
 	ucpia->open = 0;
 
-	/* ucpia->present = 0 protects against trying to reset the
-	 * alt setting if camera is physically disconnected while open */
+	
 	cpia_usb_free_resources(ucpia, ucpia->present);
 
 	return 0;
 }
 
-/* Probing and initializing */
+
 
 static int cpia_probe(struct usb_interface *intf,
 		      const struct usb_device_id *id)
@@ -485,7 +453,7 @@ static int cpia_probe(struct usb_interface *intf,
 	struct cam_data *cam;
 	int ret;
 
-	/* A multi-config CPiA camera? */
+	
 	if (udev->descriptor.bNumConfigurations != 1)
 		return -ENODEV;
 
@@ -528,10 +496,10 @@ static int cpia_probe(struct usb_interface *intf,
 	ret = usb_set_interface(udev, ucpia->iface, 0);
 	if (ret < 0) {
 		printk(KERN_ERR "cpia_probe: usb_set_interface error (ret = %d)\n", ret);
-		/* goto fail_all; */
+		
 	}
 
-	/* Before register_camera, important */
+	
 	ucpia->present = 1;
 
 	cam = cpia_register_camera(&cpia_usb_ops, ucpia);
@@ -566,7 +534,7 @@ static void cpia_disconnect(struct usb_interface *intf);
 static struct usb_device_id cpia_id_table [] = {
 	{ USB_DEVICE(0x0553, 0x0002) },
 	{ USB_DEVICE(0x0813, 0x0001) },
-	{ }					/* Terminating entry */
+	{ }					
 };
 
 MODULE_DEVICE_TABLE (usb, cpia_id_table);

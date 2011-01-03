@@ -1,26 +1,4 @@
-/*
- *  Acer WMI Laptop Extras
- *
- *  Copyright (C) 2007-2009	Carlos Corbacho <carlos@strangeworlds.co.uk>
- *
- *  Based on acer_acpi:
- *    Copyright (C) 2005-2007	E.M. Smith
- *    Copyright (C) 2007-2008	Carlos Corbacho <cathectic@gmail.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -48,34 +26,22 @@ MODULE_LICENSE("GPL");
 #define ACER_NOTICE KERN_NOTICE ACER_LOGPREFIX
 #define ACER_INFO KERN_INFO ACER_LOGPREFIX
 
-/*
- * The following defines quirks to get some specific functions to work
- * which are known to not be supported over ACPI-WMI (such as the mail LED
- * on WMID based Acer's)
- */
+
 struct acer_quirks {
 	const char *vendor;
 	const char *model;
 	u16 quirks;
 };
 
-/*
- * Magic Number
- * Meaning is unknown - this number is required for writing to ACPI for AMW0
- * (it's also used in acerhk when directly accessing the BIOS)
- */
+
 #define ACER_AMW0_WRITE	0x9610
 
-/*
- * Bit masks for the AMW0 interface
- */
+
 #define ACER_AMW0_WIRELESS_MASK  0x35
 #define ACER_AMW0_BLUETOOTH_MASK 0x34
 #define ACER_AMW0_MAILLED_MASK   0x31
 
-/*
- * Method IDs for WMID interface
- */
+
 #define ACER_WMID_GET_WIRELESS_METHODID		1
 #define ACER_WMID_GET_BLUETOOTH_METHODID	2
 #define ACER_WMID_GET_BRIGHTNESS_METHODID	3
@@ -85,9 +51,7 @@ struct acer_quirks {
 #define ACER_WMID_GET_THREEG_METHODID		10
 #define ACER_WMID_SET_THREEG_METHODID		11
 
-/*
- * Acer ACPI method GUIDs
- */
+
 #define AMW0_GUID1		"67C3371D-95A3-4C37-BB61-DD47B491DAAB"
 #define AMW0_GUID2		"431F16ED-0C2B-444C-B267-27DEB140CF9C"
 #define WMID_GUID1		"6AF4F258-B401-42fd-BE91-3D4AC2D7C0D3"
@@ -96,12 +60,10 @@ struct acer_quirks {
 MODULE_ALIAS("wmi:67C3371D-95A3-4C37-BB61-DD47B491DAAB");
 MODULE_ALIAS("wmi:6AF4F258-B401-42fd-BE91-3D4AC2D7C0D3");
 
-/* Temporary workaround until the WMI sysfs interface goes in */
+
 MODULE_ALIAS("dmi:*:*Acer*:*:");
 
-/*
- * Interface capability flags
- */
+
 #define ACER_CAP_MAILLED		(1<<0)
 #define ACER_CAP_WIRELESS		(1<<1)
 #define ACER_CAP_BLUETOOTH		(1<<2)
@@ -109,9 +71,7 @@ MODULE_ALIAS("dmi:*:*Acer*:*:");
 #define ACER_CAP_THREEG			(1<<4)
 #define ACER_CAP_ANY			(0xFFFFFFFF)
 
-/*
- * Interface type flags
- */
+
 enum interface_flags {
 	ACER_AMW0,
 	ACER_AMW0_V2,
@@ -154,29 +114,25 @@ struct acer_debug {
 static struct rfkill *wireless_rfkill;
 static struct rfkill *bluetooth_rfkill;
 
-/* Each low-level interface must define at least some of the following */
+
 struct wmi_interface {
-	/* The WMI device type */
+	
 	u32 type;
 
-	/* The capabilities this interface provides */
+	
 	u32 capability;
 
-	/* Private data for the current interface */
+	
 	struct acer_data data;
 
-	/* debugfs entries associated with this interface */
+	
 	struct acer_debug debug;
 };
 
-/* The static interface pointer, points to the currently detected interface */
+
 static struct wmi_interface *interface;
 
-/*
- * Embedded Controller quirks
- * Some laptops require us to directly access the EC to either enable or query
- * features that are not available through WMI.
- */
+
 
 struct quirk_entry {
 	u8 wireless;
@@ -216,7 +172,7 @@ static struct quirk_entry quirk_acer_travelmate_2490 = {
 	.mailled = 1,
 };
 
-/* This AMW0 laptop has no bluetooth */
+
 static struct quirk_entry quirk_medion_md_98300 = {
 	.wireless = 1,
 };
@@ -225,7 +181,7 @@ static struct quirk_entry quirk_fujitsu_amilo_li_1718 = {
 	.wireless = 2,
 };
 
-/* The Aspire One has a dummy ACPI-WMI interface - disable it */
+
 static struct dmi_system_id __devinitdata acer_blacklist[] = {
 	{
 		.ident = "Acer Aspire One (SSD)",
@@ -374,7 +330,7 @@ static struct dmi_system_id acer_quirks[] = {
 	{}
 };
 
-/* Find which quirks are needed for a particular vendor/ model pair */
+
 static void find_quirks(void)
 {
 	if (!force_series) {
@@ -389,9 +345,7 @@ static void find_quirks(void)
 	set_quirks();
 }
 
-/*
- * General interface convenience methods
- */
+
 
 static bool has_cap(u32 cap)
 {
@@ -401,9 +355,7 @@ static bool has_cap(u32 cap)
 	return 0;
 }
 
-/*
- * AMW0 (V1) interface
- */
+
 struct wmab_args {
 	u32 eax;
 	u32 ebx;
@@ -533,7 +485,7 @@ static acpi_status AMW0_set_u32(u32 value, u32 cap, struct wmi_interface *iface)
 		return AE_ERROR;
 	}
 
-	/* Actually do the set */
+	
 	return wmab_execute(&args, NULL);
 }
 
@@ -576,10 +528,7 @@ static acpi_status AMW0_set_capabilities(void)
 	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
 	union acpi_object *obj;
 
-	/*
-	 * On laptops with this strange GUID (non Acer), normal probing doesn't
-	 * work.
-	 */
+	
 	if (wmi_has_guid(AMW0_GUID2)) {
 		interface->capability |= ACER_CAP_WIRELESS;
 		return AE_OK;
@@ -626,11 +575,7 @@ static acpi_status AMW0_set_capabilities(void)
 
 	kfree(out.pointer);
 
-	/*
-	 * This appears to be safe to enable, since all Wistron based laptops
-	 * appear to use the same EC register for brightness, even if they
-	 * differ for wireless, etc
-	 */
+	
 	if (quirks->brightness >= 0)
 		interface->capability |= ACER_CAP_BRIGHTNESS;
 
@@ -645,9 +590,7 @@ static struct wmi_interface AMW0_V2_interface = {
 	.type = ACER_AMW0_V2,
 };
 
-/*
- * New interface (The WMID interface)
- */
+
 static acpi_status
 WMI_execute_u32(u32 method_id, u32 in, u32 *out)
 {
@@ -777,11 +720,11 @@ static acpi_status WMID_set_capabilities(void)
 		return AE_ERROR;
 	}
 
-	/* Not sure on the meaning of the relevant bits yet to detect these */
+	
 	interface->capability |= ACER_CAP_WIRELESS;
 	interface->capability |= ACER_CAP_THREEG;
 
-	/* WMID always provides brightness methods */
+	
 	interface->capability |= ACER_CAP_BRIGHTNESS;
 
 	if (devices & 0x10)
@@ -797,9 +740,7 @@ static struct wmi_interface wmid_interface = {
 	.type = ACER_WMID,
 };
 
-/*
- * Generic Device (interface-independent)
- */
+
 
 static acpi_status get_u32(u32 *value, u32 cap)
 {
@@ -834,12 +775,7 @@ static acpi_status set_u32(u32 value, u32 cap)
 			if (cap == ACER_CAP_MAILLED)
 				return AMW0_set_u32(value, cap, interface);
 
-			/*
-			 * On some models, some WMID methods don't toggle
-			 * properly. For those cases, we want to run the AMW0
-			 * method afterwards to be certain we've really toggled
-			 * the device state.
-			 */
+			
 			if (cap == ACER_CAP_WIRELESS ||
 				cap == ACER_CAP_BLUETOOTH) {
 				status = WMID_set_u32(value, cap, interface);
@@ -859,18 +795,13 @@ static acpi_status set_u32(u32 value, u32 cap)
 
 static void __init acer_commandline_init(void)
 {
-	/*
-	 * These will all fail silently if the value given is invalid, or the
-	 * capability isn't available on the given interface
-	 */
+	
 	set_u32(mailled, ACER_CAP_MAILLED);
 	set_u32(threeg, ACER_CAP_THREEG);
 	set_u32(brightness, ACER_CAP_BRIGHTNESS);
 }
 
-/*
- * LED device (Mail LED only, no other LEDs known yet)
- */
+
 static void mail_led_set(struct led_classdev *led_cdev,
 enum led_brightness value)
 {
@@ -892,9 +823,7 @@ static void acer_led_exit(void)
 	led_classdev_unregister(&mail_led);
 }
 
-/*
- * Backlight device
- */
+
 static struct backlight_device *acer_backlight_device;
 
 static int read_brightness(struct backlight_device *bd)
@@ -948,9 +877,7 @@ static void acer_backlight_exit(void)
 	backlight_device_unregister(acer_backlight_device);
 }
 
-/*
- * Rfkill devices
- */
+
 static void acer_rfkill_update(struct work_struct *ignored);
 static DECLARE_DELAYED_WORK(acer_rfkill_work, acer_rfkill_update);
 static void acer_rfkill_update(struct work_struct *ignored)
@@ -1043,9 +970,7 @@ static void acer_rfkill_exit(void)
 	return;
 }
 
-/*
- * sysfs interface
- */
+
 static ssize_t show_bool_threeg(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
@@ -1086,9 +1011,7 @@ static ssize_t show_interface(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(interface, S_IWUGO | S_IRUGO | S_IWUSR,
 	show_interface, NULL);
 
-/*
- * debugfs functions
- */
+
 static u32 get_wmid_devices(void)
 {
 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
@@ -1108,9 +1031,7 @@ static u32 get_wmid_devices(void)
 	}
 }
 
-/*
- * Platform device
- */
+
 static int __devinit acer_platform_probe(struct platform_device *device)
 {
 	int err;
@@ -1279,9 +1200,7 @@ static int __init acer_wmi_init(void)
 
 	find_quirks();
 
-	/*
-	 * Detect which ACPI-WMI interface we're using.
-	 */
+	
 	if (wmi_has_guid(AMW0_GUID1) && wmi_has_guid(WMID_GUID1))
 		interface = &AMW0_V2_interface;
 
@@ -1344,7 +1263,7 @@ static int __init acer_wmi_init(void)
 			return err;
 	}
 
-	/* Override any initial settings with values from the commandline */
+	
 	acer_commandline_init();
 
 	return 0;

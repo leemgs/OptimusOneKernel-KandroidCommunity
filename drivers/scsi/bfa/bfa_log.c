@@ -1,35 +1,16 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfa_log.c BFA log library
- */
+
+
 
 #include <bfa_os_inc.h>
 #include <cs/bfa_log.h>
 
-/*
- * global log info structure
- */
+
 struct bfa_log_info_s {
-	u32        start_idx;	/*  start index for a module */
-	u32        total_count;	/*  total count for a module */
-	enum bfa_log_severity level;	/*  global log level */
-	bfa_log_cb_t	cbfn;		/*  callback function */
+	u32        start_idx;	
+	u32        total_count;	
+	enum bfa_log_severity level;	
+	bfa_log_cb_t	cbfn;		
 };
 
 static struct bfa_log_info_s bfa_log_info[BFA_LOG_MODULE_ID_MAX + 1];
@@ -39,22 +20,7 @@ static int      bfa_log_initialized;
 static char    *bfa_log_severity[] =
 	{ "[none]", "[critical]", "[error]", "[warn]", "[info]", "" };
 
-/**
- * BFA log library initialization
- *
- * The log library initialization includes the following,
- *    - set log instance name and callback function
- *    - read the message array generated from xml files
- *    - calculate start index for each module
- *    - calculate message count for each module
- *    - perform error checking
- *
- * @param[in] log_mod - log module info
- * @param[in] instance_name - instance name
- * @param[in] cbfn - callback function
- *
- * It return 0 on success, or -1 on failure
- */
+
 int
 bfa_log_init(struct bfa_log_mod_s *log_mod, char *instance_name,
 			bfa_log_cb_t cbfn)
@@ -64,9 +30,7 @@ bfa_log_init(struct bfa_log_mod_s *log_mod, char *instance_name,
 	u32        cur_mod_id = 0;
 	u32        i, pre_idx, idx, msg_id;
 
-	/*
-	 * set instance name
-	 */
+	
 	if (log_mod) {
 		strncpy(log_mod->instance_info, instance_name,
 			sizeof(log_mod->instance_info));
@@ -136,15 +100,7 @@ bfa_log_init(struct bfa_log_mod_s *log_mod, char *instance_name,
 	return 0;
 }
 
-/**
- * BFA log set log level for a module
- *
- * @param[in] log_mod - log module info
- * @param[in] mod_id - module id
- * @param[in] log_level - log severity level
- *
- * It return BFA_STATUS_OK on success, or > 0 on failure
- */
+
 bfa_status_t
 bfa_log_set_level(struct bfa_log_mod_s *log_mod, int mod_id,
 		  enum bfa_log_severity log_level)
@@ -163,14 +119,7 @@ bfa_log_set_level(struct bfa_log_mod_s *log_mod, int mod_id,
 	return BFA_STATUS_OK;
 }
 
-/**
- * BFA log set log level for all modules
- *
- * @param[in] log_mod - log module info
- * @param[in] log_level - log severity level
- *
- * It return BFA_STATUS_OK on success, or > 0 on failure
- */
+
 bfa_status_t
 bfa_log_set_level_all(struct bfa_log_mod_s *log_mod,
 		  enum bfa_log_severity log_level)
@@ -191,14 +140,7 @@ bfa_log_set_level_all(struct bfa_log_mod_s *log_mod,
 	return BFA_STATUS_OK;
 }
 
-/**
- * BFA log set log level for all aen sub-modules
- *
- * @param[in] log_mod - log module info
- * @param[in] log_level - log severity level
- *
- * It return BFA_STATUS_OK on success, or > 0 on failure
- */
+
 bfa_status_t
 bfa_log_set_level_aen(struct bfa_log_mod_s *log_mod,
 		  enum bfa_log_severity log_level)
@@ -216,14 +158,7 @@ bfa_log_set_level_aen(struct bfa_log_mod_s *log_mod,
 	return BFA_STATUS_OK;
 }
 
-/**
- * BFA log get log level for a module
- *
- * @param[in] log_mod - log module info
- * @param[in] mod_id - module id
- *
- * It returns log level or -1 on error
- */
+
 enum bfa_log_severity
 bfa_log_get_level(struct bfa_log_mod_s *log_mod, int mod_id)
 {
@@ -269,19 +204,7 @@ bfa_log_get_msg_level(struct bfa_log_mod_s *log_mod, u32 msg_id)
 	return BFA_LOG_GET_SEVERITY(msg);
 }
 
-/**
- * BFA log message handling
- *
- * BFA log message handling finds the message based on message id and prints
- * out the message based on its format and arguments. It also does prefix
- * the severity etc.
- *
- * @param[in] log_mod - log module info
- * @param[in] msg_id - message id
- * @param[in] ... - message arguments
- *
- * It return 0 on success, or -1 on errors
- */
+
 int
 bfa_log(struct bfa_log_mod_s *log_mod, u32 msg_id, ...)
 {

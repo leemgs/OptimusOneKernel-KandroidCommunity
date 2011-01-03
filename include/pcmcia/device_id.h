@@ -1,13 +1,4 @@
-/*
- * device_id.h -- PCMCIA driver matching helpers
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * (C) 2003 - 2004	David Woodhouse
- * (C) 2003 - 2004	Dominik Brodowski
- */
+
 
 #ifndef _LINUX_PCMCIA_DEVICE_ID_H
 #define _LINUX_PCMCIA_DEVICE_ID_H
@@ -91,7 +82,7 @@
 	.prod_id_hash = { (vh1), 0, 0, 0 }, }
 
 
-/* multi-function devices */
+
 
 #define PCMCIA_MFC_DEVICE_MANF_CARD(mfc, manf, card) { \
 	.match_flags = PCMCIA_DEV_ID_MATCH_MANF_ID| \
@@ -140,7 +131,7 @@
 	.prod_id_hash = { (vh1), (vh2), (vh3), 0 }, \
 	.function = (mfc), }
 
-/* pseudo multi-function devices */
+
 
 #define PCMCIA_PFC_DEVICE_MANF_CARD(mfc, manf, card) { \
 	.match_flags = PCMCIA_DEV_ID_MATCH_MANF_ID| \
@@ -189,7 +180,7 @@
 	.prod_id_hash = { (vh1), (vh2), (vh3), 0 }, \
 	.device_no = (mfc), }
 
-/* cards needing a CIS override */
+
 
 #define PCMCIA_DEVICE_CIS_MANF_CARD(manf, card, _cisfile) { \
 	.match_flags = PCMCIA_DEV_ID_MATCH_FAKE_CIS | \
@@ -266,5 +257,5 @@
 
 #define PCMCIA_DEVICE_NULL { .match_flags = 0, }
 
-#endif /* __KERNEL__ */
-#endif /* _LINUX_PCMCIA_DEVICE_ID_H */
+#endif 
+#endif 

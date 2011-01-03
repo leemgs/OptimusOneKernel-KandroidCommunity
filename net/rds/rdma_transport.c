@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2009 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <rdma/rdma_cm.h>
 
 #include "rdma_transport.h"
@@ -39,7 +8,7 @@ static struct rdma_cm_id *rds_rdma_listen_id;
 int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
 			      struct rdma_cm_event *event)
 {
-	/* this can be null in the listening path */
+	
 	struct rds_connection *conn = cm_id->context;
 	struct rds_transport *trans;
 	int ret = 0;
@@ -52,17 +21,13 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
 	else
 		trans = &rds_ib_transport;
 
-	/* Prevent shutdown from tearing down the connection
-	 * while we're executing. */
+	
 	if (conn) {
 		mutex_lock(&conn->c_cm_lock);
 
-		/* If the connection is being shut down, bail out
-		 * right away. We return 0 so cm_id doesn't get
-		 * destroyed prematurely */
+		
 		if (rds_conn_state(conn) == RDS_CONN_DISCONNECTING) {
-			/* Reject incoming connections while we're tearing
-			 * down an existing one. */
+			
 			if (event->event == RDMA_CM_EVENT_CONNECT_REQUEST)
 				ret = 1;
 			goto out;
@@ -75,13 +40,13 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
 		break;
 
 	case RDMA_CM_EVENT_ADDR_RESOLVED:
-		/* XXX do we need to clean up if this fails? */
+		
 		ret = rdma_resolve_route(cm_id,
 					 RDS_RDMA_RESOLVE_TIMEOUT_MS);
 		break;
 
 	case RDMA_CM_EVENT_ROUTE_RESOLVED:
-		/* XXX worry about racing with listen acceptance */
+		
 		ret = trans->cm_initiate_connect(cm_id);
 		break;
 
@@ -108,7 +73,7 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
 		break;
 
 	default:
-		/* things like device disconnect? */
+		
 		printk(KERN_ERR "unknown event %u\n", event->event);
 		BUG();
 		break;
@@ -141,10 +106,7 @@ static int __init rds_rdma_listen_init(void)
 	sin.sin_addr.s_addr = (__force u32)htonl(INADDR_ANY);
 	sin.sin_port = (__force u16)htons(RDS_PORT);
 
-	/*
-	 * XXX I bet this binds the cm_id to a device.  If we want to support
-	 * fail-over we'll have to take this into consideration.
-	 */
+	
 	ret = rdma_bind_addr(cm_id, (struct sockaddr *)&sin);
 	if (ret) {
 		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
@@ -207,7 +169,7 @@ module_init(rds_rdma_init);
 
 void rds_rdma_exit(void)
 {
-	/* stop listening first to ensure no new connections are attempted */
+	
 	rds_rdma_listen_stop();
 	rds_ib_exit();
 	rds_iw_exit();

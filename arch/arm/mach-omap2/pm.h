@@ -1,13 +1,4 @@
-/*
- * OMAP2/3 Power Management Routines
- *
- * Copyright (C) 2008 Nokia Corporation
- * Jouni Hogander
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #ifndef __ARCH_ARM_MACH_OMAP2_PM_H
 #define __ARCH_ARM_MACH_OMAP2_PM_H
 
@@ -28,7 +19,7 @@ extern int pm_dbg_regset_init(int reg_set);
 #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
 #define pm_dbg_regset_save(reg_set) do {} while (0);
 #define pm_dbg_regset_init(reg_set) do {} while (0);
-#endif /* CONFIG_PM_DEBUG */
+#endif 
 
 extern void omap24xx_idle_loop_suspend(void);
 

@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/leds-idp.c
- *
- * Copyright (C) 2000 John Dorsey <john+@cs.cmu.edu>
- *
- * Copyright (c) 2001 Jeff Sutherland <jeffs@accelent.com>
- *
- * Original (leds-footbridge.c) by Russell King
- *
- * Macros for actual LED manipulation should be in machine specific
- * files in this 'mach' directory.
- */
+
 
 
 #include <linux/init.h>

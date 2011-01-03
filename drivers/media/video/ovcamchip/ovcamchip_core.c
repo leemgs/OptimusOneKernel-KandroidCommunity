@@ -1,13 +1,4 @@
-/* Shared Code for OmniVision Camera Chip Drivers
- *
- * Copyright (c) 2004 Mark McClelland <mark@alpha.dyndns.org>
- * http://alpha.dyndns.org/ov511/
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version. NO WARRANTY OF ANY KIND is expressed or implied.
- */
+
 
 #define DEBUG
 
@@ -35,9 +26,7 @@ MODULE_PARM_DESC(debug,
   "Debug level: 0=none, 1=inits, 2=warning, 3=config, 4=functions, 5=all");
 #endif
 
-/* By default, let bridge driver tell us if chip is monochrome. mono=0
- * will ignore that and always treat chips as color. mono=1 will force
- * monochrome mode for all chips. */
+
 static int mono = -1;
 module_param(mono, int, 0);
 MODULE_PARM_DESC(mono,
@@ -48,10 +37,10 @@ MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
 
-/* Registers common to all chips, that are needed for detection */
-#define GENERIC_REG_ID_HIGH       0x1C	/* manufacturer ID MSB */
-#define GENERIC_REG_ID_LOW        0x1D	/* manufacturer ID LSB */
-#define GENERIC_REG_COM_I         0x29	/* misc ID bits */
+
+#define GENERIC_REG_ID_HIGH       0x1C	
+#define GENERIC_REG_ID_LOW        0x1D	
+#define GENERIC_REG_COM_I         0x29	
 
 static char *chip_names[NUM_CC_TYPES] = {
 	[CC_UNKNOWN]	= "Unknown chip",
@@ -65,7 +54,7 @@ static char *chip_names[NUM_CC_TYPES] = {
 	[CC_OV6630AF]	= "OV6630AF",
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 int ov_write_regvals(struct i2c_client *c, struct ovcamchip_regvals *rvals)
 {
@@ -81,11 +70,7 @@ int ov_write_regvals(struct i2c_client *c, struct ovcamchip_regvals *rvals)
 	return 0;
 }
 
-/* Writes bits at positions specified by mask to an I2C reg. Bits that are in
- * the same position as 1's in "mask" are cleared and set to "value". Bits
- * that are in the same position as 0's in "mask" are preserved, regardless
- * of their respective state in "value".
- */
+
 int ov_write_mask(struct i2c_client *c,
 		  unsigned char reg,
 		  unsigned char value,
@@ -101,27 +86,26 @@ int ov_write_mask(struct i2c_client *c,
 		if (rc < 0)
 			return rc;
 
-		oldval &= (~mask);		/* Clear the masked bits */
-		value &= mask;			/* Enforce mask on value */
-		newval = oldval | value;	/* Set the desired bits */
+		oldval &= (~mask);		
+		value &= mask;			
+		newval = oldval | value;	
 	}
 
 	return ov_write(c, reg, newval);
 }
 
-/* ----------------------------------------------------------------------- */
 
-/* Reset the chip and ensure that I2C is synchronized. Returns <0 if failure.
- */
+
+
 static int init_camchip(struct i2c_client *c)
 {
 	int i, success;
 	unsigned char high, low;
 
-	/* Reset the chip */
+	
 	ov_write(c, 0x12, 0x80);
 
-	/* Wait for it to initialize */
+	
 	msleep(150);
 
 	for (i = 0, success = 0; i < I2C_DETECT_RETRIES && !success; i++) {
@@ -134,13 +118,13 @@ static int init_camchip(struct i2c_client *c)
 			}
 		}
 
-		/* Reset the chip */
+		
 		ov_write(c, 0x12, 0x80);
 
-		/* Wait for it to initialize */
+		
 		msleep(150);
 
-		/* Dummy read to sync I2C */
+		
 		ov_read(c, 0x00, &low);
 	}
 
@@ -152,7 +136,7 @@ static int init_camchip(struct i2c_client *c)
 	return 0;
 }
 
-/* This detects the OV7610, OV7620, or OV76BE chip. */
+
 static int ov7xx0_detect(struct i2c_client *c)
 {
 	struct ovcamchip *ov = i2c_get_clientdata(c);
@@ -161,7 +145,7 @@ static int ov7xx0_detect(struct i2c_client *c)
 
 	PDEBUG(4, "");
 
-	/* Detect chip (sub)type */
+	
 	rc = ov_read(c, GENERIC_REG_COM_I, &val);
 	if (rc < 0) {
 		PERROR("Error detecting ov7xx0 type");
@@ -180,9 +164,7 @@ static int ov7xx0_detect(struct i2c_client *c)
 
 		if (val & 1) {
 			PINFO("Camera chip is an OV7620AE");
-			/* OV7620 is a close enough match for now. There are
-			 * some definite differences though, so this should be
-			 * fixed */
+			
 			ov->subtype = CC_OV7620;
 		} else {
 			PINFO("Camera chip is an OV76BE");
@@ -206,7 +188,7 @@ static int ov7xx0_detect(struct i2c_client *c)
 	return 0;
 }
 
-/* This detects the OV6620, OV6630, OV6630AE, or OV6630AF chip. */
+
 static int ov6xx0_detect(struct i2c_client *c)
 {
 	struct ovcamchip *ov = i2c_get_clientdata(c);
@@ -215,7 +197,7 @@ static int ov6xx0_detect(struct i2c_client *c)
 
 	PDEBUG(4, "");
 
-	/* Detect chip (sub)type */
+	
 	rc = ov_read(c, GENERIC_REG_COM_I, &val);
 	if (rc < 0) {
 		PERROR("Error detecting ov6xx0 type");
@@ -246,16 +228,13 @@ static int ov6xx0_detect(struct i2c_client *c)
 
 static int ovcamchip_detect(struct i2c_client *c)
 {
-	/* Ideally we would just try a single register write and see if it NAKs.
-	 * That isn't possible since the OV518 can't report I2C transaction
-	 * failures. So, we have to try to initialize the chip (i.e. reset it
-	 * and check the ID registers) to detect its presence. */
+	
 
-	/* Test for 7xx0 */
+	
 	PDEBUG(3, "Testing for 0V7xx0");
 	if (init_camchip(c) < 0)
 		return -ENODEV;
-	/* 7-bit addresses with bit 0 set are for the OV7xx0 */
+	
 	if (c->addr & 1) {
 		if (ov7xx0_detect(c) < 0) {
 			PERROR("Failed to init OV7xx0");
@@ -263,7 +242,7 @@ static int ovcamchip_detect(struct i2c_client *c)
 		}
 		return 0;
 	}
-	/* Test for 6xx0 */
+	
 	PDEBUG(3, "Testing for 0V6xx0");
 	if (ov6xx0_detect(c) < 0) {
 		PERROR("Failed to init OV6xx0");
@@ -272,7 +251,7 @@ static int ovcamchip_detect(struct i2c_client *c)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static long ovcamchip_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
@@ -322,7 +301,7 @@ static long ovcamchip_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 	}
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops ovcamchip_core_ops = {
 	.ioctl = ovcamchip_ioctl,
@@ -379,7 +358,7 @@ static int ovcamchip_remove(struct i2c_client *client)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct i2c_device_id ovcamchip_id[] = {
 	{ "ovcamchip", 0 },

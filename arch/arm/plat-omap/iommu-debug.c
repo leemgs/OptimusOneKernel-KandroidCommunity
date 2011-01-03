@@ -1,14 +1,4 @@
-/*
- * omap iommu: debugfs interface
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/err.h>
 #include <linux/clk.h>
@@ -22,7 +12,7 @@
 
 #include "iopgtable.h"
 
-#define MAXCOLUMN 100 /* for short messages */
+#define MAXCOLUMN 100 
 
 static DEFINE_MUTEX(iommu_debug_lock);
 

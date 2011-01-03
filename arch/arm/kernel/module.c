@@ -1,15 +1,4 @@
-/*
- *  linux/arch/arm/kernel/module.c
- *
- *  Copyright (C) 2002 Russell King.
- *  Modified for nommu by Hyok S. Choi
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Module allocation method suggested by Andi Kleen.
- */
+
 #include <linux/module.h>
 #include <linux/moduleloader.h>
 #include <linux/kernel.h>
@@ -25,12 +14,7 @@
 #include <asm/unwind.h>
 
 #ifdef CONFIG_XIP_KERNEL
-/*
- * The XIP kernel text is mapped in the module area for modules and
- * some other stuff to work without any indirect relocations.
- * MODULES_VADDR is redefined here and not in asm/memory.h to avoid
- * recompiling the whole kernel when CONFIG_XIP_KERNEL is turned on/off.
- */
+
 #undef MODULES_VADDR
 #define MODULES_VADDR	(((unsigned long)_etext + ~PGDIR_MASK) & PGDIR_MASK)
 #endif
@@ -50,12 +34,12 @@ void *module_alloc(unsigned long size)
 
 	return __vmalloc_area(area, GFP_KERNEL, PAGE_KERNEL_EXEC);
 }
-#else /* CONFIG_MMU */
+#else 
 void *module_alloc(unsigned long size)
 {
 	return size == 0 ? NULL : vmalloc(size);
 }
-#endif /* !CONFIG_MMU */
+#endif 
 
 void module_free(struct module *module, void *region)
 {
@@ -125,7 +109,7 @@ apply_relocate(Elf32_Shdr *sechdrs, const char *strtab, unsigned int symindex,
 
 		switch (ELF32_R_TYPE(rel->r_info)) {
 		case R_ARM_NONE:
-			/* ignore */
+			
 			break;
 
 		case R_ARM_ABS32:
@@ -157,10 +141,7 @@ apply_relocate(Elf32_Shdr *sechdrs, const char *strtab, unsigned int symindex,
 			break;
 
 	       case R_ARM_V4BX:
-		       /* Preserve Rm and the condition code. Alter
-			* other bits to re-code instruction as
-			* MOV PC,Rm.
-			*/
+		       
 		       *(u32 *)loc &= 0xf000000f;
 		       *(u32 *)loc |= 0x01a0f000;
 		       break;
@@ -190,19 +171,7 @@ apply_relocate(Elf32_Shdr *sechdrs, const char *strtab, unsigned int symindex,
 			upper = *(u16 *)loc;
 			lower = *(u16 *)(loc + 2);
 
-			/*
-			 * 25 bit signed address range (Thumb-2 BL and B.W
-			 * instructions):
-			 *   S:I1:I2:imm10:imm11:0
-			 * where:
-			 *   S     = upper[10]   = offset[24]
-			 *   I1    = ~(J1 ^ S)   = offset[23]
-			 *   I2    = ~(J2 ^ S)   = offset[22]
-			 *   imm10 = upper[9:0]  = offset[21:12]
-			 *   imm11 = lower[10:0] = offset[11:1]
-			 *   J1    = lower[13]
-			 *   J2    = lower[11]
-			 */
+			
 			sign = (upper >> 10) & 1;
 			j1 = (lower >> 13) & 1;
 			j2 = (lower >> 11) & 1;
@@ -214,7 +183,7 @@ apply_relocate(Elf32_Shdr *sechdrs, const char *strtab, unsigned int symindex,
 				offset -= 0x02000000;
 			offset += sym->st_value - loc;
 
-			/* only Thumb addresses allowed (no interworking) */
+			
 			if (!(offset & 1) ||
 			    offset <= (s32)0xff000000 ||
 			    offset >= (s32)0x01000000) {

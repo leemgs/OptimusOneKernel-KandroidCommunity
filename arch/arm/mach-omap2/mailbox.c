@@ -1,14 +1,4 @@
-/*
- * Mailbox reservation modules for OMAP2/3
- *
- * Copyright (C) 2006-2009 Nokia Corporation
- * Written by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
- *        and  Paul Mundt
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/clk.h>
@@ -30,12 +20,12 @@
 #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
 #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
 
-/* SYSCONFIG: register bit definition */
+
 #define AUTOIDLE	(1 << 0)
 #define SOFTRESET	(1 << 1)
 #define SMARTIDLE	(2 << 3)
 
-/* SYSSTATUS: register bit definition */
+
 #define RESETDONE	(1 << 0)
 
 #define MBOX_REG_SIZE			0x120
@@ -74,7 +64,7 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
 	__raw_writel(val, mbox_base + ofs);
 }
 
-/* Mailbox H/W preparations */
+
 static int omap2_mbox_startup(struct omap_mbox *mbox)
 {
 	u32 l;
@@ -117,7 +107,7 @@ static void omap2_mbox_shutdown(struct omap_mbox *mbox)
 	clk_put(mbox_ick_handle);
 }
 
-/* Mailbox FIFO handle functions */
+
 static mbox_msg_t omap2_mbox_fifo_read(struct omap_mbox *mbox)
 {
 	struct omap_mbox2_fifo *fifo =
@@ -146,7 +136,7 @@ static int omap2_mbox_fifo_full(struct omap_mbox *mbox)
 	return (mbox_read_reg(fifo->fifo_stat));
 }
 
-/* Mailbox IRQ handle functions */
+
 static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
 		omap_mbox_type_t irq)
 {
@@ -177,7 +167,7 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
 
 	mbox_write_reg(bit, p->irqstatus);
 
-	/* Flush posted write for irq status to avoid spurious interrupts */
+	
 	mbox_read_reg(p->irqstatus);
 }
 
@@ -234,16 +224,11 @@ static struct omap_mbox_ops omap2_mbox_ops = {
 	.restore_ctx	= omap2_mbox_restore_ctx,
 };
 
-/*
- * MAILBOX 0: ARM -> DSP,
- * MAILBOX 1: ARM <- DSP.
- * MAILBOX 2: ARM -> IVA,
- * MAILBOX 3: ARM <- IVA.
- */
 
-/* FIXME: the following structs should be filled automatically by the user id */
 
-/* DSP */
+
+
+
 static struct omap_mbox2_priv omap2_mbox_dsp_priv = {
 	.tx_fifo = {
 		.msg		= MAILBOX_MESSAGE(0),
@@ -266,7 +251,7 @@ struct omap_mbox mbox_dsp_info = {
 };
 EXPORT_SYMBOL(mbox_dsp_info);
 
-#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+#if defined(CONFIG_ARCH_OMAP2420) 
 static struct omap_mbox2_priv omap2_mbox_iva_priv = {
 	.tx_fifo = {
 		.msg		= MAILBOX_MESSAGE(2),
@@ -294,7 +279,7 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
 	struct resource *res;
 	int ret;
 
-	/* MBOX base */
+	
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (unlikely(!res)) {
 		dev_err(&pdev->dev, "invalid mem resource\n");
@@ -304,7 +289,7 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
 	if (!mbox_base)
 		return -ENOMEM;
 
-	/* DSP or IVA2 IRQ */
+	
 	ret = platform_get_irq(pdev, 0);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "invalid irq resource\n");
@@ -316,9 +301,9 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
 	if (ret)
 		goto err_dsp;
 
-#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+#if defined(CONFIG_ARCH_OMAP2420) 
 	if (cpu_is_omap2420()) {
-		/* IVA IRQ */
+		
 		res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
 		if (unlikely(!res)) {
 			dev_err(&pdev->dev, "invalid irq resource\n");

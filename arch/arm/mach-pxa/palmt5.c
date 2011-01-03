@@ -1,20 +1,4 @@
-/*
- * Hardware definitions for Palm Tungsten|T5
- *
- * Author:	Marek Vasut <marek.vasut@gmail.com>
- *
- * Based on work of:
- *		Ales Snuparek <snuparek@atlas.cz>
- *		Justin Kendrick <twilightsentry@gmail.com>
- *		RichardT5 <richard_t5@users.sourceforge.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * (find more info at www.hackndev.com)
- *
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/delay.h>
@@ -45,22 +29,20 @@
 #include "generic.h"
 #include "devices.h"
 
-/******************************************************************************
- * Pin configuration
- ******************************************************************************/
+
 static unsigned long palmt5_pin_config[] __initdata = {
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
 	GPIO109_MMC_DAT_1,
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
 	GPIO112_MMC_CMD,
-	GPIO14_GPIO,	/* SD detect */
-	GPIO114_GPIO,	/* SD power */
-	GPIO115_GPIO,	/* SD r/o switch */
+	GPIO14_GPIO,	
+	GPIO114_GPIO,	
+	GPIO115_GPIO,	
 
-	/* AC97 */
+	
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
 	GPIO30_AC97_SDATA_OUT,
@@ -68,16 +50,16 @@ static unsigned long palmt5_pin_config[] __initdata = {
 	GPIO89_AC97_SYSCLK,
 	GPIO95_AC97_nRESET,
 
-	/* IrDA */
-	GPIO40_GPIO,	/* ir disable */
+	
+	GPIO40_GPIO,	
 	GPIO46_FICP_RXD,
 	GPIO47_FICP_TXD,
 
-	/* USB */
-	GPIO15_GPIO,	/* usb detect */
-	GPIO93_GPIO,	/* usb power */
+	
+	GPIO15_GPIO,	
+	GPIO93_GPIO,	
 
-	/* MATRIX KEYPAD */
+	
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO101_KP_MKIN_1 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO102_KP_MKIN_2 | WAKEUP_ON_LEVEL_HIGH,
@@ -86,7 +68,7 @@ static unsigned long palmt5_pin_config[] __initdata = {
 	GPIO104_KP_MKOUT_1,
 	GPIO105_KP_MKOUT_2,
 
-	/* LCD */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -108,22 +90,20 @@ static unsigned long palmt5_pin_config[] __initdata = {
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
 
-	/* PWM */
+	
 	GPIO16_PWM0_OUT,
 
-	/* FFUART */
+	
 	GPIO34_FFUART_RXD,
 	GPIO39_FFUART_TXD,
 
-	/* MISC */
-	GPIO10_GPIO,	/* hotsync button */
-	GPIO90_GPIO,	/* power detect */
-	GPIO107_GPIO,	/* earphone detect */
+	
+	GPIO10_GPIO,	
+	GPIO90_GPIO,	
+	GPIO107_GPIO,	
 };
 
-/******************************************************************************
- * SD/MMC card controller
- ******************************************************************************/
+
 static struct pxamci_platform_data palmt5_mci_platform_data = {
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO_NR_PALMT5_SD_DETECT_N,
@@ -132,9 +112,7 @@ static struct pxamci_platform_data palmt5_mci_platform_data = {
 	.detect_delay		= 20,
 };
 
-/******************************************************************************
- * GPIO keyboard
- ******************************************************************************/
+
 static unsigned int palmt5_matrix_keys[] = {
 	KEY(0, 0, KEY_POWER),
 	KEY(0, 1, KEY_F1),
@@ -160,9 +138,7 @@ static struct pxa27x_keypad_platform_data palmt5_keypad_platform_data = {
 	.debounce_interval	= 30,
 };
 
-/******************************************************************************
- * GPIO keys
- ******************************************************************************/
+
 static struct gpio_keys_button palmt5_pxa_buttons[] = {
 	{KEY_F8, GPIO_NR_PALMT5_HOTSYNC_BUTTON_N, 1, "HotSync Button" },
 };
@@ -180,9 +156,7 @@ static struct platform_device palmt5_pxa_keys = {
 	},
 };
 
-/******************************************************************************
- * Backlight
- ******************************************************************************/
+
 static int palmt5_backlight_init(struct device *dev)
 {
 	int ret;
@@ -240,17 +214,13 @@ static struct platform_device palmt5_backlight = {
 	},
 };
 
-/******************************************************************************
- * IrDA
- ******************************************************************************/
+
 static struct pxaficp_platform_data palmt5_ficp_platform_data = {
 	.gpio_pwdown		= GPIO_NR_PALMT5_IR_DISABLE,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
-/******************************************************************************
- * UDC
- ******************************************************************************/
+
 static struct gpio_vbus_mach_info palmt5_udc_info = {
 	.gpio_vbus		= GPIO_NR_PALMT5_USB_DETECT_N,
 	.gpio_vbus_inverted	= 1,
@@ -265,9 +235,7 @@ static struct platform_device palmt5_gpio_vbus = {
 	},
 };
 
-/******************************************************************************
- * Power supply
- ******************************************************************************/
+
 static int power_supply_init(struct device *dev)
 {
 	int ret;
@@ -316,9 +284,7 @@ static struct platform_device power_supply = {
 	},
 };
 
-/******************************************************************************
- * WM97xx battery
- ******************************************************************************/
+
 static struct wm97xx_batt_info wm97xx_batt_pdata = {
 	.batt_aux	= WM97XX_AUX_ID3,
 	.temp_aux	= WM97XX_AUX_ID2,
@@ -333,9 +299,7 @@ static struct wm97xx_batt_info wm97xx_batt_pdata = {
 	.batt_name	= "main-batt",
 };
 
-/******************************************************************************
- * aSoC audio
- ******************************************************************************/
+
 static struct palm27x_asoc_info palmt5_asoc_pdata = {
 	.jack_gpio	= GPIO_NR_PALMT5_EARPHONE_DETECT,
 };
@@ -352,9 +316,7 @@ static struct platform_device palmt5_asoc = {
 	},
 };
 
-/******************************************************************************
- * Framebuffer
- ******************************************************************************/
+
 static struct pxafb_mode_info palmt5_lcd_modes[] = {
 {
 	.pixclock	= 57692,
@@ -378,24 +340,20 @@ static struct pxafb_mach_info palmt5_lcd_screen = {
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
 
-/******************************************************************************
- * Power management - standby
- ******************************************************************************/
+
 static void __init palmt5_pm_init(void)
 {
 	static u32 resume[] = {
-		0xe3a00101,	/* mov	r0,	#0x40000000 */
-		0xe380060f,	/* orr	r0, r0, #0x00f00000 */
-		0xe590f008,	/* ldr	pc, [r0, #0x08] */
+		0xe3a00101,	
+		0xe380060f,	
+		0xe590f008,	
 	};
 
-	/* copy the bootloader */
+	
 	memcpy(phys_to_virt(PALMT5_STR_BASE), resume, sizeof(resume));
 }
 
-/******************************************************************************
- * Machine init
- ******************************************************************************/
+
 static struct platform_device *devices[] __initdata = {
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
 	&palmt5_pxa_keys,
@@ -406,7 +364,7 @@ static struct platform_device *devices[] __initdata = {
 	&palmt5_gpio_vbus,
 };
 
-/* setup udc GPIOs initial state */
+
 static void __init palmt5_udc_init(void)
 {
 	if (!gpio_request(GPIO_NR_PALMT5_USB_PULLUP, "UDC Vbus")) {

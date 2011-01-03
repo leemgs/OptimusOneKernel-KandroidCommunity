@@ -1,14 +1,4 @@
-/* xfrm_user.c: User interface to configure xfrm engine.
- *
- * Copyright (C) 2002 David S. Miller (davem@redhat.com)
- *
- * Changes:
- *	Mitsuru KANDA @USAGI
- * 	Kazunori MIYAZAWA @USAGI
- * 	Kunihiro Ishiguro <kunihiro@ipinfusion.com>
- * 		IPv6 support
- *
- */
+
 
 #include <linux/crypto.h>
 #include <linux/module.h>
@@ -281,11 +271,7 @@ static void copy_from_user_state(struct xfrm_state *x, struct xfrm_usersa_info *
 		x->sel.family = p->family;
 }
 
-/*
- * someday when pfkey also has support, we could have the code
- * somehow made shareable and move it to xfrm_state.c - JHS
- *
-*/
+
 static void xfrm_update_ae_params(struct xfrm_state *x, struct nlattr **attrs)
 {
 	struct nlattr *rp = attrs[XFRMA_REPLAY_VAL];
@@ -369,13 +355,13 @@ static struct xfrm_state *xfrm_state_construct(struct net *net,
 
 	x->km.seq = p->seq;
 	x->replay_maxdiff = net->xfrm.sysctl_aevent_rseqth;
-	/* sysctl_xfrm_aevent_etime is in 100ms units */
+	
 	x->replay_maxage = (net->xfrm.sysctl_aevent_etime*HZ)/XFRM_AE_ETH_M;
 	x->preplay.bitmap = 0;
 	x->preplay.seq = x->replay.seq+x->replay_maxdiff;
 	x->preplay.oseq = x->replay.oseq +x->replay_maxdiff;
 
-	/* override default values from above */
+	
 
 	xfrm_update_ae_params(x, attrs);
 
@@ -548,7 +534,7 @@ static int copy_sec_ctx(struct xfrm_sec_ctx *s, struct sk_buff *skb)
 	return 0;
 }
 
-/* Don't change this without updating xfrm_sa_len! */
+
 static int copy_to_user_state_extra(struct xfrm_state *x,
 				    struct xfrm_usersa_info *p,
 				    struct sk_buff *skb)
@@ -680,7 +666,7 @@ static int build_spdinfo(struct sk_buff *skb, u32 pid, u32 seq, u32 flags)
 	u32 *f;
 
 	nlh = nlmsg_put(skb, pid, seq, XFRM_MSG_NEWSPDINFO, sizeof(u32), 0);
-	if (nlh == NULL) /* shouldnt really happen ... */
+	if (nlh == NULL) 
 		return -EMSGSIZE;
 
 	f = nlmsg_data(nlh);
@@ -728,7 +714,7 @@ static inline size_t xfrm_sadinfo_msgsize(void)
 {
 	return NLMSG_ALIGN(4)
 	       + nla_total_size(sizeof(struct xfrmu_sadhinfo))
-	       + nla_total_size(4); /* XFRMA_SAD_CNT */
+	       + nla_total_size(4); 
 }
 
 static int build_sadinfo(struct sk_buff *skb, u32 pid, u32 seq, u32 flags)
@@ -739,7 +725,7 @@ static int build_sadinfo(struct sk_buff *skb, u32 pid, u32 seq, u32 flags)
 	u32 *f;
 
 	nlh = nlmsg_put(skb, pid, seq, XFRM_MSG_NEWSADINFO, sizeof(u32), 0);
-	if (nlh == NULL) /* shouldnt really happen ... */
+	if (nlh == NULL) 
 		return -EMSGSIZE;
 
 	f = nlmsg_data(nlh);
@@ -810,7 +796,7 @@ static int verify_userspi_info(struct xfrm_userspi_info *p)
 		break;
 
 	case IPPROTO_COMP:
-		/* IPCOMP spi is 16-bits. */
+		
 		if (p->max >= 0x10000)
 			return -EINVAL;
 		break;
@@ -982,7 +968,7 @@ static void copy_templates(struct xfrm_policy *xp, struct xfrm_user_tmpl *ut,
 		t->aalgos = ut->aalgos;
 		t->ealgos = ut->ealgos;
 		t->calgos = ut->calgos;
-		/* If all masks are ~0, then we allow all algorithms. */
+		
 		t->allalgs = !~(t->aalgos & t->ealgos & t->calgos);
 		t->encap_family = ut->family;
 	}
@@ -996,13 +982,7 @@ static int validate_tmpl(int nr, struct xfrm_user_tmpl *ut, u16 family)
 		return -EINVAL;
 
 	for (i = 0; i < nr; i++) {
-		/* We never validated the ut->family value, so many
-		 * applications simply leave it at zero.  The check was
-		 * never made and ut->family was ignored because all
-		 * templates could be assumed to have the same family as
-		 * the policy itself.  Now that we will have ipv4-in-ipv6
-		 * and ipv6-in-ipv4 tunnels, this is no longer true.
-		 */
+		
 		if (!ut[i].family)
 			ut[i].family = family;
 
@@ -1070,7 +1050,7 @@ static void copy_from_user_policy(struct xfrm_policy *xp, struct xfrm_userpolicy
 	xp->action = p->action;
 	xp->flags = p->flags;
 	xp->family = p->sel.family;
-	/* XXX xp->share = p->share; */
+	
 }
 
 static void copy_to_user_policy(struct xfrm_policy *xp, struct xfrm_userpolicy_info *p, int dir)
@@ -1084,7 +1064,7 @@ static void copy_to_user_policy(struct xfrm_policy *xp, struct xfrm_userpolicy_i
 	p->dir = dir;
 	p->action = xp->action;
 	p->flags = xp->flags;
-	p->share = XFRM_SHARE_ANY; /* XXX xp->share */
+	p->share = XFRM_SHARE_ANY; 
 }
 
 static struct xfrm_policy *xfrm_policy_construct(struct net *net, struct xfrm_userpolicy_info *p, struct nlattr **attrs, int *errp)
@@ -1140,10 +1120,7 @@ static int xfrm_add_policy(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (!xp)
 		return err;
 
-	/* shouldnt excl be based on nlh flags??
-	 * Aha! this is anti-netlink really i.e  more pfkey derived
-	 * in netlink excl is a flag and you wouldnt need
-	 * a type XFRM_MSG_UPDPOLICY - JHS */
+	
 	excl = nlh->nlmsg_type == XFRM_MSG_NEWPOLICY;
 	err = xfrm_policy_insert(p->dir, xp, excl);
 	xfrm_audit_policy_add(xp, err ? 0 : 1, loginuid, sessionid, sid);
@@ -1429,8 +1406,8 @@ static inline size_t xfrm_aevent_msgsize(void)
 	return NLMSG_ALIGN(sizeof(struct xfrm_aevent_id))
 	       + nla_total_size(sizeof(struct xfrm_replay_state))
 	       + nla_total_size(sizeof(struct xfrm_lifetime_cur))
-	       + nla_total_size(4) /* XFRM_AE_RTHR */
-	       + nla_total_size(4); /* XFRM_AE_ETHR */
+	       + nla_total_size(4) 
+	       + nla_total_size(4); 
 }
 
 static int build_aevent(struct sk_buff *skb, struct xfrm_state *x, struct km_event *c)
@@ -1489,11 +1466,7 @@ static int xfrm_get_ae(struct sk_buff *skb, struct nlmsghdr *nlh,
 		return -ESRCH;
 	}
 
-	/*
-	 * XXX: is this lock really needed - none of the other
-	 * gets lock (the concern is things getting updated
-	 * while we are still reading) - jhs
-	*/
+	
 	spin_lock_bh(&x->lock);
 	c.data.aevent = p->flags;
 	c.seq = nlh->nlmsg_seq;
@@ -1521,7 +1494,7 @@ static int xfrm_new_ae(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (!lt && !rp)
 		return err;
 
-	/* pedantic mode - thou shalt sayeth replaceth */
+	
 	if (!(nlh->nlmsg_flags&NLM_F_REPLACE))
 		return err;
 
@@ -1629,7 +1602,7 @@ static int xfrm_add_pol_expire(struct sk_buff *skb, struct nlmsghdr *nlh,
 		xfrm_audit_policy_delete(xp, 1, loginuid, sessionid, sid);
 
 	} else {
-		// reset the timers here?
+		
 		printk("Dont know what to do with soft policy expire\n");
 	}
 	km_policy_expired(xp, p->dir, up->hard, current->pid);
@@ -1694,7 +1667,7 @@ static int xfrm_add_acquire(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (err)
 		goto bad_policy;
 
-	/*   build an XP */
+	
 	xp = xfrm_policy_construct(net, &ua->policy, attrs, &err);
 	if (!xp)
 		goto free_state;
@@ -1704,7 +1677,7 @@ static int xfrm_add_acquire(struct sk_buff *skb, struct nlmsghdr *nlh,
 	memcpy(&x->sel, &ua->sel, sizeof(ua->sel));
 
 	ut = nla_data(rt);
-	/* extract the templates and for each call km_key */
+	
 	for (i = 0; i < xp->xfrm_nr; i++, ut++) {
 		struct xfrm_tmpl *t = &xp->xfrm_vec[i];
 		memcpy(&x->id, &t->id, sizeof(x->id));
@@ -1866,7 +1839,7 @@ static int build_migrate(struct sk_buff *skb, struct xfrm_migrate *m,
 		return -EMSGSIZE;
 
 	pol_id = nlmsg_data(nlh);
-	/* copy data from selector, dir, and type to the pol_id */
+	
 	memset(pol_id, 0, sizeof(*pol_id));
 	memcpy(&pol_id->sel, sel, sizeof(pol_id->sel));
 	pol_id->dir = dir;
@@ -1899,7 +1872,7 @@ static int xfrm_send_migrate(struct xfrm_selector *sel, u8 dir, u8 type,
 	if (skb == NULL)
 		return -ENOMEM;
 
-	/* build migrate */
+	
 	if (build_migrate(skb, m, num_migrate, k, sel, dir, type) < 0)
 		BUG();
 
@@ -2004,7 +1977,7 @@ static int xfrm_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	type -= XFRM_MSG_BASE;
 	link = &xfrm_dispatch[type];
 
-	/* All operations require privileges, even GET */
+	
 	if (security_netlink_recv(skb, CAP_NET_ADMIN))
 		return -EPERM;
 
@@ -2131,7 +2104,7 @@ static inline size_t xfrm_sa_len(struct xfrm_state *x)
 	if (x->coaddr)
 		l += nla_total_size(sizeof(*x->coaddr));
 
-	/* Must count x->lastused as it may become non-zero behind our back. */
+	
 	l += nla_total_size(sizeof(u64));
 
 	return l;
@@ -2187,7 +2160,7 @@ static int xfrm_notify_sa(struct xfrm_state *x, struct km_event *c)
 	return nlmsg_multicast(net->xfrm.nlsk, skb, 0, XFRMNLGRP_SA, GFP_ATOMIC);
 
 nla_put_failure:
-	/* Somebody screwed up with xfrm_sa_len! */
+	
 	WARN_ON(1);
 	kfree_skb(skb);
 	return -1;
@@ -2277,9 +2250,7 @@ static int xfrm_send_acquire(struct xfrm_state *x, struct xfrm_tmpl *xt,
 	return nlmsg_multicast(net->xfrm.nlsk, skb, 0, XFRMNLGRP_ACQUIRE, GFP_ATOMIC);
 }
 
-/* User gives us xfrm_user_policy_info followed by an array of 0
- * or more templates.
- */
+
 static struct xfrm_policy *xfrm_compile_policy(struct sock *sk, int opt,
 					       u8 *data, int len, int *dir)
 {

@@ -1,14 +1,4 @@
-/* DVB USB framework compliant Linux driver for the HanfTek UMT-010 USB2.0
- * DVB-T receiver.
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "dibusb.h"
 
 #include "mt352.h"
@@ -71,7 +61,7 @@ static int umt_tuner_attach (struct dvb_usb_adapter *adap)
 	return 0;
 }
 
-/* USB Driver stuff */
+
 static struct dvb_usb_device_properties umt_properties;
 
 static int umt_probe(struct usb_interface *intf,
@@ -83,11 +73,11 @@ static int umt_probe(struct usb_interface *intf,
 	return -EINVAL;
 }
 
-/* do not change the order of the ID table */
+
 static struct usb_device_id umt_table [] = {
-/* 00 */	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_COLD) },
-/* 01 */	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_WARM) },
-			{ }		/* Terminating entry */
+	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_COLD) },
+	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_WARM) },
+			{ }		
 };
 MODULE_DEVICE_TABLE (usb, umt_table);
 
@@ -104,7 +94,7 @@ static struct dvb_usb_device_properties umt_properties = {
 			.frontend_attach  = umt_mt352_frontend_attach,
 			.tuner_attach     = umt_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = MAX_NO_URBS_FOR_DATA_STREAM,
@@ -141,7 +131,7 @@ static struct usb_driver umt_driver = {
 	.id_table	= umt_table,
 };
 
-/* module stuff */
+
 static int __init umt_module_init(void)
 {
 	int result;
@@ -155,7 +145,7 @@ static int __init umt_module_init(void)
 
 static void __exit umt_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&umt_driver);
 }
 

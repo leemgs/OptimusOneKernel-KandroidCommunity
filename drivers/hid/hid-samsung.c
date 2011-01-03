@@ -1,20 +1,6 @@
-/*
- *  HID driver for some samsung "special" devices
- *
- *  Copyright (c) 1999 Andreas Gal
- *  Copyright (c) 2000-2005 Vojtech Pavlik <vojtech@suse.cz>
- *  Copyright (c) 2005 Michael Haboustak <mike-@cinci.rr.com> for Concept2, Inc
- *  Copyright (c) 2006-2007 Jiri Kosina
- *  Copyright (c) 2007 Paul Walmsley
- *  Copyright (c) 2008 Jiri Slaby
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/hid.h>
@@ -22,24 +8,7 @@
 
 #include "hid-ids.h"
 
-/*
- * Samsung IrDA remote controller (reports as Cypress USB Mouse).
- *
- * There are several variants for 0419:0001:
- *
- * 1. 184 byte report descriptor
- * Vendor specific report #4 has a size of 48 bit,
- * and therefore is not accepted when inspecting the descriptors.
- * As a workaround we reinterpret the report as:
- *   Variable type, count 6, size 8 bit, log. maximum 255
- * The burden to reconstruct the data is moved into user space.
- *
- * 2. 203 byte report descriptor
- * Report #4 has an array field with logical range 0..18 instead of 1..15.
- *
- * 3. 135 byte report descriptor
- * Report #4 has an array field with logical range 0..17 instead of 1..14.
- */
+
 static void samsung_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 		unsigned int rsize)
 {
@@ -83,7 +52,7 @@ static int samsung_probe(struct hid_device *hdev,
 	}
 
 	if (hdev->rsize == 184) {
-		/* disable hidinput, force hiddev */
+		
 		cmask = (cmask & ~HID_CONNECT_HIDINPUT) |
 			HID_CONNECT_HIDDEV_FORCE;
 	}

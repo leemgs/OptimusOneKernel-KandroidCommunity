@@ -1,22 +1,4 @@
-/*
-    bt848.h - Bt848 register offsets
 
-    Copyright (C) 1996,97,98 Ralph Metzler (rjkm@thp.uni-koeln.de)
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #ifndef _BT848_H_
 #define _BT848_H_
@@ -38,7 +20,7 @@
 #endif
 
 
-/* Brooktree 848 registers */
+
 
 #define BT848_DSTATUS          0x000
 #define BT848_DSTATUS_PRES     (1<<7)
@@ -302,9 +284,9 @@
 #define BT848_GPIO_DATA        0x200
 
 
-/* Bt848 RISC commands */
 
-/* only for the SYNC RISC command */
+
+
 #define BT848_FIFO_STATUS_FM1  0x06
 #define BT848_FIFO_STATUS_FM3  0x0e
 #define BT848_FIFO_STATUS_SOL  0x02
@@ -318,19 +300,19 @@
 
 #define BT848_RISC_RESYNC      (1<<15)
 
-/* WRITE and SKIP */
-/* disable which bytes of each DWORD */
+
+
 #define BT848_RISC_BYTE0       (1U<<12)
 #define BT848_RISC_BYTE1       (1U<<13)
 #define BT848_RISC_BYTE2       (1U<<14)
 #define BT848_RISC_BYTE3       (1U<<15)
 #define BT848_RISC_BYTE_ALL    (0x0fU<<12)
 #define BT848_RISC_BYTE_NONE   0
-/* cause RISCI */
+
 #define BT848_RISC_IRQ         (1U<<24)
-/* RISC command is last one in this line */
+
 #define BT848_RISC_EOL         (1U<<26)
-/* RISC command is first one in this line */
+
 #define BT848_RISC_SOL         (1U<<27)
 
 #define BT848_RISC_WRITE       (0x01U<<28)
@@ -344,7 +326,7 @@
 #define BT848_RISC_WRITE1S23   (0x0bU<<28)
 
 
-/* Bt848A and higher only !! */
+
 #define BT848_TGLB             0x080
 #define BT848_TGCTRL           0x084
 #define BT848_FCAP             0x0E8
@@ -357,7 +339,7 @@
 
 #define BT848_DVSIF            0x0FC
 
-/* Bt878 register */
+
 
 #define BT878_DEVCTRL 0x40
 #define BT878_EN_TBFX 0x02

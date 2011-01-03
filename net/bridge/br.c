@@ -1,15 +1,4 @@
-/*
- *	Generic parts
- *	Linux ethernet bridge
- *
- *	Authors:
- *	Lennert Buytenhek		<buytenh@gnu.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -93,7 +82,7 @@ static void __exit br_deinit(void)
 
 	unregister_pernet_subsys(&br_net_ops);
 
-	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+	rcu_barrier(); 
 
 	br_netfilter_fini();
 #if defined(CONFIG_ATM_LANE) || defined(CONFIG_ATM_LANE_MODULE)

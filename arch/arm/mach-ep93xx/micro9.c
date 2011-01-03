@@ -1,15 +1,4 @@
-/*
- *  linux/arch/arm/mach-ep93xx/micro9.c
- *
- * Copyright (C) 2006 Contec Steuerungstechnik & Automation GmbH
- *                    Manfred Gruber <m.gruber@tirol.com>
- * Copyright (C) 2009 Contec Steuerungstechnik & Automation GmbH
- *                    Hubert Feurstein <hubert.feurstein@contec.at>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -23,14 +12,7 @@
 #include <asm/mach/arch.h>
 
 
-/*************************************************************************
- * Micro9 NOR Flash
- *
- * Micro9-High has up to 64MB of 32-bit flash on CS1
- * Micro9-Mid has up to 64MB of either 32-bit or 16-bit flash on CS1
- * Micro9-Lite uses a seperate MTD map driver for flash support
- * Micro9-Slim has up to 64MB of either 32-bit or 16-bit flash on CS1
- *************************************************************************/
+
 static struct physmap_flash_data micro9_flash_data;
 
 static struct resource micro9_flash_resource = {
@@ -60,12 +42,12 @@ static unsigned int __init micro9_detect_bootwidth(void)
 {
 	u32 v;
 
-	/* Detect the bus width of the external flash memory */
+	
 	v = __raw_readl(EP93XX_SYSCON_SYSCFG);
 	if (v & EP93XX_SYSCON_SYSCFG_LCSN7)
-		return 4; /* 32-bit */
+		return 4; 
 	else
-		return 2; /* 16-bit */
+		return 2; 
 }
 
 static void __init micro9_register_flash(void)
@@ -77,9 +59,7 @@ static void __init micro9_register_flash(void)
 }
 
 
-/*************************************************************************
- * Micro9 Ethernet
- *************************************************************************/
+
 static struct ep93xx_eth_data micro9_eth_data = {
 	.phy_id		= 0x1f,
 };
@@ -95,7 +75,7 @@ static void __init micro9_init_machine(void)
 
 #ifdef CONFIG_MACH_MICRO9H
 MACHINE_START(MICRO9, "Contec Micro9-High")
-	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,
@@ -108,7 +88,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_MICRO9M
 MACHINE_START(MICRO9M, "Contec Micro9-Mid")
-	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_ASYNC + 0x100,
@@ -121,7 +101,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_MICRO9L
 MACHINE_START(MICRO9L, "Contec Micro9-Lite")
-	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,
@@ -134,7 +114,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_MICRO9S
 MACHINE_START(MICRO9S, "Contec Micro9-Slim")
-	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_ASYNC + 0x100,

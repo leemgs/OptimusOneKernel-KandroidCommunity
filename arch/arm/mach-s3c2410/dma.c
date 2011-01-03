@@ -1,16 +1,4 @@
-/* linux/arch/arm/mach-s3c2410/dma.c
- *
- * Copyright (c) 2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2410 DMA selection
- *
- * http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -178,7 +166,7 @@ arch_initcall(s3c2410a_dma_drvinit);
 #endif
 
 #if defined(CONFIG_CPU_S3C2442)
-/* S3C2442 DMA contains the same selection table as the S3C2410 */
+
 static struct sysdev_driver s3c2442_dma_driver = {
 	.add	= s3c2410_dma_add,
 };

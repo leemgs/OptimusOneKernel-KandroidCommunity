@@ -1,25 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/*
- * bfi_cbreg.h crossbow host block register definitions
- *
- * !!! Do not edit. Auto generated. !!!
- */
+
+
 
 #ifndef __BFI_CBREG_H__
 #define __BFI_CBREG_H__
@@ -179,10 +160,7 @@
 #define __PSS_LPU0_RESET                 0x00000001
 
 
-/*
- * These definitions are either in error/missing in spec. Its auto-generated
- * from hard coded values in regparse.pl.
- */
+
 #define __EMPHPOST_AT_4G_MK_FIX          0x0000001c
 #define __EMPHPOST_AT_4G_SH_FIX          0x00000002
 #define __EMPHPRE_AT_4G_FIX              0x00000003
@@ -190,20 +168,14 @@
 #define __SFP_RXRATE_EN_FIX              0x00000080
 
 
-/*
- * These register definitions are auto-generated from hard coded values
- * in regparse.pl.
- */
+
 #define HOSTFN0_LPU_MBOX0_0              0x00019200
 #define HOSTFN1_LPU_MBOX0_8              0x00019260
 #define LPU_HOSTFN0_MBOX0_0              0x00019280
 #define LPU_HOSTFN1_MBOX0_8              0x000192e0
 
 
-/*
- * These register mapping definitions are auto-generated from mapping tables
- * in regparse.pl.
- */
+
 #define BFA_IOC0_HBEAT_REG               HOST_SEM0_INFO_REG
 #define BFA_IOC0_STATE_REG               HOST_SEM1_INFO_REG
 #define BFA_IOC1_HBEAT_REG               HOST_SEM2_INFO_REG
@@ -229,9 +201,7 @@
 #define RME_Q_MASK(__q)  ((__q) & 0x3)
 
 
-/*
- * PCI MSI-X vector defines
- */
+
 enum {
     BFA_MSIX_CPE_Q0 = 0,
     BFA_MSIX_CPE_Q1 = 1,
@@ -258,9 +228,7 @@ enum {
     BFA_MSIX_CB_MAX = 22,
 };
 
-/*
- * And corresponding host interrupt status bit field defines
- */
+
 #define __HFN_INT_CPE_Q0                   0x00000001U
 #define __HFN_INT_CPE_Q1                   0x00000002U
 #define __HFN_INT_CPE_Q2                   0x00000004U
@@ -289,17 +257,13 @@ enum {
 #define __HFN_INT_RME_MASK                 0x0000ff00U
 
 
-/*
- * crossbow memory map.
- */
+
 #define PSS_SMEM_PAGE_START	0x8000
 #define PSS_SMEM_PGNUM(_pg0, _ma)	((_pg0) + ((_ma) >> 15))
 #define PSS_SMEM_PGOFF(_ma)	((_ma) & 0x7fff)
 
-/*
- * End of crossbow memory map
- */
 
 
-#endif /* __BFI_CBREG_H__ */
+
+#endif 
 

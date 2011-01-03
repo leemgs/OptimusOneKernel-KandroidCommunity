@@ -1,13 +1,4 @@
-/*
- *  Copyright (C) 2007
- *
- *  Author: Eric Biederman <ebiederm@xmision.com>
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License as
- *  published by the Free Software Foundation, version 2 of the
- *  License.
- */
+
 
 #include <linux/module.h>
 #include <linux/uts.h>
@@ -38,10 +29,7 @@ static void put_uts(ctl_table *table, int write, void *which)
 }
 
 #ifdef CONFIG_PROC_SYSCTL
-/*
- *	Special case of dostring for the UTS structure. This has locks
- *	to observe. Should this be in kernel/sys.c ????
- */
+
 static int proc_do_uts_string(ctl_table *table, int write,
 		  void __user *buffer, size_t *lenp, loff_t *ppos)
 {
@@ -59,7 +47,7 @@ static int proc_do_uts_string(ctl_table *table, int write,
 
 
 #ifdef CONFIG_SYSCTL_SYSCALL
-/* The generic string strategy routine: */
+
 static int sysctl_uts_string(ctl_table *table,
 		  void __user *oldval, size_t __user *oldlenp,
 		  void __user *newval, size_t newlen)

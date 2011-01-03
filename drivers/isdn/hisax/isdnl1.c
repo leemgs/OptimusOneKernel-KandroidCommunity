@@ -1,22 +1,4 @@
-/* $Id: isdnl1.c,v 2.46.2.5 2004/02/11 13:21:34 keil Exp $
- *
- * common low level stuff for Siemens Chipsetbased isdn cards
- *
- * Author       Karsten Keil
- *              based on the teles driver from Jan den Ouden
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * For changes and modifications please read
- * Documentation/isdn/HiSax.cert
- *
- * Thanks to    Jan den Ouden
- *              Fritz Elfert
- *              Beat Doebeli
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -210,7 +192,7 @@ DChannel_proc_rcv(struct IsdnCardState *cs)
 		if (test_bit(FLG_L1_ACTTIMER, &stptr->l1.Flags))
 			FsmEvent(&stptr->l1.l1m, EV_TIMER_ACT, NULL);	
 	while ((skb = skb_dequeue(&cs->rq))) {
-#ifdef L2FRAME_DEBUG		/* psa */
+#ifdef L2FRAME_DEBUG		
 		if (cs->debug & L1_DEB_LAPD)
 			Logl2Frame(cs, skb, "PH_DATA", 1);
 #endif
@@ -232,7 +214,7 @@ DChannel_proc_rcv(struct IsdnCardState *cs)
 		if (cs->debug & DEB_DLOG_VERBOSE)
 			dlogframe(cs, skb, 1);
 		if (tei == GROUP_TEI) {
-			if (sapi == CTRL_SAPI) { /* sapi 0 */
+			if (sapi == CTRL_SAPI) { 
 				while (stptr != NULL) {
 					if ((nskb = skb_clone(skb, GFP_ATOMIC)))
 						stptr->l1.l1l2(stptr, PH_DATA | INDICATION, nskb);
@@ -250,7 +232,7 @@ DChannel_proc_rcv(struct IsdnCardState *cs)
 				}
 			}
 			dev_kfree_skb(skb);
-		} else if (sapi == CTRL_SAPI) { /* sapi 0 */
+		} else if (sapi == CTRL_SAPI) { 
 			found = 0;
 			while (stptr != NULL)
 				if (tei == stptr->l2.tei) {
@@ -371,7 +353,7 @@ init_bcstate(struct IsdnCardState *cs, int bc)
 	bcs->Flag = 0;
 }
 
-#ifdef L2FRAME_DEBUG		/* psa */
+#ifdef L2FRAME_DEBUG		
 
 static char *
 l2cmd(u_char cmd)

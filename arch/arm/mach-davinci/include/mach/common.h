@@ -1,13 +1,4 @@
-/*
- * Header for code common to all DaVinci machines.
- *
- * Author: Kevin Hilman, MontaVista Software, Inc. <source@mvista.com>
- *
- * 2007 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 
 #ifndef __ARCH_ARM_MACH_DAVINCI_COMMON_H
 #define __ARCH_ARM_MACH_DAVINCI_COMMON_H
@@ -20,10 +11,10 @@ extern void davinci_irq_init(void);
 extern void __iomem *davinci_intc_base;
 extern int davinci_intc_type;
 
-/* parameters describe VBUS sourcing for host mode */
+
 extern void setup_usb(unsigned mA, unsigned potpgt_msec);
 
-/* parameters describe VBUS sourcing for host mode */
+
 extern void setup_usb(unsigned mA, unsigned potpgt_msec);
 
 struct davinci_timer_instance {
@@ -40,7 +31,7 @@ struct davinci_timer_info {
 	unsigned int			clocksource_id;
 };
 
-/* SoC specific init support */
+
 struct davinci_soc_info {
 	struct map_desc			*io_desc;
 	unsigned long			io_desc_num;
@@ -74,8 +65,8 @@ extern struct davinci_soc_info davinci_soc_info;
 
 extern void davinci_common_init(struct davinci_soc_info *soc_info);
 
-/* standard place to map on-chip SRAMs; they *may* support DMA */
+
 #define SRAM_VIRT	0xfffe0000
 #define SRAM_SIZE	SZ_128K
 
-#endif /* __ARCH_ARM_MACH_DAVINCI_COMMON_H */
+#endif 

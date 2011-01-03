@@ -1,12 +1,4 @@
-/*
- * Node information (ConfigROM) collection and management.
- *
- * Copyright (C) 2000		Andreas E. Bombe
- *               2001-2003	Ben Collins <bcollins@debian.net>
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- */
+
 
 #include <linux/bitmap.h>
 #include <linux/kernel.h>
@@ -47,12 +39,7 @@ struct nodemgr_csr_info {
 };
 
 
-/*
- * Correct the speed map entry.  This is necessary
- *  - for nodes with link speed < phy speed,
- *  - for 1394b nodes with negotiated phy port speed < IEEE1394_SPEED_MAX.
- * A possible speed is determined by trial and error, using quadlet reads.
- */
+
 static int nodemgr_check_speed(struct nodemgr_csr_info *ci, u64 addr,
 			       quadlet_t *buffer)
 {
@@ -64,10 +51,7 @@ static int nodemgr_check_speed(struct nodemgr_csr_info *ci, u64 addr,
 	old_speed = *speed;
 	good_speed = IEEE1394_SPEED_MAX + 1;
 
-	/* Try every speed from S100 to old_speed.
-	 * If we did it the other way around, a too low speed could be caught
-	 * if the retry succeeded for some other reason, e.g. because the link
-	 * just finished its initialization. */
+	
 	for (i = IEEE1394_SPEED_100; i <= old_speed; i++) {
 		*speed = i;
 		error = hpsb_read(ci->host, ci->nodeid, ci->generation, addr,
@@ -102,12 +86,11 @@ static int nodemgr_bus_read(struct csr1212_csr *csr, u64 addr,
 			ci->speed_unverified = 0;
 			break;
 		}
-		/* Give up after 3rd failure. */
+		
 		if (i == 3)
 			break;
 
-		/* The ieee1394_core guessed the node's speed capability from
-		 * the self ID.  Check whether a lower speed works. */
+		
 		if (ci->speed_unverified) {
 			error = nodemgr_check_speed(ci, addr, buffer);
 			if (!error)
@@ -124,25 +107,9 @@ static struct csr1212_bus_ops nodemgr_csr_ops = {
 };
 
 
-/*
- * Basically what we do here is start off retrieving the bus_info block.
- * From there will fill in some info about the node, verify it is of IEEE
- * 1394 type, and that the crc checks out ok. After that we start off with
- * the root directory, and subdirectories. To do this, we retrieve the
- * quadlet header for a directory, find out the length, and retrieve the
- * complete directory entry (be it a leaf or a directory). We then process
- * it and add the info to our structure for that particular node.
- *
- * We verify CRC's along the way for each directory/block/leaf. The entire
- * node structure is generic, and simply stores the information in a way
- * that's easy to parse by the protocol interface.
- */
 
-/*
- * The nodemgr relies heavily on the Driver Model for device callbacks and
- * driver/device mappings. The old nodemgr used to handle all this itself,
- * but now we are much simpler because of the LDM.
- */
+
+
 
 struct host_info {
 	struct hpsb_host *host;
@@ -183,9 +150,7 @@ static void ud_cls_release(struct device *dev)
 	put_device(&container_of((dev), struct unit_directory, unit_dev)->device);
 }
 
-/* The name here is only so that unit directory hotplug works with old
- * style hotplug, which only ever did unit directories anyway.
- */
+
 static struct class nodemgr_ud_class = {
 	.name		= "ieee1394",
 	.dev_release	= ud_cls_release,
@@ -240,10 +205,7 @@ static struct device nodemgr_dev_template_ne = {
 	.release	= nodemgr_release_ne,
 };
 
-/* This dummy driver prevents the host devices from being scanned. We have no
- * useful drivers for them yet, and there would be a deadlock possible if the
- * driver core scans the host device while the host's low-level driver (i.e.
- * the host's parent device) is being removed. */
+
 static struct device_driver nodemgr_mid_layer_driver = {
 	.bus		= &ieee1394_bus_type,
 	.name		= "nodemgr",
@@ -355,7 +317,7 @@ static ssize_t fw_show_ne_tlabels_mask(struct device *dev,
 	return sprintf(buf, "0x%016llx\n", (unsigned long long)tm);
 }
 static DEVICE_ATTR(tlabels_mask, S_IRUGO, fw_show_ne_tlabels_mask, NULL);
-#endif /* HPSB_DEBUG_TLABELS */
+#endif 
 
 
 static ssize_t fw_set_ignore_driver(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
@@ -449,7 +411,7 @@ static struct device_attribute *const fw_ne_attrs[] = {
 
 fw_attr(ud, struct unit_directory, address, unsigned long long, "0x%016Lx\n")
 fw_attr(ud, struct unit_directory, length, int, "%d\n")
-/* These are all dependent on the value being provided */
+
 fw_attr(ud, struct unit_directory, vendor_id, unsigned int, "0x%06x\n")
 fw_attr(ud, struct unit_directory, model_id, unsigned int, "0x%06x\n")
 fw_attr(ud, struct unit_directory, specifier_id, unsigned int, "0x%06x\n")
@@ -664,7 +626,7 @@ static int nodemgr_bus_match(struct device * dev, struct device_driver * drv)
 	struct unit_directory *ud;
 	const struct ieee1394_device_id *id;
 
-	/* We only match unit directories */
+	
 	if (dev->platform_data != &nodemgr_ud_platform_data)
 		return 0;
 
@@ -672,7 +634,7 @@ static int nodemgr_bus_match(struct device * dev, struct device_driver * drv)
 	if (ud->ne->in_limbo || ud->ignore_driver)
 		return 0;
 
-	/* We only match drivers of type hpsb_protocol_driver */
+	
 	if (drv == &nodemgr_mid_layer_driver)
 		return 0;
 
@@ -721,10 +683,7 @@ static void nodemgr_remove_uds(struct node_entry *ne)
 	struct device *dev;
 	struct unit_directory *ud;
 
-	/* Use class_find device to iterate the devices. Since this code
-	 * may be called from other contexts besides the knodemgrds,
-	 * protect it by nodemgr_serialize_remove_uds.
-	 */
+	
 	mutex_lock(&nodemgr_serialize_remove_uds);
 	for (;;) {
 		dev = class_find_device(&nodemgr_ud_class, NULL, ne, match_ne);
@@ -951,9 +910,7 @@ fail_devreg:
 }	
 
 
-/* This implementation currently only scans the config rom and its
- * immediate unit directories looking for software_id and
- * software_version entries, in order to get driver autoloading working. */
+
 static struct unit_directory *nodemgr_process_unit_directory
 	(struct node_entry *ne, struct csr1212_keyval *ud_kv,
 	 unsigned int *id, struct unit_directory *parent)
@@ -975,7 +932,7 @@ static struct unit_directory *nodemgr_process_unit_directory
 	ud->ud_kv = ud_kv;
 	ud->id = (*id)++;
 
-	/* inherit vendor_id from root directory if none exists in unit dir */
+	
 	ud->vendor_id = ne->vendor_id;
 
 	csr1212_for_each_dir_entry(ne->csr, kv, ud_kv, dentry) {
@@ -1021,11 +978,11 @@ static struct unit_directory *nodemgr_process_unit_directory
 					break;
 
 				}
-			} /* else if (kv->key.type == CSR1212_KV_TYPE_DIRECTORY) ... */
+			} 
 			break;
 
 		case CSR1212_KV_ID_DEPENDENT_INFO:
-			/* Logical Unit Number */
+			
 			if (kv->key.type == CSR1212_KV_TYPE_IMMEDIATE) {
 				if (ud->flags & UNIT_DIRECTORY_HAS_LUN) {
 					ud_child = kmemdup(ud, sizeof(*ud_child), GFP_KERNEL);
@@ -1039,24 +996,22 @@ static struct unit_directory *nodemgr_process_unit_directory
 				ud->lun = kv->value.immediate;
 				ud->flags |= UNIT_DIRECTORY_HAS_LUN;
 
-			/* Logical Unit Directory */
+			
 			} else if (kv->key.type == CSR1212_KV_TYPE_DIRECTORY) {
-				/* This should really be done in SBP2 as this is
-				 * doing SBP2 specific parsing.
-				 */
 				
-				/* first register the parent unit */
+				
+				
 				ud->flags |= UNIT_DIRECTORY_HAS_LUN_DIRECTORY;
 				if (ud->device.bus != &ieee1394_bus_type)
 					nodemgr_register_device(ne, ud, &ne->device);
 				
-				/* process the child unit */
+				
 				ud_child = nodemgr_process_unit_directory(ne, kv, id, ud);
 
 				if (ud_child == NULL)
 					break;
 				
-				/* inherit unspecified values, the driver core picks it up */
+				
 				if ((ud->flags & UNIT_DIRECTORY_MODEL_ID) &&
 				    !(ud_child->flags & UNIT_DIRECTORY_MODEL_ID))
 				{
@@ -1076,7 +1031,7 @@ static struct unit_directory *nodemgr_process_unit_directory
 					ud_child->version = ud->version;
 				}
 				
-				/* register the child unit */
+				
 				ud_child->flags |= UNIT_DIRECTORY_LUN_DIRECTORY;
 				nodemgr_register_device(ne, ud_child, &ud->device);
 			}
@@ -1093,7 +1048,7 @@ static struct unit_directory *nodemgr_process_unit_directory
 		last_key_id = kv->key.id;
 	}
 	
-	/* do not process child units here and only if not already registered */
+	
 	if (!parent && ud->device.bus != &ieee1394_bus_type)
 		nodemgr_register_device(ne, ud, &ne->device);
 
@@ -1163,7 +1118,7 @@ static int nodemgr_uevent(struct device *dev, struct kobj_uevent_env *env)
 {
 	struct unit_directory *ud;
 	int retval = 0;
-	/* ieee1394:venNmoNspNverN */
+	
 	char buf[8 + 1 + 3 + 8 + 2 + 8 + 2 + 8 + 3 + 8 + 1];
 
 	if (!dev)
@@ -1205,7 +1160,7 @@ static int nodemgr_uevent(struct device *dev, struct kobj_uevent_env *env)
 	return -ENODEV;
 }
 
-#endif /* CONFIG_HOTPLUG */
+#endif 
 
 
 int __hpsb_register_protocol(struct hpsb_protocol_driver *drv,
@@ -1217,7 +1172,7 @@ int __hpsb_register_protocol(struct hpsb_protocol_driver *drv,
 	drv->driver.owner = owner;
 	drv->driver.name = drv->name;
 
-	/* This will cause a probe for devices */
+	
 	error = driver_register(&drv->driver);
 	if (!error)
 		nodemgr_create_drv_files(drv);
@@ -1227,19 +1182,12 @@ int __hpsb_register_protocol(struct hpsb_protocol_driver *drv,
 void hpsb_unregister_protocol(struct hpsb_protocol_driver *driver)
 {
 	nodemgr_remove_drv_files(driver);
-	/* This will subsequently disconnect all devices that our driver
-	 * is attached to. */
+	
 	driver_unregister(&driver->driver);
 }
 
 
-/*
- * This function updates nodes that were present on the bus before the
- * reset and still are after the reset.  The nodeid and the config rom
- * may have changed, and the drivers managing this device must be
- * informed that this device just went through a bus reset, to allow
- * the to take whatever actions required.
- */
+
 static void nodemgr_update_node(struct node_entry *ne, struct csr1212_csr *csr,
 				nodeid_t nodeid, unsigned int generation)
 {
@@ -1255,24 +1203,23 @@ static void nodemgr_update_node(struct node_entry *ne, struct csr1212_csr *csr,
 		csr1212_destroy_csr(ne->csr);
 		ne->csr = csr;
 
-		/* If the node's configrom generation has changed, we
-		 * unregister all the unit directories. */
+		
 		nodemgr_remove_uds(ne);
 
 		nodemgr_update_bus_options(ne);
 
-		/* Mark the node as new, so it gets re-probed */
+		
 		ne->needs_probe = true;
 	} else {
-		/* old cache is valid, so update its generation */
+		
 		struct nodemgr_csr_info *ci = ne->csr->private;
 		ci->generation = generation;
-		/* free the partially filled now unneeded new cache */
+		
 		kfree(csr->private);
 		csr1212_destroy_csr(csr);
 	}
 
-	/* Finally, mark the node current */
+	
 	smp_wmb();
 	ne->generation = generation;
 
@@ -1305,14 +1252,13 @@ static void nodemgr_node_scan_one(struct hpsb_host *host,
 	ci->nodeid = nodeid;
 	ci->generation = generation;
 
-	/* Prepare for speed probe which occurs when reading the ROM */
+	
 	speed = &(host->speed[NODEID_TO_NODE(nodeid)]);
 	if (*speed > host->csr.lnk_spd)
 		*speed = host->csr.lnk_spd;
 	ci->speed_unverified = *speed > IEEE1394_SPEED_100;
 
-	/* We need to detect when the ConfigROM's generation has changed,
-	 * so we only update the node's info when it needs to be.  */
+	
 
 	csr = csr1212_create_csr(&nodemgr_csr_ops, 5 * sizeof(quadlet_t), ci);
 	if (!csr || csr1212_parse_csr(csr) != CSR1212_SUCCESS) {
@@ -1325,13 +1271,7 @@ static void nodemgr_node_scan_one(struct hpsb_host *host,
 	}
 
 	if (csr->bus_info_data[1] != IEEE1394_BUSID_MAGIC) {
-		/* This isn't a 1394 device, but we let it slide. There
-		 * was a report of a device with broken firmware which
-		 * reported '2394' instead of '1394', which is obviously a
-		 * mistake. One would hope that a non-1394 device never
-		 * gets connected to Firewire bus. If someone does, we
-		 * shouldn't be held responsible, so we'll allow it with a
-		 * warning.  */
+		
 		HPSB_WARN("Node " NODE_BUS_FMT " has invalid busID magic [0x%08x]",
 			  NODE_BUS_ARGS(host, nodeid), csr->bus_info_data[1]);
 	}
@@ -1340,7 +1280,7 @@ static void nodemgr_node_scan_one(struct hpsb_host *host,
 	ne = find_entry_by_guid(guid);
 
 	if (ne && ne->host != host && ne->in_limbo) {
-		/* Must have moved this device from one host to another */
+		
 		nodemgr_remove_ne(ne);
 		ne = NULL;
 	}
@@ -1358,7 +1298,7 @@ static void nodemgr_node_scan(struct hpsb_host *host, int generation)
 	struct selfid *sid = (struct selfid *)host->topology_map;
 	nodeid_t nodeid = LOCAL_BUS;
 
-	/* Scan each node on the bus */
+	
 	for (count = host->selfid_count; count; count--, sid++) {
 		if (sid->extended)
 			continue;
@@ -1415,12 +1355,7 @@ static void nodemgr_update_pdrv(struct node_entry *ne)
 	class_for_each_device(&nodemgr_ud_class, NULL, ne, update_pdrv);
 }
 
-/* Write the BROADCAST_CHANNEL as per IEEE1394a 8.3.2.3.11 and 8.4.2.3.  This
- * seems like an optional service but in the end it is practically mandatory
- * as a consequence of these clauses.
- *
- * Note that we cannot do a broadcast write to all nodes at once because some
- * pre-1394a devices would hang. */
+
 static void nodemgr_irm_write_bc(struct node_entry *ne, int generation)
 {
 	const u64 bc_addr = (CSR_REGISTER_BASE | CSR_BROADCAST_CHANNEL);
@@ -1433,7 +1368,7 @@ static void nodemgr_irm_write_bc(struct node_entry *ne, int generation)
 
 	bc_local = cpu_to_be32(ne->host->csr.broadcast_channel);
 
-	/* Check if the register is implemented and 1394a compliant. */
+	
 	error = hpsb_read(ne->host, ne->nodeid, generation, bc_addr, &bc_remote,
 			  sizeof(bc_remote));
 	if (!error && bc_remote & cpu_to_be32(0x80000000) &&
@@ -1456,11 +1391,7 @@ static void nodemgr_probe_ne(struct hpsb_host *host, struct node_entry *ne,
 
 	nodemgr_irm_write_bc(ne, generation);
 
-	/* If "needs_probe", then this is either a new or changed node we
-	 * rescan totally. If the generation matches for an existing node
-	 * (one that existed prior to the bus reset) we send update calls
-	 * down to the drivers. Otherwise, this is a dead node and we
-	 * suspend it. */
+	
 	if (ne->needs_probe)
 		nodemgr_process_root_directory(ne);
 	else if (ne->generation == generation)
@@ -1497,19 +1428,7 @@ static int nodemgr_node_probe(struct hpsb_host *host, int generation)
 
 	p.host = host;
 	p.generation = generation;
-	/*
-	 * Do some processing of the nodes we've probed. This pulls them
-	 * into the sysfs layer if needed, and can result in processing of
-	 * unit-directories, or just updating the node and it's
-	 * unit-directories.
-	 *
-	 * Run updates before probes. Usually, updates are time-critical
-	 * while probes are time-consuming.
-	 *
-	 * Meanwhile, another bus reset may have happened. In this case we
-	 * skip everything here and let the next bus scan handle it.
-	 * Otherwise we may prematurely remove nodes which are still there.
-	 */
+	
 	p.probe_now = false;
 	if (class_for_each_device(&nodemgr_ne_class, NULL, &p, node_probe) != 0)
 		return 0;
@@ -1517,15 +1436,7 @@ static int nodemgr_node_probe(struct hpsb_host *host, int generation)
 	p.probe_now = true;
 	if (class_for_each_device(&nodemgr_ne_class, NULL, &p, node_probe) != 0)
 		return 0;
-	/*
-	 * Now let's tell the bus to rescan our devices. This may seem
-	 * like overhead, but the driver-model core will only scan a
-	 * device for a driver when either the device is added, or when a
-	 * new driver is added. A bus reset is a good reason to rescan
-	 * devices that were there before.  For example, an sbp2 device
-	 * may become available for login, if the host that held it was
-	 * just removed.
-	 */
+	
 	if (bus_rescan_devices(&ieee1394_bus_type) != 0)
 		HPSB_DEBUG("bus_rescan_devices had an error");
 
@@ -1570,26 +1481,24 @@ static int nodemgr_send_resume_packet(struct hpsb_host *host)
 	return error;
 }
 
-/* Perform a few high-level IRM responsibilities. */
+
 static int nodemgr_do_irm_duties(struct hpsb_host *host, int cycles)
 {
 	quadlet_t bc;
 
-	/* if irm_id == -1 then there is no IRM on this bus */
+	
 	if (!host->is_irm || host->irm_id == (nodeid_t)-1)
 		return 1;
 
-	/* We are a 1394a-2000 compliant IRM. Set the validity bit. */
+	
 	host->csr.broadcast_channel |= 0x40000000;
 
-	/* If there is no bus manager then we should set the root node's
-	 * force_root bit to promote bus stability per the 1394
-	 * spec. (8.4.2.6) */
+	
 	if (host->busmgr_id == 0xffff && host->node_count > 1)
 	{
 		u16 root_node = host->node_count - 1;
 
-		/* get cycle master capability flag from root node */
+		
 		if (host->is_cycmst ||
 		    (!hpsb_read(host, LOCAL_BUS | root_node, get_hpsb_generation(host),
 				(CSR_REGISTER_BASE + CSR_CONFIG_ROM + 2 * sizeof(quadlet_t)),
@@ -1601,7 +1510,7 @@ static int nodemgr_do_irm_duties(struct hpsb_host *host, int cycles)
 				   "selecting a new root node and resetting...");
 
 			if (cycles >= 5) {
-				/* Oh screw it! Just leave the bus as it is */
+				
 				HPSB_DEBUG("Stopping reset loop for IRM sanity");
 				return 1;
 			}
@@ -1613,19 +1522,14 @@ static int nodemgr_do_irm_duties(struct hpsb_host *host, int cycles)
 		}
 	}
 
-	/* Some devices suspend their ports while being connected to an inactive
-	 * host adapter, i.e. if connected before the low-level driver is
-	 * loaded.  They become visible either when physically unplugged and
-	 * replugged, or when receiving a resume packet.  Send one once. */
+	
 	if (!host->resume_packet_sent && !nodemgr_send_resume_packet(host))
 		host->resume_packet_sent = 1;
 
 	return 1;
 }
 
-/* We need to ensure that if we are not the IRM, that the IRM node is capable of
- * everything we can do, otherwise issue a bus reset and try to become the IRM
- * ourselves. */
+
 static int nodemgr_check_irm_capability(struct hpsb_host *host, int cycles)
 {
 	quadlet_t bc;
@@ -1640,12 +1544,11 @@ static int nodemgr_check_irm_capability(struct hpsb_host *host, int cycles)
 			   &bc, sizeof(quadlet_t));
 
 	if (status < 0 || !(be32_to_cpu(bc) & 0x80000000)) {
-		/* The current irm node does not have a valid BROADCAST_CHANNEL
-		 * register and we do, so reset the bus with force_root set */
+		
 		HPSB_DEBUG("Current remote IRM is not 1394a-2000 compliant, resetting...");
 
 		if (cycles >= 5) {
-			/* Oh screw it! Just leave the bus as it is */
+			
 			HPSB_DEBUG("Stopping reset loop for IRM sanity");
 			return 1;
 		}
@@ -1666,25 +1569,24 @@ static int nodemgr_host_thread(void *data)
 	int i, reset_cycles = 0;
 
 	set_freezable();
-	/* Setup our device-model entries */
+	
 	nodemgr_create_host_dev_files(host);
 
 	for (;;) {
-		/* Sleep until next bus reset */
+		
 		set_current_state(TASK_INTERRUPTIBLE);
 		if (get_hpsb_generation(host) == generation &&
 		    !kthread_should_stop())
 			schedule();
 		__set_current_state(TASK_RUNNING);
 
-		/* Thread may have been woken up to freeze or to exit */
+		
 		if (try_to_freeze())
 			continue;
 		if (kthread_should_stop())
 			goto exit;
 
-		/* Pause for 1/4 second in 1/16 second intervals,
-		 * to make sure things settle down. */
+		
 		g = get_hpsb_generation(host);
 		for (i = 0; i < 4 ; i++) {
 			msleep_interruptible(63);
@@ -1692,15 +1594,10 @@ static int nodemgr_host_thread(void *data)
 			if (kthread_should_stop())
 				goto exit;
 
-			/* Now get the generation in which the node ID's we collect
-			 * are valid.  During the bus scan we will use this generation
-			 * for the read transactions, so that if another reset occurs
-			 * during the scan the transactions will fail instead of
-			 * returning bogus data. */
+			
 			generation = get_hpsb_generation(host);
 
-			/* If we get a reset before we are done waiting, then
-			 * start the waiting over again */
+			
 			if (generation != g)
 				g = generation, i = 0;
 		}
@@ -1712,21 +1609,17 @@ static int nodemgr_host_thread(void *data)
 		}
 		reset_cycles = 0;
 
-		/* Scan our nodes to get the bus options and create node
-		 * entries. This does not do the sysfs stuff, since that
-		 * would trigger uevents and such, which is a bad idea at
-		 * this point. */
+		
 		nodemgr_node_scan(host, generation);
 
-		/* This actually does the full probe, with sysfs
-		 * registration. */
+		
 		if (!nodemgr_node_probe(host, generation))
 			continue;
 
-		/* Update some of our sysfs symlinks */
+		
 		nodemgr_update_host_dev_links(host);
 
-		/* Sleep 3 seconds */
+		
 		for (i = 3000/200; i; i--) {
 			msleep_interruptible(200);
 			try_to_freeze();
@@ -1736,7 +1629,7 @@ static int nodemgr_host_thread(void *data)
 			if (generation != get_hpsb_generation(host))
 				break;
 		}
-		/* Remove nodes which are gone, unless a bus reset happened */
+		
 		if (!i)
 			nodemgr_remove_nodes_in_limbo(host);
 	}
@@ -1759,18 +1652,7 @@ static int per_host(struct device *dev, void *data)
 	return p->cb(host, p->data);
 }
 
-/**
- * nodemgr_for_each_host - call a function for each IEEE 1394 host
- * @data: an address to supply to the callback
- * @cb: function to call for each host
- *
- * Iterate the hosts, calling a given function with supplied data for each host.
- * If the callback fails on a host, i.e. if it returns a non-zero value, the
- * iteration is stopped.
- *
- * Return value: 0 on success, non-zero on failure (same as returned by last run
- * of the callback).
- */
+
 int nodemgr_for_each_host(void *data, int (*cb)(struct hpsb_host *, void *))
 {
 	struct per_host_parameter p;
@@ -1780,29 +1662,9 @@ int nodemgr_for_each_host(void *data, int (*cb)(struct hpsb_host *, void *))
 	return class_for_each_device(&hpsb_host_class, NULL, &p, per_host);
 }
 
-/* The following two convenience functions use a struct node_entry
- * for addressing a node on the bus.  They are intended for use by any
- * process context, not just the nodemgr thread, so we need to be a
- * little careful when reading out the node ID and generation.  The
- * thing that can go wrong is that we get the node ID, then a bus
- * reset occurs, and then we read the generation.  The node ID is
- * possibly invalid, but the generation is current, and we end up
- * sending a packet to a the wrong node.
- *
- * The solution is to make sure we read the generation first, so that
- * if a reset occurs in the process, we end up with a stale generation
- * and the transactions will fail instead of silently using wrong node
- * ID's.
- */
 
-/**
- * hpsb_node_fill_packet - fill some destination information into a packet
- * @ne: destination node
- * @packet: packet to fill in
- *
- * This will fill in the given, pre-initialised hpsb_packet with the current
- * information from the node entry (host, node ID, bus generation number).
- */
+
+
 void hpsb_node_fill_packet(struct node_entry *ne, struct hpsb_packet *packet)
 {
 	packet->host = ne->host;
@@ -1879,7 +1741,7 @@ int init_ieee1394_nodemgr(void)
 	error = driver_register(&nodemgr_mid_layer_driver);
 	if (error)
 		goto fail_ml;
-	/* This driver is not used if nodemgr is off (disable_nodemgr=1). */
+	
 	nodemgr_dev_template_host.driver = &nodemgr_mid_layer_driver;
 
 	hpsb_register_highlevel(&nodemgr_highlevel);

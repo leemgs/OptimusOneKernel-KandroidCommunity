@@ -1,27 +1,4 @@
-/*
- * Read-Copy Update module-based torture test facility
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) IBM Corporation, 2005, 2006
- *
- * Authors: Paul E. McKenney <paulmck@us.ibm.com>
- *	  Josh Triplett <josh@freedesktop.org>
- *
- * See also:  Documentation/RCU/torture.txt
- */
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -52,16 +29,16 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Paul E. McKenney <paulmck@us.ibm.com> and "
 	      "Josh Triplett <josh@freedesktop.org>");
 
-static int nreaders = -1;	/* # reader threads, defaults to 2*ncpus */
-static int nfakewriters = 4;	/* # fake writer threads */
-static int stat_interval;	/* Interval between stats, in seconds. */
-				/*  Defaults to "only at end of test". */
-static int verbose;		/* Print more debug info. */
-static int test_no_idle_hz;	/* Test RCU's support for tickless idle CPUs. */
-static int shuffle_interval = 3; /* Interval between shuffles (in sec)*/
-static int stutter = 5;		/* Start/stop testing interval (in sec) */
-static int irqreader = 1;	/* RCU readers from irq (timers). */
-static char *torture_type = "rcu"; /* What RCU implementation to torture. */
+static int nreaders = -1;	
+static int nfakewriters = 4;	
+static int stat_interval;	
+				
+static int verbose;		
+static int test_no_idle_hz;	
+static int shuffle_interval = 3; 
+static int stutter = 5;		
+static int irqreader = 1;	
+static char *torture_type = "rcu"; 
 
 module_param(nreaders, int, 0444);
 MODULE_PARM_DESC(nreaders, "Number of RCU reader threads");
@@ -137,18 +114,16 @@ static int stutter_pause_test;
 #endif
 int rcutorture_runnable = RCUTORTURE_RUNNABLE_INIT;
 
-/* Mediate rmmod and system shutdown.  Concurrent rmmod & shutdown illegal! */
 
-#define FULLSTOP_DONTSTOP 0	/* Normal operation. */
-#define FULLSTOP_SHUTDOWN 1	/* System shutdown with rcutorture running. */
-#define FULLSTOP_RMMOD    2	/* Normal rmmod of rcutorture. */
+
+#define FULLSTOP_DONTSTOP 0	
+#define FULLSTOP_SHUTDOWN 1	
+#define FULLSTOP_RMMOD    2	
 static int fullstop = FULLSTOP_RMMOD;
-DEFINE_MUTEX(fullstop_mutex);	/* Protect fullstop transitions and spawning */
-				/*  of kthreads. */
+DEFINE_MUTEX(fullstop_mutex);	
+				
 
-/*
- * Detect and respond to a system shutdown.
- */
+
 static int
 rcutorture_shutdown_notify(struct notifier_block *unused1,
 			   unsigned long unused2, void *unused3)
@@ -157,16 +132,13 @@ rcutorture_shutdown_notify(struct notifier_block *unused1,
 	if (fullstop == FULLSTOP_DONTSTOP)
 		fullstop = FULLSTOP_SHUTDOWN;
 	else
-		printk(KERN_WARNING /* but going down anyway, so... */
+		printk(KERN_WARNING 
 		       "Concurrent 'rmmod rcutorture' and shutdown illegal!\n");
 	mutex_unlock(&fullstop_mutex);
 	return NOTIFY_DONE;
 }
 
-/*
- * Absorb kthreads into a kernel function that won't return, so that
- * they won't ever access module text or data again.
- */
+
 static void rcutorture_shutdown_absorb(char *title)
 {
 	if (ACCESS_ONCE(fullstop) == FULLSTOP_SHUTDOWN) {
@@ -177,9 +149,7 @@ static void rcutorture_shutdown_absorb(char *title)
 	}
 }
 
-/*
- * Allocate an element from the rcu_tortures pool.
- */
+
 static struct rcu_torture *
 rcu_torture_alloc(void)
 {
@@ -198,9 +168,7 @@ rcu_torture_alloc(void)
 	return container_of(p, struct rcu_torture, rtort_free);
 }
 
-/*
- * Free an element to the rcu_tortures pool.
- */
+
 static void
 rcu_torture_free(struct rcu_torture *p)
 {
@@ -215,16 +183,13 @@ struct rcu_random_state {
 	long rrs_count;
 };
 
-#define RCU_RANDOM_MULT 39916801  /* prime */
-#define RCU_RANDOM_ADD	479001701 /* prime */
+#define RCU_RANDOM_MULT 39916801  
+#define RCU_RANDOM_ADD	479001701 
 #define RCU_RANDOM_REFRESH 10000
 
 #define DEFINE_RCU_RANDOM(name) struct rcu_random_state name = { 0, 0 }
 
-/*
- * Crude but fast random-number generator.  Uses a linear congruential
- * generator, with occasional help from cpu_clock().
- */
+
 static unsigned long
 rcu_random(struct rcu_random_state *rrsp)
 {
@@ -249,9 +214,7 @@ rcu_stutter_wait(char *title)
 	}
 }
 
-/*
- * Operations vector for selecting different types of tests.
- */
+
 
 struct rcu_torture_ops {
 	void (*init)(void);
@@ -270,9 +233,7 @@ struct rcu_torture_ops {
 
 static struct rcu_torture_ops *cur_ops;
 
-/*
- * Definitions for rcu torture testing.
- */
+
 
 static int rcu_torture_read_lock(void) __acquires(RCU)
 {
@@ -285,9 +246,7 @@ static void rcu_read_delay(struct rcu_random_state *rrsp)
 	const unsigned long shortdelay_us = 200;
 	const unsigned long longdelay_ms = 50;
 
-	/* We want a short delay sometimes to make a reader delay the grace
-	 * period, and we want a long delay occasionally to trigger
-	 * force_quiescent_state. */
+	
 
 	if (!(rcu_random(rrsp) % (nrealreaders * 2000 * longdelay_ms)))
 		mdelay(longdelay_ms);
@@ -312,8 +271,8 @@ rcu_torture_cb(struct rcu_head *p)
 	struct rcu_torture *rp = container_of(p, struct rcu_torture, rtort_rcu);
 
 	if (fullstop != FULLSTOP_DONTSTOP) {
-		/* Test is ending, just drop callbacks on the floor. */
-		/* The next initialization will pick up the pieces. */
+		
+		
 		return;
 	}
 	i = rp->rtort_pipe_count;
@@ -388,9 +347,7 @@ static struct rcu_torture_ops rcu_sync_ops = {
 	.name		= "rcu_sync"
 };
 
-/*
- * Definitions for rcu_bh torture testing.
- */
+
 
 static int rcu_bh_torture_read_lock(void) __acquires(RCU_BH)
 {
@@ -439,7 +396,7 @@ static struct rcu_torture_ops rcu_bh_ops = {
 	.init		= NULL,
 	.cleanup	= NULL,
 	.readlock	= rcu_bh_torture_read_lock,
-	.read_delay	= rcu_read_delay,  /* just reuse rcu's version. */
+	.read_delay	= rcu_read_delay,  
 	.readunlock	= rcu_bh_torture_read_unlock,
 	.completed	= rcu_bh_torture_completed,
 	.deferred_free	= rcu_bh_torture_deferred_free,
@@ -454,7 +411,7 @@ static struct rcu_torture_ops rcu_bh_sync_ops = {
 	.init		= rcu_sync_torture_init,
 	.cleanup	= NULL,
 	.readlock	= rcu_bh_torture_read_lock,
-	.read_delay	= rcu_read_delay,  /* just reuse rcu's version. */
+	.read_delay	= rcu_read_delay,  
 	.readunlock	= rcu_bh_torture_read_unlock,
 	.completed	= rcu_bh_torture_completed,
 	.deferred_free	= rcu_sync_torture_deferred_free,
@@ -465,9 +422,7 @@ static struct rcu_torture_ops rcu_bh_sync_ops = {
 	.name		= "rcu_bh_sync"
 };
 
-/*
- * Definitions for srcu torture testing.
- */
+
 
 static struct srcu_struct srcu_ctl;
 
@@ -494,7 +449,7 @@ static void srcu_read_delay(struct rcu_random_state *rrsp)
 	const long uspertick = 1000000 / HZ;
 	const long longdelay = 10;
 
-	/* We want there to be long-running readers, but not all the time. */
+	
 
 	delay = rcu_random(rrsp) % (nrealreaders * 2 * longdelay * uspertick);
 	if (!delay)
@@ -547,9 +502,7 @@ static struct rcu_torture_ops srcu_ops = {
 	.name		= "srcu"
 };
 
-/*
- * Definitions for sched torture testing.
- */
+
 
 static int sched_torture_read_lock(void)
 {
@@ -581,7 +534,7 @@ static struct rcu_torture_ops sched_ops = {
 	.init		= rcu_sync_torture_init,
 	.cleanup	= NULL,
 	.readlock	= sched_torture_read_lock,
-	.read_delay	= rcu_read_delay,  /* just reuse rcu's version. */
+	.read_delay	= rcu_read_delay,  
 	.readunlock	= sched_torture_read_unlock,
 	.completed	= sched_torture_completed,
 	.deferred_free	= rcu_sched_torture_deferred_free,
@@ -596,7 +549,7 @@ static struct rcu_torture_ops sched_ops_sync = {
 	.init		= rcu_sync_torture_init,
 	.cleanup	= NULL,
 	.readlock	= sched_torture_read_lock,
-	.read_delay	= rcu_read_delay,  /* just reuse rcu's version. */
+	.read_delay	= rcu_read_delay,  
 	.readunlock	= sched_torture_read_unlock,
 	.completed	= sched_torture_completed,
 	.deferred_free	= rcu_sync_torture_deferred_free,
@@ -610,7 +563,7 @@ static struct rcu_torture_ops sched_expedited_ops = {
 	.init		= rcu_sync_torture_init,
 	.cleanup	= NULL,
 	.readlock	= sched_torture_read_lock,
-	.read_delay	= rcu_read_delay,  /* just reuse rcu's version. */
+	.read_delay	= rcu_read_delay,  
 	.readunlock	= sched_torture_read_unlock,
 	.completed	= sched_torture_completed,
 	.deferred_free	= rcu_sync_torture_deferred_free,
@@ -621,11 +574,7 @@ static struct rcu_torture_ops sched_expedited_ops = {
 	.name		= "sched_expedited"
 };
 
-/*
- * RCU torture writer kthread.  Repeatedly substitutes a new structure
- * for that pointed to by rcu_torture_current, freeing the old structure
- * after a series of grace periods (the "pipeline").
- */
+
 static int
 rcu_torture_writer(void *arg)
 {
@@ -648,7 +597,7 @@ rcu_torture_writer(void *arg)
 		old_rp = rcu_torture_current;
 		rp->rtort_mbtest = 1;
 		rcu_assign_pointer(rcu_torture_current, rp);
-		smp_wmb(); /* Mods to old_rp must follow rcu_assign_pointer() */
+		smp_wmb(); 
 		if (old_rp) {
 			i = old_rp->rtort_pipe_count;
 			if (i > RCU_TORTURE_PIPE_LEN)
@@ -668,10 +617,7 @@ rcu_torture_writer(void *arg)
 	return 0;
 }
 
-/*
- * RCU torture fake writer kthread.  Repeatedly calls sync, with a random
- * delay between calls.
- */
+
 static int
 rcu_torture_fakewriter(void *arg)
 {
@@ -694,12 +640,7 @@ rcu_torture_fakewriter(void *arg)
 	return 0;
 }
 
-/*
- * RCU torture reader from timer handler.  Dereferences rcu_torture_current,
- * incrementing the corresponding element of the pipeline array.  The
- * counter in the element should never be greater than 1, otherwise, the
- * RCU implementation is broken.
- */
+
 static void rcu_torture_timer(unsigned long unused)
 {
 	int idx;
@@ -713,7 +654,7 @@ static void rcu_torture_timer(unsigned long unused)
 	completed = cur_ops->completed();
 	p = rcu_dereference(rcu_torture_current);
 	if (p == NULL) {
-		/* Leave because rcu_torture_writer is not yet underway */
+		
 		cur_ops->readunlock(idx);
 		return;
 	}
@@ -726,13 +667,13 @@ static void rcu_torture_timer(unsigned long unused)
 	preempt_disable();
 	pipe_count = p->rtort_pipe_count;
 	if (pipe_count > RCU_TORTURE_PIPE_LEN) {
-		/* Should not happen, but... */
+		
 		pipe_count = RCU_TORTURE_PIPE_LEN;
 	}
 	++__get_cpu_var(rcu_torture_count)[pipe_count];
 	completed = cur_ops->completed() - completed;
 	if (completed > RCU_TORTURE_PIPE_LEN) {
-		/* Should not happen, but... */
+		
 		completed = RCU_TORTURE_PIPE_LEN;
 	}
 	++__get_cpu_var(rcu_torture_batch)[completed];
@@ -740,12 +681,7 @@ static void rcu_torture_timer(unsigned long unused)
 	cur_ops->readunlock(idx);
 }
 
-/*
- * RCU torture reader kthread.  Repeatedly dereferences rcu_torture_current,
- * incrementing the corresponding element of the pipeline array.  The
- * counter in the element should never be greater than 1, otherwise, the
- * RCU implementation is broken.
- */
+
 static int
 rcu_torture_reader(void *arg)
 {
@@ -770,7 +706,7 @@ rcu_torture_reader(void *arg)
 		completed = cur_ops->completed();
 		p = rcu_dereference(rcu_torture_current);
 		if (p == NULL) {
-			/* Wait for rcu_torture_writer to get underway */
+			
 			cur_ops->readunlock(idx);
 			schedule_timeout_interruptible(HZ);
 			continue;
@@ -781,13 +717,13 @@ rcu_torture_reader(void *arg)
 		preempt_disable();
 		pipe_count = p->rtort_pipe_count;
 		if (pipe_count > RCU_TORTURE_PIPE_LEN) {
-			/* Should not happen, but... */
+			
 			pipe_count = RCU_TORTURE_PIPE_LEN;
 		}
 		++__get_cpu_var(rcu_torture_count)[pipe_count];
 		completed = cur_ops->completed() - completed;
 		if (completed > RCU_TORTURE_PIPE_LEN) {
-			/* Should not happen, but... */
+			
 			completed = RCU_TORTURE_PIPE_LEN;
 		}
 		++__get_cpu_var(rcu_torture_batch)[completed];
@@ -805,9 +741,7 @@ rcu_torture_reader(void *arg)
 	return 0;
 }
 
-/*
- * Create an RCU-torture statistics message in the specified buffer.
- */
+
 static int
 rcu_torture_printk(char *page)
 {
@@ -866,14 +800,7 @@ rcu_torture_printk(char *page)
 	return cnt;
 }
 
-/*
- * Print torture statistics.  Caller must ensure that there is only
- * one call to this function at a given time!!!  This is normally
- * accomplished by relying on the module system to only have one copy
- * of the module loaded, and then by giving the rcu_torture_stats
- * kthread full control (or the init/cleanup functions when rcu_torture_stats
- * thread is not running).
- */
+
 static void
 rcu_torture_stats_print(void)
 {
@@ -883,13 +810,7 @@ rcu_torture_stats_print(void)
 	printk(KERN_ALERT "%s", printk_buf);
 }
 
-/*
- * Periodically prints torture statistics, if periodic statistics printing
- * was specified via the stat_interval module parameter.
- *
- * No need to worry about fullstop here, since this one doesn't reference
- * volatile state or register callbacks.
- */
+
 static int
 rcu_torture_stats(void *arg)
 {
@@ -903,11 +824,9 @@ rcu_torture_stats(void *arg)
 	return 0;
 }
 
-static int rcu_idle_cpu;	/* Force all torture tasks off this CPU */
+static int rcu_idle_cpu;	
 
-/* Shuffle tasks such that we allow @rcu_idle_cpu to become idle. A special case
- * is when @rcu_idle_cpu = -1, when we allow the tasks to run on all CPUs.
- */
+
 static void rcu_torture_shuffle_tasks(void)
 {
 	int i;
@@ -915,7 +834,7 @@ static void rcu_torture_shuffle_tasks(void)
 	cpumask_setall(shuffle_tmp_mask);
 	get_online_cpus();
 
-	/* No point in shuffling if there is only one online CPU (ex: UP) */
+	
 	if (num_online_cpus() == 1) {
 		put_online_cpus();
 		return;
@@ -954,10 +873,7 @@ static void rcu_torture_shuffle_tasks(void)
 	put_online_cpus();
 }
 
-/* Shuffle tasks across CPUs, with the intent of allowing each CPU in the
- * system to become idle at a time and cut off its timer ticks. This is meant
- * to test the support for such tickless idle CPU in RCU.
- */
+
 static int
 rcu_torture_shuffle(void *arg)
 {
@@ -971,9 +887,7 @@ rcu_torture_shuffle(void *arg)
 	return 0;
 }
 
-/* Cause the rcutorture test to "stutter", starting and stopping all
- * threads periodically.
- */
+
 static int
 rcu_torture_stutter(void *arg)
 {
@@ -1013,7 +927,7 @@ rcu_torture_cleanup(void)
 
 	mutex_lock(&fullstop_mutex);
 	if (fullstop == FULLSTOP_SHUTDOWN) {
-		printk(KERN_WARNING /* but going down anyway, so... */
+		printk(KERN_WARNING 
 		       "Concurrent 'rmmod rcutorture' and shutdown illegal!\n");
 		mutex_unlock(&fullstop_mutex);
 		schedule_timeout_uninterruptible(10);
@@ -1075,12 +989,12 @@ rcu_torture_cleanup(void)
 	}
 	stats_task = NULL;
 
-	/* Wait for all RCU callbacks to fire.  */
+	
 
 	if (cur_ops->cb_barrier != NULL)
 		cur_ops->cb_barrier();
 
-	rcu_torture_stats_print();  /* -After- the stats thread is stopped! */
+	rcu_torture_stats_print();  
 
 	if (cur_ops->cleanup)
 		cur_ops->cleanup();
@@ -1103,7 +1017,7 @@ rcu_torture_init(void)
 
 	mutex_lock(&fullstop_mutex);
 
-	/* Process args and tell the world that the torturer is on the job. */
+	
 	for (i = 0; i < ARRAY_SIZE(torture_ops); i++) {
 		cur_ops = torture_ops[i];
 		if (strcmp(torture_type, cur_ops->name) == 0)
@@ -1116,7 +1030,7 @@ rcu_torture_init(void)
 		return -EINVAL;
 	}
 	if (cur_ops->init)
-		cur_ops->init(); /* no "goto unwind" prior to this point!!! */
+		cur_ops->init(); 
 
 	if (nreaders >= 0)
 		nrealreaders = nreaders;
@@ -1125,7 +1039,7 @@ rcu_torture_init(void)
 	rcu_torture_print_module_parms("Start of test");
 	fullstop = FULLSTOP_DONTSTOP;
 
-	/* Set up the freelist. */
+	
 
 	INIT_LIST_HEAD(&rcu_torture_freelist);
 	for (i = 0; i < ARRAY_SIZE(rcu_tortures); i++) {
@@ -1134,7 +1048,7 @@ rcu_torture_init(void)
 			      &rcu_torture_freelist);
 	}
 
-	/* Initialize the statistics so that each run gets its own numbers. */
+	
 
 	rcu_torture_current = NULL;
 	rcu_torture_current_version = 0;
@@ -1152,7 +1066,7 @@ rcu_torture_init(void)
 		}
 	}
 
-	/* Start up the kthreads. */
+	
 
 	VERBOSE_PRINTK_STRING("Creating rcu_torture_writer task");
 	writer_task = kthread_run(rcu_torture_writer, NULL,
@@ -1219,7 +1133,7 @@ rcu_torture_init(void)
 			goto unwind;
 		}
 
-		/* Create the shuffler thread */
+		
 		shuffler_task = kthread_run(rcu_torture_shuffle, NULL,
 					  "rcu_torture_shuffle");
 		if (IS_ERR(shuffler_task)) {
@@ -1233,7 +1147,7 @@ rcu_torture_init(void)
 	if (stutter < 0)
 		stutter = 0;
 	if (stutter) {
-		/* Create the stutter thread */
+		
 		stutter_task = kthread_run(rcu_torture_stutter, NULL,
 					  "rcu_torture_stutter");
 		if (IS_ERR(stutter_task)) {

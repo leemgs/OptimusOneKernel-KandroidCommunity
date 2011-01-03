@@ -1,11 +1,4 @@
-/* $Id: isdnl1.h,v 2.12.2.3 2004/02/11 13:21:34 keil Exp $
- *
- * Layer 1 defines
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #define D_RCVBUFREADY	0
 #define D_XMTBUFREADY	1

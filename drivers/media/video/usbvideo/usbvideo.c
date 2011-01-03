@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -29,15 +15,13 @@
 #include "usbvideo.h"
 
 #if defined(MAP_NR)
-#define	virt_to_page(v)	MAP_NR(v)	/* Kernels 2.2.x */
+#define	virt_to_page(v)	MAP_NR(v)	
 #endif
 
 static int video_nr = -1;
 module_param(video_nr, int, 0);
 
-/*
- * Local prototypes.
- */
+
 static void usbvideo_Disconnect(struct usb_interface *intf);
 static void usbvideo_CameraRelease(struct uvd *uvd);
 
@@ -56,9 +40,9 @@ static int usbvideo_NewFrame(struct uvd *uvd, int framenum);
 static void usbvideo_SoftwareContrastAdjustment(struct uvd *uvd,
 						struct usbvideo_frame *frame);
 
-/*******************************/
-/* Memory management functions */
-/*******************************/
+
+
+
 static void *usbvideo_rvmalloc(unsigned long size)
 {
 	void *mem;
@@ -69,7 +53,7 @@ static void *usbvideo_rvmalloc(unsigned long size)
 	if (!mem)
 		return NULL;
 
-	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
+	memset(mem, 0, size); 
 	adr = (unsigned long) mem;
 	while (size > 0) {
 		SetPageReserved(vmalloc_to_page((void *)adr));
@@ -104,9 +88,7 @@ static void RingQueue_Initialize(struct RingQueue *rq)
 
 static void RingQueue_Allocate(struct RingQueue *rq, int rqLen)
 {
-	/* Make sure the requested size is a power of 2 and
-	   round up if necessary. This allows index wrapping
-	   using masks rather than modulo */
+	
 
 	int i = 1;
 	assert(rq != NULL);
@@ -151,13 +133,13 @@ int RingQueue_Dequeue(struct RingQueue *rq, unsigned char *dst, int len)
 	if(!rql)
 		return 0;
 
-	/* Clip requested length to available data */
+	
 	if(len > rql)
 		len = rql;
 
 	toread = len;
 	if(rq->ri > rq->wi) {
-		/* Read data from tail */
+		
 		int read = (toread < (rq->length - rq->ri)) ? toread : rq->length - rq->ri;
 		memcpy(dst, rq->queue + rq->ri, read);
 		toread -= read;
@@ -165,7 +147,7 @@ int RingQueue_Dequeue(struct RingQueue *rq, unsigned char *dst, int len)
 		rq->ri = (rq->ri + read) & (rq->length-1);
 	}
 	if(toread) {
-		/* Read data from head */
+		
 		memcpy(dst, rq->queue + rq->ri, toread);
 		rq->ri = (rq->ri + toread) & (rq->length-1);
 	}
@@ -184,7 +166,7 @@ int RingQueue_Enqueue(struct RingQueue *rq, const unsigned char *cdata, int n)
 	while (n > 0) {
 		int m, q_avail;
 
-		/* Calculate the largest chunk that fits the tail of the ring */
+		
 		q_avail = rq->length - rq->wi;
 		if (q_avail <= 0) {
 			rq->wi = 0;
@@ -231,15 +213,7 @@ void RingQueue_Flush(struct RingQueue *rq)
 EXPORT_SYMBOL(RingQueue_Flush);
 
 
-/*
- * usbvideo_VideosizeToString()
- *
- * This procedure converts given videosize value to readable string.
- *
- * History:
- * 07-Aug-2000 Created.
- * 19-Oct-2000 Reworked for usbvideo module.
- */
+
 static void usbvideo_VideosizeToString(char *buf, int bufLen, videosize_t vs)
 {
 	char tmp[40];
@@ -253,32 +227,27 @@ static void usbvideo_VideosizeToString(char *buf, int bufLen, videosize_t vs)
 		memmove(buf, tmp, n);
 }
 
-/*
- * usbvideo_OverlayChar()
- *
- * History:
- * 01-Feb-2000 Created.
- */
+
 static void usbvideo_OverlayChar(struct uvd *uvd, struct usbvideo_frame *frame,
 				 int x, int y, int ch)
 {
 	static const unsigned short digits[16] = {
-		0xF6DE, /* 0 */
-		0x2492, /* 1 */
-		0xE7CE, /* 2 */
-		0xE79E, /* 3 */
-		0xB792, /* 4 */
-		0xF39E, /* 5 */
-		0xF3DE, /* 6 */
-		0xF492, /* 7 */
-		0xF7DE, /* 8 */
-		0xF79E, /* 9 */
-		0x77DA, /* a */
-		0xD75C, /* b */
-		0xF24E, /* c */
-		0xD6DC, /* d */
-		0xF34E, /* e */
-		0xF348  /* f */
+		0xF6DE, 
+		0x2492, 
+		0xE7CE, 
+		0xE79E, 
+		0xB792, 
+		0xF39E, 
+		0xF3DE, 
+		0xF492, 
+		0xF7DE, 
+		0xF79E, 
+		0x77DA, 
+		0xD75C, 
+		0xF24E, 
+		0xD6DC, 
+		0xF34E, 
+		0xF348  
 	};
 	unsigned short digit;
 	int ix, iy;
@@ -300,7 +269,7 @@ static void usbvideo_OverlayChar(struct uvd *uvd, struct usbvideo_frame *frame,
 		for (ix=0; ix < 3; ix++) {
 			if (digit & 0x8000) {
 				if (uvd->paletteBits & (1L << VIDEO_PALETTE_RGB24)) {
-/* TODO */				RGB24_PUTPIXEL(frame, x+ix, y+iy, 0xFF, 0xFF, 0xFF);
+				RGB24_PUTPIXEL(frame, x+ix, y+iy, 0xFF, 0xFF, 0xFF);
 				}
 			}
 			digit = digit << 1;
@@ -308,30 +277,18 @@ static void usbvideo_OverlayChar(struct uvd *uvd, struct usbvideo_frame *frame,
 	}
 }
 
-/*
- * usbvideo_OverlayString()
- *
- * History:
- * 01-Feb-2000 Created.
- */
+
 static void usbvideo_OverlayString(struct uvd *uvd, struct usbvideo_frame *frame,
 				   int x, int y, const char *str)
 {
 	while (*str) {
 		usbvideo_OverlayChar(uvd, frame, x, y, *str);
 		str++;
-		x += 4; /* 3 pixels character + 1 space */
+		x += 4; 
 	}
 }
 
-/*
- * usbvideo_OverlayStats()
- *
- * Overlays important debugging information.
- *
- * History:
- * 01-Feb-2000 Created.
- */
+
 static void usbvideo_OverlayStats(struct uvd *uvd, struct usbvideo_frame *frame)
 {
 	const int y_diff = 8;
@@ -341,28 +298,19 @@ static void usbvideo_OverlayStats(struct uvd *uvd, struct usbvideo_frame *frame)
 	const int qi_x1 = 60, qi_y1 = 10;
 	const int qi_x2 = VIDEOSIZE_X(frame->request) - 10, qi_h = 10;
 
-	/* Call the user callback, see if we may proceed after that */
+	
 	if (VALID_CALLBACK(uvd, overlayHook)) {
 		if (GET_CALLBACK(uvd, overlayHook)(uvd, frame) < 0)
 			return;
 	}
 
-	/*
-	 * We draw a (mostly) hollow rectangle with qi_xxx coordinates.
-	 * Left edge symbolizes the queue index 0; right edge symbolizes
-	 * the full capacity of the queue.
-	 */
+	
 	barLength = qi_x2 - qi_x1 - 2;
 	if ((barLength > 10) && (uvd->paletteBits & (1L << VIDEO_PALETTE_RGB24))) {
-/* TODO */	long u_lo, u_hi, q_used;
+	long u_lo, u_hi, q_used;
 		long m_ri, m_wi, m_lo, m_hi;
 
-		/*
-		 * Determine fill zones (used areas of the queue):
-		 * 0 xxxxxxx u_lo ...... uvd->dp.ri xxxxxxxx u_hi ..... uvd->dp.length
-		 *
-		 * if u_lo < 0 then there is no first filler.
-		 */
+		
 
 		q_used = RingQueue_GetLength(&uvd->dp);
 		if ((uvd->dp.ri + q_used) >= uvd->dp.length) {
@@ -373,7 +321,7 @@ static void usbvideo_OverlayStats(struct uvd *uvd, struct usbvideo_frame *frame)
 			u_lo = -1;
 		}
 
-		/* Convert byte indices into screen units */
+		
 		m_ri = qi_x1 + ((barLength * uvd->dp.ri) / uvd->dp.length);
 		m_wi = qi_x1 + ((barLength * uvd->dp.wi) / uvd->dp.length);
 		m_lo = (u_lo > 0) ? (qi_x1 + ((barLength * u_lo) / uvd->dp.length)) : -1;
@@ -381,13 +329,13 @@ static void usbvideo_OverlayStats(struct uvd *uvd, struct usbvideo_frame *frame)
 
 		for (j=qi_y1; j < (qi_y1 + qi_h); j++) {
 			for (i=qi_x1; i < qi_x2; i++) {
-				/* Draw border lines */
+				
 				if ((j == qi_y1) || (j == (qi_y1 + qi_h - 1)) ||
 				    (i == qi_x1) || (i == (qi_x2 - 1))) {
 					RGB24_PUTPIXEL(frame, i, j, 0xFF, 0xFF, 0xFF);
 					continue;
 				}
-				/* For all other points the Y coordinate does not matter */
+				
 				if ((i >= m_ri) && (i <= (m_ri + 3))) {
 					RGB24_PUTPIXEL(frame, i, j, 0x00, 0xFF, 0x00);
 				} else if ((i >= m_wi) && (i <= (m_wi + 3))) {
@@ -447,14 +395,7 @@ static void usbvideo_OverlayStats(struct uvd *uvd, struct usbvideo_frame *frame)
 	y += y_diff;
 }
 
-/*
- * usbvideo_ReportStatistics()
- *
- * This procedure prints packet and transfer statistics.
- *
- * History:
- * 14-Jan-2000 Corrected default multiplier.
- */
+
 static void usbvideo_ReportStatistics(const struct uvd *uvd)
 {
 	if ((uvd != NULL) && (uvd->stats.urb_count > 0)) {
@@ -462,7 +403,7 @@ static void usbvideo_ReportStatistics(const struct uvd *uvd)
 		allPackets = uvd->stats.urb_count * CAMERA_URB_FRAMES;
 		badPackets = uvd->stats.iso_skip_count + uvd->stats.iso_err_count;
 		goodPackets = allPackets - badPackets;
-		/* Calculate percentage wisely, remember integer limits */
+		
 		assert(allPackets != 0);
 		if (goodPackets < (((unsigned long)-1)/100))
 			percent = (100 * goodPackets) / allPackets;
@@ -481,7 +422,7 @@ static void usbvideo_ReportStatistics(const struct uvd *uvd)
 				percent = (100 * xferBytes) / allBytes;
 			else
 				percent = xferBytes / (allBytes / 100);
-			/* Scale xferBytes for easy reading */
+			
 			if (xferBytes > 10*1024) {
 				xferBytes /= 1024;
 				multiplier = 'K';
@@ -505,20 +446,7 @@ static void usbvideo_ReportStatistics(const struct uvd *uvd)
 	}
 }
 
-/*
- * usbvideo_TestPattern()
- *
- * Procedure forms a test pattern (yellow grid on blue background).
- *
- * Parameters:
- * fullframe: if TRUE then entire frame is filled, otherwise the procedure
- *	      continues from the current scanline.
- * pmode      0: fill the frame with solid blue color (like on VCR or TV)
- *	      1: Draw a colored grid
- *
- * History:
- * 01-Feb-2000 Created.
- */
+
 void usbvideo_TestPattern(struct uvd *uvd, int fullframe, int pmode)
 {
 	struct usbvideo_frame *frame;
@@ -535,22 +463,22 @@ void usbvideo_TestPattern(struct uvd *uvd, int fullframe, int pmode)
 		return;
 	}
 
-	/* Grab the current frame */
+	
 	frame = &uvd->frame[uvd->curframe];
 
-	/* Optionally start at the beginning */
+	
 	if (fullframe) {
 		frame->curline = 0;
 		frame->seqRead_Length = 0;
 	}
 #if 0
-	{	/* For debugging purposes only */
+	{	
 		char tmp[20];
 		usbvideo_VideosizeToString(tmp, sizeof(tmp), frame->request);
 		dev_info(&uvd->dev->dev, "testpattern: frame=%s\n", tmp);
 	}
 #endif
-	/* Form every scan line */
+	
 	for (; frame->curline < VIDEOSIZE_Y(frame->request); frame->curline++) {
 		int i;
 		unsigned char *f = frame->data +
@@ -573,7 +501,7 @@ void usbvideo_TestPattern(struct uvd *uvd, int fullframe, int pmode)
 					cr = ((num_cell*3) + num_pass*3) & 0xFF;
 				}
 			} else {
-				/* Just the blue screen */
+				
 			}
 
 			*f++ = cb;
@@ -587,7 +515,7 @@ void usbvideo_TestPattern(struct uvd *uvd, int fullframe, int pmode)
 	frame->seqRead_Length += scan_length;
 	++num_pass;
 
-	/* We do this unconditionally, regardless of FLAGS_OVERLAY_STATS */
+	
 	usbvideo_OverlayStats(uvd, frame);
 }
 
@@ -595,18 +523,11 @@ EXPORT_SYMBOL(usbvideo_TestPattern);
 
 
 #ifdef DEBUG
-/*
- * usbvideo_HexDump()
- *
- * A debugging tool. Prints hex dumps.
- *
- * History:
- * 29-Jul-2000 Added printing of offsets.
- */
+
 void usbvideo_HexDump(const unsigned char *data, int len)
 {
 	const int bytes_per_line = 32;
-	char tmp[128]; /* 32*3 + 5 */
+	char tmp[128]; 
 	int i, k;
 
 	for (i=k=0; len > 0; i++, len--) {
@@ -626,9 +547,9 @@ EXPORT_SYMBOL(usbvideo_HexDump);
 
 #endif
 
-/* ******************************************************************** */
 
-/* XXX: this piece of crap really wants some error handling.. */
+
+
 static int usbvideo_ClientIncModCount(struct uvd *uvd)
 {
 	if (uvd == NULL) {
@@ -675,13 +596,13 @@ int usbvideo_register(
 	struct usbvideo *cams;
 	int i, base_size, result;
 
-	/* Check parameters for sanity */
+	
 	if ((num_cams <= 0) || (pCams == NULL) || (cbTbl == NULL)) {
 		err("%s: Illegal call", __func__);
 		return -EINVAL;
 	}
 
-	/* Check registration callback - must be set! */
+	
 	if (cbTbl->probe == NULL) {
 		err("%s: probe() is required!", __func__);
 		return -EINVAL;
@@ -696,7 +617,7 @@ int usbvideo_register(
 	dbg("%s: Allocated $%p (%d. bytes) for %d. cameras",
 	    __func__, cams, base_size, num_cams);
 
-	/* Copy callbacks, apply defaults for those that are not set */
+	
 	memmove(&cams->cb, cbTbl, sizeof(cams->cb));
 	if (cams->cb.getFrame == NULL)
 		cams->cb.getFrame = usbvideo_GetFrame;
@@ -710,14 +631,14 @@ int usbvideo_register(
 	cams->num_cameras = num_cams;
 	cams->cam = (struct uvd *) &cams[1];
 	cams->md_module = md;
-	mutex_init(&cams->lock);	/* to 1 == available */
+	mutex_init(&cams->lock);	
 
 	for (i = 0; i < num_cams; i++) {
 		struct uvd *up = &cams->cam[i];
 
 		up->handle = cams;
 
-		/* Allocate user_data separately because of kmalloc's limits */
+		
 		if (num_extra > 0) {
 			up->user_size = num_cams * num_extra;
 			up->user_data = kmalloc(up->user_size, GFP_KERNEL);
@@ -736,20 +657,14 @@ int usbvideo_register(
 		}
 	}
 
-	/*
-	 * Register ourselves with USB stack.
-	 */
+	
 	strcpy(cams->drvName, (driverName != NULL) ? driverName : "Unknown");
 	cams->usbdrv.name = cams->drvName;
 	cams->usbdrv.probe = cams->cb.probe;
 	cams->usbdrv.disconnect = cams->cb.disconnect;
 	cams->usbdrv.id_table = id_table;
 
-	/*
-	 * Update global handle to usbvideo. This is very important
-	 * because probe() can be called before usb_register() returns.
-	 * If the handle is not yet updated then the probe() will fail.
-	 */
+	
 	*pCams = cams;
 	result = usb_register(&cams->usbdrv);
 	if (result) {
@@ -765,13 +680,7 @@ int usbvideo_register(
 
 EXPORT_SYMBOL(usbvideo_register);
 
-/*
- * usbvideo_Deregister()
- *
- * Procedure frees all usbvideo and user data structures. Be warned that
- * if you had some dynamically allocated components in ->user field then
- * you should free them before calling here.
- */
+
 void usbvideo_Deregister(struct usbvideo **pCams)
 {
 	struct usbvideo *cams;
@@ -811,7 +720,7 @@ void usbvideo_Deregister(struct usbvideo **pCams)
 			kfree(up->user_data);
 		}
 	}
-	/* Whole array was allocated in one chunk */
+	
 	dbg("%s: Freed %d uvd structures",
 	    __func__, cams->num_cameras);
 	kfree(cams);
@@ -820,28 +729,7 @@ void usbvideo_Deregister(struct usbvideo **pCams)
 
 EXPORT_SYMBOL(usbvideo_Deregister);
 
-/*
- * usbvideo_Disconnect()
- *
- * This procedure stops all driver activity. Deallocation of
- * the interface-private structure (pointed by 'ptr') is done now
- * (if we don't have any open files) or later, when those files
- * are closed. After that driver should be removable.
- *
- * This code handles surprise removal. The uvd->user is a counter which
- * increments on open() and decrements on close(). If we see here that
- * this counter is not 0 then we have a client who still has us opened.
- * We set uvd->remove_pending flag as early as possible, and after that
- * all access to the camera will gracefully fail. These failures should
- * prompt client to (eventually) close the video device, and then - in
- * usbvideo_v4l_close() - we decrement uvd->uvd_used and usage counter.
- *
- * History:
- * 22-Jan-2000 Added polling of MOD_IN_USE to delay removal until all users gone.
- * 27-Jan-2000 Reworked to allow pending disconnects; see xxx_close()
- * 24-May-2000 Corrected to prevent race condition (MOD_xxx_USE_COUNT).
- * 19-Oct-2000 Moved to usbvideo module.
- */
+
 static void usbvideo_Disconnect(struct usb_interface *intf)
 {
 	struct uvd *uvd = usb_get_intfdata (intf);
@@ -859,16 +747,16 @@ static void usbvideo_Disconnect(struct usb_interface *intf)
 		dev_info(&intf->dev, "%s(%p.)\n", __func__, intf);
 
 	mutex_lock(&uvd->lock);
-	uvd->remove_pending = 1; /* Now all ISO data will be ignored */
+	uvd->remove_pending = 1; 
 
-	/* At this time we ask to cancel outstanding URBs */
+	
 	GET_CALLBACK(uvd, stopDataPump)(uvd);
 
 	for (i=0; i < USBVIDEO_NUMSBUF; i++)
 		usb_free_urb(uvd->sbuf[i].urb);
 
 	usb_put_dev(uvd->dev);
-	uvd->dev = NULL;    	    /* USB device is no more */
+	uvd->dev = NULL;    	    
 
 	video_unregister_device(&uvd->vdev);
 	if (uvd->debug > 0)
@@ -885,16 +773,7 @@ static void usbvideo_Disconnect(struct usb_interface *intf)
 	usbvideo_ClientDecModCount(uvd);
 }
 
-/*
- * usbvideo_CameraRelease()
- *
- * This code does final release of uvd. This happens
- * after the device is disconnected -and- all clients
- * closed their files.
- *
- * History:
- * 27-Jan-2000 Created.
- */
+
 static void usbvideo_CameraRelease(struct uvd *uvd)
 {
 	if (uvd == NULL) {
@@ -905,19 +784,10 @@ static void usbvideo_CameraRelease(struct uvd *uvd)
 	RingQueue_Free(&uvd->dp);
 	if (VALID_CALLBACK(uvd, userFree))
 		GET_CALLBACK(uvd, userFree)(uvd);
-	uvd->uvd_used = 0;	/* This is atomic, no need to take mutex */
+	uvd->uvd_used = 0;	
 }
 
-/*
- * usbvideo_find_struct()
- *
- * This code searches the array of preallocated (static) structures
- * and returns index of the first one that isn't in use. Returns -1
- * if there are no free structures.
- *
- * History:
- * 27-Jan-2000 Created.
- */
+
 static int usbvideo_find_struct(struct usbvideo *cams)
 {
 	int u, rv = -1;
@@ -929,10 +799,10 @@ static int usbvideo_find_struct(struct usbvideo *cams)
 	mutex_lock(&cams->lock);
 	for (u = 0; u < cams->num_cameras; u++) {
 		struct uvd *uvd = &cams->cam[u];
-		if (!uvd->uvd_used) /* This one is free */
+		if (!uvd->uvd_used) 
 		{
-			uvd->uvd_used = 1;	/* In use now */
-			mutex_init(&uvd->lock);	/* to 1 == available */
+			uvd->uvd_used = 1;	
+			mutex_init(&uvd->lock);	
 			uvd->dev = NULL;
 			rv = u;
 			break;
@@ -972,7 +842,7 @@ struct uvd *usbvideo_AllocateDevice(struct usbvideo *cams)
 	uvd = &cams->cam[devnum];
 	dbg("Device entry #%d. at $%p", devnum, uvd);
 
-	/* Not relying upon caller we increase module counter ourselves */
+	
 	usbvideo_ClientIncModCount(uvd);
 
 	mutex_lock(&uvd->lock);
@@ -990,13 +860,10 @@ struct uvd *usbvideo_AllocateDevice(struct usbvideo *cams)
 	uvd->last_error = 0;
 	RingQueue_Initialize(&uvd->dp);
 
-	/* Initialize video device structure */
+	
 	uvd->vdev = usbvideo_template;
 	sprintf(uvd->vdev.name, "%.20s USB Camera", cams->drvName);
-	/*
-	 * The client is free to overwrite those because we
-	 * return control to the client's probe function right now.
-	 */
+	
 allocate_done:
 	mutex_unlock(&uvd->lock);
 	usbvideo_ClientDecModCount(uvd);
@@ -1007,7 +874,7 @@ EXPORT_SYMBOL(usbvideo_AllocateDevice);
 
 int usbvideo_RegisterVideoDevice(struct uvd *uvd)
 {
-	char tmp1[20], tmp2[20];	/* Buffers for printing */
+	char tmp1[20], tmp2[20];	
 
 	if (uvd == NULL) {
 		err("%s: Illegal call.", __func__);
@@ -1063,7 +930,7 @@ int usbvideo_RegisterVideoDevice(struct uvd *uvd)
 
 EXPORT_SYMBOL(usbvideo_RegisterVideoDevice);
 
-/* ******************************************************************** */
+
 
 static int usbvideo_v4l_mmap(struct file *file, struct vm_area_struct *vma)
 {
@@ -1095,20 +962,7 @@ static int usbvideo_v4l_mmap(struct file *file, struct vm_area_struct *vma)
 	return 0;
 }
 
-/*
- * usbvideo_v4l_open()
- *
- * This is part of Video 4 Linux API. The driver can be opened by one
- * client only (checks internal counter 'uvdser'). The procedure
- * then allocates buffers needed for video processing.
- *
- * History:
- * 22-Jan-2000 Rewrote, moved scratch buffer allocation here. Now the
- *             camera is also initialized here (once per connect), at
- *             expense of V4L client (it waits on open() call).
- * 27-Jan-2000 Used USBVIDEO_NUMSBUF as number of URB buffers.
- * 24-May-2000 Corrected to prevent race condition (MOD_xxx_USE_COUNT).
- */
+
 static int usbvideo_v4l_open(struct file *file)
 {
 	struct video_device *dev = video_devdata(file);
@@ -1127,14 +981,14 @@ static int usbvideo_v4l_open(struct file *file)
 		err("%s: Someone tried to open an already opened device!", __func__);
 		errCode = -EBUSY;
 	} else {
-		/* Clear statistics */
+		
 		memset(&uvd->stats, 0, sizeof(uvd->stats));
 
-		/* Clean pointers so we know if we allocated something */
+		
 		for (i=0; i < USBVIDEO_NUMSBUF; i++)
 			uvd->sbuf[i].data = NULL;
 
-		/* Allocate memory for the frame buffers */
+		
 		uvd->fbuf_size = USBVIDEO_NUMFRAMES * uvd->max_frame_size;
 		uvd->fbuf = usbvideo_rvmalloc(uvd->fbuf_size);
 		RingQueue_Allocate(&uvd->dp, RING_QUEUE_SIZE);
@@ -1143,14 +997,11 @@ static int usbvideo_v4l_open(struct file *file)
 			err("%s: Failed to allocate fbuf or dp", __func__);
 			errCode = -ENOMEM;
 		} else {
-			/* Allocate all buffers */
+			
 			for (i=0; i < USBVIDEO_NUMFRAMES; i++) {
 				uvd->frame[i].frameState = FrameState_Unused;
 				uvd->frame[i].data = uvd->fbuf + i*(uvd->max_frame_size);
-				/*
-				 * Set default sizes in case IOCTL (VIDIOCMCAPTURE)
-				 * is not used (using read() instead).
-				 */
+				
 				uvd->frame[i].canvas = uvd->canvas;
 				uvd->frame[i].seqRead_Index = 0;
 			}
@@ -1163,7 +1014,7 @@ static int usbvideo_v4l_open(struct file *file)
 			}
 		}
 		if (errCode != 0) {
-			/* Have to free all that memory */
+			
 			if (uvd->fbuf != NULL) {
 				usbvideo_rvfree(uvd->fbuf, uvd->fbuf_size);
 				uvd->fbuf = NULL;
@@ -1176,9 +1027,9 @@ static int usbvideo_v4l_open(struct file *file)
 		}
 	}
 
-	/* If so far no errors then we shall start the camera */
+	
 	if (errCode == 0) {
-		/* Start data pump if we have valid endpoint */
+		
 		if (uvd->video_endp != 0)
 			errCode = GET_CALLBACK(uvd, startDataPump)(uvd);
 		if (errCode == 0) {
@@ -1217,18 +1068,7 @@ static int usbvideo_v4l_open(struct file *file)
 	return errCode;
 }
 
-/*
- * usbvideo_v4l_close()
- *
- * This is part of Video 4 Linux API. The procedure
- * stops streaming and deallocates all buffers that were earlier
- * allocated in usbvideo_v4l_open().
- *
- * History:
- * 22-Jan-2000 Moved scratch buffer deallocation here.
- * 27-Jan-2000 Used USBVIDEO_NUMSBUF as number of URB buffers.
- * 24-May-2000 Moved MOD_DEC_USE_COUNT outside of code that can sleep.
- */
+
 static int usbvideo_v4l_close(struct file *file)
 {
 	struct video_device *dev = file->private_data;
@@ -1269,14 +1109,7 @@ static int usbvideo_v4l_close(struct file *file)
 	return 0;
 }
 
-/*
- * usbvideo_v4l_ioctl()
- *
- * This is part of Video 4 Linux API. The procedure handles ioctl() calls.
- *
- * History:
- * 22-Jan-2000 Corrected VIDIOCSPICT to reject unsupported settings.
- */
+
 static long usbvideo_v4l_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 {
 	struct uvd *uvd = file->private_data;
@@ -1313,16 +1146,12 @@ static long usbvideo_v4l_do_ioctl(struct file *file, unsigned int cmd, void *arg
 		case VIDIOCSPICT:
 		{
 			struct video_picture *pic = arg;
-			/*
-			 * Use temporary 'video_picture' structure to preserve our
-			 * own settings (such as color depth, palette) that we
-			 * aren't allowing everyone (V4L client) to change.
-			 */
+			
 			uvd->vpic.brightness = pic->brightness;
 			uvd->vpic.hue = pic->hue;
 			uvd->vpic.colour = pic->colour;
 			uvd->vpic.contrast = pic->contrast;
-			uvd->settingsAdjusted = 0;	/* Will force new settings */
+			uvd->settingsAdjusted = 0;	
 			return 0;
 		}
 		case VIDIOCSWIN:
@@ -1356,7 +1185,7 @@ static long usbvideo_v4l_do_ioctl(struct file *file, unsigned int cmd, void *arg
 			if (VALID_CALLBACK(uvd, getFPS))
 				vw->flags = GET_CALLBACK(uvd, getFPS)(uvd);
 			else
-				vw->flags = 10; /* FIXME: do better! */
+				vw->flags = 10; 
 			return 0;
 		}
 		case VIDIOCGMBUF:
@@ -1381,19 +1210,7 @@ static long usbvideo_v4l_do_ioctl(struct file *file, unsigned int cmd, void *arg
 					 "VIDIOCMCAPTURE: frame=%d. size=%dx%d, format=%d.\n",
 					 vm->frame, vm->width, vm->height, vm->format);
 			}
-			/*
-			 * Check if the requested size is supported. If the requestor
-			 * requests too big a frame then we may be tricked into accessing
-			 * outside of own preallocated frame buffer (in uvd->frame).
-			 * This will cause oops or a security hole. Theoretically, we
-			 * could only clamp the size down to acceptable bounds, but then
-			 * we'd need to figure out how to insert our smaller buffer into
-			 * larger caller's buffer... this is not an easy question. So we
-			 * here just flatly reject too large requests, assuming that the
-			 * caller will resubmit with smaller size. Callers should know
-			 * what size we support (returned by VIDIOCGCAP). However vidcat,
-			 * for one, does not care and allows to ask for any size.
-			 */
+			
 			if ((vm->width > VIDEOSIZE_X(uvd->canvas)) ||
 			    (vm->height > VIDEOSIZE_Y(uvd->canvas))) {
 				if (uvd->debug > 0) {
@@ -1407,7 +1224,7 @@ static long usbvideo_v4l_do_ioctl(struct file *file, unsigned int cmd, void *arg
 				}
 				return -EINVAL;
 			}
-			/* Check if the palette is supported */
+			
 			if (((1L << vm->format) & uvd->paletteBits) == 0) {
 				if (uvd->debug > 0) {
 					dev_info(&uvd->dev->dev,
@@ -1423,12 +1240,12 @@ static long usbvideo_v4l_do_ioctl(struct file *file, unsigned int cmd, void *arg
 				return -EINVAL;
 			}
 			if (uvd->frame[vm->frame].frameState == FrameState_Grabbing) {
-				/* Not an error - can happen */
+				
 			}
 			uvd->frame[vm->frame].request = VIDEOSIZE(vm->width, vm->height);
 			uvd->frame[vm->frame].palette = vm->format;
 
-			/* Mark it as ready */
+			
 			uvd->frame[vm->frame].frameState = FrameState_Ready;
 
 			return usbvideo_NewFrame(uvd, vm->frame);
@@ -1457,12 +1274,7 @@ static long usbvideo_v4l_do_ioctl(struct file *file, unsigned int cmd, void *arg
 				ret = -EFAULT;
 			}
 
-			/*
-			 * The frame is in FrameState_Done_Hold state. Release it
-			 * right now because its data is already mapped into
-			 * the user space and it's up to the application to
-			 * make use of it until it asks for another frame.
-			 */
+			
 			uvd->frame[*frameNum].frameState = FrameState_Unused;
 			return ret;
 		}
@@ -1503,17 +1315,7 @@ static long usbvideo_v4l_ioctl(struct file *file,
 	return video_usercopy(file, cmd, arg, usbvideo_v4l_do_ioctl);
 }
 
-/*
- * usbvideo_v4l_read()
- *
- * This is mostly boring stuff. We simply ask for a frame and when it
- * arrives copy all the video data from it into user space. There is
- * no obvious need to override this method.
- *
- * History:
- * 20-Oct-2000 Created.
- * 01-Nov-2000 Added mutex (uvd->lock).
- */
+
 static ssize_t usbvideo_v4l_read(struct file *file, char __user *buf,
 		      size_t count, loff_t *ppos)
 {
@@ -1532,7 +1334,7 @@ static ssize_t usbvideo_v4l_read(struct file *file, char __user *buf,
 
 	mutex_lock(&uvd->lock);
 
-	/* See if a frame is completed, then use it. */
+	
 	for(i = 0; i < USBVIDEO_NUMFRAMES; i++) {
 		if ((uvd->frame[i].frameState == FrameState_Done) ||
 		    (uvd->frame[i].frameState == FrameState_Done_Hold) ||
@@ -1542,17 +1344,13 @@ static ssize_t usbvideo_v4l_read(struct file *file, char __user *buf,
 		}
 	}
 
-	/* FIXME: If we don't start a frame here then who ever does? */
+	
 	if (noblock && (frmx == -1)) {
 		count = -EAGAIN;
 		goto read_done;
 	}
 
-	/*
-	 * If no FrameState_Done, look for a FrameState_Grabbing state.
-	 * See if a frame is in process (grabbing), then use it.
-	 * We will need to wait until it becomes cooked, of course.
-	 */
+	
 	if (frmx == -1) {
 		for(i = 0; i < USBVIDEO_NUMFRAMES; i++) {
 			if (uvd->frame[i].frameState == FrameState_Grabbing) {
@@ -1562,17 +1360,7 @@ static ssize_t usbvideo_v4l_read(struct file *file, char __user *buf,
 		}
 	}
 
-	/*
-	 * If no frame is active, start one. We don't care which one
-	 * it will be, so #0 is as good as any.
-	 * In read access mode we don't have convenience of VIDIOCMCAPTURE
-	 * to specify the requested palette (video format) on per-frame
-	 * basis. This means that we have to return data in -some- format
-	 * and just hope that the client knows what to do with it.
-	 * The default format is configured in uvd->defaultPalette field
-	 * as one of VIDEO_PALETTE_xxx values. We stuff it into the new
-	 * frame and initiate the frame filling process.
-	 */
+	
 	if (frmx == -1) {
 		if (uvd->defaultPalette == 0) {
 			err("%s: No default palette; don't know what to do!", __func__);
@@ -1580,32 +1368,18 @@ static ssize_t usbvideo_v4l_read(struct file *file, char __user *buf,
 			goto read_done;
 		}
 		frmx = 0;
-		/*
-		 * We have no per-frame control over video size.
-		 * Therefore we only can use whatever size was
-		 * specified as default.
-		 */
+		
 		uvd->frame[frmx].request = uvd->videosize;
 		uvd->frame[frmx].palette = uvd->defaultPalette;
 		uvd->frame[frmx].frameState = FrameState_Ready;
 		usbvideo_NewFrame(uvd, frmx);
-		/* Now frame 0 is supposed to start filling... */
+		
 	}
 
-	/*
-	 * Get a pointer to the active frame. It is either previously
-	 * completed frame or frame in progress but not completed yet.
-	 */
+	
 	frame = &uvd->frame[frmx];
 
-	/*
-	 * Sit back & wait until the frame gets filled and postprocessed.
-	 * If we fail to get the picture [in time] then return the error.
-	 * In this call we specify that we want the frame to be waited for,
-	 * postprocessed and switched into FrameState_Done_Hold state. This
-	 * state is used to hold the frame as "fully completed" between
-	 * subsequent partial reads of the same frame.
-	 */
+	
 	if (frame->frameState != FrameState_Done_Hold) {
 		long rv = -EFAULT;
 		if (uvd->flags & FLAGS_NO_DECODING)
@@ -1620,42 +1394,29 @@ static ssize_t usbvideo_v4l_read(struct file *file, char __user *buf,
 		}
 	}
 
-	/*
-	 * Copy bytes to user space. We allow for partial reads, which
-	 * means that the user application can request read less than
-	 * the full frame size. It is up to the application to issue
-	 * subsequent calls until entire frame is read.
-	 *
-	 * First things first, make sure we don't copy more than we
-	 * have - even if the application wants more. That would be
-	 * a big security embarassment!
-	 */
+	
 	if ((count + frame->seqRead_Index) > frame->seqRead_Length)
 		count = frame->seqRead_Length - frame->seqRead_Index;
 
-	/*
-	 * Copy requested amount of data to user space. We start
-	 * copying from the position where we last left it, which
-	 * will be zero for a new frame (not read before).
-	 */
+	
 	if (copy_to_user(buf, frame->data + frame->seqRead_Index, count)) {
 		count = -EFAULT;
 		goto read_done;
 	}
 
-	/* Update last read position */
+	
 	frame->seqRead_Index += count;
 	if (uvd->debug >= 1) {
 		err("%s: {copy} count used=%Zd, new seqRead_Index=%ld",
 			__func__, count, frame->seqRead_Index);
 	}
 
-	/* Finally check if the frame is done with and "release" it */
+	
 	if (frame->seqRead_Index >= frame->seqRead_Length) {
-		/* All data has been read */
+		
 		frame->seqRead_Index = 0;
 
-		/* Mark it as available to be used again. */
+		
 		uvd->frame[frmx].frameState = FrameState_Unused;
 		if (usbvideo_NewFrame(uvd, (frmx + 1) % USBVIDEO_NUMFRAMES)) {
 			err("%s: usbvideo_NewFrame failed.", __func__);
@@ -1666,9 +1427,7 @@ read_done:
 	return count;
 }
 
-/*
- * Make all of the blocks of data contiguous
- */
+
 static int usbvideo_CompressIsochronous(struct uvd *uvd, struct urb *urb)
 {
 	char *cdata;
@@ -1680,7 +1439,7 @@ static int usbvideo_CompressIsochronous(struct uvd *uvd, struct urb *urb)
 
 		cdata = urb->transfer_buffer + urb->iso_frame_desc[i].offset;
 
-		/* Detect and ignore errored packets */
+		
 		if (st < 0) {
 			if (uvd->debug >= 1)
 				err("Data error: packet=%d. len=%d. status=%d.", i, n, st);
@@ -1688,12 +1447,12 @@ static int usbvideo_CompressIsochronous(struct uvd *uvd, struct urb *urb)
 			continue;
 		}
 
-		/* Detect and ignore empty packets */
+		
 		if (n <= 0) {
 			uvd->stats.iso_skip_count++;
 			continue;
 		}
-		totlen += n;	/* Little local accounting */
+		totlen += n;	
 		RingQueue_Enqueue(&uvd->dp, cdata, n);
 	}
 	return totlen;
@@ -1704,7 +1463,7 @@ static void usbvideo_IsocIrq(struct urb *urb)
 	int i, ret, len;
 	struct uvd *uvd = urb->context;
 
-	/* We don't want to do anything if we are about to be removed! */
+	
 	if (!CAMERA_IS_OPERATIONAL(uvd))
 		return;
 #if 0
@@ -1731,13 +1490,13 @@ static void usbvideo_IsocIrq(struct urb *urb)
 	if (urb->actual_length <= 0)
 		goto urb_done_with;
 
-	/* Copy the data received into ring queue */
+	
 	len = usbvideo_CompressIsochronous(uvd, urb);
 	uvd->stats.urb_length = len;
 	if (len <= 0)
 		goto urb_done_with;
 
-	/* Here we got some data */
+	
 	uvd->stats.data_count += len;
 	RingQueue_WakeUpInterruptible(&uvd->dp);
 
@@ -1754,14 +1513,7 @@ urb_done_with:
 	return;
 }
 
-/*
- * usbvideo_StartDataPump()
- *
- * History:
- * 27-Jan-2000 Used ibmcam->iface, ibmcam->ifaceAltActive instead
- *             of hardcoded values. Simplified by using for loop,
- *             allowed any number of URBs.
- */
+
 static int usbvideo_StartDataPump(struct uvd *uvd)
 {
 	struct usb_device *dev = uvd->dev;
@@ -1776,7 +1528,7 @@ static int usbvideo_StartDataPump(struct uvd *uvd)
 	}
 	uvd->curframe = -1;
 
-	/* Alternate interface 1 is is the biggest frame size */
+	
 	i = usb_set_interface(dev, uvd->iface, uvd->ifaceAltActive);
 	if (i < 0) {
 		err("%s: usb_set_interface error", __func__);
@@ -1788,7 +1540,7 @@ static int usbvideo_StartDataPump(struct uvd *uvd)
 	else
 		err("%s: videoStart not set", __func__);
 
-	/* We double buffer the Iso lists */
+	
 	for (i=0; i < USBVIDEO_NUMSBUF; i++) {
 		int j, k;
 		struct urb *urb = uvd->sbuf[i].urb;
@@ -1807,7 +1559,7 @@ static int usbvideo_StartDataPump(struct uvd *uvd)
 		}
 	}
 
-	/* Submit all URBs */
+	
 	for (i=0; i < USBVIDEO_NUMSBUF; i++) {
 		errFlag = usb_submit_urb(uvd->sbuf[i].urb, GFP_KERNEL);
 		if (errFlag)
@@ -1822,16 +1574,7 @@ static int usbvideo_StartDataPump(struct uvd *uvd)
 	return 0;
 }
 
-/*
- * usbvideo_StopDataPump()
- *
- * This procedure stops streaming and deallocates URBs. Then it
- * activates zero-bandwidth alt. setting of the video interface.
- *
- * History:
- * 22-Jan-2000 Corrected order of actions to work after surprise removal.
- * 27-Jan-2000 Used uvd->iface, uvd->ifaceAltInactive instead of hardcoded values.
- */
+
 static void usbvideo_StopDataPump(struct uvd *uvd)
 {
 	int i, j;
@@ -1842,7 +1585,7 @@ static void usbvideo_StopDataPump(struct uvd *uvd)
 	if (uvd->debug > 1)
 		dev_info(&uvd->dev->dev, "%s($%p)\n", __func__, uvd);
 
-	/* Unschedule all of the iso td's */
+	
 	for (i=0; i < USBVIDEO_NUMSBUF; i++) {
 		usb_kill_urb(uvd->sbuf[i].urb);
 	}
@@ -1851,13 +1594,13 @@ static void usbvideo_StopDataPump(struct uvd *uvd)
 	uvd->streaming = 0;
 
 	if (!uvd->remove_pending) {
-		/* Invoke minidriver's magic to stop the camera */
+		
 		if (VALID_CALLBACK(uvd, videoStop))
 			GET_CALLBACK(uvd, videoStop)(uvd);
 		else
 			err("%s: videoStop not set", __func__);
 
-		/* Set packet size to 0 */
+		
 		j = usb_set_interface(uvd->dev, uvd->iface, uvd->ifaceAltInactive);
 		if (j < 0) {
 			err("%s: usb_set_interface() error %d.", __func__, j);
@@ -1866,13 +1609,7 @@ static void usbvideo_StopDataPump(struct uvd *uvd)
 	}
 }
 
-/*
- * usbvideo_NewFrame()
- *
- * History:
- * 29-Mar-00 Added copying of previous frame into the current one.
- * 6-Aug-00  Added model 3 video sizes, removed redundant width, height.
- */
+
 static int usbvideo_NewFrame(struct uvd *uvd, int framenum)
 {
 	struct usbvideo_frame *frame;
@@ -1882,12 +1619,12 @@ static int usbvideo_NewFrame(struct uvd *uvd, int framenum)
 		dev_info(&uvd->dev->dev, "usbvideo_NewFrame($%p,%d.)\n", uvd,
 			 framenum);
 
-	/* If we're not grabbing a frame right now and the other frame is */
-	/*  ready to be grabbed into, then use it instead */
+	
+	
 	if (uvd->curframe != -1)
 		return 0;
 
-	/* If necessary we adjust picture settings between frames */
+	
 	if (!uvd->settingsAdjusted) {
 		if (VALID_CALLBACK(uvd, adjustPicture))
 			GET_CALLBACK(uvd, adjustPicture)(uvd);
@@ -1902,54 +1639,26 @@ static int usbvideo_NewFrame(struct uvd *uvd, int framenum)
 
 	frame->frameState = FrameState_Grabbing;
 	frame->scanstate = ScanState_Scanning;
-	frame->seqRead_Length = 0;	/* Accumulated in xxx_parse_data() */
+	frame->seqRead_Length = 0;	
 	frame->deinterlace = Deinterlace_None;
-	frame->flags = 0; /* No flags yet, up to minidriver (or us) to set them */
+	frame->flags = 0; 
 	uvd->curframe = framenum;
 
-	/*
-	 * Normally we would want to copy previous frame into the current one
-	 * before we even start filling it with data; this allows us to stop
-	 * filling at any moment; top portion of the frame will be new and
-	 * bottom portion will stay as it was in previous frame. If we don't
-	 * do that then missing chunks of video stream will result in flickering
-	 * portions of old data whatever it was before.
-	 *
-	 * If we choose not to copy previous frame (to, for example, save few
-	 * bus cycles - the frame can be pretty large!) then we have an option
-	 * to clear the frame before using. If we experience losses in this
-	 * mode then missing picture will be black (no flickering).
-	 *
-	 * Finally, if user chooses not to clean the current frame before
-	 * filling it with data then the old data will be visible if we fail
-	 * to refill entire frame with new data.
-	 */
+	
 	if (!(uvd->flags & FLAGS_SEPARATE_FRAMES)) {
-		/* This copies previous frame into this one to mask losses */
+		
 		int prev = (framenum - 1 + USBVIDEO_NUMFRAMES) % USBVIDEO_NUMFRAMES;
 		memmove(frame->data, uvd->frame[prev].data, uvd->max_frame_size);
 	} else {
 		if (uvd->flags & FLAGS_CLEAN_FRAMES) {
-			/* This provides a "clean" frame but slows things down */
+			
 			memset(frame->data, 0, uvd->max_frame_size);
 		}
 	}
 	return 0;
 }
 
-/*
- * usbvideo_CollectRawData()
- *
- * This procedure can be used instead of 'processData' callback if you
- * only want to dump the raw data from the camera into the output
- * device (frame buffer). You can look at it with V4L client, but the
- * image will be unwatchable. The main purpose of this code and of the
- * mode FLAGS_NO_DECODING is debugging and capturing of datastreams from
- * new, unknown cameras. This procedure will be automatically invoked
- * instead of the specified callback handler when uvd->flags has bit
- * FLAGS_NO_DECODING set. Therefore, any regular build of any driver
- * based on usbvideo can use this feature at any time.
- */
+
 static void usbvideo_CollectRawData(struct uvd *uvd, struct usbvideo_frame *frame)
 {
 	int n;
@@ -1957,22 +1666,22 @@ static void usbvideo_CollectRawData(struct uvd *uvd, struct usbvideo_frame *fram
 	assert(uvd != NULL);
 	assert(frame != NULL);
 
-	/* Try to move data from queue into frame buffer */
+	
 	n = RingQueue_GetLength(&uvd->dp);
 	if (n > 0) {
 		int m;
-		/* See how much space we have left */
+		
 		m = uvd->max_frame_size - frame->seqRead_Length;
 		if (n > m)
 			n = m;
-		/* Now move that much data into frame buffer */
+		
 		RingQueue_Dequeue(
 			&uvd->dp,
 			frame->data + frame->seqRead_Length,
 			m);
 		frame->seqRead_Length += m;
 	}
-	/* See if we filled the frame */
+	
 	if (frame->seqRead_Length >= uvd->max_frame_size) {
 		frame->frameState = FrameState_Done;
 		uvd->curframe = -1;
@@ -2035,7 +1744,7 @@ static int usbvideo_GetFrame(struct uvd *uvd, int frameNum)
 							 __func__);
 					return 0;
 				} else {
-					/* Standard answer: Interrupted! */
+					
 					if (uvd->debug >= 2)
 						dev_info(&uvd->dev->dev,
 							 "%s: Interrupted!\n",
@@ -2043,7 +1752,7 @@ static int usbvideo_GetFrame(struct uvd *uvd, int frameNum)
 					return -EINTR;
 				}
 			} else {
-				/* No signals - we just got new data in dp queue */
+				
 				if (uvd->flags & FLAGS_NO_DECODING)
 					usbvideo_CollectRawData(uvd, frame);
 				else if (VALID_CALLBACK(uvd, processData))
@@ -2066,24 +1775,10 @@ static int usbvideo_GetFrame(struct uvd *uvd, int frameNum)
 			}
 			goto redo;
 		}
-		/* Note that we fall through to meet our destiny below */
+		
 	}
 	case FrameState_Done:
-		/*
-		 * Do all necessary postprocessing of data prepared in
-		 * "interrupt" code and the collecting code above. The
-		 * frame gets marked as FrameState_Done by queue parsing code.
-		 * This status means that we collected enough data and
-		 * most likely processed it as we went through. However
-		 * the data may need postprocessing, such as deinterlacing
-		 * or picture adjustments implemented in software (horror!)
-		 *
-		 * As soon as the frame becomes "final" it gets promoted to
-		 * FrameState_Done_Hold status where it will remain until the
-		 * caller consumed all the video data from the frame. Then
-		 * the empty shell of ex-frame is thrown out for dogs to eat.
-		 * But we, worried about pets, will recycle the frame!
-		 */
+		
 		uvd->stats.frame_num++;
 		if ((uvd->flags & FLAGS_NO_DECODING) == 0) {
 			if (VALID_CALLBACK(uvd, postProcess))
@@ -2099,12 +1794,7 @@ static int usbvideo_GetFrame(struct uvd *uvd, int frameNum)
 		return 0;
 
 	case FrameState_Done_Hold:
-		/*
-		 * We stay in this state indefinitely until someone external,
-		 * like ioctl() or read() call finishes digesting the frame
-		 * data. Then it will mark the frame as FrameState_Unused and
-		 * it will be released back into the wild to roam freely.
-		 */
+		
 		if (uvd->debug >= 2)
 			dev_info(&uvd->dev->dev,
 				 "%s: FrameState_Done_Hold state.\n",
@@ -2112,25 +1802,13 @@ static int usbvideo_GetFrame(struct uvd *uvd, int frameNum)
 		return 0;
 	}
 
-	/* Catch-all for other cases. We shall not be here. */
+	
 	err("%s: Invalid state %d.", __func__, frame->frameState);
 	frame->frameState = FrameState_Unused;
 	return 0;
 }
 
-/*
- * usbvideo_DeinterlaceFrame()
- *
- * This procedure deinterlaces the given frame. Some cameras produce
- * only half of scanlines - sometimes only even lines, sometimes only
- * odd lines. The deinterlacing method is stored in frame->deinterlace
- * variable.
- *
- * Here we scan the frame vertically and replace missing scanlines with
- * average between surrounding ones - before and after. If we have no
- * line above then we just copy next line. Similarly, if we need to
- * create a last line then preceding line is used.
- */
+
 void usbvideo_DeinterlaceFrame(struct uvd *uvd, struct usbvideo_frame *frame)
 {
 	if ((uvd == NULL) || (frame == NULL))
@@ -2145,23 +1823,19 @@ void usbvideo_DeinterlaceFrame(struct uvd *uvd, struct usbvideo_frame *frame)
 		for (; i < VIDEOSIZE_Y(frame->request); i += 2) {
 			const unsigned char *fs1, *fs2;
 			unsigned char *fd;
-			int ip, in, j;	/* Previous and next lines */
+			int ip, in, j;	
 
-			/*
-			 * Need to average lines before and after 'i'.
-			 * If we go out of bounds seeking those lines then
-			 * we point back to existing line.
-			 */
-			ip = i - 1;	/* First, get rough numbers */
+			
+			ip = i - 1;	
 			in = i + 1;
 
-			/* Now validate */
+			
 			if (ip < 0)
 				ip = in;
 			if (in >= VIDEOSIZE_Y(frame->request))
 				in = ip;
 
-			/* Sanity check */
+			
 			if ((ip < 0) || (in < 0) ||
 			    (ip >= VIDEOSIZE_Y(frame->request)) ||
 			    (in >= VIDEOSIZE_Y(frame->request)))
@@ -2171,12 +1845,12 @@ void usbvideo_DeinterlaceFrame(struct uvd *uvd, struct usbvideo_frame *frame)
 				break;
 			}
 
-			/* Now we need to average lines 'ip' and 'in' to produce line 'i' */
+			
 			fs1 = frame->data + (v4l_linesize * ip);
 			fs2 = frame->data + (v4l_linesize * in);
 			fd = frame->data + (v4l_linesize * i);
 
-			/* Average lines around destination */
+			
 			for (j=0; j < v4l_linesize; j++) {
 				fd[j] = (unsigned char)((((unsigned) fs1[j]) +
 							 ((unsigned)fs2[j])) >> 1);
@@ -2184,38 +1858,29 @@ void usbvideo_DeinterlaceFrame(struct uvd *uvd, struct usbvideo_frame *frame)
 		}
 	}
 
-	/* Optionally display statistics on the screen */
+	
 	if (uvd->flags & FLAGS_OVERLAY_STATS)
 		usbvideo_OverlayStats(uvd, frame);
 }
 
 EXPORT_SYMBOL(usbvideo_DeinterlaceFrame);
 
-/*
- * usbvideo_SoftwareContrastAdjustment()
- *
- * This code adjusts the contrast of the frame, assuming RGB24 format.
- * As most software image processing, this job is CPU-intensive.
- * Get a camera that supports hardware adjustment!
- *
- * History:
- * 09-Feb-2001  Created.
- */
+
 static void usbvideo_SoftwareContrastAdjustment(struct uvd *uvd,
 						struct usbvideo_frame *frame)
 {
 	int i, j, v4l_linesize;
 	signed long adj;
-	const int ccm = 128; /* Color correction median - see below */
+	const int ccm = 128; 
 
 	if ((uvd == NULL) || (frame == NULL)) {
 		err("%s: Illegal call.", __func__);
 		return;
 	}
-	adj = (uvd->vpic.contrast - 0x8000) >> 8; /* -128..+127 = -ccm..+(ccm-1)*/
+	adj = (uvd->vpic.contrast - 0x8000) >> 8; 
 	RESTRICT_TO_RANGE(adj, -ccm, ccm+1);
 	if (adj == 0) {
-		/* In rare case of no adjustment */
+		
 		return;
 	}
 	v4l_linesize = VIDEOSIZE_X(frame->request) * V4L_BYTES_PER_PIXEL;
@@ -2223,9 +1888,9 @@ static void usbvideo_SoftwareContrastAdjustment(struct uvd *uvd,
 		unsigned char *fd = frame->data + (v4l_linesize * i);
 		for (j=0; j < v4l_linesize; j++) {
 			signed long v = (signed long) fd[j];
-			/* Magnify up to 2 times, reduce down to zero */
+			
 			v = 128 + ((ccm + adj) * (v - 128)) / ccm;
-			RESTRICT_TO_RANGE(v, 0, 0xFF); /* Must flatten tails */
+			RESTRICT_TO_RANGE(v, 0, 0xFF); 
 			fd[j] = (unsigned char) v;
 		}
 	}

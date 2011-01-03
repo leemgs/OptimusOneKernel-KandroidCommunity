@@ -1,24 +1,4 @@
-/*
- * Copyright (C) 2009 Eric Benard - eric@eukrea.com
- *
- * Based on pcm038.c which is :
- * Copyright 2007 Robert Schwebel <r.schwebel@pengutronix.de>, Pengutronix
- * Copyright (C) 2008 Juergen Beisert (kernel@pengutronix.de)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/i2c.h>
 #include <linux/io.h>
@@ -43,17 +23,17 @@
 #include "devices.h"
 
 static int eukrea_cpuimx27_pins[] = {
-	/* UART1 */
+	
 	PE12_PF_UART1_TXD,
 	PE13_PF_UART1_RXD,
 	PE14_PF_UART1_CTS,
 	PE15_PF_UART1_RTS,
-	/* UART4 */
+	
 	PB26_AF_UART4_RTS,
 	PB28_AF_UART4_TXD,
 	PB29_AF_UART4_CTS,
 	PB31_AF_UART4_RXD,
-	/* FEC */
+	
 	PD0_AIN_FEC_TXD0,
 	PD1_AIN_FEC_TXD1,
 	PD2_AIN_FEC_TXD2,
@@ -72,10 +52,10 @@ static int eukrea_cpuimx27_pins[] = {
 	PD15_AOUT_FEC_COL,
 	PD16_AIN_FEC_TX_ER,
 	PF23_AIN_FEC_TX_EN,
-	/* I2C1 */
+	
 	PD17_PF_I2C_DATA,
 	PD18_PF_I2C_CLK,
-	/* SDHC2 */
+	
 	PB4_PF_SD2_D0,
 	PB5_PF_SD2_D1,
 	PB6_PF_SD2_D2,
@@ -83,7 +63,7 @@ static int eukrea_cpuimx27_pins[] = {
 	PB8_PF_SD2_CMD,
 	PB9_PF_SD2_CLK,
 #if defined(CONFIG_SERIAL_8250) || defined(CONFIG_SERIAL_8250_MODULE)
-	/* Quad UART's IRQ */
+	
 	GPIO_PORTD | 22 | GPIO_GPIO | GPIO_IN,
 	GPIO_PORTD | 23 | GPIO_GPIO | GPIO_IN,
 	GPIO_PORTD | 27 | GPIO_GPIO | GPIO_IN,
@@ -199,9 +179,9 @@ static void __init eukrea_cpuimx27_init(void)
 	platform_add_devices(platform_devices, ARRAY_SIZE(platform_devices));
 
 #if defined(CONFIG_MACH_EUKREA_CPUIMX27_USESDHC2)
-	/* SDHC2 can be used for Wifi */
+	
 	mxc_register_device(&mxc_sdhc_device1, NULL);
-	/* in which case UART4 is also used for Bluetooth */
+	
 	mxc_register_device(&mxc_uart_device3, &uart_pdata[1]);
 #endif
 

@@ -1,12 +1,4 @@
-/*
- * Copyright 2003-2005	Devicescape Software, Inc.
- * Copyright (c) 2006	Jiri Benc <jbenc@suse.cz>
- * Copyright 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kobject.h>
 #include "ieee80211_i.h"
@@ -252,7 +244,7 @@ void ieee80211_debugfs_key_add(struct ieee80211_key *key)
 		sprintf(buf, "../../stations/%pM", sta->sta.addr);
 	rcu_read_unlock();
 
-	/* using sta as a boolean is fine outside RCU lock */
+	
 	if (sta)
 		key->debugfs.stalink =
 			debugfs_create_symlink("station", key->debugfs.dir, buf);
@@ -305,7 +297,7 @@ void ieee80211_debugfs_key_add_default(struct ieee80211_sub_if_data *sdata)
 	if (!sdata->debugfsdir)
 		return;
 
-	/* this is running under the key lock */
+	
 
 	key = sdata->default_key;
 	if (key) {
@@ -334,7 +326,7 @@ void ieee80211_debugfs_key_add_mgmt_default(struct ieee80211_sub_if_data *sdata)
 	if (!sdata->debugfsdir)
 		return;
 
-	/* this is running under the key lock */
+	
 
 	key = sdata->default_mgmt_key;
 	if (key) {

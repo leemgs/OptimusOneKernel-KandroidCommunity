@@ -1,24 +1,4 @@
-/*
-    NetWinder Floating Point Emulator
-    (c) Rebel.com, 1998-1999
-    (c) Philip Blundell, 1998, 2001
 
-    Direct questions, comments to Scott Bambrough <scottb@netwinder.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include "fpa11.h"
 #include "softfloat.h"
@@ -42,11 +22,11 @@ static inline void loadDouble(const unsigned int Fn, const unsigned int __user *
 	p = (unsigned int *) &fpa11->fpreg[Fn].fDouble;
 	fpa11->fType[Fn] = typeDouble;
 #ifdef __ARMEB__
-	get_user(p[0], &pMem[0]);	/* sign & exponent */
+	get_user(p[0], &pMem[0]);	
 	get_user(p[1], &pMem[1]);
 #else
 	get_user(p[0], &pMem[1]);
-	get_user(p[1], &pMem[0]);	/* sign & exponent */
+	get_user(p[1], &pMem[0]);	
 #endif
 }
 
@@ -57,13 +37,13 @@ static inline void loadExtended(const unsigned int Fn, const unsigned int __user
 	unsigned int *p;
 	p = (unsigned int *) &fpa11->fpreg[Fn].fExtended;
 	fpa11->fType[Fn] = typeExtended;
-	get_user(p[0], &pMem[0]);	/* sign & exponent */
+	get_user(p[0], &pMem[0]);	
 #ifdef __ARMEB__
-	get_user(p[1], &pMem[1]);	/* ms bits */
-	get_user(p[2], &pMem[2]);	/* ls bits */
+	get_user(p[1], &pMem[1]);	
+	get_user(p[2], &pMem[2]);	
 #else
-	get_user(p[1], &pMem[2]);	/* ls bits */
-	get_user(p[2], &pMem[1]);	/* ms bits */
+	get_user(p[1], &pMem[2]);	
+	get_user(p[2], &pMem[1]);	
 #endif
 }
 #endif
@@ -82,9 +62,9 @@ static inline void loadMultiple(const unsigned int Fn, const unsigned int __user
 	case typeSingle:
 	case typeDouble:
 		{
-			get_user(p[0], &pMem[2]);	/* Single */
-			get_user(p[1], &pMem[1]);	/* double msw */
-			p[2] = 0;			/* empty */
+			get_user(p[0], &pMem[2]);	
+			get_user(p[1], &pMem[1]);	
+			p[2] = 0;			
 		}
 		break;
 
@@ -92,7 +72,7 @@ static inline void loadMultiple(const unsigned int Fn, const unsigned int __user
 	case typeExtended:
 		{
 			get_user(p[1], &pMem[2]);
-			get_user(p[2], &pMem[1]);	/* msw */
+			get_user(p[2], &pMem[1]);	
 			p[0] = (x & 0x80003fff);
 		}
 		break;
@@ -150,11 +130,11 @@ static inline void storeDouble(struct roundingData *roundData, const unsigned in
 	}
 
 #ifdef __ARMEB__
-	put_user(val.i[0], &pMem[0]);	/* msw */
-	put_user(val.i[1], &pMem[1]);	/* lsw */
+	put_user(val.i[0], &pMem[0]);	
+	put_user(val.i[1], &pMem[1]);	
 #else
-	put_user(val.i[1], &pMem[0]);	/* msw */
-	put_user(val.i[0], &pMem[1]);	/* lsw */
+	put_user(val.i[1], &pMem[0]);	
+	put_user(val.i[0], &pMem[1]);	
 #endif
 }
 
@@ -180,13 +160,13 @@ static inline void storeExtended(const unsigned int Fn, unsigned int __user *pMe
 		val.f = fpa11->fpreg[Fn].fExtended;
 	}
 
-	put_user(val.i[0], &pMem[0]);	/* sign & exp */
+	put_user(val.i[0], &pMem[0]);	
 #ifdef __ARMEB__
-	put_user(val.i[1], &pMem[1]);	/* msw */
+	put_user(val.i[1], &pMem[1]);	
 	put_user(val.i[2], &pMem[2]);
 #else
 	put_user(val.i[1], &pMem[2]);
-	put_user(val.i[2], &pMem[1]);	/* msw */
+	put_user(val.i[2], &pMem[1]);	
 #endif
 }
 #endif
@@ -203,8 +183,8 @@ static inline void storeMultiple(const unsigned int Fn, unsigned int __user *pMe
 	case typeSingle:
 	case typeDouble:
 		{
-			put_user(p[0], &pMem[2]);	/* single */
-			put_user(p[1], &pMem[1]);	/* double msw */
+			put_user(p[0], &pMem[2]);	
+			put_user(p[1], &pMem[1]);	
 			put_user(nType << 14, &pMem[0]);
 		}
 		break;
@@ -212,7 +192,7 @@ static inline void storeMultiple(const unsigned int Fn, unsigned int __user *pMe
 #ifdef CONFIG_FPE_NWFPE_XP
 	case typeExtended:
 		{
-			put_user(p[2], &pMem[1]);	/* msw */
+			put_user(p[2], &pMem[1]);	
 			put_user(p[1], &pMem[2]);
 			put_user((p[0] & 0x80003fff) | (nType << 14), &pMem[0]);
 		}

@@ -1,16 +1,4 @@
-/* linux/arch/arm/mach-s3c2410/mach-vr1000.c
- *
- * Copyright (c) 2003-2005,2008 Simtec Electronics
- *   Ben Dooks <ben@simtec.co.uk>
- *
- * Machine support for Thorcom VR1000 board. Designed for Thorcom by
- * Simtec Electronics, http://www.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -53,13 +41,13 @@
 #include "usb-simtec.h"
 #include "nor-simtec.h"
 
-/* macros for virtual address mods for the io space entries */
+
 #define VA_C5(item) ((unsigned long)(item) + BAST_VAM_CS5)
 #define VA_C4(item) ((unsigned long)(item) + BAST_VAM_CS4)
 #define VA_C3(item) ((unsigned long)(item) + BAST_VAM_CS3)
 #define VA_C2(item) ((unsigned long)(item) + BAST_VAM_CS2)
 
-/* macros to modify the physical addresses for io space */
+
 
 #define PA_CS2(item) (__phys_to_pfn((item) + S3C2410_CS2))
 #define PA_CS3(item) (__phys_to_pfn((item) + S3C2410_CS3))
@@ -67,7 +55,7 @@
 #define PA_CS5(item) (__phys_to_pfn((item) + S3C2410_CS5))
 
 static struct map_desc vr1000_iodesc[] __initdata = {
-  /* ISA IO areas */
+  
   {
 	  .virtual	= (u32)S3C24XX_VA_ISA_BYTE,
 	  .pfn		= PA_CS2(BAST_PA_ISAIO),
@@ -80,7 +68,7 @@ static struct map_desc vr1000_iodesc[] __initdata = {
 	  .type		= MT_DEVICE,
   },
 
-  /*  CPLD control registers, and external interrupt controls */
+  
   {
 	  .virtual	= (u32)VR1000_VA_CTRL1,
 	  .pfn		= __phys_to_pfn(VR1000_PA_CTRL1),
@@ -108,7 +96,7 @@ static struct map_desc vr1000_iodesc[] __initdata = {
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-/* uart clock source(s) */
+
 
 static struct s3c24xx_uart_clksrc vr1000_serial_clocks[] = {
 	[0] = {
@@ -144,7 +132,7 @@ static struct s3c2410_uartcfg vr1000_uartcfgs[] __initdata = {
 		.clocks	     = vr1000_serial_clocks,
 		.clocks_size = ARRAY_SIZE(vr1000_serial_clocks),
 	},
-	/* port 2 is not actually used */
+	
 	[2] = {
 		.hwport	     = 2,
 		.flags	     = 0,
@@ -157,7 +145,7 @@ static struct s3c2410_uartcfg vr1000_uartcfgs[] __initdata = {
 	}
 };
 
-/* definitions for the vr1000 extra 16550 serial ports */
+
 
 #define VR1000_BAUDBASE (3692307)
 
@@ -207,7 +195,7 @@ static struct platform_device serial_device = {
 	},
 };
 
-/* DM9000 ethernet devices */
+
 
 static struct resource vr1000_dm9k0_resource[] = {
 	[0] = {
@@ -246,9 +234,7 @@ static struct resource vr1000_dm9k1_resource[] = {
 	}
 };
 
-/* for the moment we limit ourselves to 16bit IO until some
- * better IO routines can be written and tested
-*/
+
 
 static struct dm9000_plat_data vr1000_dm9k_platdata = {
 	.flags		= DM9000_PLATF_16BITONLY,
@@ -274,7 +260,7 @@ static struct platform_device vr1000_dm9k1 = {
 	}
 };
 
-/* LEDS */
+
 
 static struct s3c24xx_led_platdata vr1000_led1_pdata = {
 	.name		= "led1",
@@ -318,7 +304,7 @@ static struct platform_device vr1000_led3 = {
 	},
 };
 
-/* I2C devices. */
+
 
 static struct i2c_board_info vr1000_i2c_devs[] __initdata = {
 	{
@@ -330,7 +316,7 @@ static struct i2c_board_info vr1000_i2c_devs[] __initdata = {
 	},
 };
 
-/* devices for this board */
+
 
 static struct platform_device *vr1000_devices[] __initdata = {
 	&s3c_device_usb,
@@ -362,7 +348,7 @@ static void vr1000_power_off(void)
 
 static void __init vr1000_map_io(void)
 {
-	/* initialise clock sources */
+	
 
 	s3c24xx_dclk0.parent = &clk_upll;
 	s3c24xx_dclk0.rate   = 12*1000*1000;
@@ -396,7 +382,7 @@ static void __init vr1000_init(void)
 }
 
 MACHINE_START(VR1000, "Thorcom-VR1000")
-	/* Maintainer: Ben Dooks <ben@simtec.co.uk> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

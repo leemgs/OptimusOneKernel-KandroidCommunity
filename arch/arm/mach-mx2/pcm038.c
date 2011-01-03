@@ -1,21 +1,4 @@
-/*
- * Copyright 2007 Robert Schwebel <r.schwebel@pengutronix.de>, Pengutronix
- * Copyright (C) 2008 Juergen Beisert (kernel@pengutronix.de)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/i2c.h>
 #include <linux/i2c/at24.h>
@@ -44,22 +27,22 @@
 #include "devices.h"
 
 static int pcm038_pins[] = {
-	/* UART1 */
+	
 	PE12_PF_UART1_TXD,
 	PE13_PF_UART1_RXD,
 	PE14_PF_UART1_CTS,
 	PE15_PF_UART1_RTS,
-	/* UART2 */
+	
 	PE3_PF_UART2_CTS,
 	PE4_PF_UART2_RTS,
 	PE6_PF_UART2_TXD,
 	PE7_PF_UART2_RXD,
-	/* UART3 */
+	
 	PE8_PF_UART3_TXD,
 	PE9_PF_UART3_RXD,
 	PE10_PF_UART3_CTS,
 	PE11_PF_UART3_RTS,
-	/* FEC */
+	
 	PD0_AIN_FEC_TXD0,
 	PD1_AIN_FEC_TXD1,
 	PD2_AIN_FEC_TXD2,
@@ -78,30 +61,27 @@ static int pcm038_pins[] = {
 	PD15_AOUT_FEC_COL,
 	PD16_AIN_FEC_TX_ER,
 	PF23_AIN_FEC_TX_EN,
-	/* I2C2 */
+	
 	PC5_PF_I2C2_SDA,
 	PC6_PF_I2C2_SCL,
-	/* SPI1 */
+	
 	PD25_PF_CSPI1_RDY,
 	PD29_PF_CSPI1_SCLK,
 	PD30_PF_CSPI1_MISO,
 	PD31_PF_CSPI1_MOSI,
-	/* SSI1 */
+	
 	PC20_PF_SSI1_FS,
 	PC21_PF_SSI1_RXD,
 	PC22_PF_SSI1_TXD,
 	PC23_PF_SSI1_CLK,
-	/* SSI4 */
+	
 	PC16_PF_SSI4_FS,
 	PC17_PF_SSI4_RXD,
 	PC18_PF_SSI4_TXD,
 	PC19_PF_SSI4_CLK,
 };
 
-/*
- * Phytec's PCM038 comes with 2MiB battery buffered SRAM,
- * 16 bit width
- */
+
 
 static struct platdata_mtd_ram pcm038_sram_data = {
 	.bankwidth = 2,
@@ -123,10 +103,7 @@ static struct platform_device pcm038_sram_mtd_device = {
 	.resource = &pcm038_sram_resource,
 };
 
-/*
- * Phytec's phyCORE-i.MX27 comes with 32MiB flash,
- * 16 bit width
- */
+
 static struct physmap_flash_data pcm038_flash_data = {
 	.width = 2,
 };
@@ -169,8 +146,7 @@ static struct platform_device *platform_devices[] __initdata = {
 	&pcm038_sram_mtd_device,
 };
 
-/* On pcm038 there's a sram attached to CS1, we enable the chipselect here and
- * setup other stuffs to access the sram. */
+
 static void __init pcm038_init_sram(void)
 {
 	__raw_writel(0x0000d843, CSCR_U(1));
@@ -190,7 +166,7 @@ static struct at24_platform_data board_eeprom = {
 
 static struct i2c_board_info pcm038_i2c_devices[] = {
 	{
-		I2C_BOARD_INFO("at24", 0x52), /* E0=0, E1=1, E2=0 */
+		I2C_BOARD_INFO("at24", 0x52), 
 		.platform_data = &board_eeprom,
 	}, {
 		I2C_BOARD_INFO("pcf8563", 0x51),
@@ -293,18 +269,18 @@ static void __init pcm038_init(void)
 	mxc_gpio_mode(PE16_AF_OWIRE);
 	mxc_register_device(&mxc_nand_device, &pcm038_nand_board_info);
 
-	/* only the i2c master 1 is used on this CPU card */
+	
 	i2c_register_board_info(1, pcm038_i2c_devices,
 				ARRAY_SIZE(pcm038_i2c_devices));
 
 	mxc_register_device(&mxc_i2c_device1, &pcm038_i2c_1_data);
 
-	/* PE18 for user-LED D40 */
+	
 	mxc_gpio_mode(GPIO_PORTE | 18 | GPIO_GPIO | GPIO_OUT);
 
 	mxc_gpio_mode(GPIO_PORTD | 28 | GPIO_GPIO | GPIO_OUT);
 
-	/* MC13783 IRQ */
+	
 	mxc_gpio_mode(GPIO_PORTB | 23 | GPIO_GPIO | GPIO_IN);
 
 	mxc_register_device(&mxc_spi_device0, &pcm038_spi_0_data);

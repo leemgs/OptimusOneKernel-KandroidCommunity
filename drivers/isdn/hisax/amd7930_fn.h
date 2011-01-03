@@ -1,15 +1,4 @@
-/* drivers/isdn/hisax/amd7930_fn.h
- *
- * gerdes_amd7930.h     Header-file included by
- *                      gerdes_amd7930.c
- *
- * Author               Christoph Ersfeld <info@formula-n.de>
- *                      Formula-n Europe AG (www.formula-n.com)
- *                      previously Gerdes AG
- *
- *
- *                      This file is (c) under GNU PUBLIC LICENSE
- */
+
 
 
 

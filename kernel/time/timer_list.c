@@ -1,14 +1,4 @@
-/*
- * kernel/time/timer_list.c
- *
- * List pending timers
- *
- * Copyright(C) 2006, Red Hat, Inc., Ingo Molnar
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/proc_fs.h>
 #include <linux/module.h>
@@ -24,10 +14,7 @@ typedef void (*print_fn_t)(struct seq_file *m, unsigned int *classes);
 
 DECLARE_PER_CPU(struct hrtimer_cpu_base, hrtimer_bases);
 
-/*
- * This allows printing both to /proc/timer_list and
- * to the console (on SysRq-Q):
- */
+
 #define SEQ_printf(m, x...)			\
  do {						\
 	if (m)					\
@@ -87,10 +74,7 @@ next_one:
 	spin_lock_irqsave(&base->cpu_base->lock, flags);
 
 	curr = base->first;
-	/*
-	 * Crude but we have to do this O(N*N) thing, because
-	 * we have to unlock the base when printing:
-	 */
+	
 	while (curr && i < next) {
 		curr = rb_next(curr);
 		i++;

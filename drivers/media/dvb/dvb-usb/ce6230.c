@@ -1,29 +1,10 @@
-/*
- * DVB USB Linux driver for Intel CE6230 DVB-T USB2.0 receiver
- *
- * Copyright (C) 2009 Antti Palosaari <crope@iki.fi>
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include "ce6230.h"
 #include "zl10353.h"
 #include "mxl5005s.h"
 
-/* debug */
+
 static int dvb_usb_ce6230_debug;
 module_param_named(debug, dvb_usb_ce6230_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level" DVB_USB_DEBUG_STATUS);
@@ -63,15 +44,15 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
 	}
 
 	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
-		/* write */
+		
 		memcpy(buf, req->data, req->data_len);
 		pipe = usb_sndctrlpipe(udev, 0);
 	} else {
-		/* read */
+		
 		pipe = usb_rcvctrlpipe(udev, 0);
 	}
 
-	msleep(1); /* avoid I2C errors */
+	msleep(1); 
 
 	ret = usb_control_msg(udev, pipe, request, requesttype, value, index,
 				buf, sizeof(buf), CE6230_USB_TIMEOUT);
@@ -84,7 +65,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
 	else
 		ret = 0;
 
-	/* read request, copy returned data to return buf */
+	
 	if (!ret && requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
 		memcpy(req->data, buf, req->data_len);
 
@@ -97,7 +78,7 @@ static int ce6230_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
 	return ce6230_rw_udev(d->udev, req);
 }
 
-/* I2C */
+
 static int ce6230_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 			   int num)
 {
@@ -165,7 +146,7 @@ static struct i2c_algorithm ce6230_i2c_algo = {
 	.functionality = ce6230_i2c_func,
 };
 
-/* Callbacks for DVB USB */
+
 static struct zl10353_config ce6230_zl10353_config = {
 	.demod_address = 0x1e,
 	.adc_clock = 450000,
@@ -217,8 +198,7 @@ static int ce6230_power_ctrl(struct dvb_usb_device *d, int onoff)
 	int ret;
 	deb_info("%s: onoff:%d\n", __func__, onoff);
 
-	/* InterfaceNumber 1 / AlternateSetting 0     idle
-	   InterfaceNumber 1 / AlternateSetting 1     streaming */
+	
 	ret = usb_set_interface(d->udev, 1, onoff);
 	if (ret)
 		err("usb_set_interface failed with error:%d", ret);
@@ -226,7 +206,7 @@ static int ce6230_power_ctrl(struct dvb_usb_device *d, int onoff)
 	return ret;
 }
 
-/* DVB USB Driver stuff */
+
 static struct dvb_usb_device_properties ce6230_properties;
 
 static int ce6230_probe(struct usb_interface *intf,
@@ -251,7 +231,7 @@ static int ce6230_probe(struct usb_interface *intf,
 static struct usb_device_id ce6230_table[] = {
 	{ USB_DEVICE(USB_VID_INTEL, USB_PID_INTEL_CE9500) },
 	{ USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A310) },
-	{ } /* Terminating entry */
+	{ } 
 };
 MODULE_DEVICE_TABLE(usb, ce6230_table);
 
@@ -307,7 +287,7 @@ static struct usb_driver ce6230_driver = {
 	.id_table   = ce6230_table,
 };
 
-/* module stuff */
+
 static int __init ce6230_module_init(void)
 {
 	int ret;
@@ -322,7 +302,7 @@ static int __init ce6230_module_init(void)
 static void __exit ce6230_module_exit(void)
 {
 	deb_info("%s:\n", __func__);
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&ce6230_driver);
 }
 

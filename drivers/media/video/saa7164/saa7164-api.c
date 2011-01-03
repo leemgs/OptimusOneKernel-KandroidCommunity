@@ -1,23 +1,4 @@
-/*
- *  Driver for the NXP SAA7164 PCIe bridge
- *
- *  Copyright (c) 2009 Steven Toth <stoth@kernellabs.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/wait.h>
 
@@ -54,8 +35,8 @@ int saa7164_api_read_eeprom(struct saa7164_dev *dev, u8 *buf, int buflen)
 	if (buflen < 128)
 		return -ENOMEM;
 
-	/* Assumption: Hauppauge eeprom is at 0xa0 on on bus 0 */
-	/* TODO: Pull the details from the boards struct */
+	
+	
 	return saa7164_api_i2c_read(&dev->i2c_bus[0], 0xa0 >> 1, sizeof(reg),
 		&reg[0], 128, buf);
 }
@@ -71,7 +52,7 @@ int saa7164_api_configure_port_mpeg2ts(struct saa7164_dev *dev,
 	dprintk(DBGLVL_API, "    bStrideLength= 0x%x\n", tsfmt->bStrideLength);
 	dprintk(DBGLVL_API, "    bguid        = (....)\n");
 
-	/* Cache the hardware configuration in the port */
+	
 
 	port->bufcounter = port->hwcfg.BARLocation;
 	port->pitch = port->hwcfg.BARLocation + (2 * sizeof(u32));
@@ -393,7 +374,7 @@ int saa7164_api_enum_subdevs(struct saa7164_dev *dev)
 
 	dprintk(DBGLVL_API, "%s()\n", __func__);
 
-	/* Get the total descriptor length */
+	
 	ret = saa7164_cmd_send(dev, 0, GET_LEN,
 		GET_DESCRIPTORS_CONTROL, sizeof(buflen), &buflen);
 	if (ret != SAA_OK)
@@ -402,12 +383,12 @@ int saa7164_api_enum_subdevs(struct saa7164_dev *dev)
 	dprintk(DBGLVL_API, "%s() total descriptor size = %d bytes.\n",
 		__func__, buflen);
 
-	/* Allocate enough storage for all of the descs */
+	
 	buf = kzalloc(buflen, GFP_KERNEL);
 	if (buf == NULL)
 		return SAA_ERR_NO_RESOURCES;
 
-	/* Retrieve them */
+	
 	ret = saa7164_cmd_send(dev, 0, GET_CUR,
 		GET_DESCRIPTORS_CONTROL, buflen, buf);
 	if (ret != SAA_OK) {
@@ -453,11 +434,8 @@ int saa7164_api_i2c_read(struct saa7164_i2c *bus, u8 addr, u32 reglen, u8 *reg,
 		regval = ((*(reg) << 24) | (*(reg+1) << 16) |
 			(*(reg+2) << 8) | *(reg+3));
 
-	/* Prepare the send buffer */
-	/* Bytes 00-03 source register length
-	 *       04-07 source bytes to read
-	 *       08... register address
-	 */
+	
+	
 	memset(buf, 0, sizeof(buf));
 	memcpy((buf + 2 * sizeof(u32) + 0), reg, reglen);
 	*((u32 *)(buf + 0 * sizeof(u32))) = reglen;
@@ -496,7 +474,7 @@ int saa7164_api_i2c_read(struct saa7164_i2c *bus, u8 addr, u32 reglen, u8 *reg,
 	return ret == SAA_OK ? 0 : -EIO;
 }
 
-/* For a given 8 bit i2c address device, write the buffer */
+
 int saa7164_api_i2c_write(struct saa7164_i2c *bus, u8 addr, u32 datalen,
 	u8 *data)
 {
@@ -539,11 +517,8 @@ int saa7164_api_i2c_write(struct saa7164_i2c *bus, u8 addr, u32 datalen,
 
 	dprintk(DBGLVL_API, "%s() len = %d bytes\n", __func__, len);
 
-	/* Prepare the send buffer */
-	/* Bytes 00-03 dest register length
-	 *       04-07 dest bytes to write
-	 *       08... register address
-	 */
+	
+	
 	*((u32 *)(buf + 0 * sizeof(u32))) = reglen;
 	*((u32 *)(buf + 1 * sizeof(u32))) = datalen - reglen;
 	memcpy((buf + 2 * sizeof(u32)), data, datalen);

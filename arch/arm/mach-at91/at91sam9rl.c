@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-at91/at91sam9rl.c
- *
- *  Copyright (C) 2005 SAN People
- *  Copyright (C) 2007 Atmel Corporation
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive for
- * more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/pm.h>
@@ -40,13 +31,9 @@ static struct map_desc at91sam9rl_sram_desc[] __initdata = {
 	}
 };
 
-/* --------------------------------------------------------------------
- *  Clocks
- * -------------------------------------------------------------------- */
 
-/*
- * The peripheral clocks.
- */
+
+
 static struct clk pioA_clk = {
 	.name		= "pioA_clk",
 	.pmc_mask	= 1 << AT91SAM9RL_ID_PIOA,
@@ -187,13 +174,10 @@ static struct clk *periph_clocks[] __initdata = {
 	&udphs_clk,
 	&lcdc_clk,
 	&ac97_clk,
-	// irq0
+	
 };
 
-/*
- * The two programmable clocks.
- * You must configure pin multiplexing to bring these signals out.
- */
+
 static struct clk pck0 = {
 	.name		= "pck0",
 	.pmc_mask	= AT91_PMC_PCK0,
@@ -218,9 +202,7 @@ static void __init at91sam9rl_register_clocks(void)
 	clk_register(&pck1);
 }
 
-/* --------------------------------------------------------------------
- *  GPIO
- * -------------------------------------------------------------------- */
+
 
 static struct at91_gpio_bank at91sam9rl_gpio[] = {
 	{
@@ -253,15 +235,13 @@ static void at91sam9rl_poweroff(void)
 }
 
 
-/* --------------------------------------------------------------------
- *  AT91SAM9RL processor initialization
- * -------------------------------------------------------------------- */
+
 
 void __init at91sam9rl_initialize(unsigned long main_clock)
 {
 	unsigned long cidr, sram_size;
 
-	/* Map peripherals */
+	
 	iotable_init(at91sam9rl_io_desc, ARRAY_SIZE(at91sam9rl_io_desc));
 
 	cidr = at91_sys_read(AT91_DBGU_CIDR);
@@ -278,63 +258,59 @@ void __init at91sam9rl_initialize(unsigned long main_clock)
 	at91sam9rl_sram_desc->virtual = AT91_IO_VIRT_BASE - sram_size;
 	at91sam9rl_sram_desc->length = sram_size;
 
-	/* Map SRAM */
+	
 	iotable_init(at91sam9rl_sram_desc, ARRAY_SIZE(at91sam9rl_sram_desc));
 
 	at91_arch_reset = at91sam9rl_reset;
 	pm_power_off = at91sam9rl_poweroff;
 	at91_extern_irq = (1 << AT91SAM9RL_ID_IRQ0);
 
-	/* Init clock subsystem */
+	
 	at91_clock_init(main_clock);
 
-	/* Register the processor-specific clocks */
+	
 	at91sam9rl_register_clocks();
 
-	/* Register GPIO subsystem */
+	
 	at91_gpio_init(at91sam9rl_gpio, 4);
 }
 
-/* --------------------------------------------------------------------
- *  Interrupt initialization
- * -------------------------------------------------------------------- */
 
-/*
- * The default interrupt priority levels (0 = lowest, 7 = highest).
- */
+
+
 static unsigned int at91sam9rl_default_irq_priority[NR_AIC_IRQS] __initdata = {
-	7,	/* Advanced Interrupt Controller */
-	7,	/* System Peripherals */
-	1,	/* Parallel IO Controller A */
-	1,	/* Parallel IO Controller B */
-	1,	/* Parallel IO Controller C */
-	1,	/* Parallel IO Controller D */
-	5,	/* USART 0 */
-	5,	/* USART 1 */
-	5,	/* USART 2 */
-	5,	/* USART 3 */
-	0,	/* Multimedia Card Interface */
-	6,	/* Two-Wire Interface 0 */
-	6,	/* Two-Wire Interface 1 */
-	5,	/* Serial Peripheral Interface */
-	4,	/* Serial Synchronous Controller 0 */
-	4,	/* Serial Synchronous Controller 1 */
-	0,	/* Timer Counter 0 */
-	0,	/* Timer Counter 1 */
-	0,	/* Timer Counter 2 */
+	7,	
+	7,	
+	1,	
+	1,	
+	1,	
+	1,	
+	5,	
+	5,	
+	5,	
+	5,	
+	0,	
+	6,	
+	6,	
+	5,	
+	4,	
+	4,	
+	0,	
+	0,	
+	0,	
 	0,
-	0,	/* Touch Screen Controller */
-	0,	/* DMA Controller */
-	2,	/* USB Device High speed port */
-	2,	/* LCD Controller */
-	6,	/* AC97 Controller */
-	0,
-	0,
+	0,	
+	0,	
+	2,	
+	2,	
+	6,	
 	0,
 	0,
 	0,
 	0,
-	0,	/* Advanced Interrupt Controller */
+	0,
+	0,
+	0,	
 };
 
 void __init at91sam9rl_init_interrupts(unsigned int priority[NR_AIC_IRQS])
@@ -342,9 +318,9 @@ void __init at91sam9rl_init_interrupts(unsigned int priority[NR_AIC_IRQS])
 	if (!priority)
 		priority = at91sam9rl_default_irq_priority;
 
-	/* Initialize the AIC interrupt controller */
+	
 	at91_aic_init(priority);
 
-	/* Enable GPIO interrupts */
+	
 	at91_gpio_irq_setup();
 }

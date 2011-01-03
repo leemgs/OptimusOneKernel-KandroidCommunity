@@ -1,26 +1,4 @@
-/*
- * bsru6.h - ALPS BSRU6 tuner support (moved from budget-ci.c)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
- *
- *
- * the project's page is at http://www.linuxtv.org
- */
+
 
 #ifndef BSRU6_H
 #define BSRU6_H
@@ -29,19 +7,19 @@ static u8 alps_bsru6_inittab[] = {
 	0x01, 0x15,
 	0x02, 0x00,
 	0x03, 0x00,
-	0x04, 0x7d,   /* F22FR = 0x7d, F22 = f_VCO / 128 / 0x7d = 22 kHz */
-	0x05, 0x35,   /* I2CT = 0, SCLT = 1, SDAT = 1 */
-	0x06, 0x40,   /* DAC not used, set to high impendance mode */
-	0x07, 0x00,   /* DAC LSB */
-	0x08, 0x40,   /* DiSEqC off, LNB power on OP2/LOCK pin on */
-	0x09, 0x00,   /* FIFO */
-	0x0c, 0x51,   /* OP1 ctl = Normal, OP1 val = 1 (LNB Power ON) */
-	0x0d, 0x82,   /* DC offset compensation = ON, beta_agc1 = 2 */
-	0x0e, 0x23,   /* alpha_tmg = 2, beta_tmg = 3 */
-	0x10, 0x3f,   // AGC2  0x3d
+	0x04, 0x7d,   
+	0x05, 0x35,   
+	0x06, 0x40,   
+	0x07, 0x00,   
+	0x08, 0x40,   
+	0x09, 0x00,   
+	0x0c, 0x51,   
+	0x0d, 0x82,   
+	0x0e, 0x23,   
+	0x10, 0x3f,   
 	0x11, 0x84,
 	0x12, 0xb9,
-	0x15, 0xc9,   // lock detector threshold
+	0x15, 0xc9,   
 	0x16, 0x00,
 	0x17, 0x00,
 	0x18, 0x00,
@@ -52,17 +30,17 @@ static u8 alps_bsru6_inittab[] = {
 	0x21, 0x00,
 	0x22, 0x00,
 	0x23, 0x00,
-	0x28, 0x00,  // out imp: normal  out type: parallel FEC mode:0
-	0x29, 0x1e,  // 1/2 threshold
-	0x2a, 0x14,  // 2/3 threshold
-	0x2b, 0x0f,  // 3/4 threshold
-	0x2c, 0x09,  // 5/6 threshold
-	0x2d, 0x05,  // 7/8 threshold
+	0x28, 0x00,  
+	0x29, 0x1e,  
+	0x2a, 0x14,  
+	0x2b, 0x0f,  
+	0x2c, 0x09,  
+	0x2d, 0x05,  
 	0x2e, 0x01,
-	0x31, 0x1f,  // test all FECs
-	0x32, 0x19,  // viterbi and synchro search
-	0x33, 0xfc,  // rs control
-	0x34, 0x93,  // error control
+	0x31, 0x1f,  
+	0x32, 0x19,  
+	0x33, 0xfc,  
+	0x34, 0x93,  
 	0x0f, 0x52,
 	0xff, 0xff
 };
@@ -111,7 +89,7 @@ static int alps_bsru6_tuner_set_params(struct dvb_frontend *fe, struct dvb_front
 	if ((params->frequency < 950000) || (params->frequency > 2150000))
 		return -EINVAL;
 
-	div = (params->frequency + (125 - 1)) / 125;	// round correctly
+	div = (params->frequency + (125 - 1)) / 125;	
 	buf[0] = (div >> 8) & 0x7f;
 	buf[1] = div & 0xff;
 	buf[2] = 0x80 | ((div & 0x18000) >> 10) | 4;

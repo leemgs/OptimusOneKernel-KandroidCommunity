@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfa_uf.c BFA unsolicited frame receive implementation
- */
+
+
 
 #include <bfa.h>
 #include <bfa_svc.h>
@@ -27,11 +10,7 @@
 BFA_TRC_FILE(HAL, UF);
 BFA_MODULE(uf);
 
-/*
- *****************************************************************************
- * Internal functions
- *****************************************************************************
- */
+
 static void
 __bfa_cb_uf_recv(void *cbarg, bfa_boolean_t complete)
 {
@@ -92,9 +71,7 @@ claim_uf_post_msgs(struct bfa_uf_mod_s *ufm, struct bfa_meminfo_s *mi)
 		bfa_sge_to_be(&sge[1]);
 	}
 
-	/**
-	 * advance pointer beyond consumed memory
-	 */
+	
 	bfa_meminfo_kva(mi) = (u8 *) uf_bp_msg;
 }
 
@@ -104,14 +81,10 @@ claim_ufs(struct bfa_uf_mod_s *ufm, struct bfa_meminfo_s *mi)
 	u16        i;
 	struct bfa_uf_s   *uf;
 
-	/*
-	 * Claim block of memory for UF list
-	 */
+	
 	ufm->uf_list = (struct bfa_uf_s *) bfa_meminfo_kva(mi);
 
-	/*
-	 * Initialize UFs and queue it in UF free queue
-	 */
+	
 	for (i = 0, uf = ufm->uf_list; i < ufm->num_ufs; i++, uf++) {
 		bfa_os_memset(uf, 0, sizeof(struct bfa_uf_s));
 		uf->bfa = ufm->bfa;
@@ -122,9 +95,7 @@ claim_ufs(struct bfa_uf_mod_s *ufm, struct bfa_meminfo_s *mi)
 		list_add_tail(&uf->qe, &ufm->uf_free_q);
 	}
 
-	/**
-	 * advance memory pointer
-	 */
+	
 	bfa_meminfo_kva(mi) = (u8 *) uf;
 }
 
@@ -141,15 +112,11 @@ bfa_uf_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *ndm_len, u32 *dm_len)
 {
 	u32        num_ufs = cfg->fwcfg.num_uf_bufs;
 
-	/*
-	 * dma-able memory for UF posted bufs
-	 */
+	
 	*dm_len += BFA_ROUNDUP((sizeof(struct bfa_uf_buf_s) * num_ufs),
 							BFA_DMA_ALIGN_SZ);
 
-	/*
-	 * kernel Virtual memory for UFs and UF buf post msg copies
-	 */
+	
 	*ndm_len += sizeof(struct bfa_uf_s) * num_ufs;
 	*ndm_len += sizeof(struct bfi_uf_buf_post_s) * num_ufs;
 }
@@ -239,7 +206,7 @@ uf_recv(struct bfa_s *bfa, struct bfi_uf_frm_rcvd_s *m)
 
 	fchs = (struct fchs_s *) uf_buf;
 
-	list_del(&uf->qe);	/* dequeue from posted queue */
+	list_del(&uf->qe);	
 
 	uf->data_ptr = buf;
 	uf->data_len = m->xfr_len;
@@ -286,17 +253,9 @@ bfa_uf_start(struct bfa_s *bfa)
 
 
 
-/**
- *  bfa_uf_api
- */
 
-/**
- * 		Register handler for all unsolicted recieve frames.
- *
- * @param[in]	bfa		BFA instance
- * @param[in]	ufrecv	receive handler function
- * @param[in]	cbarg	receive handler arg
- */
+
+
 void
 bfa_uf_recv_register(struct bfa_s *bfa, bfa_cb_uf_recv_t ufrecv, void *cbarg)
 {
@@ -306,13 +265,7 @@ bfa_uf_recv_register(struct bfa_s *bfa, bfa_cb_uf_recv_t ufrecv, void *cbarg)
 	ufm->cbarg = cbarg;
 }
 
-/**
- * 		Free an unsolicited frame back to BFA.
- *
- * @param[in]		uf		unsolicited frame to be freed
- *
- * @return None
- */
+
 void
 bfa_uf_free(struct bfa_uf_s *uf)
 {
@@ -322,9 +275,7 @@ bfa_uf_free(struct bfa_uf_s *uf)
 
 
 
-/**
- *  uf_pub BFA uf module public functions
- */
+
 
 void
 bfa_uf_isr(struct bfa_s *bfa, struct bfi_msg_s *msg)

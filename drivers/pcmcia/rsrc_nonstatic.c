@@ -1,16 +1,4 @@
-/*
- * rsrc_nonstatic.c -- Resource management routines for !SS_CAP_STATIC_MAP sockets
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999		David A. Hinds
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -37,17 +25,17 @@
 MODULE_AUTHOR("David A. Hinds, Dominik Brodowski");
 MODULE_LICENSE("GPL");
 
-/* Parameters that can be set with 'insmod' */
+
 
 #define INT_MODULE_PARM(n, v) static int n = v; module_param(n, int, 0444)
 
-INT_MODULE_PARM(probe_mem,	1);		/* memory probe? */
+INT_MODULE_PARM(probe_mem,	1);		
 #ifdef CONFIG_PCMCIA_PROBE
-INT_MODULE_PARM(probe_io,	1);		/* IO port probe? */
+INT_MODULE_PARM(probe_io,	1);		
 INT_MODULE_PARM(mem_limit,	0x10000);
 #endif
 
-/* for io_db and mem_db */
+
 struct resource_map {
 	u_long			base, num;
 	struct resource_map	*next;
@@ -64,11 +52,7 @@ static DEFINE_MUTEX(rsrc_mutex);
 #define MEM_PROBE_HIGH	(1 << 1)
 
 
-/*======================================================================
 
-    Linux resource management extensions
-
-======================================================================*/
 
 static struct resource *
 make_resource(resource_size_t b, resource_size_t n, int flags, const char *name)
@@ -114,11 +98,7 @@ static void free_region(struct resource *res)
 	}
 }
 
-/*======================================================================
 
-    These manage the internal databases of available resources.
-
-======================================================================*/
 
 static int add_interval(struct resource_map *map, u_long base, u_long num)
 {
@@ -140,7 +120,7 @@ static int add_interval(struct resource_map *map, u_long base, u_long num)
 	return 0;
 }
 
-/*====================================================================*/
+
 
 static int sub_interval(struct resource_map *map, u_long base, u_long num)
 {
@@ -153,21 +133,21 @@ static int sub_interval(struct resource_map *map, u_long base, u_long num)
 	if ((q->base+q->num > base) && (base+num > q->base)) {
 	    if (q->base >= base) {
 		if (q->base+q->num <= base+num) {
-		    /* Delete whole block */
+		    
 		    p->next = q->next;
 		    kfree(q);
-		    /* don't advance the pointer yet */
+		    
 		    q = p;
 		} else {
-		    /* Cut off bit from the front */
+		    
 		    q->num = q->base + q->num - base - num;
 		    q->base = base + num;
 		}
 	    } else if (q->base+q->num <= base+num) {
-		/* Cut off bit from the end */
+		
 		q->num = base - q->base;
 	    } else {
-		/* Split the block into two pieces */
+		
 		p = kmalloc(sizeof(struct resource_map), GFP_KERNEL);
 		if (!p) {
 		    printk(KERN_WARNING "out of memory to update resources\n");
@@ -183,12 +163,7 @@ static int sub_interval(struct resource_map *map, u_long base, u_long num)
     return 0;
 }
 
-/*======================================================================
 
-    These routines examine a region of IO or memory addresses to
-    determine what ranges might be genuinely available.
-
-======================================================================*/
 
 #ifdef CONFIG_PCMCIA_PROBE
 static void do_io_probe(struct pcmcia_socket *s, unsigned int base,
@@ -203,7 +178,7 @@ static void do_io_probe(struct pcmcia_socket *s, unsigned int base,
     dev_printk(KERN_INFO, &s->dev, "cs: IO port probe %#x-%#x:",
 	       base, base+num-1);
 
-    /* First, what does a floating port look like? */
+    
     b = kzalloc(256, GFP_KERNEL);
     if (!b) {
 	    printk("\n");
@@ -260,14 +235,9 @@ static void do_io_probe(struct pcmcia_socket *s, unsigned int base,
 }
 #endif
 
-/*======================================================================
 
-    This is tricky... when we set up CIS memory, we try to validate
-    the memory window space allocations.
 
-======================================================================*/
 
-/* Validation function for cards with a valid CIS */
 static int readable(struct pcmcia_socket *s, struct resource *res,
 		    unsigned int *count)
 {
@@ -277,7 +247,7 @@ static int readable(struct pcmcia_socket *s, struct resource *res,
 	s->cis_virt = ioremap(res->start, s->map_size);
 	if (s->cis_virt) {
 		ret = pccard_validate_cis(s, count);
-		/* invalidate mapping and CIS cache */
+		
 		iounmap(s->cis_virt);
 		s->cis_virt = NULL;
 		destroy_cis_cache(s);
@@ -288,7 +258,7 @@ static int readable(struct pcmcia_socket *s, struct resource *res,
 	return 1;
 }
 
-/* Validation function for simple memory cards */
+
 static int checksum(struct pcmcia_socket *s, struct resource *res)
 {
 	pccard_mem_map map;
@@ -304,7 +274,7 @@ static int checksum(struct pcmcia_socket *s, struct resource *res)
 		map.card_start = 0;
 		s->ops->set_mem_map(s, &map);
 
-		/* Don't bother checking every word... */
+		
 		for (i = 0; i < s->map_size; i += 44) {
 			d = readl(virt+i);
 			a += d;
@@ -361,13 +331,7 @@ checksum_match(struct pcmcia_socket *s, unsigned long base, unsigned long size)
 	return (a == b) && (a >= 0);
 }
 
-/*======================================================================
 
-    The memory probe.  If the memory list includes a 64K-aligned block
-    below 1MB, we probe in 64K chunks, and as soon as we accumulate at
-    least mem_limit free space, we quit.
-
-======================================================================*/
 
 static int do_mem_probe(u_long base, u_long num, struct pcmcia_socket *s)
 {
@@ -378,10 +342,10 @@ static int do_mem_probe(u_long base, u_long num, struct pcmcia_socket *s)
 	       base, base+num-1);
     bad = fail = 0;
     step = (num < 0x20000) ? 0x2000 : ((num>>4) & ~0x1fff);
-    /* don't allow too large steps */
+    
     if (step > 0x800000)
 	step = 0x800000;
-    /* cis_readable wants to map 2x map_size */
+    
     if (step < 2 * s->map_size)
 	step = 2 * s->map_size;
     for (i = j = base; i < base+num; i = j + step) {
@@ -435,7 +399,7 @@ static int validate_mem(struct pcmcia_socket *s, unsigned int probe_mask)
 	unsigned long b, i, ok = 0;
 	struct socket_data *s_data = s->resource_data;
 
-	/* We do up to four passes through the list */
+	
 	if (probe_mask & MEM_PROBE_HIGH) {
 		if (inv_probe(s_data->mem_db.next, s) > 0)
 			return 0;
@@ -446,14 +410,14 @@ static int validate_mem(struct pcmcia_socket *s, unsigned int probe_mask)
 
 	for (m = s_data->mem_db.next; m != &s_data->mem_db; m = mm.next) {
 		mm = *m;
-		/* Only probe < 1 MB */
+		
 		if (mm.base >= 0x100000)
 			continue;
 		if ((mm.base | mm.num) & 0xffff) {
 			ok += do_mem_probe(mm.base, mm.num, s);
 			continue;
 		}
-		/* Special probe for 64K-aligned block */
+		
 		for (i = 0; i < 4; i++) {
 			b = order[i] << 12;
 			if ((b >= mm.base) && (b+0x10000 <= mm.base+mm.num)) {
@@ -471,7 +435,7 @@ static int validate_mem(struct pcmcia_socket *s, unsigned int probe_mask)
 	return -ENODEV;
 }
 
-#else /* CONFIG_PCMCIA_PROBE */
+#else 
 
 static int validate_mem(struct pcmcia_socket *s, unsigned int probe_mask)
 {
@@ -488,12 +452,10 @@ static int validate_mem(struct pcmcia_socket *s, unsigned int probe_mask)
 	return -ENODEV;
 }
 
-#endif /* CONFIG_PCMCIA_PROBE */
+#endif 
 
 
-/*
- * Locking note: Must be called with skt_mutex held!
- */
+
 static int pcmcia_nonstatic_validate_mem(struct pcmcia_socket *s)
 {
 	struct socket_data *s_data = s->resource_data;
@@ -532,9 +494,7 @@ pcmcia_common_align(void *align_data, struct resource *res,
 {
 	struct pcmcia_align_data *data = align_data;
 	resource_size_t start;
-	/*
-	 * Ensure that we have the correct start address
-	 */
+	
 	start = (res->start & ~data->mask) + data->offset;
 	if (start < res->start)
 		start += data->mask + 1;
@@ -554,20 +514,13 @@ pcmcia_align(void *align_data, struct resource *res, resource_size_t size,
 		unsigned long start = m->base;
 		unsigned long end = m->base + m->num - 1;
 
-		/*
-		 * If the lower resources are not available, try aligning
-		 * to this entry of the resource database to see if it'll
-		 * fit here.
-		 */
+		
 		if (res->start < start) {
 			res->start = start;
 			pcmcia_common_align(data, res, size, align);
 		}
 
-		/*
-		 * If we're above the area which was passed in, there's
-		 * no point proceeding.
-		 */
+		
 		if (res->start >= res->end)
 			break;
 
@@ -575,17 +528,12 @@ pcmcia_align(void *align_data, struct resource *res, resource_size_t size,
 			break;
 	}
 
-	/*
-	 * If we failed to find something suitable, ensure we fail.
-	 */
+	
 	if (m == data->map)
 		res->start = res->end;
 }
 
-/*
- * Adjust an existing IO region allocation, but making sure that we don't
- * encroach outside the resources which the user supplied.
- */
+
 static int nonstatic_adjust_io_region(struct resource *res, unsigned long r_start,
 				      unsigned long r_end, struct pcmcia_socket *s)
 {
@@ -609,18 +557,7 @@ static int nonstatic_adjust_io_region(struct resource *res, unsigned long r_star
 	return ret;
 }
 
-/*======================================================================
 
-    These find ranges of I/O ports or memory addresses that are not
-    currently allocated by other devices.
-
-    The 'align' field should reflect the number of bits of address
-    that need to be preserved from the initial value of *base.  It
-    should be a power of two, greater than or equal to 'num'.  A value
-    of 0 means that all bits of *base are significant.  *base should
-    also be strictly less than 'align'.
-
-======================================================================*/
 
 static struct resource *nonstatic_find_io_region(unsigned long base, int num,
 		   unsigned long align, struct pcmcia_socket *s)
@@ -784,12 +721,7 @@ static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
 		return -ENODEV;
 
 #if defined(CONFIG_X86)
-	/* If this is the root bus, the risk of hitting
-	 * some strange system devices which aren't protected
-	 * by either ACPI resource tables or properly requested
-	 * resources is too big. Therefore, don't do auto-adding
-	 * of resources at the moment.
-	 */
+	
 	if (s->cb_dev->bus->number == 0)
 		return -EINVAL;
 #endif
@@ -825,8 +757,7 @@ static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
 		}
 	}
 
-	/* if we got at least one of IO, and one of MEM, we can be glad and
-	 * activate the PCMCIA subsystem */
+	
 	if (done == (IORESOURCE_MEM | IORESOURCE_IO))
 		s->resource_setup_done = 1;
 
@@ -892,7 +823,7 @@ struct pccard_resource_ops pccard_nonstatic_ops = {
 EXPORT_SYMBOL(pccard_nonstatic_ops);
 
 
-/* sysfs interface to the resource database */
+
 
 static ssize_t show_io_db(struct device *dev,
 			  struct device_attribute *attr, char *buf)

@@ -1,15 +1,4 @@
-/*
- * linux/drivers/pcmcia/pxa2xx_palmtx.c
- *
- * Driver for Palm T|X PCMCIA
- *
- * Copyright (C) 2007-2008 Marek Vasut <marek.vasut@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -79,7 +68,7 @@ static void palmtx_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 static void palmtx_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 					struct pcmcia_state *state)
 {
-	state->detect = 1; /* always inserted */
+	state->detect = 1; 
 	state->ready  = !!gpio_get_value(GPIO_NR_PALMTX_PCMCIA_READY);
 	state->bvd1   = 1;
 	state->bvd2   = 1;

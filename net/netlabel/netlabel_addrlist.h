@@ -1,33 +1,6 @@
-/*
- * NetLabel Network Address Lists
- *
- * This file contains network address list functions used to manage ordered
- * lists of network addresses for use by the NetLabel subsystem.  The NetLabel
- * system manages static and dynamic label mappings for network protocols such
- * as CIPSO and RIPSO.
- *
- * Author: Paul Moore <paul.moore@hp.com>
- *
- */
 
-/*
- * (c) Copyright Hewlett-Packard Development Company, L.P., 2008
- *
- * This program is free software;  you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY;  without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
- * the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program;  if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- */
+
+
 
 #ifndef _NETLABEL_ADDRLIST_H
 #define _NETLABEL_ADDRLIST_H
@@ -38,13 +11,7 @@
 #include <linux/in6.h>
 #include <linux/audit.h>
 
-/**
- * struct netlbl_af4list - NetLabel IPv4 address list
- * @addr: IPv4 address
- * @mask: IPv4 address mask
- * @valid: valid flag
- * @list: list structure, used internally
- */
+
 struct netlbl_af4list {
 	__be32 addr;
 	__be32 mask;
@@ -53,13 +20,7 @@ struct netlbl_af4list {
 	struct list_head list;
 };
 
-/**
- * struct netlbl_af6list - NetLabel IPv6 address list
- * @addr: IPv6 address
- * @mask: IPv6 address mask
- * @valid: valid flag
- * @list: list structure, used internally
- */
+
 struct netlbl_af6list {
 	struct in6_addr addr;
 	struct in6_addr mask;
@@ -206,6 +167,6 @@ static inline void netlbl_af6list_audit_addr(struct audit_buffer *audit_buf,
 	return;
 }
 #endif
-#endif /* IPV6 */
+#endif 
 
 #endif

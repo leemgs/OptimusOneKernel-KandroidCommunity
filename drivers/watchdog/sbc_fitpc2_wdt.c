@@ -1,14 +1,4 @@
-/*
- * Watchdog driver for SBC-FITPC2 board
- *
- * Author: Denis Turischev <denis@compulab.co.il>
- *
- * Adapted from the IXP2000 watchdog driver by Deepak Saxena.
- *
- * This file is licensed under  the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #define pr_fmt(fmt) KBUILD_MODNAME " WATCHDOG: " fmt
 
@@ -28,7 +18,7 @@
 #include <asm/system.h>
 
 static int nowayout = WATCHDOG_NOWAYOUT;
-static unsigned int margin = 60;	/* (secs) Default is 1 minute */
+static unsigned int margin = 60;	
 static unsigned long wdt_status;
 static DEFINE_SPINLOCK(wdt_lock);
 
@@ -155,7 +145,7 @@ static long fitpc2_wdt_ioctl(struct file *file, unsigned int cmd,
 
 		margin = time;
 		wdt_enable();
-		/* Fall through */
+		
 
 	case WDIOC_GETTIMEOUT:
 		ret = put_user(margin, (int *)arg);

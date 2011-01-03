@@ -1,29 +1,8 @@
-/*
- *  Driver for the NXP SAA7164 PCIe bridge
- *
- *  Copyright (c) 2009 Steven Toth <stoth@kernellabs.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/* TODO: Cleanup and shorten the namespace */
 
-/* Some structues are passed directly to/from the firmware and
- * have strict alignment requirements. This is one of them.
- */
+
+
+
 typedef struct {
 	u8	bLength;
 	u8	bDescriptorType;
@@ -39,11 +18,7 @@ typedef struct {
 	u32	dwHostHibernatMemRegionSize;
 } __attribute__((packed)) tmComResHWDescr_t;
 
-/* This is DWORD aligned on windows but I can't find the right
- * gcc syntax to match the binary data from the device.
- * I've manually padded with Reserved[3] bytes to match the hardware,
- * but this could break if GCC decies to pack in a different way.
- */
+
 typedef struct {
 	u8	bLength;
 	u8	bDescriptorType;
@@ -87,7 +62,7 @@ typedef struct {
 	u32	*m_pdwGetWritePos;
 	u32	*m_pdwGetReadPos;
 
-	/* All access is protected */
+	
 	struct mutex lock;
 
 } tmComResBusInfo_t;
@@ -158,7 +133,7 @@ typedef struct {
 	u8	pathid;
 } __attribute__((packed)) tmComResPathDescrHeader_t;
 
-/* terminaltype */
+
 typedef enum {
 	ITT_ANTENNA              = 0x0203,
 	LINE_CONNECTOR           = 0x0603,
@@ -193,13 +168,13 @@ typedef struct {
 } __attribute__((packed)) tmComResTunerDescrHeader_t;
 
 typedef enum {
-	/* the buffer does not contain any valid data */
+	
 	TM_BUFFER_FLAG_EMPTY,
 
-	/* the buffer is filled with valid data */
+	
 	TM_BUFFER_FLAG_DONE,
 
-	/* the buffer is the dummy buffer - TODO??? */
+	
 	TM_BUFFER_FLAG_DUMMY_BUFFER
 } tmBufferFlag_t;
 
@@ -253,27 +228,7 @@ typedef struct {
 	u8	controlsize;
 } __attribute__((packed)) tmComResDMATermDescrHeader_t;
 
-/*
- *
- * Description:
- *  This is the transport stream format header.
- *
- * Settings:
- *  bLength                 - The size of this descriptor in bytes.
- *  bDescriptorType         - CS_INTERFACE.
- *  bDescriptorSubtype      - VS_FORMAT_MPEG2TS descriptor subtype.
- *  bFormatIndex            - A non-zero constant that uniquely identifies the
- *                            format.
- *  bDataOffset             - Offset to TSP packet within MPEG-2 TS transport
- *                            stride, in bytes.
- *  bPacketLength           - Length of TSP packet, in bytes (typically 188).
- *  bStrideLength           - Length of MPEG-2 TS transport stride.
- *  guidStrideFormat        - A Globally Unique Identifier indicating the
- *                            format of the stride data (if any). Set to zeros
- *                            if there is no Stride Data, or if the Stride
- *                            Data is to be ignored by the application.
- *
- */
+
 typedef struct {
 	u8	len;
 	u8	type;

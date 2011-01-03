@@ -1,20 +1,11 @@
-/*
- *
- * arch/arm/mach-u300/include/mach/irqs.h
- *
- *
- * Copyright (C) 2006-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * IRQ channel definitions for the U300 platforms.
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 
 #ifndef __MACH_IRQS_H
 #define __MACH_IRQS_H
 
 #define IRQ_U300_INTCON0_START		0
 #define IRQ_U300_INTCON1_START		32
-/* These are on INTCON0 - 30 lines */
+
 #define IRQ_U300_IRQ0_EXT		0
 #define IRQ_U300_IRQ1_EXT		1
 #define IRQ_U300_DMA			2
@@ -32,7 +23,7 @@
 #define IRQ_U300_XGAM_CDI		14
 #define IRQ_U300_XGAM_CDICON		15
 #if defined(CONFIG_MACH_U300_BS2X) || defined(CONFIG_MACH_U300_BS330)
-/* MMIACC not used on the DB3210 or DB3350 chips */
+
 #define IRQ_U300_XGAM_MMIACC		16
 #endif
 #define IRQ_U300_XGAM_PDI		17
@@ -50,14 +41,14 @@
 #define IRQ_U300_TIMER_MS		29
 #define IRQ_U300_KEYPAD_KEYBF		30
 #define IRQ_U300_KEYPAD_KEYBR		31
-/* These are on INTCON1 - 32 lines */
+
 #define IRQ_U300_GPIO_PORT0		32
 #define IRQ_U300_GPIO_PORT1		33
 #define IRQ_U300_GPIO_PORT2		34
 
 #if defined(CONFIG_MACH_U300_BS2X) || defined(CONFIG_MACH_U300_BS330) || \
     defined(CONFIG_MACH_U300_BS335)
-/* These are for DB3150, DB3200 and DB3350 */
+
 #define IRQ_U300_WDOG			35
 #define IRQ_U300_EVHIST			36
 #define IRQ_U300_MSPRO			37
@@ -70,12 +61,12 @@
 #define IRQ_U300_NFIF2			44
 #endif
 
-/* DB3150 and DB3200 have only 45 IRQs */
+
 #if defined(CONFIG_MACH_U300_BS2X) || defined(CONFIG_MACH_U300_BS330)
 #define U300_NR_IRQS			45
 #endif
 
-/* The DB3350-specific interrupt lines */
+
 #ifdef CONFIG_MACH_U300_BS335
 #define IRQ_U300_ISP_F0			45
 #define IRQ_U300_ISP_F1			46
@@ -91,7 +82,7 @@
 #define U300_NR_IRQS			56
 #endif
 
-/* The DB3210-specific interrupt lines */
+
 #ifdef CONFIG_MACH_U300_BS365
 #define IRQ_U300_GPIO_PORT3		35
 #define IRQ_U300_GPIO_PORT4		36

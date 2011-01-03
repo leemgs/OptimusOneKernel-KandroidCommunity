@@ -1,21 +1,4 @@
-/*
- * DSM-G600 board-setup
- *
- * Copyright (C) 2008 Rod Whitby <rod@whitby.id.au>
- * Copyright (C) 2006 Tower Technologies
- *
- * based on ixdp425-setup.c:
- *      Copyright (C) 2003-2004 MontaVista Software, Inc.
- * based on nslu2-power.c:
- *	Copyright (C) 2005 Tower Technologies
- * based on nslu2-io.c:
- *	Copyright (C) 2004 Karen Spearel
- *
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- * Author: Michael Westerhof <mwester@dls.net>
- * Author: Rod Whitby <rod@whitby.id.au>
- * Maintainers: http://www.nslu2-linux.org/
- */
+
 
 #include <linux/irq.h>
 #include <linux/jiffies.h>
@@ -143,47 +126,40 @@ static struct platform_device *dsmg600_devices[] __initdata = {
 
 static void dsmg600_power_off(void)
 {
-	/* enable the pwr cntl gpio */
+	
 	gpio_line_config(DSMG600_PO_GPIO, IXP4XX_GPIO_OUT);
 
-	/* poweroff */
+	
 	gpio_line_set(DSMG600_PO_GPIO, IXP4XX_GPIO_HIGH);
 }
 
-/* This is used to make sure the power-button pusher is serious.  The button
- * must be held until the value of this counter reaches zero.
- */
+
 static int power_button_countdown;
 
-/* Must hold the button down for at least this many counts to be processed */
-#define PBUTTON_HOLDDOWN_COUNT 4 /* 2 secs */
+
+#define PBUTTON_HOLDDOWN_COUNT 4 
 
 static void dsmg600_power_handler(unsigned long data);
 static DEFINE_TIMER(dsmg600_power_timer, dsmg600_power_handler, 0, 0);
 
 static void dsmg600_power_handler(unsigned long data)
 {
-	/* This routine is called twice per second to check the
-	 * state of the power button.
-	 */
+	
 
 	if (gpio_get_value(DSMG600_PB_GPIO)) {
 
-		/* IO Pin is 1 (button pushed) */
+		
 		if (power_button_countdown > 0)
 			power_button_countdown--;
 
 	} else {
 
-		/* Done on button release, to allow for auto-power-on mods. */
+		
 		if (power_button_countdown == 0) {
-			/* Signal init to do the ctrlaltdel action,
-			 * this will bypass init if it hasn't started
-			 * and do a kernel_restart.
-			 */
+			
 			ctrl_alt_del();
 
-			/* Change the state of the power LED to "blink" */
+			
 			gpio_line_set(DSMG600_LED_PWR_GPIO, IXP4XX_GPIO_LOW);
 		} else {
 			power_button_countdown = PBUTTON_HOLDDOWN_COUNT;
@@ -195,7 +171,7 @@ static void dsmg600_power_handler(unsigned long data)
 
 static irqreturn_t dsmg600_reset_handler(int irq, void *dev_id)
 {
-	/* This is the paper-clip reset, it shuts the machine down directly. */
+	
 	machine_power_off();
 
 	return IRQ_HANDLED;
@@ -203,10 +179,10 @@ static irqreturn_t dsmg600_reset_handler(int irq, void *dev_id)
 
 static void __init dsmg600_timer_init(void)
 {
-    /* The xtal on this machine is non-standard. */
+    
     ixp4xx_timer_freq = DSMG600_FREQ;
 
-    /* Call standard timer_init function. */
+    
     ixp4xx_timer_init();
 }
 
@@ -218,7 +194,7 @@ static void __init dsmg600_init(void)
 {
 	ixp4xx_sys_init();
 
-	/* Make sure that GPIO14 and GPIO15 are not used as clocks */
+	
 	*IXP4XX_GPIO_GPCLKR = 0;
 
 	dsmg600_flash_resource.start = IXP4XX_EXP_BUS_BASE(0);
@@ -228,10 +204,7 @@ static void __init dsmg600_init(void)
 	i2c_register_board_info(0, dsmg600_i2c_board_info,
 				ARRAY_SIZE(dsmg600_i2c_board_info));
 
-	/* The UART is required on the DSM-G600 (Redboot cannot use the
-	 * NIC) -- do it here so that it does *not* get removed if
-	 * platform_add_devices fails!
-         */
+	
         (void)platform_device_register(&dsmg600_uart);
 
 	platform_add_devices(dsmg600_devices, ARRAY_SIZE(dsmg600_devices));
@@ -246,22 +219,19 @@ static void __init dsmg600_init(void)
 			gpio_to_irq(DSMG600_RB_GPIO));
 	}
 
-	/* The power button on the D-Link DSM-G600 is on GPIO 15, but
-	 * it cannot handle interrupts on that GPIO line.  So we'll
-	 * have to poll it with a kernel timer.
-	 */
+	
 
-	/* Make sure that the power button GPIO is set up as an input */
+	
 	gpio_line_config(DSMG600_PB_GPIO, IXP4XX_GPIO_IN);
 
-	/* Set the initial value for the power button IRQ handler */
+	
 	power_button_countdown = PBUTTON_HOLDDOWN_COUNT;
 
 	mod_timer(&dsmg600_power_timer, jiffies + msecs_to_jiffies(500));
 }
 
 MACHINE_START(DSMG600, "D-Link DSM-G600 RevA")
-	/* Maintainer: www.nslu2-linux.org */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xFFFC,
 	.boot_params	= 0x00000100,

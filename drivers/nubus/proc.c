@@ -1,21 +1,4 @@
-/* drivers/nubus/proc.c: Proc FS interface for NuBus.
 
-   By David Huggins-Daines <dhd@debian.org>
-
-   Much code and many ideas from drivers/pci/proc.c:
-   Copyright (c) 1997, 1998 Martin Mares <mj@atrey.karlin.mff.cuni.cz>
-
-   This is initially based on the Zorro and PCI interfaces.  However,
-   it works somewhat differently.  The intent is to provide a
-   structure in /proc analogous to the structure of the NuBus ROM
-   resources.
-
-   Therefore each NuBus device is in fact a directory, which may in
-   turn contain subdirectories.  The "files" correspond to NuBus
-   resource records.  For those types of records which we know how to
-   convert to formats that are meaningful to userspace (mostly just
-   icons) these files will provide "cooked" data.  Otherwise they will
-   simply provide raw access (read-only of course) to the ROM.  */
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -67,7 +50,7 @@ static void nubus_proc_subdir(struct nubus_dev* dev,
 {
 	struct nubus_dirent ent;
 
-	/* Some of these are directories, others aren't */
+	
 	while (nubus_readdir(dir, &ent) != -1) {
 		char name[8];
 		struct proc_dir_entry* e;
@@ -79,16 +62,14 @@ static void nubus_proc_subdir(struct nubus_dev* dev,
 	}
 }
 
-/* Can't do this recursively since the root directory is structured
-   somewhat differently from the subdirectories */
+
 static void nubus_proc_populate(struct nubus_dev* dev,
 				struct proc_dir_entry* parent,
 				struct nubus_dir* root)
 {
 	struct nubus_dirent ent;
 
-	/* We know these are all directories (board resource + one or
-	   more functional resources) */
+	
 	while (nubus_readdir(root, &ent) != -1) {
 		char name[8];
 		struct proc_dir_entry* e;
@@ -98,9 +79,9 @@ static void nubus_proc_populate(struct nubus_dev* dev,
 		e = proc_mkdir(name, parent);
 		if (!e) return;
 
-		/* And descend */
+		
 		if (nubus_get_subdir(&ent, &dir) == -1) {
-			/* This shouldn't happen */
+			
 			printk(KERN_ERR "NuBus root directory node %x:%x has no subdir!\n",
 			       dev->board->slot, ent.type);
 			continue;
@@ -129,13 +110,13 @@ int nubus_proc_attach_device(struct nubus_dev *dev)
 		return -1;
 	}
 		
-	/* Create a directory */
+	
 	sprintf(name, "%x", dev->board->slot);
 	e = dev->procdir = proc_mkdir(name, proc_bus_nubus_dir);
 	if (!e)
 		return -ENOMEM;
 
-	/* Now recursively populate it with files */
+	
 	nubus_get_root_dir(dev->board, &root);
 	nubus_proc_populate(dev, e, &root);
 
@@ -143,7 +124,7 @@ int nubus_proc_attach_device(struct nubus_dev *dev)
 }
 EXPORT_SYMBOL(nubus_proc_attach_device);
 
-/* FIXME: this is certainly broken! */
+
 int nubus_proc_detach_device(struct nubus_dev *dev)
 {
 	struct proc_dir_entry *e;

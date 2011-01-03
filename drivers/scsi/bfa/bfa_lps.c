@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <bfi/bfi_lps.h>
@@ -25,9 +10,7 @@ BFA_MODULE(lps);
 #define BFA_LPS_MIN_LPORTS	(1)
 #define BFA_LPS_MAX_LPORTS	(256)
 
-/**
- * forward declarations
- */
+
 static void bfa_lps_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *ndm_len,
 			    u32 *dm_len);
 static void bfa_lps_attach(struct bfa_s *bfa, void *bfad,
@@ -51,17 +34,15 @@ static void bfa_lps_login_comp(struct bfa_lps_s *lps);
 static void bfa_lps_logout_comp(struct bfa_lps_s *lps);
 
 
-/**
- *  lps_pvt BFA LPS private functions
- */
+
 
 enum bfa_lps_event {
-	BFA_LPS_SM_LOGIN	= 1,	/* login request from user	*/
-	BFA_LPS_SM_LOGOUT	= 2,	/* logout request from user	*/
-	BFA_LPS_SM_FWRSP	= 3,	/* f/w response to login/logout	*/
-	BFA_LPS_SM_RESUME	= 4,	/* space present in reqq queue	*/
-	BFA_LPS_SM_DELETE	= 5,	/* lps delete from user		*/
-	BFA_LPS_SM_OFFLINE	= 6,	/* Link is offline		*/
+	BFA_LPS_SM_LOGIN	= 1,	
+	BFA_LPS_SM_LOGOUT	= 2,	
+	BFA_LPS_SM_FWRSP	= 3,	
+	BFA_LPS_SM_RESUME	= 4,	
+	BFA_LPS_SM_DELETE	= 5,	
+	BFA_LPS_SM_OFFLINE	= 6,	
 };
 
 static void bfa_lps_sm_init(struct bfa_lps_s *lps, enum bfa_lps_event event);
@@ -73,9 +54,7 @@ static void bfa_lps_sm_logout(struct bfa_lps_s *lps, enum bfa_lps_event event);
 static void bfa_lps_sm_logowait(struct bfa_lps_s *lps,
 			enum bfa_lps_event event);
 
-/**
- * Init state -- no login
- */
+
 static void
 bfa_lps_sm_init(struct bfa_lps_s *lps, enum bfa_lps_event event)
 {
@@ -105,10 +84,7 @@ bfa_lps_sm_init(struct bfa_lps_s *lps, enum bfa_lps_event event)
 		break;
 
 	case BFA_LPS_SM_FWRSP:
-		/* Could happen when fabric detects loopback and discards
-		 * the lps request. Fw will eventually sent out the timeout
-		 * Just ignore
-		 */
+		
 		break;
 
 	default:
@@ -116,9 +92,7 @@ bfa_lps_sm_init(struct bfa_lps_s *lps, enum bfa_lps_event event)
 	}
 }
 
-/**
- * login is in progress -- awaiting response from firmware
- */
+
 static void
 bfa_lps_sm_login(struct bfa_lps_s *lps, enum bfa_lps_event event)
 {
@@ -143,9 +117,7 @@ bfa_lps_sm_login(struct bfa_lps_s *lps, enum bfa_lps_event event)
 	}
 }
 
-/**
- * login pending - awaiting space in request queue
- */
+
 static void
 bfa_lps_sm_loginwait(struct bfa_lps_s *lps, enum bfa_lps_event event)
 {
@@ -167,9 +139,7 @@ bfa_lps_sm_loginwait(struct bfa_lps_s *lps, enum bfa_lps_event event)
 	}
 }
 
-/**
- * login complete
- */
+
 static void
 bfa_lps_sm_online(struct bfa_lps_s *lps, enum bfa_lps_event event)
 {
@@ -197,9 +167,7 @@ bfa_lps_sm_online(struct bfa_lps_s *lps, enum bfa_lps_event event)
 	}
 }
 
-/**
- * logout in progress - awaiting firmware response
- */
+
 static void
 bfa_lps_sm_logout(struct bfa_lps_s *lps, enum bfa_lps_event event)
 {
@@ -221,9 +189,7 @@ bfa_lps_sm_logout(struct bfa_lps_s *lps, enum bfa_lps_event event)
 	}
 }
 
-/**
- * logout pending -- awaiting space in request queue
- */
+
 static void
 bfa_lps_sm_logowait(struct bfa_lps_s *lps, enum bfa_lps_event event)
 {
@@ -248,13 +214,9 @@ bfa_lps_sm_logowait(struct bfa_lps_s *lps, enum bfa_lps_event event)
 
 
 
-/**
- *  lps_pvt BFA LPS private functions
- */
 
-/**
- * return memory requirement
- */
+
+
 static void
 bfa_lps_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *ndm_len, u32 *dm_len)
 {
@@ -264,9 +226,7 @@ bfa_lps_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *ndm_len, u32 *dm_len)
 		*ndm_len += sizeof(struct bfa_lps_s) * BFA_LPS_MAX_LPORTS;
 }
 
-/**
- * bfa module attach at initialization time
- */
+
 static void
 bfa_lps_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 		struct bfa_meminfo_s *meminfo, struct bfa_pcidev_s *pcidev)
@@ -317,9 +277,7 @@ bfa_lps_stop(struct bfa_s *bfa)
 {
 }
 
-/**
- * IOC in disabled state -- consider all lps offline
- */
+
 static void
 bfa_lps_iocdisable(struct bfa_s *bfa)
 {
@@ -333,9 +291,7 @@ bfa_lps_iocdisable(struct bfa_s *bfa)
 	}
 }
 
-/**
- * Firmware login response
- */
+
 static void
 bfa_lps_login_rsp(struct bfa_s *bfa, struct bfi_lps_login_rsp_s *rsp)
 {
@@ -373,16 +329,14 @@ bfa_lps_login_rsp(struct bfa_s *bfa, struct bfi_lps_login_rsp_s *rsp)
 		break;
 
 	default:
-		/* Nothing to do with other status */
+		
 		break;
 	}
 
 	bfa_sm_send_event(lps, BFA_LPS_SM_FWRSP);
 }
 
-/**
- * Firmware logout response
- */
+
 static void
 bfa_lps_logout_rsp(struct bfa_s *bfa, struct bfi_lps_logout_rsp_s *rsp)
 {
@@ -395,9 +349,7 @@ bfa_lps_logout_rsp(struct bfa_s *bfa, struct bfi_lps_logout_rsp_s *rsp)
 	bfa_sm_send_event(lps, BFA_LPS_SM_FWRSP);
 }
 
-/**
- * Space is available in request queue, resume queueing request to firmware.
- */
+
 static void
 bfa_lps_reqq_resume(void *lps_arg)
 {
@@ -406,9 +358,7 @@ bfa_lps_reqq_resume(void *lps_arg)
 	bfa_sm_send_event(lps, BFA_LPS_SM_RESUME);
 }
 
-/**
- * lps is freed -- triggered by vport delete
- */
+
 static void
 bfa_lps_free(struct bfa_lps_s *lps)
 {
@@ -418,9 +368,7 @@ bfa_lps_free(struct bfa_lps_s *lps)
 	list_add_tail(&lps->qe, &mod->lps_free_q);
 }
 
-/**
- * send login request to firmware
- */
+
 static void
 bfa_lps_send_login(struct bfa_lps_s *lps)
 {
@@ -443,9 +391,7 @@ bfa_lps_send_login(struct bfa_lps_s *lps)
 	bfa_reqq_produce(lps->bfa, lps->reqq);
 }
 
-/**
- * send logout request to firmware
- */
+
 static void
 bfa_lps_send_logout(struct bfa_lps_s *lps)
 {
@@ -462,9 +408,7 @@ bfa_lps_send_logout(struct bfa_lps_s *lps)
 	bfa_reqq_produce(lps->bfa, lps->reqq);
 }
 
-/**
- * Indirect login completion handler for non-fcs
- */
+
 static void
 bfa_lps_login_comp_cb(void *arg, bfa_boolean_t complete)
 {
@@ -479,9 +423,7 @@ bfa_lps_login_comp_cb(void *arg, bfa_boolean_t complete)
 		bfa_cb_lps_flogi_comp(lps->bfa->bfad, lps->uarg, lps->status);
 }
 
-/**
- * Login completion handler -- direct call for fcs, queue for others
- */
+
 static void
 bfa_lps_login_comp(struct bfa_lps_s *lps)
 {
@@ -497,9 +439,7 @@ bfa_lps_login_comp(struct bfa_lps_s *lps)
 		bfa_cb_lps_flogi_comp(lps->bfa->bfad, lps->uarg, lps->status);
 }
 
-/**
- * Indirect logout completion handler for non-fcs
- */
+
 static void
 bfa_lps_logout_comp_cb(void *arg, bfa_boolean_t complete)
 {
@@ -514,9 +454,7 @@ bfa_lps_logout_comp_cb(void *arg, bfa_boolean_t complete)
 		bfa_cb_lps_flogo_comp(lps->bfa->bfad, lps->uarg);
 }
 
-/**
- * Logout completion handler -- direct call for fcs, queue for others
- */
+
 static void
 bfa_lps_logout_comp(struct bfa_lps_s *lps)
 {
@@ -533,13 +471,9 @@ bfa_lps_logout_comp(struct bfa_lps_s *lps)
 
 
 
-/**
- *  lps_public BFA LPS public functions
- */
 
-/**
- * Allocate a lport srvice tag.
- */
+
+
 struct bfa_lps_s  *
 bfa_lps_alloc(struct bfa_s *bfa)
 {
@@ -557,19 +491,14 @@ bfa_lps_alloc(struct bfa_s *bfa)
 	return lps;
 }
 
-/**
- * Free lport service tag. This can be called anytime after an alloc.
- * No need to wait for any pending login/logout completions.
- */
+
 void
 bfa_lps_delete(struct bfa_lps_s *lps)
 {
 	bfa_sm_send_event(lps, BFA_LPS_SM_DELETE);
 }
 
-/**
- * Initiate a lport login.
- */
+
 void
 bfa_lps_flogi(struct bfa_lps_s *lps, void *uarg, u8 alpa, u16 pdusz,
 	wwn_t pwwn, wwn_t nwwn, bfa_boolean_t auth_en)
@@ -584,9 +513,7 @@ bfa_lps_flogi(struct bfa_lps_s *lps, void *uarg, u8 alpa, u16 pdusz,
 	bfa_sm_send_event(lps, BFA_LPS_SM_LOGIN);
 }
 
-/**
- * Initiate a lport fdisc login.
- */
+
 void
 bfa_lps_fdisc(struct bfa_lps_s *lps, void *uarg, u16 pdusz, wwn_t pwwn,
 	wwn_t nwwn)
@@ -601,46 +528,35 @@ bfa_lps_fdisc(struct bfa_lps_s *lps, void *uarg, u16 pdusz, wwn_t pwwn,
 	bfa_sm_send_event(lps, BFA_LPS_SM_LOGIN);
 }
 
-/**
- * Initiate a lport logout (flogi).
- */
+
 void
 bfa_lps_flogo(struct bfa_lps_s *lps)
 {
 	bfa_sm_send_event(lps, BFA_LPS_SM_LOGOUT);
 }
 
-/**
- * Initiate a lport FDSIC logout.
- */
+
 void
 bfa_lps_fdisclogo(struct bfa_lps_s *lps)
 {
 	bfa_sm_send_event(lps, BFA_LPS_SM_LOGOUT);
 }
 
-/**
- * Discard a pending login request -- should be called only for
- * link down handling.
- */
+
 void
 bfa_lps_discard(struct bfa_lps_s *lps)
 {
 	bfa_sm_send_event(lps, BFA_LPS_SM_OFFLINE);
 }
 
-/**
- * Return lport services tag
- */
+
 u8
 bfa_lps_get_tag(struct bfa_lps_s *lps)
 {
 	return lps->lp_tag;
 }
 
-/**
- * Return lport services tag given the pid
- */
+
 u8
 bfa_lps_get_tag_from_pid(struct bfa_s *bfa, u32 pid)
 {
@@ -653,39 +569,31 @@ bfa_lps_get_tag_from_pid(struct bfa_s *bfa, u32 pid)
 			return lps->lp_tag;
 	}
 
-	/* Return base port tag anyway */
+	
 	return 0;
 }
 
-/**
- * return if fabric login indicates support for NPIV
- */
+
 bfa_boolean_t
 bfa_lps_is_npiv_en(struct bfa_lps_s *lps)
 {
 	return lps->npiv_en;
 }
 
-/**
- * Return TRUE if attached to F-Port, else return FALSE
- */
+
 bfa_boolean_t
 bfa_lps_is_fport(struct bfa_lps_s *lps)
 {
 	return lps->fport;
 }
 
-/**
- * Return TRUE if attached to a Brocade Fabric
- */
+
 bfa_boolean_t
 bfa_lps_is_brcd_fabric(struct bfa_lps_s *lps)
 {
 	return lps->brcd_switch;
 }
-/**
- * return TRUE if authentication is required
- */
+
 bfa_boolean_t
 bfa_lps_is_authreq(struct bfa_lps_s *lps)
 {
@@ -698,54 +606,42 @@ bfa_lps_get_extstatus(struct bfa_lps_s *lps)
 	return lps->ext_status;
 }
 
-/**
- * return port id assigned to the lport
- */
+
 u32
 bfa_lps_get_pid(struct bfa_lps_s *lps)
 {
 	return lps->lp_pid;
 }
 
-/**
- * Return bb_credit assigned in FLOGI response
- */
+
 u16
 bfa_lps_get_peer_bbcredit(struct bfa_lps_s *lps)
 {
 	return lps->pr_bbcred;
 }
 
-/**
- * Return peer port name
- */
+
 wwn_t
 bfa_lps_get_peer_pwwn(struct bfa_lps_s *lps)
 {
 	return lps->pr_pwwn;
 }
 
-/**
- * Return peer node name
- */
+
 wwn_t
 bfa_lps_get_peer_nwwn(struct bfa_lps_s *lps)
 {
 	return lps->pr_nwwn;
 }
 
-/**
- * return reason code if login request is rejected
- */
+
 u8
 bfa_lps_get_lsrjt_rsn(struct bfa_lps_s *lps)
 {
 	return lps->lsrjt_rsn;
 }
 
-/**
- * return explanation code if login request is rejected
- */
+
 u8
 bfa_lps_get_lsrjt_expl(struct bfa_lps_s *lps)
 {
@@ -753,9 +649,7 @@ bfa_lps_get_lsrjt_expl(struct bfa_lps_s *lps)
 }
 
 
-/**
- * LPS firmware message class handler.
- */
+
 void
 bfa_lps_isr(struct bfa_s *bfa, struct bfi_msg_s *m)
 {

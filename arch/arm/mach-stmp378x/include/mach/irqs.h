@@ -1,20 +1,6 @@
-/*
- * Freescale STMP378X interrupts
- *
- * Copyright (C) 2005 Sigmatel Inc
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 
 #define IRQ_DEBUG_UART			0
 #define IRQ_COMMS_RX			1
@@ -88,8 +74,8 @@
 #define NR_REAL_IRQS	128
 #define NR_IRQS		(NR_REAL_IRQS + 32 * 3)
 
-/* All interrupts are FIQ capable */
+
 #define FIQ_START		IRQ_DEBUG_UART
 
-/* Hard disk IRQ is a GPMI attention IRQ */
+
 #define IRQ_HARDDISK		IRQ_GPMI_ATTENTION

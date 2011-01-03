@@ -1,15 +1,4 @@
-/*
- * drivers/char/watchdog/davinci_wdt.c
- *
- * Watchdog driver for DaVinci DM644x/DM646x processors
- *
- * Copyright (C) 2006 Texas Instruments.
- *
- * 2007 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -30,9 +19,9 @@
 #define MODULE_NAME "DAVINCI-WDT: "
 
 #define DEFAULT_HEARTBEAT 60
-#define MAX_HEARTBEAT     600	/* really the max margin is 264/27MHz*/
+#define MAX_HEARTBEAT     600	
 
-/* Timer register set definition */
+
 #define PID12	(0x0)
 #define EMUMGT	(0x4)
 #define TIM12	(0x10)
@@ -43,17 +32,17 @@
 #define TGCR	(0x24)
 #define WDTCR	(0x28)
 
-/* TCR bit definitions */
+
 #define ENAMODE12_DISABLED	(0 << 6)
 #define ENAMODE12_ONESHOT	(1 << 6)
 #define ENAMODE12_PERIODIC	(2 << 6)
 
-/* TGCR bit definitions */
+
 #define TIM12RS_UNRESET		(1 << 0)
 #define TIM34RS_UNRESET		(1 << 1)
 #define TIMMODE_64BIT_WDOG      (2 << 2)
 
-/* WDTCR bit definitions */
+
 #define WDEN			(1 << 14)
 #define WDFLAG			(1 << 15)
 #define WDKEY_SEQ0		(0xa5c6 << 16)
@@ -76,9 +65,9 @@ static void wdt_service(void)
 {
 	spin_lock(&io_lock);
 
-	/* put watchdog in service state */
+	
 	iowrite32(WDKEY_SEQ0, wdt_base + WDTCR);
-	/* put watchdog in active state */
+	
 	iowrite32(WDKEY_SEQ1, wdt_base + WDTCR);
 
 	spin_unlock(&io_lock);
@@ -94,29 +83,26 @@ static void wdt_enable(void)
 
 	spin_lock(&io_lock);
 
-	/* disable, internal clock source */
+	
 	iowrite32(0, wdt_base + TCR);
-	/* reset timer, set mode to 64-bit watchdog, and unreset */
+	
 	iowrite32(0, wdt_base + TGCR);
 	tgcr = TIMMODE_64BIT_WDOG | TIM12RS_UNRESET | TIM34RS_UNRESET;
 	iowrite32(tgcr, wdt_base + TGCR);
-	/* clear counter regs */
+	
 	iowrite32(0, wdt_base + TIM12);
 	iowrite32(0, wdt_base + TIM34);
-	/* set timeout period */
+	
 	timer_margin = (((u64)heartbeat * wdt_freq) & 0xffffffff);
 	iowrite32(timer_margin, wdt_base + PRD12);
 	timer_margin = (((u64)heartbeat * wdt_freq) >> 32);
 	iowrite32(timer_margin, wdt_base + PRD34);
-	/* enable run continuously */
+	
 	iowrite32(ENAMODE12_PERIODIC, wdt_base + TCR);
-	/* Once the WDT is in pre-active state write to
-	 * TIM12, TIM34, PRD12, PRD34, TCR, TGCR, WDTCR are
-	 * write protected (except for the WDKEY field)
-	 */
-	/* put watchdog in pre-active state */
+	
+	
 	iowrite32(WDKEY_SEQ0 | WDEN, wdt_base + WDTCR);
-	/* put watchdog in active state */
+	
 	iowrite32(WDKEY_SEQ1 | WDEN, wdt_base + WDTCR);
 
 	spin_unlock(&io_lock);

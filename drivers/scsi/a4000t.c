@@ -1,12 +1,4 @@
-/*
- * Detection routine for the NCR53c710 based Amiga SCSI Controllers for Linux.
- *		Amiga Technologies A4000T SCSI controller.
- *
- * Written 1997 by Alan Hourihane <alanh@fairlite.demon.co.uk>
- * plus modifications of the 53c7xx.c driver to support the Amiga.
- *
- * Rewritten to use 53c700.c by Kars de Jong <jongk@linux-m68k.org>
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -53,14 +45,14 @@ static int __devinit a4000t_probe(struct platform_device *dev)
 		goto out_release;
 	}
 
-	/* Fill in the required pieces of hostdata */
+	
 	hostdata->base = (void __iomem *)ZTWO_VADDR(A4000T_SCSI_ADDR);
 	hostdata->clock = 50;
 	hostdata->chip710 = 1;
 	hostdata->dmode_extra = DMODE_FC2;
 	hostdata->dcntl_extra = EA_710;
 
-	/* and register the chip */
+	
 	host = NCR_700_detect(&a4000t_scsi_driver_template, hostdata,
 			      &dev->dev);
 	if (!host) {

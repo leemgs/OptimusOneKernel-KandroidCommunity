@@ -1,13 +1,4 @@
-/*
- * Simple MTD partitioning layer
- *
- * (C) 2000 Nicolas Pitre <nico@fluxnic.net>
- *
- * This code is GPL
- *
- * 	02-21-2002	Thomas Gleixner <gleixner@autronix.de>
- *			added support for read_oob, write_oob
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -19,10 +10,10 @@
 #include <linux/mtd/partitions.h>
 #include <linux/mtd/compatmac.h>
 
-/* Our partition linked list */
+
 static LIST_HEAD(mtd_partitions);
 
-/* Our partition node structure */
+
 struct mtd_part {
 	struct mtd_info mtd;
 	struct mtd_info *master;
@@ -30,17 +21,11 @@ struct mtd_part {
 	struct list_head list;
 };
 
-/*
- * Given a pointer to the MTD object in the mtd_part structure, we can retrieve
- * the pointer to that structure with this macro.
- */
+
 #define PART(x)  ((struct mtd_part *)(x))
 
 
-/*
- * MTD methods which simply translate the effective address and pass through
- * to the _real_ device.
- */
+
 
 static int part_read(struct mtd_info *mtd, loff_t from, size_t len,
 		size_t *retlen, u_char *buf)
@@ -307,10 +292,22 @@ static int part_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	return res;
 }
 
-/*
- * This function unregisters and destroy all slave MTD objects which are
- * attached to the given master MTD object.
- */
+void part_fill_badblockstats(struct mtd_info *mtd)
+{
+	struct mtd_part *part = PART(mtd);
+	if (part->master->block_isbad) {
+		uint64_t offs = 0;
+		mtd->ecc_stats.badblocks = 0;
+		while (offs < mtd->size) {
+			if (part->master->block_isbad(part->master,
+						offs + part->offset))
+				mtd->ecc_stats.badblocks++;
+			offs += mtd->erasesize;
+		}
+	}
+}
+
+
 
 int del_mtd_partitions(struct mtd_info *master)
 {
@@ -333,7 +330,7 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 {
 	struct mtd_part *slave;
 
-	/* allocate the partition structure */
+	
 	slave = kzalloc(sizeof(*slave), GFP_KERNEL);
 	if (!slave) {
 		printk(KERN_ERR"memory allocation error while creating partitions for \"%s\"\n",
@@ -343,7 +340,7 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 	}
 	list_add(&slave->list, &mtd_partitions);
 
-	/* set up the MTD object for this partition */
+	
 	slave->mtd.type = master->type;
 	slave->mtd.flags = master->flags & ~part->mask_flags;
 	slave->mtd.size = part->size;
@@ -356,9 +353,7 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 	slave->mtd.owner = master->owner;
 	slave->mtd.backing_dev_info = master->backing_dev_info;
 
-	/* NOTE:  we don't arrange MTDs as a tree; it'd be error-prone
-	 * to have the same data be in two different partitions.
-	 */
+	
 	slave->mtd.dev.parent = master->dev.parent;
 
 	slave->mtd.read = part_read;
@@ -415,7 +410,7 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 	if (slave->offset == MTDPART_OFS_NXTBLK) {
 		slave->offset = cur_offset;
 		if (mtd_mod_by_eb(cur_offset, master) != 0) {
-			/* Round up to next erasesize */
+			
 			slave->offset = (mtd_div_by_eb(cur_offset, master) + 1) * master->erasesize;
 			printk(KERN_NOTICE "Moving partition %d: "
 			       "0x%012llx -> 0x%012llx\n", partno,
@@ -428,9 +423,9 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 	printk(KERN_NOTICE "0x%012llx-0x%012llx : \"%s\"\n", (unsigned long long)slave->offset,
 		(unsigned long long)(slave->offset + slave->mtd.size), slave->mtd.name);
 
-	/* let's do some sanity checks */
+	
 	if (slave->offset >= master->size) {
-		/* let's register it anyway to preserve ordering */
+		
 		slave->offset = 0;
 		slave->mtd.size = 0;
 		printk(KERN_ERR"mtd: partition \"%s\" is out of reach -- disabled\n",
@@ -443,20 +438,19 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 			part->name, master->name, (unsigned long long)slave->mtd.size);
 	}
 	if (master->numeraseregions > 1) {
-		/* Deal with variable erase size stuff */
+		
 		int i, max = master->numeraseregions;
 		u64 end = slave->offset + slave->mtd.size;
 		struct mtd_erase_region_info *regions = master->eraseregions;
 
-		/* Find the first erase regions which is part of this
-		 * partition. */
+		
 		for (i = 0; i < max && regions[i].offset <= slave->offset; i++)
 			;
-		/* The loop searched for the region _behind_ the first one */
+		
 		if (i > 0)
 			i--;
 
-		/* Pick biggest erasesize */
+		
 		for (; i < max && regions[i].offset < end; i++) {
 			if (slave->mtd.erasesize < regions[i].erasesize) {
 				slave->mtd.erasesize = regions[i].erasesize;
@@ -464,15 +458,14 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 		}
 		BUG_ON(slave->mtd.erasesize == 0);
 	} else {
-		/* Single erase size */
+		
 		slave->mtd.erasesize = master->erasesize;
 	}
 
 	if ((slave->mtd.flags & MTD_WRITEABLE) &&
 	    mtd_mod_by_eb(slave->offset, &slave->mtd)) {
-		/* Doesn't start on a boundary of major erase size */
-		/* FIXME: Let it be writable if it is on a boundary of
-		 * _minor_ erase size though */
+		
+		
 		slave->mtd.flags &= ~MTD_WRITEABLE;
 		printk(KERN_WARNING"mtd: partition \"%s\" doesn't start on an erase block boundary -- force read-only\n",
 			part->name);
@@ -485,32 +478,19 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 	}
 
 	slave->mtd.ecclayout = master->ecclayout;
-	if (master->block_isbad) {
-		uint64_t offs = 0;
 
-		while (offs < slave->mtd.size) {
-			if (master->block_isbad(master,
-						offs + slave->offset))
-				slave->mtd.ecc_stats.badblocks++;
-			offs += slave->mtd.erasesize;
-		}
-	}
+#ifndef CONFIG_MTD_LAZYECCSTATS
+	part_fill_badblockstats(&(slave->mtd));
+#endif
 
 out_register:
-	/* register our partition */
+	
 	add_mtd_device(&slave->mtd);
 
 	return slave;
 }
 
-/*
- * This function, given a master MTD object and a partition table, creates
- * and registers slave MTD objects which are bound to the master according to
- * the partition definitions.
- *
- * We don't register the master, or expect the caller to have done so,
- * for reasons of data integrity.
- */
+
 
 int add_mtd_partitions(struct mtd_info *master,
 		       const struct mtd_partition *parts,

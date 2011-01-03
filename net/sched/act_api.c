@@ -1,15 +1,4 @@
-/*
- * net/sched/act_api.c	Packet action API.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Author:	Jamal Hadi Salim
- *
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -295,7 +284,7 @@ int tcf_unregister_action(struct tc_action_ops *act)
 }
 EXPORT_SYMBOL(tcf_unregister_action);
 
-/* lookup by name */
+
 static struct tc_action_ops *tc_lookup_action_n(char *kind)
 {
 	struct tc_action_ops *a = NULL;
@@ -316,7 +305,7 @@ static struct tc_action_ops *tc_lookup_action_n(char *kind)
 	return a;
 }
 
-/* lookup by nlattr */
+
 static struct tc_action_ops *tc_lookup_action(struct nlattr *kind)
 {
 	struct tc_action_ops *a = NULL;
@@ -338,7 +327,7 @@ static struct tc_action_ops *tc_lookup_action(struct nlattr *kind)
 }
 
 #if 0
-/* lookup by id */
+
 static struct tc_action_ops *tc_lookup_action_id(u32 type)
 {
 	struct tc_action_ops *a = NULL;
@@ -376,12 +365,12 @@ repeat:
 		if (a->ops && a->ops->act) {
 			ret = a->ops->act(skb, a, res);
 			if (TC_MUNGED & skb->tc_verd) {
-				/* copied already, allow trampling */
+				
 				skb->tc_verd = SET_TC_OK2MUNGE(skb->tc_verd);
 				skb->tc_verd = CLR_TC_MUNGED(skb->tc_verd);
 			}
 			if (ret == TC_ACT_REPEAT)
-				goto repeat;	/* we need a ttl - JHS */
+				goto repeat;	
 			if (ret != TC_ACT_PIPE)
 				goto exec_done;
 		}
@@ -402,7 +391,7 @@ void tcf_action_destroy(struct tc_action *act, int bind)
 				module_put(a->ops->owner);
 			act = act->next;
 			kfree(a);
-		} else { /*FIXME: Remove later - catch insertion bugs*/
+		} else { 
 			printk("tcf_action_destroy: BUG? destroying NULL ops\n");
 			act = act->next;
 			kfree(a);
@@ -509,12 +498,7 @@ struct tc_action *tcf_action_init_1(struct nlattr *nla, struct nlattr *est,
 
 		a_o = tc_lookup_action_n(act_name);
 
-		/* We dropped the RTNL semaphore in order to
-		 * perform the module load.  So, even if we
-		 * succeeded in loading the module we have to
-		 * tell the caller to replay the request.  We
-		 * indicate this using -EAGAIN.
-		 */
+		
 		if (a_o != NULL) {
 			err = -EAGAIN;
 			goto err_mod;
@@ -529,7 +513,7 @@ struct tc_action *tcf_action_init_1(struct nlattr *nla, struct nlattr *est,
 	if (a == NULL)
 		goto err_mod;
 
-	/* backward compatibility for policer */
+	
 	if (name == NULL)
 		err = a_o->init(tb[TCA_ACT_OPTIONS], est, a, ovr, bind);
 	else
@@ -537,10 +521,7 @@ struct tc_action *tcf_action_init_1(struct nlattr *nla, struct nlattr *est,
 	if (err < 0)
 		goto err_free;
 
-	/* module count goes up only when brand new policy is created
-	   if it exists and is only bound to in a_o->init() then
-	   ACT_P_CREATED is not returned (a zero is).
-	*/
+	
 	if (err != ACT_P_CREATED)
 		module_put(a_o->owner);
 	a->ops = a_o;
@@ -597,9 +578,7 @@ int tcf_action_copy_stats(struct sk_buff *skb, struct tc_action *a,
 	if (h == NULL)
 		goto errout;
 
-	/* compat_mode being true specifies a call that is supposed
-	 * to add additional backward compatiblity statistic TLVs.
-	 */
+	
 	if (compat_mode) {
 		if (a->type == TCA_OLD_COMPAT)
 			err = gnet_stats_start_copy_compat(skb, 0,
@@ -858,7 +837,7 @@ tca_action_gd(struct nlattr *nla, struct nlmsghdr *n, u32 pid, int event)
 
 	if (event == RTM_GETACTION)
 		ret = act_get_notify(pid, n, head, event);
-	else { /* delete */
+	else { 
 		struct sk_buff *skb;
 
 		skb = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
@@ -874,7 +853,7 @@ tca_action_gd(struct nlattr *nla, struct nlmsghdr *n, u32 pid, int event)
 			goto err;
 		}
 
-		/* now do the delete */
+		
 		tcf_action_destroy(head, 0);
 		ret = rtnetlink_send(skb, &init_net, pid, RTNLGRP_TC,
 				     n->nlmsg_flags&NLM_F_ECHO);
@@ -949,9 +928,7 @@ tcf_action_add(struct nlattr *nla, struct nlmsghdr *n, u32 pid, int ovr)
 		goto done;
 	}
 
-	/* dump then free all the actions after update; inserted policy
-	 * stays intact
-	 * */
+	
 	ret = tcf_add_notify(act, pid, seq, RTM_NEWACTION, n->nlmsg_flags);
 	for (a = act; a; a = act) {
 		act = a->next;
@@ -980,16 +957,10 @@ static int tc_ctl_action(struct sk_buff *skb, struct nlmsghdr *n, void *arg)
 		return -EINVAL;
 	}
 
-	/* n->nlmsg_flags&NLM_F_CREATE
-	 * */
+	
 	switch (n->nlmsg_type) {
 	case RTM_NEWACTION:
-		/* we are going to assume all other flags
-		 * imply create only if it doesnt exist
-		 * Note that CREATE | EXCL implies that
-		 * but since we want avoid ambiguity (eg when flags
-		 * is zero) then just set this
-		 */
+		
 		if (n->nlmsg_flags&NLM_F_REPLACE)
 			ovr = 1;
 replay:

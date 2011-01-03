@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/clock.c
- *
- * Copyright (C) 2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #include <linux/err.h>
 #include <linux/module.h>
 #include <linux/list.h>
@@ -41,8 +32,7 @@ struct clk *clk_get(struct device *dev, const char *id)
 				ret = p;
 				break;
 			} else if (p->id == -1)
-				/* remember match with id == -1 in case there is
-				 * no clock for idno */
+				
 				retgen = p;
 		}
 	}
@@ -212,4 +202,4 @@ static int __init clk_debugfs_init(void)
 }
 subsys_initcall(clk_debugfs_init);
 
-#endif /* if defined CONFIG_DEBUG_FS */
+#endif 

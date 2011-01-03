@@ -1,23 +1,4 @@
-/*
-    Samsung S5H1411 VSB/QAM demodulator driver
 
-    Copyright (C) 2008 Steven Toth <stoth@linuxtv.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -32,7 +13,7 @@ struct s5h1411_state {
 
 	struct i2c_adapter *i2c;
 
-	/* configuration settings */
+	
 	const struct s5h1411_config *config;
 
 	struct dvb_frontend frontend;
@@ -53,7 +34,7 @@ static int debug;
 		printk(arg);	\
 	} while (0)
 
-/* Register values to initialise the demod, defaults to VSB */
+
 static struct init_tab {
 	u8	addr;
 	u8	reg;
@@ -141,7 +122,7 @@ static struct init_tab {
 	{ S5H1411_I2C_QAM_ADDR, 0x5b, 0x0100, },
 };
 
-/* VSB SNR lookup table */
+
 static struct vsb_snr_tab {
 	u16	val;
 	u16	data;
@@ -186,7 +167,7 @@ static struct vsb_snr_tab {
 	{      0,   0, },
 };
 
-/* QAM64 SNR lookup table */
+
 static struct qam64_snr_tab {
 	u16	val;
 	u16	data;
@@ -259,7 +240,7 @@ static struct qam64_snr_tab {
 	{  0xffff,   0, },
 };
 
-/* QAM256 SNR lookup table */
+
 static struct qam256_snr_tab {
 	u16	val;
 	u16	data;
@@ -338,7 +319,7 @@ static struct qam256_snr_tab {
 	{  0xffff,   0, },
 };
 
-/* 8 bit registers, 16 bit values */
+
 static int s5h1411_writereg(struct s5h1411_state *state,
 	u8 addr, u8 reg, u16 data)
 {
@@ -410,7 +391,7 @@ static int s5h1411_set_if_freq(struct dvb_frontend *fe, int KHz)
 	default:
 		dprintk("%s(%d KHz) Invalid, defaulting to 5380\n",
 			__func__, KHz);
-		/* no break, need to continue */
+		
 	case 5380:
 	case 44000:
 		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x1be4);
@@ -450,7 +431,7 @@ static int s5h1411_set_mpeg_timing(struct dvb_frontend *fe, int mode)
 		return -EINVAL;
 	}
 
-	/* Configure MPEG Signal Timing charactistics */
+	
 	return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xbe, val);
 }
 
@@ -463,7 +444,7 @@ static int s5h1411_set_spectralinversion(struct dvb_frontend *fe, int inversion)
 	val = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0x24) & ~0x1000;
 
 	if (inversion == 1)
-		val |= 0x1000; /* Inverted */
+		val |= 0x1000; 
 
 	state->inversion = inversion;
 	return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x24, val);
@@ -584,7 +565,7 @@ static int s5h1411_register_reset(struct dvb_frontend *fe)
 	return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf3, 0);
 }
 
-/* Talk to the demod, set the FEC, GUARD, QAM settings etc */
+
 static int s5h1411_set_frontend(struct dvb_frontend *fe,
 	struct dvb_frontend_parameters *p)
 {
@@ -608,15 +589,13 @@ static int s5h1411_set_frontend(struct dvb_frontend *fe,
 			fe->ops.i2c_gate_ctrl(fe, 0);
 	}
 
-	/* Issue a reset to the demod so it knows to resync against the
-	   newly tuned frequency */
+	
 	s5h1411_softreset(fe);
 
 	return 0;
 }
 
-/* Reset the demod hardware and reset all of the configuration registers
-   to a default state. */
+
 static int s5h1411_init(struct dvb_frontend *fe)
 {
 	struct s5h1411_state *state = fe->demodulator_priv;
@@ -632,19 +611,17 @@ static int s5h1411_init(struct dvb_frontend *fe)
 			init_tab[i].reg,
 			init_tab[i].data);
 
-	/* The datasheet says that after initialisation, VSB is default */
+	
 	state->current_modulation = VSB_8;
 
-	/* Although the datasheet says it's in VSB, empirical evidence
-	   shows problems getting lock on the first tuning request.  Make
-	   sure we call enable_modulation the first time around */
+	
 	state->first_tune = 1;
 
 	if (state->config->output_mode == S5H1411_SERIAL_OUTPUT)
-		/* Serial */
+		
 		s5h1411_set_serialmode(fe, 1);
 	else
-		/* Parallel */
+		
 		s5h1411_set_serialmode(fe, 0);
 
 	s5h1411_set_spectralinversion(fe, state->config->inversion);
@@ -653,7 +630,7 @@ static int s5h1411_init(struct dvb_frontend *fe)
 	s5h1411_set_mpeg_timing(fe, state->config->mpeg_timing);
 	s5h1411_softreset(fe);
 
-	/* Note: Leaving the I2C gate closed. */
+	
 	s5h1411_i2c_gate_ctrl(fe, 0);
 
 	return 0;
@@ -667,27 +644,27 @@ static int s5h1411_read_status(struct dvb_frontend *fe, fe_status_t *status)
 
 	*status = 0;
 
-	/* Register F2 bit 15 = Master Lock, removed */
+	
 
 	switch (state->current_modulation) {
 	case QAM_64:
 	case QAM_256:
 		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf0);
-		if (reg & 0x10) /* QAM FEC Lock */
+		if (reg & 0x10) 
 			*status |= FE_HAS_SYNC | FE_HAS_LOCK;
-		if (reg & 0x100) /* QAM EQ Lock */
+		if (reg & 0x100) 
 			*status |= FE_HAS_VITERBI | FE_HAS_CARRIER | FE_HAS_SIGNAL;
 
 		break;
 	case VSB_8:
 		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf2);
-		if (reg & 0x1000) /* FEC Lock */
+		if (reg & 0x1000) 
 			*status |= FE_HAS_SYNC | FE_HAS_LOCK;
-		if (reg & 0x2000) /* EQ Lock */
+		if (reg & 0x2000) 
 			*status |= FE_HAS_VITERBI | FE_HAS_CARRIER | FE_HAS_SIGNAL;
 
 		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0x53);
-		if (reg & 0x1) /* AFC Lock */
+		if (reg & 0x1) 
 			*status |= FE_HAS_SIGNAL;
 
 		break;
@@ -701,7 +678,7 @@ static int s5h1411_read_status(struct dvb_frontend *fe, fe_status_t *status)
 			*status |= FE_HAS_CARRIER | FE_HAS_SIGNAL;
 		break;
 	case S5H1411_TUNERLOCKING:
-		/* Get the tuner status */
+		
 		if (fe->ops.tuner_ops.get_status) {
 			if (fe->ops.i2c_gate_ctrl)
 				fe->ops.i2c_gate_ctrl(fe, 1);
@@ -843,23 +820,23 @@ struct dvb_frontend *s5h1411_attach(const struct s5h1411_config *config,
 	struct s5h1411_state *state = NULL;
 	u16 reg;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct s5h1411_state), GFP_KERNEL);
 	if (state == NULL)
 		goto error;
 
-	/* setup the state */
+	
 	state->config = config;
 	state->i2c = i2c;
 	state->current_modulation = VSB_8;
 	state->inversion = state->config->inversion;
 
-	/* check if the demod exists */
+	
 	reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0x05);
 	if (reg != 0x0066)
 		goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &s5h1411_ops,
 	       sizeof(struct dvb_frontend_ops));
 
@@ -871,10 +848,10 @@ struct dvb_frontend *s5h1411_attach(const struct s5h1411_config *config,
 		goto error;
 	}
 
-	/* Note: Leaving the I2C gate open here. */
+	
 	s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf5, 1);
 
-	/* Put the device into low-power mode until first use */
+	
 	s5h1411_set_powerstate(&state->frontend, 1);
 
 	return &state->frontend;
@@ -917,7 +894,4 @@ MODULE_DESCRIPTION("Samsung S5H1411 QAM-B/ATSC Demodulator driver");
 MODULE_AUTHOR("Steven Toth");
 MODULE_LICENSE("GPL");
 
-/*
- * Local variables:
- * c-basic-offset: 8
- */
+

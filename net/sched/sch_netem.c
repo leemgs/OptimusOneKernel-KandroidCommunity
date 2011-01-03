@@ -1,17 +1,4 @@
-/*
- * net/sched/sch_netem.c	Network emulator
- *
- * 		This program is free software; you can redistribute it and/or
- * 		modify it under the terms of the GNU General Public License
- * 		as published by the Free Software Foundation; either version
- * 		2 of the License.
- *
- *  		Many of the algorithms and ideas for this came from
- *		NIST Net which is not copyrighted.
- *
- * Authors:	Stephen Hemminger <shemminger@osdl.org>
- *		Catalin(ux aka Dino) BOIE <catab at umbrella dot ro>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -25,28 +12,7 @@
 
 #define VERSION "1.2"
 
-/*	Network Emulation Queuing algorithm.
-	====================================
 
-	Sources: [1] Mark Carson, Darrin Santay, "NIST Net - A Linux-based
-		 Network Emulation Tool
-		 [2] Luigi Rizzo, DummyNet for FreeBSD
-
-	 ----------------------------------------------------------------
-
-	 This started out as a simple way to delay outgoing packets to
-	 test TCP but has grown to include most of the functionality
-	 of a full blown network emulator like NISTnet. It can delay
-	 packets and add random jitter (and correlation). The random
-	 distribution can be loaded from a table as well to provide
-	 normal, Pareto, or experimental curves. Packet loss,
-	 duplication, and reordering can also be emulated.
-
-	 This qdisc does not do classification that can be handled in
-	 layering other disciplines.  It does not need to do bandwidth
-	 control either since that can be handled by using token
-	 bucket or other rate control.
-*/
 
 struct netem_sched_data {
 	struct Qdisc	*qdisc;
@@ -74,7 +40,7 @@ struct netem_sched_data {
 	} *delay_dist;
 };
 
-/* Time stamp put into socket buffer control block */
+
 struct netem_skb_cb {
 	psched_time_t	time_to_send;
 };
@@ -86,25 +52,20 @@ static inline struct netem_skb_cb *netem_skb_cb(struct sk_buff *skb)
 	return (struct netem_skb_cb *)qdisc_skb_cb(skb)->data;
 }
 
-/* init_crandom - initialize correlated random number generator
- * Use entropy source for initial seed.
- */
+
 static void init_crandom(struct crndstate *state, unsigned long rho)
 {
 	state->rho = rho;
 	state->last = net_random();
 }
 
-/* get_crandom - correlated random number generator
- * Next number depends on last value.
- * rho is scaled to avoid floating point.
- */
+
 static u32 get_crandom(struct crndstate *state)
 {
 	u64 value, rho;
 	unsigned long answer;
 
-	if (state->rho == 0)	/* no correlation */
+	if (state->rho == 0)	
 		return net_random();
 
 	value = net_random();
@@ -114,10 +75,7 @@ static u32 get_crandom(struct crndstate *state)
 	return answer;
 }
 
-/* tabledist - return a pseudo-randomly distributed value with mean mu and
- * std deviation sigma.  Uses table lookup to approximate the desired
- * distribution, and a uniformly-distributed pseudo-random source.
- */
+
 static psched_tdiff_t tabledist(psched_tdiff_t mu, psched_tdiff_t sigma,
 				struct crndstate *state,
 				const struct disttable *dist)
@@ -131,7 +89,7 @@ static psched_tdiff_t tabledist(psched_tdiff_t mu, psched_tdiff_t sigma,
 
 	rnd = get_crandom(state);
 
-	/* default uniform distribution */
+	
 	if (dist == NULL)
 		return (rnd % (2*sigma)) - sigma + mu;
 
@@ -145,16 +103,11 @@ static psched_tdiff_t tabledist(psched_tdiff_t mu, psched_tdiff_t sigma,
 	return  x / NETEM_DIST_SCALE + (sigma / NETEM_DIST_SCALE) * t + mu;
 }
 
-/*
- * Insert one skb into qdisc.
- * Note: parent depends on return value to account for queue length.
- * 	NET_XMIT_DROP: queue length didn't change.
- *      NET_XMIT_SUCCESS: one skb was queued.
- */
+
 static int netem_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 {
 	struct netem_sched_data *q = qdisc_priv(sch);
-	/* We don't fill cb now as skb_unshare() may invalidate it */
+	
 	struct netem_skb_cb *cb;
 	struct sk_buff *skb2;
 	int ret;
@@ -162,11 +115,11 @@ static int netem_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 
 	pr_debug("netem_enqueue skb=%p\n", skb);
 
-	/* Random duplication */
+	
 	if (q->duplicate && q->duplicate >= get_crandom(&q->dup_cor))
 		++count;
 
-	/* Random packet drop 0 => none, ~0 => all */
+	
 	if (q->loss && q->loss >= get_crandom(&q->loss_cor))
 		--count;
 
@@ -178,26 +131,17 @@ static int netem_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 
 	skb_orphan(skb);
 
-	/*
-	 * If we need to duplicate packet, then re-insert at top of the
-	 * qdisc tree, since parent queuer expects that only one
-	 * skb will be queued.
-	 */
+	
 	if (count > 1 && (skb2 = skb_clone(skb, GFP_ATOMIC)) != NULL) {
 		struct Qdisc *rootq = qdisc_root(sch);
-		u32 dupsave = q->duplicate; /* prevent duplicating a dup... */
+		u32 dupsave = q->duplicate; 
 		q->duplicate = 0;
 
 		qdisc_enqueue_root(skb2, rootq);
 		q->duplicate = dupsave;
 	}
 
-	/*
-	 * Randomized packet corruption.
-	 * Make copy if needed since we are modifying
-	 * If packet is going to be hardware checksummed, then
-	 * do it now in software before we mangle it.
-	 */
+	
 	if (q->corrupt && q->corrupt >= get_crandom(&q->corrupt_cor)) {
 		if (!(skb = skb_unshare(skb, GFP_ATOMIC))
 		    || (skb->ip_summed == CHECKSUM_PARTIAL
@@ -210,8 +154,8 @@ static int netem_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 	}
 
 	cb = netem_skb_cb(skb);
-	if (q->gap == 0 		/* not doing reordering */
-	    || q->counter < q->gap 	/* inside last reordering gap */
+	if (q->gap == 0 		
+	    || q->counter < q->gap 	
 	    || q->reorder < get_crandom(&q->reorder_cor)) {
 		psched_time_t now;
 		psched_tdiff_t delay;
@@ -224,10 +168,7 @@ static int netem_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 		++q->counter;
 		ret = qdisc_enqueue(skb, q->qdisc);
 	} else {
-		/*
-		 * Do re-ordering by putting one out of N packets at the front
-		 * of the queue.
-		 */
+		
 		cb->time_to_send = psched_get_time();
 		q->counter = 0;
 
@@ -274,17 +215,14 @@ static struct sk_buff *netem_dequeue(struct Qdisc *sch)
 		const struct netem_skb_cb *cb = netem_skb_cb(skb);
 		psched_time_t now = psched_get_time();
 
-		/* if more time remaining? */
+		
 		if (cb->time_to_send <= now) {
 			skb = qdisc_dequeue_peeked(q->qdisc);
 			if (unlikely(!skb))
 				return NULL;
 
 #ifdef CONFIG_NET_CLS_ACT
-			/*
-			 * If it's at ingress let's pretend the delay is
-			 * from the network (tstamp will be updated).
-			 */
+			
 			if (G_TC_FROM(skb->tc_verd) & AT_INGRESS)
 				skb->tstamp.tv64 = 0;
 #endif
@@ -308,10 +246,7 @@ static void netem_reset(struct Qdisc *sch)
 	qdisc_watchdog_cancel(&q->watchdog);
 }
 
-/*
- * Distribution data is a variable size payload containing
- * signed 16 bit values.
- */
+
 static int get_dist_table(struct Qdisc *sch, const struct nlattr *attr)
 {
 	struct netem_sched_data *q = qdisc_priv(sch);
@@ -389,7 +324,7 @@ static int parse_attr(struct nlattr *tb[], int maxtype, struct nlattr *nla,
 	return 0;
 }
 
-/* Parse netlink message to set options */
+
 static int netem_change(struct Qdisc *sch, struct nlattr *opt)
 {
 	struct netem_sched_data *q = qdisc_priv(sch);
@@ -419,9 +354,7 @@ static int netem_change(struct Qdisc *sch, struct nlattr *opt)
 	q->loss = qopt->loss;
 	q->duplicate = qopt->duplicate;
 
-	/* for compatibility with earlier versions.
-	 * if gap is set, need to assume 100% probability
-	 */
+	
 	if (q->gap)
 		q->reorder = ~0;
 
@@ -443,10 +376,7 @@ static int netem_change(struct Qdisc *sch, struct nlattr *opt)
 	return 0;
 }
 
-/*
- * Special case version of FIFO queue for use by netem.
- * It queues in order based on timestamps in skb's
- */
+
 struct fifo_sched_data {
 	u32 limit;
 	psched_time_t oldest;
@@ -460,7 +390,7 @@ static int tfifo_enqueue(struct sk_buff *nskb, struct Qdisc *sch)
 	struct sk_buff *skb;
 
 	if (likely(skb_queue_len(list) < q->limit)) {
-		/* Optimize for add at tail */
+		
 		if (likely(skb_queue_empty(list) || tnext >= q->oldest)) {
 			q->oldest = tnext;
 			return qdisc_enqueue_tail(nskb, sch);

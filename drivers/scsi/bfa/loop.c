@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  port_loop.c vport private loop implementation.
- */
+
+
 #include <bfa.h>
 #include <bfa_svc.h>
 #include "fcs_lport.h"
@@ -27,37 +10,30 @@
 
 BFA_TRC_FILE(FCS, LOOP);
 
-/**
- *   ALPA to LIXA bitmap mapping
- *
- *   ALPA 0x00 (Word 0, Bit 30) is invalid for N_Ports. Also Word 0 Bit 31
- * is for L_bit (login required) and is filled as ALPA 0x00 here.
- */
+
 static const u8   port_loop_alpa_map[] = {
-	0xEF, 0xE8, 0xE4, 0xE2, 0xE1, 0xE0, 0xDC, 0xDA,	/* Word 3 Bits 0..7 */
-	0xD9, 0xD6, 0xD5, 0xD4, 0xD3, 0xD2, 0xD1, 0xCE,	/* Word 3 Bits 8..15 */
-	0xCD, 0xCC, 0xCB, 0xCA, 0xC9, 0xC7, 0xC6, 0xC5,	/* Word 3 Bits 16..23 */
-	0xC3, 0xBC, 0xBA, 0xB9, 0xB6, 0xB5, 0xB4, 0xB3,	/* Word 3 Bits 24..31 */
+	0xEF, 0xE8, 0xE4, 0xE2, 0xE1, 0xE0, 0xDC, 0xDA,	
+	0xD9, 0xD6, 0xD5, 0xD4, 0xD3, 0xD2, 0xD1, 0xCE,	
+	0xCD, 0xCC, 0xCB, 0xCA, 0xC9, 0xC7, 0xC6, 0xC5,	
+	0xC3, 0xBC, 0xBA, 0xB9, 0xB6, 0xB5, 0xB4, 0xB3,	
 
-	0xB2, 0xB1, 0xAE, 0xAD, 0xAC, 0xAB, 0xAA, 0xA9,	/* Word 2 Bits 0..7 */
-	0xA7, 0xA6, 0xA5, 0xA3, 0x9F, 0x9E, 0x9D, 0x9B,	/* Word 2 Bits 8..15 */
-	0x98, 0x97, 0x90, 0x8F, 0x88, 0x84, 0x82, 0x81,	/* Word 2 Bits 16..23 */
-	0x80, 0x7C, 0x7A, 0x79, 0x76, 0x75, 0x74, 0x73,	/* Word 2 Bits 24..31 */
+	0xB2, 0xB1, 0xAE, 0xAD, 0xAC, 0xAB, 0xAA, 0xA9,	
+	0xA7, 0xA6, 0xA5, 0xA3, 0x9F, 0x9E, 0x9D, 0x9B,	
+	0x98, 0x97, 0x90, 0x8F, 0x88, 0x84, 0x82, 0x81,	
+	0x80, 0x7C, 0x7A, 0x79, 0x76, 0x75, 0x74, 0x73,	
 
-	0x72, 0x71, 0x6E, 0x6D, 0x6C, 0x6B, 0x6A, 0x69,	/* Word 1 Bits 0..7 */
-	0x67, 0x66, 0x65, 0x63, 0x5C, 0x5A, 0x59, 0x56,	/* Word 1 Bits 8..15 */
-	0x55, 0x54, 0x53, 0x52, 0x51, 0x4E, 0x4D, 0x4C,	/* Word 1 Bits 16..23 */
-	0x4B, 0x4A, 0x49, 0x47, 0x46, 0x45, 0x43, 0x3C,	/* Word 1 Bits 24..31 */
+	0x72, 0x71, 0x6E, 0x6D, 0x6C, 0x6B, 0x6A, 0x69,	
+	0x67, 0x66, 0x65, 0x63, 0x5C, 0x5A, 0x59, 0x56,	
+	0x55, 0x54, 0x53, 0x52, 0x51, 0x4E, 0x4D, 0x4C,	
+	0x4B, 0x4A, 0x49, 0x47, 0x46, 0x45, 0x43, 0x3C,	
 
-	0x3A, 0x39, 0x36, 0x35, 0x34, 0x33, 0x32, 0x31,	/* Word 0 Bits 0..7 */
-	0x2E, 0x2D, 0x2C, 0x2B, 0x2A, 0x29, 0x27, 0x26,	/* Word 0 Bits 8..15 */
-	0x25, 0x23, 0x1F, 0x1E, 0x1D, 0x1B, 0x18, 0x17,	/* Word 0 Bits 16..23 */
-	0x10, 0x0F, 0x08, 0x04, 0x02, 0x01, 0x00, 0x00,	/* Word 0 Bits 24..31 */
+	0x3A, 0x39, 0x36, 0x35, 0x34, 0x33, 0x32, 0x31,	
+	0x2E, 0x2D, 0x2C, 0x2B, 0x2A, 0x29, 0x27, 0x26,	
+	0x25, 0x23, 0x1F, 0x1E, 0x1D, 0x1B, 0x18, 0x17,	
+	0x10, 0x0F, 0x08, 0x04, 0x02, 0x01, 0x00, 0x00,	
 };
 
-/*
- * Local Functions
- */
+
 bfa_status_t    bfa_fcs_port_loop_send_plogi(struct bfa_fcs_port_s *port,
 					     u8 alpa);
 
@@ -101,17 +77,13 @@ void            bfa_fcs_port_loop_adisc_acc_response(void *fcsarg,
 						     u32 rsp_len,
 						     u32 resid_len,
 						     struct fchs_s *rsp_fchs);
-/**
- *   Called by port to initializar in provate LOOP topology.
- */
+
 void
 bfa_fcs_port_loop_init(struct bfa_fcs_port_s *port)
 {
 }
 
-/**
- *   Called by port to notify transition to online state.
- */
+
 void
 bfa_fcs_port_loop_online(struct bfa_fcs_port_s *port)
 {
@@ -121,19 +93,12 @@ bfa_fcs_port_loop_online(struct bfa_fcs_port_s *port)
 	struct bfa_fcs_rport_s *r_port;
 	int             ii = 0;
 
-	/*
-	 * If the port role is Initiator Mode, create Rports.
-	 */
+	
 	if (port->port_cfg.roles == BFA_PORT_ROLE_FCP_IM) {
-		/*
-		 * Check if the ALPA positional bitmap is available.
-		 * if not, we send PLOGI to all possible ALPAs.
-		 */
+		
 		if (num_alpa > 0) {
 			for (ii = 0; ii < num_alpa; ii++) {
-				/*
-				 * ignore ALPA of bfa port
-				 */
+				
 				if (alpa_pos_map[ii] != port->pid) {
 					r_port = bfa_fcs_rport_create(port,
 						alpa_pos_map[ii]);
@@ -141,44 +106,34 @@ bfa_fcs_port_loop_online(struct bfa_fcs_port_s *port)
 			}
 		} else {
 			for (ii = 0; ii < MAX_ALPA_COUNT; ii++) {
-				/*
-				 * ignore ALPA of bfa port
-				 */
+				
 				if ((port_loop_alpa_map[ii] > 0)
 				    && (port_loop_alpa_map[ii] != port->pid))
 					bfa_fcs_port_loop_send_plogi(port,
 						port_loop_alpa_map[ii]);
-				/**TBD */
+				
 			}
 		}
 	} else {
-		/*
-		 * TBD Target Mode ??
-		 */
+		
 	}
 
 }
 
-/**
- *   Called by port to notify transition to offline state.
- */
+
 void
 bfa_fcs_port_loop_offline(struct bfa_fcs_port_s *port)
 {
 
 }
 
-/**
- *   Called by port to notify a LIP on the loop.
- */
+
 void
 bfa_fcs_port_loop_lip(struct bfa_fcs_port_s *port)
 {
 }
 
-/**
- * Local Functions.
- */
+
 bfa_status_t
 bfa_fcs_port_loop_send_plogi(struct bfa_fcs_port_s *port, u8 alpa)
 {
@@ -205,9 +160,7 @@ bfa_fcs_port_loop_send_plogi(struct bfa_fcs_port_s *port, u8 alpa)
 	return BFA_STATUS_OK;
 }
 
-/**
- *   Called by fcxp to notify the Plogi response
- */
+
 void
 bfa_fcs_port_loop_plogi_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 				 void *cbarg, bfa_status_t req_status,
@@ -220,16 +173,10 @@ bfa_fcs_port_loop_plogi_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, req_status);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
-		/*
-		 * @todo
-		 * This could mean that the device with this APLA does not
-		 * exist on the loop.
-		 */
+		
 
 		return;
 	}
@@ -266,17 +213,12 @@ bfa_fcs_port_loop_send_plogi_acc(struct bfa_fcs_port_s *port, u8 alpa)
 	bfa_fcxp_send(fcxp, NULL, port->fabric->vf_id, port->lp_tag, BFA_FALSE,
 				 FC_CLASS_3, len, &fchs,
 				 bfa_fcs_port_loop_plogi_acc_response,
-				 (void *)port, FC_MAX_PDUSZ, 0); /* No response
-								  * expected
-								  */
+				 (void *)port, FC_MAX_PDUSZ, 0); 
 
 	return BFA_STATUS_OK;
 }
 
-/*
- *  Plogi Acc Response
- * We donot do any processing here.
- */
+
 void
 bfa_fcs_port_loop_plogi_acc_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 				     void *cbarg, bfa_status_t req_status,
@@ -288,9 +230,7 @@ bfa_fcs_port_loop_plogi_acc_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->pid);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		return;
@@ -322,9 +262,7 @@ bfa_fcs_port_loop_send_adisc(struct bfa_fcs_port_s *port, u8 alpa)
 	return BFA_STATUS_OK;
 }
 
-/**
- *   Called by fcxp to notify the ADISC response
- */
+
 void
 bfa_fcs_port_loop_adisc_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 				 void *cbarg, bfa_status_t req_status,
@@ -339,13 +277,9 @@ bfa_fcs_port_loop_adisc_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, req_status);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
-		/*
-		 * TBD : we may need to retry certain requests
-		 */
+		
 		bfa_fcxp_free(fcxp);
 		return;
 	}
@@ -357,9 +291,7 @@ bfa_fcs_port_loop_adisc_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	} else {
 		bfa_trc(port->fcs, adisc_resp->els_cmd.els_code);
 
-		/*
-		 * TBD: we may need to check for reject codes and retry
-		 */
+		
 		rport = bfa_fcs_port_get_rport_by_pid(port, pid);
 		if (rport) {
 			list_del(&rport->qe);
@@ -390,17 +322,12 @@ bfa_fcs_port_loop_send_adisc_acc(struct bfa_fcs_port_s *port, u8 alpa)
 	bfa_fcxp_send(fcxp, NULL, port->fabric->vf_id, port->lp_tag, BFA_FALSE,
 				FC_CLASS_3, len, &fchs,
 				bfa_fcs_port_loop_adisc_acc_response,
-				(void *)port, FC_MAX_PDUSZ, 0); /* no reponse
-								 * expected
-								 */
+				(void *)port, FC_MAX_PDUSZ, 0); 
 
 	return BFA_STATUS_OK;
 }
 
-/*
- *  Adisc Acc Response
- * We donot do any processing here.
- */
+
 void
 bfa_fcs_port_loop_adisc_acc_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 				     void *cbarg, bfa_status_t req_status,
@@ -412,9 +339,7 @@ bfa_fcs_port_loop_adisc_acc_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->pid);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		return;

@@ -1,10 +1,4 @@
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/jiffies.h>
@@ -33,14 +27,14 @@ static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
 	return true;
 }
 
-/* Print out the per-protocol part of the tuple. */
+
 static int generic_print_tuple(struct seq_file *s,
 			       const struct nf_conntrack_tuple *tuple)
 {
 	return 0;
 }
 
-/* Returns verdict for packet, or -1 for invalid. */
+
 static int packet(struct nf_conn *ct,
 		  const struct sk_buff *skb,
 		  unsigned int dataoff,
@@ -52,7 +46,7 @@ static int packet(struct nf_conn *ct,
 	return NF_ACCEPT;
 }
 
-/* Called when a new connection for this protocol found. */
+
 static bool new(struct nf_conn *ct, const struct sk_buff *skb,
 		unsigned int dataoff)
 {
@@ -86,8 +80,8 @@ static struct ctl_table generic_compat_sysctl_table[] = {
 		.ctl_name	= 0
 	}
 };
-#endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
-#endif /* CONFIG_SYSCTL */
+#endif 
+#endif 
 
 struct nf_conntrack_l4proto nf_conntrack_l4proto_generic __read_mostly =
 {

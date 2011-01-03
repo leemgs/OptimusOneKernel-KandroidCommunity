@@ -1,36 +1,6 @@
-/*
- *  smssdio.c - Siano 1xxx SDIO interface driver
- *
- *  Copyright 2008 Pierre Ossman
- *
- * Based on code by Siano Mobile Silicon, Inc.,
- * Copyright (C) 2006-2008, Uri Shkolnik
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- *
- * This hardware is a bit odd in that all transfers should be done
- * to/from the SMSSDIO_DATA register, yet the "increase address" bit
- * always needs to be set.
- *
- * Also, buffers from the card are always aligned to 128 byte
- * boundaries.
- */
 
-/*
- * General cleanup notes:
- *
- * - only typedefs should be name *_t
- *
- * - use ERR_PTR and friends for smscore_register_device()
- *
- * - smscore_getbuffer should zero fields
- *
- * Fix stop command
- */
+
+
 
 #include <linux/moduleparam.h>
 #include <linux/firmware.h>
@@ -42,7 +12,7 @@
 #include "smscoreapi.h"
 #include "sms-cards.h"
 
-/* Registers */
+
 
 #define SMSSDIO_DATA		0x00
 #define SMSSDIO_INT		0x04
@@ -59,7 +29,7 @@ static const struct sdio_device_id smssdio_ids[] = {
 	 .driver_data = SMS1XXX_BOARD_SIANO_VEGA},
 	{SDIO_DEVICE(SDIO_VENDOR_ID_SIANO, SDIO_DEVICE_ID_SIANO_VENICE),
 	 .driver_data = SMS1XXX_BOARD_SIANO_VEGA},
-	{ /* end: all zeroes */ },
+	{  },
 };
 
 MODULE_DEVICE_TABLE(sdio, smssdio_ids);
@@ -72,9 +42,9 @@ struct smssdio_device {
 	struct smscore_buffer_t *split_cb;
 };
 
-/*******************************************************************/
-/* Siano core callbacks                                            */
-/*******************************************************************/
+
+
+
 
 static int smssdio_sendrequest(void *context, void *buffer, size_t size)
 {
@@ -106,9 +76,9 @@ out:
 	return ret;
 }
 
-/*******************************************************************/
-/* SDIO callbacks                                                  */
-/*******************************************************************/
+
+
+
 
 static void smssdio_interrupt(struct sdio_func *func)
 {
@@ -121,10 +91,7 @@ static void smssdio_interrupt(struct sdio_func *func)
 
 	smsdev = sdio_get_drvdata(func);
 
-	/*
-	 * The interrupt register has no defined meaning. It is just
-	 * a way of turning of the level triggered interrupt.
-	 */
+	
 	isr = sdio_readb(func, SMSSDIO_INT, &ret);
 	if (ret) {
 		sms_err("Unable to read interrupt register!\n");
@@ -175,9 +142,7 @@ static void smssdio_interrupt(struct sdio_func *func)
 
 		BUG_ON(smsdev->func->cur_blksize != SMSSDIO_BLOCK_SIZE);
 
-		/*
-		 * First attempt to transfer all of it in one go...
-		 */
+		
 		ret = sdio_memcpy_fromio(smsdev->func,
 					 buffer,
 					 SMSSDIO_DATA,
@@ -188,13 +153,7 @@ static void smssdio_interrupt(struct sdio_func *func)
 			return;
 		}
 
-		/*
-		 * ..then fall back to one block at a time if that is
-		 * not possible...
-		 *
-		 * (we have to do this manually because of the
-		 * problem with the "increase address" bit)
-		 */
+		
 		if (ret == -EINVAL) {
 			while (size) {
 				ret = sdio_memcpy_fromio(smsdev->func,
@@ -242,8 +201,8 @@ static int smssdio_probe(struct sdio_func *func,
 	memset(&params, 0, sizeof(struct smsdevice_params_t));
 
 	params.device = &func->dev;
-	params.buffer_size = 0x5000;	/* ?? */
-	params.num_buffers = 22;	/* ?? */
+	params.buffer_size = 0x5000;	
+	params.num_buffers = 22;	
 	params.context = smsdev;
 
 	snprintf(params.devpath, sizeof(params.devpath),
@@ -256,9 +215,7 @@ static int smssdio_probe(struct sdio_func *func,
 	if (params.device_type != SMS_STELLAR)
 		params.flags |= SMS_DEVICE_FAMILY2;
 	else {
-		/*
-		 * FIXME: Stellar needs special handling...
-		 */
+		
 		ret = -ENODEV;
 		goto free;
 	}
@@ -313,7 +270,7 @@ static void smssdio_remove(struct sdio_func *func)
 
 	smsdev = sdio_get_drvdata(func);
 
-	/* FIXME: racy! */
+	
 	if (smsdev->split_cb)
 		smscore_putbuffer(smsdev->coredev, smsdev->split_cb);
 
@@ -334,9 +291,9 @@ static struct sdio_driver smssdio_driver = {
 	.remove = smssdio_remove,
 };
 
-/*******************************************************************/
-/* Module functions                                                */
-/*******************************************************************/
+
+
+
 
 int smssdio_module_init(void)
 {

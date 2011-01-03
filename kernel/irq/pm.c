@@ -1,10 +1,4 @@
-/*
- * linux/kernel/irq/pm.c
- *
- * Copyright (C) 2009 Rafael J. Wysocki <rjw@sisk.pl>, Novell Inc.
- *
- * This file contains power management functions related to interrupts.
- */
+
 
 #include <linux/irq.h>
 #include <linux/module.h>
@@ -12,14 +6,7 @@
 
 #include "internals.h"
 
-/**
- * suspend_device_irqs - disable all currently enabled interrupt lines
- *
- * During system-wide suspend or hibernation device drivers need to be prevented
- * from receiving interrupts and this function is provided for this purpose.
- * It marks all interrupt lines in use, except for the timer ones, as disabled
- * and sets the IRQ_SUSPENDED flag for each of them.
- */
+
 void suspend_device_irqs(void)
 {
 	struct irq_desc *desc;
@@ -39,12 +26,7 @@ void suspend_device_irqs(void)
 }
 EXPORT_SYMBOL_GPL(suspend_device_irqs);
 
-/**
- * resume_device_irqs - enable interrupt lines disabled by suspend_device_irqs()
- *
- * Enable all interrupt lines previously disabled by suspend_device_irqs() that
- * have the IRQ_SUSPENDED flag set.
- */
+
 void resume_device_irqs(void)
 {
 	struct irq_desc *desc;
@@ -63,9 +45,7 @@ void resume_device_irqs(void)
 }
 EXPORT_SYMBOL_GPL(resume_device_irqs);
 
-/**
- * check_wakeup_irqs - check if any wake-up interrupts are pending
- */
+
 int check_wakeup_irqs(void)
 {
 	struct irq_desc *desc;

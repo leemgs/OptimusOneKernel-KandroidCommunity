@@ -1,15 +1,4 @@
-/*
- * xfrm6_state.c: based on xfrm4_state.c
- *
- * Authors:
- *	Mitsuru KANDA @USAGI
- * 	Kazunori MIYAZAWA @USAGI
- * 	Kunihiro Ishiguro <kunihiro@ipinfusion.com>
- * 		IPv6 support
- * 	YOSHIFUJI Hideaki @USAGI
- * 		Split up af-specific portion
- *
- */
+
 
 #include <net/xfrm.h>
 #include <linux/pfkeyv2.h>
@@ -24,8 +13,7 @@ __xfrm6_init_tempsel(struct xfrm_state *x, struct flowi *fl,
 		     struct xfrm_tmpl *tmpl,
 		     xfrm_address_t *daddr, xfrm_address_t *saddr)
 {
-	/* Initialize temporary selector matching only
-	 * to current session. */
+	
 	ipv6_addr_copy((struct in6_addr *)&x->sel.daddr, &fl->fl6_dst);
 	ipv6_addr_copy((struct in6_addr *)&x->sel.saddr, &fl->fl6_src);
 	x->sel.dport = xfrm_flowi_dport(fl);
@@ -48,7 +36,7 @@ __xfrm6_init_tempsel(struct xfrm_state *x, struct flowi *fl,
 	x->props.family = AF_INET6;
 }
 
-/* distribution counting sort function for xfrm_state and xfrm_tmpl */
+
 static int
 __xfrm6_sort(void **dst, void **src, int n, int (*cmp)(void *p), int maxclass)
 {
@@ -75,15 +63,7 @@ __xfrm6_sort(void **dst, void **src, int n, int (*cmp)(void *p), int maxclass)
 	return 0;
 }
 
-/*
- * Rule for xfrm_state:
- *
- * rule 1: select IPsec transport except AH
- * rule 2: select MIPv6 RO or inbound trigger
- * rule 3: select IPsec transport AH
- * rule 4: select IPsec tunnel
- * rule 5: others
- */
+
 static int __xfrm6_state_sort_cmp(void *p)
 {
 	struct xfrm_state *v = p;
@@ -113,14 +93,7 @@ __xfrm6_state_sort(struct xfrm_state **dst, struct xfrm_state **src, int n)
 			    __xfrm6_state_sort_cmp, 6);
 }
 
-/*
- * Rule for xfrm_tmpl:
- *
- * rule 1: select IPsec transport
- * rule 2: select MIPv6 RO or inbound trigger
- * rule 3: select IPsec tunnel
- * rule 4: others
- */
+
 static int __xfrm6_tmpl_sort_cmp(void *p)
 {
 	struct xfrm_tmpl *v = p;

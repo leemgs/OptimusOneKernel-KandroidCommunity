@@ -1,32 +1,6 @@
-/*
- * Auvitek AU0828 USB Bridge (Analog video support)
- *
- * Copyright (C) 2009 Devin Heitmueller <dheitmueller@linuxtv.org>
- * Copyright (C) 2005-2008 Auvitek International, Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * As published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- */
 
-/* Developer Notes:
- *
- * VBI support is not yet working
- * The hardware scaler supported is unimplemented
- * AC97 audio support is unimplemented (only i2s audio mode)
- *
- */
+
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -45,9 +19,7 @@ static DEFINE_MUTEX(au0828_sysfs_lock);
 
 #define AU0828_VERSION_CODE KERNEL_VERSION(0, 0, 1)
 
-/* ------------------------------------------------------------------
-	Videobuf operations
-   ------------------------------------------------------------------*/
+
 
 static unsigned int isoc_debug;
 module_param(isoc_debug, int, 0644);
@@ -115,9 +87,7 @@ static int check_dev(struct au0828_dev *dev)
 	return 0;
 }
 
-/*
- * IRQ callback, called by URB callback
- */
+
 static void au0828_irq_callback(struct urb *urb)
 {
 	struct au0828_dmaqueue  *dma_q = urb->context;
@@ -125,25 +95,25 @@ static void au0828_irq_callback(struct urb *urb)
 	int rc, i;
 
 	switch (urb->status) {
-	case 0:             /* success */
-	case -ETIMEDOUT:    /* NAK */
+	case 0:             
+	case -ETIMEDOUT:    
 		break;
-	case -ECONNRESET:   /* kill */
+	case -ECONNRESET:   
 	case -ENOENT:
 	case -ESHUTDOWN:
 		au0828_isocdbg("au0828_irq_callback called: status kill\n");
 		return;
-	default:            /* unknown error */
+	default:            
 		au0828_isocdbg("urb completition error %d.\n", urb->status);
 		break;
 	}
 
-	/* Copy data from URB */
+	
 	spin_lock(&dev->slock);
 	rc = dev->isoc_ctl.isoc_copy(dev, urb);
 	spin_unlock(&dev->slock);
 
-	/* Reset urb buffers */
+	
 	for (i = 0; i < urb->number_of_packets; i++) {
 		urb->iso_frame_desc[i].status = 0;
 		urb->iso_frame_desc[i].actual_length = 0;
@@ -157,9 +127,7 @@ static void au0828_irq_callback(struct urb *urb)
 	}
 }
 
-/*
- * Stop and Deallocate URBs
- */
+
 void au0828_uninit_isoc(struct au0828_dev *dev)
 {
 	struct urb *urb;
@@ -196,9 +164,7 @@ void au0828_uninit_isoc(struct au0828_dev *dev)
 	dev->isoc_ctl.num_bufs = 0;
 }
 
-/*
- * Allocate URBs and start IRQ
- */
+
 int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
 		     int num_bufs, int max_pkt_size,
 		     int (*isoc_copy) (struct au0828_dev *dev, struct urb *urb))
@@ -212,7 +178,7 @@ int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
 
 	au0828_isocdbg("au0828: called au0828_prepare_isoc\n");
 
-	/* De-allocates all pending stuff */
+	
 	au0828_uninit_isoc(dev);
 
 	dev->isoc_ctl.isoc_copy = isoc_copy;
@@ -237,7 +203,7 @@ int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
 
 	sb_size = max_packets * dev->isoc_ctl.max_pkt_size;
 
-	/* allocate urbs and transfer buffers */
+	
 	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
 		urb = usb_alloc_urb(max_packets, GFP_KERNEL);
 		if (!urb) {
@@ -280,7 +246,7 @@ int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
 
 	init_waitqueue_head(&dma_q->wq);
 
-	/* submit urbs and enables IRQ */
+	
 	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
 		rc = usb_submit_urb(dev->isoc_ctl.urb[i], GFP_ATOMIC);
 		if (rc) {
@@ -294,14 +260,12 @@ int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
 	return 0;
 }
 
-/*
- * Announces that a buffer were filled and request the next
- */
+
 static inline void buffer_filled(struct au0828_dev *dev,
 				  struct au0828_dmaqueue *dma_q,
 				  struct au0828_buffer *buf)
 {
-	/* Advice that buffer was filled */
+	
 	au0828_isocdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
 
 	buf->vb.state = VIDEOBUF_DONE;
@@ -314,9 +278,7 @@ static inline void buffer_filled(struct au0828_dev *dev,
 	wake_up(&buf->vb.done);
 }
 
-/*
- * Identify the buffer header type and properly handles
- */
+
 static void au0828_copy_video(struct au0828_dev *dev,
 			      struct au0828_dmaqueue  *dma_q,
 			      struct au0828_buffer *buf,
@@ -325,7 +287,7 @@ static void au0828_copy_video(struct au0828_dev *dev,
 {
 	void *fieldstart, *startwrite, *startread;
 	int  linesdone, currlinedone, offset, lencopy, remain;
-	int bytesperline = dev->width << 1; /* Assumes 16-bit depth @@@@ */
+	int bytesperline = dev->width << 1; 
 
 	if (dma_q->pos + len > buf->vb.size)
 		len = buf->vb.size - dma_q->pos;
@@ -333,7 +295,7 @@ static void au0828_copy_video(struct au0828_dev *dev,
 	startread = p;
 	remain = len;
 
-	/* Interlaces frame */
+	
 	if (buf->top_field)
 		fieldstart = outp;
 	else
@@ -384,7 +346,7 @@ static void au0828_copy_video(struct au0828_dev *dev,
 	}
 
 	if (offset > 1440) {
-		/* We have enough data to check for greenscreen */
+		
 		if (outp[0] < 0x60 && outp[1440] < 0x60)
 			dev->greenscreen_detected = 1;
 	}
@@ -392,9 +354,7 @@ static void au0828_copy_video(struct au0828_dev *dev,
 	dma_q->pos += len;
 }
 
-/*
- * video-buf generic routine to get the next available buffer
- */
+
 static inline void get_next_buf(struct au0828_dmaqueue *dma_q,
 				struct au0828_buffer **buf)
 {
@@ -407,16 +367,14 @@ static inline void get_next_buf(struct au0828_dmaqueue *dma_q,
 		return;
 	}
 
-	/* Get the next buffer */
+	
 	*buf = list_entry(dma_q->active.next, struct au0828_buffer, vb.queue);
 	dev->isoc_ctl.buf = *buf;
 
 	return;
 }
 
-/*
- * Controls the isoc copy of each urb packet
- */
+
 static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
 {
 	struct au0828_buffer    *buf;
@@ -511,7 +469,7 @@ buffer_setup(struct videobuf_queue *vq, unsigned int *count,
 	return 0;
 }
 
-/* This is called *without* dev->slock held; please keep it that way */
+
 static void free_buffer(struct videobuf_queue *vq, struct au0828_buffer *buf)
 {
 	struct au0828_fh     *fh  = vq->priv_data;
@@ -520,15 +478,7 @@ static void free_buffer(struct videobuf_queue *vq, struct au0828_buffer *buf)
 	if (in_interrupt())
 		BUG();
 
-	/* We used to wait for the buffer to finish here, but this didn't work
-	   because, as we were keeping the state as VIDEOBUF_QUEUED,
-	   videobuf_queue_cancel marked it as finished for us.
-	   (Also, it could wedge forever if the hardware was misconfigured.)
-
-	   This should be safe; by the time we get here, the buffer isn't
-	   queued anymore. If we ever start marking the buffers as
-	   VIDEOBUF_ACTIVE, it won't be, though.
-	*/
+	
 	spin_lock_irqsave(&dev->slock, flags);
 	if (dev->isoc_ctl.buf == buf)
 		dev->isoc_ctl.buf = NULL;
@@ -616,32 +566,27 @@ static struct videobuf_queue_ops au0828_video_qops = {
 	.buf_release    = buffer_release,
 };
 
-/* ------------------------------------------------------------------
-   V4L2 interface
-   ------------------------------------------------------------------*/
+
 
 static int au0828_i2s_init(struct au0828_dev *dev)
 {
-	/* Enable i2s mode */
+	
 	au0828_writereg(dev, AU0828_AUDIOCTRL_50C, 0x01);
 	return 0;
 }
 
-/*
- * Auvitek au0828 analog stream enable
- * Please set interface0 to AS5 before enable the stream
- */
+
 int au0828_analog_stream_enable(struct au0828_dev *d)
 {
 	dprintk(1, "au0828_analog_stream_enable called\n");
 	au0828_writereg(d, AU0828_SENSORCTRL_VBI_103, 0x00);
 	au0828_writereg(d, 0x106, 0x00);
-	/* set x position */
+	
 	au0828_writereg(d, 0x110, 0x00);
 	au0828_writereg(d, 0x111, 0x00);
 	au0828_writereg(d, 0x114, 0xa0);
 	au0828_writereg(d, 0x115, 0x05);
-	/* set y position */
+	
 	au0828_writereg(d, 0x112, 0x02);
 	au0828_writereg(d, 0x113, 0x00);
 	au0828_writereg(d, 0x116, 0xf2);
@@ -666,9 +611,7 @@ void au0828_analog_stream_reset(struct au0828_dev *dev)
 	au0828_writereg(dev, AU0828_SENSORCTRL_100, 0xb3);
 }
 
-/*
- * Some operations needs to stop current streaming
- */
+
 static int au0828_stream_interrupt(struct au0828_dev *dev)
 {
 	int ret = 0;
@@ -684,10 +627,7 @@ static int au0828_stream_interrupt(struct au0828_dev *dev)
 	return 0;
 }
 
-/*
- * au0828_release_resources
- * unregister v4l2 devices
- */
+
 void au0828_analog_unregister(struct au0828_dev *dev)
 {
 	dprintk(1, "au0828_release_resources called\n");
@@ -704,13 +644,13 @@ void au0828_analog_unregister(struct au0828_dev *dev)
 }
 
 
-/* Usage lock check functions */
+
 static int res_get(struct au0828_fh *fh)
 {
 	struct au0828_dev *dev = fh->dev;
 	int		 rc   = 0;
 
-	/* This instance already has stream_on */
+	
 	if (fh->stream_on)
 		return rc;
 
@@ -772,7 +712,7 @@ static int au0828_v4l2_open(struct file *filp)
 	filp->private_data = fh;
 
 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && dev->users == 0) {
-		/* set au0828 interface0 to AS5 here again */
+		
 		ret = usb_set_interface(dev->usbdev, 0, 5);
 		if (ret < 0) {
 			printk(KERN_INFO "Au0828 can't set alternate to 5!\n");
@@ -787,7 +727,7 @@ static int au0828_v4l2_open(struct file *filp)
 		au0828_analog_stream_enable(dev);
 		au0828_analog_stream_reset(dev);
 
-		/* If we were doing ac97 instead of i2s, it would go here...*/
+		
 		au0828_i2s_init(dev);
 
 		dev->stream_state = STREAM_OFF;
@@ -829,11 +769,10 @@ static int au0828_v4l2_close(struct file *filp)
 
 		au0828_uninit_isoc(dev);
 
-		/* Save some power by putting tuner to sleep */
+		
 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_standby);
 
-		/* When close the device, set the usb intf0 into alt0 to free
-		   USB bandwidth */
+		
 		ret = usb_set_interface(dev->usbdev, 0, 0);
 		if (ret < 0)
 			printk(KERN_INFO "Au0828 can't set alternate to 0!\n");
@@ -938,12 +877,11 @@ static int au0828_set_format(struct au0828_dev *dev, unsigned int cmd,
 	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -EINVAL;
 
-	/* If they are demanding a format other than the one we support,
-	   bail out (tvtime asks for UYVY and then retries with YUYV) */
+	
 	if (format->fmt.pix.pixelformat != V4L2_PIX_FMT_UYVY)
 		return -EINVAL;
 
-	/* format->fmt.pix.width only support 720 and height 480 */
+	
 	if (width != 720)
 		width = 720;
 	if (height != 480)
@@ -960,7 +898,7 @@ static int au0828_set_format(struct au0828_dev *dev, unsigned int cmd,
 	if (cmd == VIDIOC_TRY_FMT)
 		return 0;
 
-	/* maybe set new image format, driver current only support 720*480 */
+	
 	dev->width = width;
 	dev->height = height;
 	dev->frame_size = width * height * 2;
@@ -976,7 +914,7 @@ static int au0828_set_format(struct au0828_dev *dev, unsigned int cmd,
 		}
 	}
 
-	/* set au0828 interface0 to AS5 here again */
+	
 	ret = usb_set_interface(dev->usbdev, 0, 5);
 	if (ret < 0) {
 		printk(KERN_INFO "Au0828 can't set alt setting to 5!\n");
@@ -1013,7 +951,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
 
 	cap->version = AU0828_VERSION_CODE;
 
-	/*set the device capabilities */
+	
 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE |
 #ifdef VBI_IS_WORKING
 		V4L2_CAP_VBI_CAPTURE |
@@ -1051,7 +989,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
 	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
 	f->fmt.pix.bytesperline = dev->bytesperline;
 	f->fmt.pix.sizeimage = dev->frame_size;
-	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M; /* NTSC/PAL */
+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M; 
 	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
 	return 0;
 }
@@ -1094,9 +1032,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id * norm)
 	struct au0828_fh *fh = priv;
 	struct au0828_dev *dev = fh->dev;
 
-	/* FIXME: when we support something other than NTSC, we are going to
-	   have to make the au0828 bridge adjust the size of its capture
-	   buffer, which is currently hardcoded at 720x480 */
+	
 
 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, *norm);
 	return 0;
@@ -1192,8 +1128,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
 		if (enable) {
 			(AUVI_INPUT(i).audio_setup)(dev, enable);
 		} else {
-			/* Make sure we leave it turned on if some
-			   other input is routed to this callback */
+			
 			if ((AUVI_INPUT(i).audio_setup) !=
 			    ((AUVI_INPUT(index).audio_setup))) {
 				(AUVI_INPUT(i).audio_setup)(dev, enable);
@@ -1507,8 +1442,7 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
 	if (rc < 0)
 		return rc;
 
-	/* Workaround for a bug in the au0828 hardware design that sometimes
-	   results in the colorspace being inverted */
+	
 	if (dev->greenscreen_detected == 1) {
 		dprintk(1, "Detected green frame.  Resetting stream...\n");
 		au0828_analog_stream_reset(dev);
@@ -1592,7 +1526,7 @@ static const struct video_device au0828_video_template = {
 	.current_norm               = V4L2_STD_NTSC_M,
 };
 
-/**************************************************************************/
+
 
 int au0828_analog_register(struct au0828_dev *dev,
 			   struct usb_interface *interface)
@@ -1604,7 +1538,7 @@ int au0828_analog_register(struct au0828_dev *dev,
 
 	dprintk(1, "au0828_analog_register called!\n");
 
-	/* set au0828 usb interface0 to as5 */
+	
 	retval = usb_set_interface(dev->usbdev,
 			interface->cur_altsetting->desc.bInterfaceNumber, 5);
 	if (retval != 0) {
@@ -1612,7 +1546,7 @@ int au0828_analog_register(struct au0828_dev *dev,
 		return retval;
 	}
 
-	/* Figure out which endpoint has the isoc interface */
+	
 	iface_desc = interface->cur_altsetting;
 	for (i = 0; i < iface_desc->desc.bNumEndpoints; i++) {
 		endpoint = &iface_desc->endpoint[i].desc;
@@ -1621,7 +1555,7 @@ int au0828_analog_register(struct au0828_dev *dev,
 		    ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
 		     == USB_ENDPOINT_XFER_ISOC)) {
 
-			/* we find our isoc in endpoint */
+			
 			u16 tmp = le16_to_cpu(endpoint->wMaxPacketSize);
 			dev->max_pkt_size = (tmp & 0x07ff) *
 				(((tmp & 0x1800) >> 11) + 1);
@@ -1648,7 +1582,7 @@ int au0828_analog_register(struct au0828_dev *dev,
 	dev->bytesperline = dev->width << 1;
 	dev->ctrl_ainput = 0;
 
-	/* allocate and fill v4l2 video struct */
+	
 	dev->vdev = video_device_alloc();
 	if (NULL == dev->vdev) {
 		dprintk(1, "Can't allocate video_device.\n");
@@ -1664,13 +1598,13 @@ int au0828_analog_register(struct au0828_dev *dev,
 	}
 #endif
 
-	/* Fill the video capture device struct */
+	
 	*dev->vdev = au0828_video_template;
 	dev->vdev->parent = &dev->usbdev->dev;
 	strcpy(dev->vdev->name, "au0828a video");
 
 #ifdef VBI_IS_WORKING
-	/* Setup the VBI device */
+	
 	*dev->vbi_dev = au0828_video_template;
 	dev->vbi_dev->parent = &dev->usbdev->dev;
 	strcpy(dev->vbi_dev->name, "au0828a vbi");
@@ -1678,7 +1612,7 @@ int au0828_analog_register(struct au0828_dev *dev,
 
 	list_add_tail(&dev->au0828list, &au0828_devlist);
 
-	/* Register the v4l2 device */
+	
 	retval = video_register_device(dev->vdev, VFL_TYPE_GRABBER, -1);
 	if (retval != 0) {
 		dprintk(1, "unable to register video device (error = %d).\n",
@@ -1689,7 +1623,7 @@ int au0828_analog_register(struct au0828_dev *dev,
 	}
 
 #ifdef VBI_IS_WORKING
-	/* Register the vbi device */
+	
 	retval = video_register_device(dev->vbi_dev, VFL_TYPE_VBI, -1);
 	if (retval != 0) {
 		dprintk(1, "unable to register vbi device (error = %d).\n",

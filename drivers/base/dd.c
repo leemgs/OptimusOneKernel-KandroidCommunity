@@ -1,21 +1,4 @@
-/*
- * drivers/base/dd.c - The core device/driver interactions.
- *
- * This file contains the (sometimes tricky) code that controls the
- * interactions between devices and drivers, which primarily includes
- * driver binding and unbinding.
- *
- * All of this code used to exist in drivers/base/bus.c, but was
- * relocated to here in the name of compartmentalization (since it wasn't
- * strictly code just for the 'struct bus_type'.
- *
- * Copyright (c) 2002-5 Patrick Mochel
- * Copyright (c) 2002-3 Open Source Development Labs
- * Copyright (c) 2007-2009 Greg Kroah-Hartman <gregkh@suse.de>
- * Copyright (c) 2007-2009 Novell Inc.
- *
- * This file is released under the GPLv2
- */
+
 
 #include <linux/device.h>
 #include <linux/delay.h>
@@ -73,20 +56,7 @@ static void driver_sysfs_remove(struct device *dev)
 	}
 }
 
-/**
- * device_bind_driver - bind a driver to one device.
- * @dev: device.
- *
- * Allow manual attachment of a driver to a device.
- * Caller must have already set @dev->driver.
- *
- * Note that this does not modify the bus reference count
- * nor take the bus's rwsem. Please verify those are accounted
- * for before calling this. (It is ok to call with no other effort
- * from a driver's probe() method.)
- *
- * This function must be called with @dev->sem held.
- */
+
 int device_bind_driver(struct device *dev)
 {
 	int ret;
@@ -139,15 +109,12 @@ probe_failed:
 	dev->driver = NULL;
 
 	if (ret != -ENODEV && ret != -ENXIO) {
-		/* driver matched but the probe failed */
+		
 		printk(KERN_WARNING
 		       "%s: probe of %s failed with error %d\n",
 		       drv->name, dev_name(dev), ret);
 	}
-	/*
-	 * Ignore errors returned by ->probe so that the next driver can try
-	 * its luck.
-	 */
+	
 	ret = 0;
 done:
 	atomic_dec(&probe_count);
@@ -155,12 +122,7 @@ done:
 	return ret;
 }
 
-/**
- * driver_probe_done
- * Determine if the probe sequence is finished or not.
- *
- * Should somehow figure out how to use a semaphore, not an atomic variable...
- */
+
 int driver_probe_done(void)
 {
 	pr_debug("%s: probe_count = %d\n", __func__,
@@ -170,29 +132,16 @@ int driver_probe_done(void)
 	return 0;
 }
 
-/**
- * wait_for_device_probe
- * Wait for device probing to be completed.
- */
+
 void wait_for_device_probe(void)
 {
-	/* wait for the known devices to complete their probing */
+	
 	wait_event(probe_waitqueue, atomic_read(&probe_count) == 0);
 	async_synchronize_full();
 }
 EXPORT_SYMBOL_GPL(wait_for_device_probe);
 
-/**
- * driver_probe_device - attempt to bind device & driver together
- * @drv: driver to bind a device to
- * @dev: device to try to bind to the driver
- *
- * This function returns -ENODEV if the device is not registered,
- * 1 if the device is bound sucessfully and 0 otherwise.
- *
- * This function must be called with @dev->sem held.  When called for a
- * USB interface, @dev->parent->sem must be held as well.
- */
+
 int driver_probe_device(struct device_driver *drv, struct device *dev)
 {
 	int ret = 0;
@@ -221,20 +170,7 @@ static int __device_attach(struct device_driver *drv, void *data)
 	return driver_probe_device(drv, dev);
 }
 
-/**
- * device_attach - try to attach device to a driver.
- * @dev: device.
- *
- * Walk the list of drivers that the bus has and call
- * driver_probe_device() for each pair. If a compatible
- * pair is found, break out and return.
- *
- * Returns 1 if the device was bound to a driver;
- * 0 if no matching driver was found;
- * -ENODEV if the device is not registered.
- *
- * When called for a USB interface, @dev->parent->sem must be held.
- */
+
 int device_attach(struct device *dev)
 {
 	int ret = 0;
@@ -262,20 +198,12 @@ static int __driver_attach(struct device *dev, void *data)
 {
 	struct device_driver *drv = data;
 
-	/*
-	 * Lock device and try to bind to it. We drop the error
-	 * here and always return 0, because we need to keep trying
-	 * to bind to devices and some drivers will return an error
-	 * simply if it didn't support the device.
-	 *
-	 * driver_probe_device() will spit a warning if there
-	 * is an error.
-	 */
+	
 
 	if (!driver_match_device(drv, dev))
 		return 0;
 
-	if (dev->parent)	/* Needed for USB */
+	if (dev->parent)	
 		down(&dev->parent->sem);
 	down(&dev->sem);
 	if (!dev->driver)
@@ -287,25 +215,14 @@ static int __driver_attach(struct device *dev, void *data)
 	return 0;
 }
 
-/**
- * driver_attach - try to bind driver to devices.
- * @drv: driver.
- *
- * Walk the list of devices that the bus has on it and try to
- * match the driver with each one.  If driver_probe_device()
- * returns 0 and the @dev->driver is set, we've found a
- * compatible pair.
- */
+
 int driver_attach(struct device_driver *drv)
 {
 	return bus_for_each_dev(drv->bus, NULL, drv, __driver_attach);
 }
 EXPORT_SYMBOL_GPL(driver_attach);
 
-/*
- * __device_release_driver() must be called with @dev->sem held.
- * When called for a USB interface, @dev->parent->sem must be held as well.
- */
+
 static void __device_release_driver(struct device *dev)
 {
 	struct device_driver *drv;
@@ -338,30 +255,17 @@ static void __device_release_driver(struct device *dev)
 	}
 }
 
-/**
- * device_release_driver - manually detach device from driver.
- * @dev: device.
- *
- * Manually detach device from driver.
- * When called for a USB interface, @dev->parent->sem must be held.
- */
+
 void device_release_driver(struct device *dev)
 {
-	/*
-	 * If anyone calls device_release_driver() recursively from
-	 * within their ->remove callback for the same device, they
-	 * will deadlock right here.
-	 */
+	
 	down(&dev->sem);
 	__device_release_driver(dev);
 	up(&dev->sem);
 }
 EXPORT_SYMBOL_GPL(device_release_driver);
 
-/**
- * driver_detach - detach driver from all devices it controls.
- * @drv: driver.
- */
+
 void driver_detach(struct device_driver *drv)
 {
 	struct device_private *dev_prv;
@@ -380,7 +284,7 @@ void driver_detach(struct device_driver *drv)
 		get_device(dev);
 		spin_unlock(&drv->p->klist_devices.k_lock);
 
-		if (dev->parent)	/* Needed for USB */
+		if (dev->parent)	
 			down(&dev->parent->sem);
 		down(&dev->sem);
 		if (dev->driver == drv)
@@ -392,10 +296,7 @@ void driver_detach(struct device_driver *drv)
 	}
 }
 
-/*
- * These exports can't be _GPL due to .h files using this within them, and it
- * might break something that was previously working...
- */
+
 void *dev_get_drvdata(const struct device *dev)
 {
 	if (dev && dev->p)

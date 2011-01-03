@@ -1,8 +1,4 @@
-/*
- * cfg80211 scan result handling
- *
- * Copyright 2008 Johannes Berg <johannes@sipsolutions.net>
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/netdevice.h>
@@ -35,11 +31,7 @@ void ___cfg80211_scan_done(struct cfg80211_registered_device *rdev, bool leak)
 
 	dev = request->dev;
 
-	/*
-	 * This must be before sending the other events!
-	 * Otherwise, wpa_supplicant gets completely confused with
-	 * wext events.
-	 */
+	
 	cfg80211_sme_scan_done(dev);
 
 	if (request->aborted)
@@ -59,14 +51,7 @@ void ___cfg80211_scan_done(struct cfg80211_registered_device *rdev, bool leak)
 
 	rdev->scan_req = NULL;
 
-	/*
-	 * OK. If this is invoked with "leak" then we can't
-	 * free this ... but we've cleaned it up anyway. The
-	 * driver failed to call the scan_done callback, so
-	 * all bets are off, it might still be trying to use
-	 * the scan request or not ... if it accesses the dev
-	 * in there (it shouldn't anyway) then it may crash.
-	 */
+	
 	if (!leak)
 		kfree(request);
 }
@@ -108,7 +93,7 @@ static void bss_release(struct kref *ref)
 	kfree(bss);
 }
 
-/* must hold dev->bss_lock! */
+
 void cfg80211_bss_age(struct cfg80211_registered_device *dev,
                       unsigned long age_secs)
 {
@@ -120,7 +105,7 @@ void cfg80211_bss_age(struct cfg80211_registered_device *dev,
 	}
 }
 
-/* must hold dev->bss_lock! */
+
 void cfg80211_bss_expire(struct cfg80211_registered_device *dev)
 {
 	struct cfg80211_internal_bss *bss, *tmp;
@@ -220,11 +205,7 @@ static bool is_mesh(struct cfg80211_bss *a,
 	if (ie[1] != IEEE80211_MESH_CONFIG_LEN)
 		return false;
 
-	/*
-	 * Ignore mesh capability (last two bytes of the IE) when
-	 * comparing since that may differ between stations taking
-	 * part in the same mesh.
-	 */
+	
 	return memcmp(ie + 2, meshcfg, IEEE80211_MESH_CONFIG_LEN - 2) == 0;
 }
 
@@ -335,7 +316,7 @@ static void rb_insert_bss(struct cfg80211_registered_device *dev,
 		cmp = cmp_bss(&bss->pub, &tbss->pub);
 
 		if (WARN_ON(!cmp)) {
-			/* will sort of leak this BSS */
+			
 			return;
 		}
 
@@ -380,9 +361,7 @@ cfg80211_bss_update(struct cfg80211_registered_device *dev,
 	struct cfg80211_internal_bss *found = NULL;
 	const u8 *meshid, *meshcfg;
 
-	/*
-	 * The reference to "res" is donated to this function.
-	 */
+	
 
 	if (WARN_ON(!res->pub.channel)) {
 		kref_put(&res->ref, bss_release);
@@ -392,7 +371,7 @@ cfg80211_bss_update(struct cfg80211_registered_device *dev,
 	res->ts = jiffies;
 
 	if (is_zero_ether_addr(res->pub.bssid)) {
-		/* must be mesh, verify */
+		
 		meshid = find_ie(WLAN_EID_MESH_ID, res->pub.information_elements,
 				 res->pub.len_information_elements);
 		meshcfg = find_ie(WLAN_EID_MESH_CONFIG,
@@ -400,7 +379,7 @@ cfg80211_bss_update(struct cfg80211_registered_device *dev,
 				  res->pub.len_information_elements);
 		if (!meshid || !meshcfg ||
 		    meshcfg[1] != IEEE80211_MESH_CONFIG_LEN) {
-			/* bogus mesh */
+			
 			kref_put(&res->ref, bss_release);
 			return NULL;
 		}
@@ -417,7 +396,7 @@ cfg80211_bss_update(struct cfg80211_registered_device *dev,
 		found->pub.capability = res->pub.capability;
 		found->ts = res->ts;
 
-		/* overwrite IEs */
+		
 		if (overwrite) {
 			size_t used = dev->wiphy.bss_priv_size + sizeof(*res);
 			size_t ielen = res->pub.len_information_elements;
@@ -445,7 +424,7 @@ cfg80211_bss_update(struct cfg80211_registered_device *dev,
 
 		kref_put(&res->ref, bss_release);
 	} else {
-		/* this "consumes" the reference */
+		
 		list_add_tail(&res->list, &dev->bss_list);
 		rb_insert_bss(dev, res);
 		found = res;
@@ -488,7 +467,7 @@ cfg80211_inform_bss(struct wiphy *wiphy,
 	res->pub.tsf = timestamp;
 	res->pub.beacon_interval = beacon_interval;
 	res->pub.capability = capability;
-	/* point to after the private area */
+	
 	res->pub.information_elements = (u8 *)res + sizeof(*res) + privsz;
 	memcpy(res->pub.information_elements, ie, ielen);
 	res->pub.len_information_elements = ielen;
@@ -502,7 +481,7 @@ cfg80211_inform_bss(struct wiphy *wiphy,
 	if (res->pub.capability & WLAN_CAPABILITY_ESS)
 		regulatory_hint_found_beacon(wiphy, channel, gfp);
 
-	/* cfg80211_bss_update gives us a referenced result */
+	
 	return &res->pub;
 }
 EXPORT_SYMBOL(cfg80211_inform_bss);
@@ -537,7 +516,7 @@ cfg80211_inform_bss_frame(struct wiphy *wiphy,
 	res->pub.tsf = le64_to_cpu(mgmt->u.probe_resp.timestamp);
 	res->pub.beacon_interval = le16_to_cpu(mgmt->u.probe_resp.beacon_int);
 	res->pub.capability = le16_to_cpu(mgmt->u.probe_resp.capab_info);
-	/* point to after the private area */
+	
 	res->pub.information_elements = (u8 *)res + sizeof(*res) + privsz;
 	memcpy(res->pub.information_elements, mgmt->u.probe_resp.variable, ielen);
 	res->pub.len_information_elements = ielen;
@@ -553,7 +532,7 @@ cfg80211_inform_bss_frame(struct wiphy *wiphy,
 	if (res->pub.capability & WLAN_CAPABILITY_ESS)
 		regulatory_hint_found_beacon(wiphy, channel, gfp);
 
-	/* cfg80211_bss_update gives us a referenced result */
+	
 	return &res->pub;
 }
 EXPORT_SYMBOL(cfg80211_inform_bss_frame);
@@ -622,7 +601,7 @@ int cfg80211_wext_siwscan(struct net_device *dev,
 
 	wiphy = &rdev->wiphy;
 
-	/* Determine number of channels, needed to allocate creq */
+	
 	if (wreq && wreq->num_channels)
 		n_channels = wreq->num_channels;
 	else {
@@ -641,12 +620,12 @@ int cfg80211_wext_siwscan(struct net_device *dev,
 
 	creq->wiphy = wiphy;
 	creq->dev = dev;
-	/* SSIDs come after channels */
+	
 	creq->ssids = (void *)&creq->channels[n_channels];
 	creq->n_channels = n_channels;
 	creq->n_ssids = 1;
 
-	/* translate "Scan on frequencies" request */
+	
 	i = 0;
 	for (band = 0; band < IEEE80211_NUM_BANDS; band++) {
 		int j;
@@ -654,10 +633,7 @@ int cfg80211_wext_siwscan(struct net_device *dev,
 			continue;
 		for (j = 0; j < wiphy->bands[band]->n_channels; j++) {
 
-			/* If we have a wireless request structure and the
-			 * wireless request specifies frequencies, then search
-			 * for the matching hardware channel.
-			 */
+			
 			if (wreq && wreq->num_channels) {
 				int k;
 				int wiphy_freq = wiphy->bands[band]->channels[j].center_freq;
@@ -675,16 +651,16 @@ int cfg80211_wext_siwscan(struct net_device *dev,
 		wext_freq_not_found: ;
 		}
 	}
-	/* No channels found? */
+	
 	if (!i) {
 		err = -EINVAL;
 		goto out;
 	}
 
-	/* Set real number of channels specified in creq->channels[] */
+	
 	creq->n_channels = i;
 
-	/* translate "Scan for SSID" request */
+	
 	if (wreq) {
 		if (wrqu->data.flags & IW_SCAN_THIS_ESSID) {
 			if (wreq->essid_len > IEEE80211_MAX_SSID_LEN)
@@ -722,10 +698,7 @@ static void ieee80211_scan_add_ies(struct iw_request_info *info,
 	    !bss->len_information_elements)
 		return;
 
-	/*
-	 * If needed, fragment the IEs buffer (at IE boundaries) into short
-	 * enough fragments to fit into IW_GENERIC_IE_MAX octet messages.
-	 */
+	
 	pos = bss->information_elements;
 	end = pos + bss->len_information_elements;
 
@@ -805,20 +778,20 @@ ieee80211_bss(struct wiphy *wiphy, struct iw_request_info *info,
 			sig = bss->pub.signal / 100;
 			iwe.u.qual.level = sig;
 			iwe.u.qual.updated |= IW_QUAL_DBM;
-			if (sig < -110)		/* rather bad */
+			if (sig < -110)		
 				sig = -110;
-			else if (sig > -40)	/* perfect */
+			else if (sig > -40)	
 				sig = -40;
-			/* will give a range of 0 .. 70 */
+			
 			iwe.u.qual.qual = sig + 110;
 			break;
 		case CFG80211_SIGNAL_TYPE_UNSPEC:
 			iwe.u.qual.level = bss->pub.signal;
-			/* will give range 0 .. 100 */
+			
 			iwe.u.qual.qual = bss->pub.signal;
 			break;
 		default:
-			/* not reached */
+			
 			break;
 		}
 		current_ev = iwe_stream_add_event(info, current_ev, end_buf,
@@ -836,7 +809,7 @@ ieee80211_bss(struct wiphy *wiphy, struct iw_request_info *info,
 					  &iwe, "");
 
 	while (rem >= 2) {
-		/* invalid data */
+		
 		if (ie[1] > rem - 2)
 			break;
 
@@ -904,12 +877,12 @@ ieee80211_bss(struct wiphy *wiphy, struct iw_request_info *info,
 			break;
 		case WLAN_EID_SUPP_RATES:
 		case WLAN_EID_EXT_SUPP_RATES:
-			/* display all supported rates in readable format */
+			
 			p = current_ev + iwe_stream_lcp_len(info);
 
 			memset(&iwe, 0, sizeof(iwe));
 			iwe.cmd = SIOCGIWRATE;
-			/* Those two flags are ignored... */
+			
 			iwe.u.bitrate.fixed = iwe.u.bitrate.disabled = 0;
 
 			for (i = 0; i < ie[1]; i++) {

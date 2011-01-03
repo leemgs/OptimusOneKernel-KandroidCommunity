@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c/gpio-config.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C series GPIO configuration core
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -71,7 +59,7 @@ int s3c_gpio_setcfg_s3c24xx_banka(struct s3c_gpio_chip *chip,
 	if (s3c_gpio_is_cfg_special(cfg)) {
 		cfg &= 0xf;
 
-		/* Map output to 0, and SFN2 to 1 */
+		
 		cfg -= 1;
 		if (cfg > 1)
 			return -EINVAL;
@@ -134,7 +122,7 @@ int s3c_gpio_setcfg_s3c64xx_4bit(struct s3c_gpio_chip *chip,
 
 	return 0;
 }
-#endif /* CONFIG_S3C_GPIO_CFG_S3C64XX */
+#endif 
 
 #ifdef CONFIG_S3C_GPIO_PULL_UPDOWN
 int s3c_gpio_setpull_updown(struct s3c_gpio_chip *chip,

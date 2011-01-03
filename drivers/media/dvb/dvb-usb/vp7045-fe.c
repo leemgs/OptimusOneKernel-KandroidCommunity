@@ -1,25 +1,7 @@
-/* DVB frontend part of the Linux driver for TwinhanDTV Alpha/MagicBoxII USB2.0
- * DVB-T receiver.
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- * Thanks to Twinhan who kindly provided hardware and information.
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- *
- */
+
 #include "vp7045.h"
 
-/* It is a Zarlink MT352 within a Samsung Tuner (DNOS404ZH102A) - 040929 - AAT
- *
- * Programming is hidden inside the firmware, so set_frontend is very easy.
- * Even though there is a Firmware command that one can use to access the demod
- * via its registers. This is used for status information.
- */
+
 
 struct vp7045_fe_state {
 	struct dvb_frontend fe;

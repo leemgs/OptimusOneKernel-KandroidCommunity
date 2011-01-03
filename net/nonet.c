@@ -1,12 +1,4 @@
-/*
- * net/nonet.c
- *
- * Dummy functions to allow us to configure network support entirely
- * out of the kernel.
- *
- * Distributed under the terms of the GNU GPL version 2.
- * Copyright (c) Matthew Wilcox 2003
- */
+
 
 #include <linux/module.h>
 #include <linux/errno.h>

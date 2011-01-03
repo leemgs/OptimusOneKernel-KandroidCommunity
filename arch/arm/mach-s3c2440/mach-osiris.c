@@ -1,13 +1,4 @@
-/* linux/arch/arm/mach-s3c2440/mach-osiris.c
- *
- * Copyright (c) 2005,2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -51,10 +42,10 @@
 #include <plat/devs.h>
 #include <plat/cpu.h>
 
-/* onboard perihperal map */
+
 
 static struct map_desc osiris_iodesc[] __initdata = {
-  /* ISA IO areas (may be over-written later) */
+  
 
   {
 	  .virtual	= (u32)S3C24XX_VA_ISA_BYTE,
@@ -68,7 +59,7 @@ static struct map_desc osiris_iodesc[] __initdata = {
 	  .type		= MT_DEVICE,
   },
 
-  /* CPLD control registers */
+  
 
   {
 	  .virtual	= (u32)OSIRIS_VA_CTRL0,
@@ -142,7 +133,7 @@ static struct s3c2410_uartcfg osiris_uartcfgs[] __initdata = {
 	}
 };
 
-/* NAND Flash on Osiris board */
+
 
 static int external_map[]   = { 2 };
 static int chip0_map[]      = { 0 };
@@ -194,12 +185,7 @@ static struct mtd_partition osiris_default_nand_part_large[] = {
 	}
 };
 
-/* the Osiris has 3 selectable slots for nand-flash, the two
- * on-board chip areas, as well as the external slot.
- *
- * Note, there is no current hot-plug support for the External
- * socket.
-*/
+
 
 static struct s3c2410_nand_set osiris_nand_sets[] = {
 	[1] = {
@@ -252,7 +238,7 @@ static struct s3c2410_platform_nand osiris_nand_info = {
 	.select_chip	= osiris_nand_select,
 };
 
-/* PCMCIA control and configuration */
+
 
 static struct resource osiris_pcmcia_resource[] = {
 	[0] = {
@@ -274,7 +260,7 @@ static struct platform_device osiris_pcmcia = {
 	.resource	= osiris_pcmcia_resource,
 };
 
-/* Osiris power management device */
+
 
 #ifdef CONFIG_PM
 static unsigned char pm_osiris_ctrl0;
@@ -286,13 +272,13 @@ static int osiris_pm_suspend(struct sys_device *sd, pm_message_t state)
 	pm_osiris_ctrl0 = __raw_readb(OSIRIS_VA_CTRL0);
 	tmp = pm_osiris_ctrl0 & ~OSIRIS_CTRL0_NANDSEL;
 
-	/* ensure correct NAND slot is selected on resume */
+	
 	if ((pm_osiris_ctrl0 & OSIRIS_CTRL0_BOOT_INT) == 0)
 	        tmp |= 2;
 
 	__raw_writeb(tmp, OSIRIS_VA_CTRL0);
 
-	/* ensure that an nRESET is not generated on resume. */
+	
 	s3c2410_gpio_setpin(S3C2410_GPA(21), 1);
 	s3c2410_gpio_cfgpin(S3C2410_GPA(21), S3C2410_GPIO_OUTPUT);
 
@@ -326,7 +312,7 @@ static struct sys_device osiris_pm_sysdev = {
 	.cls		= &osiris_pm_sysclass,
 };
 
-/* I2C devices fitted. */
+
 
 static struct i2c_board_info osiris_i2c_devs[] __initdata = {
 	{
@@ -335,7 +321,7 @@ static struct i2c_board_info osiris_i2c_devs[] __initdata = {
 	},
 };
 
-/* Standard Osiris devices */
+
 
 static struct platform_device *osiris_devices[] __initdata = {
 	&s3c_device_i2c0,
@@ -353,7 +339,7 @@ static struct clk *osiris_clocks[] __initdata = {
 };
 
 static struct s3c_cpufreq_board __initdata osiris_cpufreq = {
-	.refresh	= 7800, /* refresh period is 7.8usec */
+	.refresh	= 7800, 
 	.auto_io	= 1,
 	.need_io	= 1,
 };
@@ -362,7 +348,7 @@ static void __init osiris_map_io(void)
 {
 	unsigned long flags;
 
-	/* initialise the clocks */
+	
 
 	s3c24xx_dclk0.parent = &clk_upll;
 	s3c24xx_dclk0.rate   = 12*1000*1000;
@@ -383,7 +369,7 @@ static void __init osiris_map_io(void)
 	s3c24xx_init_clocks(0);
 	s3c24xx_init_uarts(osiris_uartcfgs, ARRAY_SIZE(osiris_uartcfgs));
 
-	/* check for the newer revision boards with large page nand */
+	
 
 	if ((__raw_readb(OSIRIS_VA_IDREG) & OSIRIS_ID_REVMASK) >= 4) {
 		printk(KERN_INFO "OSIRIS-B detected (revision %d)\n",
@@ -391,11 +377,11 @@ static void __init osiris_map_io(void)
 		osiris_nand_sets[0].partitions = osiris_default_nand_part_large;
 		osiris_nand_sets[0].nr_partitions = ARRAY_SIZE(osiris_default_nand_part_large);
 	} else {
-		/* write-protect line to the NAND */
+		
 		s3c2410_gpio_setpin(S3C2410_GPA(0), 1);
 	}
 
-	/* fix bus configuration (nBE settings wrong on ABLE pre v2.20) */
+	
 
 	local_irq_save(flags);
 	__raw_writel(__raw_readl(S3C2410_BWSCON) | S3C2410_BWSCON_ST1 | S3C2410_BWSCON_ST2 | S3C2410_BWSCON_ST3 | S3C2410_BWSCON_ST4 | S3C2410_BWSCON_ST5, S3C2410_BWSCON);
@@ -418,7 +404,7 @@ static void __init osiris_init(void)
 };
 
 MACHINE_START(OSIRIS, "Simtec-OSIRIS")
-	/* Maintainer: Ben Dooks <ben@simtec.co.uk> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

@@ -1,14 +1,4 @@
-/* arch/arm/plat-s3c/include/plat/usb-control.h
- *
- * Copyright (c) 2004 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C - USB host port information
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __ASM_ARCH_USBCONTROL_H
 #define __ASM_ARCH_USBCONTROL_H
@@ -38,4 +28,4 @@ static void inline s3c2410_usb_report_oc(struct s3c2410_hcd_info *info, int port
 	}
 }
 
-#endif /*__ASM_ARCH_USBCONTROL_H */
+#endif 

@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-orion5x/rd88f6183-ap-ge-setup.c
- *
- * Marvell Orion-1-90 AP GE Reference Design Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -84,14 +76,10 @@ static struct spi_board_info __initdata rd88f6183ap_ge_spi_slave_info[] = {
 
 static void __init rd88f6183ap_ge_init(void)
 {
-	/*
-	 * Setup basic Orion functions. Need to be called early.
-	 */
+	
 	orion5x_init();
 
-	/*
-	 * Configure peripherals.
-	 */
+	
 	orion5x_ehci0_init();
 	orion5x_eth_init(&rd88f6183ap_ge_eth_data);
 	orion5x_eth_switch_init(&rd88f6183ap_ge_switch_plat_data,
@@ -122,7 +110,7 @@ static int __init rd88f6183ap_ge_pci_init(void)
 subsys_initcall(rd88f6183ap_ge_pci_init);
 
 MACHINE_START(RD88F6183AP_GE, "Marvell Orion-1-90 AP GE Reference Design")
-	/* Maintainer: Lennert Buytenhek <buytenh@marvell.com> */
+	
 	.phys_io	= ORION5X_REGS_PHYS_BASE,
 	.io_pg_offst	= ((ORION5X_REGS_VIRT_BASE) >> 18) & 0xFFFC,
 	.boot_params	= 0x00000100,

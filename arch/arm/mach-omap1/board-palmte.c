@@ -1,21 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-palmte.c
- *
- * Modified from board-generic.c
- *
- * Support for the Palm Tungsten E PDA.
- *
- * Original version : Laurent Gonzalez
- *
- * Maintainers : http://palmtelinux.sf.net
- *                palmtelinux-developpers@lists.sf.net
- *
- * Copyright (c) 2006 Andrzej Zaborowski  <balrog@zabor.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -66,10 +49,10 @@ static void __init omap_palmte_init_irq(void)
 }
 
 static const int palmte_keymap[] = {
-	KEY(0, 0, KEY_F1),		/* Calendar */
-	KEY(0, 1, KEY_F2),		/* Contacts */
-	KEY(0, 2, KEY_F3),		/* Tasks List */
-	KEY(0, 3, KEY_F4),		/* Note Pad */
+	KEY(0, 0, KEY_F1),		
+	KEY(0, 1, KEY_F2),		
+	KEY(0, 2, KEY_F3),		
+	KEY(0, 3, KEY_F4),		
 	KEY(0, 4, KEY_POWER),
 	KEY(1, 0, KEY_LEFT),
 	KEY(1, 1, KEY_DOWN),
@@ -106,21 +89,18 @@ static struct platform_device palmte_kp_device = {
 };
 
 static struct mtd_partition palmte_rom_partitions[] = {
-	/* PalmOS "Small ROM", contains the bootloader and the debugger */
+	
 	{
 		.name		= "smallrom",
 		.offset		= 0,
 		.size		= 0xa000,
 		.mask_flags	= MTD_WRITEABLE,
 	},
-	/* PalmOS "Big ROM", a filesystem with all the OS code and data */
+	
 	{
 		.name		= "bigrom",
 		.offset		= SZ_128K,
-		/*
-		 * 0x5f0000 bytes big in the multi-language ("EFIGS") version,
-		 * 0x7b0000 bytes in the English-only ("enUS") version.
-		 */
+		
 		.size		= 0x7b0000,
 		.mask_flags	= MTD_WRITEABLE,
 	},
@@ -203,7 +183,7 @@ static struct platform_device *palmte_devices[] __initdata = {
 };
 
 static struct omap_usb_config palmte_usb_config __initdata = {
-	.register_dev	= 1,	/* Mini-B only receptacle */
+	.register_dev	= 1,	
 	.hmc_mode	= 0,
 	.pins[0]	= 2,
 };
@@ -213,12 +193,7 @@ static struct omap_lcd_config palmte_lcd_config __initdata = {
 };
 
 #ifdef CONFIG_APM
-/*
- * Values measured in 10 minute intervals averaged over 10 samples.
- * May differ slightly from device to device but should be accurate
- * enough to give basic idea of battery life left and trigger
- * potential alerts.
- */
+
 static const int palmte_battery_sample[] = {
 	2194, 2157, 2138, 2120,
 	2104, 2089, 2075, 2061,
@@ -303,8 +278,8 @@ static struct omap_board_config_kernel palmte_config[] __initdata = {
 static struct spi_board_info palmte_spi_info[] __initdata = {
 	{
 		.modalias	= "tsc2102",
-		.bus_num	= 2,	/* uWire (officially) */
-		.chip_select	= 0,	/* As opposed to 3 */
+		.bus_num	= 2,	
+		.chip_select	= 0,	
 		.irq		= OMAP_GPIO_IRQ(PALMTE_PINTDAV_GPIO),
 		.max_speed_hz	= 8000000,
 	},
@@ -313,11 +288,11 @@ static struct spi_board_info palmte_spi_info[] __initdata = {
 static void palmte_headphones_detect(void *data, int state)
 {
 	if (state) {
-		/* Headphones connected, disable speaker */
+		
 		gpio_set_value(PALMTE_SPEAKER_GPIO, 0);
 		printk(KERN_INFO "PM: speaker off\n");
 	} else {
-		/* Headphones unplugged, re-enable speaker */
+		
 		gpio_set_value(PALMTE_SPEAKER_GPIO, 1);
 		printk(KERN_INFO "PM: speaker on\n");
 	}
@@ -325,14 +300,14 @@ static void palmte_headphones_detect(void *data, int state)
 
 static void __init palmte_misc_gpio_setup(void)
 {
-	/* Set TSC2102 PINTDAV pin as input (used by TSC2102 driver) */
+	
 	if (gpio_request(PALMTE_PINTDAV_GPIO, "TSC2102 PINTDAV") < 0) {
 		printk(KERN_ERR "Could not reserve PINTDAV GPIO!\n");
 		return;
 	}
 	gpio_direction_input(PALMTE_PINTDAV_GPIO);
 
-	/* Set USB-or-DC-IN pin as input (unused) */
+	
 	if (gpio_request(PALMTE_USB_OR_DC_GPIO, "USB/DC-IN") < 0) {
 		printk(KERN_ERR "Could not reserve cable signal GPIO!\n");
 		return;
@@ -342,7 +317,7 @@ static void __init palmte_misc_gpio_setup(void)
 
 static void __init omap_palmte_init(void)
 {
-	/* mux pins for uarts */
+	
 	omap_cfg_reg(UART1_TX);
 	omap_cfg_reg(UART1_RTS);
 	omap_cfg_reg(UART2_TX);

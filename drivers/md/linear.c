@@ -1,20 +1,4 @@
-/*
-   linear.c : Multiple Devices driver for Linux
-	      Copyright (C) 1994-96 Marc ZYNGIER
-	      <zyngier@ufr-info-p7.ibp.fr> or
-	      <maz@gloups.fdn.fr>
 
-   Linear mode management functions.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-   
-   You should have received a copy of the GNU General Public License
-   (for example /usr/src/linux/COPYING); if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  
-*/
 
 #include <linux/blkdev.h>
 #include <linux/raid/md_u.h>
@@ -22,9 +6,7 @@
 #include "md.h"
 #include "linear.h"
 
-/*
- * find which device holds a particular offset 
- */
+
 static inline dev_info_t *which_dev(mddev_t *mddev, sector_t sector)
 {
 	int lo, mid, hi;
@@ -34,9 +16,7 @@ static inline dev_info_t *which_dev(mddev_t *mddev, sector_t sector)
 	hi = mddev->raid_disks - 1;
 	conf = rcu_dereference(mddev->private);
 
-	/*
-	 * Binary Search
-	 */
+	
 
 	while (hi > lo) {
 
@@ -50,14 +30,7 @@ static inline dev_info_t *which_dev(mddev_t *mddev, sector_t sector)
 	return conf->disks + lo;
 }
 
-/**
- *	linear_mergeable_bvec -- tell bio layer if two requests can be merged
- *	@q: request queue
- *	@bvm: properties of new bio
- *	@biovec: the request that could be merged to it.
- *
- *	Return amount of bytes we can take at this offset
- */
+
 static int linear_mergeable_bvec(struct request_queue *q,
 				 struct bvec_merge_data *bvm,
 				 struct bio_vec *biovec)
@@ -79,8 +52,7 @@ static int linear_mergeable_bvec(struct request_queue *q,
 
 	if (maxsectors <= (PAGE_SIZE >> 9 ) && bio_sectors == 0)
 		return biovec->bv_len;
-	/* The bytes available at this offset could be really big,
-	 * so we cap at 2^31 to avoid overflow */
+	
 	if (maxsectors > (1 << (31-9)))
 		return 1<<31;
 	return maxsectors << 9;
@@ -171,10 +143,7 @@ static linear_conf_t *linear_conf(mddev_t *mddev, int raid_disks)
 
 		disk_stack_limits(mddev->gendisk, rdev->bdev,
 				  rdev->data_offset << 9);
-		/* as we don't honour merge_bvec_fn, we must never risk
-		 * violating it, so limit ->max_sector to one PAGE, as
-		 * a one page request is never in violation.
-		 */
+		
 		if (rdev->bdev->bd_disk->queue->merge_bvec_fn &&
 		    queue_max_sectors(mddev->queue) > (PAGE_SIZE>>9))
 			blk_queue_max_sectors(mddev->queue, PAGE_SIZE>>9);
@@ -188,9 +157,7 @@ static linear_conf_t *linear_conf(mddev_t *mddev, int raid_disks)
 		goto out;
 	}
 
-	/*
-	 * Here we calculate the device offsets.
-	 */
+	
 	conf->disks[0].end_sector = conf->disks[0].rdev->sectors;
 
 	for (i = 1; i < raid_disks; i++)
@@ -235,14 +202,7 @@ static void free_conf(struct rcu_head *head)
 
 static int linear_add(mddev_t *mddev, mdk_rdev_t *rdev)
 {
-	/* Adding a drive to a linear array allows the array to grow.
-	 * It is permitted if the new drive has a matching superblock
-	 * already on it, with raid_disk equal to raid_disks.
-	 * It is achieved by creating a new linear_private_data structure
-	 * and swapping it in in-place of the current one.
-	 * The current one is never freed until the array is stopped.
-	 * This avoids races.
-	 */
+	
 	linear_conf_t *newconf, *oldconf;
 
 	if (rdev->saved_raid_disk != mddev->raid_disks)
@@ -269,15 +229,9 @@ static int linear_stop (mddev_t *mddev)
 {
 	linear_conf_t *conf = mddev->private;
 
-	/*
-	 * We do not require rcu protection here since
-	 * we hold reconfig_mutex for both linear_add and
-	 * linear_stop, so they cannot race.
-	 * We should make sure any old 'conf's are properly
-	 * freed though.
-	 */
+	
 	rcu_barrier();
-	blk_sync_queue(mddev->queue); /* the unplug fn references 'conf'*/
+	blk_sync_queue(mddev->queue); 
 	kfree(conf);
 
 	return 0;
@@ -323,9 +277,7 @@ static int linear_make_request (struct request_queue *q, struct bio *bio)
 	}
 	if (unlikely(bio->bi_sector + (bio->bi_size >> 9) >
 		     tmp_dev->end_sector)) {
-		/* This bio crosses a device boundary, so we have to
-		 * split it.
-		 */
+		
 		struct bio_pair *bp;
 		sector_t end_sector = tmp_dev->end_sector;
 
@@ -383,6 +335,6 @@ static void linear_exit (void)
 module_init(linear_init);
 module_exit(linear_exit);
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("md-personality-1"); /* LINEAR - deprecated*/
+MODULE_ALIAS("md-personality-1"); 
 MODULE_ALIAS("md-linear");
 MODULE_ALIAS("md-level--1");

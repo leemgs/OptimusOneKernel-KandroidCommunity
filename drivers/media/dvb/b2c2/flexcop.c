@@ -1,35 +1,4 @@
-/*
- * Linux driver for digital TV devices equipped with B2C2 FlexcopII(b)/III
- * flexcop.c - main module part
- * Copyright (C) 2004-9 Patrick Boettcher <patrick.boettcher@desy.de>
- * based on skystar2-driver Copyright (C) 2003 Vadim Catana, skystar@moldova.cc
- *
- * Acknowledgements:
- *   John Jurrius from BBTI, Inc. for extensive support
- *                    with code examples and data books
- *   Bjarne Steinsbo, bjarne at steinsbo.com (some ideas for rewriting)
- *
- * Contributions to the skystar2-driver have been done by
- *   Vincenzo Di Massa, hawk.it at tiscalinet.it (several DiSEqC fixes)
- *   Roberto Ragusa, r.ragusa at libero.it (polishing, restyling the code)
- *   Uwe Bugla, uwe.bugla at gmx.de (doing tests, restyling code, writing docu)
- *   Niklas Peinecke, peinecke at gdv.uni-hannover.de (hardware pid/mac
- *               filtering)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation; either version 2.1
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include "flexcop.h"
 
@@ -52,7 +21,7 @@ MODULE_PARM_DESC(debug,
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
-/* global zero for ibi values */
+
 flexcop_ibi_value ibi_zero;
 
 static int flexcop_dvb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
@@ -153,8 +122,7 @@ static void flexcop_dvb_exit(struct flexcop_device *fc)
 	fc->init_state &= ~FC_STATE_DVB_INIT;
 }
 
-/* these methods are necessary to achieve the long-term-goal of hiding the
- * struct flexcop_device from the bus-parts */
+
 void flexcop_pass_dmx_data(struct flexcop_device *fc, u8 *buf, u32 len)
 {
 	dvb_dmx_swfilter(&fc->demux, buf, len);
@@ -171,7 +139,7 @@ static void flexcop_reset(struct flexcop_device *fc)
 {
 	flexcop_ibi_value v210, v204;
 
-	/* reset the flexcop itself */
+	
 	fc->write_ibi_reg(fc,ctrl_208,ibi_zero);
 
 	v210.raw = 0;
@@ -188,7 +156,7 @@ static void flexcop_reset(struct flexcop_device *fc)
 	fc->write_ibi_reg(fc,sw_reset_210,v210);
 	msleep(1);
 
-	/* reset the periphical devices */
+	
 
 	v204 = fc->read_ibi_reg(fc,misc_204);
 	v204.misc_204.Per_reset_sig = 0;
@@ -257,13 +225,12 @@ int flexcop_device_initialize(struct flexcop_device *fc)
 	if ((ret = flexcop_dvb_init(fc)))
 		goto error;
 
-	/* i2c has to be done before doing EEProm stuff -
-	 * because the EEProm is accessed via i2c */
+	
 	ret = flexcop_i2c_init(fc);
 	if (ret)
 		goto error;
 
-	/* do the MAC address reading after initializing the dvb_adapter */
+	
 	if (fc->get_mac_addr(fc, 0) == 0) {
 		u8 *b = fc->dvb_adapter.proposed_mac;
 		info("MAC address = %pM", b);

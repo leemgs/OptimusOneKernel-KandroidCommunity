@@ -1,26 +1,10 @@
-/*****************************************************************************
-* Copyright 2004 - 2008 Broadcom Corporation.  All rights reserved.
-*
-* Unless you and Broadcom execute a separate written software license
-* agreement governing use of this software, this software is licensed to you
-* under the terms of the GNU General Public License version 2, available at
-* http://www.broadcom.com/licenses/GPLv2.php (the "GPL").
-*
-* Notwithstanding the above, under no circumstances may you combine this
-* software in any way with any other Broadcom software provided under a
-* license other than the GPL, without Broadcom's express prior written
-* consent.
-*****************************************************************************/
 
-/****************************************************************************/
-/**
-*   @file   dma.c
-*
-*   @brief  Implements the DMA interface.
-*/
-/****************************************************************************/
 
-/* ---- Include Files ---------------------------------------------------- */
+
+
+
+
+
 
 #include <linux/module.h>
 #include <linux/device.h>
@@ -36,14 +20,14 @@
 #include <asm/atomic.h>
 #include <mach/dma.h>
 
-/* I don't quite understand why dc4 fails when this is set to 1 and DMA is enabled */
-/* especially since dc4 doesn't use kmalloc'd memory. */
+
+
 
 #define ALLOW_MAP_OF_KMALLOC_MEMORY 0
 
-/* ---- Public Variables ------------------------------------------------- */
 
-/* ---- Private Constants and Types -------------------------------------- */
+
+
 
 #define MAKE_HANDLE(controllerIdx, channelIdx)    (((controllerIdx) << 4) | (channelIdx))
 
@@ -58,7 +42,7 @@
 #   define  DMA_MAP_PRINT(fmt, args...)
 #endif
 
-/* ---- Private Variables ------------------------------------------------ */
+
 
 static DMA_Global_t gDMA;
 static struct proc_dir_entry *gDmaDir;
@@ -70,15 +54,13 @@ static atomic_t gDmaStatMemTypeCoherent = ATOMIC_INIT(0);
 
 #include "dma_device.c"
 
-/* ---- Private Function Prototypes -------------------------------------- */
 
-/* ---- Functions  ------------------------------------------------------- */
 
-/****************************************************************************/
-/**
-*   Displays information for /proc/dma/mem-type
-*/
-/****************************************************************************/
+
+
+
+
+
 
 static int dma_proc_read_mem_type(char *buf, char **start, off_t offset,
 				  int count, int *eof, void *data)
@@ -102,11 +84,9 @@ static int dma_proc_read_mem_type(char *buf, char **start, off_t offset,
 	return len;
 }
 
-/****************************************************************************/
-/**
-*   Displays information for /proc/dma/channels
-*/
-/****************************************************************************/
+
+
+
 
 static int dma_proc_read_channels(char *buf, char **start, off_t offset,
 				  int count, int *eof, void *data)
@@ -188,11 +168,9 @@ static int dma_proc_read_channels(char *buf, char **start, off_t offset,
 	return len;
 }
 
-/****************************************************************************/
-/**
-*   Displays information for /proc/dma/devices
-*/
-/****************************************************************************/
+
+
+
 
 static int dma_proc_read_devices(char *buf, char **start, off_t offset,
 				 int count, int *eof, void *data)
@@ -255,30 +233,18 @@ static int dma_proc_read_devices(char *buf, char **start, off_t offset,
 	return len;
 }
 
-/****************************************************************************/
-/**
-*   Determines if a DMA_Device_t is "valid".
-*
-*   @return
-*       TRUE        - dma device is valid
-*       FALSE       - dma device isn't valid
-*/
-/****************************************************************************/
+
+
+
 
 static inline int IsDeviceValid(DMA_Device_t device)
 {
 	return (device >= 0) && (device < DMA_NUM_DEVICE_ENTRIES);
 }
 
-/****************************************************************************/
-/**
-*   Translates a DMA handle into a pointer to a channel.
-*
-*   @return
-*       non-NULL    - pointer to DMA_Channel_t
-*       NULL        - DMA Handle was invalid
-*/
-/****************************************************************************/
+
+
+
 
 static inline DMA_Channel_t *HandleToChannel(DMA_Handle_t handle)
 {
@@ -295,11 +261,9 @@ static inline DMA_Channel_t *HandleToChannel(DMA_Handle_t handle)
 	return &gDMA.controller[controllerIdx].channel[channelIdx];
 }
 
-/****************************************************************************/
-/**
-*   Interrupt handler which is called to process DMA interrupts.
-*/
-/****************************************************************************/
+
+
+
 
 static irqreturn_t dma_interrupt_handler(int irq, void *dev_id)
 {
@@ -309,7 +273,7 @@ static irqreturn_t dma_interrupt_handler(int irq, void *dev_id)
 
 	channel = (DMA_Channel_t *) dev_id;
 
-	/* Figure out why we were called, and knock down the interrupt */
+	
 
 	irqStatus = dmacHw_getInterruptStatus(channel->dmacHwHandle);
 	dmacHw_clearInterrupt(channel->dmacHwHandle);
@@ -322,7 +286,7 @@ static irqreturn_t dma_interrupt_handler(int irq, void *dev_id)
 	}
 	devAttr = &DMA_gDeviceAttribute[channel->devType];
 
-	/* Update stats */
+	
 
 	if ((irqStatus & dmacHw_INTERRUPT_STATUS_TRANS) != 0) {
 		devAttr->transferTicks +=
@@ -338,7 +302,7 @@ static irqreturn_t dma_interrupt_handler(int irq, void *dev_id)
 		devAttr->transferBytes += devAttr->numBytes;
 	}
 
-	/* Call any installed handler */
+	
 
 	if (devAttr->devHandler != NULL) {
 		devAttr->devHandler(channel->devType, irqStatus,
@@ -348,23 +312,12 @@ static irqreturn_t dma_interrupt_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/****************************************************************************/
-/**
-*   Allocates memory to hold a descriptor ring. The descriptor ring then
-*   needs to be populated by making one or more calls to
-*   dna_add_descriptors.
-*
-*   The returned descriptor ring will be automatically initialized.
-*
-*   @return
-*       0           Descriptor ring was allocated successfully
-*       -EINVAL     Invalid parameters passed in
-*       -ENOMEM     Unable to allocate memory for the desired number of descriptors.
-*/
-/****************************************************************************/
 
-int dma_alloc_descriptor_ring(DMA_DescriptorRing_t *ring,	/* Descriptor ring to populate */
-			      int numDescriptors	/* Number of descriptors that need to be allocated. */
+
+
+
+int dma_alloc_descriptor_ring(DMA_DescriptorRing_t *ring,	
+			      int numDescriptors	
     ) {
 	size_t bytesToAlloc = dmacHw_descriptorLen(numDescriptors);
 
@@ -392,13 +345,11 @@ int dma_alloc_descriptor_ring(DMA_DescriptorRing_t *ring,	/* Descriptor ring to 
 
 EXPORT_SYMBOL(dma_alloc_descriptor_ring);
 
-/****************************************************************************/
-/**
-*   Releases the memory which was previously allocated for a descriptor ring.
-*/
-/****************************************************************************/
 
-void dma_free_descriptor_ring(DMA_DescriptorRing_t *ring	/* Descriptor to release */
+
+
+
+void dma_free_descriptor_ring(DMA_DescriptorRing_t *ring	
     ) {
 	if (ring->virtAddr != NULL) {
 		dma_free_writecombine(NULL,
@@ -414,26 +365,12 @@ void dma_free_descriptor_ring(DMA_DescriptorRing_t *ring	/* Descriptor to releas
 
 EXPORT_SYMBOL(dma_free_descriptor_ring);
 
-/****************************************************************************/
-/**
-*   Initializes a descriptor ring, so that descriptors can be added to it.
-*   Once a descriptor ring has been allocated, it may be reinitialized for
-*   use with additional/different regions of memory.
-*
-*   Note that if 7 descriptors are allocated, it's perfectly acceptable to
-*   initialize the ring with a smaller number of descriptors. The amount
-*   of memory allocated for the descriptor ring will not be reduced, and
-*   the descriptor ring may be reinitialized later
-*
-*   @return
-*       0           Descriptor ring was initialized successfully
-*       -ENOMEM     The descriptor which was passed in has insufficient space
-*                   to hold the desired number of descriptors.
-*/
-/****************************************************************************/
 
-int dma_init_descriptor_ring(DMA_DescriptorRing_t *ring,	/* Descriptor ring to initialize */
-			     int numDescriptors	/* Number of descriptors to initialize. */
+
+
+
+int dma_init_descriptor_ring(DMA_DescriptorRing_t *ring,	
+			     int numDescriptors	
     ) {
 	if (ring->virtAddr == NULL) {
 		return -EINVAL;
@@ -451,29 +388,14 @@ int dma_init_descriptor_ring(DMA_DescriptorRing_t *ring,	/* Descriptor ring to i
 
 EXPORT_SYMBOL(dma_init_descriptor_ring);
 
-/****************************************************************************/
-/**
-*   Determines the number of descriptors which would be required for a
-*   transfer of the indicated memory region.
-*
-*   This function also needs to know which DMA device this transfer will
-*   be destined for, so that the appropriate DMA configuration can be retrieved.
-*   DMA parameters such as transfer width, and whether this is a memory-to-memory
-*   or memory-to-peripheral, etc can all affect the actual number of descriptors
-*   required.
-*
-*   @return
-*       > 0     Returns the number of descriptors required for the indicated transfer
-*       -ENODEV - Device handed in is invalid.
-*       -EINVAL Invalid parameters
-*       -ENOMEM Memory exhausted
-*/
-/****************************************************************************/
 
-int dma_calculate_descriptor_count(DMA_Device_t device,	/* DMA Device that this will be associated with */
-				   dma_addr_t srcData,	/* Place to get data to write to device */
-				   dma_addr_t dstData,	/* Pointer to device data address */
-				   size_t numBytes	/* Number of bytes to transfer to the device */
+
+
+
+int dma_calculate_descriptor_count(DMA_Device_t device,	
+				   dma_addr_t srcData,	
+				   dma_addr_t dstData,	
+				   size_t numBytes	
     ) {
 	int numDescriptors;
 	DMA_DeviceAttribute_t *devAttr;
@@ -498,25 +420,15 @@ int dma_calculate_descriptor_count(DMA_Device_t device,	/* DMA Device that this 
 
 EXPORT_SYMBOL(dma_calculate_descriptor_count);
 
-/****************************************************************************/
-/**
-*   Adds a region of memory to the descriptor ring. Note that it may take
-*   multiple descriptors for each region of memory. It is the callers
-*   responsibility to allocate a sufficiently large descriptor ring.
-*
-*   @return
-*       0       Descriptors were added successfully
-*       -ENODEV Device handed in is invalid.
-*       -EINVAL Invalid parameters
-*       -ENOMEM Memory exhausted
-*/
-/****************************************************************************/
 
-int dma_add_descriptors(DMA_DescriptorRing_t *ring,	/* Descriptor ring to add descriptors to */
-			DMA_Device_t device,	/* DMA Device that descriptors are for */
-			dma_addr_t srcData,	/* Place to get data (memory or device) */
-			dma_addr_t dstData,	/* Place to put data (memory or device) */
-			size_t numBytes	/* Number of bytes to transfer to the device */
+
+
+
+int dma_add_descriptors(DMA_DescriptorRing_t *ring,	
+			DMA_Device_t device,	
+			dma_addr_t srcData,	
+			dma_addr_t dstData,	
+			size_t numBytes	
     ) {
 	int rc;
 	DMA_DeviceAttribute_t *devAttr;
@@ -542,28 +454,12 @@ int dma_add_descriptors(DMA_DescriptorRing_t *ring,	/* Descriptor ring to add de
 
 EXPORT_SYMBOL(dma_add_descriptors);
 
-/****************************************************************************/
-/**
-*   Sets the descriptor ring associated with a device.
-*
-*   Once set, the descriptor ring will be associated with the device, even
-*   across channel request/free calls. Passing in a NULL descriptor ring
-*   will release any descriptor ring currently associated with the device.
-*
-*   Note: If you call dma_transfer, or one of the other dma_alloc_ functions
-*         the descriptor ring may be released and reallocated.
-*
-*   Note: This function will release the descriptor memory for any current
-*         descriptor ring associated with this device.
-*
-*   @return
-*       0       Descriptors were added successfully
-*       -ENODEV Device handed in is invalid.
-*/
-/****************************************************************************/
 
-int dma_set_device_descriptor_ring(DMA_Device_t device,	/* Device to update the descriptor ring for. */
-				   DMA_DescriptorRing_t *ring	/* Descriptor ring to add descriptors to */
+
+
+
+int dma_set_device_descriptor_ring(DMA_Device_t device,	
+				   DMA_DescriptorRing_t *ring	
     ) {
 	DMA_DeviceAttribute_t *devAttr;
 
@@ -572,18 +468,18 @@ int dma_set_device_descriptor_ring(DMA_Device_t device,	/* Device to update the 
 	}
 	devAttr = &DMA_gDeviceAttribute[device];
 
-	/* Free the previously allocated descriptor ring */
+	
 
 	dma_free_descriptor_ring(&devAttr->ring);
 
 	if (ring != NULL) {
-		/* Copy in the new one */
+		
 
 		devAttr->ring = *ring;
 	}
 
-	/* Set things up so that if dma_transfer is called then this descriptor */
-	/* ring will get freed. */
+	
+	
 
 	devAttr->prevSrcData = 0;
 	devAttr->prevDstData = 0;
@@ -594,18 +490,12 @@ int dma_set_device_descriptor_ring(DMA_Device_t device,	/* Device to update the 
 
 EXPORT_SYMBOL(dma_set_device_descriptor_ring);
 
-/****************************************************************************/
-/**
-*   Retrieves the descriptor ring associated with a device.
-*
-*   @return
-*       0       Descriptors were added successfully
-*       -ENODEV Device handed in is invalid.
-*/
-/****************************************************************************/
 
-int dma_get_device_descriptor_ring(DMA_Device_t device,	/* Device to retrieve the descriptor ring for. */
-				   DMA_DescriptorRing_t *ring	/* Place to store retrieved ring */
+
+
+
+int dma_get_device_descriptor_ring(DMA_Device_t device,	
+				   DMA_DescriptorRing_t *ring	
     ) {
 	DMA_DeviceAttribute_t *devAttr;
 
@@ -623,17 +513,9 @@ int dma_get_device_descriptor_ring(DMA_Device_t device,	/* Device to retrieve th
 
 EXPORT_SYMBOL(dma_get_device_descriptor_ring);
 
-/****************************************************************************/
-/**
-*   Configures a DMA channel.
-*
-*   @return
-*       >= 0    - Initialization was successfull.
-*
-*       -EBUSY  - Device is currently being used.
-*       -ENODEV - Device handed in is invalid.
-*/
-/****************************************************************************/
+
+
+
 
 static int ConfigChannel(DMA_Handle_t handle)
 {
@@ -668,16 +550,9 @@ static int ConfigChannel(DMA_Handle_t handle)
 	return 0;
 }
 
-/****************************************************************************/
-/**
-*   Intializes all of the data structures associated with the DMA.
-*   @return
-*       >= 0    - Initialization was successfull.
-*
-*       -EBUSY  - Device is currently being used.
-*       -ENODEV - Device handed in is invalid.
-*/
-/****************************************************************************/
+
+
+
 
 int dma_init(void)
 {
@@ -693,11 +568,11 @@ int dma_init(void)
 	init_MUTEX_LOCKED(&gDMA.lock);
 	init_waitqueue_head(&gDMA.freeChannelQ);
 
-	/* Initialize the Hardware */
+	
 
 	dmacHw_initDma();
 
-	/* Start off by marking all of the DMA channels as shared. */
+	
 
 	for (controllerIdx = 0; controllerIdx < DMA_NUM_CONTROLLERS;
 	     controllerIdx++) {
@@ -723,14 +598,14 @@ int dma_init(void)
 		}
 	}
 
-	/* Record any special attributes that channels may have */
+	
 
 	gDMA.controller[0].channel[0].flags |= DMA_CHANNEL_FLAG_LARGE_FIFO;
 	gDMA.controller[0].channel[1].flags |= DMA_CHANNEL_FLAG_LARGE_FIFO;
 	gDMA.controller[1].channel[0].flags |= DMA_CHANNEL_FLAG_LARGE_FIFO;
 	gDMA.controller[1].channel[1].flags |= DMA_CHANNEL_FLAG_LARGE_FIFO;
 
-	/* Now walk through and record the dedicated channels. */
+	
 
 	for (devIdx = 0; devIdx < DMA_NUM_DEVICE_ENTRIES; devIdx++) {
 		DMA_DeviceAttribute_t *devAttr = &DMA_gDeviceAttribute[devIdx];
@@ -745,7 +620,7 @@ int dma_init(void)
 		}
 
 		if ((devAttr->flags & DMA_DEVICE_FLAG_IS_DEDICATED) != 0) {
-			/* This is a dedicated device. Mark the channel as being reserved. */
+			
 
 			if (devAttr->dedicatedController >= DMA_NUM_CONTROLLERS) {
 				printk(KERN_ERR
@@ -790,14 +665,14 @@ int dma_init(void)
 				channel->flags |= DMA_CHANNEL_FLAG_NO_ISR;
 			}
 
-			/* For dedicated channels, we can go ahead and configure the DMA channel now */
-			/* as well. */
+			
+			
 
 			ConfigChannel(dedicatedHandle);
 		}
 	}
 
-	/* Go through and register the interrupt handlers */
+	
 
 	for (controllerIdx = 0; controllerIdx < DMA_NUM_CONTROLLERS;
 	     controllerIdx++) {
@@ -832,7 +707,7 @@ int dma_init(void)
 		}
 	}
 
-	/* Create /proc/dma/channels and /proc/dma/devices */
+	
 
 	gDmaDir = create_proc_entry("dma", S_IFDIR | S_IRUGO | S_IXUGO, NULL);
 
@@ -854,18 +729,9 @@ out:
 	return rc;
 }
 
-/****************************************************************************/
-/**
-*   Reserves a channel for use with @a dev. If the device is setup to use
-*   a shared channel, then this function will block until a free channel
-*   becomes available.
-*
-*   @return
-*       >= 0    - A valid DMA Handle.
-*       -EBUSY  - Device is currently being used.
-*       -ENODEV - Device handed in is invalid.
-*/
-/****************************************************************************/
+
+
+
 
 #if (DMA_DEBUG_TRACK_RESERVATION)
 DMA_Handle_t dma_request_channel_dbg
@@ -902,7 +768,7 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 	}
 #endif
 	if ((devAttr->flags & DMA_DEVICE_FLAG_IN_USE) != 0) {
-		/* This device has already been requested and not been freed */
+		
 
 		printk(KERN_ERR "%s: device %s is already requested\n",
 		       __func__, devAttr->name);
@@ -911,7 +777,7 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 	}
 
 	if ((devAttr->flags & DMA_DEVICE_FLAG_IS_DEDICATED) != 0) {
-		/* This device has a dedicated channel. */
+		
 
 		channel =
 		    &gDMA.controller[devAttr->dedicatedController].
@@ -934,15 +800,15 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 		goto out;
 	}
 
-	/* This device needs to use one of the shared channels. */
+	
 
 	handle = DMA_INVALID_HANDLE;
 	while (handle == DMA_INVALID_HANDLE) {
-		/* Scan through the shared channels and see if one is available */
+		
 
 		for (controllerIdx2 = 0; controllerIdx2 < DMA_NUM_CONTROLLERS;
 		     controllerIdx2++) {
-			/* Check to see if we should try on controller 1 first. */
+			
 
 			controllerIdx = controllerIdx2;
 			if ((devAttr->
@@ -950,7 +816,7 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 				controllerIdx = 1 - controllerIdx;
 			}
 
-			/* See if the device is available on the controller being tested */
+			
 
 			if ((devAttr->
 			     flags & (DMA_DEVICE_FLAG_ON_DMA0 << controllerIdx))
@@ -979,8 +845,8 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 						      flags &
 						      DMA_DEVICE_FLAG_ALLOW_LARGE_FIFO)
 						     == 0)) {
-							/* This channel is a large fifo - don't tie it up */
-							/* with devices that we don't want using it. */
+							
+							
 
 							continue;
 						}
@@ -999,7 +865,7 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 						    MAKE_HANDLE(controllerIdx,
 								channelIdx);
 
-						/* Now that we've reserved the channel - we can go ahead and configure it */
+						
 
 						if (ConfigChannel(handle) != 0) {
 							handle = -EIO;
@@ -1012,7 +878,7 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 			}
 		}
 
-		/* No channels are currently available. Let's wait for one to free up. */
+		
 
 		{
 			DEFINE_WAIT(wait);
@@ -1024,7 +890,7 @@ DMA_Handle_t dma_request_channel(DMA_Device_t dev)
 			finish_wait(&gDMA.freeChannelQ, &wait);
 
 			if (signal_pending(current)) {
-				/* We don't currently hold gDMA.lock, so we return directly */
+				
 
 				return -ERESTARTSYS;
 			}
@@ -1041,7 +907,7 @@ out:
 	return handle;
 }
 
-/* Create both _dbg and non _dbg functions for modules. */
+
 
 #if (DMA_DEBUG_TRACK_RESERVATION)
 #undef dma_request_channel
@@ -1054,13 +920,11 @@ EXPORT_SYMBOL(dma_request_channel_dbg);
 #endif
 EXPORT_SYMBOL(dma_request_channel);
 
-/****************************************************************************/
-/**
-*   Frees a previously allocated DMA Handle.
-*/
-/****************************************************************************/
 
-int dma_free_channel(DMA_Handle_t handle	/* DMA handle. */
+
+
+
+int dma_free_channel(DMA_Handle_t handle	
     ) {
 	int rc = 0;
 	DMA_Channel_t *channel;
@@ -1095,19 +959,11 @@ out:
 
 EXPORT_SYMBOL(dma_free_channel);
 
-/****************************************************************************/
-/**
-*   Determines if a given device has been configured as using a shared
-*   channel.
-*
-*   @return
-*       0           Device uses a dedicated channel
-*       > zero      Device uses a shared channel
-*       < zero      Error code
-*/
-/****************************************************************************/
 
-int dma_device_is_channel_shared(DMA_Device_t device	/* Device to check. */
+
+
+
+int dma_device_is_channel_shared(DMA_Device_t device	
     ) {
 	DMA_DeviceAttribute_t *devAttr;
 
@@ -1121,25 +977,15 @@ int dma_device_is_channel_shared(DMA_Device_t device	/* Device to check. */
 
 EXPORT_SYMBOL(dma_device_is_channel_shared);
 
-/****************************************************************************/
-/**
-*   Allocates buffers for the descriptors. This is normally done automatically
-*   but needs to be done explicitly when initiating a dma from interrupt
-*   context.
-*
-*   @return
-*       0       Descriptors were allocated successfully
-*       -EINVAL Invalid device type for this kind of transfer
-*               (i.e. the device is _MEM_TO_DEV and not _DEV_TO_MEM)
-*       -ENOMEM Memory exhausted
-*/
-/****************************************************************************/
 
-int dma_alloc_descriptors(DMA_Handle_t handle,	/* DMA Handle */
-			  dmacHw_TRANSFER_TYPE_e transferType,	/* Type of transfer being performed */
-			  dma_addr_t srcData,	/* Place to get data to write to device */
-			  dma_addr_t dstData,	/* Pointer to device data address */
-			  size_t numBytes	/* Number of bytes to transfer to the device */
+
+
+
+int dma_alloc_descriptors(DMA_Handle_t handle,	
+			  dmacHw_TRANSFER_TYPE_e transferType,	
+			  dma_addr_t srcData,	
+			  dma_addr_t dstData,	
+			  size_t numBytes	
     ) {
 	DMA_Channel_t *channel;
 	DMA_DeviceAttribute_t *devAttr;
@@ -1158,10 +1004,10 @@ int dma_alloc_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 		return -EINVAL;
 	}
 
-	/* Figure out how many descriptors we need. */
+	
 
-	/* printk("srcData: 0x%08x dstData: 0x%08x, numBytes: %d\n", */
-	/*        srcData, dstData, numBytes); */
+	
+	
 
 	numDescriptors = dmacHw_calculateDescriptorCount(&devAttr->config,
 							      (void *)srcData,
@@ -1173,25 +1019,25 @@ int dma_alloc_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 		return -EINVAL;
 	}
 
-	/* Check to see if we can reuse the existing descriptor ring, or if we need to allocate */
-	/* a new one. */
+	
+	
 
 	ringBytesRequired = dmacHw_descriptorLen(numDescriptors);
 
-	/* printk("ringBytesRequired: %d\n", ringBytesRequired); */
+	
 
 	if (ringBytesRequired > devAttr->ring.bytesAllocated) {
-		/* Make sure that this code path is never taken from interrupt context. */
-		/* It's OK for an interrupt to initiate a DMA transfer, but the descriptor */
-		/* allocation needs to have already been done. */
+		
+		
+		
 
 		might_sleep();
 
-		/* Free the old descriptor ring and allocate a new one. */
+		
 
 		dma_free_descriptor_ring(&devAttr->ring);
 
-		/* And allocate a new one. */
+		
 
 		rc =
 		     dma_alloc_descriptor_ring(&devAttr->ring,
@@ -1202,7 +1048,7 @@ int dma_alloc_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 			       __func__, numDescriptors);
 			return rc;
 		}
-		/* Setup the descriptor for this transfer */
+		
 
 		if (dmacHw_initDescriptor(devAttr->ring.virtAddr,
 					  devAttr->ring.physAddr,
@@ -1213,14 +1059,14 @@ int dma_alloc_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 			return -EINVAL;
 		}
 	} else {
-		/* We've already got enough ring buffer allocated. All we need to do is reset */
-		/* any control information, just in case the previous DMA was stopped. */
+		
+		
 
 		dmacHw_resetDescriptorControl(devAttr->ring.virtAddr);
 	}
 
-	/* dma_alloc/free both set the prevSrc/DstData to 0. If they happen to be the same */
-	/* as last time, then we don't need to call setDataDescriptor again. */
+	
+	
 
 	if (dmacHw_setDataDescriptor(&devAttr->config,
 				     devAttr->ring.virtAddr,
@@ -1231,8 +1077,8 @@ int dma_alloc_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 		return -EINVAL;
 	}
 
-	/* Remember the critical information for this transfer so that we can eliminate */
-	/* another call to dma_alloc_descriptors if the caller reuses the same buffers */
+	
+	
 
 	devAttr->prevSrcData = srcData;
 	devAttr->prevDstData = dstData;
@@ -1243,26 +1089,15 @@ int dma_alloc_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 
 EXPORT_SYMBOL(dma_alloc_descriptors);
 
-/****************************************************************************/
-/**
-*   Allocates and sets up descriptors for a double buffered circular buffer.
-*
-*   This is primarily intended to be used for things like the ingress samples
-*   from a microphone.
-*
-*   @return
-*       > 0     Number of descriptors actually allocated.
-*       -EINVAL Invalid device type for this kind of transfer
-*               (i.e. the device is _MEM_TO_DEV and not _DEV_TO_MEM)
-*       -ENOMEM Memory exhausted
-*/
-/****************************************************************************/
 
-int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	/* DMA Handle */
-				     dma_addr_t srcData,	/* Physical address of source data */
-				     dma_addr_t dstData1,	/* Physical address of first destination buffer */
-				     dma_addr_t dstData2,	/* Physical address of second destination buffer */
-				     size_t numBytes	/* Number of bytes in each destination buffer */
+
+
+
+int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	
+				     dma_addr_t srcData,	
+				     dma_addr_t dstData1,	
+				     dma_addr_t dstData2,	
+				     size_t numBytes	
     ) {
 	DMA_Channel_t *channel;
 	DMA_DeviceAttribute_t *devAttr;
@@ -1279,10 +1114,10 @@ int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 
 	devAttr = &DMA_gDeviceAttribute[channel->devType];
 
-	/* Figure out how many descriptors we need. */
+	
 
-	/* printk("srcData: 0x%08x dstData: 0x%08x, numBytes: %d\n", */
-	/*        srcData, dstData, numBytes); */
+	
+	
 
 	numDst1Descriptors =
 	     dmacHw_calculateDescriptorCount(&devAttr->config, (void *)srcData,
@@ -1297,27 +1132,27 @@ int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 		return -EINVAL;
 	}
 	numDescriptors = numDst1Descriptors + numDst2Descriptors;
-	/* printk("numDescriptors: %d\n", numDescriptors); */
+	
 
-	/* Check to see if we can reuse the existing descriptor ring, or if we need to allocate */
-	/* a new one. */
+	
+	
 
 	ringBytesRequired = dmacHw_descriptorLen(numDescriptors);
 
-	/* printk("ringBytesRequired: %d\n", ringBytesRequired); */
+	
 
 	if (ringBytesRequired > devAttr->ring.bytesAllocated) {
-		/* Make sure that this code path is never taken from interrupt context. */
-		/* It's OK for an interrupt to initiate a DMA transfer, but the descriptor */
-		/* allocation needs to have already been done. */
+		
+		
+		
 
 		might_sleep();
 
-		/* Free the old descriptor ring and allocate a new one. */
+		
 
 		dma_free_descriptor_ring(&devAttr->ring);
 
-		/* And allocate a new one. */
+		
 
 		rc =
 		     dma_alloc_descriptor_ring(&devAttr->ring,
@@ -1330,9 +1165,9 @@ int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 		}
 	}
 
-	/* Setup the descriptor for this transfer. Since this function is used with */
-	/* CONTINUOUS DMA operations, we need to reinitialize every time, otherwise */
-	/* setDataDescriptor will keep trying to append onto the end. */
+	
+	
+	
 
 	if (dmacHw_initDescriptor(devAttr->ring.virtAddr,
 				  devAttr->ring.physAddr,
@@ -1342,8 +1177,8 @@ int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 		return -EINVAL;
 	}
 
-	/* dma_alloc/free both set the prevSrc/DstData to 0. If they happen to be the same */
-	/* as last time, then we don't need to call setDataDescriptor again. */
+	
+	
 
 	if (dmacHw_setDataDescriptor(&devAttr->config,
 				     devAttr->ring.virtAddr,
@@ -1362,8 +1197,8 @@ int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 		return -EINVAL;
 	}
 
-	/* You should use dma_start_transfer rather than dma_transfer_xxx so we don't */
-	/* try to make the 'prev' variables right. */
+	
+	
 
 	devAttr->prevSrcData = 0;
 	devAttr->prevDstData = 0;
@@ -1374,18 +1209,9 @@ int dma_alloc_double_dst_descriptors(DMA_Handle_t handle,	/* DMA Handle */
 
 EXPORT_SYMBOL(dma_alloc_double_dst_descriptors);
 
-/****************************************************************************/
-/**
-*   Initiates a transfer when the descriptors have already been setup.
-*
-*   This is a special case, and normally, the dma_transfer_xxx functions should
-*   be used.
-*
-*   @return
-*       0       Transfer was started successfully
-*       -ENODEV Invalid handle
-*/
-/****************************************************************************/
+
+
+
 
 int dma_start_transfer(DMA_Handle_t handle)
 {
@@ -1401,22 +1227,16 @@ int dma_start_transfer(DMA_Handle_t handle)
 	dmacHw_initiateTransfer(channel->dmacHwHandle, &devAttr->config,
 				devAttr->ring.virtAddr);
 
-	/* Since we got this far, everything went successfully */
+	
 
 	return 0;
 }
 
 EXPORT_SYMBOL(dma_start_transfer);
 
-/****************************************************************************/
-/**
-*   Stops a previously started DMA transfer.
-*
-*   @return
-*       0       Transfer was stopped successfully
-*       -ENODEV Invalid handle
-*/
-/****************************************************************************/
+
+
+
 
 int dma_stop_transfer(DMA_Handle_t handle)
 {
@@ -1434,12 +1254,9 @@ int dma_stop_transfer(DMA_Handle_t handle)
 
 EXPORT_SYMBOL(dma_stop_transfer);
 
-/****************************************************************************/
-/**
-*   Waits for a DMA to complete by polling. This function is only intended
-*   to be used for testing. Interrupts should be used for most DMA operations.
-*/
-/****************************************************************************/
+
+
+
 
 int dma_wait_transfer_done(DMA_Handle_t handle)
 {
@@ -1466,22 +1283,15 @@ int dma_wait_transfer_done(DMA_Handle_t handle)
 
 EXPORT_SYMBOL(dma_wait_transfer_done);
 
-/****************************************************************************/
-/**
-*   Initiates a DMA, allocating the descriptors as required.
-*
-*   @return
-*       0       Transfer was started successfully
-*       -EINVAL Invalid device type for this kind of transfer
-*               (i.e. the device is _DEV_TO_MEM and not _MEM_TO_DEV)
-*/
-/****************************************************************************/
 
-int dma_transfer(DMA_Handle_t handle,	/* DMA Handle */
-		 dmacHw_TRANSFER_TYPE_e transferType,	/* Type of transfer being performed */
-		 dma_addr_t srcData,	/* Place to get data to write to device */
-		 dma_addr_t dstData,	/* Pointer to device data address */
-		 size_t numBytes	/* Number of bytes to transfer to the device */
+
+
+
+int dma_transfer(DMA_Handle_t handle,	
+		 dmacHw_TRANSFER_TYPE_e transferType,	
+		 dma_addr_t srcData,	
+		 dma_addr_t dstData,	
+		 size_t numBytes	
     ) {
 	DMA_Channel_t *channel;
 	DMA_DeviceAttribute_t *devAttr;
@@ -1498,9 +1308,9 @@ int dma_transfer(DMA_Handle_t handle,	/* DMA Handle */
 		return -EINVAL;
 	}
 
-	/* We keep track of the information about the previous request for this */
-	/* device, and if the attributes match, then we can use the descriptors we setup */
-	/* the last time, and not have to reinitialize everything. */
+	
+	
+	
 
 	{
 		rc =
@@ -1511,7 +1321,7 @@ int dma_transfer(DMA_Handle_t handle,	/* DMA Handle */
 		}
 	}
 
-	/* And kick off the transfer */
+	
 
 	devAttr->numBytes = numBytes;
 	devAttr->transferStartTime = timer_get_tick_count();
@@ -1519,29 +1329,20 @@ int dma_transfer(DMA_Handle_t handle,	/* DMA Handle */
 	dmacHw_initiateTransfer(channel->dmacHwHandle, &devAttr->config,
 				devAttr->ring.virtAddr);
 
-	/* Since we got this far, everything went successfully */
+	
 
 	return 0;
 }
 
 EXPORT_SYMBOL(dma_transfer);
 
-/****************************************************************************/
-/**
-*   Set the callback function which will be called when a transfer completes.
-*   If a NULL callback function is set, then no callback will occur.
-*
-*   @note   @a devHandler will be called from IRQ context.
-*
-*   @return
-*       0       - Success
-*       -ENODEV - Device handed in is invalid.
-*/
-/****************************************************************************/
 
-int dma_set_device_handler(DMA_Device_t dev,	/* Device to set the callback for. */
-			   DMA_DeviceHandler_t devHandler,	/* Function to call when the DMA completes */
-			   void *userData	/* Pointer which will be passed to devHandler. */
+
+
+
+int dma_set_device_handler(DMA_Device_t dev,	
+			   DMA_DeviceHandler_t devHandler,	
+			   void *userData	
     ) {
 	DMA_DeviceAttribute_t *devAttr;
 	unsigned long flags;
@@ -1563,11 +1364,9 @@ int dma_set_device_handler(DMA_Device_t dev,	/* Device to set the callback for. 
 
 EXPORT_SYMBOL(dma_set_device_handler);
 
-/****************************************************************************/
-/**
-*   Initializes a memory mapping structure
-*/
-/****************************************************************************/
+
+
+
 
 int dma_init_mem_map(DMA_MemMap_t *memMap)
 {
@@ -1580,17 +1379,15 @@ int dma_init_mem_map(DMA_MemMap_t *memMap)
 
 EXPORT_SYMBOL(dma_init_mem_map);
 
-/****************************************************************************/
-/**
-*   Releases any memory currently being held by a memory mapping structure.
-*/
-/****************************************************************************/
+
+
+
 
 int dma_term_mem_map(DMA_MemMap_t *memMap)
 {
-	down(&memMap->lock);	/* Just being paranoid */
+	down(&memMap->lock);	
 
-	/* Free up any allocated memory */
+	
 
 	up(&memMap->lock);
 	memset(memMap, 0, sizeof(*memMap));
@@ -1600,41 +1397,37 @@ int dma_term_mem_map(DMA_MemMap_t *memMap)
 
 EXPORT_SYMBOL(dma_term_mem_map);
 
-/****************************************************************************/
-/**
-*   Looks at a memory address and categorizes it.
-*
-*   @return One of the values from the DMA_MemType_t enumeration.
-*/
-/****************************************************************************/
+
+
+
 
 DMA_MemType_t dma_mem_type(void *addr)
 {
 	unsigned long addrVal = (unsigned long)addr;
 
 	if (addrVal >= VMALLOC_END) {
-		/* NOTE: DMA virtual memory space starts at 0xFFxxxxxx */
+		
 
-		/* dma_alloc_xxx pages are physically and virtually contiguous */
+		
 
 		return DMA_MEM_TYPE_DMA;
 	}
 
-	/* Technically, we could add one more classification. Addresses between VMALLOC_END */
-	/* and the beginning of the DMA virtual address could be considered to be I/O space. */
-	/* Right now, nobody cares about this particular classification, so we ignore it. */
+	
+	
+	
 
 	if (is_vmalloc_addr(addr)) {
-		/* Address comes from the vmalloc'd region. Pages are virtually */
-		/* contiguous but NOT physically contiguous */
+		
+		
 
 		return DMA_MEM_TYPE_VMALLOC;
 	}
 
 	if (addrVal >= PAGE_OFFSET) {
-		/* PAGE_OFFSET is typically 0xC0000000 */
+		
 
-		/* kmalloc'd pages are physically contiguous */
+		
 
 		return DMA_MEM_TYPE_KMALLOC;
 	}
@@ -1644,16 +1437,9 @@ DMA_MemType_t dma_mem_type(void *addr)
 
 EXPORT_SYMBOL(dma_mem_type);
 
-/****************************************************************************/
-/**
-*   Looks at a memory address and determines if we support DMA'ing to/from
-*   that type of memory.
-*
-*   @return boolean -
-*               return value != 0 means dma supported
-*               return value == 0 means dma not supported
-*/
-/****************************************************************************/
+
+
+
 
 int dma_mem_supports_dma(void *addr)
 {
@@ -1668,16 +1454,12 @@ int dma_mem_supports_dma(void *addr)
 
 EXPORT_SYMBOL(dma_mem_supports_dma);
 
-/****************************************************************************/
-/**
-*   Maps in a memory region such that it can be used for performing a DMA.
-*
-*   @return
-*/
-/****************************************************************************/
 
-int dma_map_start(DMA_MemMap_t *memMap,	/* Stores state information about the map */
-		  enum dma_data_direction dir	/* Direction that the mapping will be going */
+
+
+
+int dma_map_start(DMA_MemMap_t *memMap,	
+		  enum dma_data_direction dir	
     ) {
 	int rc;
 
@@ -1709,27 +1491,22 @@ out:
 
 EXPORT_SYMBOL(dma_map_start);
 
-/****************************************************************************/
-/**
-*   Adds a segment of memory to a memory map. Each segment is both
-*   physically and virtually contiguous.
-*
-*   @return     0 on success, error code otherwise.
-*/
-/****************************************************************************/
 
-static int dma_map_add_segment(DMA_MemMap_t *memMap,	/* Stores state information about the map */
-			       DMA_Region_t *region,	/* Region that the segment belongs to */
-			       void *virtAddr,	/* Virtual address of the segment being added */
-			       dma_addr_t physAddr,	/* Physical address of the segment being added */
-			       size_t numBytes	/* Number of bytes of the segment being added */
+
+
+
+static int dma_map_add_segment(DMA_MemMap_t *memMap,	
+			       DMA_Region_t *region,	
+			       void *virtAddr,	
+			       dma_addr_t physAddr,	
+			       size_t numBytes	
     ) {
 	DMA_Segment_t *segment;
 
 	DMA_MAP_PRINT("memMap:%p va:%p pa:0x%x #:%d\n", memMap, virtAddr,
 		      physAddr, numBytes);
 
-	/* Sanity check */
+	
 
 	if (((unsigned long)virtAddr < (unsigned long)region->virtAddr)
 	    || (((unsigned long)virtAddr + numBytes)) >
@@ -1741,12 +1518,12 @@ static int dma_map_add_segment(DMA_MemMap_t *memMap,	/* Stores state information
 	}
 
 	if (region->numSegmentsUsed > 0) {
-		/* Check to see if this segment is physically contiguous with the previous one */
+		
 
 		segment = &region->segment[region->numSegmentsUsed - 1];
 
 		if ((segment->physAddr + segment->numBytes) == physAddr) {
-			/* It is - just add on to the end */
+			
 
 			DMA_MAP_PRINT("appending %d bytes to last segment\n",
 				      numBytes);
@@ -1757,7 +1534,7 @@ static int dma_map_add_segment(DMA_MemMap_t *memMap,	/* Stores state information
 		}
 	}
 
-	/* Reallocate to hold more segments, if required. */
+	
 
 	if (region->numSegmentsUsed >= region->numSegmentsAllocated) {
 		DMA_Segment_t *newSegment;
@@ -1791,18 +1568,13 @@ static int dma_map_add_segment(DMA_MemMap_t *memMap,	/* Stores state information
 	return 0;
 }
 
-/****************************************************************************/
-/**
-*   Adds a region of memory to a memory map. Each region is virtually
-*   contiguous, but not necessarily physically contiguous.
-*
-*   @return     0 on success, error code otherwise.
-*/
-/****************************************************************************/
 
-int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about the map */
-		       void *mem,	/* Virtual address that we want to get a map of */
-		       size_t numBytes	/* Number of bytes being mapped */
+
+
+
+int dma_map_add_region(DMA_MemMap_t *memMap,	
+		       void *mem,	
+		       size_t numBytes	
     ) {
 	unsigned long addr = (unsigned long)mem;
 	unsigned int offset;
@@ -1821,7 +1593,7 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 		goto out;
 	}
 
-	/* Reallocate to hold more regions. */
+	
 
 	if (memMap->numRegionsUsed >= memMap->numRegionsAllocated) {
 		DMA_Region_t *newRegion;
@@ -1861,9 +1633,9 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 		{
 			atomic_inc(&gDmaStatMemTypeVmalloc);
 
-			/* printk(KERN_ERR "%s: vmalloc'd pages are not supported\n", __func__); */
+			
 
-			/* vmalloc'd pages are not physically contiguous */
+			
 
 			rc = -EINVAL;
 			break;
@@ -1873,8 +1645,8 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 		{
 			atomic_inc(&gDmaStatMemTypeKmalloc);
 
-			/* kmalloc'd pages are physically contiguous, so they'll have exactly */
-			/* one segment */
+			
+			
 
 #if ALLOW_MAP_OF_KMALLOC_MEMORY
 			physAddr =
@@ -1889,7 +1661,7 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 
 	case DMA_MEM_TYPE_DMA:
 		{
-			/* dma_alloc_xxx pages are physically contiguous */
+			
 
 			atomic_inc(&gDmaStatMemTypeCoherent);
 
@@ -1912,8 +1684,8 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 			atomic_inc(&gDmaStatMemTypeUser);
 
 #if 1
-			/* If the pages are user pages, then the dma_mem_map_set_user_task function */
-			/* must have been previously called. */
+			
+			
 
 			if (memMap->userTask == NULL) {
 				printk(KERN_ERR
@@ -1922,7 +1694,7 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 				return -EINVAL;
 			}
 
-			/* User pages need to be locked. */
+			
 
 			firstPageOffset =
 			    (unsigned long)region->virtAddr & (PAGE_SIZE - 1);
@@ -1943,14 +1715,14 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 			userTask = memMap->userTask;
 
 			down_read(&userTask->mm->mmap_sem);
-			rc = get_user_pages(userTask,	/* task */
-					    userTask->mm,	/* mm */
-					    (unsigned long)region->virtAddr,	/* start */
-					    region->numLockedPages,	/* len */
-					    memMap->dir == DMA_FROM_DEVICE,	/* write */
-					    0,	/* force */
-					    pages,	/* pages (array of pointers to page) */
-					    NULL);	/* vmas */
+			rc = get_user_pages(userTask,	
+					    userTask->mm,	
+					    (unsigned long)region->virtAddr,	
+					    region->numLockedPages,	
+					    memMap->dir == DMA_FROM_DEVICE,	
+					    0,	
+					    pages,	
+					    NULL);	
 			up_read(&userTask->mm->mmap_sem);
 
 			if (rc != region->numLockedPages) {
@@ -1965,14 +1737,14 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 				size_t bytesRemaining;
 				int pageIdx;
 
-				rc = 0;	/* Since get_user_pages returns +ve number */
+				rc = 0;	
 
 				region->lockedPages = pages;
 
-				/* We've locked the user pages. Now we need to walk them and figure */
-				/* out the physical addresses. */
+				
+				
 
-				/* The first page may be partial */
+				
 
 				dma_map_add_segment(memMap,
 						    region,
@@ -2018,7 +1790,7 @@ int dma_map_add_region(DMA_MemMap_t *memMap,	/* Stores state information about t
 			       "%s: User mode pages are not yet supported\n",
 			       __func__);
 
-			/* user pages are not physically contiguous */
+			
 
 			rc = -EINVAL;
 #endif
@@ -2050,18 +1822,14 @@ out:
 
 EXPORT_SYMBOL(dma_map_add_segment);
 
-/****************************************************************************/
-/**
-*   Maps in a memory region such that it can be used for performing a DMA.
-*
-*   @return     0 on success, error code otherwise.
-*/
-/****************************************************************************/
 
-int dma_map_mem(DMA_MemMap_t *memMap,	/* Stores state information about the map */
-		void *mem,	/* Virtual address that we want to get a map of */
-		size_t numBytes,	/* Number of bytes being mapped */
-		enum dma_data_direction dir	/* Direction that the mapping will be going */
+
+
+
+int dma_map_mem(DMA_MemMap_t *memMap,	
+		void *mem,	
+		size_t numBytes,	
+		enum dma_data_direction dir	
     ) {
 	int rc;
 
@@ -2069,8 +1837,8 @@ int dma_map_mem(DMA_MemMap_t *memMap,	/* Stores state information about the map 
 	if (rc == 0) {
 		rc = dma_map_add_region(memMap, mem, numBytes);
 		if (rc < 0) {
-			/* Since the add fails, this function will fail, and the caller won't */
-			/* call unmap, so we need to do it here. */
+			
+			
 
 			dma_unmap(memMap, 0);
 		}
@@ -2081,21 +1849,13 @@ int dma_map_mem(DMA_MemMap_t *memMap,	/* Stores state information about the map 
 
 EXPORT_SYMBOL(dma_map_mem);
 
-/****************************************************************************/
-/**
-*   Setup a descriptor ring for a given memory map.
-*
-*   It is assumed that the descriptor ring has already been initialized, and
-*   this routine will only reallocate a new descriptor ring if the existing
-*   one is too small.
-*
-*   @return     0 on success, error code otherwise.
-*/
-/****************************************************************************/
 
-int dma_map_create_descriptor_ring(DMA_Device_t dev,	/* DMA device (where the ring is stored) */
-				   DMA_MemMap_t *memMap,	/* Memory map that will be used */
-				   dma_addr_t devPhysAddr	/* Physical address of device */
+
+
+
+int dma_map_create_descriptor_ring(DMA_Device_t dev,	
+				   DMA_MemMap_t *memMap,	
+				   dma_addr_t devPhysAddr	
     ) {
 	int rc;
 	int numDescriptors;
@@ -2111,7 +1871,7 @@ int dma_map_create_descriptor_ring(DMA_Device_t dev,	/* DMA device (where the ri
 
 	down(&memMap->lock);
 
-	/* Figure out how many descriptors we need */
+	
 
 	numDescriptors = 0;
 	for (regionIdx = 0; regionIdx < memMap->numRegionsUsed; regionIdx++) {
@@ -2144,7 +1904,7 @@ int dma_map_create_descriptor_ring(DMA_Device_t dev,	/* DMA device (where the ri
 		}
 	}
 
-	/* Adjust the size of the ring, if it isn't big enough */
+	
 
 	if (numDescriptors > devAttr->ring.descriptorsAllocated) {
 		dma_free_descriptor_ring(&devAttr->ring);
@@ -2169,7 +1929,7 @@ int dma_map_create_descriptor_ring(DMA_Device_t dev,	/* DMA device (where the ri
 		}
 	}
 
-	/* Populate the descriptors */
+	
 
 	for (regionIdx = 0; regionIdx < memMap->numRegionsUsed; regionIdx++) {
 		region = &memMap->region[regionIdx];
@@ -2209,16 +1969,12 @@ out:
 
 EXPORT_SYMBOL(dma_map_create_descriptor_ring);
 
-/****************************************************************************/
-/**
-*   Maps in a memory region such that it can be used for performing a DMA.
-*
-*   @return
-*/
-/****************************************************************************/
 
-int dma_unmap(DMA_MemMap_t *memMap,	/* Stores state information about the map */
-	      int dirtied	/* non-zero if any of the pages were modified */
+
+
+
+int dma_unmap(DMA_MemMap_t *memMap,	
+	      int dirtied	
     ) {
 	int regionIdx;
 	int segmentIdx;
@@ -2265,7 +2021,7 @@ int dma_unmap(DMA_MemMap_t *memMap,	/* Stores state information about the map */
 
 			case DMA_MEM_TYPE_USER:
 				{
-					/* Nothing to do here. */
+					
 
 					break;
 				}
@@ -2287,7 +2043,7 @@ int dma_unmap(DMA_MemMap_t *memMap,	/* Stores state information about the map */
 		if (region->numLockedPages > 0) {
 			int pageIdx;
 
-			/* Some user pages were locked. We need to go and unlock them now. */
+			
 
 			for (pageIdx = 0; pageIdx < region->numLockedPages;
 			     pageIdx++) {

@@ -1,7 +1,4 @@
-/*
- * Copyright (C) 2003-2004 Intel
- * Copyright (C) Tom Long Nguyen (tom.l.nguyen@intel.com)
- */
+
 
 #ifndef MSI_H
 #define MSI_H
@@ -27,4 +24,4 @@
 #define msix_table_size(control) 	((control & PCI_MSIX_FLAGS_QSIZE)+1)
 #define multi_msix_capable(control)	msix_table_size((control))
 
-#endif /* MSI_H */
+#endif 

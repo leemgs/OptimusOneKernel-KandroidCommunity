@@ -1,22 +1,4 @@
-/*
- * OMAP2 Power Management Routines
- *
- * Copyright (C) 2005 Texas Instruments, Inc.
- * Copyright (C) 2006-2008 Nokia Corporation
- *
- * Written by:
- * Richard Woodruff <r-woodruff2@ti.com>
- * Tony Lindgren
- * Juha Yrjola
- * Amit Kucheria <amit.kucheria@nokia.com>
- * Igor Stoppa <igor.stoppa@nokia.com>
- *
- * Based on pm.c for omap1
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/suspend.h>
 #include <linux/sched.h>
@@ -72,7 +54,7 @@ static int omap2_fclks_active(void)
 	f1 = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
 	f2 = cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_FCLKEN2);
 
-	/* Ignore UART clocks.  These are handled by UART core (serial.c) */
+	
 	f1 &= ~(OMAP24XX_EN_UART1 | OMAP24XX_EN_UART2);
 	f2 &= ~OMAP24XX_EN_UART3;
 
@@ -86,27 +68,20 @@ static void omap2_enter_full_retention(void)
 	u32 l;
 	struct timespec ts_preidle, ts_postidle, ts_idle;
 
-	/* There is 1 reference hold for all children of the oscillator
-	 * clock, the following will remove it. If no one else uses the
-	 * oscillator itself it will be disabled if/when we enter retention
-	 * mode.
-	 */
+	
 	clk_disable(osc_ck);
 
-	/* Clear old wake-up events */
-	/* REVISIT: These write to reserved bits? */
+	
+	
 	prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
 	prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
 	prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
 
-	/*
-	 * Set MPU powerdomain's next power state to RETENTION;
-	 * preserve logic state during retention
-	 */
+	
 	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
 
-	/* Workaround to kill USB */
+	
 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
 	omap_ctrl_writel(l, OMAP2_CONTROL_DEVCONF0);
 
@@ -117,8 +92,7 @@ static void omap2_enter_full_retention(void)
 		getnstimeofday(&ts_preidle);
 	}
 
-	/* One last check for pending IRQs to avoid extra latency due
-	 * to sleeping unnecessarily. */
+	
 	if (omap_irq_pending())
 		goto no_sleep;
 
@@ -126,7 +100,7 @@ static void omap2_enter_full_retention(void)
 	omap_uart_prepare_idle(1);
 	omap_uart_prepare_idle(2);
 
-	/* Jump to SRAM suspend code */
+	
 	omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
 			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
 			   OMAP_SDRC_REGADDR(SDRC_POWER));
@@ -148,14 +122,14 @@ no_sleep:
 
 	clk_enable(osc_ck);
 
-	/* clear CORE wake-up events */
+	
 	prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
 	prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
 
-	/* wakeup domain events - bit 1: GPT1, bit5 GPIO */
+	
 	prm_clear_mod_reg_bits(0x4 | 0x1, WKUP_MOD, PM_WKST);
 
-	/* MPU domain wake events */
+	
 	l = prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
 	if (l & 0x01)
 		prm_write_mod_reg(0x01, OCP_MOD,
@@ -164,7 +138,7 @@ no_sleep:
 		prm_write_mod_reg(0x20, OCP_MOD,
 				  OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
 
-	/* Mask future PRCM-to-MPU interrupts */
+	
 	prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
 }
 
@@ -182,13 +156,13 @@ static int omap2_allow_mpu_retention(void)
 {
 	u32 l;
 
-	/* Check for MMC, UART2, UART1, McSPI2, McSPI1 and DSS1. */
+	
 	l = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
 	if (l & (OMAP2420_EN_MMC | OMAP24XX_EN_UART2 |
 		 OMAP24XX_EN_UART1 | OMAP24XX_EN_MCSPI2 |
 		 OMAP24XX_EN_MCSPI1 | OMAP24XX_EN_DSS1))
 		return 0;
-	/* Check for UART3. */
+	
 	l = cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_FCLKEN2);
 	if (l & OMAP24XX_EN_UART3)
 		return 0;
@@ -203,25 +177,23 @@ static void omap2_enter_mpu_retention(void)
 	int only_idle = 0;
 	struct timespec ts_preidle, ts_postidle, ts_idle;
 
-	/* Putting MPU into the WFI state while a transfer is active
-	 * seems to cause the I2C block to timeout. Why? Good question. */
+	
 	if (omap2_i2c_active())
 		return;
 
-	/* The peripherals seem not to be able to wake up the MPU when
-	 * it is in retention mode. */
+	
 	if (omap2_allow_mpu_retention()) {
-		/* REVISIT: These write to reserved bits? */
+		
 		prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
 		prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
 		prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
 
-		/* Try to enter MPU retention */
+		
 		prm_write_mod_reg((0x01 << OMAP_POWERSTATE_SHIFT) |
 				  OMAP_LOGICRETSTATE,
 				  MPU_MOD, PM_PWSTCTRL);
 	} else {
-		/* Block MPU retention */
+		
 
 		prm_write_mod_reg(OMAP_LOGICRETSTATE, MPU_MOD, PM_PWSTCTRL);
 		only_idle = 1;
@@ -280,7 +252,7 @@ out:
 
 static int omap2_pm_prepare(void)
 {
-	/* We cannot sleep in idle until we have resumed */
+	
 	disable_hlt();
 	return 0;
 }
@@ -292,7 +264,7 @@ static int omap2_pm_suspend(void)
 	wken_wkup = prm_read_mod_reg(WKUP_MOD, PM_WKEN);
 	prm_write_mod_reg(wken_wkup & ~OMAP24XX_EN_GPT1, WKUP_MOD, PM_WKEN);
 
-	/* Mask GPT1 */
+	
 	mir1 = omap_readl(0x480fe0a4);
 	omap_writel(1 << 5, 0x480fe0ac);
 
@@ -344,11 +316,11 @@ static void __init prcm_setup_regs(void)
 	int i, num_mem_banks;
 	struct powerdomain *pwrdm;
 
-	/* Enable autoidle */
+	
 	prm_write_mod_reg(OMAP24XX_AUTOIDLE, OCP_MOD,
 			  OMAP2_PRCM_SYSCONFIG_OFFSET);
 
-	/* Set all domain wakeup dependencies */
+	
 	prm_write_mod_reg(OMAP_EN_WKUP_MASK, MPU_MOD, PM_WKDEP);
 	prm_write_mod_reg(0, OMAP24XX_DSP_MOD, PM_WKDEP);
 	prm_write_mod_reg(0, GFX_MOD, PM_WKDEP);
@@ -356,25 +328,19 @@ static void __init prcm_setup_regs(void)
 	if (cpu_is_omap2430())
 		prm_write_mod_reg(0, OMAP2430_MDM_MOD, PM_WKDEP);
 
-	/*
-	 * Set CORE powerdomain memory banks to retain their contents
-	 * during RETENTION
-	 */
+	
 	num_mem_banks = pwrdm_get_mem_bank_count(core_pwrdm);
 	for (i = 0; i < num_mem_banks; i++)
 		pwrdm_set_mem_retst(core_pwrdm, i, PWRDM_POWER_RET);
 
-	/* Set CORE powerdomain's next power state to RETENTION */
+	
 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
 
-	/*
-	 * Set MPU powerdomain's next power state to RETENTION;
-	 * preserve logic state during retention
-	 */
+	
 	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
 
-	/* Force-power down DSP, GFX powerdomains */
+	
 
 	pwrdm = clkdm_get_pwrdm(dsp_clkdm);
 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
@@ -384,10 +350,10 @@ static void __init prcm_setup_regs(void)
 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
 	omap2_clkdm_sleep(gfx_clkdm);
 
-	/* Enable clockdomain hardware-supervised control for all clkdms */
+	
 	clkdm_for_each(_pm_clkdm_enable_hwsup, NULL);
 
-	/* Enable clock autoidle for all domains */
+	
 	cm_write_mod_reg(OMAP24XX_AUTO_CAM |
 			 OMAP24XX_AUTO_MAILBOXES |
 			 OMAP24XX_AUTO_WDT4 |
@@ -436,7 +402,7 @@ static void __init prcm_setup_regs(void)
 
 	cm_write_mod_reg(OMAP2420_AUTO_DSP_IPI, OMAP24XX_DSP_MOD, CM_AUTOIDLE);
 
-	/* Put DPLL and both APLLs into autoidle mode */
+	
 	cm_write_mod_reg((0x03 << OMAP24XX_AUTO_DPLL_SHIFT) |
 			 (0x03 << OMAP24XX_AUTO_96M_SHIFT) |
 			 (0x03 << OMAP24XX_AUTO_54M_SHIFT),
@@ -450,12 +416,11 @@ static void __init prcm_setup_regs(void)
 			 OMAP24XX_AUTO_GPT1,
 			 WKUP_MOD, CM_AUTOIDLE);
 
-	/* REVISIT: Configure number of 32 kHz clock cycles for sys_clk
-	 * stabilisation */
+	
 	prm_write_mod_reg(15 << OMAP_SETUP_TIME_SHIFT, OMAP24XX_GR_MOD,
 			  OMAP2_PRCM_CLKSSETUP_OFFSET);
 
-	/* Configure automatic voltage transition */
+	
 	prm_write_mod_reg(2 << OMAP_SETUP_TIME_SHIFT, OMAP24XX_GR_MOD,
 			  OMAP2_PRCM_VOLTSETUP_OFFSET);
 	prm_write_mod_reg(OMAP24XX_AUTO_EXTVOLT |
@@ -465,7 +430,7 @@ static void __init prcm_setup_regs(void)
 			  (0x0 << OMAP24XX_VOLT_LEVEL_SHIFT),
 			  OMAP24XX_GR_MOD, OMAP2_PRCM_VOLTCTRL_OFFSET);
 
-	/* Enable wake-up events */
+	
 	prm_write_mod_reg(OMAP24XX_EN_GPIOS | OMAP24XX_EN_GPT1,
 			  WKUP_MOD, PM_WKEN);
 }
@@ -481,7 +446,7 @@ static int __init omap2_pm_init(void)
 	l = prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_REVISION_OFFSET);
 	printk(KERN_INFO "PRCM revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
 
-	/* Look up important powerdomains, clockdomains */
+	
 
 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
 	if (!mpu_pwrdm)
@@ -517,7 +482,7 @@ static int __init omap2_pm_init(void)
 
 	prcm_setup_regs();
 
-	/* Hack to prevent MPU retention when STI console is enabled. */
+	
 	{
 		const struct omap_sti_console_config *sti;
 
@@ -527,11 +492,7 @@ static int __init omap2_pm_init(void)
 			sti_console_enabled = 1;
 	}
 
-	/*
-	 * We copy the assembler sleep/wakeup routines to SRAM.
-	 * These routines need to be in SRAM as that's the only
-	 * memory the MPU can see when it wakes up.
-	 */
+	
 	if (cpu_is_omap24xx()) {
 		omap2_sram_idle = omap_sram_push(omap24xx_idle_loop_suspend,
 						 omap24xx_idle_loop_suspend_sz);

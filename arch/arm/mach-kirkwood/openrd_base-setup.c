@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/openrd_base-setup.c
- *
- * Marvell OpenRD Base Board Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -46,7 +38,7 @@ static struct mv_sata_platform_data openrd_base_sata_data = {
 };
 
 static struct mvsdio_platform_data openrd_base_mvsdio_data = {
-	.gpio_card_detect = 29,	/* MPP29 used as SD card detect */
+	.gpio_card_detect = 29,	
 };
 
 static unsigned int openrd_base_mpp_config[] __initdata = {
@@ -56,9 +48,7 @@ static unsigned int openrd_base_mpp_config[] __initdata = {
 
 static void __init openrd_base_init(void)
 {
-	/*
-	 * Basic setup. Needs to be called early.
-	 */
+	
 	kirkwood_init();
 	kirkwood_mpp_conf(openrd_base_mpp_config);
 
@@ -85,7 +75,7 @@ subsys_initcall(openrd_base_pci_init);
 
 
 MACHINE_START(OPENRD_BASE, "Marvell OpenRD Base Board")
-	/* Maintainer: Dhaval Vasa <dhaval.vasa@einfochips.com> */
+	
 	.phys_io	= KIRKWOOD_REGS_PHYS_BASE,
 	.io_pg_offst	= ((KIRKWOOD_REGS_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

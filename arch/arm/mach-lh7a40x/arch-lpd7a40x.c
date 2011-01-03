@@ -1,12 +1,4 @@
-/* arch/arm/mach-lh7a40x/arch-lpd7a40x.c
- *
- *  Copyright (C) 2004 Logic Product Development
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/tty.h>
 #include <linux/init.h>
@@ -36,20 +28,20 @@
 #define CPLD_INTMASK_CPLD	(1<<7)
 #define CPLD_INT_CPLD		(1<<6)
 
-#define CPLD_CONTROL_SWINT		(1<<7) /* Disable all CPLD IRQs */
-#define CPLD_CONTROL_OCMSK		(1<<6) /* Mask USB1 connect IRQ */
-#define CPLD_CONTROL_PDRV		(1<<5) /* PCC_nDRV high */
-#define CPLD_CONTROL_USB1C		(1<<4) /* USB1 connect IRQ active */
-#define CPLD_CONTROL_USB1P		(1<<3) /* USB1 power disable */
-#define CPLD_CONTROL_AWKP		(1<<2) /* Auto-wakeup disabled  */
-#define CPLD_CONTROL_LCD_ENABLE		(1<<1) /* LCD Vee enable */
-#define CPLD_CONTROL_WRLAN_NENABLE	(1<<0) /* SMC91x power disable */
+#define CPLD_CONTROL_SWINT		(1<<7) 
+#define CPLD_CONTROL_OCMSK		(1<<6) 
+#define CPLD_CONTROL_PDRV		(1<<5) 
+#define CPLD_CONTROL_USB1C		(1<<4) 
+#define CPLD_CONTROL_USB1P		(1<<3) 
+#define CPLD_CONTROL_AWKP		(1<<2) 
+#define CPLD_CONTROL_LCD_ENABLE		(1<<1) 
+#define CPLD_CONTROL_WRLAN_NENABLE	(1<<0) 
 
 
 static struct resource smc91x_resources[] = {
 	[0] = {
 		.start	= CPLD00_PHYS,
-		.end	= CPLD00_PHYS + CPLD00_SIZE - 1, /* Only needs 16B */
+		.end	= CPLD00_PHYS + CPLD00_SIZE - 1, 
 		.flags	= IORESOURCE_MEM,
 	},
 
@@ -84,7 +76,7 @@ static struct resource lh7a40x_usbclient_resources[] = {
 static u64 lh7a40x_usbclient_dma_mask = 0xffffffffUL;
 
 static struct platform_device lh7a40x_usbclient_device = {
-//	.name		= "lh7a40x_udc",
+
 	.name		= "lh7-udc",
 	.id		= 0,
 	.dev		= {
@@ -139,17 +131,17 @@ static void __init lpd7a40x_init (void)
 {
 #if defined (CONFIG_MACH_LPD7A400)
 	CPLD_CONTROL |= 0
-		| CPLD_CONTROL_SWINT /* Disable software interrupt */
-		| CPLD_CONTROL_OCMSK; /* Mask USB1 connection IRQ */
+		| CPLD_CONTROL_SWINT 
+		| CPLD_CONTROL_OCMSK; 
 	CPLD_CONTROL &= ~(0
-			  | CPLD_CONTROL_LCD_ENABLE	/* Disable LCD */
-			  | CPLD_CONTROL_WRLAN_NENABLE	/* Enable SMC91x */
+			  | CPLD_CONTROL_LCD_ENABLE	
+			  | CPLD_CONTROL_WRLAN_NENABLE	
 		);
 #endif
 
 #if defined (CONFIG_MACH_LPD7A404)
 	CPLD_CONTROL &= ~(0
-			  | CPLD_CONTROL_WRLAN_NENABLE	/* Enable SMC91x */
+			  | CPLD_CONTROL_WRLAN_NENABLE	
 		);
 #endif
 
@@ -161,12 +153,10 @@ static void __init lpd7a40x_init (void)
 
 static void lh7a40x_ack_cpld_irq (u32 irq)
 {
-	/* CPLD doesn't have ack capability, but some devices may */
+	
 
 #if defined (CPLD_INTMASK_TOUCH)
-	/* The touch control *must* mask the interrupt because the
-	 * interrupt bit is read by the driver to determine if the pen
-	 * is still down. */
+	
 	if (irq == IRQ_TOUCH)
 		CPLD_INTERRUPTS |= CPLD_INTMASK_TOUCH;
 #endif
@@ -213,15 +203,15 @@ static void lpd7a40x_cpld_handler (unsigned int irq, struct irq_desc *desc)
 
 	desc->chip->ack (irq);
 
-	if ((mask & (1<<0)) == 0)	/* WLAN */
+	if ((mask & (1<<0)) == 0)	
 		generic_handle_irq(IRQ_LPD7A40X_ETH_INT);
 
 #if defined (IRQ_TOUCH)
-	if ((mask & (1<<1)) == 0)	/* Touch */
+	if ((mask & (1<<1)) == 0)	
 		generic_handle_irq(IRQ_TOUCH);
 #endif
 
-	desc->chip->unmask (irq); /* Level-triggered need this */
+	desc->chip->unmask (irq); 
 }
 
 
@@ -229,52 +219,44 @@ void __init lh7a40x_init_board_irq (void)
 {
 	int irq;
 
-		/* Rev A (v2.8): PF0, PF1, PF2, and PF3 are available IRQs.
-		                 PF7 supports the CPLD.
-		   Rev B (v3.4): PF0, PF1, and PF2 are available IRQs.
-		                 PF3 supports the CPLD.
-		   (Some) LPD7A404 prerelease boards report a version
-		   number of 0x16, but we force an override since the
-		   hardware is of the newer variety.
-		*/
+		
 
 	unsigned char cpld_version = CPLD_REVISION;
 	int pinCPLD = (cpld_version == 0x28) ? 7 : 3;
 
 #if defined CONFIG_MACH_LPD7A404
-	cpld_version = 0x34;	/* Coerce LPD7A404 to RevB */
+	cpld_version = 0x34;	
 #endif
 
-		/* First, configure user controlled GPIOF interrupts  */
+		
 
-	GPIO_PFDD	&= ~0x0f; /* PF0-3 are inputs */
-	GPIO_INTTYPE1	&= ~0x0f; /* PF0-3 are level triggered */
-	GPIO_INTTYPE2	&= ~0x0f; /* PF0-3 are active low */
+	GPIO_PFDD	&= ~0x0f; 
+	GPIO_INTTYPE1	&= ~0x0f; 
+	GPIO_INTTYPE2	&= ~0x0f; 
 	barrier ();
-	GPIO_GPIOFINTEN |=  0x0f; /* Enable PF0, PF1, PF2, and PF3 IRQs */
+	GPIO_GPIOFINTEN |=  0x0f; 
 
-		/* Then, configure CPLD interrupt */
+		
 
-			/* Disable all CPLD interrupts */
+			
 #if defined (CONFIG_MACH_LPD7A400)
 	CPLD_INTERRUPTS	= CPLD_INTMASK_TOUCH | CPLD_INTMASK_PEN
 		| CPLD_INTMASK_ETHERNET;
-	/* *** FIXME: don't know why we need 7 and 4. 7 is way wrong
-               and 4 is uncefined. */
-	// (1<<7)|(1<<4)|(1<<3)|(1<<2);
+	
+	
 #endif
 #if defined (CONFIG_MACH_LPD7A404)
 	CPLD_INTERRUPTS	= CPLD_INTMASK_ETHERNET;
-	/* *** FIXME: don't know why we need 6 and 5, neither is defined. */
-	// (1<<6)|(1<<5)|(1<<3);
+	
+	
 #endif
-	GPIO_PFDD	&= ~(1 << pinCPLD); /* Make input */
-	GPIO_INTTYPE1	&= ~(1 << pinCPLD); /* Level triggered */
-	GPIO_INTTYPE2	&= ~(1 << pinCPLD); /* Active low */
+	GPIO_PFDD	&= ~(1 << pinCPLD); 
+	GPIO_INTTYPE1	&= ~(1 << pinCPLD); 
+	GPIO_INTTYPE2	&= ~(1 << pinCPLD); 
 	barrier ();
-	GPIO_GPIOFINTEN |=  (1 << pinCPLD); /* Enable */
+	GPIO_GPIOFINTEN |=  (1 << pinCPLD); 
 
-		/* Cascade CPLD interrupts */
+		
 
 	for (irq = IRQ_BOARD_START;
 	     irq < IRQ_BOARD_START + NR_IRQ_BOARD; ++irq) {
@@ -296,7 +278,7 @@ static struct map_desc lpd7a40x_io_desc[] __initdata = {
 		.length		= IO_SIZE,
 		.type		= MT_DEVICE
 	},
-	{	/* Mapping added to work around chip select problems */
+	{	
 		.virtual	= IOBARRIER_VIRT,
 		.pfn		= __phys_to_pfn(IOBARRIER_PHYS),
 		.length		= IOBARRIER_SIZE,
@@ -397,7 +379,7 @@ lpd7a40x_map_io(void)
 #ifdef CONFIG_MACH_LPD7A400
 
 MACHINE_START (LPD7A400, "Logic Product Development LPD7A400-10")
-	/* Maintainer: Marc Singer */
+	
 	.phys_io	= 0x80000000,
 	.io_pg_offst	= ((io_p2v (0x80000000))>>18) & 0xfffc,
 	.boot_params	= 0xc0000100,
@@ -412,7 +394,7 @@ MACHINE_END
 #ifdef CONFIG_MACH_LPD7A404
 
 MACHINE_START (LPD7A404, "Logic Product Development LPD7A404-10")
-	/* Maintainer: Marc Singer */
+	
 	.phys_io	= 0x80000000,
 	.io_pg_offst	= ((io_p2v (0x80000000))>>18) & 0xfffc,
 	.boot_params	= 0xc0000100,

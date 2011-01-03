@@ -1,26 +1,4 @@
-/*
- *  linux/arch/arm/kernel/irq.c
- *
- *  Copyright (C) 1992 Linus Torvalds
- *  Modifications for ARM processor Copyright (C) 1995-2000 Russell King.
- *
- *  Support for Dynamic Tick Timer Copyright (C) 2004-2005 Nokia Corporation.
- *  Dynamic Tick Timer written by Tony Lindgren <tony@atomide.com> and
- *  Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  This file contains the code used by various IRQ handling routines:
- *  asking for different IRQ's should be done through these routines
- *  instead of just grabbing them. Thus setups with different IRQ numbers
- *  shouldn't result in any weird surprises, and installing new handlers
- *  should be easier.
- *
- *  IRQ's are in fact implemented a bit like signal handlers for the kernel.
- *  Naturally it's not a 1:1 relation, but there are similarities.
- */
+
 #include <linux/kernel_stat.h>
 #include <linux/module.h>
 #include <linux/signal.h>
@@ -41,9 +19,7 @@
 #include <asm/mach/irq.h>
 #include <asm/mach/time.h>
 
-/*
- * No architecture-specific irq_finish function defined in arm/arch/irqs.h.
- */
+
 #ifndef irq_finish
 #define irq_finish(irq) do { } while (0)
 #endif
@@ -98,21 +74,14 @@ unlock:
 	return 0;
 }
 
-/*
- * do_IRQ handles all hardware IRQ's.  Decoded IRQs should not
- * come via this function.  Instead, they should provide their
- * own 'handler'
- */
+
 asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
 	irq_enter();
 
-	/*
-	 * Some hardware gives randomly wrong interrupts.  Rather
-	 * than crashing, do something sensible.
-	 */
+	
 	if (unlikely(irq >= NR_IRQS)) {
 		if (printk_ratelimit())
 			printk(KERN_WARNING "Bad IRQ%u\n", irq);
@@ -121,7 +90,7 @@ asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 		generic_handle_irq(irq);
 	}
 
-	/* AT91 specific workaround */
+	
 	irq_finish(irq);
 
 	irq_exit();
@@ -171,11 +140,7 @@ static void route_irq(struct irq_desc *desc, unsigned int irq, unsigned int cpu)
 	spin_unlock_irq(&desc->lock);
 }
 
-/*
- * The CPU has been marked offline.  Migrate IRQs off this CPU.  If
- * the affinity settings do not allow other CPUs, force them onto any
- * available CPU.
- */
+
 void migrate_irqs(void)
 {
 	unsigned int i, cpu = smp_processor_id();
@@ -200,4 +165,4 @@ void migrate_irqs(void)
 		}
 	}
 }
-#endif /* CONFIG_HOTPLUG_CPU */
+#endif 

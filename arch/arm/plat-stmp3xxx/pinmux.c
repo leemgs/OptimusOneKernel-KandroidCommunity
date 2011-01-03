@@ -1,20 +1,6 @@
-/*
- * Freescale STMP378X/STMP378X Pin Multiplexing
- *
- * Author: Vladislav Buzov <vbuzov@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #define DEBUG
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -142,7 +128,7 @@ stmp3xxx_pinmux_bank(unsigned id, unsigned *bank, unsigned *pin)
 	return &pinmux_banks[b];
 }
 
-/* Check if requested pin is owned by caller */
+
 static int stmp3xxx_check_pin(unsigned id, const char *label)
 {
 	unsigned pin;
@@ -313,7 +299,7 @@ int stmp3xxx_request_pin_group(struct pin_group *pin_group, const char *label)
 	int p;
 	int err = 0;
 
-	/* Allocate and configure pins */
+	
 	for (p = 0; p < pin_group->nr_pins; p++) {
 		pr_debug("%s: #%d\n", __func__, p);
 		pin = &pin_group->pins[p];
@@ -330,7 +316,7 @@ int stmp3xxx_request_pin_group(struct pin_group *pin_group, const char *label)
 	return 0;
 
 out_err:
-	/* Release allocated pins in case of error */
+	
 	while (--p >= 0) {
 		pr_debug("%s: releasing #%d\n", __func__, p);
 		stmp3xxx_release_pin(pin_group->pins[p].id, label);
@@ -516,7 +502,7 @@ int __init stmp3xxx_pinmux_init(int virtual_irq_start)
 	int virq;
 
 	for (b = 0; b < 3; b++) {
-		/* only banks 0,1,2 are allowed to GPIO */
+		
 		pm = pinmux_banks + b;
 		pm->chip.base = 32 * b;
 		pm->chip.ngpio = 32;

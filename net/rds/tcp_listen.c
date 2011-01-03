@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2006 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/in.h>
 #include <net/tcp.h>
@@ -37,9 +6,7 @@
 #include "rds.h"
 #include "tcp.h"
 
-/*
- * cheesy, but simple..
- */
+
 static void rds_tcp_accept_worker(struct work_struct *work);
 static DECLARE_WORK(rds_tcp_listen_work, rds_tcp_accept_worker);
 static struct socket *rds_tcp_listen_sock;
@@ -77,9 +44,7 @@ static int rds_tcp_accept_one(struct socket *sock)
 		goto out;
 	}
 
-	/*
-	 * see the comment above rds_queue_delayed_reconnect()
-	 */
+	
 	if (!rds_conn_transition(conn, RDS_CONN_DOWN, RDS_CONN_CONNECTING)) {
 		if (rds_conn_state(conn) == RDS_CONN_UP)
 			rds_tcp_stats_inc(s_tcp_listen_closed_stale);
@@ -115,17 +80,12 @@ void rds_tcp_listen_data_ready(struct sock *sk, int bytes)
 
 	read_lock(&sk->sk_callback_lock);
 	ready = sk->sk_user_data;
-	if (ready == NULL) { /* check for teardown race */
+	if (ready == NULL) { 
 		ready = sk->sk_data_ready;
 		goto out;
 	}
 
-	/*
-	 * ->sk_data_ready is also called for a newly established child socket
-	 * before it has been accepted and the accepter has set up their
-	 * data_ready.. we only want to queue listen work for our listening
-	 * socket
-	 */
+	
 	if (sk->sk_state == TCP_LISTEN)
 		queue_work(rds_wq, &rds_tcp_listen_work);
 
@@ -182,7 +142,7 @@ void rds_tcp_listen_stop(void)
 
 	sk = sock->sk;
 
-	/* serialize with and prevent further callbacks */
+	
 	lock_sock(sk);
 	write_lock_bh(&sk->sk_callback_lock);
 	if (sk->sk_user_data) {
@@ -192,7 +152,7 @@ void rds_tcp_listen_stop(void)
 	write_unlock_bh(&sk->sk_callback_lock);
 	release_sock(sk);
 
-	/* wait for accepts to stop and close the socket */
+	
 	flush_workqueue(rds_wq);
 	sock_release(sock);
 	rds_tcp_listen_sock = NULL;

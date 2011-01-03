@@ -1,31 +1,4 @@
-/*
- * acpi_container.c  - ACPI Generic Container Driver
- * ($Revision: )
- *
- * Copyright (C) 2004 Anil S Keshavamurthy (anil.s.keshavamurthy@intel.com)
- * Copyright (C) 2004 Keiichiro Tokunaga (tokunaga.keiich@jp.fujitsu.com)
- * Copyright (C) 2004 Motoyuki Ito (motoyuki@soft.fujitsu.com)
- * Copyright (C) 2004 Intel Corp.
- * Copyright (C) 2004 FUJITSU LIMITED
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -71,7 +44,7 @@ static struct acpi_driver acpi_container_driver = {
 		},
 };
 
-/*******************************************************************/
+
 
 static int is_device_present(acpi_handle handle)
 {
@@ -82,16 +55,16 @@ static int is_device_present(acpi_handle handle)
 
 	status = acpi_get_handle(handle, "_STA", &temp);
 	if (ACPI_FAILURE(status))
-		return 1;	/* _STA not found, assume device present */
+		return 1;	
 
 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
 	if (ACPI_FAILURE(status))
-		return 0;	/* Firmware error */
+		return 0;	
 
 	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
 }
 
-/*******************************************************************/
+
 static int acpi_container_add(struct acpi_device *device)
 {
 	struct acpi_container *container;
@@ -163,7 +136,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
 
 	switch (type) {
 	case ACPI_NOTIFY_BUS_CHECK:
-		/* Fall through */
+		
 	case ACPI_NOTIFY_DEVICE_CHECK:
 		printk(KERN_WARNING "Container driver received %s event\n",
 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
@@ -181,7 +154,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
 			}
 		} else {
 			if (ACPI_SUCCESS(status)) {
-				/* device exist and this is a remove request */
+				
 				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
 			}
 		}
@@ -254,7 +227,7 @@ static int __init acpi_container_init(void)
 		return (result);
 	}
 
-	/* register notify handler to every container device */
+	
 	acpi_walk_namespace(ACPI_TYPE_DEVICE,
 			    ACPI_ROOT_OBJECT,
 			    ACPI_UINT32_MAX,

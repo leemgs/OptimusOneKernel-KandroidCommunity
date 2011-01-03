@@ -1,13 +1,4 @@
-/*
- *  jmb38x_ms.c - JMicron jmb38x MemoryStick card reader
- *
- *  Copyright (C) 2008 Alex Dubov <oakad@yahoo.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/spinlock.h>
 #include <linux/interrupt.h>
@@ -643,7 +634,7 @@ static int jmb38x_ms_reset(struct jmb38x_ms_host *host)
 		ndelay(20);
 	}
 	dev_dbg(&host->chip->pdev->dev, "reset_req timeout\n");
-	/* return -EIO; */
+	
 
 reset_next:
 	writel(HOST_CONTROL_RESET | HOST_CONTROL_CLOCK_EN
@@ -801,7 +792,7 @@ static int jmb38x_ms_resume(struct pci_dev *dev)
 #define jmb38x_ms_suspend NULL
 #define jmb38x_ms_resume NULL
 
-#endif /* CONFIG_PM */
+#endif 
 
 static int jmb38x_ms_count_slots(struct pci_dev *pdev)
 {

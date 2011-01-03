@@ -1,13 +1,4 @@
-/*
- * linux/arch/arm/mach-s3c6410/mach-ncp.c
- *
- * Copyright (C) 2008-2009 Samsung Electronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -50,7 +41,7 @@
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
 static struct s3c2410_uartcfg ncp_uartcfgs[] __initdata = {
-	/* REVISIT: NCP uses only serial 1, 2 */
+	
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -96,7 +87,7 @@ static void __init ncp_machine_init(void)
 }
 
 MACHINE_START(NCP, "NCP")
-	/* Maintainer: Samsung Electronics */
+	
 	.phys_io	= S3C_PA_UART & 0xfff00000,
 	.io_pg_offst	= (((u32)S3C_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C64XX_PA_SDRAM + 0x100,

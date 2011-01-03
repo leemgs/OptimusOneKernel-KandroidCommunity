@@ -1,14 +1,4 @@
-/* linux/arch/arm/mach-s3c2412/pm.c
- *
- * Copyright (c) 2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * http://armlinux.simtec.co.uk/.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -42,7 +32,7 @@ static void s3c2412_cpu_suspend(void)
 
 	flush_cache_all();
 
-	/* set our standby method to sleep */
+	
 
 	tmp = __raw_readl(S3C2412_PWRCFG);
 	tmp |= S3C2412_PWRCFG_STANDBYWFI_SLEEP;
@@ -70,12 +60,11 @@ static struct sleep_save s3c2412_sleep[] = {
 	SAVE_ITEM(S3C2413_GPJCON),
 	SAVE_ITEM(S3C2413_GPJUP),
 
-	/* save the PWRCFG to get back to original sleep method */
+	
 
 	SAVE_ITEM(S3C2412_PWRCFG),
 
-	/* save the sleep configuration anyway, just in case these
-	 * get damaged during wakeup */
+	
 
 	SAVE_ITEM(S3C2412_GPBSLPCON),
 	SAVE_ITEM(S3C2412_GPCSLPCON),

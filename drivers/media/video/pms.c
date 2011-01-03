@@ -1,22 +1,4 @@
-/*
- *	Media Vision Pro Movie Studio
- *			or
- *	"all you need is an I2C bus some RAM and a prayer"
- *
- *	This draws heavily on code
- *
- *	(c) Wolfgang Koehler,  wolf@first.gmd.de, Dec. 1994
- *	Kiefernring 15
- *	14478 Potsdam, Germany
- *
- *	Most of this code is directly derived from his userspace driver.
- *	His driver works so send any reports to alan@lxorguk.ukuu.org.uk
- *	unless the userspace driver also doesn't work for you...
- *
- *      Changes:
- *      08/07/2003        Daniele Bellucci <bellucda@tiscali.it>
- *                        - pms_capture: report back -EFAULT
- */
+
 
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -39,7 +21,7 @@
 #define MOTOROLA	1
 #define PHILIPS2	2
 #define PHILIPS1	3
-#define MVVMEMORYWIDTH	0x40		/* 512 bytes */
+#define MVVMEMORYWIDTH	0x40		
 
 struct pms_device
 {
@@ -63,11 +45,9 @@ static int i2c_count;
 static struct i2c_info i2cinfo[64];
 
 static int decoder 		= PHILIPS2;
-static int standard;	/* 0 - auto 1 - ntsc 2 - pal 3 - secam */
+static int standard;	
 
-/*
- *	I/O ports and Shared Memory
- */
+
 
 static int io_port		=	0x250;
 static int data_port		=	0x251;
@@ -198,9 +178,7 @@ static void pms_i2c_andor(int slave, int sub, int and, int or)
 	pms_i2c_write(slave, sub, tmp);
 }
 
-/*
- *	Control functions
- */
+
 
 
 static void pms_videosource(short source)
@@ -281,19 +259,19 @@ static void pms_format(short format)
 
 	switch(format)
 	{
-		case 0:	/* Auto */
+		case 0:	
 			pms_i2c_andor(target, 0x0D, 0xFE,0x00);
 			pms_i2c_andor(target, 0x0F, 0x3F,0x80);
 			break;
-		case 1: /* NTSC */
+		case 1: 
 			pms_i2c_andor(target, 0x0D, 0xFE, 0x00);
 			pms_i2c_andor(target, 0x0F, 0x3F, 0x40);
 			break;
-		case 2: /* PAL */
+		case 2: 
 			pms_i2c_andor(target, 0x0D, 0xFE, 0x00);
 			pms_i2c_andor(target, 0x0F, 0x3F, 0x00);
 			break;
-		case 3:	/* SECAM */
+		case 3:	
 			pms_i2c_andor(target, 0x0D, 0xFE, 0x01);
 			pms_i2c_andor(target, 0x0F, 0x3F, 0x00);
 			break;
@@ -302,11 +280,7 @@ static void pms_format(short format)
 
 #ifdef FOR_FUTURE_EXPANSION
 
-/*
- *	These features of the PMS card are not currently exposes. They
- *	could become a private v4l ioctl for PMSCONFIG or somesuch if
- *	people need it. We also don't yet use the PMS interrupt.
- */
+
 
 static void pms_hstart(short start)
 {
@@ -323,9 +297,7 @@ static void pms_hstart(short start)
 	}
 }
 
-/*
- *	Bandpass filters
- */
+
 
 static void pms_bandpass(short pass)
 {
@@ -488,41 +460,33 @@ static void pms_framerate(short frr)
 
 static void pms_vert(u8 deciden, u8 decinum)
 {
-	mvv_write(0x1C, deciden);	/* Denominator */
-	mvv_write(0x1D, decinum);	/* Numerator */
+	mvv_write(0x1C, deciden);	
+	mvv_write(0x1D, decinum);	
 }
 
-/*
- *	Turn 16bit ratios into best small ratio the chipset can grok
- */
+
 
 static void pms_vertdeci(unsigned short decinum, unsigned short deciden)
 {
-	/* Knock it down by /5 once */
+	
 	if(decinum%5==0)
 	{
 		deciden/=5;
 		decinum/=5;
 	}
-	/*
-	 *	3's
-	 */
+	
 	while(decinum%3==0 && deciden%3==0)
 	{
 		deciden/=3;
 		decinum/=3;
 	}
-	/*
-	 *	2's
-	 */
+	
 	while(decinum%2==0 && deciden%2==0)
 	{
 		decinum/=2;
 		deciden/=2;
 	}
-	/*
-	 *	Fudgyify
-	 */
+	
 	while(deciden>32)
 	{
 		deciden/=2;
@@ -546,7 +510,7 @@ static void pms_horzdeci(short decinum, short deciden)
 	else
 	{
 		decinum=512;
-		deciden=640;	/* 768 would be ideal */
+		deciden=640;	
 	}
 
 	while(((decinum|deciden)&1)==0)
@@ -617,9 +581,7 @@ static void pms_resolution(short width, short height)
 }
 
 
-/*
- *	Set Input
- */
+
 
 static void pms_vcrinput(short input)
 {
@@ -635,33 +597,28 @@ static int pms_capture(struct pms_device *dev, char __user *buf, int rgb555, int
 	int y;
 	int dw = 2*dev->width;
 
-	char tmp[dw+32]; /* using a temp buffer is faster than direct  */
+	char tmp[dw+32]; 
 	int cnt = 0;
 	int len=0;
-	unsigned char r8 = 0x5;  /* value for reg8  */
+	unsigned char r8 = 0x5;  
 
 	if (rgb555)
-		r8 |= 0x20; /* else use untranslated rgb = 565 */
-	mvv_write(0x08,r8); /* capture rgb555/565, init DRAM, PC enable */
+		r8 |= 0x20; 
+	mvv_write(0x08,r8); 
 
-/*	printf("%d %d %d %d %d %x %x\n",width,height,voff,nom,den,mvv_buf); */
+
 
 	for (y = 0; y < dev->height; y++ )
 	{
-		writeb(0, mem);  /* synchronisiert neue Zeile */
+		writeb(0, mem);  
 
-		/*
-		 *	This is in truth a fifo, be very careful as if you
-		 *	forgot this odd things will occur 8)
-		 */
+		
 
-		memcpy_fromio(tmp, mem, dw+32); /* discard 16 word   */
+		memcpy_fromio(tmp, mem, dw+32); 
 		cnt -= dev->height;
 		while (cnt <= 0)
 		{
-			/*
-			 *	Don't copy too far
-			 */
+			
 			int dt=dw;
 			if(dt+len>count)
 				dt=count-len;
@@ -676,9 +633,7 @@ static int pms_capture(struct pms_device *dev, char __user *buf, int rgb555, int
 }
 
 
-/*
- *	Video4linux interfacing
- */
+
 
 static long pms_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 {
@@ -707,7 +662,7 @@ static long pms_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 				return -EINVAL;
 			v->flags=0;
 			v->tuners=1;
-			/* Good question.. its composite or SVHS so.. */
+			
 			v->type = VIDEO_TYPE_CAMERA;
 			switch(v->channel)
 			{
@@ -808,9 +763,7 @@ static long pms_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 				return -EINVAL;
 			pd->picture= *p;
 
-			/*
-			 *	Now load the card.
-			 */
+			
 
 			mutex_lock(&pd->lock);
 			pms_brightness(p->brightness>>8);
@@ -835,7 +788,7 @@ static long pms_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 			pd->height=vw->height;
 			mutex_lock(&pd->lock);
 			pms_resolution(pd->width, pd->height);
-			mutex_unlock(&pd->lock);			/* Ok we figured out what to use from our wide choice */
+			mutex_unlock(&pd->lock);			
 			return 0;
 		}
 		case VIDIOCGWIN:
@@ -916,9 +869,7 @@ static struct video_device pms_template=
 static struct pms_device pms_device;
 
 
-/*
- *	Probe for and initialise the Mediavision PMS
- */
+
 
 static int init_mediavision(void)
 {
@@ -953,8 +904,8 @@ static int init_mediavision(void)
 		iounmap(mem);
 		return -EBUSY;
 	}
-	outb(0xB8, 0x9A01);		/* Unlock */
-	outb(io_port>>4, 0x9A01);	/* Set IO port */
+	outb(0xB8, 0x9A01);		
+	outb(io_port>>4, 0x9A01);	
 
 
 	id=mvv_read(3);
@@ -977,13 +928,11 @@ static int init_mediavision(void)
 		return -ENODEV;
 	}
 
-	/*
-	 *	Ok we have a PMS of some sort
-	 */
+	
 
-	mvv_write(0x04, mem_base>>12);	/* Set the memory area */
+	mvv_write(0x04, mem_base>>12);	
 
-	/* Ok now load the defaults */
+	
 
 	for(i=0;i<0x19;i++)
 	{
@@ -1029,9 +978,7 @@ static int init_mediavision(void)
 	return 0;
 }
 
-/*
- *	Initialization and module stuff
- */
+
 
 #ifndef MODULE
 static int enable;

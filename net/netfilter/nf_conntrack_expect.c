@@ -1,13 +1,6 @@
-/* Expectation handling for nf_conntrack. */
 
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/types.h>
 #include <linux/netfilter.h>
@@ -37,7 +30,7 @@ static int nf_ct_expect_hash_rnd_initted __read_mostly;
 
 static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
 
-/* nf_conntrack_expect helper functions */
+
 void nf_ct_unlink_expect(struct nf_conntrack_expect *exp)
 {
 	struct nf_conn_help *master_help = nfct_help(exp->master);
@@ -102,7 +95,7 @@ __nf_ct_expect_find(struct net *net, const struct nf_conntrack_tuple *tuple)
 }
 EXPORT_SYMBOL_GPL(__nf_ct_expect_find);
 
-/* Just find a expectation corresponding to a tuple. */
+
 struct nf_conntrack_expect *
 nf_ct_expect_find_get(struct net *net, const struct nf_conntrack_tuple *tuple)
 {
@@ -118,8 +111,7 @@ nf_ct_expect_find_get(struct net *net, const struct nf_conntrack_tuple *tuple)
 }
 EXPORT_SYMBOL_GPL(nf_ct_expect_find_get);
 
-/* If an expectation for this connection is found, it gets delete from
- * global list then returned. */
+
 struct nf_conntrack_expect *
 nf_ct_find_expectation(struct net *net, const struct nf_conntrack_tuple *tuple)
 {
@@ -141,11 +133,7 @@ nf_ct_find_expectation(struct net *net, const struct nf_conntrack_tuple *tuple)
 	if (!exp)
 		return NULL;
 
-	/* If master is not in hash table yet (ie. packet hasn't left
-	   this machine yet), how can other end know about expected?
-	   Hence these are not the droids you are looking for (if
-	   master ct never got confirmed, we'd hold a reference to it
-	   and weird things would happen to future packets). */
+	
 	if (!nf_ct_is_confirmed(exp->master))
 		return NULL;
 
@@ -160,14 +148,14 @@ nf_ct_find_expectation(struct net *net, const struct nf_conntrack_tuple *tuple)
 	return NULL;
 }
 
-/* delete all expectations for this conntrack */
+
 void nf_ct_remove_expectations(struct nf_conn *ct)
 {
 	struct nf_conn_help *help = nfct_help(ct);
 	struct nf_conntrack_expect *exp;
 	struct hlist_node *n, *next;
 
-	/* Optimization: most connection never expect any others. */
+	
 	if (!help)
 		return;
 
@@ -180,12 +168,11 @@ void nf_ct_remove_expectations(struct nf_conn *ct)
 }
 EXPORT_SYMBOL_GPL(nf_ct_remove_expectations);
 
-/* Would two expected things clash? */
+
 static inline int expect_clash(const struct nf_conntrack_expect *a,
 			       const struct nf_conntrack_expect *b)
 {
-	/* Part covered by intersection of masks must be unequal,
-	   otherwise they clash */
+	
 	struct nf_conntrack_tuple_mask intersect_mask;
 	int count;
 
@@ -207,7 +194,7 @@ static inline int expect_matches(const struct nf_conntrack_expect *a,
 		&& nf_ct_tuple_mask_equal(&a->mask, &b->mask);
 }
 
-/* Generally a bad idea to call this: could have matched already. */
+
 void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
 {
 	spin_lock_bh(&nf_conntrack_lock);
@@ -219,9 +206,7 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
 }
 EXPORT_SYMBOL_GPL(nf_ct_unexpect_related);
 
-/* We don't increase the master conntrack refcount for non-fulfilled
- * conntracks. During the conntrack destruction, the expectations are
- * always killed before the conntrack itself */
+
 struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
 {
 	struct nf_conntrack_expect *new;
@@ -260,7 +245,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
 	if (saddr) {
 		memcpy(&exp->tuple.src.u3, saddr, len);
 		if (sizeof(exp->tuple.src.u3) > len)
-			/* address needs to be cleared for nf_ct_tuple_equal */
+			
 			memset((void *)&exp->tuple.src.u3 + len, 0x00,
 			       sizeof(exp->tuple.src.u3) - len);
 		memset(&exp->mask.src.u3, 0xFF, len);
@@ -282,7 +267,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
 
 	memcpy(&exp->tuple.dst.u3, daddr, len);
 	if (sizeof(exp->tuple.dst.u3) > len)
-		/* address needs to be cleared for nf_ct_tuple_equal */
+		
 		memset((void *)&exp->tuple.dst.u3 + len, 0x00,
 		       sizeof(exp->tuple.dst.u3) - len);
 
@@ -330,7 +315,7 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
 	NF_CT_STAT_INC(net, expect_create);
 }
 
-/* Race with expectations being used means we could have none to find; OK. */
+
 static void evict_oldest_expect(struct nf_conn *master,
 				struct nf_conntrack_expect *new)
 {
@@ -381,7 +366,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
 	h = nf_ct_expect_dst_hash(&expect->tuple);
 	hlist_for_each_entry(i, n, &net->ct.expect_hash[h], hnode) {
 		if (expect_matches(i, expect)) {
-			/* Refresh timer: if it's dying, ignore.. */
+			
 			if (refresh_timer(i)) {
 				ret = 0;
 				goto out;
@@ -391,7 +376,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
 			goto out;
 		}
 	}
-	/* Will be over limit? */
+	
 	p = &master_help->helper->expect_policy[expect->class];
 	if (p->max_expected &&
 	    master_help->expecting[expect->class] >= p->max_expected) {
@@ -548,7 +533,7 @@ static const struct file_operations exp_file_ops = {
 	.llseek  = seq_lseek,
 	.release = seq_release_net,
 };
-#endif /* CONFIG_PROC_FS */
+#endif 
 
 static int exp_proc_init(struct net *net)
 {
@@ -558,7 +543,7 @@ static int exp_proc_init(struct net *net)
 	proc = proc_net_fops_create(net, "nf_conntrack_expect", 0440, &exp_file_ops);
 	if (!proc)
 		return -ENOMEM;
-#endif /* CONFIG_PROC_FS */
+#endif 
 	return 0;
 }
 
@@ -566,7 +551,7 @@ static void exp_proc_remove(struct net *net)
 {
 #ifdef CONFIG_PROC_FS
 	proc_net_remove(net, "nf_conntrack_expect");
-#endif /* CONFIG_PROC_FS */
+#endif 
 }
 
 module_param_named(expect_hashsize, nf_ct_expect_hsize, uint, 0400);
@@ -618,7 +603,7 @@ void nf_conntrack_expect_fini(struct net *net)
 {
 	exp_proc_remove(net);
 	if (net_eq(net, &init_net)) {
-		rcu_barrier(); /* Wait for call_rcu() before destroy */
+		rcu_barrier(); 
 		kmem_cache_destroy(nf_ct_expect_cachep);
 	}
 	nf_ct_free_hashtable(net->ct.expect_hash, net->ct.expect_vmalloc,

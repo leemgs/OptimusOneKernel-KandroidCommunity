@@ -1,11 +1,4 @@
-/*
- *
- * Function graph tracer.
- * Copyright (c) 2008-2009 Frederic Weisbecker <fweisbec@gmail.com>
- * Mostly borrowed from function tracer which
- * is Copyright (c) Steven Rostedt <srostedt@redhat.com>
- *
- */
+
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
 #include <linux/ftrace.h>
@@ -21,7 +14,7 @@ struct fgraph_data {
 
 #define TRACE_GRAPH_INDENT	2
 
-/* Flag options */
+
 #define TRACE_GRAPH_PRINT_OVERRUN	0x1
 #define TRACE_GRAPH_PRINT_CPU		0x2
 #define TRACE_GRAPH_PRINT_OVERHEAD	0x4
@@ -30,23 +23,23 @@ struct fgraph_data {
 #define TRACE_GRAPH_PRINT_ABS_TIME	0X20
 
 static struct tracer_opt trace_opts[] = {
-	/* Display overruns? (for self-debug purpose) */
+	
 	{ TRACER_OPT(funcgraph-overrun, TRACE_GRAPH_PRINT_OVERRUN) },
-	/* Display CPU ? */
+	
 	{ TRACER_OPT(funcgraph-cpu, TRACE_GRAPH_PRINT_CPU) },
-	/* Display Overhead ? */
+	
 	{ TRACER_OPT(funcgraph-overhead, TRACE_GRAPH_PRINT_OVERHEAD) },
-	/* Display proc name/pid */
+	
 	{ TRACER_OPT(funcgraph-proc, TRACE_GRAPH_PRINT_PROC) },
-	/* Display duration of execution */
+	
 	{ TRACER_OPT(funcgraph-duration, TRACE_GRAPH_PRINT_DURATION) },
-	/* Display absolute time of an entry */
+	
 	{ TRACER_OPT(funcgraph-abstime, TRACE_GRAPH_PRINT_ABS_TIME) },
-	{ } /* Empty entry */
+	{ } 
 };
 
 static struct tracer_flags tracer_flags = {
-	/* Don't display overruns and proc by default */
+	
 	.val = TRACE_GRAPH_PRINT_CPU | TRACE_GRAPH_PRINT_OVERHEAD |
 	       TRACE_GRAPH_PRINT_DURATION,
 	.opts = trace_opts
@@ -55,7 +48,7 @@ static struct tracer_flags tracer_flags = {
 static struct trace_array *graph_array;
 
 
-/* Add a function return address to the trace stack on thread info.*/
+
 int
 ftrace_push_return_trace(unsigned long ret, unsigned long func, int *depth,
 			 unsigned long frame_pointer)
@@ -66,13 +59,10 @@ ftrace_push_return_trace(unsigned long ret, unsigned long func, int *depth,
 	if (!current->ret_stack)
 		return -EBUSY;
 
-	/*
-	 * We must make sure the ret_stack is tested before we read
-	 * anything else.
-	 */
+	
 	smp_rmb();
 
-	/* The return trace stack is full */
+	
 	if (current->curr_ret_stack == FTRACE_RETFUNC_DEPTH - 1) {
 		atomic_inc(&current->trace_overrun);
 		return -EBUSY;
@@ -92,7 +82,7 @@ ftrace_push_return_trace(unsigned long ret, unsigned long func, int *depth,
 	return 0;
 }
 
-/* Retrieve a function return address to the trace stack on thread info.*/
+
 static void
 ftrace_pop_return_trace(struct ftrace_graph_ret *trace, unsigned long *ret,
 			unsigned long frame_pointer)
@@ -104,23 +94,13 @@ ftrace_pop_return_trace(struct ftrace_graph_ret *trace, unsigned long *ret,
 	if (unlikely(index < 0)) {
 		ftrace_graph_stop();
 		WARN_ON(1);
-		/* Might as well panic, otherwise we have no where to go */
+		
 		*ret = (unsigned long)panic;
 		return;
 	}
 
 #ifdef CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST
-	/*
-	 * The arch may choose to record the frame pointer used
-	 * and check it here to make sure that it is what we expect it
-	 * to be. If gcc does not set the place holder of the return
-	 * address in the frame pointer, and does a copy instead, then
-	 * the function graph trace will fail. This test detects this
-	 * case.
-	 *
-	 * Currently, x86_32 with optimize for size (-Os) makes the latest
-	 * gcc do the above.
-	 */
+	
 	if (unlikely(current->ret_stack[index].fp != frame_pointer)) {
 		ftrace_graph_stop();
 		WARN(1, "Bad frame pointer: expected %lx, received %lx\n"
@@ -141,10 +121,7 @@ ftrace_pop_return_trace(struct ftrace_graph_ret *trace, unsigned long *ret,
 	trace->depth = index;
 }
 
-/*
- * Send the trace to the ring-buffer.
- * @return the original return address.
- */
+
 unsigned long ftrace_return_to_handler(unsigned long frame_pointer)
 {
 	struct ftrace_graph_ret trace;
@@ -159,7 +136,7 @@ unsigned long ftrace_return_to_handler(unsigned long frame_pointer)
 	if (unlikely(!ret)) {
 		ftrace_graph_stop();
 		WARN_ON(1);
-		/* Might as well panic. What else to do? */
+		
 		ret = (unsigned long)panic;
 	}
 
@@ -220,7 +197,7 @@ int trace_graph_entry(struct ftrace_graph_ent *trace)
 	} else {
 		ret = 0;
 	}
-	/* Only do the atomic if it is not already set */
+	
 	if (!test_tsk_trace_graph(current))
 		set_tsk_trace_graph(current);
 
@@ -308,11 +285,7 @@ print_graph_cpu(struct trace_seq *s, int cpu)
 {
 	int ret;
 
-	/*
-	 * Start with a space character - to make it stand out
-	 * to the right a bit when trace output is pasted into
-	 * email:
-	 */
+	
 	ret = trace_seq_printf(s, " %*d) ", max_bytes_for_cpu, cpu);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
@@ -326,7 +299,7 @@ static enum print_line_t
 print_graph_proc(struct trace_seq *s, pid_t pid)
 {
 	char comm[TASK_COMM_LEN];
-	/* sign + log10(MAX_INT) + '\0' */
+	
 	char pid_str[11];
 	int spaces = 0;
 	int ret;
@@ -337,13 +310,13 @@ print_graph_proc(struct trace_seq *s, pid_t pid)
 	comm[7] = '\0';
 	sprintf(pid_str, "%d", pid);
 
-	/* 1 stands for the "-" character */
+	
 	len = strlen(comm) + strlen(pid_str) + 1;
 
 	if (len < TRACE_GRAPH_PROCINFO_LENGTH)
 		spaces = TRACE_GRAPH_PROCINFO_LENGTH - len;
 
-	/* First spaces to align center */
+	
 	for (i = 0; i < spaces / 2; i++) {
 		ret = trace_seq_printf(s, " ");
 		if (!ret)
@@ -354,7 +327,7 @@ print_graph_proc(struct trace_seq *s, pid_t pid)
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Last spaces to align center */
+	
 	for (i = 0; i < spaces - (spaces / 2); i++) {
 		ret = trace_seq_printf(s, " ");
 		if (!ret)
@@ -373,7 +346,7 @@ print_graph_lat_fmt(struct trace_seq *s, struct trace_entry *entry)
 	return trace_print_lat_fmt(s, entry);
 }
 
-/* If the pid changed since the last trace, output this event */
+
 static enum print_line_t
 verif_pid(struct trace_seq *s, pid_t pid, int cpu, struct fgraph_data *data)
 {
@@ -394,14 +367,7 @@ verif_pid(struct trace_seq *s, pid_t pid, int cpu, struct fgraph_data *data)
 
 	if (prev_pid == -1)
 		return TRACE_TYPE_HANDLED;
-/*
- * Context-switch trace line:
 
- ------------------------------------------
- | 1)  migration/0--1  =>  sshd-1755
- ------------------------------------------
-
- */
 	ret = trace_seq_printf(s,
 		" ------------------------------------------\n");
 	if (!ret)
@@ -441,11 +407,11 @@ get_return_for_leaf(struct trace_iterator *iter,
 
 	ring_iter = iter->buffer_iter[iter->cpu];
 
-	/* First peek to compare current entry and the next one */
+	
 	if (ring_iter)
 		event = ring_buffer_iter_peek(ring_iter, NULL);
 	else {
-	/* We need to consume the current entry to see the next one */
+	
 		ring_buffer_consume(iter->tr->buffer, iter->cpu, NULL);
 		event = ring_buffer_peek(iter->tr->buffer, iter->cpu,
 					NULL);
@@ -463,31 +429,31 @@ get_return_for_leaf(struct trace_iterator *iter,
 			curr->graph_ent.func != next->ret.func)
 		return NULL;
 
-	/* this is a leaf, now advance the iterator */
+	
 	if (ring_iter)
 		ring_buffer_read(ring_iter, NULL);
 
 	return next;
 }
 
-/* Signal a overhead of time execution to the output */
+
 static int
 print_graph_overhead(unsigned long long duration, struct trace_seq *s)
 {
-	/* If duration disappear, we don't need anything */
+	
 	if (!(tracer_flags.val & TRACE_GRAPH_PRINT_DURATION))
 		return 1;
 
-	/* Non nested entry or return */
+	
 	if (duration == -1)
 		return trace_seq_printf(s, "  ");
 
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_OVERHEAD) {
-		/* Duration exceeded 100 msecs */
+		
 		if (duration > 100000ULL)
 			return trace_seq_printf(s, "! ");
 
-		/* Duration exceeded 10 msecs */
+		
 		if (duration > 10000ULL)
 			return trace_seq_printf(s, "+ ");
 	}
@@ -517,21 +483,21 @@ print_graph_irq(struct trace_iterator *iter, unsigned long addr,
 		addr >= (unsigned long)__irqentry_text_end)
 		return TRACE_TYPE_UNHANDLED;
 
-	/* Absolute time */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_ABS_TIME) {
 		ret = print_graph_abs_time(iter->ts, s);
 		if (!ret)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Cpu */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_CPU) {
 		ret = print_graph_cpu(s, cpu);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Proc */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_PROC) {
 		ret = print_graph_proc(s, pid);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
@@ -541,7 +507,7 @@ print_graph_irq(struct trace_iterator *iter, unsigned long addr,
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* No overhead */
+	
 	ret = print_graph_overhead(-1, s);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
@@ -554,7 +520,7 @@ print_graph_irq(struct trace_iterator *iter, unsigned long addr,
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Don't close the duration column if haven't one */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_DURATION)
 		trace_seq_printf(s, " |");
 	ret = trace_seq_printf(s, "\n");
@@ -568,7 +534,7 @@ enum print_line_t
 trace_print_graph_duration(unsigned long long duration, struct trace_seq *s)
 {
 	unsigned long nsecs_rem = do_div(duration, 1000);
-	/* log10(ULONG_MAX) + '\0' */
+	
 	char msecs_str[21];
 	char nsecs_str[5];
 	int ret, len;
@@ -576,14 +542,14 @@ trace_print_graph_duration(unsigned long long duration, struct trace_seq *s)
 
 	sprintf(msecs_str, "%lu", (unsigned long) duration);
 
-	/* Print msecs */
+	
 	ret = trace_seq_printf(s, "%s", msecs_str);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
 	len = strlen(msecs_str);
 
-	/* Print nsecs (we don't want to exceed 7 numbers) */
+	
 	if (len < 7) {
 		snprintf(nsecs_str, 8 - len, "%03lu", nsecs_rem);
 		ret = trace_seq_printf(s, ".%s", nsecs_str);
@@ -596,7 +562,7 @@ trace_print_graph_duration(unsigned long long duration, struct trace_seq *s)
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Print remaining spaces to fit the row's width */
+	
 	for (i = len; i < 7; i++) {
 		ret = trace_seq_printf(s, " ");
 		if (!ret)
@@ -621,7 +587,7 @@ print_graph_duration(unsigned long long duration, struct trace_seq *s)
 	return TRACE_TYPE_HANDLED;
 }
 
-/* Case of a leaf function on its call entry */
+
 static enum print_line_t
 print_graph_entry_leaf(struct trace_iterator *iter,
 		struct ftrace_graph_ent_entry *entry,
@@ -642,27 +608,23 @@ print_graph_entry_leaf(struct trace_iterator *iter,
 		int cpu = iter->cpu;
 		int *depth = &(per_cpu_ptr(data, cpu)->depth);
 
-		/*
-		 * Comments display at + 1 to depth. Since
-		 * this is a leaf function, keep the comments
-		 * equal to this depth.
-		 */
+		
 		*depth = call->depth - 1;
 	}
 
-	/* Overhead */
+	
 	ret = print_graph_overhead(duration, s);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Duration */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_DURATION) {
 		ret = print_graph_duration(duration, s);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Function */
+	
 	for (i = 0; i < call->depth * TRACE_GRAPH_INDENT; i++) {
 		ret = trace_seq_printf(s, " ");
 		if (!ret)
@@ -693,19 +655,19 @@ print_graph_entry_nested(struct trace_iterator *iter,
 		*depth = call->depth;
 	}
 
-	/* No overhead */
+	
 	ret = print_graph_overhead(-1, s);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* No time */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_DURATION) {
 		ret = trace_seq_printf(s, "            |  ");
 		if (!ret)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Function */
+	
 	for (i = 0; i < call->depth * TRACE_GRAPH_INDENT; i++) {
 		ret = trace_seq_printf(s, " ");
 		if (!ret)
@@ -716,10 +678,7 @@ print_graph_entry_nested(struct trace_iterator *iter,
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/*
-	 * we already consumed the current entry to check the next one
-	 * and see if this is a leaf.
-	 */
+	
 	return TRACE_TYPE_NO_CONSUME;
 }
 
@@ -732,32 +691,32 @@ print_graph_prologue(struct trace_iterator *iter, struct trace_seq *s,
 	int cpu = iter->cpu;
 	int ret;
 
-	/* Pid */
+	
 	if (verif_pid(s, ent->pid, cpu, data) == TRACE_TYPE_PARTIAL_LINE)
 		return TRACE_TYPE_PARTIAL_LINE;
 
 	if (type) {
-		/* Interrupt */
+		
 		ret = print_graph_irq(iter, addr, type, cpu, ent->pid);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Absolute time */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_ABS_TIME) {
 		ret = print_graph_abs_time(iter->ts, s);
 		if (!ret)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Cpu */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_CPU) {
 		ret = print_graph_cpu(s, cpu);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Proc */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_PROC) {
 		ret = print_graph_proc(s, ent->pid);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
@@ -768,7 +727,7 @@ print_graph_prologue(struct trace_iterator *iter, struct trace_seq *s,
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Latency format */
+	
 	if (trace_flags & TRACE_ITER_LATENCY_FMT) {
 		ret = print_graph_lat_fmt(s, ent);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
@@ -812,30 +771,26 @@ print_graph_return(struct ftrace_graph_ret *trace, struct trace_seq *s,
 		int cpu = iter->cpu;
 		int *depth = &(per_cpu_ptr(data, cpu)->depth);
 
-		/*
-		 * Comments display at + 1 to depth. This is the
-		 * return from a function, we now want the comments
-		 * to display at the same level of the bracket.
-		 */
+		
 		*depth = trace->depth - 1;
 	}
 
 	if (print_graph_prologue(iter, s, 0, 0))
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Overhead */
+	
 	ret = print_graph_overhead(duration, s);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Duration */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_DURATION) {
 		ret = print_graph_duration(duration, s);
 		if (ret == TRACE_TYPE_PARTIAL_LINE)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Closing brace */
+	
 	for (i = 0; i < trace->depth * TRACE_GRAPH_INDENT; i++) {
 		ret = trace_seq_printf(s, " ");
 		if (!ret)
@@ -846,7 +801,7 @@ print_graph_return(struct ftrace_graph_ret *trace, struct trace_seq *s,
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Overrun */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_OVERRUN) {
 		ret = trace_seq_printf(s, " (Overruns: %lu)\n",
 					trace->overrun);
@@ -878,19 +833,19 @@ print_graph_comment(struct trace_seq *s,  struct trace_entry *ent,
 	if (print_graph_prologue(iter, s, 0, 0))
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* No overhead */
+	
 	ret = print_graph_overhead(-1, s);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* No time */
+	
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_DURATION) {
 		ret = trace_seq_printf(s, "            |  ");
 		if (!ret)
 			return TRACE_TYPE_PARTIAL_LINE;
 	}
 
-	/* Indentation */
+	
 	if (depth > 0)
 		for (i = 0; i < (depth + 1) * TRACE_GRAPH_INDENT; i++) {
 			ret = trace_seq_printf(s, " ");
@@ -898,7 +853,7 @@ print_graph_comment(struct trace_seq *s,  struct trace_entry *ent,
 				return TRACE_TYPE_PARTIAL_LINE;
 		}
 
-	/* The comment */
+	
 	ret = trace_seq_printf(s, "/* ");
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
@@ -924,7 +879,7 @@ print_graph_comment(struct trace_seq *s,  struct trace_entry *ent,
 			return ret;
 	}
 
-	/* Strip ending newline */
+	
 	if (s->buffer[s->len - 1] == '\n') {
 		s->buffer[s->len - 1] = '\0';
 		s->len--;
@@ -946,12 +901,7 @@ print_graph_function(struct trace_iterator *iter)
 
 	switch (entry->type) {
 	case TRACE_GRAPH_ENT: {
-		/*
-		 * print_graph_entry() may consume the current event,
-		 * thus @field may become invalid, so we need to save it.
-		 * sizeof(struct ftrace_graph_ent_entry) is very small,
-		 * it can be safely saved at the stack.
-		 */
+		
 		struct ftrace_graph_ent_entry *field, saved;
 		trace_assign_type(field, entry);
 		saved = *field;
@@ -971,9 +921,9 @@ print_graph_function(struct trace_iterator *iter)
 
 static void print_lat_header(struct seq_file *s)
 {
-	static const char spaces[] = "                "	/* 16 spaces */
-		"    "					/* 4 spaces */
-		"                 ";			/* 17 spaces */
+	static const char spaces[] = "                "	
+		"    "					
+		"                 ";			
 	int size = 0;
 
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_ABS_TIME)
@@ -998,7 +948,7 @@ static void print_graph_headers(struct seq_file *s)
 	if (lat)
 		print_lat_header(s);
 
-	/* 1st line */
+	
 	seq_printf(s, "#");
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_ABS_TIME)
 		seq_printf(s, "     TIME       ");
@@ -1012,7 +962,7 @@ static void print_graph_headers(struct seq_file *s)
 		seq_printf(s, "  DURATION   ");
 	seq_printf(s, "               FUNCTION CALLS\n");
 
-	/* 2nd line */
+	
 	seq_printf(s, "#");
 	if (tracer_flags.val & TRACE_GRAPH_PRINT_ABS_TIME)
 		seq_printf(s, "      |         ");
@@ -1029,7 +979,7 @@ static void print_graph_headers(struct seq_file *s)
 
 static void graph_trace_open(struct trace_iterator *iter)
 {
-	/* pid and depth on the last trace processed */
+	
 	struct fgraph_data *data = alloc_percpu(struct fgraph_data);
 	int cpu;
 

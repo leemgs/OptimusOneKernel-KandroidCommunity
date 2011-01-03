@@ -1,16 +1,4 @@
-/*
- * linux/net/sunrpc/stats.c
- *
- * procfs-based user access to generic RPC statistics. The stats files
- * reside in /proc/net/rpc.
- *
- * The read routines assume that the buffer passed in is just big enough.
- * If you implement an RPC service that has its own stats routine which
- * appends the generic RPC stats, make sure you don't exceed the PAGE_SIZE
- * limit.
- *
- * Copyright (C) 1995, 1996, 1997 Olaf Kirch <okir@monad.swb.de>
- */
+
 
 #include <linux/module.h>
 
@@ -27,9 +15,7 @@
 
 struct proc_dir_entry	*proc_net_rpc = NULL;
 
-/*
- * Get RPC client stats
- */
+
 static int rpc_proc_show(struct seq_file *seq, void *v) {
 	const struct rpc_stat	*statp = seq->private;
 	const struct rpc_program *prog = statp->program;
@@ -74,9 +60,7 @@ static const struct file_operations rpc_proc_fops = {
 	.release = single_release,
 };
 
-/*
- * Get RPC server stats
- */
+
 void svc_seq_show(struct seq_file *seq, const struct svc_stat *statp) {
 	const struct svc_program *prog = statp->program;
 	const struct svc_procedure *proc;
@@ -108,11 +92,7 @@ void svc_seq_show(struct seq_file *seq, const struct svc_stat *statp) {
 }
 EXPORT_SYMBOL_GPL(svc_seq_show);
 
-/**
- * rpc_alloc_iostats - allocate an rpc_iostats structure
- * @clnt: RPC program, version, and xprt
- *
- */
+
 struct rpc_iostats *rpc_alloc_iostats(struct rpc_clnt *clnt)
 {
 	struct rpc_iostats *new;
@@ -121,23 +101,14 @@ struct rpc_iostats *rpc_alloc_iostats(struct rpc_clnt *clnt)
 }
 EXPORT_SYMBOL_GPL(rpc_alloc_iostats);
 
-/**
- * rpc_free_iostats - release an rpc_iostats structure
- * @stats: doomed rpc_iostats structure
- *
- */
+
 void rpc_free_iostats(struct rpc_iostats *stats)
 {
 	kfree(stats);
 }
 EXPORT_SYMBOL_GPL(rpc_free_iostats);
 
-/**
- * rpc_count_iostats - tally up per-task stats
- * @task: completed rpc_task
- *
- * Relies on the caller for serialization.
- */
+
 void rpc_count_iostats(struct rpc_task *task)
 {
 	struct rpc_rqst *req = task->tk_rqstp;
@@ -220,9 +191,7 @@ void rpc_print_iostats(struct seq_file *seq, struct rpc_clnt *clnt)
 }
 EXPORT_SYMBOL_GPL(rpc_print_iostats);
 
-/*
- * Register/unregister RPC proc files
- */
+
 static inline struct proc_dir_entry *
 do_register(const char *name, void *data, const struct file_operations *fops)
 {

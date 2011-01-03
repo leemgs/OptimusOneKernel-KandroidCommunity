@@ -1,20 +1,6 @@
-/*
- *  HID driver for some microsoft "special" devices
- *
- *  Copyright (c) 1999 Andreas Gal
- *  Copyright (c) 2000-2005 Vojtech Pavlik <vojtech@suse.cz>
- *  Copyright (c) 2005 Michael Haboustak <mike-@cinci.rr.com> for Concept2, Inc
- *  Copyright (c) 2006-2007 Jiri Kosina
- *  Copyright (c) 2007 Paul Walmsley
- *  Copyright (c) 2008 Jiri Slaby
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/input.h>
@@ -29,10 +15,7 @@
 #define MS_RDESC	0x08
 #define MS_NOGET	0x10
 
-/*
- * Microsoft Wireless Desktop Receiver (Model 1028) has
- * 'Usage Min/Max' where it ought to have 'Physical Min/Max'
- */
+
 static void ms_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 		unsigned int rsize)
 {
@@ -118,7 +101,7 @@ static int ms_event(struct hid_device *hdev, struct hid_field *field,
 			!usage->type)
 		return 0;
 
-	/* Handling MS keyboards special buttons */
+	
 	if (quirks & MS_ERGONOMY && usage->hid == (HID_UP_MSVENDOR | 0xff05)) {
 		struct input_dev *input = field->hidinput->input;
 		static unsigned int last_key = 0;

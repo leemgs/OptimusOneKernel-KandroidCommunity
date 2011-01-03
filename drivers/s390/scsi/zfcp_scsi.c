@@ -1,10 +1,4 @@
-/*
- * zfcp device driver
- *
- * Interface to Linux SCSI midlayer.
- *
- * Copyright IBM Corporation 2002, 2009
- */
+
 
 #define KMSG_COMPONENT "zfcp"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -17,7 +11,7 @@ static unsigned int default_depth = 32;
 module_param_named(queue_depth, default_depth, uint, 0600);
 MODULE_PARM_DESC(queue_depth, "Default queue depth for new SCSI devices");
 
-/* Find start of Sense Information in FCP response unit*/
+
 char *zfcp_get_fcp_sns_info_ptr(struct fcp_rsp_iu *fcp_rsp_iu)
 {
 	char *fcp_sns_info_ptr;
@@ -58,7 +52,7 @@ static void zfcp_scsi_command_fail(struct scsi_cmnd *scpnt, int result)
 	set_host_byte(scpnt, result);
 	if ((scpnt->device != NULL) && (scpnt->device->host != NULL))
 		zfcp_dbf_scsi_result("fail", 4, adapter->dbf, scpnt, NULL);
-	/* return directly */
+	
 	scpnt->scsi_done(scpnt);
 }
 
@@ -70,15 +64,12 @@ static int zfcp_scsi_queuecommand(struct scsi_cmnd *scpnt,
 	int    status, scsi_result, ret;
 	struct fc_rport *rport = starget_to_rport(scsi_target(scpnt->device));
 
-	/* reset the status for this request */
+	
 	scpnt->result = 0;
 	scpnt->host_scribble = NULL;
 	scpnt->scsi_done = done;
 
-	/*
-	 * figure out adapter and target device
-	 * (stored there by zfcp_scsi_slave_alloc)
-	 */
+	
 	adapter = (struct zfcp_adapter *) scpnt->device->host->hostdata[0];
 	unit = scpnt->device->hostdata;
 
@@ -173,7 +164,7 @@ static int zfcp_scsi_eh_abort_handler(struct scsi_cmnd *scpnt)
 	int retry = 3;
 	char *dbf_tag;
 
-	/* avoid race condition between late normal completion and abort */
+	
 	write_lock_irqsave(&adapter->abort_lock, flags);
 
 	spin_lock(&adapter->req_list_lock);
@@ -183,11 +174,11 @@ static int zfcp_scsi_eh_abort_handler(struct scsi_cmnd *scpnt)
 		write_unlock_irqrestore(&adapter->abort_lock, flags);
 		zfcp_dbf_scsi_abort("lte1", adapter->dbf, scpnt, NULL,
 				    old_reqid);
-		return FAILED; /* completion could be in progress */
+		return FAILED; 
 	}
 	old_req->data = NULL;
 
-	/* don't access old fsf_req after releasing the abort_lock */
+	
 	write_unlock_irqrestore(&adapter->abort_lock, flags);
 
 	while (retry--) {
@@ -288,7 +279,7 @@ int zfcp_adapter_scsi_register(struct zfcp_adapter *adapter)
 		return 0;
 
 	ccw_device_get_id(adapter->ccw_device, &dev_id);
-	/* register adapter as SCSI host with mid layer of SCSI stack */
+	
 	adapter->scsi_host = scsi_host_alloc(&zfcp_data.scsi_host_template,
 					     sizeof (struct zfcp_adapter *));
 	if (!adapter->scsi_host) {
@@ -298,7 +289,7 @@ int zfcp_adapter_scsi_register(struct zfcp_adapter *adapter)
 		return -EIO;
 	}
 
-	/* tell the SCSI stack some characteristics of this adapter */
+	
 	adapter->scsi_host->max_id = 1;
 	adapter->scsi_host->max_lun = 1;
 	adapter->scsi_host->max_channel = 0;
@@ -348,7 +339,7 @@ zfcp_init_fc_host_stats(struct zfcp_adapter *adapter)
 		fc_stats = kmalloc(sizeof(*fc_stats), GFP_KERNEL);
 		if (!fc_stats)
 			return NULL;
-		adapter->fc_stats = fc_stats; /* freed in adater_dequeue */
+		adapter->fc_stats = fc_stats; 
 	}
 	memset(adapter->fc_stats, 0, sizeof(*adapter->fc_stats));
 	return adapter->fc_stats;
@@ -463,8 +454,7 @@ static void zfcp_reset_fc_host_stats(struct Scsi_Host *shost)
 	else {
 		adapter->stats_reset = jiffies/HZ;
 		kfree(adapter->stats_reset_data);
-		adapter->stats_reset_data = data; /* finally freed in
-						     adapter_dequeue */
+		adapter->stats_reset_data = data; 
 	}
 }
 
@@ -490,14 +480,7 @@ static void zfcp_set_rport_dev_loss_tmo(struct fc_rport *rport, u32 timeout)
 	rport->dev_loss_tmo = timeout;
 }
 
-/**
- * zfcp_scsi_terminate_rport_io - Terminate all I/O on a rport
- * @rport: The FC rport where to teminate I/O
- *
- * Abort all pending SCSI commands for a port by closing the
- * port. Using a reopen for avoids a conflict with a shutdown
- * overwriting a reopen.
- */
+
 static void zfcp_scsi_terminate_rport_io(struct fc_rport *rport)
 {
 	struct zfcp_port *port;
@@ -653,8 +636,7 @@ struct fc_function_template zfcp_transport_functions = {
 	.terminate_rport_io = zfcp_scsi_terminate_rport_io,
 	.show_host_port_state = 1,
 	.bsg_request = zfcp_execute_fc_job,
-	/* no functions registered for following dynamic attributes but
-	   directly set by LLDD */
+	
 	.show_host_port_type = 1,
 	.show_host_speed = 1,
 	.show_host_port_id = 1,

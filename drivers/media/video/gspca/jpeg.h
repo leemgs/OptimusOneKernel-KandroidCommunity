@@ -1,40 +1,15 @@
 #ifndef JPEG_H
 #define JPEG_H 1
-/*
- * Insert a JPEG header at start of frame
- *
- * This module is used by the gspca subdrivers.
- * A special case is done for Conexant webcams.
- *
- * Copyright (C) Jean-Francois Moine (http://moinejf.free.fr)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- */
 
-/*
- * generation options
- *	CONEX_CAM	Conexant if present
- */
 
-/* JPEG header */
+
+
+
 static const u8 jpeg_head[] = {
-	0xff, 0xd8,			/* jpeg */
+	0xff, 0xd8,			
 
-/* quantization table quality 50% */
-	0xff, 0xdb, 0x00, 0x84,		/* DQT */
+
+	0xff, 0xdb, 0x00, 0x84,		
 0,
 #define JPEG_QT0_OFFSET 7
 	0x10, 0x0b, 0x0c, 0x0e, 0x0c, 0x0a, 0x10, 0x0e,
@@ -56,7 +31,7 @@ static const u8 jpeg_head[] = {
 	0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
 	0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
 
-/* huffman table */
+
 	0xff, 0xc4, 0x01, 0xa2,
 	0x00, 0x00, 0x01, 0x05, 0x01, 0x01, 0x01, 0x01,
 	0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -111,28 +86,28 @@ static const u8 jpeg_head[] = {
 	0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2,
 	0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa,
 #ifdef CONEX_CAM
-/* the Conexant frames start with SOF0 */
+
 #define JPEG_HDR_SZ 556
 #else
-	0xff, 0xc0, 0x00, 0x11,		/* SOF0 (start of frame 0 */
-	0x08,				/* data precision */
+	0xff, 0xc0, 0x00, 0x11,		
+	0x08,				
 #define JPEG_HEIGHT_OFFSET 561
-	0x01, 0xe0,			/* height */
-	0x02, 0x80,			/* width */
-	0x03,				/* component number */
+	0x01, 0xe0,			
+	0x02, 0x80,			
+	0x03,				
 		0x01,
-			0x21,		/* samples Y */
-			0x00,		/* quant Y */
-		0x02, 0x11, 0x01,	/* samples CbCr - quant CbCr */
+			0x21,		
+			0x00,		
+		0x02, 0x11, 0x01,	
 		0x03, 0x11, 0x01,
 
-	0xff, 0xda, 0x00, 0x0c,		/* SOS (start of scan) */
+	0xff, 0xda, 0x00, 0x0c,		
 	0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3f, 0x00
 #define JPEG_HDR_SZ 589
 #endif
 };
 
-/* define the JPEG header */
+
 static void jpeg_define(u8 *jpeg_hdr,
 			int height,
 			int width,
@@ -148,7 +123,7 @@ static void jpeg_define(u8 *jpeg_hdr,
 #endif
 }
 
-/* set the JPEG quality */
+
 static void jpeg_set_qual(u8 *jpeg_hdr,
 			  int quality)
 {

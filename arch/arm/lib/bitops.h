@@ -43,14 +43,7 @@
 	mov	pc, lr
 	.endm
 
-/**
- * testop - implement a test_and_xxx_bit operation.
- * @instr: operational instruction
- * @store: store instruction
- *
- * Note: we can trivially conditionalise the store instruction
- * to avoid dirtying the data cache.
- */
+
 	.macro	testop, instr, store
 	add	r1, r1, r0, lsr #3
 	and	r3, r0, #7

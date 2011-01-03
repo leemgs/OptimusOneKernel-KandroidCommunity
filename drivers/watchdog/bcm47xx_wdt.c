@@ -1,14 +1,4 @@
-/*
- *  Watchdog driver for Broadcom BCM47XX
- *
- *  Copyright (C) 2008 Aleksandar Radovanovic <biblbroks@sezampro.rs>
- *  Copyright (C) 2009 Matthieu CASTET <castet.matthieu@free.fr>
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version
- *  2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/bitops.h>
 #include <linux/errno.h>
@@ -29,8 +19,8 @@
 
 #define DRV_NAME		"bcm47xx_wdt"
 
-#define WDT_DEFAULT_TIME	30	/* seconds */
-#define WDT_MAX_TIME		255	/* seconds */
+#define WDT_DEFAULT_TIME	30	
+#define WDT_MAX_TIME		255	
 
 static int wdt_time = WDT_DEFAULT_TIME;
 static int nowayout = WATCHDOG_NOWAYOUT;
@@ -53,7 +43,7 @@ static atomic_t ticks;
 
 static inline void bcm47xx_wdt_hw_start(void)
 {
-	/* this is 2,5s on 100Mhz clock  and 2s on 133 Mhz */
+	
 	ssb_watchdog_timer_set(&ssb_bcm47xx, 0xfffffff);
 }
 

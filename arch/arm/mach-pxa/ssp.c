@@ -1,20 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/ssp.c
- *
- *  based on linux/arch/arm/mach-sa1100/ssp.c by Russell King
- *
- *  Copyright (C) 2003 Russell King.
- *  Copyright (C) 2003 Wolfson Microelectronics PLC
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  PXA2xx SSP driver.  This provides the generic core for simple
- *  IO-based SSP applications and allows easy port setup for DMA access.
- *
- *  Author: Liam Girdwood <liam.girdwood@wolfsonmicro.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -58,19 +42,7 @@ static irqreturn_t ssp_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/**
- * ssp_write_word - write a word to the SSP port
- * @data: 32-bit, MSB justified data to write.
- *
- * Wait for a free entry in the SSP transmit FIFO, and write a data
- * word to the SSP port.
- *
- * The caller is expected to perform the necessary locking.
- *
- * Returns:
- *   %-ETIMEDOUT	timeout occurred
- *   0			success
- */
+
 int ssp_write_word(struct ssp_dev *dev, u32 data)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -87,21 +59,7 @@ int ssp_write_word(struct ssp_dev *dev, u32 data)
 	return 0;
 }
 
-/**
- * ssp_read_word - read a word from the SSP port
- *
- * Wait for a data word in the SSP receive FIFO, and return the
- * received data.  Data is LSB justified.
- *
- * Note: Currently, if data is not expected to be received, this
- * function will wait for ever.
- *
- * The caller is expected to perform the necessary locking.
- *
- * Returns:
- *   %-ETIMEDOUT	timeout occurred
- *   32-bit data	success
- */
+
 int ssp_read_word(struct ssp_dev *dev, u32 *data)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -117,20 +75,13 @@ int ssp_read_word(struct ssp_dev *dev, u32 *data)
 	return 0;
 }
 
-/**
- * ssp_flush - flush the transmit and receive FIFOs
- *
- * Wait for the SSP to idle, and ensure that the receive FIFO
- * is empty.
- *
- * The caller is expected to perform the necessary locking.
- */
+
 int ssp_flush(struct ssp_dev *dev)
 {
 	struct ssp_device *ssp = dev->ssp;
 	int timeout = TIMEOUT * 2;
 
-	/* ensure TX FIFO is empty instead of not full */
+	
 	if (cpu_is_pxa3xx()) {
 		while (__raw_readl(ssp->mmio_base + SSSR) & 0xf00) {
 			if (!--timeout)
@@ -153,11 +104,7 @@ int ssp_flush(struct ssp_dev *dev)
 	return 0;
 }
 
-/**
- * ssp_enable - enable the SSP port
- *
- * Turn on the SSP port.
- */
+
 void ssp_enable(struct ssp_dev *dev)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -168,11 +115,7 @@ void ssp_enable(struct ssp_dev *dev)
 	__raw_writel(sscr0, ssp->mmio_base + SSCR0);
 }
 
-/**
- * ssp_disable - shut down the SSP port
- *
- * Turn off the SSP port, optionally powering it down.
- */
+
 void ssp_disable(struct ssp_dev *dev)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -183,12 +126,7 @@ void ssp_disable(struct ssp_dev *dev)
 	__raw_writel(sscr0, ssp->mmio_base + SSCR0);
 }
 
-/**
- * ssp_save_state - save the SSP configuration
- * @ssp: pointer to structure to save SSP configuration
- *
- * Save the configured SSP state for suspend.
- */
+
 void ssp_save_state(struct ssp_dev *dev, struct ssp_state *state)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -201,12 +139,7 @@ void ssp_save_state(struct ssp_dev *dev, struct ssp_state *state)
 	ssp_disable(dev);
 }
 
-/**
- * ssp_restore_state - restore a previously saved SSP configuration
- * @ssp: pointer to configuration saved by ssp_save_state
- *
- * Restore the SSP configuration saved previously by ssp_save_state.
- */
+
 void ssp_restore_state(struct ssp_dev *dev, struct ssp_state *state)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -221,15 +154,7 @@ void ssp_restore_state(struct ssp_dev *dev, struct ssp_state *state)
 	__raw_writel(state->cr0, ssp->mmio_base + SSCR0);
 }
 
-/**
- * ssp_config - configure SSP port settings
- * @mode: port operating mode
- * @flags: port config flags
- * @psp_flags: port PSP config flags
- * @speed: port speed
- *
- * Port MUST be disabled by ssp_disable before making any config changes.
- */
+
 int ssp_config(struct ssp_dev *dev, u32 mode, u32 flags, u32 psp_flags, u32 speed)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -239,7 +164,7 @@ int ssp_config(struct ssp_dev *dev, u32 mode, u32 flags, u32 psp_flags, u32 spee
 	dev->psp_flags = psp_flags;
 	dev->speed = speed;
 
-	/* set up port type, speed, port settings */
+	
 	__raw_writel((dev->speed | dev->mode), ssp->mmio_base + SSCR0);
 	__raw_writel(dev->flags, ssp->mmio_base + SSCR1);
 	__raw_writel(dev->psp_flags, ssp->mmio_base + SSPSP);
@@ -247,16 +172,7 @@ int ssp_config(struct ssp_dev *dev, u32 mode, u32 flags, u32 psp_flags, u32 spee
 	return 0;
 }
 
-/**
- * ssp_init - setup the SSP port
- *
- * initialise and claim resources for the SSP port.
- *
- * Returns:
- *   %-ENODEV	if the SSP port is unavailable
- *   %-EBUSY	if the resources are already in use
- *   %0		on success
- */
+
 int ssp_init(struct ssp_dev *dev, u32 port, u32 init_flags)
 {
 	struct ssp_device *ssp;
@@ -269,7 +185,7 @@ int ssp_init(struct ssp_dev *dev, u32 port, u32 init_flags)
 	dev->ssp = ssp;
 	dev->port = port;
 
-	/* do we need to get irq */
+	
 	if (!(init_flags & SSP_NO_IRQ)) {
 		ret = request_irq(ssp->irq, ssp_interrupt,
 				0, "SSP", dev);
@@ -279,7 +195,7 @@ int ssp_init(struct ssp_dev *dev, u32 port, u32 init_flags)
 	} else
 		dev->irq = NO_IRQ;
 
-	/* turn on SSP port clock */
+	
 	clk_enable(ssp->clk);
 	return 0;
 
@@ -288,11 +204,7 @@ out_region:
 	return ret;
 }
 
-/**
- * ssp_exit - undo the effects of ssp_init
- *
- * release and free resources for the SSP port.
- */
+
 void ssp_exit(struct ssp_dev *dev)
 {
 	struct ssp_device *ssp = dev->ssp;
@@ -408,9 +320,7 @@ static int __devinit ssp_probe(struct platform_device *pdev, int type)
 	}
 	ssp->drcmr_tx = res->start;
 
-	/* PXA2xx/3xx SSP ports starts from 1 and the internal pdev->id
-	 * starts from 0, do a translation here
-	 */
+	
 	ssp->port_id = pdev->id + 1;
 	ssp->use_count = 0;
 	ssp->type = type;

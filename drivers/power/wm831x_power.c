@@ -1,12 +1,4 @@
-/*
- * PMU driver for Wolfson Microelectronics wm831x PMICs
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/err.h>
@@ -56,9 +48,7 @@ static int wm831x_power_read_voltage(struct wm831x *wm831x,
 	return ret;
 }
 
-/*********************************************************************
- *		WALL Power
- *********************************************************************/
+
 static int wm831x_wall_get_prop(struct power_supply *psy,
 				enum power_supply_property psp,
 				union power_supply_propval *val)
@@ -87,9 +77,7 @@ static enum power_supply_property wm831x_wall_props[] = {
 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 };
 
-/*********************************************************************
- *		USB Power
- *********************************************************************/
+
 static int wm831x_usb_get_prop(struct power_supply *psy,
 			       enum power_supply_property psp,
 			       union power_supply_propval *val)
@@ -118,9 +106,7 @@ static enum power_supply_property wm831x_usb_props[] = {
 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
 };
 
-/*********************************************************************
- *		Battery properties
- *********************************************************************/
+
 
 struct chg_map {
 	int val;
@@ -445,17 +431,14 @@ static irqreturn_t wm831x_bat_irq(int irq, void *data)
 
 	dev_dbg(wm831x->dev, "Battery status changed: %d\n", irq);
 
-	/* The battery charger is autonomous so we don't need to do
-	 * anything except kick user space */
+	
 	power_supply_changed(&wm831x_power->battery);
 
 	return IRQ_HANDLED;
 }
 
 
-/*********************************************************************
- *		Backup supply properties
- *********************************************************************/
+
 
 static void wm831x_config_backup(struct wm831x *wm831x)
 {
@@ -572,17 +555,14 @@ static enum power_supply_property wm831x_backup_props[] = {
 	POWER_SUPPLY_PROP_PRESENT,
 };
 
-/*********************************************************************
- *		Initialisation
- *********************************************************************/
+
 
 static irqreturn_t wm831x_syslo_irq(int irq, void *data)
 {
 	struct wm831x_power *wm831x_power = data;
 	struct wm831x *wm831x = wm831x_power->wm831x;
 
-	/* Not much we can actually *do* but tell people for
-	 * posterity, we're probably about to run out of power. */
+	
 	dev_crit(wm831x->dev, "SYSVDD under voltage\n");
 
 	return IRQ_HANDLED;
@@ -595,10 +575,7 @@ static irqreturn_t wm831x_pwr_src_irq(int irq, void *data)
 
 	dev_dbg(wm831x->dev, "Power source changed\n");
 
-	/* Just notify for everything - little harm in overnotifying.
-	 * The backup battery is not a power source while the system
-	 * is running so skip that.
-	 */
+	
 	power_supply_changed(&wm831x_power->battery);
 	power_supply_changed(&wm831x_power->usb);
 	power_supply_changed(&wm831x_power->wall);
@@ -628,9 +605,7 @@ static __devinit int wm831x_power_probe(struct platform_device *pdev)
 	wall = &power->wall;
 	backup = &power->backup;
 
-	/* We ignore configuration failures since we can still read back
-	 * the status without enabling either of the chargers.
-	 */
+	
 	wm831x_config_battery(wm831x);
 	wm831x_config_backup(wm831x);
 

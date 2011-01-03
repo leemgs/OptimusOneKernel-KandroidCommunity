@@ -1,29 +1,6 @@
-/*
- * Driver for the VINO (Video In No Out) system found in SGI Indys.
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License version 2 as published by the Free Software Foundation.
- *
- * Copyright (C) 2004,2005 Mikael Nousiainen <tmnousia@cc.hut.fi>
- *
- * Based on the previous version of the driver for 2.4 kernels by:
- * Copyright (C) 2003 Ladislav Michl <ladis@linux-mips.org>
- *
- * v4l2_device/v4l2_subdev conversion by:
- * Copyright (C) 2009 Hans Verkuil <hverkuil@xs4all.nl>
- *
- * Note: this conversion is untested! Please contact the linux-media
- * mailinglist if you can test this, together with the test results.
- */
 
-/*
- * TODO:
- * - remove "mark pages reserved-hacks" from memory allocation code
- *   and implement fault()
- * - check decimation, calculating and reporting image size when
- *   using decimation
- * - implement read(), user mode buffers and overlay (?)
- */
+
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -54,11 +31,9 @@
 #include "saa7191.h"
 #include "indycam.h"
 
-/* Uncomment the following line to get lots and lots of (mostly useless)
- * debug info.
- * Note that the debug output also slows down the driver significantly */
-// #define VINO_DEBUG
-// #define VINO_DEBUG_INT
+
+
+
 
 #define VINO_MODULE_VERSION "0.0.6"
 #define VINO_VERSION_CODE KERNEL_VERSION(0, 0, 6)
@@ -96,7 +71,7 @@ MODULE_LICENSE("GPL");
 
 #define VINO_INPUT_CHANNEL_COUNT	3
 
-/* the number is the index for vino_inputs */
+
 #define VINO_INPUT_NONE			-1
 #define VINO_INPUT_COMPOSITE		0
 #define VINO_INPUT_SVIDEO		1
@@ -124,11 +99,11 @@ MODULE_LICENSE("GPL");
 #define VINO_MEMORY_USERPTR		2
 
 #define VINO_DUMMY_DESC_COUNT		4
-#define VINO_DESC_FETCH_DELAY		5	/* microseconds */
+#define VINO_DESC_FETCH_DELAY		5	
 
 #define VINO_MAX_FRAME_SKIP_COUNT	128
 
-/* the number is the index for vino_data_formats */
+
 #define VINO_DATA_FMT_NONE		-1
 #define VINO_DATA_FMT_GREY		0
 #define VINO_DATA_FMT_RGB332		1
@@ -137,7 +112,7 @@ MODULE_LICENSE("GPL");
 
 #define VINO_DATA_FMT_COUNT		4
 
-/* the number is the index for vino_data_norms */
+
 #define VINO_DATA_NORM_NONE		-1
 #define VINO_DATA_NORM_NTSC		0
 #define VINO_DATA_NORM_PAL		1
@@ -146,7 +121,7 @@ MODULE_LICENSE("GPL");
 
 #define VINO_DATA_NORM_COUNT		4
 
-/* I2C controller flags */
+
 #define SGI_I2C_FORCE_IDLE		(0 << 0)
 #define SGI_I2C_NOT_IDLE		(1 << 0)
 #define SGI_I2C_WRITE			(0 << 1)
@@ -160,7 +135,7 @@ MODULE_LICENSE("GPL");
 #define SGI_I2C_BUS_OK			(0 << 7)
 #define SGI_I2C_BUS_ERR			(1 << 7)
 
-/* Internal data structure definitions */
+
 
 struct vino_input {
 	char *name;
@@ -172,13 +147,13 @@ struct vino_clipping {
 };
 
 struct vino_data_format {
-	/* the description */
+	
 	char *description;
-	/* bytes per pixel */
+	
 	unsigned int bpp;
-	/* V4L2 fourcc code */
+	
 	__u32 pixelformat;
-	/* V4L2 colorspace (duh!) */
+	
 	enum v4l2_colorspace colorspace;
 };
 
@@ -194,38 +169,35 @@ struct vino_data_norm {
 };
 
 struct vino_descriptor_table {
-	/* the number of PAGE_SIZE sized pages in the buffer */
+	
 	unsigned int page_count;
-	/* virtual (kmalloc'd) pointers to the actual data
-	 * (in PAGE_SIZE chunks, used with mmap streaming) */
+	
 	unsigned long *virtual;
 
-	/* cpu address for the VINO descriptor table
-	 * (contains DMA addresses, VINO_PAGE_SIZE chunks) */
+	
 	unsigned long *dma_cpu;
-	/* dma address for the VINO descriptor table
-	 * (contains DMA addresses, VINO_PAGE_SIZE chunks) */
+	
 	dma_addr_t dma;
 };
 
 struct vino_framebuffer {
-	/* identifier nubmer */
+	
 	unsigned int id;
-	/* the length of the whole buffer */
+	
 	unsigned int size;
-	/* the length of actual data in buffer */
+	
 	unsigned int data_size;
-	/* the data format */
+	
 	unsigned int data_format;
-	/* the state of buffer data */
+	
 	unsigned int state;
-	/* is the buffer mapped in user space? */
+	
 	unsigned int map_count;
-	/* memory offset for mmap() */
+	
 	unsigned int offset;
-	/* frame counter */
+	
 	unsigned int frame_counter;
-	/* timestamp (written when image capture finishes) */
+	
 	struct timeval timestamp;
 
 	struct vino_descriptor_table desc_table;
@@ -246,11 +218,11 @@ struct vino_framebuffer_fifo {
 struct vino_framebuffer_queue {
 	unsigned int magic;
 
-	/* VINO_MEMORY_NONE, VINO_MEMORY_MMAP or VINO_MEMORY_USERPTR */
+	
 	unsigned int type;
 	unsigned int length;
 
-	/* data field of in and out contain index numbers for buffer */
+	
 	struct vino_framebuffer_fifo in;
 	struct vino_framebuffer_fifo out;
 
@@ -285,14 +257,14 @@ struct vino_channel_settings {
 
 	struct vino_framebuffer_queue fb_queue;
 
-	/* number of the current field */
+	
 	unsigned int field;
 
-	/* read in progress */
+	
 	int reading;
-	/* streaming is active */
+	
 	int streaming;
-	/* the driver is currently processing the queue */
+	
 	int capturing;
 
 	struct mutex mutex;
@@ -302,7 +274,7 @@ struct vino_channel_settings {
 
 	struct vino_interrupt_data int_data;
 
-	/* V4L support */
+	
 	struct video_device *vdev;
 };
 
@@ -311,38 +283,24 @@ struct vino_settings {
 	struct vino_channel_settings a;
 	struct vino_channel_settings b;
 
-	/* the channel which owns this client:
-	 * VINO_NO_CHANNEL, VINO_CHANNEL_A or VINO_CHANNEL_B */
+	
 	unsigned int decoder_owner;
 	struct v4l2_subdev *decoder;
 	unsigned int camera_owner;
 	struct v4l2_subdev *camera;
 
-	/* a lock for vino register access */
+	
 	spinlock_t vino_lock;
-	/* a lock for channel input changes */
+	
 	spinlock_t input_lock;
 
 	unsigned long dummy_page;
 	struct vino_descriptor_table dummy_desc_table;
 };
 
-/* Module parameters */
 
-/*
- * Using vino_pixel_conversion the ABGR32-format pixels supplied
- * by the VINO chip can be converted to more common formats
- * like RGBA32 (or probably RGB24 in the future). This way we
- * can give out data that can be specified correctly with
- * the V4L2-definitions.
- *
- * The pixel format is specified as RGBA32 when no conversion
- * is used.
- *
- * Note that this only affects the 32-bit bit depth.
- *
- * Use non-zero value to enable conversion.
- */
+
+
 static int vino_pixel_conversion;
 
 module_param_named(pixelconv, vino_pixel_conversion, int, 0);
@@ -350,7 +308,7 @@ module_param_named(pixelconv, vino_pixel_conversion, int, 0);
 MODULE_PARM_DESC(pixelconv,
 		 "enable pixel conversion (non-zero value enables)");
 
-/* Internal data structures */
+
 
 static struct sgi_vino *vino;
 
@@ -406,7 +364,7 @@ static const struct vino_data_format vino_data_formats[] = {
 	}, {
 		.description	= "YUV 4:2:2",
 		.bpp		= 2,
-		.pixelformat	= V4L2_PIX_FMT_YUYV, // XXX: swapped?
+		.pixelformat	= V4L2_PIX_FMT_YUYV, 
 		.colorspace	= V4L2_COLORSPACE_SMPTE170M,
 	}
 };
@@ -659,7 +617,7 @@ struct v4l2_queryctrl vino_saa7191_v4l2_controls[] = {
 	}
 };
 
-/* VINO framebuffer/DMA descriptor management */
+
 
 static void vino_free_buffer_with_count(struct vino_framebuffer *fb,
 					       unsigned int count)
@@ -708,14 +666,13 @@ static int vino_allocate_buffer(struct vino_framebuffer *fb,
 	dprintk("vino_allocate_buffer(): size = %d, count = %d\n",
 		size, count);
 
-	/* allocate memory for table with virtual (page) addresses */
+	
 	fb->desc_table.virtual = (unsigned long *)
 		kmalloc(count * sizeof(unsigned long), GFP_KERNEL);
 	if (!fb->desc_table.virtual)
 		return -ENOMEM;
 
-	/* allocate memory for table with dma addresses
-	 * (has space for four extra descriptors) */
+	
 	fb->desc_table.dma_cpu =
 		dma_alloc_coherent(NULL, VINO_PAGE_RATIO * (count + 4) *
 				   sizeof(dma_addr_t), &fb->desc_table.dma,
@@ -725,8 +682,7 @@ static int vino_allocate_buffer(struct vino_framebuffer *fb,
 		goto out_free_virtual;
 	}
 
-	/* allocate pages for the buffer and acquire the according
-	 * dma addresses */
+	
 	for (i = 0; i < count; i++) {
 		dma_addr_t dma_data_addr;
 
@@ -750,22 +706,20 @@ static int vino_allocate_buffer(struct vino_framebuffer *fb,
 		SetPageReserved(virt_to_page((void *)fb->desc_table.virtual[i]));
 	}
 
-	/* page_count needs to be set anyway, because the descriptor table has
-	 * been allocated according to this number */
+	
 	fb->desc_table.page_count = count;
 
 	if (ret) {
-		/* the descriptor with index i doesn't contain
-		 * a valid address yet */
+		
 		vino_free_buffer_with_count(fb, i);
 		return ret;
 	}
 
-	//fb->size = size;
+	
 	fb->size = count * PAGE_SIZE;
 	fb->data_format = VINO_DATA_FMT_NONE;
 
-	/* set the dma stop-bit for the last (count+1)th descriptor */
+	
 	fb->desc_table.dma_cpu[VINO_PAGE_RATIO * count] = VINO_DESC_STOP;
 	return 0;
 
@@ -775,7 +729,7 @@ static int vino_allocate_buffer(struct vino_framebuffer *fb,
 }
 
 #if 0
-/* user buffers not fully implemented yet */
+
 static int vino_prepare_user_buffer(struct vino_framebuffer *fb,
 				     void *user,
 				     unsigned int size)
@@ -795,14 +749,13 @@ static int vino_prepare_user_buffer(struct vino_framebuffer *fb,
 	dprintk("vino_prepare_user_buffer(): size = %d, count = %d\n",
 		size, count);
 
-	/* allocate memory for table with virtual (page) addresses */
+	
 	fb->desc_table.virtual = (unsigned long *)
 		kmalloc(count * sizeof(unsigned long), GFP_KERNEL);
 	if (!fb->desc_table.virtual)
 		return -ENOMEM;
 
-	/* allocate memory for table with dma addresses
-	 * (has space for four extra descriptors) */
+	
 	fb->desc_table.dma_cpu =
 		dma_alloc_coherent(NULL, VINO_PAGE_RATIO * (count + 4) *
 				   sizeof(dma_addr_t), &fb->desc_table.dma,
@@ -812,8 +765,7 @@ static int vino_prepare_user_buffer(struct vino_framebuffer *fb,
 		goto out_free_virtual;
 	}
 
-	/* allocate pages for the buffer and acquire the according
-	 * dma addresses */
+	
 	for (i = 0; i < count; i++) {
 		dma_addr_t dma_data_addr;
 
@@ -837,21 +789,19 @@ static int vino_prepare_user_buffer(struct vino_framebuffer *fb,
 		SetPageReserved(virt_to_page((void *)fb->desc_table.virtual[i]));
 	}
 
-	/* page_count needs to be set anyway, because the descriptor table has
-	 * been allocated according to this number */
+	
 	fb->desc_table.page_count = count;
 
 	if (ret) {
-		/* the descriptor with index i doesn't contain
-		 * a valid address yet */
+		
 		vino_free_buffer_with_count(fb, i);
 		return ret;
 	}
 
-	//fb->size = size;
+	
 	fb->size = count * PAGE_SIZE;
 
-	/* set the dma stop-bit for the last (count+1)th descriptor */
+	
 	fb->desc_table.dma_cpu[VINO_PAGE_RATIO * count] = VINO_DESC_STOP;
 	return 0;
 
@@ -873,7 +823,7 @@ static void vino_sync_buffer(struct vino_framebuffer *fb)
 					PAGE_SIZE, DMA_FROM_DEVICE);
 }
 
-/* Framebuffer fifo functions (need to be locked externally) */
+
 
 static inline void vino_fifo_init(struct vino_framebuffer_fifo *f,
 			   unsigned int length)
@@ -889,7 +839,7 @@ static inline void vino_fifo_init(struct vino_framebuffer_fifo *f,
 	f->length = length;
 }
 
-/* returns true/false */
+
 static inline int vino_fifo_has_id(struct vino_framebuffer_fifo *f,
 				   unsigned int id)
 {
@@ -904,7 +854,7 @@ static inline int vino_fifo_has_id(struct vino_framebuffer_fifo *f,
 }
 
 #if 0
-/* returns true/false */
+
 static inline int vino_fifo_full(struct vino_framebuffer_fifo *f)
 {
 	return (f->used == f->length);
@@ -961,9 +911,9 @@ static int vino_fifo_dequeue(struct vino_framebuffer_fifo *f, unsigned int *id)
 	return 0;
 }
 
-/* Framebuffer queue functions */
 
-/* execute with queue_lock locked */
+
+
 static void vino_queue_free_with_count(struct vino_framebuffer_queue *q,
 				       unsigned int length)
 {
@@ -1099,11 +1049,8 @@ static struct vino_framebuffer *vino_queue_add(struct
 	if (id >= q->length)
 		goto out;
 
-	/* not needed?: if (vino_fifo_full(&q->out)) {
-		goto out;
-		}*/
-	/* check that outgoing queue isn't already full
-	 * (or that it won't become full) */
+	
+	
 	total = vino_fifo_get_used(&q->in) +
 		vino_fifo_get_used(&q->out);
 	if (total >= q->length)
@@ -1139,7 +1086,7 @@ static struct vino_framebuffer *vino_queue_transfer(struct
 	if (q->length == 0)
 		goto out;
 
-	// now this actually removes an entry from the incoming queue
+	
 	if (vino_fifo_dequeue(&q->in, &id)) {
 		goto out;
 	}
@@ -1147,7 +1094,7 @@ static struct vino_framebuffer *vino_queue_transfer(struct
 	dprintk("vino_queue_transfer(): id = %d\n", id);
 	fb = q->buffer[id];
 
-	// we have already checked that the outgoing queue is not full, but...
+	
 	if (vino_fifo_enqueue(&q->out, id)) {
 		printk(KERN_ERR "vino_queue_transfer(): "
 		       "outgoing queue is full, this shouldn't happen!\n");
@@ -1161,7 +1108,7 @@ out:
 	return ret;
 }
 
-/* returns true/false */
+
 static int vino_queue_incoming_contains(struct vino_framebuffer_queue *q,
 					unsigned int id)
 {
@@ -1185,7 +1132,7 @@ out:
 	return ret;
 }
 
-/* returns true/false */
+
 static int vino_queue_outgoing_contains(struct vino_framebuffer_queue *q,
 					unsigned int id)
 {
@@ -1407,9 +1354,9 @@ static int vino_queue_has_mapped_buffers(struct vino_framebuffer_queue *q)
 	return ret;
 }
 
-/* VINO functions */
 
-/* execute with input_lock locked */
+
+
 static void vino_update_line_size(struct vino_channel_settings *vcs)
 {
 	unsigned int w = vcs->clipping.right - vcs->clipping.left;
@@ -1420,7 +1367,7 @@ static void vino_update_line_size(struct vino_channel_settings *vcs)
 	dprintk("update_line_size(): before: w = %d, d = %d, "
 		"line_size = %d\n", w, d, vcs->line_size);
 
-	/* line size must be multiple of 8 bytes */
+	
 	lsize = (bpp * (w / d)) & ~7;
 	w = (lsize / bpp) * d;
 
@@ -1431,7 +1378,7 @@ static void vino_update_line_size(struct vino_channel_settings *vcs)
 		"line_size = %d\n", w, d, vcs->line_size);
 }
 
-/* execute with input_lock locked */
+
 static void vino_set_clipping(struct vino_channel_settings *vcs,
 			      unsigned int x, unsigned int y,
 			      unsigned int w, unsigned int h)
@@ -1443,7 +1390,7 @@ static void vino_set_clipping(struct vino_channel_settings *vcs,
 	maxheight = vino_data_norms[vcs->data_norm].height;
 	d = vcs->decimation;
 
-	y &= ~1;	/* odd/even fields */
+	y &= ~1;	
 
 	if (x > maxwidth) {
 		x = 0;
@@ -1481,14 +1428,14 @@ static void vino_set_clipping(struct vino_channel_settings *vcs,
 		vcs->clipping.bottom, vcs->decimation, vcs->line_size);
 }
 
-/* execute with input_lock locked */
+
 static inline void vino_set_default_clipping(struct vino_channel_settings *vcs)
 {
 	vino_set_clipping(vcs, 0, 0, vino_data_norms[vcs->data_norm].width,
 			  vino_data_norms[vcs->data_norm].height);
 }
 
-/* execute with input_lock locked */
+
 static void vino_set_scaling(struct vino_channel_settings *vcs,
 			     unsigned int w, unsigned int h)
 {
@@ -1518,14 +1465,14 @@ static void vino_set_scaling(struct vino_channel_settings *vcs,
 		vcs->decimation, vcs->line_size);
 }
 
-/* execute with input_lock locked */
+
 static inline void vino_set_default_scaling(struct vino_channel_settings *vcs)
 {
 	vino_set_scaling(vcs, vcs->clipping.right - vcs->clipping.left,
 			 vcs->clipping.bottom - vcs->clipping.top);
 }
 
-/* execute with input_lock locked */
+
 static void vino_set_framerate(struct vino_channel_settings *vcs,
 			       unsigned int fps)
 {
@@ -1534,7 +1481,7 @@ static void vino_set_framerate(struct vino_channel_settings *vcs,
 	switch (vcs->data_norm) {
 	case VINO_DATA_NORM_NTSC:
 	case VINO_DATA_NORM_D1:
-		fps = (unsigned int)(fps / 6) * 6; // FIXME: round!
+		fps = (unsigned int)(fps / 6) * 6; 
 
 		if (fps < vino_data_norms[vcs->data_norm].fps_min)
 			fps = vino_data_norms[vcs->data_norm].fps_min;
@@ -1564,7 +1511,7 @@ static void vino_set_framerate(struct vino_channel_settings *vcs,
 		break;
 	case VINO_DATA_NORM_PAL:
 	case VINO_DATA_NORM_SECAM:
-		fps = (unsigned int)(fps / 5) * 5; // FIXME: round!
+		fps = (unsigned int)(fps / 5) * 5; 
 
 		if (fps < vino_data_norms[vcs->data_norm].fps_min)
 			fps = vino_data_norms[vcs->data_norm].fps_min;
@@ -1597,17 +1544,17 @@ static void vino_set_framerate(struct vino_channel_settings *vcs,
 	vcs->fps = fps;
 }
 
-/* execute with input_lock locked */
+
 static inline void vino_set_default_framerate(struct
 					      vino_channel_settings *vcs)
 {
 	vino_set_framerate(vcs, vino_data_norms[vcs->data_norm].fps_max);
 }
 
-/* VINO I2C bus functions */
+
 
 struct i2c_algo_sgi_data {
-	void *data;	/* private data for lowlevel routines */
+	void *data;	
 	unsigned (*getctrl)(void *data);
 	void (*setctrl)(void *data, unsigned val);
 	unsigned (*rdata)(void *data);
@@ -1667,11 +1614,11 @@ static int do_address(struct i2c_algo_sgi_data *adap, unsigned int addr,
 {
 	if (rd)
 		adap->setctrl(adap->data, SGI_I2C_NOT_IDLE);
-	/* Check if bus is idle, eventually force it to do so */
+	
 	if (adap->getctrl(adap->data) & SGI_I2C_NOT_IDLE)
 		if (force_idle(adap))
 			return -EIO;
-	/* Write out the i2c chip address and specify operation */
+	
 	adap->setctrl(adap->data,
 		      SGI_I2C_HOLD_BUS | SGI_I2C_WRITE | SGI_I2C_NOT_IDLE);
 	if (rd)
@@ -1705,7 +1652,7 @@ static int i2c_write(struct i2c_algo_sgi_data *adap, unsigned char *buf,
 {
 	int i;
 
-	/* We are already in write state */
+	
 	for (i = 0; i < len; i++) {
 		adap->wdata(adap->data, buf[i]);
 		if (wait_ack(adap))
@@ -1781,10 +1728,7 @@ static struct i2c_adapter vino_i2c_adapter = {
 	.owner 			= THIS_MODULE,
 };
 
-/*
- * Prepare VINO for DMA transfer...
- * (execute only with vino_lock and input_lock locked)
- */
+
 static int vino_dma_setup(struct vino_channel_settings *vcs,
 			  struct vino_framebuffer *fb)
 {
@@ -1803,24 +1747,23 @@ static int vino_dma_setup(struct vino_channel_settings *vcs,
 	ch->page_index = 0;
 	ch->line_count = 0;
 
-	/* VINO line size register is set 8 bytes less than actual */
+	
 	ch->line_size = vcs->line_size - 8;
 
-	/* let VINO know where to transfer data */
+	
 	ch->start_desc_tbl = fb->desc_table.dma;
 	ch->next_4_desc = fb->desc_table.dma;
 
-	/* give vino time to fetch the first four descriptors, 5 usec
-	 * should be more than enough time */
+	
 	udelay(VINO_DESC_FETCH_DELAY);
 
 	dprintk("vino_dma_setup(): start desc = %08x, next 4 desc = %08x\n",
 		ch->start_desc_tbl, ch->next_4_desc);
 
-	/* set the alpha register */
+	
 	ch->alpha = vcs->alpha;
 
-	/* set clipping registers */
+	
 	ch->clip_start = VINO_CLIP_ODD(norm->odd.top + vcs->clipping.top / 2) |
 		VINO_CLIP_EVEN(norm->even.top +
 			       vcs->clipping.top / 2) |
@@ -1831,7 +1774,7 @@ static int vino_dma_setup(struct vino_channel_settings *vcs,
 			       vcs->clipping.bottom / 2 - 1) |
 		VINO_CLIP_X(vcs->clipping.right);
 
-	/* set the size of actual content in the buffer (DECIMATION !) */
+	
 	fb->data_size = ((vcs->clipping.right - vcs->clipping.left) /
 			 vcs->decimation) *
 		((vcs->clipping.bottom - vcs->clipping.top) /
@@ -1844,19 +1787,17 @@ static int vino_dma_setup(struct vino_channel_settings *vcs,
 	intr = vino->intr_status;
 
 	if (vcs->channel == VINO_CHANNEL_A) {
-		/* All interrupt conditions for this channel was cleared
-		 * so clear the interrupt status register and enable
-		 * interrupts */
+		
 		intr &=	~VINO_INTSTAT_A;
 		ctrl |= VINO_CTRL_A_INT;
 
-		/* enable synchronization */
+		
 		ctrl |= VINO_CTRL_A_SYNC_ENBL;
 
-		/* enable frame assembly */
+		
 		ctrl |= VINO_CTRL_A_INTERLEAVE_ENBL;
 
-		/* set decimation used */
+		
 		if (vcs->decimation < 2)
 			ctrl &= ~VINO_CTRL_A_DEC_ENBL;
 		else {
@@ -1866,13 +1807,13 @@ static int vino_dma_setup(struct vino_channel_settings *vcs,
 				VINO_CTRL_A_DEC_SCALE_SHIFT;
 		}
 
-		/* select input interface */
+		
 		if (vcs->input == VINO_INPUT_D1)
 			ctrl |= VINO_CTRL_A_SELECT;
 		else
 			ctrl &= ~VINO_CTRL_A_SELECT;
 
-		/* palette */
+		
 		ctrl &= ~(VINO_CTRL_A_LUMA_ONLY | VINO_CTRL_A_RGB |
 			  VINO_CTRL_A_DITHER);
 	} else {
@@ -1900,7 +1841,7 @@ static int vino_dma_setup(struct vino_channel_settings *vcs,
 			  VINO_CTRL_B_DITHER);
 	}
 
-	/* set palette */
+	
 	fb->data_format = vcs->data_format;
 
 	switch (vcs->data_format) {
@@ -1913,7 +1854,7 @@ static int vino_dma_setup(struct vino_channel_settings *vcs,
 				VINO_CTRL_A_RGB : VINO_CTRL_B_RGB;
 			break;
 		case VINO_DATA_FMT_YUV:
-			/* nothing needs to be done */
+			
 			break;
 		case VINO_DATA_FMT_RGB332:
 			ctrl |= (vcs->channel == VINO_CHANNEL_A) ?
@@ -1928,7 +1869,7 @@ static int vino_dma_setup(struct vino_channel_settings *vcs,
 	return 0;
 }
 
-/* (execute only with vino_lock locked) */
+
 static inline void vino_dma_start(struct vino_channel_settings *vcs)
 {
 	u32 ctrl = vino->control;
@@ -1939,7 +1880,7 @@ static inline void vino_dma_start(struct vino_channel_settings *vcs)
 	vino->control = ctrl;
 }
 
-/* (execute only with vino_lock locked) */
+
 static inline void vino_dma_stop(struct vino_channel_settings *vcs)
 {
 	u32 ctrl = vino->control;
@@ -1952,10 +1893,7 @@ static inline void vino_dma_stop(struct vino_channel_settings *vcs)
 	dprintk("vino_dma_stop():\n");
 }
 
-/*
- * Load dummy page to descriptor registers. This prevents generating of
- * spurious interrupts. (execute only with vino_lock locked)
- */
+
 static void vino_clear_interrupt(struct vino_channel_settings *vcs)
 {
 	struct sgi_vino_channel *ch;
@@ -2038,15 +1976,14 @@ static int vino_capture_next(struct vino_channel_settings *vcs, int start)
 	spin_lock_irqsave(&vcs->capture_lock, flags);
 
 	if (start) {
-		/* start capture only if capture isn't in progress already */
+		
 		if (vcs->capturing) {
 			spin_unlock_irqrestore(&vcs->capture_lock, flags);
 			return 0;
 		}
 
 	} else {
-		/* capture next frame:
-		 * stop capture if capturing is not set */
+		
 		if (!vcs->capturing) {
 			spin_unlock_irqrestore(&vcs->capture_lock, flags);
 			return 0;
@@ -2103,7 +2040,7 @@ static inline int vino_is_capturing(struct vino_channel_settings *vcs)
 	return ret;
 }
 
-/* waits until a frame is captured */
+
 static int vino_wait_for_frame(struct vino_channel_settings *vcs)
 {
 	wait_queue_t wait;
@@ -2112,11 +2049,10 @@ static int vino_wait_for_frame(struct vino_channel_settings *vcs)
 	dprintk("vino_wait_for_frame():\n");
 
 	init_waitqueue_entry(&wait, current);
-	/* add ourselves into wait queue */
+	
 	add_wait_queue(&vcs->fb_queue.frame_wait_queue, &wait);
 
-	/* to ensure that schedule_timeout will return immediately
-	 * if VINO interrupt was triggered meanwhile */
+	
 	schedule_timeout_interruptible(msecs_to_jiffies(100));
 
 	if (signal_pending(current))
@@ -2130,7 +2066,7 @@ static int vino_wait_for_frame(struct vino_channel_settings *vcs)
 	return err;
 }
 
-/* the function assumes that PAGE_SIZE % 4 == 0 */
+
 static void vino_convert_to_rgba(struct vino_framebuffer *fb) {
 	unsigned char *pageptr;
 	unsigned int page, i;
@@ -2150,7 +2086,7 @@ static void vino_convert_to_rgba(struct vino_framebuffer *fb) {
 	}
 }
 
-/* checks if the buffer is in correct state and syncs data */
+
 static int vino_check_buffer(struct vino_channel_settings *vcs,
 			     struct vino_framebuffer *fb)
 {
@@ -2190,7 +2126,7 @@ static int vino_check_buffer(struct vino_channel_settings *vcs,
 	return err;
 }
 
-/* forcefully terminates capture */
+
 static void vino_capture_stop(struct vino_channel_settings *vcs)
 {
 	unsigned int incoming = 0, outgoing = 0, id;
@@ -2200,7 +2136,7 @@ static void vino_capture_stop(struct vino_channel_settings *vcs)
 
 	spin_lock_irqsave(&vcs->capture_lock, flags);
 
-	/* unset capturing to stop queue processing */
+	
 	vcs->capturing = 0;
 
 	spin_lock_irqsave(&vino_drvdata->vino_lock, flags2);
@@ -2210,7 +2146,7 @@ static void vino_capture_stop(struct vino_channel_settings *vcs)
 
 	spin_unlock_irqrestore(&vino_drvdata->vino_lock, flags2);
 
-	/* remove all items from the queue */
+	
 	if (vino_queue_get_incoming(&vcs->fb_queue, &incoming)) {
 		dprintk("vino_capture_stop(): "
 			"vino_queue_get_incoming() failed\n");
@@ -2268,7 +2204,7 @@ static int vino_capture_failed(struct vino_channel_settings *vcs)
 		return -EINVAL;
 	}
 	if (i == 0) {
-		/* no buffers to process */
+		
 		return 0;
 	}
 
@@ -2283,8 +2219,7 @@ static int vino_capture_failed(struct vino_channel_settings *vcs)
 		fb->state = VINO_FRAMEBUFFER_UNUSED;
 		vino_queue_transfer(&vcs->fb_queue);
 		vino_queue_remove(&vcs->fb_queue, &i);
-		/* we should actually discard the newest frame,
-		 * but who cares ... */
+		
 	}
 	spin_unlock_irqrestore(&fb->state_lock, flags);
 
@@ -2387,8 +2322,7 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
 		fc_a = vino->a.field_counter >> 1;
 		fc_b = vino->b.field_counter >> 1;
 
-		/* handle error-interrupts in some special way ?
-		 * --> skips frames */
+		
 		if (intr & VINO_INTSTAT_A) {
 			if (intr & VINO_INTSTAT_A_EOF) {
 				vino_drvdata->a.field++;
@@ -2464,8 +2398,7 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
 			}
 		}
 
-		/* Always remember to clear interrupt status.
-		 * Disable VINO interrupts while we do this. */
+		
 		ctrl = vino->control;
 		vino->control = ctrl & ~(VINO_CTRL_A_INT | VINO_CTRL_B_INT);
 		vino->intr_status = ~intr;
@@ -2514,7 +2447,7 @@ static irqreturn_t vino_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/* VINO video input management */
+
 
 static int vino_get_saa7191_input(int input)
 {
@@ -2530,7 +2463,7 @@ static int vino_get_saa7191_input(int input)
 	}
 }
 
-/* execute with input_lock locked */
+
 static int vino_is_input_owner(struct vino_channel_settings *vcs)
 {
 	switch(vcs->input) {
@@ -2553,7 +2486,7 @@ static int vino_acquire_input(struct vino_channel_settings *vcs)
 
 	spin_lock_irqsave(&vino_drvdata->input_lock, flags);
 
-	/* First try D1 and then SAA7191 */
+	
 	if (vino_drvdata->camera
 	    && (vino_drvdata->camera_owner == VINO_NO_CHANNEL)) {
 		vino_drvdata->camera_owner = vcs->channel;
@@ -2576,8 +2509,7 @@ static int vino_acquire_input(struct vino_channel_settings *vcs)
 
 		spin_unlock_irqrestore(&vino_drvdata->input_lock, flags);
 
-		/* Don't hold spinlocks while auto-detecting norm
-		 * as it may take a while... */
+		
 
 		ret = decoder_call(video, querystd, &norm);
 		if (!ret) {
@@ -2665,8 +2597,7 @@ static int vino_set_input(struct vino_channel_settings *vcs, int input)
 
 			spin_unlock_irqrestore(&vino_drvdata->input_lock, flags);
 
-			/* Don't hold spinlocks while auto-detecting norm
-			 * as it may take a while... */
+			
 
 			ret = decoder_call(video, querystd, &norm);
 			if (!ret) {
@@ -2700,7 +2631,7 @@ static int vino_set_input(struct vino_channel_settings *vcs, int input)
 		}
 
 		if (vino_drvdata->camera_owner == vcs->channel) {
-			/* Transfer the ownership or release the input */
+			
 			if (vcs2->input == VINO_INPUT_D1) {
 				vino_drvdata->camera_owner = vcs2->channel;
 			} else {
@@ -2718,7 +2649,7 @@ static int vino_set_input(struct vino_channel_settings *vcs, int input)
 			vino_drvdata->camera_owner = vcs->channel;
 
 		if (vino_drvdata->decoder_owner == vcs->channel) {
-			/* Transfer the ownership or release the input */
+			
 			if ((vcs2->input == VINO_INPUT_COMPOSITE) ||
 				 (vcs2->input == VINO_INPUT_SVIDEO)) {
 				vino_drvdata->decoder_owner = vcs2->channel;
@@ -2757,9 +2688,7 @@ static void vino_release_input(struct vino_channel_settings *vcs)
 
 	spin_lock_irqsave(&vino_drvdata->input_lock, flags);
 
-	/* Release ownership of the channel
-	 * and if the other channel takes input from
-	 * the same source, transfer the ownership */
+	
 	if (vino_drvdata->camera_owner == vcs->channel) {
 		if (vcs2->input == VINO_INPUT_D1) {
 			vino_drvdata->camera_owner = vcs2->channel;
@@ -2779,7 +2708,7 @@ static void vino_release_input(struct vino_channel_settings *vcs)
 	spin_unlock_irqrestore(&vino_drvdata->input_lock, flags);
 }
 
-/* execute with input_lock locked */
+
 static int vino_set_data_norm(struct vino_channel_settings *vcs,
 			      unsigned int data_norm,
 			      unsigned long *flags)
@@ -2791,7 +2720,7 @@ static int vino_set_data_norm(struct vino_channel_settings *vcs,
 
 	switch (vcs->input) {
 	case VINO_INPUT_D1:
-		/* only one "norm" supported */
+		
 		if (data_norm != VINO_DATA_NORM_D1)
 			return -EINVAL;
 		break;
@@ -2806,8 +2735,7 @@ static int vino_set_data_norm(struct vino_channel_settings *vcs,
 
 		spin_unlock_irqrestore(&vino_drvdata->input_lock, *flags);
 
-		/* Don't hold spinlocks while setting norm
-		 * as it may take a while... */
+		
 
 		norm = vino_data_norms[data_norm].std;
 		err = decoder_call(core, s_std, norm);
@@ -2832,7 +2760,7 @@ out:
 	return err;
 }
 
-/* V4L2 helper functions */
+
 
 static int vino_find_data_format(__u32 pixelformat)
 {
@@ -2885,11 +2813,11 @@ static int vino_int_enum_input(struct vino_channel_settings *vcs, __u32 index)
 	return input;
 }
 
-/* execute with input_lock locked */
+
 static __u32 vino_find_input_index(struct vino_channel_settings *vcs)
 {
 	__u32 index = 0;
-	// FIXME: detect when no inputs available
+	
 
 	if (vino_drvdata->decoder && vino_drvdata->camera) {
 		switch (vcs->input) {
@@ -2923,7 +2851,7 @@ static __u32 vino_find_input_index(struct vino_channel_settings *vcs)
 	return index;
 }
 
-/* V4L2 ioctls */
+
 
 static int vino_querycap(struct file *file, void *__fh,
 		struct v4l2_capability *cap)
@@ -2937,7 +2865,7 @@ static int vino_querycap(struct file *file, void *__fh,
 	cap->capabilities =
 		V4L2_CAP_VIDEO_CAPTURE |
 		V4L2_CAP_STREAMING;
-	// V4L2_CAP_OVERLAY, V4L2_CAP_READWRITE
+	
 	return 0;
 }
 
@@ -3060,12 +2988,11 @@ static int vino_s_std(struct file *file, void *__fh,
 		goto out;
 	}
 
-	/* check if the standard is valid for the current input */
+	
 	if ((*std) & vino_inputs[vcs->input].std) {
 		dprintk("standard accepted\n");
 
-		/* change the video norm for SAA7191
-		 * and accept NTSC for D1 (do nothing) */
+		
 
 		if (vcs->input == VINO_INPUT_D1)
 			goto out;
@@ -3133,7 +3060,7 @@ static int vino_try_fmt_vid_cap(struct file *file, void *__fh,
 			pixelformat;
 	}
 
-	/* data format must be set before clipping/scaling */
+	
 	vino_set_scaling(&tempvcs, pf->width, pf->height);
 
 	dprintk("data format = %s\n",
@@ -3207,7 +3134,7 @@ static int vino_s_fmt_vid_cap(struct file *file, void *__fh,
 		vcs->data_format = data_format;
 	}
 
-	/* data format must be set before clipping/scaling */
+	
 	vino_set_scaling(vcs, pf->width, pf->height);
 
 	dprintk("data format = %s\n",
@@ -3327,7 +3254,7 @@ static int vino_g_parm(struct file *file, void *__fh,
 
 	spin_unlock_irqrestore(&vino_drvdata->input_lock, flags);
 
-	/* TODO: cp->readbuffers = xxx; */
+	
 
 	return 0;
 }
@@ -3343,7 +3270,7 @@ static int vino_s_parm(struct file *file, void *__fh,
 
 	if ((cp->timeperframe.numerator == 0) ||
 	    (cp->timeperframe.denominator == 0)) {
-		/* reset framerate */
+		
 		vino_set_default_framerate(vcs);
 	} else {
 		vino_set_framerate(vcs, cp->timeperframe.denominator /
@@ -3363,7 +3290,7 @@ static int vino_reqbufs(struct file *file, void *__fh,
 	if (vcs->reading)
 		return -EBUSY;
 
-	/* TODO: check queue type */
+	
 	if (rb->memory != V4L2_MEMORY_MMAP) {
 		dprintk("type not mmap\n");
 		return -EINVAL;
@@ -3425,7 +3352,7 @@ static void vino_v4l2_get_buffer_status(struct vino_channel_settings *vcs,
 	b->sequence = fb->frame_counter;
 	memcpy(&b->timestamp, &fb->timestamp,
 	       sizeof(struct timeval));
-	// b->input ?
+	
 
 	dprintk("buffer %d: length = %d, bytesused = %d, offset = %d\n",
 		fb->id, fb->size, fb->data_size, fb->offset);
@@ -3440,7 +3367,7 @@ static int vino_querybuf(struct file *file, void *__fh,
 	if (vcs->reading)
 		return -EBUSY;
 
-	/* TODO: check queue type */
+	
 	if (b->index >= vino_queue_get_length(&vcs->fb_queue)) {
 		dprintk("invalid index = %d\n",
 		       b->index);
@@ -3469,7 +3396,7 @@ static int vino_qbuf(struct file *file, void *__fh,
 	if (vcs->reading)
 		return -EBUSY;
 
-	/* TODO: check queue type */
+	
 	if (b->memory != V4L2_MEMORY_MMAP) {
 		dprintk("type not mmap\n");
 		return -EINVAL;
@@ -3502,7 +3429,7 @@ static int vino_dqbuf(struct file *file, void *__fh,
 	if (vcs->reading)
 		return -EBUSY;
 
-	/* TODO: check queue type */
+	
 
 	err = vino_queue_get_incoming(&vcs->fb_queue, &incoming);
 	if (err) {
@@ -3532,9 +3459,8 @@ static int vino_dqbuf(struct file *file, void *__fh,
 		if (err) {
 			err = vino_wait_for_frame(vcs);
 			if (err) {
-				/* interrupted or no frames captured because of
-				 * frame skipping */
-				/* vino_capture_failed(vcs); */
+				
+				
 				return -EIO;
 			}
 		}
@@ -3568,7 +3494,7 @@ static int vino_streamon(struct file *file, void *__fh,
 	if (vcs->streaming)
 		return 0;
 
-	// TODO: check queue type
+	
 
 	if (vino_queue_get_length(&vcs->fb_queue) < 1) {
 		dprintk("no buffers allocated\n");
@@ -3786,7 +3712,7 @@ out:
 	return err;
 }
 
-/* File operations */
+
 
 static int vino_open(struct file *file)
 {
@@ -3831,7 +3757,7 @@ static int vino_close(struct file *file)
 	if (!vcs->users) {
 		vino_release_input(vcs);
 
-		/* stop DMA and free buffers */
+		
 		vino_capture_stop(vcs);
 		vino_queue_free(&vcs->fb_queue);
 	}
@@ -3876,7 +3802,7 @@ static int vino_mmap(struct file *file, struct vm_area_struct *vma)
 
 	dprintk("mmap():\n");
 
-	// TODO: reject mmap if already mapped
+	
 
 	if (mutex_lock_interruptible(&vcs->mutex))
 		return -EINTR;
@@ -3886,7 +3812,7 @@ static int vino_mmap(struct file *file, struct vm_area_struct *vma)
 		goto out;
 	}
 
-	// TODO: check queue type
+	
 
 	if (!(vma->vm_flags & VM_WRITE)) {
 		dprintk("mmap(): app bug: PROT_WRITE please\n");
@@ -3899,7 +3825,7 @@ static int vino_mmap(struct file *file, struct vm_area_struct *vma)
 		goto out;
 	}
 
-	/* find the correct buffer using offset */
+	
 	length = vino_queue_get_length(&vcs->fb_queue);
 	if (length == 0) {
 		dprintk("mmap(): queue not initialized\n");
@@ -3941,7 +3867,7 @@ found:
 		if (size < PAGE_SIZE)
 			break;
 
-		// protection was: PAGE_READONLY
+		
 		if (remap_pfn_range(vma, start, pfn, PAGE_SIZE,
 				    vma->vm_page_prot)) {
 			dprintk("mmap(): remap_pfn_range() failed\n");
@@ -3973,8 +3899,8 @@ static unsigned int vino_poll(struct file *file, poll_table *pt)
 	unsigned int outgoing;
 	unsigned int ret = 0;
 
-	// lock mutex (?)
-	// TODO: this has to be corrected for different read modes
+	
+	
 
 	dprintk("poll():\n");
 
@@ -4021,9 +3947,9 @@ static long vino_ioctl(struct file *file,
 	return ret;
 }
 
-/* Initialization and cleanup */
 
-/* __initdata */
+
+
 static int vino_init_stage;
 
 const struct v4l2_ioctl_ops vino_ioctl_ops = {
@@ -4095,7 +4021,7 @@ static void vino_module_cleanup(int stage)
 			vino_drvdata->a.vdev = NULL;
 		}
 	case 5:
-		/* all entries in dma_cpu dummy table have the same address */
+		
 		dma_unmap_single(NULL,
 				 vino_drvdata->dummy_desc_table.dma_cpu[0],
 				 PAGE_SIZE, DMA_FROM_DEVICE);
@@ -4178,7 +4104,7 @@ static int vino_init(void)
 		return err;
 	vino_init_stage++;
 
-	/* create a dummy dma descriptor */
+	
 	vino_drvdata->dummy_page = get_zeroed_page(GFP_KERNEL | GFP_DMA);
 	if (!vino_drvdata->dummy_page) {
 		vino_module_cleanup(vino_init_stage);
@@ -4186,7 +4112,7 @@ static int vino_init(void)
 	}
 	vino_init_stage++;
 
-	// TODO: use page_count in dummy_desc_table
+	
 
 	vino_drvdata->dummy_desc_table.dma_cpu =
 		dma_alloc_coherent(NULL,
@@ -4206,7 +4132,7 @@ static int vino_init(void)
 		vino_drvdata->dummy_desc_table.dma_cpu[i] = dma_dummy_address;
 	}
 
-	/* initialize VINO */
+	
 
 	vino->control = 0;
 	vino->a.next_4_desc = vino_drvdata->dummy_desc_table.dma;
@@ -4276,7 +4202,7 @@ static int __init vino_module_init(void)
 	if (ret)
 		return ret;
 
-	/* initialize data structures */
+	
 
 	spin_lock_init(&vino_drvdata->vino_lock);
 	spin_lock_init(&vino_drvdata->input_lock);
@@ -4291,7 +4217,7 @@ static int __init vino_module_init(void)
 	if (ret)
 		return ret;
 
-	/* initialize hardware and register V4L devices */
+	
 
 	ret = request_irq(SGI_VINO_IRQ, vino_interrupt, 0,
 		vino_driver_description, NULL);

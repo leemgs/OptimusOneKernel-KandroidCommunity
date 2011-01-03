@@ -1,11 +1,4 @@
-/*
- *  copyright (c) 2006 IBM Corporation
- *  Authored by: Mike D. Day <ncmike@us.ibm.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -49,7 +42,7 @@ static void xen_sysfs_type_destroy(void)
 	sysfs_remove_file(hypervisor_kobj, &type_attr.attr);
 }
 
-/* xen version attributes */
+
 static ssize_t major_show(struct hyp_sysfs_attr *attr, char *buffer)
 {
 	int version = HYPERVISOR_xen_version(XENVER_version, NULL);
@@ -110,7 +103,7 @@ static void xen_sysfs_version_destroy(void)
 	sysfs_remove_group(hypervisor_kobj, &version_group);
 }
 
-/* UUID */
+
 
 static ssize_t uuid_show(struct hyp_sysfs_attr *attr, char *buffer)
 {
@@ -145,7 +138,7 @@ static void xen_sysfs_uuid_destroy(void)
 	sysfs_remove_file(hypervisor_kobj, &uuid_attr.attr);
 }
 
-/* xen compilation attributes */
+
 
 static ssize_t compiler_show(struct hyp_sysfs_attr *attr, char *buffer)
 {
@@ -223,7 +216,7 @@ static void xen_compilation_destroy(void)
 	sysfs_remove_group(hypervisor_kobj, &xen_compilation_group);
 }
 
-/* xen properties info */
+
 
 static ssize_t capabilities_show(struct hyp_sysfs_attr *attr, char *buffer)
 {

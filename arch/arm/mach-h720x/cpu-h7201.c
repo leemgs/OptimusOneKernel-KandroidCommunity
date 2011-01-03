@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-h720x/cpu-h7201.c
- *
- * Copyright (C) 2003 Thomas Gleixner <tglx@linutronix.de>
- *               2003 Robert Schwebel <r.schwebel@pengutronix.de>
- *               2004 Sascha Hauer    <s.hauer@pengutronix.de>
- *
- * processor specific stuff for the Hynix h7201
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -23,9 +10,7 @@
 #include <asm/mach/irq.h>
 #include <asm/mach/time.h>
 #include "common.h"
-/*
- * Timer interrupt handler
- */
+
 static irqreturn_t
 h7201_timer_interrupt(int irq, void *dev_id)
 {
@@ -41,9 +26,7 @@ static struct irqaction h7201_timer_irq = {
 	.handler	= h7201_timer_interrupt,
 };
 
-/*
- * Setup TIMER0 as system timer
- */
+
 void __init h7201_init_time(void)
 {
 	CPU_REG (TIMER_VIRT, TM0_PERIOD) = LATCH;

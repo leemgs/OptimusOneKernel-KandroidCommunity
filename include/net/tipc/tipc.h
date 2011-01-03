@@ -1,38 +1,4 @@
-/*
- * include/net/tipc/tipc.h: Main include file for TIPC users
- * 
- * Copyright (c) 2003-2006, Ericsson AB
- * Copyright (c) 2005, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #ifndef _NET_TIPC_H_
 #define _NET_TIPC_H_
@@ -42,13 +8,9 @@
 #include <linux/tipc.h>
 #include <linux/skbuff.h>
 
-/* 
- * Native API
- */
 
-/*
- * TIPC operating mode routines
- */
+
+
 
 u32 tipc_get_addr(void);
 
@@ -64,9 +26,7 @@ void tipc_detach(unsigned int userref);
 
 int tipc_get_mode(void);
 
-/*
- * TIPC port manipulation routines
- */
+
 
 typedef void (*tipc_msg_err_event) (void *usr_handle,
 				    u32 portref,
@@ -126,7 +86,7 @@ int tipc_createport(unsigned int tipc_user,
 		    tipc_msg_event message_cb, 
 		    tipc_named_msg_event named_message_cb, 
 		    tipc_conn_msg_event conn_message_cb, 
-		    tipc_continue_event continue_event_cb,/* May be zero */
+		    tipc_continue_event continue_event_cb,
 		    u32 *portref);
 
 int tipc_deleteport(u32 portref);
@@ -145,13 +105,13 @@ int tipc_set_portunreturnable(u32 portref, unsigned int isunreturnable);
 int tipc_publish(u32 portref, unsigned int scope, 
 		 struct tipc_name_seq const *name_seq);
 int tipc_withdraw(u32 portref, unsigned int scope,
-		  struct tipc_name_seq const *name_seq); /* 0: all */
+		  struct tipc_name_seq const *name_seq); 
 
 int tipc_connect2port(u32 portref, struct tipc_portid const *port);
 
 int tipc_disconnect(u32 portref);
 
-int tipc_shutdown(u32 ref); /* Sends SHUTDOWN msg */
+int tipc_shutdown(u32 ref); 
 
 int tipc_isconnected(u32 portref, int *isconnected);
 
@@ -159,11 +119,9 @@ int tipc_peer(u32 portref, struct tipc_portid *peer);
 
 int tipc_ref_valid(u32 portref); 
 
-/*
- * TIPC messaging routines
- */
 
-#define TIPC_PORT_IMPORTANCE 100	/* send using current port setting */
+
+#define TIPC_PORT_IMPORTANCE 100	
 
 
 int tipc_send(u32 portref,
@@ -176,7 +134,7 @@ int tipc_send_buf(u32 portref,
 
 int tipc_send2name(u32 portref, 
 		   struct tipc_name const *name, 
-		   u32 domain,	/* 0:own zone */
+		   u32 domain,	
 		   unsigned int num_sect,
 		   struct iovec const *msg_sect);
 
@@ -188,7 +146,7 @@ int tipc_send_buf2name(u32 portref,
 
 int tipc_forward2name(u32 portref, 
 		      struct tipc_name const *name, 
-		      u32 domain,   /*0: own zone */
+		      u32 domain,   
 		      unsigned int section_count,
 		      struct iovec const *msg_sect,
 		      struct tipc_portid const *origin,
@@ -228,27 +186,23 @@ int tipc_forward_buf2port(u32 portref,
 
 int tipc_multicast(u32 portref, 
 		   struct tipc_name_seq const *seq, 
-		   u32 domain,	/* 0:own zone */
+		   u32 domain,	
 		   unsigned int section_count,
 		   struct iovec const *msg);
 
 #if 0
 int tipc_multicast_buf(u32 portref, 
 		       struct tipc_name_seq const *seq, 
-		       u32 domain,	/* 0:own zone */
+		       u32 domain,	
 		       void *buf,
 		       unsigned int size);
 #endif
 
-/*
- * TIPC subscription routines
- */
+
 
 int tipc_ispublished(struct tipc_name const *name);
 
-/*
- * Get number of available nodes within specified domain (excluding own node)
- */
+
 
 unsigned int tipc_available_nodes(const u32 domain);
 

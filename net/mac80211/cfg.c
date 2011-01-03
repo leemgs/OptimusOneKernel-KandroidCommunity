@@ -1,10 +1,4 @@
-/*
- * mac80211 configuration hooks for cfg80211
- *
- * Copyright 2006, 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * This file is GPLv2 as found in COPYING.
- */
+
 
 #include <linux/ieee80211.h>
 #include <linux/nl80211.h>
@@ -405,7 +399,7 @@ static int ieee80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 
 	rcu_read_lock();
 
-	/* XXX: verify sta->dev == dev */
+	
 
 	sta = sta_info_get(local, mac);
 	if (sta) {
@@ -418,9 +412,7 @@ static int ieee80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 	return ret;
 }
 
-/*
- * This handles both adding a beacon and setting new beacon info
- */
+
 static int ieee80211_config_beacon(struct ieee80211_sub_if_data *sdata,
 				   struct beacon_parameters *params)
 {
@@ -431,14 +423,11 @@ static int ieee80211_config_beacon(struct ieee80211_sub_if_data *sdata,
 
 	old = sdata->u.ap.beacon;
 
-	/* head must not be zero-length */
+	
 	if (params->head && !params->head_len)
 		return -EINVAL;
 
-	/*
-	 * This is a kludge. beacon interval should really be part
-	 * of the beacon information.
-	 */
+	
 	if (params->interval &&
 	    (sdata->vif.bss_conf.beacon_int != params->interval)) {
 		sdata->vif.bss_conf.beacon_int = params->interval;
@@ -446,23 +435,23 @@ static int ieee80211_config_beacon(struct ieee80211_sub_if_data *sdata,
 						 BSS_CHANGED_BEACON_INT);
 	}
 
-	/* Need to have a beacon head if we don't have one yet */
+	
 	if (!params->head && !old)
 		return err;
 
-	/* sorry, no way to start beaconing without dtim period */
+	
 	if (!params->dtim_period && !old)
 		return err;
 
-	/* new or old head? */
+	
 	if (params->head)
 		new_head_len = params->head_len;
 	else
 		new_head_len = old->head_len;
 
-	/* new or old tail? */
+	
 	if (params->tail || !old)
-		/* params->tail_len will be zero for !params->tail */
+		
 		new_tail_len = params->tail_len;
 	else
 		new_tail_len = old->tail_len;
@@ -473,30 +462,27 @@ static int ieee80211_config_beacon(struct ieee80211_sub_if_data *sdata,
 	if (!new)
 		return -ENOMEM;
 
-	/* start filling the new info now */
+	
 
-	/* new or old dtim period? */
+	
 	if (params->dtim_period)
 		new->dtim_period = params->dtim_period;
 	else
 		new->dtim_period = old->dtim_period;
 
-	/*
-	 * pointers go into the block we allocated,
-	 * memory is | beacon_data | head | tail |
-	 */
+	
 	new->head = ((u8 *) new) + sizeof(*new);
 	new->tail = new->head + new_head_len;
 	new->head_len = new_head_len;
 	new->tail_len = new_tail_len;
 
-	/* copy in head */
+	
 	if (params->head)
 		memcpy(new->head, params->head, new_head_len);
 	else
 		memcpy(new->head, old->head, new_head_len);
 
-	/* copy in optional tail */
+	
 	if (params->tail)
 		memcpy(new->tail, params->tail, new_tail_len);
 	else
@@ -566,13 +552,13 @@ static int ieee80211_del_beacon(struct wiphy *wiphy, struct net_device *dev)
 	return 0;
 }
 
-/* Layer 2 Update frame (802.2 Type 1 LLC XID Update response) */
+
 struct iapp_layer2_update {
-	u8 da[ETH_ALEN];	/* broadcast */
-	u8 sa[ETH_ALEN];	/* STA addr */
-	__be16 len;		/* 6 */
-	u8 dsap;		/* 0 */
-	u8 ssap;		/* 0 */
+	u8 da[ETH_ALEN];	
+	u8 sa[ETH_ALEN];	
+	__be16 len;		
+	u8 dsap;		
+	u8 ssap;		
 	u8 control;
 	u8 xid_info[3];
 } __attribute__ ((packed));
@@ -582,27 +568,24 @@ static void ieee80211_send_layer2_update(struct sta_info *sta)
 	struct iapp_layer2_update *msg;
 	struct sk_buff *skb;
 
-	/* Send Level 2 Update Frame to update forwarding tables in layer 2
-	 * bridge devices */
+	
 
 	skb = dev_alloc_skb(sizeof(*msg));
 	if (!skb)
 		return;
 	msg = (struct iapp_layer2_update *)skb_put(skb, sizeof(*msg));
 
-	/* 802.2 Type 1 Logical Link Control (LLC) Exchange Identifier (XID)
-	 * Update response frame; IEEE Std 802.2-1998, 5.4.1.2.1 */
+	
 
 	memset(msg->da, 0xff, ETH_ALEN);
 	memcpy(msg->sa, sta->sta.addr, ETH_ALEN);
 	msg->len = htons(6);
 	msg->dsap = 0;
-	msg->ssap = 0x01;	/* NULL LSAP, CR Bit: Response */
-	msg->control = 0xaf;	/* XID response lsb.1111F101.
-				 * F=0 (no poll command; unsolicited frame) */
-	msg->xid_info[0] = 0x81;	/* XID format identifier */
-	msg->xid_info[1] = 1;	/* LLC types/classes: Type 1 LLC */
-	msg->xid_info[2] = 0;	/* XID sender's receive window size (RW) */
+	msg->ssap = 0x01;	
+	msg->control = 0xaf;	
+	msg->xid_info[0] = 0x81;	
+	msg->xid_info[1] = 1;	
+	msg->xid_info[2] = 0;	
 
 	skb->dev = sta->sdata->dev;
 	skb->protocol = eth_type_trans(skb, sta->sdata->dev);
@@ -651,19 +634,11 @@ static void sta_apply_parameters(struct ieee80211_local *local,
 	}
 	spin_unlock_bh(&sta->lock);
 
-	/*
-	 * cfg80211 validates this (1-2007) and allows setting the AID
-	 * only when creating a new station entry
-	 */
+	
 	if (params->aid)
 		sta->sta.aid = params->aid;
 
-	/*
-	 * FIXME: updating the following information is racy when this
-	 *	  function is called from ieee80211_change_station().
-	 *	  However, all this information should be static so
-	 *	  maybe we should just reject attemps to change it.
-	 */
+	
 
 	if (params->listen_interval >= 0)
 		sta->listen_interval = params->listen_interval;
@@ -739,9 +714,9 @@ static int ieee80211_add_station(struct wiphy *wiphy, struct net_device *dev,
 
 	err = sta_info_insert(sta);
 	if (err) {
-		/* STA has been freed */
+		
 		if (err == -EEXIST && layer2_update) {
-			/* Need to update layer 2 devices on reassociation */
+			
 			sta = sta_info_get(local, mac);
 			if (sta)
 				ieee80211_send_layer2_update(sta);
@@ -770,7 +745,7 @@ static int ieee80211_del_station(struct wiphy *wiphy, struct net_device *dev,
 	if (mac) {
 		rcu_read_lock();
 
-		/* XXX: get sta belonging to dev */
+		
 		sta = sta_info_get(local, mac);
 		if (!sta) {
 			rcu_read_unlock();
@@ -798,7 +773,7 @@ static int ieee80211_change_station(struct wiphy *wiphy,
 
 	rcu_read_lock();
 
-	/* XXX: get sta belonging to dev */
+	
 	sta = sta_info_get(local, mac);
 	if (!sta) {
 		rcu_read_unlock();
@@ -1011,7 +986,7 @@ static int ieee80211_set_mesh_params(struct wiphy *wiphy,
 	struct ieee80211_sub_if_data *sdata;
 	sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 
-	/* Set the config options which we are interested in setting */
+	
 	conf = &(sdata->u.mesh.mshcfg);
 	if (_chg_mesh_attr(NL80211_MESHCONF_RETRY_TIMEOUT, mask))
 		conf->dot11MeshRetryTimeout = nconf->dot11MeshRetryTimeout;
@@ -1249,7 +1224,7 @@ static int ieee80211_set_tx_power(struct wiphy *wiphy,
 	case TX_POWER_FIXED:
 		if (dbm < 0)
 			return -EINVAL;
-		/* TODO: move to cfg80211 when it knows the channel */
+		
 		if (dbm > chan->max_power)
 			return -EINVAL;
 		local->user_power_level = dbm;
@@ -1340,9 +1315,7 @@ static int ieee80211_set_bitrate_mask(struct wiphy *wiphy,
 
 	sband = local->hw.wiphy->bands[local->hw.conf.channel->band];
 
-	/* target_rate = -1, rate->fixed = 0 means auto only, so use all rates
-	 * target_rate = X, rate->fixed = 1 means only rate X
-	 * target_rate = X, rate->fixed = 0 means all rates <= X */
+	
 	sdata->max_ratectrl_rateidx = -1;
 	sdata->force_unicast_rateidx = -1;
 

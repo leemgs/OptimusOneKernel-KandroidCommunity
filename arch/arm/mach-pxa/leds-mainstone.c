@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/leds-mainstone.c
- *
- * Author:     Nicolas Pitre
- * Created:    Nov 05, 2002
- * Copyright:  MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 
@@ -22,7 +12,7 @@
 #include "leds.h"
 
 
-/* 8 discrete leds available for general use: */
+
 #define D28			(1 << 0)
 #define D27			(1 << 1)
 #define D26			(1 << 2)

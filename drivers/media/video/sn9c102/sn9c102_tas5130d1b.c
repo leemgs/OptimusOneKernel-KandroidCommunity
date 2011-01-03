@@ -1,23 +1,4 @@
-/***************************************************************************
- * Plug-in for TAS5130D1B image sensor connected to the SN9C1xx PC Camera  *
- * Controllers                                                             *
- *                                                                         *
- * Copyright (C) 2004-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #include "sn9c102_sensor.h"
 #include "sn9c102_devtable.h"
@@ -67,7 +48,7 @@ static int tas5130d1b_set_crop(struct sn9c102_device* cam,
 	err += sn9c102_write_reg(cam, h_start, 0x12);
 	err += sn9c102_write_reg(cam, v_start, 0x13);
 
-	/* Do NOT change! */
+	
 	err += sn9c102_write_reg(cam, 0x1f, 0x1a);
 	err += sn9c102_write_reg(cam, 0x1a, 0x1b);
 	err += sn9c102_write_reg(cam, sn9c102_pread_reg(cam, 0x19), 0x19);
@@ -155,7 +136,7 @@ int sn9c102_probe_tas5130d1b(struct sn9c102_device* cam)
 		{ }
 	};
 
-	/* Sensor detection is based on USB pid/vid */
+	
 	if (!sn9c102_match_id(cam, tas5130d1b_id_table))
 		return -ENODEV;
 

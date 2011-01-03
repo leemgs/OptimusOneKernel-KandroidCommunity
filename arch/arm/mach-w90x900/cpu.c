@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-w90x900/cpu.c
- *
- * Copyright (c) 2009 Nuvoton corporation.
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * NUC900 series cpu common support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation;version 2 of the License.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -37,7 +24,7 @@
 #include "cpu.h"
 #include "clock.h"
 
-/* Initial IO mappings */
+
 
 static struct map_desc nuc900_iodesc[] __initdata = {
 	IODESC_ENT(IRQ),
@@ -47,7 +34,7 @@ static struct map_desc nuc900_iodesc[] __initdata = {
 	IODESC_ENT(EBI),
 };
 
-/* Initial clock declarations. */
+
 static DEFINE_CLK(lcd, 0);
 static DEFINE_CLK(audio, 1);
 static DEFINE_CLK(fmi, 4);
@@ -92,7 +79,7 @@ static struct clk_lookup nuc900_clkregs[] = {
 	DEF_CLKLOOK(&clk_ext, NULL, "ext"),
 };
 
-/* Initial serial platform data */
+
 
 struct plat_serial8250_port nuc900_uart_data[] = {
 	NUC900_8250PORT(UART0),
@@ -106,7 +93,7 @@ struct platform_device nuc900_serial_device = {
 	},
 };
 
-/*Set NUC900 series cpu frequence*/
+
 static int __init nuc900_set_clkval(unsigned int cpufreq)
 {
 	unsigned int pllclk, ahbclk, apbclk, val;
@@ -183,7 +170,7 @@ static int __init nuc900_set_cpufreq(char *str)
 
 __setup("cpufreq=", nuc900_set_cpufreq);
 
-/*Init NUC900 evb io*/
+
 
 void __init nuc900_map_io(struct map_desc *mach_desc, int mach_size)
 {
@@ -203,7 +190,7 @@ void __init nuc900_map_io(struct map_desc *mach_desc, int mach_size)
 		printk(KERN_INFO "CPU type 0x%08lx is NUC960\n", idcode);
 }
 
-/*Init NUC900 clock*/
+
 
 void __init nuc900_init_clocks(void)
 {

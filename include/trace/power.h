@@ -29,4 +29,4 @@ DECLARE_TRACE(power_end,
 	TP_PROTO(struct power_trace *it),
 	      TP_ARGS(it));
 
-#endif /* _TRACE_POWER_H */
+#endif 

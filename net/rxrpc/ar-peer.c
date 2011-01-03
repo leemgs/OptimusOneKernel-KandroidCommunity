@@ -1,13 +1,4 @@
-/* RxRPC remote transport endpoint management
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/net.h>
@@ -28,10 +19,7 @@ static DECLARE_WAIT_QUEUE_HEAD(rxrpc_peer_wq);
 
 static void rxrpc_destroy_peer(struct work_struct *work);
 
-/*
- * assess the MTU size for the network interface through which this peer is
- * reached
- */
+
 static void rxrpc_assess_MTU_size(struct rxrpc_peer *peer)
 {
 	struct rtable *rt;
@@ -49,7 +37,7 @@ static void rxrpc_assess_MTU_size(struct rxrpc_peer *peer)
 		fl.nl_u.ip4_u.saddr = 0;
 		fl.nl_u.ip4_u.daddr = peer->srx.transport.sin.sin_addr.s_addr;
 		fl.nl_u.ip4_u.tos = 0;
-		/* assume AFS.CM talking to AFS.FS */
+		
 		fl.uli_u.ports.sport = htons(7001);
 		fl.uli_u.ports.dport = htons(7000);
 		break;
@@ -69,9 +57,7 @@ static void rxrpc_assess_MTU_size(struct rxrpc_peer *peer)
 	_leave(" [if_mtu %u]", peer->if_mtu);
 }
 
-/*
- * allocate a new peer
- */
+
 static struct rxrpc_peer *rxrpc_alloc_peer(struct sockaddr_rxrpc *srx,
 					   gfp_t gfp)
 {
@@ -114,9 +100,7 @@ static struct rxrpc_peer *rxrpc_alloc_peer(struct sockaddr_rxrpc *srx,
 	return peer;
 }
 
-/*
- * obtain a remote transport endpoint for the specified address
- */
+
 struct rxrpc_peer *rxrpc_get_peer(struct sockaddr_rxrpc *srx, gfp_t gfp)
 {
 	struct rxrpc_peer *peer, *candidate;
@@ -129,7 +113,7 @@ struct rxrpc_peer *rxrpc_get_peer(struct sockaddr_rxrpc *srx, gfp_t gfp)
 	       &srx->transport.sin.sin_addr,
 	       ntohs(srx->transport.sin.sin_port));
 
-	/* search the peer list first */
+	
 	read_lock_bh(&rxrpc_peer_lock);
 	list_for_each_entry(peer, &rxrpc_peers, link) {
 		_debug("check PEER %d { u=%d t=%d l=%d }",
@@ -148,8 +132,7 @@ struct rxrpc_peer *rxrpc_get_peer(struct sockaddr_rxrpc *srx, gfp_t gfp)
 	}
 	read_unlock_bh(&rxrpc_peer_lock);
 
-	/* not yet present - create a candidate for a new record and then
-	 * redo the search */
+	
 	candidate = rxrpc_alloc_peer(srx, gfp);
 	if (!candidate) {
 		_leave(" = -ENOMEM");
@@ -168,7 +151,7 @@ struct rxrpc_peer *rxrpc_get_peer(struct sockaddr_rxrpc *srx, gfp_t gfp)
 			goto found_extant_second;
 	}
 
-	/* we can now add the new candidate to the list */
+	
 	peer = candidate;
 	candidate = NULL;
 
@@ -188,13 +171,13 @@ success:
 	_leave(" = %p {u=%d}", peer, atomic_read(&peer->usage));
 	return peer;
 
-	/* we found the peer in the list immediately */
+	
 found_extant_peer:
 	usage = atomic_inc_return(&peer->usage);
 	read_unlock_bh(&rxrpc_peer_lock);
 	goto success;
 
-	/* we found the peer on the second time through the list */
+	
 found_extant_second:
 	usage = atomic_inc_return(&peer->usage);
 	write_unlock_bh(&rxrpc_peer_lock);
@@ -202,9 +185,7 @@ found_extant_second:
 	goto success;
 }
 
-/*
- * find the peer associated with a packet
- */
+
 struct rxrpc_peer *rxrpc_find_peer(struct rxrpc_local *local,
 				   __be32 addr, __be16 port)
 {
@@ -212,7 +193,7 @@ struct rxrpc_peer *rxrpc_find_peer(struct rxrpc_local *local,
 
 	_enter("");
 
-	/* search the peer list */
+	
 	read_lock_bh(&rxrpc_peer_lock);
 
 	if (local->srx.transport.family == AF_INET &&
@@ -248,9 +229,7 @@ new_UDP_peer:
 	return ERR_PTR(-EBUSY);
 }
 
-/*
- * release a remote transport endpoint
- */
+
 void rxrpc_put_peer(struct rxrpc_peer *peer)
 {
 	_enter("%p{u=%d}", peer, atomic_read(&peer->usage));
@@ -266,9 +245,7 @@ void rxrpc_put_peer(struct rxrpc_peer *peer)
 	_leave("");
 }
 
-/*
- * destroy a remote transport endpoint
- */
+
 static void rxrpc_destroy_peer(struct work_struct *work)
 {
 	struct rxrpc_peer *peer =
@@ -288,17 +265,14 @@ static void rxrpc_destroy_peer(struct work_struct *work)
 	_leave("");
 }
 
-/*
- * preemptively destroy all the peer records from a transport endpoint rather
- * than waiting for them to time out
- */
+
 void __exit rxrpc_destroy_all_peers(void)
 {
 	DECLARE_WAITQUEUE(myself,current);
 
 	_enter("");
 
-	/* we simply have to wait for them to go away */
+	
 	if (!list_empty(&rxrpc_peers)) {
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		add_wait_queue(&rxrpc_peer_wq, &myself);

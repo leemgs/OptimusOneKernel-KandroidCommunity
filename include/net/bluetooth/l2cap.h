@@ -1,45 +1,23 @@
-/* 
-   BlueZ - Bluetooth protocol stack for Linux
-   Copyright (C) 2000-2001 Qualcomm Incorporated
 
-   Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation;
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.
-   IN NO EVENT SHALL THE COPYRIGHT HOLDER(S) AND AUTHOR(S) BE LIABLE FOR ANY
-   CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES 
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN 
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF 
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-   ALL LIABILITY, INCLUDING LIABILITY FOR INFRINGEMENT OF ANY PATENTS, 
-   COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS, RELATING TO USE OF THIS 
-   SOFTWARE IS DISCLAIMED.
-*/
 
 #ifndef __L2CAP_H
 #define __L2CAP_H
 
-/* L2CAP defaults */
+
 #define L2CAP_DEFAULT_MTU		672
 #define L2CAP_DEFAULT_MIN_MTU		48
 #define L2CAP_DEFAULT_FLUSH_TO		0xffff
 #define L2CAP_DEFAULT_TX_WINDOW		63
 #define L2CAP_DEFAULT_NUM_TO_ACK        (L2CAP_DEFAULT_TX_WINDOW/5)
 #define L2CAP_DEFAULT_MAX_TX		3
-#define L2CAP_DEFAULT_RETRANS_TO	1000    /* 1 second */
-#define L2CAP_DEFAULT_MONITOR_TO	12000   /* 12 seconds */
+#define L2CAP_DEFAULT_RETRANS_TO	1000    
+#define L2CAP_DEFAULT_MONITOR_TO	12000   
 #define L2CAP_DEFAULT_MAX_PDU_SIZE	672
 
-#define L2CAP_CONN_TIMEOUT	(40000) /* 40 seconds */
-#define L2CAP_INFO_TIMEOUT	(4000)  /*  4 seconds */
+#define L2CAP_CONN_TIMEOUT	(40000) 
+#define L2CAP_INFO_TIMEOUT	(4000)  
 
-/* L2CAP socket address */
+
 struct sockaddr_l2 {
 	sa_family_t	l2_family;
 	__le16		l2_psm;
@@ -47,7 +25,7 @@ struct sockaddr_l2 {
 	__le16		l2_cid;
 };
 
-/* L2CAP socket options */
+
 #define L2CAP_OPTIONS	0x01
 struct l2cap_options {
 	__u16 omtu;
@@ -70,8 +48,9 @@ struct l2cap_conninfo {
 #define L2CAP_LM_TRUSTED	0x0008
 #define L2CAP_LM_RELIABLE	0x0010
 #define L2CAP_LM_SECURE		0x0020
+#define L2CAP_LM_FLUSHABLE	0x0040
 
-/* L2CAP command codes */
+
 #define L2CAP_COMMAND_REJ	0x01
 #define L2CAP_CONN_REQ		0x02
 #define L2CAP_CONN_RSP		0x03
@@ -84,7 +63,7 @@ struct l2cap_conninfo {
 #define L2CAP_INFO_REQ		0x0a
 #define L2CAP_INFO_RSP		0x0b
 
-/* L2CAP feature mask */
+
 #define L2CAP_FEAT_FLOWCTL	0x00000001
 #define L2CAP_FEAT_RETRANS	0x00000002
 #define L2CAP_FEAT_ERTM		0x00000008
@@ -92,11 +71,11 @@ struct l2cap_conninfo {
 #define L2CAP_FEAT_FCS		0x00000020
 #define L2CAP_FEAT_FIXED_CHAN	0x00000080
 
-/* L2CAP checksum option */
+
 #define L2CAP_FCS_NONE		0x00
 #define L2CAP_FCS_CRC16		0x01
 
-/* L2CAP Control Field bit masks */
+
 #define L2CAP_CTRL_SAR               0xC000
 #define L2CAP_CTRL_REQSEQ            0x3F00
 #define L2CAP_CTRL_TXSEQ             0x007E
@@ -104,25 +83,25 @@ struct l2cap_conninfo {
 #define L2CAP_CTRL_FINAL             0x0080
 #define L2CAP_CTRL_POLL              0x0010
 #define L2CAP_CTRL_SUPERVISE         0x000C
-#define L2CAP_CTRL_FRAME_TYPE        0x0001 /* I- or S-Frame */
+#define L2CAP_CTRL_FRAME_TYPE        0x0001 
 
 #define L2CAP_CTRL_TXSEQ_SHIFT      1
 #define L2CAP_CTRL_REQSEQ_SHIFT     8
 #define L2CAP_CTRL_SAR_SHIFT       14
 
-/* L2CAP Supervisory Function */
+
 #define L2CAP_SUPER_RCV_READY           0x0000
 #define L2CAP_SUPER_REJECT              0x0004
 #define L2CAP_SUPER_RCV_NOT_READY       0x0008
 #define L2CAP_SUPER_SELECT_REJECT       0x000C
 
-/* L2CAP Segmentation and Reassembly */
+
 #define L2CAP_SDU_UNSEGMENTED       0x0000
 #define L2CAP_SDU_START             0x4000
 #define L2CAP_SDU_END               0x8000
 #define L2CAP_SDU_CONTINUE          0xC000
 
-/* L2CAP structures */
+
 struct l2cap_hdr {
 	__le16     len;
 	__le16     cid;
@@ -152,20 +131,20 @@ struct l2cap_conn_rsp {
 	__le16     status;
 } __attribute__ ((packed));
 
-/* channel indentifier */
+
 #define L2CAP_CID_SIGNALING	0x0001
 #define L2CAP_CID_CONN_LESS	0x0002
 #define L2CAP_CID_DYN_START	0x0040
 #define L2CAP_CID_DYN_END	0xffff
 
-/* connect result */
+
 #define L2CAP_CR_SUCCESS	0x0000
 #define L2CAP_CR_PEND		0x0001
 #define L2CAP_CR_BAD_PSM	0x0002
 #define L2CAP_CR_SEC_BLOCK	0x0003
 #define L2CAP_CR_NO_MEM		0x0004
 
-/* connect status */
+
 #define L2CAP_CS_NO_INFO	0x0000
 #define L2CAP_CS_AUTHEN_PEND	0x0001
 #define L2CAP_CS_AUTHOR_PEND	0x0002
@@ -241,16 +220,16 @@ struct l2cap_info_rsp {
 	__u8        data[0];
 } __attribute__ ((packed));
 
-/* info type */
+
 #define L2CAP_IT_CL_MTU     0x0001
 #define L2CAP_IT_FEAT_MASK  0x0002
 #define L2CAP_IT_FIXED_CHAN 0x0003
 
-/* info result */
+
 #define L2CAP_IR_SUCCESS    0x0000
 #define L2CAP_IR_NOTSUPP    0x0001
 
-/* ----- L2CAP connections ----- */
+
 struct l2cap_chan_list {
 	struct sock	*head;
 	rwlock_t	lock;
@@ -288,7 +267,7 @@ struct l2cap_conn {
 #define L2CAP_INFO_FEAT_MASK_REQ_SENT	0x04
 #define L2CAP_INFO_FEAT_MASK_REQ_DONE	0x08
 
-/* ----- L2CAP channel and socket info ----- */
+
 #define l2cap_pi(sk) ((struct l2cap_pinfo *) sk)
 #define TX_QUEUE(sk) (&l2cap_pi(sk)->tx_queue)
 #define SREJ_QUEUE(sk) (&l2cap_pi(sk)->srej_queue)
@@ -316,6 +295,7 @@ struct l2cap_pinfo {
 	__u8		sec_level;
 	__u8		role_switch;
 	__u8		force_reliable;
+	__u8		flushable;
 
 	__u8		conf_req[64];
 	__u8		conf_len;
@@ -402,4 +382,4 @@ static inline int l2cap_tx_window_full(struct sock *sk)
 
 void l2cap_load(void);
 
-#endif /* __L2CAP_H */
+#endif 

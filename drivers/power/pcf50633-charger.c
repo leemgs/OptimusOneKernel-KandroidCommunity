@@ -1,18 +1,4 @@
-/* NXP PCF50633 Main Battery Charger Driver
- *
- * (C) 2006-2008 by Openmoko, Inc.
- * Author: Balaji Rao <balajirrao@openmoko.org>
- * All rights reserved.
- *
- * Broken down from monstrous PCF50633 driver mainly by
- * Harald Welte, Andy Green and Werner Almesberger
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -66,13 +52,11 @@ int pcf50633_mbc_usb_curlim_set(struct pcf50633 *pcf, int ma)
 	else
 		dev_info(pcf->dev, "usb curlim to %d mA\n", ma);
 
-	/* Manual charging start */
+	
 	mbcs2 = pcf50633_reg_read(pcf, PCF50633_REG_MBCS2);
 	chgmod = (mbcs2 & PCF50633_MBCS2_MBC_MASK);
 
-	/* If chgmod == BATFULL, setting chgena has no effect.
-	 * We need to set resume instead.
-	 */
+	
 	if (chgmod != PCF50633_MBCS2_MBC_BAT_FULL)
 		pcf50633_reg_set_bit_mask(pcf, PCF50633_REG_MBCC1,
 				PCF50633_MBCC1_CHGENA, PCF50633_MBCC1_CHGENA);
@@ -163,18 +147,11 @@ static struct attribute *pcf50633_mbc_sysfs_entries[] = {
 };
 
 static struct attribute_group mbc_attr_group = {
-	.name	= NULL,			/* put in device directory */
+	.name	= NULL,			
 	.attrs	= pcf50633_mbc_sysfs_entries,
 };
 
-/* MBC state machine switches into charging mode when the battery voltage
- * falls below 96% of a battery float voltage. But the voltage drop in Li-ion
- * batteries is marginal(1~2 %) till about 80% of its capacity - which means,
- * after a BATFULL, charging won't be restarted until 80%.
- *
- * This work_struct function restarts charging at regular intervals to make
- * sure we don't discharge too much
- */
+
 
 static void pcf50633_mbc_charging_restart(struct work_struct *work)
 {
@@ -190,7 +167,7 @@ static void pcf50633_mbc_charging_restart(struct work_struct *work)
 	if (chgmod != PCF50633_MBCS2_MBC_BAT_FULL)
 		return;
 
-	/* Restart charging */
+	
 	pcf50633_reg_set_bit_mask(mbc->pcf, PCF50633_REG_MBCC1,
 				PCF50633_MBCC1_RESUME, PCF50633_MBCC1_RESUME);
 	mbc->usb_active = 1;
@@ -206,7 +183,7 @@ pcf50633_mbc_irq_handler(int irq, void *data)
 	int chg_restart_interval =
 			mbc->pcf->pdata->charging_restart_interval;
 
-	/* USB */
+	
 	if (irq == PCF50633_IRQ_USBINS) {
 		mbc->usb_online = 1;
 	} else if (irq == PCF50633_IRQ_USBREM) {
@@ -216,7 +193,7 @@ pcf50633_mbc_irq_handler(int irq, void *data)
 		cancel_delayed_work_sync(&mbc->charging_restart_work);
 	}
 
-	/* Adapter */
+	
 	if (irq == PCF50633_IRQ_ADPINS) {
 		mbc->adapter_online = 1;
 		mbc->adapter_active = 1;
@@ -315,12 +292,12 @@ static int __devinit pcf50633_mbc_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, mbc);
 	mbc->pcf = pdata->pcf;
 
-	/* Set up IRQ handlers */
+	
 	for (i = 0; i < ARRAY_SIZE(mbc_irq_handlers); i++)
 		pcf50633_register_irq(mbc->pcf, mbc_irq_handlers[i],
 					pcf50633_mbc_irq_handler, mbc);
 
-	/* Create power supplies */
+	
 	mbc->adapter.name		= "adapter";
 	mbc->adapter.type		= POWER_SUPPLY_TYPE_MAINS;
 	mbc->adapter.properties		= power_props;
@@ -373,7 +350,7 @@ static int __devexit pcf50633_mbc_remove(struct platform_device *pdev)
 	struct pcf50633_mbc *mbc = platform_get_drvdata(pdev);
 	int i;
 
-	/* Remove IRQ handlers */
+	
 	for (i = 0; i < ARRAY_SIZE(mbc_irq_handlers); i++)
 		pcf50633_free_irq(mbc->pcf, mbc_irq_handlers[i]);
 

@@ -1,6 +1,4 @@
-/*
- * debug.c - ACPI debug interface to userspace.
- */
+
 
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
@@ -91,9 +89,7 @@ static const struct acpi_dlevel acpi_debug_levels[] = {
 	ACPI_DEBUG_INIT(ACPI_LV_EVENTS),
 };
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/sys)
-   -------------------------------------------------------------------------- */
+
 static int param_get_debug_layer(char *buffer, struct kernel_param *kp) {
 	int result = 0;
 	int i;
@@ -195,9 +191,7 @@ static int param_get_trace_state(char *buffer, struct kernel_param *kp)
 module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
 		  NULL, 0644);
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc)
-   -------------------------------------------------------------------------- */
+
 #ifdef CONFIG_ACPI_PROCFS
 #define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
 #define ACPI_SYSTEM_FILE_DEBUG_LEVEL		"debug_level"
@@ -293,7 +287,7 @@ int __init acpi_debug_init(void)
 	int error = 0;
 	char *name;
 
-	/* 'debug_layer' [R/W] */
+	
 	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
 	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
 				 acpi_root_dir, &acpi_system_debug_proc_fops,
@@ -301,7 +295,7 @@ int __init acpi_debug_init(void)
 	if (!entry)
 		goto Error;
 
-	/* 'debug_level' [R/W] */
+	
 	name = ACPI_SYSTEM_FILE_DEBUG_LEVEL;
 	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
 				 acpi_root_dir, &acpi_system_debug_proc_fops,

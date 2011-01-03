@@ -1,10 +1,4 @@
-/*
- * (C) 2007 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/skbuff.h>
 #include <linux/gen_stats.h>
@@ -95,10 +89,7 @@ static bool xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
 
 	est = xt_rateest_lookup(info->name);
 	if (est) {
-		/*
-		 * If estimator parameters are specified, they must match the
-		 * existing estimator.
-		 */
+		
 		if ((!info->interval && !info->ewma_log) ||
 		    (info->interval != est->params.interval ||
 		     info->ewma_log != est->params.ewma_log)) {

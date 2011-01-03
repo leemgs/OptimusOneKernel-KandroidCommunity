@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <bfa_svc.h>
@@ -36,17 +21,12 @@ BFA_MODULE(pport);
 	}								\
 } while (0)
 
-/*
- * The port is considered disabled if corresponding physical port or IOC are
- * disabled explicitly
- */
+
 #define BFA_PORT_IS_DISABLED(bfa) \
 	((bfa_pport_is_disabled(bfa) == BFA_TRUE) || \
 	(bfa_ioc_is_disabled(&bfa->ioc) == BFA_TRUE))
 
-/*
- * forward declarations
- */
+
 static bfa_boolean_t bfa_pport_send_enable(struct bfa_pport_s *port);
 static bfa_boolean_t bfa_pport_send_disable(struct bfa_pport_s *port);
 static void     bfa_pport_update_linkinfo(struct bfa_pport_s *pport);
@@ -58,23 +38,19 @@ static void     __bfa_cb_port_stats_clr(void *cbarg, bfa_boolean_t complete);
 static void     bfa_port_stats_timeout(void *cbarg);
 static void     bfa_port_stats_clr_timeout(void *cbarg);
 
-/**
- *  bfa_pport_private
- */
 
-/**
- * BFA port state machine events
- */
+
+
 enum bfa_pport_sm_event {
-	BFA_PPORT_SM_START = 1,	/*  start port state machine */
-	BFA_PPORT_SM_STOP = 2,	/*  stop port state machine */
-	BFA_PPORT_SM_ENABLE = 3,	/*  enable port */
-	BFA_PPORT_SM_DISABLE = 4,	/*  disable port state machine */
-	BFA_PPORT_SM_FWRSP = 5,	/*  firmware enable/disable rsp */
-	BFA_PPORT_SM_LINKUP = 6,	/*  firmware linkup event */
-	BFA_PPORT_SM_LINKDOWN = 7,	/*  firmware linkup down */
-	BFA_PPORT_SM_QRESUME = 8,	/*  CQ space available */
-	BFA_PPORT_SM_HWFAIL = 9,	/*  IOC h/w failure */
+	BFA_PPORT_SM_START = 1,	
+	BFA_PPORT_SM_STOP = 2,	
+	BFA_PPORT_SM_ENABLE = 3,	
+	BFA_PPORT_SM_DISABLE = 4,	
+	BFA_PPORT_SM_FWRSP = 5,	
+	BFA_PPORT_SM_LINKUP = 6,	
+	BFA_PPORT_SM_LINKDOWN = 7,	
+	BFA_PPORT_SM_QRESUME = 8,	
+	BFA_PPORT_SM_HWFAIL = 9,	
 };
 
 static void     bfa_pport_sm_uninit(struct bfa_pport_s *pport,
@@ -160,9 +136,7 @@ bfa_pport_sm_uninit(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 
 	switch (event) {
 	case BFA_PPORT_SM_START:
-		/**
-		 * Start event after IOC is configured and BFA is started.
-		 */
+		
 		if (bfa_pport_send_enable(pport))
 			bfa_sm_set_state(pport, bfa_pport_sm_enabling);
 		else
@@ -170,18 +144,11 @@ bfa_pport_sm_uninit(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	case BFA_PPORT_SM_ENABLE:
-		/**
-		 * Port is persistently configured to be in enabled state. Do
-		 * not change state. Port enabling is done when START event is
-		 * received.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
-		/**
-		 * If a port is persistently configured to be disabled, the
-		 * first event will a port disable request.
-		 */
+		
 		bfa_sm_set_state(pport, bfa_pport_sm_disabled);
 		break;
 
@@ -212,16 +179,11 @@ bfa_pport_sm_enabling_qwait(struct bfa_pport_s *pport,
 		break;
 
 	case BFA_PPORT_SM_ENABLE:
-		/**
-		 * Already enable is in progress.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
-		/**
-		 * Just send disable request to firmware when room becomes
-		 * available in request queue.
-		 */
+		
 		bfa_sm_set_state(pport, bfa_pport_sm_disabled);
 		bfa_reqq_wcancel(&pport->reqq_wait);
 		bfa_plog_str(pport->bfa->plog, BFA_PL_MID_HAL,
@@ -231,10 +193,7 @@ bfa_pport_sm_enabling_qwait(struct bfa_pport_s *pport,
 
 	case BFA_PPORT_SM_LINKUP:
 	case BFA_PPORT_SM_LINKDOWN:
-		/**
-		 * Possible to get link events when doing back-to-back
-		 * enable/disables.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_HWFAIL:
@@ -267,9 +226,7 @@ bfa_pport_sm_enabling(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	case BFA_PPORT_SM_ENABLE:
-		/**
-		 * Already being enabled.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
@@ -310,10 +267,7 @@ bfa_pport_sm_linkdown(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 			     BFA_PL_EID_PORT_ST_CHANGE, 0, "Port Linkup");
 		bfa_pport_callback(pport, BFA_PPORT_LINKUP);
 		bfa_pport_aen_post(pport, BFA_PORT_AEN_ONLINE);
-		/**
-		 * If QoS is enabled and it is not online,
-		 * Send a separate event.
-		 */
+		
 		if ((pport->cfg.qos_enabled)
 		    && (bfa_os_ntohl(pport->qos_attr.state) != BFA_QOS_ONLINE))
 			bfa_pport_aen_post(pport, BFA_PORT_AEN_QOS_NEG);
@@ -321,15 +275,11 @@ bfa_pport_sm_linkdown(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	case BFA_PPORT_SM_LINKDOWN:
-		/**
-		 * Possible to get link down event.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_ENABLE:
-		/**
-		 * Already enabled.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
@@ -363,9 +313,7 @@ bfa_pport_sm_linkup(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 
 	switch (event) {
 	case BFA_PPORT_SM_ENABLE:
-		/**
-		 * Already enabled.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
@@ -439,17 +387,12 @@ bfa_pport_sm_disabling_qwait(struct bfa_pport_s *pport,
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
-		/**
-		 * Already being disabled.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_LINKUP:
 	case BFA_PPORT_SM_LINKDOWN:
-		/**
-		 * Possible to get link events when doing back-to-back
-		 * enable/disables.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_HWFAIL:
@@ -473,9 +416,7 @@ bfa_pport_sm_disabling(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
-		/**
-		 * Already being disabled.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_ENABLE:
@@ -495,10 +436,7 @@ bfa_pport_sm_disabling(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 
 	case BFA_PPORT_SM_LINKUP:
 	case BFA_PPORT_SM_LINKDOWN:
-		/**
-		 * Possible to get link events when doing back-to-back
-		 * enable/disables.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_HWFAIL:
@@ -517,9 +455,7 @@ bfa_pport_sm_disabled(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 
 	switch (event) {
 	case BFA_PPORT_SM_START:
-		/**
-		 * Ignore start event for a port that is disabled.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_STOP:
@@ -538,9 +474,7 @@ bfa_pport_sm_disabled(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	case BFA_PPORT_SM_DISABLE:
-		/**
-		 * Already disabled.
-		 */
+		
 		break;
 
 	case BFA_PPORT_SM_HWFAIL:
@@ -566,16 +500,12 @@ bfa_pport_sm_stopped(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	default:
-		/**
-		 * Ignore all other events.
-		 */
+		
 		;
 	}
 }
 
-/**
- * Port is enabled. IOC is down/failed.
- */
+
 static void
 bfa_pport_sm_iocdown(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 {
@@ -590,16 +520,12 @@ bfa_pport_sm_iocdown(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	default:
-		/**
-		 * Ignore all events.
-		 */
+		
 		;
 	}
 }
 
-/**
- * Port is disabled. IOC is down/failed.
- */
+
 static void
 bfa_pport_sm_iocfail(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 {
@@ -615,18 +541,14 @@ bfa_pport_sm_iocfail(struct bfa_pport_s *pport, enum bfa_pport_sm_event event)
 		break;
 
 	default:
-		/**
-		 * Ignore all events.
-		 */
+		
 		;
 	}
 }
 
 
 
-/**
- *  bfa_pport_private
- */
+
 
 static void
 __bfa_cb_port_event(void *cbarg, bfa_boolean_t complete)
@@ -675,9 +597,7 @@ bfa_pport_mem_claim(struct bfa_pport_s *pport, struct bfa_meminfo_s *meminfo)
 	bfa_meminfo_dma_phys(meminfo) = dm_pa;
 }
 
-/**
- * Memory initialization.
- */
+
 static void
 bfa_pport_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 		 struct bfa_meminfo_s *meminfo, struct bfa_pcidev_s *pcidev)
@@ -692,9 +612,7 @@ bfa_pport_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 
 	bfa_sm_set_state(pport, bfa_pport_sm_uninit);
 
-	/**
-	 * initialize and set default configuration
-	 */
+	
 	port_cfg->topology = BFA_PPORT_TOPOLOGY_P2P;
 	port_cfg->speed = BFA_PPORT_SPEED_AUTO;
 	port_cfg->trunked = BFA_FALSE;
@@ -710,9 +628,7 @@ bfa_pport_initdone(struct bfa_s *bfa)
 {
 	struct bfa_pport_s *pport = BFA_PORT_MOD(bfa);
 
-	/**
-	 * Initialize port attributes from IOC hardware data.
-	 */
+	
 	bfa_pport_set_wwns(pport);
 	if (pport->cfg.maxfrsize == 0)
 		pport->cfg.maxfrsize = bfa_ioc_maxfrsize(&bfa->ioc);
@@ -729,27 +645,21 @@ bfa_pport_detach(struct bfa_s *bfa)
 {
 }
 
-/**
- * Called when IOC is ready.
- */
+
 static void
 bfa_pport_start(struct bfa_s *bfa)
 {
 	bfa_sm_send_event(BFA_PORT_MOD(bfa), BFA_PPORT_SM_START);
 }
 
-/**
- * Called before IOC is stopped.
- */
+
 static void
 bfa_pport_stop(struct bfa_s *bfa)
 {
 	bfa_sm_send_event(BFA_PORT_MOD(bfa), BFA_PPORT_SM_STOP);
 }
 
-/**
- * Called when IOC failure is detected.
- */
+
 static void
 bfa_pport_iocdisable(struct bfa_s *bfa)
 {
@@ -767,9 +677,7 @@ bfa_pport_update_linkinfo(struct bfa_pport_s *pport)
 	if (pport->topology == BFA_PPORT_TOPOLOGY_LOOP)
 		pport->myalpa = pevent->link_state.tl.loop_info.myalpa;
 
-	/*
-	 * QoS Details
-	 */
+	
 	bfa_os_assign(pport->qos_attr, pevent->link_state.qos_attr);
 	bfa_os_assign(pport->qos_vc_attr, pevent->link_state.qos_vc_attr);
 
@@ -784,23 +692,16 @@ bfa_pport_reset_linkinfo(struct bfa_pport_s *pport)
 	pport->topology = BFA_PPORT_TOPOLOGY_NONE;
 }
 
-/**
- * Send port enable message to firmware.
- */
+
 static          bfa_boolean_t
 bfa_pport_send_enable(struct bfa_pport_s *port)
 {
 	struct bfi_pport_enable_req_s *m;
 
-	/**
-	 * Increment message tag before queue check, so that responses to old
-	 * requests are discarded.
-	 */
+	
 	port->msgtag++;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(port->bfa, BFA_REQQ_PORT);
 	if (!m) {
 		bfa_reqq_wait(port->bfa, BFA_REQQ_PORT, &port->reqq_wait);
@@ -818,30 +719,21 @@ bfa_pport_send_enable(struct bfa_pport_s *port)
 	bfa_trc(port->bfa, m->stats_dma_addr.a32.addr_lo);
 	bfa_trc(port->bfa, m->stats_dma_addr.a32.addr_hi);
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(port->bfa, BFA_REQQ_PORT);
 	return BFA_TRUE;
 }
 
-/**
- * Send port disable message to firmware.
- */
+
 static          bfa_boolean_t
 bfa_pport_send_disable(struct bfa_pport_s *port)
 {
 	bfi_pport_disable_req_t *m;
 
-	/**
-	 * Increment message tag before queue check, so that responses to old
-	 * requests are discarded.
-	 */
+	
 	port->msgtag++;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(port->bfa, BFA_REQQ_PORT);
 	if (!m) {
 		bfa_reqq_wait(port->bfa, BFA_REQQ_PORT, &port->reqq_wait);
@@ -852,9 +744,7 @@ bfa_pport_send_disable(struct bfa_pport_s *port)
 		    bfa_lpuid(port->bfa));
 	m->msgtag = port->msgtag;
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(port->bfa, BFA_REQQ_PORT);
 
 	return BFA_TRUE;
@@ -877,9 +767,7 @@ bfa_port_send_txcredit(void *port_cbarg)
 	struct bfa_pport_s *port = port_cbarg;
 	struct bfi_pport_set_svc_params_req_s *m;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(port->bfa, BFA_REQQ_PORT);
 	if (!m) {
 		bfa_trc(port->bfa, port->cfg.tx_bbcredit);
@@ -890,21 +778,15 @@ bfa_port_send_txcredit(void *port_cbarg)
 		    bfa_lpuid(port->bfa));
 	m->tx_bbcredit = bfa_os_htons((u16) port->cfg.tx_bbcredit);
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(port->bfa, BFA_REQQ_PORT);
 }
 
 
 
-/**
- *  bfa_pport_public
- */
 
-/**
- * Firmware message handler.
- */
+
+
 void
 bfa_pport_isr(struct bfa_s *bfa, struct bfi_msg_s *msg)
 {
@@ -934,16 +816,14 @@ bfa_pport_isr(struct bfa_s *bfa, struct bfi_msg_s *msg)
 			bfa_sm_send_event(pport, BFA_PPORT_SM_LINKDOWN);
 			break;
 		case BFA_PPORT_TRUNK_LINKDOWN:
-			/** todo: event notification */
+			
 			break;
 		}
 		break;
 
 	case BFI_PPORT_I2H_GET_STATS_RSP:
 	case BFI_PPORT_I2H_GET_QOS_STATS_RSP:
-		/*
-		 * check for timer pop before processing the rsp
-		 */
+		
 		if (pport->stats_busy == BFA_FALSE
 		    || pport->stats_status == BFA_STATUS_ETIMER)
 			break;
@@ -955,9 +835,7 @@ bfa_pport_isr(struct bfa_s *bfa, struct bfi_msg_s *msg)
 		break;
 	case BFI_PPORT_I2H_CLEAR_STATS_RSP:
 	case BFI_PPORT_I2H_CLEAR_QOS_STATS_RSP:
-		/*
-		 * check for timer pop before processing the rsp
-		 */
+		
 		if (pport->stats_busy == BFA_FALSE
 		    || pport->stats_status == BFA_STATUS_ETIMER)
 			break;
@@ -975,13 +853,9 @@ bfa_pport_isr(struct bfa_s *bfa, struct bfi_msg_s *msg)
 
 
 
-/**
- *  bfa_pport_api
- */
 
-/**
- * Registered callback for port events.
- */
+
+
 void
 bfa_pport_event_register(struct bfa_s *bfa,
 			 void (*cbfn) (void *cbarg, bfa_pport_event_t event),
@@ -1015,9 +889,7 @@ bfa_pport_disable(struct bfa_s *bfa)
 	return BFA_STATUS_OK;
 }
 
-/**
- * Configure port speed.
- */
+
 bfa_status_t
 bfa_pport_cfg_speed(struct bfa_s *bfa, enum bfa_pport_speed speed)
 {
@@ -1035,9 +907,7 @@ bfa_pport_cfg_speed(struct bfa_s *bfa, enum bfa_pport_speed speed)
 	return (BFA_STATUS_OK);
 }
 
-/**
- * Get current speed.
- */
+
 enum bfa_pport_speed
 bfa_pport_get_speed(struct bfa_s *bfa)
 {
@@ -1046,9 +916,7 @@ bfa_pport_get_speed(struct bfa_s *bfa)
 	return port->speed;
 }
 
-/**
- * Configure port topology.
- */
+
 bfa_status_t
 bfa_pport_cfg_topology(struct bfa_s *bfa, enum bfa_pport_topology topology)
 {
@@ -1071,9 +939,7 @@ bfa_pport_cfg_topology(struct bfa_s *bfa, enum bfa_pport_topology topology)
 	return (BFA_STATUS_OK);
 }
 
-/**
- * Get current topology.
- */
+
 enum bfa_pport_topology
 bfa_pport_get_topology(struct bfa_s *bfa)
 {
@@ -1134,15 +1000,11 @@ bfa_pport_cfg_maxfrsize(struct bfa_s *bfa, u16 maxfrsize)
 	bfa_trc(bfa, maxfrsize);
 	bfa_trc(bfa, pport->cfg.maxfrsize);
 
-	/*
-	 * with in range
-	 */
+	
 	if ((maxfrsize > FC_MAX_PDUSZ) || (maxfrsize < FC_MIN_PDUSZ))
 		return (BFA_STATUS_INVLD_DFSZ);
 
-	/*
-	 * power of 2, if not the max frame size of 2112
-	 */
+	
 	if ((maxfrsize != FC_MAX_PDUSZ) && (maxfrsize & (maxfrsize - 1)))
 		return (BFA_STATUS_INVLD_DFSZ);
 
@@ -1183,9 +1045,7 @@ bfa_pport_set_tx_bbcredit(struct bfa_s *bfa, u16 tx_bbcredit)
 	bfa_port_send_txcredit(port);
 }
 
-/**
- * Get port attributes.
- */
+
 
 wwn_t
 bfa_pport_get_wwn(struct bfa_s *bfa, bfa_boolean_t node)
@@ -1209,23 +1069,17 @@ bfa_pport_get_attr(struct bfa_s *bfa, struct bfa_pport_attr_s *attr)
 
 	bfa_os_memcpy(&attr->pport_cfg, &pport->cfg,
 		      sizeof(struct bfa_pport_cfg_s));
-	/*
-	 * speed attributes
-	 */
+	
 	attr->pport_cfg.speed = pport->cfg.speed;
 	attr->speed_supported = pport->speed_sup;
 	attr->speed = pport->speed;
 	attr->cos_supported = FC_CLASS_3;
 
-	/*
-	 * topology attributes
-	 */
+	
 	attr->pport_cfg.topology = pport->cfg.topology;
 	attr->topology = pport->topology;
 
-	/*
-	 * beacon attributes
-	 */
+	
 	attr->beacon = pport->beacon;
 	attr->link_e2e_beacon = pport->link_e2e_beacon;
 	attr->plog_enabled = bfa_plog_get_setting(pport->bfa->plog);
@@ -1319,9 +1173,7 @@ bfa_pport_stats_swap(union bfa_pport_stats_u *d, union bfa_pport_stats_u *s)
 	u32       *sip = (u32 *) s;
 	int             i;
 
-	/*
-	 * Do 64 bit fields swap first
-	 */
+	
 	for (i = 0;
 	     i <
 	     ((sizeof(union bfa_pport_stats_u) -
@@ -1335,9 +1187,7 @@ bfa_pport_stats_swap(union bfa_pport_stats_u *d, union bfa_pport_stats_u *s)
 #endif
 	}
 
-	/*
-	 * Now swap the 32 bit fields
-	 */
+	
 	for (; i < (sizeof(union bfa_pport_stats_u) / sizeof(u32)); ++i)
 		dip[i] = bfa_os_ntohl(sip[i]);
 }
@@ -1404,9 +1254,7 @@ bfa_port_stats_timeout(void *cbarg)
 
 #define BFA_PORT_STATS_TOV	1000
 
-/**
- * Fetch port attributes.
- */
+
 bfa_status_t
 bfa_pport_get_stats(struct bfa_s *bfa, union bfa_pport_stats_u *stats,
 		    bfa_cb_pport_t cbfn, void *cbarg)
@@ -1491,9 +1339,7 @@ bfa_pport_qos_get_vc_attr(struct bfa_s *bfa,
 	qos_vc_attr->elp_opmode_flags =
 		bfa_os_ntohl(bfa_vc_attr->elp_opmode_flags);
 
-	/*
-	 * Individual VC info
-	 */
+	
 	while (i < qos_vc_attr->total_vc_count) {
 		qos_vc_attr->vc_info[i].vc_credit =
 			bfa_vc_attr->vc_info[i].vc_credit;
@@ -1505,16 +1351,12 @@ bfa_pport_qos_get_vc_attr(struct bfa_s *bfa,
 	}
 }
 
-/**
- * Fetch QoS Stats.
- */
+
 bfa_status_t
 bfa_pport_get_qos_stats(struct bfa_s *bfa, union bfa_pport_stats_u *stats,
 			bfa_cb_pport_t cbfn, void *cbarg)
 {
-	/*
-	 * QoS stats is embedded in port stats
-	 */
+	
 	return (bfa_pport_get_stats(bfa, stats, cbfn, cbarg));
 }
 
@@ -1539,9 +1381,7 @@ bfa_pport_clear_qos_stats(struct bfa_s *bfa, bfa_cb_pport_t cbfn, void *cbarg)
 	return (BFA_STATUS_OK);
 }
 
-/**
- * Fetch port attributes.
- */
+
 bfa_status_t
 bfa_pport_trunk_disable(struct bfa_s *bfa)
 {
@@ -1600,9 +1440,7 @@ bfa_pport_cfg_ratelim(struct bfa_s *bfa, bfa_boolean_t on_off)
 		pport->cfg.trl_def_speed = BFA_PPORT_SPEED_1GBPS;
 }
 
-/**
- * Configure default minimum ratelim speed
- */
+
 bfa_status_t
 bfa_pport_cfg_ratelim_speed(struct bfa_s *bfa, enum bfa_pport_speed speed)
 {
@@ -1610,9 +1448,7 @@ bfa_pport_cfg_ratelim_speed(struct bfa_s *bfa, enum bfa_pport_speed speed)
 
 	bfa_trc(bfa, speed);
 
-	/*
-	 * Auto and speeds greater than the supported speed, are invalid
-	 */
+	
 	if ((speed == BFA_PPORT_SPEED_AUTO) || (speed > pport->speed_sup)) {
 		bfa_trc(bfa, pport->speed_sup);
 		return BFA_STATUS_UNSUPP_SPEED;
@@ -1623,9 +1459,7 @@ bfa_pport_cfg_ratelim_speed(struct bfa_s *bfa, enum bfa_pport_speed speed)
 	return (BFA_STATUS_OK);
 }
 
-/**
- * Get default minimum ratelim speed
- */
+
 enum bfa_pport_speed
 bfa_pport_get_ratelim_speed(struct bfa_s *bfa)
 {

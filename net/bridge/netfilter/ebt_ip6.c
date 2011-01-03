@@ -1,18 +1,4 @@
-/*
- *  ebt_ip6
- *
- *	Authors:
- *	Manohar Castelino <manohar.r.castelino@intel.com>
- *	Kuo-Lang Tseng <kuo-lang.tseng@intel.com>
- *	Jan Engelhardt <jengelh@computergmbh.de>
- *
- * Summary:
- * This is just a modification of the IPv4 code written by
- * Bart De Schuymer <bdschuym@pandora.be>
- * with the changes required to support IPv6
- *
- *  Jan, 2008
- */
+
 #include <linux/ipv6.h>
 #include <net/ipv6.h>
 #include <linux/in.h>

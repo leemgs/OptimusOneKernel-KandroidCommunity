@@ -1,18 +1,4 @@
-/*
- * Hardware definitions for Palm LifeDrive
- *
- * Author:     Marek Vasut <marek.vasut@gmail.com>
- *
- * Based on work of:
- *		Alex Osborne <ato@meshy.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * (find more info at www.hackndev.com)
- *
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/delay.h>
@@ -45,22 +31,20 @@
 #include "generic.h"
 #include "devices.h"
 
-/******************************************************************************
- * Pin configuration
- ******************************************************************************/
+
 static unsigned long palmld_pin_config[] __initdata = {
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
 	GPIO109_MMC_DAT_1,
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
 	GPIO112_MMC_CMD,
-	GPIO14_GPIO,	/* SD detect */
-	GPIO114_GPIO,	/* SD power */
-	GPIO116_GPIO,	/* SD r/o switch */
+	GPIO14_GPIO,	
+	GPIO114_GPIO,	
+	GPIO116_GPIO,	
 
-	/* AC97 */
+	
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
 	GPIO30_AC97_SDATA_OUT,
@@ -68,12 +52,12 @@ static unsigned long palmld_pin_config[] __initdata = {
 	GPIO89_AC97_SYSCLK,
 	GPIO95_AC97_nRESET,
 
-	/* IrDA */
-	GPIO108_GPIO,	/* ir disable */
+	
+	GPIO108_GPIO,	
 	GPIO46_FICP_RXD,
 	GPIO47_FICP_TXD,
 
-	/* MATRIX KEYPAD */
+	
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO101_KP_MKIN_1 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO102_KP_MKIN_2 | WAKEUP_ON_LEVEL_HIGH,
@@ -82,7 +66,7 @@ static unsigned long palmld_pin_config[] __initdata = {
 	GPIO104_KP_MKOUT_1,
 	GPIO105_KP_MKOUT_2,
 
-	/* LCD */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -104,19 +88,19 @@ static unsigned long palmld_pin_config[] __initdata = {
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
 
-	/* PWM */
+	
 	GPIO16_PWM0_OUT,
 
-	/* GPIO KEYS */
-	GPIO10_GPIO,	/* hotsync button */
-	GPIO12_GPIO,	/* power switch */
-	GPIO15_GPIO,	/* lock switch */
+	
+	GPIO10_GPIO,	
+	GPIO12_GPIO,	
+	GPIO15_GPIO,	
 
-	/* LEDs */
-	GPIO52_GPIO,	/* green led */
-	GPIO94_GPIO,	/* orange led */
+	
+	GPIO52_GPIO,	
+	GPIO94_GPIO,	
 
-	/* PCMCIA */
+	
 	GPIO48_nPOE,
 	GPIO49_nPWE,
 	GPIO50_nPIOR,
@@ -127,25 +111,23 @@ static unsigned long palmld_pin_config[] __initdata = {
 	GPIO55_nPREG,
 	GPIO56_nPWAIT,
 	GPIO57_nIOIS16,
-	GPIO36_GPIO,	/* wifi power */
-	GPIO38_GPIO,	/* wifi ready */
-	GPIO81_GPIO,	/* wifi reset */
+	GPIO36_GPIO,	
+	GPIO38_GPIO,	
+	GPIO81_GPIO,	
 
-	/* FFUART */
+	
 	GPIO34_FFUART_RXD,
 	GPIO39_FFUART_TXD,
 
-	/* HDD */
-	GPIO98_GPIO,	/* HDD reset */
-	GPIO115_GPIO,	/* HDD power */
+	
+	GPIO98_GPIO,	
+	GPIO115_GPIO,	
 
-	/* MISC */
-	GPIO13_GPIO,	/* earphone detect */
+	
+	GPIO13_GPIO,	
 };
 
-/******************************************************************************
- * NOR Flash
- ******************************************************************************/
+
 static struct mtd_partition palmld_partitions[] = {
 	{
 		.name		= "Flash",
@@ -157,7 +139,7 @@ static struct mtd_partition palmld_partitions[] = {
 
 static struct physmap_flash_data palmld_flash_data[] = {
 	{
-		.width		= 2,			/* bankwidth in bytes */
+		.width		= 2,			
 		.parts		= palmld_partitions,
 		.nr_parts	= ARRAY_SIZE(palmld_partitions)
 	}
@@ -179,9 +161,7 @@ static struct platform_device palmld_flash = {
 	},
 };
 
-/******************************************************************************
- * SD/MMC card controller
- ******************************************************************************/
+
 static struct pxamci_platform_data palmld_mci_platform_data = {
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO_NR_PALMLD_SD_DETECT_N,
@@ -190,9 +170,7 @@ static struct pxamci_platform_data palmld_mci_platform_data = {
 	.detect_delay		= 20,
 };
 
-/******************************************************************************
- * GPIO keyboard
- ******************************************************************************/
+
 static unsigned int palmld_matrix_keys[] = {
 	KEY(0, 1, KEY_F2),
 	KEY(0, 2, KEY_UP),
@@ -219,9 +197,7 @@ static struct pxa27x_keypad_platform_data palmld_keypad_platform_data = {
 	.debounce_interval	= 30,
 };
 
-/******************************************************************************
- * GPIO keys
- ******************************************************************************/
+
 static struct gpio_keys_button palmld_pxa_buttons[] = {
 	{KEY_F8, GPIO_NR_PALMLD_HOTSYNC_BUTTON_N, 1, "HotSync Button" },
 	{KEY_F9, GPIO_NR_PALMLD_LOCK_SWITCH, 0, "Lock Switch" },
@@ -241,9 +217,7 @@ static struct platform_device palmld_pxa_keys = {
 	},
 };
 
-/******************************************************************************
- * Backlight
- ******************************************************************************/
+
 static int palmld_backlight_init(struct device *dev)
 {
 	int ret;
@@ -301,17 +275,13 @@ static struct platform_device palmld_backlight = {
 	},
 };
 
-/******************************************************************************
- * IrDA
- ******************************************************************************/
+
 static struct pxaficp_platform_data palmld_ficp_platform_data = {
 	.gpio_pwdown		= GPIO_NR_PALMLD_IR_DISABLE,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
-/******************************************************************************
- * LEDs
- ******************************************************************************/
+
 struct gpio_led gpio_leds[] = {
 {
 	.name			= "palmld:green:led",
@@ -337,9 +307,7 @@ static struct platform_device palmld_leds = {
 	}
 };
 
-/******************************************************************************
- * Power supply
- ******************************************************************************/
+
 static int power_supply_init(struct device *dev)
 {
 	int ret;
@@ -405,9 +373,7 @@ static struct platform_device power_supply = {
 	},
 };
 
-/******************************************************************************
- * WM97xx battery
- ******************************************************************************/
+
 static struct wm97xx_batt_info wm97xx_batt_pdata = {
 	.batt_aux	= WM97XX_AUX_ID3,
 	.temp_aux	= WM97XX_AUX_ID2,
@@ -422,9 +388,7 @@ static struct wm97xx_batt_info wm97xx_batt_pdata = {
 	.batt_name	= "main-batt",
 };
 
-/******************************************************************************
- * aSoC audio
- ******************************************************************************/
+
 static struct palm27x_asoc_info palmld_asoc_pdata = {
 	.jack_gpio	= GPIO_NR_PALMLD_EARPHONE_DETECT,
 };
@@ -441,17 +405,13 @@ static struct platform_device palmld_asoc = {
 	},
 };
 
-/******************************************************************************
- * HDD
- ******************************************************************************/
+
 static struct platform_device palmld_hdd = {
 	.name	= "pata_palmld",
 	.id	= -1,
 };
 
-/******************************************************************************
- * Framebuffer
- ******************************************************************************/
+
 static struct pxafb_mode_info palmld_lcd_modes[] = {
 {
 	.pixclock	= 57692,
@@ -475,24 +435,20 @@ static struct pxafb_mach_info palmld_lcd_screen = {
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
 
-/******************************************************************************
- * Power management - standby
- ******************************************************************************/
+
 static void __init palmld_pm_init(void)
 {
 	static u32 resume[] = {
-		0xe3a00101,	/* mov	r0,	#0x40000000 */
-		0xe380060f,	/* orr	r0, r0, #0x00f00000 */
-		0xe590f008,	/* ldr	pc, [r0, #0x08] */
+		0xe3a00101,	
+		0xe380060f,	
+		0xe590f008,	
 	};
 
-	/* copy the bootloader */
+	
 	memcpy(phys_to_virt(PALMLD_STR_BASE), resume, sizeof(resume));
 }
 
-/******************************************************************************
- * Machine init
- ******************************************************************************/
+
 static struct platform_device *devices[] __initdata = {
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
 	&palmld_pxa_keys,

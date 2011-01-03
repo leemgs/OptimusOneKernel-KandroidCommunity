@@ -1,24 +1,4 @@
-  /*
-     Driver for ST STB6000 DVBS Silicon tuner
-
-     Copyright (C) 2008 Igor M. Liplianin (liplianin@me.by)
-
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-
-     GNU General Public License for more details.
-
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-  */
+  
 
 #include <linux/module.h>
 #include <linux/dvb/frontend.h>
@@ -34,7 +14,7 @@ static int debug;
 	} while (0)
 
 struct stb6000_priv {
-	/* i2c details */
+	
 	int i2c_address;
 	struct i2c_adapter *i2c;
 	u32 frequency;
@@ -122,10 +102,10 @@ static int stb6000_set_params(struct dvb_frontend *fe,
 		if (freq_mhz < 1000)
 			buf[1] = 0xba;
 		if (freq_mhz < 1075) {
-			n = freq_mhz / 8; /* vco=lo*4 */
+			n = freq_mhz / 8; 
 			m = 2;
 		} else {
-			n = freq_mhz / 16; /* vco=lo*2 */
+			n = freq_mhz / 16; 
 			m = 1;
 		}
 		buf[2] = n >> 1;
@@ -223,7 +203,7 @@ struct dvb_frontend *stb6000_attach(struct dvb_frontend *fe, int addr,
 	if (fe->ops.i2c_gate_ctrl)
 		fe->ops.i2c_gate_ctrl(fe, 1);
 
-	/* is some i2c device here ? */
+	
 	ret = i2c_transfer(i2c, msg, 2);
 	if (fe->ops.i2c_gate_ctrl)
 		fe->ops.i2c_gate_ctrl(fe, 0);

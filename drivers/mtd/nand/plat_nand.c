@@ -1,13 +1,4 @@
-/*
- * Generic NAND driver
- *
- * Author: Vitaly Wool <vitalywool@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/io.h>
 #include <linux/module.h>
@@ -27,16 +18,14 @@ struct plat_nand_data {
 #endif
 };
 
-/*
- * Probe for the NAND device.
- */
+
 static int __devinit plat_nand_probe(struct platform_device *pdev)
 {
 	struct platform_nand_data *pdata = pdev->dev.platform_data;
 	struct plat_nand_data *data;
 	int res = 0;
 
-	/* Allocate memory for the device structure (and zero it) */
+	
 	data = kzalloc(sizeof(struct plat_nand_data), GFP_KERNEL);
 	if (!data) {
 		dev_err(&pdev->dev, "failed to allocate device structure.\n");
@@ -72,14 +61,14 @@ static int __devinit plat_nand_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, data);
 
-	/* Handle any platform specific setup */
+	
 	if (pdata->ctrl.probe) {
 		res = pdata->ctrl.probe(pdev);
 		if (res)
 			goto out;
 	}
 
-	/* Scan to find existance of the device */
+	
 	if (nand_scan(&data->mtd, 1)) {
 		res = -ENXIO;
 		goto out;
@@ -118,9 +107,7 @@ out:
 	return res;
 }
 
-/*
- * Remove a NAND device.
- */
+
 static int __devexit plat_nand_remove(struct platform_device *pdev)
 {
 	struct plat_nand_data *data = platform_get_drvdata(pdev);

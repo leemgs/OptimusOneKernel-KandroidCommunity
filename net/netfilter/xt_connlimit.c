@@ -1,17 +1,4 @@
-/*
- * netfilter module to limit the number of parallel tcp
- * connections per IP address.
- *   (c) 2000 Gerd Knorr <kraxel@bytesex.org>
- *   Nov 2002: Martin Bene <martin.bene@icomedias.com>:
- *		only ignore TIME_WAIT or gone connections
- *   (C) CC Computer Consultants GmbH, 2007
- *   Contact: <jengelh@computergmbh.de>
- *
- * based on ...
- *
- * Kernel module to match connection tracking information.
- * GPL (C) 1999  Rusty Russell (rusty@rustcorp.com.au).
- */
+
 #include <linux/in.h>
 #include <linux/in6.h>
 #include <linux/ip.h>
@@ -29,7 +16,7 @@
 #include <net/netfilter/nf_conntrack_core.h>
 #include <net/netfilter/nf_conntrack_tuple.h>
 
-/* we will save the tuples of all connections we care about */
+
 struct xt_connlimit_conn {
 	struct list_head list;
 	struct nf_conntrack_tuple tuple;
@@ -120,7 +107,7 @@ static int count_them(struct xt_connlimit_data *data,
 
 	rcu_read_lock();
 
-	/* check the saved connections */
+	
 	list_for_each_entry_safe(conn, tmp, hash, list) {
 		found    = nf_conntrack_find_get(&init_net, &conn->tuple);
 		found_ct = NULL;
@@ -131,25 +118,18 @@ static int count_them(struct xt_connlimit_data *data,
 		if (found_ct != NULL &&
 		    nf_ct_tuple_equal(&conn->tuple, tuple) &&
 		    !already_closed(found_ct))
-			/*
-			 * Just to be sure we have it only once in the list.
-			 * We should not see tuples twice unless someone hooks
-			 * this into a table without "-p tcp --syn".
-			 */
+			
 			addit = false;
 
 		if (found == NULL) {
-			/* this one is gone */
+			
 			list_del(&conn->list);
 			kfree(conn);
 			continue;
 		}
 
 		if (already_closed(found_ct)) {
-			/*
-			 * we do not care about connections which are
-			 * closed already -> ditch it
-			 */
+			
 			nf_ct_put(found_ct);
 			list_del(&conn->list);
 			kfree(conn);
@@ -157,7 +137,7 @@ static int count_them(struct xt_connlimit_data *data,
 		}
 
 		if (same_source_net(addr, mask, &conn->tuple.src.u3, family))
-			/* same source network -> be counted! */
+			
 			++matches;
 		nf_ct_put(found_ct);
 	}
@@ -165,7 +145,7 @@ static int count_them(struct xt_connlimit_data *data,
 	rcu_read_unlock();
 
 	if (addit) {
-		/* save the new connection in our list */
+		
 		conn = kzalloc(sizeof(*conn), GFP_ATOMIC);
 		if (conn == NULL)
 			return -ENOMEM;
@@ -209,7 +189,7 @@ connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 	spin_unlock_bh(&info->data->lock);
 
 	if (connections < 0) {
-		/* kmalloc failed, drop it entirely */
+		
 		*par->hotdrop = true;
 		return false;
 	}
@@ -232,7 +212,7 @@ static bool connlimit_mt_check(const struct xt_mtchk_param *par)
 		return false;
 	}
 
-	/* init private data */
+	
 	info->data = kmalloc(sizeof(struct xt_connlimit_data), GFP_KERNEL);
 	if (info->data == NULL) {
 		nf_ct_l3proto_module_put(par->family);

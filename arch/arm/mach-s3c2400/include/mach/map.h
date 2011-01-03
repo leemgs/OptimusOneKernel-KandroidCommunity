@@ -1,17 +1,4 @@
-/* arch/arm/mach-s3c2400/include/mach/map.h
- *
- * Copyright 2003,2007  Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Copyright 2003, Lucas Correia Villa Real
- *
- * S3C2400 - Memory map definitions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #define S3C2400_PA_MEMCTRL	(0x14000000)
 #define S3C2400_PA_USBHOST	(0x14200000)
@@ -33,7 +20,7 @@
 #define S3C2400_PA_MMC		(0x15A00000)
 #define S3C2400_SZ_MMC		SZ_1M
 
-/* physical addresses of all the chip-select areas */
+
 
 #define S3C2400_CS0	(0x00000000)
 #define S3C2400_CS1	(0x02000000)
@@ -46,7 +33,7 @@
 
 #define S3C2400_SDRAM_PA    (S3C2400_CS6)
 
-/* Use a single interface for common resources between S3C24XX cpus */
+
 
 #define S3C24XX_PA_IRQ		S3C2400_PA_IRQ
 #define S3C24XX_PA_MEMCTRL	S3C2400_PA_MEMCTRL

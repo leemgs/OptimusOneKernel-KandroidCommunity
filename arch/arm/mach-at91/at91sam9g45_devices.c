@@ -1,14 +1,4 @@
-/*
- *  On-Chip devices setup code for the AT91SAM9G45 family
- *
- *  Copyright (C) 2009 Atmel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
 
@@ -29,9 +19,7 @@
 #include "generic.h"
 
 
-/* --------------------------------------------------------------------
- *  HDMAC - AHB DMA Controller
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_AT_HDMAC) || defined(CONFIG_AT_HDMAC_MODULE)
 static u64 hdmac_dmamask = DMA_BIT_MASK(32);
@@ -76,9 +64,7 @@ void __init at91_add_device_hdmac(void) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  USB Host (OHCI)
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
 static u64 ohci_dmamask = DMA_BIT_MASK(32);
@@ -116,7 +102,7 @@ void __init at91_add_device_usbh_ohci(struct at91_usbh_data *data)
 	if (!data)
 		return;
 
-	/* Enable VBus control for UHP ports */
+	
 	for (i = 0; i < data->ports; i++) {
 		if (data->vbus_pin[i])
 			at91_set_gpio_output(data->vbus_pin[i], 0);
@@ -130,9 +116,7 @@ void __init at91_add_device_usbh_ohci(struct at91_usbh_data *data) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  USB HS Device (Gadget)
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_USB_GADGET_ATMEL_USBA) || defined(CONFIG_USB_GADGET_ATMEL_USBA_MODULE)
 static struct resource usba_udc_resources[] = {
@@ -175,10 +159,7 @@ static struct usba_ep_data usba_udc_ep[] __initdata = {
 
 #undef EP
 
-/*
- * pdata doesn't have room for any endpoints, so we need to
- * append room for the ones we need right after it.
- */
+
 static struct {
 	struct usba_platform_data pdata;
 	struct usba_ep_data ep[7];
@@ -206,9 +187,9 @@ void __init at91_add_device_usba(struct usba_platform_data *data)
 		usba_udc_data.pdata.vbus_pin = data->vbus_pin;
 	}
 
-	/* Pullup pin is handled internally by USB device peripheral */
+	
 
-	/* Clocks */
+	
 	at91_clock_associate("utmi_clk", &at91_usba_udc_device.dev, "hclk");
 	at91_clock_associate("udphs_clk", &at91_usba_udc_device.dev, "pclk");
 
@@ -219,9 +200,7 @@ void __init at91_add_device_usba(struct usba_platform_data *data) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  Ethernet
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_MACB) || defined(CONFIG_MACB_MODULE)
 static u64 eth_dmamask = DMA_BIT_MASK(32);
@@ -262,27 +241,27 @@ void __init at91_add_device_eth(struct at91_eth_data *data)
 		at91_set_deglitch(data->phy_irq_pin, 1);
 	}
 
-	/* Pins used for MII and RMII */
-	at91_set_A_periph(AT91_PIN_PA17, 0);	/* ETXCK_EREFCK */
-	at91_set_A_periph(AT91_PIN_PA15, 0);	/* ERXDV */
-	at91_set_A_periph(AT91_PIN_PA12, 0);	/* ERX0 */
-	at91_set_A_periph(AT91_PIN_PA13, 0);	/* ERX1 */
-	at91_set_A_periph(AT91_PIN_PA16, 0);	/* ERXER */
-	at91_set_A_periph(AT91_PIN_PA14, 0);	/* ETXEN */
-	at91_set_A_periph(AT91_PIN_PA10, 0);	/* ETX0 */
-	at91_set_A_periph(AT91_PIN_PA11, 0);	/* ETX1 */
-	at91_set_A_periph(AT91_PIN_PA19, 0);	/* EMDIO */
-	at91_set_A_periph(AT91_PIN_PA18, 0);	/* EMDC */
+	
+	at91_set_A_periph(AT91_PIN_PA17, 0);	
+	at91_set_A_periph(AT91_PIN_PA15, 0);	
+	at91_set_A_periph(AT91_PIN_PA12, 0);	
+	at91_set_A_periph(AT91_PIN_PA13, 0);	
+	at91_set_A_periph(AT91_PIN_PA16, 0);	
+	at91_set_A_periph(AT91_PIN_PA14, 0);	
+	at91_set_A_periph(AT91_PIN_PA10, 0);	
+	at91_set_A_periph(AT91_PIN_PA11, 0);	
+	at91_set_A_periph(AT91_PIN_PA19, 0);	
+	at91_set_A_periph(AT91_PIN_PA18, 0);	
 
 	if (!data->is_rmii) {
-		at91_set_B_periph(AT91_PIN_PA29, 0);	/* ECRS */
-		at91_set_B_periph(AT91_PIN_PA30, 0);	/* ECOL */
-		at91_set_B_periph(AT91_PIN_PA8,  0);	/* ERX2 */
-		at91_set_B_periph(AT91_PIN_PA9,  0);	/* ERX3 */
-		at91_set_B_periph(AT91_PIN_PA28, 0);	/* ERXCK */
-		at91_set_B_periph(AT91_PIN_PA6,  0);	/* ETX2 */
-		at91_set_B_periph(AT91_PIN_PA7,  0);	/* ETX3 */
-		at91_set_B_periph(AT91_PIN_PA27, 0);	/* ETXER */
+		at91_set_B_periph(AT91_PIN_PA29, 0);	
+		at91_set_B_periph(AT91_PIN_PA30, 0);	
+		at91_set_B_periph(AT91_PIN_PA8,  0);	
+		at91_set_B_periph(AT91_PIN_PA9,  0);	
+		at91_set_B_periph(AT91_PIN_PA28, 0);	
+		at91_set_B_periph(AT91_PIN_PA6,  0);	
+		at91_set_B_periph(AT91_PIN_PA7,  0);	
+		at91_set_B_periph(AT91_PIN_PA27, 0);	
 	}
 
 	eth_data = *data;
@@ -293,9 +272,7 @@ void __init at91_add_device_eth(struct at91_eth_data *data) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  NAND / SmartMedia
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_MTD_NAND_ATMEL) || defined(CONFIG_MTD_NAND_ATMEL_MODULE)
 static struct atmel_nand_data nand_data;
@@ -335,15 +312,15 @@ void __init at91_add_device_nand(struct atmel_nand_data *data)
 	csa = at91_sys_read(AT91_MATRIX_EBICSA);
 	at91_sys_write(AT91_MATRIX_EBICSA, csa | AT91_MATRIX_EBI_CS3A_SMC_SMARTMEDIA);
 
-	/* enable pin */
+	
 	if (data->enable_pin)
 		at91_set_gpio_output(data->enable_pin, 1);
 
-	/* ready/busy pin */
+	
 	if (data->rdy_pin)
 		at91_set_gpio_input(data->rdy_pin, 1);
 
-	/* card detect pin */
+	
 	if (data->det_pin)
 		at91_set_gpio_input(data->det_pin, 1);
 
@@ -355,22 +332,16 @@ void __init at91_add_device_nand(struct atmel_nand_data *data) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  TWI (i2c)
- * -------------------------------------------------------------------- */
 
-/*
- * Prefer the GPIO code since the TWI controller isn't robust
- * (gets overruns and underruns under load) and can only issue
- * repeated STARTs in one scenario (the driver doesn't yet handle them).
- */
+
+
 #if defined(CONFIG_I2C_GPIO) || defined(CONFIG_I2C_GPIO_MODULE)
 static struct i2c_gpio_platform_data pdata_i2c0 = {
 	.sda_pin		= AT91_PIN_PA20,
 	.sda_is_open_drain	= 1,
 	.scl_pin		= AT91_PIN_PA21,
 	.scl_is_open_drain	= 1,
-	.udelay			= 2,		/* ~100 kHz */
+	.udelay			= 2,		
 };
 
 static struct platform_device at91sam9g45_twi0_device = {
@@ -384,7 +355,7 @@ static struct i2c_gpio_platform_data pdata_i2c1 = {
 	.sda_is_open_drain	= 1,
 	.scl_pin		= AT91_PIN_PB11,
 	.scl_is_open_drain	= 1,
-	.udelay			= 2,		/* ~100 kHz */
+	.udelay			= 2,		
 };
 
 static struct platform_device at91sam9g45_twi1_device = {
@@ -398,18 +369,18 @@ void __init at91_add_device_i2c(short i2c_id, struct i2c_board_info *devices, in
 	i2c_register_board_info(i2c_id, devices, nr_devices);
 
 	if (i2c_id == 0) {
-		at91_set_GPIO_periph(AT91_PIN_PA20, 1);		/* TWD (SDA) */
+		at91_set_GPIO_periph(AT91_PIN_PA20, 1);		
 		at91_set_multi_drive(AT91_PIN_PA20, 1);
 
-		at91_set_GPIO_periph(AT91_PIN_PA21, 1);		/* TWCK (SCL) */
+		at91_set_GPIO_periph(AT91_PIN_PA21, 1);		
 		at91_set_multi_drive(AT91_PIN_PA21, 1);
 
 		platform_device_register(&at91sam9g45_twi0_device);
 	} else {
-		at91_set_GPIO_periph(AT91_PIN_PB10, 1);		/* TWD (SDA) */
+		at91_set_GPIO_periph(AT91_PIN_PB10, 1);		
 		at91_set_multi_drive(AT91_PIN_PB10, 1);
 
-		at91_set_GPIO_periph(AT91_PIN_PB11, 1);		/* TWCK (SCL) */
+		at91_set_GPIO_periph(AT91_PIN_PB11, 1);		
 		at91_set_multi_drive(AT91_PIN_PB11, 1);
 
 		platform_device_register(&at91sam9g45_twi1_device);
@@ -461,20 +432,20 @@ void __init at91_add_device_i2c(short i2c_id, struct i2c_board_info *devices, in
 {
 	i2c_register_board_info(i2c_id, devices, nr_devices);
 
-	/* pins used for TWI interface */
+	
 	if (i2c_id == 0) {
-		at91_set_A_periph(AT91_PIN_PA20, 0);		/* TWD */
+		at91_set_A_periph(AT91_PIN_PA20, 0);		
 		at91_set_multi_drive(AT91_PIN_PA20, 1);
 
-		at91_set_A_periph(AT91_PIN_PA21, 0);		/* TWCK */
+		at91_set_A_periph(AT91_PIN_PA21, 0);		
 		at91_set_multi_drive(AT91_PIN_PA21, 1);
 
 		platform_device_register(&at91sam9g45_twi0_device);
 	} else {
-		at91_set_A_periph(AT91_PIN_PB10, 0);		/* TWD */
+		at91_set_A_periph(AT91_PIN_PB10, 0);		
 		at91_set_multi_drive(AT91_PIN_PB10, 1);
 
-		at91_set_A_periph(AT91_PIN_PB11, 0);		/* TWCK */
+		at91_set_A_periph(AT91_PIN_PB11, 0);		
 		at91_set_multi_drive(AT91_PIN_PB11, 1);
 
 		platform_device_register(&at91sam9g45_twi1_device);
@@ -485,9 +456,7 @@ void __init at91_add_device_i2c(short i2c_id, struct i2c_board_info *devices, in
 #endif
 
 
-/* --------------------------------------------------------------------
- *  SPI
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_SPI_ATMEL) || defined(CONFIG_SPI_ATMEL_MODULE)
 static u64 spi_dmamask = DMA_BIT_MASK(32);
@@ -551,7 +520,7 @@ void __init at91_add_device_spi(struct spi_board_info *devices, int nr_devices)
 	short enable_spi0 = 0;
 	short enable_spi1 = 0;
 
-	/* Choose SPI chip-selects */
+	
 	for (i = 0; i < nr_devices; i++) {
 		if (devices[i].controller_data)
 			cs_pin = (unsigned long) devices[i].controller_data;
@@ -565,28 +534,28 @@ void __init at91_add_device_spi(struct spi_board_info *devices, int nr_devices)
 		else
 			enable_spi1 = 1;
 
-		/* enable chip-select pin */
+		
 		at91_set_gpio_output(cs_pin, 1);
 
-		/* pass chip-select pin to driver */
+		
 		devices[i].controller_data = (void *) cs_pin;
 	}
 
 	spi_register_board_info(devices, nr_devices);
 
-	/* Configure SPI bus(es) */
+	
 	if (enable_spi0) {
-		at91_set_A_periph(AT91_PIN_PB0, 0);	/* SPI0_MISO */
-		at91_set_A_periph(AT91_PIN_PB1, 0);	/* SPI0_MOSI */
-		at91_set_A_periph(AT91_PIN_PB2, 0);	/* SPI0_SPCK */
+		at91_set_A_periph(AT91_PIN_PB0, 0);	
+		at91_set_A_periph(AT91_PIN_PB1, 0);	
+		at91_set_A_periph(AT91_PIN_PB2, 0);	
 
 		at91_clock_associate("spi0_clk", &at91sam9g45_spi0_device.dev, "spi_clk");
 		platform_device_register(&at91sam9g45_spi0_device);
 	}
 	if (enable_spi1) {
-		at91_set_A_periph(AT91_PIN_PB14, 0);	/* SPI1_MISO */
-		at91_set_A_periph(AT91_PIN_PB15, 0);	/* SPI1_MOSI */
-		at91_set_A_periph(AT91_PIN_PB16, 0);	/* SPI1_SPCK */
+		at91_set_A_periph(AT91_PIN_PB14, 0);	
+		at91_set_A_periph(AT91_PIN_PB15, 0);	
+		at91_set_A_periph(AT91_PIN_PB16, 0);	
 
 		at91_clock_associate("spi1_clk", &at91sam9g45_spi1_device.dev, "spi_clk");
 		platform_device_register(&at91sam9g45_spi1_device);
@@ -597,9 +566,7 @@ void __init at91_add_device_spi(struct spi_board_info *devices, int nr_devices) 
 #endif
 
 
-/* --------------------------------------------------------------------
- *  AC97
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_SND_ATMEL_AC97C) || defined(CONFIG_SND_ATMEL_AC97C_MODULE)
 static u64 ac97_dmamask = DMA_BIT_MASK(32);
@@ -635,12 +602,12 @@ void __init at91_add_device_ac97(struct ac97c_platform_data *data)
 	if (!data)
 		return;
 
-	at91_set_A_periph(AT91_PIN_PD8, 0);	/* AC97FS */
-	at91_set_A_periph(AT91_PIN_PD9, 0);	/* AC97CK */
-	at91_set_A_periph(AT91_PIN_PD7, 0);	/* AC97TX */
-	at91_set_A_periph(AT91_PIN_PD6, 0);	/* AC97RX */
+	at91_set_A_periph(AT91_PIN_PD8, 0);	
+	at91_set_A_periph(AT91_PIN_PD9, 0);	
+	at91_set_A_periph(AT91_PIN_PD7, 0);	
+	at91_set_A_periph(AT91_PIN_PD6, 0);	
 
-	/* reset */
+	
 	if (data->reset_pin)
 		at91_set_gpio_output(data->reset_pin, 0);
 
@@ -652,9 +619,7 @@ void __init at91_add_device_ac97(struct ac97c_platform_data *data) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  LCD Controller
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_FB_ATMEL) || defined(CONFIG_FB_ATMEL_MODULE)
 static u64 lcdc_dmamask = DMA_BIT_MASK(32);
@@ -690,37 +655,37 @@ void __init at91_add_device_lcdc(struct atmel_lcdfb_info *data)
 	if (!data)
 		return;
 
-	at91_set_A_periph(AT91_PIN_PE0, 0);	/* LCDDPWR */
+	at91_set_A_periph(AT91_PIN_PE0, 0);	
 
-	at91_set_A_periph(AT91_PIN_PE2, 0);	/* LCDCC */
-	at91_set_A_periph(AT91_PIN_PE3, 0);	/* LCDVSYNC */
-	at91_set_A_periph(AT91_PIN_PE4, 0);	/* LCDHSYNC */
-	at91_set_A_periph(AT91_PIN_PE5, 0);	/* LCDDOTCK */
-	at91_set_A_periph(AT91_PIN_PE6, 0);	/* LCDDEN */
-	at91_set_A_periph(AT91_PIN_PE7, 0);	/* LCDD0 */
-	at91_set_A_periph(AT91_PIN_PE8, 0);	/* LCDD1 */
-	at91_set_A_periph(AT91_PIN_PE9, 0);	/* LCDD2 */
-	at91_set_A_periph(AT91_PIN_PE10, 0);	/* LCDD3 */
-	at91_set_A_periph(AT91_PIN_PE11, 0);	/* LCDD4 */
-	at91_set_A_periph(AT91_PIN_PE12, 0);	/* LCDD5 */
-	at91_set_A_periph(AT91_PIN_PE13, 0);	/* LCDD6 */
-	at91_set_A_periph(AT91_PIN_PE14, 0);	/* LCDD7 */
-	at91_set_A_periph(AT91_PIN_PE15, 0);	/* LCDD8 */
-	at91_set_A_periph(AT91_PIN_PE16, 0);	/* LCDD9 */
-	at91_set_A_periph(AT91_PIN_PE17, 0);	/* LCDD10 */
-	at91_set_A_periph(AT91_PIN_PE18, 0);	/* LCDD11 */
-	at91_set_A_periph(AT91_PIN_PE19, 0);	/* LCDD12 */
-	at91_set_A_periph(AT91_PIN_PE20, 0);	/* LCDD13 */
-	at91_set_A_periph(AT91_PIN_PE21, 0);	/* LCDD14 */
-	at91_set_A_periph(AT91_PIN_PE22, 0);	/* LCDD15 */
-	at91_set_A_periph(AT91_PIN_PE23, 0);	/* LCDD16 */
-	at91_set_A_periph(AT91_PIN_PE24, 0);	/* LCDD17 */
-	at91_set_A_periph(AT91_PIN_PE25, 0);	/* LCDD18 */
-	at91_set_A_periph(AT91_PIN_PE26, 0);	/* LCDD19 */
-	at91_set_A_periph(AT91_PIN_PE27, 0);	/* LCDD20 */
-	at91_set_A_periph(AT91_PIN_PE28, 0);	/* LCDD21 */
-	at91_set_A_periph(AT91_PIN_PE29, 0);	/* LCDD22 */
-	at91_set_A_periph(AT91_PIN_PE30, 0);	/* LCDD23 */
+	at91_set_A_periph(AT91_PIN_PE2, 0);	
+	at91_set_A_periph(AT91_PIN_PE3, 0);	
+	at91_set_A_periph(AT91_PIN_PE4, 0);	
+	at91_set_A_periph(AT91_PIN_PE5, 0);	
+	at91_set_A_periph(AT91_PIN_PE6, 0);	
+	at91_set_A_periph(AT91_PIN_PE7, 0);	
+	at91_set_A_periph(AT91_PIN_PE8, 0);	
+	at91_set_A_periph(AT91_PIN_PE9, 0);	
+	at91_set_A_periph(AT91_PIN_PE10, 0);	
+	at91_set_A_periph(AT91_PIN_PE11, 0);	
+	at91_set_A_periph(AT91_PIN_PE12, 0);	
+	at91_set_A_periph(AT91_PIN_PE13, 0);	
+	at91_set_A_periph(AT91_PIN_PE14, 0);	
+	at91_set_A_periph(AT91_PIN_PE15, 0);	
+	at91_set_A_periph(AT91_PIN_PE16, 0);	
+	at91_set_A_periph(AT91_PIN_PE17, 0);	
+	at91_set_A_periph(AT91_PIN_PE18, 0);	
+	at91_set_A_periph(AT91_PIN_PE19, 0);	
+	at91_set_A_periph(AT91_PIN_PE20, 0);	
+	at91_set_A_periph(AT91_PIN_PE21, 0);	
+	at91_set_A_periph(AT91_PIN_PE22, 0);	
+	at91_set_A_periph(AT91_PIN_PE23, 0);	
+	at91_set_A_periph(AT91_PIN_PE24, 0);	
+	at91_set_A_periph(AT91_PIN_PE25, 0);	
+	at91_set_A_periph(AT91_PIN_PE26, 0);	
+	at91_set_A_periph(AT91_PIN_PE27, 0);	
+	at91_set_A_periph(AT91_PIN_PE28, 0);	
+	at91_set_A_periph(AT91_PIN_PE29, 0);	
+	at91_set_A_periph(AT91_PIN_PE30, 0);	
 
 	lcdc_data = *data;
 	platform_device_register(&at91_lcdc_device);
@@ -730,9 +695,7 @@ void __init at91_add_device_lcdc(struct atmel_lcdfb_info *data) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  Timer/Counter block
- * -------------------------------------------------------------------- */
+
 
 #ifdef CONFIG_ATMEL_TCLIB
 static struct resource tcb0_resources[] = {
@@ -755,7 +718,7 @@ static struct platform_device at91sam9g45_tcb0_device = {
 	.num_resources	= ARRAY_SIZE(tcb0_resources),
 };
 
-/* TCB1 begins with TC3 */
+
 static struct resource tcb1_resources[] = {
 	[0] = {
 		.start	= AT91SAM9G45_BASE_TCB1,
@@ -778,7 +741,7 @@ static struct platform_device at91sam9g45_tcb1_device = {
 
 static void __init at91_add_device_tc(void)
 {
-	/* this chip has one clock and irq for all six TC channels */
+	
 	at91_clock_associate("tcb_clk", &at91sam9g45_tcb0_device.dev, "t0_clk");
 	platform_device_register(&at91sam9g45_tcb0_device);
 	at91_clock_associate("tcb_clk", &at91sam9g45_tcb1_device.dev, "t0_clk");
@@ -789,9 +752,7 @@ static void __init at91_add_device_tc(void) { }
 #endif
 
 
-/* --------------------------------------------------------------------
- *  RTC
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_RTC_DRV_AT91RM9200) || defined(CONFIG_RTC_DRV_AT91RM9200_MODULE)
 static struct platform_device at91sam9g45_rtc_device = {
@@ -809,9 +770,7 @@ static void __init at91_add_device_rtc(void) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  RTT
- * -------------------------------------------------------------------- */
+
 
 static struct resource rtt_resources[] = {
 	{
@@ -834,9 +793,7 @@ static void __init at91_add_device_rtt(void)
 }
 
 
-/* --------------------------------------------------------------------
- *  Watchdog
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_AT91SAM9X_WATCHDOG) || defined(CONFIG_AT91SAM9X_WATCHDOG_MODULE)
 static struct platform_device at91sam9g45_wdt_device = {
@@ -854,9 +811,7 @@ static void __init at91_add_device_watchdog(void) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  PWM
- * --------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_ATMEL_PWM) || defined(CONFIG_ATMEL_PWM_MODULE)
 static u32 pwm_mask;
@@ -887,16 +842,16 @@ static struct platform_device at91sam9g45_pwm0_device = {
 void __init at91_add_device_pwm(u32 mask)
 {
 	if (mask & (1 << AT91_PWM0))
-		at91_set_B_periph(AT91_PIN_PD24, 1);	/* enable PWM0 */
+		at91_set_B_periph(AT91_PIN_PD24, 1);	
 
 	if (mask & (1 << AT91_PWM1))
-		at91_set_B_periph(AT91_PIN_PD31, 1);	/* enable PWM1 */
+		at91_set_B_periph(AT91_PIN_PD31, 1);	
 
 	if (mask & (1 << AT91_PWM2))
-		at91_set_B_periph(AT91_PIN_PD26, 1);	/* enable PWM2 */
+		at91_set_B_periph(AT91_PIN_PD26, 1);	
 
 	if (mask & (1 << AT91_PWM3))
-		at91_set_B_periph(AT91_PIN_PD0, 1);	/* enable PWM3 */
+		at91_set_B_periph(AT91_PIN_PD0, 1);	
 
 	pwm_mask = mask;
 
@@ -907,9 +862,7 @@ void __init at91_add_device_pwm(u32 mask) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  SSC -- Synchronous Serial Controller
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_ATMEL_SSC) || defined(CONFIG_ATMEL_SSC_MODULE)
 static u64 ssc0_dmamask = DMA_BIT_MASK(32);
@@ -996,20 +949,12 @@ static inline void configure_ssc1_pins(unsigned pins)
 		at91_set_A_periph(AT91_PIN_PD15, 1);
 }
 
-/*
- * SSC controllers are accessed through library code, instead of any
- * kind of all-singing/all-dancing driver.  For example one could be
- * used by a particular I2S audio codec's driver, while another one
- * on the same system might be used by a custom data capture driver.
- */
+
 void __init at91_add_device_ssc(unsigned id, unsigned pins)
 {
 	struct platform_device *pdev;
 
-	/*
-	 * NOTE: caller is responsible for passing information matching
-	 * "pins" to whatever will be using each particular controller.
-	 */
+	
 	switch (id) {
 	case AT91SAM9G45_ID_SSC0:
 		pdev = &at91sam9g45_ssc0_device;
@@ -1033,9 +978,7 @@ void __init at91_add_device_ssc(unsigned id, unsigned pins) {}
 #endif
 
 
-/* --------------------------------------------------------------------
- *  UART
- * -------------------------------------------------------------------- */
+
 
 #if defined(CONFIG_SERIAL_ATMEL)
 static struct resource dbgu_resources[] = {
@@ -1073,8 +1016,8 @@ static struct platform_device at91sam9g45_dbgu_device = {
 
 static inline void configure_dbgu_pins(void)
 {
-	at91_set_A_periph(AT91_PIN_PB12, 0);		/* DRXD */
-	at91_set_A_periph(AT91_PIN_PB13, 1);		/* DTXD */
+	at91_set_A_periph(AT91_PIN_PB12, 0);		
+	at91_set_A_periph(AT91_PIN_PB13, 1);		
 }
 
 static struct resource uart0_resources[] = {
@@ -1111,13 +1054,13 @@ static struct platform_device at91sam9g45_uart0_device = {
 
 static inline void configure_usart0_pins(unsigned pins)
 {
-	at91_set_A_periph(AT91_PIN_PB19, 1);		/* TXD0 */
-	at91_set_A_periph(AT91_PIN_PB18, 0);		/* RXD0 */
+	at91_set_A_periph(AT91_PIN_PB19, 1);		
+	at91_set_A_periph(AT91_PIN_PB18, 0);		
 
 	if (pins & ATMEL_UART_RTS)
-		at91_set_B_periph(AT91_PIN_PB17, 0);	/* RTS0 */
+		at91_set_B_periph(AT91_PIN_PB17, 0);	
 	if (pins & ATMEL_UART_CTS)
-		at91_set_B_periph(AT91_PIN_PB15, 0);	/* CTS0 */
+		at91_set_B_periph(AT91_PIN_PB15, 0);	
 }
 
 static struct resource uart1_resources[] = {
@@ -1154,13 +1097,13 @@ static struct platform_device at91sam9g45_uart1_device = {
 
 static inline void configure_usart1_pins(unsigned pins)
 {
-	at91_set_A_periph(AT91_PIN_PB4, 1);		/* TXD1 */
-	at91_set_A_periph(AT91_PIN_PB5, 0);		/* RXD1 */
+	at91_set_A_periph(AT91_PIN_PB4, 1);		
+	at91_set_A_periph(AT91_PIN_PB5, 0);		
 
 	if (pins & ATMEL_UART_RTS)
-		at91_set_A_periph(AT91_PIN_PD16, 0);	/* RTS1 */
+		at91_set_A_periph(AT91_PIN_PD16, 0);	
 	if (pins & ATMEL_UART_CTS)
-		at91_set_A_periph(AT91_PIN_PD17, 0);	/* CTS1 */
+		at91_set_A_periph(AT91_PIN_PD17, 0);	
 }
 
 static struct resource uart2_resources[] = {
@@ -1197,13 +1140,13 @@ static struct platform_device at91sam9g45_uart2_device = {
 
 static inline void configure_usart2_pins(unsigned pins)
 {
-	at91_set_A_periph(AT91_PIN_PB6, 1);		/* TXD2 */
-	at91_set_A_periph(AT91_PIN_PB7, 0);		/* RXD2 */
+	at91_set_A_periph(AT91_PIN_PB6, 1);		
+	at91_set_A_periph(AT91_PIN_PB7, 0);		
 
 	if (pins & ATMEL_UART_RTS)
-		at91_set_B_periph(AT91_PIN_PC9, 0);	/* RTS2 */
+		at91_set_B_periph(AT91_PIN_PC9, 0);	
 	if (pins & ATMEL_UART_CTS)
-		at91_set_B_periph(AT91_PIN_PC11, 0);	/* CTS2 */
+		at91_set_B_periph(AT91_PIN_PC11, 0);	
 }
 
 static struct resource uart3_resources[] = {
@@ -1240,24 +1183,24 @@ static struct platform_device at91sam9g45_uart3_device = {
 
 static inline void configure_usart3_pins(unsigned pins)
 {
-	at91_set_A_periph(AT91_PIN_PB8, 1);		/* TXD3 */
-	at91_set_A_periph(AT91_PIN_PB9, 0);		/* RXD3 */
+	at91_set_A_periph(AT91_PIN_PB8, 1);		
+	at91_set_A_periph(AT91_PIN_PB9, 0);		
 
 	if (pins & ATMEL_UART_RTS)
-		at91_set_B_periph(AT91_PIN_PA23, 0);	/* RTS3 */
+		at91_set_B_periph(AT91_PIN_PA23, 0);	
 	if (pins & ATMEL_UART_CTS)
-		at91_set_B_periph(AT91_PIN_PA24, 0);	/* CTS3 */
+		at91_set_B_periph(AT91_PIN_PA24, 0);	
 }
 
-static struct platform_device *__initdata at91_uarts[ATMEL_MAX_UART];	/* the UARTs to use */
-struct platform_device *atmel_default_console_device;	/* the serial console device */
+static struct platform_device *__initdata at91_uarts[ATMEL_MAX_UART];	
+struct platform_device *atmel_default_console_device;	
 
 void __init at91_register_uart(unsigned id, unsigned portnr, unsigned pins)
 {
 	struct platform_device *pdev;
 
 	switch (id) {
-		case 0:		/* DBGU */
+		case 0:		
 			pdev = &at91sam9g45_dbgu_device;
 			configure_dbgu_pins();
 			at91_clock_associate("mck", &pdev->dev, "usart");
@@ -1285,7 +1228,7 @@ void __init at91_register_uart(unsigned id, unsigned portnr, unsigned pins)
 		default:
 			return;
 	}
-	pdev->id = portnr;		/* update to mapped ID */
+	pdev->id = portnr;		
 
 	if (portnr < ATMEL_MAX_UART)
 		at91_uarts[portnr] = pdev;
@@ -1316,11 +1259,8 @@ void __init at91_add_device_serial(void) {}
 #endif
 
 
-/* -------------------------------------------------------------------- */
-/*
- * These devices are always present and don't need any board-specific
- * setup.
- */
+
+
 static int __init at91_add_standard_devices(void)
 {
 	at91_add_device_hdmac();

@@ -1,46 +1,4 @@
-/*
- * osd_uld.c - OSD Upper Layer Driver
- *
- * A Linux driver module that registers as a SCSI ULD and probes
- * for OSD type SCSI devices.
- * It's main function is to export osd devices to in-kernel users like
- * osdfs and pNFS-objects-LD. It also provides one ioctl for running
- * in Kernel tests.
- *
- * Copyright (C) 2008 Panasas Inc.  All rights reserved.
- *
- * Authors:
- *   Boaz Harrosh <bharrosh@panasas.com>
- *   Benny Halevy <bhalevy@panasas.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *  3. Neither the name of the Panasas company nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include <linux/namei.h>
 #include <linux/cdev.h>
@@ -92,9 +50,7 @@ struct osd_uld_device {
 static void __uld_get(struct osd_uld_device *oud);
 static void __uld_put(struct osd_uld_device *oud);
 
-/*
- * Char Device operations
- */
+
 
 static int osd_uld_open(struct inode *inode, struct file *file)
 {
@@ -102,7 +58,7 @@ static int osd_uld_open(struct inode *inode, struct file *file)
 					struct osd_uld_device, cdev);
 
 	__uld_get(oud);
-	/* cache osd_uld_device on file handle */
+	
 	file->private_data = oud;
 	OSD_DEBUG("osd_uld_open %p\n", oud);
 	return 0;
@@ -118,7 +74,7 @@ static int osd_uld_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/* FIXME: Only one vector for now */
+
 unsigned g_test_ioctl;
 do_test_fn *g_do_test;
 
@@ -230,9 +186,7 @@ void osduld_put_device(struct osd_dev *od)
 }
 EXPORT_SYMBOL(osduld_put_device);
 
-/*
- * Scsi Device operations
- */
+
 
 static int __detect_osd(struct osd_uld_device *oud)
 {
@@ -240,9 +194,7 @@ static int __detect_osd(struct osd_uld_device *oud)
 	char caps[OSD_CAP_LEN];
 	int error;
 
-	/* sending a test_unit_ready as first command seems to be needed
-	 * by some targets
-	 */
+	
 	OSD_DEBUG("start scsi_test_unit_ready %p %p %p\n",
 			oud, scsi_device, scsi_device->request_queue);
 	error = scsi_test_unit_ready(scsi_device, 10*HZ, 5, NULL);
@@ -293,8 +245,8 @@ static int osd_probe(struct device *dev)
 	dev_set_drvdata(dev, oud);
 	oud->minor = minor;
 
-	/* allocate a disk and set it up */
-	/* FIXME: do we need this since sg has already done that */
+	
+	
 	disk = alloc_disk(1);
 	if (!disk) {
 		OSD_ERR("alloc_disk failed\n");
@@ -305,20 +257,18 @@ static int osd_probe(struct device *dev)
 	sprintf(disk->disk_name, "osd%d", oud->minor);
 	oud->disk = disk;
 
-	/* hold one more reference to the scsi_device that will get released
-	 * in __release, in case a logout is happening while fs is mounted
-	 */
+	
 	scsi_device_get(scsi_device);
 	osd_dev_init(&oud->od, scsi_device);
 
-	/* Detect the OSD Version */
+	
 	error = __detect_osd(oud);
 	if (error) {
 		OSD_ERR("osd detection failed, non-compatible OSD device\n");
 		goto err_put_disk;
 	}
 
-	/* init the char-device for communication with user-mode */
+	
 	cdev_init(&oud->cdev, &osd_fops);
 	oud->cdev.owner = THIS_MODULE;
 	error = cdev_add(&oud->cdev,
@@ -327,9 +277,9 @@ static int osd_probe(struct device *dev)
 		OSD_ERR("cdev_add failed\n");
 		goto err_put_disk;
 	}
-	kobject_get(&oud->cdev.kobj); /* 2nd ref see osd_remove() */
+	kobject_get(&oud->cdev.kobj); 
 
-	/* class_member */
+	
 	oud->class_member = device_create(osd_sysfs_class, dev,
 		MKDEV(SCSI_OSD_MAJOR, oud->minor), "%s", disk->disk_name);
 	if (IS_ERR(oud->class_member)) {
@@ -371,11 +321,7 @@ static int osd_remove(struct device *dev)
 		device_destroy(osd_sysfs_class,
 			       MKDEV(SCSI_OSD_MAJOR, oud->minor));
 
-	/* We have 2 references to the cdev. One is released here
-	 * and also takes down the /dev/osdX mapping. The second
-	 * Will be released in __remove() after all users have released
-	 * the osd_uld_device.
-	 */
+	
 	if (oud->cdev.owner)
 		cdev_del(&oud->cdev);
 
@@ -389,7 +335,7 @@ static void __remove(struct kref *kref)
 					struct osd_uld_device, kref);
 	struct scsi_device *scsi_device = oud->od.scsi_device;
 
-	/* now let delete the char_dev */
+	
 	kobject_put(&oud->cdev.kobj);
 
 	osd_dev_fini(&oud->od);
@@ -415,9 +361,7 @@ static void __uld_put(struct osd_uld_device *oud)
 	kref_put(&oud->kref, __remove);
 }
 
-/*
- * Global driver and scsi registration
- */
+
 
 static struct scsi_driver osd_driver = {
 	.owner			= THIS_MODULE,

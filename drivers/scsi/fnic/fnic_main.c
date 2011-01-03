@@ -1,20 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #include <linux/module.h>
 #include <linux/mempool.h>
 #include <linux/string.h>
@@ -40,7 +24,7 @@
 
 #define PCI_DEVICE_ID_CISCO_FNIC	0x0045
 
-/* Timer to poll notification area for events. Used for MSI interrupts */
+
 #define FNIC_NOTIFY_TIMER_PERIOD	(2 * HZ)
 
 static struct kmem_cache *fnic_sgl_cache[FNIC_SGL_NUM_CACHES];
@@ -48,7 +32,7 @@ static struct kmem_cache *fnic_io_req_cache;
 LIST_HEAD(fnic_list);
 DEFINE_SPINLOCK(fnic_list_lock);
 
-/* Supported devices by fnic module */
+
 static struct pci_device_id fnic_id_table[] = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_CISCO, PCI_DEVICE_ID_CISCO_FNIC) },
 	{ 0, }
@@ -148,7 +132,7 @@ static void fnic_get_host_speed(struct Scsi_Host *shost)
 	struct fnic *fnic = lport_priv(lp);
 	u32 port_speed = vnic_dev_port_speed(fnic->vdev);
 
-	/* Add in other values as they get defined in fw */
+	
 	switch (port_speed) {
 	case 10000:
 		fc_host_speed(shost) = FC_PORTSPEED_10GBIT;
@@ -281,14 +265,11 @@ static void fnic_notify_timer_start(struct fnic *fnic)
 {
 	switch (vnic_dev_get_intr_mode(fnic->vdev)) {
 	case VNIC_DEV_INTR_MODE_MSI:
-		/*
-		 * Schedule first timeout immediately. The driver is
-		 * initiatialized and ready to look for link up notification
-		 */
+		
 		mod_timer(&fnic->notify_timer, jiffies);
 		break;
 	default:
-		/* Using intr for notification for INTx/MSI-X */
+		
 		break;
 	};
 }
@@ -306,7 +287,7 @@ static int fnic_dev_wait(struct vnic_dev *vdev,
 	if (err)
 		return err;
 
-	/* Wait for func to complete...2 seconds max */
+	
 	time = jiffies + (HZ * 2);
 	do {
 		err = finished(vdev, &done);
@@ -348,12 +329,12 @@ static int fnic_cleanup(struct fnic *fnic)
 			return err;
 	}
 
-	/* Clean up completed IOs and FCS frames */
+	
 	fnic_wq_copy_cmpl_handler(fnic, -1);
 	fnic_wq_cmpl_handler(fnic, -1);
 	fnic_rq_cmpl_handler(fnic, -1);
 
-	/* Clean up the IOs and FCS frames that have not completed */
+	
 	for (i = 0; i < fnic->raw_wq_count; i++)
 		vnic_wq_clean(&fnic->wq[i], fnic_free_wq_buf);
 	for (i = 0; i < fnic->rq_count; i++)
@@ -367,11 +348,7 @@ static int fnic_cleanup(struct fnic *fnic)
 	for (i = 0; i < fnic->intr_count; i++)
 		vnic_intr_clean(&fnic->intr[i]);
 
-	/*
-	 * Remove cached flogi and flogi resp frames if any
-	 * These frames are not in any queue, and therefore queue
-	 * cleanup does not clean them. So clean them explicitly
-	 */
+	
 	spin_lock_irqsave(&fnic->fnic_lock, flags);
 	flogi = fnic->flogi;
 	fnic->flogi = NULL;
@@ -398,10 +375,7 @@ static void fnic_iounmap(struct fnic *fnic)
 		iounmap(fnic->bar0.vaddr);
 }
 
-/*
- * Allocate element for mempools requiring GFP_DMA flag.
- * Otherwise, checks in kmem_flagcheck() hit BUG_ON().
- */
+
 static void *fnic_alloc_slab_dma(gfp_t gfp_mask, void *pool_data)
 {
 	struct kmem_cache *mem = pool_data;
@@ -420,10 +394,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 	int i;
 	unsigned long flags;
 
-	/*
-	 * Allocate SCSI Host and set up association between host,
-	 * local port, and fnic
-	 */
+	
 	host = scsi_host_alloc(&fnic_host_template,
 			       sizeof(struct fc_lport) + sizeof(struct fnic));
 	if (!host) {
@@ -448,7 +419,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 		goto err_out_free_hba;
 	}
 
-	/* Setup PCI resources */
+	
 	pci_set_drvdata(pdev, fnic);
 
 	fnic->pdev = pdev;
@@ -469,10 +440,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 
 	pci_set_master(pdev);
 
-	/* Query PCI controller on system for DMA addressing
-	 * limitation for the device.  Try 40-bit first, and
-	 * fail to 32-bit.
-	 */
+	
 	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(40));
 	if (err) {
 		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
@@ -499,7 +467,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 		}
 	}
 
-	/* Map vNIC resources from BAR0 */
+	
 	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM)) {
 		shost_printk(KERN_ERR, fnic->lport->host,
 			     "BAR0 not memory-map'able, aborting.\n");
@@ -550,7 +518,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 		goto err_out_dev_close;
 	}
 
-	/* Get vNIC configuration */
+	
 	err = fnic_get_vnic_config(fnic);
 	if (err) {
 		shost_printk(KERN_ERR, fnic->lport->host,
@@ -587,7 +555,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 	}
 
 
-	/* initialize all fnic locks */
+	
 	spin_lock_init(&fnic->fnic_lock);
 
 	for (i = 0; i < FNIC_WQ_MAX; i++)
@@ -619,7 +587,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 		goto err_out_free_dflt_pool;
 	fnic->io_sgl_pool[FNIC_SGL_CACHE_MAX] = pool;
 
-	/* setup vlan config, hw inserts vlan header */
+	
 	fnic->vlan_hw_insert = 1;
 	fnic->vlan_id = 0;
 
@@ -628,10 +596,10 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 	fnic->flogi_resp = NULL;
 	fnic->state = FNIC_IN_FC_MODE;
 
-	/* Enable hardware stripping of vlan header on ingress */
+	
 	fnic_set_nic_config(fnic, 0, 0, 0, 0, 0, 0, 1);
 
-	/* Setup notification buffer area */
+	
 	err = fnic_notify_set(fnic);
 	if (err) {
 		shost_printk(KERN_ERR, fnic->lport->host,
@@ -639,12 +607,12 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 		goto err_out_free_max_pool;
 	}
 
-	/* Setup notify timer when using MSI interrupts */
+	
 	if (vnic_dev_get_intr_mode(fnic->vdev) == VNIC_DEV_INTR_MODE_MSI)
 		setup_timer(&fnic->notify_timer,
 			    fnic_notify_timer, (unsigned long)fnic);
 
-	/* allocate RQ buffers and post them to RQ*/
+	
 	for (i = 0; i < fnic->rq_count; i++) {
 		err = vnic_rq_fill(&fnic->rq[i], fnic_alloc_rq_frame);
 		if (err) {
@@ -655,10 +623,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 		}
 	}
 
-	/*
-	 * Initialization done with PCI system, hardware, firmware.
-	 * Add host to SCSI
-	 */
+	
 	err = scsi_add_host(lp->host, &pdev->dev);
 	if (err) {
 		shost_printk(KERN_ERR, fnic->lport->host,
@@ -666,7 +631,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 		goto err_out_free_rq_buf;
 	}
 
-	/* Start local port initiatialization */
+	
 
 	lp->link_up = 0;
 	lp->tt = fnic_transport_template;
@@ -717,7 +682,7 @@ static int __devinit fnic_probe(struct pci_dev *pdev,
 	INIT_WORK(&fnic->frame_work, fnic_handle_frame);
 	skb_queue_head_init(&fnic->frame_queue);
 
-	/* Enable all queues */
+	
 	for (i = 0; i < fnic->raw_wq_count; i++)
 		vnic_wq_enable(&fnic->wq[i]);
 	for (i = 0; i < fnic->rq_count; i++)
@@ -777,12 +742,7 @@ static void __devexit fnic_remove(struct pci_dev *pdev)
 	struct fnic *fnic = pci_get_drvdata(pdev);
 	unsigned long flags;
 
-	/*
-	 * Mark state so that the workqueue thread stops forwarding
-	 * received frames and link events to the local port. ISR and
-	 * other threads that can queue work items will also stop
-	 * creating work items on the fnic workqueue
-	 */
+	
 	spin_lock_irqsave(&fnic->fnic_lock, flags);
 	fnic->stop_rx_link_events = 1;
 	spin_unlock_irqrestore(&fnic->fnic_lock, flags);
@@ -790,18 +750,11 @@ static void __devexit fnic_remove(struct pci_dev *pdev)
 	if (vnic_dev_get_intr_mode(fnic->vdev) == VNIC_DEV_INTR_MODE_MSI)
 		del_timer_sync(&fnic->notify_timer);
 
-	/*
-	 * Flush the fnic event queue. After this call, there should
-	 * be no event queued for this fnic device in the workqueue
-	 */
+	
 	flush_workqueue(fnic_event_queue);
 	skb_queue_purge(&fnic->frame_queue);
 
-	/*
-	 * Log off the fabric. This stops all remote ports, dns port,
-	 * logs off the fabric. This flushes all rport, disc, lport work
-	 * before returning
-	 */
+	
 	fc_fabric_logoff(fnic->lport);
 
 	spin_lock_irqsave(&fnic->fnic_lock, flags);
@@ -810,11 +763,7 @@ static void __devexit fnic_remove(struct pci_dev *pdev)
 
 	fc_lport_destroy(fnic->lport);
 
-	/*
-	 * This stops the fnic device, masks all interrupts. Completed
-	 * CQ entries are drained. Posted WQ/RQ/Copy-WQ entries are
-	 * cleaned up
-	 */
+	
 	fnic_cleanup(fnic);
 
 	BUG_ON(!skb_queue_empty(&fnic->frame_queue));
@@ -853,7 +802,7 @@ static int __init fnic_init_module(void)
 
 	printk(KERN_INFO PFX "%s, ver %s\n", DRV_DESCRIPTION, DRV_VERSION);
 
-	/* Create a cache for allocation of default size sgls */
+	
 	len = sizeof(struct fnic_dflt_sgl_list);
 	fnic_sgl_cache[FNIC_SGL_CACHE_DFLT] = kmem_cache_create
 		("fnic_sgl_dflt", len + FNIC_SG_DESC_ALIGN, FNIC_SG_DESC_ALIGN,
@@ -865,7 +814,7 @@ static int __init fnic_init_module(void)
 		goto err_create_fnic_sgl_slab_dflt;
 	}
 
-	/* Create a cache for allocation of max size sgls*/
+	
 	len = sizeof(struct fnic_sgl_list);
 	fnic_sgl_cache[FNIC_SGL_CACHE_MAX] = kmem_cache_create
 		("fnic_sgl_max", len + FNIC_SG_DESC_ALIGN, FNIC_SG_DESC_ALIGN,
@@ -877,7 +826,7 @@ static int __init fnic_init_module(void)
 		goto err_create_fnic_sgl_slab_max;
 	}
 
-	/* Create a cache of io_req structs for use via mempool */
+	
 	fnic_io_req_cache = kmem_cache_create("fnic_io_req",
 					      sizeof(struct fnic_io_req),
 					      0, SLAB_HWCACHE_ALIGN, NULL);
@@ -904,7 +853,7 @@ static int __init fnic_init_module(void)
 		goto err_fc_transport;
 	}
 
-	/* register the driver with PCI system */
+	
 	err = pci_register_driver(&fnic_driver);
 	if (err < 0) {
 		printk(KERN_ERR PFX "pci register error\n");

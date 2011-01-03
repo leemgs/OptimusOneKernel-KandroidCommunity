@@ -1,31 +1,9 @@
-/*
- * arch/arm/mach-kirkwood/include/mach/kirkwood.h
- *
- * Generic definitions for Marvell Kirkwood SoC flavors:
- *  88F6180, 88F6192 and 88F6281.
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ASM_ARCH_KIRKWOOD_H
 #define __ASM_ARCH_KIRKWOOD_H
 
-/*
- * Marvell Kirkwood address maps.
- *
- * phys
- * e0000000	PCIe Memory space
- * f1000000	on-chip peripheral registers
- * f2000000	PCIe I/O space
- * f3000000	NAND controller address window
- * f4000000	Security Accelerator SRAM
- *
- * virt		phys		size
- * fee00000	f1000000	1M	on-chip peripheral registers
- * fef00000	f2000000	1M	PCIe I/O space
- */
+
 
 #define KIRKWOOD_SRAM_PHYS_BASE		0xf4000000
 #define KIRKWOOD_SRAM_SIZE		SZ_2K
@@ -46,9 +24,7 @@
 #define KIRKWOOD_PCIE_MEM_BUS_BASE	0xe0000000
 #define KIRKWOOD_PCIE_MEM_SIZE		SZ_128M
 
-/*
- * Register Map
- */
+
 #define DDR_VIRT_BASE		(KIRKWOOD_REGS_VIRT_BASE | 0x00000)
 #define  DDR_WINDOW_CPU_BASE	(DDR_VIRT_BASE | 0x1500)
 #define DDR_OPERATION_BASE	(DDR_VIRT_BASE | 0x1418)
@@ -96,9 +72,7 @@
 
 #define SDIO_PHYS_BASE		(KIRKWOOD_REGS_PHYS_BASE | 0x90000)
 
-/*
- * Supported devices and revisions.
- */
+
 #define MV88F6281_DEV_ID	0x6281
 #define MV88F6281_REV_Z0	0
 #define MV88F6281_REV_A0	2

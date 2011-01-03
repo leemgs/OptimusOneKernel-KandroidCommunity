@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-ixp23xx/espresso.c
- *
- * Double Espresso-specific routines
- *
- * Author: Lennert Buytenhek <buytenh@wantstofly.org>
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -74,9 +64,7 @@ static void __init espresso_init(void)
 {
 	platform_device_register(&espresso_flash);
 
-	/*
-	 * Mark flash as writeable.
-	 */
+	
 	IXP23XX_EXP_CS0[0] |= IXP23XX_FLASH_WRITABLE;
 	IXP23XX_EXP_CS0[1] |= IXP23XX_FLASH_WRITABLE;
 
@@ -84,7 +72,7 @@ static void __init espresso_init(void)
 }
 
 MACHINE_START(ESPRESSO, "IP Fabrics Double Espresso")
-	/* Maintainer: Lennert Buytenhek */
+	
 	.phys_io	= IXP23XX_PERIPHERAL_PHYS,
 	.io_pg_offst	= ((IXP23XX_PERIPHERAL_VIRT >> 18)) & 0xfffc,
 	.map_io		= ixp23xx_map_io,

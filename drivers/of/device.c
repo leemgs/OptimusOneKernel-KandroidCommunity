@@ -9,15 +9,7 @@
 
 #include <asm/errno.h>
 
-/**
- * of_match_device - Tell if an of_device structure has a matching
- * of_match structure
- * @ids: array of of device match structures to search in
- * @dev: the of device structure to match against
- *
- * Used by a driver to check whether an of_device present in the
- * system is in its list of supported devices.
- */
+
 const struct of_device_id *of_match_device(const struct of_device_id *matches,
 					const struct of_device *dev)
 {
@@ -85,13 +77,7 @@ struct device_attribute of_platform_device_attrs[] = {
 	__ATTR_NULL
 };
 
-/**
- * of_release_dev - free an of device structure when all users of it are finished.
- * @dev: device that's been disconnected
- *
- * Will be called only by the device core when all users of this of device are
- * done.
- */
+
 void of_release_dev(struct device *dev)
 {
 	struct of_device *ofdev;
@@ -108,9 +94,7 @@ int of_device_register(struct of_device *ofdev)
 
 	device_initialize(&ofdev->dev);
 
-	/* device_add will assume that this device is on the same node as
-	 * the parent. If there is no parent defined, set the node
-	 * explicitly */
+	
 	if (!ofdev->dev.parent)
 		set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->node));
 
@@ -131,35 +115,35 @@ ssize_t of_device_get_modalias(struct of_device *ofdev,
 	int cplen, i;
 	ssize_t tsize, csize, repend;
 
-	/* Name & Type */
+	
 	csize = snprintf(str, len, "of:N%sT%s",
 				ofdev->node->name, ofdev->node->type);
 
-	/* Get compatible property if any */
+	
 	compat = of_get_property(ofdev->node, "compatible", &cplen);
 	if (!compat)
 		return csize;
 
-	/* Find true end (we tolerate multiple \0 at the end */
+	
 	for (i = (cplen - 1); i >= 0 && !compat[i]; i--)
 		cplen--;
 	if (!cplen)
 		return csize;
 	cplen++;
 
-	/* Check space (need cplen+1 chars including final \0) */
+	
 	tsize = csize + cplen;
 	repend = tsize;
 
-	if (csize >= len)		/* @ the limit, all is already filled */
+	if (csize >= len)		
 		return tsize;
 
-	if (tsize >= len) {		/* limit compat list */
+	if (tsize >= len) {		
 		cplen = len - csize - 1;
 		repend = len;
 	}
 
-	/* Copy and do char replacement */
+	
 	memcpy(&str[csize + 1], compat, cplen);
 	for (i = csize; i < repend; i++) {
 		char c = str[i];

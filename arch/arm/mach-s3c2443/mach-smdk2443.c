@@ -1,17 +1,4 @@
-/* linux/arch/arm/mach-s3c2443/mach-smdk2443.c
- *
- * Copyright (c) 2007 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * http://www.fluff.org/ben/smdk2443/
- *
- * Thanks to Samsung for the loan of an SMDK2443
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -48,7 +35,7 @@
 #include <plat/common-smdk.h>
 
 static struct map_desc smdk2443_iodesc[] __initdata = {
-	/* ISA IO Space map (memory space selected by A24) */
+	
 
 	{
 		.virtual	= (u32)S3C24XX_VA_ISA_WORD,
@@ -92,7 +79,7 @@ static struct s3c2410_uartcfg smdk2443_uartcfgs[] __initdata = {
 		.ulcon	     = 0x03,
 		.ufcon	     = 0x51,
 	},
-	/* IR port */
+	
 	[2] = {
 		.hwport	     = 2,
 		.flags	     = 0,
@@ -123,7 +110,7 @@ static void __init smdk2443_machine_init(void)
 }
 
 MACHINE_START(SMDK2443, "SMDK2443")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

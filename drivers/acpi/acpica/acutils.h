@@ -1,52 +1,13 @@
-/******************************************************************************
- *
- * Name: acutils.h -- prototypes for the common (subsystem-wide) procedures
- *
- *****************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #ifndef _ACUTILS_H
 #define _ACUTILS_H
 
 extern const u8 acpi_gbl_resource_aml_sizes[];
 
-/* Strings used by the disassembler and debugger resource dump routines */
+
 
 #if defined(ACPI_DISASSEMBLER) || defined (ACPI_DEBUGGER)
 
@@ -70,7 +31,7 @@ extern const char *acpi_gbl_ttp_decode[];
 extern const char *acpi_gbl_typ_decode[];
 #endif
 
-/* Types for Resource descriptor entries */
+
 
 #define ACPI_INVALID_RESOURCE           0
 #define ACPI_FIXED_LENGTH               1
@@ -100,16 +61,14 @@ struct acpi_pkg_info {
 #define REF_DECREMENT       (u16) 1
 #define REF_FORCE_DELETE    (u16) 2
 
-/* acpi_ut_dump_buffer */
+
 
 #define DB_BYTE_DISPLAY     1
 #define DB_WORD_DISPLAY     2
 #define DB_DWORD_DISPLAY    4
 #define DB_QWORD_DISPLAY    8
 
-/*
- * utglobal - Global data structures and procedures
- */
+
 acpi_status acpi_ut_init_globals(void);
 
 #if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
@@ -138,16 +97,12 @@ char acpi_ut_hex_to_ascii_char(acpi_integer integer, u32 position);
 
 u8 acpi_ut_valid_object_type(acpi_object_type type);
 
-/*
- * utinit - miscellaneous initialization and shutdown
- */
+
 acpi_status acpi_ut_hardware_initialize(void);
 
 void acpi_ut_subsystem_shutdown(void);
 
-/*
- * utclib - Local implementations of C library functions
- */
+
 #ifndef ACPI_USE_SYSTEM_CLIBRARY
 
 acpi_size acpi_ut_strlen(const char *string);
@@ -182,16 +137,16 @@ int acpi_ut_to_lower(int c);
 
 extern const u8 _acpi_ctype[];
 
-#define _ACPI_XA     0x00	/* extra alphabetic - not supported */
-#define _ACPI_XS     0x40	/* extra space */
-#define _ACPI_BB     0x00	/* BEL, BS, etc. - not supported */
-#define _ACPI_CN     0x20	/* CR, FF, HT, NL, VT */
-#define _ACPI_DI     0x04	/* '0'-'9' */
-#define _ACPI_LO     0x02	/* 'a'-'z' */
-#define _ACPI_PU     0x10	/* punctuation */
-#define _ACPI_SP     0x08	/* space */
-#define _ACPI_UP     0x01	/* 'A'-'Z' */
-#define _ACPI_XD     0x80	/* '0'-'9', 'A'-'F', 'a'-'f' */
+#define _ACPI_XA     0x00	
+#define _ACPI_XS     0x40	
+#define _ACPI_BB     0x00	
+#define _ACPI_CN     0x20	
+#define _ACPI_DI     0x04	
+#define _ACPI_LO     0x02	
+#define _ACPI_PU     0x10	
+#define _ACPI_SP     0x08	
+#define _ACPI_UP     0x01	
+#define _ACPI_XD     0x80	
 
 #define ACPI_IS_DIGIT(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_DI))
 #define ACPI_IS_SPACE(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_SP))
@@ -201,11 +156,9 @@ extern const u8 _acpi_ctype[];
 #define ACPI_IS_PRINT(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO | _ACPI_UP | _ACPI_DI | _ACPI_SP | _ACPI_PU))
 #define ACPI_IS_ALPHA(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO | _ACPI_UP))
 
-#endif				/* ACPI_USE_SYSTEM_CLIBRARY */
+#endif				
 
-/*
- * utcopy - Object construction and conversion interfaces
- */
+
 acpi_status
 acpi_ut_build_simple_object(union acpi_operand_object *obj,
 			    union acpi_object *user_obj,
@@ -232,15 +185,11 @@ acpi_ut_copy_iobject_to_iobject(union acpi_operand_object *source_desc,
 				union acpi_operand_object **dest_desc,
 				struct acpi_walk_state *walk_state);
 
-/*
- * utcreate - Object creation
- */
+
 acpi_status
 acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action);
 
-/*
- * utdebug - Debug interfaces
- */
+
 void acpi_ut_init_stack_ptr_trace(void);
 
 void acpi_ut_track_stack_ptr(void);
@@ -297,9 +246,7 @@ void acpi_ut_report_info(char *module_name, u32 line_number);
 
 void acpi_ut_report_warning(char *module_name, u32 line_number);
 
-/*
- * utdelete - Object deletion and reference counts
- */
+
 void acpi_ut_add_reference(union acpi_operand_object *object);
 
 void acpi_ut_remove_reference(union acpi_operand_object *object);
@@ -310,9 +257,7 @@ void acpi_ut_delete_internal_simple_object(union acpi_operand_object *object);
 
 void acpi_ut_delete_internal_object_list(union acpi_operand_object **obj_list);
 
-/*
- * uteval - object evaluation
- */
+
 acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state);
 
 acpi_status
@@ -334,9 +279,7 @@ acpi_ut_execute_power_methods(struct acpi_namespace_node *device_node,
 			      const char **method_names,
 			      u8 method_count, u8 *out_values);
 
-/*
- * utids - device ID support
- */
+
 acpi_status
 acpi_ut_execute_HID(struct acpi_namespace_node *device_node,
 		    struct acpica_device_id **return_id);
@@ -349,9 +292,7 @@ acpi_status
 acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
 		    struct acpica_device_id_list **return_cid_list);
 
-/*
- * utlock - reader/writer locks
- */
+
 acpi_status acpi_ut_create_rw_lock(struct acpi_rw_lock *lock);
 
 void acpi_ut_delete_rw_lock(struct acpi_rw_lock *lock);
@@ -364,9 +305,7 @@ acpi_status acpi_ut_acquire_write_lock(struct acpi_rw_lock *lock);
 
 void acpi_ut_release_write_lock(struct acpi_rw_lock *lock);
 
-/*
- * utobject - internal object create/delete/cache routines
- */
+
 union acpi_operand_object *acpi_ut_create_internal_object_dbg(const char
 							      *module_name,
 							      u32 line_number,
@@ -393,9 +332,7 @@ union acpi_operand_object *acpi_ut_create_string_object(acpi_size string_size);
 acpi_status
 acpi_ut_get_object_size(union acpi_operand_object *obj, acpi_size * obj_length);
 
-/*
- * utstate - Generic state creation/cache routines
- */
+
 void
 acpi_ut_push_generic_state(union acpi_generic_state **list_head,
 			   union acpi_generic_state *state);
@@ -425,15 +362,13 @@ acpi_ut_create_pkg_state_and_push(void *internal_object,
 				  void *external_object,
 				  u16 index,
 				  union acpi_generic_state **state_list);
-#endif				/* ACPI_FUTURE_USAGE */
+#endif				
 
 union acpi_generic_state *acpi_ut_create_control_state(void);
 
 void acpi_ut_delete_generic_state(union acpi_generic_state *state);
 
-/*
- * utmath
- */
+
 acpi_status
 acpi_ut_divide(acpi_integer in_dividend,
 	       acpi_integer in_divisor,
@@ -444,9 +379,7 @@ acpi_ut_short_divide(acpi_integer in_dividend,
 		     u32 divisor,
 		     acpi_integer * out_quotient, u32 * out_remainder);
 
-/*
- * utmisc
- */
+
 const char *acpi_ut_validate_exception(acpi_status status);
 
 u8 acpi_ut_is_pci_root_bridge(char *id);
@@ -481,7 +414,7 @@ acpi_ut_predefined_warning(const char *module_name,
 			   char *pathname,
 			   u8 node_flags, const char *format, ...);
 
-/* Values for Base above (16=Hex, 10=Decimal) */
+
 
 #define ACPI_ANY_BASE        0
 
@@ -496,9 +429,7 @@ acpi_ut_display_init_pathname(u8 type,
 			      char *path);
 #endif
 
-/*
- * utresrc
- */
+
 acpi_status
 acpi_ut_walk_aml_resources(u8 * aml,
 			   acpi_size aml_length,
@@ -519,9 +450,7 @@ acpi_status
 acpi_ut_get_resource_end_tag(union acpi_operand_object *obj_desc,
 			     u8 ** end_tag);
 
-/*
- * utmutex - mutex support
- */
+
 acpi_status acpi_ut_mutex_initialize(void);
 
 void acpi_ut_mutex_terminate(void);
@@ -530,9 +459,7 @@ acpi_status acpi_ut_acquire_mutex(acpi_mutex_handle mutex_id);
 
 acpi_status acpi_ut_release_mutex(acpi_mutex_handle mutex_id);
 
-/*
- * utalloc - memory allocation and object caching
- */
+
 acpi_status acpi_ut_create_caches(void);
 
 acpi_status acpi_ut_delete_caches(void);
@@ -563,7 +490,7 @@ acpi_ut_free_and_track(void *address,
 
 #ifdef	ACPI_FUTURE_USAGE
 void acpi_ut_dump_allocation_info(void);
-#endif				/* ACPI_FUTURE_USAGE */
+#endif				
 
 void acpi_ut_dump_allocations(u32 component, const char *module);
 
@@ -573,4 +500,4 @@ acpi_ut_create_list(char *list_name,
 
 #endif
 
-#endif				/* _ACUTILS_H */
+#endif				

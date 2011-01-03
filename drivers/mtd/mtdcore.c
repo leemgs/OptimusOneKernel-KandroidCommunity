@@ -1,8 +1,4 @@
-/*
- * Core registration and callback routines for MTD
- * drivers and users.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -33,8 +29,7 @@ static struct class mtd_class = {
 	.resume = mtd_cls_resume,
 };
 
-/* These are exported solely for the purpose of mtd_blkdevs.c. You
-   should not use them for _anything_ else */
+
 DEFINE_MUTEX(mtd_table_mutex);
 struct mtd_info *mtd_table[MAX_MTD_DEVICES];
 
@@ -50,14 +45,12 @@ static LIST_HEAD(mtd_notifiers);
 #define MTD_DEVT(index) 0
 #endif
 
-/* REVISIT once MTD uses the driver model better, whoever allocates
- * the mtd_info will probably want to use the release() hook...
- */
+
 static void mtd_release(struct device *dev)
 {
 	dev_t index = MTD_DEVT(dev_to_mtd(dev)->index);
 
-	/* remove /dev/mtdXro node if needed */
+	
 	if (index)
 		device_destroy(&mtd_class, index + 1);
 }
@@ -228,16 +221,7 @@ static struct device_type mtd_devtype = {
 	.release	= mtd_release,
 };
 
-/**
- *	add_mtd_device - register an MTD device
- *	@mtd: pointer to new MTD device info structure
- *
- *	Add a device to the list of MTD devices present in the system, and
- *	notify each currently active MTD 'user' of its arrival. Returns
- *	zero on success or 1 on failure, which currently will only happen
- *	if the number of present devices exceeds MAX_MTD_DEVICES (i.e. 16)
- *	or there's a sysfs error.
- */
+
 
 int add_mtd_device(struct mtd_info *mtd)
 {
@@ -281,7 +265,7 @@ int add_mtd_device(struct mtd_info *mtd)
 			mtd->erasesize_mask = (1 << mtd->erasesize_shift) - 1;
 			mtd->writesize_mask = (1 << mtd->writesize_shift) - 1;
 
-			/* Some chips always power up locked. Unlock them now */
+			
 			if ((mtd->flags & MTD_WRITEABLE)
 			    && (mtd->flags & MTD_POWERUP_LOCK) && mtd->unlock) {
 				if (mtd->unlock(mtd, 0, mtd->size))
@@ -291,9 +275,7 @@ int add_mtd_device(struct mtd_info *mtd)
 					       mtd->name);
 			}
 
-			/* Caller should have set dev.parent to match the
-			 * physical device.
-			 */
+			
 			mtd->dev.type = &mtd_devtype;
 			mtd->dev.class = &mtd_class;
 			mtd->dev.devt = MTD_DEVT(i);
@@ -310,16 +292,12 @@ int add_mtd_device(struct mtd_info *mtd)
 						NULL, "mtd%dro", i);
 
 			DEBUG(0, "mtd: Giving out device %d to %s\n",i, mtd->name);
-			/* No need to get a refcount on the module containing
-			   the notifier, since we hold the mtd_table_mutex */
+			
 			list_for_each_entry(not, &mtd_notifiers, list)
 				not->add(mtd);
 
 			mutex_unlock(&mtd_table_mutex);
-			/* We _know_ we aren't being removed, because
-			   our caller is still holding us here. So none
-			   of this try_ nonsense, and no bitching about it
-			   either. :) */
+			
 			__module_get(THIS_MODULE);
 			return 0;
 		}
@@ -328,15 +306,7 @@ int add_mtd_device(struct mtd_info *mtd)
 	return 1;
 }
 
-/**
- *	del_mtd_device - unregister an MTD device
- *	@mtd: pointer to MTD device info structure
- *
- *	Remove a device from the list of MTD devices present in the system,
- *	and notify each currently active MTD 'user' of its departure.
- *	Returns zero on success or 1 on failure, which currently will happen
- *	if the requested device does not appear to be present in the list.
- */
+
 
 int del_mtd_device (struct mtd_info *mtd)
 {
@@ -355,8 +325,7 @@ int del_mtd_device (struct mtd_info *mtd)
 
 		device_unregister(&mtd->dev);
 
-		/* No need to get a refcount on the module containing
-		   the notifier, since we hold the mtd_table_mutex */
+		
 		list_for_each_entry(not, &mtd_notifiers, list)
 			not->remove(mtd);
 
@@ -370,14 +339,7 @@ int del_mtd_device (struct mtd_info *mtd)
 	return ret;
 }
 
-/**
- *	register_mtd_user - register a 'user' of MTD devices.
- *	@new: pointer to notifier info structure
- *
- *	Registers a pair of callbacks function to be called upon addition
- *	or removal of MTD devices. Causes the 'add' callback to be immediately
- *	invoked for each MTD device currently present in the system.
- */
+
 
 void register_mtd_user (struct mtd_notifier *new)
 {
@@ -396,15 +358,7 @@ void register_mtd_user (struct mtd_notifier *new)
 	mutex_unlock(&mtd_table_mutex);
 }
 
-/**
- *	unregister_mtd_user - unregister a 'user' of MTD devices.
- *	@old: pointer to notifier info structure
- *
- *	Removes a callback function pair from the list of 'users' to be
- *	notified upon addition or removal of MTD devices. Causes the
- *	'remove' callback to be immediately invoked for each MTD device
- *	currently present in the system.
- */
+
 
 int unregister_mtd_user (struct mtd_notifier *old)
 {
@@ -424,17 +378,7 @@ int unregister_mtd_user (struct mtd_notifier *old)
 }
 
 
-/**
- *	get_mtd_device - obtain a validated handle for an MTD device
- *	@mtd: last known address of the required MTD device
- *	@num: internal device number of the required MTD device
- *
- *	Given a number and NULL address, return the num'th entry in the device
- *	table, if any.	Given an address and num == -1, search the device table
- *	for a device with that address and return if it's still present. Given
- *	both, return the num'th driver only if its address matches. Return
- *	error code if not.
- */
+
 
 struct mtd_info *get_mtd_device(struct mtd_info *mtd, int num)
 {
@@ -476,14 +420,7 @@ out_unlock:
 	return ERR_PTR(err);
 }
 
-/**
- *	get_mtd_device_nm - obtain a validated handle for an MTD device by
- *	device name
- *	@name: MTD device name to open
- *
- * 	This function returns MTD device description structure in case of
- * 	success and an error code in case of failure.
- */
+
 
 struct mtd_info *get_mtd_device_nm(const char *name)
 {
@@ -536,9 +473,7 @@ void put_mtd_device(struct mtd_info *mtd)
 	module_put(mtd->owner);
 }
 
-/* default_mtd_writev - default mtd writev method for MTD devices that
- *			don't implement their own
- */
+
 
 int default_mtd_writev(struct mtd_info *mtd, const struct kvec *vecs,
 		       unsigned long count, loff_t to, size_t *retlen)
@@ -576,8 +511,8 @@ EXPORT_SYMBOL_GPL(default_mtd_writev);
 
 #ifdef CONFIG_PROC_FS
 
-/*====================================================================*/
-/* Support for /proc/mtd */
+
+
 
 static struct proc_dir_entry *proc_mtd;
 
@@ -624,10 +559,10 @@ done:
         return ((count < begin+len-off) ? count : begin+len-off);
 }
 
-#endif /* CONFIG_PROC_FS */
+#endif 
 
-/*====================================================================*/
-/* Init code */
+
+
 
 static int __init init_mtd(void)
 {
@@ -641,7 +576,7 @@ static int __init init_mtd(void)
 #ifdef CONFIG_PROC_FS
 	if ((proc_mtd = create_proc_entry( "mtd", 0, NULL )))
 		proc_mtd->read_proc = mtd_read_proc;
-#endif /* CONFIG_PROC_FS */
+#endif 
 	return 0;
 }
 
@@ -650,7 +585,7 @@ static void __exit cleanup_mtd(void)
 #ifdef CONFIG_PROC_FS
         if (proc_mtd)
 		remove_proc_entry( "mtd", NULL);
-#endif /* CONFIG_PROC_FS */
+#endif 
 	class_unregister(&mtd_class);
 }
 

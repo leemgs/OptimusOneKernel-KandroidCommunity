@@ -1,23 +1,6 @@
-/*
- * HID raw devices, giving access to raw HID events.
- *
- * In comparison to hiddev, this device does not process the
- * hid events at all (no parsing, no lookups). This lets applications
- * to work on raw hid events as they want to, and avoids a need to
- * use a transport-specific userspace libhid/libusb libraries.
- *
- *  Copyright (c) 2007 Jiri Kosina
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- */
+
+
 
 #include <linux/fs.h>
 #include <linux/module.h>
@@ -69,7 +52,7 @@ static ssize_t hidraw_read(struct file *file, char __user *buffer, size_t count,
 					break;
 				}
 
-				/* allow O_NONBLOCK to work well from other threads */
+				
 				mutex_unlock(&list->read_mutex);
 				schedule();
 				mutex_lock(&list->read_mutex);
@@ -101,11 +84,11 @@ out:
 	return ret;
 }
 
-/* the first byte is expected to be a report number */
+
 static ssize_t hidraw_write(struct file *file, const char __user *buffer, size_t count, loff_t *ppos)
 {
 	unsigned int minor = iminor(file->f_path.dentry->d_inode);
-	/* FIXME: What stops hidraw_table going NULL */
+	
 	struct hid_device *dev = hidraw_table[minor]->hid;
 	__u8 *buf;
 	int ret = 0;
@@ -237,7 +220,7 @@ static long hidraw_ioctl(struct file *file, unsigned int cmd,
 	struct inode *inode = file->f_path.dentry->d_inode;
 	unsigned int minor = iminor(inode);
 	long ret = 0;
-	/* FIXME: What stops hidraw_table going NULL */
+	
 	struct hidraw *dev = hidraw_table[minor];
 	void __user *user_arg = (void __user*) arg;
 
@@ -349,7 +332,7 @@ int hidraw_connect(struct hid_device *hid)
 	int minor, result;
 	struct hidraw *dev;
 
-	/* we accept any HID device, no matter the applications */
+	
 
 	dev = kzalloc(sizeof(struct hidraw), GFP_KERNEL);
 	if (!dev)

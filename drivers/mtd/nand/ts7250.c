@@ -1,22 +1,4 @@
-/*
- * drivers/mtd/nand/ts7250.c
- *
- * Copyright (C) 2004 Technologic Systems (support@embeddedARM.com)
- *
- * Derived from drivers/mtd/nand/edb7312.c
- *   Copyright (C) 2004 Marius Gröger (mag@sysgo.de)
- *
- * Derived from drivers/mtd/nand/autcpu12.c
- *   Copyright (c) 2001 Thomas Gleixner (gleixner@autronix.de)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Overview:
- *   This is a device driver for the NAND flash device found on the
- *   TS-7250 board which utilizes a Samsung 32 Mbyte part.
- */
+
 
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -32,9 +14,7 @@
 #include <asm/sizes.h>
 #include <asm/mach-types.h>
 
-/*
- * MTD structure for TS7250 board
- */
+
 static struct mtd_info *ts7250_mtd = NULL;
 
 #ifdef CONFIG_MTD_PARTITIONS
@@ -42,9 +22,7 @@ static const char *part_probes[] = { "cmdlinepart", NULL };
 
 #define NUM_PARTITIONS 3
 
-/*
- * Define static partitions for flash device
- */
+
 static struct mtd_partition partition_info32[] = {
 	{
 		.name		= "TS-BOOTROM",
@@ -61,9 +39,7 @@ static struct mtd_partition partition_info32[] = {
 	},
 };
 
-/*
- * Define static partitions for flash device
- */
+
 static struct mtd_partition partition_info128[] = {
 	{
 		.name		= "TS-BOOTROM",
@@ -82,14 +58,7 @@ static struct mtd_partition partition_info128[] = {
 #endif
 
 
-/*
- *	hardware specific access to control-lines
- *
- *	ctrl:
- *	NAND_NCE: bit 0 -> bit 2
- *	NAND_CLE: bit 1 -> bit 1
- *	NAND_ALE: bit 2 -> bit 0
- */
+
 static void ts7250_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 {
 	struct nand_chip *chip = mtd->priv;
@@ -109,17 +78,13 @@ static void ts7250_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 		writeb(cmd, chip->IO_ADDR_W);
 }
 
-/*
- *	read device ready pin
- */
+
 static int ts7250_device_ready(struct mtd_info *mtd)
 {
 	return __raw_readb(TS72XX_NAND_BUSY_VIRT_BASE) & 0x20;
 }
 
-/*
- * Main initialization routine
- */
+
 static int __init ts7250_init(void)
 {
 	struct nand_chip *this;
@@ -130,25 +95,25 @@ static int __init ts7250_init(void)
 	if (!machine_is_ts72xx() || board_is_ts7200())
 		return -ENXIO;
 
-	/* Allocate memory for MTD device structure and private data */
+	
 	ts7250_mtd = kmalloc(sizeof(struct mtd_info) + sizeof(struct nand_chip), GFP_KERNEL);
 	if (!ts7250_mtd) {
 		printk("Unable to allocate TS7250 NAND MTD device structure.\n");
 		return -ENOMEM;
 	}
 
-	/* Get pointer to private data */
+	
 	this = (struct nand_chip *)(&ts7250_mtd[1]);
 
-	/* Initialize structures */
+	
 	memset(ts7250_mtd, 0, sizeof(struct mtd_info));
 	memset(this, 0, sizeof(struct nand_chip));
 
-	/* Link the private data with the MTD structure */
+	
 	ts7250_mtd->priv = this;
 	ts7250_mtd->owner = THIS_MODULE;
 
-	/* insert callbacks */
+	
 	this->IO_ADDR_R = (void *)TS72XX_NAND_DATA_VIRT_BASE;
 	this->IO_ADDR_W = (void *)TS72XX_NAND_DATA_VIRT_BASE;
 	this->cmd_ctrl = ts7250_hwcontrol;
@@ -157,7 +122,7 @@ static int __init ts7250_init(void)
 	this->ecc.mode = NAND_ECC_SOFT;
 
 	printk("Searching for NAND flash...\n");
-	/* Scan to find existence of the device */
+	
 	if (nand_scan(ts7250_mtd, 1)) {
 		kfree(ts7250_mtd);
 		return -ENXIO;
@@ -178,25 +143,23 @@ static int __init ts7250_init(void)
 		part_type = "static";
 	}
 
-	/* Register the partitions */
+	
 	printk(KERN_NOTICE "Using %s partition definition\n", part_type);
 	add_mtd_partitions(ts7250_mtd, mtd_parts, mtd_parts_nb);
 
-	/* Return happy */
+	
 	return 0;
 }
 
 module_init(ts7250_init);
 
-/*
- * Clean up routine
- */
+
 static void __exit ts7250_cleanup(void)
 {
-	/* Unregister the device */
+	
 	del_mtd_device(ts7250_mtd);
 
-	/* Free the MTD device structure */
+	
 	kfree(ts7250_mtd);
 }
 

@@ -1,11 +1,4 @@
-/*
- * DMA region bookkeeping routines
- *
- * Copyright (C) 2002 Maas Digital LLC
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- */
+
 
 #include <linux/mm.h>
 #include <linux/module.h>
@@ -16,7 +9,7 @@
 
 #include "dma.h"
 
-/* dma_prog_region */
+
 
 void dma_prog_region_init(struct dma_prog_region *prog)
 {
@@ -29,7 +22,7 @@ void dma_prog_region_init(struct dma_prog_region *prog)
 int dma_prog_region_alloc(struct dma_prog_region *prog, unsigned long n_bytes,
 			  struct pci_dev *dev)
 {
-	/* round up to page size */
+	
 	n_bytes = PAGE_ALIGN(n_bytes);
 
 	prog->n_pages = n_bytes >> PAGE_SHIFT;
@@ -60,11 +53,9 @@ void dma_prog_region_free(struct dma_prog_region *prog)
 	prog->bus_addr = 0;
 }
 
-/* dma_region */
 
-/**
- * dma_region_init - clear out all fields but do not allocate anything
- */
+
+
 void dma_region_init(struct dma_region *dma)
 {
 	dma->kvirt = NULL;
@@ -74,15 +65,13 @@ void dma_region_init(struct dma_region *dma)
 	dma->sglist = NULL;
 }
 
-/**
- * dma_region_alloc - allocate the buffer and map it to the IOMMU
- */
+
 int dma_region_alloc(struct dma_region *dma, unsigned long n_bytes,
 		     struct pci_dev *dev, int direction)
 {
 	unsigned int i;
 
-	/* round up to page size */
+	
 	n_bytes = PAGE_ALIGN(n_bytes);
 
 	dma->n_pages = n_bytes >> PAGE_SHIFT;
@@ -93,10 +82,10 @@ int dma_region_alloc(struct dma_region *dma, unsigned long n_bytes,
 		goto err;
 	}
 
-	/* Clear the ram out, no junk to the user */
+	
 	memset(dma->kvirt, 0, n_bytes);
 
-	/* allocate scatter/gather list */
+	
 	dma->sglist = vmalloc(dma->n_pages * sizeof(*dma->sglist));
 	if (!dma->sglist) {
 		printk(KERN_ERR "dma_region_alloc: vmalloc(sglist) failed\n");
@@ -105,7 +94,7 @@ int dma_region_alloc(struct dma_region *dma, unsigned long n_bytes,
 
 	sg_init_table(dma->sglist, dma->n_pages);
 
-	/* fill scatter/gather list with pages */
+	
 	for (i = 0; i < dma->n_pages; i++) {
 		unsigned long va =
 		    (unsigned long)dma->kvirt + (i << PAGE_SHIFT);
@@ -114,7 +103,7 @@ int dma_region_alloc(struct dma_region *dma, unsigned long n_bytes,
 				PAGE_SIZE, 0);
 	}
 
-	/* map sglist to the IOMMU */
+	
 	dma->n_dma_pages =
 	    pci_map_sg(dev, dma->sglist, dma->n_pages, direction);
 
@@ -133,9 +122,7 @@ int dma_region_alloc(struct dma_region *dma, unsigned long n_bytes,
 	return -ENOMEM;
 }
 
-/**
- * dma_region_free - unmap and free the buffer
- */
+
 void dma_region_free(struct dma_region *dma)
 {
 	if (dma->n_dma_pages) {
@@ -153,8 +140,7 @@ void dma_region_free(struct dma_region *dma)
 	dma->n_pages = 0;
 }
 
-/* find the scatterlist index and remaining offset corresponding to a
-   given offset from the beginning of the buffer */
+
 static inline int dma_region_find(struct dma_region *dma, unsigned long offset,
 				  unsigned int start, unsigned long *rem)
 {
@@ -175,12 +161,7 @@ static inline int dma_region_find(struct dma_region *dma, unsigned long offset,
 	return i;
 }
 
-/**
- * dma_region_offset_to_bus - get bus address of an offset within a DMA region
- *
- * Returns the DMA bus address of the byte with the given @offset relative to
- * the beginning of the @dma.
- */
+
 dma_addr_t dma_region_offset_to_bus(struct dma_region * dma,
 				    unsigned long offset)
 {
@@ -191,9 +172,7 @@ dma_addr_t dma_region_offset_to_bus(struct dma_region * dma,
 	return sg_dma_address(sg) + rem;
 }
 
-/**
- * dma_region_sync_for_cpu - sync the CPU's view of the buffer
- */
+
 void dma_region_sync_for_cpu(struct dma_region *dma, unsigned long offset,
 			     unsigned long len)
 {
@@ -210,9 +189,7 @@ void dma_region_sync_for_cpu(struct dma_region *dma, unsigned long offset,
 				dma->direction);
 }
 
-/**
- * dma_region_sync_for_device - sync the IO bus' view of the buffer
- */
+
 void dma_region_sync_for_device(struct dma_region *dma, unsigned long offset,
 				unsigned long len)
 {
@@ -251,9 +228,7 @@ static const struct vm_operations_struct dma_region_vm_ops = {
 	.fault = dma_region_pagefault,
 };
 
-/**
- * dma_region_mmap - map the buffer into a user space process
- */
+
 int dma_region_mmap(struct dma_region *dma, struct file *file,
 		    struct vm_area_struct *vma)
 {
@@ -262,11 +237,11 @@ int dma_region_mmap(struct dma_region *dma, struct file *file,
 	if (!dma->kvirt)
 		return -EINVAL;
 
-	/* must be page-aligned (XXX: comment is wrong, we could allow pgoff) */
+	
 	if (vma->vm_pgoff != 0)
 		return -EINVAL;
 
-	/* check the length */
+	
 	size = vma->vm_end - vma->vm_start;
 	if (size > (dma->n_pages << PAGE_SHIFT))
 		return -EINVAL;
@@ -279,7 +254,7 @@ int dma_region_mmap(struct dma_region *dma, struct file *file,
 	return 0;
 }
 
-#else				/* CONFIG_MMU */
+#else				
 
 int dma_region_mmap(struct dma_region *dma, struct file *file,
 		    struct vm_area_struct *vma)
@@ -287,4 +262,4 @@ int dma_region_mmap(struct dma_region *dma, struct file *file,
 	return -EINVAL;
 }
 
-#endif				/* CONFIG_MMU */
+#endif				

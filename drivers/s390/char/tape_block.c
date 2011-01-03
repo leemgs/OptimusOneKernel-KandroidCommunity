@@ -1,14 +1,4 @@
-/*
- *  drivers/s390/char/tape_block.c
- *    block device frontend for tape device driver
- *
- *  S390 and zSeries version
- *    Copyright (C) 2001,2003 IBM Deutschland Entwicklung GmbH, IBM Corporation
- *    Author(s): Carsten Otte <cotte@de.ibm.com>
- *		 Tuan Ngo-Anh <ngoanh@de.ibm.com>
- *		 Martin Schwidefsky <schwidefsky@de.ibm.com>
- *		 Stefan Bader <shbader@de.ibm.com>
- */
+
 
 #define KMSG_COMPONENT "tape"
 
@@ -28,21 +18,9 @@
 #define TAPEBLOCK_MAX_SEC	100
 #define TAPEBLOCK_MIN_REQUEUE	3
 
-/*
- * 2003/11/25  Stefan Bader <shbader@de.ibm.com>
- *
- * In 2.5/2.6 the block device request function is very likely to be called
- * with disabled interrupts (e.g. generic_unplug_device). So the driver can't
- * just call any function that tries to allocate CCW requests from that con-
- * text since it might sleep. There are two choices to work around this:
- *	a) do not allocate with kmalloc but use its own memory pool
- *      b) take requests from the queue outside that context, knowing that
- *         allocation might sleep
- */
 
-/*
- * file operation structure for tape block frontend
- */
+
+
 static int tapeblock_open(struct block_device *, fmode_t);
 static int tapeblock_release(struct gendisk *, fmode_t);
 static int tapeblock_ioctl(struct block_device *, fmode_t, unsigned int,
@@ -64,15 +42,13 @@ static int tapeblock_major = 0;
 static void
 tapeblock_trigger_requeue(struct tape_device *device)
 {
-	/* Protect against rescheduling. */
+	
 	if (atomic_cmpxchg(&device->blk_data.requeue_scheduled, 0, 1) != 0)
 		return;
 	schedule_work(&device->blk_data.requeue_task);
 }
 
-/*
- * Post finished request.
- */
+
 static void
 __tapeblock_end_request(struct tape_request *ccw_req, void *data)
 {
@@ -85,11 +61,11 @@ __tapeblock_end_request(struct tape_request *ccw_req, void *data)
 	req = (struct request *) data;
 	blk_end_request_all(req, (ccw_req->rc == 0) ? 0 : -EIO);
 	if (ccw_req->rc == 0)
-		/* Update position. */
+		
 		device->blk_data.block_position =
 		  (blk_rq_pos(req) + blk_rq_sectors(req)) >> TAPEBLOCK_HSEC_S2B;
 	else
-		/* We lost the position information due to an error. */
+		
 		device->blk_data.block_position = -1;
 	device->discipline->free_bread(ccw_req);
 	if (!list_empty(&device->req_queue) ||
@@ -97,9 +73,7 @@ __tapeblock_end_request(struct tape_request *ccw_req, void *data)
 		tapeblock_trigger_requeue(device);
 }
 
-/*
- * Feed the tape device CCW queue with requests supplied in a list.
- */
+
 static int
 tapeblock_start_request(struct tape_device *device, struct request *req)
 {
@@ -120,10 +94,7 @@ tapeblock_start_request(struct tape_device *device, struct request *req)
 
 	rc = tape_do_io_async(device, ccw_req);
 	if (rc) {
-		/*
-		 * Start/enqueueing failed. No retries in
-		 * this case.
-		 */
+		
 		blk_end_request_all(req, -EIO);
 		device->discipline->free_bread(ccw_req);
 	}
@@ -131,10 +102,7 @@ tapeblock_start_request(struct tape_device *device, struct request *req)
 	return rc;
 }
 
-/*
- * Move requests from the block device request queue to the tape device ccw
- * queue.
- */
+
 static void
 tapeblock_requeue(struct work_struct *work) {
 	struct tape_blk_data *	blkdat;
@@ -153,7 +121,7 @@ tapeblock_requeue(struct work_struct *work) {
 	spin_lock_irq(get_ccwdev_lock(device->cdev));
 	queue  = device->blk_data.request_queue;
 
-	/* Count number of requests on ccw queue. */
+	
 	nr_queued = 0;
 	list_for_each(l, &device->req_queue)
 		nr_queued++;
@@ -182,9 +150,7 @@ tapeblock_requeue(struct work_struct *work) {
 	atomic_set(&device->blk_data.requeue_scheduled, 0);
 }
 
-/*
- * Tape request queue function. Called from ll_rw_blk.c
- */
+
 static void
 tapeblock_request_fn(struct request_queue *queue)
 {
@@ -196,9 +162,7 @@ tapeblock_request_fn(struct request_queue *queue)
 	tapeblock_trigger_requeue(device);
 }
 
-/*
- * This function is called for every new tapedevice
- */
+
 int
 tapeblock_setup_device(struct tape_device * device)
 {
@@ -286,10 +250,7 @@ cleanup_queue:
 	device->blk_data.request_queue = NULL;
 }
 
-/*
- * Detect number of blocks of the tape.
- * FIXME: can we extent this to detect the blocks size as well ?
- */
+
 static int
 tapeblock_revalidate_disk(struct gendisk *disk)
 {
@@ -316,8 +277,7 @@ tapeblock_revalidate_disk(struct gendisk *disk)
 	DBF_LH(3, "Image file ends at %d\n", rc);
 	nr_of_blks = rc;
 
-	/* This will fail for the first file. Catch the error by checking the
-	 * position. */
+	
 	tape_mtop(device, MTBSF, 1);
 
 	rc = tape_mtop(device, MTTELL, 1);
@@ -353,9 +313,7 @@ tapeblock_medium_changed(struct gendisk *disk)
 	return device->blk_data.medium_changed;
 }
 
-/*
- * Block frontend tape device open function.
- */
+
 static int
 tapeblock_open(struct block_device *bdev, fmode_t mode)
 {
@@ -381,10 +339,7 @@ tapeblock_open(struct block_device *bdev, fmode_t mode)
 	if (rc)
 		goto release;
 
-	/*
-	 * Note: The reference to <device> is hold until the release function
-	 *       is called.
-	 */
+	
 	tape_state_set(device, TS_BLKUSE);
 	return 0;
 
@@ -395,12 +350,7 @@ release:
 	return rc;
 }
 
-/*
- * Block frontend tape device release function.
- *
- * Note: One reference to the tape device was made by the open function. So
- *       we just get the pointer here and release the reference.
- */
+
 static int
 tapeblock_release(struct gendisk *disk, fmode_t mode)
 {
@@ -413,9 +363,7 @@ tapeblock_release(struct gendisk *disk, fmode_t mode)
 	return 0;
 }
 
-/*
- * Support of some generic block device IOCTLs.
- */
+
 static int
 tapeblock_ioctl(
 	struct block_device *	bdev,
@@ -438,8 +386,8 @@ tapeblock_ioctl(
 	DBF_LH(6, "device = %d:%d\n", tapeblock_major, minor);
 
 	switch (command) {
-		/* Refuse some IOCTL calls without complaining (mount). */
-		case 0x5310:		/* CDROMMULTISESSION */
+		
+		case 0x5310:		
 			rc = -EINVAL;
 			break;
 		default:
@@ -449,15 +397,13 @@ tapeblock_ioctl(
 	return rc;
 }
 
-/*
- * Initialize block device frontend.
- */
+
 int
 tapeblock_init(void)
 {
 	int rc;
 
-	/* Register the tape major number to the kernel */
+	
 	rc = register_blkdev(tapeblock_major, "tBLK");
 	if (rc < 0)
 		return rc;
@@ -467,9 +413,7 @@ tapeblock_init(void)
 	return 0;
 }
 
-/*
- * Deregister major for block device frontend
- */
+
 void
 tapeblock_exit(void)
 {

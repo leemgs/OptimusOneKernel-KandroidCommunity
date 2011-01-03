@@ -1,23 +1,4 @@
-/*
-    ivtv firmware functions.
-    Copyright (C) 2003-2004  Kevin Thayer <nufan_wfk at yahoo.com>
-    Copyright (C) 2004  Chris Kennedy <c@groovy.org>
-    Copyright (C) 2005-2007  Hans Verkuil <hverkuil@xs4all.nl>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 #include "ivtv-driver.h"
 #include "ivtv-mailbox.h"
@@ -42,7 +23,7 @@
 #define IVTV_DECODE_INIT_MPEG_FILENAME 	"v4l-cx2341x-init.mpg"
 #define IVTV_DECODE_INIT_MPEG_SIZE 	(152*1024)
 
-/* Encoder/decoder firmware sizes */
+
 #define IVTV_FW_ENC_SIZE 		(376836)
 #define IVTV_FW_DEC_SIZE 		(256*1024)
 
@@ -58,17 +39,14 @@ retry:
 		const u32 *src = (const u32 *)fw->data;
 
 		if (fw->size != size) {
-			/* Due to race conditions in firmware loading (esp. with udev <0.95)
-			   the wrong file was sometimes loaded. So we check filesizes to
-			   see if at least the right-sized file was loaded. If not, then we
-			   retry. */
+			
 			IVTV_INFO("Retry: file loaded was not %s (expected size %ld, got %zd)\n", fn, size, fw->size);
 			release_firmware(fw);
 			retries--;
 			goto retry;
 		}
 		for (i = 0; i < fw->size; i += 4) {
-			/* no need for endianness conversion on the ppc */
+			
 			__raw_writel(*src, dst);
 			dst++;
 			src++;
@@ -138,7 +116,7 @@ void ivtv_firmware_versions(struct ivtv *itv)
 {
 	u32 data[CX2341X_MBOX_MAX_DATA];
 
-	/* Encoder */
+	
 	ivtv_vapi_result(itv, data, CX2341X_ENC_GET_VERSION, 0);
 	IVTV_INFO("Encoder revision: 0x%08x\n", data[0]);
 
@@ -146,7 +124,7 @@ void ivtv_firmware_versions(struct ivtv *itv)
 		IVTV_WARN("Recommended firmware version is 0x02060039.\n");
 
 	if (itv->has_cx23415) {
-		/* Decoder */
+		
 		ivtv_vapi_result(itv, data, CX2341X_DEC_GET_VERSION, 0);
 		IVTV_INFO("Decoder revision: 0x%08x\n", data[0]);
 	}
@@ -176,8 +154,7 @@ static volatile struct ivtv_mailbox __iomem *ivtv_search_mailbox(const volatile 
 {
 	int i;
 
-	/* mailbox is preceeded by a 16 byte 'magic cookie' starting at a 256-byte
-	   address boundary */
+	
 	for (i = 0; i < size; i += 0x100) {
 		if (readl(mem + i)      == 0x12345678 &&
 		    readl(mem + i + 4)  == 0x34567812 &&
@@ -195,14 +172,14 @@ int ivtv_firmware_init(struct ivtv *itv)
 
 	ivtv_halt_firmware(itv);
 
-	/* load firmware */
+	
 	err = ivtv_firmware_copy(itv);
 	if (err) {
 		IVTV_DEBUG_WARN("Error %d loading firmware\n", err);
 		return err;
 	}
 
-	/* start firmware */
+	
 	write_reg(read_reg(IVTV_REG_SPU) & IVTV_MASK_SPU_ENABLE, IVTV_REG_SPU);
 	ivtv_msleep_timeout(100, 0);
 	if (itv->has_cx23415)
@@ -211,7 +188,7 @@ int ivtv_firmware_init(struct ivtv *itv)
 		write_reg(read_reg(IVTV_REG_VPU) & IVTV_MASK_VPU_ENABLE16, IVTV_REG_VPU);
 	ivtv_msleep_timeout(100, 0);
 
-	/* find mailboxes and ping firmware */
+	
 	itv->enc_mbox.mbox = ivtv_search_mailbox(itv->enc_mem, IVTV_ENCODER_SIZE);
 	if (itv->enc_mbox.mbox == NULL)
 		IVTV_ERR("Encoder mailbox not found\n");
@@ -232,7 +209,7 @@ int ivtv_firmware_init(struct ivtv *itv)
 		IVTV_ERR("Decoder firmware dead!\n");
 		itv->dec_mbox.mbox = NULL;
 	} else {
-		/* Firmware okay, so check yuv output filter table */
+		
 		ivtv_yuv_filter_check(itv);
 	}
 	return itv->dec_mbox.mbox ? 0 : -ENODEV;
@@ -245,10 +222,9 @@ void ivtv_init_mpeg_decoder(struct ivtv *itv)
 	volatile u8 __iomem *mem_offset;
 
 	data[0] = 0;
-	data[1] = itv->params.width;	/* YUV source width */
+	data[1] = itv->params.width;	
 	data[2] = itv->params.height;
-	data[3] = itv->params.audio_properties;	/* Audio settings to use,
-							   bitmap. see docs. */
+	data[3] = itv->params.audio_properties;	
 	if (ivtv_api(itv, CX2341X_DEC_SET_DECODER_SOURCE, 4, data)) {
 		IVTV_ERR("ivtv_init_mpeg_decoder failed to set decoder source\n");
 		return;

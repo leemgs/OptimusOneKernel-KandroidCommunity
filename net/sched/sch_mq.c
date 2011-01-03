@@ -1,12 +1,4 @@
-/*
- * net/sched/sch_mq.c		Classful multiqueue dummy scheduler
- *
- * Copyright (c) 2009 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -47,7 +39,7 @@ static int mq_init(struct Qdisc *sch, struct nlattr *opt)
 	if (!netif_is_multiqueue(dev))
 		return -EOPNOTSUPP;
 
-	/* pre-allocate qdiscs, attachment can't fail */
+	
 	priv->qdiscs = kcalloc(dev->num_tx_queues, sizeof(priv->qdiscs[0]),
 			       GFP_KERNEL);
 	if (priv->qdiscs == NULL)

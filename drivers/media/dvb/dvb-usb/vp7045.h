@@ -1,29 +1,17 @@
-/* Common header-file of the Linux driver for the TwinhanDTV Alpha/MagicBoxII
- * USB2.0 DVB-T receiver.
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- * Thanks to Twinhan who kindly provided hardware and information.
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #ifndef _DVB_USB_VP7045_H_
 #define _DVB_USB_VP7045_H_
 
 #define DVB_USB_LOG_PREFIX "vp7045"
 #include "dvb-usb.h"
 
-/* vp7045 commands */
 
-/* Twinhan Vendor requests */
+
+
 #define TH_COMMAND_IN                     0xC0
 #define TH_COMMAND_OUT                    0xC1
 
-/* command bytes */
+
 #define TUNER_REG_READ                    0x03
 #define TUNER_REG_WRITE                   0x04
 
@@ -44,7 +32,7 @@
 
 #define TUNER_SIGNAL_READ                 0x0A
 
-/* FX2 eeprom */
+
 #define SET_EE_VALUE                      0x10
 #define GET_EE_VALUE                      0x11
  #define FX2_ID_ADDR                      0x00

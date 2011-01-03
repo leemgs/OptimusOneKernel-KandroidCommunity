@@ -1,14 +1,4 @@
-/* $Id: hfc_2bs0.c,v 1.20.2.6 2004/02/11 13:21:33 keil Exp $
- *
- * specific routines for CCD's HFC 2BS0
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -279,7 +269,7 @@ hfc_fill_fifo(struct BCState *bcs)
 	  count = z1 - z2;
 	  if (count < 0)
 	    count += cs->hw.hfc.fifosize; 
-	} /* L1_MODE_TRANS */
+	} 
 	if (cs->debug & L1_DEB_HSCX)
 		debugl1(cs, "hfc_fill_fifo %d count(%ld/%d)",
 			bcs->channel, bcs->tx_skb->len,
@@ -363,7 +353,7 @@ main_irq_hfc(struct BCState *bcs)
 			if (cs->debug & L1_DEB_HSCX)
 				debugl1(cs, "hfc rec %d z1(%x) z2(%x) cnt(%d)",
 					bcs->channel, z1, z2, rcnt);
-			/*              sti(); */
+			
 			if ((skb = hfc_empty_fifo(bcs, rcnt))) {
 				skb_queue_tail(&bcs->rqueue, skb);
 				schedule_event(bcs, B_RCVBUFREADY);
@@ -417,9 +407,9 @@ mode_hfc(struct BCState *bcs, int mode, int bc)
 			}
 			break;
 		case (L1_MODE_TRANS):
-		        cs->hw.hfc.ctmt &= ~(1 << bc); /* set HDLC mode */ 
+		        cs->hw.hfc.ctmt &= ~(1 << bc);  
 			cs->BC_Write_Reg(cs, HFC_STATUS, cs->hw.hfc.ctmt, cs->hw.hfc.ctmt);
-			hfc_clear_fifo(bcs); /* complete fifo clear */ 
+			hfc_clear_fifo(bcs);  
 			if (bc) {
 				cs->hw.hfc.ctmt |= 1;
 				cs->hw.hfc.isac_spcr &= ~0x03;

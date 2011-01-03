@@ -1,28 +1,4 @@
-/*
-    Driver for Zarlink VP310/MT312/ZL10313 Satellite Channel Decoder
 
-    Copyright (C) 2003 Andreas Oberritter <obi@linuxtv.org>
-    Copyright (C) 2008 Matthias Schwarzott <zzam@gentoo.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    References:
-    http://products.zarlink.com/product_profiles/MT312.htm
-    http://products.zarlink.com/product_profiles/SL1935.htm
-*/
 
 #include <linux/delay.h>
 #include <linux/errno.h>
@@ -39,7 +15,7 @@
 
 struct mt312_state {
 	struct i2c_adapter *i2c;
-	/* configuration settings */
+	
 	const struct mt312_config *config;
 	struct dvb_frontend frontend;
 
@@ -55,8 +31,8 @@ static int debug;
 			printk(KERN_DEBUG "mt312: " args); \
 	} while (0)
 
-#define MT312_PLL_CLK		10000000UL	/* 10 MHz */
-#define MT312_PLL_CLK_10_111	10111000UL	/* 10.111 MHz */
+#define MT312_PLL_CLK		10000000UL	
+#define MT312_PLL_CLK_10_111	10111000UL	
 
 static int mt312_read(struct mt312_state *state, const enum mt312_reg_addr reg,
 		      u8 *buf, const size_t count)
@@ -157,7 +133,7 @@ static int mt312_get_inversion(struct mt312_state *state,
 	if (ret < 0)
 		return ret;
 
-	if (vit_mode & 0x80)	/* auto inversion was used */
+	if (vit_mode & 0x80)	
 		*i = (vit_mode & 0x40) ? INVERSION_ON : INVERSION_OFF;
 
 	return 0;
@@ -177,7 +153,7 @@ static int mt312_get_symbol_rate(struct mt312_state *state, u32 *sr)
 		return ret;
 
 	if (sym_rate_h & 0x80) {
-		/* symbol rate search was used */
+		
 		ret = mt312_writereg(state, MON_CTRL, 0x03);
 		if (ret < 0)
 			return ret;
@@ -241,22 +217,21 @@ static int mt312_initfe(struct dvb_frontend *fe)
 	int ret;
 	u8 buf[2];
 
-	/* wake up */
+	
 	ret = mt312_writereg(state, CONFIG,
 			(state->freq_mult == 6 ? 0x88 : 0x8c));
 	if (ret < 0)
 		return ret;
 
-	/* wait at least 150 usec */
+	
 	udelay(150);
 
-	/* full reset */
+	
 	ret = mt312_reset(state, 1);
 	if (ret < 0)
 		return ret;
 
-/* Per datasheet, write correct values. 09/28/03 ACCJr.
- * If we don't do this, we won't get FE_HAS_VITERBI in the VP310. */
+
 	{
 		u8 buf_def[8] = { 0x14, 0x12, 0x03, 0x02,
 				  0x01, 0x00, 0x00, 0x00 };
@@ -268,19 +243,19 @@ static int mt312_initfe(struct dvb_frontend *fe)
 
 	switch (state->id) {
 	case ID_ZL10313:
-		/* enable ADC */
+		
 		ret = mt312_writereg(state, GPP_CTRL, 0x80);
 		if (ret < 0)
 			return ret;
 
-		/* configure ZL10313 for optimal ADC performance */
+		
 		buf[0] = 0x80;
 		buf[1] = 0xB0;
 		ret = mt312_write(state, HW_CTRL, buf, 2);
 		if (ret < 0)
 			return ret;
 
-		/* enable MPEG output and ADCs */
+		
 		ret = mt312_writereg(state, HW_CTRL, 0x00);
 		if (ret < 0)
 			return ret;
@@ -292,10 +267,10 @@ static int mt312_initfe(struct dvb_frontend *fe)
 		break;
 	}
 
-	/* SYS_CLK */
+	
 	buf[0] = mt312_div(state->xtal * state->freq_mult * 2, 1000000);
 
-	/* DISEQC_RATIO */
+	
 	buf[1] = mt312_div(state->xtal, 22000 * 4);
 
 	ret = mt312_write(state, SYS_CLK, buf, sizeof(buf));
@@ -306,7 +281,7 @@ static int mt312_initfe(struct dvb_frontend *fe)
 	if (ret < 0)
 		return ret;
 
-	/* different MOCLK polarity */
+	
 	switch (state->id) {
 	case ID_ZL10313:
 		buf[0] = 0x33;
@@ -320,7 +295,7 @@ static int mt312_initfe(struct dvb_frontend *fe)
 	if (ret < 0)
 		return ret;
 
-	/* TS_SW_LIM */
+	
 	buf[0] = 0x8c;
 	buf[1] = 0x98;
 
@@ -359,10 +334,10 @@ static int mt312_send_master_cmd(struct dvb_frontend *fe,
 	if (ret < 0)
 		return ret;
 
-	/* is there a better way to wait for message to be transmitted */
+	
 	msleep(100);
 
-	/* set DISEQC_MODE[2:0] to zero if a return message is expected */
+	
 	if (c->msg[0] & 0x02) {
 		ret = mt312_writereg(state, DISEQC_MODE, (diseqc_mode & 0x40));
 		if (ret < 0)
@@ -450,15 +425,15 @@ static int mt312_read_status(struct dvb_frontend *fe, fe_status_t *s)
 		" FEC_STATUS: 0x%02x\n", status[0], status[1], status[2]);
 
 	if (status[0] & 0xc0)
-		*s |= FE_HAS_SIGNAL;	/* signal noise ratio */
+		*s |= FE_HAS_SIGNAL;	
 	if (status[0] & 0x04)
-		*s |= FE_HAS_CARRIER;	/* qpsk carrier lock */
+		*s |= FE_HAS_CARRIER;	
 	if (status[2] & 0x02)
-		*s |= FE_HAS_VITERBI;	/* viterbi lock */
+		*s |= FE_HAS_VITERBI;	
 	if (status[2] & 0x04)
-		*s |= FE_HAS_SYNC;	/* byte align lock */
+		*s |= FE_HAS_SYNC;	
 	if (status[0] & 0x01)
-		*s |= FE_HAS_LOCK;	/* qpsk lock */
+		*s |= FE_HAS_LOCK;	
 
 	return 0;
 }
@@ -567,17 +542,14 @@ static int mt312_set_frontend(struct dvb_frontend *fe,
 
 	switch (state->id) {
 	case ID_VP310:
-	/* For now we will do this only for the VP310.
-	 * It should be better for the mt312 as well,
-	 * but tuning will be slower. ACCJr 09/29/03
-	 */
+	
 		ret = mt312_readreg(state, CONFIG, &config_val);
 		if (ret < 0)
 			return ret;
 		if (p->u.qpsk.symbol_rate >= 30000000) {
-			/* Note that 30MS/s should use 90MHz */
+			
 			if (state->freq_mult == 6) {
-				/* We are running 60MHz */
+				
 				state->freq_mult = 9;
 				ret = mt312_initfe(fe);
 				if (ret < 0)
@@ -585,7 +557,7 @@ static int mt312_set_frontend(struct dvb_frontend *fe,
 			}
 		} else {
 			if (state->freq_mult == 9) {
-				/* We are running 90MHz */
+				
 				state->freq_mult = 6;
 				ret = mt312_initfe(fe);
 				if (ret < 0)
@@ -608,23 +580,23 @@ static int mt312_set_frontend(struct dvb_frontend *fe,
 			fe->ops.i2c_gate_ctrl(fe, 0);
 	}
 
-	/* sr = (u16)(sr * 256.0 / 1000000.0) */
+	
 	sr = mt312_div(p->u.qpsk.symbol_rate * 4, 15625);
 
-	/* SYM_RATE */
+	
 	buf[0] = (sr >> 8) & 0x3f;
 	buf[1] = (sr >> 0) & 0xff;
 
-	/* VIT_MODE */
+	
 	buf[2] = inv_tab[p->inversion] | fec_tab[p->u.qpsk.fec_inner];
 
-	/* QPSK_CTRL */
-	buf[3] = 0x40;		/* swap I and Q before QPSK demodulation */
+	
+	buf[3] = 0x40;		
 
 	if (p->u.qpsk.symbol_rate < 10000000)
-		buf[3] |= 0x04;	/* use afc mode */
+		buf[3] |= 0x04;	
 
-	/* GO */
+	
 	buf[4] = 0x01;
 
 	ret = mt312_write(state, SYM_RATE_H, buf, sizeof(buf));
@@ -670,7 +642,7 @@ static int mt312_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 		if (ret < 0)
 			goto error;
 
-		/* preserve this bit to not accidently shutdown ADC */
+		
 		val &= 0x80;
 		break;
 	}
@@ -692,18 +664,18 @@ static int mt312_sleep(struct dvb_frontend *fe)
 	int ret;
 	u8 config;
 
-	/* reset all registers to defaults */
+	
 	ret = mt312_reset(state, 1);
 	if (ret < 0)
 		return ret;
 
 	if (state->id == ID_ZL10313) {
-		/* reset ADC */
+		
 		ret = mt312_writereg(state, GPP_CTRL, 0x00);
 		if (ret < 0)
 			return ret;
 
-		/* full shutdown of ADCs, mpeg bus tristated */
+		
 		ret = mt312_writereg(state, HW_CTRL, 0x0d);
 		if (ret < 0)
 			return ret;
@@ -713,7 +685,7 @@ static int mt312_sleep(struct dvb_frontend *fe)
 	if (ret < 0)
 		return ret;
 
-	/* enter standby */
+	
 	ret = mt312_writereg(state, CONFIG, config & 0x7f);
 	if (ret < 0)
 		return ret;
@@ -736,7 +708,7 @@ static void mt312_release(struct dvb_frontend *fe)
 	kfree(state);
 }
 
-#define MT312_SYS_CLK		90000000UL	/* 90 MHz */
+#define MT312_SYS_CLK		90000000UL	
 static struct dvb_frontend_ops mt312_ops = {
 
 	.info = {
@@ -744,9 +716,9 @@ static struct dvb_frontend_ops mt312_ops = {
 		.type = FE_QPSK,
 		.frequency_min = 950000,
 		.frequency_max = 2150000,
-		/* FIXME: adjust freq to real used xtal */
+		
 		.frequency_stepsize = (MT312_PLL_CLK / 1000) / 128,
-		.symbol_rate_min = MT312_SYS_CLK / 128, /* FIXME as above */
+		.symbol_rate_min = MT312_SYS_CLK / 128, 
 		.symbol_rate_max = MT312_SYS_CLK / 2,
 		.caps =
 		    FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 |
@@ -782,20 +754,20 @@ struct dvb_frontend *mt312_attach(const struct mt312_config *config,
 {
 	struct mt312_state *state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct mt312_state), GFP_KERNEL);
 	if (state == NULL)
 		goto error;
 
-	/* setup the state */
+	
 	state->config = config;
 	state->i2c = i2c;
 
-	/* check if the demod is there */
+	
 	if (mt312_readreg(state, ID, &state->id) < 0)
 		goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &mt312_ops,
 		sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;

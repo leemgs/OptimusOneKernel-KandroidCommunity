@@ -1,11 +1,6 @@
 #include "amd64_edac.h"
 
-/*
- * accept a hex value and store it into the virtual error register file, field:
- * nbeal and nbeah. Assume virtual error values have already been set for: NBSL,
- * NBSH and NBCFG. Then proceed to map the error values to a MC, CSROW and
- * CHANNEL
- */
+
 static ssize_t amd64_nbea_store(struct mem_ctl_info *mci, const char *data,
 				size_t count)
 {
@@ -17,13 +12,13 @@ static ssize_t amd64_nbea_store(struct mem_ctl_info *mci, const char *data,
 	if (ret != -EINVAL) {
 		debugf0("received NBEA= 0x%llx\n", value);
 
-		/* place the value into the virtual error packet */
+		
 		pvt->ctl_error_info.nbeal = (u32) value;
 		value >>= 32;
 		pvt->ctl_error_info.nbeah = (u32) value;
 
-		/* Process the Mapping request */
-		/* TODO: Add race prevention */
+		
+		
 		amd_decode_nb_mce(pvt->mc_node_id, &pvt->ctl_error_info, 1);
 
 		return count;
@@ -31,7 +26,7 @@ static ssize_t amd64_nbea_store(struct mem_ctl_info *mci, const char *data,
 	return ret;
 }
 
-/* display back what the last NBEA (MCA NB Address (MC4_ADDR)) was written */
+
 static ssize_t amd64_nbea_show(struct mem_ctl_info *mci, char *data)
 {
 	struct amd64_pvt *pvt = mci->pvt_info;
@@ -44,7 +39,7 @@ static ssize_t amd64_nbea_show(struct mem_ctl_info *mci, char *data)
 	return sprintf(data, "%llx\n", value);
 }
 
-/* store the NBSL (MCA NB Status Low (MC4_STATUS)) value user desires */
+
 static ssize_t amd64_nbsl_store(struct mem_ctl_info *mci, const char *data,
 				size_t count)
 {
@@ -63,7 +58,7 @@ static ssize_t amd64_nbsl_store(struct mem_ctl_info *mci, const char *data,
 	return ret;
 }
 
-/* display back what the last NBSL value written */
+
 static ssize_t amd64_nbsl_show(struct mem_ctl_info *mci, char *data)
 {
 	struct amd64_pvt *pvt = mci->pvt_info;
@@ -74,7 +69,7 @@ static ssize_t amd64_nbsl_show(struct mem_ctl_info *mci, char *data)
 	return sprintf(data, "%x\n", value);
 }
 
-/* store the NBSH (MCA NB Status High) value user desires */
+
 static ssize_t amd64_nbsh_store(struct mem_ctl_info *mci, const char *data,
 				size_t count)
 {
@@ -93,7 +88,7 @@ static ssize_t amd64_nbsh_store(struct mem_ctl_info *mci, const char *data,
 	return ret;
 }
 
-/* display back what the last NBSH value written */
+
 static ssize_t amd64_nbsh_show(struct mem_ctl_info *mci, char *data)
 {
 	struct amd64_pvt *pvt = mci->pvt_info;
@@ -104,7 +99,7 @@ static ssize_t amd64_nbsh_show(struct mem_ctl_info *mci, char *data)
 	return sprintf(data, "%x\n", value);
 }
 
-/* accept and store the NBCFG (MCA NB Configuration) value user desires */
+
 static ssize_t amd64_nbcfg_store(struct mem_ctl_info *mci,
 					const char *data, size_t count)
 {
@@ -123,7 +118,7 @@ static ssize_t amd64_nbcfg_store(struct mem_ctl_info *mci,
 	return ret;
 }
 
-/* various show routines for the controls of a MCI */
+
 static ssize_t amd64_nbcfg_show(struct mem_ctl_info *mci, char *data)
 {
 	struct amd64_pvt *pvt = mci->pvt_info;
@@ -175,9 +170,7 @@ static ssize_t amd64_hole_show(struct mem_ctl_info *mci, char *data)
 						 hole_size);
 }
 
-/*
- * update NUM_DBG_ATTRS in case you add new members
- */
+
 struct mcidev_sysfs_attribute amd64_dbg_attrs[] = {
 
 	{

@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2006 - 2009 Intel-NE, Inc.  All rights reserved.
- * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #ifndef NES_VERBS_H
 #define NES_VERBS_H
@@ -48,8 +16,8 @@ struct nes_ucontext {
 	struct ib_ucontext ibucontext;
 	struct nes_device  *nesdev;
 	unsigned long      mmap_wq_offset;
-	unsigned long      mmap_cq_offset; /* to be removed */
-	int                index;		/* rnic index (minor) */
+	unsigned long      mmap_cq_offset; 
+	int                index;		
 	unsigned long      allocated_doorbells[BITS_TO_LONGS(NES_MAX_USER_DB_REGIONS)];
 	u16                mmap_db_index[NES_MAX_USER_DB_REGIONS];
 	u16                first_free_db;
@@ -139,7 +107,7 @@ struct nes_qp {
 	struct nes_cq         *nesscq;
 	struct nes_cq         *nesrcq;
 	struct nes_pd         *nespd;
-	void *cm_node; /* handle of the node this QP is associated with */
+	void *cm_node; 
 	struct ietf_mpa_frame *ietf_frame;
 	dma_addr_t            ietf_frame_pbase;
 	wait_queue_head_t     state_waitq;
@@ -180,4 +148,4 @@ struct nes_qp {
 	u8                    term_flags;
 	u8                    destroyed;
 };
-#endif			/* NES_VERBS_H */
+#endif			

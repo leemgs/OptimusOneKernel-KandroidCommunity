@@ -1,24 +1,9 @@
-/*
- * OMAP34XX powerdomain definitions
- *
- * Copyright (C) 2007-2008 Texas Instruments, Inc.
- * Copyright (C) 2007-2008 Nokia Corporation
- *
- * Written by Paul Walmsley
- * Debugging and integration fixes by Jouni Högander
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef ARCH_ARM_MACH_OMAP2_POWERDOMAINS34XX
 #define ARCH_ARM_MACH_OMAP2_POWERDOMAINS34XX
 
-/*
- * N.B. If powerdomains are added or removed from this file, update
- * the array in mach-omap2/powerdomains.h.
- */
+
 
 #include <mach/powerdomain.h>
 
@@ -28,16 +13,11 @@
 #include "cm.h"
 #include "cm-regbits-34xx.h"
 
-/*
- * 34XX-specific powerdomains, dependencies
- */
+
 
 #ifdef CONFIG_ARCH_OMAP34XX
 
-/*
- * 3430: PM_WKDEP_{PER,USBHOST}: CORE, IVA2, MPU, WKUP
- * (USBHOST is ES2 only)
- */
+
 static struct pwrdm_dep per_usbhost_wkdeps[] = {
 	{
 		.pwrdm_name = "core_pwrdm",
@@ -58,9 +38,7 @@ static struct pwrdm_dep per_usbhost_wkdeps[] = {
 	{ NULL },
 };
 
-/*
- * 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER
- */
+
 static struct pwrdm_dep mpu_34xx_wkdeps[] = {
 	{
 		.pwrdm_name = "core_pwrdm",
@@ -81,9 +59,7 @@ static struct pwrdm_dep mpu_34xx_wkdeps[] = {
 	{ NULL },
 };
 
-/*
- * 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER
- */
+
 static struct pwrdm_dep iva2_wkdeps[] = {
 	{
 		.pwrdm_name = "core_pwrdm",
@@ -109,7 +85,7 @@ static struct pwrdm_dep iva2_wkdeps[] = {
 };
 
 
-/* 3430 PM_WKDEP_{CAM,DSS}: IVA2, MPU, WKUP */
+
 static struct pwrdm_dep cam_dss_wkdeps[] = {
 	{
 		.pwrdm_name = "iva2_pwrdm",
@@ -126,7 +102,7 @@ static struct pwrdm_dep cam_dss_wkdeps[] = {
 	{ NULL },
 };
 
-/* 3430: PM_WKDEP_NEON: MPU */
+
 static struct pwrdm_dep neon_wkdeps[] = {
 	{
 		.pwrdm_name = "mpu_pwrdm",
@@ -136,12 +112,9 @@ static struct pwrdm_dep neon_wkdeps[] = {
 };
 
 
-/* Sleep dependency source arrays for 34xx-specific pwrdms - 34XX only */
 
-/*
- * 3430: CM_SLEEPDEP_{DSS,PER}: MPU, IVA
- * 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA
- */
+
+
 static struct pwrdm_dep dss_per_usbhost_sleepdeps[] = {
 	{
 		.pwrdm_name = "mpu_pwrdm",
@@ -155,9 +128,7 @@ static struct pwrdm_dep dss_per_usbhost_sleepdeps[] = {
 };
 
 
-/*
- * Powerdomains
- */
+
 
 static struct powerdomain iva2_pwrdm = {
 	.name		  = "iva2_pwrdm",
@@ -199,7 +170,7 @@ static struct powerdomain mpu_34xx_pwrdm = {
 	},
 };
 
-/* No wkdeps or sleepdeps for 34xx core apparently */
+
 static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
 	.name		  = "core_pwrdm",
 	.prcm_offs	  = CORE_MOD,
@@ -210,35 +181,35 @@ static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
 	.banks		  = 2,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
-		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
+		[0] = PWRSTS_OFF_RET,	 
+		[1] = PWRSTS_OFF_RET,	 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
-		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+		[0] = PWRSTS_OFF_RET_ON, 
+		[1] = PWRSTS_OFF_RET_ON, 
 	},
 };
 
-/* No wkdeps or sleepdeps for 34xx core apparently */
+
 static struct powerdomain core_34xx_es3_1_pwrdm = {
 	.name		  = "core_pwrdm",
 	.prcm_offs	  = CORE_MOD,
 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
 	.pwrsts		  = PWRSTS_OFF_RET_ON,
 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
-	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+	.flags		  = PWRDM_HAS_HDWR_SAR, 
 	.banks		  = 2,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
-		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
+		[0] = PWRSTS_OFF_RET,	 
+		[1] = PWRSTS_OFF_RET,	 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
-		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+		[0] = PWRSTS_OFF_RET_ON, 
+		[1] = PWRSTS_OFF_RET_ON, 
 	},
 };
 
-/* Another case of bit name collisions between several registers: EN_DSS */
+
 static struct powerdomain dss_pwrdm = {
 	.name		  = "dss_pwrdm",
 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
@@ -250,33 +221,29 @@ static struct powerdomain dss_pwrdm = {
 	.pwrsts_logic_ret = PWRDM_POWER_RET,
 	.banks		  = 1,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
+		[0] = PWRDM_POWER_RET, 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+		[0] = PWRDM_POWER_ON,  
 	},
 };
 
-/*
- * Although the 34XX TRM Rev K Table 4-371 notes that retention is a
- * possible SGX powerstate, the SGX device itself does not support
- * retention.
- */
+
 static struct powerdomain sgx_pwrdm = {
 	.name		  = "sgx_pwrdm",
 	.prcm_offs	  = OMAP3430ES2_SGX_MOD,
 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
 	.wkdep_srcs	  = gfx_sgx_wkdeps,
 	.sleepdep_srcs	  = cam_gfx_sleepdeps,
-	/* XXX This is accurate for 3430 SGX, but what about GFX? */
+	
 	.pwrsts		  = PWRSTS_OFF_ON,
 	.pwrsts_logic_ret = PWRDM_POWER_RET,
 	.banks		  = 1,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
+		[0] = PWRDM_POWER_RET, 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+		[0] = PWRDM_POWER_ON,  
 	},
 };
 
@@ -290,10 +257,10 @@ static struct powerdomain cam_pwrdm = {
 	.pwrsts_logic_ret = PWRDM_POWER_RET,
 	.banks		  = 1,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
+		[0] = PWRDM_POWER_RET, 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+		[0] = PWRDM_POWER_ON,  
 	},
 };
 
@@ -308,10 +275,10 @@ static struct powerdomain per_pwrdm = {
 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
 	.banks		  = 1,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
+		[0] = PWRDM_POWER_RET, 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+		[0] = PWRDM_POWER_ON,  
 	},
 };
 
@@ -338,13 +305,13 @@ static struct powerdomain usbhost_pwrdm = {
 	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
 	.pwrsts		  = PWRSTS_OFF_RET_ON,
 	.pwrsts_logic_ret = PWRDM_POWER_RET,
-	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBHOST ctrlr only */
+	.flags		  = PWRDM_HAS_HDWR_SAR, 
 	.banks		  = 1,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
+		[0] = PWRDM_POWER_RET, 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+		[0] = PWRDM_POWER_ON,  
 	},
 };
 
@@ -379,7 +346,7 @@ static struct powerdomain dpll5_pwrdm = {
 };
 
 
-#endif    /* CONFIG_ARCH_OMAP34XX */
+#endif    
 
 
 #endif

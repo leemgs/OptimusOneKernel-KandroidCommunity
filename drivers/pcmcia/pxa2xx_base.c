@@ -1,20 +1,4 @@
-/*======================================================================
 
-  Device driver for the PCMCIA control functionality of PXA2xx
-  microprocessors.
-
-    The contents of this file may be used under the
-    terms of the GNU Public License version 2 (the "GPL")
-
-    (c) Ian Molton (spyro@f2s.com) 2003
-    (c) Stefan Eletzhofer (stefan.eletzhofer@inquant.de) 2003,4
-
-    derived from sa11xx_base.c
-
-     Portions created by John G. Dorsey are
-     Copyright (C) 1999 John G. Dorsey.
-
-  ======================================================================*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -38,43 +22,41 @@
 #include "soc_common.h"
 #include "pxa2xx_base.h"
 
-/*
- * Personal Computer Memory Card International Association (PCMCIA) sockets
- */
 
-#define PCMCIAPrtSp	0x04000000	/* PCMCIA Partition Space [byte]   */
-#define PCMCIASp	(4*PCMCIAPrtSp)	/* PCMCIA Space [byte]             */
-#define PCMCIAIOSp	PCMCIAPrtSp	/* PCMCIA I/O Space [byte]         */
-#define PCMCIAAttrSp	PCMCIAPrtSp	/* PCMCIA Attribute Space [byte]   */
-#define PCMCIAMemSp	PCMCIAPrtSp	/* PCMCIA Memory Space [byte]      */
 
-#define PCMCIA0Sp	PCMCIASp	/* PCMCIA 0 Space [byte]           */
-#define PCMCIA0IOSp	PCMCIAIOSp	/* PCMCIA 0 I/O Space [byte]       */
-#define PCMCIA0AttrSp	PCMCIAAttrSp	/* PCMCIA 0 Attribute Space [byte] */
-#define PCMCIA0MemSp	PCMCIAMemSp	/* PCMCIA 0 Memory Space [byte]    */
+#define PCMCIAPrtSp	0x04000000	
+#define PCMCIASp	(4*PCMCIAPrtSp)	
+#define PCMCIAIOSp	PCMCIAPrtSp	
+#define PCMCIAAttrSp	PCMCIAPrtSp	
+#define PCMCIAMemSp	PCMCIAPrtSp	
 
-#define PCMCIA1Sp	PCMCIASp	/* PCMCIA 1 Space [byte]           */
-#define PCMCIA1IOSp	PCMCIAIOSp	/* PCMCIA 1 I/O Space [byte]       */
-#define PCMCIA1AttrSp	PCMCIAAttrSp	/* PCMCIA 1 Attribute Space [byte] */
-#define PCMCIA1MemSp	PCMCIAMemSp	/* PCMCIA 1 Memory Space [byte]    */
+#define PCMCIA0Sp	PCMCIASp	
+#define PCMCIA0IOSp	PCMCIAIOSp	
+#define PCMCIA0AttrSp	PCMCIAAttrSp	
+#define PCMCIA0MemSp	PCMCIAMemSp	
 
-#define _PCMCIA(Nb)			/* PCMCIA [0..1]                   */ \
+#define PCMCIA1Sp	PCMCIASp	
+#define PCMCIA1IOSp	PCMCIAIOSp	
+#define PCMCIA1AttrSp	PCMCIAAttrSp	
+#define PCMCIA1MemSp	PCMCIAMemSp	
+
+#define _PCMCIA(Nb)			 \
 			(0x20000000 + (Nb) * PCMCIASp)
-#define _PCMCIAIO(Nb)	_PCMCIA(Nb)	/* PCMCIA I/O [0..1]               */
-#define _PCMCIAAttr(Nb)			/* PCMCIA Attribute [0..1]         */ \
+#define _PCMCIAIO(Nb)	_PCMCIA(Nb)	
+#define _PCMCIAAttr(Nb)			 \
 			(_PCMCIA(Nb) + 2 * PCMCIAPrtSp)
-#define _PCMCIAMem(Nb)			/* PCMCIA Memory [0..1]            */ \
+#define _PCMCIAMem(Nb)			 \
 			(_PCMCIA(Nb) + 3 * PCMCIAPrtSp)
 
-#define _PCMCIA0	_PCMCIA(0)	/* PCMCIA 0                        */
-#define _PCMCIA0IO	_PCMCIAIO(0)	/* PCMCIA 0 I/O                    */
-#define _PCMCIA0Attr	_PCMCIAAttr(0)	/* PCMCIA 0 Attribute              */
-#define _PCMCIA0Mem	_PCMCIAMem(0)	/* PCMCIA 0 Memory                 */
+#define _PCMCIA0	_PCMCIA(0)	
+#define _PCMCIA0IO	_PCMCIAIO(0)	
+#define _PCMCIA0Attr	_PCMCIAAttr(0)	
+#define _PCMCIA0Mem	_PCMCIAMem(0)	
 
-#define _PCMCIA1	_PCMCIA(1)	/* PCMCIA 1                        */
-#define _PCMCIA1IO	_PCMCIAIO(1)	/* PCMCIA 1 I/O                    */
-#define _PCMCIA1Attr	_PCMCIAAttr(1)	/* PCMCIA 1 Attribute              */
-#define _PCMCIA1Mem	_PCMCIAMem(1)	/* PCMCIA 1 Memory                 */
+#define _PCMCIA1	_PCMCIA(1)	
+#define _PCMCIA1IO	_PCMCIAIO(1)	
+#define _PCMCIA1Attr	_PCMCIAAttr(1)	
+#define _PCMCIA1Mem	_PCMCIAMem(1)	
 
 
 #define MCXX_SETUP_MASK     (0x7f)
@@ -105,9 +87,7 @@ static inline u_int pxa2xx_mcxx_setup(u_int pcmcia_cycle_ns,
 	return (code / 100000) + ((code % 100000) ? 1 : 0) - 1;
 }
 
-/* This function returns the (approximate) command assertion period, in
- * nanoseconds, for a given CPU clock frequency and MCXX_ASST value:
- */
+
 static inline u_int pxa2xx_pcmcia_cmd_time(u_int mem_clk_10khz,
 					   u_int pcmcia_mcxx_asst)
 {
@@ -207,13 +187,10 @@ static void pxa2xx_configure_sockets(struct device *dev)
 {
 	struct pcmcia_low_level *ops = dev->platform_data;
 
-	/*
-	 * We have at least one socket, so set MECR:CIT
-	 * (Card Is There)
-	 */
+	
 	MECR |= MECR_CIT;
 
-	/* Set MECR:NOS (Number Of Sockets) */
+	
 	if ((ops->first + ops->nr) > 1 || machine_is_viper())
 		MECR |= MECR_NOS;
 	else
@@ -246,7 +223,7 @@ int __pxa2xx_drv_pcmcia_probe(struct device *dev)
 
 	sinfo->nskt = ops->nr;
 
-	/* Initialize processor specific parameters */
+	
 	for (i = 0; i < ops->nr; i++) {
 		skt = &sinfo->skt[i];
 
@@ -274,7 +251,7 @@ int __pxa2xx_drv_pcmcia_probe(struct device *dev)
 		skt->res_attr.flags	= IORESOURCE_MEM;
 	}
 
-	/* Provide our PXA2xx specific timing routines. */
+	
 	ops->set_timing  = pxa2xx_pcmcia_set_timing;
 #ifdef CONFIG_CPU_FREQ
 	ops->frequency_change = pxa2xx_pcmcia_frequency_change;

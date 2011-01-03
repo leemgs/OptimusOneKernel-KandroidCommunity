@@ -1,17 +1,4 @@
-/*
- * IrDA netlink layer, for stack configuration.
- *
- * Copyright (c) 2007 Samuel Ortiz <samuel@sortiz.org>
- *
- * Partly based on the 802.11 nelink implementation
- * (see net/wireless/nl80211.c) which is:
- * Copyright 2006 Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/socket.h>
 #include <linux/irda.h>
@@ -141,7 +128,7 @@ static struct genl_ops irda_nl_ops[] = {
 		.cmd = IRDA_NL_CMD_GET_MODE,
 		.doit = irda_nl_get_mode,
 		.policy = irda_nl_policy,
-		/* can be retrieved by unprivileged users */
+		
 	},
 
 };

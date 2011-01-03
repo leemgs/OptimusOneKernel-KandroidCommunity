@@ -1,13 +1,4 @@
-/* linux/arch/arm/mach-s3c2412/mach-vstms.c
- *
- * (C) 2006 Thomas Gleixner <tglx@linutronix.de>
- *
- * Derived from mach-smdk2413.c - (C) 2006 Simtec Electronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -108,9 +99,7 @@ static struct s3c2410_nand_set vstms_nand_sets[] = {
 	},
 };
 
-/* choose a set of timings which should suit most 512Mbit
- * chips and beyond.
-*/
+
 
 static struct s3c2410_platform_nand vstms_nand_info = {
 	.tacls		= 20,

@@ -1,6 +1,4 @@
-/*
- * Static Memory Controller
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -13,14 +11,14 @@
 #define SMEMC_PHYS_BASE	(0x4A000000)
 #define SMEMC_PHYS_SIZE	(0x90)
 
-#define MSC0		(0x08)	/* Static Memory Controller Register 0 */
-#define MSC1		(0x0C)	/* Static Memory Controller Register 1 */
-#define SXCNFG		(0x1C)	/* Synchronous Static Memory Control Register */
-#define MEMCLKCFG	(0x68)	/* Clock Configuration */
-#define CSADRCFG0	(0x80)	/* Address Configuration Register for CS0 */
-#define CSADRCFG1	(0x84)	/* Address Configuration Register for CS1 */
-#define CSADRCFG2	(0x88)	/* Address Configuration Register for CS2 */
-#define CSADRCFG3	(0x8C)	/* Address Configuration Register for CS3 */
+#define MSC0		(0x08)	
+#define MSC1		(0x0C)	
+#define SXCNFG		(0x1C)	
+#define MEMCLKCFG	(0x68)	
+#define CSADRCFG0	(0x80)	
+#define CSADRCFG1	(0x84)	
+#define CSADRCFG2	(0x88)	
+#define CSADRCFG3	(0x8C)	
 
 #ifdef CONFIG_PM
 static void __iomem *smemc_mmio_base;

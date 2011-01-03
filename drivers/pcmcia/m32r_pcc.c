@@ -1,11 +1,4 @@
-/*
- *  drivers/pcmcia/m32r_pcc.c
- *
- *  Device driver for the PCMCIA functionality of M32R.
- *
- *  Copyright (c) 2001, 2002, 2003, 2004
- *    Hiroyuki Kondo, Naoto Sugai, Hayato Fujiwara
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -32,7 +25,7 @@
 #include <pcmcia/ss.h>
 #include <pcmcia/cs.h>
 
-/* XXX: should be moved into asm/irq.h */
+
 #define PCC0_IRQ 24
 #define PCC1_IRQ 25
 
@@ -56,7 +49,7 @@ module_param(m32r_pcc_debug, int, 0644);
 #define debug(n, args...) do { } while (0)
 #endif
 
-/* Poll status interval -- 0 means default to interrupt */
+
 static int poll_interval = 0;
 
 typedef enum pcc_space { as_none = 0, as_comm, as_attr, as_io } pcc_as_t;
@@ -67,7 +60,7 @@ typedef struct pcc_socket {
 	unsigned int		number;
 	unsigned int		ioaddr;
 	u_long			mapaddr;
-	u_long			base;	/* PCC register base */
+	u_long			base;	
 	u_char			cs_irq, intr;
 	pccard_io_map		io_map[MAX_IO_WIN];
 	pccard_mem_map		mem_map[MAX_WIN];
@@ -85,10 +78,10 @@ typedef struct pcc_socket {
 
 static int pcc_sockets = 0;
 static pcc_socket_t socket[M32R_MAX_PCC] = {
-	{ 0, }, /* ... */
+	{ 0, }, 
 };
 
-/*====================================================================*/
+
 
 static unsigned int pcc_get(u_short, unsigned int);
 static void pcc_set(u_short, unsigned int , unsigned int );
@@ -108,50 +101,38 @@ void pcc_iorw(int sock, unsigned long port, void *buf, size_t size, size_t nmemb
 	int map_changed = 0;
 #endif
 
-	/* Need lock ? */
+	
 	spin_lock_irqsave(&pcc_lock, flags);
 
-	/*
-	 * Check if need dbex
-	 */
+	
 	need_ex = (size > 1 && flag == 0) ? PCMOD_DBEX : 0;
 #ifdef PCC_DEBUG_DBEX
 	_dbex = need_ex;
 	need_ex = 0;
 #endif
 
-	/*
-	 * calculate access address
-	 */
-	addr = t->mapaddr + port - t->ioaddr + KSEG1; /* XXX */
+	
+	addr = t->mapaddr + port - t->ioaddr + KSEG1; 
 
-	/*
-	 * Check current mapping
-	 */
+	
 	if (t->current_space != as_io || t->last_iodbex != need_ex) {
 
 		u_long cbsz;
 
-		/*
-		 * Disable first
-		 */
+		
 		pcc_set(sock, PCCR, 0);
 
-		/*
-		 * Set mode and io address
-		 */
+		
 		cbsz = (t->flags & MAP_16BIT) ? 0 : PCMOD_CBSZ;
 		pcc_set(sock, PCMOD, PCMOD_AS_IO | cbsz | need_ex);
 		pcc_set(sock, PCADR, addr & 0x1ff00000);
 
-		/*
-		 * Enable and read it
-		 */
+		
 		pcc_set(sock, PCCR, 1);
 
 #ifdef CHAOS_PCC_DEBUG
 #if 0
-		map_changed = (t->current_space == as_attr && size == 2); /* XXX */
+		map_changed = (t->current_space == as_attr && size == 2); 
 #else
 		map_changed = 1;
 #endif
@@ -159,11 +140,9 @@ void pcc_iorw(int sock, unsigned long port, void *buf, size_t size, size_t nmemb
 		t->current_space = as_io;
 	}
 
-	/*
-	 * access to IO space
-	 */
+	
 	if (size == 1) {
-		/* Byte */
+		
 		unsigned char *bp = (unsigned char *)buf;
 
 #ifdef CHAOS_DEBUG
@@ -172,18 +151,18 @@ void pcc_iorw(int sock, unsigned long port, void *buf, size_t size, size_t nmemb
 		}
 #endif
 		if (wr) {
-			/* write Byte */
+			
 			while (nmemb--) {
 				writeb(*bp++, addr);
 			}
 		} else {
-			/* read Byte */
+			
 			while (nmemb--) {
 	    		*bp++ = readb(addr);
 			}
 		}
 	} else {
-		/* Word */
+		
 		unsigned short *bp = (unsigned short *)buf;
 
 #ifdef CHAOS_PCC_DEBUG
@@ -192,7 +171,7 @@ void pcc_iorw(int sock, unsigned long port, void *buf, size_t size, size_t nmemb
 		}
 #endif
 		if (wr) {
-			/* write Word */
+			
 			while (nmemb--) {
 #ifdef PCC_DEBUG_DBEX
 				if (_dbex) {
@@ -206,7 +185,7 @@ void pcc_iorw(int sock, unsigned long port, void *buf, size_t size, size_t nmemb
 				writew(*bp++, addr);
 	    	}
 	    } else {
-	    	/* read Word */
+	    	
 	    	while (nmemb--) {
 #ifdef  PCC_DEBUG_DBEX
 				if (_dbex) {
@@ -224,20 +203,18 @@ void pcc_iorw(int sock, unsigned long port, void *buf, size_t size, size_t nmemb
 	}
 
 #if 1
-	/* addr is no longer used */
+	
 	if ((addr = pcc_get(sock, PCIRC)) & PCIRC_BWERR) {
 	  printk("m32r_pcc: BWERR detected : port 0x%04lx : iosize %dbit\n",
 			 port, size * 8);
 	  pcc_set(sock, PCIRC, addr);
 	}
 #endif
-	/*
-	 * save state
-	 */
+	
 	t->last_iosize = size;
 	t->last_iodbex = need_ex;
 
-	/* Need lock ? */
+	
 
 	spin_unlock_irqrestore(&pcc_lock,flags);
 
@@ -252,7 +229,7 @@ void pcc_iowrite(int sock, unsigned long port, void *buf, size_t size, size_t nm
     pcc_iorw(sock, port, buf, size, nmemb, 1, flag);
 }
 
-/*====================================================================*/
+
 
 #define IS_REGISTERED		0x2000
 #define IS_ALIVE		0x8000
@@ -268,7 +245,7 @@ static pcc_t pcc[] = {
 
 static irqreturn_t pcc_interrupt(int, void *);
 
-/*====================================================================*/
+
 
 static struct timer_list poll_timer;
 
@@ -283,14 +260,7 @@ static void pcc_set(u_short sock, unsigned int reg, unsigned int data)
   	outl(data, socket[sock].base + reg);
 }
 
-/*======================================================================
 
-	See if a card is present, powered up, in IO mode, and already
-	bound to a (non PC Card) Linux driver.  We leave these alone.
-
-	We make an exception for cards that seem to be serial devices.
-
-======================================================================*/
 
 static int __init is_alive(u_short sock)
 {
@@ -315,7 +285,7 @@ static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
 {
   	pcc_socket_t *t = &socket[pcc_sockets];
 
-	/* add sockets */
+	
 	t->ioaddr = ioaddr;
 	t->mapaddr = mapaddr;
 	t->base = base;
@@ -327,7 +297,7 @@ static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
 	if (is_alive(pcc_sockets))
 		t->flags |= IS_ALIVE;
 
-	/* add pcc */
+	
 	if (t->base > 0) {
 		request_region(t->base, 0x20, "m32r-pcc");
 	}
@@ -335,12 +305,12 @@ static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
 	printk(KERN_INFO "  %s ", pcc[pcc_sockets].name);
 	printk("pcc at 0x%08lx\n", t->base);
 
-	/* Update socket interrupt information, capabilities */
+	
 	t->socket.features |= (SS_CAP_PCCARD | SS_CAP_STATIC_MAP);
 	t->socket.map_size = M32R_PCC_MAPSIZE;
-	t->socket.io_offset = ioaddr;	/* use for io access offset */
+	t->socket.io_offset = ioaddr;	
 	t->socket.irq_mask = 0;
-	t->socket.pci_irq = 2 + pcc_sockets; /* XXX */
+	t->socket.pci_irq = 2 + pcc_sockets; 
 
 	request_irq(irq, pcc_interrupt, 0, "m32r-pcc", pcc_interrupt);
 
@@ -350,7 +320,7 @@ static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
 }
 
 
-/*====================================================================*/
+
 
 static irqreturn_t pcc_interrupt(int irq, void *dev)
 {
@@ -391,7 +361,7 @@ static irqreturn_t pcc_interrupt(int irq, void *dev)
 	debug(4, "m32r-pcc: interrupt done\n");
 
 	return IRQ_RETVAL(handled);
-} /* pcc_interrupt */
+} 
 
 static void pcc_interrupt_wrapper(u_long data)
 {
@@ -401,7 +371,7 @@ static void pcc_interrupt_wrapper(u_long data)
 	add_timer(&poll_timer);
 }
 
-/*====================================================================*/
+
 
 static int _pcc_get_status(u_short sock, u_int *value)
 {
@@ -416,7 +386,7 @@ static int _pcc_get_status(u_short sock, u_int *value)
 #if 0
 	*value |= (status & PCCR_PCEN) ? SS_READY : 0;
 #else
-	*value |= SS_READY; /* XXX: always */
+	*value |= SS_READY; 
 #endif
 
 	status = pcc_get(sock,PCCSIGCR);
@@ -424,9 +394,9 @@ static int _pcc_get_status(u_short sock, u_int *value)
 
 	debug(3, "m32r-pcc: GetStatus(%d) = %#4.4x\n", sock, *value);
 	return 0;
-} /* _get_status */
+} 
 
-/*====================================================================*/
+
 
 static int _pcc_set_socket(u_short sock, socket_state_t *state)
 {
@@ -437,9 +407,7 @@ static int _pcc_set_socket(u_short sock, socket_state_t *state)
 		  state->Vcc, state->Vpp, state->io_irq, state->csc_mask);
 
 	if (state->Vcc) {
-		/*
-		 * 5V only
-		 */
+		
 		if (state->Vcc == 50) {
 			reg |= PCCSIGCR_VEN;
 		} else {
@@ -453,7 +421,7 @@ static int _pcc_set_socket(u_short sock, socket_state_t *state)
 	}
 	if (state->flags & SS_OUTPUT_ENA){
 		debug(3, ":OUTPUT_ENA\n");
-		/* bit clear */
+		
 	} else {
 		reg |= PCCSIGCR_SEN;
 	}
@@ -483,9 +451,9 @@ static int _pcc_set_socket(u_short sock, socket_state_t *state)
 	debug(3, "\n");
 #endif
 	return 0;
-} /* _set_socket */
+} 
 
-/*====================================================================*/
+
 
 static int _pcc_set_io_map(u_short sock, struct pccard_io_map *io)
 {
@@ -498,9 +466,9 @@ static int _pcc_set_io_map(u_short sock, struct pccard_io_map *io)
 	map = io->map;
 
 	return 0;
-} /* _set_io_map */
+} 
 
-/*====================================================================*/
+
 
 static int _pcc_set_mem_map(u_short sock, struct pccard_mem_map *mem)
 {
@@ -520,49 +488,37 @@ static int _pcc_set_mem_map(u_short sock, struct pccard_mem_map *mem)
 		 mem->speed, (unsigned long long)mem->static_start,
 		 mem->card_start);
 
-	/*
-	 * sanity check
-	 */
+	
 	if ((map > MAX_WIN) || (mem->card_start > 0x3ffffff)){
 		return -EINVAL;
 	}
 
-	/*
-	 * de-activate
-	 */
+	
 	if ((mem->flags & MAP_ACTIVE) == 0) {
 		t->current_space = as_none;
 		return 0;
 	}
 
-	/*
-	 * Disable first
-	 */
+	
 	pcc_set(sock, PCCR, 0);
 
-	/*
-	 * Set mode
-	 */
+	
 	if (mem->flags & MAP_ATTRIB) {
 		mode = PCMOD_AS_ATTRIB | PCMOD_CBSZ;
 		t->current_space = as_attr;
 	} else {
-		mode = 0; /* common memory */
+		mode = 0; 
 		t->current_space = as_comm;
 	}
 	pcc_set(sock, PCMOD, mode);
 
-	/*
-	 * Set address
-	 */
+	
 	addr = t->mapaddr + (mem->card_start & M32R_PCC_MAPMASK);
 	pcc_set(sock, PCADR, addr);
 
 	mem->static_start = addr + mem->card_start;
 
-	/*
-	 * Enable again
-	 */
+	
 	pcc_set(sock, PCCR, 1);
 
 #ifdef CHAOS_PCC_DEBUG
@@ -577,15 +533,10 @@ static int _pcc_set_mem_map(u_short sock, struct pccard_mem_map *mem)
 
 	return 0;
 
-} /* _set_mem_map */
+} 
 
-#if 0 /* driver model ordering issue */
-/*======================================================================
+#if 0 
 
-	Routines for accessing socket information and register dumps via
-	/proc/bus/pccard/...
-
-======================================================================*/
 
 static ssize_t show_info(struct class_device *class_dev, char *buf)
 {
@@ -598,7 +549,7 @@ static ssize_t show_info(struct class_device *class_dev, char *buf)
 
 static ssize_t show_exca(struct class_device *class_dev, char *buf)
 {
-	/* FIXME */
+	
 
 	return 0;
 }
@@ -607,10 +558,9 @@ static CLASS_DEVICE_ATTR(info, S_IRUGO, show_info, NULL);
 static CLASS_DEVICE_ATTR(exca, S_IRUGO, show_exca, NULL);
 #endif
 
-/*====================================================================*/
 
-/* this is horribly ugly... proper locking needs to be done here at
- * some time... */
+
+
 #define LOCKED(x) do {					\
 	int retval;					\
 	unsigned long flags;				\
@@ -684,7 +634,7 @@ static int pcc_drv_pcmcia_resume(struct platform_device *dev)
 {
 	return pcmcia_socket_dev_resume(&dev->dev);
 }
-/*====================================================================*/
+
 
 static struct platform_driver pcc_driver = {
 	.driver = {
@@ -700,7 +650,7 @@ static struct platform_device pcc_device = {
 	.id = 0,
 };
 
-/*====================================================================*/
+
 
 static int __init init_m32r_pcc(void)
 {
@@ -733,7 +683,7 @@ static int __init init_m32r_pcc(void)
 		return -ENODEV;
 	}
 
-	/* Set up interrupt handler(s) */
+	
 
 	for (i = 0 ; i < pcc_sockets ; i++) {
 		socket[i].socket.dev.parent = &pcc_device.dev;
@@ -745,7 +695,7 @@ static int __init init_m32r_pcc(void)
 		if (!ret)
 			socket[i].flags |= IS_REGISTERED;
 
-#if 0	/* driver model ordering issue */
+#if 0	
 		class_device_create_file(&socket[i].socket.dev,
 					 &class_device_attr_info);
 		class_device_create_file(&socket[i].socket.dev,
@@ -753,7 +703,7 @@ static int __init init_m32r_pcc(void)
 #endif
 	}
 
-	/* Finally, schedule a polling interrupt */
+	
 	if (poll_interval != 0) {
 		poll_timer.function = pcc_interrupt_wrapper;
 		poll_timer.data = 0;
@@ -763,7 +713,7 @@ static int __init init_m32r_pcc(void)
 	}
 
 	return 0;
-} /* init_m32r_pcc */
+} 
 
 static void __exit exit_m32r_pcc(void)
 {
@@ -778,9 +728,9 @@ static void __exit exit_m32r_pcc(void)
 		del_timer_sync(&poll_timer);
 
 	platform_driver_unregister(&pcc_driver);
-} /* exit_m32r_pcc */
+} 
 
 module_init(init_m32r_pcc);
 module_exit(exit_m32r_pcc);
 MODULE_LICENSE("Dual MPL/GPL");
-/*====================================================================*/
+

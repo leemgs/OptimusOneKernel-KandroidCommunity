@@ -1,13 +1,4 @@
-/*
- * Copyright (C)2003,2004 USAGI/WIDE Project
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Author:
- *	Yasuyuki Kozakai @USAGI <yasuyuki.kozakai@toshiba.co.jp>
- */
+
 
 #include <linux/types.h>
 #include <linux/timer.h>
@@ -45,7 +36,7 @@ static bool icmpv6_pkt_to_tuple(const struct sk_buff *skb,
 	return true;
 }
 
-/* Add 1; spaces filled with 0. */
+
 static const u_int8_t invmap[] = {
 	[ICMPV6_ECHO_REQUEST - 128]	= ICMPV6_ECHO_REPLY + 1,
 	[ICMPV6_ECHO_REPLY - 128]	= ICMPV6_ECHO_REQUEST + 1,
@@ -77,7 +68,7 @@ static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
 	return true;
 }
 
-/* Print out the per-protocol part of the tuple. */
+
 static int icmpv6_print_tuple(struct seq_file *s,
 			      const struct nf_conntrack_tuple *tuple)
 {
@@ -87,7 +78,7 @@ static int icmpv6_print_tuple(struct seq_file *s,
 			  ntohs(tuple->src.u.icmp.id));
 }
 
-/* Returns verdict for packet, or -1 for invalid. */
+
 static int icmpv6_packet(struct nf_conn *ct,
 		       const struct sk_buff *skb,
 		       unsigned int dataoff,
@@ -95,15 +86,13 @@ static int icmpv6_packet(struct nf_conn *ct,
 		       u_int8_t pf,
 		       unsigned int hooknum)
 {
-	/* Do not immediately delete the connection after the first
-	   successful reply to avoid excessive conntrackd traffic
-	   and also to handle correctly ICMP echo reply duplicates. */
+	
 	nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_icmpv6_timeout);
 
 	return NF_ACCEPT;
 }
 
-/* Called when a new connection for this protocol found. */
+
 static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
 		       unsigned int dataoff)
 {
@@ -114,7 +103,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
 	int type = ct->tuplehash[0].tuple.dst.u.icmp.type - 128;
 
 	if (type < 0 || type >= sizeof(valid_new) || !valid_new[type]) {
-		/* Can't create a new ICMPv6 `conn' with this. */
+		
 		pr_debug("icmpv6: can't create new conn with type %u\n",
 			 type + 128);
 		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
@@ -140,7 +129,7 @@ icmpv6_error_message(struct net *net,
 
 	NF_CT_ASSERT(skb->nfct == NULL);
 
-	/* Are they talking about one of our connections? */
+	
 	if (!nf_ct_get_tuplepr(skb,
 			       skb_network_offset(skb)
 				+ sizeof(struct ipv6hdr)
@@ -150,11 +139,10 @@ icmpv6_error_message(struct net *net,
 		return -NF_ACCEPT;
 	}
 
-	/* rcu_read_lock()ed by nf_hook_slow */
+	
 	inproto = __nf_ct_l4proto_find(PF_INET6, origtuple.dst.protonum);
 
-	/* Ordinarily, we'd expect the inverted tupleproto, but it's
-	   been preserved inside the ICMP. */
+	
 	if (!nf_ct_invert_tuple(&intuple, &origtuple,
 				&nf_conntrack_l3proto_ipv6, inproto)) {
 		pr_debug("icmpv6_error: Can't invert tuple\n");
@@ -172,7 +160,7 @@ icmpv6_error_message(struct net *net,
 			*ctinfo += IP_CT_IS_REPLY;
 	}
 
-	/* Update skb to refer to this connection */
+	
 	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
 	skb->nfctinfo = *ctinfo;
 	return -NF_ACCEPT;
@@ -211,7 +199,7 @@ icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
 		return NF_ACCEPT;
 	}
 
-	/* is not error message ? */
+	
 	if (icmp6h->icmp6_type >= 128)
 		return NF_ACCEPT;
 
@@ -281,7 +269,7 @@ static struct ctl_table icmpv6_sysctl_table[] = {
 		.ctl_name	= 0
 	}
 };
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 __read_mostly =
 {

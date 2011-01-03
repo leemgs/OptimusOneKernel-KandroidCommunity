@@ -1,22 +1,4 @@
-/*
- * linux/arch/arm/mach-at91/board-csb637.c
- *
- *  Copyright (C) 2005 SAN People
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -42,13 +24,13 @@
 
 static void __init csb637_map_io(void)
 {
-	/* Initialize processor: 3.6864 MHz crystal */
+	
 	at91rm9200_initialize(3686400, AT91RM9200_BGA);
 
-	/* DBGU on ttyS0. (Rx & Tx only) */
+	
 	at91_register_uart(0, 0, 0);
 
-	/* make console=ttyS0 (ie, DBGU) the default */
+	
 	at91_set_serial_console(0);
 }
 
@@ -79,7 +61,7 @@ static struct mtd_partition csb_flash_partitions[] = {
 		.name		= "uMON flash",
 		.offset		= 0,
 		.size		= MTDPART_SIZ_FULL,
-		.mask_flags	= MTD_WRITEABLE,	/* read only */
+		.mask_flags	= MTD_WRITEABLE,	
 	}
 };
 
@@ -108,7 +90,7 @@ static struct platform_device csb_flash = {
 };
 
 static struct gpio_led csb_leds[] = {
-	{	/* "d1", red */
+	{	
 		.name			= "d1",
 		.gpio			= AT91_PIN_PB2,
 		.active_low		= 1,
@@ -118,26 +100,26 @@ static struct gpio_led csb_leds[] = {
 
 static void __init csb637_board_init(void)
 {
-	/* LED(s) */
+	
 	at91_gpio_leds(csb_leds, ARRAY_SIZE(csb_leds));
-	/* Serial */
+	
 	at91_add_device_serial();
-	/* Ethernet */
+	
 	at91_add_device_eth(&csb637_eth_data);
-	/* USB Host */
+	
 	at91_add_device_usbh(&csb637_usbh_data);
-	/* USB Device */
+	
 	at91_add_device_udc(&csb637_udc_data);
-	/* I2C */
+	
 	at91_add_device_i2c(NULL, 0);
-	/* SPI */
+	
 	at91_add_device_spi(NULL, 0);
-	/* NOR flash */
+	
 	platform_device_register(&csb_flash);
 }
 
 MACHINE_START(CSB637, "Cogent CSB637")
-	/* Maintainer: Bill Gatliff */
+	
 	.phys_io	= AT91_BASE_SYS,
 	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
 	.boot_params	= AT91_SDRAM_BASE + 0x100,

@@ -1,9 +1,4 @@
-/*
- * Driver for Sharp s921 driver
- *
- * Copyright (C) 2008 Markus Rechberger <mrechberger@sundtek.de>
- *
- */
+
 
 
 #include <linux/kernel.h>
@@ -99,33 +94,33 @@ static int s921_isdb_init(struct s921_isdb_t *dev) {
 static int s921_isdb_set_parameters(struct s921_isdb_t *dev, struct s921_isdb_t_transmission_mode_params *params) {
 
 	int ret;
-	/* auto is sufficient for now, lateron this should be reflected in an extra interface */
+	
 
 
 
-	ret = dev->i2c_write(dev->priv_dev, 0xb0, 0xa0); //mod_b2);
-	ret = dev->i2c_write(dev->priv_dev, 0xb2, 0x3d); //mod_b2);
+	ret = dev->i2c_write(dev->priv_dev, 0xb0, 0xa0); 
+	ret = dev->i2c_write(dev->priv_dev, 0xb2, 0x3d); 
 
 	if (ret < 0)
 		return -EINVAL;
 
-	ret = dev->i2c_write(dev->priv_dev, 0xb3, 0x25); //mod_b3);
+	ret = dev->i2c_write(dev->priv_dev, 0xb3, 0x25); 
 	if (ret < 0)
 		return -EINVAL;
 
-	ret = dev->i2c_write(dev->priv_dev, 0xb4, 0x8b); //mod_b4);
+	ret = dev->i2c_write(dev->priv_dev, 0xb4, 0x8b); 
 	if (ret < 0)
 		return -EINVAL;
 
-	ret = dev->i2c_write(dev->priv_dev, 0xb5, 0x4b); //mod_b5);
+	ret = dev->i2c_write(dev->priv_dev, 0xb5, 0x4b); 
 	if (ret < 0)
 		return -EINVAL;
 
-	ret = dev->i2c_write(dev->priv_dev, 0xb6, 0x3f); //mod_b6);
+	ret = dev->i2c_write(dev->priv_dev, 0xb6, 0x3f); 
 	if (ret < 0)
 		return -EINVAL;
 
-	ret = dev->i2c_write(dev->priv_dev, 0xb7, 0x3f); //mod_b7);
+	ret = dev->i2c_write(dev->priv_dev, 0xb7, 0x3f); 
 	if (ret < 0)
 		return -EINVAL;
 

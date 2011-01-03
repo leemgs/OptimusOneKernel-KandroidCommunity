@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #include <linux/sched.h>
 #include "iwch_provider.h"
 #include "iwch.h"
@@ -167,7 +137,7 @@ static int build_fastreg(union t3_wr *wqe, struct ib_send_wr *wr,
 	p = &wqe->fastreg.pbl_addrs[0];
 	for (i = 0; i < wr->wr.fast_reg.page_list_len; i++, p++) {
 
-		/* If we need a 2nd WR, then set it up */
+		
 		if (i == T3_MAX_FASTREG_FRAG) {
 			*wr_cnt = 2;
 			wqe = (union t3_wr *)(wq->queue +
@@ -263,11 +233,11 @@ static int build_rdma_recv(struct iwch_qp *qhp, union t3_wr *wqe,
 		wqe->recv.sgl[i].stag = cpu_to_be32(wr->sg_list[i].lkey);
 		wqe->recv.sgl[i].len = cpu_to_be32(wr->sg_list[i].length);
 
-		/* to in the WQE == the offset into the page */
+		
 		wqe->recv.sgl[i].to = cpu_to_be64(((u32)wr->sg_list[i].addr) &
 				((1UL << (12 + page_size[i])) - 1));
 
-		/* pbl_addr is the adapters address in the PBL */
+		
 		wqe->recv.pbl_addr[i] = cpu_to_be32(pbl_addr[i]);
 	}
 	for (; i < T3_MAX_SGE; i++) {
@@ -291,39 +261,24 @@ static int build_zero_stag_recv(struct iwch_qp *qhp, union t3_wr *wqe,
 	u32 pbl_offset;
 
 
-	/*
-	 * The T3 HW requires the PBL in the HW recv descriptor to reference
-	 * a PBL entry.  So we allocate the max needed PBL memory here and pass
-	 * it to the uP in the recv WR.  The uP will build the PBL and setup
-	 * the HW recv descriptor.
-	 */
+	
 	pbl_addr = cxio_hal_pblpool_alloc(&qhp->rhp->rdev, T3_STAG0_PBL_SIZE);
 	if (!pbl_addr)
 		return -ENOMEM;
 
-	/*
-	 * Compute the 8B aligned offset.
-	 */
+	
 	pbl_offset = (pbl_addr - qhp->rhp->rdev.rnic_info.pbl_base) >> 3;
 
 	wqe->recv.num_sgle = cpu_to_be32(wr->num_sge);
 
 	for (i = 0; i < wr->num_sge; i++) {
 
-		/*
-		 * Use a 128MB page size. This and an imposed 128MB
-		 * sge length limit allows us to require only a 2-entry HW
-		 * PBL for each SGE.  This restriction is acceptable since
-		 * since it is not possible to allocate 128MB of contiguous
-		 * DMA coherent memory!
-		 */
+		
 		if (wr->sg_list[i].length > T3_STAG0_MAX_PBE_LEN)
 			return -EINVAL;
 		wqe->recv.pagesz[i] = T3_STAG0_PAGE_SHIFT;
 
-		/*
-		 * T3 restricts a recv to all zero-stag or all non-zero-stag.
-		 */
+		
 		if (wr->sg_list[i].lkey != 0)
 			return -EINVAL;
 		wqe->recv.sgl[i].stag = 0;
@@ -404,7 +359,7 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
 		case IB_WR_RDMA_READ:
 		case IB_WR_RDMA_READ_WITH_INV:
 			t3_wr_opcode = T3_WR_READ;
-			t3_wr_flags = 0; /* T3 reads are always signaled */
+			t3_wr_flags = 0; 
 			err = build_rdma_read(wqe, wr, &t3_wr_flit_cnt);
 			if (err)
 				break;
@@ -562,7 +517,7 @@ int iwch_bind_mw(struct ib_qp *qp,
 	wqe->bind.reserved = 0;
 	wqe->bind.type = TPT_VATO;
 
-	/* TBD: check perms */
+	
 	wqe->bind.perms = iwch_ib_to_tpt_bind_access(mw_bind->mw_access_flags);
 	wqe->bind.mr_stag = cpu_to_be32(mw_bind->mr->lkey);
 	wqe->bind.mw_stag = cpu_to_be32(mw->rkey);
@@ -755,9 +710,7 @@ int iwch_post_zb_read(struct iwch_qp *qhp)
 	return iwch_cxgb3_ofld_send(qhp->rhp->rdev.t3cdev_p, skb);
 }
 
-/*
- * This posts a TERMINATE with layer=RDMA, type=catastrophic.
- */
+
 int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg)
 {
 	union t3_wr *wqe;
@@ -774,10 +727,10 @@ int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg)
 	memset(wqe, 0, 40);
 	wqe->send.rdmaop = T3_TERMINATE;
 
-	/* immediate data length */
+	
 	wqe->send.plen = htonl(4);
 
-	/* immediate data starts here. */
+	
 	term = (struct terminate_message *)wqe->send.sgl;
 	build_term_codes(rsp_msg, &term->layer_etype, &term->ecode);
 	wqe->send.wrh.op_seop_flags = cpu_to_be32(V_FW_RIWR_OP(T3_WR_SEND) |
@@ -787,9 +740,7 @@ int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg)
 	return iwch_cxgb3_ofld_send(qhp->rhp->rdev.t3cdev_p, skb);
 }
 
-/*
- * Assumes qhp lock is held.
- */
+
 static void __flush_qp(struct iwch_qp *qhp, unsigned long *flag)
 {
 	struct iwch_cq *rchp, *schp;
@@ -800,11 +751,11 @@ static void __flush_qp(struct iwch_qp *qhp, unsigned long *flag)
 	schp = get_chp(qhp->rhp, qhp->attr.scq);
 
 	PDBG("%s qhp %p rchp %p schp %p\n", __func__, qhp, rchp, schp);
-	/* take a ref on the qhp since we must release the lock */
+	
 	atomic_inc(&qhp->refcnt);
 	spin_unlock_irqrestore(&qhp->lock, *flag);
 
-	/* locking heirarchy: cq lock first, then qp lock. */
+	
 	spin_lock_irqsave(&rchp->lock, *flag);
 	spin_lock(&qhp->lock);
 	cxio_flush_hw_cq(&rchp->cq);
@@ -815,7 +766,7 @@ static void __flush_qp(struct iwch_qp *qhp, unsigned long *flag)
 	if (flushed)
 		(*rchp->ibcq.comp_handler)(&rchp->ibcq, rchp->ibcq.cq_context);
 
-	/* locking heirarchy: cq lock first, then qp lock. */
+	
 	spin_lock_irqsave(&schp->lock, *flag);
 	spin_lock(&qhp->lock);
 	cxio_flush_hw_cq(&schp->cq);
@@ -826,7 +777,7 @@ static void __flush_qp(struct iwch_qp *qhp, unsigned long *flag)
 	if (flushed)
 		(*schp->ibcq.comp_handler)(&schp->ibcq, schp->ibcq.cq_context);
 
-	/* deref */
+	
 	if (atomic_dec_and_test(&qhp->refcnt))
 	        wake_up(&qhp->wait);
 
@@ -842,9 +793,7 @@ static void flush_qp(struct iwch_qp *qhp, unsigned long *flag)
 }
 
 
-/*
- * Return count of RECV WRs posted
- */
+
 u16 iwch_rqes_posted(struct iwch_qp *qhp)
 {
 	union t3_wr *wqe = qhp->wq.queue;
@@ -929,7 +878,7 @@ int iwch_modify_qp(struct iwch_dev *rhp, struct iwch_qp *qhp,
 
 	spin_lock_irqsave(&qhp->lock, flag);
 
-	/* Process attr changes if in IDLE */
+	
 	if (mask & IWCH_QP_ATTR_VALID_MODIFY) {
 		if (qhp->attr.state != IWCH_QP_STATE_IDLE) {
 			ret = -EIO;
@@ -982,12 +931,7 @@ int iwch_modify_qp(struct iwch_dev *rhp, struct iwch_qp *qhp,
 			qhp->ep = qhp->attr.llp_stream_handle;
 			qhp->attr.state = IWCH_QP_STATE_RTS;
 
-			/*
-			 * Ref the endpoint here and deref when we
-			 * disassociate the endpoint from the QP.  This
-			 * happens in CLOSING->IDLE transition or *->ERROR
-			 * transition.
-			 */
+			
 			get_ep(&qhp->ep->com);
 			spin_unlock_irqrestore(&qhp->lock, flag);
 			ret = rdma_init(rhp, qhp, mask, attrs);
@@ -1091,7 +1035,7 @@ err:
 	PDBG("%s disassociating ep %p qpid 0x%x\n", __func__, qhp->ep,
 	     qhp->wq.qpid);
 
-	/* disassociate the LLP connection */
+	
 	qhp->attr.llp_stream_handle = NULL;
 	ep = qhp->ep;
 	qhp->ep = NULL;
@@ -1106,20 +1050,13 @@ out:
 	if (terminate)
 		iwch_post_terminate(qhp, NULL);
 
-	/*
-	 * If disconnect is 1, then we need to initiate a disconnect
-	 * on the EP.  This can be a normal close (RTS->CLOSING) or
-	 * an abnormal close (RTS/CLOSING->ERROR).
-	 */
+	
 	if (disconnect) {
 		iwch_ep_disconnect(ep, abort, GFP_KERNEL);
 		put_ep(&ep->com);
 	}
 
-	/*
-	 * If free is 1, then we've disassociated the EP from the QP
-	 * and we need to dereference the EP.
-	 */
+	
 	if (free)
 		put_ep(&ep->com);
 

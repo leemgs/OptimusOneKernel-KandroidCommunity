@@ -1,13 +1,4 @@
-/*
- * PCBIT-D module support
- *
- * Copyright (C) 1996 Universidade de Lisboa
- * 
- * Written by Pedro Roque Marques (roque@di.fc.ul.pt)
- *
- * This software may be used and distributed according to the terms of 
- * the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -63,7 +54,7 @@ static int __init pcbit_init(void)
 		}
 	}
 
-	/* Hardcoded default settings detection */
+	
 
 	if (!num_boards)
 	{

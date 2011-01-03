@@ -1,23 +1,4 @@
-/*
- *  linux/arch/arm/mach-realview/realview_pb1176.c
- *
- *  Copyright (C) 2008 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -123,9 +104,7 @@ static struct pl061_platform_data gpio2_plat_data = {
 	.irq_base	= -1,
 };
 
-/*
- * RealView PB1176 AMBA devices
- */
+
 #define GPIO2_IRQ	{ IRQ_PB1176_GPIO2, NO_IRQ }
 #define GPIO2_DMA	{ 0, 0 }
 #define GPIO3_IRQ	{ IRQ_PB1176_GPIO3, NO_IRQ }
@@ -169,14 +148,14 @@ static struct pl061_platform_data gpio2_plat_data = {
 #define PB1176_SSP_IRQ		{ IRQ_PB1176_SSP, NO_IRQ }
 #define PB1176_SSP_DMA		{ 9, 8 }
 
-/* FPGA Primecells */
+
 AMBA_DEVICE(aaci,	"fpga:aaci",	AACI,		NULL);
 AMBA_DEVICE(mmc0,	"fpga:mmc0",	MMCI0,		&realview_mmc0_plat_data);
 AMBA_DEVICE(kmi0,	"fpga:kmi0",	KMI0,		NULL);
 AMBA_DEVICE(kmi1,	"fpga:kmi1",	KMI1,		NULL);
 AMBA_DEVICE(uart3,	"fpga:uart3",	PB1176_UART3,	NULL);
 
-/* DevChip Primecells */
+
 AMBA_DEVICE(smc,	"dev:smc",	PB1176_SMC,	NULL);
 AMBA_DEVICE(sctl,	"dev:sctl",	SCTL,		NULL);
 AMBA_DEVICE(wdog,	"dev:wdog",	PB1176_WATCHDOG,	NULL);
@@ -190,12 +169,12 @@ AMBA_DEVICE(uart1,	"dev:uart1",	PB1176_UART1,	NULL);
 AMBA_DEVICE(uart2,	"dev:uart2",	PB1176_UART2,	NULL);
 AMBA_DEVICE(ssp0,	"dev:ssp0",	PB1176_SSP,	NULL);
 
-/* Primecells on the NEC ISSP chip */
+
 AMBA_DEVICE(clcd,	"issp:clcd",	PB1176_CLCD,	&clcd_plat_data);
-//AMBA_DEVICE(dmac,	"issp:dmac",	PB1176_DMAC,	NULL);
+
 
 static struct amba_device *amba_devs[] __initdata = {
-//	&dmac_device,
+
 	&uart0_device,
 	&uart1_device,
 	&uart2_device,
@@ -216,9 +195,7 @@ static struct amba_device *amba_devs[] __initdata = {
 	&kmi1_device,
 };
 
-/*
- * RealView PB1176 platform devices
- */
+
 static struct resource realview_pb1176_flash_resources[] = {
 	[0] = {
 		.start		= REALVIEW_PB1176_FLASH_BASE,
@@ -265,12 +242,12 @@ static struct resource realview_pb1176_isp1761_resources[] = {
 
 static void __init gic_init_irq(void)
 {
-	/* ARM1176 DevChip GIC, primary */
+	
 	gic_cpu_base_addr = __io_address(REALVIEW_DC1176_GIC_CPU_BASE);
 	gic_dist_init(0, __io_address(REALVIEW_DC1176_GIC_DIST_BASE), IRQ_DC1176_GIC_START);
 	gic_cpu_init(0, gic_cpu_base_addr);
 
-	/* board GIC, secondary */
+	
 	gic_dist_init(1, __io_address(REALVIEW_PB1176_GIC_DIST_BASE), IRQ_PB1176_GIC_START);
 	gic_cpu_init(1, __io_address(REALVIEW_PB1176_GIC_CPU_BASE));
 	gic_cascade_irq(1, IRQ_DC1176_PB_IRQ1);
@@ -304,9 +281,7 @@ static void realview_pb1176_fixup(struct machine_desc *mdesc,
 				  struct tag *tags, char **from,
 				  struct meminfo *meminfo)
 {
-	/*
-	 * RealView PB1176 only has 128MB of RAM mapped at 0.
-	 */
+	
 	meminfo->bank[0].start = 0;
 	meminfo->bank[0].size = SZ_128M;
 	meminfo->nr_banks = 1;
@@ -317,7 +292,7 @@ static void __init realview_pb1176_init(void)
 	int i;
 
 #ifdef CONFIG_CACHE_L2X0
-	/* 128Kb (16Kb/way) 8-way associativity. evmon/parity/share enabled. */
+	
 	l2x0_init(__io_address(REALVIEW_PB1176_L220_BASE), 0x00730000, 0xfe000fff);
 #endif
 
@@ -339,7 +314,7 @@ static void __init realview_pb1176_init(void)
 }
 
 MACHINE_START(REALVIEW_PB1176, "ARM-RealView PB1176")
-	/* Maintainer: ARM Ltd/Deep Blue Solutions Ltd */
+	
 	.phys_io	= REALVIEW_PB1176_UART0_BASE,
 	.io_pg_offst	= (IO_ADDRESS(REALVIEW_PB1176_UART0_BASE) >> 18) & 0xfffc,
 	.boot_params	= PHYS_OFFSET + 0x00000100,

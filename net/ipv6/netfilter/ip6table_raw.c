@@ -1,8 +1,4 @@
-/*
- * IPv6 raw table, a port of the IPv4 raw table to IPv6
- *
- * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
- */
+
 #include <linux/module.h>
 #include <linux/netfilter_ipv6/ip6_tables.h>
 
@@ -29,10 +25,10 @@ static const struct
 		},
 	},
 	.entries = {
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IP6T_ERROR_INIT,		/* ERROR */
+	.term = IP6T_ERROR_INIT,		
 };
 
 static const struct xt_table packet_raw = {
@@ -42,7 +38,7 @@ static const struct xt_table packet_raw = {
 	.af = NFPROTO_IPV6,
 };
 
-/* The work comes in here from netfilter.c. */
+
 static unsigned int
 ip6t_pre_routing_hook(unsigned int hook,
 	 struct sk_buff *skb,
@@ -84,7 +80,7 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
 
 static int __net_init ip6table_raw_net_init(struct net *net)
 {
-	/* Register table */
+	
 	net->ipv6.ip6table_raw =
 		ip6t_register_table(net, &packet_raw, &initial_table.repl);
 	if (IS_ERR(net->ipv6.ip6table_raw))
@@ -110,7 +106,7 @@ static int __init ip6table_raw_init(void)
 	if (ret < 0)
 		return ret;
 
-	/* Register hooks */
+	
 	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
 	if (ret < 0)
 		goto cleanup_table;

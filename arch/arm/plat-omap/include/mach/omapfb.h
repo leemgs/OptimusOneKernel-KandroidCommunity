@@ -1,25 +1,4 @@
-/*
- * File: arch/arm/plat-omap/include/mach/omapfb.h
- *
- * Framebuffer driver for TI OMAP boards
- *
- * Copyright (C) 2004 Nokia Corporation
- * Author: Imre Deak <imre.deak@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #ifndef __OMAPFB_H
 #define __OMAPFB_H
@@ -27,7 +6,7 @@
 #include <asm/ioctl.h>
 #include <asm/types.h>
 
-/* IOCTL commands. */
+
 
 #define OMAP_IOW(num, dtype)	_IOW('O', num, dtype)
 #define OMAP_IOR(num, dtype)	_IOR('O', num, dtype)
@@ -65,7 +44,7 @@
 #define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
 #define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
 
-/* Values from DSP must map to lower 16-bits */
+
 #define OMAPFB_FORMAT_MASK		0x00ff
 #define OMAPFB_FORMAT_FLAG_DOUBLE	0x0100
 #define OMAPFB_FORMAT_FLAG_TEARSYNC	0x0200
@@ -194,23 +173,20 @@ struct omapfb_device;
 
 struct lcd_panel {
 	const char	*name;
-	int		config;		/* TFT/STN, signal inversion */
-	int		bpp;		/* Pixel format in fb mem */
-	int		data_lines;	/* Lines on LCD HW interface */
+	int		config;		
+	int		bpp;		
+	int		data_lines;	
 
 	int		x_res, y_res;
-	int		pixel_clock;	/* In kHz */
-	int		hsw;		/* Horizontal synchronization
-					   pulse width */
-	int		hfp;		/* Horizontal front porch */
-	int		hbp;		/* Horizontal back porch */
-	int		vsw;		/* Vertical synchronization
-					   pulse width */
-	int		vfp;		/* Vertical front porch */
-	int		vbp;		/* Vertical back porch */
-	int		acb;		/* ac-bias pin frequency */
-	int		pcd;		/* pixel clock divider.
-					   Obsolete use pixel_clock instead */
+	int		pixel_clock;	
+	int		hsw;		
+	int		hfp;		
+	int		hbp;		
+	int		vsw;		
+	int		vfp;		
+	int		vbp;		
+	int		acb;		
+	int		pcd;		
 
 	int		(*init)		(struct lcd_panel *panel,
 					 struct omapfb_device *fbdev);
@@ -239,7 +215,7 @@ struct extif_timings {
 
 	int clk_div;
 
-	u32 tim[5];		/* set by extif->convert_timings */
+	u32 tim[5];		
 
 	int converted;
 };
@@ -279,9 +255,9 @@ struct omapfb_mem_region {
 	u32		paddr;
 	void __iomem	*vaddr;
 	unsigned long	size;
-	u8		type;		/* OMAPFB_PLANE_MEM_* */
-	unsigned	alloc:1;	/* allocated by the driver */
-	unsigned	map:1;		/* kernel mapped by the driver */
+	u8		type;		
+	unsigned	alloc:1;	
+	unsigned	map:1;		
 };
 
 struct omapfb_mem_desc {
@@ -345,20 +321,18 @@ struct omapfb_plane_struct {
 
 struct omapfb_device {
 	int			state;
-	int                     ext_lcdc;               /* Using external
-                                                           LCD controller */
+	int                     ext_lcdc;               
 	struct mutex		rqueue_mutex;
 
 	int			palette_size;
 	u32			pseudo_palette[17];
 
-	struct lcd_panel	*panel;			/* LCD panel */
-	const struct lcd_ctrl	*ctrl;			/* LCD controller */
-	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
-	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
-							   interface */
+	struct lcd_panel	*panel;			
+	const struct lcd_ctrl	*ctrl;			
+	const struct lcd_ctrl	*int_ctrl;		
+	struct lcd_ctrl_extif	*ext_if;		
 	struct device		*dev;
-	struct fb_var_screeninfo	new_var;	/* for mode changes */
+	struct fb_var_screeninfo	new_var;	
 
 	struct omapfb_mem_desc		mem_desc;
 	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
@@ -390,9 +364,9 @@ extern int  omapfb_update_window_async(struct fb_info *fbi,
 				       void (*callback)(void *),
 				       void *callback_data);
 
-/* in arch/arm/plat-omap/fb.c */
+
 extern void omapfb_set_ctrl_platform_data(void *pdata);
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* __OMAPFB_H */
+#endif 

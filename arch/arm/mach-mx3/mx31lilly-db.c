@@ -1,28 +1,4 @@
-/*
- *  LILLY-1131 development board support
- *
- *    Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
- *
- *  based on code for other MX31 boards,
- *
- *    Copyright 2005-2007 Freescale Semiconductor
- *    Copyright (c) 2009 Alberto Panizzo <maramaopercheseimorto@gmail.com>
- *    Copyright (C) 2009 Valentin Longchamp, EPFL Mobots group
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -45,11 +21,7 @@
 
 #include "devices.h"
 
-/*
- * This file contains board-specific initialization routines for the
- * LILLY-1131 development board. If you design an own baseboard for the
- * module, use this file as base for support code.
- */
+
 
 static unsigned int lilly_db_board_pins[] __initdata = {
 	MX31_PIN_CTS1__CTS1,
@@ -95,12 +67,12 @@ static unsigned int lilly_db_board_pins[] __initdata = {
 	MX31_PIN_CONTRAST__CONTRAST,
 };
 
-/* UART */
+
 static struct imxuart_platform_data uart_pdata __initdata = {
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-/* MMC support */
+
 
 static int mxc_mmc1_get_ro(struct device *dev)
 {
@@ -158,13 +130,13 @@ static struct imxmmc_platform_data mmc_pdata = {
 	.exit	= mxc_mmc1_exit,
 };
 
-/* Framebuffer support */
+
 static struct ipu_platform_data ipu_data __initdata = {
 	.irq_base = MXC_IPU_IRQ_START,
 };
 
 static const struct fb_videomode fb_modedb = {
-	/* 640x480 TFT panel (IPS-056T) */
+	
 	.name	   	= "CRT-VGA",
 	.refresh	= 64,
 	.xres		= 640,

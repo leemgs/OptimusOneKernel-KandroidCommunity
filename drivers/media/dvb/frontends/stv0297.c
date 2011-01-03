@@ -1,23 +1,4 @@
-/*
-    Driver for STV0297 demodulator
 
-    Copyright (C) 2004 Andrew de Quincey <adq_dvb@lidskialf.net>
-    Copyright (C) 2003-2004 Dennis Noermann <dennis.noermann@noernet.de>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -72,7 +53,7 @@ static int stv0297_readreg(struct stv0297_state *state, u8 reg)
 				 {.addr = state->config->demod_address,.flags = I2C_M_RD,.buf = b1,.len = 1}
 			       };
 
-	// this device needs a STOP between the register and data
+	
 	if (state->config->stop_during_read) {
 		if ((ret = i2c_transfer(state->i2c, &msg[0], 1)) != 1) {
 			dprintk("%s: readreg error (reg == 0x%02x, ret == %i)\n", __func__, reg, ret);
@@ -112,7 +93,7 @@ static int stv0297_readregs(struct stv0297_state *state, u8 reg1, u8 * b, u8 len
 	{.addr = state->config->demod_address,.flags = I2C_M_RD,.buf = b,.len = len}
 	};
 
-	// this device needs a STOP between the register and data
+	
 	if (state->config->stop_during_read) {
 		if ((ret = i2c_transfer(state->i2c, &msg[0], 1)) != 1) {
 			dprintk("%s: readreg error (reg == 0x%02x, ret == %i)\n", __func__, reg1, ret);
@@ -151,9 +132,9 @@ static void stv0297_set_symbolrate(struct stv0297_state *state, u32 srate)
 {
 	long tmp;
 
-	tmp = 131072L * srate;	/* 131072 = 2^17  */
-	tmp = tmp / (STV0297_CLOCK_KHZ / 4);	/* 1/4 = 2^-2 */
-	tmp = tmp * 8192L;	/* 8192 = 2^13 */
+	tmp = 131072L * srate;	
+	tmp = tmp / (STV0297_CLOCK_KHZ / 4);	
+	tmp = tmp * 8192L;	
 
 	stv0297_writereg(state, 0x55, (unsigned char) (tmp & 0xFF));
 	stv0297_writereg(state, 0x56, (unsigned char) (tmp >> 8));
@@ -165,11 +146,11 @@ static void stv0297_set_sweeprate(struct stv0297_state *state, short fshift, lon
 {
 	long tmp;
 
-	tmp = (long) fshift *262144L;	/* 262144 = 2*18 */
+	tmp = (long) fshift *262144L;	
 	tmp /= symrate;
-	tmp *= 1024;		/* 1024 = 2*10   */
+	tmp *= 1024;		
 
-	// adjust
+	
 	if (tmp >= 0) {
 		tmp += 500000;
 	} else {
@@ -185,8 +166,8 @@ static void stv0297_set_carrieroffset(struct stv0297_state *state, long offset)
 {
 	long tmp;
 
-	/* symrate is hardcoded to 10000 */
-	tmp = offset * 26844L;	/* (2**28)/10000 */
+	
+	tmp = offset * 26844L;	
 	if (tmp < 0)
 		tmp += 0x10000000;
 	tmp &= 0x0FFFFFFF;
@@ -197,24 +178,7 @@ static void stv0297_set_carrieroffset(struct stv0297_state *state, long offset)
 	stv0297_writereg_mask(state, 0x69, 0x0F, (tmp >> 24) & 0x0f);
 }
 
-/*
-static long stv0297_get_carrieroffset(struct stv0297_state *state)
-{
-	s64 tmp;
 
-	stv0297_writereg(state, 0x6B, 0x00);
-
-	tmp = stv0297_readreg(state, 0x66);
-	tmp |= (stv0297_readreg(state, 0x67) << 8);
-	tmp |= (stv0297_readreg(state, 0x68) << 16);
-	tmp |= (stv0297_readreg(state, 0x69) & 0x0F) << 24;
-
-	tmp *= stv0297_get_symbolrate(state);
-	tmp >>= 28;
-
-	return (s32) tmp;
-}
-*/
 
 static void stv0297_set_initialdemodfreq(struct stv0297_state *state, long freq)
 {
@@ -306,7 +270,7 @@ static int stv0297_init(struct dvb_frontend *fe)
 	struct stv0297_state *state = fe->demodulator_priv;
 	int i;
 
-	/* load init table */
+	
 	for (i=0; !(state->config->inittab[i] == 0xff && state->config->inittab[i+1] == 0xff); i+=2)
 		stv0297_writereg(state, state->config->inittab[i], state->config->inittab[i+1]);
 	msleep(200);
@@ -393,13 +357,13 @@ static int stv0297_read_ucblocks(struct dvb_frontend *fe, u32 * ucblocks)
 {
 	struct stv0297_state *state = fe->demodulator_priv;
 
-	stv0297_writereg_mask(state, 0xDF, 0x03, 0x03); /* freeze the counters */
+	stv0297_writereg_mask(state, 0xDF, 0x03, 0x03); 
 
 	*ucblocks = (stv0297_readreg(state, 0xD5) << 8)
 		| stv0297_readreg(state, 0xD4);
 
-	stv0297_writereg_mask(state, 0xDF, 0x03, 0x02); /* clear the counters */
-	stv0297_writereg_mask(state, 0xDF, 0x03, 0x01); /* re-enable the counters */
+	stv0297_writereg_mask(state, 0xDF, 0x03, 0x02); 
+	stv0297_writereg_mask(state, 0xDF, 0x03, 0x01); 
 
 	return 0;
 }
@@ -435,7 +399,7 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 		return -EINVAL;
 	}
 
-	// determine inversion dependant parameters
+	
 	inversion = p->inversion;
 	if (state->config->invert)
 		inversion = (inversion == INVERSION_ON) ? INVERSION_OFF : INVERSION_ON;
@@ -459,13 +423,13 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
 	}
 
-	/* clear software interrupts */
+	
 	stv0297_writereg(state, 0x82, 0x0);
 
-	/* set initial demodulation frequency */
+	
 	stv0297_set_initialdemodfreq(state, 7250);
 
-	/* setup AGC */
+	
 	stv0297_writereg_mask(state, 0x43, 0x10, 0x00);
 	stv0297_writereg(state, 0x41, 0x00);
 	stv0297_writereg_mask(state, 0x42, 0x03, 0x01);
@@ -478,25 +442,25 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 	stv0297_writereg_mask(state, 0x43, 0x08, 0x00);
 	stv0297_writereg_mask(state, 0x71, 0x80, 0x00);
 
-	/* setup STL */
+	
 	stv0297_writereg_mask(state, 0x5a, 0x20, 0x20);
 	stv0297_writereg_mask(state, 0x5b, 0x02, 0x02);
 	stv0297_writereg_mask(state, 0x5b, 0x02, 0x00);
 	stv0297_writereg_mask(state, 0x5b, 0x01, 0x00);
 	stv0297_writereg_mask(state, 0x5a, 0x40, 0x40);
 
-	/* disable frequency sweep */
+	
 	stv0297_writereg_mask(state, 0x6a, 0x01, 0x00);
 
-	/* reset deinterleaver */
+	
 	stv0297_writereg_mask(state, 0x81, 0x01, 0x01);
 	stv0297_writereg_mask(state, 0x81, 0x01, 0x00);
 
-	/* ??? */
+	
 	stv0297_writereg_mask(state, 0x83, 0x20, 0x20);
 	stv0297_writereg_mask(state, 0x83, 0x20, 0x00);
 
-	/* reset equaliser */
+	
 	u_threshold = stv0297_readreg(state, 0x00) & 0xf;
 	initial_u = stv0297_readreg(state, 0x01) >> 4;
 	blind_u = stv0297_readreg(state, 0x01) & 0xf;
@@ -506,10 +470,10 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 	stv0297_writereg_mask(state, 0x01, 0xf0, initial_u << 4);
 	stv0297_writereg_mask(state, 0x01, 0x0f, blind_u);
 
-	/* data comes from internal A/D */
+	
 	stv0297_writereg_mask(state, 0x87, 0x80, 0x00);
 
-	/* clear phase registers */
+	
 	stv0297_writereg(state, 0x63, 0x00);
 	stv0297_writereg(state, 0x64, 0x00);
 	stv0297_writereg(state, 0x65, 0x00);
@@ -518,15 +482,15 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 	stv0297_writereg(state, 0x68, 0x00);
 	stv0297_writereg_mask(state, 0x69, 0x0f, 0x00);
 
-	/* set parameters */
+	
 	stv0297_set_qam(state, p->u.qam.modulation);
 	stv0297_set_symbolrate(state, p->u.qam.symbol_rate / 1000);
 	stv0297_set_sweeprate(state, sweeprate, p->u.qam.symbol_rate / 1000);
 	stv0297_set_carrieroffset(state, carrieroffset);
 	stv0297_set_inversion(state, inversion);
 
-	/* kick off lock */
-	/* Disable corner detection for higher QAMs */
+	
+	
 	if (p->u.qam.modulation == QAM_128 ||
 		p->u.qam.modulation == QAM_256)
 		stv0297_writereg_mask(state, 0x88, 0x08, 0x00);
@@ -541,7 +505,7 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 	stv0297_writereg_mask(state, 0x03, 0x03, 0x03);
 	stv0297_writereg_mask(state, 0x43, 0x10, 0x10);
 
-	/* wait for WGAGC lock */
+	
 	starttime = jiffies;
 	timeout = jiffies + msecs_to_jiffies(2000);
 	while (time_before(jiffies, timeout)) {
@@ -554,7 +518,7 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 	}
 	msleep(20);
 
-	/* wait for equaliser partial convergence */
+	
 	timeout = jiffies + msecs_to_jiffies(500);
 	while (time_before(jiffies, timeout)) {
 		msleep(10);
@@ -567,7 +531,7 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 		goto timeout;
 	}
 
-	/* wait for equaliser full convergence */
+	
 	timeout = jiffies + msecs_to_jiffies(delay);
 	while (time_before(jiffies, timeout)) {
 		msleep(10);
@@ -580,11 +544,11 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 		goto timeout;
 	}
 
-	/* disable sweep */
+	
 	stv0297_writereg_mask(state, 0x6a, 1, 0);
 	stv0297_writereg_mask(state, 0x88, 8, 0);
 
-	/* wait for main lock */
+	
 	timeout = jiffies + msecs_to_jiffies(20);
 	while (time_before(jiffies, timeout)) {
 		msleep(10);
@@ -598,12 +562,12 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
 	}
 	msleep(100);
 
-	/* is it still locked after that delay? */
+	
 	if (!(stv0297_readreg(state, 0xDF) & 0x80)) {
 		goto timeout;
 	}
 
-	/* success!! */
+	
 	stv0297_writereg_mask(state, 0x5a, 0x40, 0x00);
 	state->base_freq = p->frequency;
 	return 0;
@@ -662,22 +626,22 @@ struct dvb_frontend *stv0297_attach(const struct stv0297_config *config,
 {
 	struct stv0297_state *state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct stv0297_state), GFP_KERNEL);
 	if (state == NULL)
 		goto error;
 
-	/* setup the state */
+	
 	state->config = config;
 	state->i2c = i2c;
 	state->last_ber = 0;
 	state->base_freq = 0;
 
-	/* check if the demod is there */
+	
 	if ((stv0297_readreg(state, 0x80) & 0x70) != 0x20)
 		goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &stv0297_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;

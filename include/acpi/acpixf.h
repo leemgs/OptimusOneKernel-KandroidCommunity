@@ -1,51 +1,12 @@
 
-/******************************************************************************
- *
- * Name: acpixf.h - External interfaces to the ACPI subsystem
- *
- *****************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #ifndef __ACXFACE_H__
 #define __ACXFACE_H__
 
-/* Current ACPICA subsystem version in YYYYMMDD format */
+
 
 #define ACPI_CA_VERSION                 0x20090903
 
@@ -54,10 +15,7 @@
 
 extern u8 acpi_gbl_permanent_mmap;
 
-/*
- * Globals that are publically available, allowing for
- * run time configuration
- */
+
 extern u32 acpi_dbg_level;
 extern u32 acpi_dbg_layer;
 extern u8 acpi_gbl_enable_interpreter_slack;
@@ -72,9 +30,7 @@ extern u32 acpi_current_gpe_count;
 extern struct acpi_table_fadt acpi_gbl_FADT;
 
 extern u32 acpi_rsdt_forced;
-/*
- * Global interfaces
- */
+
 acpi_status
 acpi_initialize_tables(struct acpi_table_desc *initial_storage,
 		       u32 initial_table_count, u8 allow_resize);
@@ -103,18 +59,14 @@ const char *acpi_format_exception(acpi_status exception);
 
 acpi_status acpi_purge_cached_objects(void);
 
-/*
- * ACPI Memory management
- */
+
 void *acpi_allocate(u32 size);
 
 void *acpi_callocate(u32 size);
 
 void acpi_free(void *address);
 
-/*
- * ACPI table manipulation interfaces
- */
+
 acpi_status acpi_reallocate_root_table(void);
 
 acpi_status acpi_find_root_pointer(acpi_size *rsdp_address);
@@ -147,9 +99,7 @@ acpi_install_table_handler(acpi_tbl_handler handler, void *context);
 
 acpi_status acpi_remove_table_handler(acpi_tbl_handler handler);
 
-/*
- * Namespace and name interfaces
- */
+
 acpi_status
 acpi_walk_namespace(acpi_object_type type,
 		    acpi_handle start_object,
@@ -183,9 +133,7 @@ acpi_get_data(acpi_handle obj_handle, acpi_object_handler handler, void **data);
 acpi_status
 acpi_debug_trace(char *name, u32 debug_level, u32 debug_layer, u32 flags);
 
-/*
- * Object manipulation and enumeration
- */
+
 acpi_status
 acpi_evaluate_object(acpi_handle object,
 		     acpi_string pathname,
@@ -216,9 +164,7 @@ acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
 
 acpi_status acpi_get_parent(acpi_handle object, acpi_handle * out_handle);
 
-/*
- * Handler interfaces
- */
+
 acpi_status
 acpi_install_initialization_handler(acpi_init_handler handler, u32 function);
 
@@ -262,9 +208,7 @@ acpi_remove_gpe_handler(acpi_handle gpe_device,
 acpi_status acpi_install_exception_handler(acpi_exception_handler handler);
 #endif
 
-/*
- * Event interfaces
- */
+
 acpi_status acpi_acquire_global_lock(u16 timeout, u32 * handle);
 
 acpi_status acpi_release_global_lock(u32 handle);
@@ -277,9 +221,7 @@ acpi_status acpi_clear_event(u32 event);
 
 acpi_status acpi_get_event_status(u32 event, acpi_event_status * event_status);
 
-/*
- * GPE Interfaces
- */
+
 acpi_status acpi_set_gpe_type(acpi_handle gpe_device, u32 gpe_number, u8 type);
 
 acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number);
@@ -306,9 +248,7 @@ acpi_install_gpe_block(acpi_handle gpe_device,
 
 acpi_status acpi_remove_gpe_block(acpi_handle gpe_device);
 
-/*
- * Resource interfaces
- */
+
 typedef
 acpi_status(*acpi_walk_resource_callback) (struct acpi_resource * resource,
 					   void *context);
@@ -346,9 +286,7 @@ acpi_status
 acpi_resource_to_address64(struct acpi_resource *resource,
 			   struct acpi_resource_address64 *out);
 
-/*
- * Hardware (ACPI device) interfaces
- */
+
 acpi_status acpi_reset(void);
 
 acpi_status acpi_read_bit_register(u32 register_id, u32 *return_value);
@@ -378,9 +316,7 @@ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
 
 acpi_status acpi_leave_sleep_state(u8 sleep_state);
 
-/*
- * Error/Warning output
- */
+
 void ACPI_INTERNAL_VAR_XFACE
 acpi_error(const char *module_name,
 	   u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
@@ -398,9 +334,7 @@ void ACPI_INTERNAL_VAR_XFACE
 acpi_info(const char *module_name,
 	  u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
 
-/*
- * Debug output
- */
+
 #ifdef ACPI_DEBUG_OUTPUT
 
 void ACPI_INTERNAL_VAR_XFACE
@@ -419,4 +353,4 @@ acpi_debug_print_raw(u32 requested_debug_level,
 		     const char *format, ...) ACPI_PRINTF_LIKE(6);
 #endif
 
-#endif				/* __ACXFACE_H__ */
+#endif				

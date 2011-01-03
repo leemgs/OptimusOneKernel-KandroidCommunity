@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2006 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/in.h>
 #include <net/tcp.h>
@@ -62,7 +31,7 @@ void rds_tcp_xmit_complete(struct rds_connection *conn)
 	rds_tcp_cork(tc->t_sock, 0);
 }
 
-/* the core send_sem serializes this with other xmit and shutdown */
+
 int rds_tcp_sendmsg(struct socket *sock, void *data, unsigned int len)
 {
 	struct kvec vec = {
@@ -76,7 +45,7 @@ int rds_tcp_sendmsg(struct socket *sock, void *data, unsigned int len)
 	return kernel_sendmsg(sock, &msg, &vec, 1, vec.iov_len);
 }
 
-/* the core send_sem serializes this with other xmit and shutdown */
+
 int rds_tcp_xmit_cong_map(struct rds_connection *conn,
 			  struct rds_cong_map *map, unsigned long offset)
 {
@@ -88,7 +57,7 @@ int rds_tcp_xmit_cong_map(struct rds_connection *conn,
 	int ret;
 	int copied = 0;
 
-	/* Some problem claims cpu_to_be32(constant) isn't a constant. */
+	
 	rds_tcp_map_header.h_len = cpu_to_be32(RDS_CONG_MAP_BYTES);
 
 	if (offset < sizeof(struct rds_header)) {
@@ -126,7 +95,7 @@ int rds_tcp_xmit_cong_map(struct rds_connection *conn,
         return copied ? copied : ret;
 }
 
-/* the core send_sem serializes this with other xmit and shutdown */
+
 int rds_tcp_xmit(struct rds_connection *conn, struct rds_message *rm,
 	         unsigned int hdr_off, unsigned int sg, unsigned int off)
 {
@@ -135,10 +104,7 @@ int rds_tcp_xmit(struct rds_connection *conn, struct rds_message *rm,
 	int ret = 0;
 
 	if (hdr_off == 0) {
-		/*
-		 * m_ack_seq is set to the sequence number of the last byte of
-		 * header and data.  see rds_tcp_is_acked().
-		 */
+		
 		tc->t_last_sent_nxt = rds_tcp_snd_nxt(tc);
 		rm->m_ack_seq = tc->t_last_sent_nxt +
 				sizeof(struct rds_header) +
@@ -153,7 +119,7 @@ int rds_tcp_xmit(struct rds_connection *conn, struct rds_message *rm,
 	}
 
 	if (hdr_off < sizeof(struct rds_header)) {
-		/* see rds_tcp_write_space() */
+		
 		set_bit(SOCK_NOSPACE, &tc->t_sock->sk->sk_socket->flags);
 
 		ret = rds_tcp_sendmsg(tc->t_sock,
@@ -188,7 +154,7 @@ int rds_tcp_xmit(struct rds_connection *conn, struct rds_message *rm,
 
 out:
 	if (ret <= 0) {
-		/* write_space will hit after EAGAIN, all else fatal */
+		
 		if (ret == -EAGAIN) {
 			rds_tcp_stats_inc(s_tcp_sndbuf_full);
 			ret = 0;
@@ -204,13 +170,7 @@ out:
 	return done;
 }
 
-/*
- * rm->m_ack_seq is set to the tcp sequence number that corresponds to the
- * last byte of the message, including the header.  This means that the
- * entire message has been received if rm->m_ack_seq is "before" the next
- * unacked byte of the TCP sequence space.  We have to do very careful
- * wrapping 32bit comparisons here.
- */
+
 static int rds_tcp_is_acked(struct rds_message *rm, uint64_t ack)
 {
 	if (!test_bit(RDS_MSG_HAS_ACK_SEQ, &rm->m_flags))
@@ -244,18 +204,7 @@ void rds_tcp_write_space(struct sock *sk)
 out:
 	read_unlock(&sk->sk_callback_lock);
 
-	/*
-	 * write_space is only called when data leaves tcp's send queue if
-	 * SOCK_NOSPACE is set.  We set SOCK_NOSPACE every time we put
-	 * data in tcp's send queue because we use write_space to parse the
-	 * sequence numbers and notice that rds messages have been fully
-	 * received.
-	 *
-	 * tcp's write_space clears SOCK_NOSPACE if the send queue has more
-	 * than a certain amount of space. So we need to set it again *after*
-	 * we call tcp's write_space or else we might only get called on the
-	 * first of a series of incoming tcp acks.
-	 */
+	
 	write_space(sk);
 
 	if (sk->sk_socket)

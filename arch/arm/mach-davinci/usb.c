@@ -1,6 +1,4 @@
-/*
- * USB
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -43,7 +41,7 @@ static struct musb_hdrc_config musb_config = {
 
 static struct musb_hdrc_platform_data usb_data = {
 #if defined(CONFIG_USB_MUSB_OTG)
-	/* OTG requires a Mini-AB connector */
+	
 	.mode           = MUSB_OTG,
 #elif defined(CONFIG_USB_MUSB_PERIPHERAL)
 	.mode           = MUSB_PERIPHERAL,
@@ -56,7 +54,7 @@ static struct musb_hdrc_platform_data usb_data = {
 
 static struct resource usb_resources[] = {
 	{
-		/* physical address */
+		
 		.start          = DAVINCI_USB_OTG_BASE,
 		.end            = DAVINCI_USB_OTG_BASE + 0x5ff,
 		.flags          = IORESOURCE_MEM,
@@ -66,7 +64,7 @@ static struct resource usb_resources[] = {
 		.flags          = IORESOURCE_IRQ,
 	},
 	{
-		/* placeholder for the dedicated CPPI IRQ */
+		
 		.flags          = IORESOURCE_IRQ,
 	},
 };
@@ -91,10 +89,10 @@ void __init setup_usb(unsigned mA, unsigned potpgt_msec)
 	usb_data.potpgt = potpgt_msec / 2;
 
 	if (cpu_is_davinci_dm646x()) {
-		/* Override the defaults as DM6467 uses different IRQs. */
+		
 		usb_dev.resource[1].start = IRQ_DM646X_USBINT;
 		usb_dev.resource[2].start = IRQ_DM646X_USBDMAINT;
-	} else	/* other devices don't have dedicated CPPI IRQ */
+	} else	
 		usb_dev.num_resources = 2;
 
 	platform_device_register(&usb_dev);
@@ -106,5 +104,5 @@ void __init setup_usb(unsigned mA, unsigned potpgt_msec)
 {
 }
 
-#endif  /* CONFIG_USB_MUSB_HDRC */
+#endif  
 

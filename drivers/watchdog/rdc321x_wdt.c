@@ -1,25 +1,4 @@
-/*
- * RDC321x watchdog driver
- *
- * Copyright (C) 2007 Florian Fainelli <florian@openwrt.org>
- *
- * This driver is highly inspired from the cpu5_wdt driver
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -39,21 +18,21 @@
 
 #include <asm/rdc321x_defs.h>
 
-#define RDC_WDT_MASK	0x80000000 /* Mask */
-#define RDC_WDT_EN	0x00800000 /* Enable bit */
-#define RDC_WDT_WTI	0x00200000 /* Generate CPU reset/NMI/WDT on timeout */
-#define RDC_WDT_RST	0x00100000 /* Reset bit */
-#define RDC_WDT_WIF	0x00040000 /* WDT IRQ Flag */
-#define RDC_WDT_IRT	0x00000100 /* IRQ Routing table */
-#define RDC_WDT_CNT	0x00000001 /* WDT count */
+#define RDC_WDT_MASK	0x80000000 
+#define RDC_WDT_EN	0x00800000 
+#define RDC_WDT_WTI	0x00200000 
+#define RDC_WDT_RST	0x00100000 
+#define RDC_WDT_WIF	0x00040000 
+#define RDC_WDT_IRT	0x00000100 
+#define RDC_WDT_CNT	0x00000001 
 
-#define RDC_CLS_TMR	0x80003844 /* Clear timer */
+#define RDC_CLS_TMR	0x80003844 
 
 #define RDC_WDT_INTERVAL	(HZ/10+1)
 
 static int ticks = 1000;
 
-/* some device data */
+
 
 static struct {
 	struct completion stop;
@@ -65,7 +44,7 @@ static struct {
 	spinlock_t lock;
 } rdc321x_wdt_device;
 
-/* generic helper functions */
+
 
 static void rdc321x_wdt_trigger(unsigned long unused)
 {
@@ -74,18 +53,18 @@ static void rdc321x_wdt_trigger(unsigned long unused)
 	if (rdc321x_wdt_device.running)
 		ticks--;
 
-	/* keep watchdog alive */
+	
 	spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
 	outl(RDC_WDT_EN | inl(RDC3210_CFGREG_DATA),
 		RDC3210_CFGREG_DATA);
 	spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
 
-	/* requeue?? */
+	
 	if (rdc321x_wdt_device.queue && ticks)
 		mod_timer(&rdc321x_wdt_device.timer,
 				jiffies + RDC_WDT_INTERVAL);
 	else {
-		/* ticks doesn't matter anyway */
+		
 		complete(&rdc321x_wdt_device.stop);
 	}
 
@@ -103,11 +82,11 @@ static void rdc321x_wdt_start(void)
 	if (!rdc321x_wdt_device.queue) {
 		rdc321x_wdt_device.queue = 1;
 
-		/* Clear the timer */
+		
 		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
 		outl(RDC_CLS_TMR, RDC3210_CFGREG_ADDR);
 
-		/* Enable watchdog and set the timeout to 81.92 us */
+		
 		outl(RDC_WDT_EN | RDC_WDT_CNT, RDC3210_CFGREG_DATA);
 		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
 
@@ -115,7 +94,7 @@ static void rdc321x_wdt_start(void)
 				jiffies + RDC_WDT_INTERVAL);
 	}
 
-	/* if process dies, counter is not decremented */
+	
 	rdc321x_wdt_device.running++;
 }
 
@@ -129,7 +108,7 @@ static int rdc321x_wdt_stop(void)
 	return -EIO;
 }
 
-/* filesystem operations */
+
 static int rdc321x_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(0, &rdc321x_wdt_device.inuse))
@@ -160,7 +139,7 @@ static long rdc321x_wdt_ioctl(struct file *file, unsigned int cmd,
 		rdc321x_wdt_reset();
 		break;
 	case WDIOC_GETSTATUS:
-		/* Read the value from the DATA register */
+		
 		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
 		value = inl(RDC3210_CFGREG_DATA);
 		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
@@ -228,7 +207,7 @@ static int __devinit rdc321x_wdt_probe(struct platform_device *pdev)
 
 	spin_lock_init(&rdc321x_wdt_device.lock);
 
-	/* Reset the watchdog */
+	
 	outl(RDC_WDT_RST, RDC3210_CFGREG_DATA);
 
 	init_completion(&rdc321x_wdt_device.stop);

@@ -1,15 +1,4 @@
-/*
- * Driver for DiBcom DiB3000MC/P-demodulator.
- *
- * Copyright (C) 2004-6 DiBcom (http://www.dibcom.fr/)
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher\@desy.de)
- *
- * This code is partially based on the previous dib3000mc.c .
- *
- * This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- */
+
 #ifndef DIB3000MC_H
 #define DIB3000MC_H
 
@@ -75,7 +64,7 @@ struct i2c_adapter *dib3000mc_get_tuner_i2c_master(struct dvb_frontend *demod,
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }
-#endif // CONFIG_DVB_DIB3000MC
+#endif 
 
 extern int dib3000mc_pid_control(struct dvb_frontend *fe, int index, int pid,int onoff);
 extern int dib3000mc_pid_parse(struct dvb_frontend *fe, int onoff);

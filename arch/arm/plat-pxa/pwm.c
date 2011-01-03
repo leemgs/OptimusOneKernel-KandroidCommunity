@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/pwm.c
- *
- * simple driver for PWM (Pulse Width Modulator) controller
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * 2008-02-13	initial version
- * 		eric miao <eric.miao@marvell.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -25,7 +14,7 @@
 #define PWM_ID_BASE(d)		((d) & 0xf)
 
 static const struct platform_device_id pwm_id_table[] = {
-	/*   PWM    has_secondary_pwm? */
+	
 	{ "pxa25x-pwm", 0 },
 	{ "pxa27x-pwm", 0 | HAS_SECONDARY_PWM },
 	{ "pxa168-pwm", 1 },
@@ -34,7 +23,7 @@ static const struct platform_device_id pwm_id_table[] = {
 };
 MODULE_DEVICE_TABLE(platform, pwm_id_table);
 
-/* PWM registers and bits definitions */
+
 #define PWMCR		(0x00)
 #define PWMDCR		(0x04)
 #define PWMPCR		(0x08)
@@ -56,10 +45,7 @@ struct pwm_device {
 	unsigned int	pwm_id;
 };
 
-/*
- * period_ns = 10^9 * (PRESCALE + 1) * (PV + 1) / PWM_CLK_RATE
- * duty_ns   = 10^9 * (PRESCALE + 1) * DC / PWM_CLK_RATE
- */
+
 int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 {
 	unsigned long long c;
@@ -86,9 +72,7 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 	else
 		dc = (pv + 1) * duty_ns / period_ns;
 
-	/* NOTE: the clock to PWM has to be enabled first
-	 * before writing to the registers
-	 */
+	
 	clk_enable(pwm->clk);
 	__raw_writel(prescale, pwm->mmio_base + PWMCR);
 	__raw_writel(dc, pwm->mmio_base + PWMDCR);
@@ -228,7 +212,7 @@ static int __devinit pwm_probe(struct platform_device *pdev)
 		*secondary = *pwm;
 		pwm->secondary = secondary;
 
-		/* registers for the second PWM has offset of 0x10 */
+		
 		secondary->mmio_base = pwm->mmio_base + 0x10;
 		secondary->pwm_id = pdev->id + 2;
 	}

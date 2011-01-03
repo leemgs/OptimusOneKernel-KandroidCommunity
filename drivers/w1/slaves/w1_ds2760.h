@@ -1,18 +1,9 @@
-/*
- * 1-Wire implementation for the ds2760 chip
- *
- * Copyright © 2004-2005, Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
- *
- * Use consistent with the GNU GPL is permitted,
- * provided that this copyright notice is
- * preserved in its entirety in all copies and derived works.
- *
- */
+
 
 #ifndef __w1_ds2760_h__
 #define __w1_ds2760_h__
 
-/* Known commands to the DS2760 chip */
+
 #define W1_DS2760_SWAP			0xAA
 #define W1_DS2760_READ_DATA		0x69
 #define W1_DS2760_WRITE_DATA		0x6C
@@ -20,7 +11,7 @@
 #define W1_DS2760_RECALL_DATA		0xB8
 #define W1_DS2760_LOCK			0x6A
 
-/* Number of valid register addresses */
+
 #define DS2760_DATA_SIZE		0x40
 
 #define DS2760_PROTECTION_REG		0x00
@@ -54,4 +45,4 @@ extern int w1_ds2760_write(struct device *dev, char *buf, int addr,
 extern int w1_ds2760_store_eeprom(struct device *dev, int addr);
 extern int w1_ds2760_recall_eeprom(struct device *dev, int addr);
 
-#endif /* !__w1_ds2760_h__ */
+#endif 

@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ixp2000/include/mach/system.h
- *
- * Copyright (C) 2002 Intel Corp.
- * Copyricht (C) 2003-2005 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <mach/hardware.h>
 #include <asm/mach-types.h>
@@ -21,10 +12,7 @@ static inline void arch_reset(char mode, const char *cmd)
 {
 	local_irq_disable();
 
-	/*
-	 * Reset flash banking register so that we are pointing at
-	 * RedBoot bank.
-	 */
+	
 	if (machine_is_ixdp2401()) {
 		ixp2000_reg_write(IXDP2X01_CPLD_FLASH_REG,
 					((0 >> IXDP2X01_FLASH_WINDOW_BITS)
@@ -32,11 +20,7 @@ static inline void arch_reset(char mode, const char *cmd)
 		ixp2000_reg_wrb(IXDP2X01_CPLD_RESET_REG, 0xffffffff);
 	}
 
-	/*
-	 * On IXDP2801 we need to write this magic sequence to the CPLD
-	 * to cause a complete reset of the CPU and all external devices
-	 * and move the flash bank register back to 0.
-	 */
+	
 	if (machine_is_ixdp2801() || machine_is_ixdp28x5()) {
 		unsigned long reset_reg = *IXDP2X01_CPLD_RESET_REG;
 

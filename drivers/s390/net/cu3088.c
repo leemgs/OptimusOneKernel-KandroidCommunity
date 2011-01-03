@@ -1,25 +1,4 @@
-/*
- * CTC / LCS ccw_device driver
- *
- * Copyright (C) 2002 IBM Deutschland Entwicklung GmbH, IBM Corporation
- * Author(s): Arnd Bergmann <arndb@de.ibm.com>
- *            Cornelia Huck <cornelia.huck@de.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -41,7 +20,7 @@ const char *cu3088_type[] = {
 	"unsupported channel type",
 };
 
-/* static definitions */
+
 
 static struct ccw_device_id cu3088_ids[] = {
 	{ CCW_DEVICE(0x3088, 0x08), .driver_info = channel_type_parallel },
@@ -49,7 +28,7 @@ static struct ccw_device_id cu3088_ids[] = {
 	{ CCW_DEVICE(0x3088, 0x1e), .driver_info = channel_type_ficon },
 	{ CCW_DEVICE(0x3088, 0x60), .driver_info = channel_type_osa2 },
 	{ CCW_DEVICE(0x3088, 0x61), .driver_info = channel_type_claw },
-	{ /* end of list */ }
+	{  }
 };
 
 static struct ccw_driver cu3088_driver;
@@ -73,7 +52,7 @@ group_write(struct device_driver *drv, const char *buf, size_t count)
 
 static DRIVER_ATTR(group, 0200, NULL, group_write);
 
-/* Register-unregister for ctc&lcs */
+
 int
 register_cu3088_discipline(struct ccwgroup_driver *dcp)
 {
@@ -82,7 +61,7 @@ register_cu3088_discipline(struct ccwgroup_driver *dcp)
 	if (!dcp)
 		return -EINVAL;
 
-	/* Register discipline.*/
+	
 	rc = ccwgroup_driver_register(dcp);
 	if (rc)
 		return rc;
@@ -113,7 +92,7 @@ static struct ccw_driver cu3088_driver = {
 	.remove	     = ccwgroup_remove_ccwdev,
 };
 
-/* module setup */
+
 static int __init
 cu3088_init (void)
 {

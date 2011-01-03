@@ -1,18 +1,4 @@
-/*
- *  Driver for Microtune MT2266 "Direct conversion low power broadband tuner"
- *
- *  Copyright (c) 2007 Olivier DANET <odanet@caramail.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -44,7 +30,7 @@ struct mt2266_priv {
 #define MT2266_VHF 1
 #define MT2266_UHF 0
 
-/* Here, frequencies are expressed in kiloHertz to avoid 32 bits overflows */
+
 
 static int debug;
 module_param(debug, int, 0644);
@@ -52,7 +38,7 @@ MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
 
 #define dprintk(args...) do { if (debug) {printk(KERN_DEBUG "MT2266: " args); printk("\n"); }} while (0)
 
-// Reads a single register
+
 static int mt2266_readreg(struct mt2266_priv *priv, u8 reg, u8 *val)
 {
 	struct i2c_msg msg[2] = {
@@ -66,7 +52,7 @@ static int mt2266_readreg(struct mt2266_priv *priv, u8 reg, u8 *val)
 	return 0;
 }
 
-// Writes a single register
+
 static int mt2266_writereg(struct mt2266_priv *priv, u8 reg, u8 val)
 {
 	u8 buf[2] = { reg, val };
@@ -80,7 +66,7 @@ static int mt2266_writereg(struct mt2266_priv *priv, u8 reg, u8 val)
 	return 0;
 }
 
-// Writes a set of consecutive registers
+
 static int mt2266_writeregs(struct mt2266_priv *priv,u8 *buf, u8 len)
 {
 	struct i2c_msg msg = {
@@ -93,7 +79,7 @@ static int mt2266_writeregs(struct mt2266_priv *priv,u8 *buf, u8 len)
 	return 0;
 }
 
-// Initialisation sequences
+
 static u8 mt2266_init1[] = { REG_TUNE, 0x00, 0x00, 0x28,
 				 0x00, 0x52, 0x99, 0x3f };
 
@@ -119,7 +105,7 @@ static u8 mt2266_uhf[] = { 0x1d, 0xdc, 0x00, 0x0a, 0xd4, 0x03, 0x64, 0x64,
 static u8 mt2266_vhf[] = { 0x1d, 0xfe, 0x00, 0x00, 0xb4, 0x03, 0xa5, 0xa5,
 			   0xa5, 0xa5, 0x82, 0xaa, 0xf1, 0x17, 0x80, 0x1f };
 
-#define FREF 30000       // Quartz oscillator 30 MHz
+#define FREF 30000       
 
 static int mt2266_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
 {
@@ -134,9 +120,9 @@ static int mt2266_set_params(struct dvb_frontend *fe, struct dvb_frontend_parame
 
 	priv = fe->tuner_priv;
 
-	freq = params->frequency / 1000; // Hz -> kHz
+	freq = params->frequency / 1000; 
 	if (freq < 470000 && freq > 230000)
-		return -EINVAL; /* Gap between VHF and UHF bands */
+		return -EINVAL; 
 	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
 	priv->frequency = freq * 1000;
 
@@ -222,7 +208,7 @@ static int mt2266_set_params(struct dvb_frontend *fe, struct dvb_frontend_parame
 		mt2266_writeregs(priv, b, 3);
 	}
 
-	/* Wait for pll lock or timeout */
+	
 	i = 0;
 	do {
 		mt2266_readreg(priv,REG_LOCK,b);

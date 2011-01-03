@@ -1,22 +1,4 @@
-/*
- * /proc/bus/pnp interface for Plug and Play devices
- *
- * Written by David Hinds, dahinds@users.sourceforge.net
- * Modified by Thomas Hood
- *
- * The .../devices and .../<node> and .../boot/<node> files are
- * utilized by the lspnp and setpnp utilities, supplied with the
- * pcmcia-cs package.
- *     http://pcmcia-cs.sourceforge.net
- *
- * The .../escd file is utilized by the lsescd utility written by
- * Gunther Mayer.
- *     http://home.t-online.de/home/gunther.mayer/lsescd
- *
- * The .../legacy_device_resources file is not used yet.
- *
- * The other files are human-readable.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -73,7 +55,7 @@ static int proc_read_escd(char *buf, char **start, off_t pos,
 	if (pnp_bios_escd_info(&escd))
 		return -EIO;
 
-	/* sanity check */
+	
 	if (escd.escd_size > MAX_SANE_ESCD_SIZE) {
 		printk(KERN_ERR
 		       "PnPBIOS: proc_read_escd: ESCD size reported by BIOS escd_info call is too great\n");
@@ -92,7 +74,7 @@ static int proc_read_escd(char *buf, char **start, off_t pos,
 	escd_size =
 	    (unsigned char)(tmpbuf[0]) + (unsigned char)(tmpbuf[1]) * 256;
 
-	/* sanity check */
+	
 	if (escd_size > MAX_SANE_ESCD_SIZE) {
 		printk(KERN_ERR "PnPBIOS: proc_read_escd: ESCD size reported by"
 				" BIOS read_escd call is too great\n");
@@ -115,11 +97,11 @@ static int proc_read_escd(char *buf, char **start, off_t pos,
 static int proc_read_legacyres(char *buf, char **start, off_t pos,
 			       int count, int *eof, void *data)
 {
-	/* Assume that the following won't overflow the buffer */
+	
 	if (pnp_bios_get_stat_res(buf))
 		return -EIO;
 
-	return count;		// FIXME: Return actual length
+	return count;		
 }
 
 static int proc_read_devices(char *buf, char **start, off_t pos,
@@ -138,7 +120,7 @@ static int proc_read_devices(char *buf, char **start, off_t pos,
 
 	for (nodenum = pos; nodenum < 0xff;) {
 		u8 thisnodenum = nodenum;
-		/* 26 = the number of characters per line sprintf'ed */
+		
 		if ((p - buf + 26) > count)
 			break;
 		if (pnp_bios_get_dev_node(&nodenum, PNPMODE_DYNAMIC, node))
@@ -249,11 +231,7 @@ int pnpbios_interface_attach_device(struct pnp_bios_node *node)
 	return -EIO;
 }
 
-/*
- * When this is called, pnpbios functions are assumed to
- * work and the pnpbios_dont_use_current_config flag
- * should already have been set to the appropriate value
- */
+
 int __init pnpbios_proc_init(void)
 {
 	proc_pnp = proc_mkdir("bus/pnp", NULL);

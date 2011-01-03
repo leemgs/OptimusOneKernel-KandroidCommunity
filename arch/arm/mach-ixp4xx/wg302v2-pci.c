@@ -1,21 +1,4 @@
-/*
- * arch/arch/mach-ixp4xx/wg302v2-pci.c
- *
- * PCI setup routines for the Netgear WG302 v2 and WAG302 v2
- *
- * Copyright (C) 2007 Imre Kaloz <kaloz@openwrt.org>
- *
- * based on coyote-pci.c:
- *	Copyright (C) 2002 Jungo Software Technologies.
- *	Copyright (C) 2003 MontaVista Software, Inc.
- *
- * Maintainer: Imre Kaloz <kaloz@openwrt.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/pci.h>

@@ -1,22 +1,4 @@
-/**
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Written by: Jayamohan Kallickal (jayamohank@serverengines.com)
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- * ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- *
- */
+
 
 #ifndef _BE_ISCSI_
 #define _BE_ISCSI_

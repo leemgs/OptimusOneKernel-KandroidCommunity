@@ -1,23 +1,4 @@
-/*
- *  linux/arch/arm/mach-realview/core.c
- *
- *  Copyright (C) 1999 - 2003 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/init.h>
 #include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
@@ -56,13 +37,11 @@
 
 #define REALVIEW_REFCOUNTER	(__io_address(REALVIEW_SYS_BASE) + REALVIEW_SYS_24MHz_OFFSET)
 
-/* used by entry-macro.S and platsmp.c */
+
 void __iomem *gic_cpu_base_addr;
 
 #ifdef CONFIG_ZONE_DMA
-/*
- * Adjust the zones if there are restrictions for DMA access.
- */
+
 void __init realview_adjust_zones(int node, unsigned long *size,
 				  unsigned long *hole)
 {
@@ -78,10 +57,7 @@ void __init realview_adjust_zones(int node, unsigned long *size,
 }
 #endif
 
-/*
- * This is the RealView sched_clock implementation.  This has
- * a resolution of 41.7ns, and a maximum value of about 179s.
- */
+
 unsigned long long sched_clock(void)
 {
 	unsigned long long v;
@@ -240,9 +216,7 @@ arch_initcall(realview_i2c_init);
 
 #define REALVIEW_SYSMCI	(__io_address(REALVIEW_SYS_BASE) + REALVIEW_SYS_MCI_OFFSET)
 
-/*
- * This is only used if GPIOLIB support is disabled
- */
+
 static unsigned int realview_mmc_status(struct device *dev)
 {
 	struct amba_device *adev = container_of(dev, struct amba_device, dev);
@@ -270,9 +244,7 @@ struct mmci_platform_data realview_mmc1_plat_data = {
 	.gpio_cd	= 18,
 };
 
-/*
- * Clock handling
- */
+
 static const struct icst307_params realview_oscvco_params = {
 	.ref		= 24000,
 	.vco_max	= 200000,
@@ -306,39 +278,37 @@ static struct clk oscvco_clk = {
 	.setvco = realview_oscvco_set,
 };
 
-/*
- * These are fixed clocks.
- */
+
 static struct clk ref24_clk = {
 	.rate	= 24000000,
 };
 
 static struct clk_lookup lookups[] = {
-	{	/* UART0 */
+	{	
 		.dev_id		= "dev:uart0",
 		.clk		= &ref24_clk,
-	}, {	/* UART1 */
+	}, {	
 		.dev_id		= "dev:uart1",
 		.clk		= &ref24_clk,
-	}, {	/* UART2 */
+	}, {	
 		.dev_id		= "dev:uart2",
 		.clk		= &ref24_clk,
-	}, {	/* UART3 */
+	}, {	
 		.dev_id		= "fpga:uart3",
 		.clk		= &ref24_clk,
-	}, {	/* KMI0 */
+	}, {	
 		.dev_id		= "fpga:kmi0",
 		.clk		= &ref24_clk,
-	}, {	/* KMI1 */
+	}, {	
 		.dev_id		= "fpga:kmi1",
 		.clk		= &ref24_clk,
-	}, {	/* MMC0 */
+	}, {	
 		.dev_id		= "fpga:mmc0",
 		.clk		= &ref24_clk,
-	}, {	/* EB:CLCD */
+	}, {	
 		.dev_id		= "dev:clcd",
 		.clk		= &oscvco_clk,
-	}, {	/* PB:CLCD */
+	}, {	
 		.dev_id		= "issp:clcd",
 		.clk		= &oscvco_clk,
 	}
@@ -354,9 +324,7 @@ static int __init clk_init(void)
 }
 arch_initcall(clk_init);
 
-/*
- * CLCD support.
- */
+
 #define SYS_CLCD_NLCDIOON	(1 << 2)
 #define SYS_CLCD_VDDPOSSWITCH	(1 << 3)
 #define SYS_CLCD_PWR3V5SWITCH	(1 << 4)
@@ -482,12 +450,7 @@ static struct clcd_panel epson_2_2_in = {
 	.bpp		= 16,
 };
 
-/*
- * Detect which LCD panel is connected, and return the appropriate
- * clcd_panel structure.  Note: we do not have any information on
- * the required timings for the 8.4in panel, so we presently assume
- * VGA timings.
- */
+
 static struct clcd_panel *realview_clcd_panel(void)
 {
 	void __iomem *sys_clcd = __io_address(REALVIEW_SYS_BASE) + REALVIEW_SYS_CLCD_OFFSET;
@@ -518,9 +481,7 @@ static struct clcd_panel *realview_clcd_panel(void)
 	return panel;
 }
 
-/*
- * Disable all display connectors on the interface module.
- */
+
 static void realview_clcd_disable(struct clcd_fb *fb)
 {
 	void __iomem *sys_clcd = __io_address(REALVIEW_SYS_BASE) + REALVIEW_SYS_CLCD_OFFSET;
@@ -531,17 +492,13 @@ static void realview_clcd_disable(struct clcd_fb *fb)
 	writel(val, sys_clcd);
 }
 
-/*
- * Enable the relevant connector on the interface module.
- */
+
 static void realview_clcd_enable(struct clcd_fb *fb)
 {
 	void __iomem *sys_clcd = __io_address(REALVIEW_SYS_BASE) + REALVIEW_SYS_CLCD_OFFSET;
 	u32 val;
 
-	/*
-	 * Enable the PSUs
-	 */
+	
 	val = readl(sys_clcd);
 	val |= SYS_CLCD_NLCDIOON | SYS_CLCD_PWR3V5SWITCH;
 	writel(val, sys_clcd);
@@ -553,10 +510,10 @@ static int realview_clcd_setup(struct clcd_fb *fb)
 	dma_addr_t dma;
 
 	if (machine_is_realview_eb())
-		/* VGA, 16bpp */
+		
 		framesize = 640 * 480 * 2;
 	else
-		/* XVGA, 16bpp */
+		
 		framesize = 1024 * 768 * 2;
 
 	fb->panel		= realview_clcd_panel();
@@ -635,26 +592,22 @@ void realview_leds_event(led_event_t ledevt)
 	writel(val, VA_LEDS_BASE);
 	local_irq_restore(flags);
 }
-#endif	/* CONFIG_LEDS */
+#endif	
 
-/*
- * Where is the timer (VA)?
- */
+
 void __iomem *timer0_va_base;
 void __iomem *timer1_va_base;
 void __iomem *timer2_va_base;
 void __iomem *timer3_va_base;
 
-/*
- * How long is the timer interval?
- */
+
 #define TIMER_INTERVAL	(TICKS_PER_uSEC * mSEC_10)
 #if TIMER_INTERVAL >= 0x100000
 #define TIMER_RELOAD	(TIMER_INTERVAL >> 8)
 #define TIMER_DIVISOR	(TIMER_CTRL_DIV256)
 #define TICKS2USECS(x)	(256 * (x) / TICKS_PER_uSEC)
 #elif TIMER_INTERVAL >= 0x10000
-#define TIMER_RELOAD	(TIMER_INTERVAL >> 4)		/* Divide by 16 */
+#define TIMER_RELOAD	(TIMER_INTERVAL >> 4)		
 #define TIMER_DIVISOR	(TIMER_CTRL_DIV16)
 #define TICKS2USECS(x)	(16 * (x) / TICKS_PER_uSEC)
 #else
@@ -676,7 +629,7 @@ static void timer_set_mode(enum clock_event_mode mode,
 		ctrl |= TIMER_CTRL_32BIT | TIMER_CTRL_IE | TIMER_CTRL_ENABLE;
 		break;
 	case CLOCK_EVT_MODE_ONESHOT:
-		/* period set, and timer enabled in 'next_event' hook */
+		
 		ctrl = TIMER_CTRL_ONESHOT;
 		ctrl |= TIMER_CTRL_32BIT | TIMER_CTRL_IE;
 		break;
@@ -723,14 +676,12 @@ static void __init realview_clockevents_init(unsigned int timer_irq)
 	clockevents_register_device(&timer0_clockevent);
 }
 
-/*
- * IRQ handler for the timer
- */
+
 static irqreturn_t realview_timer_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *evt = &timer0_clockevent;
 
-	/* clear the interrupt */
+	
 	writel(1, timer0_va_base + TIMER_INTCLR);
 
 	evt->event_handler(evt);
@@ -760,7 +711,7 @@ static struct clocksource clocksource_realview = {
 
 static void __init realview_clocksource_init(void)
 {
-	/* setup timer 0 as free-running clocksource */
+	
 	writel(0, timer3_va_base + TIMER_CTRL);
 	writel(0xffffffff, timer3_va_base + TIMER_LOAD);
 	writel(0xffffffff, timer3_va_base + TIMER_VALUE);
@@ -772,18 +723,12 @@ static void __init realview_clocksource_init(void)
 	clocksource_register(&clocksource_realview);
 }
 
-/*
- * Set up the clock source and clock events devices
- */
+
 void __init realview_timer_init(unsigned int timer_irq)
 {
 	u32 val;
 
-	/* 
-	 * set clock frequency: 
-	 *	REALVIEW_REFCLK is 32KHz
-	 *	REALVIEW_TIMCLK is 1MHz
-	 */
+	
 	val = readl(__io_address(REALVIEW_SCTL_BASE));
 	writel((REALVIEW_TIMCLK << REALVIEW_TIMER1_EnSel) |
 	       (REALVIEW_TIMCLK << REALVIEW_TIMER2_EnSel) | 
@@ -791,33 +736,24 @@ void __init realview_timer_init(unsigned int timer_irq)
 	       (REALVIEW_TIMCLK << REALVIEW_TIMER4_EnSel) | val,
 	       __io_address(REALVIEW_SCTL_BASE));
 
-	/*
-	 * Initialise to a known state (all timers off)
-	 */
+	
 	writel(0, timer0_va_base + TIMER_CTRL);
 	writel(0, timer1_va_base + TIMER_CTRL);
 	writel(0, timer2_va_base + TIMER_CTRL);
 	writel(0, timer3_va_base + TIMER_CTRL);
 
-	/* 
-	 * Make irqs happen for the system timer
-	 */
+	
 	setup_irq(timer_irq, &realview_timer_irq);
 
 	realview_clocksource_init();
 	realview_clockevents_init(timer_irq);
 }
 
-/*
- * Setup the memory banks.
- */
+
 void realview_fixup(struct machine_desc *mdesc, struct tag *tags, char **from,
 		    struct meminfo *meminfo)
 {
-	/*
-	 * Most RealView platforms have 512MB contiguous RAM at 0x70000000.
-	 * Half of this is mirrored at 0.
-	 */
+	
 #ifdef CONFIG_REALVIEW_HIGH_PHYS_OFFSET
 	meminfo->bank[0].start = 0x70000000;
 	meminfo->bank[0].size = SZ_512M;

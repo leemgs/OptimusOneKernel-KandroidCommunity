@@ -1,44 +1,9 @@
-/*
- * TerraTec Cinergy T2/qanu USB2 DVB-T adapter.
- *
- * Copyright (C) 2007 Tomi Orava (tomimo@ncircle.nullnet.fi)
- *
- * Based on the dvb-usb-framework code and the
- * original Terratec Cinergy T2 driver by:
- *
- * Copyright (C) 2004 Daniel Mack <daniel@qanu.de> and
- *                  Holger Waechtler <holger@qanu.de>
- *
- *  Protocol Spec published on http://qanu.de/specs/terratec_cinergyT2.pdf
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include "cinergyT2.h"
 
 
-/**
- *  convert linux-dvb frontend parameter set into TPS.
- *  See ETSI ETS-300744, section 4.6.2, table 9 for details.
- *
- *  This function is probably reusable and may better get placed in a support
- *  library.
- *
- *  We replace errornous fields by default TPS fields (the ones with value 0).
- */
+
 
 static uint16_t compute_tps(struct dvb_frontend_parameters *p)
 {
@@ -61,7 +26,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
 	case FEC_1_2:
 	case FEC_AUTO:
 	default:
-		/* tps |= (0 << 7) */;
+		;
 	}
 
 	switch (op->code_rate_LP) {
@@ -80,7 +45,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
 	case FEC_1_2:
 	case FEC_AUTO:
 	default:
-		/* tps |= (0 << 4) */;
+		;
 	}
 
 	switch (op->constellation) {
@@ -92,7 +57,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
 		break;
 	case QPSK:
 	default:
-		/* tps |= (0 << 13) */;
+		;
 	}
 
 	switch (op->transmission_mode) {
@@ -101,7 +66,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
 		break;
 	case TRANSMISSION_MODE_2K:
 	default:
-		/* tps |= (0 << 0) */;
+		;
 	}
 
 	switch (op->guard_interval) {
@@ -116,7 +81,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
 		break;
 	case GUARD_INTERVAL_1_32:
 	default:
-		/* tps |= (0 << 2) */;
+		;
 	}
 
 	switch (op->hierarchy_information) {
@@ -131,7 +96,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
 		break;
 	case HIERARCHY_NONE:
 	default:
-		/* tps |= (0 << 10) */;
+		;
 	}
 
 	return tps;

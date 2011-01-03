@@ -32,7 +32,7 @@
 typedef int pcl_t;
 
 struct ti_lynx {
-        int id; /* sequential card number */
+        int id; 
 
         spinlock_t lock;
 
@@ -47,28 +47,24 @@ struct ti_lynx {
         enum { clear, have_intr, have_aux_buf, have_pcl_mem,
                have_1394_buffers, have_iomappings, is_host } state;
 
-        /* remapped memory spaces */
+        
         void __iomem *registers;
         void __iomem *local_rom;
         void __iomem *local_ram;
         void __iomem *aux_port;
 	__be32 bus_info_block[5];
 
-        /*
-         * use local RAM of LOCALRAM_SIZE bytes for PCLs, which allows for
-         * LOCALRAM_SIZE * 8 PCLs (each sized 128 bytes);
-         * the following is an allocation bitmap
-         */
+        
         u8 pcl_bmap[LOCALRAM_SIZE / 1024];
 
-	/* point to PCLs memory area if needed */
+	
 	void *pcl_mem;
         dma_addr_t pcl_mem_dma;
 
-        /* PCLs for local mem / aux transfers */
+        
         pcl_t dmem_pcl;
 
-        /* IEEE-1394 part follows */
+        
         struct hpsb_host *host;
 
         int phyid, isroot;
@@ -85,7 +81,7 @@ struct ti_lynx {
         struct lynx_send_data {
                 pcl_t pcl_start, pcl;
                 struct list_head queue;
-                struct list_head pcl_queue; /* this queue contains at most one packet */
+                struct list_head pcl_queue; 
                 spinlock_t queue_lock;
                 dma_addr_t header_dma, data_dma;
                 int channel;
@@ -103,23 +99,21 @@ struct ti_lynx {
                 spinlock_t lock;
         } iso_rcv;
 
-	u32 i2c_driven_state; /* the state we currently drive the Serial EEPROM Control register */
+	u32 i2c_driven_state; 
 };
 
-/* the per-file data structure for mem space access */
+
 struct memdata {
         struct ti_lynx *lynx;
         int cid;
         atomic_t aux_intr_last_seen;
-	/* enum values are the same as LBUS_ADDR_SEL_* values below */
+	
         enum { rom = 0x10000, aux = 0x20000, ram = 0 } type;
 };
 
 
 
-/*
- * Register read and write helper functions.
- */
+
 static inline void reg_write(const struct ti_lynx *lynx, int offset, u32 data)
 {
         writel(data, lynx->registers + offset);
@@ -144,7 +138,7 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 
 
 
-/* chip register definitions follow */
+
 
 #define PCI_LATENCY_CACHELINE             0x0c
 
@@ -155,7 +149,7 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 
 #define PCI_INT_STATUS                    0x48
 #define PCI_INT_ENABLE                    0x4c
-/* status and enable have identical bit numbers */
+
 #define PCI_INT_INT_PEND                  (1<<31)
 #define PCI_INT_FORCED_INT                (1<<30)
 #define PCI_INT_SLV_ADR_PERR              (1<<28)
@@ -176,7 +170,7 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 #define PCI_INT_DMA1_HLT                  (1<<2)
 #define PCI_INT_DMA0_PCL                  (1<<1)
 #define PCI_INT_DMA0_HLT                  (1<<0)
-/* all DMA interrupts combined: */
+
 #define PCI_INT_DMA_ALL                   0x3ff
 
 #define PCI_INT_DMA_HLT(chan)             (1 << (chan * 2))
@@ -215,7 +209,7 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 #define DMA3_CHAN_STAT                    0x16c
 #define DMA4_CHAN_STAT                    0x18c
 #define DMA_CHAN_STAT(chan)               (DMA_BREG(DMA0_CHAN_STAT, chan))
-/* CHAN_STATUS registers share bits */
+
 #define DMA_CHAN_STAT_SELFID              (1<<31)
 #define DMA_CHAN_STAT_ISOPKT              (1<<30)
 #define DMA_CHAN_STAT_PCIERR              (1<<29)
@@ -230,7 +224,7 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 #define DMA3_CHAN_CTRL                    0x170
 #define DMA4_CHAN_CTRL                    0x190
 #define DMA_CHAN_CTRL(chan)               (DMA_BREG(DMA0_CHAN_CTRL, chan))
-/* CHAN_CTRL registers share bits */
+
 #define DMA_CHAN_CTRL_ENABLE              (1<<31)
 #define DMA_CHAN_CTRL_BUSY                (1<<30)
 #define DMA_CHAN_CTRL_LINK                (1<<29)
@@ -280,7 +274,7 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 #define DMA3_WORD1_CMP_ENABLE             0xb3c
 #define DMA4_WORD1_CMP_ENABLE             0xb4c
 #define DMA_WORD1_CMP_ENABLE(chan)        (DMA_SREG(DMA0_WORD1_CMP_ENABLE,chan))
-/* word 1 compare enable flags */
+
 #define DMA_WORD1_CMP_MATCH_OTHERBUS      (1<<15)
 #define DMA_WORD1_CMP_MATCH_BROADCAST     (1<<14)
 #define DMA_WORD1_CMP_MATCH_BUS_BCAST     (1<<13)
@@ -319,7 +313,7 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 
 #define LINK_INT_STATUS                   0xf14
 #define LINK_INT_ENABLE                   0xf18
-/* status and enable have identical bit numbers */
+
 #define LINK_INT_LINK_INT                 (1<<31)
 #define LINK_INT_PHY_TIMEOUT              (1<<30)
 #define LINK_INT_PHY_REG_RCVD             (1<<29)
@@ -342,12 +336,12 @@ static inline void reg_clear_bits(const struct ti_lynx *lynx, int offset,
 #define LINK_INT_ATF_UNDERFLOW            (1<<3)
 #define LINK_INT_ISOARB_FAILED            (1<<0)
 
-/* PHY specifics */
+
 #define PHY_VENDORID_TI                 0x800028
 #define PHY_PRODUCTID_TSB41LV03         0x000000
 
 
-/* this is the physical layout of a PCL, its size is 128 bytes */
+
 struct ti_pcl {
         u32 next;
         u32 async_error_next;
@@ -403,7 +397,7 @@ static inline void commit_pcl(const struct ti_lynx *lynx, pcl_t pclid,
 }
 
 #else
-typedef int pcltmp_t; /* just a dummy */
+typedef int pcltmp_t; 
 
 static inline struct ti_pcl *edit_pcl(const struct ti_lynx *lynx, pcl_t pclid,
                                       pcltmp_t *tmp)
@@ -434,7 +428,7 @@ static inline void run_pcl(const struct ti_lynx *lynx, pcl_t pclid, int dmachan)
 
 #define PCL_NEXT_INVALID (1<<0)
 
-/* transfer commands */
+
 #define PCL_CMD_RCV            (0x1<<24)
 #define PCL_CMD_RCV_AND_UPDATE (0xa<<24)
 #define PCL_CMD_XMT            (0x2<<24)
@@ -442,7 +436,7 @@ static inline void run_pcl(const struct ti_lynx *lynx, pcl_t pclid, int dmachan)
 #define PCL_CMD_PCI_TO_LBUS    (0x8<<24)
 #define PCL_CMD_LBUS_TO_PCI    (0x9<<24)
 
-/* aux commands */
+
 #define PCL_CMD_NOP            (0x0<<24)
 #define PCL_CMD_LOAD           (0x3<<24)
 #define PCL_CMD_STOREQ         (0x4<<24)
@@ -454,7 +448,7 @@ static inline void run_pcl(const struct ti_lynx *lynx, pcl_t pclid, int dmachan)
 #define PCL_CMD_ADD            (0xd<<24)
 #define PCL_CMD_BRANCH         (0x7<<24)
 
-/* BRANCH condition codes */
+
 #define PCL_COND_DMARDY_SET    (0x1<<20)
 #define PCL_COND_DMARDY_CLEAR  (0x2<<20)
 

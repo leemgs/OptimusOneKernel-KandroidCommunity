@@ -1,57 +1,8 @@
-/*
- * BSD compression module
- *
- * Patched version for ISDN syncPPP written 1997/1998 by Michael Hipp
- * The whole module is now SKB based.
- *
- */
 
-/*
- * Update: The Berkeley copyright was changed, and the change 
- * is retroactive to all "true" BSD software (ie everything
- * from UCB as opposed to other peoples code that just carried
- * the same license). The new copyright doesn't clash with the
- * GPL, so the module-only restriction has been removed..
- */
 
-/*
- * Original copyright notice:
- *
- * Copyright (c) 1985, 1986 The Regents of the University of California.
- * All rights reserved.
- *
- * This code is derived from software contributed to Berkeley by
- * James A. Woods, derived from original work by Spencer Thomas
- * and Joseph Orost.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
+
+
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -65,8 +16,8 @@
 #include <linux/slab.h>
 #include <linux/tty.h>
 #include <linux/errno.h>
-#include <linux/string.h>	/* used in new tty drivers */
-#include <linux/signal.h>	/* used in new tty drivers */
+#include <linux/string.h>	
+#include <linux/signal.h>	
 #include <linux/bitops.h>
 
 #include <asm/system.h>
@@ -103,55 +54,50 @@ MODULE_LICENSE("Dual BSD/GPL");
 
 #define DEBUG 1
 
-/*
- * A dictionary for doing BSD compress.
- */
+
 
 struct bsd_dict {
 	u32 fcode;
-	u16 codem1;		/* output of hash table -1 */
-	u16 cptr;		/* map code to hash table entry */
+	u16 codem1;		
+	u16 cptr;		
 };
 
 struct bsd_db {
-	int            totlen;		/* length of this structure */
-	unsigned int   hsize;		/* size of the hash table */
-	unsigned char  hshift;		/* used in hash function */
-	unsigned char  n_bits;		/* current bits/code */
-	unsigned char  maxbits;		/* maximum bits/code */
-	unsigned char  debug;		/* non-zero if debug desired */
-	unsigned char  unit;		/* ppp unit number */
-	u16 seqno;          		/* sequence # of next packet */
-	unsigned int   mru;		/* size of receive (decompress) bufr */
-	unsigned int   maxmaxcode;	/* largest valid code */
-	unsigned int   max_ent;		/* largest code in use */
-	unsigned int   in_count;	/* uncompressed bytes, aged */
-	unsigned int   bytes_out;	/* compressed bytes, aged */
-	unsigned int   ratio;		/* recent compression ratio */
-	unsigned int   checkpoint;	/* when to next check the ratio */
-	unsigned int   clear_count;	/* times dictionary cleared */
-	unsigned int   incomp_count;	/* incompressible packets */
-	unsigned int   incomp_bytes;	/* incompressible bytes */
-	unsigned int   uncomp_count;	/* uncompressed packets */
-	unsigned int   uncomp_bytes;	/* uncompressed bytes */
-	unsigned int   comp_count;	/* compressed packets */
-	unsigned int   comp_bytes;	/* compressed bytes */
-	unsigned short  *lens;		/* array of lengths of codes */
-	struct bsd_dict *dict;		/* dictionary */
+	int            totlen;		
+	unsigned int   hsize;		
+	unsigned char  hshift;		
+	unsigned char  n_bits;		
+	unsigned char  maxbits;		
+	unsigned char  debug;		
+	unsigned char  unit;		
+	u16 seqno;          		
+	unsigned int   mru;		
+	unsigned int   maxmaxcode;	
+	unsigned int   max_ent;		
+	unsigned int   in_count;	
+	unsigned int   bytes_out;	
+	unsigned int   ratio;		
+	unsigned int   checkpoint;	
+	unsigned int   clear_count;	
+	unsigned int   incomp_count;	
+	unsigned int   incomp_bytes;	
+	unsigned int   uncomp_count;	
+	unsigned int   uncomp_bytes;	
+	unsigned int   comp_count;	
+	unsigned int   comp_bytes;	
+	unsigned short  *lens;		
+	struct bsd_dict *dict;		
 	int xmit;
 };
 
-#define BSD_OVHD	2		/* BSD compress overhead/packet */
+#define BSD_OVHD	2		
 #define MIN_BSD_BITS	9
 #define BSD_INIT_BITS	MIN_BSD_BITS
 #define MAX_BSD_BITS	15
 
-/*
- * the next two codes should not be changed lightly, as they must not
- * lie within the contiguous general code space.
- */
-#define CLEAR	256			/* table clear output code */
-#define FIRST	257			/* first free entry */
+
+#define CLEAR	256			
+#define FIRST	257			
 #define LAST	255
 
 #define MAXCODE(b)	((1 << (b)) - 1)
@@ -162,15 +108,13 @@ struct bsd_db {
 #define BSD_KEY(prefix,suffix)		((((unsigned long)(suffix)) << 16) \
 					 + (unsigned long)(prefix))
 
-#define CHECK_GAP	10000		/* Ratio check interval */
+#define CHECK_GAP	10000		
 
 #define RATIO_SCALE_LOG	8
 #define RATIO_SCALE	(1<<RATIO_SCALE_LOG)
 #define RATIO_MAX	(0x7fffffff>>RATIO_SCALE_LOG)
 
-/*
- * clear the dictionary
- */
+
 
 static void bsd_clear(struct bsd_db *db)
 {
@@ -184,26 +128,14 @@ static void bsd_clear(struct bsd_db *db)
 	db->checkpoint   = CHECK_GAP;
 }
 
-/*
- * If the dictionary is full, then see if it is time to reset it.
- *
- * Compute the compression ratio using fixed-point arithmetic
- * with 8 fractional bits.
- *
- * Since we have an infinite stream instead of a single file,
- * watch only the local compression ratio.
- *
- * Since both peers must reset the dictionary at the same time even in
- * the absence of CLEAR codes (while packets are incompressible), they
- * must compute the same ratio.
- */
-static int bsd_check (struct bsd_db *db)	/* 1=output CLEAR */
+
+static int bsd_check (struct bsd_db *db)	
 {
     unsigned int new_ratio;
 
     if (db->in_count >= db->checkpoint)
       {
-	/* age the ratio by limiting the size of the counts */
+	
 	if (db->in_count >= RATIO_MAX || db->bytes_out >= RATIO_MAX)
 	  {
 	    db->in_count  -= (db->in_count  >> 2);
@@ -214,13 +146,7 @@ static int bsd_check (struct bsd_db *db)	/* 1=output CLEAR */
 	
 	if (db->max_ent >= db->maxmaxcode)
 	  {
-	    /* Reset the dictionary only if the ratio is worse,
-	     * or if it looks as if it has been poisoned
-	     * by incompressible data.
-	     *
-	     * This does not overflow, because
-	     *	db->in_count <= RATIO_MAX.
-	     */
+	    
 
 	    new_ratio = db->in_count << RATIO_SCALE_LOG;
 	    if (db->bytes_out != 0)
@@ -239,9 +165,7 @@ static int bsd_check (struct bsd_db *db)	/* 1=output CLEAR */
     return 0;
 }
 
-/*
- * Return statistics.
- */
+
 
 static void bsd_stats (void *state, struct compstat *stats)
 {
@@ -257,9 +181,7 @@ static void bsd_stats (void *state, struct compstat *stats)
 	stats->bytes_out    = db->bytes_out;
 }
 
-/*
- * Reset state, as on a CCP ResetReq.
- */
+
 static void bsd_reset (void *state,unsigned char code, unsigned char id,
 			unsigned char *data, unsigned len,
 			struct isdn_ppp_resetparams *rsparm)
@@ -271,37 +193,27 @@ static void bsd_reset (void *state,unsigned char code, unsigned char id,
 	db->clear_count = 0;
 }
 
-/*
- * Release the compression structure
- */
+
 static void bsd_free (void *state)
 {
 	struct bsd_db *db = (struct bsd_db *) state;
 
 	if (db) {
-		/*
-		 * Release the dictionary
-		 */
+		
 		vfree(db->dict);
 		db->dict = NULL;
 
-		/*
-		 * Release the string buffer
-		 */
+		
 		vfree(db->lens);
 		db->lens = NULL;
 
-		/*
-		 * Finally release the structure itself.
-		 */
+		
 		kfree(db);
 	}
 }
 
 
-/*
- * Allocate space for a (de) compressor.
- */
+
 static void *bsd_alloc (struct isdn_ppp_comp_data *data)
 {
 	int bits;
@@ -326,9 +238,7 @@ static void *bsd_alloc (struct isdn_ppp_comp_data *data)
 	hsize = htab[bits-9][0];
 	hshift = htab[bits-9][1];
 	
-	/*
-	 * Allocate the main control structure for this instance.
-	 */
+	
 	maxmaxcode = MAXCODE(bits);
 	db = kzalloc (sizeof (struct bsd_db),GFP_KERNEL);
 	if (!db)
@@ -337,20 +247,14 @@ static void *bsd_alloc (struct isdn_ppp_comp_data *data)
 	db->xmit = data->flags & IPPP_COMP_FLAG_XMIT;
 	decomp = db->xmit ? 0 : 1;
 
-	/*
-	 * Allocate space for the dictionary. This may be more than one page in
-	 * length.
-	 */
+	
 	db->dict = vmalloc(hsize * sizeof(struct bsd_dict));
 	if (!db->dict) {
 		bsd_free (db);
 		return NULL;
 	}
 
-	/*
-	 * If this is the compression buffer then there is no length data.
-	 * For decompression, the length information is needed as well.
-	 */
+	
 	if (!decomp)
 		db->lens = NULL;
 	else {
@@ -361,9 +265,7 @@ static void *bsd_alloc (struct isdn_ppp_comp_data *data)
 		}
 	}
 
-	/*
-	 * Initialize the data information for the compression code
-	 */
+	
 	db->totlen     = sizeof (struct bsd_db) + (sizeof (struct bsd_dict) * hsize);
 	db->hsize      = hsize;
 	db->hshift     = hshift;
@@ -373,9 +275,7 @@ static void *bsd_alloc (struct isdn_ppp_comp_data *data)
 	return (void *) db;
 }
 
-/*
- * Initialize the database.
- */
+
 static int bsd_init (void *state, struct isdn_ppp_comp_data *data, int unit, int debug)
 {
 	struct bsd_db *db = state;
@@ -417,9 +317,7 @@ static int bsd_init (void *state, struct isdn_ppp_comp_data *data, int unit, int
 	return 1;
 }
 
-/*
- * Obtain pointers to the various structures in the compression tables
- */
+
 
 #define dict_ptrx(p,idx) &(p->dict[idx])
 #define lens_ptrx(p,idx) &(p->lens[idx])
@@ -448,9 +346,7 @@ static struct bsd_dict *dict_ptr(struct bsd_db *db, int idx)
 #define dict_ptr(db,idx) dict_ptrx(db,idx)
 #endif
 
-/*
- * compress a packet
- */
+
 static int bsd_compress (void *state, struct sk_buff *skb_in, struct sk_buff *skb_out,int proto)
 {
 	struct bsd_db *db;
@@ -479,11 +375,7 @@ static int bsd_compress (void *state, struct sk_buff *skb_in, struct sk_buff *sk
     } while (bitno <= 24);		\
   }
 
-	/*
-	 * If the protocol is not in the range we're interested in,
-	 * just return without compressing the packet.  If it is,
-	 * the protocol becomes the first byte to compress.
-	 */
+	
 	printk(KERN_DEBUG "bsd_compress called with %x\n",proto);
 	
 	ent = proto;
@@ -498,16 +390,15 @@ static int bsd_compress (void *state, struct sk_buff *skb_in, struct sk_buff *sk
 	accm    = 0;
 	mxcode  = MAXCODE (n_bits);
 	
-	/* This is the PPP header information */
+	
 	if(skb_out && skb_tailroom(skb_out) >= 2) {
 		char *v = skb_put(skb_out,2);
-		/* we only push our own data on the header,
-		  AC,PC and protos is pushed by caller  */
+		
 		v[0] = db->seqno >> 8;
 		v[1] = db->seqno;
 	}
 
-	ilen   = ++isize; /* This is off by one, but that is what is in draft! */
+	ilen   = ++isize; 
 
 	while (--ilen > 0) {
 		c     = *rptr++;
@@ -515,16 +406,16 @@ static int bsd_compress (void *state, struct sk_buff *skb_in, struct sk_buff *sk
 		hval  = BSD_HASH (ent, c, hshift);
 		dictp = dict_ptr (db, hval);
 	
-		/* Validate and then check the entry. */
+		
 		if (dictp->codem1 >= max_ent)
 			goto nomatch;
 
 		if (dictp->fcode == fcode) {
 			ent = dictp->codem1 + 1;
-			continue;	/* found (prefix,suffix) */
+			continue;	
 		}
 	
-		/* continue probing until a match or invalid entry */
+		
 		disp = (hval == 0) ? 1 : hval;
 
 		do {
@@ -536,28 +427,25 @@ static int bsd_compress (void *state, struct sk_buff *skb_in, struct sk_buff *sk
 				goto nomatch;
 		} while (dictp->fcode != fcode);
 
-		ent = dictp->codem1 + 1;	/* finally found (prefix,suffix) */
+		ent = dictp->codem1 + 1;	
 		continue;
 	
 nomatch:
-		OUTPUT(ent);		/* output the prefix */
+		OUTPUT(ent);		
 	
-		/* code -> hashtable */
+		
 		if (max_ent < db->maxmaxcode) {
 			struct bsd_dict *dictp2;
 			struct bsd_dict *dictp3;
 			int indx;
 
-			/* expand code size if needed */
+			
 			if (max_ent >= mxcode) {
 				db->n_bits = ++n_bits;
 				mxcode = MAXCODE (n_bits);
 			}
 	    
-			/* 
-			 * Invalidate old hash table entry using
-			 * this code, and then take it over.
-			 */
+			
 			dictp2 = dict_ptr (db, max_ent + 1);
 			indx   = dictp2->cptr;
 			dictp3 = dict_ptr (db, indx);
@@ -579,47 +467,39 @@ nomatch:
 		ent = c;
 	}
     
-	OUTPUT(ent);		/* output the last code */
+	OUTPUT(ent);		
 
 	if(skb_out)
-		db->bytes_out    += skb_out->len; /* Do not count bytes from here */
+		db->bytes_out    += skb_out->len; 
 	db->uncomp_bytes += isize;
 	db->in_count     += isize;
 	++db->uncomp_count;
 	++db->seqno;
 
 	if (bitno < 32)
-		++db->bytes_out; /* must be set before calling bsd_check */
+		++db->bytes_out; 
 
-	/*
-	 * Generate the clear command if needed
-	 */
+	
 
 	if (bsd_check(db))
 		OUTPUT (CLEAR);
 
-	/*
-	 * Pad dribble bits of last code with ones.
-	 * Do not emit a completely useless byte of ones.
-	 */
+	
 	if (bitno < 32 && skb_out && skb_tailroom(skb_out) > 0) 
 		*(skb_put(skb_out,1)) = (unsigned char) ((accm | (0xff << (bitno-8))) >> 24);
     
-	/*
-	 * Increase code size if we would have without the packet
-	 * boundary because the decompressor will do so.
-	 */
+	
 	if (max_ent >= mxcode && max_ent < db->maxmaxcode)
 		db->n_bits++;
 
-	/* If output length is too large then this is an incompressible frame. */
+	
 	if (!skb_out || (skb_out && skb_out->len >= skb_in->len) ) {
 		++db->incomp_count;
 		db->incomp_bytes += isize;
 		return 0;
 	}
 
-	/* Count the number of compressed frames */
+	
 	++db->comp_count;
 	db->comp_bytes += skb_out->len;
 	return skb_out->len;
@@ -627,27 +507,22 @@ nomatch:
 #undef OUTPUT
 }
 
-/*
- * Update the "BSD Compress" dictionary on the receiver for
- * incompressible data by pretending to compress the incoming data.
- */
+
 static void bsd_incomp (void *state, struct sk_buff *skb_in,int proto)
 {
 	bsd_compress (state, skb_in, NULL, proto);
 }
 
-/*
- * Decompress "BSD Compress".
- */
+
 static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *skb_out,
 			   struct isdn_ppp_resetparams *rsparm)
 {
 	struct bsd_db *db;
 	unsigned int max_ent;
 	unsigned long accm;
-	unsigned int bitno;		/* 1st valid bit in accm */
+	unsigned int bitno;		
 	unsigned int n_bits;
-	unsigned int tgtbitno;	/* bitno when we have a code */
+	unsigned int tgtbitno;	
 	struct bsd_dict *dictp;
 	int seq;
 	unsigned int incode;
@@ -661,9 +536,9 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 	db       = (struct bsd_db *) state;
 	max_ent  = db->max_ent;
 	accm     = 0;
-	bitno    = 32;		/* 1st valid bit in accm */
+	bitno    = 32;		
 	n_bits   = db->n_bits;
-	tgtbitno = 32 - n_bits;	/* bitno when we have a code */
+	tgtbitno = 32 - n_bits;	
 
 	printk(KERN_DEBUG "bsd_decompress called\n");
 
@@ -672,9 +547,7 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 		return DECOMP_ERROR;
 	}
     
-	/*
-	 * Get the sequence number.
-	 */
+	
 	if( (p = skb_pull(skb_in,2)) == NULL) {
 		return DECOMP_ERROR;
 	}
@@ -683,10 +556,7 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 	ilen  = skb_in->len;
 	ibuf = skb_in->data;
 
-	/*
-	 * Check the sequence number and give up if it differs from
-	 * the value we're expecting.
-	 */
+	
 	if (seq != db->seqno) {
 		if (db->debug) {
 			printk(KERN_DEBUG "bsd_decomp%d: bad sequence # %d, expected %d\n",
@@ -705,22 +575,15 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
     
 	oldcode = CLEAR;
 
-	/*
-	 * Keep the checkpoint correctly so that incompressible packets
-	 * clear the dictionary at the proper times.
-	 */
+	
 
 	for (;;) {
 		if (ilen-- <= 0) {
-			db->in_count += (skb_out->len - 1); /* don't count the header */
+			db->in_count += (skb_out->len - 1); 
 			break;
 		}
 
-		/*
-		 * Accumulate bytes until we have a complete code.
-		 * Then get the next code, relying on the 32-bit,
-		 * unsigned accm to mask the result.
-		 */
+		
 
 		bitno -= 8;
 		accm  |= *ibuf++ << bitno;
@@ -731,15 +594,13 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 		accm <<= n_bits;
 		bitno += n_bits;
 
-		/*
-		 * The dictionary must only be cleared at the end of a packet.
-		 */
+		
 	
 		if (incode == CLEAR) {
 			if (ilen > 0) {
 				if (db->debug)
 					printk(KERN_DEBUG "bsd_decomp%d: bad CLEAR\n", db->unit);
-				return DECOMP_FATALERROR;	/* probably a bug */
+				return DECOMP_FATALERROR;	
 			}
 			bsd_clear(db);
 			break;
@@ -753,10 +614,10 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 				printk(KERN_DEBUG "max_ent=0x%x skb->Len=%d seqno=%d\n",
 					max_ent, skb_out->len, db->seqno);
 			}
-			return DECOMP_FATALERROR;	/* probably a bug */
+			return DECOMP_FATALERROR;	
 		}
 	
-		/* Special case for KwKwK string. */
+		
 		if (incode > max_ent) {
 			finchar = oldcode;
 			extra   = 1;
@@ -777,9 +638,7 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 			return DECOMP_FATALERROR;
 		}
 
-		/*
-		 * Decode this code and install it in the decompressed buffer.
-		 */
+		
 
 		p     = skb_put(skb_out,codelen);
 		p += codelen;
@@ -816,16 +675,10 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 			printk(KERN_ERR "bsd_decomp%d: short by %d after code 0x%x, max_ent=0x%x\n", db->unit, codelen, incode, max_ent);
 #endif
 	
-		if (extra)		/* the KwKwK case again */
+		if (extra)		
 			*(skb_put(skb_out,1)) = finchar;
 	
-		/*
-		 * If not first code in a packet, and
-		 * if not out of code space, then allocate a new code.
-		 *
-		 * Keep the hash table correct so it can be used
-		 * with uncompressed packets.
-		 */
+		
 		if (oldcode != CLEAR && max_ent < db->maxmaxcode) {
 			struct bsd_dict *dictp2, *dictp3;
 			u16  *lens1,  *lens2;
@@ -836,7 +689,7 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 			hval  = BSD_HASH(oldcode,finchar,db->hshift);
 			dictp = dict_ptr (db, hval);
 	    
-			/* look for a free hash table entry */
+			
 			if (dictp->codem1 < max_ent) {
 				disp = (hval == 0) ? 1 : hval;
 				do {
@@ -847,10 +700,7 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 				} while (dictp->codem1 < max_ent);
 			}
 	    
-			/*
-			 * Invalidate previous hash table entry
-			 * assigned this code, and then take it over
-			 */
+			
 
 			dictp2 = dict_ptr (db, max_ent + 1);
 			indx   = dictp2->cptr;
@@ -864,12 +714,12 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 			dictp->fcode = fcode;
 			db->max_ent    = ++max_ent;
 
-			/* Update the length of this string. */
+			
 			lens1  = lens_ptr (db, max_ent);
 			lens2  = lens_ptr (db, oldcode);
 			*lens1 = *lens2 + 1;
 	    
-			/* Expand code size if needed. */
+			
 			if (max_ent >= MAXCODE(n_bits) && max_ent < db->maxmaxcode) {
 				db->n_bits = ++n_bits;
 				tgtbitno   = 32-n_bits;
@@ -891,9 +741,7 @@ static int bsd_decompress (void *state, struct sk_buff *skb_in, struct sk_buff *
 	return skb_out->len;
 }
 
-/*************************************************************
- * Table of addresses for the BSD compression module
- *************************************************************/
+
 
 static struct isdn_ppp_compressor ippp_bsd_compress = {
 	.owner          = THIS_MODULE,
@@ -908,9 +756,7 @@ static struct isdn_ppp_compressor ippp_bsd_compress = {
 	.stat           = bsd_stats,
 };
 
-/*************************************************************
- * Module support routines
- *************************************************************/
+
 
 static int __init isdn_bsdcomp_init(void)
 {

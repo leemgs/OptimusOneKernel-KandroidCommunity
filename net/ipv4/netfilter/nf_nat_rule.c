@@ -1,12 +1,6 @@
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
-/* Everything about the rules for NAT. */
+
+
 #include <linux/types.h>
 #include <linux/ip.h>
 #include <linux/netfilter.h>
@@ -51,11 +45,11 @@ static const struct
 		},
 	},
 	.entries = {
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IPT_ERROR_INIT,			/* ERROR */
+	.term = IPT_ERROR_INIT,			
 };
 
 static const struct xt_table nat_table = {
@@ -65,7 +59,7 @@ static const struct xt_table nat_table = {
 	.af		= NFPROTO_IPV4,
 };
 
-/* Source NAT */
+
 static unsigned int
 ipt_snat_target(struct sk_buff *skb, const struct xt_target_param *par)
 {
@@ -77,7 +71,7 @@ ipt_snat_target(struct sk_buff *skb, const struct xt_target_param *par)
 
 	ct = nf_ct_get(skb, &ctinfo);
 
-	/* Connection must be valid and new. */
+	
 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
 			    ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY));
 	NF_CT_ASSERT(par->out != NULL);
@@ -97,7 +91,7 @@ ipt_dnat_target(struct sk_buff *skb, const struct xt_target_param *par)
 
 	ct = nf_ct_get(skb, &ctinfo);
 
-	/* Connection must be valid and new. */
+	
 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
 
 	return nf_nat_setup_info(ct, &mr->range[0], IP_NAT_MANIP_DST);
@@ -107,7 +101,7 @@ static bool ipt_snat_checkentry(const struct xt_tgchk_param *par)
 {
 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
 
-	/* Must be a valid range */
+	
 	if (mr->rangesize != 1) {
 		printk("SNAT: multiple ranges no longer supported\n");
 		return false;
@@ -119,7 +113,7 @@ static bool ipt_dnat_checkentry(const struct xt_tgchk_param *par)
 {
 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
 
-	/* Must be a valid range */
+	
 	if (mr->rangesize != 1) {
 		printk("DNAT: multiple ranges no longer supported\n");
 		return false;
@@ -130,10 +124,7 @@ static bool ipt_dnat_checkentry(const struct xt_tgchk_param *par)
 unsigned int
 alloc_null_binding(struct nf_conn *ct, unsigned int hooknum)
 {
-	/* Force range to this IP; let proto decide mapping for
-	   per-proto parts (hence not IP_NAT_RANGE_PROTO_SPECIFIED).
-	   Use reply in case it's already been mangled (eg local packet).
-	*/
+	
 	__be32 ip
 		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
 		   ? ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip
@@ -158,7 +149,7 @@ int nf_nat_rule_find(struct sk_buff *skb,
 
 	if (ret == NF_ACCEPT) {
 		if (!nf_nat_initialized(ct, HOOK2MANIP(hooknum)))
-			/* NUL mapping */
+			
 			ret = alloc_null_binding(ct, hooknum);
 	}
 	return ret;

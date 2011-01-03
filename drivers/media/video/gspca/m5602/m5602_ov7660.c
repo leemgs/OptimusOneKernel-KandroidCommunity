@@ -1,20 +1,4 @@
-/*
- * Driver for the ov7660 sensor
- *
- * Copyright (C) 2009 Erik Andrén
- * Copyright (C) 2007 Ilyes Gouta. Based on the m5603x Linux Driver Project.
- * Copyright (C) 2005 m5603x Linux Driver Project <m5602@x3ng.com.br>
- *
- * Portions of code to USB interface and ALi driver software,
- * Copyright (c) 2006 Willem Duinker
- * v4l2 interface modeled after the V4L2 driver
- * for SN9C10x PC Camera Controllers
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include "m5602_ov7660.h"
 
@@ -152,12 +136,11 @@ int ov7660_probe(struct sd *sd)
 			info("Forcing an %s sensor", ov7660.name);
 			goto sensor_found;
 		}
-		/* If we want to force another sensor,
-		don't try to probe this one */
+		
 		return -ENODEV;
 	}
 
-	/* Do the preinit */
+	
 	for (i = 0; i < ARRAY_SIZE(preinit_ov7660) && !err; i++) {
 		u8 data[2];
 
@@ -211,7 +194,7 @@ int ov7660_init(struct sd *sd)
 	int i, err = 0;
 	s32 *sensor_settings = sd->sensor_priv;
 
-	/* Init the sensor */
+	
 	for (i = 0; i < ARRAY_SIZE(init_ov7660); i++) {
 		u8 data[2];
 
@@ -447,7 +430,7 @@ static int ov7660_set_vflip(struct gspca_dev *gspca_dev, __s32 val)
 	if (err < 0)
 		return err;
 
-	/* When vflip is toggled we need to readjust the bridge hsync/vsync */
+	
 	if (gspca_dev->streaming)
 		err = ov7660_start(sd);
 
@@ -481,7 +464,7 @@ static void ov7660_dump_registers(struct sd *sd)
 		else
 			info("register 0x%x is read only", address);
 
-		/* Restore original value */
+		
 		m5602_write_sensor(sd, address, &old_value, 1);
 	}
 }

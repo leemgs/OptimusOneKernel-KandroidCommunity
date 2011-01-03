@@ -1,11 +1,4 @@
-/*
- * linux/kernel/ptrace.c
- *
- * (C) Copyright 1999 Linus Torvalds
- *
- * Common interfaces for "ptrace()" which we do not want
- * to continually duplicate across every architecture.
- */
+
 
 #include <linux/capability.h>
 #include <linux/module.h>
@@ -24,12 +17,7 @@
 #include <linux/uaccess.h>
 
 
-/*
- * ptrace a task: make the debugger its new parent and
- * move it to the ptrace list.
- *
- * Must be called with the tasklist lock write-held.
- */
+
 void __ptrace_link(struct task_struct *child, struct task_struct *new_parent)
 {
 	BUG_ON(!list_empty(&child->ptrace_entry));
@@ -37,21 +25,12 @@ void __ptrace_link(struct task_struct *child, struct task_struct *new_parent)
 	child->parent = new_parent;
 }
 
-/*
- * Turn a tracing stop into a normal stop now, since with no tracer there
- * would be no way to wake it up with SIGCONT or SIGKILL.  If there was a
- * signal sent that would resume the child, but didn't because it was in
- * TASK_TRACED, resume it now.
- * Requires that irqs be disabled.
- */
+
 static void ptrace_untrace(struct task_struct *child)
 {
 	spin_lock(&child->sighand->siglock);
 	if (task_is_traced(child)) {
-		/*
-		 * If the group stop is completed or in progress,
-		 * this thread was already counted as stopped.
-		 */
+		
 		if (child->signal->flags & SIGNAL_STOP_STOPPED ||
 		    child->signal->group_stop_count)
 			__set_task_state(child, TASK_STOPPED);
@@ -61,12 +40,7 @@ static void ptrace_untrace(struct task_struct *child)
 	spin_unlock(&child->sighand->siglock);
 }
 
-/*
- * unptrace a task: move it back to its original parent and
- * remove it from the ptrace list.
- *
- * Must be called with the tasklist lock write-held.
- */
+
 void __ptrace_unlink(struct task_struct *child)
 {
 	BUG_ON(!child->ptrace);
@@ -80,27 +54,16 @@ void __ptrace_unlink(struct task_struct *child)
 		ptrace_untrace(child);
 }
 
-/*
- * Check that we have indeed attached to the thing..
- */
+
 int ptrace_check_attach(struct task_struct *child, int kill)
 {
 	int ret = -ESRCH;
 
-	/*
-	 * We take the read lock around doing both checks to close a
-	 * possible race where someone else was tracing our child and
-	 * detached between these two checks.  After this locked check,
-	 * we are sure that this is our traced child and that can only
-	 * be changed by us so it's not changing right after this.
-	 */
+	
 	read_lock(&tasklist_lock);
 	if ((child->ptrace & PT_PTRACED) && child->parent == current) {
 		ret = 0;
-		/*
-		 * child->sighand can't be NULL, release_task()
-		 * does ptrace_unlink() before __exit_signal().
-		 */
+		
 		spin_lock_irq(&child->sighand->siglock);
 		if (task_is_stopped(child))
 			child->state = TASK_TRACED;
@@ -113,7 +76,7 @@ int ptrace_check_attach(struct task_struct *child, int kill)
 	if (!ret && !kill)
 		ret = wait_task_inactive(child, TASK_TRACED) ? 0 : -ESRCH;
 
-	/* All systems go.. */
+	
 	return ret;
 }
 
@@ -121,16 +84,9 @@ int __ptrace_may_access(struct task_struct *task, unsigned int mode)
 {
 	const struct cred *cred = current_cred(), *tcred;
 
-	/* May we inspect the given task?
-	 * This check is used both for attaching with ptrace
-	 * and for allowing access to sensitive information in /proc.
-	 *
-	 * ptrace_attach denies several cases that /proc allows
-	 * because setting up the necessary parent/child relationship
-	 * or halting the specified task is impossible.
-	 */
+	
 	int dumpable = 0;
-	/* Don't let security modules deny introspection */
+	
 	if (task == current)
 		return 0;
 	rcu_read_lock();
@@ -176,11 +132,7 @@ int ptrace_attach(struct task_struct *task)
 	if (same_thread_group(task, current))
 		goto out;
 
-	/*
-	 * Protect exec's credential calculations against our interference;
-	 * interference; SUID, SGID and LSM creds get determined differently
-	 * under ptrace.
-	 */
+	
 	retval = -ERESTARTNOINTR;
 	if (mutex_lock_interruptible(&task->cred_guard_mutex))
 		goto out;
@@ -214,25 +166,16 @@ out:
 	return retval;
 }
 
-/**
- * ptrace_traceme  --  helper for PTRACE_TRACEME
- *
- * Performs checks and sets PT_PTRACED.
- * Should be used by all ptrace implementations for PTRACE_TRACEME.
- */
+
 int ptrace_traceme(void)
 {
 	int ret = -EPERM;
 
 	write_lock_irq(&tasklist_lock);
-	/* Are we already being traced? */
+	
 	if (!current->ptrace) {
 		ret = security_ptrace_traceme(current->parent);
-		/*
-		 * Check PF_EXITING to ensure ->real_parent has not passed
-		 * exit_ptrace(). Otherwise we don't report the error but
-		 * pretend ->real_parent untraces us right after return.
-		 */
+		
 		if (!ret && !(current->real_parent->flags & PF_EXITING)) {
 			current->ptrace = PT_PTRACED;
 			__ptrace_link(current, current->real_parent);
@@ -243,9 +186,7 @@ int ptrace_traceme(void)
 	return ret;
 }
 
-/*
- * Called with irqs disabled, returns true if childs should reap themselves.
- */
+
 static int ignoring_children(struct sighand_struct *sigh)
 {
 	int ret;
@@ -256,21 +197,7 @@ static int ignoring_children(struct sighand_struct *sigh)
 	return ret;
 }
 
-/*
- * Called with tasklist_lock held for writing.
- * Unlink a traced task, and clean it up if it was a traced zombie.
- * Return true if it needs to be reaped with release_task().
- * (We can't call release_task() here because we already hold tasklist_lock.)
- *
- * If it's a zombie, our attachedness prevented normal parent notification
- * or self-reaping.  Do notification now if it would have happened earlier.
- * If it should reap itself, return true.
- *
- * If it's our own child, there is no notification to do. But if our normal
- * children self-reap, then this child was prevented by ptrace and we must
- * reap it now, in that case we must also wake up sub-threads sleeping in
- * do_wait().
- */
+
 static bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
 {
 	__ptrace_unlink(p);
@@ -285,7 +212,7 @@ static bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
 			}
 		}
 		if (task_detached(p)) {
-			/* Mark it as in the process of being reaped. */
+			
 			p->exit_state = EXIT_DEAD;
 			return true;
 		}
@@ -301,15 +228,12 @@ int ptrace_detach(struct task_struct *child, unsigned int data)
 	if (!valid_signal(data))
 		return -EIO;
 
-	/* Architecture-specific hardware disable .. */
+	
 	ptrace_disable(child);
 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
 
 	write_lock_irq(&tasklist_lock);
-	/*
-	 * This child can be already killed. Make sure de_thread() or
-	 * our sub-thread doing do_wait() didn't do release_task() yet.
-	 */
+	
 	if (child->ptrace) {
 		child->exit_code = data;
 		dead = __ptrace_detach(current, child);
@@ -324,9 +248,7 @@ int ptrace_detach(struct task_struct *child, unsigned int data)
 	return 0;
 }
 
-/*
- * Detach all tasks we were using ptrace on.
- */
+
 void exit_ptrace(struct task_struct *tracer)
 {
 	struct task_struct *p, *n;
@@ -550,7 +472,7 @@ int ptrace_request(struct task_struct *child, long request,
 			ret = ptrace_setsiginfo(child, &siginfo);
 		break;
 
-	case PTRACE_DETACH:	 /* detach a process that was attached. */
+	case PTRACE_DETACH:	 
 		ret = ptrace_detach(child, data);
 		break;
 
@@ -569,7 +491,7 @@ int ptrace_request(struct task_struct *child, long request,
 		return ptrace_resume(child, request, data);
 
 	case PTRACE_KILL:
-		if (child->exit_state)	/* already dead */
+		if (child->exit_state)	
 			return 0;
 		return ptrace_resume(child, request, SIGKILL);
 
@@ -604,9 +526,7 @@ SYSCALL_DEFINE4(ptrace, long, request, long, pid, long, addr, long, data)
 	struct task_struct *child;
 	long ret;
 
-	/*
-	 * This lock_kernel fixes a subtle race with suid exec
-	 */
+	
 	lock_kernel();
 	if (request == PTRACE_TRACEME) {
 		ret = ptrace_traceme();
@@ -623,10 +543,7 @@ SYSCALL_DEFINE4(ptrace, long, request, long, pid, long, addr, long, data)
 
 	if (request == PTRACE_ATTACH) {
 		ret = ptrace_attach(child);
-		/*
-		 * Some architectures need to do book-keeping after
-		 * a ptrace attach.
-		 */
+		
 		if (!ret)
 			arch_ptrace_attach(child);
 		goto out_put_task_struct;
@@ -725,9 +642,7 @@ asmlinkage long compat_sys_ptrace(compat_long_t request, compat_long_t pid,
 	struct task_struct *child;
 	long ret;
 
-	/*
-	 * This lock_kernel fixes a subtle race with suid exec
-	 */
+	
 	lock_kernel();
 	if (request == PTRACE_TRACEME) {
 		ret = ptrace_traceme();
@@ -742,10 +657,7 @@ asmlinkage long compat_sys_ptrace(compat_long_t request, compat_long_t pid,
 
 	if (request == PTRACE_ATTACH) {
 		ret = ptrace_attach(child);
-		/*
-		 * Some architectures need to do book-keeping after
-		 * a ptrace attach.
-		 */
+		
 		if (!ret)
 			arch_ptrace_attach(child);
 		goto out_put_task_struct;
@@ -761,4 +673,4 @@ asmlinkage long compat_sys_ptrace(compat_long_t request, compat_long_t pid,
 	unlock_kernel();
 	return ret;
 }
-#endif	/* CONFIG_COMPAT */
+#endif	

@@ -1,38 +1,10 @@
-/*
- * Stuff used by all variants of the driver
- *
- * Copyright (c) 2001 by Stefan Eilers,
- *                       Hansjoerg Lipp <hjlipp@web.de>,
- *                       Tilman Schmidt <tilman@imap.cc>.
- *
- * =====================================================================
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation; either version 2 of
- *	the License, or (at your option) any later version.
- * =====================================================================
- */
+
 
 #include "gigaset.h"
 
-/* == Handling of I4L IO =====================================================*/
 
-/* writebuf_from_LL
- * called by LL to transmit data on an open channel
- * inserts the buffer data into the send queue and starts the transmission
- * Note that this operation must not sleep!
- * When the buffer is processed completely, gigaset_skb_sent() should be called.
- * parameters:
- *	driverID	driver ID as assigned by LL
- *	channel		channel number
- *	ack		if != 0 LL wants to be notified on completion via
- *			statcallb(ISDN_STAT_BSENT)
- *	skb		skb containing data to send
- * return value:
- *	number of accepted bytes
- *	0 if temporarily unable to accept data (out of buffer space)
- *	<0 on error (eg. -EINVAL)
- */
+
+
 static int writebuf_from_LL(int driverID, int channel, int ack,
 			    struct sk_buff *skb)
 {
@@ -52,7 +24,7 @@ static int writebuf_from_LL(int driverID, int channel, int ack,
 	}
 	bcs = &cs->bcs[channel];
 
-	/* can only handle linear sk_buffs */
+	
 	if (skb_linearize(skb) < 0) {
 		dev_err(cs->dev, "%s: skb_linearize failed\n", __func__);
 		return -ENOMEM;
@@ -81,18 +53,11 @@ static int writebuf_from_LL(int driverID, int channel, int ack,
 	gig_dbg(DEBUG_MCMD, "skb: len=%u, skblen=%u: %02x %02x",
 		len, skblen, (unsigned) skb->head[0], (unsigned) skb->head[1]);
 
-	/* pass to device-specific module */
+	
 	return cs->ops->send_skb(bcs, skb);
 }
 
-/**
- * gigaset_skb_sent() - acknowledge sending an skb
- * @bcs:	B channel descriptor structure.
- * @skb:	sent data.
- *
- * Called by hardware module {bas,ser,usb}_gigaset when the data in a
- * skb has been successfully sent, for signalling completion to the LL.
- */
+
 void gigaset_skb_sent(struct bc_state *bcs, struct sk_buff *skb)
 {
 	unsigned len;
@@ -119,10 +84,7 @@ void gigaset_skb_sent(struct bc_state *bcs, struct sk_buff *skb)
 }
 EXPORT_SYMBOL_GPL(gigaset_skb_sent);
 
-/* This function will be called by LL to send commands
- * NOTE: LL ignores the returned value, for commands other than ISDN_CMD_IOCTL,
- * so don't put too much effort into it.
- */
+
 static int command_from_LL(isdn_ctrl *cntrl)
 {
 	struct cardstate *cs = gigaset_get_cs_by_id(cntrl->driver);
@@ -177,7 +139,7 @@ static int command_from_LL(isdn_ctrl *cntrl)
 
 		if (!gigaset_add_event(cs, &bcs->at_state, EV_DIAL, sp,
 				       bcs->at_state.seq_index, NULL)) {
-			//FIXME what should we do?
+			
 			kfree(sp);
 			gigaset_free_channel(bcs);
 			return -ENOMEM;
@@ -186,7 +148,7 @@ static int command_from_LL(isdn_ctrl *cntrl)
 		gig_dbg(DEBUG_CMD, "scheduling DIAL");
 		gigaset_schedule_event(cs);
 		break;
-	case ISDN_CMD_ACCEPTD: //FIXME
+	case ISDN_CMD_ACCEPTD: 
 		gig_dbg(DEBUG_ANY, "ISDN_CMD_ACCEPTD");
 
 		if (cntrl->arg >= cs->channels) {
@@ -198,7 +160,7 @@ static int command_from_LL(isdn_ctrl *cntrl)
 
 		if (!gigaset_add_event(cs, &cs->bcs[cntrl->arg].at_state,
 				       EV_ACCEPT, NULL, 0, NULL)) {
-			//FIXME what should we do?
+			
 			return -ENOMEM;
 		}
 
@@ -222,7 +184,7 @@ static int command_from_LL(isdn_ctrl *cntrl)
 
 		if (!gigaset_add_event(cs, &cs->bcs[cntrl->arg].at_state,
 				       EV_HUP, NULL, 0, NULL)) {
-			//FIXME what should we do?
+			
 			return -ENOMEM;
 		}
 
@@ -230,15 +192,15 @@ static int command_from_LL(isdn_ctrl *cntrl)
 		gigaset_schedule_event(cs);
 
 		break;
-	case ISDN_CMD_CLREAZ: /* Do not signal incoming signals */ //FIXME
+	case ISDN_CMD_CLREAZ:  
 		gig_dbg(DEBUG_ANY, "ISDN_CMD_CLREAZ");
 		break;
-	case ISDN_CMD_SETEAZ: /* Signal incoming calls for given MSN */ //FIXME
+	case ISDN_CMD_SETEAZ:  
 		gig_dbg(DEBUG_ANY,
 			"ISDN_CMD_SETEAZ (id: %d, ch: %ld, number: %s)",
 			cntrl->driver, cntrl->arg, cntrl->parm.num);
 		break;
-	case ISDN_CMD_SETL2: /* Set L2 to given protocol */
+	case ISDN_CMD_SETL2: 
 		gig_dbg(DEBUG_ANY, "ISDN_CMD_SETL2 (ch: %ld, proto: %lx)",
 			cntrl->arg & 0xff, (cntrl->arg >> 8));
 
@@ -252,14 +214,14 @@ static int command_from_LL(isdn_ctrl *cntrl)
 		if (!gigaset_add_event(cs, &cs->bcs[cntrl->arg & 0xff].at_state,
 				       EV_PROTO_L2, NULL, cntrl->arg >> 8,
 				       NULL)) {
-			//FIXME what should we do?
+			
 			return -ENOMEM;
 		}
 
 		gig_dbg(DEBUG_CMD, "scheduling PROTO_L2");
 		gigaset_schedule_event(cs);
 		break;
-	case ISDN_CMD_SETL3: /* Set L3 to given protocol */
+	case ISDN_CMD_SETL3: 
 		gig_dbg(DEBUG_ANY, "ISDN_CMD_SETL3 (ch: %ld, proto: %lx)",
 			cntrl->arg & 0xff, (cntrl->arg >> 8));
 
@@ -279,22 +241,22 @@ static int command_from_LL(isdn_ctrl *cntrl)
 
 		break;
 	case ISDN_CMD_PROCEED:
-		gig_dbg(DEBUG_ANY, "ISDN_CMD_PROCEED"); //FIXME
+		gig_dbg(DEBUG_ANY, "ISDN_CMD_PROCEED"); 
 		break;
 	case ISDN_CMD_ALERT:
-		gig_dbg(DEBUG_ANY, "ISDN_CMD_ALERT"); //FIXME
+		gig_dbg(DEBUG_ANY, "ISDN_CMD_ALERT"); 
 		if (cntrl->arg >= cs->channels) {
 			dev_err(cs->dev,
 				"ISDN_CMD_ALERT: invalid channel (%d)\n",
 				(int) cntrl->arg);
 			return -EINVAL;
 		}
-		//bcs = cs->bcs + cntrl->arg;
-		//bcs->proto2 = -1;
-		// FIXME
+		
+		
+		
 		break;
 	case ISDN_CMD_REDIR:
-		gig_dbg(DEBUG_ANY, "ISDN_CMD_REDIR"); //FIXME
+		gig_dbg(DEBUG_ANY, "ISDN_CMD_REDIR"); 
 		break;
 	case ISDN_CMD_PROT_IO:
 		gig_dbg(DEBUG_ANY, "ISDN_CMD_PROT_IO");
@@ -358,10 +320,10 @@ int gigaset_isdn_setup_dial(struct at_state_t *at_state, void *data)
 
 	switch (bcs->proto2) {
 	case ISDN_PROTO_L2_HDLC:
-		proto = 1; /* 0: Bitsynchron, 1: HDLC, 2: voice */
+		proto = 1; 
 		break;
 	case ISDN_PROTO_L2_TRANS:
-		proto = 2; /* 0: Bitsynchron, 1: HDLC, 2: voice */
+		proto = 2; 
 		break;
 	default:
 		dev_err(bcs->cs->dev, "%s: invalid L2 protocol: %u\n",
@@ -370,22 +332,22 @@ int gigaset_isdn_setup_dial(struct at_state_t *at_state, void *data)
 	}
 
 	switch (sp->si1) {
-	case 1:		/* audio */
-		bc = "9090A3";	/* 3.1 kHz audio, A-law */
+	case 1:		
+		bc = "9090A3";	
 		break;
-	case 7:		/* data */
-	default:	/* hope the app knows what it is doing */
-		bc = "8890";	/* unrestricted digital information */
+	case 7:		
+	default:	
+		bc = "8890";	
 	}
-	//FIXME add missing si1 values from 1TR6, inspect si2, set HLC/LLC
+	
 
 	length[AT_DIAL ] = 1 + strlen(sp->phone) + 1 + 1;
 	l = strlen(sp->eazmsn);
 	length[AT_MSN  ] = l ? 6 + l + 1 + 1 : 0;
 	length[AT_BC   ] = 5 + strlen(bc) + 1 + 1;
-	length[AT_PROTO] = 6 + 1 + 1 + 1; /* proto: 1 character */
-	length[AT_ISO  ] = 6 + 1 + 1 + 1; /* channel: 1 character */
-	length[AT_TYPE ] = 6 + 1 + 1 + 1; /* call type: 1 character */
+	length[AT_PROTO] = 6 + 1 + 1 + 1; 
+	length[AT_ISO  ] = 6 + 1 + 1 + 1; 
+	length[AT_TYPE ] = 6 + 1 + 1 + 1; 
 	length[AT_HLC  ] = 0;
 
 	for (i = 0; i < AT_NUM; ++i) {
@@ -398,9 +360,9 @@ int gigaset_isdn_setup_dial(struct at_state_t *at_state, void *data)
 		}
 	}
 
-	/* type = 1: extern, 0: intern, 2: recall, 3: door, 4: centrex */
+	
 	if (sp->phone[0] == '*' && sp->phone[1] == '*') {
-		/* internal call: translate ** prefix to CTP value */
+		
 		snprintf(bcs->commands[AT_DIAL], length[AT_DIAL],
 			 "D%s\r", sp->phone+2);
 		strncpy(bcs->commands[AT_TYPE], "^SCTP=0\r", length[AT_TYPE]);
@@ -432,10 +394,10 @@ int gigaset_isdn_setup_accept(struct at_state_t *at_state)
 
 	switch (bcs->proto2) {
 	case ISDN_PROTO_L2_HDLC:
-		proto = 1; /* 0: Bitsynchron, 1: HDLC, 2: voice */
+		proto = 1; 
 		break;
 	case ISDN_PROTO_L2_TRANS:
-		proto = 2; /* 0: Bitsynchron, 1: HDLC, 2: voice */
+		proto = 2; 
 		break;
 	default:
 		dev_err(at_state->cs->dev, "%s: invalid protocol: %u\n",
@@ -446,8 +408,8 @@ int gigaset_isdn_setup_accept(struct at_state_t *at_state)
 	length[AT_DIAL ] = 0;
 	length[AT_MSN  ] = 0;
 	length[AT_BC   ] = 0;
-	length[AT_PROTO] = 6 + 1 + 1 + 1; /* proto: 1 character */
-	length[AT_ISO  ] = 6 + 1 + 1 + 1; /* channel: 1 character */
+	length[AT_PROTO] = 6 + 1 + 1 + 1; 
+	length[AT_ISO  ] = 6 + 1 + 1 + 1; 
 	length[AT_TYPE ] = 0;
 	length[AT_HLC  ] = 0;
 
@@ -469,15 +431,7 @@ int gigaset_isdn_setup_accept(struct at_state_t *at_state)
 	return 0;
 }
 
-/**
- * gigaset_isdn_icall() - signal incoming call
- * @at_state:	connection state structure.
- *
- * Called by main module to notify the LL that an incoming call has been
- * received. @at_state contains the parameters of the call.
- *
- * Return value: call disposition (ICALL_*)
- */
+
 int gigaset_isdn_icall(struct at_state_t *at_state)
 {
 	struct cardstate *cs = at_state->cs;
@@ -485,22 +439,22 @@ int gigaset_isdn_icall(struct at_state_t *at_state)
 	isdn_ctrl response;
 	int retval;
 
-	/* fill ICALL structure */
-	response.parm.setup.si1 = 0;	/* default: unknown */
+	
+	response.parm.setup.si1 = 0;	
 	response.parm.setup.si2 = 0;
-	response.parm.setup.screen = 0;	//FIXME how to set these?
+	response.parm.setup.screen = 0;	
 	response.parm.setup.plan = 0;
 	if (!at_state->str_var[STR_ZBC]) {
-		/* no BC (internal call): assume speech, A-law */
+		
 		response.parm.setup.si1 = 1;
 	} else if (!strcmp(at_state->str_var[STR_ZBC], "8890")) {
-		/* unrestricted digital information */
+		
 		response.parm.setup.si1 = 7;
 	} else if (!strcmp(at_state->str_var[STR_ZBC], "8090A3")) {
-		/* speech, A-law */
+		
 		response.parm.setup.si1 = 1;
 	} else if (!strcmp(at_state->str_var[STR_ZBC], "9090A3")) {
-		/* 3,1 kHz audio, A-law */
+		
 		response.parm.setup.si1 = 1;
 		response.parm.setup.si2 = 2;
 	} else {
@@ -524,33 +478,31 @@ int gigaset_isdn_icall(struct at_state_t *at_state)
 	if (!bcs) {
 		dev_notice(cs->dev, "no channel for incoming call\n");
 		response.command = ISDN_STAT_ICALLW;
-		response.arg = 0; //FIXME
+		response.arg = 0; 
 	} else {
 		gig_dbg(DEBUG_CMD, "Sending ICALL");
 		response.command = ISDN_STAT_ICALL;
-		response.arg = bcs->channel; //FIXME
+		response.arg = bcs->channel; 
 	}
 	response.driver = cs->myid;
 	retval = cs->iif.statcallb(&response);
 	gig_dbg(DEBUG_CMD, "Response: %d", retval);
 	switch (retval) {
-	case 0:	/* no takers */
+	case 0:	
 		return ICALL_IGNORE;
-	case 1:	/* alerting */
+	case 1:	
 		bcs->chstate |= CHS_NOTIFY_LL;
 		return ICALL_ACCEPT;
-	case 2:	/* reject */
+	case 2:	
 		return ICALL_REJECT;
-	case 3:	/* incomplete */
+	case 3:	
 		dev_warn(cs->dev,
 		       "LL requested unsupported feature: Incomplete Number\n");
 		return ICALL_IGNORE;
-	case 4:	/* proceeding */
-		/* Gigaset will send ALERTING anyway.
-		 * There doesn't seem to be a way to avoid this.
-		 */
+	case 4:	
+		
 		return ICALL_ACCEPT;
-	case 5:	/* deflect */
+	case 5:	
 		dev_warn(cs->dev,
 			 "LL requested unsupported feature: Call Deflection\n");
 		return ICALL_IGNORE;
@@ -560,7 +512,7 @@ int gigaset_isdn_icall(struct at_state_t *at_state)
 	}
 }
 
-/* Set Callback function pointer */
+
 int gigaset_register_to_LL(struct cardstate *cs, const char *isdnid)
 {
 	isdn_if *iif = &cs->iif;
@@ -583,19 +535,19 @@ int gigaset_register_to_LL(struct cardstate *cs, const char *isdnid)
 #endif
 		ISDN_FEATURE_L3_TRANS |
 		ISDN_FEATURE_P_EURO;
-	iif->hl_hdrlen = HW_HDR_LEN;		/* Area for storing ack */
+	iif->hl_hdrlen = HW_HDR_LEN;		
 	iif->command = command_from_LL;
 	iif->writebuf_skb = writebuf_from_LL;
-	iif->writecmd = NULL;			/* Don't support isdnctrl */
-	iif->readstat = NULL;			/* Don't support isdnctrl */
-	iif->rcvcallb_skb = NULL;		/* Will be set by LL */
-	iif->statcallb = NULL;			/* Will be set by LL */
+	iif->writecmd = NULL;			
+	iif->readstat = NULL;			
+	iif->rcvcallb_skb = NULL;		
+	iif->statcallb = NULL;			
 
 	if (!register_isdn(iif)) {
 		pr_err("register_isdn failed\n");
 		return 0;
 	}
 
-	cs->myid = iif->channels;		/* Set my device id */
+	cs->myid = iif->channels;		
 	return 1;
 }

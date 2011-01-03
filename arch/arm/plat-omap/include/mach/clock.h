@@ -1,14 +1,4 @@
-/*
- *  arch/arm/plat-omap/include/mach/clock.h
- *
- *  Copyright (C) 2004 - 2005 Nokia corporation
- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
- *  Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ARCH_ARM_OMAP_CLOCK_H
 #define __ARCH_ARM_OMAP_CLOCK_H
@@ -76,7 +66,7 @@ struct clk {
 	int			id;
 	struct clk		*parent;
 	struct list_head	children;
-	struct list_head	sibling;	/* node for children */
+	struct list_head	sibling;	
 	unsigned long		rate;
 	__u32			flags;
 	void __iomem		*enable_reg;
@@ -100,7 +90,7 @@ struct clk {
 	__u8			src_offset;
 #endif
 #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
-	struct dentry		*dent;	/* For visible tree hierarchy */
+	struct dentry		*dent;	
 #endif
 };
 
@@ -137,25 +127,25 @@ extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
 
 extern const struct clkops clkops_null;
 
-/* Clock flags */
-/* bit 0 is free */
-#define RATE_FIXED		(1 << 1)	/* Fixed clock rate */
-/* bits 2-4 are free */
-#define ENABLE_REG_32BIT	(1 << 5)	/* Use 32-bit access */
+
+
+#define RATE_FIXED		(1 << 1)	
+
+#define ENABLE_REG_32BIT	(1 << 5)	
 #define CLOCK_IDLE_CONTROL	(1 << 7)
 #define CLOCK_NO_IDLE_PARENT	(1 << 8)
-#define DELAYED_APP		(1 << 9)	/* Delay application of clock */
-#define CONFIG_PARTICIPANT	(1 << 10)	/* Fundamental clock */
-#define ENABLE_ON_INIT		(1 << 11)	/* Enable upon framework init */
-#define INVERT_ENABLE           (1 << 12)       /* 0 enables, 1 disables */
-/* bits 13-31 are currently free */
+#define DELAYED_APP		(1 << 9)	
+#define CONFIG_PARTICIPANT	(1 << 10)	
+#define ENABLE_ON_INIT		(1 << 11)	
+#define INVERT_ENABLE           (1 << 12)       
 
-/* Clksel_rate flags */
+
+
 #define DEFAULT_RATE		(1 << 0)
 #define RATE_IN_242X		(1 << 1)
 #define RATE_IN_243X		(1 << 2)
-#define RATE_IN_343X		(1 << 3)	/* rates common to all 343X */
-#define RATE_IN_3430ES2		(1 << 4)	/* 3430ES2 rates only */
+#define RATE_IN_343X		(1 << 3)	
+#define RATE_IN_3430ES2		(1 << 4)	
 
 #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
 

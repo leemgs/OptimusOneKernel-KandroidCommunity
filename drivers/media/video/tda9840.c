@@ -1,29 +1,4 @@
- /*
-    tda9840 - i2c-driver for the tda9840 by SGS Thomson
-
-    Copyright (C) 1998-2003 Michael Hunold <michael@mihu.de>
-    Copyright (C) 2008 Hans Verkuil <hverkuil@xs4all.nl>
-
-    The tda9840 is a stereo/dual sound processor with digital
-    identification. It can be found at address 0x84 on the i2c-bus.
-
-    For detailed informations download the specifications directly
-    from SGS Thomson at http://www.st.com
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+ 
 
 
 #include <linux/module.h>
@@ -125,7 +100,7 @@ static int tda9840_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *t)
 	case 0x40:
 		t->rxsubchans = V4L2_TUNER_SUB_STEREO | V4L2_TUNER_SUB_MONO;
 		break;
-	default: /* Incorrect detect */
+	default: 
 		t->rxsubchans = V4L2_TUNER_MODE_MONO;
 		break;
 	}
@@ -139,7 +114,7 @@ static int tda9840_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ide
 	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_TDA9840, 0);
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops tda9840_core_ops = {
 	.g_chip_ident = tda9840_g_chip_ident,
@@ -155,14 +130,14 @@ static const struct v4l2_subdev_ops tda9840_ops = {
 	.tuner = &tda9840_tuner_ops,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static int tda9840_probe(struct i2c_client *client,
 			  const struct i2c_device_id *id)
 {
 	struct v4l2_subdev *sd;
 
-	/* let's see whether this adapter can support what we need */
+	
 	if (!i2c_check_functionality(client->adapter,
 			I2C_FUNC_SMBUS_READ_BYTE_DATA |
 			I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
@@ -176,7 +151,7 @@ static int tda9840_probe(struct i2c_client *client,
 		return -ENOMEM;
 	v4l2_i2c_subdev_init(sd, client, &tda9840_ops);
 
-	/* set initial values for level & stereo - adjustment, mode */
+	
 	tda9840_write(sd, LEVEL_ADJUST, 0);
 	tda9840_write(sd, STEREO_ADJUST, 0);
 	tda9840_write(sd, SWITCH, TDA9840_SET_STEREO);

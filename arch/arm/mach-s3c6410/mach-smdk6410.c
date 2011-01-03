@@ -1,15 +1,4 @@
-/* linux/arch/arm/mach-s3c6410/mach-smdk6410.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -92,13 +81,9 @@ static struct s3c2410_uartcfg smdk6410_uartcfgs[] __initdata = {
 	},
 };
 
-/* framebuffer and LCD setup. */
 
-/* GPF15 = LCD backlight control
- * GPF13 => Panel power
- * GPN5 = LCD nRESET signal
- * PWM_TOUT1 => backlight brightness
- */
+
+
 
 static void smdk6410_lcd_power_set(struct plat_lcd_data *pd,
 				   unsigned int power)
@@ -107,7 +92,7 @@ static void smdk6410_lcd_power_set(struct plat_lcd_data *pd,
 		gpio_direction_output(S3C64XX_GPF(13), 1);
 		gpio_direction_output(S3C64XX_GPF(15), 1);
 
-		/* fire nRESET on power up */
+		
 		gpio_direction_output(S3C64XX_GPN(5), 0);
 		msleep(10);
 		gpio_direction_output(S3C64XX_GPN(5), 1);
@@ -129,7 +114,7 @@ static struct platform_device smdk6410_lcd_powerdev = {
 };
 
 static struct s3c_fb_pd_win smdk6410_fb_win0 = {
-	/* this is to ensure we use win0 */
+	
 	.win_mode	= {
 		.pixclock	= 41094,
 		.left_margin	= 8,
@@ -145,7 +130,7 @@ static struct s3c_fb_pd_win smdk6410_fb_win0 = {
 	.default_bpp	= 16,
 };
 
-/* 405566 clocks per frame => 60Hz refresh requires 24333960Hz clock */
+
 static struct s3c_fb_platdata smdk6410_lcd_pdata __initdata = {
 	.setup_gpio	= s3c64xx_fb_gpio_setup_24bpp,
 	.win[0]		= &smdk6410_fb_win0,
@@ -204,7 +189,7 @@ static struct platform_device *smdk6410_devices[] __initdata = {
 };
 
 #ifdef CONFIG_SMDK6410_WM1190_EV1
-/* S3C64xx internal logic & PLL */
+
 static struct regulator_init_data wm8350_dcdc1_data = {
 	.constraints = {
 		.name = "PVDD_INT/PVDD_PLL",
@@ -215,7 +200,7 @@ static struct regulator_init_data wm8350_dcdc1_data = {
 	},
 };
 
-/* Memory */
+
 static struct regulator_init_data wm8350_dcdc3_data = {
 	.constraints = {
 		.name = "PVDD_MEM",
@@ -231,7 +216,7 @@ static struct regulator_init_data wm8350_dcdc3_data = {
 	},
 };
 
-/* USB, EXT, PCM, ADC/DAC, USB, MMC */
+
 static struct regulator_init_data wm8350_dcdc4_data = {
 	.constraints = {
 		.name = "PVDD_HI/PVDD_EXT/PVDD_SYS/PVCCM2MTV",
@@ -241,7 +226,7 @@ static struct regulator_init_data wm8350_dcdc4_data = {
 	},
 };
 
-/* ARM core */
+
 static struct regulator_consumer_supply dcdc6_consumers[] = {
 	{
 		.supply = "vddarm",
@@ -260,7 +245,7 @@ static struct regulator_init_data wm8350_dcdc6_data = {
 	.consumer_supplies = dcdc6_consumers,
 };
 
-/* Alive */
+
 static struct regulator_init_data wm8350_ldo1_data = {
 	.constraints = {
 		.name = "PVDD_ALIVE",
@@ -271,7 +256,7 @@ static struct regulator_init_data wm8350_ldo1_data = {
 	},
 };
 
-/* OTG */
+
 static struct regulator_init_data wm8350_ldo2_data = {
 	.constraints = {
 		.name = "PVDD_OTG",
@@ -281,7 +266,7 @@ static struct regulator_init_data wm8350_ldo2_data = {
 	},
 };
 
-/* LCD */
+
 static struct regulator_init_data wm8350_ldo3_data = {
 	.constraints = {
 		.name = "PVDD_LCD",
@@ -291,7 +276,7 @@ static struct regulator_init_data wm8350_ldo3_data = {
 	},
 };
 
-/* OTGi/1190-EV1 HPVDD & AVDD */
+
 static struct regulator_init_data wm8350_ldo4_data = {
 	.constraints = {
 		.name = "PVDD_OTGI/HPVDD/AVDD",
@@ -320,10 +305,10 @@ static int __init smdk6410_wm8350_init(struct wm8350 *wm8350)
 {
 	int i;
 
-	/* Configure the IRQ line */
+	
 	s3c_gpio_setpull(S3C64XX_GPN(12), S3C_GPIO_PULL_UP);
 
-	/* Instantiate the regulators */
+	
 	for (i = 0; i < ARRAY_SIZE(wm1190_regulators); i++)
 		wm8350_register_regulator(wm8350,
 					  wm1190_regulators[i].regulator,
@@ -351,7 +336,7 @@ static struct i2c_board_info i2c_devs0[] __initdata = {
 };
 
 static struct i2c_board_info i2c_devs1[] __initdata = {
-	{ I2C_BOARD_INFO("24c128", 0x57), },	/* Samsung S524AD0XD1 */
+	{ I2C_BOARD_INFO("24c128", 0x57), },	
 };
 
 static void __init smdk6410_map_io(void)
@@ -362,14 +347,14 @@ static void __init smdk6410_map_io(void)
 	s3c24xx_init_clocks(12000000);
 	s3c24xx_init_uarts(smdk6410_uartcfgs, ARRAY_SIZE(smdk6410_uartcfgs));
 
-	/* set the LCD type */
+	
 
 	tmp = __raw_readl(S3C64XX_SPCON);
 	tmp &= ~S3C64XX_SPCON_LCD_SEL_MASK;
 	tmp |= S3C64XX_SPCON_LCD_SEL_RGB;
 	__raw_writel(tmp, S3C64XX_SPCON);
 
-	/* remove the lcd bypass */
+	
 	tmp = __raw_readl(S3C64XX_MODEM_MIFPCON);
 	tmp &= ~MIFPCON_LCD_BYPASS;
 	__raw_writel(tmp, S3C64XX_MODEM_MIFPCON);
@@ -392,7 +377,7 @@ static void __init smdk6410_machine_init(void)
 }
 
 MACHINE_START(SMDK6410, "SMDK6410")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C_PA_UART & 0xfff00000,
 	.io_pg_offst	= (((u32)S3C_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C64XX_PA_SDRAM + 0x100,

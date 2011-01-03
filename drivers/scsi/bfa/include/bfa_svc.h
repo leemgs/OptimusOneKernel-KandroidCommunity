@@ -1,25 +1,8 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #ifndef __BFA_SVC_H__
 #define __BFA_SVC_H__
 
-/*
- * forward declarations
- */
+
 struct bfa_fcxp_s;
 
 #include <defs/bfa_defs_status.h>
@@ -29,54 +12,46 @@ struct bfa_fcxp_s;
 #include <cs/bfa_sm.h>
 #include <bfa.h>
 
-/**
- * 		BFA rport information.
- */
+
 struct bfa_rport_info_s {
-	u16        max_frmsz;	/*  max rcv pdu size               */
-	u32        pid : 24,	/*  remote port ID                 */
+	u16        max_frmsz;	
+	u32        pid : 24,	
 			lp_tag : 8;
-	u32        local_pid : 24,	/*  local port ID		    */
-			cisc : 8;	/*  CIRO supported		    */
-	u8         fc_class;	/*  supported FC classes. enum fc_cos */
-	u8         vf_en;		/*  virtual fabric enable          */
-	u16        vf_id;		/*  virtual fabric ID              */
-	enum bfa_pport_speed speed;	/*  Rport's current speed	    */
+	u32        local_pid : 24,	
+			cisc : 8;	
+	u8         fc_class;	
+	u8         vf_en;		
+	u16        vf_id;		
+	enum bfa_pport_speed speed;	
 };
 
-/**
- * BFA rport data structure
- */
+
 struct bfa_rport_s {
-	struct list_head        qe;	  /*  queue element */
-	bfa_sm_t	      sm; 	  /*  state machine */
-	struct bfa_s          *bfa;	  /*  backpointer to BFA */
-	void                  *rport_drv; /*  fcs/driver rport object */
-	u16              fw_handle; /*  firmware rport handle */
-	u16              rport_tag; /*  BFA rport tag */
-	struct bfa_rport_info_s rport_info; /*  rport info from *fcs/driver */
-	struct bfa_reqq_wait_s reqq_wait; /*  to wait for room in reqq */
-	struct bfa_cb_qe_s    hcb_qe;	 /*  BFA callback qelem */
-	struct bfa_rport_hal_stats_s stats; /*  BFA rport statistics  */
+	struct list_head        qe;	  
+	bfa_sm_t	      sm; 	  
+	struct bfa_s          *bfa;	  
+	void                  *rport_drv; 
+	u16              fw_handle; 
+	u16              rport_tag; 
+	struct bfa_rport_info_s rport_info; 
+	struct bfa_reqq_wait_s reqq_wait; 
+	struct bfa_cb_qe_s    hcb_qe;	 
+	struct bfa_rport_hal_stats_s stats; 
 	struct bfa_rport_qos_attr_s  qos_attr;
 	union a {
-		bfa_status_t    status;	 /*  f/w status */
-		void            *fw_msg; /*  QoS scn event */
+		bfa_status_t    status;	 
+		void            *fw_msg; 
 	} event_arg;
 };
 #define BFA_RPORT_FC_COS(_rport)	((_rport)->rport_info.fc_class)
 
-/**
- * Send completion callback.
- */
+
 typedef void (*bfa_cb_fcxp_send_t) (void *bfad_fcxp, struct bfa_fcxp_s *fcxp,
 			void *cbarg, enum bfa_status req_status,
 			u32 rsp_len, u32 resid_len,
 			struct fchs_s *rsp_fchs);
 
-/**
- * BFA fcxp allocation (asynchronous)
- */
+
 typedef void (*bfa_fcxp_alloc_cbfn_t) (void *cbarg, struct bfa_fcxp_s *fcxp);
 
 struct bfa_fcxp_wqe_s {
@@ -90,70 +65,64 @@ typedef u32 (*bfa_fcxp_get_sglen_t) (void *bfad_fcxp, int sgeid);
 
 #define BFA_UF_BUFSZ	(2 * 1024 + 256)
 
-/**
- * @todo private
- */
+
 struct bfa_uf_buf_s {
 	u8         d[BFA_UF_BUFSZ];
 };
 
 
 struct bfa_uf_s {
-	struct list_head	qe;		/*  queue element	  */
-	struct bfa_s	*bfa;		/*  bfa instance	  */
-	u16        uf_tag;		/*  identifying tag f/w messages */
+	struct list_head	qe;		
+	struct bfa_s	*bfa;		
+	u16        uf_tag;		
 	u16        vf_id;
 	u16        src_rport_handle;
 	u16        rsvd;
 	u8        	*data_ptr;
-	u16        data_len;	/*  actual receive length	  */
-	u16        pb_len;		/*  posted buffer length	  */
-	void           	*buf_kva;	/*  buffer virtual address	  */
-	u64        buf_pa;		/*  buffer physical address	  */
-	struct bfa_cb_qe_s    hcb_qe;	/*  comp: BFA comp qelem	  */
+	u16        data_len;	
+	u16        pb_len;		
+	void           	*buf_kva;	
+	u64        buf_pa;		
+	struct bfa_cb_qe_s    hcb_qe;	
 	struct bfa_sge_s   	sges[BFI_SGE_INLINE_MAX];
 };
 
 typedef void (*bfa_cb_pport_t) (void *cbarg, enum bfa_status status);
 
-/**
- * bfa lport login/logout service interface
- */
+
 struct bfa_lps_s {
-	struct list_head	qe;		/*  queue element */
-	struct bfa_s	*bfa;		/*  parent bfa instance	*/
-	bfa_sm_t	sm;		/*  finite state machine	*/
-	u8		lp_tag;		/*  lport tag			*/
-	u8		reqq;		/*  lport request queue	*/
-	u8		alpa;		/*  ALPA for loop topologies	*/
-	u32	lp_pid;		/*  lport port ID		*/
-	bfa_boolean_t	fdisc;		/*  send FDISC instead of FLOGI*/
-	bfa_boolean_t	auth_en;	/*  enable authentication	*/
-	bfa_boolean_t	auth_req;	/*  authentication required	*/
-	bfa_boolean_t	npiv_en;	/*  NPIV is allowed by peer	*/
-	bfa_boolean_t	fport;		/*  attached peer is F_PORT	*/
-	bfa_boolean_t	brcd_switch;/*  attached peer is brcd switch	*/
-	bfa_status_t	status;		/*  login status		*/
-	u16	pdusz;		/*  max receive PDU size 	*/
-	u16	pr_bbcred;	/*  BB_CREDIT from peer 	*/
-	u8		lsrjt_rsn;	/*  LSRJT reason		*/
-	u8		lsrjt_expl;	/*  LSRJT explanation		*/
-	wwn_t		pwwn;		/*  port wwn of lport		*/
-	wwn_t		nwwn;		/*  node wwn of lport		*/
-	wwn_t		pr_pwwn;	/*  port wwn of lport peer	*/
-	wwn_t		pr_nwwn;	/*  node wwn of lport peer	*/
-	mac_t		lp_mac;		/*  fpma/spma MAC for lport	*/
-	mac_t		fcf_mac;	/*  FCF MAC of lport		*/
-	struct bfa_reqq_wait_s	wqe;	/*  request wait queue element	*/
-	void		*uarg;		/*  user callback arg		*/
-	struct bfa_cb_qe_s hcb_qe;	/*  comp: callback qelem	*/
+	struct list_head	qe;		
+	struct bfa_s	*bfa;		
+	bfa_sm_t	sm;		
+	u8		lp_tag;		
+	u8		reqq;		
+	u8		alpa;		
+	u32	lp_pid;		
+	bfa_boolean_t	fdisc;		
+	bfa_boolean_t	auth_en;	
+	bfa_boolean_t	auth_req;	
+	bfa_boolean_t	npiv_en;	
+	bfa_boolean_t	fport;		
+	bfa_boolean_t	brcd_switch;
+	bfa_status_t	status;		
+	u16	pdusz;		
+	u16	pr_bbcred;	
+	u8		lsrjt_rsn;	
+	u8		lsrjt_expl;	
+	wwn_t		pwwn;		
+	wwn_t		nwwn;		
+	wwn_t		pr_pwwn;	
+	wwn_t		pr_nwwn;	
+	mac_t		lp_mac;		
+	mac_t		fcf_mac;	
+	struct bfa_reqq_wait_s	wqe;	
+	void		*uarg;		
+	struct bfa_cb_qe_s hcb_qe;	
 	struct bfi_lps_login_rsp_s *loginrsp;
 	bfa_eproto_status_t	ext_status;
 };
 
-/*
- * bfa pport API functions
- */
+
 bfa_status_t bfa_pport_enable(struct bfa_s *bfa);
 bfa_status_t bfa_pport_disable(struct bfa_s *bfa);
 bfa_status_t bfa_pport_cfg_speed(struct bfa_s *bfa,
@@ -206,9 +175,7 @@ bfa_status_t bfa_pport_clear_qos_stats(struct bfa_s *bfa, bfa_cb_pport_t cbfn,
 bfa_boolean_t     bfa_pport_is_ratelim(struct bfa_s *bfa);
 bfa_boolean_t	bfa_pport_is_linkup(struct bfa_s *bfa);
 
-/*
- * bfa rport API functions
- */
+
 struct bfa_rport_s *bfa_rport_create(struct bfa_s *bfa, void *rport_drv);
 void bfa_rport_delete(struct bfa_rport_s *rport);
 void bfa_rport_online(struct bfa_rport_s *rport,
@@ -229,9 +196,7 @@ void bfa_cb_rport_qos_scn_prio(void *rport,
 void bfa_rport_get_qos_attr(struct bfa_rport_s *rport,
 			struct bfa_rport_qos_attr_s *qos_attr);
 
-/*
- * bfa fcxp API functions
- */
+
 struct bfa_fcxp_s *bfa_fcxp_alloc(void *bfad_fcxp, struct bfa_s *bfa,
 			int nreq_sgles, int nrsp_sgles,
 			bfa_fcxp_get_sgaddr_t get_req_sga,
@@ -272,26 +237,15 @@ bfa_uf_get_frmlen(struct bfa_uf_s *uf)
 	return uf->data_len;
 }
 
-/**
- *      Callback prototype for unsolicited frame receive handler.
- *
- * @param[in]           cbarg           callback arg for receive handler
- * @param[in]           uf              unsolicited frame descriptor
- *
- * @return None
- */
+
 typedef void (*bfa_cb_uf_recv_t) (void *cbarg, struct bfa_uf_s *uf);
 
-/*
- * bfa uf API functions
- */
+
 void bfa_uf_recv_register(struct bfa_s *bfa, bfa_cb_uf_recv_t ufrecv,
 			void *cbarg);
 void bfa_uf_free(struct bfa_uf_s *uf);
 
-/**
- * bfa lport service api
- */
+
 
 struct bfa_lps_s *bfa_lps_alloc(struct bfa_s *bfa);
 void bfa_lps_delete(struct bfa_lps_s *lps);
@@ -320,5 +274,5 @@ void bfa_cb_lps_flogo_comp(void *bfad, void *uarg);
 void bfa_cb_lps_fdisc_comp(void *bfad, void *uarg, bfa_status_t status);
 void bfa_cb_lps_fdisclogo_comp(void *bfad, void *uarg);
 
-#endif /* __BFA_SVC_H__ */
+#endif 
 

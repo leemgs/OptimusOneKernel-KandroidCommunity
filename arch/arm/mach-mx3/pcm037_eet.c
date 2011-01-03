@@ -1,11 +1,4 @@
-/*
- * Copyright (C) 2009
- * Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/gpio.h>
 #include <linux/gpio_keys.h>
 #include <linux/input.h>
@@ -24,43 +17,43 @@
 #include "devices.h"
 
 static unsigned int pcm037_eet_pins[] = {
-	/* Reserve and hardwire GPIO 57 high - S6E63D6 chipselect */
+	
 	IOMUX_MODE(MX31_PIN_KEY_COL7, IOMUX_CONFIG_GPIO),
-	/* GPIO keys */
-	IOMUX_MODE(MX31_PIN_GPIO1_0,	IOMUX_CONFIG_GPIO), /* 0 */
-	IOMUX_MODE(MX31_PIN_GPIO1_1,	IOMUX_CONFIG_GPIO), /* 1 */
-	IOMUX_MODE(MX31_PIN_GPIO1_2,	IOMUX_CONFIG_GPIO), /* 2 */
-	IOMUX_MODE(MX31_PIN_GPIO1_3,	IOMUX_CONFIG_GPIO), /* 3 */
-	IOMUX_MODE(MX31_PIN_SVEN0,	IOMUX_CONFIG_GPIO), /* 32 */
-	IOMUX_MODE(MX31_PIN_STX0,	IOMUX_CONFIG_GPIO), /* 33 */
-	IOMUX_MODE(MX31_PIN_SRX0,	IOMUX_CONFIG_GPIO), /* 34 */
-	IOMUX_MODE(MX31_PIN_SIMPD0,	IOMUX_CONFIG_GPIO), /* 35 */
-	IOMUX_MODE(MX31_PIN_RTS1,	IOMUX_CONFIG_GPIO), /* 38 */
-	IOMUX_MODE(MX31_PIN_CTS1,	IOMUX_CONFIG_GPIO), /* 39 */
-	IOMUX_MODE(MX31_PIN_KEY_ROW4,	IOMUX_CONFIG_GPIO), /* 50 */
-	IOMUX_MODE(MX31_PIN_KEY_ROW5,	IOMUX_CONFIG_GPIO), /* 51 */
-	IOMUX_MODE(MX31_PIN_KEY_ROW6,	IOMUX_CONFIG_GPIO), /* 52 */
-	IOMUX_MODE(MX31_PIN_KEY_ROW7,	IOMUX_CONFIG_GPIO), /* 53 */
+	
+	IOMUX_MODE(MX31_PIN_GPIO1_0,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_GPIO1_1,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_GPIO1_2,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_GPIO1_3,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_SVEN0,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_STX0,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_SRX0,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_SIMPD0,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_RTS1,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_CTS1,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_KEY_ROW4,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_KEY_ROW5,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_KEY_ROW6,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_KEY_ROW7,	IOMUX_CONFIG_GPIO), 
 
-	/* LEDs */
-	IOMUX_MODE(MX31_PIN_DTR_DTE1,	IOMUX_CONFIG_GPIO), /* 44 */
-	IOMUX_MODE(MX31_PIN_DSR_DTE1,	IOMUX_CONFIG_GPIO), /* 45 */
-	IOMUX_MODE(MX31_PIN_KEY_COL5,	IOMUX_CONFIG_GPIO), /* 55 */
-	IOMUX_MODE(MX31_PIN_KEY_COL6,	IOMUX_CONFIG_GPIO), /* 56 */
+	
+	IOMUX_MODE(MX31_PIN_DTR_DTE1,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_DSR_DTE1,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_KEY_COL5,	IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_KEY_COL6,	IOMUX_CONFIG_GPIO), 
 };
 
-/* SPI */
+
 static struct spi_board_info pcm037_spi_dev[] = {
 	{
 		.modalias	= "dac124s085",
 		.max_speed_hz	= 400000,
 		.bus_num	= 0,
-		.chip_select	= 0,		/* Index in pcm037_spi1_cs[] */
+		.chip_select	= 0,		
 		.mode		= SPI_CPHA,
 	},
 };
 
-/* Platform Data for MXC CSPI */
+
 #if defined(CONFIG_SPI_IMX) || defined(CONFIG_SPI_IMX_MODULE)
 static int pcm037_spi1_cs[] = {MXC_SPI_CS(1), IOMUX_TO_GPIO(MX31_PIN_KEY_COL7)};
 
@@ -70,7 +63,7 @@ struct spi_imx_master pcm037_spi1_master = {
 };
 #endif
 
-/* GPIO-keys input device */
+
 static struct gpio_keys_button pcm037_gpio_keys[] = {
 	{
 		.type	= EV_KEY,
@@ -162,7 +155,7 @@ static struct gpio_keys_button pcm037_gpio_keys[] = {
 static struct gpio_keys_platform_data pcm037_gpio_keys_platform_data = {
 	.buttons	= pcm037_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(pcm037_gpio_keys),
-	.rep		= 0, /* No auto-repeat */
+	.rep		= 0, 
 };
 
 static struct platform_device pcm037_gpio_keys_device = {
@@ -181,7 +174,7 @@ static int eet_init_devices(void)
 	mxc_iomux_setup_multiple_pins(pcm037_eet_pins,
 				ARRAY_SIZE(pcm037_eet_pins), "pcm037_eet");
 
-	/* SPI */
+	
 	spi_register_board_info(pcm037_spi_dev, ARRAY_SIZE(pcm037_spi_dev));
 #if defined(CONFIG_SPI_IMX) || defined(CONFIG_SPI_IMX_MODULE)
 	mxc_register_device(&mxc_spi_device0, &pcm037_spi1_master);

@@ -1,12 +1,4 @@
-/**
- * @file op_arm_model.h
- * interface to ARM machine specific operations
- *
- * @remark Copyright 2004 Oprofile Authors
- * @remark Read the file COPYING
- *
- * @author Zwane Mwaikambo
- */
+
 
 #ifndef OP_ARM_MODEL_H
 #define OP_ARM_MODEL_H
@@ -32,4 +24,4 @@ extern void arm_backtrace(struct pt_regs * const regs, unsigned int depth);
 
 extern int __init op_arm_init(struct oprofile_operations *ops, struct op_arm_model_spec *spec);
 extern void op_arm_exit(void);
-#endif /* OP_ARM_MODEL_H */
+#endif 

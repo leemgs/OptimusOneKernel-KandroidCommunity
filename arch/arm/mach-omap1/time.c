@@ -1,37 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/time.c
- *
- * OMAP Timers
- *
- * Copyright (C) 2004 Nokia Corporation
- * Partial timer rewrite and additional dynamic tick timer support by
- * Tony Lindgen <tony@atomide.com> and
- * Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
- *
- * MPU timer code based on the older MPU timer code for OMAP
- * Copyright (C) 2000 RidgeRun, Inc.
- * Author: Greg Lonnon <glonnon@ridgerun.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the  GNU General Public License along
- * with this program; if not, write  to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -57,9 +24,9 @@
 #define OMAP_MPU_TIMER_OFFSET		0x100
 
 typedef struct {
-	u32 cntl;			/* CNTL_TIMER, R/W */
-	u32 load_tim;			/* LOAD_TIM,   W */
-	u32 read_tim;			/* READ_TIM,   R */
+	u32 cntl;			
+	u32 load_tim;			
+	u32 read_tim;			
 } omap_mpu_timer_regs_t;
 
 #define omap_mpu_timer_base(n)							\
@@ -108,11 +75,7 @@ static inline void omap_mpu_timer_stop(int nr)
 	timer->cntl &= ~MPU_TIMER_ST;
 }
 
-/*
- * ---------------------------------------------------------------------------
- * MPU timer 1 ... count down to zero, interrupt, reload
- * ---------------------------------------------------------------------------
- */
+
 static int omap_mpu_set_next_event(unsigned long cycles,
 				   struct clock_event_device *evt)
 {
@@ -178,11 +141,7 @@ static __init void omap_init_mpu_timer(unsigned long rate)
 }
 
 
-/*
- * ---------------------------------------------------------------------------
- * MPU timer 2 ... free running 32-bit clock source and scheduler clock
- * ---------------------------------------------------------------------------
- */
+
 
 static unsigned long omap_mpu_timer2_overflows;
 
@@ -227,11 +186,7 @@ static void __init omap_init_clocksource(unsigned long rate)
 		printk(err, clocksource_mpu.name);
 }
 
-/*
- * ---------------------------------------------------------------------------
- * Timer initialization
- * ---------------------------------------------------------------------------
- */
+
 static void __init omap_timer_init(void)
 {
 	struct clk	*ck_ref = clk_get(NULL, "ck_ref");
@@ -242,7 +197,7 @@ static void __init omap_timer_init(void)
 	rate = clk_get_rate(ck_ref);
 	clk_put(ck_ref);
 
-	/* PTV = 0 */
+	
 	rate /= 2;
 
 	omap_init_mpu_timer(rate);

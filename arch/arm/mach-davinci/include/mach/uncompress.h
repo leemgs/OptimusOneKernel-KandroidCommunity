@@ -1,13 +1,4 @@
-/*
- * Serial port stubs for kernel decompress status messages
- *
- *  Author:     Anant Gole
- * (C) Copyright (C) 2006, Texas Instruments, Inc
- *
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- */
+
 
 #include <linux/types.h>
 #include <linux/serial_reg.h>
@@ -28,7 +19,7 @@ static u32 *get_uart_base(void)
 		return (u32 *)DAVINCI_UART0_BASE;
 }
 
-/* PORT_16C550A, in polled non-fifo mode */
+
 
 static void putc(char c)
 {

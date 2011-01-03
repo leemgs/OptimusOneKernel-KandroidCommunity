@@ -1,20 +1,4 @@
-/*
- * arch/arm/mach-ixp23xx/pci.c
- *
- * PCI routines for IXP23XX based systems
- *
- * Copyright (c) 2005 MontaVista Software, Inc.
- *
- * based on original code:
- *
- * Author: Naeem Afzal <naeem.m.afzal@intel.com>
- * Copyright 2002-2005 Intel Corp.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/sched.h>
 #include <linux/kernel.h>
@@ -50,14 +34,10 @@ static u32
 {
 	u32 *paddress;
 
-	/*
-	 * Must be dword aligned
-	 */
+	
 	where &= ~3;
 
-	/*
-	 * For top bus, generate type 0, else type 1
-	 */
+	
 	if (!bus_nr) {
 		if (PCI_SLOT(devfn) >= 8)
 			return 0;
@@ -75,16 +55,13 @@ static u32
 	return paddress;
 }
 
-/*
- * Mask table, bits to mask for quantity of size 1, 2 or 4 bytes.
- * 0 and 3 are not valid indexes...
- */
+
 static u32 bytemask[] = {
-	/*0*/	0,
-	/*1*/	0xff,
-	/*2*/	0xffff,
-	/*3*/	0,
-	/*4*/	0xffffffff,
+		0,
+		0xff,
+		0xffff,
+		0,
+		0xffffffff,
 };
 
 static int ixp23xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
@@ -113,11 +90,7 @@ static int ixp23xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-/*
- * We don't do error checking on the address for writes.
- * It's assumed that the user checked for the device existing first
- * by doing a read first.
- */
+
 static int ixp23xx_pci_write_config(struct pci_bus *bus, unsigned int devfn,
 					int where, int size, u32 value)
 {
@@ -157,9 +130,7 @@ int ixp23xx_pci_abort_handler(unsigned long addr, unsigned int fsr, struct pt_re
 	local_irq_save(flags);
 	temp = *IXP23XX_PCI_CONTROL;
 
-	/*
-	 * master abort and cmd tgt err
-	 */
+	
 	if (temp & ((1 << 8) | (1 << 5)))
 		*IXP23XX_PCI_CONTROL = temp;
 
@@ -169,10 +140,7 @@ int ixp23xx_pci_abort_handler(unsigned long addr, unsigned int fsr, struct pt_re
 		*IXP23XX_PCI_CMDSTAT = temp;
 	local_irq_restore(flags);
 
-	/*
-	 * If it was an imprecise abort, then we need to correct the
-	 * return address to be _after_ the instruction.
-	 */
+	
 	if (fsr & (1 << 10))
 		regs->ARM_pc += 4;
 
@@ -185,9 +153,7 @@ int clear_master_aborts(void)
 
 	temp = *IXP23XX_PCI_CONTROL;
 
-	/*
-	 * master abort and cmd tgt err
-	 */
+	
 	if (temp & ((1 << 8) | (1 << 5)))
 		*IXP23XX_PCI_CONTROL = temp;
 
@@ -202,25 +168,19 @@ int clear_master_aborts(void)
 static void __init ixp23xx_pci_common_init(void)
 {
 #ifdef __ARMEB__
-	*IXP23XX_PCI_CONTROL |= 0x20000;	/* set I/O swapping */
+	*IXP23XX_PCI_CONTROL |= 0x20000;	
 #endif
-	/*
-	 * ADDR_31 needs to be clear for PCI memory access to CPP memory
-	 */
+	
 	*IXP23XX_CPP2XSI_CURR_XFER_REG3 &= ~IXP23XX_CPP2XSI_ADDR_31;
 	*IXP23XX_CPP2XSI_CURR_XFER_REG3 |= IXP23XX_CPP2XSI_PSH_OFF;
 
-	/*
-	 * Select correct memory for PCI inbound transactions
-	 */
+	
 	if (ixp23xx_cpp_boot()) {
 		*IXP23XX_PCI_CPP_ADDR_BITS &= ~(1 << 1);
 	} else {
 		*IXP23XX_PCI_CPP_ADDR_BITS |= (1 << 1);
 
-		/*
-		 * Enable coherency on A2 silicon.
-		 */
+		
 		if (arch_is_coherent())
 			*IXP23XX_CPP2XSI_CURR_XFER_REG3 &= ~IXP23XX_CPP2XSI_COH_OFF;
 	}
@@ -236,9 +196,7 @@ void __init ixp23xx_pci_preinit(void)
 	*IXP23XX_PCI_ADDR_EXT = 0x0000e000;
 }
 
-/*
- * Prevent PCI layer from seeing the inbound host-bridge resources
- */
+
 static void __devinit pci_fixup_ixp23xx(struct pci_dev *dev)
 {
 	int i;
@@ -253,10 +211,7 @@ static void __devinit pci_fixup_ixp23xx(struct pci_dev *dev)
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x9002, pci_fixup_ixp23xx);
 
-/*
- * IXP2300 systems often have large resource requirements, so we just
- * use our own resource space.
- */
+
 static struct resource ixp23xx_pci_mem_space = {
 	.start	= IXP23XX_PCI_MEM_START,
 	.end	= IXP23XX_PCI_MEM_START + IXP23XX_PCI_MEM_SIZE - 1,

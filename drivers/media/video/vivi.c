@@ -1,17 +1,4 @@
-/*
- * Virtual Video driver - This code emulates a real video device with v4l2 api
- *
- * Copyright (c) 2006 by:
- *      Mauro Carvalho Chehab <mchehab--a.t--infradead.org>
- *      Ted Walther <ted--a.t--enumera.com>
- *      John Sokol <sokol--a.t--videotechnology.com>
- *      http://v4l.videotechnology.com/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the BSD Licence, GNU General Public License
- * as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version
- */
+
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
@@ -39,10 +26,10 @@
 
 #define VIVI_MODULE_NAME "vivi"
 
-/* Wake up at about 30 fps */
+
 #define WAKE_NUMERATOR 30
 #define WAKE_DENOMINATOR 1001
-#define BUFFER_TIMEOUT     msecs_to_jiffies(500)  /* 0.5 seconds */
+#define BUFFER_TIMEOUT     msecs_to_jiffies(500)  
 
 #define VIVI_MAJOR_VERSION 0
 #define VIVI_MINOR_VERSION 6
@@ -71,7 +58,7 @@ module_param(vid_limit, uint, 0644);
 MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
 
 
-/* supported controls */
+
 static struct v4l2_queryctrl vivi_qctrl[] = {
 	{
 		.id            = V4L2_CID_AUDIO_VOLUME,
@@ -124,13 +111,11 @@ static struct v4l2_queryctrl vivi_qctrl[] = {
 #define dprintk(dev, level, fmt, arg...) \
 	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
 
-/* ------------------------------------------------------------------
-	Basic structures
-   ------------------------------------------------------------------*/
+
 
 struct vivi_fmt {
 	char  *name;
-	u32   fourcc;          /* v4l2 format id */
+	u32   fourcc;          
 	int   depth;
 };
 
@@ -147,22 +132,22 @@ static struct vivi_fmt formats[] = {
 	},
 	{
 		.name     = "RGB565 (LE)",
-		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
+		.fourcc   = V4L2_PIX_FMT_RGB565, 
 		.depth    = 16,
 	},
 	{
 		.name     = "RGB565 (BE)",
-		.fourcc   = V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
+		.fourcc   = V4L2_PIX_FMT_RGB565X, 
 		.depth    = 16,
 	},
 	{
 		.name     = "RGB555 (LE)",
-		.fourcc   = V4L2_PIX_FMT_RGB555, /* gggbbbbb arrrrrgg */
+		.fourcc   = V4L2_PIX_FMT_RGB555, 
 		.depth    = 16,
 	},
 	{
 		.name     = "RGB555 (BE)",
-		.fourcc   = V4L2_PIX_FMT_RGB555X, /* arrrrrgg gggbbbbb */
+		.fourcc   = V4L2_PIX_FMT_RGB555X, 
 		.depth    = 16,
 	},
 };
@@ -189,9 +174,9 @@ struct sg_to_addr {
 	struct scatterlist *sg;
 };
 
-/* buffer for one video frame */
+
 struct vivi_buffer {
-	/* common v4l buffer stuff -- must be first */
+	
 	struct videobuf_buffer vb;
 
 	struct vivi_fmt        *fmt;
@@ -200,10 +185,10 @@ struct vivi_buffer {
 struct vivi_dmaqueue {
 	struct list_head       active;
 
-	/* thread for generating video stream*/
+	
 	struct task_struct         *kthread;
 	wait_queue_head_t          wq;
-	/* Counters to control fps rate */
+	
 	int                        frame;
 	int                        ini_jiffies;
 };
@@ -219,43 +204,41 @@ struct vivi_dev {
 
 	int                        users;
 
-	/* various device info */
+	
 	struct video_device        *vfd;
 
 	struct vivi_dmaqueue       vidq;
 
-	/* Several counters */
+	
 	int                        h, m, s, ms;
 	unsigned long              jiffies;
 	char                       timestr[13];
 
-	int			   mv_count;	/* Controls bars movement */
+	int			   mv_count;	
 
-	/* Input Number */
+	
 	int			   input;
 
-	/* Control 'registers' */
+	
 	int 			   qctl_regs[ARRAY_SIZE(vivi_qctrl)];
 };
 
 struct vivi_fh {
 	struct vivi_dev            *dev;
 
-	/* video capture */
+	
 	struct vivi_fmt            *fmt;
 	unsigned int               width, height;
 	struct videobuf_queue      vb_vidq;
 
 	enum v4l2_buf_type         type;
 	unsigned char              bars[8][3];
-	int			   input; 	/* Input Number on bars */
+	int			   input; 	
 };
 
-/* ------------------------------------------------------------------
-	DMA and thread functions
-   ------------------------------------------------------------------*/
 
-/* Bars and Colors should match positions */
+
+
 
 enum colors {
 	WHITE,
@@ -268,7 +251,7 @@ enum colors {
 	BLACK,
 };
 
-	/* R   G   B */
+	
 #define COLOR_WHITE	{204, 204, 204}
 #define COLOR_AMBAR	{208, 208,   0}
 #define COLOR_CIAN	{  0, 206, 206}
@@ -282,10 +265,9 @@ struct bar_std {
 	u8 bar[8][3];
 };
 
-/* Maximum number of bars are 10 - otherwise, the input print code
-   should be modified */
+
 static struct bar_std bars[] = {
-	{	/* Standard ITU-R color bar sequence */
+	{	
 		{
 			COLOR_WHITE,
 			COLOR_AMBAR,
@@ -336,14 +318,14 @@ static struct bar_std bars[] = {
 
 #define TO_Y(r, g, b) \
 	(((16829 * r + 33039 * g + 6416 * b  + 32768) >> 16) + 16)
-/* RGB to  V(Cr) Color transform */
+
 #define TO_V(r, g, b) \
 	(((28784 * r - 24103 * g - 4681 * b  + 32768) >> 16) + 128)
-/* RGB to  U(Cb) Color transform */
+
 #define TO_U(r, g, b) \
 	(((-9714 * r - 19070 * g + 28784 * b + 32768) >> 16) + 128)
 
-/* precalculate color bar values to speed up rendering */
+
 static void precalculate_bars(struct vivi_fh *fh)
 {
 	struct vivi_dev *dev = fh->dev;
@@ -378,9 +360,9 @@ static void precalculate_bars(struct vivi_fh *fh)
 		}
 
 		if (is_yuv) {
-			fh->bars[k][0] = TO_Y(r, g, b);	/* Luma */
-			fh->bars[k][1] = TO_U(r, g, b);	/* Cb */
-			fh->bars[k][2] = TO_V(r, g, b);	/* Cr */
+			fh->bars[k][0] = TO_Y(r, g, b);	
+			fh->bars[k][1] = TO_U(r, g, b);	
+			fh->bars[k][2] = TO_V(r, g, b);	
 		} else {
 			fh->bars[k][0] = r;
 			fh->bars[k][1] = g;
@@ -401,9 +383,9 @@ static void gen_twopix(struct vivi_fh *fh, unsigned char *buf, int colorpos)
 	unsigned char *p;
 	int color;
 
-	r_y = fh->bars[colorpos][0]; /* R or precalculated Y */
-	g_u = fh->bars[colorpos][1]; /* G or precalculated U */
-	b_v = fh->bars[colorpos][2]; /* B or precalculated V */
+	r_y = fh->bars[colorpos][0]; 
+	g_u = fh->bars[colorpos][1]; 
+	b_v = fh->bars[colorpos][2]; 
 
 	for (color = 0; color < 4; color++) {
 		p = buf + color;
@@ -497,20 +479,20 @@ static void gen_line(struct vivi_fh *fh, char *basep, int inipos, int wmax,
 	char *s;
 	u8 chr;
 
-	/* We will just duplicate the second pixel at the packet */
+	
 	wmax /= 2;
 
-	/* Generate a standard color bar pattern */
+	
 	for (w = 0; w < wmax; w++) {
 		int colorpos = ((w + count) * 8/(wmax + 1)) % 8;
 
 		gen_twopix(fh, basep + pos, colorpos);
-		pos += 4; /* only 16 bpp supported for now */
+		pos += 4; 
 	}
 
-	/* Prints input entry number */
+	
 
-	/* Checks if it is possible to input number */
+	
 	if (TSTAMP_MAX_Y >= hmax)
 		goto end;
 
@@ -521,7 +503,7 @@ static void gen_line(struct vivi_fh *fh, char *basep, int inipos, int wmax,
 		chr = rom8x16_bits[fh->input * 16 + line - TSTAMP_MIN_Y];
 		pos = TSTAMP_INPUT_X;
 		for (i = 0; i < 7; i++) {
-			/* Draw white font on black background */
+			
 			if (chr & 1 << (7 - i))
 				gen_twopix(fh, basep + pos, WHITE);
 			else
@@ -530,18 +512,18 @@ static void gen_line(struct vivi_fh *fh, char *basep, int inipos, int wmax,
 		}
 	}
 
-	/* Checks if it is possible to show timestamp */
+	
 	if (TSTAMP_MIN_X + strlen(timestr) >= wmax)
 		goto end;
 
-	/* Print stream time */
+	
 	if (line >= TSTAMP_MIN_Y && line <= TSTAMP_MAX_Y) {
 		j = TSTAMP_MIN_X;
 		for (s = timestr; *s; s++) {
 			chr = rom8x16_bits[(*s-0x30)*16+line-TSTAMP_MIN_Y];
 			for (i = 0; i < 7; i++) {
 				pos = inipos + j * 2;
-				/* Draw white font on black background */
+				
 				if (chr & 1 << (7 - i))
 					gen_twopix(fh, basep + pos, WHITE);
 				else
@@ -583,7 +565,7 @@ static void vivi_fillbuff(struct vivi_fh *fh, struct vivi_buffer *buf)
 
 	kfree(tmpbuf);
 
-	/* Updates stream time */
+	
 
 	dev->ms += jiffies_to_msecs(jiffies-dev->jiffies);
 	dev->jiffies = jiffies;
@@ -607,7 +589,7 @@ static void vivi_fillbuff(struct vivi_fh *fh, struct vivi_buffer *buf)
 	dprintk(dev, 2, "vivifill at %s: Buffer 0x%08lx size= %d\n",
 			dev->timestr, (unsigned long)tmpbuf, pos);
 
-	/* Advice that buffer was filled */
+	
 	buf->vb.field_count++;
 	do_gettimeofday(&ts);
 	buf->vb.ts = ts;
@@ -633,7 +615,7 @@ static void vivi_thread_tick(struct vivi_fh *fh)
 	buf = list_entry(dma_q->active.next,
 			 struct vivi_buffer, vb.queue);
 
-	/* Nobody is waiting on this buffer, return */
+	
 	if (!waitqueue_active(&buf->vb.done))
 		goto unlock;
 
@@ -641,7 +623,7 @@ static void vivi_thread_tick(struct vivi_fh *fh)
 
 	do_gettimeofday(&buf->vb.ts);
 
-	/* Fill buffer */
+	
 	vivi_fillbuff(fh, buf);
 	dprintk(dev, 1, "filled buffer %p\n", buf);
 
@@ -669,7 +651,7 @@ static void vivi_sleep(struct vivi_fh *fh)
 	if (kthread_should_stop())
 		goto stop_task;
 
-	/* Calculate time to wake up */
+	
 	timeout = msecs_to_jiffies(frames_to_ms(1));
 
 	vivi_thread_tick(fh);
@@ -716,7 +698,7 @@ static int vivi_start_thread(struct vivi_fh *fh)
 		v4l2_err(&dev->v4l2_dev, "kernel_thread() failed\n");
 		return PTR_ERR(dma_q->kthread);
 	}
-	/* Wakes thread */
+	
 	wake_up_interruptible(&dma_q->wq);
 
 	dprintk(dev, 1, "returning from %s\n", __func__);
@@ -728,16 +710,14 @@ static void vivi_stop_thread(struct vivi_dmaqueue  *dma_q)
 	struct vivi_dev *dev = container_of(dma_q, struct vivi_dev, vidq);
 
 	dprintk(dev, 1, "%s\n", __func__);
-	/* shutdown control thread */
+	
 	if (dma_q->kthread) {
 		kthread_stop(dma_q->kthread);
 		dma_q->kthread = NULL;
 	}
 }
 
-/* ------------------------------------------------------------------
-	Videobuf operations
-   ------------------------------------------------------------------*/
+
 static int
 buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
 {
@@ -796,7 +776,7 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
 	if (0 != buf->vb.baddr  &&  buf->vb.bsize < buf->vb.size)
 		return -EINVAL;
 
-	/* These properties only change when queue is idle, see s_fmt */
+	
 	buf->fmt       = fh->fmt;
 	buf->vb.width  = fh->width;
 	buf->vb.height = fh->height;
@@ -852,9 +832,7 @@ static struct videobuf_queue_ops vivi_video_qops = {
 	.buf_release    = buffer_release,
 };
 
-/* ------------------------------------------------------------------
-	IOCTL vidioc handling
-   ------------------------------------------------------------------*/
+
 static int vidioc_querycap(struct file *file, void  *priv,
 					struct v4l2_capability *cap)
 {
@@ -942,7 +920,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
 	return 0;
 }
 
-/*FIXME: This seems to be generic enough to be at videodev2 */
+
 static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 					struct v4l2_format *f)
 {
@@ -1042,7 +1020,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *i)
 	return 0;
 }
 
-/* only one input in this sample driver */
+
 static int vidioc_enum_input(struct file *file, void *priv,
 				struct v4l2_input *inp)
 {
@@ -1079,7 +1057,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
 	return (0);
 }
 
-	/* --- controls ---------------------------------------------- */
+	
 static int vidioc_queryctrl(struct file *file, void *priv,
 			    struct v4l2_queryctrl *qc)
 {
@@ -1129,9 +1107,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
 	return -EINVAL;
 }
 
-/* ------------------------------------------------------------------
-	File operations for the device
-   ------------------------------------------------------------------*/
+
 
 static int vivi_open(struct file *file)
 {
@@ -1151,7 +1127,7 @@ static int vivi_open(struct file *file)
 	dprintk(dev, 1, "open /dev/video%d type=%s users=%d\n", dev->vfd->num,
 		v4l2_type_names[V4L2_BUF_TYPE_VIDEO_CAPTURE], dev->users);
 
-	/* allocate + initialize per filehandle data */
+	
 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
 	if (NULL == fh) {
 		dev->users--;
@@ -1170,7 +1146,7 @@ static int vivi_open(struct file *file)
 	fh->width    = 640;
 	fh->height   = 480;
 
-	/* Resets frame counters */
+	
 	dev->h = 0;
 	dev->m = 0;
 	dev->s = 0;
@@ -1264,7 +1240,7 @@ static const struct v4l2_file_operations vivi_fops = {
 	.release        = vivi_close,
 	.read           = vivi_read,
 	.poll		= vivi_poll,
-	.ioctl          = video_ioctl2, /* V4L2 ioctl handler */
+	.ioctl          = video_ioctl2, 
 	.mmap           = vivi_mmap,
 };
 
@@ -1303,9 +1279,7 @@ static struct video_device vivi_template = {
 	.current_norm         = V4L2_STD_NTSC_M,
 };
 
-/* -----------------------------------------------------------------
-	Initialization and module stuff
-   ------------------------------------------------------------------*/
+
 
 static int vivi_release(void)
 {
@@ -1343,11 +1317,11 @@ static int __init vivi_create_instance(int inst)
 	if (ret)
 		goto free_dev;
 
-	/* init video dma queues */
+	
 	INIT_LIST_HEAD(&dev->vidq.active);
 	init_waitqueue_head(&dev->vidq.wq);
 
-	/* initialize locks */
+	
 	spin_lock_init(&dev->slock);
 	mutex_init(&dev->mutex);
 
@@ -1365,11 +1339,11 @@ static int __init vivi_create_instance(int inst)
 
 	video_set_drvdata(vfd, dev);
 
-	/* Set all controls to their default value. */
+	
 	for (i = 0; i < ARRAY_SIZE(vivi_qctrl); i++)
 		dev->qctl_regs[i] = vivi_qctrl[i].default_value;
 
-	/* Now that everything is fine, let's add it to device list */
+	
 	list_add_tail(&dev->vivi_devlist, &vivi_devlist);
 
 	snprintf(vfd->name, sizeof(vfd->name), "%s (%i)",
@@ -1392,12 +1366,7 @@ free_dev:
 	return ret;
 }
 
-/* This routine allocates from 1 to n_devs virtual drivers.
 
-   The real maximum number of virtual drivers will depend on how many drivers
-   will succeed. This is limited to the maximum number of devices that
-   videodev supports, which is equal to VIDEO_NUM_DEVICES.
- */
 static int __init vivi_init(void)
 {
 	int ret = 0, i;
@@ -1408,7 +1377,7 @@ static int __init vivi_init(void)
 	for (i = 0; i < n_devs; i++) {
 		ret = vivi_create_instance(i);
 		if (ret) {
-			/* If some instantiations succeeded, keep driver */
+			
 			if (i)
 				ret = 0;
 			break;
@@ -1425,7 +1394,7 @@ static int __init vivi_init(void)
 			(VIVI_VERSION >> 16) & 0xFF, (VIVI_VERSION >> 8) & 0xFF,
 			VIVI_VERSION & 0xFF);
 
-	/* n_devs will reflect the actual number of allocated devices */
+	
 	n_devs = i;
 
 	return ret;

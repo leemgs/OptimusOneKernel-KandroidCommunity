@@ -1,20 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/usb-musb.c
- *
- * This file will contain the board specific details for the
- * MENTOR USB OTG controller on OMAP3430
- *
- * Copyright (C) 2007-2008 Texas Instruments
- * Copyright (C) 2008 Nokia Corporation
- * Author: Vikram Pandita
- *
- * Generalization by:
- * Felipe Balbi <felipe.balbi@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/errno.h>
@@ -34,14 +18,14 @@
 #ifdef CONFIG_USB_MUSB_SOC
 
 static struct resource musb_resources[] = {
-	[0] = { /* start and end set dynamically */
+	[0] = { 
 		.flags	= IORESOURCE_MEM,
 	},
-	[1] = {	/* general IRQ */
+	[1] = {	
 		.start	= INT_243X_HS_USB_MC,
 		.flags	= IORESOURCE_IRQ,
 	},
-	[2] = {	/* DMA IRQ */
+	[2] = {	
 		.start	= INT_243X_HS_USB_DMA,
 		.flags	= IORESOURCE_IRQ,
 	},
@@ -121,15 +105,12 @@ static struct musb_hdrc_platform_data musb_plat = {
 #elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
 	.mode		= MUSB_PERIPHERAL,
 #endif
-	/* .clock is set dynamically */
+	
 	.set_clock	= musb_set_clock,
 	.config		= &musb_config,
 
-	/* REVISIT charge pump on TWL4030 can supply up to
-	 * 100 mA ... but this value is board-specific, like
-	 * "mode", and should be passed to usb_musb_init().
-	 */
-	.power		= 50,			/* up to 100 mA */
+	
+	.power		= 50,			
 };
 
 static u64 musb_dmamask = DMA_BIT_MASK(32);
@@ -154,10 +135,7 @@ void __init usb_musb_init(void)
 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
 	musb_resources[0].end = musb_resources[0].start + SZ_8K - 1;
 
-	/*
-	 * REVISIT: This line can be removed once all the platforms using
-	 * musb_core.c have been converted to use use clkdev.
-	 */
+	
 	musb_plat.clock = "ick";
 
 	if (platform_device_register(&musb_device) < 0) {
@@ -170,4 +148,4 @@ void __init usb_musb_init(void)
 void __init usb_musb_init(void)
 {
 }
-#endif /* CONFIG_USB_MUSB_SOC */
+#endif 

@@ -1,15 +1,4 @@
-/* $Id: diddfunc.c,v 1.14.6.2 2004/08/28 20:03:53 armin Exp $
- *
- * DIDD Interface module for Eicon active cards.
- * 
- * Functions are in dadapter.c 
- * 
- * Copyright 2002-2003 by Armin Schindler (mac@melware.de) 
- * Copyright 2002-2003 Cytronics & Melware (info@melware.de)
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include "platform.h"
 #include "di_defs.h"
@@ -25,9 +14,7 @@ extern char *DRIVERRELEASE_DIDD;
 static dword notify_handle;
 static DESCRIPTOR _DAdapter;
 
-/*
- * didd callback function
- */
+
 static void *didd_callback(void *context, DESCRIPTOR * adapter,
 			   int removal)
 {
@@ -44,9 +31,7 @@ static void *didd_callback(void *context, DESCRIPTOR * adapter,
 	return (NULL);
 }
 
-/*
- * connect to didd
- */
+
 static int DIVA_INIT_FUNCTION connect_didd(void)
 {
 	int x = 0;
@@ -57,7 +42,7 @@ static int DIVA_INIT_FUNCTION connect_didd(void)
 	DIVA_DIDD_Read(DIDD_Table, sizeof(DIDD_Table));
 
 	for (x = 0; x < MAX_DESCRIPTORS; x++) {
-		if (DIDD_Table[x].type == IDI_DADAPTER) {	/* DADAPTER found */
+		if (DIDD_Table[x].type == IDI_DADAPTER) {	
 			dadapter = 1;
 			memcpy(&_DAdapter, &DIDD_Table[x], sizeof(_DAdapter));
 			req.didd_notify.e.Req = 0;
@@ -69,16 +54,14 @@ static int DIVA_INIT_FUNCTION connect_didd(void)
 			if (req.didd_notify.e.Rc != 0xff)
 				return (0);
 			notify_handle = req.didd_notify.info.handle;
-		} else if (DIDD_Table[x].type == IDI_DIMAINT) {	/* MAINT found */
+		} else if (DIDD_Table[x].type == IDI_DIMAINT) {	
 			DbgRegister("DIDD", DRIVERRELEASE_DIDD, DBG_DEFAULT);
 		}
 	}
 	return (dadapter);
 }
 
-/*
- * disconnect from didd
- */
+
 static void DIVA_EXIT_FUNCTION disconnect_didd(void)
 {
 	IDI_SYNC_REQ req;
@@ -89,9 +72,7 @@ static void DIVA_EXIT_FUNCTION disconnect_didd(void)
 	_DAdapter.request((ENTITY *) & req);
 }
 
-/*
- * init
- */
+
 int DIVA_INIT_FUNCTION diddfunc_init(void)
 {
 	diva_didd_load_time_init();
@@ -104,9 +85,7 @@ int DIVA_INIT_FUNCTION diddfunc_init(void)
 	return (1);
 }
 
-/*
- * finit
- */
+
 void DIVA_EXIT_FUNCTION diddfunc_finit(void)
 {
 	DbgDeregister();

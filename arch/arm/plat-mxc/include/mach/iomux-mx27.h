@@ -1,21 +1,4 @@
-/*
-* Copyright (C) 2008 by Sascha Hauer <kernel@pengutronix.de>
-* Copyright (C) 2009 by Holger Schurig <hs4233@mail.mn-solutions.de>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-* MA 02110-1301, USA.
-*/
+
 
 #ifndef _MXC_IOMUX_MX27_H
 #define _MXC_IOMUX_MX27_H
@@ -25,7 +8,7 @@
 #endif
 
 
-/* Primary GPIO pin functions */
+
 
 #define PA0_PF_USBH2_CLK        (GPIO_PORTA | GPIO_PF | 0)
 #define PA1_PF_USBH2_DIR        (GPIO_PORTA | GPIO_PF | 1)
@@ -88,7 +71,7 @@
 #define PF20_PF_PC_CD1          (GPIO_PORTF | GPIO_PF | 20)
 #define PF23_PF_ATA_DATA15      (GPIO_PORTF | GPIO_PF | 23)
 
-/* Alternate GPIO pin functions */
+
 
 #define PB4_AF_MSHC_DATA0       (GPIO_PORTB | GPIO_AF | GPIO_OUT | 4)
 #define PB5_AF_MSHC_DATA1       (GPIO_PORTB | GPIO_AF | GPIO_OUT | 5)
@@ -143,7 +126,7 @@
 #define PF22_AF_ETMTRACE_CLK    (GPIO_PORTF | GPIO_AF | 22)
 #define PF23_AF_ETMTRACE_PKT4   (GPIO_PORTF | GPIO_AF | 23)
 
-/* AIN GPIO pin functions */
+
 
 #define PC14_AIN_SSI1_MCLK      (GPIO_PORTC | GPIO_AIN | GPIO_OUT | 14)
 #define PC15_AIN_GPT6_TOUT      (GPIO_PORTC | GPIO_AIN | GPIO_OUT | 15)
@@ -156,11 +139,11 @@
 #define PD27_AIN_EXT_DMA_GRANT  (GPIO_PORTD | GPIO_AIN | GPIO_OUT | 27)
 #define PF23_AIN_FEC_TX_EN      (GPIO_PORTF | GPIO_AIN | GPIO_OUT | 23)
 
-/* BIN GPIO pin functions */
+
 
 #define PC14_BIN_SSI2_MCLK      (GPIO_PORTC | GPIO_BIN | GPIO_OUT | 14)
 
-/* CIN GPIO pin functions */
+
 
 #define PD2_CIN_SLCDC1_DAT0     (GPIO_PORTD | GPIO_CIN | GPIO_OUT | 2)
 #define PD3_CIN_SLCDC1_DAT1     (GPIO_PORTD | GPIO_CIN | GPIO_OUT | 3)
@@ -179,9 +162,9 @@
 #define PD16_CIN_SLCDC1_DAT14   (GPIO_PORTD | GPIO_CIN | GPIO_OUT | 16)
 #define PD23_CIN_SLCDC1_DAT15   (GPIO_PORTD | GPIO_CIN | GPIO_OUT | 23)
 #define PF27_CIN_EXT_DMA_GRANT  (GPIO_PORTF | GPIO_CIN | GPIO_OUT | 27)
-/* LCDC_TESTx on PBxx omitted, because it's not clear what they do */
 
-/* AOUT GPIO pin functions */
+
+
 
 #define PC14_AOUT_GPT6_TIN      (GPIO_PORTC | GPIO_AOUT | GPIO_IN | 14)
 #define PD4_AOUT_FEC_RX_ER      (GPIO_PORTD | GPIO_AOUT | GPIO_IN | 4)
@@ -204,4 +187,4 @@
 #define PC31_BOUT_PC_WAIT       (GPIO_PORTC | GPIO_BOUT | GPIO_IN | 31)
 
 
-#endif /* _MXC_GPIO_MX1_MX2_H */
+#endif 

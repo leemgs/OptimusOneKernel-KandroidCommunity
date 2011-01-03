@@ -1,31 +1,11 @@
-/*
- * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Juergen Beisert, kernel@pengutronix.de
- *
- * This contains hardware definitions that are common between i.MX21 and
- * i.MX27.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA  02110-1301, USA.
- */
+
 
 #ifndef __ASM_ARCH_MXC_MX2x_H__
 #define __ASM_ARCH_MXC_MX2x_H__
 
-/* The following addresses are common between i.MX21 and i.MX27 */
 
-/* Register offests */
+
+
 #define AIPI_BASE_ADDR          0x10000000
 #define AIPI_BASE_ADDR_VIRT     0xF4000000
 #define AIPI_SIZE               SZ_1M
@@ -71,12 +51,7 @@
 
 #define CSI_BASE_ADDR           (SAHB1_BASE_ADDR + 0x0000)
 
-/*
- * This macro defines the physical to virtual address mapping for all the
- * peripheral modules. It is used by passing in the physical address as x
- * and returning the virtual address. If the physical address is not mapped,
- * it returns 0xDEADBEEF
- */
+
 #define IO_ADDRESS(x)   \
 	(void __force __iomem *) \
 	(((x >= AIPI_BASE_ADDR) && (x < (AIPI_BASE_ADDR + AIPI_SIZE))) ? \
@@ -86,7 +61,7 @@
 	((x >= X_MEMC_BASE_ADDR) && (x < (X_MEMC_BASE_ADDR + X_MEMC_SIZE))) ? \
 		X_MEMC_IO_ADDRESS(x) : 0xDEADBEEF)
 
-/* define the address mapping macros: in physical address order */
+
 #define AIPI_IO_ADDRESS(x)  \
 	(((x) - AIPI_BASE_ADDR) + AIPI_BASE_ADDR_VIRT)
 
@@ -104,7 +79,7 @@
 #define PCMCIA_IO_ADDRESS(x) \
 	(((x) - X_MEMC_BASE_ADDR) + X_MEMC_BASE_ADDR_VIRT)
 
-/* fixed interrupt numbers */
+
 #define MXC_INT_LCDC		61
 #define MXC_INT_SLCDC		60
 #define MXC_INT_EMMAPP		52
@@ -150,7 +125,7 @@
 #define MXC_INT_GPIO		8
 #define MXC_INT_CSPI3		6
 
-/* fixed DMA request numbers */
+
 #define DMA_REQ_CSI_RX          31
 #define DMA_REQ_CSI_STAT        30
 #define DMA_REQ_UART1_TX        27
@@ -179,4 +154,4 @@
 #define DMA_REQ_CSPI3_TX        2
 #define DMA_REQ_CSPI3_RX        1
 
-#endif /* __ASM_ARCH_MXC_MX2x_H__ */
+#endif 

@@ -1,9 +1,7 @@
 #ifndef _NET_DN_FIB_H
 #define _NET_DN_FIB_H
 
-/* WARNING: The ordering of these elements must match ordering
- *          of RTA_* rtnetlink attribute numbers.
- */
+
 struct dn_kern_rta
 {
         void            *rta_dst;
@@ -112,9 +110,7 @@ struct dn_fib_table {
 };
 
 #ifdef CONFIG_DECNET_ROUTER
-/*
- * dn_fib.c
- */
+
 extern void dn_fib_init(void);
 extern void dn_fib_cleanup(void);
 
@@ -132,17 +128,13 @@ extern void dn_fib_flush(void);
 extern void dn_fib_select_multipath(const struct flowi *fl,
 					struct dn_fib_res *res);
 
-/*
- * dn_tables.c
- */
+
 extern struct dn_fib_table *dn_fib_get_table(u32 n, int creat);
 extern struct dn_fib_table *dn_fib_empty_table(void);
 extern void dn_fib_table_init(void);
 extern void dn_fib_table_cleanup(void);
 
-/*
- * dn_rules.c
- */
+
 extern void dn_fib_rules_init(void);
 extern void dn_fib_rules_cleanup(void);
 extern unsigned dnet_addr_type(__le16 addr);
@@ -166,7 +158,7 @@ static inline void dn_fib_res_put(struct dn_fib_res *res)
 		fib_rule_put(res->r);
 }
 
-#else /* Endnode */
+#else 
 
 #define dn_fib_init()  do { } while(0)
 #define dn_fib_cleanup() do { } while(0)
@@ -177,7 +169,7 @@ static inline void dn_fib_res_put(struct dn_fib_res *res)
 #define dn_fib_rules_policy(saddr,res,flags) (0)
 #define dn_fib_res_put(res) do { } while(0)
 
-#endif /* CONFIG_DECNET_ROUTER */
+#endif 
 
 static inline __le16 dnet_make_mask(int n)
 {
@@ -186,4 +178,4 @@ static inline __le16 dnet_make_mask(int n)
 	return cpu_to_le16(0);
 }
 
-#endif /* _NET_DN_FIB_H */
+#endif 

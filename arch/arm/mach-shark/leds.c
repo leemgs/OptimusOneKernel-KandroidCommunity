@@ -1,20 +1,4 @@
-/*
- * arch/arm/mach-shark/leds.c
- * by Alexander Schulz
- *
- * derived from:
- * arch/arm/kernel/leds-footbridge.c
- * Copyright (C) 1998-1999 Russell King
- *
- * DIGITAL Shark LED control routines.
- *
- * The leds use is as follows:
- *  - Green front - toggles state every 50 timer interrupts
- *  - Amber front - Unused, this is a dual color led (Amber/Green)
- *  - Amber back  - On if system is not idle
- *
- * Changelog:
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -154,7 +138,7 @@ static int __init leds_init(void)
 	
 	leds_event = sequoia_leds_event;
 
-	/* Make LEDs independent of power-state */
+	
 	request_region(0x24,4,"sequoia");
 	temp = sequoia_read(0x09);
 	temp |= 1<<10;

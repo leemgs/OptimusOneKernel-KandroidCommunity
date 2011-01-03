@@ -1,31 +1,5 @@
 
-/*
 
-    cx88-i2c.c  --  all the i2c code is here
-
-    Copyright (C) 1996,97,98 Ralph  Metzler (rjkm@thp.uni-koeln.de)
-			   & Marcus Metzler (mocm@thp.uni-koeln.de)
-    (c) 2002 Yurij Sysoev <yurij@naturesoft.net>
-    (c) 1999-2003 Gerd Knorr <kraxel@bytesex.org>
-
-    (c) 2005 Mauro Carvalho Chehab <mchehab@infradead.org>
-	- Multituner support and i2c address binding
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -51,7 +25,7 @@ MODULE_PARM_DESC(i2c_udelay,"i2c delay at insmod time, in usecs "
 #define dprintk(level,fmt, arg...)	if (i2c_debug >= level) \
 	printk(KERN_DEBUG "%s: " fmt, core->name , ## arg)
 
-/* ----------------------------------------------------------------------- */
+
 
 static void cx8800_bit_setscl(void *data, int state)
 {
@@ -95,7 +69,7 @@ static int cx8800_bit_getsda(void *data)
 	return state & 0x01;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct i2c_algo_bit_data cx8800_i2c_algo_template = {
 	.setsda  = cx8800_bit_setsda,
@@ -106,7 +80,7 @@ static const struct i2c_algo_bit_data cx8800_i2c_algo_template = {
 	.timeout = 200,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static char *i2c_devs[128] = {
 	[ 0x1c >> 1 ] = "lgdt330x",
@@ -132,10 +106,10 @@ static void do_i2c_scan(char *name, struct i2c_client *c)
 	}
 }
 
-/* init + register i2c algo-bit adapter */
+
 int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
 {
-	/* Prevents usage of invalid delay values */
+	
 	if (i2c_udelay<5)
 		i2c_udelay=5;
 
@@ -181,7 +155,7 @@ int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
 	} else
 		printk("%s: i2c register FAILED\n", core->name);
 
-	/* Instantiate the IR receiver device, if present */
+	
 	if (0 == core->i2c_rc) {
 		struct i2c_board_info info;
 		const unsigned short addr_list[] = {
@@ -196,10 +170,6 @@ int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
 	return core->i2c_rc;
 }
 
-/* ----------------------------------------------------------------------- */
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+
+

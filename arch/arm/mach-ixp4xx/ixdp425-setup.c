@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/ixdp425-setup.c
- *
- * IXDP425/IXCDP1100 board-setup 
- *
- * Copyright (C) 2003-2005 MontaVista Software, Inc.
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -119,7 +111,7 @@ static struct platform_device ixdp425_flash_nand = {
 	.num_resources	= 1,
 	.resource	= &ixdp425_flash_nand_resource,
 };
-#endif	/* CONFIG_MTD_NAND_PLATFORM */
+#endif	
 
 static struct i2c_gpio_platform_data ixdp425_i2c_gpio_data = {
 	.sda_pin	= IXDP425_SDA_PIN,
@@ -177,7 +169,7 @@ static struct platform_device ixdp425_uart = {
 	.resource		= ixdp425_uart_resources
 };
 
-/* Built-in 10/100 Ethernet MAC interfaces */
+
 static struct eth_plat_info ixdp425_plat_eth[] = {
 	{
 		.phy		= 0,
@@ -229,13 +221,13 @@ static void __init ixdp425_init(void)
 
 	gpio_line_config(IXDP425_NAND_NCE_PIN, IXP4XX_GPIO_OUT);
 
-	/* Configure expansion bus for NAND Flash */
+	
 	*IXP4XX_EXP_CS3 = IXP4XX_EXP_BUS_CS_EN |
-			  IXP4XX_EXP_BUS_STROBE_T(1) |	/* extend by 1 clock */
-			  IXP4XX_EXP_BUS_CYCLES(0) |	/* Intel cycles */
-			  IXP4XX_EXP_BUS_SIZE(0) |	/* 512bytes addr space*/
+			  IXP4XX_EXP_BUS_STROBE_T(1) |	
+			  IXP4XX_EXP_BUS_CYCLES(0) |	
+			  IXP4XX_EXP_BUS_SIZE(0) |	
 			  IXP4XX_EXP_BUS_WR_EN |
-			  IXP4XX_EXP_BUS_BYTE_EN;	/* 8 bit data bus */
+			  IXP4XX_EXP_BUS_BYTE_EN;	
 #endif
 
 	if (cpu_is_ixp43x()) {
@@ -248,7 +240,7 @@ static void __init ixdp425_init(void)
 
 #ifdef CONFIG_ARCH_IXDP425
 MACHINE_START(IXDP425, "Intel IXDP425 Development Platform")
-	/* Maintainer: MontaVista Software, Inc. */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
 	.map_io		= ixp4xx_map_io,
@@ -261,7 +253,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_IXDP465
 MACHINE_START(IXDP465, "Intel IXDP465 Development Platform")
-	/* Maintainer: MontaVista Software, Inc. */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
 	.map_io		= ixp4xx_map_io,
@@ -274,7 +266,7 @@ MACHINE_END
 
 #ifdef CONFIG_ARCH_PRPMC1100
 MACHINE_START(IXCDP1100, "Intel IXCDP1100 Development Platform")
-	/* Maintainer: MontaVista Software, Inc. */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
 	.map_io		= ixp4xx_map_io,
@@ -287,7 +279,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_KIXRP435
 MACHINE_START(KIXRP435, "Intel KIXRP435 Reference Platform")
-	/* Maintainer: MontaVista Software, Inc. */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
 	.map_io		= ixp4xx_map_io,

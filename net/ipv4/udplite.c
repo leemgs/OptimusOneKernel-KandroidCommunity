@@ -1,15 +1,4 @@
-/*
- *  UDPLITE     An implementation of the UDP-Lite protocol (RFC 3828).
- *
- *  Authors:    Gerrit Renker       <gerrit@erg.abdn.ac.uk>
- *
- *  Changes:
- *  Fixes:
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #include "udp_impl.h"
 
 struct udp_table 	udplite_table;
@@ -65,7 +54,7 @@ static struct inet_protosw udplite4_protosw = {
 	.prot		=  &udplite_prot,
 	.ops		=  &inet_dgram_ops,
 	.capability	= -1,
-	.no_check	=  0,		/* must checksum (RFC 3828) */
+	.no_check	=  0,		
 	.flags		=  INET_PROTOSW_PERMANENT,
 };
 

@@ -1,13 +1,4 @@
-/* linux/arch/arm/mach-s3c2440/mach-anubis.c
- *
- * Copyright (c) 2003-2005,2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -57,7 +48,7 @@
 #define COPYRIGHT ", (c) 2005 Simtec Electronics"
 
 static struct map_desc anubis_iodesc[] __initdata = {
-  /* ISA IO areas */
+  
 
   {
 	.virtual	= (u32)S3C24XX_VA_ISA_BYTE,
@@ -71,12 +62,9 @@ static struct map_desc anubis_iodesc[] __initdata = {
 	.type		= MT_DEVICE,
   },
 
-  /* we could possibly compress the next set down into a set of smaller tables
-   * pagetables, but that would mean using an L2 section, and it still means
-   * we cannot actually feed the same register to an LDR due to 16K spacing
-   */
+  
 
-  /* CPLD control registers */
+  
 
   {
 	.virtual	= (u32)ANUBIS_VA_CTRL1,
@@ -132,7 +120,7 @@ static struct s3c2410_uartcfg anubis_uartcfgs[] __initdata = {
 	},
 };
 
-/* NAND Flash on Anubis board */
+
 
 static int external_map[]   = { 2 };
 static int chip0_map[]      = { 0 };
@@ -184,12 +172,7 @@ static struct mtd_partition anubis_default_nand_part_large[] = {
 	}
 };
 
-/* the Anubis has 3 selectable slots for nand-flash, the two
- * on-board chip areas, as well as the external slot.
- *
- * Note, there is no current hot-plug support for the External
- * socket.
-*/
+
 
 static struct s3c2410_nand_set anubis_nand_sets[] = {
 	[1] = {
@@ -242,7 +225,7 @@ static struct s3c2410_platform_nand anubis_nand_info = {
 	.select_chip	= anubis_nand_select,
 };
 
-/* IDE channels */
+
 
 static struct pata_platform_info anubis_ide_platdata = {
 	.ioport_shift	= 5,
@@ -302,7 +285,7 @@ static struct platform_device anubis_device_ide1 = {
 	},
 };
 
-/* Asix AX88796 10/100 ethernet controller */
+
 
 static struct ax_plat_data anubis_asix_platdata = {
 	.flags		= AXFLG_MAC_FROMDEV,
@@ -334,7 +317,7 @@ static struct platform_device anubis_device_asix = {
 	}
 };
 
-/* SM501 */
+
 
 static struct resource anubis_sm501_resource[] = {
 	[0] = {
@@ -356,11 +339,11 @@ static struct resource anubis_sm501_resource[] = {
 
 static struct sm501_initdata anubis_sm501_initdata = {
 	.gpio_high	= {
-		.set	= 0x3F000000,		/* 24bit panel */
+		.set	= 0x3F000000,		
 		.mask	= 0x0,
 	},
 	.misc_timing	= {
-		.set	= 0x010100,		/* SDRAM timing */
+		.set	= 0x010100,		
 		.mask	= 0x1F1F00,
 	},
 	.misc_control	= {
@@ -370,7 +353,7 @@ static struct sm501_initdata anubis_sm501_initdata = {
 
 	.devices	= SM501_USE_GPIO,
 
-	/* set the SDRAM and bus clocks */
+	
 	.mclk		= 72 * MHZ,
 	.m1xclk		= 144 * MHZ,
 };
@@ -405,7 +388,7 @@ static struct platform_device anubis_device_sm501 = {
 	},
 };
 
-/* Standard Anubis devices */
+
 
 static struct platform_device *anubis_devices[] __initdata = {
 	&s3c_device_usb,
@@ -428,7 +411,7 @@ static struct clk *anubis_clocks[] __initdata = {
 	&s3c24xx_uclk,
 };
 
-/* I2C devices. */
+
 
 static struct i2c_board_info anubis_i2c_devs[] __initdata = {
 	{
@@ -439,7 +422,7 @@ static struct i2c_board_info anubis_i2c_devs[] __initdata = {
 
 static void __init anubis_map_io(void)
 {
-	/* initialise the clocks */
+	
 
 	s3c24xx_dclk0.parent = &clk_upll;
 	s3c24xx_dclk0.rate   = 12*1000*1000;
@@ -460,7 +443,7 @@ static void __init anubis_map_io(void)
 	s3c24xx_init_clocks(0);
 	s3c24xx_init_uarts(anubis_uartcfgs, ARRAY_SIZE(anubis_uartcfgs));
 
-	/* check for the newer revision boards with large page nand */
+	
 
 	if ((__raw_readb(ANUBIS_VA_IDREG) & ANUBIS_IDREG_REVMASK) >= 4) {
 		printk(KERN_INFO "ANUBIS-B detected (revision %d)\n",
@@ -468,7 +451,7 @@ static void __init anubis_map_io(void)
 		anubis_nand_sets[0].partitions = anubis_default_nand_part_large;
 		anubis_nand_sets[0].nr_partitions = ARRAY_SIZE(anubis_default_nand_part_large);
 	} else {
-		/* ensure that the GPIO is setup */
+		
 		s3c2410_gpio_setpin(S3C2410_GPA(0), 1);
 	}
 }
@@ -484,7 +467,7 @@ static void __init anubis_init(void)
 
 
 MACHINE_START(ANUBIS, "Simtec-Anubis")
-	/* Maintainer: Ben Dooks <ben@simtec.co.uk> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

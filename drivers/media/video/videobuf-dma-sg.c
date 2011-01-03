@@ -1,22 +1,4 @@
-/*
- * helper functions for SG DMA video4linux capture buffers
- *
- * The functions expect the hardware being able to scatter gather
- * (i.e. the buffers are not linear in physical memory, but fragmented
- * into PAGE_SIZE chunks).  They also assume the driver does not need
- * to touch the video data.
- *
- * (c) 2007 Mauro Carvalho Chehab, <mchehab@infradead.org>
- *
- * Highly based on video-buf written originally by:
- * (c) 2001,02 Gerd Knorr <kraxel@bytesex.org>
- * (c) 2006 Mauro Carvalho Chehab, <mchehab@infradead.org>
- * (c) 2006 Ted Walther and John Sokol
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -50,7 +32,7 @@ MODULE_LICENSE("GPL");
 #define dprintk(level, fmt, arg...)	if (debug >= level) \
 	printk(KERN_DEBUG "vbuf-sg: " fmt , ## arg)
 
-/* --------------------------------------------------------------------- */
+
 
 struct scatterlist*
 videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
@@ -92,7 +74,7 @@ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
 	sg_init_table(sglist, nr_pages);
 
 	if (PageHighMem(pages[0]))
-		/* DMA to highmem pages might not work */
+		
 		goto highmem;
 	sg_set_page(&sglist[0], pages[0], PAGE_SIZE - offset, offset);
 	for (i = 1; i < nr_pages; i++) {
@@ -115,7 +97,7 @@ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
 	return NULL;
 }
 
-/* --------------------------------------------------------------------- */
+
 
 struct videobuf_dmabuf *videobuf_to_dma (struct videobuf_buffer *buf)
 {
@@ -164,7 +146,7 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
 
 	err = get_user_pages(current,current->mm,
 			     data & PAGE_MASK, dma->nr_pages,
-			     rw == READ, 1, /* force */
+			     rw == READ, 1, 
 			     dma->pages, NULL);
 
 	if (err != dma->nr_pages) {
@@ -305,7 +287,7 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
 	return 0;
 }
 
-/* --------------------------------------------------------------------- */
+
 
 int videobuf_sg_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
 {
@@ -325,7 +307,7 @@ int videobuf_sg_dma_unmap(struct device *dev, struct videobuf_dmabuf *dma)
 	return videobuf_dma_unmap(&q, dma);
 }
 
-/* --------------------------------------------------------------------- */
+
 
 static void
 videobuf_vm_open(struct vm_area_struct *vma)
@@ -374,12 +356,7 @@ videobuf_vm_close(struct vm_area_struct *vma)
 	return;
 }
 
-/*
- * Get a anonymous page for the mapping.  Make sure we can DMA to that
- * memory location with 32bit PCI devices (i.e. don't use highmem for
- * now ...).  Bounce buffers don't work very well for the data rates
- * video capture has.
- */
+
 static int
 videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
@@ -402,15 +379,9 @@ static const struct vm_operations_struct videobuf_vm_ops =
 	.fault    = videobuf_vm_fault,
 };
 
-/* ---------------------------------------------------------------------
- * SG handlers for the generic methods
- */
 
-/* Allocated area consists on 3 parts:
-	struct video_buffer
-	struct <driver>_buffer (cx88_buffer, saa7134_buf, ...)
-	struct videobuf_dma_sg_memory
- */
+
+
 
 static void *__videobuf_alloc(size_t size)
 {
@@ -456,7 +427,7 @@ static int __videobuf_iolock (struct videobuf_queue* q,
 	case V4L2_MEMORY_MMAP:
 	case V4L2_MEMORY_USERPTR:
 		if (0 == vb->baddr) {
-			/* no userspace addr -- kernel bounce buffer */
+			
 			pages = PAGE_ALIGN(vb->size) >> PAGE_SHIFT;
 			err = videobuf_dma_init_kernel( &mem->dma,
 							DMA_FROM_DEVICE,
@@ -464,17 +435,14 @@ static int __videobuf_iolock (struct videobuf_queue* q,
 			if (0 != err)
 				return err;
 		} else if (vb->memory == V4L2_MEMORY_USERPTR) {
-			/* dma directly to userspace */
+			
 			err = videobuf_dma_init_user( &mem->dma,
 						      DMA_FROM_DEVICE,
 						      vb->baddr,vb->bsize );
 			if (0 != err)
 				return err;
 		} else {
-			/* NOTE: HACK: videobuf_iolock on V4L2_MEMORY_MMAP
-			buffers can only be called from videobuf_qbuf
-			we take current->mm->mmap_sem there, to prevent
-			locking inversion, so don't take it here */
+			
 
 			err = videobuf_dma_init_user_locked(&mem->dma,
 						      DMA_FROM_DEVICE,
@@ -486,12 +454,8 @@ static int __videobuf_iolock (struct videobuf_queue* q,
 	case V4L2_MEMORY_OVERLAY:
 		if (NULL == fbuf)
 			return -EINVAL;
-		/* FIXME: need sanity checks for vb->boff */
-		/*
-		 * Using a double cast to avoid compiler warnings when
-		 * building for PAE. Compiler doesn't like direct casting
-		 * of a 32 bit ptr to 64 bit integer.
-		 */
+		
+		
 		bus   = (dma_addr_t)(unsigned long)fbuf->base + vb->boff;
 		pages = PAGE_ALIGN(vb->size) >> PAGE_SHIFT;
 		err = videobuf_dma_init_overlay(&mem->dma, DMA_FROM_DEVICE,
@@ -551,15 +515,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
 		goto done;
 	}
 
-	/* This function maintains backwards compatibility with V4L1 and will
-	 * map more than one buffer if the vma length is equal to the combined
-	 * size of multiple buffers than it will map them together.  See
-	 * VIDIOCGMBUF in the v4l spec
-	 *
-	 * TODO: Allow drivers to specify if they support this mode
-	 */
+	
 
-	/* look for first buffer to map */
+	
 	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
 		if (NULL == q->bufs[first])
 			continue;
@@ -578,7 +536,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
 		goto done;
 	}
 
-	/* look for last buffer to map */
+	
 	for (size = 0, last = first; last < VIDEO_MAX_FRAME; last++) {
 		if (NULL == q->bufs[last])
 			continue;
@@ -598,7 +556,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
 		goto done;
 	}
 
-	/* create mapping + update buffer list */
+	
 	retval = -ENOMEM;
 	map = kmalloc(sizeof(struct videobuf_mapping),GFP_KERNEL);
 	if (NULL == map)
@@ -619,7 +577,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
 	map->q        = q;
 	vma->vm_ops   = &videobuf_vm_ops;
 	vma->vm_flags |= VM_DONTEXPAND | VM_RESERVED;
-	vma->vm_flags &= ~VM_IO; /* using shared anonymous pages */
+	vma->vm_flags &= ~VM_IO; 
 	vma->vm_private_data = map;
 	dprintk(1,"mmap %p: q=%p %08lx-%08lx pgoff %08lx bufs %d-%d\n",
 		map,q,vma->vm_start,vma->vm_end,vma->vm_pgoff,first,last);
@@ -637,7 +595,7 @@ static int __videobuf_copy_to_user ( struct videobuf_queue *q,
 	BUG_ON(!mem);
 	MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
 
-	/* copy to userspace */
+	
 	if (count > q->read_buf->size - q->read_off)
 		count = q->read_buf->size - q->read_off;
 
@@ -657,17 +615,14 @@ static int __videobuf_copy_stream ( struct videobuf_queue *q,
 	MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
 
 	if (vbihack) {
-		/* dirty, undocumented hack -- pass the frame counter
-			* within the last four bytes of each vbi data block.
-			* We need that one to maintain backward compatibility
-			* to all vbi decoding software out there ... */
+		
 		fc  = (unsigned int*)mem->dma.vmalloc;
 		fc += (q->read_buf->size>>2) -1;
 		*fc = q->read_buf->field_count >> 1;
 		dprintk(1,"vbihack: %d\n",*fc);
 	}
 
-	/* copy stuff using the common method */
+	
 	count = __videobuf_copy_to_user (q,data,count,nonblocking);
 
 	if ( (count==-EFAULT) && (0 == pos) )
@@ -693,7 +648,7 @@ void *videobuf_sg_alloc(size_t size)
 {
 	struct videobuf_queue q;
 
-	/* Required to make generic handler to call __videobuf_alloc */
+	
 	q.int_ops = &sg_ops;
 
 	q.msize = size;
@@ -714,7 +669,7 @@ void videobuf_queue_sg_init(struct videobuf_queue* q,
 				 priv, &sg_ops);
 }
 
-/* --------------------------------------------------------------------- */
+
 
 EXPORT_SYMBOL_GPL(videobuf_vmalloc_to_sg);
 
@@ -734,8 +689,4 @@ EXPORT_SYMBOL_GPL(videobuf_sg_alloc);
 
 EXPORT_SYMBOL_GPL(videobuf_queue_sg_init);
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+

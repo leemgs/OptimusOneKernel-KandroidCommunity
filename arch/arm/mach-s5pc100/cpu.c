@@ -1,14 +1,4 @@
-/* linux/arch/arm/mach-s5pc100/cpu.c
- *
- * Copyright 2009 Samsung Electronics Co.
- *	Byungho Min <bhmin@samsung.com>
- *
- * Based on mach-s3c6410/cpu.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -40,21 +30,18 @@
 #include <plat/iic-core.h>
 #include <plat/s5pc100.h>
 
-/* Initial IO mappings */
+
 
 static struct map_desc s5pc100_iodesc[] __initdata = {
 };
 
-/* s5pc100_map_io
- *
- * register the standard cpu IO areas
-*/
+
 
 void __init s5pc100_map_io(void)
 {
 	iotable_init(s5pc100_iodesc, ARRAY_SIZE(s5pc100_iodesc));
 
-	/* initialise device information early */
+	
 }
 
 void __init s5pc100_init_clocks(int xtal)
@@ -70,7 +57,7 @@ void __init s5pc100_init_irq(void)
 {
 	u32 vic_valid[] = {~0, ~0, ~0};
 
-	/* VIC0, VIC1, and VIC2 are fully populated. */
+	
 	s5pc1xx_init_irq(vic_valid, ARRAY_SIZE(vic_valid));
 }
 

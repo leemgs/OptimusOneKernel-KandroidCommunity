@@ -1,16 +1,4 @@
-/*
- * Cryptographic API.
- *
- * Support for VIA PadLock hardware crypto engine.
- *
- * Copyright (c) 2006  Michal Ludvig <michal@logix.cz>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #include <crypto/internal/hash.h>
 #include <crypto/sha.h>
@@ -84,9 +72,8 @@ static inline void padlock_output_block(uint32_t *src,
 static int padlock_sha1_finup(struct shash_desc *desc, const u8 *in,
 			      unsigned int count, u8 *out)
 {
-	/* We can't store directly to *out as it may be unaligned. */
-	/* BTW Don't reduce the buffer size below 128 Bytes!
-	 *     PadLock microcode needs it that big. */
+	
+	
 	char buf[128 + PADLOCK_ALIGNMENT - STACK_ALIGN] __attribute__
 		((aligned(STACK_ALIGN)));
 	char *result = PTR_ALIGN(&buf[0], PADLOCK_ALIGNMENT);
@@ -125,9 +112,9 @@ static int padlock_sha1_finup(struct shash_desc *desc, const u8 *in,
 
 	memcpy(result, &state.state, SHA1_DIGEST_SIZE);
 
-	/* prevent taking the spurious DNA fault with padlock. */
+	
 	ts_state = irq_ts_save();
-	asm volatile (".byte 0xf3,0x0f,0xa6,0xc8" /* rep xsha1 */
+	asm volatile (".byte 0xf3,0x0f,0xa6,0xc8" 
 		      : \
 		      : "c"((unsigned long)state.count + count), \
 			"a"((unsigned long)state.count), \
@@ -150,9 +137,8 @@ static int padlock_sha1_final(struct shash_desc *desc, u8 *out)
 static int padlock_sha256_finup(struct shash_desc *desc, const u8 *in,
 				unsigned int count, u8 *out)
 {
-	/* We can't store directly to *out as it may be unaligned. */
-	/* BTW Don't reduce the buffer size below 128 Bytes!
-	 *     PadLock microcode needs it that big. */
+	
+	
 	char buf[128 + PADLOCK_ALIGNMENT - STACK_ALIGN] __attribute__
 		((aligned(STACK_ALIGN)));
 	char *result = PTR_ALIGN(&buf[0], PADLOCK_ALIGNMENT);
@@ -191,9 +177,9 @@ static int padlock_sha256_finup(struct shash_desc *desc, const u8 *in,
 
 	memcpy(result, &state.state, SHA256_DIGEST_SIZE);
 
-	/* prevent taking the spurious DNA fault with padlock. */
+	
 	ts_state = irq_ts_save();
-	asm volatile (".byte 0xf3,0x0f,0xa6,0xd0" /* rep xsha256 */
+	asm volatile (".byte 0xf3,0x0f,0xa6,0xd0" 
 		      : \
 		      : "c"((unsigned long)state.count + count), \
 			"a"((unsigned long)state.count), \
@@ -221,7 +207,7 @@ static int padlock_cra_init(struct crypto_tfm *tfm)
 	struct crypto_shash *fallback_tfm;
 	int err = -ENOMEM;
 
-	/* Allocate a fallback and abort if it failed. */
+	
 	fallback_tfm = crypto_alloc_shash(fallback_driver_name, 0,
 					  CRYPTO_ALG_NEED_FALLBACK);
 	if (IS_ERR(fallback_tfm)) {

@@ -1,14 +1,7 @@
-/* dvb-usb-dvb.c is part of the DVB USB library.
- *
- * Copyright (C) 2004-6 Patrick Boettcher (patrick.boettcher@desy.de)
- * see dvb-usb-init.c for copyright information.
- *
- * This file contains functions for initializing and handling the
- * linux-dvb API.
- */
+
 #include "dvb-usb-common.h"
 
-/* does the complete input transfer handling */
+
 static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
 {
 	struct dvb_usb_adapter *adap = dvbdmxfeed->demux->priv;
@@ -19,7 +12,7 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
 
 	newfeedcount = adap->feedcount + (onoff ? 1 : -1);
 
-	/* stop feed before setting a new pid if there will be no pid anymore */
+	
 	if (newfeedcount == 0) {
 		deb_ts("stop feeding\n");
 		usb_urb_kill(&adap->stream);
@@ -31,7 +24,7 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
 
 	adap->feedcount = newfeedcount;
 
-	/* activate the pid on the device specific pid_filter */
+	
 	deb_ts("setting pid (%s): %5d %04x at index %d '%s'\n",adap->pid_filtering ?
 		"yes" : "no", dvbdmxfeed->pid,dvbdmxfeed->pid,dvbdmxfeed->index,onoff ?
 		"on" : "off");
@@ -40,9 +33,7 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
 		adap->props.pid_filter != NULL)
 		adap->props.pid_filter(adap, dvbdmxfeed->index, dvbdmxfeed->pid,onoff);
 
-	/* start the feed if this was the first feed and there is still a feed
-	 * for reception.
-	 */
+	
 	if (adap->feedcount == onoff && adap->feedcount > 0) {
 		deb_ts("submitting all URBs\n");
 		usb_urb_submit(&adap->stream);
@@ -173,7 +164,7 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
 		return 0;
 	}
 
-	/* re-assign sleep and wakeup functions */
+	
 	if (adap->props.frontend_attach(adap) == 0 && adap->fe != NULL) {
 		adap->fe_init  = adap->fe->ops.init;  adap->fe->ops.init  = dvb_usb_fe_wakeup;
 		adap->fe_sleep = adap->fe->ops.sleep; adap->fe->ops.sleep = dvb_usb_fe_sleep;
@@ -185,7 +176,7 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
 			return -ENODEV;
 		}
 
-		/* only attach the tuner if the demod is there */
+		
 		if (adap->props.tuner_attach != NULL)
 			adap->props.tuner_attach(adap);
 	} else

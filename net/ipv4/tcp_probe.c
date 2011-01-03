@@ -1,22 +1,4 @@
-/*
- * tcpprobe - Observe the TCP flow with kprobes.
- *
- * The idea for this came from Werner Almesberger's umlsim
- * Copyright (C) 2004, Stephen Hemminger <shemminger@osdl.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/kprobes.h>
@@ -83,22 +65,19 @@ static inline int tcp_probe_avail(void)
 	return bufsize - tcp_probe_used();
 }
 
-/*
- * Hook inserted to be called before each receive packet.
- * Note: arguments must match tcp_rcv_established()!
- */
+
 static int jtcp_rcv_established(struct sock *sk, struct sk_buff *skb,
 			       struct tcphdr *th, unsigned len)
 {
 	const struct tcp_sock *tp = tcp_sk(sk);
 	const struct inet_sock *inet = inet_sk(sk);
 
-	/* Only update if port matches */
+	
 	if ((port == 0 || ntohs(inet->dport) == port || ntohs(inet->sport) == port)
 	    && (full || tp->snd_cwnd != tcp_probe.lastcwnd)) {
 
 		spin_lock(&tcp_probe.lock);
-		/* If log fills, just silently drop */
+		
 		if (tcp_probe_avail() > 1) {
 			struct tcp_log *p = tcp_probe.log + tcp_probe.head;
 
@@ -136,7 +115,7 @@ static struct jprobe tcp_jprobe = {
 
 static int tcpprobe_open(struct inode * inode, struct file * file)
 {
-	/* Reset (empty) log */
+	
 	spin_lock_bh(&tcp_probe.lock);
 	tcp_probe.head = tcp_probe.tail = 0;
 	tcp_probe.start = ktime_get();
@@ -175,7 +154,7 @@ static ssize_t tcpprobe_read(struct file *file, char __user *buf,
 		char tbuf[128];
 		int width;
 
-		/* Wait for data in buffer */
+		
 		error = wait_event_interruptible(tcp_probe.wait,
 						 tcp_probe_used() > 0);
 		if (error)
@@ -183,7 +162,7 @@ static ssize_t tcpprobe_read(struct file *file, char __user *buf,
 
 		spin_lock_bh(&tcp_probe.lock);
 		if (tcp_probe.head == tcp_probe.tail) {
-			/* multiple readers race? */
+			
 			spin_unlock_bh(&tcp_probe.lock);
 			continue;
 		}
@@ -195,8 +174,7 @@ static ssize_t tcpprobe_read(struct file *file, char __user *buf,
 
 		spin_unlock_bh(&tcp_probe.lock);
 
-		/* if record greater than space available
-		   return partial buffer (so far) */
+		
 		if (cnt + width >= len)
 			break;
 

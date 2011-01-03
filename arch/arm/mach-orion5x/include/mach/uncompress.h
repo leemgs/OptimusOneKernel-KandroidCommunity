@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-orion5x/include/mach/uncompress.h
- *
- * Tzachi Perelstein <tzachi@marvell.com>
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/serial_reg.h>
 #include <mach/orion5x.h>
@@ -42,8 +34,6 @@ static void flush(void)
 	}
 }
 
-/*
- * nothing to do
- */
+
 #define arch_decomp_setup()
 #define arch_decomp_wdog()

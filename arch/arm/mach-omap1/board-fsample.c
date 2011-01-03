@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-fsample.c
- *
- * Modified from board-perseus2.c
- *
- * Original OMAP730 support by Jean Pihet <j-pihet@ti.com>
- * Updated for 2.6 by Kevin Hilman <kjh@hilman.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -35,7 +24,7 @@
 #include <mach/common.h>
 #include <mach/board.h>
 
-/* fsample is pretty close to p2-sample */
+
 
 #define fsample_cpld_read(reg) __raw_readb(reg)
 #define fsample_cpld_write(val, reg) __raw_writeb(val, reg)
@@ -102,7 +91,7 @@ static int fsample_keymap[] = {
 
 static struct resource smc91x_resources[] = {
 	[0] = {
-		.start	= H2P2_DBG_FPGA_ETHR_START,	/* Physical */
+		.start	= H2P2_DBG_FPGA_ETHR_START,	
 		.end	= H2P2_DBG_FPGA_ETHR_START + 0xf,
 		.flags	= IORESOURCE_MEM,
 	},
@@ -114,28 +103,28 @@ static struct resource smc91x_resources[] = {
 };
 
 static struct mtd_partition nor_partitions[] = {
-	/* bootloader (U-Boot, etc) in first sector */
+	
 	{
 	      .name		= "bootloader",
 	      .offset		= 0,
 	      .size		= SZ_128K,
-	      .mask_flags	= MTD_WRITEABLE, /* force read-only */
+	      .mask_flags	= MTD_WRITEABLE, 
 	},
-	/* bootloader params in the next sector */
+	
 	{
 	      .name		= "params",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_128K,
 	      .mask_flags	= 0,
 	},
-	/* kernel */
+	
 	{
 	      .name		= "kernel",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_2M,
 	      .mask_flags	= 0
 	},
-	/* rest of flash is a file system */
+	
 	{
 	      .name		= "rootfs",
 	      .offset		= MTDPART_OFS_APPEND,
@@ -282,7 +271,7 @@ static void __init omap_fsample_init_irq(void)
 	fsample_init_smc91x();
 }
 
-/* Only FPGA needs to be mapped here. All others are done with ioremap */
+
 static struct map_desc omap_fsample_io_desc[] __initdata = {
 	{
 		.virtual	= H2P2_DBG_FPGA_BASE,
@@ -304,41 +293,29 @@ static void __init omap_fsample_map_io(void)
 	iotable_init(omap_fsample_io_desc,
 		     ARRAY_SIZE(omap_fsample_io_desc));
 
-	/* Early, board-dependent init */
+	
 
-	/*
-	 * Hold GSM Reset until needed
-	 */
+	
 	omap_writew(omap_readw(OMAP730_DSP_M_CTL) & ~1, OMAP730_DSP_M_CTL);
 
-	/*
-	 * UARTs -> done automagically by 8250 driver
-	 */
+	
 
-	/*
-	 * CSx timings, GPIO Mux ... setup
-	 */
+	
 
-	/* Flash: CS0 timings setup */
+	
 	omap_writel(0x0000fff3, OMAP730_FLASH_CFG_0);
 	omap_writel(0x00000088, OMAP730_FLASH_ACFG_0);
 
-	/*
-	 * Ethernet support through the debug board
-	 * CS1 timings setup
-	 */
+	
 	omap_writel(0x0000fff3, OMAP730_FLASH_CFG_1);
 	omap_writel(0x00000000, OMAP730_FLASH_ACFG_1);
 
-	/*
-	 * Configure MPU_EXT_NIRQ IO in IO_CONF9 register,
-	 * It is used as the Ethernet controller interrupt
-	 */
+	
 	omap_writel(omap_readl(OMAP730_IO_CONF_9) & 0x1FFFFFFF, OMAP730_IO_CONF_9);
 }
 
 MACHINE_START(OMAP_FSAMPLE, "OMAP730 F-Sample")
-/* Maintainer: Brian Swetland <swetland@google.com> */
+
 	.phys_io	= 0xfff00000,
 	.io_pg_offst	= ((0xfef00000) >> 18) & 0xfffc,
 	.boot_params	= 0x10000100,

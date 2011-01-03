@@ -1,13 +1,4 @@
-/* AF_RXRPC local endpoint management
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/net.h>
@@ -23,9 +14,7 @@ static DECLARE_WAIT_QUEUE_HEAD(rxrpc_local_wq);
 
 static void rxrpc_destroy_local(struct work_struct *work);
 
-/*
- * allocate a new local
- */
+
 static
 struct rxrpc_local *rxrpc_alloc_local(struct sockaddr_rxrpc *srx)
 {
@@ -52,10 +41,7 @@ struct rxrpc_local *rxrpc_alloc_local(struct sockaddr_rxrpc *srx)
 	return local;
 }
 
-/*
- * create the local socket
- * - must be called with rxrpc_local_sem writelocked
- */
+
 static int rxrpc_create_local(struct rxrpc_local *local)
 {
 	struct sock *sock;
@@ -63,7 +49,7 @@ static int rxrpc_create_local(struct rxrpc_local *local)
 
 	_enter("%p{%d}", local, local->srx.transport_type);
 
-	/* create a socket to represent the local endpoint */
+	
 	ret = sock_create_kern(PF_INET, local->srx.transport_type, IPPROTO_UDP,
 			       &local->socket);
 	if (ret < 0) {
@@ -71,7 +57,7 @@ static int rxrpc_create_local(struct rxrpc_local *local)
 		return ret;
 	}
 
-	/* if a local address was supplied then bind it */
+	
 	if (local->srx.transport_len > sizeof(sa_family_t)) {
 		_debug("bind");
 		ret = kernel_bind(local->socket,
@@ -83,7 +69,7 @@ static int rxrpc_create_local(struct rxrpc_local *local)
 		}
 	}
 
-	/* we want to receive ICMP errors */
+	
 	opt = 1;
 	ret = kernel_setsockopt(local->socket, SOL_IP, IP_RECVERR,
 				(char *) &opt, sizeof(opt));
@@ -92,7 +78,7 @@ static int rxrpc_create_local(struct rxrpc_local *local)
 		goto error;
 	}
 
-	/* we want to set the don't fragment bit */
+	
 	opt = IP_PMTUDISC_DO;
 	ret = kernel_setsockopt(local->socket, SOL_IP, IP_MTU_DISCOVER,
 				(char *) &opt, sizeof(opt));
@@ -105,7 +91,7 @@ static int rxrpc_create_local(struct rxrpc_local *local)
 	list_add(&local->link, &rxrpc_locals);
 	write_unlock_bh(&rxrpc_local_lock);
 
-	/* set the socket up */
+	
 	sock = local->socket->sk;
 	sock->sk_user_data	= local;
 	sock->sk_data_ready	= rxrpc_data_ready;
@@ -123,9 +109,7 @@ error:
 	return ret;
 }
 
-/*
- * create a new local endpoint using the specified UDP address
- */
+
 struct rxrpc_local *rxrpc_lookup_local(struct sockaddr_rxrpc *srx)
 {
 	struct rxrpc_local *local;
@@ -139,7 +123,7 @@ struct rxrpc_local *rxrpc_lookup_local(struct sockaddr_rxrpc *srx)
 
 	down_write(&rxrpc_local_sem);
 
-	/* see if we have a suitable local local endpoint already */
+	
 	read_lock_bh(&rxrpc_local_lock);
 
 	list_for_each_entry(local, &rxrpc_locals, link) {
@@ -171,7 +155,7 @@ struct rxrpc_local *rxrpc_lookup_local(struct sockaddr_rxrpc *srx)
 
 	read_unlock_bh(&rxrpc_local_lock);
 
-	/* we didn't find one, so we need to create one */
+	
 	local = rxrpc_alloc_local(srx);
 	if (!local) {
 		up_write(&rxrpc_local_sem);
@@ -214,17 +198,14 @@ found_local:
 	return local;
 }
 
-/*
- * release a local endpoint
- */
+
 void rxrpc_put_local(struct rxrpc_local *local)
 {
 	_enter("%p{u=%d}", local, atomic_read(&local->usage));
 
 	ASSERTCMP(atomic_read(&local->usage), >, 0);
 
-	/* to prevent a race, the decrement and the dequeue must be effectively
-	 * atomic */
+	
 	write_lock_bh(&rxrpc_local_lock);
 	if (unlikely(atomic_dec_and_test(&local->usage))) {
 		_debug("destroy local");
@@ -234,9 +215,7 @@ void rxrpc_put_local(struct rxrpc_local *local)
 	_leave("");
 }
 
-/*
- * destroy a local endpoint
- */
+
 static void rxrpc_destroy_local(struct work_struct *work)
 {
 	struct rxrpc_local *local =
@@ -264,7 +243,7 @@ static void rxrpc_destroy_local(struct work_struct *work)
 	ASSERT(!work_pending(&local->acceptor));
 	ASSERT(!work_pending(&local->rejecter));
 
-	/* finish cleaning up the local descriptor */
+	
 	rxrpc_purge_queue(&local->accept_queue);
 	rxrpc_purge_queue(&local->reject_queue);
 	kernel_sock_shutdown(local->socket, SHUT_RDWR);
@@ -281,17 +260,14 @@ static void rxrpc_destroy_local(struct work_struct *work)
 	_leave("");
 }
 
-/*
- * preemptively destroy all local local endpoint rather than waiting for
- * them to be destroyed
- */
+
 void __exit rxrpc_destroy_all_locals(void)
 {
 	DECLARE_WAITQUEUE(myself,current);
 
 	_enter("");
 
-	/* we simply have to wait for them to go away */
+	
 	if (!list_empty(&rxrpc_locals)) {
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		add_wait_queue(&rxrpc_local_wq, &myself);

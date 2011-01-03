@@ -1,24 +1,4 @@
-/* -*- linux-c -*-
- * INET		802.1Q VLAN
- *		Ethernet-type device handling.
- *
- * Authors:	Ben Greear <greearb@candelatech.com>
- *              Please send support related email to: netdev@vger.kernel.org
- *              VLAN Home Page: http://www.candelatech.com/~greear/vlan.html
- *
- * Fixes:       Mar 22 2001: Martin Bokaemper <mbokaemper@unispherenetworks.com>
- *                - reset skb->pkt_type on incoming packets when MAC was changed
- *                - see that changed MAC is saddr for outgoing packets
- *              Oct 20, 2001:  Ard van Breeman:
- *                - Fix MC-list, finally.
- *                - Flush MC-list on VLAN destroy.
- *
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -31,16 +11,7 @@
 #include "vlanproc.h"
 #include <linux/if_vlan.h>
 
-/*
- *	Rebuild the Ethernet MAC header. This is called after an ARP
- *	(or in future other address resolution) has completed on this
- *	sk_buff. We now let ARP fill in the other fields.
- *
- *	This routine CANNOT use cached dst->neigh!
- *	Really, it is used only when dst->neigh is wrong.
- *
- * TODO:  This needs a checkup, I'm ignorant here. --BLG
- */
+
 static int vlan_dev_rebuild_header(struct sk_buff *skb)
 {
 	struct net_device *dev = skb->dev;
@@ -50,7 +21,7 @@ static int vlan_dev_rebuild_header(struct sk_buff *skb)
 #ifdef CONFIG_INET
 	case htons(ETH_P_IP):
 
-		/* TODO:  Confirm this will work with VLAN headers... */
+		
 		return arp_find(veth->h_dest, skb);
 #endif
 	default:
@@ -70,7 +41,7 @@ static inline struct sk_buff *vlan_check_reorder_header(struct sk_buff *skb)
 		if (skb_cow(skb, skb_headroom(skb)) < 0)
 			skb = NULL;
 		if (skb) {
-			/* Lifted from Gleb's VLAN code... */
+			
 			memmove(skb->data - ETH_HLEN,
 				skb->data - VLAN_ETH_HLEN, 12);
 			skb->mac_header += VLAN_HLEN;
@@ -86,10 +57,7 @@ static inline void vlan_set_encap_proto(struct sk_buff *skb,
 	__be16 proto;
 	unsigned char *rawp;
 
-	/*
-	 * Was a VLAN packet, grab the encapsulated protocol, which the layer
-	 * three protocols care about.
-	 */
+	
 
 	proto = vhdr->h_vlan_encapsulated_proto;
 	if (ntohs(proto) >= 1536) {
@@ -99,43 +67,14 @@ static inline void vlan_set_encap_proto(struct sk_buff *skb,
 
 	rawp = skb->data;
 	if (*(unsigned short *)rawp == 0xFFFF)
-		/*
-		 * This is a magic hack to spot IPX packets. Older Novell
-		 * breaks the protocol design and runs IPX over 802.3 without
-		 * an 802.2 LLC layer. We look for FFFF which isn't a used
-		 * 802.2 SSAP/DSAP. This won't work for fault tolerant netware
-		 * but does for the rest.
-		 */
+		
 		skb->protocol = htons(ETH_P_802_3);
 	else
-		/*
-		 * Real 802.2 LLC
-		 */
+		
 		skb->protocol = htons(ETH_P_802_2);
 }
 
-/*
- *	Determine the packet's protocol ID. The rule here is that we
- *	assume 802.3 if the type field is short enough to be a length.
- *	This is normal practice and works for any 'now in use' protocol.
- *
- *  Also, at this point we assume that we ARE dealing exclusively with
- *  VLAN packets, or packets that should be made into VLAN packets based
- *  on a default VLAN ID.
- *
- *  NOTE:  Should be similar to ethernet/eth.c.
- *
- *  SANITY NOTE:  This method is called when a packet is moving up the stack
- *                towards userland.  To get here, it would have already passed
- *                through the ethernet/eth.c eth_type_trans() method.
- *  SANITY NOTE 2: We are referencing to the VLAN_HDR frields, which MAY be
- *                 stored UNALIGNED in the memory.  RISC systems don't like
- *                 such cases very much...
- *  SANITY NOTE 2a: According to Dave Miller & Alexey, it will always be
- *  		    aligned, so there doesn't need to be any of the unaligned
- *  		    stuff.  It has been commented out now...  --Ben
- *
- */
+
 int vlan_skb_recv(struct sk_buff *skb, struct net_device *dev,
 		  struct packet_type *ptype, struct net_device *orig_dev)
 {
@@ -175,8 +114,8 @@ int vlan_skb_recv(struct sk_buff *skb, struct net_device *dev,
 		 __func__, skb->priority, vlan_tci);
 
 	switch (skb->pkt_type) {
-	case PACKET_BROADCAST: /* Yeah, stats collect these together.. */
-		/* stats->broadcast ++; // no such counter :-( */
+	case PACKET_BROADCAST: 
+		
 		break;
 
 	case PACKET_MULTICAST:
@@ -184,10 +123,7 @@ int vlan_skb_recv(struct sk_buff *skb, struct net_device *dev,
 		break;
 
 	case PACKET_OTHERHOST:
-		/* Our lower layer thinks this is not local, let's make sure.
-		 * This allows the VLAN to have a different MAC than the
-		 * underlying device, and still route correctly.
-		 */
+		
 		if (!compare_ether_addr(eth_hdr(skb)->h_dest,
 					skb->dev->dev_addr))
 			skb->pkt_type = PACKET_HOST;
@@ -223,24 +159,14 @@ vlan_dev_get_egress_qos_mask(struct net_device *dev, struct sk_buff *skb)
 	mp = vlan_dev_info(dev)->egress_priority_map[(skb->priority & 0xF)];
 	while (mp) {
 		if (mp->priority == skb->priority) {
-			return mp->vlan_qos; /* This should already be shifted
-					      * to mask correctly with the
-					      * VLAN's TCI */
+			return mp->vlan_qos; 
 		}
 		mp = mp->next;
 	}
 	return 0;
 }
 
-/*
- *	Create the VLAN header for an arbitrary protocol layer
- *
- *	saddr=NULL	means use device source address
- *	daddr=NULL	means leave destination address (eg unresolved arp)
- *
- *  This is called when the SKB is moving down the stack towards the
- *  physical devices.
- */
+
 static int vlan_dev_hard_header(struct sk_buff *skb, struct net_device *dev,
 				unsigned short type,
 				const void *daddr, const void *saddr,
@@ -261,11 +187,7 @@ static int vlan_dev_hard_header(struct sk_buff *skb, struct net_device *dev,
 		vlan_tci |= vlan_dev_get_egress_qos_mask(dev, skb);
 		vhdr->h_vlan_TCI = htons(vlan_tci);
 
-		/*
-		 *  Set the protocol type. For a packet of type ETH_P_802_3 we
-		 *  put the length in here instead. It is up to the 802.2
-		 *  layer to carry protocol information.
-		 */
+		
 		if (type != ETH_P_802_3)
 			vhdr->h_vlan_encapsulated_proto = htons(type);
 		else
@@ -276,11 +198,11 @@ static int vlan_dev_hard_header(struct sk_buff *skb, struct net_device *dev,
 		vhdrlen = VLAN_HLEN;
 	}
 
-	/* Before delegating work to the lower layer, enter our MAC-address */
+	
 	if (saddr == NULL)
 		saddr = dev->dev_addr;
 
-	/* Now make the underlying real hard header */
+	
 	dev = vlan_dev_info(dev)->real_dev;
 	rc = dev_hard_header(skb, dev, type, daddr, saddr, len + vhdrlen);
 	if (rc > 0)
@@ -297,11 +219,7 @@ static netdev_tx_t vlan_dev_hard_start_xmit(struct sk_buff *skb,
 	unsigned int len;
 	int ret;
 
-	/* Handle non-VLAN frames if they are sent to us, for example by DHCP.
-	 *
-	 * NOTE: THIS ASSUMES DIX ETHERNET, SPECIFICALLY NOT SUPPORTING
-	 * OTHER THINGS LIKE FDDI/TokenRing/802.3 SNAPs...
-	 */
+	
 	if (veth->h_vlan_proto != htons(ETH_P_8021Q) ||
 	    vlan_dev_info(dev)->flags & VLAN_FLAG_REORDER_HDR) {
 		unsigned int orig_headroom = skb_headroom(skb);
@@ -363,9 +281,7 @@ static netdev_tx_t vlan_dev_hwaccel_hard_start_xmit(struct sk_buff *skb,
 
 static int vlan_dev_change_mtu(struct net_device *dev, int new_mtu)
 {
-	/* TODO: gotta make sure the underlying layer can handle it,
-	 * maybe an IFF_VLAN_CAPABLE flag for devices?
-	 */
+	
 	if (vlan_dev_info(dev)->real_dev->mtu < new_mtu)
 		return -ERANGE;
 
@@ -395,7 +311,7 @@ int vlan_dev_set_egress_priority(const struct net_device *dev,
 	struct vlan_priority_tci_mapping *np;
 	u32 vlan_qos = (vlan_prio << 13) & 0xE000;
 
-	/* See if a priority mapping exists.. */
+	
 	mp = vlan->egress_priority_map[skb_prio & 0xF];
 	while (mp) {
 		if (mp->priority == skb_prio) {
@@ -409,7 +325,7 @@ int vlan_dev_set_egress_priority(const struct net_device *dev,
 		mp = mp->next;
 	}
 
-	/* Create a new mapping then. */
+	
 	mp = vlan->egress_priority_map[skb_prio & 0xF];
 	np = kmalloc(sizeof(struct vlan_priority_tci_mapping), GFP_KERNEL);
 	if (!np)
@@ -424,7 +340,7 @@ int vlan_dev_set_egress_priority(const struct net_device *dev,
 	return 0;
 }
 
-/* Flags are defined in the vlan_flags enum in include/linux/if_vlan.h file. */
+
 int vlan_dev_change_flags(const struct net_device *dev, u32 flags, u32 mask)
 {
 	struct vlan_dev_info *vlan = vlan_dev_info(dev);
@@ -644,11 +560,7 @@ static void vlan_dev_set_rx_mode(struct net_device *vlan_dev)
 	dev_unicast_sync(vlan_dev_info(vlan_dev)->real_dev, vlan_dev);
 }
 
-/*
- * vlan network devices have devices nesting below it, and are a special
- * "super class" of normal network devices; split their locks off into a
- * separate class since they always nest.
- */
+
 static struct lock_class_key vlan_netdev_xmit_lock_key;
 static struct lock_class_key vlan_netdev_addr_lock_key;
 
@@ -684,7 +596,7 @@ static int vlan_dev_init(struct net_device *dev)
 
 	netif_carrier_off(dev);
 
-	/* IFF_BROADCAST|IFF_MULTICAST; ??? */
+	
 	dev->flags  = real_dev->flags & ~(IFF_UP | IFF_PROMISC | IFF_ALLMULTI);
 	dev->iflink = real_dev->ifindex;
 	dev->state  = (real_dev->state & ((1<<__LINK_STATE_NOCARRIER) |
@@ -694,7 +606,7 @@ static int vlan_dev_init(struct net_device *dev)
 	dev->features |= real_dev->features & real_dev->vlan_features;
 	dev->gso_max_size = real_dev->gso_max_size;
 
-	/* ipv6 shared card related stuff */
+	
 	dev->dev_id = real_dev->dev_id;
 
 	if (is_zero_ether_addr(dev->dev_addr))

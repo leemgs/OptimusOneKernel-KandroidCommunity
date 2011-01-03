@@ -1,43 +1,4 @@
-/*
- *  IBM eServer eHCA Infiniband device driver for Linux on POWER
- *
- *  HCA query functions
- *
- *  Authors: Heiko J Schick <schickhj@de.ibm.com>
- *           Christoph Raisch <raisch@de.ibm.com>
- *
- *  Copyright (c) 2005 IBM Corporation
- *
- *  All rights reserved.
- *
- *  This source code is distributed under a dual license of GPL v2.0 and OpenIB
- *  BSD.
- *
- * OpenIB BSD License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials
- * provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "ehca_tools.h"
 #include "ehca_iverbs.h"
@@ -114,7 +75,7 @@ int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
 	}
 
 	props->max_pkeys           = 16;
-	/* Some FW versions say 0 here; insert sensible value in that case */
+	
 	props->local_ca_ack_delay  = rblock->local_ca_ack_delay ?
 		min_t(u8, rblock->local_ca_ack_delay, 255) : 12;
 	props->max_raw_ipv6_qp     = limit_uint(rblock->max_raw_ipv6_qp);
@@ -124,7 +85,7 @@ int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
 	props->max_total_mcast_qp_attach
 		= limit_uint(rblock->max_total_mcast_qp_attach);
 
-	/* translate device capabilities */
+	
 	props->device_cap_flags = IB_DEVICE_SYS_IMAGE_GUID |
 		IB_DEVICE_RC_RNR_NAK_GEN | IB_DEVICE_N_NOTIFY_CQ;
 	for (i = 0; i < ARRAY_SIZE(cap_mapping); i += 2)
@@ -225,9 +186,7 @@ int ehca_query_port(struct ib_device *ibdev,
 		props->active_width    = rblock->phys_width;
 		props->active_speed    = rblock->phys_speed;
 	} else {
-		/* old firmware releases don't report physical
-		 * port info, so use default values
-		 */
+		
 		props->phys_state      = 5;
 		props->state           = rblock->state;
 		props->active_width    = IB_WIDTH_12X;

@@ -1,14 +1,4 @@
-/* IRC extension for TCP NAT alteration.
- *
- * (C) 2000-2001 by Harald Welte <laforge@gnumonks.org>
- * (C) 2004 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
- * based on a copy of RR's ip_nat_ftp.c
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -38,12 +28,12 @@ static unsigned int help(struct sk_buff *skb,
 	u_int16_t port;
 	unsigned int ret;
 
-	/* Reply comes from server. */
+	
 	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
 	exp->dir = IP_CT_DIR_REPLY;
 	exp->expectfn = nf_nat_follow_master;
 
-	/* Try to get same port: if not, try to change it. */
+	
 	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
 		exp->tuple.dst.u.tcp.port = htons(port);
 		if (nf_ct_expect_related(exp) == 0)
@@ -79,7 +69,7 @@ static int __init nf_nat_irc_init(void)
 	return 0;
 }
 
-/* Prior to 2.6.11, we had a ports param.  No longer, but don't break users. */
+
 static int warn_set(const char *val, struct kernel_param *kp)
 {
 	printk(KERN_INFO KBUILD_MODNAME

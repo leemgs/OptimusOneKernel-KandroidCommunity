@@ -20,7 +20,7 @@ struct ep93xx_dma_m2p_client {
 					struct ep93xx_dma_buffer *buf,
 					int bytes, int error);
 
-	/* Internal to the DMA code.  */
+	
 	void			*channel;
 };
 
@@ -49,4 +49,4 @@ void ep93xx_dma_m2p_submit_recursive(struct ep93xx_dma_m2p_client *m2p,
 				     struct ep93xx_dma_buffer *buf);
 void ep93xx_dma_m2p_flush(struct ep93xx_dma_m2p_client *m2p);
 
-#endif /* __ASM_ARCH_DMA_H */
+#endif 

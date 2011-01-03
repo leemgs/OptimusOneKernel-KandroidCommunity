@@ -1,16 +1,4 @@
-/*
- * cxgb3i_pdu.c: Chelsio S3xx iSCSI driver.
- *
- * Copyright (c) 2008 Chelsio Communications, Inc.
- * Copyright (c) 2008 Mike Christie
- * Copyright (c) 2008 Red Hat, Inc.  All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Written by: Karen Xie (kxie@chelsio.com)
- */
+
 
 #include <linux/skbuff.h>
 #include <linux/crypto.h>
@@ -32,15 +20,13 @@
 #define cxgb3i_tx_debug(fmt...)
 #endif
 
-/* always allocate rooms for AHS */
+
 #define SKB_TX_PDU_HEADER_LEN	\
 	(sizeof(struct iscsi_hdr) + ISCSI_MAX_AHS_SIZE)
 static unsigned int skb_extra_headroom;
 static struct page *pad_page;
 
-/*
- * pdu receive, interact with libiscsi_tcp
- */
+
 static inline int read_pdu_skb(struct iscsi_conn *conn, struct sk_buff *skb,
 			       unsigned int offset, int offloaded)
 {
@@ -52,13 +38,10 @@ static inline int read_pdu_skb(struct iscsi_conn *conn, struct sk_buff *skb,
 	case ISCSI_TCP_CONN_ERR:
 		return -EIO;
 	case ISCSI_TCP_SUSPENDED:
-		/* no transfer - just have caller flush queue */
+		
 		return bytes_read;
 	case ISCSI_TCP_SKB_DONE:
-		/*
-		 * pdus should always fit in the skb and we should get
-		 * segment done notifcation.
-		 */
+		
 		iscsi_conn_printk(KERN_ERR, conn, "Invalid pdu or skb.");
 		return -EFAULT;
 	case ISCSI_TCP_SEGMENT_DONE:
@@ -96,7 +79,7 @@ static int cxgb3i_conn_read_pdu_skb(struct iscsi_conn *conn,
 		return -EIO;
 	}
 
-	/* iscsi hdr */
+	
 	rc = read_pdu_skb(conn, skb, 0, 0);
 	if (rc <= 0)
 		return rc;
@@ -108,7 +91,7 @@ static int cxgb3i_conn_read_pdu_skb(struct iscsi_conn *conn,
 	if (conn->hdrdgst_en)
 		offset += ISCSI_DIGEST_SIZE;
 
-	/* iscsi data */
+	
 	if (skb_ulp_mode(skb) & ULP2_FLAG_DATA_DDPED) {
 		cxgb3i_rx_debug("skb 0x%p, opcode 0x%x, data %u, ddp'ed, "
 				"itt 0x%x.\n",
@@ -134,9 +117,7 @@ static int cxgb3i_conn_read_pdu_skb(struct iscsi_conn *conn,
 		return 0;
 }
 
-/*
- * pdu transmit, interact with libiscsi_tcp
- */
+
 static inline void tx_skb_setmode(struct sk_buff *skb, int hcrc, int dcrc)
 {
 	u8 submode = 0;
@@ -153,13 +134,12 @@ void cxgb3i_conn_cleanup_task(struct iscsi_task *task)
 	struct cxgb3i_task_data *tdata = task->dd_data +
 					sizeof(struct iscsi_tcp_task);
 
-	/* never reached the xmit task callout */
+	
 	if (tdata->skb)
 		__kfree_skb(tdata->skb);
 	memset(tdata, 0, sizeof(struct cxgb3i_task_data));
 
-	/* MNC - Do we need a check in case this is called but
-	 * cxgb3i_conn_alloc_pdu has never been called on the task */
+	
 	cxgb3i_release_itt(task, task->hdr_itt);
 	iscsi_tcp_cleanup_task(task);
 }
@@ -244,7 +224,7 @@ int cxgb3i_conn_alloc_pdu(struct iscsi_task *task, u8 opcode)
 	tcp_task->dd_data = tdata;
 	task->hdr = NULL;
 
-	/* write command, need to send data pdus */
+	
 	if (skb_extra_headroom && (opcode == ISCSI_OP_SCSI_DATA_OUT ||
 	    (opcode == ISCSI_OP_SCSI_CMD &&
 	    (scsi_bidi_cmnd(sc) || sc->sc_data_direction == DMA_TO_DEVICE))))
@@ -261,7 +241,7 @@ int cxgb3i_conn_alloc_pdu(struct iscsi_task *task, u8 opcode)
 	task->hdr = (struct iscsi_hdr *)tdata->skb->data;
 	task->hdr_max = SKB_TX_PDU_HEADER_LEN;
 
-	/* data_out uses scsi_cmd's itt */
+	
 	if (opcode != ISCSI_OP_SCSI_DATA_OUT)
 		cxgb3i_reserve_itt(task, &task->hdr->itt);
 
@@ -317,7 +297,7 @@ int cxgb3i_conn_init_pdu(struct iscsi_task *task, unsigned int offset,
 			char *dst = skb->data + task->hdr_len;
 			skb_frag_t *frag = tdata->frags;
 
-			/* data fits in the skb's headroom */
+			
 			for (i = 0; i < tdata->nr_frags; i++, frag++) {
 				char *src = kmap_atomic(frag->page,
 							KM_SOFTIRQ0);
@@ -332,7 +312,7 @@ int cxgb3i_conn_init_pdu(struct iscsi_task *task, unsigned int offset,
 			}
 			skb_put(skb, count + padlen);
 		} else {
-			/* data fit into frag_list */
+			
 			for (i = 0; i < tdata->nr_frags; i++)
 				get_page(tdata->frags[i].page);
 
@@ -401,7 +381,7 @@ int cxgb3i_conn_xmit_pdu(struct iscsi_task *task)
 	}
 
 	if (err == -EAGAIN || err == -ENOBUFS) {
-		/* reset skb to send when we are called again */
+		
 		tdata->skb = skb;
 		return err;
 	}

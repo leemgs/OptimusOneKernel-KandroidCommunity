@@ -14,21 +14,18 @@
 #include "mpc.h"
 #include "mpoa_caches.h"
 
-/*
- * mpoa_proc.c: Implementation MPOA client's proc
- * file system statistics
- */
+
 
 #if 1
-#define dprintk printk   /* debug */
+#define dprintk printk   
 #else
 #define dprintk(format,args...)
 #endif
 
-#define STAT_FILE_NAME "mpc"     /* Our statistic file's name */
+#define STAT_FILE_NAME "mpc"     
 
 extern struct mpoa_client *mpcs;
-extern struct proc_dir_entry *atm_proc_root;  /* from proc.c. */
+extern struct proc_dir_entry *atm_proc_root;  
 
 static int proc_mpc_open(struct inode *inode, struct file *file);
 static ssize_t proc_mpc_write(struct file *file, const char __user *buff,
@@ -36,9 +33,7 @@ static ssize_t proc_mpc_write(struct file *file, const char __user *buff,
 
 static int parse_qos(const char *buff);
 
-/*
- *   Define allowed FILE OPERATIONS
- */
+
 static const struct file_operations mpc_file_operations = {
 	.owner =	THIS_MODULE,
 	.open =		proc_mpc_open,
@@ -48,9 +43,7 @@ static const struct file_operations mpc_file_operations = {
 	.release =	seq_release,
 };
 
-/*
- * Returns the state of an ingress cache entry as a string
- */
+
 static const char *ingress_state_string(int state){
 	switch(state) {
 	case INGRESS_RESOLVING:
@@ -70,9 +63,7 @@ static const char *ingress_state_string(int state){
 	}
 }
 
-/*
- * Returns the state of an egress cache entry as a string
- */
+
 static const char *egress_state_string(int state){
 	switch(state) {
 	case EGRESS_RESOLVED:
@@ -89,9 +80,7 @@ static const char *egress_state_string(int state){
 	}
 }
 
-/*
- * FIXME: mpcs (and per-mpc lists) have no locking whatsoever.
- */
+
 
 static void *mpc_start(struct seq_file *m, loff_t *pos)
 {
@@ -117,9 +106,7 @@ static void mpc_stop(struct seq_file *m, void *v)
 {
 }
 
-/*
- * READING function - called when the /proc/atm/mpoa file is read from.
- */
+
 static int mpc_show(struct seq_file *m, void *v)
 {
 	struct mpoa_client *mpc = v;
@@ -164,7 +151,7 @@ static int mpc_show(struct seq_file *m, void *v)
 			   (eg_entry->ctrl_info.holding_time-(now.tv_sec-eg_entry->tv.tv_sec)),
 			   eg_entry->packets_rcvd);
 
-		/* latest IP address */
+		
 		temp = (unsigned char *)&eg_entry->latest_ip_addr;
 		sprintf(ip_string, "%d.%d.%d.%d", temp[0], temp[1], temp[2], temp[3]);
 		seq_printf(m, "%-16s", ip_string);
@@ -226,9 +213,7 @@ static ssize_t proc_mpc_write(struct file *file, const char __user *buff,
 
 static int parse_qos(const char *buff)
 {
-	/* possible lines look like this
-	 * add 130.230.54.142 tx=max_pcr,max_sdu rx=max_pcr,max_sdu
-	 */
+	
 	unsigned char ip[4];
 	int tx_pcr, tx_sdu, rx_pcr, rx_sdu;
 	__be32 ipaddr;
@@ -269,9 +254,7 @@ static int parse_qos(const char *buff)
 	return 1;
 }
 
-/*
- * INITIALIZATION function - called when module is initialized/loaded.
- */
+
 int mpc_proc_init(void)
 {
 	struct proc_dir_entry *p;
@@ -284,16 +267,14 @@ int mpc_proc_init(void)
 	return 0;
 }
 
-/*
- * DELETING function - called when module is removed.
- */
+
 void mpc_proc_clean(void)
 {
 	remove_proc_entry(STAT_FILE_NAME,atm_proc_root);
 }
 
 
-#endif /* CONFIG_PROC_FS */
+#endif 
 
 
 

@@ -1,15 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/avila-setup.c
- *
- * Gateworks Avila board-setup
- *
- * Author: Michael-Luke Jones <mlj28@cam.ac.uk>
- *
- * Based on ixdp-setup.c
- * Copyright (C) 2003-2005 MontaVista Software, Inc.
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -162,7 +151,7 @@ static void __init avila_init(void)
 }
 
 MACHINE_START(AVILA, "Gateworks Avila Network Platform")
-	/* Maintainer: Deepak Saxena <dsaxena@plexity.net> */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
 	.map_io		= ixp4xx_map_io,
@@ -172,14 +161,10 @@ MACHINE_START(AVILA, "Gateworks Avila Network Platform")
 	.init_machine	= avila_init,
 MACHINE_END
 
- /*
-  * Loft is functionally equivalent to Avila except that it has a
-  * different number for the maximum PCI devices.  The MACHINE
-  * structure below is identical to Avila except for the comment.
-  */
+ 
 #ifdef CONFIG_MACH_LOFT
 MACHINE_START(LOFT, "Giant Shoulder Inc Loft board")
-	/* Maintainer: Tom Billman <kernel@giantshoulderinc.com> */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
 	.map_io		= ixp4xx_map_io,

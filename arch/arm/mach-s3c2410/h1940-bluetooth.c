@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-s3c2410/h1940-bluetooth.c
- * Copyright (c) Arnaud Patard <arnaud.patard@rtp-net.org>
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive for
- * more details.
- *
- *	    S3C2410 bluetooth "driver"
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -30,18 +20,18 @@ DEFINE_LED_TRIGGER(bt_led_trigger);
 
 static int state;
 
-/* Bluetooth control */
+
 static void h1940bt_enable(int on)
 {
 	if (on) {
 #ifdef CONFIG_LEDS_H1940
-		/* flashing Blue */
+		
 		led_trigger_event(bt_led_trigger, LED_HALF);
 #endif
 
-		/* Power on the chip */
+		
 		h1940_latch_control(0, H1940_LATCH_BLUETOOTH_POWER);
-		/* Reset the chip */
+		
 		mdelay(10);
 		s3c2410_gpio_setpin(S3C2410_GPH(1), 1);
 		mdelay(10);
@@ -88,7 +78,7 @@ static DEVICE_ATTR(enable, 0644,
 
 static int __init h1940bt_probe(struct platform_device *pdev)
 {
-	/* Configures BT serial port GPIOs */
+	
 	s3c2410_gpio_cfgpin(S3C2410_GPH(0), S3C2410_GPH0_nCTS0);
 	s3c2410_gpio_pullup(S3C2410_GPH(0), 1);
 	s3c2410_gpio_cfgpin(S3C2410_GPH(1), S3C2410_GPIO_OUTPUT);
@@ -102,7 +92,7 @@ static int __init h1940bt_probe(struct platform_device *pdev)
 	led_trigger_register_simple("h1940-bluetooth", &bt_led_trigger);
 #endif
 
-	/* disable BT by default */
+	
 	h1940bt_enable(0);
 
 	return device_create_file(&pdev->dev, &dev_attr_enable);

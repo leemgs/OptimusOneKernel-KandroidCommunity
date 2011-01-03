@@ -1,30 +1,4 @@
-/*
- * processor_thermal.c - Passive cooling submodule of the ACPI processor driver
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *  Copyright (C) 2004       Dominik Brodowski <linux@brodo.de>
- *  Copyright (C) 2004  Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
- *  			- Added processor hotplug support
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -46,9 +20,7 @@
 #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
 ACPI_MODULE_NAME("processor_thermal");
 
-/* --------------------------------------------------------------------------
-                                 Limit Interface
-   -------------------------------------------------------------------------- */
+
 static int acpi_processor_apply_limit(struct acpi_processor *pr)
 {
 	int result = 0;
@@ -89,11 +61,7 @@ static int acpi_processor_apply_limit(struct acpi_processor *pr)
 
 #ifdef CONFIG_CPU_FREQ
 
-/* If a passive cooling situation is detected, primarily CPUfreq is used, as it
- * offers (in most cases) voltage scaling in addition to frequency scaling, and
- * thus a cubic (instead of linear) reduction of energy. Also, we allow for
- * _any_ cpufreq driver and not only the acpi-cpufreq driver.
- */
+
 
 #define CPUFREQ_THERMAL_MIN_STEP 0
 #define CPUFREQ_THERMAL_MAX_STEP 3
@@ -135,7 +103,7 @@ static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
 	else
 		per_cpu(cpufreq_thermal_reduction_pctg, cpu) = 0;
 	cpufreq_update_policy(cpu);
-	/* We reached max freq again and can leave passive mode */
+	
 	return !per_cpu(cpufreq_thermal_reduction_pctg, cpu);
 }
 
@@ -213,7 +181,7 @@ void acpi_thermal_cpufreq_exit(void)
 	acpi_thermal_cpufreq_is_init = 0;
 }
 
-#else				/* ! CONFIG_CPU_FREQ */
+#else				
 static int cpufreq_get_max_state(unsigned int cpu)
 {
 	return 0;
@@ -260,14 +228,11 @@ int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
 	if (!pr)
 		return -ENODEV;
 
-	/* Thermal limits are always relative to the current Px/Tx state. */
+	
 	if (pr->flags.throttling)
 		pr->limit.thermal.tx = pr->throttling.state;
 
-	/*
-	 * Our default policy is to only use throttling at the lowest
-	 * performance state.
-	 */
+	
 
 	tx = pr->limit.thermal.tx;
 
@@ -281,7 +246,7 @@ int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
 		break;
 
 	case ACPI_PROCESSOR_LIMIT_INCREMENT:
-		/* if going up: P-states first, T-states later */
+		
 
 		result = acpi_thermal_cpufreq_increase(pr->id);
 		if (!result)
@@ -300,7 +265,7 @@ int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
 		break;
 
 	case ACPI_PROCESSOR_LIMIT_DECREMENT:
-		/* if going down: T-states first, P-states later */
+		
 
 		if (pr->flags.throttling) {
 			if (tx == 0) {
@@ -315,10 +280,7 @@ int acpi_processor_set_thermal_limit(acpi_handle handle, int type)
 
 		result = acpi_thermal_cpufreq_decrease(pr->id);
 		if (result) {
-			/*
-			 * We only could get -ERANGE, 1 or 0.
-			 * In the first two cases we reached max freq again.
-			 */
+			
 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 					  "At minimum performance state\n"));
 			max_tx_px = 1;
@@ -359,15 +321,12 @@ int acpi_processor_get_limit_info(struct acpi_processor *pr)
 	return 0;
 }
 
-/* thermal coolign device callbacks */
+
 static int acpi_processor_max_state(struct acpi_processor *pr)
 {
 	int max_state = 0;
 
-	/*
-	 * There exists four states according to
-	 * cpufreq_thermal_reduction_ptg. 0, 1, 2, 3
-	 */
+	
 	max_state += cpufreq_get_max_state(pr->id);
 	if (pr->flags.throttling)
 		max_state += (pr->throttling.state_count -1);
@@ -439,7 +398,7 @@ struct thermal_cooling_device_ops processor_cooling_ops = {
 	.set_cur_state = processor_set_cur_state,
 };
 
-/* /proc interface */
+
 #ifdef CONFIG_ACPI_PROCFS
 static int acpi_processor_limit_seq_show(struct seq_file *seq, void *offset)
 {

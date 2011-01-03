@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/mcbsp.c
- *
- * Copyright (C) 2008 Instituto Nokia de Tecnologia
- * Contact: Eduardo Valentin <eduardo.valentin@indt.org.br>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Multichannel mode not supported.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/clk.h>
@@ -30,9 +19,7 @@ static void omap2_mcbsp2_mux_setup(void)
 	omap_cfg_reg(W15_24XX_MCBSP2_DR);
 	omap_cfg_reg(V15_24XX_MCBSP2_DX);
 	omap_cfg_reg(V14_24XX_GPIO117);
-	/*
-	 * TODO: Need to add MUX settings for OMAP 2430 SDP
-	 */
+	
 }
 
 static void omap2_mcbsp_request(unsigned int id)

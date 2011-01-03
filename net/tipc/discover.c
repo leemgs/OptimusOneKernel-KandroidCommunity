@@ -1,38 +1,4 @@
-/*
- * net/tipc/discover.c
- *
- * Copyright (c) 2003-2006, Ericsson AB
- * Copyright (c) 2005-2006, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "core.h"
 #include "dbg.h"
@@ -42,9 +8,9 @@
 #include "port.h"
 #include "name_table.h"
 
-#define TIPC_LINK_REQ_INIT	125	/* min delay during bearer start up */
-#define TIPC_LINK_REQ_FAST	2000	/* normal delay if bearer has no links */
-#define TIPC_LINK_REQ_SLOW	600000	/* normal delay if bearer has links */
+#define TIPC_LINK_REQ_INIT	125	
+#define TIPC_LINK_REQ_FAST	2000	
+#define TIPC_LINK_REQ_SLOW	600000	
 
 #if 0
 #define  GET_NODE_INFO         300
@@ -56,20 +22,10 @@
 #define  CHECK_LINK_COUNT      306
 #endif
 
-/*
- * TODO: Most of the inter-cluster setup stuff should be
- * rewritten, and be made conformant with specification.
- */
 
 
-/**
- * struct link_req - information about an ongoing link setup request
- * @bearer: bearer issuing requests
- * @dest: destination address for request messages
- * @buf: request message to be (repeatedly) sent
- * @timer: timer governing period between requests
- * @timer_intv: current interval between requests (in ms)
- */
+
+
 struct link_req {
 	struct bearer *bearer;
 	struct tipc_media_addr dest;
@@ -82,33 +38,21 @@ struct link_req {
 #if 0
 int disc_create_link(const struct tipc_link_create *argv)
 {
-	/*
-	 * Code for inter cluster link setup here
-	 */
+	
 	return TIPC_OK;
 }
 #endif
 
-/*
- * disc_lost_link(): A link has lost contact
- */
+
 
 void tipc_disc_link_event(u32 addr, char *name, int up)
 {
 	if (in_own_cluster(addr))
 		return;
-	/*
-	 * Code for inter cluster link setup here
-	 */
+	
 }
 
-/**
- * tipc_disc_init_msg - initialize a link setup message
- * @type: message type (request or response)
- * @req_links: number of links associated with message
- * @dest_domain: network domain of node(s) which should respond to message
- * @b_ptr: ptr to bearer issuing message
- */
+
 
 static struct sk_buff *tipc_disc_init_msg(u32 type,
 					  u32 req_links,
@@ -130,12 +74,7 @@ static struct sk_buff *tipc_disc_init_msg(u32 type,
 	return buf;
 }
 
-/**
- * disc_dupl_alert - issue node address duplication alert
- * @b_ptr: pointer to bearer detecting duplication
- * @node_addr: duplicated node address
- * @media_addr: media address advertised by duplicated node
- */
+
 
 static void disc_dupl_alert(struct bearer *b_ptr, u32 node_addr,
 			    struct tipc_media_addr *media_addr)
@@ -152,11 +91,7 @@ static void disc_dupl_alert(struct bearer *b_ptr, u32 node_addr,
 	     node_addr_str, media_addr_str, b_ptr->publ.name);
 }
 
-/**
- * tipc_disc_recv_msg - handle incoming link setup message (request or response)
- * @buf: buffer containing message
- * @b_ptr: bearer that message arrived on
- */
+
 
 void tipc_disc_recv_msg(struct sk_buff *buf, struct bearer *b_ptr)
 {
@@ -190,7 +125,7 @@ void tipc_disc_recv_msg(struct sk_buff *buf, struct bearer *b_ptr)
 	if (is_slave(orig) && !in_own_cluster(orig))
 		return;
 	if (in_own_cluster(orig)) {
-		/* Always accept link here */
+		
 		struct sk_buff *rbuf;
 		struct tipc_media_addr *addr;
 		struct tipc_node *n_ptr = tipc_node_find(orig);
@@ -237,10 +172,7 @@ void tipc_disc_recv_msg(struct sk_buff *buf, struct bearer *b_ptr)
 	}
 }
 
-/**
- * tipc_disc_stop_link_req - stop sending periodic link setup requests
- * @req: ptr to link request structure
- */
+
 
 void tipc_disc_stop_link_req(struct link_req *req)
 {
@@ -253,10 +185,7 @@ void tipc_disc_stop_link_req(struct link_req *req)
 	kfree(req);
 }
 
-/**
- * tipc_disc_update_link_req - update frequency of periodic link setup requests
- * @req: ptr to link request structure
- */
+
 
 void tipc_disc_update_link_req(struct link_req *req)
 {
@@ -274,16 +203,11 @@ void tipc_disc_update_link_req(struct link_req *req)
 			k_start_timer(&req->timer, req->timer_intv);
 		}
 	} else {
-		/* leave timer "as is" if haven't yet reached a "normal" rate */
+		
 	}
 }
 
-/**
- * disc_timeout - send a periodic link setup request
- * @req: ptr to link request structure
- *
- * Called whenever a link setup request timer associated with a bearer expires.
- */
+
 
 static void disc_timeout(struct link_req *req)
 {
@@ -293,7 +217,7 @@ static void disc_timeout(struct link_req *req)
 
 	if ((req->timer_intv == TIPC_LINK_REQ_SLOW) ||
 	    (req->timer_intv == TIPC_LINK_REQ_FAST)) {
-		/* leave timer interval "as is" if already at a "normal" rate */
+		
 	} else {
 		req->timer_intv *= 2;
 		if (req->timer_intv > TIPC_LINK_REQ_FAST)
@@ -307,15 +231,7 @@ static void disc_timeout(struct link_req *req)
 	spin_unlock_bh(&req->bearer->publ.lock);
 }
 
-/**
- * tipc_disc_init_link_req - start sending periodic link setup requests
- * @b_ptr: ptr to bearer issuing requests
- * @dest: destination address for request messages
- * @dest_domain: network domain of node(s) which should respond to message
- * @req_links: max number of desired links
- *
- * Returns pointer to link request structure, or NULL if unable to create.
- */
+
 
 struct link_req *tipc_disc_init_link_req(struct bearer *b_ptr,
 					 const struct tipc_media_addr *dest,

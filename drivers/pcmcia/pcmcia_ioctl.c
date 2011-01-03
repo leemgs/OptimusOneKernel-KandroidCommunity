@@ -1,21 +1,6 @@
-/*
- * pcmcia_ioctl.c -- ioctl interface for cardmgr and cardctl
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999		David A. Hinds
- * (C) 2003 - 2004	Dominik Brodowski
- */
 
-/*
- * This file will go away soon.
- */
+
+
 
 
 #include <linux/kernel.h>
@@ -43,7 +28,7 @@
 static int major_dev = -1;
 
 
-/* Device user information */
+
 #define MAX_EVENTS	32
 #define USER_MAGIC	0x7ea4
 #define CHECK_USER(u) \
@@ -86,7 +71,7 @@ static struct pcmcia_device *get_pcmcia_device(struct pcmcia_socket *s,
 	return NULL;
 }
 
-/* backwards-compatible accessing of driver --- by name! */
+
 
 static struct pcmcia_driver *get_pcmcia_driver(dev_info_t *dev_info)
 {
@@ -190,8 +175,7 @@ static int pcmcia_adjust_resource_info(adjust_t *adj)
 		else if (s->resource_ops->add_io) {
 			unsigned long begin, end;
 
-			/* you can't use the old interface if the new
-			 * one was used before */
+			
 			spin_lock_irqsave(&s->lock, flags);
 			if ((s->resource_setup_new) &&
 			    !(s->resource_setup_old)) {
@@ -214,10 +198,7 @@ static int pcmcia_adjust_resource_info(adjust_t *adj)
 					ret = s->resource_ops->add_io(s, adj->Action, begin, end);
 			}
 			if (!ret) {
-				/* as there's no way we know this is the
-				 * last call to adjust_resource_info, we
-				 * always need to assume this is the latest
-				 * one... */
+				
 				spin_lock_irqsave(&s->lock, flags);
 				s->resource_setup_done = 1;
 				spin_unlock_irqrestore(&s->lock, flags);
@@ -229,11 +210,7 @@ static int pcmcia_adjust_resource_info(adjust_t *adj)
 	return (ret);
 }
 
-/** pccard_get_status
- *
- * Get the current socket state bits.  We don't support the latched
- * SocketState yet: I haven't seen any point for it.
- */
+
 
 static int pccard_get_status(struct pcmcia_socket *s,
 			     struct pcmcia_device *p_dev,
@@ -269,7 +246,7 @@ static int pccard_get_status(struct pcmcia_socket *s,
 			status->CardState |=
 				(reg & PRR_BVD1_STATUS) ? CS_EVENT_BATTERY_DEAD : 0;
 		} else {
-			/* No PRR?  Then assume we're always ready */
+			
 			status->CardState |= CS_EVENT_READY_CHANGE;
 		}
 		if (c->CardValues & PRESENT_EXT_STATUS) {
@@ -288,7 +265,7 @@ static int pccard_get_status(struct pcmcia_socket *s,
 	status->CardState |=
 		(val & SS_READY) ? CS_EVENT_READY_CHANGE : 0;
 	return 0;
-} /* pccard_get_status */
+} 
 
 static int pccard_get_configuration_info(struct pcmcia_socket *s,
 				  struct pcmcia_device *p_dev,
@@ -359,14 +336,10 @@ static int pccard_get_configuration_info(struct pcmcia_socket *s,
 	config->IOAddrLines = c->io.IOAddrLines;
 
 	return 0;
-} /* pccard_get_configuration_info */
+} 
 
 
-/*======================================================================
 
-    These manage a ring buffer of events pending for one user process
-
-======================================================================*/
 
 
 static int queue_empty(user_info_t *user)
@@ -397,28 +370,7 @@ void handle_event(struct pcmcia_socket *s, event_t event)
 }
 
 
-/*======================================================================
 
-    bind_request() and bind_device() are merged by now. Register_client()
-    is called right at the end of bind_request(), during the driver's
-    ->attach() call. Individual descriptions:
-
-    bind_request() connects a socket to a particular client driver.
-    It looks up the specified device ID in the list of registered
-    drivers, binds it to the socket, and tries to create an instance
-    of the device.  unbind_request() deletes a driver instance.
-
-    Bind_device() associates a device driver with a particular socket.
-    It is normally called by Driver Services after it has identified
-    a newly inserted card.  An instance of that driver will then be
-    eligible to register as a client of this socket.
-
-    Register_client() uses the dev_info_t handle to match the
-    caller with a socket.  The driver must have already been bound
-    to a socket with bind_device() -- in fact, bind_device()
-    allocates the client structure that will be used.
-
-======================================================================*/
 
 static int bind_request(struct pcmcia_socket *s, bind_info_t *bind_info)
 {
@@ -450,27 +402,20 @@ static int bind_request(struct pcmcia_socket *s, bind_info_t *bind_info)
 		if (p_dev->func == bind_info->function) {
 			if ((p_dev->dev.driver == &p_drv->drv)) {
 				if (p_dev->cardmgr) {
-					/* if there's already a device
-					 * registered, and it was registered
-					 * by userspace before, we need to
-					 * return the "instance". */
+					
 					spin_unlock_irqrestore(&pcmcia_dev_list_lock, flags);
 					bind_info->instance = p_dev;
 					ret = -EBUSY;
 					goto err_put_module;
 				} else {
-					/* the correct driver managed to bind
-					 * itself magically to the correct
-					 * device. */
+					
 					spin_unlock_irqrestore(&pcmcia_dev_list_lock, flags);
 					p_dev->cardmgr = p_drv;
 					ret = 0;
 					goto err_put_module;
 				}
 			} else if (!p_dev->dev.driver) {
-				/* there's already a device available where
-				 * no device has been bound to yet. So we don't
-				 * need to register a device! */
+				
 				spin_unlock_irqrestore(&pcmcia_dev_list_lock, flags);
 				goto rescan;
 			}
@@ -487,23 +432,18 @@ static int bind_request(struct pcmcia_socket *s, bind_info_t *bind_info)
 rescan:
 	p_dev->cardmgr = p_drv;
 
-	/* if a driver is already running, we can abort */
+	
 	if (p_dev->dev.driver)
 		goto err_put_module;
 
-	/*
-	 * Prevent this racing with a card insertion.
-	 */
+	
 	mutex_lock(&s->skt_mutex);
 	ret = bus_rescan_devices(&pcmcia_bus_type);
 	mutex_unlock(&s->skt_mutex);
 	if (ret)
 		goto err_put_module;
 
-	/* check whether the driver indeed matched. I don't care if this
-	 * is racy or not, because it can only happen on cardmgr access
-	 * paths...
-	 */
+	
 	if (!(p_dev->dev.driver == &p_drv->drv))
 		p_dev->cardmgr = NULL;
 
@@ -515,7 +455,7 @@ rescan:
 	pcmcia_put_socket(s);
 
 	return (ret);
-} /* bind_request */
+} 
 
 #ifdef CONFIG_CARDBUS
 
@@ -537,10 +477,7 @@ static int get_device_info(struct pcmcia_socket *s, bind_info_t *bind_info, int 
 	int ret = 0;
 
 #ifdef CONFIG_CARDBUS
-	/*
-	 * Some unbelievably ugly code to associate the PCI cardbus
-	 * device and its driver with the PCMCIA "bind" information.
-	 */
+	
 	{
 		struct pci_bus *bus;
 
@@ -559,7 +496,7 @@ static int get_device_info(struct pcmcia_socket *s, bind_info_t *bind_info, int 
 					break;
 				}
 
-				/* Try to handle "next" here some way? */
+				
 			}
 			if (dev && dev->driver) {
 				strlcpy(bind_info->name, dev->driver->name, DEV_NAME_LEN);
@@ -612,7 +549,7 @@ static int get_device_info(struct pcmcia_socket *s, bind_info_t *bind_info, int 
  err_put:
 	pcmcia_put_dev(p_dev);
 	return (ret);
-} /* get_device_info */
+} 
 
 
 static int ds_open(struct inode *inode, struct file *file)
@@ -676,9 +613,9 @@ static int ds_open(struct inode *inode, struct file *file)
 out:
     unlock_kernel();
     return ret;
-} /* ds_open */
+} 
 
-/*====================================================================*/
+
 
 static int ds_release(struct inode *inode, struct file *file)
 {
@@ -693,7 +630,7 @@ static int ds_release(struct inode *inode, struct file *file)
 
     s = user->socket;
 
-    /* Unlink user data structure */
+    
     if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
 	s->pcmcia_state.busy = 0;
     }
@@ -708,9 +645,9 @@ static int ds_release(struct inode *inode, struct file *file)
     pcmcia_put_socket(s);
 out:
     return 0;
-} /* ds_release */
+} 
 
-/*====================================================================*/
+
 
 static ssize_t ds_read(struct file *file, char __user *buf,
 		       size_t count, loff_t *ppos)
@@ -737,9 +674,9 @@ static ssize_t ds_read(struct file *file, char __user *buf,
 	ret = put_user(get_queued_event(user), (int __user *)buf) ? -EFAULT : 4;
 
     return ret;
-} /* ds_read */
+} 
 
-/*====================================================================*/
+
 
 static ssize_t ds_write(struct file *file, const char __user *buf,
 			size_t count, loff_t *ppos)
@@ -752,11 +689,11 @@ static ssize_t ds_write(struct file *file, const char __user *buf,
 	return -EBADF;
 
     return -EIO;
-} /* ds_write */
+} 
 
-/*====================================================================*/
 
-/* No kernel lock - fine */
+
+
 static u_int ds_poll(struct file *file, poll_table *wait)
 {
     struct pcmcia_socket *s;
@@ -768,17 +705,14 @@ static u_int ds_poll(struct file *file, poll_table *wait)
     if (CHECK_USER(user))
 	return POLLERR;
     s = user->socket;
-    /*
-     * We don't check for a dead socket here since that
-     * will send cardmgr into an endless spin.
-     */
+    
     poll_wait(file, &s->queue, wait);
     if (!queue_empty(user))
 	return POLLIN | POLLRDNORM;
     return 0;
-} /* ds_poll */
+} 
 
-/*====================================================================*/
+
 
 static int ds_ioctl(struct inode * inode, struct file * file,
 		    u_int cmd, u_long arg)
@@ -803,7 +737,7 @@ static int ds_ioctl(struct inode * inode, struct file * file,
     size = (cmd & IOCSIZE_MASK) >> IOCSIZE_SHIFT;
     if (size > sizeof(ds_ioctl_arg_t)) return -EINVAL;
 
-    /* Permission check */
+    
     if (!(cmd & IOC_OUT) && !capable(CAP_SYS_ADMIN))
 	return -EPERM;
 
@@ -987,9 +921,9 @@ static int ds_ioctl(struct inode * inode, struct file * file,
 free_out:
     kfree(buf);
     return err;
-} /* ds_ioctl */
+} 
 
-/*====================================================================*/
+
 
 static const struct file_operations ds_fops = {
 	.owner		= THIS_MODULE,
@@ -1004,7 +938,7 @@ static const struct file_operations ds_fops = {
 void __init pcmcia_setup_ioctl(void) {
 	int i;
 
-	/* Set up character device for user mode clients */
+	
 	i = register_chrdev(0, "pcmcia", &ds_fops);
 	if (i < 0)
 		printk(KERN_NOTICE "unable to find a free device # for "

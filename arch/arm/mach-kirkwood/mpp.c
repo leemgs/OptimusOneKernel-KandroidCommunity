@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/mpp.c
- *
- * MPP functions for Marvell Kirkwood SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -48,7 +40,7 @@ void __init kirkwood_mpp_conf(unsigned int *mpp_list)
 	if (!variant_mask)
 		return;
 
-	/* Initialize gpiolib. */
+	
 	orion_gpio_init();
 
 	printk(KERN_DEBUG "initial MPP regs:");

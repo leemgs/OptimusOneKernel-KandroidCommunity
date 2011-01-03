@@ -1,38 +1,9 @@
-/*
- * WiMedia Logical Link Control Protocol (WLP)
- * Internal API
- *
- * Copyright (C) 2007 Intel Corporation
- * Reinette Chatre <reinette.chatre@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- */
+
 
 #ifndef __WLP_INTERNAL_H__
 #define __WLP_INTERNAL_H__
 
-/**
- * State of WSS connection
- *
- * A device needs to connect to a neighbor in an activated WSS before data
- * can be transmitted. The spec also distinguishes between a new connection
- * attempt and a connection attempt after previous connection attempts. The
- * state WLP_WSS_CONNECT_FAILED is used for this scenario. See WLP 0.99
- * [7.2.6]
- */
+
 enum wlp_wss_connect {
 	WLP_WSS_UNCONNECTED = 0,
 	WLP_WSS_CONNECTED,
@@ -42,20 +13,7 @@ enum wlp_wss_connect {
 extern struct kobj_type wss_ktype;
 extern struct attribute_group wss_attr_group;
 
-/* This should be changed to a dynamic array where entries are sorted
- * by eth_addr and search is done in a binary form
- *
- * Although thinking twice about it: this technologie's maximum reach
- * is 10 meters...unless you want to pack too much stuff in around
- * your radio controller/WLP device, the list will probably not be
- * too big.
- *
- * In any case, there is probably some data structure in the kernel
- * than we could reused for that already.
- *
- * The below structure is really just good while we support one WSS per
- * host.
- */
+
 struct wlp_eda_node {
 	struct list_head list_node;
 	unsigned char eth_addr[ETH_ALEN];
@@ -96,7 +54,7 @@ extern void wlp_remove_neighbor_tmp_info(struct wlp_neighbor_e *);
 
 extern size_t wlp_wss_key_print(char *, size_t, u8 *);
 
-/* Function called when no more references to WSS exists */
+
 extern void wlp_wss_release(struct kobject *);
 
 extern void wlp_wss_reset(struct wlp_wss *);
@@ -123,7 +81,7 @@ extern int wlp_wss_connect_prep(struct wlp *, struct wlp_eda_node *, void *);
 extern int wlp_wss_send_copy(struct wlp *, struct wlp_eda_node *, void *);
 
 
-/* Message handling */
+
 struct wlp_assoc_frame_ctx {
 	struct work_struct ws;
 	struct wlp *wlp;
@@ -177,9 +135,7 @@ size_t wlp_wss_uuid_print(char *buf, size_t bufsize, struct wlp_uuid *uuid)
 	return result;
 }
 
-/**
- * FIXME: How should a nonce be displayed?
- */
+
 static inline
 size_t wlp_wss_nonce_print(char *buf, size_t bufsize, struct wlp_nonce *nonce)
 {
@@ -221,4 +177,4 @@ int wlp_uuid_is_set(struct wlp_uuid *uuid)
 	return 1;
 }
 
-#endif /* __WLP_INTERNAL_H__ */
+#endif 

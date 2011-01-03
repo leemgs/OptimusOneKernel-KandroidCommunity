@@ -1,23 +1,4 @@
-/*
- *  linux/arch/arm/mach-versatile/core.c
- *
- *  Copyright (C) 1999 - 2003 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/init.h>
 #include <linux/device.h>
 #include <linux/dma-mapping.h>
@@ -52,12 +33,7 @@
 #include "core.h"
 #include "clock.h"
 
-/*
- * All IO addresses are mapped onto VA 0xFFFx.xxxx, where x.xxxx
- * is the (PA >> 12).
- *
- * Setup a VA for the Versatile Vectored Interrupt Controller.
- */
+
 #define __io_address(n)		__io(IO_ADDRESS(n))
 #define VA_VIC_BASE		__io_address(VERSATILE_VIC_BASE)
 #define VA_SIC_BASE		__io_address(VERSATILE_SIC_BASE)
@@ -121,7 +97,7 @@ void __init versatile_init_irq(void)
 
 	set_irq_chained_handler(IRQ_VICSOURCE31, sic_handle_irq);
 
-	/* Do second interrupt controller */
+	
 	writel(~0, VA_SIC_BASE + SIC_IRQ_ENABLE_CLEAR);
 
 	for (i = IRQ_SIC_START; i <= IRQ_SIC_END; i++) {
@@ -132,13 +108,7 @@ void __init versatile_init_irq(void)
 		}
 	}
 
-	/*
-	 * Interrupts on secondary controller from 0 to 8 are routed to
-	 * source 31 on PIC.
-	 * Interrupts from 21 to 31 are routed directly to the VIC on
-	 * the corresponding number on primary controller. This is controlled
-	 * by setting PIC_ENABLEx.
-	 */
+	
 	writel(PIC_MASK, VA_SIC_BASE + SIC_INT_PIC_ENABLE);
 }
 
@@ -230,19 +200,12 @@ void __init versatile_map_io(void)
 
 #define VERSATILE_REFCOUNTER	(__io_address(VERSATILE_SYS_BASE) + VERSATILE_SYS_24MHz_OFFSET)
 
-/*
- * This is the Versatile sched_clock implementation.  This has
- * a resolution of 41.7ns, and a maximum value of about 35583 days.
- *
- * The return value is guaranteed to be monotonic in that range as
- * long as there is always less than 89 seconds between successive
- * calls to this function.
- */
+
 unsigned long long sched_clock(void)
 {
 	unsigned long long v = cnt32_to_63(readl(VERSATILE_REFCOUNTER));
 
-	/* the <<1 gets rid of the cnt_32_to_63 top bit saving on a bic insn */
+	
 	v *= 125<<1;
 	do_div(v, 3<<1);
 
@@ -376,9 +339,7 @@ static struct mmci_platform_data mmc0_plat_data = {
 	.gpio_cd	= -1,
 };
 
-/*
- * Clock handling
- */
+
 static const struct icst307_params versatile_oscvco_params = {
 	.ref		= 24000,
 	.vco_max	= 200000,
@@ -408,47 +369,43 @@ static struct clk osc4_clk = {
 	.setvco	= versatile_oscvco_set,
 };
 
-/*
- * These are fixed clocks.
- */
+
 static struct clk ref24_clk = {
 	.rate	= 24000000,
 };
 
 static struct clk_lookup lookups[] = {
-	{	/* UART0 */
+	{	
 		.dev_id		= "dev:f1",
 		.clk		= &ref24_clk,
-	}, {	/* UART1 */
+	}, {	
 		.dev_id		= "dev:f2",
 		.clk		= &ref24_clk,
-	}, {	/* UART2 */
+	}, {	
 		.dev_id		= "dev:f3",
 		.clk		= &ref24_clk,
-	}, {	/* UART3 */
+	}, {	
 		.dev_id		= "fpga:09",
 		.clk		= &ref24_clk,
-	}, {	/* KMI0 */
+	}, {	
 		.dev_id		= "fpga:06",
 		.clk		= &ref24_clk,
-	}, {	/* KMI1 */
+	}, {	
 		.dev_id		= "fpga:07",
 		.clk		= &ref24_clk,
-	}, {	/* MMC0 */
+	}, {	
 		.dev_id		= "fpga:05",
 		.clk		= &ref24_clk,
-	}, {	/* MMC1 */
+	}, {	
 		.dev_id		= "fpga:0b",
 		.clk		= &ref24_clk,
-	}, {	/* CLCD */
+	}, {	
 		.dev_id		= "dev:20",
 		.clk		= &osc4_clk,
 	}
 };
 
-/*
- * CLCD support.
- */
+
 #define SYS_CLCD_MODE_MASK	(3 << 0)
 #define SYS_CLCD_MODE_888	(0 << 0)
 #define SYS_CLCD_MODE_5551	(1 << 0)
@@ -556,12 +513,7 @@ static struct clcd_panel epson_2_2_in = {
 	.bpp		= 16,
 };
 
-/*
- * Detect which LCD panel is connected, and return the appropriate
- * clcd_panel structure.  Note: we do not have any information on
- * the required timings for the 8.4in panel, so we presently assume
- * VGA timings.
- */
+
 static struct clcd_panel *versatile_clcd_panel(void)
 {
 	void __iomem *sys_clcd = __io_address(VERSATILE_SYS_BASE) + VERSATILE_SYS_CLCD_OFFSET;
@@ -586,9 +538,7 @@ static struct clcd_panel *versatile_clcd_panel(void)
 	return panel;
 }
 
-/*
- * Disable all display connectors on the interface module.
- */
+
 static void versatile_clcd_disable(struct clcd_fb *fb)
 {
 	void __iomem *sys_clcd = __io_address(VERSATILE_SYS_BASE) + VERSATILE_SYS_CLCD_OFFSET;
@@ -599,9 +549,7 @@ static void versatile_clcd_disable(struct clcd_fb *fb)
 	writel(val, sys_clcd);
 
 #ifdef CONFIG_MACH_VERSATILE_AB
-	/*
-	 * If the LCD is Sanyo 2x5 in on the IB2 board, turn the back-light off
-	 */
+	
 	if (machine_is_versatile_ab() && fb->panel == &sanyo_2_5_in) {
 		void __iomem *versatile_ib2_ctrl = __io_address(VERSATILE_IB2_CTRL);
 		unsigned long ctrl;
@@ -613,9 +561,7 @@ static void versatile_clcd_disable(struct clcd_fb *fb)
 #endif
 }
 
-/*
- * Enable the relevant connector on the interface module.
- */
+
 static void versatile_clcd_enable(struct clcd_fb *fb)
 {
 	void __iomem *sys_clcd = __io_address(VERSATILE_SYS_BASE) + VERSATILE_SYS_CLCD_OFFSET;
@@ -636,21 +582,15 @@ static void versatile_clcd_enable(struct clcd_fb *fb)
 		break;
 	}
 
-	/*
-	 * Set the MUX
-	 */
+	
 	writel(val, sys_clcd);
 
-	/*
-	 * And now enable the PSUs
-	 */
+	
 	val |= SYS_CLCD_NLCDIOON | SYS_CLCD_PWR3V5SWITCH;
 	writel(val, sys_clcd);
 
 #ifdef CONFIG_MACH_VERSATILE_AB
-	/*
-	 * If the LCD is Sanyo 2x5 in on the IB2 board, turn the back-light on
-	 */
+	
 	if (machine_is_versatile_ab() && fb->panel == &sanyo_2_5_in) {
 		void __iomem *versatile_ib2_ctrl = __io_address(VERSATILE_IB2_CTRL);
 		unsigned long ctrl;
@@ -727,9 +667,7 @@ static struct pl061_platform_data gpio1_plat_data = {
 #define KMI1_IRQ	{ IRQ_SIC_KMI1, NO_IRQ }
 #define KMI1_DMA	{ 0, 0 }
 
-/*
- * These devices are connected directly to the multi-layer AHB switch
- */
+
 #define SMC_IRQ		{ NO_IRQ, NO_IRQ }
 #define SMC_DMA		{ 0, 0 }
 #define MPMC_IRQ	{ NO_IRQ, NO_IRQ }
@@ -739,9 +677,7 @@ static struct pl061_platform_data gpio1_plat_data = {
 #define DMAC_IRQ	{ IRQ_DMAINT, NO_IRQ }
 #define DMAC_DMA	{ 0, 0 }
 
-/*
- * These devices are connected via the core APB bridge
- */
+
 #define SCTL_IRQ	{ NO_IRQ, NO_IRQ }
 #define SCTL_DMA	{ 0, 0 }
 #define WATCHDOG_IRQ	{ IRQ_WDOGINT, NO_IRQ }
@@ -753,9 +689,7 @@ static struct pl061_platform_data gpio1_plat_data = {
 #define RTC_IRQ		{ IRQ_RTCINT, NO_IRQ }
 #define RTC_DMA		{ 0, 0 }
 
-/*
- * These devices are connected via the DMA APB bridge
- */
+
 #define SCI_IRQ		{ IRQ_SCIINT, NO_IRQ }
 #define SCI_DMA		{ 7, 6 }
 #define UART0_IRQ	{ IRQ_UARTINT0, NO_IRQ }
@@ -767,13 +701,13 @@ static struct pl061_platform_data gpio1_plat_data = {
 #define SSP_IRQ		{ IRQ_SSPINT, NO_IRQ }
 #define SSP_DMA		{ 9, 8 }
 
-/* FPGA Primecells */
+
 AMBA_DEVICE(aaci,  "fpga:04", AACI,     NULL);
 AMBA_DEVICE(mmc0,  "fpga:05", MMCI0,    &mmc0_plat_data);
 AMBA_DEVICE(kmi0,  "fpga:06", KMI0,     NULL);
 AMBA_DEVICE(kmi1,  "fpga:07", KMI1,     NULL);
 
-/* DevChip Primecells */
+
 AMBA_DEVICE(smc,   "dev:00",  SMC,      NULL);
 AMBA_DEVICE(mpmc,  "dev:10",  MPMC,     NULL);
 AMBA_DEVICE(clcd,  "dev:20",  CLCD,     &clcd_plat_data);
@@ -845,7 +779,7 @@ static void versatile_leds_event(led_event_t ledevt)
 	writel(val, VA_LEDS_BASE);
 	local_irq_restore(flags);
 }
-#endif	/* CONFIG_LEDS */
+#endif	
 
 void __init versatile_init(void)
 {
@@ -868,25 +802,21 @@ void __init versatile_init(void)
 #endif
 }
 
-/*
- * Where is the timer (VA)?
- */
+
 #define TIMER0_VA_BASE		 __io_address(VERSATILE_TIMER0_1_BASE)
 #define TIMER1_VA_BASE		(__io_address(VERSATILE_TIMER0_1_BASE) + 0x20)
 #define TIMER2_VA_BASE		 __io_address(VERSATILE_TIMER2_3_BASE)
 #define TIMER3_VA_BASE		(__io_address(VERSATILE_TIMER2_3_BASE) + 0x20)
 #define VA_IC_BASE		 __io_address(VERSATILE_VIC_BASE) 
 
-/*
- * How long is the timer interval?
- */
+
 #define TIMER_INTERVAL	(TICKS_PER_uSEC * mSEC_10)
 #if TIMER_INTERVAL >= 0x100000
 #define TIMER_RELOAD	(TIMER_INTERVAL >> 8)
 #define TIMER_DIVISOR	(TIMER_CTRL_DIV256)
 #define TICKS2USECS(x)	(256 * (x) / TICKS_PER_uSEC)
 #elif TIMER_INTERVAL >= 0x10000
-#define TIMER_RELOAD	(TIMER_INTERVAL >> 4)		/* Divide by 16 */
+#define TIMER_RELOAD	(TIMER_INTERVAL >> 4)		
 #define TIMER_DIVISOR	(TIMER_CTRL_DIV16)
 #define TICKS2USECS(x)	(16 * (x) / TICKS_PER_uSEC)
 #else
@@ -908,7 +838,7 @@ static void timer_set_mode(enum clock_event_mode mode,
 		ctrl |= TIMER_CTRL_32BIT | TIMER_CTRL_IE | TIMER_CTRL_ENABLE;
 		break;
 	case CLOCK_EVT_MODE_ONESHOT:
-		/* period set, and timer enabled in 'next_event' hook */
+		
 		ctrl = TIMER_CTRL_ONESHOT;
 		ctrl |= TIMER_CTRL_32BIT | TIMER_CTRL_IE;
 		break;
@@ -940,9 +870,7 @@ static struct clock_event_device timer0_clockevent =	 {
 	.set_next_event	= timer_set_next_event,
 };
 
-/*
- * IRQ handler for the timer
- */
+
 static irqreturn_t versatile_timer_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *evt = &timer0_clockevent;
@@ -976,7 +904,7 @@ static struct clocksource clocksource_versatile = {
 
 static int __init versatile_clocksource_init(void)
 {
-	/* setup timer3 as free-running clocksource */
+	
 	writel(0, TIMER3_VA_BASE + TIMER_CTRL);
 	writel(0xffffffff, TIMER3_VA_BASE + TIMER_LOAD);
 	writel(0xffffffff, TIMER3_VA_BASE + TIMER_VALUE);
@@ -990,18 +918,12 @@ static int __init versatile_clocksource_init(void)
  	return 0;
 }
 
-/*
- * Set up timer interrupt, and return the current time in seconds.
- */
+
 static void __init versatile_timer_init(void)
 {
 	u32 val;
 
-	/* 
-	 * set clock frequency: 
-	 *	VERSATILE_REFCLK is 32KHz
-	 *	VERSATILE_TIMCLK is 1MHz
-	 */
+	
 	val = readl(__io_address(VERSATILE_SCTL_BASE));
 	writel((VERSATILE_TIMCLK << VERSATILE_TIMER1_EnSel) |
 	       (VERSATILE_TIMCLK << VERSATILE_TIMER2_EnSel) | 
@@ -1009,17 +931,13 @@ static void __init versatile_timer_init(void)
 	       (VERSATILE_TIMCLK << VERSATILE_TIMER4_EnSel) | val,
 	       __io_address(VERSATILE_SCTL_BASE));
 
-	/*
-	 * Initialise to a known state (all timers off)
-	 */
+	
 	writel(0, TIMER0_VA_BASE + TIMER_CTRL);
 	writel(0, TIMER1_VA_BASE + TIMER_CTRL);
 	writel(0, TIMER2_VA_BASE + TIMER_CTRL);
 	writel(0, TIMER3_VA_BASE + TIMER_CTRL);
 
-	/* 
-	 * Make irqs happen for the system timer
-	 */
+	
 	setup_irq(IRQ_TIMERINT0_1, &versatile_timer_irq);
 
 	versatile_clocksource_init();

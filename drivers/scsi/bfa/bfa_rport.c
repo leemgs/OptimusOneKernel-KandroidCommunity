@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <bfa_svc.h>
@@ -42,9 +27,7 @@ BFA_MODULE(rport);
 		}							\
 } while (0)
 
-/*
- * forward declarations
- */
+
 static struct bfa_rport_s *bfa_rport_alloc(struct bfa_rport_mod_s *rp_mod);
 static void bfa_rport_free(struct bfa_rport_s *rport);
 static bfa_boolean_t bfa_rport_send_fwcreate(struct bfa_rport_s *rp);
@@ -53,21 +36,19 @@ static bfa_boolean_t bfa_rport_send_fwspeed(struct bfa_rport_s *rp);
 static void __bfa_cb_rport_online(void *cbarg, bfa_boolean_t complete);
 static void __bfa_cb_rport_offline(void *cbarg, bfa_boolean_t complete);
 
-/**
- *  bfa_rport_sm BFA rport state machine
- */
+
 
 
 enum bfa_rport_event {
-	BFA_RPORT_SM_CREATE	= 1,	/*  rport create event		*/
-	BFA_RPORT_SM_DELETE	= 2,	/*  deleting an existing rport */
-	BFA_RPORT_SM_ONLINE	= 3,	/*  rport is online		*/
-	BFA_RPORT_SM_OFFLINE	= 4,	/*  rport is offline		*/
-	BFA_RPORT_SM_FWRSP	= 5,	/*  firmware response		*/
-	BFA_RPORT_SM_HWFAIL	= 6,	/*  IOC h/w failure		*/
-	BFA_RPORT_SM_QOS_SCN	= 7,	/*  QoS SCN from firmware	*/
-	BFA_RPORT_SM_SET_SPEED	= 8,	/*  Set Rport Speed 		*/
-	BFA_RPORT_SM_QRESUME	= 9,	/*  space in requeue queue	*/
+	BFA_RPORT_SM_CREATE	= 1,	
+	BFA_RPORT_SM_DELETE	= 2,	
+	BFA_RPORT_SM_ONLINE	= 3,	
+	BFA_RPORT_SM_OFFLINE	= 4,	
+	BFA_RPORT_SM_FWRSP	= 5,	
+	BFA_RPORT_SM_HWFAIL	= 6,	
+	BFA_RPORT_SM_QOS_SCN	= 7,	
+	BFA_RPORT_SM_SET_SPEED	= 8,	
+	BFA_RPORT_SM_QRESUME	= 9,	
 };
 
 static void	bfa_rport_sm_uninit(struct bfa_rport_s *rp,
@@ -97,9 +78,7 @@ static void	bfa_rport_sm_fwdelete_qfull(struct bfa_rport_s *rp,
 static void	bfa_rport_sm_deleting_qfull(struct bfa_rport_s *rp,
 					  enum bfa_rport_event event);
 
-/**
- * Beginning state, only online event expected.
- */
+
 static void
 bfa_rport_sm_uninit(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -150,9 +129,7 @@ bfa_rport_sm_created(struct bfa_rport_s *rp, enum bfa_rport_event event)
 	}
 }
 
-/**
- * Waiting for rport create response from firmware.
- */
+
 static void
 bfa_rport_sm_fwcreate(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -187,9 +164,7 @@ bfa_rport_sm_fwcreate(struct bfa_rport_s *rp, enum bfa_rport_event event)
 	}
 }
 
-/**
- * Request queue is full, awaiting queue resume to send create request.
- */
+
 static void
 bfa_rport_sm_fwcreate_qfull(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -228,9 +203,7 @@ bfa_rport_sm_fwcreate_qfull(struct bfa_rport_s *rp, enum bfa_rport_event event)
 	}
 }
 
-/**
- * Online state - normal parking state.
- */
+
 static void
 bfa_rport_sm_online(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -300,9 +273,7 @@ bfa_rport_sm_online(struct bfa_rport_s *rp, enum bfa_rport_event event)
 	}
 }
 
-/**
- * Firmware rport is being deleted - awaiting f/w response.
- */
+
 static void
 bfa_rport_sm_fwdelete(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -363,9 +334,7 @@ bfa_rport_sm_fwdelete_qfull(struct bfa_rport_s *rp, enum bfa_rport_event event)
 	}
 }
 
-/**
- * Offline state.
- */
+
 static void
 bfa_rport_sm_offline(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -398,9 +367,7 @@ bfa_rport_sm_offline(struct bfa_rport_s *rp, enum bfa_rport_event event)
 	}
 }
 
-/**
- * Rport is deleted, waiting for firmware response to delete.
- */
+
 static void
 bfa_rport_sm_deleting(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -450,9 +417,7 @@ bfa_rport_sm_deleting_qfull(struct bfa_rport_s *rp, enum bfa_rport_event event)
 	}
 }
 
-/**
- * Waiting for rport create response from firmware. A delete is pending.
- */
+
 static void
 bfa_rport_sm_delete_pending(struct bfa_rport_s *rp,
 				enum bfa_rport_event event)
@@ -481,9 +446,7 @@ bfa_rport_sm_delete_pending(struct bfa_rport_s *rp,
 	}
 }
 
-/**
- * Waiting for rport create response from firmware. Rport offline is pending.
- */
+
 static void
 bfa_rport_sm_offline_pending(struct bfa_rport_s *rp,
 				 enum bfa_rport_event event)
@@ -516,9 +479,7 @@ bfa_rport_sm_offline_pending(struct bfa_rport_s *rp,
 	}
 }
 
-/**
- * IOC h/w failed.
- */
+
 static void
 bfa_rport_sm_iocdisable(struct bfa_rport_s *rp, enum bfa_rport_event event)
 {
@@ -556,9 +517,7 @@ bfa_rport_sm_iocdisable(struct bfa_rport_s *rp, enum bfa_rport_event event)
 
 
 
-/**
- *  bfa_rport_private BFA rport private functions
- */
+
 
 static void
 __bfa_cb_rport_online(void *cbarg, bfa_boolean_t complete)
@@ -620,18 +579,14 @@ bfa_rport_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 		rp->rport_tag = i;
 		bfa_sm_set_state(rp, bfa_rport_sm_uninit);
 
-		/**
-		 *  - is unused
-		 */
+		
 		if (i)
 			list_add_tail(&rp->qe, &mod->rp_free_q);
 
 		bfa_reqq_winit(&rp->reqq_wait, bfa_rport_qresume, rp);
 	}
 
-	/**
-	 * consume memory
-	 */
+	
 	bfa_meminfo_kva(meminfo) = (u8 *) rp;
 }
 
@@ -695,9 +650,7 @@ bfa_rport_send_fwcreate(struct bfa_rport_s *rp)
 {
 	struct bfi_rport_create_req_s *m;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(rp->bfa, BFA_REQQ_RPORT);
 	if (!m) {
 		bfa_reqq_wait(rp->bfa, BFA_REQQ_RPORT, &rp->reqq_wait);
@@ -716,9 +669,7 @@ bfa_rport_send_fwcreate(struct bfa_rport_s *rp)
 	m->vf_id = rp->rport_info.vf_id;
 	m->cisc = rp->rport_info.cisc;
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(rp->bfa, BFA_REQQ_RPORT);
 	return BFA_TRUE;
 }
@@ -728,9 +679,7 @@ bfa_rport_send_fwdelete(struct bfa_rport_s *rp)
 {
 	struct bfi_rport_delete_req_s *m;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(rp->bfa, BFA_REQQ_RPORT);
 	if (!m) {
 		bfa_reqq_wait(rp->bfa, BFA_REQQ_RPORT, &rp->reqq_wait);
@@ -741,9 +690,7 @@ bfa_rport_send_fwdelete(struct bfa_rport_s *rp)
 			bfa_lpuid(rp->bfa));
 	m->fw_handle = rp->fw_handle;
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(rp->bfa, BFA_REQQ_RPORT);
 	return BFA_TRUE;
 }
@@ -753,9 +700,7 @@ bfa_rport_send_fwspeed(struct bfa_rport_s *rp)
 {
 	struct bfa_rport_speed_req_s *m;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(rp->bfa, BFA_REQQ_RPORT);
 	if (!m) {
 		bfa_trc(rp->bfa, rp->rport_info.speed);
@@ -767,22 +712,16 @@ bfa_rport_send_fwspeed(struct bfa_rport_s *rp)
 	m->fw_handle = rp->fw_handle;
 	m->speed = (u8)rp->rport_info.speed;
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(rp->bfa, BFA_REQQ_RPORT);
 	return BFA_TRUE;
 }
 
 
 
-/**
- *  bfa_rport_public
- */
 
-/**
- * 		Rport interrupt processing.
- */
+
+
 void
 bfa_rport_isr(struct bfa_s *bfa, struct bfi_msg_s *m)
 {
@@ -822,9 +761,7 @@ bfa_rport_isr(struct bfa_s *bfa, struct bfi_msg_s *m)
 
 
 
-/**
- *  bfa_rport_api
- */
+
 
 struct bfa_rport_s *
 bfa_rport_create(struct bfa_s *bfa, void *rport_drv)
@@ -857,10 +794,7 @@ bfa_rport_online(struct bfa_rport_s *rport, struct bfa_rport_info_s *rport_info)
 {
 	bfa_assert(rport_info->max_frmsz != 0);
 
-	/**
-	 * Some JBODs are seen to be not setting PDU size correctly in PLOGI
-	 * responses. Default to minimum size.
-	 */
+	
 	if (rport_info->max_frmsz == 0) {
 		bfa_trc(rport->bfa, rport->rport_tag);
 		rport_info->max_frmsz = FC_MIN_PDUSZ;

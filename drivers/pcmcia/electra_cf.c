@@ -1,24 +1,4 @@
-/*
- * Copyright (C) 2007 PA Semi, Inc
- *
- * Maintained by: Olof Johansson <olof@lixom.net>
- *
- * Based on drivers/pcmcia/omap_cf.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -75,7 +55,7 @@ static int electra_cf_ss_init(struct pcmcia_socket *s)
 	return 0;
 }
 
-/* the timer is primarily to kick this socket's pccardd */
+
 static void electra_cf_timer(unsigned long _cf)
 {
 	struct electra_cf_socket *cf = (void *) _cf;
@@ -105,7 +85,7 @@ static int electra_cf_get_status(struct pcmcia_socket *s, u_int *sp)
 
 	cf = container_of(s, struct electra_cf_socket, socket);
 
-	/* NOTE CF is always 3VCARD */
+	
 	if (electra_cf_present(cf)) {
 		*sp = SS_READY | SS_DETECT | SS_POWERON | SS_3VCARD;
 
@@ -124,7 +104,7 @@ static int electra_cf_set_socket(struct pcmcia_socket *sock,
 
 	cf = container_of(sock, struct electra_cf_socket, socket);
 
-	/* "reset" means no power in our case */
+	
 	vcc = (s->flags & SS_RESET) ? 0 : s->Vcc;
 
 	switch (vcc) {
@@ -141,8 +121,8 @@ static int electra_cf_set_socket(struct pcmcia_socket *sock,
 		return -EINVAL;
 	}
 
-	gpio |= 1 << (cf->gpio_3v + 16); /* enwr */
-	gpio |= 1 << (cf->gpio_5v + 16); /* enwr */
+	gpio |= 1 << (cf->gpio_3v + 16); 
+	gpio |= 1 << (cf->gpio_5v + 16); 
 	out_le32(cf->gpio_base+0x90, gpio);
 
 	pr_debug("%s: Vcc %d, io_irq %d, flags %04x csc %04x\n",
@@ -270,7 +250,7 @@ static int __devinit electra_cf_probe(struct of_device *ofdev,
 
 	cf->socket.io_offset = cf->io_base;
 
-	/* reserve chip-select regions */
+	
 	if (!request_mem_region(cf->mem_phys, cf->mem_size, driver_name)) {
 		status = -ENXIO;
 		dev_err(device, "Can't claim memory region\n");

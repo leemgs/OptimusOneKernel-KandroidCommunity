@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2005 Cisco Systems.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -348,10 +318,7 @@ static int srp_send_req(struct srp_target_port *target)
 	get_random_bytes(&req->param.starting_psn, 4);
 	req->param.starting_psn 	     &= 0xffffff;
 
-	/*
-	 * Pick some arbitrary defaults here; we could make these
-	 * module parameters if anyone cared about setting them.
-	 */
+	
 	req->param.responder_resources	      = 4;
 	req->param.remote_cm_response_timeout = 20;
 	req->param.local_cm_response_timeout  = 20;
@@ -364,15 +331,7 @@ static int srp_send_req(struct srp_target_port *target)
 	req->priv.req_it_iu_len = cpu_to_be32(srp_max_iu_len);
 	req->priv.req_buf_fmt 	= cpu_to_be16(SRP_BUF_FORMAT_DIRECT |
 					      SRP_BUF_FORMAT_INDIRECT);
-	/*
-	 * In the published SRP specification (draft rev. 16a), the
-	 * port identifier format is 8 bytes of ID extension followed
-	 * by 8 bytes of GUID.  Older drafts put the two halves in the
-	 * opposite order, so that the GUID comes first.
-	 *
-	 * Targets conforming to these obsolete drafts can be
-	 * recognized by the I/O Class they report.
-	 */
+	
 	if (target->io_class == SRP_REV10_IB_IO_CLASS) {
 		memcpy(req->priv.initiator_port_id,
 		       &target->path.sgid.global.interface_id, 8);
@@ -389,11 +348,7 @@ static int srp_send_req(struct srp_target_port *target)
 		memcpy(req->priv.target_port_id + 8, &target->ioc_guid, 8);
 	}
 
-	/*
-	 * Topspin/Cisco SRP targets will reject our login unless we
-	 * zero out the first 8 bytes of our initiator port ID and set
-	 * the second 8 bytes to the local node GUID.
-	 */
+	
 	if (srp_target_is_topspin(target)) {
 		shost_printk(KERN_DEBUG, target->scsi_host,
 			     PFX "Topspin/Cisco initiator port ID workaround "
@@ -413,7 +368,7 @@ static int srp_send_req(struct srp_target_port *target)
 
 static void srp_disconnect_target(struct srp_target_port *target)
 {
-	/* XXX should send SRP_I_LOGOUT request */
+	
 
 	init_completion(&target->done);
 	if (ib_send_cm_dreq(target->cm_id, NULL, 0)) {
@@ -464,12 +419,7 @@ static int srp_connect_target(struct srp_target_port *target)
 			return ret;
 		wait_for_completion(&target->done);
 
-		/*
-		 * The CM event handling code will set status to
-		 * SRP_PORT_REDIRECT if we get a port redirect REJ
-		 * back, or SRP_DLID_REDIRECT if we get a lid/qp
-		 * redirect REJ back.
-		 */
+		
 		switch (target->status) {
 		case 0:
 			return 0;
@@ -484,9 +434,7 @@ static int srp_connect_target(struct srp_target_port *target)
 			break;
 
 		case SRP_STALE_CONN:
-			/* Our current CM id was stale, and is now in timewait.
-			 * Try to reconnect with a new one.
-			 */
+			
 			if (!retries-- || srp_new_cm_id(target)) {
 				shost_printk(KERN_ERR, target->scsi_host, PFX
 					     "giving up on stale connection\n");
@@ -551,10 +499,7 @@ static int srp_reconnect_target(struct srp_target_port *target)
 	spin_unlock_irq(target->scsi_host->host_lock);
 
 	srp_disconnect_target(target);
-	/*
-	 * Now get a new local CM ID so that we avoid confusing the
-	 * target in case things are really fouled up.
-	 */
+	
 	ret = srp_new_cm_id(target);
 	if (ret)
 		goto err;
@@ -569,7 +514,7 @@ static int srp_reconnect_target(struct srp_target_port *target)
 		goto err;
 
 	while (ib_poll_cq(target->cq, 1, &wc) > 0)
-		; /* nothing */
+		; 
 
 	spin_lock_irq(target->scsi_host->host_lock);
 	list_for_each_entry_safe(req, tmp, &target->req_queue, list)
@@ -599,12 +544,7 @@ err:
 	shost_printk(KERN_ERR, target->scsi_host,
 		     PFX "reconnect failed (%d), removing target port.\n", ret);
 
-	/*
-	 * We couldn't reconnect, so kill our target port off.
-	 * However, we have to defer the real removal because we might
-	 * be in the context of the SCSI error handler now, which
-	 * would deadlock if we call scsi_remove_host().
-	 */
+	
 	spin_lock_irq(target->scsi_host->host_lock);
 	if (target->state == SRP_TARGET_CONNECTING) {
 		target->state = SRP_TARGET_DEAD;
@@ -730,12 +670,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_target_port *target,
 	len = sizeof (struct srp_cmd) +	sizeof (struct srp_direct_buf);
 
 	if (count == 1) {
-		/*
-		 * The midlayer only generated a single gather/scatter
-		 * entry, or DMA mapping coalesced everything to a
-		 * single entry.  So a direct descriptor along with
-		 * the DMA MR suffices.
-		 */
+		
 		struct srp_direct_buf *buf = (void *) cmd->add_data;
 
 		buf->va  = cpu_to_be64(ib_sg_dma_address(ibdev, scat));
@@ -743,11 +678,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_target_port *target,
 		buf->len = cpu_to_be32(ib_sg_dma_len(ibdev, scat));
 	} else if (srp_map_fmr(target, scat, count, req,
 			       (void *) cmd->add_data)) {
-		/*
-		 * FMR mapping failed, and the scatterlist has more
-		 * than one entry.  Generate an indirect memory
-		 * descriptor.
-		 */
+		
 		struct srp_indirect_buf *buf = (void *) cmd->add_data;
 		struct scatterlist *sg;
 		u32 datalen = 0;
@@ -883,7 +814,7 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
 		break;
 
 	case SRP_T_LOGOUT:
-		/* XXX Handle target logout */
+		
 		shost_printk(KERN_WARNING, target->scsi_host,
 			     PFX "Got target logout request\n");
 		break;
@@ -960,11 +891,7 @@ static int srp_post_recv(struct srp_target_port *target)
 	return ret;
 }
 
-/*
- * Must be called with target->scsi_host->host_lock held to protect
- * req_lim and tx_head.  Lock cannot be dropped between call here and
- * call to __srp_post_send().
- */
+
 static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target,
 					enum srp_request_type req_type)
 {
@@ -981,10 +908,7 @@ static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target,
 	return target->tx_ring[target->tx_head & SRP_SQ_SIZE];
 }
 
-/*
- * Must be called with target->scsi_host->host_lock held to protect
- * req_lim and tx_head.
- */
+
 static int __srp_post_send(struct srp_target_port *target,
 			   struct srp_iu *iu, int len)
 {
@@ -1149,11 +1073,7 @@ static void srp_cm_rej_handler(struct ib_cm_id *cm_id,
 
 	case IB_CM_REJ_PORT_REDIRECT:
 		if (srp_target_is_topspin(target)) {
-			/*
-			 * Topspin/Cisco SRP gateways incorrectly send
-			 * reject reason code 25 when they mean 24
-			 * (port redirect).
-			 */
+			
 			memcpy(target->path.dgid.raw,
 			       event->param.rej_rcvd.ari, 16);
 
@@ -1641,14 +1561,7 @@ static struct class srp_class = {
 	.dev_release = srp_release_dev
 };
 
-/*
- * Target ports are added by writing
- *
- *     id_ext=<SRP ID ext>,ioc_guid=<SRP IOC GUID>,dgid=<dest GID>,
- *     pkey=<P_Key>,service_id=<service ID>
- *
- * to the add_target sysfs attribute.
- */
+
 enum {
 	SRP_OPT_ERR		= 0,
 	SRP_OPT_ID_EXT		= 1 << 0,
@@ -1993,11 +1906,7 @@ static void srp_add_one(struct ib_device *device)
 	if (!srp_dev)
 		goto free_attr;
 
-	/*
-	 * Use the smallest page size supported by the HCA, down to a
-	 * minimum of 512 bytes (which is the smallest sector that a
-	 * SCSI command will ever carry).
-	 */
+	
 	srp_dev->fmr_page_shift = max(9, ffs(dev_attr->page_size_cap) - 1);
 	srp_dev->fmr_page_size  = 1 << srp_dev->fmr_page_shift;
 	srp_dev->fmr_page_mask  = ~((u64) srp_dev->fmr_page_size - 1);
@@ -2069,16 +1978,10 @@ static void srp_remove_one(struct ib_device *device)
 
 	list_for_each_entry_safe(host, tmp_host, &srp_dev->dev_list, list) {
 		device_unregister(&host->dev);
-		/*
-		 * Wait for the sysfs entry to go away, so that no new
-		 * target ports can be created.
-		 */
+		
 		wait_for_completion(&host->released);
 
-		/*
-		 * Mark all target ports as removed, so we stop queueing
-		 * commands and don't try to reconnect.
-		 */
+		
 		spin_lock(&host->target_lock);
 		list_for_each_entry(target, &host->target_list, list) {
 			spin_lock_irq(target->scsi_host->host_lock);
@@ -2087,11 +1990,7 @@ static void srp_remove_one(struct ib_device *device)
 		}
 		spin_unlock(&host->target_lock);
 
-		/*
-		 * Wait for any reconnection tasks that may have
-		 * started before we marked our target ports as
-		 * removed, and any target port removal tasks.
-		 */
+		
 		flush_scheduled_work();
 
 		list_for_each_entry_safe(target, tmp_target,

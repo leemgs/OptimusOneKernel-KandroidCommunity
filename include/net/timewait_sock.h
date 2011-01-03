@@ -1,13 +1,4 @@
-/*
- * NET		Generic infrastructure for Network protocols.
- *
- * Authors:	Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #ifndef _TIMEWAIT_SOCK_H
 #define _TIMEWAIT_SOCK_H
 
@@ -39,4 +30,4 @@ static inline void twsk_destructor(struct sock *sk)
 		sk->sk_prot->twsk_prot->twsk_destructor(sk);
 }
 
-#endif /* _TIMEWAIT_SOCK_H */
+#endif 

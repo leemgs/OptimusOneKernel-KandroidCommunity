@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/db88f6281-bp-setup.c
- *
- * Marvell DB-88F6281-BP Development Board Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -58,9 +50,7 @@ static unsigned int db88f6281_mpp_config[] __initdata = {
 
 static void __init db88f6281_init(void)
 {
-	/*
-	 * Basic setup. Needs to be called early.
-	 */
+	
 	kirkwood_init();
 	kirkwood_mpp_conf(db88f6281_mpp_config);
 
@@ -82,7 +72,7 @@ static int __init db88f6281_pci_init(void)
 subsys_initcall(db88f6281_pci_init);
 
 MACHINE_START(DB88F6281_BP, "Marvell DB-88F6281-BP Development Board")
-	/* Maintainer: Saeed Bishara <saeed@marvell.com> */
+	
 	.phys_io	= KIRKWOOD_REGS_PHYS_BASE,
 	.io_pg_offst	= ((KIRKWOOD_REGS_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

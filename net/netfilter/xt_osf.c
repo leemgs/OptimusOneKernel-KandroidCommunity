@@ -1,21 +1,4 @@
-/*
- * Copyright (c) 2003+ Evgeniy Polyakov <zbr@ioremap.net>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -44,18 +27,15 @@ struct xt_osf_finger {
 };
 
 enum osf_fmatch_states {
-	/* Packet does not match the fingerprint */
+	
 	FMATCH_WRONG = 0,
-	/* Packet matches the fingerprint */
+	
 	FMATCH_OK,
-	/* Options do not match the fingerprint, but header does */
+	
 	FMATCH_OPT_WRONG,
 };
 
-/*
- * Indexed by dont-fragment bit.
- * It is the only constant value in the fingerprint.
- */
+
 static struct list_head xt_osf_fingers[2];
 
 static const struct nla_policy xt_osf_policy[OSF_ATTR_MAX + 1] = {
@@ -103,9 +83,7 @@ static int xt_osf_add_callback(struct sock *ctnl, struct sk_buff *skb,
 		break;
 	}
 
-	/*
-	 * We are protected by nfnl mutex.
-	 */
+	
 	if (kf)
 		list_add_tail_rcu(&kf->finger_entry, &xt_osf_fingers[!!f->df]);
 
@@ -129,9 +107,7 @@ static int xt_osf_remove_callback(struct sock *ctnl, struct sk_buff *skb,
 		if (memcmp(&sf->finger, f, sizeof(struct xt_osf_user_finger)))
 			continue;
 
-		/*
-		 * We are protected by nfnl mutex.
-		 */
+		
 		list_del_rcu(&sf->finger_entry);
 		call_rcu(&sf->rcu_head, xt_osf_finger_free_rcu);
 
@@ -243,13 +219,11 @@ static bool xt_osf_match_packet(const struct sk_buff *skb,
 		if (totlen == f->ss && xt_osf_ttl(skb, info, f->ttl)) {
 			int foptsize, optnum;
 
-			/*
-			 * Should not happen if userspace parser was written correctly.
-			 */
+			
 			if (f->wss.wc >= OSF_WSS_MAX)
 				continue;
 
-			/* Check options */
+			
 
 			foptsize = 0;
 			for (optnum = 0; optnum < f->opt_num; ++optnum)
@@ -300,12 +274,7 @@ static bool xt_osf_match_packet(const struct sk_buff *skb,
 						fmatch = FMATCH_OK;
 					break;
 				case OSF_WSS_MSS:
-					/*
-					 * Some smart modems decrease mangle MSS to 
-					 * SMART_MSS_2, so we check standard, decreased
-					 * and the one provided in the fingerprint MSS
-					 * values.
-					 */
+					
 #define SMART_MSS_1	1460
 #define SMART_MSS_2	1448
 					if (window == f->wss.val * mss ||

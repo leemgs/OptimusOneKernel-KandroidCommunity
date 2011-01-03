@@ -1,8 +1,4 @@
-/*
- *	IPX proc routines
- *
- * 	Copyright(C) Arnaldo Carvalho de Melo <acme@conectiva.com.br>, 2002
- */
+
 
 #include <linux/init.h>
 #ifdef CONFIG_PROC_FS
@@ -267,7 +263,7 @@ static int ipx_seq_socket_show(struct seq_file *seq, void *v)
 #else
 	seq_printf(seq, "%08lX:%04X  ", (unsigned long) ntohl(ipxs->intrfc->if_netnum),
 		   ntohs(ipxs->port));
-#endif	/* CONFIG_IPX_INTERN */
+#endif	
 	if (s->sk_state != TCP_ESTABLISHED)
 		seq_printf(seq, "%-28s", "Not_Connected");
 	else {
@@ -391,7 +387,7 @@ void __exit ipx_proc_exit(void)
 	remove_proc_entry("ipx", init_net.proc_net);
 }
 
-#else /* CONFIG_PROC_FS */
+#else 
 
 int __init ipx_proc_init(void)
 {
@@ -402,4 +398,4 @@ void __exit ipx_proc_exit(void)
 {
 }
 
-#endif /* CONFIG_PROC_FS */
+#endif 

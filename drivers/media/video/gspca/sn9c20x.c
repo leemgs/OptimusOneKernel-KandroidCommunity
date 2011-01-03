@@ -1,22 +1,4 @@
-/*
- *	Sonix sn9c201 sn9c202 library
- *	Copyright (C) 2008-2009 microdia project <microdia@googlegroups.com>
- *	Copyright (C) 2009 Brian Johnson <brijohn@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #ifdef CONFIG_USB_GSPCA_SN9C20X_EVDEV
 #include <linux/kthread.h>
@@ -54,7 +36,7 @@ MODULE_LICENSE("GPL");
 #define SENSOR_HV7131R	10
 #define SENSOR_MT9VPRB	20
 
-/* specific webcam descriptor */
+
 struct sd {
 	struct gspca_dev gspca_dev;
 
@@ -737,69 +719,69 @@ static u16 bridge_init[][2] = {
 	{0x1183, 0x00},	{0x1184, 0x50},	{0x1185, 0x80}
 };
 
-/* Gain = (bit[3:0] / 16 + 1) * (bit[4] + 1) * (bit[5] + 1) * (bit[6] + 1) */
+
 static u8 ov_gain[] = {
-	0x00 /* 1x */, 0x04 /* 1.25x */, 0x08 /* 1.5x */, 0x0c /* 1.75x */,
-	0x10 /* 2x */, 0x12 /* 2.25x */, 0x14 /* 2.5x */, 0x16 /* 2.75x */,
-	0x18 /* 3x */, 0x1a /* 3.25x */, 0x1c /* 3.5x */, 0x1e /* 3.75x */,
-	0x30 /* 4x */, 0x31 /* 4.25x */, 0x32 /* 4.5x */, 0x33 /* 4.75x */,
-	0x34 /* 5x */, 0x35 /* 5.25x */, 0x36 /* 5.5x */, 0x37 /* 5.75x */,
-	0x38 /* 6x */, 0x39 /* 6.25x */, 0x3a /* 6.5x */, 0x3b /* 6.75x */,
-	0x3c /* 7x */, 0x3d /* 7.25x */, 0x3e /* 7.5x */, 0x3f /* 7.75x */,
-	0x70 /* 8x */
+	0x00 , 0x04 , 0x08 , 0x0c ,
+	0x10 , 0x12 , 0x14 , 0x16 ,
+	0x18 , 0x1a , 0x1c , 0x1e ,
+	0x30 , 0x31 , 0x32 , 0x33 ,
+	0x34 , 0x35 , 0x36 , 0x37 ,
+	0x38 , 0x39 , 0x3a , 0x3b ,
+	0x3c , 0x3d , 0x3e , 0x3f ,
+	0x70 
 };
 
-/* Gain = (bit[8] + 1) * (bit[7] + 1) * (bit[6:0] * 0.03125) */
+
 static u16 micron1_gain[] = {
-	/* 1x   1.25x   1.5x    1.75x */
+	
 	0x0020, 0x0028, 0x0030, 0x0038,
-	/* 2x   2.25x   2.5x    2.75x */
+	
 	0x00a0, 0x00a4, 0x00a8, 0x00ac,
-	/* 3x   3.25x   3.5x    3.75x */
+	
 	0x00b0, 0x00b4, 0x00b8, 0x00bc,
-	/* 4x   4.25x   4.5x    4.75x */
+	
 	0x00c0, 0x00c4, 0x00c8, 0x00cc,
-	/* 5x   5.25x   5.5x    5.75x */
+	
 	0x00d0, 0x00d4, 0x00d8, 0x00dc,
-	/* 6x   6.25x   6.5x    6.75x */
+	
 	0x00e0, 0x00e4, 0x00e8, 0x00ec,
-	/* 7x   7.25x   7.5x    7.75x */
+	
 	0x00f0, 0x00f4, 0x00f8, 0x00fc,
-	/* 8x */
+	
 	0x01c0
 };
 
-/* mt9m001 sensor uses a different gain formula then other micron sensors */
-/* Gain = (bit[6] + 1) * (bit[5-0] * 0.125) */
+
+
 static u16 micron2_gain[] = {
-	/* 1x   1.25x   1.5x    1.75x */
+	
 	0x0008, 0x000a, 0x000c, 0x000e,
-	/* 2x   2.25x   2.5x    2.75x */
+	
 	0x0010, 0x0012, 0x0014, 0x0016,
-	/* 3x   3.25x   3.5x    3.75x */
+	
 	0x0018, 0x001a, 0x001c, 0x001e,
-	/* 4x   4.25x   4.5x    4.75x */
+	
 	0x0020, 0x0051, 0x0052, 0x0053,
-	/* 5x   5.25x   5.5x    5.75x */
+	
 	0x0054, 0x0055, 0x0056, 0x0057,
-	/* 6x   6.25x   6.5x    6.75x */
+	
 	0x0058, 0x0059, 0x005a, 0x005b,
-	/* 7x   7.25x   7.5x    7.75x */
+	
 	0x005c, 0x005d, 0x005e, 0x005f,
-	/* 8x */
+	
 	0x0060
 };
 
-/* Gain = .5 + bit[7:0] / 16 */
+
 static u8 hv7131r_gain[] = {
-	0x08 /* 1x */, 0x0c /* 1.25x */, 0x10 /* 1.5x */, 0x14 /* 1.75x */,
-	0x18 /* 2x */, 0x1c /* 2.25x */, 0x20 /* 2.5x */, 0x24 /* 2.75x */,
-	0x28 /* 3x */, 0x2c /* 3.25x */, 0x30 /* 3.5x */, 0x34 /* 3.75x */,
-	0x38 /* 4x */, 0x3c /* 4.25x */, 0x40 /* 4.5x */, 0x44 /* 4.75x */,
-	0x48 /* 5x */, 0x4c /* 5.25x */, 0x50 /* 5.5x */, 0x54 /* 5.75x */,
-	0x58 /* 6x */, 0x5c /* 6.25x */, 0x60 /* 6.5x */, 0x64 /* 6.75x */,
-	0x68 /* 7x */, 0x6c /* 7.25x */, 0x70 /* 7.5x */, 0x74 /* 7.75x */,
-	0x78 /* 8x */
+	0x08 , 0x0c , 0x10 , 0x14 ,
+	0x18 , 0x1c , 0x20 , 0x24 ,
+	0x28 , 0x2c , 0x30 , 0x34 ,
+	0x38 , 0x3c , 0x40 , 0x44 ,
+	0x48 , 0x4c , 0x50 , 0x54 ,
+	0x58 , 0x5c , 0x60 , 0x64 ,
+	0x68 , 0x6c , 0x70 , 0x74 ,
+	0x78 
 };
 
 static struct i2c_reg_u8 soi968_init[] = {
@@ -1121,10 +1103,7 @@ static int i2c_w1(struct gspca_dev *gspca_dev, u8 reg, u8 val)
 
 	u8 row[8];
 
-	/*
-	 * from the point of view of the bridge, the length
-	 * includes the address
-	 */
+	
 	row[0] = 0x81 | (2 << 4);
 	row[1] = sd->i2c_addr;
 	row[2] = reg;
@@ -1142,10 +1121,7 @@ static int i2c_w2(struct gspca_dev *gspca_dev, u8 reg, u16 val)
 	struct sd *sd = (struct sd *) gspca_dev;
 	u8 row[8];
 
-	/*
-	 * from the point of view of the bridge, the length
-	 * includes the address
-	 */
+	
 	row[0] = 0x81 | (3 << 4);
 	row[1] = sd->i2c_addr;
 	row[2] = reg;
@@ -1237,7 +1213,7 @@ static int ov9655_init_sensor(struct gspca_dev *gspca_dev)
 			return -ENODEV;
 		}
 	}
-	/* disable hflip and vflip */
+	
 	gspca_dev->ctrl_dis = (1 << HFLIP_IDX) | (1 << VFLIP_IDX);
 	sd->hstart = 0;
 	sd->vstart = 7;
@@ -1256,7 +1232,7 @@ static int soi968_init_sensor(struct gspca_dev *gspca_dev)
 			return -ENODEV;
 		}
 	}
-	/* disable hflip and vflip */
+	
 	gspca_dev->ctrl_dis = (1 << HFLIP_IDX) | (1 << VFLIP_IDX) | (1 << EXPOSURE_IDX);
 	sd->hstart = 60;
 	sd->vstart = 11;
@@ -1275,7 +1251,7 @@ static int ov7660_init_sensor(struct gspca_dev *gspca_dev)
 			return -ENODEV;
 		}
 	}
-	/* disable hflip and vflip */
+	
 	gspca_dev->ctrl_dis = (1 << HFLIP_IDX) | (1 << VFLIP_IDX);
 	sd->hstart = 1;
 	sd->vstart = 1;
@@ -1294,7 +1270,7 @@ static int ov7670_init_sensor(struct gspca_dev *gspca_dev)
 			return -ENODEV;
 		}
 	}
-	/* disable hflip and vflip */
+	
 	gspca_dev->ctrl_dis = (1 << HFLIP_IDX) | (1 << VFLIP_IDX);
 	sd->hstart = 0;
 	sd->vstart = 1;
@@ -1396,7 +1372,7 @@ static int mt9m001_init_sensor(struct gspca_dev *gspca_dev)
 			return -ENODEV;
 		}
 	}
-	/* disable hflip and vflip */
+	
 	gspca_dev->ctrl_dis = (1 << HFLIP_IDX) | (1 << VFLIP_IDX);
 	sd->hstart = 2;
 	sd->vstart = 2;
@@ -2263,11 +2239,7 @@ static void do_autoexposure(struct gspca_dev *gspca_dev, u16 avg_lum)
 	struct sd *sd = (struct sd *) gspca_dev;
 	s16 new_exp;
 
-	/*
-	 * some hardcoded values are present
-	 * like those for maximal/minimal exposure
-	 * and exposure steps
-	 */
+	
 	if (avg_lum < MIN_AVG_LUM) {
 		if (sd->exposure > 0x1770)
 			return;
@@ -2342,9 +2314,9 @@ static void sd_dqcallback(struct gspca_dev *gspca_dev)
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			struct gspca_frame *frame,	/* target */
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+			struct gspca_frame *frame,	
+			u8 *data,			
+			int len)			
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int avg_lum;
@@ -2397,7 +2369,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	}
 }
 
-/* sub-driver description */
+
 static const struct sd_desc sd_desc = {
 	.name = MODULE_NAME,
 	.ctrls = sd_ctrls,
@@ -2458,7 +2430,7 @@ static const __devinitdata struct usb_device_id device_table[] = {
 };
 MODULE_DEVICE_TABLE(usb, device_table);
 
-/* -- device connect -- */
+
 static int sd_probe(struct usb_interface *intf,
 		    const struct usb_device_id *id)
 {
@@ -2489,7 +2461,7 @@ static struct usb_driver sd_driver = {
 #endif
 };
 
-/* -- module insert / remove -- */
+
 static int __init sd_mod_init(void)
 {
 	int ret;

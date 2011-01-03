@@ -1,19 +1,4 @@
-/*
- * This is a module which is used for queueing packets and communicating with
- * userspace via nfnetlink.
- *
- * (C) 2005 by Harald Welte <laforge@netfilter.org>
- * (C) 2007 by Patrick McHardy <kaber@trash.net>
- *
- * Based on the old ipv4-only ip_queue.c:
- * (C) 2000-2002 James Morris <jmorris@intercode.com.au>
- * (C) 2003-2005 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 #include <linux/module.h>
 #include <linux/skbuff.h>
 #include <linux/init.h>
@@ -39,7 +24,7 @@
 #define NFQNL_QMAX_DEFAULT 1024
 
 struct nfqnl_instance {
-	struct hlist_node hlist;		/* global list of queues */
+	struct hlist_node hlist;		
 	struct rcu_head rcu;
 
 	int peer_pid;
@@ -49,14 +34,14 @@ struct nfqnl_instance {
 	unsigned int queue_dropped;
 	unsigned int queue_user_dropped;
 
-	unsigned int id_sequence;		/* 'sequence' of pkt ids */
+	unsigned int id_sequence;		
 
-	u_int16_t queue_num;			/* number of this queue */
+	u_int16_t queue_num;			
 	u_int8_t copy_mode;
 
 	spinlock_t lock;
 
-	struct list_head queue_list;		/* packets in queue */
+	struct list_head queue_list;		
 };
 
 typedef int (*nfqnl_cmpfn)(struct nf_queue_entry *, unsigned long);
@@ -226,13 +211,13 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
 
 	size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+		+ nla_total_size(sizeof(u_int32_t))	
+		+ nla_total_size(sizeof(u_int32_t))	
 #ifdef CONFIG_BRIDGE_NETFILTER
-		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+		+ nla_total_size(sizeof(u_int32_t))	
+		+ nla_total_size(sizeof(u_int32_t))	
 #endif
-		+ nla_total_size(sizeof(u_int32_t))	/* mark */
+		+ nla_total_size(sizeof(u_int32_t))	
 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp));
 
@@ -291,17 +276,14 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
 		NLA_PUT_BE32(skb, NFQA_IFINDEX_INDEV, htonl(indev->ifindex));
 #else
 		if (entry->pf == PF_BRIDGE) {
-			/* Case 1: indev is physical input device, we need to
-			 * look for bridge group (when called from
-			 * netfilter_bridge) */
+			
 			NLA_PUT_BE32(skb, NFQA_IFINDEX_PHYSINDEV,
 				     htonl(indev->ifindex));
-			/* this is the bridge group "brX" */
+			
 			NLA_PUT_BE32(skb, NFQA_IFINDEX_INDEV,
 				     htonl(indev->br_port->br->dev->ifindex));
 		} else {
-			/* Case 2: indev is bridge group, we need to look for
-			 * physical device (when called from ipv4) */
+			
 			NLA_PUT_BE32(skb, NFQA_IFINDEX_INDEV,
 				     htonl(indev->ifindex));
 			if (entskb->nf_bridge && entskb->nf_bridge->physindev)
@@ -316,17 +298,14 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
 		NLA_PUT_BE32(skb, NFQA_IFINDEX_OUTDEV, htonl(outdev->ifindex));
 #else
 		if (entry->pf == PF_BRIDGE) {
-			/* Case 1: outdev is physical output device, we need to
-			 * look for bridge group (when called from
-			 * netfilter_bridge) */
+			
 			NLA_PUT_BE32(skb, NFQA_IFINDEX_PHYSOUTDEV,
 				     htonl(outdev->ifindex));
-			/* this is the bridge group "brX" */
+			
 			NLA_PUT_BE32(skb, NFQA_IFINDEX_OUTDEV,
 				     htonl(outdev->br_port->br->dev->ifindex));
 		} else {
-			/* Case 2: outdev is bridge group, we need to look for
-			 * physical output device (when called from ipv4) */
+			
 			NLA_PUT_BE32(skb, NFQA_IFINDEX_OUTDEV,
 				     htonl(outdev->ifindex));
 			if (entskb->nf_bridge && entskb->nf_bridge->physoutdev)
@@ -393,7 +372,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
 	struct nfqnl_instance *queue;
 	int err;
 
-	/* rcu_read_lock()ed by nf_hook_slow() */
+	
 	queue = instance_lookup(queuenum);
 	if (!queue)
 		goto err_out;
@@ -419,7 +398,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
 		goto err_out_free_nskb;
 	}
 
-	/* nfnetlink_unicast will either free the nskb or add it to a socket */
+	
 	err = nfnetlink_unicast(nskb, queue->peer_pid, MSG_DONTWAIT);
 	if (err < 0) {
 		queue->queue_user_dropped++;
@@ -488,7 +467,7 @@ nfqnl_set_mode(struct nfqnl_instance *queue,
 
 	case NFQNL_COPY_PACKET:
 		queue->copy_mode = mode;
-		/* we're using struct nlattr which has 16bit nla_len */
+		
 		if (range > 0xffff)
 			queue->copy_range = 0xffff;
 		else
@@ -526,8 +505,7 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
 	return 0;
 }
 
-/* drop all packets with either indev or outdev == ifindex from all queue
- * instances */
+
 static void
 nfqnl_dev_drop(int ifindex)
 {
@@ -558,7 +536,7 @@ nfqnl_rcv_dev_event(struct notifier_block *this,
 	if (!net_eq(dev_net(dev), &init_net))
 		return NOTIFY_DONE;
 
-	/* Drop any packets associated with the downed device */
+	
 	if (event == NETDEV_DOWN)
 		nfqnl_dev_drop(dev->ifindex);
 	return NOTIFY_DONE;
@@ -578,7 +556,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
 	    n->protocol == NETLINK_NETFILTER && n->pid) {
 		int i;
 
-		/* destroy all instances for this pid */
+		
 		spin_lock(&instances_lock);
 		for (i = 0; i < INSTANCE_BUCKETS; i++) {
 			struct hlist_node *tmp, *t2;
@@ -701,7 +679,7 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
 	if (nfqa[NFQA_CFG_CMD]) {
 		cmd = nla_data(nfqa[NFQA_CFG_CMD]);
 
-		/* Commands without queue context - might sleep */
+		
 		switch (cmd->command) {
 		case NFQNL_CFG_CMD_PF_BIND:
 			return nf_register_queue_handler(ntohs(cmd->pf),
@@ -892,7 +870,7 @@ static const struct file_operations nfqnl_file_ops = {
 	.release = seq_release_private,
 };
 
-#endif /* PROC_FS */
+#endif 
 
 static int __init nfnetlink_queue_init(void)
 {
@@ -936,7 +914,7 @@ static void __exit nfnetlink_queue_fini(void)
 	nfnetlink_subsys_unregister(&nfqnl_subsys);
 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
 
-	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+	rcu_barrier(); 
 }
 
 MODULE_DESCRIPTION("netfilter packet queue handler");

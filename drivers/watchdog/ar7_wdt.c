@@ -1,27 +1,4 @@
-/*
- * drivers/watchdog/ar7_wdt.c
- *
- * Copyright (C) 2007 Nicolas Thill <nico@openwrt.org>
- * Copyright (c) 2005 Enrik Berkhan <Enrik.Berkhan@akk.org>
- *
- * Some code taken from:
- * National Semiconductor SCx200 Watchdog support
- * Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -72,12 +49,12 @@ static unsigned long wdt_is_open;
 static spinlock_t wdt_lock;
 static unsigned expect_close;
 
-/* XXX currently fixed, allows max margin ~68.72 secs */
+
 #define prescale_value 0xffff
 
-/* Resource of the WDT registers */
+
 static struct resource *ar7_regs_wdt;
-/* Pointer to the remapped WDT IO space */
+
 static struct ar7_wdt *ar7_wdt;
 
 static void ar7_wdt_kick(u32 value)
@@ -166,7 +143,7 @@ static void ar7_wdt_disable_wdt(void)
 
 static int ar7_wdt_open(struct inode *inode, struct file *file)
 {
-	/* only allow one at a time */
+	
 	if (test_and_set_bit(0, &wdt_is_open))
 		return -EBUSY;
 	ar7_wdt_enable_wdt();
@@ -190,7 +167,7 @@ static int ar7_wdt_release(struct inode *inode, struct file *file)
 static ssize_t ar7_wdt_write(struct file *file, const char *data,
 			     size_t len, loff_t *ppos)
 {
-	/* check for a magic close character */
+	
 	if (len) {
 		size_t i;
 

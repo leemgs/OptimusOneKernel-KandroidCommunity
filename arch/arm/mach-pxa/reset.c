@@ -1,8 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -47,38 +43,34 @@ out:
 	return rc;
 }
 
-/*
- * Trigger GPIO reset.
- * This covers various types of logic connecting gpio pin
- * to RESET pins (nRESET or GPIO_RESET):
- */
+
 static void do_gpio_reset(void)
 {
 	BUG_ON(reset_gpio == -1);
 
-	/* drive it low */
+	
 	gpio_direction_output(reset_gpio, 0);
 	mdelay(2);
-	/* rising edge or drive high */
+	
 	gpio_set_value(reset_gpio, 1);
 	mdelay(2);
-	/* falling edge */
+	
 	gpio_set_value(reset_gpio, 0);
 
-	/* give it some time */
+	
 	mdelay(10);
 
 	WARN_ON(1);
-	/* fallback */
+	
 	do_hw_reset();
 }
 
 static void do_hw_reset(void)
 {
-	/* Initialize the watchdog and let it fire */
+	
 	OWER = OWER_WME;
 	OSSR = OSSR_M3;
-	OSMR3 = OSCR + 368640;	/* ... in 100 ms */
+	OSMR3 = OSCR + 368640;	
 }
 
 void arch_reset(char mode, const char *cmd)
@@ -87,7 +79,7 @@ void arch_reset(char mode, const char *cmd)
 
 	switch (mode) {
 	case 's':
-		/* Jump into ROM at address 0 */
+		
 		cpu_reset(0);
 		break;
 	case 'g':

@@ -1,9 +1,4 @@
-/*
- * sysctl_net_ipv4.c: sysctl interface to net IPV4 subsystem.
- *
- * Begun April 1, 1996, Mike Shaver.
- * Added /proc/sys/net/ipv4 directory entry (empty =) ). [MS]
- */
+
 
 #include <linux/mm.h>
 #include <linux/module.h>
@@ -26,7 +21,7 @@ static int tcp_retr1_max = 255;
 static int ip_local_port_range_min[] = { 1, 1 };
 static int ip_local_port_range_max[] = { 65535, 65535 };
 
-/* Update system visible IP port range */
+
 static void set_local_port_range(int range[2])
 {
 	write_seqlock(&sysctl_local_ports.lock);
@@ -35,7 +30,7 @@ static void set_local_port_range(int range[2])
 	write_sequnlock(&sysctl_local_ports.lock);
 }
 
-/* Validate changes from /proc interface. */
+
 static int ipv4_local_port_range(ctl_table *table, int write,
 				 void __user *buffer,
 				 size_t *lenp, loff_t *ppos)
@@ -63,7 +58,7 @@ static int ipv4_local_port_range(ctl_table *table, int write,
 	return ret;
 }
 
-/* Validate changes from sysctl interface. */
+
 static int ipv4_sysctl_local_port_range(ctl_table *table,
 					 void __user *oldval,
 					 size_t __user *oldlenp,
@@ -689,7 +684,7 @@ static struct ctl_table ipv4_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
 	},
-#endif /* CONFIG_NETLABEL */
+#endif 
 	{
 		.procname	= "tcp_available_congestion_control",
 		.maxlen		= TCP_CA_BUF_MAX,

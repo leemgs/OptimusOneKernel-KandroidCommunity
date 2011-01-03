@@ -1,29 +1,4 @@
-/*
- *  battery.c - ACPI Battery Driver (Revision: 2.0)
- *
- *  Copyright (C) 2007 Alexey Starikovskiy <astarikovskiy@suse.de>
- *  Copyright (C) 2004-2007 Vladimir Lebedev <vladimir.p.lebedev@intel.com>
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -88,9 +63,7 @@ static const struct acpi_device_id battery_device_ids[] = {
 
 MODULE_DEVICE_TABLE(acpi, battery_device_ids);
 
-/* For buggy DSDTs that report negative 16-bit values for either charging
- * or discharging current and/or report 0 as 65536 due to bad math.
- */
+
 #define QUIRK_SIGNED16_CURRENT 0x0001
 
 struct acpi_battery {
@@ -149,24 +122,24 @@ static int acpi_battery_get_state(struct acpi_battery *battery);
 
 static int acpi_battery_is_charged(struct acpi_battery *battery)
 {
-	/* either charging or discharging */
+	
 	if (battery->state != 0)
 		return 0;
 
-	/* battery not reporting charge */
+	
 	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN ||
 	    battery->capacity_now == 0)
 		return 0;
 
-	/* good batteries update full_charge as the batteries degrade */
+	
 	if (battery->full_charge_capacity == battery->capacity_now)
 		return 1;
 
-	/* fallback to using design values for broken batteries */
+	
 	if (battery->design_capacity == battery->capacity_now)
 		return 1;
 
-	/* we don't do any sort of metric based on percentages */
+	
 	return 0;
 }
 
@@ -177,7 +150,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
 	struct acpi_battery *battery = to_acpi_battery(psy);
 
 	if (acpi_battery_present(battery)) {
-		/* run battery update only if it is present */
+		
 		acpi_battery_get_state(battery);
 	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
 		return -ENODEV;
@@ -274,12 +247,10 @@ inline char *acpi_battery_units(struct acpi_battery *battery)
 }
 #endif
 
-/* --------------------------------------------------------------------------
-                               Battery Management
-   -------------------------------------------------------------------------- */
+
 struct acpi_offsets {
-	size_t offset;		/* offset inside struct acpi_sbs_battery */
-	u8 mode;		/* int or string? */
+	size_t offset;		
+	u8 mode;		
 };
 
 static struct acpi_offsets state_offsets[] = {
@@ -327,7 +298,7 @@ static int extract_package(struct acpi_battery *battery,
 					sizeof(acpi_integer));
 				ptr[sizeof(acpi_integer)] = 0;
 			} else
-				*ptr = 0; /* don't have value */
+				*ptr = 0; 
 		} else {
 			int *x = (int *)((u8 *)battery + offsets[i].offset);
 			*x = (element->type == ACPI_TYPE_INTEGER) ?
@@ -434,7 +405,7 @@ static int acpi_battery_init_alarm(struct acpi_battery *battery)
 	acpi_status status = AE_OK;
 	acpi_handle handle = NULL;
 
-	/* See if alarms are supported, and if so, set default */
+	
 	status = acpi_get_handle(battery->device->handle, "_BTP", &handle);
 	if (ACPI_FAILURE(status)) {
 		battery->alarm_present = 0;
@@ -544,9 +515,7 @@ static int acpi_battery_update(struct acpi_battery *battery)
 	return acpi_battery_get_state(battery);
 }
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc)
-   -------------------------------------------------------------------------- */
+
 
 #ifdef CONFIG_ACPI_PROCFS_POWER
 static struct proc_dir_entry *acpi_battery_dir;
@@ -814,9 +783,7 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
 
 #endif
 
-/* --------------------------------------------------------------------------
-                                 Driver Interface
-   -------------------------------------------------------------------------- */
+
 
 static void acpi_battery_notify(struct acpi_device *device, u32 event)
 {
@@ -831,7 +798,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
 					dev_name(&device->dev), event,
 					acpi_battery_present(battery));
 #ifdef CONFIG_ACPI_SYSFS_POWER
-	/* acpi_batter_update could remove power_supply object */
+	
 	if (battery->bat.dev)
 		kobject_uevent(&battery->bat.dev->kobj, KOBJ_CHANGE);
 #endif
@@ -886,7 +853,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
 	return 0;
 }
 
-/* this is needed to learn about changes made in suspended state */
+
 static int acpi_battery_resume(struct acpi_device *device)
 {
 	struct acpi_battery *battery;

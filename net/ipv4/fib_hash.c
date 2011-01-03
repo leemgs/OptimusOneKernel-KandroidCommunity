@@ -1,17 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		IPv4 FIB: lookup engine and maintenance routines.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 
 #include <asm/uaccess.h>
 #include <asm/system.h>
@@ -54,22 +41,20 @@ struct fib_node {
 };
 
 struct fn_zone {
-	struct fn_zone		*fz_next;	/* Next not empty zone	*/
-	struct hlist_head	*fz_hash;	/* Hash table pointer	*/
-	int			fz_nent;	/* Number of entries	*/
+	struct fn_zone		*fz_next;	
+	struct hlist_head	*fz_hash;	
+	int			fz_nent;	
 
-	int			fz_divisor;	/* Hash divisor		*/
-	u32			fz_hashmask;	/* (fz_divisor - 1)	*/
+	int			fz_divisor;	
+	u32			fz_hashmask;	
 #define FZ_HASHMASK(fz)		((fz)->fz_hashmask)
 
-	int			fz_order;	/* Zone order		*/
+	int			fz_order;	
 	__be32			fz_mask;
 #define FZ_MASK(fz)		((fz)->fz_mask)
 };
 
-/* NOTE. On fast computers evaluation of fz_hashmask and fz_mask
- * can be cheaper than memory lookup, so that FZ_* macros are used.
- */
+
 
 struct fn_hash {
 	struct fn_zone	*fn_zones[33];
@@ -108,7 +93,7 @@ static struct hlist_head *fz_hash_alloc(int divisor)
 	}
 }
 
-/* The fib hash lock must be held when this is called. */
+
 static inline void fn_rebuild_zone(struct fn_zone *fz,
 				   struct hlist_head *old_ht,
 				   int old_divisor)
@@ -223,13 +208,13 @@ fn_new_zone(struct fn_hash *table, int z)
 	fz->fz_order = z;
 	fz->fz_mask = inet_make_mask(z);
 
-	/* Find the first not empty zone with more specific mask */
+	
 	for (i=z+1; i<=32; i++)
 		if (table->fn_zones[i])
 			break;
 	write_lock_bh(&fib_hash_lock);
 	if (i>32) {
-		/* No more specific masks, we are the first. */
+		
 		fz->fz_next = table->fn_zone_list;
 		table->fn_zone_list = fz;
 	} else {
@@ -343,7 +328,7 @@ out:
 	read_unlock(&fib_hash_lock);
 }
 
-/* Insert node F to FZ. */
+
 static inline void fib_insert_node(struct fn_zone *fz, struct fib_node *f)
 {
 	struct hlist_head *head = &fz->fz_hash[fn_hash(f->fn_key, fz)];
@@ -351,7 +336,7 @@ static inline void fib_insert_node(struct fn_zone *fz, struct fib_node *f)
 	hlist_add_head(&f->fn_hash, head);
 }
 
-/* Return the node in FZ matching KEY. */
+
 static struct fib_node *fib_find_node(struct fn_zone *fz, __be32 key)
 {
 	struct hlist_head *head = &fz->fz_hash[fn_hash(key, fz)];
@@ -409,16 +394,7 @@ static int fn_hash_insert(struct fib_table *tb, struct fib_config *cfg)
 	else
 		fa = fib_find_alias(&f->fn_alias, tos, fi->fib_priority);
 
-	/* Now fa, if non-NULL, points to the first fib alias
-	 * with the same keys [prefix,tos,priority], if such key already
-	 * exists or to the node before which we will insert new one.
-	 *
-	 * If fa is NULL, we will need to allocate a new one and
-	 * insert to the head of f.
-	 *
-	 * If f is NULL, no fib node matched the destination key
-	 * and we need to allocate a new one of those as well.
-	 */
+	
 
 	if (fa && fa->fa_tos == tos &&
 	    fa->fa_info->fib_priority == fi->fib_priority) {
@@ -428,11 +404,7 @@ static int fn_hash_insert(struct fib_table *tb, struct fib_config *cfg)
 		if (cfg->fc_nlflags & NLM_F_EXCL)
 			goto out;
 
-		/* We have 2 goals:
-		 * 1. Find exact match for type, scope, fib_info to avoid
-		 * duplicate routes
-		 * 2. Find next 'fa' (or head), NLM_F_APPEND inserts before it
-		 */
+		
 		fa_match = NULL;
 		fa_first = fa;
 		fa = list_entry(fa->fa_list.prev, struct fib_alias, fa_list);
@@ -477,10 +449,7 @@ static int fn_hash_insert(struct fib_table *tb, struct fib_config *cfg)
 			return 0;
 		}
 
-		/* Error if we find a perfect match which
-		 * uses the same scope, type, and nexthop
-		 * information.
-		 */
+		
 		if (fa_match)
 			goto out;
 
@@ -517,9 +486,7 @@ static int fn_hash_insert(struct fib_table *tb, struct fib_config *cfg)
 	new_fa->fa_scope = cfg->fc_scope;
 	new_fa->fa_state = 0;
 
-	/*
-	 * Insert new entry to the list.
-	 */
+	
 
 	write_lock_bh(&fib_hash_lock);
 	if (new_f)
@@ -797,7 +764,7 @@ struct fib_table *fib_hash_table(u32 id)
 	return tb;
 }
 
-/* ------------------------------------------------------------------------ */
+
 #ifdef CONFIG_PROC_FS
 
 struct fib_iter_state {
@@ -865,7 +832,7 @@ static struct fib_alias *fib_get_next(struct seq_file *seq)
 	struct fib_node *fn;
 	struct fib_alias *fa;
 
-	/* Advance FA, if any. */
+	
 	fn = iter->fn;
 	fa = iter->fa;
 	if (fa) {
@@ -878,7 +845,7 @@ static struct fib_alias *fib_get_next(struct seq_file *seq)
 
 	fa = iter->fa = NULL;
 
-	/* Advance FN. */
+	
 	if (fn) {
 		struct hlist_node *node = &fn->fn_hash;
 		hlist_for_each_entry_continue(fn, node, fn_hash) {
@@ -893,7 +860,7 @@ static struct fib_alias *fib_get_next(struct seq_file *seq)
 
 	fn = iter->fn = NULL;
 
-	/* Advance hash chain. */
+	
 	if (!iter->zone)
 		goto out;
 
@@ -991,12 +958,7 @@ static unsigned fib_flag_trans(int type, __be32 mask, struct fib_info *fi)
 	return flags;
 }
 
-/*
- *	This outputs /proc/net/route.
- *
- *	It always works in backward compatibility mode.
- *	The format of the file is not supposed to be changed.
- */
+
 static int fib_seq_show(struct seq_file *seq, void *v)
 {
 	struct fib_iter_state *iter;
@@ -1071,4 +1033,4 @@ void __net_exit fib_proc_exit(struct net *net)
 {
 	proc_net_remove(net, "route");
 }
-#endif /* CONFIG_PROC_FS */
+#endif 

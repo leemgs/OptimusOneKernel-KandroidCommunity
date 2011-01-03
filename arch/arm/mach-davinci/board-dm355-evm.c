@@ -1,13 +1,4 @@
-/*
- * TI DaVinci EVM board support
- *
- * Author: Kevin Hilman, Deep Root Systems, LLC
- *
- * 2007 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -43,22 +34,18 @@
 #define DAVINCI_ASYNC_EMIF_CONTROL_BASE		0x01e10000
 #define DAVINCI_ASYNC_EMIF_DATA_CE0_BASE	0x02000000
 
-/* NOTE:  this is geared for the standard config, with a socketed
- * 2 GByte Micron NAND (MT29F16G08FAA) using 128KB sectors.  If you
- * swap chips, maybe with a different block size, partitioning may
- * need to be changed.
- */
+
 #define NAND_BLOCK_SIZE		SZ_128K
 
 static struct mtd_partition davinci_nand_partitions[] = {
 	{
-		/* UBL (a few copies) plus U-Boot */
+		
 		.name		= "bootloader",
 		.offset		= 0,
 		.size		= 15 * NAND_BLOCK_SIZE,
-		.mask_flags	= MTD_WRITEABLE, /* force read-only */
+		.mask_flags	= MTD_WRITEABLE, 
 	}, {
-		/* U-Boot environment */
+		
 		.name		= "params",
 		.offset		= MTDPART_OFS_APPEND,
 		.size		= 1 * NAND_BLOCK_SIZE,
@@ -79,7 +66,7 @@ static struct mtd_partition davinci_nand_partitions[] = {
 		.size		= MTDPART_SIZ_FULL,
 		.mask_flags	= 0,
 	}
-	/* two blocks with bad block table (and mirror) at the end */
+	
 };
 
 static struct davinci_nand_pdata davinci_nand_data = {
@@ -115,8 +102,8 @@ static struct platform_device davinci_nand_device = {
 };
 
 static struct davinci_i2c_platform_data i2c_pdata = {
-	.bus_freq	= 400	/* kHz */,
-	.bus_delay	= 0	/* usec */,
+	.bus_freq	= 400	,
+	.bus_delay	= 0	,
 };
 
 static struct snd_platform_data dm355_evm_snd_data;
@@ -130,9 +117,7 @@ static void dm355evm_mmcsd_gpios(unsigned gpio)
 	gpio_request(gpio + 2, "mmc1_ro");
 	gpio_request(gpio + 3, "mmc1_cd");
 
-	/* we "know" these are input-only so we don't
-	 * need to call gpio_direction_input()
-	 */
+	
 
 	dm355evm_mmc_gpios = gpio;
 }
@@ -141,7 +126,7 @@ static struct i2c_board_info dm355evm_i2c_info[] = {
 	{	I2C_BOARD_INFO("dm355evm_msp", 0x25),
 		.platform_data = dm355evm_mmcsd_gpios,
 	},
-	/* { plus irq  }, */
+	
 	{ I2C_BOARD_INFO("tlv320aic33", 0x1b), },
 };
 
@@ -159,18 +144,18 @@ static void __init evm_init_i2c(void)
 
 static struct resource dm355evm_dm9000_rsrc[] = {
 	{
-		/* addr */
+		
 		.start	= 0x04014000,
 		.end	= 0x04014001,
 		.flags	= IORESOURCE_MEM,
 	}, {
-		/* data */
+		
 		.start	= 0x04014002,
 		.end	= 0x04014003,
 		.flags	= IORESOURCE_MEM,
 	}, {
 		.flags	= IORESOURCE_IRQ
-			| IORESOURCE_IRQ_HIGHEDGE /* rising (active high) */,
+			| IORESOURCE_IRQ_HIGHEDGE ,
 	},
 };
 
@@ -188,7 +173,7 @@ static struct tvp514x_platform_data tvp5146_pdata = {
 };
 
 #define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
-/* Inputs available at the TVP5146 */
+
 static struct v4l2_input tvp5146_inputs[] = {
 	{
 		.index = 0,
@@ -204,11 +189,7 @@ static struct v4l2_input tvp5146_inputs[] = {
 	},
 };
 
-/*
- * this is the route info for connecting each input to decoder
- * ouput that goes to vpfe. There is a one to one correspondence
- * with tvp5146_inputs
- */
+
 static struct vpfe_route tvp5146_routes[] = {
 	{
 		.input = INPUT_CVBS_VI2B,
@@ -258,7 +239,7 @@ static struct davinci_uart_config uart_config __initdata = {
 
 static void __init dm355_evm_map_io(void)
 {
-	/* setup input configuration for VPFE input devices */
+	
 	dm355_set_vpfe_config(&vpfe_cfg);
 	dm355_init();
 }
@@ -267,7 +248,7 @@ static int dm355evm_mmc_get_cd(int module)
 {
 	if (!gpio_is_valid(dm355evm_mmc_gpios))
 		return -ENXIO;
-	/* low == card present */
+	
 	return !gpio_get_value_cansleep(dm355evm_mmc_gpios + 2 * module + 1);
 }
 
@@ -275,7 +256,7 @@ static int dm355evm_mmc_get_ro(int module)
 {
 	if (!gpio_is_valid(dm355evm_mmc_gpios))
 		return -ENXIO;
-	/* high == card's write protect switch active */
+	
 	return gpio_get_value_cansleep(dm355evm_mmc_gpios + 2 * module + 0);
 }
 
@@ -288,15 +269,11 @@ static struct davinci_mmc_config dm355evm_mmc_config = {
 	.version	= MMC_CTLR_VERSION_1,
 };
 
-/* Don't connect anything to J10 unless you're only using USB host
- * mode *and* have to do so with some kind of gender-bender.  If
- * you have proper Mini-B or Mini-A cables (or Mini-A adapters)
- * the ID pin won't need any help.
- */
+
 #ifdef CONFIG_USB_MUSB_PERIPHERAL
-#define USB_ID_VALUE	0	/* ID pulled high; *should* float */
+#define USB_ID_VALUE	0	
 #else
-#define USB_ID_VALUE	1	/* ID pulled low */
+#define USB_ID_VALUE	1	
 #endif
 
 static struct spi_eeprom at25640a = {
@@ -310,7 +287,7 @@ static struct spi_board_info dm355_evm_spi_info[] __initconst = {
 	{
 		.modalias	= "at25",
 		.platform_data	= &at25640a,
-		.max_speed_hz	= 10 * 1000 * 1000,	/* at 3v3 */
+		.max_speed_hz	= 10 * 1000 * 1000,	
 		.bus_num	= 0,
 		.chip_select	= 0,
 		.mode		= SPI_MODE_0,
@@ -336,14 +313,11 @@ static __init void dm355_evm_init(void)
 	evm_init_i2c();
 	davinci_serial_init(&uart_config);
 
-	/* NOTE:  NAND flash timings set by the UBL are slower than
-	 * needed by MT29F16G08FAA chips ... EMIF.A1CR is 0x40400204
-	 * but could be 0x0400008c for about 25% faster page reads.
-	 */
+	
 
 	gpio_request(2, "usb_id_toggle");
 	gpio_direction_output(2, USB_ID_VALUE);
-	/* irlml6401 switches over 1A in under 8 msec */
+	
 	setup_usb(500, 8);
 
 	davinci_setup_mmc(0, &dm355evm_mmc_config);
@@ -352,7 +326,7 @@ static __init void dm355_evm_init(void)
 	dm355_init_spi0(BIT(0), dm355_evm_spi_info,
 			ARRAY_SIZE(dm355_evm_spi_info));
 
-	/* DM335 EVM uses ASP1; line-out is a stereo mini-jack */
+	
 	dm355_init_asp1(ASP1_TX_EVT_EN | ASP1_RX_EVT_EN, &dm355_evm_snd_data);
 }
 

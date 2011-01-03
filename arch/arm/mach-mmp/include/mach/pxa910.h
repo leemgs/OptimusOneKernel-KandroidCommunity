@@ -64,4 +64,4 @@ static inline int pxa910_add_pwm(int id)
 
 	return pxa_register_device(d, NULL, 0);
 }
-#endif /* __ASM_MACH_PXA910_H */
+#endif 

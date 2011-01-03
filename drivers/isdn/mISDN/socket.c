@@ -1,19 +1,4 @@
-/*
- *
- * Author	Karsten Keil <kkeil@novell.com>
- *
- * Copyright 2008  by Karsten Keil <kkeil@novell.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/mISDNif.h>
 #include "core.h"
@@ -216,10 +201,10 @@ mISDN_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 	skb_pull(skb, MISDN_HEADER_LEN);
 
 	if (msg->msg_namelen >= sizeof(struct sockaddr_mISDN)) {
-		/* if we have a address, we use it */
+		
 		maddr = (struct sockaddr_mISDN *)msg->msg_name;
 		mISDN_HEAD_ID(skb) = maddr->channel;
-	} else { /* use default for L2 messages */
+	} else { 
 		if ((sk->sk_protocol == ISDN_P_LAPD_TE) ||
 		    (sk->sk_protocol == ISDN_P_LAPD_NT))
 			mISDN_HEAD_ID(skb) = _pms(sk)->ch.nr;

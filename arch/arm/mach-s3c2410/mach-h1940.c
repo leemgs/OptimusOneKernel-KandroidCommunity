@@ -1,15 +1,4 @@
-/* linux/arch/arm/mach-s3c2410/mach-h1940.c
- *
- * Copyright (c) 2003-2005 Simtec Electronics
- *   Ben Dooks <ben@simtec.co.uk>
- *
- * http://www.handhelds.org/projects/h1940.html
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -75,7 +64,7 @@ static struct s3c2410_uartcfg h1940_uartcfgs[] __initdata = {
 		.ulcon	     = 0x03,
 		.ufcon	     = 0x00,
 	},
-	/* IR port */
+	
 	[2] = {
 		.hwport	     = 2,
 		.flags	     = 0,
@@ -86,7 +75,7 @@ static struct s3c2410_uartcfg h1940_uartcfgs[] __initdata = {
 	}
 };
 
-/* Board control latch control */
+
 
 static unsigned int latch_state = H1940_LATCH_DEFAULT;
 
@@ -132,9 +121,7 @@ static struct s3c2410_udc_mach_info h1940_udc_cfg __initdata = {
 };
 
 
-/**
- * Set lcd on or off
- **/
+
 static struct s3c2410fb_display h1940_lcd __initdata = {
 	.lcdcon5=	S3C2410_LCDCON5_FRM565 | \
 			S3C2410_LCDCON5_INVVLINE | \
@@ -198,7 +185,7 @@ static void __init h1940_map_io(void)
 	s3c24xx_init_clocks(0);
 	s3c24xx_init_uarts(h1940_uartcfgs, ARRAY_SIZE(h1940_uartcfgs));
 
-	/* setup PM */
+	
 
 #ifdef CONFIG_PM_H1940
 	memcpy(phys_to_virt(H1940_SUSPEND_RESUMEAT), h1940_pm_return, 1024);
@@ -219,8 +206,7 @@ static void __init h1940_init(void)
  	s3c24xx_udc_set_platdata(&h1940_udc_cfg);
 	s3c_i2c0_set_platdata(NULL);
 
-	/* Turn off suspend on both USB ports, and switch the
-	 * selectable USB port to USB device mode. */
+	
 
 	s3c2410_modify_misccr(S3C2410_MISCCR_USBHOST |
 			      S3C2410_MISCCR_USBSUSPND0 |
@@ -235,7 +221,7 @@ static void __init h1940_init(void)
 }
 
 MACHINE_START(H1940, "IPAQ-H1940")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

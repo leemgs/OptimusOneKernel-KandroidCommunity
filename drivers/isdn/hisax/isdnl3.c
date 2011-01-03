@@ -1,19 +1,4 @@
-/* $Id: isdnl3.c,v 2.22.2.3 2004/01/13 14:31:25 keil Exp $
- *
- * Author       Karsten Keil
- *              based on the teles driver from Jan den Ouden
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * For changes and modifications please read
- * Documentation/isdn/HiSax.cert
- *
- * Thanks to    Jan den Ouden
- *              Fritz Elfert
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -82,14 +67,14 @@ findie(u_char * p, int size, u_char ie, int wanted_set)
 	int l, codeset, maincodeset;
 	u_char *pend = p + size;
 
-	/* skip protocol discriminator, callref and message type */
+	
 	p++;
 	l = (*p++) & 0xf;
 	p += l;
 	p++;
 	codeset = 0;
 	maincodeset = 0;
-	/* while there are bytes left... */
+	
 	while (p < pend) {
 		if ((*p & 0xf0) == 0x90) {
 			codeset = *p & 0x07;
@@ -101,7 +86,7 @@ findie(u_char * p, int size, u_char ie, int wanted_set)
 		else {
 			if (codeset == wanted_set) {
 				if (*p == ie)
-                                  { /* improved length check (Werner Cornelius) */
+                                  { 
                                     if ((pend - p) < 2) 
                                       return(NULL); 
                                     if (*(p+1) > (pend - (p+2))) 
@@ -126,11 +111,11 @@ getcallref(u_char * p)
 {
 	int l, cr = 0;
 
-	p++;			/* prot discr */
-	if (*p & 0xfe)		/* wrong callref BRI only 1 octet*/
+	p++;			
+	if (*p & 0xfe)		
 		return(-2);
-	l = 0xf & *p++;		/* callref length */
-	if (!l)			/* dummy CallRef */
+	l = 0xf & *p++;		
+	if (!l)			
 		return(-1);
 	cr = *p++;
 	return (cr);
@@ -318,7 +303,7 @@ l3ml3p(struct PStack *st, int pr)
 	struct l3_process *np;
 
 	while (p) {
-		/* p might be kfreed under us, so we need to save where we want to go on */
+		
 		np = p->next;
 		st->l3.l3ml3(st, pr, p);
 		p = np;
@@ -476,12 +461,12 @@ lc_start_delay(struct FsmInst *fi, int event, void *arg)
 
 static void
 lc_start_delay_check(struct FsmInst *fi, int event, void *arg)
-/* 20/09/00 - GE timer not user for NI-1 as layer 2 should stay up */
+
 {
        struct PStack *st = fi->userdata;
 
        FsmChangeState(fi, ST_L3_LC_REL_DELAY);
-       /* 19/09/00 - GE timer not user for NI-1 */
+       
        if (st->protocol != ISDN_PTYPE_NI1) 
        		FsmAddTimer(&st->l3.l3m_timer, DREL_TIMER_VALUE, EV_TIMEOUT, NULL, 50);
 }
@@ -494,7 +479,7 @@ lc_release_req(struct FsmInst *fi, int event, void *arg)
 	if (test_bit(FLG_L2BLOCK, &st->l2.flag)) {
 		if (st->l3.debug)
 			l3_debug(st, "lc_release_req: l2 blocked");
-		/* restart release timer */
+		
 		FsmAddTimer(&st->l3.l3m_timer, DREL_TIMER_VALUE, EV_TIMEOUT, NULL, 51);
 	} else {
 		FsmChangeState(fi, ST_L3_LC_REL_WAIT);
@@ -524,7 +509,7 @@ lc_release_cnf(struct FsmInst *fi, int event, void *arg)
 }
 
 
-/* *INDENT-OFF* */
+
 static struct FsmNode L3FnList[] __initdata =
 {
 	{ST_L3_LC_REL,		EV_ESTABLISH_REQ,	lc_activate},
@@ -541,7 +526,7 @@ static struct FsmNode L3FnList[] __initdata =
 	{ST_L3_LC_REL_WAIT,	EV_RELEASE_CNF,		lc_release_cnf},
 	{ST_L3_LC_REL_WAIT,	EV_ESTABLISH_REQ,	lc_activate},
 };
-/* *INDENT-ON* */
+
 
 void
 l3_msg(struct PStack *st, int pr, void *arg)

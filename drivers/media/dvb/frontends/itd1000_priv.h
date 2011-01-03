@@ -1,23 +1,4 @@
-/*
- *  Driver for the Integrant ITD1000 "Zero-IF Tuner IC for Direct Broadcast Satellite"
- *
- *  Copyright (c) 2007 Patrick Boettcher <pb@linuxtv.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
- */
+
 
 #ifndef ITD1000_PRIV_H
 #define ITD1000_PRIV_H
@@ -26,11 +7,9 @@ struct itd1000_state {
 	struct itd1000_config *cfg;
 	struct i2c_adapter    *i2c;
 
-	u32 frequency; /* contains the value resulting from the LO-setting */
+	u32 frequency; 
 
-	/* ugly workaround for flexcop's incapable i2c-controller
-	 * FIXME, if possible
-	 */
+	
 	u8 shadow[256];
 };
 

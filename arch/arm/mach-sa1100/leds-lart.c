@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/leds-lart.c
- *
- * (C) Erik Mouw (J.A.K.Mouw@its.tudelft.nl), April 21, 2000
- *
- * LART uses the LED as follows:
- *   - GPIO23 is the LED, on if system is not idle
- *  You can use both CONFIG_LEDS_CPU and CONFIG_LEDS_TIMER at the same
- *  time, but in that case the timer events will still dictate the
- *  pace of the LED.
- */
+
 #include <linux/init.h>
 
 #include <mach/hardware.h>
@@ -35,7 +25,7 @@ void lart_leds_event(led_event_t evt)
 
 	switch(evt) {
 	case led_start:
-		/* pin 23 is output pin */
+		
 		GPDR |= LED_23;
 		hw_led_state = LED_MASK;
 		led_state = LED_STATE_ENABLED;
@@ -64,14 +54,13 @@ void lart_leds_event(led_event_t evt)
 
 #ifdef CONFIG_LEDS_CPU
 	case led_idle_start:
-		/* The LART people like the LED to be off when the
-                   system is idle... */
+		
 		if (!(led_state & LED_STATE_CLAIMED))
 			hw_led_state &= ~LED_23;
 		break;
 
 	case led_idle_end:
-		/* ... and on if the system is not idle */
+		
 		if (!(led_state & LED_STATE_CLAIMED))
 			hw_led_state |= LED_23;
 		break;
@@ -91,7 +80,7 @@ void lart_leds_event(led_event_t evt)
 		break;
 	}
 
-	/* Now set the GPIO state, or nothing will happen at all */
+	
 	if (led_state & LED_STATE_ENABLED) {
 		GPSR = hw_led_state;
 		GPCR = hw_led_state ^ LED_MASK;

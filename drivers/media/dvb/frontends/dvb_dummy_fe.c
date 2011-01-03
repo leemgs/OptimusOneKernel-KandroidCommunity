@@ -1,23 +1,4 @@
-/*
- *  Driver for Dummy Frontend
- *
- *  Written by Emard <emard@softhome.net>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -116,11 +97,11 @@ struct dvb_frontend* dvb_dummy_fe_ofdm_attach(void)
 {
 	struct dvb_dummy_fe_state* state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
 	if (state == NULL) goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &dvb_dummy_fe_ofdm_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;
@@ -136,11 +117,11 @@ struct dvb_frontend *dvb_dummy_fe_qpsk_attach(void)
 {
 	struct dvb_dummy_fe_state* state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
 	if (state == NULL) goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &dvb_dummy_fe_qpsk_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;
@@ -156,11 +137,11 @@ struct dvb_frontend *dvb_dummy_fe_qam_attach(void)
 {
 	struct dvb_dummy_fe_state* state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct dvb_dummy_fe_state), GFP_KERNEL);
 	if (state == NULL) goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &dvb_dummy_fe_qam_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;
@@ -210,8 +191,8 @@ static struct dvb_frontend_ops dvb_dummy_fe_qam_ops = {
 		.frequency_stepsize	= 62500,
 		.frequency_min		= 51000000,
 		.frequency_max		= 858000000,
-		.symbol_rate_min	= (57840000/2)/64,     /* SACLK/64 == (XIN/2)/64 */
-		.symbol_rate_max	= (57840000/2)/4,      /* SACLK/4 */
+		.symbol_rate_min	= (57840000/2)/64,     
+		.symbol_rate_max	= (57840000/2)/4,      
 		.caps = FE_CAN_QAM_16 | FE_CAN_QAM_32 | FE_CAN_QAM_64 |
 			FE_CAN_QAM_128 | FE_CAN_QAM_256 |
 			FE_CAN_FEC_AUTO | FE_CAN_INVERSION_AUTO
@@ -239,7 +220,7 @@ static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops = {
 		.type			= FE_QPSK,
 		.frequency_min		= 950000,
 		.frequency_max		= 2150000,
-		.frequency_stepsize	= 250,           /* kHz for QPSK frontends */
+		.frequency_stepsize	= 250,           
 		.frequency_tolerance	= 29500,
 		.symbol_rate_min	= 1000000,
 		.symbol_rate_max	= 45000000,

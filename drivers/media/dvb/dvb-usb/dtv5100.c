@@ -1,31 +1,10 @@
-/*
- * DVB USB Linux driver for AME DTV-5100 USB2.0 DVB-T
- *
- * Copyright (C) 2008  Antoine Jacquet <royale@zerezo.com>
- * http://royale.zerezo.com/dtv5100/
- *
- * Inspired by gl861.c and au6610.c drivers
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include "dtv5100.h"
 #include "zl10353.h"
 #include "qt1010.h"
 
-/* debug */
+
 static int dvb_usb_dtv5100_debug;
 module_param_named(debug, dvb_usb_dtv5100_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level" DVB_USB_DEBUG_STATUS);
@@ -41,14 +20,14 @@ static int dtv5100_i2c_msg(struct dvb_usb_device *d, u8 addr,
 
 	switch (wlen) {
 	case 1:
-		/* write { reg }, read { value } */
+		
 		request = (addr == DTV5100_DEMOD_ADDR ? DTV5100_DEMOD_READ :
 							DTV5100_TUNER_READ);
 		type = USB_TYPE_VENDOR | USB_DIR_IN;
 		value = 0;
 		break;
 	case 2:
-		/* write { reg, value } */
+		
 		request = (addr == DTV5100_DEMOD_ADDR ? DTV5100_DEMOD_WRITE :
 							DTV5100_TUNER_WRITE);
 		type = USB_TYPE_VENDOR | USB_DIR_OUT;
@@ -60,13 +39,13 @@ static int dtv5100_i2c_msg(struct dvb_usb_device *d, u8 addr,
 	}
 	index = (addr << 8) + wbuf[0];
 
-	msleep(1); /* avoid I2C errors */
+	msleep(1); 
 	return usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), request,
 			       type, value, index, rbuf, rlen,
 			       DTV5100_USB_TIMEOUT);
 }
 
-/* I2C */
+
 static int dtv5100_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 			    int num)
 {
@@ -80,7 +59,7 @@ static int dtv5100_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		return -EAGAIN;
 
 	for (i = 0; i < num; i++) {
-		/* write/read request */
+		
 		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
 			if (dtv5100_i2c_msg(d, msg[i].addr, msg[i].buf,
 					    msg[i].len, msg[i+1].buf,
@@ -106,7 +85,7 @@ static struct i2c_algorithm dtv5100_i2c_algo = {
 	.functionality = dtv5100_i2c_func,
 };
 
-/* Callbacks for DVB USB */
+
 static struct zl10353_config dtv5100_zl10353_config = {
 	.demod_address = DTV5100_DEMOD_ADDR,
 	.no_tuner = 1,
@@ -120,7 +99,7 @@ static int dtv5100_frontend_attach(struct dvb_usb_adapter *adap)
 	if (adap->fe == NULL)
 		return -EIO;
 
-	/* disable i2c gate, or it won't work... is this safe? */
+	
 	adap->fe->ops.i2c_gate_ctrl = NULL;
 
 	return 0;
@@ -137,7 +116,7 @@ static int dtv5100_tuner_attach(struct dvb_usb_adapter *adap)
 			  &dtv5100_qt1010_config) == NULL ? -ENODEV : 0;
 }
 
-/* DVB USB Driver stuff */
+
 static struct dvb_usb_device_properties dtv5100_properties;
 
 static int dtv5100_probe(struct usb_interface *intf,
@@ -146,7 +125,7 @@ static int dtv5100_probe(struct usb_interface *intf,
 	int i, ret;
 	struct usb_device *udev = interface_to_usbdev(intf);
 
-	/* initialize non qt1010/zl10353 part? */
+	
 	for (i = 0; dtv5100_init[i].request; i++) {
 		ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
 				      dtv5100_init[i].request,
@@ -168,7 +147,7 @@ static int dtv5100_probe(struct usb_interface *intf,
 
 static struct usb_device_id dtv5100_table[] = {
 	{ USB_DEVICE(0x06be, 0xa232) },
-	{ }		/* Terminating entry */
+	{ }		
 };
 MODULE_DEVICE_TABLE(usb, dtv5100_table);
 
@@ -214,7 +193,7 @@ static struct usb_driver dtv5100_driver = {
 	.id_table	= dtv5100_table,
 };
 
-/* module stuff */
+
 static int __init dtv5100_module_init(void)
 {
 	int ret;
@@ -228,7 +207,7 @@ static int __init dtv5100_module_init(void)
 
 static void __exit dtv5100_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&dtv5100_driver);
 }
 

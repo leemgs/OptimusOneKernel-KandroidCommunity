@@ -1,12 +1,4 @@
-/* arch/arm/mach-lh7a40x/clocks.c
- *
- *  Copyright (C) 2004 Marc Singer
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/cpufreq.h>
 #include <mach/hardware.h>
@@ -22,7 +14,7 @@ struct clk {
 	const char *name;
 };
 
-/* ----- */
+
 
 #define MAINDIV1(c)	(((c) >>  7) & 0x0f)
 #define MAINDIV2(c)	(((c) >> 11) & 0x1f)
@@ -31,7 +23,7 @@ struct clk {
 #define HCLKDIV(c)	(((c) >>  0) & 0x02)
 #define PCLKDIV(c)	(((c) >> 16) & 0x03)
 
-unsigned int cpufreq_get (unsigned int cpu) /* in kHz */
+unsigned int cpufreq_get (unsigned int cpu) 
 {
 	return fclkfreq_get ()/1000;
 }
@@ -70,7 +62,7 @@ unsigned int pclkfreq_get (void)
 	return pclk;
 }
 
-/* ----- */
+
 
 struct clk *clk_get (struct device *dev, const char *id)
 {

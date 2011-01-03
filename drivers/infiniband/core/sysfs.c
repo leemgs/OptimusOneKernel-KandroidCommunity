@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Mellanox Technologies Ltd.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include "core_priv.h"
 
@@ -304,9 +272,9 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
 	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
 	in_mad->mad_hdr.class_version = 1;
 	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
-	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
+	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); 
 
-	in_mad->data[41] = p->port_num;	/* PortSelect field */
+	in_mad->data[41] = p->port_num;	
 
 	if ((p->ibdev->process_mad(p->ibdev, IB_MAD_IGNORE_MKEY,
 		 p->port_num, NULL, NULL, in_mad, out_mad) &
@@ -425,9 +393,7 @@ static int ib_device_uevent(struct device *device,
 	if (add_uevent_var(env, "NAME=%s", dev->name))
 		return -ENOMEM;
 
-	/*
-	 * It would be nice to pass the node GUID with the event...
-	 */
+	
 
 	return 0;
 }
@@ -639,7 +605,7 @@ static struct class ib_class = {
 	.dev_uevent = ib_device_uevent,
 };
 
-/* Show a given an attribute in the statistics group */
+
 static ssize_t show_protocol_stat(const struct device *device,
 			    struct device_attribute *attr, char *buf,
 			    unsigned offset)
@@ -656,7 +622,7 @@ static ssize_t show_protocol_stat(const struct device *device,
 		       (unsigned long long) ((u64 *) &stats)[offset]);
 }
 
-/* generate a read-only iwarp statistics attribute */
+
 #define IW_STATS_ENTRY(name)						\
 static ssize_t show_##name(struct device *device,			\
 			   struct device_attribute *attr, char *buf)	\
@@ -832,7 +798,7 @@ void ib_device_unregister_sysfs(struct ib_device *device)
 	struct kobject *p, *t;
 	struct ib_port *port;
 
-	/* Hold kobject until ib_dealloc_device() */
+	
 	kobject_get(&device->dev.kobj);
 
 	list_for_each_entry_safe(p, t, &device->port_list, entry) {

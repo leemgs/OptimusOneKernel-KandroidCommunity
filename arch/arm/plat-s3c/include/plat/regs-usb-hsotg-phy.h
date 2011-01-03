@@ -1,26 +1,11 @@
-/* arch/arm/plat-s3c/include/plat/regs-usb-hsotg-phy.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      http://armlinux.simtec.co.uk/
- *      Ben Dooks <ben@simtec.co.uk>
- *
- * S3C - USB2.0 Highspeed/OtG device PHY registers
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
 
-/* Note, this is a seperate header file as some of the clock framework
- * needs to touch this if the clk_48m is used as the USB OHCI or other
- * peripheral source.
-*/
+
+
 
 #ifndef __PLAT_S3C64XX_REGS_USB_HSOTG_PHY_H
 #define __PLAT_S3C64XX_REGS_USB_HSOTG_PHY_H __FILE__
 
-/* S3C64XX_PA_USB_HSPHY */
+
 
 #define S3C_HSOTG_PHYREG(x)	((x) + S3C_VA_USB_HSPHY)
 
@@ -47,4 +32,4 @@
 
 #define S3C_PHYTUNE				S3C_HSOTG_PHYREG(0x20)
 
-#endif /* __PLAT_S3C64XX_REGS_USB_HSOTG_PHY_H */
+#endif 

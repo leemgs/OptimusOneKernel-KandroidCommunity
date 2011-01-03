@@ -1,20 +1,4 @@
-/*
- * Copyright (C) 2005-2007  Kristian Hoegsberg <krh@bitplanet.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 #include <linux/bug.h>
 #include <linux/completion.h>
@@ -57,7 +41,7 @@ static LIST_HEAD(card_list);
 static LIST_HEAD(descriptor_list);
 static int descriptor_count;
 
-/* ROM header, bus info block, root dir header, capabilities = 7 quadlets */
+
 static size_t config_rom_length = 1 + 4 + 1 + 1;
 
 #define BIB_CRC(v)		((v) <<  0)
@@ -81,14 +65,7 @@ static u32 *generate_config_rom(struct fw_card *card)
 	static u32 config_rom[256];
 	int i, j, length;
 
-	/*
-	 * Initialize contents of config rom buffer.  On the OHCI
-	 * controller, block reads to the config rom accesses the host
-	 * memory, but quadlet read access the hardware bus info block
-	 * registers.  That's just crack, but it means we should make
-	 * sure the contents of bus info block in host memory matches
-	 * the version stored in the OHCI registers.
-	 */
+	
 
 	memset(config_rom, 0, sizeof(config_rom));
 	config_rom[0] = BIB_CRC_LENGTH(4) | BIB_INFO_LENGTH(4) | BIB_CRC(0);
@@ -103,13 +80,13 @@ static u32 *generate_config_rom(struct fw_card *card)
 	config_rom[3] = card->guid >> 32;
 	config_rom[4] = card->guid;
 
-	/* Generate root directory. */
+	
 	i = 5;
 	config_rom[i++] = 0;
-	config_rom[i++] = 0x0c0083c0; /* node capabilities */
+	config_rom[i++] = 0x0c0083c0; 
 	j = i + descriptor_count;
 
-	/* Generate root directory entries for descriptors. */
+	
 	list_for_each_entry (desc, &descriptor_list, link) {
 		if (desc->immediate > 0)
 			config_rom[i++] = desc->immediate;
@@ -118,19 +95,16 @@ static u32 *generate_config_rom(struct fw_card *card)
 		j += desc->length;
 	}
 
-	/* Update root directory length. */
+	
 	config_rom[5] = (i - 5 - 1) << 16;
 
-	/* End of root directory, now copy in descriptors. */
+	
 	list_for_each_entry (desc, &descriptor_list, link) {
 		memcpy(&config_rom[i], desc->data, desc->length * 4);
 		i += desc->length;
 	}
 
-	/* Calculate CRCs for all blocks in the config rom.  This
-	 * assumes that CRC length and info length are identical for
-	 * the bus info block, which is always the case for this
-	 * implementation. */
+	
 	for (i = 0; i < j; i += length + 1)
 		length = fw_compute_block_crc(config_rom + i);
 
@@ -153,7 +127,7 @@ static void update_config_roms(void)
 
 static size_t required_space(struct fw_descriptor *desc)
 {
-	/* descriptor + entry into root dir + optional immediate entry */
+	
 	return desc->length + 1 + (desc->immediate > 0 ? 1 : 0);
 }
 
@@ -162,11 +136,7 @@ int fw_core_add_descriptor(struct fw_descriptor *desc)
 	size_t i;
 	int ret;
 
-	/*
-	 * Check descriptor is valid; the length of all blocks in the
-	 * descriptor has to add up to exactly the length of the
-	 * block.
-	 */
+	
 	i = 0;
 	while (i < desc->length)
 		i += (desc->data[i] >> 16) + 1;
@@ -270,17 +240,7 @@ static void fw_card_bm_work(struct work_struct *work)
 
 	if (is_next_generation(generation, card->bm_generation) ||
 	    (card->bm_generation != generation && grace)) {
-		/*
-		 * This first step is to figure out who is IRM and
-		 * then try to become bus manager.  If the IRM is not
-		 * well defined (e.g. does not have an active link
-		 * layer or does not responds to our lock request, we
-		 * will have to do a little vigilante bus management.
-		 * In that case, we do a goto into the gap count logic
-		 * so that when we do the reset, we still optimize the
-		 * gap count.  That could well save a reset in the
-		 * next generation.
-		 */
+		
 
 		if (!card->irm_node->link_on) {
 			new_root_id = local_id;
@@ -301,13 +261,13 @@ static void fw_card_bm_work(struct work_struct *work)
 				sizeof(card->bm_transaction_data));
 
 		if (rcode == RCODE_GENERATION)
-			/* Another bus reset, BM work has been rescheduled. */
+			
 			goto out;
 
 		if (rcode == RCODE_COMPLETE &&
 		    card->bm_transaction_data[0] != cpu_to_be32(0x3f)) {
 
-			/* Somebody else is BM.  Only act as IRM. */
+			
 			if (local_id == irm_id)
 				allocate_broadcast_channel(card, generation);
 
@@ -317,80 +277,46 @@ static void fw_card_bm_work(struct work_struct *work)
 		spin_lock_irqsave(&card->lock, flags);
 
 		if (rcode != RCODE_COMPLETE) {
-			/*
-			 * The lock request failed, maybe the IRM
-			 * isn't really IRM capable after all. Let's
-			 * do a bus reset and pick the local node as
-			 * root, and thus, IRM.
-			 */
+			
 			new_root_id = local_id;
 			fw_notify("BM lock failed, making local node (%02x) root.\n",
 				  new_root_id);
 			goto pick_me;
 		}
 	} else if (card->bm_generation != generation) {
-		/*
-		 * We weren't BM in the last generation, and the last
-		 * bus reset is less than 125ms ago.  Reschedule this job.
-		 */
+		
 		spin_unlock_irqrestore(&card->lock, flags);
 		fw_schedule_bm_work(card, DIV_ROUND_UP(HZ, 8));
 		goto out;
 	}
 
-	/*
-	 * We're bus manager for this generation, so next step is to
-	 * make sure we have an active cycle master and do gap count
-	 * optimization.
-	 */
+	
 	card->bm_generation = generation;
 
 	if (root_device == NULL) {
-		/*
-		 * Either link_on is false, or we failed to read the
-		 * config rom.  In either case, pick another root.
-		 */
+		
 		new_root_id = local_id;
 	} else if (!root_device_is_running) {
-		/*
-		 * If we haven't probed this device yet, bail out now
-		 * and let's try again once that's done.
-		 */
+		
 		spin_unlock_irqrestore(&card->lock, flags);
 		goto out;
 	} else if (root_device_is_cmc) {
-		/*
-		 * FIXME: I suppose we should set the cmstr bit in the
-		 * STATE_CLEAR register of this node, as described in
-		 * 1394-1995, 8.4.2.6.  Also, send out a force root
-		 * packet for this node.
-		 */
+		
 		new_root_id = root_id;
 	} else {
-		/*
-		 * Current root has an active link layer and we
-		 * successfully read the config rom, but it's not
-		 * cycle master capable.
-		 */
+		
 		new_root_id = local_id;
 	}
 
  pick_me:
-	/*
-	 * Pick a gap count from 1394a table E-1.  The table doesn't cover
-	 * the typically much larger 1394b beta repeater delays though.
-	 */
+	
 	if (!card->beta_repeaters_present &&
 	    root_node->max_hops < ARRAY_SIZE(gap_count_table))
 		gap_count = gap_count_table[root_node->max_hops];
 	else
 		gap_count = 63;
 
-	/*
-	 * Finally, figure out if we should do a reset or not.  If we have
-	 * done less than 5 resets with the same physical topology and we
-	 * have either a new root or a new gap count setting, let's do it.
-	 */
+	
 
 	if (card->bm_retries++ < 5 &&
 	    (card->gap_count != gap_count || new_root_id != root_id))
@@ -403,7 +329,7 @@ static void fw_card_bm_work(struct work_struct *work)
 			  card->index, new_root_id, gap_count);
 		fw_send_phy_config(card, new_root_id, generation, gap_count);
 		fw_core_initiate_bus_reset(card, 1);
-		/* Will allocate broadcast channel after the reset. */
+		
 	} else {
 		if (local_id == irm_id)
 			allocate_broadcast_channel(card, generation);
@@ -473,13 +399,7 @@ int fw_card_add(struct fw_card *card,
 EXPORT_SYMBOL(fw_card_add);
 
 
-/*
- * The next few functions implement a dummy driver that is used once a card
- * driver shuts down an fw_card.  This allows the driver to cleanly unload,
- * as all IO to the card will be handled (and failed) by the dummy driver
- * instead of calling into the module.  Only functions for iso context
- * shutdown still need to be provided by the card driver.
- */
+
 
 static int dummy_enable(struct fw_card *card, u32 *config_rom, size_t length)
 {
@@ -496,10 +416,7 @@ static int dummy_update_phy_reg(struct fw_card *card, int address,
 static int dummy_set_config_rom(struct fw_card *card,
 				u32 *config_rom, size_t length)
 {
-	/*
-	 * We take the card out of card_list before setting the dummy
-	 * driver, so this should never get called.
-	 */
+	
 	BUG();
 	return -1;
 }
@@ -554,14 +471,14 @@ void fw_core_remove_card(struct fw_card *card)
 	list_del_init(&card->link);
 	mutex_unlock(&card_mutex);
 
-	/* Switch off most of the card driver interface. */
+	
 	dummy_driver.free_iso_context	= card->driver->free_iso_context;
 	dummy_driver.stop_iso		= card->driver->stop_iso;
 	card->driver = &dummy_driver;
 
 	fw_destroy_nodes(card);
 
-	/* Wait for all users, especially device workqueue jobs, to finish. */
+	
 	fw_card_put(card);
 	wait_for_completion(&card->done);
 

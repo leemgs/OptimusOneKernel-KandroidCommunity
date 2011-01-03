@@ -1,21 +1,4 @@
-/*
- Low Level Linux Driver for the IBM Microchannel SCSI Subsystem for
- Linux Kernel >= 2.4.0.
- Copyright (c) 1995 Strom Systems, Inc. under the terms of the GNU
- General Public License. Written by Martin Kolinek, December 1995.
- Further development by: Chris Beauregard, Klaus Kudielka, Michael Lang
- See the file Documentation/scsi/ibmmca.txt for a detailed description
- of this driver, the commandline arguments and the history of its
- development.
- See the WWW-page: http://www.uni-mainz.de/~langm000/linux.html for latest
- updates, info and ADF-files for adapters supported by this driver.
 
- Alan Cox <alan@lxorguk.ukuu.org.uk>
- Updated for Linux 2.5.45 to use the new error handler, cleaned up the
- lock macros and did a few unavoidable locking tweaks, plus one locking
- fix in the irq and completion path.
- 
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -38,7 +21,7 @@
 #include "scsi.h"
 #include <scsi/scsi_host.h>
 
-/* Common forward declarations for all Linux-versions: */
+
 static int ibmmca_queuecommand (Scsi_Cmnd *, void (*done) (Scsi_Cmnd *));
 static int ibmmca_abort (Scsi_Cmnd *);
 static int ibmmca_host_reset (Scsi_Cmnd *);
@@ -47,56 +30,56 @@ static int ibmmca_proc_info(struct Scsi_Host *shpnt, char *buffer, char **start,
 
 
 
-/* current version of this driver-source: */
+
 #define IBMMCA_SCSI_DRIVER_VERSION "4.0b-ac"
 
-/* driver configuration */
-#define IM_MAX_HOSTS     8	/* maximum number of host adapters */
-#define IM_RESET_DELAY	60	/* seconds allowed for a reset */
 
-/* driver debugging - #undef all for normal operation */
-/* if defined: count interrupts and ignore this special one: */
-#undef	IM_DEBUG_TIMEOUT	//50
+#define IM_MAX_HOSTS     8	
+#define IM_RESET_DELAY	60	
+
+
+
+#undef	IM_DEBUG_TIMEOUT	
 #define TIMEOUT_PUN	0
 #define TIMEOUT_LUN	0
-/* verbose interrupt: */
+
 #undef IM_DEBUG_INT
-/* verbose queuecommand: */
+
 #undef IM_DEBUG_CMD
-/* verbose queucommand for specific SCSI-device type: */
+
 #undef IM_DEBUG_CMD_SPEC_DEV
-/* verbose device probing */
+
 #undef IM_DEBUG_PROBE
 
-/* device type that shall be displayed on syslog (only during debugging): */
+
 #define IM_DEBUG_CMD_DEVICE	TYPE_TAPE
 
-/* relative addresses of hardware registers on a subsystem */
-#define IM_CMD_REG(h)	((h)->io_port)	/*Command Interface, (4 bytes long) */
-#define IM_ATTN_REG(h)	((h)->io_port+4)	/*Attention (1 byte) */
-#define IM_CTR_REG(h)	((h)->io_port+5)	/*Basic Control (1 byte) */
-#define IM_INTR_REG(h)	((h)->io_port+6)	/*Interrupt Status (1 byte, r/o) */
-#define IM_STAT_REG(h)	((h)->io_port+7)	/*Basic Status (1 byte, read only) */
 
-/* basic I/O-port of first adapter */
+#define IM_CMD_REG(h)	((h)->io_port)	
+#define IM_ATTN_REG(h)	((h)->io_port+4)	
+#define IM_CTR_REG(h)	((h)->io_port+5)	
+#define IM_INTR_REG(h)	((h)->io_port+6)	
+#define IM_STAT_REG(h)	((h)->io_port+7)	
+
+
 #define IM_IO_PORT	0x3540
-/* maximum number of hosts that can be found */
+
 #define IM_N_IO_PORT	8
 
-/*requests going into the upper nibble of the Attention register */
-/*note: the lower nibble specifies the device(0-14), or subsystem(15) */
-#define IM_IMM_CMD	0x10	/*immediate command */
-#define IM_SCB		0x30	/*Subsystem Control Block command */
-#define IM_LONG_SCB	0x40	/*long Subsystem Control Block command */
-#define IM_EOI		0xe0	/*end-of-interrupt request */
 
-/*values for bits 7,1,0 of Basic Control reg. (bits 6-2 reserved) */
-#define IM_HW_RESET	0x80	/*hardware reset */
-#define IM_ENABLE_DMA	0x02	/*enable subsystem's busmaster DMA */
-#define IM_ENABLE_INTR	0x01	/*enable interrupts to the system */
 
-/*to interpret the upper nibble of Interrupt Status register */
-/*note: the lower nibble specifies the device(0-14), or subsystem(15) */
+#define IM_IMM_CMD	0x10	
+#define IM_SCB		0x30	
+#define IM_LONG_SCB	0x40	
+#define IM_EOI		0xe0	
+
+
+#define IM_HW_RESET	0x80	
+#define IM_ENABLE_DMA	0x02	
+#define IM_ENABLE_INTR	0x01	
+
+
+
 #define IM_SCB_CMD_COMPLETED			0x10
 #define IM_SCB_CMD_COMPLETED_WITH_RETRIES	0x50
 #define IM_LOOP_SCATTER_BUFFER_FULL		0x60
@@ -106,13 +89,13 @@ static int ibmmca_proc_info(struct Scsi_Host *shpnt, char *buffer, char **start,
 #define IM_CMD_ERROR				0xe0
 #define IM_SOFTWARE_SEQUENCING_ERROR		0xf0
 
-/*to interpret bits 3-0 of Basic Status register (bits 7-4 reserved) */
+
 #define IM_CMD_REG_FULL		0x08
 #define IM_CMD_REG_EMPTY	0x04
 #define IM_INTR_REQUEST		0x02
 #define IM_BUSY			0x01
 
-/*immediate commands (word written into low 2 bytes of command reg) */
+
 #define IM_RESET_IMM_CMD	0x0400
 #define IM_FEATURE_CTR_IMM_CMD	0x040c
 #define IM_DMA_PACING_IMM_CMD	0x040d
@@ -120,60 +103,60 @@ static int ibmmca_proc_info(struct Scsi_Host *shpnt, char *buffer, char **start,
 #define IM_ABORT_IMM_CMD	0x040f
 #define IM_FORMAT_PREP_IMM_CMD	0x0417
 
-/*SCB (Subsystem Control Block) structure */
+
 struct im_scb {
-	unsigned short command;	/*command word (read, etc.) */
-	unsigned short enable;	/*enable word, modifies cmd */
+	unsigned short command;	
+	unsigned short enable;	
 	union {
-		unsigned long log_blk_adr;	/*block address on SCSI device */
-		unsigned char scsi_cmd_length;	/*6,10,12, for other scsi cmd */
+		unsigned long log_blk_adr;	
+		unsigned char scsi_cmd_length;	
 	} u1;
-	unsigned long sys_buf_adr;	/*physical system memory adr */
-	unsigned long sys_buf_length;	/*size of sys mem buffer */
-	unsigned long tsb_adr;	/*Termination Status Block adr */
-	unsigned long scb_chain_adr;	/*optional SCB chain address */
+	unsigned long sys_buf_adr;	
+	unsigned long sys_buf_length;	
+	unsigned long tsb_adr;	
+	unsigned long scb_chain_adr;	
 	union {
 		struct {
-			unsigned short count;	/*block count, on SCSI device */
-			unsigned short length;	/*block length, on SCSI device */
+			unsigned short count;	
+			unsigned short length;	
 		} blk;
-		unsigned char scsi_command[12];	/*other scsi command */
+		unsigned char scsi_command[12];	
 	} u2;
 };
 
-/*structure scatter-gather element (for list of system memory areas) */
+
 struct im_sge {
 	void *address;
 	unsigned long byte_length;
 };
 
-/*structure returned by a get_pos_info command: */
+
 struct im_pos_info {
-	unsigned short pos_id;	/* adapter id */
-	unsigned char pos_3a;	/* pos 3 (if pos 6 = 0) */
-	unsigned char pos_2;	/* pos 2 */
-	unsigned char int_level;	/* interrupt level IRQ 11 or 14 */
-	unsigned char pos_4a;	/* pos 4 (if pos 6 = 0) */
-	unsigned short connector_size;	/* MCA connector size: 16 or 32 Bit */
-	unsigned char num_luns;	/* number of supported luns per device */
-	unsigned char num_puns;	/* number of supported puns */
-	unsigned char pacing_factor;	/* pacing factor */
-	unsigned char num_ldns;	/* number of ldns available */
-	unsigned char eoi_off;	/* time EOI and interrupt inactive */
-	unsigned char max_busy;	/* time between reset and busy on */
-	unsigned short cache_stat;	/* ldn cachestat. Bit=1 = not cached */
-	unsigned short retry_stat;	/* retry status of ldns. Bit=1=disabled */
-	unsigned char pos_4b;	/* pos 4 (if pos 6 = 1) */
-	unsigned char pos_3b;	/* pos 3 (if pos 6 = 1) */
-	unsigned char pos_6;	/* pos 6 */
-	unsigned char pos_5;	/* pos 5 */
-	unsigned short max_overlap;	/* maximum overlapping requests */
-	unsigned short num_bus;	/* number of SCSI-busses */
+	unsigned short pos_id;	
+	unsigned char pos_3a;	
+	unsigned char pos_2;	
+	unsigned char int_level;	
+	unsigned char pos_4a;	
+	unsigned short connector_size;	
+	unsigned char num_luns;	
+	unsigned char num_puns;	
+	unsigned char pacing_factor;	
+	unsigned char num_ldns;	
+	unsigned char eoi_off;	
+	unsigned char max_busy;	
+	unsigned short cache_stat;	
+	unsigned short retry_stat;	
+	unsigned char pos_4b;	
+	unsigned char pos_3b;	
+	unsigned char pos_6;	
+	unsigned char pos_5;	
+	unsigned short max_overlap;	
+	unsigned short num_bus;	
 };
 
-/*values for SCB command word */
-#define IM_NO_SYNCHRONOUS      0x0040	/*flag for any command */
-#define IM_NO_DISCONNECT       0x0080	/*flag for any command */
+
+#define IM_NO_SYNCHRONOUS      0x0040	
+#define IM_NO_DISCONNECT       0x0080	
 #define IM_READ_DATA_CMD       0x1c01
 #define IM_WRITE_DATA_CMD      0x1c02
 #define IM_READ_VERIFY_CMD     0x1c03
@@ -184,14 +167,14 @@ struct im_pos_info {
 #define IM_READ_LOGICAL_CMD    0x1c2a
 #define IM_OTHER_SCSI_CMD_CMD  0x241f
 
-/* unused, but supported, SCB commands */
-#define IM_GET_COMMAND_COMPLETE_STATUS_CMD   0x1c07	/* command status */
-#define IM_GET_POS_INFO_CMD                  0x1c0a	/* returns neat stuff */
-#define IM_READ_PREFETCH_CMD                 0x1c31	/* caching controller only */
-#define IM_FOMAT_UNIT_CMD                    0x1c16	/* format unit */
-#define IM_REASSIGN_BLOCK_CMD                0x1c18	/* in case of error */
 
-/*values to set bits in the enable word of SCB */
+#define IM_GET_COMMAND_COMPLETE_STATUS_CMD   0x1c07	
+#define IM_GET_POS_INFO_CMD                  0x1c0a	
+#define IM_READ_PREFETCH_CMD                 0x1c31	
+#define IM_FOMAT_UNIT_CMD                    0x1c16	
+#define IM_REASSIGN_BLOCK_CMD                0x1c18	
+
+
 #define IM_READ_CONTROL              0x8000
 #define IM_REPORT_TSB_ONLY_ON_ERROR  0x4000
 #define IM_RETRY_ENABLE              0x2000
@@ -200,7 +183,7 @@ struct im_pos_info {
 #define IM_BYPASS_BUFFER             0x0200
 #define IM_CHAIN_ON_NO_ERROR         0x0001
 
-/*TSB (Termination Status Block) structure */
+
 struct im_tsb {
 	unsigned short end_status;
 	unsigned short reserved1;
@@ -217,46 +200,36 @@ struct im_tsb {
 	unsigned short high_of_last_scb_adr;
 };
 
-/*subsystem uses interrupt request level 14 */
+
 #define IM_IRQ     14
-/*SCSI-2 F/W may evade to interrupt 11 */
+
 #define IM_IRQ_FW  11
 
-/* Model 95 has an additional alphanumeric display, which can be used
-   to display SCSI-activities. 8595 models do not have any disk led, which
-   makes this feature quite useful.
-   The regular PS/2 disk led is turned on/off by bits 6,7 of system
-   control port. */
 
-/* LED display-port (actually, last LED on display) */
+
+
 #define MOD95_LED_PORT	   0x108
-/* system-control-register of PS/2s with diskindicator */
+
 #define PS2_SYS_CTR        0x92
-/* activity displaying methods */
+
 #define LED_DISP           1
 #define LED_ADISP          2
 #define LED_ACTIVITY       4
-/* failed intr */
+
 #define CMD_FAIL           255
 
-/* The SCSI-ID(!) of the accessed SCSI-device is shown on PS/2-95 machines' LED
-   displays. ldn is no longer displayed here, because the ldn mapping is now 
-   done dynamically and the ldn <-> pun,lun maps can be looked-up at boottime 
-   or during uptime in /proc/scsi/ibmmca/<host_no> in case of trouble, 
-   interest, debugging or just for having fun. The left number gives the
-   host-adapter number and the right shows the accessed SCSI-ID. */
 
-/* display_mode is set by the ibmmcascsi= command line arg */
+
+
 static int display_mode = 0;
-/* set default adapter timeout */
-static unsigned int adapter_timeout = 45;
-/* for probing on feature-command: */
-static unsigned int global_command_error_excuse = 0;
-/* global setting by command line for adapter_speed */
-static int global_adapter_speed = 0;	/* full speed by default */
 
-/* Panel / LED on, do it right for F/W addressin, too. adisplay will
- * just ignore ids>7, as the panel has only 7 digits available */
+static unsigned int adapter_timeout = 45;
+
+static unsigned int global_command_error_excuse = 0;
+
+static int global_adapter_speed = 0;	
+
+
 #define PS2_DISK_LED_ON(ad,id) { if (display_mode & LED_DISP) { if (id>9) \
     outw((ad+48)|((id+55)<<8), MOD95_LED_PORT ); else \
     outw((ad+48)|((id+48)<<8), MOD95_LED_PORT ); } else \
@@ -265,15 +238,15 @@ static int global_adapter_speed = 0;	/* full speed by default */
     if ((display_mode & LED_ACTIVITY)||(!display_mode)) \
     outb(inb(PS2_SYS_CTR) | 0xc0, PS2_SYS_CTR); }
 
-/* Panel / LED off */
-/* bug fixed, Dec 15, 1997, where | was replaced by & here */
+
+
 #define PS2_DISK_LED_OFF() { if (display_mode & LED_DISP) \
     outw(0x2020, MOD95_LED_PORT ); else if (display_mode & LED_ADISP) { \
     outl(0x20202020,MOD95_LED_PORT); outl(0x20202020,MOD95_LED_PORT+4); } \
     if ((display_mode & LED_ACTIVITY)||(!display_mode)) \
     outb(inb(PS2_SYS_CTR) & 0x3f, PS2_SYS_CTR); }
 
-/* types of different supported hardware that goes to hostdata special */
+
 #define IBM_SCSI2_FW     0
 #define IBM_7568_WCACHE  1
 #define IBM_EXP_UNIT     2
@@ -281,113 +254,105 @@ static int global_adapter_speed = 0;	/* full speed by default */
 #define IBM_SCSI         4
 #define IBM_INTEGSCSI	 5
 
-/* other special flags for hostdata structure */
+
 #define FORCED_DETECTION         100
 #define INTEGRATED_SCSI          101
 
-/* List of possible IBM-SCSI-adapters */
+
 static short ibmmca_id_table[] = {
 	0x8efc,
 	0x8efd,
 	0x8ef8,
 	0x8eff,
 	0x8efe,
-	/* No entry for integrated SCSI, that's part of the register */
+	
 	0
 };
 
 static const char *ibmmca_description[] = {
-	"IBM SCSI-2 F/W Adapter",	/* special = 0 */
-	"IBM 7568 Industrial Computer SCSI Adapter w/Cache",	/* special = 1 */
-	"IBM Expansion Unit SCSI Controller",	/* special = 2 */
-	"IBM SCSI Adapter w/Cache",	/* special = 3 */
-	"IBM SCSI Adapter",	/* special = 4 */
-	"IBM Integrated SCSI Controller", /* special = 5 */
+	"IBM SCSI-2 F/W Adapter",	
+	"IBM 7568 Industrial Computer SCSI Adapter w/Cache",	
+	"IBM Expansion Unit SCSI Controller",	
+	"IBM SCSI Adapter w/Cache",	
+	"IBM SCSI Adapter",	
+	"IBM Integrated SCSI Controller", 
 };
 
-/* Max number of logical devices (can be up from 0 to 14).  15 is the address
-of the adapter itself. */
+
 #define MAX_LOG_DEV  15
 
-/*local data for a logical device */
+
 struct logical_device {
-	struct im_scb scb;	/* SCSI-subsystem-control-block structure */
-	struct im_tsb tsb;	/* SCSI command complete status block structure */
-	struct im_sge sge[16];	/* scatter gather list structure */
-	unsigned char buf[256];	/* SCSI command return data buffer */
-	Scsi_Cmnd *cmd;		/* SCSI-command that is currently in progress */
-	int device_type;	/* type of the SCSI-device. See include/scsi/scsi.h
-				   for interpretation of the possible values */
-	int block_length;	/* blocksize of a particular logical SCSI-device */
-	int cache_flag;		/* 1 if this is uncached, 0 if cache is present for ldn */
-	int retry_flag;		/* 1 if adapter retry is disabled, 0 if enabled */
+	struct im_scb scb;	
+	struct im_tsb tsb;	
+	struct im_sge sge[16];	
+	unsigned char buf[256];	
+	Scsi_Cmnd *cmd;		
+	int device_type;	
+	int block_length;	
+	int cache_flag;		
+	int retry_flag;		
 };
 
-/* statistics of the driver during operations (for proc_info) */
+
 struct Driver_Statistics {
-	/* SCSI statistics on the adapter */
-	int ldn_access[MAX_LOG_DEV + 1];	/* total accesses on a ldn */
-	int ldn_read_access[MAX_LOG_DEV + 1];	/* total read-access on a ldn */
-	int ldn_write_access[MAX_LOG_DEV + 1];	/* total write-access on a ldn */
-	int ldn_inquiry_access[MAX_LOG_DEV + 1];	/* total inquiries on a ldn */
-	int ldn_modeselect_access[MAX_LOG_DEV + 1];	/* total mode selects on ldn */
-	int scbs;		/* short SCBs queued */
-	int long_scbs;		/* long SCBs queued */
-	int total_accesses;	/* total accesses on all ldns */
-	int total_interrupts;	/* total interrupts (should be
-				   same as total_accesses) */
-	int total_errors;	/* command completed with error */
-	/* dynamical assignment statistics */
-	int total_scsi_devices;	/* number of physical pun,lun */
-	int dyn_flag;		/* flag showing dynamical mode */
-	int dynamical_assignments;	/* number of remappings of ldns */
-	int ldn_assignments[MAX_LOG_DEV + 1];	/* number of remappings of each
-						   ldn */
+	
+	int ldn_access[MAX_LOG_DEV + 1];	
+	int ldn_read_access[MAX_LOG_DEV + 1];	
+	int ldn_write_access[MAX_LOG_DEV + 1];	
+	int ldn_inquiry_access[MAX_LOG_DEV + 1];	
+	int ldn_modeselect_access[MAX_LOG_DEV + 1];	
+	int scbs;		
+	int long_scbs;		
+	int total_accesses;	
+	int total_interrupts;	
+	int total_errors;	
+	
+	int total_scsi_devices;	
+	int dyn_flag;		
+	int dynamical_assignments;	
+	int ldn_assignments[MAX_LOG_DEV + 1];	
 };
 
-/* data structure for each host adapter */
+
 struct ibmmca_hostdata {
-	/* array of logical devices: */
+	
 	struct logical_device _ld[MAX_LOG_DEV + 1];
-	/* array to convert (pun, lun) into logical device number: */
+	
 	unsigned char _get_ldn[16][8];
-	/*array that contains the information about the physical SCSI-devices
-	   attached to this host adapter: */
+	
 	unsigned char _get_scsi[16][8];
-	/* used only when checking logical devices: */
+	
 	int _local_checking_phase_flag;
-	/* report received interrupt: */
+	
 	int _got_interrupt;
-	/* report termination-status of SCSI-command: */
+	
 	int _stat_result;
-	/* reset status (used only when doing reset): */
+	
 	int _reset_status;
-	/* code of the last SCSI command (needed for panic info): */
+	
 	int _last_scsi_command[MAX_LOG_DEV + 1];
-	/* identifier of the last SCSI-command type */
+	
 	int _last_scsi_type[MAX_LOG_DEV + 1];
-	/* last blockcount */
+	
 	int _last_scsi_blockcount[MAX_LOG_DEV + 1];
-	/* last locgical block address */
+	
 	unsigned long _last_scsi_logical_block[MAX_LOG_DEV + 1];
-	/* Counter that points on the next reassignable ldn for dynamical
-	   remapping. The default value is 7, that is the first reassignable
-	   number in the list at boottime: */
+	
 	int _next_ldn;
-	/* Statistics-structure for this IBM-SCSI-host: */
+	
 	struct Driver_Statistics _IBM_DS;
-	/* This hostadapters pos-registers pos2 until pos6 */
+	
 	unsigned int _pos[8];
-	/* assign a special variable, that contains dedicated info about the
-	   adaptertype */
+	
 	int _special;
-	/* connector size on the MCA bus */
+	
 	int _connector_size;
-	/* synchronous SCSI transfer rate bitpattern */
+	
 	int _adapter_speed;
 };
 
-/* macros to access host data structure */
+
 #define subsystem_pun(h) ((h)->this_id)
 #define subsystem_maxid(h) ((h)->max_id)
 #define ld(h) (((struct ibmmca_hostdata *) (h)->hostdata)->_ld)
@@ -413,29 +378,25 @@ struct ibmmca_hostdata {
 #define pos5(h) (((struct ibmmca_hostdata *) (h)->hostdata)->_pos[5])
 #define pos6(h) (((struct ibmmca_hostdata *) (h)->hostdata)->_pos[6])
 
-/* Define a arbitrary number as subsystem-marker-type. This number is, as
-   described in the ANSI-SCSI-standard, not occupied by other device-types. */
+
 #define TYPE_IBM_SCSI_ADAPTER   0x2F
 
-/* Define 0xFF for no device type, because this type is not defined within
-   the ANSI-SCSI-standard, therefore, it can be used and should not cause any
-   harm. */
+
 #define TYPE_NO_DEVICE          0xFF
 
-/* define medium-changer. If this is not defined previously, e.g. Linux
-   2.0.x, define this type here. */
+
 #ifndef TYPE_MEDIUM_CHANGER
 #define TYPE_MEDIUM_CHANGER     0x08
 #endif
 
-/* define possible operations for the immediate_assign command */
+
 #define SET_LDN        0
 #define REMOVE_LDN     1
 
-/* ldn which is used to probe the SCSI devices */
+
 #define PROBE_LDN      0
 
-/* reset status flag contents */
+
 #define IM_RESET_NOT_IN_PROGRESS         0
 #define IM_RESET_IN_PROGRESS             1
 #define IM_RESET_FINISHED_OK             2
@@ -443,17 +404,16 @@ struct ibmmca_hostdata {
 #define IM_RESET_NOT_IN_PROGRESS_NO_INT  4
 #define IM_RESET_FINISHED_OK_NO_INT      5
 
-/* define undefined SCSI-command */
+
 #define NO_SCSI                  0xffff
 
-/*-----------------------------------------------------------------------*/
 
-/* if this is nonzero, ibmmcascsi option has been passed to the kernel */
+
+
 static int io_port[IM_MAX_HOSTS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 static int scsi_id[IM_MAX_HOSTS] = { 7, 7, 7, 7, 7, 7, 7, 7 };
 
-/* fill module-parameters only, when this define is present.
-   (that is kernel version 2.1.x) */
+
 #if defined(MODULE)
 static char *boot_options = NULL;
 module_param(boot_options, charp, 0);
@@ -462,13 +422,11 @@ module_param_array(scsi_id, int, NULL, 0);
 
 MODULE_LICENSE("GPL");
 #endif
-/*counter of concurrent disk read/writes, to turn on/off disk led */
+
 static int disk_rw_in_progress = 0;
 
-static unsigned int pos[8];	/* whole pos register-line for diagnosis */
-/* Taking into account the additions, made by ZP Gu.
- * This selects now the preset value from the configfile and
- * offers the 'normal' commandline option to be accepted */
+static unsigned int pos[8];	
+
 #ifdef CONFIG_IBMMCA_SCSI_ORDER_STANDARD
 static char ibm_ansi_order = 1;
 #else
@@ -493,7 +451,7 @@ static int probe_display(int);
 static int probe_bus_mode(struct Scsi_Host *);
 static int device_exists(struct Scsi_Host *, int, int *, int *);
 static int option_setup(char *);
-/* local functions needed for proc_info */
+
 static int ldn_access_load(struct Scsi_Host *, int);
 static int ldn_access_total_read_write(struct Scsi_Host *);
 
@@ -515,33 +473,32 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 		return IRQ_NONE;
 	}
 
-	/* the reset-function already did all the job, even ints got
-	   renabled on the subsystem, so just return */
+	
 	if ((reset_status(shpnt) == IM_RESET_NOT_IN_PROGRESS_NO_INT) || (reset_status(shpnt) == IM_RESET_FINISHED_OK_NO_INT)) {
 		reset_status(shpnt) = IM_RESET_NOT_IN_PROGRESS;
 		spin_unlock_irqrestore(shpnt->host_lock, flags);
 		return IRQ_HANDLED;
 	}
 
-	/*must wait for attention reg not busy, then send EOI to subsystem */
+	
 	while (1) {
 		if (!(inb(IM_STAT_REG(shpnt)) & IM_BUSY))
 			break;
 		cpu_relax();
 	}
 
-	/*get command result and logical device */
+	
 	intr_reg = (unsigned char) (inb(IM_INTR_REG(shpnt)));
 	cmd_result = intr_reg & 0xf0;
 	ldn = intr_reg & 0x0f;
-	/* get the last_scsi_command here */
+	
 	lastSCSI = last_scsi_command(shpnt)[ldn];
 	outb(IM_EOI | ldn, IM_ATTN_REG(shpnt));
 	
-	/*these should never happen (hw fails, or a local programming bug) */
+	
 	if (!global_command_error_excuse) {
 		switch (cmd_result) {
-			/* Prevent from Ooopsing on error to show the real reason */
+			
 		case IM_ADAPTER_HW_FAILURE:
 		case IM_SOFTWARE_SEQUENCING_ERROR:
 		case IM_CMD_ERROR:
@@ -561,7 +518,7 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 				printk(KERN_ERR "Logical block=%lx/%lx\n", last_scsi_logical_block(shpnt)[ldn], ld(shpnt)[ldn].scb.u1.log_blk_adr);
 			}
 			printk(KERN_ERR "Reason given: %s\n", (cmd_result == IM_ADAPTER_HW_FAILURE) ? "HARDWARE FAILURE" : (cmd_result == IM_SOFTWARE_SEQUENCING_ERROR) ? "SOFTWARE SEQUENCING ERROR" : (cmd_result == IM_CMD_ERROR) ? "COMMAND ERROR" : "UNKNOWN");
-			/* if errors appear, enter this section to give detailed info */
+			
 			printk(KERN_ERR "IBM MCA SCSI: Subsystem Error-Status follows:\n");
 			printk(KERN_ERR "              Command Type................: %x\n", last_scsi_type(shpnt)[ldn]);
 			printk(KERN_ERR "              Attention Register..........: %x\n", inb(IM_ATTN_REG(shpnt)));
@@ -584,9 +541,7 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 			break;
 		}
 	} else {
-		/* The command error handling is made silent, but we tell the
-		 * calling function, that there is a reported error from the
-		 * adapter. */
+		
 		switch (cmd_result) {
 		case IM_ADAPTER_HW_FAILURE:
 		case IM_SOFTWARE_SEQUENCING_ERROR:
@@ -598,9 +553,9 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 			break;
 		}
 	}
-	/* if no panic appeared, increase the interrupt-counter */
+	
 	IBM_DS(shpnt).total_interrupts++;
-	/*only for local checking phase */
+	
 	if (local_checking_phase_flag(shpnt)) {
 		stat_result(shpnt) = cmd_result;
 		got_interrupt(shpnt) = 1;
@@ -609,16 +564,16 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 		spin_unlock_irqrestore(shpnt->host_lock, flags);
 		return IRQ_HANDLED;
 	}
-	/* handling of commands coming from upper level of scsi driver */
+	
 	if (last_scsi_type(shpnt)[ldn] == IM_IMM_CMD) {
-		/* verify ldn, and may handle rare reset immediate command */
+		
 		if ((reset_status(shpnt) == IM_RESET_IN_PROGRESS) && (last_scsi_command(shpnt)[ldn] == IM_RESET_IMM_CMD)) {
 			if (cmd_result == IM_CMD_COMPLETED_WITH_FAILURE) {
 				disk_rw_in_progress = 0;
 				PS2_DISK_LED_OFF();
 				reset_status(shpnt) = IM_RESET_FINISHED_FAIL;
 			} else {
-				/*reset disk led counter, turn off disk led */
+				
 				disk_rw_in_progress = 0;
 				PS2_DISK_LED_OFF();
 				reset_status(shpnt) = IM_RESET_FINISHED_OK;
@@ -629,7 +584,7 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 			spin_unlock_irqrestore(shpnt->host_lock, flags);
 			return IRQ_HANDLED;
 		} else if (last_scsi_command(shpnt)[ldn] == IM_ABORT_IMM_CMD) {
-			/* react on SCSI abort command */
+			
 #ifdef IM_DEBUG_PROBE
 			printk("IBM MCA SCSI: Interrupt from SCSI-abort.\n");
 #endif
@@ -645,7 +600,7 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 			last_scsi_command(shpnt)[ldn] = NO_SCSI;
 			last_scsi_type(shpnt)[ldn] = 0;
 			if (cmd->scsi_done)
-				(cmd->scsi_done) (cmd);	/* should be the internal_done */
+				(cmd->scsi_done) (cmd);	
 			spin_unlock_irqrestore(shpnt->host_lock, flags);
 			return IRQ_HANDLED;
 		} else {
@@ -671,7 +626,7 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 		}
 	}
 #endif
-	/*if no command structure, just return, else clear cmd */
+	
 	if (!cmd)
 	{
 		spin_unlock_irqrestore(shpnt->host_lock, flags);
@@ -681,27 +636,24 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 #ifdef IM_DEBUG_INT
 	printk("cmd=%02x ireg=%02x ds=%02x cs=%02x de=%02x ce=%02x\n", cmd->cmnd[0], intr_reg, ld(shpnt)[ldn].tsb.dev_status, ld(shpnt)[ldn].tsb.cmd_status, ld(shpnt)[ldn].tsb.dev_error, ld(shpnt)[ldn].tsb.cmd_error);
 #endif
-	/*if this is end of media read/write, may turn off PS/2 disk led */
+	
 	if ((ld(shpnt)[ldn].device_type != TYPE_NO_LUN) && (ld(shpnt)[ldn].device_type != TYPE_NO_DEVICE)) {
-		/* only access this, if there was a valid device addressed */
+		
 		if (--disk_rw_in_progress == 0)
 			PS2_DISK_LED_OFF();
 	}
 
-	/* IBM describes the status-mask to be 0x1e, but this is not conform
-	 * with SCSI-definition, I suppose, the reason for it is that IBM
-	 * adapters do not support CMD_TERMINATED, TASK_SET_FULL and
-	 * ACA_ACTIVE as returning statusbyte information. (ML) */
+	
 	if (cmd_result == IM_CMD_COMPLETED_WITH_FAILURE) {
 		cmd->result = (unsigned char) (ld(shpnt)[ldn].tsb.dev_status & 0x1e);
 		IBM_DS(shpnt).total_errors++;
 	} else
 		cmd->result = 0;
-	/* write device status into cmd->result, and call done function */
-	if (lastSCSI == NO_SCSI) {	/* unexpected interrupt :-( */
+	
+	if (lastSCSI == NO_SCSI) {	
 		cmd->result |= DID_BAD_INTR << 16;
 		printk("IBM MCA SCSI: WARNING - Interrupt from non-pending SCSI-command!\n");
-	} else			/* things went right :-) */
+	} else			
 		cmd->result |= DID_OK << 16;
 	if (cmd->scsi_done)
 		(cmd->scsi_done) (cmd);
@@ -713,14 +665,14 @@ static void issue_cmd(struct Scsi_Host *shpnt, unsigned long cmd_reg,
 		      unsigned char attn_reg)
 {
 	unsigned long flags;
-	/* must wait for attention reg not busy */
+	
 	while (1) {
 		spin_lock_irqsave(shpnt->host_lock, flags);
 		if (!(inb(IM_STAT_REG(shpnt)) & IM_BUSY))
 			break;
 		spin_unlock_irqrestore(shpnt->host_lock, flags);
 	}
-	/* write registers and enable system interrupts */
+	
 	outl(cmd_reg, IM_CMD_REG(shpnt));
 	outb(attn_reg, IM_ATTN_REG(shpnt));
 	spin_unlock_irqrestore(shpnt->host_lock, flags);
@@ -732,7 +684,7 @@ static void internal_done(Scsi_Cmnd * cmd)
 	return;
 }
 
-/* SCSI-SCB-command for device_inquiry */
+
 static int device_inquiry(struct Scsi_Host *shpnt, int ldn)
 {
 	int retr;
@@ -743,27 +695,27 @@ static int device_inquiry(struct Scsi_Host *shpnt, int ldn)
 	scb = &(ld(shpnt)[ldn].scb);
 	tsb = &(ld(shpnt)[ldn].tsb);
 	buf = (unsigned char *) (&(ld(shpnt)[ldn].buf));
-	ld(shpnt)[ldn].tsb.dev_status = 0;	/* prepare statusblock */
+	ld(shpnt)[ldn].tsb.dev_status = 0;	
 	for (retr = 0; retr < 3; retr++) {
-		/* fill scb with inquiry command */
+		
 		scb->command = IM_DEVICE_INQUIRY_CMD | IM_NO_DISCONNECT;
 		scb->enable = IM_REPORT_TSB_ONLY_ON_ERROR | IM_READ_CONTROL | IM_SUPRESS_EXCEPTION_SHORT | IM_RETRY_ENABLE | IM_BYPASS_BUFFER;
 		last_scsi_command(shpnt)[ldn] = IM_DEVICE_INQUIRY_CMD;
 		last_scsi_type(shpnt)[ldn] = IM_SCB;
 		scb->sys_buf_adr = isa_virt_to_bus(buf);
-		scb->sys_buf_length = 255;	/* maximum bufferlength gives max info */
+		scb->sys_buf_length = 255;	
 		scb->tsb_adr = isa_virt_to_bus(tsb);
-		/* issue scb to passed ldn, and busy wait for interrupt */
+		
 		got_interrupt(shpnt) = 0;
 		issue_cmd(shpnt, isa_virt_to_bus(scb), IM_SCB | ldn);
 		while (!got_interrupt(shpnt))
 			barrier();
 
-		/*if command successful, break */
+		
 		if ((stat_result(shpnt) == IM_SCB_CMD_COMPLETED) || (stat_result(shpnt) == IM_SCB_CMD_COMPLETED_WITH_RETRIES))
 			return 1;
 	}
-	/*if all three retries failed, return "no device at this ldn" */
+	
 	if (retr >= 3)
 		return 0;
 	else
@@ -782,7 +734,7 @@ static int read_capacity(struct Scsi_Host *shpnt, int ldn)
 	buf = (unsigned char *) (&(ld(shpnt)[ldn].buf));
 	ld(shpnt)[ldn].tsb.dev_status = 0;
 	for (retr = 0; retr < 3; retr++) {
-		/*fill scb with read capacity command */
+		
 		scb->command = IM_READ_CAPACITY_CMD;
 		scb->enable = IM_REPORT_TSB_ONLY_ON_ERROR | IM_READ_CONTROL | IM_RETRY_ENABLE | IM_BYPASS_BUFFER;
 		last_scsi_command(shpnt)[ldn] = IM_READ_CAPACITY_CMD;
@@ -790,17 +742,17 @@ static int read_capacity(struct Scsi_Host *shpnt, int ldn)
 		scb->sys_buf_adr = isa_virt_to_bus(buf);
 		scb->sys_buf_length = 8;
 		scb->tsb_adr = isa_virt_to_bus(tsb);
-		/*issue scb to passed ldn, and busy wait for interrupt */
+		
 		got_interrupt(shpnt) = 0;
 		issue_cmd(shpnt, isa_virt_to_bus(scb), IM_SCB | ldn);
 		while (!got_interrupt(shpnt))
 			barrier();
 
-		/*if got capacity, get block length and return one device found */
+		
 		if ((stat_result(shpnt) == IM_SCB_CMD_COMPLETED) || (stat_result(shpnt) == IM_SCB_CMD_COMPLETED_WITH_RETRIES))
 			return 1;
 	}
-	/*if all three retries failed, return "no device at this ldn" */
+	
 	if (retr >= 3)
 		return 0;
 	else
@@ -819,39 +771,37 @@ static int get_pos_info(struct Scsi_Host *shpnt)
 	buf = (unsigned char *) (&(ld(shpnt)[MAX_LOG_DEV].buf));
 	ld(shpnt)[MAX_LOG_DEV].tsb.dev_status = 0;
 	for (retr = 0; retr < 3; retr++) {
-		/*fill scb with get_pos_info command */
+		
 		scb->command = IM_GET_POS_INFO_CMD;
 		scb->enable = IM_READ_CONTROL | IM_REPORT_TSB_ONLY_ON_ERROR | IM_RETRY_ENABLE | IM_BYPASS_BUFFER;
 		last_scsi_command(shpnt)[MAX_LOG_DEV] = IM_GET_POS_INFO_CMD;
 		last_scsi_type(shpnt)[MAX_LOG_DEV] = IM_SCB;
 		scb->sys_buf_adr = isa_virt_to_bus(buf);
 		if (special(shpnt) == IBM_SCSI2_FW)
-			scb->sys_buf_length = 256;	/* get all info from F/W adapter */
+			scb->sys_buf_length = 256;	
 		else
-			scb->sys_buf_length = 18;	/* get exactly 18 bytes for other SCSI */
+			scb->sys_buf_length = 18;	
 		scb->tsb_adr = isa_virt_to_bus(tsb);
-		/*issue scb to ldn=15, and busy wait for interrupt */
+		
 		got_interrupt(shpnt) = 0;
 		issue_cmd(shpnt, isa_virt_to_bus(scb), IM_SCB | MAX_LOG_DEV);
 		
-		/* FIXME: timeout */
+		
 		while (!got_interrupt(shpnt))
 			barrier();
 
-		/*if got POS-stuff, get block length and return one device found */
+		
 		if ((stat_result(shpnt) == IM_SCB_CMD_COMPLETED) || (stat_result(shpnt) == IM_SCB_CMD_COMPLETED_WITH_RETRIES))
 			return 1;
 	}
-	/* if all three retries failed, return "no device at this ldn" */
+	
 	if (retr >= 3)
 		return 0;
 	else
 		return 1;
 }
 
-/* SCSI-immediate-command for assign. This functions maps/unmaps specific
- ldn-numbers on SCSI (PUN,LUN). It is needed for presetting of the
- subsystem and for dynamical remapping od ldns. */
+
 static int immediate_assign(struct Scsi_Host *shpnt, unsigned int pun,
 			    unsigned int lun, unsigned int ldn,
 			    unsigned int operation)
@@ -860,7 +810,7 @@ static int immediate_assign(struct Scsi_Host *shpnt, unsigned int pun,
 	unsigned long imm_cmd;
 
 	for (retr = 0; retr < 3; retr++) {
-		/* select mutation level of the SCSI-adapter */
+		
 		switch (special(shpnt)) {
 		case IBM_SCSI2_FW:
 			imm_cmd = (unsigned long) (IM_ASSIGN_IMM_CMD);
@@ -871,7 +821,7 @@ static int immediate_assign(struct Scsi_Host *shpnt, unsigned int pun,
 			break;
 		default:
 			imm_cmd = inl(IM_CMD_REG(shpnt));
-			imm_cmd &= (unsigned long) (0xF8000000);	/* keep reserved bits */
+			imm_cmd &= (unsigned long) (0xF8000000);	
 			imm_cmd |= (unsigned long) (IM_ASSIGN_IMM_CMD);
 			imm_cmd |= (unsigned long) ((lun & 7) << 24);
 			imm_cmd |= (unsigned long) ((operation & 1) << 23);
@@ -886,7 +836,7 @@ static int immediate_assign(struct Scsi_Host *shpnt, unsigned int pun,
 		while (!got_interrupt(shpnt))
 			barrier();
 
-		/*if command successful, break */
+		
 		if (stat_result(shpnt) == IM_IMMEDIATE_CMD_COMPLETED)
 			return 1;
 	}
@@ -902,19 +852,18 @@ static int immediate_feature(struct Scsi_Host *shpnt, unsigned int speed, unsign
 	unsigned long imm_cmd;
 
 	for (retr = 0; retr < 3; retr++) {
-		/* select mutation level of the SCSI-adapter */
+		
 		imm_cmd = IM_FEATURE_CTR_IMM_CMD;
 		imm_cmd |= (unsigned long) ((speed & 0x7) << 29);
 		imm_cmd |= (unsigned long) ((timeout & 0x1fff) << 16);
 		last_scsi_command(shpnt)[MAX_LOG_DEV] = IM_FEATURE_CTR_IMM_CMD;
 		last_scsi_type(shpnt)[MAX_LOG_DEV] = IM_IMM_CMD;
 		got_interrupt(shpnt) = 0;
-		/* we need to run into command errors in order to probe for the
-		 * right speed! */
+		
 		global_command_error_excuse = 1;
 		issue_cmd(shpnt, (unsigned long) (imm_cmd), IM_IMM_CMD | MAX_LOG_DEV);
 		
-		/* FIXME: timeout */
+		
 		while (!got_interrupt(shpnt))
 			barrier();
 		if (global_command_error_excuse == CMD_FAIL) {
@@ -922,7 +871,7 @@ static int immediate_feature(struct Scsi_Host *shpnt, unsigned int speed, unsign
 			return 2;
 		} else
 			global_command_error_excuse = 0;
-		/*if command successful, break */
+		
 		if (stat_result(shpnt) == IM_IMMEDIATE_CMD_COMPLETED)
 			return 1;
 	}
@@ -941,7 +890,7 @@ static int immediate_reset(struct Scsi_Host *shpnt, unsigned int ldn)
 
 	for (retries = 0; retries < 3; retries++) {
 		imm_command = inl(IM_CMD_REG(shpnt));
-		imm_command &= (unsigned long) (0xFFFF0000);	/* keep reserved bits */
+		imm_command &= (unsigned long) (0xFFFF0000);	
 		imm_command |= (unsigned long) (IM_RESET_IMM_CMD);
 		last_scsi_command(shpnt)[ldn] = IM_RESET_IMM_CMD;
 		last_scsi_type(shpnt)[ldn] = IM_IMM_CMD;
@@ -953,14 +902,14 @@ static int immediate_reset(struct Scsi_Host *shpnt, unsigned int ldn)
 			udelay((1 + 999 / HZ) * 1000);
 			barrier();
 		}
-		/* if reset did not complete, just complain */
+		
 		if (!ticks) {
 			printk(KERN_ERR "IBM MCA SCSI: reset did not complete within %d seconds.\n", IM_RESET_DELAY);
 			reset_status(shpnt) = IM_RESET_FINISHED_OK;
-			/* did not work, finish */
+			
 			return 1;
 		}
-		/*if command successful, break */
+		
 		if (stat_result(shpnt) == IM_IMMEDIATE_CMD_COMPLETED)
 			return 1;
 	}
@@ -971,7 +920,7 @@ static int immediate_reset(struct Scsi_Host *shpnt, unsigned int ldn)
 }
 #endif
 
-/* type-interpreter for physical device numbers */
+
 static char *ti_p(int dev)
 {
 	switch (dev) {
@@ -994,12 +943,12 @@ static char *ti_p(int dev)
 	case TYPE_MEDIUM_CHANGER:
 		return ("C");
 	case TYPE_NO_LUN:
-		return ("+");	/* show NO_LUN */
+		return ("+");	
 	}
-	return ("-");		/* TYPE_NO_DEVICE and others */
+	return ("-");		
 }
 
-/* interpreter for logical device numbers (ldn) */
+
 static char *ti_l(int val)
 {
 	const char hex[16] = "0123456789abcdef";
@@ -1013,7 +962,7 @@ static char *ti_l(int val)
 	return (char *) &answer;
 }
 
-/* transfers bitpattern of the feature command to values in MHz */
+
 static char *ibmrate(unsigned int speed, int i)
 {
 	switch (speed) {
@@ -1892,12 +1841,12 @@ static int ibmmca_queuecommand(Scsi_Cmnd * cmd, void (*done) (Scsi_Cmnd *))
 		case TYPE_MOD:	/* ... try it also for MO-drives (send flames as */
 			/*     you like, if this won't work.) */
 			if (scsi_cmd == READ_6 || scsi_cmd == READ_10 || scsi_cmd == READ_12) {
-				/* read command preparations */
+				
 				scb->enable |= IM_READ_CONTROL;
-				IBM_DS(shpnt).ldn_read_access[ldn]++;	/* increase READ-access on ldn stat. */
+				IBM_DS(shpnt).ldn_read_access[ldn]++;	
 				scb->command = IM_READ_DATA_CMD | IM_NO_DISCONNECT;
-			} else {	/* write command preparations */
-				IBM_DS(shpnt).ldn_write_access[ldn]++;	/* increase write-count on ldn stat. */
+			} else {	
+				IBM_DS(shpnt).ldn_write_access[ldn]++;	
 				scb->command = IM_WRITE_DATA_CMD | IM_NO_DISCONNECT;
 			}
 			if (scsi_cmd == READ_6 || scsi_cmd == WRITE_6) {
@@ -1911,28 +1860,23 @@ static int ibmmca_queuecommand(Scsi_Cmnd * cmd, void (*done) (Scsi_Cmnd *))
 			last_scsi_blockcount(shpnt)[ldn] = scb->u2.blk.count;
 			scb->u2.blk.length = ld(shpnt)[ldn].block_length;
 			break;
-			/* for other devices, enter here. Other types are not known by
-			   Linux! TYPE_NO_LUN is forbidden as valid device. */
+			
 		case TYPE_ROM:
 		case TYPE_TAPE:
 		case TYPE_PROCESSOR:
 		case TYPE_WORM:
 		case TYPE_SCANNER:
 		case TYPE_MEDIUM_CHANGER:
-			/* If there is a sequential-device, IBM recommends to use
-			   IM_OTHER_SCSI_CMD_CMD instead of subsystem READ/WRITE.
-			   This includes CD-ROM devices, too, due to the partial sequential
-			   read capabilities. */
+			
 			scb->command = IM_OTHER_SCSI_CMD_CMD;
 			if (scsi_cmd == READ_6 || scsi_cmd == READ_10 || scsi_cmd == READ_12)
-				/* enable READ */
+				
 				scb->enable |= IM_READ_CONTROL;
 			scb->enable |= IM_BYPASS_BUFFER;
 			scb->u1.scsi_cmd_length = cmd->cmd_len;
 			memcpy(scb->u2.scsi_command, cmd->cmnd, cmd->cmd_len);
 			last_scsi_type(shpnt)[ldn] = IM_LONG_SCB;
-			/* Read/write on this non-disk devices is also displayworthy,
-			   so flash-up the LED/display. */
+			
 			break;
 		}
 		break;
@@ -1951,29 +1895,28 @@ static int ibmmca_queuecommand(Scsi_Cmnd * cmd, void (*done) (Scsi_Cmnd *))
 		last_scsi_type(shpnt)[ldn] = IM_LONG_SCB;
 		break;
 	case READ_CAPACITY:
-		/* the length of system memory buffer must be exactly 8 bytes */
+		
 		scb->command = IM_READ_CAPACITY_CMD;
 		scb->enable |= IM_READ_CONTROL | IM_BYPASS_BUFFER;
 		if (scb->sys_buf_length > 8)
 			scb->sys_buf_length = 8;
 		break;
-		/* Commands that need read-only-mode (system <- device): */
+		
 	case REQUEST_SENSE:
 		scb->command = IM_REQUEST_SENSE_CMD;
 		scb->enable |= IM_READ_CONTROL | IM_SUPRESS_EXCEPTION_SHORT | IM_BYPASS_BUFFER;
 		break;
-		/* Commands that need write-only-mode (system -> device): */
+		
 	case MODE_SELECT:
 	case MODE_SELECT_10:
 		IBM_DS(shpnt).ldn_modeselect_access[ldn]++;
 		scb->command = IM_OTHER_SCSI_CMD_CMD;
-		scb->enable |= IM_SUPRESS_EXCEPTION_SHORT | IM_BYPASS_BUFFER;	/*Select needs WRITE-enabled */
+		scb->enable |= IM_SUPRESS_EXCEPTION_SHORT | IM_BYPASS_BUFFER;	
 		scb->u1.scsi_cmd_length = cmd->cmd_len;
 		memcpy(scb->u2.scsi_command, cmd->cmnd, cmd->cmd_len);
 		last_scsi_type(shpnt)[ldn] = IM_LONG_SCB;
 		break;
-		/* For other commands, read-only is useful. Most other commands are
-		   running without an input-data-block. */
+		
 	default:
 		scb->command = IM_OTHER_SCSI_CMD_CMD;
 		scb->enable |= IM_READ_CONTROL | IM_SUPRESS_EXCEPTION_SHORT | IM_BYPASS_BUFFER;
@@ -1982,7 +1925,7 @@ static int ibmmca_queuecommand(Scsi_Cmnd * cmd, void (*done) (Scsi_Cmnd *))
 		last_scsi_type(shpnt)[ldn] = IM_LONG_SCB;
 		break;
 	}
-	/*issue scb command, and return */
+	
 	if (++disk_rw_in_progress == 1)
 		PS2_DISK_LED_ON(shpnt->host_no, target);
 
@@ -1998,9 +1941,7 @@ static int ibmmca_queuecommand(Scsi_Cmnd * cmd, void (*done) (Scsi_Cmnd *))
 
 static int __ibmmca_abort(Scsi_Cmnd * cmd)
 {
-	/* Abort does not work, as the adapter never generates an interrupt on
-	 * whatever situation is simulated, even when really pending commands
-	 * are running on the adapters' hardware ! */
+	
 
 	struct Scsi_Host *shpnt;
 	unsigned int ldn;
@@ -2025,34 +1966,31 @@ static int __ibmmca_abort(Scsi_Cmnd * cmd)
 	} else
 		target = cmd->device->id;
 
-	/* get logical device number, and disable system interrupts */
+	
 	printk(KERN_WARNING "IBM MCA SCSI: Sending abort to device pun=%d, lun=%d.\n", target, cmd->device->lun);
 	ldn = get_ldn(shpnt)[target][cmd->device->lun];
 
-	/*if cmd for this ldn has already finished, no need to abort */
+	
 	if (!ld(shpnt)[ldn].cmd) {
 		    return SUCCESS;
 	}
 
-	/* Clear ld.cmd, save done function, install internal done,
-	 * send abort immediate command (this enables sys. interrupts),
-	 * and wait until the interrupt arrives.
-	 */
+	
 	saved_done = cmd->scsi_done;
 	cmd->scsi_done = internal_done;
 	cmd->SCp.Status = 0;
 	last_scsi_command(shpnt)[ldn] = IM_ABORT_IMM_CMD;
 	last_scsi_type(shpnt)[ldn] = IM_IMM_CMD;
 	imm_command = inl(IM_CMD_REG(shpnt));
-	imm_command &= (unsigned long) (0xffff0000);	/* mask reserved stuff */
+	imm_command &= (unsigned long) (0xffff0000);	
 	imm_command |= (unsigned long) (IM_ABORT_IMM_CMD);
-	/* must wait for attention reg not busy */
-	/* FIXME - timeout, politeness */
+	
+	
 	while (1) {
 		if (!(inb(IM_STAT_REG(shpnt)) & IM_BUSY))
 			break;
 	}
-	/* write registers and enable system interrupts */
+	
 	outl(imm_command, IM_CMD_REG(shpnt));
 	outb(IM_IMM_CMD | ldn, IM_ATTN_REG(shpnt));
 #ifdef IM_DEBUG_PROBE
@@ -2067,7 +2005,7 @@ static int __ibmmca_abort(Scsi_Cmnd * cmd)
 	printk("IBM MCA SCSI: Abort returned with adapter response...\n");
 #endif
 
-	/*if abort went well, call saved done, then return success or error */
+	
 	if (cmd->result == (DID_ABORT << 16)) 
 	{
 		cmd->result |= DID_ABORT << 16;
@@ -2119,15 +2057,15 @@ static int __ibmmca_host_reset(Scsi_Cmnd * cmd)
 		return FAILED;
 	}
 
-	/* issue reset immediate command to subsystem, and wait for interrupt */
+	
 	printk("IBM MCA SCSI: resetting all devices.\n");
 	reset_status(shpnt) = IM_RESET_IN_PROGRESS;
 	last_scsi_command(shpnt)[0xf] = IM_RESET_IMM_CMD;
 	last_scsi_type(shpnt)[0xf] = IM_IMM_CMD;
 	imm_command = inl(IM_CMD_REG(shpnt));
-	imm_command &= (unsigned long) (0xffff0000);	/* mask reserved stuff */
+	imm_command &= (unsigned long) (0xffff0000);	
 	imm_command |= (unsigned long) (IM_RESET_IMM_CMD);
-	/* must wait for attention reg not busy */
+	
 	while (1) {
 		if (!(inb(IM_STAT_REG(shpnt)) & IM_BUSY))
 			break;
@@ -2135,18 +2073,17 @@ static int __ibmmca_host_reset(Scsi_Cmnd * cmd)
 		yield();
 		spin_lock_irq(shpnt->host_lock);
 	}
-	/*write registers and enable system interrupts */
+	
 	outl(imm_command, IM_CMD_REG(shpnt));
 	outb(IM_IMM_CMD | 0xf, IM_ATTN_REG(shpnt));
-	/* wait for interrupt finished or intr_stat register to be set, as the
-	 * interrupt will not be executed, while we are in here! */
+	
 	 
-	/* FIXME: This is really really icky we so want a sleeping version of this ! */
+	
 	while (reset_status(shpnt) == IM_RESET_IN_PROGRESS && --ticks && ((inb(IM_INTR_REG(shpnt)) & 0x8f) != 0x8f)) {
 		udelay((1 + 999 / HZ) * 1000);
 		barrier();
 	}
-	/* if reset did not complete, just return an error */
+	
 	if (!ticks) {
 		printk(KERN_ERR "IBM MCA SCSI: reset did not complete within %d seconds.\n", IM_RESET_DELAY);
 		reset_status(shpnt) = IM_RESET_FINISHED_FAIL;
@@ -2154,23 +2091,23 @@ static int __ibmmca_host_reset(Scsi_Cmnd * cmd)
 	}
 
 	if ((inb(IM_INTR_REG(shpnt)) & 0x8f) == 0x8f) {
-		/* analysis done by this routine and not by the intr-routine */
+		
 		if (inb(IM_INTR_REG(shpnt)) == 0xaf)
 			reset_status(shpnt) = IM_RESET_FINISHED_OK_NO_INT;
 		else if (inb(IM_INTR_REG(shpnt)) == 0xcf)
 			reset_status(shpnt) = IM_RESET_FINISHED_FAIL;
-		else		/* failed, 4get it */
+		else		
 			reset_status(shpnt) = IM_RESET_NOT_IN_PROGRESS_NO_INT;
 		outb(IM_EOI | 0xf, IM_ATTN_REG(shpnt));
 	}
 
-	/* if reset failed, just return an error */
+	
 	if (reset_status(shpnt) == IM_RESET_FINISHED_FAIL) {
 		printk(KERN_ERR "IBM MCA SCSI: reset failed.\n");
 		return FAILED;
 	}
 
-	/* so reset finished ok - call outstanding done's, and return success */
+	
 	printk(KERN_INFO "IBM MCA SCSI: Reset successfully completed.\n");
 	for (i = 0; i < MAX_LOG_DEV; i++) {
 		cmd_aid = ld(shpnt)[i].cmd;
@@ -2215,7 +2152,7 @@ static int ibmmca_biosparam(struct scsi_device *sdev, struct block_device *bdev,
 	return 0;
 }
 
-/* calculate percentage of total accesses on a ldn */
+
 static int ldn_access_load(struct Scsi_Host *shpnt, int ldn)
 {
 	if (IBM_DS(shpnt).total_accesses == 0)
@@ -2225,7 +2162,7 @@ static int ldn_access_load(struct Scsi_Host *shpnt, int ldn)
 	return (IBM_DS(shpnt).ldn_access[ldn] * 100) / IBM_DS(shpnt).total_accesses;
 }
 
-/* calculate total amount of r/w-accesses */
+
 static int ldn_access_total_read_write(struct Scsi_Host *shpnt)
 {
 	int a;
@@ -2259,7 +2196,7 @@ static int ldn_access_total_modeselect(struct Scsi_Host *shpnt)
 	return (a);
 }
 
-/* routine to display info in the proc-fs-structure (a deluxe feature) */
+
 static int ibmmca_proc_info(struct Scsi_Host *shpnt, char *buffer, char **start, off_t offset, int length, int inout)
 {
 	int len = 0;
@@ -2268,7 +2205,7 @@ static int ibmmca_proc_info(struct Scsi_Host *shpnt, char *buffer, char **start,
 	int max_pun;
 
 	
-	spin_lock_irqsave(shpnt->host_lock, flags);	/* Check it */
+	spin_lock_irqsave(shpnt->host_lock, flags);	
 
 	max_pun = subsystem_maxid(shpnt);
 
@@ -2361,7 +2298,7 @@ static struct mca_driver ibmmca_driver = {
 static int __init ibmmca_init(void)
 {
 #ifdef MODULE
-	/* If the driver is run as module, read from conf.modules or cmd-line */
+	
 	if (boot_options)
 		option_setup(boot_options);
 #endif

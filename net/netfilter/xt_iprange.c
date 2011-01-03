@@ -1,13 +1,4 @@
-/*
- *	xt_iprange - Netfilter module to match IP address ranges
- *
- *	(C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
- *	(C) CC Computer Consultants GmbH, 2008
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License version 2 as
- *	published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/skbuff.h>
 #include <linux/ip.h>

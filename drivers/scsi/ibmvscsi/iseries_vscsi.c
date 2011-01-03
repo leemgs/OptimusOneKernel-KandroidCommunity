@@ -1,32 +1,4 @@
-/* ------------------------------------------------------------
- * iSeries_vscsi.c
- * (C) Copyright IBM Corporation 1994, 2003
- * Authors: Colin DeVilbiss (devilbis@us.ibm.com)
- *          Santiago Leon (santil@us.ibm.com)
- *          Dave Boutcher (sleddog@us.ibm.com)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
- *
- * ------------------------------------------------------------
- * iSeries-specific functions of the SCSI host adapter for Virtual I/O devices
- *
- * This driver allows the Linux SCSI peripheral drivers to directly
- * access devices in the hosting partition, either on an iSeries
- * hypervisor system or a converged hypervisor system.
- */
+
 
 #include <asm/iseries/vio.h>
 #include <asm/iseries/hv_lp_event.h>
@@ -36,23 +8,19 @@
 #include <linux/device.h>
 #include "ibmvscsi.h"
 
-/* global variables */
+
 static struct ibmvscsi_host_data *single_host_data;
 
-/* ------------------------------------------------------------
- * Routines for direct interpartition interaction
- */
+
 struct srp_lp_event {
-	struct HvLpEvent lpevt;	/* 0x00-0x17          */
-	u32 reserved1;		/* 0x18-0x1B; unused  */
-	u16 version;		/* 0x1C-0x1D; unused  */
-	u16 subtype_rc;		/* 0x1E-0x1F; unused  */
-	struct viosrp_crq crq;	/* 0x20-0x3F          */
+	struct HvLpEvent lpevt;	
+	u32 reserved1;		
+	u16 version;		
+	u16 subtype_rc;		
+	struct viosrp_crq crq;	
 };
 
-/** 
- * standard interface for handling logical partition events.
- */
+
 static void iseriesvscsi_handle_event(struct HvLpEvent *lpevt)
 {
 	struct srp_lp_event *evt = (struct srp_lp_event *)lpevt;
@@ -71,9 +39,7 @@ static void iseriesvscsi_handle_event(struct HvLpEvent *lpevt)
 	ibmvscsi_handle_crq(&evt->crq, single_host_data);
 }
 
-/* ------------------------------------------------------------
- * Routines for driver initialization
- */
+
 static int iseriesvscsi_init_crq_queue(struct crq_queue *queue,
 				       struct ibmvscsi_host_data *hostdata,
 				       int max_requests)
@@ -110,38 +76,21 @@ static void iseriesvscsi_release_crq_queue(struct crq_queue *queue,
 	viopath_close(viopath_hostLp, viomajorsubtype_scsi, max_requests);
 }
 
-/**
- * reset_crq_queue: - resets a crq after a failure
- * @queue:	crq_queue to initialize and register
- * @hostdata:	ibmvscsi_host_data of host
- *
- * no-op for iSeries
- */
+
 static int iseriesvscsi_reset_crq_queue(struct crq_queue *queue,
 					struct ibmvscsi_host_data *hostdata)
 {
 	return 0;
 }
 
-/**
- * reenable_crq_queue: - reenables a crq after a failure
- * @queue:	crq_queue to initialize and register
- * @hostdata:	ibmvscsi_host_data of host
- *
- * no-op for iSeries
- */
+
 static int iseriesvscsi_reenable_crq_queue(struct crq_queue *queue,
 					   struct ibmvscsi_host_data *hostdata)
 {
 	return 0;
 }
 
-/**
- * iseriesvscsi_send_crq: - Send a CRQ
- * @hostdata:	the adapter
- * @word1:	the first 64 bits of the data
- * @word2:	the second 64 bits of the data
- */
+
 static int iseriesvscsi_send_crq(struct ibmvscsi_host_data *hostdata,
 				 u64 word1, u64 word2)
 {

@@ -17,7 +17,7 @@ struct dibx000_i2c_master {
 
 	enum dibx000_i2c_interface selected_interface;
 
-//      struct i2c_adapter  tuner_i2c_adap;
+
 	struct i2c_adapter gated_tuner_i2c_adap;
 
 	struct i2c_adapter *i2c_adap;
@@ -48,7 +48,7 @@ extern void dibx000_reset_i2c_master(struct dibx000_i2c_master *mst);
 									(freq_kHz) <= 2000000 ? BAND_LBAND : BAND_SBAND )
 
 struct dibx000_agc_config {
-	/* defines the capabilities of this AGC-setting - using the BAND_-defines */
+	
 	u8 band_caps;
 
 	u16 setup;
@@ -140,7 +140,7 @@ enum dibx000_adc_states {
 		(v) == 7000 ? BANDWIDTH_7_MHZ : \
 		(v) == 6000 ? BANDWIDTH_6_MHZ : BANDWIDTH_8_MHZ )
 
-/* Chip output mode. */
+
 #define OUTMODE_HIGH_Z              0
 #define OUTMODE_MPEG2_PAR_GATED_CLK 1
 #define OUTMODE_MPEG2_PAR_CONT_CLK  2

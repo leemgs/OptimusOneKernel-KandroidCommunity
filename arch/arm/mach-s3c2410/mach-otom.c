@@ -1,13 +1,4 @@
-/* linux/arch/arm/mach-s3c2410/mach-otom.c
- *
- * Copyright (c) 2004 Nex Vision
- *   Guillaume GOURAT <guillaume.gourat@nexvision.fr>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -39,7 +30,7 @@
 #include <plat/cpu.h>
 
 static struct map_desc otom11_iodesc[] __initdata = {
-  /* Device area */
+  
 	{ (u32)OTOM_VA_CS8900A_BASE, OTOM_PA_CS8900A_BASE, SZ_16M, MT_DEVICE },
 };
 
@@ -62,7 +53,7 @@ static struct s3c2410_uartcfg otom11_uartcfgs[] __initdata = {
 		.ulcon	     = ULCON,
 		.ufcon	     = UFCON,
 	},
-	/* port 2 is not actually used */
+	
 	[2] = {
 		.hwport	     = 2,
 		.flags	     = 0,
@@ -72,7 +63,7 @@ static struct s3c2410_uartcfg otom11_uartcfgs[] __initdata = {
 	}
 };
 
-/* NOR Flash on NexVision OTOM board */
+
 
 static struct resource otom_nor_resource[] = {
 	[0] = {
@@ -89,7 +80,7 @@ static struct platform_device otom_device_nor = {
 	.resource	= otom_nor_resource,
 };
 
-/* Standard OTOM devices */
+
 
 static struct platform_device *otom11_devices[] __initdata = {
 	&s3c_device_usb,
@@ -115,7 +106,7 @@ static void __init otom11_init(void)
 }
 
 MACHINE_START(OTOM, "Nex Vision - Otom 1.1")
-	/* Maintainer: Guillaume GOURAT <guillaume.gourat@nexvision.tv> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

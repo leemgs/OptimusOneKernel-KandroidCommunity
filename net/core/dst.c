@@ -1,9 +1,4 @@
-/*
- * net/core/dst.c	Protocol independent destination cache.
- *
- * Authors:		Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- */
+
 
 #include <linux/bitops.h>
 #include <linux/errno.h>
@@ -21,26 +16,12 @@
 
 #include <net/dst.h>
 
-/*
- * Theory of operations:
- * 1) We use a list, protected by a spinlock, to add
- *    new entries from both BH and non-BH context.
- * 2) In order to keep spinlock held for a small delay,
- *    we use a second list where are stored long lived
- *    entries, that are handled by the garbage collect thread
- *    fired by a workqueue.
- * 3) This list is guarded by a mutex,
- *    so that the gc_task and dst_dev_event() can be synchronized.
- */
+
 #if RT_CACHE_DEBUG >= 2
 static atomic_t			 dst_total = ATOMIC_INIT(0);
 #endif
 
-/*
- * We want to keep lock & list close together
- * to dirty as few cache lines as possible in __dst_free().
- * As this is not a very strong hint, we dont force an alignment on SMP.
- */
+
 static struct {
 	spinlock_t		lock;
 	struct dst_entry 	*list;
@@ -56,9 +37,7 @@ static void ___dst_free(struct dst_entry * dst);
 static DECLARE_DELAYED_WORK(dst_gc_work, dst_gc_task);
 
 static DEFINE_MUTEX(dst_gc_mutex);
-/*
- * long lived entries are maintained in this list, guarded by dst_gc_mutex
- */
+
 static struct dst_entry         *dst_busy_list;
 
 static void dst_gc_task(struct work_struct *work)
@@ -91,14 +70,7 @@ loop:
 
 		dst = dst_destroy(dst);
 		if (dst) {
-			/* NOHASH and still referenced. Unless it is already
-			 * on gc list, invalidate it and add to gc list.
-			 *
-			 * Note: this is temporary. Actually, NOHASH dst's
-			 * must be obsoleted when parent is obsoleted.
-			 * But we do not have state "obsoleted, but
-			 * referenced by parent", so it is right.
-			 */
+			
 			if (dst->obsolete > 1)
 				continue;
 
@@ -120,10 +92,7 @@ loop:
 	if (!dst_busy_list)
 		dst_garbage.timer_inc = DST_GC_MAX;
 	else {
-		/*
-		 * if we freed less than 1/10 of delayed entries,
-		 * we can sleep longer.
-		 */
+		
 		if (work_performed <= delayed/10) {
 			dst_garbage.timer_expires += dst_garbage.timer_inc;
 			if (dst_garbage.timer_expires > DST_GC_MAX)
@@ -134,10 +103,7 @@ loop:
 			dst_garbage.timer_expires = DST_GC_MIN;
 		}
 		expires = dst_garbage.timer_expires;
-		/*
-		 * if the next desired timer is more than 4 seconds in the future
-		 * then round the timer to whole seconds
-		 */
+		
 		if (expires > 4*HZ)
 			expires = round_jiffies_relative(expires);
 		schedule_delayed_work(&dst_gc_work, expires);
@@ -187,9 +153,7 @@ void * dst_alloc(struct dst_ops * ops)
 
 static void ___dst_free(struct dst_entry * dst)
 {
-	/* The first case (dev==NULL) is required, when
-	   protocol module is unloaded.
-	 */
+	
 	if (dst->dev == NULL || !(dst->dev->flags&IFF_UP)) {
 		dst->input = dst->output = dst_discard;
 	}
@@ -249,14 +213,14 @@ again:
 		int nohash = dst->flags & DST_NOHASH;
 
 		if (atomic_dec_and_test(&dst->__refcnt)) {
-			/* We were real parent of this dst, so kill child. */
+			
 			if (nohash)
 				goto again;
 		} else {
-			/* Child is still referenced, return it for freeing. */
+			
 			if (nohash)
 				return dst;
-			/* Child is still in his hash table */
+			
 		}
 	}
 	return NULL;
@@ -274,14 +238,7 @@ void dst_release(struct dst_entry *dst)
 }
 EXPORT_SYMBOL(dst_release);
 
-/* Dirty hack. We did it in 2.2 (in __dst_free),
- * we have _very_ good reasons not to repeat
- * this mistake in 2.3, but we have no choice
- * now. _It_ _is_ _explicit_ _deliberate_
- * _race_ _condition_.
- *
- * Commented and originally written by Alexey.
- */
+
 static inline void dst_ifdown(struct dst_entry *dst, struct net_device *dev,
 			      int unregister)
 {

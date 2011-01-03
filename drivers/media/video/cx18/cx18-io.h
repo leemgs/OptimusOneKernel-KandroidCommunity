@@ -1,40 +1,13 @@
-/*
- *  cx18 driver PCI memory mapped IO access routines
- *
- *  Copyright (C) 2007  Hans Verkuil <hverkuil@xs4all.nl>
- *  Copyright (C) 2008  Andy Walls <awalls@radix.net>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- *  02111-1307  USA
- */
+
 
 #ifndef CX18_IO_H
 #define CX18_IO_H
 
 #include "cx18-driver.h"
 
-/*
- * Readback and retry of MMIO access for reliability:
- * The concept was suggested by Steve Toth <stoth@linuxtv.org>.
- * The implmentation is the fault of Andy Walls <awalls@radix.net>.
- *
- * *write* functions are implied to retry the mmio unless suffixed with _noretry
- * *read* functions never retry the mmio (it never helps to do so)
- */
 
-/* Non byteswapping memory mapped IO */
+
+
 static inline u32 cx18_raw_readl(struct cx18 *cx, const void __iomem *addr)
 {
 	return __raw_readl(addr);
@@ -56,7 +29,7 @@ static inline void cx18_raw_writel(struct cx18 *cx, u32 val, void __iomem *addr)
 	}
 }
 
-/* Normal memory mapped IO */
+
 static inline u32 cx18_readl(struct cx18 *cx, const void __iomem *addr)
 {
 	return readl(addr);
@@ -147,7 +120,7 @@ void cx18_memcpy_fromio(struct cx18 *cx, void *to,
 void cx18_memset_io(struct cx18 *cx, void __iomem *addr, int val, size_t count);
 
 
-/* Access "register" region of CX23418 memory mapped I/O */
+
 static inline void cx18_write_reg_noretry(struct cx18 *cx, u32 val, u32 reg)
 {
 	cx18_writel_noretry(cx, val, cx->reg_mem + reg);
@@ -170,7 +143,7 @@ static inline u32 cx18_read_reg(struct cx18 *cx, u32 reg)
 }
 
 
-/* Access "encoder memory" region of CX23418 memory mapped I/O */
+
 static inline void cx18_write_enc(struct cx18 *cx, u32 val, u32 addr)
 {
 	cx18_writel(cx, val, cx->enc_mem + addr);
@@ -188,4 +161,4 @@ void cx18_sw2_irq_disable(struct cx18 *cx, u32 val);
 void cx18_sw2_irq_disable_cpu(struct cx18 *cx, u32 val);
 void cx18_setup_page(struct cx18 *cx, u32 addr);
 
-#endif /* CX18_IO_H */
+#endif 

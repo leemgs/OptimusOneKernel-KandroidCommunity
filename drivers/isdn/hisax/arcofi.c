@@ -1,14 +1,4 @@
-/* $Id: arcofi.c,v 1.14.2.3 2004/01/13 14:31:24 keil Exp $
- *
- * Ansteuerung ARCOFI 2165
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
  
 #include <linux/sched.h>
 #include "hisax.h"

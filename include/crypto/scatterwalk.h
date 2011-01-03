@@ -1,17 +1,4 @@
-/*
- * Cryptographic scatter and gather helpers.
- *
- * Copyright (c) 2002 James Morris <jmorris@intercode.com.au>
- * Copyright (c) 2002 Adam J. Richter <adam@yggdrasil.com>
- * Copyright (c) 2004 Jean-Luc Cooke <jlcooke@certainkey.com>
- * Copyright (c) 2007 Herbert Xu <herbert@gondor.apana.org.au>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- */
+
 
 #ifndef _CRYPTO_SCATTERWALK_H
 #define _CRYPTO_SCATTERWALK_H
@@ -120,4 +107,4 @@ void scatterwalk_done(struct scatter_walk *walk, int out, int more);
 void scatterwalk_map_and_copy(void *buf, struct scatterlist *sg,
 			      unsigned int start, unsigned int nbytes, int out);
 
-#endif  /* _CRYPTO_SCATTERWALK_H */
+#endif  

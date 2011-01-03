@@ -1,48 +1,8 @@
-/*
- *	Video for Linux Two
- *
- *	A generic video device interface for the LINUX operating system
- *	using a set of device structures/vectors for low level operations.
- *
- *	This file replaces the videodev.c file that comes with the
- *	regular kernel distribution.
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- * Author:	Bill Dirks <bill@thedirks.org>
- *		based on code by Alan Cox, <alan@cymru.net>
- *
- */
 
-/*
- * Video capture interface for Linux
- *
- *	A generic video device interface for the LINUX operating system
- *	using a set of device structures/vectors for low level operations.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Author:	Alan Cox, <alan@lxorguk.ukuu.org.uk>
- *
- * Fixes:
- */
 
-/*
- * Video4linux 1/2 integration by Justin Schoeman
- * <justin@suntiger.ee.up.ac.za>
- * 2.4 PROCFS support ported from 2.4 kernels by
- *  Iñaki García Etxebarria <garetxe@euskalnet.net>
- * Makefile fix by "W. Michael Petullo" <mike@flyn.org>
- * 2.4 devfs support ported from 2.4 kernels by
- *  Dan Merillat <dan@merillat.org>
- * Added Gerd Knorrs v4l1 enhancements (Justin Schoeman)
- */
+
+
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -56,7 +16,7 @@
 #include <asm/pgtable.h>
 #include <asm/io.h>
 #include <asm/div64.h>
-#define __OLD_VIDIOC_ /* To allow fixing old calls*/
+#define __OLD_VIDIOC_ 
 #include <media/v4l2-common.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-chip-ident.h>
@@ -67,19 +27,13 @@ MODULE_AUTHOR("Bill Dirks, Justin Schoeman, Gerd Knorr");
 MODULE_DESCRIPTION("misc helper functions for v4l2 device drivers");
 MODULE_LICENSE("GPL");
 
-/*
- *
- *	V 4 L 2   D R I V E R   H E L P E R   A P I
- *
- */
-
-/*
- *  Video Standard Operations (contributed by Michael Schimek)
- */
 
 
-/* ----------------------------------------------------------------- */
-/* priority handling                                                 */
+
+
+
+
+
 
 #define V4L2_PRIO_VALID(val) (val == V4L2_PRIORITY_BACKGROUND   || \
 			      val == V4L2_PRIORITY_INTERACTIVE  || \
@@ -142,13 +96,11 @@ int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority *local)
 }
 EXPORT_SYMBOL(v4l2_prio_check);
 
-/* ----------------------------------------------------------------- */
 
-/* Helper functions for control handling			     */
 
-/* Check for correctness of the ctrl's value based on the data from
-   struct v4l2_queryctrl and the available menu items. Note that
-   menu_items may be NULL, in that case it is ignored. */
+
+
+
 int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
 		const char **menu_items)
 {
@@ -173,10 +125,7 @@ int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
 }
 EXPORT_SYMBOL(v4l2_ctrl_check);
 
-/* Returns NULL or a character pointer array containing the menu for
-   the given control ID. The pointer array ends with a NULL pointer.
-   An empty string signifies a menu entry that is invalid. This allows
-   drivers to disable certain options if it is not supported. */
+
 const char **v4l2_ctrl_get_menu(u32 id)
 {
 	static const char *mpeg_audio_sampling_freq[] = {
@@ -394,11 +343,11 @@ const char **v4l2_ctrl_get_menu(u32 id)
 }
 EXPORT_SYMBOL(v4l2_ctrl_get_menu);
 
-/* Return the control name. */
+
 const char *v4l2_ctrl_get_name(u32 id)
 {
 	switch (id) {
-	/* USER controls */
+	
 	case V4L2_CID_USER_CLASS: 		return "User Controls";
 	case V4L2_CID_BRIGHTNESS: 		return "Brightness";
 	case V4L2_CID_CONTRAST: 		return "Contrast";
@@ -432,7 +381,7 @@ const char *v4l2_ctrl_get_name(u32 id)
 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
 	case V4L2_CID_COLORFX:			return "Color Effects";
 
-	/* MPEG controls */
+	
 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: return "Audio Sampling Frequency";
 	case V4L2_CID_MPEG_AUDIO_ENCODING: 	return "Audio Encoding";
@@ -467,7 +416,7 @@ const char *v4l2_ctrl_get_name(u32 id)
 	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
 	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
 
-	/* CAMERA controls */
+	
 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
@@ -486,7 +435,7 @@ const char *v4l2_ctrl_get_name(u32 id)
 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
 	case V4L2_CID_PRIVACY:			return "Privacy";
 
-	/* FM Radio Modulator control */
+	
 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
@@ -514,7 +463,7 @@ const char *v4l2_ctrl_get_name(u32 id)
 }
 EXPORT_SYMBOL(v4l2_ctrl_get_name);
 
-/* Fill in a struct v4l2_queryctrl */
+
 int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def)
 {
 	const char *name = v4l2_ctrl_get_name(qctrl->id);
@@ -641,10 +590,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
 }
 EXPORT_SYMBOL(v4l2_ctrl_query_fill);
 
-/* Fill in a struct v4l2_querymenu based on the struct v4l2_queryctrl and
-   the menu. The qctrl pointer may be NULL, in which case it is ignored.
-   If menu_items is NULL, then the menu items are retrieved using
-   v4l2_ctrl_get_menu. */
+
 int v4l2_ctrl_query_menu(struct v4l2_querymenu *qmenu, struct v4l2_queryctrl *qctrl,
 	       const char **menu_items)
 {
@@ -664,9 +610,7 @@ int v4l2_ctrl_query_menu(struct v4l2_querymenu *qmenu, struct v4l2_queryctrl *qc
 }
 EXPORT_SYMBOL(v4l2_ctrl_query_menu);
 
-/* Fill in a struct v4l2_querymenu based on the specified array of valid
-   menu items (terminated by V4L2_CTRL_MENU_IDS_END).
-   Use this if there are 'holes' in the list of valid menu items. */
+
 int v4l2_ctrl_query_menu_valid_items(struct v4l2_querymenu *qmenu, const u32 *ids)
 {
 	const char **menu_items = v4l2_ctrl_get_menu(qmenu->id);
@@ -685,14 +629,7 @@ int v4l2_ctrl_query_menu_valid_items(struct v4l2_querymenu *qmenu, const u32 *id
 }
 EXPORT_SYMBOL(v4l2_ctrl_query_menu_valid_items);
 
-/* ctrl_classes points to an array of u32 pointers, the last element is
-   a NULL pointer. Each u32 array is a 0-terminated array of control IDs.
-   Each array must be sorted low to high and belong to the same control
-   class. The array of u32 pointers must also be sorted, from low class IDs
-   to high class IDs.
 
-   This function returns the first ID that follows after the given ID.
-   When no more controls are available 0 is returned. */
 u32 v4l2_ctrl_next(const u32 * const * ctrl_classes, u32 id)
 {
 	u32 ctrl_class = V4L2_CTRL_ID2CLASS(id);
@@ -701,34 +638,33 @@ u32 v4l2_ctrl_next(const u32 * const * ctrl_classes, u32 id)
 	if (ctrl_classes == NULL)
 		return 0;
 
-	/* if no query is desired, then check if the ID is part of ctrl_classes */
+	
 	if ((id & V4L2_CTRL_FLAG_NEXT_CTRL) == 0) {
-		/* find class */
+		
 		while (*ctrl_classes && V4L2_CTRL_ID2CLASS(**ctrl_classes) != ctrl_class)
 			ctrl_classes++;
 		if (*ctrl_classes == NULL)
 			return 0;
 		pctrl = *ctrl_classes;
-		/* find control ID */
+		
 		while (*pctrl && *pctrl != id) pctrl++;
 		return *pctrl ? id : 0;
 	}
 	id &= V4L2_CTRL_ID_MASK;
-	id++;	/* select next control */
-	/* find first class that matches (or is greater than) the class of
-	   the ID */
+	id++;	
+	
 	while (*ctrl_classes && V4L2_CTRL_ID2CLASS(**ctrl_classes) < ctrl_class)
 		ctrl_classes++;
-	/* no more classes */
+	
 	if (*ctrl_classes == NULL)
 		return 0;
 	pctrl = *ctrl_classes;
-	/* find first ctrl within the class that is >= ID */
+	
 	while (*pctrl && *pctrl < id) pctrl++;
 	if (*pctrl)
 		return *pctrl;
-	/* we are at the end of the controls of the current class. */
-	/* continue with next class if available */
+	
+	
 	ctrl_classes++;
 	if (*ctrl_classes == NULL)
 		return 0;
@@ -760,7 +696,7 @@ int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match
 		if (c->driver == NULL || c->driver->driver.name == NULL)
 			return 0;
 		len = strlen(c->driver->driver.name);
-		/* legacy drivers have a ' suffix, don't try to match that */
+		
 		if (len && c->driver->driver.name[len - 1] == '\'')
 			len--;
 		return len && !strncmp(c->driver->driver.name, match->name, len);
@@ -789,9 +725,9 @@ int v4l2_chip_ident_i2c_client(struct i2c_client *c, struct v4l2_dbg_chip_ident 
 }
 EXPORT_SYMBOL(v4l2_chip_ident_i2c_client);
 
-/* ----------------------------------------------------------------- */
 
-/* I2C Helper functions */
+
+
 
 
 void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
@@ -799,12 +735,12 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
 {
 	v4l2_subdev_init(sd, ops);
 	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
-	/* the owner is the same as the i2c_client's driver owner */
+	
 	sd->owner = client->driver->driver.owner;
-	/* i2c_client and v4l2_subdev point to one another */
+	
 	v4l2_set_subdevdata(sd, client);
 	i2c_set_clientdata(client, sd);
-	/* initialize name */
+	
 	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
 		client->driver->driver.name, i2c_adapter_id(client->adapter),
 		client->addr);
@@ -813,7 +749,7 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
 
 
 
-/* Load an i2c sub-device. */
+
 struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
 		struct i2c_adapter *adapter, const char *module_name,
 		struct i2c_board_info *info, const unsigned short *probe_addrs)
@@ -826,37 +762,29 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
 	if (module_name)
 		request_module(module_name);
 
-	/* Create the i2c client */
+	
 	if (info->addr == 0 && probe_addrs)
 		client = i2c_new_probed_device(adapter, info, probe_addrs);
 	else
 		client = i2c_new_device(adapter, info);
 
-	/* Note: by loading the module first we are certain that c->driver
-	   will be set if the driver was found. If the module was not loaded
-	   first, then the i2c core tries to delay-load the module for us,
-	   and then c->driver is still NULL until the module is finally
-	   loaded. This delay-load mechanism doesn't work if other drivers
-	   want to use the i2c device, so explicitly loading the module
-	   is the best alternative. */
+	
 	if (client == NULL || client->driver == NULL)
 		goto error;
 
-	/* Lock the module so we can safely get the v4l2_subdev pointer */
+	
 	if (!try_module_get(client->driver->driver.owner))
 		goto error;
 	sd = i2c_get_clientdata(client);
 
-	/* Register with the v4l2_device which increases the module's
-	   use count as well. */
+	
 	if (v4l2_device_register_subdev(v4l2_dev, sd))
 		sd = NULL;
-	/* Decrease the module use count to match the first try_module_get. */
+	
 	module_put(client->driver->driver.owner);
 
 	if (sd) {
-		/* We return errors from v4l2_subdev_call only if we have the
-		   callback as the .s_config is not mandatory */
+		
 		int err = v4l2_subdev_call(sd, core, s_config,
 				info->irq, info->platform_data);
 
@@ -867,8 +795,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
 	}
 
 error:
-	/* If we have a client but no subdev, then something went wrong and
-	   we must unregister the client. */
+	
 	if (client && sd == NULL)
 		i2c_unregister_device(client);
 	return sd;
@@ -883,8 +810,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
 {
 	struct i2c_board_info info;
 
-	/* Setup the i2c board info with the device type and
-	   the device address. */
+	
 	memset(&info, 0, sizeof(info));
 	strlcpy(info.type, client_type, sizeof(info.type));
 	info.addr = addr;
@@ -896,7 +822,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
 }
 EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_cfg);
 
-/* Return i2c client address of v4l2_subdev. */
+
 unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
@@ -905,8 +831,7 @@ unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd)
 }
 EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_addr);
 
-/* Return a list of I2C tuner addresses to probe. Use only if the tuner
-   addresses are unknown. */
+
 const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type)
 {
 	static const unsigned short radio_addrs[] = {
@@ -921,7 +846,7 @@ const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type)
 		I2C_CLIENT_END
 	};
 	static const unsigned short tv_addrs[] = {
-		0x42, 0x43, 0x4a, 0x4b,		/* tda8290 */
+		0x42, 0x43, 0x4a, 0x4b,		
 		0x60, 0x61, 0x62, 0x63, 0x64,
 		I2C_CLIENT_END
 	};
@@ -940,23 +865,20 @@ const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type)
 }
 EXPORT_SYMBOL_GPL(v4l2_i2c_tuner_addrs);
 
-#endif /* defined(CONFIG_I2C) */
+#endif 
 
-/* Clamp x to be between min and max, aligned to a multiple of 2^align.  min
- * and max don't have to be aligned, but there must be at least one valid
- * value.  E.g., min=17,max=31,align=4 is not allowed as there are no multiples
- * of 16 between 17 and 31.  */
+
 static unsigned int clamp_align(unsigned int x, unsigned int min,
 				unsigned int max, unsigned int align)
 {
-	/* Bits that must be zero to be aligned */
+	
 	unsigned int mask = ~((1 << align) - 1);
 
-	/* Round to nearest aligned value */
+	
 	if (align)
 		x = (x + (1 << (align - 1))) & mask;
 
-	/* Clamp to aligned value of min and max */
+	
 	if (x < min)
 		x = (min + ~mask) & mask;
 	else if (x > max)
@@ -965,20 +887,7 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
 	return x;
 }
 
-/* Bound an image to have a width between wmin and wmax, and height between
- * hmin and hmax, inclusive.  Additionally, the width will be a multiple of
- * 2^walign, the height will be a multiple of 2^halign, and the overall size
- * (width*height) will be a multiple of 2^salign.  The image may be shrunk
- * or enlarged to fit the alignment constraints.
- *
- * The width or height maximum must not be smaller than the corresponding
- * minimum.  The alignments must not be so high there are no possible image
- * sizes within the allowed bounds.  wmin and hmin must be at least 1
- * (don't use 0).  If you don't care about a certain alignment, specify 0,
- * as 2^0 is 1 and one byte alignment is equivalent to no alignment.  If
- * you only want to adjust downward, specify a maximum that's the same as
- * the initial value.
- */
+
 void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
 			   unsigned int walign,
 			   u32 *h, unsigned int hmin, unsigned int hmax,
@@ -987,21 +896,21 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
 	*w = clamp_align(*w, wmin, wmax, walign);
 	*h = clamp_align(*h, hmin, hmax, halign);
 
-	/* Usually we don't need to align the size and are done now. */
+	
 	if (!salign)
 		return;
 
-	/* How much alignment do we have? */
+	
 	walign = __ffs(*w);
 	halign = __ffs(*h);
-	/* Enough to satisfy the image alignment? */
+	
 	if (walign + halign < salign) {
-		/* Max walign where there is still a valid width */
+		
 		unsigned int wmaxa = __fls(wmax ^ (wmin - 1));
-		/* Max halign where there is still a valid height */
+		
 		unsigned int hmaxa = __fls(hmax ^ (hmin - 1));
 
-		/* up the smaller alignment until we have enough */
+		
 		do {
 			if (halign >= hmaxa ||
 			    (walign <= halign && walign < wmaxa)) {

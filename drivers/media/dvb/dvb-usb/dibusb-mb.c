@@ -1,17 +1,4 @@
-/* DVB USB compliant linux driver for mobile DVB-T USB devices based on
- * reference designs made by DiBcom (http://www.dibcom.fr/) (DiB3000M-B)
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- * based on GPL code from DiBcom, which has
- * Copyright (C) 2004 Amaury Demol for DiBcom (ademol@dibcom.fr)
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "dibusb.h"
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
@@ -62,9 +49,7 @@ static int dibusb_panasonic_tuner_attach(struct dvb_usb_adapter *adap)
 	return 0;
 }
 
-/* Some of the Artec 1.1 device aren't equipped with the default tuner
- * (Thomson Cable), but with a Panasonic ENV77H11D5.  This function figures
- * this out. */
+
 static int dibusb_tuner_probe_and_attach(struct dvb_usb_adapter *adap)
 {
 	u8 b[2] = { 0,0 }, b2[1];
@@ -75,7 +60,7 @@ static int dibusb_tuner_probe_and_attach(struct dvb_usb_adapter *adap)
 	};
 	struct dibusb_state *st = adap->priv;
 
-	/* the Panasonic sits on I2C addrass 0x60, the Thomson on 0x61 */
+	
 	msg[0].addr = msg[1].addr = st->tuner_addr = 0x60;
 
 	if (adap->fe->ops.i2c_gate_ctrl)
@@ -100,7 +85,7 @@ static int dibusb_tuner_probe_and_attach(struct dvb_usb_adapter *adap)
 	return ret;
 }
 
-/* USB Driver stuff */
+
 static struct dvb_usb_device_properties dibusb1_1_properties;
 static struct dvb_usb_device_properties dibusb1_1_an2235_properties;
 static struct dvb_usb_device_properties dibusb2_0b_properties;
@@ -122,56 +107,50 @@ static int dibusb_probe(struct usb_interface *intf,
 	return -EINVAL;
 }
 
-/* do not change the order of the ID table */
+
 static struct usb_device_id dibusb_dib3000mb_table [] = {
-/* 00 */	{ USB_DEVICE(USB_VID_WIDEVIEW,		USB_PID_AVERMEDIA_DVBT_USB_COLD) },
-/* 01 */	{ USB_DEVICE(USB_VID_WIDEVIEW,		USB_PID_AVERMEDIA_DVBT_USB_WARM) },
-/* 02 */	{ USB_DEVICE(USB_VID_COMPRO,		USB_PID_COMPRO_DVBU2000_COLD) },
-/* 03 */	{ USB_DEVICE(USB_VID_COMPRO,		USB_PID_COMPRO_DVBU2000_WARM) },
-/* 04 */	{ USB_DEVICE(USB_VID_COMPRO_UNK,	USB_PID_COMPRO_DVBU2000_UNK_COLD) },
-/* 05 */	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3000_COLD) },
-/* 06 */	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3000_WARM) },
-/* 07 */	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_KWORLD_VSTREAM_COLD) },
-/* 08 */	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_KWORLD_VSTREAM_WARM) },
-/* 09 */	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_GRANDTEC_DVBT_USB_COLD) },
-/* 10 */	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_GRANDTEC_DVBT_USB_WARM) },
-/* 11 */	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_DIBCOM_MOD3000_COLD) },
-/* 12 */	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_DIBCOM_MOD3000_WARM) },
-/* 13 */	{ USB_DEVICE(USB_VID_HYPER_PALTEK,	USB_PID_UNK_HYPER_PALTEK_COLD) },
-/* 14 */	{ USB_DEVICE(USB_VID_HYPER_PALTEK,	USB_PID_UNK_HYPER_PALTEK_WARM) },
-/* 15 */	{ USB_DEVICE(USB_VID_VISIONPLUS,	USB_PID_TWINHAN_VP7041_COLD) },
-/* 16 */	{ USB_DEVICE(USB_VID_VISIONPLUS,	USB_PID_TWINHAN_VP7041_WARM) },
-/* 17 */	{ USB_DEVICE(USB_VID_TWINHAN,		USB_PID_TWINHAN_VP7041_COLD) },
-/* 18 */	{ USB_DEVICE(USB_VID_TWINHAN,		USB_PID_TWINHAN_VP7041_WARM) },
-/* 19 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_COLD) },
-/* 20 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_WARM) },
-/* 21 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_AN2235_COLD) },
-/* 22 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_AN2235_WARM) },
-/* 23 */	{ USB_DEVICE(USB_VID_ADSTECH,		USB_PID_ADSTECH_USB2_COLD) },
+	{ USB_DEVICE(USB_VID_WIDEVIEW,		USB_PID_AVERMEDIA_DVBT_USB_COLD) },
+	{ USB_DEVICE(USB_VID_WIDEVIEW,		USB_PID_AVERMEDIA_DVBT_USB_WARM) },
+	{ USB_DEVICE(USB_VID_COMPRO,		USB_PID_COMPRO_DVBU2000_COLD) },
+	{ USB_DEVICE(USB_VID_COMPRO,		USB_PID_COMPRO_DVBU2000_WARM) },
+	{ USB_DEVICE(USB_VID_COMPRO_UNK,	USB_PID_COMPRO_DVBU2000_UNK_COLD) },
+	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3000_COLD) },
+	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3000_WARM) },
+	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_KWORLD_VSTREAM_COLD) },
+	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_KWORLD_VSTREAM_WARM) },
+	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_GRANDTEC_DVBT_USB_COLD) },
+	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_GRANDTEC_DVBT_USB_WARM) },
+	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_DIBCOM_MOD3000_COLD) },
+	{ USB_DEVICE(USB_VID_GRANDTEC,		USB_PID_DIBCOM_MOD3000_WARM) },
+	{ USB_DEVICE(USB_VID_HYPER_PALTEK,	USB_PID_UNK_HYPER_PALTEK_COLD) },
+	{ USB_DEVICE(USB_VID_HYPER_PALTEK,	USB_PID_UNK_HYPER_PALTEK_WARM) },
+	{ USB_DEVICE(USB_VID_VISIONPLUS,	USB_PID_TWINHAN_VP7041_COLD) },
+	{ USB_DEVICE(USB_VID_VISIONPLUS,	USB_PID_TWINHAN_VP7041_WARM) },
+	{ USB_DEVICE(USB_VID_TWINHAN,		USB_PID_TWINHAN_VP7041_COLD) },
+	{ USB_DEVICE(USB_VID_TWINHAN,		USB_PID_TWINHAN_VP7041_WARM) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_COLD) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_WARM) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_AN2235_COLD) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_AN2235_WARM) },
+	{ USB_DEVICE(USB_VID_ADSTECH,		USB_PID_ADSTECH_USB2_COLD) },
 
-/* device ID with default DIBUSB2_0-firmware and with the hacked firmware */
-/* 24 */	{ USB_DEVICE(USB_VID_ADSTECH,		USB_PID_ADSTECH_USB2_WARM) },
-/* 25 */	{ USB_DEVICE(USB_VID_KYE,		USB_PID_KYE_DVB_T_COLD) },
-/* 26 */	{ USB_DEVICE(USB_VID_KYE,		USB_PID_KYE_DVB_T_WARM) },
 
-/* 27 */	{ USB_DEVICE(USB_VID_KWORLD,		USB_PID_KWORLD_VSTREAM_COLD) },
+	{ USB_DEVICE(USB_VID_ADSTECH,		USB_PID_ADSTECH_USB2_WARM) },
+	{ USB_DEVICE(USB_VID_KYE,		USB_PID_KYE_DVB_T_COLD) },
+	{ USB_DEVICE(USB_VID_KYE,		USB_PID_KYE_DVB_T_WARM) },
 
-/* 28 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_COLD) },
-/* 29 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_WARM) },
+	{ USB_DEVICE(USB_VID_KWORLD,		USB_PID_KWORLD_VSTREAM_COLD) },
 
-/*
- * XXX: As Artec just 'forgot' to program the EEPROM on some Artec T1 devices
- *      we don't catch these faulty IDs (namely 'Cypress FX1 USB controller') that
- *      have been left on the device. If you don't have such a device but an Artec
- *      device that's supposed to work with this driver but is not detected by it,
- *      free to enable CONFIG_DVB_USB_DIBUSB_MB_FAULTY via your kernel config.
- */
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_COLD) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_WARM) },
+
+
 
 #ifdef CONFIG_DVB_USB_DIBUSB_MB_FAULTY
-/* 30 */	{ USB_DEVICE(USB_VID_ANCHOR,		USB_PID_ULTIMA_TVBOX_ANCHOR_COLD) },
+	{ USB_DEVICE(USB_VID_ANCHOR,		USB_PID_ULTIMA_TVBOX_ANCHOR_COLD) },
 #endif
 
-			{ }		/* Terminating entry */
+			{ }		
 };
 MODULE_DEVICE_TABLE (usb, dibusb_dib3000mb_table);
 
@@ -194,7 +173,7 @@ static struct dvb_usb_device_properties dibusb1_1_properties = {
 			.frontend_attach  = dibusb_dib3000mb_frontend_attach,
 			.tuner_attach     = dibusb_tuner_probe_and_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 7,
@@ -213,7 +192,7 @@ static struct dvb_usb_device_properties dibusb1_1_properties = {
 
 	.rc_interval      = DEFAULT_RC_INTERVAL,
 	.rc_key_map       = dibusb_rc_keys,
-	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+	.rc_key_map_size  = 111, 
 	.rc_query         = dibusb_rc_query,
 
 	.i2c_algo         = &dibusb_i2c_algo,
@@ -279,7 +258,7 @@ static struct dvb_usb_device_properties dibusb1_1_an2235_properties = {
 			.frontend_attach  = dibusb_dib3000mb_frontend_attach,
 			.tuner_attach     = dibusb_tuner_probe_and_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 7,
@@ -297,7 +276,7 @@ static struct dvb_usb_device_properties dibusb1_1_an2235_properties = {
 
 	.rc_interval      = DEFAULT_RC_INTERVAL,
 	.rc_key_map       = dibusb_rc_keys,
-	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+	.rc_key_map_size  = 111, 
 	.rc_query         = dibusb_rc_query,
 
 	.i2c_algo         = &dibusb_i2c_algo,
@@ -343,7 +322,7 @@ static struct dvb_usb_device_properties dibusb2_0b_properties = {
 			.frontend_attach  = dibusb_dib3000mb_frontend_attach,
 			.tuner_attach     = dibusb_thomson_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 7,
@@ -361,7 +340,7 @@ static struct dvb_usb_device_properties dibusb2_0b_properties = {
 
 	.rc_interval      = DEFAULT_RC_INTERVAL,
 	.rc_key_map       = dibusb_rc_keys,
-	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+	.rc_key_map_size  = 111, 
 	.rc_query         = dibusb_rc_query,
 
 	.i2c_algo         = &dibusb_i2c_algo,
@@ -400,7 +379,7 @@ static struct dvb_usb_device_properties artec_t1_usb2_properties = {
 			.pid_filter_ctrl  = dibusb_pid_filter_ctrl,
 			.frontend_attach  = dibusb_dib3000mb_frontend_attach,
 			.tuner_attach     = dibusb_tuner_probe_and_attach,
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 7,
@@ -418,7 +397,7 @@ static struct dvb_usb_device_properties artec_t1_usb2_properties = {
 
 	.rc_interval      = DEFAULT_RC_INTERVAL,
 	.rc_key_map       = dibusb_rc_keys,
-	.rc_key_map_size  = 111, /* wow, that is ugly ... I want to load it to the driver dynamically */
+	.rc_key_map_size  = 111, 
 	.rc_query         = dibusb_rc_query,
 
 	.i2c_algo         = &dibusb_i2c_algo,
@@ -442,7 +421,7 @@ static struct usb_driver dibusb_driver = {
 	.id_table	= dibusb_dib3000mb_table,
 };
 
-/* module stuff */
+
 static int __init dibusb_module_init(void)
 {
 	int result;
@@ -456,7 +435,7 @@ static int __init dibusb_module_init(void)
 
 static void __exit dibusb_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&dibusb_driver);
 }
 

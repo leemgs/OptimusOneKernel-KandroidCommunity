@@ -1,13 +1,4 @@
-/*
- *  arch/arm/mach-lh7a40x/clcd.c
- *
- *  Copyright (C) 2004 Marc Singer
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/device.h>
@@ -15,10 +6,10 @@
 #include <linux/sysdev.h>
 #include <linux/interrupt.h>
 
-//#include <linux/module.h>
-//#include <linux/time.h>
 
-//#include <asm/mach/time.h>
+
+
+
 #include <asm/irq.h>
 #include <asm/mach/irq.h>
 
@@ -42,19 +33,19 @@
 static void lh7a40x_clcd_disable (struct clcd_fb *fb)
 {
 #if defined (CONFIG_MACH_LPD7A400)
-	CPLD_CONTROL &= ~(1<<1);	/* Disable LCD Vee */
+	CPLD_CONTROL &= ~(1<<1);	
 #endif
 
 #if defined (CONFIG_MACH_LPD7A404)
-	GPIO_PCD  &= ~(1<<3);		/* Disable LCD Vee */
+	GPIO_PCD  &= ~(1<<3);		
 #endif
 
 #if defined (CONFIG_ARCH_LH7A400)
-	HRTFTC_HRSETUP &= ~(1<<13);	/* Disable HRTFT controller */
+	HRTFTC_HRSETUP &= ~(1<<13);	
 #endif
 
 #if defined (CONFIG_ARCH_LH7A404)
-	ALI_SETUP &= ~(1<<13);		/* Disable ALI */
+	ALI_SETUP &= ~(1<<13);		
 #endif
 }
 
@@ -64,11 +55,11 @@ static void lh7a40x_clcd_enable (struct clcd_fb *fb)
 		= (struct clcd_panel_extra*) fb->board_data;
 
 #if defined (CONFIG_MACH_LPD7A400)
-	CPLD_CONTROL |= (1<<1);		/* Enable LCD Vee */
+	CPLD_CONTROL |= (1<<1);		
 #endif
 
 #if defined (CONFIG_MACH_LPD7A404)
-	GPIO_PCDD &= ~(1<<3);		/* Enable LCD Vee */
+	GPIO_PCDD &= ~(1<<3);		
 	GPIO_PCD  |=  (1<<3);
 #endif
 
@@ -134,7 +125,7 @@ static int lh7a40x_clcd_setup (struct clcd_fb *fb)
 
 	fb->panel = &lcd_panel;
 
-		/* Enforce the sync polarity defaults */
+		
 	if (!(fb->panel->tim2 & TIM2_IHS))
 		fb->fb.var.sync |= FB_SYNC_HOR_HIGH_ACT;
 	if (!(fb->panel->tim2 & TIM2_IVS))
@@ -158,20 +149,20 @@ static int lh7a40x_clcd_setup (struct clcd_fb *fb)
 	}
 
 #if defined (USE_RGB555)
-	fb->fb.var.green.length = 5; /* Panel uses RGB 5:5:5 */
+	fb->fb.var.green.length = 5; 
 #endif
 
 	fb->fb.fix.smem_start = dma;
 	fb->fb.fix.smem_len = len;
 
-		/* Drive PE4 high to prevent CPLD crash */
+		
 	GPIO_PEDD |= (1<<4);
 	GPIO_PED  |= (1<<4);
 
-	GPIO_PINMUX |= (1<<1) | (1<<0); /* LCDVD[15:4] */
+	GPIO_PINMUX |= (1<<1) | (1<<0); 
 
-//	fb->fb.fbops->fb_check_var (&fb->fb.var, &fb->fb);
-//	fb->fb.fbops->fb_set_par (&fb->fb);
+
+
 
 	return 0;
 }
@@ -217,7 +208,7 @@ static struct amba_device name##_device = {			\
 		},						\
 	.dma_mask	= ~0,					\
 	.irq		= { IRQ_##base, },			\
-	/* .dma		= base##_DMA,*/				\
+					\
 	.periphid = pid,					\
 }
 

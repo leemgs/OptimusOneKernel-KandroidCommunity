@@ -1,15 +1,4 @@
-/*
- * ACPI driver for Topstar notebooks (hotkeys support only)
- *
- * Copyright (c) 2009 Herton Ronaldo Krzesinski <herton@mandriva.com.br>
- *
- * Implementation inspired by existing x86 platform drivers, in special
- * asus/eepc/fujitsu-laptop, thanks to their authors
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
@@ -37,12 +26,12 @@ static struct tps_key_entry topstar_keymap[] = {
 	{ 0x84, KEY_VOLUMEDOWN },
 	{ 0x85, KEY_MUTE },
 	{ 0x86, KEY_SWITCHVIDEOMODE },
-	{ 0x87, KEY_F13 }, /* touchpad enable/disable key */
+	{ 0x87, KEY_F13 }, 
 	{ 0x88, KEY_WLAN },
 	{ 0x8a, KEY_WWW },
 	{ 0x8b, KEY_MAIL },
 	{ 0x8c, KEY_MEDIA },
-	{ 0x96, KEY_F14 }, /* G key? */
+	{ 0x96, KEY_F14 }, 
 	{ }
 };
 
@@ -75,7 +64,7 @@ static void acpi_topstar_notify(struct acpi_device *device, u32 event)
 	bool *dup;
 	struct topstar_hkey *hkey = acpi_driver_data(device);
 
-	/* 0x83 and 0x84 key events comes duplicated... */
+	
 	if (event == 0x83 || event == 0x84) {
 		dup = &dup_evnt[event - 0x83];
 		if (*dup) {
@@ -85,10 +74,7 @@ static void acpi_topstar_notify(struct acpi_device *device, u32 event)
 		*dup = true;
 	}
 
-	/*
-	 * 'G key' generate two event codes, convert to only
-	 * one event/key code for now (3G switch?)
-	 */
+	
 	if (event == 0x97)
 		event = 0x96;
 
@@ -101,7 +87,7 @@ static void acpi_topstar_notify(struct acpi_device *device, u32 event)
 		return;
 	}
 
-	/* Known non hotkey events don't handled or that we don't care yet */
+	
 	if (event == 0x8e || event == 0x8f || event == 0x90)
 		return;
 

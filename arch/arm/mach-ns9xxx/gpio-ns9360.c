@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/gpio-ns9360.c
- *
- * Copyright (C) 2006,2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #include <linux/bug.h>
 #include <linux/errno.h>
 #include <linux/io.h>
@@ -29,10 +20,7 @@ static inline void __iomem *ns9360_gpio_get_gconfaddr(unsigned gpio)
 	if (gpio < 56)
 		return BBU_GCONFb1(gpio / 8);
 	else
-		/*
-		 * this could be optimised away on
-		 * ns9750 only builds, but it isn't ...
-		 */
+		
 		return BBU_GCONFb2((gpio - 56) / 8);
 }
 
@@ -43,7 +31,7 @@ static inline void __iomem *ns9360_gpio_get_gctrladdr(unsigned gpio)
 	else if (gpio < 64)
 		return BBU_GCTRL2;
 	else
-		/* this could be optimised away on ns9750 only builds */
+		
 		return BBU_GCTRL3;
 }
 
@@ -54,16 +42,11 @@ static inline void __iomem *ns9360_gpio_get_gstataddr(unsigned gpio)
 	else if (gpio < 64)
 		return BBU_GSTAT2;
 	else
-		/* this could be optimised away on ns9750 only builds */
+		
 		return BBU_GSTAT3;
 }
 
-/*
- * each gpio can serve for 4 different purposes [0..3].  These are called
- * "functions" and passed in the parameter func.  Functions 0-2 are always some
- * special things, function 3 is GPIO.  If func == 3 dir specifies input or
- * output, and with inv you can enable an inverter (independent of func).
- */
+
 int __ns9360_gpio_configure(unsigned gpio, int dir, int inv, int func)
 {
 	void __iomem *conf = ns9360_gpio_get_gconfaddr(gpio);

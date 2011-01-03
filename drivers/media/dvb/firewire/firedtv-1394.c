@@ -1,15 +1,4 @@
-/*
- * FireDTV driver (formerly known as FireSAT)
- *
- * Copyright (C) 2004 Andreas Monitzer <andy@monitzer.com>
- * Copyright (C) 2007-2008 Ben Backx <ben@bbackx.com>
- * Copyright (C) 2008 Henrik Kurelid <henrik@kurelid.se>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation; either version 2 of
- *	the License, or (at your option) any later version.
- */
+
 
 #include <linux/device.h>
 #include <linux/errno.h>
@@ -64,7 +53,7 @@ static void rawiso_activity_cb(struct hpsb_iso *iso)
 		count = (iso->infos[packet].len - CIP_HEADER_SIZE) /
 			(188 + FIREWIRE_HEADER_SIZE);
 
-		/* ignore empty packet */
+		
 		if (iso->infos[packet].len <= CIP_HEADER_SIZE)
 			continue;
 
@@ -114,7 +103,7 @@ static int start_iso(struct firedtv *fdtv)
 	iso_handle = hpsb_iso_recv_init(node_of(fdtv)->host,
 				FDTV_ISO_BUFFER_SIZE, FDTV_ISO_BUFFER_PACKETS,
 				fdtv->isochannel, HPSB_ISO_DMA_DEFAULT,
-				-1, /* stat.config.irq_interval */
+				-1, 
 				rawiso_activity_cb);
 	if (iso_handle == NULL) {
 		dev_err(fdtv->device, "cannot initialize iso receive\n");
@@ -191,10 +180,7 @@ static int node_probe(struct device *dev)
 	if (!fdtv)
 		return -ENOMEM;
 
-	/*
-	 * Work around a bug in udev's path_id script:  Use the fw-host's dev
-	 * instead of the unit directory's dev as parent of the input device.
-	 */
+	
 	err = fdtv_register_rc(fdtv, dev->parent->parent);
 	if (err)
 		goto fail_free;

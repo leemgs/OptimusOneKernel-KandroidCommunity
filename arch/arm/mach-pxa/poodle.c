@@ -1,19 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/poodle.c
- *
- *  Support for the SHARP Poodle Board.
- *
- * Based on:
- *  linux/arch/arm/mach-pxa/lubbock.c Author:	Nicolas Pitre
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- * Change Log
- *  12-Dec-2002 Sharp Corporation for Poodle
- *  John Lenz <lenz@cs.wisc.edu> updates to 2.6
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -57,32 +42,32 @@
 #include "sharpsl.h"
 
 static unsigned long poodle_pin_config[] __initdata = {
-	/* I/O */
+	
 	GPIO79_nCS_3,
 	GPIO80_nCS_4,
 	GPIO18_RDY,
 
-	/* Clock */
+	
 	GPIO12_32KHz,
 
-	/* SSP1 */
+	
 	GPIO23_SSP1_SCLK,
 	GPIO25_SSP1_TXD,
 	GPIO26_SSP1_RXD,
-	GPIO24_GPIO,	/* POODLE_GPIO_TP_CS - SFRM as chip select */
+	GPIO24_GPIO,	
 
-	/* I2S */
+	
 	GPIO28_I2S_BITCLK_OUT,
 	GPIO29_I2S_SDATA_IN,
 	GPIO30_I2S_SDATA_OUT,
 	GPIO31_I2S_SYNC,
 	GPIO32_I2S_SYSCLK,
 
-	/* Infra-Red */
+	
 	GPIO47_FICP_TXD,
 	GPIO46_FICP_RXD,
 
-	/* FFUART */
+	
 	GPIO40_FFUART_DTR,
 	GPIO41_FFUART_RTS,
 	GPIO39_FFUART_TXD,
@@ -90,7 +75,7 @@ static unsigned long poodle_pin_config[] __initdata = {
 	GPIO34_FFUART_RXD,
 	GPIO35_FFUART_CTS,
 
-	/* LCD */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -112,7 +97,7 @@ static unsigned long poodle_pin_config[] __initdata = {
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
 
-	/* PC Card */
+	
 	GPIO48_nPOE,
 	GPIO49_nPWE,
 	GPIO50_nPIOR,
@@ -124,18 +109,18 @@ static unsigned long poodle_pin_config[] __initdata = {
 	GPIO56_nPWAIT,
 	GPIO57_nIOIS16,
 
-	/* MMC */
+	
 	GPIO6_MMC_CLK,
 	GPIO8_MMC_CS0,
 
-	/* GPIO */
-	GPIO9_GPIO,	/* POODLE_GPIO_nSD_DETECT */
-	GPIO7_GPIO,	/* POODLE_GPIO_nSD_WP */
-	GPIO3_GPIO,	/* POODLE_GPIO_SD_PWR */
-	GPIO33_GPIO,	/* POODLE_GPIO_SD_PWR1 */
+	
+	GPIO9_GPIO,	
+	GPIO7_GPIO,	
+	GPIO3_GPIO,	
+	GPIO33_GPIO,	
 
-	GPIO20_GPIO,	/* POODLE_GPIO_USB_PULLUP */
-	GPIO22_GPIO,	/* POODLE_GPIO_IR_ON */
+	GPIO20_GPIO,	
+	GPIO22_GPIO,	
 };
 
 static struct resource poodle_scoop_resources[] = {
@@ -179,7 +164,7 @@ static struct scoop_pcmcia_config poodle_pcmcia_config = {
 EXPORT_SYMBOL(poodle_scoop_device);
 
 
-/* LoCoMo device */
+
 static struct resource locomo_resources[] = {
 	[0] = {
 		.start		= 0x10000000,
@@ -239,12 +224,7 @@ static void __init poodle_init_spi(void)
 static inline void poodle_init_spi(void) {}
 #endif
 
-/*
- * MMC/SD Device
- *
- * The card detect interrupt isn't debounced so we delay it by 250ms
- * to give the card a chance to fully insert/eject.
- */
+
 static int poodle_mci_init(struct device *dev, irq_handler_t poodle_detect_int, void *data)
 {
 	int err;
@@ -299,25 +279,21 @@ static struct pxamci_platform_data poodle_mci_platform_data = {
 };
 
 
-/*
- * Irda
- */
+
 static struct pxaficp_platform_data poodle_ficp_platform_data = {
 	.gpio_pwdown		= POODLE_GPIO_IR_ON,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
 
-/*
- * USB Device Controller
- */
+
 static struct pxa2xx_udc_mach_info udc_info __initdata = {
-	/* no connect GPIO; poodle can't tell connection status */
+	
 	.gpio_pullup	= POODLE_GPIO_USB_PULLUP,
 };
 
 
-/* PXAFB device */
+
 static struct pxafb_mode_info poodle_fb_mode = {
 	.pixclock	= 144700,
 	.xres		= 320,

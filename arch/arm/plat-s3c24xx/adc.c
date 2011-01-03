@@ -1,15 +1,4 @@
-/* arch/arm/plat-s3c24xx/adc.c
- *
- * Copyright (c) 2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>, <ben-linux@fluff.org>
- *
- * S3C24XX ADC device core
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
-*/
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -24,18 +13,7 @@
 #include <plat/regs-adc.h>
 #include <plat/adc.h>
 
-/* This driver is designed to control the usage of the ADC block between
- * the touchscreen and any other drivers that may need to use it, such as
- * the hwmon driver.
- *
- * Priority will be given to the touchscreen driver, but as this itself is
- * rate limited it should not starve other requests which are processed in
- * order that they are received.
- *
- * Each user registers to get a client block which uniquely identifies it
- * and stores information such as the necessary functions to callback when
- * action is required.
- */
+
 
 struct s3c_adc_client {
 	struct platform_device	*pdev;
@@ -231,7 +209,7 @@ EXPORT_SYMBOL_GPL(s3c_adc_register);
 
 void s3c_adc_release(struct s3c_adc_client *client)
 {
-	/* We should really check that nothing is in progress. */
+	
 	if (adc_dev->cur == client)
 		adc_dev->cur = NULL;
 	if (adc_dev->ts_pend == client)
@@ -276,7 +254,7 @@ static irqreturn_t s3c_adc_irq(int irq, void *pw)
 				     &client->nr_samples);
 
 	if (client->nr_samples > 0) {
-		/* fire another conversion for this */
+		
 
 		client->select_cb(client, 1);
 		s3c_adc_convert(adc);

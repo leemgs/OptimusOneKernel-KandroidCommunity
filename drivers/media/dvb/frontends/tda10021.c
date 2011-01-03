@@ -1,25 +1,4 @@
-/*
-    TDA10021  - Single Chip Cable Channel Receiver driver module
-	       used on the Siemens DVB-C cards
 
-    Copyright (C) 1999 Convergence Integrated Media GmbH <ralph@convergence.de>
-    Copyright (C) 2004 Markus Schulz <msc@antzsystem.de>
-		   Support for TDA10021
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/delay.h>
 #include <linux/errno.h>
@@ -35,7 +14,7 @@
 
 struct tda10021_state {
 	struct i2c_adapter* i2c;
-	/* configuration settings */
+	
 	const struct tda1002x_config* config;
 	struct dvb_frontend frontend;
 
@@ -94,14 +73,14 @@ static u8 tda10021_readreg (struct tda10021_state* state, u8 reg)
 	int ret;
 
 	ret = i2c_transfer (state->i2c, msg, 2);
-	// Don't print an error message if the id is read.
+	
 	if (ret != 2 && reg != 0x1a)
 		printk("DVB: TDA10021: %s: readreg error (ret == %i)\n",
 				__func__, ret);
 	return b1[0];
 }
 
-//get access to tuner
+
 static int lock_tuner(struct tda10021_state* state)
 {
 	u8 buf[2] = { 0x0f, tda10021_inittab[0x0f] | 0x80 };
@@ -115,7 +94,7 @@ static int lock_tuner(struct tda10021_state* state)
 	return 0;
 }
 
-//release access from tuner
+
 static int unlock_tuner(struct tda10021_state* state)
 {
 	u8 buf[2] = { 0x0f, tda10021_inittab[0x0f] & 0x7f };
@@ -206,20 +185,20 @@ static int tda10021_init (struct dvb_frontend *fe)
 
 	dprintk("DVB: TDA10021(%d): init chip\n", fe->adapter->num);
 
-	//_tda10021_writereg (fe, 0, 0);
+	
 
 	for (i=0; i<tda10021_inittab_size; i++)
 		_tda10021_writereg (state, i, tda10021_inittab[i]);
 
 	_tda10021_writereg (state, 0x34, state->pwm);
 
-	//Comment by markus
-	//0x2A[3-0] == PDIV -> P multiplaying factor (P=PDIV+1)(default 0)
-	//0x2A[4] == BYPPLL -> Power down mode (default 1)
-	//0x2A[5] == LCK -> PLL Lock Flag
-	//0x2A[6] == POLAXIN -> Polarity of the input reference clock (default 0)
+	
+	
+	
+	
+	
 
-	//Activate PLL
+	
 	_tda10021_writereg(state, 0x2a, tda10021_inittab[0x2a] & 0xef);
 	return 0;
 }
@@ -229,16 +208,16 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
 {
 	struct tda10021_state* state = fe->demodulator_priv;
 
-	//table for QAM4-QAM256 ready  QAM4  QAM16 QAM32 QAM64 QAM128 QAM256
-	//CONF
+	
+	
 	static const u8 reg0x00 [] = { 0x14, 0x00, 0x04, 0x08, 0x0c,  0x10 };
-	//AGCREF value
+	
 	static const u8 reg0x01 [] = { 0x78, 0x8c, 0x8c, 0x6a, 0x78,  0x5c };
-	//LTHR value
+	
 	static const u8 reg0x05 [] = { 0x78, 0x87, 0x64, 0x46, 0x36,  0x26 };
-	//MSETH
+	
 	static const u8 reg0x08 [] = { 0x8c, 0xa2, 0x74, 0x43, 0x34,  0x23 };
-	//AREF
+	
 	static const u8 reg0x09 [] = { 0x96, 0x91, 0x96, 0x6a, 0x7e,  0x6b };
 
 	int qam = p->u.qam.modulation;
@@ -249,7 +228,7 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
 	if (p->inversion != INVERSION_ON && p->inversion != INVERSION_OFF)
 		return -EINVAL;
 
-	//printk("tda10021: set frequency to %d qam=%d symrate=%d\n", p->frequency,qam,p->u.qam.symbol_rate);
+	
 
 	if (fe->ops.tuner_ops.set_params) {
 		fe->ops.tuner_ops.set_params(fe, p);
@@ -275,11 +254,11 @@ static int tda10021_read_status(struct dvb_frontend* fe, fe_status_t* status)
 	int sync;
 
 	*status = 0;
-	//0x11[0] == EQALGO -> Equalizer algorithms state
-	//0x11[1] == CARLOCK -> Carrier locked
-	//0x11[2] == FSYNC -> Frame synchronisation
-	//0x11[3] == FEL -> Front End locked
-	//0x11[6] == NODVB -> DVB Mode Information
+	
+	
+	
+	
+	
 	sync = tda10021_readreg (state, 0x11);
 
 	if (sync & 2)
@@ -315,7 +294,7 @@ static int tda10021_read_signal_strength(struct dvb_frontend* fe, u16* strength)
 	u8 config = tda10021_readreg(state, 0x02);
 	u8 gain = tda10021_readreg(state, 0x17);
 	if (config & 0x02)
-		/* the agc value is inverted */
+		
 		gain = ~gain;
 	*strength = (gain << 8) | gain;
 
@@ -340,7 +319,7 @@ static int tda10021_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
 	if (*ucblocks == 0x7f)
 		*ucblocks = 0xffffffff;
 
-	/* reset uncorrected block counter */
+	
 	_tda10021_writereg (state, 0x10, tda10021_inittab[0x10] & 0xdf);
 	_tda10021_writereg (state, 0x10, tda10021_inittab[0x10]);
 
@@ -356,7 +335,7 @@ static int tda10021_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
 	sync = tda10021_readreg(state, 0x11);
 	afc = tda10021_readreg(state, 0x19);
 	if (verbose) {
-		/* AFC only valid when carrier has been recovered */
+		
 		printk(sync & 2 ? "DVB: TDA10021(%d): AFC (%d) %dHz\n" :
 				  "DVB: TDA10021(%d): [AFC (%d) %dHz]\n",
 			state->frontend.dvb->num, afc,
@@ -391,8 +370,8 @@ static int tda10021_sleep(struct dvb_frontend* fe)
 {
 	struct tda10021_state* state = fe->demodulator_priv;
 
-	_tda10021_writereg (state, 0x1b, 0x02);  /* pdown ADC */
-	_tda10021_writereg (state, 0x00, 0x80);  /* standby */
+	_tda10021_writereg (state, 0x1b, 0x02);  
+	_tda10021_writereg (state, 0x00, 0x80);  
 
 	return 0;
 }
@@ -412,24 +391,24 @@ struct dvb_frontend* tda10021_attach(const struct tda1002x_config* config,
 	struct tda10021_state* state = NULL;
 	u8 id;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct tda10021_state), GFP_KERNEL);
 	if (state == NULL) goto error;
 
-	/* setup the state */
+	
 	state->config = config;
 	state->i2c = i2c;
 	state->pwm = pwm;
 	state->reg0 = tda10021_inittab[0];
 
-	/* check if the demod is there */
+	
 	id = tda10021_readreg(state, 0x1a);
 	if ((id & 0xf0) != 0x70) goto error;
 
 	printk("TDA10021: i2c-addr = 0x%02x, id = 0x%02x\n",
 	       state->config->demod_address, id);
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &tda10021_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;
@@ -447,13 +426,13 @@ static struct dvb_frontend_ops tda10021_ops = {
 		.frequency_stepsize = 62500,
 		.frequency_min = 47000000,
 		.frequency_max = 862000000,
-		.symbol_rate_min = (XIN/2)/64,     /* SACLK/64 == (XIN/2)/64 */
-		.symbol_rate_max = (XIN/2)/4,      /* SACLK/4 */
+		.symbol_rate_min = (XIN/2)/64,     
+		.symbol_rate_max = (XIN/2)/4,      
 	#if 0
 		.frequency_tolerance = ???,
-		.symbol_rate_tolerance = ???,  /* ppm */  /* == 8% (spec p. 5) */
+		.symbol_rate_tolerance = ???,    
 	#endif
-		.caps = 0x400 | //FE_CAN_QAM_4
+		.caps = 0x400 | 
 			FE_CAN_QAM_16 | FE_CAN_QAM_32 | FE_CAN_QAM_64 |
 			FE_CAN_QAM_128 | FE_CAN_QAM_256 |
 			FE_CAN_FEC_AUTO

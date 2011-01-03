@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c64xx/include/plat/gpio-bank-e.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- * 	Ben Dooks <ben@simtec.co.uk>
- * 	http://armlinux.simtec.co.uk/
- *
- * GPIO Bank E register and configuration definitions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #define S3C64XX_GPECON			(S3C64XX_GPE_BASE + 0x00)
 #define S3C64XX_GPEDAT			(S3C64XX_GPE_BASE + 0x04)

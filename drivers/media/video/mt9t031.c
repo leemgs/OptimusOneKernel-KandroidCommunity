@@ -1,12 +1,4 @@
-/*
- * Driver for MT9T031 CMOS Image Sensor from Micron
- *
- * Copyright (C) 2008, Guennadi Liakhovetski, DENX Software Engineering <lg@denx.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/videodev2.h>
 #include <linux/slab.h>
@@ -17,11 +9,9 @@
 #include <media/v4l2-chip-ident.h>
 #include <media/soc_camera.h>
 
-/* mt9t031 i2c address 0x5d
- * The platform has to define i2c_board_info and link to it from
- * struct soc_camera_link */
 
-/* mt9t031 selected register addresses */
+
+
 #define MT9T031_CHIP_VERSION		0x00
 #define MT9T031_ROW_START		0x01
 #define MT9T031_COLUMN_START		0x02
@@ -69,8 +59,8 @@ static const struct soc_camera_data_format mt9t031_colour_formats[] = {
 
 struct mt9t031 {
 	struct v4l2_subdev subdev;
-	struct v4l2_rect rect;	/* Sensor window */
-	int model;	/* V4L2_IDENT_MT9T031* codes from v4l2-chip-ident.h */
+	struct v4l2_rect rect;	
+	int model;	
 	u16 xskip;
 	u16 yskip;
 	unsigned int gain;
@@ -147,7 +137,7 @@ static int mt9t031_idle(struct i2c_client *client)
 {
 	int ret;
 
-	/* Disable chip output, synchronous option update */
+	
 	ret = reg_write(client, MT9T031_RESET, 1);
 	if (ret >= 0)
 		ret = reg_write(client, MT9T031_RESET, 0);
@@ -159,7 +149,7 @@ static int mt9t031_idle(struct i2c_client *client)
 
 static int mt9t031_disable(struct i2c_client *client)
 {
-	/* Disable the chip */
+	
 	reg_clear(client, MT9T031_OUTPUT_CONTROL, 2);
 
 	return 0;
@@ -171,10 +161,10 @@ static int mt9t031_s_stream(struct v4l2_subdev *sd, int enable)
 	int ret;
 
 	if (enable)
-		/* Switch to master "normal" mode */
+		
 		ret = reg_set(client, MT9T031_OUTPUT_CONTROL, 2);
 	else
-		/* Stop sensor readout */
+		
 		ret = reg_clear(client, MT9T031_OUTPUT_CONTROL, 2);
 
 	if (ret < 0)
@@ -188,7 +178,7 @@ static int mt9t031_set_bus_param(struct soc_camera_device *icd,
 {
 	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
 
-	/* The caller should have queried our parameters, check anyway */
+	
 	if (flags & ~MT9T031_BUS_PARAM)
 		return -EINVAL;
 
@@ -207,7 +197,7 @@ static unsigned long mt9t031_query_bus_param(struct soc_camera_device *icd)
 	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
 }
 
-/* target must be _even_ */
+
 static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
 {
 	unsigned int skip;
@@ -225,7 +215,7 @@ static u16 mt9t031_skip(s32 *source, s32 target, s32 max)
 	return skip;
 }
 
-/* rect is the sensor rectangle, the caller guarantees parameter validity */
+
 static int mt9t031_set_params(struct soc_camera_device *icd,
 			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
 {
@@ -239,19 +229,7 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
 	xbin = min(xskip, (u16)3);
 	ybin = min(yskip, (u16)3);
 
-	/*
-	 * Could just do roundup(rect->left, [xy]bin * 2); but this is cheaper.
-	 * There is always a valid suitably aligned value. The worst case is
-	 * xbin = 3, width = 2048. Then we will start at 36, the last read out
-	 * pixel will be 2083, which is < 2085 - first black pixel.
-	 *
-	 * MT9T031 datasheet imposes window left border alignment, depending on
-	 * the selected xskip. Failing to conform to this requirement produces
-	 * dark horizontal stripes in the image. However, even obeying to this
-	 * requirement doesn't eliminate the stripes in all configurations. They
-	 * appear "locally reproducibly," but can differ between tests under
-	 * different lighting conditions.
-	 */
+	
 	switch (xbin) {
 	case 1:
 		rect->left &= ~1;
@@ -269,18 +247,18 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
 	dev_dbg(&client->dev, "skip %u:%u, rect %ux%u@%u:%u\n",
 		xskip, yskip, rect->width, rect->height, rect->left, rect->top);
 
-	/* Disable register update, reconfigure atomically */
+	
 	ret = reg_set(client, MT9T031_OUTPUT_CONTROL, 1);
 	if (ret < 0)
 		return ret;
 
-	/* Blanking and start values - default... */
+	
 	ret = reg_write(client, MT9T031_HORIZONTAL_BLANKING, hblank);
 	if (ret >= 0)
 		ret = reg_write(client, MT9T031_VERTICAL_BLANKING, vblank);
 
 	if (yskip != mt9t031->yskip || xskip != mt9t031->xskip) {
-		/* Binning, skipping */
+		
 		if (ret >= 0)
 			ret = reg_write(client, MT9T031_COLUMN_ADDRESS_MODE,
 					((xbin - 1) << 4) | (xskip - 1));
@@ -291,8 +269,7 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
 	dev_dbg(&client->dev, "new physical left %u, top %u\n",
 		rect->left, rect->top);
 
-	/* The caller provides a supported format, as guaranteed by
-	 * icd->try_fmt_cap(), soc_camera_s_crop() and soc_camera_cropcap() */
+	
 	if (ret >= 0)
 		ret = reg_write(client, MT9T031_COLUMN_START, rect->left);
 	if (ret >= 0)
@@ -316,7 +293,7 @@ static int mt9t031_set_params(struct soc_camera_device *icd,
 		}
 	}
 
-	/* Re-enable register update, commit all changes */
+	
 	if (ret >= 0)
 		ret = reg_clear(client, MT9T031_OUTPUT_CONTROL, 1);
 
@@ -397,21 +374,15 @@ static int mt9t031_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 	u16 xskip, yskip;
 	struct v4l2_rect rect = mt9t031->rect;
 
-	/*
-	 * try_fmt has put width and height within limits.
-	 * S_FMT: use binning and skipping for scaling
-	 */
+	
 	xskip = mt9t031_skip(&rect.width, pix->width, MT9T031_MAX_WIDTH);
 	yskip = mt9t031_skip(&rect.height, pix->height, MT9T031_MAX_HEIGHT);
 
-	/* mt9t031_set_params() doesn't change width and height */
+	
 	return mt9t031_set_params(icd, &rect, xskip, yskip);
 }
 
-/*
- * If a user window larger than sensor window is requested, we'll increase the
- * sensor window.
- */
+
 static int mt9t031_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 {
 	struct v4l2_pix_format *pix = &f->fmt.pix;
@@ -597,9 +568,9 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	case V4L2_CID_GAIN:
 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
 			return -EINVAL;
-		/* See Datasheet Table 7, Gain settings. */
+		
 		if (ctrl->value <= qctrl->default_value) {
-			/* Pack it into 0..1 step 0.125, register values 0..8 */
+			
 			unsigned long range = qctrl->default_value - qctrl->minimum;
 			data = ((ctrl->value - qctrl->minimum) * 8 + range / 2) / range;
 
@@ -608,19 +579,19 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 			if (data < 0)
 				return -EIO;
 		} else {
-			/* Pack it into 1.125..128 variable step, register values 9..0x7860 */
-			/* We assume qctrl->maximum - qctrl->default_value - 1 > 0 */
+			
+			
 			unsigned long range = qctrl->maximum - qctrl->default_value - 1;
-			/* calculated gain: map 65..127 to 9..1024 step 0.125 */
+			
 			unsigned long gain = ((ctrl->value - qctrl->default_value - 1) *
 					       1015 + range / 2) / range + 9;
 
-			if (gain <= 32)		/* calculated gain 9..32 -> 9..32 */
+			if (gain <= 32)		
 				data = gain;
-			else if (gain <= 64)	/* calculated gain 33..64 -> 0x51..0x60 */
+			else if (gain <= 64)	
 				data = ((gain - 32) * 16 + 16) / 32 + 80;
 			else
-				/* calculated gain 65..1024 -> (1..120) << 8 + 0x60 */
+				
 				data = (((gain - 64 + 7) * 32) & 0xff00) | 0x60;
 
 			dev_dbg(&client->dev, "Set gain from 0x%x to 0x%x\n",
@@ -630,11 +601,11 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 				return -EIO;
 		}
 
-		/* Success */
+		
 		mt9t031->gain = ctrl->value;
 		break;
 	case V4L2_CID_EXPOSURE:
-		/* mt9t031 has maximum == default */
+		
 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
 			return -EINVAL;
 		else {
@@ -673,8 +644,7 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	return 0;
 }
 
-/* Interface active, can use i2c. If it fails, it can indeed mean, that
- * this wasn't our capture interface, so, we wait for the right one */
+
 static int mt9t031_video_probe(struct i2c_client *client)
 {
 	struct soc_camera_device *icd = client->dev.platform_data;
@@ -682,11 +652,11 @@ static int mt9t031_video_probe(struct i2c_client *client)
 	s32 data;
 	int ret;
 
-	/* Enable the chip */
+	
 	data = reg_write(client, MT9T031_CHIP_ENABLE, 1);
 	dev_dbg(&client->dev, "write: %d\n", data);
 
-	/* Read out the chip version register */
+	
 	data = reg_read(client, MT9T031_CHIP_VERSION);
 
 	switch (data) {
@@ -707,7 +677,7 @@ static int mt9t031_video_probe(struct i2c_client *client)
 	if (ret < 0)
 		dev_err(&client->dev, "Failed to initialise the camera\n");
 
-	/* mt9t031_idle() has reset the chip to default. */
+	
 	mt9t031->exposure = 255;
 	mt9t031->gain = 64;
 
@@ -771,7 +741,7 @@ static int mt9t031_probe(struct i2c_client *client,
 
 	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
 
-	/* Second stage probe - when a capture adapter is there */
+	
 	icd->ops		= &mt9t031_ops;
 	icd->y_skip_top		= 0;
 
@@ -780,8 +750,7 @@ static int mt9t031_probe(struct i2c_client *client,
 	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
 	mt9t031->rect.height	= MT9T031_MAX_HEIGHT;
 
-	/* Simulated autoexposure. If enabled, we calculate shutter width
-	 * ourselves in the driver based on vertical blanking and frame width */
+	
 	mt9t031->autoexposure = 1;
 
 	mt9t031->xskip = 1;

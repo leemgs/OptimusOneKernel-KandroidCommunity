@@ -1,13 +1,4 @@
-/*
- * mtdram - a test mtd device
- * Author: Alexander Larsson <alex@cendio.se>
- *
- * Copyright (c) 1999 Alexander Larsson <alex@cendio.se>
- * Copyright (c) 2005 Joern Engel <joern@wh.fh-wedel.de>
- *
- * This code is GPL
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -30,7 +21,7 @@ module_param(erase_size, ulong, 0);
 MODULE_PARM_DESC(erase_size, "Device erase block size in KiB");
 #endif
 
-// We could store these in the mtd structure, but we only support 1 device..
+
 static struct mtd_info *mtd_info;
 
 static int ram_erase(struct mtd_info *mtd, struct erase_info *instr)
@@ -52,7 +43,7 @@ static int ram_point(struct mtd_info *mtd, loff_t from, size_t len,
 	if (from + len > mtd->size)
 		return -EINVAL;
 
-	/* can we return a physical address with this driver? */
+	
 	if (phys)
 		return -EINVAL;
 
@@ -65,11 +56,7 @@ static void ram_unpoint(struct mtd_info *mtd, loff_t from, size_t len)
 {
 }
 
-/*
- * Allow NOMMU mmap() to directly map the device (if not NULL)
- * - return the address to which the offset maps
- * - return -ENOSYS to indicate refusal to do the mapping
- */
+
 static unsigned long ram_get_unmapped_area(struct mtd_info *mtd,
 					   unsigned long len,
 					   unsigned long offset,
@@ -116,7 +103,7 @@ int mtdram_init_device(struct mtd_info *mtd, void *mapped_address,
 {
 	memset(mtd, 0, sizeof(*mtd));
 
-	/* Setup the MTD structure */
+	
 	mtd->name = name;
 	mtd->type = MTD_RAM;
 	mtd->flags = MTD_CAP_RAM;
@@ -148,7 +135,7 @@ static int __init init_mtdram(void)
 	if (!total_size)
 		return -EINVAL;
 
-	/* Allocate some memory */
+	
 	mtd_info = kmalloc(sizeof(struct mtd_info), GFP_KERNEL);
 	if (!mtd_info)
 		return -ENOMEM;

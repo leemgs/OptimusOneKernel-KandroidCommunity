@@ -1,30 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/pm.c
- *
- * Copyright (c) 2004,2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX Power Manager (Suspend-To-RAM) support
- *
- * See Documentation/arm/Samsung-S3C24XX/Suspend.txt for more information
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Parts based on arch/arm/mach-pxa/pm.c
- *
- * Thanks to Dimitry Andric for debugging
-*/
+
 
 #include <linux/init.h>
 #include <linux/suspend.h>
@@ -51,13 +25,7 @@ static struct sleep_save core_save[] = {
 	SAVE_ITEM(S3C2410_LOCKTIME),
 	SAVE_ITEM(S3C2410_CLKCON),
 
-	/* we restore the timings here, with the proviso that the board
-	 * brings the system up in an slower, or equal frequency setting
-	 * to the original system.
-	 *
-	 * if we cannot guarantee this, then things are going to go very
-	 * wrong here, as we modify the refresh and both pll settings.
-	 */
+	
 
 	SAVE_ITEM(S3C2410_BWSCON),
 	SAVE_ITEM(S3C2410_BANKCON0),
@@ -80,11 +48,7 @@ static struct sleep_save misc_save[] = {
 	SAVE_ITEM(S3C2410_DCLKCON),
 };
 
-/* s3c_pm_check_resume_pin
- *
- * check to see if the pin is configured correctly for sleep mode, and
- * make any necessary adjustments if it is not
-*/
+
 
 static void s3c_pm_check_resume_pin(unsigned int pin, unsigned int irqoffs)
 {
@@ -110,19 +74,13 @@ static void s3c_pm_check_resume_pin(unsigned int pin, unsigned int irqoffs)
 	}
 }
 
-/* s3c_pm_configure_extint
- *
- * configure all external interrupt pins
-*/
+
 
 void s3c_pm_configure_extint(void)
 {
 	int pin;
 
-	/* for each of the external interrupts (EINT0..EINT15) we
-	 * need to check wether it is an external interrupt source,
-	 * and then configure it as an input if it is not
-	*/
+	
 
 	for (pin = S3C2410_GPF(0); pin <= S3C2410_GPF(7); pin++) {
 		s3c_pm_check_resume_pin(pin, pin - S3C2410_GPF(0));

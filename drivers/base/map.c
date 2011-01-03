@@ -1,13 +1,4 @@
-/*
- *  linux/drivers/base/map.c
- *
- * (C) Copyright Al Viro 2002,2003
- *	Released under GPL v2.
- *
- * NOTE: data structure needs to be changed.  It works, but for large dev_t
- * it will be too slow.  It is isolated, though, so these changes will be
- * local to that file.
- */
+
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -123,7 +114,7 @@ retry:
 		}
 		mutex_unlock(domain->lock);
 		kobj = probe(dev, index, data);
-		/* Currently ->owner protects _only_ ->probe() itself. */
+		
 		module_put(owner);
 		if (kobj)
 			return kobj;

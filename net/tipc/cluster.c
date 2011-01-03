@@ -1,38 +1,4 @@
-/*
- * net/tipc/cluster.c: TIPC cluster management routines
- *
- * Copyright (c) 2000-2006, Ericsson AB
- * Copyright (c) 2005, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "core.h"
 #include "cluster.h"
@@ -148,11 +114,7 @@ void tipc_cltr_attach_node(struct cluster *c_ptr, struct tipc_node *n_ptr)
 		c_ptr->highest_node = n_num;
 }
 
-/**
- * tipc_cltr_select_router - select router to a cluster
- *
- * Uses deterministic and fair algorithm.
- */
+
 
 u32 tipc_cltr_select_router(struct cluster *c_ptr, u32 ref)
 {
@@ -165,14 +127,14 @@ u32 tipc_cltr_select_router(struct cluster *c_ptr, u32 ref)
 	if (!ulim)
 		return 0;
 
-	/* Start entry must be random */
+	
 	mask = tipc_max_nodes;
 	while (mask > ulim)
 		mask >>= 1;
 	tstart = ref & mask;
 	n_num = tstart;
 
-	/* Lookup upwards with wrap-around */
+	
 	do {
 		if (tipc_node_is_up(c_ptr->nodes[n_num]))
 			break;
@@ -190,11 +152,7 @@ u32 tipc_cltr_select_router(struct cluster *c_ptr, u32 ref)
 	return tipc_node_select_router(c_ptr->nodes[n_num], ref);
 }
 
-/**
- * tipc_cltr_select_node - select destination node within a remote cluster
- *
- * Uses deterministic and fair algorithm.
- */
+
 
 struct tipc_node *tipc_cltr_select_node(struct cluster *c_ptr, u32 selector)
 {
@@ -206,14 +164,14 @@ struct tipc_node *tipc_cltr_select_node(struct cluster *c_ptr, u32 selector)
 	if (!c_ptr->highest_node)
 		return NULL;
 
-	/* Start entry must be random */
+	
 	while (mask > c_ptr->highest_node) {
 		mask >>= 1;
 	}
 	start_entry = (selector & mask) ? selector & mask : 1u;
 	assert(start_entry <= c_ptr->highest_node);
 
-	/* Lookup upwards with wrap-around */
+	
 	for (n_num = start_entry; n_num <= c_ptr->highest_node; n_num++) {
 		if (tipc_node_has_active_links(c_ptr->nodes[n_num]))
 			return c_ptr->nodes[n_num];
@@ -225,9 +183,7 @@ struct tipc_node *tipc_cltr_select_node(struct cluster *c_ptr, u32 selector)
 	return NULL;
 }
 
-/*
- *    Routing table management: See description in node.c
- */
+
 
 static struct sk_buff *tipc_cltr_prepare_routing_msg(u32 data_size, u32 dest)
 {
@@ -474,7 +430,7 @@ void tipc_cltr_remove_as_router(struct cluster *c_ptr, u32 router)
 	u32 n_num;
 
 	if (is_slave(router))
-		return;	/* Slave nodes can not be routers */
+		return;	
 
 	if (in_own_cluster(c_ptr->addr)) {
 		start_entry = LOWEST_SLAVE;
@@ -491,9 +447,7 @@ void tipc_cltr_remove_as_router(struct cluster *c_ptr, u32 router)
 	}
 }
 
-/**
- * tipc_cltr_multicast - multicast message to local nodes
- */
+
 
 static void tipc_cltr_multicast(struct cluster *c_ptr, struct sk_buff *buf,
 			 u32 lower, u32 upper)
@@ -526,9 +480,7 @@ static void tipc_cltr_multicast(struct cluster *c_ptr, struct sk_buff *buf,
 	buf_discard(buf);
 }
 
-/**
- * tipc_cltr_broadcast - broadcast message to all nodes within cluster
- */
+
 
 void tipc_cltr_broadcast(struct sk_buff *buf)
 {
@@ -542,9 +494,9 @@ void tipc_cltr_broadcast(struct sk_buff *buf)
 
 	if (tipc_mode == TIPC_NET_MODE) {
 		c_ptr = tipc_cltr_find(tipc_own_addr);
-		assert(in_own_cluster(c_ptr->addr));	/* For now */
+		assert(in_own_cluster(c_ptr->addr));	
 
-		/* Send to standard nodes, then repeat loop sending to slaves */
+		
 		tstart = 1;
 		tstop = c_ptr->highest_node;
 		for (node_type = 1; node_type <= 2; node_type++) {

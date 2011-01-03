@@ -1,10 +1,4 @@
-/******************************************************************************
- * console.h
- *
- * Console I/O interface for Xen guest OSes.
- *
- * Copyright (c) 2005, Keir Fraser
- */
+
 
 #ifndef __XEN_PUBLIC_IO_CONSOLE_H__
 #define __XEN_PUBLIC_IO_CONSOLE_H__
@@ -20,4 +14,4 @@ struct xencons_interface {
     XENCONS_RING_IDX out_cons, out_prod;
 };
 
-#endif /* __XEN_PUBLIC_IO_CONSOLE_H__ */
+#endif 

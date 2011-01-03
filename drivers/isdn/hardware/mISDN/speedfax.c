@@ -1,26 +1,4 @@
-/*
- * speedfax.c	low level stuff for Sedlbauer Speedfax+ cards
- *		based on the ISAR DSP
- *		Thanks to Sedlbauer AG for informations and HW
- *
- * Author       Karsten Keil <keil@isdn4linux.de>
- *
- * Copyright 2009  by Karsten Keil <keil@isdn4linux.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -40,7 +18,7 @@
 #define SFAX_PCI_ISAC		0xd0
 #define SFAX_PCI_ISAR		0xe0
 
-/* TIGER 100 Registers */
+
 
 #define TIGER_RESET_ADDR	0x00
 #define TIGER_EXTERN_RESET_ON	0x01
@@ -50,8 +28,8 @@
 #define TIGER_AUX_IRQMASK	0x05
 #define TIGER_AUX_STATUS	0x07
 
-/* Tiger AUX BITs */
-#define SFAX_AUX_IOMASK		0xdd	/* 1 and 5 are inputs */
+
+#define SFAX_AUX_IOMASK		0xdd	
 #define SFAX_ISAR_RESET_BIT_OFF 0x00
 #define SFAX_ISAR_RESET_BIT_ON	0x01
 #define SFAX_TIGER_IRQ_BIT	0x02
@@ -75,13 +53,13 @@ struct sfax_hw {
 	struct _ioport		p_isac;
 	struct _ioport		p_isar;
 	u8			aux_data;
-	spinlock_t		lock;	/* HW access lock */
+	spinlock_t		lock;	
 	struct isac_hw		isac;
 	struct isar_hw		isar;
 };
 
 static LIST_HEAD(Cards);
-static DEFINE_RWLOCK(card_lock); /* protect Cards */
+static DEFINE_RWLOCK(card_lock); 
 
 static void
 _set_debug(struct sfax_hw *card)
@@ -127,9 +105,9 @@ speedfax_irq(int intno, void *dev_id)
 
 	spin_lock(&sf->lock);
 	val = inb(sf->cfg + TIGER_AUX_STATUS);
-	if (val & SFAX_TIGER_IRQ_BIT) { /* for us or shared ? */
+	if (val & SFAX_TIGER_IRQ_BIT) { 
 		spin_unlock(&sf->lock);
-		return IRQ_NONE; /* shared */
+		return IRQ_NONE; 
 	}
 	sf->irqcnt++;
 	val = ReadISAR_IND(sf, ISAR_IRQBIT);
@@ -224,7 +202,7 @@ channel_ctrl(struct sfax_hw  *sf, struct mISDN_ctrl_req *cq)
 		cq->op = MISDN_CTRL_LOOP;
 		break;
 	case MISDN_CTRL_LOOP:
-		/* cq->channel: 0 disable, 1 B1 loop 2 B2 loop, 3 both */
+		
 		if (cq->channel < 0 || cq->channel > 3) {
 			ret = -EINVAL;
 			break;
@@ -297,7 +275,7 @@ init_card(struct sfax_hw *sf)
 			break;
 		}
 		enable_hwirq(sf);
-		/* RESET Receiver and Transmitter */
+		
 		WriteISAC_IND(sf, ISAC_CMDR, 0x41);
 		spin_unlock_irqrestore(&sf->lock, flags);
 		msleep_interruptible(10);

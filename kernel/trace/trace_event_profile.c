@@ -1,17 +1,9 @@
-/*
- * trace event based perf counter profiling
- *
- * Copyright (C) 2009 Red Hat Inc, Peter Zijlstra <pzijlstr@redhat.com>
- *
- */
+
 
 #include <linux/module.h>
 #include "trace.h"
 
-/*
- * We can't use a size but a type in alloc_percpu()
- * So let's create a dummy type that matches the desired size
- */
+
 typedef struct {char buf[FTRACE_MAX_PROFILE_SIZE];} profile_buf_t;
 
 char		*trace_profile_buf;
@@ -20,7 +12,7 @@ EXPORT_SYMBOL_GPL(trace_profile_buf);
 char		*trace_profile_buf_nmi;
 EXPORT_SYMBOL_GPL(trace_profile_buf_nmi);
 
-/* Count the events in use (per event id, not per instance) */
+
 static int	total_profile_count;
 
 static int ftrace_profile_enable_event(struct ftrace_event_call *event)
@@ -98,10 +90,7 @@ static void ftrace_profile_disable_event(struct ftrace_event_call *event)
 		nmi_buf = trace_profile_buf_nmi;
 		rcu_assign_pointer(trace_profile_buf_nmi, NULL);
 
-		/*
-		 * Ensure every events in profiling have finished before
-		 * releasing the buffers
-		 */
+		
 		synchronize_sched();
 
 		free_percpu(buf);

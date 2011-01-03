@@ -1,30 +1,11 @@
-/*
- * arch/arm/kernel/thumbee.c
- *
- * Copyright (C) 2008 ARM Limited
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
 
 #include <asm/thread_notify.h>
 
-/*
- * Access to the ThumbEE Handler Base register
- */
+
 static inline unsigned long teehbr_read(void)
 {
 	unsigned long v;
@@ -66,7 +47,7 @@ static int __init thumbee_init(void)
 	if (cpu_arch < CPU_ARCH_ARMv7)
 		return 0;
 
-	/* processor feature register 0 */
+	
 	asm("mrc	p15, 0, %0, c0, c1, 0\n" : "=r" (pfr0));
 	if ((pfr0 & 0x0000f000) != 0x00001000)
 		return 0;

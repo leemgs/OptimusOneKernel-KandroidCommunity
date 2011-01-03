@@ -1,40 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/irq.c
- *
- * Interrupt handler for all OMAP boards
- *
- * Copyright (C) 2004 Nokia Corporation
- * Written by Tony Lindgren <tony@atomide.com>
- * Major cleanups by Juha Yrjölä <juha.yrjola@nokia.com>
- *
- * Completely re-written to support various OMAP chips with bank specific
- * interrupt handlers.
- *
- * Some snippets of the code taken from the older OMAP interrupt handler
- * Copyright (C) 2001 RidgeRun, Inc. Greg Lonnon <glonnon@ridgerun.com>
- *
- * GPIO interrupt handler moved to gpio.c by Juha Yrjola
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the  GNU General Public License along
- * with this program; if not, write  to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -117,20 +81,14 @@ static int omap_wake_irq(unsigned int irq, unsigned int enable)
 }
 
 
-/*
- * Allows tuning the IRQ type and priority
- *
- * NOTE: There is currently no OMAP fiq handler for Linux. Read the
- *	 mailing list threads on FIQ handlers if you are planning to
- *	 add a FIQ handler for OMAP.
- */
+
 static void omap_irq_set_cfg(int irq, int fiq, int priority, int trigger)
 {
 	signed int bank;
 	unsigned long val, offset;
 
 	bank = IRQ_BANK(irq);
-	/* FIQ is only available on bank 0 interrupts */
+	
 	fiq = bank ? 0 : (fiq & 0x1);
 	val = fiq | ((priority & 0x1f) << 2) | ((trigger & 0x1) << 1);
 	offset = IRQ_ILR0_REG_OFFSET + IRQ_BIT(irq) * 0x4;
@@ -217,21 +175,21 @@ void __init omap_init_irq(void)
 	printk("Total of %i interrupts in %i interrupt banks\n",
 	       irq_bank_count * 32, irq_bank_count);
 
-	/* Mask and clear all interrupts */
+	
 	for (i = 0; i < irq_bank_count; i++) {
 		irq_bank_writel(~0x0, i, IRQ_MIR_REG_OFFSET);
 		irq_bank_writel(0x0, i, IRQ_ITR_REG_OFFSET);
 	}
 
-	/* Clear any pending interrupts */
+	
 	irq_bank_writel(0x03, 0, IRQ_CONTROL_REG_OFFSET);
 	irq_bank_writel(0x03, 1, IRQ_CONTROL_REG_OFFSET);
 
-	/* Enable interrupts in global mask */
+	
 	if (cpu_is_omap7xx())
 		irq_bank_writel(0x0, 0, IRQ_GMR_REG_OFFSET);
 
-	/* Install the interrupt handlers for each bank */
+	
 	for (i = 0; i < irq_bank_count; i++) {
 		for (j = i * 32; j < (i + 1) * 32; j++) {
 			int irq_trigger;
@@ -245,7 +203,7 @@ void __init omap_init_irq(void)
 		}
 	}
 
-	/* Unmask level 2 handler */
+	
 
 	if (cpu_is_omap730())
 		omap_unmask_irq(INT_730_IH2_IRQ);

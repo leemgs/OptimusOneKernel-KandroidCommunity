@@ -1,27 +1,4 @@
-/*
- * tdhd1.h - ALPS TDHD1-204A tuner support
- *
- * Copyright (C) 2008 Oliver Endriss <o.endriss@gmx.de>
- *
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
- *
- *
- * The project's page is at http://www.linuxtv.org
- */
+
 
 #ifndef TDHD1_H
 #define TDHD1_H
@@ -70,4 +47,4 @@ static int alps_tdhd1_204a_tuner_set_params(struct dvb_frontend *fe, struct dvb_
 	return 0;
 }
 
-#endif /* TDHD1_H */
+#endif 

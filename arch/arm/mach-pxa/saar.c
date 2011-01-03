@@ -1,14 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/saar.c
- *
- *  Support for the Marvell PXA930 Handheld Platform (aka SAAR)
- *
- *  Copyright (C) 2007-2008 Marvell International Ltd.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  publishhed by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -35,9 +25,9 @@
 
 #define GPIO_LCD_RESET	(16)
 
-/* SAAR MFP configurations */
+
 static mfp_cfg_t saar_mfp_cfg[] __initdata = {
-	/* LCD */
+	
 	GPIO23_LCD_DD0,
 	GPIO24_LCD_DD1,
 	GPIO25_LCD_DD2,
@@ -51,9 +41,9 @@ static mfp_cfg_t saar_mfp_cfg[] __initdata = {
 	GPIO17_LCD_FCLK_RD,
 	GPIO18_LCD_LCLK_A0,
 	GPIO19_LCD_PCLK_WR,
-	GPIO16_GPIO, /* LCD reset */
+	GPIO16_GPIO, 
 
-	/* Ethernet */
+	
 	DF_nCS1_nCS3,
 	GPIO97_GPIO,
 };
@@ -89,7 +79,7 @@ static struct platform_device smc91x_device = {
 
 #if defined(CONFIG_FB_PXA) || (CONFIG_FB_PXA_MODULE)
 static uint16_t lcd_power_on[] = {
-	/* single frame */
+	
 	SMART_CMD_NOOP,
 	SMART_CMD(0x00),
 	SMART_DELAY(0),
@@ -106,52 +96,52 @@ static uint16_t lcd_power_on[] = {
 	SMART_CMD(0x00),
 	SMART_DELAY(10),
 
-	/* calibration control */
+	
 	SMART_CMD(0x00),
 	SMART_CMD(0xA4),
 	SMART_DAT(0x80),
 	SMART_DAT(0x01),
 	SMART_DELAY(150),
 
-	/*Power-On Init sequence*/
-	SMART_CMD(0x00),	/* output ctrl */
+	
+	SMART_CMD(0x00),	
 	SMART_CMD(0x01),
 	SMART_DAT(0x01),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00),	/* wave ctrl */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x02),
 	SMART_DAT(0x07),
 	SMART_DAT(0x00),
 	SMART_CMD(0x00),
-	SMART_CMD(0x03),	/* entry mode */
+	SMART_CMD(0x03),	
 	SMART_DAT(0xD0),
 	SMART_DAT(0x30),
 	SMART_CMD(0x00),
-	SMART_CMD(0x08),	/* display ctrl 2 */
+	SMART_CMD(0x08),	
 	SMART_DAT(0x08),
 	SMART_DAT(0x08),
 	SMART_CMD(0x00),
-	SMART_CMD(0x09),	/* display ctrl 3 */
+	SMART_CMD(0x09),	
 	SMART_DAT(0x04),
 	SMART_DAT(0x2F),
 	SMART_CMD(0x00),
-	SMART_CMD(0x0A),	/* display ctrl 4 */
+	SMART_CMD(0x0A),	
 	SMART_DAT(0x00),
 	SMART_DAT(0x08),
 	SMART_CMD(0x00),
-	SMART_CMD(0x0D),	/* Frame Marker position */
+	SMART_CMD(0x0D),	
 	SMART_DAT(0x00),
 	SMART_DAT(0x08),
 	SMART_CMD(0x00),
-	SMART_CMD(0x60),	/* Driver output control */
+	SMART_CMD(0x60),	
 	SMART_DAT(0x27),
 	SMART_DAT(0x00),
 	SMART_CMD(0x00),
-	SMART_CMD(0x61),	/* Base image display control */
+	SMART_CMD(0x61),	
 	SMART_DAT(0x00),
 	SMART_DAT(0x01),
 	SMART_CMD(0x00),
-	SMART_CMD(0x30),	/* Y settings 30h-3Dh */
+	SMART_CMD(0x30),	
 	SMART_DAT(0x07),
 	SMART_DAT(0x07),
 	SMART_CMD(0x00),
@@ -159,11 +149,11 @@ static uint16_t lcd_power_on[] = {
 	SMART_DAT(0x00),
 	SMART_DAT(0x07),
 	SMART_CMD(0x00),
-	SMART_CMD(0x32),	/* Timing(3), ASW HOLD=0.5CLK */
+	SMART_CMD(0x32),	
 	SMART_DAT(0x04),
 	SMART_DAT(0x00),
 	SMART_CMD(0x00),
-	SMART_CMD(0x33),	/* Timing(4), CKV ST=0CLK, CKV ED=1CLK */
+	SMART_CMD(0x33),	
 	SMART_DAT(0x03),
 	SMART_DAT(0x03),
 	SMART_CMD(0x00),
@@ -206,70 +196,70 @@ static uint16_t lcd_power_on[] = {
 	SMART_CMD(0x3D),
 	SMART_DAT(0x1F),
 	SMART_DAT(0x1F),
-	SMART_CMD(0x00),	/* Display control 1 */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x07),
 	SMART_DAT(0x00),
 	SMART_DAT(0x01),
-	SMART_CMD(0x00),	/* Power control 5 */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x17),
 	SMART_DAT(0x00),
 	SMART_DAT(0x01),
-	SMART_CMD(0x00),	/* Power control 1 */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x10),
 	SMART_DAT(0x10),
 	SMART_DAT(0xB0),
-	SMART_CMD(0x00),	/* Power control 2 */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x11),
 	SMART_DAT(0x01),
 	SMART_DAT(0x30),
-	SMART_CMD(0x00),	/* Power control 3 */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x12),
 	SMART_DAT(0x01),
 	SMART_DAT(0x9E),
-	SMART_CMD(0x00),	/* Power control 4 */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x13),
 	SMART_DAT(0x17),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00),	/* Power control 3 */
+	SMART_CMD(0x00),	
 	SMART_CMD(0x12),
 	SMART_DAT(0x01),
 	SMART_DAT(0xBE),
 	SMART_DELAY(100),
 
-	/* display mode : 240*320 */
-	SMART_CMD(0x00),	/* RAM address set(H) 0*/
+	
+	SMART_CMD(0x00),	
 	SMART_CMD(0x20),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00),	/* RAM address set(V)   4*/
+	SMART_CMD(0x00),	
 	SMART_CMD(0x21),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00),	/* Start of Window RAM address set(H) 8*/
+	SMART_CMD(0x00),	
 	SMART_CMD(0x50),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00), 	/* End of Window RAM address set(H) 12*/
+	SMART_CMD(0x00), 	
 	SMART_CMD(0x51),
 	SMART_DAT(0x00),
 	SMART_DAT(0xEF),
-	SMART_CMD(0x00),	/* Start of Window RAM address set(V) 16*/
+	SMART_CMD(0x00),	
 	SMART_CMD(0x52),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00),	/* End of Window RAM address set(V) 20*/
+	SMART_CMD(0x00),	
 	SMART_CMD(0x53),
 	SMART_DAT(0x01),
 	SMART_DAT(0x3F),
-	SMART_CMD(0x00), 	/* Panel interface control 1 */
+	SMART_CMD(0x00), 	
 	SMART_CMD(0x90),
 	SMART_DAT(0x00),
 	SMART_DAT(0x1A),
-	SMART_CMD(0x00), 	/* Panel interface control 2 */
+	SMART_CMD(0x00), 	
 	SMART_CMD(0x92),
 	SMART_DAT(0x04),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00), 	/* Panel interface control 3 */
+	SMART_CMD(0x00), 	
 	SMART_CMD(0x93),
 	SMART_DAT(0x00),
 	SMART_DAT(0x05),
@@ -340,40 +330,40 @@ static uint16_t lcd_power_off[] = {
 };
 
 static uint16_t update_framedata[] = {
-	/* set display ram: 240*320 */
-	SMART_CMD(0x00), /* RAM address set(H) 0*/
+	
+	SMART_CMD(0x00), 
 	SMART_CMD(0x20),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00), /* RAM address set(V) 4*/
+	SMART_CMD(0x00), 
 	SMART_CMD(0x21),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00), /* Start of Window RAM address set(H) 8 */
+	SMART_CMD(0x00), 
 	SMART_CMD(0x50),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00), /* End of Window RAM address set(H) 12 */
+	SMART_CMD(0x00), 
 	SMART_CMD(0x51),
 	SMART_DAT(0x00),
 	SMART_DAT(0xEF),
-	SMART_CMD(0x00), /* Start of Window RAM address set(V) 16 */
+	SMART_CMD(0x00), 
 	SMART_CMD(0x52),
 	SMART_DAT(0x00),
 	SMART_DAT(0x00),
-	SMART_CMD(0x00), /* End of Window RAM address set(V) 20 */
+	SMART_CMD(0x00), 
 	SMART_CMD(0x53),
 	SMART_DAT(0x01),
 	SMART_DAT(0x3F),
 
-	/* wait for vsync cmd before transferring frame data */
+	
 	SMART_CMD_WAIT_FOR_VSYNC,
 
-	/* write ram */
+	
 	SMART_CMD(0x00),
 	SMART_CMD(0x22),
 
-	/* write frame data */
+	
 	SMART_CMD_WRITE_FRAME,
 };
 
@@ -428,7 +418,7 @@ static struct pxafb_mode_info toshiba_ltm022a97a_modes[] = {
 		.op_hold_time 		= 30,
 		.cmd_inh_time		= 60,
 
-		/* L_LCLK_A0 and L_LCLK_RD active low */
+		
 		.sync			= FB_SYNC_HOR_HIGH_ACT |
 					  FB_SYNC_VERT_HIGH_ACT,
 	},
@@ -482,7 +472,7 @@ static inline void saar_init_i2c(void) {}
 #endif
 static void __init saar_init(void)
 {
-	/* initialize MFP configurations */
+	
 	pxa3xx_mfp_config(ARRAY_AND_SIZE(saar_mfp_cfg));
 
 	platform_device_register(&smc91x_device);
@@ -492,7 +482,7 @@ static void __init saar_init(void)
 }
 
 MACHINE_START(SAAR, "PXA930 Handheld Platform (aka SAAR)")
-	/* Maintainer: Eric Miao <eric.miao@marvell.com> */
+	
 	.phys_io        = 0x40000000,
 	.boot_params    = 0xa0000100,
 	.io_pg_offst    = (io_p2v(0x40000000) >> 18) & 0xfffc,

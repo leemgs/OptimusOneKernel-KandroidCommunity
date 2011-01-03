@@ -1,12 +1,4 @@
-/*
- * MTD device concatenation layer
- *
- * (C) 2002 Robert Kaiser <rkaiser@sysgo.de>
- *
- * NAND support by Christian Gan <cgan@iders.ca>
- *
- * This code is GPL
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -20,35 +12,21 @@
 
 #include <asm/div64.h>
 
-/*
- * Our storage structure:
- * Subdev points to an array of pointers to struct mtd_info objects
- * which is allocated along with this structure
- *
- */
+
 struct mtd_concat {
 	struct mtd_info mtd;
 	int num_subdev;
 	struct mtd_info **subdev;
 };
 
-/*
- * how to calculate the size required for the above structure,
- * including the pointer array subdev points to:
- */
+
 #define SIZEOF_STRUCT_MTD_CONCAT(num_subdev)	\
 	((sizeof(struct mtd_concat) + (num_subdev) * sizeof(struct mtd_info *)))
 
-/*
- * Given a pointer to the MTD object in the mtd_concat structure,
- * we can retrieve the pointer to that structure with this macro.
- */
+
 #define CONCAT(x)  ((struct mtd_concat *)(x))
 
-/*
- * MTD methods which look up the relevant subdevice, translate the
- * effective address and pass through to the subdevice.
- */
+
 
 static int
 concat_read(struct mtd_info *mtd, loff_t from, size_t len,
@@ -65,28 +43,28 @@ concat_read(struct mtd_info *mtd, loff_t from, size_t len,
 		size_t size, retsize;
 
 		if (from >= subdev->size) {
-			/* Not destined for this subdev */
+			
 			size = 0;
 			from -= subdev->size;
 			continue;
 		}
 		if (from + len > subdev->size)
-			/* First part goes into this subdev */
+			
 			size = subdev->size - from;
 		else
-			/* Entire transaction goes into this subdev */
+			
 			size = len;
 
 		err = subdev->read(subdev, from, size, &retsize, buf);
 
-		/* Save information about bitflips! */
+		
 		if (unlikely(err)) {
 			if (err == -EBADMSG) {
 				mtd->ecc_stats.failed++;
 				ret = err;
 			} else if (err == -EUCLEAN) {
 				mtd->ecc_stats.corrected++;
-				/* Do not overwrite -EBADMSG !! */
+				
 				if (!ret)
 					ret = err;
 			} else
@@ -167,22 +145,22 @@ concat_writev(struct mtd_info *mtd, const struct kvec *vecs,
 
 	*retlen = 0;
 
-	/* Calculate total length of data */
+	
 	for (i = 0; i < count; i++)
 		total_len += vecs[i].iov_len;
 
-	/* Do not allow write past end of device */
+	
 	if ((to + total_len) > mtd->size)
 		return -EINVAL;
 
-	/* Check alignment */
+	
 	if (mtd->writesize > 1) {
 		uint64_t __to = to;
 		if (do_div(__to, mtd->writesize) || (total_len % mtd->writesize))
 			return -EINVAL;
 	}
 
-	/* make a copy of vecs */
+	
 	vecs_copy = kmalloc(sizeof(struct kvec) * count, GFP_KERNEL);
 	if (!vecs_copy)
 		return -ENOMEM;
@@ -199,7 +177,7 @@ concat_writev(struct mtd_info *mtd, const struct kvec *vecs,
 		}
 
 		size = min_t(uint64_t, total_len, subdev->size - to);
-		wsize = size; /* store for future use */
+		wsize = size; 
 
 		entry_high = entry_low;
 		while (entry_high < count) {
@@ -256,7 +234,7 @@ concat_read_oob(struct mtd_info *mtd, loff_t from, struct mtd_oob_ops *ops)
 			continue;
 		}
 
-		/* partial read ? */
+		
 		if (from + devops.len > subdev->size)
 			devops.len = subdev->size - from;
 
@@ -264,14 +242,14 @@ concat_read_oob(struct mtd_info *mtd, loff_t from, struct mtd_oob_ops *ops)
 		ops->retlen += devops.retlen;
 		ops->oobretlen += devops.oobretlen;
 
-		/* Save information about bitflips! */
+		
 		if (unlikely(err)) {
 			if (err == -EBADMSG) {
 				mtd->ecc_stats.failed++;
 				ret = err;
 			} else if (err == -EUCLEAN) {
 				mtd->ecc_stats.corrected++;
-				/* Do not overwrite -EBADMSG !! */
+				
 				if (!ret)
 					ret = err;
 			} else
@@ -316,7 +294,7 @@ concat_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops)
 			continue;
 		}
 
-		/* partial write ? */
+		
 		if (to + devops.len > subdev->size)
 			devops.len = subdev->size - to;
 
@@ -353,19 +331,14 @@ static int concat_dev_erase(struct mtd_info *mtd, struct erase_info *erase)
 	wait_queue_head_t waitq;
 	DECLARE_WAITQUEUE(wait, current);
 
-	/*
-	 * This code was stol^H^H^H^Hinspired by mtdchar.c
-	 */
+	
 	init_waitqueue_head(&waitq);
 
 	erase->mtd = mtd;
 	erase->callback = concat_erase_callback;
 	erase->priv = (unsigned long) &waitq;
 
-	/*
-	 * FIXME: Allow INTERRUPTIBLE. Which means
-	 * not having the wait_queue head on the stack.
-	 */
+	
 	err = mtd->erase(mtd, erase);
 	if (!err) {
 		set_current_state(TASK_UNINTERRUPTIBLE);
@@ -398,48 +371,33 @@ static int concat_erase(struct mtd_info *mtd, struct erase_info *instr)
 	if (instr->len + instr->addr > concat->mtd.size)
 		return -EINVAL;
 
-	/*
-	 * Check for proper erase block alignment of the to-be-erased area.
-	 * It is easier to do this based on the super device's erase
-	 * region info rather than looking at each particular sub-device
-	 * in turn.
-	 */
+	
 	if (!concat->mtd.numeraseregions) {
-		/* the easy case: device has uniform erase block size */
+		
 		if (instr->addr & (concat->mtd.erasesize - 1))
 			return -EINVAL;
 		if (instr->len & (concat->mtd.erasesize - 1))
 			return -EINVAL;
 	} else {
-		/* device has variable erase size */
+		
 		struct mtd_erase_region_info *erase_regions =
 		    concat->mtd.eraseregions;
 
-		/*
-		 * Find the erase region where the to-be-erased area begins:
-		 */
+		
 		for (i = 0; i < concat->mtd.numeraseregions &&
 		     instr->addr >= erase_regions[i].offset; i++) ;
 		--i;
 
-		/*
-		 * Now erase_regions[i] is the region in which the
-		 * to-be-erased area begins. Verify that the starting
-		 * offset is aligned to this region's erase size:
-		 */
+		
 		if (i < 0 || instr->addr & (erase_regions[i].erasesize - 1))
 			return -EINVAL;
 
-		/*
-		 * now find the erase region where the to-be-erased area ends:
-		 */
+		
 		for (; i < concat->mtd.numeraseregions &&
 		     (instr->addr + instr->len) >= erase_regions[i].offset;
 		     ++i) ;
 		--i;
-		/*
-		 * check if the ending offset is aligned to this region's erase size
-		 */
+		
 		if (i < 0 || ((instr->addr + instr->len) &
 					(erase_regions[i].erasesize - 1)))
 			return -EINVAL;
@@ -447,7 +405,7 @@ static int concat_erase(struct mtd_info *mtd, struct erase_info *instr)
 
 	instr->fail_addr = MTD_FAIL_ADDR_UNKNOWN;
 
-	/* make a local copy of instr to avoid modifying the caller's struct */
+	
 	erase = kmalloc(sizeof (struct erase_info), GFP_KERNEL);
 
 	if (!erase)
@@ -456,10 +414,7 @@ static int concat_erase(struct mtd_info *mtd, struct erase_info *instr)
 	*erase = *instr;
 	length = instr->len;
 
-	/*
-	 * find the subdevice where the to-be-erased area begins, adjust
-	 * starting offset to be relative to the subdevice start
-	 */
+	
 	for (i = 0; i < concat->num_subdev; i++) {
 		subdev = concat->subdev[i];
 		if (subdev->size <= erase->addr) {
@@ -470,16 +425,16 @@ static int concat_erase(struct mtd_info *mtd, struct erase_info *instr)
 		}
 	}
 
-	/* must never happen since size limit has been verified above */
+	
 	BUG_ON(i >= concat->num_subdev);
 
-	/* now do the erase: */
+	
 	err = 0;
 	for (; length > 0; i++) {
-		/* loop for all subdevices affected by this request */
-		subdev = concat->subdev[i];	/* get current subdevice */
+		
+		subdev = concat->subdev[i];	
 
-		/* limit length to subdevice's size: */
+		
 		if (erase->addr + length > subdev->size)
 			erase->len = subdev->size - erase->addr;
 		else
@@ -491,21 +446,13 @@ static int concat_erase(struct mtd_info *mtd, struct erase_info *instr)
 		}
 		length -= erase->len;
 		if ((err = concat_dev_erase(subdev, erase))) {
-			/* sanity check: should never happen since
-			 * block alignment has been checked above */
+			
 			BUG_ON(err == -EINVAL);
 			if (erase->fail_addr != MTD_FAIL_ADDR_UNKNOWN)
 				instr->fail_addr = erase->fail_addr + offset;
 			break;
 		}
-		/*
-		 * erase->addr specifies the offset of the area to be
-		 * erased *within the current subdevice*. It can be
-		 * non-zero only the first time through this loop, i.e.
-		 * for the first subdevice where blocks need to be erased.
-		 * All the following erases must begin at the start of the
-		 * current subdevice, i.e. at offset zero.
-		 */
+		
 		erase->addr = 0;
 		offset += subdev->size;
 	}
@@ -684,10 +631,7 @@ static int concat_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	return err;
 }
 
-/*
- * try to support NOMMU mmaps on concatenated devices
- * - we don't support subdev spanning as we can't guarantee it'll work
- */
+
 static unsigned long concat_get_unmapped_area(struct mtd_info *mtd,
 					      unsigned long len,
 					      unsigned long offset,
@@ -704,7 +648,7 @@ static unsigned long concat_get_unmapped_area(struct mtd_info *mtd,
 			continue;
 		}
 
-		/* we've found the subdev over which the mapping will reside */
+		
 		if (offset + len > subdev->size)
 			return (unsigned long) -EINVAL;
 
@@ -718,16 +662,11 @@ static unsigned long concat_get_unmapped_area(struct mtd_info *mtd,
 	return (unsigned long) -ENOSYS;
 }
 
-/*
- * This function constructs a virtual MTD device by concatenating
- * num_devs MTD devices. A pointer to the new device object is
- * stored to *new_dev upon success. This function does _not_
- * register any devices: this is the caller's responsibility.
- */
-struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to concatenate */
-				   int num_devs,	/* number of subdevices      */
+
+struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	
+				   int num_devs,	
 				   const char *name)
-{				/* name for the new device   */
+{				
 	int i;
 	size_t size;
 	struct mtd_concat *concat;
@@ -739,7 +678,7 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 		printk(KERN_NOTICE "(%d): \"%s\"\n", i, subdev[i]->name);
 	printk(KERN_NOTICE "into device \"%s\"\n", name);
 
-	/* allocate the device structure */
+	
 	size = SIZEOF_STRUCT_MTD_CONCAT(num_devs);
 	concat = kzalloc(size, GFP_KERNEL);
 	if (!concat) {
@@ -750,10 +689,7 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 	}
 	concat->subdev = (struct mtd_info **) (concat + 1);
 
-	/*
-	 * Set up the new "super" device's MTD object structure, check for
-	 * incompatibilites between the subdevices.
-	 */
+	
 	concat->mtd.type = subdev[0]->type;
 	concat->mtd.flags = subdev[0]->flags;
 	concat->mtd.size = subdev[0]->size;
@@ -787,10 +723,7 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 			return NULL;
 		}
 		if (concat->mtd.flags != subdev[i]->flags) {
-			/*
-			 * Expect all flags except MTD_WRITEABLE to be
-			 * equal on all subdevices.
-			 */
+			
 			if ((concat->mtd.flags ^ subdev[i]->
 			     flags) & ~MTD_WRITEABLE) {
 				kfree(concat);
@@ -798,15 +731,12 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 				       subdev[i]->name);
 				return NULL;
 			} else
-				/* if writeable attribute differs,
-				   make super device writeable */
+				
 				concat->mtd.flags |=
 				    subdev[i]->flags & MTD_WRITEABLE;
 		}
 
-		/* only permit direct mapping if the BDIs are all the same
-		 * - copy-mapping is still permitted
-		 */
+		
 		if (concat->mtd.backing_dev_info !=
 		    subdev[i]->backing_dev_info)
 			concat->mtd.backing_dev_info =
@@ -844,30 +774,25 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 	concat->mtd.resume = concat_resume;
 	concat->mtd.get_unmapped_area = concat_get_unmapped_area;
 
-	/*
-	 * Combine the erase block size info of the subdevices:
-	 *
-	 * first, walk the map of the new device and see how
-	 * many changes in erase size we have
-	 */
+	
 	max_erasesize = curr_erasesize = subdev[0]->erasesize;
 	num_erase_region = 1;
 	for (i = 0; i < num_devs; i++) {
 		if (subdev[i]->numeraseregions == 0) {
-			/* current subdevice has uniform erase size */
+			
 			if (subdev[i]->erasesize != curr_erasesize) {
-				/* if it differs from the last subdevice's erase size, count it */
+				
 				++num_erase_region;
 				curr_erasesize = subdev[i]->erasesize;
 				if (curr_erasesize > max_erasesize)
 					max_erasesize = curr_erasesize;
 			}
 		} else {
-			/* current subdevice has variable erase size */
+			
 			int j;
 			for (j = 0; j < subdev[i]->numeraseregions; j++) {
 
-				/* walk the list of erase regions, count any changes */
+				
 				if (subdev[i]->eraseregions[j].erasesize !=
 				    curr_erasesize) {
 					++num_erase_region;
@@ -882,19 +807,13 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 	}
 
 	if (num_erase_region == 1) {
-		/*
-		 * All subdevices have the same uniform erase size.
-		 * This is easy:
-		 */
+		
 		concat->mtd.erasesize = curr_erasesize;
 		concat->mtd.numeraseregions = 0;
 	} else {
 		uint64_t tmp64;
 
-		/*
-		 * erase block size varies across the subdevices: allocate
-		 * space to store the data describing the variable erase regions
-		 */
+		
 		struct mtd_erase_region_info *erase_region_p;
 		uint64_t begin, position;
 
@@ -911,20 +830,14 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 			return NULL;
 		}
 
-		/*
-		 * walk the map of the new device once more and fill in
-		 * in erase region info:
-		 */
+		
 		curr_erasesize = subdev[0]->erasesize;
 		begin = position = 0;
 		for (i = 0; i < num_devs; i++) {
 			if (subdev[i]->numeraseregions == 0) {
-				/* current subdevice has uniform erase size */
+				
 				if (subdev[i]->erasesize != curr_erasesize) {
-					/*
-					 *  fill in an mtd_erase_region_info structure for the area
-					 *  we have walked so far:
-					 */
+					
 					erase_region_p->offset = begin;
 					erase_region_p->erasesize =
 					    curr_erasesize;
@@ -938,10 +851,10 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 				}
 				position += subdev[i]->size;
 			} else {
-				/* current subdevice has variable erase size */
+				
 				int j;
 				for (j = 0; j < subdev[i]->numeraseregions; j++) {
-					/* walk the list of erase regions, count any changes */
+					
 					if (subdev[i]->eraseregions[j].
 					    erasesize != curr_erasesize) {
 						erase_region_p->offset = begin;
@@ -963,7 +876,7 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 				}
 			}
 		}
-		/* Now write the final entry */
+		
 		erase_region_p->offset = begin;
 		erase_region_p->erasesize = curr_erasesize;
 		tmp64 = position - begin;
@@ -974,9 +887,7 @@ struct mtd_info *mtd_concat_create(struct mtd_info *subdev[],	/* subdevices to c
 	return &concat->mtd;
 }
 
-/*
- * This function destroys an MTD object obtained from concat_mtd_devs()
- */
+
 
 void mtd_concat_destroy(struct mtd_info *mtd)
 {

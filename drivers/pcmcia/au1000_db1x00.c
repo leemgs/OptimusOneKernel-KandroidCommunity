@@ -1,34 +1,4 @@
-/*
- *
- * Alchemy Semi Db1x00 boards specific pcmcia routines.
- *
- * Copyright 2002 MontaVista Software Inc.
- * Author: MontaVista Software, Inc.
- *         	ppopov@mvista.com or source@mvista.com
- *
- * Copyright 2004 Pete Popov, updated the driver to 2.6.
- * Followed the sa11xx API and largely copied many of the hardware
- * independent functions.
- *
- * ########################################################################
- *
- *  This program is free software; you can distribute it and/or modify it
- *  under the terms of the GNU General Public License (Version 2) as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- *  for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
- *
- * ########################################################################
- *
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -76,7 +46,7 @@ static int db1x00_pcmcia_hw_init(struct au1000_pcmcia_socket *skt)
 
 static void db1x00_pcmcia_shutdown(struct au1000_pcmcia_socket *skt)
 {
-	bcsr->pcmcia = 0; /* turn off power */
+	bcsr->pcmcia = 0; 
 	au_sync_delay(2);
 }
 
@@ -108,7 +78,7 @@ db1x00_pcmcia_socket_state(struct au1000_pcmcia_socket *skt, struct pcmcia_state
 		inserted = !(bcsr->status & (1<<5));
 #endif
 		break;
-	default:/* should never happen */
+	default:
 		return;
 	}
 
@@ -122,10 +92,10 @@ db1x00_pcmcia_socket_state(struct au1000_pcmcia_socket *skt, struct pcmcia_state
 			case 2:
 				state->vs_3v=1;
 				break;
-			case 3: /* 5V */
+			case 3: 
 				break;
 			default:
-				/* return without setting 'detect' */
+				
 				printk(KERN_ERR "db1x00 bad VS (%d)\n",
 						vs);
 		}
@@ -133,9 +103,7 @@ db1x00_pcmcia_socket_state(struct au1000_pcmcia_socket *skt, struct pcmcia_state
 		state->ready = 1;
 	}
 	else {
-		/* if the card was previously inserted and then ejected,
-		 * we should turn off power to it
-		 */
+		
 		if ((skt->nr == 0) && (bcsr->pcmcia & BCSR_PCMCIA_PC0RST)) {
 			bcsr->pcmcia &= ~(BCSR_PCMCIA_PC0RST |
 					BCSR_PCMCIA_PC0DRVEN |
@@ -167,19 +135,16 @@ db1x00_pcmcia_configure_socket(struct au1000_pcmcia_socket *skt, struct socket_s
 			sock, state->Vcc, state->Vpp,
 			state->flags & SS_RESET);
 
-	/* pcmcia reg was set to zero at init time. Be careful when
-	 * initializing a socket not to wipe out the settings of the
-	 * other socket.
-	 */
+	
 	pwr = bcsr->pcmcia;
-	pwr &= ~(0xf << sock*8); /* clear voltage settings */
+	pwr &= ~(0xf << sock*8); 
 
 	state->Vpp = 0;
 	switch(state->Vcc){
-		case 0:  /* Vcc 0 */
+		case 0:  
 			pwr |= SET_VCC_VPP(0,0,sock);
 			break;
-		case 50: /* Vcc 5V */
+		case 50: 
 			switch(state->Vpp) {
 				case 0:
 					pwr |= SET_VCC_VPP(2,0,sock);
@@ -200,7 +165,7 @@ db1x00_pcmcia_configure_socket(struct au1000_pcmcia_socket *skt, struct socket_s
 					break;
 			}
 			break;
-		case 33: /* Vcc 3.3V */
+		case 33: 
 			switch(state->Vpp) {
 				case 0:
 					pwr |= SET_VCC_VPP(1,0,sock);
@@ -221,7 +186,7 @@ db1x00_pcmcia_configure_socket(struct au1000_pcmcia_socket *skt, struct socket_s
 					break;
 			}
 			break;
-		default: /* what's this ? */
+		default: 
 			pwr |= SET_VCC_VPP(0,0,sock);
 			printk(KERN_ERR "%s: bad Vcc %d\n",
 					__func__, state->Vcc);
@@ -264,22 +229,16 @@ db1x00_pcmcia_configure_socket(struct au1000_pcmcia_socket *skt, struct socket_s
 	return 0;
 }
 
-/*
- * Enable card status IRQs on (re-)initialisation.  This can
- * be called at initialisation, power management event, or
- * pcmcia event.
- */
+
 void db1x00_socket_init(struct au1000_pcmcia_socket *skt)
 {
-	/* nothing to do for now */
+	
 }
 
-/*
- * Disable card status IRQs and PCMCIA bus on suspend.
- */
+
 void db1x00_socket_suspend(struct au1000_pcmcia_socket *skt)
 {
-	/* nothing to do for now */
+	
 }
 
 struct pcmcia_low_level db1x00_pcmcia_ops = {
@@ -298,7 +257,7 @@ struct pcmcia_low_level db1x00_pcmcia_ops = {
 int au1x_board_init(struct device *dev)
 {
 	int ret = -ENODEV;
-	bcsr->pcmcia = 0; /* turn off power, if it's not already off */
+	bcsr->pcmcia = 0; 
 	au_sync_delay(2);
 	ret = au1x00_pcmcia_socket_probe(dev, &db1x00_pcmcia_ops, 0, 2);
 	return ret;

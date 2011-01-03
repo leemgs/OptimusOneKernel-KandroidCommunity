@@ -1,16 +1,4 @@
-/* arch/arm/plat-s3c64xx/include/plat/regs-clock.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C64XX clock register definitions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __PLAT_REGS_CLOCK_H
 #define __PLAT_REGS_CLOCK_H __FILE__
@@ -34,7 +22,7 @@
 #define S3C_SCLK_GATE		S3C_CLKREG(0x38)
 #define S3C_MEM0_GATE		S3C_CLKREG(0x3C)
 
-/* CLKDIV0 */
+
 #define S3C6400_CLKDIV0_MFC_MASK	(0xf << 28)
 #define S3C6400_CLKDIV0_MFC_SHIFT	(28)
 #define S3C6400_CLKDIV0_JPEG_MASK	(0xf << 24)
@@ -55,7 +43,7 @@
 #define S3C6410_CLKDIV0_ARM_MASK	(0xf << 0)
 #define S3C6400_CLKDIV0_ARM_SHIFT	(0)
 
-/* CLKDIV1 */
+
 #define S3C6410_CLKDIV1_FIMC_MASK	(0xf << 24)
 #define S3C6410_CLKDIV1_FIMC_SHIFT	(24)
 #define S3C6400_CLKDIV1_UHOST_MASK	(0xf << 20)
@@ -71,7 +59,7 @@
 #define S3C6400_CLKDIV1_MMC0_MASK	(0xf << 0)
 #define S3C6400_CLKDIV1_MMC0_SHIFT	(0)
 
-/* CLKDIV2 */
+
 #define S3C6410_CLKDIV2_AUDIO2_MASK	(0xf << 24)
 #define S3C6410_CLKDIV2_AUDIO2_SHIFT	(24)
 #define S3C6400_CLKDIV2_IRDA_MASK	(0xf << 20)
@@ -87,7 +75,7 @@
 #define S3C6400_CLKDIV2_SPI0_MASK	(0xf << 0)
 #define S3C6400_CLKDIV2_SPI0_SHIFT	(0)
 
-/* HCLK GATE Registers */
+
 #define S3C_CLKCON_HCLK_3DSE	(1<<31)
 #define S3C_CLKCON_HCLK_UHOST	(1<<29)
 #define S3C_CLKCON_HCLK_SECUR	(1<<28)
@@ -119,7 +107,7 @@
 #define S3C_CLKCON_HCLK_INTC	(1<<1)
 #define S3C_CLKCON_HCLK_MFC	(1<<0)
 
-/* PCLK GATE Registers */
+
 #define S3C6410_CLKCON_PCLK_I2C1	(1<<27)
 #define S3C6410_CLKCON_PCLK_IIS2	(1<<26)
 #define S3C_CLKCON_PCLK_SKEY		(1<<24)
@@ -148,7 +136,7 @@
 #define S3C_CLKCON_PCLK_UART0		(1<<1)
 #define S3C_CLKCON_PCLK_MFC		(1<<0)
 
-/* SCLK GATE Registers */
+
 #define S3C_CLKCON_SCLK_UHOST		(1<<30)
 #define S3C_CLKCON_SCLK_MMC2_48		(1<<29)
 #define S3C_CLKCON_SCLK_MMC1_48		(1<<28)
@@ -182,7 +170,7 @@
 #define S3C_CLKCON_SCLK_CAM		(1<<2)
 #define S3C_CLKCON_SCLK_JPEG		(1<<1)
 
-/* CLKSRC */
+
 
 #define S3C6400_CLKSRC_APLL_MOUT	(1 << 0)
 #define S3C6400_CLKSRC_MPLL_MOUT	(1 << 1)
@@ -222,4 +210,4 @@
 #define S3C6400_CLKSRC_UHOST_SHIFT	(5)
 
 
-#endif /* _PLAT_REGS_CLOCK_H */
+#endif 

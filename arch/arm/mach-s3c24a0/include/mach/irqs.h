@@ -1,29 +1,21 @@
-/* linux/arch/arm/mach-s3c24a0/include/mach/irqs.h
- *
- * Copyright (c) 2003-2005 Simtec Electronics
- *   Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 
 #ifndef __ASM_ARCH_24A0_IRQS_H
 #define __ASM_ARCH_24A0_IRQS_H __FILE__
 
-#define IRQ_EINT0t2	S3C2410_IRQ(0)	/* 16 */
-/* for generic entry-macro.S */
+#define IRQ_EINT0t2	S3C2410_IRQ(0)	
+
 #define IRQ_EINT0	IRQ_EINT0t2
 
 #define IRQ_EINT3t6	S3C2410_IRQ(1)
 #define IRQ_EINT7t10	S3C2410_IRQ(2)
 #define IRQ_EINT11t14	S3C2410_IRQ(3)
-#define IRQ_EINT15t18	S3C2410_IRQ(4)	/* 20 */
+#define IRQ_EINT15t18	S3C2410_IRQ(4)	
 #define IRQ_TICK	S3C2410_IRQ(5)
 #define IRQ_DCTQ	S3C2410_IRQ(6)
 #define IRQ_MC		S3C2410_IRQ(7)
-#define IRQ_ME		S3C2410_IRQ(8)	/* 24 */
+#define IRQ_ME		S3C2410_IRQ(8)	
 #define IRQ_KEYPAD	S3C2410_IRQ(9)
 #define IRQ_TIMER0	S3C2410_IRQ(10)
 #define IRQ_TIMER1	S3C2410_IRQ(11)
@@ -32,7 +24,7 @@
 #define IRQ_OS_TIMER	IRQ_TIMER3_4
 #define IRQ_LCD		S3C2410_IRQ(14)
 #define IRQ_CAM_C	S3C2410_IRQ(15)
-#define IRQ_WDT_BATFLT	S3C2410_IRQ(16)	/* 32 */
+#define IRQ_WDT_BATFLT	S3C2410_IRQ(16)	
 #define IRQ_UART0	S3C2410_IRQ(17)
 #define IRQ_CAM_P	S3C2410_IRQ(18)
 #define IRQ_MODEM	S3C2410_IRQ(19)
@@ -40,17 +32,17 @@
 #define IRQ_SDI		S3C2410_IRQ(21)
 #define IRQ_SPI0	S3C2410_IRQ(22)
 #define IRQ_UART1	S3C2410_IRQ(23)
-#define IRQ_AC97_NFLASH	S3C2410_IRQ(24)	/* 40 */
+#define IRQ_AC97_NFLASH	S3C2410_IRQ(24)	
 #define IRQ_USBD	S3C2410_IRQ(25)
 #define IRQ_USBH	S3C2410_IRQ(26)
 #define IRQ_IIC		S3C2410_IRQ(27)
-#define IRQ_IRDA_MSTICK	S3C2410_IRQ(28)	/* 44 */
+#define IRQ_IRDA_MSTICK	S3C2410_IRQ(28)	
 #define IRQ_VLX_SPI1	S3C2410_IRQ(29)
-#define IRQ_RTC		S3C2410_IRQ(30)	/* 46 */
+#define IRQ_RTC		S3C2410_IRQ(30)	
 #define IRQ_ADC_PEN     S3C2410_IRQ(31)
 
-/* interrupts generated from the external interrupts sources */
-#define IRQ_EINT00	S3C2410_IRQ(32)	/* 48 */
+
+#define IRQ_EINT00	S3C2410_IRQ(32)	
 #define IRQ_EINT1	S3C2410_IRQ(33)
 #define IRQ_EINT2	S3C2410_IRQ(34)
 #define IRQ_EINT3	S3C2410_IRQ(35)
@@ -72,8 +64,8 @@
 
 #define IRQ_EINT_BIT(x) ((x) - IRQ_EINT00)
 
-/* SUB IRQS */
-#define IRQ_S3CUART_RX0		S3C2410_IRQ(51)	/* 67 */
+
+#define IRQ_S3CUART_RX0		S3C2410_IRQ(51)	
 #define IRQ_S3CUART_TX0		S3C2410_IRQ(52)
 #define IRQ_S3CUART_ERR0	S3C2410_IRQ(53)
 
@@ -114,4 +106,4 @@
 
 #define NR_IRQS		(IRQ_DMA3+1)
 
-#endif /* __ASM_ARCH_24A0_IRQS_H */
+#endif 

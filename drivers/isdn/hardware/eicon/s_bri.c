@@ -1,28 +1,5 @@
 
-/*
- *
-  Copyright (c) Eicon Networks, 2002.
- *
-  This source file is supplied for the use with
-  Eicon Networks range of DIVA Server Adapters.
- *
-  Eicon File Revision :    2.1
- *
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
- *
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU General Public License for more details.
- *
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #include "platform.h"
 #include "di_defs.h"
 #include "pc.h"
@@ -35,20 +12,16 @@
 #include "helpers.h"
 #include "dsrv_bri.h"
 #include "dsp_defs.h"
-/*****************************************************************************/
+
 #define MAX_XLOG_SIZE (64 * 1024)
-/* --------------------------------------------------------------------------
-  Investigate card state, recovery trace buffer
-  -------------------------------------------------------------------------- */
+
 static void bri_cpu_trapped (PISDN_ADAPTER IoAdapter) {
  byte  __iomem *addrHi, *addrLo, *ioaddr ;
  word *Xlog ;
  dword   regs[4], i, size ;
  Xdesc   xlogDesc ;
  byte __iomem *Port;
-/*
- * first read pointers and trap frame
- */
+
  if ( !(Xlog = (word *)diva_os_malloc (0, MAX_XLOG_SIZE)) )
   return ;
  Port = DIVA_OS_MEM_ATTACH_PORT(IoAdapter);
@@ -58,9 +31,7 @@ static void bri_cpu_trapped (PISDN_ADAPTER IoAdapter) {
  outpp (addrHi,  0) ;
  outppw (addrLo, 0) ;
  for ( i = 0 ; i < 0x100 ; Xlog[i++] = inppw(ioaddr) ) ;
-/*
- * check for trapped MIPS 3xxx CPU, dump only exception frame
- */
+
  if ( GET_DWORD(&Xlog[0x80 / sizeof(Xlog[0])]) == 0x99999999 )
  {
   dump_trap_frame (IoAdapter, &((byte *)Xlog)[0x90]) ;
@@ -98,31 +69,27 @@ static void bri_cpu_trapped (PISDN_ADAPTER IoAdapter) {
  outppw (addrLo, 0x00) ;
  DIVA_OS_MEM_DETACH_PORT(IoAdapter, Port);
 }
-/* ---------------------------------------------------------------------
-   Reset hardware
-  --------------------------------------------------------------------- */
+
 static void reset_bri_hardware (PISDN_ADAPTER IoAdapter) {
  byte __iomem *p = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
  outpp (p, 0x00) ;
  DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
 }
-/* ---------------------------------------------------------------------
-   Halt system
-  --------------------------------------------------------------------- */
+
 static void stop_bri_hardware (PISDN_ADAPTER IoAdapter) {
  byte __iomem *p = DIVA_OS_MEM_ATTACH_RESET(IoAdapter);
  if (p) {
-  outpp (p, 0x00) ; /* disable interrupts ! */
+  outpp (p, 0x00) ; 
  }
  DIVA_OS_MEM_DETACH_RESET(IoAdapter, p);
  p = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
- outpp (p, 0x00) ;    /* clear int, halt cpu */
+ outpp (p, 0x00) ;    
  DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
 }
 static int load_bri_hardware (PISDN_ADAPTER IoAdapter) {
  return (0);
 }
-/******************************************************************************/
+
 static int bri_ISR (struct _ISDN_ADAPTER* IoAdapter) {
  byte __iomem *p;
 
@@ -131,9 +98,7 @@ static int bri_ISR (struct _ISDN_ADAPTER* IoAdapter) {
   DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
   return (0) ;
  }
- /*
-  clear interrupt line
-  */
+ 
  outpp (p, 0x08) ;
  DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
  IoAdapter->IrqCount++ ;
@@ -142,24 +107,20 @@ static int bri_ISR (struct _ISDN_ADAPTER* IoAdapter) {
  }
  return (1) ;
 }
-/* --------------------------------------------------------------------------
-  Disable IRQ in the card hardware
-  -------------------------------------------------------------------------- */
+
 static void disable_bri_interrupt (PISDN_ADAPTER IoAdapter) {
  byte __iomem *p;
  p = DIVA_OS_MEM_ATTACH_RESET(IoAdapter);
  if ( p )
  {
-  outpp (p, 0x00) ; /* disable interrupts ! */
+  outpp (p, 0x00) ; 
  }
  DIVA_OS_MEM_DETACH_RESET(IoAdapter, p);
  p = DIVA_OS_MEM_ATTACH_CTLREG(IoAdapter);
- outpp (p, 0x00) ; /* clear int, halt cpu */
+ outpp (p, 0x00) ; 
  DIVA_OS_MEM_DETACH_CTLREG(IoAdapter, p);
 }
-/* -------------------------------------------------------------------------
-  Fill card entry points
-  ------------------------------------------------------------------------- */
+
 void prepare_maestra_functions (PISDN_ADAPTER IoAdapter) {
  ADAPTER *a = &IoAdapter->a ;
  a->ram_in             = io_in ;
@@ -183,9 +144,7 @@ void prepare_maestra_functions (PISDN_ADAPTER IoAdapter) {
  IoAdapter->stop       = stop_bri_hardware ;
  IoAdapter->trapFnc    = bri_cpu_trapped ;
  IoAdapter->diva_isr_handler = bri_ISR;
- /*
-  Prepare OS dependent functions
-  */
+ 
  diva_os_prepare_maestra_functions (IoAdapter);
 }
-/* -------------------------------------------------------------------------- */
+

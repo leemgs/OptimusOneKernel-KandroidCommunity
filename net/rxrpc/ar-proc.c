@@ -1,13 +1,4 @@
-/* /proc/net/ support for AF_RXRPC
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <net/sock.h>
@@ -25,9 +16,7 @@ static const char *const rxrpc_conn_states[] = {
 	[RXRPC_CONN_NETWORK_ERROR]	= "NetError",
 };
 
-/*
- * generate a list of extant and dead calls in /proc/net/rxrpc_calls
- */
+
 static void *rxrpc_call_seq_start(struct seq_file *seq, loff_t *_pos)
 {
 	read_lock(&rxrpc_call_lock);
@@ -106,9 +95,7 @@ const struct file_operations rxrpc_call_seq_fops = {
 	.release	= seq_release,
 };
 
-/*
- * generate a list of extant virtual connections in /proc/net/rxrpc_conns
- */
+
 static void *rxrpc_connection_seq_start(struct seq_file *seq, loff_t *_pos)
 {
 	read_lock(&rxrpc_connection_lock);

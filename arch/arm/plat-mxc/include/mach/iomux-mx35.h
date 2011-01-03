@@ -1,33 +1,13 @@
-/*
- * Copyright (C, NO_PAD_CTRL) 2009 by Jan Weitzel Phytec Messtechnik GmbH <armlinux@phytec.de>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option, NO_PAD_CTRL) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #ifndef __MACH_IOMUX_MX35_H__
 #define __MACH_IOMUX_MX35_H__
 
 #include <mach/iomux-v3.h>
 
-/*
- * The naming convention for the pad modes is MX35_PAD_<padname>__<padmode>
- * If <padname> or <padmode> refers to a GPIO, it is named
- * GPIO_<unit>_<num> see also iomux-v3.h
- */
 
-/*									  PAD    MUX   ALT INPSE PATH */
+
+
 #define MX35_PAD_CAPTURE__GPT_CAPIN1				IOMUX_PAD(0x328, 0x004, 0, 0x0,   0, NO_PAD_CTRL)
 #define MX35_PAD_CAPTURE__GPT_CMPOUT2				IOMUX_PAD(0x328, 0x004, 1, 0x0,   0, NO_PAD_CTRL)
 #define MX35_PAD_CAPTURE__CSPI2_SS1				IOMUX_PAD(0x328, 0x004, 2, 0x7f4, 0, NO_PAD_CTRL)
@@ -1264,4 +1244,4 @@
 #define MX35_PAD_TEST_MODE__TCU_TEST_MODE			IOMUX_PAD(0x790, 0x0,   0, 0x0,   0, NO_PAD_CTRL)
 
 
-#endif /* __MACH_IOMUX_MX35_H__ */
+#endif 

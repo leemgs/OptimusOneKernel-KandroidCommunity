@@ -1,14 +1,4 @@
-/*
- * omap iommu: pagetable definitions
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __PLAT_OMAP_IOMMU_H
 #define __PLAT_OMAP_IOMMU_H
@@ -57,7 +47,7 @@ static inline u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
 	e->da		= da;
 	e->pa		= pa;
 	e->valid	= 1;
-	/* FIXME: add OMAP1 support */
+	
 	e->pgsz		= flags & MMU_CAM_PGSZ_MASK;
 	e->endian	= flags & MMU_RAM_ENDIAN_MASK;
 	e->elsz		= flags & MMU_RAM_ELSZ_MASK;
@@ -69,4 +59,4 @@ static inline u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
 #define to_iommu(dev)							\
 	(struct iommu *)platform_get_drvdata(to_platform_device(dev))
 
-#endif /* __PLAT_OMAP_IOMMU_H */
+#endif 

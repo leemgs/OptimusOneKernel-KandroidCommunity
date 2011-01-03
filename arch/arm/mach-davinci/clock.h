@@ -1,13 +1,4 @@
-/*
- * TI DaVinci clock definitions
- *
- * Copyright (C) 2006-2007 Texas Instruments.
- * Copyright (C) 2008-2009 Deep Root Systems, LLC
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ARCH_ARM_DAVINCI_CLOCK_H
 #define __ARCH_ARM_DAVINCI_CLOCK_H
@@ -19,7 +10,7 @@
 #define DAVINCI_PLL2_BASE 0x01c40c00
 #define MAX_PLL 2
 
-/* PLL/Reset register offsets */
+
 #define PLLCTL          0x100
 #define PLLCTL_PLLEN    BIT(0)
 #define PLLCTL_CLKMODE  BIT(8)
@@ -73,12 +64,12 @@ struct clk {
 	u32                     div_reg;
 };
 
-/* Clock flags */
+
 #define ALWAYS_ENABLED		BIT(1)
 #define CLK_PSC                 BIT(2)
-#define PSC_DSP                 BIT(3) /* PSC uses DSP domain, not ARM */
-#define CLK_PLL			BIT(4) /* PLL-derived clock */
-#define PRE_PLL                 BIT(5) /* source is before PLL mult/div */
+#define PSC_DSP                 BIT(3) 
+#define CLK_PLL			BIT(4) 
+#define PRE_PLL                 BIT(5) 
 
 struct davinci_clk {
 	struct clk_lookup lk;

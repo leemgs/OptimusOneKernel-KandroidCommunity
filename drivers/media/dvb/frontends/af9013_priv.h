@@ -1,25 +1,4 @@
-/*
- * DVB USB Linux driver for Afatech AF9015 DVB-T USB2.0 receiver
- *
- * Copyright (C) 2007 Antti Palosaari <crope@iki.fi>
- *
- * Thanks to Afatech who kindly provided information.
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #ifndef _AF9013_PRIV_
 #define _AF9013_PRIV_
@@ -60,7 +39,7 @@ struct snr_table {
 	u8 snr;
 };
 
-/* QPSK SNR lookup table */
+
 static struct snr_table qpsk_snr_table[] = {
 	{ 0x0b4771,  0 },
 	{ 0x0c1aed,  1 },
@@ -80,7 +59,7 @@ static struct snr_table qpsk_snr_table[] = {
 	{ 0xffffff, 15 },
 };
 
-/* QAM16 SNR lookup table */
+
 static struct snr_table qam16_snr_table[] = {
 	{ 0x05eb62,  5 },
 	{ 0x05fecf,  6 },
@@ -100,7 +79,7 @@ static struct snr_table qam16_snr_table[] = {
 	{ 0xffffff, 20 },
 };
 
-/* QAM64 SNR lookup table */
+
 static struct snr_table qam64_snr_table[] = {
 	{ 0x03109b, 12 },
 	{ 0x0310d4, 13 },
@@ -198,8 +177,7 @@ static struct regdesc ofsm_init[] = {
 	{ 0x9bcc, 0, 1, 0x01 },
 };
 
-/* Panasonic ENV77H11D5 tuner init
-   AF9013_TUNER_ENV77H11D5 = 129 */
+
 static struct regdesc tuner_init_env77h11d5[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x03 },
@@ -264,8 +242,7 @@ static struct regdesc tuner_init_env77h11d5[] = {
 	{ 0x9bd9, 0, 8, 0x08 },
 };
 
-/* Microtune MT2060 tuner init
-   AF9013_TUNER_MT2060     = 130 */
+
 static struct regdesc tuner_init_mt2060[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x07 },
@@ -341,8 +318,7 @@ static struct regdesc tuner_init_mt2060[] = {
 	{ 0x9bee, 0, 1, 0x01 },
 };
 
-/* Microtune MT2060 tuner init
-   AF9013_TUNER_MT2060_2   = 147 */
+
 static struct regdesc tuner_init_mt2060_2[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x06 },
@@ -408,8 +384,7 @@ static struct regdesc tuner_init_mt2060_2[] = {
 	{ 0x9bd9, 0, 8, 0x08 },
 };
 
-/* MaxLinear MXL5003 tuner init
-   AF9013_TUNER_MXL5003D   =   3 */
+
 static struct regdesc tuner_init_mxl5003d[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x09 },
@@ -478,9 +453,7 @@ static struct regdesc tuner_init_mxl5003d[] = {
 	{ 0x9bd9, 0, 8, 0x08 },
 };
 
-/* MaxLinear MXL5005 tuner init
-   AF9013_TUNER_MXL5005D   =  13
-   AF9013_TUNER_MXL5005R   =  30 */
+
 static struct regdesc tuner_init_mxl5005[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x07 },
@@ -557,9 +530,7 @@ static struct regdesc tuner_init_mxl5005[] = {
 	{ 0x9bee, 0, 1, 0x01 },
 };
 
-/* Quantek QT1010 tuner init
-   AF9013_TUNER_QT1010     = 134
-   AF9013_TUNER_QT1010A    = 162 */
+
 static struct regdesc tuner_init_qt1010[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x09 },
@@ -635,8 +606,7 @@ static struct regdesc tuner_init_qt1010[] = {
 	{ 0x9bee, 0, 1, 0x01 },
 };
 
-/* Freescale MC44S803 tuner init
-   AF9013_TUNER_MC44S803   = 133 */
+
 static struct regdesc tuner_init_mc44s803[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x06 },
@@ -717,8 +687,7 @@ static struct regdesc tuner_init_mc44s803[] = {
 	{ 0xd73b, 3, 1, 0x00 },
 };
 
-/* unknown, probably for tin can tuner, tuner init
-   AF9013_TUNER_UNKNOWN   = 140 */
+
 static struct regdesc tuner_init_unknown[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x02 },
@@ -789,8 +758,7 @@ static struct regdesc tuner_init_unknown[] = {
 	{ 0x9bd9, 0, 8, 0x08 },
 };
 
-/* NXP TDA18271 tuner init
-   AF9013_TUNER_TDA18271   = 156 */
+
 static struct regdesc tuner_init_tda18271[] = {
 	{ 0x9bd5, 0, 8, 0x01 },
 	{ 0x9bd6, 0, 8, 0x04 },
@@ -866,4 +834,4 @@ static struct regdesc tuner_init_tda18271[] = {
 	{ 0x9bee, 0, 1, 0x01 },
 };
 
-#endif /* _AF9013_PRIV_ */
+#endif 

@@ -1,12 +1,4 @@
-/*
- * This file provides /sys/class/ieee80211/<wiphy name>/
- * and some default attributes.
- *
- * Copyright 2005-2006	Jiri Benc <jbenc@suse.cz>
- * Copyright 2006	Johannes Berg <johannes@sipsolutions.net>
- *
- * This file is GPLv2 as found in COPYING.
- */
+
 
 #include <linux/device.h>
 #include <linux/module.h>
@@ -50,7 +42,7 @@ static void wiphy_dev_release(struct device *dev)
 #ifdef CONFIG_HOTPLUG
 static int wiphy_uevent(struct device *dev, struct kobj_uevent_env *env)
 {
-	/* TODO, we probably need stuff here */
+	
 	return 0;
 }
 #endif
@@ -76,7 +68,7 @@ static int wiphy_resume(struct device *dev)
 	struct cfg80211_registered_device *rdev = dev_to_rdev(dev);
 	int ret = 0;
 
-	/* Age scan results with time spent in suspend */
+	
 	spin_lock_bh(&rdev->bss_lock);
 	cfg80211_bss_age(rdev, get_seconds() - rdev->suspend_at);
 	spin_unlock_bh(&rdev->bss_lock);

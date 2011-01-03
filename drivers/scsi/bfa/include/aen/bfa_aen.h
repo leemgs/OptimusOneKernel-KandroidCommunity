@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #ifndef __BFA_AEN_H__
 #define __BFA_AEN_H__
 
@@ -32,13 +17,11 @@ struct bfa_aen_s {
 	void		(*aen_cb_notify)(void *bfad);
 	void		(*gettimeofday)(struct bfa_timeval_s *tv);
 	struct bfa_trc_mod_s 	*trcmod;
-	struct bfa_aen_entry_s	list[BFA_AEN_MAX_ENTRY]; /* Must be the last */
+	struct bfa_aen_entry_s	list[BFA_AEN_MAX_ENTRY]; 
 };
 
 
-/**
- * Public APIs
- */
+
 static inline void
 bfa_aen_set_max_cfg_entry(int max_entry)
 {
@@ -89,4 +72,4 @@ s32 bfa_aen_fetch(struct bfa_aen_s *aen, struct bfa_aen_entry_s *aen_entry,
 
 s32 bfa_aen_get_inst(struct bfa_aen_s *aen);
 
-#endif /* __BFA_AEN_H__ */
+#endif 

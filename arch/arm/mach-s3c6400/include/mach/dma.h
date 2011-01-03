@@ -1,26 +1,15 @@
-/* linux/arch/arm/mach-s3c6400/include/mach/dma.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      Ben Dooks <ben@simtec.co.uk>
- *      http://armlinux.simtec.co.uk/
- *
- * S3C6400 - DMA support
- */
+
 
 #ifndef __ASM_ARCH_DMA_H
 #define __ASM_ARCH_DMA_H __FILE__
 
 #define S3C_DMA_CHANNELS	(16)
 
-/* see mach-s3c2410/dma.h for notes on dma channel numbers */
 
-/* Note, for the S3C64XX architecture we keep the DMACH_
- * defines in the order they are allocated to [S]DMA0/[S]DMA1
- * so that is easy to do DHACH_ -> DMA controller conversion
- */
+
+
 enum dma_ch {
-	/* DMA0/SDMA0 */
+	
 	DMACH_UART0 = 0,
 	DMACH_UART0_SRC2,
 	DMACH_UART1,
@@ -38,7 +27,7 @@ enum dma_ch {
 	DMACH_HSI_I2SV40_TX,
 	DMACH_HSI_I2SV40_RX,
 
-	/* DMA1/SDMA1 */
+	
 	DMACH_PCM1_TX = 16,
 	DMACH_PCM1_RX,
 	DMACH_I2S1_OUT,
@@ -53,9 +42,9 @@ enum dma_ch {
 	DMACH_EXTERNAL,
 	DMACH_RES1,
 	DMACH_RES2,
-	DMACH_SECURITY_RX,	/* SDMA1 only */
-	DMACH_SECURITY_TX,	/* SDMA1 only */
-	DMACH_MAX		/* the end */
+	DMACH_SECURITY_RX,	
+	DMACH_SECURITY_TX,	
+	DMACH_MAX		
 };
 
 static __inline__ bool s3c_dma_has_circular(void)
@@ -67,4 +56,4 @@ static __inline__ bool s3c_dma_has_circular(void)
 
 #include <plat/dma.h>
 
-#endif /* __ASM_ARCH_IRQ_H */
+#endif 

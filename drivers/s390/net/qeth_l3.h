@@ -1,12 +1,4 @@
-/*
- *  drivers/s390/net/qeth_l3.h
- *
- *    Copyright IBM Corp. 2007
- *    Author(s): Utz Bacher <utz.bacher@de.ibm.com>,
- *		 Frank Pavlic <fpavlic@de.ibm.com>,
- *		 Thomas Spatzier <tspat@de.ibm.com>,
- *		 Frank Blaschka <frank.blaschka@de.ibm.com>
- */
+
 
 #ifndef __QETH_L3_H__
 #define __QETH_L3_H__
@@ -61,4 +53,4 @@ int qeth_l3_add_rxip(struct qeth_card *, enum qeth_prot_versions, const u8 *);
 void qeth_l3_del_rxip(struct qeth_card *card, enum qeth_prot_versions,
 			const u8 *);
 
-#endif /* __QETH_L3_H__ */
+#endif 

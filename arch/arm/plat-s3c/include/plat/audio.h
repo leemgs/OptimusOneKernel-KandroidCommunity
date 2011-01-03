@@ -1,27 +1,9 @@
-/* arch/arm/mach-s3c2410/include/mach/audio.h
- *
- * Copyright (c) 2004-2005 Simtec Electronics
- *	http://www.simtec.co.uk/products/SWLINUX/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX - Audio platfrom_device info
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __ASM_ARCH_AUDIO_H
 #define __ASM_ARCH_AUDIO_H __FILE__
 
-/* struct s3c24xx_iis_ops
- *
- * called from the s3c24xx audio core to deal with the architecture
- * or the codec's setup and control.
- *
- * the pointer to itself is passed through in case the caller wants to
- * embed this in an larger structure for easy reference to it's context.
-*/
+
 
 struct s3c24xx_iis_ops {
 	struct module *owner;
@@ -42,4 +24,4 @@ struct s3c24xx_platdata_iis {
 	int			(*match_dev)(struct device *dev);
 };
 
-#endif /* __ASM_ARCH_AUDIO_H */
+#endif 

@@ -1,13 +1,4 @@
-/*
- * Mailbox reservation modules for DSP
- *
- * Copyright (C) 2006-2009 Nokia Corporation
- * Written by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/resource.h>
@@ -50,7 +41,7 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
 	__raw_writew(val, mbox_base + ofs);
 }
 
-/* msg */
+
 static mbox_msg_t omap1_mbox_fifo_read(struct omap_mbox *mbox)
 {
 	struct omap_mbox1_fifo *fifo =
@@ -86,7 +77,7 @@ static int omap1_mbox_fifo_full(struct omap_mbox *mbox)
 	return (mbox_read_reg(fifo->flag));
 }
 
-/* irq */
+
 static void
 omap1_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_type_t irq)
 {
@@ -120,9 +111,9 @@ static struct omap_mbox_ops omap1_mbox_ops = {
 	.is_irq		= omap1_mbox_is_irq,
 };
 
-/* FIXME: the following struct should be created automatically by the user id */
 
-/* DSP */
+
+
 static struct omap_mbox1_priv omap1_mbox_dsp_priv = {
 	.tx_fifo = {
 		.cmd	= MAILBOX_ARM2DSP1b,
@@ -154,7 +145,7 @@ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	/* MBOX base */
+	
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (unlikely(!res)) {
 		dev_err(&pdev->dev, "invalid mem resource\n");
@@ -162,7 +153,7 @@ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
 	}
 	mbox_base = res->start;
 
-	/* DSP IRQ */
+	
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	if (unlikely(!res)) {
 		dev_err(&pdev->dev, "invalid irq resource\n");

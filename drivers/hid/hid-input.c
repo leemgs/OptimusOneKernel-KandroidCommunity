@@ -1,29 +1,6 @@
-/*
- *  Copyright (c) 2000-2001 Vojtech Pavlik
- *  Copyright (c) 2006-2007 Jiri Kosina
- *
- *  HID to Linux Input mapping
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -137,8 +114,7 @@ static int hidinput_setkeycode(struct input_dev *dev, int scancode,
 		clear_bit(old_keycode, dev->keybit);
 		set_bit(usage->code, dev->keybit);
 		dbg_hid(KERN_DEBUG "Assigned keycode %d to HID usage code %x\n", keycode, scancode);
-		/* Set the keybit for the old keycode if the old keycode is used
-		 * by another key */
+		
 		if (hidinput_find_key (hid, 0, old_keycode))
 			set_bit(old_keycode, dev->keybit);
 
@@ -162,7 +138,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 	if (field->flags & HID_MAIN_ITEM_CONSTANT)
 		goto ignore;
 
-	/* only LED usages are supported in output fields */
+	
 	if (field->report_type == HID_OUTPUT_REPORT &&
 			(usage->hid & HID_USAGE_PAGE) != HID_UP_LED) {
 		goto ignore;
@@ -225,7 +201,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		break;
 
 	case HID_UP_GENDESK:
-		if ((usage->hid & 0xf0) == 0x80) {	/* SystemControl */
+		if ((usage->hid & 0xf0) == 0x80) {	
 			switch (usage->hid & 0xf) {
 			case 0x1: map_key_clear(KEY_POWER);  break;
 			case 0x2: map_key_clear(KEY_SLEEP);  break;
@@ -235,7 +211,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 			break;
 		}
 
-		if ((usage->hid & 0xf0) == 0x90) {	/* D-pad */
+		if ((usage->hid & 0xf0) == 0x90) {	
 			switch (usage->hid) {
 			case HID_GD_UP:	   usage->hat_dir = 1; break;
 			case HID_GD_DOWN:  usage->hat_dir = 5; break;
@@ -252,7 +228,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		}
 
 		switch (usage->hid) {
-		/* These usage IDs map directly to the usage codes. */
+		
 		case HID_GD_X: case HID_GD_Y: case HID_GD_Z:
 		case HID_GD_RX: case HID_GD_RY: case HID_GD_RZ:
 		case HID_GD_SLIDER: case HID_GD_DIAL: case HID_GD_WHEEL:
@@ -277,18 +253,18 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		break;
 
 	case HID_UP_LED:
-		switch (usage->hid & 0xffff) {		      /* HID-Value:                   */
-		case 0x01:  map_led (LED_NUML);     break;    /*   "Num Lock"                 */
-		case 0x02:  map_led (LED_CAPSL);    break;    /*   "Caps Lock"                */
-		case 0x03:  map_led (LED_SCROLLL);  break;    /*   "Scroll Lock"              */
-		case 0x04:  map_led (LED_COMPOSE);  break;    /*   "Compose"                  */
-		case 0x05:  map_led (LED_KANA);     break;    /*   "Kana"                     */
-		case 0x27:  map_led (LED_SLEEP);    break;    /*   "Stand-By"                 */
-		case 0x4c:  map_led (LED_SUSPEND);  break;    /*   "System Suspend"           */
-		case 0x09:  map_led (LED_MUTE);     break;    /*   "Mute"                     */
-		case 0x4b:  map_led (LED_MISC);     break;    /*   "Generic Indicator"        */
-		case 0x19:  map_led (LED_MAIL);     break;    /*   "Message Waiting"          */
-		case 0x4d:  map_led (LED_CHARGING); break;    /*   "External Power Connected" */
+		switch (usage->hid & 0xffff) {		      
+		case 0x01:  map_led (LED_NUML);     break;    
+		case 0x02:  map_led (LED_CAPSL);    break;    
+		case 0x03:  map_led (LED_SCROLLL);  break;    
+		case 0x04:  map_led (LED_COMPOSE);  break;    
+		case 0x05:  map_led (LED_KANA);     break;    
+		case 0x27:  map_led (LED_SLEEP);    break;    
+		case 0x4c:  map_led (LED_SUSPEND);  break;    
+		case 0x09:  map_led (LED_MUTE);     break;    
+		case 0x4b:  map_led (LED_MISC);     break;    
+		case 0x19:  map_led (LED_MAIL);     break;    
+		case 0x4d:  map_led (LED_CHARGING); break;    
 
 		default: goto ignore;
 		}
@@ -296,7 +272,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 
 	case HID_UP_DIGITIZER:
 		switch (usage->hid & 0xff) {
-		case 0x30: /* TipPressure */
+		case 0x30: 
 			if (!test_bit(BTN_TOUCH, input->keybit)) {
 				device->quirks |= HID_QUIRK_NOTOUCH;
 				set_bit(EV_KEY, input->evbit);
@@ -305,7 +281,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 			map_abs_clear(ABS_PRESSURE);
 			break;
 
-		case 0x32: /* InRange */
+		case 0x32: 
 			switch (field->physical & 0xff) {
 			case 0x21: map_key(BTN_TOOL_MOUSE); break;
 			case 0x22: map_key(BTN_TOOL_FINGER); break;
@@ -313,18 +289,18 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 			}
 			break;
 
-		case 0x3c: /* Invert */
+		case 0x3c: 
 			map_key_clear(BTN_TOOL_RUBBER);
 			break;
 
-		case 0x33: /* Touch */
-		case 0x42: /* TipSwitch */
-		case 0x43: /* TipSwitch2 */
+		case 0x33: 
+		case 0x42: 
+		case 0x43: 
 			device->quirks &= ~HID_QUIRK_NOTOUCH;
 			map_key_clear(BTN_TOUCH);
 			break;
 
-		case 0x44: /* BarrelSwitch */
+		case 0x44: 
 			map_key_clear(BTN_STYLUS);
 			break;
 
@@ -332,7 +308,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		}
 		break;
 
-	case HID_UP_CONSUMER:	/* USB HUT v1.1, pages 56-62 */
+	case HID_UP_CONSUMER:	
 		switch (usage->hid & HID_USAGE) {
 		case 0x000: goto ignore;
 		case 0x034: map_key_clear(KEY_SLEEP);		break;
@@ -446,7 +422,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		}
 		break;
 
-	case HID_UP_HPVENDOR:	/* Reported on a Dutch layout HP5308 */
+	case HID_UP_HPVENDOR:	
 		set_bit(EV_REP, input->evbit);
 		switch (usage->hid & HID_USAGE) {
 		case 0x021: map_key_clear(KEY_PRINT);           break;
@@ -468,7 +444,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 	case HID_UP_MSVENDOR:
 		goto ignore;
 
-	case HID_UP_CUSTOM: /* Reported on Logitech and Apple USB keyboards */
+	case HID_UP_CUSTOM: 
 		set_bit(EV_REP, input->evbit);
 		goto ignore;
 
@@ -541,10 +517,7 @@ mapped:
 			field->dpad = usage->code;
 	}
 
-	/* for those devices which produce Consumer volume usage as relative,
-	 * we emulate pressing volumeup/volumedown appropriate number of times
-	 * in hidinput_hid_event()
-	 */
+	
 	if ((usage->type == EV_ABS) && (field->flags & HID_MAIN_ITEM_RELATIVE) &&
 			(usage->code == ABS_VOLUME)) {
 		set_bit(KEY_VOLUMEUP, input->keybit);
@@ -584,12 +557,12 @@ void hidinput_hid_event(struct hid_device *hid, struct hid_field *field, struct 
                 return;
         }
 
-	if (usage->hid == (HID_UP_DIGITIZER | 0x003c)) { /* Invert */
+	if (usage->hid == (HID_UP_DIGITIZER | 0x003c)) { 
 		*quirks = value ? (*quirks | HID_QUIRK_INVERT) : (*quirks & ~HID_QUIRK_INVERT);
 		return;
 	}
 
-	if (usage->hid == (HID_UP_DIGITIZER | 0x0032)) { /* InRange */
+	if (usage->hid == (HID_UP_DIGITIZER | 0x0032)) { 
 		if (value) {
 			input_event(input, usage->type, (*quirks & HID_QUIRK_INVERT) ? BTN_TOOL_RUBBER : usage->code, 1);
 			return;
@@ -599,13 +572,13 @@ void hidinput_hid_event(struct hid_device *hid, struct hid_field *field, struct 
 		return;
 	}
 
-	if (usage->hid == (HID_UP_DIGITIZER | 0x0030) && (*quirks & HID_QUIRK_NOTOUCH)) { /* Pressure */
+	if (usage->hid == (HID_UP_DIGITIZER | 0x0030) && (*quirks & HID_QUIRK_NOTOUCH)) { 
 		int a = field->logical_minimum;
 		int b = field->logical_maximum;
 		input_event(input, EV_KEY, BTN_TOUCH, value > a + ((b - a) >> 3));
 	}
 
-	if (usage->hid == (HID_UP_PID | 0x83UL)) { /* Simultaneous Effects Max */
+	if (usage->hid == (HID_UP_PID | 0x83UL)) { 
 		dbg_hid("Maximum Effects - %d\n",value);
 		return;
 	}
@@ -615,7 +588,7 @@ void hidinput_hid_event(struct hid_device *hid, struct hid_field *field, struct 
 		return;
 	}
 
-	if ((usage->type == EV_KEY) && (usage->code == 0)) /* Key 0 is "unassigned", not KEY_UNKNOWN */
+	if ((usage->type == EV_KEY) && (usage->code == 0)) 
 		return;
 
 	if ((usage->type == EV_ABS) && (field->flags & HID_MAIN_ITEM_RELATIVE) &&
@@ -633,7 +606,7 @@ void hidinput_hid_event(struct hid_device *hid, struct hid_field *field, struct 
 		return;
 	}
 
-	/* report the usage code as scancode if the key status has changed */
+	
 	if (usage->type == EV_KEY && !!test_bit(usage->code, input->key) != value)
 		input_event(input, EV_MSC, MSC_SCAN, usage->hid);
 
@@ -683,11 +656,7 @@ static void hidinput_close(struct input_dev *dev)
 	hid->ll_driver->close(hid);
 }
 
-/*
- * Register the input device; print a message.
- * Configure the input layer interface
- * Read all reports and initialize the absolute field values.
- */
+
 
 int hidinput_connect(struct hid_device *hid, unsigned int force)
 {
@@ -757,11 +726,7 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
 								 report->field[i]->usage + j);
 
 			if (hid->quirks & HID_QUIRK_MULTI_INPUT) {
-				/* This will leave hidinput NULL, so that it
-				 * allocates another one if we have more inputs on
-				 * the same interface. Some devices (e.g. Happ's
-				 * UGCI) cram a lot of unrelated inputs into the
-				 * same interface. */
+				
 				hidinput->report = report;
 				if (input_register_device(hidinput->input))
 					goto out_cleanup;
@@ -778,7 +743,7 @@ out_cleanup:
 	input_free_device(hidinput->input);
 	kfree(hidinput);
 out_unwind:
-	/* unwind the ones we already registered */
+	
 	hidinput_disconnect(hid);
 
 	return -1;

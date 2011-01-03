@@ -1,23 +1,4 @@
-/*
- *  linux/arch/arm/common/vic.c
- *
- *  Copyright (C) 1999 - 2003 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/init.h>
 #include <linux/list.h>
 #include <linux/io.h>
@@ -33,7 +14,7 @@ static void vic_ack_irq(unsigned int irq)
 	void __iomem *base = get_irq_chip_data(irq);
 	irq &= 31;
 	writel(1 << irq, base + VIC_INT_ENABLE_CLEAR);
-	/* moreover, clear the soft-triggered, in case it was the reason */
+	
 	writel(1 << irq, base + VIC_INT_SOFT_CLEAR);
 }
 
@@ -51,13 +32,7 @@ static void vic_unmask_irq(unsigned int irq)
 	writel(1 << irq, base + VIC_INT_ENABLE);
 }
 
-/**
- * vic_init2 - common initialisation code
- * @base: Base of the VIC.
- *
- * Common initialisation code for registeration
- * and resume.
-*/
+
 static void vic_init2(void __iomem *base)
 {
 	int i;
@@ -71,18 +46,7 @@ static void vic_init2(void __iomem *base)
 }
 
 #if defined(CONFIG_PM)
-/**
- * struct vic_device - VIC PM device
- * @sysdev: The system device which is registered.
- * @irq: The IRQ number for the base of the VIC.
- * @base: The register base for the VIC.
- * @resume_sources: A bitmask of interrupts for resume.
- * @resume_irqs: The IRQs enabled for resume.
- * @int_select: Save for VIC_INT_SELECT.
- * @int_enable: Save for VIC_INT_ENABLE.
- * @soft_int: Save for VIC_INT_SOFT.
- * @protect: Save for VIC_PROTECT.
- */
+
 struct vic_device {
 	struct sys_device sysdev;
 
@@ -96,7 +60,7 @@ struct vic_device {
 	u32		protect;
 };
 
-/* we cannot allocate memory when VICs are initially registered */
+
 static struct vic_device vic_devices[CONFIG_ARM_VIC_NR];
 
 static inline struct vic_device *to_vic(struct sys_device *sys)
@@ -113,17 +77,17 @@ static int vic_class_resume(struct sys_device *dev)
 
 	printk(KERN_DEBUG "%s: resuming vic at %p\n", __func__, base);
 
-	/* re-initialise static settings */
+	
 	vic_init2(base);
 
 	writel(vic->int_select, base + VIC_INT_SELECT);
 	writel(vic->protect, base + VIC_PROTECT);
 
-	/* set the enabled ints and then clear the non-enabled */
+	
 	writel(vic->int_enable, base + VIC_INT_ENABLE);
 	writel(~vic->int_enable, base + VIC_INT_ENABLE_CLEAR);
 
-	/* and the same for the soft-int register */
+	
 
 	writel(vic->soft_int, base + VIC_INT_SOFT);
 	writel(~vic->soft_int, base + VIC_INT_SOFT_CLEAR);
@@ -143,8 +107,7 @@ static int vic_class_suspend(struct sys_device *dev, pm_message_t state)
 	vic->soft_int = readl(base + VIC_INT_SOFT);
 	vic->protect = readl(base + VIC_PROTECT);
 
-	/* set the interrupts (if any) that are used for
-	 * resuming the system */
+	
 
 	writel(vic->resume_irqs, base + VIC_INT_ENABLE);
 	writel(~vic->resume_irqs, base + VIC_INT_ENABLE_CLEAR);
@@ -158,16 +121,7 @@ struct sysdev_class vic_class = {
 	.resume		= vic_class_resume,
 };
 
-/**
- * vic_pm_register - Register a VIC for later power management control
- * @base: The base address of the VIC.
- * @irq: The base IRQ for the VIC.
- * @resume_sources: bitmask of interrupts allowed for resume sources.
- *
- * Register the VIC with the system device tree so that it can be notified
- * of suspend and resume requests and ensure that the correct actions are
- * taken to re-instate the settings on resume.
- */
+
 static void __init vic_pm_register(void __iomem *base, unsigned int irq, u32 resume_sources)
 {
 	struct vic_device *v;
@@ -183,13 +137,7 @@ static void __init vic_pm_register(void __iomem *base, unsigned int irq, u32 res
 	}
 }
 
-/**
- * vic_pm_init - initicall to register VIC pm
- *
- * This is called via late_initcall() to register
- * the resources for the VICs due to the early
- * nature of the VIC's registration.
-*/
+
 static int __init vic_pm_init(void)
 {
 	struct vic_device *dev = vic_devices;
@@ -260,7 +208,7 @@ static int vic_set_wake(unsigned int irq, unsigned int on)
 static inline void vic_pm_register(void __iomem *base, unsigned int irq, u32 arg1) { }
 
 #define vic_set_wake NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static struct irq_chip vic_chip = {
 	.name	= "VIC",
@@ -270,17 +218,11 @@ static struct irq_chip vic_chip = {
 	.set_wake = vic_set_wake,
 };
 
-/* The PL190 cell from ARM has been modified by ST, so handle both here */
+
 static void vik_init_st(void __iomem *base, unsigned int irq_start,
 			 u32 vic_sources);
 
-/**
- * vic_init - initialise a vectored interrupt controller
- * @base: iomem base address
- * @irq_start: starting interrupt number, must be muliple of 32
- * @vic_sources: bitmask of interrupt sources to allow
- * @resume_sources: bitmask of interrupt sources to allow for resume
- */
+
 void __init vic_init(void __iomem *base, unsigned int irq_start,
 		     u32 vic_sources, u32 resume_sources)
 {
@@ -288,7 +230,7 @@ void __init vic_init(void __iomem *base, unsigned int irq_start,
 	u32 cellid = 0;
 	enum amba_vendor vendor;
 
-	/* Identify which VIC cell this one is, by reading the ID */
+	
 	for (i = 0; i < 4; i++) {
 		u32 addr = ((u32)base & PAGE_MASK) + 0xfe0 + (i * 4);
 		cellid |= (readl(addr) & 0xff) << (8 * i);
@@ -303,12 +245,12 @@ void __init vic_init(void __iomem *base, unsigned int irq_start,
 		return;
 	default:
 		printk(KERN_WARNING "VIC: unknown vendor, continuing anyways\n");
-		/* fall through */
+		
 	case AMBA_VENDOR_ARM:
 		break;
 	}
 
-	/* Disable all interrupts initially. */
+	
 
 	writel(0, base + VIC_INT_SELECT);
 	writel(0, base + VIC_INT_ENABLE);
@@ -317,9 +259,7 @@ void __init vic_init(void __iomem *base, unsigned int irq_start,
 	writel(0, base + VIC_ITCR);
 	writel(~0, base + VIC_INT_SOFT_CLEAR);
 
-	/*
-	 * Make sure we clear all existing interrupts
-	 */
+	
 	writel(0, base + VIC_PL190_VECT_ADDR);
 	for (i = 0; i < 19; i++) {
 		unsigned int value;
@@ -344,20 +284,14 @@ void __init vic_init(void __iomem *base, unsigned int irq_start,
 	vic_pm_register(base, irq_start, resume_sources);
 }
 
-/*
- * The PL190 cell from ARM has been modified by ST to handle 64 interrupts.
- * The original cell has 32 interrupts, while the modified one has 64,
- * replocating two blocks 0x00..0x1f in 0x20..0x3f. In that case
- * the probe function is called twice, with base set to offset 000
- *  and 020 within the page. We call this "second block".
- */
+
 static void __init vik_init_st(void __iomem *base, unsigned int irq_start,
 				u32 vic_sources)
 {
 	unsigned int i;
 	int vic_2nd_block = ((unsigned long)base & ~PAGE_MASK) != 0;
 
-	/* Disable all interrupts initially. */
+	
 
 	writel(0, base + VIC_INT_SELECT);
 	writel(0, base + VIC_INT_ENABLE);
@@ -366,12 +300,7 @@ static void __init vik_init_st(void __iomem *base, unsigned int irq_start,
 	writel(0, base + VIC_ITCR);
 	writel(~0, base + VIC_INT_SOFT_CLEAR);
 
-	/*
-	 * Make sure we clear all existing interrupts. The vector registers
-	 * in this cell are after the second block of general registers,
-	 * so we can address them using standard offsets, but only from
-	 * the second base address, which is 0x20 in the page
-	 */
+	
 	if (vic_2nd_block) {
 		writel(0, base + VIC_PL190_VECT_ADDR);
 		for (i = 0; i < 19; i++) {
@@ -380,7 +309,7 @@ static void __init vik_init_st(void __iomem *base, unsigned int irq_start,
 			value = readl(base + VIC_PL190_VECT_ADDR);
 			writel(value, base + VIC_PL190_VECT_ADDR);
 		}
-		/* ST has 16 vectors as well, but we don't enable them by now */
+		
 		for (i = 0; i < 16; i++) {
 			void __iomem *reg = base + VIC_VECT_CNTL0 + (i * 4);
 			writel(0, reg);

@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-loki/lb88rc8480-setup.c
- *
- * Marvell LB88RC8480 Development Board Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -47,7 +39,7 @@ static struct mtd_partition lb88rc8480_boot_flash_parts[] = {
 static struct physmap_flash_data lb88rc8480_boot_flash_data = {
 	.parts		= lb88rc8480_boot_flash_parts,
 	.nr_parts	= ARRAY_SIZE(lb88rc8480_boot_flash_parts),
-	.width		= 1,	/* 8 bit bus width */
+	.width		= 1,	
 };
 
 static struct resource lb88rc8480_boot_flash_resource = {
@@ -73,9 +65,7 @@ static struct mv643xx_eth_platform_data lb88rc8480_ge0_data = {
 
 static void __init lb88rc8480_init(void)
 {
-	/*
-	 * Basic setup. Needs to be called early.
-	 */
+	
 	loki_init();
 
 	loki_ge0_init(&lb88rc8480_ge0_data);
@@ -89,7 +79,7 @@ static void __init lb88rc8480_init(void)
 }
 
 MACHINE_START(LB88RC8480, "Marvell LB88RC8480 Development Board")
-	/* Maintainer: Ke Wei <kewei@marvell.com> */
+	
 	.phys_io	= LOKI_REGS_PHYS_BASE,
 	.io_pg_offst	= ((LOKI_REGS_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

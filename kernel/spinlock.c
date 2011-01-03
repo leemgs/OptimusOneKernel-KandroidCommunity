@@ -1,18 +1,4 @@
-/*
- * Copyright (2004) Linus Torvalds
- *
- * Author: Zwane Mwaikambo <zwane@fsmlabs.com>
- *
- * Copyright (2004, 2005) Ingo Molnar
- *
- * This file contains the spinlock/rwlock implementations for the
- * SMP and the DEBUG_SPINLOCK cases. (UP-nondebug inlines them)
- *
- * Note that some architectures have special knowledge about the
- * stack frames of these functions in their profile_pc. If you
- * change anything significant here that could change the stack
- * frame contact the architecture maintainers.
- */
+
 
 #include <linux/linkage.h>
 #include <linux/preempt.h>
@@ -45,11 +31,7 @@ int __lockfunc _write_trylock(rwlock_t *lock)
 EXPORT_SYMBOL(_write_trylock);
 #endif
 
-/*
- * If lockdep is enabled then we use the non-preemption spin-ops
- * even on CONFIG_PREEMPT, because lockdep assumes that interrupts are
- * not re-enabled during lock-acquire (which the preempt-spin-ops do):
- */
+
 #if !defined(CONFIG_GENERIC_LOCKBREAK) || defined(CONFIG_DEBUG_LOCK_ALLOC)
 
 #ifndef _read_lock
@@ -148,15 +130,9 @@ void __lockfunc _write_lock(rwlock_t *lock)
 EXPORT_SYMBOL(_write_lock);
 #endif
 
-#else /* CONFIG_PREEMPT: */
+#else 
 
-/*
- * This could be a long-held lock. We both prepare to spin for a long
- * time (making _this_ CPU preemptable if possible), and we also signal
- * towards that other CPU that it should break the lock ASAP.
- *
- * (We do this in a function because inlining it would be excessive.)
- */
+
 
 #define BUILD_LOCK_OPS(op, locktype)					\
 void __lockfunc _##op##_lock(locktype##_t *lock)			\
@@ -211,11 +187,11 @@ void __lockfunc _##op##_lock_bh(locktype##_t *lock)			\
 {									\
 	unsigned long flags;						\
 									\
-	/*							*/	\
-	/* Careful: we must exclude softirqs too, hence the	*/	\
-	/* irq-disabling. We use the generic preemption-aware	*/	\
-	/* function:						*/	\
-	/**/								\
+		\
+		\
+		\
+		\
+									\
 	flags = _##op##_lock_irqsave(lock);				\
 	local_bh_disable();						\
 	local_irq_restore(flags);					\
@@ -223,20 +199,12 @@ void __lockfunc _##op##_lock_bh(locktype##_t *lock)			\
 									\
 EXPORT_SYMBOL(_##op##_lock_bh)
 
-/*
- * Build preemption-friendly versions of the following
- * lock-spinning functions:
- *
- *         _[spin|read|write]_lock()
- *         _[spin|read|write]_lock_irq()
- *         _[spin|read|write]_lock_irqsave()
- *         _[spin|read|write]_lock_bh()
- */
+
 BUILD_LOCK_OPS(spin, spinlock);
 BUILD_LOCK_OPS(read, rwlock);
 BUILD_LOCK_OPS(write, rwlock);
 
-#endif /* CONFIG_PREEMPT */
+#endif 
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 
@@ -378,7 +346,7 @@ EXPORT_SYMBOL(_spin_trylock_bh);
 
 notrace int in_lock_functions(unsigned long addr)
 {
-	/* Linker adds these: start and end of __lockfunc functions */
+	
 	extern char __lock_text_start[], __lock_text_end[];
 
 	return addr >= (unsigned long)__lock_text_start

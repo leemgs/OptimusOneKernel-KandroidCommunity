@@ -1,13 +1,4 @@
-/*
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- * Copyright 2006-2007	Jiri Benc <jbenc@suse.cz>
- * Copyright 2007-2008	Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/if_ether.h>
 #include <linux/etherdevice.h>
@@ -22,35 +13,11 @@
 #include "aes_cmac.h"
 
 
-/**
- * DOC: Key handling basics
- *
- * Key handling in mac80211 is done based on per-interface (sub_if_data)
- * keys and per-station keys. Since each station belongs to an interface,
- * each station key also belongs to that interface.
- *
- * Hardware acceleration is done on a best-effort basis, for each key
- * that is eligible the hardware is asked to enable that key but if
- * it cannot do that they key is simply kept for software encryption.
- * There is currently no way of knowing this except by looking into
- * debugfs.
- *
- * All key operations are protected internally so you can call them at
- * any time.
- *
- * Within mac80211, key references are, just as STA structure references,
- * protected by RCU. Note, however, that some things are unprotected,
- * namely the key->sta dereferences within the hardware acceleration
- * functions. This means that sta_info_destroy() must flush the key todo
- * list.
- *
- * All the direct key list manipulation functions must not sleep because
- * they can operate on STA info structs that are protected by RCU.
- */
+
 
 static const u8 bcast_addr[ETH_ALEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
-/* key mutex: used to synchronise todo runners */
+
 static DEFINE_MUTEX(key_mutex);
 static DEFINE_SPINLOCK(todo_lock);
 static LIST_HEAD(todo_list);
@@ -62,14 +29,7 @@ static void key_todo(struct work_struct *work)
 
 static DECLARE_WORK(todo_work, key_todo);
 
-/**
- * add_todo - add todo item for a key
- *
- * @key: key to add to do item for
- * @flag: todo flag(s)
- *
- * Must be called with IRQs or softirqs disabled.
- */
+
 static void add_todo(struct ieee80211_key *key, u32 flag)
 {
 	if (!key)
@@ -77,9 +37,7 @@ static void add_todo(struct ieee80211_key *key, u32 flag)
 
 	spin_lock(&todo_lock);
 	key->flags |= flag;
-	/*
-	 * Remove again if already on the list so that we move it to the end.
-	 */
+	
 	if (!list_empty(&key->todo))
 		list_del(&key->todo);
 	list_add_tail(&key->todo, &todo_list);
@@ -87,20 +45,13 @@ static void add_todo(struct ieee80211_key *key, u32 flag)
 	spin_unlock(&todo_lock);
 }
 
-/**
- * ieee80211_key_lock - lock the mac80211 key operation lock
- *
- * This locks the (global) mac80211 key operation lock, all
- * key operations must be done under this lock.
- */
+
 static void ieee80211_key_lock(void)
 {
 	mutex_lock(&key_mutex);
 }
 
-/**
- * ieee80211_key_unlock - unlock the mac80211 key operation lock
- */
+
 static void ieee80211_key_unlock(void)
 {
 	mutex_unlock(&key_mutex);
@@ -281,10 +232,7 @@ static void __ieee80211_key_replace(struct ieee80211_sub_if_data *sdata,
 	}
 
 	if (old) {
-		/*
-		 * We'll use an empty list to indicate that the key
-		 * has already been removed.
-		 */
+		
 		list_del_init(&old->list);
 	}
 }
@@ -304,10 +252,7 @@ struct ieee80211_key *ieee80211_key_alloc(enum ieee80211_key_alg alg,
 	if (!key)
 		return NULL;
 
-	/*
-	 * Default to software encryption; we'll later upload the
-	 * key to the hardware if possible.
-	 */
+	
 	key->conf.flags = 0;
 	key->flags = 0;
 
@@ -354,10 +299,7 @@ struct ieee80211_key *ieee80211_key_alloc(enum ieee80211_key_alg alg,
 	INIT_LIST_HEAD(&key->todo);
 
 	if (alg == ALG_CCMP) {
-		/*
-		 * Initialize AES key state here as an optimization so that
-		 * it does not need to be initialized for every packet.
-		 */
+		
 		key->u.ccmp.tfm = ieee80211_aes_key_setup_encrypt(key_data);
 		if (!key->u.ccmp.tfm) {
 			kfree(key);
@@ -366,10 +308,7 @@ struct ieee80211_key *ieee80211_key_alloc(enum ieee80211_key_alg alg,
 	}
 
 	if (alg == ALG_AES_CMAC) {
-		/*
-		 * Initialize AES key state here as an optimization so that
-		 * it does not need to be initialized for every packet.
-		 */
+		
 		key->u.aes_cmac.tfm =
 			ieee80211_aes_cmac_key_setup(key_data);
 		if (!key->u.aes_cmac.tfm) {
@@ -398,29 +337,19 @@ void ieee80211_key_link(struct ieee80211_key *key,
 	key->sta = sta;
 
 	if (sta) {
-		/*
-		 * some hardware cannot handle TKIP with QoS, so
-		 * we indicate whether QoS could be in use.
-		 */
+		
 		if (test_sta_flags(sta, WLAN_STA_WME))
 			key->conf.flags |= IEEE80211_KEY_FLAG_WMM_STA;
 
-		/*
-		 * This key is for a specific sta interface,
-		 * inform the driver that it should try to store
-		 * this key as pairwise key.
-		 */
+		
 		key->conf.flags |= IEEE80211_KEY_FLAG_PAIRWISE;
 	} else {
 		if (sdata->vif.type == NL80211_IFTYPE_STATION) {
 			struct sta_info *ap;
 
-			/*
-			 * We're getting a sta pointer in,
-			 * so must be under RCU read lock.
-			 */
+			
 
-			/* same here, the AP could be using QoS */
+			
 			ap = sta_info_get(key->local, key->sdata->u.mgd.bssid);
 			if (ap) {
 				if (test_sta_flags(ap, WLAN_STA_WME))
@@ -439,7 +368,7 @@ void ieee80211_key_link(struct ieee80211_key *key,
 
 	__ieee80211_key_replace(sdata, sta, old_key, key);
 
-	/* free old key later */
+	
 	add_todo(old_key, KEY_FLAG_TODO_DELETE);
 
 	add_todo(key, KEY_FLAG_TODO_ADD_DEBUGFS);
@@ -451,9 +380,7 @@ void ieee80211_key_link(struct ieee80211_key *key,
 
 static void __ieee80211_key_free(struct ieee80211_key *key)
 {
-	/*
-	 * Replace key with nothingness if it was ever used.
-	 */
+	
 	if (key->sdata)
 		__ieee80211_key_replace(key->sdata, key->sta,
 					key, NULL);
@@ -469,8 +396,7 @@ void ieee80211_key_free(struct ieee80211_key *key)
 		return;
 
 	if (!key->sdata) {
-		/* The key has not been linked yet, simply free it
-		 * and don't Oops */
+		
 		if (key->conf.alg == ALG_CCMP)
 			ieee80211_aes_key_free(key->u.ccmp.tfm);
 		kfree(key);
@@ -482,13 +408,7 @@ void ieee80211_key_free(struct ieee80211_key *key)
 	spin_unlock_irqrestore(&key->sdata->local->key_lock, flags);
 }
 
-/*
- * To be safe against concurrent manipulations of the list (which shouldn't
- * actually happen) we need to hold the spinlock. But under the spinlock we
- * can't actually do much, so we defer processing to the todo list. Then run
- * the todo list to be sure the operation and possibly previously pending
- * operations are completed.
- */
+
 static void ieee80211_todo_for_each_key(struct ieee80211_sub_if_data *sdata,
 					u32 todo_flags)
 {
@@ -544,9 +464,7 @@ static void __ieee80211_key_todo(void)
 	bool work_done;
 	u32 todoflags;
 
-	/*
-	 * NB: sta_info_destroy relies on this!
-	 */
+	
 	synchronize_rcu();
 
 	spin_lock_bh(&todo_lock);

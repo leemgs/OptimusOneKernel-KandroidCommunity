@@ -1,14 +1,4 @@
-/*
- * Generic implementation of 64-bit atomics using spinlocks,
- * useful on processors that don't have 64-bit atomic instructions.
- *
- * Copyright © 2009 Paul Mackerras, IBM Corp. <paulus@au1.ibm.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 #ifndef _ASM_GENERIC_ATOMIC64_H
 #define _ASM_GENERIC_ATOMIC64_H
 
@@ -39,4 +29,4 @@ extern int	 atomic64_add_unless(atomic64_t *v, long long a, long long u);
 #define atomic64_dec_and_test(v)	(atomic64_dec_return((v)) == 0)
 #define atomic64_inc_not_zero(v) 	atomic64_add_unless((v), 1LL, 0LL)
 
-#endif  /*  _ASM_GENERIC_ATOMIC64_H  */
+#endif  

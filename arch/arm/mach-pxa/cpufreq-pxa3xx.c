@@ -1,13 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/cpufreq-pxa3xx.c
- *
- * Copyright (C) 2008 Marvell International Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -49,8 +40,8 @@ struct pxa3xx_freq_info {
 	unsigned int sflfs : 2;
 	unsigned int df_clkdiv : 3;
 
-	int	vcc_core;	/* in mV */
-	int	vcc_sram;	/* in mV */
+	int	vcc_core;	
+	int	vcc_sram;	
 };
 
 #define OP(cpufreq, _xl, _xn, _hss, _dmc, _smc, _sfl, _dfi, vcore, vsram) \
@@ -68,20 +59,20 @@ struct pxa3xx_freq_info {
 }
 
 static struct pxa3xx_freq_info pxa300_freqs[] = {
-	/*  CPU XL XN  HSS DMEM SMEM SRAM DFI VCC_CORE VCC_SRAM */
-	OP(104,  8, 1, 104, 260,  78, 104, 3, 1000, 1100), /* 104MHz */
-	OP(208, 16, 1, 104, 260, 104, 156, 2, 1000, 1100), /* 208MHz */
-	OP(416, 16, 2, 156, 260, 104, 208, 2, 1100, 1200), /* 416MHz */
-	OP(624, 24, 2, 208, 260, 208, 312, 3, 1375, 1400), /* 624MHz */
+	
+	OP(104,  8, 1, 104, 260,  78, 104, 3, 1000, 1100), 
+	OP(208, 16, 1, 104, 260, 104, 156, 2, 1000, 1100), 
+	OP(416, 16, 2, 156, 260, 104, 208, 2, 1100, 1200), 
+	OP(624, 24, 2, 208, 260, 208, 312, 3, 1375, 1400), 
 };
 
 static struct pxa3xx_freq_info pxa320_freqs[] = {
-	/*  CPU XL XN  HSS DMEM SMEM SRAM DFI VCC_CORE VCC_SRAM */
-	OP(104,  8, 1, 104, 260,  78, 104, 3, 1000, 1100), /* 104MHz */
-	OP(208, 16, 1, 104, 260, 104, 156, 2, 1000, 1100), /* 208MHz */
-	OP(416, 16, 2, 156, 260, 104, 208, 2, 1100, 1200), /* 416MHz */
-	OP(624, 24, 2, 208, 260, 208, 312, 3, 1375, 1400), /* 624MHz */
-	OP(806, 31, 2, 208, 260, 208, 312, 3, 1400, 1400), /* 806MHz */
+	
+	OP(104,  8, 1, 104, 260,  78, 104, 3, 1000, 1100), 
+	OP(208, 16, 1, 104, 260, 104, 156, 2, 1000, 1100), 
+	OP(416, 16, 2, 156, 260, 104, 208, 2, 1100, 1200), 
+	OP(624, 24, 2, 208, 260, 208, 312, 3, 1375, 1400), 
+	OP(806, 31, 2, 208, 260, 208, 312, 3, 1400, 1400), 
 };
 
 static unsigned int pxa3xx_freqs_num;
@@ -121,10 +112,10 @@ static void __update_core_freq(struct pxa3xx_freq_info *info)
 	accr &= ~(ACCR_XN_MASK | ACCR_XL_MASK | ACCR_XSPCLK_MASK);
 	accr |= ACCR_XN(info->core_xn) | ACCR_XL(info->core_xl);
 
-	/* No clock until core PLL is re-locked */
+	
 	accr |= ACCR_XSPCLK(XSPCLK_NONE);
 
-	xclkcfg = (info->core_xn == 2) ? 0x3 : 0x2;	/* turbo bit */
+	xclkcfg = (info->core_xn == 2) ? 0x3 : 0x2;	
 
 	ACCR = accr;
 	__asm__("mcr p14, 0, %0, c6, c0, 0\n" : : "r"(xclkcfg));
@@ -173,7 +164,7 @@ static int pxa3xx_cpufreq_set(struct cpufreq_policy *policy,
 	if (policy->cpu != 0)
 		return -EINVAL;
 
-	/* Lookup the next frequency */
+	
 	if (cpufreq_frequency_table_target(policy, pxa3xx_freqs_table,
 				target_freq, relation, &idx))
 		return -EINVAL;
@@ -207,10 +198,10 @@ static __init int pxa3xx_cpufreq_init(struct cpufreq_policy *policy)
 {
 	int ret = -EINVAL;
 
-	/* set default policy and cpuinfo */
+	
 	policy->cpuinfo.min_freq = 104000;
 	policy->cpuinfo.max_freq = (cpu_is_pxa320()) ? 806000 : 624000;
-	policy->cpuinfo.transition_latency = 1000; /* FIXME: 1 ms, assumed */
+	policy->cpuinfo.transition_latency = 1000; 
 	policy->cur = policy->min = policy->max = get_clk_frequency_khz(0);
 
 	if (cpu_is_pxa300() || cpu_is_pxa310())

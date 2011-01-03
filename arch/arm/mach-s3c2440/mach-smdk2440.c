@@ -1,17 +1,4 @@
-/* linux/arch/arm/mach-s3c2440/mach-smdk2440.c
- *
- * Copyright (c) 2004,2005 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * http://www.fluff.org/ben/smdk2440/
- *
- * Thanks to Dimity Andric and TomTom for the loan of an SMDK2440.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -48,7 +35,7 @@
 #include <plat/common-smdk.h>
 
 static struct map_desc smdk2440_iodesc[] __initdata = {
-	/* ISA IO Space map (memory space selected by A24) */
+	
 
 	{
 		.virtual	= (u32)S3C24XX_VA_ISA_WORD,
@@ -92,7 +79,7 @@ static struct s3c2410_uartcfg smdk2440_uartcfgs[] __initdata = {
 		.ulcon	     = 0x03,
 		.ufcon	     = 0x51,
 	},
-	/* IR port */
+	
 	[2] = {
 		.hwport	     = 2,
 		.flags	     = 0,
@@ -102,7 +89,7 @@ static struct s3c2410_uartcfg smdk2440_uartcfgs[] __initdata = {
 	}
 };
 
-/* LCD driver info */
+
 
 static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
 
@@ -117,7 +104,7 @@ static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
 	.width		= 240,
 	.height		= 320,
 
-	.pixclock	= 166667, /* HCLK 60 MHz, divisor 10 */
+	.pixclock	= 166667, 
 	.xres		= 240,
 	.yres		= 320,
 	.bpp		= 16,
@@ -135,7 +122,7 @@ static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
 	.default_display = 0,
 
 #if 0
-	/* currently setup by downloader */
+	
 	.gpccon		= 0xaa940659,
 	.gpccon_mask	= 0xffffffff,
 	.gpcup		= 0x0000ffff,
@@ -174,7 +161,7 @@ static void __init smdk2440_machine_init(void)
 }
 
 MACHINE_START(S3C2440, "SMDK2440")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

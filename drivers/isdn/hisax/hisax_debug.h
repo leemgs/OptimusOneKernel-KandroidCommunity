@@ -1,23 +1,4 @@
-/*
- * Common debugging macros for use with the hisax driver
- *
- * Author       Frode Isaksen
- * Copyright    2001 by Frode Isaksen      <fisaksen@bewan.com>
- *              2001 by Kai Germaschewski  <kai.germaschewski@gmx.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * How to use:
- * 
- * Before including this file, you need to
- *   #define __debug_variable my_debug
- * where my_debug is a variable in your code which
- * determines the debug bitmask.
- *
- * If CONFIG_HISAX_DEBUG is not set, all macros evaluate to nothing
- *
- */
+
 
 #ifndef __HISAX_DEBUG_H__
 #define __HISAX_DEBUG_H__

@@ -1,30 +1,7 @@
 
-/*
- *
-  Copyright (c) Eicon Networks, 2002.
- *
-  This source file is supplied for the use with
-  Eicon Networks range of DIVA Server Adapters.
- *
-  Eicon File Revision :    2.1
- *
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
- *
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU General Public License for more details.
- *
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #ifdef PLATFORM_GT_32BIT
-/* #define POINTER_32BIT byte * __ptr32 */
+
 #define POINTER_32BIT dword 
 #else
 #define POINTER_32BIT byte *
@@ -109,7 +86,7 @@ typedef union
   struct OSStruc OSStats;
   byte   b[BUFFER_SZ];
   word   w[BUFFER_SZ>>1];
-  word   l[BUFFER_SZ>>2]; /* word is wrong, do not use! Use 'd' instead. */
+  word   l[BUFFER_SZ>>2]; 
   dword  d[BUFFER_SZ>>2];
 } BUFFER;
 typedef union
@@ -120,7 +97,7 @@ typedef union
   struct OSStruc OSStats;
   byte   b[MIPS_BUFFER_SZ];
   word   w[MIPS_BUFFER_SZ>>1];
-  word   l[BUFFER_SZ>>2]; /* word is wrong, do not use! Use 'd' instead. */
+  word   l[BUFFER_SZ>>2]; 
   dword  d[MIPS_BUFFER_SZ>>2];
 } MIPS_BUFFER;
 #if !defined(MIPS_SCOM)
@@ -139,11 +116,11 @@ struct pc_maint
 {
   byte req;
   byte rc;
-  byte reserved[2];     /* R3000 alignment ... */
+  byte reserved[2];     
   POINTER_32BIT mem;
   short length;
   word port;
-  byte fill[4];         /* data at offset 16   */
+  byte fill[4];         
   BUFFER data;
 };
 #endif
@@ -151,10 +128,10 @@ struct mi_pc_maint
 {
   byte req;
   byte rc;
-  byte reserved[2];     /* R3000 alignment ... */
+  byte reserved[2];     
   POINTER_32BIT mem;
   short length;
   word port;
-  byte fill[4];         /* data at offset 16   */
+  byte fill[4];         
   MIPS_BUFFER data;
 };

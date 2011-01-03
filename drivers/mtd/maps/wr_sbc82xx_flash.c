@@ -1,11 +1,4 @@
-/*
- * Map for flash chips on Wind River PowerQUICC II SBC82xx board.
- *
- * Copyright (C) 2004 Red Hat, Inc.
- *
- * Author: David Woodhouse <dwmw2@infradead.org>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -107,7 +100,7 @@ static int __init init_sbc82xx_flash(void)
 		       (sbc82xx_flash_map[i].size >> 20),
 		       flashcs[i]);
 		if (!sbc82xx_flash_map[i].phys) {
-			/* We know it can't be at zero. */
+			
 			printk("): disabled by bootloader.\n");
 			continue;
 		}
@@ -136,7 +129,7 @@ static int __init init_sbc82xx_flash(void)
 			continue;
 		}
 
-		/* No partitioning detected. Use default */
+		
 		if (i == 2) {
 			add_mtd_device(sbcmtd[i]);
 		} else if (i == bigflash) {

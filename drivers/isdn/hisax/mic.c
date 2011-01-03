@@ -1,14 +1,4 @@
-/* $Id: mic.c,v 1.12.2.4 2004/01/13 23:48:39 keil Exp $
- *
- * low level stuff for mic cards
- *
- * Author       Stephan von Krawczynski
- * Copyright    by Stephan von Krawczynski <skraw@ithnet.com>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -25,8 +15,8 @@ static const char *mic_revision = "$Revision: 1.12.2.4 $";
 #define MIC_HSCX	1
 #define MIC_ADR		7
 
-/* CARD_ADR (Write) */
-#define MIC_RESET      0x3	/* same as DOS driver */
+
+#define MIC_RESET      0x3	
 
 static inline u_char
 readreg(unsigned int ale, unsigned int adr, u_char off)
@@ -60,7 +50,7 @@ writefifo(unsigned int ale, unsigned int adr, u_char off, u_char * data, int siz
 	outsb(adr, data, size);
 }
 
-/* Interface functions */
+
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -100,9 +90,7 @@ WriteHSCX(struct IsdnCardState *cs, int hscx, u_char offset, u_char value)
 		 cs->hw.mic.hscx, offset + (hscx ? 0x40 : 0), value);
 }
 
-/*
- * fast interrupt HSCX stuff goes here
- */
+
 
 #define READHSCX(cs, nr, reg) readreg(cs->hw.mic.adr, \
 		cs->hw.mic.hscx, reg + (nr ? 0x40 : 0))
@@ -177,7 +165,7 @@ mic_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 			return(0);
 		case CARD_INIT:
 			spin_lock_irqsave(&cs->lock, flags);
-			inithscx(cs); /* /RTSA := ISAC RST */
+			inithscx(cs); 
 			inithscxisac(cs, 3);
 			spin_unlock_irqrestore(&cs->lock, flags);
 			return(0);

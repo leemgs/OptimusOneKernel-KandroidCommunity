@@ -1,15 +1,4 @@
-/*
- * linux/kernel/power/swap.c
- *
- * This file provides functions for reading the suspend image from
- * and writing it to a swap partition.
- *
- * Copyright (C) 1998,2001-2005 Pavel Machek <pavel@suse.cz>
- * Copyright (C) 2006 Rafael J. Wysocki <rjw@sisk.pl>
- *
- * This file is released under the GPLv2.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/file.h>
@@ -31,31 +20,19 @@
 struct swsusp_header {
 	char reserved[PAGE_SIZE - 20 - sizeof(sector_t) - sizeof(int)];
 	sector_t image;
-	unsigned int flags;	/* Flags to pass to the "boot" kernel */
+	unsigned int flags;	
 	char	orig_sig[10];
 	char	sig[10];
 } __attribute__((packed));
 
 static struct swsusp_header *swsusp_header;
 
-/*
- * General things
- */
+
 
 static unsigned short root_swap = 0xffff;
 static struct block_device *resume_bdev;
 
-/**
- *	submit - submit BIO request.
- *	@rw:	READ or WRITE.
- *	@off	physical offset of page.
- *	@page:	page we're reading or writing.
- *	@bio_chain: list of pending biod (for async reading)
- *
- *	Straight from the textbook - allocate and initialize the bio.
- *	If we're reading, make sure the page is marked as dirty.
- *	Then submit it and, if @bio_chain == NULL, wait.
- */
+
 static int submit(int rw, pgoff_t page_off, struct page *page,
 			struct bio **bio_chain)
 {
@@ -85,7 +62,7 @@ static int submit(int rw, pgoff_t page_off, struct page *page,
 		bio_put(bio);
 	} else {
 		if (rw == READ)
-			get_page(page);	/* These pages are freed later */
+			get_page(page);	
 		bio->bi_private = *bio_chain;
 		*bio_chain = bio;
 		submit_bio(bio_rw, bio);
@@ -131,9 +108,7 @@ static int wait_on_bio_chain(struct bio **bio_chain)
 	return ret;
 }
 
-/*
- * Saving part
- */
+
 
 static int mark_swapfiles(sector_t start, unsigned int flags)
 {
@@ -155,12 +130,9 @@ static int mark_swapfiles(sector_t start, unsigned int flags)
 	return error;
 }
 
-/**
- *	swsusp_swap_check - check if the resume device is a swap device
- *	and get its index (if so)
- */
 
-static int swsusp_swap_check(void) /* This is called before saving image */
+
+static int swsusp_swap_check(void) 
 {
 	int res;
 
@@ -181,12 +153,7 @@ static int swsusp_swap_check(void) /* This is called before saving image */
 	return res;
 }
 
-/**
- *	write_page - Write one page to given swap location.
- *	@buf:		Address we're writing.
- *	@offset:	Offset of the swap page we're writing to.
- *	@bio_chain:	Link the next write BIO here
- */
+
 
 static int write_page(void *buf, sector_t offset, struct bio **bio_chain)
 {
@@ -201,7 +168,7 @@ static int write_page(void *buf, sector_t offset, struct bio **bio_chain)
 			memcpy(src, buf, PAGE_SIZE);
 		} else {
 			WARN_ON_ONCE(1);
-			bio_chain = NULL;	/* Go synchronous */
+			bio_chain = NULL;	
 			src = buf;
 		}
 	} else {
@@ -210,20 +177,7 @@ static int write_page(void *buf, sector_t offset, struct bio **bio_chain)
 	return bio_write_page(offset, src, bio_chain);
 }
 
-/*
- *	The swap map is a data structure used for keeping track of each page
- *	written to a swap partition.  It consists of many swap_map_page
- *	structures that contain each an array of MAP_PAGE_SIZE swap entries.
- *	These structures are stored on the swap and linked together with the
- *	help of the .next_swap member.
- *
- *	The swap map is created during suspend.  The swap map pages are
- *	allocated and populated one at a time, so we only need one memory
- *	page to set up the entire structure.
- *
- *	During resume we also only need to use one swap_map_page structure
- *	at a time.
- */
+
 
 #define MAP_PAGE_ENTRIES	(PAGE_SIZE / sizeof(sector_t) - 1)
 
@@ -232,10 +186,7 @@ struct swap_map_page {
 	sector_t next_swap;
 };
 
-/**
- *	The swap_map_handle structure is used for handling swap in
- *	a file-alike way
- */
+
 
 struct swap_map_handle {
 	struct swap_map_page *cur;
@@ -304,9 +255,7 @@ static int flush_swap_writer(struct swap_map_handle *handle)
 		return -EINVAL;
 }
 
-/**
- *	save_image - save the suspend image data
- */
+
 
 static int save_image(struct swap_map_handle *handle,
                       struct snapshot_handle *snapshot,
@@ -351,12 +300,7 @@ static int save_image(struct swap_map_handle *handle,
 	return ret;
 }
 
-/**
- *	enough_swap - Make sure we have enough swap to save the image.
- *
- *	Returns TRUE or FALSE after checking the total amount of swap
- *	space avaiable from the resume partition.
- */
+
 
 static int enough_swap(unsigned int nr_pages)
 {
@@ -366,15 +310,7 @@ static int enough_swap(unsigned int nr_pages)
 	return free_swap > nr_pages + PAGES_FOR_IO;
 }
 
-/**
- *	swsusp_write - Write entire image and metadata.
- *	@flags: flags to pass to the "boot" kernel in the image header
- *
- *	It is important _NOT_ to umount filesystems at this point. We want
- *	them synced (in case something goes wrong) but we DO not want to mark
- *	filesystem clean: it is not. (And it does not matter, if we resume
- *	correctly, we'll mark system clean, anyway.)
- */
+
 
 int swsusp_write(unsigned int flags)
 {
@@ -428,10 +364,7 @@ int swsusp_write(unsigned int flags)
 	return error;
 }
 
-/**
- *	The following functions allow us to read data using a swap map
- *	in a file-alike way
- */
+
 
 static void release_swap_reader(struct swap_map_handle *handle)
 {
@@ -486,11 +419,7 @@ static int swap_read_page(struct swap_map_handle *handle, void *buf,
 	return error;
 }
 
-/**
- *	load_image - load the image using the swap map handle
- *	@handle and the snapshot handle @snapshot
- *	(assume there are @nr_pages pages to load)
- */
+
 
 static int load_image(struct swap_map_handle *handle,
                       struct snapshot_handle *snapshot,
@@ -542,11 +471,7 @@ static int load_image(struct swap_map_handle *handle,
 	return error;
 }
 
-/**
- *	swsusp_read - read the hibernation image.
- *	@flags_p: flags passed by the "frozen" kernel in the image header should
- *		  be written into this memeory location
- */
+
 
 int swsusp_read(unsigned int *flags_p)
 {
@@ -580,9 +505,7 @@ int swsusp_read(unsigned int *flags_p)
 	return error;
 }
 
-/**
- *      swsusp_check - Check for swsusp signature in the resume device
- */
+
 
 int swsusp_check(void)
 {
@@ -599,7 +522,7 @@ int swsusp_check(void)
 
 		if (!memcmp(SWSUSP_SIG, swsusp_header->sig, 10)) {
 			memcpy(swsusp_header->sig, swsusp_header->orig_sig, 10);
-			/* Reset swap signature now */
+			
 			error = bio_write_page(swsusp_resume_block,
 						swsusp_header, NULL);
 		} else {
@@ -621,9 +544,7 @@ put:
 	return error;
 }
 
-/**
- *	swsusp_close - close swap device.
- */
+
 
 void swsusp_close(fmode_t mode)
 {

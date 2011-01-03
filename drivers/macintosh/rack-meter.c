@@ -1,19 +1,4 @@
-/*
- * RackMac vu-meter driver
- *
- * (c) Copyright 2006 Benjamin Herrenschmidt, IBM Corp.
- *                    <benh@kernel.crashing.org>
- *
- * Released under the term of the GNU GPL v2.
- *
- * Support the CPU-meter LEDs of the Xserve G5
- *
- * TODO: Implement PWM to do variable intensity and provide userland
- * interface for fun. Also, the CPU-meter could be made nicer by being
- * a bit less "immediate" but giving instead a more average load over
- * time. Patches welcome :-)
- *
- */
+
 #undef DEBUG
 
 #include <linux/types.h>
@@ -33,10 +18,10 @@
 #include <asm/macio.h>
 #include <asm/keylargo.h>
 
-/* Number of samples in a sample buffer */
+
 #define SAMPLE_COUNT		256
 
-/* CPU meter sampling rate in ms */
+
 #define CPU_SAMPLING_RATE	250
 
 struct rackmeter_dma {
@@ -69,15 +54,13 @@ struct rackmeter {
 	struct mutex			sem;
 };
 
-/* To be set as a tunable */
+
 static int rackmeter_ignore_nice;
 
-/* This GPIO is whacked by the OS X driver when initializing */
+
 #define RACKMETER_MAGIC_GPIO	0x78
 
-/* This is copied from cpufreq_ondemand, maybe we should put it in
- * a common header somewhere
- */
+
 static inline cputime64_t get_cpu_idle_time(unsigned int cpu)
 {
 	cputime64_t retval;
@@ -95,33 +78,25 @@ static void rackmeter_setup_i2s(struct rackmeter *rm)
 {
 	struct macio_chip *macio = rm->mdev->bus->chip;
 
-	/* First whack magic GPIO */
+	
 	pmac_call_feature(PMAC_FTR_WRITE_GPIO, NULL, RACKMETER_MAGIC_GPIO, 5);
 
 
-	/* Call feature code to enable the sound channel and the proper
-	 * clock sources
-	 */
+	
 	pmac_call_feature(PMAC_FTR_SOUND_CHIP_ENABLE, rm->i2s, 0, 1);
 
-	/* Power i2s and stop i2s clock. We whack MacIO FCRs directly for now.
-	 * This is a bit racy, thus we should add new platform functions to
-	 * handle that. snd-aoa needs that too
-	 */
+	
 	MACIO_BIS(KEYLARGO_FCR1, KL1_I2S0_ENABLE);
 	MACIO_BIC(KEYLARGO_FCR1, KL1_I2S0_CLK_ENABLE_BIT);
 	(void)MACIO_IN32(KEYLARGO_FCR1);
 	udelay(10);
 
-	/* Then setup i2s. For now, we use the same magic value that
-	 * the OS X driver seems to use. We might want to play around
-	 * with the clock divisors later
-	 */
+	
 	out_le32(rm->i2s_regs + 0x10, 0x01fa0000);
 	(void)in_le32(rm->i2s_regs + 0x10);
 	udelay(10);
 
-	/* Fully restart i2s*/
+	
 	MACIO_BIS(KEYLARGO_FCR1, KL1_I2S0_CELL_ENABLE |
 		  KL1_I2S0_CLK_ENABLE_BIT);
 	(void)MACIO_IN32(KEYLARGO_FCR1);
@@ -167,7 +142,7 @@ static void rackmeter_setup_dbdma(struct rackmeter *rm)
 	struct rackmeter_dma *db = rm->dma_buf_v;
 	struct dbdma_cmd *cmd = db->cmd;
 
-	/* Make sure dbdma is reset */
+	
 	DBDMA_DO_RESET(rm->dma_regs);
 
 	pr_debug("rackmeter: mark offset=0x%zx\n",
@@ -177,7 +152,7 @@ static void rackmeter_setup_dbdma(struct rackmeter *rm)
 	pr_debug("rackmeter: buf2 offset=0x%zx\n",
 		 offsetof(struct rackmeter_dma, buf2));
 
-	/* Prepare 4 dbdma commands for the 2 buffers */
+	
 	memset(cmd, 0, 4 * sizeof(struct dbdma_cmd));
 	st_le16(&cmd->req_count, 4);
 	st_le16(&cmd->command, STORE_WORD | INTR_ALWAYS | KEY_SYSTEM);
@@ -228,9 +203,7 @@ static void rackmeter_do_timer(struct work_struct *work)
 				rcpu->prev_idle);
 	rcpu->prev_idle = total_idle_ticks;
 
-	/* We do a very dumb calculation to update the LEDs for now,
-	 * we'll do better once we have actual PWM implemented
-	 */
+	
 	load = (9 * (total_ticks - idle_ticks)) / total_ticks;
 
 	offset = cpu << 3;
@@ -242,7 +215,7 @@ static void rackmeter_do_timer(struct work_struct *work)
 	}
 	rcpu->zero = (cumm == 0);
 
-	/* Now check if LEDs are all 0, we can stop DMA */
+	
 	pause = (rm->cpu[0].zero && rm->cpu[1].zero);
 	if (pause != rm->paused) {
 		mutex_lock(&rm->sem);
@@ -258,11 +231,7 @@ static void __devinit rackmeter_init_cpu_sniffer(struct rackmeter *rm)
 {
 	unsigned int cpu;
 
-	/* This driver works only with 1 or 2 CPUs numbered 0 and 1,
-	 * but that's really all we have on Apple Xserve. It doesn't
-	 * play very nice with CPU hotplug neither but we don't do that
-	 * on those machines yet
-	 */
+	
 
 	rm->cpu[0].rm = rm;
 	INIT_DELAYED_WORK(&rm->cpu[0].sniffer, rackmeter_do_timer);
@@ -307,7 +276,7 @@ static int __devinit rackmeter_setup(struct rackmeter *rm)
 	return 0;
 }
 
-/*  XXX FIXME: No PWM yet, this is 0/1 */
+
 static u32 rackmeter_calc_sample(struct rackmeter *rm, unsigned int index)
 {
 	int led;
@@ -327,21 +296,18 @@ static irqreturn_t rackmeter_irq(int irq, void *arg)
 	unsigned int mark, i;
 	u32 *buf;
 
-	/* Flush PCI buffers with an MMIO read. Maybe we could actually
-	 * check the status one day ... in case things go wrong, though
-	 * this never happened to me
-	 */
+	
 	(void)in_le32(&rm->dma_regs->status);
 
-	/* Make sure the CPU gets us in order */
+	
 	rmb();
 
-	/* Read mark */
+	
 	mark = db->mark;
 	if (mark != 1 && mark != 2) {
 		printk(KERN_WARNING "rackmeter: Incorrect DMA mark 0x%08x\n",
 		       mark);
-		/* We allow for 3 errors like that (stale DBDMA irqs) */
+		
 		if (++rm->stale_irq > 3) {
 			printk(KERN_ERR "rackmeter: Too many errors,"
 			       " stopping DMA\n");
@@ -350,12 +316,10 @@ static irqreturn_t rackmeter_irq(int irq, void *arg)
 		return IRQ_HANDLED;
 	}
 
-	/* Next buffer we need to fill is mark value */
+	
 	buf = mark == 1 ? db->buf1 : db->buf2;
 
-	/* Fill it now. This routine converts the 8 bits depth sample array
-	 * into the PWM bitmap for each LED.
-	 */
+	
 	for (i = 0; i < SAMPLE_COUNT; i++)
 		buf[i] = rackmeter_calc_sample(rm, i);
 
@@ -373,7 +337,7 @@ static int __devinit rackmeter_probe(struct macio_dev* mdev,
 
 	pr_debug("rackmeter_probe()\n");
 
-	/* Get i2s-a node */
+	
 	while ((i2s = of_get_next_child(mdev->ofdev.node, i2s)) != NULL)
 	       if (strcmp(i2s->name, "i2s-a") == 0)
 		       break;
@@ -381,7 +345,7 @@ static int __devinit rackmeter_probe(struct macio_dev* mdev,
 		pr_debug("  i2s-a child not found\n");
 		goto bail;
 	}
-	/* Get lightshow or virtual sound */
+	
 	while ((np = of_get_next_child(i2s, np)) != NULL) {
 	       if (strcmp(np->name, "lightshow") == 0)
 		       break;
@@ -394,7 +358,7 @@ static int __devinit rackmeter_probe(struct macio_dev* mdev,
 		goto bail;
 	}
 
-	/* Create and initialize our instance data */
+	
 	rm = kzalloc(sizeof(struct rackmeter), GFP_KERNEL);
 	if (rm == NULL) {
 		printk(KERN_ERR "rackmeter: failed to allocate memory !\n");
@@ -405,8 +369,8 @@ static int __devinit rackmeter_probe(struct macio_dev* mdev,
 	rm->i2s = i2s;
 	mutex_init(&rm->sem);
 	dev_set_drvdata(&mdev->ofdev.dev, rm);
-	/* Check resources availability. We need at least resource 0 and 1 */
-#if 0 /* Use that when i2s-a is finally an mdev per-se */
+	
+#if 0 
 	if (macio_resource_count(mdev) < 2 || macio_irq_count(mdev) < 2) {
 		printk(KERN_ERR
 		       "rackmeter: found match but lacks resources: %s"
@@ -526,36 +490,36 @@ static int __devexit rackmeter_remove(struct macio_dev* mdev)
 {
 	struct rackmeter *rm = dev_get_drvdata(&mdev->ofdev.dev);
 
-	/* Stop CPU sniffer timer & work queues */
+	
 	rackmeter_stop_cpu_sniffer(rm);
 
-	/* Clear reference to private data */
+	
 	dev_set_drvdata(&mdev->ofdev.dev, NULL);
 
-	/* Stop/reset dbdma */
+	
 	DBDMA_DO_RESET(rm->dma_regs);
 
-	/* Release the IRQ */
+	
 	free_irq(rm->irq, rm);
 
-	/* Unmap registers */
+	
 	iounmap(rm->dma_regs);
 	iounmap(rm->i2s_regs);
 
-	/* Free DMA */
+	
 	dma_free_coherent(&macio_get_pci_dev(mdev)->dev,
 			  sizeof(struct rackmeter_dma),
 			  rm->dma_buf_v, rm->dma_buf_p);
 
-	/* Free samples */
+	
 	free_page((unsigned long)rm->ubuf);
 
 #if 0
-	/* Release resources */
+	
 	macio_release_resources(mdev);
 #endif
 
-	/* Get rid of me */
+	
 	kfree(rm);
 
 	return 0;
@@ -568,10 +532,10 @@ static int rackmeter_shutdown(struct macio_dev* mdev)
 	if (rm == NULL)
 		return -ENODEV;
 
-	/* Stop CPU sniffer timer & work queues */
+	
 	rackmeter_stop_cpu_sniffer(rm);
 
-	/* Stop/reset dbdma */
+	
 	DBDMA_DO_RESET(rm->dma_regs);
 
 	return 0;

@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/sheevaplug-setup.c
- *
- * Marvell SheevaPlug Reference Board Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -43,7 +35,7 @@ static struct mv643xx_eth_platform_data sheevaplug_ge00_data = {
 };
 
 static struct mvsdio_platform_data sheevaplug_mvsdio_data = {
-	/* unfortunately the CD signal has not been connected */
+	
 };
 
 static struct gpio_led sheevaplug_led_pins[] = {
@@ -69,16 +61,14 @@ static struct platform_device sheevaplug_leds = {
 };
 
 static unsigned int sheevaplug_mpp_config[] __initdata = {
-	MPP29_GPIO,	/* USB Power Enable */
-	MPP49_GPIO,	/* LED */
+	MPP29_GPIO,	
+	MPP49_GPIO,	
 	0
 };
 
 static void __init sheevaplug_init(void)
 {
-	/*
-	 * Basic setup. Needs to be called early.
-	 */
+	
 	kirkwood_init();
 	kirkwood_mpp_conf(sheevaplug_mpp_config);
 
@@ -97,7 +87,7 @@ static void __init sheevaplug_init(void)
 }
 
 MACHINE_START(SHEEVAPLUG, "Marvell SheevaPlug Reference Board")
-	/* Maintainer: shadi Ammouri <shadi@marvell.com> */
+	
 	.phys_io	= KIRKWOOD_REGS_PHYS_BASE,
 	.io_pg_offst	= ((KIRKWOOD_REGS_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

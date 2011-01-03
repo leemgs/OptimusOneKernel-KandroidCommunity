@@ -1,18 +1,4 @@
-/*
- *  linux/arch/arm/common/time-acorn.c
- *
- *  Copyright (c) 1996-2000 Russell King.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Changelog:
- *   24-Sep-1996	RMK	Created
- *   10-Oct-1996	RMK	Brought up to date with arch-sa110eval
- *   04-Dec-1997	RMK	Updated for new arch/arm/time.c
- *   13=Jun-2004	DS	Moved to arch/arm/common b/c shared w/CLPS7500
- */
+
 #include <linux/timex.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -41,17 +27,11 @@ unsigned long ioc_timer_gettimeoffset(void)
 
 	offset = count2;
 	if (count2 < count1) {
-		/*
-		 * We have not had an interrupt between reading count1
-		 * and count2.
-		 */
+		
 		if (status & (1 << 5))
 			offset -= LATCH;
 	} else if (count2 > count1) {
-		/*
-		 * We have just had another interrupt between reading
-		 * count1 and count2.
-		 */
+		
 		offset -= LATCH;
 	}
 
@@ -79,9 +59,7 @@ static struct irqaction ioc_timer_irq = {
 	.handler	= ioc_timer_interrupt
 };
 
-/*
- * Set up timer interrupt.
- */
+
 static void __init ioc_timer_init(void)
 {
 	ioctime_init();

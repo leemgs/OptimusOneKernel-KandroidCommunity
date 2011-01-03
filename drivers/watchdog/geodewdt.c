@@ -1,12 +1,4 @@
-/* Watchdog timer for the Geode GX/LX with the CS5535/CS5536 companion chip
- *
- * Copyright (C) 2006-2007, Advanced Micro Devices, Inc.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 
 #include <linux/module.h>
@@ -51,13 +43,13 @@ static int safe_close;
 
 static void geodewdt_ping(void)
 {
-	/* Stop the counter */
+	
 	geode_mfgpt_write(wdt_timer, MFGPT_REG_SETUP, 0);
 
-	/* Reset the counter */
+	
 	geode_mfgpt_write(wdt_timer, MFGPT_REG_COUNTER, 0);
 
-	/* Enable the counter */
+	
 	geode_mfgpt_write(wdt_timer, MFGPT_REG_SETUP, MFGPT_SETUP_CNTEN);
 }
 
@@ -187,7 +179,7 @@ static long geodewdt_ioctl(struct file *file, unsigned int cmd,
 
 		if (geodewdt_set_heartbeat(interval))
 			return -EINVAL;
-	/* Fall through */
+	
 	case WDIOC_GETTIMEOUT:
 		return put_user(timeout, p);
 
@@ -226,15 +218,15 @@ static int __devinit geodewdt_probe(struct platform_device *dev)
 
 	wdt_timer = timer;
 
-	/* Set up the timer */
+	
 
 	geode_mfgpt_write(wdt_timer, MFGPT_REG_SETUP,
 			  GEODEWDT_SCALE | (3 << 8));
 
-	/* Set up comparator 2 to reset when the event fires */
+	
 	geode_mfgpt_toggle_event(wdt_timer, MFGPT_CMP2, MFGPT_EVENT_RESET, 1);
 
-	/* Set up the initial timeout */
+	
 
 	geode_mfgpt_write(wdt_timer, MFGPT_REG_CMP2,
 		timeout * GEODEWDT_HZ);

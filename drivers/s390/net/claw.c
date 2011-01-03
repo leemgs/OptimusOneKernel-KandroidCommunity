@@ -1,65 +1,4 @@
-/*
- *  drivers/s390/net/claw.c
- *    ESCON CLAW network driver
- *
- *  Linux for zSeries version
- *    Copyright IBM Corp. 2002, 2009
- *  Author(s) Original code written by:
- *		Kazuo Iimura <iimura@jp.ibm.com>
- *   	      Rewritten by
- *		Andy Richter <richtera@us.ibm.com>
- *		Marc Price <mwprice@us.ibm.com>
- *
- *    sysfs parms:
- *   group x.x.rrrr,x.x.wwww
- *   read_buffer nnnnnnn
- *   write_buffer nnnnnn
- *   host_name  aaaaaaaa
- *   adapter_name aaaaaaaa
- *   api_type    aaaaaaaa
- *
- *  eg.
- *   group  0.0.0200 0.0.0201
- *   read_buffer 25
- *   write_buffer 20
- *   host_name LINUX390
- *   adapter_name RS6K
- *   api_type     TCPIP
- *
- *  where
- *
- *   The device id is decided by the order entries
- *   are added to the group the first is claw0 the second claw1
- *   up to CLAW_MAX_DEV
- *
- *   rrrr     -	the first of 2 consecutive device addresses used for the
- *		CLAW protocol.
- *		The specified address is always used as the input (Read)
- *		channel and the next address is used as the output channel.
- *
- *   wwww     -	the second of 2 consecutive device addresses used for
- *		the CLAW protocol.
- *              The specified address is always used as the output
- *		channel and the previous address is used as the input channel.
- *
- *   read_buffer	-       specifies number of input buffers to allocate.
- *   write_buffer       -       specifies number of output buffers to allocate.
- *   host_name          -       host name
- *   adaptor_name       -       adaptor name
- *   api_type           -       API type TCPIP or API will be sent and expected
- *				as ws_name
- *
- *   Note the following requirements:
- *   1)  host_name must match the configured adapter_name on the remote side
- *   2)  adaptor_name must match the configured host name on the remote side
- *
- *  Change History
- *    1.00  Initial release shipped
- *    1.10  Changes for Buffer allocation
- *    1.15  Changed for 2.6 Kernel  No longer compiles on 2.4 or lower
- *    1.25  Added Packing support
- *    1.5
- */
+
 
 #define KMSG_COMPONENT "claw"
 
@@ -93,21 +32,15 @@
 #include "cu3088.h"
 #include "claw.h"
 
-/*
-   CLAW uses the s390dbf file system  see claw_trace and claw_setup
-*/
+
 
 static char version[] __initdata = "CLAW driver";
 static char debug_buffer[255];
-/**
- * Debug Facility Stuff
- */
+
 static debug_info_t *claw_dbf_setup;
 static debug_info_t *claw_dbf_trace;
 
-/**
- *  CLAW Debug Facility functions
- */
+
 static void
 claw_unregister_debug_facility(void)
 {
@@ -178,7 +111,7 @@ claw_test_and_setbit_busy(int nr,struct net_device *dev)
 }
 
 
-/* Functions for the DEV methods */
+
 
 static int claw_probe(struct ccwgroup_device *cgdev);
 static void claw_remove_device(struct ccwgroup_device *cgdev);
@@ -196,7 +129,7 @@ static void claw_write_retry ( struct chbk * p_ch );
 static void claw_write_next ( struct chbk * p_ch );
 static void claw_timer ( struct chbk * p_ch );
 
-/* Functions */
+
 static int add_claw_reads(struct net_device *dev,
 	struct ccwbk* p_first, struct ccwbk* p_last);
 static void ccw_check_return_code (struct ccw_device *cdev, int return_code);
@@ -208,7 +141,7 @@ static void probe_error( struct ccwgroup_device *cgdev);
 static struct net_device_stats *claw_stats(struct net_device *dev);
 static int pages_to_order_of_mag(int num_of_pages);
 static struct sk_buff *claw_pack_skb(struct claw_privbk *privptr);
-/* sysfs Functions */
+
 static ssize_t claw_hname_show(struct device *dev,
 	struct device_attribute *attr, char *buf);
 static ssize_t claw_hname_write(struct device *dev,
@@ -237,7 +170,7 @@ static ssize_t claw_rbuff_write(struct device *dev,
 static int claw_add_files(struct device *dev);
 static void claw_remove_files(struct device *dev);
 
-/*   Functions for System Validate  */
+
 static int claw_process_control( struct net_device *dev, struct ccwbk * p_ccw);
 static int claw_send_control(struct net_device *dev, __u8 type, __u8 link,
        __u8 correlator, __u8 rc , char *local_name, char *remote_name);
@@ -250,7 +183,7 @@ static void claw_strt_read(struct net_device *dev, int lock);
 static void claw_strt_out_IO(struct net_device *dev);
 static void claw_free_wrt_buf(struct net_device *dev);
 
-/* Functions for unpack reads   */
+
 static void unpack_read(struct net_device *dev);
 
 static int claw_pm_prepare(struct ccwgroup_device *gdev)
@@ -258,7 +191,7 @@ static int claw_pm_prepare(struct ccwgroup_device *gdev)
 	return -EPERM;
 }
 
-/* ccwgroup table  */
+
 
 static struct ccwgroup_driver claw_group_driver = {
         .owner       = THIS_MODULE,
@@ -272,14 +205,9 @@ static struct ccwgroup_driver claw_group_driver = {
 	.prepare     = claw_pm_prepare,
 };
 
-/*
-*       Key functions
-*/
 
-/*----------------------------------------------------------------*
- *   claw_probe                                                   *
- *      this function is called for each CLAW device.             *
- *----------------------------------------------------------------*/
+
+
 static int
 claw_probe(struct ccwgroup_device *cgdev)
 {
@@ -328,11 +256,9 @@ claw_probe(struct ccwgroup_device *cgdev)
 	CLAW_DBF_TEXT(2, setup, "prbext 0");
 
         return 0;
-}  /*  end of claw_probe       */
+}  
 
-/*-------------------------------------------------------------------*
- *   claw_tx                                                         *
- *-------------------------------------------------------------------*/
+
 
 static int
 claw_tx(struct sk_buff *skb, struct net_device *dev)
@@ -353,12 +279,9 @@ claw_tx(struct sk_buff *skb, struct net_device *dev)
 	else
 		rc = NETDEV_TX_OK;
         return rc;
-}   /*  end of claw_tx */
+}   
 
-/*------------------------------------------------------------------*
- *  pack the collect queue into an skb and return it                *
- *   If not packing just return the top skb from the queue          *
- *------------------------------------------------------------------*/
+
 
 static struct sk_buff *
 claw_pack_skb(struct claw_privbk *privptr)
@@ -368,11 +291,11 @@ claw_pack_skb(struct claw_privbk *privptr)
 	struct claw_env  *p_env = privptr->p_env;
 	int	pkt_cnt,pk_ind,so_far;
 
-	new_skb = NULL;		/* assume no dice */
+	new_skb = NULL;		
 	pkt_cnt = 0;
 	CLAW_DBF_TEXT(4, trace, "PackSKBe");
 	if (!skb_queue_empty(&p_ch->collect_queue)) {
-	/* some data */
+	
 		held_skb = skb_dequeue(&p_ch->collect_queue);
 		if (held_skb)
 			dev_kfree_skb_any(held_skb);
@@ -380,17 +303,17 @@ claw_pack_skb(struct claw_privbk *privptr)
 			return NULL;
 		if (p_env->packing != DO_PACKED)
 			return held_skb;
-		/* get a new SKB we will pack at least one */
+		
 		new_skb = dev_alloc_skb(p_env->write_size);
 		if (new_skb == NULL) {
 			atomic_inc(&held_skb->users);
 			skb_queue_head(&p_ch->collect_queue,held_skb);
 			return NULL;
 		}
-		/* we have packed packet and a place to put it  */
+		
 		pk_ind = 1;
 		so_far = 0;
-		new_skb->cb[1] = 'P'; /* every skb on queue has pack header */
+		new_skb->cb[1] = 'P'; 
 		while ((pk_ind) && (held_skb != NULL)) {
 			if (held_skb->len+so_far <= p_env->write_size-8) {
 				memcpy(skb_put(new_skb,held_skb->len),
@@ -413,10 +336,7 @@ claw_pack_skb(struct claw_privbk *privptr)
 	return new_skb;
 }
 
-/*-------------------------------------------------------------------*
- *   claw_change_mtu                                                 *
- *                                                                   *
- *-------------------------------------------------------------------*/
+
 
 static int
 claw_change_mtu(struct net_device *dev, int new_mtu)
@@ -430,13 +350,10 @@ claw_change_mtu(struct net_device *dev, int new_mtu)
         }
         dev->mtu = new_mtu;
         return 0;
-}  /*   end of claw_change_mtu */
+}  
 
 
-/*-------------------------------------------------------------------*
- *   claw_open                                                       *
- *                                                                   *
- *-------------------------------------------------------------------*/
+
 static int
 claw_open(struct net_device *dev)
 {
@@ -452,7 +369,7 @@ claw_open(struct net_device *dev)
 
 	CLAW_DBF_TEXT(4, trace, "open");
 	privptr = (struct claw_privbk *)dev->ml_priv;
-        /*   allocate and initialize CCW blocks */
+        
 	if (privptr->buffs_alloc == 0) {
 	        rc=init_ccw_bk(dev);
         	if (rc) {
@@ -477,7 +394,7 @@ claw_open(struct net_device *dev)
         for ( i = 0; i < 2;  i++) {
 		CLAW_DBF_TEXT_(2, trace, "opn_ch%d", i);
                 init_waitqueue_head(&privptr->channel[i].wait);
-		/* skb_queue_head_init(&p_ch->io_queue); */
+		
 		if (i == WRITE)
 			skb_queue_head_init(
 				&privptr->channel[WRITE].collect_queue);
@@ -575,18 +492,14 @@ claw_open(struct net_device *dev)
                 return -EIO;
         }
 
-        /*   Send SystemValidate command */
+        
 
         claw_clear_busy(dev);
 	CLAW_DBF_TEXT(4, trace, "openok");
         return 0;
-}    /*     end of claw_open    */
+}    
 
-/*-------------------------------------------------------------------*
-*                                                                    *
-*       claw_irq_handler                                             *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static void
 claw_irq_handler(struct ccw_device *cdev,
 	unsigned long intparm, struct irb *irb)
@@ -598,7 +511,7 @@ claw_irq_handler(struct ccw_device *cdev,
         struct chbk *p_ch_r=NULL;
 
 	CLAW_DBF_TEXT(4, trace, "clawirq");
-        /* Bypass all 'unsolicited interrupts' */
+        
 	privptr = dev_get_drvdata(&cdev->dev);
 	if (!privptr) {
 		dev_warn(&cdev->dev, "An uninitialized CLAW device received an"
@@ -608,7 +521,7 @@ claw_irq_handler(struct ccw_device *cdev,
                 return;
         }
 
-	/* Try to extract channel from driver data. */
+	
 	if (privptr->channel[READ].cdev == cdev)
 		p_ch = &privptr->channel[READ];
 	else if (privptr->channel[WRITE].cdev == cdev)
@@ -623,10 +536,10 @@ claw_irq_handler(struct ccw_device *cdev,
 	dev = (struct net_device *) (p_ch->ndev);
         p_env=privptr->p_env;
 
-	/* Copy interruption response block. */
+	
 	memcpy(p_ch->irb, irb, sizeof(struct irb));
 
-	/* Check for good subchannel return code, otherwise info message */
+	
 	if (irb->scsw.cmd.cstat && !(irb->scsw.cmd.cstat & SCHN_STAT_PCI)) {
 		dev_info(&cdev->dev,
 			"%s: subchannel check for device: %04x -"
@@ -635,27 +548,27 @@ claw_irq_handler(struct ccw_device *cdev,
 			irb->scsw.cmd.cstat, irb->scsw.cmd.dstat,
 			irb->scsw.cmd.cpa);
 		CLAW_DBF_TEXT(2, trace, "chanchk");
-                /* return; */
+                
         }
 
-        /* Check the reason-code of a unit check */
+        
 	if (irb->scsw.cmd.dstat & DEV_STAT_UNIT_CHECK)
                 ccw_check_unit_check(p_ch, irb->ecw[0]);
 
-        /* State machine to bring the connection up, down and to restart */
+        
 	p_ch->last_dstat = irb->scsw.cmd.dstat;
 
         switch (p_ch->claw_state) {
-	case CLAW_STOP:/* HALT_IO by claw_release (halt sequence) */
+	case CLAW_STOP:
 		if (!((p_ch->irb->scsw.cmd.stctl & SCSW_STCTL_SEC_STATUS) ||
 		(p_ch->irb->scsw.cmd.stctl == SCSW_STCTL_STATUS_PEND) ||
 		(p_ch->irb->scsw.cmd.stctl ==
 		(SCSW_STCTL_ALERT_STATUS | SCSW_STCTL_STATUS_PEND))))
 			return;
-		wake_up(&p_ch->wait);   /* wake up claw_release */
+		wake_up(&p_ch->wait);   
 		CLAW_DBF_TEXT(4, trace, "stop");
 		return;
-	case CLAW_START_HALT_IO: /* HALT_IO issued by claw_open  */
+	case CLAW_START_HALT_IO: 
 		if (!((p_ch->irb->scsw.cmd.stctl & SCSW_STCTL_SEC_STATUS) ||
 		(p_ch->irb->scsw.cmd.stctl == SCSW_STCTL_STATUS_PEND) ||
 		(p_ch->irb->scsw.cmd.stctl ==
@@ -665,10 +578,10 @@ claw_irq_handler(struct ccw_device *cdev,
 		}
 		if (p_ch->flag == CLAW_READ) {
 			p_ch->claw_state = CLAW_START_READ;
-			wake_up(&p_ch->wait); /* wake claw_open (READ)*/
+			wake_up(&p_ch->wait); 
 		} else if (p_ch->flag == CLAW_WRITE) {
 			p_ch->claw_state = CLAW_START_WRITE;
-			/*      send SYSTEM_VALIDATE                    */
+			
 			claw_strt_read(dev, LOCK_NO);
 			claw_send_control(dev,
 				SYSTEM_VALIDATE_REQUEST,
@@ -784,13 +697,10 @@ claw_irq_handler(struct ccw_device *cdev,
 		return;
         }
 
-}       /*   end of claw_irq_handler    */
+}       
 
 
-/*-------------------------------------------------------------------*
-*       claw_irq_tasklet                                             *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static void
 claw_irq_tasklet ( unsigned long data )
 {
@@ -806,12 +716,9 @@ claw_irq_tasklet ( unsigned long data )
         clear_bit(CLAW_BH_ACTIVE, (void *)&p_ch->flag_a);
 	CLAW_DBF_TEXT(4, trace, "TskletXt");
         return;
-}       /*    end of claw_irq_bh    */
+}       
 
-/*-------------------------------------------------------------------*
-*       claw_release                                                 *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static int
 claw_release(struct net_device *dev)
 {
@@ -835,7 +742,7 @@ claw_release(struct net_device *dev)
         for ( i = 1; i >=0 ;  i--) {
                 spin_lock_irqsave(
 			get_ccwdev_lock(privptr->channel[i].cdev), saveflags);
-             /*   del_timer(&privptr->channel[READ].timer);  */
+             
  		privptr->channel[i].claw_state = CLAW_STOP;
                 privptr->channel[i].IO_active = 0;
                 parm = (unsigned long) &privptr->channel[i];
@@ -843,7 +750,7 @@ claw_release(struct net_device *dev)
 			claw_purge_skb_queue(
 				&privptr->channel[WRITE].collect_queue);
                 rc = ccw_device_halt (privptr->channel[i].cdev, parm);
-	        if (privptr->system_validate_comp==0x00)  /* never opened? */
+	        if (privptr->system_validate_comp==0x00)  
                    init_waitqueue_head(&privptr->channel[i].wait);
                 add_wait_queue(&privptr->channel[i].wait, &wait);
                 set_current_state(TASK_INTERRUPTIBLE);
@@ -906,7 +813,7 @@ claw_release(struct net_device *dev)
         privptr->p_buff_write=NULL;
         privptr->system_validate_comp=0;
         privptr->release_pend=0;
-        /*      Remove any writes that were pending and reset all reads   */
+        
         p_this_ccw=privptr->p_read_active_first;
         while (p_this_ccw!=NULL) {
                 p_this_ccw->header.length=0xffff;
@@ -942,12 +849,9 @@ claw_release(struct net_device *dev)
         }
 	CLAW_DBF_TEXT(4, trace, "rlsexit");
         return 0;
-}      /* end of claw_release     */
+}      
 
-/*-------------------------------------------------------------------*
-*       claw_write_retry                                             *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static void
 claw_write_retry ( struct chbk *p_ch )
@@ -962,13 +866,10 @@ claw_write_retry ( struct chbk *p_ch )
 	claw_strt_out_IO( dev );
 	CLAW_DBF_TEXT(4, trace, "rtry_xit");
         return;
-}      /* end of claw_write_retry      */
+}      
 
 
-/*-------------------------------------------------------------------*
-*       claw_write_next                                              *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static void
 claw_write_next ( struct chbk * p_ch )
@@ -1000,12 +901,9 @@ claw_write_next ( struct chbk * p_ch )
                 claw_strt_out_IO(dev);
         }
         return;
-}      /* end of claw_write_next      */
+}      
 
-/*-------------------------------------------------------------------*
-*                                                                    *
-*       claw_timer                                                   *
-*--------------------------------------------------------------------*/
+
 
 static void
 claw_timer ( struct chbk * p_ch )
@@ -1014,49 +912,35 @@ claw_timer ( struct chbk * p_ch )
         p_ch->flag |= CLAW_TIMER;
         wake_up(&p_ch->wait);
         return;
-}      /* end of claw_timer  */
-
-/*
-*
-*       functions
-*/
+}      
 
 
-/*-------------------------------------------------------------------*
-*                                                                    *
-*     pages_to_order_of_mag                                          *
-*                                                                    *
-*    takes a number of pages from 1 to 512 and returns the           *
-*    log(num_pages)/log(2) get_free_pages() needs a base 2 order     *
-*    of magnitude get_free_pages() has an upper order of 9           *
-*--------------------------------------------------------------------*/
+
+
+
 
 static int
 pages_to_order_of_mag(int num_of_pages)
 {
-	int	order_of_mag=1;		/* assume 2 pages */
+	int	order_of_mag=1;		
 	int	nump;
 
 	CLAW_DBF_TEXT_(5, trace, "pages%d", num_of_pages);
-	if (num_of_pages == 1)   {return 0; }  /* magnitude of 0 = 1 page */
-	/* 512 pages = 2Meg on 4k page systems */
+	if (num_of_pages == 1)   {return 0; }  
+	
 	if (num_of_pages >= 512) {return 9; }
-	/* we have two or more pages order is at least 1 */
+	
 	for (nump=2 ;nump <= 512;nump*=2) {
 	  if (num_of_pages <= nump)
 		  break;
 	  order_of_mag +=1;
 	}
-	if (order_of_mag > 9) { order_of_mag = 9; }  /* I know it's paranoid */
+	if (order_of_mag > 9) { order_of_mag = 9; }  
 	CLAW_DBF_TEXT_(5, trace, "mag%d", order_of_mag);
 	return order_of_mag;
 }
 
-/*-------------------------------------------------------------------*
-*                                                                    *
-*     add_claw_reads                                                 *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static int
 add_claw_reads(struct net_device *dev, struct ccwbk* p_first,
 	struct ccwbk* p_last)
@@ -1068,18 +952,16 @@ add_claw_reads(struct net_device *dev, struct ccwbk* p_first,
 	privptr = dev->ml_priv;
         p_end = privptr->p_end_ccw;
 
-        /* first CCW and last CCW contains a new set of read channel programs
-        *       to apend the running channel programs
-        */
+        
         if ( p_first==NULL) {
 		CLAW_DBF_TEXT(4, trace, "addexit");
                 return 0;
         }
 
-        /* set up ending CCW sequence for this segment */
+        
         if (p_end->read1) {
-                p_end->read1=0x00;    /*  second ending CCW is now active */
-                /*      reset ending CCWs and setup TIC CCWs              */
+                p_end->read1=0x00;    
+                
                 p_end->read2_nop2.cmd_code = CCW_CLAW_CMD_READFF;
                 p_end->read2_nop2.flags  = CCW_FLAG_SLI | CCW_FLAG_SKIP;
                 p_last->r_TIC_1.cda =(__u32)__pa(&p_end->read2_nop1);
@@ -1088,8 +970,8 @@ add_claw_reads(struct net_device *dev, struct ccwbk* p_first,
                 p_end->read2_nop2.count=1;
         }
         else {
-                p_end->read1=0x01;  /* first ending CCW is now active */
-                /*      reset ending CCWs and setup TIC CCWs          */
+                p_end->read1=0x01;  
+                
                 p_end->read1_nop2.cmd_code = CCW_CLAW_CMD_READFF;
                 p_end->read1_nop2.flags  = CCW_FLAG_SLI | CCW_FLAG_SKIP;
                 p_last->r_TIC_1.cda = (__u32)__pa(&p_end->read1_nop1);
@@ -1099,12 +981,12 @@ add_claw_reads(struct net_device *dev, struct ccwbk* p_first,
         }
 
         if ( privptr-> p_read_active_first ==NULL ) {
-		privptr->p_read_active_first = p_first;  /*  set new first */
-		privptr->p_read_active_last  = p_last;   /*  set new last  */
+		privptr->p_read_active_first = p_first;  
+		privptr->p_read_active_last  = p_last;   
         }
         else {
 
-                /* set up TIC ccw  */
+                
                 temp_ccw.cda= (__u32)__pa(&p_first->read);
                 temp_ccw.count=0;
                 temp_ccw.flags=0;
@@ -1113,12 +995,12 @@ add_claw_reads(struct net_device *dev, struct ccwbk* p_first,
 
                 if (p_end->read1) {
 
-               /* first set of CCW's is chained to the new read              */
-               /* chain, so the second set is chained to the active chain.   */
-               /* Therefore modify the second set to point to the new        */
-               /* read chain set up TIC CCWs                                 */
-               /* make sure we update the CCW so channel doesn't fetch it    */
-               /* when it's only half done                                   */
+               
+               
+               
+               
+               
+               
                         memcpy( &p_end->read2_nop2, &temp_ccw ,
 				sizeof(struct ccw1));
                         privptr->p_read_active_last->r_TIC_1.cda=
@@ -1127,8 +1009,8 @@ add_claw_reads(struct net_device *dev, struct ccwbk* p_first,
 				(__u32)__pa(&p_first->read);
                 }
                 else {
-                        /* make sure we update the CCW so channel doesn't   */
-			/* fetch it when it is only half done               */
+                        
+			
                         memcpy( &p_end->read1_nop2, &temp_ccw ,
 				sizeof(struct ccw1));
                         privptr->p_read_active_last->r_TIC_1.cda=
@@ -1136,18 +1018,15 @@ add_claw_reads(struct net_device *dev, struct ccwbk* p_first,
                         privptr->p_read_active_last->r_TIC_2.cda=
 				(__u32)__pa(&p_first->read);
                 }
-		/*      chain in new set of blocks                         */
+		
                 privptr->p_read_active_last->next = p_first;
                 privptr->p_read_active_last=p_last;
-        } /* end of if ( privptr-> p_read_active_first ==NULL)  */
+        } 
 	CLAW_DBF_TEXT(4, trace, "addexit");
         return 0;
-}    /*     end of add_claw_reads   */
+}    
 
-/*-------------------------------------------------------------------*
- *   ccw_check_return_code                                           *
- *                                                                   *
- *-------------------------------------------------------------------*/
+
 
 static void
 ccw_check_return_code(struct ccw_device *cdev, int return_code)
@@ -1155,7 +1034,7 @@ ccw_check_return_code(struct ccw_device *cdev, int return_code)
 	CLAW_DBF_TEXT(4, trace, "ccwret");
         if (return_code != 0) {
                 switch (return_code) {
-		case -EBUSY: /* BUSY is a transient state no action needed */
+		case -EBUSY: 
 			break;
 		case -ENODEV:
 			dev_err(&cdev->dev, "The remote channel adapter is not"
@@ -1173,11 +1052,9 @@ ccw_check_return_code(struct ccw_device *cdev, int return_code)
 		}
 	}
 	CLAW_DBF_TEXT(4, trace, "ccwret");
-}    /*    end of ccw_check_return_code   */
+}    
 
-/*-------------------------------------------------------------------*
-*       ccw_check_unit_check                                         *
-*--------------------------------------------------------------------*/
+
 
 static void
 ccw_check_unit_check(struct chbk * p_ch, unsigned char sense )
@@ -1215,11 +1092,9 @@ ccw_check_unit_check(struct chbk * p_ch, unsigned char sense )
 			ndev->name);
 	}
 
-}   /*    end of ccw_check_unit_check    */
+}   
 
-/*-------------------------------------------------------------------*
-*               find_link                                            *
-*--------------------------------------------------------------------*/
+
 static int
 find_link(struct net_device *dev, char *host_name, char *ws_name )
 {
@@ -1251,13 +1126,9 @@ find_link(struct net_device *dev, char *host_name, char *ws_name )
 	}
 
 	return rc;
-}    /*    end of find_link    */
+}    
 
-/*-------------------------------------------------------------------*
- *   claw_hw_tx                                                      *
- *                                                                   *
- *                                                                   *
- *-------------------------------------------------------------------*/
+
 
 static int
 claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
@@ -1283,8 +1154,8 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
 	privptr = (struct claw_privbk *)(dev->ml_priv);
         p_ch=(struct chbk *)&privptr->channel[WRITE];
 	p_env =privptr->p_env;
-	claw_free_wrt_buf(dev);	/* Clean up free chain if posible */
-        /*  scan the write queue to free any completed write packets   */
+	claw_free_wrt_buf(dev);	
+        
         p_first_ccw=NULL;
         p_last_ccw=NULL;
 	if ((p_env->packing >= PACK_SEND) &&
@@ -1324,8 +1195,8 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
                                 }
                         }
                 }
-                /*  tx lock  */
-                if (claw_test_and_setbit_busy(TB_TX,dev)) { /* set to busy */
+                
+                if (claw_test_and_setbit_busy(TB_TX,dev)) { 
 			ch = &privptr->channel[WRITE];
 			atomic_inc(&skb->users);
 			skb_queue_tail(&ch->collect_queue, skb);
@@ -1334,10 +1205,10 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
                         goto Done2;
                 }
         }
-        /*      See how many write buffers are required to hold this data */
+        
 	numBuffers = DIV_ROUND_UP(skb->len, privptr->p_env->write_size);
 
-        /*      If that number of buffers isn't available, give up for now */
+        
         if (privptr->write_free_count < numBuffers ||
             privptr->p_write_free_chain == NULL ) {
 
@@ -1352,8 +1223,8 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
         len_of_data=skb->len;
 
         while (len_of_data > 0) {
-                p_this_ccw=privptr->p_write_free_chain;  /* get a block */
-		if (p_this_ccw == NULL) { /* lost the race */
+                p_this_ccw=privptr->p_write_free_chain;  
+		if (p_this_ccw == NULL) { 
 			ch = &privptr->channel[WRITE];
 			atomic_inc(&skb->users);
 			skb_queue_tail(&ch->collect_queue, skb);
@@ -1361,7 +1232,7 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
 		}
                 privptr->p_write_free_chain=p_this_ccw->next;
                 p_this_ccw->next=NULL;
-                --privptr->write_free_count; /* -1 */
+                --privptr->write_free_count; 
 		if (len_of_data >= privptr->p_env->write_size)
 			bytesInThisBuffer = privptr->p_env->write_size;
 		else
@@ -1369,35 +1240,33 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
                 memcpy( p_this_ccw->p_buffer,pDataAddress, bytesInThisBuffer);
                 len_of_data-=bytesInThisBuffer;
                 pDataAddress+=(unsigned long)bytesInThisBuffer;
-                /*      setup write CCW         */
+                
                 p_this_ccw->write.cmd_code = (linkid * 8) +1;
                 if (len_of_data>0) {
                         p_this_ccw->write.cmd_code+=MORE_to_COME_FLAG;
                 }
                 p_this_ccw->write.count=bytesInThisBuffer;
-                /*      now add to end of this chain    */
+                
                 if (p_first_ccw==NULL)    {
                         p_first_ccw=p_this_ccw;
                 }
                 if (p_last_ccw!=NULL) {
                         p_last_ccw->next=p_this_ccw;
-                        /*      set up TIC ccws         */
+                        
                         p_last_ccw->w_TIC_1.cda=
 				(__u32)__pa(&p_this_ccw->write);
                 }
-                p_last_ccw=p_this_ccw;      /* save new last block */
+                p_last_ccw=p_this_ccw;      
         }
 
-        /*      FirstCCW and LastCCW now contain a new set of write channel
-        *       programs to append to the running channel program
-        */
+        
 
         if (p_first_ccw!=NULL) {
-		/*      setup ending ccw sequence for this segment           */
+		
                 pEnd=privptr->p_end_ccw;
                 if (pEnd->write1) {
-                        pEnd->write1=0x00;   /* second end ccw is now active */
-                        /*      set up Tic CCWs         */
+                        pEnd->write1=0x00;   
+                        
                         p_last_ccw->w_TIC_1.cda=
 				(__u32)__pa(&pEnd->write2_nop1);
                         pEnd->write2_nop2.cmd_code = CCW_CLAW_CMD_READFF;
@@ -1406,9 +1275,9 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
                         pEnd->write2_nop2.cda=0;
                         pEnd->write2_nop2.count=1;
                 }
-                else {  /*  end of if (pEnd->write1)*/
-                        pEnd->write1=0x01;   /* first end ccw is now active */
-                        /*      set up Tic CCWs         */
+                else {  
+                        pEnd->write1=0x01;   
+                        
                         p_last_ccw->w_TIC_1.cda=
 				(__u32)__pa(&pEnd->write1_nop1);
                         pEnd->write1_nop2.cmd_code = CCW_CLAW_CMD_READFF;
@@ -1416,14 +1285,14 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
 				CCW_FLAG_SLI | CCW_FLAG_SKIP;
                         pEnd->write1_nop2.cda=0;
                         pEnd->write1_nop2.count=1;
-                }  /* end if if (pEnd->write1) */
+                }  
 
                 if (privptr->p_write_active_first==NULL ) {
                         privptr->p_write_active_first=p_first_ccw;
                         privptr->p_write_active_last=p_last_ccw;
                 }
                 else {
-                        /*      set up Tic CCWs         */
+                        
 
                         tempCCW.cda=(__u32)__pa(&p_first_ccw->write);
                         tempCCW.count=0;
@@ -1432,13 +1301,7 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
 
                         if (pEnd->write1) {
 
-                 /*
-                 * first set of ending CCW's is chained to the new write
-                 * chain, so the second set is chained to the active chain
-                 * Therefore modify the second set to point the new write chain.
-                 * make sure we update the CCW atomically
-                 * so channel does not fetch it when it's only half done
-                 */
+                 
                                 memcpy( &pEnd->write2_nop2, &tempCCW ,
 					sizeof(struct ccw1));
                                 privptr->p_write_active_last->w_TIC_1.cda=
@@ -1446,21 +1309,19 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
                         }
                         else {
 
-                        /*make sure we update the CCW atomically
-                         *so channel does not fetch it when it's only half done
-                         */
+                        
                                 memcpy(&pEnd->write1_nop2, &tempCCW ,
 					sizeof(struct ccw1));
                                 privptr->p_write_active_last->w_TIC_1.cda=
 				        (__u32)__pa(&p_first_ccw->write);
 
-                        } /* end if if (pEnd->write1) */
+                        } 
 
                         privptr->p_write_active_last->next=p_first_ccw;
                         privptr->p_write_active_last=p_last_ccw;
                 }
 
-        } /* endif (p_first_ccw!=NULL)  */
+        } 
         dev_kfree_skb_any(skb);
 	if (linkid==0) {
         	lock=LOCK_NO;
@@ -1469,7 +1330,7 @@ claw_hw_tx(struct sk_buff *skb, struct net_device *dev, long linkid)
                 lock=LOCK_YES;
         }
         claw_strt_out_IO(dev );
-        /*      if write free count is zero , set NOBUFFER       */
+        
 	if (privptr->write_free_count==0) {
 		claw_setbit_busy(TB_NOBUFFER,dev);
         }
@@ -1477,13 +1338,9 @@ Done2:
 	claw_clearbit_busy(TB_TX,dev);
 Done:
 	return(rc);
-}    /*    end of claw_hw_tx    */
+}    
 
-/*-------------------------------------------------------------------*
-*                                                                    *
-*     init_ccw_bk                                                    *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static int
 init_ccw_bk(struct net_device *dev)
@@ -1509,48 +1366,38 @@ init_ccw_bk(struct net_device *dev)
         int i,j;
 	CLAW_DBF_TEXT(4, trace, "init_ccw");
 
-        /*  initialize  statistics field */
+        
         privptr->active_link_ID=0;
-        /*  initialize  ccwbk pointers  */
-        privptr->p_write_free_chain=NULL;   /* pointer to free ccw chain*/
-        privptr->p_write_active_first=NULL; /* pointer to the first write ccw*/
-        privptr->p_write_active_last=NULL;  /* pointer to the last write ccw*/
-        privptr->p_read_active_first=NULL;  /* pointer to the first read ccw*/
-        privptr->p_read_active_last=NULL;   /* pointer to the last read ccw */
-        privptr->p_end_ccw=NULL;            /* pointer to ending ccw        */
-        privptr->p_claw_signal_blk=NULL;    /* pointer to signal block      */
+        
+        privptr->p_write_free_chain=NULL;   
+        privptr->p_write_active_first=NULL; 
+        privptr->p_write_active_last=NULL;  
+        privptr->p_read_active_first=NULL;  
+        privptr->p_read_active_last=NULL;   
+        privptr->p_end_ccw=NULL;            
+        privptr->p_claw_signal_blk=NULL;    
 	privptr->buffs_alloc = 0;
         memset(&privptr->end_ccw, 0x00, sizeof(struct endccw));
         memset(&privptr->ctl_bk, 0x00, sizeof(struct clawctl));
-        /*  initialize  free write ccwbk counter  */
-        privptr->write_free_count=0;  /* number of free bufs on write chain */
+        
+        privptr->write_free_count=0;  
         p_last_CCWB = NULL;
         p_first_CCWB= NULL;
-        /*
-        *  We need 1 CCW block for each read buffer, 1 for each
-        *  write buffer, plus 1 for ClawSignalBlock
-        */
+        
         ccw_blocks_required =
 		privptr->p_env->read_buffers+privptr->p_env->write_buffers+1;
-        /*
-        * compute number of CCW blocks that will fit in a page
-        */
+        
         ccw_blocks_perpage= PAGE_SIZE /  CCWBK_SIZE;
         ccw_pages_required=
 		DIV_ROUND_UP(ccw_blocks_required, ccw_blocks_perpage);
 
-        /*
-         *  read and write sizes are set by 2 constants in claw.h
-	 *  4k and 32k.  Unpacked values other than 4k are not going to
-	 * provide good performance. With packing buffers support 32k
-	 * buffers are used.
-         */
+        
 	if (privptr->p_env->read_size < PAGE_SIZE) {
 		claw_reads_perpage = PAGE_SIZE / privptr->p_env->read_size;
 		claw_read_pages = DIV_ROUND_UP(privptr->p_env->read_buffers,
 						claw_reads_perpage);
          }
-         else {       /* > or equal  */
+         else {       
 		privptr->p_buff_pages_perread =
 			DIV_ROUND_UP(privptr->p_env->read_size, PAGE_SIZE);
 		claw_read_pages = privptr->p_env->read_buffers *
@@ -1563,15 +1410,13 @@ init_ccw_bk(struct net_device *dev)
 						claw_writes_perpage);
 
         }
-        else {      /* >  or equal  */
+        else {      
 		privptr->p_buff_pages_perwrite =
 			DIV_ROUND_UP(privptr->p_env->read_size, PAGE_SIZE);
 		claw_write_pages = privptr->p_env->write_buffers *
 					privptr->p_buff_pages_perwrite;
         }
-        /*
-        *               allocate ccw_pages_required
-        */
+        
         if (privptr->p_buff_ccw==NULL) {
                 privptr->p_buff_ccw=
 			(void *)__get_free_pages(__GFP_DMA,
@@ -1584,70 +1429,64 @@ init_ccw_bk(struct net_device *dev)
         memset(privptr->p_buff_ccw, 0x00,
 		privptr->p_buff_ccw_num * PAGE_SIZE);
 
-        /*
-        *               obtain ending ccw block address
-        *
-        */
+        
         privptr->p_end_ccw = (struct endccw *)&privptr->end_ccw;
         real_address  = (__u32)__pa(privptr->p_end_ccw);
-        /*                              Initialize ending CCW block       */
+        
         p_endccw=privptr->p_end_ccw;
         p_endccw->real=real_address;
         p_endccw->write1=0x00;
         p_endccw->read1=0x00;
 
-        /*      write1_nop1                                     */
+        
         p_endccw->write1_nop1.cmd_code = CCW_CLAW_CMD_NOP;
         p_endccw->write1_nop1.flags       = CCW_FLAG_SLI | CCW_FLAG_CC;
         p_endccw->write1_nop1.count       = 1;
         p_endccw->write1_nop1.cda         = 0;
 
-        /*      write1_nop2                                     */
+        
         p_endccw->write1_nop2.cmd_code = CCW_CLAW_CMD_READFF;
         p_endccw->write1_nop2.flags        = CCW_FLAG_SLI | CCW_FLAG_SKIP;
         p_endccw->write1_nop2.count      = 1;
         p_endccw->write1_nop2.cda        = 0;
 
-        /*      write2_nop1                                     */
+        
         p_endccw->write2_nop1.cmd_code = CCW_CLAW_CMD_NOP;
         p_endccw->write2_nop1.flags        = CCW_FLAG_SLI | CCW_FLAG_CC;
         p_endccw->write2_nop1.count        = 1;
         p_endccw->write2_nop1.cda          = 0;
 
-        /*      write2_nop2                                     */
+        
         p_endccw->write2_nop2.cmd_code = CCW_CLAW_CMD_READFF;
         p_endccw->write2_nop2.flags        = CCW_FLAG_SLI | CCW_FLAG_SKIP;
         p_endccw->write2_nop2.count        = 1;
         p_endccw->write2_nop2.cda          = 0;
 
-        /*      read1_nop1                                      */
+        
         p_endccw->read1_nop1.cmd_code = CCW_CLAW_CMD_NOP;
         p_endccw->read1_nop1.flags        = CCW_FLAG_SLI | CCW_FLAG_CC;
         p_endccw->read1_nop1.count        = 1;
         p_endccw->read1_nop1.cda          = 0;
 
-        /*      read1_nop2                                      */
+        
         p_endccw->read1_nop2.cmd_code = CCW_CLAW_CMD_READFF;
         p_endccw->read1_nop2.flags        = CCW_FLAG_SLI | CCW_FLAG_SKIP;
         p_endccw->read1_nop2.count        = 1;
         p_endccw->read1_nop2.cda          = 0;
 
-        /*      read2_nop1                                      */
+        
         p_endccw->read2_nop1.cmd_code = CCW_CLAW_CMD_NOP;
         p_endccw->read2_nop1.flags        = CCW_FLAG_SLI | CCW_FLAG_CC;
         p_endccw->read2_nop1.count        = 1;
         p_endccw->read2_nop1.cda          = 0;
 
-        /*      read2_nop2                                      */
+        
         p_endccw->read2_nop2.cmd_code = CCW_CLAW_CMD_READFF;
         p_endccw->read2_nop2.flags        = CCW_FLAG_SLI | CCW_FLAG_SKIP;
         p_endccw->read2_nop2.count        = 1;
         p_endccw->read2_nop2.cda          = 0;
 
-        /*
-        *                               Build a chain of CCWs
-        *
-        */
+        
         p_buff=privptr->p_buff_ccw;
 
         p_free_chain=NULL;
@@ -1662,10 +1501,7 @@ init_ccw_bk(struct net_device *dev)
                 }
                 p_buff+=PAGE_SIZE;
         }
-        /*
-        *                               Initialize ClawSignalBlock
-        *
-        */
+        
         if (privptr->p_claw_signal_blk==NULL) {
                 privptr->p_claw_signal_blk=p_free_chain;
                 p_free_chain=p_free_chain->next;
@@ -1675,9 +1511,7 @@ init_ccw_bk(struct net_device *dev)
                 pClawH->flag=CLAW_BUSY;
         }
 
-        /*
-        *               allocate write_pages_required and add to free chain
-        */
+        
         if (privptr->p_buff_write==NULL) {
             if (privptr->p_env->write_size < PAGE_SIZE) {
                 privptr->p_buff_write=
@@ -1687,10 +1521,7 @@ init_ccw_bk(struct net_device *dev)
                         privptr->p_buff_ccw=NULL;
                         return -ENOMEM;
                 }
-                /*
-                *                               Build CLAW write free chain
-                *
-                */
+                
 
                 memset(privptr->p_buff_write, 0x00,
 			ccw_pages_required * PAGE_SIZE);
@@ -1699,7 +1530,7 @@ init_ccw_bk(struct net_device *dev)
                 p_buff=privptr->p_buff_write;
 
                 for (i=0 ; i< privptr->p_env->write_buffers ; i++) {
-                        p_buf        = p_free_chain;      /*  get a CCW */
+                        p_buf        = p_free_chain;      
                         p_free_chain = p_buf->next;
                         p_buf->next  =privptr->p_write_free_chain;
                         privptr->p_write_free_chain = p_buf;
@@ -1723,7 +1554,7 @@ init_ccw_bk(struct net_device *dev)
                         }
                 }
            }
-           else      /*  Buffers are => PAGE_SIZE. 1 buff per get_free_pages */
+           else      
            {
                privptr->p_write_free_chain=NULL;
                for (i = 0; i< privptr->p_env->write_buffers ; i++) {
@@ -1744,7 +1575,7 @@ init_ccw_bk(struct net_device *dev)
                                 p_buf=p_buf->next;
                         }
                         return -ENOMEM;
-                   }  /* Error on get_pages   */
+                   }  
                    memset(p_buff, 0x00, privptr->p_env->write_size );
                    p_buf         = p_free_chain;
                    p_free_chain  = p_buf->next;
@@ -1762,18 +1593,16 @@ init_ccw_bk(struct net_device *dev)
                    p_buf-> w_TIC_1.cmd_code = CCW_CLAW_CMD_TIC;
                    p_buf-> w_TIC_1.flags   = 0;
                    p_buf-> w_TIC_1.count   = 0;
-               }  /* for all write_buffers   */
+               }  
 
-           }    /* else buffers are PAGE_SIZE or bigger */
+           }    
 
         }
         privptr->p_buff_write_num=claw_write_pages;
         privptr->write_free_count=privptr->p_env->write_buffers;
 
 
-        /*
-        *               allocate read_pages_required and chain to free chain
-        */
+        
         if (privptr->p_buff_read==NULL) {
             if (privptr->p_env->read_size < PAGE_SIZE)  {
                 privptr->p_buff_read=
@@ -1783,7 +1612,7 @@ init_ccw_bk(struct net_device *dev)
                         free_pages((unsigned long)privptr->p_buff_ccw,
 				(int)pages_to_order_of_mag(
 					privptr->p_buff_ccw_num));
-			/* free the write pages size is < page size  */
+			
                         free_pages((unsigned long)privptr->p_buff_write,
 				(int)pages_to_order_of_mag(
 				privptr->p_buff_write_num));
@@ -1793,10 +1622,7 @@ init_ccw_bk(struct net_device *dev)
                 }
                 memset(privptr->p_buff_read, 0x00, claw_read_pages * PAGE_SIZE);
                 privptr->p_buff_read_num=claw_read_pages;
-                /*
-                *                               Build CLAW read free chain
-                *
-                */
+                
                 p_buff=privptr->p_buff_read;
                 for (i=0 ; i< privptr->p_env->read_buffers ; i++) {
                         p_buf        = p_free_chain;
@@ -1816,33 +1642,33 @@ init_ccw_bk(struct net_device *dev)
                         p_first_CCWB=p_buf;
 
                         p_buf->p_buffer=(struct clawbuf *)p_buff;
-                        /*  initialize read command */
+                        
                         p_buf-> read.cmd_code = CCW_CLAW_CMD_READ;
                         p_buf-> read.cda = (__u32)__pa(p_buff);
                         p_buf-> read.flags = CCW_FLAG_SLI | CCW_FLAG_CC;
                         p_buf-> read.count       = privptr->p_env->read_size;
 
-                        /*  initialize read_h command */
+                        
                         p_buf-> read_h.cmd_code = CCW_CLAW_CMD_READHEADER;
                         p_buf-> read_h.cda =
 				(__u32)__pa(&(p_buf->header));
                         p_buf-> read_h.flags = CCW_FLAG_SLI | CCW_FLAG_CC;
                         p_buf-> read_h.count      = sizeof(struct clawh);
 
-                        /*  initialize Signal command */
+                        
                         p_buf-> signal.cmd_code = CCW_CLAW_CMD_SIGNAL_SMOD;
                         p_buf-> signal.cda =
 				(__u32)__pa(&(pClawH->flag));
                         p_buf-> signal.flags = CCW_FLAG_SLI | CCW_FLAG_CC;
                         p_buf-> signal.count     = 1;
 
-                        /*  initialize r_TIC_1 command */
+                        
                         p_buf-> r_TIC_1.cmd_code = CCW_CLAW_CMD_TIC;
                         p_buf-> r_TIC_1.cda = (__u32)real_TIC_address;
                         p_buf-> r_TIC_1.flags = 0;
                         p_buf-> r_TIC_1.count      = 0;
 
-                        /*  initialize r_read_FF command */
+                        
                         p_buf-> r_read_FF.cmd_code = CCW_CLAW_CMD_READFF;
                         p_buf-> r_read_FF.cda =
 				(__u32)__pa(&(pClawH->flag));
@@ -1850,11 +1676,11 @@ init_ccw_bk(struct net_device *dev)
 				CCW_FLAG_SLI | CCW_FLAG_CC | CCW_FLAG_PCI;
                         p_buf-> r_read_FF.count    = 1;
 
-                        /*    initialize r_TIC_2          */
+                        
                         memcpy(&p_buf->r_TIC_2,
 				&p_buf->r_TIC_1, sizeof(struct ccw1));
 
-                        /*     initialize Header     */
+                        
                         p_buf->header.length=0xffff;
                         p_buf->header.opcode=0xff;
                         p_buf->header.flag=CLAW_PENDING;
@@ -1871,9 +1697,9 @@ init_ccw_bk(struct net_device *dev)
 					(p_buff+2*(privptr->p_env->read_size)-1)
 					 & PAGE_MASK) ;
                         }
-                }   /* for read_buffers   */
-          }         /* read_size < PAGE_SIZE  */
-          else {  /* read Size >= PAGE_SIZE  */
+                }   
+          }         
+          else {  
                 for (i=0 ; i< privptr->p_env->read_buffers ; i++) {
                         p_buff = (void *)__get_free_pages(__GFP_DMA,
 				(int)pages_to_order_of_mag(
@@ -1882,7 +1708,7 @@ init_ccw_bk(struct net_device *dev)
                                 free_pages((unsigned long)privptr->p_buff_ccw,
 					(int)pages_to_order_of_mag(privptr->
 					p_buff_ccw_num));
-				/* free the write pages  */
+				
 	                        p_buf=privptr->p_buff_write;
                                 while (p_buf!=NULL) {
 					free_pages(
@@ -1891,7 +1717,7 @@ init_ccw_bk(struct net_device *dev)
 					    privptr->p_buff_pages_perwrite));
                                         p_buf=p_buf->next;
                                 }
-				/* free any read pages already alloc  */
+				
 	                        p_buf=privptr->p_buff_read;
                                 while (p_buf!=NULL) {
 					free_pages(
@@ -1922,35 +1748,35 @@ init_ccw_bk(struct net_device *dev)
                         }
 
                         p_first_CCWB=p_buf;
-				/* save buff address */
+				
                         p_buf->p_buffer=(struct clawbuf *)p_buff;
-                        /*  initialize read command */
+                        
                         p_buf-> read.cmd_code = CCW_CLAW_CMD_READ;
                         p_buf-> read.cda = (__u32)__pa(p_buff);
                         p_buf-> read.flags = CCW_FLAG_SLI | CCW_FLAG_CC;
                         p_buf-> read.count       = privptr->p_env->read_size;
 
-                        /*  initialize read_h command */
+                        
                         p_buf-> read_h.cmd_code = CCW_CLAW_CMD_READHEADER;
                         p_buf-> read_h.cda =
 				(__u32)__pa(&(p_buf->header));
                         p_buf-> read_h.flags = CCW_FLAG_SLI | CCW_FLAG_CC;
                         p_buf-> read_h.count      = sizeof(struct clawh);
 
-                        /*  initialize Signal command */
+                        
                         p_buf-> signal.cmd_code = CCW_CLAW_CMD_SIGNAL_SMOD;
                         p_buf-> signal.cda =
 				(__u32)__pa(&(pClawH->flag));
                         p_buf-> signal.flags = CCW_FLAG_SLI | CCW_FLAG_CC;
                         p_buf-> signal.count     = 1;
 
-                        /*  initialize r_TIC_1 command */
+                        
                         p_buf-> r_TIC_1.cmd_code = CCW_CLAW_CMD_TIC;
                         p_buf-> r_TIC_1.cda = (__u32)real_TIC_address;
                         p_buf-> r_TIC_1.flags = 0;
                         p_buf-> r_TIC_1.count      = 0;
 
-                        /*  initialize r_read_FF command */
+                        
                         p_buf-> r_read_FF.cmd_code = CCW_CLAW_CMD_READFF;
                         p_buf-> r_read_FF.cda =
 				(__u32)__pa(&(pClawH->flag));
@@ -1958,29 +1784,25 @@ init_ccw_bk(struct net_device *dev)
 				CCW_FLAG_SLI | CCW_FLAG_CC | CCW_FLAG_PCI;
                         p_buf-> r_read_FF.count    = 1;
 
-                        /*    initialize r_TIC_2          */
+                        
                         memcpy(&p_buf->r_TIC_2, &p_buf->r_TIC_1,
 				sizeof(struct ccw1));
 
-                        /*     initialize Header     */
+                        
                         p_buf->header.length=0xffff;
                         p_buf->header.opcode=0xff;
                         p_buf->header.flag=CLAW_PENDING;
 
-                }    /* For read_buffers   */
-          }     /*  read_size >= PAGE_SIZE   */
-        }       /*  pBuffread = NULL */
+                }    
+          }     
+        }       
         add_claw_reads( dev  ,p_first_CCWB , p_last_CCWB);
 	privptr->buffs_alloc = 1;
 
         return 0;
-}    /*    end of init_ccw_bk */
+}    
 
-/*-------------------------------------------------------------------*
-*                                                                    *
-*       probe_error                                                  *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static void
 probe_error( struct ccwgroup_device *cgdev)
@@ -1995,13 +1817,9 @@ probe_error( struct ccwgroup_device *cgdev)
 		kfree(privptr->p_mtc_envelope);
 		kfree(privptr);
 	}
-}    /*    probe_error    */
+}    
 
-/*-------------------------------------------------------------------*
-*    claw_process_control                                            *
-*                                                                    *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static int
 claw_process_control( struct net_device *dev, struct ccwbk * p_ccw)
@@ -2020,8 +1838,7 @@ claw_process_control( struct net_device *dev, struct ccwbk * p_ccw)
         struct chbk *p_ch = NULL;
 	struct device *tdev;
 	CLAW_DBF_TEXT(2, setup, "clw_cntl");
-        udelay(1000);  /* Wait a ms for the control packets to
-			*catch up to each other */
+        udelay(1000);  
 	privptr = dev->ml_priv;
         p_env=privptr->p_env;
 	tdev = &privptr->channel[READ].cdev->dev;
@@ -2035,7 +1852,7 @@ claw_process_control( struct net_device *dev, struct ccwbk * p_ccw)
         }
         p_buf=p_ccw->p_buffer;
         p_ctlbk=&ctlbk;
-	if (p_env->packing == DO_PACKED) { /* packing in progress?*/
+	if (p_env->packing == DO_PACKED) { 
 		memcpy(p_ctlbk, &p_buf->buffer[4], sizeof(struct clawctl));
 	} else {
 		memcpy(p_ctlbk, p_buf, sizeof(struct clawctl));
@@ -2203,7 +2020,7 @@ claw_process_control( struct net_device *dev, struct ccwbk * p_ccw)
 			p_ctlbk->linkid);
 			privptr->active_link_ID = p_ctlbk->linkid;
 			p_ch = &privptr->channel[WRITE];
-			wake_up(&p_ch->wait);  /* wake up claw_open ( WRITE) */
+			wake_up(&p_ch->wait);  
 		break;
 	case CONNECTION_RESPONSE:
 		p_connect = (struct conncmd *)&(p_ctlbk->data);
@@ -2232,7 +2049,7 @@ claw_process_control( struct net_device *dev, struct ccwbk * p_ccw)
 				"request because of a type mismatch\n",
 				 dev->name);
 		}
-		/* should be until CONNECTION_CONFIRM */
+		
 		privptr->active_link_ID = -(p_ctlbk->linkid);
 		break;
 	case CONNECTION_CONFIRM:
@@ -2286,13 +2103,10 @@ claw_process_control( struct net_device *dev, struct ccwbk * p_ccw)
         }
 
         return 0;
-}   /*    end of claw_process_control    */
+}   
 
 
-/*-------------------------------------------------------------------*
-*               claw_send_control                                    *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static int
 claw_send_control(struct net_device *dev, __u8 type, __u8 link,
@@ -2326,7 +2140,7 @@ claw_send_control(struct net_device *dev, __u8 type, __u8 link,
 				p_sysval->read_frame_size = DEF_PACK_BUFSIZE;
 				p_sysval->write_frame_size = DEF_PACK_BUFSIZE;
 			} else {
-				/* how big is the biggest group of packets */
+				
 			   p_sysval->read_frame_size =
 				privptr->p_env->read_size;
 			   p_sysval->write_frame_size =
@@ -2341,7 +2155,7 @@ claw_send_control(struct net_device *dev, __u8 type, __u8 link,
                         memcpy(&p_sysval->host_name, local_name, 8);
                         memcpy(&p_sysval->WS_name, remote_name, 8);
 			if (privptr->p_env->packing > 0) {
-			/* How big is the biggest packet */
+			
 				p_connect->reserved1[0]=CLAW_FRAME_SIZE;
                         	p_connect->reserved1[1]=CLAW_FRAME_SIZE;
 			} else {
@@ -2353,7 +2167,7 @@ claw_send_control(struct net_device *dev, __u8 type, __u8 link,
                         break;
         }
 
-        /*      write Control Record to the device                   */
+        
 
 
         skb = dev_alloc_skb(sizeof(struct clawctl));
@@ -2367,12 +2181,9 @@ claw_send_control(struct net_device *dev, __u8 type, __u8 link,
 	else
         	claw_hw_tx(skb, dev, 0);
         return 0;
-}  /*   end of claw_send_control  */
+}  
 
-/*-------------------------------------------------------------------*
-*               claw_snd_conn_req                                    *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static int
 claw_snd_conn_req(struct net_device *dev, __u8 link)
 {
@@ -2399,13 +2210,10 @@ claw_snd_conn_req(struct net_device *dev, __u8 link)
        			HOST_APPL_NAME, privptr->p_env->api_type);
         return rc;
 
-}  /*  end of claw_snd_conn_req */
+}  
 
 
-/*-------------------------------------------------------------------*
-*               claw_snd_disc                                        *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static int
 claw_snd_disc(struct net_device *dev, struct clawctl * p_ctl)
@@ -2420,13 +2228,10 @@ claw_snd_disc(struct net_device *dev, struct clawctl * p_ctl)
 		p_ctl->correlator, 0,
                 p_connect->host_name, p_connect->WS_name);
         return rc;
-}     /*   end of claw_snd_disc    */
+}     
 
 
-/*-------------------------------------------------------------------*
-*               claw_snd_sys_validate_rsp                            *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static int
 claw_snd_sys_validate_rsp(struct net_device *dev,
@@ -2446,12 +2251,9 @@ claw_snd_sys_validate_rsp(struct net_device *dev,
 		p_env->host_name,
 		p_env->adapter_name  );
         return rc;
-}     /*    end of claw_snd_sys_validate_rsp    */
+}     
 
-/*-------------------------------------------------------------------*
-*               claw_strt_conn_req                                   *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static int
 claw_strt_conn_req(struct net_device *dev )
@@ -2461,13 +2263,11 @@ claw_strt_conn_req(struct net_device *dev )
 	CLAW_DBF_TEXT(2, setup, "conn_req");
         rc=claw_snd_conn_req(dev, 1);
         return rc;
-}    /*   end of claw_strt_conn_req   */
+}    
 
 
 
-/*-------------------------------------------------------------------*
- *   claw_stats                                                      *
- *-------------------------------------------------------------------*/
+
 
 static struct
 net_device_stats *claw_stats(struct net_device *dev)
@@ -2477,13 +2277,10 @@ net_device_stats *claw_stats(struct net_device *dev)
 	CLAW_DBF_TEXT(4, trace, "stats");
 	privptr = dev->ml_priv;
         return &privptr->stats;
-}     /*   end of claw_stats   */
+}     
 
 
-/*-------------------------------------------------------------------*
-*       unpack_read                                                  *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static void
 unpack_read(struct net_device *dev )
 {
@@ -2525,10 +2322,10 @@ unpack_read(struct net_device *dev )
 		p_packh = (struct clawph *)p_this_ccw->p_buffer;
 		if ((p_env->packing == PACK_SEND) &&
 		    (p_packh->len == 32)           &&
-		    (p_packh->link_num == 0)) {   /* is it a packed ctl rec? */
-			p_packh++;  /* peek past pack header */
+		    (p_packh->link_num == 0)) {   
+			p_packh++;  
 			p_ctlrec = (struct clawctl *)p_packh;
-			p_packh--;  /* un peek */
+			p_packh--;  
 			if ((p_ctlrec->command == CONNECTION_RESPONSE) ||
 		            (p_ctlrec->command == CONNECTION_CONFIRM))
 				p_env->packing = DO_PACKED;
@@ -2550,16 +2347,10 @@ unpack_read(struct net_device *dev )
                 }
 
                 if (privptr->mtc_skipping) {
-                        /*
-                        *   We're in the mode of skipping past a
-			*   multi-frame message
-                        *   that we can't process for some reason or other.
-                        *   The first frame without the More-To-Come flag is
-			*   the last frame of the skipped message.
-                        */
-                        /*  in case of More-To-Come not set in this frame */
+                        
+                        
                         if (mtc_this_frm==0) {
-                                privptr->mtc_skipping=0; /* Ok, the end */
+                                privptr->mtc_skipping=0; 
                                 privptr->mtc_logical_link=-1;
                         }
                         goto NextFrame;
@@ -2576,7 +2367,7 @@ unpack_next:
 				goto NextFrame;
 			p_packd = p_this_ccw->p_buffer+pack_off;
 			p_packh = (struct clawph *) p_packd;
-			if ((p_packh->len == 0) || /* done with this frame? */
+			if ((p_packh->len == 0) || 
 			    (p_packh->flag != 0))
 				goto NextFrame;
 			bytes_to_mov = p_packh->len;
@@ -2587,18 +2378,15 @@ unpack_next:
 		}
                 if (privptr->mtc_logical_link<0) {
 
-                /*
-                *  if More-To-Come is set in this frame then we don't know
-                *  length of entire message, and hence have to allocate
-		*  large buffer   */
+                
 
-                /*      We are starting a new envelope  */
+                
                 privptr->mtc_offset=0;
                         privptr->mtc_logical_link=link_num;
                 }
 
                 if (bytes_to_mov > (MAX_ENVELOPE_SIZE- privptr->mtc_offset) ) {
-                        /*      error     */
+                        
                         privptr->stats.rx_frame_errors++;
                         goto NextFrame;
                 }
@@ -2639,16 +2427,11 @@ unpack_next:
 		if (p_env->packing == DO_PACKED)
 			goto unpack_next;
 NextFrame:
-                /*
-                *   Remove ThisCCWblock from active read queue, and add it
-                *   to queue of free blocks to be reused.
-                */
+                
                 i++;
                 p_this_ccw->header.length=0xffff;
                 p_this_ccw->header.opcode=0xff;
-                /*
-                *       add this one to the free queue for later reuse
-                */
+                
                 if (p_first_ccw==NULL) {
                         p_first_ccw = p_this_ccw;
                 }
@@ -2656,25 +2439,20 @@ NextFrame:
                         p_last_ccw->next = p_this_ccw;
                 }
                 p_last_ccw = p_this_ccw;
-                /*
-                *       chain to next block on active read queue
-                */
+                
                 p_this_ccw = privptr->p_read_active_first;
 		CLAW_DBF_TEXT_(4, trace, "rxpkt %d", p);
-        } /* end of while */
+        } 
 
-        /*      check validity                  */
+        
 
 	CLAW_DBF_TEXT_(4, trace, "rxfrm %d", i);
         add_claw_reads(dev, p_first_ccw, p_last_ccw);
         claw_strt_read(dev, LOCK_YES);
         return;
-}     /*  end of unpack_read   */
+}     
 
-/*-------------------------------------------------------------------*
-*       claw_strt_read                                               *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static void
 claw_strt_read (struct net_device *dev, int lock )
 {
@@ -2689,13 +2467,13 @@ claw_strt_read (struct net_device *dev, int lock )
 
 	CLAW_DBF_TEXT(4, trace, "StRdNter");
         p_clawh=(struct clawh *)privptr->p_claw_signal_blk;
-        p_clawh->flag=CLAW_IDLE;    /* 0x00 */
+        p_clawh->flag=CLAW_IDLE;    
 
         if ((privptr->p_write_active_first!=NULL &&
              privptr->p_write_active_first->header.flag!=CLAW_PENDING) ||
             (privptr->p_read_active_first!=NULL &&
              privptr->p_read_active_first->header.flag!=CLAW_PENDING )) {
-                p_clawh->flag=CLAW_BUSY;    /* 0xff */
+                p_clawh->flag=CLAW_BUSY;    
         }
         if (lock==LOCK_YES) {
                 spin_lock_irqsave(get_ccwdev_lock(p_ch->cdev), saveflags);
@@ -2719,12 +2497,9 @@ claw_strt_read (struct net_device *dev, int lock )
         }
 	CLAW_DBF_TEXT(4, trace, "StRdExit");
         return;
-}       /*    end of claw_strt_read    */
+}       
 
-/*-------------------------------------------------------------------*
-*       claw_strt_out_IO                                             *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static void
 claw_strt_out_IO( struct net_device *dev )
@@ -2760,12 +2535,9 @@ claw_strt_out_IO( struct net_device *dev )
         }
         dev->trans_start = jiffies;
         return;
-}       /*    end of claw_strt_out_IO    */
+}       
 
-/*-------------------------------------------------------------------*
-*       Free write buffers                                           *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 
 static void
 claw_free_wrt_buf( struct net_device *dev )
@@ -2778,7 +2550,7 @@ claw_free_wrt_buf( struct net_device *dev )
 	struct ccwbk*p_next_ccw;
 
 	CLAW_DBF_TEXT(4, trace, "freewrtb");
-        /*  scan the write queue to free any completed write packets   */
+        
         p_first_ccw=NULL;
         p_last_ccw=NULL;
         p_this_ccw=privptr->p_write_active_first;
@@ -2789,8 +2561,8 @@ claw_free_wrt_buf( struct net_device *dev )
 		     (p_next_ccw->header.flag!=CLAW_PENDING)) ||
                     ((p_this_ccw == privptr->p_write_active_last) &&
                      (p_this_ccw->header.flag!=CLAW_PENDING))) {
-                        /* The next CCW is OK or this is  */
-			/* the last CCW...free it   @A1A  */
+                        
+			
                         privptr->p_write_active_first=p_this_ccw->next;
 			p_this_ccw->header.flag=CLAW_PENDING;
                         p_this_ccw->next=privptr->p_write_free_chain;
@@ -2807,7 +2579,7 @@ claw_free_wrt_buf( struct net_device *dev )
         if (privptr->write_free_count!=0) {
                 claw_clearbit_busy(TB_NOBUFFER,dev);
         }
-        /*   whole chain removed?   */
+        
         if (privptr->p_write_active_first==NULL) {
                 privptr->p_write_active_last=NULL;
         }
@@ -2815,10 +2587,7 @@ claw_free_wrt_buf( struct net_device *dev )
         return;
 }
 
-/*-------------------------------------------------------------------*
-*       claw free netdevice                                          *
-*                                                                    *
-*--------------------------------------------------------------------*/
+
 static void
 claw_free_netdevice(struct net_device * dev, int free_dev)
 {
@@ -2832,7 +2601,7 @@ claw_free_netdevice(struct net_device * dev, int free_dev)
 	if (dev->flags & IFF_RUNNING)
 		claw_release(dev);
 	if (privptr) {
-		privptr->channel[READ].ndev = NULL;  /* say it's free */
+		privptr->channel[READ].ndev = NULL;  
 	}
 	dev->ml_priv = NULL;
 #ifdef MODULE
@@ -2843,11 +2612,7 @@ claw_free_netdevice(struct net_device * dev, int free_dev)
 	CLAW_DBF_TEXT(2, setup, "free_ok");
 }
 
-/**
- * Claw init netdevice
- * Initialize everything of the net device except the name and the
- * channel structs.
- */
+
 static const struct net_device_ops claw_netdev_ops = {
 	.ndo_open		= claw_open,
 	.ndo_stop		= claw_release,
@@ -2872,13 +2637,7 @@ claw_init_netdevice(struct net_device * dev)
 	return;
 }
 
-/**
- * Init a new channel in the privptr->channel[i].
- *
- * @param cdev  The ccw_device to be added.
- *
- * @return 0 on success, !0 on error.
- */
+
 static int
 add_channel(struct ccw_device *cdev,int i,struct claw_privbk *privptr)
 {
@@ -2886,7 +2645,7 @@ add_channel(struct ccw_device *cdev,int i,struct claw_privbk *privptr)
 	struct ccw_dev_id dev_id;
 
 	CLAW_DBF_TEXT_(2, setup, "%s", dev_name(&cdev->dev));
-	privptr->channel[i].flag  = i+1;   /* Read is 1 Write is 2 */
+	privptr->channel[i].flag  = i+1;   
 	p_ch = &privptr->channel[i];
 	p_ch->cdev = cdev;
 	snprintf(p_ch->id, CLAW_ID_SIZE, "cl-%s", dev_name(&cdev->dev));
@@ -2899,14 +2658,7 @@ add_channel(struct ccw_device *cdev,int i,struct claw_privbk *privptr)
 }
 
 
-/**
- *
- * Setup an interface.
- *
- * @param cgdev  Device to be setup.
- *
- * @returns 0 on success, !0 on failure.
- */
+
 static int
 claw_new_device(struct ccwgroup_device *cgdev)
 {
@@ -2961,7 +2713,7 @@ claw_new_device(struct ccwgroup_device *cgdev)
 	dev_set_drvdata(&cgdev->dev, privptr);
 	dev_set_drvdata(&cgdev->cdev[READ]->dev, privptr);
 	dev_set_drvdata(&cgdev->cdev[WRITE]->dev, privptr);
-	/* sysfs magic */
+	
         SET_NETDEV_DEV(dev, &cgdev->dev);
 	if (register_netdev(dev) != 0) {
 		claw_free_netdevice(dev, 1);
@@ -3011,13 +2763,7 @@ claw_purge_skb_queue(struct sk_buff_head *q)
         }
 }
 
-/**
- * Shutdown an interface.
- *
- * @param cgdev  Device to be shut down.
- *
- * @returns 0 on success, !0 on failure.
- */
+
 static int
 claw_shutdown_device(struct ccwgroup_device *cgdev)
 {
@@ -3031,14 +2777,14 @@ claw_shutdown_device(struct ccwgroup_device *cgdev)
 		return -ENODEV;
 	ndev = priv->channel[READ].ndev;
 	if (ndev) {
-		/* Close the device */
+		
 		dev_info(&cgdev->dev, "%s: shutting down \n",
 			ndev->name);
 		if (ndev->flags & IFF_RUNNING)
 			ret = claw_release(ndev);
 		ndev->flags &=~IFF_RUNNING;
 		unregister_netdev(ndev);
-		ndev->ml_priv = NULL;  /* cgdev data, not ndev's to free */
+		ndev->ml_priv = NULL;  
 		claw_free_netdevice(ndev, 1);
 		priv->channel[READ].ndev = NULL;
 		priv->channel[WRITE].ndev = NULL;
@@ -3080,9 +2826,7 @@ claw_remove_device(struct ccwgroup_device *cgdev)
 }
 
 
-/*
- * sysfs attributes
- */
+
 static ssize_t
 claw_hname_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -3111,7 +2855,7 @@ claw_hname_write(struct device *dev, struct device_attribute *attr,
 		return -EINVAL;
 	memset(p_env->host_name, 0x20, MAX_NAME_LEN);
 	strncpy(p_env->host_name,buf, count);
-	p_env->host_name[count-1] = 0x20;  /* clear extra 0x0a */
+	p_env->host_name[count-1] = 0x20;  
 	p_env->host_name[MAX_NAME_LEN] = 0x00;
 	CLAW_DBF_TEXT(2, setup, "HstnSet");
 	CLAW_DBF_TEXT_(2, setup, "%s", p_env->host_name);
@@ -3149,7 +2893,7 @@ claw_adname_write(struct device *dev, struct device_attribute *attr,
 		return -EINVAL;
 	memset(p_env->adapter_name, 0x20, MAX_NAME_LEN);
 	strncpy(p_env->adapter_name,buf, count);
-	p_env->adapter_name[count-1] = 0x20; /* clear extra 0x0a */
+	p_env->adapter_name[count-1] = 0x20; 
 	p_env->adapter_name[MAX_NAME_LEN] = 0x00;
 	CLAW_DBF_TEXT(2, setup, "AdnSet");
 	CLAW_DBF_TEXT_(2, setup, "%s", p_env->adapter_name);
@@ -3188,7 +2932,7 @@ claw_apname_write(struct device *dev, struct device_attribute *attr,
 		return -EINVAL;
 	memset(p_env->api_type, 0x20, MAX_NAME_LEN);
 	strncpy(p_env->api_type,buf, count);
-	p_env->api_type[count-1] = 0x20;  /* we get a loose 0x0a */
+	p_env->api_type[count-1] = 0x20;  
 	p_env->api_type[MAX_NAME_LEN] = 0x00;
 	if(strncmp(p_env->api_type,WS_APPL_NAME_PACKED,6) == 0) {
 		p_env->read_size=DEF_PACK_BUFSIZE;
@@ -3319,9 +3063,7 @@ claw_remove_files(struct device *dev)
 	sysfs_remove_group(&dev->kobj, &claw_attr_group);
 }
 
-/*--------------------------------------------------------------------*
-*    claw_init  and cleanup                                           *
-*---------------------------------------------------------------------*/
+
 
 static void __exit
 claw_cleanup(void)
@@ -3332,12 +3074,7 @@ claw_cleanup(void)
 
 }
 
-/**
- * Initialize module.
- * This is called just after the module is loaded.
- *
- * @return 0 on success, !0 on error.
- */
+
 static int __init
 claw_init(void)
 {

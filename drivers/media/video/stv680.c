@@ -1,62 +1,4 @@
-/*
- *  STV0680 USB Camera Driver, by Kevin Sisson (kjsisson@bellsouth.net)
- *
- * Thanks to STMicroelectronics for information on the usb commands, and
- * to Steve Miller at STM for his help and encouragement while I was
- * writing this driver.
- *
- * This driver is based heavily on the
- * Endpoints (formerly known as AOX) se401 USB Camera Driver
- * Copyright (c) 2000 Jeroen B. Vreeken (pe1rxq@amsat.org)
- *
- * Still somewhat based on the Linux ov511 driver.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * History:
- * ver 0.1 October, 2001. Initial attempt.
- *
- * ver 0.2 November, 2001. Fixed asbility to resize, added brightness
- *                         function, made more stable (?)
- *
- * ver 0.21 Nov, 2001.     Added gamma correction and white balance,
- *                         due to Alexander Schwartz. Still trying to
- *                         improve stablility. Moved stuff into stv680.h
- *
- * ver 0.22 Nov, 2001.	   Added sharpen function (by Michael Sweet,
- *                         mike@easysw.com) from GIMP, also used in pencam.
- *                         Simple, fast, good integer math routine.
- *
- * ver 0.23 Dec, 2001 (gkh)
- * 			   Took out sharpen function, ran code through
- * 			   Lindent, and did other minor tweaks to get
- * 			   things to work properly with 2.5.1
- *
- * ver 0.24 Jan, 2002 (kjs)
- *                         Fixed the problem with webcam crashing after
- *                         two pictures. Changed the way pic is halved to
- *                         improve quality. Got rid of green line around
- *                         frame. Fix brightness reset when changing size
- *                         bug. Adjusted gamma filters slightly.
- *
- * ver 0.25 Jan, 2002 (kjs)
- *			   Fixed a bug in which the driver sometimes attempted
- *			   to set to a non-supported size. This allowed
- *			   gnomemeeting to work.
- *			   Fixed proc entry removal bug.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -75,9 +17,9 @@
 
 static int video_nr = -1;
 
-static int swapRGB;	/* 0 = default for auto select */
+static int swapRGB;	
 
-/* 0 = default to allow auto select; -1 = swap never, +1 = swap always */
+
 static int swapRGB_on;
 
 static unsigned int debug;
@@ -90,9 +32,7 @@ static unsigned int debug;
 	} while (0)
 
 
-/*
- * Version Information
- */
+
 #define DRIVER_VERSION "v0.25"
 #define DRIVER_AUTHOR "Kevin Sisson <kjsisson@bellsouth.net>"
 #define DRIVER_DESC "STV0680 USB Camera Driver"
@@ -106,25 +46,7 @@ module_param(swapRGB_on, int, 0);
 MODULE_PARM_DESC (swapRGB_on, "Red/blue swap: 1=always, 0=auto, -1=never");
 module_param(video_nr, int, 0);
 
-/********************************************************************
- *
- * Memory management
- *
- * This is a shameless copy from the USB-cpia driver (linux kernel
- * version 2.3.29 or so, I have no idea what this code actually does ;).
- * Actually it seems to be a copy of a shameless copy of the bttv-driver.
- * Or that is a copy of a shameless copy of ... (To the powers: is there
- * no generic kernel-function to do this sort of stuff?)
- *
- * Yes, it was a shameless copy from the bttv-driver. IIRC, Alan says
- * there will be one, but apparentely not yet -jerdfelt
- *
- * So I copied it again for the ov511 driver -claudio
- *
- * Same for the se401 driver -Jeroen
- *
- * And the STV0680 driver - Kevin
- ********************************************************************/
+
 static void *rvmalloc (unsigned long size)
 {
 	void *mem;
@@ -135,7 +57,7 @@ static void *rvmalloc (unsigned long size)
 	if (!mem)
 		return NULL;
 
-	memset (mem, 0, size);	/* Clear the ram out, no junk to the user */
+	memset (mem, 0, size);	
 	adr = (unsigned long) mem;
 	while (size > 0) {
 		SetPageReserved(vmalloc_to_page((void *)adr));
@@ -162,16 +84,14 @@ static void rvfree (void *mem, unsigned long size)
 }
 
 
-/*********************************************************************
- * pencam read/write functions
- ********************************************************************/
+
 
 static int stv_sndctrl (int set, struct usb_stv *stv680, unsigned short req, unsigned short value, unsigned char *buffer, int size)
 {
 	int ret = -1;
 
 	switch (set) {
-	case 0:		/*  0xc1  */
+	case 0:		
 		ret = usb_control_msg (stv680->udev,
 				       usb_rcvctrlpipe (stv680->udev, 0),
 				       req,
@@ -179,7 +99,7 @@ static int stv_sndctrl (int set, struct usb_stv *stv680, unsigned short req, uns
 				       value, 0, buffer, size, PENCAM_TIMEOUT);
 		break;
 
-	case 1:		/*  0x41  */
+	case 1:		
 		ret = usb_control_msg (stv680->udev,
 				       usb_sndctrlpipe (stv680->udev, 0),
 				       req,
@@ -187,7 +107,7 @@ static int stv_sndctrl (int set, struct usb_stv *stv680, unsigned short req, uns
 				       value, 0, buffer, size, PENCAM_TIMEOUT);
 		break;
 
-	case 2:		/*  0x80  */
+	case 2:		
 		ret = usb_control_msg (stv680->udev,
 				       usb_rcvctrlpipe (stv680->udev, 0),
 				       req,
@@ -195,7 +115,7 @@ static int stv_sndctrl (int set, struct usb_stv *stv680, unsigned short req, uns
 				       value, 0, buffer, size, PENCAM_TIMEOUT);
 		break;
 
-	case 3:		/*  0x40  */
+	case 3:		
 		ret = usb_control_msg (stv680->udev,
 				       usb_sndctrlpipe (stv680->udev, 0),
 				       req,
@@ -236,9 +156,9 @@ static int stv_stop_video (struct usb_stv *dev)
 		return -1;
 	}
 
-	/* this is a high priority command; it stops all lower order commands */
+	
 	if ((i = stv_sndctrl (1, dev, 0x04, 0x0000, buf, 0x0)) < 0) {
-		i = stv_sndctrl (0, dev, 0x80, 0, buf, 0x02);	/* Get Last Error; 2 = busy */
+		i = stv_sndctrl (0, dev, 0x80, 0, buf, 0x02);	
 		PDEBUG (1, "STV(i): last error: %i,  command = 0x%x", buf[0], buf[1]);
 	} else {
 		PDEBUG (1, "STV(i): Camera reset to idle mode.");
@@ -247,9 +167,9 @@ static int stv_stop_video (struct usb_stv *dev)
 	if ((i = stv_set_config (dev, 1, 0, 0)) < 0)
 		PDEBUG (1, "STV(e): Reset config during exit failed");
 
-	/*  get current mode  */
+	
 	buf[0] = 0xf0;
-	if ((i = stv_sndctrl (0, dev, 0x87, 0, buf, 0x08)) != 0x08)	/* get mode */
+	if ((i = stv_sndctrl (0, dev, 0x87, 0, buf, 0x08)) != 0x08)	
 		PDEBUG (0, "STV(e): Stop_video: problem setting original mode");
 	if (dev->origMode != buf[0]) {
 		memset (buf, 0, 8);
@@ -266,7 +186,7 @@ static int stv_stop_video (struct usb_stv *dev)
 		} else
 			PDEBUG (0, "STV(i): Camera set to original resolution");
 	}
-	/* origMode */
+	
 	kfree(buf);
 	return i;
 }
@@ -293,14 +213,14 @@ static int stv_set_video_mode (struct usb_stv *dev)
 		goto error;
 	}
 
-	/*  set alternate interface 1 */
+	
 	if ((i = stv_set_config (dev, 1, 0, 1)) < 0)
 		goto error;
 
 	if ((i = stv_sndctrl (0, dev, 0x85, 0, buf, 0x10)) != 0x10)
 		goto error;
 	PDEBUG (1, "STV(i): Setting video mode.");
-	/*  Switch to Video mode: 0x0100 = VGA (640x480), 0x0000 = CIF (352x288) 0x0300 = QVGA (320x240)  */
+	
 	if ((i = stv_sndctrl (1, dev, 0x09, dev->VideoMode, buf, 0x0)) < 0) {
 		stop_video = 0;
 		goto error;
@@ -331,13 +251,13 @@ static int stv_init (struct usb_stv *stv680)
 	}
 	udelay (100);
 
-	/* set config 1, interface 0, alternate 0 */
+	
 	if ((i = stv_set_config (stv680, 1, 0, 0)) < 0) {
 		kfree(buffer);
 		PDEBUG (0, "STV(e): set config 1,0,0 failed");
 		return -1;
 	}
-	/* ping camera to be sure STV0680 is present */
+	
 	if ((i = stv_sndctrl (0, stv680, 0x88, 0x5678, buffer, 0x02)) != 0x02)
 		goto error;
 	if ((buffer[0] != 0x56) || (buffer[1] != 0x78)) {
@@ -345,7 +265,7 @@ static int stv_init (struct usb_stv *stv680)
 		goto error;
 	}
 
-	/* get camera descriptor */
+	
 	if ((i = stv_sndctrl (2, stv680, 0x06, 0x0200, buffer, 0x09)) != 0x09)
 		goto error;
 	i = stv_sndctrl (2, stv680, 0x06, 0x0200, buffer, 0x22);
@@ -381,12 +301,12 @@ static int stv_init (struct usb_stv *stv680)
 		if (stv680->QVGA)
 			PDEBUG (0, "STV(i): QVGA is supported");
 	}
-	/* FW rev, ASIC rev, sensor ID  */
+	
 	PDEBUG (1, "STV(i): Firmware rev is %i.%i", buffer[0], buffer[1]);
 	PDEBUG (1, "STV(i): ASIC rev is %i.%i", buffer[2], buffer[3]);
 	PDEBUG (1, "STV(i): Sensor ID is %i", (buffer[4]*16) + (buffer[5]>>4));
 
-	/*  set alternate interface 1 */
+	
 	if ((i = stv_set_config (stv680, 1, 0, 1)) < 0)
 		goto error;
 
@@ -397,12 +317,12 @@ static int stv_init (struct usb_stv *stv680)
 	i = buffer[3];
 	PDEBUG (0, "STV(i): Camera has %i pictures.", i);
 
-	/*  get current mode */
+	
 	if ((i = stv_sndctrl (0, stv680, 0x87, 0, buffer, 0x08)) != 0x08)
 		goto error;
-	stv680->origMode = buffer[0];	/* 01 = VGA, 03 = QVGA, 00 = CIF */
+	stv680->origMode = buffer[0];	
 
-	/* This will attemp CIF mode, if supported. If not, set to QVGA  */
+	
 	memset (buffer, 0, 8);
 	if (stv680->CIF)
 		buffer[0] = 0x00;
@@ -432,14 +352,14 @@ static int stv_init (struct usb_stv *stv680)
 	if ((i = stv_sndctrl (0, stv680, 0x8f, 0, buffer, 0x10)) != 0x10)
 		goto error;
 	bufsize = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | (buffer[3]);
-	stv680->cwidth = (buffer[4] << 8) | (buffer[5]);	/* ->camera = 322, 356, 644  */
-	stv680->cheight = (buffer[6] << 8) | (buffer[7]);	/* ->camera = 242, 292, 484  */
+	stv680->cwidth = (buffer[4] << 8) | (buffer[5]);	
+	stv680->cheight = (buffer[6] << 8) | (buffer[7]);	
 	stv680->origGain = buffer[12];
 
 	goto exit;
 
 error:
-	i = stv_sndctrl (0, stv680, 0x80, 0, buffer, 0x02);	/* Get Last Error */
+	i = stv_sndctrl (0, stv680, 0x80, 0, buffer, 0x02);	
 	PDEBUG (1, "STV(i): last error: %i,  command = 0x%x", buffer[0], buffer[1]);
 	kfree(buffer);
 	return -1;
@@ -447,7 +367,7 @@ error:
 exit:
 	kfree(buffer);
 
-	/* video = 320x240, 352x288 */
+	
 	if (stv680->CIF == 1) {
 		stv680->maxwidth = 352;
 		stv680->maxheight = 288;
@@ -461,27 +381,27 @@ exit:
 		stv680->vheight = 240;
 	}
 
-	stv680->rawbufsize = bufsize;	/* must be ./. by 8 */
-	stv680->maxframesize = bufsize * 3;	/* RGB size */
+	stv680->rawbufsize = bufsize;	
+	stv680->maxframesize = bufsize * 3;	
 	PDEBUG (2, "STV(i): cwidth = %i, cheight = %i", stv680->cwidth, stv680->cheight);
 	PDEBUG (1, "STV(i): width = %i, height = %i, rawbufsize = %li", stv680->vwidth, stv680->vheight, stv680->rawbufsize);
 
-	/* some default values */
+	
 	stv680->bulk_in_endpointAddr = 0x82;
 	stv680->dropped = 0;
 	stv680->error = 0;
 	stv680->framecount = 0;
 	stv680->readcount = 0;
 	stv680->streaming = 0;
-	/* bright, white, colour, hue, contrast are set by software, not in stv0680 */
+	
 	stv680->brightness = 32767;
 	stv680->chgbright = 0;
-	stv680->whiteness = 0;	/* only for greyscale */
+	stv680->whiteness = 0;	
 	stv680->colour = 32767;
 	stv680->contrast = 32767;
 	stv680->hue = 32767;
 	stv680->palette = STV_VIDEO_PALETTE;
-	stv680->depth = 24;	/* rgb24 bits */
+	stv680->depth = 24;	
 	if ((swapRGB_on == 0) && (swapRGB == 0))
 		PDEBUG (1, "STV(i): swapRGB is (auto) OFF");
 	else if ((swapRGB_on == 0) && (swapRGB == 1))
@@ -499,11 +419,9 @@ exit:
 	return 0;
 }
 
-/***************** last of pencam  routines  *******************/
 
-/****************************************************************************
- *  sysfs
- ***************************************************************************/
+
+
 #define stv680_file(name, variable, field)				\
 static ssize_t show_##name(struct device *class_dev,			\
 			   struct device_attribute *attr, char *buf)	\
@@ -577,16 +495,14 @@ static void stv680_remove_sysfs_files(struct video_device *vdev)
 	device_remove_file(&vdev->dev, &dev_attr_decoding_errors);
 }
 
-/********************************************************************
- * Camera control
- *******************************************************************/
+
 
 static int stv680_get_pict (struct usb_stv *stv680, struct video_picture *p)
 {
-	/* This sets values for v4l interface. max/min = 65535/0  */
+	
 
 	p->brightness = stv680->brightness;
-	p->whiteness = stv680->whiteness;	/* greyscale */
+	p->whiteness = stv680->whiteness;	
 	p->colour = stv680->colour;
 	p->contrast = stv680->contrast;
 	p->hue = stv680->hue;
@@ -597,7 +513,7 @@ static int stv680_get_pict (struct usb_stv *stv680, struct video_picture *p)
 
 static int stv680_set_pict (struct usb_stv *stv680, struct video_picture *p)
 {
-	/* See above stv680_get_pict  */
+	
 
 	if (p->palette != STV_VIDEO_PALETTE) {
 		PDEBUG (2, "STV(e): Palette set error in _set_pic");
@@ -609,7 +525,7 @@ static int stv680_set_pict (struct usb_stv *stv680, struct video_picture *p)
 		stv680->brightness = p->brightness;
 	}
 
-	stv680->whiteness = p->whiteness;	/* greyscale */
+	stv680->whiteness = p->whiteness;	
 	stv680->colour = p->colour;
 	stv680->contrast = p->contrast;
 	stv680->hue = p->hue;
@@ -627,7 +543,7 @@ static void stv680_video_irq (struct urb *urb)
 	if (length < stv680->rawbufsize)
 		PDEBUG (2, "STV(i): Lost data in transfer: exp %li, got %i", stv680->rawbufsize, length);
 
-	/* ohoh... */
+	
 	if (!stv680->streaming)
 		return;
 
@@ -636,9 +552,7 @@ static void stv680_video_irq (struct urb *urb)
 		return;
 	}
 
-	/* 0 sized packets happen if we are to fast, but sometimes the camera
-	   keeps sending them forever...
-	 */
+	
 	if (length && !urb->status) {
 		stv680->nullpackets = 0;
 		switch (stv680->scratch[stv680->scratch_next].state) {
@@ -660,7 +574,7 @@ static void stv680_video_irq (struct urb *urb)
 			if (stv680->scratch_next >= STV680_NUMSCRATCH)
 				stv680->scratch_next = 0;
 			break;
-		}		/* switch  */
+		}		
 	} else {
 		stv680->nullpackets++;
 		if (stv680->nullpackets > STV680_MAX_NULLPACKETS) {
@@ -668,15 +582,15 @@ static void stv680_video_irq (struct urb *urb)
 				wake_up_interruptible (&stv680->wq);
 			}
 		}
-	}			/*  if - else */
+	}			
 
-	/* Resubmit urb for new data */
+	
 	urb->status = 0;
 	urb->dev = stv680->udev;
 	if (usb_submit_urb (urb, GFP_ATOMIC))
 		PDEBUG (0, "STV(e): urb burned down in video irq");
 	return;
-}				/*  _video_irq  */
+}				
 
 static int stv680_start_stream (struct usb_stv *stv680)
 {
@@ -685,12 +599,12 @@ static int stv680_start_stream (struct usb_stv *stv680)
 
 	stv680->streaming = 1;
 
-	/* Do some memory allocation */
+	
 	for (i = 0; i < STV680_NUMFRAMES; i++) {
 		stv680->frame[i].data = stv680->fbuf + i * stv680->maxframesize;
 		stv680->frame[i].curpix = 0;
 	}
-	/* packet size = 4096  */
+	
 	for (i = 0; i < STV680_NUMSBUF; i++) {
 		stv680->sbuf[i].data = kmalloc (stv680->rawbufsize, GFP_KERNEL);
 		if (stv680->sbuf[i].data == NULL) {
@@ -716,7 +630,7 @@ static int stv680_start_stream (struct usb_stv *stv680)
 		if (!urb)
 			goto nomem_err;
 
-		/* sbuf is urb->transfer_buffer, later gets memcpyed to scratch */
+		
 		usb_fill_bulk_urb (urb, stv680->udev,
 				   usb_rcvbulkpipe (stv680->udev, stv680->bulk_in_endpointAddr),
 				   stv680->sbuf[i].data, stv680->rawbufsize,
@@ -728,7 +642,7 @@ static int stv680_start_stream (struct usb_stv *stv680)
 				   "%d in start stream %d", err, i);
 			goto nomem_err;
 		}
-	}			/* i STV680_NUMSBUF */
+	}			
 
 	stv680->framecount = 0;
 	return 0;
@@ -741,7 +655,7 @@ static int stv680_start_stream (struct usb_stv *stv680)
 		kfree(stv680->sbuf[i].data);
 		stv680->sbuf[i].data = NULL;
 	}
-	/* used in irq, free only as all URBs are dead */
+	
 	for (i = 0; i < STV680_NUMSCRATCH; i++) {
 		kfree(stv680->scratch[i].data);
 		stv680->scratch[i].data = NULL;
@@ -778,12 +692,12 @@ static int stv680_set_size (struct usb_stv *stv680, int width, int height)
 {
 	int wasstreaming = stv680->streaming;
 
-	/* Check to see if we need to change */
+	
 	if ((stv680->vwidth == width) && (stv680->vheight == height))
 		return 0;
 
 	PDEBUG (1, "STV(i): size request for %i x %i", width, height);
-	/* Check for a valid mode */
+	
 	if ((!width || !height) || ((width & 1) || (height & 1))) {
 		PDEBUG (1, "STV(e): set_size error: request: v.width = %i, v.height = %i  actual: stv.width = %i, stv.height = %i", width, height, stv680->vwidth, stv680->vheight);
 		return 1;
@@ -809,7 +723,7 @@ static int stv680_set_size (struct usb_stv *stv680, int width, int height)
 		return 1;
 	}
 
-	/* Stop a current stream and start it again at the new size */
+	
 	if (wasstreaming)
 		stv680_stop_stream (stv680);
 	stv680->vwidth = width;
@@ -821,16 +735,11 @@ static int stv680_set_size (struct usb_stv *stv680, int width, int height)
 	return 0;
 }
 
-/**********************************************************************
- * Video Decoding
- **********************************************************************/
 
-/*******  routines from the pencam program; hey, they work!  ********/
 
-/*
- * STV0680 Vision Camera Chipset Driver
- * Copyright (C) 2000 Adam Harrison <adam@antispin.org>
-*/
+
+
+
 
 #define RED 0
 #define GREEN 1
@@ -855,7 +764,7 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 			frame->grabstate = FRAME_GRABBING;
 		}
 	}
-	if (offset != frame->curpix) {	/* Regard frame as lost :( */
+	if (offset != frame->curpix) {	
 		frame->curpix = 0;
 		stv680->error++;
 		return;
@@ -870,7 +779,7 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 		vh = 288;
 	}
 
-	memset (output, 0, 3 * vw * vh);	/* clear output matrix. */
+	memset (output, 0, 3 * vw * vh);	
 
 	for (y = 0; y < vh; y++) {
 		for (x = 0; x < vw; x++) {
@@ -900,16 +809,12 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 			}
 			i = (y * vw + x) * 3;
 			*(output + i + colour) = (unsigned char) p;
-		}		/* for x */
+		}		
 
-	}			/* for y */
+	}			
 
-	/****** gamma correction plus hardcoded white balance */
-	/* Thanks to Alexander Schwartx <alexander.schwartx@gmx.net> for this code.
-	   Correction values red[], green[], blue[], are generated by
-	   (pow(i/256.0, GAMMA)*255.0)*white balanceRGB where GAMMA=0.55, 1<i<255.
-	   White balance (RGB)= 1.0, 1.17, 1.48. Values are calculated as double float and
-	   converted to unsigned char. Values are in stv680.h  */
+	
+	
 
 	for (y = 0; y < vh; y++) {
 		for (x = 0; x < vw; x++) {
@@ -920,9 +825,9 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 		}
 	}
 
-	/******  bayer demosaic  ******/
+	
 	for (y = 1; y < (vh - 1); y++) {
-		for (x = 1; x < (vw - 1); x++) {	/* work out pixel type */
+		for (x = 1; x < (vw - 1); x++) {	
 			if (y & 1)
 				bayer = 0;
 			else
@@ -931,30 +836,30 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 				bayer++;
 
 			switch (bayer) {
-			case 0:	/* green. blue lr, red tb */
+			case 0:	
 				*(output + AD (x, y, vw) + BLUE) = ((int) *(output + AD (x - 1, y, vw) + BLUE) + (int) *(output + AD (x + 1, y, vw) + BLUE)) >> 1;
 				*(output + AD (x, y, vw) + RED) = ((int) *(output + AD (x, y - 1, vw) + RED) + (int) *(output + AD (x, y + 1, vw) + RED)) >> 1;
 				break;
 
-			case 1:	/* blue. green lrtb, red diagonals */
+			case 1:	
 				*(output + AD (x, y, vw) + GREEN) = ((int) *(output + AD (x - 1, y, vw) + GREEN) + (int) *(output + AD (x + 1, y, vw) + GREEN) + (int) *(output + AD (x, y - 1, vw) + GREEN) + (int) *(output + AD (x, y + 1, vw) + GREEN)) >> 2;
 				*(output + AD (x, y, vw) + RED) = ((int) *(output + AD (x - 1, y - 1, vw) + RED) + (int) *(output + AD (x - 1, y + 1, vw) + RED) + (int) *(output + AD (x + 1, y - 1, vw) + RED) + (int) *(output + AD (x + 1, y + 1, vw) + RED)) >> 2;
 				break;
 
-			case 2:	/* red. green lrtb, blue diagonals */
+			case 2:	
 				*(output + AD (x, y, vw) + GREEN) = ((int) *(output + AD (x - 1, y, vw) + GREEN) + (int) *(output + AD (x + 1, y, vw) + GREEN) + (int) *(output + AD (x, y - 1, vw) + GREEN) + (int) *(output + AD (x, y + 1, vw) + GREEN)) >> 2;
 				*(output + AD (x, y, vw) + BLUE) = ((int) *(output + AD (x - 1, y - 1, vw) + BLUE) + (int) *(output + AD (x + 1, y - 1, vw) + BLUE) + (int) *(output + AD (x - 1, y + 1, vw) + BLUE) + (int) *(output + AD (x + 1, y + 1, vw) + BLUE)) >> 2;
 				break;
 
-			case 3:	/* green. red lr, blue tb */
+			case 3:	
 				*(output + AD (x, y, vw) + RED) = ((int) *(output + AD (x - 1, y, vw) + RED) + (int) *(output + AD (x + 1, y, vw) + RED)) >> 1;
 				*(output + AD (x, y, vw) + BLUE) = ((int) *(output + AD (x, y - 1, vw) + BLUE) + (int) *(output + AD (x, y + 1, vw) + BLUE)) >> 1;
 				break;
-			}	/* switch */
-		}		/* for x */
-	}			/* for y  - end demosaic  */
+			}	
+		}		
+	}			
 
-	/* fix top and bottom row, left and right side */
+	
 	i = vw * 3;
 	memcpy (output, (output + i), i);
 	memcpy ((output + (vh * i)), (output + ((vh - 1) * i)), i);
@@ -964,7 +869,7 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 		memcpy ((output + i + (vw * 3)), (output + i + (vw - 1) * 3), 3);
 	}
 
-	/*  process all raw data, then trim to size if necessary */
+	
 	if ((stv680->vwidth == 160) || (stv680->vwidth == 176))  {
 		i = 0;
 		for (y = 0; y < vh; y++) {
@@ -977,11 +882,11 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 						*(output + i + 2) = *(output + p + 2);
 						i += 3;
 					}
-				}  /* for x */
+				}  
 			}
-		}  /* for y */
+		}  
 	}
-	/* reset to proper width */
+	
 	if ((stv680->vwidth == 160)) {
 		vw = 160;
 		vh = 120;
@@ -991,9 +896,9 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 		vh = 144;
 	}
 
-	/* output is RGB; some programs want BGR  */
-	/* swapRGB_on=0 -> program decides;  swapRGB_on=1, always swap */
-	/* swapRGB_on=-1, never swap */
+	
+	
+	
 	if (((swapRGB == 1) && (swapRGB_on != -1)) || (swapRGB_on == 1)) {
 		for (y = 0; y < vh; y++) {
 			for (x = 0; x < vw; x++) {
@@ -1004,7 +909,7 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 			}
 		}
 	}
-	/* brightness */
+	
 	if (stv680->chgbright == 1) {
 		if (stv680->brightness >= 32767) {
 			p = (stv680->brightness - 32767) / 256;
@@ -1013,7 +918,7 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 					*(output + x) = 255;
 				else
 					*(output + x) += (unsigned char) p;
-			}	/* for */
+			}	
 		} else {
 			p = (32767 - stv680->brightness) / 256;
 			for (x = 0; x < (vw * vh * 3); x++) {
@@ -1021,10 +926,10 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 					*(output + x) = 0;
 				else
 					*(output + x) -= (unsigned char) p;
-			}	/* for */
-		}		/* else */
+			}	
+		}		
 	}
-	/* if */
+	
 	frame->curpix = 0;
 	frame->curlinepix = 0;
 	frame->grabstate = FRAME_DONE;
@@ -1034,9 +939,9 @@ static void bayer_unshuffle (struct usb_stv *stv680, struct stv680_scratch *buff
 		stv680->curframe = (stv680->curframe + 1) & (STV680_NUMFRAMES - 1);
 	}
 
-}				/* bayer_unshuffle */
+}				
 
-/*******  end routines from the pencam program  *********/
+
 
 static int stv680_newframe (struct usb_stv *stv680, int framenr)
 {
@@ -1073,14 +978,12 @@ static int stv680_newframe (struct usb_stv *stv680, int framenr)
 				stv680_stop_stream (stv680);
 				stv680_start_stream (stv680);
 			}
-		}		/* else */
-	}			/* while */
+		}		
+	}			
 	return 0;
 }
 
-/*********************************************************************
- * Video4Linux
- *********************************************************************/
+
 
 static int stv_open(struct file *file)
 {
@@ -1088,10 +991,10 @@ static int stv_open(struct file *file)
 	struct usb_stv *stv680 = video_get_drvdata(dev);
 	int err = 0;
 
-	/* we are called with the BKL held */
+	
 	lock_kernel();
 	stv680->user = 1;
-	err = stv_init (stv680);	/* main initialization routine for camera */
+	err = stv_init (stv680);	
 
 	if (err >= 0) {
 		stv680->fbuf = rvmalloc (stv680->maxframesize * STV680_NUMFRAMES);
@@ -1204,7 +1107,7 @@ static long stv680_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	case VIDIOCGWIN:{
 			struct video_window *vw = arg;
 
-			vw->x = 0;	/* FIXME */
+			vw->x = 0;	
 			vw->y = 0;
 			vw->chromakey = 0;
 			vw->flags = 0;
@@ -1232,7 +1135,7 @@ static long stv680_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 					vm->format, STV_VIDEO_PALETTE);
 				if ((vm->format == 3) && (swapRGB_on == 0))  {
 					PDEBUG (2, "STV(i): VIDIOCMCAPTURE swapRGB is (auto) ON");
-					/* this may fix those apps (e.g., xawtv) that want BGR */
+					
 					swapRGB = 1;
 				}
 				return -EINVAL;
@@ -1247,7 +1150,7 @@ static long stv680_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 					stv680->frame[vm->frame].grabstate);
 				return -EBUSY;
 			}
-			/* Is this according to the v4l spec??? */
+			
 			if (stv680->vwidth != vm->width) {
 				if (stv680_set_size (stv680, vm->width, vm->height)) {
 					PDEBUG (2, "STV(e): VIDIOCMCAPTURE set_size failed");
@@ -1296,7 +1199,7 @@ static long stv680_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		return -EINVAL;
 	default:
 		return -ENOIOCTLCMD;
-	}			/* end switch */
+	}			
 
 	return 0;
 }
@@ -1363,7 +1266,7 @@ static ssize_t stv680_read (struct file *file, char __user *buf,
 	if (realcount > (stv680->vwidth * stv680->vheight * 3))
 		realcount = stv680->vwidth * stv680->vheight * 3;
 
-	/* Shouldn't happen: */
+	
 	if (stv680->frame[0].grabstate == FRAME_GRABBING) {
 		PDEBUG (2, "STV(e): FRAME_GRABBING in stv680_read");
 		return -EBUSY;
@@ -1376,7 +1279,7 @@ static ssize_t stv680_read (struct file *file, char __user *buf,
 		stv680_start_stream (stv680);
 
 	if (!stv680->streaming) {
-		ret = stv680_newframe (stv680, 0);	/* ret should = 0 */
+		ret = stv680_newframe (stv680, 0);	
 	}
 
 	ret = stv680_newframe (stv680, 0);
@@ -1391,7 +1294,7 @@ static ssize_t stv680_read (struct file *file, char __user *buf,
 	}
 	stv680->frame[0].grabstate = FRAME_UNUSED;
 	return realcount;
-}				/* stv680_read */
+}				
 
 static const struct v4l2_file_operations stv680_fops = {
 	.owner =	THIS_MODULE,
@@ -1416,14 +1319,14 @@ static int stv680_probe (struct usb_interface *intf, const struct usb_device_id 
 	char *camera_name = NULL;
 	int retval = 0;
 
-	/* We don't handle multi-config cameras */
+	
 	if (dev->descriptor.bNumConfigurations != 1) {
 		PDEBUG (0, "STV(e): Number of Configurations != 1");
 		return -ENODEV;
 	}
 
 	interface = &intf->altsetting[0];
-	/* Is it a STV680? */
+	
 	if ((le16_to_cpu(dev->descriptor.idVendor) == USB_PENCAM_VENDOR_ID) &&
 	    (le16_to_cpu(dev->descriptor.idProduct) == USB_PENCAM_PRODUCT_ID)) {
 		camera_name = "STV0680";
@@ -1438,7 +1341,7 @@ static int stv680_probe (struct usb_interface *intf, const struct usb_device_id 
 		retval = -ENODEV;
 		goto error;
 	}
-	/* We found one */
+	
 	if ((stv680 = kzalloc (sizeof (*stv680), GFP_KERNEL)) == NULL) {
 		PDEBUG (0, "STV(e): couldn't kmalloc stv680 struct.");
 		retval = -ENOMEM;
@@ -1507,7 +1410,7 @@ static inline void usb_stv680_remove_disconnected (struct usb_stv *stv680)
 		kfree(stv680->scratch[i].data);
 	PDEBUG (0, "STV(i): %s disconnected", stv680->camera_name);
 
-	/* Free the memory */
+	
 	kfree(stv680);
 }
 
@@ -1518,7 +1421,7 @@ static void stv680_disconnect (struct usb_interface *intf)
 	usb_set_intfdata (intf, NULL);
 
 	if (stv680) {
-		/* We don't want people trying to open up the device */
+		
 		if (stv680->vdev) {
 			stv680_remove_sysfs_files(stv680->vdev);
 			video_unregister_device(stv680->vdev);
@@ -1539,9 +1442,7 @@ static struct usb_driver stv680_driver = {
 	.id_table =	device_table
 };
 
-/********************************************************************
- *  Module routines
- ********************************************************************/
+
 
 static int __init usb_stv680_init (void)
 {

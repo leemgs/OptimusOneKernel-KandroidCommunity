@@ -1,11 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- */
+
 #include <linux/module.h>
 #include <linux/proc_fs.h>
 #include <linux/kernel.h>
@@ -166,6 +159,6 @@ void rose_setup(struct net_device *dev)
 	dev->addr_len		= ROSE_ADDR_LEN;
 	dev->type		= ARPHRD_ROSE;
 
-	/* New-style flags. */
+	
 	dev->flags		= IFF_NOARP;
 }

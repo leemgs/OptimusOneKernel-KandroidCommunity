@@ -1,10 +1,4 @@
-/*
- * Copyright 2002-2004, Instant802 Networks, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef TKIP_H
 #define TKIP_H
@@ -30,4 +24,4 @@ int ieee80211_tkip_decrypt_data(struct crypto_blkcipher *tfm,
 				u8 *ra, int only_iv, int queue,
 				u32 *out_iv32, u16 *out_iv16);
 
-#endif /* TKIP_H */
+#endif 

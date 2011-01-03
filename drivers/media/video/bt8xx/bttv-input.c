@@ -1,22 +1,4 @@
-/*
- *
- * Copyright (c) 2003 Gerd Knorr
- * Copyright (c) 2003 Pavel Machek
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -48,14 +30,14 @@ module_param(ir_rc5_key_timeout, int, 0644);
 
 #define DEVNAME "bttv-input"
 
-/* ---------------------------------------------------------------------- */
+
 
 static void ir_handle_key(struct bttv *btv)
 {
 	struct card_ir *ir = btv->remote;
 	u32 gpio,data;
 
-	/* read gpio value */
+	
 	gpio = bttv_gpio_read(&btv->c);
 	if (ir->polling) {
 		if (ir->last_gpio == gpio)
@@ -63,7 +45,7 @@ static void ir_handle_key(struct bttv *btv)
 		ir->last_gpio = gpio;
 	}
 
-	/* extract data */
+	
 	data = ir_extract_bits(gpio, ir->mask_keycode);
 	dprintk(KERN_INFO DEVNAME ": irq gpio=0x%x code=%d | %s%s%s\n",
 		gpio, data,
@@ -75,8 +57,7 @@ static void ir_handle_key(struct bttv *btv)
 	    (ir->mask_keyup    &&  (0 == (gpio & ir->mask_keyup)))) {
 		ir_input_keydown(ir->dev,&ir->ir,data,data);
 	} else {
-		/* HACK: Probably, ir->mask_keydown is missing
-		   for this board */
+		
 		if (btv->c.type == BTTV_BOARD_WINFAST2000)
 			ir_input_keydown(ir->dev, &ir->ir, data, data);
 
@@ -90,13 +71,13 @@ static void ir_enltv_handle_key(struct bttv *btv)
 	struct card_ir *ir = btv->remote;
 	u32 gpio, data, keyup;
 
-	/* read gpio value */
+	
 	gpio = bttv_gpio_read(&btv->c);
 
-	/* extract data */
+	
 	data = ir_extract_bits(gpio, ir->mask_keycode);
 
-	/* Check if it is keyup */
+	
 	keyup = (gpio & ir->mask_keyup) ? 1 << 31 : 0;
 
 	if ((ir->last_gpio & 0x7f) != data) {
@@ -144,7 +125,7 @@ static void bttv_input_timer(unsigned long data)
 	mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
 }
 
-/* ---------------------------------------------------------------*/
+
 
 static int bttv_rc5_irq(struct bttv *btv)
 {
@@ -154,18 +135,18 @@ static int bttv_rc5_irq(struct bttv *btv)
 	u32 gap;
 	unsigned long current_jiffies;
 
-	/* read gpio port */
+	
 	gpio = bttv_gpio_read(&btv->c);
 
-	/* remote IRQ? */
+	
 	if (!(gpio & 0x20))
 		return 0;
 
-	/* get time of bit */
+	
 	current_jiffies = jiffies;
 	do_gettimeofday(&tv);
 
-	/* avoid overflow with gap >1s */
+	
 	if (tv.tv_sec - ir->base_time.tv_sec > 1) {
 		gap = 200000;
 	} else {
@@ -173,16 +154,15 @@ static int bttv_rc5_irq(struct bttv *btv)
 		    tv.tv_usec - ir->base_time.tv_usec;
 	}
 
-	/* active code => add bit */
+	
 	if (ir->active) {
-		/* only if in the code (otherwise spurious IRQ or timer
-		   late) */
+		
 		if (ir->last_bit < 28) {
 			ir->last_bit = (gap - ir_rc5_remote_gap / 2) /
 			    ir_rc5_remote_gap;
 			ir->code |= 1 << ir->last_bit;
 		}
-		/* starting new code */
+		
 	} else {
 		ir->active = 1;
 		ir->code = 0;
@@ -193,13 +173,13 @@ static int bttv_rc5_irq(struct bttv *btv)
 			  current_jiffies + msecs_to_jiffies(30));
 	}
 
-	/* toggle GPIO pin 4 to reset the irq */
+	
 	bttv_gpio_write(&btv->c, gpio & ~(1 << 4));
 	bttv_gpio_write(&btv->c, gpio | (1 << 4));
 	return 1;
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 static void bttv_ir_start(struct bttv *btv, struct card_ir *ir)
 {
@@ -208,7 +188,7 @@ static void bttv_ir_start(struct bttv *btv, struct card_ir *ir)
 		ir->timer.expires  = jiffies + msecs_to_jiffies(1000);
 		add_timer(&ir->timer);
 	} else if (ir->rc5_gpio) {
-		/* set timer_end for code completion */
+		
 		init_timer(&ir->timer_end);
 		ir->timer_end.function = ir_rc5_timer_end;
 		ir->timer_end.data = (unsigned long)ir;
@@ -258,7 +238,7 @@ int bttv_input_init(struct bttv *btv)
 	if (!ir || !input_dev)
 		goto err_out_free;
 
-	/* detect & configure */
+	
 	switch (btv->c.type) {
 	case BTTV_BOARD_AVERMEDIA:
 	case BTTV_BOARD_AVPHONE98:
@@ -266,7 +246,7 @@ int bttv_input_init(struct bttv *btv)
 		ir_codes         = &ir_codes_avermedia_table;
 		ir->mask_keycode = 0xf88000;
 		ir->mask_keydown = 0x010000;
-		ir->polling      = 50; // ms
+		ir->polling      = 50; 
 		break;
 
 	case BTTV_BOARD_AVDVBT_761:
@@ -274,14 +254,14 @@ int bttv_input_init(struct bttv *btv)
 		ir_codes         = &ir_codes_avermedia_dvbt_table;
 		ir->mask_keycode = 0x0f00c0;
 		ir->mask_keydown = 0x000020;
-		ir->polling      = 50; // ms
+		ir->polling      = 50; 
 		break;
 
 	case BTTV_BOARD_PXELVWPLTVPAK:
 		ir_codes         = &ir_codes_pixelview_table;
 		ir->mask_keycode = 0x003e00;
 		ir->mask_keyup   = 0x010000;
-		ir->polling      = 50; // ms
+		ir->polling      = 50; 
 		break;
 	case BTTV_BOARD_PV_M4900:
 	case BTTV_BOARD_PV_BT878P_9B:
@@ -289,7 +269,7 @@ int bttv_input_init(struct bttv *btv)
 		ir_codes         = &ir_codes_pixelview_table;
 		ir->mask_keycode = 0x001f00;
 		ir->mask_keyup   = 0x008000;
-		ir->polling      = 50; // ms
+		ir->polling      = 50; 
 		break;
 
 	case BTTV_BOARD_WINFAST2000:
@@ -306,7 +286,7 @@ int bttv_input_init(struct bttv *btv)
 		ir_codes         = &ir_codes_apac_viewcomp_table;
 		ir->mask_keycode = 0x001f00;
 		ir->mask_keyup   = 0x008000;
-		ir->polling      = 50; // ms
+		ir->polling      = 50; 
 		break;
 	case BTTV_BOARD_ASKEY_CPH03X:
 	case BTTV_BOARD_CONCEPTRONIC_CTVFMI2:
@@ -314,7 +294,7 @@ int bttv_input_init(struct bttv *btv)
 		ir_codes         = &ir_codes_pixelview_table;
 		ir->mask_keycode = 0x001F00;
 		ir->mask_keyup   = 0x006000;
-		ir->polling      = 50; // ms
+		ir->polling      = 50; 
 		break;
 	case BTTV_BOARD_NEBULA_DIGITV:
 		ir_codes = &ir_codes_nebula_table;
@@ -325,19 +305,19 @@ int bttv_input_init(struct bttv *btv)
 		ir_codes         = &ir_codes_apac_viewcomp_table;
 		ir->mask_keycode = 0x001F00;
 		ir->mask_keyup   = 0x004000;
-		ir->polling      = 50; /* ms */
+		ir->polling      = 50; 
 		break;
 	case BTTV_BOARD_KOZUMI_KTV_01C:
 		ir_codes         = &ir_codes_pctv_sedna_table;
 		ir->mask_keycode = 0x001f00;
 		ir->mask_keyup   = 0x006000;
-		ir->polling      = 50; /* ms */
+		ir->polling      = 50; 
 		break;
 	case BTTV_BOARD_ENLTV_FM_2:
 		ir_codes         = &ir_codes_encore_enltv2_table;
 		ir->mask_keycode = 0x00fd00;
 		ir->mask_keyup   = 0x000080;
-		ir->polling      = 1; /* ms */
+		ir->polling      = 1; 
 		ir->last_gpio    = ir_extract_bits(bttv_gpio_read(&btv->c),
 						   ir->mask_keycode);
 		break;
@@ -350,17 +330,17 @@ int bttv_input_init(struct bttv *btv)
 
 	if (ir->rc5_gpio) {
 		u32 gpio;
-		/* enable remote irq */
+		
 		bttv_gpio_inout(&btv->c, (1 << 4), 1 << 4);
 		gpio = bttv_gpio_read(&btv->c);
 		bttv_gpio_write(&btv->c, gpio & ~(1 << 4));
 		bttv_gpio_write(&btv->c, gpio | (1 << 4));
 	} else {
-		/* init hardware-specific stuff */
+		
 		bttv_gpio_inout(&btv->c, ir->mask_keycode | ir->mask_keydown, 0);
 	}
 
-	/* init input device */
+	
 	ir->dev = input_dev;
 
 	snprintf(ir->name, sizeof(ir->name), "bttv IR (card=%d)",
@@ -385,12 +365,12 @@ int bttv_input_init(struct bttv *btv)
 	btv->remote = ir;
 	bttv_ir_start(btv, ir);
 
-	/* all done */
+	
 	err = input_register_device(btv->remote->dev);
 	if (err)
 		goto err_out_stop;
 
-	/* the remote isn't as bouncy as a keyboard */
+	
 	ir->dev->rep[REP_DELAY] = repeat_delay;
 	ir->dev->rep[REP_PERIOD] = repeat_period;
 
@@ -417,8 +397,4 @@ void bttv_input_fini(struct bttv *btv)
 }
 
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+

@@ -1,17 +1,8 @@
-/* Generic I/O port emulation, based on MN10300 code
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licence
- * as published by the Free Software Foundation; either version
- * 2 of the Licence, or (at your option) any later version.
- */
+
 #ifndef __ASM_GENERIC_IO_H
 #define __ASM_GENERIC_IO_H
 
-#include <asm/page.h> /* I/O is all done through memory accesses */
+#include <asm/page.h> 
 #include <asm/cacheflush.h>
 #include <linux/types.h>
 
@@ -21,13 +12,8 @@
 
 #define mmiowb() do {} while (0)
 
-/*****************************************************************************/
-/*
- * readX/writeX() are used to access memory mapped devices. On some
- * architectures the memory mapped IO stuff needs to be accessed
- * differently. On the simple architectures, we just read/write the
- * memory location directly.
- */
+
+
 static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
 	return *(const volatile u8 __force *) addr;
@@ -80,10 +66,8 @@ static inline void __raw_writeq(u64 b, volatile void __iomem *addr)
 #define writeq(b,addr) __raw_writeq(__cpu_to_le64(b),addr)
 #endif
 
-/*****************************************************************************/
-/*
- * traditional input/output functions
- */
+
+
 
 static inline u8 inb(unsigned long addr)
 {
@@ -207,7 +191,7 @@ static inline void outsl(unsigned long addr, const void *buffer, int count)
 	outsw((unsigned long) (p), (src), (count))
 #define iowrite32_rep(p, src, count) \
 	outsl((unsigned long) (p), (src), (count))
-#endif /* CONFIG_GENERIC_IOMAP */
+#endif 
 
 
 #define IO_SPACE_LIMIT 0xffffffff
@@ -218,18 +202,15 @@ static inline void outsl(unsigned long addr, const void *buffer, int count)
 #define __io_virt(x) ((void __force *) (x))
 
 #ifndef CONFIG_GENERIC_IOMAP
-/* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
+
 struct pci_dev;
 extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
 static inline void pci_iounmap(struct pci_dev *dev, void __iomem *p)
 {
 }
-#endif /* CONFIG_GENERIC_IOMAP */
+#endif 
 
-/*
- * Change virtual addresses to physical addresses and vv.
- * These are pretty trivial
- */
+
 static inline unsigned long virt_to_phys(volatile void *address)
 {
 	return __pa((unsigned long)address);
@@ -240,9 +221,7 @@ static inline void *phys_to_virt(unsigned long address)
 	return __va(address);
 }
 
-/*
- * Change "struct page" to physical address.
- */
+
 static inline void __iomem *ioremap(phys_addr_t offset, unsigned long size)
 {
 	return (void __iomem*) (unsigned long)offset;
@@ -271,10 +250,10 @@ static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
 static inline void ioport_unmap(void __iomem *p)
 {
 }
-#else /* CONFIG_GENERIC_IOMAP */
+#else 
 extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
 extern void ioport_unmap(void __iomem *p);
-#endif /* CONFIG_GENERIC_IOMAP */
+#endif 
 
 #define xlate_dev_kmem_ptr(p)	p
 #define xlate_dev_mem_ptr(p)	((void *) (p))
@@ -295,6 +274,6 @@ static inline void *bus_to_virt(unsigned long address)
 #define memcpy_fromio(a, b, c)	memcpy((a), __io_virt(b), (c))
 #define memcpy_toio(a, b, c)	memcpy(__io_virt(a), (b), (c))
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* __ASM_GENERIC_IO_H */
+#endif 

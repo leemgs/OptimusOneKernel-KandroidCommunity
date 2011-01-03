@@ -1,16 +1,4 @@
-/*
- * arch/arm/mach-ixp23xx/include/mach/platform.h
- *
- * Various bits of code used by platform-level code.
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright 2005 (c) MontaVista Software, Inc.
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ASSEMBLY__
 
@@ -44,9 +32,7 @@ extern struct sys_timer ixp23xx_timer;
 #define IXP23XX_UART_XTAL		14745600
 
 #ifndef __ASSEMBLY__
-/*
- * Is system memory on the XSI or CPP bus?
- */
+
 static inline unsigned ixp23xx_cpp_boot(void)
 {
 	return (*IXP23XX_EXP_CFG0 & IXP23XX_EXP_CFG0_XSI_NOT_PRES);

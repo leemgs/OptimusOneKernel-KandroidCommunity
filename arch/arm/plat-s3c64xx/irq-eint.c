@@ -1,16 +1,4 @@
-/* arch/arm/plat-s3c64xx/irq-eint.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      Ben Dooks <ben@simtec.co.uk>
- *      http://armlinux.simtec.co.uk/
- *
- * S3C64XX - Interrupt handling for IRQ_EINT(x)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -57,7 +45,7 @@ static inline void s3c_irq_eint_ack(unsigned int irq)
 
 static void s3c_irq_eint_maskack(unsigned int irq)
 {
-	/* compiler should in-line these */
+	
 	s3c_irq_eint_mask(irq);
 	s3c_irq_eint_ack(irq);
 }
@@ -117,7 +105,7 @@ static int s3c_irq_eint_set_type(unsigned int irq, unsigned int type)
 	ctrl |= newvalue << shift;
 	__raw_writel(ctrl, reg);
 
-	/* set the GPIO pin appropriately */
+	
 
 	if (offs < 23)
 		pin = S3C64XX_GPN(offs);
@@ -139,12 +127,7 @@ static struct irq_chip s3c_irq_eint = {
 	.set_wake	= s3c_irqext_wake,
 };
 
-/* s3c_irq_demux_eint
- *
- * This function demuxes the IRQ from the group0 external interrupts,
- * from IRQ_EINT(0) to IRQ_EINT(27). It is designed to be inlined into
- * the specific handlers s3c_irq_demux_eintX_Y.
- */
+
 static inline void s3c_irq_demux_eint(unsigned int start, unsigned int end)
 {
 	u32 status = __raw_readl(S3C64XX_EINT0PEND);

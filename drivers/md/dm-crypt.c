@@ -1,10 +1,4 @@
-/*
- * Copyright (C) 2003 Christophe Saout <christophe@saout.de>
- * Copyright (C) 2004 Clemens Fruhwirth <clemens@endorphin.org>
- * Copyright (C) 2006-2009 Red Hat, Inc. All rights reserved.
- *
- * This file is released under the GPL.
- */
+
 
 #include <linux/completion.h>
 #include <linux/err.h>
@@ -28,9 +22,7 @@
 #define DM_MSG_PREFIX "crypt"
 #define MESG_STR(x) x, sizeof(x)
 
-/*
- * context holding the current state of a multi-part conversion
- */
+
 struct convert_context {
 	struct completion restart;
 	struct bio *bio_in;
@@ -43,9 +35,7 @@ struct convert_context {
 	atomic_t pending;
 };
 
-/*
- * per bio private data
- */
+
 struct dm_crypt_io {
 	struct dm_target *target;
 	struct bio *base_bio;
@@ -86,19 +76,13 @@ struct iv_benbi_private {
 	int shift;
 };
 
-/*
- * Crypt: maps a linear range of a block device
- * and encrypts / decrypts at the same time.
- */
+
 enum flags { DM_CRYPT_SUSPENDED, DM_CRYPT_KEY_VALID };
 struct crypt_config {
 	struct dm_dev *dev;
 	sector_t start;
 
-	/*
-	 * pool for per bio private data, crypto requests and
-	 * encryption requeusts/buffer pages
-	 */
+	
 	mempool_t *io_pool;
 	mempool_t *req_pool;
 	mempool_t *page_pool;
@@ -107,9 +91,7 @@ struct crypt_config {
 	struct workqueue_struct *io_queue;
 	struct workqueue_struct *crypt_queue;
 
-	/*
-	 * crypto related data
-	 */
+	
 	struct crypt_iv_operations *iv_gen_ops;
 	char *iv_mode;
 	union {
@@ -119,19 +101,7 @@ struct crypt_config {
 	sector_t iv_offset;
 	unsigned int iv_size;
 
-	/*
-	 * Layout of each crypto request:
-	 *
-	 *   struct ablkcipher_request
-	 *      context
-	 *      padding
-	 *   struct dm_crypt_request
-	 *      padding
-	 *   IV
-	 *
-	 * The padding is added so that dm_crypt_request and the IV are
-	 * correctly aligned.
-	 */
+	
 	unsigned int dmreq_start;
 	struct ablkcipher_request *req;
 
@@ -152,25 +122,7 @@ static struct kmem_cache *_crypt_io_pool;
 static void clone_init(struct dm_crypt_io *, struct bio *);
 static void kcryptd_queue_crypt(struct dm_crypt_io *io);
 
-/*
- * Different IV generation algorithms:
- *
- * plain: the initial vector is the 32-bit little-endian version of the sector
- *        number, padded with zeros if necessary.
- *
- * essiv: "encrypted sector|salt initial vector", the sector number is
- *        encrypted with the bulk cipher using a salt as key. The salt
- *        should be derived from the bulk cipher's key via hashing.
- *
- * benbi: the 64-bit "big-endian 'narrow block'-count", starting at 1
- *        (needed for LRW-32-AES and possible other narrow block modes)
- *
- * null: the initial vector is always zero.  Provides compatibility with
- *       obsolete loop_fish2 devices.  Do not use for new devices.
- *
- * plumb: unimplemented, see:
- * http://article.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt/454
- */
+
 
 static int crypt_iv_plain_gen(struct crypt_config *cc, u8 *iv, sector_t sector)
 {
@@ -180,7 +132,7 @@ static int crypt_iv_plain_gen(struct crypt_config *cc, u8 *iv, sector_t sector)
 	return 0;
 }
 
-/* Initialise ESSIV - compute salt but no local memory allocations */
+
 static int crypt_iv_essiv_init(struct crypt_config *cc)
 {
 	struct iv_essiv_private *essiv = &cc->iv_gen_private.essiv;
@@ -200,7 +152,7 @@ static int crypt_iv_essiv_init(struct crypt_config *cc)
 				    crypto_hash_digestsize(essiv->hash_tfm));
 }
 
-/* Wipe salt and reset key derived from volume key */
+
 static int crypt_iv_essiv_wipe(struct crypt_config *cc)
 {
 	struct iv_essiv_private *essiv = &cc->iv_gen_private.essiv;
@@ -238,7 +190,7 @@ static int crypt_iv_essiv_ctr(struct crypt_config *cc, struct dm_target *ti,
 		return -EINVAL;
 	}
 
-	/* Allocate hash algorithm */
+	
 	hash_tfm = crypto_alloc_hash(opts, 0, CRYPTO_ALG_ASYNC);
 	if (IS_ERR(hash_tfm)) {
 		ti->error = "Error initializing ESSIV hash";
@@ -253,7 +205,7 @@ static int crypt_iv_essiv_ctr(struct crypt_config *cc, struct dm_target *ti,
 		goto bad;
 	}
 
-	/* Allocate essiv_tfm */
+	
 	essiv_tfm = crypto_alloc_cipher(cc->cipher, 0, CRYPTO_ALG_ASYNC);
 	if (IS_ERR(essiv_tfm)) {
 		ti->error = "Error allocating crypto tfm for ESSIV";
@@ -297,8 +249,7 @@ static int crypt_iv_benbi_ctr(struct crypt_config *cc, struct dm_target *ti,
 	unsigned bs = crypto_ablkcipher_blocksize(cc->tfm);
 	int log = ilog2(bs);
 
-	/* we need to calculate how far we must shift the sector count
-	 * to get the cipher block count, we use this shift in _gen */
+	
 
 	if (1 << log != bs) {
 		ti->error = "cypher blocksize is not a power of 2";
@@ -323,7 +274,7 @@ static int crypt_iv_benbi_gen(struct crypt_config *cc, u8 *iv, sector_t sector)
 {
 	__be64 val;
 
-	memset(iv, 0, cc->iv_size - sizeof(u64)); /* rest is cleared below */
+	memset(iv, 0, cc->iv_size - sizeof(u64)); 
 
 	val = cpu_to_be64(((u64)sector << cc->iv_gen_private.benbi.shift) + 1);
 	put_unaligned(val, (__be64 *)(iv + cc->iv_size - sizeof(u64)));
@@ -453,9 +404,7 @@ static void crypt_alloc_req(struct crypt_config *cc,
 					dmreq_of_req(cc, cc->req));
 }
 
-/*
- * Encrypt / decrypt data from one bio to another one (can be the same one)
- */
+
 static int crypt_convert(struct crypt_config *cc,
 			 struct convert_context *ctx)
 {
@@ -473,24 +422,24 @@ static int crypt_convert(struct crypt_config *cc,
 		r = crypt_convert_block(cc, ctx, cc->req);
 
 		switch (r) {
-		/* async */
+		
 		case -EBUSY:
 			wait_for_completion(&ctx->restart);
 			INIT_COMPLETION(ctx->restart);
-			/* fall through*/
+			
 		case -EINPROGRESS:
 			cc->req = NULL;
 			ctx->sector++;
 			continue;
 
-		/* sync */
+		
 		case 0:
 			atomic_dec(&ctx->pending);
 			ctx->sector++;
 			cond_resched();
 			continue;
 
-		/* error */
+		
 		default:
 			atomic_dec(&ctx->pending);
 			return r;
@@ -508,12 +457,7 @@ static void dm_crypt_bio_destructor(struct bio *bio)
 	bio_free(bio, cc->bs);
 }
 
-/*
- * Generate a new unfragmented bio with the given size
- * This should never violate the device limitations
- * May return a smaller bio when running out of pages, indicated by
- * *out_of_pages set to 1.
- */
+
 static struct bio *crypt_alloc_buffer(struct dm_crypt_io *io, unsigned size,
 				      unsigned *out_of_pages)
 {
@@ -538,11 +482,7 @@ static struct bio *crypt_alloc_buffer(struct dm_crypt_io *io, unsigned size,
 			break;
 		}
 
-		/*
-		 * if additional pages cannot be allocated without waiting,
-		 * return a partially allocated bio, the caller will then try
-		 * to allocate additional bios while submitting this partial bio
-		 */
+		
 		if (i == (MIN_BIO_PAGES - 1))
 			gfp_mask = (gfp_mask | __GFP_NOWARN) & ~__GFP_WAIT;
 
@@ -599,11 +539,7 @@ static void crypt_inc_pending(struct dm_crypt_io *io)
 	atomic_inc(&io->pending);
 }
 
-/*
- * One of the bios was finished. Check for completion of
- * the whole request and correctly clean up the buffer.
- * If base_io is set, wait for the last fragment to complete.
- */
+
 static void crypt_dec_pending(struct dm_crypt_io *io)
 {
 	struct crypt_config *cc = io->target->private;
@@ -625,20 +561,7 @@ static void crypt_dec_pending(struct dm_crypt_io *io)
 	}
 }
 
-/*
- * kcryptd/kcryptd_io:
- *
- * Needed because it would be very unwise to do decryption in an
- * interrupt context.
- *
- * kcryptd performs the actual encryption or decryption.
- *
- * kcryptd_io performs the IO submission.
- *
- * They must be separated as otherwise the final stages could be
- * starved by new requests which can block in the first stages due
- * to memory allocation.
- */
+
 static void crypt_endio(struct bio *clone, int error)
 {
 	struct dm_crypt_io *io = clone->bi_private;
@@ -648,9 +571,7 @@ static void crypt_endio(struct bio *clone, int error)
 	if (unlikely(!bio_flagged(clone, BIO_UPTODATE) && !error))
 		error = -EIO;
 
-	/*
-	 * free the processed pages
-	 */
+	
 	if (rw == WRITE)
 		crypt_free_buffer_pages(cc, clone);
 
@@ -686,11 +607,7 @@ static void kcryptd_io_read(struct dm_crypt_io *io)
 
 	crypt_inc_pending(io);
 
-	/*
-	 * The block layer might modify the bvec array, so always
-	 * copy the required bvecs because we need the original
-	 * one in order to decrypt the whole bio data *afterwards*.
-	 */
+	
 	clone = bio_alloc_bioset(GFP_NOIO, bio_segments(base_bio), cc->bs);
 	if (unlikely(!clone)) {
 		io->error = -ENOMEM;
@@ -747,7 +664,7 @@ static void kcryptd_crypt_write_io_submit(struct dm_crypt_io *io,
 		return;
 	}
 
-	/* crypt_convert should have filled the clone bio */
+	
 	BUG_ON(io->ctx.idx_out < clone->bi_vcnt);
 
 	clone->bi_sector = cc->start + io->sector;
@@ -769,16 +686,11 @@ static void kcryptd_crypt_write_convert(struct dm_crypt_io *io)
 	sector_t sector = io->sector;
 	int r;
 
-	/*
-	 * Prevent io from disappearing until this function completes.
-	 */
+	
 	crypt_inc_pending(io);
 	crypt_convert_init(cc, &io->ctx, NULL, io->base_bio, sector);
 
-	/*
-	 * The allocated buffers can be smaller than the whole bio,
-	 * so repeat the whole process until all the data can be handled.
-	 */
+	
 	while (remaining) {
 		clone = crypt_alloc_buffer(io, remaining, &out_of_pages);
 		if (unlikely(!clone)) {
@@ -796,31 +708,22 @@ static void kcryptd_crypt_write_convert(struct dm_crypt_io *io)
 		r = crypt_convert(cc, &io->ctx);
 		crypt_finished = atomic_dec_and_test(&io->ctx.pending);
 
-		/* Encryption was already finished, submit io now */
+		
 		if (crypt_finished) {
 			kcryptd_crypt_write_io_submit(io, r, 0);
 
-			/*
-			 * If there was an error, do not try next fragments.
-			 * For async, error is processed in async handler.
-			 */
+			
 			if (unlikely(r < 0))
 				break;
 
 			io->sector = sector;
 		}
 
-		/*
-		 * Out of memory -> run queues
-		 * But don't wait if split was due to the io size restriction
-		 */
+		
 		if (unlikely(out_of_pages))
 			congestion_wait(BLK_RW_ASYNC, HZ/100);
 
-		/*
-		 * With async crypto it is unsafe to share the crypto context
-		 * between fragments, so switch to a new dm_crypt_io structure.
-		 */
+		
 		if (unlikely(!crypt_finished && remaining)) {
 			new_io = crypt_io_alloc(io->target, io->base_bio,
 						sector);
@@ -830,10 +733,7 @@ static void kcryptd_crypt_write_convert(struct dm_crypt_io *io)
 			new_io->ctx.idx_in = io->ctx.idx_in;
 			new_io->ctx.offset_in = io->ctx.offset_in;
 
-			/*
-			 * Fragments after the first use the base_io
-			 * pending count.
-			 */
+			
 			if (!io->base_io)
 				new_io->base_io = io;
 			else {
@@ -917,9 +817,7 @@ static void kcryptd_queue_crypt(struct dm_crypt_io *io)
 	queue_work(cc->crypt_queue, &io->work);
 }
 
-/*
- * Decode key from its hex representation
- */
+
 static int crypt_decode_key(u8 *key, char *hex, unsigned int size)
 {
 	char buffer[3];
@@ -944,9 +842,7 @@ static int crypt_decode_key(u8 *key, char *hex, unsigned int size)
 	return 0;
 }
 
-/*
- * Encode key into its hex representation
- */
+
 static void crypt_encode_key(char *hex, u8 *key, unsigned int size)
 {
 	unsigned int i;
@@ -965,7 +861,7 @@ static int crypt_set_key(struct crypt_config *cc, char *key)
 	if (cc->key_size && cc->key_size != key_size)
 		return -EINVAL;
 
-	cc->key_size = key_size; /* initial settings */
+	cc->key_size = key_size; 
 
 	if ((!key_size && strcmp(key, "-")) ||
 	   (key_size && crypt_decode_key(cc->key, key, key_size) < 0))
@@ -983,10 +879,7 @@ static int crypt_wipe_key(struct crypt_config *cc)
 	return 0;
 }
 
-/*
- * Construct an encryption mapping:
- * <cipher> <key> <iv_offset> <dev_path> <start>
- */
+
 static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 {
 	struct crypt_config *cc;
@@ -1027,7 +920,7 @@ static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 		goto bad_cipher;
 	}
 
-	/* Compatiblity mode for old dm-crypt cipher strings */
+	
 	if (!chainmode || (strcmp(chainmode, "plain") == 0 && !ivmode)) {
 		chainmode = "cbc";
 		ivmode = "plain";
@@ -1054,10 +947,7 @@ static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	strcpy(cc->chainmode, chainmode);
 	cc->tfm = tfm;
 
-	/*
-	 * Choose ivmode. Valid modes: "plain", "essiv:<esshash>", "benbi".
-	 * See comments at iv code
-	 */
+	
 
 	if (ivmode == NULL)
 		cc->iv_gen_ops = NULL;
@@ -1086,7 +976,7 @@ static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 
 	cc->iv_size = crypto_ablkcipher_ivsize(tfm);
 	if (cc->iv_size)
-		/* at least a 64 bit sector number should fit in our buffer */
+		
 		cc->iv_size = max(cc->iv_size,
 				  (unsigned int)(sizeof(u64) / sizeof(u8)));
 	else {
@@ -1201,7 +1091,7 @@ bad_slab_pool:
 bad_ivmode:
 	crypto_free_ablkcipher(tfm);
 bad_cipher:
-	/* Must zero key material before freeing */
+	
 	kzfree(cc);
 	return -EINVAL;
 }
@@ -1227,7 +1117,7 @@ static void crypt_dtr(struct dm_target *ti)
 	crypto_free_ablkcipher(cc->tfm);
 	dm_put_device(ti, cc->dev);
 
-	/* Must zero key material before freeing */
+	
 	kzfree(cc);
 }
 
@@ -1316,10 +1206,7 @@ static void crypt_resume(struct dm_target *ti)
 	clear_bit(DM_CRYPT_SUSPENDED, &cc->flags);
 }
 
-/* Message interface
- *	key set <key>
- *	key wipe
- */
+
 static int crypt_message(struct dm_target *ti, unsigned argc, char **argv)
 {
 	struct crypt_config *cc = ti->private;

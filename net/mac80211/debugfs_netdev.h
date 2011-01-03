@@ -1,4 +1,4 @@
-/* routines exported for debugfs handling */
+
 
 #ifndef __IEEE80211_DEBUGFS_NETDEV_H
 #define __IEEE80211_DEBUGFS_NETDEV_H
@@ -22,4 +22,4 @@ static inline void ieee80211_debugfs_netdev_exit(void)
 {}
 #endif
 
-#endif /* __IEEE80211_DEBUGFS_NETDEV_H */
+#endif 

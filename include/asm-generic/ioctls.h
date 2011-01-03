@@ -3,18 +3,9 @@
 
 #include <linux/ioctl.h>
 
-/*
- * These are the most common definitions for tty ioctl numbers.
- * Most of them do not use the recommended _IOC(), but there is
- * probably some source code out there hardcoding the number,
- * so we might as well use them for all new platforms.
- *
- * The architectures that use different values here typically
- * try to be compatible with some Unix variants for the same
- * architecture.
- */
 
-/* 0x54 is just a magic number to make these relatively unique ('T') */
+
+
 
 #define TCGETS		0x5401
 #define TCSETS		0x5402
@@ -53,19 +44,19 @@
 #define TIOCNOTTY	0x5422
 #define TIOCSETD	0x5423
 #define TIOCGETD	0x5424
-#define TCSBRKP		0x5425	/* Needed for POSIX tcsendbreak() */
-#define TIOCSBRK	0x5427  /* BSD compatibility */
-#define TIOCCBRK	0x5428  /* BSD compatibility */
-#define TIOCGSID	0x5429  /* Return the session ID of FD */
+#define TCSBRKP		0x5425	
+#define TIOCSBRK	0x5427  
+#define TIOCCBRK	0x5428  
+#define TIOCGSID	0x5429  
 #define TCGETS2		_IOR('T', 0x2A, struct termios2)
 #define TCSETS2		_IOW('T', 0x2B, struct termios2)
 #define TCSETSW2	_IOW('T', 0x2C, struct termios2)
 #define TCSETSF2	_IOW('T', 0x2D, struct termios2)
 #define TIOCGRS485	0x542E
 #define TIOCSRS485	0x542F
-#define TIOCGPTN	_IOR('T', 0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
-#define TIOCSPTLCK	_IOW('T', 0x31, int)  /* Lock/unlock Pty */
-#define TCGETX		0x5432 /* SYS5 TCGETX compatibility */
+#define TIOCGPTN	_IOR('T', 0x30, unsigned int) 
+#define TIOCSPTLCK	_IOW('T', 0x31, int)  
+#define TCGETX		0x5432 
 #define TCSETX		0x5433
 #define TCSETXF		0x5434
 #define TCSETXW		0x5435
@@ -78,25 +69,22 @@
 #define TIOCSERSWILD	0x5455
 #define TIOCGLCKTRMIOS	0x5456
 #define TIOCSLCKTRMIOS	0x5457
-#define TIOCSERGSTRUCT	0x5458 /* For debugging only */
-#define TIOCSERGETLSR   0x5459 /* Get line status register */
-#define TIOCSERGETMULTI 0x545A /* Get multiport config  */
-#define TIOCSERSETMULTI 0x545B /* Set multiport config */
+#define TIOCSERGSTRUCT	0x5458 
+#define TIOCSERGETLSR   0x5459 
+#define TIOCSERGETMULTI 0x545A 
+#define TIOCSERSETMULTI 0x545B 
 
-#define TIOCMIWAIT	0x545C	/* wait for a change on serial input line(s) */
-#define TIOCGICOUNT	0x545D	/* read serial port inline interrupt counts */
+#define TIOCMIWAIT	0x545C	
+#define TIOCGICOUNT	0x545D	
 
-/*
- * some architectures define FIOQSIZE as 0x545E, which is used for
- * TIOCGHAYESESP on others
- */
+
 #ifndef FIOQSIZE
-# define TIOCGHAYESESP	0x545E  /* Get Hayes ESP configuration */
-# define TIOCSHAYESESP	0x545F  /* Set Hayes ESP configuration */
+# define TIOCGHAYESESP	0x545E  
+# define TIOCSHAYESESP	0x545F  
 # define FIOQSIZE	0x5460
 #endif
 
-/* Used for packet mode */
+
 #define TIOCPKT_DATA		 0
 #define TIOCPKT_FLUSHREAD	 1
 #define TIOCPKT_FLUSHWRITE	 2
@@ -105,6 +93,6 @@
 #define TIOCPKT_NOSTOP		16
 #define TIOCPKT_DOSTOP		32
 
-#define TIOCSER_TEMT	0x01	/* Transmitter physically empty */
+#define TIOCSER_TEMT	0x01	
 
-#endif /* __ASM_GENERIC_IOCTLS_H */
+#endif 

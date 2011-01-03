@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/lpd270.c
- *
- * Support for the LogicPD PXA270 Card Engine.
- * Derived from the mainstone code, which carries these notices:
- *
- * Author:	Nicolas Pitre
- * Created:	Nov 05, 2002
- * Copyright:	MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -51,11 +38,11 @@
 #include "devices.h"
 
 static unsigned long lpd270_pin_config[] __initdata = {
-	/* Chip Selects */
-	GPIO15_nCS_1,	/* Mainboard Flash */
-	GPIO78_nCS_2,	/* CPLD + Ethernet */
+	
+	GPIO15_nCS_1,	
+	GPIO78_nCS_2,	
 
-	/* LCD - 16bpp Active TFT */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -76,13 +63,13 @@ static unsigned long lpd270_pin_config[] __initdata = {
 	GPIO75_LCD_LCLK,
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
-	GPIO16_PWM0_OUT,	/* Backlight */
+	GPIO16_PWM0_OUT,	
 
-	/* USB Host */
+	
 	GPIO88_USBH1_PWR,
 	GPIO89_USBH1_PEN,
 
-	/* AC97 */
+	
 	GPIO45_AC97_SYSCLK,
 
 	GPIO1_GPIO | WAKEUP_ON_EDGE_BOTH,
@@ -121,7 +108,7 @@ static void lpd270_irq_handler(unsigned int irq, struct irq_desc *desc)
 
 	pending = __raw_readw(LPD270_INT_STATUS) & lpd270_irq_enabled;
 	do {
-		GEDR(0) = GPIO_bit(0);  /* clear useless edge notification */
+		GEDR(0) = GPIO_bit(0);  
 		if (likely(pending)) {
 			irq = LPD270_IRQ(0) + __ffs(pending);
 			generic_handle_irq(irq);
@@ -141,7 +128,7 @@ static void __init lpd270_init_irq(void)
 	__raw_writew(0, LPD270_INT_MASK);
 	__raw_writew(0, LPD270_INT_STATUS);
 
-	/* setup extra LogicPD PXA270 irqs */
+	
 	for (irq = LPD270_IRQ(2); irq <= LPD270_IRQ(4); irq++) {
 		set_irq_chip(irq, &lpd270_irq_chip);
 		set_irq_handler(irq, handle_level_irq);
@@ -221,7 +208,7 @@ static struct mtd_partition lpd270_flash0_partitions[] = {
 		.name =		"Bootloader",
 		.size =		0x00040000,
 		.offset =	0,
-		.mask_flags =	MTD_WRITEABLE  /* force read-only */
+		.mask_flags =	MTD_WRITEABLE  
 	}, {
 		.name =		"Kernel",
 		.size =		0x00400000,
@@ -282,7 +269,7 @@ static struct platform_device lpd270_backlight_device = {
 	},
 };
 
-/* 5.7" TFT QVGA (LoLo display number 1) */
+
 static struct pxafb_mode_info sharp_lq057q3dc02_mode = {
 	.pixclock		= 150000,
 	.xres			= 320,
@@ -304,7 +291,7 @@ static struct pxafb_mach_info sharp_lq057q3dc02 = {
 				  LCD_ALTERNATE_MAPPING,
 };
 
-/* 12.1" TFT SVGA (LoLo display number 2) */
+
 static struct pxafb_mode_info sharp_lq121s1dg31_mode = {
 	.pixclock		= 50000,
 	.xres			= 800,
@@ -326,7 +313,7 @@ static struct pxafb_mach_info sharp_lq121s1dg31 = {
 				  LCD_ALTERNATE_MAPPING,
 };
 
-/* 3.6" TFT QVGA (LoLo display number 3) */
+
 static struct pxafb_mode_info sharp_lq036q1da01_mode = {
 	.pixclock		= 150000,
 	.xres			= 320,
@@ -348,7 +335,7 @@ static struct pxafb_mach_info sharp_lq036q1da01 = {
 				  LCD_ALTERNATE_MAPPING,
 };
 
-/* 6.4" TFT VGA (LoLo display number 5) */
+
 static struct pxafb_mode_info sharp_lq64d343_mode = {
 	.pixclock		= 25000,
 	.xres			= 640,
@@ -370,7 +357,7 @@ static struct pxafb_mach_info sharp_lq64d343 = {
 				  LCD_ALTERNATE_MAPPING,
 };
 
-/* 10.4" TFT VGA (LoLo display number 7) */
+
 static struct pxafb_mode_info sharp_lq10d368_mode = {
 	.pixclock		= 25000,
 	.xres			= 640,
@@ -392,7 +379,7 @@ static struct pxafb_mach_info sharp_lq10d368 = {
 				  LCD_ALTERNATE_MAPPING,
 };
 
-/* 3.5" TFT QVGA (LoLo display number 8) */
+
 static struct pxafb_mode_info sharp_lq035q7db02_20_mode = {
 	.pixclock		= 150000,
 	.xres			= 240,
@@ -458,11 +445,7 @@ static void __init lpd270_init(void)
 	lpd270_flash_data[0].width = (BOOT_DEF & 1) ? 2 : 4;
 	lpd270_flash_data[1].width = 4;
 
-	/*
-	 * System bus arbiter setting:
-	 * - Core_Park
-	 * - LCD_wt:DMA_wt:CORE_Wt = 2:3:4
-	 */
+	
 	ARB_CNTRL = ARB_CORE_PARK | 0x234;
 
 	platform_add_devices(platform_devices, ARRAY_SIZE(platform_devices));
@@ -490,13 +473,13 @@ static void __init lpd270_map_io(void)
 	pxa_map_io();
 	iotable_init(lpd270_io_desc, ARRAY_SIZE(lpd270_io_desc));
 
-	/* for use I SRAM as framebuffer.  */
+	
 	PSLR |= 0x00000F04;
 	PCFR  = 0x00000066;
 }
 
 MACHINE_START(LOGICPD_PXA270, "LogicPD PXA270 Card Engine")
-	/* Maintainer: Peter Barada */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= 0xa0000100,

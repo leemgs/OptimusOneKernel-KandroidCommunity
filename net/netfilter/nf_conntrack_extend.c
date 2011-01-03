@@ -1,13 +1,4 @@
-/* Structure dynamic extension infrastructure
- * Copyright (C) 2004 Rusty Russell IBM Corporation
- * Copyright (C) 2007 Netfilter Core Team <coreteam@netfilter.org>
- * Copyright (C) 2007 USAGI/WIDE Project <http://www.linux-ipv6.org>
- *
- *      This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
@@ -31,10 +22,7 @@ void __nf_ct_ext_destroy(struct nf_conn *ct)
 		rcu_read_lock();
 		t = rcu_dereference(nf_ct_ext_types[i]);
 
-		/* Here the nf_ct_ext_type might have been unregisterd.
-		 * I.e., it has responsible to cleanup private
-		 * area in all conntracks when it is unregisterd.
-		 */
+		
 		if (t && t->destroy)
 			t->destroy(ct);
 		rcu_read_unlock();
@@ -78,7 +66,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
 	int i, newlen, newoff;
 	struct nf_ct_ext_type *t;
 
-	/* Conntrack must not be confirmed to avoid races on reallocation. */
+	
 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
 
 	if (!ct->ext)
@@ -128,14 +116,13 @@ static void update_alloc_size(struct nf_ct_ext_type *type)
 	struct nf_ct_ext_type *t1, *t2;
 	enum nf_ct_ext_id min = 0, max = NF_CT_EXT_NUM - 1;
 
-	/* unnecessary to update all types */
+	
 	if ((type->flags & NF_CT_EXT_F_PREALLOC) == 0) {
 		min = type->id;
 		max = type->id;
 	}
 
-	/* This assumes that extended areas in conntrack for the types
-	   whose NF_CT_EXT_F_PREALLOC bit set are allocated in order */
+	
 	for (i = min; i <= max; i++) {
 		t1 = nf_ct_ext_types[i];
 		if (!t1)
@@ -156,7 +143,7 @@ static void update_alloc_size(struct nf_ct_ext_type *type)
 	}
 }
 
-/* This MUST be called in process context. */
+
 int nf_ct_extend_register(struct nf_ct_ext_type *type)
 {
 	int ret = 0;
@@ -167,8 +154,7 @@ int nf_ct_extend_register(struct nf_ct_ext_type *type)
 		goto out;
 	}
 
-	/* This ensures that nf_ct_ext_create() can allocate enough area
-	   before updating alloc_size */
+	
 	type->alloc_size = ALIGN(sizeof(struct nf_ct_ext), type->align)
 			   + type->len;
 	rcu_assign_pointer(nf_ct_ext_types[type->id], type);
@@ -179,13 +165,13 @@ out:
 }
 EXPORT_SYMBOL_GPL(nf_ct_extend_register);
 
-/* This MUST be called in process context. */
+
 void nf_ct_extend_unregister(struct nf_ct_ext_type *type)
 {
 	mutex_lock(&nf_ct_ext_type_mutex);
 	rcu_assign_pointer(nf_ct_ext_types[type->id], NULL);
 	update_alloc_size(type);
 	mutex_unlock(&nf_ct_ext_type_mutex);
-	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+	rcu_barrier(); 
 }
 EXPORT_SYMBOL_GPL(nf_ct_extend_unregister);

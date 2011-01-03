@@ -1,20 +1,6 @@
-/*
- * arch/arm/mach-ep93xx/include/mach/ts72xx.h
- */
 
-/*
- * TS72xx memory map:
- *
- * virt		phys		size
- * febff000	22000000	4K	model number register
- * febfe000	22400000	4K	options register
- * febfd000	22800000	4K	options register #2
- * febfc000	[67]0000000	4K	NAND data register
- * febfb000	[67]0400000	4K	NAND control register
- * febfa000	[67]0800000	4K	NAND busy register
- * febf9000	10800000	4K	TS-5620 RTC index register
- * febf8000	11700000	4K	TS-5620 RTC data register
- */
+
+
 
 #define TS72XX_MODEL_PHYS_BASE		0x22000000
 #define TS72XX_MODEL_VIRT_BASE		0xfebff000

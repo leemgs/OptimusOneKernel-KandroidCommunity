@@ -1,13 +1,6 @@
-/* L3/L4 protocol support for nf_conntrack. */
 
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/types.h>
 #include <linux/netfilter.h>
@@ -72,8 +65,7 @@ __nf_ct_l4proto_find(u_int16_t l3proto, u_int8_t l4proto)
 }
 EXPORT_SYMBOL_GPL(__nf_ct_l4proto_find);
 
-/* this is guaranteed to always return a valid protocol helper, since
- * it falls back to generic_protocol */
+
 struct nf_conntrack_l3proto *
 nf_ct_l3proto_find_get(u_int16_t l3proto)
 {
@@ -118,7 +110,7 @@ void nf_ct_l3proto_module_put(unsigned short l3proto)
 {
 	struct nf_conntrack_l3proto *p;
 
-	/* rcu_read_lock not necessary since the caller holds a reference */
+	
 	p = __nf_ct_l3proto_find(l3proto);
 	module_put(p->me);
 }
@@ -206,7 +198,7 @@ void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
 
 	synchronize_rcu();
 
-	/* Remove all contrack entries for this protocol */
+	
 	rtnl_lock();
 	for_each_net(net)
 		nf_ct_iterate_cleanup(net, kill_l3proto, proto);
@@ -238,9 +230,9 @@ static int nf_ct_l4proto_register_sysctl(struct nf_conntrack_l4proto *l4proto)
 					l4proto->ctl_table,
 					l4proto->ctl_table_users);
 	}
-#endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
+#endif 
 out:
-#endif /* CONFIG_SYSCTL */
+#endif 
 	return err;
 }
 
@@ -256,12 +248,11 @@ static void nf_ct_l4proto_unregister_sysctl(struct nf_conntrack_l4proto *l4proto
 	if (l4proto->ctl_compat_table_header != NULL)
 		nf_ct_unregister_sysctl(&l4proto->ctl_compat_table_header,
 					l4proto->ctl_compat_table, NULL);
-#endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
-#endif /* CONFIG_SYSCTL */
+#endif 
+#endif 
 }
 
-/* FIXME: Allow NULL functions and sub in pointers to generic for
-   them. --RR */
+
 int nf_conntrack_l4proto_register(struct nf_conntrack_l4proto *l4proto)
 {
 	int ret = 0;
@@ -275,7 +266,7 @@ int nf_conntrack_l4proto_register(struct nf_conntrack_l4proto *l4proto)
 
 	mutex_lock(&nf_ct_proto_mutex);
 	if (!nf_ct_protos[l4proto->l3proto]) {
-		/* l3proto may be loaded latter. */
+		
 		struct nf_conntrack_l4proto **proto_array;
 		int i;
 
@@ -330,7 +321,7 @@ void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
 
 	synchronize_rcu();
 
-	/* Remove all contrack entries for this protocol */
+	
 	rtnl_lock();
 	for_each_net(net)
 		nf_ct_iterate_cleanup(net, kill_l4proto, l4proto);
@@ -359,7 +350,7 @@ void nf_conntrack_proto_fini(void)
 
 	nf_ct_l4proto_unregister_sysctl(&nf_conntrack_l4proto_generic);
 
-	/* free l3proto protocol tables */
+	
 	for (i = 0; i < PF_MAX; i++)
 		kfree(nf_ct_protos[i]);
 }

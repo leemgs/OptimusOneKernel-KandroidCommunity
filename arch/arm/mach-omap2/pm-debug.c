@@ -1,23 +1,4 @@
-/*
- * OMAP Power Management debug routines
- *
- * Copyright (C) 2005 Texas Instruments, Inc.
- * Copyright (C) 2006-2008 Nokia Corporation
- *
- * Written by:
- * Richard Woodruff <r-woodruff2@ti.com>
- * Tony Lindgren
- * Juha Yrjola
- * Amit Kucheria <amit.kucheria@nokia.com>
- * Igor Stoppa <igor.stoppa@nokia.com>
- * Jouni Hogander
- *
- * Based on pm.c for omap2
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -66,7 +47,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
 
 	if (!resume) {
 #if 0
-		/* MPU */
+		
 		DUMP_PRM_MOD_REG(OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
 		DUMP_CM_MOD_REG(MPU_MOD, CM_CLKSTCTRL);
 		DUMP_PRM_MOD_REG(MPU_MOD, PM_PWSTCTRL);
@@ -74,7 +55,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
 		DUMP_PRM_MOD_REG(MPU_MOD, PM_WKDEP);
 #endif
 #if 0
-		/* INTC */
+		
 		DUMP_INTC_REG(INTC_MIR0, 0x0084);
 		DUMP_INTC_REG(INTC_MIR1, 0x00a4);
 		DUMP_INTC_REG(INTC_MIR2, 0x00c4);
@@ -97,7 +78,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
 		DUMP_PRM_MOD_REG(CORE_MOD, PM_PWSTST);
 #endif
 #if 0
-		/* DSP */
+		
 		if (cpu_is_omap24xx()) {
 			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_FCLKEN);
 			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_ICLKEN);
@@ -172,11 +153,11 @@ enum {
 };
 
 struct pm_module_def {
-	char name[8]; /* Name of the module */
-	short type; /* CM or PRM */
+	char name[8]; 
+	short type; 
 	unsigned short offset;
-	int low; /* First register address on this module */
-	int high; /* Last register address on this module */
+	int low; 
+	int high; 
 };
 
 #define MOD_CM 0
@@ -339,7 +320,7 @@ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
 	if (!pm_dbg_init_done)
 		return ;
 
-	/* Update timer for previous state */
+	
 	t = sched_clock();
 
 	pwrdm->state_timer[prev] += t - pwrdm->timer;

@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- * Contains declarations all OS Specific files needed for BFA layer
- */
+
+
 
 #ifndef __BFA_OS_INC_H__
 #define __BFA_OS_INC_H__
@@ -183,12 +166,10 @@ void bfa_os_printf(struct bfa_log_mod_s *log_mod, u32 msg_id,
 
 #define boolean_t int
 
-/**
- * For current time stamp, OS API will fill-in
- */
+
 struct bfa_timeval_s {
-	u32	tv_sec;		/*  seconds        */
-	u32	tv_usec;	/*  microseconds   */
+	u32	tv_sec;		
+	u32	tv_usec;	
 };
 
 void bfa_os_gettimeofday(struct bfa_timeval_s *tv);
@@ -219,4 +200,4 @@ fcid2str(char *fcid_str, u32 fcid)
 	sprintf(fcid_str, "%02x:%02x:%02x", f.byte[1], f.byte[2], f.byte[3]);
 }
 
-#endif /* __BFA_OS_INC_H__ */
+#endif 

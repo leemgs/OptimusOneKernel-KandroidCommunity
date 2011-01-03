@@ -1,23 +1,10 @@
-/* MTD-based superblock management
- *
- * Copyright © 2001-2007 Red Hat, Inc. All Rights Reserved.
- * Written by:  David Howells <dhowells@redhat.com>
- *              David Woodhouse <dwmw2@infradead.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/mtd/super.h>
 #include <linux/namei.h>
 #include <linux/ctype.h>
 
-/*
- * compare superblocks to see if they're equivalent
- * - they are if the underlying MTD device is the same
- */
+
 static int get_sb_mtd_compare(struct super_block *sb, void *_mtd)
 {
 	struct mtd_info *mtd = _mtd;
@@ -33,11 +20,7 @@ static int get_sb_mtd_compare(struct super_block *sb, void *_mtd)
 	return 0;
 }
 
-/*
- * mark the superblock by the MTD device it is using
- * - set the device number to be the correct MTD block device for pesuperstence
- *   of NFS exports
- */
+
 static int get_sb_mtd_set(struct super_block *sb, void *_mtd)
 {
 	struct mtd_info *mtd = _mtd;
@@ -47,9 +30,7 @@ static int get_sb_mtd_set(struct super_block *sb, void *_mtd)
 	return 0;
 }
 
-/*
- * get a superblock on an MTD-backed filesystem
- */
+
 static int get_sb_mtd_aux(struct file_system_type *fs_type, int flags,
 			  const char *dev_name, void *data,
 			  struct mtd_info *mtd,
@@ -66,7 +47,7 @@ static int get_sb_mtd_aux(struct file_system_type *fs_type, int flags,
 	if (sb->s_root)
 		goto already_mounted;
 
-	/* fresh new superblock */
+	
 	DEBUG(1, "MTDSB: New superblock for device %d (\"%s\")\n",
 	      mtd->index, mtd->name);
 
@@ -78,13 +59,13 @@ static int get_sb_mtd_aux(struct file_system_type *fs_type, int flags,
 		return ret;
 	}
 
-	/* go */
+	
 	sb->s_flags |= MS_ACTIVE;
 	simple_set_mnt(mnt, sb);
 
 	return 0;
 
-	/* new mountpoint for an already mounted superblock */
+	
 already_mounted:
 	DEBUG(1, "MTDSB: Device %d (\"%s\") is already mounted\n",
 	      mtd->index, mtd->name);
@@ -99,9 +80,7 @@ out_put:
 	return ret;
 }
 
-/*
- * get a superblock on an MTD-backed filesystem by MTD device number
- */
+
 static int get_sb_mtd_nr(struct file_system_type *fs_type, int flags,
 			 const char *dev_name, void *data, int mtdnr,
 			 int (*fill_super)(struct super_block *, void *, int),
@@ -119,9 +98,7 @@ static int get_sb_mtd_nr(struct file_system_type *fs_type, int flags,
 			      mnt);
 }
 
-/*
- * set up an MTD-based superblock
- */
+
 int get_sb_mtd(struct file_system_type *fs_type, int flags,
 	       const char *dev_name, void *data,
 	       int (*fill_super)(struct super_block *, void *, int),
@@ -138,15 +115,12 @@ int get_sb_mtd(struct file_system_type *fs_type, int flags,
 
 	DEBUG(2, "MTDSB: dev_name \"%s\"\n", dev_name);
 
-	/* the preferred way of mounting in future; especially when
-	 * CONFIG_BLOCK=n - we specify the underlying MTD device by number or
-	 * by name, so that we don't require block device support to be present
-	 * in the kernel. */
+	
 	if (dev_name[0] == 'm' && dev_name[1] == 't' && dev_name[2] == 'd') {
 		if (dev_name[3] == ':') {
 			struct mtd_info *mtd;
 
-			/* mount by MTD device name */
+			
 			DEBUG(1, "MTDSB: mtd:%%s, name \"%s\"\n",
 			      dev_name + 4);
 
@@ -168,12 +142,12 @@ int get_sb_mtd(struct file_system_type *fs_type, int flags,
 			       dev_name + 4);
 
 		} else if (isdigit(dev_name[3])) {
-			/* mount by MTD device number name */
+			
 			char *endptr;
 
 			mtdnr = simple_strtoul(dev_name + 3, &endptr, 0);
 			if (!*endptr) {
-				/* It was a valid number */
+				
 				DEBUG(1, "MTDSB: mtd%%d, mtdnr %d\n",
 				      mtdnr);
 				return get_sb_mtd_nr(fs_type, flags,
@@ -184,9 +158,7 @@ int get_sb_mtd(struct file_system_type *fs_type, int flags,
 	}
 
 #ifdef CONFIG_BLOCK
-	/* try the old way - the hack where we allowed users to mount
-	 * /dev/mtdblock$(n) but didn't actually _use_ the blockdev
-	 */
+	
 	bdev = lookup_bdev(dev_name);
 	if (IS_ERR(bdev)) {
 		ret = PTR_ERR(bdev);
@@ -208,7 +180,7 @@ int get_sb_mtd(struct file_system_type *fs_type, int flags,
 			     mnt);
 
 not_an_MTD_device:
-#endif /* CONFIG_BLOCK */
+#endif 
 
 	if (!(flags & MS_SILENT))
 		printk(KERN_NOTICE
@@ -219,9 +191,7 @@ not_an_MTD_device:
 
 EXPORT_SYMBOL_GPL(get_sb_mtd);
 
-/*
- * destroy an MTD-based superblock
- */
+
 void kill_mtd_super(struct super_block *sb)
 {
 	generic_shutdown_super(sb);

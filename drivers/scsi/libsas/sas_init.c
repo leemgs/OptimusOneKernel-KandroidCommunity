@@ -1,27 +1,4 @@
-/*
- * Serial Attached SCSI (SAS) Transport Layer initialization
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -38,7 +15,7 @@
 
 struct kmem_cache *sas_task_cache;
 
-/*------------ SAS addr hash -----------*/
+
 void sas_hash_addr(u8 *hashed, const u8 *sas_addr)
 {
         const u32 poly = 0x00DB2777;
@@ -63,7 +40,7 @@ void sas_hash_addr(u8 *hashed, const u8 *sas_addr)
 }
 
 
-/* ---------- HA events ---------- */
+
 
 void sas_hae_reset(struct work_struct *work)
 {
@@ -85,7 +62,7 @@ int sas_register_ha(struct sas_ha_struct *sas_ha)
 	if (sas_ha->lldd_queue_size == 0)
 		sas_ha->lldd_queue_size = 1;
 	else if (sas_ha->lldd_queue_size == -1)
-		sas_ha->lldd_queue_size = 128; /* Sanity */
+		sas_ha->lldd_queue_size = 128; 
 
 	sas_ha->state = SAS_HA_REGISTERED;
 	spin_lock_init(&sas_ha->state_lock);
@@ -132,8 +109,7 @@ int sas_unregister_ha(struct sas_ha_struct *sas_ha)
 {
 	unsigned long flags;
 
-	/* Set the state to unregistered to avoid further
-	 * events to be queued */
+	
 	spin_lock_irqsave(&sas_ha->state_lock, flags);
 	sas_ha->state = SAS_HA_UNREGISTERED;
 	spin_unlock_irqrestore(&sas_ha->state_lock, flags);
@@ -152,8 +128,7 @@ int sas_unregister_ha(struct sas_ha_struct *sas_ha)
 static int sas_get_linkerrors(struct sas_phy *phy)
 {
 	if (scsi_is_sas_phy_local(phy))
-		/* FIXME: we have no local phy stats
-		 * gathering at this time */
+		
 		return -EINVAL;
 
 	return sas_smp_get_phy_events(phy);
@@ -288,7 +263,7 @@ void sas_domain_release_transport(struct scsi_transport_template *stt)
 }
 EXPORT_SYMBOL_GPL(sas_domain_release_transport);
 
-/* ---------- SAS Class register/unregister ---------- */
+
 
 static int __init sas_class_init(void)
 {

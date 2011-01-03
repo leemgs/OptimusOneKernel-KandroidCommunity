@@ -1,13 +1,4 @@
-/*
- *  Support for Cogent CSB726
- *
- *  Copyright (c) 2008 Dmitry Baryshkov
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 #ifndef CSB726_H
 #define CSB726_H
 

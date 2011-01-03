@@ -1,43 +1,4 @@
-/*
- * Copyright (c) 2005-2006 Network Appliance, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the BSD-type
- * license below:
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *      Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *
- *      Redistributions in binary form must reproduce the above
- *      copyright notice, this list of conditions and the following
- *      disclaimer in the documentation and/or other materials provided
- *      with the distribution.
- *
- *      Neither the name of the Network Appliance, Inc. nor the names of
- *      its contributors may be used to endorse or promote products
- *      derived from this software without specific prior written
- *      permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Author: Tom Tucker <tom@opengridcomputing.com>
- */
+
 
 #include <linux/sunrpc/xdr.h>
 #include <linux/sunrpc/debug.h>
@@ -47,14 +8,7 @@
 
 #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
 
-/*
- * Decodes a read chunk list. The expected format is as follows:
- *    descrim  : xdr_one
- *    position : u32 offset into XDR stream
- *    handle   : u32 RKEY
- *    . . .
- *  end-of-list: xdr_zero
- */
+
 static u32 *decode_read_list(u32 *va, u32 *vaend)
 {
 	struct rpcrdma_read_chunk *ch = (struct rpcrdma_read_chunk *)va;
@@ -80,14 +34,11 @@ static u32 *decode_read_list(u32 *va, u32 *vaend)
 	return (u32 *)&ch->rc_position;
 }
 
-/*
- * Determine number of chunks and total bytes in chunk list. The chunk
- * list has already been verified to fit within the RPCRDMA header.
- */
+
 void svc_rdma_rcl_chunk_counts(struct rpcrdma_read_chunk *ch,
 			       int *ch_count, int *byte_count)
 {
-	/* compute the number of bytes represented by read chunks */
+	
 	*byte_count = 0;
 	*ch_count = 0;
 	for (; ch->rc_discrim != 0; ch++) {
@@ -96,23 +47,14 @@ void svc_rdma_rcl_chunk_counts(struct rpcrdma_read_chunk *ch,
 	}
 }
 
-/*
- * Decodes a write chunk list. The expected format is as follows:
- *    descrim  : xdr_one
- *    nchunks  : <count>
- *       handle   : u32 RKEY              ---+
- *       length   : u32 <len of segment>     |
- *       offset   : remove va                + <count>
- *       . . .                               |
- *                                        ---+
- */
+
 static u32 *decode_write_list(u32 *va, u32 *vaend)
 {
 	int ch_no;
 	struct rpcrdma_write_array *ary =
 		(struct rpcrdma_write_array *)va;
 
-	/* Check for not write-array */
+	
 	if (ary->wc_discrim == xdr_zero)
 		return (u32 *)&ary->wc_nchunks;
 
@@ -142,10 +84,7 @@ static u32 *decode_write_list(u32 *va, u32 *vaend)
 		put_unaligned(ch_offset, (u64 *)va);
 	}
 
-	/*
-	 * rs_length is the 2nd 4B field in wc_target and taking its
-	 * address skips the list terminator
-	 */
+	
 	return (u32 *)&ary->wc_array[ch_no].wc_target.rs_length;
 }
 
@@ -155,7 +94,7 @@ static u32 *decode_reply_array(u32 *va, u32 *vaend)
 	struct rpcrdma_write_array *ary =
 		(struct rpcrdma_write_array *)va;
 
-	/* Check for no reply-array */
+	
 	if (ary->wc_discrim == xdr_zero)
 		return (u32 *)&ary->wc_nchunks;
 
@@ -198,14 +137,14 @@ int svc_rdma_xdr_decode_req(struct rpcrdma_msg **rdma_req,
 
 	rmsgp = (struct rpcrdma_msg *)rqstp->rq_arg.head[0].iov_base;
 
-	/* Verify that there's enough bytes for header + something */
+	
 	if (rqstp->rq_arg.len <= RPCRDMA_HDRLEN_MIN) {
 		dprintk("svcrdma: header too short = %d\n",
 			rqstp->rq_arg.len);
 		return -EINVAL;
 	}
 
-	/* Decode the header */
+	
 	rmsgp->rm_xid = ntohl(rmsgp->rm_xid);
 	rmsgp->rm_vers = ntohl(rmsgp->rm_vers);
 	rmsgp->rm_credit = ntohl(rmsgp->rm_credit);
@@ -214,7 +153,7 @@ int svc_rdma_xdr_decode_req(struct rpcrdma_msg **rdma_req,
 	if (rmsgp->rm_vers != RPCRDMA_VERSION)
 		return -ENOSYS;
 
-	/* Pull in the extra for the padded case and bump our pointer */
+	
 	if (rmsgp->rm_type == RDMA_MSGP) {
 		int hdrlen;
 		rmsgp->rm_body.rm_padded.rm_align =
@@ -231,9 +170,7 @@ int svc_rdma_xdr_decode_req(struct rpcrdma_msg **rdma_req,
 		return hdrlen;
 	}
 
-	/* The chunk list may contain either a read chunk list or a write
-	 * chunk list and a reply chunk list.
-	 */
+	
 	va = &rmsgp->rm_body.rm_chunks[0];
 	vaend = (u32 *)((unsigned long)rmsgp + rqstp->rq_arg.len);
 	va = decode_read_list(va, vaend);
@@ -266,7 +203,7 @@ int svc_rdma_xdr_decode_deferred_req(struct svc_rqst *rqstp)
 		rqstp);
 	rmsgp = (struct rpcrdma_msg *)rqstp->rq_arg.head[0].iov_base;
 
-	/* Pull in the extra for the padded case and bump our pointer */
+	
 	if (rmsgp->rm_type == RDMA_MSGP) {
 		va = &rmsgp->rm_body.rm_padded.rm_pempty[4];
 		rqstp->rq_arg.head[0].iov_base = va;
@@ -275,28 +212,23 @@ int svc_rdma_xdr_decode_deferred_req(struct svc_rqst *rqstp)
 		return hdrlen;
 	}
 
-	/*
-	 * Skip all chunks to find RPC msg. These were previously processed
-	 */
+	
 	va = &rmsgp->rm_body.rm_chunks[0];
 
-	/* Skip read-list */
+	
 	for (ch = (struct rpcrdma_read_chunk *)va;
 	     ch->rc_discrim != xdr_zero; ch++);
 	va = (u32 *)&ch->rc_position;
 
-	/* Skip write-list */
+	
 	ary = (struct rpcrdma_write_array *)va;
 	if (ary->wc_discrim == xdr_zero)
 		va = (u32 *)&ary->wc_nchunks;
 	else
-		/*
-		 * rs_length is the 2nd 4B field in wc_target and taking its
-		 * address skips the list terminator
-		 */
+		
 		va = (u32 *)&ary->wc_array[ary->wc_nchunks].wc_target.rs_length;
 
-	/* Skip reply-array */
+	
 	ary = (struct rpcrdma_write_array *)va;
 	if (ary->wc_discrim == xdr_zero)
 		va = (u32 *)&ary->wc_nchunks;
@@ -333,9 +265,9 @@ int svc_rdma_xdr_get_reply_hdr_len(struct rpcrdma_msg *rmsgp)
 {
 	struct rpcrdma_write_array *wr_ary;
 
-	/* There is no read-list in a reply */
+	
 
-	/* skip write list */
+	
 	wr_ary = (struct rpcrdma_write_array *)
 		&rmsgp->rm_body.rm_chunks[1];
 	if (wr_ary->wc_discrim)
@@ -346,7 +278,7 @@ int svc_rdma_xdr_get_reply_hdr_len(struct rpcrdma_msg *rmsgp)
 		wr_ary = (struct rpcrdma_write_array *)
 			&wr_ary->wc_nchunks;
 
-	/* skip reply array */
+	
 	if (wr_ary->wc_discrim)
 		wr_ary = (struct rpcrdma_write_array *)
 			&wr_ary->wc_array[ntohl(wr_ary->wc_nchunks)];
@@ -361,19 +293,19 @@ void svc_rdma_xdr_encode_write_list(struct rpcrdma_msg *rmsgp, int chunks)
 {
 	struct rpcrdma_write_array *ary;
 
-	/* no read-list */
+	
 	rmsgp->rm_body.rm_chunks[0] = xdr_zero;
 
-	/* write-array discrim */
+	
 	ary = (struct rpcrdma_write_array *)
 		&rmsgp->rm_body.rm_chunks[1];
 	ary->wc_discrim = xdr_one;
 	ary->wc_nchunks = htonl(chunks);
 
-	/* write-list terminator */
+	
 	ary->wc_array[chunks].wc_target.rs_handle = xdr_zero;
 
-	/* reply-array discriminator */
+	
 	ary->wc_array[chunks].wc_target.rs_length = xdr_zero;
 }
 
@@ -405,7 +337,7 @@ void svc_rdma_xdr_encode_reply_header(struct svcxprt_rdma *xprt,
 	rdma_resp->rm_credit = htonl(xprt->sc_max_requests);
 	rdma_resp->rm_type = htonl(rdma_type);
 
-	/* Encode <nul> chunks lists */
+	
 	rdma_resp->rm_body.rm_chunks[0] = xdr_zero;
 	rdma_resp->rm_body.rm_chunks[1] = xdr_zero;
 	rdma_resp->rm_body.rm_chunks[2] = xdr_zero;

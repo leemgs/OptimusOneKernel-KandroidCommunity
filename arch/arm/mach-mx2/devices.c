@@ -1,31 +1,4 @@
-/*
- * Author: MontaVista Software, Inc.
- *       <source@mvista.com>
- *
- * Based on the OMAP devices.c
- *
- * 2005 (c) MontaVista Software, Inc. This file is licensed under the
- * terms of the GNU General Public License version 2. This program is
- * licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- * Copyright 2006-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Juergen Beisert, kernel@pengutronix.de
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -39,13 +12,7 @@
 
 #include "devices.h"
 
-/*
- * SPI master controller
- *
- * - i.MX1: 2 channel (slighly different register setting)
- * - i.MX21: 2 channel
- * - i.MX27: 3 channel
- */
+
 static struct resource mxc_spi_resources0[] = {
 	{
 	       .start = CSPI1_BASE_ADDR,
@@ -107,13 +74,9 @@ struct platform_device mxc_spi_device2 = {
 };
 #endif
 
-/*
- * General Purpose Timer
- * - i.MX21: 3 timers
- * - i.MX27: 6 timers
- */
 
-/* We use gpt0 as system timer, so do not add a device for this one */
+
+
 
 static struct resource timer1_resources[] = {
 	{
@@ -212,12 +175,7 @@ struct platform_device mxc_gpt5 = {
 };
 #endif
 
-/*
- * Watchdog:
- * - i.MX1
- * - i.MX21
- * - i.MX27
- */
+
 static struct resource mxc_wdt_resources[] = {
 	{
 		.start	= WDOG_BASE_ADDR,
@@ -267,12 +225,7 @@ struct platform_device mxc_nand_device = {
 	.resource = mxc_nand_resources,
 };
 
-/*
- * lcdc:
- * - i.MX1: the basic controller
- * - i.MX21: to be checked
- * - i.MX27: like i.MX1, with slightly variations
- */
+
 static struct resource mxc_fb[] = {
 	{
 		.start = LCDC_BASE_ADDR,
@@ -285,7 +238,7 @@ static struct resource mxc_fb[] = {
 	}
 };
 
-/* mxc lcd driver */
+
 struct platform_device mxc_fb_device = {
 	.name = "imx-fb",
 	.id = 0,
@@ -376,9 +329,7 @@ struct platform_device mxc_pwm_device = {
 	.resource = mxc_pwm_resources,
 };
 
-/*
- * Resource definition for the MXC SDHC
- */
+
 static struct resource mxc_sdhc1_resources[] = {
 	{
 		.start = SDHC1_BASE_ADDR,
@@ -452,7 +403,7 @@ static struct resource otg_resources[] = {
 
 static u64 otg_dmamask = 0xffffffffUL;
 
-/* OTG gadget device */
+
 struct platform_device mxc_otg_udc_device = {
 	.name		= "fsl-usb2-udc",
 	.id		= -1,
@@ -464,7 +415,7 @@ struct platform_device mxc_otg_udc_device = {
 	.num_resources	= ARRAY_SIZE(otg_resources),
 };
 
-/* OTG host */
+
 struct platform_device mxc_otg_host = {
 	.name = "mxc-ehci",
 	.id = 0,
@@ -476,7 +427,7 @@ struct platform_device mxc_otg_host = {
 	.num_resources = ARRAY_SIZE(otg_resources),
 };
 
-/* USB host 1 */
+
 
 static u64 usbh1_dmamask = 0xffffffffUL;
 
@@ -503,7 +454,7 @@ struct platform_device mxc_usbh1 = {
 	.num_resources = ARRAY_SIZE(mxc_usbh1_resources),
 };
 
-/* USB host 2 */
+
 static u64 usbh2_dmamask = 0xffffffffUL;
 
 static struct resource mxc_usbh2_resources[] = {
@@ -530,7 +481,7 @@ struct platform_device mxc_usbh2 = {
 };
 #endif
 
-/* GPIO port description */
+
 static struct mxc_gpio_port imx_gpio_ports[] = {
 	{
 		.chip.label = "gpio-0",

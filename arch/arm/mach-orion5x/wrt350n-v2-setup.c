@@ -1,10 +1,4 @@
-/*
- * arch/arm/mach-orion5x/wrt350n-v2-setup.c
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -25,32 +19,30 @@
 #include "mpp.h"
 
 static struct orion5x_mpp_mode wrt350n_v2_mpp_modes[] __initdata = {
-	{  0, MPP_GPIO },		/* Power LED green (0=on) */
-	{  1, MPP_GPIO },		/* Security LED (0=on) */
-	{  2, MPP_GPIO },		/* Internal Button (0=on) */
-	{  3, MPP_GPIO },		/* Reset Button (0=on) */
-	{  4, MPP_GPIO },		/* PCI int */
-	{  5, MPP_GPIO },		/* Power LED orange (0=on) */
-	{  6, MPP_GPIO },		/* USB LED (0=on) */
-	{  7, MPP_GPIO },		/* Wireless LED (0=on) */
-	{  8, MPP_UNUSED },		/* ??? */
-	{  9, MPP_GIGE },		/* GE_RXERR */
-	{ 10, MPP_UNUSED },		/* ??? */
-	{ 11, MPP_UNUSED },		/* ??? */
-	{ 12, MPP_GIGE },		/* GE_TXD[4] */
-	{ 13, MPP_GIGE },		/* GE_TXD[5] */
-	{ 14, MPP_GIGE },		/* GE_TXD[6] */
-	{ 15, MPP_GIGE },		/* GE_TXD[7] */
-	{ 16, MPP_GIGE },		/* GE_RXD[4] */
-	{ 17, MPP_GIGE },		/* GE_RXD[5] */
-	{ 18, MPP_GIGE },		/* GE_RXD[6] */
-	{ 19, MPP_GIGE },		/* GE_RXD[7] */
+	{  0, MPP_GPIO },		
+	{  1, MPP_GPIO },		
+	{  2, MPP_GPIO },		
+	{  3, MPP_GPIO },		
+	{  4, MPP_GPIO },		
+	{  5, MPP_GPIO },		
+	{  6, MPP_GPIO },		
+	{  7, MPP_GPIO },		
+	{  8, MPP_UNUSED },		
+	{  9, MPP_GIGE },		
+	{ 10, MPP_UNUSED },		
+	{ 11, MPP_UNUSED },		
+	{ 12, MPP_GIGE },		
+	{ 13, MPP_GIGE },		
+	{ 14, MPP_GIGE },		
+	{ 15, MPP_GIGE },		
+	{ 16, MPP_GIGE },		
+	{ 17, MPP_GIGE },		
+	{ 18, MPP_GIGE },		
+	{ 19, MPP_GIGE },		
 	{ -1 },
 };
 
-/*
- * 8M NOR flash Device bus boot chip select
- */
+
 #define WRT350N_V2_NOR_BOOT_BASE	0xf4000000
 #define WRT350N_V2_NOR_BOOT_SIZE	SZ_8M
 
@@ -122,16 +114,12 @@ static struct dsa_platform_data wrt350n_v2_switch_plat_data = {
 
 static void __init wrt350n_v2_init(void)
 {
-	/*
-	 * Setup basic Orion functions. Need to be called early.
-	 */
+	
 	orion5x_init();
 
 	orion5x_mpp_conf(wrt350n_v2_mpp_modes);
 
-	/*
-	 * Configure peripherals.
-	 */
+	
 	orion5x_ehci0_init();
 	orion5x_eth_init(&wrt350n_v2_eth_data);
 	orion5x_eth_switch_init(&wrt350n_v2_switch_plat_data, NO_IRQ);
@@ -146,16 +134,12 @@ static int __init wrt350n_v2_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
-	/*
-	 * Check for devices with hard-wired IRQs.
-	 */
+	
 	irq = orion5x_pci_map_irq(dev, slot, pin);
 	if (irq != -1)
 		return irq;
 
-	/*
-	 * Mini-PCI slot.
-	 */
+	
 	if (slot == 7)
 		return gpio_to_irq(4);
 
@@ -180,7 +164,7 @@ static int __init wrt350n_v2_pci_init(void)
 subsys_initcall(wrt350n_v2_pci_init);
 
 MACHINE_START(WRT350N_V2, "Linksys WRT350N v2")
-	/* Maintainer: Lennert Buytenhek <buytenh@marvell.com> */
+	
 	.phys_io	= ORION5X_REGS_PHYS_BASE,
 	.io_pg_offst	= ((ORION5X_REGS_VIRT_BASE) >> 18) & 0xFFFC,
 	.boot_params	= 0x00000100,

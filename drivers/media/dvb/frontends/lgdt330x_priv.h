@@ -1,28 +1,9 @@
-/*
- *    Support for LGDT3302 and LGDT3303 - VSB/QAM
- *
- *    Copyright (C) 2005 Wilson Michaels <wilsonmichaels@earthlink.net>
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #ifndef _LGDT330X_PRIV_
 #define _LGDT330X_PRIV_
 
-/* i2c control register addresses */
+
 enum I2C_REG {
 	TOP_CONTROL= 0x00,
 	IRQ_MASK= 0x01,
@@ -68,10 +49,6 @@ enum I2C_REG {
 	LGDT3303_PACKET_ERR_COUNTER2= 0x8c,
 };
 
-#endif /* _LGDT330X_PRIV_ */
+#endif 
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+

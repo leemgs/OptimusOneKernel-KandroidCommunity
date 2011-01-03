@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-sx1-mmc.c
- *
- * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
- * Author: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
- *
- * This code is based on linux/arch/arm/mach-omap1/board-h2-mmc.c, which is:
- * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/platform_device.h>
 
@@ -39,7 +27,7 @@ static int mmc_set_power(struct device *dev, int slot, int power_on,
 	return sx1_i2c_write_byte(SOFIA_I2C_ADDR, SOFIA_POWER1_REG, dat);
 }
 
-/* Cover switch is at OMAP_MPUIO(3) */
+
 static struct omap_mmc_platform_data mmc1_data = {
 	.nr_slots                       = 1,
 	.slots[0]       = {

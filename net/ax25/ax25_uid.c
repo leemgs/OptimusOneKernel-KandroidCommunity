@@ -1,11 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- */
+
 
 #include <linux/capability.h>
 #include <linux/errno.h>
@@ -39,9 +32,7 @@
 #include <net/ip.h>
 #include <net/arp.h>
 
-/*
- *	Callsign/UID mapper. This is in kernel space for security on multi-amateur machines.
- */
+
 
 static HLIST_HEAD(ax25_uid_list);
 static DEFINE_RWLOCK(ax25_uid_lock);
@@ -138,7 +129,7 @@ int ax25_uid_ioctl(int cmd, struct sockaddr_ax25 *sax)
 		return -EINVAL;
 	}
 
-	return -EINVAL;	/*NOTREACHED */
+	return -EINVAL;	
 }
 
 #ifdef CONFIG_PROC_FS
@@ -215,9 +206,7 @@ const struct file_operations ax25_uid_fops = {
 
 #endif
 
-/*
- *	Free all memory associated with UID/Callsign structures.
- */
+
 void __exit ax25_uid_free(void)
 {
 	ax25_uid_assoc *ax25_uid;

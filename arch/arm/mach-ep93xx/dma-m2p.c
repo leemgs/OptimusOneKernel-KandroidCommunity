@@ -1,32 +1,6 @@
-/*
- * arch/arm/mach-ep93xx/dma-m2p.c
- * M2P DMA handling for Cirrus EP93xx chips.
- *
- * Copyright (C) 2006 Lennert Buytenhek <buytenh@wantstofly.org>
- * Copyright (C) 2006 Applied Data Systems
- *
- * Copyright (C) 2009 Ryan Mallon <ryan@bluewatersys.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
 
-/*
- * On the EP93xx chip the following peripherals my be allocated to the 10
- * Memory to Internal Peripheral (M2P) channels (5 transmit + 5 receive).
- *
- *	I2S	contains 3 Tx and 3 Rx DMA Channels
- *	AAC	contains 3 Tx and 3 Rx DMA Channels
- *	UART1	contains 1 Tx and 1 Rx DMA Channels
- *	UART2	contains 1 Tx and 1 Rx DMA Channels
- *	UART3	contains 1 Tx and 1 Rx DMA Channels
- *	IrDA	contains 1 Tx and 1 Rx DMA Channels
- *
- * SSP and IDE use the Memory to Memory (M2M) channels and are not covered
- * with this implementation.
- */
+
+
 
 #include <linux/kernel.h>
 #include <linux/clk.h>
@@ -55,10 +29,10 @@
 #define M2P_MAXCNT1			0x30
 #define M2P_BASE1			0x34
 
-#define STATE_IDLE	0	/* Channel is inactive.  */
-#define STATE_STALL	1	/* Channel is active, no buffers pending.  */
-#define STATE_ON	2	/* Channel is active, one buffer pending.  */
-#define STATE_NEXT	3	/* Channel is active, two buffers pending.  */
+#define STATE_IDLE	0	
+#define STATE_STALL	1	
+#define STATE_ON	2	
+#define STATE_NEXT	3	
 
 struct m2p_channel {
 	char				*name;
@@ -135,11 +109,7 @@ static void choose_buffer_next(struct m2p_channel *ch)
 
 static inline void m2p_set_control(struct m2p_channel *ch, u32 v)
 {
-	/*
-	 * The control register must be read immediately after being written so
-	 * that the internal state machine is correctly updated. See the ep93xx
-	 * users' guide for details.
-	 */
+	
 	writel(v, ch->base + M2P_CONTROL);
 	readl(ch->base + M2P_CONTROL);
 }

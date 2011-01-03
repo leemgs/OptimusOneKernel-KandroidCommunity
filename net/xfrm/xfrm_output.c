@@ -1,13 +1,4 @@
-/*
- * xfrm_output.c - Common IPsec encapsulation code.
- *
- * Copyright (c) 2007 Herbert Xu <herbert@gondor.apana.org.au>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/errno.h>
 #include <linux/module.h>
@@ -182,6 +173,15 @@ int xfrm_output(struct sk_buff *skb)
 {
 	struct net *net = dev_net(skb_dst(skb)->dev);
 	int err;
+
+#ifdef CONFIG_IWLAN
+	struct inet_sock *inet = skb->sk ? inet_sk(skb->sk) : NULL;
+	u32 mtu = (inet && inet->pmtudisc == IP_PMTUDISC_PROBE) ?
+			skb_dst(skb)->dev->mtu : dst_mtu(skb_dst(skb));
+	extern int ip_fragment_xfrm(struct sk_buff *skb, int (*output)(struct sk_buff *), int mtu_sub);
+	if (skb->len > mtu - 80 && !skb_is_gso(skb))
+		return ip_fragment_xfrm(skb, xfrm_output,80);
+#endif
 
 	if (skb_is_gso(skb))
 		return xfrm_output_gso(skb);

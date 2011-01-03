@@ -1,15 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the BSD Socket
- *		interface as the means of communication with the user level.
- *
- * Authors:	Lotsa people, from code originally in tcp
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 
 #ifndef _INET6_HASHTABLES_H
 #define _INET6_HASHTABLES_H
@@ -28,7 +17,7 @@
 
 struct inet_hashinfo;
 
-/* I have no idea if this is a good hash for v6 or not. -DaveM */
+
 static inline unsigned int inet6_ehashfn(struct net *net,
 				const struct in6_addr *laddr, const u16 lport,
 				const struct in6_addr *faddr, const __be16 fport)
@@ -55,12 +44,7 @@ static inline int inet6_sk_ehashfn(const struct sock *sk)
 
 extern void __inet6_hash(struct sock *sk);
 
-/*
- * Sockets in TCP_CLOSE state are _always_ taken out of the hash, so
- * we need not check it for TCP lookups anymore, thanks Alexey. -DaveM
- *
- * The sockhash lock must be held as a reader here.
- */
+
 extern struct sock *__inet6_lookup_established(struct net *net,
 					   struct inet_hashinfo *hashinfo,
 					   const struct in6_addr *saddr,
@@ -110,5 +94,5 @@ extern struct sock *inet6_lookup(struct net *net, struct inet_hashinfo *hashinfo
 				 const struct in6_addr *saddr, const __be16 sport,
 				 const struct in6_addr *daddr, const __be16 dport,
 				 const int dif);
-#endif /* defined(CONFIG_IPV6) || defined (CONFIG_IPV6_MODULE) */
-#endif /* _INET6_HASHTABLES_H */
+#endif 
+#endif 

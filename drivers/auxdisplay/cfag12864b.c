@@ -1,27 +1,4 @@
-/*
- *    Filename: cfag12864b.c
- *     Version: 0.1.0
- * Description: cfag12864b LCD driver
- *     License: GPLv2
- *     Depends: ks0108
- *
- *      Author: Copyright (C) Miguel Ojeda Sandonis
- *        Date: 2006-10-31
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -41,9 +18,7 @@
 
 #define CFAG12864B_NAME "cfag12864b"
 
-/*
- * Module Parameters
- */
+
 
 static unsigned int cfag12864b_rate = CONFIG_CFAG12864B_RATE;
 module_param(cfag12864b_rate, uint, S_IRUGO);
@@ -55,24 +30,7 @@ unsigned int cfag12864b_getrate(void)
 	return cfag12864b_rate;
 }
 
-/*
- * cfag12864b Commands
- *
- *	E = Enable signal
- *		Everytime E switch from low to high,
- *		cfag12864b/ks0108 reads the command/data.
- *
- *	CS1 = First ks0108controller.
- *		If high, the first ks0108 controller receives commands/data.
- *
- *	CS2 = Second ks0108 controller
- *		If high, the second ks0108 controller receives commands/data.
- *
- *	DI = Data/Instruction
- *		If low, cfag12864b will expect commands.
- *		If high, cfag12864b will expect data.
- *
- */
+
 
 #define bit(n) (((unsigned char)1)<<(n))
 
@@ -184,9 +142,7 @@ static void cfag12864b_nop(void)
 	cfag12864b_startline(0);
 }
 
-/*
- * cfag12864b Internal Commands
- */
+
 
 static void cfag12864b_on(void)
 {
@@ -213,9 +169,7 @@ static void cfag12864b_clear(void)
 	}
 }
 
-/*
- * Update work
- */
+
 
 unsigned char *cfag12864b_buffer;
 static unsigned char *cfag12864b_cache;
@@ -301,9 +255,7 @@ static void cfag12864b_update(struct work_struct *work)
 		cfag12864b_queue();
 }
 
-/*
- * cfag12864b Exported Symbols
- */
+
 
 EXPORT_SYMBOL_GPL(cfag12864b_buffer);
 EXPORT_SYMBOL_GPL(cfag12864b_getrate);
@@ -311,9 +263,7 @@ EXPORT_SYMBOL_GPL(cfag12864b_enable);
 EXPORT_SYMBOL_GPL(cfag12864b_disable);
 EXPORT_SYMBOL_GPL(cfag12864b_isenabled);
 
-/*
- * Is the module inited?
- */
+
 
 static unsigned char cfag12864b_inited;
 unsigned char cfag12864b_isinited(void)
@@ -322,15 +272,13 @@ unsigned char cfag12864b_isinited(void)
 }
 EXPORT_SYMBOL_GPL(cfag12864b_isinited);
 
-/*
- * Module Init & Exit
- */
+
 
 static int __init cfag12864b_init(void)
 {
 	int ret = -EINVAL;
 
-	/* ks0108_init() must be called first */
+	
 	if (!ks0108_isinited()) {
 		printk(KERN_ERR CFAG12864B_NAME ": ERROR: "
 			"ks0108 is not initialized\n");

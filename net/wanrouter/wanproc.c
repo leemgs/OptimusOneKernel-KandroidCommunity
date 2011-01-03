@@ -1,31 +1,11 @@
-/*****************************************************************************
-* wanproc.c	WAN Router Module. /proc filesystem interface.
-*
-*		This module is completely hardware-independent and provides
-*		access to the router using Linux /proc filesystem.
-*
-* Author: 	Gideon Hack
-*
-* Copyright:	(c) 1995-1999 Sangoma Technologies Inc.
-*
-*		This program is free software; you can redistribute it and/or
-*		modify it under the terms of the GNU General Public License
-*		as published by the Free Software Foundation; either version
-*		2 of the License, or (at your option) any later version.
-* ============================================================================
-* Jun 02, 1999  Gideon Hack	Updates for Linux 2.2.X kernels.
-* Jun 29, 1997	Alan Cox	Merged with 1.0.3 vendor code
-* Jan 29, 1997	Gene Kozin	v1.0.1. Implemented /proc read routines
-* Jan 30, 1997	Alan Cox	Hacked around for 2.1
-* Dec 13, 1996	Gene Kozin	Initial version (based on Sangoma's WANPIPE)
-*****************************************************************************/
 
-#include <linux/init.h>		/* __initfunc et al. */
-#include <linux/stddef.h>	/* offsetof(), etc. */
-#include <linux/errno.h>	/* return codes */
+
+#include <linux/init.h>		
+#include <linux/stddef.h>	
+#include <linux/errno.h>	
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/wanrouter.h>	/* WAN router API definitions */
+#include <linux/wanrouter.h>	
 #include <linux/seq_file.h>
 #include <linux/smp_lock.h>
 
@@ -34,7 +14,7 @@
 
 #define PROC_STATS_FORMAT "%30s: %12lu\n"
 
-/****** Defines and Macros **************************************************/
+
 
 #define PROT_DECODE(prot) ((prot == WANCONFIG_FR) ? " FR" :\
 			      (prot == WANCONFIG_X25) ? " X25" : \
@@ -43,42 +23,27 @@
 				       (prot == WANCONFIG_MPPP) ? " MPPP" : \
 					   " Unknown" )
 
-/****** Function Prototypes *************************************************/
+
 
 #ifdef CONFIG_PROC_FS
 
-/* Miscellaneous */
 
-/*
- *	Structures for interfacing with the /proc filesystem.
- *	Router creates its own directory /proc/net/router with the folowing
- *	entries:
- *	config		device configuration
- *	status		global device statistics
- *	<device>	entry for each WAN device
- */
 
-/*
- *	Generic /proc/net/router/<file> file and inode operations
- */
 
-/*
- *	/proc/net/router
- */
+
+
+
+
 
 static struct proc_dir_entry *proc_router;
 
-/* Strings */
 
-/*
- *	Interface functions
- */
 
-/****** Proc filesystem entry points ****************************************/
 
-/*
- *	Iterator
- */
+
+
+
+
 static void *r_start(struct seq_file *m, loff_t *pos)
 	__acquires(kernel_lock)
 {
@@ -219,7 +184,7 @@ static int wandev_show(struct seq_file *m, void *v)
 		return 0;
 	}
 
-	/* Update device statistics */
+	
 	if (wandev->update) {
 		int err = wandev->update(wandev);
 		if (err == -EAGAIN) {
@@ -283,9 +248,7 @@ static const struct file_operations wandev_fops = {
 	.unlocked_ioctl  = wanrouter_ioctl,
 };
 
-/*
- *	Initialize router proc interface.
- */
+
 
 int __init wanrouter_proc_init(void)
 {
@@ -309,9 +272,7 @@ fail:
 	return -ENOMEM;
 }
 
-/*
- *	Clean up router proc interface.
- */
+
 
 void wanrouter_proc_cleanup(void)
 {
@@ -320,9 +281,7 @@ void wanrouter_proc_cleanup(void)
 	remove_proc_entry(ROUTER_NAME, init_net.proc_net);
 }
 
-/*
- *	Add directory entry for WAN device.
- */
+
 
 int wanrouter_proc_add(struct wan_device* wandev)
 {
@@ -337,9 +296,7 @@ int wanrouter_proc_add(struct wan_device* wandev)
 	return 0;
 }
 
-/*
- *	Delete directory entry for WAN device.
- */
+
 int wanrouter_proc_delete(struct wan_device* wandev)
 {
 	if (wandev->magic != ROUTER_MAGIC)
@@ -350,9 +307,7 @@ int wanrouter_proc_delete(struct wan_device* wandev)
 
 #else
 
-/*
- *	No /proc - output stubs
- */
+
 
 int __init wanrouter_proc_init(void)
 {
@@ -375,7 +330,5 @@ int wanrouter_proc_delete(struct wan_device *wandev)
 
 #endif
 
-/*
- *	End
- */
+
 

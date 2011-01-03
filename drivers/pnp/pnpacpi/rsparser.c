@@ -1,25 +1,4 @@
-/*
- * pnpacpi -- PnP ACPI driver
- *
- * Copyright (c) 2004 Matthieu Castet <castet.matthieu@free.fr>
- * Copyright (c) 2004 Li Shaohua <shaohua.li@intel.com>
- * Copyright (C) 2008 Hewlett-Packard Development Company, L.P.
- *	Bjorn Helgaas <bjorn.helgaas@hp.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/kernel.h>
 #include <linux/acpi.h>
 #include <linux/pci.h>
@@ -33,9 +12,7 @@
 #define valid_IRQ(i) (((i) != 0) && ((i) != 2))
 #endif
 
-/*
- * Allocated Resources
- */
+
 static int irq_flags(int triggering, int polarity, int shareable)
 {
 	int flags;
@@ -105,11 +82,7 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
 		return;
 	}
 
-	/*
-	 * in IO-APIC mode, use overrided attribute. Two reasons:
-	 * 1. BIOS bug in DSDT
-	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
-	 */
+	
 	if (!acpi_get_override_irq(gsi, &t, &p)) {
 		t = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
 		p = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
@@ -153,7 +126,7 @@ static int dma_flags(struct pnp_dev *dev, int type, int bus_master,
 		flags |= IORESOURCE_DMA_TYPEF;
 		break;
 	default:
-		/* Set a default value ? */
+		
 		flags |= IORESOURCE_DMA_COMPATIBLE;
 		dev_err(&dev->dev, "invalid DMA type %d\n", type);
 	}
@@ -168,7 +141,7 @@ static int dma_flags(struct pnp_dev *dev, int type, int bus_master,
 		flags |= IORESOURCE_DMA_16BIT;
 		break;
 	default:
-		/* Set a default value ? */
+		
 		flags |= IORESOURCE_DMA_8AND16BIT;
 		dev_err(&dev->dev, "invalid DMA transfer type %d\n", transfer);
 	}
@@ -190,13 +163,7 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
 	pnp_add_io_resource(dev, start, end, flags);
 }
 
-/*
- * Device CSRs that do not appear in PCI config space should be described
- * via ACPI.  This would normally be done with Address Space Descriptors
- * marked as "consumer-only," but old versions of Windows and Linux ignore
- * the producer/consumer flag, so HP invented a vendor-defined resource to
- * describe the location and size of CSR space.
- */
+
 static struct acpi_vendor_uuid hp_ccsr_uuid = {
 	.subtype = 2,
 	.data = { 0xf9, 0xad, 0xe9, 0x69, 0x4f, 0x92, 0x5f, 0xab, 0xf6, 0x4a,
@@ -213,7 +180,7 @@ static int vendor_resource_matches(struct pnp_dev *dev,
 	u8 *uuid = vendor->uuid;
 	int actual_len;
 
-	/* byte_length includes uuid_subtype and uuid */
+	
 	actual_len = vendor->byte_length - uuid_len - 1;
 
 	if (uuid_subtype == match->subtype &&
@@ -323,10 +290,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
 
 	switch (res->type) {
 	case ACPI_RESOURCE_TYPE_IRQ:
-		/*
-		 * Per spec, only one interrupt per descriptor is allowed in
-		 * _CRS, but some firmware violates this, so parse them all.
-		 */
+		
 		irq = &res->data.irq;
 		if (irq->interrupt_count == 0)
 			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
@@ -339,11 +303,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
 				    irq->sharable);
 			}
 
-			/*
-			 * The IRQ encoder puts a single interrupt in each
-			 * descriptor, so if a _CRS descriptor has more than
-			 * one interrupt, we won't be able to re-encode it.
-			 */
+			
 			if (pnp_can_write(dev) && irq->interrupt_count > 1) {
 				dev_warn(&dev->dev, "multiple interrupts in "
 					 "_CRS descriptor; configuration can't "
@@ -436,11 +396,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
 					extended_irq->sharable);
 			}
 
-			/*
-			 * The IRQ encoder puts a single interrupt in each
-			 * descriptor, so if a _CRS descriptor has more than
-			 * one interrupt, we won't be able to re-encode it.
-			 */
+			
 			if (pnp_can_write(dev) &&
 			    extended_irq->interrupt_count > 1) {
 				dev_warn(&dev->dev, "multiple interrupts in "
@@ -813,9 +769,7 @@ static int pnpacpi_supported_resource(struct acpi_resource *res)
 	return 0;
 }
 
-/*
- * Set resource
- */
+
 static acpi_status pnpacpi_count_resources(struct acpi_resource *res,
 					   void *data)
 {
@@ -871,7 +825,7 @@ int pnpacpi_build_resource_template(struct pnp_dev *dev,
 		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
 		return -EINVAL;
 	}
-	/* resource will pointer the end resource now */
+	
 	resource->type = ACPI_RESOURCE_TYPE_END_TAG;
 
 	return 0;
@@ -947,7 +901,7 @@ static void pnpacpi_encode_dma(struct pnp_dev *dev,
 		return;
 	}
 
-	/* Note: pnp_assign_dma will copy pnp_dma->flags into p->flags */
+	
 	switch (p->flags & IORESOURCE_DMA_SPEED_MASK) {
 	case IORESOURCE_DMA_TYPEA:
 		dma->type = ACPI_TYPE_A;
@@ -989,12 +943,12 @@ static void pnpacpi_encode_io(struct pnp_dev *dev,
 	struct acpi_resource_io *io = &resource->data.io;
 
 	if (pnp_resource_enabled(p)) {
-		/* Note: pnp_assign_port copies pnp_port->flags into p->flags */
+		
 		io->io_decode = (p->flags & IORESOURCE_IO_16BIT_ADDR) ?
 		    ACPI_DECODE_16 : ACPI_DECODE_10;
 		io->minimum = p->start;
 		io->maximum = p->end;
-		io->alignment = 0;	/* Correct? */
+		io->alignment = 0;	
 		io->address_length = p->end - p->start + 1;
 	} else {
 		io->minimum = 0;
@@ -1030,7 +984,7 @@ static void pnpacpi_encode_mem24(struct pnp_dev *dev,
 	struct acpi_resource_memory24 *memory24 = &resource->data.memory24;
 
 	if (pnp_resource_enabled(p)) {
-		/* Note: pnp_assign_mem copies pnp_mem->flags into p->flags */
+		
 		memory24->write_protect = p->flags & IORESOURCE_MEM_WRITEABLE ?
 		    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
 		memory24->minimum = p->start;
@@ -1098,7 +1052,7 @@ static void pnpacpi_encode_fixed_mem32(struct pnp_dev *dev,
 int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
 {
 	int i = 0;
-	/* pnpacpi_build_resource_template allocates extra mem */
+	
 	int res_cnt = (buffer->length - 1) / sizeof(struct acpi_resource) - 1;
 	struct acpi_resource *resource = buffer->pointer;
 	int port = 0, irq = 0, dma = 0, mem = 0;
@@ -1156,7 +1110,7 @@ int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
 		case ACPI_RESOURCE_TYPE_ADDRESS64:
 		case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
 		case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
-		default:	/* other type */
+		default:	
 			dev_warn(&dev->dev, "can't encode unknown resource "
 				 "type %d\n", resource->type);
 			return -EINVAL;

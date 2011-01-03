@@ -1,29 +1,4 @@
-/*
- * CompactPCI Hot Plug Core Functions
- *
- * Copyright (C) 2002 SOMA Networks, Inc.
- * Copyright (C) 2001 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2001 IBM Corp.
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <scottm@somanetworks.com>
- */
+
 
 #ifndef _CPCI_HOTPLUG_H
 #define _CPCI_HOTPLUG_H
@@ -32,7 +7,7 @@
 #include <linux/pci.h>
 #include <linux/pci_hotplug.h>
 
-/* PICMG 2.1 R2.0 HS CSR bits: */
+
 #define HS_CSR_INS	0x0080
 #define HS_CSR_EXT	0x0040
 #define HS_CSR_PI	0x0030
@@ -82,10 +57,7 @@ extern int cpci_hp_unregister_bus(struct pci_bus *bus);
 extern int cpci_hp_start(void);
 extern int cpci_hp_stop(void);
 
-/*
- * Internal function prototypes, these functions should not be used by
- * board/chassis drivers.
- */
+
 extern u8 cpci_get_attention_status(struct slot *slot);
 extern u8 cpci_get_latch_status(struct slot *slot);
 extern u8 cpci_get_adapter_status(struct slot *slot);
@@ -99,4 +71,4 @@ extern int cpci_led_off(struct slot * slot);
 extern int cpci_configure_slot(struct slot *slot);
 extern int cpci_unconfigure_slot(struct slot *slot);
 
-#endif	/* _CPCI_HOTPLUG_H */
+#endif	

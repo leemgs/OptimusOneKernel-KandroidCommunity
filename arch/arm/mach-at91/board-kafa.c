@@ -1,22 +1,4 @@
-/*
- * linux/arch/arm/mach-at91/board-kafa.c
- *
- *  Copyright (C) 2006 Sperry-Sun
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -39,26 +21,22 @@
 #include "generic.h"
 
 
-/*
- * Serial port configuration.
- *    0 .. 3 = USART0 .. USART3
- *    4      = DBGU
- */
+
 static struct at91_uart_config __initdata kafa_uart_config = {
-	.console_tty	= 0,				/* ttyS0 */
+	.console_tty	= 0,				
 	.nr_tty		= 2,
-	.tty_map	= { 4, 0, -1, -1, -1 }		/* ttyS0, ..., ttyS4 */
+	.tty_map	= { 4, 0, -1, -1, -1 }		
 };
 
 static void __init kafa_map_io(void)
 {
-	/* Initialize processor: 18.432 MHz crystal */
+	
 	at91rm9200_initialize(18432000, AT91RM9200_PQFP);
 
-	/* Set up the LEDs */
+	
 	at91_init_leds(AT91_PIN_PB4, AT91_PIN_PB4);
 
-	/* Setup the serial ports and console */
+	
 	at91_init_serial(&kafa_uart_config);
 }
 
@@ -83,22 +61,22 @@ static struct at91_udc_data __initdata kafa_udc_data = {
 
 static void __init kafa_board_init(void)
 {
-	/* Serial */
+	
 	at91_add_device_serial();
-	/* Ethernet */
+	
 	at91_add_device_eth(&kafa_eth_data);
-	/* USB Host */
+	
 	at91_add_device_usbh(&kafa_usbh_data);
-	/* USB Device */
+	
 	at91_add_device_udc(&kafa_udc_data);
-	/* I2C */
+	
 	at91_add_device_i2c(NULL, 0);
-	/* SPI */
+	
 	at91_add_device_spi(NULL, 0);
 }
 
 MACHINE_START(KAFA, "Sperry-Sun KAFA")
-	/* Maintainer: Sergei Sharonov */
+	
 	.phys_io	= AT91_BASE_SYS,
 	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
 	.boot_params	= AT91_SDRAM_BASE + 0x100,

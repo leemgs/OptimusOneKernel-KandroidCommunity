@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfad.c Linux driver PCI interface module.
- */
+
+
 
 #include <linux/module.h>
 #include "bfad_drv.h"
@@ -76,10 +59,7 @@ module_param(ipfc_enable, int, S_IRUGO | S_IWUSR);
 module_param(ipfc_mtu, int, S_IRUGO | S_IWUSR);
 module_param(bfa_linkup_delay, int, S_IRUGO | S_IWUSR);
 
-/*
- * Stores the module parm num_sgpgs value;
- * used to reset for bfad next instance.
- */
+
 static int num_sgpgs_parm;
 
 static bfa_status_t
@@ -153,9 +133,7 @@ bfad_fc4_port_delete(struct bfad_s *bfad, struct bfad_port_s *port, int roles)
 		bfad_ipfc_port_delete(bfad, port);
 }
 
-/**
- *  BFA callbacks
- */
+
 void
 bfad_hcb_comp(void *arg, bfa_status_t status)
 {
@@ -165,9 +143,7 @@ bfad_hcb_comp(void *arg, bfa_status_t status)
 	complete(&fcomp->comp);
 }
 
-/**
- * bfa_init callback
- */
+
 void
 bfa_cb_init(void *drv, bfa_status_t init_status)
 {
@@ -181,9 +157,7 @@ bfa_cb_init(void *drv, bfa_status_t init_status)
 
 
 
-/**
- *  BFA_FCS callbacks
- */
+
 static struct bfad_port_s *
 bfad_get_drv_port(struct bfad_s *bfad, struct bfad_vf_s *vf_drv,
 		  struct bfad_vport_s *vp_drv)
@@ -231,9 +205,7 @@ bfa_fcb_port_delete(struct bfad_s *bfad, enum bfa_port_role roles,
 {
 	struct bfad_port_s *port_drv;
 
-	/*
-	 * this will be only called from rmmod context
-	 */
+	
 	if (vp_drv && !vp_drv->comp_del) {
 		port_drv = bfad_get_drv_port(bfad, vf_drv, vp_drv);
 		bfa_trc(bfad, roles);
@@ -286,9 +258,7 @@ bfa_fcb_vport_delete(struct bfad_vport_s *vport_drv)
 	kfree(vport_drv);
 }
 
-/**
- * FCS RPORT alloc callback, after successful PLOGI by FCS
- */
+
 bfa_status_t
 bfa_fcb_rport_alloc(struct bfad_s *bfad, struct bfa_fcs_rport_s **rport,
 		    struct bfad_rport_s **rport_drv)
@@ -359,10 +329,7 @@ bfad_update_hal_cfg(struct bfa_iocfc_cfg_s *bfa_cfg)
 	if (num_sgpgs > 0)
 		bfa_cfg->drvcfg.num_sgpgs = num_sgpgs;
 
-	/*
-	 * populate the hal values back to the driver for sysfs use.
-	 * otherwise, the default values will be shown as 0 in sysfs
-	 */
+	
 	num_rports = bfa_cfg->fwcfg.num_rports;
 	num_ios    = bfa_cfg->fwcfg.num_ioim_reqs;
 	num_tms	   = bfa_cfg->fwcfg.num_tskim_reqs;
@@ -412,10 +379,7 @@ retry:
 					&phys_addr, GFP_KERNEL);
 			if (kva == NULL) {
 				bfad_hal_mem_release(bfad);
-				/*
-				 * If we cannot allocate with default
-				 * num_sgpages try with half the value.
-				 */
+				
 				if (num_sgpgs > min_num_sgpgs) {
 					printk(KERN_INFO "bfad[%d]: memory"
 						" allocation failed with"
@@ -461,9 +425,7 @@ ext:
 	return rc;
 }
 
-/**
- * Create a vport under a vf.
- */
+
 bfa_status_t
 bfad_vport_create(struct bfad_s *bfad, u16 vf_id,
 		  struct bfa_port_cfg_s *port_cfg)
@@ -513,9 +475,7 @@ ext:
 	return rc;
 }
 
-/**
- * Create a vf and its base vport implicitely.
- */
+
 bfa_status_t
 bfad_vf_create(struct bfad_s *bfad, u16 vf_id,
 	       struct bfa_port_cfg_s *port_cfg)
@@ -697,9 +657,7 @@ bfad_drv_init(struct bfad_s *bfad)
 
 	init_completion(&bfad->comp);
 
-	/*
-	 * Enable Interrupt and wait bfa_init completion
-	 */
+	
 	if (bfad_setup_intr(bfad)) {
 		printk(KERN_WARNING "bfad%d: bfad_setup_intr failed\n",
 		       bfad->inst_no);
@@ -710,9 +668,7 @@ bfad_drv_init(struct bfad_s *bfad)
 	bfa_init(&bfad->bfa);
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 
-	/*
-	 * Set up interrupt handler for each vectors
-	 */
+	
 	if ((bfad->bfad_flags & BFAD_MSIX_ON)
 	    && bfad_install_msix_handler(bfad)) {
 		printk(KERN_WARNING "%s: install_msix failed, bfad%d\n",
@@ -739,9 +695,7 @@ bfad_drv_init(struct bfad_s *bfad)
 	strncpy(driver_info.os_device_name, bfad->pci_name,
 		sizeof(driver_info.os_device_name - 1));
 
-	/*
-	 * FCS INIT
-	 */
+	
 	spin_lock_irqsave(&bfad->bfad_lock, flags);
 	bfa_fcs_log_init(&bfad->bfa_fcs, bfad->logmod);
 	bfa_fcs_trc_init(&bfad->bfa_fcs, bfad->trcmod);
@@ -810,9 +764,7 @@ bfad_cfg_pport(struct bfad_s *bfad, enum bfa_port_role role)
 {
 	int             rc = BFA_STATUS_OK;
 
-	/*
-	 * Allocate scsi_host for the physical port
-	 */
+	
 	if ((bfad_supported_fc4s & BFA_PORT_ROLE_FCP_IM)
 	    && (role & BFA_PORT_ROLE_FCP_IM)) {
 		if (bfad->pport.im_port == NULL) {
@@ -859,13 +811,9 @@ bfad_drv_log_level_set(struct bfad_s *bfad)
 		bfa_log_set_level_all(&bfad->log_data, log_level);
 }
 
- /*
-  *  PCI_entry PCI driver entries * {
-  */
+ 
 
-/**
- * PCI probe entry.
- */
+
 int
 bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 {
@@ -873,9 +821,7 @@ bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 	int             error = -ENODEV, retval;
 	char            buf[16];
 
-	/*
-	 * For single port cards - only claim function 0
-	 */
+	
 	if ((pdev->device == BFA_PCI_DEVICE_ID_FC_8G1P)
 	    && (PCI_FUNC(pdev->devfn) != 0))
 		return -ENODEV;
@@ -895,9 +841,7 @@ bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 		goto out_alloc_trace_failure;
 	}
 
-	/*
-	 * LOG/TRACE INIT
-	 */
+	
 	bfa_trc_init(bfad->trcmod);
 	bfa_trc(bfad, bfad_inst);
 
@@ -941,18 +885,14 @@ bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 		goto ok;
 	}
 
-	/*
-	 * PPORT FCS config
-	 */
+	
 	bfad_fcs_port_cfg(bfad);
 
 	retval = bfad_cfg_pport(bfad, BFA_PORT_ROLE_FCP_IM);
 	if (retval != BFA_STATUS_OK)
 		goto out_cfg_pport_failure;
 
-	/*
-	 * BFAD level FC4 (IM/TM/IPFC) specific resource allocation
-	 */
+	
 	retval = bfad_fc4_probe(bfad);
 	if (retval != BFA_STATUS_OK) {
 		printk(KERN_WARNING "bfad_fc4_probe failed\n");
@@ -961,11 +901,7 @@ bfad_pci_probe(struct pci_dev *pdev, const struct pci_device_id *pid)
 
 	bfad_drv_start(bfad);
 
-	/*
-	 * If bfa_linkup_delay is set to -1 default; try to retrive the
-	 * value using the bfad_os_get_linkup_delay(); else use the
-	 * passed in module param value as the bfa_linkup_delay.
-	 */
+	
 	if (bfa_linkup_delay < 0) {
 		bfa_linkup_delay = bfad_os_get_linkup_delay(bfad);
 		bfad_os_rport_online_wait(bfad);
@@ -997,9 +933,7 @@ out:
 	return error;
 }
 
-/**
- * PCI remove entry.
- */
+
 void
 bfad_pci_remove(struct pci_dev *pdev)
 {
@@ -1087,9 +1021,7 @@ static struct pci_driver bfad_pci_driver = {
 	.remove = __devexit_p(bfad_pci_remove),
 };
 
-/**
- *  Linux driver module functions
- */
+
 bfa_status_t
 bfad_fc4_module_init(void)
 {
@@ -1115,9 +1047,7 @@ bfad_fc4_module_exit(void)
 	bfad_im_module_exit();
 }
 
-/**
- * Driver module init.
- */
+
 static int      __init
 bfad_init(void)
 {
@@ -1159,9 +1089,7 @@ ext:
 	return error;
 }
 
-/**
- * Driver module exit.
- */
+
 static void     __exit
 bfad_exit(void)
 {

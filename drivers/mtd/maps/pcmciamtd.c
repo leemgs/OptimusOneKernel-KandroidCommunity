@@ -1,13 +1,4 @@
-/*
- * pcmciamtd.c - MTD driver for PCMCIA flash memory cards
- *
- * Author: Simon Evans <spse@secret.org.uk>
- *
- * Copyright (C) 2002 Simon Evans
- *
- * Licence: GPL
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -47,15 +38,15 @@ static const int debug = 0;
 
 #define DRIVER_DESC	"PCMCIA Flash memory card driver"
 
-/* Size of the PCMCIA address space: 26 bits = 64 MB */
+
 #define MAX_PCMCIA_ADDR	0x4000000
 
 struct pcmciamtd_dev {
 	struct pcmcia_device	*p_dev;
-	dev_node_t	node;		/* device node */
-	caddr_t		win_base;	/* ioremapped address of PCMCIA window */
-	unsigned int	win_size;	/* size of window */
-	unsigned int	offset;		/* offset into card the window currently points at */
+	dev_node_t	node;		
+	caddr_t		win_base;	
+	unsigned int	win_size;	
+	unsigned int	offset;		
 	struct map_info	pcmcia_map;
 	struct mtd_info	*mtd_info;
 	int		vpp;
@@ -63,24 +54,24 @@ struct pcmciamtd_dev {
 };
 
 
-/* Module parameters */
 
-/* 2 = do 16-bit transfers, 1 = do 8-bit transfers */
+
+
 static int bankwidth = 2;
 
-/* Speed of memory accesses, in ns */
+
 static int mem_speed;
 
-/* Force the size of an SRAM card */
+
 static int force_size;
 
-/* Force Vpp */
+
 static int vpp;
 
-/* Set Vpp */
+
 static int setvpp;
 
-/* Force card to be treated as FLASH, ROM or RAM */
+
 static int mem_type;
 
 MODULE_LICENSE("GPL");
@@ -100,7 +91,7 @@ module_param(mem_type, int, 0);
 MODULE_PARM_DESC(mem_type, "Set Memory type (0=Flash, 1=RAM, 2=ROM, default=0)");
 
 
-/* read/write{8,16} copy_{from,to} routines with window remapping to access whole card */
+
 static caddr_t remap_window(struct map_info *map, unsigned long to)
 {
 	struct pcmciamtd_dev *dev = (struct pcmciamtd_dev *)map->map_priv_1;
@@ -234,7 +225,7 @@ static void pcmcia_copy_to_remap(struct map_info *map, unsigned long to, const v
 }
 
 
-/* read/write{8,16} copy_{from,to} routines with direct access */
+
 
 #define DEV_REMOVED(x)  (!(pcmcia_dev_present(((struct pcmciamtd_dev *)map->map_priv_1)->p_dev)))
 
@@ -332,10 +323,7 @@ static void pcmciamtd_set_vpp(struct map_info *map, int on)
 }
 
 
-/* After a card is removed, pcmciamtd_release() will unregister the
- * device, and release the PCMCIA configuration.  If the device is
- * still open, this will be postponed until it is closed.
- */
+
 
 static void pcmciamtd_release(struct pcmcia_device *link)
 {
@@ -383,7 +371,7 @@ static void card_settings(struct pcmciamtd_dev *dev, struct pcmcia_device *link,
 		switch(tuple.TupleCode) {
 		case  CISTPL_FORMAT: {
 			cistpl_format_t *t = &parse.format;
-			(void)t; /* Shut up, gcc */
+			(void)t; 
 			DEBUG(2, "Format type: %u, Error Detection: %u, offset = %u, length =%u",
 			      t->type, t->edc, t->offset, t->length);
 			break;
@@ -476,10 +464,7 @@ static void card_settings(struct pcmciamtd_dev *dev, struct pcmcia_device *link,
 }
 
 
-/* pcmciamtd_config() is scheduled to run after a CARD_INSERTION event
- * is received, to configure the PCMCIA socket, and to make the
- * MTD device available to the system.
- */
+
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -513,9 +498,7 @@ static int pcmciamtd_config(struct pcmcia_device *link)
 	if(setvpp == 1)
 		dev->pcmcia_map.set_vpp = pcmciamtd_set_vpp;
 
-	/* Request a memory window for PCMCIA. Some architeures can map windows upto the maximum
-	   that PCMCIA can support (64MiB) - this is ideal and we aim for a window the size of the
-	   whole card - otherwise we try smaller windows until we succeed */
+	
 
 	req.Attributes =  WIN_MEMORY_TYPE_CM | WIN_ENABLE;
 	req.Attributes |= (dev->pcmcia_map.bankwidth == 1) ? WIN_DATA_WIDTH_8 : WIN_DATA_WIDTH_16;
@@ -549,7 +532,7 @@ static int pcmciamtd_config(struct pcmcia_device *link)
 	}
 	DEBUG(1, "Allocated a window of %dKiB", dev->win_size >> 10);
 
-	/* Get write protect status */
+	
 	DEBUG(2, "window handle = 0x%8.8lx", (unsigned long)link->win);
 	dev->win_base = ioremap(req.Base, req.Size);
 	if(!dev->win_base) {
@@ -612,9 +595,8 @@ static int pcmciamtd_config(struct pcmcia_device *link)
 	if(new_name) {
 		int size = 0;
 		char unit = ' ';
-		/* Since we are using a default name, make it better by adding in the
-		   size */
-		if(mtd->size < 1048576) { /* <1MiB in size, show size in KiB */
+		
+		if(mtd->size < 1048576) { 
 			size = mtd->size >> 10;
 			unit = 'K';
 		} else {
@@ -624,8 +606,7 @@ static int pcmciamtd_config(struct pcmcia_device *link)
 		snprintf(dev->mtd_name, sizeof(dev->mtd_name), "%d%ciB %s", size, unit, "PCMCIA Memory card");
 	}
 
-	/* If the memory found is fits completely into the mapped PCMCIA window,
-	   use the faster non-remapping read/write functions */
+	
 	if(mtd->size <= dev->win_size) {
 		DEBUG(1, "Using non remapping memory functions");
 		dev->pcmcia_map.map_priv_2 = (unsigned long)dev->win_base;
@@ -664,7 +645,7 @@ static int pcmciamtd_suspend(struct pcmcia_device *dev)
 {
 	DEBUG(2, "EVENT_PM_RESUME");
 
-	/* get_lock(link); */
+	
 
 	return 0;
 }
@@ -673,17 +654,13 @@ static int pcmciamtd_resume(struct pcmcia_device *dev)
 {
 	DEBUG(2, "EVENT_PM_SUSPEND");
 
-	/* free_lock(link); */
+	
 
 	return 0;
 }
 
 
-/* This deletes a driver "instance".  The device is de-registered
- * with Card Services.  If it has been released, all local data
- * structures are freed.  Otherwise, the structures will be freed
- * when the device is released.
- */
+
 
 static void pcmciamtd_detach(struct pcmcia_device *link)
 {
@@ -701,16 +678,13 @@ static void pcmciamtd_detach(struct pcmcia_device *link)
 }
 
 
-/* pcmciamtd_attach() creates an "instance" of the driver, allocating
- * local data structures for one device.  The device is registered
- * with Card Services.
- */
+
 
 static int pcmciamtd_probe(struct pcmcia_device *link)
 {
 	struct pcmciamtd_dev *dev;
 
-	/* Create new memory card device */
+	
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 	if (!dev) return -ENOMEM;
 	DEBUG(1, "dev=0x%p", dev);
@@ -742,8 +716,8 @@ static struct pcmcia_device_id pcmciamtd_ids[] = {
 	PCMCIA_DEVICE_PROD_ID12("SEIKO EPSON", "WWB513EN20", 0xf9876baf, 0xe8d884ad),
 	PCMCIA_DEVICE_PROD_ID12("Starfish, Inc.", "REX-3000", 0x05ddca47, 0xe7d67bca),
 	PCMCIA_DEVICE_PROD_ID12("Starfish, Inc.", "REX-4100", 0x05ddca47, 0x7bc32944),
-	/* the following was commented out in pcmcia-cs-3.2.7 */
-	/* PCMCIA_DEVICE_PROD_ID12("RATOC Systems,Inc.", "SmartMedia ADAPTER PC Card", 0xf4a2fefe, 0x5885b2ae), */
+	
+	
 #ifdef CONFIG_MTD_PCMCIA_ANONYMOUS
 	{ .match_flags = PCMCIA_DEV_ID_MATCH_ANONYMOUS, },
 #endif

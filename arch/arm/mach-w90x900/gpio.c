@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-w90x900/gpio.c
- *
- * Generic nuc900 GPIO handling
- *
- *  Wan ZongShun <mcuos.com@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/clk.h>
 #include <linux/errno.h>
@@ -47,7 +37,7 @@
 
 struct nuc900_gpio_chip {
 	struct gpio_chip	chip;
-	void __iomem		*regbase;	/* Base of group register*/
+	void __iomem		*regbase;	
 	spinlock_t 		gpio_lock;
 };
 

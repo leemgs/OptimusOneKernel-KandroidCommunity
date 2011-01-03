@@ -1,12 +1,4 @@
-/*
- *  linux/arch/arm/mach-shark/dma.c
- *
- *  by Alexander Schulz
- *
- *  derived from:
- *  arch/arm/kernel/dma-ebsa285.c
- *  Copyright (C) 1998 Phil Blundell
- */
+
 
 #include <linux/init.h>
 

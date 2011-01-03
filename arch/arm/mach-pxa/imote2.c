@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/imote2.c
- *
- * Author:	Ed C. Epp
- * Created:	Nov 05, 2002
- * Copyright:	Intel Corp.
- *
- * Modified 2008:  Jonathan Cameron
- *
- * The Imote2 is a wireless sensor node platform sold
- * by Crossbow (www.xbow.com).
- */
+
 
 #include <linux/init.h>
 #include <linux/device.h>
@@ -41,16 +30,16 @@
 
 static unsigned long imote2_pin_config[] __initdata = {
 
-	/* Device Identification for wakeup*/
+	
 	GPIO102_GPIO,
 
-	/* Button */
+	
 	GPIO91_GPIO,
 
-	/* DA9030 */
+	
 	GPIO1_GPIO,
 
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO112_MMC_CMD,
 	GPIO92_MMC_DAT_0,
@@ -58,63 +47,63 @@ static unsigned long imote2_pin_config[] __initdata = {
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
 
-	/* 802.15.4 radio - driver out of mainline */
-	GPIO22_GPIO,			/* CC_RSTN */
-	GPIO114_GPIO,			/* CC_FIFO */
-	GPIO116_GPIO,			/* CC_CCA */
-	GPIO0_GPIO,			/* CC_FIFOP */
-	GPIO16_GPIO,			/* CCSFD */
-	GPIO39_GPIO,			/* CSn */
-	GPIO115_GPIO,			/* Power enable */
+	
+	GPIO22_GPIO,			
+	GPIO114_GPIO,			
+	GPIO116_GPIO,			
+	GPIO0_GPIO,			
+	GPIO16_GPIO,			
+	GPIO39_GPIO,			
+	GPIO115_GPIO,			
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 
-	/* SSP 3 - 802.15.4 radio */
-	GPIO39_GPIO, 			/* Chip Select */
+	
+	GPIO39_GPIO, 			
 	GPIO34_SSP3_SCLK,
 	GPIO35_SSP3_TXD,
 	GPIO41_SSP3_RXD,
 
-	/* SSP 2 - to daughter boards */
-	GPIO37_GPIO,			/* Chip Select */
+	
+	GPIO37_GPIO,			
 	GPIO36_SSP2_SCLK,
 	GPIO38_SSP2_TXD,
 	GPIO11_SSP2_RXD,
 
-	/* SSP 1 - to daughter boards */
-	GPIO24_GPIO,			/* Chip Select */
+	
+	GPIO24_GPIO,			
 	GPIO23_SSP1_SCLK,
 	GPIO25_SSP1_TXD,
 	GPIO26_SSP1_RXD,
 
-	/* BTUART Basic Connector*/
+	
 	GPIO42_BTUART_RXD,
 	GPIO43_BTUART_TXD,
 	GPIO44_BTUART_CTS,
 	GPIO45_BTUART_RTS,
 
-	/* STUART Serial console via debug board*/
+	
 	GPIO46_STUART_RXD,
 	GPIO47_STUART_TXD,
 
-	/* Basic sensor board */
-	GPIO96_GPIO,	/* accelerometer interrupt */
-	GPIO99_GPIO,	/* ADC interrupt */
+	
+	GPIO96_GPIO,	
+	GPIO99_GPIO,	
 
-	/* SHT15 */
+	
 	GPIO100_GPIO,
 	GPIO98_GPIO,
 
-	/* Connector pins specified as gpios */
-	GPIO94_GPIO, /* large basic connector pin 14 */
-	GPIO10_GPIO, /* large basic connector pin 23 */
+	
+	GPIO94_GPIO, 
+	GPIO10_GPIO, 
 
-	/* LEDS */
-	GPIO103_GPIO, /* red led */
-	GPIO104_GPIO, /* green led */
-	GPIO105_GPIO, /* blue led */
+	
+	GPIO103_GPIO, 
+	GPIO104_GPIO, 
+	GPIO105_GPIO, 
 };
 
 static struct sht15_platform_data platform_data_sht15 = {
@@ -166,117 +155,109 @@ static struct platform_device imote2_leds = {
 	},
 };
 
-/* Reverse engineered partly from Platformx drivers */
+
 enum imote2_ldos{
 	vcc_vref,
 	vcc_cc2420,
 	vcc_mica,
 	vcc_bt,
-	/* The two voltages available to sensor boards */
+	
 	vcc_sensor_1_8,
 	vcc_sensor_3,
 
-	vcc_sram_ext, /* directly connected to the pxa271 */
+	vcc_sram_ext, 
 	vcc_pxa_pll,
-	vcc_pxa_usim, /* Reference voltage for certain gpios */
+	vcc_pxa_usim, 
 	vcc_pxa_mem,
 	vcc_pxa_flash,
-	vcc_pxa_core, /*Dc-Dc buck not yet supported */
+	vcc_pxa_core, 
 	vcc_lcd,
 	vcc_bb,
 	vcc_bbio,
-	vcc_io, /* cc2420 802.15.4 radio and pxa vcc_io ?*/
+	vcc_io, 
 };
 
-/* The values of the various regulator constraints are obviously dependent
- * on exactly what is wired to each ldo.  Unfortunately this information is
- * not generally available.  More information has been requested from Xbow
- * but as of yet they haven't been forthcoming.
- *
- * Some of these are clearly Stargate 2 related (no way of plugging
- * in an lcd on the IM2 for example!).
- */
+
 static struct regulator_init_data imote2_ldo_init_data[] = {
 	[vcc_bbio] = {
-		.constraints = { /* board default 1.8V */
+		.constraints = { 
 			.name = "vcc_bbio",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
 	[vcc_bb] = {
-		.constraints = { /* board default 2.8V */
+		.constraints = { 
 			.name = "vcc_bb",
 			.min_uV = 2700000,
 			.max_uV = 3000000,
 		},
 	},
 	[vcc_pxa_flash] = {
-		.constraints = {/* default is 1.8V */
+		.constraints = {
 			.name = "vcc_pxa_flash",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
-	[vcc_cc2420] = { /* also vcc_io */
+	[vcc_cc2420] = { 
 		.constraints = {
-			/* board default is 2.8V */
+			
 			.name = "vcc_cc2420",
 			.min_uV = 2700000,
 			.max_uV = 3300000,
 		},
 	},
-	[vcc_vref] = { /* Reference for what? */
-		.constraints = { /* default 1.8V */
+	[vcc_vref] = { 
+		.constraints = { 
 			.name = "vcc_vref",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
 	[vcc_sram_ext] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_sram_ext",
 			.min_uV = 2800000,
 			.max_uV = 2800000,
 		},
 	},
 	[vcc_mica] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_mica",
 			.min_uV = 2800000,
 			.max_uV = 2800000,
 		},
 	},
 	[vcc_bt] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_bt",
 			.min_uV = 2800000,
 			.max_uV = 2800000,
 		},
 	},
 	[vcc_lcd] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_lcd",
 			.min_uV = 2700000,
 			.max_uV = 3300000,
 		},
 	},
-	[vcc_io] = { /* Same or higher than everything
-			  * bar vccbat and vccusb */
-		.constraints = { /* default 2.8V */
+	[vcc_io] = { 
+		.constraints = { 
 			.name = "vcc_io",
 			.min_uV = 2692000,
 			.max_uV = 3300000,
 		},
 	},
 	[vcc_sensor_1_8] = {
-		.constraints = { /* default 1.8V */
+		.constraints = { 
 			.name = "vcc_sensor_1_8",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
-	[vcc_sensor_3] = { /* curiously default 2.8V */
+	[vcc_sensor_3] = { 
 		.constraints = {
 			.name = "vcc_sensor_3",
 			.min_uV = 2800000,
@@ -285,7 +266,7 @@ static struct regulator_init_data imote2_ldo_init_data[] = {
 		.num_consumer_supplies = ARRAY_SIZE(imote2_sensor_3_con),
 		.consumer_supplies = imote2_sensor_3_con,
 	},
-	[vcc_pxa_pll] = { /* 1.17V - 1.43V, default 1.3V*/
+	[vcc_pxa_pll] = { 
 		.constraints = {
 			.name = "vcc_pxa_pll",
 			.min_uV = 1170000,
@@ -293,14 +274,14 @@ static struct regulator_init_data imote2_ldo_init_data[] = {
 		},
 	},
 	[vcc_pxa_usim] = {
-		.constraints = { /* default 1.8V */
+		.constraints = { 
 			.name = "vcc_pxa_usim",
 			.min_uV = 1710000,
 			.max_uV = 2160000,
 		},
 	},
 	[vcc_pxa_mem] = {
-		.constraints = { /* default 1.8V */
+		.constraints = { 
 			.name = "vcc_pxa_mem",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
@@ -377,17 +358,15 @@ static struct da903x_platform_data imote2_da9030_pdata = {
 	.subdevs = imote2_da9030_subdevs,
 };
 
-/* As the the imote2 doesn't currently have a conventional SD slot
- * there is no option to hotplug cards, making all this rather simple
- */
+
 static int imote2_mci_get_ro(struct device *dev)
 {
 	return 0;
 }
 
-/* Rather simple case as hotplugging not possible */
+
 static struct pxamci_platform_data imote2_mci_platform_data = {
-	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, /* default anyway */
+	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, 
 	.get_ro = imote2_mci_get_ro,
 	.gpio_card_detect = -1,
 	.gpio_card_ro	= -1,
@@ -437,32 +416,26 @@ static struct platform_device imote2_flash_device = {
 	.num_resources = 1,
 };
 
-/* Some of the drivers here are out of kernel at the moment (parts of IIO)
- * and it may be a while before they are in the mainline.
- */
+
 static struct i2c_board_info __initdata imote2_i2c_board_info[] = {
-	{ /* UCAM sensor board */
+	{ 
 		.type = "max1239",
 		.addr = 0x35,
-	}, { /* ITS400 Sensor board only */
+	}, { 
 		.type = "max1363",
 		.addr = 0x34,
-		/* Through a nand gate - Also beware, on V2 sensor board the
-		 * pull up resistors are missing.
-		 */
+		
 		.irq = IRQ_GPIO(99),
-	}, { /* ITS400 Sensor board only */
+	}, { 
 		.type = "tsl2561",
 		.addr = 0x49,
-		/* Through a nand gate - Also beware, on V2 sensor board the
-		 * pull up resistors are missing.
-		 */
+		
 		.irq = IRQ_GPIO(99),
-	}, { /* ITS400 Sensor board only */
+	}, { 
 		.type = "tmp175",
 		.addr = 0x4A,
 		.irq = IRQ_GPIO(96),
-	}, { /* IMB400 Multimedia board */
+	}, { 
 		.type = "wm8940",
 		.addr = 0x1A,
 	},
@@ -506,14 +479,14 @@ static struct pxa2xx_spi_chip cc2420_info = {
 };
 
 static struct spi_board_info spi_board_info[] __initdata = {
-	{ /* Driver in IIO */
+	{ 
 		.modalias = "lis3l02dq",
-		.max_speed_hz = 8000000,/* 8MHz max spi frequency at 3V */
+		.max_speed_hz = 8000000,
 		.bus_num = 1,
 		.chip_select = 0,
 		.controller_data = &staccel_chip_info,
 		.irq = IRQ_GPIO(96),
-	}, { /* Driver out of kernel as it needs considerable rewriting */
+	}, { 
 		.modalias = "cc2420",
 		.max_speed_hz = 6500000,
 		.bus_num = 3,
@@ -556,8 +529,7 @@ static void __init imote2_init(void)
 {
 
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(imote2_pin_config));
-	/* SPI chip select directions - all other directions should
-	 * be handled by drivers.*/
+	
 	gpio_direction_output(37, 0);
 
 	platform_add_devices(imote2_devices, ARRAY_SIZE(imote2_devices));

@@ -75,7 +75,7 @@ TRACE_EVENT(power_frequency,
 	TP_printk("type=%lu state=%lu", (unsigned long)__entry->type, (unsigned long) __entry->state)
 );
 
-#endif /* _TRACE_POWER_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>

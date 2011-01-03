@@ -1,18 +1,4 @@
-/*
- * arch/arm/mach-ixp23xx/core.c
- *
- * Core routines for IXP23xx chips
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright 2005 (c) MontaVista Software, Inc.
- *
- * Based on 2.4 code Copyright 2004 (c) Intel Corporation
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -44,51 +30,49 @@
 #include <asm/mach/arch.h>
 
 
-/*************************************************************************
- * Chip specific mappings shared by all IXP23xx systems
- *************************************************************************/
+
 static struct map_desc ixp23xx_io_desc[] __initdata = {
-	{ /* XSI-CPP CSRs */
+	{ 
 	 	.virtual	= IXP23XX_XSI2CPP_CSR_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_XSI2CPP_CSR_PHYS),
 	 	.length		= IXP23XX_XSI2CPP_CSR_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* Expansion Bus Config */
+	}, { 
 	 	.virtual	= IXP23XX_EXP_CFG_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_EXP_CFG_PHYS),
 	 	.length		= IXP23XX_EXP_CFG_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* UART, Interrupt ctrl, GPIO, timers, NPEs, MACS,.... */
+	}, { 
 	 	.virtual	= IXP23XX_PERIPHERAL_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_PERIPHERAL_PHYS),
 	 	.length		= IXP23XX_PERIPHERAL_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* CAP CSRs */
+	}, { 
 	 	.virtual	= IXP23XX_CAP_CSR_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_CAP_CSR_PHYS),
 	 	.length		= IXP23XX_CAP_CSR_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* MSF CSRs */
+	}, { 
 	 	.virtual	= IXP23XX_MSF_CSR_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_MSF_CSR_PHYS),
 	 	.length		= IXP23XX_MSF_CSR_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* PCI I/O Space */
+	}, { 
 	 	.virtual	= IXP23XX_PCI_IO_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_PCI_IO_PHYS),
 	 	.length		= IXP23XX_PCI_IO_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* PCI Config Space */
+	}, { 
 	 	.virtual	= IXP23XX_PCI_CFG_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_PCI_CFG_PHYS),
 	 	.length		= IXP23XX_PCI_CFG_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* PCI local CFG CSRs */
+	}, { 
 	 	.virtual	= IXP23XX_PCI_CREG_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_PCI_CREG_PHYS),
 	 	.length		= IXP23XX_PCI_CREG_SIZE,
 		.type		= MT_DEVICE,
-	}, { /* PCI MEM Space */
+	}, { 
 	 	.virtual	= IXP23XX_PCI_MEM_VIRT,
 	 	.pfn		= __phys_to_pfn(IXP23XX_PCI_MEM_PHYS),
 	 	.length		= IXP23XX_PCI_MEM_SIZE,
@@ -102,9 +86,7 @@ void __init ixp23xx_map_io(void)
 }
 
 
-/***************************************************************************
- * IXP23xx Interrupt Handling
- ***************************************************************************/
+
 enum ixp23xx_irq_type {
 	IXP23XX_IRQ_LEVEL, IXP23XX_IRQ_EDGE
 };
@@ -118,9 +100,7 @@ static int ixp23xx_irq_set_type(unsigned int irq, unsigned int type)
 	enum ixp23xx_irq_type irq_type;
 	volatile u32 *int_reg;
 
-	/*
-	 * Only GPIOs 6-15 are wired to interrupts on IXP23xx
-	 */
+	
 	if (line < 6 || line > 15)
 		return -EINVAL;
 
@@ -151,23 +131,21 @@ static int ixp23xx_irq_set_type(unsigned int irq, unsigned int type)
 
 	ixp23xx_config_irq(irq, irq_type);
 
-	if (line >= 8) {	/* pins 8-15 */
+	if (line >= 8) {	
 		line -= 8;
 		int_reg = (volatile u32 *)IXP23XX_GPIO_GPIT2R;
-	} else {		/* pins 0-7 */
+	} else {		
 		int_reg = (volatile u32 *)IXP23XX_GPIO_GPIT1R;
 	}
 
-	/*
-	 * Clear pending interrupts
-	 */
+	
 	*IXP23XX_GPIO_GPISR = (1 << line);
 
-	/* Clear the style for the appropriate pin */
+	
 	*int_reg &= ~(IXP23XX_GPIO_STYLE_MASK <<
 			(line * IXP23XX_GPIO_STYLE_SIZE));
 
-	/* Set the new style */
+	
 	*int_reg |= (int_style << (line * IXP23XX_GPIO_STYLE_SIZE));
 
 	return 0;
@@ -194,10 +172,7 @@ static void ixp23xx_irq_ack(unsigned int irq)
 	*IXP23XX_GPIO_GPISR = (1 << line);
 }
 
-/*
- * Level triggered interrupts on GPIO lines can only be cleared when the
- * interrupt condition disappears.
- */
+
 static void ixp23xx_irq_level_unmask(unsigned int irq)
 {
 	volatile unsigned long *intr_reg;
@@ -246,9 +221,7 @@ static void ixp23xx_pci_irq_unmask(unsigned int irq)
 	*IXP23XX_PCI_XSCALE_INT_ENABLE |= (1 << (IRQ_IXP23XX_INTA + 27 - irq));
 }
 
-/*
- * TODO: Should this just be done at ASM level?
- */
+
 static void pci_handler(unsigned int irq, struct irq_desc *desc)
 {
 	u32 pci_interrupt;
@@ -258,7 +231,7 @@ static void pci_handler(unsigned int irq, struct irq_desc *desc)
 
 	desc->chip->ack(irq);
 
-	/* See which PCI_INTA, or PCI_INTB interrupted */
+	
 	if (pci_interrupt & (1 << 26)) {
 		irqno = IRQ_IXP23XX_INTB;
 	} else if (pci_interrupt & (1 << 27)) {
@@ -297,21 +270,19 @@ void __init ixp23xx_init_irq(void)
 {
 	int irq;
 
-	/* Route everything to IRQ */
+	
 	*IXP23XX_INTR_SEL1 = 0x0;
 	*IXP23XX_INTR_SEL2 = 0x0;
 	*IXP23XX_INTR_SEL3 = 0x0;
 	*IXP23XX_INTR_SEL4 = 0x0;
 
-	/* Mask all sources */
+	
 	*IXP23XX_INTR_EN1 = 0x0;
 	*IXP23XX_INTR_EN2 = 0x0;
 	*IXP23XX_INTR_EN3 = 0x0;
 	*IXP23XX_INTR_EN4 = 0x0;
 
-	/*
-	 * Configure all IRQs for level-sensitive operation
-	 */
+	
 	for (irq = 0; irq <= NUM_IXP23XX_RAW_IRQS; irq++) {
 		ixp23xx_config_irq(irq, IXP23XX_IRQ_LEVEL);
 	}
@@ -326,9 +297,7 @@ void __init ixp23xx_init_irq(void)
 }
 
 
-/*************************************************************************
- * Timer-tick functions for IXP23xx
- *************************************************************************/
+
 #define CLOCK_TICKS_PER_USEC	(CLOCK_TICK_RATE / USEC_PER_SEC)
 
 static unsigned long next_jiffy_time;
@@ -346,7 +315,7 @@ ixp23xx_gettimeoffset(void)
 static irqreturn_t
 ixp23xx_timer_interrupt(int irq, void *dev_id)
 {
-	/* Clear Pending Interrupt by writing '1' to it */
+	
 	*IXP23XX_TIMER_STATUS = IXP23XX_TIMER1_INT_PEND;
 	while ((signed long)(*IXP23XX_TIMER_CONT - next_jiffy_time) >= LATCH) {
 		timer_tick();
@@ -364,17 +333,17 @@ static struct irqaction ixp23xx_timer_irq = {
 
 void __init ixp23xx_init_timer(void)
 {
-	/* Clear Pending Interrupt by writing '1' to it */
+	
 	*IXP23XX_TIMER_STATUS = IXP23XX_TIMER1_INT_PEND;
 
-	/* Setup the Timer counter value */
+	
 	*IXP23XX_TIMER1_RELOAD =
 		(LATCH & ~IXP23XX_TIMER_RELOAD_MASK) | IXP23XX_TIMER_ENABLE;
 
 	*IXP23XX_TIMER_CONT = 0;
 	next_jiffy_time = LATCH;
 
-	/* Connect the interrupt handler and enable the interrupt */
+	
 	setup_irq(IRQ_IXP23XX_TIMER1, &ixp23xx_timer_irq);
 }
 
@@ -384,9 +353,7 @@ struct sys_timer ixp23xx_timer = {
 };
 
 
-/*************************************************************************
- * IXP23xx Platform Initialization
- *************************************************************************/
+
 static struct resource ixp23xx_uart_resources[] = {
 	{
 		.start		= IXP23XX_UART1_PHYS,

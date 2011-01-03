@@ -1,29 +1,4 @@
-/*
- *  Empiatech em28x1 audio extension
- *
- *  Copyright (C) 2006 Markus Rechberger <mrechberger@gmail.com>
- *
- *  Copyright (C) 2007 Mauro Carvalho Chehab <mchehab@infradead.org>
- *	- Port to work with the in-kernel driver
- *	- Several cleanups
- *
- *  This driver is based on my previous au600 usb pstn audio driver
- *  and inherits all the copyrights
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/usb.h>
@@ -90,14 +65,14 @@ static void em28xx_audio_isocirq(struct urb *urb)
 	struct snd_pcm_runtime   *runtime;
 
 	switch (urb->status) {
-	case 0:             /* success */
-	case -ETIMEDOUT:    /* NAK */
+	case 0:             
+	case -ETIMEDOUT:    
 		break;
-	case -ECONNRESET:   /* kill */
+	case -ECONNRESET:   
 	case -ENOENT:
 	case -ESHUTDOWN:
 		return;
-	default:            /* error */
+	default:            
 		dprintk("urb completition error %d.\n", urb->status);
 		break;
 	}
@@ -277,11 +252,11 @@ static struct snd_pcm_hardware snd_em28xx_hw_capture = {
 	.rate_max = 48000,
 	.channels_min = 2,
 	.channels_max = 2,
-	.buffer_bytes_max = 62720 * 8,	/* just about the value in usbaudio.c */
-	.period_bytes_min = 64,		/* 12544/2, */
+	.buffer_bytes_max = 62720 * 8,	
+	.period_bytes_min = 64,		
 	.period_bytes_max = 12544,
 	.periods_min = 2,
-	.periods_max = 98,		/* 12544, */
+	.periods_max = 98,		
 };
 
 static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
@@ -298,7 +273,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
 		return -ENODEV;
 	}
 
-	/* Sets volume, mute, etc */
+	
 
 	dev->mute = 0;
 	mutex_lock(&dev->lock);
@@ -363,9 +338,7 @@ static int snd_em28xx_hw_capture_params(struct snd_pcm_substream *substream,
 	rate = params_rate(hw_params);
 	channels = params_channels(hw_params);
 
-	/* TODO: set up em28xx audio chip to deliver the correct audio format,
-	   current default is 48000hz multiplexed => 96000hz mono
-	   which shouldn't matter since analogue TV only supports mono */
+	
 	return 0;
 }
 
@@ -462,9 +435,7 @@ static int em28xx_audio_init(struct em28xx *dev)
 	int                 err;
 
 	if (dev->has_alsa_audio != 1) {
-		/* This device does not support the extension (in this case
-		   the device is expecting the snd-usb-audio module or
-		   doesn't have analog audio support at all) */
+		
 		return 0;
 	}
 
@@ -512,9 +483,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
 		return 0;
 
 	if (dev->has_alsa_audio != 1) {
-		/* This device does not support the extension (in this case
-		   the device is expecting the snd-usb-audio module or
-		   doesn't have analog audio support at all) */
+		
 		return 0;
 	}
 

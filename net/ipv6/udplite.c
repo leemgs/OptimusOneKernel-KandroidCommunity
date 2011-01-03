@@ -1,16 +1,4 @@
-/*
- *  UDPLITEv6   An implementation of the UDP-Lite protocol over IPv6.
- *              See also net/ipv4/udplite.c
- *
- *  Authors:    Gerrit Renker       <gerrit@erg.abdn.ac.uk>
- *
- *  Changes:
- *  Fixes:
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #include "udp_impl.h"
 
 static int udplitev6_rcv(struct sk_buff *skb)

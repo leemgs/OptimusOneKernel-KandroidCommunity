@@ -1,19 +1,7 @@
-/* DVB USB library compliant Linux driver for the WideView/ Yakumo/ Hama/
- * Typhoon/ Yuan/ Miglia DVB-T USB2.0 receiver.
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- * Thanks to Steve Chang from WideView for providing support for the WT-220U.
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "dtt200u.h"
 
-/* debug */
+
 int dvb_usb_dtt200u_debug;
 module_param_named(debug,dvb_usb_dtt200u_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2 (or-able))." DVB_USB_DEBUG_STATUS);
@@ -55,8 +43,8 @@ static int dtt200u_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, 
 	return dvb_usb_generic_write(adap->dev, b_pid, 4);
 }
 
-/* remote control */
-/* key list for the tiny remote control (Yakumo, don't know about the others) */
+
+
 static struct dvb_usb_rc_key dtt200u_rc_keys[] = {
 	{ 0x8001, KEY_MUTE },
 	{ 0x8002, KEY_CHANNELDOWN },
@@ -146,7 +134,7 @@ static struct dvb_usb_device_properties dtt200u_properties = {
 	.streaming_ctrl  = dtt200u_streaming_ctrl,
 	.pid_filter      = dtt200u_pid_filter,
 	.frontend_attach = dtt200u_frontend_attach,
-	/* parameter for the MPEG2-data transfer */
+	
 			.stream = {
 				.type = USB_BULK,
 		.count = 7,
@@ -191,7 +179,7 @@ static struct dvb_usb_device_properties wt220u_properties = {
 	.streaming_ctrl  = dtt200u_streaming_ctrl,
 	.pid_filter      = dtt200u_pid_filter,
 	.frontend_attach = dtt200u_frontend_attach,
-	/* parameter for the MPEG2-data transfer */
+	
 			.stream = {
 				.type = USB_BULK,
 		.count = 7,
@@ -236,7 +224,7 @@ static struct dvb_usb_device_properties wt220u_fc_properties = {
 	.streaming_ctrl  = dtt200u_streaming_ctrl,
 	.pid_filter      = dtt200u_pid_filter,
 	.frontend_attach = dtt200u_frontend_attach,
-	/* parameter for the MPEG2-data transfer */
+	
 			.stream = {
 				.type = USB_BULK,
 		.count = 7,
@@ -281,7 +269,7 @@ static struct dvb_usb_device_properties wt220u_zl0353_properties = {
 			.streaming_ctrl  = dtt200u_streaming_ctrl,
 			.pid_filter      = dtt200u_pid_filter,
 			.frontend_attach = dtt200u_frontend_attach,
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 7,
@@ -324,15 +312,14 @@ static struct dvb_usb_device_properties wt220u_miglia_properties = {
 	.devices = {
 		{ .name = "WideView WT-220U PenType Receiver (Miglia)",
 		  .cold_ids = { &dtt200u_usb_table[9], NULL },
-		  /* This device turns into WT220U_ZL0353_WARM when fw
-		     has been uploaded */
+		  
 		  .warm_ids = { NULL },
 		},
 		{ NULL },
 	}
 };
 
-/* usb specific object needed to register this driver with the usb subsystem */
+
 static struct usb_driver dtt200u_usb_driver = {
 	.name		= "dvb_usb_dtt200u",
 	.probe		= dtt200u_usb_probe,
@@ -340,7 +327,7 @@ static struct usb_driver dtt200u_usb_driver = {
 	.id_table	= dtt200u_usb_table,
 };
 
-/* module stuff */
+
 static int __init dtt200u_usb_module_init(void)
 {
 	int result;
@@ -354,7 +341,7 @@ static int __init dtt200u_usb_module_init(void)
 
 static void __exit dtt200u_usb_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&dtt200u_usb_driver);
 }
 

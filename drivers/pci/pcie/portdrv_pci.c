@@ -1,10 +1,4 @@
-/*
- * File:	portdrv_pci.c
- * Purpose:	PCI Express Port Bus Driver
- *
- * Copyright (C) 2004 Intel
- * Copyright (C) Tom Long Nguyen (tom.l.nguyen@intel.com)
- */
+
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -19,9 +13,7 @@
 #include "portdrv.h"
 #include "aer/aerdrv.h"
 
-/*
- * Version Information
- */
+
 #define DRIVER_VERSION "v1.0"
 #define DRIVER_AUTHOR "tom.l.nguyen@intel.com"
 #define DRIVER_DESC "PCIE Port Bus Driver"
@@ -29,7 +21,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-/* global data */
+
 
 static int pcie_portdrv_restore_config(struct pci_dev *dev)
 {
@@ -54,19 +46,12 @@ static struct dev_pm_ops pcie_portdrv_pm_ops = {
 
 #define PCIE_PORTDRV_PM_OPS	(&pcie_portdrv_pm_ops)
 
-#else /* !PM */
+#else 
 
 #define PCIE_PORTDRV_PM_OPS	NULL
-#endif /* !PM */
+#endif 
 
-/*
- * pcie_portdrv_probe - Probe PCI-Express port devices
- * @dev: PCI-Express port device being probed
- *
- * If detected invokes the pcie_port_device_register() method for 
- * this port device.
- *
- */
+
 static int __devinit pcie_portdrv_probe (struct pci_dev *dev, 
 				const struct pci_device_id *id )
 {
@@ -113,7 +98,7 @@ static int error_detected_iter(struct device *device, void *data)
 
 		pcie_device = to_pcie_device(device);
 
-		/* Forward error detected message to service drivers */
+		
 		status = driver->err_handler->error_detected(
 			pcie_device->port,
 			result_data->state);
@@ -131,7 +116,7 @@ static pci_ers_result_t pcie_portdrv_error_detected(struct pci_dev *dev,
 			{error, PCI_ERS_RESULT_CAN_RECOVER};
 	int retval;
 
-	/* can not fail */
+	
 	retval = device_for_each_child(&dev->dev, &result_data, error_detected_iter);
 
 	return result_data.result;
@@ -152,7 +137,7 @@ static int mmio_enabled_iter(struct device *device, void *data)
 			driver->err_handler->mmio_enabled) {
 			pcie_device = to_pcie_device(device);
 
-			/* Forward error message to service drivers */
+			
 			status = driver->err_handler->mmio_enabled(
 					pcie_device->port);
 			*result = merge_result(*result, status);
@@ -167,7 +152,7 @@ static pci_ers_result_t pcie_portdrv_mmio_enabled(struct pci_dev *dev)
 	pci_ers_result_t status = PCI_ERS_RESULT_RECOVERED;
 	int retval;
 
-	/* get true return value from &status */
+	
 	retval = device_for_each_child(&dev->dev, &status, mmio_enabled_iter);
 	return status;
 }
@@ -187,7 +172,7 @@ static int slot_reset_iter(struct device *device, void *data)
 			driver->err_handler->slot_reset) {
 			pcie_device = to_pcie_device(device);
 
-			/* Forward error message to service drivers */
+			
 			status = driver->err_handler->slot_reset(
 					pcie_device->port);
 			*result = merge_result(*result, status);
@@ -202,7 +187,7 @@ static pci_ers_result_t pcie_portdrv_slot_reset(struct pci_dev *dev)
 	pci_ers_result_t status = PCI_ERS_RESULT_RECOVERED;
 	int retval;
 
-	/* If fatal, restore cfg space for possible link reset at upstream */
+	
 	if (dev->error_state == pci_channel_io_frozen) {
 		dev->state_saved = true;
 		pci_restore_state(dev);
@@ -210,7 +195,7 @@ static pci_ers_result_t pcie_portdrv_slot_reset(struct pci_dev *dev)
 		pci_enable_pcie_error_reporting(dev);
 	}
 
-	/* get true return value from &status */
+	
 	retval = device_for_each_child(&dev->dev, &status, slot_reset_iter);
 
 	return status;
@@ -228,7 +213,7 @@ static int resume_iter(struct device *device, void *data)
 			driver->err_handler->resume) {
 			pcie_device = to_pcie_device(device);
 
-			/* Forward error message to service drivers */
+			
 			driver->err_handler->resume(pcie_device->port);
 		}
 	}
@@ -239,17 +224,15 @@ static int resume_iter(struct device *device, void *data)
 static void pcie_portdrv_err_resume(struct pci_dev *dev)
 {
 	int retval;
-	/* nothing to do with error value, if it ever happens */
+	
 	retval = device_for_each_child(&dev->dev, NULL, resume_iter);
 }
 
-/*
- * LINUX Device Driver Model
- */
+
 static const struct pci_device_id port_pci_ids[] = { {
-	/* handle any PCI-Express port */
+	
 	PCI_DEVICE_CLASS(((PCI_CLASS_BRIDGE_PCI << 8) | 0x00), ~0),
-	}, { /* end: all zeroes */ }
+	}, {  }
 };
 MODULE_DEVICE_TABLE(pci, port_pci_ids);
 

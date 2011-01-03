@@ -1,17 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/mp900.c
- *
- *  Support for the NEC MobilePro900/C platform
- *
- *  Based on mach-pxa/gumstix.c
- *
- *  2007, 2008 Kristoffer Ericson <kristoffer.ericson@gmail.com>
- *  2007, 2008 Michael Petchkovsky <mkpetch@internode.on.net>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/device.h>
@@ -28,11 +15,11 @@
 static void isp116x_pfm_delay(struct device *dev, int delay)
 {
 
-	/* 400Mhz PXA2 = 2.5ns / instruction */
+	
 
 	int cyc = delay / 10;
 
-	/* 4 Instructions = 4 x 2.5ns = 10ns */
+	
 	__asm__ volatile ("0:\n"
 		"subs %0, %1, #1\n"
 		"bge 0b\n"
@@ -87,7 +74,7 @@ static void __init mp900c_init(void)
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 }
 
-/* Maintainer - Michael Petchkovsky <mkpetch@internode.on.net> */
+
 MACHINE_START(NEC_MP900, "MobilePro900/C")
 	.phys_io	= 0x40000000,
 	.boot_params	= 0xa0220100,

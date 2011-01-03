@@ -1,14 +1,4 @@
-/*
- * linux/sound/soc.h -- ALSA SoC Layer
- *
- * Author:		Liam Girdwood
- * Created:		Aug 11th 2005
- * Copyright:	Wolfson Microelectronics. PLC.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __LINUX_SND_SOC_H
 #define __LINUX_SND_SOC_H
@@ -23,9 +13,7 @@
 #include <sound/control.h>
 #include <sound/ac97_codec.h>
 
-/*
- * Convenience kcontrol builders
- */
+
 #define SOC_SINGLE_VALUE(xreg, xshift, xmax, xinvert) \
 	((unsigned long)&(struct soc_mixer_control) \
 	{.reg = xreg, .shift = xshift, .rshift = xshift, .max = xmax, \
@@ -168,17 +156,7 @@
 	.get = xhandler_get, .put = xhandler_put, \
 	.private_value = (unsigned long)&xenum }
 
-/*
- * Bias levels
- *
- * @ON:      Bias is fully on for audio playback and capture operations.
- * @PREPARE: Prepare for audio operations. Called before DAPM switching for
- *           stream start and stop operations.
- * @STANDBY: Low power standby state when no playback/capture operations are
- *           in progress. NOTE: The transition time between STANDBY and ON
- *           should be as fast as possible and no longer than 10ms.
- * @OFF:     Power Off. No restrictions on transition times.
- */
+
 enum snd_soc_bias_level {
 	SND_SOC_BIAS_ON,
 	SND_SOC_BIAS_PREPARE,
@@ -228,16 +206,16 @@ int snd_soc_suspend_device(struct device *dev);
 int snd_soc_resume_device(struct device *dev);
 #endif
 
-/* pcm <-> DAI connect */
+
 void snd_soc_free_pcms(struct snd_soc_device *socdev);
 int snd_soc_new_pcms(struct snd_soc_device *socdev, int idx, const char *xid);
 int snd_soc_init_card(struct snd_soc_device *socdev);
 
-/* set runtime hw params */
+
 int snd_soc_set_runtime_hwparams(struct snd_pcm_substream *substream,
 	const struct snd_pcm_hardware *hw);
 
-/* Jack reporting */
+
 int snd_soc_jack_new(struct snd_soc_card *card, const char *id, int type,
 		     struct snd_soc_jack *jack);
 void snd_soc_jack_report(struct snd_soc_jack *jack, int status, int mask);
@@ -250,7 +228,7 @@ void snd_soc_jack_free_gpios(struct snd_soc_jack *jack, int count,
 			struct snd_soc_jack_gpio *gpios);
 #endif
 
-/* codec register bit access */
+
 int snd_soc_update_bits(struct snd_soc_codec *codec, unsigned short reg,
 				unsigned int mask, unsigned int value);
 int snd_soc_test_bits(struct snd_soc_codec *codec, unsigned short reg,
@@ -260,9 +238,7 @@ int snd_soc_new_ac97_codec(struct snd_soc_codec *codec,
 	struct snd_ac97_bus_ops *ops, int num);
 void snd_soc_free_ac97_codec(struct snd_soc_codec *codec);
 
-/*
- *Controls
- */
+
 struct snd_kcontrol *snd_soc_cnew(const struct snd_kcontrol_new *_template,
 	void *data, char *long_name);
 int snd_soc_add_controls(struct snd_soc_codec *codec,
@@ -301,13 +277,7 @@ int snd_soc_get_volsw_s8(struct snd_kcontrol *kcontrol,
 int snd_soc_put_volsw_s8(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
 
-/**
- * struct snd_soc_jack_pin - Describes a pin to update based on jack detection
- *
- * @pin:    name of the pin to update
- * @mask:   bits to check for in reported jack status
- * @invert: if non-zero then pin is enabled when status is not reported
- */
+
 struct snd_soc_jack_pin {
 	struct list_head list;
 	const char *pin;
@@ -315,15 +285,7 @@ struct snd_soc_jack_pin {
 	bool invert;
 };
 
-/**
- * struct snd_soc_jack_gpio - Describes a gpio pin for jack detection
- *
- * @gpio:         gpio number
- * @name:         gpio name
- * @report:       value to report when jack detected
- * @invert:       report presence in low state
- * @debouce_time: debouce time in ms
- */
+
 #ifdef CONFIG_GPIOLIB
 struct snd_soc_jack_gpio {
 	unsigned int gpio;
@@ -343,19 +305,19 @@ struct snd_soc_jack {
 	int status;
 };
 
-/* SoC PCM stream information */
+
 struct snd_soc_pcm_stream {
 	char *stream_name;
-	u64 formats;			/* SNDRV_PCM_FMTBIT_* */
-	unsigned int rates;		/* SNDRV_PCM_RATE_* */
-	unsigned int rate_min;		/* min rate */
-	unsigned int rate_max;		/* max rate */
-	unsigned int channels_min;	/* min channels */
-	unsigned int channels_max;	/* max channels */
-	unsigned int active:1;		/* stream is in use */
+	u64 formats;			
+	unsigned int rates;		
+	unsigned int rate_min;		
+	unsigned int rate_max;		
+	unsigned int channels_min;	
+	unsigned int channels_max;	
+	unsigned int active:1;		
 };
 
-/* SoC audio ops */
+
 struct snd_soc_ops {
 	int (*startup)(struct snd_pcm_substream *);
 	void (*shutdown)(struct snd_pcm_substream *);
@@ -365,7 +327,7 @@ struct snd_soc_ops {
 	int (*trigger)(struct snd_pcm_substream *, int);
 };
 
-/* SoC Audio Codec */
+
 struct snd_soc_codec {
 	char *name;
 	struct module *owner;
@@ -375,19 +337,19 @@ struct snd_soc_codec {
 
 	struct list_head list;
 
-	/* callbacks */
+	
 	int (*set_bias_level)(struct snd_soc_codec *,
 			      enum snd_soc_bias_level level);
 
-	/* runtime */
+	
 	struct snd_card *card;
-	struct snd_ac97 *ac97;  /* for ad-hoc ac97 devices */
+	struct snd_ac97 *ac97;  
 	unsigned int active;
 	unsigned int pcm_devs;
 	void *private_data;
 
-	/* codec IO */
-	void *control_data; /* codec control (i2c/3wire) data */
+	
+	void *control_data; 
 	unsigned int (*read)(struct snd_soc_codec *, unsigned int);
 	int (*write)(struct snd_soc_codec *, unsigned int, unsigned int);
 	int (*display_register)(struct snd_soc_codec *, char *,
@@ -400,7 +362,7 @@ struct snd_soc_codec {
 	short reg_cache_size;
 	short reg_cache_step;
 
-	/* dapm */
+	
 	u32 pop_time;
 	struct list_head dapm_widgets;
 	struct list_head dapm_paths;
@@ -408,7 +370,7 @@ struct snd_soc_codec {
 	enum snd_soc_bias_level suspend_bias_level;
 	struct delayed_work delayed_work;
 
-	/* codec DAI's */
+	
 	struct snd_soc_dai *dai;
 	unsigned int num_dai;
 
@@ -419,7 +381,7 @@ struct snd_soc_codec {
 #endif
 };
 
-/* codec device */
+
 struct snd_soc_codec_device {
 	int (*probe)(struct platform_device *pdev);
 	int (*remove)(struct platform_device *pdev);
@@ -427,7 +389,7 @@ struct snd_soc_codec_device {
 	int (*resume)(struct platform_device *pdev);
 };
 
-/* SoC platform interface */
+
 struct snd_soc_platform {
 	char *name;
 	struct list_head list;
@@ -437,41 +399,41 @@ struct snd_soc_platform {
 	int (*suspend)(struct snd_soc_dai *dai);
 	int (*resume)(struct snd_soc_dai *dai);
 
-	/* pcm creation and destruction */
+	
 	int (*pcm_new)(struct snd_card *, struct snd_soc_dai *,
 		struct snd_pcm *);
 	void (*pcm_free)(struct snd_pcm *);
 
-	/* platform stream ops */
+	
 	struct snd_pcm_ops *pcm_ops;
 };
 
-/* SoC machine DAI configuration, glues a codec and cpu DAI together */
-struct snd_soc_dai_link  {
-	char *name;			/* Codec name */
-	char *stream_name;		/* Stream name */
 
-	/* DAI */
+struct snd_soc_dai_link  {
+	char *name;			
+	char *stream_name;		
+
+	
 	struct snd_soc_dai *codec_dai;
 	struct snd_soc_dai *cpu_dai;
 
-	/* machine stream operations */
+	
 	struct snd_soc_ops *ops;
 
-	/* codec/machine specific init - e.g. add machine controls */
+	
 	int (*init)(struct snd_soc_codec *codec);
 
-	/* Symmetry requirements */
+	
 	unsigned int symmetric_rates:1;
 
-	/* Symmetry data - only valid if symmetry is being enforced */
+	
 	unsigned int rate;
 
-	/* DAI pcm */
+	
 	struct snd_pcm *pcm;
 };
 
-/* SoC card */
+
 struct snd_soc_card {
 	char *name;
 	struct device *dev;
@@ -483,18 +445,17 @@ struct snd_soc_card {
 	int (*probe)(struct platform_device *pdev);
 	int (*remove)(struct platform_device *pdev);
 
-	/* the pre and post PM functions are used to do any PM work before and
-	 * after the codec and DAI's do any PM work. */
+	
 	int (*suspend_pre)(struct platform_device *pdev, pm_message_t state);
 	int (*suspend_post)(struct platform_device *pdev, pm_message_t state);
 	int (*resume_pre)(struct platform_device *pdev);
 	int (*resume_post)(struct platform_device *pdev);
 
-	/* callbacks */
+	
 	int (*set_bias_level)(struct snd_soc_card *,
 			      enum snd_soc_bias_level level);
 
-	/* CPU <--> Codec DAI links  */
+	
 	struct snd_soc_dai_link *dai_link;
 	int num_links;
 
@@ -507,7 +468,7 @@ struct snd_soc_card {
 	struct work_struct deferred_resume_work;
 };
 
-/* SoC Device - the audio subsystem */
+
 struct snd_soc_device {
 	struct device *dev;
 	struct snd_soc_card *card;
@@ -515,19 +476,19 @@ struct snd_soc_device {
 	void *codec_data;
 };
 
-/* runtime channel data */
+
 struct snd_soc_pcm_runtime {
 	struct snd_soc_dai_link *dai;
 	struct snd_soc_device *socdev;
 };
 
-/* mixer control */
+
 struct soc_mixer_control {
 	int min, max;
 	unsigned int reg, rreg, shift, rshift, invert;
 };
 
-/* enumerated kcontrol */
+
 struct soc_enum {
 	unsigned short reg;
 	unsigned short reg2;
@@ -540,7 +501,7 @@ struct soc_enum {
 	void *dapm;
 };
 
-/* codec IO */
+
 static inline unsigned int snd_soc_read(struct snd_soc_codec *codec,
 					unsigned int reg)
 {

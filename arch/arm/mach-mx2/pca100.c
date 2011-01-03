@@ -1,21 +1,4 @@
-/*
- * Copyright 2007 Robert Schwebel <r.schwebel@pengutronix.de>, Pengutronix
- * Copyright (C) 2009 Sascha Hauer (kernel@pengutronix.de)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/io.h>
@@ -45,19 +28,19 @@
 #include "devices.h"
 
 static int pca100_pins[] = {
-	/* UART1 */
+	
 	PE12_PF_UART1_TXD,
 	PE13_PF_UART1_RXD,
 	PE14_PF_UART1_CTS,
 	PE15_PF_UART1_RTS,
-	/* SDHC */
+	
 	PB4_PF_SD2_D0,
 	PB5_PF_SD2_D1,
 	PB6_PF_SD2_D2,
 	PB7_PF_SD2_D3,
 	PB8_PF_SD2_CMD,
 	PB9_PF_SD2_CLK,
-	/* FEC */
+	
 	PD0_AIN_FEC_TXD0,
 	PD1_AIN_FEC_TXD1,
 	PD2_AIN_FEC_TXD2,
@@ -76,18 +59,18 @@ static int pca100_pins[] = {
 	PD15_AOUT_FEC_COL,
 	PD16_AIN_FEC_TX_ER,
 	PF23_AIN_FEC_TX_EN,
-	/* SSI1 */
+	
 	PC20_PF_SSI1_FS,
 	PC21_PF_SSI1_RXD,
 	PC22_PF_SSI1_TXD,
 	PC23_PF_SSI1_CLK,
-	/* onboard I2C */
+	
 	PC5_PF_I2C2_SDA,
 	PC6_PF_I2C2_SCL,
-	/* external I2C */
+	
 	PD17_PF_I2C_DATA,
 	PD18_PF_I2C_CLK,
-	/* SPI1 */
+	
 	PD25_PF_CSPI1_RDY,
 	PD29_PF_CSPI1_SCLK,
 	PD30_PF_CSPI1_MISO,
@@ -120,7 +103,7 @@ static struct at24_platform_data board_eeprom = {
 
 static struct i2c_board_info pca100_i2c_devices[] = {
 	{
-		I2C_BOARD_INFO("at24", 0x52), /* E0=0, E1=1, E2=0 */
+		I2C_BOARD_INFO("at24", 0x52), 
 		.platform_data = &board_eeprom,
 	}, {
 		I2C_BOARD_INFO("rtc-pcf8563", 0x51),
@@ -198,7 +181,7 @@ static void __init pca100_init(void)
 
 	mxc_register_device(&mxc_nand_device, &pca100_nand_board_info);
 
-	/* only the i2c master 1 is used on this CPU card */
+	
 	i2c_register_board_info(1, pca100_i2c_devices,
 				ARRAY_SIZE(pca100_i2c_devices));
 
@@ -207,11 +190,11 @@ static void __init pca100_init(void)
 	mxc_gpio_mode(GPIO_PORTD | 28 | GPIO_GPIO | GPIO_OUT);
 	mxc_gpio_mode(GPIO_PORTD | 27 | GPIO_GPIO | GPIO_OUT);
 
-	/* GPIO0_IRQ */
+	
 	mxc_gpio_mode(GPIO_PORTC | 31 | GPIO_GPIO | GPIO_IN);
-	/* GPIO1_IRQ */
+	
 	mxc_gpio_mode(GPIO_PORTC | 25 | GPIO_GPIO | GPIO_IN);
-	/* GPIO2_IRQ */
+	
 	mxc_gpio_mode(GPIO_PORTE | 5 | GPIO_GPIO | GPIO_IN);
 
 #if defined(CONFIG_SPI_IMX) || defined(CONFIG_SPI_IMX_MODULE)

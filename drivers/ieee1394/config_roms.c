@@ -1,13 +1,4 @@
-/*
- * IEEE 1394 for Linux
- *
- * ConfigROM  entries
- *
- * Copyright (C) 2004 Ben Collins
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- */
+
 
 #include <linux/types.h>
 
@@ -23,17 +14,17 @@
 struct hpsb_config_rom_entry {
 	const char *name;
 
-	/* Base initialization, called at module load */
+	
 	int (*init)(void);
 
-	/* Cleanup called at module exit */
+	
 	void (*cleanup)(void);
 
-	/* The flag added to host->config_roms */
+	
 	unsigned int flag;
 };
 
-/* The default host entry. This must succeed. */
+
 int hpsb_default_host_entry(struct hpsb_host *host)
 {
 	struct csr1212_keyval *root;
@@ -161,7 +152,7 @@ static struct hpsb_config_rom_entry ip1394_entry = {
 	.flag		= HPSB_CONFIG_ROM_ENTRY_IP1394,
 };
 
-#endif /* CONFIG_IEEE1394_ETH1394_ROM_ENTRY */
+#endif 
 
 static struct hpsb_config_rom_entry *const config_rom_entries[] = {
 #ifdef CONFIG_IEEE1394_ETH1394_ROM_ENTRY
@@ -169,7 +160,7 @@ static struct hpsb_config_rom_entry *const config_rom_entries[] = {
 #endif
 };
 
-/* Initialize all config roms */
+
 int hpsb_init_config_roms(void)
 {
 	int i, error = 0;
@@ -184,7 +175,7 @@ int hpsb_init_config_roms(void)
 	return error;
 }
 
-/* Cleanup all config roms */
+
 void hpsb_cleanup_config_roms(void)
 {
 	int i;

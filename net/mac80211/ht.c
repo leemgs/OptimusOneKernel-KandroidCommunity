@@ -1,17 +1,4 @@
-/*
- * HT handling
- *
- * Copyright 2003, Jouni Malinen <jkmaline@cc.hut.fi>
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- * Copyright 2006-2007	Jiri Benc <jbenc@suse.cz>
- * Copyright 2007, Michael Wu <flamingice@sourmilk.net>
- * Copyright 2007-2008, Intel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/ieee80211.h>
 #include <net/mac80211.h>
@@ -44,14 +31,14 @@ void ieee80211_ht_cap_ie_to_sta_ht_cap(struct ieee80211_supported_band *sband,
 	ht_cap->ampdu_density =
 		(ampdu_info & IEEE80211_HT_AMPDU_PARM_DENSITY) >> 2;
 
-	/* own MCS TX capabilities */
+	
 	tx_mcs_set_cap = sband->ht_cap.mcs.tx_params;
 
-	/* can we TX with MCS rates? */
+	
 	if (!(tx_mcs_set_cap & IEEE80211_HT_MCS_TX_DEFINED))
 		return;
 
-	/* Counting from 0, therefore +1 */
+	
 	if (tx_mcs_set_cap & IEEE80211_HT_MCS_TX_RX_DIFF)
 		max_tx_streams =
 			((tx_mcs_set_cap & IEEE80211_HT_MCS_TX_MAX_STREAMS_MASK)
@@ -59,13 +46,7 @@ void ieee80211_ht_cap_ie_to_sta_ht_cap(struct ieee80211_supported_band *sband,
 	else
 		max_tx_streams = IEEE80211_HT_MCS_TX_MAX_STREAMS;
 
-	/*
-	 * 802.11n D5.0 20.3.5 / 20.6 says:
-	 * - indices 0 to 7 and 32 are single spatial stream
-	 * - 8 to 31 are multiple spatial streams using equal modulation
-	 *   [8..15 for two streams, 16..23 for three and 24..31 for four]
-	 * - remainder are multiple spatial streams using unequal modulation
-	 */
+	
 	for (i = 0; i < max_tx_streams; i++)
 		ht_cap->mcs.rx_mask[i] =
 			sband->ht_cap.mcs.rx_mask[i] & ht_cap_ie->mcs.rx_mask[i];
@@ -77,7 +58,7 @@ void ieee80211_ht_cap_ie_to_sta_ht_cap(struct ieee80211_supported_band *sband,
 				sband->ht_cap.mcs.rx_mask[i] &
 					ht_cap_ie->mcs.rx_mask[i];
 
-	/* handle MCS rate 32 too */
+	
 	if (sband->ht_cap.mcs.rx_mask[32/8] & ht_cap_ie->mcs.rx_mask[32/8] & 1)
 		ht_cap->mcs.rx_mask[32/8] |= 1;
 }
@@ -128,8 +109,8 @@ void ieee80211_send_delba(struct ieee80211_sub_if_data *sdata,
 
 	mgmt->u.action.category = WLAN_CATEGORY_BACK;
 	mgmt->u.action.u.delba.action_code = WLAN_ACTION_DELBA;
-	params = (u16)(initiator << 11); 	/* bit 11 initiator */
-	params |= (u16)(tid << 12); 		/* bit 15:12 TID number */
+	params = (u16)(initiator << 11); 	
+	params |= (u16)(tid << 12); 		
 
 	mgmt->u.action.u.delba.params = cpu_to_le16(params);
 	mgmt->u.action.u.delba.reason_code = cpu_to_le16(reason_code);
@@ -153,12 +134,12 @@ void ieee80211_process_delba(struct ieee80211_sub_if_data *sdata,
 		printk(KERN_DEBUG "delba from %pM (%s) tid %d reason code %d\n",
 			mgmt->sa, initiator ? "initiator" : "recipient", tid,
 			le16_to_cpu(mgmt->u.action.u.delba.reason_code));
-#endif /* CONFIG_MAC80211_HT_DEBUG */
+#endif 
 
 	if (initiator == WLAN_BACK_INITIATOR)
 		ieee80211_sta_stop_rx_ba_session(sdata, sta->sta.addr, tid,
 						 WLAN_BACK_INITIATOR, 0);
-	else { /* WLAN_BACK_RECIPIENT */
+	else { 
 		spin_lock_bh(&sta->lock);
 		if (sta->ampdu_mlme.tid_state_tx[tid] & HT_ADDBA_REQUESTED_MSK)
 			___ieee80211_stop_tx_ba_session(sta, tid,

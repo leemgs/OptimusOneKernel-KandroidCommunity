@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-omap3beagle.c
- *
- * Copyright (C) 2008 Texas Instruments
- *
- * Modified from mach-omap2/board-3430sdp.c
- *
- * Initial code: Syed Mohammed Khasim
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -53,32 +41,32 @@
 #define NAND_BLOCK_SIZE		SZ_128K
 
 static struct mtd_partition omap3beagle_nand_partitions[] = {
-	/* All the partition sizes are listed in terms of NAND block size */
+	
 	{
 		.name		= "X-Loader",
 		.offset		= 0,
 		.size		= 4 * NAND_BLOCK_SIZE,
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "U-Boot",
-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+		.offset		= MTDPART_OFS_APPEND,	
 		.size		= 15 * NAND_BLOCK_SIZE,
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "U-Boot Env",
-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
+		.offset		= MTDPART_OFS_APPEND,	
 		.size		= 1 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name		= "Kernel",
-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+		.offset		= MTDPART_OFS_APPEND,	
 		.size		= 32 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name		= "File System",
-		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
+		.offset		= MTDPART_OFS_APPEND,	
 		.size		= MTDPART_SIZ_FULL,
 	},
 };
@@ -87,7 +75,7 @@ static struct omap_nand_platform_data omap3beagle_nand_data = {
 	.options	= NAND_BUSWIDTH_16,
 	.parts		= omap3beagle_nand_partitions,
 	.nr_parts	= ARRAY_SIZE(omap3beagle_nand_partitions),
-	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
+	.dma_channel	= -1,		
 	.nand_setup	= NULL,
 	.dev_ready	= NULL,
 };
@@ -114,7 +102,7 @@ static struct twl4030_hsmmc_info mmc[] = {
 		.wires		= 8,
 		.gpio_wp	= 29,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct platform_device omap3_beagle_lcd_device = {
@@ -145,26 +133,24 @@ static int beagle_twl_gpio_setup(struct device *dev,
 	} else {
 		omap_cfg_reg(AH8_34XX_GPIO29);
 	}
-	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+	
 	mmc[0].gpio_cd = gpio + 0;
 	twl4030_mmc_init(mmc);
 
-	/* link regulators to MMC adapters */
+	
 	beagle_vmmc1_supply.dev = mmc[0].dev;
 	beagle_vsim_supply.dev = mmc[0].dev;
 
-	/* REVISIT: need ehci-omap hooks for external VBUS
-	 * power switch and overcurrent detect
-	 */
+	
 
 	gpio_request(gpio + 1, "EHCI_nOC");
 	gpio_direction_input(gpio + 1);
 
-	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
+	
 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
 	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
 
-	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+	
 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
 
 	return 0;
@@ -191,7 +177,7 @@ static struct regulator_consumer_supply beagle_vdvi_supply = {
 	.dev		= &omap3_beagle_lcd_device.dev,
 };
 
-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+
 static struct regulator_init_data beagle_vmmc1 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -206,7 +192,7 @@ static struct regulator_init_data beagle_vmmc1 = {
 	.consumer_supplies	= &beagle_vmmc1_supply,
 };
 
-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+
 static struct regulator_init_data beagle_vsim = {
 	.constraints = {
 		.min_uV			= 1800000,
@@ -221,7 +207,7 @@ static struct regulator_init_data beagle_vsim = {
 	.consumer_supplies	= &beagle_vsim_supply,
 };
 
-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+
 static struct regulator_init_data beagle_vdac = {
 	.constraints = {
 		.min_uV			= 1800000,
@@ -235,7 +221,7 @@ static struct regulator_init_data beagle_vdac = {
 	.consumer_supplies	= &beagle_vdac_supply,
 };
 
-/* VPLL2 for digital video outputs */
+
 static struct regulator_init_data beagle_vpll2 = {
 	.constraints = {
 		.name			= "VDVI",
@@ -258,7 +244,7 @@ static struct twl4030_platform_data beagle_twldata = {
 	.irq_base	= TWL4030_IRQ_BASE,
 	.irq_end	= TWL4030_IRQ_END,
 
-	/* platform_data for children goes here */
+	
 	.usb		= &beagle_usb_data,
 	.gpio		= &beagle_gpio_data,
 	.vmmc1		= &beagle_vmmc1,
@@ -280,8 +266,7 @@ static int __init omap3_beagle_i2c_init(void)
 {
 	omap_register_i2c_bus(1, 2600, beagle_i2c_boardinfo,
 			ARRAY_SIZE(beagle_i2c_boardinfo));
-	/* Bus 3 is attached to the DVI port where devices like the pico DLP
-	 * projector don't work reliably with 400kHz */
+	
 	omap_register_i2c_bus(3, 100, NULL, 0);
 	return 0;
 }
@@ -299,7 +284,7 @@ static struct gpio_led gpio_leds[] = {
 	},
 	{
 		.name			= "beagleboard::pmu_stat",
-		.gpio			= -EINVAL,	/* gets replaced */
+		.gpio			= -EINVAL,	
 		.active_low		= true,
 	},
 };
@@ -369,7 +354,7 @@ static void __init omap3beagle_flash_init(void)
 
 	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
 
-	/* find out the chip-select on which NAND exists */
+	
 	while (cs < GPMC_CS_NUM) {
 		u32 ret = 0;
 		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
@@ -409,13 +394,13 @@ static void __init omap3_beagle_init(void)
 
 	omap_cfg_reg(J25_34XX_GPIO170);
 	gpio_request(170, "DVI_nPD");
-	/* REVISIT leave DVI powered down until it's needed ... */
+	
 	gpio_direction_output(170, true);
 
 	usb_musb_init();
 	omap3beagle_flash_init();
 
-	/* Ensure SDRC pins are mux'd for self-refresh */
+	
 	omap_cfg_reg(H16_34XX_SDRC_CKE0);
 	omap_cfg_reg(H17_34XX_SDRC_CKE1);
 }
@@ -427,7 +412,7 @@ static void __init omap3_beagle_map_io(void)
 }
 
 MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
-	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

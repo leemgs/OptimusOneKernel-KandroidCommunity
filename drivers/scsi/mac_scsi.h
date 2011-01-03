@@ -1,30 +1,6 @@
-/*
- * Cumana Generic NCR5380 driver defines
- *
- * Copyright 1993, Drew Eckhardt
- *	Visionary Computing
- *	(Unix and Linux consulting and custom programming)
- *	drew@colorado.edu
- *      +1 (303) 440-4894
- *
- * ALPHA RELEASE 1.
- *
- * For more information, please consult
- *
- * NCR 5380 Family
- * SCSI Protocol Controller
- * Databook
- *
- * NCR Microelectronics
- * 1635 Aeroplaza Drive
- * Colorado Springs, CO 80916
- * 1+ (719) 578-3400
- * 1+ (800) 334-5454
- */
 
-/*
- * $Log: cumana_NCR5380.h,v $
- */
+
+
 
 #ifndef MAC_NCR5380_H
 #define MAC_NCR5380_H
@@ -77,7 +53,7 @@
 #define BOARD_NORMAL	0
 #define BOARD_NCR53C400	1
 
-#endif /* ndef HOSTS_C */
-#endif /* ndef ASM */
-#endif /* MAC_NCR5380_H */
+#endif 
+#endif 
+#endif 
 

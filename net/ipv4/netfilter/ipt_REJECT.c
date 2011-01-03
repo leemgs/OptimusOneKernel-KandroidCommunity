@@ -1,14 +1,6 @@
-/*
- * This is a module which is used for rejecting packets.
- */
 
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -31,7 +23,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
 MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv4");
 
-/* Send RST reply */
+
 static void send_reset(struct sk_buff *oldskb, int hook)
 {
 	struct sk_buff *nskb;
@@ -41,7 +33,7 @@ static void send_reset(struct sk_buff *oldskb, int hook)
 	struct tcphdr _otcph, *tcph;
 	unsigned int addr_type;
 
-	/* IP header checks: fragment. */
+	
 	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
 		return;
 
@@ -50,11 +42,11 @@ static void send_reset(struct sk_buff *oldskb, int hook)
 	if (oth == NULL)
 		return;
 
-	/* No RST for RST. */
+	
 	if (oth->rst)
 		return;
 
-	/* Check checksum */
+	
 	if (nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), IPPROTO_TCP))
 		return;
 	oiph = ip_hdr(oldskb);
@@ -107,7 +99,7 @@ static void send_reset(struct sk_buff *oldskb, int hook)
 	   )
 		addr_type = RTN_LOCAL;
 
-	/* ip_route_me_harder expects skb->dst to be set */
+	
 	skb_dst_set(nskb, dst_clone(skb_dst(oldskb)));
 
 	if (ip_route_me_harder(nskb, addr_type))
@@ -116,7 +108,7 @@ static void send_reset(struct sk_buff *oldskb, int hook)
 	niph->ttl	= dst_metric(skb_dst(nskb), RTAX_HOPLIMIT);
 	nskb->ip_summed = CHECKSUM_NONE;
 
-	/* "Never happens" */
+	
 	if (nskb->len > dst_mtu(skb_dst(nskb)))
 		goto free_nskb;
 
@@ -139,9 +131,7 @@ reject_tg(struct sk_buff *skb, const struct xt_target_param *par)
 {
 	const struct ipt_reject_info *reject = par->targinfo;
 
-	/* WARNING: This code causes reentry within iptables.
-	   This means that the iptables jump stack is now crap.  We
-	   must return an absolute verdict. --RR */
+	
 	switch (reject->with) {
 	case IPT_ICMP_NET_UNREACHABLE:
 		send_unreach(skb, ICMP_NET_UNREACH);
@@ -167,7 +157,7 @@ reject_tg(struct sk_buff *skb, const struct xt_target_param *par)
 	case IPT_TCP_RESET:
 		send_reset(skb, par->hooknum);
 	case IPT_ICMP_ECHOREPLY:
-		/* Doesn't happen. */
+		
 		break;
 	}
 
@@ -183,7 +173,7 @@ static bool reject_tg_check(const struct xt_tgchk_param *par)
 		printk("ipt_REJECT: ECHOREPLY no longer supported.\n");
 		return false;
 	} else if (rejinfo->with == IPT_TCP_RESET) {
-		/* Must specify that it's a TCP packet */
+		
 		if (e->ip.proto != IPPROTO_TCP
 		    || (e->ip.invflags & XT_INV_PROTO)) {
 			printk("ipt_REJECT: TCP_RESET invalid for non-tcp\n");

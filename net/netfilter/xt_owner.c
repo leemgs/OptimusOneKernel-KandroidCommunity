@@ -1,15 +1,4 @@
-/*
- * Kernel module to match various things tied to sockets associated with
- * locally generated outgoing packets.
- *
- * (C) 2000 Marc Boucher <marc@mbsi.ca>
- *
- * Copyright © CC Computer Consultants GmbH, 2007 - 2008
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/skbuff.h>
 #include <linux/file.h>
@@ -26,10 +15,7 @@ owner_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 	if (skb->sk == NULL || skb->sk->sk_socket == NULL)
 		return (info->match ^ info->invert) == 0;
 	else if (info->match & info->invert & XT_OWNER_SOCKET)
-		/*
-		 * Socket exists but user wanted ! --socket-exists.
-		 * (Single ampersands intended.)
-		 */
+		
 		return false;
 
 	filp = skb->sk->sk_socket->file;

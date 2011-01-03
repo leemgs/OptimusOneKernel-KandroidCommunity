@@ -1,44 +1,10 @@
-/* SCTP kernel implementation
- * Copyright (c) 2003 International Business Machines, Corp.
- *
- * This file is part of the SCTP kernel implementation
- *
- * This SCTP implementation is free software;
- * you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This SCTP implementation is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 ************************
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU CC; see the file COPYING.  If not, write to
- * the Free Software Foundation, 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
- *
- * Please send any bug reports or fixes you make to the
- * email address(es):
- *    lksctp developers <lksctp-developers@lists.sourceforge.net>
- *
- * Or submit a bug report through the following website:
- *    http://www.sf.net/projects/lksctp
- *
- * Written or modified by:
- *    Sridhar Samudrala <sri@us.ibm.com>
- *
- * Any bugs reported given to us we will try to fix... any fixes shared will
- * be incorporated into the next SCTP release.
- */
+
 
 #include <linux/types.h>
 #include <linux/seq_file.h>
 #include <linux/init.h>
 #include <net/sctp/sctp.h>
-#include <net/ip.h> /* for snmp_fold_field */
+#include <net/ip.h> 
 
 static struct snmp_mib sctp_snmp_list[] = {
 	SNMP_MIB_ITEM("SctpCurrEstab", SCTP_MIB_CURRESTAB),
@@ -76,7 +42,7 @@ static struct snmp_mib sctp_snmp_list[] = {
 	SNMP_MIB_SENTINEL
 };
 
-/* Display sctp snmp mib statistics(/proc/net/sctp/snmp). */
+
 static int sctp_snmp_seq_show(struct seq_file *seq, void *v)
 {
 	int i;
@@ -89,7 +55,7 @@ static int sctp_snmp_seq_show(struct seq_file *seq, void *v)
 	return 0;
 }
 
-/* Initialize the seq file operations for 'snmp' object. */
+
 static int sctp_snmp_seq_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, sctp_snmp_seq_show, NULL);
@@ -103,7 +69,7 @@ static const struct file_operations sctp_snmp_seq_fops = {
 	.release = single_release,
 };
 
-/* Set up the proc fs entry for 'snmp' object. */
+
 int __init sctp_snmp_proc_init(void)
 {
 	struct proc_dir_entry *p;
@@ -115,13 +81,13 @@ int __init sctp_snmp_proc_init(void)
 	return 0;
 }
 
-/* Cleanup the proc fs entry for 'snmp' object. */
+
 void sctp_snmp_proc_exit(void)
 {
 	remove_proc_entry("snmp", proc_net_sctp);
 }
 
-/* Dump local addresses of an association/endpoint. */
+
 static void sctp_seq_dump_local_addrs(struct seq_file *seq, struct sctp_ep_common *epb)
 {
 	struct sctp_association *asoc;
@@ -146,7 +112,7 @@ static void sctp_seq_dump_local_addrs(struct seq_file *seq, struct sctp_ep_commo
 	}
 }
 
-/* Dump remote addresses of an association. */
+
 static void sctp_seq_dump_remote_addrs(struct seq_file *seq, struct sctp_association *assoc)
 {
 	struct sctp_transport *transport;
@@ -194,7 +160,7 @@ static void * sctp_eps_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 }
 
 
-/* Display sctp endpoints (/proc/net/sctp/eps). */
+
 static int sctp_eps_seq_show(struct seq_file *seq, void *v)
 {
 	struct sctp_hashbucket *head;
@@ -235,7 +201,7 @@ static const struct seq_operations sctp_eps_ops = {
 };
 
 
-/* Initialize the seq file operations for 'eps' object. */
+
 static int sctp_eps_seq_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &sctp_eps_ops);
@@ -248,7 +214,7 @@ static const struct file_operations sctp_eps_seq_fops = {
 	.release = seq_release,
 };
 
-/* Set up the proc fs entry for 'eps' object. */
+
 int __init sctp_eps_proc_init(void)
 {
 	struct proc_dir_entry *p;
@@ -260,7 +226,7 @@ int __init sctp_eps_proc_init(void)
 	return 0;
 }
 
-/* Cleanup the proc fs entry for 'eps' object. */
+
 void sctp_eps_proc_exit(void)
 {
 	remove_proc_entry("eps", proc_net_sctp);
@@ -298,7 +264,7 @@ static void * sctp_assocs_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 	return pos;
 }
 
-/* Display sctp associations (/proc/net/sctp/assocs). */
+
 static int sctp_assocs_seq_show(struct seq_file *seq, void *v)
 {
 	struct sctp_hashbucket *head;
@@ -352,7 +318,7 @@ static const struct seq_operations sctp_assoc_ops = {
 	.show  = sctp_assocs_seq_show,
 };
 
-/* Initialize the seq file operations for 'assocs' object. */
+
 static int sctp_assocs_seq_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &sctp_assoc_ops);
@@ -365,7 +331,7 @@ static const struct file_operations sctp_assocs_seq_fops = {
 	.release = seq_release,
 };
 
-/* Set up the proc fs entry for 'assocs' object. */
+
 int __init sctp_assocs_proc_init(void)
 {
 	struct proc_dir_entry *p;
@@ -378,7 +344,7 @@ int __init sctp_assocs_proc_init(void)
 	return 0;
 }
 
-/* Cleanup the proc fs entry for 'assocs' object. */
+
 void sctp_assocs_proc_exit(void)
 {
 	remove_proc_entry("assocs", proc_net_sctp);
@@ -431,45 +397,26 @@ static int sctp_remaddr_seq_show(struct seq_file *seq, void *v)
 		assoc = sctp_assoc(epb);
 		list_for_each_entry(tsp, &assoc->peer.transport_addr_list,
 					transports) {
-			/*
-			 * The remote address (ADDR)
-			 */
+			
 			tsp->af_specific->seq_dump_addr(seq, &tsp->ipaddr);
 			seq_printf(seq, " ");
 
-			/*
-			 * The association ID (ASSOC_ID)
-			 */
+			
 			seq_printf(seq, "%d ", tsp->asoc->assoc_id);
 
-			/*
-			 * If the Heartbeat is active (HB_ACT)
-			 * Note: 1 = Active, 0 = Inactive
-			 */
+			
 			seq_printf(seq, "%d ", timer_pending(&tsp->hb_timer));
 
-			/*
-			 * Retransmit time out (RTO)
-			 */
+			
 			seq_printf(seq, "%lu ", tsp->rto);
 
-			/*
-			 * Maximum path retransmit count (PATH_MAX_RTX)
-			 */
+			
 			seq_printf(seq, "%d ", tsp->pathmaxrxt);
 
-			/*
-			 * remote address retransmit count (REM_ADDR_RTX)
-			 * Note: We don't have a way to tally this at the moment
-			 * so lets just leave it as zero for the moment
-			 */
+			
 			seq_printf(seq, "0 ");
 
-			/*
-			 * remote address start time (START).  This is also not
-			 * currently implemented, but we can record it with a
-			 * jiffies marker in a subsequent patch
-			 */
+			
 			seq_printf(seq, "0");
 
 			seq_printf(seq, "\n");
@@ -490,7 +437,7 @@ static const struct seq_operations sctp_remaddr_ops = {
 	.show  = sctp_remaddr_seq_show,
 };
 
-/* Cleanup the proc fs entry for 'remaddr' object. */
+
 void sctp_remaddr_proc_exit(void)
 {
 	remove_proc_entry("remaddr", proc_net_sctp);

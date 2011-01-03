@@ -1,9 +1,4 @@
-/*
- * QLogic Fibre Channel HBA Driver
- * Copyright (c)  2003-2008 QLogic Corporation
- *
- * See LICENSE.qla2xxx for copyright and licensing details.
- */
+
 #include "qla_def.h"
 #include "qla_gbl.h"
 
@@ -30,7 +25,7 @@ qla24xx_allocate_vp_id(scsi_qla_host_t *vha)
 	uint32_t vp_id;
 	struct qla_hw_data *ha = vha->hw;
 
-	/* Find an empty slot and assign an vp_id */
+	
 	mutex_lock(&ha->vport_lock);
 	vp_id = find_first_zero_bit(ha->vp_idx_map, ha->max_npiv_vports + 1);
 	if (vp_id > ha->max_npiv_vports) {
@@ -68,7 +63,7 @@ qla24xx_find_vhost_by_name(struct qla_hw_data *ha, uint8_t *port_name)
 	scsi_qla_host_t *vha;
 	struct scsi_qla_host *tvha;
 
-	/* Locate matching device in database. */
+	
 	list_for_each_entry_safe(vha, tvha, &ha->vp_list, list) {
 		if (!memcmp(port_name, vha->port_name, WWN_SIZE))
 			return vha;
@@ -76,19 +71,7 @@ qla24xx_find_vhost_by_name(struct qla_hw_data *ha, uint8_t *port_name)
 	return NULL;
 }
 
-/*
- * qla2x00_mark_vp_devices_dead
- *	Updates fcport state when device goes offline.
- *
- * Input:
- *	ha = adapter block pointer.
- *	fcport = port structure pointer.
- *
- * Return:
- *	None.
- *
- * Context:
- */
+
 static void
 qla2x00_mark_vp_devices_dead(scsi_qla_host_t *vha)
 {
@@ -133,7 +116,7 @@ qla24xx_enable_vp(scsi_qla_host_t *vha)
 	struct qla_hw_data *ha = vha->hw;
 	scsi_qla_host_t *base_vha = pci_get_drvdata(ha->pdev);
 
-	/* Check if physical ha port is Up */
+	
 	if (atomic_read(&base_vha->loop_state) == LOOP_DOWN  ||
 		atomic_read(&base_vha->loop_state) == LOOP_DEAD) {
 		vha->vp_err_state =  VP_ERR_PORTDWN;
@@ -141,7 +124,7 @@ qla24xx_enable_vp(scsi_qla_host_t *vha)
 		goto enable_failed;
 	}
 
-	/* Initialize the new vport unless it is a persistent port */
+	
 	mutex_lock(&ha->vport_lock);
 	ret = qla24xx_modify_vp_config(vha);
 	mutex_unlock(&ha->vport_lock);
@@ -177,7 +160,7 @@ qla24xx_configure_vp(scsi_qla_host_t *vha)
 		    "receiving of RSCN requests: 0x%x\n", ret));
 		return;
 	} else {
-		/* Corresponds to SCR enabled */
+		
 		clear_bit(VP_SCR_NEEDED, &vha->vp_flags);
 	}
 
@@ -221,10 +204,7 @@ qla2x00_alert_all_vps(struct rsp_que *rsp, uint16_t *mb)
 int
 qla2x00_vp_abort_isp(scsi_qla_host_t *vha)
 {
-	/*
-	 * Physical port will do most of the abort and recovery work. We can
-	 * just treat it as a loop down
-	 */
+	
 	if (atomic_read(&vha->loop_state) != LOOP_DOWN) {
 		atomic_set(&vha->loop_state, LOOP_DOWN);
 		qla2x00_mark_all_devices_lost(vha, 0);
@@ -233,11 +213,7 @@ qla2x00_vp_abort_isp(scsi_qla_host_t *vha)
 			atomic_set(&vha->loop_down_timer, LOOP_DOWN_TIME);
 	}
 
-	/*
-	 * To exclusively reset vport, we need to log it out first.  Note: this
-	 * control_vp can fail if ISP reset is already issued, this is
-	 * expected, as the vp would be already logged out due to ISP reset.
-	 */
+	
 	if (!test_bit(ABORT_ISP_ACTIVE, &vha->dpc_flags))
 		qla24xx_control_vp(vha, VCE_COMMAND_DISABLE_VPS_LOGO_ALL);
 
@@ -252,7 +228,7 @@ qla2x00_do_dpc_vp(scsi_qla_host_t *vha)
 	qla2x00_do_work(vha);
 
 	if (test_and_clear_bit(VP_IDX_ACQUIRED, &vha->vp_flags)) {
-		/* VP acquired. complete port configuration */
+		
 		qla24xx_configure_vp(vha);
 		return 0;
 	}
@@ -324,15 +300,15 @@ qla24xx_vport_create_req_sanity_check(struct fc_vport *fc_vport)
 	if (fc_vport->roles != FC_PORT_ROLE_FCP_INITIATOR)
 		return VPCERR_UNSUPPORTED;
 
-	/* Check up the F/W and H/W support NPIV */
+	
 	if (!ha->flags.npiv_supported)
 		return VPCERR_UNSUPPORTED;
 
-	/* Check up whether npiv supported switch presented */
+	
 	if (!(ha->switch_cap & FLOGI_MID_SUPPORT))
 		return VPCERR_NO_FABRIC_SUPP;
 
-	/* Check up unique WWPN */
+	
 	u64_to_wwn(fc_vport->port_name, port_name);
 	if (!memcmp(port_name, base_vha->port_name, WWN_SIZE))
 		return VPCERR_BAD_WWN;
@@ -340,7 +316,7 @@ qla24xx_vport_create_req_sanity_check(struct fc_vport *fc_vport)
 	if (vha)
 		return VPCERR_BAD_WWN;
 
-	/* Check up max-npiv-supports */
+	
 	if (ha->num_vhosts > ha->max_npiv_vports) {
 		DEBUG15(printk("scsi(%ld): num_vhosts %ud is bigger than "
 		    "max_npv_vports %ud.\n", base_vha->host_no,
@@ -367,7 +343,7 @@ qla24xx_create_vhost(struct fc_vport *fc_vport)
 
 	host = vha->host;
 	fc_vport->dd_data = vha;
-	/* New host info */
+	
 	u64_to_wwn(fc_vport->node_name, vha->node_name);
 	u64_to_wwn(fc_vport->port_name, vha->port_name);
 
@@ -385,10 +361,7 @@ qla24xx_create_vhost(struct fc_vport *fc_vport)
 	set_bit(REGISTER_FDMI_NEEDED, &vha->dpc_flags);
 	set_bit(REGISTER_FC4_NEEDED, &vha->dpc_flags);
 
-	/*
-	 * To fix the issue of processing a parent's RSCN for the vport before
-	 * its SCR is complete.
-	 */
+	
 	set_bit(VP_SCR_NEEDED, &vha->vp_flags);
 	atomic_set(&vha->loop_state, LOOP_DOWN);
 	atomic_set(&vha->loop_down_timer, LOOP_DOWN_TIME);
@@ -508,13 +481,13 @@ int qla25xx_update_req_que(struct scsi_qla_host *vha, uint8_t que, uint8_t qos)
 	ret = qla25xx_init_req_que(vha, req);
 	if (ret != QLA_SUCCESS)
 		DEBUG2_17(printk(KERN_WARNING "%s failed\n", __func__));
-	/* restore options bit */
+	
 	req->options &= ~BIT_3;
 	return ret;
 }
 
 
-/* Delete all queues for a given vhost */
+
 int
 qla25xx_delete_queues(struct scsi_qla_host *vha)
 {
@@ -523,7 +496,7 @@ qla25xx_delete_queues(struct scsi_qla_host *vha)
 	struct rsp_que *rsp = NULL;
 	struct qla_hw_data *ha = vha->hw;
 
-	/* Delete request queues */
+	
 	for (cnt = 1; cnt < ha->max_req_queues; cnt++) {
 		req = ha->req_q_map[cnt];
 		if (req) {
@@ -537,7 +510,7 @@ qla25xx_delete_queues(struct scsi_qla_host *vha)
 		}
 	}
 
-	/* Delete response queues */
+	
 	for (cnt = 1; cnt < ha->max_rsp_queues; cnt++) {
 		rsp = ha->rsp_q_map[cnt];
 		if (rsp) {
@@ -599,10 +572,10 @@ qla25xx_create_req_que(struct qla_hw_data *ha, uint16_t options,
 		req->rsp = NULL;
 	else
 		req->rsp = ha->rsp_q_map[rsp_que];
-	/* Use alternate PCI bus number */
+	
 	if (MSB(req->rid))
 		options |= BIT_4;
-	/* Use alternate PCI devfn */
+	
 	if (LSB(req->rid))
 		options |= BIT_5;
 	req->options = options;
@@ -645,7 +618,7 @@ static void qla_do_work(struct work_struct *work)
 	qla24xx_process_response_queue(vha, rsp);
 }
 
-/* create response queue */
+
 int
 qla25xx_create_rsp_que(struct qla_hw_data *ha, uint16_t options,
 	uint8_t vp_idx, uint16_t rid, int req)
@@ -692,10 +665,10 @@ qla25xx_create_rsp_que(struct qla_hw_data *ha, uint16_t options,
 	rsp->rid = rid;
 	rsp->vp_idx = vp_idx;
 	rsp->hw = ha;
-	/* Use alternate PCI bus number */
+	
 	if (MSB(rsp->rid))
 		options |= BIT_4;
-	/* Use alternate PCI devfn */
+	
 	if (LSB(rsp->rid))
 		options |= BIT_5;
 	rsp->options = options;

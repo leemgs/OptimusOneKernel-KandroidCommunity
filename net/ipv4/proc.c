@@ -1,36 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		This file implements the various access functions for the
- *		PROC file system.  It is mainly used for debugging and
- *		statistics.
- *
- * Authors:	Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
- *		Gerald J. Heim, <heim@peanuts.informatik.uni-tuebingen.de>
- *		Fred Baumgarten, <dc6iq@insu1.etec.uni-karlsruhe.de>
- *		Erik Schoenfelder, <schoenfr@ibr.cs.tu-bs.de>
- *
- * Fixes:
- *		Alan Cox	:	UDP sockets show the rxqueue/txqueue
- *					using hint flag for the netinfo.
- *	Pauline Middelink	:	identd support
- *		Alan Cox	:	Make /proc safer.
- *	Erik Schoenfelder	:	/proc/net/snmp
- *		Alan Cox	:	Handle dead sockets properly.
- *	Gerhard Koerting	:	Show both timers
- *		Alan Cox	:	Allow inode to be NULL (kernel socket)
- *	Andi Kleen		:	Add support for open_requests and
- *					split functions for more readibility.
- *	Andi Kleen		:	Add support for /proc/net/netstat
- *	Arnaldo C. Melo		:	Convert to seq_file
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #include <linux/types.h>
 #include <net/net_namespace.h>
 #include <net/icmp.h>
@@ -45,9 +13,7 @@
 #include <net/sock.h>
 #include <net/raw.h>
 
-/*
- *	Report socket allocation statistics [mea@utu.fi]
- */
+
 static int sockstat_seq_show(struct seq_file *seq, void *v)
 {
 	struct net *net = seq->private;
@@ -88,7 +54,7 @@ static const struct file_operations sockstat_seq_fops = {
 	.release = single_release_net,
 };
 
-/* snmp items */
+
 static const struct snmp_mib snmp4_ipstats_list[] = {
 	SNMP_MIB_ITEM("InReceives", IPSTATS_MIB_INPKTS),
 	SNMP_MIB_ITEM("InHdrErrors", IPSTATS_MIB_INHDRERRORS),
@@ -110,7 +76,7 @@ static const struct snmp_mib snmp4_ipstats_list[] = {
 	SNMP_MIB_SENTINEL
 };
 
-/* Following RFC4293 items are displayed in /proc/net/netstat */
+
 static const struct snmp_mib snmp4_ipextstats_list[] = {
 	SNMP_MIB_ITEM("InNoRoutes", IPSTATS_MIB_INNOROUTES),
 	SNMP_MIB_ITEM("InTruncatedPkts", IPSTATS_MIB_INTRUNCATEDPKTS),
@@ -322,9 +288,7 @@ static void icmp_put(struct seq_file *seq)
 				icmpmibmap[i].index | 0x100));
 }
 
-/*
- *	Called from the PROCfs module. This outputs /proc/net/snmp.
- */
+
 static int snmp_seq_show(struct seq_file *seq, void *v)
 {
 	int i;
@@ -344,7 +308,7 @@ static int snmp_seq_show(struct seq_file *seq, void *v)
 			   snmp_fold_field((void **)net->mib.ip_statistics,
 					   snmp4_ipstats_list[i].entry));
 
-	icmp_put(seq);	/* RFC 2011 compatibility */
+	icmp_put(seq);	
 	icmpmsg_put(seq);
 
 	seq_puts(seq, "\nTcp:");
@@ -353,7 +317,7 @@ static int snmp_seq_show(struct seq_file *seq, void *v)
 
 	seq_puts(seq, "\nTcp:");
 	for (i = 0; snmp4_tcp_list[i].name != NULL; i++) {
-		/* MaxConn field is signed, RFC 2012 */
+		
 		if (snmp4_tcp_list[i].entry == TCP_MIB_MAXCONN)
 			seq_printf(seq, " %ld",
 				   snmp_fold_field((void **)net->mib.tcp_statistics,
@@ -374,7 +338,7 @@ static int snmp_seq_show(struct seq_file *seq, void *v)
 			   snmp_fold_field((void **)net->mib.udp_statistics,
 					   snmp4_udp_list[i].entry));
 
-	/* the UDP and UDP-Lite MIBs are the same */
+	
 	seq_puts(seq, "\nUdpLite:");
 	for (i = 0; snmp4_udp_list[i].name != NULL; i++)
 		seq_printf(seq, " %s", snmp4_udp_list[i].name);
@@ -404,9 +368,7 @@ static const struct file_operations snmp_seq_fops = {
 
 
 
-/*
- *	Output /proc/net/netstat
- */
+
 static int netstat_seq_show(struct seq_file *seq, void *v)
 {
 	int i;

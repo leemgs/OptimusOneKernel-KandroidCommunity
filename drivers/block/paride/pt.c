@@ -1,119 +1,13 @@
-/* 
-        pt.c    (c) 1998  Grant R. Guenther <grant@torque.net>
-                          Under the terms of the GNU General Public License.
 
-        This is the high-level driver for parallel port ATAPI tape
-        drives based on chips supported by the paride module.
 
-	The driver implements both rewinding and non-rewinding
-	devices, filemarks, and the rewind ioctl.  It allocates
-	a small internal "bounce buffer" for each open device, but
-        otherwise expects buffering and blocking to be done at the
-        user level.  As with most block-structured tapes, short
-	writes are padded to full tape blocks, so reading back a file
-        may return more data than was actually written.
 
-        By default, the driver will autoprobe for a single parallel
-        port ATAPI tape drive, but if their individual parameters are
-        specified, the driver can handle up to 4 drives.
-
-	The rewinding devices are named /dev/pt0, /dev/pt1, ...
-	while the non-rewinding devices are /dev/npt0, /dev/npt1, etc.
-
-        The behaviour of the pt driver can be altered by setting
-        some parameters from the insmod command line.  The following
-        parameters are adjustable:
-
-            drive0      These four arguments can be arrays of       
-            drive1      1-6 integers as follows:
-            drive2
-            drive3      <prt>,<pro>,<uni>,<mod>,<slv>,<dly>
-
-                        Where,
-
-                <prt>   is the base of the parallel port address for
-                        the corresponding drive.  (required)
-
-                <pro>   is the protocol number for the adapter that
-                        supports this drive.  These numbers are
-                        logged by 'paride' when the protocol modules
-                        are initialised.  (0 if not given)
-
-                <uni>   for those adapters that support chained
-                        devices, this is the unit selector for the
-                        chain of devices on the given port.  It should
-                        be zero for devices that don't support chaining.
-                        (0 if not given)
-
-                <mod>   this can be -1 to choose the best mode, or one
-                        of the mode numbers supported by the adapter.
-                        (-1 if not given)
-
-                <slv>   ATAPI devices can be jumpered to master or slave.
-                        Set this to 0 to choose the master drive, 1 to
-                        choose the slave, -1 (the default) to choose the
-                        first drive found.
-
-                <dly>   some parallel ports require the driver to 
-                        go more slowly.  -1 sets a default value that
-                        should work with the chosen protocol.  Otherwise,
-                        set this to a small integer, the larger it is
-                        the slower the port i/o.  In some cases, setting
-                        this to zero will speed up the device. (default -1)
-
-	    major	You may use this parameter to overide the
-			default major number (96) that this driver
-			will use.  Be sure to change the device
-			name as well.
-
-	    name	This parameter is a character string that
-			contains the name the kernel will use for this
-			device (in /proc output, for instance).
-			(default "pt").
-
-            verbose     This parameter controls the amount of logging
-                        that the driver will do.  Set it to 0 for
-                        normal operation, 1 to see autoprobe progress
-                        messages, or 2 to see additional debugging
-                        output.  (default 0)
- 
-        If this driver is built into the kernel, you can use 
-        the following command line parameters, with the same values
-        as the corresponding module parameters listed above:
-
-            pt.drive0
-            pt.drive1
-            pt.drive2
-            pt.drive3
-
-        In addition, you can use the parameter pt.disable to disable
-        the driver entirely.
-
-*/
-
-/*   Changes:
-
-	1.01	GRG 1998.05.06	Round up transfer size, fix ready_wait,
-			        loosed interpretation of ATAPI standard
-				for clearing error status.
-				Eliminate sti();
-	1.02    GRG 1998.06.16  Eliminate an Ugh.
-	1.03    GRG 1998.08.15  Adjusted PT_TMO, use HZ in loop timing,
-				extra debugging
-	1.04    GRG 1998.09.24  Repair minor coding error, added jumbo support
-	
-*/
 
 #define PT_VERSION      "1.04"
 #define PT_MAJOR	96
 #define PT_NAME		"pt"
 #define PT_UNITS	4
 
-/* Here are things one can override from the insmod command.
-   Most are autoprobed by paride unless set here.  Verbose is on
-   by default.
 
-*/
 
 static int verbose = 0;
 static int major = PT_MAJOR;
@@ -136,7 +30,7 @@ static int (*drives[4])[6] = {&drive0, &drive1, &drive2, &drive3};
 
 #define DU              (*drives[unit])
 
-/* end of parameters */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -145,7 +39,7 @@ static int (*drives[4])[6] = {&drive0, &drive1, &drive2, &drive3};
 #include <linux/slab.h>
 #include <linux/mtio.h>
 #include <linux/device.h>
-#include <linux/sched.h>	/* current, TASK_*, schedule_timeout() */
+#include <linux/sched.h>	
 #include <linux/smp_lock.h>
 
 #include <asm/uaccess.h>
@@ -161,11 +55,11 @@ module_param_array(drive3, int, NULL, 0);
 #include "paride.h"
 
 #define PT_MAX_RETRIES  5
-#define PT_TMO          3000	/* interrupt timeout in jiffies */
-#define PT_SPIN_DEL     50	/* spin delay in micro-seconds  */
-#define PT_RESET_TMO    30	/* 30 seconds */
-#define PT_READY_TMO	60	/* 60 seconds */
-#define PT_REWIND_TMO	1200	/* 20 minutes */
+#define PT_TMO          3000	
+#define PT_SPIN_DEL     50	
+#define PT_RESET_TMO    30	
+#define PT_READY_TMO	60	
+#define PT_REWIND_TMO	1200	
 
 #define PT_SPIN         ((1000000/(HZ*PT_SPIN_DEL))*PT_TMO)
 
@@ -198,7 +92,7 @@ static ssize_t pt_write(struct file *filp, const char __user *buf,
 			size_t count, loff_t * ppos);
 static int pt_detect(void);
 
-/* bits in tape->flags */
+
 
 #define PT_MEDIA	1
 #define PT_WRITE_OK	2
@@ -211,26 +105,26 @@ static int pt_detect(void);
 #define PT_BUFSIZE  16384
 
 struct pt_unit {
-	struct pi_adapter pia;	/* interface to paride layer */
+	struct pi_adapter pia;	
 	struct pi_adapter *pi;
-	int flags;		/* various state flags */
-	int last_sense;		/* result of last request sense */
-	int drive;		/* drive */
-	atomic_t available;	/* 1 if access is available 0 otherwise */
-	int bs;			/* block size */
-	int capacity;		/* Size of tape in KB */
-	int present;		/* device present ? */
+	int flags;		
+	int last_sense;		
+	int drive;		
+	atomic_t available;	
+	int bs;			
+	int capacity;		
+	int present;		
 	char *bufptr;
-	char name[PT_NAMELEN];	/* pf0, pf1, ... */
+	char name[PT_NAMELEN];	
 };
 
 static int pt_identify(struct pt_unit *tape);
 
 static struct pt_unit pt[PT_UNITS];
 
-static char pt_scratch[512];	/* scratch block buffer */
+static char pt_scratch[512];	
 
-/* kernel glue structures */
+
 
 static const struct file_operations pt_fops = {
 	.owner = THIS_MODULE,
@@ -241,7 +135,7 @@ static const struct file_operations pt_fops = {
 	.release = pt_release,
 };
 
-/* sysfs class support */
+
 static struct class *pt_class;
 
 static inline int status_reg(struct pi_adapter *pi)
@@ -303,7 +197,7 @@ static int pt_command(struct pt_unit *tape, char *cmd, int dlen, char *fun)
 
 	write_reg(pi, 4, dlen % 256);
 	write_reg(pi, 5, dlen / 256);
-	write_reg(pi, 7, 0xa0);	/* ATAPI packet command */
+	write_reg(pi, 7, 0xa0);	
 
 	if (pt_wait(tape, STAT_BUSY, STAT_DRQ, fun, "command DRQ")) {
 		pi_disconnect(pi);
@@ -493,7 +387,7 @@ static int pt_ready_wait(struct pt_unit *tape, int tmo)
 		k++;
 		pt_sleep(HZ);
 	}
-	return 0x000020;	/* timeout */
+	return 0x000020;	
 }
 
 static void xs(char *buf, char *targ, int offs, int len)
@@ -576,10 +470,7 @@ static int pt_identify(struct pt_unit *tape)
 }
 
 
-/*
- * returns  0, with id set if drive is detected
- *	   -1, if drive detection failed
- */
+
 static int pt_probe(struct pt_unit *tape)
 {
 	if (tape->drive == -1) {
@@ -716,7 +607,7 @@ static long pt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			return 0;
 
 		default:
-			/* FIXME: rate limit ?? */
+			
 			printk(KERN_DEBUG "%s: Unimplemented mt_op %d\n", tape->name,
 			       mtop.mt_op);
 			return -EINVAL;
@@ -776,9 +667,9 @@ static ssize_t pt_read(struct file *filp, char __user *buf, size_t count, loff_t
 
 		n = count;
 		if (n > 32768)
-			n = 32768;	/* max per command */
+			n = 32768;	
 		b = (n - 1 + tape->bs) / tape->bs;
-		n = b * tape->bs;	/* rounded up to even block */
+		n = b * tape->bs;	
 
 		rd_cmd[4] = b;
 
@@ -877,9 +768,9 @@ static ssize_t pt_write(struct file *filp, const char __user *buf, size_t count,
 
 		n = count;
 		if (n > 32768)
-			n = 32768;	/* max per command */
+			n = 32768;	
 		b = (n - 1 + tape->bs) / tape->bs;
-		n = b * tape->bs;	/* rounded up to even block */
+		n = b * tape->bs;	
 
 		wr_cmd[4] = b;
 
@@ -887,7 +778,7 @@ static ssize_t pt_write(struct file *filp, const char __user *buf, size_t count,
 
 		mdelay(1);
 
-		if (r) {	/* error delivering command only */
+		if (r) {	
 			pt_req_sense(tape, 0);
 			return -EIO;
 		}

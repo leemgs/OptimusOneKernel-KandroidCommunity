@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfa_fcs_vport.c FCS virtual port state machine
- */
+
+
 
 #include <bfa.h>
 #include <bfa_svc.h>
@@ -40,35 +23,29 @@ BFA_TRC_FILE(FCS, VPORT);
 #define __vport_vfid(__vp)      (__vp)->lport.fabric->vf_id
 
 #define BFA_FCS_VPORT_MAX_RETRIES  5
-/*
- * Forward declarations
- */
+
 static void     bfa_fcs_vport_do_fdisc(struct bfa_fcs_vport_s *vport);
 static void     bfa_fcs_vport_timeout(void *vport_arg);
 static void     bfa_fcs_vport_do_logo(struct bfa_fcs_vport_s *vport);
 static void     bfa_fcs_vport_free(struct bfa_fcs_vport_s *vport);
 
-/**
- *  fcs_vport_sm FCS virtual port state machine
- */
 
-/**
- * VPort State Machine events
- */
+
+
 enum bfa_fcs_vport_event {
-	BFA_FCS_VPORT_SM_CREATE = 1,	/*  vport create event */
-	BFA_FCS_VPORT_SM_DELETE = 2,	/*  vport delete event */
-	BFA_FCS_VPORT_SM_START = 3,	/*  vport start request */
-	BFA_FCS_VPORT_SM_STOP = 4,	/*  stop: unsupported */
-	BFA_FCS_VPORT_SM_ONLINE = 5,	/*  fabric online */
-	BFA_FCS_VPORT_SM_OFFLINE = 6,	/*  fabric offline event */
-	BFA_FCS_VPORT_SM_FRMSENT = 7,	/*  fdisc/logo sent events */
-	BFA_FCS_VPORT_SM_RSP_OK = 8,	/*  good response */
-	BFA_FCS_VPORT_SM_RSP_ERROR = 9,	/*  error/bad response */
-	BFA_FCS_VPORT_SM_TIMEOUT = 10,	/*  delay timer event */
-	BFA_FCS_VPORT_SM_DELCOMP = 11,	/*  lport delete completion */
-	BFA_FCS_VPORT_SM_RSP_DUP_WWN = 12,	/*  Dup wnn error */
-	BFA_FCS_VPORT_SM_RSP_FAILED = 13,	/*  non-retryable failure */
+	BFA_FCS_VPORT_SM_CREATE = 1,	
+	BFA_FCS_VPORT_SM_DELETE = 2,	
+	BFA_FCS_VPORT_SM_START = 3,	
+	BFA_FCS_VPORT_SM_STOP = 4,	
+	BFA_FCS_VPORT_SM_ONLINE = 5,	
+	BFA_FCS_VPORT_SM_OFFLINE = 6,	
+	BFA_FCS_VPORT_SM_FRMSENT = 7,	
+	BFA_FCS_VPORT_SM_RSP_OK = 8,	
+	BFA_FCS_VPORT_SM_RSP_ERROR = 9,	
+	BFA_FCS_VPORT_SM_TIMEOUT = 10,	
+	BFA_FCS_VPORT_SM_DELCOMP = 11,	
+	BFA_FCS_VPORT_SM_RSP_DUP_WWN = 12,	
+	BFA_FCS_VPORT_SM_RSP_FAILED = 13,	
 };
 
 static void     bfa_fcs_vport_sm_uninit(struct bfa_fcs_vport_s *vport,
@@ -105,9 +82,7 @@ static struct bfa_sm_table_s vport_sm_table[] = {
 	{BFA_SM(bfa_fcs_vport_sm_error), BFA_FCS_VPORT_ERROR}
 };
 
-/**
- * Beginning state.
- */
+
 static void
 bfa_fcs_vport_sm_uninit(struct bfa_fcs_vport_s *vport,
 			enum bfa_fcs_vport_event event)
@@ -126,9 +101,7 @@ bfa_fcs_vport_sm_uninit(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * Created state - a start event is required to start up the state machine.
- */
+
 static void
 bfa_fcs_vport_sm_created(struct bfa_fcs_vport_s *vport,
 			 enum bfa_fcs_vport_event event)
@@ -143,10 +116,7 @@ bfa_fcs_vport_sm_created(struct bfa_fcs_vport_s *vport,
 			bfa_sm_set_state(vport, bfa_fcs_vport_sm_fdisc);
 			bfa_fcs_vport_do_fdisc(vport);
 		} else {
-			/**
-			 * Fabric is offline or not NPIV capable, stay in
-			 * offline state.
-			 */
+			
 			vport->vport_stats.fab_no_npiv++;
 			bfa_sm_set_state(vport, bfa_fcs_vport_sm_offline);
 		}
@@ -159,9 +129,7 @@ bfa_fcs_vport_sm_created(struct bfa_fcs_vport_s *vport,
 
 	case BFA_FCS_VPORT_SM_ONLINE:
 	case BFA_FCS_VPORT_SM_OFFLINE:
-		/**
-		 * Ignore ONLINE/OFFLINE events from fabric till vport is started.
-		 */
+		
 		break;
 
 	default:
@@ -169,9 +137,7 @@ bfa_fcs_vport_sm_created(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * Offline state - awaiting ONLINE event from fabric SM.
- */
+
 static void
 bfa_fcs_vport_sm_offline(struct bfa_fcs_vport_s *vport,
 			 enum bfa_fcs_vport_event event)
@@ -192,13 +158,7 @@ bfa_fcs_vport_sm_offline(struct bfa_fcs_vport_s *vport,
 		break;
 
 	case BFA_FCS_VPORT_SM_OFFLINE:
-		/*
-		 * This can happen if the vport couldn't be initialzied due
-		 * the fact that the npiv was not enabled on the switch. In
-		 * that case we will put the vport in offline state. However,
-		 * the link can go down and cause the this event to be sent when
-		 * we are already offline. Ignore it.
-		 */
+		
 		break;
 
 	default:
@@ -206,9 +166,7 @@ bfa_fcs_vport_sm_offline(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * FDISC is sent and awaiting reply from fabric.
- */
+
 static void
 bfa_fcs_vport_sm_fdisc(struct bfa_fcs_vport_s *vport,
 		       enum bfa_fcs_vport_event event)
@@ -253,9 +211,7 @@ bfa_fcs_vport_sm_fdisc(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * FDISC attempt failed - a timer is active to retry FDISC.
- */
+
 static void
 bfa_fcs_vport_sm_fdisc_retry(struct bfa_fcs_vport_s *vport,
 			     enum bfa_fcs_vport_event event)
@@ -287,9 +243,7 @@ bfa_fcs_vport_sm_fdisc_retry(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * Vport is online (FDISC is complete).
- */
+
 static void
 bfa_fcs_vport_sm_online(struct bfa_fcs_vport_s *vport,
 			enum bfa_fcs_vport_event event)
@@ -314,10 +268,7 @@ bfa_fcs_vport_sm_online(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * Vport is being deleted - awaiting lport delete completion to send
- * LOGO to fabric.
- */
+
 static void
 bfa_fcs_vport_sm_deleting(struct bfa_fcs_vport_s *vport,
 			  enum bfa_fcs_vport_event event)
@@ -343,11 +294,7 @@ bfa_fcs_vport_sm_deleting(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * Error State.
- * This state will be set when the Vport Creation fails due to errors like
- * Dup WWN. In this state only operation allowed is a Vport Delete.
- */
+
 static void
 bfa_fcs_vport_sm_error(struct bfa_fcs_vport_s *vport,
 		       enum bfa_fcs_vport_event event)
@@ -366,10 +313,7 @@ bfa_fcs_vport_sm_error(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * Lport cleanup is in progress since vport is being deleted. Fabric is
- * offline, so no LOGO is needed to complete vport deletion.
- */
+
 static void
 bfa_fcs_vport_sm_cleanup(struct bfa_fcs_vport_s *vport,
 			 enum bfa_fcs_vport_event event)
@@ -391,10 +335,7 @@ bfa_fcs_vport_sm_cleanup(struct bfa_fcs_vport_s *vport,
 	}
 }
 
-/**
- * LOGO is sent to fabric. Vport delete is in progress. Lport delete cleanup
- * is done.
- */
+
 static void
 bfa_fcs_vport_sm_logo(struct bfa_fcs_vport_s *vport,
 		      enum bfa_fcs_vport_event event)
@@ -405,9 +346,7 @@ bfa_fcs_vport_sm_logo(struct bfa_fcs_vport_s *vport,
 	switch (event) {
 	case BFA_FCS_VPORT_SM_OFFLINE:
 		bfa_lps_discard(vport->lps);
-		/*
-		 * !!! fall through !!!
-		 */
+		
 
 	case BFA_FCS_VPORT_SM_RSP_OK:
 	case BFA_FCS_VPORT_SM_RSP_ERROR:
@@ -425,13 +364,9 @@ bfa_fcs_vport_sm_logo(struct bfa_fcs_vport_s *vport,
 
 
 
-/**
- *  fcs_vport_private FCS virtual port private functions
- */
 
-/**
- * Send AEN notification
- */
+
+
 static void
 bfa_fcs_vport_aen_post(bfa_fcs_lport_t *port, enum bfa_lport_aen_event event)
 {
@@ -471,9 +406,7 @@ bfa_fcs_vport_aen_post(bfa_fcs_lport_t *port, enum bfa_lport_aen_event event)
 	aen_data.lport.lpwwn = lpwwn;
 }
 
-/**
- * This routine will be called to send a FDISC command.
- */
+
 static void
 bfa_fcs_vport_do_fdisc(struct bfa_fcs_vport_s *vport)
 {
@@ -492,12 +425,10 @@ bfa_fcs_vport_fdisc_rejected(struct bfa_fcs_vport_s *vport)
 	bfa_trc(__vport_fcs(vport), lsrjt_rsn);
 	bfa_trc(__vport_fcs(vport), lsrjt_expl);
 
-	/*
-	 * For certain reason codes, we don't want to retry.
-	 */
+	
 	switch (bfa_lps_get_lsrjt_expl(vport->lps)) {
-	case FC_LS_RJT_EXP_INV_PORT_NAME:	/* by brocade */
-	case FC_LS_RJT_EXP_INVALID_NPORT_ID:	/* by Cisco */
+	case FC_LS_RJT_EXP_INV_PORT_NAME:	
+	case FC_LS_RJT_EXP_INVALID_NPORT_ID:	
 		if (vport->fdisc_retries < BFA_FCS_VPORT_MAX_RETRIES)
 			bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_RSP_ERROR);
 		else {
@@ -508,10 +439,7 @@ bfa_fcs_vport_fdisc_rejected(struct bfa_fcs_vport_s *vport)
 		break;
 
 	case FC_LS_RJT_EXP_INSUFF_RES:
-		/*
-		 * This means max logins per port/switch setting on the
-		 * switch was exceeded.
-		 */
+		
 		if (vport->fdisc_retries < BFA_FCS_VPORT_MAX_RETRIES)
 			bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_RSP_ERROR);
 		else {
@@ -522,17 +450,14 @@ bfa_fcs_vport_fdisc_rejected(struct bfa_fcs_vport_s *vport)
 		break;
 
 	default:
-		if (vport->fdisc_retries == 0)	/* Print only once */
+		if (vport->fdisc_retries == 0)	
 			bfa_fcs_vport_aen_post(&vport->lport,
 					       BFA_LPORT_AEN_NPIV_UNKNOWN);
 		bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_RSP_ERROR);
 	}
 }
 
-/**
- * 	Called to send a logout to the fabric. Used when a V-Port is
- * 	deleted/stopped.
- */
+
 static void
 bfa_fcs_vport_do_logo(struct bfa_fcs_vport_s *vport)
 {
@@ -542,19 +467,7 @@ bfa_fcs_vport_do_logo(struct bfa_fcs_vport_s *vport)
 	bfa_lps_fdisclogo(vport->lps);
 }
 
-/**
- *     This routine will be called by bfa_timer on timer timeouts.
- *
- * 	param[in] 	vport 		- pointer to bfa_fcs_vport_t.
- * 	param[out]	vport_status 	- pointer to return vport status in
- *
- * 	return
- * 		void
- *
-* 	Special Considerations:
- *
- * 	note
- */
+
 static void
 bfa_fcs_vport_timeout(void *vport_arg)
 {
@@ -574,13 +487,9 @@ bfa_fcs_vport_free(struct bfa_fcs_vport_s *vport)
 
 
 
-/**
- *  fcs_vport_public FCS virtual port public interfaces
- */
 
-/**
- * Online notification from fabric SM.
- */
+
+
 void
 bfa_fcs_vport_online(struct bfa_fcs_vport_s *vport)
 {
@@ -588,9 +497,7 @@ bfa_fcs_vport_online(struct bfa_fcs_vport_s *vport)
 	bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_ONLINE);
 }
 
-/**
- * Offline notification from fabric SM.
- */
+
 void
 bfa_fcs_vport_offline(struct bfa_fcs_vport_s *vport)
 {
@@ -598,35 +505,27 @@ bfa_fcs_vport_offline(struct bfa_fcs_vport_s *vport)
 	bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_OFFLINE);
 }
 
-/**
- * Cleanup notification from fabric SM on link timer expiry.
- */
+
 void
 bfa_fcs_vport_cleanup(struct bfa_fcs_vport_s *vport)
 {
 	vport->vport_stats.fab_cleanup++;
 }
 
-/**
- * Delete completion callback from associated lport
- */
+
 void
 bfa_fcs_vport_delete_comp(struct bfa_fcs_vport_s *vport)
 {
 	bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_DELCOMP);
 }
 
-/**
- *   Module initialization
- */
+
 void
 bfa_fcs_vport_modinit(struct bfa_fcs_s *fcs)
 {
 }
 
-/**
- *   Module cleanup
- */
+
 void
 bfa_fcs_vport_modexit(struct bfa_fcs_s *fcs)
 {
@@ -648,27 +547,9 @@ bfa_fcs_vport_get_max(struct bfa_fcs_s *fcs)
 
 
 
-/**
- *  fcs_vport_api Virtual port API
- */
 
-/**
- *  	Use this function to instantiate a new FCS vport object. This
- * 	function will not trigger any HW initialization process (which will be
- * 	done in vport_start() call)
- *
- * 	param[in] vport	- 	pointer to bfa_fcs_vport_t. This space
- * 					needs to be allocated by the driver.
- * 	param[in] fcs 		- 	FCS instance
- * 	param[in] vport_cfg	- 	vport configuration
- * 	param[in] vf_id    	- 	VF_ID if vport is created within a VF.
- *                          		FC_VF_ID_NULL to specify base fabric.
- * 	param[in] vport_drv 	- 	Opaque handle back to the driver's vport
- * 					structure
- *
- * 	retval BFA_STATUS_OK - on success.
- * 	retval BFA_STATUS_FAILED - on failure.
- */
+
+
 bfa_status_t
 bfa_fcs_vport_create(struct bfa_fcs_vport_s *vport, struct bfa_fcs_s *fcs,
 		     u16 vf_id, struct bfa_port_cfg_s *vport_cfg,
@@ -701,13 +582,7 @@ bfa_fcs_vport_create(struct bfa_fcs_vport_s *vport, struct bfa_fcs_s *fcs,
 	return BFA_STATUS_OK;
 }
 
-/**
- *  	Use this function initialize the vport.
- *
- *  @param[in] vport - pointer to bfa_fcs_vport_t.
- *
- *  @returns None
- */
+
 bfa_status_t
 bfa_fcs_vport_start(struct bfa_fcs_vport_s *vport)
 {
@@ -716,15 +591,7 @@ bfa_fcs_vport_start(struct bfa_fcs_vport_s *vport)
 	return BFA_STATUS_OK;
 }
 
-/**
- *  	Use this function quiese the vport object. This function will return
- * 	immediately, when the vport is actually stopped, the
- * 	bfa_drv_vport_stop_cb() will be called.
- *
- * 	param[in] vport - pointer to bfa_fcs_vport_t.
- *
- * 	return None
- */
+
 bfa_status_t
 bfa_fcs_vport_stop(struct bfa_fcs_vport_s *vport)
 {
@@ -733,14 +600,7 @@ bfa_fcs_vport_stop(struct bfa_fcs_vport_s *vport)
 	return BFA_STATUS_OK;
 }
 
-/**
- *  	Use this function to delete a vport object. Fabric object should
- * 		be stopped before this function call.
- *
- * 	param[in] vport - pointer to bfa_fcs_vport_t.
- *
- * 	return     None
- */
+
 bfa_status_t
 bfa_fcs_vport_delete(struct bfa_fcs_vport_s *vport)
 {
@@ -749,14 +609,7 @@ bfa_fcs_vport_delete(struct bfa_fcs_vport_s *vport)
 	return BFA_STATUS_OK;
 }
 
-/**
- *  	Use this function to get vport's current status info.
- *
- * 	param[in] 	vport 		pointer to bfa_fcs_vport_t.
- * 	param[out]	attr 		pointer to return vport attributes
- *
- * 	return None
- */
+
 void
 bfa_fcs_vport_get_attr(struct bfa_fcs_vport_s *vport,
 		       struct bfa_vport_attr_s *attr)
@@ -770,14 +623,7 @@ bfa_fcs_vport_get_attr(struct bfa_fcs_vport_s *vport,
 	attr->vport_state = bfa_sm_to_state(vport_sm_table, vport->sm);
 }
 
-/**
- *  	Use this function to get vport's statistics.
- *
- * 	param[in] 	vport 		pointer to bfa_fcs_vport_t.
- * 	param[out]	stats		pointer to return vport statistics in
- *
- * 	return None
- */
+
 void
 bfa_fcs_vport_get_stats(struct bfa_fcs_vport_s *vport,
 			struct bfa_vport_stats_s *stats)
@@ -785,22 +631,14 @@ bfa_fcs_vport_get_stats(struct bfa_fcs_vport_s *vport,
 	*stats = vport->vport_stats;
 }
 
-/**
- *  	Use this function to clear vport's statistics.
- *
- * 	param[in] 	vport 		pointer to bfa_fcs_vport_t.
- *
- * 	return None
- */
+
 void
 bfa_fcs_vport_clr_stats(struct bfa_fcs_vport_s *vport)
 {
 	bfa_os_memset(&vport->vport_stats, 0, sizeof(struct bfa_vport_stats_s));
 }
 
-/**
- *      Lookup a virtual port. Excludes base port from lookup.
- */
+
 struct bfa_fcs_vport_s *
 bfa_fcs_vport_lookup(struct bfa_fcs_s *fcs, u16 vf_id, wwn_t vpwwn)
 {
@@ -820,9 +658,7 @@ bfa_fcs_vport_lookup(struct bfa_fcs_s *fcs, u16 vf_id, wwn_t vpwwn)
 	return vport;
 }
 
-/**
- * FDISC Response
- */
+
 void
 bfa_cb_lps_fdisc_comp(void *bfad, void *uarg, bfa_status_t status)
 {
@@ -833,18 +669,14 @@ bfa_cb_lps_fdisc_comp(void *bfad, void *uarg, bfa_status_t status)
 
 	switch (status) {
 	case BFA_STATUS_OK:
-		/*
-		 * Initialiaze the V-Port fields
-		 */
+		
 		__vport_fcid(vport) = bfa_lps_get_pid(vport->lps);
 		vport->vport_stats.fdisc_accepts++;
 		bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_RSP_OK);
 		break;
 
 	case BFA_STATUS_INVALID_MAC:
-		/*
-		 * Only for CNA
-		 */
+		
 		vport->vport_stats.fdisc_acc_bad++;
 		bfa_sm_send_event(vport, BFA_FCS_VPORT_SM_RSP_ERROR);
 
@@ -878,9 +710,7 @@ bfa_cb_lps_fdisc_comp(void *bfad, void *uarg, bfa_status_t status)
 	}
 }
 
-/**
- * LOGO response
- */
+
 void
 bfa_cb_lps_fdisclogo_comp(void *bfad, void *uarg)
 {

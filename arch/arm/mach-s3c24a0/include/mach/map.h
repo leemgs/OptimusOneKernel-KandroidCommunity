@@ -1,15 +1,4 @@
-/* linux/arch/arm/mach-s3c24a0/include/mach/map.h
- *
- * Copyright 2003,2007  Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24A0 - Memory map definitions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __ASM_ARCH_24A0_MAP_H
 #define __ASM_ARCH_24A0_MAP_H __FILE__
@@ -48,7 +37,7 @@
 #define S3C24A0_PA_LCD		(0x4A000000)
 #define S3C24A0_PA_VPOST	(0x4A100000)
 
-/* physical addresses of all the chip-select areas */
+
 
 #define S3C24A0_CS0	(0x00000000)
 #define S3C24A0_CS1	(0x04000000)
@@ -59,7 +48,7 @@
 
 #define S3C24A0_SDRAM_PA	(S3C24A0_CS4)
 
-/* Use a single interface for common resources between S3C24XX cpus */
+
 
 #define S3C24XX_PA_IRQ		S3C24A0_PA_IRQ
 #define S3C24XX_PA_MEMCTRL	S3C24A0_PA_MEMCTRL
@@ -83,4 +72,4 @@
 #define S3C_PA_IIC		S3C24A0_PA_IIC
 #define S3C_PA_NAND		S3C24XX_PA_NAND
 
-#endif /* __ASM_ARCH_24A0_MAP_H */
+#endif 

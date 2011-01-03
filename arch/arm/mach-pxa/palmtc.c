@@ -1,18 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/palmtc.c
- *
- * Support for the Palm Tungsten|C
- *
- * Author:	Marek Vasut <marek.vasut@gmail.com>
- *
- * Based on work of:
- *		Petr Blaha <p3t3@centrum.cz>
- *		Chetan S. Kumar <shivakumar.chetan@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/delay.h>
@@ -42,18 +28,16 @@
 #include "generic.h"
 #include "devices.h"
 
-/******************************************************************************
- * Pin configuration
- ******************************************************************************/
+
 static unsigned long palmtc_pin_config[] __initdata = {
-	/* MMC */
+	
 	GPIO6_MMC_CLK,
 	GPIO8_MMC_CS0,
-	GPIO12_GPIO,	/* detect */
-	GPIO32_GPIO,	/* power */
-	GPIO54_GPIO,	/* r/o switch */
+	GPIO12_GPIO,	
+	GPIO32_GPIO,	
+	GPIO54_GPIO,	
 
-	/* PCMCIA */
+	
 	GPIO52_nPCE_1,
 	GPIO53_nPCE_2,
 	GPIO50_nPIOR,
@@ -65,25 +49,25 @@ static unsigned long palmtc_pin_config[] __initdata = {
 	GPIO57_nIOIS16,
 	GPIO56_nPWAIT,
 
-	/* AC97 */
+	
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
 	GPIO30_AC97_SDATA_OUT,
 	GPIO31_AC97_SYNC,
 
-	/* IrDA */
-	GPIO45_GPIO,	/* ir disable */
+	
+	GPIO45_GPIO,	
 	GPIO46_FICP_RXD,
 	GPIO47_FICP_TXD,
 
-	/* PWM */
+	
 	GPIO17_PWM1_OUT,
 
-	/* USB */
-	GPIO4_GPIO,	/* detect */
-	GPIO36_GPIO,	/* pullup */
+	
+	GPIO4_GPIO,	
+	GPIO36_GPIO,	
 
-	/* LCD */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -105,36 +89,34 @@ static unsigned long palmtc_pin_config[] __initdata = {
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
 
-	/* MATRIX KEYPAD */
-	GPIO0_GPIO | WAKEUP_ON_EDGE_BOTH,	/* in 0 */
-	GPIO9_GPIO | WAKEUP_ON_EDGE_BOTH,	/* in 1 */
-	GPIO10_GPIO | WAKEUP_ON_EDGE_BOTH,	/* in 2 */
-	GPIO11_GPIO | WAKEUP_ON_EDGE_BOTH,	/* in 3 */
-	GPIO18_GPIO | MFP_LPM_DRIVE_LOW,	/* out 0 */
-	GPIO19_GPIO | MFP_LPM_DRIVE_LOW,	/* out 1 */
-	GPIO20_GPIO | MFP_LPM_DRIVE_LOW,	/* out 2 */
-	GPIO21_GPIO | MFP_LPM_DRIVE_LOW,	/* out 3 */
-	GPIO22_GPIO | MFP_LPM_DRIVE_LOW,	/* out 4 */
-	GPIO23_GPIO | MFP_LPM_DRIVE_LOW,	/* out 5 */
-	GPIO24_GPIO | MFP_LPM_DRIVE_LOW,	/* out 6 */
-	GPIO25_GPIO | MFP_LPM_DRIVE_LOW,	/* out 7 */
-	GPIO26_GPIO | MFP_LPM_DRIVE_LOW,	/* out 8 */
-	GPIO27_GPIO | MFP_LPM_DRIVE_LOW,	/* out 9 */
-	GPIO79_GPIO | MFP_LPM_DRIVE_LOW,	/* out 10 */
-	GPIO80_GPIO | MFP_LPM_DRIVE_LOW,	/* out 11 */
+	
+	GPIO0_GPIO | WAKEUP_ON_EDGE_BOTH,	
+	GPIO9_GPIO | WAKEUP_ON_EDGE_BOTH,	
+	GPIO10_GPIO | WAKEUP_ON_EDGE_BOTH,	
+	GPIO11_GPIO | WAKEUP_ON_EDGE_BOTH,	
+	GPIO18_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO19_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO20_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO21_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO22_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO23_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO24_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO25_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO26_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO27_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO79_GPIO | MFP_LPM_DRIVE_LOW,	
+	GPIO80_GPIO | MFP_LPM_DRIVE_LOW,	
 
-	/* PXA GPIO KEYS */
-	GPIO7_GPIO | WAKEUP_ON_EDGE_BOTH,	/* hotsync button on cradle */
+	
+	GPIO7_GPIO | WAKEUP_ON_EDGE_BOTH,	
 
-	/* MISC */
-	GPIO1_RST,	/* reset */
-	GPIO2_GPIO,	/* earphone detect */
-	GPIO16_GPIO,	/* backlight switch */
+	
+	GPIO1_RST,	
+	GPIO2_GPIO,	
+	GPIO16_GPIO,	
 };
 
-/******************************************************************************
- * SD/MMC card controller
- ******************************************************************************/
+
 static struct pxamci_platform_data palmtc_mci_platform_data = {
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_power		= GPIO_NR_PALMTC_SD_POWER,
@@ -143,9 +125,7 @@ static struct pxamci_platform_data palmtc_mci_platform_data = {
 	.detect_delay		= 20,
 };
 
-/******************************************************************************
- * GPIO keys
- ******************************************************************************/
+
 static struct gpio_keys_button palmtc_pxa_buttons[] = {
 	{KEY_F8, GPIO_NR_PALMTC_HOTSYNC_BUTTON, 1, "HotSync Button", EV_KEY, 1},
 };
@@ -163,9 +143,7 @@ static struct platform_device palmtc_pxa_keys = {
 	},
 };
 
-/******************************************************************************
- * Backlight
- ******************************************************************************/
+
 static int palmtc_backlight_init(struct device *dev)
 {
 	int ret;
@@ -187,7 +165,7 @@ err:
 
 static int palmtc_backlight_notify(int brightness)
 {
-	/* backlight is on when GPIO16 AF0 is high */
+	
 	gpio_set_value(GPIO_NR_PALMTC_BL_POWER, brightness);
 	return brightness;
 }
@@ -215,17 +193,13 @@ static struct platform_device palmtc_backlight = {
 	},
 };
 
-/******************************************************************************
- * IrDA
- ******************************************************************************/
+
 static struct pxaficp_platform_data palmtc_ficp_platform_data = {
 	.gpio_pwdown		= GPIO_NR_PALMTC_IR_DISABLE,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
-/******************************************************************************
- * Keyboard
- ******************************************************************************/
+
 static const uint32_t palmtc_matrix_keys[] = {
 	KEY(0, 0, KEY_F1),
 	KEY(0, 1, KEY_X),
@@ -310,26 +284,20 @@ static struct platform_device palmtc_keyboard = {
 	},
 };
 
-/******************************************************************************
- * UDC
- ******************************************************************************/
+
 static struct pxa2xx_udc_mach_info palmtc_udc_info __initdata = {
 	.gpio_vbus		= GPIO_NR_PALMTC_USB_DETECT_N,
 	.gpio_vbus_inverted	= 1,
 	.gpio_pullup		= GPIO_NR_PALMTC_USB_POWER,
 };
 
-/******************************************************************************
- * Touchscreen / Battery / GPIO-extender
- ******************************************************************************/
+
 static struct platform_device palmtc_ucb1400_core = {
 	.name	= "ucb1400_core",
 	.id	= -1,
 };
 
-/******************************************************************************
- * NOR Flash
- ******************************************************************************/
+
 static struct resource palmtc_flash_resource = {
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_16M - 1,
@@ -375,9 +343,7 @@ static struct platform_device palmtc_flash = {
 	},
 };
 
-/******************************************************************************
- * Framebuffer
- ******************************************************************************/
+
 static struct pxafb_mode_info palmtc_lcd_modes[] = {
 {
 	.pixclock	= 115384,
@@ -401,9 +367,7 @@ static struct pxafb_mach_info palmtc_lcd_screen = {
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
 
-/******************************************************************************
- * Machine init
- ******************************************************************************/
+
 static struct platform_device *devices[] __initdata = {
 	&palmtc_backlight,
 	&palmtc_ucb1400_core,

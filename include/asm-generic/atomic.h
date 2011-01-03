@@ -1,15 +1,4 @@
-/*
- * Generic C implementation of atomic counter operations
- * Originally implemented for MN10300.
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licence
- * as published by the Free Software Foundation; either version
- * 2 of the Licence, or (at your option) any later version.
- */
+
 #ifndef __ASM_GENERIC_ATOMIC_H
 #define __ASM_GENERIC_ATOMIC_H
 
@@ -17,44 +6,21 @@
 #error not SMP safe
 #endif
 
-/*
- * Atomic operations that C can't guarantee us.  Useful for
- * resource counting etc..
- */
+
 
 #define ATOMIC_INIT(i)	{ (i) }
 
 #ifdef __KERNEL__
 
-/**
- * atomic_read - read atomic variable
- * @v: pointer of type atomic_t
- *
- * Atomically reads the value of @v.  Note that the guaranteed
- * useful range of an atomic_t is only 24 bits.
- */
+
 #define atomic_read(v)	((v)->counter)
 
-/**
- * atomic_set - set atomic variable
- * @v: pointer of type atomic_t
- * @i: required value
- *
- * Atomically sets the value of @v to @i.  Note that the guaranteed
- * useful range of an atomic_t is only 24 bits.
- */
+
 #define atomic_set(v, i) (((v)->counter) = (i))
 
 #include <asm/system.h>
 
-/**
- * atomic_add_return - add integer to atomic variable
- * @i: integer value to add
- * @v: pointer of type atomic_t
- *
- * Atomically adds @i to @v and returns the result
- * Note that the guaranteed useful range of an atomic_t is only 24 bits.
- */
+
 static inline int atomic_add_return(int i, atomic_t *v)
 {
 	unsigned long flags;
@@ -69,14 +35,7 @@ static inline int atomic_add_return(int i, atomic_t *v)
 	return temp;
 }
 
-/**
- * atomic_sub_return - subtract integer from atomic variable
- * @i: integer value to subtract
- * @v: pointer of type atomic_t
- *
- * Atomically subtracts @i from @v and returns the result
- * Note that the guaranteed useful range of an atomic_t is only 24 bits.
- */
+
 static inline int atomic_sub_return(int i, atomic_t *v)
 {
 	unsigned long flags;
@@ -153,7 +112,7 @@ static inline void atomic_clear_mask(unsigned long mask, unsigned long *addr)
 
 #define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
 
-/* Assume that atomic operations are already serializing */
+
 #define smp_mb__before_atomic_dec()	barrier()
 #define smp_mb__after_atomic_dec()	barrier()
 #define smp_mb__before_atomic_inc()	barrier()
@@ -161,5 +120,5 @@ static inline void atomic_clear_mask(unsigned long mask, unsigned long *addr)
 
 #include <asm-generic/atomic-long.h>
 
-#endif /* __KERNEL__ */
-#endif /* __ASM_GENERIC_ATOMIC_H */
+#endif 
+#endif 

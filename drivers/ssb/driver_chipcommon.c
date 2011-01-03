@@ -1,12 +1,4 @@
-/*
- * Sonics Silicon Backplane
- * Broadcom ChipCommon core driver
- *
- * Copyright 2005, Broadcom Corporation
- * Copyright 2006, 2007, Michael Buesch <mb@bu3sch.de>
- *
- * Licensed under the GNU/GPL. See COPYING for details.
- */
+
 
 #include <linux/ssb/ssb.h>
 #include <linux/ssb/ssb_regs.h>
@@ -15,13 +7,13 @@
 #include "ssb_private.h"
 
 
-/* Clock sources */
+
 enum ssb_clksrc {
-	/* PCI clock */
+	
 	SSB_CHIPCO_CLKSRC_PCI,
-	/* Crystal slow clock oscillator */
+	
 	SSB_CHIPCO_CLKSRC_XTALOS,
-	/* Low power oscillator */
+	
 	SSB_CHIPCO_CLKSRC_LOPWROS,
 };
 
@@ -46,10 +38,10 @@ void ssb_chipco_set_clockmode(struct ssb_chipcommon *cc,
 	if (!ccdev)
 		return;
 	bus = ccdev->bus;
-	/* chipcommon cores prior to rev6 don't support dynamic clock control */
+	
 	if (ccdev->id.revision < 6)
 		return;
-	/* chipcommon cores rev10 are a whole new ball game */
+	
 	if (ccdev->id.revision >= 10)
 		return;
 	if (!(cc->capabilities & SSB_CHIPCO_CAP_PCTL))
@@ -62,7 +54,7 @@ void ssb_chipco_set_clockmode(struct ssb_chipcommon *cc,
 		chipco_write32(cc, SSB_CHIPCO_SLOWCLKCTL, tmp);
 		break;
 	case SSB_CLKMODE_FAST:
-		ssb_pci_xtal(bus, SSB_GPIO_XTAL, 1); /* Force crystal on */
+		ssb_pci_xtal(bus, SSB_GPIO_XTAL, 1); 
 		tmp = chipco_read32(cc, SSB_CHIPCO_SLOWCLKCTL);
 		tmp &= ~SSB_CHIPCO_SLOWCLKCTL_FSLOW;
 		tmp |= SSB_CHIPCO_SLOWCLKCTL_IPLL;
@@ -77,7 +69,7 @@ void ssb_chipco_set_clockmode(struct ssb_chipcommon *cc,
 			tmp |= SSB_CHIPCO_SLOWCLKCTL_ENXTAL;
 		chipco_write32(cc, SSB_CHIPCO_SLOWCLKCTL, tmp);
 
-		/* for dynamic control, we have to release our xtal_pu "force on" */
+		
 		if (tmp & SSB_CHIPCO_SLOWCLKCTL_ENXTAL)
 			ssb_pci_xtal(bus, SSB_GPIO_XTAL, 0);
 		break;
@@ -86,7 +78,7 @@ void ssb_chipco_set_clockmode(struct ssb_chipcommon *cc,
 	}
 }
 
-/* Get the Slow Clock Source */
+
 static enum ssb_clksrc chipco_pctl_get_slowclksrc(struct ssb_chipcommon *cc)
 {
 	struct ssb_bus *bus = cc->dev->bus;
@@ -117,7 +109,7 @@ static enum ssb_clksrc chipco_pctl_get_slowclksrc(struct ssb_chipcommon *cc)
 	return SSB_CHIPCO_CLKSRC_XTALOS;
 }
 
-/* Get maximum or minimum (depending on get_max flag) slowclock frequency. */
+
 static int chipco_pctl_clockfreqlimit(struct ssb_chipcommon *cc, int get_max)
 {
 	int uninitialized_var(limit);
@@ -194,7 +186,7 @@ static void chipco_powercontrol_init(struct ssb_chipcommon *cc)
 		return;
 
 	if (cc->dev->id.revision >= 10) {
-		/* Set Idle Power clock rate to 1Mhz */
+		
 		chipco_write32(cc, SSB_CHIPCO_SYSCLKCTL,
 			       (chipco_read32(cc, SSB_CHIPCO_SYSCLKCTL) &
 				0x0000FFFF) | 0x00040000);
@@ -232,7 +224,7 @@ static void calc_fast_powerup_delay(struct ssb_chipcommon *cc)
 void ssb_chipcommon_init(struct ssb_chipcommon *cc)
 {
 	if (!cc->dev)
-		return; /* We don't have a ChipCommon */
+		return; 
 	ssb_pmu_init(cc);
 	chipco_powercontrol_init(cc);
 	ssb_chipco_set_clockmode(cc, SSB_CLKMODE_FAST);
@@ -254,7 +246,7 @@ void ssb_chipco_resume(struct ssb_chipcommon *cc)
 	ssb_chipco_set_clockmode(cc, SSB_CLKMODE_FAST);
 }
 
-/* Get the processor clock */
+
 void ssb_chipco_get_clockcpu(struct ssb_chipcommon *cc,
                              u32 *plltype, u32 *n, u32 *m)
 {
@@ -268,7 +260,7 @@ void ssb_chipco_get_clockcpu(struct ssb_chipcommon *cc,
 		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
 		break;
 	case SSB_PLLTYPE_3:
-		/* 5350 uses m2 to control mips */
+		
 		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
 		break;
 	default:
@@ -277,22 +269,22 @@ void ssb_chipco_get_clockcpu(struct ssb_chipcommon *cc,
 	}
 }
 
-/* Get the bus clock */
+
 void ssb_chipco_get_clockcontrol(struct ssb_chipcommon *cc,
 				 u32 *plltype, u32 *n, u32 *m)
 {
 	*n = chipco_read32(cc, SSB_CHIPCO_CLOCK_N);
 	*plltype = (cc->capabilities & SSB_CHIPCO_CAP_PLLT);
 	switch (*plltype) {
-	case SSB_PLLTYPE_6: /* 100/200 or 120/240 only */
+	case SSB_PLLTYPE_6: 
 		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
 		break;
-	case SSB_PLLTYPE_3: /* 25Mhz, 2 dividers */
+	case SSB_PLLTYPE_3: 
 		if (cc->dev->bus->chip_id != 0x5365) {
 			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
 			break;
 		}
-		/* Fallthough */
+		
 	default:
 		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
 	}
@@ -305,17 +297,17 @@ void ssb_chipco_timing_init(struct ssb_chipcommon *cc,
 	struct ssb_bus *bus = dev->bus;
 	u32 tmp;
 
-	/* set register for external IO to control LED. */
+	
 	chipco_write32(cc, SSB_CHIPCO_PROG_CFG, 0x11);
-	tmp = DIV_ROUND_UP(10, ns) << SSB_PROG_WCNT_3_SHIFT;		/* Waitcount-3 = 10ns */
-	tmp |= DIV_ROUND_UP(40, ns) << SSB_PROG_WCNT_1_SHIFT;	/* Waitcount-1 = 40ns */
-	tmp |= DIV_ROUND_UP(240, ns);				/* Waitcount-0 = 240ns */
-	chipco_write32(cc, SSB_CHIPCO_PROG_WAITCNT, tmp);	/* 0x01020a0c for a 100Mhz clock */
+	tmp = DIV_ROUND_UP(10, ns) << SSB_PROG_WCNT_3_SHIFT;		
+	tmp |= DIV_ROUND_UP(40, ns) << SSB_PROG_WCNT_1_SHIFT;	
+	tmp |= DIV_ROUND_UP(240, ns);				
+	chipco_write32(cc, SSB_CHIPCO_PROG_WAITCNT, tmp);	
 
-	/* Set timing for the flash */
-	tmp = DIV_ROUND_UP(10, ns) << SSB_FLASH_WCNT_3_SHIFT;	/* Waitcount-3 = 10nS */
-	tmp |= DIV_ROUND_UP(10, ns) << SSB_FLASH_WCNT_1_SHIFT;	/* Waitcount-1 = 10nS */
-	tmp |= DIV_ROUND_UP(120, ns);				/* Waitcount-0 = 120nS */
+	
+	tmp = DIV_ROUND_UP(10, ns) << SSB_FLASH_WCNT_3_SHIFT;	
+	tmp |= DIV_ROUND_UP(10, ns) << SSB_FLASH_WCNT_1_SHIFT;	
+	tmp |= DIV_ROUND_UP(120, ns);				
 	if ((bus->chip_id == 0x5365) ||
 	    (dev->id.revision < 9))
 		chipco_write32(cc, SSB_CHIPCO_FLASH_WAITCNT, tmp);
@@ -325,19 +317,19 @@ void ssb_chipco_timing_init(struct ssb_chipcommon *cc,
 		chipco_write32(cc, SSB_CHIPCO_PCMCIA_MEMWAIT, tmp);
 
 	if (bus->chip_id == 0x5350) {
-		/* Enable EXTIF */
-		tmp = DIV_ROUND_UP(10, ns) << SSB_PROG_WCNT_3_SHIFT;	  /* Waitcount-3 = 10ns */
-		tmp |= DIV_ROUND_UP(20, ns) << SSB_PROG_WCNT_2_SHIFT;  /* Waitcount-2 = 20ns */
-		tmp |= DIV_ROUND_UP(100, ns) << SSB_PROG_WCNT_1_SHIFT; /* Waitcount-1 = 100ns */
-		tmp |= DIV_ROUND_UP(120, ns);			  /* Waitcount-0 = 120ns */
-		chipco_write32(cc, SSB_CHIPCO_PROG_WAITCNT, tmp); /* 0x01020a0c for a 100Mhz clock */
+		
+		tmp = DIV_ROUND_UP(10, ns) << SSB_PROG_WCNT_3_SHIFT;	  
+		tmp |= DIV_ROUND_UP(20, ns) << SSB_PROG_WCNT_2_SHIFT;  
+		tmp |= DIV_ROUND_UP(100, ns) << SSB_PROG_WCNT_1_SHIFT; 
+		tmp |= DIV_ROUND_UP(120, ns);			  
+		chipco_write32(cc, SSB_CHIPCO_PROG_WAITCNT, tmp); 
 	}
 }
 
-/* Set chip watchdog reset timer to fire in 'ticks' backplane cycles */
+
 void ssb_chipco_watchdog_timer_set(struct ssb_chipcommon *cc, u32 ticks)
 {
-	/* instant NMI */
+	
 	chipco_write32(cc, SSB_CHIPCO_WATCHDOG, ticks);
 }
 
@@ -397,70 +389,70 @@ int ssb_chipco_serial_init(struct ssb_chipcommon *cc,
 	irq = ssb_mips_irq(cc->dev);
 
 	if (plltype == SSB_PLLTYPE_1) {
-		/* PLL clock */
+		
 		baud_base = ssb_calc_clock_rate(plltype,
 						chipco_read32(cc, SSB_CHIPCO_CLOCK_N),
 						chipco_read32(cc, SSB_CHIPCO_CLOCK_M2));
 		div = 1;
 	} else {
 		if (ccrev == 20) {
-			/* BCM5354 uses constant 25MHz clock */
+			
 			baud_base = 25000000;
 			div = 48;
-			/* Set the override bit so we don't divide it */
+			
 			chipco_write32(cc, SSB_CHIPCO_CORECTL,
 				       chipco_read32(cc, SSB_CHIPCO_CORECTL)
 				       | SSB_CHIPCO_CORECTL_UARTCLK0);
 		} else if ((ccrev >= 11) && (ccrev != 15)) {
-			/* Fixed ALP clock */
+			
 			baud_base = 20000000;
 			if (cc->capabilities & SSB_CHIPCO_CAP_PMU) {
-				/* FIXME: baud_base is different for devices with a PMU */
+				
 				SSB_WARN_ON(1);
 			}
 			div = 1;
 			if (ccrev >= 21) {
-				/* Turn off UART clock before switching clocksource. */
+				
 				chipco_write32(cc, SSB_CHIPCO_CORECTL,
 					       chipco_read32(cc, SSB_CHIPCO_CORECTL)
 					       & ~SSB_CHIPCO_CORECTL_UARTCLKEN);
 			}
-			/* Set the override bit so we don't divide it */
+			
 			chipco_write32(cc, SSB_CHIPCO_CORECTL,
 				       chipco_read32(cc, SSB_CHIPCO_CORECTL)
 				       | SSB_CHIPCO_CORECTL_UARTCLK0);
 			if (ccrev >= 21) {
-				/* Re-enable the UART clock. */
+				
 				chipco_write32(cc, SSB_CHIPCO_CORECTL,
 					       chipco_read32(cc, SSB_CHIPCO_CORECTL)
 					       | SSB_CHIPCO_CORECTL_UARTCLKEN);
 			}
 		} else if (ccrev >= 3) {
-			/* Internal backplane clock */
+			
 			baud_base = ssb_clockspeed(bus);
 			div = chipco_read32(cc, SSB_CHIPCO_CLKDIV)
 			      & SSB_CHIPCO_CLKDIV_UART;
 		} else {
-			/* Fixed internal backplane clock */
+			
 			baud_base = 88000000;
 			div = 48;
 		}
 
-		/* Clock source depends on strapping if UartClkOverride is unset */
+		
 		if ((ccrev > 0) &&
 		    !(chipco_read32(cc, SSB_CHIPCO_CORECTL) & SSB_CHIPCO_CORECTL_UARTCLK0)) {
 			if ((cc->capabilities & SSB_CHIPCO_CAP_UARTCLK) ==
 			    SSB_CHIPCO_CAP_UARTCLK_INT) {
-				/* Internal divided backplane clock */
+				
 				baud_base /= div;
 			} else {
-				/* Assume external clock of 1.8432 MHz */
+				
 				baud_base = 1843200;
 			}
 		}
 	}
 
-	/* Determine the registers of the UARTs */
+	
 	n = (cc->capabilities & SSB_CHIPCO_CAP_NRUART);
 	for (i = 0; i < n; i++) {
 		void __iomem *cc_mmio;
@@ -468,7 +460,7 @@ int ssb_chipco_serial_init(struct ssb_chipcommon *cc,
 
 		cc_mmio = cc->dev->bus->mmio + (cc->dev->core_index * SSB_CORE_SIZE);
 		uart_regs = cc_mmio + SSB_CHIPCO_UART0_DATA;
-		/* Offset changed at after rev 0 */
+		
 		if (ccrev == 0)
 			uart_regs += (i * 8);
 		else
@@ -483,4 +475,4 @@ int ssb_chipco_serial_init(struct ssb_chipcommon *cc,
 
 	return nr_ports;
 }
-#endif /* CONFIG_SSB_SERIAL */
+#endif 

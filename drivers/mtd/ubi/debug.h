@@ -1,22 +1,4 @@
-/*
- * Copyright (c) International Business Machines Corp., 2006
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
- * the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Author: Artem Bityutskiy (Битюцкий Артём)
- */
+
 
 #ifndef __UBI_DEBUG_H__
 #define __UBI_DEBUG_H__
@@ -58,35 +40,35 @@ void ubi_dbg_dump_mkvol_req(const struct ubi_mkvol_req *req);
 void ubi_dbg_dump_flash(struct ubi_device *ubi, int pnum, int offset, int len);
 
 #ifdef CONFIG_MTD_UBI_DEBUG_MSG
-/* General debugging messages */
+
 #define dbg_gen(fmt, ...) dbg_msg(fmt, ##__VA_ARGS__)
 #else
 #define dbg_gen(fmt, ...) ({})
 #endif
 
 #ifdef CONFIG_MTD_UBI_DEBUG_MSG_EBA
-/* Messages from the eraseblock association sub-system */
+
 #define dbg_eba(fmt, ...) dbg_msg(fmt, ##__VA_ARGS__)
 #else
 #define dbg_eba(fmt, ...) ({})
 #endif
 
 #ifdef CONFIG_MTD_UBI_DEBUG_MSG_WL
-/* Messages from the wear-leveling sub-system */
+
 #define dbg_wl(fmt, ...) dbg_msg(fmt, ##__VA_ARGS__)
 #else
 #define dbg_wl(fmt, ...) ({})
 #endif
 
 #ifdef CONFIG_MTD_UBI_DEBUG_MSG_IO
-/* Messages from the input/output sub-system */
+
 #define dbg_io(fmt, ...) dbg_msg(fmt, ##__VA_ARGS__)
 #else
 #define dbg_io(fmt, ...) ({})
 #endif
 
 #ifdef CONFIG_MTD_UBI_DEBUG_MSG_BLD
-/* Initialization and build messages */
+
 #define dbg_bld(fmt, ...) dbg_msg(fmt, ##__VA_ARGS__)
 #define UBI_IO_DEBUG 1
 #else
@@ -107,11 +89,7 @@ int ubi_dbg_check_all_ff(struct ubi_device *ubi, int pnum, int offset, int len);
 #endif
 
 #ifdef CONFIG_MTD_UBI_DEBUG_EMULATE_BITFLIPS
-/**
- * ubi_dbg_is_bitflip - if it is time to emulate a bit-flip.
- *
- * Returns non-zero if a bit-flip should be emulated, otherwise returns zero.
- */
+
 static inline int ubi_dbg_is_bitflip(void)
 {
 	return !(random32() % 200);
@@ -121,12 +99,7 @@ static inline int ubi_dbg_is_bitflip(void)
 #endif
 
 #ifdef CONFIG_MTD_UBI_DEBUG_EMULATE_WRITE_FAILURES
-/**
- * ubi_dbg_is_write_failure - if it is time to emulate a write failure.
- *
- * Returns non-zero if a write failure should be emulated, otherwise returns
- * zero.
- */
+
 static inline int ubi_dbg_is_write_failure(void)
 {
 	return !(random32() % 500);
@@ -136,12 +109,7 @@ static inline int ubi_dbg_is_write_failure(void)
 #endif
 
 #ifdef CONFIG_MTD_UBI_DEBUG_EMULATE_ERASE_FAILURES
-/**
- * ubi_dbg_is_erase_failure - if its time to emulate an erase failure.
- *
- * Returns non-zero if an erase failure should be emulated, otherwise returns
- * zero.
- */
+
 static inline int ubi_dbg_is_erase_failure(void)
 {
 		return !(random32() % 400);
@@ -177,5 +145,5 @@ static inline int ubi_dbg_is_erase_failure(void)
 #define ubi_dbg_is_erase_failure() 0
 #define ubi_dbg_check_all_ff(ubi, pnum, offset, len) 0
 
-#endif /* !CONFIG_MTD_UBI_DEBUG */
-#endif /* !__UBI_DEBUG_H__ */
+#endif 
+#endif 

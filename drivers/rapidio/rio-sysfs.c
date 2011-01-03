@@ -1,14 +1,4 @@
-/*
- * RapidIO sysfs attributes and support
- *
- * Copyright 2005 MontaVista Software, Inc.
- * Matt Porter <mporter@kernel.crashing.org>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/rio.h>
@@ -17,7 +7,7 @@
 
 #include "rio.h"
 
-/* Sysfs support */
+
 #define rio_config_attr(field, format_string)					\
 static ssize_t								\
 field##_show(struct device *dev, struct device_attribute *attr, char *buf)			\
@@ -77,7 +67,7 @@ rio_read_config(struct kobject *kobj, struct bin_attribute *bin_attr,
 	loff_t init_off = off;
 	u8 *data = (u8 *) buf;
 
-	/* Several chips lock up trying to read undefined config space */
+	
 	if (capable(CAP_SYS_ADMIN))
 		size = 0x200000;
 
@@ -206,12 +196,7 @@ static struct bin_attribute rio_config_attr = {
 	.write = rio_write_config,
 };
 
-/**
- * rio_create_sysfs_dev_files - create RIO specific sysfs files
- * @rdev: device whose entries should be created
- *
- * Create files when @rdev is added to sysfs.
- */
+
 int rio_create_sysfs_dev_files(struct rio_dev *rdev)
 {
 	int err = 0;
@@ -221,12 +206,7 @@ int rio_create_sysfs_dev_files(struct rio_dev *rdev)
 	return err;
 }
 
-/**
- * rio_remove_sysfs_dev_files - cleanup RIO specific sysfs files
- * @rdev: device whose entries we should free
- *
- * Cleanup when @rdev is removed from sysfs.
- */
+
 void rio_remove_sysfs_dev_files(struct rio_dev *rdev)
 {
 	sysfs_remove_bin_file(&rdev->dev.kobj, &rio_config_attr);

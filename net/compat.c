@@ -1,15 +1,4 @@
-/*
- * 32bit Socket syscall emulation. Based on arch/sparc64/kernel/sys_sparc32.c.
- *
- * Copyright (C) 2000		VA Linux Co
- * Copyright (C) 2000		Don Dugger <n0ano@valinux.com>
- * Copyright (C) 1999 		Arun Sharma <arun.sharma@intel.com>
- * Copyright (C) 1997,1998 	Jakub Jelinek (jj@sunsite.mff.cuni.cz)
- * Copyright (C) 1997 		David S. Miller (davem@caip.rutgers.edu)
- * Copyright (C) 2000		Hewlett-Packard Co.
- * Copyright (C) 2000		David Mosberger-Tang <davidm@hpl.hp.com>
- * Copyright (C) 2000,2001	Andi Kleen, SuSE Labs
- */
+
 
 #include <linux/kernel.h>
 #include <linux/fs.h>
@@ -73,7 +62,7 @@ int get_compat_msghdr(struct msghdr *kmsg, struct compat_msghdr __user *umsg)
 	return 0;
 }
 
-/* I've named the args so it is easy to tell whose space the pointers are in. */
+
 int verify_compat_iovec(struct msghdr *kern_msg, struct iovec *kern_iov,
 		   struct sockaddr *kern_address, int mode)
 {
@@ -100,7 +89,7 @@ int verify_compat_iovec(struct msghdr *kern_msg, struct iovec *kern_iov,
 	return tot_len;
 }
 
-/* Bleech... */
+
 #define CMSG_COMPAT_ALIGN(len)	ALIGN((len), sizeof(s32))
 
 #define CMSG_COMPAT_DATA(cmsg)				\
@@ -131,10 +120,7 @@ static inline struct compat_cmsghdr __user *cmsg_compat_nxthdr(struct msghdr *ms
 	return (struct compat_cmsghdr __user *)ptr;
 }
 
-/* There is a lot of hair here because the alignment rules (and
- * thus placement) of cmsg headers and length are different for
- * 32-bit apps.  -DaveM
- */
+
 int cmsghdr_from_user_compat_to_kern(struct msghdr *kmsg, struct sock *sk,
 			       unsigned char *stackbuf, int stackbuf_size)
 {
@@ -151,7 +137,7 @@ int cmsghdr_from_user_compat_to_kern(struct msghdr *kmsg, struct sock *sk,
 		if (get_user(ucmlen, &ucmsg->cmsg_len))
 			return -EFAULT;
 
-		/* Catch bogons. */
+		
 		if (!CMSG_COMPAT_OK(ucmlen, ucmsg, kmsg))
 			return -EINVAL;
 
@@ -164,17 +150,13 @@ int cmsghdr_from_user_compat_to_kern(struct msghdr *kmsg, struct sock *sk,
 	if (kcmlen == 0)
 		return -EINVAL;
 
-	/* The kcmlen holds the 64-bit version of the control length.
-	 * It may not be modified as we do not stick it into the kmsg
-	 * until we have successfully copied over all of the data
-	 * from the user.
-	 */
+	
 	if (kcmlen > stackbuf_size)
 		kcmsg_base = kcmsg = sock_kmalloc(sk, kcmlen, GFP_KERNEL);
 	if (kcmsg == NULL)
 		return -ENOBUFS;
 
-	/* Now copy them over neatly. */
+	
 	memset(kcmsg, 0, kcmlen);
 	ucmsg = CMSG_COMPAT_FIRSTHDR(kmsg);
 	while (ucmsg != NULL) {
@@ -195,12 +177,12 @@ int cmsghdr_from_user_compat_to_kern(struct msghdr *kmsg, struct sock *sk,
 				   (ucmlen - CMSG_COMPAT_ALIGN(sizeof(*ucmsg)))))
 			goto Efault;
 
-		/* Advance. */
+		
 		kcmsg = (struct cmsghdr *)((char *)kcmsg + tmp);
 		ucmsg = cmsg_compat_nxthdr(kmsg, ucmsg, ucmlen);
 	}
 
-	/* Ok, looks like we made it.  Hook it up and return success. */
+	
 	kmsg->msg_control = kcmsg_base;
 	kmsg->msg_controllen = kcmlen;
 	return 0;
@@ -223,7 +205,7 @@ int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *dat
 
 	if (cm == NULL || kmsg->msg_controllen < sizeof(*cm)) {
 		kmsg->msg_flags |= MSG_CTRUNC;
-		return 0; /* XXX: return error? check spec. */
+		return 0; 
 	}
 
 	if (level == SOL_SOCKET && type == SCM_TIMESTAMP) {
@@ -294,7 +276,7 @@ void scm_detach_fds_compat(struct msghdr *kmsg, struct scm_cookie *scm)
 			put_unused_fd(new_fd);
 			break;
 		}
-		/* Bump the usage count and install the file. */
+		
 		get_file(fp[i]);
 		fd_install(new_fd, fp[i]);
 	}
@@ -315,19 +297,14 @@ void scm_detach_fds_compat(struct msghdr *kmsg, struct scm_cookie *scm)
 	if (i < fdnum)
 		kmsg->msg_flags |= MSG_CTRUNC;
 
-	/*
-	 * All of the files that fit in the message have had their
-	 * usage counts incremented, so we just free the list.
-	 */
+	
 	__scm_destroy(scm);
 }
 
-/*
- * A struct sock_filter is architecture independent.
- */
+
 struct compat_sock_fprog {
 	u16		len;
-	compat_uptr_t	filter;		/* struct sock_filter * */
+	compat_uptr_t	filter;		
 };
 
 static int do_set_attach_filter(struct socket *sock, int level, int optname,
@@ -663,7 +640,7 @@ int compat_mc_getsockopt(struct sock *sock, int level, int optname,
 	    __get_user(ulen, optlen))
 		return -EFAULT;
 
-	/* adjust len for pad */
+	
 	klen = ulen + sizeof(*kgf) - sizeof(*gf32);
 
 	if (klen < GROUP_FILTER_SIZE(0))
@@ -673,7 +650,7 @@ int compat_mc_getsockopt(struct sock *sock, int level, int optname,
 	    __put_user(klen, koptlen))
 		return -EFAULT;
 
-	/* have to allow space for previous compat_alloc_user_space, too */
+	
 	kgf = compat_alloc_user_space(klen+sizeof(*optlen));
 
 	if (!access_ok(VERIFY_READ, gf32, __COMPAT_GF0_SIZE) ||
@@ -725,7 +702,7 @@ int compat_mc_getsockopt(struct sock *sock, int level, int optname,
 EXPORT_SYMBOL(compat_mc_getsockopt);
 
 
-/* Argument list sizes for compat_sys_socketcall */
+
 #define AL(x) ((x) * sizeof(u32))
 static unsigned char nas[19]={AL(0),AL(3),AL(3),AL(3),AL(2),AL(3),
 				AL(3),AL(3),AL(4),AL(4),AL(4),AL(6),

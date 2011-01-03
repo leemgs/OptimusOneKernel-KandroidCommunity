@@ -1,16 +1,4 @@
-/* arch/arm/plat-s3c64xx/include/plat/regs-syscon-power.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      http://armlinux.simtec.co.uk/
- *      Ben Dooks <ben@simtec.co.uk>
- *
- * S3C64XX - syscon power and sleep control registers
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __PLAT_S3C64XX_REGS_SYSCON_POWER_H
 #define __PLAT_S3C64XX_REGS_SYSCON_POWER_H __FILE__
@@ -113,4 +101,4 @@
 #define S3C64XX_INFORM2				S3C_SYSREG(0xA08)
 #define S3C64XX_INFORM3				S3C_SYSREG(0xA0C)
 
-#endif /* __PLAT_S3C64XX_REGS_SYSCON_POWER_H */
+#endif 

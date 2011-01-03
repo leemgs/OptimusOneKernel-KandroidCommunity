@@ -1,17 +1,4 @@
-/*
- * net/ipv6/fib6_rules.c	IPv6 Routing Policy Rules
- *
- * Copyright (C)2003-2006 Helsinki University of Technology
- * Copyright (C)2003-2006 USAGI/WIDE Project
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- * Authors
- *	Thomas Graf		<tgraf@suug.ch>
- *	Ville Nuorvala		<vnuorval@tcs.hut.fi>
- */
+
 
 #include <linux/netdevice.h>
 
@@ -77,10 +64,7 @@ static int fib6_rule_action(struct fib_rule *rule, struct flowi *flp,
 	if (rt != net->ipv6.ip6_null_entry) {
 		struct fib6_rule *r = (struct fib6_rule *)rule;
 
-		/*
-		 * If we need to find a source address for this traffic,
-		 * we check the result if it meets requirement of the rule.
-		 */
+		
 		if ((rule->flags & FIB_RULE_FIND_SADDR) &&
 		    r->src.plen && !(flags & RT6_LOOKUP_F_HAS_SADDR)) {
 			struct in6_addr saddr;
@@ -126,11 +110,7 @@ static int fib6_rule_match(struct fib_rule *rule, struct flowi *fl, int flags)
 	    !ipv6_prefix_equal(&fl->fl6_dst, &r->dst.addr, r->dst.plen))
 		return 0;
 
-	/*
-	 * If FIB_RULE_FIND_SADDR is set and we do not have a
-	 * source address for the traffic, we defer check for
-	 * source address.
-	 */
+	
 	if (r->src.plen) {
 		if (flags & RT6_LOOKUP_F_HAS_SADDR) {
 			if (!ipv6_prefix_equal(&fl->fl6_src, &r->src.addr,
@@ -241,8 +221,8 @@ static u32 fib6_rule_default_pref(struct fib_rules_ops *ops)
 
 static size_t fib6_rule_nlmsg_payload(struct fib_rule *rule)
 {
-	return nla_total_size(16) /* dst */
-	       + nla_total_size(16); /* src */
+	return nla_total_size(16) 
+	       + nla_total_size(16); 
 }
 
 static struct fib_rules_ops fib6_rules_ops_template = {

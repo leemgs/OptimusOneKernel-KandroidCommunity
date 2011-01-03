@@ -1,13 +1,4 @@
-/*
- * Mutexes: blocking mutual exclusion locks
- *
- * started by Ingo Molnar:
- *
- *  Copyright (C) 2004, 2005, 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
- *
- * This file contains mutex debugging related internal prototypes, for the
- * !CONFIG_DEBUG_MUTEXES case. Most of them are NOPs:
- */
+
 
 #define spin_lock_mutex(lock, flags) \
 		do { spin_lock(lock); (void)(flags); } while (0)

@@ -1,13 +1,4 @@
-/*
- * linux/arch/arm/plat-omap/devices.c
- *
- * Common platform device setup/initialization for OMAP1 and OMAP2
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -88,14 +79,14 @@ EXPORT_SYMBOL(dsp_kfunc_device_register);
 
 #else
 static inline void omap_init_dsp(void) { }
-#endif	/* CONFIG_OMAP_DSP */
+#endif	
 
-/*-------------------------------------------------------------------------*/
+
 #if	defined(CONFIG_KEYBOARD_OMAP) || defined(CONFIG_KEYBOARD_OMAP_MODULE)
 
 static void omap_init_kp(void)
 {
-	/* 2430 and 34xx keypad is on TWL4030 */
+	
 	if (cpu_is_omap2430() || cpu_is_omap34xx())
 		return;
 
@@ -150,7 +141,7 @@ static void omap_init_kp(void)
 static inline void omap_init_kp(void) {}
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 #if defined(CONFIG_OMAP_MCBSP) || defined(CONFIG_OMAP_MCBSP_MODULE)
 
 static struct platform_device **omap_mcbsp_devices;
@@ -190,16 +181,14 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
 {  }
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
 	defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
 
 #define OMAP_MMC_NR_RES		2
 
-/*
- * Register MMC devices. Called from mach-omap1 and mach-omap2 device init.
- */
+
 int __init omap_mmc_add(const char *name, int id, unsigned long base,
 				unsigned long size, unsigned int irq,
 				struct omap_mmc_platform_data *data)
@@ -229,7 +218,7 @@ int __init omap_mmc_add(const char *name, int id, unsigned long base,
 	if (ret)
 		goto fail;
 
-	/* return device handle to board setup code */
+	
 	data->dev = &pdev->dev;
 	return 0;
 
@@ -240,14 +229,9 @@ fail:
 
 #endif
 
-/*-------------------------------------------------------------------------*/
 
-/* Numbering for the SPI-capable controllers when used for SPI:
- * spi		= 1
- * uwire	= 2
- * mmc1..2	= 3..4
- * mcbsp1..3	= 5..7
- */
+
+
 
 #if defined(CONFIG_SPI_OMAP_UWIRE) || defined(CONFIG_SPI_OMAP_UWIRE_MODULE)
 
@@ -270,21 +254,16 @@ static struct platform_device omap_uwire_device = {
 
 static void omap_init_uwire(void)
 {
-	/* FIXME define and use a boot tag; not all boards will be hooking
-	 * up devices to the microwire controller, and multi-board configs
-	 * mean that CONFIG_SPI_OMAP_UWIRE may be configured anyway...
-	 */
+	
 
-	/* board-specific code must configure chipselects (only a few
-	 * are normally used) and SCLK/SDI/SDO (each has two choices).
-	 */
+	
 	(void) platform_device_register(&omap_uwire_device);
 }
 #else
 static inline void omap_init_uwire(void) {}
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
 
@@ -306,11 +285,11 @@ static void omap_init_wdt(void)
 	if (cpu_is_omap16xx())
 		wdt_resources[0].start = 0xfffeb000;
 	else if (cpu_is_omap2420())
-		wdt_resources[0].start = 0x48022000; /* WDT2 */
+		wdt_resources[0].start = 0x48022000; 
 	else if (cpu_is_omap2430())
-		wdt_resources[0].start = 0x49016000; /* WDT2 */
+		wdt_resources[0].start = 0x49016000; 
 	else if (cpu_is_omap343x())
-		wdt_resources[0].start = 0x48314000; /* WDT2 */
+		wdt_resources[0].start = 0x48314000; 
 	else if (cpu_is_omap44xx())
 		wdt_resources[0].start = 0x4a314000;
 	else
@@ -324,7 +303,7 @@ static void omap_init_wdt(void)
 static inline void omap_init_wdt(void) {}
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
 
@@ -357,31 +336,10 @@ static void omap_init_rng(void)
 static inline void omap_init_rng(void) {}
 #endif
 
-/*
- * This gets called after board-specific INIT_MACHINE, and initializes most
- * on-chip peripherals accessible on this board (except for few like USB):
- *
- *  (a) Does any "standard config" pin muxing needed.  Board-specific
- *	code will have muxed GPIO pins and done "nonstandard" setup;
- *	that code could live in the boot loader.
- *  (b) Populating board-specific platform_data with the data drivers
- *	rely on to handle wiring variations.
- *  (c) Creating platform devices as meaningful on this board and
- *	with this kernel configuration.
- *
- * Claiming GPIOs, and setting their direction and initial values, is the
- * responsibility of the device drivers.  So is responding to probe().
- *
- * Board-specific knowlege like creating devices or pin setup is to be
- * kept out of drivers as much as possible.  In particular, pin setup
- * may be handled by the boot loader, and drivers should expect it will
- * normally have been done by the time they're probed.
- */
+
 static int __init omap_init_devices(void)
 {
-	/* please keep these calls, and their implementations above,
-	 * in alphabetical order so they're easier to sort through.
-	 */
+	
 	omap_init_dsp();
 	omap_init_kp();
 	omap_init_uwire();

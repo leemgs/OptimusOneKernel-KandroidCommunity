@@ -1,42 +1,4 @@
-/*
- * mISDNinfineon.c
- *		Support for cards based on following Infineon ISDN chipsets
- *		- ISAC + HSCX
- *		- IPAC and IPAC-X
- *		- ISAC-SX + HSCX
- *
- * Supported cards:
- *		- Dialogic Diva 2.0
- *		- Dialogic Diva 2.0U
- *		- Dialogic Diva 2.01
- *		- Dialogic Diva 2.02
- *		- Sedlbauer Speedwin
- *		- HST Saphir3
- *		- Develo (former ELSA) Microlink PCI (Quickstep 1000)
- *		- Develo (former ELSA) Quickstep 3000
- *		- Berkom Scitel BRIX Quadro
- *		- Dr.Neuhaus (Sagem) Niccy
- *
- *
- *
- * Author       Karsten Keil <keil@isdn4linux.de>
- *
- * Copyright 2009  by Karsten Keil <keil@isdn4linux.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -113,9 +75,9 @@ struct inf_hw {
 	struct _iohandle	addr;
 	struct _ioaddr		isac;
 	struct _ioaddr		hscx;
-	spinlock_t		lock;	/* HW access lock */
+	spinlock_t		lock;	
 	struct ipac_hw		ipac;
-	struct inf_hw		*sc[3];	/* slave cards */
+	struct inf_hw		*sc[3];	
 };
 
 
@@ -158,15 +120,15 @@ static struct pci_device_id infineon_ids[] __devinitdata = {
 };
 MODULE_DEVICE_TABLE(pci, infineon_ids);
 
-/* PCI interface specific defines */
-/* Diva 2.0/2.0U */
+
+
 #define DIVA_HSCX_PORT		0x00
 #define DIVA_HSCX_ALE		0x04
 #define DIVA_ISAC_PORT		0x08
 #define DIVA_ISAC_ALE		0x0C
 #define DIVA_PCI_CTRL           0x10
 
-/* DIVA_PCI_CTRL bits */
+
 #define DIVA_IRQ_BIT		0x01
 #define DIVA_RESET_BIT		0x08
 #define DIVA_EEPROM_CLK		0x40
@@ -174,8 +136,8 @@ MODULE_DEVICE_TABLE(pci, infineon_ids);
 #define DIVA_LED_B		0x20
 #define DIVA_IRQ_CLR		0x80
 
-/* Diva 2.01/2.02 */
-/* Siemens PITA */
+
+
 #define PITA_ICR_REG		0x00
 #define PITA_INT0_STATUS	0x02
 
@@ -185,7 +147,7 @@ MODULE_DEVICE_TABLE(pci, infineon_ids);
 #define PITA_PARA_MPX_MODE	0x04000000
 #define PITA_INT0_ENABLE	0x00020000
 
-/* TIGER 100 Registers */
+
 #define TIGER_RESET_ADDR	0x00
 #define TIGER_EXTERN_RESET	0x01
 #define TIGER_AUX_CTRL		0x02
@@ -193,14 +155,14 @@ MODULE_DEVICE_TABLE(pci, infineon_ids);
 #define TIGER_AUX_IRQMASK	0x05
 #define TIGER_AUX_STATUS	0x07
 
-/* Tiger AUX BITs */
-#define TIGER_IOMASK		0xdd	/* 1 and 5 are inputs */
+
+#define TIGER_IOMASK		0xdd	
 #define TIGER_IRQ_BIT		0x02
 
 #define TIGER_IPAC_ALE		0xC0
 #define TIGER_IPAC_PORT		0xC8
 
-/* ELSA (now Develo) PCI cards */
+
 #define ELSA_IRQ_ADDR		0x4c
 #define ELSA_IRQ_MASK		0x04
 #define QS1000_IRQ_OFF		0x01
@@ -208,7 +170,7 @@ MODULE_DEVICE_TABLE(pci, infineon_ids);
 #define QS1000_IRQ_ON		0x41
 #define QS3000_IRQ_ON		0x43
 
-/* Dr Neuhaus/Sagem Niccy */
+
 #define NICCY_ISAC_PORT		0x00
 #define NICCY_HSCX_PORT		0x01
 #define NICCY_ISAC_ALE		0x02
@@ -220,15 +182,15 @@ MODULE_DEVICE_TABLE(pci, infineon_ids);
 #define NICCY_IRQ_BIT		0x800000
 
 
-/* Scitel PLX */
+
 #define SCT_PLX_IRQ_ADDR	0x4c
 #define SCT_PLX_RESET_ADDR	0x50
 #define SCT_PLX_IRQ_ENABLE	0x41
 #define SCT_PLX_RESET_BIT	0x04
 
-/* Gazel */
+
 #define	GAZEL_IPAC_DATA_PORT	0x04
-/* Gazel PLX */
+
 #define GAZEL_CNTRL		0x50
 #define GAZEL_RESET		0x04
 #define GAZEL_RESET_9050	0x40000000
@@ -242,7 +204,7 @@ MODULE_DEVICE_TABLE(pci, infineon_ids);
 
 
 static LIST_HEAD(Cards);
-static DEFINE_RWLOCK(card_lock); /* protect Cards */
+static DEFINE_RWLOCK(card_lock); 
 
 static void
 _set_debug(struct inf_hw *card)
@@ -276,7 +238,7 @@ MODULE_PARM_DESC(debug, "infineon debug mask");
 module_param(irqloops, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(irqloops, "infineon maximal irqloops (default 4)");
 
-/* Interface functions */
+
 
 IOFUNC_IO(ISAC, inf_hw, isac.a.io)
 IOFUNC_IO(IPAC, inf_hw, hscx.a.io)
@@ -293,9 +255,9 @@ diva_irq(int intno, void *dev_id)
 
 	spin_lock(&hw->lock);
 	val = inb((u32)hw->cfg.start + DIVA_PCI_CTRL);
-	if (!(val & DIVA_IRQ_BIT)) { /* for us or shared ? */
+	if (!(val & DIVA_IRQ_BIT)) { 
 		spin_unlock(&hw->lock);
-		return IRQ_NONE; /* shared */
+		return IRQ_NONE; 
 	}
 	hw->irqcnt++;
 	mISDNipac_irq(&hw->ipac, irqloops);
@@ -311,13 +273,13 @@ diva20x_irq(int intno, void *dev_id)
 
 	spin_lock(&hw->lock);
 	val = readb(hw->cfg.p);
-	if (!(val & PITA_INT0_STATUS)) { /* for us or shared ? */
+	if (!(val & PITA_INT0_STATUS)) { 
 		spin_unlock(&hw->lock);
-		return IRQ_NONE; /* shared */
+		return IRQ_NONE; 
 	}
 	hw->irqcnt++;
 	mISDNipac_irq(&hw->ipac, irqloops);
-	writeb(PITA_INT0_STATUS, hw->cfg.p); /* ACK PITA INT0 */
+	writeb(PITA_INT0_STATUS, hw->cfg.p); 
 	spin_unlock(&hw->lock);
 	return IRQ_HANDLED;
 }
@@ -330,9 +292,9 @@ tiger_irq(int intno, void *dev_id)
 
 	spin_lock(&hw->lock);
 	val = inb((u32)hw->cfg.start + TIGER_AUX_STATUS);
-	if (val & TIGER_IRQ_BIT) { /* for us or shared ? */
+	if (val & TIGER_IRQ_BIT) { 
 		spin_unlock(&hw->lock);
-		return IRQ_NONE; /* shared */
+		return IRQ_NONE; 
 	}
 	hw->irqcnt++;
 	mISDNipac_irq(&hw->ipac, irqloops);
@@ -350,7 +312,7 @@ elsa_irq(int intno, void *dev_id)
 	val = inb((u32)hw->cfg.start + ELSA_IRQ_ADDR);
 	if (!(val & ELSA_IRQ_MASK)) {
 		spin_unlock(&hw->lock);
-		return IRQ_NONE; /* shared */
+		return IRQ_NONE; 
 	}
 	hw->irqcnt++;
 	mISDNipac_irq(&hw->ipac, irqloops);
@@ -366,9 +328,9 @@ niccy_irq(int intno, void *dev_id)
 
 	spin_lock(&hw->lock);
 	val = inl((u32)hw->cfg.start + NICCY_IRQ_CTRL_REG);
-	if (!(val & NICCY_IRQ_BIT)) { /* for us or shared ? */
+	if (!(val & NICCY_IRQ_BIT)) { 
 		spin_unlock(&hw->lock);
-		return IRQ_NONE; /* shared */
+		return IRQ_NONE; 
 	}
 	outl(val, (u32)hw->cfg.start + NICCY_IRQ_CTRL_REG);
 	hw->irqcnt++;
@@ -399,7 +361,7 @@ ipac_irq(int intno, void *dev_id)
 	val = hw->ipac.read_reg(hw, IPAC_ISTA);
 	if (!(val & 0x3f)) {
 		spin_unlock(&hw->lock);
-		return IRQ_NONE; /* shared */
+		return IRQ_NONE; 
 	}
 	hw->irqcnt++;
 	mISDNipac_irq(&hw->ipac, irqloops);
@@ -517,7 +479,7 @@ reset_inf(struct inf_hw *hw)
 		mdelay(10);
 		outb(DIVA_RESET_BIT, (u32)hw->cfg.start + DIVA_PCI_CTRL);
 		mdelay(10);
-		/* Workaround PCI9060 */
+		
 		outb(9, (u32)hw->cfg.start + 0x69);
 		outb(DIVA_RESET_BIT | DIVA_LED_A,
 			(u32)hw->cfg.start + DIVA_PCI_CTRL);
@@ -586,7 +548,7 @@ reset_inf(struct inf_hw *hw)
 		ipac_chip_reset(hw);
 		hw->ipac.write_reg(hw, IPAC_ACFG, 0xff);
 		hw->ipac.write_reg(hw, IPAC_AOE, 0x00);
-		hw->ipac.conf = 0x01; /* IOM off */
+		hw->ipac.conf = 0x01; 
 		break;
 	default:
 		return;

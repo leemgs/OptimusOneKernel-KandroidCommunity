@@ -1,11 +1,4 @@
-/*
- * RT-Mutex-tester: scriptable tester for rt mutexes
- *
- * started by Thomas Gleixner:
- *
- *  Copyright (C) 2006, Timesys Corp., Thomas Gleixner <tglx@timesys.com>
- *
- */
+
 #include <linux/kthread.h>
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -38,19 +31,19 @@ static struct rt_mutex mutexes[MAX_RT_TEST_MUTEXES];
 
 enum test_opcodes {
 	RTTEST_NOP = 0,
-	RTTEST_SCHEDOT,		/* 1 Sched other, data = nice */
-	RTTEST_SCHEDRT,		/* 2 Sched fifo, data = prio */
-	RTTEST_LOCK,		/* 3 Lock uninterruptible, data = lockindex */
-	RTTEST_LOCKNOWAIT,	/* 4 Lock uninterruptible no wait in wakeup, data = lockindex */
-	RTTEST_LOCKINT,		/* 5 Lock interruptible, data = lockindex */
-	RTTEST_LOCKINTNOWAIT,	/* 6 Lock interruptible no wait in wakeup, data = lockindex */
-	RTTEST_LOCKCONT,	/* 7 Continue locking after the wakeup delay */
-	RTTEST_UNLOCK,		/* 8 Unlock, data = lockindex */
-	RTTEST_LOCKBKL,		/* 9 Lock BKL */
-	RTTEST_UNLOCKBKL,	/* 10 Unlock BKL */
-	RTTEST_SIGNAL,		/* 11 Signal other test thread, data = thread id */
-	RTTEST_RESETEVENT = 98,	/* 98 Reset event counter */
-	RTTEST_RESET = 99,	/* 99 Reset all pending operations */
+	RTTEST_SCHEDOT,		
+	RTTEST_SCHEDRT,		
+	RTTEST_LOCK,		
+	RTTEST_LOCKNOWAIT,	
+	RTTEST_LOCKINT,		
+	RTTEST_LOCKINTNOWAIT,	
+	RTTEST_LOCKCONT,	
+	RTTEST_UNLOCK,		
+	RTTEST_LOCKBKL,		
+	RTTEST_UNLOCKBKL,	
+	RTTEST_SIGNAL,		
+	RTTEST_RESETEVENT = 98,	
+	RTTEST_RESET = 99,	
 };
 
 static int handle_op(struct test_thread_data *td, int lockwakeup)
@@ -150,19 +143,13 @@ static int handle_op(struct test_thread_data *td, int lockwakeup)
 	return ret;
 }
 
-/*
- * Schedule replacement for rtsem_down(). Only called for threads with
- * PF_MUTEX_TESTER set.
- *
- * This allows us to have finegrained control over the event flow.
- *
- */
+
 void schedule_rt_mutex_test(struct rt_mutex *mutex)
 {
 	int tid, op, dat;
 	struct test_thread_data *td;
 
-	/* We have to lookup the task */
+	
 	for (tid = 0; tid < MAX_RT_TEST_THREADS; tid++) {
 		if (threads[tid] == current)
 			break;
@@ -245,11 +232,11 @@ void schedule_rt_mutex_test(struct rt_mutex *mutex)
 			td->opcode = ret;
 		}
 
-		/* Wait for the next command to be executed */
+		
 		schedule();
 	}
 
-	/* Restore previous command and data */
+	
 	td->opcode = op;
 	td->opdata = dat;
 }
@@ -274,7 +261,7 @@ static int test_func(void *data)
 			td->opcode = ret;
 		}
 
-		/* Wait for the next command to be executed */
+		
 		schedule();
 		try_to_freeze();
 
@@ -287,16 +274,7 @@ static int test_func(void *data)
 	return 0;
 }
 
-/**
- * sysfs_test_command - interface for test commands
- * @dev:	thread reference
- * @buf:	command for actual step
- * @count:	length of buffer
- *
- * command syntax:
- *
- * opcode:data
- */
+
 static ssize_t sysfs_test_command(struct sys_device *dev, struct sysdev_attribute *attr,
 				  const char *buf, size_t count)
 {
@@ -308,11 +286,11 @@ static ssize_t sysfs_test_command(struct sys_device *dev, struct sysdev_attribut
 	td = container_of(dev, struct test_thread_data, sysdev);
 	tid = td->sysdev.id;
 
-	/* strings from sysfs write are not 0 terminated! */
+	
 	if (count >= sizeof(cmdbuf))
 		return -EINVAL;
 
-	/* strip of \n: */
+	
 	if (buf[count-1] == '\n')
 		count--;
 	if (count < 1)
@@ -355,11 +333,7 @@ static ssize_t sysfs_test_command(struct sys_device *dev, struct sysdev_attribut
 	return count;
 }
 
-/**
- * sysfs_test_status - sysfs interface for rt tester
- * @dev:	thread to query
- * @buf:	char buffer to be filled with thread status info
- */
+
 static ssize_t sysfs_test_status(struct sys_device *dev, struct sysdev_attribute *attr,
 				 char *buf)
 {

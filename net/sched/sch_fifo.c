@@ -1,13 +1,4 @@
-/*
- * net/sched/sch_fifo.c	The simplest FIFO queue.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -16,7 +7,7 @@
 #include <linux/skbuff.h>
 #include <net/pkt_sched.h>
 
-/* 1 band FIFO pseudo-"scheduler" */
+
 
 struct fifo_sched_data
 {
@@ -108,13 +99,13 @@ struct Qdisc_ops bfifo_qdisc_ops __read_mostly = {
 };
 EXPORT_SYMBOL(bfifo_qdisc_ops);
 
-/* Pass size change message down to embedded FIFO */
+
 int fifo_set_limit(struct Qdisc *q, unsigned int limit)
 {
 	struct nlattr *nla;
 	int ret = -ENOMEM;
 
-	/* Hack to avoid sending change message to non-FIFO */
+	
 	if (strncmp(q->ops->id + 1, "fifo", 4) != 0)
 		return 0;
 

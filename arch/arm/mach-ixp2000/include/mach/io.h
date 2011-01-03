@@ -1,16 +1,4 @@
-/*
- * arch/arm/mach-ixp2000/include/mach/io.h
- *
- * Original Author: Naeem M Afzal <naeem.m.afzal@intel.com>
- * Maintainer: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright (C) 2002  Intel Corp.
- * Copyrgiht (C) 2003-2004 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_ARM_ARCH_IO_H
 #define __ASM_ARM_ARCH_IO_H
@@ -20,17 +8,7 @@
 #define IO_SPACE_LIMIT		0xffffffff
 #define __mem_pci(a)		(a)
 
-/*
- * The A? revisions of the IXP2000s assert byte lanes for PCI I/O
- * transactions the other way round (MEM transactions don't have this
- * issue), so if we want to support those models, we need to override
- * the standard I/O functions.
- *
- * B0 and later have a bit that can be set to 1 to get the proper
- * behavior for I/O transactions, which then allows us to use the
- * standard I/O functions.  This is what we do if the user does not
- * explicitly ask for support for pre-B0.
- */
+
 #ifdef CONFIG_IXP2000_SUPPORT_BROKEN_PCI_IO
 #define ___io(p)		((void __iomem *)((p)+IXP2000_PCI_IO_VIRT_BASE))
 

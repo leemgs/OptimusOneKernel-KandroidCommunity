@@ -1,10 +1,4 @@
-/*
- *  drivers/s390/cio/qdio_debug.c
- *
- *  Copyright IBM Corp. 2008,2009
- *
- *  Author: Jan Glauber (jang@linux.vnet.ibm.com)
- */
+
 #include <linux/seq_file.h>
 #include <linux/debugfs.h>
 #include <asm/debug.h>
@@ -38,7 +32,7 @@ void qdio_allocate_dbf(struct qdio_initialize *init_data,
 	DBF_HEX(&init_data->output_sbal_addr_array, sizeof(void *));
 	DBF_EVENT("irq:%8lx", (unsigned long)irq_ptr);
 
-	/* allocate trace view for the interface */
+	
 	snprintf(text, 20, "qdio_%s", dev_name(&init_data->cdev->dev));
 	irq_ptr->debug_area = debug_register(text, 2, 1, 16);
 	debug_register_view(irq_ptr->debug_area, &debug_hex_ascii_view);

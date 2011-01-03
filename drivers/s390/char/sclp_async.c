@@ -1,10 +1,4 @@
-/*
- * Enable Asynchronous Notification via SCLP.
- *
- * Copyright IBM Corp. 2009
- * Author(s): Hans-Joachim Picht <hans@linux.vnet.ibm.com>
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -36,7 +30,7 @@ struct async_evbuf {
 	u8 rtype;
 	u8 otype;
 	char comp_id[12];
-	char data[3000]; /* there is still some space left */
+	char data[3000]; 
 } __attribute__((packed));
 
 struct sclp_async_sccb {
@@ -115,10 +109,7 @@ static struct ctl_table kern_dir_table[] = {
 	{ .ctl_name = 0 }
 };
 
-/*
- * Function used to transfer asynchronous notification
- * records which waits for send completion
- */
+
 static int sclp_async_send_wait(char *message)
 {
 	struct async_evbuf *evb;
@@ -135,10 +126,7 @@ static int sclp_async_send_wait(char *message)
 	request->sccb = sccb;
 	request->status = SCLP_REQ_FILLED;
 	strncpy(sccb->evbuf.data, message, sizeof(sccb->evbuf.data));
-	/*
-	 * Retain Queue
-	 * e.g. 5639CC140 500 Red Hat RHEL5 Linux for zSeries (RHEL AS)
-	 */
+	
 	strncpy(sccb->evbuf.comp_id, "000000000", sizeof(sccb->evbuf.comp_id));
 	sccb->evbuf.header.length = sizeof(sccb->evbuf);
 	sccb->header.length = sizeof(sccb->evbuf) + sizeof(sccb->header);

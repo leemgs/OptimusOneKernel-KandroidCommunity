@@ -1,13 +1,6 @@
-/* Event cache for netfilter. */
 
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/types.h>
 #include <linux/netfilter.h>
@@ -31,8 +24,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_event_cb);
 struct nf_exp_event_notifier *nf_expect_event_cb __read_mostly;
 EXPORT_SYMBOL_GPL(nf_expect_event_cb);
 
-/* deliver cached events and clear cache entry - must be called with locally
- * disabled softirqs */
+
 void nf_ct_deliver_cached_events(struct nf_conn *ct)
 {
 	unsigned long events;
@@ -57,9 +49,7 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
 			.report	= 0
 		};
 		int ret;
-		/* We make a copy of the missed event cache without taking
-		 * the lock, thus we may send missed events twice. However,
-		 * this does not harm and it happens very rarely. */
+		
 		unsigned long missed = e->missed;
 
 		ret = notify->fcn(events | missed, &item);
@@ -168,7 +158,7 @@ static struct ctl_table event_sysctl_table[] = {
 	},
 	{}
 };
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 static struct nf_ct_ext_type event_extend __read_mostly = {
 	.len	= sizeof(struct nf_conntrack_ecache),
@@ -221,7 +211,7 @@ static int nf_conntrack_event_init_sysctl(struct net *net)
 static void nf_conntrack_event_fini_sysctl(struct net *net)
 {
 }
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 int nf_conntrack_ecache_init(struct net *net)
 {

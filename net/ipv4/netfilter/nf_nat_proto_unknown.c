@@ -1,14 +1,6 @@
-/* The "unknown" protocol.  This is what is used for protocols we
- * don't understand.  It's returned by ip_ct_find_proto().
- */
 
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -31,8 +23,7 @@ static bool unknown_unique_tuple(struct nf_conntrack_tuple *tuple,
 				 enum nf_nat_manip_type maniptype,
 				 const struct nf_conn *ct)
 {
-	/* Sorry: we can't help you; if it's not unique, we can't frob
-	   anything. */
+	
 	return false;
 }
 
@@ -46,7 +37,7 @@ unknown_manip_pkt(struct sk_buff *skb,
 }
 
 const struct nf_nat_protocol nf_nat_unknown_protocol = {
-	/* .me isn't set: getting a ref to this cannot fail. */
+	
 	.manip_pkt		= unknown_manip_pkt,
 	.in_range		= unknown_in_range,
 	.unique_tuple		= unknown_unique_tuple,

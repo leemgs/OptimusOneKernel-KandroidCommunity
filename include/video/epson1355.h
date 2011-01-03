@@ -1,11 +1,4 @@
-/*
- * include/video/epson13xx.h -- Epson 13xx frame buffer
- *
- * Copyright (C) Hewlett-Packard Company.  All rights reserved.
- *
- * Written by Christopher Hoover <ch@hpl.hp.com>
- *
- */
+
 
 #ifndef _EPSON13XX_H_
 #define _EPSON13XX_H_

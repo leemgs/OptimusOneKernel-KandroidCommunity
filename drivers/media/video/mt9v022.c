@@ -1,12 +1,4 @@
-/*
- * Driver for MT9V022 CMOS Image Sensor from Micron
- *
- * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/videodev2.h>
 #include <linux/slab.h>
@@ -18,15 +10,13 @@
 #include <media/v4l2-chip-ident.h>
 #include <media/soc_camera.h>
 
-/* mt9v022 i2c address 0x48, 0x4c, 0x58, 0x5c
- * The platform has to define ctruct i2c_board_info objects and link to them
- * from struct soc_camera_link */
+
 
 static char *sensor_type;
 module_param(sensor_type, charp, S_IRUGO);
 MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
 
-/* mt9v022 selected register addresses */
+
 #define MT9V022_CHIP_VERSION		0x00
 #define MT9V022_COLUMN_START		0x01
 #define MT9V022_ROW_START		0x02
@@ -52,7 +42,7 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
 #define MT9V022_AEC_AGC_ENABLE		0xAF
 #define MT9V022_MAX_TOTAL_SHUTTER_WIDTH	0xBD
 
-/* Progressive scan, master, defaults */
+
 #define MT9V022_CHIP_CONTROL_DEFAULT	0x188
 
 #define MT9V022_MAX_WIDTH		752
@@ -63,8 +53,7 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
 #define MT9V022_ROW_SKIP		4
 
 static const struct soc_camera_data_format mt9v022_colour_formats[] = {
-	/* Order important: first natively supported,
-	 * second supported with a GPIO extender */
+	
 	{
 		.name		= "Bayer (sRGB) 10 bit",
 		.depth		= 10,
@@ -79,7 +68,7 @@ static const struct soc_camera_data_format mt9v022_colour_formats[] = {
 };
 
 static const struct soc_camera_data_format mt9v022_monochrome_formats[] = {
-	/* Order important - see above */
+	
 	{
 		.name		= "Monochrome 10 bit",
 		.depth		= 10,
@@ -93,9 +82,9 @@ static const struct soc_camera_data_format mt9v022_monochrome_formats[] = {
 
 struct mt9v022 {
 	struct v4l2_subdev subdev;
-	struct v4l2_rect rect;	/* Sensor window */
+	struct v4l2_rect rect;	
 	__u32 fourcc;
-	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
+	int model;	
 	u16 chip_control;
 };
 
@@ -143,17 +132,15 @@ static int mt9v022_init(struct i2c_client *client)
 	struct mt9v022 *mt9v022 = to_mt9v022(client);
 	int ret;
 
-	/* Almost the default mode: master, parallel, simultaneous, and an
-	 * undocumented bit 0x200, which is present in table 7, but not in 8,
-	 * plus snapshot mode to disable scan for now */
+	
 	mt9v022->chip_control |= 0x10;
 	ret = reg_write(client, MT9V022_CHIP_CONTROL, mt9v022->chip_control);
 	if (!ret)
 		ret = reg_write(client, MT9V022_READ_MODE, 0x300);
 
-	/* All defaults */
+	
 	if (!ret)
-		/* AEC, AGC on */
+		
 		ret = reg_set(client, MT9V022_AEC_AGC_ENABLE, 0x3);
 	if (!ret)
 		ret = reg_write(client, MT9V022_ANALOG_GAIN, 16);
@@ -162,7 +149,7 @@ static int mt9v022_init(struct i2c_client *client)
 	if (!ret)
 		ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
 	if (!ret)
-		/* default - auto */
+		
 		ret = reg_clear(client, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
 	if (!ret)
 		ret = reg_write(client, MT9V022_DIGITAL_TEST_PATTERN, 0);
@@ -176,10 +163,10 @@ static int mt9v022_s_stream(struct v4l2_subdev *sd, int enable)
 	struct mt9v022 *mt9v022 = to_mt9v022(client);
 
 	if (enable)
-		/* Switch to master "normal" mode */
+		
 		mt9v022->chip_control &= ~0x10;
 	else
-		/* Switch to snapshot mode */
+		
 		mt9v022->chip_control |= 0x10;
 
 	if (reg_write(client, MT9V022_CHIP_CONTROL, mt9v022->chip_control) < 0)
@@ -197,7 +184,7 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
 	int ret;
 	u16 pixclk = 0;
 
-	/* Only one width bit may be set */
+	
 	if (!is_power_of_2(width_flag))
 		return -EINVAL;
 
@@ -206,10 +193,7 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
 		if (ret)
 			return ret;
 	} else {
-		/*
-		 * Without board specific bus width settings we only support the
-		 * sensors native bus width
-		 */
+		
 		if (width_flag != SOCAM_DATAWIDTH_10)
 			return -EINVAL;
 	}
@@ -268,12 +252,12 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
 	struct soc_camera_device *icd = client->dev.platform_data;
 	int ret;
 
-	/* Bayer format - even size lengths */
+	
 	if (mt9v022->fourcc == V4L2_PIX_FMT_SBGGR8 ||
 	    mt9v022->fourcc == V4L2_PIX_FMT_SBGGR16) {
 		rect.width	= ALIGN(rect.width, 2);
 		rect.height	= ALIGN(rect.height, 2);
-		/* Let the user play with the starting pixel */
+		
 	}
 
 	soc_camera_limit_side(&rect.left, &rect.width,
@@ -282,24 +266,23 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
 	soc_camera_limit_side(&rect.top, &rect.height,
 		     MT9V022_ROW_SKIP, MT9V022_MIN_HEIGHT, MT9V022_MAX_HEIGHT);
 
-	/* Like in example app. Contradicts the datasheet though */
+	
 	ret = reg_read(client, MT9V022_AEC_AGC_ENABLE);
 	if (ret >= 0) {
-		if (ret & 1) /* Autoexposure */
+		if (ret & 1) 
 			ret = reg_write(client, MT9V022_MAX_TOTAL_SHUTTER_WIDTH,
 					rect.height + icd->y_skip_top + 43);
 		else
 			ret = reg_write(client, MT9V022_TOTAL_SHUTTER_WIDTH,
 					rect.height + icd->y_skip_top + 43);
 	}
-	/* Setup frame format: defaults apart from width and height */
+	
 	if (!ret)
 		ret = reg_write(client, MT9V022_COLUMN_START, rect.left);
 	if (!ret)
 		ret = reg_write(client, MT9V022_ROW_START, rect.top);
 	if (!ret)
-		/* Default 94, Phytec driver says:
-		 * "width + horizontal blank >= 660" */
+		
 		ret = reg_write(client, MT9V022_HORIZONTAL_BLANKING,
 				rect.width > 660 - 43 ? 43 :
 				660 - rect.width);
@@ -376,8 +359,7 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 	};
 	int ret;
 
-	/* The caller provides a supported format, as verified per call to
-	 * icd->try_fmt(), datawidth is from our supported format list */
+	
 	switch (pix->pixelformat) {
 	case V4L2_PIX_FMT_GREY:
 	case V4L2_PIX_FMT_Y16:
@@ -390,13 +372,13 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 			return -EINVAL;
 		break;
 	case 0:
-		/* No format change, only geometry */
+		
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	/* No support for scaling on this camera, just crop. */
+	
 	ret = mt9v022_s_crop(sd, &a);
 	if (!ret) {
 		pix->width = mt9v022->rect.width;
@@ -625,18 +607,17 @@ static int mt9v022_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 			return -EIO;
 		break;
 	case V4L2_CID_GAIN:
-		/* mt9v022 has minimum == default */
+		
 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
 			return -EINVAL;
 		else {
 			unsigned long range = qctrl->maximum - qctrl->minimum;
-			/* Valid values 16 to 64, 32 to 64 must be even. */
+			
 			unsigned long gain = ((ctrl->value - qctrl->minimum) *
 					      48 + range / 2) / range + 16;
 			if (gain >= 32)
 				gain &= ~1;
-			/* The user wants to set gain manually, hope, she
-			 * knows, what she's doing... Switch AGC off. */
+			
 
 			if (reg_clear(client, MT9V022_AEC_AGC_ENABLE, 0x2) < 0)
 				return -EIO;
@@ -648,15 +629,14 @@ static int mt9v022_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		}
 		break;
 	case V4L2_CID_EXPOSURE:
-		/* mt9v022 has maximum == default */
+		
 		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
 			return -EINVAL;
 		else {
 			unsigned long range = qctrl->maximum - qctrl->minimum;
 			unsigned long shutter = ((ctrl->value - qctrl->minimum) *
 						 479 + range / 2) / range + 1;
-			/* The user wants to set shutter width manually, hope,
-			 * she knows, what she's doing... Switch AEC off. */
+			
 
 			if (reg_clear(client, MT9V022_AEC_AGC_ENABLE, 0x1) < 0)
 				return -EIO;
@@ -689,8 +669,7 @@ static int mt9v022_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	return 0;
 }
 
-/* Interface active, can use i2c. If it fails, it can indeed mean, that
- * this wasn't our capture interface, so, we wait for the right one */
+
 static int mt9v022_video_probe(struct soc_camera_device *icd,
 			       struct i2c_client *client)
 {
@@ -704,10 +683,10 @@ static int mt9v022_video_probe(struct soc_camera_device *icd,
 	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface)
 		return -ENODEV;
 
-	/* Read out the chip version register */
+	
 	data = reg_read(client, MT9V022_CHIP_VERSION);
 
-	/* must be 0x1311 or 0x1313 */
+	
 	if (data != 0x1311 && data != 0x1313) {
 		ret = -ENODEV;
 		dev_info(&client->dev, "No MT9V022 found, ID register 0x%x\n",
@@ -715,11 +694,11 @@ static int mt9v022_video_probe(struct soc_camera_device *icd,
 		goto ei2c;
 	}
 
-	/* Soft reset */
+	
 	ret = reg_write(client, MT9V022_RESET, 1);
 	if (ret < 0)
 		goto ei2c;
-	/* 15 clock cycles */
+	
 	udelay(200);
 	if (reg_read(client, MT9V022_RESET)) {
 		dev_err(&client->dev, "Resetting MT9V022 failed!\n");
@@ -728,7 +707,7 @@ static int mt9v022_video_probe(struct soc_camera_device *icd,
 		goto ei2c;
 	}
 
-	/* Set monochrome or colour sensor type */
+	
 	if (sensor_type && (!strcmp("colour", sensor_type) ||
 			    !strcmp("color", sensor_type))) {
 		ret = reg_write(client, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
@@ -745,11 +724,7 @@ static int mt9v022_video_probe(struct soc_camera_device *icd,
 
 	icd->num_formats = 0;
 
-	/*
-	 * This is a 10bit sensor, so by default we only allow 10bit.
-	 * The platform may support different bus widths due to
-	 * different routing of the data lines.
-	 */
+	
 	if (icl->query_bus_param)
 		flags = icl->query_bus_param(icl);
 	else
@@ -847,10 +822,7 @@ static int mt9v022_probe(struct i2c_client *client,
 	mt9v022->chip_control = MT9V022_CHIP_CONTROL_DEFAULT;
 
 	icd->ops		= &mt9v022_ops;
-	/*
-	 * MT9V022 _really_ corrupts the first read out line.
-	 * TODO: verify on i.MX31
-	 */
+	
 	icd->y_skip_top		= 1;
 
 	mt9v022->rect.left	= MT9V022_COLUMN_SKIP;

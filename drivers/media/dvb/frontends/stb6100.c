@@ -1,23 +1,4 @@
-/*
-	STB6100 Silicon Tuner
-	Copyright (C) Manu Abraham (abraham.manu@gmail.com)
 
-	Copyright (C) ST Microelectronics
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -77,7 +58,7 @@ static const struct stb6100_lkup lkup[] = {
 	{       0,       0, 0x00 }
 };
 
-/* Register names for easy debugging.	*/
+
 static const char *stb6100_regnames[] = {
 	[STB6100_LD]		= "LD",
 	[STB6100_VCO]		= "VCO",
@@ -93,9 +74,7 @@ static const char *stb6100_regnames[] = {
 	[STB6100_TEST3]		= "TEST3",
 };
 
-/* Template for normalisation, i.e. setting unused or undocumented
- * bits as required according to the documentation.
- */
+
 struct stb6100_regmask {
 	u8 mask;
 	u8 set;
@@ -237,7 +216,7 @@ static int stb6100_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
 		return rc;
 	f = rc & STB6100_F_F;
 
-	state->status.bandwidth = (f + 5) * 2000;	/* x2 for ZIF	*/
+	state->status.bandwidth = (f + 5) * 2000;	
 
 	*bandwidth = state->bandwidth = state->status.bandwidth * 1000;
 	dprintk(verbose, FE_DEBUG, 1, "bandwidth = %u Hz", state->bandwidth);
@@ -252,18 +231,16 @@ static int stb6100_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
 
 	dprintk(verbose, FE_DEBUG, 1, "set bandwidth to %u Hz", bandwidth);
 
-	bandwidth /= 2; /* ZIF */
+	bandwidth /= 2; 
 
-	if (bandwidth >= 36000000)	/* F[4:0] BW/2 max =31+5=36 mhz for F=31	*/
+	if (bandwidth >= 36000000)	
 		tmp = 31;
-	else if (bandwidth <= 5000000)	/* bw/2 min = 5Mhz for F=0			*/
+	else if (bandwidth <= 5000000)	
 		tmp = 0;
-	else				/* if 5 < bw/2 < 36				*/
+	else				
 		tmp = (bandwidth + 500000) / 1000000 - 5;
 
-	/* Turn on LPF bandwidth setting clock control,
-	 * set bandwidth, wait 10ms, turn off.
-	 */
+	
 	if ((rc = stb6100_write_reg(state, STB6100_FCCK, 0x0d | STB6100_FCCK_FCCK)) < 0)
 		return rc;
 	if ((rc = stb6100_write_reg(state, STB6100_F, 0xc0 | tmp)) < 0)
@@ -321,25 +298,25 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	srate = p.u.qpsk.symbol_rate;
 
 	regs[STB6100_DLB] = 0xdc;
-	/* Disable LPEN */
-	regs[STB6100_LPEN] &= ~STB6100_LPEN_LPEN; /* PLL Loop disabled */
+	
+	regs[STB6100_LPEN] &= ~STB6100_LPEN_LPEN; 
 
 	if ((rc = stb6100_write_regs(state, regs)) < 0)
 		return rc;
 
-	/* Baseband gain.	*/
+	
 	if (srate >= 15000000)
-		g = 9;  //  +4 dB
+		g = 9;  
 	else if (srate >= 5000000)
-		g = 11; //  +8 dB
+		g = 11; 
 	else
-		g = 14; // +14 dB
+		g = 14; 
 
 	regs[STB6100_G] = (regs[STB6100_G] & ~STB6100_G_G) | g;
-	regs[STB6100_G] &= ~STB6100_G_GCT; /* mask GCT */
-	regs[STB6100_G] |= (1 << 5); /* 2Vp-p Mode */
+	regs[STB6100_G] &= ~STB6100_G_GCT; 
+	regs[STB6100_G] |= (1 << 5); 
 
-	/* VCO divide ratio (LO divide ratio, VCO prescaler enable).	*/
+	
 	if (frequency <= 1075000)
 		odiv = 1;
 	else
@@ -352,7 +329,7 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
 		psd2 = 1;
 	regs[STB6100_K] = (regs[STB6100_K] & ~STB6100_K_PSD2) | (psd2 << STB6100_K_PSD2_SHIFT);
 
-	/* OSM	*/
+	
 	for (ptr = lkup;
 	     (ptr->val_high != 0) && !CHKRANGE(frequency, ptr->val_low, ptr->val_high);
 	     ptr++);
@@ -362,11 +339,11 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	}
 	regs[STB6100_VCO] = (regs[STB6100_VCO] & ~STB6100_VCO_OSM) | ptr->reg;
 
-	/* F(VCO) = F(LO) * (ODIV == 0 ? 2 : 4)			*/
+	
 	fvco = frequency << (1 + odiv);
-	/* N(I) = floor(f(VCO) / (f(XTAL) * (PSD2 ? 2 : 1)))	*/
+	
 	nint = fvco / (state->reference << psd2);
-	/* N(F) = round(f(VCO) / f(XTAL) * (PSD2 ? 2 : 1) - N(I)) * 2 ^ 9	*/
+	
 	nfrac = DIV_ROUND_CLOSEST((fvco - (nint * state->reference << psd2))
 					 << (9 - psd2),
 				  state->reference);
@@ -378,11 +355,11 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	regs[STB6100_NI] = nint;
 	regs[STB6100_NF_LSB] = nfrac;
 	regs[STB6100_K] = (regs[STB6100_K] & ~STB6100_K_NF_MSB) | ((nfrac >> 8) & STB6100_K_NF_MSB);
-	regs[STB6100_VCO] |= STB6100_VCO_OSCH;		/* VCO search enabled		*/
-	regs[STB6100_VCO] |= STB6100_VCO_OCK;		/* VCO search clock off		*/
-	regs[STB6100_FCCK] |= STB6100_FCCK_FCCK;	/* LPF BW setting clock enabled	*/
-	regs[STB6100_LPEN] &= ~STB6100_LPEN_LPEN;	/* PLL loop disabled		*/
-	/* Power up. */
+	regs[STB6100_VCO] |= STB6100_VCO_OSCH;		
+	regs[STB6100_VCO] |= STB6100_VCO_OCK;		
+	regs[STB6100_FCCK] |= STB6100_FCCK_FCCK;	
+	regs[STB6100_LPEN] &= ~STB6100_LPEN_LPEN;	
+	
 	regs[STB6100_LPEN] |= STB6100_LPEN_SYNP	| STB6100_LPEN_OSCP | STB6100_LPEN_BEN;
 
 	msleep(2);
@@ -390,20 +367,20 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
 		return rc;
 
 	msleep(2);
-	regs[STB6100_LPEN] |= STB6100_LPEN_LPEN;	/* PLL loop enabled		*/
+	regs[STB6100_LPEN] |= STB6100_LPEN_LPEN;	
 	if ((rc = stb6100_write_reg(state, STB6100_LPEN, regs[STB6100_LPEN])) < 0)
 		return rc;
 
-	regs[STB6100_VCO] &= ~STB6100_VCO_OCK;		/* VCO fast search		*/
+	regs[STB6100_VCO] &= ~STB6100_VCO_OCK;		
 	if ((rc = stb6100_write_reg(state, STB6100_VCO, regs[STB6100_VCO])) < 0)
 		return rc;
 
-	msleep(10);					/* wait for LO to lock		*/
-	regs[STB6100_VCO] &= ~STB6100_VCO_OSCH;		/* vco search disabled		*/
-	regs[STB6100_VCO] |= STB6100_VCO_OCK;		/* search clock off		*/
+	msleep(10);					
+	regs[STB6100_VCO] &= ~STB6100_VCO_OSCH;		
+	regs[STB6100_VCO] |= STB6100_VCO_OCK;		
 	if ((rc = stb6100_write_reg(state, STB6100_VCO, regs[STB6100_VCO])) < 0)
 		return rc;
-	regs[STB6100_FCCK] &= ~STB6100_FCCK_FCCK;       /* LPF BW clock disabled	*/
+	regs[STB6100_FCCK] &= ~STB6100_FCCK_FCCK;       
 	stb6100_normalise_regs(regs);
 	if ((rc = stb6100_write_reg_range(state, &regs[1], 1, STB6100_NUMREGS - 3)) < 0)
 		return rc;
@@ -415,7 +392,7 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
 
 static int stb6100_sleep(struct dvb_frontend *fe)
 {
-	/* TODO: power down	*/
+	
 	return 0;
 }
 
@@ -426,13 +403,13 @@ static int stb6100_init(struct dvb_frontend *fe)
 
 	status->tunerstep	= 125000;
 	status->ifreq		= 0;
-	status->refclock	= 27000000;	/* Hz	*/
+	status->refclock	= 27000000;	
 	status->iqsense		= 1;
-	status->bandwidth	= 36000;	/* kHz	*/
-	state->bandwidth	= status->bandwidth * 1000;	/* Hz	*/
-	state->reference	= status->refclock / 1000;	/* kHz	*/
+	status->bandwidth	= 36000;	
+	state->bandwidth	= status->bandwidth * 1000;	
+	state->reference	= status->refclock / 1000;	
 
-	/* Set default bandwidth.	*/
+	
 	return stb6100_set_bandwidth(fe, state->bandwidth);
 }
 
@@ -517,7 +494,7 @@ struct dvb_frontend *stb6100_attach(struct dvb_frontend *fe,
 	state->config		= config;
 	state->i2c		= i2c;
 	state->frontend		= fe;
-	state->reference	= config->refclock / 1000; /* kHz */
+	state->reference	= config->refclock / 1000; 
 	fe->tuner_priv		= state;
 	fe->ops.tuner_ops	= stb6100_ops;
 

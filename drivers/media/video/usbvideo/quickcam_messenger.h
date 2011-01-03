@@ -2,7 +2,7 @@
 #define quickcam_messenger_h
 
 #ifndef CONFIG_INPUT
-/* if we're not using input we dummy out these functions */
+
 #define qcm_register_input(...)
 #define qcm_unregister_input(...)
 #define qcm_report_buttonstat(...)
@@ -16,13 +16,11 @@
 #define CHECK_RET(ret, expr) \
 	if ((ret = expr) < 0) return ret
 
-/* Control Registers for the STVV6422 ASIC
- * - this define is taken from the qc-usb-messenger code
- */
+
 #define STV_ISO_ENABLE		0x1440
 #define ISOC_PACKET_SIZE	1023
 
-/* Chip identification number including revision indicator */
+
 #define CMOS_SENSOR_IDREV	0xE00A
 
 struct rgb {
@@ -87,8 +85,7 @@ struct regval {
 	u16 reg;
 	u8 val;
 };
-/* this table is derived from the
-qc-usb-messenger code */
+
 static const struct regval regval_table[] = {
 	{ STV_ISO_ENABLE, 0x00 },
 	{ 0x1436, 0x00 }, { 0x1432, 0x03 },
@@ -109,4 +106,4 @@ static const struct regval regval_table[] = {
 
 static const unsigned char marker[] = { 0x00, 0xff, 0x00, 0xFF };
 
-#endif /* quickcam_messenger_h */
+#endif 

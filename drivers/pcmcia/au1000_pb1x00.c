@@ -1,26 +1,4 @@
-/*
- *
- * Alchemy Semi Pb1x00 boards specific pcmcia routines.
- *
- * Copyright 2002 MontaVista Software Inc.
- * Author: MontaVista Software, Inc.
- *         	ppopov@mvista.com or source@mvista.com
- *
- * ########################################################################
- *
- *  This program is free software; you can distribute it and/or modify it
- *  under the terms of the GNU General Public License (Version 2) as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- *  for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/delay.h>
@@ -63,9 +41,9 @@ static int pb1x00_pcmcia_init(struct pcmcia_init *init)
 	u16 pcr;
 	pcr = PCR_SLOT_0_RST | PCR_SLOT_1_RST;
 
-	au_writel(0x8000, PB1000_MDR); /* clear pcmcia interrupt */
+	au_writel(0x8000, PB1000_MDR); 
 	au_sync_delay(100);
-	au_writel(0x4000, PB1000_MDR); /* enable pcmcia interrupt */
+	au_writel(0x4000, PB1000_MDR); 
 	au_sync();
 
 	pcr |= SET_VCC_VPP(VCC_HIZ,VPP_HIZ,0);
@@ -75,10 +53,10 @@ static int pb1x00_pcmcia_init(struct pcmcia_init *init)
 	  
 	return PCMCIA_NUM_SOCKS;
 
-#else /* fixme -- take care of the Pb1500 at some point */
+#else 
 
 	u16 pcr;
-	pcr = au_readw(PCMCIA_BOARD_REG) & ~0xf; /* turn off power */
+	pcr = au_readw(PCMCIA_BOARD_REG) & ~0xf; 
 	pcr &= ~(PC_DEASSERT_RST | PC_DRV_EN);
 	au_writew(pcr, PCMCIA_BOARD_REG);
 	au_sync_delay(500);
@@ -98,7 +76,7 @@ static int pb1x00_pcmcia_shutdown(void)
 	return 0;
 #else
 	u16 pcr;
-	pcr = au_readw(PCMCIA_BOARD_REG) & ~0xf; /* turn off power */
+	pcr = au_readw(PCMCIA_BOARD_REG) & ~0xf; 
 	pcr &= ~(PC_DEASSERT_RST | PC_DRV_EN);
 	au_writew(pcr, PCMCIA_BOARD_REG);
 	au_sync_delay(2);
@@ -121,9 +99,9 @@ pb1x00_pcmcia_socket_state(unsigned sock, struct pcmcia_state *state)
 #else
 	vs0 = (au_readw(BOARD_STATUS_REG) >> 4) & 0x3;
 #ifdef CONFIG_MIPS_PB1500
-	inserted0 = !((au_readl(GPIO2_PINSTATE) >> 1) & 0x1); /* gpio 201 */
-#else /* Pb1100 */
-	inserted0 = !((au_readl(SYS_PINSTATERD) >> 9) & 0x1); /* gpio 9 */
+	inserted0 = !((au_readl(GPIO2_PINSTATE) >> 1) & 0x1); 
+#else 
+	inserted0 = !((au_readl(SYS_PINSTATERD) >> 9) & 0x1); 
 #endif
 	inserted1 = 0;
 #endif
@@ -140,10 +118,10 @@ pb1x00_pcmcia_socket_state(unsigned sock, struct pcmcia_state *state)
 				case 2:
 					state->vs_3v=1;
 					break;
-				case 3: /* 5V */
+				case 3: 
 					break;
 				default:
-					/* return without setting 'detect' */
+					
 					printk(KERN_ERR "pb1x00 bad VS (%d)\n",
 							vs0);
 					return 0;
@@ -158,10 +136,10 @@ pb1x00_pcmcia_socket_state(unsigned sock, struct pcmcia_state *state)
 				case 2:
 					state->vs_3v=1;
 					break;
-				case 3: /* 5V */
+				case 3: 
 					break;
 				default:
-					/* return without setting 'detect' */
+					
 					printk(KERN_ERR "pb1x00 bad VS (%d)\n",
 							vs1);
 					return 0;
@@ -186,10 +164,7 @@ static int pb1x00_pcmcia_get_irq_info(struct pcmcia_irq_info *info)
 
 	if(info->sock > PCMCIA_MAX_SOCK) return -1;
 
-	/*
-	 * Even in the case of the Pb1000, both sockets are connected
-	 * to the same irq line.
-	 */
+	
 	info->irq = PCMCIA_IRQ;
 
 	return 0;
@@ -219,7 +194,7 @@ pb1x00_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 	debug("Vcc %dV Vpp %dV, pcr %x\n", 
 			configure->vcc, configure->vpp, pcr);
 	switch(configure->vcc){
-		case 0:  /* Vcc 0 */
+		case 0:  
 			switch(configure->vpp) {
 				case 0:
 					pcr |= SET_VCC_VPP(VCC_HIZ,VPP_GND,
@@ -247,7 +222,7 @@ pb1x00_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 					break;
 			}
 			break;
-		case 50: /* Vcc 5V */
+		case 50: 
 			switch(configure->vpp) {
 				case 0:
 					pcr |= SET_VCC_VPP(VCC_5V,VPP_GND,
@@ -275,7 +250,7 @@ pb1x00_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 					break;
 			}
 			break;
-		case 33: /* Vcc 3.3V */
+		case 33: 
 			switch(configure->vpp) {
 				case 0:
 					pcr |= SET_VCC_VPP(VCC_3V,VPP_GND,
@@ -303,7 +278,7 @@ pb1x00_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 					break;
 			}
 			break;
-		default: /* what's this ? */
+		default: 
 			pcr |= SET_VCC_VPP(VCC_HIZ,VPP_HIZ,configure->sock);
 			printk(KERN_ERR "%s: bad Vcc %d\n", 
 					__func__, configure->vcc);
@@ -332,10 +307,10 @@ pb1x00_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 
 
 	switch(configure->vcc){
-		case 0:  /* Vcc 0 */
+		case 0:  
 			pcr |= SET_VCC_VPP(0,0);
 			break;
-		case 50: /* Vcc 5V */
+		case 50: 
 			switch(configure->vpp) {
 				case 0:
 					pcr |= SET_VCC_VPP(2,0);
@@ -356,7 +331,7 @@ pb1x00_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 					break;
 			}
 			break;
-		case 33: /* Vcc 3.3V */
+		case 33: 
 			switch(configure->vpp) {
 				case 0:
 					pcr |= SET_VCC_VPP(1,0);
@@ -377,7 +352,7 @@ pb1x00_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 					break;
 			}
 			break;
-		default: /* what's this ? */
+		default: 
 			pcr |= SET_VCC_VPP(0,0);
 			printk(KERN_ERR "%s: bad Vcc %d\n", 
 					__func__, configure->vcc);

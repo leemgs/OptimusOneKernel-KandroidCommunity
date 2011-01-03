@@ -1,32 +1,4 @@
-/* linux/arch/arm/mach-s3c2410/mach-smdk2410.c
- *
- * linux/arch/arm/mach-s3c2410/mach-smdk2410.c
- *
- * Copyright (C) 2004 by FS Forth-Systeme GmbH
- * All rights reserved.
- *
- * @Author: Jonas Dietsche
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
- * @History:
- * derived from linux/arch/arm/mach-s3c2410/mach-bast.c, written by
- * Ben Dooks <ben@simtec.co.uk>
- *
- ***********************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -55,7 +27,7 @@
 #include <plat/common-smdk.h>
 
 static struct map_desc smdk2410_iodesc[] __initdata = {
-  /* nothing here yet */
+  
 };
 
 #define UCON S3C2410_UCON_DEFAULT
@@ -108,9 +80,8 @@ static void __init smdk2410_init(void)
 	smdk_machine_init();
 }
 
-MACHINE_START(SMDK2410, "SMDK2410") /* @TODO: request a new identifier and switch
-				    * to SMDK2410 */
-	/* Maintainer: Jonas Dietsche */
+MACHINE_START(SMDK2410, "SMDK2410") 
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

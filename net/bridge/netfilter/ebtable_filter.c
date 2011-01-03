@@ -1,12 +1,4 @@
-/*
- *  ebtable_filter
- *
- *	Authors:
- *	Bart De Schuymer <bdschuym@pandora.be>
- *
- *  April, 2002
- *
- */
+
 
 #include <linux/netfilter_bridge/ebtables.h>
 #include <linux/module.h>

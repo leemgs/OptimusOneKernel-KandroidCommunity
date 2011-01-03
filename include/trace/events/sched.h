@@ -7,9 +7,7 @@
 #include <linux/sched.h>
 #include <linux/tracepoint.h>
 
-/*
- * Tracepoint for calling kthread_stop, performed to end a kthread:
- */
+
 TRACE_EVENT(sched_kthread_stop,
 
 	TP_PROTO(struct task_struct *t),
@@ -29,9 +27,7 @@ TRACE_EVENT(sched_kthread_stop,
 	TP_printk("task %s:%d", __entry->comm, __entry->pid)
 );
 
-/*
- * Tracepoint for the return value of the kthread stopping:
- */
+
 TRACE_EVENT(sched_kthread_stop_ret,
 
 	TP_PROTO(int ret),
@@ -49,12 +45,7 @@ TRACE_EVENT(sched_kthread_stop_ret,
 	TP_printk("ret %d", __entry->ret)
 );
 
-/*
- * Tracepoint for waiting on task to unschedule:
- *
- * (NOTE: the 'rq' argument is not used by generic trace events,
- *        but used by the latency tracer plugin. )
- */
+
 TRACE_EVENT(sched_wait_task,
 
 	TP_PROTO(struct rq *rq, struct task_struct *p),
@@ -77,12 +68,7 @@ TRACE_EVENT(sched_wait_task,
 		  __entry->comm, __entry->pid, __entry->prio)
 );
 
-/*
- * Tracepoint for waking up a task:
- *
- * (NOTE: the 'rq' argument is not used by generic trace events,
- *        but used by the latency tracer plugin. )
- */
+
 TRACE_EVENT(sched_wakeup,
 
 	TP_PROTO(struct rq *rq, struct task_struct *p, int success),
@@ -110,12 +96,7 @@ TRACE_EVENT(sched_wakeup,
 		  __entry->success, __entry->cpu)
 );
 
-/*
- * Tracepoint for waking up a new task:
- *
- * (NOTE: the 'rq' argument is not used by generic trace events,
- *        but used by the latency tracer plugin. )
- */
+
 TRACE_EVENT(sched_wakeup_new,
 
 	TP_PROTO(struct rq *rq, struct task_struct *p, int success),
@@ -143,12 +124,7 @@ TRACE_EVENT(sched_wakeup_new,
 		  __entry->success, __entry->cpu)
 );
 
-/*
- * Tracepoint for task switches, performed by the scheduler:
- *
- * (NOTE: the 'rq' argument is not used by generic trace events,
- *        but used by the latency tracer plugin. )
- */
+
 TRACE_EVENT(sched_switch,
 
 	TP_PROTO(struct rq *rq, struct task_struct *prev,
@@ -186,9 +162,7 @@ TRACE_EVENT(sched_switch,
 		__entry->next_comm, __entry->next_pid, __entry->next_prio)
 );
 
-/*
- * Tracepoint for a task being migrated:
- */
+
 TRACE_EVENT(sched_migrate_task,
 
 	TP_PROTO(struct task_struct *p, int dest_cpu),
@@ -216,9 +190,7 @@ TRACE_EVENT(sched_migrate_task,
 		  __entry->orig_cpu, __entry->dest_cpu)
 );
 
-/*
- * Tracepoint for freeing a task:
- */
+
 TRACE_EVENT(sched_process_free,
 
 	TP_PROTO(struct task_struct *p),
@@ -241,9 +213,7 @@ TRACE_EVENT(sched_process_free,
 		  __entry->comm, __entry->pid, __entry->prio)
 );
 
-/*
- * Tracepoint for a task exiting:
- */
+
 TRACE_EVENT(sched_process_exit,
 
 	TP_PROTO(struct task_struct *p),
@@ -266,9 +236,7 @@ TRACE_EVENT(sched_process_exit,
 		  __entry->comm, __entry->pid, __entry->prio)
 );
 
-/*
- * Tracepoint for a waiting task:
- */
+
 TRACE_EVENT(sched_process_wait,
 
 	TP_PROTO(struct pid *pid),
@@ -291,9 +259,7 @@ TRACE_EVENT(sched_process_wait,
 		  __entry->comm, __entry->pid, __entry->prio)
 );
 
-/*
- * Tracepoint for do_fork:
- */
+
 TRACE_EVENT(sched_process_fork,
 
 	TP_PROTO(struct task_struct *parent, struct task_struct *child),
@@ -319,9 +285,7 @@ TRACE_EVENT(sched_process_fork,
 		__entry->child_comm, __entry->child_pid)
 );
 
-/*
- * Tracepoint for sending a signal:
- */
+
 TRACE_EVENT(sched_signal_send,
 
 	TP_PROTO(int sig, struct task_struct *p),
@@ -344,15 +308,9 @@ TRACE_EVENT(sched_signal_send,
 		  __entry->sig, __entry->comm, __entry->pid)
 );
 
-/*
- * XXX the below sched_stat tracepoints only apply to SCHED_OTHER/BATCH/IDLE
- *     adding sched_stat support to SCHED_FIFO/RR would be welcome.
- */
 
-/*
- * Tracepoint for accounting wait time (time the task is runnable
- * but not actually running due to scheduler contention).
- */
+
+
 TRACE_EVENT(sched_stat_wait,
 
 	TP_PROTO(struct task_struct *tsk, u64 delay),
@@ -379,10 +337,7 @@ TRACE_EVENT(sched_stat_wait,
 			(unsigned long long)__entry->delay)
 );
 
-/*
- * Tracepoint for accounting runtime (time the task is executing
- * on a CPU).
- */
+
 TRACE_EVENT(sched_stat_runtime,
 
 	TP_PROTO(struct task_struct *tsk, u64 runtime, u64 vruntime),
@@ -412,10 +367,7 @@ TRACE_EVENT(sched_stat_runtime,
 			(unsigned long long)__entry->vruntime)
 );
 
-/*
- * Tracepoint for accounting sleep time (time the task is not runnable,
- * including iowait, see below).
- */
+
 TRACE_EVENT(sched_stat_sleep,
 
 	TP_PROTO(struct task_struct *tsk, u64 delay),
@@ -442,10 +394,7 @@ TRACE_EVENT(sched_stat_sleep,
 			(unsigned long long)__entry->delay)
 );
 
-/*
- * Tracepoint for accounting iowait time (time the task is not runnable
- * due to waiting on IO to complete).
- */
+
 TRACE_EVENT(sched_stat_iowait,
 
 	TP_PROTO(struct task_struct *tsk, u64 delay),
@@ -472,7 +421,7 @@ TRACE_EVENT(sched_stat_iowait,
 			(unsigned long long)__entry->delay)
 );
 
-#endif /* _TRACE_SCHED_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>

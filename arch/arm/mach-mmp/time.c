@@ -1,22 +1,4 @@
-/*
- * linux/arch/arm/mach-mmp/time.c
- *
- *   Support for clocksource and clockevents
- *
- * Copyright (C) 2008 Marvell International Ltd.
- * All rights reserved.
- *
- *   2008-04-11: Jason Chagas <Jason.chagas@marvell.com>
- *   2008-10-08: Bin Yang <bin.yang@marvell.com>
- *
- * The timers module actually includes three timers, each timer with upto
- * three match comparators. Timer #0 is used here in free-running mode as
- * the clock source, and match comparator #1 used as clock event device.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -48,18 +30,12 @@ static void __init set_tcr2ns_scale(unsigned long tcr_rate)
 	unsigned long long v = 1000000000ULL << TCR2NS_SCALE_FACTOR;
 	do_div(v, tcr_rate);
 	tcr2ns_scale = v;
-	/*
-	 * We want an even value to automatically clear the top bit
-	 * returned by cnt32_to_63() without an additional run time
-	 * instruction. So if the LSB is 1 then round it up.
-	 */
+	
 	if (tcr2ns_scale & 1)
 		tcr2ns_scale++;
 }
 
-/*
- * FIXME: the timer needs some delay to stablize the counter capture
- */
+
 static inline uint32_t timer_read(void)
 {
 	int delay = 100;
@@ -82,7 +58,7 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *c = dev_id;
 
-	/* disable and clear pending interrupt status */
+	
 	__raw_writel(0x0, TIMERS_VIRT_BASE + TMR_IER(0));
 	__raw_writel(0x1, TIMERS_VIRT_BASE + TMR_ICR(0));
 	c->event_handler(c);
@@ -96,7 +72,7 @@ static int timer_set_next_event(unsigned long delta,
 
 	local_irq_save(flags);
 
-	/* clear pending interrupt status and enable */
+	
 	__raw_writel(0x01, TIMERS_VIRT_BASE + TMR_ICR(0));
 	__raw_writel(0x01, TIMERS_VIRT_BASE + TMR_IER(0));
 
@@ -117,7 +93,7 @@ static void timer_set_mode(enum clock_event_mode mode,
 	case CLOCK_EVT_MODE_ONESHOT:
 	case CLOCK_EVT_MODE_UNUSED:
 	case CLOCK_EVT_MODE_SHUTDOWN:
-		/* disable the matching interrupt */
+		
 		__raw_writel(0x00, TIMERS_VIRT_BASE + TMR_IER(0));
 		break;
 	case CLOCK_EVT_MODE_RESUME:
@@ -156,19 +132,19 @@ static void __init timer_config(void)
 	uint32_t cer = __raw_readl(TIMERS_VIRT_BASE + TMR_CER);
 	uint32_t cmr = __raw_readl(TIMERS_VIRT_BASE + TMR_CMR);
 
-	__raw_writel(cer & ~0x1, TIMERS_VIRT_BASE + TMR_CER); /* disable */
+	__raw_writel(cer & ~0x1, TIMERS_VIRT_BASE + TMR_CER); 
 
 	ccr &= TMR_CCR_CS_0(0x3);
 	__raw_writel(ccr, TIMERS_VIRT_BASE + TMR_CCR);
 
-	/* free-running mode */
+	
 	__raw_writel(cmr | 0x01, TIMERS_VIRT_BASE + TMR_CMR);
 
-	__raw_writel(0x0, TIMERS_VIRT_BASE + TMR_PLCR(0)); /* free-running */
-	__raw_writel(0x7, TIMERS_VIRT_BASE + TMR_ICR(0));  /* clear status */
+	__raw_writel(0x0, TIMERS_VIRT_BASE + TMR_PLCR(0)); 
+	__raw_writel(0x7, TIMERS_VIRT_BASE + TMR_ICR(0));  
 	__raw_writel(0x0, TIMERS_VIRT_BASE + TMR_IER(0));
 
-	/* enable timer counter */
+	
 	__raw_writel(cer | 0x01, TIMERS_VIRT_BASE + TMR_CER);
 }
 

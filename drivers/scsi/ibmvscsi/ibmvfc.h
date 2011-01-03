@@ -1,25 +1,4 @@
-/*
- * ibmvfc.h -- driver for IBM Power Virtual Fibre Channel Adapter
- *
- * Written By: Brian King <brking@linux.vnet.ibm.com>, IBM Corporation
- *
- * Copyright (C) IBM Corporation, 2008
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #ifndef _IBMVFC_H
 #define _IBMVFC_H
@@ -53,13 +32,7 @@
 #define IBMVFC_DEFAULT_LOG_LEVEL	2
 #define IBMVFC_MAX_CDB_LEN		16
 
-/*
- * Ensure we have resources for ERP and initialization:
- * 1 for ERP
- * 1 for initialization
- * 1 for NPIV Logout
- * 2 for each discovery thread
- */
+
 #define IBMVFC_NUM_INTERNAL_REQ	(1 + 1 + 1 + (disc_threads * 2))
 
 #define IBMVFC_MAD_SUCCESS		0x00
@@ -179,7 +152,7 @@ struct ibmvfc_common_svc_parms {
 	u16 fcph_version;
 	u16 b2b_credit;
 	u16 features;
-	u16 bb_rcv_sz; /* upper nibble is BB_SC_N */
+	u16 bb_rcv_sz; 
 	u32 ratov;
 	u32 edtov;
 }__attribute__((packed, aligned (4)));
@@ -281,7 +254,7 @@ struct ibmvfc_port_login {
 	u32 blksz;
 	u32 hdr_per_blk;
 	u16 status;
-	u16 error;		/* also fc_reason */
+	u16 error;		
 	u16 fc_explain;
 	u16 fc_type;
 	u32 reserved2;
@@ -316,7 +289,7 @@ struct ibmvfc_process_login {
 	struct ibmvfc_prli_svc_parms parms;
 	u8 reserved[48];
 	u16 status;
-	u16 error;			/* also fc_reason */
+	u16 error;			
 	u32 reserved2;
 	u64 reserved3[2];
 }__attribute__((packed, aligned (8)));
@@ -615,7 +588,7 @@ struct ibmvfc_target {
 	struct kref kref;
 };
 
-/* a unit of work for the hosting partition */
+
 struct ibmvfc_event {
 	struct list_head queue;
 	struct ibmvfc_host *vhost;
@@ -634,7 +607,7 @@ struct ibmvfc_event {
 	struct timer_list timer;
 };
 
-/* a pool of event structs for use */
+
 struct ibmvfc_event_pool {
 	struct ibmvfc_event *events;
 	u32 size;

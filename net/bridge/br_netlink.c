@@ -1,14 +1,4 @@
-/*
- *	Bridge netlink control interface
- *
- *	Authors:
- *	Stephen Hemminger		<shemminger@osdl.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <net/rtnetlink.h>
@@ -19,19 +9,16 @@
 static inline size_t br_nlmsg_size(void)
 {
 	return NLMSG_ALIGN(sizeof(struct ifinfomsg))
-	       + nla_total_size(IFNAMSIZ) /* IFLA_IFNAME */
-	       + nla_total_size(MAX_ADDR_LEN) /* IFLA_ADDRESS */
-	       + nla_total_size(4) /* IFLA_MASTER */
-	       + nla_total_size(4) /* IFLA_MTU */
-	       + nla_total_size(4) /* IFLA_LINK */
-	       + nla_total_size(1) /* IFLA_OPERSTATE */
-	       + nla_total_size(1); /* IFLA_PROTINFO */
+	       + nla_total_size(IFNAMSIZ) 
+	       + nla_total_size(MAX_ADDR_LEN) 
+	       + nla_total_size(4) 
+	       + nla_total_size(4) 
+	       + nla_total_size(4) 
+	       + nla_total_size(1) 
+	       + nla_total_size(1); 
 }
 
-/*
- * Create one netlink message for one interface
- * Contains port and master info as well as carrier and bridge state.
- */
+
 static int br_fill_ifinfo(struct sk_buff *skb, const struct net_bridge_port *port,
 			  u32 pid, u32 seq, int event, unsigned int flags)
 {
@@ -77,9 +64,7 @@ nla_put_failure:
 	return -EMSGSIZE;
 }
 
-/*
- * Notify listeners of a change in port information
- */
+
 void br_ifinfo_notify(int event, struct net_bridge_port *port)
 {
 	struct net *net = dev_net(port->dev);
@@ -93,7 +78,7 @@ void br_ifinfo_notify(int event, struct net_bridge_port *port)
 
 	err = br_fill_ifinfo(skb, port, 0, 0, event, 0);
 	if (err < 0) {
-		/* -EMSGSIZE implies BUG in br_nlmsg_size() */
+		
 		WARN_ON(err == -EMSGSIZE);
 		kfree_skb(skb);
 		goto errout;
@@ -105,9 +90,7 @@ errout:
 		rtnl_set_sk_err(net, RTNLGRP_LINK, err);
 }
 
-/*
- * Dump information about all ports, in response to GETLINK
- */
+
 static int br_dump_ifinfo(struct sk_buff *skb, struct netlink_callback *cb)
 {
 	struct net *net = sock_net(skb->sk);
@@ -116,7 +99,7 @@ static int br_dump_ifinfo(struct sk_buff *skb, struct netlink_callback *cb)
 
 	idx = 0;
 	for_each_netdev(net, dev) {
-		/* not a bridge port */
+		
 		if (dev->br_port == NULL || idx < cb->args[0])
 			goto skip;
 
@@ -133,10 +116,7 @@ skip:
 	return skb->len;
 }
 
-/*
- * Change state of port (ie from forwarding to blocking etc)
- * Used by spanning tree in user space.
- */
+
 static int br_rtm_setlink(struct sk_buff *skb,  struct nlmsghdr *nlh, void *arg)
 {
 	struct net *net = sock_net(skb->sk);
@@ -169,7 +149,7 @@ static int br_rtm_setlink(struct sk_buff *skb,  struct nlmsghdr *nlh, void *arg)
 	if (!p)
 		return -EINVAL;
 
-	/* if kernel STP is running, don't allow changes */
+	
 	if (p->br->stp_enabled == BR_KERNEL_STP)
 		return -EBUSY;
 
@@ -188,7 +168,7 @@ int __init br_netlink_init(void)
 	if (__rtnl_register(PF_BRIDGE, RTM_GETLINK, NULL, br_dump_ifinfo))
 		return -ENOBUFS;
 
-	/* Only the first call to __rtnl_register can fail */
+	
 	__rtnl_register(PF_BRIDGE, RTM_SETLINK, br_rtm_setlink, NULL);
 
 	return 0;

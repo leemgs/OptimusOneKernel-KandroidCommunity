@@ -1,14 +1,4 @@
-/*
- *  Functions private to power supply class
- *
- *  Copyright © 2007  Anton Vorontsov <cbou@mail.ru>
- *  Copyright © 2004  Szabolcs Gyurko
- *  Copyright © 2003  Ian Molton <spyro@f2s.com>
- *
- *  Modified: 2004, Oct     Szabolcs Gyurko
- *
- *  You may use this code as per GPL version 2
- */
+
 
 #ifdef CONFIG_SYSFS
 
@@ -23,7 +13,7 @@ static inline int power_supply_create_attrs(struct power_supply *psy)
 static inline void power_supply_remove_attrs(struct power_supply *psy) {}
 #define power_supply_uevent NULL
 
-#endif /* CONFIG_SYSFS */
+#endif 
 
 #ifdef CONFIG_LEDS_TRIGGERS
 
@@ -38,4 +28,4 @@ static inline int power_supply_create_triggers(struct power_supply *psy)
 { return 0; }
 static inline void power_supply_remove_triggers(struct power_supply *psy) {}
 
-#endif /* CONFIG_LEDS_TRIGGERS */
+#endif 

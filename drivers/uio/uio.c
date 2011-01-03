@@ -1,17 +1,4 @@
-/*
- * drivers/uio/uio.c
- *
- * Copyright(C) 2005, Benedikt Spranger <b.spranger@linutronix.de>
- * Copyright(C) 2005, Thomas Gleixner <tglx@linutronix.de>
- * Copyright(C) 2006, Hans J. Koch <hjk@linutronix.de>
- * Copyright(C) 2006, Greg Kroah-Hartman <greg@kroah.com>
- *
- * Userspace IO
- *
- * Base Functions
- *
- * Licensed under the GPLv2 only.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -43,18 +30,16 @@ static int uio_major;
 static DEFINE_IDR(uio_idr);
 static const struct file_operations uio_fops;
 
-/* UIO class infrastructure */
+
 static struct uio_class {
 	struct kref kref;
 	struct class *class;
 } *uio_class;
 
-/* Protect idr accesses */
+
 static DEFINE_MUTEX(minor_lock);
 
-/*
- * attributes
- */
+
 
 struct uio_map {
 	struct kobject kobj;
@@ -105,7 +90,7 @@ static struct attribute *attrs[] = {
 	&addr_attribute.attr,
 	&size_attribute.attr,
 	&offset_attribute.attr,
-	NULL,	/* need to NULL terminate the list of attributes */
+	NULL,	
 };
 
 static void map_release(struct kobject *kobj)
@@ -272,9 +257,7 @@ static struct attribute_group uio_attr_grp = {
 	.attrs = uio_attrs,
 };
 
-/*
- * device functions
- */
+
 static int uio_dev_add_attributes(struct uio_device *idev)
 {
 	int ret;
@@ -416,10 +399,7 @@ static void uio_free_minor(struct uio_device *idev)
 	mutex_unlock(&minor_lock);
 }
 
-/**
- * uio_event_notify - trigger an interrupt event
- * @info: UIO device capabilities
- */
+
 void uio_event_notify(struct uio_info *info)
 {
 	struct uio_device *idev = info->uio_dev;
@@ -430,11 +410,7 @@ void uio_event_notify(struct uio_info *info)
 }
 EXPORT_SYMBOL_GPL(uio_event_notify);
 
-/**
- * uio_interrupt - hardware interrupt handler
- * @irq: IRQ number, can be UIO_IRQ_CYCLIC for cyclic timer
- * @dev_id: Pointer to the devices uio_device structure
- */
+
 static irqreturn_t uio_interrupt(int irq, void *dev_id)
 {
 	struct uio_device *idev = (struct uio_device *)dev_id;
@@ -643,10 +619,7 @@ static int uio_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	if (mi < 0)
 		return VM_FAULT_SIGBUS;
 
-	/*
-	 * We need to subtract mi because userspace uses offset = N*PAGE_SIZE
-	 * to use mem[N].
-	 */
+	
 	offset = (vmf->pgoff - mi) << PAGE_SHIFT;
 
 	if (idev->info->mem[mi].memtype == UIO_MEM_LOGICAL)
@@ -763,7 +736,7 @@ static int init_uio_class(void)
 		goto exit;
 	}
 
-	/* This is the first time in here, set everything up properly */
+	
 	ret = uio_major_init();
 	if (ret)
 		goto exit;
@@ -794,7 +767,7 @@ exit:
 
 static void release_uio_class(struct kref *kref)
 {
-	/* Ok, we cheat as we know we only have one uio_class */
+	
 	class_destroy(uio_class->class);
 	kfree(uio_class);
 	uio_major_cleanup();
@@ -807,14 +780,7 @@ static void uio_class_destroy(void)
 		kref_put(&uio_class->kref, release_uio_class);
 }
 
-/**
- * uio_register_device - register a new userspace IO device
- * @owner:	module that creates the new device
- * @parent:	parent device
- * @info:	UIO device capabilities
- *
- * returns zero on success or a negative error code.
- */
+
 int __uio_register_device(struct module *owner,
 			  struct device *parent,
 			  struct uio_info *info)
@@ -884,11 +850,7 @@ err_kzalloc:
 }
 EXPORT_SYMBOL_GPL(__uio_register_device);
 
-/**
- * uio_unregister_device - unregister a industrial IO device
- * @info:	UIO device capabilities
- *
- */
+
 void uio_unregister_device(struct uio_info *info)
 {
 	struct uio_device *idev;

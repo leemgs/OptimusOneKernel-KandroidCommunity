@@ -1,20 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #ifndef _VNIC_SCSI_H_
 #define _VNIC_SCSI_H_
 
@@ -69,7 +53,7 @@
 #define VNIC_FNIC_LUNS_PER_TARGET_MIN       1
 #define VNIC_FNIC_LUNS_PER_TARGET_MAX       1024
 
-/* Device-specific region: scsi configuration */
+
 struct vnic_fc_config {
 	u64 node_wwn;
 	u64 port_wwn;
@@ -93,7 +77,7 @@ struct vnic_fc_config {
 	u8 intr_timer_type;
 };
 
-#define VFCF_FCP_SEQ_LVL_ERR	0x1	/* Enable FCP-2 Error Recovery */
-#define VFCF_PERBI		0x2	/* persistent binding info available */
+#define VFCF_FCP_SEQ_LVL_ERR	0x1	
+#define VFCF_PERBI		0x2	
 
-#endif /* _VNIC_SCSI_H_ */
+#endif 

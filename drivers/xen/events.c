@@ -1,25 +1,4 @@
-/*
- * Xen event channels
- *
- * Xen models interrupts with abstract event channels.  Because each
- * domain gets 1024 event channels, but NR_IRQ is not that large, we
- * must dynamically map irqs<->event channels.  The event channels
- * interface with the rest of the kernel by defining a xen interrupt
- * chip.  When an event is recieved, it is mapped to an irq and sent
- * through the normal interrupt processing path.
- *
- * There are four kinds of events which can be mapped to an event
- * channel:
- *
- * 1. Inter-domain notifications.  This includes all the virtual
- *    device events, since they're driven by front-ends in another domain
- *    (typically dom0).
- * 2. VIRQs, typically used for timers.  These are per-cpu events.
- * 3. IPIs.
- * 4. Hardware interrupts. Not supported at present.
- *
- * Jeremy Fitzhardinge <jeremy@xensource.com>, XenSource Inc, 2007
- */
+
 
 #include <linux/linkage.h>
 #include <linux/interrupt.h>
@@ -40,19 +19,16 @@
 #include <xen/interface/xen.h>
 #include <xen/interface/event_channel.h>
 
-/*
- * This lock protects updates to the following mapping and reference-count
- * arrays. The lock does not need to be acquired to read the mapping tables.
- */
+
 static DEFINE_SPINLOCK(irq_mapping_update_lock);
 
-/* IRQ <-> VIRQ mapping. */
+
 static DEFINE_PER_CPU(int [NR_VIRQS], virq_to_irq) = {[0 ... NR_VIRQS-1] = -1};
 
-/* IRQ <-> IPI mapping */
+
 static DEFINE_PER_CPU(int [XEN_NR_IPIS], ipi_to_irq) = {[0 ... XEN_NR_IPIS-1] = -1};
 
-/* Interrupt types. */
+
 enum xen_irq_type {
 	IRQT_UNBOUND = 0,
 	IRQT_PIRQ,
@@ -61,22 +37,12 @@ enum xen_irq_type {
 	IRQT_EVTCHN
 };
 
-/*
- * Packed IRQ information:
- * type - enum xen_irq_type
- * event channel - irq->event channel mapping
- * cpu - cpu this event channel is bound to
- * index - type-specific information:
- *    PIRQ - vector, with MSB being "needs EIO"
- *    VIRQ - virq number
- *    IPI - IPI vector
- *    EVTCHN -
- */
+
 struct irq_info
 {
-	enum xen_irq_type type;	/* type */
-	unsigned short evtchn;	/* event channel */
-	unsigned short cpu;	/* cpu bound */
+	enum xen_irq_type type;	
+	unsigned short evtchn;	
+	unsigned short cpu;	
 
 	union {
 		unsigned short virq;
@@ -102,12 +68,12 @@ static inline unsigned long *cpu_evtchn_mask(int cpu)
 	return cpu_evtchn_mask_p[cpu].bits;
 }
 
-/* Xen will never allocate port zero for any purpose. */
+
 #define VALID_EVTCHN(chn)	((chn) != 0)
 
 static struct irq_chip xen_dynamic_chip;
 
-/* Constructor for packed IRQ information. */
+
 static struct irq_info mk_unbound_info(void)
 {
 	return (struct irq_info) { .type = IRQT_UNBOUND };
@@ -138,9 +104,7 @@ static struct irq_info mk_pirq_info(unsigned short evtchn,
 			.cpu = 0, .u.pirq = { .gsi = gsi, .vector = vector } };
 }
 
-/*
- * Accessors for packed IRQ information.
- */
+
 static struct irq_info *info_for_irq(unsigned irq)
 {
 	return &irq_info[irq];
@@ -248,7 +212,7 @@ static void init_evtchn_cpu_bindings(void)
 	struct irq_desc *desc;
 	int i;
 
-	/* By default all event channels notify CPU#0. */
+	
 	for_each_irq_desc(i, desc) {
 		cpumask_copy(desc->affinity, cpumask_of(0));
 	}
@@ -276,14 +240,7 @@ static inline int test_evtchn(int port)
 }
 
 
-/**
- * notify_remote_via_irq - send event to remote end of event channel via irq
- * @irq: irq of event channel to send event to
- *
- * Unlike notify_remote_via_evtchn(), this is safe to use across
- * save/restore. Notifications on a broken connection are silently
- * dropped.
- */
+
 void notify_remote_via_irq(int irq)
 {
 	int evtchn = evtchn_from_irq(irq);
@@ -306,7 +263,7 @@ static void unmask_evtchn(int port)
 
 	BUG_ON(!irqs_disabled());
 
-	/* Slow path (hypercall) if this is a non-local port. */
+	
 	if (unlikely(cpu != cpu_from_evtchn(port))) {
 		struct evtchn_unmask unmask = { .port = port };
 		(void)HYPERVISOR_event_channel_op(EVTCHNOP_unmask, &unmask);
@@ -315,11 +272,7 @@ static void unmask_evtchn(int port)
 
 		sync_clear_bit(port, &s->evtchn_mask[0]);
 
-		/*
-		 * The following is basically the equivalent of
-		 * 'hw_resend_irq'. Just like a real IO-APIC we 'lose
-		 * the interrupt edge' if the channel is masked.
-		 */
+		
 		if (sync_test_bit(port, &s->evtchn_pending[0]) &&
 		    !sync_test_and_set_bit(port / BITS_PER_LONG,
 					   &vcpu_info->evtchn_pending_sel))
@@ -470,7 +423,7 @@ static void unbind_from_irq(unsigned int irq)
 			break;
 		}
 
-		/* Closed ports are implicitly re-bound to VCPU0. */
+		
 		bind_evtchn_to_cpu(evtchn, 0);
 
 		evtchn_to_irq[evtchn] = -1;
@@ -607,15 +560,7 @@ irqreturn_t xen_debug_interrupt(int irq, void *dev_id)
 
 static DEFINE_PER_CPU(unsigned, xed_nesting_count);
 
-/*
- * Search the CPUs pending events bitmasks.  For each one found, map
- * the event number to an irq, and feed it into do_IRQ() for
- * handling.
- *
- * Xen uses a two-level bitmap to speed searching.  The first level is
- * a bitset of words which contain pending event bits.  The second
- * level is a bitset of pending events themselves.
- */
+
 void xen_evtchn_do_upcall(struct pt_regs *regs)
 {
 	int cpu = get_cpu();
@@ -635,8 +580,8 @@ void xen_evtchn_do_upcall(struct pt_regs *regs)
 		if (__get_cpu_var(xed_nesting_count)++)
 			goto out;
 
-#ifndef CONFIG_X86 /* No need for a barrier -- XCHG is a barrier on x86. */
-		/* Clear master flag /before/ clearing selector flag. */
+#ifndef CONFIG_X86 
+		
 		wmb();
 #endif
 		pending_words = xchg(&vcpu_info->evtchn_pending_sel, 0);
@@ -668,21 +613,19 @@ out:
 	put_cpu();
 }
 
-/* Rebind a new event channel to an existing irq. */
+
 void rebind_evtchn_irq(int evtchn, int irq)
 {
 	struct irq_info *info = info_for_irq(irq);
 
-	/* Make sure the irq is masked, since the new event channel
-	   will also be masked. */
+	
 	disable_irq(irq);
 
 	spin_lock(&irq_mapping_update_lock);
 
-	/* After resume the irq<->evtchn mappings are all cleared out */
+	
 	BUG_ON(evtchn_to_irq[evtchn] != -1);
-	/* Expect irq to have been bound before,
-	   so there should be a proper type */
+	
 	BUG_ON(info->type == IRQT_UNBOUND);
 
 	evtchn_to_irq[evtchn] = irq;
@@ -690,14 +633,14 @@ void rebind_evtchn_irq(int evtchn, int irq)
 
 	spin_unlock(&irq_mapping_update_lock);
 
-	/* new event channels are always bound to cpu 0 */
+	
 	irq_set_affinity(irq, cpumask_of(0));
 
-	/* Unmask the event channel. */
+	
 	enable_irq(irq);
 }
 
-/* Rebind an evtchn so that it gets delivered to a specific cpu */
+
 static int rebind_irq_to_cpu(unsigned irq, unsigned tcpu)
 {
 	struct evtchn_bind_vcpu bind_vcpu;
@@ -706,15 +649,11 @@ static int rebind_irq_to_cpu(unsigned irq, unsigned tcpu)
 	if (!VALID_EVTCHN(evtchn))
 		return -1;
 
-	/* Send future instances of this interrupt to other vcpu. */
+	
 	bind_vcpu.port = evtchn;
 	bind_vcpu.vcpu = tcpu;
 
-	/*
-	 * If this fails, it usually just indicates that we're dealing with a
-	 * virq or IPI channel, which don't actually need to be rebound. Ignore
-	 * it, but don't do the xenlinux-level rebind in that case.
-	 */
+	
 	if (HYPERVISOR_event_channel_op(EVTCHNOP_bind_vcpu, &bind_vcpu) >= 0)
 		bind_evtchn_to_cpu(evtchn, tcpu);
 
@@ -800,7 +739,7 @@ static void restore_cpu_virqs(unsigned int cpu)
 
 		BUG_ON(virq_from_irq(irq) != virq);
 
-		/* Get a new binding from Xen. */
+		
 		bind_virq.virq = virq;
 		bind_virq.vcpu = cpu;
 		if (HYPERVISOR_event_channel_op(EVTCHNOP_bind_virq,
@@ -808,12 +747,12 @@ static void restore_cpu_virqs(unsigned int cpu)
 			BUG();
 		evtchn = bind_virq.port;
 
-		/* Record the new mapping. */
+		
 		evtchn_to_irq[evtchn] = irq;
 		irq_info[irq] = mk_virq_info(evtchn, virq);
 		bind_evtchn_to_cpu(evtchn, cpu);
 
-		/* Ready for use. */
+		
 		unmask_evtchn(evtchn);
 	}
 }
@@ -829,25 +768,25 @@ static void restore_cpu_ipis(unsigned int cpu)
 
 		BUG_ON(ipi_from_irq(irq) != ipi);
 
-		/* Get a new binding from Xen. */
+		
 		bind_ipi.vcpu = cpu;
 		if (HYPERVISOR_event_channel_op(EVTCHNOP_bind_ipi,
 						&bind_ipi) != 0)
 			BUG();
 		evtchn = bind_ipi.port;
 
-		/* Record the new mapping. */
+		
 		evtchn_to_irq[evtchn] = irq;
 		irq_info[irq] = mk_ipi_info(evtchn, ipi);
 		bind_evtchn_to_cpu(evtchn, cpu);
 
-		/* Ready for use. */
+		
 		unmask_evtchn(evtchn);
 
 	}
 }
 
-/* Clear an irq's pending state, in preparation for polling on it */
+
 void xen_clear_irq_pending(int irq)
 {
 	int evtchn = evtchn_from_irq(irq);
@@ -875,8 +814,7 @@ bool xen_test_irq_pending(int irq)
 	return ret;
 }
 
-/* Poll waiting for an irq to become pending.  In the usual case, the
-   irq will be disabled so it won't deliver an interrupt. */
+
 void xen_poll_irq(int irq)
 {
 	evtchn_port_t evtchn = evtchn_from_irq(irq);
@@ -899,13 +837,13 @@ void xen_irq_resume(void)
 
 	init_evtchn_cpu_bindings();
 
-	/* New event-channel space is not 'live' yet. */
+	
 	for (evtchn = 0; evtchn < NR_EVENT_CHANNELS; evtchn++)
 		mask_evtchn(evtchn);
 
-	/* No IRQ <-> event-channel mappings. */
+	
 	for (irq = 0; irq < nr_irqs; irq++)
-		irq_info[irq].evtchn = 0; /* zap event-channel binding */
+		irq_info[irq].evtchn = 0; 
 
 	for (evtchn = 0; evtchn < NR_EVENT_CHANNELS; evtchn++)
 		evtchn_to_irq[evtchn] = -1;
@@ -938,7 +876,7 @@ void __init xen_init_IRQ(void)
 
 	init_evtchn_cpu_bindings();
 
-	/* No event channels are 'live' right now. */
+	
 	for (i = 0; i < NR_EVENT_CHANNELS; i++)
 		mask_evtchn(i);
 

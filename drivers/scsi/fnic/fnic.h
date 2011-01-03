@@ -1,20 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #ifndef _FNIC_H_
 #define _FNIC_H_
 
@@ -40,36 +24,31 @@
 #define DFX                     DRV_NAME "%d: "
 
 #define DESC_CLEAN_LOW_WATERMARK 8
-#define FNIC_MAX_IO_REQ		2048 /* scsi_cmnd tag map entries */
-#define	FNIC_IO_LOCKS		64 /* IO locks: power of 2 */
+#define FNIC_MAX_IO_REQ		2048 
+#define	FNIC_IO_LOCKS		64 
 #define FNIC_DFLT_QUEUE_DEPTH	32
-#define	FNIC_STATS_RATE_LIMIT	4 /* limit rate at which stats are pulled up */
+#define	FNIC_STATS_RATE_LIMIT	4 
 
-/*
- * Tag bits used for special requests.
- */
+
 #define BIT(nr)			(1UL << (nr))
-#define FNIC_TAG_ABORT		BIT(30)		/* tag bit indicating abort */
-#define FNIC_TAG_DEV_RST	BIT(29)		/* indicates device reset */
-#define FNIC_TAG_MASK		(BIT(24) - 1)	/* mask for lookup */
+#define FNIC_TAG_ABORT		BIT(30)		
+#define FNIC_TAG_DEV_RST	BIT(29)		
+#define FNIC_TAG_MASK		(BIT(24) - 1)	
 #define FNIC_NO_TAG             -1
 
-/*
- * Usage of the scsi_cmnd scratchpad.
- * These fields are locked by the hashed io_req_lock.
- */
+
 #define CMD_SP(Cmnd)		((Cmnd)->SCp.ptr)
 #define CMD_STATE(Cmnd)		((Cmnd)->SCp.phase)
 #define CMD_ABTS_STATUS(Cmnd)	((Cmnd)->SCp.Message)
 #define CMD_LR_STATUS(Cmnd)	((Cmnd)->SCp.have_data_in)
 #define CMD_TAG(Cmnd)           ((Cmnd)->SCp.sent_command)
 
-#define FCPIO_INVALID_CODE 0x100 /* hdr_status value unused by firmware */
+#define FCPIO_INVALID_CODE 0x100 
 
-#define FNIC_LUN_RESET_TIMEOUT	     10000	/* mSec */
-#define FNIC_HOST_RESET_TIMEOUT	     10000	/* mSec */
-#define FNIC_RMDEVICE_TIMEOUT        1000       /* mSec */
-#define FNIC_HOST_RESET_SETTLE_TIME  30         /* Sec */
+#define FNIC_LUN_RESET_TIMEOUT	     10000	
+#define FNIC_HOST_RESET_TIMEOUT	     10000	
+#define FNIC_RMDEVICE_TIMEOUT        1000       
+#define FNIC_HOST_RESET_SETTLE_TIME  30         
 
 #define FNIC_MAX_FCP_TARGET     256
 
@@ -142,7 +121,7 @@ enum fnic_state {
 
 struct mempool;
 
-/* Per-instance private data structure */
+
 struct fnic {
 	struct fc_lport *lport;
 	struct vnic_dev_bar bar0;
@@ -151,10 +130,10 @@ struct fnic {
 	struct fnic_msix_entry msix[FNIC_MSIX_INTR_MAX];
 
 	struct vnic_stats *stats;
-	unsigned long stats_time;	/* time of stats update */
+	unsigned long stats_time;	
 	struct vnic_nic_cfg *nic_cfg;
 	char name[IFNAMSIZ];
-	struct timer_list notify_timer; /* used for MSI interrupts */
+	struct timer_list notify_timer; 
 
 	unsigned int err_intr_offset;
 	unsigned int link_intr_offset;
@@ -162,12 +141,12 @@ struct fnic {
 	unsigned int wq_count;
 	unsigned int cq_count;
 
-	u32 fcoui_mode:1;		/* use fcoui address*/
-	u32 vlan_hw_insert:1;	        /* let hw insert the tag */
-	u32 in_remove:1;                /* fnic device in removal */
-	u32 stop_rx_link_events:1;      /* stop proc. rx frames, link events */
+	u32 fcoui_mode:1;		
+	u32 vlan_hw_insert:1;	        
+	u32 in_remove:1;                
+	u32 stop_rx_link_events:1;      
 
-	struct completion *remove_wait; /* device remove thread blocks */
+	struct completion *remove_wait; 
 
 	struct fc_frame *flogi;
 	struct fc_frame *flogi_resp;
@@ -176,12 +155,12 @@ struct fnic {
 	enum fnic_state state;
 	spinlock_t fnic_lock;
 
-	u16 vlan_id;	                /* VLAN tag including priority */
+	u16 vlan_id;	                
 	u8 mac_addr[ETH_ALEN];
 	u8 dest_addr[ETH_ALEN];
 	u8 data_src_addr[ETH_ALEN];
-	u64 fcp_input_bytes;		/* internal statistic */
-	u64 fcp_output_bytes;		/* internal statistic */
+	u64 fcp_input_bytes;		
+	u64 fcp_output_bytes;		
 	u32 link_down_cnt;
 	int link_status;
 
@@ -200,27 +179,27 @@ struct fnic {
 	struct fnic_host_tag *tags;
 	mempool_t *io_req_pool;
 	mempool_t *io_sgl_pool[FNIC_SGL_NUM_CACHES];
-	spinlock_t io_req_lock[FNIC_IO_LOCKS];	/* locks for scsi cmnds */
+	spinlock_t io_req_lock[FNIC_IO_LOCKS];	
 
 	struct work_struct link_work;
 	struct work_struct frame_work;
 	struct sk_buff_head frame_queue;
 
-	/* copy work queue cache line section */
+	
 	____cacheline_aligned struct vnic_wq_copy wq_copy[FNIC_WQ_COPY_MAX];
-	/* completion queue cache line section */
+	
 	____cacheline_aligned struct vnic_cq cq[FNIC_CQ_MAX];
 
 	spinlock_t wq_copy_lock[FNIC_WQ_COPY_MAX];
 
-	/* work queue cache line section */
+	
 	____cacheline_aligned struct vnic_wq wq[FNIC_WQ_MAX];
 	spinlock_t wq_lock[FNIC_WQ_MAX];
 
-	/* receive queue cache line section */
+	
 	____cacheline_aligned struct vnic_rq rq[FNIC_RQ_MAX];
 
-	/* interrupt resource cache line section */
+	
 	____cacheline_aligned struct vnic_intr intr[FNIC_MSIX_INTR_MAX];
 };
 
@@ -262,4 +241,4 @@ const char *fnic_state_to_str(unsigned int state);
 void fnic_log_q_error(struct fnic *fnic);
 void fnic_handle_link_event(struct fnic *fnic);
 
-#endif /* _FNIC_H_ */
+#endif 

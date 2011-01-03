@@ -1,39 +1,4 @@
-/*
- * Driver giving user-space access to the kernel's xenbus connection
- * to xenstore.
- *
- * Copyright (c) 2005, Christian Limpach
- * Copyright (c) 2005, Rusty Russell, IBM Corporation
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * Changes:
- * 2008-10-07  Alex Zeffertt    Replaced /proc/xen/xenbus with xenfs filesystem
- *                              and /proc/xen compatibility mount point.
- *                              Turned xenfs into a loadable module.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -58,18 +23,13 @@
 #include <xen/xenbus.h>
 #include <asm/xen/hypervisor.h>
 
-/*
- * An element of a list of outstanding transactions, for which we're
- * still waiting a reply.
- */
+
 struct xenbus_transaction_holder {
 	struct list_head list;
 	struct xenbus_transaction handle;
 };
 
-/*
- * A buffer of data on the queue.
- */
+
 struct read_buffer {
 	struct list_head list;
 	unsigned int cons;
@@ -78,39 +38,30 @@ struct read_buffer {
 };
 
 struct xenbus_file_priv {
-	/*
-	 * msgbuffer_mutex is held while partial requests are built up
-	 * and complete requests are acted on.  It therefore protects
-	 * the "transactions" and "watches" lists, and the partial
-	 * request length and buffer.
-	 *
-	 * reply_mutex protects the reply being built up to return to
-	 * usermode.  It nests inside msgbuffer_mutex but may be held
-	 * alone during a watch callback.
-	 */
+	
 	struct mutex msgbuffer_mutex;
 
-	/* In-progress transactions */
+	
 	struct list_head transactions;
 
-	/* Active watches. */
+	
 	struct list_head watches;
 
-	/* Partial request. */
+	
 	unsigned int len;
 	union {
 		struct xsd_sockmsg msg;
 		char buffer[PAGE_SIZE];
 	} u;
 
-	/* Response queue. */
+	
 	struct mutex reply_mutex;
 	struct list_head read_buffers;
 	wait_queue_head_t read_waitq;
 
 };
 
-/* Read out any raw xenbus messages queued up. */
+
 static ssize_t xenbus_file_read(struct file *filp,
 			       char __user *ubuf,
 			       size_t len, loff_t *ppos)
@@ -146,7 +97,7 @@ static ssize_t xenbus_file_read(struct file *filp,
 			goto out;
 		}
 
-		/* Clear out buffer if it has been consumed */
+		
 		if (rb->cons == rb->len) {
 			list_del(&rb->list);
 			kfree(rb);
@@ -162,13 +113,7 @@ out:
 	return i;
 }
 
-/*
- * Add a buffer to the queue.  Caller must hold the appropriate lock
- * if the queue is not local.  (Commonly the caller will build up
- * multiple queued buffers on a temporary local list, and then add it
- * to the appropriate list under lock once all the buffers have een
- * successfully allocated.)
- */
+
 static int queue_reply(struct list_head *queue, const void *data, size_t len)
 {
 	struct read_buffer *rb;
@@ -189,10 +134,7 @@ static int queue_reply(struct list_head *queue, const void *data, size_t len)
 	return 0;
 }
 
-/*
- * Free all the read_buffer s on a list.
- * Caller must have sole reference to list.
- */
+
 static void queue_cleanup(struct list_head *list)
 {
 	struct read_buffer *rb;
@@ -280,7 +222,7 @@ static void watch_fired(struct xenbus_watch *watch,
 		ret = queue_reply(&staging_q, vec[2], data_len);
 
 	if (!ret) {
-		/* success: pass reply list onto watcher */
+		
 		list_splice_tail(&staging_q, &adap->dev_data->read_buffers);
 		wake_up(&adap->dev_data->read_waitq);
 	} else
@@ -388,7 +330,7 @@ static int xenbus_write_watch(unsigned msg_type, struct xenbus_file_priv *u)
 		}
 	}
 
-	/* Success.  Synthesize a reply to say all is OK. */
+	
 	{
 		struct {
 			struct xsd_sockmsg hdr;
@@ -420,30 +362,18 @@ static ssize_t xenbus_file_write(struct file *filp,
 	int ret;
 	LIST_HEAD(staging_q);
 
-	/*
-	 * We're expecting usermode to be writing properly formed
-	 * xenbus messages.  If they write an incomplete message we
-	 * buffer it up.  Once it is complete, we act on it.
-	 */
+	
 
-	/*
-	 * Make sure concurrent writers can't stomp all over each
-	 * other's messages and make a mess of our partial message
-	 * buffer.  We don't make any attemppt to stop multiple
-	 * writers from making a mess of each other's incomplete
-	 * messages; we're just trying to guarantee our own internal
-	 * consistency and make sure that single writes are handled
-	 * atomically.
-	 */
+	
 	mutex_lock(&u->msgbuffer_mutex);
 
-	/* Get this out of the way early to avoid confusion */
+	
 	if (len == 0)
 		goto out;
 
-	/* Can't write a xenbus message larger we can buffer */
+	
 	if ((len + u->len) > sizeof(u->u.buffer)) {
-		/* On error, dump existing buffer */
+		
 		u->len = 0;
 		rc = -EINVAL;
 		goto out;
@@ -456,18 +386,17 @@ static ssize_t xenbus_file_write(struct file *filp,
 		goto out;
 	}
 
-	/* Deal with a partial copy. */
+	
 	len -= ret;
 	rc = len;
 
 	u->len += len;
 
-	/* Return if we haven't got a full message yet */
+	
 	if (u->len < sizeof(u->u.msg))
-		goto out;	/* not even the header yet */
+		goto out;	
 
-	/* If we're expecting a message that's larger than we can
-	   possibly send, dump what we have and return an error. */
+	
 	if ((sizeof(u->u.msg) + u->u.msg.len) > sizeof(u->u.buffer)) {
 		rc = -E2BIG;
 		u->len = 0;
@@ -475,11 +404,9 @@ static ssize_t xenbus_file_write(struct file *filp,
 	}
 
 	if (u->len < (sizeof(u->u.msg) + u->u.msg.len))
-		goto out;	/* incomplete data portion */
+		goto out;	
 
-	/*
-	 * OK, now we have a complete message.  Do something with it.
-	 */
+	
 
 	msg_type = u->u.msg.type;
 
@@ -495,13 +422,13 @@ static ssize_t xenbus_file_write(struct file *filp,
 	case XS_MKDIR:
 	case XS_RM:
 	case XS_SET_PERMS:
-		/* Send out a transaction */
+		
 		ret = xenbus_write_transaction(msg_type, u);
 		break;
 
 	case XS_WATCH:
 	case XS_UNWATCH:
-		/* (Un)Ask for some path to be watched for changes */
+		
 		ret = xenbus_write_watch(msg_type, u);
 		break;
 
@@ -512,7 +439,7 @@ static ssize_t xenbus_file_write(struct file *filp,
 	if (ret != 0)
 		rc = ret;
 
-	/* Buffered message consumed */
+	
 	u->len = 0;
 
  out:
@@ -552,10 +479,7 @@ static int xenbus_file_release(struct inode *inode, struct file *filp)
 	struct xenbus_transaction_holder *trans, *tmp;
 	struct watch_adapter *watch, *tmp_watch;
 
-	/*
-	 * No need for locking here because there are no other users,
-	 * by definition.
-	 */
+	
 
 	list_for_each_entry_safe(trans, tmp, &u->transactions, list) {
 		xenbus_transaction_end(trans->handle, 1);

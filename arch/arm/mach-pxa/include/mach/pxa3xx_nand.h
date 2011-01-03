@@ -5,15 +5,15 @@
 #include <linux/mtd/partitions.h>
 
 struct pxa3xx_nand_timing {
-	unsigned int	tCH;  /* Enable signal hold time */
-	unsigned int	tCS;  /* Enable signal setup time */
-	unsigned int	tWH;  /* ND_nWE high duration */
-	unsigned int	tWP;  /* ND_nWE pulse time */
-	unsigned int	tRH;  /* ND_nRE high duration */
-	unsigned int	tRP;  /* ND_nRE pulse width */
-	unsigned int	tR;   /* ND_nWE high to ND_nRE low for read */
-	unsigned int	tWHR; /* ND_nWE high to ND_nRE low for status read */
-	unsigned int	tAR;  /* ND_ALE low to ND_nRE low delay */
+	unsigned int	tCH;  
+	unsigned int	tCS;  
+	unsigned int	tWH;  
+	unsigned int	tWP;  
+	unsigned int	tRH;  
+	unsigned int	tRP;  
+	unsigned int	tR;   
+	unsigned int	tWHR; 
+	unsigned int	tAR;  
 };
 
 struct pxa3xx_nand_cmdset {
@@ -30,26 +30,23 @@ struct pxa3xx_nand_cmdset {
 };
 
 struct pxa3xx_nand_flash {
-	const struct pxa3xx_nand_timing *timing; /* NAND Flash timing */
+	const struct pxa3xx_nand_timing *timing; 
 	const struct pxa3xx_nand_cmdset *cmdset;
 
-	uint32_t page_per_block;/* Pages per block (PG_PER_BLK) */
-	uint32_t page_size;	/* Page size in bytes (PAGE_SZ) */
-	uint32_t flash_width;	/* Width of Flash memory (DWIDTH_M) */
-	uint32_t dfc_width;	/* Width of flash controller(DWIDTH_C) */
-	uint32_t num_blocks;	/* Number of physical blocks in Flash */
+	uint32_t page_per_block;
+	uint32_t page_size;	
+	uint32_t flash_width;	
+	uint32_t dfc_width;	
+	uint32_t num_blocks;	
 	uint32_t chip_id;
 };
 
 struct pxa3xx_nand_platform_data {
 
-	/* the data flash bus is shared between the Static Memory
-	 * Controller and the Data Flash Controller,  the arbiter
-	 * controls the ownership of the bus
-	 */
+	
 	int	enable_arbiter;
 
-	/* allow platform code to keep OBM/bootloader defined NFC config */
+	
 	int	keep_config;
 
 	const struct mtd_partition		*parts;
@@ -60,4 +57,4 @@ struct pxa3xx_nand_platform_data {
 };
 
 extern void pxa3xx_set_nand_info(struct pxa3xx_nand_platform_data *info);
-#endif /* __ASM_ARCH_PXA3XX_NAND_H */
+#endif 

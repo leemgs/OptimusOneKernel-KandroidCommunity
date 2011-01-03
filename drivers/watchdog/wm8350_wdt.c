@@ -1,12 +1,4 @@
-/*
- * Watchdog driver for the wm8350
- *
- * Copyright (C) 2007, 2008 Wolfson Microelectronics <linux@wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -31,8 +23,8 @@ static int wm8350_wdt_expect_close;
 static DEFINE_MUTEX(wdt_mutex);
 
 static struct {
-	int time;  /* Seconds */
-	u16 val;   /* To be set in WM8350_SYSTEM_CONTROL_2 */
+	int time;  
+	u16 val;   
 } wm8350_wdt_cfgs[] = {
 	{ 1, 0x02 },
 	{ 2, 0x04 },
@@ -160,11 +152,10 @@ static ssize_t wm8350_wdt_write(struct file *file,
 		wm8350_wdt_kick(wm8350);
 
 		if (!nowayout) {
-			/* In case it was set long ago */
+			
 			wm8350_wdt_expect_close = 0;
 
-			/* scan to see whether or not we got the magic
-			   character */
+			
 			for (i = 0; i != count; i++) {
 				char c;
 				if (get_user(c, data + i))
@@ -210,7 +201,7 @@ static long wm8350_wdt_ioctl(struct file *file, unsigned int cmd,
 
 		ret = -EINVAL;
 
-		/* Setting both simultaneously means at least one must fail */
+		
 		if (options == WDIOS_DISABLECARD)
 			ret = wm8350_wdt_start(wm8350);
 
@@ -288,7 +279,7 @@ static int __devinit wm8350_wdt_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	/* Default to 4s timeout */
+	
 	wm8350_wdt_set_timeout(wm8350, 0x05);
 
 	wm8350_wdt_miscdev.parent = &pdev->dev;

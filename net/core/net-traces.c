@@ -1,8 +1,4 @@
-/*
- * consolidates trace point definitions
- *
- * Copyright (C) 2009 Neil Horman <nhorman@tuxdriver.com>
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/etherdevice.h>

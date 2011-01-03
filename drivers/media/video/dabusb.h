@@ -6,7 +6,7 @@ typedef struct
 	unsigned int pipe;
 }bulk_transfer_t,*pbulk_transfer_t;
 
-#define DABUSB_MINOR 240		/* some unassigned USB minor */
+#define DABUSB_MINOR 240		
 #define DABUSB_VERSION 0x1000
 #define IOCTL_DAB_BULK              _IOWR('d', 0x30, bulk_transfer_t)
 #define IOCTL_DAB_OVERRUNS	    _IOR('d',  0x15, int)
@@ -54,11 +54,11 @@ typedef struct
 #define _ISOPIPESIZE	16384
 
 #define _BULK_DATA_LEN 64
-// Vendor specific request code for Anchor Upload/Download
-// This one is implemented in the core
+
+
 #define ANCHOR_LOAD_INTERNAL  0xA0
 
-// EZ-USB Control and Status Register.  Bit 0 controls 8051 reset
+
 #define CPUCS_REG    0x7F92
 #define _TOTAL_BUFFERS 384
 
@@ -67,12 +67,12 @@ typedef struct
 #ifndef _BYTE_DEFINED
 #define _BYTE_DEFINED
 typedef unsigned char BYTE;
-#endif // !_BYTE_DEFINED
+#endif 
 
 #ifndef _WORD_DEFINED
 #define _WORD_DEFINED
 typedef unsigned short WORD;
-#endif // !_WORD_DEFINED
+#endif 
 
 typedef struct _INTEL_HEX_RECORD
 {

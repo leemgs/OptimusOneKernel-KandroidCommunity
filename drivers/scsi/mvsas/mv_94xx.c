@@ -1,26 +1,4 @@
-/*
- * Marvell 88SE94xx hardware specific
- *
- * Copyright 2007 Red Hat, Inc.
- * Copyright 2008 Marvell. <kewei@marvell.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 of the
- * License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
-*/
+
 
 #include "mv_sas.h"
 #include "mv_94xx.h"
@@ -111,8 +89,8 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 		mw32(MVS_PHY_CTL, tmp);
 	}
 
-	/* Init Chip */
-	/* make sure RST is set; HBA_RST /should/ have done that for us */
+	
+	
 	cctl = mr32(MVS_CTL) & 0xFFFF;
 	if (cctl & CCTL_RST)
 		cctl &= ~CCTL_RST;
@@ -132,15 +110,15 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 		msleep(100);
 	}
 
-	/* reset control */
-	mw32(MVS_PCS, 0);		/* MVS_PCS */
+	
+	mw32(MVS_PCS, 0);		
 	mw32(MVS_STP_REG_SET_0, 0);
 	mw32(MVS_STP_REG_SET_1, 0);
 
-	/* init phys */
+	
 	mvs_phy_hacks(mvi);
 
-	/* disable Multiplexing, enable phy implemented */
+	
 	mw32(MVS_PORTS_IMP, 0xFF);
 
 
@@ -149,7 +127,7 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 	mw32(MVS_PA_VSR_ADDR, VSR_PHY_MODE8);
 	mw32(MVS_PA_VSR_PORT, 0x0084ffff);
 
-	/* set LED blink when IO*/
+	
 	mw32(MVS_PA_VSR_ADDR, 0x00000030);
 	tmp = mr32(MVS_PA_VSR_PORT);
 	tmp &= 0xFFFF00FF;
@@ -172,7 +150,7 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 
 	for (i = 0; i < mvi->chip->n_phy; i++) {
 		mvs_94xx_phy_disable(mvi, i);
-		/* set phy local SAS address */
+		
 		mvs_set_sas_addr(mvi, i, CONFIG_ID_FRAME3, CONFIG_ID_FRAME4,
 						(mvi->phy[i].dev_sas_addr));
 
@@ -185,7 +163,7 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 	}
 
 	if (mvi->flags & MVF_FLAG_SOC) {
-		/* set select registers */
+		
 		writel(0x0E008000, regs + 0x000);
 		writel(0x59000008, regs + 0x004);
 		writel(0x20, regs + 0x008);
@@ -196,12 +174,12 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 		writel(0x20, regs + 0x01c);
 	}
 	for (i = 0; i < mvi->chip->n_phy; i++) {
-		/* clear phy int status */
+		
 		tmp = mvs_read_port_irq_stat(mvi, i);
 		tmp &= ~PHYEV_SIG_FIS;
 		mvs_write_port_irq_stat(mvi, i, tmp);
 
-		/* set phy int mask */
+		
 		tmp = PHYEV_RDY_CH | PHYEV_BROAD_CH |
 			PHYEV_ID_DONE  | PHYEV_DCDR_ERR | PHYEV_CRC_ERR ;
 		mvs_write_port_irq_mask(mvi, i, tmp);
@@ -210,13 +188,10 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 		mvs_update_phyinfo(mvi, i, 1);
 	}
 
-	/* FIXME: update wide port bitmaps */
+	
 
-	/* little endian for open address and command table, etc. */
-	/*
-	 * it seems that ( from the spec ) turning on big-endian won't
-	 * do us any good on big-endian machines, need further confirmation
-	 */
+	
+	
 	cctl = mr32(MVS_CTL);
 	cctl |= CCTL_ENDIAN_CMD;
 	cctl |= CCTL_ENDIAN_DATA;
@@ -224,35 +199,32 @@ static int __devinit mvs_94xx_init(struct mvs_info *mvi)
 	cctl |= CCTL_ENDIAN_RSP;
 	mw32_f(MVS_CTL, cctl);
 
-	/* reset CMD queue */
+	
 	tmp = mr32(MVS_PCS);
 	tmp |= PCS_CMD_RST;
 	mw32(MVS_PCS, tmp);
-	/* interrupt coalescing may cause missing HW interrput in some case,
-	 * and the max count is 0x1ff, while our max slot is 0x200,
-	 * it will make count 0.
-	 */
+	
 	tmp = 0;
 	mw32(MVS_INT_COAL, tmp);
 
 	tmp = 0x100;
 	mw32(MVS_INT_COAL_TMOUT, tmp);
 
-	/* ladies and gentlemen, start your engines */
+	
 	mw32(MVS_TX_CFG, 0);
 	mw32(MVS_TX_CFG, MVS_CHIP_SLOT_SZ | TX_EN);
 	mw32(MVS_RX_CFG, MVS_RX_RING_SZ | RX_EN);
-	/* enable CMD/CMPL_Q/RESP mode */
+	
 	mw32(MVS_PCS, PCS_SATA_RETRY_2 | PCS_FIS_RX_EN |
 		PCS_CMD_EN | PCS_CMD_STOP_ERR);
 
-	/* enable completion queue interrupt */
+	
 	tmp = (CINT_PORT_MASK | CINT_DONE | CINT_MEM | CINT_SRS | CINT_CI_STOP |
 		CINT_DMA_PCIE);
 	tmp |= CINT_PHY_MASK;
 	mw32(MVS_INT_MASK, tmp);
 
-	/* Enable SRS interrupt */
+	
 	mw32(MVS_INT_MASK_SRS_0, 0xFFFF);
 
 	return 0;
@@ -432,7 +404,7 @@ static int mvs_94xx_oob_done(struct mvs_info *mvi, int i)
 {
 	u32 phy_st;
 	phy_st = mvs_read_phy_ctl(mvi, i);
-	if (phy_st & PHY_READY_MASK)	/* phy ready */
+	if (phy_st & PHY_READY_MASK)	
 		return 1;
 	return 0;
 }
@@ -457,7 +429,7 @@ static void mvs_94xx_get_att_identify_frame(struct mvs_info *mvi, int port_id,
 	int i;
 	u32 id_frame[7];
 
-	/* mvs_hexdump(28, (u8 *)id_frame, 0); */
+	
 	for (i = 0; i < 7; i++) {
 		mvs_write_port_cfg_addr(mvi, port_id,
 					CONFIG_ATT_ID_FRAME0 + i * 4);
@@ -465,7 +437,7 @@ static void mvs_94xx_get_att_identify_frame(struct mvs_info *mvi, int port_id,
 		mv_dprintk("94xx phy %d atta frame %d %x.\n",
 			port_id + mvi->id * mvi->chip->n_phy, i, id_frame[i]);
 	}
-	/* mvs_hexdump(28, (u8 *)id_frame, 0); */
+	
 	memcpy(id, id_frame, 28);
 }
 
@@ -525,7 +497,7 @@ static void mvs_94xx_fix_phy_info(struct mvs_info *mvi, int i,
 void mvs_94xx_phy_set_link_rate(struct mvs_info *mvi, u32 phy_id,
 			struct sas_phy_linkrates *rates)
 {
-	/* TODO */
+	
 }
 
 static void mvs_94xx_clear_active_cmds(struct mvs_info *mvi)

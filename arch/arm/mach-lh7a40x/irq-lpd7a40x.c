@@ -1,13 +1,4 @@
-/* arch/arm/mach-lh7a40x/irq-lpd7a40x.c
- *
- *  Copyright (C) 2004 Coastal Environmental Systems
- *  Copyright (C) 2004 Logic Product Development
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -22,7 +13,7 @@
 
 static void lh7a40x_ack_cpld_irq (u32 irq)
 {
-	/* CPLD doesn't have ack capability */
+	
 }
 
 static void lh7a40x_mask_cpld_irq (u32 irq)
@@ -62,57 +53,50 @@ static void lh7a40x_cpld_handler (unsigned int irq, struct irq_desc *desc)
 
 	desc->chip->ack (irq);
 
-	if ((mask & 0x1) == 0)	/* WLAN */
+	if ((mask & 0x1) == 0)	
 		generic_handle_irq(IRQ_LPD7A40X_ETH_INT);
 
-	if ((mask & 0x2) == 0)	/* Touch */
+	if ((mask & 0x2) == 0)	
 		generic_handle_irq(IRQ_LPD7A400_TS);
 
-	desc->chip->unmask (irq); /* Level-triggered need this */
+	desc->chip->unmask (irq); 
 }
 
 
-  /* IRQ initialization */
+  
 
 void __init lh7a40x_init_board_irq (void)
 {
 	int irq;
 
-		/* Rev A (v2.8): PF0, PF1, PF2, and PF3 are available IRQs.
-		                 PF7 supports the CPLD.
-		   Rev B (v3.4): PF0, PF1, and PF2 are available IRQs.
-		                 PF3 supports the CPLD.
-		   (Some) LPD7A404 prerelease boards report a version
-		   number of 0x16, but we force an override since the
-		   hardware is of the newer variety.
-		*/
+		
 
 	unsigned char cpld_version = CPLD_REVISION;
 	int pinCPLD;
 
 #if defined CONFIG_MACH_LPD7A404
-	cpld_version = 0x34;	/* Override, for now */
+	cpld_version = 0x34;	
 #endif
 	pinCPLD = (cpld_version == 0x28) ? 7 : 3;
 
-		/* First, configure user controlled GPIOF interrupts  */
+		
 
-	GPIO_PFDD	&= ~0x0f; /* PF0-3 are inputs */
-	GPIO_INTTYPE1	&= ~0x0f; /* PF0-3 are level triggered */
-	GPIO_INTTYPE2	&= ~0x0f; /* PF0-3 are active low */
+	GPIO_PFDD	&= ~0x0f; 
+	GPIO_INTTYPE1	&= ~0x0f; 
+	GPIO_INTTYPE2	&= ~0x0f; 
 	barrier ();
-	GPIO_GPIOFINTEN |=  0x0f; /* Enable PF0, PF1, PF2, and PF3 IRQs */
+	GPIO_GPIOFINTEN |=  0x0f; 
 
-		/* Then, configure CPLD interrupt */
+		
 
-	CPLD_INTERRUPTS	=   0x0c; /* Disable all CPLD interrupts */
-	GPIO_PFDD	&= ~(1 << pinCPLD); /* Make input */
-	GPIO_INTTYPE1	|=  (1 << pinCPLD); /* Edge triggered */
-	GPIO_INTTYPE2	&= ~(1 << pinCPLD); /* Active low */
+	CPLD_INTERRUPTS	=   0x0c; 
+	GPIO_PFDD	&= ~(1 << pinCPLD); 
+	GPIO_INTTYPE1	|=  (1 << pinCPLD); 
+	GPIO_INTTYPE2	&= ~(1 << pinCPLD); 
 	barrier ();
-	GPIO_GPIOFINTEN |=  (1 << pinCPLD); /* Enable */
+	GPIO_GPIOFINTEN |=  (1 << pinCPLD); 
 
-		/* Cascade CPLD interrupts */
+		
 
 	for (irq = IRQ_BOARD_START;
 	     irq < IRQ_BOARD_START + NR_IRQ_BOARD; ++irq) {

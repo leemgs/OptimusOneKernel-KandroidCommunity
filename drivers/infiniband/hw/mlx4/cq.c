@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Cisco Systems, Inc. All rights reserved.
- * Copyright (c) 2007, 2008 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/mlx4/cq.h>
 #include <linux/mlx4/qp.h>
@@ -367,7 +336,7 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
 		if (err)
 			goto out;
 	} else {
-		/* Can't be smaller than the number of outstanding CQEs */
+		
 		outst_cqe = mlx4_ib_get_outstanding_cqes(cq);
 		if (entries < outst_cqe + 1) {
 			err = 0;
@@ -556,10 +525,7 @@ repoll:
 
 	++cq->mcq.cons_index;
 
-	/*
-	 * Make sure we read CQ entry contents after we've checked the
-	 * ownership bit.
-	 */
+	
 	rmb();
 
 	is_send  = cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK;
@@ -572,7 +538,7 @@ repoll:
 		return -EINVAL;
 	}
 
-	/* Resize CQ in progress */
+	
 	if (unlikely((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) == MLX4_CQE_OPCODE_RESIZE)) {
 		if (cq->resize_buf) {
 			struct mlx4_ib_dev *dev = to_mdev(cq->ibcq.device);
@@ -590,11 +556,7 @@ repoll:
 
 	if (!*cur_qp ||
 	    (be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK) != (*cur_qp)->mqp.qpn) {
-		/*
-		 * We do not have to take the QP table lock here,
-		 * because CQs will be locked while QPs are removed
-		 * from the table.
-		 */
+		
 		mqp = __mlx4_qp_lookup(to_mdev(cq->ibcq.device)->dev,
 				       be32_to_cpu(cqe->vlan_my_qpn));
 		if (unlikely(!mqp)) {
@@ -756,21 +718,12 @@ void __mlx4_ib_cq_clean(struct mlx4_ib_cq *cq, u32 qpn, struct mlx4_ib_srq *srq)
 	struct mlx4_cqe *cqe, *dest;
 	u8 owner_bit;
 
-	/*
-	 * First we need to find the current producer index, so we
-	 * know where to start cleaning from.  It doesn't matter if HW
-	 * adds new entries after this loop -- the QP we're worried
-	 * about is already in RESET, so the new entries won't come
-	 * from our QP and therefore don't need to be checked.
-	 */
+	
 	for (prod_index = cq->mcq.cons_index; get_sw_cqe(cq, prod_index); ++prod_index)
 		if (prod_index == cq->mcq.cons_index + cq->ibcq.cqe)
 			break;
 
-	/*
-	 * Now sweep backwards through the CQ, removing CQ entries
-	 * that match our QP by copying older entries on top of them.
-	 */
+	
 	while ((int) --prod_index - (int) cq->mcq.cons_index >= 0) {
 		cqe = get_cqe(cq, prod_index & cq->ibcq.cqe);
 		if ((be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK) == qpn) {
@@ -788,10 +741,7 @@ void __mlx4_ib_cq_clean(struct mlx4_ib_cq *cq, u32 qpn, struct mlx4_ib_srq *srq)
 
 	if (nfreed) {
 		cq->mcq.cons_index += nfreed;
-		/*
-		 * Make sure update of buffer contents is done before
-		 * updating consumer index.
-		 */
+		
 		wmb();
 		mlx4_cq_set_ci(&cq->mcq);
 	}

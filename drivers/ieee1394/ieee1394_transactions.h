@@ -37,4 +37,4 @@ int hpsb_lock(struct hpsb_host *host, nodeid_t node, unsigned int generation,
 extern spinlock_t hpsb_tlabel_lock;
 #endif
 
-#endif /* _IEEE1394_TRANSACTIONS_H */
+#endif 

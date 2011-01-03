@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c64xx/pm.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C64XX CPU PM support.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/init.h>
 #include <linux/suspend.h>
@@ -112,32 +100,28 @@ void s3c_pm_save_core(void)
 	s3c_pm_do_save(core_save, ARRAY_SIZE(core_save));
 }
 
-/* since both s3c6400 and s3c6410 share the same sleep pm calls, we
- * put the per-cpu code in here until any new cpu comes along and changes
- * this.
- */
+
 
 static void s3c64xx_cpu_suspend(void)
 {
 	unsigned long tmp;
 
-	/* set our standby method to sleep */
+	
 
 	tmp = __raw_readl(S3C64XX_PWR_CFG);
 	tmp &= ~S3C64XX_PWRCFG_CFG_WFI_MASK;
 	tmp |= S3C64XX_PWRCFG_CFG_WFI_SLEEP;
 	__raw_writel(tmp, S3C64XX_PWR_CFG);
 
-	/* clear any old wakeup */
+	
 
 	__raw_writel(__raw_readl(S3C64XX_WAKEUP_STAT),
 		     S3C64XX_WAKEUP_STAT);
 
-	/* set the LED state to 0110 over sleep */
+	
 	s3c_pm_debug_smdkled(3 << 1, 0xf);
 
-	/* issue the standby signal into the pm unit. Note, we
-	 * issue a write-buffer drain just in case */
+	
 
 	tmp = 0;
 
@@ -148,17 +132,17 @@ static void s3c64xx_cpu_suspend(void)
 	    "mcr p15, 0, %0, c7, c10, 4\n\t"
 	    "mcr p15, 0, %0, c7, c0, 4" :: "r" (tmp));
 
-	/* we should never get past here */
+	
 
 	panic("sleep resumed to originator?");
 }
 
 static void s3c64xx_pm_prepare(void)
 {
-	/* store address of resume. */
+	
 	__raw_writel(virt_to_phys(s3c_cpu_resume), S3C64XX_INFORM0);
 
-	/* ensure previous wakeup state is cleared before sleeping */
+	
 	__raw_writel(__raw_readl(S3C64XX_WAKEUP_STAT), S3C64XX_WAKEUP_STAT);
 }
 

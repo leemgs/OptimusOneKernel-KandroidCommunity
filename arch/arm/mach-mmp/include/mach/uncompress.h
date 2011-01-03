@@ -1,10 +1,4 @@
-/*
- * arch/arm/mach-mmp/include/mach/uncompress.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/serial_reg.h>
 #include <mach/addr-map.h>
@@ -17,7 +11,7 @@ static inline void putc(char c)
 {
 	volatile unsigned long *UART = (unsigned long *)UART2_BASE;
 
-	/* UART enabled? */
+	
 	if (!(UART[UART_IER] & UART_IER_UUE))
 		return;
 
@@ -27,15 +21,11 @@ static inline void putc(char c)
 	UART[UART_TX] = c;
 }
 
-/*
- * This does not append a newline
- */
+
 static inline void flush(void)
 {
 }
 
-/*
- * nothing to do
- */
+
 #define arch_decomp_setup()
 #define arch_decomp_wdog()

@@ -1,12 +1,4 @@
-/*
- * Copyright (c) 2008 open80211s Ltd.
- * Authors:    Luis Carlos Cobo <luisca@cozybit.com>
- * 	       Javier Cardona <javier@cozybit.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <asm/unaligned.h>
 #include "ieee80211_i.h"
@@ -15,11 +7,11 @@
 #define IEEE80211_MESH_PEER_INACTIVITY_LIMIT (1800 * HZ)
 #define IEEE80211_MESH_HOUSEKEEPING_INTERVAL (60 * HZ)
 
-#define PP_OFFSET 	1		/* Path Selection Protocol */
-#define PM_OFFSET	5		/* Path Selection Metric   */
-#define CC_OFFSET	9		/* Congestion Control Mode */
-#define SP_OFFSET	13		/* Synchronization Protocol */
-#define AUTH_OFFSET	17		/* Authentication Protocol */
+#define PP_OFFSET 	1		
+#define PM_OFFSET	5		
+#define CC_OFFSET	9		
+#define SP_OFFSET	13		
+#define AUTH_OFFSET	17		
 #define CAPAB_OFFSET 	22
 #define CAPAB_ACCEPT_PLINKS 0x80
 #define CAPAB_FORWARDING    0x10
@@ -60,29 +52,12 @@ static void ieee80211_mesh_housekeeping_timer(unsigned long data)
 	ieee80211_queue_work(&local->hw, &ifmsh->work);
 }
 
-/**
- * mesh_matches_local - check if the config of a mesh point matches ours
- *
- * @ie: information elements of a management frame from the mesh peer
- * @sdata: local mesh subif
- *
- * This function checks if the mesh configuration of a mesh point matches the
- * local mesh configuration, i.e. if both nodes belong to the same mesh network.
- */
+
 bool mesh_matches_local(struct ieee802_11_elems *ie, struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
 
-	/*
-	 * As support for each feature is added, check for matching
-	 * - On mesh config capabilities
-	 *   - Power Save Support En
-	 *   - Sync support enabled
-	 *   - Sync support active
-	 *   - Sync support required from peer
-	 *   - MDA enabled
-	 * - Power management control on fc
-	 */
+	
 	if (ifmsh->mesh_id_len == ie->mesh_id_len &&
 		memcmp(ifmsh->mesh_id, ie->mesh_id, ie->mesh_id_len) == 0 &&
 		memcmp(ifmsh->mesh_pp_id, ie->mesh_config + PP_OFFSET, 4) == 0 &&
@@ -95,31 +70,18 @@ bool mesh_matches_local(struct ieee802_11_elems *ie, struct ieee80211_sub_if_dat
 	return false;
 }
 
-/**
- * mesh_peer_accepts_plinks - check if an mp is willing to establish peer links
- *
- * @ie: information elements of a management frame from the mesh peer
- */
+
 bool mesh_peer_accepts_plinks(struct ieee802_11_elems *ie)
 {
 	return (*(ie->mesh_config + CAPAB_OFFSET) & CAPAB_ACCEPT_PLINKS) != 0;
 }
 
-/**
- * mesh_accept_plinks_update: update accepting_plink in local mesh beacons
- *
- * @sdata: mesh interface in which mesh beacons are going to be updated
- */
+
 void mesh_accept_plinks_update(struct ieee80211_sub_if_data *sdata)
 {
 	bool free_plinks;
 
-	/* In case mesh_plink_free_count > 0 and mesh_plinktbl_capacity == 0,
-	 * the mesh interface might be able to establish plinks with peers that
-	 * are already on the table but are not on PLINK_ESTAB state. However,
-	 * in general the mesh interface is not accepting peer link requests
-	 * from new peers, and that must be reflected in the beacon
-	 */
+	
 	free_plinks = mesh_plink_availables(sdata);
 
 	if (free_plinks != sdata->u.mesh.accepting_plinks)
@@ -174,18 +136,7 @@ void mesh_rmc_free(struct ieee80211_sub_if_data *sdata)
 	sdata->u.mesh.rmc = NULL;
 }
 
-/**
- * mesh_rmc_check - Check frame in recent multicast cache and add if absent.
- *
- * @sa:		source address
- * @mesh_hdr:	mesh_header
- *
- * Returns: 0 if the frame is not in the cache, nonzero otherwise.
- *
- * Checks using the source address and the mesh sequence number if we have
- * received this frame lately. If the frame is not in the cache, it is added to
- * it.
- */
+
 int mesh_rmc_check(u8 *sa, struct ieee80211s_hdr *mesh_hdr,
 		   struct ieee80211_sub_if_data *sdata)
 {
@@ -195,7 +146,7 @@ int mesh_rmc_check(u8 *sa, struct ieee80211s_hdr *mesh_hdr,
 	u8 idx;
 	struct rmc_entry *p, *n;
 
-	/* Don't care about endianness since only match matters */
+	
 	memcpy(&seqnum, &mesh_hdr->seqnum, sizeof(mesh_hdr->seqnum));
 	idx = le32_to_cpu(mesh_hdr->seqnum) & rmc->idx_mask;
 	list_for_each_entry_safe(p, n, &rmc->bucket[idx].list, list) {
@@ -260,34 +211,34 @@ void mesh_mgmt_ies_add(struct sk_buff *skb, struct ieee80211_sub_if_data *sdata)
 	pos = skb_put(skb, 2 + IEEE80211_MESH_CONFIG_LEN);
 	*pos++ = WLAN_EID_MESH_CONFIG;
 	*pos++ = IEEE80211_MESH_CONFIG_LEN;
-	/* Version */
+	
 	*pos++ = 1;
 
-	/* Active path selection protocol ID */
+	
 	memcpy(pos, sdata->u.mesh.mesh_pp_id, 4);
 	pos += 4;
 
-	/* Active path selection metric ID   */
+	
 	memcpy(pos, sdata->u.mesh.mesh_pm_id, 4);
 	pos += 4;
 
-	/* Congestion control mode identifier */
+	
 	memcpy(pos, sdata->u.mesh.mesh_cc_id, 4);
 	pos += 4;
 
-	/* Synchronization protocol identifier */
+	
 	memcpy(pos, sdata->u.mesh.mesh_sp_id, 4);
 	pos += 4;
 
-	/* Authentication Protocol identifier */
+	
 	memcpy(pos, sdata->u.mesh.mesh_auth_id, 4);
 	pos += 4;
 
-	/* Mesh Formation Info */
+	
 	memset(pos, 0x00, 1);
 	pos += 1;
 
-	/* Mesh capability */
+	
 	sdata->u.mesh.accepting_plinks = mesh_plink_availables(sdata);
 	*pos = CAPAB_FORWARDING;
 	*pos++ |= sdata->u.mesh.accepting_plinks ? CAPAB_ACCEPT_PLINKS : 0x00;
@@ -298,7 +249,7 @@ void mesh_mgmt_ies_add(struct sk_buff *skb, struct ieee80211_sub_if_data *sdata)
 
 u32 mesh_table_hash(u8 *addr, struct ieee80211_sub_if_data *sdata, struct mesh_table *tbl)
 {
-	/* Use last four bytes of hw addr and interface index as hash index */
+	
 	return jhash_2words(*(u32 *)(addr+2), sdata->dev->ifindex, tbl->hash_rnd)
 		& tbl->hash_mask;
 }
@@ -355,21 +306,12 @@ static void ieee80211_mesh_path_timer(unsigned long data)
 	ieee80211_queue_work(&local->hw, &ifmsh->work);
 }
 
-/**
- * ieee80211_fill_mesh_addresses - fill addresses of a locally originated mesh frame
- * @hdr:    	802.11 frame header
- * @fc:		frame control field
- * @meshda:	destination address in the mesh
- * @meshsa:	source address address in the mesh.  Same as TA, as frame is
- *              locally originated.
- *
- * Return the length of the 802.11 (does not include a mesh control header)
- */
+
 int ieee80211_fill_mesh_addresses(struct ieee80211_hdr *hdr, __le16 *fc, char
 		*meshda, char *meshsa) {
 	if (is_multicast_ether_addr(meshda)) {
 		*fc |= cpu_to_le16(IEEE80211_FCTL_FROMDS);
-		/* DA TA SA */
+		
 		memcpy(hdr->addr1, meshda, ETH_ALEN);
 		memcpy(hdr->addr2, meshsa, ETH_ALEN);
 		memcpy(hdr->addr3, meshsa, ETH_ALEN);
@@ -377,8 +319,8 @@ int ieee80211_fill_mesh_addresses(struct ieee80211_hdr *hdr, __le16 *fc, char
 	} else {
 		*fc |= cpu_to_le16(IEEE80211_FCTL_FROMDS |
 				IEEE80211_FCTL_TODS);
-		/* RA TA DA SA */
-		memset(hdr->addr1, 0, ETH_ALEN);   /* RA is resolved later */
+		
+		memset(hdr->addr1, 0, ETH_ALEN);   
 		memcpy(hdr->addr2, meshsa, ETH_ALEN);
 		memcpy(hdr->addr3, meshda, ETH_ALEN);
 		memcpy(hdr->addr4, meshsa, ETH_ALEN);
@@ -386,19 +328,7 @@ int ieee80211_fill_mesh_addresses(struct ieee80211_hdr *hdr, __le16 *fc, char
 	}
 }
 
-/**
- * ieee80211_new_mesh_header - create a new mesh header
- * @meshhdr:    uninitialized mesh header
- * @sdata:	mesh interface to be used
- * @addr4:	addr4 of the mesh frame (1st in ae header)
- *              may be NULL
- * @addr5:	addr5 of the mesh frame (1st or 2nd in ae header)
- *              may be NULL unless addr6 is present
- * @addr6:	addr6 of the mesh frame (2nd or 3rd in ae header)
- * 		may be NULL unless addr5 is present
- *
- * Return the header length.
- */
+
 int ieee80211_new_mesh_header(struct ieee80211s_hdr *meshhdr,
 		struct ieee80211_sub_if_data *sdata, char *addr4,
 		char *addr5, char *addr6)
@@ -453,10 +383,10 @@ void ieee80211_mesh_quiesce(struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
 
-	/* might restart the timer but that doesn't matter */
+	
 	cancel_work_sync(&ifmsh->work);
 
-	/* use atomic bitops in case both timers fire at the same time */
+	
 
 	if (del_timer_sync(&ifmsh->housekeeping_timer))
 		set_bit(TMR_RUNNING_HK, &ifmsh->timers_running);
@@ -491,22 +421,11 @@ void ieee80211_start_mesh(struct ieee80211_sub_if_data *sdata)
 void ieee80211_stop_mesh(struct ieee80211_sub_if_data *sdata)
 {
 	del_timer_sync(&sdata->u.mesh.housekeeping_timer);
-	/*
-	 * If the timer fired while we waited for it, it will have
-	 * requeued the work. Now the work will be running again
-	 * but will not rearm the timer again because it checks
-	 * whether the interface is running, which, at this point,
-	 * it no longer is.
-	 */
+	
 	cancel_work_sync(&sdata->u.mesh.work);
 
-	/*
-	 * When we get here, the interface is marked down.
-	 * Call synchronize_rcu() to wait for the RX path
-	 * should it be using the interface and enqueuing
-	 * frames at this very time on another CPU.
-	 */
-	rcu_barrier(); /* Wait for RX path and call_rcu()'s */
+	
+	rcu_barrier(); 
 	skb_queue_purge(&sdata->u.mesh.skb_queue);
 }
 
@@ -524,7 +443,7 @@ static void ieee80211_mesh_rx_bcn_presp(struct ieee80211_sub_if_data *sdata,
 	int freq;
 	enum ieee80211_band band = rx_status->band;
 
-	/* ignore ProbeResp to foreign address */
+	
 	if (stype == IEEE80211_STYPE_PROBE_RESP &&
 	    compare_ether_addr(mgmt->da, sdata->dev->dev_addr))
 		return;
@@ -677,7 +596,7 @@ void ieee80211_mesh_init_sdata(struct ieee80211_sub_if_data *sdata)
 	atomic_set(&ifmsh->mpaths, 0);
 	mesh_rmc_init(sdata);
 	ifmsh->last_preq = jiffies;
-	/* Allocate all mesh structures when creating the first mesh interface. */
+	
 	if (!mesh_allocated)
 		ieee80211s_init();
 	mesh_ids_set_default(ifmsh);
@@ -706,7 +625,7 @@ ieee80211_mesh_rx_mgmt(struct ieee80211_sub_if_data *sdata, struct sk_buff *skb)
 	case IEEE80211_STYPE_ACTION:
 		if (skb->len < IEEE80211_MIN_ACTION_SIZE)
 			return RX_DROP_MONITOR;
-		/* fall through */
+		
 	case IEEE80211_STYPE_PROBE_RESP:
 	case IEEE80211_STYPE_BEACON:
 		skb_queue_tail(&ifmsh->skb_queue, skb);

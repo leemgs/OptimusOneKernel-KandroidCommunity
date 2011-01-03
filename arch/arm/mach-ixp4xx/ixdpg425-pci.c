@@ -1,17 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/ixdpg425-pci.c
- *
- * PCI setup routines for Intel IXDPG425 Platform
- *
- * Copyright (C) 2004 MontaVista Softwrae, Inc.
- *
- * Maintainer: Deepak Saxena <dsaxena@plexity.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/pci.h>

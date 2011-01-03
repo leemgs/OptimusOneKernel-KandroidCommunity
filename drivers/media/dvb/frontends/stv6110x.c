@@ -1,24 +1,4 @@
-/*
-	STV6110(A) Silicon tuner driver
 
-	Copyright (C) Manu Abraham <abraham.manu@gmail.com>
-
-	Copyright (C) ST Microelectronics
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -132,7 +112,7 @@ static int stv6110x_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	STV6110x_SETFIELD(stv6110x_regs[STV6110x_TNG1], TNG1_N_DIV_11_8, MSB(divider));
 	STV6110x_SETFIELD(stv6110x_regs[STV6110x_TNG0], TNG0_N_DIV_7_0, LSB(divider));
 
-	/* VCO Auto calibration */
+	
 	STV6110x_SETFIELD(stv6110x_regs[STV6110x_STAT1], STAT1_CALVCO_STRT, 1);
 
 	stv6110x_write_reg(stv6110x, STV6110x_CTRL1, stv6110x_regs[STV6110x_CTRL1]);
@@ -177,15 +157,15 @@ static int stv6110x_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
 	halfbw = bandwidth >> 1;
 
 	if (halfbw > 36000000)
-		STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_CF, 31); /* LPF */
+		STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_CF, 31); 
 	else if (halfbw < 5000000)
-		STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_CF, 0); /* LPF */
+		STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_CF, 0); 
 	else
-		STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_CF, ((halfbw / 1000000) - 5)); /* LPF */
+		STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_CF, ((halfbw / 1000000) - 5)); 
 
 
-	STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_RCCLK_OFF, 0x0); /* cal. clk activated */
-	STV6110x_SETFIELD(stv6110x_regs[STV6110x_STAT1], STAT1_CALRC_STRT, 0x1); /* LPF auto cal */
+	STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_RCCLK_OFF, 0x0); 
+	STV6110x_SETFIELD(stv6110x_regs[STV6110x_STAT1], STAT1_CALRC_STRT, 0x1); 
 
 	stv6110x_write_reg(stv6110x, STV6110x_CTRL3, stv6110x_regs[STV6110x_CTRL3]);
 	stv6110x_write_reg(stv6110x, STV6110x_STAT1, stv6110x_regs[STV6110x_STAT1]);
@@ -196,7 +176,7 @@ static int stv6110x_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
 			break;
 		msleep(1);
 	}
-	STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_RCCLK_OFF, 0x1); /* cal. done */
+	STV6110x_SETFIELD(stv6110x_regs[STV6110x_CTRL3], CTRL3_RCCLK_OFF, 0x1); 
 	stv6110x_write_reg(stv6110x, STV6110x_CTRL3, stv6110x_regs[STV6110x_CTRL3]);
 
 	return 0;
@@ -216,7 +196,7 @@ static int stv6110x_set_refclock(struct dvb_frontend *fe, u32 refclock)
 {
 	struct stv6110x_state *stv6110x = fe->tuner_priv;
 
-	/* setup divider */
+	
 	switch (refclock) {
 	default:
 	case 1:

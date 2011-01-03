@@ -1,9 +1,4 @@
-/*
- * SCSI Media Changer device driver for Linux 2.6
- *
- *     (c) 1996-2003 Gerd Knorr <kraxel@bytesex.org>
- *
- */
+
 
 #define VERSION "0.25"
 
@@ -19,7 +14,7 @@
 #include <linux/blkdev.h>
 #include <linux/completion.h>
 #include <linux/compat.h>
-#include <linux/chio.h>			/* here are all the ioctls */
+#include <linux/chio.h>			
 #include <linux/mutex.h>
 #include <linux/idr.h>
 #include <linux/smp_lock.h>
@@ -72,7 +67,7 @@ static int dt_lun[CH_DT_MAX];
 module_param_array(dt_id,  int, NULL, 0444);
 module_param_array(dt_lun, int, NULL, 0444);
 
-/* tell the driver about vendor-specific slots */
+
 static int vendor_firsts[CH_TYPES-4];
 static int vendor_counts[CH_TYPES-4];
 module_param_array(vendor_firsts, int, NULL, 0444);
@@ -81,14 +76,14 @@ module_param_array(vendor_counts, int, NULL, 0444);
 static const char * vendor_labels[CH_TYPES-4] = {
 	"v0", "v1", "v2", "v3"
 };
-// module_param_string_array(vendor_labels, NULL, 0444);
+
 
 #define dprintk(fmt, arg...)    if (debug) \
         printk(KERN_DEBUG "%s: " fmt, ch->name , ## arg)
 #define vprintk(fmt, arg...)    if (verbose) \
         printk(KERN_INFO "%s: " fmt, ch->name , ## arg)
 
-/* ------------------------------------------------------------------- */
+
 
 #define MAX_RETRIES   1
 
@@ -99,7 +94,7 @@ typedef struct {
 	int                 minor;
 	char                name[8];
 	struct scsi_device  *device;
-	struct scsi_device  **dt;        /* ptrs to data transfer elements */
+	struct scsi_device  **dt;        
 	u_int               firsts[CH_TYPES];
 	u_int               counts[CH_TYPES];
 	u_int               unit_attention;
@@ -116,45 +111,44 @@ static const struct {
 	unsigned char  ascq;
 	int	       errno;
 } ch_err[] = {
-/* Just filled in what looks right. Hav'nt checked any standard paper for
-   these errno assignments, so they may be wrong... */
+
 	{
 		.sense  = ILLEGAL_REQUEST,
 		.asc    = 0x21,
 		.ascq   = 0x01,
-		.errno  = EBADSLT, /* Invalid element address */
+		.errno  = EBADSLT, 
 	},{
 		.sense  = ILLEGAL_REQUEST,
 		.asc    = 0x28,
 		.ascq   = 0x01,
-		.errno  = EBADE,   /* Import or export element accessed */
+		.errno  = EBADE,   
 	},{
 		.sense  = ILLEGAL_REQUEST,
 		.asc    = 0x3B,
 		.ascq   = 0x0D,
-		.errno  = EXFULL,  /* Medium destination element full */
+		.errno  = EXFULL,  
 	},{
 		.sense  = ILLEGAL_REQUEST,
 		.asc    = 0x3B,
 		.ascq   = 0x0E,
-		.errno  = EBADE,   /* Medium source element empty */
+		.errno  = EBADE,   
 	},{
 		.sense  = ILLEGAL_REQUEST,
 		.asc    = 0x20,
 		.ascq   = 0x00,
-		.errno  = EBADRQC, /* Invalid command operation code */
+		.errno  = EBADRQC, 
 	},{
-	        /* end of list */
+	        
 	}
 };
 
-/* ------------------------------------------------------------------- */
+
 
 static int ch_find_errno(struct scsi_sense_hdr *sshdr)
 {
 	int i,errno = 0;
 
-	/* Check to see if additional sense information is available */
+	
 	if (scsi_sense_valid(sshdr) &&
 	    sshdr->asc != 0) {
 		for (i = 0; ch_err[i].errno != 0; i++) {
@@ -210,7 +204,7 @@ ch_do_scsi(scsi_changer *ch, unsigned char *cmd,
 	return errno;
 }
 
-/* ------------------------------------------------------------------------ */
+
 
 static int
 ch_elem_to_typecode(scsi_changer *ch, u_int elem)
@@ -337,7 +331,7 @@ ch_readconfig(scsi_changer *ch)
 		vprintk("reading element address assigment page failed!\n");
 	}
 
-	/* vendor specific element types */
+	
 	for (i = 0; i < 4; i++) {
 		if (0 == vendor_counts[i])
 			continue;
@@ -350,7 +344,7 @@ ch_readconfig(scsi_changer *ch)
 			vendor_labels[i]);
 	}
 
-	/* look up the devices of the data transfer elements */
+	
 	ch->dt = kmalloc(ch->counts[CHET_DT]*sizeof(struct scsi_device),
 			 GFP_KERNEL);
 
@@ -396,7 +390,7 @@ ch_readconfig(scsi_changer *ch)
 						   ch->device->channel,
 						   id,lun);
 			if (!ch->dt[elem]) {
-				/* should not happen */
+				
 				if (verbose)
 					printk("Huh? device not found!\n");
 			} else {
@@ -414,7 +408,7 @@ ch_readconfig(scsi_changer *ch)
 	return 0;
 }
 
-/* ------------------------------------------------------------------------ */
+
 
 static int
 ch_position(scsi_changer *ch, u_int trans, u_int elem, int rotate)
@@ -488,10 +482,10 @@ ch_check_voltag(char *tag)
 	int i;
 
 	for (i = 0; i < 32; i++) {
-		/* restrict to ascii */
+		
 		if (tag[i] >= 0x7f || tag[i] < 0x20)
 			tag[i] = ' ';
-		/* don't allow search wildcards */
+		
 		if (tag[i] == '?' ||
 		    tag[i] == '*')
 			tag[i] = ' ';
@@ -561,7 +555,7 @@ static int ch_gstatus(scsi_changer *ch, int type, unsigned char __user *dest)
 	return retval;
 }
 
-/* ------------------------------------------------------------------------ */
+
 
 static int
 ch_release(struct inode *inode, struct file *file)
@@ -864,7 +858,7 @@ static long ch_ioctl_compat(struct file * file,
 	case CHIOGELEM:
 	case CHIOINITELEM:
 	case CHIOSVOLTAG:
-		/* compatible */
+		
 		return ch_ioctl(file, cmd, arg);
 	case CHIOGSTATUS32:
 	{
@@ -880,14 +874,14 @@ static long ch_ioctl_compat(struct file * file,
 		return ch_gstatus(ch, ces32.ces_type, data);
 	}
 	default:
-		// return scsi_ioctl_compat(ch->device, cmd, (void*)arg);
+		
 		return -ENOIOCTLCMD;
 
 	}
 }
 #endif
 
-/* ------------------------------------------------------------------------ */
+
 
 static int ch_probe(struct device *dev)
 {
@@ -1020,8 +1014,4 @@ static void __exit exit_ch_module(void)
 module_init(init_ch_module);
 module_exit(exit_ch_module);
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+

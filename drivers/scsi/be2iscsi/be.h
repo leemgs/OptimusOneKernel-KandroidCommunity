@@ -1,19 +1,4 @@
-/**
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- * ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- */
+
 
 #ifndef BEISCSI_H
 #define BEISCSI_H
@@ -32,11 +17,11 @@ struct be_dma_mem {
 struct be_queue_info {
 	struct be_dma_mem dma_mem;
 	u16 len;
-	u16 entry_size;		/* Size of an element in the queue */
+	u16 entry_size;		
 	u16 id;
 	u16 tail, head;
 	bool created;
-	atomic_t used;		/* Number of valid elements in the queue */
+	atomic_t used;		
 };
 
 static inline u32 MODULO(u16 val, u16 limit)
@@ -70,17 +55,17 @@ static inline void queue_tail_inc(struct be_queue_info *q)
 	index_inc(&q->tail, q->len);
 }
 
-/*ISCSI */
+
 
 struct be_eq_obj {
 	struct be_queue_info q;
 	char desc[32];
 
-	/* Adaptive interrupt coalescing (AIC) info */
+	
 	bool enable_aic;
-	u16 min_eqd;		/* in usecs */
-	u16 max_eqd;		/* in usecs */
-	u16 cur_eqd;		/* in usecs */
+	u16 min_eqd;		
+	u16 max_eqd;		
+	u16 cur_eqd;		
 };
 
 struct be_mcc_obj {
@@ -90,23 +75,22 @@ struct be_mcc_obj {
 
 struct be_ctrl_info {
 	u8 __iomem *csr;
-	u8 __iomem *db;		/* Door Bell */
-	u8 __iomem *pcicfg;	/* PCI config space */
+	u8 __iomem *db;		
+	u8 __iomem *pcicfg;	
 	struct pci_dev *pdev;
 
-	/* Mbox used for cmd request/response */
-	spinlock_t mbox_lock;	/* For serializing mbox cmds to BE card */
+	
+	spinlock_t mbox_lock;	
 	struct be_dma_mem mbox_mem;
-	/* Mbox mem is adjusted to align to 16 bytes. The allocated addr
-	 * is stored for freeing purpose */
+	
 	struct be_dma_mem mbox_mem_alloced;
 
-	/* MCC Rings */
+	
 	struct be_mcc_obj mcc_obj;
-	spinlock_t mcc_lock;	/* For serializing mcc cmds to BE card */
+	spinlock_t mcc_lock;	
 	spinlock_t mcc_cq_lock;
 
-	/* MCC Async callback */
+	
 	void (*async_cb) (void *adapter, bool link_up);
 	void *adapter_ctxt;
 };
@@ -116,20 +100,20 @@ struct be_ctrl_info {
 #define PAGE_SHIFT_4K 12
 #define PAGE_SIZE_4K (1 << PAGE_SHIFT_4K)
 
-/* Returns number of pages spanned by the data starting at the given addr */
+
 #define PAGES_4K_SPANNED(_address, size) 				\
 		((u32)((((size_t)(_address) & (PAGE_SIZE_4K - 1)) + 	\
 			(size) + (PAGE_SIZE_4K - 1)) >> PAGE_SHIFT_4K))
 
-/* Byte offset into the page corresponding to given address */
+
 #define OFFSET_IN_PAGE(addr)						\
 		((size_t)(addr) & (PAGE_SIZE_4K-1))
 
-/* Returns bit offset within a DWORD of a bitfield */
+
 #define AMAP_BIT_OFFSET(_struct, field)  				\
 		(((size_t)&(((_struct *)0)->field))%32)
 
-/* Returns the bit mask of the field that is NOT shifted into location. */
+
 static inline u32 amap_mask(u32 bitsize)
 {
 	return (bitsize == 32 ? 0xFFFFFFFF : (1 << bitsize) - 1);
@@ -174,10 +158,10 @@ static inline void swap_dws(void *wrb, int len)
 		dw++;
 		len -= 4;
 	} while (len);
-#endif /* __BIG_ENDIAN */
+#endif 
 }
 
 extern void beiscsi_cq_notify(struct be_ctrl_info *ctrl, u16 qid, bool arm,
 			      u16 num_popped);
 
-#endif /* BEISCSI_H */
+#endif 

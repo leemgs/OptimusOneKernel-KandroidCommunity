@@ -1,22 +1,6 @@
-/*
-        kbic.c    (c) 1997-8  Grant R. Guenther <grant@torque.net>
-                              Under the terms of the GNU General Public License.
 
-        This is a low-level driver for the KBIC-951A and KBIC-971A
-        parallel to IDE adapter chips from KingByte Information Systems.
 
-	The chips are almost identical, however, the wakeup code 
-	required for the 971A interferes with the correct operation of
-        the 951A, so this driver registers itself twice, once for
-	each chip.
 
-*/
-
-/* Changes:
-
-        1.01    GRG 1998.05.06 init_proto, release_proto
-
-*/
 
 #define KBIC_VERSION      "1.01"
 
@@ -36,9 +20,7 @@
 #define j53(w)                  (((w>>3)&0x1f)|((w>>4)&0xe0))
 
 
-/* cont = 0 - access the IDE register file 
-   cont = 1 - access the IDE command set 
-*/
+
 
 static int  cont_map[2] = { 0x80, 0x40 };
 
@@ -127,9 +109,7 @@ static void k971_disconnect ( PIA *pi )
         w2(pi->saved_r2);
 }
 
-/* counts must be congruent to 0 MOD 4, but all known applications
-   have this property.
-*/
+
 
 static void kbic_read_block( PIA *pi, char * buf, int count )
 

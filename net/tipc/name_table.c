@@ -1,38 +1,4 @@
-/*
- * net/tipc/name_table.c: TIPC name table code
- *
- * Copyright (c) 2000-2006, Ericsson AB
- * Copyright (c) 2004-2008, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "core.h"
 #include "config.h"
@@ -46,23 +12,9 @@
 #include "cluster.h"
 #include "bcast.h"
 
-static int tipc_nametbl_size = 1024;		/* must be a power of 2 */
+static int tipc_nametbl_size = 1024;		
 
-/**
- * struct sub_seq - container for all published instances of a name sequence
- * @lower: name sequence lower bound
- * @upper: name sequence upper bound
- * @node_list: circular list of publications made by own node
- * @cluster_list: circular list of publications made by own cluster
- * @zone_list: circular list of publications made by own zone
- * @node_list_size: number of entries in "node_list"
- * @cluster_list_size: number of entries in "cluster_list"
- * @zone_list_size: number of entries in "zone_list"
- *
- * Note: The zone list always contains at least one entry, since all
- *       publications of the associated name sequence belong to it.
- *       (The cluster and node lists may be empty.)
- */
+
 
 struct sub_seq {
 	u32 lower;
@@ -75,17 +27,7 @@ struct sub_seq {
 	u32 zone_list_size;
 };
 
-/**
- * struct name_seq - container for all published instances of a name type
- * @type: 32 bit 'type' value for name sequence
- * @sseq: pointer to dynamically-sized array of sub-sequences of this 'type';
- *        sub-sequences are sorted in ascending order
- * @alloc: number of sub-sequences currently in array
- * @first_free: array index of first unused sub-sequence entry
- * @ns_list: links to adjacent name sequences in hash chain
- * @subscriptions: list of subscriptions for this 'type'
- * @lock: spinlock controlling access to publication lists of all sub-sequences
- */
+
 
 struct name_seq {
 	u32 type;
@@ -97,12 +39,7 @@ struct name_seq {
 	spinlock_t lock;
 };
 
-/**
- * struct name_table - table containing all existing port name publications
- * @types: pointer to fixed-sized array of name sequence lists,
- *         accessed via hashing on 'type'; name sequence lists are *not* sorted
- * @local_publ_count: number of publications issued by this node
- */
+
 
 struct name_table {
 	struct hlist_head *types;
@@ -119,9 +56,7 @@ static int hash(int x)
 	return(x & (tipc_nametbl_size - 1));
 }
 
-/**
- * publ_create - create a publication structure
- */
+
 
 static struct publication *publ_create(u32 type, u32 lower, u32 upper,
 				       u32 scope, u32 node, u32 port_ref,
@@ -146,9 +81,7 @@ static struct publication *publ_create(u32 type, u32 lower, u32 upper,
 	return publ;
 }
 
-/**
- * tipc_subseq_alloc - allocate a specified number of sub-sequence structures
- */
+
 
 static struct sub_seq *tipc_subseq_alloc(u32 cnt)
 {
@@ -156,11 +89,7 @@ static struct sub_seq *tipc_subseq_alloc(u32 cnt)
 	return sseq;
 }
 
-/**
- * tipc_nameseq_create - create a name sequence structure for the specified 'type'
- *
- * Allocates a single sub-sequence structure and sets it to all 0's.
- */
+
 
 static struct name_seq *tipc_nameseq_create(u32 type, struct hlist_head *seq_head)
 {
@@ -186,11 +115,7 @@ static struct name_seq *tipc_nameseq_create(u32 type, struct hlist_head *seq_hea
 	return nseq;
 }
 
-/**
- * nameseq_find_subseq - find sub-sequence (if any) matching a name instance
- *
- * Very time-critical, so binary searches through sub-sequence array.
- */
+
 
 static struct sub_seq *nameseq_find_subseq(struct name_seq *nseq,
 					   u32 instance)
@@ -212,15 +137,7 @@ static struct sub_seq *nameseq_find_subseq(struct name_seq *nseq,
 	return NULL;
 }
 
-/**
- * nameseq_locate_subseq - determine position of name instance in sub-sequence
- *
- * Returns index in sub-sequence array of the entry that contains the specified
- * instance value; if no entry contains that value, returns the position
- * where a new entry for it would be inserted in the array.
- *
- * Note: Similar to binary search code for locating a sub-sequence.
- */
+
 
 static u32 nameseq_locate_subseq(struct name_seq *nseq, u32 instance)
 {
@@ -241,9 +158,7 @@ static u32 nameseq_locate_subseq(struct name_seq *nseq, u32 instance)
 	return low;
 }
 
-/**
- * tipc_nameseq_insert_publ -
- */
+
 
 static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 						    u32 type, u32 lower, u32 upper,
@@ -260,7 +175,7 @@ static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 	    nseq, type, lower, sseq);
 	if (sseq) {
 
-		/* Lower end overlaps existing entry => need an exact match */
+		
 
 		if ((sseq->lower != lower) || (sseq->upper != upper)) {
 			warn("Cannot publish {%u,%u,%u}, overlap error\n",
@@ -271,11 +186,11 @@ static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 		u32 inspos;
 		struct sub_seq *freesseq;
 
-		/* Find where lower end should be inserted */
+		
 
 		inspos = nameseq_locate_subseq(nseq, lower);
 
-		/* Fail if upper end overlaps into an existing entry */
+		
 
 		if ((inspos < nseq->first_free) &&
 		    (upper >= nseq->sseqs[inspos].lower)) {
@@ -284,7 +199,7 @@ static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 			return NULL;
 		}
 
-		/* Ensure there is space for new sub-sequence */
+		
 
 		if (nseq->first_free == nseq->alloc) {
 			struct sub_seq *sseqs = tipc_subseq_alloc(nseq->alloc * 2);
@@ -303,7 +218,7 @@ static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 		}
 		dbg("Have %u sseqs for type %u\n", nseq->alloc, type);
 
-		/* Insert new sub-sequence */
+		
 
 		dbg("ins in pos %u, ff = %u\n", inspos, nseq->first_free);
 		sseq = &nseq->sseqs[inspos];
@@ -319,7 +234,7 @@ static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 	    type, lower, upper, node, port, sseq,
 	    sseq->lower, sseq->upper, nseq);
 
-	/* Insert a publication: */
+	
 
 	publ = publ_create(type, lower, upper, scope, node, port, key);
 	if (!publ)
@@ -356,9 +271,7 @@ static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 		}
 	}
 
-	/*
-	 * Any subscriptions waiting for notification?
-	 */
+	
 	list_for_each_entry_safe(s, st, &nseq->subscriptions, nameseq_list) {
 		dbg("calling report_overlap()\n");
 		tipc_subscr_report_overlap(s,
@@ -372,17 +285,7 @@ static struct publication *tipc_nameseq_insert_publ(struct name_seq *nseq,
 	return publ;
 }
 
-/**
- * tipc_nameseq_remove_publ -
- *
- * NOTE: There may be cases where TIPC is asked to remove a publication
- * that is not in the name table.  For example, if another node issues a
- * publication for a name sequence that overlaps an existing name sequence
- * the publication will not be recorded, which means the publication won't
- * be found when the name sequence is later withdrawn by that node.
- * A failed withdraw request simply returns a failure indication and lets the
- * caller issue any error or warning messages associated with such a problem.
- */
+
 
 static struct publication *tipc_nameseq_remove_publ(struct name_seq *nseq, u32 inst,
 						    u32 node, u32 ref, u32 key)
@@ -401,7 +304,7 @@ static struct publication *tipc_nameseq_remove_publ(struct name_seq *nseq, u32 i
 	dbg("tipc_nameseq_remove_publ: seq: %p, sseq %p, {%u,%u}, key %u\n",
 	    nseq, sseq, nseq->type, inst, key);
 
-	/* Remove publication from zone scope list */
+	
 
 	prev = sseq->zone_list;
 	publ = sseq->zone_list->zone_list_next;
@@ -411,7 +314,7 @@ static struct publication *tipc_nameseq_remove_publ(struct name_seq *nseq, u32 i
 		publ = publ->zone_list_next;
 		if (prev == sseq->zone_list) {
 
-			/* Prevent endless loop if publication not found */
+			
 
 			return NULL;
 		}
@@ -426,7 +329,7 @@ static struct publication *tipc_nameseq_remove_publ(struct name_seq *nseq, u32 i
 	}
 	sseq->zone_list_size--;
 
-	/* Remove publication from cluster scope list, if present */
+	
 
 	if (in_own_cluster(node)) {
 		prev = sseq->cluster_list;
@@ -436,7 +339,7 @@ static struct publication *tipc_nameseq_remove_publ(struct name_seq *nseq, u32 i
 			curr = curr->cluster_list_next;
 			if (prev == sseq->cluster_list) {
 
-				/* Prevent endless loop for malformed list */
+				
 
 				err("Unable to de-list cluster publication\n"
 				    "{%u%u}, node=0x%x, ref=%u, key=%u)\n",
@@ -457,7 +360,7 @@ static struct publication *tipc_nameseq_remove_publ(struct name_seq *nseq, u32 i
 	}
 end_cluster:
 
-	/* Remove publication from node scope list, if present */
+	
 
 	if (node == tipc_own_addr) {
 		prev = sseq->node_list;
@@ -467,7 +370,7 @@ end_cluster:
 			curr = curr->node_list_next;
 			if (prev == sseq->node_list) {
 
-				/* Prevent endless loop for malformed list */
+				
 
 				err("Unable to de-list node publication\n"
 				    "{%u%u}, node=0x%x, ref=%u, key=%u)\n",
@@ -488,7 +391,7 @@ end_cluster:
 	}
 end_node:
 
-	/* Contract subseq list if no more publications for that subseq */
+	
 
 	if (!sseq->zone_list) {
 		free = &nseq->sseqs[nseq->first_free--];
@@ -496,7 +399,7 @@ end_node:
 		removed_subseq = 1;
 	}
 
-	/* Notify any waiting subscriptions */
+	
 
 	list_for_each_entry_safe(s, st, &nseq->subscriptions, nameseq_list) {
 		tipc_subscr_report_overlap(s,
@@ -511,11 +414,7 @@ end_node:
 	return publ;
 }
 
-/**
- * tipc_nameseq_subscribe: attach a subscription, and issue
- * the prescribed number of events if there is any sub-
- * sequence overlapping with the requested sequence
- */
+
 
 static void tipc_nameseq_subscribe(struct name_seq *nseq, struct subscription *s)
 {
@@ -612,13 +511,7 @@ struct publication *tipc_nametbl_remove_publ(u32 type, u32 lower,
 	return publ;
 }
 
-/*
- * tipc_nametbl_translate(): Translate tipc_name -> tipc_portid.
- *                      Very time-critical.
- *
- * Note: on entry 'destnode' is the search domain used during translation;
- *       on exit it passes back the node address of the matching port (if any)
- */
+
 
 u32 tipc_nametbl_translate(u32 type, u32 instance, u32 *destnode)
 {
@@ -639,7 +532,7 @@ u32 tipc_nametbl_translate(u32 type, u32 instance, u32 *destnode)
 		goto not_found;
 	spin_lock_bh(&seq->lock);
 
-	/* Closest-First Algorithm: */
+	
 	if (likely(!*destnode)) {
 		publ = sseq->node_list;
 		if (publ) {
@@ -663,7 +556,7 @@ found:
 		}
 	}
 
-	/* Round-Robin Algorithm: */
+	
 	else if (*destnode == tipc_own_addr) {
 		publ = sseq->node_list;
 		if (publ) {
@@ -690,18 +583,7 @@ not_found:
 	return 0;
 }
 
-/**
- * tipc_nametbl_mc_translate - find multicast destinations
- *
- * Creates list of all local ports that overlap the given multicast address;
- * also determines if any off-node ports overlap.
- *
- * Note: Publications with a scope narrower than 'limit' are ignored.
- * (i.e. local node-scope publications mustn't receive messages arriving
- * from another node, even if the multcast link brought it here)
- *
- * Returns non-zero if any off-node ports overlap
- */
+
 
 int tipc_nametbl_mc_translate(u32 type, u32 lower, u32 upper, u32 limit,
 			      struct port_list *dports)
@@ -745,9 +627,7 @@ exit:
 	return res;
 }
 
-/**
- * tipc_nametbl_publish_rsv - publish port name using a reserved name type
- */
+
 
 int tipc_nametbl_publish_rsv(u32 ref, unsigned int scope,
 			struct tipc_name_seq const *seq)
@@ -760,9 +640,7 @@ int tipc_nametbl_publish_rsv(u32 ref, unsigned int scope,
 	return res;
 }
 
-/**
- * tipc_nametbl_publish - add name publication to network name tables
- */
+
 
 struct publication *tipc_nametbl_publish(u32 type, u32 lower, u32 upper,
 				    u32 scope, u32 port_ref, u32 key)
@@ -791,9 +669,7 @@ struct publication *tipc_nametbl_publish(u32 type, u32 lower, u32 upper,
 	return publ;
 }
 
-/**
- * tipc_nametbl_withdraw - withdraw name publication from network name tables
- */
+
 
 int tipc_nametbl_withdraw(u32 type, u32 lower, u32 ref, u32 key)
 {
@@ -818,9 +694,7 @@ int tipc_nametbl_withdraw(u32 type, u32 lower, u32 ref, u32 key)
 	return 0;
 }
 
-/**
- * tipc_nametbl_subscribe - add a subscription object to the name table
- */
+
 
 void tipc_nametbl_subscribe(struct subscription *s)
 {
@@ -845,9 +719,7 @@ void tipc_nametbl_subscribe(struct subscription *s)
 	write_unlock_bh(&tipc_nametbl_lock);
 }
 
-/**
- * tipc_nametbl_unsubscribe - remove a subscription object from name table
- */
+
 
 void tipc_nametbl_unsubscribe(struct subscription *s)
 {
@@ -869,9 +741,7 @@ void tipc_nametbl_unsubscribe(struct subscription *s)
 }
 
 
-/**
- * subseq_list: print specified sub-sequence contents into the given buffer
- */
+
 
 static void subseq_list(struct sub_seq *sseq, struct print_buf *buf, u32 depth,
 			u32 index)
@@ -914,9 +784,7 @@ static void subseq_list(struct sub_seq *sseq, struct print_buf *buf, u32 depth,
 	tipc_printf(buf, "\n");
 }
 
-/**
- * nameseq_list: print specified name sequence contents into the given buffer
- */
+
 
 static void nameseq_list(struct name_seq *seq, struct print_buf *buf, u32 depth,
 			 u32 type, u32 lowbound, u32 upbound, u32 index)
@@ -945,9 +813,7 @@ static void nameseq_list(struct name_seq *seq, struct print_buf *buf, u32 depth,
 	}
 }
 
-/**
- * nametbl_header - print name table header into the given buffer
- */
+
 
 static void nametbl_header(struct print_buf *buf, u32 depth)
 {
@@ -972,9 +838,7 @@ static void nametbl_header(struct print_buf *buf, u32 depth)
 	tipc_printf(buf, "\n");
 }
 
-/**
- * nametbl_list - print specified name table contents into the given buffer
- */
+
 
 static void nametbl_list(struct print_buf *buf, u32 depth_info,
 			 u32 type, u32 lowbound, u32 upbound)
@@ -993,7 +857,7 @@ static void nametbl_list(struct print_buf *buf, u32 depth_info,
 		return;
 
 	if (all_types) {
-		/* display all entries in name table to specified depth */
+		
 		nametbl_header(buf, depth);
 		lowbound = 0;
 		upbound = ~0;
@@ -1005,7 +869,7 @@ static void nametbl_list(struct print_buf *buf, u32 depth_info,
 			}
 		}
 	} else {
-		/* display only the sequence that matches the specified type */
+		
 		if (upbound < lowbound) {
 			tipc_printf(buf, "invalid name sequence specified\n");
 			return;
@@ -1090,7 +954,7 @@ void tipc_nametbl_stop(void)
 	if (!table.types)
 		return;
 
-	/* Verify name table is empty, then release it */
+	
 
 	write_lock_bh(&tipc_nametbl_lock);
 	for (i = 0; i < tipc_nametbl_size; i++) {

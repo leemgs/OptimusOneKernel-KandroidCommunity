@@ -1,34 +1,6 @@
-/***************************************************************************
- * Plug-in for PAS202BCB image sensor connected to the ZC0301 Image        *
- * Processor and Control Chip                                              *
- *                                                                         *
- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * Initialization values of the ZC0301[P] have been taken from the SPCA5XX *
- * driver maintained by Michel Xhaard <mxhaard@magic.fr>                   *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
 
-/*
-   NOTE: Sensor controls are disabled for now, becouse changing them while
-	 streaming sometimes results in out-of-sync video frames. We'll use
-	 the default initialization, until we know how to stop and start video
-	 in the chip. However, the image quality still looks good under various
-	 light conditions.
-*/
+
+
 
 #include <linux/delay.h>
 #include "zc0301_sensor.h"

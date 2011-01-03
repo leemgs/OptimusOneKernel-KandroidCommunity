@@ -1,9 +1,4 @@
-/*
- *  drivers/s390/cio/idset.h
- *
- *    Copyright IBM Corp. 2007
- *    Author(s): Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
- */
+
 
 #ifndef S390_IDSET_H
 #define S390_IDSET_H S390_IDSET_H
@@ -24,4 +19,4 @@ int idset_sch_get_first(struct idset *set, struct subchannel_id *id);
 int idset_is_empty(struct idset *set);
 void idset_add_set(struct idset *to, struct idset *from);
 
-#endif /* S390_IDSET_H */
+#endif 

@@ -1,17 +1,4 @@
-/*
- * GPMC support functions
- *
- * Copyright (C) 2005-2006 Nokia Corporation
- *
- * Author: Juha Yrjola
- *
- * Copyright (C) 2009 Texas Instruments
- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #undef DEBUG
 
 #include <linux/kernel.h>
@@ -28,7 +15,7 @@
 
 #include <mach/sdrc.h>
 
-/* GPMC register offsets */
+
 #define GPMC_REVISION		0x00
 #define GPMC_SYSCONFIG		0x10
 #define GPMC_SYSSTATUS		0x14
@@ -52,10 +39,10 @@
 
 #define GPMC_MEM_START		0x00000000
 #define GPMC_MEM_END		0x3FFFFFFF
-#define BOOT_ROM_SPACE		0x100000	/* 1MB */
+#define BOOT_ROM_SPACE		0x100000	
 
-#define GPMC_CHUNK_SHIFT	24		/* 16 MB */
-#define GPMC_SECTION_SHIFT	28		/* 128 MB */
+#define GPMC_CHUNK_SHIFT	24		
+#define GPMC_SECTION_SHIFT	28		
 
 #define PREFETCH_FIFOTHRESHOLD	(0x40 << 8)
 #define CS_NUM_SHIFT		24
@@ -97,7 +84,7 @@ u32 gpmc_cs_read_reg(int cs, int idx)
 	return __raw_readl(reg_addr);
 }
 
-/* TODO: Add support for gpmc_fck to clock framework and use it */
+
 unsigned long gpmc_get_fclk_period(void)
 {
 	unsigned long rate = clk_get_rate(gpmc_l3_clk);
@@ -108,7 +95,7 @@ unsigned long gpmc_get_fclk_period(void)
 	}
 
 	rate /= 1000;
-	rate = 1000000000 / rate;	/* In picoseconds */
+	rate = 1000000000 / rate;	
 
 	return rate;
 }
@@ -117,7 +104,7 @@ unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
 {
 	unsigned long tick_ps;
 
-	/* Calculate in picosecs to yield more exact results */
+	
 	tick_ps = gpmc_get_fclk_period();
 
 	return (time_ns * 1000 + tick_ps - 1) / tick_ps;
@@ -233,9 +220,7 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
 		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
 	}
 
-	/* caller is expected to have initialized CONFIG1 to cover
-	 * at least sync vs async
-	 */
+	
 	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
 	if (l & (GPMC_CONFIG1_READTYPE_SYNC | GPMC_CONFIG1_WRITETYPE_SYNC)) {
 #ifdef DEBUG
@@ -261,7 +246,7 @@ static void gpmc_cs_enable_mem(int cs, u32 base, u32 size)
 	l = (base >> GPMC_CHUNK_SHIFT) & 0x3f;
 	l &= ~(0x0f << 8);
 	l |= ((mask >> GPMC_CHUNK_SHIFT) & 0x0f) << 8;
-	l |= 1 << 6;		/* CSVALID */
+	l |= 1 << 6;		
 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG7, l);
 }
 
@@ -270,7 +255,7 @@ static void gpmc_cs_disable_mem(int cs)
 	u32 l;
 
 	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
-	l &= ~(1 << 6);		/* CSVALID */
+	l &= ~(1 << 6);		
 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG7, l);
 }
 
@@ -391,25 +376,17 @@ void gpmc_cs_free(int cs)
 }
 EXPORT_SYMBOL(gpmc_cs_free);
 
-/**
- * gpmc_prefetch_enable - configures and starts prefetch transfer
- * @cs: nand cs (chip select) number
- * @dma_mode: dma mode enable (1) or disable (0)
- * @u32_count: number of bytes to be transferred
- * @is_write: prefetch read(0) or write post(1) mode
- */
+
 int gpmc_prefetch_enable(int cs, int dma_mode,
 				unsigned int u32_count, int is_write)
 {
 	uint32_t prefetch_config1;
 
 	if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
-		/* Set the amount of bytes to be prefetched */
+		
 		gpmc_write_reg(GPMC_PREFETCH_CONFIG2, u32_count);
 
-		/* Set dma/mpu mode, the prefetch read / post write and
-		 * enable the engine. Set which cs is has requested for.
-		 */
+		
 		prefetch_config1 = ((cs << CS_NUM_SHIFT) |
 					PREFETCH_FIFOTHRESHOLD |
 					ENABLE_PREFETCH |
@@ -419,29 +396,25 @@ int gpmc_prefetch_enable(int cs, int dma_mode,
 	} else {
 		return -EBUSY;
 	}
-	/*  Start the prefetch engine */
+	
 	gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x1);
 
 	return 0;
 }
 EXPORT_SYMBOL(gpmc_prefetch_enable);
 
-/**
- * gpmc_prefetch_reset - disables and stops the prefetch engine
- */
+
 void gpmc_prefetch_reset(void)
 {
-	/* Stop the PFPW engine */
+	
 	gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
 
-	/* Reset/disable the PFPW engine */
+	
 	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x0);
 }
 EXPORT_SYMBOL(gpmc_prefetch_reset);
 
-/**
- * gpmc_prefetch_status - reads prefetch status of engine
- */
+
 int  gpmc_prefetch_status(void)
 {
 	return gpmc_read_reg(GPMC_PREFETCH_STATUS);
@@ -453,17 +426,15 @@ static void __init gpmc_mem_init(void)
 	int cs;
 	unsigned long boot_rom_space = 0;
 
-	/* never allocate the first page, to facilitate bug detection;
-	 * even if we didn't boot from ROM.
-	 */
+	
 	boot_rom_space = BOOT_ROM_SPACE;
-	/* In apollon the CS0 is mapped as 0x0000 0000 */
+	
 	if (machine_is_omap_apollon())
 		boot_rom_space = 0;
 	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
 	gpmc_mem_root.end = GPMC_MEM_END;
 
-	/* Reserve all regions that has been set up by bootloader */
+	
 	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
 		u32 base, size;
 
@@ -509,7 +480,7 @@ void __init gpmc_init(void)
 
 	l = gpmc_read_reg(GPMC_REVISION);
 	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
-	/* Set smart idle mode and automatic L3 clock gating */
+	
 	l = gpmc_read_reg(GPMC_SYSCONFIG);
 	l &= 0x03 << 3;
 	l |= (0x02 << 3) | (1 << 0);

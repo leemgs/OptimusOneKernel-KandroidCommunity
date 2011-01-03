@@ -1,30 +1,11 @@
-/****************************************************************
 
-Siano Mobile Silicon, Inc.
-MDTV receiver kernel modules.
-Copyright (C) 2006-2009, Uri Shkolnik
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-****************************************************************/
 
 #ifndef __SMS_IR_H__
 #define __SMS_IR_H__
 
 #include <linux/input.h>
 
-#define IR_DEV_NAME_MAX_LEN		23 /* "SMS IR kbd type nn\0" */
+#define IR_DEV_NAME_MAX_LEN		23 
 #define IR_KEYBOARD_LAYOUT_SIZE	64
 #define IR_DEFAULT_TIMEOUT		100
 
@@ -57,7 +38,7 @@ enum rc5_keyboard_address {
 	KEYBOARD_ADDRESS_RECORDER2 = 23,
 	KEYBOARD_ADDRESS_CDR = 26,
 	KEYBOARD_ADDRESS_LIGHTING = 29,
-	KEYBOARD_ADDRESS_LIGHTING1 = 30, /* KEYBOARD_ADDRESS_HCW_SILVER */
+	KEYBOARD_ADDRESS_LIGHTING1 = 30, 
 	KEYBOARD_ADDRESS_PHONE = 31,
 	KEYBOARD_ADDRESS_NOT_RC5 = 0xFFFF
 };
@@ -89,5 +70,5 @@ void sms_ir_exit(struct smscore_device_t *coredev);
 void sms_ir_event(struct smscore_device_t *coredev,
 			const char *buf, int len);
 
-#endif /* __SMS_IR_H__ */
+#endif 
 

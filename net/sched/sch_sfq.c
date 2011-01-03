@@ -1,13 +1,4 @@
-/*
- * net/sched/sch_sfq.c	Stochastic Fairness Queueing discipline.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -25,60 +16,12 @@
 #include <net/pkt_sched.h>
 
 
-/*	Stochastic Fairness Queuing algorithm.
-	=======================================
 
-	Source:
-	Paul E. McKenney "Stochastic Fairness Queuing",
-	IEEE INFOCOMM'90 Proceedings, San Francisco, 1990.
-
-	Paul E. McKenney "Stochastic Fairness Queuing",
-	"Interworking: Research and Experience", v.2, 1991, p.113-131.
-
-
-	See also:
-	M. Shreedhar and George Varghese "Efficient Fair
-	Queuing using Deficit Round Robin", Proc. SIGCOMM 95.
-
-
-	This is not the thing that is usually called (W)FQ nowadays.
-	It does not use any timestamp mechanism, but instead
-	processes queues in round-robin order.
-
-	ADVANTAGE:
-
-	- It is very cheap. Both CPU and memory requirements are minimal.
-
-	DRAWBACKS:
-
-	- "Stochastic" -> It is not 100% fair.
-	When hash collisions occur, several flows are considered as one.
-
-	- "Round-robin" -> It introduces larger delays than virtual clock
-	based schemes, and should not be used for isolating interactive
-	traffic	from non-interactive. It means, that this scheduler
-	should be used as leaf of CBQ or P3, which put interactive traffic
-	to higher priority band.
-
-	We still need true WFQ for top level CSZ, but using WFQ
-	for the best effort traffic is absolutely pointless:
-	SFQ is superior for this purpose.
-
-	IMPLEMENTATION:
-	This implementation limits maximal queue length to 128;
-	maximal mtu to 2^15-1; number of hash buckets to 1024.
-	The only goal of this restrictions was that all data
-	fit into one 4K page :-). Struct sfq_sched_data is
-	organized in anti-cache manner: all the data for a bucket
-	are scattered over different locations. This is not good,
-	but it allowed me to put it into 4K.
-
-	It is easy to increase these values, but not in flight.  */
 
 #define SFQ_DEPTH		128
 #define SFQ_HASH_DIVISOR	1024
 
-/* This type should contain at least SFQ_DEPTH*2 values */
+
 typedef unsigned char sfq_index;
 
 struct sfq_head
@@ -89,24 +32,24 @@ struct sfq_head
 
 struct sfq_sched_data
 {
-/* Parameters */
+
 	int		perturb_period;
-	unsigned	quantum;	/* Allotment per round: MUST BE >= MTU */
+	unsigned	quantum;	
 	int		limit;
 
-/* Variables */
+
 	struct tcf_proto *filter_list;
 	struct timer_list perturb_timer;
 	u32		perturbation;
-	sfq_index	tail;		/* Index of current slot in round */
-	sfq_index	max_depth;	/* Maximal depth */
+	sfq_index	tail;		
+	sfq_index	max_depth;	
 
-	sfq_index	ht[SFQ_HASH_DIVISOR];	/* Hash table */
-	sfq_index	next[SFQ_DEPTH];	/* Active slots link */
-	short		allot[SFQ_DEPTH];	/* Current allotment per slot */
-	unsigned short	hash[SFQ_DEPTH];	/* Hash value indexed by slots */
-	struct sk_buff_head	qs[SFQ_DEPTH];		/* Slot queue */
-	struct sfq_head	dep[SFQ_DEPTH*2];	/* Linked list of slots, indexed by depth */
+	sfq_index	ht[SFQ_HASH_DIVISOR];	
+	sfq_index	next[SFQ_DEPTH];	
+	short		allot[SFQ_DEPTH];	
+	unsigned short	hash[SFQ_DEPTH];	
+	struct sk_buff_head	qs[SFQ_DEPTH];		
+	struct sfq_head	dep[SFQ_DEPTH*2];	
 };
 
 static __inline__ unsigned sfq_fold_hash(struct sfq_sched_data *q, u32 h, u32 h1)
@@ -239,8 +182,7 @@ static unsigned int sfq_drop(struct Qdisc *sch)
 	struct sk_buff *skb;
 	unsigned int len;
 
-	/* Queue is full! Find the longest slot and
-	   drop a packet from it */
+	
 
 	if (d > 1) {
 		sfq_index x = q->dep[d + SFQ_DEPTH].next;
@@ -256,7 +198,7 @@ static unsigned int sfq_drop(struct Qdisc *sch)
 	}
 
 	if (d == 1) {
-		/* It is difficult to believe, but ALL THE SLOTS HAVE LENGTH 1. */
+		
 		d = q->next[q->tail];
 		q->next[q->tail] = q->next[d];
 		q->allot[q->next[d]] += q->quantum;
@@ -298,18 +240,15 @@ sfq_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 		q->hash[x] = hash;
 	}
 
-	/* If selected queue has length q->limit, this means that
-	 * all another queues are empty and that we do simple tail drop,
-	 * i.e. drop _this_ packet.
-	 */
+	
 	if (q->qs[x].qlen >= q->limit)
 		return qdisc_drop(skb, sch);
 
 	sch->qstats.backlog += qdisc_pkt_len(skb);
 	__skb_queue_tail(&q->qs[x], skb);
 	sfq_inc(q, x);
-	if (q->qs[x].qlen == 1) {		/* The flow is new */
-		if (q->tail == SFQ_DEPTH) {	/* It is the first flow */
+	if (q->qs[x].qlen == 1) {		
+		if (q->tail == SFQ_DEPTH) {	
 			q->tail = x;
 			q->next[x] = x;
 			q->allot[x] = q->quantum;
@@ -335,7 +274,7 @@ sfq_peek(struct Qdisc *sch)
 	struct sfq_sched_data *q = qdisc_priv(sch);
 	sfq_index a;
 
-	/* No active slots */
+	
 	if (q->tail == SFQ_DEPTH)
 		return NULL;
 
@@ -350,19 +289,19 @@ sfq_dequeue(struct Qdisc *sch)
 	struct sk_buff *skb;
 	sfq_index a, old_a;
 
-	/* No active slots */
+	
 	if (q->tail == SFQ_DEPTH)
 		return NULL;
 
 	a = old_a = q->next[q->tail];
 
-	/* Grab packet */
+	
 	skb = __skb_dequeue(&q->qs[a]);
 	sfq_dec(q, a);
 	sch->q.qlen--;
 	sch->qstats.backlog -= qdisc_pkt_len(skb);
 
-	/* Is the slot empty? */
+	
 	if (q->qs[a].qlen == 0) {
 		q->ht[q->hash[a]] = SFQ_DEPTH;
 		a = q->next[a];

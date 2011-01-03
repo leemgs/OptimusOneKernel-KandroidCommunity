@@ -1,18 +1,4 @@
-/*
- * helper functions for physically contiguous capture buffers
- *
- * The functions support hardware lacking scatter gather support
- * (i.e. the buffers must be linear in physical memory)
- *
- * Copyright (c) 2008 Magnus Damm
- *
- * Based on videobuf-vmalloc.c,
- * (c) 2007 Mauro Carvalho Chehab, <mchehab@infradead.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -64,7 +50,7 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
 		dev_dbg(map->q->dev, "munmap %p q=%p\n", map, q);
 		mutex_lock(&q->vb_lock);
 
-		/* We need first to cancel streams, before unmapping */
+		
 		if (q->streaming)
 			videobuf_queue_cancel(q);
 
@@ -77,17 +63,11 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
 
 			mem = q->bufs[i]->priv;
 			if (mem) {
-				/* This callback is called only if kernel has
-				   allocated memory and this memory is mmapped.
-				   In this case, memory should be freed,
-				   in order to do memory unmap.
-				 */
+				
 
 				MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
 
-				/* vfree is not atomic - can't be
-				   called with IRQ's disabled
-				 */
+				
 				dev_dbg(map->q->dev, "buf[%d] freeing %p\n",
 					i, mem->vaddr);
 
@@ -111,12 +91,7 @@ static const struct vm_operations_struct videobuf_vm_ops = {
 	.close    = videobuf_vm_close,
 };
 
-/**
- * videobuf_dma_contig_user_put() - reset pointer to user space buffer
- * @mem: per-buffer private videobuf-dma-contig data
- *
- * This function resets the user space pointer
- */
+
 static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
 {
 	mem->is_userptr = 0;
@@ -124,16 +99,7 @@ static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
 	mem->size = 0;
 }
 
-/**
- * videobuf_dma_contig_user_get() - setup user space memory pointer
- * @mem: per-buffer private videobuf-dma-contig data
- * @vb: video buffer to map
- *
- * This function validates and sets up a pointer to user space memory.
- * Only physically contiguous pfn-mapped memory is accepted.
- *
- * Returns 0 if successful.
- */
+
 static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
 					struct videobuf_buffer *vb)
 {
@@ -157,7 +123,7 @@ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
 		goto out_up;
 
 	pages_done = 0;
-	prev_pfn = 0; /* kill warning */
+	prev_pfn = 0; 
 	user_address = vb->baddr;
 
 	while (pages_done < (mem->size >> PAGE_SHIFT)) {
@@ -224,7 +190,7 @@ static int __videobuf_iolock(struct videobuf_queue *q,
 	case V4L2_MEMORY_MMAP:
 		dev_dbg(q->dev, "%s memory method MMAP\n", __func__);
 
-		/* All handling should be done by __videobuf_mmap_mapper() */
+		
 		if (!mem->vaddr) {
 			dev_err(q->dev, "memory is not alloced/mmapped.\n");
 			return -EINVAL;
@@ -233,11 +199,11 @@ static int __videobuf_iolock(struct videobuf_queue *q,
 	case V4L2_MEMORY_USERPTR:
 		dev_dbg(q->dev, "%s memory method USERPTR\n", __func__);
 
-		/* handle pointer from user space */
+		
 		if (vb->baddr)
 			return videobuf_dma_contig_user_get(mem, vb);
 
-		/* allocate memory for the read() method */
+		
 		mem->size = PAGE_ALIGN(vb->size);
 		mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
 						&mem->dma_handle, GFP_KERNEL);
@@ -286,7 +252,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
 	if (!(vma->vm_flags & VM_WRITE) || !(vma->vm_flags & VM_SHARED))
 		return -EINVAL;
 
-	/* look for first buffer to map */
+	
 	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
 		if (!q->bufs[first])
 			continue;
@@ -302,7 +268,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
 		return -EINVAL;
 	}
 
-	/* create mapping + update buffer list */
+	
 	map = kzalloc(sizeof(struct videobuf_mapping), GFP_KERNEL);
 	if (!map)
 		return -ENOMEM;
@@ -329,7 +295,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
 	dev_dbg(q->dev, "dma_alloc_coherent data is at addr %p (size %ld)\n",
 		mem->vaddr, mem->size);
 
-	/* Try to remap memory */
+	
 
 	size = vma->vm_end - vma->vm_start;
 	size = (size < mem->size) ? size : mem->size;
@@ -374,7 +340,7 @@ static int __videobuf_copy_to_user(struct videobuf_queue *q,
 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
 	BUG_ON(!mem->vaddr);
 
-	/* copy to userspace */
+	
 	if (count > q->read_buf->size - q->read_off)
 		count = q->read_buf->size - q->read_off;
 
@@ -397,17 +363,14 @@ static int __videobuf_copy_stream(struct videobuf_queue *q,
 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
 
 	if (vbihack) {
-		/* dirty, undocumented hack -- pass the frame counter
-			* within the last four bytes of each vbi data block.
-			* We need that one to maintain backward compatibility
-			* to all vbi decoding software out there ... */
+		
 		fc = (unsigned int *)mem->vaddr;
 		fc += (q->read_buf->size >> 2) - 1;
 		*fc = q->read_buf->field_count >> 1;
 		dev_dbg(q->dev, "vbihack: %d\n", *fc);
 	}
 
-	/* copy stuff using the common method */
+	
 	count = __videobuf_copy_to_user(q, data, count, nonblocking);
 
 	if ((count == -EFAULT) && (pos == 0))
@@ -458,12 +421,7 @@ void videobuf_dma_contig_free(struct videobuf_queue *q,
 {
 	struct videobuf_dma_contig_memory *mem = buf->priv;
 
-	/* mmapped memory can't be freed here, otherwise mmapped region
-	   would be released, while still needed. In this case, the memory
-	   release should happen inside videobuf_vm_close().
-	   So, it should free memory only if the memory were allocated for
-	   read() operation.
-	 */
+	
 	if (buf->memory != V4L2_MEMORY_USERPTR)
 		return;
 
@@ -472,13 +430,13 @@ void videobuf_dma_contig_free(struct videobuf_queue *q,
 
 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
 
-	/* handle user space pointer case */
+	
 	if (buf->baddr) {
 		videobuf_dma_contig_user_put(mem);
 		return;
 	}
 
-	/* read() method */
+	
 	dma_free_coherent(q->dev, mem->size, mem->vaddr, mem->dma_handle);
 	mem->vaddr = NULL;
 }

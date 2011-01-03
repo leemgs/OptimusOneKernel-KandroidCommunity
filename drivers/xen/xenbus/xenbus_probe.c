@@ -1,34 +1,4 @@
-/******************************************************************************
- * Talks to Xen Store to figure out what devices we have.
- *
- * Copyright (C) 2005 Rusty Russell, IBM Corporation
- * Copyright (C) 2005 Mike Wray, Hewlett-Packard
- * Copyright (C) 2005, 2006 XenSource Ltd
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 
 #define DPRINTK(fmt, args...)				\
 	pr_debug("xenbus_probe (%s:%d) " fmt ".\n",	\
@@ -74,7 +44,7 @@ static void xenbus_dev_shutdown(struct device *_dev);
 static int xenbus_dev_suspend(struct device *dev, pm_message_t state);
 static int xenbus_dev_resume(struct device *dev);
 
-/* If something in array of ids matches this device, return it. */
+
 static const struct xenbus_device_id *
 match_device(const struct xenbus_device_id *arr, struct xenbus_device *dev)
 {
@@ -105,7 +75,7 @@ static int xenbus_uevent(struct device *_dev, struct kobj_uevent_env *env)
 	return 0;
 }
 
-/* device/<type>/<id> => <type>-<id> */
+
 static int frontend_bus_id(char bus_id[XEN_BUS_ID_SIZE], const char *nodename)
 {
 	nodename = strchr(nodename, '/');
@@ -177,10 +147,10 @@ static struct device_attribute xenbus_dev_attrs[] = {
 	__ATTR_NULL
 };
 
-/* Bus type for frontend drivers. */
+
 static struct xen_bus_type xenbus_frontend = {
 	.root = "device",
-	.levels = 2, 		/* device/type/<id> */
+	.levels = 2, 		
 	.get_bus_id = frontend_bus_id,
 	.probe = xenbus_probe_frontend,
 	.bus = {
@@ -205,8 +175,7 @@ static void otherend_changed(struct xenbus_watch *watch,
 	struct xenbus_driver *drv = to_xenbus_driver(dev->dev.driver);
 	enum xenbus_state state;
 
-	/* Protect us against watches firing on old details when the otherend
-	   details change, say immediately after a resume. */
+	
 	if (!dev->otherend ||
 	    strncmp(dev->otherend, vec[XS_WATCH_PATH],
 		    strlen(dev->otherend))) {
@@ -221,15 +190,12 @@ static void otherend_changed(struct xenbus_watch *watch,
 		state, xenbus_strstate(state), dev->otherend_watch.node,
 		vec[XS_WATCH_PATH]);
 
-	/*
-	 * Ignore xenbus transitions during shutdown. This prevents us doing
-	 * work that can fail e.g., when the rootfs is gone.
-	 */
+	
 	if (system_state > SYSTEM_RUNNING) {
 		struct xen_bus_type *bus = bus;
 		bus = container_of(dev->dev.bus, struct xen_bus_type, bus);
-		/* If we're frontend, drive the state machine to Closed. */
-		/* This should cause the backend to release our resources. */
+		
+		
 		if ((bus == &xenbus_frontend) && (state == XenbusStateClosing))
 			xenbus_frontend_closed(dev);
 		return;
@@ -367,7 +333,7 @@ int __xenbus_register_frontend(struct xenbus_driver *drv,
 	if (ret)
 		return ret;
 
-	/* If this driver is loaded as a module wait for devices to attach. */
+	
 	wait_for_devices(drv);
 
 	return 0;
@@ -416,11 +382,11 @@ static int cleanup_dev(struct device *dev, void *data)
 
 	DPRINTK("%s", info->nodename);
 
-	/* Match the info->nodename path, or any subdirectory of that path. */
+	
 	if (strncmp(xendev->nodename, info->nodename, len))
 		return 0;
 
-	/* If the node name is longer, ensure it really is a subdirectory. */
+	
 	if ((strlen(xendev->nodename) > len) && (xendev->nodename[len] != '/'))
 		return 0;
 
@@ -483,8 +449,7 @@ int xenbus_probe_node(struct xen_bus_type *bus,
 	enum xenbus_state state = xenbus_read_driver_state(nodename);
 
 	if (state != XenbusStateInitialising) {
-		/* Device is not new, so ignore it.  This can happen if a
-		   device is going away after switching to Closed.  */
+		
 		return 0;
 	}
 
@@ -495,7 +460,7 @@ int xenbus_probe_node(struct xen_bus_type *bus,
 
 	xendev->state = XenbusStateInitialising;
 
-	/* Copy the strings into the extra space. */
+	
 
 	tmpstring = (char *)(xendev + 1);
 	strcpy(tmpstring, nodename);
@@ -515,7 +480,7 @@ int xenbus_probe_node(struct xen_bus_type *bus,
 
 	dev_set_name(&xendev->dev, devname);
 
-	/* Register with generic device framework. */
+	
 	err = device_register(&xendev->dev);
 	if (err)
 		goto fail;
@@ -544,7 +509,7 @@ fail:
 	return err;
 }
 
-/* device/<typename>/<name> */
+
 static int xenbus_probe_frontend(const char *type, const char *name)
 {
 	char *nodename;
@@ -640,7 +605,7 @@ void xenbus_dev_changed(const char *node, struct xen_bus_type *bus)
 		return;
 	}
 
-	/* backend/<type>/... or device/<type>/... */
+	
 	p = strchr(node, '/') + 1;
 	snprintf(type, XEN_BUS_ID_SIZE, "%.*s", (int)strcspn(p, "/"), p);
 	type[XEN_BUS_ID_SIZE-1] = '\0';
@@ -670,7 +635,7 @@ static void frontend_changed(struct xenbus_watch *watch,
 	xenbus_dev_changed(vec[XS_WATCH_PATH], &xenbus_frontend);
 }
 
-/* We watch for devices appearing and vanishing. */
+
 static struct xenbus_watch fe_watch = {
 	.node = "device",
 	.callback = frontend_changed,
@@ -741,7 +706,7 @@ static int xenbus_dev_resume(struct device *dev)
 	return 0;
 }
 
-/* A flag to determine if xenstored is 'ready' (i.e. has started) */
+
 int xenstored_ready = 0;
 
 
@@ -768,12 +733,12 @@ void xenbus_probe(struct work_struct *unused)
 {
 	BUG_ON((xenstored_ready <= 0));
 
-	/* Enumerate devices in xenstore and watch for changes. */
+	
 	xenbus_probe_devices(&xenbus_frontend);
 	register_xenbus_watch(&fe_watch);
 	xenbus_backend_probe_and_watch();
 
-	/* Notify others that xenstore is up */
+	
 	blocking_notifier_call_chain(&xenstore_chain, 0, NULL);
 }
 
@@ -787,7 +752,7 @@ static int __init xenbus_probe_init(void)
 	if (!xen_domain())
 		goto out_error;
 
-	/* Register ourselves with the kernel bus subsystem */
+	
 	err = bus_register(&xenbus_frontend.bus);
 	if (err)
 		goto out_error;
@@ -796,11 +761,9 @@ static int __init xenbus_probe_init(void)
 	if (err)
 		goto out_unreg_front;
 
-	/*
-	 * Domain0 doesn't have a store_evtchn or store_mfn yet.
-	 */
+	
 	if (xen_initial_domain()) {
-		/* dom0 not yet supported */
+		
 	} else {
 		xenstored_ready = 1;
 		xen_store_evtchn = xen_start_info->store_evtchn;
@@ -808,7 +771,7 @@ static int __init xenbus_probe_init(void)
 	}
 	xen_store_interface = mfn_to_virt(xen_store_mfn);
 
-	/* Initialize the interface to xenstore. */
+	
 	err = xs_init();
 	if (err) {
 		printk(KERN_WARNING
@@ -820,10 +783,7 @@ static int __init xenbus_probe_init(void)
 		xenbus_probe(NULL);
 
 #ifdef CONFIG_XEN_COMPAT_XENFS
-	/*
-	 * Create xenfs mountpoint in /proc for compatibility with
-	 * utilities that expect to find "xenbus" under "/proc/xen".
-	 */
+	
 	proc_mkdir("xen", NULL);
 #endif
 
@@ -849,14 +809,11 @@ static int is_device_connecting(struct device *dev, void *data)
 	struct device_driver *drv = data;
 	struct xenbus_driver *xendrv;
 
-	/*
-	 * A device with no driver will never connect. We care only about
-	 * devices which should currently be in the process of connecting.
-	 */
+	
 	if (!dev->driver)
 		return 0;
 
-	/* Is this search limited to a particular driver? */
+	
 	if (drv && (dev->driver != drv))
 		return 0;
 
@@ -877,12 +834,12 @@ static int print_device_status(struct device *dev, void *data)
 	struct xenbus_device *xendev = to_xenbus_device(dev);
 	struct device_driver *drv = data;
 
-	/* Is this operation limited to a particular driver? */
+	
 	if (drv && (dev->driver != drv))
 		return 0;
 
 	if (!dev->driver) {
-		/* Information only: is this too noisy? */
+		
 		printk(KERN_INFO "XENBUS: Device with no driver: %s\n",
 		       xendev->nodename);
 	} else if (xendev->state < XenbusStateConnected) {
@@ -897,23 +854,10 @@ static int print_device_status(struct device *dev, void *data)
 	return 0;
 }
 
-/* We only wait for device setup after most initcalls have run. */
+
 static int ready_to_wait_for_devices;
 
-/*
- * On a 5-minute timeout, wait for all devices currently configured.  We need
- * to do this to guarantee that the filesystems and / or network devices
- * needed for boot are available, before we can allow the boot to proceed.
- *
- * This needs to be on a late_initcall, to happen after the frontend device
- * drivers have been initialised, but before the root fs is mounted.
- *
- * A possible improvement here would be to have the tools add a per-device
- * flag to the store entry, indicating whether it is needed at boot time.
- * This would allow people who knew what they were doing to accelerate their
- * boot slightly, but of course needs tools or manual intervention to set up
- * those flags correctly.
- */
+
 static void wait_for_devices(struct xenbus_driver *xendrv)
 {
 	unsigned long start = jiffies;

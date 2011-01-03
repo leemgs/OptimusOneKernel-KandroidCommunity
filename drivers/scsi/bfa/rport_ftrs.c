@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  rport_ftrs.c Remote port features (RPF) implementation.
- */
+
+
 
 #include <bfa.h>
 #include <bfa_svc.h>
@@ -31,7 +14,7 @@
 BFA_TRC_FILE(FCS, RPORT_FTRS);
 
 #define BFA_FCS_RPF_RETRIES	(3)
-#define BFA_FCS_RPF_RETRY_TIMEOUT  (1000) /* 1 sec (In millisecs) */
+#define BFA_FCS_RPF_RETRY_TIMEOUT  (1000) 
 
 static void     bfa_fcs_rpf_send_rpsc2(void *rport_cbarg,
 			struct bfa_fcxp_s *fcxp_alloced);
@@ -42,15 +25,13 @@ static void     bfa_fcs_rpf_rpsc2_response(void *fcsarg,
 			struct fchs_s *rsp_fchs);
 static void     bfa_fcs_rpf_timeout(void *arg);
 
-/**
- *  fcs_rport_ftrs_sm FCS rport state machine events
- */
+
 
 enum rpf_event {
-	RPFSM_EVENT_RPORT_OFFLINE  = 1,     /*  Rport offline            */
-	RPFSM_EVENT_RPORT_ONLINE   = 2,     /*  Rport online            */
-	RPFSM_EVENT_FCXP_SENT      = 3,    /*  Frame from has been sent */
-	RPFSM_EVENT_TIMEOUT  	   = 4,    /*  Rport SM timeout event   */
+	RPFSM_EVENT_RPORT_OFFLINE  = 1,     
+	RPFSM_EVENT_RPORT_ONLINE   = 2,     
+	RPFSM_EVENT_FCXP_SENT      = 3,    
+	RPFSM_EVENT_TIMEOUT  	   = 4,    
 	RPFSM_EVENT_RPSC_COMP      = 5,
 	RPFSM_EVENT_RPSC_FAIL      = 6,
 	RPFSM_EVENT_RPSC_ERROR     = 7,
@@ -129,7 +110,7 @@ bfa_fcs_rpf_sm_rpsc(struct bfa_fcs_rpf_s *rpf, enum rpf_event event)
 	switch (event) {
 	case RPFSM_EVENT_RPSC_COMP:
 		bfa_sm_set_state(rpf, bfa_fcs_rpf_sm_online);
-		/* Update speed info in f/w via BFA */
+		
 		if (rpf->rpsc_speed != BFA_PPORT_SPEED_UNKNOWN) {
 			bfa_rport_speed(rport->bfa_rport, rpf->rpsc_speed);
 		} else if (rpf->assigned_speed != BFA_PPORT_SPEED_UNKNOWN) {
@@ -138,12 +119,12 @@ bfa_fcs_rpf_sm_rpsc(struct bfa_fcs_rpf_s *rpf, enum rpf_event event)
 		break;
 
 	case RPFSM_EVENT_RPSC_FAIL:
-		/* RPSC not supported by rport */
+		
 		bfa_sm_set_state(rpf, bfa_fcs_rpf_sm_online);
 		break;
 
 	case RPFSM_EVENT_RPSC_ERROR:
-		/* need to retry...delayed a bit. */
+		
 		if (rpf->rpsc_retries++ < BFA_FCS_RPF_RETRIES) {
 			bfa_timer_start(rport->fcs->bfa, &rpf->timer,
 				    bfa_fcs_rpf_timeout, rpf,
@@ -175,7 +156,7 @@ bfa_fcs_rpf_sm_rpsc_retry(struct bfa_fcs_rpf_s *rpf, enum rpf_event event)
 
 	switch (event) {
 	case RPFSM_EVENT_TIMEOUT :
-		/* re-send the RPSC */
+		
 		bfa_sm_set_state(rpf, bfa_fcs_rpf_sm_rpsc_sending);
 		bfa_fcs_rpf_send_rpsc2(rpf, NULL);
 		break;
@@ -233,9 +214,7 @@ bfa_fcs_rpf_sm_offline(struct bfa_fcs_rpf_s *rpf, enum rpf_event event)
 		bfa_assert(0);
 	}
 }
-/**
- * Called when Rport is created.
- */
+
 void  bfa_fcs_rpf_init(struct bfa_fcs_rport_s *rport)
 {
 	struct bfa_fcs_rpf_s *rpf = &rport->rpf;
@@ -246,9 +225,7 @@ void  bfa_fcs_rpf_init(struct bfa_fcs_rport_s *rport)
 	bfa_sm_set_state(rpf, bfa_fcs_rpf_sm_uninit);
 }
 
-/**
- * Called when Rport becomes online
- */
+
 void  bfa_fcs_rpf_rport_online(struct bfa_fcs_rport_s *rport)
 {
 	bfa_trc(rport->fcs, rport->pid);
@@ -260,9 +237,7 @@ void  bfa_fcs_rpf_rport_online(struct bfa_fcs_rport_s *rport)
 		bfa_sm_send_event(&rport->rpf, RPFSM_EVENT_RPORT_ONLINE);
 }
 
-/**
- * Called when Rport becomes offline
- */
+
 void  bfa_fcs_rpf_rport_offline(struct bfa_fcs_rport_s *rport)
 {
 	bfa_trc(rport->fcs, rport->pid);

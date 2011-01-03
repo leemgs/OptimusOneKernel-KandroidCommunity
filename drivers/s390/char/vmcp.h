@@ -1,16 +1,4 @@
-/*
- * Copyright (C) 2004, 2005 IBM Corporation
- * Interface implementation for communication with the z/VM control program
- * Version 1.0
- * Author(s): Christian Borntraeger <cborntra@de.ibm.com>
- *
- *
- * z/VMs CP offers the possibility to issue commands via the diagnose code 8
- * this driver implements a character device that issues these commands and
- * returns the answer of CP.
- *
- * The idea of this driver is based on cpint from Neale Ferguson
- */
+
 
 #include <linux/ioctl.h>
 #include <linux/mutex.h>
@@ -24,7 +12,6 @@ struct vmcp_session {
 	char *response;
 	int resp_size;
 	int resp_code;
-	/* As we use copy_from/to_user, which might     *
-	 * sleep and cannot use a spinlock              */
+	
 	struct mutex mutex;
 };

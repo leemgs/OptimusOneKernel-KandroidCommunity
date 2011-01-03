@@ -1,38 +1,4 @@
-/*
- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
- * Copyright (c) 2005 Mellanox Technologies. All rights reserved.
- * Copyright (c) 2005 Voltaire, Inc. All rights reserved.
- * Copyright (c) 2005 PathScale, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -53,7 +19,7 @@ MODULE_AUTHOR("Roland Dreier");
 MODULE_DESCRIPTION("InfiniBand userspace verbs access");
 MODULE_LICENSE("Dual BSD/GPL");
 
-#define INFINIBANDEVENTFS_MAGIC	0x49426576	/* "IBev" */
+#define INFINIBANDEVENTFS_MAGIC	0x49426576	
 
 enum {
 	IB_UVERBS_MAJOR       = 231,
@@ -235,7 +201,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
 		kfree(uevent);
 	}
 
-	/* XXX Free MWs */
+	
 
 	list_for_each_entry_safe(uobj, tmp, &context->mr_list, list) {
 		struct ib_mr *mr = uobj->object;
@@ -514,11 +480,7 @@ struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
 		goto err;
 	}
 
-	/*
-	 * fops_get() can't fail here, because we're coming from a
-	 * system call on a uverbs file, which will already have a
-	 * module reference.
-	 */
+	
 	filp = alloc_file(uverbs_event_mnt, dget(uverbs_event_mnt->mnt_root),
 			  FMODE_READ, fops_get(&uverbs_event_fops));
 	if (!filp) {
@@ -538,11 +500,7 @@ err:
 	return ERR_PTR(ret);
 }
 
-/*
- * Look up a completion event file by FD.  If lookup is successful,
- * takes a ref to the event file struct that it returns; if
- * unsuccessful, returns NULL.
- */
+
 struct ib_uverbs_event_file *ib_uverbs_lookup_comp_file(int fd)
 {
 	struct ib_uverbs_event_file *ev_file = NULL;
@@ -609,18 +567,7 @@ static int ib_uverbs_mmap(struct file *filp, struct vm_area_struct *vma)
 		return file->device->ib_dev->mmap(file->ucontext, vma);
 }
 
-/*
- * ib_uverbs_open() does not need the BKL:
- *
- *  - dev_table[] accesses are protected by map_lock, the
- *    ib_uverbs_device structures are properly reference counted, and
- *    everything else is purely local to the file being created, so
- *    races against other open calls are not a problem;
- *  - there is no ioctl method to race against;
- *  - the device is added to dev_table[] as the last part of module
- *    initialization, the open method will either immediately run
- *    -ENXIO, or all required initialization will be done.
- */
+
 static int ib_uverbs_open(struct inode *inode, struct file *filp)
 {
 	struct ib_uverbs_device *dev;
@@ -829,7 +776,7 @@ static int uverbs_event_get_sb(struct file_system_type *fs_type, int flags,
 }
 
 static struct file_system_type uverbs_event_fs = {
-	/* No owner field so module can be unloaded */
+	
 	.name    = "infinibandeventfs",
 	.get_sb  = uverbs_event_get_sb,
 	.kill_sb = kill_litter_super

@@ -1,15 +1,6 @@
-/* $Id: isdn_audio.h,v 1.1.2.2 2004/01/12 22:37:18 keil Exp $
- *
- * Linux ISDN subsystem, audio conversion and compression (linklevel).
- *
- * Copyright 1994-1999 by Fritz Elfert (fritz@isdn4linux.de)
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
 
-#define DTMF_NPOINTS 205        /* Number of samples for DTMF recognition */
+
+#define DTMF_NPOINTS 205        
 typedef struct adpcm_state {
 	int a;
 	int d;

@@ -1,31 +1,4 @@
-/*
- * PCI Express Hot Plug Controller Driver
- *
- * Copyright (C) 1995,2001 Compaq Computer Corporation
- * Copyright (C) 2001 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2001 IBM Corp.
- * Copyright (C) 2003-2004 Intel Corporation
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <greg@kroah.com>, <kristen.c.accardi@intel.com>
- *
- */
+
 #ifndef _PCIEHP_H
 #define _PCIEHP_H
 
@@ -33,7 +6,7 @@
 #include <linux/pci.h>
 #include <linux/pci_hotplug.h>
 #include <linux/delay.h>
-#include <linux/sched.h>		/* signal_pending() */
+#include <linux/sched.h>		
 #include <linux/pcieport_if.h>
 #include <linux/mutex.h>
 
@@ -75,7 +48,7 @@ struct slot {
 	u8 state;
 	struct controller *ctrl;
 	struct hotplug_slot *hotplug_slot;
-	struct delayed_work work;	/* work for button event */
+	struct delayed_work work;	
 	struct mutex lock;
 };
 
@@ -86,10 +59,10 @@ struct event_info {
 };
 
 struct controller {
-	struct mutex ctrl_lock;		/* controller lock */
-	struct pcie_device *pcie;	/* PCI Express port service */
+	struct mutex ctrl_lock;		
+	struct pcie_device *pcie;	
 	struct slot *slot;
-	wait_queue_head_t queue;	/* sleep & wake process */
+	wait_queue_head_t queue;	
 	u32 slot_cap;
 	u8 cap_base;
 	struct timer_list poll_timer;
@@ -191,5 +164,5 @@ static inline int pciehp_get_hp_hw_control_from_firmware(struct pci_dev *dev)
 #else
 #define pciehp_firmware_init()				do {} while (0)
 #define pciehp_get_hp_hw_control_from_firmware(dev) 	0
-#endif 				/* CONFIG_ACPI */
-#endif				/* _PCIEHP_H */
+#endif 				
+#endif				

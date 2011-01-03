@@ -1,11 +1,4 @@
-/*
- * Copyright 2003-2004, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -28,7 +21,7 @@ static void aes_ccm_prepare(struct crypto_cipher *tfm, u8 *scratch, u8 *a)
 
 	crypto_cipher_encrypt_one(tfm, b, b_0);
 
-	/* Extra Authenticate-only data (always two AES blocks) */
+	
 	for (i = 0; i < AES_BLOCK_LEN; i++)
 		aad[i] ^= b[i];
 	crypto_cipher_encrypt_one(tfm, b, aad);
@@ -39,10 +32,10 @@ static void aes_ccm_prepare(struct crypto_cipher *tfm, u8 *scratch, u8 *a)
 		aad[i] ^= b[i];
 	crypto_cipher_encrypt_one(tfm, a, aad);
 
-	/* Mask out bits from auth-only-b_0 */
+	
 	b_0[0] &= 0x07;
 
-	/* S_0 is used to encrypt T (= MIC) */
+	
 	b_0[14] = 0;
 	b_0[15] = 0;
 	crypto_cipher_encrypt_one(tfm, s_0, b_0);
@@ -66,14 +59,14 @@ void ieee80211_aes_ccm_encrypt(struct crypto_cipher *tfm, u8 *scratch,
 	last_len = data_len % AES_BLOCK_LEN;
 	aes_ccm_prepare(tfm, scratch, b);
 
-	/* Process payload blocks */
+	
 	pos = data;
 	cpos = cdata;
 	for (j = 1; j <= num_blocks; j++) {
 		int blen = (j == num_blocks && last_len) ?
 			last_len : AES_BLOCK_LEN;
 
-		/* Authentication followed by encryption */
+		
 		for (i = 0; i < blen; i++)
 			b[i] ^= pos[i];
 		crypto_cipher_encrypt_one(tfm, b, b);
@@ -106,14 +99,14 @@ int ieee80211_aes_ccm_decrypt(struct crypto_cipher *tfm, u8 *scratch,
 	last_len = data_len % AES_BLOCK_LEN;
 	aes_ccm_prepare(tfm, scratch, a);
 
-	/* Process payload blocks */
+	
 	cpos = cdata;
 	pos = data;
 	for (j = 1; j <= num_blocks; j++) {
 		int blen = (j == num_blocks && last_len) ?
 			last_len : AES_BLOCK_LEN;
 
-		/* Decryption followed by authentication */
+		
 		b_0[14] = (j >> 8) & 0xff;
 		b_0[15] = j & 0xff;
 		crypto_cipher_encrypt_one(tfm, b, b_0);

@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/include/mach/io.h
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright (C) 2002-2005  MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_ARM_ARCH_IO_H
 #define __ASM_ARM_ARCH_IO_H
@@ -23,38 +13,14 @@ extern int (*ixp4xx_pci_read)(u32 addr, u32 cmd, u32* data);
 extern int ixp4xx_pci_write(u32 addr, u32 cmd, u32 data);
 
 
-/*
- * IXP4xx provides two methods of accessing PCI memory space:
- *
- * 1) A direct mapped window from 0x48000000 to 0x4bffffff (64MB).
- *    To access PCI via this space, we simply ioremap() the BAR
- *    into the kernel and we can use the standard read[bwl]/write[bwl]
- *    macros. This is the preffered method due to speed but it
- *    limits the system to just 64MB of PCI memory. This can be 
- *    problamatic if using video cards and other memory-heavy
- *    targets.
- *
- * 2) If > 64MB of memory space is required, the IXP4xx can be configured
- *    to use indirect registers to access PCI (as we do below for I/O
- *    transactions). This allows for up to 128MB (0x48000000 to 0x4fffffff)
- *    of memory on the bus. The disadvantage of this is that every 
- *    PCI access requires three local register accesses plus a spinlock,
- *    but in some cases the performance hit is acceptable. In addition,
- *    you cannot mmap() PCI devices in this case.
- *
- */
+
 #ifndef	CONFIG_IXP4XX_INDIRECT_PCI
 
 #define __mem_pci(a)		(a)
 
 #else
 
-/*
- * In the case of using indirect PCI, we simply return the actual PCI
- * address and our read/write implementation use that to drive the 
- * access registers. If something outside of PCI is ioremap'd, we
- * fallback to the default.
- */
+
 static inline void __iomem *
 __ixp4xx_ioremap(unsigned long addr, size_t size, unsigned int mtype)
 {
@@ -228,9 +194,7 @@ __ixp4xx_readsl(const volatile void __iomem *bus_addr, u32 *vaddr, u32 count)
 }
 
 
-/*
- * We can use the built-in functions b/c they end up calling writeb/readb
- */
+
 #define memset_io(c,v,l)		_memset_io((c),(v),(l))
 #define memcpy_fromio(a,c,l)		_memcpy_fromio((a),(c),(l))
 #define memcpy_toio(c,a,l)		_memcpy_toio((c),(a),(l))
@@ -243,13 +207,7 @@ __ixp4xx_readsl(const volatile void __iomem *bus_addr, u32 *vaddr, u32 count)
 
 #else
 
-/*
- * IXP4xx does not have a transparent cpu -> PCI I/O translation
- * window.  Instead, it has a set of registers that must be tweaked
- * with the proper byte lanes, command types, and address for the
- * transaction.  This means that we need to override the default
- * I/O functions.
- */
+
 #define	outb(p, v)			__ixp4xx_outb(p, v)
 #define	outw(p, v)			__ixp4xx_outw(p, v)
 #define	outl(p, v)			__ixp4xx_outl(p, v)
@@ -561,7 +519,7 @@ __ixp4xx_iowrite32_rep(void __iomem *addr, const void *vaddr, u32 count)
 
 #define	ioport_map(port, nr)		((void __iomem*)(port + PIO_OFFSET))
 #define	ioport_unmap(addr)
-#endif	// !CONFIG_PCI
+#endif	
 
-#endif	//  __ASM_ARM_ARCH_IO_H
+#endif	
 

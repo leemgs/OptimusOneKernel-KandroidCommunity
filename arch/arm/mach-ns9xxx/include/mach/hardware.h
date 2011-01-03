@@ -1,23 +1,8 @@
-/*
- * arch/arm/mach-ns9xxx/include/mach/hardware.h
- *
- * Copyright (C) 2006 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #ifndef __ASM_ARCH_HARDWARE_H
 #define __ASM_ARCH_HARDWARE_H
 
-/*
- * NetSilicon NS9xxx internal mapping:
- *
- * physical                <--> virtual
- * 0x90000000 - 0x906fffff <--> 0xf9000000 - 0xf96fffff
- * 0xa0100000 - 0xa0afffff <--> 0xfa100000 - 0xfaafffff
- */
+
 #define io_p2v(x)	(0xf0000000 \
 			 + (((x) & 0xf0000000) >> 4) \
 			 + ((x) & 0x00ffffff))
@@ -74,4 +59,4 @@
 
 #endif
 
-#endif /* ifndef __ASM_ARCH_HARDWARE_H */
+#endif 

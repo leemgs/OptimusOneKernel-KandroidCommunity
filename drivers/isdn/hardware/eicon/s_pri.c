@@ -1,28 +1,5 @@
 
-/*
- *
-  Copyright (c) Eicon Networks, 2002.
- *
-  This source file is supplied for the use with
-  Eicon Networks range of DIVA Server Adapters.
- *
-  Eicon File Revision :    2.1
- *
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
- *
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU General Public License for more details.
- *
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #include "platform.h"
 #include "di_defs.h"
 #include "pc.h"
@@ -35,25 +12,19 @@
 #include "helpers.h"
 #include "dsrv_pri.h"
 #include "dsp_defs.h"
-/*****************************************************************************/
+
 #define MAX_XLOG_SIZE  (64 * 1024)
-/* -------------------------------------------------------------------------
-  Does return offset between ADAPTER->ram and real begin of memory
-  ------------------------------------------------------------------------- */
+
 static dword pri_ram_offset (ADAPTER* a) {
  return ((dword)MP_SHARED_RAM_OFFSET);
 }
-/* -------------------------------------------------------------------------
-  Recovery XLOG buffer from the card
-  ------------------------------------------------------------------------- */
+
 static void pri_cpu_trapped (PISDN_ADAPTER IoAdapter) {
  byte  __iomem *base ;
  word *Xlog ;
  dword   regs[4], TrapID, size ;
  Xdesc   xlogDesc ;
-/*
- * check for trapped MIPS 46xx CPU, dump exception frame
- */
+
  base   = DIVA_OS_MEM_ATTACH_ADDRESS(IoAdapter);
  TrapID = READ_DWORD(&base[0x80]) ;
  if ( (TrapID == 0x99999999) || (TrapID == 0x99999901) )
@@ -85,9 +56,7 @@ static void pri_cpu_trapped (PISDN_ADAPTER IoAdapter) {
  }
  DIVA_OS_MEM_DETACH_ADDRESS(IoAdapter, base);
 }
-/* -------------------------------------------------------------------------
-  Hardware reset of PRI card
-  ------------------------------------------------------------------------- */
+
 static void reset_pri_hardware (PISDN_ADAPTER IoAdapter) {
  byte __iomem *p = DIVA_OS_MEM_ATTACH_RESET(IoAdapter);
  WRITE_BYTE(p, _MP_RISC_RESET | _MP_LED1 | _MP_LED2);
@@ -96,9 +65,7 @@ static void reset_pri_hardware (PISDN_ADAPTER IoAdapter) {
  diva_os_wait (50) ;
  DIVA_OS_MEM_DETACH_RESET(IoAdapter, p);
 }
-/* -------------------------------------------------------------------------
-  Stop Card Hardware
-  ------------------------------------------------------------------------- */
+
 static void stop_pri_hardware (PISDN_ADAPTER IoAdapter) {
  dword i;
  byte __iomem *p;
@@ -125,18 +92,14 @@ static void stop_pri_hardware (PISDN_ADAPTER IoAdapter) {
 static int load_pri_hardware (PISDN_ADAPTER IoAdapter) {
  return (0);
 }
-/* --------------------------------------------------------------------------
-  PRI Adapter interrupt Service Routine
-   -------------------------------------------------------------------------- */
+
 static int pri_ISR (struct _ISDN_ADAPTER* IoAdapter) {
  byte __iomem *cfg = DIVA_OS_MEM_ATTACH_CFG(IoAdapter);
  if ( !(READ_DWORD(cfg) & 0x80000000) ) {
   DIVA_OS_MEM_DETACH_CFG(IoAdapter, cfg);
   return (0) ;
  }
- /*
-  clear interrupt line
-  */
+ 
  WRITE_DWORD(cfg, (dword)~0x03E00000) ;
  DIVA_OS_MEM_DETACH_CFG(IoAdapter, cfg);
  IoAdapter->IrqCount++ ;
@@ -146,9 +109,7 @@ static int pri_ISR (struct _ISDN_ADAPTER* IoAdapter) {
  }
  return (1) ;
 }
-/* -------------------------------------------------------------------------
-  Disable interrupt in the card hardware
-  ------------------------------------------------------------------------- */
+
 static void disable_pri_interrupt (PISDN_ADAPTER IoAdapter) {
  dword volatile __iomem *cfgReg = (dword volatile __iomem *)DIVA_OS_MEM_ATTACH_CFG(IoAdapter) ;
  WRITE_DWORD(&cfgReg[3], 0);
@@ -156,9 +117,7 @@ static void disable_pri_interrupt (PISDN_ADAPTER IoAdapter) {
  WRITE_DWORD(&cfgReg[0], (dword)(~0x03E00000)) ;
  DIVA_OS_MEM_DETACH_CFG(IoAdapter, cfgReg);
 }
-/* -------------------------------------------------------------------------
-  Install entry points for PRI Adapter
-  ------------------------------------------------------------------------- */
+
 static void prepare_common_pri_functions (PISDN_ADAPTER IoAdapter) {
  ADAPTER *a = &IoAdapter->a ;
  a->ram_in           = mem_in ;
@@ -186,20 +145,16 @@ static void prepare_common_pri_functions (PISDN_ADAPTER IoAdapter) {
  IoAdapter->trapFnc  = pri_cpu_trapped ;
  IoAdapter->diva_isr_handler = pri_ISR;
 }
-/* -------------------------------------------------------------------------
-  Install entry points for PRI Adapter
-  ------------------------------------------------------------------------- */
+
 void prepare_pri_functions (PISDN_ADAPTER IoAdapter) {
  IoAdapter->MemorySize = MP_MEMORY_SIZE ;
  prepare_common_pri_functions (IoAdapter) ;
  diva_os_prepare_pri_functions (IoAdapter);
 }
-/* -------------------------------------------------------------------------
-  Install entry points for PRI Rev.2 Adapter
-  ------------------------------------------------------------------------- */
+
 void prepare_pri2_functions (PISDN_ADAPTER IoAdapter) {
  IoAdapter->MemorySize = MP2_MEMORY_SIZE ;
  prepare_common_pri_functions (IoAdapter) ;
  diva_os_prepare_pri2_functions (IoAdapter);
 }
-/* ------------------------------------------------------------------------- */
+

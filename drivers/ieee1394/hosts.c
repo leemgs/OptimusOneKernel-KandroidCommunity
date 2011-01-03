@@ -1,14 +1,4 @@
-/*
- * IEEE 1394 for Linux
- *
- * Low level (host adapter) management.
- *
- * Copyright (C) 1999 Andreas E. Bombe
- * Copyright (C) 1999 Emanuel Pirker
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -36,15 +26,13 @@ static void delayed_reset_bus(struct work_struct *work)
 		container_of(work, struct hpsb_host, delayed_reset.work);
 	u8 generation = host->csr.generation + 1;
 
-	/* The generation field rolls over to 2 rather than 0 per IEEE
-	 * 1394a-2000. */
+	
 	if (generation > 0xf || generation < 2)
 		generation = 2;
 
 	csr_set_bus_info_generation(host->csr.rom, generation);
 	if (csr1212_generate_csr_image(host->csr.rom) != CSR1212_SUCCESS) {
-		/* CSR image creation failed.
-		 * Reset generation field and do not issue a bus reset. */
+		
 		csr_set_bus_info_generation(host->csr.rom,
 					    host->csr.generation);
 		return;
@@ -95,21 +83,7 @@ static int alloc_hostnum_cb(struct hpsb_host *host, void *__data)
 
 static DEFINE_MUTEX(host_num_alloc);
 
-/**
- * hpsb_alloc_host - allocate a new host controller.
- * @drv: the driver that will manage the host controller
- * @extra: number of extra bytes to allocate for the driver
- *
- * Allocate a &hpsb_host and initialize the general subsystem specific
- * fields.  If the driver needs to store per host data, as drivers
- * usually do, the amount of memory required can be specified by the
- * @extra parameter.  Once allocated, the driver should initialize the
- * driver specific parts, enable the controller and make it available
- * to the general subsystem using hpsb_add_host().
- *
- * Return Value: a pointer to the &hpsb_host if successful, %NULL if
- * no memory was available.
- */
+
 struct hpsb_host *hpsb_alloc_host(struct hpsb_host_driver *drv, size_t extra,
 				  struct device *dev)
 {
@@ -141,7 +115,7 @@ struct hpsb_host *hpsb_alloc_host(struct hpsb_host_driver *drv, size_t extra,
 	init_timer(&h->timeout);
 	h->timeout.data = (unsigned long) h;
 	h->timeout.function = abort_timedouts;
-	h->timeout_interval = HZ / 20; /* 50ms, half of minimum SPLIT_TIMEOUT */
+	h->timeout_interval = HZ / 20; 
 
 	h->topology_map = h->csr.topology_map + 3;
 	h->speed_map = (u8 *)(h->csr.speed_map + 2);
@@ -207,14 +181,7 @@ void hpsb_remove_host(struct hpsb_host *host)
 	device_unregister(&host->device);
 }
 
-/**
- * hpsb_update_config_rom_image - updates configuration ROM image of a host
- *
- * Updates the configuration ROM image of a host.  rom_version must be the
- * current version, otherwise it will fail with return value -1. If this
- * host does not support config-rom-update, it will return -%EINVAL.
- * Return value 0 indicates success.
- */
+
 int hpsb_update_config_rom_image(struct hpsb_host *host)
 {
 	unsigned long reset_delay;
@@ -226,20 +193,16 @@ int hpsb_update_config_rom_image(struct hpsb_host *host)
 	if (next_gen > 0xf)
 		next_gen = 2;
 
-	/* Stop the delayed interrupt, we're about to change the config rom and
-	 * it would be a waste to do a bus reset twice. */
+	
 	cancel_delayed_work(&host->delayed_reset);
 
-	/* IEEE 1394a-2000 prohibits using the same generation number
-	 * twice in a 60 second period. */
+	
 	if (time_before(jiffies, host->csr.gen_timestamp[next_gen] + 60 * HZ))
-		/* Wait 60 seconds from the last time this generation number was
-		 * used. */
+		
 		reset_delay =
 			(60 * HZ) + host->csr.gen_timestamp[next_gen] - jiffies;
 	else
-		/* Wait 1 second in case some other code wants to change the
-		 * Config ROM in the near future. */
+		
 		reset_delay = HZ;
 
 	PREPARE_DELAYED_WORK(&host->delayed_reset, delayed_reset_bus);

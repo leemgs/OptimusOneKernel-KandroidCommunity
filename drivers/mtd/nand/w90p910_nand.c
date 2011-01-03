@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2009 Nuvoton technology corporation.
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation;version 2 of the License.
- *
- */
+
 
 #include <linux/slab.h>
 #include <linux/init.h>
@@ -232,8 +223,7 @@ static void w90p910_nand_command_lp(struct mtd_info *mtd,
 		}
 	}
 
-	/* Apply this short delay always to ensure that we do wait tWB in
-	 * any case on any machine. */
+	
 	ndelay(100);
 
 	while (!chip->dev_ready(mtd))

@@ -1,38 +1,15 @@
 
-/*
- *
-  Copyright (c) Eicon Networks, 2002.
- *
-  This source file is supplied for the use with
-  Eicon Networks range of DIVA Server Adapters.
- *
-  Eicon File Revision :    2.1
- *
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
- *
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU General Public License for more details.
- *
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include "debuglib.h"
 
 #ifdef DIVA_NO_DEBUGLIB
 static DIVA_DI_PRINTF dprintf;
-#else /* DIVA_NO_DEBUGLIB */
+#else 
  
-_DbgHandle_ myDriverDebugHandle = { 0 /*!Registered*/, DBG_HANDLE_VERSION };
+_DbgHandle_ myDriverDebugHandle = { 0 , DBG_HANDLE_VERSION };
 DIVA_DI_PRINTF dprintf = no_printf;
-/*****************************************************************************/
+
 #define DBG_FUNC(name) \
 void  \
 myDbgPrint_##name (char *format, ...) \
@@ -74,18 +51,14 @@ DBG_FUNC(PRV0)
 DBG_FUNC(PRV1)
 DBG_FUNC(PRV2)
 DBG_FUNC(PRV3)
-/*****************************************************************************/
+
 int
 DbgRegister (char *drvName, char *drvTag, unsigned long dbgMask)
 {
  int len;
-/*
- * deregister (if already registered) and zero out myDriverDebugHandle
- */
+
  DbgDeregister () ;
-/*
- * initialize the debug handle
- */
+
  myDriverDebugHandle.Version = DBG_HANDLE_VERSION ;
  myDriverDebugHandle.id  = -1 ;
  myDriverDebugHandle.dbgMask = dbgMask | (DL_EVL | DL_FTL | DL_LOG) ;
@@ -97,22 +70,18 @@ DbgRegister (char *drvName, char *drvTag, unsigned long dbgMask)
  memcpy (myDriverDebugHandle.drvTag, drvTag,
          (len < sizeof(myDriverDebugHandle.drvTag)) ?
     len : sizeof(myDriverDebugHandle.drvTag) - 1) ;
-/*
- * Try to register debugging via old (and only) interface
- */
+
  dprintf("\000\377", &myDriverDebugHandle) ;
  if ( myDriverDebugHandle.dbg_prt )
  {
   return (1) ;
  }
-/*
- * Check if we registered with an old maint driver (see debuglib.h)
- */
+
  if ( myDriverDebugHandle.dbg_end != NULL
-   /* location of 'dbg_prt' in _OldDbgHandle_ struct */
+   
    && (myDriverDebugHandle.regTime.LowPart ||
        myDriverDebugHandle.regTime.HighPart  ) )
-   /* same location as in _OldDbgHandle_ struct */
+   
  {
   dprintf("%s: Cannot log to old maint driver !", drvName) ;
   myDriverDebugHandle.dbg_end =
@@ -121,13 +90,13 @@ DbgRegister (char *drvName, char *drvTag, unsigned long dbgMask)
  }
  return (0) ;
 }
-/*****************************************************************************/
+
 void
 DbgSetLevel (unsigned long dbgMask)
 {
  myDriverDebugHandle.dbgMask = dbgMask | (DL_EVL | DL_FTL | DL_LOG) ;
 }
-/*****************************************************************************/
+
 void
 DbgDeregister (void)
 {
@@ -152,5 +121,5 @@ void  xdi_dbg_xlog (char* x, ...) {
  }
  va_end(ap);
 }
-/*****************************************************************************/
-#endif /* DIVA_NO_DEBUGLIB */
+
+#endif 

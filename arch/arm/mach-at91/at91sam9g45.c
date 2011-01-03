@@ -1,14 +1,4 @@
-/*
- *  Chip-specific setup code for the AT91SAM9G45 family
- *
- *  Copyright (C) 2009 Atmel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/pm.h>
@@ -38,13 +28,9 @@ static struct map_desc at91sam9g45_io_desc[] __initdata = {
 	}
 };
 
-/* --------------------------------------------------------------------
- *  Clocks
- * -------------------------------------------------------------------- */
 
-/*
- * The peripheral clocks.
- */
+
+
 static struct clk pioA_clk = {
 	.name		= "pioA_clk",
 	.pmc_mask	= 1 << AT91SAM9G45_ID_PIOA,
@@ -176,7 +162,7 @@ static struct clk mmc1_clk = {
 	.type		= CLK_TYPE_PERIPHERAL,
 };
 
-/* One additional fake clock for ohci */
+
 static struct clk ohci_clk = {
 	.name		= "ohci_clk",
 	.pmc_mask	= 0,
@@ -211,14 +197,11 @@ static struct clk *periph_clocks[] __initdata = {
 	&isi_clk,
 	&udphs_clk,
 	&mmc1_clk,
-	// irq0
+	
 	&ohci_clk,
 };
 
-/*
- * The two programmable clocks.
- * You must configure pin multiplexing to bring these signals out.
- */
+
 static struct clk pck0 = {
 	.name		= "pck0",
 	.pmc_mask	= AT91_PMC_PCK0,
@@ -243,9 +226,7 @@ static void __init at91sam9g45_register_clocks(void)
 	clk_register(&pck1);
 }
 
-/* --------------------------------------------------------------------
- *  GPIO
- * -------------------------------------------------------------------- */
+
 
 static struct at91_gpio_bank at91sam9g45_gpio[] = {
 	{
@@ -282,69 +263,63 @@ static void at91sam9g45_poweroff(void)
 }
 
 
-/* --------------------------------------------------------------------
- *  AT91SAM9G45 processor initialization
- * -------------------------------------------------------------------- */
+
 
 void __init at91sam9g45_initialize(unsigned long main_clock)
 {
-	/* Map peripherals */
+	
 	iotable_init(at91sam9g45_io_desc, ARRAY_SIZE(at91sam9g45_io_desc));
 
 	at91_arch_reset = at91sam9g45_reset;
 	pm_power_off = at91sam9g45_poweroff;
 	at91_extern_irq = (1 << AT91SAM9G45_ID_IRQ0);
 
-	/* Init clock subsystem */
+	
 	at91_clock_init(main_clock);
 
-	/* Register the processor-specific clocks */
+	
 	at91sam9g45_register_clocks();
 
-	/* Register GPIO subsystem */
+	
 	at91_gpio_init(at91sam9g45_gpio, 5);
 }
 
-/* --------------------------------------------------------------------
- *  Interrupt initialization
- * -------------------------------------------------------------------- */
 
-/*
- * The default interrupt priority levels (0 = lowest, 7 = highest).
- */
+
+
 static unsigned int at91sam9g45_default_irq_priority[NR_AIC_IRQS] __initdata = {
-	7,	/* Advanced Interrupt Controller (FIQ) */
-	7,	/* System Peripherals */
-	1,	/* Parallel IO Controller A */
-	1,	/* Parallel IO Controller B */
-	1,	/* Parallel IO Controller C */
-	1,	/* Parallel IO Controller D and E */
+	7,	
+	7,	
+	1,	
+	1,	
+	1,	
+	1,	
 	0,
-	5,	/* USART 0 */
-	5,	/* USART 1 */
-	5,	/* USART 2 */
-	5,	/* USART 3 */
-	0,	/* Multimedia Card Interface 0 */
-	6,	/* Two-Wire Interface 0 */
-	6,	/* Two-Wire Interface 1 */
-	5,	/* Serial Peripheral Interface 0 */
-	5,	/* Serial Peripheral Interface 1 */
-	4,	/* Serial Synchronous Controller 0 */
-	4,	/* Serial Synchronous Controller 1 */
-	0,	/* Timer Counter 0, 1, 2, 3, 4 and 5 */
-	0,	/* Pulse Width Modulation Controller */
-	0,	/* Touch Screen Controller */
-	0,	/* DMA Controller */
-	2,	/* USB Host High Speed port */
-	3,	/* LDC Controller */
-	5,	/* AC97 Controller */
-	3,	/* Ethernet */
-	0,	/* Image Sensor Interface */
-	2,	/* USB Device High speed port */
+	5,	
+	5,	
+	5,	
+	5,	
+	0,	
+	6,	
+	6,	
+	5,	
+	5,	
+	4,	
+	4,	
+	0,	
+	0,	
+	0,	
+	0,	
+	2,	
+	3,	
+	5,	
+	3,	
+	0,	
+	2,	
 	0,
-	0,	/* Multimedia Card Interface 1 */
+	0,	
 	0,
-	0,	/* Advanced Interrupt Controller (IRQ0) */
+	0,	
 };
 
 void __init at91sam9g45_init_interrupts(unsigned int priority[NR_AIC_IRQS])
@@ -352,9 +327,9 @@ void __init at91sam9g45_init_interrupts(unsigned int priority[NR_AIC_IRQS])
 	if (!priority)
 		priority = at91sam9g45_default_irq_priority;
 
-	/* Initialize the AIC interrupt controller */
+	
 	at91_aic_init(priority);
 
-	/* Enable GPIO interrupts */
+	
 	at91_gpio_irq_setup();
 }

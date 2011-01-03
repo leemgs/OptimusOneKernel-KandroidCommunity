@@ -1,27 +1,4 @@
-/*
- *  acpi_system.c - ACPI System Driver ($Revision: 63 $)
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
@@ -42,9 +19,7 @@ ACPI_MODULE_NAME("system");
 u32 acpi_irq_handled;
 u32 acpi_irq_not_handled;
 
-/*
- * Make ACPICA version work as module param
- */
+
 static int param_get_acpica_version(char *buffer, struct kernel_param *kp)
 {
 	int result;
@@ -56,9 +31,7 @@ static int param_get_acpica_version(char *buffer, struct kernel_param *kp)
 
 module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/sys)
-   -------------------------------------------------------------------------- */
+
 static LIST_HEAD(acpi_table_attr_list);
 static struct kobject *tables_kobj;
 static struct kobject *dynamic_tables_kobj;
@@ -150,11 +123,7 @@ acpi_sysfs_table_handler(u32 event, void *table, void *context)
 					&acpi_table_attr_list);
 		break;
 	case ACPI_TABLE_EVENT_UNLOAD:
-		/*
-		 * we do not need to do anything right now
-		 * because the table is not deleted from the
-		 * global table list when unloading it.
-		 */
+		
 		break;
 	default:
 		return AE_BAD_PARAMETER;
@@ -210,15 +179,12 @@ err:
 	return -ENOMEM;
 }
 
-/*
- * Detailed ACPI IRQ counters in /sys/firmware/acpi/interrupts/
- * See Documentation/ABI/testing/sysfs-firmware-acpi
- */
+
 
 #define COUNT_GPE 0
-#define COUNT_SCI 1	/* acpi_irq_handled */
-#define COUNT_SCI_NOT 2	/* acpi_irq_not_handled */
-#define COUNT_ERROR 3	/* other */
+#define COUNT_SCI 1	
+#define COUNT_SCI_NOT 2	
+#define COUNT_ERROR 3	
 #define NUM_COUNTERS_EXTRA 4
 
 struct event_counter {
@@ -328,7 +294,7 @@ static ssize_t counter_show(struct kobject *kobj,
 
 	size = sprintf(buf, "%8d", all_counters[index].count);
 
-	/* "gpe_all" or "sci" */
+	
 	if (index >= num_gpes + ACPI_NUM_FIXED_EVENTS)
 		goto end;
 
@@ -350,11 +316,7 @@ end:
 	return result ? result : size;
 }
 
-/*
- * counter_set() sets the specified counter.
- * setting the total "sci" file to any value clears all counters.
- * enable/disable/clear a gpe/fixed event in user space.
- */
+
 static ssize_t counter_set(struct kobject *kobj,
 	struct kobj_attribute *attr, const char *buf, size_t size)
 {
@@ -373,7 +335,7 @@ static ssize_t counter_set(struct kobject *kobj,
 		goto end;
 	}
 
-	/* show the event status for both GPEs and Fixed Events */
+	
 	result = get_status(index, &status, &handle);
 	if (result)
 		goto end;
@@ -501,9 +463,7 @@ static void __exit interrupt_stats_exit(void)
 	return;
 }
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc)
-   -------------------------------------------------------------------------- */
+
 #ifdef CONFIG_ACPI_PROCFS
 #define ACPI_SYSTEM_FILE_INFO		"info"
 #define ACPI_SYSTEM_FILE_EVENT		"event"
@@ -585,19 +545,19 @@ static int acpi_system_procfs_init(void)
 	struct proc_dir_entry *entry;
 	int error = 0;
 
-	/* 'info' [R] */
+	
 	entry = proc_create(ACPI_SYSTEM_FILE_INFO, S_IRUGO, acpi_root_dir,
 			    &acpi_system_info_ops);
 	if (!entry)
 		goto Error;
 
-	/* 'dsdt' [R] */
+	
 	entry = proc_create(ACPI_SYSTEM_FILE_DSDT, S_IRUSR, acpi_root_dir,
 			    &acpi_system_dsdt_ops);
 	if (!entry)
 		goto Error;
 
-	/* 'fadt' [R] */
+	
 	entry = proc_create(ACPI_SYSTEM_FILE_FADT, S_IRUSR, acpi_root_dir,
 			    &acpi_system_fadt_ops);
 	if (!entry)

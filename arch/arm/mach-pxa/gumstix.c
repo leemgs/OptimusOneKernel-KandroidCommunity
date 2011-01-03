@@ -1,19 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/gumstix.c
- *
- *  Support for the Gumstix motherboards.
- *
- *  Original Author:	Craig Hughes
- *  Created:	Feb 14, 2008
- *  Copyright:	Craig Hughes
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  Implemented based on lubbock.c by Nicolas Pitre and code from Craig
- *  Hughes
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -57,7 +42,7 @@ static struct mtd_partition gumstix_partitions[] = {
 		.name =		"Bootloader",
 		.size =		0x00040000,
 		.offset =	0,
-		.mask_flags =	MTD_WRITEABLE  /* force read-only */
+		.mask_flags =	MTD_WRITEABLE  
 	} , {
 		.name =		"rootfs",
 		.size =		MTDPART_SIZ_FULL,
@@ -123,9 +108,7 @@ static void gumstix_udc_init(void)
 #endif
 
 #ifdef CONFIG_BT
-/* Normally, the bootloader would have enabled this 32kHz clock but many
-** boards still have u-boot 1.1.4 so we check if it has been turned on and
-** if not, we turn it on with a warning message. */
+
 static void gumstix_setup_bt_clock(void)
 {
 	int timeout = 500;
@@ -176,12 +159,12 @@ static void gumstix_bluetooth_init(void)
 
 static unsigned long gumstix_pin_config[] __initdata = {
 	GPIO12_32KHz,
-	/* BTUART */
+	
 	GPIO42_HWUART_RXD,
 	GPIO43_HWUART_TXD,
 	GPIO44_HWUART_CTS,
 	GPIO45_HWUART_RTS,
-	/* MMC */
+	
 	GPIO6_MMC_CLK,
 	GPIO53_MMC_CLK,
 	GPIO8_MMC_CS0,
@@ -199,10 +182,7 @@ int __attribute__((weak)) am300_init(void)
 
 static void __init carrier_board_init(void)
 {
-	/*
-	 * put carrier/expansion board init here if
-	 * they cannot be detected programatically
-	 */
+	
 	am200_init();
 	am300_init();
 }
@@ -220,7 +200,7 @@ static void __init gumstix_init(void)
 
 MACHINE_START(GUMSTIX, "Gumstix")
 	.phys_io	= 0x40000000,
-	.boot_params	= 0xa0000100, /* match u-boot bi_boot_params */
+	.boot_params	= 0xa0000100, 
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.map_io		= pxa_map_io,
 	.init_irq	= pxa25x_init_irq,

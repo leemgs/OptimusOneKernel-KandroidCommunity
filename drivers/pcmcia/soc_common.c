@@ -1,34 +1,4 @@
-/*======================================================================
 
-    Common support code for the PCMCIA control functionality of
-    integrated SOCs like the SA-11x0 and PXA2xx microprocessors.
-
-    The contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is John G. Dorsey
-    <john+@cs.cmu.edu>.  Portions created by John G. Dorsey are
-    Copyright (C) 1999 John G. Dorsey.  All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU Public License version 2 (the "GPL"), in which
-    case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-
-======================================================================*/
 
 
 #include <linux/module.h>
@@ -108,10 +78,7 @@ static unsigned int soc_common_pcmcia_skt_state(struct soc_pcmcia_socket *skt)
 	stat |= state.vs_3v  ? SS_3VCARD : 0;
 	stat |= state.vs_Xv  ? SS_XVCARD : 0;
 
-	/* The power status of individual sockets is not available
-	 * explicitly from the hardware, so we just remember the state
-	 * and regurgitate it upon request:
-	 */
+	
 	stat |= skt->cs_state.Vcc ? SS_POWERON : 0;
 
 	if (skt->cs_state.flags & SS_IOCARD)
@@ -125,12 +92,7 @@ static unsigned int soc_common_pcmcia_skt_state(struct soc_pcmcia_socket *skt)
 	return stat;
 }
 
-/*
- * soc_common_pcmcia_config_skt
- * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- *
- * Convert PCMCIA socket state to our socket configure structure.
- */
+
 static int
 soc_common_pcmcia_config_skt(struct soc_pcmcia_socket *skt, socket_state_t *state)
 {
@@ -138,10 +100,7 @@ soc_common_pcmcia_config_skt(struct soc_pcmcia_socket *skt, socket_state_t *stat
 
 	ret = skt->ops->configure_socket(skt, state);
 	if (ret == 0) {
-		/*
-		 * This really needs a better solution.  The IRQ
-		 * may or may not be claimed by the driver.
-		 */
+		
 		if (skt->irq_state != 1 && state->io_irq) {
 			skt->irq_state = 1;
 			set_irq_type(skt->irq, IRQ_TYPE_EDGE_FALLING);
@@ -160,15 +119,7 @@ soc_common_pcmcia_config_skt(struct soc_pcmcia_socket *skt, socket_state_t *stat
 	return ret;
 }
 
-/* soc_common_pcmcia_sock_init()
- * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- *
- * (Re-)Initialise the socket, turning on status interrupts
- * and PCMCIA bus.  This must wait for power to stabilise
- * so that the card status signals report correctly.
- *
- * Returns: 0
- */
+
 static int soc_common_pcmcia_sock_init(struct pcmcia_socket *sock)
 {
 	struct soc_pcmcia_socket *skt = to_soc_pcmcia_socket(sock);
@@ -180,15 +131,7 @@ static int soc_common_pcmcia_sock_init(struct pcmcia_socket *sock)
 }
 
 
-/*
- * soc_common_pcmcia_suspend()
- * ^^^^^^^^^^^^^^^^^^^^^^^^^^^
- *
- * Remove power on the socket, disable IRQs from the card.
- * Turn off status interrupts, and disable the PCMCIA bus.
- *
- * Returns: 0
- */
+
 static int soc_common_pcmcia_suspend(struct pcmcia_socket *sock)
 {
 	struct soc_pcmcia_socket *skt = to_soc_pcmcia_socket(sock);
@@ -232,7 +175,7 @@ static void soc_common_check_status(struct soc_pcmcia_socket *skt)
 	} while (events);
 }
 
-/* Let's poll for events in addition to IRQs since IRQ only is unreliable... */
+
 static void soc_common_pcmcia_poll_event(unsigned long dummy)
 {
 	struct soc_pcmcia_socket *skt = (struct soc_pcmcia_socket *)dummy;
@@ -244,14 +187,7 @@ static void soc_common_pcmcia_poll_event(unsigned long dummy)
 }
 
 
-/*
- * Service routine for socket driver interrupts (requested by the
- * low-level PCMCIA init() operation via soc_common_pcmcia_thread()).
- * The actual interrupt-servicing work is performed by
- * soc_common_pcmcia_thread(), largely because the Card Services event-
- * handling code performs scheduling operations which cannot be
- * executed from within an interrupt context.
- */
+
 static irqreturn_t soc_common_pcmcia_interrupt(int irq, void *dev)
 {
 	struct soc_pcmcia_socket *skt = dev;
@@ -264,21 +200,7 @@ static irqreturn_t soc_common_pcmcia_interrupt(int irq, void *dev)
 }
 
 
-/*
- *  Implements the get_status() operation for the in-kernel PCMCIA
- * service (formerly SS_GetStatus in Card Services). Essentially just
- * fills in bits in `status' according to internal driver state or
- * the value of the voltage detect chipselect register.
- *
- * As a debugging note, during card startup, the PCMCIA core issues
- * three set_socket() commands in a row the first with RESET deasserted,
- * the second with RESET asserted, and the last with RESET deasserted
- * again. Following the third set_socket(), a get_status() command will
- * be issued. The kernel is looking for the SS_READY flag (see
- * setup_socket(), reset_socket(), and unreset_socket() in cs.c).
- *
- * Returns: 0
- */
+
 static int
 soc_common_pcmcia_get_status(struct pcmcia_socket *sock, unsigned int *status)
 {
@@ -291,13 +213,7 @@ soc_common_pcmcia_get_status(struct pcmcia_socket *sock, unsigned int *status)
 }
 
 
-/*
- * Implements the set_socket() operation for the in-kernel PCMCIA
- * service (formerly SS_SetSocket in Card Services). We more or
- * less punt all of this work and let the kernel handle the details
- * of power configuration, reset, &c. We also record the value of
- * `state' in order to regurgitate it to the PCMCIA core later.
- */
+
 static int
 soc_common_pcmcia_set_socket(struct pcmcia_socket *sock, socket_state_t *state)
 {
@@ -322,14 +238,7 @@ soc_common_pcmcia_set_socket(struct pcmcia_socket *sock, socket_state_t *state)
 }
 
 
-/*
- * Implements the set_io_map() operation for the in-kernel PCMCIA
- * service (formerly SS_SetIOMap in Card Services). We configure
- * the map speed as requested, but override the address ranges
- * supplied by Card Services.
- *
- * Returns: 0 on success, -1 on error
- */
+
 static int
 soc_common_pcmcia_set_io_map(struct pcmcia_socket *sock, struct pccard_io_map *map)
 {
@@ -376,14 +285,7 @@ soc_common_pcmcia_set_io_map(struct pcmcia_socket *sock, struct pccard_io_map *m
 }
 
 
-/*
- * Implements the set_mem_map() operation for the in-kernel PCMCIA
- * service (formerly SS_SetMemMap in Card Services). We configure
- * the map speed as requested, but override the address ranges
- * supplied by Card Services.
- *
- * Returns: 0 on success, -ERRNO on error
- */
+
 static int
 soc_common_pcmcia_set_mem_map(struct pcmcia_socket *sock, struct pccard_mem_map *map)
 {
@@ -470,11 +372,7 @@ dump_bits(char **p, const char *prefix, unsigned int val, struct bittbl *bits, i
 	*p = b;
 }
 
-/*
- * Implements the /sys/class/pcmcia_socket/??/status file.
- *
- * Returns: the number of characters added to the buffer
- */
+
 static ssize_t show_status(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct soc_pcmcia_socket *skt =
@@ -628,9 +526,7 @@ int soc_common_drv_pcmcia_probe(struct device *dev, struct pcmcia_low_level *ops
 
 	mutex_lock(&soc_pcmcia_sockets_lock);
 
-	/*
-	 * Initialise the per-socket structure.
-	 */
+	
 	for (i = 0; i < sinfo->nskt; i++) {
 		skt = &sinfo->skt[i];
 
@@ -673,11 +569,7 @@ int soc_common_drv_pcmcia_probe(struct device *dev, struct pcmcia_low_level *ops
 
 		list_add(&skt->node, &soc_pcmcia_sockets);
 
-		/*
-		 * We initialize default socket timing here, because
-		 * we are not guaranteed to see a SetIOMap operation at
-		 * runtime.
-		 */
+		
 		ops->set_timing(skt);
 
 		ret = ops->hw_init(skt);

@@ -1,34 +1,10 @@
-/*
- *
- *
- *  Copyright (C) 2007 Mike Isely <isely@pobox.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
 
-/*
 
-This source file should encompass ALL per-device type information for the
-driver.  To define a new device, add elements to the pvr2_device_table and
-pvr2_device_desc structures.
 
-*/
 
 #include "pvrusb2-devattr.h"
 #include <linux/usb.h>
-/* This is needed in order to pull in tuner type ids... */
+
 #include <linux/i2c.h>
 #include <media/tuner.h>
 #ifdef CONFIG_VIDEO_PVRUSB2_DVB
@@ -43,8 +19,8 @@ pvr2_device_desc structures.
 #endif
 
 
-/*------------------------------------------------------------------------*/
-/* Hauppauge PVR-USB2 Model 29xxx */
+
+
 
 static const struct pvr2_device_client_desc pvr2_cli_29xxx[] = {
 	{ .module_id = PVR2_CLIENT_ID_SAA7115 },
@@ -76,8 +52,8 @@ static const struct pvr2_device_desc pvr2_device_29xxx = {
 
 
 
-/*------------------------------------------------------------------------*/
-/* Hauppauge PVR-USB2 Model 24xxx */
+
+
 
 static const struct pvr2_device_client_desc pvr2_cli_24xxx[] = {
 	{ .module_id = PVR2_CLIENT_ID_CX25840 },
@@ -111,8 +87,8 @@ static const struct pvr2_device_desc pvr2_device_24xxx = {
 
 
 
-/*------------------------------------------------------------------------*/
-/* GOTVIEW USB2.0 DVD2 */
+
+
 
 static const struct pvr2_device_client_desc pvr2_cli_gotview_2[] = {
 	{ .module_id = PVR2_CLIENT_ID_CX25840 },
@@ -135,10 +111,10 @@ static const struct pvr2_device_desc pvr2_device_gotview_2 = {
 
 
 
-/*------------------------------------------------------------------------*/
-/* GOTVIEW USB2.0 DVD Deluxe */
 
-/* (same module list as gotview_2) */
+
+
+
 
 static const struct pvr2_device_desc pvr2_device_gotview_2d = {
 		.description = "Gotview USB 2.0 DVD Deluxe",
@@ -155,8 +131,8 @@ static const struct pvr2_device_desc pvr2_device_gotview_2d = {
 
 
 
-/*------------------------------------------------------------------------*/
-/* OnAir Creator */
+
+
 
 #ifdef CONFIG_VIDEO_PVRUSB2_DVB
 static struct lgdt330x_config pvr2_lgdt3303_config = {
@@ -216,8 +192,8 @@ static const struct pvr2_device_desc pvr2_device_onair_creator = {
 
 
 
-/*------------------------------------------------------------------------*/
-/* OnAir USB 2.0 */
+
+
 
 #ifdef CONFIG_VIDEO_PVRUSB2_DVB
 static struct lgdt330x_config pvr2_lgdt3302_config = {
@@ -276,8 +252,8 @@ static const struct pvr2_device_desc pvr2_device_onair_usb2 = {
 
 
 
-/*------------------------------------------------------------------------*/
-/* Hauppauge PVR-USB2 Model 73xxx */
+
+
 
 #ifdef CONFIG_VIDEO_PVRUSB2_DVB
 static struct tda10048_config hauppauge_tda10048_config = {
@@ -362,8 +338,8 @@ static const struct pvr2_device_desc pvr2_device_73xxx = {
 
 
 
-/*------------------------------------------------------------------------*/
-/* Hauppauge PVR-USB2 Model 75xxx */
+
+
 
 #ifdef CONFIG_VIDEO_PVRUSB2_DVB
 static struct s5h1409_config pvr2_s5h1409_config = {
@@ -490,12 +466,12 @@ static const struct pvr2_device_desc pvr2_device_751xx = {
 
 
 
-/*------------------------------------------------------------------------*/
+
 
 struct usb_device_id pvr2_device_table[] = {
 	{ USB_DEVICE(0x2040, 0x2900),
 	  .driver_info = (kernel_ulong_t)&pvr2_device_29xxx},
-	{ USB_DEVICE(0x2040, 0x2950), /* Logically identical to 2900 */
+	{ USB_DEVICE(0x2040, 0x2950), 
 	  .driver_info = (kernel_ulong_t)&pvr2_device_29xxx},
 	{ USB_DEVICE(0x2040, 0x2400),
 	  .driver_info = (kernel_ulong_t)&pvr2_device_24xxx},
@@ -519,12 +495,4 @@ struct usb_device_id pvr2_device_table[] = {
 MODULE_DEVICE_TABLE(usb, pvr2_device_table);
 
 
-/*
-  Stuff for Emacs to see, in order to encourage consistent editing style:
-  *** Local Variables: ***
-  *** mode: c ***
-  *** fill-column: 75 ***
-  *** tab-width: 8 ***
-  *** c-basic-offset: 8 ***
-  *** End: ***
-  */
+

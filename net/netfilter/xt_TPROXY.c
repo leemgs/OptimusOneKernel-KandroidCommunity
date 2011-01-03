@@ -1,14 +1,4 @@
-/*
- * Transparent proxy support for Linux/iptables
- *
- * Copyright (c) 2006-2007 BalaBit IT Ltd.
- * Author: Balazs Scheidler, Krisztian Kovacs
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -41,10 +31,9 @@ tproxy_tg(struct sk_buff *skb, const struct xt_target_param *par)
 				   hp->source, tgi->lport ? tgi->lport : hp->dest,
 				   par->in, true);
 
-	/* NOTE: assign_sock consumes our sk reference */
+	
 	if (sk && nf_tproxy_assign_sock(skb, sk)) {
-		/* This should be in a separate target, but we don't do multiple
-		   targets on the same rule yet */
+		
 		skb->mark = (skb->mark & ~tgi->mark_mask) ^ tgi->mark_value;
 
 		pr_debug("redirecting: proto %u %08x:%u -> %08x:%u, mark: %x\n",

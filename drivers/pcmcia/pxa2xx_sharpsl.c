@@ -1,15 +1,4 @@
-/*
- * Sharp SL-C7xx Series PCMCIA routines
- *
- * Copyright (c) 2004-2005 Richard Purdie
- *
- * Based on Sharp's 2.4 kernel patches and pxa2xx_mainstone.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -34,7 +23,7 @@ static void sharpsl_pcmcia_init_reset(struct soc_pcmcia_socket *skt)
 
 	reset_scoop(scoopdev->dev);
 
-	/* Shared power controls need to be handled carefully */
+	
 	if (platform_scoop_config->power_ctrl)
 		platform_scoop_config->power_ctrl(scoopdev->dev, 0x0000, skt->nr);
 	else
@@ -51,7 +40,7 @@ static int sharpsl_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	if (platform_scoop_config->pcmcia_init)
 		platform_scoop_config->pcmcia_init();
 
-	/* Register interrupts */
+	
 	if (SCOOP_DEV[skt->nr].cd_irq >= 0) {
 		struct pcmcia_irqs cd_irq;
 
@@ -97,22 +86,22 @@ static void sharpsl_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 	write_scoop_reg(scoop, SCOOP_IRM, 0x0000);
 	csr = read_scoop_reg(scoop, SCOOP_CSR);
 	if (csr & 0x0004) {
-		/* card eject */
+		
 		write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
 		SCOOP_DEV[skt->nr].keep_vs = NO_KEEP_VS;
 	}
 	else if (!(SCOOP_DEV[skt->nr].keep_vs & NO_KEEP_VS)) {
-		/* keep vs1,vs2 */
+		
 		write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
 		csr |= SCOOP_DEV[skt->nr].keep_vs;
 	}
 	else if (cpr & 0x0003) {
-		/* power on */
+		
 		write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
 		SCOOP_DEV[skt->nr].keep_vs = (csr & 0x00C0);
 	}
 	else {
-		/* card detect */
+		
 	        if ((machine_is_spitz() || machine_is_borzoi()) && skt->nr == 1) {
 	                write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
 	        } else {
@@ -211,7 +200,7 @@ static void sharpsl_pcmcia_socket_init(struct soc_pcmcia_socket *skt)
 {
 	sharpsl_pcmcia_init_reset(skt);
 
-	/* Enable interrupt */
+	
 	write_scoop_reg(SCOOP_DEV[skt->nr].dev, SCOOP_IMR, 0x00C0);
 	write_scoop_reg(SCOOP_DEV[skt->nr].dev, SCOOP_MCR, 0x0101);
 	SCOOP_DEV[skt->nr].keep_vs = NO_KEEP_VS;

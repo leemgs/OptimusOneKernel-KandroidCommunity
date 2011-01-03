@@ -1,26 +1,4 @@
-/*
- * Marvell 88SE64xx/88SE94xx pci init
- *
- * Copyright 2007 Red Hat, Inc.
- * Copyright 2008 Marvell. <kewei@marvell.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 of the
- * License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
-*/
+
 
 
 #include "mv_sas.h"
@@ -234,9 +212,7 @@ static int __devinit mvs_alloc(struct mvs_info *mvi, struct Scsi_Host *shost)
 		mvi->devices[i].dev_status = MVS_DEV_NORMAL;
 	}
 
-	/*
-	 * alloc and init our DMA areas
-	 */
+	
 	mvi->tx = dma_alloc_coherent(mvi->dev,
 				     sizeof(*mvi->tx) * MVS_CHIP_SLOT_SZ,
 				     &mvi->tx_dma, GFP_KERNEL);
@@ -284,7 +260,7 @@ static int __devinit mvs_alloc(struct mvs_info *mvi, struct Scsi_Host *shost)
 		memset(slot->buf, 0, MVS_SLOT_BUF_SZ);
 		++mvi->tags_num;
 	}
-	/* Initialize tags */
+	
 	mvs_tag_init(mvi);
 	return 0;
 err_out:
@@ -297,9 +273,7 @@ int mvs_ioremap(struct mvs_info *mvi, int bar, int bar_ex)
 	unsigned long res_start, res_len, res_flag, res_flag_ex = 0;
 	struct pci_dev *pdev = mvi->pdev;
 	if (bar_ex != -1) {
-		/*
-		 * ioremap main and peripheral registers
-		 */
+		
 		res_start = pci_resource_start(pdev, bar_ex);
 		res_len = pci_resource_len(pdev, bar_ex);
 		if (!res_start || !res_len)
@@ -384,7 +358,7 @@ err_out:
 	return NULL;
 }
 
-/* move to PCI layer or libata core? */
+
 static int pci_go_64(struct pci_dev *pdev)
 {
 	int rc;
@@ -658,7 +632,7 @@ static struct pci_device_id __devinitdata mvs_pci_table[] = {
 	{ PCI_VDEVICE(ARECA, PCI_DEVICE_ID_ARECA_1300), chip_1300 },
 	{ PCI_VDEVICE(ARECA, PCI_DEVICE_ID_ARECA_1320), chip_1320 },
 
-	{ }	/* terminate list */
+	{ }	
 };
 
 static struct pci_driver mvs_pci_driver = {
@@ -668,7 +642,7 @@ static struct pci_driver mvs_pci_driver = {
 	.remove		= __devexit_p(mvs_pci_remove),
 };
 
-/* task handler */
+
 struct task_struct *mvs_th;
 static int __init mvs_init(void)
 {

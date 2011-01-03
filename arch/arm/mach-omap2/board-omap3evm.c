@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-omap3evm.c
- *
- * Copyright (C) 2008 Texas Instruments
- *
- * Modified from mach-omap2/board-3430sdp.c
- *
- * Initial code: Syed Mohammed Khasim
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -99,15 +87,15 @@ static struct twl4030_hsmmc_info mmc[] = {
 		.gpio_cd	= -EINVAL,
 		.gpio_wp	= 63,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct gpio_led gpio_leds[] = {
 	{
 		.name			= "omap3evm::ledb",
-		/* normally not visible (board underside) */
+		
 		.default_trigger	= "default-on",
-		.gpio			= -EINVAL,	/* gets replaced */
+		.gpio			= -EINVAL,	
 		.active_low		= true,
 	},
 };
@@ -129,17 +117,14 @@ static struct platform_device leds_gpio = {
 static int omap3evm_twl_gpio_setup(struct device *dev,
 		unsigned gpio, unsigned ngpio)
 {
-	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+	
 	omap_cfg_reg(L8_34XX_GPIO63);
 	mmc[0].gpio_cd = gpio + 0;
 	twl4030_mmc_init(mmc);
 
-	/*
-	 * Most GPIOs are for USB OTG.  Some are mostly sent to
-	 * the P2 connector; notably LEDA for the LCD backlight.
-	 */
+	
 
-	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
+	
 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
 
 	platform_device_register(&leds_gpio);
@@ -198,7 +183,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
 	.irq_base	= TWL4030_IRQ_BASE,
 	.irq_end	= TWL4030_IRQ_END,
 
-	/* platform_data for children goes here */
+	
 	.keypad		= &omap3evm_kp_data,
 	.madc		= &omap3evm_madc_data,
 	.usb		= &omap3evm_usb_data,
@@ -263,7 +248,7 @@ struct ads7846_platform_data ads7846_config = {
 
 static struct omap2_mcspi_device_config ads7846_mcspi_config = {
 	.turbo_mode	= 0,
-	.single_channel	= 1,	/* 0: slave, 1: master */
+	.single_channel	= 1,	
 };
 
 struct spi_board_info omap3evm_spi_board_info[] = {
@@ -308,7 +293,7 @@ static void __init omap3_evm_init(void)
 
 	omap_serial_init();
 #ifdef CONFIG_NOP_USB_XCEIV
-	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
+	
 	usb_nop_xceiv_register();
 #endif
 	usb_musb_init();
@@ -322,7 +307,7 @@ static void __init omap3_evm_map_io(void)
 }
 
 MACHINE_START(OMAP3EVM, "OMAP3 EVM")
-	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

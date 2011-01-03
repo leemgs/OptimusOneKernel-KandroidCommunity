@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFA_IOCFC_H__
 #define __BFA_IOCFC_H__
@@ -39,9 +24,7 @@ struct bfa_iocfc_regs_s {
 	bfa_os_addr_t   rme_q_ctrl[BFI_IOC_MAX_CQS];
 };
 
-/**
- * MSIX vector handlers
- */
+
 #define BFA_MSIX_MAX_VECTORS	22
 typedef void (*bfa_msix_handler_t)(struct bfa_s *bfa, int vec);
 struct bfa_msix_s {
@@ -49,9 +32,7 @@ struct bfa_msix_s {
 	bfa_msix_handler_t handler[BFA_MSIX_MAX_VECTORS];
 };
 
-/**
- * Chip specific interfaces
- */
+
 struct bfa_hwif_s {
 	void (*hw_reginit)(struct bfa_s *bfa);
 	void (*hw_rspq_ack)(struct bfa_s *bfa, int rspq);
@@ -87,22 +68,22 @@ struct bfa_iocfc_s {
 	u8			*stats_kva;
 	u64		stats_pa;
 	struct bfa_fw_stats_s 	*fw_stats;
-	struct bfa_timer_s 	stats_timer;	/*  timer */
-	struct bfa_iocfc_stats_s *stats_ret;	/*  driver stats location */
-	bfa_status_t		stats_status;	/*  stats/statsclr status */
-	bfa_boolean_t   	stats_busy;	/*  outstanding stats */
-	bfa_cb_ioc_t		stats_cbfn;	/*  driver callback function */
-	void           		*stats_cbarg;	/*  user callback arg */
+	struct bfa_timer_s 	stats_timer;	
+	struct bfa_iocfc_stats_s *stats_ret;	
+	bfa_status_t		stats_status;	
+	bfa_boolean_t   	stats_busy;	
+	bfa_cb_ioc_t		stats_cbfn;	
+	void           		*stats_cbarg;	
 
 	struct bfa_dma_s   	req_cq_ba[BFI_IOC_MAX_CQS];
 	struct bfa_dma_s   	req_cq_shadow_ci[BFI_IOC_MAX_CQS];
 	struct bfa_dma_s   	rsp_cq_ba[BFI_IOC_MAX_CQS];
 	struct bfa_dma_s   	rsp_cq_shadow_pi[BFI_IOC_MAX_CQS];
-	struct bfa_iocfc_regs_s	bfa_regs;	/*  BFA device registers */
+	struct bfa_iocfc_regs_s	bfa_regs;	
 	struct bfa_hwif_s	hwif;
 
-	bfa_cb_iocfc_t		updateq_cbfn; /*  bios callback function */
-	void				*updateq_cbarg;	/*  bios callback arg */
+	bfa_cb_iocfc_t		updateq_cbfn; 
+	void				*updateq_cbarg;	
 };
 
 #define bfa_lpuid(__bfa)		bfa_ioc_portid(&(__bfa)->ioc)
@@ -117,9 +98,7 @@ struct bfa_iocfc_s {
 #define bfa_msix_getvecs(__bfa, __vecmap, __nvecs, __maxvec)	\
 	(__bfa)->iocfc.hwif.hw_msix_getvecs(__bfa, __vecmap, __nvecs, __maxvec)
 
-/*
- * FC specific IOC functions.
- */
+
 void bfa_iocfc_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *km_len,
 		u32 *dm_len);
 void bfa_iocfc_attach(struct bfa_s *bfa, void *bfad,
@@ -164,5 +143,5 @@ void bfa_com_attach(struct bfa_s *bfa, struct bfa_meminfo_s *mi,
 		bfa_boolean_t mincfg);
 void bfa_iocfc_get_bootwwns(struct bfa_s *bfa, u8 *nwwns, wwn_t **wwns);
 
-#endif /* __BFA_IOCFC_H__ */
+#endif 
 

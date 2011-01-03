@@ -1,44 +1,9 @@
-/*
- * arch/arm/mach-omap1/pm.h
- *
- * Header file for OMAP1 Power Management Routines
- *
- * Author: MontaVista Software, Inc.
- *	   support@mvista.com
- *
- * Copyright 2002 MontaVista Software Inc.
- *
- * Cleanup 2004 for Linux 2.6 by Dirk Behme <dirk.behme@de.bosch.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef __ARCH_ARM_MACH_OMAP1_PM_H
 #define __ARCH_ARM_MACH_OMAP1_PM_H
 
-/*
- * ----------------------------------------------------------------------------
- * Register and offset definitions to be used in PM assembler code
- * ----------------------------------------------------------------------------
- */
+
 #define CLKGEN_REG_ASM_BASE		OMAP1_IO_ADDRESS(0xfffece00)
 #define ARM_IDLECT1_ASM_OFFSET		0x04
 #define ARM_IDLECT2_ASM_OFFSET		0x08
@@ -47,11 +12,7 @@
 #define EMIFS_CONFIG_ASM_OFFSET		0x0c
 #define EMIFF_SDRAM_CONFIG_ASM_OFFSET	0x20
 
-/*
- * ----------------------------------------------------------------------------
- * Power management bitmasks
- * ----------------------------------------------------------------------------
- */
+
 #define IDLE_WAIT_CYCLES		0x00000fff
 #define PERIPHERAL_ENABLE		0x2
 
@@ -90,7 +51,7 @@
 #define OMAP1510_IDLE_LOOP_REQUEST	0x0c00
 #define OMAP1510_IDLE_CLOCK_DOMAINS	0x2
 
-/* Both big sleep and deep sleep use same values. Difference is in ULPD. */
+
 #define OMAP1610_IDLECT1_SLEEP_VAL	0x13c7
 #define OMAP1610_IDLECT2_SLEEP_VAL	0x09c7
 #define OMAP1610_IDLECT3_VAL		0x3f
@@ -141,7 +102,7 @@ extern void omap_serial_wake_trigger(int enable);
 #else
 #define omap_serial_wakeup_init()	{}
 #define omap_serial_wake_trigger(x)	{}
-#endif	/* CONFIG_OMAP_SERIAL_WAKE */
+#endif	
 
 #define ARM_SAVE(x) arm_sleep_save[ARM_SLEEP_SAVE_##x] = omap_readl(x)
 #define ARM_RESTORE(x) omap_writel((arm_sleep_save[ARM_SLEEP_SAVE_##x]), (x))
@@ -167,17 +128,11 @@ extern void omap_serial_wake_trigger(int enable);
 #define MPUI1610_RESTORE(x) omap_writel((mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x]), (x))
 #define MPUI1610_SHOW(x) mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x]
 
-/*
- * List of global OMAP registers to preserve.
- * More ones like CP and general purpose register values are preserved
- * with the stack pointer in sleep.S.
- */
+
 
 enum arm_save_state {
 	ARM_SLEEP_SAVE_START = 0,
-	/*
-	 * MPU control registers 32 bits
-	 */
+	
 	ARM_SLEEP_SAVE_ARM_CKCTL,
 	ARM_SLEEP_SAVE_ARM_IDLECT1,
 	ARM_SLEEP_SAVE_ARM_IDLECT2,
@@ -191,18 +146,14 @@ enum arm_save_state {
 
 enum dsp_save_state {
 	DSP_SLEEP_SAVE_START = 0,
-	/*
-	 * DSP registers 16 bits
-	 */
+	
 	DSP_SLEEP_SAVE_DSP_IDLECT2,
 	DSP_SLEEP_SAVE_SIZE
 };
 
 enum ulpd_save_state {
 	ULPD_SLEEP_SAVE_START = 0,
-	/*
-	 * ULPD registers 16 bits
-	 */
+	
 	ULPD_SLEEP_SAVE_ULPD_IT_STATUS,
 	ULPD_SLEEP_SAVE_ULPD_CLOCK_CTRL,
 	ULPD_SLEEP_SAVE_ULPD_SOFT_REQ,
@@ -214,9 +165,7 @@ enum ulpd_save_state {
 
 enum mpui1510_save_state {
 	MPUI1510_SLEEP_SAVE_START = 0,
-	/*
-	 * MPUI registers 32 bits
-	 */
+	
 	MPUI1510_SLEEP_SAVE_MPUI_CTRL,
 	MPUI1510_SLEEP_SAVE_MPUI_DSP_BOOT_CONFIG,
 	MPUI1510_SLEEP_SAVE_MPUI_DSP_API_CONFIG,
@@ -234,9 +183,7 @@ enum mpui1510_save_state {
 
 enum mpui730_save_state {
 	MPUI730_SLEEP_SAVE_START = 0,
-	/*
-	 * MPUI registers 32 bits
-	 */
+	
 	MPUI730_SLEEP_SAVE_MPUI_CTRL,
 	MPUI730_SLEEP_SAVE_MPUI_DSP_BOOT_CONFIG,
 	MPUI730_SLEEP_SAVE_MPUI_DSP_API_CONFIG,
@@ -255,9 +202,7 @@ enum mpui730_save_state {
 
 enum mpui1610_save_state {
 	MPUI1610_SLEEP_SAVE_START = 0,
-	/*
-	 * MPUI registers 32 bits
-	 */
+	
 	MPUI1610_SLEEP_SAVE_MPUI_CTRL,
 	MPUI1610_SLEEP_SAVE_MPUI_DSP_BOOT_CONFIG,
 	MPUI1610_SLEEP_SAVE_MPUI_DSP_API_CONFIG,
@@ -276,5 +221,5 @@ enum mpui1610_save_state {
 #endif
 };
 
-#endif /* ASSEMBLER */
-#endif /* __ASM_ARCH_OMAP_PM_H */
+#endif 
+#endif 

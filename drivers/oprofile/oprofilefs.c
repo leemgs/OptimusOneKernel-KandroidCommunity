@@ -1,14 +1,4 @@
-/**
- * @file oprofilefs.c
- *
- * @remark Copyright 2002 OProfile authors
- * @remark Read the file COPYING
- *
- * @author John Levon
- *
- * A simple filesystem for configuration and
- * access of oprofile.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -264,7 +254,7 @@ static int oprofilefs_fill_super(struct super_block *sb, void *data, int silent)
 
 	oprofile_create_files(sb, root_dentry);
 
-	// FIXME: verify kill_litter_super removes our dentries
+	
 	return 0;
 }
 

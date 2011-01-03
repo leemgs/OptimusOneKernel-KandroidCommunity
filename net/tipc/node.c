@@ -1,38 +1,4 @@
-/*
- * net/tipc/node.c: TIPC node management routines
- *
- * Copyright (c) 2000-2006, Ericsson AB
- * Copyright (c) 2005-2006, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "core.h"
 #include "config.h"
@@ -50,21 +16,13 @@ void node_print(struct print_buf *buf, struct tipc_node *n_ptr, char *str);
 static void node_lost_contact(struct tipc_node *n_ptr);
 static void node_established_contact(struct tipc_node *n_ptr);
 
-struct tipc_node *tipc_nodes = NULL;	/* sorted list of nodes within cluster */
+struct tipc_node *tipc_nodes = NULL;	
 
 static DEFINE_SPINLOCK(node_create_lock);
 
 u32 tipc_own_tag = 0;
 
-/**
- * tipc_node_create - create neighboring node
- *
- * Currently, this routine is called by neighbor discovery code, which holds
- * net_lock for reading only.  We must take node_create_lock to ensure a node
- * isn't created twice if two different bearers discover the node at the same
- * time.  (It would be preferable to switch to holding net_lock in write mode,
- * but this is a non-trivial change.)
- */
+
 
 struct tipc_node *tipc_node_create(u32 addr)
 {
@@ -107,7 +65,7 @@ struct tipc_node *tipc_node_create(u32 addr)
 	tipc_cltr_attach_node(c_ptr, n_ptr);
 	n_ptr->last_router = -1;
 
-	/* Insert node into ordered list */
+	
 	for (curr_node = &tipc_nodes; *curr_node;
 	     curr_node = &(*curr_node)->next) {
 		if (addr < (*curr_node)->addr) {
@@ -126,7 +84,7 @@ void tipc_node_delete(struct tipc_node *n_ptr)
 		return;
 
 #if 0
-	/* Not needed because links are already deleted via tipc_bearer_stop() */
+	
 
 	u32 l_num;
 
@@ -140,11 +98,7 @@ void tipc_node_delete(struct tipc_node *n_ptr)
 }
 
 
-/**
- * tipc_node_link_up - handle addition of link
- *
- * Link becomes active (alone or shared) or standby, depending on its priority.
- */
+
 
 void tipc_node_link_up(struct tipc_node *n_ptr, struct link *l_ptr)
 {
@@ -176,9 +130,7 @@ void tipc_node_link_up(struct tipc_node *n_ptr, struct link *l_ptr)
 	active[0] = active[1] = l_ptr;
 }
 
-/**
- * node_select_active_links - select active link
- */
+
 
 static void node_select_active_links(struct tipc_node *n_ptr)
 {
@@ -204,9 +156,7 @@ static void node_select_active_links(struct tipc_node *n_ptr)
 	}
 }
 
-/**
- * tipc_node_link_down - handle loss of link
- */
+
 
 void tipc_node_link_down(struct tipc_node *n_ptr, struct link *l_ptr)
 {
@@ -292,51 +242,7 @@ void tipc_node_detach_link(struct tipc_node *n_ptr, struct link *l_ptr)
 	n_ptr->link_cnt--;
 }
 
-/*
- * Routing table management - five cases to handle:
- *
- * 1: A link towards a zone/cluster external node comes up.
- *    => Send a multicast message updating routing tables of all
- *    system nodes within own cluster that the new destination
- *    can be reached via this node.
- *    (node.establishedContact()=>cluster.multicastNewRoute())
- *
- * 2: A link towards a slave node comes up.
- *    => Send a multicast message updating routing tables of all
- *    system nodes within own cluster that the new destination
- *    can be reached via this node.
- *    (node.establishedContact()=>cluster.multicastNewRoute())
- *    => Send a  message to the slave node about existence
- *    of all system nodes within cluster:
- *    (node.establishedContact()=>cluster.sendLocalRoutes())
- *
- * 3: A new cluster local system node becomes available.
- *    => Send message(s) to this particular node containing
- *    information about all cluster external and slave
- *     nodes which can be reached via this node.
- *    (node.establishedContact()==>network.sendExternalRoutes())
- *    (node.establishedContact()==>network.sendSlaveRoutes())
- *    => Send messages to all directly connected slave nodes
- *    containing information about the existence of the new node
- *    (node.establishedContact()=>cluster.multicastNewRoute())
- *
- * 4: The link towards a zone/cluster external node or slave
- *    node goes down.
- *    => Send a multcast message updating routing tables of all
- *    nodes within cluster that the new destination can not any
- *    longer be reached via this node.
- *    (node.lostAllLinks()=>cluster.bcastLostRoute())
- *
- * 5: A cluster local system node becomes unavailable.
- *    => Remove all references to this node from the local
- *    routing tables. Note: This is a completely node
- *    local operation.
- *    (node.lostAllLinks()=>network.removeAsRouter())
- *    => Send messages to all directly connected slave nodes
- *    containing information about loss of the node
- *    (node.establishedContact()=>cluster.multicastLostRoute())
- *
- */
+
 
 static void node_established_contact(struct tipc_node *n_ptr)
 {
@@ -347,13 +253,13 @@ static void node_established_contact(struct tipc_node *n_ptr)
 		tipc_k_signal((Handler)tipc_named_node_up, n_ptr->addr);
 	}
 
-	/* Syncronize broadcast acks */
+	
 	n_ptr->bclink.acked = tipc_bclink_get_last_sent();
 
 	if (is_slave(tipc_own_addr))
 		return;
 	if (!in_own_cluster(n_ptr->addr)) {
-		/* Usage case 1 (see above) */
+		
 		c_ptr = tipc_cltr_find(tipc_own_addr);
 		if (!c_ptr)
 			c_ptr = tipc_cltr_create(tipc_own_addr);
@@ -365,7 +271,7 @@ static void node_established_contact(struct tipc_node *n_ptr)
 
 	c_ptr = n_ptr->owner;
 	if (is_slave(n_ptr->addr)) {
-		/* Usage case 2 (see above) */
+		
 		tipc_cltr_bcast_new_route(c_ptr, n_ptr->addr, 1, tipc_max_nodes);
 		tipc_cltr_send_local_routes(c_ptr, n_ptr->addr);
 		return;
@@ -377,7 +283,7 @@ static void node_established_contact(struct tipc_node *n_ptr)
 			tipc_own_tag++;
 	}
 
-	/* Case 3 (see above) */
+	
 	tipc_net_send_external_routes(n_ptr->addr);
 	tipc_cltr_send_slave_routes(c_ptr, n_ptr->addr);
 	tipc_cltr_bcast_new_route(c_ptr, n_ptr->addr, LOWEST_SLAVE,
@@ -391,7 +297,7 @@ static void node_lost_contact(struct tipc_node *n_ptr)
 	char addr_string[16];
 	u32 i;
 
-	/* Clean up broadcast reception remains */
+	
 	n_ptr->bclink.gap_after = n_ptr->bclink.gap_to = 0;
 	while (n_ptr->bclink.deferred_head) {
 		struct sk_buff* buf = n_ptr->bclink.deferred_head;
@@ -406,17 +312,17 @@ static void node_lost_contact(struct tipc_node *n_ptr)
 		tipc_bclink_acknowledge(n_ptr, mod(n_ptr->bclink.acked + 10000));
 	}
 
-	/* Update routing tables */
+	
 	if (is_slave(tipc_own_addr)) {
 		tipc_net_remove_as_router(n_ptr->addr);
 	} else {
 		if (!in_own_cluster(n_ptr->addr)) {
-			/* Case 4 (see above) */
+			
 			c_ptr = tipc_cltr_find(tipc_own_addr);
 			tipc_cltr_bcast_lost_route(c_ptr, n_ptr->addr, 1,
 						   tipc_max_nodes);
 		} else {
-			/* Case 5 (see above) */
+			
 			c_ptr = tipc_cltr_find(n_ptr->addr);
 			if (is_slave(n_ptr->addr)) {
 				tipc_cltr_bcast_lost_route(c_ptr, n_ptr->addr, 1,
@@ -441,7 +347,7 @@ static void node_lost_contact(struct tipc_node *n_ptr)
 	info("Lost contact with %s\n",
 	     addr_string_fill(addr_string, n_ptr->addr));
 
-	/* Abort link changeover */
+	
 	for (i = 0; i < MAX_BEARERS; i++) {
 		struct link *l_ptr = n_ptr->links[i];
 		if (!l_ptr)
@@ -451,7 +357,7 @@ static void node_lost_contact(struct tipc_node *n_ptr)
 		tipc_link_reset_fragments(l_ptr);
 	}
 
-	/* Notify subscribers */
+	
 	list_for_each_entry_safe(ns, tns, &n_ptr->nsub, nodesub_list) {
 		ns->node = NULL;
 		list_del_init(&ns->nodesub_list);
@@ -460,11 +366,7 @@ static void node_lost_contact(struct tipc_node *n_ptr)
 	}
 }
 
-/**
- * tipc_node_select_next_hop - find the next-hop node for a message
- *
- * Called by when cluster local lookup has failed.
- */
+
 
 struct tipc_node *tipc_node_select_next_hop(u32 addr, u32 selector)
 {
@@ -474,32 +376,31 @@ struct tipc_node *tipc_node_select_next_hop(u32 addr, u32 selector)
 	if (!tipc_addr_domain_valid(addr))
 		return NULL;
 
-	/* Look for direct link to destination processsor */
+	
 	n_ptr = tipc_node_find(addr);
 	if (n_ptr && tipc_node_has_active_links(n_ptr))
 		return n_ptr;
 
-	/* Cluster local system nodes *must* have direct links */
+	
 	if (!is_slave(addr) && in_own_cluster(addr))
 		return NULL;
 
-	/* Look for cluster local router with direct link to node */
+	
 	router_addr = tipc_node_select_router(n_ptr, selector);
 	if (router_addr)
 		return tipc_node_select(router_addr, selector);
 
-	/* Slave nodes can only be accessed within own cluster via a
-	   known router with direct link -- if no router was found,give up */
+	
 	if (is_slave(addr))
 		return NULL;
 
-	/* Inter zone/cluster -- find any direct link to remote cluster */
+	
 	addr = tipc_addr(tipc_zone(addr), tipc_cluster(addr), 0);
 	n_ptr = tipc_net_select_remote_node(addr, selector);
 	if (n_ptr && tipc_node_has_active_links(n_ptr))
 		return n_ptr;
 
-	/* Last resort -- look for any router to anywhere in remote zone */
+	
 	router_addr =  tipc_net_select_router(addr, selector);
 	if (router_addr)
 		return tipc_node_select(router_addr, selector);
@@ -507,11 +408,7 @@ struct tipc_node *tipc_node_select_next_hop(u32 addr, u32 selector)
 	return NULL;
 }
 
-/**
- * tipc_node_select_router - select router to reach specified node
- *
- * Uses a deterministic and fair algorithm for selecting router node.
- */
+
 
 u32 tipc_node_select_router(struct tipc_node *n_ptr, u32 ref)
 {
@@ -527,14 +424,14 @@ u32 tipc_node_select_router(struct tipc_node *n_ptr, u32 ref)
 		return 0;
 	ulim = ((n_ptr->last_router + 1) * 32) - 1;
 
-	/* Start entry must be random */
+	
 	mask = tipc_max_nodes;
 	while (mask > ulim)
 		mask >>= 1;
 	start = ref & mask;
 	r = start;
 
-	/* Lookup upwards with wrap-around */
+	
 	do {
 		if (((n_ptr->routers[r / 32]) >> (r % 32)) & 1)
 			break;
@@ -567,7 +464,7 @@ void tipc_node_remove_router(struct tipc_node *n_ptr, u32 router)
 	u32 r_num = tipc_node(router);
 
 	if (n_ptr->last_router < 0)
-		return;		/* No routes */
+		return;		
 
 	n_ptr->routers[r_num / 32] =
 		((~(1 << (r_num % 32))) & (n_ptr->routers[r_num / 32]));
@@ -633,8 +530,7 @@ struct sk_buff *tipc_node_get_nodes(const void *req_tlv_area, int req_tlv_space)
 		return tipc_cfg_reply_none();
 	}
 
-	/* For now, get space for all other nodes
-	   (will need to modify this when slave nodes are supported */
+	
 
 	payload_size = TLV_SPACE(sizeof(node_info)) * (tipc_max_nodes - 1);
 	if (payload_size > 32768u) {
@@ -648,7 +544,7 @@ struct sk_buff *tipc_node_get_nodes(const void *req_tlv_area, int req_tlv_space)
 		return NULL;
 	}
 
-	/* Add TLVs for all nodes in scope */
+	
 
 	for (n_ptr = tipc_nodes; n_ptr; n_ptr = n_ptr->next) {
 		if (!in_scope(domain, n_ptr->addr))
@@ -684,7 +580,7 @@ struct sk_buff *tipc_node_get_links(const void *req_tlv_area, int req_tlv_space)
 
 	read_lock_bh(&tipc_net_lock);
 
-	/* Get space for all unicast links + multicast link */
+	
 
 	payload_size = TLV_SPACE(sizeof(link_info)) *
 		(tipc_net.zones[tipc_zone(tipc_own_addr)]->links + 1);
@@ -699,14 +595,14 @@ struct sk_buff *tipc_node_get_links(const void *req_tlv_area, int req_tlv_space)
 		return NULL;
 	}
 
-	/* Add TLV for broadcast link */
+	
 
 	link_info.dest = htonl(tipc_own_addr & 0xfffff00);
 	link_info.up = htonl(1);
 	strlcpy(link_info.str, tipc_bclink_name, TIPC_MAX_LINK_NAME);
 	tipc_cfg_append_tlv(buf, TIPC_TLV_LINK_INFO, &link_info, sizeof(link_info));
 
-	/* Add TLVs for any other links in scope */
+	
 
 	for (n_ptr = tipc_nodes; n_ptr; n_ptr = n_ptr->next) {
 		u32 i;

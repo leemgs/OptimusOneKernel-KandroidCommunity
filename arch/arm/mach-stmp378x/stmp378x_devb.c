@@ -1,20 +1,6 @@
-/*
- * Freescale STMP378X development board support
- *
- * Embedded Alley Solutions, Inc <source@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/io.h>
@@ -96,7 +82,7 @@ static struct pin_desc appuart_pins_0[] = {
 };
 
 static struct pin_desc appuart_pins_1[] = {
-#if 0 /* enable these when second appuart will be connected */
+#if 0 
 	{ PINID_AUART2_CTS, PIN_FUN1, PIN_4MA, PIN_1_8V, 0, },
 	{ PINID_AUART2_RTS, PIN_FUN1, PIN_4MA, PIN_1_8V, 0, },
 	{ PINID_AUART2_RX, PIN_FUN1, PIN_4MA, PIN_1_8V, 0, },
@@ -132,14 +118,14 @@ static int stmp3xxxmmc_hw_init_ssp1(void)
 	if (ret)
 		goto out;
 
-	/* Configure write protect GPIO pin */
+	
 	ret = gpio_request(PINID_PWM4, "mmc wp");
 	if (ret)
 		goto out_wp;
 
 	gpio_direction_input(PINID_PWM4);
 
-	/* Configure POWER pin as gpio to drive power to MMC slot */
+	
 	ret = gpio_request(PINID_PWM3, "mmc power");
 	if (ret)
 		goto out_power;
@@ -178,7 +164,7 @@ stmp3xxxmmc_setclock_ssp1(void __iomem *base, unsigned long hz)
 
 	ssp = clk_get(NULL, "ssp");
 
-	/* using SSP1, no timeout, clock rate 1 */
+	
 	writel(BF(2, SSP_TIMING_CLOCK_DIVIDE) |
 	       BF(0xFFFF, SSP_TIMING_TIMEOUT),
 	       base + HW_SSP_TIMING);
@@ -301,7 +287,7 @@ static void __init stmp378x_devb_init(void)
 {
 	stmp3xxx_pinmux_init(NR_REAL_IRQS);
 
-	/* init stmp3xxx platform */
+	
 	stmp3xxx_init();
 
 	stmp3xxx_dbguart.dev.platform_data = dbguart_pins_control;
@@ -312,13 +298,13 @@ static void __init stmp378x_devb_init(void)
 	stmp3xxx_spi2.dev.platform_data = &ssp2_pins;
 	stmp378x_i2c.dev.platform_data = &i2c_pins;
 
-	/* register spi devices */
+	
 	spi_register_board_info(spi_board_info, ARRAY_SIZE(spi_board_info));
 
-	/* add board's devices */
+	
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 
-	/* add devices selected by command line ssp1= and ssp2= options */
+	
 	stmp3xxx_ssp1_device_register();
 	stmp3xxx_ssp2_device_register();
 }

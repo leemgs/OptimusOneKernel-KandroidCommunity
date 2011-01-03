@@ -1,12 +1,4 @@
-/*
- * net/sched/sch_drr.c         Deficit Round Robin scheduler
- *
- * Copyright (c) 2008 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -156,10 +148,7 @@ static int drr_delete_class(struct Qdisc *sch, unsigned long arg)
 	qdisc_class_hash_remove(&q->clhash, &cl->common);
 
 	BUG_ON(--cl->refcnt == 0);
-	/*
-	 * This shouldn't happen: we "hold" one cops->get() when called
-	 * from tc_ctl_tclass; the destroy method is done from cops->put().
-	 */
+	
 
 	sch_tree_unlock(sch);
 	return 0;

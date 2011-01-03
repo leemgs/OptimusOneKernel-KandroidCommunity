@@ -1,11 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- */
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/socket.h>
@@ -93,11 +86,7 @@ static void rose_t0timer_expiry(unsigned long param)
 	rose_start_t0timer(neigh);
 }
 
-/*
- *	Interface to ax25_send_frame. Changes my level 2 callsign depending
- *	on whether we have a global ROSE callsign or use the default port
- *	callsign.
- */
+
 static int rose_send_frame(struct sk_buff *skb, struct rose_neigh *neigh)
 {
 	ax25_address *rose_call;
@@ -116,11 +105,7 @@ static int rose_send_frame(struct sk_buff *skb, struct rose_neigh *neigh)
 	return (neigh->ax25 != NULL);
 }
 
-/*
- *	Interface to ax25_link_up. Changes my level 2 callsign depending
- *	on whether we have a global ROSE callsign or use the default port
- *	callsign.
- */
+
 static int rose_link_up(struct rose_neigh *neigh)
 {
 	ax25_address *rose_call;
@@ -139,9 +124,7 @@ static int rose_link_up(struct rose_neigh *neigh)
 	return (neigh->ax25 != NULL);
 }
 
-/*
- *	This handles all restart and diagnostic frames.
- */
+
 void rose_link_rx_restart(struct sk_buff *skb, struct rose_neigh *neigh, unsigned short frametype)
 {
 	struct sk_buff *skbn;
@@ -175,9 +158,7 @@ void rose_link_rx_restart(struct sk_buff *skb, struct rose_neigh *neigh, unsigne
 	}
 }
 
-/*
- *	This routine is called when a Restart Request is needed
- */
+
 static void rose_transmit_restart_request(struct rose_neigh *neigh)
 {
 	struct sk_buff *skb;
@@ -204,9 +185,7 @@ static void rose_transmit_restart_request(struct rose_neigh *neigh)
 		kfree_skb(skb);
 }
 
-/*
- * This routine is called when a Restart Confirmation is needed
- */
+
 static void rose_transmit_restart_confirmation(struct rose_neigh *neigh)
 {
 	struct sk_buff *skb;
@@ -231,10 +210,7 @@ static void rose_transmit_restart_confirmation(struct rose_neigh *neigh)
 		kfree_skb(skb);
 }
 
-/*
- * This routine is called when a Clear Request is needed outside of the context
- * of a connected socket.
- */
+
 void rose_transmit_clear_request(struct rose_neigh *neigh, unsigned int lci, unsigned char cause, unsigned char diagnostic)
 {
 	struct sk_buff *skb;

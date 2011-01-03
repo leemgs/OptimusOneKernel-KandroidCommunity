@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-mx1/scb9328.c
- *
- * Copyright (c) 2004 Sascha Hauer <saschahauer@web.de>
- * Copyright (c) 2006-2008 Juergen Beisert <jbeisert@netscape.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/mtd/physmap.h>
@@ -27,9 +17,7 @@
 
 #include "devices.h"
 
-/*
- * This scb9328 has a 32MiB flash
- */
+
 static struct resource flash_resource = {
 	.start	= IMX_CS0_PHYS,
 	.end	= IMX_CS0_PHYS + (32 * 1024 * 1024) - 1,
@@ -50,34 +38,25 @@ static struct platform_device scb_flash_device = {
 	.num_resources = 1,
 };
 
-/*
- * scb9328 has a DM9000 network controller
- * connected to CS5, with 16 bit data path
- * and interrupt connected to GPIO 3
- */
 
-/*
- * internal datapath is fixed 16 bit
- */
+
+
 static struct dm9000_plat_data dm9000_platdata = {
 	.flags	= DM9000_PLATF_16BITONLY,
 };
 
-/*
- * the DM9000 drivers wants two defined address spaces
- * to gain access to address latch registers and the data path.
- */
+
 static struct resource dm9000x_resources[] = {
 	{
 		.name	= "address area",
 		.start	= IMX_CS5_PHYS,
 		.end	= IMX_CS5_PHYS + 1,
-		.flags	= IORESOURCE_MEM,	/* address access */
+		.flags	= IORESOURCE_MEM,	
 	}, {
 		.name	= "data area",
 		.start	= IMX_CS5_PHYS + 4,
 		.end	= IMX_CS5_PHYS + 5,
-		.flags	= IORESOURCE_MEM,	/* data access */
+		.flags	= IORESOURCE_MEM,	
 	}, {
 		.start	= IRQ_GPIOC(3),
 		.end	= IRQ_GPIOC(3),
@@ -126,9 +105,7 @@ static struct platform_device *devices[] __initdata = {
 	&dm9000x_device,
 };
 
-/*
- * scb9328_init - Init the CPU card itself
- */
+
 static void __init scb9328_init(void)
 {
 	mxc_register_device(&imx_uart1_device, &uart_pdata);
@@ -147,7 +124,7 @@ static struct sys_timer scb9328_timer = {
 };
 
 MACHINE_START(SCB9328, "Synertronixx scb9328")
-    /* Sascha Hauer */
+    
 	.phys_io	= 0x00200000,
 	.io_pg_offst	= ((0xe0200000) >> 18) & 0xfffc,
 	.boot_params	= 0x08000100,

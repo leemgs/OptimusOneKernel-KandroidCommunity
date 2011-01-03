@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-ep93xx/gpio.c
- *
- * Generic EP93xx GPIO handling
- *
- * Copyright (c) 2008 Ryan Mallon <ryan@bluewatersys.com>
- *
- * Based on code originally from:
- *  linux/arch/arm/mach-ep93xx/core.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -31,7 +18,7 @@ struct ep93xx_gpio_chip {
 
 #define to_ep93xx_gpio_chip(c) container_of(c, struct ep93xx_gpio_chip, chip)
 
-/* From core.c */
+
 extern void ep93xx_gpio_int_mask(unsigned line);
 extern void ep93xx_gpio_update_int_params(unsigned port);
 
@@ -60,7 +47,7 @@ static int ep93xx_gpio_direction_output(struct gpio_chip *chip,
 
 	local_irq_save(flags);
 
-	/* Set the value */
+	
 	v = __raw_readb(ep93xx_chip->data_reg);
 	if (val)
 		v |= (1 << offset);
@@ -68,10 +55,10 @@ static int ep93xx_gpio_direction_output(struct gpio_chip *chip,
 		v &= ~(1 << offset);
 	__raw_writeb(v, ep93xx_chip->data_reg);
 
-	/* Drive as an output */
+	
 	line = chip->base + offset;
 	if (line <= EP93XX_GPIO_LINE_MAX_IRQ) {
-		/* Ports A/B/F */
+		
 		ep93xx_gpio_int_mask(line);
 		ep93xx_gpio_update_int_params(line >> 3);
 	}

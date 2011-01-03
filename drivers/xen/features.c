@@ -1,10 +1,4 @@
-/******************************************************************************
- * features.c
- *
- * Xen feature flags.
- *
- * Copyright (c) 2006, Ian Campbell, XenSource Inc.
- */
+
 #include <linux/types.h>
 #include <linux/cache.h>
 #include <linux/module.h>

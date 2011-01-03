@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2005 Ammasso, Inc. All rights reserved.
- * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #ifndef C2_PROVIDER_H
 #define C2_PROVIDER_H
@@ -54,17 +22,14 @@ struct c2_buf_list {
 };
 
 
-/* The user context keeps track of objects allocated for a
- * particular user-mode client. */
+
 struct c2_ucontext {
 	struct ib_ucontext ibucontext;
 };
 
 struct c2_mtt;
 
-/* All objects associated with a PD are kept in the
- * associated user context if present.
- */
+
 struct c2_pd {
 	struct ib_pd ibpd;
 	u32 pd_id;
@@ -179,4 +144,4 @@ static inline int is_rnic_addr(struct net_device *netdev, u32 addr)
 	in_dev_put(ind);
 	return ret;
 }
-#endif				/* C2_PROVIDER_H */
+#endif				

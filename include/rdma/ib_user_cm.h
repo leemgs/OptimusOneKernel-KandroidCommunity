@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Intel Corporation.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #ifndef IB_USER_CM_H
 #define IB_USER_CM_H
@@ -61,9 +30,7 @@ enum {
 	IB_USER_CM_CMD_EVENT,
 	IB_USER_CM_CMD_INIT_QP_ATTR,
 };
-/*
- * command ABI structures.
- */
+
 struct ib_ucm_cmd_hdr {
 	__u32 cmd;
 	__u16 in;
@@ -216,9 +183,7 @@ struct ib_ucm_sidr_rep {
 	__u8  data_len;
 	__u8  reserved[6];
 };
-/*
- * event notification ABI structures.
- */
+
 struct ib_ucm_event_get {
 	__u64 response;
 	__u64 data;
@@ -265,7 +230,7 @@ struct ib_ucm_rep_event_resp {
 
 struct ib_ucm_rej_event_resp {
 	__u32 reason;
-	/* ari in ib_ucm_event_get info field. */
+	
 };
 
 struct ib_ucm_mra_event_resp {
@@ -279,7 +244,7 @@ struct ib_ucm_lap_event_resp {
 
 struct ib_ucm_apr_event_resp {
 	__u32 status;
-	/* apr info in ib_ucm_event_get info field. */
+	
 };
 
 struct ib_ucm_sidr_req_event_resp {
@@ -292,7 +257,7 @@ struct ib_ucm_sidr_rep_event_resp {
 	__u32 status;
 	__u32 qkey;
 	__u32 qpn;
-	/* info in ib_ucm_event_get info field. */
+	
 };
 
 #define IB_UCM_PRES_DATA      0x01
@@ -321,4 +286,4 @@ struct ib_ucm_event_resp {
 	} u;
 };
 
-#endif /* IB_USER_CM_H */
+#endif 

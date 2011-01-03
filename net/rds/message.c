@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2006 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/kernel.h>
 
 #include "rds.h"
@@ -52,9 +21,7 @@ void rds_message_addref(struct rds_message *rm)
 }
 EXPORT_SYMBOL_GPL(rds_message_addref);
 
-/*
- * This relies on dma_map_sg() not touching sg[].page during merging.
- */
+
 static void rds_message_purge(struct rds_message *rm)
 {
 	unsigned long i;
@@ -64,7 +31,7 @@ static void rds_message_purge(struct rds_message *rm)
 
 	for (i = 0; i < rm->m_nents; i++) {
 		rdsdebug("putting data page %p\n", (void *)sg_page(&rm->m_sg[i]));
-		/* XXX will have to put_page for page refs */
+		
 		__free_page(sg_page(&rm->m_sg[i]));
 	}
 	rm->m_nents = 0;
@@ -118,7 +85,7 @@ int rds_message_add_extension(struct rds_header *hdr,
 	unsigned int ext_len = sizeof(u8) + len;
 	unsigned char *dst;
 
-	/* For now, refuse to add more than one extension header */
+	
 	if (hdr->h_exthdr[0] != RDS_EXTHDR_NONE)
 		return 0;
 
@@ -138,20 +105,7 @@ int rds_message_add_extension(struct rds_header *hdr,
 }
 EXPORT_SYMBOL_GPL(rds_message_add_extension);
 
-/*
- * If a message has extension headers, retrieve them here.
- * Call like this:
- *
- * unsigned int pos = 0;
- *
- * while (1) {
- *	buflen = sizeof(buffer);
- *	type = rds_message_next_extension(hdr, &pos, buffer, &buflen);
- *	if (type == RDS_EXTHDR_NONE)
- *		break;
- *	...
- * }
- */
+
 int rds_message_next_extension(struct rds_header *hdr,
 		unsigned int *pos, void *buf, unsigned int *buflen)
 {
@@ -162,8 +116,7 @@ int rds_message_next_extension(struct rds_header *hdr,
 	if (offset >= RDS_HEADER_EXT_SPACE)
 		goto none;
 
-	/* Get the extension type and length. For now, the
-	 * length is implied by the extension type. */
+	
 	ext_type = src[offset++];
 
 	if (ext_type == RDS_EXTHDR_NONE || ext_type >= __RDS_EXTHDR_MAX)
@@ -197,7 +150,7 @@ int rds_message_get_version_extension(struct rds_header *hdr, unsigned int *vers
 	struct rds_ext_header_version ext_hdr;
 	unsigned int pos = 0, len = sizeof(ext_hdr);
 
-	/* We assume the version extension is the only one present */
+	
 	if (rds_message_next_extension(hdr, &pos, &ext_hdr, &len) != RDS_EXTHDR_VERSION)
 		return 0;
 	*version = be32_to_cpu(ext_hdr.h_version);
@@ -275,13 +228,11 @@ struct rds_message *rds_message_copy_from_user(struct iovec *first_iov,
 
 	rm->m_inc.i_hdr.h_len = cpu_to_be32(total_len);
 
-	/*
-	 * now allocate and copy in the data payload.
-	 */
+	
 	sg = rm->m_sg;
 	iov = first_iov;
 	iov_off = 0;
-	sg_off = 0; /* Dear gcc, sg->page will be null from kzalloc. */
+	sg_off = 0; 
 
 	while (total_len) {
 		if (sg_page(sg) == NULL) {
@@ -388,10 +339,7 @@ int rds_message_inc_copy_to_user(struct rds_incoming *inc,
 	return copied;
 }
 
-/*
- * If the message is still on the send queue, wait until the transport
- * is done with it. This is particularly important for RDMA operations.
- */
+
 void rds_message_wait(struct rds_message *rm)
 {
 	wait_event(rds_message_flush_waitq,

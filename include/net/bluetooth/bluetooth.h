@@ -1,26 +1,4 @@
-/* 
-   BlueZ - Bluetooth protocol stack for Linux
-   Copyright (C) 2000-2001 Qualcomm Incorporated
 
-   Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation;
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.
-   IN NO EVENT SHALL THE COPYRIGHT HOLDER(S) AND AUTHOR(S) BE LIABLE FOR ANY
-   CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES 
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN 
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF 
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-   ALL LIABILITY, INCLUDING LIABILITY FOR INFRINGEMENT OF ANY PATENTS, 
-   COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS, RELATING TO USE OF THIS 
-   SOFTWARE IS DISCLAIMED.
-*/
 
 #ifndef __BLUETOOTH_H
 #define __BLUETOOTH_H
@@ -36,7 +14,7 @@
 #define PF_BLUETOOTH	AF_BLUETOOTH
 #endif
 
-/* Reserv for core and drivers use */
+
 #define BT_SKB_RESERVE	8
 
 #define BTPROTO_L2CAP	0
@@ -68,9 +46,9 @@ struct bt_security {
 #define BT_ERR(fmt, arg...)  printk(KERN_ERR "%s: " fmt "\n" , __func__ , ## arg)
 #define BT_DBG(fmt, arg...)  pr_debug("%s: " fmt "\n" , __func__ , ## arg)
 
-/* Connection and socket states */
+
 enum {
-	BT_CONNECTED = 1, /* Equal to TCP_ESTABLISHED to make net code happy */
+	BT_CONNECTED = 1, 
 	BT_OPEN,
 	BT_BOUND,
 	BT_LISTEN,
@@ -81,7 +59,7 @@ enum {
 	BT_CLOSED
 };
 
-/* BD Address */
+
 typedef struct {
 	__u8 b[6];
 } __attribute__((packed)) bdaddr_t;
@@ -89,7 +67,7 @@ typedef struct {
 #define BDADDR_ANY   (&(bdaddr_t) {{0, 0, 0, 0, 0, 0}})
 #define BDADDR_LOCAL (&(bdaddr_t) {{0, 0, 0, 0xff, 0xff, 0xff}})
 
-/* Copy, swap, convert BD Address */
+
 static inline int bacmp(bdaddr_t *ba1, bdaddr_t *ba2)
 {
 	return memcmp(ba1, ba2, sizeof(bdaddr_t));
@@ -103,7 +81,7 @@ void baswap(bdaddr_t *dst, bdaddr_t *src);
 char *batostr(bdaddr_t *ba);
 bdaddr_t *strtoba(char *str);
 
-/* Common socket structures and functions */
+
 
 #define bt_sk(__sk) ((struct bt_sock *) __sk)
 
@@ -134,7 +112,7 @@ void bt_accept_enqueue(struct sock *parent, struct sock *sk);
 void bt_accept_unlink(struct sock *sk);
 struct sock *bt_accept_dequeue(struct sock *parent, struct socket *newsock);
 
-/* Skb helpers */
+
 struct bt_skb_cb {
 	__u8 pkt_type;
 	__u8 incoming;
@@ -178,4 +156,4 @@ extern void bt_sysfs_cleanup(void);
 
 extern struct class *bt_class;
 
-#endif /* __BLUETOOTH_H */
+#endif 

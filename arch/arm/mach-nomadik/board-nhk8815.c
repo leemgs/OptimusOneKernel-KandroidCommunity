@@ -1,14 +1,4 @@
-/*
- *  linux/arch/arm/mach-nomadik/board-8815nhk.c
- *
- *  Copyright (C) STMicroelectronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2, as
- * published by the Free Software Foundation.
- *
- *  NHK15 board specifc driver definition
- */
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -30,7 +20,7 @@
 #include <mach/fsmc.h>
 #include "clock.h"
 
-/* These adresses span 16MB, so use three individual pages */
+
 static struct resource nhk8815_nand_resources[] = {
 	{
 		.name = "nand_addr",
@@ -52,22 +42,18 @@ static struct resource nhk8815_nand_resources[] = {
 
 static int nhk8815_nand_init(void)
 {
-	/* FSMC setup for nand chip select (8-bit nand in 8815NHK) */
+	
 	writel(0x0000000E, FSMC_PCR(0));
 	writel(0x000D0A00, FSMC_PMEM(0));
 	writel(0x00100A00, FSMC_PATT(0));
 
-	/* enable access to the chip select area */
+	
 	writel(readl(FSMC_PCR(0)) | 0x04, FSMC_PCR(0));
 
 	return 0;
 }
 
-/*
- * These partitions are the same as those used in the 2.6.20 release
- * shipped by the vendor; the first two partitions are mandated
- * by the boot ROM, and the bootloader area is somehow oversized...
- */
+
 static struct mtd_partition nhk8815_partitions[] = {
 	{
 		.name	= "X-Loader(NAND)",
@@ -113,7 +99,7 @@ static struct platform_device nhk8815_nand_device = {
 	.num_resources	= ARRAY_SIZE(nhk8815_nand_resources),
 };
 
-/* These are the partitions for the OneNand device, different from above */
+
 static struct mtd_partition nhk8815_onenand_partitions[] = {
 	{
 		.name	= "X-Loader(OneNAND)",
@@ -168,7 +154,7 @@ static struct platform_device nhk8815_onenand_device = {
 static void __init nhk8815_onenand_init(void)
 {
 #ifdef CONFIG_ONENAND
-       /* Set up SMCS0 for OneNand */
+       
        writel(0x000030db, FSMC_BCR0);
        writel(0x02100551, FSMC_BTR0);
 #endif
@@ -194,7 +180,7 @@ static struct amba_device *amba_devs[] __initdata = {
 	&uart1_device,
 };
 
-/* We have a fixed clock alone, by now */
+
 static struct clk nhk8815_clk_48 = {
 	.rate = 48*1000*1000,
 };
@@ -220,7 +206,7 @@ static struct platform_device nhk8815_eth_device = {
 
 static int __init nhk8815_eth_init(void)
 {
-	int gpio_nr = 115; /* hardwired in the board */
+	int gpio_nr = 115; 
 	int err;
 
 	err = gpio_request(gpio_nr, "eth_irq");
@@ -236,7 +222,7 @@ static struct platform_device *nhk8815_platform_devices[] __initdata = {
 	&nhk8815_nand_device,
 	&nhk8815_onenand_device,
 	&nhk8815_eth_device,
-	/* will add more devices */
+	
 };
 
 static void __init nhk8815_platform_init(void)
@@ -255,7 +241,7 @@ static void __init nhk8815_platform_init(void)
 }
 
 MACHINE_START(NOMADIK, "NHK8815")
-	/* Maintainer: ST MicroElectronics */
+	
 	.phys_io	= NOMADIK_UART0_BASE,
 	.io_pg_offst	= (IO_ADDRESS(NOMADIK_UART0_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x100,

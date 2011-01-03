@@ -1,36 +1,4 @@
-/*
- *	IDE tuning and bus mastering support for the CS5510/CS5520
- *	chipsets
- *
- *	The CS5510/CS5520 are slightly unusual devices. Unlike the 
- *	typical IDE controllers they do bus mastering with the drive in
- *	PIO mode and smarter silicon.
- *
- *	The practical upshot of this is that we must always tune the
- *	drive for the right PIO mode. We must also ignore all the blacklists
- *	and the drive bus mastering DMA information.
- *
- *	*** This driver is strictly experimental ***
- *
- *	(c) Copyright Red Hat Inc 2002
- * 
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * For the avoidance of doubt the "preferred form" of this code is one which
- * is in an open non patent encumbered format. Where cryptographic key signing
- * forms part of the process of creating an executable the information
- * including keys needed to generate an equivalently functional executable
- * are deemed to be part of the source code.
- *
- */
+
  
 #include <linux/module.h>
 #include <linux/types.h>
@@ -63,19 +31,19 @@ static void cs5520_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	struct pci_dev *pdev = to_pci_dev(hwif->dev);
 	int controller = drive->dn > 1 ? 1 : 0;
 
-	/* 8bit CAT/CRT - 8bit command timing for channel */
+	
 	pci_write_config_byte(pdev, 0x62 + controller, 
 		(cs5520_pio_clocks[pio].recovery << 4) |
 		(cs5520_pio_clocks[pio].assert));
 
-	/* 0x64 - 16bit Primary, 0x68 - 16bit Secondary */
+	
 
-	/* FIXME: should these use address ? */
-	/* Data read timing */
+	
+	
 	pci_write_config_byte(pdev, 0x64 + 4*controller + (drive->dn&1),
 		(cs5520_pio_clocks[pio].recovery << 4) |
 		(cs5520_pio_clocks[pio].assert));
-	/* Write command timing */
+	
 	pci_write_config_byte(pdev, 0x66 + 4*controller + (drive->dn&1),
 		(cs5520_pio_clocks[pio].recovery << 4) |
 		(cs5520_pio_clocks[pio].assert));
@@ -101,11 +69,7 @@ static const struct ide_port_info cyrix_chipset __devinitdata = {
 	.pio_mask	= ATA_PIO4,
 };
 
-/*
- *	The 5510/5520 are a bit weird. They don't quite set up the way
- *	the PCI helper layer expects so we must do much of the set up 
- *	work longhand.
- */
+
  
 static int __devinit cs5520_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
@@ -114,9 +78,7 @@ static int __devinit cs5520_init_one(struct pci_dev *dev, const struct pci_devic
 
 	ide_setup_pci_noise(dev, d);
 
-	/* We must not grab the entire device, it has 'ISA' space in its
-	 * BARS too and we will freak out other bits of the kernel
-	 */
+	
 	if (pci_enable_device_io(dev)) {
 		printk(KERN_WARNING "%s: Unable to enable 55x0.\n", d->name);
 		return -ENODEV;
@@ -128,10 +90,7 @@ static int __devinit cs5520_init_one(struct pci_dev *dev, const struct pci_devic
 		return -ENODEV;
 	}
 
-	/*
-	 *	Now the chipset is configured we can let the core
-	 *	do all the device setup for us
-	 */
+	
 
 	ide_pci_setup_ports(dev, d, &hw[0], &hws[0]);
 	hw[0].irq = 14;

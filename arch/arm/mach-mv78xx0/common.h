@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-mv78xx0/common.h
- *
- * Core functions for Marvell MV78xx0 SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ARCH_MV78XX0_COMMON_H
 #define __ARCH_MV78XX0_COMMON_H
@@ -14,9 +6,7 @@
 struct mv643xx_eth_platform_data;
 struct mv_sata_platform_data;
 
-/*
- * Basic MV78xx0 init functions used early by machine-setup.
- */
+
 int mv78xx0_core_index(void);
 void mv78xx0_map_io(void);
 void mv78xx0_init(void);

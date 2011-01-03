@@ -1,13 +1,4 @@
-/*
- * mach-davinci/devices.c
- *
- * DaVinci platform device setup/initialization
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -68,21 +59,21 @@ static u64 mmcsd0_dma_mask = DMA_BIT_MASK(32);
 
 static struct resource mmcsd0_resources[] = {
 	{
-		/* different on dm355 */
+		
 		.start = DAVINCI_MMCSD0_BASE,
 		.end   = DAVINCI_MMCSD0_BASE + SZ_4K - 1,
 		.flags = IORESOURCE_MEM,
 	},
-	/* IRQs:  MMC/SD, then SDIO */
+	
 	{
 		.start = IRQ_MMCINT,
 		.flags = IORESOURCE_IRQ,
 	}, {
-		/* different on dm355 */
+		
 		.start = IRQ_SDIOINT,
 		.flags = IORESOURCE_IRQ,
 	},
-	/* DMA channels: RX, then TX */
+	
 	{
 		.start = EDMA_CTLR_CHAN(0, DAVINCI_DMA_MMCRXEVT),
 		.flags = IORESOURCE_DMA,
@@ -111,7 +102,7 @@ static struct resource mmcsd1_resources[] = {
 		.end   = DM355_MMCSD1_BASE + SZ_4K - 1,
 		.flags = IORESOURCE_MEM,
 	},
-	/* IRQs:  MMC/SD, then SDIO */
+	
 	{
 		.start = IRQ_DM355_MMCINT1,
 		.flags = IORESOURCE_IRQ,
@@ -119,12 +110,12 @@ static struct resource mmcsd1_resources[] = {
 		.start = IRQ_DM355_SDIOINT1,
 		.flags = IORESOURCE_IRQ,
 	},
-	/* DMA channels: RX, then TX */
+	
 	{
-		.start = EDMA_CTLR_CHAN(0, 30),	/* rx */
+		.start = EDMA_CTLR_CHAN(0, 30),	
 		.flags = IORESOURCE_DMA,
 	}, {
-		.start = EDMA_CTLR_CHAN(0, 31),	/* tx */
+		.start = EDMA_CTLR_CHAN(0, 31),	
 		.flags = IORESOURCE_DMA,
 	},
 };
@@ -148,18 +139,11 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 	if (WARN_ON(cpu_is_davinci_dm646x()))
 		return;
 
-	/* REVISIT: update PINMUX, ARM_IRQMUX, and EDMA_EVTMUX here too;
-	 * for example if MMCSD1 is used for SDIO, maybe DAT2 is unused.
-	 *
-	 * FIXME dm6441 (no MMC/SD), dm357 (one), and dm335 (two) are
-	 * not handled right here ...
-	 */
+	
 	switch (module) {
 	case 1:
 		if (cpu_is_davinci_dm355()) {
-			/* REVISIT we may not need all these pins if e.g. this
-			 * is a hard-wired SDIO device...
-			 */
+			
 			davinci_cfg_reg(DM355_SD1_CMD);
 			davinci_cfg_reg(DM355_SD1_CLK);
 			davinci_cfg_reg(DM355_SD1_DATA0);
@@ -170,7 +154,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 			void __iomem *pupdctl1 =
 				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE + 0x7c);
 
-			/* Configure pull down control */
+			
 			__raw_writel((__raw_readl(pupdctl1) & ~0x400),
 					pupdctl1);
 
@@ -189,10 +173,10 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 			mmcsd0_resources[0].end = DM355_MMCSD0_BASE + SZ_4K - 1;
 			mmcsd0_resources[2].start = IRQ_DM355_SDIOINT0;
 
-			/* expose all 6 MMC0 signals:  CLK, CMD, DATA[0..3] */
+			
 			davinci_cfg_reg(DM355_MMCSD0);
 
-			/* enable RX EDMA */
+			
 			davinci_cfg_reg(DM355_EVT26_MMC0_RX);
 		} else if (cpu_is_davinci_dm365()) {
 			mmcsd0_resources[0].start = DM365_MMCSD0_BASE;
@@ -200,13 +184,13 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 							SZ_4K - 1;
 			mmcsd0_resources[2].start = IRQ_DM365_SDIOINT0;
 		} else if (cpu_is_davinci_dm644x()) {
-			/* REVISIT: should this be in board-init code? */
+			
 			void __iomem *base =
 				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
 
-			/* Power-on 3.3V IO cells */
+			
 			__raw_writel(0, base + DM64XX_VDD3P3V_PWDN);
-			/*Set up the pull regiter for MMC */
+			
 			davinci_cfg_reg(DM644X_MSTK);
 		}
 
@@ -229,7 +213,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 static struct resource wdt_resources[] = {
 	{
@@ -251,7 +235,7 @@ static void davinci_init_wdt(void)
 	platform_device_register(&davinci_wdt_device);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 struct davinci_timer_instance davinci_timer_instance[2] = {
 	{
@@ -266,13 +250,11 @@ struct davinci_timer_instance davinci_timer_instance[2] = {
 	},
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 static int __init davinci_init_devices(void)
 {
-	/* please keep these calls, and their implementations above,
-	 * in alphabetical order so they're easier to sort through.
-	 */
+	
 	davinci_init_wdt();
 
 	return 0;

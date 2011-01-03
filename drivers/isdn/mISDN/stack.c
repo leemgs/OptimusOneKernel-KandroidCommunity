@@ -1,19 +1,4 @@
-/*
- *
- * Author	Karsten Keil <kkeil@novell.com>
- *
- * Copyright 2008  by Karsten Keil <kkeil@novell.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/mISDNif.h>
 #include <linux/kthread.h>
@@ -96,7 +81,7 @@ send_layer2(struct mISDNstack *st, struct sk_buff *skb)
 	if (!st)
 		return;
 	mutex_lock(&st->lmutex);
-	if ((hh->id & MISDN_ID_ADDR_MASK) == MISDN_ID_ANY) { /* L2 for all */
+	if ((hh->id & MISDN_ID_ADDR_MASK) == MISDN_ID_ANY) { 
 		list_for_each_entry(ch, &st->layer2, list) {
 			if (list_is_last(&ch->list, &st->layer2)) {
 				cskb = skb;
@@ -186,7 +171,7 @@ send_msg_to_layer(struct mISDNstack *st, struct sk_buff *skb)
 			    __func__, dev_name(&st->dev->dev), hh->prim,
 			    hh->id);
 	} else {
-		/* broadcast not handled yet */
+		
 		printk(KERN_WARNING "%s: dev(%s) prim %x not delivered\n",
 		    __func__, dev_name(&st->dev->dev), hh->prim);
 	}
@@ -233,7 +218,7 @@ mISDNStackd(void *data)
 			if (!skb) {
 				test_and_clear_bit(mISDN_STACK_WORK,
 					&st->status);
-				/* test if a race happens */
+				
 				skb = skb_dequeue(&st->msgq);
 				if (!skb)
 					continue;
@@ -558,7 +543,7 @@ create_l2entity(struct mISDNdevice *dev, struct mISDNchannel *ch,
 			add_layer2(rq.ch, dev->D.st);
 			rq.ch->recv = mISDN_queue_message;
 			rq.ch->peer = &dev->D.st->own;
-			rq.ch->ctrl(rq.ch, OPEN_CHANNEL, NULL); /* can't fail */
+			rq.ch->ctrl(rq.ch, OPEN_CHANNEL, NULL); 
 		}
 		break;
 	default:

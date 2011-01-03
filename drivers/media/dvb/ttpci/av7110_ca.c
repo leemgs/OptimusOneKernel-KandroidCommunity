@@ -1,32 +1,4 @@
-/*
- * av7110_ca.c: CA and CI stuff
- *
- * Copyright (C) 1999-2002 Ralph  Metzler
- *                       & Marcus Metzler for convergence integrated media GmbH
- *
- * originally based on code by:
- * Copyright (C) 1998,1999 Christian Theiss <mistert@rz.fh-augsburg.de>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
- *
- *
- * the project's page is at http://www.linuxtv.org/dvb/
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -63,7 +35,7 @@ void CI_handle(struct av7110 *av7110, u8 *data, u16 len)
 		}
 		break;
 	case CI_SWITCH_PRG_REPLY:
-		//av7110->ci_stat=data[1];
+		
 		break;
 	default:
 		break;
@@ -83,9 +55,7 @@ void ci_get_data(struct dvb_ringbuffer *cibuf, u8 *data, int len)
 }
 
 
-/******************************************************************************
- * CI link layer file ops
- ******************************************************************************/
+
 
 static int ci_ll_init(struct dvb_ringbuffer *cirbuf, struct dvb_ringbuffer *ciwbuf, int size)
 {

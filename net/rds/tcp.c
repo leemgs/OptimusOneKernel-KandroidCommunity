@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2006 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/in.h>
 #include <net/tcp.h>
@@ -37,12 +6,12 @@
 #include "rds.h"
 #include "tcp.h"
 
-/* only for info exporting */
+
 static DEFINE_SPINLOCK(rds_tcp_tc_list_lock);
 static LIST_HEAD(rds_tcp_tc_list);
 unsigned int rds_tcp_tc_count;
 
-/* Track rds_tcp_connection structs so they can be cleaned up */
+
 static DEFINE_SPINLOCK(rds_tcp_conn_lock);
 static LIST_HEAD(rds_tcp_conn_list);
 
@@ -50,7 +19,7 @@ static struct kmem_cache *rds_tcp_conn_slab;
 
 #define RDS_TCP_DEFAULT_BUFSIZE (128 * 1024)
 
-/* doing it this way avoids calling tcp_sk() */
+
 void rds_tcp_nonagle(struct socket *sock)
 {
 	mm_segment_t oldfs = get_fs();
@@ -68,10 +37,7 @@ void rds_tcp_tune(struct socket *sock)
 
 	rds_tcp_nonagle(sock);
 
-	/*
-	 * We're trying to saturate gigabit with the default,
-	 * see svc_sock_setbufsize().
-	 */
+	
 	lock_sock(sk);
 	sk->sk_sndbuf = RDS_TCP_DEFAULT_BUFSIZE;
 	sk->sk_rcvbuf = RDS_TCP_DEFAULT_BUFSIZE;
@@ -95,7 +61,7 @@ void rds_tcp_restore_callbacks(struct socket *sock,
 	rdsdebug("restoring sock %p callbacks from tc %p\n", sock, tc);
 	write_lock_bh(&sock->sk->sk_callback_lock);
 
-	/* done under the callback_lock to serialize with write_space */
+	
 	spin_lock(&rds_tcp_tc_list_lock);
 	list_del_init(&tc->t_list_item);
 	rds_tcp_tc_count--;
@@ -111,11 +77,7 @@ void rds_tcp_restore_callbacks(struct socket *sock,
 	write_unlock_bh(&sock->sk->sk_callback_lock);
 }
 
-/*
- * This is the only path that sets tc->t_sock.  Send and receive trust that
- * it is set.  The RDS_CONN_CONNECTED bit protects those paths from being
- * called while it isn't set.
- */
+
 void rds_tcp_set_callbacks(struct socket *sock, struct rds_connection *conn)
 {
 	struct rds_tcp_connection *tc = conn->c_transport_data;
@@ -123,13 +85,13 @@ void rds_tcp_set_callbacks(struct socket *sock, struct rds_connection *conn)
 	rdsdebug("setting sock %p callbacks to tc %p\n", sock, tc);
 	write_lock_bh(&sock->sk->sk_callback_lock);
 
-	/* done under the callback_lock to serialize with write_space */
+	
 	spin_lock(&rds_tcp_tc_list_lock);
 	list_add_tail(&tc->t_list_item, &rds_tcp_tc_list);
 	rds_tcp_tc_count++;
 	spin_unlock(&rds_tcp_tc_list_lock);
 
-	/* accepted sockets need our listen data ready undone */
+	
 	if (sock->sk->sk_data_ready == rds_tcp_listen_data_ready)
 		sock->sk->sk_data_ready = sock->sk->sk_user_data;
 
@@ -229,7 +191,7 @@ static void rds_tcp_destroy_conns(void)
 	struct rds_tcp_connection *tc, *_tc;
 	LIST_HEAD(tmp_list);
 
-	/* avoid calling conn_destroy with irqs off */
+	
 	spin_lock_irq(&rds_tcp_conn_lock);
 	list_splice(&rds_tcp_conn_list, &tmp_list);
 	INIT_LIST_HEAD(&rds_tcp_conn_list);

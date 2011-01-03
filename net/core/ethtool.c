@@ -1,15 +1,4 @@
-/*
- * net/core/ethtool.c - Ethtool ioctl handler
- * Copyright (c) 2003 Matthew Wilcox <matthew@wil.cx>
- *
- * This file is where we call all the ethtool_ops commands to get
- * the information ethtool needs.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -19,11 +8,7 @@
 #include <linux/netdevice.h>
 #include <asm/uaccess.h>
 
-/*
- * Some useful ethtool_ops methods that're device independent.
- * If we find that all drivers want to do the same thing here,
- * we can turn these into dev_() function calls.
- */
+
 
 u32 ethtool_op_get_link(struct net_device *dev)
 {
@@ -116,18 +101,13 @@ int ethtool_op_set_ufo(struct net_device *dev, u32 data)
 	return 0;
 }
 
-/* the following list of flags are the same as their associated
- * NETIF_F_xxx values in include/linux/netdevice.h
- */
+
 static const u32 flags_dup_features =
 	ETH_FLAG_LRO;
 
 u32 ethtool_op_get_flags(struct net_device *dev)
 {
-	/* in the future, this function will probably contain additional
-	 * handling for flags which are not so easily handled
-	 * by a simple masking operation
-	 */
+	
 
 	return dev->features & flags_dup_features;
 }
@@ -142,7 +122,7 @@ int ethtool_op_set_flags(struct net_device *dev, u32 data)
 	return 0;
 }
 
-/* Handlers for each ethtool command */
+
 
 static int ethtool_get_settings(struct net_device *dev, void __user *useraddr)
 {
@@ -199,7 +179,7 @@ static int ethtool_get_drvinfo(struct net_device *dev, void __user *useraddr)
 		if (rc >= 0)
 			info.n_priv_flags = rc;
 	} else {
-		/* code path for obsolete hooks */
+		
 
 		if (ops->self_test_count)
 			info.testinfo_len = ops->self_test_count(dev);
@@ -359,11 +339,11 @@ static int ethtool_get_eeprom(struct net_device *dev, void __user *useraddr)
 	if (copy_from_user(&eeprom, useraddr, sizeof(eeprom)))
 		return -EFAULT;
 
-	/* Check for wrap and zero */
+	
 	if (eeprom.offset + eeprom.len <= eeprom.offset)
 		return -EINVAL;
 
-	/* Check for exceeding total eeprom len */
+	
 	if (eeprom.offset + eeprom.len > ops->get_eeprom_len(dev))
 		return -EINVAL;
 
@@ -411,11 +391,11 @@ static int ethtool_set_eeprom(struct net_device *dev, void __user *useraddr)
 	if (copy_from_user(&eeprom, useraddr, sizeof(eeprom)))
 		return -EFAULT;
 
-	/* Check for wrap and zero */
+	
 	if (eeprom.offset + eeprom.len <= eeprom.offset)
 		return -EINVAL;
 
-	/* Check for exceeding total eeprom len */
+	
 	if (eeprom.offset + eeprom.len > ops->get_eeprom_len(dev))
 		return -EINVAL;
 
@@ -692,7 +672,7 @@ static int ethtool_self_test(struct net_device *dev, char __user *useraddr)
 	if (ops->get_sset_count)
 		test_len = ops->get_sset_count(dev, ETH_SS_TEST);
 	else
-		/* code path for obsolete hook */
+		
 		test_len = ops->self_test_count(dev);
 	if (test_len < 0)
 		return test_len;
@@ -741,7 +721,7 @@ static int ethtool_get_strings(struct net_device *dev, void __user *useraddr)
 
 		gstrings.len = ret;
 	} else {
-		/* code path for obsolete hooks */
+		
 
 		switch (gstrings.string_set) {
 		case ETH_SS_TEST:
@@ -806,7 +786,7 @@ static int ethtool_get_stats(struct net_device *dev, void __user *useraddr)
 	if (ops->get_sset_count)
 		n_stats = ops->get_sset_count(dev, ETH_SS_STATS);
 	else
-		/* code path for obsolete hook */
+		
 		n_stats = ops->get_stats_count(dev);
 	if (n_stats < 0)
 		return n_stats;
@@ -911,7 +891,7 @@ static int ethtool_flash_device(struct net_device *dev, char __user *useraddr)
 	return dev->ethtool_ops->flash_device(dev, &efl);
 }
 
-/* The main entry point in this file.  Called from net/core/dev.c */
+
 
 int dev_ethtool(struct net *net, struct ifreq *ifr)
 {
@@ -930,7 +910,7 @@ int dev_ethtool(struct net *net, struct ifreq *ifr)
 	if (copy_from_user(&ethcmd, useraddr, sizeof (ethcmd)))
 		return -EFAULT;
 
-	/* Allow some commands to be done by anyone */
+	
 	switch(ethcmd) {
 	case ETHTOOL_GDRVINFO:
 	case ETHTOOL_GMSGLVL:

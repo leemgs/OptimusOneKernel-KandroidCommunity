@@ -1,25 +1,7 @@
 #ifndef __SOUND_INITVAL_H
 #define __SOUND_INITVAL_H
 
-/*
- *  Init values for soundcard modules
- *  Copyright (c) by Jaroslav Kysela <perex@perex.cz>
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- */
+
 
 #define SNDRV_AUTO_PORT		1
 #define SNDRV_AUTO_IRQ		0xffff
@@ -87,4 +69,4 @@ static int snd_legacy_find_free_dma(int *dma_table)
 }
 #endif
 
-#endif /* __SOUND_INITVAL_H */
+#endif 

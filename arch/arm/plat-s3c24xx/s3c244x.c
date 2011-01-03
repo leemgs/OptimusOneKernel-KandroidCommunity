@@ -1,14 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/s3c244x.c
- *
- * Copyright (c) 2004-2006 Simtec Electronics
- *   Ben Dooks <ben@simtec.co.uk>
- *
- * Samsung S3C2440 and S3C2442 Mobile CPU support (not S3C2443)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -52,7 +42,7 @@ static struct map_desc s3c244x_iodesc[] __initdata = {
 	IODESC_ENT(WATCHDOG),
 };
 
-/* uart initialisation */
+
 
 void __init s3c244x_init_uarts(struct s3c2410_uartcfg *cfg, int no)
 {
@@ -61,11 +51,11 @@ void __init s3c244x_init_uarts(struct s3c2410_uartcfg *cfg, int no)
 
 void __init s3c244x_map_io(void)
 {
-	/* register our io-tables */
+	
 
 	iotable_init(s3c244x_iodesc, ARRAY_SIZE(s3c244x_iodesc));
 
-	/* rename any peripherals used differing from the s3c2410 */
+	
 
 	s3c_device_sdi.name  = "s3c2440-sdi";
 	s3c_device_i2c0.name  = "s3c2440-i2c";
@@ -91,7 +81,7 @@ void __init_or_cpufreq s3c244x_setup_clocks(void)
 	clkdiv = __raw_readl(S3C2410_CLKDIVN);
 	camdiv = __raw_readl(S3C2440_CAMDIVN);
 
-	/* work out clock scalings */
+	
 
 	switch (clkdiv & S3C2440_CLKDIVN_HDIVN_MASK) {
 	case S3C2440_CLKDIVN_HDIVN_1:
@@ -114,7 +104,7 @@ void __init_or_cpufreq s3c244x_setup_clocks(void)
 	hclk = fclk / hdiv;
 	pclk = hclk / ((clkdiv & S3C2440_CLKDIVN_PDIVN) ? 2 : 1);
 
-	/* print brief summary of clocks, etc */
+	
 
 	printk("S3C244X: core %ld.%03ld MHz, memory %ld.%03ld MHz, peripheral %ld.%03ld MHz\n",
 	       print_mhz(fclk), print_mhz(hclk), print_mhz(pclk));
@@ -124,9 +114,7 @@ void __init_or_cpufreq s3c244x_setup_clocks(void)
 
 void __init s3c244x_init_clocks(int xtal)
 {
-	/* initialise the clocks here, to allow other things like the
-	 * console to use them, and to add new ones after the initialisation
-	 */
+	
 
 	s3c24xx_register_baseclocks(xtal);
 	s3c244x_setup_clocks();
@@ -160,7 +148,7 @@ static int s3c244x_resume(struct sys_device *dev)
 #define s3c244x_resume  NULL
 #endif
 
-/* Since the S3C2442 and S3C2440 share  items, put both sysclasses here */
+
 
 struct sysdev_class s3c2440_sysclass = {
 	.name		= "s3c2440-core",
@@ -174,11 +162,7 @@ struct sysdev_class s3c2442_sysclass = {
 	.resume		= s3c244x_resume
 };
 
-/* need to register class before we actually register the device, and
- * we also need to ensure that it has been initialised before any of the
- * drivers even try to use it (even if not on an s3c2440 based system)
- * as a driver which may support both 2410 and 2440 may try and use it.
-*/
+
 
 static int __init s3c2440_core_init(void)
 {

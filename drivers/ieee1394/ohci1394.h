@@ -1,22 +1,4 @@
-/*
- * ohci1394.h - driver for OHCI 1394 boards
- * Copyright (C)1999,2000 Sebastien Rougeaux <sebastien.rougeaux@anu.edu.au>
- *                        Gord Peters <GordPeters@smarttech.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 #ifndef _OHCI1394_H
 #define _OHCI1394_H
@@ -31,30 +13,30 @@
 #define OHCI1394_MAX_PHYS_RESP_RETRIES	0x8
 #define OHCI1394_MAX_SELF_ID_ERRORS	16
 
-#define AR_REQ_NUM_DESC		4		/* number of AR req descriptors */
-#define AR_REQ_BUF_SIZE		PAGE_SIZE	/* size of AR req buffers */
-#define AR_REQ_SPLIT_BUF_SIZE	PAGE_SIZE	/* split packet buffer */
+#define AR_REQ_NUM_DESC		4		
+#define AR_REQ_BUF_SIZE		PAGE_SIZE	
+#define AR_REQ_SPLIT_BUF_SIZE	PAGE_SIZE	
 
-#define AR_RESP_NUM_DESC	4		/* number of AR resp descriptors */
-#define AR_RESP_BUF_SIZE	PAGE_SIZE	/* size of AR resp buffers */
-#define AR_RESP_SPLIT_BUF_SIZE	PAGE_SIZE	/* split packet buffer */
+#define AR_RESP_NUM_DESC	4		
+#define AR_RESP_BUF_SIZE	PAGE_SIZE	
+#define AR_RESP_SPLIT_BUF_SIZE	PAGE_SIZE	
 
-#define IR_NUM_DESC		16		/* number of IR descriptors */
-#define IR_BUF_SIZE		PAGE_SIZE	/* 4096 bytes/buffer */
-#define IR_SPLIT_BUF_SIZE	PAGE_SIZE	/* split packet buffer */
+#define IR_NUM_DESC		16		
+#define IR_BUF_SIZE		PAGE_SIZE	
+#define IR_SPLIT_BUF_SIZE	PAGE_SIZE	
 
-#define IT_NUM_DESC		16	/* number of IT descriptors */
+#define IT_NUM_DESC		16	
 
-#define AT_REQ_NUM_DESC		32	/* number of AT req descriptors */
-#define AT_RESP_NUM_DESC	32	/* number of AT resp descriptors */
+#define AT_REQ_NUM_DESC		32	
+#define AT_RESP_NUM_DESC	32	
 
-#define OHCI_LOOP_COUNT		100	/* Number of loops for reg read waits */
+#define OHCI_LOOP_COUNT		100	
 
-#define OHCI_CONFIG_ROM_LEN	1024	/* Length of the mapped configrom space */
+#define OHCI_CONFIG_ROM_LEN	1024	
 
-#define OHCI1394_SI_DMA_BUF_SIZE	8192 /* length of the selfid buffer */
+#define OHCI1394_SI_DMA_BUF_SIZE	8192 
 
-/* PCI configuration space addresses */
+
 #define OHCI1394_PCI_HCI_Control 0x40
 
 struct dma_cmd {
@@ -64,23 +46,18 @@ struct dma_cmd {
         u32 status;
 };
 
-/*
- * FIXME:
- * It is important that a single at_dma_prg does not cross a page boundary
- * The proper way to do it would be to do the check dynamically as the
- * programs are inserted into the AT fifo.
- */
+
 struct at_dma_prg {
 	struct dma_cmd begin;
 	quadlet_t data[4];
 	struct dma_cmd end;
-	quadlet_t pad[4]; /* FIXME: quick hack for memory alignment */
+	quadlet_t pad[4]; 
 };
 
-/* identify whether a DMA context is asynchronous or isochronous */
+
 enum context_type { DMA_CTX_ASYNC_REQ, DMA_CTX_ASYNC_RESP, DMA_CTX_ISO };
 
-/* DMA receive context */
+
 struct dma_rcv_ctx {
 	struct ti_ohci *ohci;
 	enum context_type type;
@@ -90,12 +67,12 @@ struct dma_rcv_ctx {
 	unsigned int buf_size;
 	unsigned int split_buf_size;
 
-	/* dma block descriptors */
+	
         struct dma_cmd **prg_cpu;
         dma_addr_t *prg_bus;
 	struct pci_pool *prg_pool;
 
-	/* dma buffers */
+	
         quadlet_t **buf_cpu;
         dma_addr_t *buf_bus;
 
@@ -110,14 +87,14 @@ struct dma_rcv_ctx {
 	int ctxtMatch;
 };
 
-/* DMA transmit context */
+
 struct dma_trm_ctx {
 	struct ti_ohci *ohci;
 	enum context_type type;
 	int ctx;
 	unsigned int num_desc;
 
-	/* dma block descriptors */
+	
         struct at_dma_prg **prg_cpu;
 	dma_addr_t *prg_bus;
 	struct pci_pool *prg_pool;
@@ -127,10 +104,10 @@ struct dma_trm_ctx {
 	int free_prgs;
         quadlet_t *branchAddrPtr;
 
-	/* list of packets inserted in the AT FIFO */
+	
 	struct list_head fifo_list;
 
-	/* list of pending packets to be inserted in the AT FIFO */
+	
 	struct list_head pending_list;
 
         spinlock_t lock;
@@ -162,41 +139,41 @@ struct ti_ohci {
 		OHCI_INIT_DONE,
 	} init_state;
 
-        /* remapped memory spaces */
+        
         void __iomem *registers;
 
-	/* dma buffer for self-id packets */
+	
         quadlet_t *selfid_buf_cpu;
         dma_addr_t selfid_buf_bus;
 
-	/* buffer for csr config rom */
+	
         quadlet_t *csr_config_rom_cpu;
         dma_addr_t csr_config_rom_bus;
 	int csr_config_rom_length;
 
 	unsigned int max_packet_size;
 
-        /* async receive */
+        
 	struct dma_rcv_ctx ar_resp_context;
 	struct dma_rcv_ctx ar_req_context;
 
-	/* async transmit */
+	
 	struct dma_trm_ctx at_resp_context;
 	struct dma_trm_ctx at_req_context;
 
-        /* iso receive */
+        
 	int nb_iso_rcv_ctx;
-	unsigned long ir_ctx_usage; /* use test_and_set_bit() for atomicity */
-	unsigned long ir_multichannel_used; /* ditto */
+	unsigned long ir_ctx_usage; 
+	unsigned long ir_multichannel_used; 
         spinlock_t IR_channel_lock;
 
-        /* iso transmit */
+        
 	int nb_iso_xmit_ctx;
-	unsigned long it_ctx_usage; /* use test_and_set_bit() for atomicity */
+	unsigned long it_ctx_usage; 
 
         u64 ISO_channel_usage;
 
-        /* IEEE-1394 part follows */
+        
         struct hpsb_host *host;
 
         int phyid, isroot;
@@ -206,17 +183,16 @@ struct ti_ohci {
 
 	int self_id_errors;
 
-	/* Tasklets for iso receive and transmit, used by video1394
-	 * and dv1394 */
+	
 	struct list_head iso_tasklet_list;
 	spinlock_t iso_tasklet_list_lock;
 
-	/* Swap the selfid buffer? */
+	
 	unsigned int selfid_swap:1;
-	/* Some Apple chipset seem to swap incoming headers for us */
+	
 	unsigned int no_swap_incoming:1;
 
-	/* Force extra paranoia checking on bus-reset handling */
+	
 	unsigned int check_busreset:1;
 };
 
@@ -234,9 +210,7 @@ static inline int cross_bound(unsigned long addr, unsigned int size)
 	return 0;
 }
 
-/*
- * Register read and write helper functions.
- */
+
 static inline void reg_write(const struct ti_ohci *ohci, int offset, u32 data)
 {
         writel(data, ohci->registers + offset);
@@ -248,16 +222,16 @@ static inline u32 reg_read(const struct ti_ohci *ohci, int offset)
 }
 
 
-/* 2 KiloBytes of register space */
+
 #define OHCI1394_REGISTER_SIZE                0x800
 
-/* Offsets relative to context bases defined below */
+
 
 #define OHCI1394_ContextControlSet            0x000
 #define OHCI1394_ContextControlClear          0x004
 #define OHCI1394_ContextCommandPtr            0x00C
 
-/* register map */
+
 #define OHCI1394_Version                      0x000
 #define OHCI1394_GUID_ROM                     0x004
 #define OHCI1394_ATRetries                    0x008
@@ -344,22 +318,22 @@ static inline u32 reg_read(const struct ti_ohci *ohci, int offset)
 #define OHCI1394_AsRspRcvContextControlClear  0x1E4
 #define OHCI1394_AsRspRcvCommandPtr           0x1EC
 
-/* Isochronous transmit registers */
-/* Add (16 * n) for context n */
+
+
 #define OHCI1394_IsoXmitContextBase           0x200
 #define OHCI1394_IsoXmitContextControlSet     0x200
 #define OHCI1394_IsoXmitContextControlClear   0x204
 #define OHCI1394_IsoXmitCommandPtr            0x20C
 
-/* Isochronous receive registers */
-/* Add (32 * n) for context n */
+
+
 #define OHCI1394_IsoRcvContextBase            0x400
 #define OHCI1394_IsoRcvContextControlSet      0x400
 #define OHCI1394_IsoRcvContextControlClear    0x404
 #define OHCI1394_IsoRcvCommandPtr             0x40C
 #define OHCI1394_IsoRcvContextMatch           0x410
 
-/* Interrupts Mask/Events */
+
 
 #define OHCI1394_reqTxComplete           0x00000001
 #define OHCI1394_respTxComplete          0x00000002
@@ -383,7 +357,7 @@ static inline u32 reg_read(const struct ti_ohci *ohci, int offset)
 #define OHCI1394_phyRegRcvd              0x04000000
 #define OHCI1394_masterIntEnable         0x80000000
 
-/* DMA Control flags */
+
 #define DMA_CTL_OUTPUT_MORE              0x00000000
 #define DMA_CTL_OUTPUT_LAST              0x10000000
 #define DMA_CTL_INPUT_MORE               0x20000000
@@ -394,49 +368,29 @@ static inline u32 reg_read(const struct ti_ohci *ohci, int offset)
 #define DMA_CTL_BRANCH                   0x000c0000
 #define DMA_CTL_WAIT                     0x00030000
 
-/* OHCI evt_* error types, table 3-2 of the OHCI 1.1 spec. */
-#define EVT_NO_STATUS		0x0	/* No event status */
-#define EVT_RESERVED_A		0x1	/* Reserved, not used !!! */
-#define EVT_LONG_PACKET		0x2	/* The revc data was longer than the buf */
-#define EVT_MISSING_ACK		0x3	/* A subaction gap was detected before an ack
-					   arrived, or recv'd ack had a parity error */
-#define EVT_UNDERRUN		0x4	/* Underrun on corresponding FIFO, packet
-					   truncated */
-#define EVT_OVERRUN		0x5	/* A recv FIFO overflowed on reception of ISO
-					   packet */
-#define EVT_DESCRIPTOR_READ	0x6	/* An unrecoverable error occurred while host was
-					   reading a descriptor block */
-#define EVT_DATA_READ		0x7	/* An error occurred while host controller was
-					   attempting to read from host memory in the data
-					   stage of descriptor processing */
-#define EVT_DATA_WRITE		0x8	/* An error occurred while host controller was
-					   attempting to write either during the data stage
-					   of descriptor processing, or when processing a single
-					   16-bit host memory write */
-#define EVT_BUS_RESET		0x9	/* Identifies a PHY packet in the recv buffer as
-					   being a synthesized bus reset packet */
-#define EVT_TIMEOUT		0xa	/* Indicates that the asynchronous transmit response
-					   packet expired and was not transmitted, or that an
-					   IT DMA context experienced a skip processing overflow */
-#define EVT_TCODE_ERR		0xb	/* A bad tCode is associated with this packet.
-					   The packet was flushed */
-#define EVT_RESERVED_B		0xc	/* Reserved, not used !!! */
-#define EVT_RESERVED_C		0xd	/* Reserved, not used !!! */
-#define EVT_UNKNOWN		0xe	/* An error condition has occurred that cannot be
-					   represented by any other event codes defined herein. */
-#define EVT_FLUSHED		0xf	/* Send by the link side of output FIFO when asynchronous
-					   packets are being flushed due to a bus reset. */
+
+#define EVT_NO_STATUS		0x0	
+#define EVT_RESERVED_A		0x1	
+#define EVT_LONG_PACKET		0x2	
+#define EVT_MISSING_ACK		0x3	
+#define EVT_UNDERRUN		0x4	
+#define EVT_OVERRUN		0x5	
+#define EVT_DESCRIPTOR_READ	0x6	
+#define EVT_DATA_READ		0x7	
+#define EVT_DATA_WRITE		0x8	
+#define EVT_BUS_RESET		0x9	
+#define EVT_TIMEOUT		0xa	
+#define EVT_TCODE_ERR		0xb	
+#define EVT_RESERVED_B		0xc	
+#define EVT_RESERVED_C		0xd	
+#define EVT_UNKNOWN		0xe	
+#define EVT_FLUSHED		0xf	
 
 #define OHCI1394_TCODE_PHY               0xE
 
-/* Node offset map (phys DMA area, posted write area).
- * The value of OHCI1394_PHYS_UPPER_BOUND_PROGRAMMED may be modified but must
- * be lower than OHCI1394_MIDDLE_ADDRESS_SPACE.
- * OHCI1394_PHYS_UPPER_BOUND_FIXED and OHCI1394_MIDDLE_ADDRESS_SPACE are
- * constants given by the OHCI spec.
- */
-#define OHCI1394_PHYS_UPPER_BOUND_FIXED		0x000100000000ULL /* 4 GB */
-#define OHCI1394_PHYS_UPPER_BOUND_PROGRAMMED	0x010000000000ULL /* 1 TB */
+
+#define OHCI1394_PHYS_UPPER_BOUND_FIXED		0x000100000000ULL 
+#define OHCI1394_PHYS_UPPER_BOUND_PROGRAMMED	0x010000000000ULL 
 #define OHCI1394_MIDDLE_ADDRESS_SPACE		0xffff00000000ULL
 
 void ohci1394_init_iso_tasklet(struct ohci1394_iso_tasklet *tasklet,

@@ -1,36 +1,4 @@
-/*
- * acpi_processor.c - ACPI Processor Driver ($Revision: 71 $)
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *  Copyright (C) 2004       Dominik Brodowski <linux@brodo.de>
- *  Copyright (C) 2004  Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
- *  			- Added processor hotplug support
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *  TBD:
- *	1. Make # power states dynamic.
- *	2. Support duty_cycle values that span bit 4.
- *	3. Optimize by having scheduler determine business instead of
- *	   having us try to calculate it here.
- *	4. Need C1 timing -- must modify kernel (IRQ handler) to get this.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -148,9 +116,7 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
 	{},
 };
 
-/* --------------------------------------------------------------------------
-                                Errata Handling
-   -------------------------------------------------------------------------- */
+
 
 static int acpi_processor_errata_piix4(struct pci_dev *dev)
 {
@@ -161,9 +127,7 @@ static int acpi_processor_errata_piix4(struct pci_dev *dev)
 	if (!dev)
 		return -EINVAL;
 
-	/*
-	 * Note that 'dev' references the PIIX4 ACPI Controller.
-	 */
+	
 
 	switch (dev->revision) {
 	case 0:
@@ -185,33 +149,16 @@ static int acpi_processor_errata_piix4(struct pci_dev *dev)
 
 	switch (dev->revision) {
 
-	case 0:		/* PIIX4 A-step */
-	case 1:		/* PIIX4 B-step */
-		/*
-		 * See specification changes #13 ("Manual Throttle Duty Cycle")
-		 * and #14 ("Enabling and Disabling Manual Throttle"), plus
-		 * erratum #5 ("STPCLK# Deassertion Time") from the January
-		 * 2002 PIIX4 specification update.  Applies to only older
-		 * PIIX4 models.
-		 */
+	case 0:		
+	case 1:		
+		
 		errata.piix4.throttle = 1;
 
-	case 2:		/* PIIX4E */
-	case 3:		/* PIIX4M */
-		/*
-		 * See erratum #18 ("C3 Power State/BMIDE and Type-F DMA
-		 * Livelock") from the January 2002 PIIX4 specification update.
-		 * Applies to all PIIX4 models.
-		 */
+	case 2:		
+	case 3:		
+		
 
-		/*
-		 * BM-IDE
-		 * ------
-		 * Find the PIIX4 IDE Controller and get the Bus Master IDE
-		 * Status register address.  We'll use this later to read
-		 * each IDE controller's DMA status to make sure we catch all
-		 * DMA activity.
-		 */
+		
 		dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
 				     PCI_DEVICE_ID_INTEL_82371AB,
 				     PCI_ANY_ID, PCI_ANY_ID, NULL);
@@ -220,15 +167,7 @@ static int acpi_processor_errata_piix4(struct pci_dev *dev)
 			pci_dev_put(dev);
 		}
 
-		/*
-		 * Type-F DMA
-		 * ----------
-		 * Find the PIIX4 ISA Controller and read the Motherboard
-		 * DMA controller's status to see if Type-F (Fast) DMA mode
-		 * is enabled (bit 7) on either channel.  Note that we'll
-		 * disable C3 support if this is enabled, as some legacy
-		 * devices won't operate well if fast DMA is disabled.
-		 */
+		
 		dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
 				     PCI_DEVICE_ID_INTEL_82371AB_0,
 				     PCI_ANY_ID, PCI_ANY_ID, NULL);
@@ -262,9 +201,7 @@ static int acpi_processor_errata(struct acpi_processor *pr)
 	if (!pr)
 		return -EINVAL;
 
-	/*
-	 * PIIX4
-	 */
+	
 	dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
 			     PCI_DEVICE_ID_INTEL_82371AB_3, PCI_ANY_ID,
 			     PCI_ANY_ID, NULL);
@@ -276,14 +213,9 @@ static int acpi_processor_errata(struct acpi_processor *pr)
 	return result;
 }
 
-/* --------------------------------------------------------------------------
-                              Common ACPI processor functions
-   -------------------------------------------------------------------------- */
 
-/*
- * _PDC is required for a BIOS-OS handshake for most of the newer
- * ACPI processor features.
- */
+
+
 static int acpi_processor_set_pdc(struct acpi_processor *pr)
 {
 	struct acpi_object_list *pdc_in = pr->pdc;
@@ -293,11 +225,7 @@ static int acpi_processor_set_pdc(struct acpi_processor *pr)
 	if (!pdc_in)
 		return status;
 	if (idle_nomwait) {
-		/*
-		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-		 * mode will be disabled in the parameter of _PDC object.
-		 * Of course C1_FFH access mode will also be disabled.
-		 */
+		
 		union acpi_object *obj;
 		u32 *buffer = NULL;
 
@@ -315,9 +243,7 @@ static int acpi_processor_set_pdc(struct acpi_processor *pr)
 	return status;
 }
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc)
-   -------------------------------------------------------------------------- */
+
 
 #ifdef CONFIG_ACPI_PROCFS
 static struct proc_dir_entry *acpi_processor_dir = NULL;
@@ -365,7 +291,7 @@ static int acpi_processor_add_fs(struct acpi_device *device)
 			return -ENODEV;
 	}
 
-	/* 'info' [R] */
+	
 	entry = proc_create_data(ACPI_PROCESSOR_FILE_INFO,
 				 S_IRUGO, acpi_device_dir(device),
 				 &acpi_processor_info_fops,
@@ -373,7 +299,7 @@ static int acpi_processor_add_fs(struct acpi_device *device)
 	if (!entry)
 		return -EIO;
 
-	/* 'throttling' [R/W] */
+	
 	entry = proc_create_data(ACPI_PROCESSOR_FILE_THROTTLING,
 				 S_IFREG | S_IRUGO | S_IWUSR,
 				 acpi_device_dir(device),
@@ -382,7 +308,7 @@ static int acpi_processor_add_fs(struct acpi_device *device)
 	if (!entry)
 		return -EIO;
 
-	/* 'limit' [R/W] */
+	
 	entry = proc_create_data(ACPI_PROCESSOR_FILE_LIMIT,
 				 S_IFREG | S_IRUGO | S_IWUSR,
 				 acpi_device_dir(device),
@@ -419,7 +345,7 @@ static inline int acpi_processor_remove_fs(struct acpi_device *device)
 }
 #endif
 
-/* Use the acpiid in MADT to map cpus in case of SMP */
+
 
 #ifndef CONFIG_SMP
 static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id) { return -1; }
@@ -447,11 +373,11 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
 		(struct acpi_madt_local_x2apic *)entry;
 	u32 tmp = apic->local_apic_id;
 
-	/* Only check enabled APICs*/
+	
 	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
 		return 0;
 
-	/* Device statement declaration type */
+	
 	if (device_declaration) {
 		if (apic->uid == acpi_id)
 			goto found;
@@ -470,11 +396,11 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
 		(struct acpi_madt_local_sapic *)entry;
 	u32 tmp = (lsapic->id << 8) | lsapic->eid;
 
-	/* Only check enabled APICs*/
+	
 	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
 		return 0;
 
-	/* Device statement declaration type */
+	
 	if (device_declaration) {
 		if (entry->length < 16)
 			printk(KERN_ERR PREFIX
@@ -482,7 +408,7 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
 			    tmp);
 		else if (lsapic->uid == acpi_id)
 			goto found;
-	/* Processor statement declaration type */
+	
 	} else if (lsapic->processor_id == acpi_id)
 		goto found;
 
@@ -503,7 +429,7 @@ static int map_madt_entry(int type, u32 acpi_id)
 	entry = (unsigned long)madt;
 	madt_end = entry + madt->header.length;
 
-	/* Parse all entries looking for a match. */
+	
 
 	entry += sizeof(struct acpi_table_madt);
 	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
@@ -575,9 +501,7 @@ static int get_cpu_id(acpi_handle handle, int type, u32 acpi_id)
 }
 #endif
 
-/* --------------------------------------------------------------------------
-                                 Driver Interface
-   -------------------------------------------------------------------------- */
+
 
 static int acpi_processor_get_info(struct acpi_device *device)
 {
@@ -597,10 +521,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
 
 	acpi_processor_errata(pr);
 
-	/*
-	 * Check to see if we have bus mastering arbitration control.  This
-	 * is required for proper C3 usage (to maintain cache coherency).
-	 */
+	
 	if (acpi_gbl_FADT.pm2_control_block && acpi_gbl_FADT.pm2_control_length) {
 		pr->flags.bm_control = 1;
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
@@ -610,24 +531,17 @@ static int acpi_processor_get_info(struct acpi_device *device)
 				  "No bus mastering arbitration control\n"));
 
 	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
-		/* Declared with "Processor" statement; match ProcessorID */
+		
 		status = acpi_evaluate_object(pr->handle, NULL, NULL, &buffer);
 		if (ACPI_FAILURE(status)) {
 			printk(KERN_ERR PREFIX "Evaluating processor object\n");
 			return -ENODEV;
 		}
 
-		/*
-		 * TBD: Synch processor ID (via LAPIC/LSAPIC structures) on SMP.
-		 *      >>> 'acpi_get_processor_id(acpi_id, &id)' in
-		 *      arch/xxx/acpi.c
-		 */
+		
 		pr->acpi_id = object.processor.proc_id;
 	} else {
-		/*
-		 * Declared with "Device" statement; match _UID.
-		 * Note that we don't handle string _UIDs yet.
-		 */
+		
 		unsigned long long value;
 		status = acpi_evaluate_integer(pr->handle, METHOD_NAME__UID,
 						NULL, &value);
@@ -641,7 +555,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
 	}
 	cpu_index = get_cpu_id(pr->handle, device_declaration, pr->acpi_id);
 
-	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+	
 	if (!cpu0_initialized && (cpu_index == -1) &&
 	    (num_online_cpus() == 1)) {
 		cpu_index = 0;
@@ -651,26 +565,14 @@ static int acpi_processor_get_info(struct acpi_device *device)
 
 	pr->id = cpu_index;
 
-	/*
-	 *  Extra Processor objects may be enumerated on MP systems with
-	 *  less than the max # of CPUs. They should be ignored _iff
-	 *  they are physically not present.
-	 */
+	
 	if (pr->id == -1) {
 		if (ACPI_FAILURE
 		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
 			return -ENODEV;
 		}
 	}
-	/*
-	 * On some boxes several processors use the same processor bus id.
-	 * But they are located in different scope. For example:
-	 * \_SB.SCK0.CPU0
-	 * \_SB.SCK1.CPU0
-	 * Rename the processor device bus id. And the new bus id will be
-	 * generated as the following format:
-	 * CPU+CPU ID.
-	 */
+	
 	sprintf(acpi_device_bid(device), "CPU%X", pr->id);
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id,
 			  pr->acpi_id));
@@ -687,21 +589,11 @@ static int acpi_processor_get_info(struct acpi_device *device)
 
 		pr->pblk = object.processor.pblk_address;
 
-		/*
-		 * We don't care about error returns - we just try to mark
-		 * these reserved so that nobody else is confused into thinking
-		 * that this region might be unused..
-		 *
-		 * (In particular, allocating the IO range for Cardbus)
-		 */
+		
 		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
 	}
 
-	/*
-	 * If ACPI describes a slot number for this CPU, we can use it
-	 * ensure we get the right value in the "physical id" field
-	 * of /proc/cpuinfo
-	 */
+	
 	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
 	if (ACPI_SUCCESS(status))
 		arch_fix_phys_package_id(pr->id, object.integer.value);
@@ -792,17 +684,13 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
 
 	result = acpi_processor_get_info(device);
 	if (result) {
-		/* Processor is physically not present */
+		
 		return 0;
 	}
 
 	BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
 
-	/*
-	 * Buggy BIOS check
-	 * ACPI id of processors can be reported wrongly by the BIOS.
-	 * Don't trust it blindly
-	 */
+	
 	if (per_cpu(processor_device_array, pr->id) != NULL &&
 	    per_cpu(processor_device_array, pr->id) != device) {
 		printk(KERN_WARNING "BIOS reported wrong ACPI id "
@@ -824,7 +712,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
 		goto err_remove_fs;
 	}
 
-	/* _PDC call should be done before doing anything else (if reqd.). */
+	
 	arch_acpi_processor_init_pdc(pr);
 	acpi_processor_set_pdc(pr);
 	arch_acpi_processor_cleanup_pdc(pr);
@@ -921,9 +809,7 @@ free:
 }
 
 #ifdef CONFIG_ACPI_HOTPLUG_CPU
-/****************************************************************************
- * 	Acpi processor hotplug support 				       	    *
- ****************************************************************************/
+
 
 static int is_processor_present(acpi_handle handle)
 {
@@ -936,9 +822,7 @@ static int is_processor_present(acpi_handle handle)
 	if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_PRESENT))
 		return 1;
 
-	/*
-	 * _STA is mandatory for a processor that supports hot plug
-	 */
+	
 	if (status == AE_NOT_FOUND)
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 				"Processor does not support hot plug\n"));
@@ -1120,11 +1004,7 @@ void acpi_processor_uninstall_hotplug_notify(void)
 	unregister_hotcpu_notifier(&acpi_cpu_notifier);
 }
 
-/*
- * We keep the driver loaded even when ACPI is not running.
- * This is needed for the powernow-k8 driver, that works even without
- * ACPI, but needs symbols from this driver
- */
+
 
 static int __init acpi_processor_init(void)
 {
@@ -1145,10 +1025,7 @@ static int __init acpi_processor_init(void)
 	if (!acpi_processor_dir)
 		return -ENOMEM;
 #endif
-	/*
-	 * Check whether the system is DMI table. If yes, OSPM
-	 * should not use mwait for CPU-states.
-	 */
+	
 	dmi_check_system(processor_idle_dmi_table);
 	result = cpuidle_register_driver(&acpi_idle_driver);
 	if (result < 0)

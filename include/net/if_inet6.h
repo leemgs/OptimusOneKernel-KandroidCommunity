@@ -1,16 +1,4 @@
-/*
- *	inet6 interface/address list definitions
- *	Linux INET6 implementation 
- *
- *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>	
- *
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 
 #ifndef _NET_IF_INET6_H
 #define _NET_IF_INET6_H
@@ -18,7 +6,7 @@
 #include <net/snmp.h>
 #include <linux/ipv6.h>
 
-/* inet6_dev.if_flags */
+
 
 #define IF_RA_OTHERCONF	0x80
 #define IF_RA_MANAGED	0x40
@@ -26,7 +14,7 @@
 #define IF_RS_SENT	0x10
 #define IF_READY	0x80000000
 
-/* prefix flags */
+
 #define IF_PREFIX_ONLINK	0x01
 #define IF_PREFIX_AUTOCONF	0x02
 
@@ -47,19 +35,19 @@ struct inet6_ifaddr
 
 	__u16			scope;
 
-	unsigned long		cstamp;	/* created timestamp */
-	unsigned long		tstamp; /* updated timestamp */
+	unsigned long		cstamp;	
+	unsigned long		tstamp; 
 
 	struct timer_list	timer;
 
 	struct inet6_dev	*idev;
 	struct rt6_info		*rt;
 
-	struct inet6_ifaddr	*lst_next;      /* next addr in addr_lst */
-	struct inet6_ifaddr	*if_next;       /* next addr in inet6_dev */
+	struct inet6_ifaddr	*lst_next;      
+	struct inet6_ifaddr	*if_next;       
 
 #ifdef CONFIG_IPV6_PRIVACY
-	struct inet6_ifaddr	*tmp_next;	/* next addr in tempaddr_lst */
+	struct inet6_ifaddr	*tmp_next;	
 	struct inet6_ifaddr	*ifpub;
 	int			regen_count;
 #endif
@@ -77,7 +65,7 @@ struct ip6_sf_socklist
 #define IP6_SFLSIZE(count)	(sizeof(struct ip6_sf_socklist) + \
 	(count) * sizeof(struct in6_addr))
 
-#define IP6_SFBLOCK	10	/* allocate this many at once */
+#define IP6_SFBLOCK	10	
 
 struct ipv6_mc_socklist
 {
@@ -85,7 +73,7 @@ struct ipv6_mc_socklist
 	int			ifindex;
 	struct ipv6_mc_socklist *next;
 	rwlock_t		sflock;
-	unsigned int		sfmode;		/* MCAST_{INCLUDE,EXCLUDE} */
+	unsigned int		sfmode;		
 	struct ip6_sf_socklist	*sflist;
 };
 
@@ -93,10 +81,10 @@ struct ip6_sf_list
 {
 	struct ip6_sf_list	*sf_next;
 	struct in6_addr		sf_addr;
-	unsigned long		sf_count[2];	/* include/exclude counts */
-	unsigned char		sf_gsresp;	/* include in g & s response? */
-	unsigned char		sf_oldin;	/* change state */
-	unsigned char		sf_crcount;	/* retrans. left to send */
+	unsigned long		sf_count[2];	
+	unsigned char		sf_gsresp;	
+	unsigned char		sf_oldin;	
+	unsigned char		sf_crcount;	
 };
 
 #define MAF_TIMER_RUNNING	0x01
@@ -124,7 +112,7 @@ struct ifmcaddr6
 	unsigned long		mca_tstamp;
 };
 
-/* Anycast stuff */
+
 
 struct ipv6_ac_socklist
 {
@@ -171,8 +159,8 @@ struct inet6_dev
 	unsigned char		mc_ifc_count;
 	unsigned long		mc_v1_seen;
 	unsigned long		mc_maxdelay;
-	struct timer_list	mc_gq_timer;	/* general query timer */
-	struct timer_list	mc_ifc_timer;	/* interface change timer */
+	struct timer_list	mc_gq_timer;	
+	struct timer_list	mc_ifc_timer;	
 
 	struct ifacaddr6	*ac_list;
 	rwlock_t		lock;
@@ -190,17 +178,13 @@ struct inet6_dev
 	struct inet6_dev	*next;
 	struct ipv6_devconf	cnf;
 	struct ipv6_devstat	stats;
-	unsigned long		tstamp; /* ipv6InterfaceTable update timestamp */
+	unsigned long		tstamp; 
 	struct rcu_head		rcu;
 };
 
 static inline void ipv6_eth_mc_map(struct in6_addr *addr, char *buf)
 {
-	/*
-	 *	+-------+-------+-------+-------+-------+-------+
-	 *      |   33  |   33  | DST13 | DST14 | DST15 | DST16 |
-	 *      +-------+-------+-------+-------+-------+-------+
-	 */
+	
 
 	buf[0]= 0x33;
 	buf[1]= 0x33;
@@ -210,7 +194,7 @@ static inline void ipv6_eth_mc_map(struct in6_addr *addr, char *buf)
 
 static inline void ipv6_tr_mc_map(struct in6_addr *addr, char *buf)
 {
-	/* All nodes FF01::1, FF02::1, FF02::1:FFxx:xxxx */
+	
 
 	if (((addr->s6_addr[0] == 0xFF) &&
 	    ((addr->s6_addr[1] == 0x01) || (addr->s6_addr[1] == 0x02)) &&
@@ -234,7 +218,7 @@ static inline void ipv6_tr_mc_map(struct in6_addr *addr, char *buf)
 		buf[3]=0x00;
 		buf[4]=0x00;
 		buf[5]=0x00;
-	/* All routers FF0x::2 */
+	
 	} else if ((addr->s6_addr[0] ==0xff) &&
 		((addr->s6_addr[1] & 0xF0) == 0) &&
 		(addr->s6_addr16[1] == 0) &&
@@ -272,15 +256,15 @@ static inline void ipv6_ib_mc_map(const struct in6_addr *addr,
 {
 	unsigned char scope = broadcast[5] & 0xF;
 
-	buf[0]  = 0;		/* Reserved */
-	buf[1]  = 0xff;		/* Multicast QPN */
+	buf[0]  = 0;		
+	buf[1]  = 0xff;		
 	buf[2]  = 0xff;
 	buf[3]  = 0xff;
 	buf[4]  = 0xff;
-	buf[5]  = 0x10 | scope;	/* scope from broadcast address */
-	buf[6]  = 0x60;		/* IPv6 signature */
+	buf[5]  = 0x10 | scope;	
+	buf[6]  = 0x60;		
 	buf[7]  = 0x1b;
-	buf[8]  = broadcast[8];	/* P_Key */
+	buf[8]  = broadcast[8];	
 	buf[9]  = broadcast[9];
 	memcpy(buf + 10, addr->s6_addr + 6, 10);
 }

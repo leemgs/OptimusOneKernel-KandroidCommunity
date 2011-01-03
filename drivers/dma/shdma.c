@@ -1,21 +1,4 @@
-/*
- * Renesas SuperH DMA Engine support
- *
- * base is drivers/dma/flsdma.c
- *
- * Copyright (C) 2009 Nobuhiro Iwamatsu <iwamatsu.nobuhiro@renesas.com>
- * Copyright (C) 2009 Renesas Solutions, Inc. All rights reserved.
- * Copyright (C) 2007 Freescale Semiconductor, Inc. All rights reserved.
- *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * - DMA of SuperH does not have Hardware DMA chain mode.
- * - MAX DMA size is 16MB.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -29,20 +12,13 @@
 #include <asm/dma-sh.h>
 #include "shdma.h"
 
-/* DMA descriptor control */
+
 #define DESC_LAST	(-1)
 #define DESC_COMP	(1)
 #define DESC_NCOMP	(0)
 
 #define NR_DESCS_PER_CHANNEL 32
-/*
- * Define the default configuration for dual address memory-memory transfer.
- * The 0x400 value represents auto-request, external->external.
- *
- * And this driver set 4byte burst mode.
- * If you want to change mode, you need to change RS_DEFAULT of value.
- * (ex 1byte burst mode -> (RS_DUAL & ~TS_32)
- */
+
 #define RS_DEFAULT  (RS_DUAL)
 
 #define SH_DMAC_CHAN_BASE(id) (dma_base_addr[id])
@@ -58,15 +34,11 @@ static u32 sh_dmae_readl(struct sh_dmae_chan *sh_dc, u32 reg)
 
 static void dmae_init(struct sh_dmae_chan *sh_chan)
 {
-	u32 chcr = RS_DEFAULT; /* default is DUAL mode */
+	u32 chcr = RS_DEFAULT; 
 	sh_dmae_writel(sh_chan, chcr, CHCR);
 }
 
-/*
- * Reset DMA controller
- *
- * SH7780 has two DMAOR register
- */
+
 static void sh_dmae_ctl_stop(int id)
 {
 	unsigned short dmaor = dmaor_read_reg(id);
@@ -95,9 +67,9 @@ static int dmae_is_idle(struct sh_dmae_chan *sh_chan)
 	u32 chcr = sh_dmae_readl(sh_chan, CHCR);
 	if (chcr & CHCR_DE) {
 		if (!(chcr & CHCR_TE))
-			return -EBUSY; /* working */
+			return -EBUSY; 
 	}
-	return 0; /* waiting */
+	return 0; 
 }
 
 static inline unsigned int calc_xmit_shift(struct sh_dmae_chan *sh_chan)
@@ -133,7 +105,7 @@ static void dmae_halt(struct sh_dmae_chan *sh_chan)
 static int dmae_set_chcr(struct sh_dmae_chan *sh_chan, u32 val)
 {
 	int ret = dmae_is_idle(sh_chan);
-	/* When DMA was working, can not set data to CHCR */
+	
 	if (ret)
 		return ret;
 
@@ -157,17 +129,17 @@ static int dmae_set_dmars(struct sh_dmae_chan *sh_chan, u16 val)
 		shift = DMARS_SHIFT;
 
 	switch (sh_chan->id) {
-	/* DMARS0 */
+	
 	case 0:
 	case 1:
 		addr = SH_DMARS_BASE;
 		break;
-	/* DMARS1 */
+	
 	case 2:
 	case 3:
 		addr = (SH_DMARS_BASE + DMARS1_ADDR);
 		break;
-	/* DMARS2 */
+	
 	case 4:
 	case 5:
 		addr = (SH_DMARS_BASE + DMARS2_ADDR);
@@ -196,7 +168,7 @@ static dma_cookie_t sh_dmae_tx_submit(struct dma_async_tx_descriptor *tx)
 	if (cookie < 0)
 		cookie = 1;
 
-	/* If desc only in the case of 1 */
+	
 	if (desc->async_tx.cookie != -EBUSY)
 		desc->async_tx.cookie = cookie;
 	sh_chan->common.cookie = desc->async_tx.cookie;
@@ -265,9 +237,7 @@ static int sh_dmae_alloc_chan_resources(struct dma_chan *chan)
 	return sh_chan->descs_allocated;
 }
 
-/*
- * sh_dma_free_chan_resources - Free all resources of the channel.
- */
+
 static void sh_dmae_free_chan_resources(struct dma_chan *chan)
 {
 	struct sh_dmae_chan *sh_chan = to_sh_chan(chan);
@@ -303,7 +273,7 @@ static struct dma_async_tx_descriptor *sh_dmae_prep_memcpy(
 	sh_chan = to_sh_chan(chan);
 
 	do {
-		/* Allocate the link descriptor from DMA pool */
+		
 		new = sh_dmae_get_desc(sh_chan);
 		if (!new) {
 			dev_err(sh_chan->dev,
@@ -326,12 +296,12 @@ static struct dma_async_tx_descriptor *sh_dmae_prep_memcpy(
 		len -= copy_size;
 		dma_src += copy_size;
 		dma_dest += copy_size;
-		/* Insert the link descriptor to the LD ring */
+		
 		list_add_tail(&new->node, &first->tx_list);
 	} while (len);
 
-	new->async_tx.flags = flags; /* client is in control of this ack */
-	new->async_tx.cookie = -EBUSY; /* Last desc */
+	new->async_tx.flags = flags; 
+	new->async_tx.cookie = -EBUSY; 
 
 	return &first->async_tx;
 
@@ -341,11 +311,7 @@ err_get_desc:
 
 }
 
-/*
- * sh_chan_ld_cleanup - Clean up link descriptors
- *
- * This function clean up the ld_queue of DMA channel.
- */
+
 static void sh_dmae_chan_ld_cleanup(struct sh_dmae_chan *sh_chan)
 {
 	struct sh_desc *desc, *_desc;
@@ -355,22 +321,22 @@ static void sh_dmae_chan_ld_cleanup(struct sh_dmae_chan *sh_chan)
 		dma_async_tx_callback callback;
 		void *callback_param;
 
-		/* non send data */
+		
 		if (desc->mark == DESC_NCOMP)
 			break;
 
-		/* send data sesc */
+		
 		callback = desc->async_tx.callback;
 		callback_param = desc->async_tx.callback_param;
 
-		/* Remove from ld_queue list */
+		
 		list_splice_init(&desc->tx_list, &sh_chan->ld_free);
 
 		dev_dbg(sh_chan->dev, "link descriptor %p will be recycle.\n",
 				desc);
 
 		list_move(&desc->node, &sh_chan->ld_free);
-		/* Run the link descriptor callback function */
+		
 		if (callback) {
 			spin_unlock_bh(&sh_chan->desc_lock);
 			dev_dbg(sh_chan->dev, "link descriptor %p callback\n",
@@ -387,11 +353,11 @@ static void sh_chan_xfer_ld_queue(struct sh_dmae_chan *sh_chan)
 	struct list_head *ld_node;
 	struct sh_dmae_regs hw;
 
-	/* DMA work check */
+	
 	if (dmae_is_idle(sh_chan))
 		return;
 
-	/* Find the first un-transfer desciptor */
+	
 	for (ld_node = sh_chan->ld_queue.next;
 		(ld_node != &sh_chan->ld_queue)
 			&& (to_sh_desc(ld_node)->mark == DESC_COMP);
@@ -399,7 +365,7 @@ static void sh_chan_xfer_ld_queue(struct sh_dmae_chan *sh_chan)
 		cpu_relax();
 
 	if (ld_node != &sh_chan->ld_queue) {
-		/* Get the ld start address from ld_queue */
+		
 		hw = to_sh_desc(ld_node)->hw;
 		dmae_set_reg(sh_chan, hw);
 		dmae_start(sh_chan);
@@ -444,7 +410,7 @@ static irqreturn_t sh_dmae_interrupt(int irq, void *data)
 	u32 chcr = sh_dmae_readl(sh_chan, CHCR);
 
 	if (chcr & CHCR_TE) {
-		/* DMA stop */
+		
 		dmae_halt(sh_chan);
 
 		ret = IRQ_HANDLED;
@@ -460,7 +426,7 @@ static irqreturn_t sh_dmae_err(int irq, void *data)
 	int err = 0;
 	struct sh_dmae_device *shdev = (struct sh_dmae_device *)data;
 
-	/* IRQ Multi */
+	
 	if (shdev->pdata.mode & SHDMA_MIX_IRQ) {
 		int cnt = 0;
 		switch (irq) {
@@ -477,7 +443,7 @@ static irqreturn_t sh_dmae_err(int irq, void *data)
 			return IRQ_NONE;
 		}
 	} else {
-		/* reset dma controller */
+		
 		err = sh_dmae_rst(0);
 		if (err)
 			return err;
@@ -507,20 +473,20 @@ static void dmae_do_tasklet(unsigned long data)
 
 	if (cur_desc) {
 		switch (cur_desc->async_tx.cookie) {
-		case 0: /* other desc data */
+		case 0: 
 			break;
-		case -EBUSY: /* last desc */
+		case -EBUSY: 
 		sh_chan->completed_cookie =
 				cur_desc->async_tx.cookie;
 			break;
-		default: /* first desc ( 0 < )*/
+		default: 
 			sh_chan->completed_cookie =
 				cur_desc->async_tx.cookie - 1;
 			break;
 		}
 		cur_desc->mark = DESC_COMP;
 	}
-	/* Next desc */
+	
 	sh_chan_xfer_ld_queue(sh_chan);
 	sh_dmae_chan_ld_cleanup(sh_chan);
 }
@@ -540,7 +506,7 @@ static int __devinit sh_dmae_chan_probe(struct sh_dmae_device *shdev, int id)
 	unsigned long irqflags = IRQF_DISABLED;
 	struct sh_dmae_chan *new_sh_chan;
 
-	/* alloc channel */
+	
 	new_sh_chan = kzalloc(sizeof(struct sh_dmae_chan), GFP_KERNEL);
 	if (!new_sh_chan) {
 		dev_err(shdev->common.dev, "No free memory for allocating "
@@ -551,23 +517,23 @@ static int __devinit sh_dmae_chan_probe(struct sh_dmae_device *shdev, int id)
 	new_sh_chan->dev = shdev->common.dev;
 	new_sh_chan->id = id;
 
-	/* Init DMA tasklet */
+	
 	tasklet_init(&new_sh_chan->tasklet, dmae_do_tasklet,
 			(unsigned long)new_sh_chan);
 
-	/* Init the channel */
+	
 	dmae_init(new_sh_chan);
 
 	spin_lock_init(&new_sh_chan->desc_lock);
 
-	/* Init descripter manage list */
+	
 	INIT_LIST_HEAD(&new_sh_chan->ld_queue);
 	INIT_LIST_HEAD(&new_sh_chan->ld_free);
 
-	/* copy struct dma_device */
+	
 	new_sh_chan->common.device = &shdev->common;
 
-	/* Add the channel to DMA device channel list */
+	
 	list_add_tail(&new_sh_chan->common.device_node,
 			&shdev->common.channels);
 	shdev->common.chancnt++;
@@ -585,7 +551,7 @@ static int __devinit sh_dmae_chan_probe(struct sh_dmae_device *shdev, int id)
 	snprintf(new_sh_chan->dev_id, sizeof(new_sh_chan->dev_id),
 			"sh-dmae%d", new_sh_chan->id);
 
-	/* set up channel irq */
+	
 	err = request_irq(irq, &sh_dmae_interrupt,
 		irqflags, new_sh_chan->dev_id, new_sh_chan);
 	if (err) {
@@ -594,16 +560,16 @@ static int __devinit sh_dmae_chan_probe(struct sh_dmae_device *shdev, int id)
 		goto err_no_irq;
 	}
 
-	/* CHCR register control function */
+	
 	new_sh_chan->set_chcr = dmae_set_chcr;
-	/* DMARS register control function */
+	
 	new_sh_chan->set_dmars = dmae_set_dmars;
 
 	shdev->chan[id] = new_sh_chan;
 	return 0;
 
 err_no_irq:
-	/* remove from dmaengine device node */
+	
 	list_del(&new_sh_chan->common.device_node);
 	kfree(new_sh_chan);
 	return err;
@@ -640,7 +606,7 @@ static int __init sh_dmae_probe(struct platform_device *pdev)
 #endif
 	struct sh_dmae_device *shdev;
 
-	/* get platform data */
+	
 	if (!pdev->dev.platform_data)
 		return -ENODEV;
 
@@ -650,16 +616,16 @@ static int __init sh_dmae_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	/* platform data */
+	
 	memcpy(&shdev->pdata, pdev->dev.platform_data,
 			sizeof(struct sh_dmae_pdata));
 
-	/* reset dma controller */
+	
 	err = sh_dmae_rst(0);
 	if (err)
 		goto rst_err;
 
-	/* SH7780/85/23 has DMAOR1 */
+	
 	if (shdev->pdata.mode & SHDMA_DMAOR1) {
 		err = sh_dmae_rst(1);
 		if (err)
@@ -678,7 +644,7 @@ static int __init sh_dmae_probe(struct platform_device *pdev)
 	shdev->common.dev = &pdev->dev;
 
 #if defined(CONFIG_CPU_SH4)
-	/* Non Mix IRQ mode SH7722/SH7730 etc... */
+	
 	if (shdev->pdata.mode & SHDMA_MIX_IRQ) {
 		irqflags = IRQF_SHARED;
 		eirq[0] = DMTE0_IRQ;
@@ -697,9 +663,9 @@ static int __init sh_dmae_probe(struct platform_device *pdev)
 			goto eirq_err;
 		}
 	}
-#endif /* CONFIG_CPU_SH4 */
+#endif 
 
-	/* Create DMA Channel */
+	
 	for (cnt = 0 ; cnt < MAX_DMA_CHANNELS ; cnt++) {
 		err = sh_dmae_chan_probe(shdev, cnt);
 		if (err)
@@ -737,7 +703,7 @@ static int __exit sh_dmae_remove(struct platform_device *pdev)
 #endif
 	}
 
-	/* channel data remove */
+	
 	sh_dmae_chan_remove(shdev);
 
 	if (!(shdev->pdata.mode & SHDMA_MIX_IRQ)) {

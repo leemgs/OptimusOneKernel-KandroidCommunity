@@ -1,27 +1,4 @@
-/*
- *
-  Copyright (c) Eicon Networks, 2000.
- *
-  This source file is supplied for the use with
-  Eicon Networks range of DIVA Server Adapters.
- *
-  Eicon File Revision :    1.9
- *
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
- *
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU General Public License for more details.
- *
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #ifndef __DIVA_EICON_TRACE_IDI_IFC_H__
 #define __DIVA_EICON_TRACE_IDI_IFC_H__
 
@@ -45,8 +22,8 @@ int   SuperTraceExecuteRequest (void* AdapterHandle,
 																byte* data);
 
 typedef struct _diva_strace_path2action {
-	char               path[64]; /* Full path to variable            */
-	void*							 variable; /* Variable that will receive value */
+	char               path[64]; 
+	void*							 variable; 
 } diva_strace_path2action_t;
 
 #define DIVA_MAX_MANAGEMENT_TRANSFER_SIZE 4096
@@ -72,9 +49,7 @@ typedef struct _diva_strace_context {
 
 	byte	rc_ok;
 
-	/*
-		Initialization request state machine
-		*/
+	
 	int ChannelsTraceActive;
 	int ModemTraceActive;
 	int FaxTraceActive;
@@ -92,9 +67,7 @@ typedef struct _diva_strace_context {
 	int l1_trace;
 	int l2_trace;
 
-	/*
-		Trace\Event Enable
-		*/
+	
 	word trace_event_mask;
 	word current_trace_event_mask;
 

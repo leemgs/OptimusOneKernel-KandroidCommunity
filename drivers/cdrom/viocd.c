@@ -1,35 +1,4 @@
-/* -*- linux-c -*-
- *  drivers/cdrom/viocd.c
- *
- *  iSeries Virtual CD Rom
- *
- *  Authors: Dave Boutcher <boutcher@us.ibm.com>
- *           Ryan Arnold <ryanarn@us.ibm.com>
- *           Colin Devilbiss <devilbis@us.ibm.com>
- *           Stephen Rothwell
- *
- * (C) Copyright 2000-2004 IBM Corporation
- *
- * This program is free software;  you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) anyu later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * This routine provides access to CD ROM drives owned and managed by an
- * OS/400 partition running on the same box as this Linux partition.
- *
- * All operations are performed by sending messages back and forth to
- * the OS/400 partition.
- */
+
 
 #include <linux/major.h>
 #include <linux/blkdev.h>
@@ -56,9 +25,7 @@
 #define VIOCD_KERN_WARNING		KERN_WARNING "viocd: "
 #define VIOCD_KERN_INFO			KERN_INFO "viocd: "
 
-/*
- * Should probably make this a module parameter....sigh
- */
+
 #define VIOCD_MAX_CD	HVMAXARCHITECTEDVIRTUALCDROMS
 
 static const struct vio_error_entry viocd_err_table[] = {
@@ -77,10 +44,7 @@ static const struct vio_error_entry viocd_err_table[] = {
 	{0x0000, 0, NULL},
 };
 
-/*
- * This is the structure we use to exchange info between driver and interrupt
- * handler
- */
+
 struct viocd_waitevent {
 	struct completion	com;
 	int			rc;
@@ -88,7 +52,7 @@ struct viocd_waitevent {
 	int			changed;
 };
 
-/* this is a lookup table for the true capabilities of a device */
+
 struct capability_entry {
 	char	*type;
 	int	capability;
@@ -104,7 +68,7 @@ static struct capability_entry capability_table[] __initdata = {
 	{ NULL  , CDC_LOCK },
 };
 
-/* These are our internal structures for keeping track of devices */
+
 static int viocd_numdev;
 
 struct disk_info {
@@ -123,7 +87,7 @@ static spinlock_t viocd_reqlock;
 
 #define MAX_CD_REQ	1
 
-/* procfs support */
+
 static int proc_viocd_show(struct seq_file *m, void *v)
 {
 	int i;
@@ -239,7 +203,7 @@ static void viocd_release(struct cdrom_device_info *cdi)
 				(int)hvrc);
 }
 
-/* Send a read or write request to OS/400 */
+
 static int send_request(struct request *req)
 {
 	HvLpEvent_Rc hvrc;
@@ -317,7 +281,7 @@ static int viocd_media_changed(struct cdrom_device_info *cdi, int disc_nr)
 
 	init_completion(&we.com);
 
-	/* Send the open event to OS/400 */
+	
 	hvrc = HvCallEvent_signalLpEventFast(viopath_hostLp,
 			HvLpEvent_Type_VirtualIo,
 			viomajorsubtype_cdio | viocdcheck,
@@ -334,7 +298,7 @@ static int viocd_media_changed(struct cdrom_device_info *cdi, int disc_nr)
 
 	wait_for_completion(&we.com);
 
-	/* Check the return code.  If bad, assume no change */
+	
 	if (we.rc) {
 		const struct vio_error_entry *err =
 			vio_lookup_rc(viocd_err_table, we.sub_result);
@@ -351,13 +315,13 @@ static int viocd_lock_door(struct cdrom_device_info *cdi, int locking)
 {
 	HvLpEvent_Rc hvrc;
 	u64 device_no = DEVICE_NR((struct disk_info *)cdi->handle);
-	/* NOTE: flags is 1 or 0 so it won't overwrite the device_no */
+	
 	u64 flags = !!locking;
 	struct viocd_waitevent we;
 
 	init_completion(&we.com);
 
-	/* Send the lockdoor event to OS/400 */
+	
 	hvrc = HvCallEvent_signalLpEventFast(viopath_hostLp,
 			HvLpEvent_Type_VirtualIo,
 			viomajorsubtype_cdio | viocdlockdoor,
@@ -416,7 +380,7 @@ static int viocd_packet(struct cdrom_device_info *cdi,
 		break;
 	default:
 		if (cgc->sense) {
-			/* indicate Unknown code */
+			
 			cgc->sense->sense_key = 0x05;
 			cgc->sense->asc = 0x20;
 			cgc->sense->ascq = 0x00;
@@ -440,7 +404,7 @@ static void restart_all_queues(int first_index)
 			blk_run_queue(viocd_diskinfo[i].viocd_disk->queue);
 }
 
-/* This routine handles incoming CD LP events */
+
 static void vio_handle_cd_event(struct HvLpEvent *event)
 {
 	struct viocdlpevent *bevent;
@@ -451,9 +415,9 @@ static void vio_handle_cd_event(struct HvLpEvent *event)
 
 
 	if (event == NULL)
-		/* Notification that a partition went away! */
+		
 		return;
-	/* First, we should NEVER get an int here...only acks */
+	
 	if (hvlpevent_is_int(event)) {
 		printk(VIOCD_KERN_WARNING
 				"Yikes! got an int in viocd event handler!\n");
@@ -475,7 +439,7 @@ static void vio_handle_cd_event(struct HvLpEvent *event)
 					bevent->media_size *
 					bevent->block_size / 512);
 		}
-		/* FALLTHROUGH !! */
+		
 	case viocdlockdoor:
 		pwe = (struct viocd_waitevent *)event->xCorrelationToken;
 return_complete:
@@ -494,10 +458,7 @@ return_complete:
 
 	case viocdwrite:
 	case viocdread:
-		/*
-		 * Since this is running in interrupt mode, we need to
-		 * make sure we're not stepping on any global I/O operations
-		 */
+		
 		di = &viocd_diskinfo[bevent->disk];
 		spin_lock_irqsave(&viocd_reqlock, flags);
 		dma_unmap_single(di->dev, bevent->token, bevent->len,
@@ -518,7 +479,7 @@ return_complete:
 		} else
 			__blk_end_request_all(req, 0);
 
-		/* restart handling of incoming requests */
+		
 		spin_unlock_irqrestore(&viocd_reqlock, flags);
 		restart_all_queues(bevent->disk);
 		break;
@@ -649,10 +610,7 @@ static int viocd_remove(struct vio_dev *vdev)
 	return 0;
 }
 
-/**
- * viocd_device_table: Used by vio.c to match devices that we
- * support.
- */
+
 static struct vio_device_id viocd_device_table[] __devinitdata = {
 	{ "block", "IBM,iSeries-viocd" },
 	{ "", "" }
@@ -678,7 +636,7 @@ static int __init viocd_init(void)
 
 	if (viopath_hostLp == HvLpIndexInvalid) {
 		vio_set_hostlp();
-		/* If we don't have a host, bail out */
+		
 		if (viopath_hostLp == HvLpIndexInvalid)
 			return -ENODEV;
 	}
@@ -701,7 +659,7 @@ static int __init viocd_init(void)
 		goto out_unregister;
 	}
 
-	/* Initialize our request handler */
+	
 	vio_setHandler(viomajorsubtype_cdio, vio_handle_cd_event);
 
 	spin_lock_init(&viocd_reqlock);

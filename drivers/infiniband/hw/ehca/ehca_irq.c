@@ -1,45 +1,4 @@
-/*
- *  IBM eServer eHCA Infiniband device driver for Linux on POWER
- *
- *  Functions for EQs, NEQs and interrupts
- *
- *  Authors: Heiko J Schick <schickhj@de.ibm.com>
- *           Khadija Souissi <souissi@de.ibm.com>
- *           Hoang-Nam Nguyen <hnguyen@de.ibm.com>
- *           Joachim Fenkes <fenkes@de.ibm.com>
- *
- *  Copyright (c) 2005 IBM Corporation
- *
- *  All rights reserved.
- *
- *  This source code is distributed under a dual license of GPL v2.0 and OpenIB
- *  BSD.
- *
- * OpenIB BSD License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials
- * provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "ehca_classes.h"
 #include "ehca_irq.h"
@@ -90,11 +49,11 @@ static void print_error_data(struct ehca_shca *shca, void *data,
 	u64 resource = rblock[1];
 
 	switch (type) {
-	case 0x1: /* Queue Pair */
+	case 0x1: 
 	{
 		struct ehca_qp *qp = (struct ehca_qp *)data;
 
-		/* only print error data if AER is set */
+		
 		if (rblock[6] == 0)
 			return;
 
@@ -103,7 +62,7 @@ static void print_error_data(struct ehca_shca *shca, void *data,
 			 qp->ib_qp.qp_num, resource);
 		break;
 	}
-	case 0x4: /* Completion Queue */
+	case 0x4: 
 	{
 		struct ehca_cq *cq = (struct ehca_cq *)data;
 
@@ -144,7 +103,7 @@ int ehca_error_data(struct ehca_shca *shca, void *data,
 		goto error_data1;
 	}
 
-	/* rblock must be 4K aligned and should be 4K large */
+	
 	ret = hipz_h_error_data(shca->ipz_hca_handle,
 				resource,
 				rblock,
@@ -178,7 +137,7 @@ static void dispatch_qp_event(struct ehca_shca *shca, struct ehca_qp *qp,
 {
 	struct ib_event event;
 
-	/* PATH_MIG without the QP ever having been armed is false alarm */
+	
 	if (event_type == IB_EVENT_PATH_MIG && !qp->mig_armed)
 		return;
 
@@ -221,11 +180,7 @@ static void qp_event_callback(struct ehca_shca *shca, u64 eqe,
 	dispatch_qp_event(shca, qp, fatal && qp->ext_type == EQPT_SRQ ?
 			  IB_EVENT_SRQ_ERR : event_type);
 
-	/*
-	 * eHCA only processes one WQE at a time for SRQ base QPs,
-	 * so the last WQE has been processed as soon as the QP enters
-	 * error state.
-	 */
+	
 	if (fatal && qp->ext_type == EQPT_SRQBASE)
 		dispatch_qp_event(shca, qp, IB_EVENT_QP_LAST_WQE_REACHED);
 
@@ -262,54 +217,54 @@ static void parse_identifier(struct ehca_shca *shca, u64 eqe)
 	u8 identifier = EHCA_BMASK_GET(EQE_EE_IDENTIFIER, eqe);
 
 	switch (identifier) {
-	case 0x02: /* path migrated */
+	case 0x02: 
 		qp_event_callback(shca, eqe, IB_EVENT_PATH_MIG, 0);
 		break;
-	case 0x03: /* communication established */
+	case 0x03: 
 		qp_event_callback(shca, eqe, IB_EVENT_COMM_EST, 0);
 		break;
-	case 0x04: /* send queue drained */
+	case 0x04: 
 		qp_event_callback(shca, eqe, IB_EVENT_SQ_DRAINED, 0);
 		break;
-	case 0x05: /* QP error */
-	case 0x06: /* QP error */
+	case 0x05: 
+	case 0x06: 
 		qp_event_callback(shca, eqe, IB_EVENT_QP_FATAL, 1);
 		break;
-	case 0x07: /* CQ error */
-	case 0x08: /* CQ error */
+	case 0x07: 
+	case 0x08: 
 		cq_event_callback(shca, eqe);
 		break;
-	case 0x09: /* MRMWPTE error */
+	case 0x09: 
 		ehca_err(&shca->ib_device, "MRMWPTE error.");
 		break;
-	case 0x0A: /* port event */
+	case 0x0A: 
 		ehca_err(&shca->ib_device, "Port event.");
 		break;
-	case 0x0B: /* MR access error */
+	case 0x0B: 
 		ehca_err(&shca->ib_device, "MR access error.");
 		break;
-	case 0x0C: /* EQ error */
+	case 0x0C: 
 		ehca_err(&shca->ib_device, "EQ error.");
 		break;
-	case 0x0D: /* P/Q_Key mismatch */
+	case 0x0D: 
 		ehca_err(&shca->ib_device, "P/Q_Key mismatch.");
 		break;
-	case 0x10: /* sampling complete */
+	case 0x10: 
 		ehca_err(&shca->ib_device, "Sampling complete.");
 		break;
-	case 0x11: /* unaffiliated access error */
+	case 0x11: 
 		ehca_err(&shca->ib_device, "Unaffiliated access error.");
 		break;
-	case 0x12: /* path migrating */
+	case 0x12: 
 		ehca_err(&shca->ib_device, "Path migrating.");
 		break;
-	case 0x13: /* interface trace stopped */
+	case 0x13: 
 		ehca_err(&shca->ib_device, "Interface trace stopped.");
 		break;
-	case 0x14: /* first error capture info available */
+	case 0x14: 
 		ehca_info(&shca->ib_device, "First error capture available");
 		break;
-	case 0x15: /* SRQ limit reached */
+	case 0x15: 
 		qp_event_callback(shca, eqe, IB_EVENT_SRQ_LIMIT_REACHED, 0);
 		break;
 	default:
@@ -359,7 +314,7 @@ static void notify_port_conf_change(struct ehca_shca *shca, int port_num)
 	*old_attr = new_attr;
 }
 
-/* replay modify_qp for sqps -- return 0 if all is well, 1 if AQP1 destroyed */
+
 static int replay_modify_qp(struct ehca_sport *sport)
 {
 	int aqp1_destroyed;
@@ -387,12 +342,9 @@ static void parse_ec(struct ehca_shca *shca, u64 eqe)
 	struct ehca_sport *sport = &shca->sport[port - 1];
 
 	switch (ec) {
-	case 0x30: /* port availability change */
+	case 0x30: 
 		if (EHCA_BMASK_GET(NEQE_PORT_AVAILABILITY, eqe)) {
-			/* only replay modify_qp calls in autodetect mode;
-			 * if AQP1 was destroyed, the port is already down
-			 * again and we can drop the event.
-			 */
+			
 			if (ehca_nr_ports < 0)
 				if (replay_modify_qp(sport))
 					break;
@@ -408,10 +360,7 @@ static void parse_ec(struct ehca_shca *shca, u64 eqe)
 		}
 		break;
 	case 0x31:
-		/* port configuration change
-		 * disruptive change is caused by
-		 * LID, PKEY or SM change
-		 */
+		
 		if (EHCA_BMASK_GET(NEQE_DISRUPTIVE, eqe)) {
 			ehca_warn(&shca->ib_device, "disruptive port "
 				  "%d configuration change", port);
@@ -428,15 +377,15 @@ static void parse_ec(struct ehca_shca *shca, u64 eqe)
 		} else
 			notify_port_conf_change(shca, port);
 		break;
-	case 0x32: /* adapter malfunction */
+	case 0x32: 
 		ehca_err(&shca->ib_device, "Adapter malfunction.");
 		break;
-	case 0x33:  /* trace stopped */
+	case 0x33:  
 		ehca_err(&shca->ib_device, "Traced stopped.");
 		break;
-	case 0x34: /* util async event */
+	case 0x34: 
 		spec_event = EHCA_BMASK_GET(NEQE_SPECIFIC_EVENT, eqe);
-		if (spec_event == 0x80) /* client reregister required */
+		if (spec_event == 0x80) 
 			dispatch_port_event(shca, port,
 					    IB_EVENT_CLIENT_REREGISTER,
 					    "client reregister req.");
@@ -568,7 +517,7 @@ void ehca_process_eq(struct ehca_shca *shca, int is_irq)
 				 int_state, query_cnt);
 	}
 
-	/* read out all eqes */
+	
 	eqe_cnt = 0;
 	do {
 		u32 token;
@@ -607,16 +556,16 @@ void ehca_process_eq(struct ehca_shca *shca, int is_irq)
 	}
 	if (unlikely(eqe_cnt == EHCA_EQE_CACHE_SIZE))
 		ehca_dbg(&shca->ib_device, "too many eqes for one irq event");
-	/* enable irq for new packets */
+	
 	for (i = 0; i < eqe_cnt; i++) {
 		if (eq->eqe_cache[i].cq)
 			reset_eq_pending(eq->eqe_cache[i].cq);
 	}
-	/* check eq */
+	
 	spin_lock(&eq->spinlock);
 	eq_empty = (!ipz_eqit_eq_peek_valid(&shca->eq.ipz_queue));
 	spin_unlock(&eq->spinlock);
-	/* call completion handler for cached eqes */
+	
 	for (i = 0; i < eqe_cnt; i++)
 		if (eq->eqe_cache[i].cq) {
 			if (ehca_scaling_code)
@@ -631,7 +580,7 @@ void ehca_process_eq(struct ehca_shca *shca, int is_irq)
 			ehca_dbg(&shca->ib_device, "Got non completion event");
 			parse_identifier(shca, eq->eqe_cache[i].eqe->entry);
 		}
-	/* poll eq if not empty */
+	
 	if (eq_empty)
 		goto unlock_irq_spinlock;
 	do {

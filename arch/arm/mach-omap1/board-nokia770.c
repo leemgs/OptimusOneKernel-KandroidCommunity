@@ -1,12 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-nokia770.c
- *
- * Modified from board-generic.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -42,13 +34,11 @@
 
 static void __init omap_nokia770_init_irq(void)
 {
-	/* On Nokia 770, the SleepX signal is masked with an
-	 * MPUIO line by default.  It has to be unmasked for it
-	 * to become functional */
+	
 
-	/* SleepX mask direction */
+	
 	omap_writew((omap_readw(0xfffb5008) & ~2), 0xfffb5008);
-	/* Unmask SleepX signal */
+	
 	omap_writew((omap_readw(0xfffb5004) & ~2), 0xfffb5004);
 
 	omap1_init_common_hw();
@@ -174,7 +164,7 @@ static void hwa742_dev_init(void)
 	omapfb_set_ctrl_platform_data(&nokia770_hwa742_platform_data);
 }
 
-/* assume no Mini-AB port */
+
 
 static struct omap_usb_config nokia770_usb_config __initdata = {
 	.otg		= 1,
@@ -231,7 +221,7 @@ static void __init nokia770_mmc_init(void)
 	}
 	gpio_direction_input(NOKIA770_GPIO_MMC_SWITCH);
 
-	/* Only the second MMC controller is used */
+	
 	nokia770_mmc_data[1] = &nokia770_mmc2_data;
 	omap1_init_mmc(nokia770_mmc_data, OMAP16XX_NR_MMC);
 }
@@ -243,26 +233,13 @@ static inline void nokia770_mmc_init(void)
 #endif
 
 #if	defined(CONFIG_OMAP_DSP)
-/*
- * audio power control
- */
+
 #define	HEADPHONE_GPIO		14
 #define	AMPLIFIER_CTRL_GPIO	58
 
 static struct clk *dspxor_ck;
 static DEFINE_MUTEX(audio_pwr_lock);
-/*
- * audio_pwr_state
- * +--+-------------------------+---------------------------------------+
- * |-1|down			|power-up request -> 0			|
- * +--+-------------------------+---------------------------------------+
- * | 0|up			|power-down(1) request -> 1		|
- * |  |				|power-down(2) request -> (ignore)	|
- * +--+-------------------------+---------------------------------------+
- * | 1|up,			|power-up request -> 0			|
- * |  |received down(1) request	|power-down(2) request -> -1		|
- * +--+-------------------------+---------------------------------------+
- */
+
 static int audio_pwr_state = -1;
 
 static inline void aic23_power_up(void)
@@ -272,21 +249,19 @@ static inline void aic23_power_down(void)
 {
 }
 
-/*
- * audio_pwr_up / down should be called under audio_pwr_lock
- */
+
 static void nokia770_audio_pwr_up(void)
 {
 	clk_enable(dspxor_ck);
 
-	/* Turn on codec */
+	
 	aic23_power_up();
 
 	if (gpio_get_value(HEADPHONE_GPIO))
-		/* HP not connected, turn on amplifier */
+		
 		gpio_set_value(AMPLIFIER_CTRL_GPIO, 1);
 	else
-		/* HP connected, do not turn on amplifier */
+		
 		printk("HP connected\n");
 }
 
@@ -303,11 +278,11 @@ static DECLARE_DELAYED_WORK(codec_power_down_work, codec_delayed_power_down);
 
 static void nokia770_audio_pwr_down(void)
 {
-	/* Turn off amplifier */
+	
 	gpio_set_value(AMPLIFIER_CTRL_GPIO, 0);
 
-	/* Turn off codec: schedule delayed work */
-	schedule_delayed_work(&codec_power_down_work, HZ / 20);	/* 50ms */
+	
+	schedule_delayed_work(&codec_power_down_work, HZ / 20);	
 }
 
 static int
@@ -316,7 +291,7 @@ nokia770_audio_pwr_up_request(struct dsp_kfunc_device *kdev, int stage)
 	mutex_lock(&audio_pwr_lock);
 	if (audio_pwr_state == -1)
 		nokia770_audio_pwr_up();
-	/* force audio_pwr_state = 0, even if it was 1. */
+	
 	audio_pwr_state = 0;
 	mutex_unlock(&audio_pwr_lock);
 	return 0;
@@ -372,7 +347,7 @@ static __init int omap_dsp_init(void)
 }
 #else
 #define omap_dsp_init()		do {} while (0)
-#endif	/* CONFIG_OMAP_DSP */
+#endif	
 
 static void __init omap_nokia770_init(void)
 {

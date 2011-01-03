@@ -1,27 +1,4 @@
-/*
- * net/9p/clnt.c
- *
- * 9P Client
- *
- *  Copyright (C) 2008 by Eric Van Hensbergen <ericvh@gmail.com>
- *  Copyright (C) 2007 by Latchesar Ionkov <lucho@ionkov.net>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2
- *  as published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to:
- *  Free Software Foundation
- *  51 Franklin Street, Fifth Floor
- *  Boston, MA  02111-1301  USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/errno.h>
@@ -37,10 +14,7 @@
 #include <net/9p/transport.h>
 #include "protocol.h"
 
-/*
-  * Client Option Parsing (code inspired by NFS code)
-  *  - a little lazy - parse all client options
-  */
+
 
 enum {
 	Opt_msize,
@@ -59,13 +33,7 @@ static const match_table_t tokens = {
 static struct p9_req_t *
 p9_client_rpc(struct p9_client *c, int8_t type, const char *fmt, ...);
 
-/**
- * parse_options - parse mount options into client structure
- * @opts: options string passed from mount
- * @clnt: existing v9fs client information
- *
- * Return 0 upon success, -ERRNO upon failure
- */
+
 
 static int parse_opts(char *opts, struct p9_client *clnt)
 {
@@ -121,20 +89,7 @@ static int parse_opts(char *opts, struct p9_client *clnt)
 	return ret;
 }
 
-/**
- * p9_tag_alloc - lookup/allocate a request by tag
- * @c: client session to lookup tag within
- * @tag: numeric id for transaction
- *
- * this is a simple array lookup, but will grow the
- * request_slots as necessary to accomodate transaction
- * ids which did not previously have a slot.
- *
- * this code relies on the client spinlock to manage locks, its
- * possible we should switch to something else, but I'd rather
- * stick with something low-overhead for the common case.
- *
- */
+
 
 static struct p9_req_t *p9_tag_alloc(struct p9_client *c, u16 tag)
 {
@@ -142,13 +97,12 @@ static struct p9_req_t *p9_tag_alloc(struct p9_client *c, u16 tag)
 	int row, col;
 	struct p9_req_t *req;
 
-	/* This looks up the original request by tag so we know which
-	 * buffer to read the data into */
+	
 	tag++;
 
 	if (tag >= c->max_tag) {
 		spin_lock_irqsave(&c->lock, flags);
-		/* check again since original check was outside of lock */
+		
 		while (tag >= c->max_tag) {
 			row = (tag / P9_ROW_MAXTAG);
 			c->reqs[row] = kcalloc(P9_ROW_MAXTAG,
@@ -206,19 +160,13 @@ static struct p9_req_t *p9_tag_alloc(struct p9_client *c, u16 tag)
 	return &c->reqs[row][col];
 }
 
-/**
- * p9_tag_lookup - lookup a request by tag
- * @c: client session to lookup tag within
- * @tag: numeric id for transaction
- *
- */
+
 
 struct p9_req_t *p9_tag_lookup(struct p9_client *c, u16 tag)
 {
 	int row, col;
 
-	/* This looks up the original request by tag so we know which
-	 * buffer to read the data into */
+	
 	tag++;
 
 	BUG_ON(tag >= c->max_tag);
@@ -230,13 +178,7 @@ struct p9_req_t *p9_tag_lookup(struct p9_client *c, u16 tag)
 }
 EXPORT_SYMBOL(p9_tag_lookup);
 
-/**
- * p9_tag_init - setup tags structure and contents
- * @c:  v9fs client struct
- *
- * This initializes the tags structure for each client instance.
- *
- */
+
 
 static int p9_tag_init(struct p9_client *c)
 {
@@ -249,32 +191,26 @@ static int p9_tag_init(struct p9_client *c)
 		goto error;
 	}
 
-	p9_idpool_get(c->tagpool); /* reserve tag 0 */
+	p9_idpool_get(c->tagpool); 
 
 	c->max_tag = 0;
 error:
 	return err;
 }
 
-/**
- * p9_tag_cleanup - cleans up tags structure and reclaims resources
- * @c:  v9fs client struct
- *
- * This frees resources associated with the tags structure
- *
- */
+
 static void p9_tag_cleanup(struct p9_client *c)
 {
 	int row, col;
 
-	/* check to insure all requests are idle */
+	
 	for (row = 0; row < (c->max_tag/P9_ROW_MAXTAG); row++) {
 		for (col = 0; col < P9_ROW_MAXTAG; col++) {
 			if (c->reqs[row][col].status != REQ_STATUS_IDLE) {
 				P9_DPRINTK(P9_DEBUG_MUX,
 				  "Attempting to cleanup non-free tag %d,%d\n",
 				  row, col);
-				/* TODO: delay execution of cleanup */
+				
 				return;
 			}
 		}
@@ -283,7 +219,7 @@ static void p9_tag_cleanup(struct p9_client *c)
 	if (c->tagpool)
 		p9_idpool_destroy(c->tagpool);
 
-	/* free requests associated with tags */
+	
 	for (row = 0; row < (c->max_tag/P9_ROW_MAXTAG); row++) {
 		for (col = 0; col < P9_ROW_MAXTAG; col++) {
 			kfree(c->reqs[row][col].wq);
@@ -295,12 +231,7 @@ static void p9_tag_cleanup(struct p9_client *c)
 	c->max_tag = 0;
 }
 
-/**
- * p9_free_req - free a request and clean-up as necessary
- * c: client state
- * r: request to release
- *
- */
+
 
 static void p9_free_req(struct p9_client *c, struct p9_req_t *r)
 {
@@ -312,12 +243,7 @@ static void p9_free_req(struct p9_client *c, struct p9_req_t *r)
 		p9_idpool_put(tag, c->tagpool);
 }
 
-/**
- * p9_client_cb - call back from transport to client
- * c: client state
- * req: request received
- *
- */
+
 void p9_client_cb(struct p9_client *c, struct p9_req_t *req)
 {
 	P9_DPRINTK(P9_DEBUG_MUX, " tag %d\n", req->tc->tag);
@@ -326,14 +252,7 @@ void p9_client_cb(struct p9_client *c, struct p9_req_t *req)
 }
 EXPORT_SYMBOL(p9_client_cb);
 
-/**
- * p9_parse_header - parse header arguments out of a packet
- * @pdu: packet to parse
- * @size: size of packet
- * @type: type of request
- * @tag: tag of packet
- * @rewind: set if we need to rewind offset afterwards
- */
+
 
 int
 p9_parse_header(struct p9_fcall *pdu, int32_t *size, int8_t *type, int16_t *tag,
@@ -375,16 +294,7 @@ rewind_and_exit:
 }
 EXPORT_SYMBOL(p9_parse_header);
 
-/**
- * p9_check_errors - check 9p packet for error return and process it
- * @c: current client instance
- * @req: request to parse and check for error conditions
- *
- * returns error code if one is discovered, otherwise returns 0
- *
- * this will have to be more complicated if we have multiple
- * error packet types
- */
+
 
 static int p9_check_errors(struct p9_client *c, struct p9_req_t *req)
 {
@@ -423,17 +333,7 @@ static int p9_check_errors(struct p9_client *c, struct p9_req_t *req)
 	return err;
 }
 
-/**
- * p9_client_flush - flush (cancel) a request
- * @c: client state
- * @oldreq: request to cancel
- *
- * This sents a flush for a particular requests and links
- * the flush request to the original request.  The current
- * code only supports a single flush request although the protocol
- * allows for multiple flush requests to be sent for a single request.
- *
- */
+
 
 static int p9_client_flush(struct p9_client *c, struct p9_req_t *oldreq)
 {
@@ -452,8 +352,7 @@ static int p9_client_flush(struct p9_client *c, struct p9_req_t *oldreq)
 		return PTR_ERR(req);
 
 
-	/* if we haven't received a response for oldreq,
-	   remove it from the list. */
+	
 	spin_lock(&c->lock);
 	if (oldreq->status == REQ_STATUS_FLSH)
 		list_del(&oldreq->req_list);
@@ -463,14 +362,7 @@ static int p9_client_flush(struct p9_client *c, struct p9_req_t *oldreq)
 	return 0;
 }
 
-/**
- * p9_client_rpc - issue a request and wait for a response
- * @c: client session
- * @type: type of request
- * @fmt: protocol format string (see protocol.c)
- *
- * Returns request structure (which client must free using p9_free_req)
- */
+
 
 static struct p9_req_t *
 p9_client_rpc(struct p9_client *c, int8_t type, const char *fmt, ...)
@@ -503,7 +395,7 @@ p9_client_rpc(struct p9_client *c, int8_t type, const char *fmt, ...)
 	if (IS_ERR(req))
 		return req;
 
-	/* marshall the data */
+	
 	p9pdu_prepare(req->tc, tag, type);
 	va_start(ap, fmt);
 	err = p9pdu_vwritef(req->tc, c->dotu, fmt, ap);
@@ -535,7 +427,7 @@ p9_client_rpc(struct p9_client *c, int8_t type, const char *fmt, ...)
 		if (c->trans_mod->cancel(c, req))
 			p9_client_flush(c, req);
 
-		/* if we received the response anyway, don't signal error */
+		
 		if (req->status == REQ_STATUS_RCVD)
 			err = 0;
 	}
@@ -1214,9 +1106,9 @@ static int p9_client_statsize(struct p9_wstat *wst, int optional)
 {
 	int ret;
 
-	/* size[2] type[2] dev[4] qid[13] */
-	/* mode[4] atime[4] mtime[4] length[8]*/
-	/* name[s] uid[s] gid[s] muid[s] */
+	
+	
+	
 	ret = 2+2+4+13+4+4+4+8+2+2+2+2;
 
 	if (wst->name)
@@ -1229,7 +1121,7 @@ static int p9_client_statsize(struct p9_wstat *wst, int optional)
 		ret += strlen(wst->muid);
 
 	if (optional) {
-		ret += 2+4+4+4;	/* extension[s] n_uid[4] n_gid[4] n_muid[4] */
+		ret += 2+4+4+4;	
 		if (wst->extension)
 			ret += strlen(wst->extension);
 	}

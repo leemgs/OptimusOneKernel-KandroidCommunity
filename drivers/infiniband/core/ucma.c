@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2005-2006 Intel Corporation.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *	copyright notice, this list of conditions and the following
- *	disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *	copyright notice, this list of conditions and the following
- *	disclaimer in the documentation and/or other materials
- *	provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/completion.h>
 #include <linux/file.h>
@@ -272,12 +242,7 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
 		}
 		ctx->backlog--;
 	} else if (!ctx->uid) {
-		/*
-		 * We ignore events for new connections until userspace has set
-		 * their context.  This can only happen if an error occurs on a
-		 * new connection before the user accepts it.  This is okay,
-		 * since the accept will just fail later.
-		 */
+		
 		kfree(uevent);
 		goto out;
 	}
@@ -417,7 +382,7 @@ static void ucma_cleanup_events(struct ucma_context *ctx)
 
 		list_del(&uevent->list);
 
-		/* clear incoming connections. */
+		
 		if (uevent->resp.event == RDMA_CM_EVENT_CONNECT_REQUEST)
 			rdma_destroy_id(uevent->cm_id);
 
@@ -442,12 +407,12 @@ static int ucma_free_ctx(struct ucma_context *ctx)
 {
 	int events_reported;
 
-	/* No new events will be generated after destroying the id. */
+	
 	rdma_destroy_id(ctx->cm_id);
 
 	ucma_cleanup_multicast(ctx);
 
-	/* Cleanup events not yet reported to the user. */
+	
 	mutex_lock(&ctx->file->mut);
 	ucma_cleanup_events(ctx);
 	list_del(&ctx->list);
@@ -571,7 +536,7 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
 	case 2:
 		ib_copy_path_rec_to_user(&resp->ib_route[1],
 					 &route->path_rec[1]);
-		/* fall through */
+		
 	case 1:
 		ib_copy_path_rec_to_user(&resp->ib_route[0],
 					 &route->path_rec[0]);
@@ -993,7 +958,7 @@ out:
 
 static void ucma_lock_files(struct ucma_file *file1, struct ucma_file *file2)
 {
-	/* Acquire mutex's based on pointer comparison to prevent deadlock. */
+	
 	if (file1 < file2) {
 		mutex_lock(&file1->mut);
 		mutex_lock(&file2->mut);
@@ -1037,12 +1002,12 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
 		return -EFAULT;
 
-	/* Get current fd to protect against it being closed */
+	
 	filp = fget(cmd.fd);
 	if (!filp)
 		return -ENOENT;
 
-	/* Validate current fd and prevent destruction of id. */
+	
 	ctx = ucma_get_ctx(filp->private_data, cmd.id);
 	if (IS_ERR(ctx)) {
 		ret = PTR_ERR(ctx);
@@ -1055,10 +1020,7 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
 		goto response;
 	}
 
-	/*
-	 * Migrate events between fd's, maintaining order, and avoiding new
-	 * events being added before existing events.
-	 */
+	
 	ucma_lock_files(cur_file, new_file);
 	mutex_lock(&mut);
 
@@ -1147,14 +1109,7 @@ static unsigned int ucma_poll(struct file *filp, struct poll_table_struct *wait)
 	return mask;
 }
 
-/*
- * ucma_open() does not need the BKL:
- *
- *  - no global state is referred to;
- *  - there is no ioctl method to race against;
- *  - no further module initialization is required for open to work
- *    after the device is registered.
- */
+
 static int ucma_open(struct inode *inode, struct file *filp)
 {
 	struct ucma_file *file;

@@ -1,29 +1,4 @@
-/*
- * Endpoints (formerly known as AOX) se401 USB Camera Driver
- *
- * Copyright (c) 2000 Jeroen B. Vreeken (pe1rxq@amsat.org)
- *
- * Still somewhat based on the Linux ov511 driver.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
- * Thanks to Endpoints Inc. (www.endpoints.com) for making documentation on
- * their chipset available and supporting me while writing this driver.
- * 	- Jeroen Vreeken
- */
+
 
 static const char version[] = "0.24";
 
@@ -40,11 +15,11 @@ static int flickerless;
 static int video_nr = -1;
 
 static struct usb_device_id device_table[] = {
-	{ USB_DEVICE(0x03e8, 0x0004) },/* Endpoints/Aox SE401 */
-	{ USB_DEVICE(0x0471, 0x030b) },/* Philips PCVC665K */
-	{ USB_DEVICE(0x047d, 0x5001) },/* Kensington 67014 */
-	{ USB_DEVICE(0x047d, 0x5002) },/* Kensington 6701(5/7) */
-	{ USB_DEVICE(0x047d, 0x5003) },/* Kensington 67016 */
+	{ USB_DEVICE(0x03e8, 0x0004) },
+	{ USB_DEVICE(0x0471, 0x030b) },
+	{ USB_DEVICE(0x047d, 0x5001) },
+	{ USB_DEVICE(0x047d, 0x5002) },
+	{ USB_DEVICE(0x047d, 0x5003) },
 	{ }
 };
 
@@ -61,11 +36,7 @@ module_param(video_nr, int, 0);
 static struct usb_driver se401_driver;
 
 
-/**********************************************************************
- *
- * Memory management
- *
- **********************************************************************/
+
 static void *rvmalloc(unsigned long size)
 {
 	void *mem;
@@ -76,7 +47,7 @@ static void *rvmalloc(unsigned long size)
 	if (!mem)
 		return NULL;
 
-	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
+	memset(mem, 0, size); 
 	adr = (unsigned long) mem;
 	while (size > 0) {
 		SetPageReserved(vmalloc_to_page((void *)adr));
@@ -105,11 +76,7 @@ static void rvfree(void *mem, unsigned long size)
 
 
 
-/****************************************************************************
- *
- * se401 register read/write functions
- *
- ***************************************************************************/
+
 
 static int se401_sndctrl(int set, struct usb_se401 *se401, unsigned short req,
 			 unsigned short value, unsigned char *cp, int size)
@@ -130,10 +97,7 @@ static int se401_sndctrl(int set, struct usb_se401 *se401, unsigned short req,
 static int se401_set_feature(struct usb_se401 *se401, unsigned short selector,
 			     unsigned short param)
 {
-	/* specs say that the selector (address) should go in the value field
-	   and the param in index, but in the logs of the windows driver they do
-	   this the other way around...
-	 */
+	
 	return usb_control_msg(
 		se401->dev,
 		usb_sndctrlpipe(se401->dev, 0),
@@ -150,9 +114,7 @@ static int se401_set_feature(struct usb_se401 *se401, unsigned short selector,
 static unsigned short se401_get_feature(struct usb_se401 *se401,
 					unsigned short selector)
 {
-	/* For 'set' the selecetor should be in index, not sure if the spec is
-	   wrong here to....
-	 */
+	
 	unsigned char cp[2];
 	usb_control_msg(
 		se401->dev,
@@ -168,28 +130,24 @@ static unsigned short se401_get_feature(struct usb_se401 *se401,
 	return cp[0]+cp[1]*256;
 }
 
-/****************************************************************************
- *
- * Camera control
- *
- ***************************************************************************/
+
 
 
 static int se401_send_pict(struct usb_se401 *se401)
 {
-	/* integration time low */
+	
 	se401_set_feature(se401, HV7131_REG_TITL, se401->expose_l);
-	/* integration time mid */
+	
 	se401_set_feature(se401, HV7131_REG_TITM, se401->expose_m);
-	/* integration time mid */
+	
 	se401_set_feature(se401, HV7131_REG_TITU, se401->expose_h);
-	/* reset level value */
+	
 	se401_set_feature(se401, HV7131_REG_ARLV, se401->resetlevel);
-	/* red color gain */
+	
 	se401_set_feature(se401, HV7131_REG_ARCG, se401->rgain);
-	/* green color gain */
+	
 	se401_set_feature(se401, HV7131_REG_AGCG, se401->ggain);
-	/* blue color gain */
+	
 	se401_set_feature(se401, HV7131_REG_ABCG, se401->bgain);
 
 	return 0;
@@ -221,7 +179,7 @@ static int se401_get_pict(struct usb_se401 *se401, struct video_picture *p)
 	p->contrast = 65535;
 	p->hue = se401->rgain << 10;
 	p->palette = se401->palette;
-	p->depth = 3; /* rgb24 */
+	p->depth = 3; 
 	return 0;
 }
 
@@ -248,18 +206,13 @@ static int se401_set_pict(struct usb_se401 *se401, struct video_picture *p)
 	return 0;
 }
 
-/*
-	Hyundai have some really nice docs about this and other sensor related
-	stuff on their homepage: www.hei.co.kr
-*/
+
 static void se401_auto_resetlevel(struct usb_se401 *se401)
 {
 	unsigned int ahrc, alrc;
 	int oldreset = se401->resetlevel;
 
-	/* For some reason this normally read-only register doesn't get reset
-	   to zero after reading them just once...
-	 */
+	
 	se401_get_feature(se401, HV7131_REG_HIREFNOH);
 	se401_get_feature(se401, HV7131_REG_HIREFNOL);
 	se401_get_feature(se401, HV7131_REG_LOREFNOH);
@@ -269,7 +222,7 @@ static void se401_auto_resetlevel(struct usb_se401 *se401)
 	alrc = 256*se401_get_feature(se401, HV7131_REG_LOREFNOH) +
 	    se401_get_feature(se401, HV7131_REG_LOREFNOL);
 
-	/* Not an exact science, but it seems to work pretty well... */
+	
 	if (alrc > 10) {
 		while (alrc >= 10 && se401->resetlevel < 63) {
 			se401->resetlevel++;
@@ -287,7 +240,7 @@ static void se401_auto_resetlevel(struct usb_se401 *se401)
 	return;
 }
 
-/* irq handler for snapshot button */
+
 static void se401_button_irq(struct urb *urb)
 {
 	struct usb_se401 *se401 = urb->context;
@@ -300,12 +253,12 @@ static void se401_button_irq(struct urb *urb)
 
 	switch (urb->status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d",
 							__func__, urb->status);
 		return;
@@ -330,7 +283,7 @@ static void se401_video_irq(struct urb *urb)
 	struct usb_se401 *se401 = urb->context;
 	int length = urb->actual_length;
 
-	/* ohoh... */
+	
 	if (!se401->streaming)
 		return;
 
@@ -339,9 +292,7 @@ static void se401_video_irq(struct urb *urb)
 		return;
 	}
 
-	/* 0 sized packets happen if we are to fast, but sometimes the camera
-	   keeps sending them forever...
-	 */
+	
 	if (length && !urb->status) {
 		se401->nullpackets = 0;
 		switch (se401->scratch[se401->scratch_next].state) {
@@ -375,7 +326,7 @@ static void se401_video_irq(struct urb *urb)
 				wake_up_interruptible(&se401->wq);
 	}
 
-	/* Resubmit urb for new data */
+	
 	urb->status = 0;
 	urb->dev = se401->dev;
 	if (usb_submit_urb(urb, GFP_KERNEL))
@@ -386,16 +337,11 @@ static void se401_video_irq(struct urb *urb)
 static void se401_send_size(struct usb_se401 *se401, int width, int height)
 {
 	int i = 0;
-	int mode = 0x03; /* No compression */
+	int mode = 0x03; 
 	int sendheight = height;
 	int sendwidth = width;
 
-	/* JangGu compression can only be used with the camera supported sizes,
-	   but bayer seems to work with any size that fits on the sensor.
-	   We check if we can use compression with the current size with either
-	   4 or 16 times subcapturing, if not we use uncompressed bayer data
-	   but this will result in cutouts of the maximum size....
-	 */
+	
 	while (i < se401->sizes && !(se401->width[i] == width &&
 						se401->height[i] == height))
 		i++;
@@ -425,11 +371,7 @@ static void se401_send_size(struct usb_se401 *se401, int width, int height)
 		se401->format = FMT_JANGGU;
 }
 
-/*
-	In this function se401_send_pict is called several times,
-	for some reason (depending on the state of the sensor and the phase of
-	the moon :) doing this only in either place doesn't always work...
-*/
+
 static int se401_start_stream(struct usb_se401 *se401)
 {
 	struct urb *urb;
@@ -439,8 +381,8 @@ static int se401_start_stream(struct usb_se401 *se401)
 	se401_sndctrl(1, se401, SE401_REQ_CAMERA_POWER, 1, NULL, 0);
 	se401_sndctrl(1, se401, SE401_REQ_LED_CONTROL, 1, NULL, 0);
 
-	/* Set picture settings */
-	/* windowed + pix intg */
+	
+	
 	se401_set_feature(se401, HV7131_REG_MODE_B, 0x05);
 	se401_send_pict(se401);
 
@@ -449,7 +391,7 @@ static int se401_start_stream(struct usb_se401 *se401)
 	se401_sndctrl(1, se401, SE401_REQ_START_CONTINUOUS_CAPTURE,
 								0, NULL, 0);
 
-	/* Do some memory allocation */
+	
 	for (i = 0; i < SE401_NUMFRAMES; i++) {
 		se401->frame[i].data = se401->fbuf + i * se401->maxframesize;
 		se401->frame[i].curpix = 0;
@@ -554,11 +496,11 @@ static int se401_stop_stream(struct usb_se401 *se401)
 static int se401_set_size(struct usb_se401 *se401, int width, int height)
 {
 	int wasstreaming = se401->streaming;
-	/* Check to see if we need to change */
+	
 	if (se401->cwidth == width && se401->cheight == height)
 		return 0;
 
-	/* Check for a valid mode */
+	
 	if (!width || !height)
 		return 1;
 	if ((width & 1) || (height & 1))
@@ -568,7 +510,7 @@ static int se401_set_size(struct usb_se401 *se401, int width, int height)
 	if (height > se401->height[se401->sizes-1])
 		return 1;
 
-	/* Stop a current stream and start it again at the new size */
+	
 	if (wasstreaming)
 		se401_stop_stream(se401);
 	se401->cwidth = width;
@@ -579,17 +521,9 @@ static int se401_set_size(struct usb_se401 *se401, int width, int height)
 }
 
 
-/****************************************************************************
- *
- * Video Decoding
- *
- ***************************************************************************/
 
-/*
-	This shouldn't really be done in a v4l driver....
-	But it does make the image look a lot more usable.
-	Basically it lifts the dark pixels more than the light pixels.
-*/
+
+
 static inline void enhance_picture(unsigned char *frame, int len)
 {
 	while (len--) {
@@ -608,9 +542,7 @@ static inline void decode_JangGu_integrate(struct usb_se401 *se401, int data)
 		frame->curline += linelength;
 	}
 
-	/* First three are absolute, all others relative.
-	 * Format is rgb from right to left (mirrorred image),
-	 * we flip it to get bgr from left to right. */
+	
 	if (frame->curlinepix < 3)
 		*(frame->curline-frame->curlinepix) = 1 + data * 4;
 	else
@@ -673,7 +605,7 @@ static inline void decode_JangGu(struct usb_se401 *se401,
 	int bit_exp = 0, pix_exp = 0, frameinfo = 0, packetlength = 0, size;
 	int datapos = 0;
 
-	/* New image? */
+	
 	if (!se401->frame[se401->curframe].curpix) {
 		se401->frame[se401->curframe].curlinepix = 0;
 		se401->frame[se401->curframe].curline =
@@ -752,13 +684,13 @@ static inline void decode_bayer(struct usb_se401 *se401,
 	}
 
 	if (offset != frame->curpix) {
-		/* Regard frame as lost :( */
+		
 		frame->curpix = 0;
 		se401->error++;
 		return;
 	}
 
-	/* Check if we have to much data */
+	
 	if (frame->curpix + len > datasize)
 		len = datasize-frame->curpix;
 
@@ -826,13 +758,13 @@ static inline void decode_bayer(struct usb_se401 *se401,
 	frame->curline = curline;
 
 	if (frame->curpix >= datasize) {
-		/* Fix the top line */
+		
 		framedata += linelength;
 		for (i = 0; i < linelength; i++) {
 			framedata--;
 			*framedata = *(framedata + linelength);
 		}
-		/* Fix the left side (green is already present) */
+		
 		for (i = 0; i < se401->cheight; i++) {
 			*framedata = *(framedata + 3);
 			*(framedata + 1) = *(framedata + 4);
@@ -930,7 +862,7 @@ static void usb_se401_remove_disconnected(struct usb_se401 *se401)
 	}
 	dev_info(&se401->dev->dev, "%s disconnected", se401->camera_name);
 
-	/* Free the memory */
+	
 	kfree(se401->width);
 	kfree(se401->height);
 	kfree(se401);
@@ -938,11 +870,7 @@ static void usb_se401_remove_disconnected(struct usb_se401 *se401)
 
 
 
-/****************************************************************************
- *
- * Video4Linux
- *
- ***************************************************************************/
+
 
 
 static int se401_open(struct file *file)
@@ -1061,7 +989,7 @@ static long se401_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	{
 		struct video_window *vw = arg;
 
-		vw->x = 0;               /* FIXME */
+		vw->x = 0;               
 		vw->y = 0;
 		vw->chromakey = 0;
 		vw->flags = 0;
@@ -1093,7 +1021,7 @@ static long se401_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		if (se401->frame[vm->frame].grabstate != FRAME_UNUSED)
 			return -EBUSY;
 
-		/* Is this according to the v4l spec??? */
+		
 		if (se401_set_size(se401, vm->width, vm->height))
 			return -EINVAL;
 		se401->frame[vm->frame].grabstate = FRAME_READY;
@@ -1101,10 +1029,10 @@ static long se401_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		if (!se401->streaming)
 			se401_start_stream(se401);
 
-		/* Set the picture properties */
+		
 		if (se401->framecount == 0)
 			se401_send_pict(se401);
-		/* Calibrate the reset level after a few frames. */
+		
 		if (se401->framecount % 20 == 1)
 			se401_auto_resetlevel(se401);
 
@@ -1146,7 +1074,7 @@ static long se401_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		return -EINVAL;
 	default:
 		return -ENOIOCTLCMD;
-	} /* end switch */
+	} 
 
 	return 0;
 }
@@ -1170,7 +1098,7 @@ static ssize_t se401_read(struct file *file, char __user *buf,
 	if (realcount > se401->cwidth*se401->cheight*3)
 		realcount = se401->cwidth*se401->cheight*3;
 
-	/* Shouldn't happen: */
+	
 	if (se401->frame[0].grabstate == FRAME_GRABBING)
 		return -EBUSY;
 	se401->frame[0].grabstate = FRAME_READY;
@@ -1180,10 +1108,10 @@ static ssize_t se401_read(struct file *file, char __user *buf,
 	if (!se401->streaming)
 		se401_start_stream(se401);
 
-	/* Set the picture properties */
+	
 	if (se401->framecount == 0)
 		se401_send_pict(se401);
-	/* Calibrate the reset level after a few frames. */
+	
 	if (se401->framecount%20 == 1)
 		se401_auto_resetlevel(se401);
 
@@ -1252,7 +1180,7 @@ static struct video_device se401_template = {
 
 
 
-/***************************/
+
 static int se401_init(struct usb_se401 *se401, int button)
 {
 	int i = 0, rc;
@@ -1260,10 +1188,10 @@ static int se401_init(struct usb_se401 *se401, int button)
 	char temp[200];
 	int slen;
 
-	/* led on */
+	
 	se401_sndctrl(1, se401, SE401_REQ_LED_CONTROL, 1, NULL, 0);
 
-	/* get camera descriptor */
+	
 	rc = se401_sndctrl(0, se401, SE401_REQ_GET_CAMERA_DESCRIPTOR, 0,
 							cp, sizeof(cp));
 	if (cp[1] != 0x41) {
@@ -1303,13 +1231,13 @@ static int se401_init(struct usb_se401 *se401, int button)
 		err("Bayer format not supported!");
 		return 1;
 	}
-	/* set output mode (BAYER) */
+	
 	se401_sndctrl(1, se401, SE401_REQ_SET_OUTPUT_MODE,
 						SE401_FORMAT_BAYER, NULL, 0);
 
 	rc = se401_sndctrl(0, se401, SE401_REQ_GET_BRT, 0, cp, sizeof(cp));
 	se401->brightness = cp[0]+cp[1]*256;
-	/* some default values */
+	
 	se401->resetlevel = 0x2d;
 	se401->rgain = 0x20;
 	se401->ggain = 0x20;
@@ -1322,7 +1250,7 @@ static int se401_init(struct usb_se401 *se401, int button)
 	se401->framecount = 0;
 	se401->readcount = 0;
 
-	/* Start interrupt transfers for snapshot button */
+	
 	if (button) {
 		se401->inturb = usb_alloc_urb(0, GFP_KERNEL);
 		if (!se401->inturb) {
@@ -1344,7 +1272,7 @@ static int se401_init(struct usb_se401 *se401, int button)
 	} else
 		se401->inturb = NULL;
 
-	/* Flash the led */
+	
 	se401_sndctrl(1, se401, SE401_REQ_CAMERA_POWER, 1, NULL, 0);
 	se401_sndctrl(1, se401, SE401_REQ_LED_CONTROL, 1, NULL, 0);
 	se401_sndctrl(1, se401, SE401_REQ_CAMERA_POWER, 0, NULL, 0);
@@ -1362,13 +1290,13 @@ static int se401_probe(struct usb_interface *intf,
 	char *camera_name = NULL;
 	int button = 1;
 
-	/* We don't handle multi-config cameras */
+	
 	if (dev->descriptor.bNumConfigurations != 1)
 		return -ENODEV;
 
 	interface = &intf->cur_altsetting->desc;
 
-	/* Is it an se401? */
+	
 	if (le16_to_cpu(dev->descriptor.idVendor) ==  0x03e8 &&
 	    le16_to_cpu(dev->descriptor.idProduct) ==  0x0004) {
 		camera_name = "Endpoints/Aox SE401";
@@ -1388,13 +1316,13 @@ static int se401_probe(struct usb_interface *intf,
 	} else
 		return -ENODEV;
 
-	/* Checking vendor/product should be enough, but what the hell */
+	
 	if (interface->bInterfaceClass != 0x00)
 		return -ENODEV;
 	if (interface->bInterfaceSubClass != 0x00)
 		return -ENODEV;
 
-	/* We found one */
+	
 	dev_info(&intf->dev, "SE401 camera found: %s\n", camera_name);
 
 	se401 = kzalloc(sizeof(*se401), GFP_KERNEL);
@@ -1465,11 +1393,7 @@ static struct usb_driver se401_driver = {
 
 
 
-/****************************************************************************
- *
- *  Module routines
- *
- ***************************************************************************/
+
 
 static int __init usb_se401_init(void)
 {

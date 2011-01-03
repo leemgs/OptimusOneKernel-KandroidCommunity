@@ -1,6 +1,4 @@
-/*
- * drivers/base/node.c - basic Node class support
- */
+
 
 #include <linux/sysdev.h>
 #include <linux/module.h>
@@ -27,7 +25,7 @@ static ssize_t node_read_cpumap(struct sys_device *dev, int type, char *buf)
 	const struct cpumask *mask = cpumask_of_node(node_dev->sysdev.id);
 	int len;
 
-	/* 2008/04/07: buf currently PAGE_SIZE, need 9 chars per 32 bits. */
+	
 	BUILD_BUG_ON((NR_CPUS/32 * 9) > (PAGE_SIZE-1));
 
 	len = type?
@@ -162,7 +160,7 @@ static ssize_t node_read_distance(struct sys_device * dev,
 	int len = 0;
 	int i;
 
-	/* buf currently PAGE_SIZE, need ~4 chars per node */
+	
 	BUILD_BUG_ON(MAX_NUMNODES*4 > PAGE_SIZE/2);
 
 	for_each_online_node(i)
@@ -174,12 +172,7 @@ static ssize_t node_read_distance(struct sys_device * dev,
 static SYSDEV_ATTR(distance, S_IRUGO, node_read_distance, NULL);
 
 
-/*
- * register_node - Setup a sysfs device for a node.
- * @num - Node number to use when creating the device.
- *
- * Initialize and register the node device.
- */
+
 int register_node(struct node *node, int num, struct node *parent)
 {
 	int error;
@@ -200,13 +193,7 @@ int register_node(struct node *node, int num, struct node *parent)
 	return error;
 }
 
-/**
- * unregister_node - unregister a node device
- * @node: node going away
- *
- * Unregisters a node device @node.  All the devices on the node must be
- * unregistered before calling this function.
- */
+
 void unregister_node(struct node *node)
 {
 	sysdev_remove_file(&node->sysdev, &attr_cpumap);
@@ -222,9 +209,7 @@ void unregister_node(struct node *node)
 
 struct node node_devices[MAX_NUMNODES];
 
-/*
- * register cpu under node
- */
+
 int register_cpu_under_node(unsigned int cpu, unsigned int nid)
 {
 	if (node_online(nid)) {
@@ -265,7 +250,7 @@ static int get_nid_for_pfn(unsigned long pfn)
 	return pfn_to_nid(pfn);
 }
 
-/* register memory section under specified node if it spans that node */
+
 int register_mem_sect_under_node(struct memory_block *mem_blk, int nid)
 {
 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
@@ -288,11 +273,11 @@ int register_mem_sect_under_node(struct memory_block *mem_blk, int nid)
 					&mem_blk->sysdev.kobj,
 					kobject_name(&mem_blk->sysdev.kobj));
 	}
-	/* mem section does not span the specified node */
+	
 	return 0;
 }
 
-/* unregister memory section under all nodes that it spans */
+
 int unregister_mem_sect_under_nodes(struct memory_block *mem_blk)
 {
 	nodemask_t unlinked_nodes;
@@ -340,14 +325,14 @@ static int link_mem_sections(int nid)
 		if (!err)
 			err = ret;
 
-		/* discard ref obtained in find_memory_block() */
+		
 		kobject_put(&mem_blk->sysdev.kobj);
 	}
 	return err;
 }
 #else
 static int link_mem_sections(int nid) { return 0; }
-#endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+#endif 
 
 int register_one_node(int nid)
 {
@@ -363,13 +348,13 @@ int register_one_node(int nid)
 
 		error = register_node(&node_devices[nid], nid, parent);
 
-		/* link cpu under this node */
+		
 		for_each_present_cpu(cpu) {
 			if (cpu_to_node(cpu) == nid)
 				register_cpu_under_node(cpu, nid);
 		}
 
-		/* link memory sections under this node */
+		
 		error = link_mem_sections(nid);
 	}
 
@@ -382,9 +367,7 @@ void unregister_one_node(int nid)
 	unregister_node(&node_devices[nid]);
 }
 
-/*
- * node states attributes
- */
+
 
 static ssize_t print_nodes_state(enum node_states state, char *buf)
 {
@@ -468,10 +451,7 @@ static int __init register_node_type(void)
 	if (!ret)
 		ret = node_states_init();
 
-	/*
-	 * Note:  we're not going to unregister the node class if we fail
-	 * to register the node state class attribute files.
-	 */
+	
 	return ret;
 }
 postcore_initcall(register_node_type);

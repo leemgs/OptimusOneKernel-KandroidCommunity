@@ -1,7 +1,4 @@
-/* skb_dma_map.c: DMA mapping helpers for socket buffers.
- *
- * Copyright (C) David S. Miller <davem@davemloft.net>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>

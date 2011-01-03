@@ -1,25 +1,4 @@
-/*
- *
-  Copyright (c) Eicon Technology Corporation, 2000.
- *
-  This source file is supplied for the use with Eicon
-  Technology Corporation's range of DIVA Server Adapters.
- *
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
- *
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU General Public License for more details.
- *
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #ifndef __DIVA_DEBUG_IF_H__
 #define __DIVA_DEBUG_IF_H__
 #define MSG_TYPE_DRV_ID		0x0001
@@ -70,21 +49,19 @@ int diva_get_trace_filter (int max_length,    char*       filter);
 #define DITRACE_WRITE_SELECTIVE_TRACE_FILTER 6
 #define DITRACE_READ_SELECTIVE_TRACE_FILTER  7
 
-/*
-  Trace lavels for debug via management interface
-  */
-#define DIVA_MGT_DBG_TRACE          0x00000001 /* All trace messages from the card */
-#define DIVA_MGT_DBG_DCHAN          0x00000002 /* All D-channel relater trace messages */
-#define DIVA_MGT_DBG_MDM_PROGRESS   0x00000004 /* Modem progress events */
-#define DIVA_MGT_DBG_FAX_PROGRESS   0x00000008 /* Fax progress events */
-#define DIVA_MGT_DBG_IFC_STATISTICS 0x00000010 /* Interface call statistics */
-#define DIVA_MGT_DBG_MDM_STATISTICS 0x00000020 /* Global modem statistics   */
-#define DIVA_MGT_DBG_FAX_STATISTICS 0x00000040 /* Global call statistics    */
-#define DIVA_MGT_DBG_LINE_EVENTS    0x00000080 /* Line state events */
-#define DIVA_MGT_DBG_IFC_EVENTS     0x00000100 /* Interface/L1/L2 state events */
-#define DIVA_MGT_DBG_IFC_BCHANNEL   0x00000200 /* B-Channel trace for all channels */
-#define DIVA_MGT_DBG_IFC_AUDIO      0x00000400 /* Audio Tap trace for all channels */
 
-# endif /* DEBUG_IF___H */
+#define DIVA_MGT_DBG_TRACE          0x00000001 
+#define DIVA_MGT_DBG_DCHAN          0x00000002 
+#define DIVA_MGT_DBG_MDM_PROGRESS   0x00000004 
+#define DIVA_MGT_DBG_FAX_PROGRESS   0x00000008 
+#define DIVA_MGT_DBG_IFC_STATISTICS 0x00000010 
+#define DIVA_MGT_DBG_MDM_STATISTICS 0x00000020 
+#define DIVA_MGT_DBG_FAX_STATISTICS 0x00000040 
+#define DIVA_MGT_DBG_LINE_EVENTS    0x00000080 
+#define DIVA_MGT_DBG_IFC_EVENTS     0x00000100 
+#define DIVA_MGT_DBG_IFC_BCHANNEL   0x00000200 
+#define DIVA_MGT_DBG_IFC_AUDIO      0x00000400 
+
+# endif 
 
 

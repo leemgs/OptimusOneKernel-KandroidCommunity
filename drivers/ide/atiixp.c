@@ -1,7 +1,4 @@
-/*
- *  Copyright (C) 2003 ATI Inc. <hyu@ati.com>
- *  Copyright (C) 2004,2007 Bartlomiej Zolnierkiewicz
- */
+
 
 #include <linux/types.h>
 #include <linux/module.h>
@@ -40,13 +37,7 @@ static atiixp_ide_timing mdma_timing[] = {
 
 static DEFINE_SPINLOCK(atiixp_lock);
 
-/**
- *	atiixp_set_pio_mode	-	set host controller for PIO mode
- *	@drive: drive
- *	@pio: PIO mode number
- *
- *	Set the interface PIO mode.
- */
+
 
 static void atiixp_set_pio_mode(ide_drive_t *drive, const u8 pio)
 {
@@ -72,14 +63,7 @@ static void atiixp_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	spin_unlock_irqrestore(&atiixp_lock, flags);
 }
 
-/**
- *	atiixp_set_dma_mode	-	set host controller for DMA mode
- *	@drive: drive
- *	@speed: DMA mode
- *
- *	Set a ATIIXP host controller to the desired DMA mode.  This involves
- *	programming the right timing data into the PCI configuration space.
- */
+
 
 static void atiixp_set_dma_mode(ide_drive_t *drive, const u8 speed)
 {
@@ -138,7 +122,7 @@ static const struct ide_port_ops atiixp_port_ops = {
 };
 
 static const struct ide_port_info atiixp_pci_info[] __devinitdata = {
-	{	/* 0: IXP200/300/400/700 */
+	{	
 		.name		= DRV_NAME,
 		.enablebits	= {{0x48,0x01,0x00}, {0x48,0x08,0x00}},
 		.port_ops	= &atiixp_port_ops,
@@ -146,7 +130,7 @@ static const struct ide_port_info atiixp_pci_info[] __devinitdata = {
 		.mwdma_mask	= ATA_MWDMA2,
 		.udma_mask	= ATA_UDMA5,
 	},
-	{	/* 1: IXP600 */
+	{	
 		.name		= DRV_NAME,
 		.enablebits	= {{0x48,0x01,0x00}, {0x00,0x00,0x00}},
 		.port_ops	= &atiixp_port_ops,
@@ -157,14 +141,7 @@ static const struct ide_port_info atiixp_pci_info[] __devinitdata = {
  	},
 };
 
-/**
- *	atiixp_init_one	-	called when a ATIIXP is found
- *	@dev: the atiixp device
- *	@id: the matching pci id
- *
- *	Called when the PCI registration layer (or the IDE initialization)
- *	finds a device matching our IDE device tables.
- */
+
 
 static int __devinit atiixp_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {

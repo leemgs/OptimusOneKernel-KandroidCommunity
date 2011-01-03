@@ -1,23 +1,4 @@
-/*
-    buffer queues.
-    Copyright (C) 2003-2004  Kevin Thayer <nufan_wfk at yahoo.com>
-    Copyright (C) 2004  Chris Kennedy <c@groovy.org>
-    Copyright (C) 2005-2007  Hans Verkuil <hverkuil@xs4all.nl>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 #include "ivtv-driver.h"
 #include "ivtv-queue.h"
@@ -53,7 +34,7 @@ void ivtv_enqueue(struct ivtv_stream *s, struct ivtv_buffer *buf, struct ivtv_qu
 {
 	unsigned long flags;
 
-	/* clear the buffer if it is going to be enqueued to the free queue */
+	
 	if (q == &s->q_free) {
 		buf->bytesused = 0;
 		buf->readpos = 0;
@@ -94,7 +75,7 @@ static void ivtv_queue_move_buf(struct ivtv_stream *s, struct ivtv_queue *from,
 	from->buffers--;
 	from->length -= s->buf_size;
 	from->bytesused -= buf->bytesused - buf->readpos;
-	/* special handling for q_free */
+	
 	if (clear)
 		buf->bytesused = buf->readpos = buf->b_flags = buf->dma_xfer_cnt = 0;
 	to->buffers++;
@@ -102,23 +83,7 @@ static void ivtv_queue_move_buf(struct ivtv_stream *s, struct ivtv_queue *from,
 	to->bytesused += buf->bytesused - buf->readpos;
 }
 
-/* Move 'needed_bytes' worth of buffers from queue 'from' into queue 'to'.
-   If 'needed_bytes' == 0, then move all buffers from 'from' into 'to'.
-   If 'steal' != NULL, then buffers may also taken from that queue if
-   needed, but only if 'from' is the free queue.
 
-   The buffer is automatically cleared if it goes to the free queue. It is
-   also cleared if buffers need to be taken from the 'steal' queue and
-   the 'from' queue is the free queue.
-
-   When 'from' is q_free, then needed_bytes is compared to the total
-   available buffer length, otherwise needed_bytes is compared to the
-   bytesused value. For the 'steal' queue the total available buffer
-   length is always used.
-
-   -ENOMEM is returned if the buffers could not be obtained, 0 if all
-   buffers where obtained from the 'from' list and if non-zero then
-   the number of stolen buffers is returned. */
 int ivtv_queue_move(struct ivtv_stream *s, struct ivtv_queue *from, struct ivtv_queue *steal,
 		    struct ivtv_queue *to, int needed_bytes)
 {
@@ -145,10 +110,7 @@ int ivtv_queue_move(struct ivtv_stream *s, struct ivtv_queue *from, struct ivtv_
 		struct ivtv_buffer *buf = list_entry(steal->list.prev, struct ivtv_buffer, list);
 		u16 dma_xfer_cnt = buf->dma_xfer_cnt;
 
-		/* move buffers from the tail of the 'steal' queue to the tail of the
-		   'from' queue. Always copy all the buffers with the same dma_xfer_cnt
-		   value, this ensures that you do not end up with partial frame data
-		   if one frame is stored in multiple buffers. */
+		
 		while (dma_xfer_cnt == buf->dma_xfer_cnt) {
 			list_move_tail(steal->list.prev, &from->list);
 			rc++;
@@ -235,7 +197,7 @@ int ivtv_stream_alloc(struct ivtv_stream *s)
 		ivtv_stream_sync_for_cpu(s);
 	}
 
-	/* allocate stream buffers. Initially all buffers are in q_free. */
+	
 	for (i = 0; i < s->buffers; i++) {
 		struct ivtv_buffer *buf = kzalloc(sizeof(struct ivtv_buffer),
 						GFP_KERNEL|__GFP_NOWARN);
@@ -266,10 +228,10 @@ void ivtv_stream_free(struct ivtv_stream *s)
 {
 	struct ivtv_buffer *buf;
 
-	/* move all buffers to q_free */
+	
 	ivtv_flush_queues(s);
 
-	/* empty q_free */
+	
 	while ((buf = ivtv_dequeue(s, &s->q_free))) {
 		if (ivtv_might_use_dma(s))
 			pci_unmap_single(s->itv->pdev, buf->dma_handle,
@@ -278,7 +240,7 @@ void ivtv_stream_free(struct ivtv_stream *s)
 		kfree(buf);
 	}
 
-	/* Free SG Array/Lists */
+	
 	if (s->sg_dma != NULL) {
 		if (s->sg_handle != IVTV_DMA_UNMAPPED) {
 			pci_unmap_single(s->itv->pdev, s->sg_handle,

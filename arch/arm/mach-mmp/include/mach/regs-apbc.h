@@ -1,12 +1,4 @@
-/*
- * linux/arch/arm/mach-mmp/include/mach/regs-apbc.h
- *
- *   Application Peripheral Bus Clock Unit
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_MACH_REGS_APBC_H
 #define __ASM_MACH_REGS_APBC_H
@@ -16,9 +8,7 @@
 #define APBC_VIRT_BASE	(APB_VIRT_BASE + 0x015000)
 #define APBC_REG(x)	(APBC_VIRT_BASE + (x))
 
-/*
- * APB clock register offsets for PXA168
- */
+
 #define APBC_PXA168_UART1	APBC_REG(0x000)
 #define APBC_PXA168_UART2	APBC_REG(0x004)
 #define APBC_PXA168_GPIO	APBC_REG(0x008)
@@ -44,9 +34,7 @@
 #define APBC_PXA168_UART3	APBC_REG(0x070)
 #define APBC_PXA168_AC97	APBC_REG(0x084)
 
-/*
- * APB Clock register offsets for PXA910
- */
+
 #define APBC_PXA910_UART0	APBC_REG(0x000)
 #define APBC_PXA910_UART1	APBC_REG(0x004)
 #define APBC_PXA910_GPIO	APBC_REG(0x008)
@@ -69,12 +57,12 @@
 #define APBC_PXA910_ASFAR	APBC_REG(0x050)
 #define APBC_PXA910_ASSAR	APBC_REG(0x054)
 
-/* Common APB clock register bit definitions */
-#define APBC_APBCLK	(1 << 0)  /* APB Bus Clock Enable */
-#define APBC_FNCLK	(1 << 1)  /* Functional Clock Enable */
-#define APBC_RST	(1 << 2)  /* Reset Generation */
 
-/* Functional Clock Selection Mask */
+#define APBC_APBCLK	(1 << 0)  
+#define APBC_FNCLK	(1 << 1)  
+#define APBC_RST	(1 << 2)  
+
+
 #define APBC_FNCLKSEL(x)	(((x) & 0xf) << 4)
 
-#endif /* __ASM_MACH_REGS_APBC_H */
+#endif 

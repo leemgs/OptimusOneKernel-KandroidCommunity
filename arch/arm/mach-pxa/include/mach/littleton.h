@@ -10,4 +10,4 @@
 #define EXT0_GPIO_BASE	(NR_BUILTIN_GPIO)
 #define EXT0_GPIO(x)	(EXT0_GPIO_BASE + (x))
 
-#endif /* __ASM_ARCH_LITTLETON_H */
+#endif 

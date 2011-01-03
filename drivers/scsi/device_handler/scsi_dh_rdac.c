@@ -1,24 +1,4 @@
-/*
- * Engenio/LSI RDAC SCSI Device Handler
- *
- * Copyright (C) 2005 Mike Christie. All rights reserved.
- * Copyright (C) Chandra Seetharaman, IBM Corp. 2007
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- */
+
 #include <scsi/scsi.h>
 #include <scsi/scsi_eh.h>
 #include <scsi/scsi_dh.h>
@@ -26,27 +6,15 @@
 #define RDAC_NAME "rdac"
 #define RDAC_RETRY_COUNT 5
 
-/*
- * LSI mode page stuff
- *
- * These struct definitions and the forming of the
- * mode page were taken from the LSI RDAC 2.4 GPL'd
- * driver, and then converted to Linux conventions.
- */
+
 #define RDAC_QUIESCENCE_TIME 20;
-/*
- * Page Codes
- */
+
 #define RDAC_PAGE_CODE_REDUNDANT_CONTROLLER 0x2c
 
-/*
- * Controller modes definitions
- */
+
 #define RDAC_MODE_TRANSFER_SPECIFIED_LUNS	0x02
 
-/*
- * RDAC Options field
- */
+
 #define RDAC_FORCED_QUIESENCE 0x02
 
 #define RDAC_TIMEOUT	(60 * HZ)
@@ -101,10 +69,10 @@ struct rdac_pg_expanded {
 
 struct c9_inquiry {
 	u8	peripheral_info;
-	u8	page_code;	/* 0xC9 */
+	u8	page_code;	
 	u8	reserved1;
 	u8	page_len;
-	u8	page_id[4];	/* "vace" */
+	u8	page_id[4];	
 	u8	avte_cvp;
 	u8	path_prio;
 	u8	reserved2[38];
@@ -116,10 +84,10 @@ struct c9_inquiry {
 
 struct c4_inquiry {
 	u8	peripheral_info;
-	u8	page_code;	/* 0xC4 */
+	u8	page_code;	
 	u8	reserved1;
 	u8	page_len;
-	u8	page_id[4];	/* "subs" */
+	u8	page_id[4];	
 	u8	subsys_id[SUBSYS_ID_LEN];
 	u8	revision[4];
 	u8	slot_id[SLOT_ID_LEN];
@@ -131,7 +99,7 @@ struct rdac_controller {
 	u8			slot_id[SLOT_ID_LEN];
 	int			use_ms10;
 	struct kref		kref;
-	struct list_head	node; /* list of all controllers */
+	struct list_head	node; 
 	union			{
 		struct rdac_pg_legacy legacy;
 		struct rdac_pg_expanded expanded;
@@ -141,10 +109,10 @@ struct rdac_controller {
 };
 struct c8_inquiry {
 	u8	peripheral_info;
-	u8	page_code; /* 0xC8 */
+	u8	page_code; 
 	u8	reserved1;
 	u8	page_len;
-	u8	page_id[4]; /* "edid" */
+	u8	page_id[4]; 
 	u8	reserved2[3];
 	u8	vol_uniq_id_len;
 	u8	vol_uniq_id[16];
@@ -159,15 +127,15 @@ struct c8_inquiry {
 
 struct c2_inquiry {
 	u8	peripheral_info;
-	u8	page_code;	/* 0xC2 */
+	u8	page_code;	
 	u8	reserved1;
 	u8	page_len;
-	u8	page_id[4];	/* "swr4" */
+	u8	page_id[4];	
 	u8	sw_version[3];
 	u8	sw_date[3];
 	u8	features_enabled;
 	u8	max_lun_supported;
-	u8	partitions[239]; /* Total allocation length should be 0xFF */
+	u8	partitions[239]; 
 };
 
 struct rdac_dh_data {
@@ -201,11 +169,7 @@ static const char *lun_state[] =
 static LIST_HEAD(ctlr_list);
 static DEFINE_SPINLOCK(list_lock);
 
-/*
- * module parameter to enable rdac debug logging.
- * 2 bits for each type of logging, only two types defined for now
- * Can be enhanced if required at later point
- */
+
 static int rdac_logging = 1;
 module_param(rdac_logging, int, S_IRUGO|S_IWUSR);
 MODULE_PARM_DESC(rdac_logging, "A bit mask of rdac logging levels, "
@@ -297,12 +261,12 @@ static struct request *rdac_failover_get(struct scsi_device *sdev,
 	common->quiescence_timeout = RDAC_QUIESCENCE_TIME;
 	common->rdac_options = RDAC_FORCED_QUIESENCE;
 
-	/* get request for block layer packet command */
+	
 	rq = get_rdac_req(sdev, &h->ctlr->mode_select, data_size, WRITE);
 	if (!rq)
 		return NULL;
 
-	/* Prepare the command. */
+	
 	if (h->ctlr->use_ms10) {
 		rq->cmd[0] = MODE_SELECT_10;
 		rq->cmd[7] = data_size >> 8;
@@ -350,12 +314,12 @@ static struct rdac_controller *get_controller(u8 *subsys_id, u8 *slot_id,
 	if (!ctlr)
 		goto done;
 
-	/* initialize fields of controller */
+	
 	memcpy(ctlr->subsys_id, subsys_id, SUBSYS_ID_LEN);
 	memcpy(ctlr->slot_id, slot_id, SLOT_ID_LEN);
 	memcpy(ctlr->array_name, array_name, ARRAY_LABEL_LEN);
 
-	/* update the controller index */
+	
 	if (slot_id[1] == 0x31)
 		ctlr->index = 0;
 	else
@@ -380,7 +344,7 @@ static int submit_inquiry(struct scsi_device *sdev, int page_code,
 	if (!rq)
 		goto done;
 
-	/* Prepare the command. */
+	
 	rq->cmd[0] = INQUIRY;
 	rq->cmd[1] = 1;
 	rq->cmd[2] = page_code;
@@ -414,7 +378,7 @@ static int get_lun_info(struct scsi_device *sdev, struct rdac_dh_data *h,
 		if (inqp->page_id[0] != 'e' || inqp->page_id[1] != 'd' ||
 		    inqp->page_id[2] != 'i' || inqp->page_id[3] != 'd')
 			return SCSI_DH_NOSYS;
-		h->lun = inqp->lun[7]; /* Uses only the last byte */
+		h->lun = inqp->lun[7]; 
 
 		for(i=0; i<ARRAY_LABEL_LEN-1; ++i)
 			*(array_name+i) = inqp->array_user_label[(2*i)+1];
@@ -435,13 +399,13 @@ static int check_ownership(struct scsi_device *sdev, struct rdac_dh_data *h)
 	if (err == SCSI_DH_OK) {
 		inqp = &h->inq.c9;
 		if ((inqp->avte_cvp >> 7) == 0x1) {
-			/* LUN in AVT mode */
+			
 			sdev_printk(KERN_NOTICE, sdev,
 				    "%s: AVT mode detected\n",
 				    RDAC_NAME);
 			h->lun_state = RDAC_LUN_AVT;
 		} else if ((inqp->avte_cvp & 0x1) != 0) {
-			/* LUN was owned by the controller */
+			
 			h->lun_state = RDAC_LUN_OWNED;
 		}
 	}
@@ -477,10 +441,7 @@ static int set_mode_select(struct scsi_device *sdev, struct rdac_dh_data *h)
 	err = submit_inquiry(sdev, 0xC2, sizeof(struct c2_inquiry), h);
 	if (err == SCSI_DH_OK) {
 		inqp = &h->inq.c2;
-		/*
-		 * If more than MODE6_MAX_LUN luns are supported, use
-		 * mode select 10
-		 */
+		
 		if (inqp->max_lun_supported >= MODE6_MAX_LUN)
 			h->ctlr->use_ms10 = 1;
 		else
@@ -508,16 +469,12 @@ static int mode_select_handle_sense(struct scsi_device *sdev,
 		break;
 	case NOT_READY:
 		if (sense_hdr.asc == 0x04 && sense_hdr.ascq == 0x01)
-			/* LUN Not Ready and is in the Process of Becoming
-			 * Ready
-			 */
+			
 			err = SCSI_DH_RETRY;
 		break;
 	case ILLEGAL_REQUEST:
 		if (sense_hdr.asc == 0x91 && sense_hdr.ascq == 0x36)
-			/*
-			 * Command Lock contention
-			 */
+			
 			err = SCSI_DH_RETRY;
 		break;
 	default:
@@ -609,55 +566,35 @@ static int rdac_check_sense(struct scsi_device *sdev,
 	switch (sense_hdr->sense_key) {
 	case NOT_READY:
 		if (sense_hdr->asc == 0x04 && sense_hdr->ascq == 0x01)
-			/* LUN Not Ready - Logical Unit Not Ready and is in
-			* the process of becoming ready
-			* Just retry.
-			*/
+			
 			return ADD_TO_MLQUEUE;
 		if (sense_hdr->asc == 0x04 && sense_hdr->ascq == 0x81)
-			/* LUN Not Ready - Storage firmware incompatible
-			 * Manual code synchonisation required.
-			 *
-			 * Nothing we can do here. Try to bypass the path.
-			 */
+			
 			return SUCCESS;
 		if (sense_hdr->asc == 0x04 && sense_hdr->ascq == 0xA1)
-			/* LUN Not Ready - Quiescense in progress
-			 *
-			 * Just retry and wait.
-			 */
+			
 			return ADD_TO_MLQUEUE;
 		if (sense_hdr->asc == 0xA1  && sense_hdr->ascq == 0x02)
-			/* LUN Not Ready - Quiescense in progress
-			 * or has been achieved
-			 * Just retry.
-			 */
+			
 			return ADD_TO_MLQUEUE;
 		break;
 	case ILLEGAL_REQUEST:
 		if (sense_hdr->asc == 0x94 && sense_hdr->ascq == 0x01) {
-			/* Invalid Request - Current Logical Unit Ownership.
-			 * Controller is not the current owner of the LUN,
-			 * Fail the path, so that the other path be used.
-			 */
+			
 			h->state = RDAC_STATE_PASSIVE;
 			return SUCCESS;
 		}
 		break;
 	case UNIT_ATTENTION:
 		if (sense_hdr->asc == 0x29 && sense_hdr->ascq == 0x00)
-			/*
-			 * Power On, Reset, or Bus Device Reset, just retry.
-			 */
+			
 			return ADD_TO_MLQUEUE;
 		if (sense_hdr->asc == 0x8b && sense_hdr->ascq == 0x02)
-			/*
-			 * Quiescence in progress , just retry.
-			 */
+			
 			return ADD_TO_MLQUEUE;
 		break;
 	}
-	/* success just means we do not care what scsi-ml does */
+	
 	return SCSI_RETURN_NOT_HANDLED;
 }
 

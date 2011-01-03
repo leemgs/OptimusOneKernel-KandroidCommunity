@@ -1,27 +1,4 @@
-/*
- * Dell WMI hotkeys
- *
- * Copyright (C) 2008 Red Hat <mjg@redhat.com>
- *
- * Portions based on wistron_btns.c:
- * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
- * Copyright (C) 2005 Bernhard Rosenkraenzer <bero@arklinux.org>
- * Copyright (C) 2005 Dmitry Torokhov <dtor@mail.ru>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -41,48 +18,41 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS("wmi:"DELL_EVENT_GUID);
 
 struct key_entry {
-	char type;		/* See KE_* below */
+	char type;		
 	u16 code;
 	u16 keycode;
 };
 
 enum { KE_KEY, KE_SW, KE_IGNORE, KE_END };
 
-/*
- * Certain keys are flagged as KE_IGNORE. All of these are either
- * notifications (rather than requests for change) or are also sent
- * via the keyboard controller so should not be sent again.
- */
+
 
 static struct key_entry dell_wmi_keymap[] = {
 	{KE_KEY, 0xe045, KEY_PROG1},
 	{KE_KEY, 0xe009, KEY_EJECTCD},
 
-	/* These also contain the brightness level at offset 6 */
+	
 	{KE_KEY, 0xe006, KEY_BRIGHTNESSUP},
 	{KE_KEY, 0xe005, KEY_BRIGHTNESSDOWN},
 
-	/* Battery health status button */
+	
 	{KE_KEY, 0xe007, KEY_BATTERY},
 
-	/* This is actually for all radios. Although physically a
-	 * switch, the notification does not provide an indication of
-	 * state and so it should be reported as a key */
+	
 	{KE_KEY, 0xe008, KEY_WLAN},
 
-	/* The next device is at offset 6, the active devices are at
-	   offset 8 and the attached devices at offset 10 */
+	
 	{KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
 
 	{KE_IGNORE, 0xe00c, KEY_KBDILLUMTOGGLE},
 
-	/* BIOS error detected */
+	
 	{KE_IGNORE, 0xe00d, KEY_RESERVED},
 
-	/* Wifi Catcher */
+	
 	{KE_KEY, 0xe011, KEY_PROG2},
 
-	/* Ambient light sensor toggle */
+	
 	{KE_IGNORE, 0xe013, KEY_RESERVED},
 
 	{KE_IGNORE, 0xe020, KEY_MUTE},
@@ -170,11 +140,7 @@ static void dell_wmi_notify(u32 value, void *context)
 
 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
 		int *buffer = (int *)obj->buffer.pointer;
-		/*
-		 *  The upper bytes of the event may contain
-		 *  additional information, so mask them off for the
-		 *  scancode lookup
-		 */
+		
 		key = dell_wmi_get_entry_by_scancode(buffer[1] & 0xFFFF);
 		if (key) {
 			input_report_key(dell_wmi_input_dev, key->keycode, 1);

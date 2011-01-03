@@ -1,31 +1,4 @@
-/*
- *  linux/drivers/s390/crypto/zcrypt_api.c
- *
- *  zcrypt 2.1.0
- *
- *  Copyright (C)  2001, 2006 IBM Corporation
- *  Author(s): Robert Burroughs
- *	       Eric Rossman (edrossma@us.ibm.com)
- *	       Cornelia Huck <cornelia.huck@de.ibm.com>
- *
- *  Hotplug & misc device support: Jochen Roehrig (roehrig@de.ibm.com)
- *  Major cleanup & driver split: Martin Schwidefsky <schwidefsky@de.ibm.com>
- *				  Ralph Wuerthner <rwuerthn@de.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -41,9 +14,7 @@
 
 #include "zcrypt_api.h"
 
-/*
- * Module description.
- */
+
 MODULE_AUTHOR("IBM Corporation");
 MODULE_DESCRIPTION("Cryptographic Coprocessor interface, "
 		   "Copyright 2001, 2006 IBM Corporation");
@@ -57,9 +28,7 @@ static atomic_t zcrypt_open_count = ATOMIC_INIT(0);
 static int zcrypt_rng_device_add(void);
 static void zcrypt_rng_device_remove(void);
 
-/*
- * Device attributes common for all crypto devices.
- */
+
 static ssize_t zcrypt_type_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
@@ -103,14 +72,7 @@ static struct attribute_group zcrypt_device_attr_group = {
 	.attrs = zcrypt_device_attrs,
 };
 
-/**
- * __zcrypt_increase_preference(): Increase preference of a crypto device.
- * @zdev: Pointer the crypto device
- *
- * Move the device towards the head of the device list.
- * Need to be called while holding the zcrypt device list lock.
- * Note: cards with speed_rating of 0 are kept at the end of the list.
- */
+
 static void __zcrypt_increase_preference(struct zcrypt_device *zdev)
 {
 	struct zcrypt_device *tmp;
@@ -127,18 +89,11 @@ static void __zcrypt_increase_preference(struct zcrypt_device *zdev)
 	}
 	if (l == zdev->list.prev)
 		return;
-	/* Move zdev behind l */
+	
 	list_move(&zdev->list, l);
 }
 
-/**
- * __zcrypt_decrease_preference(): Decrease preference of a crypto device.
- * @zdev: Pointer to a crypto device.
- *
- * Move the device towards the tail of the device list.
- * Need to be called while holding the zcrypt device list lock.
- * Note: cards with speed_rating of 0 are kept at the end of the list.
- */
+
 static void __zcrypt_decrease_preference(struct zcrypt_device *zdev)
 {
 	struct zcrypt_device *tmp;
@@ -155,7 +110,7 @@ static void __zcrypt_decrease_preference(struct zcrypt_device *zdev)
 	}
 	if (l == zdev->list.next)
 		return;
-	/* Move zdev before l */
+	
 	list_move_tail(&zdev->list, l);
 }
 
@@ -206,12 +161,7 @@ void zcrypt_device_free(struct zcrypt_device *zdev)
 }
 EXPORT_SYMBOL(zcrypt_device_free);
 
-/**
- * zcrypt_device_register() - Register a crypto device.
- * @zdev: Pointer to a crypto device
- *
- * Register a crypto device. Returns 0 if successful.
- */
+
 int zcrypt_device_register(struct zcrypt_device *zdev)
 {
 	int rc;
@@ -223,7 +173,7 @@ int zcrypt_device_register(struct zcrypt_device *zdev)
 	get_device(&zdev->ap_dev->device);
 	kref_init(&zdev->refcount);
 	spin_lock_bh(&zcrypt_device_lock);
-	zdev->online = 1;	/* New devices are online by default. */
+	zdev->online = 1;	
 	list_add_tail(&zdev->list, &zcrypt_device_list);
 	__zcrypt_increase_preference(zdev);
 	zcrypt_device_count++;
@@ -249,12 +199,7 @@ out:
 }
 EXPORT_SYMBOL(zcrypt_device_register);
 
-/**
- * zcrypt_device_unregister(): Unregister a crypto device.
- * @zdev: Pointer to crypto device
- *
- * Unregister a crypto device.
- */
+
 void zcrypt_device_unregister(struct zcrypt_device *zdev)
 {
 	if (zdev->ops->rng)
@@ -270,33 +215,21 @@ void zcrypt_device_unregister(struct zcrypt_device *zdev)
 }
 EXPORT_SYMBOL(zcrypt_device_unregister);
 
-/**
- * zcrypt_read (): Not supported beyond zcrypt 1.3.1.
- *
- * This function is not supported beyond zcrypt 1.3.1.
- */
+
 static ssize_t zcrypt_read(struct file *filp, char __user *buf,
 			   size_t count, loff_t *f_pos)
 {
 	return -EPERM;
 }
 
-/**
- * zcrypt_write(): Not allowed.
- *
- * Write is is not allowed
- */
+
 static ssize_t zcrypt_write(struct file *filp, const char __user *buf,
 			    size_t count, loff_t *f_pos)
 {
 	return -EPERM;
 }
 
-/**
- * zcrypt_open(): Count number of users.
- *
- * Device open function to count number of users.
- */
+
 static int zcrypt_open(struct inode *inode, struct file *filp)
 {
 	lock_kernel();
@@ -305,20 +238,14 @@ static int zcrypt_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-/**
- * zcrypt_release(): Count number of users.
- *
- * Device close function to count number of users.
- */
+
 static int zcrypt_release(struct inode *inode, struct file *filp)
 {
 	atomic_dec(&zcrypt_open_count);
 	return 0;
 }
 
-/*
- * zcrypt ioctls.
- */
+
 static long zcrypt_rsa_modexpo(struct ica_rsa_modexpo *mex)
 {
 	struct zcrypt_device *zdev;
@@ -326,11 +253,7 @@ static long zcrypt_rsa_modexpo(struct ica_rsa_modexpo *mex)
 
 	if (mex->outputdatalength < mex->inputdatalength)
 		return -EINVAL;
-	/*
-	 * As long as outputdatalength is big enough, we can set the
-	 * outputdatalength equal to the inputdatalength, since that is the
-	 * number of bytes we will copy in any case
-	 */
+	
 	mex->outputdatalength = mex->inputdatalength;
 
 	spin_lock_bh(&zcrypt_device_lock);
@@ -372,11 +295,7 @@ static long zcrypt_rsa_crt(struct ica_rsa_modexpo_crt *crt)
 	if (crt->outputdatalength < crt->inputdatalength ||
 	    (crt->inputdatalength & 1))
 		return -EINVAL;
-	/*
-	 * As long as outputdatalength is big enough, we can set the
-	 * outputdatalength equal to the inputdatalength, since that is the
-	 * number of bytes we will copy in any case
-	 */
+	
 	crt->outputdatalength = crt->inputdatalength;
 
 	copied = 0;
@@ -389,15 +308,11 @@ static long zcrypt_rsa_crt(struct ica_rsa_modexpo_crt *crt)
 		    zdev->max_mod_size < crt->inputdatalength)
 			continue;
 		if (zdev->short_crt && crt->inputdatalength > 240) {
-			/*
-			 * Check inputdata for leading zeros for cards
-			 * that can't handle np_prime, bp_key, or
-			 * u_mult_inv > 128 bytes.
-			 */
+			
 			if (copied == 0) {
 				int len;
 				spin_unlock_bh(&zcrypt_device_lock);
-				/* len is max 256 / 2 - 120 = 8 */
+				
 				len = crt->inputdatalength / 2 - 120;
 				z1 = z2 = z3 = 0;
 				if (copy_from_user(&z1, crt->np_prime, len) ||
@@ -405,14 +320,11 @@ static long zcrypt_rsa_crt(struct ica_rsa_modexpo_crt *crt)
 				    copy_from_user(&z3, crt->u_mult_inv, len))
 					return -EFAULT;
 				copied = 1;
-				/*
-				 * We have to restart device lookup -
-				 * the device list may have changed by now.
-				 */
+				
 				goto restart;
 			}
 			if (z1 != 0ULL || z2 != 0ULL || z3 != 0ULL)
-				/* The device can't handle this request. */
+				
 				continue;
 		}
 		zcrypt_device_get(zdev);
@@ -590,11 +502,7 @@ static int zcrypt_count_type(int type)
 	return device_count;
 }
 
-/**
- * zcrypt_ica_status(): Old, depracted combi status call.
- *
- * Old, deprecated combi status call.
- */
+
 static long zcrypt_ica_status(struct file *filp, unsigned long arg)
 {
 	struct ica_z90_status *pstat;
@@ -694,11 +602,7 @@ static long zcrypt_unlocked_ioctl(struct file *filp, unsigned int cmd,
 				(int __user *) arg);
 	case Z90STAT_DOMAIN_INDEX:
 		return put_user(ap_domain_index, (int __user *) arg);
-	/*
-	 * Deprecated ioctls. Don't add another device count ioctl,
-	 * you can count them yourself in the user space with the
-	 * output of the Z90STAT_STATUS_MASK ioctl.
-	 */
+	
 	case ICAZ90STATUS:
 		return zcrypt_ica_status(filp, arg);
 	case Z90STAT_TOTALCOUNT:
@@ -726,15 +630,13 @@ static long zcrypt_unlocked_ioctl(struct file *filp, unsigned int cmd,
 		return put_user(zcrypt_count_type(ZCRYPT_CEX2A),
 				(int __user *) arg);
 	default:
-		/* unknown ioctl number */
+		
 		return -ENOIOCTLCMD;
 	}
 }
 
 #ifdef CONFIG_COMPAT
-/*
- * ioctl32 conversion routines
- */
+
 struct compat_ica_rsa_modexpo {
 	compat_uptr_t	inputdata;
 	unsigned int	inputdatalength;
@@ -883,9 +785,7 @@ static long zcrypt_compat_ioctl(struct file *filp, unsigned int cmd,
 }
 #endif
 
-/*
- * Misc device file operations.
- */
+
 static const struct file_operations zcrypt_fops = {
 	.owner		= THIS_MODULE,
 	.read		= zcrypt_read,
@@ -898,18 +798,14 @@ static const struct file_operations zcrypt_fops = {
 	.release	= zcrypt_release
 };
 
-/*
- * Misc device.
- */
+
 static struct miscdevice zcrypt_misc_device = {
 	.minor	    = MISC_DYNAMIC_MINOR,
 	.name	    = "z90crypt",
 	.fops	    = &zcrypt_fops,
 };
 
-/*
- * Deprecated /proc entry support.
- */
+
 static struct proc_dir_entry *zcrypt_entry;
 
 static int sprintcl(unsigned char *outaddr, unsigned char *addr,
@@ -989,7 +885,7 @@ static int zcrypt_status_read(char *resp_buff, char **start, off_t offset,
 
 	len = 0;
 
-	/* resp_buff is a page. Use the right half for a work area */
+	
 	workarea = resp_buff + 2000;
 	len += sprintf(resp_buff + len, "\nzcrypt version: %d.%d.%d\n",
 		ZCRYPT_VERSION, ZCRYPT_RELEASE, ZCRYPT_VARIANT);
@@ -1091,11 +987,7 @@ static int zcrypt_status_write(struct file *file, const char __user *buffer,
 		goto out;
 
 	for (j = 0; j < 64 && *ptr; ptr++) {
-		/*
-		 * '0' for no device, '1' for PCICA, '2' for PCICC,
-		 * '3' for PCIXCC_MCL2, '4' for PCIXCC_MCL3,
-		 * '5' for CEX2C and '6' for CEX2A'
-		 */
+		
 		if (*ptr >= '0' && *ptr <= '6')
 			j++;
 		else if (*ptr == 'd' || *ptr == 'D')
@@ -1119,10 +1011,7 @@ static int zcrypt_rng_data_read(struct hwrng *rng, u32 *data)
 {
 	int rc;
 
-	/*
-	 * We don't need locking here because the RNG API guarantees serialized
-	 * read method calls.
-	 */
+	
 	if (zcrypt_rng_buffer_index == 0) {
 		rc = zcrypt_rng((char *) zcrypt_rng_buffer);
 		if (rc < 0)
@@ -1177,21 +1066,17 @@ static void zcrypt_rng_device_remove(void)
 	mutex_unlock(&zcrypt_rng_mutex);
 }
 
-/**
- * zcrypt_api_init(): Module initialization.
- *
- * The module initialization code.
- */
+
 int __init zcrypt_api_init(void)
 {
 	int rc;
 
-	/* Register the request sprayer. */
+	
 	rc = misc_register(&zcrypt_misc_device);
 	if (rc < 0)
 		goto out;
 
-	/* Set up the proc file system */
+	
 	zcrypt_entry = create_proc_entry("driver/z90crypt", 0644, NULL);
 	if (!zcrypt_entry) {
 		rc = -ENOMEM;
@@ -1209,11 +1094,7 @@ out:
 	return rc;
 }
 
-/**
- * zcrypt_api_exit(): Module termination.
- *
- * The module termination code.
- */
+
 void zcrypt_api_exit(void)
 {
 	remove_proc_entry("driver/z90crypt", NULL);

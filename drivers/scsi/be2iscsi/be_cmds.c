@@ -1,19 +1,4 @@
-/**
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- * ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- */
+
 
 #include "be.h"
 #include "be_mgmt.h"
@@ -75,7 +60,7 @@ static int be_mbox_db_ready_wait(struct be_ctrl_info *ctrl)
 {
 #define long_delay 2000
 	void __iomem *db = ctrl->db + MPU_MAILBOX_DB_OFFSET;
-	int cnt = 0, wait = 5;	/* in usecs */
+	int cnt = 0, wait = 5;	
 	u32 ready;
 
 	do {
@@ -324,7 +309,7 @@ int beiscsi_cmd_cq_create(struct be_ctrl_info *ctrl,
 
 static u32 be_encoded_q_len(int q_len)
 {
-	u32 len_encoded = fls(q_len);	/* log2(len) + 1 */
+	u32 len_encoded = fls(q_len);	
 	if (len_encoded == 16)
 		len_encoded = 0;
 	return len_encoded;

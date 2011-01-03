@@ -1,12 +1,4 @@
-/*
- * net/dsa/tag_trailer.c - Trailer tag format handling
- * Copyright (c) 2008-2009 Marvell Semiconductor
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/etherdevice.h>
 #include <linux/list.h>
@@ -23,12 +15,7 @@ netdev_tx_t trailer_xmit(struct sk_buff *skb, struct net_device *dev)
 	dev->stats.tx_packets++;
 	dev->stats.tx_bytes += skb->len;
 
-	/*
-	 * We have to make sure that the trailer ends up as the very
-	 * last 4 bytes of the packet.  This means that we have to pad
-	 * the packet to the minimum ethernet frame size, if necessary,
-	 * before adding the trailer.
-	 */
+	
 	padlen = 0;
 	if (skb->len < 60)
 		padlen = 60 - skb->len;

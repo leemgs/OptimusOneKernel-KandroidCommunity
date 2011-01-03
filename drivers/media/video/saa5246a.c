@@ -1,42 +1,4 @@
-/*
- * Driver for the SAA5246A or SAA5281 Teletext (=Videotext) decoder chips from
- * Philips.
- *
- * Only capturing of Teletext pages is tested. The videotext chips also have a
- * TV output but my hardware doesn't use it. For this reason this driver does
- * not support changing any TV display settings.
- *
- * Copyright (C) 2004 Michael Geng <linux@MichaelGeng.de>
- *
- * Derived from
- *
- * saa5249 driver
- * Copyright (C) 1998 Richard Guenther
- * <richard.guenther@student.uni-tuebingen.de>
- *
- * with changes by
- * Alan Cox <alan@lxorguk.ukuu.org.uk>
- *
- * and
- *
- * vtx.c
- * Copyright (C) 1994-97 Martin Buck  <martin-2.buck@student.uni-ulm.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
- * USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -55,36 +17,34 @@ MODULE_AUTHOR("Michael Geng <linux@MichaelGeng.de>");
 MODULE_DESCRIPTION("Philips SAA5246A, SAA5281 Teletext decoder driver");
 MODULE_LICENSE("GPL");
 
-#define MAJOR_VERSION 1		/* driver major version number */
-#define MINOR_VERSION 8		/* driver minor version number */
+#define MAJOR_VERSION 1		
+#define MINOR_VERSION 8		
 
-/* Number of DAUs = number of pages that can be searched at the same time. */
+
 #define NUM_DAUS 4
 
 #define NUM_ROWS_PER_PAGE 40
 
-/* first column is 0 (not 1) */
+
 #define POS_TIME_START 32
 #define POS_TIME_END 39
 
 #define POS_HEADER_START 7
 #define POS_HEADER_END 31
 
-/* Returns 'true' if the part of the videotext page described with req contains
-   (at least parts of) the time field */
+
 #define REQ_CONTAINS_TIME(p_req) \
 	((p_req)->start <= POS_TIME_END && \
 	 (p_req)->end   >= POS_TIME_START)
 
-/* Returns 'true' if the part of the videotext page described with req contains
-   (at least parts of) the page header */
+
 #define REQ_CONTAINS_HEADER(p_req) \
 	((p_req)->start <= POS_HEADER_END && \
 	 (p_req)->end   >= POS_HEADER_START)
 
-/*****************************************************************************/
-/* Mode register numbers of the SAA5246A				     */
-/*****************************************************************************/
+
+
+
 #define SAA5246A_REGISTER_R0    0
 #define SAA5246A_REGISTER_R1    1
 #define SAA5246A_REGISTER_R2    2
@@ -99,15 +59,13 @@ MODULE_LICENSE("GPL");
 #define SAA5246A_REGISTER_R11  11
 #define SAA5246A_REGISTER_R11B 11
 
-/* SAA5246A mode registers often autoincrement to the next register.
-   Therefore we use variable argument lists. The following macro indicates
-   the end of a command list. */
+
 #define COMMAND_END (-1)
 
-/*****************************************************************************/
-/* Contents of the mode registers of the SAA5246A			     */
-/*****************************************************************************/
-/* Register R0 (Advanced Control) */
+
+
+
+
 #define R0_SELECT_R11					   0x00
 #define R0_SELECT_R11B					   0x01
 
@@ -129,7 +87,7 @@ MODULE_LICENSE("GPL");
 #define R0_NO_AUTOMATIC_FASTEXT_PROMPT			   0x00
 #define R0_AUTOMATIC_FASTEXT_PROMPT			   0x80
 
-/* Register R1 (Mode) */
+
 #define R1_INTERLACED_312_AND_HALF_312_AND_HALF_LINES	   0x00
 #define R1_NON_INTERLACED_312_313_LINES			   0x01
 #define R1_NON_INTERLACED_312_312_LINES			   0x02
@@ -151,7 +109,7 @@ MODULE_LICENSE("GPL");
 #define R1_VCS_TO_SCS					   0x00
 #define R1_NO_VCS_TO_SCS				   0x80
 
-/* Register R2 (Page request address) */
+
 #define R2_IN_R3_SELECT_PAGE_HUNDREDS			   0x00
 #define R2_IN_R3_SELECT_PAGE_TENS			   0x01
 #define R2_IN_R3_SELECT_PAGE_UNITS			   0x02
@@ -171,7 +129,7 @@ MODULE_LICENSE("GPL");
 #define R2_HAMMING_CHECK_ON				   0x80
 #define R2_HAMMING_CHECK_OFF				   0x00
 
-/* Register R3 (Page request data) */
+
 #define R3_PAGE_HUNDREDS_0				   0x00
 #define R3_PAGE_HUNDREDS_1				   0x01
 #define R3_PAGE_HUNDREDS_2				   0x02
@@ -205,7 +163,7 @@ MODULE_LICENSE("GPL");
 #define R3_MINUTES_UNITS_DO_NOT_CARE			   0x00
 #define R3_MINUTES_UNITS_DO_CARE			   0x10
 
-/* Register R4 (Display chapter) */
+
 #define R4_DISPLAY_PAGE_0				   0x00
 #define R4_DISPLAY_PAGE_1				   0x01
 #define R4_DISPLAY_PAGE_2				   0x02
@@ -215,7 +173,7 @@ MODULE_LICENSE("GPL");
 #define R4_DISPLAY_PAGE_6				   0x06
 #define R4_DISPLAY_PAGE_7				   0x07
 
-/* Register R5 (Normal display control) */
+
 #define R5_PICTURE_INSIDE_BOXING_OFF			   0x00
 #define R5_PICTURE_INSIDE_BOXING_ON			   0x01
 
@@ -240,7 +198,7 @@ MODULE_LICENSE("GPL");
 #define R5_BACKGROUND_COLOR_OUTSIDE_BOXING_OFF		   0x00
 #define R5_BACKGROUND_COLOR_OUTSIDE_BOXING_ON		   0x80
 
-/* Register R6 (Newsflash display) */
+
 #define R6_NEWSFLASH_PICTURE_INSIDE_BOXING_OFF		   0x00
 #define R6_NEWSFLASH_PICTURE_INSIDE_BOXING_ON		   0x01
 
@@ -265,7 +223,7 @@ MODULE_LICENSE("GPL");
 #define R6_NEWSFLASH_BACKGROUND_COLOR_OUTSIDE_BOXING_OFF   0x00
 #define R6_NEWSFLASH_BACKGROUND_COLOR_OUTSIDE_BOXING_ON    0x80
 
-/* Register R7 (Display mode) */
+
 #define R7_BOX_OFF_ROW_0				   0x00
 #define R7_BOX_ON_ROW_0					   0x01
 
@@ -290,7 +248,7 @@ MODULE_LICENSE("GPL");
 #define R7_STATUS_BOTTOM				   0x00
 #define R7_STATUS_TOP					   0x80
 
-/* Register R8 (Active chapter) */
+
 #define R8_ACTIVE_CHAPTER_0				   0x00
 #define R8_ACTIVE_CHAPTER_1				   0x01
 #define R8_ACTIVE_CHAPTER_2				   0x02
@@ -303,20 +261,20 @@ MODULE_LICENSE("GPL");
 #define R8_CLEAR_MEMORY					   0x08
 #define R8_DO_NOT_CLEAR_MEMORY				   0x00
 
-/* Register R9 (Curser row) */
+
 #define R9_CURSER_ROW_0					   0x00
 #define R9_CURSER_ROW_1					   0x01
 #define R9_CURSER_ROW_2					   0x02
 #define R9_CURSER_ROW_25				   0x19
 
-/* Register R10 (Curser column) */
+
 #define R10_CURSER_COLUMN_0				   0x00
 #define R10_CURSER_COLUMN_6				   0x06
 #define R10_CURSER_COLUMN_8				   0x08
 
-/*****************************************************************************/
-/* Row 25 control data in column 0 to 9					     */
-/*****************************************************************************/
+
+
+
 #define ROW25_COLUMN0_PAGE_UNITS			   0x0F
 
 #define ROW25_COLUMN1_PAGE_TENS				   0x0F
@@ -347,37 +305,26 @@ MODULE_LICENSE("GPL");
 
 #define ROW25_COLUMN0_TO_7_HAMMING_ERROR		   0x10
 
-/*****************************************************************************/
-/* Helper macros for extracting page, hour and minute digits		     */
-/*****************************************************************************/
-/* BYTE_POS  0 is at row 0, column 0,
-   BYTE_POS  1 is at row 0, column 1,
-   BYTE_POS 40 is at row 1, column 0, (with NUM_ROWS_PER_PAGE = 40)
-   BYTE_POS 41 is at row 1, column 1, (with NUM_ROWS_PER_PAGE = 40),
-   ... */
+
+
+
+
 #define ROW(BYTE_POS)    (BYTE_POS / NUM_ROWS_PER_PAGE)
 #define COLUMN(BYTE_POS) (BYTE_POS % NUM_ROWS_PER_PAGE)
 
-/*****************************************************************************/
-/* Helper macros for extracting page, hour and minute digits		     */
-/*****************************************************************************/
-/* Macros for extracting hundreds, tens and units of a page number which
-   must be in the range 0 ... 0x799.
-   Note that page is coded in hexadecimal, i.e. 0x123 means page 123.
-   page 0x.. means page 8.. */
+
+
+
+
 #define HUNDREDS_OF_PAGE(page) (((page) / 0x100) & 0x7)
 #define TENS_OF_PAGE(page)     (((page) / 0x10)  & 0xF)
 #define UNITS_OF_PAGE(page)     ((page) & 0xF)
 
-/* Macros for extracting tens and units of a hour information which
-   must be in the range 0 ... 0x24.
-   Note that hour is coded in hexadecimal, i.e. 0x12 means 12 hours */
+
 #define TENS_OF_HOUR(hour)  ((hour) / 0x10)
 #define UNITS_OF_HOUR(hour) ((hour) & 0xF)
 
-/* Macros for extracting tens and units of a minute information which
-   must be in the range 0 ... 0x59.
-   Note that minute is coded in hexadecimal, i.e. 0x12 means 12 minutes */
+
 #define TENS_OF_MINUTE(minute)  ((minute) / 0x10)
 #define UNITS_OF_MINUTE(minute) ((minute) & 0xF)
 
@@ -401,11 +348,9 @@ static inline struct saa5246a_device *to_dev(struct v4l2_subdev *sd)
 	return container_of(sd, struct saa5246a_device, sd);
 }
 
-static struct video_device saa_template;	/* Declared near bottom */
+static struct video_device saa_template;	
 
-/*
- *	I2C interfaces
- */
+
 
 static int i2c_sendbuf(struct saa5246a_device *t, int reg, int count, u8 *data)
 {
@@ -435,12 +380,7 @@ static int i2c_senddata(struct saa5246a_device *t, ...)
 	return i2c_sendbuf(t, buf[0], ct-1, buf+1);
 }
 
-/* Get count number of bytes from I²C-device at address adr, store them in buf.
- * Start & stop handshaking is done by this routine, ack will be sent after the
- * last byte to inhibit further sending of data. If uaccess is 'true', data is
- * written to user-space with put_user. Returns -1 if I²C-device didn't send
- * acknowledge, 0 otherwise
- */
+
 static int i2c_getdata(struct saa5246a_device *t, int count, u8 *buf)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
@@ -450,13 +390,7 @@ static int i2c_getdata(struct saa5246a_device *t, int count, u8 *buf)
 	return 0;
 }
 
-/* When a page is found then the not FOUND bit in one of the status registers
- * of the SAA5264A chip is cleared. Unfortunately this bit is not set
- * automatically when a new page is requested. Instead this function must be
- * called after a page has been requested.
- *
- * Return value: 0 if successful
- */
+
 static int saa5246a_clear_found_bit(struct saa5246a_device *t,
 	unsigned char dau_no)
 {
@@ -496,11 +430,7 @@ static int saa5246a_clear_found_bit(struct saa5246a_device *t,
 	return 0;
 }
 
-/* Requests one videotext page as described in req. The fields of req are
- * checked and an error is returned if something is invalid.
- *
- * Return value: 0 if successful
- */
+
 static int saa5246a_request_page(struct saa5246a_device *t,
     vtx_pagereq_t *req)
 {
@@ -583,13 +513,7 @@ static int saa5246a_request_page(struct saa5246a_device *t,
 	return 0;
 }
 
-/* This routine decodes the page number from the infobits contained in line 25.
- *
- * Parameters:
- * infobits: must be bits 0 to 9 of column 25
- *
- * Return value: page number coded in hexadecimal, i. e. page 123 is coded 0x123
- */
+
 static inline int saa5246a_extract_pagenum_from_infobits(
     unsigned char infobits[10])
 {
@@ -599,20 +523,14 @@ static inline int saa5246a_extract_pagenum_from_infobits(
 	page_tens     = infobits[1] & ROW25_COLUMN1_PAGE_TENS;
 	page_hundreds = infobits[8] & ROW25_COLUMN8_PAGE_HUNDREDS;
 
-	/* page 0x.. means page 8.. */
+	
 	if (page_hundreds == 0)
 		page_hundreds = 8;
 
 	return((page_hundreds << 8) | (page_tens << 4) | page_units);
 }
 
-/* Decodes the hour from the infobits contained in line 25.
- *
- * Parameters:
- * infobits: must be bits 0 to 9 of column 25
- *
- * Return: hour coded in hexadecimal, i. e. 12h is coded 0x12
- */
+
 static inline int saa5246a_extract_hour_from_infobits(
     unsigned char infobits[10])
 {
@@ -624,13 +542,7 @@ static inline int saa5246a_extract_hour_from_infobits(
 	return((hour_tens << 4) | hour_units);
 }
 
-/* Decodes the minutes from the infobits contained in line 25.
- *
- * Parameters:
- * infobits: must be bits 0 to 9 of column 25
- *
- * Return: minutes coded in hexadecimal, i. e. 10min is coded 0x10
- */
+
 static inline int saa5246a_extract_minutes_from_infobits(
     unsigned char infobits[10])
 {
@@ -642,11 +554,7 @@ static inline int saa5246a_extract_minutes_from_infobits(
 	return((minutes_tens << 4) | minutes_units);
 }
 
-/* Reads the status bits contained in the first 10 columns of the first line
- * and extracts the information into info.
- *
- * Return value: 0 if successful
- */
+
 static inline int saa5246a_get_status(struct saa5246a_device *t,
     vtx_pageinfo_t *info, unsigned char dau_no)
 {
@@ -697,13 +605,7 @@ static inline int saa5246a_get_status(struct saa5246a_device *t,
 	return 0;
 }
 
-/* Reads 1 videotext page buffer of the SAA5246A.
- *
- * req is used both as input and as output. It contains information which part
- * must be read. The videotext page is copied into req->buffer.
- *
- * Return value: 0 if successful
- */
+
 static inline int saa5246a_get_page(struct saa5246a_device *t,
 	vtx_pagereq_t *req)
 {
@@ -719,7 +621,7 @@ static inline int saa5246a_get_page(struct saa5246a_device *t,
 	if (!buf)
 		return -ENOMEM;
 
-	/* Read "normal" part of page */
+	
 	err = -EIO;
 
 	end = min(req->end, VTX_PAGESIZE - 1);
@@ -733,9 +635,7 @@ static inline int saa5246a_get_page(struct saa5246a_device *t,
 	if (copy_to_user(req->buffer, buf, end - req->start + 1))
 		goto out;
 
-	/* Always get the time from buffer 4, since this stupid SAA5246A only
-	 * updates the currently displayed buffer...
-	 */
+	
 	if (REQ_CONTAINS_TIME(req)) {
 		start = max(req->start, POS_TIME_START);
 		end   = min(req->end,   POS_TIME_END);
@@ -754,7 +654,7 @@ static inline int saa5246a_get_page(struct saa5246a_device *t,
 		if (copy_to_user(req->buffer + start - req->start, buf, size))
 			goto out;
 	}
-	/* Insert the header from buffer 4 only, if acquisition circuit is still searching for a page */
+	
 	if (REQ_CONTAINS_HEADER(req) && t->is_searching[req->pgbuf]) {
 		start = max(req->start, POS_HEADER_START);
 		end   = min(req->end,   POS_HEADER_END);
@@ -779,12 +679,7 @@ out:
 	return err;
 }
 
-/* Stops the acquisition circuit given in dau_no. The page buffer associated
- * with this acquisition circuit will no more be updated. The other daus are
- * not affected.
- *
- * Return value: 0 if successful
- */
+
 static inline int saa5246a_stop_dau(struct saa5246a_device *t,
     unsigned char dau_no)
 {
@@ -809,10 +704,7 @@ static inline int saa5246a_stop_dau(struct saa5246a_device *t,
 	return 0;
 }
 
-/*  Handles ioctls defined in videotext.h
- *
- *  Returns 0 if successful
- */
+
 static long do_saa5246a_ioctl(struct file *file, unsigned int cmd, void *arg)
 {
 	struct saa5246a_device *t = video_drvdata(file);
@@ -895,18 +787,14 @@ static long do_saa5246a_ioctl(struct file *file, unsigned int cmd, void *arg)
 
 		case VTXIOCSETVIRT:
 		{
-			/* I do not know what "virtual mode" means */
+			
 			return 0;
 		}
 	}
 	return -EINVAL;
 }
 
-/*
- * Translates old vtx IOCTLs to new ones
- *
- * This keeps new kernel versions compatible with old userspace programs.
- */
+
 static inline unsigned int vtx_fix_command(unsigned int cmd)
 {
 	switch (cmd) {
@@ -950,9 +838,7 @@ static inline unsigned int vtx_fix_command(unsigned int cmd)
 	return cmd;
 }
 
-/*
- *	Handle the locking
- */
+
 static long saa5246a_ioctl(struct file *file,
 			 unsigned int cmd, unsigned long arg)
 {
@@ -992,9 +878,7 @@ static int saa5246a_open(struct file *file)
 		COMMAND_END) ||
 		i2c_senddata(t, SAA5246A_REGISTER_R4,
 
-		/* We do not care much for the TV display but nevertheless we
-		 * need the currently displayed page later because only on that
-		 * page the time is updated. */
+		
 		R4_DISPLAY_PAGE_4,
 
 		COMMAND_END))
@@ -1009,7 +893,7 @@ static int saa5246a_release(struct file *file)
 {
 	struct saa5246a_device *t = video_drvdata(file);
 
-	/* Stop all acquisition circuits. */
+	
 	i2c_senddata(t, SAA5246A_REGISTER_R1,
 
 		R1_INTERLACED_312_AND_HALF_312_AND_HALF_LINES |
@@ -1074,7 +958,7 @@ static int saa5246a_probe(struct i2c_client *client,
 	v4l2_i2c_subdev_init(sd, client, &saa5246a_ops);
 	mutex_init(&t->lock);
 
-	/* Now create a video4linux device */
+	
 	t->vdev = video_device_alloc();
 	if (t->vdev == NULL) {
 		kfree(t);
@@ -1088,7 +972,7 @@ static int saa5246a_probe(struct i2c_client *client,
 	}
 	video_set_drvdata(t->vdev, t);
 
-	/* Register it */
+	
 	err = video_register_device(t->vdev, VFL_TYPE_VTX, -1);
 	if (err < 0) {
 		video_device_release(t->vdev);

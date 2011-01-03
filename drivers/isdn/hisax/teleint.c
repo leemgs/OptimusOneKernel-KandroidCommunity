@@ -1,14 +1,4 @@
-/* $Id: teleint.c,v 1.16.2.5 2004/01/19 15:31:50 keil Exp $
- *
- * low level stuff for TeleInt isdn cards
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -97,7 +87,7 @@ writefifo(unsigned int ale, unsigned int adr, u_char off, u_char * data, int siz
 	}
 }
 
-/* Interface functions */
+
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -215,10 +205,10 @@ reset_TeleInt(struct IsdnCardState *cs)
 {
 	printk(KERN_INFO "TeleInt: resetting card\n");
 	cs->hw.hfc.cirm |= HFC_RESET;
-	byteout(cs->hw.hfc.addr | 1, cs->hw.hfc.cirm);	/* Reset On */
+	byteout(cs->hw.hfc.addr | 1, cs->hw.hfc.cirm);	
 	mdelay(10);
 	cs->hw.hfc.cirm &= ~HFC_RESET;
-	byteout(cs->hw.hfc.addr | 1, cs->hw.hfc.cirm);	/* Reset Off */
+	byteout(cs->hw.hfc.addr | 1, cs->hw.hfc.cirm);	
 	mdelay(10);
 }
 
@@ -243,7 +233,7 @@ TeleInt_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 			inithfc(cs);
 			clear_pending_isac_ints(cs);
 			initisac(cs);
-			/* Reenable all IRQ */
+			
 			cs->writeisac(cs, ISAC_MASK, 0);
 			cs->writeisac(cs, ISAC_CMDR, 0x41);
 			spin_unlock_irqrestore(&cs->lock, flags);
@@ -289,7 +279,7 @@ setup_TeleInt(struct IsdnCard *card)
 		       cs->hw.hfc.addr + 2);
 		return (0);
 	}
-	/* HW IO = IO */
+	
 	byteout(cs->hw.hfc.addr, cs->hw.hfc.addr & 0xff);
 	byteout(cs->hw.hfc.addr | 1, ((cs->hw.hfc.addr & 0x300) >> 8) | 0x54);
 	switch (cs->irq) {

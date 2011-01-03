@@ -1,20 +1,6 @@
-/*
- *  HID driver for some logitech "special" devices
- *
- *  Copyright (c) 1999 Andreas Gal
- *  Copyright (c) 2000-2005 Vojtech Pavlik <vojtech@suse.cz>
- *  Copyright (c) 2005 Michael Haboustak <mike-@cinci.rr.com> for Concept2, Inc
- *  Copyright (c) 2006-2007 Jiri Kosina
- *  Copyright (c) 2007 Paul Walmsley
- *  Copyright (c) 2008 Jiri Slaby
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/hid.h>
@@ -34,11 +20,7 @@
 #define LG_FF			0x200
 #define LG_FF2			0x400
 
-/*
- * Certain Logitech keyboards send in report #3 keys which are far
- * above the logical maximum described in descriptor. This extends
- * the original value of 0x28c of logical maximum to 0x104d
- */
+
 static void lg_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 		unsigned int rsize)
 {
@@ -64,7 +46,7 @@ static int lg_ultrax_remote_mapping(struct hid_input *hi,
 
 	set_bit(EV_REP, hi->input->evbit);
 	switch (usage->hid & HID_USAGE) {
-	/* Reported on Logitech Ultra X Media Remote */
+	
 	case 0x004: lg_map_key_clear(KEY_AGAIN);	break;
 	case 0x00d: lg_map_key_clear(KEY_HOME);		break;
 	case 0x024: lg_map_key_clear(KEY_SHUFFLE);	break;
@@ -117,7 +99,7 @@ static int lg_wireless_mapping(struct hid_input *hi, struct hid_usage *usage,
 	case 0x1021: lg_map_key_clear(KEY_ZOOMRESET);		break;
 	case 0x1023: lg_map_key_clear(KEY_CLOSE);		break;
 	case 0x1027: lg_map_key_clear(KEY_MENU);		break;
-	/* this one is marked as 'Rotate' */
+	
 	case 0x1028: lg_map_key_clear(KEY_ANGLE);		break;
 	case 0x1029: lg_map_key_clear(KEY_SHUFFLE);		break;
 	case 0x102a: lg_map_key_clear(KEY_BACK);		break;
@@ -145,8 +127,7 @@ static int lg_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 		struct hid_field *field, struct hid_usage *usage,
 		unsigned long **bit, int *max)
 {
-	/* extended mapping for certain Logitech hardware (Logitech cordless
-	   desktop LX500) */
+	
 	static const u8 e_keymap[] = {
 		  0,216,  0,213,175,156,  0,  0,  0,  0,
 		144,  0,  0,  0,  0,  0,  0,  0,  0,212,
@@ -172,7 +153,7 @@ static int lg_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 
 	hid &= HID_USAGE;
 
-	/* Special handling for Logitech Cordless Desktop */
+	
 	if (field->application == HID_GD_MOUSE) {
 		if ((quirks & LG_IGNORE_DOUBLED_WHEEL) &&
 				(hid == 7 || hid == 8))

@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/cm-x300.c
- *
- * Support for the CompuLab CM-X300 modules
- *
- * Copyright (C) 2008 CompuLab Ltd.
- *
- * Mike Rapoport <mike@compulab.co.il>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -54,7 +42,7 @@
 #define GPIO98_RTC_IO		(98)
 
 static mfp_cfg_t cm_x300_mfp_cfg[] __initdata = {
-	/* LCD */
+	
 	GPIO54_LCD_LDD_0,
 	GPIO55_LCD_LDD_1,
 	GPIO56_LCD_LDD_2,
@@ -76,17 +64,17 @@ static mfp_cfg_t cm_x300_mfp_cfg[] __initdata = {
 	GPIO74_LCD_PCLK,
 	GPIO75_LCD_BIAS,
 
-	/* BTUART */
+	
 	GPIO111_UART2_RTS,
 	GPIO112_UART2_RXD | MFP_LPM_EDGE_FALL,
 	GPIO113_UART2_TXD,
 	GPIO114_UART2_CTS | MFP_LPM_EDGE_BOTH,
 
-	/* STUART */
+	
 	GPIO109_UART3_TXD,
 	GPIO110_UART3_RXD | MFP_LPM_EDGE_FALL,
 
-	/* AC97 */
+	
 	GPIO23_AC97_nACRESET,
 	GPIO24_AC97_SYSCLK,
 	GPIO29_AC97_BITCLK,
@@ -94,7 +82,7 @@ static mfp_cfg_t cm_x300_mfp_cfg[] __initdata = {
 	GPIO27_AC97_SDATA_OUT,
 	GPIO28_AC97_SYNC,
 
-	/* Keypad */
+	
 	GPIO115_KP_MKIN_0 | MFP_LPM_EDGE_BOTH,
 	GPIO116_KP_MKIN_1 | MFP_LPM_EDGE_BOTH,
 	GPIO117_KP_MKIN_2 | MFP_LPM_EDGE_BOTH,
@@ -110,15 +98,15 @@ static mfp_cfg_t cm_x300_mfp_cfg[] __initdata = {
 	GPIO125_KP_MKOUT_4,
 	GPIO4_2_KP_MKOUT_5,
 
-	/* MMC1 */
+	
 	GPIO3_MMC1_DAT0,
 	GPIO4_MMC1_DAT1 | MFP_LPM_EDGE_BOTH,
 	GPIO5_MMC1_DAT2,
 	GPIO6_MMC1_DAT3,
 	GPIO7_MMC1_CLK,
-	GPIO8_MMC1_CMD,	/* CMD0 for slot 0 */
+	GPIO8_MMC1_CMD,	
 
-	/* MMC2 */
+	
 	GPIO9_MMC2_DAT0,
 	GPIO10_MMC2_DAT1 | MFP_LPM_EDGE_BOTH,
 	GPIO11_MMC2_DAT2,
@@ -126,7 +114,7 @@ static mfp_cfg_t cm_x300_mfp_cfg[] __initdata = {
 	GPIO13_MMC2_CLK,
 	GPIO14_MMC2_CMD,
 
-	/* FFUART */
+	
 	GPIO30_UART1_RXD | MFP_LPM_EDGE_FALL,
 	GPIO31_UART1_TXD,
 	GPIO32_UART1_CTS,
@@ -136,19 +124,19 @@ static mfp_cfg_t cm_x300_mfp_cfg[] __initdata = {
 	GPIO35_UART1_RI,
 	GPIO36_UART1_DTR,
 
-	/* GPIOs */
-	GPIO79_GPIO,			/* LED */
-	GPIO82_GPIO | MFP_PULL_HIGH,	/* MMC CD */
-	GPIO85_GPIO,			/* MMC WP */
-	GPIO99_GPIO,			/* Ethernet IRQ */
+	
+	GPIO79_GPIO,			
+	GPIO82_GPIO | MFP_PULL_HIGH,	
+	GPIO85_GPIO,			
+	GPIO99_GPIO,			
 
-	/* RTC GPIOs */
-	GPIO95_GPIO,			/* RTC CS */
-	GPIO96_GPIO,			/* RTC WR */
-	GPIO97_GPIO,			/* RTC RD */
-	GPIO98_GPIO,			/* RTC IO */
+	
+	GPIO95_GPIO,			
+	GPIO96_GPIO,			
+	GPIO97_GPIO,			
+	GPIO98_GPIO,			
 
-	/* Standard I2C */
+	
 	GPIO21_I2C_SCL,
 	GPIO22_I2C_SDA,
 };
@@ -245,13 +233,13 @@ static struct mtd_partition cm_x300_nand_partitions[] = {
 		.name        = "OBM",
 		.offset      = 0,
 		.size        = SZ_256K,
-		.mask_flags  = MTD_WRITEABLE, /* force read-only */
+		.mask_flags  = MTD_WRITEABLE, 
 	},
 	[1] = {
 		.name        = "U-Boot",
 		.offset      = MTDPART_OFS_APPEND,
 		.size        = SZ_256K,
-		.mask_flags  = MTD_WRITEABLE, /* force read-only */
+		.mask_flags  = MTD_WRITEABLE, 
 	},
 	[2] = {
 		.name        = "Environment",
@@ -262,7 +250,7 @@ static struct mtd_partition cm_x300_nand_partitions[] = {
 		.name        = "reserved",
 		.offset      = MTDPART_OFS_APPEND,
 		.size        = SZ_256K + SZ_1M,
-		.mask_flags  = MTD_WRITEABLE, /* force read-only */
+		.mask_flags  = MTD_WRITEABLE, 
 	},
 	[4] = {
 		.name        = "kernel",
@@ -300,8 +288,7 @@ static struct pxamci_platform_data cm_x300_mci_platform_data = {
 	.gpio_power		= -1,
 };
 
-/* The second MMC slot of CM-X300 is hardwired to Libertas card and has
-   no detection/ro pins */
+
 static int cm_x300_mci2_init(struct device *dev,
 			     irq_handler_t cm_x300_detect_int,
 	void *data)
@@ -378,7 +365,7 @@ static inline void cm_x300_init_leds(void) {}
 #endif
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-/* PCA9555 */
+
 static struct pca953x_platform_data cm_x300_gpio_ext_pdata_0 = {
 	.gpio_base = 128,
 };
@@ -435,7 +422,7 @@ static inline void cm_x300_init_rtc(void) {}
 
 static void __init cm_x300_init(void)
 {
-	/* board-processor specific GPIO initialization */
+	
 	pxa3xx_mfp_config(ARRAY_AND_SIZE(cm_x300_mfp_cfg));
 
 	cm_x300_init_dm9000();

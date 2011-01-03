@@ -1,44 +1,11 @@
-/*
- * WiMedia Logical Link Control Protocol (WLP)
- * Message exchange infrastructure
- *
- * Copyright (C) 2007 Intel Corporation
- * Reinette Chatre <reinette.chatre@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * FIXME: Docs
- *
- */
+
 
 #include <linux/etherdevice.h>
 #include <linux/wlp.h>
 
 #include "wlp-internal.h"
 
-/*
- * Direct incoming association msg to correct parsing routine
- *
- * We only expect D1, E1, C1, C3 messages as new. All other incoming
- * association messages should form part of an established session that is
- * handled elsewhere.
- * The handling of these messages often require calling sleeping functions
- * - this cannot be done in interrupt context. We use the kernel's
- * workqueue to handle these messages.
- */
+
 static
 void wlp_direct_assoc_frame(struct wlp *wlp, struct sk_buff *skb,
 			   struct uwb_dev_addr *src)
@@ -63,8 +30,8 @@ void wlp_direct_assoc_frame(struct wlp *wlp, struct sk_buff *skb,
 		schedule_work(&frame_ctx->ws);
 		break;
 	case WLP_ASSOC_E1:
-		kfree_skb(skb); /* Temporary until we handle it */
-		kfree(frame_ctx); /* Temporary until we handle it */
+		kfree_skb(skb); 
+		kfree(frame_ctx); 
 		break;
 	case WLP_ASSOC_C1:
 		INIT_WORK(&frame_ctx->ws, wlp_handle_c1_frame);
@@ -83,19 +50,7 @@ void wlp_direct_assoc_frame(struct wlp *wlp, struct sk_buff *skb,
 	}
 }
 
-/*
- * Process incoming association frame
- *
- * Although it could be possible to deal with some incoming association
- * messages without creating a new session we are keeping things simple. We
- * do not accept new association messages if there is a session in progress
- * and the messages do not belong to that session.
- *
- * If an association message arrives that causes the creation of a session
- * (WLP_ASSOC_E1) while we are in the process of creating a session then we
- * rely on the neighbor mutex to protect the data. That is, the new session
- * will not be started until the previous is completed.
- */
+
 static
 void wlp_receive_assoc_frame(struct wlp *wlp, struct sk_buff *skb,
 			     struct uwb_dev_addr *src)
@@ -114,8 +69,7 @@ void wlp_receive_assoc_frame(struct wlp *wlp, struct sk_buff *skb,
 		goto error;
 	}
 	if (session != NULL) {
-		/* Function that created this session is still holding the
-		 * &wlp->mutex to protect this session. */
+		
 		if (assoc->type == session->exp_message ||
 		    assoc->type == WLP_ASSOC_F0) {
 			if (!memcmp(&session->neighbor_addr, src,
@@ -146,16 +100,7 @@ error:
 	kfree_skb(skb);
 }
 
-/*
- * Verify incoming frame is from connected neighbor, prep to pass to WLP client
- *
- * Verification proceeds according to WLP 0.99 [7.3.1]. The source address
- * is used to determine which neighbor is sending the frame and the WSS tag
- * is used to know to which WSS the frame belongs (we only support one WSS
- * so this test is straight forward).
- * With the WSS found we need to ensure that we are connected before
- * allowing the exchange of data frames.
- */
+
 static
 int wlp_verify_prep_rx_frame(struct wlp *wlp, struct sk_buff *skb,
 			     struct uwb_dev_addr *src)
@@ -165,7 +110,7 @@ int wlp_verify_prep_rx_frame(struct wlp *wlp, struct sk_buff *skb,
 	struct wlp_eda_node eda_entry;
 	struct wlp_frame_std_abbrv_hdr *hdr = (void *) skb->data;
 
-	/*verify*/
+	
 	result = wlp_copy_eda_node(&wlp->eda, src, &eda_entry);
 	if (result < 0) {
 		if (printk_ratelimit())
@@ -192,19 +137,13 @@ int wlp_verify_prep_rx_frame(struct wlp *wlp, struct sk_buff *skb,
 		result = -EINVAL;
 		goto out;
 	}
-	/*prep*/
+	
 	skb_pull(skb, sizeof(*hdr));
 out:
 	return result;
 }
 
-/*
- * Receive a WLP frame from device
- *
- * @returns: 1 if calling function should free the skb
- *           0 if it successfully handled skb and freed it
- *           0 if error occured, will free skb in this case
- */
+
 int wlp_receive_frame(struct device *dev, struct wlp *wlp, struct sk_buff *skb,
 		      struct uwb_dev_addr *src)
 {
@@ -272,54 +211,7 @@ out:
 EXPORT_SYMBOL_GPL(wlp_receive_frame);
 
 
-/*
- * Verify frame from network stack, prepare for further transmission
- *
- * @skb:   the socket buffer that needs to be prepared for transmission (it
- *         is in need of a WLP header). If this is a broadcast frame we take
- *         over the entire transmission.
- *         If it is a unicast the WSS connection should already be established
- *         and transmission will be done by the calling function.
- * @dst:   On return this will contain the device address to which the
- *         frame is destined.
- * @returns: 0 on success no tx : WLP header sucessfully applied to skb buffer,
- *                                calling function can proceed with tx
- *           1 on success with tx : WLP will take over transmission of this
- *                                  frame
- *           <0 on error
- *
- * The network stack (WLP client) is attempting to transmit a frame. We can
- * only transmit data if a local WSS is at least active (connection will be
- * done here if this is a broadcast frame and neighbor also has the WSS
- * active).
- *
- * The frame can be either broadcast or unicast. Broadcast in a WSS is
- * supported via multicast, but we don't support multicast yet (until
- * devices start to support MAB IEs). If a broadcast frame needs to be
- * transmitted it is treated as a unicast frame to each neighbor. In this
- * case the WLP takes over transmission of the skb and returns 1
- * to the caller to indicate so. Also, in this case, if a neighbor has the
- * same WSS activated but is not connected then the WSS connection will be
- * done at this time. The neighbor's virtual address will be learned at
- * this time.
- *
- * The destination address in a unicast frame is the virtual address of the
- * neighbor. This address only becomes known when a WSS connection is
- * established. We thus rely on a broadcast frame to trigger the setup of
- * WSS connections to all neighbors before we are able to send unicast
- * frames to them. This seems reasonable as IP would usually use ARP first
- * before any unicast frames are sent.
- *
- * If we are already connected to the neighbor (neighbor's virtual address
- * is known) we just prepare the WLP header and the caller will continue to
- * send the frame.
- *
- * A failure in this function usually indicates something that cannot be
- * fixed automatically. So, if this function fails (@return < 0) the calling
- * function should not retry to send the frame as it will very likely keep
- * failing.
- *
- */
+
 int wlp_prepare_tx_frame(struct device *dev, struct wlp *wlp,
 			 struct sk_buff *skb, struct uwb_dev_addr *dst)
 {
@@ -336,7 +228,7 @@ int wlp_prepare_tx_frame(struct device *dev, struct wlp *wlp,
 		}
 		dev_kfree_skb_irq(skb);
 		result = 1;
-		/* Frame will be transmitted by WLP. */
+		
 	} else {
 		result = wlp_eda_for_virtual(&wlp->eda, eth_hdr->h_dest, dst,
 					     wlp_wss_prep_hdr, skb);

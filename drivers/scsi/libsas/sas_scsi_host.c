@@ -1,27 +1,4 @@
-/*
- * Serial Attached SCSI (SAS) class SCSI Host glue.
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
- *
- */
+
 
 #include <linux/kthread.h>
 #include <linux/firmware.h>
@@ -47,7 +24,7 @@
 #include <linux/scatterlist.h>
 #include <linux/libata.h>
 
-/* ---------- SCSI Host glue ---------- */
+
 
 static void sas_scsi_task_done(struct sas_task *task)
 {
@@ -56,7 +33,7 @@ static void sas_scsi_task_done(struct sas_task *task)
 	int hs = 0, stat = 0;
 
 	if (unlikely(task->task_state_flags & SAS_TASK_STATE_ABORTED)) {
-		/* Aborted tasks will be completed by the error handler */
+		
 		SAS_DPRINTK("task done but aborted\n");
 		return;
 	}
@@ -69,10 +46,10 @@ static void sas_scsi_task_done(struct sas_task *task)
 	}
 
 	if (ts->resp == SAS_TASK_UNDELIVERED) {
-		/* transport error */
+		
 		hs = DID_NO_CONNECT;
-	} else { /* ts->resp == SAS_TASK_COMPLETE */
-		/* task delivered, what happened afterwards? */
+	} else { 
+		
 		switch (ts->stat) {
 		case SAS_DEV_NO_RESPONSE:
 		case SAS_INTERRUPTED:
@@ -90,7 +67,7 @@ static void sas_scsi_task_done(struct sas_task *task)
 			hs = DID_ERROR;
 			break;
 		case SAS_QUEUE_FULL:
-			hs = DID_SOFT_ERROR; /* retry */
+			hs = DID_SOFT_ERROR; 
 			break;
 		case SAS_DEVICE_UNKNOWN:
 			hs = DID_BAD_TARGET;
@@ -100,7 +77,7 @@ static void sas_scsi_task_done(struct sas_task *task)
 			break;
 		case SAS_OPEN_REJECT:
 			if (ts->open_rej_reason == SAS_OREJ_RSVD_RETRY)
-				hs = DID_SOFT_ERROR; /* retry */
+				hs = DID_SOFT_ERROR; 
 			else
 				hs = DID_ERROR;
 			break;
@@ -154,7 +131,7 @@ static struct sas_task *sas_create_task(struct scsi_cmnd *cmd,
 	ASSIGN_SAS_TASK(cmd, task);
 
 	task->dev = dev;
-	task->task_proto = task->dev->tproto; /* BUG_ON(!SSP) */
+	task->task_proto = task->dev->tproto; 
 
 	task->ssp_task.retry_count = 1;
 	int_to_scsilun(cmd->device->lun, &lun);
@@ -192,13 +169,7 @@ int sas_queue_up(struct sas_task *task)
 	return 0;
 }
 
-/**
- * sas_queuecommand -- Enqueue a command for processing
- * @parameters: See SCSI Core documentation
- *
- * Note: XXX: Remove the host unlock/lock pair when SCSI Core can
- * call us without holding an IRQ spinlock...
- */
+
 int sas_queuecommand(struct scsi_cmnd *cmd,
 		     void (*scsi_done)(struct scsi_cmnd *))
 	__releases(host->host_lock)
@@ -233,19 +204,19 @@ int sas_queuecommand(struct scsi_cmnd *cmd,
 			goto out;
 
 		cmd->scsi_done = scsi_done;
-		/* Queue up, Direct Mode or Task Collector Mode. */
+		
 		if (sas_ha->lldd_max_execute_num < 2)
 			res = i->dft->lldd_execute_task(task, 1, GFP_ATOMIC);
 		else
 			res = sas_queue_up(task);
 
-		/* Examine */
+		
 		if (res) {
 			SAS_DPRINTK("lldd_execute_task returned: %d\n", res);
 			ASSIGN_SAS_TASK(cmd, NULL);
 			sas_free_task(task);
 			if (res == -SAS_QUEUE_FULL) {
-				cmd->result = DID_SOFT_ERROR << 16; /* retry */
+				cmd->result = DID_SOFT_ERROR << 16; 
 				res = 0;
 				scsi_done(cmd);
 			}
@@ -262,18 +233,11 @@ static void sas_eh_finish_cmd(struct scsi_cmnd *cmd)
 	struct sas_task *task = TO_SAS_TASK(cmd);
 	struct sas_ha_struct *sas_ha = SHOST_TO_SAS_HA(cmd->device->host);
 
-	/* remove the aborted task flag to allow the task to be
-	 * completed now. At this point, we only get called following
-	 * an actual abort of the task, so we should be guaranteed not
-	 * to be racing with any completions from the LLD (hence we
-	 * don't need the task state lock to clear the flag) */
+	
 	task->task_state_flags &= ~SAS_TASK_STATE_ABORTED;
-	/* Now call task_done.  However, task will be free'd after
-	 * this */
+	
 	task->task_done(task);
-	/* now finish the command and move it on to the error
-	 * handler done list, this also takes it off the
-	 * error handler pending list */
+	
 	scsi_eh_finish_cmd(cmd, &sas_ha->eh_done_q);
 }
 
@@ -435,18 +399,18 @@ static int sas_recover_I_T(struct domain_device *dev)
 	return res;
 }
 
-/* Find the sas_phy that's attached to this device */
+
 struct sas_phy *sas_find_local_phy(struct domain_device *dev)
 {
 	struct domain_device *pdev = dev->parent;
 	struct ex_phy *exphy = NULL;
 	int i;
 
-	/* Directly attached device */
+	
 	if (!pdev)
 		return dev->port->phy;
 
-	/* Otherwise look in the expander */
+	
 	for (i = 0; i < pdev->ex_dev.num_phys; i++)
 		if (!memcmp(dev->sas_addr,
 			    pdev->ex_dev.ex_phy[i].attached_sas_addr,
@@ -460,7 +424,7 @@ struct sas_phy *sas_find_local_phy(struct domain_device *dev)
 }
 EXPORT_SYMBOL_GPL(sas_find_local_phy);
 
-/* Attempt to send a LUN reset message to a device */
+
 int sas_eh_device_reset_handler(struct scsi_cmnd *cmd)
 {
 	struct domain_device *dev = cmd_to_domain_dev(cmd);
@@ -481,7 +445,7 @@ int sas_eh_device_reset_handler(struct scsi_cmnd *cmd)
 	return FAILED;
 }
 
-/* Attempt to send a phy (bus) reset */
+
 int sas_eh_bus_reset_handler(struct scsi_cmnd *cmd)
 {
 	struct domain_device *dev = cmd_to_domain_dev(cmd);
@@ -499,7 +463,7 @@ int sas_eh_bus_reset_handler(struct scsi_cmnd *cmd)
 	return FAILED;
 }
 
-/* Try to reset a device */
+
 static int try_to_reset_cmd_device(struct scsi_cmnd *cmd)
 {
 	int res;
@@ -578,7 +542,7 @@ Again:
 				sas_scsi_clear_queue_lu(work_q, cmd);
 				goto Again;
 			}
-			/* fallthrough */
+			
 		case TASK_IS_NOT_AT_LU:
 		case TASK_ABORT_FAILED:
 			SAS_DPRINTK("task 0x%p is not at LU: I_T recover\n",
@@ -592,7 +556,7 @@ Again:
 				sas_scsi_clear_queue_I_T(work_q, dev);
 				goto Again;
 			}
-			/* Hammer time :-) */
+			
 			try_to_reset_cmd_device(cmd);
 			if (i->dft->lldd_clear_nexus_port) {
 				struct asd_sas_port *port = task->dev->port;
@@ -618,10 +582,7 @@ Again:
 					goto clear_q;
 				}
 			}
-			/* If we are here -- this means that no amount
-			 * of effort could recover from errors.  Quite
-			 * possibly the HA just disappeared.
-			 */
+			
 			SAS_DPRINTK("error from  device %llx, LUN %x "
 				    "couldn't be recovered in any way\n",
 				    SAS_ADDR(task->dev->sas_addr),
@@ -651,19 +612,11 @@ void sas_scsi_recover_host(struct Scsi_Host *shost)
 	spin_unlock_irqrestore(shost->host_lock, flags);
 
 	SAS_DPRINTK("Enter %s\n", __func__);
-	/*
-	 * Deal with commands that still have SAS tasks (i.e. they didn't
-	 * complete via the normal sas_task completion mechanism)
-	 */
+	
 	if (sas_eh_handle_sas_errors(shost, &eh_work_q, &ha->eh_done_q))
 		goto out;
 
-	/*
-	 * Now deal with SCSI commands that completed ok but have a an error
-	 * code (and hopefully sense data) attached.  This is roughly what
-	 * scsi_unjam_host does, but we skip scsi_eh_abort_cmds because any
-	 * command we see here has no sas_task and is thus unknown to the HA.
-	 */
+	
 	if (!scsi_eh_get_sense(&eh_work_q, &ha->eh_done_q))
 		scsi_eh_ready_devs(shost, &eh_work_q, &ha->eh_done_q);
 
@@ -864,7 +817,7 @@ int sas_bios_param(struct scsi_device *scsi_dev,
 	return 0;
 }
 
-/* ---------- Task Collector Thread implementation ---------- */
+
 
 static void sas_queue(struct sas_ha_struct *sas_ha)
 {
@@ -908,17 +861,14 @@ static void sas_queue(struct sas_ha_struct *sas_ha)
 		}
 		spin_lock_irqsave(&core->task_queue_lock, flags);
 		if (res) {
-			list_splice_init(&q, &core->task_queue); /*at head*/
+			list_splice_init(&q, &core->task_queue); 
 			core->task_queue_size += can_queue;
 		}
 	}
 	spin_unlock_irqrestore(&core->task_queue_lock, flags);
 }
 
-/**
- * sas_queue_thread -- The Task Collector thread
- * @_sas_ha: pointer to struct sas_ha
- */
+
 static int sas_queue_thread(void *_sas_ha)
 {
 	struct sas_ha_struct *sas_ha = _sas_ha;
@@ -975,10 +925,7 @@ void sas_shutdown_queue(struct sas_ha_struct *sas_ha)
 	spin_unlock_irqrestore(&core->task_queue_lock, flags);
 }
 
-/*
- * Call the LLDD task abort routine directly.  This function is intended for
- * use by upper layers that need to tell the LLDD to abort a task.
- */
+
 int __sas_task_abort(struct sas_task *task)
 {
 	struct sas_internal *si =
@@ -1018,15 +965,12 @@ int __sas_task_abort(struct sas_task *task)
 	return -EAGAIN;
 }
 
-/*
- * Tell an upper layer that it needs to initiate an abort for a given task.
- * This should only ever be called by an LLDD.
- */
+
 void sas_task_abort(struct sas_task *task)
 {
 	struct scsi_cmnd *sc = task->uldd_task;
 
-	/* Escape for libsas internal commands */
+	
 	if (!sc) {
 		if (!del_timer(&task->timer))
 			return;

@@ -1,13 +1,4 @@
-/*
- * Common framework for low-level network console, dump, and debugger code
- *
- * Sep 8 2003  Matt Mackall <mpm@selenic.com>
- *
- * based on the netconsole code from:
- *
- * Copyright (C) 2001  Ingo Molnar <mingo@redhat.com>
- * Copyright (C) 2002  Red Hat, Inc.
- */
+
 
 #include <linux/moduleparam.h>
 #include <linux/netdevice.h>
@@ -27,10 +18,7 @@
 #include <asm/unaligned.h>
 #include <trace/events/napi.h>
 
-/*
- * We maintain a small pool of fully-sized skbs, to make sure the
- * message gets out even in extreme OOM situations.
- */
+
 
 #define MAX_UDP_CHUNK 1460
 #define MAX_SKBS 32
@@ -109,31 +97,13 @@ static __sum16 checksum_udp(struct sk_buff *skb, struct udphdr *uh,
 	return __skb_checksum_complete(skb);
 }
 
-/*
- * Check whether delayed processing was scheduled for our NIC. If so,
- * we attempt to grab the poll lock and use ->poll() to pump the card.
- * If this fails, either we've recursed in ->poll() or it's already
- * running on another CPU.
- *
- * Note: we don't mask interrupts with this lock because we're using
- * trylock here and interrupts are already disabled in the softirq
- * case. Further, we test the poll_owner to avoid recursion on UP
- * systems where the lock doesn't exist.
- *
- * In cases where there is bi-directional communications, reading only
- * one message at a time can lead to packets being dropped by the
- * network adapter, forcing superfluous retries and possibly timeouts.
- * Thus, we set our budget to greater than 1.
- */
+
 static int poll_one_napi(struct netpoll_info *npinfo,
 			 struct napi_struct *napi, int budget)
 {
 	int work;
 
-	/* net_rx_action's ->poll() invocations and our's are
-	 * synchronized by this test which is only made while
-	 * holding the napi->poll_lock.
-	 */
+	
 	if (!test_bit(NAPI_STATE_SCHED, &napi->state))
 		return budget;
 
@@ -190,7 +160,7 @@ void netpoll_poll(struct netpoll *np)
 	if (!ops->ndo_poll_controller)
 		return;
 
-	/* Process pending work on NIC */
+	
 	ops->ndo_poll_controller(dev);
 
 	poll_napi(dev);
@@ -234,7 +204,7 @@ static void zap_completion_queue(void)
 			clist = clist->next;
 			if (skb->destructor) {
 				atomic_inc(&skb->users);
-				dev_kfree_skb_any(skb); /* put this one back */
+				dev_kfree_skb_any(skb); 
 			} else {
 				__kfree_skb(skb);
 			}
@@ -294,7 +264,7 @@ static void netpoll_send_skb(struct netpoll *np, struct sk_buff *skb)
 		return;
 	}
 
-	/* don't get messages out of order, and no recursion */
+	
 	if (skb_queue_len(&npinfo->txq) == 0 && !netpoll_owner_active(dev)) {
 		struct netdev_queue *txq;
 		unsigned long flags;
@@ -302,7 +272,7 @@ static void netpoll_send_skb(struct netpoll *np, struct sk_buff *skb)
 		txq = netdev_get_tx_queue(dev, skb_get_queue_mapping(skb));
 
 		local_irq_save(flags);
-		/* try until next clock tick */
+		
 		for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
 		     tries > 0; --tries) {
 			if (__netif_tx_trylock(txq)) {
@@ -318,7 +288,7 @@ static void netpoll_send_skb(struct netpoll *np, struct sk_buff *skb)
 
 			}
 
-			/* tickle device maybe there is some cleanup */
+			
 			netpoll_poll(np);
 
 			udelay(USEC_PER_POLL);
@@ -374,7 +344,7 @@ void netpoll_send_udp(struct netpoll *np, const char *msg, int len)
 	skb_reset_network_header(skb);
 	iph = ip_hdr(skb);
 
-	/* iph->version = 4; iph->ihl = 5; */
+	
 	put_unaligned(0x45, (unsigned char *)iph);
 	iph->tos      = 0;
 	put_unaligned(htons(ip_len), &(iph->tot_len));
@@ -414,7 +384,7 @@ static void arp_reply(struct sk_buff *skb)
 	if (!np)
 		return;
 
-	/* No arp on this interface */
+	
 	if (skb->dev->flags & IFF_NOARP)
 		return;
 
@@ -432,16 +402,16 @@ static void arp_reply(struct sk_buff *skb)
 		return;
 
 	arp_ptr = (unsigned char *)(arp+1);
-	/* save the location of the src hw addr */
+	
 	sha = arp_ptr;
 	arp_ptr += skb->dev->addr_len;
 	memcpy(&sip, arp_ptr, 4);
 	arp_ptr += 4;
-	/* if we actually cared about dst hw addr, it would get copied here */
+	
 	arp_ptr += skb->dev->addr_len;
 	memcpy(&tip, arp_ptr, 4);
 
-	/* Should we ignore arp? */
+	
 	if (tip != np->local_ip ||
 	    ipv4_is_loopback(tip) || ipv4_is_multicast(tip))
 		return;
@@ -458,7 +428,7 @@ static void arp_reply(struct sk_buff *skb)
 	send_skb->dev = skb->dev;
 	send_skb->protocol = htons(ETH_P_ARP);
 
-	/* Fill the device header for the ARP frame */
+	
 	if (dev_hard_header(send_skb, skb->dev, ptype,
 			    sha, np->dev->dev_addr,
 			    send_skb->len) < 0) {
@@ -466,12 +436,7 @@ static void arp_reply(struct sk_buff *skb)
 		return;
 	}
 
-	/*
-	 * Fill out the arp protocol part.
-	 *
-	 * we only support ethernet device type,
-	 * which (according to RFC 1390) should always equal 1 (Ethernet).
-	 */
+	
 
 	arp->ar_hrd = htons(np->dev->type);
 	arp->ar_pro = htons(ETH_P_IP);
@@ -504,7 +469,7 @@ int __netpoll_rx(struct sk_buff *skb)
 	if (skb->dev->type != ARPHRD_ETHER)
 		goto out;
 
-	/* check if netpoll clients need ARP */
+	
 	if (skb->protocol == htons(ETH_P_ARP) &&
 	    atomic_read(&trapped)) {
 		skb_queue_tail(&npi->arp_tx, skb);
@@ -533,10 +498,7 @@ int __netpoll_rx(struct sk_buff *skb)
 	if (skb->len < len || len < iph->ihl*4)
 		goto out;
 
-	/*
-	 * Our transport medium may have padded the buffer out.
-	 * Now We trim to the true length of the frame.
-	 */
+	
 	if (pskb_trim_rcsum(skb, len))
 		goto out;
 
@@ -613,7 +575,7 @@ int netpoll_parse_options(struct netpoll *np, char *opt)
 	cur++;
 
 	if (*cur != ',') {
-		/* parse out dev name */
+		
 		if ((delim = strchr(cur, ',')) == NULL)
 			goto parse_failed;
 		*delim = 0;
@@ -623,7 +585,7 @@ int netpoll_parse_options(struct netpoll *np, char *opt)
 	cur++;
 
 	if (*cur != '@') {
-		/* dst port */
+		
 		if ((delim = strchr(cur, '@')) == NULL)
 			goto parse_failed;
 		*delim = 0;
@@ -632,7 +594,7 @@ int netpoll_parse_options(struct netpoll *np, char *opt)
 	}
 	cur++;
 
-	/* dst ip */
+	
 	if ((delim = strchr(cur, '/')) == NULL)
 		goto parse_failed;
 	*delim = 0;
@@ -640,7 +602,7 @@ int netpoll_parse_options(struct netpoll *np, char *opt)
 	cur = delim + 1;
 
 	if (*cur != 0) {
-		/* MAC address */
+		
 		if ((delim = strchr(cur, ':')) == NULL)
 			goto parse_failed;
 		*delim = 0;
@@ -752,10 +714,7 @@ int netpoll_setup(struct netpoll *np)
 			msleep(1);
 		}
 
-		/* If carrier appears to come up instantly, we don't
-		 * trust it and pause so that we don't pump all our
-		 * queued console messages into the bitbucket.
-		 */
+		
 
 		if (time_before(jiffies, atleast)) {
 			printk(KERN_NOTICE "%s: carrier detect appears"
@@ -789,13 +748,13 @@ int netpoll_setup(struct netpoll *np)
 		spin_unlock_irqrestore(&npinfo->rx_lock, flags);
 	}
 
-	/* fill up the skb queue */
+	
 	refill_skbs();
 
-	/* last thing to do is link it to the net device structure */
+	
 	ndev->npinfo = npinfo;
 
-	/* avoid racing with NAPI reading npinfo */
+	
 	synchronize_rcu();
 
 	return 0;
@@ -835,7 +794,7 @@ void netpoll_cleanup(struct netpoll *np)
 				skb_queue_purge(&npinfo->txq);
 				cancel_rearming_delayed_work(&npinfo->tx_work);
 
-				/* clean after last, unfinished work */
+				
 				__skb_queue_purge(&npinfo->txq);
 				kfree(npinfo);
 				np->dev->npinfo = NULL;

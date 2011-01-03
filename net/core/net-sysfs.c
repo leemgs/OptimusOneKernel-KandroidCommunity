@@ -1,13 +1,4 @@
-/*
- * net-sysfs.c - network device class and attributes
- *
- * Copyright (c) 2003 Stephen Hemminger <shemminger@osdl.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/capability.h>
 #include <linux/kernel.h>
@@ -31,7 +22,7 @@ static inline int dev_isalive(const struct net_device *dev)
 	return dev->reg_state <= NETREG_REGISTERED;
 }
 
-/* use same locking rules as GIF* ioctl's */
+
 static ssize_t netdev_show(const struct device *dev,
 			   struct device_attribute *attr, char *buf,
 			   ssize_t (*format)(const struct net_device *, char *))
@@ -47,7 +38,7 @@ static ssize_t netdev_show(const struct device *dev,
 	return ret;
 }
 
-/* generate a show function for simple field */
+
 #define NETDEVICE_SHOW(field, format_string)				\
 static ssize_t format_##field(const struct net_device *net, char *buf)	\
 {									\
@@ -60,7 +51,7 @@ static ssize_t show_##field(struct device *dev,				\
 }
 
 
-/* use same locking and permission rules as SIF* ioctl's */
+
 static ssize_t netdev_store(struct device *dev, struct device_attribute *attr,
 			    const char *buf, size_t len,
 			    int (*set)(struct net_device *, unsigned long))
@@ -97,7 +88,7 @@ NETDEVICE_SHOW(features, fmt_long_hex);
 NETDEVICE_SHOW(type, fmt_dec);
 NETDEVICE_SHOW(link_mode, fmt_dec);
 
-/* use same locking rules as GIFHWADDR ioctl's */
+
 static ssize_t show_address(struct device *dev, struct device_attribute *attr,
 			    char *buf)
 {
@@ -143,10 +134,10 @@ static ssize_t show_dormant(struct device *dev,
 
 static const char *const operstates[] = {
 	"unknown",
-	"notpresent", /* currently unused */
+	"notpresent", 
 	"down",
 	"lowerlayerdown",
-	"testing", /* currently unused */
+	"testing", 
 	"dormant",
 	"up"
 };
@@ -164,12 +155,12 @@ static ssize_t show_operstate(struct device *dev,
 	read_unlock(&dev_base_lock);
 
 	if (operstate >= ARRAY_SIZE(operstates))
-		return -EINVAL; /* should not happen */
+		return -EINVAL; 
 
 	return sprintf(buf, "%s\n", operstates[operstate]);
 }
 
-/* read-write attributes */
+
 NETDEVICE_SHOW(mtu, fmt_dec);
 
 static int change_mtu(struct net_device *net, unsigned long new_mtu)
@@ -221,7 +212,7 @@ static ssize_t store_ifalias(struct device *dev, struct device_attribute *attr,
 	if (!capable(CAP_NET_ADMIN))
 		return -EPERM;
 
-	/* ignore trailing newline */
+	
 	if (len >  0 && buf[len - 1] == '\n')
 		--count;
 
@@ -268,7 +259,7 @@ static struct device_attribute net_class_attributes[] = {
 	{}
 };
 
-/* Show a given an attribute in the statistics group */
+
 static ssize_t netstat_show(const struct device *d,
 			    struct device_attribute *attr, char *buf,
 			    unsigned long offset)
@@ -289,7 +280,7 @@ static ssize_t netstat_show(const struct device *d,
 	return ret;
 }
 
-/* generate a read-only statistics attribute */
+
 #define NETSTAT_ENTRY(name)						\
 static ssize_t show_##name(struct device *d,				\
 			   struct device_attribute *attr, char *buf) 	\
@@ -357,7 +348,7 @@ static struct attribute_group netstat_group = {
 };
 
 #ifdef CONFIG_WIRELESS_EXT_SYSFS
-/* helper function that does all the locking etc for wireless stats */
+
 static ssize_t wireless_show(struct device *d, char *buf,
 			     ssize_t (*format)(const struct iw_statistics *,
 					       char *))
@@ -377,7 +368,7 @@ static ssize_t wireless_show(struct device *d, char *buf,
 	return ret;
 }
 
-/* show function template for wireless fields */
+
 #define WIRELESS_SHOW(name, field, format_string)			\
 static ssize_t format_iw_##name(const struct iw_statistics *iw, char *buf) \
 {									\
@@ -421,7 +412,7 @@ static struct attribute_group wireless_group = {
 };
 #endif
 
-#endif /* CONFIG_SYSFS */
+#endif 
 
 #ifdef CONFIG_HOTPLUG
 static int netdev_uevent(struct device *d, struct kobj_uevent_env *env)
@@ -432,14 +423,12 @@ static int netdev_uevent(struct device *d, struct kobj_uevent_env *env)
 	if (!net_eq(dev_net(dev), &init_net))
 		return 0;
 
-	/* pass interface to uevent. */
+	
 	retval = add_uevent_var(env, "INTERFACE=%s", dev->name);
 	if (retval)
 		goto exit;
 
-	/* pass ifindex to uevent.
-	 * ifindex is useful as it won't change (interface name may change)
-	 * and is what RtNetlink uses natively. */
+	
 	retval = add_uevent_var(env, "IFINDEX=%d", dev->ifindex);
 
 exit:
@@ -447,10 +436,7 @@ exit:
 }
 #endif
 
-/*
- *	netdev_release -- destroy and free a dead device.
- *	Called when last reference to device kobject is gone.
- */
+
 static void netdev_release(struct device *d)
 {
 	struct net_device *dev = to_net_dev(d);
@@ -466,15 +452,13 @@ static struct class net_class = {
 	.dev_release = netdev_release,
 #ifdef CONFIG_SYSFS
 	.dev_attrs = net_class_attributes,
-#endif /* CONFIG_SYSFS */
+#endif 
 #ifdef CONFIG_HOTPLUG
 	.dev_uevent = netdev_uevent,
 #endif
 };
 
-/* Delete sysfs entries but hold kobject reference until after all
- * netdev references are gone.
- */
+
 void netdev_unregister_kobject(struct net_device * net)
 {
 	struct device *dev = &(net->dev);
@@ -487,7 +471,7 @@ void netdev_unregister_kobject(struct net_device * net)
 	device_del(dev);
 }
 
-/* Create sysfs entries for network device. */
+
 int netdev_register_kobject(struct net_device *net)
 {
 	struct device *dev = &(net->dev);
@@ -506,7 +490,7 @@ int netdev_register_kobject(struct net_device *net)
 	if (net->wireless_handlers || net->ieee80211_ptr)
 		*groups++ = &wireless_group;
 #endif
-#endif /* CONFIG_SYSFS */
+#endif 
 
 	if (dev_net(net) != &init_net)
 		return 0;

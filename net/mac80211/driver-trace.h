@@ -663,7 +663,7 @@ TRACE_EVENT(drv_ampdu_action,
 		LOCAL_PR_ARG, STA_PR_ARG, __entry->action, __entry->tid, __entry->ret
 	)
 );
-#endif /* !__MAC80211_DRIVER_TRACE || TRACE_HEADER_MULTI_READ */
+#endif 
 
 #undef TRACE_INCLUDE_PATH
 #define TRACE_INCLUDE_PATH .

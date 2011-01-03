@@ -25,12 +25,7 @@
 #define SEC_ST_ACT_0		(1 << 0)
 #define SEC_ST_ACT_1		(1 << 1)
 
-/*
- * FPGA_INT_STATUS looks like a FPGA leftover and is documented only in Errata
- * 4.12. It looks like that it was part of an IRQ-controller in FPGA and
- * someone forgot to remove  it while switching to the core and moving to
- * SEC_ACCEL_INT_STATUS.
- */
+
 #define FPGA_INT_STATUS		0xdd68
 #define SEC_ACCEL_INT_STATUS	0xde20
 #define SEC_INT_AUTH_DONE	(1 << 0)
@@ -92,21 +87,7 @@ struct sec_accel_config {
 	u32 mac_digest;
 	u32 mac_iv;
 }__attribute__ ((packed));
-	/*
-	 * /-----------\ 0
-	 * | ACCEL CFG |	4 * 8
-	 * |-----------| 0x20
-	 * | CRYPT KEY |	8 * 4
-	 * |-----------| 0x40
-	 * |  IV   IN  |	4 * 4
-	 * |-----------| 0x40 (inplace)
-	 * |  IV BUF   |	4 * 4
-	 * |-----------| 0x50
-	 * |  DATA IN  |	16 * x (max ->max_req_size)
-	 * |-----------| 0x50 (inplace operation)
-	 * |  DATA OUT |	16 * x (max ->max_req_size)
-	 * \-----------/ SRAM size
-	 */
+	
 #define SRAM_CONFIG		0x00
 #define SRAM_DATA_KEY_P		0x20
 #define SRAM_DATA_IV		0x40

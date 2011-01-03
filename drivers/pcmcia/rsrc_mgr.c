@@ -1,16 +1,4 @@
-/*
- * rsrc_mgr.c -- Resource management routines and/or wrappers
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999		David A. Hinds
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -25,7 +13,7 @@ int pcmcia_validate_mem(struct pcmcia_socket *s)
 {
 	if (s->resource_ops->validate_mem)
 		return s->resource_ops->validate_mem(s);
-	/* if there is no callback, we can assume that everything is OK */
+	
 	return 0;
 }
 EXPORT_SYMBOL(pcmcia_validate_mem);
@@ -68,8 +56,7 @@ static int static_init(struct pcmcia_socket *s)
 {
 	unsigned long flags;
 
-	/* the good thing about SS_CAP_STATIC_MAP sockets is
-	 * that they don't need a resource database */
+	
 
 	spin_lock_irqsave(&s->lock, flags);
 	s->resource_setup_done = 1;
@@ -192,4 +179,4 @@ struct pccard_resource_ops pccard_iodyn_ops = {
 };
 EXPORT_SYMBOL(pccard_iodyn_ops);
 
-#endif /* CONFIG_PCCARD_IODYN */
+#endif 

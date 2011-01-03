@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/irq.c
- *
- * Interrupt handler for OMAP2 boards.
- *
- * Copyright (C) 2005 Nokia Corporation
- * Author: Paul Mundt <paul.mundt@nokia.com>
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License. See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -18,7 +7,7 @@
 #include <asm/mach/irq.h>
 
 
-/* selected INTC register offsets */
+
 
 #define INTC_REVISION		0x0000
 #define INTC_SYSCONFIG		0x0010
@@ -28,27 +17,22 @@
 #define INTC_MIR_CLEAR0		0x0088
 #define INTC_MIR_SET0		0x008c
 #define INTC_PENDING_IRQ0	0x0098
-/* Number of IRQ state bits in each MIR register */
+
 #define IRQ_BITS_PER_REG	32
 
-/*
- * OMAP2 has a number of different interrupt controllers, each interrupt
- * controller is identified as its own "bank". Register definitions are
- * fairly consistent for each bank, but not all registers are implemented
- * for each bank.. when in doubt, consult the TRM.
- */
+
 static struct omap_irq_bank {
 	void __iomem *base_reg;
 	unsigned int nr_irqs;
 } __attribute__ ((aligned(4))) irq_banks[] = {
 	{
-		/* MPU INTC */
+		
 		.base_reg	= 0,
 		.nr_irqs	= 96,
 	},
 };
 
-/* INTC bank register get/set */
+
 
 static void intc_bank_write_reg(u32 val, struct omap_irq_bank *bank, u16 reg)
 {
@@ -62,11 +46,7 @@ static u32 intc_bank_read_reg(struct omap_irq_bank *bank, u16 reg)
 
 static int previous_irq;
 
-/*
- * On 34xx we can get occasional spurious interrupts if the ack from
- * an interrupt handler does not get posted before we unmask. Warn about
- * the interrupt handlers that need to flush posted writes.
- */
+
 static int omap_check_spurious(unsigned int irq)
 {
 	u32 sir, spurious;
@@ -84,7 +64,7 @@ static int omap_check_spurious(unsigned int irq)
 	return 0;
 }
 
-/* XXX: FIQ and additional INTC support (only MPU at the moment) */
+
 static void omap_ack_irq(unsigned int irq)
 {
 	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
@@ -97,10 +77,7 @@ static void omap_mask_irq(unsigned int irq)
 	if (cpu_is_omap34xx()) {
 		int spurious = 0;
 
-		/*
-		 * INT_34XX_GPT12_IRQ is also the spurious irq. Maybe because
-		 * it is the highest irq number?
-		 */
+		
 		if (irq == INT_34XX_GPT12_IRQ)
 			spurious = omap_check_spurious(irq);
 
@@ -145,13 +122,13 @@ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
 			 bank->base_reg, tmp >> 4, tmp & 0xf, bank->nr_irqs);
 
 	tmp = intc_bank_read_reg(bank, INTC_SYSCONFIG);
-	tmp |= 1 << 1;	/* soft reset */
+	tmp |= 1 << 1;	
 	intc_bank_write_reg(tmp, bank, INTC_SYSCONFIG);
 
 	while (!(intc_bank_read_reg(bank, INTC_SYSSTATUS) & 0x1))
-		/* Wait for reset to complete */;
+		;
 
-	/* Enable autoidle */
+	
 	intc_bank_write_reg(1 << 0, bank, INTC_SYSCONFIG);
 }
 

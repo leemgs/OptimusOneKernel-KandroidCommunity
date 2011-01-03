@@ -1,13 +1,4 @@
-/* Slow work debugging
- *
- * Copyright (C) 2009 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licence
- * as published by the Free Software Foundation; either version
- * 2 of the Licence, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/slow-work.h>
@@ -25,10 +16,7 @@ void slow_work_new_thread_desc(struct slow_work *work, struct seq_file *m)
 	seq_puts(m, "Slow-work: New thread");
 }
 
-/*
- * Render the time mark field on a work item into a 5-char time with units plus
- * a space
- */
+
 static void slow_work_print_mark(struct seq_file *m, struct slow_work *work)
 {
 	struct timespec now, diff;
@@ -56,9 +44,7 @@ static void slow_work_print_mark(struct seq_file *m, struct slow_work *work)
 		seq_puts(m, "exces ");
 }
 
-/*
- * Describe a slow work item for debugfs
- */
+
 static int slow_work_runqueue_show(struct seq_file *m, void *v)
 {
 	struct slow_work *work;
@@ -106,9 +92,7 @@ static int slow_work_runqueue_show(struct seq_file *m, void *v)
 	}
 }
 
-/*
- * map the iterator to a work item
- */
+
 static void *slow_work_runqueue_index(struct seq_file *m, loff_t *_pos)
 {
 	struct list_head *p;
@@ -151,18 +135,14 @@ static void *slow_work_runqueue_index(struct seq_file *m, loff_t *_pos)
 	}
 }
 
-/*
- * set up the iterator to start reading from the first line
- */
+
 static void *slow_work_runqueue_start(struct seq_file *m, loff_t *_pos)
 {
 	spin_lock_irq(&slow_work_queue_lock);
 	return slow_work_runqueue_index(m, _pos);
 }
 
-/*
- * move to the next line
- */
+
 static void *slow_work_runqueue_next(struct seq_file *m, void *v, loff_t *_pos)
 {
 	struct list_head *p = v;
@@ -195,9 +175,7 @@ static void *slow_work_runqueue_next(struct seq_file *m, void *v, loff_t *_pos)
 	}
 }
 
-/*
- * clean up after reading
- */
+
 static void slow_work_runqueue_stop(struct seq_file *m, void *v)
 {
 	spin_unlock_irq(&slow_work_queue_lock);
@@ -210,9 +188,7 @@ static const struct seq_operations slow_work_runqueue_ops = {
 	.show		= slow_work_runqueue_show,
 };
 
-/*
- * open "/sys/kernel/debug/slow_work/runqueue" to list queue contents
- */
+
 static int slow_work_runqueue_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &slow_work_runqueue_ops);

@@ -1,13 +1,6 @@
-/*
- *  linux/kernel/panic.c
- *
- *  Copyright (C) 1991, 1992  Linus Torvalds
- */
 
-/*
- * This function is used through-out the kernel (including mm and fs)
- * to indicate a major problem.
- */
+
+
 #include <linux/debug_locks.h>
 #include <linux/interrupt.h>
 #include <linux/kallsyms.h>
@@ -29,7 +22,10 @@ static int pause_on_oops;
 static int pause_on_oops_flag;
 static DEFINE_SPINLOCK(pause_on_oops_lock);
 
-int panic_timeout;
+#ifndef CONFIG_PANIC_TIMEOUT
+#define CONFIG_PANIC_TIMEOUT 0
+#endif
+int panic_timeout = CONFIG_PANIC_TIMEOUT;
 
 ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
 
@@ -40,29 +36,18 @@ static long no_blink(long time)
 	return 0;
 }
 
-/* Returns how long it waited in ms */
+
 long (*panic_blink)(long time);
 EXPORT_SYMBOL(panic_blink);
 
-/**
- *	panic - halt the system
- *	@fmt: The text string to print
- *
- *	Display a message, then perform cleanups.
- *
- *	This function never returns.
- */
+
 NORET_TYPE void panic(const char * fmt, ...)
 {
 	static char buf[1024];
 	va_list args;
 	long i;
 
-	/*
-	 * It's possible to come here directly from a panic-assertion and
-	 * not have preempt disabled. Some functions called from here want
-	 * preempt to be disabled. No point enabling it later though...
-	 */
+	
 	preempt_disable();
 
 	bust_spinlocks(1);
@@ -74,18 +59,10 @@ NORET_TYPE void panic(const char * fmt, ...)
 	dump_stack();
 #endif
 
-	/*
-	 * If we have crashed and we have a crash kernel loaded let it handle
-	 * everything else.
-	 * Do we want to call this before we try to display a message?
-	 */
+	
 	crash_kexec(NULL);
 
-	/*
-	 * Note smp_send_stop is the usual smp shutdown function, which
-	 * unfortunately means it may not be hardened to work in a panic
-	 * situation.
-	 */
+	
 	smp_send_stop();
 
 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
@@ -96,10 +73,7 @@ NORET_TYPE void panic(const char * fmt, ...)
 		panic_blink = no_blink;
 
 	if (panic_timeout > 0) {
-		/*
-		 * Delay timeout seconds before rebooting the machine.
-		 * We can't use the "normal" timers since we just panicked.
-		 */
+		
 		printk(KERN_EMERG "Rebooting in %d seconds..", panic_timeout);
 
 		for (i = 0; i < panic_timeout*1000; ) {
@@ -108,17 +82,13 @@ NORET_TYPE void panic(const char * fmt, ...)
 			mdelay(1);
 			i++;
 		}
-		/*
-		 * This will not be a clean reboot, with everything
-		 * shutting down.  But if there is a chance of
-		 * rebooting the system it will be rebooted.
-		 */
+		
 		emergency_restart();
 	}
 #ifdef __sparc__
 	{
 		extern int stop_a_enabled;
-		/* Make sure the user can actually press Stop-A (L1-A) */
+		
 		stop_a_enabled = 1;
 		printk(KERN_EMERG "Press Stop-A (L1-A) to return to the boot prom\n");
 	}
@@ -163,23 +133,7 @@ static const struct tnt tnts[] = {
 	{ TAINT_CRAP,			'C', ' ' },
 };
 
-/**
- *	print_tainted - return a string to represent the kernel taint state.
- *
- *  'P' - Proprietary module has been loaded.
- *  'F' - Module has been forcibly loaded.
- *  'S' - SMP with CPUs not designed for SMP.
- *  'R' - User forced a module unload.
- *  'M' - System experienced a machine check exception.
- *  'B' - System has hit bad_page.
- *  'U' - Userspace-defined naughtiness.
- *  'D' - Kernel has oopsed before
- *  'A' - ACPI table overridden.
- *  'W' - Taint on warning.
- *  'C' - modules from drivers/staging are loaded.
- *
- *	The string is overwritten by the next call to print_tainted().
- */
+
 const char *print_tainted(void)
 {
 	static char buf[ARRAY_SIZE(tnts) + sizeof("Tainted: ") + 1];
@@ -214,13 +168,7 @@ unsigned long get_taint(void)
 
 void add_taint(unsigned flag)
 {
-	/*
-	 * Can't trust the integrity of the kernel anymore.
-	 * We don't call directly debug_locks_off() because the issue
-	 * is not necessarily serious enough to set oops_in_progress to 1
-	 * Also we want to keep up lockdep for staging development and
-	 * post-warning case.
-	 */
+	
 	if (flag != TAINT_CRAP && flag != TAINT_WARN && __debug_locks_off())
 		printk(KERN_WARNING "Disabling lock debugging due to kernel taint\n");
 
@@ -238,10 +186,7 @@ static void spin_msec(int msecs)
 	}
 }
 
-/*
- * It just happens that oops_enter() and oops_exit() are identically
- * implemented...
- */
+
 static void do_oops_enter_exit(void)
 {
 	unsigned long flags;
@@ -252,12 +197,12 @@ static void do_oops_enter_exit(void)
 
 	spin_lock_irqsave(&pause_on_oops_lock, flags);
 	if (pause_on_oops_flag == 0) {
-		/* This CPU may now print the oops message */
+		
 		pause_on_oops_flag = 1;
 	} else {
-		/* We need to stall this CPU */
+		
 		if (!spin_counter) {
-			/* This CPU gets to do the counting */
+			
 			spin_counter = pause_on_oops;
 			do {
 				spin_unlock(&pause_on_oops_lock);
@@ -266,7 +211,7 @@ static void do_oops_enter_exit(void)
 			} while (--spin_counter);
 			pause_on_oops_flag = 0;
 		} else {
-			/* This CPU waits for a different one */
+			
 			while (spin_counter) {
 				spin_unlock(&pause_on_oops_lock);
 				spin_msec(1);
@@ -277,40 +222,22 @@ static void do_oops_enter_exit(void)
 	spin_unlock_irqrestore(&pause_on_oops_lock, flags);
 }
 
-/*
- * Return true if the calling CPU is allowed to print oops-related info.
- * This is a bit racy..
- */
+
 int oops_may_print(void)
 {
 	return pause_on_oops_flag == 0;
 }
 
-/*
- * Called when the architecture enters its oops handler, before it prints
- * anything.  If this is the first CPU to oops, and it's oopsing the first
- * time then let it proceed.
- *
- * This is all enabled by the pause_on_oops kernel boot option.  We do all
- * this to ensure that oopses don't scroll off the screen.  It has the
- * side-effect of preventing later-oopsing CPUs from mucking up the display,
- * too.
- *
- * It turns out that the CPU which is allowed to print ends up pausing for
- * the right duration, whereas all the other CPUs pause for twice as long:
- * once in oops_enter(), once in oops_exit().
- */
+
 void oops_enter(void)
 {
 	tracing_off();
-	/* can't trust the integrity of the kernel anymore: */
+	
 	debug_locks_off();
 	do_oops_enter_exit();
 }
 
-/*
- * 64-bit random ID for oopses:
- */
+
 static u64 oops_id;
 
 static int init_oops_id(void)
@@ -331,10 +258,7 @@ static void print_oops_end_marker(void)
 		(unsigned long long)oops_id);
 }
 
-/*
- * Called when the architecture exits its oops handler, after printing
- * everything.
- */
+
 void oops_exit(void)
 {
 	do_oops_enter_exit();
@@ -386,10 +310,7 @@ EXPORT_SYMBOL(warn_slowpath_null);
 
 #ifdef CONFIG_CC_STACKPROTECTOR
 
-/*
- * Called when gcc's -fstack-protector feature is used, and
- * gcc detects corruption of the on-stack canary value
- */
+
 void __stack_chk_fail(void)
 {
 	panic("stack-protector: Kernel stack is corrupted in: %p\n",

@@ -1,12 +1,4 @@
-/*
- * Handle mapping of the NOR flash on Cogent EDB7312 boards
- *
- * Copyright 2002 SYSGO Real-Time Solutions GmbH
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -20,16 +12,16 @@
 #include <linux/mtd/partitions.h>
 #endif
 
-#define WINDOW_ADDR 0x00000000      /* physical properties of flash */
+#define WINDOW_ADDR 0x00000000      
 #define WINDOW_SIZE 0x01000000
 #define BUSWIDTH    2
 #define FLASH_BLOCKSIZE_MAIN	0x20000
 #define FLASH_NUMBLOCKS_MAIN	128
-/* can be "cfi_probe", "jedec_probe", "map_rom", NULL }; */
+
 #define PROBETYPES { "cfi_probe", NULL }
 
-#define MSG_PREFIX "EDB7312-NOR:"   /* prefix for our printk()'s */
-#define MTDID      "edb7312-nor"    /* for mtdparts= partitioning */
+#define MSG_PREFIX "EDB7312-NOR:"   
+#define MTDID      "edb7312-nor"    
 
 static struct mtd_info *mymtd;
 
@@ -42,9 +34,7 @@ struct map_info edb7312nor_map = {
 
 #ifdef CONFIG_MTD_PARTITIONS
 
-/*
- * MTD partitioning stuff
- */
+
 static struct mtd_partition static_partitions[3] =
 {
 	{

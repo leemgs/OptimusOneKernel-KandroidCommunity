@@ -1,20 +1,4 @@
-/*
- *  Copyright (C) 2009 Ilya Yanok, Emcraft Systems Ltd, <yanok@emcraft.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -39,7 +23,7 @@
 #include <mach/iomux-mx3.h>
 #include "devices.h"
 
-/* FPGA defines */
+
 #define QONG_FPGA_VERSION(major, minor, rev)	\
 	(((major & 0xF) << 12) | ((minor & 0xF) << 8) | (rev & 0xFF))
 
@@ -48,7 +32,7 @@
 
 #define QONG_FPGA_CTRL_BASEADDR		QONG_FPGA_BASEADDR
 #define QONG_FPGA_CTRL_SIZE 		0x10
-/* FPGA control registers */
+
 #define QONG_FPGA_CTRL_VERSION		0x00
 
 #define QONG_DNET_ID		1
@@ -58,9 +42,7 @@
 
 #define QONG_FPGA_IRQ		IOMUX_TO_IRQ(MX31_PIN_DTR_DCE1)
 
-/*
- * This file contains the board-specific initialization routines.
- */
+
 
 static struct imxuart_platform_data uart_pdata = {
 	.flags = IMXUART_HAVE_RTSCTS,
@@ -108,7 +90,7 @@ static int __init qong_init_dnet(void)
 	return ret;
 }
 
-/* MTD NOR flash */
+
 
 static struct physmap_flash_data qong_flash_data = {
 	.width = 2,
@@ -135,9 +117,7 @@ static void qong_init_nor_mtd(void)
 	(void)platform_device_register(&qong_nor_mtd_device);
 }
 
-/*
- * Hardware specific access to control-lines
- */
+
 static void qong_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 {
 	struct nand_chip *nand_chip = mtd->priv;
@@ -151,9 +131,7 @@ static void qong_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 		writeb(cmd, nand_chip->IO_ADDR_W + (1 << 23));
 }
 
-/*
- * Read the Device Ready pin.
- */
+
 static int qong_nand_device_ready(struct mtd_info *mtd)
 {
 	return gpio_get_value(IOMUX_TO_GPIO(MX31_PIN_NFRB));
@@ -197,23 +175,23 @@ static struct platform_device qong_nand_device = {
 
 static void __init qong_init_nand_mtd(void)
 {
-	/* init CS */
+	
 	__raw_writel(0x00004f00, CSCR_U(3));
 	__raw_writel(0x20013b31, CSCR_L(3));
 	__raw_writel(0x00020800, CSCR_A(3));
 	mxc_iomux_set_gpr(MUX_SDCTL_CSD1_SEL, true);
 
-	/* enable pin */
+	
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_NFCE_B, IOMUX_CONFIG_GPIO));
 	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_NFCE_B), "nand_enable"))
 		gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_NFCE_B), 0);
 
-	/* ready/busy pin */
+	
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_NFRB, IOMUX_CONFIG_GPIO));
 	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_NFRB), "nand_rdy"))
 		gpio_direction_input(IOMUX_TO_GPIO(MX31_PIN_NFRB));
 
-	/* write protect pin */
+	
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_NFWP_B, IOMUX_CONFIG_GPIO));
 	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_NFWP_B), "nand_wp"))
 		gpio_direction_input(IOMUX_TO_GPIO(MX31_PIN_NFWP_B));
@@ -244,14 +222,12 @@ static void __init qong_init_fpga(void)
 		return;
 	}
 
-	/* register FPGA-based devices */
+	
 	qong_init_nand_mtd();
 	qong_init_dnet();
 }
 
-/*
- * Board specific initialization.
- */
+
 static void __init mxc_board_init(void)
 {
 	mxc_init_imx_uart();
@@ -268,13 +244,10 @@ static struct sys_timer qong_timer = {
 	.init	= qong_timer_init,
 };
 
-/*
- * The following uses standard kernel macros defined in arch.h in order to
- * initialize __mach_desc_QONG data structure.
- */
+
 
 MACHINE_START(QONG, "Dave/DENX QongEVB-LITE")
-	/* Maintainer: DENX Software Engineering GmbH */
+	
 	.phys_io        = AIPS1_BASE_ADDR,
 	.io_pg_offst    = ((AIPS1_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params    = PHYS_OFFSET + 0x100,

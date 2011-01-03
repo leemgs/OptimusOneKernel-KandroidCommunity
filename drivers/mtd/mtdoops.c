@@ -1,25 +1,4 @@
-/*
- * MTD Oops/Panic logger
- *
- * Copyright (C) 2007 Nokia Corporation. All rights reserved.
- *
- * Author: Richard Purdie <rpurdie@openedhand.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -48,7 +27,7 @@ static struct mtdoops_context {
 
 	void *oops_buf;
 
-	/* writecount and disabling ready are spin lock protected */
+	
 	spinlock_t writecount_lock;
 	int ready;
 	int writecount;
@@ -87,7 +66,7 @@ static int mtdoops_erase_block(struct mtd_info *mtd, int offset)
 		return ret;
 	}
 
-	schedule();  /* Wait for erase to finish. */
+	schedule();  
 	remove_wait_queue(&wait_q, &wait);
 
 	return 0;
@@ -117,7 +96,7 @@ static void mtdoops_inc_counter(struct mtdoops_context *cxt)
 		return;
 	}
 
-	/* See if we need to erase the next block */
+	
 	if (count != 0xffffffff) {
 		schedule_work(&cxt->work_erase);
 		return;
@@ -128,7 +107,7 @@ static void mtdoops_inc_counter(struct mtdoops_context *cxt)
 	cxt->ready = 1;
 }
 
-/* Scheduled work - when we can't proceed without erasing a block */
+
 static void mtdoops_workfunc_erase(struct work_struct *work)
 {
 	struct mtdoops_context *cxt =
@@ -136,7 +115,7 @@ static void mtdoops_workfunc_erase(struct work_struct *work)
 	struct mtd_info *mtd = cxt->mtd;
 	int i = 0, j, ret, mod;
 
-	/* We were unregistered */
+	
 	if (!mtd)
 		return;
 
@@ -323,10 +302,7 @@ static void mtdoops_console_sync(void)
 	if (!cxt->ready || !mtd || cxt->writecount == 0)
 		return;
 
-	/* 
-	 *  Once ready is 0 and we've held the lock no further writes to the 
-	 *  buffer will happen
-	 */
+	
 	spin_lock_irqsave(&cxt->writecount_lock, flags);
 	if (!cxt->ready) {
 		spin_unlock_irqrestore(&cxt->writecount_lock, flags);
@@ -336,7 +312,7 @@ static void mtdoops_console_sync(void)
 	spin_unlock_irqrestore(&cxt->writecount_lock, flags);
 
 	if (mtd->panic_write && in_interrupt())
-		/* Interrupt context, we're going to panic so try and log */
+		
 		mtdoops_write(cxt, 1);
 	else
 		schedule_work(&cxt->work_write);
@@ -357,10 +333,10 @@ mtdoops_console_write(struct console *co, const char *s, unsigned int count)
 	if (!cxt->ready || !mtd)
 		return;
 
-	/* Locking on writecount ensures sequential writes to the buffer */
+	
 	spin_lock_irqsave(&cxt->writecount_lock, flags);
 
-	/* Check ready status didn't change whilst waiting for the lock */
+	
 	if (!cxt->ready) {
 		spin_unlock_irqrestore(&cxt->writecount_lock, flags);
 		return;

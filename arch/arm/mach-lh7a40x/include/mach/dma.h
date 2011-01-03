@@ -1,27 +1,19 @@
-/* arch/arm/mach-lh7a40x/include/mach/dma.h
- *
- *  Copyright (C) 2005 Marc Singer
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 typedef enum {
 	DMA_M2M0	= 0,
 	DMA_M2M1	= 1,
-	DMA_M2P0	= 2,	/* Tx */
-	DMA_M2P1	= 3,	/* Rx */
-	DMA_M2P2	= 4,	/* Tx */
-	DMA_M2P3	= 5,	/* Rx */
-	DMA_M2P4	= 6,	/* Tx - AC97 */
-	DMA_M2P5	= 7,	/* Rx - AC97 */
-	DMA_M2P6	= 8,	/* Tx */
-	DMA_M2P7	= 9,	/* Rx */
+	DMA_M2P0	= 2,	
+	DMA_M2P1	= 3,	
+	DMA_M2P2	= 4,	
+	DMA_M2P3	= 5,	
+	DMA_M2P4	= 6,	
+	DMA_M2P5	= 7,	
+	DMA_M2P6	= 8,	
+	DMA_M2P7	= 9,	
 } dma_device_t;
 
-#define DMA_LENGTH_MAX		((64*1024) - 4) /* bytes */
+#define DMA_LENGTH_MAX		((64*1024) - 4) 
 
 #define DMAC_GCA		__REG(DMAC_PHYS + 0x2b80)
 #define DMAC_GIR		__REG(DMAC_PHYS + 0x2bc0)

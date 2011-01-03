@@ -1,15 +1,4 @@
-/*
- * arch/arm/mach-ks8695/board-dsm320.c
- *
- * DSM-320 D-Link Wireless Media Player, board support.
- *
- * Copyright 2008 Simtec Electronics
- *		  Daniel Silverstone <dsilvers@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -38,13 +27,13 @@ static int dsm320_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	switch (slot) {
 	case 0:
-		/* PCI-AHB bridge? */
+		
 		return KS8695_IRQ_EXTERN0;
 	case 18:
-		/* Mini PCI slot */
+		
 		return KS8695_IRQ_EXTERN2;
 	case 20:
-		/* RealMAGIC chip */
+		
 		return KS8695_IRQ_EXTERN0;
 	}
 	BUG();
@@ -57,10 +46,10 @@ static struct ks8695_pci_cfg __initdata dsm320_pci = {
 
 static void __init dsm320_register_pci(void)
 {
-	/* Initialise the GPIO lines for interrupt mode */
-	/* RealMAGIC */
+	
+	
 	ks8695_gpio_interrupt(KS8695_GPIO_0, IRQ_TYPE_LEVEL_LOW);
-	/* MiniPCI Slot */
+	
 	ks8695_gpio_interrupt(KS8695_GPIO_2, IRQ_TYPE_LEVEL_LOW);
 
 	ks8695_init_pci(&dsm320_pci);
@@ -77,9 +66,7 @@ static struct physmap_flash_data dsm320_nor_pdata = {
 
 static struct resource dsm320_nor_resource[] = {
 	[0] = {
-		.start = SZ_32M, /* We expect the bootloader to map
-				  * the flash here.
-				  */
+		.start = SZ_32M, 
 		.end   = SZ_32M + SZ_4M - 1,
 		.flags = IORESOURCE_MEM,
 	}
@@ -106,21 +93,21 @@ void __init dsm320_register_nor(void)
 
 static void __init dsm320_init(void)
 {
-	/* GPIO registration */
+	
 	ks8695_register_gpios();
 
-	/* PCI registration */
+	
 	dsm320_register_pci();
 
-	/* Network device */
-	ks8695_add_device_lan();	/* eth0 = LAN */
+	
+	ks8695_add_device_lan();	
 
-	/* NOR devices */
+	
 	dsm320_register_nor();
 }
 
 MACHINE_START(DSM320, "D-Link DSM-320 Wireless Media Player")
-	/* Maintainer: Simtec Electronics. */
+	
 	.phys_io	= KS8695_IO_PA,
 	.io_pg_offst	= (KS8695_IO_VA >> 18) & 0xfffc,
 	.boot_params	= KS8695_SDRAM_PA + 0x100,

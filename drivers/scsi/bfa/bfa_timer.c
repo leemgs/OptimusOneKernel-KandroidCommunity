@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa_timer.h>
 #include <cs/bfa_debug.h>
@@ -48,21 +33,17 @@ bfa_timer_beat(struct bfa_timer_mod_s *mod)
 			elem->timeout -= BFA_TIMER_FREQ;
 		}
 
-		qe = qe_next;	/* go to next elem */
+		qe = qe_next;	
 	}
 
-	/*
-	 * Pop all the timeout entries
-	 */
+	
 	while (!list_empty(&timedout_q)) {
 		bfa_q_deq(&timedout_q, &elem);
 		elem->timercb(elem->arg);
 	}
 }
 
-/**
- * Should be called with lock protection
- */
+
 void
 bfa_timer_begin(struct bfa_timer_mod_s *mod, struct bfa_timer_s *timer,
 		    void (*timercb) (void *), void *arg, unsigned int timeout)
@@ -78,9 +59,7 @@ bfa_timer_begin(struct bfa_timer_mod_s *mod, struct bfa_timer_s *timer,
 	list_add_tail(&timer->qe, &mod->timer_q);
 }
 
-/**
- * Should be called with lock protection
- */
+
 void
 bfa_timer_stop(struct bfa_timer_s *timer)
 {

@@ -1,15 +1,4 @@
-/* linux/include/asm-arm/plat-s3c24xx/s3c2410.h
- *
- * Copyright (c) 2004 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Header file for s3c2410 machine directory
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #ifdef CONFIG_CPU_S3C2410
 

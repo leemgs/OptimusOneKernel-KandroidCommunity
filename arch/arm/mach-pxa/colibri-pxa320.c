@@ -1,15 +1,4 @@
-/*
- *  arch/arm/mach-pxa/colibri-pxa320.c
- *
- *  Support for Toradex PXA320/310 based Colibri module
- *
- *  Daniel Mack <daniel@caiaq.de>
- *  Matthias Meier <matthias.j.meier@gmx.net>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -35,11 +24,9 @@
 #if defined(CONFIG_AX88796)
 #define COLIBRI_ETH_IRQ_GPIO	mfp_to_gpio(GPIO36_GPIO)
 
-/*
- * Asix AX88796 Ethernet
- */
+
 static struct ax_plat_data colibri_asix_platdata = {
-	.flags		= 0, /* defined later */
+	.flags		= 0, 
 	.wordlength	= 2,
 };
 
@@ -67,8 +54,8 @@ static struct platform_device asix_device = {
 };
 
 static mfp_cfg_t colibri_pxa320_eth_pin_config[] __initdata = {
-	GPIO3_nCS2,			/* AX88796 chip select */
-	GPIO36_GPIO | MFP_PULL_HIGH	/* AX88796 IRQ */
+	GPIO3_nCS2,			
+	GPIO36_GPIO | MFP_PULL_HIGH	
 };
 
 static void __init colibri_pxa320_init_eth(void)
@@ -79,7 +66,7 @@ static void __init colibri_pxa320_init_eth(void)
 }
 #else
 static inline void __init colibri_pxa320_init_eth(void) {}
-#endif /* CONFIG_AX88796 */
+#endif 
 
 #if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
 static mfp_cfg_t colibri_pxa320_usb_pin_config[] __initdata = {
@@ -99,7 +86,7 @@ void __init colibri_pxa320_init_ohci(void)
 }
 #else
 static inline void colibri_pxa320_init_ohci(void) {}
-#endif /* CONFIG_USB_OHCI_HCD || CONFIG_USB_OHCI_HCD_MODULE */
+#endif 
 
 static mfp_cfg_t colibri_pxa320_mmc_pin_config[] __initdata = {
 	GPIO22_MMC1_CLK,
@@ -166,12 +153,9 @@ static inline void __init colibri_pxa320_init_ac97(void)
 static inline void colibri_pxa320_init_ac97(void) {}
 #endif
 
-/*
- * The following configuration is verified to work with the Toradex Orchid
- * carrier board
- */
+
 static mfp_cfg_t colibri_pxa320_uart_pin_config[] __initdata = {
-	/* UART 1 configuration (may be set by bootloader) */
+	
 	GPIO99_UART1_CTS,
 	GPIO104_UART1_RTS,
 	GPIO97_UART1_RXD,
@@ -181,13 +165,13 @@ static mfp_cfg_t colibri_pxa320_uart_pin_config[] __initdata = {
 	GPIO100_UART1_DCD,
 	GPIO102_UART1_RI,
 
-	/* UART 2 configuration */
+	
 	GPIO109_UART2_CTS,
 	GPIO112_UART2_RTS,
 	GPIO110_UART2_RXD,
 	GPIO111_UART2_TXD,
 
-	/* UART 3 configuration */
+	
 	GPIO30_UART3_RXD,
 	GPIO31_UART3_TXD,
 };

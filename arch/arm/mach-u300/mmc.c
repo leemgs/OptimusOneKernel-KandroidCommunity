@@ -1,15 +1,4 @@
-/*
- *
- * arch/arm/mach-u300/mmc.c
- *
- *
- * Copyright (C) 2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- *
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- * Author: Johan Lundin <johan.lundin@stericsson.com>
- * Author: Jonas Aaberg <jonas.aberg@stericsson.com>
- */
+
 #include <linux/device.h>
 #include <linux/amba/bus.h>
 #include <linux/mmc/host.h>
@@ -40,27 +29,13 @@ static unsigned int mmc_status(struct device *dev)
 	return mmci_card->mmc_inserted;
 }
 
-/*
- * Here follows a large chunk of code which will only be enabled if you
- * have both the AB3100 chip mounted and the MMC subsystem activated.
- */
+
 
 static u32 mmc_translate_vdd(struct device *dev, unsigned int voltage)
 {
 	int v;
 
-	/*
-	 * MMC Spec:
-	 * bit 7:	1.70 - 1.95V
-	 * bit 8 - 14:	2.0 - 2.6V
-	 * bit 15 - 23:	2.7 - 3.6V
-	 *
-	 * ab3100 voltages:
-	 * 000 - 2.85V
-	 * 001 - 2.75V
-	 * 010 - 1.8V
-	 * 011 - 1.5V
-	 */
+	
 	switch (voltage) {
 	case 8:
 		v = 3;
@@ -92,7 +67,7 @@ static u32 mmc_translate_vdd(struct device *dev, unsigned int voltage)
 		break;
 	}
 
-	/* PL180 voltage register bits */
+	
 	return v << 2;
 }
 
@@ -154,7 +129,7 @@ int __devinit mmc_init(struct amba_device *adev)
 	if (!mmci_card)
 		return -ENOMEM;
 
-	/* Nominally 2.85V on our platform */
+	
 	mmci_card->mmc0_plat_data.ocr_mask = MMC_VDD_28_29;
 	mmci_card->mmc0_plat_data.translate_vdd = mmc_translate_vdd;
 	mmci_card->mmc0_plat_data.status = mmc_status;
@@ -199,10 +174,7 @@ int __devinit mmc_init(struct amba_device *adev)
 	mmci_card->mmc_input->dev.parent = mmcsd_device;
 	input_set_capability(mmci_card->mmc_input, EV_SW, KEY_INSERT);
 
-	/*
-	 * Since this must always be compiled into the kernel, this input
-	 * is never unregistered or free:ed.
-	 */
+	
 	ret = input_register_device(mmci_card->mmc_input);
 	if (ret) {
 		input_free_device(mmci_card->mmc_input);
@@ -211,10 +183,7 @@ int __devinit mmc_init(struct amba_device *adev)
 
 	input_set_drvdata(mmci_card->mmc_input, mmci_card);
 
-	/*
-	 * Setup padmuxing for MMC. Since this must always be
-	 * compiled into the kernel, pmx is never released.
-	 */
+	
 	pmx = pmx_get(mmcsd_device, U300_APP_PMX_MMC_SETTING);
 
 	if (IS_ERR(pmx))

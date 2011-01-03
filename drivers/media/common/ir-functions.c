@@ -1,31 +1,11 @@
-/*
- *
- * some common structs and functions to handle infrared remotes via
- * input layer ...
- *
- * (c) 2003 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/jiffies.h>
 #include <media/ir-common.h>
 
-/* -------------------------------------------------------------------------- */
+
 
 MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
 MODULE_LICENSE("GPL");
@@ -34,13 +14,13 @@ static int repeat = 1;
 module_param(repeat, int, 0444);
 MODULE_PARM_DESC(repeat,"auto-repeat for IR keys (default: on)");
 
-static int debug;    /* debug level (0,1,2) */
+static int debug;    
 module_param(debug, int, 0644);
 
 #define dprintk(level, fmt, arg...)	if (debug >= level) \
 	printk(KERN_DEBUG fmt , ## arg)
 
-/* -------------------------------------------------------------------------- */
+
 
 static void ir_input_key_event(struct input_dev *dev, struct ir_input_state *ir)
 {
@@ -55,7 +35,7 @@ static void ir_input_key_event(struct input_dev *dev, struct ir_input_state *ir)
 	input_sync(dev);
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 void ir_input_init(struct input_dev *dev, struct ir_input_state *ir,
 		   int ir_type, struct ir_scancode_table *ir_codes)
@@ -66,11 +46,7 @@ void ir_input_init(struct input_dev *dev, struct ir_input_state *ir,
 
 	memset(ir->ir_codes, 0, sizeof(ir->ir_codes));
 
-	/*
-	 * FIXME: This is a temporary workaround to use the new IR tables
-	 * with the old approach. Later patches will replace this to a
-	 * proper method
-	 */
+	
 
 	if (ir_codes)
 		for (i = 0; i < ir_codes->size; i++)
@@ -118,8 +94,8 @@ void ir_input_keydown(struct input_dev *dev, struct ir_input_state *ir,
 }
 EXPORT_SYMBOL_GPL(ir_input_keydown);
 
-/* -------------------------------------------------------------------------- */
-/* extract mask bits out of data and pack them into the result */
+
+
 u32 ir_extract_bits(u32 data, u32 mask)
 {
 	u32 vbit = 1, value = 0;
@@ -142,7 +118,7 @@ static int inline getbit(u32 *samples, int bit)
 	return (samples[bit/32] & (1 << (31-(bit%32)))) ? 1 : 0;
 }
 
-/* sump raw samples for visual debugging ;) */
+
 int ir_dump_samples(u32 *samples, int count)
 {
 	int i, bit, start;
@@ -162,14 +138,14 @@ int ir_dump_samples(u32 *samples, int count)
 }
 EXPORT_SYMBOL_GPL(ir_dump_samples);
 
-/* decode raw samples, pulse distance coding used by NEC remotes */
+
 int ir_decode_pulsedistance(u32 *samples, int count, int low, int high)
 {
 	int i,last,bit,len;
 	u32 curBit;
 	u32 value;
 
-	/* find start burst */
+	
 	for (i = len = 0; i < count * 32; i++) {
 		bit = getbit(samples,i);
 		if (bit) {
@@ -181,11 +157,11 @@ int ir_decode_pulsedistance(u32 *samples, int count, int low, int high)
 		}
 	}
 
-	/* start burst to short */
+	
 	if (len < 29)
 		return 0xffffffff;
 
-	/* find start silence */
+	
 	for (len = 0; i < count * 32; i++) {
 		bit = getbit(samples,i);
 		if (bit) {
@@ -195,11 +171,11 @@ int ir_decode_pulsedistance(u32 *samples, int count, int low, int high)
 		}
 	}
 
-	/* silence to short */
+	
 	if (len < 7)
 		return 0xffffffff;
 
-	/* go decoding */
+	
 	len   = 0;
 	last = 1;
 	value = 0; curBit = 1;
@@ -229,20 +205,20 @@ int ir_decode_pulsedistance(u32 *samples, int count, int low, int high)
 }
 EXPORT_SYMBOL_GPL(ir_decode_pulsedistance);
 
-/* decode raw samples, biphase coding, used by rc5 for example */
+
 int ir_decode_biphase(u32 *samples, int count, int low, int high)
 {
 	int i,last,bit,len,flips;
 	u32 value;
 
-	/* find start bit (1) */
+	
 	for (i = 0; i < 32; i++) {
 		bit = getbit(samples,i);
 		if (bit)
 			break;
 	}
 
-	/* go decoding */
+	
 	len   = 0;
 	flips = 0;
 	value = 1;
@@ -271,10 +247,9 @@ int ir_decode_biphase(u32 *samples, int count, int low, int high)
 }
 EXPORT_SYMBOL_GPL(ir_decode_biphase);
 
-/* RC5 decoding stuff, moved from bttv-input.c to share it with
- * saa7134 */
 
-/* decode raw bit pattern to RC5 code */
+
+
 static u32 ir_rc5_decode(unsigned int code)
 {
 	unsigned int org_code = code;
@@ -313,11 +288,11 @@ void ir_rc5_timer_end(unsigned long data)
 	u32 gap;
 	u32 rc5 = 0;
 
-	/* get time */
+	
 	current_jiffies = jiffies;
 	do_gettimeofday(&tv);
 
-	/* avoid overflow with gap >1s */
+	
 	if (tv.tv_sec - ir->base_time.tv_sec > 1) {
 		gap = 200000;
 	} else {
@@ -325,32 +300,32 @@ void ir_rc5_timer_end(unsigned long data)
 		    tv.tv_usec - ir->base_time.tv_usec;
 	}
 
-	/* signal we're ready to start a new code */
+	
 	ir->active = 0;
 
-	/* Allow some timer jitter (RC5 is ~24ms anyway so this is ok) */
+	
 	if (gap < 28000) {
 		dprintk(1, "ir-common: spurious timer_end\n");
 		return;
 	}
 
 	if (ir->last_bit < 20) {
-		/* ignore spurious codes (caused by light/other remotes) */
+		
 		dprintk(1, "ir-common: short code: %x\n", ir->code);
 	} else {
 		ir->code = (ir->code << ir->shift_by) | 1;
 		rc5 = ir_rc5_decode(ir->code);
 
-		/* two start bits? */
+		
 		if (RC5_START(rc5) != ir->start) {
 			dprintk(1, "ir-common: rc5 start bits invalid: %u\n", RC5_START(rc5));
 
-			/* right address? */
+			
 		} else if (RC5_ADDR(rc5) == ir->addr) {
 			u32 toggle = RC5_TOGGLE(rc5);
 			u32 instr = RC5_INSTR(rc5);
 
-			/* Good code, decide if repeat/repress */
+			
 			if (toggle != RC5_TOGGLE(ir->last_rc5) ||
 			    instr != RC5_INSTR(ir->last_rc5)) {
 				dprintk(1, "ir-common: instruction %x, toggle %x\n", instr,
@@ -360,12 +335,12 @@ void ir_rc5_timer_end(unsigned long data)
 						 instr);
 			}
 
-			/* Set/reset key-up timer */
+			
 			timeout = current_jiffies +
 				  msecs_to_jiffies(ir->rc5_key_timeout);
 			mod_timer(&ir->timer_keyup, timeout);
 
-			/* Save code for repeat test */
+			
 			ir->last_rc5 = rc5;
 		}
 	}

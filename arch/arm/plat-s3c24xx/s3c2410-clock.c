@@ -1,24 +1,4 @@
-/* linux/arch/arm/mach-s3c2410/clock.c
- *
- * Copyright (c) 2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2410,S3C2440,S3C2442 Clock control support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -57,7 +37,7 @@ int s3c2410_clkcon_enable(struct clk *clk, int enable)
 	else
 		clkcon &= ~clocks;
 
-	/* ensure none of the special function bits set */
+	
 	clkcon &= ~(S3C2410_CLKCON_IDLE|S3C2410_CLKCON_POWER);
 
 	__raw_writel(clkcon, S3C2410_CLKCON);
@@ -77,7 +57,7 @@ static int s3c2410_upll_enable(struct clk *clk, int enable)
 
 	__raw_writel(clkslow, S3C2410_CLKSLOW);
 
-	/* if we started the UPLL, then allow to settle */
+	
 
 	if (enable && (orig & S3C2410_CLKSLOW_UCLK_OFF))
 		udelay(200);
@@ -85,7 +65,7 @@ static int s3c2410_upll_enable(struct clk *clk, int enable)
 	return 0;
 }
 
-/* standard clock definitions */
+
 
 static struct clk init_clocks_disable[] = {
 	{
@@ -198,15 +178,7 @@ static struct clk init_clocks[] = {
 	},
 };
 
-/* s3c2410_baseclk_add()
- *
- * Add all the clocks used by the s3c2410 or compatible CPUs
- * such as the S3C2440 and S3C2442.
- *
- * We cannot use a system device as we are needed before any
- * of the init-calls that initialise the devices are actually
- * done.
-*/
+
 
 int __init s3c2410_baseclk_add(void)
 {
@@ -222,11 +194,11 @@ int __init s3c2410_baseclk_add(void)
 	if (s3c24xx_register_clock(&clk_usb_bus) < 0)
 		printk(KERN_ERR "failed to register usb bus clock\n");
 
-	/* register clocks from clock array */
+	
 
 	clkp = init_clocks;
 	for (ptr = 0; ptr < ARRAY_SIZE(init_clocks); ptr++, clkp++) {
-		/* ensure that we note the clock state */
+		
 
 		clkp->usage = clkcon & clkp->ctrlbit ? 1 : 0;
 
@@ -237,17 +209,9 @@ int __init s3c2410_baseclk_add(void)
 		}
 	}
 
-	/* We must be careful disabling the clocks we are not intending to
-	 * be using at boot time, as subsystems such as the LCD which do
-	 * their own DMA requests to the bus can cause the system to lockup
-	 * if they where in the middle of requesting bus access.
-	 *
-	 * Disabling the LCD clock if the LCD is active is very dangerous,
-	 * and therefore the bootloader should be careful to not enable
-	 * the LCD clock if it is not needed.
-	*/
+	
 
-	/* install (and disable) the clocks we do not need immediately */
+	
 
 	clkp = init_clocks_disable;
 	for (ptr = 0; ptr < ARRAY_SIZE(init_clocks_disable); ptr++, clkp++) {
@@ -261,7 +225,7 @@ int __init s3c2410_baseclk_add(void)
 		s3c2410_clkcon_enable(clkp, 0);
 	}
 
-	/* show the clock-slow value */
+	
 
 	xtal = clk_get(NULL, "xtal");
 

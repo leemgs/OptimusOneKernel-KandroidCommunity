@@ -1,16 +1,4 @@
-/*
- * Board support file for OMAP4430 SDP.
- *
- * Copyright (C) 2009 Texas Instruments
- *
- * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * Based on mach-omap2/board-3430sdp.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -82,7 +70,7 @@ static void __init omap_4430sdp_map_io(void)
 }
 
 MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
-	/* Maintainer: Santosh Shilimkar - Texas Instruments Inc */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

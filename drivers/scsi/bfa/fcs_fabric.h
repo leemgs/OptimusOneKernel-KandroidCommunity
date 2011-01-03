@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  fcs_lport.h FCS logical port interfaces
- */
+
+
 
 #ifndef __FCS_FABRIC_H__
 #define __FCS_FABRIC_H__
@@ -26,9 +9,7 @@
 #include <fcs/bfa_fcs_vport.h>
 #include <fcs/bfa_fcs_lport.h>
 
-/*
-* fcs friend functions: only between fcs modules
- */
+
 void            bfa_fcs_fabric_modinit(struct bfa_fcs_s *fcs);
 void            bfa_fcs_fabric_modexit(struct bfa_fcs_s *fcs);
 void            bfa_fcs_fabric_modsusp(struct bfa_fcs_s *fcs);
@@ -58,4 +39,4 @@ void bfa_fcs_auth_finished(struct bfa_fcs_fabric_s *fabric,
 
 void bfa_fcs_fabric_set_fabric_name(struct bfa_fcs_fabric_s *fabric,
 			wwn_t fabric_name);
-#endif /* __FCS_FABRIC_H__ */
+#endif 

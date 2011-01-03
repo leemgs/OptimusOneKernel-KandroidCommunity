@@ -1,13 +1,4 @@
-/*
- * inet_diag.c	Module for monitoring INET transport protocols sockets.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -452,7 +443,7 @@ static int inet_diag_bc_audit(const void *bytecode, int bytecode_len)
 	while (len > 0) {
 		struct inet_diag_bc_op *op = (struct inet_diag_bc_op *)bc;
 
-//printk("BC: %d %d %d {%d} / %d\n", op->code, op->yes, op->no, op[1].no, len);
+
 		switch (op->code) {
 		case INET_DIAG_BC_AUTO:
 		case INET_DIAG_BC_S_COND:

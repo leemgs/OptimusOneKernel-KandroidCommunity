@@ -1,10 +1,4 @@
-/*
- * drivers/pcmcia/sa1100_cerf.c
- *
- * PCMCIA implementation routines for CerfBoard
- * Based off the Assabet.
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/device.h>

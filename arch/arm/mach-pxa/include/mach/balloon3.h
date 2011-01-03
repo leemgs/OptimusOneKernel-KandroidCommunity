@@ -1,15 +1,4 @@
-/*
- *  linux/include/asm-arm/arch-pxa/balloon3.h
- *
- *  Authors:	Nick Bane and Wookey
- *  Created:	Oct, 2005
- *  Copyright:	Toby Churchill Ltd
- *  Cribbed from mainstone.c, by Nicholas Pitre
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef ASM_ARCH_BALLOON3_H
 #define ASM_ARCH_BALLOON3_H
@@ -23,15 +12,15 @@ enum balloon3_features {
 };
 
 #define BALLOON3_FPGA_PHYS	PXA_CS4_PHYS
-#define BALLOON3_FPGA_VIRT	(0xf1000000)	/* as per balloon2 */
+#define BALLOON3_FPGA_VIRT	(0xf1000000)	
 #define BALLOON3_FPGA_LENGTH	0x01000000
 
-/* FPGA/CPLD registers */
+
 #define BALLOON3_PCMCIA0_REG		(BALLOON3_FPGA_VIRT + 0x00e00008)
-/* fixme - same for now */
+
 #define BALLOON3_PCMCIA1_REG		(BALLOON3_FPGA_VIRT + 0x00e00008)
 #define BALLOON3_NANDIO_IO_REG		(BALLOON3_FPGA_VIRT + 0x00e00000)
-/* fpga/cpld interrupt control register */
+
 #define BALLOON3_INT_CONTROL_REG	(BALLOON3_FPGA_VIRT + 0x00e0000C)
 #define BALLOON3_NANDIO_CTL2_REG 	(BALLOON3_FPGA_VIRT + 0x00e00010)
 #define BALLOON3_NANDIO_CTL_REG 	(BALLOON3_FPGA_VIRT + 0x00e00014)
@@ -41,34 +30,34 @@ enum balloon3_features {
 #define BALLOON3_SAMOSA_DATA_REG	(BALLOON3_FPGA_VIRT + 0x00c00004)
 #define BALLOON3_SAMOSA_STATUS_REG	(BALLOON3_FPGA_VIRT + 0x00c0001c)
 
-/* GPIOs for irqs */
+
 #define BALLOON3_GPIO_AUX_NIRQ		(94)
 #define BALLOON3_GPIO_CODEC_IRQ		(95)
 
-/* Timer and Idle LED locations */
+
 #define BALLOON3_GPIO_LED_NAND		(9)
 #define BALLOON3_GPIO_LED_IDLE		(10)
 
-/* backlight control */
+
 #define BALLOON3_GPIO_RUN_BACKLIGHT	(99)
 
 #define BALLOON3_GPIO_S0_CD		(105)
 
-/* FPGA Interrupt Mask/Acknowledge Register */
-#define BALLOON3_INT_S0_IRQ		(1 << 0)  /* PCMCIA 0 IRQ */
-#define BALLOON3_INT_S0_STSCHG		(1 << 1)  /* PCMCIA 0 status changed */
 
-/* CF Status Register */
-#define BALLOON3_PCMCIA_nIRQ		(1 << 0)  /* IRQ / ready signal */
+#define BALLOON3_INT_S0_IRQ		(1 << 0)  
+#define BALLOON3_INT_S0_STSCHG		(1 << 1)  
+
+
+#define BALLOON3_PCMCIA_nIRQ		(1 << 0)  
 #define BALLOON3_PCMCIA_nSTSCHG_BVD1	(1 << 1)
-					/* VDD sense / card status changed */
+					
 
-/* CF control register (write) */
-#define BALLOON3_PCMCIA_RESET		(1 << 0)   /* Card reset signal */
+
+#define BALLOON3_PCMCIA_RESET		(1 << 0)   
 #define BALLOON3_PCMCIA_ENABLE		(1 << 1)
 #define BALLOON3_PCMCIA_ADD_ENABLE	(1 << 2)
 
-/* CPLD (and FPGA) interface definitions */
+
 #define CPLD_LCD0_DATA_SET             0x00
 #define CPLD_LCD0_DATA_CLR             0x10
 #define CPLD_LCD0_COMMAND_SET          0x01

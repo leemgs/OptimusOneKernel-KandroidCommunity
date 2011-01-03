@@ -1,68 +1,14 @@
-/*
- * WUSB Wire Adapter: WLP interface
- * Deal with TX (massaging data to transmit, handling it)
- *
- * Copyright (C) 2005-2006 Intel Corporation
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * Transmission engine. Get an skb, create from that a WLP transmit
- * context, add a WLP TX header (which we keep prefilled in the
- * device's instance), fill out the target-specific fields and
- * fire it.
- *
- * ROADMAP:
- *
- *   Entry points:
- *
- *     i1480u_tx_release(): called by i1480u_disconnect() to release
- *                          pending tx contexts.
- *
- *     i1480u_tx_cb(): callback for TX contexts (USB URBs)
- *       i1480u_tx_destroy():
- *
- *     i1480u_tx_timeout(): called for timeout handling from the
- *                          network stack.
- *
- *     i1480u_hard_start_xmit(): called for transmitting an skb from
- *                               the network stack. Will interact with WLP
- *                               substack to verify and prepare frame.
- *       i1480u_xmit_frame(): actual transmission on hardware
- *
- *         i1480u_tx_create()	    Creates TX context
- *            i1480u_tx_create_1()    For packets in 1 fragment
- *            i1480u_tx_create_n()    For packets in >1 fragments
- *
- * TODO:
- *
- * - FIXME: rewrite using usb_sg_*(), add asynch support to
- *          usb_sg_*(). It might not make too much sense as most of
- *          the times the MTU will be smaller than one page...
- */
+
 
 #include "i1480u-wlp.h"
 
 enum {
-	/* This is only for Next and Last TX packets */
+	
 	i1480u_MAX_PL_SIZE = i1480u_MAX_FRG_SIZE
 		- sizeof(struct untd_hdr_rst),
 };
 
-/* Free resources allocated to a i1480u tx context. */
+
 static
 void i1480u_tx_free(struct i1480u_tx *wtx)
 {
@@ -77,7 +23,7 @@ static
 void i1480u_tx_destroy(struct i1480u *i1480u, struct i1480u_tx *wtx)
 {
 	unsigned long flags;
-	spin_lock_irqsave(&i1480u->tx_list_lock, flags);	/* not active any more */
+	spin_lock_irqsave(&i1480u->tx_list_lock, flags);	
 	list_del(&wtx->list_node);
 	i1480u_tx_free(wtx);
 	spin_unlock_irqrestore(&i1480u->tx_list_lock, flags);
@@ -97,14 +43,7 @@ void i1480u_tx_unlink_urbs(struct i1480u *i1480u)
 }
 
 
-/*
- * Callback for a completed tx USB URB.
- *
- * TODO:
- *
- * - FIXME: recover errors more gracefully
- * - FIXME: handle NAKs (I dont think they come here) for flow ctl
- */
+
 static
 void i1480u_tx_cb(struct urb *urb)
 {
@@ -121,12 +60,12 @@ void i1480u_tx_cb(struct urb *urb)
 		net_dev->stats.tx_bytes += urb->actual_length;
 		spin_unlock_irqrestore(&i1480u->lock, flags);
 		break;
-	case -ECONNRESET:	/* Not an error, but a controlled situation; */
-	case -ENOENT:		/* (we killed the URB)...so, no broadcast */
+	case -ECONNRESET:	
+	case -ENOENT:		
 		dev_dbg(dev, "notif endp: reset/noent %d\n", urb->status);
 		netif_stop_queue(net_dev);
 		break;
-	case -ESHUTDOWN:	/* going away! */
+	case -ESHUTDOWN:	
 		dev_dbg(dev, "notif endp: down %d\n", urb->status);
 		netif_stop_queue(net_dev);
 		break;
@@ -154,38 +93,7 @@ void i1480u_tx_cb(struct urb *urb)
 }
 
 
-/*
- * Given a buffer that doesn't fit in a single fragment, create an
- * scatter/gather structure for delivery to the USB pipe.
- *
- * Implements functionality of i1480u_tx_create().
- *
- * @wtx:	tx descriptor
- * @skb:	skb to send
- * @gfp_mask:	gfp allocation mask
- * @returns:    Pointer to @wtx if ok, NULL on error.
- *
- * Sorry, TOO LONG a function, but breaking it up is kind of hard
- *
- * This will break the buffer in chunks smaller than
- * i1480u_MAX_FRG_SIZE (including the header) and add proper headers
- * to each:
- *
- *   1st header           \
- *   i1480 tx header      |  fragment 1
- *   fragment data        /
- *   nxt header           \  fragment 2
- *   fragment data        /
- *   ..
- *   ..
- *   last header          \  fragment 3
- *   last fragment data   /
- *
- * This does not fill the i1480 TX header, it is left up to the
- * caller to do that; you can get it from @wtx->wlp_tx_hdr.
- *
- * This function consumes the skb unless there is an error.
- */
+
 static
 int i1480u_tx_create_n(struct i1480u_tx *wtx, struct sk_buff *skb,
 		       gfp_t gfp_mask)
@@ -204,21 +112,15 @@ int i1480u_tx_create_n(struct i1480u_tx *wtx, struct sk_buff *skb,
 	pl = skb->data;
 	pl_itr = pl;
 	pl_size = skb->len;
-	pl_size_left = pl_size;	/* payload size */
-	/* First fragment; fits as much as i1480u_MAX_FRG_SIZE minus
-	 * the headers */
+	pl_size_left = pl_size;	
+	
 	pl_size_1st = i1480u_MAX_FRG_SIZE
 		- sizeof(struct untd_hdr_1st) - sizeof(struct wlp_tx_hdr);
 	BUG_ON(pl_size_1st > pl_size);
 	pl_size_left -= pl_size_1st;
-	/* The rest have an smaller header (no i1480 TX header). We
-	 * need to break up the payload in blocks smaller than
-	 * i1480u_MAX_PL_SIZE (payload excluding header). */
+	
 	frgs = (pl_size_left + i1480u_MAX_PL_SIZE - 1) / i1480u_MAX_PL_SIZE;
-	/* Allocate space for the new buffer. In this new buffer we'll
-	 * place the headers followed by the data fragment, headers,
-	 * data fragments, etc..
-	 */
+	
 	result = -ENOMEM;
 	wtx->buf_size = sizeof(*untd_hdr_1st)
 		+ sizeof(*wlp_tx_hdr)
@@ -228,8 +130,8 @@ int i1480u_tx_create_n(struct i1480u_tx *wtx, struct sk_buff *skb,
 	if (wtx->buf == NULL)
 		goto error_buf_alloc;
 
-	buf_itr = wtx->buf;		/* We got the space, let's fill it up */
-	/* Fill 1st fragment */
+	buf_itr = wtx->buf;		
+	
 	untd_hdr_1st = buf_itr;
 	buf_itr += sizeof(*untd_hdr_1st);
 	untd_hdr_set_type(&untd_hdr_1st->hdr, i1480u_PKT_FRAG_1ST);
@@ -238,15 +140,15 @@ int i1480u_tx_create_n(struct i1480u_tx *wtx, struct sk_buff *skb,
 	untd_hdr_1st->fragment_len =
 		cpu_to_le16(pl_size_1st + sizeof(*wlp_tx_hdr));
 	memset(untd_hdr_1st->padding, 0, sizeof(untd_hdr_1st->padding));
-	/* Set up i1480 header info */
+	
 	wlp_tx_hdr = wtx->wlp_tx_hdr = buf_itr;
 	buf_itr += sizeof(*wlp_tx_hdr);
-	/* Copy the first fragment */
+	
 	memcpy(buf_itr, pl_itr, pl_size_1st);
 	pl_itr += pl_size_1st;
 	buf_itr += pl_size_1st;
 
-	/* Now do each remaining fragment */
+	
 	result = -EINVAL;
 	while (pl_size_left > 0) {
 		if (buf_itr + sizeof(*untd_hdr_rst) - wtx->buf
@@ -294,21 +196,7 @@ error_buf_alloc:
 }
 
 
-/*
- * Given a buffer that fits in a single fragment, fill out a @wtx
- * struct for transmitting it down the USB pipe.
- *
- * Uses the fact that we have space reserved in front of the skbuff
- * for hardware headers :]
- *
- * This does not fill the i1480 TX header, it is left up to the
- * caller to do that; you can get it from @wtx->wlp_tx_hdr.
- *
- * @pl:		pointer to payload data
- * @pl_size:    size of the payuload
- *
- * This function does not consume the @skb.
- */
+
 static
 int i1480u_tx_create_1(struct i1480u_tx *wtx, struct sk_buff *skb,
 		       gfp_t gfp_mask)
@@ -332,36 +220,7 @@ int i1480u_tx_create_1(struct i1480u_tx *wtx, struct sk_buff *skb,
 }
 
 
-/*
- * Given a skb to transmit, massage it to become palatable for the TX pipe
- *
- * This will break the buffer in chunks smaller than
- * i1480u_MAX_FRG_SIZE and add proper headers to each.
- *
- *   1st header           \
- *   i1480 tx header      |  fragment 1
- *   fragment data        /
- *   nxt header           \  fragment 2
- *   fragment data        /
- *   ..
- *   ..
- *   last header          \  fragment 3
- *   last fragment data   /
- *
- * Each fragment will be always smaller or equal to i1480u_MAX_FRG_SIZE.
- *
- * If the first fragment is smaller than i1480u_MAX_FRG_SIZE, then the
- * following is composed:
- *
- *   complete header      \
- *   i1480 tx header      | single fragment
- *   packet data          /
- *
- * We were going to use s/g support, but because the interface is
- * synch and at the end there is plenty of overhead to do it, it
- * didn't seem that worth for data that is going to be smaller than
- * one page.
- */
+
 static
 struct i1480u_tx *i1480u_tx_create(struct i1480u *i1480u,
 				   struct sk_buff *skb, gfp_t gfp_mask)
@@ -384,7 +243,7 @@ struct i1480u_tx *i1480u_tx_create(struct i1480u *i1480u,
 		goto error_urb_alloc;
 	epd = &i1480u->usb_iface->cur_altsetting->endpoint[2].desc;
 	usb_pipe = usb_sndbulkpipe(i1480u->usb_dev, epd->bEndpointAddress);
-	/* Fits in a single complete packet or need to split? */
+	
 	if (skb->len > pl_max_size) {
 		result = i1480u_tx_create_n(wtx, skb, gfp_mask);
 		if (result < 0)
@@ -411,18 +270,7 @@ error_wtx_alloc:
 	return NULL;
 }
 
-/*
- * Actual fragmentation and transmission of frame
- *
- * @wlp:  WLP substack data structure
- * @skb:  To be transmitted
- * @dst:  Device address of destination
- * @returns: 0 on success, <0 on failure
- *
- * This function can also be called directly (not just from
- * hard_start_xmit), so we also check here if the interface is up before
- * taking sending anything.
- */
+
 int i1480u_xmit_frame(struct wlp *wlp, struct sk_buff *skb,
 		      struct uwb_dev_addr *dst)
 {
@@ -453,24 +301,20 @@ int i1480u_xmit_frame(struct wlp *wlp, struct sk_buff *skb,
 		goto error_wtx_alloc;
 	}
 	wtx->i1480u = i1480u;
-	/* Fill out the i1480 header; @i1480u->def_tx_hdr read without
-	 * locking. We do so because they are kind of orthogonal to
-	 * each other (and thus not changed in an atomic batch).
-	 * The ETH header is right after the WLP TX header. */
+	
 	wlp_tx_hdr = wtx->wlp_tx_hdr;
 	*wlp_tx_hdr = i1480u->options.def_tx_hdr;
 	wlp_tx_hdr->dstaddr = *dst;
 	if (!memcmp(&wlp_tx_hdr->dstaddr, dev_bcast, sizeof(dev_bcast))
 	    && (wlp_tx_hdr_delivery_id_type(wlp_tx_hdr) & WLP_DRP)) {
-		/*Broadcast message directed to DRP host. Send as best effort
-		 * on PCA. */
+		
 		wlp_tx_hdr_set_delivery_id_type(wlp_tx_hdr, i1480u->options.pca_base_priority);
 	}
 
-	result = usb_submit_urb(wtx->urb, GFP_ATOMIC);		/* Go baby */
+	result = usb_submit_urb(wtx->urb, GFP_ATOMIC);		
 	if (result < 0) {
 		dev_err(dev, "TX: cannot submit URB: %d\n", result);
-		/* We leave the freeing of skb to calling function */
+		
 		wtx->skb = NULL;
 		goto error_tx_urb_submit;
 	}
@@ -487,22 +331,7 @@ out:
 }
 
 
-/*
- * Transmit an skb  Called when an skbuf has to be transmitted
- *
- * The skb is first passed to WLP substack to ensure this is a valid
- * frame. If valid the device address of destination will be filled and
- * the WLP header prepended to the skb. If this step fails we fake sending
- * the frame, if we return an error the network stack will just keep trying.
- *
- * Broadcast frames inside a WSS needs to be treated special as multicast is
- * not supported. A broadcast frame is sent as unicast to each member of the
- * WSS - this is done by the WLP substack when it finds a broadcast frame.
- * So, we test if the WLP substack took over the skb and only transmit it
- * if it has not (been taken over).
- *
- * @net_dev->xmit_lock is held
- */
+
 netdev_tx_t i1480u_hard_start_xmit(struct sk_buff *skb,
 					 struct net_device *net_dev)
 {
@@ -519,8 +348,7 @@ netdev_tx_t i1480u_hard_start_xmit(struct sk_buff *skb,
 			"Dropping packet.\n", result);
 		goto error;
 	} else if (result == 1) {
-		/* trans_start time will be set when WLP actually transmits
-		 * the frame */
+		
 		goto out;
 	}
 	result = i1480u_xmit_frame(&i1480u->wlp, skb, &dst);
@@ -537,10 +365,7 @@ out:
 }
 
 
-/*
- * Called when a pkt transmission doesn't complete in a reasonable period
- * Device reset may sleep - do it outside of interrupt context (delayed)
- */
+
 void i1480u_tx_timeout(struct net_device *net_dev)
 {
 	struct i1480u *i1480u = netdev_priv(net_dev);
@@ -561,15 +386,8 @@ void i1480u_tx_release(struct i1480u *i1480u)
 		usb_unlink_urb(wtx->urb);
 	}
 	spin_unlock_irqrestore(&i1480u->tx_list_lock, flags);
-	count = count*10; /* i1480ut 200ms per unlinked urb (intervals of 20ms) */
-	/*
-	 * We don't like this sollution too much (dirty as it is), but
-	 * it is cheaper than putting a refcount on each i1480u_tx and
-	 * i1480uting for all of them to go away...
-	 *
-	 * Called when no more packets can be added to tx_list
-	 * so can i1480ut for it to be empty.
-	 */
+	count = count*10; 
+	
 	while (1) {
 		spin_lock_irqsave(&i1480u->tx_list_lock, flags);
 		empty = list_empty(&i1480u->tx_list);

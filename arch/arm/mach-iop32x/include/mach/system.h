@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-iop32x/include/mach/system.h
- *
- * Copyright (C) 2001 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <asm/mach-types.h>
 #include <asm/hardware/iop3xx.h>
 #include <mach/n2100.h>
@@ -29,6 +21,6 @@ static inline void arch_reset(char mode, const char *cmd)
 
 	*IOP3XX_PCSR = 0x30;
 
-	/* Jump into ROM at address 0 */
+	
 	cpu_reset(0);
 }

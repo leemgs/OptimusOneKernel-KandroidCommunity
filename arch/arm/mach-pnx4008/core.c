@@ -1,19 +1,4 @@
-/*
- * arch/arm/mach-pnx4008/core.c
- *
- * PNX4008 core startup code
- *
- * Authors: Vitaly Wool, Dmitry Chigirev,
- * Grigory Tolstolytkin, Dmitry Pervushin <source@mvista.com>
- *
- * Based on reference code received from Philips:
- * Copyright (C) 2003 Philips Semiconductors
- *
- * 2005 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -141,7 +126,7 @@ static struct platform_device nand_flash_device = {
 	},
 };
 
-/* The dmamask must be set for OHCI to work */
+
 static u64 ohci_dmamask = ~(u32) 0;
 
 static struct resource ohci_resources[] = {
@@ -213,8 +198,7 @@ extern void pnx4008_uart_init(void);
 
 static void __init pnx4008_init(void)
 {
-	/*disable all START interrupt sources,
-	   and clear all START interrupt flags */
+	
 	__raw_writel(0, START_INT_ER_REG(SE_PIN_BASE_INT));
 	__raw_writel(0, START_INT_ER_REG(SE_INT_BASE_INT));
 	__raw_writel(0xffffffff, START_INT_RSR_REG(SE_PIN_BASE_INT));
@@ -222,7 +206,7 @@ static void __init pnx4008_init(void)
 
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 	spi_register_board_info(spi_board_info, ARRAY_SIZE(spi_board_info));
-	/* Switch on the UART clocks */
+	
 	pnx4008_uart_init();
 }
 
@@ -263,7 +247,7 @@ void __init pnx4008_map_io(void)
 extern struct sys_timer pnx4008_timer;
 
 MACHINE_START(PNX4008, "Philips PNX4008")
-	/* Maintainer: MontaVista Software Inc. */
+	
 	.phys_io 		= 0x40090000,
 	.io_pg_offst 		= (0xf4090000 >> 18) & 0xfffc,
 	.boot_params		= 0x80000100,

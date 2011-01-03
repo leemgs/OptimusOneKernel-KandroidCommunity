@@ -1,28 +1,6 @@
-/*
-   BlueZ - Bluetooth protocol stack for Linux
-   Copyright (C) 2000-2001 Qualcomm Incorporated
 
-   Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation;
 
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.
-   IN NO EVENT SHALL THE COPYRIGHT HOLDER(S) AND AUTHOR(S) BE LIABLE FOR ANY
-   CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-   ALL LIABILITY, INCLUDING LIABILITY FOR INFRINGEMENT OF ANY PATENTS,
-   COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS, RELATING TO USE OF THIS
-   SOFTWARE IS DISCLAIMED.
-*/
-
-/* Bluetooth HCI sockets. */
 
 #include <linux/module.h>
 
@@ -49,31 +27,31 @@
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
 
-/* ----- HCI socket interface ----- */
+
 
 static inline int hci_test_bit(int nr, void *addr)
 {
 	return *((__u32 *) addr + (nr >> 5)) & ((__u32) 1 << (nr & 31));
 }
 
-/* Security filter */
+
 static struct hci_sec_filter hci_sec_filter = {
-	/* Packet types */
+	
 	0x10,
-	/* Events */
+	
 	{ 0x1000d9fe, 0x0000b00c },
-	/* Commands */
+	
 	{
 		{ 0x0 },
-		/* OGF_LINK_CTL */
+		
 		{ 0xbe000006, 0x00000001, 0x00000000, 0x00 },
-		/* OGF_LINK_POLICY */
+		
 		{ 0x00005200, 0x00000000, 0x00000000, 0x00 },
-		/* OGF_HOST_CTL */
+		
 		{ 0xaab00200, 0x2b402aaa, 0x05220154, 0x00 },
-		/* OGF_INFO_PARAM */
+		
 		{ 0x000002be, 0x00000000, 0x00000000, 0x00 },
-		/* OGF_STATUS_PARAM */
+		
 		{ 0x000000ea, 0x00000000, 0x00000000, 0x00 }
 	}
 };
@@ -82,7 +60,7 @@ static struct bt_sock_list hci_sk_list = {
 	.lock = __RW_LOCK_UNLOCKED(hci_sk_list.lock)
 };
 
-/* Send frame to RAW socket */
+
 void hci_send_to_sock(struct hci_dev *hdev, struct sk_buff *skb)
 {
 	struct sock *sk;
@@ -98,11 +76,11 @@ void hci_send_to_sock(struct hci_dev *hdev, struct sk_buff *skb)
 		if (sk->sk_state != BT_BOUND || hci_pi(sk)->hdev != hdev)
 			continue;
 
-		/* Don't send frame to the socket it came from */
+		
 		if (skb->sk == sk)
 			continue;
 
-		/* Apply filter */
+		
 		flt = &hci_pi(sk)->filter;
 
 		if (!test_bit((bt_cb(skb)->pkt_type == HCI_VENDOR_PKT) ?
@@ -128,7 +106,7 @@ void hci_send_to_sock(struct hci_dev *hdev, struct sk_buff *skb)
 		if (!(nskb = skb_clone(skb, GFP_ATOMIC)))
 			continue;
 
-		/* Put type byte before the data */
+		
 		memcpy(skb_push(nskb, 1), &bt_cb(nskb)->pkt_type, 1);
 
 		if (sock_queue_rcv_skb(sk, nskb))
@@ -165,7 +143,7 @@ static int hci_sock_release(struct socket *sock)
 	return 0;
 }
 
-/* Ioctls that require bound socket */
+
 static inline int hci_sock_bound_ioctl(struct sock *sk, unsigned int cmd, unsigned long arg)
 {
 	struct hci_dev *hdev = hci_pi(sk)->hdev;
@@ -656,7 +634,7 @@ static int hci_sock_dev_event(struct notifier_block *this, unsigned long event, 
 
 	BT_DBG("hdev %s event %ld", hdev->name, event);
 
-	/* Send event to sockets */
+	
 	ev.event  = event;
 	ev.dev_id = hdev->id;
 	hci_si_event(NULL, HCI_EV_SI_DEVICE, sizeof(ev), &ev);
@@ -665,7 +643,7 @@ static int hci_sock_dev_event(struct notifier_block *this, unsigned long event, 
 		struct sock *sk;
 		struct hlist_node *node;
 
-		/* Detach sockets from device */
+		
 		read_lock(&hci_sk_list.lock);
 		sk_for_each(sk, node, &hci_sk_list.head) {
 			local_bh_disable();

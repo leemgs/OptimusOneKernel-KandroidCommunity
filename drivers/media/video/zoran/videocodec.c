@@ -1,31 +1,4 @@
-/*
- * VIDEO MOTION CODECs internal API for video devices
- *
- * Interface for MJPEG (and maybe later MPEG/WAVELETS) codec's
- * bound to a master device.
- *
- * (c) 2002 Wolfgang Scherr <scherr@net4you.at>
- *
- * $Id: videocodec.c,v 1.1.2.8 2003/03/29 07:16:04 rbultje Exp $
- *
- * ------------------------------------------------------------------------
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * ------------------------------------------------------------------------
- */
+
 
 #define VIDEOCODEC_VERSION "v0.2"
 
@@ -35,7 +8,7 @@
 #include <linux/types.h>
 #include <linux/slab.h>
 
-// kernel config is here (procfs flag)
+
 
 #ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
@@ -69,9 +42,9 @@ struct codec_list {
 
 static struct codec_list *codeclist_top = NULL;
 
-/* ================================================= */
-/* function prototypes of the master/slave interface */
-/* ================================================= */
+
+
+
 
 struct videocodec *
 videocodec_attach (struct videocodec_master *master)
@@ -98,8 +71,8 @@ videocodec_attach (struct videocodec_master *master)
 	}
 
 	while (h) {
-		// attach only if the slave has at least the flags
-		// expected by the master
+		
+		
 		if ((master->flags & h->codec->flags) == master->flags) {
 			dprintk(4, "videocodec_attach: try '%s'\n",
 				h->codec->name);
@@ -140,7 +113,7 @@ videocodec_attach (struct videocodec_master *master)
 						"videocodec: first element\n");
 				} else {
 					while (a->next)
-						a = a->next;	// find end
+						a = a->next;	
 					a->next = ptr;
 					dprintk(4,
 						"videocodec: in after '%s'\n",
@@ -257,7 +230,7 @@ videocodec_register (const struct videocodec *codec)
 		dprintk(4, "videocodec: hooked in as first element\n");
 	} else {
 		while (h->next)
-			h = h->next;	// find the end
+			h = h->next;	
 		h->next = ptr;
 		dprintk(4, "videocodec: hooked in after '%s'\n",
 			h->codec->name);
@@ -364,9 +337,9 @@ static const struct file_operations videocodecs_proc_fops = {
 };
 #endif
 
-/* ===================== */
-/* hook in driver module */
-/* ===================== */
+
+
+
 static int __init
 videocodec_init (void)
 {

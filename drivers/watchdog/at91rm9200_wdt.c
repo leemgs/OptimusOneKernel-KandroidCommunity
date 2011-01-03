@@ -1,13 +1,4 @@
-/*
- * Watchdog driver for Atmel AT91RM9200 (Thunder)
- *
- *  Copyright (C) 2003 SAN People (Pty) Ltd
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/bitops.h>
 #include <linux/errno.h>
@@ -24,8 +15,8 @@
 #include <linux/uaccess.h>
 #include <mach/at91_st.h>
 
-#define WDT_DEFAULT_TIME	5	/* seconds */
-#define WDT_MAX_TIME		256	/* seconds */
+#define WDT_DEFAULT_TIME	5	
+#define WDT_MAX_TIME		256	
 
 static int wdt_time = WDT_DEFAULT_TIME;
 static int nowayout = WATCHDOG_NOWAYOUT;
@@ -44,19 +35,15 @@ MODULE_PARM_DESC(nowayout,
 
 static unsigned long at91wdt_busy;
 
-/* ......................................................................... */
 
-/*
- * Disable the watchdog.
- */
+
+
 static inline void at91_wdt_stop(void)
 {
 	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN);
 }
 
-/*
- * Enable and reset the watchdog.
- */
+
 static inline void at91_wdt_start(void)
 {
 	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN | AT91_ST_RSTEN |
@@ -64,19 +51,15 @@ static inline void at91_wdt_start(void)
 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
 }
 
-/*
- * Reload the watchdog timer.  (ie, pat the watchdog)
- */
+
 static inline void at91_wdt_reload(void)
 {
 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
 }
 
-/* ......................................................................... */
 
-/*
- * Watchdog device is opened, and watchdog starts running.
- */
+
+
 static int at91_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(0, &at91wdt_busy))
@@ -86,14 +69,10 @@ static int at91_wdt_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 }
 
-/*
- * Close the watchdog device.
- * If CONFIG_WATCHDOG_NOWAYOUT is NOT defined then the watchdog is also
- *  disabled.
- */
+
 static int at91_wdt_close(struct inode *inode, struct file *file)
 {
-	/* Disable the watchdog when file is closed */
+	
 	if (!nowayout)
 		at91_wdt_stop();
 
@@ -101,22 +80,14 @@ static int at91_wdt_close(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
- * Change the watchdog time interval.
- */
+
 static int at91_wdt_settimeout(int new_time)
 {
-	/*
-	 * All counting occurs at SLOW_CLOCK / 128 = 256 Hz
-	 *
-	 * Since WDV is a 16-bit counter, the maximum period is
-	 * 65536 / 256 = 256 seconds.
-	 */
+	
 	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
 		return -EINVAL;
 
-	/* Set new watchdog time. It will be used when
-	   at91_wdt_start() is called. */
+	
 	wdt_time = new_time;
 	return 0;
 }
@@ -126,9 +97,7 @@ static struct watchdog_info at91_wdt_info = {
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 };
 
-/*
- * Handle commands from user-space.
- */
+
 static long at91_wdt_ioctl(struct file *file,
 					unsigned int cmd, unsigned long arg)
 {
@@ -152,16 +121,16 @@ static long at91_wdt_ioctl(struct file *file,
 			at91_wdt_start();
 		return 0;
 	case WDIOC_KEEPALIVE:
-		at91_wdt_reload();	/* pat the watchdog */
+		at91_wdt_reload();	
 		return 0;
 	case WDIOC_SETTIMEOUT:
 		if (get_user(new_value, p))
 			return -EFAULT;
 		if (at91_wdt_settimeout(new_value))
 			return -EINVAL;
-		/* Enable new time value */
+		
 		at91_wdt_start();
-		/* Return current value */
+		
 		return put_user(wdt_time, p);
 	case WDIOC_GETTIMEOUT:
 		return put_user(wdt_time, p);
@@ -170,17 +139,15 @@ static long at91_wdt_ioctl(struct file *file,
 	}
 }
 
-/*
- * Pat the watchdog whenever device is written to.
- */
+
 static ssize_t at91_wdt_write(struct file *file, const char *data,
 						size_t len, loff_t *ppos)
 {
-	at91_wdt_reload();		/* pat the watchdog */
+	at91_wdt_reload();		
 	return len;
 }
 
-/* ......................................................................... */
+
 
 static const struct file_operations at91wdt_fops = {
 	.owner		= THIS_MODULE,
@@ -264,8 +231,7 @@ static struct platform_driver at91wdt_driver = {
 
 static int __init at91_wdt_init(void)
 {
-	/* Check that the heartbeat value is within range;
-	   if not reset to the default */
+	
 	if (at91_wdt_settimeout(wdt_time)) {
 		at91_wdt_settimeout(WDT_DEFAULT_TIME);
 		pr_info("at91_wdt: wdt_time value must be 1 <= wdt_time <= 256"

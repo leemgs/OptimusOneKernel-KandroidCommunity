@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-3430sdp.c
- *
- * Copyright (C) 2007 Texas Instruments
- *
- * Modified from mach-omap2/board-generic.c
- *
- * Initial code: Syed Mohammed Khasim
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -100,13 +88,9 @@ static struct twl4030_keypad_data sdp3430_kp_data = {
 	.rep		= 1,
 };
 
-static int ts_gpio;	/* Needed for ads7846_get_pendown_state */
+static int ts_gpio;	
 
-/**
- * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
- *
- * @return - void. If request gpio fails then Flag KERN_ERR.
- */
+
 static void ads7846_dev_init(void)
 {
 	if (gpio_request(ts_gpio, "ADS7846 pendown") < 0) {
@@ -133,15 +117,12 @@ static struct ads7846_platform_data tsc2046_config __initdata = {
 
 static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
 	.turbo_mode	= 0,
-	.single_channel	= 1,	/* 0: slave, 1: master */
+	.single_channel	= 1,	
 };
 
 static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
 	[0] = {
-		/*
-		 * TSC2046 operates at a max freqency of 2MHz, so
-		 * operate slightly below at 1.5MHz
-		 */
+		
 		.modalias		= "ads7846",
 		.bus_num		= 1,
 		.chip_select		= 0,
@@ -189,7 +170,7 @@ static void __init omap_3430sdp_init_irq(void)
 }
 
 static int sdp3430_batt_table[] = {
-/* 0 C*/
+
 30800, 29500, 28300, 27100,
 26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
 17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
@@ -207,9 +188,7 @@ static struct twl4030_bci_platform_data sdp3430_bci_data = {
 static struct twl4030_hsmmc_info mmc[] = {
 	{
 		.mmc		= 1,
-		/* 8 bits (default) requires S6.3 == ON,
-		 * so the SIM card isn't used; else 4 bits.
-		 */
+		
 		.wires		= 8,
 		.gpio_wp	= 4,
 	},
@@ -218,7 +197,7 @@ static struct twl4030_hsmmc_info mmc[] = {
 		.wires		= 8,
 		.gpio_wp	= 7,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct regulator_consumer_supply sdp3430_vmmc1_supply = {
@@ -236,25 +215,21 @@ static struct regulator_consumer_supply sdp3430_vmmc2_supply = {
 static int sdp3430_twl_gpio_setup(struct device *dev,
 		unsigned gpio, unsigned ngpio)
 {
-	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-	 * gpio + 1 is "mmc1_cd" (input/IRQ)
-	 */
+	
 	mmc[0].gpio_cd = gpio + 0;
 	mmc[1].gpio_cd = gpio + 1;
 	twl4030_mmc_init(mmc);
 
-	/* link regulators to MMC adapters ... we "know" the
-	 * regulators will be set up only *after* we return.
-	 */
+	
 	sdp3430_vmmc1_supply.dev = mmc[0].dev;
 	sdp3430_vsim_supply.dev = mmc[0].dev;
 	sdp3430_vmmc2_supply.dev = mmc[1].dev;
 
-	/* gpio + 7 is "sub_lcd_en_bkl" (output/PWM1) */
+	
 	gpio_request(gpio + 7, "sub_lcd_en_bkl");
 	gpio_direction_output(gpio + 7, 0);
 
-	/* gpio + 15 is "sub_lcd_nRST" (output) */
+	
 	gpio_request(gpio + 15, "sub_lcd_nRST");
 	gpio_direction_output(gpio + 15, 0);
 
@@ -278,12 +253,9 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
 	.irq_line	= 1,
 };
 
-/*
- * Apply all the fixed voltages since most versions of U-Boot
- * don't bother with that initialization.
- */
 
-/* VAUX1 for mainboard (irda and sub-lcd) */
+
+
 static struct regulator_init_data sdp3430_vaux1 = {
 	.constraints = {
 		.min_uV			= 2800000,
@@ -296,7 +268,7 @@ static struct regulator_init_data sdp3430_vaux1 = {
 	},
 };
 
-/* VAUX2 for camera module */
+
 static struct regulator_init_data sdp3430_vaux2 = {
 	.constraints = {
 		.min_uV			= 2800000,
@@ -309,7 +281,7 @@ static struct regulator_init_data sdp3430_vaux2 = {
 	},
 };
 
-/* VAUX3 for LCD board */
+
 static struct regulator_init_data sdp3430_vaux3 = {
 	.constraints = {
 		.min_uV			= 2800000,
@@ -322,7 +294,7 @@ static struct regulator_init_data sdp3430_vaux3 = {
 	},
 };
 
-/* VAUX4 for OMAP VDD_CSI2 (camera) */
+
 static struct regulator_init_data sdp3430_vaux4 = {
 	.constraints = {
 		.min_uV			= 1800000,
@@ -335,7 +307,7 @@ static struct regulator_init_data sdp3430_vaux4 = {
 	},
 };
 
-/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
+
 static struct regulator_init_data sdp3430_vmmc1 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -350,7 +322,7 @@ static struct regulator_init_data sdp3430_vmmc1 = {
 	.consumer_supplies	= &sdp3430_vmmc1_supply,
 };
 
-/* VMMC2 for MMC2 card */
+
 static struct regulator_init_data sdp3430_vmmc2 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -365,7 +337,7 @@ static struct regulator_init_data sdp3430_vmmc2 = {
 	.consumer_supplies	= &sdp3430_vmmc2_supply,
 };
 
-/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
+
 static struct regulator_init_data sdp3430_vsim = {
 	.constraints = {
 		.min_uV			= 1800000,
@@ -380,7 +352,7 @@ static struct regulator_init_data sdp3430_vsim = {
 	.consumer_supplies	= &sdp3430_vsim_supply,
 };
 
-/* VDAC for DSS driving S-Video */
+
 static struct regulator_init_data sdp3430_vdac = {
 	.constraints = {
 		.min_uV			= 1800000,
@@ -395,7 +367,7 @@ static struct regulator_init_data sdp3430_vdac = {
 	.consumer_supplies	= &sdp3430_vdac_supply,
 };
 
-/* VPLL2 for digital video outputs */
+
 static struct regulator_init_data sdp3430_vpll2 = {
 	.constraints = {
 		.name			= "VDVI",
@@ -414,7 +386,7 @@ static struct twl4030_platform_data sdp3430_twldata = {
 	.irq_base	= TWL4030_IRQ_BASE,
 	.irq_end	= TWL4030_IRQ_END,
 
-	/* platform_data for children goes here */
+	
 	.bci		= &sdp3430_bci_data,
 	.gpio		= &sdp3430_gpio_data,
 	.madc		= &sdp3430_madc_data,
@@ -443,12 +415,12 @@ static struct i2c_board_info __initdata sdp3430_i2c_boardinfo[] = {
 
 static int __init omap3430_i2c_init(void)
 {
-	/* i2c1 for PMIC only */
+	
 	omap_register_i2c_bus(1, 2600, sdp3430_i2c_boardinfo,
 			ARRAY_SIZE(sdp3430_i2c_boardinfo));
-	/* i2c2 on camera connector (for sensor control) and optional isp1301 */
+	
 	omap_register_i2c_bus(2, 400, NULL, 0);
-	/* i2c3 on display connector (for DVI, tfp410) */
+	
 	omap_register_i2c_bus(3, 400, NULL, 0);
 	return 0;
 }
@@ -481,7 +453,7 @@ static inline void board_smc91x_init(void)
 
 static void enable_board_wakeup_source(void)
 {
-	omap_cfg_reg(AF26_34XX_SYS_NIRQ); /* T2 interrupt line (keypad) */
+	omap_cfg_reg(AF26_34XX_SYS_NIRQ); 
 }
 
 static void __init omap_3430sdp_init(void)
@@ -509,7 +481,7 @@ static void __init omap_3430sdp_map_io(void)
 }
 
 MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
-	/* Maintainer: Syed Khasim - Texas Instruments Inc */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __SCSI_H__
 #define __SCSI_H__
@@ -22,25 +7,19 @@
 
 #pragma pack(1)
 
-/*
- * generic SCSI cdb definition
- */
+
 #define SCSI_MAX_CDBLEN     16
 struct scsi_cdb_s{
 	u8         scsi_cdb[SCSI_MAX_CDBLEN];
 };
 
-/*
- * scsi lun serial number definition
- */
+
 #define SCSI_LUN_SN_LEN     32
 struct scsi_lun_sn_s{
 	u8         lun_sn[SCSI_LUN_SN_LEN];
 };
 
-/*
- * SCSI Direct Access Commands
- */
+
 enum {
 	SCSI_OP_TEST_UNIT_READY		= 0x00,
 	SCSI_OP_REQUEST_SENSE		= 0x03,
@@ -78,9 +57,7 @@ enum {
 	SCSI_OP_UNDEF			= 0xFF,
 };
 
-/*
- * SCSI START_STOP_UNIT command
- */
+
 struct scsi_start_stop_unit_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
@@ -108,9 +85,7 @@ struct scsi_start_stop_unit_s{
 	u8         control;
 };
 
-/*
- * SCSI SEND_DIAGNOSTIC command
- */
+
 struct scsi_send_diagnostic_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
@@ -130,22 +105,20 @@ struct scsi_send_diagnostic_s{
 #endif
 	u8         reserved2;
 
-	u8         param_list_length[2];	/* MSB first */
+	u8         param_list_length[2];	
 	u8         control;
 
 };
 
-/*
- * SCSI READ10/WRITE10 commands
- */
+
 struct scsi_rw10_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         lun:3;
-	u8         dpo:1;	/* Disable Page Out */
-	u8         fua:1;	/* Force Unit Access */
+	u8         dpo:1;	
+	u8         fua:1;	
 	u8         reserved1:2;
-	u8         rel_adr:1;	/* relative address */
+	u8         rel_adr:1;	
 #else
 	u8         rel_adr:1;
 	u8         reserved1:2;
@@ -153,13 +126,13 @@ struct scsi_rw10_s{
 	u8         dpo:1;
 	u8         lun:3;
 #endif
-	u8         lba0;	/* logical block address - MSB */
+	u8         lba0;	
 	u8         lba1;
 	u8         lba2;
-	u8         lba3;	/* LSB */
+	u8         lba3;	
 	u8         reserved3;
-	u8         xfer_length0;	/* transfer length in blocks - MSB */
-	u8         xfer_length1;	/* LSB */
+	u8         xfer_length0;	
+	u8         xfer_length1;	
 	u8         control;
 };
 
@@ -181,20 +154,18 @@ struct scsi_rw10_s{
     (cdb)->xfer_length1 = tl & 0xFF;     \
 }
 
-/*
- * SCSI READ6/WRITE6 commands
- */
+
 struct scsi_rw6_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         lun:3;
-	u8         lba0:5;		/* MSb */
+	u8         lba0:5;		
 #else
-	u8         lba0:5;		/* MSb */
+	u8         lba0:5;		
 	u8         lun:3;
 #endif
 	u8         lba1;
-	u8         lba2;		/* LSB */
+	u8         lba2;		
 	u8         xfer_length;
 	u8         control;
 };
@@ -208,21 +179,19 @@ struct scsi_rw6_s{
     (cdb)->tl2 = tl & 0xFF;           \
 }
 
-/*
- * SCSI sequential (TAPE) wrtie command
- */
+
 struct scsi_tape_wr_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         rsvd:7;
-	u8         fixed:1;	/* MSb */
+	u8         fixed:1;	
 #else
-	u8         fixed:1;	/* MSb */
+	u8         fixed:1;	
 	u8         rsvd:7;
 #endif
-	u8         tl0;		/* Msb */
+	u8         tl0;		
 	u8         tl1;
-	u8         tl2;		/* Lsb */
+	u8         tl2;		
 
 	u8         control;
 };
@@ -241,9 +210,7 @@ struct scsi_tape_wr_s{
     (cdb)->xfer_length = tl;         \
 }
 
-/*
- * SCSI sense data format
- */
+
 struct scsi_sense_s{
 #ifdef __BIGENDIAN
 	u8         valid:1;
@@ -255,55 +222,51 @@ struct scsi_sense_s{
 	u8         seg_num;
 #ifdef __BIGENDIAN
 	u8         file_mark:1;
-	u8         eom:1;		/* end of media */
-	u8         ili:1;		/* incorrect length indicator */
+	u8         eom:1;		
+	u8         ili:1;		
 	u8         reserved:1;
 	u8         sense_key:4;
 #else
 	u8         sense_key:4;
 	u8         reserved:1;
-	u8         ili:1;		/* incorrect length indicator */
-	u8         eom:1;		/* end of media */
+	u8         ili:1;		
+	u8         eom:1;		
 	u8         file_mark:1;
 #endif
-	u8         information[4];	/* device-type or command specific info
-					 */
+	u8         information[4];	
 	u8         add_sense_length;
-					/* additional sense length */
-	u8         command_info[4];/* command specific information
-						 */
-	u8         asc;		/* additional sense code */
-	u8         ascq;		/* additional sense code qualifier */
-	u8         fru_code;	/* field replaceable unit code */
+					
+	u8         command_info[4];
+	u8         asc;		
+	u8         ascq;		
+	u8         fru_code;	
 #ifdef __BIGENDIAN
-	u8         sksv:1;		/* sense key specific valid */
-	u8         c_d:1;		/* command/data bit */
+	u8         sksv:1;		
+	u8         c_d:1;		
 	u8         res1:2;
-	u8         bpv:1;		/* bit pointer valid */
-	u8         bpointer:3;	/* bit pointer */
+	u8         bpv:1;		
+	u8         bpointer:3;	
 #else
-	u8         bpointer:3;	/* bit pointer */
-	u8         bpv:1;		/* bit pointer valid */
+	u8         bpointer:3;	
+	u8         bpv:1;		
 	u8         res1:2;
-	u8         c_d:1;		/* command/data bit */
-	u8         sksv:1;		/* sense key specific valid */
+	u8         c_d:1;		
+	u8         sksv:1;		
 #endif
-	u8         fpointer[2];	/* field pointer */
+	u8         fpointer[2];	
 };
 
 #define SCSI_SENSE_CUR_ERR          0x70
 #define SCSI_SENSE_DEF_ERR          0x71
 
-/*
- * SCSI sense key values
- */
+
 #define SCSI_SK_NO_SENSE        0x0
-#define SCSI_SK_REC_ERR         0x1	/* recovered error */
+#define SCSI_SK_REC_ERR         0x1	
 #define SCSI_SK_NOT_READY       0x2
-#define SCSI_SK_MED_ERR         0x3	/* medium error */
-#define SCSI_SK_HW_ERR          0x4	/* hardware error */
+#define SCSI_SK_MED_ERR         0x3	
+#define SCSI_SK_HW_ERR          0x4	
 #define SCSI_SK_ILLEGAL_REQ     0x5
-#define SCSI_SK_UNIT_ATT        0x6	/* unit attention */
+#define SCSI_SK_UNIT_ATT        0x6	
 #define SCSI_SK_DATA_PROTECT    0x7
 #define SCSI_SK_BLANK_CHECK     0x8
 #define SCSI_SK_VENDOR_SPEC     0x9
@@ -312,9 +275,7 @@ struct scsi_sense_s{
 #define SCSI_SK_VOL_OVERFLOW    0xD
 #define SCSI_SK_MISCOMPARE      0xE
 
-/*
- * SCSI additional sense codes
- */
+
 #define SCSI_ASC_NO_ADD_SENSE           0x00
 #define SCSI_ASC_LUN_NOT_READY          0x04
 #define SCSI_ASC_LUN_COMMUNICATION      0x08
@@ -324,23 +285,17 @@ struct scsi_sense_s{
 #define SCSI_ASC_INVALID_FIELD_IN_CDB   0x24
 #define SCSI_ASC_LUN_NOT_SUPPORTED      0x25
 #define SCSI_ASC_LUN_WRITE_PROTECT      0x27
-#define SCSI_ASC_POWERON_BDR            0x29	/* power on reset, bus reset,
-						 * bus device reset
-						 */
+#define SCSI_ASC_POWERON_BDR            0x29	
 #define SCSI_ASC_PARAMS_CHANGED         0x2A
 #define SCSI_ASC_CMND_CLEARED_BY_A_I    0x2F
 #define SCSI_ASC_SAVING_PARAM_NOTSUPP   0x39
-#define SCSI_ASC_TOCC                   0x3F	/* target operating condtions
-						 * changed
-						 */
+#define SCSI_ASC_TOCC                   0x3F	
 #define SCSI_ASC_PARITY_ERROR           0x47
 #define SCSI_ASC_CMND_PHASE_ERROR       0x4A
 #define SCSI_ASC_DATA_PHASE_ERROR       0x4B
 #define SCSI_ASC_VENDOR_SPEC            0x7F
 
-/*
- * SCSI additional sense code qualifiers
- */
+
 #define SCSI_ASCQ_CAUSE_NOT_REPORT      0x00
 #define SCSI_ASCQ_BECOMING_READY        0x01
 #define SCSI_ASCQ_INIT_CMD_REQ          0x02
@@ -357,10 +312,10 @@ struct scsi_sense_s{
 #define SCSI_ASCQ_LUN_HW_WRITE_PROTECTED    0x01
 #define SCSI_ASCQ_LUN_SW_WRITE_PROTECTED    0x02
 
-#define SCSI_ASCQ_POR   0x01	/* power on reset */
-#define SCSI_ASCQ_SBR   0x02	/* scsi bus reset */
-#define SCSI_ASCQ_BDR   0x03	/* bus device reset */
-#define SCSI_ASCQ_DIR   0x04	/* device internal reset */
+#define SCSI_ASCQ_POR   0x01	
+#define SCSI_ASCQ_SBR   0x02	
+#define SCSI_ASCQ_BDR   0x03	
+#define SCSI_ASCQ_DIR   0x04	
 
 #define SCSI_ASCQ_MODE_PARAMS_CHANGED       0x01
 #define SCSI_ASCQ_LOG_PARAMS_CHANGED        0x02
@@ -370,21 +325,18 @@ struct scsi_sense_s{
 
 #define SCSI_ASCQ_MICROCODE_CHANGED 0x01
 #define SCSI_ASCQ_CHANGED_OPER_COND 0x02
-#define SCSI_ASCQ_INQ_CHANGED       0x03	/* inquiry data changed */
-#define SCSI_ASCQ_DI_CHANGED        0x05	/* device id changed */
-#define SCSI_ASCQ_RL_DATA_CHANGED   0x0E	/* report luns data changed */
+#define SCSI_ASCQ_INQ_CHANGED       0x03	
+#define SCSI_ASCQ_DI_CHANGED        0x05	
+#define SCSI_ASCQ_RL_DATA_CHANGED   0x0E	
 
-#define SCSI_ASCQ_DP_CRC_ERR            0x01	/* data phase crc error */
-#define SCSI_ASCQ_DP_SCSI_PARITY_ERR    0x02	/* data phase scsi parity error
-						 */
-#define SCSI_ASCQ_IU_CRC_ERR            0x03	/* information unit crc error */
+#define SCSI_ASCQ_DP_CRC_ERR            0x01	
+#define SCSI_ASCQ_DP_SCSI_PARITY_ERR    0x02	
+#define SCSI_ASCQ_IU_CRC_ERR            0x03	
 #define SCSI_ASCQ_PROTO_SERV_CRC_ERR    0x05
 
 #define SCSI_ASCQ_LUN_TIME_OUT          0x01
 
-/* ------------------------------------------------------------
- * SCSI INQUIRY
- * ------------------------------------------------------------*/
+
 
 struct scsi_inquiry_s{
 	u8         opcode;
@@ -419,19 +371,18 @@ struct scsi_inquiry_prodrev_s{
 
 struct scsi_inquiry_data_s{
 #ifdef __BIGENDIAN
-	u8         peripheral_qual:3;	/* peripheral qualifier */
-	u8         device_type:5;		/* peripheral device type */
+	u8         peripheral_qual:3;	
+	u8         device_type:5;		
 
-	u8         rmb:1;			/* removable medium bit */
-	u8         device_type_mod:7;	/* device type modifier */
+	u8         rmb:1;			
+	u8         device_type_mod:7;	
 
 	u8         version;
 
-	u8         aenc:1;		/* async event notification capability
-					 */
-	u8         trm_iop:1;	/* terminate I/O process */
-	u8         norm_aca:1;	/* normal ACA supported */
-	u8         hi_support:1;	/* SCSI-3: supports REPORT LUNS */
+	u8         aenc:1;		
+	u8         trm_iop:1;	
+	u8         norm_aca:1;	
+	u8         hi_support:1;	
 	u8         rsp_data_format:4;
 
 	u8         additional_len;
@@ -439,61 +390,60 @@ struct scsi_inquiry_data_s{
 	u8         reserved1:7;
 
 	u8         reserved2:1;
-	u8         enc_serv:1;	/* enclosure service component */
+	u8         enc_serv:1;	
 	u8         reserved3:1;
-	u8         multi_port:1;	/* multi-port device */
-	u8         m_chngr:1;	/* device in medium transport element */
-	u8         ack_req_q:1;	/* SIP specific bit */
-	u8         addr32:1;	/* SIP specific bit */
-	u8         addr16:1;	/* SIP specific bit */
+	u8         multi_port:1;	
+	u8         m_chngr:1;	
+	u8         ack_req_q:1;	
+	u8         addr32:1;	
+	u8         addr16:1;	
 
-	u8         rel_adr:1;	/* relative address */
+	u8         rel_adr:1;	
 	u8         w_bus32:1;
 	u8         w_bus16:1;
 	u8         synchronous:1;
 	u8         linked_commands:1;
 	u8         trans_dis:1;
-	u8         cmd_queue:1;	/* command queueing supported */
-	u8         soft_reset:1;	/* soft reset alternative (VS) */
+	u8         cmd_queue:1;	
+	u8         soft_reset:1;	
 #else
-	u8         device_type:5;	/* peripheral device type */
+	u8         device_type:5;	
 	u8         peripheral_qual:3;
-					/* peripheral qualifier */
+					
 
 	u8         device_type_mod:7;
-					/* device type modifier */
-	u8         rmb:1;		/* removable medium bit */
+					
+	u8         rmb:1;		
 
 	u8         version;
 
 	u8         rsp_data_format:4;
-	u8         hi_support:1;	/* SCSI-3: supports REPORT LUNS */
-	u8         norm_aca:1;	/* normal ACA supported */
-	u8         terminate_iop:1;/* terminate I/O process */
-	u8         aenc:1;		/* async event notification capability
-					 */
+	u8         hi_support:1;	
+	u8         norm_aca:1;	
+	u8         terminate_iop:1;
+	u8         aenc:1;		
 
 	u8         additional_len;
 	u8         reserved1:7;
 	u8         sccs:1;
 
-	u8         addr16:1;	/* SIP specific bit */
-	u8         addr32:1;	/* SIP specific bit */
-	u8         ack_req_q:1;	/* SIP specific bit */
-	u8         m_chngr:1;	/* device in medium transport element */
-	u8         multi_port:1;	/* multi-port device */
-	u8         reserved3:1;	/* TBD - Vendor Specific */
-	u8         enc_serv:1;	/* enclosure service component */
+	u8         addr16:1;	
+	u8         addr32:1;	
+	u8         ack_req_q:1;	
+	u8         m_chngr:1;	
+	u8         multi_port:1;	
+	u8         reserved3:1;	
+	u8         enc_serv:1;	
 	u8         reserved2:1;
 
-	u8         soft_seset:1;	/* soft reset alternative (VS) */
-	u8         cmd_queue:1;	/* command queueing supported */
+	u8         soft_seset:1;	
+	u8         cmd_queue:1;	
 	u8         trans_dis:1;
 	u8         linked_commands:1;
 	u8         synchronous:1;
 	u8         w_bus16:1;
 	u8         w_bus32:1;
-	u8         rel_adr:1;	/* relative address */
+	u8         rel_adr:1;	
 #endif
 	struct scsi_inquiry_vendor_s vendor_id;
 	struct scsi_inquiry_prodid_s product_id;
@@ -502,45 +452,32 @@ struct scsi_inquiry_data_s{
 	u8         reserved4[40];
 };
 
-/*
- * inquiry.peripheral_qual field values
- */
+
 #define SCSI_DEVQUAL_DEFAULT        0
 #define SCSI_DEVQUAL_NOT_CONNECTED  1
 #define SCSI_DEVQUAL_NOT_SUPPORTED  3
 
-/*
- * inquiry.device_type field values
- */
+
 #define SCSI_DEVICE_DIRECT_ACCESS       0x00
 #define SCSI_DEVICE_SEQ_ACCESS          0x01
 #define SCSI_DEVICE_ARRAY_CONTROLLER    0x0C
 #define SCSI_DEVICE_UNKNOWN             0x1F
 
-/*
- * inquiry.version
- */
-#define SCSI_VERSION_ANSI_X3131     2	/* ANSI X3.131 SCSI-2 */
-#define SCSI_VERSION_SPC            3	/* SPC (SCSI-3), ANSI X3.301:1997 */
-#define SCSI_VERSION_SPC_2          4	/* SPC-2 */
 
-/*
- * response data format
- */
-#define SCSI_RSP_DATA_FORMAT        2	/* SCSI-2 & SPC */
+#define SCSI_VERSION_ANSI_X3131     2	
+#define SCSI_VERSION_SPC            3	
+#define SCSI_VERSION_SPC_2          4	
 
-/*
- * SCSI inquiry page codes
- */
-#define SCSI_INQ_PAGE_VPD_PAGES     0x00	/* supported vpd pages */
-#define SCSI_INQ_PAGE_USN_PAGE      0x80	/* unit serial number page */
-#define SCSI_INQ_PAGE_DEV_IDENT     0x83	/* device indentification page
-						 */
+
+#define SCSI_RSP_DATA_FORMAT        2	
+
+
+#define SCSI_INQ_PAGE_VPD_PAGES     0x00	
+#define SCSI_INQ_PAGE_USN_PAGE      0x80	
+#define SCSI_INQ_PAGE_DEV_IDENT     0x83	
 #define SCSI_INQ_PAGES_MAX          3
 
-/*
- * supported vital product data pages
- */
+
 struct scsi_inq_page_vpd_pages_s{
 #ifdef __BIGENDIAN
 	u8         peripheral_qual:3;
@@ -555,9 +492,7 @@ struct scsi_inq_page_vpd_pages_s{
 	u8         pages[SCSI_INQ_PAGES_MAX];
 };
 
-/*
- * Unit serial number page
- */
+
 #define SCSI_INQ_USN_LEN 32
 
 struct scsi_inq_usn_s{
@@ -579,15 +514,13 @@ struct scsi_inq_page_usn_s{
 };
 
 enum {
-	SCSI_INQ_DIP_CODE_BINARY = 1,	/* identifier has binary value */
-	SCSI_INQ_DIP_CODE_ASCII = 2,	/* identifier has ascii value */
+	SCSI_INQ_DIP_CODE_BINARY = 1,	
+	SCSI_INQ_DIP_CODE_ASCII = 2,	
 };
 
 enum {
-	SCSI_INQ_DIP_ASSOC_LUN = 0,	/* id is associated with device */
-	SCSI_INQ_DIP_ASSOC_PORT = 1,	/* id is associated with port that
-					 * received the request
-					 */
+	SCSI_INQ_DIP_ASSOC_LUN = 0,	
+	SCSI_INQ_DIP_ASSOC_PORT = 1,	
 };
 
 enum {
@@ -616,9 +549,7 @@ struct scsi_inq_dip_desc_s{
 	struct scsi_lun_sn_s   id;
 };
 
-/*
- * Device indentification page
- */
+
 struct scsi_inq_page_dev_ident_s{
 #ifdef __BIGENDIAN
 	u8         peripheral_qual:3;
@@ -633,10 +564,7 @@ struct scsi_inq_page_dev_ident_s{
 	struct scsi_inq_dip_desc_s desc;
 };
 
-/* ------------------------------------------------------------
- * READ CAPACITY
- * ------------------------------------------------------------
- */
+
 
 struct scsi_read_capacity_s{
 	u8         opcode;
@@ -649,46 +577,42 @@ struct scsi_read_capacity_s{
 	u8         reserved1:4;
 	u8         lun:3;
 #endif
-	u8         lba0;	/* MSB */
+	u8         lba0;	
 	u8         lba1;
 	u8         lba2;
-	u8         lba3;	/* LSB */
+	u8         lba3;	
 	u8         reserved2;
 	u8         reserved3;
 #ifdef __BIGENDIAN
 	u8         reserved4:7;
-	u8         pmi:1;	/* partial medium indicator */
+	u8         pmi:1;	
 #else
-	u8         pmi:1;	/* partial medium indicator */
+	u8         pmi:1;	
 	u8         reserved4:7;
 #endif
 	u8         control;
 };
 
 struct scsi_read_capacity_data_s{
-	u32        max_lba;	/* maximum LBA available */
-	u32        block_length;	/* in bytes */
+	u32        max_lba;	
+	u32        block_length;	
 };
 
 struct scsi_read_capacity16_data_s{
-	u64        lba;	/* maximum LBA available */
-	u32        block_length;	/* in bytes */
+	u64        lba;	
+	u32        block_length;	
 #ifdef __BIGENDIAN
 	u8         reserved1:4,
 			p_type:3,
 			prot_en:1;
 	u8		reserved2:4,
-			lb_pbe:4;	/* logical blocks per physical block
-					 * exponent */
+			lb_pbe:4;	
 	u16	reserved3:2,
-			lba_align:14;	/* lowest aligned logical block
-					 * address */
+			lba_align:14;	
 #else
-	u16	lba_align:14,	/* lowest aligned logical block
-					 * address */
+	u16	lba_align:14,	
 			reserved3:2;
-	u8		lb_pbe:4,	/* logical blocks per physical block
-					 * exponent */
+	u8		lb_pbe:4,	
 			reserved2:4;
 	u8		prot_en:1,
 			p_type:3,
@@ -698,15 +622,12 @@ struct scsi_read_capacity16_data_s{
 	u64	reserved5;
 };
 
-/* ------------------------------------------------------------
- * REPORT LUNS command
- * ------------------------------------------------------------
- */
+
 
 struct scsi_report_luns_s{
-	u8         opcode;		/* A0h - REPORT LUNS opCode */
+	u8         opcode;		
 	u8         reserved1[5];
-	u8         alloc_length[4];/* allocation length MSB first */
+	u8         alloc_length[4];
 	u8         reserved2;
 	u8         control;
 };
@@ -723,35 +644,30 @@ struct scsi_report_luns_s{
 }
 
 struct scsi_report_luns_data_s{
-	u32        lun_list_length;	/* length of LUN list length */
+	u32        lun_list_length;	
 	u32        reserved;
-	lun_t           lun[1];			/* first LUN in lun list */
+	lun_t           lun[1];			
 };
 
-/* -------------------------------------------------------------
- * SCSI mode  parameters
- * -----------------------------------------------------------
- */
+
 enum {
-	SCSI_DA_MEDIUM_DEF = 0,	/* direct access default medium type */
-	SCSI_DA_MEDIUM_SS = 1,	/* direct access single sided */
-	SCSI_DA_MEDIUM_DS = 2,	/* direct access double sided */
+	SCSI_DA_MEDIUM_DEF = 0,	
+	SCSI_DA_MEDIUM_SS = 1,	
+	SCSI_DA_MEDIUM_DS = 2,	
 };
 
-/*
- * SCSI Mode Select(6) cdb
- */
+
 struct scsi_mode_select6_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         reserved1:3;
-	u8         pf:1;		/* page format */
+	u8         pf:1;		
 	u8         reserved2:3;
-	u8         sp:1;		/* save pages if set to 1 */
+	u8         sp:1;		
 #else
-	u8         sp:1;	/* save pages if set to 1 */
+	u8         sp:1;	
 	u8         reserved2:3;
-	u8         pf:1;	/* page format */
+	u8         pf:1;	
 	u8         reserved1:3;
 #endif
 	u8         reserved3[2];
@@ -759,20 +675,18 @@ struct scsi_mode_select6_s{
 	u8         control;
 };
 
-/*
- * SCSI Mode Select(10) cdb
- */
+
 struct scsi_mode_select10_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         reserved1:3;
-	u8         pf:1;	/* page format */
+	u8         pf:1;	
 	u8         reserved2:3;
-	u8         sp:1;	/* save pages if set to 1 */
+	u8         sp:1;	
 #else
-	u8         sp:1;	/* save pages if set to 1 */
+	u8         sp:1;	
 	u8         reserved2:3;
-	u8         pf:1;	/* page format */
+	u8         pf:1;	
 	u8         reserved1:3;
 #endif
 	u8         reserved3[5];
@@ -781,56 +695,48 @@ struct scsi_mode_select10_s{
 	u8         control;
 };
 
-/*
- * SCSI Mode Sense(6) cdb
- */
+
 struct scsi_mode_sense6_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         reserved1:4;
-	u8         dbd:1;	/* disable block discriptors if set to 1 */
+	u8         dbd:1;	
 	u8         reserved2:3;
 
-	u8         pc:2;	/* page control */
+	u8         pc:2;	
 	u8         page_code:6;
 #else
 	u8         reserved2:3;
-	u8         dbd:1;	/* disable block descriptors if set to 1 */
+	u8         dbd:1;	
 	u8         reserved1:4;
 
 	u8         page_code:6;
-	u8         pc:2;	/* page control */
+	u8         pc:2;	
 #endif
 	u8         reserved3;
 	u8         alloc_len;
 	u8         control;
 };
 
-/*
- * SCSI Mode Sense(10) cdb
- */
+
 struct scsi_mode_sense10_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         reserved1:3;
-	u8         LLBAA:1;	/* long LBA accepted if set to 1 */
-	u8         dbd:1;		/* disable block descriptors if set
-					 * to 1
-					 */
+	u8         LLBAA:1;	
+	u8         dbd:1;		
 	u8         reserved2:3;
 
-	u8         pc:2;		/* page control */
+	u8         pc:2;		
 	u8         page_code:6;
 #else
 	u8         reserved2:3;
-	u8         dbd:1;		/* disable block descriptors if set to
-					 * 1
-					 */
-	u8         LLBAA:1;	/* long LBA accepted if set to 1 */
+	u8         dbd:1;		
+	u8         LLBAA:1;	
 	u8         reserved1:3;
 
 	u8         page_code:6;
-	u8         pc:2;		/* page control */
+	u8         pc:2;		
 #endif
 	u8         reserved3[4];
 	u8         alloc_len_msb;
@@ -852,50 +758,40 @@ struct scsi_mode_sense10_s{
     (cdb)->alloc_len = al;         					\
 }
 
-/*
- * page control field values
- */
+
 #define SCSI_PC_CURRENT_VALUES       0x0
 #define SCSI_PC_CHANGEABLE_VALUES    0x1
 #define SCSI_PC_DEFAULT_VALUES       0x2
 #define SCSI_PC_SAVED_VALUES         0x3
 
-/*
- * SCSI mode page codes
- */
-#define SCSI_MP_VENDOR_SPEC     0x00
-#define SCSI_MP_DISC_RECN       0x02	/* disconnect-reconnect page */
-#define SCSI_MP_FORMAT_DEVICE   0x03
-#define SCSI_MP_RDG             0x04	/* rigid disk geometry page */
-#define SCSI_MP_FDP             0x05	/* flexible disk page */
-#define SCSI_MP_CACHING         0x08	/* caching page */
-#define SCSI_MP_CONTROL         0x0A	/* control mode page */
-#define SCSI_MP_MED_TYPES_SUP   0x0B	/* medium types supported page */
-#define SCSI_MP_INFO_EXCP_CNTL  0x1C	/* informational exception control */
-#define SCSI_MP_ALL             0x3F	/* return all pages - mode sense only */
 
-/*
- * mode parameter header
- */
+#define SCSI_MP_VENDOR_SPEC     0x00
+#define SCSI_MP_DISC_RECN       0x02	
+#define SCSI_MP_FORMAT_DEVICE   0x03
+#define SCSI_MP_RDG             0x04	
+#define SCSI_MP_FDP             0x05	
+#define SCSI_MP_CACHING         0x08	
+#define SCSI_MP_CONTROL         0x0A	
+#define SCSI_MP_MED_TYPES_SUP   0x0B	
+#define SCSI_MP_INFO_EXCP_CNTL  0x1C	
+#define SCSI_MP_ALL             0x3F	
+
+
 struct scsi_mode_param_header6_s{
 	u8         mode_datalen;
 	u8         medium_type;
 
-	/*
-	 * device specific parameters expanded for direct access devices
-	 */
+	
 #ifdef __BIGENDIAN
-	u32        wp:1;		/* write protected */
+	u32        wp:1;		
 	u32        reserved1:2;
-	u32        dpofua:1;	/* disable page out + force unit access
-					 */
+	u32        dpofua:1;	
 	u32        reserved2:4;
 #else
 	u32        reserved2:4;
-	u32        dpofua:1;	/* disable page out + force unit access
-					 */
+	u32        dpofua:1;	
 	u32        reserved1:2;
-	u32        wp:1;		/* write protected */
+	u32        wp:1;		
 #endif
 
 	u8         block_desclen;
@@ -905,21 +801,17 @@ struct scsi_mode_param_header10_s{
 	u32        mode_datalen:16;
 	u32        medium_type:8;
 
-	/*
-	 * device specific parameters expanded for direct access devices
-	 */
+	
 #ifdef __BIGENDIAN
-	u32        wp:1;		/* write protected */
+	u32        wp:1;		
 	u32        reserved1:2;
-	u32        dpofua:1;	/* disable page out + force unit access
-					 */
+	u32        dpofua:1;	
 	u32        reserved2:4;
 #else
 	u32        reserved2:4;
-	u32        dpofua:1;	/* disable page out + force unit access
-					 */
+	u32        dpofua:1;	
 	u32        reserved1:2;
-	u32        wp:1;		/* write protected */
+	u32        wp:1;		
 #endif
 
 #ifdef __BIGENDIAN
@@ -933,18 +825,14 @@ struct scsi_mode_param_header10_s{
 	u32        block_desclen:16;
 };
 
-/*
- * mode parameter block descriptor
- */
+
 struct scsi_mode_param_desc_s{
 	u32        nblks;
 	u32        density_code:8;
 	u32        block_length:24;
 };
 
-/*
- * Disconnect-reconnect mode page format
- */
+
 struct scsi_mp_disc_recn_s{
 #ifdef __BIGENDIAN
 	u8         ps:1;
@@ -959,27 +847,27 @@ struct scsi_mp_disc_recn_s{
 	u8         buf_full_ratio;
 	u8         buf_empty_ratio;
 
-	u8         bil_msb;	/* bus inactivity limit -MSB */
-	u8         bil_lsb;	/* bus inactivity limit -LSB */
+	u8         bil_msb;	
+	u8         bil_lsb;	
 
-	u8         dtl_msb;	/* disconnect time limit - MSB */
-	u8         dtl_lsb;	/* disconnect time limit - LSB */
+	u8         dtl_msb;	
+	u8         dtl_lsb;	
 
-	u8         ctl_msb;	/* connect time limit - MSB */
-	u8         ctl_lsb;	/* connect time limit - LSB */
+	u8         ctl_msb;	
+	u8         ctl_lsb;	
 
 	u8         max_burst_len_msb;
 	u8         max_burst_len_lsb;
 #ifdef __BIGENDIAN
-	u8         emdp:1;	/* enable modify data pointers */
-	u8         fa:3;	/* fair arbitration */
-	u8         dimm:1;	/* disconnect immediate */
-	u8         dtdc:3;	/* data transfer disconnect control */
+	u8         emdp:1;	
+	u8         fa:3;	
+	u8         dimm:1;	
+	u8         dtdc:3;	
 #else
-	u8         dtdc:3;	/* data transfer disconnect control */
-	u8         dimm:1;	/* disconnect immediate */
-	u8         fa:3;	/* fair arbitration */
-	u8         emdp:1;	/* enable modify data pointers */
+	u8         dtdc:3;	
+	u8         dimm:1;	
+	u8         fa:3;	
+	u8         emdp:1;	
 #endif
 
 	u8         reserved3;
@@ -988,9 +876,7 @@ struct scsi_mp_disc_recn_s{
 	u8         first_burst_len_lsb;
 };
 
-/*
- * SCSI format device mode page
- */
+
 struct scsi_mp_format_device_s{
 #ifdef __BIGENDIAN
 	u32        ps:1;
@@ -1007,34 +893,32 @@ struct scsi_mp_format_device_s{
 	u32        a_sec_per_zone:16;
 	u32        a_tracks_per_zone:16;
 
-	u32        a_tracks_per_lun:16;	/* alternate tracks/lun-MSB */
-	u32        sec_per_track:16;	/* sectors/track-MSB */
+	u32        a_tracks_per_lun:16;	
+	u32        sec_per_track:16;	
 
 	u32        bytes_per_sector:16;
 	u32        interleave:16;
 
-	u32        tsf:16;			/* track skew factor-MSB */
-	u32        csf:16;			/* cylinder skew factor-MSB */
+	u32        tsf:16;			
+	u32        csf:16;			
 
 #ifdef __BIGENDIAN
-	u32        ssec:1;	/* soft sector formatting */
-	u32        hsec:1;	/* hard sector formatting */
-	u32        rmb:1;	/* removable media */
-	u32        surf:1;	/* surface */
+	u32        ssec:1;	
+	u32        hsec:1;	
+	u32        rmb:1;	
+	u32        surf:1;	
 	u32        reserved2:4;
 #else
 	u32        reserved2:4;
-	u32        surf:1;	/* surface */
-	u32        rmb:1;	/* removable media */
-	u32        hsec:1;	/* hard sector formatting */
-	u32        ssec:1;	/* soft sector formatting */
+	u32        surf:1;	
+	u32        rmb:1;	
+	u32        hsec:1;	
+	u32        ssec:1;	
 #endif
 	u32        reserved3:24;
 };
 
-/*
- * SCSI rigid disk device geometry page
- */
+
 struct scsi_mp_rigid_device_geometry_s{
 #ifdef __BIGENDIAN
 	u32        ps:1;
@@ -1066,9 +950,9 @@ struct scsi_mp_rigid_device_geometry_s{
 	u32        lscyl2:8;
 #ifdef __BIGENDIAN
 	u32        reserved2:6;
-	u32        rpl:2;	/* rotational position locking */
+	u32        rpl:2;	
 #else
-	u32        rpl:2;	/* rotational position locking */
+	u32        rpl:2;	
 	u32        reserved2:6;
 #endif
 	u32        rot_off:8;
@@ -1078,9 +962,7 @@ struct scsi_mp_rigid_device_geometry_s{
 	u32        reserved4:16;
 };
 
-/*
- * SCSI caching mode page
- */
+
 struct scsi_mp_caching_s{
 #ifdef __BIGENDIAN
 	u8         ps:1;
@@ -1093,46 +975,46 @@ struct scsi_mp_caching_s{
 #endif
 	u8         page_len;
 #ifdef __BIGENDIAN
-	u8         ic:1;	/* initiator control */
-	u8         abpf:1;	/* abort pre-fetch */
-	u8         cap:1;	/* caching analysis permitted */
-	u8         disc:1;	/* discontinuity */
-	u8         size:1;	/* size enable */
-	u8         wce:1;	/* write cache enable */
-	u8         mf:1;	/* multiplication factor */
-	u8         rcd:1;	/* read cache disable */
+	u8         ic:1;	
+	u8         abpf:1;	
+	u8         cap:1;	
+	u8         disc:1;	
+	u8         size:1;	
+	u8         wce:1;	
+	u8         mf:1;	
+	u8         rcd:1;	
 
-	u8         drrp:4;	/* demand read retention priority */
-	u8         wrp:4;	/* write retention priority */
+	u8         drrp:4;	
+	u8         wrp:4;	
 #else
-	u8         rcd:1;	/* read cache disable */
-	u8         mf:1;	/* multiplication factor */
-	u8         wce:1;	/* write cache enable */
-	u8         size:1;	/* size enable */
-	u8         disc:1;	/* discontinuity */
-	u8         cap:1;	/* caching analysis permitted */
-	u8         abpf:1;	/* abort pre-fetch */
-	u8         ic:1;	/* initiator control */
+	u8         rcd:1;	
+	u8         mf:1;	
+	u8         wce:1;	
+	u8         size:1;	
+	u8         disc:1;	
+	u8         cap:1;	
+	u8         abpf:1;	
+	u8         ic:1;	
 
-	u8         wrp:4;	/* write retention priority */
-	u8         drrp:4;	/* demand read retention priority */
+	u8         wrp:4;	
+	u8         drrp:4;	
 #endif
-	u8         dptl[2];/* disable pre-fetch transfer length */
+	u8         dptl[2];
 	u8         min_prefetch[2];
 	u8         max_prefetch[2];
 	u8         max_prefetch_limit[2];
 #ifdef __BIGENDIAN
-	u8         fsw:1;	/* force sequential write */
-	u8         lbcss:1;/* logical block cache segment size */
-	u8         dra:1;	/* disable read ahead */
-	u8         vs:2;	/* vendor specific */
+	u8         fsw:1;	
+	u8         lbcss:1;
+	u8         dra:1;	
+	u8         vs:2;	
 	u8         res2:3;
 #else
 	u8         res2:3;
-	u8         vs:2;	/* vendor specific */
-	u8         dra:1;	/* disable read ahead */
-	u8         lbcss:1;/* logical block cache segment size */
-	u8         fsw:1;	/* force sequential write */
+	u8         vs:2;	
+	u8         dra:1;	
+	u8         lbcss:1;
+	u8         fsw:1;	
 #endif
 	u8         num_cache_segs;
 
@@ -1141,9 +1023,7 @@ struct scsi_mp_caching_s{
 	u8         non_cache_seg_size[3];
 };
 
-/*
- * SCSI control mode page
- */
+
 struct scsi_mp_control_page_s{
 #ifdef __BIGENDIAN
 u8         ps:1;
@@ -1156,50 +1036,50 @@ u8         ps:1;
 #endif
 	u8         page_len;
 #ifdef __BIGENDIAN
-	u8         tst:3;		/* task set type */
+	u8         tst:3;		
 	u8         reserved3:3;
-	u8         gltsd:1;	/* global logging target save disable */
-	u8         rlec:1;		/* report log exception condition */
+	u8         gltsd:1;	
+	u8         rlec:1;		
 
-	u8         qalgo_mod:4;	/* queue alogorithm modifier */
+	u8         qalgo_mod:4;	
 	u8         reserved4:1;
-	u8         qerr:2;		/* queue error management */
-	u8         dque:1;		/* disable queuing */
+	u8         qerr:2;		
+	u8         dque:1;		
 
 	u8         reserved5:1;
-	u8         rac:1;		/* report a check */
+	u8         rac:1;		
 	u8         reserved6:2;
-	u8         swp:1;		/* software write protect */
-	u8         raerp:1;	/* ready AER permission */
-	u8         uaaerp:1;	/* unit attenstion AER permission */
-	u8         eaerp:1;	/* error AER permission */
+	u8         swp:1;		
+	u8         raerp:1;	
+	u8         uaaerp:1;	
+	u8         eaerp:1;	
 
 	u8         reserved7:5;
 	u8         autoload_mod:3;
 #else
-	u8         rlec:1;		/* report log exception condition */
-	u8         gltsd:1;	/* global logging target save disable */
+	u8         rlec:1;		
+	u8         gltsd:1;	
 	u8         reserved3:3;
-	u8         tst:3;		/* task set type */
+	u8         tst:3;		
 
-	u8         dque:1;		/* disable queuing */
-	u8         qerr:2;		/* queue error management */
+	u8         dque:1;		
+	u8         qerr:2;		
 	u8         reserved4:1;
-	u8         qalgo_mod:4;	/* queue alogorithm modifier */
+	u8         qalgo_mod:4;	
 
-	u8         eaerp:1;	/* error AER permission */
-	u8         uaaerp:1;	/* unit attenstion AER permission */
-	u8         raerp:1;	/* ready AER permission */
-	u8         swp:1;		/* software write protect */
+	u8         eaerp:1;	
+	u8         uaaerp:1;	
+	u8         raerp:1;	
+	u8         swp:1;		
 	u8         reserved6:2;
-	u8         rac:1;		/* report a check */
+	u8         rac:1;		
 	u8         reserved5:1;
 
 	u8         autoload_mod:3;
 	u8         reserved7:5;
 #endif
-	u8         rahp_msb;	/* ready AER holdoff period - MSB */
-	u8         rahp_lsb;	/* ready AER holdoff period - LSB */
+	u8         rahp_msb;	
+	u8         rahp_lsb;	
 
 	u8         busy_timeout_period_msb;
 	u8         busy_timeout_period_lsb;
@@ -1208,9 +1088,7 @@ u8         ps:1;
 	u8         ext_selftest_compl_time_lsb;
 };
 
-/*
- * SCSI medium types supported mode page
- */
+
 struct scsi_mp_medium_types_sup_s{
 #ifdef __BIGENDIAN
 	u8         ps:1;
@@ -1224,15 +1102,13 @@ struct scsi_mp_medium_types_sup_s{
 	u8         page_len;
 
 	u8         reserved3[2];
-	u8         med_type1_sup;	/* medium type one supported */
-	u8         med_type2_sup;	/* medium type two supported */
-	u8         med_type3_sup;	/* medium type three supported */
-	u8         med_type4_sup;	/* medium type four supported */
+	u8         med_type1_sup;	
+	u8         med_type2_sup;	
+	u8         med_type3_sup;	
+	u8         med_type4_sup;	
 };
 
-/*
- * SCSI informational exception control mode page
- */
+
 struct scsi_mp_info_excpt_cntl_s{
 #ifdef __BIGENDIAN
 	u8         ps:1;
@@ -1245,36 +1121,28 @@ struct scsi_mp_info_excpt_cntl_s{
 #endif
 	u8         page_len;
 #ifdef __BIGENDIAN
-	u8         perf:1;		/* performance */
+	u8         perf:1;		
 	u8         reserved3:1;
-	u8         ebf:1;		/* enable background fucntion */
-	u8         ewasc:1;	/* enable warning */
-	u8         dexcpt:1;	/* disable exception control */
-	u8         test:1;		/* enable test device failure
-					 * notification
-					 */
+	u8         ebf:1;		
+	u8         ewasc:1;	
+	u8         dexcpt:1;	
+	u8         test:1;		
 	u8         reserved4:1;
 	u8         log_error:1;
 
 	u8         reserved5:4;
-	u8         mrie:4;		/* method of reporting info
-					 * exceptions
-					 */
+	u8         mrie:4;		
 #else
 	u8         log_error:1;
 	u8         reserved4:1;
-	u8         test:1;		/* enable test device failure
-					 * notification
-					 */
-	u8         dexcpt:1;	/* disable exception control */
-	u8         ewasc:1;	/* enable warning */
-	u8         ebf:1;		/* enable background fucntion */
+	u8         test:1;		
+	u8         dexcpt:1;	
+	u8         ewasc:1;	
+	u8         ebf:1;		
 	u8         reserved3:1;
-	u8         perf:1;		/* performance */
+	u8         perf:1;		
 
-	u8         mrie:4;		/* method of reporting info
-					 * exceptions
-					 */
+	u8         mrie:4;		
 	u8         reserved5:4;
 #endif
 	u8         interval_timer_msb;
@@ -1284,24 +1152,16 @@ struct scsi_mp_info_excpt_cntl_s{
 	u8         report_count_lsb;
 };
 
-/*
- * Methods of reporting informational exceptions
- */
-#define SCSI_MP_IEC_NO_REPORT       0x0	/* no reporting of exceptions */
-#define SCSI_MP_IEC_AER             0x1	/* async event reporting */
-#define SCSI_MP_IEC_UNIT_ATTN       0x2	/* generate unit attenstion */
-#define SCSI_MO_IEC_COND_REC_ERR    0x3	/* conditionally generate recovered
-					 * error
-					 */
-#define SCSI_MP_IEC_UNCOND_REC_ERR  0x4	/* unconditionally generate recovered
-					 * error
-					 */
-#define SCSI_MP_IEC_NO_SENSE        0x5	/* generate no sense */
-#define SCSI_MP_IEC_ON_REQUEST      0x6	/* only report exceptions on request */
 
-/*
- * SCSI flexible disk page
- */
+#define SCSI_MP_IEC_NO_REPORT       0x0	
+#define SCSI_MP_IEC_AER             0x1	
+#define SCSI_MP_IEC_UNIT_ATTN       0x2	
+#define SCSI_MO_IEC_COND_REC_ERR    0x3	
+#define SCSI_MP_IEC_UNCOND_REC_ERR  0x4	
+#define SCSI_MP_IEC_NO_SENSE        0x5	
+#define SCSI_MP_IEC_ON_REQUEST      0x6	
+
+
 struct scsi_mp_flexible_disk_s{
 #ifdef __BIGENDIAN
 	u8         ps:1;
@@ -1326,61 +1186,53 @@ struct scsi_mp_flexible_disk_s{
 	u8         num_cylinders_msb;
 	u8         num_cylinders_lsb;
 
-	u8         sc_wpc_msb;	/* starting cylinder-write
-					 * precompensation msb
-					 */
-	u8         sc_wpc_lsb;	/* starting cylinder-write
-					 * precompensation lsb
-					 */
-	u8         sc_rwc_msb;	/* starting cylinder-reduced write
-					 * current msb
-					 */
-	u8         sc_rwc_lsb;	/* starting cylinder-reduced write
-					 * current lsb
-					 */
+	u8         sc_wpc_msb;	
+	u8         sc_wpc_lsb;	
+	u8         sc_rwc_msb;	
+	u8         sc_rwc_lsb;	
 
 	u8         dev_step_rate_msb;
 	u8         dev_step_rate_lsb;
 
 	u8         dev_step_pulse_width;
 
-	u8         head_sd_msb;	/* head settle delay msb */
-	u8         head_sd_lsb;	/* head settle delay lsb */
+	u8         head_sd_msb;	
+	u8         head_sd_lsb;	
 
 	u8         motor_on_delay;
 	u8         motor_off_delay;
 #ifdef __BIGENDIAN
-	u8         trdy:1;		/* true ready bit */
-	u8         ssn:1;		/* start sector number bit */
-	u8         mo:1;		/* motor on bit */
+	u8         trdy:1;		
+	u8         ssn:1;		
+	u8         mo:1;		
 	u8         reserved3:5;
 
 	u8         reserved4:4;
-	u8         spc:4;		/* step pulse per cylinder */
+	u8         spc:4;		
 #else
 	u8         reserved3:5;
-	u8         mo:1;		/* motor on bit */
-	u8         ssn:1;		/* start sector number bit */
-	u8         trdy:1;		/* true ready bit */
+	u8         mo:1;		
+	u8         ssn:1;		
+	u8         trdy:1;		
 
-	u8         spc:4;		/* step pulse per cylinder */
+	u8         spc:4;		
 	u8         reserved4:4;
 #endif
 	u8         write_comp;
 	u8         head_load_delay;
 	u8         head_unload_delay;
 #ifdef __BIGENDIAN
-	u8         pin34:4;	/* pin34 usage */
-	u8         pin2:4;		/* pin2 usage */
+	u8         pin34:4;	
+	u8         pin2:4;		
 
-	u8         pin4:4;		/* pin4 usage */
-	u8         pin1:4;		/* pin1 usage */
+	u8         pin4:4;		
+	u8         pin1:4;		
 #else
-	u8         pin2:4;		/* pin2 usage */
-	u8         pin34:4;	/* pin34 usage */
+	u8         pin2:4;		
+	u8         pin34:4;	
 
-	u8         pin1:4;		/* pin1 usage */
-	u8         pin4:4;		/* pin4 usage */
+	u8         pin1:4;		
+	u8         pin4:4;		
 #endif
 	u8         med_rot_rate_msb;
 	u8         med_rot_rate_lsb;
@@ -1389,70 +1241,57 @@ struct scsi_mp_flexible_disk_s{
 };
 
 struct scsi_mode_page_format_data6_s{
-	struct scsi_mode_param_header6_s mph;	/* mode page header */
-	struct scsi_mode_param_desc_s desc;	/* block descriptor */
-	struct scsi_mp_format_device_s format;	/* format device data */
+	struct scsi_mode_param_header6_s mph;	
+	struct scsi_mode_param_desc_s desc;	
+	struct scsi_mp_format_device_s format;	
 };
 
 struct scsi_mode_page_format_data10_s{
-	struct scsi_mode_param_header10_s mph;	/* mode page header */
-	struct scsi_mode_param_desc_s desc;	/* block descriptor */
-	struct scsi_mp_format_device_s format;	/* format device data */
+	struct scsi_mode_param_header10_s mph;	
+	struct scsi_mode_param_desc_s desc;	
+	struct scsi_mp_format_device_s format;	
 };
 
 struct scsi_mode_page_rdg_data6_s{
-	struct scsi_mode_param_header6_s mph;	/* mode page header */
-	struct scsi_mode_param_desc_s desc;	/* block descriptor */
+	struct scsi_mode_param_header6_s mph;	
+	struct scsi_mode_param_desc_s desc;	
 	struct scsi_mp_rigid_device_geometry_s rdg;
-					/* rigid geometry data */
+					
 };
 
 struct scsi_mode_page_rdg_data10_s{
-	struct scsi_mode_param_header10_s mph;	/* mode page header */
-	struct scsi_mode_param_desc_s desc;	/* block descriptor */
+	struct scsi_mode_param_header10_s mph;	
+	struct scsi_mode_param_desc_s desc;	
 	struct scsi_mp_rigid_device_geometry_s rdg;
-					/* rigid geometry data */
+					
 };
 
 struct scsi_mode_page_cache6_s{
-	struct scsi_mode_param_header6_s mph;	/* mode page header */
-	struct scsi_mode_param_desc_s desc;	/* block descriptor */
-	struct scsi_mp_caching_s cache;	/* cache page data */
+	struct scsi_mode_param_header6_s mph;	
+	struct scsi_mode_param_desc_s desc;	
+	struct scsi_mp_caching_s cache;	
 };
 
 struct scsi_mode_page_cache10_s{
-	struct scsi_mode_param_header10_s mph;	/* mode page header */
-	struct scsi_mode_param_desc_s desc;	/* block descriptor */
-	struct scsi_mp_caching_s cache;	/* cache page data */
+	struct scsi_mode_param_header10_s mph;	
+	struct scsi_mode_param_desc_s desc;	
+	struct scsi_mp_caching_s cache;	
 };
 
-/* --------------------------------------------------------------
- * Format Unit command
- * ------------------------------------------------------------
- */
 
-/*
- * Format Unit CDB
- */
+
+
 struct scsi_format_unit_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         res1:3;
-	u8         fmtdata:1;	/* if set, data out phase has format
-					 * data
-					 */
-	u8         cmplst:1;	/* if set, defect list is complete */
-	u8         def_list:3;	/* format of defect descriptor is
-					 * fmtdata =1
-					 */
+	u8         fmtdata:1;	
+	u8         cmplst:1;	
+	u8         def_list:3;	
 #else
-	u8         def_list:3;	/* format of defect descriptor is
-					 * fmtdata = 1
-					 */
-	u8         cmplst:1;	/* if set, defect list is complete */
-	u8         fmtdata:1;	/* if set, data out phase has format
-					 * data
-					 */
+	u8         def_list:3;	
+	u8         cmplst:1;	
+	u8         fmtdata:1;	
 	u8         res1:3;
 #endif
 	u8         interleave_msb;
@@ -1461,9 +1300,7 @@ struct scsi_format_unit_s{
 	u8         control;
 };
 
-/*
- * h
- */
+
 struct scsi_reserve6_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
@@ -1480,9 +1317,7 @@ struct scsi_reserve6_s{
 	u8         control;
 };
 
-/*
- * h
- */
+
 struct scsi_release6_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
@@ -1499,9 +1334,7 @@ struct scsi_release6_s{
 	u8         control;
 };
 
-/*
- * h
- */
+
 struct scsi_reserve10_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
@@ -1590,59 +1423,52 @@ struct scsi_request_sense_s{
 	u8         control_byte;
 };
 
-/* ------------------------------------------------------------
- * SCSI status byte values
- * ------------------------------------------------------------
- */
+
 #define SCSI_STATUS_GOOD                   0x00
 #define SCSI_STATUS_CHECK_CONDITION        0x02
 #define SCSI_STATUS_CONDITION_MET          0x04
 #define SCSI_STATUS_BUSY                   0x08
 #define SCSI_STATUS_INTERMEDIATE           0x10
-#define SCSI_STATUS_ICM                    0x14	/* intermediate condition met */
+#define SCSI_STATUS_ICM                    0x14	
 #define SCSI_STATUS_RESERVATION_CONFLICT   0x18
 #define SCSI_STATUS_COMMAND_TERMINATED     0x22
 #define SCSI_STATUS_QUEUE_FULL             0x28
 #define SCSI_STATUS_ACA_ACTIVE             0x30
 
-#define SCSI_MAX_ALLOC_LEN		0xFF	/* maximum allocarion length
-						 * in CDBs
-						 */
+#define SCSI_MAX_ALLOC_LEN		0xFF	
 
 #define SCSI_OP_WRITE_VERIFY10      0x2E
 #define SCSI_OP_WRITE_VERIFY12      0xAE
 #define SCSI_OP_UNDEF               0xFF
 
-/*
- * SCSI WRITE-VERIFY(10) command
- */
+
 struct scsi_write_verify10_s{
 	u8         opcode;
 #ifdef __BIGENDIAN
 	u8         reserved1:3;
-	u8         dpo:1;		/* Disable Page Out */
+	u8         dpo:1;		
 	u8         reserved2:1;
-	u8         ebp:1;		/* erse by-pass */
-	u8         bytchk:1;	/* byte check */
-	u8         rel_adr:1;	/* relative address */
+	u8         ebp:1;		
+	u8         bytchk:1;	
+	u8         rel_adr:1;	
 #else
-	u8         rel_adr:1;	/* relative address */
-	u8         bytchk:1;	/* byte check */
-	u8         ebp:1;		/* erse by-pass */
+	u8         rel_adr:1;	
+	u8         bytchk:1;	
+	u8         ebp:1;		
 	u8         reserved2:1;
-	u8         dpo:1;		/* Disable Page Out */
+	u8         dpo:1;		
 	u8         reserved1:3;
 #endif
-	u8         lba0;		/* logical block address - MSB */
+	u8         lba0;		
 	u8         lba1;
 	u8         lba2;
-	u8         lba3;		/* LSB */
+	u8         lba3;		
 	u8         reserved3;
-	u8         xfer_length0;	/* transfer length in blocks - MSB */
-	u8         xfer_length1;	/* LSB */
+	u8         xfer_length0;	
+	u8         xfer_length1;	
 	u8         control;
 };
 
 #pragma pack()
 
-#endif /* __SCSI_H__ */
+#endif 

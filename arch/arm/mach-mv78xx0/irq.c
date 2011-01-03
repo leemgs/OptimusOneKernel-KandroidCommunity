@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-mv78xx0/irq.c
- *
- * MV78xx0 IRQ handling.
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -28,16 +20,14 @@ void __init mv78xx0_init_irq(void)
 {
 	int i;
 
-	/* Initialize gpiolib. */
+	
 	orion_gpio_init();
 
 	orion_irq_init(0, (void __iomem *)(IRQ_VIRT_BASE + IRQ_MASK_LOW_OFF));
 	orion_irq_init(32, (void __iomem *)(IRQ_VIRT_BASE + IRQ_MASK_HIGH_OFF));
 	orion_irq_init(64, (void __iomem *)(IRQ_VIRT_BASE + IRQ_MASK_ERR_OFF));
 
-	/*
-	 * Mask and clear GPIO IRQ interrupts.
-	 */
+	
 	writel(0, GPIO_LEVEL_MASK(0));
 	writel(0, GPIO_EDGE_MASK(0));
 	writel(0, GPIO_EDGE_CAUSE(0));

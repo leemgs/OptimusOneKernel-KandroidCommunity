@@ -1,27 +1,4 @@
-/*
- * Watchdog driver for Cirrus Logic EP93xx family of devices.
- *
- * Copyright (c) 2004 Ray Lehtiniemi
- * Copyright (c) 2006 Tower Technologies
- * Based on ep93xx driver, bits from alim7101_wdt.c
- *
- * Authors: Ray Lehtiniemi <rayl@mail.com>,
- *	Alessandro Zummo <a.zummo@towertech.it>
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- *
- * This watchdog fires after 250msec, which is a too short interval
- * for us to rely on the user space daemon alone. So we ping the
- * wdt each ~200msec and eventually stop doing it if the user space
- * daemon dies.
- *
- * TODO:
- *
- *	- Test last reset from watchdog status
- *	- Add a few missing ioctls
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -35,7 +12,7 @@
 #define WDT_VERSION	"0.3"
 #define PFX		"ep93xx_wdt: "
 
-/* default timeout (secs) */
+
 #define WDT_TIMEOUT 30
 
 static int nowayout = WATCHDOG_NOWAYOUT;
@@ -53,7 +30,7 @@ static unsigned long boot_status;
 #define EP93XX_WDT_WATCHDOG	EP93XX_WDT_REG(0x00)
 #define EP93XX_WDT_WDSTATUS	EP93XX_WDT_REG(0x04)
 
-/* reset the wdt every ~200ms */
+
 #define WDT_INTERVAL (HZ/5)
 
 static void wdt_enable(void)
@@ -87,7 +64,7 @@ static void wdt_shutdown(void)
 
 static void wdt_keepalive(void)
 {
-	/* user land ping */
+	
 	next_heartbeat = jiffies + (timeout * HZ);
 }
 
@@ -161,7 +138,7 @@ static long ep93xx_wdt_ioctl(struct file *file,
 		break;
 
 	case WDIOC_GETTIMEOUT:
-		/* actually, it is 0.250 seconds.... */
+		
 		ret = put_user(1, (int __user *)arg);
 		break;
 	}
@@ -201,7 +178,7 @@ static void ep93xx_timer_ping(unsigned long data)
 	if (time_before(jiffies, next_heartbeat))
 		wdt_ping();
 
-	/* Re-set the timer interval */
+	
 	mod_timer(&timer, jiffies + WDT_INTERVAL);
 }
 

@@ -1,13 +1,4 @@
-/* linux/arch/arm/mach-s3c6400/mach-smdk6400.c
- *
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -84,7 +75,7 @@ static void __init smdk6400_machine_init(void)
 }
 
 MACHINE_START(SMDK6400, "SMDK6400")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C_PA_UART & 0xfff00000,
 	.io_pg_offst	= (((u32)S3C_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C64XX_PA_SDRAM + 0x100,

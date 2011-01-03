@@ -1,14 +1,4 @@
-/* $Id: isdn_tty.h,v 1.1.2.2 2004/01/12 22:37:19 keil Exp $
- *
- * header for Linux ISDN subsystem, tty related functions (linklevel).
- *
- * Copyright 1994-1999  by Fritz Elfert (fritz@isdn4linux.de)
- * Copyright 1995,96    by Thinking Objects Software GmbH Wuerzburg
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 
 #define DLE 0x10
@@ -16,11 +6,9 @@
 #define DC4 0x14
 
 
-/*
- * Definition of some special Registers of AT-Emulator
- */
+
 #define REG_RINGATA   0
-#define REG_RINGCNT   1  /* ring counter register */
+#define REG_RINGCNT   1  
 #define REG_ESC       2
 #define REG_CR        3
 #define REG_LF        4
@@ -28,10 +16,10 @@
 
 #define REG_WAITC     7
 
-#define REG_RESP     12  /* show response messages register */
-#define BIT_RESP      1  /* show response messages bit      */
-#define REG_RESPNUM  12  /* show numeric responses register */
-#define BIT_RESPNUM   2  /* show numeric responses bit      */
+#define REG_RESP     12  
+#define BIT_RESP      1  
+#define REG_RESPNUM  12  
+#define BIT_RESPNUM   2  
 #define REG_ECHO     12
 #define BIT_ECHO      4
 #define REG_DCD      12
@@ -56,8 +44,8 @@
 #define BIT_RESPXT    8
 #define REG_CIDONCE  13
 #define BIT_CIDONCE  16
-#define REG_RUNG     13  /* show RUNG message register      */
-#define BIT_RUNG     64  /* show RUNG message bit           */
+#define REG_RUNG     13  
+#define BIT_RUNG     64  
 #define REG_DISPLAY  13
 #define BIT_DISPLAY 128
 
@@ -78,7 +66,7 @@
 #define REG_CDN      23
 #define BIT_CDN       4
 
-/* defines for result codes */
+
 #define RESULT_OK		0
 #define RESULT_CONNECT		1
 #define RESULT_RING		2

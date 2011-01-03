@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/gpiolib.c
- *
- * Copyright (c) 2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX GPIOlib support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>

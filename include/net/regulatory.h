@@ -1,53 +1,16 @@
 #ifndef __NET_REGULATORY_H
 #define __NET_REGULATORY_H
-/*
- * regulatory support structures
- *
- * Copyright 2008-2009	Luis R. Rodriguez <lrodriguez@atheros.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
 
-/**
- * enum environment_cap - Environment parsed from country IE
- * @ENVIRON_ANY: indicates country IE applies to both indoor and
- *	outdoor operation.
- * @ENVIRON_INDOOR: indicates country IE applies only to indoor operation
- * @ENVIRON_OUTDOOR: indicates country IE applies only to outdoor operation
- */
+
+
 enum environment_cap {
 	ENVIRON_ANY,
 	ENVIRON_INDOOR,
 	ENVIRON_OUTDOOR,
 };
 
-/**
- * struct regulatory_request - used to keep track of regulatory requests
- *
- * @wiphy_idx: this is set if this request's initiator is
- * 	%REGDOM_SET_BY_COUNTRY_IE or %REGDOM_SET_BY_DRIVER. This
- * 	can be used by the wireless core to deal with conflicts
- * 	and potentially inform users of which devices specifically
- * 	cased the conflicts.
- * @initiator: indicates who sent this request, could be any of
- * 	of those set in nl80211_reg_initiator (%NL80211_REGDOM_SET_BY_*)
- * @alpha2: the ISO / IEC 3166 alpha2 country code of the requested
- * 	regulatory domain. We have a few special codes:
- * 	00 - World regulatory domain
- * 	99 - built by driver but a specific alpha2 cannot be determined
- * 	98 - result of an intersection between two regulatory domains
- * @intersect: indicates whether the wireless core should intersect
- * 	the requested regulatory domain with the presently set regulatory
- * 	domain.
- * @country_ie_checksum: checksum of the last processed and accepted
- * 	country IE
- * @country_ie_env: lets us know if the AP is telling us we are outdoor,
- * 	indoor, or if it doesn't matter
- * @list: used to insert into the reg_requests_list linked list
- */
+
 struct regulatory_request {
 	int wiphy_idx;
 	enum nl80211_reg_initiator initiator;

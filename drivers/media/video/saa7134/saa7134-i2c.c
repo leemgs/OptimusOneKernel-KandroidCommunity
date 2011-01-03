@@ -1,24 +1,4 @@
-/*
- *
- * device driver for philips saa7134 based TV cards
- * i2c interface support
- *
- * (c) 2001,02 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/list.h>
@@ -31,7 +11,7 @@
 #include "saa7134.h"
 #include <media/v4l2-common.h>
 
-/* ----------------------------------------------------------- */
+
 
 static unsigned int i2c_debug;
 module_param(i2c_debug, int, 0644);
@@ -47,7 +27,7 @@ MODULE_PARM_DESC(i2c_scan,"scan i2c bus at insmod time");
 #define I2C_WAIT_DELAY  32
 #define I2C_WAIT_RETRY  16
 
-/* ----------------------------------------------------------- */
+
 
 static char *str_i2c_status[] = {
 	"IDLE", "DONE_STOP", "BUSY", "TO_SCL", "TO_ARB", "DONE_WRITE",
@@ -56,22 +36,22 @@ static char *str_i2c_status[] = {
 };
 
 enum i2c_status {
-	IDLE          = 0,  // no I2C command pending
-	DONE_STOP     = 1,  // I2C command done and STOP executed
-	BUSY          = 2,  // executing I2C command
-	TO_SCL        = 3,  // executing I2C command, time out on clock stretching
-	TO_ARB        = 4,  // time out on arbitration trial, still trying
-	DONE_WRITE    = 5,  // I2C command done and awaiting next write command
-	DONE_READ     = 6,  // I2C command done and awaiting next read command
-	DONE_WRITE_TO = 7,  // see 5, and time out on status echo
-	DONE_READ_TO  = 8,  // see 6, and time out on status echo
-	NO_DEVICE     = 9,  // no acknowledge on device slave address
-	NO_ACKN       = 10, // no acknowledge after data byte transfer
-	BUS_ERR       = 11, // bus error
-	ARB_LOST      = 12, // arbitration lost during transfer
-	SEQ_ERR       = 13, // erroneous programming sequence
-	ST_ERR        = 14, // wrong status echoing
-	SW_ERR        = 15  // software error
+	IDLE          = 0,  
+	DONE_STOP     = 1,  
+	BUSY          = 2,  
+	TO_SCL        = 3,  
+	TO_ARB        = 4,  
+	DONE_WRITE    = 5,  
+	DONE_READ     = 6,  
+	DONE_WRITE_TO = 7,  
+	DONE_READ_TO  = 8,  
+	NO_DEVICE     = 9,  
+	NO_ACKN       = 10, 
+	BUS_ERR       = 11, 
+	ARB_LOST      = 12, 
+	SEQ_ERR       = 13, 
+	ST_ERR        = 14, 
+	SW_ERR        = 15  
 };
 
 static char *str_i2c_attr[] = {
@@ -79,10 +59,10 @@ static char *str_i2c_attr[] = {
 };
 
 enum i2c_attr {
-	NOP           = 0,  // no operation on I2C bus
-	STOP          = 1,  // stop condition, no associated byte transfer
-	CONTINUE      = 2,  // continue with byte transfer
-	START         = 3   // start condition with byte transfer
+	NOP           = 0,  
+	STOP          = 1,  
+	CONTINUE      = 2,  
+	START         = 3   
 };
 
 static inline enum i2c_status i2c_get_status(struct saa7134_dev *dev)
@@ -198,13 +178,13 @@ static inline int i2c_send_byte(struct saa7134_dev *dev,
 	enum i2c_status status;
 	__u32 dword;
 
-	/* have to write both attr + data in one 32bit word */
+	
 	dword  = saa_readl(SAA7134_I2C_ATTR_STATUS >> 2);
 	dword &= 0x0f;
 	dword |= (attr << 6);
 	dword |= ((__u32)data << 8);
-	dword |= 0x00 << 16;  /* 100 kHz */
-//	dword |= 0x40 << 16;  /* 400 kHz */
+	dword |= 0x00 << 16;  
+
 	dword |= 0xf0 << 24;
 	saa_writel(SAA7134_I2C_ATTR_STATUS >> 2, dword);
 	d2printk(KERN_DEBUG "%s: i2c data => 0x%x\n",dev->name,data);
@@ -250,15 +230,13 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
 	d1printk(KERN_DEBUG "%s: i2c xfer:",dev->name);
 	for (i = 0; i < num; i++) {
 		if (!(msgs[i].flags & I2C_M_NOSTART) || 0 == i) {
-			/* send address */
+			
 			d2printk("send address\n");
 			addr  = msgs[i].addr << 1;
 			if (msgs[i].flags & I2C_M_RD)
 				addr |= 1;
 			if (i > 0 && msgs[i].flags & I2C_M_RD && msgs[i].addr != 0x40) {
-				/* workaround for a saa7134 i2c bug
-				 * needed to talk to the mt352 demux
-				 * thanks to pinnacle for the hint */
+				
 				int quirk = 0xfe;
 				d1printk(" [%02x quirk]",quirk);
 				i2c_send_byte(dev,START,quirk);
@@ -270,7 +248,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
 				 goto err;
 		}
 		if (msgs[i].flags & I2C_M_RD) {
-			/* read bytes */
+			
 			d2printk("read bytes\n");
 			for (byte = 0; byte < msgs[i].len; byte++) {
 				d1printk(" =");
@@ -281,7 +259,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
 				msgs[i].buf[byte] = rc;
 			}
 		} else {
-			/* write bytes */
+			
 			d2printk("write bytes\n");
 			for (byte = 0; byte < msgs[i].len; byte++) {
 				data = msgs[i].buf[byte];
@@ -301,7 +279,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
 	status = i2c_get_status(dev);
 	if (i2c_is_error(status))
 		goto err;
-	/* ensure that the bus is idle for at least one bit slot */
+	
 	msleep(1);
 
 	d1printk("\n");
@@ -314,7 +292,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
 	return rc;
 }
 
-/* ----------------------------------------------------------- */
+
 
 static u32 functionality(struct i2c_adapter *adap)
 {
@@ -337,7 +315,7 @@ static struct i2c_client saa7134_client_template = {
 	.name	= "saa7134 internal",
 };
 
-/* ----------------------------------------------------------- */
+
 
 static int
 saa7134_i2c_eeprom(struct saa7134_dev *dev, unsigned char *eedata, int len)
@@ -406,7 +384,7 @@ int saa7134_i2c_register(struct saa7134_dev *dev)
 	if (i2c_scan)
 		do_i2c_scan(dev->name,&dev->i2c_client);
 
-	/* Instantiate the IR receiver device, if present */
+	
 	saa7134_probe_i2c_ir(dev);
 	return 0;
 }
@@ -417,9 +395,5 @@ int saa7134_i2c_unregister(struct saa7134_dev *dev)
 	return 0;
 }
 
-/* ----------------------------------------------------------- */
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+
+

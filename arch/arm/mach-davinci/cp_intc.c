@@ -1,13 +1,4 @@
-/*
- * TI Common Platform Interrupt Controller (cp_intc) driver
- *
- * Author: Steve Chen <schen@mvista.com>
- * Copyright (C) 2008-2009, MontaVista Software, Inc. <source@mvista.com>
- *
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- */
+
 
 #include <linux/init.h>
 #include <linux/sched.h>
@@ -35,16 +26,16 @@ static void cp_intc_ack_irq(unsigned int irq)
 	cp_intc_write(irq, CP_INTC_SYS_STAT_IDX_CLR);
 }
 
-/* Disable interrupt */
+
 static void cp_intc_mask_irq(unsigned int irq)
 {
-	/* XXX don't know why we need to disable nIRQ here... */
+	
 	cp_intc_write(1, CP_INTC_HOST_ENABLE_IDX_CLR);
 	cp_intc_write(irq, CP_INTC_SYS_ENABLE_IDX_CLR);
 	cp_intc_write(1, CP_INTC_HOST_ENABLE_IDX_SET);
 }
 
-/* Enable interrupt */
+
 static void cp_intc_unmask_irq(unsigned int irq)
 {
 	cp_intc_write(irq, CP_INTC_SYS_ENABLE_IDX_SET);
@@ -102,30 +93,26 @@ void __init cp_intc_init(void __iomem *base, unsigned short num_irq,
 
 	cp_intc_write(0, CP_INTC_GLOBAL_ENABLE);
 
-	/* Disable all host interrupts */
+	
 	cp_intc_write(0, CP_INTC_HOST_ENABLE(0));
 
-	/* Disable system interrupts */
+	
 	for (i = 0; i < num_reg; i++)
 		cp_intc_write(~0, CP_INTC_SYS_ENABLE_CLR(i));
 
-	/* Set to normal mode, no nesting, no priority hold */
+	
 	cp_intc_write(0, CP_INTC_CTRL);
 	cp_intc_write(0, CP_INTC_HOST_CTRL);
 
-	/* Clear system interrupt status */
+	
 	for (i = 0; i < num_reg; i++)
 		cp_intc_write(~0, CP_INTC_SYS_STAT_CLR(i));
 
-	/* Enable nIRQ (what about nFIQ?) */
+	
 	cp_intc_write(1, CP_INTC_HOST_ENABLE_IDX_SET);
 
-	/*
-	 * Priority is determined by host channel: lower channel number has
-	 * higher priority i.e. channel 0 has highest priority and channel 31
-	 * had the lowest priority.
-	 */
-	num_reg = (num_irq + 3) >> 2;	/* 4 channels per register */
+	
+	num_reg = (num_irq + 3) >> 2;	
 	if (irq_prio) {
 		unsigned j, k;
 		u32 val;
@@ -140,22 +127,18 @@ void __init cp_intc_init(void __iomem *base, unsigned short num_irq,
 			cp_intc_write(val, CP_INTC_CHAN_MAP(i));
 		}
 	} else	{
-		/*
-		 * Default everything to channel 15 if priority not specified.
-		 * Note that channel 0-1 are mapped to nFIQ and channels 2-31
-		 * are mapped to nIRQ.
-		 */
+		
 		for (i = 0; i < num_reg; i++)
 			cp_intc_write(0x0f0f0f0f, CP_INTC_CHAN_MAP(i));
 	}
 
-	/* Set up genirq dispatching for cp_intc */
+	
 	for (i = 0; i < num_irq; i++) {
 		set_irq_chip(i, &cp_intc_irq_chip);
 		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
 		set_irq_handler(i, handle_edge_irq);
 	}
 
-	/* Enable global interrupt */
+	
 	cp_intc_write(1, CP_INTC_GLOBAL_ENABLE);
 }

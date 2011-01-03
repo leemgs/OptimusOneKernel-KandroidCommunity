@@ -1,21 +1,4 @@
-/*
- * Copyright 2005-2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Luotao Fu, kernel@pengutronix.de
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/interrupt.h>
@@ -28,13 +11,10 @@
 #include "../w1_int.h"
 #include "../w1_log.h"
 
-/* According to the mx27 Datasheet the reset procedure should take up to about
- * 1350us. We set the timeout to 500*100us = 50ms for sure */
+
 #define MXC_W1_RESET_TIMEOUT 500
 
-/*
- * MXC W1 Register offsets
- */
+
 #define MXC_W1_CONTROL          0x00
 #define MXC_W1_TIME_DIVIDER     0x02
 #define MXC_W1_RESET            0x04
@@ -50,11 +30,7 @@ struct mxc_w1_device {
 	struct w1_bus_master bus_master;
 };
 
-/*
- * this is the low level routine to
- * reset the device on the One Wire interface
- * on the hardware
- */
+
 static u8 mxc_w1_ds2_reset_bus(void *data)
 {
 	u8 reg_val;
@@ -77,18 +53,12 @@ static u8 mxc_w1_ds2_reset_bus(void *data)
 	return (reg_val >> 7) & 0x1;
 }
 
-/*
- * this is the low level routine to read/write a bit on the One Wire
- * interface on the hardware. It does write 0 if parameter bit is set
- * to 0, otherwise a write 1/read.
- */
+
 static u8 mxc_w1_ds2_touch_bit(void *data, u8 bit)
 {
 	struct mxc_w1_device *mdev = data;
 	void __iomem *ctrl_addr = mdev->regs + MXC_W1_CONTROL;
-	unsigned int timeout_cnt = 400; /* Takes max. 120us according to
-					 * datasheet.
-					 */
+	unsigned int timeout_cnt = 400; 
 
 	__raw_writeb((1 << (5 - bit)), ctrl_addr);
 
@@ -163,9 +133,7 @@ failed_clk:
 	return err;
 }
 
-/*
- * disassociate the w1 device from the driver
- */
+
 static int mxc_w1_remove(struct platform_device *pdev)
 {
 	struct mxc_w1_device *mdev = platform_get_drvdata(pdev);

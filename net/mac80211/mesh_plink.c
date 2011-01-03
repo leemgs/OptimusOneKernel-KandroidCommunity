@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2008 open80211s Ltd.
- * Author:     Luis Carlos Cobo <luisca@cozybit.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/random.h>
 #include "ieee80211_i.h"
@@ -25,7 +18,7 @@
 #define mod_plink_timer(s, t) (mod_timer(&s->plink_timer, \
 				jiffies + HZ * t / 1000))
 
-/* Peer link cancel reasons, all subject to ANA approval */
+
 #define MESH_LINK_CANCELLED			2
 #define MESH_MAX_NEIGHBORS			3
 #define MESH_CAPABILITY_POLICY_VIOLATION	4
@@ -74,13 +67,7 @@ void mesh_plink_dec_estab_count(struct ieee80211_sub_if_data *sdata)
 	mesh_accept_plinks_update(sdata);
 }
 
-/**
- * mesh_plink_fsm_restart - restart a mesh peer link finite state machine
- *
- * @sta: mes peer link to restart
- *
- * Locking: this function must be called holding sta->lock
- */
+
 static inline void mesh_plink_fsm_restart(struct sta_info *sta)
 {
 	sta->plink_state = PLINK_LISTEN;
@@ -88,10 +75,7 @@ static inline void mesh_plink_fsm_restart(struct sta_info *sta)
 	sta->plink_retries = 0;
 }
 
-/*
- * NOTE: This is just an alias for sta_info_alloc(), see notes
- *       on it in the lifecycle management section!
- */
+
 static struct sta_info *mesh_plink_alloc(struct ieee80211_sub_if_data *sdata,
 					 u8 *hw_addr, u32 rates)
 {
@@ -112,15 +96,7 @@ static struct sta_info *mesh_plink_alloc(struct ieee80211_sub_if_data *sdata,
 	return sta;
 }
 
-/**
- * mesh_plink_deactivate - deactivate mesh peer link
- *
- * @sta: mesh peer link to deactivate
- *
- * All mesh paths with this peer as next hop will be flushed
- *
- * Locking: the caller must hold sta->lock
- */
+
 static void __mesh_plink_deactivate(struct sta_info *sta)
 {
 	struct ieee80211_sub_if_data *sdata = sta->sdata;
@@ -131,13 +107,7 @@ static void __mesh_plink_deactivate(struct sta_info *sta)
 	mesh_path_flush_by_nexthop(sta);
 }
 
-/**
- * __mesh_plink_deactivate - deactivate mesh peer link
- *
- * @sta: mesh peer link to deactivate
- *
- * All mesh paths with this peer as next hop will be flushed
- */
+
 void mesh_plink_deactivate(struct sta_info *sta)
 {
 	spin_lock_bh(&sta->lock);
@@ -158,9 +128,7 @@ static int mesh_plink_frame_tx(struct ieee80211_sub_if_data *sdata,
 	if (!skb)
 		return -1;
 	skb_reserve(skb, local->hw.extra_tx_headroom);
-	/* 25 is the size of the common mgmt part (24) plus the size of the
-	 * common action part (1)
-	 */
+	
 	mgmt = (struct ieee80211_mgmt *)
 		skb_put(skb, 25 + sizeof(mgmt->u.action.u.plink_action));
 	memset(mgmt, 0, 25 + sizeof(mgmt->u.action.u.plink_action));
@@ -168,7 +136,7 @@ static int mesh_plink_frame_tx(struct ieee80211_sub_if_data *sdata,
 					  IEEE80211_STYPE_ACTION);
 	memcpy(mgmt->da, da, ETH_ALEN);
 	memcpy(mgmt->sa, sdata->dev->dev_addr, ETH_ALEN);
-	/* BSSID is left zeroed, wildcard value */
+	
 	mgmt->u.action.category = PLINK_CATEGORY;
 	mgmt->u.action.u.plink_action.action_code = action;
 
@@ -178,13 +146,13 @@ static int mesh_plink_frame_tx(struct ieee80211_sub_if_data *sdata,
 		mgmt->u.action.u.plink_action.aux = cpu_to_le16(0x0);
 		if (action == PLINK_CONFIRM) {
 			pos = skb_put(skb, 4);
-			/* two-byte status code followed by two-byte AID */
+			
 			memset(pos, 0, 4);
 		}
 		mesh_mgmt_ies_add(skb, sdata);
 	}
 
-	/* Add Peer Link Management element */
+	
 	switch (action) {
 	case PLINK_OPEN:
 		ie_len = 3;
@@ -259,11 +227,7 @@ static void mesh_plink_timer(unsigned long data)
 	__le16 llid, plid, reason;
 	struct ieee80211_sub_if_data *sdata;
 
-	/*
-	 * This STA is valid because sta_info_destroy() will
-	 * del_timer_sync() this timer after having made sure
-	 * it cannot be readded (by deleting the plink.)
-	 */
+	
 	sta = (struct sta_info *) data;
 
 	if (sta->sdata->local->quiescing) {
@@ -287,7 +251,7 @@ static void mesh_plink_timer(unsigned long data)
 	switch (sta->plink_state) {
 	case PLINK_OPN_RCVD:
 	case PLINK_OPN_SNT:
-		/* retry timer */
+		
 		if (sta->plink_retries < dot11MeshMaxRetries(sdata)) {
 			u32 rand;
 			mpl_dbg("Mesh plink for %pM (retry, timeout): %d %d\n",
@@ -304,9 +268,9 @@ static void mesh_plink_timer(unsigned long data)
 			break;
 		}
 		reason = cpu_to_le16(MESH_MAX_RETRIES);
-		/* fall through on else */
+		
 	case PLINK_CNF_RCVD:
-		/* confirm timer */
+		
 		if (!reason)
 			reason = cpu_to_le16(MESH_CONFIRM_TIMEOUT);
 		sta->plink_state = PLINK_HOLDING;
@@ -316,7 +280,7 @@ static void mesh_plink_timer(unsigned long data)
 				    reason);
 		break;
 	case PLINK_HOLDING:
-		/* holding timer */
+		
 		del_timer(&sta->plink_timer);
 		mesh_plink_fsm_restart(sta);
 		spin_unlock_bh(&sta->lock);
@@ -396,7 +360,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 	u8 *baseaddr;
 	__le16 plid, llid, reason;
 
-	/* need action_code, aux */
+	
 	if (len < IEEE80211_MIN_ACTION_SIZE + 3)
 		return;
 
@@ -430,9 +394,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 		mpl_dbg("Mesh plink: missing necessary ie\n");
 		return;
 	}
-	/* Note the lines below are correct, the llid in the frame is the plid
-	 * from the point of view of this host.
-	 */
+	
 	memcpy(&plid, PLINK_GET_LLID(elems.peer_link), 2);
 	if (ftype == PLINK_CONFIRM || (ftype == PLINK_CLOSE && ie_len == 7))
 		memcpy(&llid, PLINK_GET_PLID(elems.peer_link), 2);
@@ -451,7 +413,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 		return;
 	}
 
-	/* Now we will figure out the appropriate event... */
+	
 	event = PLINK_UNDEFINED;
 	if (ftype != PLINK_CLOSE && (!mesh_matches_local(&elems, sdata))) {
 		switch (ftype) {
@@ -462,12 +424,12 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 			event = CNF_RJCT;
 			break;
 		case PLINK_CLOSE:
-			/* avoid warning */
+			
 			break;
 		}
 		spin_lock_bh(&sta->lock);
 	} else if (!sta) {
-		/* ftype == PLINK_OPEN */
+		
 		u32 rates;
 		if (!mesh_plink_free_count(sdata)) {
 			mpl_dbg("Mesh plink error: no more free plinks\n");
@@ -507,15 +469,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 			break;
 		case PLINK_CLOSE:
 			if (sta->plink_state == PLINK_ESTAB)
-				/* Do not check for llid or plid. This does not
-				 * follow the standard but since multiple plinks
-				 * per sta are not supported, it is necessary in
-				 * order to avoid a livelock when MP A sees an
-				 * establish peer link to MP B but MP B does not
-				 * see it. This can be caused by a timeout in
-				 * B's peer link establishment or B beign
-				 * restarted.
-				 */
+				
 				event = CLS_ACPT;
 			else if (sta->plid != plid)
 				event = CLS_IGNR;
@@ -538,7 +492,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 		event);
 	reason = 0;
 	switch (sta->plink_state) {
-		/* spin_unlock as soon as state is updated at each case */
+		
 	case PLINK_LISTEN:
 		switch (event) {
 		case CLS_ACPT:
@@ -583,7 +537,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 					    plid, reason);
 			break;
 		case OPN_ACPT:
-			/* retry timer is left untouched */
+			
 			sta->plink_state = PLINK_OPN_RCVD;
 			sta->plid = plid;
 			llid = sta->llid;
@@ -726,9 +680,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 		}
 		break;
 	default:
-		/* should not get here, PLINK_BLOCKED is dealt with at the
-		 * beggining of the function
-		 */
+		
 		spin_unlock_bh(&sta->lock);
 		break;
 	}

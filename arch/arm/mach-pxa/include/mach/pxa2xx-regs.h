@@ -1,24 +1,11 @@
-/*
- *  arch/arm/mach-pxa/include/mach/pxa2xx-regs.h
- *
- *  Taken from pxa-regs.h by Russell King
- *
- *  Author:	Nicolas Pitre
- *  Copyright:	MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __PXA2XX_REGS_H
 #define __PXA2XX_REGS_H
 
 #include <mach/hardware.h>
 
-/*
- * PXA Chip selects
- */
+
 
 #define PXA_CS0_PHYS	0x00000000
 #define PXA_CS1_PHYS	0x04000000
@@ -27,85 +14,77 @@
 #define PXA_CS4_PHYS	0x10000000
 #define PXA_CS5_PHYS	0x14000000
 
-/*
- * Memory controller
- */
 
-#define MDCNFG		__REG(0x48000000)  /* SDRAM Configuration Register 0 */
-#define MDREFR		__REG(0x48000004)  /* SDRAM Refresh Control Register */
-#define MSC0		__REG(0x48000008)  /* Static Memory Control Register 0 */
-#define MSC1		__REG(0x4800000C)  /* Static Memory Control Register 1 */
-#define MSC2		__REG(0x48000010)  /* Static Memory Control Register 2 */
-#define MECR		__REG(0x48000014)  /* Expansion Memory (PCMCIA/Compact Flash) Bus Configuration */
-#define SXLCR		__REG(0x48000018)  /* LCR value to be written to SDRAM-Timing Synchronous Flash */
-#define SXCNFG		__REG(0x4800001C)  /* Synchronous Static Memory Control Register */
-#define SXMRS		__REG(0x48000024)  /* MRS value to be written to Synchronous Flash or SMROM */
-#define MCMEM0		__REG(0x48000028)  /* Card interface Common Memory Space Socket 0 Timing */
-#define MCMEM1		__REG(0x4800002C)  /* Card interface Common Memory Space Socket 1 Timing */
-#define MCATT0		__REG(0x48000030)  /* Card interface Attribute Space Socket 0 Timing Configuration */
-#define MCATT1		__REG(0x48000034)  /* Card interface Attribute Space Socket 1 Timing Configuration */
-#define MCIO0		__REG(0x48000038)  /* Card interface I/O Space Socket 0 Timing Configuration */
-#define MCIO1		__REG(0x4800003C)  /* Card interface I/O Space Socket 1 Timing Configuration */
-#define MDMRS		__REG(0x48000040)  /* MRS value to be written to SDRAM */
-#define BOOT_DEF	__REG(0x48000044)  /* Read-Only Boot-Time Register. Contains BOOT_SEL and PKG_SEL */
 
-/*
- * More handy macros for PCMCIA
- *
- * Arg is socket number
- */
-#define MCMEM(s)	__REG2(0x48000028, (s)<<2 )  /* Card interface Common Memory Space Socket s Timing */
-#define MCATT(s)	__REG2(0x48000030, (s)<<2 )  /* Card interface Attribute Space Socket s Timing Configuration */
-#define MCIO(s)		__REG2(0x48000038, (s)<<2 )  /* Card interface I/O Space Socket s Timing Configuration */
+#define MDCNFG		__REG(0x48000000)  
+#define MDREFR		__REG(0x48000004)  
+#define MSC0		__REG(0x48000008)  
+#define MSC1		__REG(0x4800000C)  
+#define MSC2		__REG(0x48000010)  
+#define MECR		__REG(0x48000014)  
+#define SXLCR		__REG(0x48000018)  
+#define SXCNFG		__REG(0x4800001C)  
+#define SXMRS		__REG(0x48000024)  
+#define MCMEM0		__REG(0x48000028)  
+#define MCMEM1		__REG(0x4800002C)  
+#define MCATT0		__REG(0x48000030)  
+#define MCATT1		__REG(0x48000034)  
+#define MCIO0		__REG(0x48000038)  
+#define MCIO1		__REG(0x4800003C)  
+#define MDMRS		__REG(0x48000040)  
+#define BOOT_DEF	__REG(0x48000044)  
 
-/* MECR register defines */
-#define MECR_NOS	(1 << 0)	/* Number Of Sockets: 0 -> 1 sock, 1 -> 2 sock */
-#define MECR_CIT	(1 << 1)	/* Card Is There: 0 -> no card, 1 -> card inserted */
 
-#define MDCNFG_DE0	(1 << 0)	/* SDRAM Bank 0 Enable */
-#define MDCNFG_DE1	(1 << 1)	/* SDRAM Bank 1 Enable */
-#define MDCNFG_DE2	(1 << 16)	/* SDRAM Bank 2 Enable */
-#define MDCNFG_DE3	(1 << 17)	/* SDRAM Bank 3 Enable */
+#define MCMEM(s)	__REG2(0x48000028, (s)<<2 )  
+#define MCATT(s)	__REG2(0x48000030, (s)<<2 )  
+#define MCIO(s)		__REG2(0x48000038, (s)<<2 )  
 
-#define MDREFR_K0DB4	(1 << 29)	/* SDCLK0 Divide by 4 Control/Status */
-#define MDREFR_K2FREE	(1 << 25)	/* SDRAM Free-Running Control */
-#define MDREFR_K1FREE	(1 << 24)	/* SDRAM Free-Running Control */
-#define MDREFR_K0FREE	(1 << 23)	/* SDRAM Free-Running Control */
-#define MDREFR_SLFRSH	(1 << 22)	/* SDRAM Self-Refresh Control/Status */
-#define MDREFR_APD	(1 << 20)	/* SDRAM/SSRAM Auto-Power-Down Enable */
-#define MDREFR_K2DB2	(1 << 19)	/* SDCLK2 Divide by 2 Control/Status */
-#define MDREFR_K2RUN	(1 << 18)	/* SDCLK2 Run Control/Status */
-#define MDREFR_K1DB2	(1 << 17)	/* SDCLK1 Divide by 2 Control/Status */
-#define MDREFR_K1RUN	(1 << 16)	/* SDCLK1 Run Control/Status */
-#define MDREFR_E1PIN	(1 << 15)	/* SDCKE1 Level Control/Status */
-#define MDREFR_K0DB2	(1 << 14)	/* SDCLK0 Divide by 2 Control/Status */
-#define MDREFR_K0RUN	(1 << 13)	/* SDCLK0 Run Control/Status */
-#define MDREFR_E0PIN	(1 << 12)	/* SDCKE0 Level Control/Status */
 
-/*
- * Power Manager
- */
+#define MECR_NOS	(1 << 0)	
+#define MECR_CIT	(1 << 1)	
 
-#define PMCR		__REG(0x40F00000)  /* Power Manager Control Register */
-#define PSSR		__REG(0x40F00004)  /* Power Manager Sleep Status Register */
-#define PSPR		__REG(0x40F00008)  /* Power Manager Scratch Pad Register */
-#define PWER		__REG(0x40F0000C)  /* Power Manager Wake-up Enable Register */
-#define PRER		__REG(0x40F00010)  /* Power Manager GPIO Rising-Edge Detect Enable Register */
-#define PFER		__REG(0x40F00014)  /* Power Manager GPIO Falling-Edge Detect Enable Register */
-#define PEDR		__REG(0x40F00018)  /* Power Manager GPIO Edge Detect Status Register */
-#define PCFR		__REG(0x40F0001C)  /* Power Manager General Configuration Register */
-#define PGSR0		__REG(0x40F00020)  /* Power Manager GPIO Sleep State Register for GP[31-0] */
-#define PGSR1		__REG(0x40F00024)  /* Power Manager GPIO Sleep State Register for GP[63-32] */
-#define PGSR2		__REG(0x40F00028)  /* Power Manager GPIO Sleep State Register for GP[84-64] */
-#define PGSR3		__REG(0x40F0002C)  /* Power Manager GPIO Sleep State Register for GP[118-96] */
-#define RCSR		__REG(0x40F00030)  /* Reset Controller Status Register */
+#define MDCNFG_DE0	(1 << 0)	
+#define MDCNFG_DE1	(1 << 1)	
+#define MDCNFG_DE2	(1 << 16)	
+#define MDCNFG_DE3	(1 << 17)	
 
-#define PSLR		__REG(0x40F00034)	/* Power Manager Sleep Config Register */
-#define PSTR		__REG(0x40F00038)	/* Power Manager Standby Config Register */
-#define PSNR		__REG(0x40F0003C)	/* Power Manager Sense Config Register */
-#define PVCR		__REG(0x40F00040)	/* Power Manager VoltageControl Register */
-#define PKWR		__REG(0x40F00050)	/* Power Manager KB Wake-up Enable Reg */
-#define PKSR		__REG(0x40F00054)	/* Power Manager KB Level-Detect Register */
+#define MDREFR_K0DB4	(1 << 29)	
+#define MDREFR_K2FREE	(1 << 25)	
+#define MDREFR_K1FREE	(1 << 24)	
+#define MDREFR_K0FREE	(1 << 23)	
+#define MDREFR_SLFRSH	(1 << 22)	
+#define MDREFR_APD	(1 << 20)	
+#define MDREFR_K2DB2	(1 << 19)	
+#define MDREFR_K2RUN	(1 << 18)	
+#define MDREFR_K1DB2	(1 << 17)	
+#define MDREFR_K1RUN	(1 << 16)	
+#define MDREFR_E1PIN	(1 << 15)	
+#define MDREFR_K0DB2	(1 << 14)	
+#define MDREFR_K0RUN	(1 << 13)	
+#define MDREFR_E0PIN	(1 << 12)	
+
+
+
+#define PMCR		__REG(0x40F00000)  
+#define PSSR		__REG(0x40F00004)  
+#define PSPR		__REG(0x40F00008)  
+#define PWER		__REG(0x40F0000C)  
+#define PRER		__REG(0x40F00010)  
+#define PFER		__REG(0x40F00014)  
+#define PEDR		__REG(0x40F00018)  
+#define PCFR		__REG(0x40F0001C)  
+#define PGSR0		__REG(0x40F00020)  
+#define PGSR1		__REG(0x40F00024)  
+#define PGSR2		__REG(0x40F00028)  
+#define PGSR3		__REG(0x40F0002C)  
+#define RCSR		__REG(0x40F00030)  
+
+#define PSLR		__REG(0x40F00034)	
+#define PSTR		__REG(0x40F00038)	
+#define PSNR		__REG(0x40F0003C)	
+#define PVCR		__REG(0x40F00040)	
+#define PKWR		__REG(0x40F00050)	
+#define PKSR		__REG(0x40F00054)	
 #define PCMD(x)	__REG2(0x40F00080, (x)<<2)
 #define PCMD0	__REG(0x40F00080 + 0 * 4)
 #define PCMD1	__REG(0x40F00080 + 1 * 4)
@@ -143,107 +122,104 @@
 #define PCMD_MBC	(1<<12)
 #define PCMD_DCE	(1<<11)
 #define PCMD_LC	(1<<10)
-/* FIXME:  PCMD_SQC need be checked.   */
-#define PCMD_SQC	(3<<8)	/* currently only bit 8 is changeable,
-				   bit 9 should be 0 all day. */
+
+#define PCMD_SQC	(3<<8)	
 #define PVCR_VCSA	(0x1<<14)
 #define PVCR_CommandDelay (0xf80)
 #define PCFR_PI2C_EN	(0x1 << 6)
 
-#define PSSR_OTGPH	(1 << 6)	/* OTG Peripheral control Hold */
-#define PSSR_RDH	(1 << 5)	/* Read Disable Hold */
-#define PSSR_PH		(1 << 4)	/* Peripheral Control Hold */
-#define PSSR_STS	(1 << 3)	/* Standby Mode Status */
-#define PSSR_VFS	(1 << 2)	/* VDD Fault Status */
-#define PSSR_BFS	(1 << 1)	/* Battery Fault Status */
-#define PSSR_SSS	(1 << 0)	/* Software Sleep Status */
+#define PSSR_OTGPH	(1 << 6)	
+#define PSSR_RDH	(1 << 5)	
+#define PSSR_PH		(1 << 4)	
+#define PSSR_STS	(1 << 3)	
+#define PSSR_VFS	(1 << 2)	
+#define PSSR_BFS	(1 << 1)	
+#define PSSR_SSS	(1 << 0)	
 
-#define PSLR_SL_ROD	(1 << 20)	/* Sleep-Mode/Depp-Sleep Mode nRESET_OUT Disable */
+#define PSLR_SL_ROD	(1 << 20)	
 
-#define PCFR_RO		(1 << 15)	/* RDH Override */
-#define PCFR_PO		(1 << 14)	/* PH Override */
-#define PCFR_GPROD	(1 << 12)	/* GPIO nRESET_OUT Disable */
-#define PCFR_L1_EN	(1 << 11)	/* Sleep Mode L1 converter Enable */
-#define PCFR_FVC	(1 << 10)	/* Frequency/Voltage Change */
-#define PCFR_DC_EN	(1 << 7)	/* Sleep/deep-sleep DC-DC Converter Enable */
-#define PCFR_PI2CEN	(1 << 6)	/* Enable PI2C controller */
-#define PCFR_GPR_EN	(1 << 4)	/* nRESET_GPIO Pin Enable */
-#define PCFR_DS		(1 << 3)	/* Deep Sleep Mode */
-#define PCFR_FS		(1 << 2)	/* Float Static Chip Selects */
-#define PCFR_FP		(1 << 1)	/* Float PCMCIA controls */
-#define PCFR_OPDE	(1 << 0)	/* 3.6864 MHz oscillator power-down enable */
+#define PCFR_RO		(1 << 15)	
+#define PCFR_PO		(1 << 14)	
+#define PCFR_GPROD	(1 << 12)	
+#define PCFR_L1_EN	(1 << 11)	
+#define PCFR_FVC	(1 << 10)	
+#define PCFR_DC_EN	(1 << 7)	
+#define PCFR_PI2CEN	(1 << 6)	
+#define PCFR_GPR_EN	(1 << 4)	
+#define PCFR_DS		(1 << 3)	
+#define PCFR_FS		(1 << 2)	
+#define PCFR_FP		(1 << 1)	
+#define PCFR_OPDE	(1 << 0)	
 
-#define RCSR_GPR	(1 << 3)	/* GPIO Reset */
-#define RCSR_SMR	(1 << 2)	/* Sleep Mode */
-#define RCSR_WDR	(1 << 1)	/* Watchdog Reset */
-#define RCSR_HWR	(1 << 0)	/* Hardware Reset */
+#define RCSR_GPR	(1 << 3)	
+#define RCSR_SMR	(1 << 2)	
+#define RCSR_WDR	(1 << 1)	
+#define RCSR_HWR	(1 << 0)	
 
-#define PWER_GPIO(Nb)	(1 << Nb)	/* GPIO [0..15] wake-up enable     */
-#define PWER_GPIO0	PWER_GPIO (0)	/* GPIO  [0] wake-up enable        */
-#define PWER_GPIO1	PWER_GPIO (1)	/* GPIO  [1] wake-up enable        */
-#define PWER_GPIO2	PWER_GPIO (2)	/* GPIO  [2] wake-up enable        */
-#define PWER_GPIO3	PWER_GPIO (3)	/* GPIO  [3] wake-up enable        */
-#define PWER_GPIO4	PWER_GPIO (4)	/* GPIO  [4] wake-up enable        */
-#define PWER_GPIO5	PWER_GPIO (5)	/* GPIO  [5] wake-up enable        */
-#define PWER_GPIO6	PWER_GPIO (6)	/* GPIO  [6] wake-up enable        */
-#define PWER_GPIO7	PWER_GPIO (7)	/* GPIO  [7] wake-up enable        */
-#define PWER_GPIO8	PWER_GPIO (8)	/* GPIO  [8] wake-up enable        */
-#define PWER_GPIO9	PWER_GPIO (9)	/* GPIO  [9] wake-up enable        */
-#define PWER_GPIO10	PWER_GPIO (10)	/* GPIO [10] wake-up enable        */
-#define PWER_GPIO11	PWER_GPIO (11)	/* GPIO [11] wake-up enable        */
-#define PWER_GPIO12	PWER_GPIO (12)	/* GPIO [12] wake-up enable        */
-#define PWER_GPIO13	PWER_GPIO (13)	/* GPIO [13] wake-up enable        */
-#define PWER_GPIO14	PWER_GPIO (14)	/* GPIO [14] wake-up enable        */
-#define PWER_GPIO15	PWER_GPIO (15)	/* GPIO [15] wake-up enable        */
-#define PWER_RTC	0x80000000	/* RTC alarm wake-up enable        */
+#define PWER_GPIO(Nb)	(1 << Nb)	
+#define PWER_GPIO0	PWER_GPIO (0)	
+#define PWER_GPIO1	PWER_GPIO (1)	
+#define PWER_GPIO2	PWER_GPIO (2)	
+#define PWER_GPIO3	PWER_GPIO (3)	
+#define PWER_GPIO4	PWER_GPIO (4)	
+#define PWER_GPIO5	PWER_GPIO (5)	
+#define PWER_GPIO6	PWER_GPIO (6)	
+#define PWER_GPIO7	PWER_GPIO (7)	
+#define PWER_GPIO8	PWER_GPIO (8)	
+#define PWER_GPIO9	PWER_GPIO (9)	
+#define PWER_GPIO10	PWER_GPIO (10)	
+#define PWER_GPIO11	PWER_GPIO (11)	
+#define PWER_GPIO12	PWER_GPIO (12)	
+#define PWER_GPIO13	PWER_GPIO (13)	
+#define PWER_GPIO14	PWER_GPIO (14)	
+#define PWER_GPIO15	PWER_GPIO (15)	
+#define PWER_RTC	0x80000000	
 
-/*
- * PXA2xx specific Core clock definitions
- */
-#define CCCR		__REG(0x41300000)  /* Core Clock Configuration Register */
-#define CCSR		__REG(0x4130000C)  /* Core Clock Status Register */
-#define CKEN		__REG(0x41300004)  /* Clock Enable Register */
-#define OSCC		__REG(0x41300008)  /* Oscillator Configuration Register */
 
-#define CCCR_N_MASK	0x0380	/* Run Mode Frequency to Turbo Mode Frequency Multiplier */
-#define CCCR_M_MASK	0x0060	/* Memory Frequency to Run Mode Frequency Multiplier */
-#define CCCR_L_MASK	0x001f	/* Crystal Frequency to Memory Frequency Multiplier */
+#define CCCR		__REG(0x41300000)  
+#define CCSR		__REG(0x4130000C)  
+#define CKEN		__REG(0x41300004)  
+#define OSCC		__REG(0x41300008)  
 
-#define CKEN_AC97CONF   (31)    /* AC97 Controller Configuration */
-#define CKEN_CAMERA	(24)	/* Camera Interface Clock Enable */
-#define CKEN_SSP1	(23)	/* SSP1 Unit Clock Enable */
-#define CKEN_MEMC	(22)	/* Memory Controller Clock Enable */
-#define CKEN_MEMSTK	(21)	/* Memory Stick Host Controller */
-#define CKEN_IM		(20)	/* Internal Memory Clock Enable */
-#define CKEN_KEYPAD	(19)	/* Keypad Interface Clock Enable */
-#define CKEN_USIM	(18)	/* USIM Unit Clock Enable */
-#define CKEN_MSL	(17)	/* MSL Unit Clock Enable */
-#define CKEN_LCD	(16)	/* LCD Unit Clock Enable */
-#define CKEN_PWRI2C	(15)	/* PWR I2C Unit Clock Enable */
-#define CKEN_I2C	(14)	/* I2C Unit Clock Enable */
-#define CKEN_FICP	(13)	/* FICP Unit Clock Enable */
-#define CKEN_MMC	(12)	/* MMC Unit Clock Enable */
-#define CKEN_USB	(11)	/* USB Unit Clock Enable */
-#define CKEN_ASSP	(10)	/* ASSP (SSP3) Clock Enable */
-#define CKEN_USBHOST	(10)	/* USB Host Unit Clock Enable */
-#define CKEN_OSTIMER	(9)	/* OS Timer Unit Clock Enable */
-#define CKEN_NSSP	(9)	/* NSSP (SSP2) Clock Enable */
-#define CKEN_I2S	(8)	/* I2S Unit Clock Enable */
-#define CKEN_BTUART	(7)	/* BTUART Unit Clock Enable */
-#define CKEN_FFUART	(6)	/* FFUART Unit Clock Enable */
-#define CKEN_STUART	(5)	/* STUART Unit Clock Enable */
-#define CKEN_HWUART	(4)	/* HWUART Unit Clock Enable */
-#define CKEN_SSP3	(4)	/* SSP3 Unit Clock Enable */
-#define CKEN_SSP	(3)	/* SSP Unit Clock Enable */
-#define CKEN_SSP2	(3)	/* SSP2 Unit Clock Enable */
-#define CKEN_AC97	(2)	/* AC97 Unit Clock Enable */
-#define CKEN_PWM1	(1)	/* PWM1 Clock Enable */
-#define CKEN_PWM0	(0)	/* PWM0 Clock Enable */
+#define CCCR_N_MASK	0x0380	
+#define CCCR_M_MASK	0x0060	
+#define CCCR_L_MASK	0x001f	
 
-#define OSCC_OON	(1 << 1)	/* 32.768kHz OON (write-once only bit) */
-#define OSCC_OOK	(1 << 0)	/* 32.768kHz OOK (read-only bit) */
+#define CKEN_AC97CONF   (31)    
+#define CKEN_CAMERA	(24)	
+#define CKEN_SSP1	(23)	
+#define CKEN_MEMC	(22)	
+#define CKEN_MEMSTK	(21)	
+#define CKEN_IM		(20)	
+#define CKEN_KEYPAD	(19)	
+#define CKEN_USIM	(18)	
+#define CKEN_MSL	(17)	
+#define CKEN_LCD	(16)	
+#define CKEN_PWRI2C	(15)	
+#define CKEN_I2C	(14)	
+#define CKEN_FICP	(13)	
+#define CKEN_MMC	(12)	
+#define CKEN_USB	(11)	
+#define CKEN_ASSP	(10)	
+#define CKEN_USBHOST	(10)	
+#define CKEN_OSTIMER	(9)	
+#define CKEN_NSSP	(9)	
+#define CKEN_I2S	(8)	
+#define CKEN_BTUART	(7)	
+#define CKEN_FFUART	(6)	
+#define CKEN_STUART	(5)	
+#define CKEN_HWUART	(4)	
+#define CKEN_SSP3	(4)	
+#define CKEN_SSP	(3)	
+#define CKEN_SSP2	(3)	
+#define CKEN_AC97	(2)	
+#define CKEN_PWM1	(1)	
+#define CKEN_PWM0	(0)	
 
-/* PWRMODE register M field values */
+#define OSCC_OON	(1 << 1)	
+#define OSCC_OOK	(1 << 0)	
+
+
 
 #define PWRMODE_IDLE		0x1
 #define PWRMODE_STANDBY		0x2

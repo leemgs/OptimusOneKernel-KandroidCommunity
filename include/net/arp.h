@@ -1,4 +1,4 @@
-/* linux/net/inet/arp.h */
+
 #ifndef _ARP_H
 #define _ARP_H
 
@@ -28,4 +28,4 @@ extern void arp_xmit(struct sk_buff *skb);
 
 extern const struct neigh_ops arp_broken_ops;
 
-#endif	/* _ARP_H */
+#endif	

@@ -1,12 +1,4 @@
-/*
- *  drivers/s390/net/qeth_core_sys.c
- *
- *    Copyright IBM Corp. 2007
- *    Author(s): Utz Bacher <utz.bacher@de.ibm.com>,
- *		 Frank Pavlic <fpavlic@de.ibm.com>,
- *		 Thomas Spatzier <tspat@de.ibm.com>,
- *		 Frank Blaschka <frank.blaschka@de.ibm.com>
- */
+
 
 #include <linux/list.h>
 #include <linux/rwsem.h>
@@ -174,7 +166,7 @@ static ssize_t qeth_dev_portname_store(struct device *dev,
 		return -EINVAL;
 
 	card->info.portname[0] = strlen(tmp);
-	/* for beauty reasons */
+	
 	for (i = 1; i < 9; i++)
 		card->info.portname[i] = ' ';
 	strcpy(card->info.portname + 1, tmp);
@@ -218,9 +210,7 @@ static ssize_t qeth_dev_prioqing_store(struct device *dev,
 	    (card->state != CARD_STATE_RECOVER))
 		return -EPERM;
 
-	/* check if 1920 devices are supported ,
-	 * if though we have to permit priority queueing
-	 */
+	
 	if (card->qdio.no_out_queues == 1) {
 		card->qdio.do_prio_queueing = QETH_PRIOQ_DEFAULT;
 		return -EPERM;

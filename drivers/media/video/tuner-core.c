@@ -1,8 +1,4 @@
-/*
- *
- * i2c tv tuner chip device driver
- * core core, i.e. kernel interfaces, registering and so on
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -35,7 +31,7 @@
 
 #define PREFIX t->i2c->driver->driver.name
 
-/** This macro allows us to probe dynamically, avoiding static links */
+
 #ifdef CONFIG_MEDIA_ATTACH
 #define tuner_symbol_probe(FUNCTION, ARGS...) ({ \
 	int __r = -EINVAL; \
@@ -76,23 +72,23 @@ static void tuner_detach(struct dvb_frontend *fe)
 #endif
 
 struct tuner {
-	/* device */
+	
 	struct dvb_frontend fe;
 	struct i2c_client   *i2c;
 	struct v4l2_subdev  sd;
 	struct list_head    list;
 	unsigned int        using_v4l2:1;
 
-	/* keep track of the current settings */
+	
 	v4l2_std_id         std;
 	unsigned int        tv_freq;
 	unsigned int        radio_freq;
 	unsigned int        audmode;
 
 	unsigned int        mode;
-	unsigned int        mode_mask; /* Combination of allowable modes */
+	unsigned int        mode_mask; 
 
-	unsigned int        type; /* chip type id */
+	unsigned int        type; 
 	unsigned int        config;
 	const char          *name;
 };
@@ -103,12 +99,12 @@ static inline struct tuner *to_tuner(struct v4l2_subdev *sd)
 }
 
 
-/* insmod options used at init time => read/only */
+
 static unsigned int addr;
 static unsigned int no_autodetect;
 static unsigned int show_i2c;
 
-/* insmod options used at runtime => read/write */
+
 static int tuner_debug;
 
 #define tuner_warn(fmt, arg...) do {			\
@@ -136,7 +132,7 @@ static int tuner_debug;
 		       t->i2c->addr, ##arg);			\
 	 } while (0)
 
-/* ------------------------------------------------------------------------ */
+
 
 static unsigned int tv_range[2] = { 44, 958 };
 static unsigned int radio_range[2] = { 65, 108 };
@@ -160,7 +156,7 @@ MODULE_DESCRIPTION("device driver for various TV and TV+FM radio tuners");
 MODULE_AUTHOR("Ralph Metzler, Gerd Knorr, Gunther Mayer");
 MODULE_LICENSE("GPL");
 
-/* ---------------------------------------------------------------------- */
+
 
 static void fe_set_params(struct dvb_frontend *fe,
 			  struct analog_parameters *params)
@@ -216,7 +212,7 @@ static struct analog_demod_ops tuner_analog_ops = {
 	.tuner_status   = tuner_status
 };
 
-/* Set tuner frequency,  freq in Units of 62.5kHz = 1/16MHz */
+
 static void set_tv_freq(struct i2c_client *c, unsigned int freq)
 {
 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
@@ -240,8 +236,7 @@ static void set_tv_freq(struct i2c_client *c, unsigned int freq)
 		tuner_dbg ("TV freq (%d.%02d) out of range (%d-%d)\n",
 			   freq / 16, freq % 16 * 100 / 16, tv_range[0],
 			   tv_range[1]);
-		/* V4L2 spec: if the freq is not possible then the closest
-		   possible value should be selected */
+		
 		if (freq < tv_range[0] * 16)
 			freq = tv_range[0] * 16;
 		else
@@ -275,8 +270,7 @@ static void set_radio_freq(struct i2c_client *c, unsigned int freq)
 		tuner_dbg ("radio freq (%d.%02d) out of range (%d-%d)\n",
 			   freq / 16000, freq % 16000 * 100 / 16000,
 			   radio_range[0], radio_range[1]);
-		/* V4L2 spec: if the freq is not possible then the closest
-		   possible value should be selected */
+		
 		if (freq < radio_range[0] * 16000)
 			freq = radio_range[0] * 16000;
 		else
@@ -327,7 +321,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
 	}
 
 	t->type = type;
-	/* prevent invalid config values */
+	
 	t->config = ((new_config >= 0) && (new_config < 256)) ? new_config : 0;
 	if (tuner_callback != NULL) {
 		tuner_dbg("defining GPIO callback\n");
@@ -340,7 +334,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
 		return;
 	}
 
-	/* discard private data, in case set_type() was previously called */
+	
 	tuner_detach(&t->fe);
 	t->fe.analog_demod_priv = NULL;
 
@@ -414,7 +408,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
 	case TUNER_XC5000:
 	{
 		xc5000_cfg.i2c_address	  = t->i2c->addr;
-		/* if_khz will be set when the digital dvb_attach() occurs */
+		
 		xc5000_cfg.if_khz	  = 0;
 		if (!dvb_attach(xc5000_attach,
 				&t->fe, t->i2c->adapter, &xc5000_cfg))
@@ -458,11 +452,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
 	if (t->mode_mask == T_UNINITIALIZED)
 		t->mode_mask = new_mode_mask;
 
-	/* xc2028/3028 and xc5000 requires a firmware to be set-up later
-	   trying to set a frequency here will just fail
-	   FIXME: better to move set_freq to the tuner code. This is needed
-	   on analog tuners for PLL to properly work
-	 */
+	
 	if (t->type != TUNER_XC2028 && t->type != TUNER_XC5000)
 		set_freq(c, (V4L2_TUNER_RADIO == t->mode) ?
 			    t->radio_freq : t->tv_freq);
@@ -480,13 +470,7 @@ attach_failed:
 	return;
 }
 
-/*
- * This function apply tuner config to tuner specified
- * by tun_setup structure. I addr is unset, then admin status
- * and tun addr status is more precise then current status,
- * it's applied. Otherwise status and type are applied only to
- * tuner with exactly the same addr.
-*/
+
 
 static void set_addr(struct i2c_client *c, struct tuner_setup *tun_setup)
 {
@@ -524,7 +508,7 @@ static inline int check_mode(struct tuner *t, char *cmd)
 	return 0;
 }
 
-/* get more precise norm info from insmod option */
+
 static int tuner_fixup_std(struct tuner *t)
 {
 	if ((t->std & V4L2_STD_PAL) == V4L2_STD_PAL) {
@@ -568,7 +552,7 @@ static int tuner_fixup_std(struct tuner *t)
 			}
 			break;
 		case '-':
-			/* default parameter, do nothing */
+			
 			break;
 		default:
 			tuner_warn ("pal= argument not recognised\n");
@@ -604,7 +588,7 @@ static int tuner_fixup_std(struct tuner *t)
 			}
 			break;
 		case '-':
-			/* default parameter, do nothing */
+			
 			break;
 		default:
 			tuner_warn ("secam= argument not recognised\n");
@@ -630,7 +614,7 @@ static int tuner_fixup_std(struct tuner *t)
 			t->std = V4L2_STD_NTSC_M_KR;
 			break;
 		case '-':
-			/* default parameter, do nothing */
+			
 			break;
 		default:
 			tuner_info("ntsc= argument not recognised\n");
@@ -683,14 +667,9 @@ static void tuner_status(struct dvb_frontend *fe)
 			   analog_ops->is_stereo(fe) ? "yes" : "no");
 }
 
-/* ---------------------------------------------------------------------- */
 
-/*
- * Switch tuner to other mode. If tuner support both tv and radio,
- * set another frequency to some value (This is needed for some pal
- * tuners to avoid locking). Otherwise, just put second tuner in
- * standby mode.
- */
+
+
 
 static inline int set_mode(struct i2c_client *client, struct tuner *t, int mode, char *cmd)
 {
@@ -718,10 +697,7 @@ static inline int set_mode(struct i2c_client *client, struct tuner *t, int mode,
 
 static inline int check_v4l2(struct tuner *t)
 {
-	/* bttv still uses both v4l1 and v4l2 calls to the tuner (v4l2 for
-	   TV, v4l1 for radio), until that is fixed this code is disabled.
-	   Otherwise the radio (v4l1) wouldn't tune after using the TV (v4l2)
-	   first. */
+	
 	return 0;
 }
 
@@ -784,9 +760,8 @@ static int tuner_s_config(struct v4l2_subdev *sd, const struct v4l2_priv_tun_con
 	return 0;
 }
 
-/* --- v4l ioctls --- */
-/* take care: bttv does userspace copying, we'll get a
-   kernel pointer here... */
+
+
 static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
 {
 	struct tuner *t = to_tuner(sd);
@@ -861,7 +836,7 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
 		return 0;
 	}
 
-	/* radio mode */
+	
 	vt->rxsubchans =
 		V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
 	if (fe_tuner_ops->get_status) {
@@ -900,7 +875,7 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
 
 	switch_v4l2();
 
-	/* do nothing unless we're a radio tuner */
+	
 	if (t->mode != V4L2_TUNER_RADIO)
 		return 0;
 	t->audmode = vt->audmode;
@@ -923,7 +898,7 @@ static int tuner_suspend(struct i2c_client *c, pm_message_t state)
 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
 
 	tuner_dbg("suspend\n");
-	/* FIXME: power down ??? */
+	
 	return 0;
 }
 
@@ -946,9 +921,7 @@ static int tuner_command(struct i2c_client *client, unsigned cmd, void *arg)
 {
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
 
-	/* TUNER_SET_CONFIG is still called by tuner-simple.c, so we have
-	   to handle it here.
-	   There must be a better way of doing this... */
+	
 	switch (cmd) {
 	case TUNER_SET_CONFIG:
 		return tuner_s_config(sd, arg);
@@ -956,7 +929,7 @@ static int tuner_command(struct i2c_client *client, unsigned cmd, void *arg)
 	return -ENOIOCTLCMD;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops tuner_core_ops = {
 	.log_status = tuner_log_status,
@@ -979,14 +952,11 @@ static const struct v4l2_subdev_ops tuner_ops = {
 	.tuner = &tuner_tuner_ops,
 };
 
-/* ---------------------------------------------------------------------- */
+
 
 static LIST_HEAD(tuner_list);
 
-/* Search for existing radio and/or TV tuners on the given I2C adapter.
-   Note that when this function is called from tuner_probe you can be
-   certain no other devices will be added/deleted at the same time, I2C
-   core protects against that. */
+
 static void tuner_lookup(struct i2c_adapter *adap,
 		struct tuner **radio, struct tuner **tv)
 {
@@ -1005,18 +975,14 @@ static void tuner_lookup(struct i2c_adapter *adap,
 		mode_mask = pos->mode_mask & ~T_STANDBY;
 		if (*radio == NULL && mode_mask == T_RADIO)
 			*radio = pos;
-		/* Note: currently TDA9887 is the only demod-only
-		   device. If other devices appear then we need to
-		   make this test more general. */
+		
 		else if (*tv == NULL && pos->type != TUNER_TDA9887 &&
 			 (pos->mode_mask & (T_ANALOG_TV | T_DIGITAL_TV)))
 			*tv = pos;
 	}
 }
 
-/* During client attach, set_type is called by adapter's attach_inform callback.
-   set_type must then be completed by tuner_probe.
- */
+
 static int tuner_probe(struct i2c_client *client,
 		       const struct i2c_device_id *id)
 {
@@ -1045,14 +1011,13 @@ static int tuner_probe(struct i2c_client *client,
 			printk(KERN_CONT "%02x ", buffer[i]);
 		printk("\n");
 	}
-	/* HACK: This test was added to avoid tuner to probe tda9840 and
-	   tea6415c on the MXB card */
+	
 	if (client->adapter->id == I2C_HW_SAA7146 && client->addr < 0x4a) {
 		kfree(t);
 		return -ENODEV;
 	}
 
-	/* autodetection code based on the i2c addr */
+	
 	if (!no_autodetect) {
 		switch (client->addr) {
 		case 0x10:
@@ -1062,7 +1027,7 @@ static int tuner_probe(struct i2c_client *client,
 				t->type = TUNER_TEA5761;
 				t->mode_mask = T_RADIO;
 				t->mode = T_STANDBY;
-				/* Sets freq to FM range */
+				
 				t->radio_freq = 87.5 * 16000;
 				tuner_lookup(t->i2c->adapter, &radio, &tv);
 				if (tv)
@@ -1075,13 +1040,12 @@ static int tuner_probe(struct i2c_client *client,
 		case 0x43:
 		case 0x4a:
 		case 0x4b:
-			/* If chip is not tda8290, don't register.
-			   since it can be tda9887*/
+			
 			if (tuner_symbol_probe(tda829x_probe, t->i2c->adapter,
 					       t->i2c->addr) >= 0) {
 				tuner_dbg("tda829x detected\n");
 			} else {
-				/* Default is being tda9887 */
+				
 				t->type = TUNER_TDA9887;
 				t->mode_mask = T_RADIO | T_ANALOG_TV |
 					       T_DIGITAL_TV;
@@ -1096,7 +1060,7 @@ static int tuner_probe(struct i2c_client *client,
 				t->type = TUNER_TEA5767;
 				t->mode_mask = T_RADIO;
 				t->mode = T_STANDBY;
-				/* Sets freq to FM range */
+				
 				t->radio_freq = 87.5 * 16000;
 				tuner_lookup(t->i2c->adapter, &radio, &tv);
 				if (tv)
@@ -1108,29 +1072,23 @@ static int tuner_probe(struct i2c_client *client,
 		}
 	}
 
-	/* Initializes only the first TV tuner on this adapter. Why only the
-	   first? Because there are some devices (notably the ones with TI
-	   tuners) that have more than one i2c address for the *same* device.
-	   Experience shows that, except for just one case, the first
-	   address is the right one. The exception is a Russian tuner
-	   (ACORP_Y878F). So, the desired behavior is just to enable the
-	   first found TV tuner. */
+	
 	tuner_lookup(t->i2c->adapter, &radio, &tv);
 	if (tv == NULL) {
 		t->mode_mask = T_ANALOG_TV | T_DIGITAL_TV;
 		if (radio == NULL)
 			t->mode_mask |= T_RADIO;
 		tuner_dbg("Setting mode_mask to 0x%02x\n", t->mode_mask);
-		t->tv_freq = 400 * 16; /* Sets freq to VHF High */
-		t->radio_freq = 87.5 * 16000; /* Sets freq to FM range */
+		t->tv_freq = 400 * 16; 
+		t->radio_freq = 87.5 * 16000; 
 	}
 
-	/* Should be just before return */
+	
 register_client:
 	tuner_info("chip found @ 0x%x (%s)\n", client->addr << 1,
 		       client->adapter->name);
 
-	/* Sets a default mode */
+	
 	if (t->mode_mask & T_ANALOG_TV) {
 		t->mode = V4L2_TUNER_ANALOG_TV;
 	} else  if (t->mode_mask & T_RADIO) {
@@ -1156,13 +1114,11 @@ static int tuner_remove(struct i2c_client *client)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
 
-/* This driver supports many devices and the idea is to let the driver
-   detect which device is present. So rather than listing all supported
-   devices here, we pretend to support a single, fake device type. */
+
+
 static const struct i2c_device_id tuner_id[] = {
-	{ "tuner", }, /* autodetect */
+	{ "tuner", }, 
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tuner_id);
@@ -1177,10 +1133,4 @@ static struct v4l2_i2c_driver_data v4l2_i2c_data = {
 	.id_table = tuner_id,
 };
 
-/*
- * Overrides for Emacs so that we follow Linus's tabbing style.
- * ---------------------------------------------------------------------------
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+

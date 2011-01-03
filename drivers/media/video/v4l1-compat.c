@@ -1,20 +1,4 @@
-/*
- *
- *	Video for Linux Two
- *	Backward Compatibility Layer
- *
- *	Support subroutines for providing V4L2 drivers with backward
- *	compatibility with applications using the old API.
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- * Author:	Bill Dirks <bill@thedirks.org>
- *		et al.
- *
- */
+
 
 
 #include <linux/init.h>
@@ -49,12 +33,7 @@ MODULE_LICENSE("GPL");
 			printk(KERN_DEBUG "v4l1-compat: " fmt , ## arg);\
 	} while (0)
 
-/*
- *	I O C T L   T R A N S L A T I O N
- *
- *	From here on down is the code for translating the numerous
- *	ioctl commands from the old API to the new API.
- */
+
 
 static int
 get_v4l_control(struct file             *file,
@@ -118,7 +97,7 @@ set_v4l_control(struct file             *file,
 	return 0;
 }
 
-/* ----------------------------------------------------------------- */
+
 
 static const unsigned int palette2pixelformat[] = {
 	[VIDEO_PALETTE_GREY]    = V4L2_PIX_FMT_GREY,
@@ -126,11 +105,11 @@ static const unsigned int palette2pixelformat[] = {
 	[VIDEO_PALETTE_RGB565]  = V4L2_PIX_FMT_RGB565,
 	[VIDEO_PALETTE_RGB24]   = V4L2_PIX_FMT_BGR24,
 	[VIDEO_PALETTE_RGB32]   = V4L2_PIX_FMT_BGR32,
-	/* yuv packed pixel */
+	
 	[VIDEO_PALETTE_YUYV]    = V4L2_PIX_FMT_YUYV,
 	[VIDEO_PALETTE_YUV422]  = V4L2_PIX_FMT_YUYV,
 	[VIDEO_PALETTE_UYVY]    = V4L2_PIX_FMT_UYVY,
-	/* yuv planar */
+	
 	[VIDEO_PALETTE_YUV410P] = V4L2_PIX_FMT_YUV410,
 	[VIDEO_PALETTE_YUV420]  = V4L2_PIX_FMT_YUV420,
 	[VIDEO_PALETTE_YUV420P] = V4L2_PIX_FMT_YUV420,
@@ -167,14 +146,14 @@ pixelformat_to_palette(unsigned int pixelformat)
 	case V4L2_PIX_FMT_BGR32:
 		palette = VIDEO_PALETTE_RGB32;
 		break;
-	/* yuv packed pixel */
+	
 	case V4L2_PIX_FMT_YUYV:
 		palette = VIDEO_PALETTE_YUYV;
 		break;
 	case V4L2_PIX_FMT_UYVY:
 		palette = VIDEO_PALETTE_UYVY;
 		break;
-	/* yuv planar */
+	
 	case V4L2_PIX_FMT_YUV410:
 		palette = VIDEO_PALETTE_YUV420;
 		break;
@@ -191,7 +170,7 @@ pixelformat_to_palette(unsigned int pixelformat)
 	return palette;
 }
 
-/* ----------------------------------------------------------------- */
+
 
 static int poll_one(struct file *file, struct poll_wqueues *pwq)
 {
@@ -262,7 +241,7 @@ done:
 	return 0;
 }
 
-/* ----------------------------------------------------------------- */
+
 
 static noinline long v4l1_compat_get_capabilities(
 					struct video_capability *cap,
@@ -312,9 +291,9 @@ static noinline long v4l1_compat_get_capabilities(
 	cap->channels  = count_inputs(file, drv);
 	check_size(file, drv,
 		   &cap->maxwidth, &cap->maxheight);
-	cap->audios    =  0; /* FIXME */
-	cap->minwidth  = 48; /* FIXME */
-	cap->minheight = 32; /* FIXME */
+	cap->audios    =  0; 
+	cap->minwidth  = 48; 
+	cap->minheight = 32; 
 
 done:
 	kfree(cap2);
@@ -520,9 +499,7 @@ static noinline long v4l1_compat_turn_preview_on_off(
 	enum v4l2_buf_type captype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
 	if (0 == *on) {
-		/* dirty hack time.  But v4l1 has no STREAMOFF
-		 * equivalent in the API, and this one at
-		 * least comes close ... */
+		
 		drv(file, VIDIOC_STREAMOFF, &captype);
 	}
 	err = drv(file, VIDIOC_OVERLAY, on);
@@ -564,8 +541,7 @@ static noinline long v4l1_compat_get_input_info(
 		break;
 	}
 	chan->norm = 0;
-	/* Note: G_STD might not be present for radio receivers,
-	 * so we should ignore any errors. */
+	
 	if (drv(file, VIDIOC_G_STD, &sid) == 0) {
 		if (sid & V4L2_STD_PAL)
 			chan->norm = VIDEO_MODE_PAL;
@@ -682,21 +658,14 @@ static noinline long v4l1_compat_set_picture(
 			V4L2_CID_SATURATION, pict->colour, drv);
 	set_v4l_control(file,
 			V4L2_CID_WHITENESS, pict->whiteness, drv);
-	/*
-	 * V4L1 uses this ioctl to set both memory capture and overlay
-	 * pixel format, while V4L2 has two different ioctls for this.
-	 * Some cards may not support one or the other, and may support
-	 * different pixel formats for memory vs overlay.
-	 */
+	
 
 	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	err = drv(file, VIDIOC_G_FMT, fmt);
-	/* If VIDIOC_G_FMT failed, then the driver likely doesn't
-	   support memory capture.  Trying to set the memory capture
-	   parameters would be pointless.  */
+	
 	if (err < 0) {
 		dprintk("VIDIOCSPICT / VIDIOC_G_FMT: %ld\n", err);
-		mem_err = -1000;  /* didn't even try */
+		mem_err = -1000;  
 	} else if (fmt->fmt.pix.pixelformat !=
 		 palette_to_pixelformat(pict->palette)) {
 		fmt->fmt.pix.pixelformat = palette_to_pixelformat(
@@ -708,12 +677,10 @@ static noinline long v4l1_compat_set_picture(
 	}
 
 	err = drv(file, VIDIOC_G_FBUF, &fbuf);
-	/* If VIDIOC_G_FBUF failed, then the driver likely doesn't
-	   support overlay.  Trying to set the overlay parameters
-	   would be quite pointless.  */
+	
 	if (err < 0) {
 		dprintk("VIDIOCSPICT / VIDIOC_G_FBUF: %ld\n", err);
-		ovl_err = -1000;  /* didn't even try */
+		ovl_err = -1000;  
 	} else if (fbuf.fmt.pixelformat !=
 		 palette_to_pixelformat(pict->palette)) {
 		fbuf.fmt.pixelformat = palette_to_pixelformat(
@@ -724,7 +691,7 @@ static noinline long v4l1_compat_set_picture(
 				ovl_err);
 	}
 	if (ovl_err < 0 && mem_err < 0) {
-		/* ioctl failed, couldn't set either parameter */
+		
 		if (mem_err != -1000)
 			err = mem_err;
 		else if (ovl_err == -EPERM)
@@ -775,8 +742,7 @@ static noinline long v4l1_compat_get_tuner(
 			tun->flags |= VIDEO_TUNER_SECAM;
 	}
 
-	/* Note: G_STD might not be present for radio receivers,
-	 * so we should ignore any errors. */
+	
 	if (drv(file, VIDIOC_G_STD, &sid) == 0) {
 		if (sid & V4L2_STD_PAL)
 			tun->mode = VIDEO_MODE_PAL;
@@ -801,7 +767,7 @@ static noinline long v4l1_compat_select_tuner(
 					v4l2_kioctl drv)
 {
 	long err;
-	struct v4l2_tuner	t;/*84 bytes on x86_64*/
+	struct v4l2_tuner	t;
 	memset(&t, 0, sizeof(t));
 
 	t.index = tun->tuner;
@@ -1003,7 +969,7 @@ static noinline long v4l1_compat_capture_frame(
 	    mm->height  != fmt->fmt.pix.height ||
 	    palette_to_pixelformat(mm->format) !=
 	    fmt->fmt.pix.pixelformat) {
-		/* New capture format...  */
+		
 		fmt->fmt.pix.width = mm->width;
 		fmt->fmt.pix.height = mm->height;
 		fmt->fmt.pix.pixelformat =
@@ -1051,17 +1017,17 @@ static noinline long v4l1_compat_sync(
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	err = drv(file, VIDIOC_QUERYBUF, &buf);
 	if (err < 0) {
-		/*  No such buffer */
+		
 		dprintk("VIDIOCSYNC / VIDIOC_QUERYBUF: %ld\n", err);
 		goto done;
 	}
 	if (!(buf.flags & V4L2_BUF_FLAG_MAPPED)) {
-		/* Buffer is not mapped  */
+		
 		err = -EINVAL;
 		goto done;
 	}
 
-	/* make sure capture actually runs so we don't block forever */
+	
 	err = drv(file, VIDIOC_STREAMON, &captype);
 	if (err < 0) {
 		dprintk("VIDIOCSYNC / VIDIOC_STREAMON: %ld\n", err);
@@ -1069,19 +1035,19 @@ static noinline long v4l1_compat_sync(
 	}
 
 	pwq = kmalloc(sizeof(*pwq), GFP_KERNEL);
-	/*  Loop as long as the buffer is queued, but not done  */
+	
 	while ((buf.flags & (V4L2_BUF_FLAG_QUEUED | V4L2_BUF_FLAG_DONE))
 						== V4L2_BUF_FLAG_QUEUED) {
 		err = poll_one(file, pwq);
-		if (err < 0 ||	/* error or sleep was interrupted  */
-		    err == 0)	/* timeout? Shouldn't occur.  */
+		if (err < 0 ||	
+		    err == 0)	
 			break;
 		err = drv(file, VIDIOC_QUERYBUF, &buf);
 		if (err < 0)
 			dprintk("VIDIOCSYNC / VIDIOC_QUERYBUF: %ld\n", err);
 	}
 	kfree(pwq);
-	if (!(buf.flags & V4L2_BUF_FLAG_DONE)) /* not done */
+	if (!(buf.flags & V4L2_BUF_FLAG_DONE)) 
 		goto done;
 	do {
 		err = drv(file, VIDIOC_DQBUF, &buf);
@@ -1182,9 +1148,7 @@ done:
 	return err;
 }
 
-/*
- *	This function is exported.
- */
+
 long
 v4l_compat_translate_ioctl(struct file		*file,
 			   int			cmd,
@@ -1194,61 +1158,61 @@ v4l_compat_translate_ioctl(struct file		*file,
 	long err;
 
 	switch (cmd) {
-	case VIDIOCGCAP:	/* capability */
+	case VIDIOCGCAP:	
 		err = v4l1_compat_get_capabilities(arg, file, drv);
 		break;
-	case VIDIOCGFBUF: /*  get frame buffer  */
+	case VIDIOCGFBUF: 
 		err = v4l1_compat_get_frame_buffer(arg, file, drv);
 		break;
-	case VIDIOCSFBUF: /*  set frame buffer  */
+	case VIDIOCSFBUF: 
 		err = v4l1_compat_set_frame_buffer(arg, file, drv);
 		break;
-	case VIDIOCGWIN: /*  get window or capture dimensions  */
+	case VIDIOCGWIN: 
 		err = v4l1_compat_get_win_cap_dimensions(arg, file, drv);
 		break;
-	case VIDIOCSWIN: /*  set window and/or capture dimensions  */
+	case VIDIOCSWIN: 
 		err = v4l1_compat_set_win_cap_dimensions(arg, file, drv);
 		break;
-	case VIDIOCCAPTURE: /*  turn on/off preview  */
+	case VIDIOCCAPTURE: 
 		err = v4l1_compat_turn_preview_on_off(arg, file, drv);
 		break;
-	case VIDIOCGCHAN: /*  get input information  */
+	case VIDIOCGCHAN: 
 		err = v4l1_compat_get_input_info(arg, file, drv);
 		break;
-	case VIDIOCSCHAN: /*  set input  */
+	case VIDIOCSCHAN: 
 		err = v4l1_compat_set_input(arg, file, drv);
 		break;
-	case VIDIOCGPICT: /*  get tone controls & partial capture format  */
+	case VIDIOCGPICT: 
 		err = v4l1_compat_get_picture(arg, file, drv);
 		break;
-	case VIDIOCSPICT: /*  set tone controls & partial capture format  */
+	case VIDIOCSPICT: 
 		err = v4l1_compat_set_picture(arg, file, drv);
 		break;
-	case VIDIOCGTUNER: /*  get tuner information  */
+	case VIDIOCGTUNER: 
 		err = v4l1_compat_get_tuner(arg, file, drv);
 		break;
-	case VIDIOCSTUNER: /*  select a tuner input  */
+	case VIDIOCSTUNER: 
 		err = v4l1_compat_select_tuner(arg, file, drv);
 		break;
-	case VIDIOCGFREQ: /*  get frequency  */
+	case VIDIOCGFREQ: 
 		err = v4l1_compat_get_frequency(arg, file, drv);
 		break;
-	case VIDIOCSFREQ: /*  set frequency  */
+	case VIDIOCSFREQ: 
 		err = v4l1_compat_set_frequency(arg, file, drv);
 		break;
-	case VIDIOCGAUDIO: /*  get audio properties/controls  */
+	case VIDIOCGAUDIO: 
 		err = v4l1_compat_get_audio(arg, file, drv);
 		break;
-	case VIDIOCSAUDIO: /*  set audio controls  */
+	case VIDIOCSAUDIO: 
 		err = v4l1_compat_set_audio(arg, file, drv);
 		break;
-	case VIDIOCMCAPTURE: /*  capture a frame  */
+	case VIDIOCMCAPTURE: 
 		err = v4l1_compat_capture_frame(arg, file, drv);
 		break;
-	case VIDIOCSYNC: /*  wait for a frame  */
+	case VIDIOCSYNC: 
 		err = v4l1_compat_sync(arg, file, drv);
 		break;
-	case VIDIOCGVBIFMT: /* query VBI data capture format */
+	case VIDIOCGVBIFMT: 
 		err = v4l1_compat_get_vbi_format(arg, file, drv);
 		break;
 	case VIDIOCSVBIFMT:
@@ -1263,8 +1227,4 @@ v4l_compat_translate_ioctl(struct file		*file,
 }
 EXPORT_SYMBOL(v4l_compat_translate_ioctl);
 
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+

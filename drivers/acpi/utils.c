@@ -1,27 +1,4 @@
-/*
- *  acpi_utils.c - ACPI Utility Functions ($Revision: 10 $)
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -35,9 +12,7 @@
 #define _COMPONENT		ACPI_BUS_COMPONENT
 ACPI_MODULE_NAME("utils");
 
-/* --------------------------------------------------------------------------
-                            Object Evaluation Helpers
-   -------------------------------------------------------------------------- */
+
 static void
 acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
 {
@@ -91,9 +66,7 @@ acpi_extract_package(union acpi_object *package,
 
 	format_string = format->pointer;
 
-	/*
-	 * Calculate size_required.
-	 */
+	
 	for (i = 0; i < format_count; i++) {
 
 		union acpi_object *element = &(package->package.elements[i]);
@@ -157,15 +130,13 @@ acpi_extract_package(union acpi_object *package,
 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 					  "Found unsupported element at index=%d\n",
 					  i));
-			/* TBD: handle nested packages... */
+			
 			return AE_SUPPORT;
 			break;
 		}
 	}
 
-	/*
-	 * Validate output buffer.
-	 */
+	
 	if (buffer->length < size_required) {
 		buffer->length = size_required;
 		return AE_BUFFER_OVERFLOW;
@@ -176,9 +147,7 @@ acpi_extract_package(union acpi_object *package,
 	head = buffer->pointer;
 	tail = buffer->pointer + tail_offset;
 
-	/*
-	 * Extract package data.
-	 */
+	
 	for (i = 0; i < format_count; i++) {
 
 		u8 **pointer = NULL;
@@ -204,12 +173,12 @@ acpi_extract_package(union acpi_object *package,
 				    element->integer.value;
 				head += sizeof(acpi_integer *);
 				tail += sizeof(acpi_integer);
-				/* NULL terminate string */
+				
 				*tail = (char)0;
 				tail += sizeof(char);
 				break;
 			default:
-				/* Should never get here */
+				
 				break;
 			}
 			break;
@@ -224,7 +193,7 @@ acpi_extract_package(union acpi_object *package,
 				       element->string.length);
 				head += sizeof(char *);
 				tail += element->string.length * sizeof(char);
-				/* NULL terminate string */
+				
 				*tail = (char)0;
 				tail += sizeof(char);
 				break;
@@ -237,15 +206,15 @@ acpi_extract_package(union acpi_object *package,
 				tail += element->buffer.length * sizeof(u8);
 				break;
 			default:
-				/* Should never get here */
+				
 				break;
 			}
 			break;
 
 		case ACPI_TYPE_PACKAGE:
-			/* TBD: handle nested packages... */
+			
 		default:
-			/* Should never get here */
+			
 			break;
 		}
 	}
@@ -351,7 +320,7 @@ acpi_evaluate_reference(acpi_handle handle,
 		return AE_BAD_PARAMETER;
 	}
 
-	/* Evaluate object. */
+	
 
 	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
 	if (ACPI_FAILURE(status))
@@ -386,7 +355,7 @@ acpi_evaluate_reference(acpi_handle handle,
 	}
 	list->count = package->package.count;
 
-	/* Extract package data. */
+	
 
 	for (i = 0; i < list->count; i++) {
 
@@ -407,7 +376,7 @@ acpi_evaluate_reference(acpi_handle handle,
 			status = AE_NULL_ENTRY;
 			break;
 		}
-		/* Get the  acpi_handle. */
+		
 
 		list->handles[i] = element->reference.handle;
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found reference [%p]\n",
@@ -417,7 +386,7 @@ acpi_evaluate_reference(acpi_handle handle,
       end:
 	if (ACPI_FAILURE(status)) {
 		list->count = 0;
-		//kfree(list->handles);
+		
 	}
 
 	kfree(buffer.pointer);

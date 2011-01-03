@@ -1,34 +1,8 @@
-/* arch/arm/plat-s3c/include/plat/regs-fb.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      http://armlinux.simtec.co.uk/
- *      Ben Dooks <ben@simtec.co.uk>
- *
- * S3C Platform - new-style framebuffer register definitions
- *
- * This is the register set for the new style framebuffer interface
- * found from the S3C2443 onwards into the S3C2416, S3C2450 and the
- * S3C64XX series such as the S3C6400 and S3C6410.
- *
- * The file does not contain the cpu specific items which are based on
- * whichever architecture is selected, it only contains the core of the
- * register set. See <mach/regs-fb.h> to get the specifics.
- *
- * Note, we changed to using regs-fb.h as it avoids any clashes with
- * the original regs-lcd.h so out of the way of regs-lcd.h as well as
- * indicating the newer block is much more than just an LCD interface.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
 
-/* Please do not include this file directly, use <mach/regs-fb.h> to
- * ensure all the localised SoC support is included as necessary.
-*/
 
-/* VIDCON0 */
+
+
+
 
 #define VIDCON0					(0x00)
 #define VIDCON0_INTERLACE			(1 << 29)
@@ -97,7 +71,7 @@
 #define VIDCON1_INV_VSYNC			(1 << 5)
 #define VIDCON1_INV_VDEN			(1 << 4)
 
-/* VIDCON2 */
+
 
 #define VIDCON2					(0x08)
 #define VIDCON2_EN601				(1 << 23)
@@ -112,7 +86,7 @@
 #define VIDCON2_ORGYCbCr			(1 << 8)
 #define VIDCON2_YUVORDCrCb			(1 << 7)
 
-/* VIDTCON0 */
+
 
 #define VIDTCON0_VBPDE_MASK			(0xff << 24)
 #define VIDTCON0_VBPDE_SHIFT			(24)
@@ -134,7 +108,7 @@
 #define VIDTCON0_VSPW_LIMIT			(0xff)
 #define VIDTCON0_VSPW(_x)			((_x) << 0)
 
-/* VIDTCON1 */
+
 
 #define VIDTCON1_VFPDE_MASK			(0xff << 24)
 #define VIDTCON1_VFPDE_SHIFT			(24)
@@ -167,7 +141,7 @@
 #define VIDTCON2_HOZVAL_LIMIT			(0x7ff)
 #define VIDTCON2_HOZVAL(_x)			((_x) << 0)
 
-/* WINCONx */
+
 
 
 #define WINCONx_BITSWP				(1 << 18)
@@ -233,7 +207,7 @@
 #define VIDOSDxB_BOTRIGHT_Y_LIMIT		(0x7ff)
 #define VIDOSDxB_BOTRIGHT_Y(_x)			((_x) << 0)
 
-/* For VIDOSD[1..4]C */
+
 #define VIDISD14C_ALPHA0_R(_x)			((_x) << 20)
 #define VIDISD14C_ALPHA0_G_MASK			(0xf << 16)
 #define VIDISD14C_ALPHA0_G_SHIFT		(16)
@@ -256,7 +230,7 @@
 #define VIDISD14C_ALPHA1_B_LIMIT		(0xf)
 #define VIDISD14C_ALPHA1_B(_x)			((_x) << 0)
 
-/* Video buffer addresses */
+
 #define VIDW_BUF_START(_buff)			(0xA0 + ((_buff) * 8))
 #define VIDW_BUF_START1(_buff)			(0xA4 + ((_buff) * 8))
 #define VIDW_BUF_END(_buff)			(0xD0 + ((_buff) * 8))
@@ -273,7 +247,7 @@
 #define VIDW_BUF_SIZE_PAGEWIDTH_LIMIT		(0x1fff)
 #define VIDW_BUF_SIZE_PAGEWIDTH(_x)		((_x) << 0)
 
-/* Interrupt controls and status */
+
 
 #define VIDINTCON0_FIFOINTERVAL_MASK		(0x3f << 20)
 #define VIDINTCON0_FIFOINTERVAL_SHIFT		(20)
@@ -320,7 +294,7 @@
 #define VIDINTCON1_INT_FRAME			(1 << 1)
 #define VIDINTCON1_INT_FIFO			(1 << 0)
 
-/* Window colour-key control registers */
+
 
 #define WxKEYCON0_KEYBL_EN			(1 << 26)
 #define WxKEYCON0_KEYEN_F			(1 << 25)
@@ -335,7 +309,7 @@
 #define WxKEYCON1_COLVAL(_x)			((_x) << 0)
 
 
-/* Window blanking (MAP) */
+
 
 #define WINxMAP_MAP				(1 << 24)
 #define WINxMAP_MAP_COLOUR_MASK			(0xffffff << 0)

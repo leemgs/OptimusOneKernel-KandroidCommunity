@@ -1,11 +1,6 @@
-/* Kernel module to match Hop-by-Hop and Destination parameters. */
 
-/* (C) 2001-2002 Andras Kis-Szabo <kisza@sch.bme.hu>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -25,21 +20,7 @@ MODULE_DESCRIPTION("Xtables: IPv6 Hop-By-Hop and Destination Header match");
 MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
 MODULE_ALIAS("ip6t_dst");
 
-/*
- *  (Type & 0xC0) >> 6
- *	0	-> ignorable
- *	1	-> must drop the packet
- *	2	-> send ICMP PARM PROB regardless and drop packet
- *	3	-> Send ICMP if not a multicast address and drop packet
- *  (Type & 0x20) >> 5
- *	0	-> invariant
- *	1	-> can change the routing
- *  (Type & 0x1F) Type
- *	0	-> Pad1 (only 1 byte!)
- *	1	-> PadN LENGTH info (total length = length + 2)
- *	C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
- *	5	-> RTALERT 2 x x
- */
+
 
 static bool
 hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
@@ -73,7 +54,7 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 
 	hdrlen = ipv6_optlen(oh);
 	if (skb->len - ptr < hdrlen) {
-		/* Packet smaller than it's length field */
+		
 		return false;
 	}
 
@@ -98,7 +79,7 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 		pr_debug("Strict ");
 		pr_debug("#%d ", optinfo->optsnr);
 		for (temp = 0; temp < optinfo->optsnr; temp++) {
-			/* type field exists ? */
+			
 			if (hdrlen < 1)
 				break;
 			tp = skb_header_pointer(skb, ptr, sizeof(_opttype),
@@ -106,7 +87,7 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 			if (tp == NULL)
 				break;
 
-			/* Type check */
+			
 			if (*tp != (optinfo->opts[temp] & 0xFF00) >> 8) {
 				pr_debug("Tbad %02X %02X\n", *tp,
 					 (optinfo->opts[temp] & 0xFF00) >> 8);
@@ -114,11 +95,11 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 			} else {
 				pr_debug("Tok ");
 			}
-			/* Length check */
+			
 			if (*tp) {
 				u16 spec_len;
 
-				/* length field exists ? */
+				
 				if (hdrlen < 2)
 					break;
 				lp = skb_header_pointer(skb, ptr + 1,
@@ -140,7 +121,7 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 				optlen = 1;
 			}
 
-			/* Step to the next */
+			
 			pr_debug("len%04X \n", optlen);
 
 			if ((ptr > skb->len - optlen || hdrlen < optlen) &&

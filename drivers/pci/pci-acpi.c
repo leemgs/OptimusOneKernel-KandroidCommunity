@@ -1,11 +1,4 @@
-/*
- * File:	pci-acpi.c
- * Purpose:	Provide PCI support in ACPI
- *
- * Copyright (C) 2005 David Shaohua Li <shaohua.li@intel.com>
- * Copyright (C) 2004 Tom Long Nguyen <tom.l.nguyen@intel.com>
- * Copyright (C) 2004 Intel Corp.
- */
+
 
 #include <linux/delay.h>
 #include <linux/init.h>
@@ -18,28 +11,7 @@
 #include <linux/pci-acpi.h>
 #include "pci.h"
 
-/*
- * _SxD returns the D-state with the highest power
- * (lowest D-state number) supported in the S-state "x".
- *
- * If the devices does not have a _PRW
- * (Power Resources for Wake) supporting system wakeup from "x"
- * then the OS is free to choose a lower power (higher number
- * D-state) than the return value from _SxD.
- *
- * But if _PRW is enabled at S-state "x", the OS
- * must not choose a power lower than _SxD --
- * unless the device has an _SxW method specifying
- * the lowest power (highest D-state number) the device
- * may enter while still able to wake the system.
- *
- * ie. depending on global OS policy:
- *
- * if (_PRW at S-state x)
- *	choose from highest power _SxD to lowest power _SxW
- * else // no _PRW at S-state x
- * 	choose highest power _SxD or any lower power
- */
+
 
 static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev)
 {
@@ -82,7 +54,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
 	};
 	int error = -EINVAL;
 
-	/* If the ACPI device has _EJ0, ignore the device */
+	
 	if (!handle || ACPI_SUCCESS(acpi_get_handle(handle, "_EJ0", &tmp)))
 		return -ENODEV;
 
@@ -121,7 +93,7 @@ static void acpi_pci_propagate_wakeup_enable(struct pci_bus *bus, bool enable)
 		bus = bus->parent;
 	}
 
-	/* We have reached the root bus. */
+	
 	if (bus->bridge)
 		acpi_pm_device_sleep_wake(bus->bridge, enable);
 }
@@ -145,14 +117,14 @@ static struct pci_platform_pm_ops acpi_pci_platform_pm = {
 	.sleep_wake = acpi_pci_sleep_wake,
 };
 
-/* ACPI bus type */
+
 static int acpi_pci_find_device(struct device *dev, acpi_handle *handle)
 {
 	struct pci_dev * pci_dev;
 	acpi_integer	addr;
 
 	pci_dev = to_pci_dev(dev);
-	/* Please ref to ACPI spec for the syntax of _ADR */
+	
 	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
 	*handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev->parent), addr);
 	if (!*handle)
@@ -165,10 +137,7 @@ static int acpi_pci_find_root_bridge(struct device *dev, acpi_handle *handle)
 	int num;
 	unsigned int seg, bus;
 
-	/*
-	 * The string should be the same as root bridge's name
-	 * Please look at 'pci_scan_bus_parented'
-	 */
+	
 	num = sscanf(dev_name(dev), "pci%04x:%02x", &seg, &bus);
 	if (num != 2)
 		return -ENODEV;

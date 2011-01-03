@@ -1,21 +1,4 @@
-/*
- * uio_aec.c -- simple driver for Adrienne Electronics Corp time code PCI device
- *
- * Copyright (C) 2008 Brandon Philips <brandon@ifup.org>
- *
- *   This program is free software; you can redistribute it and/or modify it
- *   under the terms of the GNU General Public License version 2 as published
- *   by the Free Software Foundation.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License along
- *   with this program; if not, write to the Free Software Foundation, Inc., 59
- *   Temple Place, Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -57,7 +40,7 @@ static irqreturn_t aectc_irq(int irq, struct uio_info *dev_info)
 
 
 	if ((status & INTA_ENABLED_FLAG) && (status & INTA_FLAG)) {
-		/* application writes 0x00 to 0x2F to get next interrupt */
+		
 		status = ioread8(dev_info->priv + MAILBOX);
 		return IRQ_HANDLED;
 	}
@@ -137,10 +120,10 @@ static void remove(struct pci_dev *pdev)
 {
 	struct uio_info *info = pci_get_drvdata(pdev);
 
-	/* disable interrupts */
+	
 	iowrite8(INT_DISABLE, info->priv + INT_MASK_ADDR);
 	iowrite32(INT_DISABLE, info->priv + INT_ENABLE_ADDR);
-	/* read mailbox to ensure board drops irq */
+	
 	ioread8(info->priv + MAILBOX);
 
 	uio_unregister_device(info);

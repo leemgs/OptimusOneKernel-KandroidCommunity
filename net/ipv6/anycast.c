@@ -1,17 +1,4 @@
-/*
- *	Anycast support for IPv6
- *	Linux INET6 implementation
- *
- *	Authors:
- *	David L Stevens (dlstevens@us.ibm.com)
- *
- *	based heavily on net/ipv6/mcast.c
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/capability.h>
 #include <linux/module.h>
@@ -45,13 +32,11 @@
 
 static int ipv6_dev_ac_dec(struct net_device *dev, struct in6_addr *addr);
 
-/* Big ac list lock for all the sockets */
+
 static DEFINE_RWLOCK(ipv6_sk_ac_lock);
 
 
-/*
- *	socket join an anycast group
- */
+
 
 int ipv6_sock_ac_join(struct sock *sk, int ifindex, struct in6_addr *addr)
 {
@@ -88,7 +73,7 @@ int ipv6_sock_ac_join(struct sock *sk, int ifindex, struct in6_addr *addr)
 			err = -EADDRNOTAVAIL;
 			goto out_free_pac;
 		} else {
-			/* router, no matching interface: just pick one */
+			
 
 			dev = dev_get_by_flags(net, IFF_UP, IFF_UP|IFF_LOOPBACK);
 		}
@@ -108,17 +93,13 @@ int ipv6_sock_ac_join(struct sock *sk, int ifindex, struct in6_addr *addr)
 			err = -EADDRNOTAVAIL;
 		goto out_dev_put;
 	}
-	/* reset ishost, now that we have a specific device */
+	
 	ishost = !idev->cnf.forwarding;
 	in6_dev_put(idev);
 
 	pac->acl_ifindex = dev->ifindex;
 
-	/* XXX
-	 * For hosts, allow link-local or matching prefix anycasts.
-	 * This obviates the need for propagating anycast routes while
-	 * still allowing some non-router anycast participation.
-	 */
+	
 	if (!ipv6_chk_prefix(addr, dev)) {
 		if (ishost)
 			err = -EADDRNOTAVAIL;
@@ -146,9 +127,7 @@ out_free_pac:
 	return err;
 }
 
-/*
- *	socket leave an anycast group
- */
+
 int ipv6_sock_ac_drop(struct sock *sk, int ifindex, struct in6_addr *addr)
 {
 	struct ipv6_pinfo *np = inet6_sk(sk);
@@ -217,11 +196,7 @@ void ipv6_sock_ac_close(struct sock *sk)
 }
 
 #if 0
-/* The function is not used, which is funny. Apparently, author
- * supposed to use it to filter out datagrams inside udp/raw but forgot.
- *
- * It is OK, anycasts are not special comparing to delivery to unicasts.
- */
+
 
 int inet6_ac_check(struct sock *sk, struct in6_addr *addr, int ifindex)
 {
@@ -254,9 +229,7 @@ static void aca_put(struct ifacaddr6 *ac)
 	}
 }
 
-/*
- *	device anycast group inc (add if not found)
- */
+
 int ipv6_dev_ac_inc(struct net_device *dev, struct in6_addr *addr)
 {
 	struct ifacaddr6 *aca;
@@ -283,9 +256,7 @@ int ipv6_dev_ac_inc(struct net_device *dev, struct in6_addr *addr)
 		}
 	}
 
-	/*
-	 *	not found: create a new one.
-	 */
+	
 
 	aca = kzalloc(sizeof(struct ifacaddr6), GFP_ATOMIC);
 
@@ -305,7 +276,7 @@ int ipv6_dev_ac_inc(struct net_device *dev, struct in6_addr *addr)
 	aca->aca_idev = idev;
 	aca->aca_rt = rt;
 	aca->aca_users = 1;
-	/* aca_tstamp should be updated upon changes */
+	
 	aca->aca_cstamp = aca->aca_tstamp = jiffies;
 	atomic_set(&aca->aca_refcnt, 2);
 	spin_lock_init(&aca->aca_lock);
@@ -326,9 +297,7 @@ out:
 	return err;
 }
 
-/*
- *	device anycast group decrement
- */
+
 int __ipv6_dev_ac_dec(struct inet6_dev *idev, struct in6_addr *addr)
 {
 	struct ifacaddr6 *aca, *prev_aca;
@@ -373,9 +342,7 @@ static int ipv6_dev_ac_dec(struct net_device *dev, struct in6_addr *addr)
 	return ret;
 }
 
-/*
- *	check if the interface has this anycast address
- */
+
 static int ipv6_chk_acast_dev(struct net_device *dev, struct in6_addr *addr)
 {
 	struct inet6_dev *idev;
@@ -394,9 +361,7 @@ static int ipv6_chk_acast_dev(struct net_device *dev, struct in6_addr *addr)
 	return 0;
 }
 
-/*
- *	check if given interface (or any, if dev==0) has this anycast address
- */
+
 int ipv6_chk_acast_addr(struct net *net, struct net_device *dev,
 			struct in6_addr *addr)
 {

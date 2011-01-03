@@ -1,13 +1,4 @@
-/*
- * Chip specific defines for DA8XX/OMAP L1XX SoC
- *
- * Author: Mark A. Greer <mgreer@mvista.com>
- *
- * 2007, 2009 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #ifndef __ASM_ARCH_DAVINCI_DA8XX_H
 #define __ASM_ARCH_DAVINCI_DA8XX_H
 
@@ -18,13 +9,7 @@
 #include <mach/asp.h>
 #include <mach/mmc.h>
 
-/*
- * The cp_intc interrupt controller for the da8xx isn't in the same
- * chunk of physical memory space as the other registers (like it is
- * on the davincis) so it needs to be mapped separately.  It will be
- * mapped early on when the I/O space is mapped and we'll put it just
- * before the I/O space in the processor's virtual memory space.
- */
+
 #define DA8XX_CP_INTC_BASE	0xfffee000
 #define DA8XX_CP_INTC_SIZE	SZ_8K
 #define DA8XX_CP_INTC_VIRT	(IO_VIRT - DA8XX_CP_INTC_SIZE - SZ_4K)
@@ -118,4 +103,4 @@ extern const short da850_nor_pins[];
 
 int da8xx_pinmux_setup(const short pins[]);
 
-#endif /* __ASM_ARCH_DAVINCI_DA8XX_H */
+#endif 

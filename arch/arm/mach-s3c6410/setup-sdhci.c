@@ -1,16 +1,4 @@
-/* linux/arch/arm/mach-s3c6410/setup-sdhci.c
- *
- * Copyright 2008 Simtec Electronics
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C6410 - Helper functions for settign up SDHCI device(s) (HSMMC)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -24,13 +12,13 @@
 #include <plat/regs-sdhci.h>
 #include <plat/sdhci.h>
 
-/* clock sources for the mmc bus clock, order as for the ctrl2[5..4] */
+
 
 char *s3c6410_hsmmc_clksrcs[4] = {
 	[0] = "hsmmc",
 	[1] = "hsmmc",
 	[2] = "mmc_bus",
-	/* [3] = "48m", - note not succesfully used yet */
+	
 };
 
 
@@ -41,7 +29,7 @@ void s3c6410_setup_sdhci0_cfg_card(struct platform_device *dev,
 {
 	u32 ctrl2, ctrl3;
 
-	/* don't need to alter anything acording to card-type */
+	
 
 	writel(S3C64XX_SDHCI_CONTROL4_DRIVE_9mA, r + S3C64XX_SDHCI_CONTROL4);
 

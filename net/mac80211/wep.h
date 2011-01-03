@@ -1,12 +1,4 @@
-/*
- * Software WEP encryption implementation
- * Copyright 2002, Jouni Malinen <jkmaline@cc.hut.fi>
- * Copyright 2003, Instant802 Networks, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef WEP_H
 #define WEP_H
@@ -32,4 +24,4 @@ ieee80211_crypto_wep_decrypt(struct ieee80211_rx_data *rx);
 ieee80211_tx_result
 ieee80211_crypto_wep_encrypt(struct ieee80211_tx_data *tx);
 
-#endif /* WEP_H */
+#endif 

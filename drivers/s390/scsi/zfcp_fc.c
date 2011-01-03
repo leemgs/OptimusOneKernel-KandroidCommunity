@@ -1,10 +1,4 @@
-/*
- * zfcp device driver
- *
- * Fibre Channel related functions for the zfcp device driver.
- *
- * Copyright IBM Corporation 2008, 2009
- */
+
 
 #define KMSG_COMPONENT "zfcp"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -106,7 +100,7 @@ static void zfcp_fc_wka_port_put(struct zfcp_wka_port *wka_port)
 {
 	if (atomic_dec_return(&wka_port->refcount) != 0)
 		return;
-	/* wait 10 milliseconds, other reqs might pop in */
+	
 	schedule_delayed_work(&wka_port->work, HZ / 100);
 }
 
@@ -172,12 +166,12 @@ static void zfcp_fc_incoming_rscn(struct zfcp_fsf_req *fsf_req)
 	fcp_rscn_head = (struct fcp_rscn_head *) status_buffer->payload.data;
 	fcp_rscn_element = (struct fcp_rscn_element *) fcp_rscn_head;
 
-	/* see FC-FS */
+	
 	no_entries = fcp_rscn_head->payload_len /
 			sizeof(struct fcp_rscn_element);
 
 	for (i = 1; i < no_entries; i++) {
-		/* skip head and start with 1st element */
+		
 		fcp_rscn_element++;
 		range_mask = rscn_range_mask[fcp_rscn_element->addr_format];
 		_zfcp_fc_incoming_rscn(fsf_req, range_mask, fcp_rscn_element);
@@ -221,10 +215,7 @@ static void zfcp_fc_incoming_logo(struct zfcp_fsf_req *req)
 	zfcp_fc_incoming_wwpn(req, els_logo->nport_wwpn);
 }
 
-/**
- * zfcp_fc_incoming_els - handle incoming ELS
- * @fsf_req - request which contains incoming ELS
- */
+
 void zfcp_fc_incoming_els(struct zfcp_fsf_req *fsf_req)
 {
 	struct fsf_status_read_buffer *status_buffer =
@@ -264,10 +255,10 @@ static void zfcp_fc_ns_gid_pn_eval(unsigned long data)
 	if (ct_iu_resp->header.cmd_rsp_code != ZFCP_CT_ACCEPT)
 		return;
 
-	/* paranoia */
+	
 	if (ct_iu_req->wwpn != port->wwpn)
 		return;
-	/* looks like a valid d_id */
+	
 	port->d_id = ct_iu_resp->d_id & ZFCP_DID_MASK;
 }
 
@@ -278,7 +269,7 @@ static int zfcp_fc_ns_gid_pn_request(struct zfcp_port *port,
 	struct zfcp_fc_ns_handler_data compl_rec;
 	int ret;
 
-	/* setup parameters for send generic command */
+	
 	gid_pn->port = port;
 	gid_pn->ct.wka_port = &adapter->gs->ds;
 	gid_pn->ct.handler = zfcp_fc_ns_handler;
@@ -290,7 +281,7 @@ static int zfcp_fc_ns_gid_pn_request(struct zfcp_port *port,
 	sg_init_one(&gid_pn->resp, &gid_pn->ct_iu_resp,
 		    sizeof(struct ct_iu_gid_pn_resp));
 
-	/* setup nameserver request */
+	
 	gid_pn->ct_iu_req.header.revision = ZFCP_CT_REVISION;
 	gid_pn->ct_iu_req.header.gs_type = ZFCP_CT_DIRECTORY_SERVICE;
 	gid_pn->ct_iu_req.header.gs_subtype = ZFCP_CT_NAME_SERVER;
@@ -308,11 +299,7 @@ static int zfcp_fc_ns_gid_pn_request(struct zfcp_port *port,
 	return ret;
 }
 
-/**
- * zfcp_fc_ns_gid_pn_request - initiate GID_PN nameserver request
- * @port: port where GID_PN request is needed
- * return: -ENOMEM on error, 0 otherwise
- */
+
 static int zfcp_fc_ns_gid_pn(struct zfcp_port *port)
 {
 	int ret;
@@ -345,7 +332,7 @@ void zfcp_fc_port_did_lookup(struct work_struct *work)
 
 	ret = zfcp_fc_ns_gid_pn(port);
 	if (ret) {
-		/* could not issue gid_pn for some reason */
+		
 		zfcp_erp_adapter_reopen(port->adapter, 0, "fcgpn_1", NULL);
 		goto out;
 	}
@@ -360,10 +347,7 @@ out:
 	zfcp_port_put(port);
 }
 
-/**
- * zfcp_fc_trigger_did_lookup - trigger the d_id lookup using a GID_PN request
- * @port: The zfcp_port to lookup the d_id for.
- */
+
 void zfcp_fc_trigger_did_lookup(struct zfcp_port *port)
 {
 	zfcp_port_get(port);
@@ -371,13 +355,7 @@ void zfcp_fc_trigger_did_lookup(struct zfcp_port *port)
 		zfcp_port_put(port);
 }
 
-/**
- * zfcp_fc_plogi_evaluate - evaluate PLOGI playload
- * @port: zfcp_port structure
- * @plogi: plogi payload
- *
- * Evaluate PLOGI playload and copy important fields into zfcp_port structure
- */
+
 void zfcp_fc_plogi_evaluate(struct zfcp_port *port, struct fsf_plogi *plogi)
 {
 	port->maxframe_size = plogi->serv_param.common_serv_param[7] |
@@ -407,7 +385,7 @@ static void zfcp_fc_adisc_handler(unsigned long data)
 	struct zfcp_ls_adisc *ls_adisc = &adisc->ls_adisc_acc;
 
 	if (adisc->els.status) {
-		/* request rejected or timed out */
+		
 		zfcp_erp_port_forced_reopen(port, ZFCP_STATUS_COMMON_ERP_FAILED,
 					    "fcadh_1", NULL);
 		goto out;
@@ -423,7 +401,7 @@ static void zfcp_fc_adisc_handler(unsigned long data)
 		goto out;
 	}
 
-	/* port is good, unblock rport without going through erp */
+	
 	zfcp_scsi_schedule_rport_register(port);
  out:
 	atomic_clear_mask(ZFCP_STATUS_PORT_LINK_TEST, &port->status);
@@ -454,8 +432,7 @@ static int zfcp_fc_adisc(struct zfcp_port *port)
 	adisc->els.handler_data = (unsigned long) adisc;
 	adisc->els.ls_code = adisc->ls_adisc.code = ZFCP_LS_ADISC;
 
-	/* acc. to FC-FS, hard_nport_id in ADISC should not be set for ports
-	   without FC-AL-2 capability, so we don't set it */
+	
 	adisc->ls_adisc.wwpn = fc_host_port_name(adapter->scsi_host);
 	adisc->ls_adisc.wwnn = fc_host_node_name(adapter->scsi_host);
 	adisc->ls_adisc.nport_id = fc_host_port_id(adapter->scsi_host);
@@ -473,7 +450,7 @@ void zfcp_fc_link_test_work(struct work_struct *work)
 	port->rport_task = RPORT_DEL;
 	zfcp_scsi_rport_work(&port->rport_work);
 
-	/* only issue one test command at one time per port */
+	
 	if (atomic_read(&port->status) & ZFCP_STATUS_PORT_LINK_TEST)
 		goto out;
 
@@ -483,7 +460,7 @@ void zfcp_fc_link_test_work(struct work_struct *work)
 	if (retval == 0)
 		return;
 
-	/* send of ADISC was not possible */
+	
 	atomic_clear_mask(ZFCP_STATUS_PORT_LINK_TEST, &port->status);
 	zfcp_erp_port_forced_reopen(port, 0, "fcltwk1", NULL);
 
@@ -491,14 +468,7 @@ out:
 	zfcp_port_put(port);
 }
 
-/**
- * zfcp_fc_test_link - lightweight link test procedure
- * @port: port to be tested
- *
- * Test status of a link to a remote port using the ELS command ADISC.
- * If there is a problem with the remote port, error recovery steps
- * will be triggered.
- */
+
 void zfcp_fc_test_link(struct zfcp_port *port)
 {
 	zfcp_port_get(port);
@@ -550,7 +520,7 @@ static int zfcp_fc_send_gpn_ft(struct zfcp_gpn_ft *gpn_ft,
 	struct zfcp_fc_ns_handler_data compl_rec;
 	int ret;
 
-	/* prepare CT IU for GPN_FT */
+	
 	req->header.revision = ZFCP_CT_REVISION;
 	req->header.gs_type = ZFCP_CT_DIRECTORY_SERVICE;
 	req->header.gs_subtype = ZFCP_CT_NAME_SERVER;
@@ -562,7 +532,7 @@ static int zfcp_fc_send_gpn_ft(struct zfcp_gpn_ft *gpn_ft,
 	req->area_id_scope = 0;
 	req->fc4_type = ZFCP_CT_SCSI_FCP;
 
-	/* prepare zfcp_send_ct */
+	
 	ct->wka_port = &adapter->gs->ds;
 	ct->handler = zfcp_fc_ns_handler;
 	ct->handler_data = (unsigned long)&compl_rec;
@@ -613,7 +583,7 @@ static int zfcp_fc_eval_gpn_ft(struct zfcp_gpn_ft *gpn_ft, int max_entries)
 
 	if (hdr->cmd_rsp_code != ZFCP_CT_ACCEPT) {
 		if (hdr->reason_code == ZFCP_CT_UNABLE_TO_PERFORM_CMD)
-			return -EAGAIN; /* might be a temporary condition */
+			return -EAGAIN; 
 		return -EIO;
 	}
 
@@ -626,7 +596,7 @@ static int zfcp_fc_eval_gpn_ft(struct zfcp_gpn_ft *gpn_ft, int max_entries)
 
 	mutex_lock(&zfcp_data.config_mutex);
 
-	/* first entry is the header */
+	
 	for (x = 1; x < max_entries && !last; x++) {
 		if (x % (ZFCP_GPN_FT_ENTRIES + 1))
 			acc++;
@@ -637,10 +607,10 @@ static int zfcp_fc_eval_gpn_ft(struct zfcp_gpn_ft *gpn_ft, int max_entries)
 		d_id = acc->port_id[0] << 16 | acc->port_id[1] << 8 |
 		       acc->port_id[2];
 
-		/* don't attach ports with a well known address */
+		
 		if ((d_id & ZFCP_DID_WKA) == ZFCP_DID_WKA)
 			continue;
-		/* skip the adapter's port and known remote ports */
+		
 		if (acc->wwpn == fc_host_port_name(adapter->scsi_host))
 			continue;
 		port = zfcp_get_port_by_wwpn(adapter, acc->wwpn);
@@ -662,10 +632,7 @@ static int zfcp_fc_eval_gpn_ft(struct zfcp_gpn_ft *gpn_ft, int max_entries)
 	return ret;
 }
 
-/**
- * zfcp_fc_scan_ports - scan remote ports and attach new ports
- * @adapter: pointer to struct zfcp_adapter
- */
+
 int zfcp_fc_scan_ports(struct zfcp_adapter *adapter)
 {
 	int ret, i;
@@ -725,7 +692,7 @@ static void zfcp_fc_generic_els_handler(unsigned long data)
 	struct fc_bsg_reply *reply = job->reply;
 
 	if (els_fc_job->els.status) {
-		/* request rejected or timed out */
+		
 		reply->reply_data.ctels_reply.status = FC_CTELS_STATUS_REJECT;
 		goto out;
 	}
@@ -843,7 +810,7 @@ int zfcp_fc_execute_ct_fc_job(struct fc_bsg_job *job)
 		break;
 	default:
 		kfree(ct_fc_job);
-		return -EINVAL; /* no such service */
+		return -EINVAL; 
 	}
 
 	ret = zfcp_fc_wka_port_get(ct_fc_job->ct.wka_port);

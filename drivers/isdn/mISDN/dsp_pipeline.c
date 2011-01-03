@@ -1,28 +1,4 @@
-/*
- * dsp_pipeline.c: pipelined audio processing
- *
- * Copyright (C) 2007, Nadi Sarrar
- *
- * Nadi Sarrar <nadi@beronet.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59
- * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/list.h>
@@ -32,8 +8,8 @@
 #include "dsp.h"
 #include "dsp_hwec.h"
 
-/* uncomment for debugging */
-/*#define PIPELINE_DEBUG*/
+
+
 
 struct dsp_pipeline_entry {
 	struct mISDN_dsp_element *elem;
@@ -48,7 +24,7 @@ struct dsp_element_entry {
 
 static LIST_HEAD(dsp_elements);
 
-/* sysfs */
+
 static struct class *elements_class;
 
 static ssize_t
@@ -280,8 +256,7 @@ int dsp_pipeline_build(struct dsp_pipeline *pipeline, const char *cfg)
 				pipeline_entry->elem = elem;
 
 				if (elem == dsp_hwec) {
-					/* This is a hack to make the hwec
-					   available as a pipeline module */
+					
 					dsp_hwec_enable(container_of(pipeline,
 						struct dsp, pipeline), args);
 					list_add_tail(&pipeline_entry->list,

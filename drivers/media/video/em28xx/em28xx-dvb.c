@@ -1,23 +1,4 @@
-/*
- DVB device driver for em28xx
 
- (c) 2008 Mauro Carvalho Chehab <mchehab@infradead.org>
-
- (c) 2008 Devin Heitmueller <devin.heitmueller@gmail.com>
-	- Fixes for the driver to properly work with HVR-950
-	- Fixes for the driver to properly work with Pinnacle PCTV HD Pro Stick
-	- Fixes for the driver to properly work with AMD ATI TV Wonder HD 600
-
- (c) 2008 Aidan Thornton <makosoft@googlemail.com>
-
- Based on cx88-dvb, saa7134-dvb and videobuf-dvb originally written by:
-	(c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
-	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License.
- */
 
 #include <linux/kernel.h>
 #include <linux/usb.h>
@@ -32,7 +13,7 @@
 #include "zl10353.h"
 #include "s5h1409.h"
 #include "mt352.h"
-#include "mt352_priv.h" /* FIXME */
+#include "mt352_priv.h" 
 #include "tda1002x.h"
 
 MODULE_DESCRIPTION("driver for em28xx based DVB cards");
@@ -56,11 +37,11 @@ if (debug >= level) 						\
 struct em28xx_dvb {
 	struct dvb_frontend        *frontend;
 
-	/* feed count management */
+	
 	struct mutex               lock;
 	int                        nfeeds;
 
-	/* general boilerplate stuff */
+	
 	struct dvb_adapter         adapter;
 	struct dvb_demux           demux;
 	struct dmxdev              dmxdev;
@@ -212,7 +193,7 @@ static int stop_feed(struct dvb_demux_feed *feed)
 
 
 
-/* ------------------------------------------------------------------ */
+
 static int em28xx_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
 {
 	struct em28xx *dev = fe->dvb->priv;
@@ -223,7 +204,7 @@ static int em28xx_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
 		return em28xx_set_mode(dev, EM28XX_SUSPEND);
 }
 
-/* ------------------------------------------------------------------ */
+
 
 static struct lgdt330x_config em2880_lgdt3303_dev = {
 	.demod_address = 0x0e,
@@ -255,7 +236,7 @@ static struct zl10353_config em28xx_zl10353_xc3028_no_i2c_gate = {
 };
 
 #ifdef EM28XX_DRX397XD_SUPPORT
-/* [TODO] djh - not sure yet what the device config needs to contain */
+
 static struct drx397xD_config em28xx_drx397xD_with_xc3028 = {
 	.demod_address = (0xe0 >> 1),
 };
@@ -263,7 +244,7 @@ static struct drx397xD_config em28xx_drx397xD_with_xc3028 = {
 
 static int mt352_terratec_xs_init(struct dvb_frontend *fe)
 {
-	/* Values extracted from a USB trace of the Terratec Windows driver */
+	
 	static u8 clock_config[]   = { CLOCK_CTL,  0x38, 0x2c };
 	static u8 reset[]          = { RESET,      0x80 };
 	static u8 adc_ctl_1_cfg[]  = { ADC_CTL_1,  0x40 };
@@ -301,7 +282,7 @@ static struct tda10023_config em28xx_tda10023_config = {
 	.invert = 1,
 };
 
-/* ------------------------------------------------------------------ */
+
 
 static int attach_xc3028(u8 addr, struct em28xx *dev)
 {
@@ -333,7 +314,7 @@ static int attach_xc3028(u8 addr, struct em28xx *dev)
 	return 0;
 }
 
-/* ------------------------------------------------------------------ */
+
 
 static int register_dvb(struct em28xx_dvb *dvb,
 		 struct module *module,
@@ -344,7 +325,7 @@ static int register_dvb(struct em28xx_dvb *dvb,
 
 	mutex_init(&dvb->lock);
 
-	/* register adapter */
+	
 	result = dvb_register_adapter(&dvb->adapter, dev->name, module, device,
 				      adapter_nr);
 	if (result < 0) {
@@ -353,12 +334,12 @@ static int register_dvb(struct em28xx_dvb *dvb,
 		goto fail_adapter;
 	}
 
-	/* Ensure all frontends negotiate bus access */
+	
 	dvb->frontend->ops.ts_bus_ctrl = em28xx_dvb_bus_ctrl;
 
 	dvb->adapter.priv = dev;
 
-	/* register frontend */
+	
 	result = dvb_register_frontend(&dvb->adapter, dvb->frontend);
 	if (result < 0) {
 		printk(KERN_WARNING "%s: dvb_register_frontend failed (errno = %d)\n",
@@ -366,7 +347,7 @@ static int register_dvb(struct em28xx_dvb *dvb,
 		goto fail_frontend;
 	}
 
-	/* register demux stuff */
+	
 	dvb->demux.dmx.capabilities =
 		DMX_TS_FILTERING | DMX_SECTION_FILTERING |
 		DMX_MEMORY_BASED_FILTERING;
@@ -416,7 +397,7 @@ static int register_dvb(struct em28xx_dvb *dvb,
 		goto fail_fe_conn;
 	}
 
-	/* register network adapter */
+	
 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
 	return 0;
 
@@ -456,7 +437,7 @@ static int dvb_init(struct em28xx *dev)
 	struct em28xx_dvb *dvb;
 
 	if (!dev->board.has_dvb) {
-		/* This device does not support the extension */
+		
 		return 0;
 	}
 
@@ -469,7 +450,7 @@ static int dvb_init(struct em28xx *dev)
 	dev->dvb = dvb;
 
 	em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
-	/* init frontend */
+	
 	switch (dev->model) {
 	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
 	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
@@ -508,8 +489,7 @@ static int dvb_init(struct em28xx *dev)
 					   &em28xx_zl10353_xc3028_no_i2c_gate,
 					   &dev->i2c_adap);
 		if (dvb->frontend == NULL) {
-			/* This board could have either a zl10353 or a mt352.
-			   If the chip id isn't for zl10353, try mt352 */
+			
 			dvb->frontend = dvb_attach(mt352_attach,
 						   &terratec_xs_mt352_cfg,
 						   &dev->i2c_adap);
@@ -544,8 +524,7 @@ static int dvb_init(struct em28xx *dev)
 		break;
 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
 #ifdef EM28XX_DRX397XD_SUPPORT
-		/* We don't have the config structure properly populated, so
-		   this is commented out for now */
+		
 		dvb->frontend = dvb_attach(drx397xD_attach,
 					   &em28xx_drx397xD_with_xc3028,
 					   &dev->i2c_adap);
@@ -556,7 +535,7 @@ static int dvb_init(struct em28xx *dev)
 		break;
 #endif
 	case EM2870_BOARD_REDDO_DVB_C_USB_BOX:
-		/* Philips CU1216L NIM (Philips TDA10023 + Infineon TUA6034) */
+		
 		dvb->frontend = dvb_attach(tda10023_attach,
 			&em28xx_tda10023_config,
 			&dev->i2c_adap, 0x48);
@@ -581,10 +560,10 @@ static int dvb_init(struct em28xx *dev)
 		result = -EINVAL;
 		goto out_free;
 	}
-	/* define general-purpose callback pointer */
+	
 	dvb->frontend->callback = em28xx_tuner_callback;
 
-	/* register everything */
+	
 	result = register_dvb(dvb, THIS_MODULE, dev, &dev->udev->dev);
 
 	if (result < 0)
@@ -604,7 +583,7 @@ out_free:
 static int dvb_fini(struct em28xx *dev)
 {
 	if (!dev->board.has_dvb) {
-		/* This device does not support the extension */
+		
 		return 0;
 	}
 

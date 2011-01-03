@@ -1,20 +1,6 @@
-/*
- * Clock control driver for Freescale STMP37XX/STMP378X - internal header file
- *
- * Author: Vitaly Wool <vital@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #ifndef __ARCH_ARM_STMX3XXX_CLOCK_H__
 #define __ARCH_ARM_STMX3XXX_CLOCK_H__
 
@@ -48,9 +34,9 @@ struct clk {
 	struct clk_ops *ops;
 };
 
-#endif /* __ASSEMBLER__ */
+#endif 
 
-/* Flags */
+
 #define RATE_PROPAGATES      (1<<0)
 #define NEEDS_INITIALIZATION (1<<1)
 #define PARENT_SET_RATE      (1<<2)

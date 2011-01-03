@@ -1,22 +1,4 @@
-/**
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Written by: Jayamohan Kallickal (jayamohank@serverengines.com)
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- *  ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- *
- */
+
 #include <linux/reboot.h>
 #include <linux/delay.h>
 #include <linux/interrupt.h>
@@ -78,7 +60,7 @@ static struct scsi_host_template beiscsi_sht = {
 };
 static struct scsi_transport_template *beiscsi_scsi_transport;
 
-/*------------------- PCI Driver operations and data ----------------- */
+
 static DEFINE_PCI_DEVICE_TABLE(beiscsi_pci_id_table) = {
 	{ PCI_DEVICE(BE_VENDOR_ID, BE_DEVICE_ID1) },
 	{ PCI_DEVICE(BE_VENDOR_ID, OC_DEVICE_ID1) },
@@ -267,11 +249,7 @@ static void hwi_ring_eq_db(struct beiscsi_hba *phba,
 	iowrite32(val, phba->db_va + DB_EQ_OFFSET);
 }
 
-/**
- * be_isr - The isr routine of the driver.
- * @irq: Not used
- * @dev_id: Pointer to host adapter structure
- */
+
 static irqreturn_t be_isr(int irq, void *dev_id)
 {
 	struct beiscsi_hba *phba;
@@ -378,15 +356,7 @@ static void hwi_ring_cq_db(struct beiscsi_hba *phba,
 	iowrite32(val, phba->db_va + DB_CQ_OFFSET);
 }
 
-/*
- * async pdus include
- * a. unsolicited NOP-In (target initiated NOP-In)
- * b. Async Messages
- * c. Reject PDU
- * d. Login response
- * These headers arrive unprocessed by the EP firmware and iSCSI layer
- * process them
- */
+
 static unsigned int
 beiscsi_process_async_pdu(struct beiscsi_conn *beiscsi_conn,
 			  struct beiscsi_hba *phba,
@@ -455,10 +425,7 @@ free_io_sgl_handle(struct beiscsi_hba *phba, struct sgl_handle *psgl_handle)
 	SE_DEBUG(DBG_LVL_8, "In free_,io_sgl_free_index=%d \n",
 		 phba->io_sgl_free_index);
 	if (phba->io_sgl_hndl_base[phba->io_sgl_free_index]) {
-		/*
-		 * this can happen if clean_task is called on a task that
-		 * failed in xmit_task or alloc_pdu.
-		 */
+		
 		 SE_DEBUG(DBG_LVL_8,
 			 "Double Free in IO SGL io_sgl_free_index=%d,"
 			 "value there=%p \n", phba->io_sgl_free_index,
@@ -473,14 +440,7 @@ free_io_sgl_handle(struct beiscsi_hba *phba, struct sgl_handle *psgl_handle)
 		phba->io_sgl_free_index++;
 }
 
-/**
- * alloc_wrb_handle - To allocate a wrb handle
- * @phba: The hba pointer
- * @cid: The cid to use for allocation
- * @index: index allocation and wrb index
- *
- * This happens under session_lock until submission to chip
- */
+
 struct wrb_handle *alloc_wrb_handle(struct beiscsi_hba *phba, unsigned int cid,
 				    int index)
 {
@@ -496,14 +456,7 @@ struct wrb_handle *alloc_wrb_handle(struct beiscsi_hba *phba, unsigned int cid,
 	return pwrb_handle;
 }
 
-/**
- * free_wrb_handle - To free the wrb handle back to pool
- * @phba: The hba pointer
- * @pwrb_context: The context to free from
- * @pwrb_handle: The wrb_handle to free
- *
- * This happens under session_lock until submission to chip
- */
+
 static void
 free_wrb_handle(struct beiscsi_hba *phba, struct hwi_wrb_context *pwrb_context,
 		struct wrb_handle *pwrb_handle)
@@ -541,10 +494,7 @@ free_mgmt_sgl_handle(struct beiscsi_hba *phba, struct sgl_handle *psgl_handle)
 {
 
 	if (phba->eh_sgl_hndl_base[phba->eh_sgl_free_index]) {
-		/*
-		 * this can happen if clean_task is called on a task that
-		 * failed in xmit_task or alloc_pdu.
-		 */
+		
 		SE_DEBUG(DBG_LVL_8,
 			 "Double Free in eh SGL ,eh_sgl_free_index=%d \n",
 			 phba->eh_sgl_free_index);
@@ -593,7 +543,7 @@ be_complete_io(struct beiscsi_conn *beiscsi_conn,
 		goto unmap;
 	}
 
-	/* bidi not initially supported */
+	
 	if (flags & (ISCSI_FLAG_CMD_UNDERFLOW | ISCSI_FLAG_CMD_OVERFLOW)) {
 		resid = (psol->dw[offsetof(struct amap_sol_cqe, i_res_cnt) /
 				32] & SOL_RES_CNT_MASK);
@@ -2778,10 +2728,7 @@ beiscsi_offload_connection(struct beiscsi_conn *beiscsi_conn,
 	struct beiscsi_hba *phba = beiscsi_conn->phba;
 	u32 doorbell = 0;
 
-	/*
-	 * We can always use 0 here because it is reserved by libiscsi for
-	 * login/startup related tasks.
-	 */
+	
 	pwrb_handle = alloc_wrb_handle(phba, beiscsi_conn->beiscsi_conn_cid, 0);
 	pwrb = (struct iscsi_target_context_update_wrb *)pwrb_handle->pwrb;
 	memset(pwrb, 0, sizeof(*pwrb));
@@ -2861,16 +2808,7 @@ static void beiscsi_parse_pdu(struct iscsi_conn *conn, itt_t itt,
 		*age = conn->session->age;
 }
 
-/**
- * beiscsi_alloc_pdu - allocates pdu and related resources
- * @task: libiscsi task
- * @opcode: opcode of pdu for task
- *
- * This is called with the session lock held. It will allocate
- * the wrb and sgl if needed for the command. And it will prep
- * the pdu's itt. beiscsi_parse_pdu will later translate
- * the pdu itt to the libiscsi task itt.
- */
+
 static int beiscsi_alloc_pdu(struct iscsi_task *task, uint8_t opcode)
 {
 	struct beiscsi_io_task *io_task = task->dd_data;

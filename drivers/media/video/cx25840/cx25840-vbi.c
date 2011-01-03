@@ -1,19 +1,4 @@
-/* cx25840 VBI functions
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+
 
 
 #include <linux/videodev2.h>
@@ -88,10 +73,10 @@ int cx25840_vbi_g_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
 	struct cx25840_state *state = to_state(sd);
 	struct v4l2_sliced_vbi_format *svbi;
 	static const u16 lcr2vbi[] = {
-		0, V4L2_SLICED_TELETEXT_B, 0,	/* 1 */
-		0, V4L2_SLICED_WSS_625, 0,	/* 4 */
-		V4L2_SLICED_CAPTION_525,	/* 6 */
-		0, 0, V4L2_SLICED_VPS, 0, 0,	/* 9 */
+		0, V4L2_SLICED_TELETEXT_B, 0,	
+		0, V4L2_SLICED_WSS_625, 0,	
+		V4L2_SLICED_CAPTION_525,	
+		0, 0, V4L2_SLICED_VPS, 0, 0,	
 		0, 0, 0, 0
 	};
 	int is_pal = !(state->std & V4L2_STD_525_60);
@@ -101,7 +86,7 @@ int cx25840_vbi_g_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
 		return -EINVAL;
 	svbi = &fmt->fmt.sliced;
 	memset(svbi, 0, sizeof(*svbi));
-	/* we're done if raw VBI is active */
+	
 	if ((cx25840_read(client, 0x404) & 0x10) == 0)
 		return 0;
 
@@ -142,13 +127,13 @@ int cx25840_vbi_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
 		return -EINVAL;
 	svbi = &fmt->fmt.sliced;
 	if (fmt->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
-		/* raw VBI */
+		
 		memset(svbi, 0, sizeof(*svbi));
 
-		/* Setup standard */
+		
 		cx25840_std_setup(client);
 
-		/* VBI Offset */
+		
 		cx25840_write(client, 0x47f, vbi_offset);
 		cx25840_write(client, 0x404, 0x2e);
 		return 0;
@@ -157,11 +142,11 @@ int cx25840_vbi_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
 	for (x = 0; x <= 23; x++)
 		lcr[x] = 0x00;
 
-	/* Setup standard */
+	
 	cx25840_std_setup(client);
 
-	/* Sliced VBI */
-	cx25840_write(client, 0x404, 0x32);	/* Ancillary data */
+	
+	cx25840_write(client, 0x404, 0x32);	
 	cx25840_write(client, 0x406, 0x13);
 	cx25840_write(client, 0x47f, vbi_offset);
 

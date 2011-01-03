@@ -1,14 +1,4 @@
-/*
- * drivers/base/memory.c - basic Memory class support
- *
- * Written by Matt Tolentino <matthew.e.tolentino@intel.com>
- *            Dave Hansen <haveblue@us.ibm.com>
- *
- * This file provides the necessary infrastructure to represent
- * a SPARSEMEM-memory-model system's physical memory in /sysfs.
- * All arch-independent code that assumes MEMORY_HOTPLUG requires
- * SPARSEMEM should be contained here, or in mm/memory_hotplug.c.
- */
+
 
 #include <linux/sysdev.h>
 #include <linux/module.h>
@@ -63,9 +53,7 @@ void unregister_memory_notifier(struct notifier_block *nb)
 }
 EXPORT_SYMBOL(unregister_memory_notifier);
 
-/*
- * register_memory - Setup a sysfs device for a memory block
- */
+
 static
 int register_memory(struct memory_block *memory, struct mem_section *section)
 {
@@ -84,15 +72,12 @@ unregister_memory(struct memory_block *memory, struct mem_section *section)
 	BUG_ON(memory->sysdev.cls != &memory_sysdev_class);
 	BUG_ON(memory->sysdev.id != __section_nr(section));
 
-	/* drop the ref. we got in remove_memory_block() */
+	
 	kobject_put(&memory->sysdev.kobj);
 	sysdev_unregister(&memory->sysdev);
 }
 
-/*
- * use this as the physical section index that this memsection
- * uses.
- */
+
 
 static ssize_t show_mem_phys_index(struct sys_device *dev,
 			struct sysdev_attribute *attr, char *buf)
@@ -102,9 +87,7 @@ static ssize_t show_mem_phys_index(struct sys_device *dev,
 	return sprintf(buf, "%08lx\n", mem->phys_index);
 }
 
-/*
- * Show whether the section of memory is likely to be hot-removable
- */
+
 static ssize_t show_mem_removable(struct sys_device *dev,
 			struct sysdev_attribute *attr, char *buf)
 {
@@ -118,9 +101,7 @@ static ssize_t show_mem_removable(struct sys_device *dev,
 	return sprintf(buf, "%d\n", ret);
 }
 
-/*
- * online, offline, going offline, etc.
- */
+
 static ssize_t show_mem_state(struct sys_device *dev,
 			struct sysdev_attribute *attr, char *buf)
 {
@@ -128,10 +109,7 @@ static ssize_t show_mem_state(struct sys_device *dev,
 		container_of(dev, struct memory_block, sysdev);
 	ssize_t len = 0;
 
-	/*
-	 * We can probably put these states in a nice little array
-	 * so that they're not open-coded
-	 */
+	
 	switch (mem->state) {
 		case MEM_ONLINE:
 			len = sprintf(buf, "online\n");
@@ -157,10 +135,7 @@ int memory_notify(unsigned long val, void *v)
 	return blocking_notifier_call_chain(&memory_chain, val, v);
 }
 
-/*
- * MEMORY_HOTPLUG depends on SPARSEMEM in mm/Kconfig, so it is
- * OK to have direct references to sparsemem variables in here.
- */
+
 static int
 memory_block_action(struct memory_block *mem, unsigned long action)
 {
@@ -174,11 +149,7 @@ memory_block_action(struct memory_block *mem, unsigned long action)
 	psection = mem->phys_index;
 	first_page = pfn_to_page(psection << PFN_SECTION_SHIFT);
 
-	/*
-	 * The probe routines leave the pages reserved, just
-	 * as the bootmem code does.  Make sure they're still
-	 * that way.
-	 */
+	
 	if (action == MEM_ONLINE) {
 		for (i = 0; i < PAGES_PER_SECTION; i++) {
 			if (PageReserved(first_page+i))
@@ -259,15 +230,7 @@ out:
 	return count;
 }
 
-/*
- * phys_device is a bad name for this.  What I really want
- * is a way to differentiate between memory ranges that
- * are part of physical devices that constitute
- * a complete removable unit or fru.
- * i.e. do these ranges belong to the same physical device,
- * s.t. if I offline all of these sections I can then
- * remove the physical device?
- */
+
 static ssize_t show_phys_device(struct sys_device *dev,
 				struct sysdev_attribute *attr, char *buf)
 {
@@ -286,9 +249,7 @@ static SYSDEV_ATTR(removable, 0444, show_mem_removable, NULL);
 #define mem_remove_simple_file(mem, attr_name)	\
 	sysdev_remove_file(&mem->sysdev, &attr_##attr_name)
 
-/*
- * Block size attribute stuff
- */
+
 static ssize_t
 print_block_size(struct class *class, char *buf)
 {
@@ -303,12 +264,7 @@ static int block_size_init(void)
 				&class_attr_block_size_bytes.attr);
 }
 
-/*
- * Some architectures will have custom drivers to do this, and
- * will not need to do it from userspace.  The fake hot-add code
- * as well as ppc64 will do all of their discovery in userspace
- * and will require this interface.
- */
+
 #ifdef CONFIG_ARCH_MEMORY_PROBE
 static ssize_t
 memory_probe_store(struct class *class, const char *buf, size_t count)
@@ -341,11 +297,7 @@ static inline int memory_probe_init(void)
 }
 #endif
 
-/*
- * Note that phys_device is optional.  It is here to allow for
- * differentiation between which *physical* devices each
- * section belongs to...
- */
+
 
 static int add_memory_block(int nid, struct mem_section *section,
 			unsigned long state, int phys_device,
@@ -379,14 +331,7 @@ static int add_memory_block(int nid, struct mem_section *section,
 	return ret;
 }
 
-/*
- * For now, we have a linear search to go find the appropriate
- * memory_block corresponding to a particular phys_index. If
- * this gets to be a real problem, we can always use a radix
- * tree or something here.
- *
- * This could be made generic for all sysdev classes.
- */
+
 struct memory_block *find_memory_block(struct mem_section *section)
 {
 	struct kobject *kobj;
@@ -394,10 +339,7 @@ struct memory_block *find_memory_block(struct mem_section *section)
 	struct memory_block *mem;
 	char name[sizeof(MEMORY_CLASS_NAME) + 9 + 1];
 
-	/*
-	 * This only works because we know that section == sysdev->id
-	 * slightly redundant with sysdev_register()
-	 */
+	
 	sprintf(&name[0], "%s%d", MEMORY_CLASS_NAME, __section_nr(section));
 
 	kobj = kset_find_obj(&memory_sysdev_class.kset, name);
@@ -426,10 +368,7 @@ int remove_memory_block(unsigned long node_id, struct mem_section *section,
 	return 0;
 }
 
-/*
- * need an interface for the VM to add new memory regions,
- * but without onlining it.
- */
+
 int register_new_memory(int nid, struct mem_section *section)
 {
 	return add_memory_block(nid, section, MEM_OFFLINE, 0, HOTPLUG);
@@ -443,9 +382,7 @@ int unregister_memory_section(struct mem_section *section)
 	return remove_memory_block(0, section, 0);
 }
 
-/*
- * Initialize the sysfs support for memory devices...
- */
+
 int __init memory_dev_init(void)
 {
 	unsigned int i;
@@ -457,10 +394,7 @@ int __init memory_dev_init(void)
 	if (ret)
 		goto out;
 
-	/*
-	 * Create entries for memory sections that were found
-	 * during boot and have been initialized
-	 */
+	
 	for (i = 0; i < NR_MEM_SECTIONS; i++) {
 		if (!present_section_nr(i))
 			continue;

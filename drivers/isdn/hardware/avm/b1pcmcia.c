@@ -1,13 +1,4 @@
-/* $Id: b1pcmcia.c,v 1.1.2.2 2004/01/16 21:09:27 keil Exp $
- * 
- * Module for AVM B1/M1/M2 PCMCIA-card.
- * 
- * Copyright 1999 by Carsten Paeth <calle@calle.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -25,17 +16,17 @@
 #include <linux/isdn/capilli.h>
 #include "avmcard.h"
 
-/* ------------------------------------------------------------- */
+
 
 static char *revision = "$Revision: 1.1.2.2 $";
 
-/* ------------------------------------------------------------- */
+
 
 MODULE_DESCRIPTION("CAPI4Linux: Driver for AVM PCMCIA cards");
 MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 
-/* ------------------------------------------------------------- */
+
 
 static void b1pcmcia_remove_ctr(struct capi_ctr *ctrl)
 {
@@ -51,7 +42,7 @@ static void b1pcmcia_remove_ctr(struct capi_ctr *ctrl)
 	b1_free_card(card);
 }
 
-/* ------------------------------------------------------------- */
+
 
 static LIST_HEAD(cards);
 
@@ -136,7 +127,7 @@ static int b1pcmcia_add_card(unsigned int port, unsigned irq,
 	return retval;
 }
 
-/* ------------------------------------------------------------- */
+
 
 static char *b1pcmcia_procinfo(struct capi_ctr *ctrl)
 {
@@ -154,7 +145,7 @@ static char *b1pcmcia_procinfo(struct capi_ctr *ctrl)
 	return cinfo->infobuf;
 }
 
-/* ------------------------------------------------------------- */
+
 
 int b1pcmcia_addcard_b1(unsigned int port, unsigned irq)
 {

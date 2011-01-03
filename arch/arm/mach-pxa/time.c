@@ -1,16 +1,4 @@
-/*
- * arch/arm/mach-pxa/time.c
- *
- * PXA clocksource, clockevents, and OST interrupt handlers.
- * Copyright (c) 2007 by Bill Gatliff <bgat@billgatliff.com>.
- *
- * Derived from Nicolas Pitre's PXA timer handler Copyright (c) 2001
- * by MontaVista Software, Inc.  (Nico, your code rocks!)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -24,14 +12,7 @@
 #include <asm/mach/time.h>
 #include <mach/regs-ost.h>
 
-/*
- * This is PXA's sched_clock implementation. This has a resolution
- * of at least 308 ns and a maximum value of 208 days.
- *
- * The return value is guaranteed to be monotonic in that range as
- * long as there is always less than 582 seconds between successive
- * calls to sched_clock() which should always be the case in practice.
- */
+
 
 #define OSCR2NS_SCALE_FACTOR 10
 
@@ -42,11 +23,7 @@ static void __init set_oscr2ns_scale(unsigned long oscr_rate)
 	unsigned long long v = 1000000000ULL << OSCR2NS_SCALE_FACTOR;
 	do_div(v, oscr_rate);
 	oscr2ns_scale = v;
-	/*
-	 * We want an even value to automatically clear the top bit
-	 * returned by cnt32_to_63() without an additional run time
-	 * instruction. So if the LSB is 1 then round it up.
-	 */
+	
 	if (oscr2ns_scale & 1)
 		oscr2ns_scale++;
 }
@@ -65,7 +42,7 @@ pxa_ost0_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *c = dev_id;
 
-	/* Disarm the compare/match, signal the event. */
+	
 	OIER &= ~OIER_E0;
 	OSSR = OSSR_M0;
 	c->event_handler(c);
@@ -103,7 +80,7 @@ pxa_osmr0_set_mode(enum clock_event_mode mode, struct clock_event_device *dev)
 
 	case CLOCK_EVT_MODE_UNUSED:
 	case CLOCK_EVT_MODE_SHUTDOWN:
-		/* initializing, released, or preparing for suspend */
+		
 		raw_local_irq_save(irqflags);
 		OIER &= ~OIER_E0;
 		OSSR = OSSR_M0;
@@ -187,12 +164,7 @@ static void pxa_timer_suspend(void)
 
 static void pxa_timer_resume(void)
 {
-	/*
-	 * Ensure that we have at least MIN_OSCR_DELTA between match
-	 * register 0 and the OSCR, to guarantee that we will receive
-	 * the one-shot timer interrupt.  We adjust OSMR0 in preference
-	 * to OSCR to guarantee that OSCR is monotonically incrementing.
-	 */
+	
 	if (osmr[0] - oscr < MIN_OSCR_DELTA)
 		osmr[0] += MIN_OSCR_DELTA;
 

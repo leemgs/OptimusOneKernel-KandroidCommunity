@@ -1,38 +1,4 @@
-/*
- *      Driver for the MTX-1 Watchdog.
- *
- *      (C) Copyright 2005 4G Systems <info@4g-systems.biz>,
- *							All Rights Reserved.
- *                              http://www.4g-systems.biz
- *
- *	(C) Copyright 2007 OpenWrt.org, Florian Fainelli <florian@openwrt.org>
- *
- *      This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- *
- *      Neither Michael Stickel nor 4G Systems admit liability nor provide
- *      warranty for any of this software. This material is provided
- *      "AS-IS" and at no charge.
- *
- *      (c) Copyright 2005    4G Systems <info@4g-systems.biz>
- *
- *      Release 0.01.
- *      Author: Michael Stickel  michael.stickel@4g-systems.biz
- *
- *      Release 0.02.
- *	Author: Florian Fainelli florian@openwrt.org
- *		use the Linux watchdog/timer APIs
- *
- *      The Watchdog is configured to reset the MTX-1
- *      if it is not triggered for 100 seconds.
- *      It should not be triggered more often than 1.6 seconds.
- *
- *      A timer triggers the watchdog every 5 seconds, until
- *      it is opened for the first time. After the first open
- *      it MUST be triggered every 2..95 seconds.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -75,9 +41,7 @@ static void mtx1_wdt_trigger(unsigned long unused)
 	spin_lock(&mtx1_wdt_device.lock);
 	if (mtx1_wdt_device.running)
 		ticks--;
-	/*
-	 * toggle GPIO2_15
-	 */
+	
 	tmp = au_readl(GPIO2_DIR);
 	tmp = (tmp & ~(1 << mtx1_wdt_device.gpio)) |
 	      ((~tmp) & (1 << mtx1_wdt_device.gpio));
@@ -124,7 +88,7 @@ static int mtx1_wdt_stop(void)
 	return 0;
 }
 
-/* Filesystem functions */
+
 
 static int mtx1_wdt_open(struct inode *inode, struct file *file)
 {
@@ -231,7 +195,7 @@ static int __devinit mtx1_wdt_probe(struct platform_device *pdev)
 
 static int __devexit mtx1_wdt_remove(struct platform_device *pdev)
 {
-	/* FIXME: do we need to lock this test ? */
+	
 	if (mtx1_wdt_device.queue) {
 		mtx1_wdt_device.queue = 0;
 		wait_for_completion(&mtx1_wdt_device.stop);

@@ -1,16 +1,4 @@
-/* arch/arm/plat-s3c64xx/irq-pm.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      Ben Dooks <ben@simtec.co.uk>
- *      http://armlinux.simtec.co.uk/
- *
- * S3C64XX - Interrupt handling Power Management
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/sysdev.h>
@@ -27,12 +15,7 @@
 #include <plat/cpu.h>
 #include <plat/pm.h>
 
-/* We handled all the IRQ types in this code, to save having to make several
- * small files to handle each different type separately. Having the EINT_GRP
- * code here shouldn't be as much bloat as the IRQ table space needed when
- * they are enabled. The added benefit is we ensure that these registers are
- * in the same state as we suspended.
- */
+
 
 static struct sleep_save irq_save[] = {
 	SAVE_ITEM(S3C64XX_PRIORITY),

@@ -1,14 +1,4 @@
-/* linux/arch/arm/mach-s3c2443/s3c2443.c
- *
- * Copyright (c) 2007 Simtec Electronics
- *   Ben Dooks <ben@simtec.co.uk>
- *
- * Samsung S3C2443 Mobile CPU support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -63,7 +53,7 @@ int __init s3c2443_init(void)
 
 	s3c_device_nand.name = "s3c2412-nand";
 
-	/* change WDT IRQ number */
+	
 	s3c_device_wdt.resource[1].start = IRQ_S3C2443_WDT;
 	s3c_device_wdt.resource[1].end   = IRQ_S3C2443_WDT;
 
@@ -75,22 +65,14 @@ void __init s3c2443_init_uarts(struct s3c2410_uartcfg *cfg, int no)
 	s3c24xx_init_uartdevs("s3c2440-uart", s3c2410_uart_resources, cfg, no);
 }
 
-/* s3c2443_map_io
- *
- * register the standard cpu IO areas, and any passed in from the
- * machine specific initialisation.
- */
+
 
 void __init s3c2443_map_io(void)
 {
 	iotable_init(s3c2443_iodesc, ARRAY_SIZE(s3c2443_iodesc));
 }
 
-/* need to register class before we actually register the device, and
- * we also need to ensure that it has been initialised before any of the
- * drivers even try to use it (even if not on an s3c2443 based system)
- * as a driver which may support both 2443 and 2440 may try and use it.
-*/
+
 
 static int __init s3c2443_core_init(void)
 {

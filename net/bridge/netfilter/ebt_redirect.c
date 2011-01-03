@@ -1,12 +1,4 @@
-/*
- *  ebt_redirect
- *
- *	Authors:
- *	Bart De Schuymer <bdschuym@pandora.be>
- *
- *  April, 2002
- *
- */
+
 #include <linux/module.h>
 #include <net/sock.h>
 #include "../br_private.h"

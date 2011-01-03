@@ -1,17 +1,4 @@
-/*
- *  dcdbas.h: Definitions for Dell Systems Management Base driver
- *
- *  Copyright (C) 1995-2005 Dell Inc.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License v2.0 as published by
- *  the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- */
+
 
 #ifndef _DCDBAS_H_
 #define _DCDBAS_H_
@@ -103,5 +90,5 @@ struct apm_cmd {
 
 int dcdbas_smi_request(struct smi_cmd *smi_cmd);
 
-#endif /* _DCDBAS_H_ */
+#endif 
 

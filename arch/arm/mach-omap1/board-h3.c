@@ -1,18 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-h3.c
- *
- * This file contains OMAP1710 H3 specific code.
- *
- * Copyright (C) 2004 Texas Instruments, Inc.
- * Copyright (C) 2002 MontaVista Software, Inc.
- * Copyright (C) 2001 RidgeRun, Inc.
- * Author: RidgeRun, Inc.
- *         Greg Lonnon (glonnon@ridgerun.com) or info@ridgerun.com
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -50,7 +36,7 @@
 
 #include "board-h3.h"
 
-/* In OMAP1710 H3 the Ethernet is directly connected to CS1 */
+
 #define OMAP1710_ETHR_START		0x04000300
 
 #define H3_TS_GPIO	48
@@ -96,28 +82,28 @@ static int h3_keymap[] = {
 
 
 static struct mtd_partition nor_partitions[] = {
-	/* bootloader (U-Boot, etc) in first sector */
+	
 	{
 	      .name		= "bootloader",
 	      .offset		= 0,
 	      .size		= SZ_128K,
-	      .mask_flags	= MTD_WRITEABLE, /* force read-only */
+	      .mask_flags	= MTD_WRITEABLE, 
 	},
-	/* bootloader params in the next sector */
+	
 	{
 	      .name		= "params",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_128K,
 	      .mask_flags	= 0,
 	},
-	/* kernel */
+	
 	{
 	      .name		= "kernel",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_2M,
 	      .mask_flags	= 0
 	},
-	/* file system */
+	
 	{
 	      .name		= "filesystem",
 	      .offset		= MTDPART_OFS_APPEND,
@@ -134,7 +120,7 @@ static struct flash_platform_data nor_data = {
 };
 
 static struct resource nor_resource = {
-	/* This is on CS3, wherever it's mapped */
+	
 	.flags		= IORESOURCE_MEM,
 };
 
@@ -150,18 +136,18 @@ static struct platform_device nor_device = {
 
 static struct mtd_partition nand_partitions[] = {
 #if 0
-	/* REVISIT: enable these partitions if you make NAND BOOT work */
+	
 	{
 		.name		= "xloader",
 		.offset		= 0,
 		.size		= 64 * 1024,
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "bootloader",
 		.offset		= MTDPART_OFS_APPEND,
 		.size		= 256 * 1024,
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "params",
@@ -181,7 +167,7 @@ static struct mtd_partition nand_partitions[] = {
 	},
 };
 
-/* dip switches control NAND chip access:  8 bit, 16 bit, or neither */
+
 static struct omap_nand_platform_data nand_data = {
 	.options	= NAND_SAMSUNG_LP_OPTIONS,
 	.parts		= nand_partitions,
@@ -204,7 +190,7 @@ static struct platform_device nand_device = {
 
 static struct resource smc91x_resources[] = {
 	[0] = {
-		.start	= OMAP1710_ETHR_START,		/* Physical */
+		.start	= OMAP1710_ETHR_START,		
 		.end	= OMAP1710_ETHR_START + 0xf,
 		.flags	= IORESOURCE_MEM,
 	},
@@ -228,7 +214,7 @@ static struct platform_device smc91x_device = {
 
 static struct resource intlat_resources[] = {
 	[0] = {
-		.start  = GPTIMER_REGS(0),	      /* Physical */
+		.start  = GPTIMER_REGS(0),	      
 		.end    = GPTIMER_REGS(0) + GPTIMER_REGS_SIZE,
 		.flags  = IORESOURCE_MEM,
 	},
@@ -286,7 +272,7 @@ static struct spi_board_info h3_spi_board_info[] __initdata = {
 		.chip_select	= 0,
 		.irq		= OMAP_GPIO_IRQ(H3_TS_GPIO),
 		.max_speed_hz	= 16000000,
-		/* .platform_data	= &tsc_platform_data, */
+		
 	},
 };
 
@@ -300,14 +286,14 @@ static struct platform_device *devices[] __initdata = {
 };
 
 static struct omap_usb_config h3_usb_config __initdata = {
-	/* usb1 has a Mini-AB port and external isp1301 transceiver */
+	
 	.otg	    = 2,
 
 #ifdef CONFIG_USB_GADGET_OMAP
-	.hmc_mode       = 19,   /* 0:host(off) 1:dev|otg 2:disabled */
+	.hmc_mode       = 19,   
 #elif  defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-	/* NONSTANDARD CABLE NEEDED (B-to-Mini-B) */
-	.hmc_mode       = 20,   /* 1:dev|otg(off) 1:host 2:disabled */
+	
+	.hmc_mode       = 20,   
 #endif
 
 	.pins[1]	= 3,
@@ -324,7 +310,7 @@ static struct omap_board_config_kernel h3_config[] __initdata = {
 static struct i2c_board_info __initdata h3_i2c_board_info[] = {
        {
 		I2C_BOARD_INFO("tps65013", 0x48),
-               /* .irq         = OMAP_GPIO_IRQ(??), */
+               
        },
 	{
 		I2C_BOARD_INFO("isp1301_omap", 0x2d),
@@ -341,14 +327,7 @@ static int nand_dev_ready(struct omap_nand_platform_data *data)
 
 static void __init h3_init(void)
 {
-	/* Here we assume the NOR boot config:  NOR on CS3 (possibly swapped
-	 * to address 0 by a dip switch), NAND on CS2B.  The NAND driver will
-	 * notice whether a NAND chip is enabled at probe time.
-	 *
-	 * H3 support NAND-boot, with a dip switch to put NOR on CS2B and NAND
-	 * (which on H2 may be 16bit) on CS3.  Try detecting that in code here,
-	 * to avoid probing every possible flash configuration...
-	 */
+	
 	nor_resource.end = nor_resource.start = omap_cs3_phys();
 	nor_resource.end += SZ_32M - 1;
 
@@ -358,8 +337,8 @@ static void __init h3_init(void)
 		BUG();
 	nand_data.dev_ready = nand_dev_ready;
 
-	/* GPIO10 Func_MUX_CTRL reg bit 29:27, Configure V2 to mode1 as GPIO */
-	/* GPIO10 pullup/down register, Enable pullup on GPIO10 */
+	
+	
 	omap_cfg_reg(V2_1710_GPIO10);
 
 	platform_add_devices(devices, ARRAY_SIZE(devices));
@@ -397,7 +376,7 @@ static void __init h3_map_io(void)
 }
 
 MACHINE_START(OMAP_H3, "TI OMAP1710 H3 board")
-	/* Maintainer: Texas Instruments, Inc. */
+	
 	.phys_io	= 0xfff00000,
 	.io_pg_offst	= ((0xfef00000) >> 18) & 0xfffc,
 	.boot_params	= 0x10000100,

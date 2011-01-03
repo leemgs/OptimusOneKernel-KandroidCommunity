@@ -1,32 +1,12 @@
-/*
- *  mach-nomadik/include/mach/irqs.h
- *
- *  Copyright (C) ST Microelectronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #ifndef __ASM_ARCH_IRQS_H
 #define __ASM_ARCH_IRQS_H
 
 #include <mach/hardware.h>
 
-#define IRQ_VIC_START		0	/* first VIC interrupt is 0 */
+#define IRQ_VIC_START		0	
 
-/*
- * Interrupt numbers generic for all Nomadik Chip cuts
- */
+
 #define IRQ_WATCHDOG			0
 #define IRQ_SOFTINT			1
 #define IRQ_CRYPTO			2
@@ -68,15 +48,15 @@
 
 #define NOMADIK_SOC_NR_IRQS		64
 
-/* After chip-specific IRQ numbers we have the GPIO ones */
-#define NOMADIK_NR_GPIO			128 /* last 4 not wired to pins */
+
+#define NOMADIK_NR_GPIO			128 
 #define NOMADIK_GPIO_TO_IRQ(gpio)	((gpio) + NOMADIK_SOC_NR_IRQS)
 #define NOMADIK_IRQ_TO_GPIO(irq)	((irq) - NOMADIK_SOC_NR_IRQS)
 #define NR_IRQS				NOMADIK_GPIO_TO_IRQ(NOMADIK_NR_GPIO)
 
-/* Following two are used by entry_macro.S, to access our dual-vic */
+
 #define VIC_REG_IRQSR0		0
 #define VIC_REG_IRQSR1		0x20
 
-#endif /* __ASM_ARCH_IRQS_H */
+#endif 
 

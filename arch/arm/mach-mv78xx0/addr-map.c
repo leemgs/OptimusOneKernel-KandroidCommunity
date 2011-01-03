@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-mv78xx0/addr-map.c
- *
- * Address map functions for Marvell MV78xx0 SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -14,9 +6,7 @@
 #include <linux/io.h>
 #include "common.h"
 
-/*
- * Generic Address Decode Windows bit settings
- */
+
 #define TARGET_DDR		0
 #define TARGET_DEV_BUS		1
 #define TARGET_PCIE0		4
@@ -31,15 +21,11 @@
 #define ATTR_PCIE_IO(l)		(0xf0 & ~(0x10 << (l)))
 #define ATTR_PCIE_MEM(l)	(0xf8 & ~(0x10 << (l)))
 
-/*
- * Helpers to get DDR bank info
- */
+
 #define DDR_BASE_CS_OFF(n)	(0x0000 + ((n) << 3))
 #define DDR_SIZE_CS_OFF(n)	(0x0004 + ((n) << 3))
 
-/*
- * CPU Address Decode Windows registers
- */
+
 #define WIN0_OFF(n)		(BRIDGE_VIRT_BASE + 0x0000 + ((n) << 4))
 #define WIN8_OFF(n)		(BRIDGE_VIRT_BASE + 0x0900 + (((n) - 8) << 4))
 #define WIN_CTRL_OFF		0x0000
@@ -52,13 +38,7 @@ struct mbus_dram_target_info mv78xx0_mbus_dram_info;
 
 static void __init __iomem *win_cfg_base(int win)
 {
-	/*
-	 * Find the control register base address for this window.
-	 *
-	 * BRIDGE_VIRT_BASE points to the right (CPU0's or CPU1's)
-	 * MBUS bridge depending on which CPU core we're running on,
-	 * so we don't need to take that into account here.
-	 */
+	
 
 	return (void __iomem *)((win < 8) ? WIN0_OFF(win) : WIN8_OFF(win));
 }
@@ -97,9 +77,7 @@ void __init mv78xx0_setup_cpu_mbus(void)
 	int i;
 	int cs;
 
-	/*
-	 * First, disable and clear windows.
-	 */
+	
 	for (i = 0; i < 14; i++) {
 		addr = win_cfg_base(i);
 
@@ -111,9 +89,7 @@ void __init mv78xx0_setup_cpu_mbus(void)
 		}
 	}
 
-	/*
-	 * Setup MBUS dram target info.
-	 */
+	
 	mv78xx0_mbus_dram_info.mbus_dram_target_id = TARGET_DDR;
 
 	if (mv78xx0_core_index() == 0)
@@ -125,9 +101,7 @@ void __init mv78xx0_setup_cpu_mbus(void)
 		u32 base = readl(addr + DDR_BASE_CS_OFF(i));
 		u32 size = readl(addr + DDR_SIZE_CS_OFF(i));
 
-		/*
-		 * Chip select enabled?
-		 */
+		
 		if (size & 1) {
 			struct mbus_dram_window *w;
 

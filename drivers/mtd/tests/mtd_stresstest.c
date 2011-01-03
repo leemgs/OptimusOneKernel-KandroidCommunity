@@ -1,23 +1,4 @@
-/*
- * Copyright (C) 2006-2008 Nokia Corporation
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; see the file COPYING. If not, write to the Free Software
- * Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Test random reads, writes and erases on MTD device.
- *
- * Author: Adrian Hunter <ext-adrian.hunter@nokia.com>
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -69,7 +50,7 @@ again:
 		eb = simple_rand();
 	else
 		eb = (simple_rand() << 15) | simple_rand();
-	/* Read or write up 2 eraseblocks at a time - hence 'ebcnt - 1' */
+	
 	eb %= (ebcnt - 1);
 	if (bbt[eb])
 		goto again;
@@ -273,7 +254,7 @@ static int __init mtd_stresstest_init(void)
 	       (unsigned long long)mtd->size, mtd->erasesize,
 	       pgsize, ebcnt, pgcnt, mtd->oobsize);
 
-	/* Read or write up 2 eraseblocks at a time */
+	
 	bufsize = mtd->erasesize * 2;
 
 	err = -ENOMEM;
@@ -294,7 +275,7 @@ static int __init mtd_stresstest_init(void)
 	if (err)
 		goto out;
 
-	/* Do operations */
+	
 	printk(PRINT_PREF "doing operations\n");
 	for (op = 0; op < count; op++) {
 		if ((op & 1023) == 0)

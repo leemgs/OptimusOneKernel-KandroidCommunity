@@ -1,13 +1,4 @@
-/*
- *
- * arch/arm/mach-u300/padmux.h
- *
- *
- * Copyright (C) 2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * U300 PADMUX API
- * Author: Martin Persson <martin.persson@stericsson.com>
- */
+
 
 #ifndef __MACH_U300_PADMUX_H
 #define __MACH_U300_PADMUX_H
@@ -18,8 +9,8 @@ enum pmx_settings {
 };
 
 struct pmx_onmask {
-	u16 mask;		/* Mask bits */
-	u16 val;		/* Value when active */
+	u16 mask;		
+	u16 val;		
 };
 
 struct pmx {

@@ -1,13 +1,4 @@
-/*
- *  Copyright (C) 2004 IBM Corporation
- *
- *  Author: Serge Hallyn <serue@us.ibm.com>
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License as
- *  published by the Free Software Foundation, version 2 of the
- *  License.
- */
+
 
 #include <linux/module.h>
 #include <linux/uts.h>
@@ -25,11 +16,7 @@ static struct uts_namespace *create_uts_ns(void)
 	return uts_ns;
 }
 
-/*
- * Clone a new ns copying an original utsname, setting refcount to 1
- * @old_ns: namespace to clone
- * Return NULL on error (failure to kmalloc), new ns otherwise
- */
+
 static struct uts_namespace *clone_uts_ns(struct uts_namespace *old_ns)
 {
 	struct uts_namespace *ns;
@@ -44,12 +31,7 @@ static struct uts_namespace *clone_uts_ns(struct uts_namespace *old_ns)
 	return ns;
 }
 
-/*
- * Copy task tsk's utsname namespace, or clone it if flags
- * specifies CLONE_NEWUTS.  In latter case, changes to the
- * utsname of this process won't be seen by parent, and vice
- * versa.
- */
+
 struct uts_namespace *copy_utsname(unsigned long flags, struct uts_namespace *old_ns)
 {
 	struct uts_namespace *new_ns;

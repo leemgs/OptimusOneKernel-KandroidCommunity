@@ -1,27 +1,8 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- * Contains base driver definitions.
- */
 
-/**
- *  bfa_drv.h Linux driver data structures.
- */
+
+
+
 
 #ifndef __BFAD_DRV_H__
 #define __BFAD_DRV_H__
@@ -52,9 +33,7 @@
 
 #define BFAD_IRQ_FLAGS IRQF_SHARED
 
-/*
- * BFAD flags
- */
+
 #define BFAD_MSIX_ON				0x00000001
 #define BFAD_HAL_INIT_DONE			0x00000002
 #define BFAD_DRV_INIT_DONE			0x00000004
@@ -65,16 +44,12 @@
 
 #define BFAD_PORT_DELETE			0x00000001
 
-/*
- * BFAD related definition
- */
+
 #define SCSI_SCAN_DELAY		HZ
 #define BFAD_STOP_TIMEOUT	30
 #define BFAD_SUSPEND_TIMEOUT	BFAD_STOP_TIMEOUT
 
-/*
- * BFAD configuration parameter default values
- */
+
 #define BFAD_LUN_QUEUE_DEPTH 		32
 #define BFAD_IO_MAX_SGE 		SG_ALL
 
@@ -94,9 +69,7 @@ enum bfad_port_pvb_type {
 	BFAD_PORT_VF_VPORT = 3,
 };
 
-/*
- * PORT data structure
- */
+
 struct bfad_port_s {
 	struct list_head list_entry;
 	struct bfad_s         *bfad;
@@ -106,26 +79,22 @@ struct bfad_port_s {
 	u32        supported_fc4s;
 	u8		ipfc_flags;
 	enum bfad_port_pvb_type pvb_type;
-	struct bfad_im_port_s *im_port;	/* IM specific data */
-	struct bfad_tm_port_s *tm_port;	/* TM specific data */
-	struct bfad_ipfc_port_s *ipfc_port;	/* IPFC specific data */
+	struct bfad_im_port_s *im_port;	
+	struct bfad_tm_port_s *tm_port;	
+	struct bfad_ipfc_port_s *ipfc_port;	
 };
 
-/*
- * VPORT data structure
- */
+
 struct bfad_vport_s {
 	struct bfad_port_s     drv_port;
 	struct bfa_fcs_vport_s fcs_vport;
 	struct completion *comp_del;
 };
 
-/*
- * VF data structure
- */
+
 struct bfad_vf_s {
 	bfa_fcs_vf_t    fcs_vf;
-	struct bfad_port_s    base_port;	/* base port for vf */
+	struct bfad_port_s    base_port;	
 	struct bfad_s   *bfad;
 };
 
@@ -145,9 +114,7 @@ struct bfad_aen_file_s {
 	s32 app_id;
 };
 
-/*
- * BFAD (PCI function) data structure
- */
+
 struct bfad_s {
 	struct list_head list_entry;
 	struct bfa_s       bfa;
@@ -162,10 +129,10 @@ struct bfad_s {
 	struct completion suspend;
 	struct completion disable_comp;
 	bfa_boolean_t   disable_active;
-	struct bfad_port_s     pport;	/* physical port of the BFAD */
+	struct bfad_port_s     pport;	
 	struct bfa_meminfo_s meminfo;
 	struct bfa_iocfc_cfg_s   ioc_cfg;
-	u32        inst_no;	/* BFAD instance number */
+	u32        inst_no;	
 	u32        bfad_flags;
 	spinlock_t      bfad_lock;
 	struct bfad_cfg_param_s cfg_data;
@@ -175,9 +142,9 @@ struct bfad_s {
 	char            port_name[BFA_ADAPTER_SYM_NAME_LEN];
 	struct timer_list hal_tmo;
 	unsigned long   hs_start;
-	struct bfad_im_s *im;		/* IM specific data */
-	struct bfad_tm_s *tm;		/* TM specific data */
-	struct bfad_ipfc_s *ipfc;	/* IPFC specific data */
+	struct bfad_im_s *im;		
+	struct bfad_tm_s *tm;		
+	struct bfad_ipfc_s *ipfc;	
 	struct bfa_log_mod_s   log_data;
 	struct bfa_trc_mod_s  *trcmod;
 	struct bfa_log_mod_s  *logmod;
@@ -197,9 +164,7 @@ struct bfad_s {
 	struct kobject *lport_kobj;
 };
 
-/*
- * RPORT data structure
- */
+
 struct bfad_rport_s {
 	struct bfa_fcs_rport_s fcs_rport;
 };
@@ -237,10 +202,7 @@ struct bfad_hal_comp {
 	struct completion comp;
 };
 
-/*
- * Macro to obtain the immediate lower power
- * of two for the integer.
- */
+
 #define nextLowerInt(x)                         	\
 do {                                            	\
 	int j;                                  	\
@@ -292,4 +254,4 @@ extern int bfa_lun_queue_depth;
 extern int bfad_supported_fc4s;
 extern int bfa_linkup_delay;
 
-#endif /* __BFAD_DRV_H__ */
+#endif 

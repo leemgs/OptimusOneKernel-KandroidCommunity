@@ -1,12 +1,4 @@
-/*
- * Watchdog driver for the wm831x PMICs
- *
- * Copyright (C) 2009 Wolfson Microelectronics
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -37,11 +29,10 @@ static struct wm831x *wm831x;
 static unsigned int update_gpio;
 static unsigned int update_state;
 
-/* We can't use the sub-second values here but they're included
- * for completeness.  */
+
 static struct {
-	int time;  /* Seconds */
-	u16 val;   /* WDOG_TO value */
+	int time;  
+	u16 val;   
 } wm831x_wdt_cfgs[] = {
 	{  1, 2 },
 	{  2, 3 },
@@ -49,7 +40,7 @@ static struct {
 	{  8, 5 },
 	{ 16, 6 },
 	{ 32, 7 },
-	{ 33, 7 },  /* Actually 32.768s so include both, others round down */
+	{ 33, 7 },  
 };
 
 static int wm831x_wdt_set_timeout(struct wm831x *wm831x, u16 value)
@@ -196,11 +187,10 @@ static ssize_t wm831x_wdt_write(struct file *file,
 		wm831x_wdt_kick(wm831x);
 
 		if (!nowayout) {
-			/* In case it was set long ago */
+			
 			wm831x_wdt_expect_close = 0;
 
-			/* scan to see whether or not we got the magic
-			   character */
+			
 			for (i = 0; i != count; i++) {
 				char c;
 				if (get_user(c, data + i))
@@ -245,7 +235,7 @@ static long wm831x_wdt_ioctl(struct file *file, unsigned int cmd,
 
 		ret = -EINVAL;
 
-		/* Setting both simultaneously means at least one must fail */
+		
 		if (options == WDIOS_DISABLECARD)
 			ret = wm831x_wdt_start(wm831x);
 
@@ -333,7 +323,7 @@ static int __devinit wm831x_wdt_probe(struct platform_device *pdev)
 	if (reg & WM831X_WDOG_DEBUG)
 		dev_warn(wm831x->dev, "Watchdog is paused\n");
 
-	/* Apply any configuration */
+	
 	if (pdev->dev.parent->platform_data) {
 		chip_pdata = pdev->dev.parent->platform_data;
 		pdata = chip_pdata->watchdog;
@@ -369,7 +359,7 @@ static int __devinit wm831x_wdt_probe(struct platform_device *pdev)
 
 			update_gpio = pdata->update_gpio;
 
-			/* Make sure the watchdog takes hardware updates */
+			
 			reg |= WM831X_WDOG_RST_SRC;
 		}
 

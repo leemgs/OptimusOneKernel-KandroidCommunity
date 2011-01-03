@@ -1,21 +1,4 @@
-/*
- * Copyright (c) 2008, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Author: Lucy Liu <lucy.liu@intel.com>
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/netlink.h>
@@ -25,35 +8,15 @@
 #include <linux/rtnetlink.h>
 #include <net/sock.h>
 
-/**
- * Data Center Bridging (DCB) is a collection of Ethernet enhancements
- * intended to allow network traffic with differing requirements
- * (highly reliable, no drops vs. best effort vs. low latency) to operate
- * and co-exist on Ethernet.  Current DCB features are:
- *
- * Enhanced Transmission Selection (aka Priority Grouping [PG]) - provides a
- *   framework for assigning bandwidth guarantees to traffic classes.
- *
- * Priority-based Flow Control (PFC) - provides a flow control mechanism which
- *   can work independently for each 802.1p priority.
- *
- * Congestion Notification - provides a mechanism for end-to-end congestion
- *   control for protocols which do not have built-in congestion management.
- *
- * More information about the emerging standards for these Ethernet features
- * can be found at: http://www.ieee802.org/1/pages/dcbridges.html
- *
- * This file implements an rtnetlink interface to allow configuration of DCB
- * features for capable devices.
- */
+
 
 MODULE_AUTHOR("Lucy Liu, <lucy.liu@intel.com>");
 MODULE_DESCRIPTION("Data Center Bridging netlink interface");
 MODULE_LICENSE("GPL");
 
-/**************** DCB attribute policies *************************************/
 
-/* DCB netlink attributes policy */
+
+
 static struct nla_policy dcbnl_rtnl_policy[DCB_ATTR_MAX + 1] = {
 	[DCB_ATTR_IFNAME]      = {.type = NLA_NUL_STRING, .len = IFNAMSIZ - 1},
 	[DCB_ATTR_STATE]       = {.type = NLA_U8},
@@ -67,7 +30,7 @@ static struct nla_policy dcbnl_rtnl_policy[DCB_ATTR_MAX + 1] = {
 	[DCB_ATTR_APP]         = {.type = NLA_NESTED},
 };
 
-/* DCB priority flow control to User Priority nested attributes */
+
 static struct nla_policy dcbnl_pfc_up_nest[DCB_PFC_UP_ATTR_MAX + 1] = {
 	[DCB_PFC_UP_ATTR_0]   = {.type = NLA_U8},
 	[DCB_PFC_UP_ATTR_1]   = {.type = NLA_U8},
@@ -80,7 +43,7 @@ static struct nla_policy dcbnl_pfc_up_nest[DCB_PFC_UP_ATTR_MAX + 1] = {
 	[DCB_PFC_UP_ATTR_ALL] = {.type = NLA_FLAG},
 };
 
-/* DCB priority grouping nested attributes */
+
 static struct nla_policy dcbnl_pg_nest[DCB_PG_ATTR_MAX + 1] = {
 	[DCB_PG_ATTR_TC_0]      = {.type = NLA_NESTED},
 	[DCB_PG_ATTR_TC_1]      = {.type = NLA_NESTED},
@@ -102,7 +65,7 @@ static struct nla_policy dcbnl_pg_nest[DCB_PG_ATTR_MAX + 1] = {
 	[DCB_PG_ATTR_BW_ID_ALL] = {.type = NLA_FLAG},
 };
 
-/* DCB traffic class nested attributes. */
+
 static struct nla_policy dcbnl_tc_param_nest[DCB_TC_ATTR_PARAM_MAX + 1] = {
 	[DCB_TC_ATTR_PARAM_PGID]            = {.type = NLA_U8},
 	[DCB_TC_ATTR_PARAM_UP_MAPPING]      = {.type = NLA_U8},
@@ -111,7 +74,7 @@ static struct nla_policy dcbnl_tc_param_nest[DCB_TC_ATTR_PARAM_MAX + 1] = {
 	[DCB_TC_ATTR_PARAM_ALL]             = {.type = NLA_FLAG},
 };
 
-/* DCB capabilities nested attributes. */
+
 static struct nla_policy dcbnl_cap_nest[DCB_CAP_ATTR_MAX + 1] = {
 	[DCB_CAP_ATTR_ALL]     = {.type = NLA_FLAG},
 	[DCB_CAP_ATTR_PG]      = {.type = NLA_U8},
@@ -123,14 +86,14 @@ static struct nla_policy dcbnl_cap_nest[DCB_CAP_ATTR_MAX + 1] = {
 	[DCB_CAP_ATTR_BCN]     = {.type = NLA_U8},
 };
 
-/* DCB capabilities nested attributes. */
+
 static struct nla_policy dcbnl_numtcs_nest[DCB_NUMTCS_ATTR_MAX + 1] = {
 	[DCB_NUMTCS_ATTR_ALL]     = {.type = NLA_FLAG},
 	[DCB_NUMTCS_ATTR_PG]      = {.type = NLA_U8},
 	[DCB_NUMTCS_ATTR_PFC]     = {.type = NLA_U8},
 };
 
-/* DCB BCN nested attributes. */
+
 static struct nla_policy dcbnl_bcn_nest[DCB_BCN_ATTR_MAX + 1] = {
 	[DCB_BCN_ATTR_RP_0]         = {.type = NLA_U8},
 	[DCB_BCN_ATTR_RP_1]         = {.type = NLA_U8},
@@ -159,14 +122,14 @@ static struct nla_policy dcbnl_bcn_nest[DCB_BCN_ATTR_MAX + 1] = {
 	[DCB_BCN_ATTR_ALL]          = {.type = NLA_FLAG},
 };
 
-/* DCB APP nested attributes. */
+
 static struct nla_policy dcbnl_app_nest[DCB_APP_ATTR_MAX + 1] = {
 	[DCB_APP_ATTR_IDTYPE]       = {.type = NLA_U8},
 	[DCB_APP_ATTR_ID]           = {.type = NLA_U16},
 	[DCB_APP_ATTR_PRIORITY]     = {.type = NLA_U8},
 };
 
-/* standard netlink reply call */
+
 static int dcbnl_reply(u8 value, u8 event, u8 cmd, u8 attr, u32 pid,
                        u32 seq, u16 flags)
 {
@@ -190,7 +153,7 @@ static int dcbnl_reply(u8 value, u8 event, u8 cmd, u8 attr, u32 pid,
 	if (ret)
 		goto err;
 
-	/* end the message, assign the nlmsg_len. */
+	
 	nlmsg_end(dcbnl_skb, nlh);
 	ret = rtnl_unicast(dcbnl_skb, &init_net, pid);
 	if (ret)
@@ -208,7 +171,7 @@ static int dcbnl_getstate(struct net_device *netdev, struct nlattr **tb,
 {
 	int ret = -EINVAL;
 
-	/* if (!tb[DCB_ATTR_STATE] || !netdev->dcbnl_ops->getstate) */
+	
 	if (!netdev->dcbnl_ops->getstate)
 		return ret;
 
@@ -564,12 +527,12 @@ static int dcbnl_getapp(struct net_device *netdev, struct nlattr **tb,
 		goto out;
 
 	ret = -EINVAL;
-	/* all must be non-null */
+	
 	if ((!app_tb[DCB_APP_ATTR_IDTYPE]) ||
 	    (!app_tb[DCB_APP_ATTR_ID]))
 		goto out;
 
-	/* either by eth type or by socket number */
+	
 	idtype = nla_get_u8(app_tb[DCB_APP_ATTR_IDTYPE]);
 	if ((idtype != DCB_APP_IDTYPE_ETHTYPE) &&
 	    (idtype != DCB_APP_IDTYPE_PORTNUM))
@@ -578,7 +541,7 @@ static int dcbnl_getapp(struct net_device *netdev, struct nlattr **tb,
 	id = nla_get_u16(app_tb[DCB_APP_ATTR_ID]);
 	up = netdev->dcbnl_ops->getapp(netdev, idtype, id);
 
-	/* send this back */
+	
 	dcbnl_skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
 	if (!dcbnl_skb)
 		goto out;
@@ -635,13 +598,13 @@ static int dcbnl_setapp(struct net_device *netdev, struct nlattr **tb,
 		goto out;
 
 	ret = -EINVAL;
-	/* all must be non-null */
+	
 	if ((!app_tb[DCB_APP_ATTR_IDTYPE]) ||
 	    (!app_tb[DCB_APP_ATTR_ID]) ||
 	    (!app_tb[DCB_APP_ATTR_PRIORITY]))
 		goto out;
 
-	/* either by eth type or by socket number */
+	
 	idtype = nla_get_u8(app_tb[DCB_APP_ATTR_IDTYPE]);
 	if ((idtype != DCB_APP_IDTYPE_ETHTYPE) &&
 	    (idtype != DCB_APP_IDTYPE_PORTNUM))
@@ -724,12 +687,12 @@ static int __dcbnl_pg_getcfg(struct net_device *netdev, struct nlattr **tb,
 		up_map = DCB_ATTR_VALUE_UNDEFINED;
 
 		if (dir) {
-			/* Rx */
+			
 			netdev->dcbnl_ops->getpgtccfgrx(netdev,
 						i - DCB_PG_ATTR_TC_0, &prio,
 						&pgid, &tc_pct, &up_map);
 		} else {
-			/* Tx */
+			
 			netdev->dcbnl_ops->getpgtccfgtx(netdev,
 						i - DCB_PG_ATTR_TC_0, &prio,
 						&pgid, &tc_pct, &up_map);
@@ -778,11 +741,11 @@ static int __dcbnl_pg_getcfg(struct net_device *netdev, struct nlattr **tb,
 		tc_pct = DCB_ATTR_VALUE_UNDEFINED;
 
 		if (dir) {
-			/* Rx */
+			
 			netdev->dcbnl_ops->getpgbwgcfgrx(netdev,
 					i - DCB_PG_ATTR_BW_ID_0, &tc_pct);
 		} else {
-			/* Tx */
+			
 			netdev->dcbnl_ops->getpgbwgcfgtx(netdev,
 					i - DCB_PG_ATTR_BW_ID_0, &tc_pct);
 		}
@@ -941,14 +904,14 @@ static int __dcbnl_pg_setcfg(struct net_device *netdev, struct nlattr **tb,
 			up_map =
 			     nla_get_u8(param_tb[DCB_TC_ATTR_PARAM_UP_MAPPING]);
 
-		/* dir: Tx = 0, Rx = 1 */
+		
 		if (dir) {
-			/* Rx */
+			
 			netdev->dcbnl_ops->setpgtccfgrx(netdev,
 				i - DCB_PG_ATTR_TC_0,
 				prio, pgid, tc_pct, up_map);
 		} else {
-			/* Tx */
+			
 			netdev->dcbnl_ops->setpgtccfgtx(netdev,
 				i - DCB_PG_ATTR_TC_0,
 				prio, pgid, tc_pct, up_map);
@@ -961,13 +924,13 @@ static int __dcbnl_pg_setcfg(struct net_device *netdev, struct nlattr **tb,
 
 		tc_pct = nla_get_u8(pg_tb[i]);
 
-		/* dir: Tx = 0, Rx = 1 */
+		
 		if (dir) {
-			/* Rx */
+			
 			netdev->dcbnl_ops->setpgbwgcfgrx(netdev,
 					 i - DCB_PG_ATTR_BW_ID_0, tc_pct);
 		} else {
-			/* Tx */
+			
 			netdev->dcbnl_ops->setpgbwgcfgtx(netdev,
 					 i - DCB_PG_ATTR_BW_ID_0, tc_pct);
 		}

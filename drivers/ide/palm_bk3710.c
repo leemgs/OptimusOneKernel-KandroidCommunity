@@ -1,27 +1,4 @@
-/*
- * Palmchip bk3710 IDE controller
- *
- * Copyright (C) 2006 Texas Instruments.
- * Copyright (C) 2007 MontaVista Software, Inc., <source@mvista.com>
- *
- * ----------------------------------------------------------------------------
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * ----------------------------------------------------------------------------
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/module.h>
@@ -33,10 +10,10 @@
 #include <linux/clk.h>
 #include <linux/platform_device.h>
 
-/* Offset of the primary interface registers */
+
 #define IDE_PALM_ATA_PRI_REG_OFFSET 0x1F0
 
-/* Primary Control Offset */
+
 #define IDE_PALM_ATA_PRI_CTL_OFFSET 0x3F6
 
 #define BK3710_BMICP		0x00
@@ -57,21 +34,21 @@
 #define BK3710_UDMAENV		0x74
 #define BK3710_IORDYTMP		0x78
 
-static unsigned ideclk_period; /* in nanoseconds */
+static unsigned ideclk_period; 
 
 struct palm_bk3710_udmatiming {
-	unsigned int rptime;	/* tRP -- Ready to pause time (nsec) */
-	unsigned int cycletime;	/* tCYCTYP2/2 -- avg Cycle Time (nsec) */
-				/* tENV is always a minimum of 20 nsec */
+	unsigned int rptime;	
+	unsigned int cycletime;	
+				
 };
 
 static const struct palm_bk3710_udmatiming palm_bk3710_udmatimings[6] = {
-	{ 160, 240 / 2 },	/* UDMA Mode 0 */
-	{ 125, 160 / 2 },	/* UDMA Mode 1 */
-	{ 100, 120 / 2 },	/* UDMA Mode 2 */
-	{ 100,  90 / 2 },	/* UDMA Mode 3 */
-	{ 100,  60 / 2 },	/* UDMA Mode 4 */
-	{  85,  40 / 2 },	/* UDMA Mode 5 */
+	{ 160, 240 / 2 },	
+	{ 125, 160 / 2 },	
+	{ 100, 120 / 2 },	
+	{ 100,  90 / 2 },	
+	{ 100,  60 / 2 },	
+	{  85,  40 / 2 },	
 };
 
 static void palm_bk3710_setudmamode(void __iomem *base, unsigned int dev,
@@ -81,29 +58,29 @@ static void palm_bk3710_setudmamode(void __iomem *base, unsigned int dev,
 	u32 val32;
 	u16 val16;
 
-	/* DMA Data Setup */
+	
 	t0 = DIV_ROUND_UP(palm_bk3710_udmatimings[mode].cycletime,
 			  ideclk_period) - 1;
 	tenv = DIV_ROUND_UP(20, ideclk_period) - 1;
 	trp = DIV_ROUND_UP(palm_bk3710_udmatimings[mode].rptime,
 			   ideclk_period) - 1;
 
-	/* udmastb Ultra DMA Access Strobe Width */
+	
 	val32 = readl(base + BK3710_UDMASTB) & (0xFF << (dev ? 0 : 8));
 	val32 |= (t0 << (dev ? 8 : 0));
 	writel(val32, base + BK3710_UDMASTB);
 
-	/* udmatrp Ultra DMA Ready to Pause Time */
+	
 	val32 = readl(base + BK3710_UDMATRP) & (0xFF << (dev ? 0 : 8));
 	val32 |= (trp << (dev ? 8 : 0));
 	writel(val32, base + BK3710_UDMATRP);
 
-	/* udmaenv Ultra DMA envelop Time */
+	
 	val32 = readl(base + BK3710_UDMAENV) & (0xFF << (dev ? 0 : 8));
 	val32 |= (tenv << (dev ? 8 : 0));
 	writel(val32, base + BK3710_UDMAENV);
 
-	/* Enable UDMA for Device */
+	
 	val16 = readw(base + BK3710_UDMACTL) | (1 << dev);
 	writew(val16, base + BK3710_UDMACTL);
 }
@@ -121,7 +98,7 @@ static void palm_bk3710_setdmamode(void __iomem *base, unsigned int dev,
 	t = ide_timing_find_mode(mode);
 	cycletime = max_t(int, t->cycle, min_cycle);
 
-	/* DMA Data Setup */
+	
 	t0 = DIV_ROUND_UP(cycletime, ideclk_period);
 	td = DIV_ROUND_UP(t->active, ideclk_period);
 	tkw = t0 - td - 1;
@@ -135,7 +112,7 @@ static void palm_bk3710_setdmamode(void __iomem *base, unsigned int dev,
 	val32 |= (tkw << (dev ? 8 : 0));
 	writel(val32, base + BK3710_DMARCVR);
 
-	/* Disable UDMA for Device */
+	
 	val16 = readw(base + BK3710_UDMACTL) & ~(1 << dev);
 	writew(val16, base + BK3710_UDMACTL);
 }
@@ -150,7 +127,7 @@ static void palm_bk3710_setpiomode(void __iomem *base, ide_drive_t *mate,
 
 	t = ide_timing_find_mode(XFER_PIO_0 + mode);
 
-	/* PIO Data Setup */
+	
 	t0 = DIV_ROUND_UP(cycletime, ideclk_period);
 	t2 = DIV_ROUND_UP(t->active, ideclk_period);
 
@@ -172,7 +149,7 @@ static void palm_bk3710_setpiomode(void __iomem *base, ide_drive_t *mate,
 			mode = mode2;
 	}
 
-	/* TASKFILE Setup */
+	
 	t0 = DIV_ROUND_UP(t->cyc8b, ideclk_period);
 	t2 = DIV_ROUND_UP(t->act8b, ideclk_period);
 
@@ -210,9 +187,7 @@ static void palm_bk3710_set_pio_mode(ide_drive_t *drive, u8 pio)
 	ide_drive_t *mate;
 	void __iomem *base = (void *)drive->hwif->dma_base;
 
-	/*
-	 * Obtain the drive PIO data for tuning the Palm Chip registers
-	 */
+	
 	cycle_time = ide_pio_cycle_time(drive, pio);
 	mate = ide_get_pair_dev(drive);
 	palm_bk3710_setpiomode(base, mate, is_slave, cycle_time, pio);
@@ -220,55 +195,21 @@ static void palm_bk3710_set_pio_mode(ide_drive_t *drive, u8 pio)
 
 static void __devinit palm_bk3710_chipinit(void __iomem *base)
 {
-	/*
-	 * REVISIT:  the ATA reset signal needs to be managed through a
-	 * GPIO, which means it should come from platform_data.  Until
-	 * we get and use such information, we have to trust that things
-	 * have been reset before we get here.
-	 */
+	
 
-	/*
-	 * Program the IDETIMP Register Value based on the following assumptions
-	 *
-	 * (ATA_IDETIMP_IDEEN		, ENABLE ) |
-	 * (ATA_IDETIMP_PREPOST1	, DISABLE) |
-	 * (ATA_IDETIMP_PREPOST0	, DISABLE) |
-	 *
-	 * DM6446 silicon rev 2.1 and earlier have no observed net benefit
-	 * from enabling prefetch/postwrite.
-	 */
+	
 	writew(BIT(15), base + BK3710_IDETIMP);
 
-	/*
-	 * UDMACTL Ultra-ATA DMA Control
-	 * (ATA_UDMACTL_UDMAP1	, 0 ) |
-	 * (ATA_UDMACTL_UDMAP0	, 0 )
-	 *
-	 */
+	
 	writew(0, base + BK3710_UDMACTL);
 
-	/*
-	 * MISCCTL Miscellaneous Conrol Register
-	 * (ATA_MISCCTL_HWNHLD1P	, 1 cycle)
-	 * (ATA_MISCCTL_HWNHLD0P	, 1 cycle)
-	 * (ATA_MISCCTL_TIMORIDE	, 1)
-	 */
+	
 	writel(0x001, base + BK3710_MISCCTL);
 
-	/*
-	 * IORDYTMP IORDY Timer for Primary Register
-	 * (ATA_IORDYTMP_IORDYTMP     , 0xffff  )
-	 */
+	
 	writel(0xFFFF, base + BK3710_IORDYTMP);
 
-	/*
-	 * Configure BMISP Register
-	 * (ATA_BMISP_DMAEN1	, DISABLE )	|
-	 * (ATA_BMISP_DMAEN0	, DISABLE )	|
-	 * (ATA_BMISP_IORDYINT	, CLEAR)	|
-	 * (ATA_BMISP_INTRSTAT	, CLEAR)	|
-	 * (ATA_BMISP_DMAERROR	, CLEAR)
-	 */
+	
 	writew(0, base + BK3710_BMISP);
 
 	palm_bk3710_setpiomode(base, NULL, 0, 600, 0);
@@ -325,7 +266,7 @@ static int __init palm_bk3710_probe(struct platform_device *pdev)
 	clk_enable(clk);
 	rate = clk_get_rate(clk);
 
-	/* NOTE:  round *down* to meet minimum timings; we count in clocks */
+	
 	ideclk_period = 1000000000UL / rate;
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -353,7 +294,7 @@ static int __init palm_bk3710_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	/* Configure the Palm Chip controller */
+	
 	palm_bk3710_chipinit(base);
 
 	memset(&hw, 0, sizeof(hw));
@@ -368,7 +309,7 @@ static int __init palm_bk3710_probe(struct platform_device *pdev)
 	palm_bk3710_port_info.udma_mask = rate < 100000000 ? ATA_UDMA4 :
 							     ATA_UDMA5;
 
-	/* Register the IDE interface with Linux */
+	
 	rc = ide_host_add(&palm_bk3710_port_info, hws, 1, NULL);
 	if (rc)
 		goto out;
@@ -379,7 +320,7 @@ out:
 	return rc;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:palm_bk3710");
 
 static struct platform_driver platform_bk_driver = {

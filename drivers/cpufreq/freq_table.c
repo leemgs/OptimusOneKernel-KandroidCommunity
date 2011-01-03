@@ -1,13 +1,4 @@
-/*
- * linux/drivers/cpufreq/freq_table.c
- *
- * Copyright (C) 2002 - 2003 Dominik Brodowski
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -17,9 +8,7 @@
 #define dprintk(msg...) \
 	cpufreq_debug_printk(CPUFREQ_DEBUG_CORE, "freq-table", msg)
 
-/*********************************************************************
- *                     FREQUENCY TABLE HELPERS                       *
- *********************************************************************/
+
 
 int cpufreq_frequency_table_cpuinfo(struct cpufreq_policy *policy,
 				    struct cpufreq_frequency_table *table)
@@ -175,9 +164,7 @@ int cpufreq_frequency_table_target(struct cpufreq_policy *policy,
 EXPORT_SYMBOL_GPL(cpufreq_frequency_table_target);
 
 static DEFINE_PER_CPU(struct cpufreq_frequency_table *, show_table);
-/**
- * show_available_freqs - show available frequencies for the specified CPU
- */
+
 static ssize_t show_available_freqs(struct cpufreq_policy *policy, char *buf)
 {
 	unsigned int i = 0;
@@ -209,10 +196,7 @@ struct freq_attr cpufreq_freq_attr_scaling_available_freqs = {
 };
 EXPORT_SYMBOL_GPL(cpufreq_freq_attr_scaling_available_freqs);
 
-/*
- * if you use these, you must assure that the frequency table is valid
- * all the time between get_attr and put_attr!
- */
+
 void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
 				      unsigned int cpu)
 {

@@ -1,15 +1,4 @@
-/*
- * Intel 5100 Memory Controllers kernel module
- *
- * This file may be distributed under the terms of the
- * GNU General Public License.
- *
- * This module is based on the following document:
- *
- * Intel 5100X Chipset Memory Controller Hub (MCH) - Datasheet
- *      http://download.intel.com/design/chipsets/datashts/318378.pdf
- *
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/pci.h>
@@ -21,19 +10,19 @@
 
 #include "edac_core.h"
 
-/* register addresses */
 
-/* device 16, func 1 */
-#define I5100_MC		0x40	/* Memory Control Register */
-#define I5100_MS		0x44	/* Memory Status Register */
-#define I5100_SPDDATA		0x48	/* Serial Presence Detect Status Reg */
-#define I5100_SPDCMD		0x4c	/* Serial Presence Detect Command Reg */
-#define I5100_TOLM		0x6c	/* Top of Low Memory */
-#define I5100_MIR0		0x80	/* Memory Interleave Range 0 */
-#define I5100_MIR1		0x84	/* Memory Interleave Range 1 */
-#define I5100_AMIR_0		0x8c	/* Adjusted Memory Interleave Range 0 */
-#define I5100_AMIR_1		0x90	/* Adjusted Memory Interleave Range 1 */
-#define I5100_FERR_NF_MEM	0xa0	/* MC First Non Fatal Errors */
+
+
+#define I5100_MC		0x40	
+#define I5100_MS		0x44	
+#define I5100_SPDDATA		0x48	
+#define I5100_SPDCMD		0x4c	
+#define I5100_TOLM		0x6c	
+#define I5100_MIR0		0x80	
+#define I5100_MIR1		0x84	
+#define I5100_AMIR_0		0x8c	
+#define I5100_AMIR_1		0x90	
+#define I5100_FERR_NF_MEM	0xa0	
 #define		I5100_FERR_NF_MEM_M16ERR_MASK	(1 << 16)
 #define		I5100_FERR_NF_MEM_M15ERR_MASK	(1 << 15)
 #define		I5100_FERR_NF_MEM_M14ERR_MASK	(1 << 14)
@@ -55,22 +44,22 @@
 			I5100_FERR_NF_MEM_M5ERR_MASK | \
 			I5100_FERR_NF_MEM_M4ERR_MASK | \
 			I5100_FERR_NF_MEM_M1ERR_MASK)
-#define	I5100_NERR_NF_MEM	0xa4	/* MC Next Non-Fatal Errors */
-#define I5100_EMASK_MEM		0xa8	/* MC Error Mask Register */
+#define	I5100_NERR_NF_MEM	0xa4	
+#define I5100_EMASK_MEM		0xa8	
 
-/* device 21 and 22, func 0 */
-#define I5100_MTR_0	0x154	/* Memory Technology Registers 0-3 */
-#define I5100_DMIR	0x15c	/* DIMM Interleave Range */
-#define	I5100_VALIDLOG	0x18c	/* Valid Log Markers */
-#define	I5100_NRECMEMA	0x190	/* Non-Recoverable Memory Error Log Reg A */
-#define	I5100_NRECMEMB	0x194	/* Non-Recoverable Memory Error Log Reg B */
-#define	I5100_REDMEMA	0x198	/* Recoverable Memory Data Error Log Reg A */
-#define	I5100_REDMEMB	0x19c	/* Recoverable Memory Data Error Log Reg B */
-#define	I5100_RECMEMA	0x1a0	/* Recoverable Memory Error Log Reg A */
-#define	I5100_RECMEMB	0x1a4	/* Recoverable Memory Error Log Reg B */
-#define I5100_MTR_4	0x1b0	/* Memory Technology Registers 4,5 */
 
-/* bit field accessors */
+#define I5100_MTR_0	0x154	
+#define I5100_DMIR	0x15c	
+#define	I5100_VALIDLOG	0x18c	
+#define	I5100_NRECMEMA	0x190	
+#define	I5100_NRECMEMB	0x194	
+#define	I5100_REDMEMA	0x198	
+#define	I5100_REDMEMB	0x19c	
+#define	I5100_RECMEMA	0x1a0	
+#define	I5100_RECMEMB	0x1a4	
+#define I5100_MTR_4	0x1b0	
+
+
 
 static inline u32 i5100_mc_errdeten(u32 mc)
 {
@@ -264,63 +253,56 @@ static inline u32 i5100_recmemb_ras(u32 a)
 	return i5100_nrecmemb_ras(a);
 }
 
-/* some generic limits */
+
 #define I5100_MAX_RANKS_PER_CTLR	6
 #define I5100_MAX_CTLRS			2
 #define I5100_MAX_RANKS_PER_DIMM	4
-#define I5100_DIMM_ADDR_LINES		(6 - 3)	/* 64 bits / 8 bits per byte */
+#define I5100_DIMM_ADDR_LINES		(6 - 3)	
 #define I5100_MAX_DIMM_SLOTS_PER_CTLR	4
 #define I5100_MAX_RANK_INTERLEAVE	4
 #define I5100_MAX_DMIRS			5
 
 struct i5100_priv {
-	/* ranks on each dimm -- 0 maps to not present -- obtained via SPD */
+	
 	int dimm_numrank[I5100_MAX_CTLRS][I5100_MAX_DIMM_SLOTS_PER_CTLR];
 
-	/*
-	 * mainboard chip select map -- maps i5100 chip selects to
-	 * DIMM slot chip selects.  In the case of only 4 ranks per
-	 * controller, the mapping is fairly obvious but not unique.
-	 * we map -1 -> NC and assume both controllers use the same
-	 * map...
-	 *
-	 */
+	
 	int dimm_csmap[I5100_MAX_DIMM_SLOTS_PER_CTLR][I5100_MAX_RANKS_PER_DIMM];
 
-	/* memory interleave range */
+	
 	struct {
 		u64	 limit;
 		unsigned way[2];
 	} mir[I5100_MAX_CTLRS];
 
-	/* adjusted memory interleave range register */
+	
 	unsigned amir[I5100_MAX_CTLRS];
 
-	/* dimm interleave range */
+	
 	struct {
 		unsigned rank[I5100_MAX_RANK_INTERLEAVE];
 		u64	 limit;
 	} dmir[I5100_MAX_CTLRS][I5100_MAX_DMIRS];
 
-	/* memory technology registers... */
+	
 	struct {
-		unsigned present;	/* 0 or 1 */
-		unsigned ethrottle;	/* 0 or 1 */
-		unsigned width;		/* 4 or 8 bits  */
-		unsigned numbank;	/* 2 or 3 lines */
-		unsigned numrow;	/* 13 .. 16 lines */
-		unsigned numcol;	/* 11 .. 12 lines */
+		unsigned present;	
+		unsigned ethrottle;	
+		unsigned width;		
+		unsigned numbank;	
+		unsigned numrow;	
+		unsigned numcol;	
 	} mtr[I5100_MAX_CTLRS][I5100_MAX_RANKS_PER_CTLR];
 
-	u64 tolm;		/* top of low memory in bytes */
-	unsigned ranksperctlr;	/* number of ranks per controller */
+	u64 tolm;		
+	unsigned ranksperctlr;	
 
-	struct pci_dev *mc;	/* device 16 func 1 */
-	struct pci_dev *ch0mm;	/* device 21 func 0 */
-	struct pci_dev *ch1mm;	/* device 22 func 0 */
+	struct pci_dev *mc;	
+	struct pci_dev *ch0mm;	
+	struct pci_dev *ch1mm;	
 };
 
-/* map a rank/ctlr to a slot number on the mainboard */
+
 static int i5100_rank_to_slot(const struct mem_ctl_info *mci,
 			      int ctlr, int rank)
 {
@@ -342,28 +324,28 @@ static int i5100_rank_to_slot(const struct mem_ctl_info *mci,
 static const char *i5100_err_msg(unsigned err)
 {
 	static const char *merrs[] = {
-		"unknown", /* 0 */
-		"uncorrectable data ECC on replay", /* 1 */
-		"unknown", /* 2 */
-		"unknown", /* 3 */
-		"aliased uncorrectable demand data ECC", /* 4 */
-		"aliased uncorrectable spare-copy data ECC", /* 5 */
-		"aliased uncorrectable patrol data ECC", /* 6 */
-		"unknown", /* 7 */
-		"unknown", /* 8 */
-		"unknown", /* 9 */
-		"non-aliased uncorrectable demand data ECC", /* 10 */
-		"non-aliased uncorrectable spare-copy data ECC", /* 11 */
-		"non-aliased uncorrectable patrol data ECC", /* 12 */
-		"unknown", /* 13 */
-		"correctable demand data ECC", /* 14 */
-		"correctable spare-copy data ECC", /* 15 */
-		"correctable patrol data ECC", /* 16 */
-		"unknown", /* 17 */
-		"SPD protocol error", /* 18 */
-		"unknown", /* 19 */
-		"spare copy initiated", /* 20 */
-		"spare copy completed", /* 21 */
+		"unknown", 
+		"uncorrectable data ECC on replay", 
+		"unknown", 
+		"unknown", 
+		"aliased uncorrectable demand data ECC", 
+		"aliased uncorrectable spare-copy data ECC", 
+		"aliased uncorrectable patrol data ECC", 
+		"unknown", 
+		"unknown", 
+		"unknown", 
+		"non-aliased uncorrectable demand data ECC", 
+		"non-aliased uncorrectable spare-copy data ECC", 
+		"non-aliased uncorrectable patrol data ECC", 
+		"unknown", 
+		"correctable demand data ECC", 
+		"correctable spare-copy data ECC", 
+		"correctable patrol data ECC", 
+		"unknown", 
+		"SPD protocol error", 
+		"unknown", 
+		"spare copy initiated", 
+		"spare copy completed", 
 	};
 	unsigned i;
 
@@ -374,7 +356,7 @@ static const char *i5100_err_msg(unsigned err)
 	return "none";
 }
 
-/* convert csrow index into a rank (per controller -- 0..5) */
+
 static int i5100_csrow_to_rank(const struct mem_ctl_info *mci, int csrow)
 {
 	const struct i5100_priv *priv = mci->pvt_info;
@@ -382,7 +364,7 @@ static int i5100_csrow_to_rank(const struct mem_ctl_info *mci, int csrow)
 	return csrow % priv->ranksperctlr;
 }
 
-/* convert csrow index into a controller (0..1) */
+
 static int i5100_csrow_to_cntlr(const struct mem_ctl_info *mci, int csrow)
 {
 	const struct i5100_priv *priv = mci->pvt_info;
@@ -477,8 +459,7 @@ static void i5100_read_log(struct mem_ctl_info *mci, int ctlr,
 		cas = i5100_recmemb_cas(dw2);
 		ras = i5100_recmemb_ras(dw2);
 
-		/* FIXME:  not really sure if this is what merr is...
-		 */
+		
 		if (!merr)
 			msg = i5100_err_msg(ferr);
 		else
@@ -499,8 +480,7 @@ static void i5100_read_log(struct mem_ctl_info *mci, int ctlr,
 		cas = i5100_nrecmemb_cas(dw2);
 		ras = i5100_nrecmemb_ras(dw2);
 
-		/* FIXME:  not really sure if this is what merr is...
-		 */
+		
 		if (!merr)
 			msg = i5100_err_msg(ferr);
 		else
@@ -561,7 +541,7 @@ static unsigned long __devinit i5100_npages(struct mem_ctl_info *mci,
 	const unsigned ctlr = i5100_csrow_to_cntlr(mci, csrow);
 	unsigned addr_lines;
 
-	/* dimm present? */
+	
 	if (!priv->mtr[ctlr][ctlr_rank].present)
 		return 0ULL;
 
@@ -603,10 +583,7 @@ static void __devinit i5100_init_mtr(struct mem_ctl_info *mci)
 	}
 }
 
-/*
- * FIXME: make this into a real i2c adapter (so that dimm-decode
- * will work)?
- */
+
 static int i5100_read_spd_byte(const struct mem_ctl_info *mci,
 			       u8 ch, u8 slot, u8 addr, u8 *byte)
 {
@@ -622,7 +599,7 @@ static int i5100_read_spd_byte(const struct mem_ctl_info *mci,
 			       i5100_spdcmd_create(0xa, 1, ch * 4 + slot, addr,
 						   0, 0));
 
-	/* wait up to 100ms */
+	
 	et = jiffies + HZ / 10;
 	udelay(100);
 	while (1) {
@@ -640,14 +617,7 @@ static int i5100_read_spd_byte(const struct mem_ctl_info *mci,
 	return 0;
 }
 
-/*
- * fill dimm chip select map
- *
- * FIXME:
- *   o only valid for 4 ranks per controller
- *   o not the only way to may chip selects to dimm slots
- *   o investigate if there is some way to obtain this map from the bios
- */
+
 static void __devinit i5100_init_dimm_csmap(struct mem_ctl_info *mci)
 {
 	struct i5100_priv *priv = mci->pvt_info;
@@ -659,10 +629,10 @@ static void __devinit i5100_init_dimm_csmap(struct mem_ctl_info *mci)
 		int j;
 
 		for (j = 0; j < I5100_MAX_RANKS_PER_DIMM; j++)
-			priv->dimm_csmap[i][j] = -1; /* default NC */
+			priv->dimm_csmap[i][j] = -1; 
 	}
 
-	/* only 2 chip selects per slot... */
+	
 	priv->dimm_csmap[0][0] = 0;
 	priv->dimm_csmap[0][1] = 3;
 	priv->dimm_csmap[1][0] = 1;
@@ -753,10 +723,7 @@ static void __devinit i5100_init_csrows(struct mem_ctl_info *mci)
 		if (!npages)
 			continue;
 
-		/*
-		 * FIXME: these two are totally bogus -- I don't see how to
-		 * map them correctly to this structure...
-		 */
+		
 		mci->csrows[i].first_page = total_pages;
 		mci->csrows[i].last_page = total_pages + npages - 1;
 		mci->csrows[i].page_mask = 0UL;
@@ -803,7 +770,7 @@ static int __devinit i5100_init_one(struct pci_dev *pdev,
 		goto bail;
 	}
 
-	/* ECC enabled? */
+	
 	pci_read_config_dword(pdev, I5100_MC, &dw);
 	if (!i5100_mc_errdeten(dw)) {
 		printk(KERN_INFO "i5100_edac: ECC not enabled.\n");
@@ -811,23 +778,23 @@ static int __devinit i5100_init_one(struct pci_dev *pdev,
 		goto bail_pdev;
 	}
 
-	/* figure out how many ranks, from strapped state of 48GB_Mode input */
+	
 	pci_read_config_dword(pdev, I5100_MS, &dw);
 	ranksperch = !!(dw & (1 << 8)) * 2 + 4;
 
 	if (ranksperch != 4) {
-		/* FIXME: get 6 ranks / controller to work - need hw... */
+		
 		printk(KERN_INFO "i5100_edac: unsupported configuration.\n");
 		ret = -ENODEV;
 		goto bail_pdev;
 	}
 
-	/* enable error reporting... */
+	
 	pci_read_config_dword(pdev, I5100_EMASK_MEM, &dw);
 	dw &= ~I5100_FERR_NF_MEM_ANY_MASK;
 	pci_write_config_dword(pdev, I5100_EMASK_MEM, dw);
 
-	/* device 21, func 0, Channel 0 Memory Map, Error Flag/Mask, etc... */
+	
 	ch0mm = pci_get_device_func(PCI_VENDOR_ID_INTEL,
 				    PCI_DEVICE_ID_INTEL_5100_21, 0);
 	if (!ch0mm) {
@@ -841,7 +808,7 @@ static int __devinit i5100_init_one(struct pci_dev *pdev,
 		goto bail_ch0;
 	}
 
-	/* device 22, func 0, Channel 1 Memory Map, Error Flag/Mask, etc... */
+	
 	ch1mm = pci_get_device_func(PCI_VENDOR_ID_INTEL,
 				    PCI_DEVICE_ID_INTEL_5100_22, 0);
 	if (!ch1mm) {
@@ -885,7 +852,7 @@ static int __devinit i5100_init_one(struct pci_dev *pdev,
 
 	i5100_init_csrows(mci);
 
-	/* this strange construction seems to be in every driver, dunno why */
+	
 	switch (edac_op_state) {
 	case EDAC_OPSTATE_POLL:
 	case EDAC_OPSTATE_NMI:
@@ -945,7 +912,7 @@ static void __devexit i5100_remove_one(struct pci_dev *pdev)
 }
 
 static const struct pci_device_id i5100_pci_tbl[] __devinitdata = {
-	/* Device 16, Function 0, Channel 0 Memory Map, Error Flag/Mask, ... */
+	
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5100_16) },
 	{ 0, }
 };

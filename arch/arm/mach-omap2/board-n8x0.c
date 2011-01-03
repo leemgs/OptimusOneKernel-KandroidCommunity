@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-n8x0.c
- *
- * Copyright (C) 2005-2009 Nokia Corporation
- * Author: Juha Yrjola <juha.yrjola@nokia.com>
- *
- * Modified from mach-omap2/board-generic.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/clk.h>
 #include <linux/delay.h>
@@ -53,7 +42,7 @@ static struct mtd_partition onenand_partitions[] = {
 		.name           = "bootloader",
 		.offset         = 0,
 		.size           = 0x20000,
-		.mask_flags     = MTD_WRITEABLE,	/* Force read-only */
+		.mask_flags     = MTD_WRITEABLE,	
 	},
 	{
 		.name           = "config",
@@ -111,7 +100,7 @@ static void __init n8x0_init_irq(void)
 
 static void __init n8x0_init_machine(void)
 {
-	/* FIXME: add n810 spi devices */
+	
 	spi_register_board_info(n800_spi_board_info,
 				ARRAY_SIZE(n800_spi_board_info));
 

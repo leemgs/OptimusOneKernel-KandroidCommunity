@@ -1,9 +1,4 @@
-/*
- *  drivers/s390/cio/chp.h
- *
- *    Copyright IBM Corp. 2007
- *    Author(s): Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
- */
+
 
 #ifndef S390_CHP_H
 #define S390_CHP_H S390_CHP_H
@@ -43,7 +38,7 @@ struct channel_path {
 	struct chp_id chpid;
 	int state;
 	struct channel_path_desc desc;
-	/* Channel-measurement related stuff: */
+	
 	int cmg;
 	int shared;
 	void *cmg_chars;
@@ -61,4 +56,4 @@ void chp_cfg_schedule(struct chp_id chpid, int configure);
 void chp_cfg_cancel_deconfigure(struct chp_id chpid);
 int chp_info_get_status(struct chp_id chpid);
 int chp_ssd_get_mask(struct chsc_ssd_info *, struct chp_link *);
-#endif /* S390_CHP_H */
+#endif 

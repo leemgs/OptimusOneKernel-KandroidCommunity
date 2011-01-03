@@ -1,22 +1,9 @@
-/* DVB USB compliant linux driver for mobile DVB-T USB devices based on
- * reference designs made by DiBcom (http://www.dibcom.fr/) (DiB3000M-C/P)
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- * based on GPL code from DiBcom, which has
- * Copyright (C) 2004 Amaury Demol for DiBcom (ademol@dibcom.fr)
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "dibusb.h"
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
-/* USB Driver stuff */
+
 static struct dvb_usb_device_properties dibusb_mc_properties;
 
 static int dibusb_mc_probe(struct usb_interface *intf,
@@ -26,25 +13,25 @@ static int dibusb_mc_probe(struct usb_interface *intf,
 				   NULL, adapter_nr);
 }
 
-/* do not change the order of the ID table */
+
 static struct usb_device_id dibusb_dib3000mc_table [] = {
-/* 00 */	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3001_COLD) },
-/* 01 */	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3001_WARM) },
-/* 02 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_COLD) },
-/* 03 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_WARM) }, // ( ? )
-/* 04 */	{ USB_DEVICE(USB_VID_LITEON,		USB_PID_LITEON_DVB_T_COLD) },
-/* 05 */	{ USB_DEVICE(USB_VID_LITEON,		USB_PID_LITEON_DVB_T_WARM) },
-/* 06 */	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_DIGIVOX_MINI_SL_COLD) },
-/* 07 */	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_DIGIVOX_MINI_SL_WARM) },
-/* 08 */	{ USB_DEVICE(USB_VID_GRANDTEC,          USB_PID_GRANDTEC_DVBT_USB2_COLD) },
-/* 09 */	{ USB_DEVICE(USB_VID_GRANDTEC,          USB_PID_GRANDTEC_DVBT_USB2_WARM) },
-/* 10 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ARTEC_T14_COLD) },
-/* 11 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ARTEC_T14_WARM) },
-/* 12 */	{ USB_DEVICE(USB_VID_LEADTEK,		USB_PID_WINFAST_DTV_DONGLE_COLD) },
-/* 13 */	{ USB_DEVICE(USB_VID_LEADTEK,		USB_PID_WINFAST_DTV_DONGLE_WARM) },
-/* 14 */	{ USB_DEVICE(USB_VID_HUMAX_COEX,	USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD) },
-/* 15 */	{ USB_DEVICE(USB_VID_HUMAX_COEX,	USB_PID_DVB_T_USB_STICK_HIGH_SPEED_WARM) },
-			{ }		/* Terminating entry */
+	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3001_COLD) },
+	{ USB_DEVICE(USB_VID_DIBCOM,		USB_PID_DIBCOM_MOD3001_WARM) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_COLD) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ULTIMA_TVBOX_USB2_WARM) }, 
+	{ USB_DEVICE(USB_VID_LITEON,		USB_PID_LITEON_DVB_T_COLD) },
+	{ USB_DEVICE(USB_VID_LITEON,		USB_PID_LITEON_DVB_T_WARM) },
+	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_DIGIVOX_MINI_SL_COLD) },
+	{ USB_DEVICE(USB_VID_EMPIA,		USB_PID_DIGIVOX_MINI_SL_WARM) },
+	{ USB_DEVICE(USB_VID_GRANDTEC,          USB_PID_GRANDTEC_DVBT_USB2_COLD) },
+	{ USB_DEVICE(USB_VID_GRANDTEC,          USB_PID_GRANDTEC_DVBT_USB2_WARM) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ARTEC_T14_COLD) },
+	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,	USB_PID_ARTEC_T14_WARM) },
+	{ USB_DEVICE(USB_VID_LEADTEK,		USB_PID_WINFAST_DTV_DONGLE_COLD) },
+	{ USB_DEVICE(USB_VID_LEADTEK,		USB_PID_WINFAST_DTV_DONGLE_WARM) },
+	{ USB_DEVICE(USB_VID_HUMAX_COEX,	USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD) },
+	{ USB_DEVICE(USB_VID_HUMAX_COEX,	USB_PID_DVB_T_USB_STICK_HIGH_SPEED_WARM) },
+			{ }		
 };
 MODULE_DEVICE_TABLE (usb, dibusb_dib3000mc_table);
 
@@ -65,7 +52,7 @@ static struct dvb_usb_device_properties dibusb_mc_properties = {
 			.frontend_attach  = dibusb_dib3000mc_frontend_attach,
 			.tuner_attach     = dibusb_dib3000mc_tuner_attach,
 
-	/* parameter for the MPEG2-data transfer */
+	
 			.stream = {
 				.type = USB_BULK,
 				.count = 8,
@@ -83,7 +70,7 @@ static struct dvb_usb_device_properties dibusb_mc_properties = {
 
 	.rc_interval      = DEFAULT_RC_INTERVAL,
 	.rc_key_map       = dibusb_rc_keys,
-	.rc_key_map_size  = 111, /* FIXME */
+	.rc_key_map_size  = 111, 
 	.rc_query         = dibusb_rc_query,
 
 	.i2c_algo         = &dibusb_i2c_algo,
@@ -101,7 +88,7 @@ static struct dvb_usb_device_properties dibusb_mc_properties = {
 			{ &dibusb_dib3000mc_table[3], NULL },
 		},
 		{   "LITE-ON USB2.0 DVB-T Tuner",
-		    /* Also rebranded as Intuix S800, Toshiba */
+		    
 			{ &dibusb_dib3000mc_table[4], NULL },
 			{ &dibusb_dib3000mc_table[5], NULL },
 		},
@@ -136,7 +123,7 @@ static struct usb_driver dibusb_mc_driver = {
 	.id_table	= dibusb_dib3000mc_table,
 };
 
-/* module stuff */
+
 static int __init dibusb_mc_module_init(void)
 {
 	int result;
@@ -150,7 +137,7 @@ static int __init dibusb_mc_module_init(void)
 
 static void __exit dibusb_mc_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&dibusb_mc_driver);
 }
 

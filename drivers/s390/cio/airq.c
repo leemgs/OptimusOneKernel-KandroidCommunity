@@ -1,13 +1,4 @@
-/*
- *  drivers/s390/cio/airq.c
- *    Support for adapter interruptions
- *
- *    Copyright IBM Corp. 1999,2007
- *    Author(s): Ingo Adlung <adlung@de.ibm.com>
- *		 Cornelia Huck <cornelia.huck@de.ibm.com>
- *		 Arnd Bergmann <arndb@de.ibm.com>
- *		 Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -47,16 +38,7 @@ static int register_airq(struct airq_t *airq, u8 isc)
 	return -ENOMEM;
 }
 
-/**
- * s390_register_adapter_interrupt() - register adapter interrupt handler
- * @handler: adapter handler to be registered
- * @drv_data: driver data passed with each call to the handler
- * @isc: isc for which the handler should be called
- *
- * Returns:
- *  Pointer to the indicator to be used on success
- *  ERR_PTR() if registration failed
- */
+
 void *s390_register_adapter_interrupt(adapter_int_handler_t handler,
 				      void *drv_data, u8 isc)
 {
@@ -86,11 +68,7 @@ out:
 }
 EXPORT_SYMBOL(s390_register_adapter_interrupt);
 
-/**
- * s390_unregister_adapter_interrupt - unregister adapter interrupt handler
- * @ind: indicator for which the handler is to be unregistered
- * @isc: interruption subclass
- */
+
 void s390_unregister_adapter_interrupt(void *ind, u8 isc)
 {
 	struct airq_t *airq;
@@ -102,10 +80,7 @@ void s390_unregister_adapter_interrupt(void *ind, u8 isc)
 	CIO_TRACE_EVENT(4, dbf_txt);
 	indicators[isc].byte[i] = 0;
 	airq = xchg(&airqs[isc][i], NULL);
-	/*
-	 * Allow interrupts to complete. This will ensure that the airq handle
-	 * is no longer referenced by any interrupt handler.
-	 */
+	
 	synchronize_sched();
 	kfree(airq);
 }
@@ -120,28 +95,21 @@ void do_adapter_IO(u8 isc)
 	unsigned long word;
 	struct airq_t *airq;
 
-	/*
-	 * Access indicator array in word-sized chunks to minimize storage
-	 * fetch operations.
-	 */
+	
 	for (w = 0; w < NR_AIRQ_WORDS; w++) {
 		word = indicators[isc].word[w];
 		i = w * NR_AIRQS_PER_WORD;
-		/*
-		 * Check bytes within word for active indicators.
-		 */
+		
 		while (word) {
 			if (word & INDICATOR_MASK) {
 				airq = airqs[isc][i];
-				/* Make sure gcc reads from airqs only once. */
+				
 				barrier();
 				if (likely(airq))
 					airq->handler(&indicators[isc].byte[i],
 						      airq->drv_data);
 				else
-					/*
-					 * Reset ill-behaved indicator.
-					 */
+					
 					indicators[isc].byte[i] = 0;
 			}
 			word <<= 8;

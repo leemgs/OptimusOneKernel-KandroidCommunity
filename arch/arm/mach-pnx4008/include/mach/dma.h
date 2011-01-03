@@ -1,15 +1,4 @@
-/*
- *  arch/arm/mach-pnx4008/include/mach/dma.h
- *
- *  PNX4008 DMA header file
- *
- *  Author:	Vitaly Wool
- *  Copyright:	MontaVista Software Inc. (c) 2005
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_ARCH_DMA_H
 #define __ASM_ARCH_DMA_H
@@ -157,4 +146,4 @@ extern void pnx4008_dma_split_head_entry(struct pnx4008_dma_config *,
 extern void pnx4008_dma_split_ll_entry(struct pnx4008_dma_ll *,
 				       struct pnx4008_dma_ch_ctrl *);
 
-#endif				/* _ASM_ARCH_DMA_H */
+#endif				

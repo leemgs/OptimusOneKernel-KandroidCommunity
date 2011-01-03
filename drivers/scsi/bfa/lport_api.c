@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  port_api.c BFA FCS port
- */
+
+
 
 #include <fcs/bfa_fcs.h>
 #include <fcs/bfa_fcs_lport.h>
@@ -31,9 +14,7 @@ BFA_TRC_FILE(FCS, PORT_API);
 
 
 
-/**
- *  fcs_port_api BFA FCS port API
- */
+
 
 void
 bfa_fcs_cfg_base_port(struct bfa_fcs_s *fcs, struct bfa_port_cfg_s *port_cfg)
@@ -135,10 +116,7 @@ bfa_fcs_port_get_rports(struct bfa_fcs_port_s *port, wwn_t rport_wwns[],
 	return;
 }
 
-/*
- * Iterate's through all the rport's in the given port to
- * determine the maximum operating speed.
- */
+
 enum bfa_pport_speed
 bfa_fcs_port_get_rport_max_speed(struct bfa_fcs_port_s *port)
 {
@@ -154,9 +132,7 @@ bfa_fcs_port_get_rport_max_speed(struct bfa_fcs_port_s *port)
 
 	fcs = port->fcs;
 
-	/*
-	 * Get Physical port's current speed
-	 */
+	
 	bfa_pport_get_attr(port->fcs->bfa, &pport_attr);
 	pport_speed = pport_attr.speed;
 	bfa_trc(fcs, pport_speed);
@@ -211,9 +187,7 @@ bfa_fcs_lookup_port(struct bfa_fcs_s *fcs, u16 vf_id, wwn_t lpwwn)
 	return (NULL);
 }
 
-/*
- *  API corresponding to VmWare's NPIV_VPORT_GETINFO.
- */
+
 void
 bfa_fcs_port_get_info(struct bfa_fcs_port_s *port,
 		      struct bfa_port_info_s *port_info)
@@ -222,14 +196,10 @@ bfa_fcs_port_get_info(struct bfa_fcs_port_s *port,
 	bfa_trc(port->fcs, port->fabric->fabric_name);
 
 	if (port->vport == NULL) {
-		/*
-		 * This is a Physical port
-		 */
+		
 		port_info->port_type = BFA_PORT_TYPE_PHYSICAL;
 
-		/*
-		 * @todo : need to fix the state & reason
-		 */
+		
 		port_info->port_state = 0;
 		port_info->offline_reason = 0;
 
@@ -242,14 +212,10 @@ bfa_fcs_port_get_info(struct bfa_fcs_port_s *port,
 		port_info->max_rports_supp = BFA_FCS_MAX_RPORTS_SUPP;
 		port_info->num_rports_inuse = port->num_rports;
 	} else {
-		/*
-		 * This is a virtual port
-		 */
+		
 		port_info->port_type = BFA_PORT_TYPE_VIRTUAL;
 
-		/*
-		 * @todo : need to fix the state & reason
-		 */
+		
 		port_info->port_state = 0;
 		port_info->offline_reason = 0;
 

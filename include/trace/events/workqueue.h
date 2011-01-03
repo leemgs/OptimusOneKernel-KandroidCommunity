@@ -52,7 +52,7 @@ TRACE_EVENT(workqueue_execution,
 		__entry->thread_pid, __entry->func)
 );
 
-/* Trace the creation of one workqueue thread on a cpu */
+
 TRACE_EVENT(workqueue_creation,
 
 	TP_PROTO(struct task_struct *wq_thread, int cpu),
@@ -94,7 +94,7 @@ TRACE_EVENT(workqueue_destruction,
 	TP_printk("thread=%s:%d", __entry->thread_comm, __entry->thread_pid)
 );
 
-#endif /* _TRACE_WORKQUEUE_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>

@@ -1,14 +1,4 @@
-/*
- * Common io.c file
- * This file is created by Russell King <rmk+kernel@arm.linux.org.uk>
- *
- * Copyright (C) 2009 Texas Instruments
- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/io.h>
 #include <linux/mm.h>
@@ -23,9 +13,7 @@
 #define BETWEEN(p,st,sz)	((p) >= (st) && (p) < ((st) + (sz)))
 #define XLATE(p,pst,vst)	((void __iomem *)((p) - (pst) + (vst)))
 
-/*
- * Intercept ioremap() requests for addresses in our fixed mapping regions.
- */
+
 void __iomem *omap_ioremap(unsigned long p, size_t size, unsigned int type)
 {
 #ifdef CONFIG_ARCH_OMAP1
@@ -133,9 +121,7 @@ void omap_iounmap(volatile void __iomem *addr)
 }
 EXPORT_SYMBOL(omap_iounmap);
 
-/*
- * NOTE: Please use ioremap + __raw_read/write where possible instead of these
- */
+
 
 u8 omap_readb(u32 pa)
 {

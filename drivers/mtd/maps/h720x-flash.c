@@ -1,10 +1,4 @@
-/*
- * Flash memory access on Hynix GMS30C7201/HMS30C7202 based
- * evaluation boards
- *
- * (C) 2002 Jungjun Kim <jungjun.kim@hynix.com>
- *     2003 Thomas Gleixner <tglx@linutronix.de>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -62,9 +56,7 @@ static int                   nr_mtd_parts;
 static struct mtd_partition *mtd_parts;
 static const char *probes[] = { "cmdlinepart", NULL };
 
-/*
- * Initialize FLASH support
- */
+
 static int __init h720x_mtd_init(void)
 {
 
@@ -79,12 +71,12 @@ static int __init h720x_mtd_init(void)
 
 	simple_map_init(&h720x_map);
 
-	// Probe for flash bankwidth 4
+	
 	printk (KERN_INFO "H720x-MTD probing 32bit FLASH\n");
 	mymtd = do_map_probe("cfi_probe", &h720x_map);
 	if (!mymtd) {
 		printk (KERN_INFO "H720x-MTD probing 16bit FLASH\n");
-	    // Probe for bankwidth 2
+	    
 	    h720x_map.bankwidth = 2;
 	    mymtd = do_map_probe("cfi_probe", &h720x_map);
 	}
@@ -111,9 +103,7 @@ static int __init h720x_mtd_init(void)
 	return -ENXIO;
 }
 
-/*
- * Cleanup
- */
+
 static void __exit h720x_mtd_cleanup(void)
 {
 
@@ -122,7 +112,7 @@ static void __exit h720x_mtd_cleanup(void)
 		map_destroy(mymtd);
 	}
 
-	/* Free partition info, if commandline partition was used */
+	
 	if (mtd_parts && (mtd_parts != h720x_partitions))
 		kfree (mtd_parts);
 

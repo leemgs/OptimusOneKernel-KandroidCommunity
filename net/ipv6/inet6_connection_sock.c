@@ -1,17 +1,4 @@
-/*
- * INET        An implementation of the TCP/IP protocol suite for the LINUX
- *             operating system.  INET is implemented using the  BSD Socket
- *             interface as the means of communication with the user level.
- *
- *             Support for INET6 connection oriented protocols.
- *
- * Authors:    See the TCPv6 sources
- *
- *             This program is free software; you can redistribute it and/or
- *             modify it under the terms of the GNU General Public License
- *             as published by the Free Software Foundation; either version
- *             2 of the License, or(at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/in6.h>
@@ -32,11 +19,8 @@ int inet6_csk_bind_conflict(const struct sock *sk,
 	const struct sock *sk2;
 	const struct hlist_node *node;
 
-	/* We must walk the whole port owner list in this case. -DaveM */
-	/*
-	 * See comment in inet_csk_bind_conflict about sock lookup
-	 * vs net namespaces issues.
-	 */
+	
+	
 	sk_for_each_bound(sk2, node, &tb->owners) {
 		if (sk != sk2 &&
 		    (!sk->sk_bound_dev_if ||
@@ -53,9 +37,7 @@ int inet6_csk_bind_conflict(const struct sock *sk,
 
 EXPORT_SYMBOL_GPL(inet6_csk_bind_conflict);
 
-/*
- * request_sock (formerly open request) hash tables.
- */
+
 static u32 inet6_synq_hash(const struct in6_addr *raddr, const __be16 rport,
 			   const u32 rnd, const u16 synq_hsize)
 {
@@ -133,7 +115,7 @@ void inet6_csk_addr2sockaddr(struct sock *sk, struct sockaddr * uaddr)
 	sin6->sin6_family = AF_INET6;
 	ipv6_addr_copy(&sin6->sin6_addr, &np->daddr);
 	sin6->sin6_port	= inet_sk(sk)->dport;
-	/* We do not store received flowlabel for TCP */
+	
 	sin6->sin6_flowinfo = 0;
 	sin6->sin6_scope_id = 0;
 	if (sk->sk_bound_dev_if &&
@@ -230,7 +212,7 @@ int inet6_csk_xmit(struct sk_buff *skb, int ipfragok)
 
 	skb_dst_set(skb, dst_clone(dst));
 
-	/* Restore final destination back after routing done */
+	
 	ipv6_addr_copy(&fl.fl6_dst, &np->daddr);
 
 	return ip6_xmit(sk, skb, &fl, np->opt, 0);

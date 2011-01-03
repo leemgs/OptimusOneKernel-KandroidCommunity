@@ -1,38 +1,4 @@
-/*
- * net/tipc/eth_media.c: Ethernet bearer support for TIPC
- *
- * Copyright (c) 2001-2007, Ericsson AB
- * Copyright (c) 2005-2007, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include <net/tipc/tipc.h>
 #include <net/tipc/tipc_bearer.h>
@@ -45,12 +11,7 @@
 #define ETH_LINK_TOLERANCE	TIPC_DEF_LINK_TOL
 #define ETH_LINK_WINDOW		TIPC_DEF_LINK_WIN
 
-/**
- * struct eth_bearer - Ethernet bearer data structure
- * @bearer: ptr to associated "generic" bearer structure
- * @dev: ptr to associated Ethernet network device
- * @tipc_packet_type: used in binding TIPC to Ethernet driver
- */
+
 
 struct eth_bearer {
 	struct tipc_bearer *bearer;
@@ -62,9 +23,7 @@ static struct eth_bearer eth_bearers[MAX_ETH_BEARERS];
 static int eth_started = 0;
 static struct notifier_block notifier;
 
-/**
- * send_msg - send a TIPC message out over an Ethernet interface
- */
+
 
 static int send_msg(struct sk_buff *buf, struct tipc_bearer *tb_ptr,
 		    struct tipc_media_addr *dest)
@@ -85,15 +44,7 @@ static int send_msg(struct sk_buff *buf, struct tipc_bearer *tb_ptr,
 	return 0;
 }
 
-/**
- * recv_msg - handle incoming TIPC message from an Ethernet interface
- *
- * Accept only packets explicitly sent to this node, or broadcast packets;
- * ignores packets sent using Ethernet multicast, and traffic sent to other
- * nodes (which can happen if interface is running in promiscuous mode).
- * Routine truncates any Ethernet padding/CRC appended to the message,
- * and ensures message size matches actual length
- */
+
 
 static int recv_msg(struct sk_buff *buf, struct net_device *dev,
 		    struct packet_type *pt, struct net_device *orig_dev)
@@ -121,9 +72,7 @@ static int recv_msg(struct sk_buff *buf, struct net_device *dev,
 	return 0;
 }
 
-/**
- * enable_bearer - attach TIPC bearer to an Ethernet interface
- */
+
 
 static int enable_bearer(struct tipc_bearer *tb_ptr)
 {
@@ -133,7 +82,7 @@ static int enable_bearer(struct tipc_bearer *tb_ptr)
 	struct eth_bearer *stop = &eth_bearers[MAX_ETH_BEARERS];
 	char *driver_name = strchr((const char *)tb_ptr->name, ':') + 1;
 
-	/* Find device with specified name */
+	
 
 	for_each_netdev(&init_net, pdev){
 		if (!strncmp(pdev->name, driver_name, IFNAMSIZ)) {
@@ -144,7 +93,7 @@ static int enable_bearer(struct tipc_bearer *tb_ptr)
 	if (!dev)
 		return -ENODEV;
 
-	/* Find Ethernet bearer for device (or create one) */
+	
 
 	for (;(eb_ptr != stop) && eb_ptr->dev && (eb_ptr->dev != dev); eb_ptr++);
 	if (eb_ptr == stop)
@@ -160,7 +109,7 @@ static int enable_bearer(struct tipc_bearer *tb_ptr)
 		dev_add_pack(&eb_ptr->tipc_packet_type);
 	}
 
-	/* Associate TIPC bearer with Ethernet bearer */
+	
 
 	eb_ptr->bearer = tb_ptr;
 	tb_ptr->usr_handle = (void *)eb_ptr;
@@ -171,25 +120,14 @@ static int enable_bearer(struct tipc_bearer *tb_ptr)
 	return 0;
 }
 
-/**
- * disable_bearer - detach TIPC bearer from an Ethernet interface
- *
- * We really should do dev_remove_pack() here, but this function can not be
- * called at tasklet level. => Use eth_bearer->bearer as a flag to throw away
- * incoming buffers, & postpone dev_remove_pack() to eth_media_stop() on exit.
- */
+
 
 static void disable_bearer(struct tipc_bearer *tb_ptr)
 {
 	((struct eth_bearer *)tb_ptr->usr_handle)->bearer = NULL;
 }
 
-/**
- * recv_notification - handle device updates from OS
- *
- * Change the state of the Ethernet bearer (if any) associated with the
- * specified device.
- */
+
 
 static int recv_notification(struct notifier_block *nb, unsigned long evt,
 			     void *dv)
@@ -203,10 +141,10 @@ static int recv_notification(struct notifier_block *nb, unsigned long evt,
 
 	while ((eb_ptr->dev != dev)) {
 		if (++eb_ptr == stop)
-			return NOTIFY_DONE;	/* couldn't find device */
+			return NOTIFY_DONE;	
 	}
 	if (!eb_ptr->bearer)
-		return NOTIFY_DONE;		/* bearer had been disabled */
+		return NOTIFY_DONE;		
 
 	eb_ptr->bearer->mtu = dev->mtu;
 
@@ -236,9 +174,7 @@ static int recv_notification(struct notifier_block *nb, unsigned long evt,
 	return NOTIFY_OK;
 }
 
-/**
- * eth_addr2str - convert Ethernet address to string
- */
+
 
 static char *eth_addr2str(struct tipc_media_addr *a, char *str_buf, int str_size)
 {
@@ -251,12 +187,7 @@ static char *eth_addr2str(struct tipc_media_addr *a, char *str_buf, int str_size
 	return str_buf;
 }
 
-/**
- * tipc_eth_media_start - activate Ethernet bearer support
- *
- * Register Ethernet media type with TIPC bearer code.  Also register
- * with OS for notifications about device state changes.
- */
+
 
 int tipc_eth_media_start(void)
 {
@@ -286,9 +217,7 @@ int tipc_eth_media_start(void)
 	return res;
 }
 
-/**
- * tipc_eth_media_stop - deactivate Ethernet bearer support
- */
+
 
 void tipc_eth_media_stop(void)
 {

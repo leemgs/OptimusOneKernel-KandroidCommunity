@@ -1,13 +1,4 @@
-/*
- * linux/kernel/power/user.c
- *
- * This file provides the user space interface for software suspend/resume.
- *
- * Copyright (C) 2006 Rafael J. Wysocki <rjw@sisk.pl>
- *
- * This file is released under the GPLv2.
- *
- */
+
 
 #include <linux/suspend.h>
 #include <linux/syscalls.h>
@@ -29,11 +20,7 @@
 
 #include "power.h"
 
-/*
- * NOTE: The SNAPSHOT_SET_SWAP_FILE and SNAPSHOT_PMOPS ioctls are obsolete and
- * will be removed in the future.  They are only preserved here for
- * compatibility with existing userland utilities.
- */
+
 #define SNAPSHOT_SET_SWAP_FILE	_IOW(SNAPSHOT_IOC_MAGIC, 10, unsigned int)
 #define SNAPSHOT_PMOPS		_IOW(SNAPSHOT_IOC_MAGIC, 12, unsigned int)
 
@@ -41,11 +28,7 @@
 #define PMOPS_ENTER	2
 #define PMOPS_FINISH	3
 
-/*
- * NOTE: The following ioctl definitions are wrong and have been replaced with
- * correct ones.  They are only preserved here for compatibility with existing
- * userland utilities and will be removed in the future.
- */
+
 #define SNAPSHOT_ATOMIC_SNAPSHOT	_IOW(SNAPSHOT_IOC_MAGIC, 3, void *)
 #define SNAPSHOT_SET_IMAGE_SIZE		_IOW(SNAPSHOT_IOC_MAGIC, 6, unsigned long)
 #define SNAPSHOT_AVAIL_SWAP		_IOR(SNAPSHOT_IOC_MAGIC, 7, void *)
@@ -92,7 +75,7 @@ static int snapshot_open(struct inode *inode, struct file *filp)
 	filp->private_data = data;
 	memset(&data->handle, 0, sizeof(struct snapshot_handle));
 	if ((filp->f_flags & O_ACCMODE) == O_RDONLY) {
-		/* Hibernating.  The image device should be accessible. */
+		
 		data->swap = swsusp_resume_device ?
 			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
 		data->mode = O_RDONLY;
@@ -100,10 +83,7 @@ static int snapshot_open(struct inode *inode, struct file *filp)
 		if (error)
 			pm_notifier_call_chain(PM_POST_HIBERNATION);
 	} else {
-		/*
-		 * Resuming.  We may need to wait for the image device to
-		 * appear.
-		 */
+		
 		wait_for_device_probe();
 		scsi_complete_async_scans();
 
@@ -320,12 +300,9 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
 		free_all_swap_pages(data->swap);
 		break;
 
-	case SNAPSHOT_SET_SWAP_FILE: /* This ioctl is deprecated */
+	case SNAPSHOT_SET_SWAP_FILE: 
 		if (!swsusp_swap_in_use()) {
-			/*
-			 * User space encodes device types as two-byte values,
-			 * so we need to recode them
-			 */
+			
 			if (old_decode_dev(arg)) {
 				data->swap = swap_type_of(old_decode_dev(arg),
 							0, NULL);
@@ -345,10 +322,7 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
 			error = -EPERM;
 			break;
 		}
-		/*
-		 * Tasks are frozen and the notifiers have been called with
-		 * PM_HIBERNATION_PREPARE
-		 */
+		
 		error = suspend_devices_and_enter(PM_SUSPEND_MEM);
 		break;
 
@@ -361,7 +335,7 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
 			error = hibernation_platform_enter();
 		break;
 
-	case SNAPSHOT_PMOPS: /* This ioctl is deprecated */
+	case SNAPSHOT_PMOPS: 
 		error = -EINVAL;
 
 		switch (arg) {
@@ -401,10 +375,7 @@ static long snapshot_ioctl(struct file *filp, unsigned int cmd,
 				break;
 			}
 
-			/*
-			 * User space encodes device types as two-byte values,
-			 * so we need to recode them
-			 */
+			
 			swdev = old_decode_dev(swap_area.dev);
 			if (swdev) {
 				offset = swap_area.offset;

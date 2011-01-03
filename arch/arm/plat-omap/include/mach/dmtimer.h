@@ -1,45 +1,19 @@
-/*
- * arch/arm/plat-omap/include/mach/dmtimer.h
- *
- * OMAP Dual-Mode Timers
- *
- * Copyright (C) 2005 Nokia Corporation
- * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
- * PWM and clock framwork support by Timo Teras.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the  GNU General Public License along
- * with this program; if not, write  to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef __ASM_ARCH_DMTIMER_H
 #define __ASM_ARCH_DMTIMER_H
 
-/* clock sources */
+
 #define OMAP_TIMER_SRC_SYS_CLK			0x00
 #define OMAP_TIMER_SRC_32_KHZ			0x01
 #define OMAP_TIMER_SRC_EXT_CLK			0x02
 
-/* timer interrupt enable bits */
+
 #define OMAP_TIMER_INT_CAPTURE			(1 << 2)
 #define OMAP_TIMER_INT_OVERFLOW			(1 << 1)
 #define OMAP_TIMER_INT_MATCH			(1 << 0)
 
-/* trigger types */
+
 #define OMAP_TIMER_TRIGGER_NONE			0x00
 #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
 #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
@@ -81,4 +55,4 @@ void omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value
 int omap_dm_timers_active(void);
 
 
-#endif /* __ASM_ARCH_DMTIMER_H */
+#endif 

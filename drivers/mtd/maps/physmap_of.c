@@ -1,17 +1,4 @@
-/*
- * Flash mappings described by the OF (or flattened) device tree
- *
- * Copyright (C) 2006 MontaVista Software Inc.
- * Author: Vitaly Wool <vwool@ru.mvista.com>
- *
- * Revised to handle newer style flash binding by:
- *   Copyright (C) 2007 David Gibson, IBM Corporation.
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -35,7 +22,7 @@ struct of_flash {
 #ifdef CONFIG_MTD_PARTITIONS
 	struct mtd_partition	*parts;
 #endif
-	int list_size; /* number of elements in of_flash_list */
+	int list_size; 
 	struct of_flash_list	list[0];
 };
 
@@ -54,7 +41,7 @@ static int parse_obsolete_partitions(struct of_device *dev,
 
 	part = of_get_property(dp, "partitions", &plen);
 	if (!part)
-		return 0; /* No partitions found */
+		return 0; 
 
 	dev_warn(&dev->dev, "Device tree uses obsolete partition map binding\n");
 
@@ -69,7 +56,7 @@ static int parse_obsolete_partitions(struct of_device *dev,
 	for (i = 0; i < nr_parts; i++) {
 		info->parts[i].offset = part->offset;
 		info->parts[i].size   = part->len & ~1;
-		if (part->len & 1) /* bit 0 set signifies read only partition */
+		if (part->len & 1) 
 			info->parts[i].mask_flags = MTD_WRITEABLE;
 
 		if (names && (plen > 0)) {
@@ -87,10 +74,10 @@ static int parse_obsolete_partitions(struct of_device *dev,
 
 	return nr_parts;
 }
-#else /* MTD_PARTITIONS */
+#else 
 #define	OF_FLASH_PARTS(info)		(0)
 #define parse_partitions(info, dev)	(0)
-#endif /* MTD_PARTITIONS */
+#endif 
 
 static int of_flash_remove(struct of_device *dev)
 {
@@ -136,9 +123,7 @@ static int of_flash_remove(struct of_device *dev)
 	return 0;
 }
 
-/* Helper function to handle probing of the obsolete "direct-mapped"
- * compatible binding, which has an extra "probe-type" property
- * describing the type of flash probe necessary. */
+
 static struct mtd_info * __devinit obsolete_probe(struct of_device *dev,
 						  struct map_info *map)
 {
@@ -194,12 +179,7 @@ static int __devinit of_flash_probe(struct of_device *dev,
 
 	reg_tuple_size = (of_n_addr_cells(dp) + of_n_size_cells(dp)) * sizeof(u32);
 
-	/*
-	 * Get number of "reg" tuples. Scan for MTD devices on area's
-	 * described by each "reg" region. This makes it possible (including
-	 * the concat support) to support the Intel P30 48F4400 chips which
-	 * consists internally of 2 non-identical NOR chips on one die.
-	 */
+	
 	p = of_get_property(dp, "reg", &count);
 	if (count % reg_tuple_size != 0) {
 		dev_err(&dev->dev, "Malformed reg property on %s\n",
@@ -288,9 +268,7 @@ static int __devinit of_flash_probe(struct of_device *dev,
 	if (info->list_size == 1) {
 		info->cmtd = info->list[0].mtd;
 	} else if (info->list_size > 1) {
-		/*
-		 * We detected multiple devices. Concatenate them together.
-		 */
+		
 #ifdef CONFIG_MTD_CONCAT
 		info->cmtd = mtd_concat_create(mtd_list, info->list_size,
 					       dev_name(&dev->dev));
@@ -306,8 +284,7 @@ static int __devinit of_flash_probe(struct of_device *dev,
 		goto err_out;
 
 #ifdef CONFIG_MTD_PARTITIONS
-	/* First look for RedBoot table or partitions on the command
-	 * line, these take precedence over device tree information */
+	
 	err = parse_mtd_partitions(info->cmtd, part_probe_types,
 				   &info->parts, 0);
 	if (err < 0)
@@ -351,13 +328,7 @@ static struct of_device_id of_flash_match[] = {
 		.data		= (void *)"cfi_probe",
 	},
 	{
-		/* FIXME: JEDEC chips can't be safely and reliably
-		 * probed, although the mtd code gets it right in
-		 * practice most of the time.  We should use the
-		 * vendor and device ids specified by the binding to
-		 * bypass the heuristic probe code, but the mtd layer
-		 * provides, at present, no interface for doing so
-		 * :(. */
+		
 		.compatible	= "jedec-flash",
 		.data		= (void *)"jedec_probe",
 	},

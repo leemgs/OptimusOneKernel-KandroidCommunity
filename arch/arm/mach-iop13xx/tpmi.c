@@ -1,21 +1,4 @@
-/*
- * iop13xx tpmi device resources
- * Copyright (c) 2005-2006, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -25,7 +8,7 @@
 #include <asm/irq.h>
 #include <asm/sizes.h>
 
-/* assumes CONTROLLER_ONLY# is never asserted in the ESSR register */
+
 #define IOP13XX_TPMI_MMR(dev) 	IOP13XX_REG_ADDR32_PHYS(0x48000 + (dev << 12))
 #define IOP13XX_TPMI_MEM(dev) 	IOP13XX_REG_ADDR32_PHYS(0x60000 + (dev << 13))
 #define IOP13XX_TPMI_CTRL(dev)	IOP13XX_REG_ADDR32_PHYS(0x50000 + (dev << 10))
@@ -41,7 +24,7 @@
 
 static struct resource iop13xx_tpmi_0_resources[] = {
 	[IOP13XX_TPMI_RESOURCE_MMR] = {
-		.start = IOP13XX_TPMI_MMR(4), /* tpmi0 starts at dev == 4 */
+		.start = IOP13XX_TPMI_MMR(4), 
 		.end = IOP13XX_TPMI_MMR(4) + IOP13XX_TPMI_MMR_SIZE,
 		.flags = IORESOURCE_MEM,
 	},
@@ -200,16 +183,16 @@ __init void iop13xx_add_tpmi_devices(void)
 {
 	unsigned short device_id;
 
-	/* tpmi's not present on iop341 or iop342 */
+	
 	if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX)
-		/* ATUE must be present */
+		
 		device_id = __raw_readw(IOP13XX_ATUE_DID);
 	else
-		/* ATUX must be present */
+		
 		device_id = __raw_readw(IOP13XX_ATUX_DID);
 
 	switch (device_id) {
-	/* iop34[1|2] 0-tpmi */
+	
 	case 0x3380:
 	case 0x3384:
 	case 0x3388:
@@ -219,7 +202,7 @@ __init void iop13xx_add_tpmi_devices(void)
 	case 0x338a:
 	case 0x338e:
 		return;
-	/* iop348 1-tpmi */
+	
 	case 0x3310:
 	case 0x3312:
 	case 0x3314:

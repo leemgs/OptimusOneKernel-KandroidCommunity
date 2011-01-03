@@ -1,27 +1,4 @@
-/* linux/drivers/char/watchdog/s3c2410_wdt.c
- *
- * Copyright (c) 2004 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2410 Watchdog Timer Support
- *
- * Based on, softdog.c by Alan Cox,
- *     (c) Copyright 1996 Alan Cox <alan@lxorguk.ukuu.org.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -73,7 +50,7 @@ MODULE_PARM_DESC(soft_noboot, "Watchdog action, set to 1 to ignore reboots, "
 MODULE_PARM_DESC(debug, "Watchdog debug, set to >1 for debug, (default 0)");
 
 static unsigned long open_lock;
-static struct device    *wdt_dev;	/* platform device attached to */
+static struct device    *wdt_dev;	
 static struct resource	*wdt_mem;
 static struct resource	*wdt_irq;
 static struct clk	*wdt_clock;
@@ -82,14 +59,14 @@ static unsigned int	 wdt_count;
 static char		 expect_close;
 static DEFINE_SPINLOCK(wdt_lock);
 
-/* watchdog control routines */
+
 
 #define DBG(msg...) do { \
 	if (debug) \
 		printk(KERN_INFO msg); \
 	} while (0)
 
-/* functions */
+
 
 static void s3c2410wdt_keepalive(void)
 {
@@ -158,10 +135,7 @@ static int s3c2410wdt_set_heartbeat(int timeout)
 	DBG("%s: count=%d, timeout=%d, freq=%d\n",
 	    __func__, count, timeout, freq);
 
-	/* if the count is bigger than the watchdog register,
-	   then work out what we need to do (and if) we can
-	   actually make this value
-	*/
+	
 
 	if (count >= 0x10000) {
 		for (divisor = 1; divisor <= 0x100; divisor++) {
@@ -183,7 +157,7 @@ static int s3c2410wdt_set_heartbeat(int timeout)
 	count /= divisor;
 	wdt_count = count;
 
-	/* update the pre-scaler */
+	
 	wtcon = readl(wdt_base + S3C2410_WTCON);
 	wtcon &= ~S3C2410_WTCON_PRESCALE_MASK;
 	wtcon |= S3C2410_WTCON_PRESCALE(divisor-1);
@@ -194,9 +168,7 @@ static int s3c2410wdt_set_heartbeat(int timeout)
 	return 0;
 }
 
-/*
- *	/dev/watchdog handling
- */
+
 
 static int s3c2410wdt_open(struct inode *inode, struct file *file)
 {
@@ -208,17 +180,14 @@ static int s3c2410wdt_open(struct inode *inode, struct file *file)
 
 	expect_close = 0;
 
-	/* start the timer */
+	
 	s3c2410wdt_start();
 	return nonseekable_open(inode, file);
 }
 
 static int s3c2410wdt_release(struct inode *inode, struct file *file)
 {
-	/*
-	 *	Shut off the timer.
-	 * 	Lock it in if it's a module and we set nowayout
-	 */
+	
 
 	if (expect_close == 42)
 		s3c2410wdt_stop();
@@ -234,14 +203,12 @@ static int s3c2410wdt_release(struct inode *inode, struct file *file)
 static ssize_t s3c2410wdt_write(struct file *file, const char __user *data,
 				size_t len, loff_t *ppos)
 {
-	/*
-	 *	Refresh the timer.
-	 */
+	
 	if (len) {
 		if (!nowayout) {
 			size_t i;
 
-			/* In case it was set long ago */
+			
 			expect_close = 0;
 
 			for (i = 0; i != len; i++) {
@@ -298,7 +265,7 @@ static long s3c2410wdt_ioctl(struct file *file,	unsigned int cmd,
 	}
 }
 
-/* kernel interface */
+
 
 static const struct file_operations s3c2410wdt_fops = {
 	.owner		= THIS_MODULE,
@@ -315,7 +282,7 @@ static struct miscdevice s3c2410wdt_miscdev = {
 	.fops		= &s3c2410wdt_fops,
 };
 
-/* interrupt handler code */
+
 
 static irqreturn_t s3c2410wdt_irq(int irqno, void *param)
 {
@@ -324,7 +291,7 @@ static irqreturn_t s3c2410wdt_irq(int irqno, void *param)
 	s3c2410wdt_keepalive();
 	return IRQ_HANDLED;
 }
-/* device interface */
+
 
 static int __devinit s3c2410wdt_probe(struct platform_device *pdev)
 {
@@ -340,7 +307,7 @@ static int __devinit s3c2410wdt_probe(struct platform_device *pdev)
 	dev = &pdev->dev;
 	wdt_dev = &pdev->dev;
 
-	/* get the memory region for the watchdog timer */
+	
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (res == NULL) {
@@ -387,8 +354,7 @@ static int __devinit s3c2410wdt_probe(struct platform_device *pdev)
 
 	clk_enable(wdt_clock);
 
-	/* see if we can actually set the requested timer margin, and if
-	 * not, try the default value */
+	
 
 	if (s3c2410wdt_set_heartbeat(tmr_margin)) {
 		started = s3c2410wdt_set_heartbeat(
@@ -414,14 +380,12 @@ static int __devinit s3c2410wdt_probe(struct platform_device *pdev)
 		dev_info(dev, "starting watchdog timer\n");
 		s3c2410wdt_start();
 	} else if (!tmr_atboot) {
-		/* if we're not enabling the watchdog, then ensure it is
-		 * disabled if it has been left running from the bootloader
-		 * or other source */
+		
 
 		s3c2410wdt_stop();
 	}
 
-	/* print out a statement of readiness */
+	
 
 	wtcon = readl(wdt_base + S3C2410_WTCON);
 
@@ -479,11 +443,11 @@ static unsigned long wtdat_save;
 
 static int s3c2410wdt_suspend(struct platform_device *dev, pm_message_t state)
 {
-	/* Save watchdog state, and turn it off. */
+	
 	wtcon_save = readl(wdt_base + S3C2410_WTCON);
 	wtdat_save = readl(wdt_base + S3C2410_WTDAT);
 
-	/* Note that WTCNT doesn't need to be saved. */
+	
 	s3c2410wdt_stop();
 
 	return 0;
@@ -491,10 +455,10 @@ static int s3c2410wdt_suspend(struct platform_device *dev, pm_message_t state)
 
 static int s3c2410wdt_resume(struct platform_device *dev)
 {
-	/* Restore watchdog state. */
+	
 
 	writel(wtdat_save, wdt_base + S3C2410_WTDAT);
-	writel(wtdat_save, wdt_base + S3C2410_WTCNT); /* Reset count */
+	writel(wtdat_save, wdt_base + S3C2410_WTCNT); 
 	writel(wtcon_save, wdt_base + S3C2410_WTCON);
 
 	printk(KERN_INFO PFX "watchdog %sabled\n",
@@ -506,7 +470,7 @@ static int s3c2410wdt_resume(struct platform_device *dev)
 #else
 #define s3c2410wdt_suspend NULL
 #define s3c2410wdt_resume  NULL
-#endif /* CONFIG_PM */
+#endif 
 
 
 static struct platform_driver s3c2410wdt_driver = {

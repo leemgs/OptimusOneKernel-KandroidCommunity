@@ -1,14 +1,4 @@
-/*
- * linux/kernel/irq/handle.c
- *
- * Copyright (C) 1992, 1998-2006 Linus Torvalds, Ingo Molnar
- * Copyright (C) 2005-2006, Thomas Gleixner, Russell King
- *
- * This file contains the core interrupt handling code.
- *
- * Detailed information is available in Documentation/DocBook/genericirq
- *
- */
+
 
 #include <linux/irq.h>
 #include <linux/sched.h>
@@ -24,18 +14,10 @@
 
 #include "internals.h"
 
-/*
- * lockdep: we want to handle all irq_desc locks as a single lock-class:
- */
+
 struct lock_class_key irq_desc_lock_class;
 
-/**
- * handle_bad_irq - handle spurious and unhandled irqs
- * @irq:       the interrupt number
- * @desc:      description of the interrupt
- *
- * Handles spurious and unhandled IRQ's. It also prints a debugmessage.
- */
+
 void handle_bad_irq(unsigned int irq, struct irq_desc *desc)
 {
 	print_irq_desc(irq, desc);
@@ -55,20 +37,7 @@ static void __init init_irq_default_affinity(void)
 }
 #endif
 
-/*
- * Linux has a controller-independent interrupt architecture.
- * Every controller has a 'controller-template', that is used
- * by the main code to do the right thing. Each driver-visible
- * interrupt source is transparently wired to the appropriate
- * controller. Thus drivers need not be aware of the
- * interrupt-controller.
- *
- * The code is designed to be easily extended with new/different
- * interrupt controllers, without having to do assembly magic or
- * having to touch the generic code.
- *
- * Controller mappings for all interrupt sources:
- */
+
 int nr_irqs = NR_IRQS;
 EXPORT_SYMBOL_GPL(nr_irqs);
 
@@ -94,10 +63,7 @@ void __ref init_kstat_irqs(struct irq_desc *desc, int node, int nr)
 		ptr = alloc_bootmem_node(NODE_DATA(node),
 				nr * sizeof(*desc->kstat_irqs));
 
-	/*
-	 * don't overwite if can not get new one
-	 * init_copy_kstat_irqs() could still use old one
-	 */
+	
 	if (ptr) {
 		printk(KERN_DEBUG "  alloc kstat_irqs on node %d\n", node);
 		desc->kstat_irqs = ptr;
@@ -127,9 +93,7 @@ static void init_one_irq_desc(int irq, struct irq_desc *desc, int node)
 	arch_init_chip_data(desc, node);
 }
 
-/*
- * Protect the sparse_irqs:
- */
+
 DEFINE_SPINLOCK(sparse_irq_lock);
 
 struct irq_desc **irq_desc_ptrs __read_mostly;
@@ -156,7 +120,7 @@ int __init early_irq_init(void)
 
 	init_irq_default_affinity();
 
-	 /* initialize nr_irqs based on nr_cpu_ids */
+	 
 	arch_probe_nr_irqs();
 	printk(KERN_INFO "NR_IRQS:%d nr_irqs:%d\n", NR_IRQS, nr_irqs);
 
@@ -164,10 +128,10 @@ int __init early_irq_init(void)
 	legacy_count = ARRAY_SIZE(irq_desc_legacy);
 	node = first_online_node;
 
-	/* allocate irq_desc_ptrs array based on nr_irqs */
+	
 	irq_desc_ptrs = kcalloc(nr_irqs, sizeof(void *), GFP_NOWAIT);
 
-	/* allocate based on nr_cpu_ids */
+	
 	kstat_irqs_legacy = kzalloc_node(NR_IRQS_LEGACY * nr_cpu_ids *
 					  sizeof(int), GFP_NOWAIT, node);
 
@@ -214,7 +178,7 @@ struct irq_desc * __ref irq_to_desc_alloc_node(unsigned int irq, int node)
 
 	spin_lock_irqsave(&sparse_irq_lock, flags);
 
-	/* We have to check it to avoid races with another CPU */
+	
 	desc = irq_desc_ptrs[irq];
 	if (desc)
 		goto out_unlock;
@@ -239,7 +203,7 @@ out_unlock:
 	return desc;
 }
 
-#else /* !CONFIG_SPARSE_IRQ */
+#else 
 
 struct irq_desc irq_desc[NR_IRQS] __cacheline_aligned_in_smp = {
 	[0 ... NR_IRQS-1] = {
@@ -283,17 +247,14 @@ struct irq_desc *irq_to_desc_alloc_node(unsigned int irq, int node)
 {
 	return irq_to_desc(irq);
 }
-#endif /* !CONFIG_SPARSE_IRQ */
+#endif 
 
 void clear_kstat_irqs(struct irq_desc *desc)
 {
 	memset(desc->kstat_irqs, 0, nr_cpu_ids * sizeof(*(desc->kstat_irqs)));
 }
 
-/*
- * What should we do if we get a hw irq event on an illegal vector?
- * Each architecture has to answer this themself.
- */
+
 static void ack_bad(unsigned int irq)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
@@ -302,9 +263,7 @@ static void ack_bad(unsigned int irq)
 	ack_bad_irq(irq);
 }
 
-/*
- * NOP functions
- */
+
 static void noop(unsigned int irq)
 {
 }
@@ -314,9 +273,7 @@ static unsigned int noop_ret(unsigned int irq)
 	return 0;
 }
 
-/*
- * Generic no controller implementation
- */
+
 struct irq_chip no_irq_chip = {
 	.name		= "none",
 	.startup	= noop_ret,
@@ -327,10 +284,7 @@ struct irq_chip no_irq_chip = {
 	.end		= noop,
 };
 
-/*
- * Generic dummy implementation which can be used for
- * real dumb interrupt sources
- */
+
 struct irq_chip dummy_irq_chip = {
 	.name		= "dummy",
 	.startup	= noop_ret,
@@ -343,9 +297,7 @@ struct irq_chip dummy_irq_chip = {
 	.end		= noop,
 };
 
-/*
- * Special, empty irq handler:
- */
+
 irqreturn_t no_action(int cpl, void *dev_id)
 {
 	return IRQ_NONE;
@@ -360,13 +312,7 @@ static void warn_no_thread(unsigned int irq, struct irqaction *action)
 	       "but no thread function available.", irq, action->name);
 }
 
-/**
- * handle_IRQ_event - irq action chain handler
- * @irq:	the interrupt number
- * @action:	the interrupt action chain for this irq
- *
- * Handles the action chain of an irq event
- */
+
 irqreturn_t handle_IRQ_event(unsigned int irq, struct irqaction *action)
 {
 	irqreturn_t ret, retval = IRQ_NONE;
@@ -382,36 +328,23 @@ irqreturn_t handle_IRQ_event(unsigned int irq, struct irqaction *action)
 
 		switch (ret) {
 		case IRQ_WAKE_THREAD:
-			/*
-			 * Set result to handled so the spurious check
-			 * does not trigger.
-			 */
+			
 			ret = IRQ_HANDLED;
 
-			/*
-			 * Catch drivers which return WAKE_THREAD but
-			 * did not set up a thread function
-			 */
+			
 			if (unlikely(!action->thread_fn)) {
 				warn_no_thread(irq, action);
 				break;
 			}
 
-			/*
-			 * Wake up the handler thread for this
-			 * action. In case the thread crashed and was
-			 * killed we just pretend that we handled the
-			 * interrupt. The hardirq handler above has
-			 * disabled the device interrupt, so no irq
-			 * storm is lurking.
-			 */
+			
 			if (likely(!test_bit(IRQTF_DIED,
 					     &action->thread_flags))) {
 				set_bit(IRQTF_RUNTHREAD, &action->thread_flags);
 				wake_up_process(action->thread);
 			}
 
-			/* Fall through to add to randomness */
+			
 		case IRQ_HANDLED:
 			status |= action->flags;
 			break;
@@ -437,17 +370,7 @@ irqreturn_t handle_IRQ_event(unsigned int irq, struct irqaction *action)
 # warning __do_IRQ is deprecated. Please convert to proper flow handlers
 #endif
 
-/**
- * __do_IRQ - original all in one highlevel IRQ handler
- * @irq:	the interrupt number
- *
- * __do_IRQ handles all normal device IRQ's (the special
- * SMP cross-CPU interrupts have their own specific
- * handlers).
- *
- * This is the original x86 implementation which is used for every
- * interrupt type.
- */
+
 unsigned int __do_IRQ(unsigned int irq)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
@@ -459,9 +382,7 @@ unsigned int __do_IRQ(unsigned int irq)
 	if (CHECK_IRQ_PER_CPU(desc->status)) {
 		irqreturn_t action_ret;
 
-		/*
-		 * No locking required for CPU-local interrupts:
-		 */
+		
 		if (desc->chip->ack)
 			desc->chip->ack(irq);
 		if (likely(!(desc->status & IRQ_DISABLED))) {
@@ -476,44 +397,24 @@ unsigned int __do_IRQ(unsigned int irq)
 	spin_lock(&desc->lock);
 	if (desc->chip->ack)
 		desc->chip->ack(irq);
-	/*
-	 * REPLAY is when Linux resends an IRQ that was dropped earlier
-	 * WAITING is used by probe to mark irqs that are being tested
-	 */
+	
 	status = desc->status & ~(IRQ_REPLAY | IRQ_WAITING);
-	status |= IRQ_PENDING; /* we _want_ to handle it */
+	status |= IRQ_PENDING; 
 
-	/*
-	 * If the IRQ is disabled for whatever reason, we cannot
-	 * use the action we have.
-	 */
+	
 	action = NULL;
 	if (likely(!(status & (IRQ_DISABLED | IRQ_INPROGRESS)))) {
 		action = desc->action;
-		status &= ~IRQ_PENDING; /* we commit to handling */
-		status |= IRQ_INPROGRESS; /* we are handling it */
+		status &= ~IRQ_PENDING; 
+		status |= IRQ_INPROGRESS; 
 	}
 	desc->status = status;
 
-	/*
-	 * If there is no IRQ handler or it was disabled, exit early.
-	 * Since we set PENDING, if another processor is handling
-	 * a different instance of this same irq, the other processor
-	 * will take care of it.
-	 */
+	
 	if (unlikely(!action))
 		goto out;
 
-	/*
-	 * Edge triggered interrupts need to remember
-	 * pending events.
-	 * This applies to any hw interrupts that allow a second
-	 * instance of the same irq to arrive while we are in do_IRQ
-	 * or in the handler. But the code here only handles the _second_
-	 * instance of the irq, not the third or fourth. So it is mostly
-	 * useful for irq hardware that does not mask cleanly in an
-	 * SMP environment.
-	 */
+	
 	for (;;) {
 		irqreturn_t action_ret;
 
@@ -531,10 +432,7 @@ unsigned int __do_IRQ(unsigned int irq)
 	desc->status &= ~IRQ_INPROGRESS;
 
 out:
-	/*
-	 * The ->end() handler has to deal with interrupts which got
-	 * disabled while the handler was running.
-	 */
+	
 	desc->chip->end(irq);
 	spin_unlock(&desc->lock);
 

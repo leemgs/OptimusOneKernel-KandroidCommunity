@@ -1,24 +1,4 @@
-/*
- *
- * device driver for philips saa7134 based TV cards
- * video4linux video interface
- *
- * (c) 2001,02 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/list.h>
@@ -30,7 +10,7 @@
 #include "saa7134-reg.h"
 #include "saa7134.h"
 
-/* ------------------------------------------------------------------ */
+
 
 static unsigned int ts_debug;
 module_param(ts_debug, int, 0644);
@@ -39,7 +19,7 @@ MODULE_PARM_DESC(ts_debug,"enable debug messages [ts]");
 #define dprintk(fmt, arg...)	if (ts_debug) \
 	printk(KERN_DEBUG "%s/ts: " fmt, dev->name , ## arg)
 
-/* ------------------------------------------------------------------ */
+
 
 static int buffer_activate(struct saa7134_dev *dev,
 			   struct saa7134_buf *buf,
@@ -62,7 +42,7 @@ static int buffer_activate(struct saa7134_dev *dev,
 		saa_writel(SAA7134_RS_BA2(5),saa7134_buffer_base(buf));
 	}
 
-	/* start DMA */
+	
 	saa7134_set_dmabits(dev);
 
 	mod_timer(&dev->ts_q.timeout, jiffies+TS_BUFFER_TIMEOUT);
@@ -166,8 +146,8 @@ struct videobuf_queue_ops saa7134_ts_qops = {
 };
 EXPORT_SYMBOL_GPL(saa7134_ts_qops);
 
-/* ----------------------------------------------------------- */
-/* exported stuff                                              */
+
+
 
 static unsigned int tsbufs = 8;
 module_param(tsbufs, int, 0444);
@@ -179,14 +159,14 @@ MODULE_PARM_DESC(ts_nr_packets,"size of a ts buffers (in ts packets)");
 
 int saa7134_ts_init_hw(struct saa7134_dev *dev)
 {
-	/* deactivate TS softreset */
+	
 	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-	/* TSSOP high active, TSVAL high active, TSLOCK ignored */
+	
 	saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
 	saa_writeb(SAA7134_TS_PARALLEL_SERIAL, (TS_PACKET_SIZE-1));
 	saa_writeb(SAA7134_TS_DMA0, ((dev->ts.nr_packets-1)&0xff));
 	saa_writeb(SAA7134_TS_DMA1, (((dev->ts.nr_packets-1)>>8)&0xff));
-	/* TSNOPIT=0, TSCOLAP=0 */
+	
 	saa_writeb(SAA7134_TS_DMA2,
 		((((dev->ts.nr_packets-1)>>16)&0x3f) | 0x00));
 
@@ -195,7 +175,7 @@ int saa7134_ts_init_hw(struct saa7134_dev *dev)
 
 int saa7134_ts_init1(struct saa7134_dev *dev)
 {
-	/* sanitycheck insmod options */
+	
 	if (tsbufs < 2)
 		tsbufs = 2;
 	if (tsbufs > VIDEO_MAX_FRAME)
@@ -216,20 +196,20 @@ int saa7134_ts_init1(struct saa7134_dev *dev)
 	dev->ts_started            = 0;
 	saa7134_pgtable_alloc(dev->pci,&dev->ts.pt_ts);
 
-	/* init TS hw */
+	
 	saa7134_ts_init_hw(dev);
 
 	return 0;
 }
 
-/* Function for stop TS */
+
 int saa7134_ts_stop(struct saa7134_dev *dev)
 {
 	dprintk("TS stop\n");
 
 	BUG_ON(!dev->ts_started);
 
-	/* Stop TS stream */
+	
 	switch (saa7134_boards[dev->board].ts_type) {
 	case SAA7134_MPEG_TS_PARALLEL:
 		saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
@@ -243,7 +223,7 @@ int saa7134_ts_stop(struct saa7134_dev *dev)
 	return 0;
 }
 
-/* Function for start TS */
+
 int saa7134_ts_start(struct saa7134_dev *dev)
 {
 	dprintk("TS start\n");
@@ -255,10 +235,10 @@ int saa7134_ts_start(struct saa7134_dev *dev)
 	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
 	saa_writeb(SAA7134_TS_SERIAL1, 0x01);
 
-	/* TS clock non-inverted */
+	
 	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
 
-	/* Start TS stream */
+	
 	switch (saa7134_boards[dev->board].ts_type) {
 	case SAA7134_MPEG_TS_PARALLEL:
 		saa_writeb(SAA7134_TS_SERIAL0, 0x40);
@@ -307,9 +287,5 @@ void saa7134_irq_ts_done(struct saa7134_dev *dev, unsigned long status)
 	spin_unlock(&dev->slock);
 }
 
-/* ----------------------------------------------------------- */
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+
+

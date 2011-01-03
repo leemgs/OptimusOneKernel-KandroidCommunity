@@ -1,20 +1,4 @@
-/*
- * Shared interrupt handling code for IPR and INTC2 types of IRQs.
- *
- * Copyright (C) 2007, 2008 Magnus Damm
- *
- * Based on intc2.c and ipr.c
- *
- * Copyright (C) 1999  Niibe Yutaka & Takeshi Yaegashi
- * Copyright (C) 2000  Kazumoto Kojima
- * Copyright (C) 2001  David J. Mckay (david.mckay@st.com)
- * Copyright (C) 2003  Takashi Kusuda <kusuda-takashi@hitachi-ul.co.jp>
- * Copyright (C) 2005, 2006  Paul Mundt
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 #include <linux/init.h>
 #include <linux/irq.h>
 #include <linux/module.h>
@@ -69,7 +53,7 @@ static LIST_HEAD(intc_list);
 #define SMP_NR(d, x) 1
 #endif
 
-static unsigned int intc_prio_level[NR_IRQS]; /* for now */
+static unsigned int intc_prio_level[NR_IRQS]; 
 #if defined(CONFIG_CPU_SH3) || defined(CONFIG_CPU_SH4A)
 static unsigned long ack_handle[NR_IRQS];
 #endif
@@ -95,19 +79,19 @@ static inline unsigned int set_field(unsigned int value,
 static void write_8(unsigned long addr, unsigned long h, unsigned long data)
 {
 	__raw_writeb(set_field(0, data, h), addr);
-	(void)__raw_readb(addr);	/* Defeat write posting */
+	(void)__raw_readb(addr);	
 }
 
 static void write_16(unsigned long addr, unsigned long h, unsigned long data)
 {
 	__raw_writew(set_field(0, data, h), addr);
-	(void)__raw_readw(addr);	/* Defeat write posting */
+	(void)__raw_readw(addr);	
 }
 
 static void write_32(unsigned long addr, unsigned long h, unsigned long data)
 {
 	__raw_writel(set_field(0, data, h), addr);
-	(void)__raw_readl(addr);	/* Defeat write posting */
+	(void)__raw_readl(addr);	
 }
 
 static void modify_8(unsigned long addr, unsigned long h, unsigned long data)
@@ -115,7 +99,7 @@ static void modify_8(unsigned long addr, unsigned long h, unsigned long data)
 	unsigned long flags;
 	local_irq_save(flags);
 	__raw_writeb(set_field(__raw_readb(addr), data, h), addr);
-	(void)__raw_readb(addr);	/* Defeat write posting */
+	(void)__raw_readb(addr);	
 	local_irq_restore(flags);
 }
 
@@ -124,7 +108,7 @@ static void modify_16(unsigned long addr, unsigned long h, unsigned long data)
 	unsigned long flags;
 	local_irq_save(flags);
 	__raw_writew(set_field(__raw_readw(addr), data, h), addr);
-	(void)__raw_readw(addr);	/* Defeat write posting */
+	(void)__raw_readw(addr);	
 	local_irq_restore(flags);
 }
 
@@ -133,7 +117,7 @@ static void modify_32(unsigned long addr, unsigned long h, unsigned long data)
 	unsigned long flags;
 	local_irq_save(flags);
 	__raw_writel(set_field(__raw_readl(addr), data, h), addr);
-	(void)__raw_readl(addr);	/* Defeat write posting */
+	(void)__raw_readl(addr);	
 	local_irq_restore(flags);
 }
 
@@ -150,11 +134,11 @@ static void (*intc_reg_fns[])(unsigned long addr,
 	[REG_FN_MODIFY_BASE + 3] = modify_32,
 };
 
-enum {	MODE_ENABLE_REG = 0, /* Bit(s) set -> interrupt enabled */
-	MODE_MASK_REG,       /* Bit(s) set -> interrupt disabled */
-	MODE_DUAL_REG,       /* Two registers, set bit to enable / disable */
-	MODE_PRIO_REG,       /* Priority value written to enable interrupt */
-	MODE_PCLR_REG,       /* Above plus all bits set to disable interrupt */
+enum {	MODE_ENABLE_REG = 0, 
+	MODE_MASK_REG,       
+	MODE_DUAL_REG,       
+	MODE_PRIO_REG,       
+	MODE_PCLR_REG,       
 };
 
 static void intc_mode_field(unsigned long addr,
@@ -247,7 +231,7 @@ static void intc_disable(unsigned int irq)
 
 static int intc_set_wake(unsigned int irq, unsigned int on)
 {
-	return 0; /* allow wakeup, but setup hardware in intc_suspend() */
+	return 0; 
 }
 
 #if defined(CONFIG_CPU_SH3) || defined(CONFIG_CPU_SH4A)
@@ -259,20 +243,20 @@ static void intc_mask_ack(unsigned int irq)
 
 	intc_disable(irq);
 
-	/* read register and write zero only to the assocaited bit */
+	
 
 	if (handle) {
 		addr = INTC_REG(d, _INTC_ADDR_D(handle), 0);
 		switch (_INTC_FN(handle)) {
-		case REG_FN_MODIFY_BASE + 0:	/* 8bit */
+		case REG_FN_MODIFY_BASE + 0:	
 			__raw_readb(addr);
 			__raw_writeb(0xff ^ set_field(0, 1, handle), addr);
 			break;
-		case REG_FN_MODIFY_BASE + 1:	/* 16bit */
+		case REG_FN_MODIFY_BASE + 1:	
 			__raw_readw(addr);
 			__raw_writew(0xffff ^ set_field(0, 1, handle), addr);
 			break;
-		case REG_FN_MODIFY_BASE + 3:	/* 32bit */
+		case REG_FN_MODIFY_BASE + 3:	
 			__raw_readl(addr);
 			__raw_writel(0xffffffff ^ set_field(0, 1, handle), addr);
 			break;
@@ -290,17 +274,7 @@ static struct intc_handle_int *intc_find_irq(struct intc_handle_int *hp,
 {
 	int i;
 
-	/* this doesn't scale well, but...
-	 *
-	 * this function should only be used for cerain uncommon
-	 * operations such as intc_set_priority() and intc_set_sense()
-	 * and in those rare cases performance doesn't matter that much.
-	 * keeping the memory footprint low is more important.
-	 *
-	 * one rather simple way to speed this up and still keep the
-	 * memory footprint down is to make sure the array is sorted
-	 * and then perform a bisect to lookup the irq.
-	 */
+	
 
 	for (i = 0; i < nr_hp; i++) {
 		if ((hp + i)->irq != irq)
@@ -327,11 +301,7 @@ int intc_set_priority(unsigned int irq, unsigned int prio)
 
 		intc_prio_level[irq] = prio;
 
-		/*
-		 * only set secondary masking method directly
-		 * primary masking method is using intc_prio_level[irq]
-		 * priority level will be set during next enable()
-		 */
+		
 
 		if (_INTC_FN(ihp->handle) != REG_FN_ERR)
 			_intc_enable(irq, ihp->handle);
@@ -345,7 +315,7 @@ static unsigned char intc_irq_sense_table[IRQ_TYPE_SENSE_MASK + 1] = {
 	[IRQ_TYPE_EDGE_FALLING] = VALID(0),
 	[IRQ_TYPE_EDGE_RISING] = VALID(1),
 	[IRQ_TYPE_LEVEL_LOW] = VALID(2),
-	/* SH7706, SH7707 and SH7709 do not support high level triggered */
+	
 #if !defined(CONFIG_CPU_SUBTYPE_SH7706) && \
     !defined(CONFIG_CPU_SUBTYPE_SH7707) && \
     !defined(CONFIG_CPU_SUBTYPE_SH7709)
@@ -572,12 +542,7 @@ static void __init intc_register_irq(struct intc_desc *desc,
 	struct intc_handle_int *hp;
 	unsigned int data[2], primary;
 
-	/* Prefer single interrupt source bitmap over other combinations:
-	 * 1. bitmap, single interrupt source
-	 * 2. priority, single interrupt source
-	 * 3. bitmap, multiple interrupt sources (groups)
-	 * 4. priority, multiple interrupt sources (groups)
-	 */
+	
 
 	data[0] = intc_mask_data(desc, d, enum_id, 0);
 	data[1] = intc_prio_data(desc, d, enum_id, 0);
@@ -596,33 +561,28 @@ static void __init intc_register_irq(struct intc_desc *desc,
 	if (!data[primary])
 		primary ^= 1;
 
-	BUG_ON(!data[primary]); /* must have primary masking method */
+	BUG_ON(!data[primary]); 
 
 	disable_irq_nosync(irq);
 	set_irq_chip_and_handler_name(irq, &d->chip,
 				      handle_level_irq, "level");
 	set_irq_chip_data(irq, (void *)data[primary]);
 
-	/* set priority level
-	 * - this needs to be at least 2 for 5-bit priorities on 7780
-	 */
+	
 	intc_prio_level[irq] = 2;
 
-	/* enable secondary masking method if present */
+	
 	if (data[!primary])
 		_intc_enable(irq, data[!primary]);
 
-	/* add irq to d->prio list if priority is available */
+	
 	if (data[1]) {
 		hp = d->prio + d->nr_prio;
 		hp->irq = irq;
 		hp->handle = data[1];
 
 		if (primary) {
-			/*
-			 * only secondary priority should access registers, so
-			 * set _INTC_FN(h) = REG_FN_ERR for intc_set_priority()
-			 */
+			
 
 			hp->handle &= ~_INTC_MK(0x0f, 0, 0, 0, 0, 0);
 			hp->handle |= _INTC_MK(REG_FN_ERR, 0, 0, 0, 0, 0);
@@ -630,7 +590,7 @@ static void __init intc_register_irq(struct intc_desc *desc,
 		d->nr_prio++;
 	}
 
-	/* add irq to d->sense list if sense is available */
+	
 	data[0] = intc_sense_data(desc, d, enum_id);
 	if (data[0]) {
 		(d->sense + d->nr_sense)->irq = irq;
@@ -638,7 +598,7 @@ static void __init intc_register_irq(struct intc_desc *desc,
 		d->nr_sense++;
 	}
 
-	/* irq should be disabled by default */
+	
 	d->chip.mask(irq);
 
 #if defined(CONFIG_CPU_SH3) || defined(CONFIG_CPU_SH4A)
@@ -736,9 +696,9 @@ void __init register_intc_controller(struct intc_desc *desc)
 	}
 #endif
 
-	BUG_ON(k > 256); /* _INTC_ADDR_E() and _INTC_ADDR_D() are 8 bits */
+	BUG_ON(k > 256); 
 
-	/* register the vectors one by one */
+	
 	for (i = 0; i < desc->nr_vectors; i++) {
 		struct intc_vect *vect = desc->vectors + i;
 		unsigned int irq = evt2irq(vect->vect);
@@ -762,11 +722,7 @@ void __init register_intc_controller(struct intc_desc *desc)
 			if (vect->enum_id != vect2->enum_id)
 				continue;
 
-			/*
-			 * In the case of multi-evt handling and sparse
-			 * IRQ support, each vector still needs to have
-			 * its own backing irq_desc.
-			 */
+			
 			irq_desc = irq_to_desc_alloc_node(irq2, numa_node_id());
 			if (unlikely(!irq_desc)) {
 				pr_info("can't get irq_desc for %d\n", irq2);
@@ -775,7 +731,7 @@ void __init register_intc_controller(struct intc_desc *desc)
 
 			vect2->enum_id = 0;
 
-			/* redirect this interrupts to the first one */
+			
 			set_irq_chip_and_handler_name(irq2, &d->chip,
 					intc_redirect_irq, "redirect");
 			set_irq_data(irq2, (void *)irq);
@@ -789,7 +745,7 @@ static int intc_suspend(struct sys_device *dev, pm_message_t state)
 	struct irq_desc *desc;
 	int irq;
 
-	/* get intc controller associated with this sysdev */
+	
 	d = container_of(dev, struct intc_desc_int, sysdev);
 
 	switch (state.event) {
@@ -806,10 +762,10 @@ static int intc_suspend(struct sys_device *dev, pm_message_t state)
 		}
 		break;
 	case PM_EVENT_FREEZE:
-		/* nothing has to be done */
+		
 		break;
 	case PM_EVENT_SUSPEND:
-		/* enable wakeup irqs belonging to this intc controller */
+		
 		for_each_irq_desc(irq, desc) {
 			if ((desc->status & IRQ_WAKEUP) && (desc->chip == &d->chip))
 				intc_enable(irq);
@@ -832,7 +788,7 @@ static struct sysdev_class intc_sysdev_class = {
 	.resume = intc_resume,
 };
 
-/* register this intc as sysdev to allow suspend/resume */
+
 static int __init register_intc_sysdevs(void)
 {
 	struct intc_desc_int *d;

@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFI_RPORT_H__
 #define __BFI_RPORT_H__
@@ -35,53 +20,53 @@ enum bfi_rport_i2h_msgs {
 };
 
 struct bfi_rport_create_req_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
-	u16        bfa_handle;	/*  host rport handle		*/
-	u16        max_frmsz;	/*  max rcv pdu size		*/
-	u32        pid       : 24,	/*  remote port ID		*/
-			lp_tag    : 8;	/*  local port tag		*/
-	u32        local_pid : 24,	/*  local port ID		*/
+	struct bfi_mhdr_s  mh;		
+	u16        bfa_handle;	
+	u16        max_frmsz;	
+	u32        pid       : 24,	
+			lp_tag    : 8;	
+	u32        local_pid : 24,	
 			cisc      : 8;
-	u8         fc_class;	/*  supported FC classes	*/
-	u8         vf_en;		/*  virtual fabric enable	*/
-	u16        vf_id;		/*  virtual fabric ID		*/
+	u8         fc_class;	
+	u8         vf_en;		
+	u16        vf_id;		
 };
 
 struct bfi_rport_create_rsp_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
-	u8         status;		/*  rport creation status	*/
+	struct bfi_mhdr_s  mh;		
+	u8         status;		
 	u8         rsvd[3];
-	u16        bfa_handle;	/*  host rport handle		*/
-	u16        fw_handle;	/*  firmware rport handle	*/
-	struct bfa_rport_qos_attr_s qos_attr;  /* QoS Attributes */
+	u16        bfa_handle;	
+	u16        fw_handle;	
+	struct bfa_rport_qos_attr_s qos_attr;  
 };
 
 struct bfa_rport_speed_req_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
-	u16        fw_handle;	/*  firmware rport handle	*/
-	u8		speed;		/*! rport's speed via RPSC  */
+	struct bfi_mhdr_s  mh;		
+	u16        fw_handle;	
+	u8		speed;		
 	u8		rsvd;
 };
 
 struct bfi_rport_delete_req_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
-	u16        fw_handle;	/*  firmware rport handle	*/
+	struct bfi_mhdr_s  mh;		
+	u16        fw_handle;	
 	u16        rsvd;
 };
 
 struct bfi_rport_delete_rsp_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
-	u16        bfa_handle;	/*  host rport handle		*/
-	u8         status;		/*  rport deletion status	*/
+	struct bfi_mhdr_s  mh;		
+	u16        bfa_handle;	
+	u8         status;		
 	u8         rsvd;
 };
 
 struct bfi_rport_qos_scn_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
-	u16        bfa_handle;	/*  host rport handle		*/
+	struct bfi_mhdr_s  mh;		
+	u16        bfa_handle;	
 	u16        rsvd;
-	struct bfa_rport_qos_attr_s old_qos_attr;  /* Old QoS Attributes */
-	struct bfa_rport_qos_attr_s new_qos_attr;  /* New QoS Attributes */
+	struct bfa_rport_qos_attr_s old_qos_attr;  
+	struct bfa_rport_qos_attr_s new_qos_attr;  
 };
 
 union bfi_rport_h2i_msg_u {
@@ -100,5 +85,5 @@ union bfi_rport_i2h_msg_u {
 
 #pragma pack()
 
-#endif /* __BFI_RPORT_H__ */
+#endif 
 

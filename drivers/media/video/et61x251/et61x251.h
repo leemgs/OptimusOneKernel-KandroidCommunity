@@ -1,22 +1,4 @@
-/***************************************************************************
- * V4L2 driver for ET61X[12]51 PC Camera Controllers                       *
- *                                                                         *
- * Copyright (C) 2006 by Luca Risolia <luca.risolia@studio.unibo.it>       *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #ifndef _ET61X251_H_
 #define _ET61X251_H_
@@ -40,7 +22,7 @@
 
 #include "et61x251_sensor.h"
 
-/*****************************************************************************/
+
 
 #define ET61X251_DEBUG
 #define ET61X251_DEBUG_LEVEL         2
@@ -56,7 +38,7 @@
 #define ET61X251_CTRL_TIMEOUT        100
 #define ET61X251_FRAME_TIMEOUT       2
 
-/*****************************************************************************/
+
 
 static const struct usb_device_id et61x251_id_table[] = {
 	{ USB_DEVICE(0x102c, 0x6151), },
@@ -89,7 +71,7 @@ static const struct usb_device_id et61x251_id_table[] = {
 
 ET61X251_SENSOR_TABLE
 
-/*****************************************************************************/
+
 
 enum et61x251_frame_state {
 	F_UNUSED,
@@ -169,7 +151,7 @@ struct et61x251_device {
 	wait_queue_head_t wait_open, wait_frame, wait_stream;
 };
 
-/*****************************************************************************/
+
 
 struct et61x251_device*
 et61x251_match_id(struct et61x251_device* cam, const struct usb_device_id *id)
@@ -185,7 +167,7 @@ et61x251_attach_sensor(struct et61x251_device* cam,
 	memcpy(&cam->sensor, sensor, sizeof(struct et61x251_sensor));
 }
 
-/*****************************************************************************/
+
 
 #undef DBG
 #undef KDBG
@@ -229,6 +211,6 @@ dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n", __FILE__, __func__,   \
 	 __LINE__ , ## args)
 
 #undef PDBGG
-#define PDBGG(fmt, args...) do {;} while(0) /* placeholder */
+#define PDBGG(fmt, args...) do {;} while(0) 
 
-#endif /* _ET61X251_H_ */
+#endif 

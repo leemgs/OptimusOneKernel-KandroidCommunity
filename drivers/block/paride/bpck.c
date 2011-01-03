@@ -1,18 +1,6 @@
-/* 
-	bpck.c	(c) 1996-8  Grant R. Guenther <grant@torque.net>
-		            Under the terms of the GNU General Public License.
 
-	bpck.c is a low-level protocol driver for the MicroSolutions 
-	"backpack" parallel port IDE adapter.  
 
-*/
 
-/* Changes:
-
-	1.01	GRG 1998.05.05 init_proto, release_proto, pi->delay 
-	1.02    GRG 1998.08.15 default pi->delay returned to 4
-
-*/
 
 #define	BPCK_VERSION	"1.02" 
 
@@ -38,10 +26,7 @@
 
 #define j44(l,h)     (((l>>3)&0x7)|((l>>4)&0x8)|((h<<1)&0x70)|(h&0x80))
 
-/* cont = 0 - access the IDE register file 
-   cont = 1 - access the IDE command set 
-   cont = 2 - use internal bpck register addressing
-*/
+
 
 static int  cont_map[3] = { 0x40, 0x48, 0 };
 
@@ -100,7 +85,7 @@ static void bpck_write_regr( PIA *pi, int cont, int regr, int val )
 	}
 }
 
-/* These macros access the bpck registers in native addressing */
+
 
 #define WR(r,v)		bpck_write_regr(pi,2,r,v)
 #define RR(r)		(bpck_read_regr(pi,2,r))
@@ -241,7 +226,7 @@ static void bpck_connect ( PIA *pi  )
 	WR(5,8);
 
 	if (pi->devtype == PI_PCD) {
-		WR(0x46,0x10);		/* fiddle with ESS logic ??? */
+		WR(0x46,0x10);		
 		WR(0x4c,0x38);
 		WR(0x4d,0x88);
 		WR(0x46,0xa0);
@@ -259,7 +244,7 @@ static void bpck_disconnect ( PIA *pi )
 
 static void bpck_force_spp ( PIA *pi )
 
-/* This fakes the EPP protocol to turn off EPP ... */
+
 
 {       pi->saved_r0 = r0();
         w0(0xff-pi->unit); w2(4); w0(pi->unit);
@@ -397,7 +382,7 @@ static void bpck_read_eeprom ( PIA *pi, char * buf )
 	pi->mode = om; pi->delay = od;
 }
 
-static int bpck_test_port ( PIA *pi ) 	/* check for 8-bit port */
+static int bpck_test_port ( PIA *pi ) 	
 
 {	int	i, r, m;
 

@@ -1,22 +1,4 @@
-/*******************************************************************
- * This file is part of the Emulex Linux Device Driver for         *
- * Fibre Channel Host Bus Adapters.                                *
- * Copyright (C) 2009 Emulex.  All rights reserved.                *
- * EMULEX and SLI are trademarks of Emulex.                        *
- * www.emulex.com                                                  *
- *                                                                 *
- * This program is free software; you can redistribute it and/or   *
- * modify it under the terms of version 2 of the GNU General       *
- * Public License as published by the Free Software Foundation.    *
- * This program is distributed in the hope that it will be useful. *
- * ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND          *
- * WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,  *
- * FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT, ARE      *
- * DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS ARE HELD *
- * TO BE LEGALLY INVALID.  See the GNU General Public License for  *
- * more details, a copy of which can be found in the file COPYING  *
- * included with this package.                                     *
- *******************************************************************/
+
 
 #include <linux/interrupt.h>
 #include <linux/mempool.h>
@@ -40,10 +22,7 @@
 #include "lpfc_vport.h"
 #include "lpfc_version.h"
 
-/**
- * lpfc_bsg_rport_ct - send a CT command from a bsg request
- * @job: fc_bsg_job to handle
- */
+
 static int
 lpfc_bsg_rport_ct(struct fc_bsg_job *job)
 {
@@ -66,7 +45,7 @@ lpfc_bsg_rport_ct(struct fc_bsg_job *job)
 	dma_addr_t busaddr;
 	int rc = 0;
 
-	/* in case no data is transferred */
+	
 	job->reply->reply_payload_rcv_len = 0;
 
 	if (!lpfc_nlp_get(ndlp)) {
@@ -216,18 +195,15 @@ free_cmdiocbq:
 free_ndlp_exit:
 	lpfc_nlp_put(ndlp);
 
-	/* make error code available to userspace */
+	
 	job->reply->result = rc;
-	/* complete the job back to userspace */
+	
 	job->job_done(job);
 
 	return 0;
 }
 
-/**
- * lpfc_bsg_rport_els - send an ELS command from a bsg request
- * @job: fc_bsg_job to handle
- */
+
 static int
 lpfc_bsg_rport_els(struct fc_bsg_job *job)
 {
@@ -255,7 +231,7 @@ lpfc_bsg_rport_els(struct fc_bsg_job *job)
 	dma_addr_t busaddr;
 	int rc = 0;
 
-	/* in case no data is transferred */
+	
 	job->reply->reply_payload_rcv_len = 0;
 
 	if (!lpfc_nlp_get(ndlp)) {
@@ -333,7 +309,7 @@ lpfc_bsg_rport_els(struct fc_bsg_job *job)
 					rspiocbq, (phba->fc_ratov * 2)
 					       + LPFC_DRVR_TIMEOUT);
 
-	/* release the new ndlp once the iocb completes */
+	
 	lpfc_nlp_put(ndlp);
 	if (iocb_status != IOCB_TIMEDOUT) {
 		pci_unmap_sg(phba->pcidev, job->request_payload.sg_list,
@@ -349,7 +325,7 @@ lpfc_bsg_rport_els(struct fc_bsg_job *job)
 			rc = 0;
 		} else if (rsp->ulpStatus == IOSTAT_LS_RJT) {
 			struct fc_bsg_ctels_reply *els_reply;
-			/* LS_RJT data returned in word 4 */
+			
 			uint8_t *rjt_data = (uint8_t *)&rsp->un.ulpWord[4];
 
 			els_reply = &job->reply->reply_data.ctels_reply;
@@ -370,9 +346,9 @@ lpfc_bsg_rport_els(struct fc_bsg_job *job)
 	lpfc_sli_release_iocbq(phba, rspiocbq);
 
 out:
-	/* make error code available to userspace */
+	
 	job->reply->result = rc;
-	/* complete the job back to userspace */
+	
 	job->job_done(job);
 
 	return 0;
@@ -383,16 +359,16 @@ struct lpfc_ct_event {
 	int ref;
 	wait_queue_head_t wq;
 
-	/* Event type and waiter identifiers */
+	
 	uint32_t type_mask;
 	uint32_t req_id;
 	uint32_t reg_id;
 
-	/* next two flags are here for the auto-delete logic */
+	
 	unsigned long wait_time_stamp;
 	int waiting;
 
-	/* seen and not seen events */
+	
 	struct list_head events_to_get;
 	struct list_head events_to_see;
 };
@@ -466,15 +442,7 @@ enum ELX_LOOPBACK_CMD {
 	ELX_LOOPBACK_DATA,
 };
 
-/**
- * lpfc_bsg_ct_unsol_event - process an unsolicited CT command
- * @phba:
- * @pring:
- * @piocbq:
- *
- * This function is called when an unsolicited CT command is received.  It
- * forwards the event to any processes registerd to receive CT events.
- */
+
 void
 lpfc_bsg_ct_unsol_event(struct lpfc_hba *phba, struct lpfc_sli_ring *pring,
 			struct lpfc_iocbq *piocbq)
@@ -537,7 +505,7 @@ lpfc_bsg_ct_unsol_event(struct lpfc_hba *phba, struct lpfc_sli_ring *pring,
 		mutex_unlock(&phba->ct_event_mutex);
 
 		if (phba->sli3_options & LPFC_SLI3_HBQ_ENABLED) {
-			/* take accumulated byte count from the last iocbq */
+			
 			iocbq = list_entry(head.prev, typeof(*iocbq), list);
 			evt_dat->len = iocbq->iocb.unsli3.rcvsli3.acc_len;
 		} else {
@@ -664,10 +632,7 @@ error_ct_unsol_exit:
 	return;
 }
 
-/**
- * lpfc_bsg_set_event - process a SET_EVENT bsg vendor command
- * @job: SET_EVENT fc_bsg_job
- */
+
 static int
 lpfc_bsg_set_event(struct fc_bsg_job *job)
 {
@@ -699,7 +664,7 @@ lpfc_bsg_set_event(struct fc_bsg_job *job)
 	mutex_unlock(&phba->ct_event_mutex);
 
 	if (&evt->node == &phba->ct_ev_waiters) {
-		/* no event waiting struct yet - first call */
+		
 		evt = lpfc_ct_event_new(event_req->ev_reg_id,
 					event_req->ev_req_id);
 		if (!evt) {
@@ -719,8 +684,8 @@ lpfc_bsg_set_event(struct fc_bsg_job *job)
 	if (wait_event_interruptible(evt->wq,
 				     !list_empty(&evt->events_to_see))) {
 		mutex_lock(&phba->ct_event_mutex);
-		lpfc_ct_event_unref(evt); /* release ref */
-		lpfc_ct_event_unref(evt); /* delete */
+		lpfc_ct_event_unref(evt); 
+		lpfc_ct_event_unref(evt); 
 		mutex_unlock(&phba->ct_event_mutex);
 		rc = -EINTR;
 		goto set_event_out;
@@ -731,24 +696,21 @@ lpfc_bsg_set_event(struct fc_bsg_job *job)
 
 	mutex_lock(&phba->ct_event_mutex);
 	list_move(evt->events_to_see.prev, &evt->events_to_get);
-	lpfc_ct_event_unref(evt); /* release ref */
+	lpfc_ct_event_unref(evt); 
 	mutex_unlock(&phba->ct_event_mutex);
 
 set_event_out:
-	/* set_event carries no reply payload */
+	
 	job->reply->reply_payload_rcv_len = 0;
-	/* make error code available to userspace */
+	
 	job->reply->result = rc;
-	/* complete the job back to userspace */
+	
 	job->job_done(job);
 
 	return 0;
 }
 
-/**
- * lpfc_bsg_get_event - process a GET_EVENT bsg vendor command
- * @job: GET_EVENT fc_bsg_job
- */
+
 static int
 lpfc_bsg_get_event(struct fc_bsg_job *job)
 {
@@ -822,18 +784,15 @@ lpfc_bsg_get_event(struct fc_bsg_job *job)
 	mutex_unlock(&phba->ct_event_mutex);
 
 error_get_event_exit:
-	/* make error code available to userspace */
+	
 	job->reply->result = rc;
-	/* complete the job back to userspace */
+	
 	job->job_done(job);
 
 	return rc;
 }
 
-/**
- * lpfc_bsg_hst_vendor - process a vendor-specific fc_bsg_job
- * @job: fc_bsg_job to handle
- */
+
 static int
 lpfc_bsg_hst_vendor(struct fc_bsg_job *job)
 {
@@ -853,10 +812,7 @@ lpfc_bsg_hst_vendor(struct fc_bsg_job *job)
 	}
 }
 
-/**
- * lpfc_bsg_request - handle a bsg request from the FC transport
- * @job: fc_bsg_job to handle
- */
+
 int
 lpfc_bsg_request(struct fc_bsg_job *job)
 {
@@ -882,13 +838,7 @@ lpfc_bsg_request(struct fc_bsg_job *job)
 	return rc;
 }
 
-/**
- * lpfc_bsg_timeout - handle timeout of a bsg request from the FC transport
- * @job: fc_bsg_job that has timed out
- *
- * This function just aborts the job's IOCB.  The aborted IOCB will return to
- * the waiting function which will handle passing the error back to userspace
- */
+
 int
 lpfc_bsg_timeout(struct fc_bsg_job *job)
 {

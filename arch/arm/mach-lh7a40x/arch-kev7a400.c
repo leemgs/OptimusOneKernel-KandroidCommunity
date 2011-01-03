@@ -1,12 +1,4 @@
-/* arch/arm/mach-lh7a40x/arch-kev7a400.c
- *
- *  Copyright (C) 2004 Logic Product Development
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/tty.h>
 #include <linux/init.h>
@@ -23,7 +15,7 @@
 
 #include "common.h"
 
-      /* This function calls the board specific IRQ initialization function. */
+      
 
 static struct map_desc kev7a400_io_desc[] __initdata = {
 	{
@@ -44,7 +36,7 @@ void __init kev7a400_map_io(void)
 	iotable_init (kev7a400_io_desc, ARRAY_SIZE (kev7a400_io_desc));
 }
 
-static u16 CPLD_IRQ_mask;	/* Mask for CPLD IRQs, 1 == unmasked */
+static u16 CPLD_IRQ_mask;	
 
 static void kev7a400_ack_cpld_irq (u32 irq)
 {
@@ -92,25 +84,25 @@ void __init lh7a40x_init_board_irq (void)
 	}
 	set_irq_chained_handler (IRQ_CPLD, kev7a400_cpld_handler);
 
-		/* Clear all CPLD interrupts */
-	CPLD_CL_INT = 0xff; /* CPLD_INTR_MMC_CD | CPLD_INTR_ETH_INT; */
+		
+	CPLD_CL_INT = 0xff; 
 
-	GPIO_GPIOINTEN = 0;		/* Disable all GPIO interrupts */
+	GPIO_GPIOINTEN = 0;		
 	barrier();
 
 #if 0
 	GPIO_INTTYPE1
-		= (GPIO_INTR_PCC1_CD | GPIO_INTR_PCC1_CD); /* Edge trig. */
-	GPIO_INTTYPE2 = 0;		/* Falling edge & low-level */
-	GPIO_GPIOFEOI = 0xff;		/* Clear all GPIO interrupts */
-	GPIO_GPIOINTEN = 0xff;		/* Enable all GPIO interrupts */
+		= (GPIO_INTR_PCC1_CD | GPIO_INTR_PCC1_CD); 
+	GPIO_INTTYPE2 = 0;		
+	GPIO_GPIOFEOI = 0xff;		
+	GPIO_GPIOINTEN = 0xff;		
 
 	init_FIQ();
 #endif
 }
 
 MACHINE_START (KEV7A400, "Sharp KEV7a400")
-	/* Maintainer: Marc Singer */
+	
 	.phys_io	= 0x80000000,
 	.io_pg_offst	= ((io_p2v (0x80000000))>>18) & 0xfffc,
 	.boot_params	= 0xc0000100,

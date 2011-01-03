@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <bfa_fcpim.h>
@@ -61,9 +46,7 @@ BFA_TRC_FILE(HAL, ITNIM);
 	}								\
 } while (0)
 
-/*
- * forward declarations
- */
+
 static void     bfa_itnim_iocdisable_cleanup(struct bfa_itnim_s *itnim);
 static bfa_boolean_t bfa_itnim_send_fwcreate(struct bfa_itnim_s *itnim);
 static bfa_boolean_t bfa_itnim_send_fwdelete(struct bfa_itnim_s *itnim);
@@ -79,21 +62,19 @@ static void     bfa_itnim_iotov_start(struct bfa_itnim_s *itnim);
 static void     bfa_itnim_iotov_stop(struct bfa_itnim_s *itnim);
 static void     bfa_itnim_iotov_delete(struct bfa_itnim_s *itnim);
 
-/**
- *  bfa_itnim_sm BFA itnim state machine
- */
+
 
 
 enum bfa_itnim_event {
-	BFA_ITNIM_SM_CREATE = 1,	/*  itnim is created */
-	BFA_ITNIM_SM_ONLINE = 2,	/*  itnim is online */
-	BFA_ITNIM_SM_OFFLINE = 3,	/*  itnim is offline */
-	BFA_ITNIM_SM_FWRSP = 4,		/*  firmware response */
-	BFA_ITNIM_SM_DELETE = 5,	/*  deleting an existing itnim */
-	BFA_ITNIM_SM_CLEANUP = 6,	/*  IO cleanup completion */
-	BFA_ITNIM_SM_SLER = 7,		/*  second level error recovery */
-	BFA_ITNIM_SM_HWFAIL = 8,	/*  IOC h/w failure event */
-	BFA_ITNIM_SM_QRESUME = 9,	/*  queue space available */
+	BFA_ITNIM_SM_CREATE = 1,	
+	BFA_ITNIM_SM_ONLINE = 2,	
+	BFA_ITNIM_SM_OFFLINE = 3,	
+	BFA_ITNIM_SM_FWRSP = 4,		
+	BFA_ITNIM_SM_DELETE = 5,	
+	BFA_ITNIM_SM_CLEANUP = 6,	
+	BFA_ITNIM_SM_SLER = 7,		
+	BFA_ITNIM_SM_HWFAIL = 8,	
+	BFA_ITNIM_SM_QRESUME = 9,	
 };
 
 static void     bfa_itnim_sm_uninit(struct bfa_itnim_s *itnim,
@@ -127,9 +108,7 @@ static void     bfa_itnim_sm_fwdelete_qfull(struct bfa_itnim_s *itnim,
 static void     bfa_itnim_sm_deleting_qfull(struct bfa_itnim_s *itnim,
 					  enum bfa_itnim_event event);
 
-/**
- * 		Beginning/unallocated state - no events expected.
- */
+
 static void
 bfa_itnim_sm_uninit(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -148,9 +127,7 @@ bfa_itnim_sm_uninit(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 	}
 }
 
-/**
- * 		Beginning state, only online event expected.
- */
+
 static void
 bfa_itnim_sm_created(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -179,9 +156,7 @@ bfa_itnim_sm_created(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 	}
 }
 
-/**
- * 		Waiting for itnim create response from firmware.
- */
+
 static void
 bfa_itnim_sm_fwcreate(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -251,9 +226,7 @@ bfa_itnim_sm_fwcreate_qfull(struct bfa_itnim_s *itnim,
 	}
 }
 
-/**
- * 	Waiting for itnim create response from firmware, a delete is pending.
- */
+
 static void
 bfa_itnim_sm_delete_pending(struct bfa_itnim_s *itnim,
 				enum bfa_itnim_event event)
@@ -279,9 +252,7 @@ bfa_itnim_sm_delete_pending(struct bfa_itnim_s *itnim,
 	}
 }
 
-/**
- * 		Online state - normal parking state.
- */
+
 static void
 bfa_itnim_sm_online(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -321,9 +292,7 @@ bfa_itnim_sm_online(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 	}
 }
 
-/**
- * 		Second level error recovery need.
- */
+
 static void
 bfa_itnim_sm_sler(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -352,9 +321,7 @@ bfa_itnim_sm_sler(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 	}
 }
 
-/**
- * 		Going offline. Waiting for active IO cleanup.
- */
+
 static void
 bfa_itnim_sm_cleanup_offline(struct bfa_itnim_s *itnim,
 				 enum bfa_itnim_event event)
@@ -389,9 +356,7 @@ bfa_itnim_sm_cleanup_offline(struct bfa_itnim_s *itnim,
 	}
 }
 
-/**
- * 		Deleting itnim. Waiting for active IO cleanup.
- */
+
 static void
 bfa_itnim_sm_cleanup_delete(struct bfa_itnim_s *itnim,
 				enum bfa_itnim_event event)
@@ -417,9 +382,7 @@ bfa_itnim_sm_cleanup_delete(struct bfa_itnim_s *itnim,
 	}
 }
 
-/**
- * Rport offline. Fimrware itnim is being deleted - awaiting f/w response.
- */
+
 static void
 bfa_itnim_sm_fwdelete(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -474,9 +437,7 @@ bfa_itnim_sm_fwdelete_qfull(struct bfa_itnim_s *itnim,
 	}
 }
 
-/**
- * 		Offline state.
- */
+
 static void
 bfa_itnim_sm_offline(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -506,9 +467,7 @@ bfa_itnim_sm_offline(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 	}
 }
 
-/**
- * 		IOC h/w failed state.
- */
+
 static void
 bfa_itnim_sm_iocdisable(struct bfa_itnim_s *itnim,
 			    enum bfa_itnim_event event)
@@ -542,9 +501,7 @@ bfa_itnim_sm_iocdisable(struct bfa_itnim_s *itnim,
 	}
 }
 
-/**
- * 		Itnim is deleted, waiting for firmware response to delete.
- */
+
 static void
 bfa_itnim_sm_deleting(struct bfa_itnim_s *itnim, enum bfa_itnim_event event)
 {
@@ -589,13 +546,9 @@ bfa_itnim_sm_deleting_qfull(struct bfa_itnim_s *itnim,
 
 
 
-/**
- *  bfa_itnim_private
- */
 
-/**
- * 		Initiate cleanup of all IOs on an IOC failure.
- */
+
+
 static void
 bfa_itnim_iocdisable_cleanup(struct bfa_itnim_s *itnim)
 {
@@ -613,9 +566,7 @@ bfa_itnim_iocdisable_cleanup(struct bfa_itnim_s *itnim)
 		bfa_ioim_iocdisable(ioim);
 	}
 
-	/**
-	 * For IO request in pending queue, we pretend an early timeout.
-	 */
+	
 	list_for_each_safe(qe, qen, &itnim->pending_q) {
 		ioim = (struct bfa_ioim_s *) qe;
 		bfa_ioim_tov(ioim);
@@ -627,9 +578,7 @@ bfa_itnim_iocdisable_cleanup(struct bfa_itnim_s *itnim)
 	}
 }
 
-/**
- * 		IO cleanup completion
- */
+
 static void
 bfa_itnim_cleanp_comp(void *itnim_cbarg)
 {
@@ -639,9 +588,7 @@ bfa_itnim_cleanp_comp(void *itnim_cbarg)
 	bfa_sm_send_event(itnim, BFA_ITNIM_SM_CLEANUP);
 }
 
-/**
- * 		Initiate cleanup of all IOs.
- */
+
 static void
 bfa_itnim_cleanup(struct bfa_itnim_s *itnim)
 {
@@ -654,10 +601,7 @@ bfa_itnim_cleanup(struct bfa_itnim_s *itnim)
 	list_for_each_safe(qe, qen, &itnim->io_q) {
 		ioim = (struct bfa_ioim_s *) qe;
 
-		/**
-		 * Move IO to a cleanup queue from active queue so that a later
-		 * TM will not pickup this IO.
-		 */
+		
 		list_del(&ioim->qe);
 		list_add_tail(&ioim->qe, &itnim->io_cleanup_q);
 
@@ -701,9 +645,7 @@ __bfa_cb_itnim_sler(void *cbarg, bfa_boolean_t complete)
 		bfa_cb_itnim_sler(itnim->ditn);
 }
 
-/**
- * Call to resume any I/O requests waiting for room in request queue.
- */
+
 static void
 bfa_itnim_qresume(void *cbarg)
 {
@@ -715,9 +657,7 @@ bfa_itnim_qresume(void *cbarg)
 
 
 
-/**
- *  bfa_itnim_public
- */
+
 
 void
 bfa_itnim_iodone(struct bfa_itnim_s *itnim)
@@ -735,9 +675,7 @@ void
 bfa_itnim_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *km_len,
 		u32 *dm_len)
 {
-	/**
-	 * ITN memory
-	 */
+	
 	*km_len += cfg->fwcfg.num_rports * sizeof(struct bfa_itnim_s);
 }
 
@@ -787,9 +725,7 @@ bfa_itnim_send_fwcreate(struct bfa_itnim_s *itnim)
 
 	itnim->msg_no++;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(itnim->bfa, itnim->reqq);
 	if (!m) {
 		bfa_reqq_wait(itnim->bfa, itnim->reqq, &itnim->reqq_wait);
@@ -803,9 +739,7 @@ bfa_itnim_send_fwcreate(struct bfa_itnim_s *itnim)
 	m->seq_rec = itnim->seq_rec;
 	m->msg_no = itnim->msg_no;
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(itnim->bfa, itnim->reqq);
 	return BFA_TRUE;
 }
@@ -815,9 +749,7 @@ bfa_itnim_send_fwdelete(struct bfa_itnim_s *itnim)
 {
 	struct bfi_itnim_delete_req_s *m;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(itnim->bfa, itnim->reqq);
 	if (!m) {
 		bfa_reqq_wait(itnim->bfa, itnim->reqq, &itnim->reqq_wait);
@@ -828,16 +760,12 @@ bfa_itnim_send_fwdelete(struct bfa_itnim_s *itnim)
 			bfa_lpuid(itnim->bfa));
 	m->fw_handle = itnim->rport->fw_handle;
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(itnim->bfa, itnim->reqq);
 	return BFA_TRUE;
 }
 
-/**
- * Cleanup all pending failed inflight requests.
- */
+
 static void
 bfa_itnim_delayed_comp(struct bfa_itnim_s *itnim, bfa_boolean_t iotov)
 {
@@ -850,9 +778,7 @@ bfa_itnim_delayed_comp(struct bfa_itnim_s *itnim, bfa_boolean_t iotov)
 	}
 }
 
-/**
- * Start all pending IO requests.
- */
+
 static void
 bfa_itnim_iotov_online(struct bfa_itnim_s *itnim)
 {
@@ -860,14 +786,10 @@ bfa_itnim_iotov_online(struct bfa_itnim_s *itnim)
 
 	bfa_itnim_iotov_stop(itnim);
 
-	/**
-	 * Abort all inflight IO requests in the queue
-	 */
+	
 	bfa_itnim_delayed_comp(itnim, BFA_FALSE);
 
-	/**
-	 * Start all pending IO requests.
-	 */
+	
 	while (!list_empty(&itnim->pending_q)) {
 		bfa_q_deq(&itnim->pending_q, &ioim);
 		list_add_tail(&ioim->qe, &itnim->io_q);
@@ -875,22 +797,16 @@ bfa_itnim_iotov_online(struct bfa_itnim_s *itnim)
 	}
 }
 
-/**
- * Fail all pending IO requests
- */
+
 static void
 bfa_itnim_iotov_cleanup(struct bfa_itnim_s *itnim)
 {
 	struct bfa_ioim_s *ioim;
 
-	/**
-	 * Fail all inflight IO requests in the queue
-	 */
+	
 	bfa_itnim_delayed_comp(itnim, BFA_TRUE);
 
-	/**
-	 * Fail any pending IO requests.
-	 */
+	
 	while (!list_empty(&itnim->pending_q)) {
 		bfa_q_deq(&itnim->pending_q, &ioim);
 		list_add_tail(&ioim->qe, &ioim->fcpim->ioim_comp_q);
@@ -898,9 +814,7 @@ bfa_itnim_iotov_cleanup(struct bfa_itnim_s *itnim)
 	}
 }
 
-/**
- * IO TOV timer callback. Fail any pending IO requests.
- */
+
 static void
 bfa_itnim_iotov(void *itnim_arg)
 {
@@ -913,9 +827,7 @@ bfa_itnim_iotov(void *itnim_arg)
 	bfa_cb_itnim_tov(itnim->ditn);
 }
 
-/**
- * Start IO TOV timer for failing back pending IO requests in offline state.
- */
+
 static void
 bfa_itnim_iotov_start(struct bfa_itnim_s *itnim)
 {
@@ -928,9 +840,7 @@ bfa_itnim_iotov_start(struct bfa_itnim_s *itnim)
 	}
 }
 
-/**
- * Stop IO TOV timer.
- */
+
 static void
 bfa_itnim_iotov_stop(struct bfa_itnim_s *itnim)
 {
@@ -940,9 +850,7 @@ bfa_itnim_iotov_stop(struct bfa_itnim_s *itnim)
 	}
 }
 
-/**
- * Stop IO TOV timer.
- */
+
 static void
 bfa_itnim_iotov_delete(struct bfa_itnim_s *itnim)
 {
@@ -961,13 +869,9 @@ bfa_itnim_iotov_delete(struct bfa_itnim_s *itnim)
 
 
 
-/**
- *  bfa_itnim_public
- */
 
-/**
- * 		Itnim interrupt processing.
- */
+
+
 void
 bfa_itnim_isr(struct bfa_s *bfa, struct bfi_msg_s *m)
 {
@@ -1011,9 +915,7 @@ bfa_itnim_isr(struct bfa_s *bfa, struct bfi_msg_s *m)
 
 
 
-/**
- *  bfa_itnim_api
- */
+
 
 struct bfa_itnim_s *
 bfa_itnim_create(struct bfa_s *bfa, struct bfa_rport_s *rport, void *ditn)
@@ -1054,10 +956,7 @@ bfa_itnim_offline(struct bfa_itnim_s *itnim)
 	bfa_sm_send_event(itnim, BFA_ITNIM_SM_OFFLINE);
 }
 
-/**
- * Return true if itnim is considered offline for holding off IO request.
- * IO is not held if itnim is being deleted.
- */
+
 bfa_boolean_t
 bfa_itnim_hold_io(struct bfa_itnim_s *itnim)
 {

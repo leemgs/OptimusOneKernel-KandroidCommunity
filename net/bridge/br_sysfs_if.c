@@ -1,15 +1,4 @@
-/*
- *	Sysfs attributes of bridge ports
- *	Linux ethernet bridge
- *
- *	Authors:
- *	Stephen Hemminger		<shemminger@osdl.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/capability.h>
 #include <linux/kernel.h>
@@ -138,7 +127,7 @@ static BRPORT_ATTR(hold_timer, S_IRUGO, show_hold_timer, NULL);
 
 static ssize_t store_flush(struct net_bridge_port *p, unsigned long v)
 {
-	br_fdb_delete_by_port(p->br, p, 0); // Don't delete local entry
+	br_fdb_delete_by_port(p->br, p, 0); 
 	return 0;
 }
 static BRPORT_ATTR(flush, S_IWUSR, NULL, store_flush);
@@ -225,11 +214,7 @@ struct sysfs_ops brport_sysfs_ops = {
 	.store = brport_store,
 };
 
-/*
- * Add sysfs entries to ethernet device added to a bridge.
- * Creates a brport subdirectory with bridge attributes.
- * Puts symlink in bridge's brport subdirectory
- */
+
 int br_sysfs_addif(struct net_bridge_port *p)
 {
 	struct net_bridge *br = p->br;

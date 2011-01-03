@@ -1,11 +1,4 @@
-/*
- * AES-128-CMAC with TLen 16 for IEEE 802.11w BIP
- * Copyright 2008, Jouni Malinen <j@w1.fi>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -18,7 +11,7 @@
 
 #define AES_BLOCK_SIZE 16
 #define AES_CMAC_KEY_LEN 16
-#define CMAC_TLEN 8 /* CMAC TLen = 64 bits (8 octets) */
+#define CMAC_TLEN 8 
 #define AAD_LEN 20
 
 

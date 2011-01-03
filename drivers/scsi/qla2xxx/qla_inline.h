@@ -1,20 +1,6 @@
-/*
- * QLogic Fibre Channel HBA Driver
- * Copyright (c)  2003-2008 QLogic Corporation
- *
- * See LICENSE.qla2xxx for copyright and licensing details.
- */
 
-/*
- * qla2x00_debounce_register
- *      Debounce register.
- *
- * Input:
- *      port = register address.
- *
- * Returns:
- *      register value.
- */
+
+
 static __inline__ uint16_t
 qla2x00_debounce_register(volatile uint16_t __iomem *addr)
 {

@@ -1,14 +1,4 @@
-/*
- * cxgb3i.h: Chelsio S3xx iSCSI driver.
- *
- * Copyright (c) 2008 Chelsio Communications, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Written by: Karen Xie (kxie@chelsio.com)
- */
+
 
 #ifndef __CXGB3I_H__
 #define __CXGB3I_H__
@@ -23,7 +13,7 @@
 #include <linux/skbuff.h>
 #include <scsi/libiscsi_tcp.h>
 
-/* from cxgb3 LLD */
+
 #include "common.h"
 #include "t3_cpl.h"
 #include "t3cdev.h"
@@ -44,33 +34,14 @@ struct cxgb3i_adapter;
 struct cxgb3i_hba;
 struct cxgb3i_endpoint;
 
-/**
- * struct cxgb3i_hba - cxgb3i iscsi structure (per port)
- *
- * @snic:	cxgb3i adapter containing this port
- * @ndev:	pointer to netdev structure
- * @shost:	pointer to scsi host structure
- */
+
 struct cxgb3i_hba {
 	struct cxgb3i_adapter *snic;
 	struct net_device *ndev;
 	struct Scsi_Host *shost;
 };
 
-/**
- * struct cxgb3i_adapter - cxgb3i adapter structure (per pci)
- *
- * @listhead:	list head to link elements
- * @lock:	lock for this structure
- * @tdev:	pointer to t3cdev used by cxgb3 driver
- * @pdev:	pointer to pci dev
- * @hba_cnt:	# of hbas (the same as # of ports)
- * @hba:	all the hbas on this adapter
- * @flags:	bit flag for adapter event/status
- * @tx_max_size: max. tx packet size supported
- * @rx_max_size: max. rx packet size supported
- * @tag_format: ddp tag format settings
- */
+
 #define CXGB3I_ADAPTER_FLAG_RESET	0x1
 struct cxgb3i_adapter {
 	struct list_head list_head;
@@ -87,15 +58,7 @@ struct cxgb3i_adapter {
 	struct cxgb3i_tag_format tag_format;
 };
 
-/**
- * struct cxgb3i_conn - cxgb3i iscsi connection
- *
- * @listhead:	list head to link elements
- * @cep:	pointer to iscsi_endpoint structure
- * @conn:	pointer to iscsi_conn structure
- * @hba:	pointer to the hba this conn. is going through
- * @task_idx_bits: # of bits needed for session->cmds_max
- */
+
 struct cxgb3i_conn {
 	struct list_head list_head;
 	struct cxgb3i_endpoint *cep;
@@ -104,29 +67,14 @@ struct cxgb3i_conn {
 	unsigned int task_idx_bits;
 };
 
-/**
- * struct cxgb3i_endpoint - iscsi tcp endpoint
- *
- * @c3cn:	the h/w tcp connection representation
- * @hba:	pointer to the hba this conn. is going through
- * @cconn:	pointer to the associated cxgb3i iscsi connection
- */
+
 struct cxgb3i_endpoint {
 	struct s3_conn *c3cn;
 	struct cxgb3i_hba *hba;
 	struct cxgb3i_conn *cconn;
 };
 
-/**
- * struct cxgb3i_task_data - private iscsi task data
- *
- * @nr_frags:	# of coalesced page frags (from scsi sgl)
- * @frags:	coalesced page frags (from scsi sgl)
- * @skb:	tx pdu skb
- * @offset:	data offset for the next pdu
- * @count:	max. possible pdu payload
- * @sgoffset:	offset to the first sg entry for a given offset
- */
+
 #define MAX_PDU_FRAGS	((ULP2_MAX_PDU_PAYLOAD + 512 - 1) / 512)
 struct cxgb3i_task_data {
 	unsigned short nr_frags;

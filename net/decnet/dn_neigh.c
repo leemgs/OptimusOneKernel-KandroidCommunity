@@ -1,28 +1,4 @@
-/*
- * DECnet       An implementation of the DECnet protocol suite for the LINUX
- *              operating system.  DECnet is implemented using the  BSD Socket
- *              interface as the means of communication with the user level.
- *
- *              DECnet Neighbour Functions (Adjacency Database and
- *                                                        On-Ethernet Cache)
- *
- * Author:      Steve Whitehouse <SteveW@ACM.org>
- *
- *
- * Changes:
- *     Steve Whitehouse     : Fixed router listing routine
- *     Steve Whitehouse     : Added error_report functions
- *     Steve Whitehouse     : Added default router detection
- *     Steve Whitehouse     : Hop counts in outgoing messages
- *     Steve Whitehouse     : Fixed src/dst in outgoing messages so
- *                            forwarding now stands a good chance of
- *                            working.
- *     Steve Whitehouse     : Fixed neighbour states (for now anyway).
- *     Steve Whitehouse     : Made error_report functions dummies. This
- *                            is not the right place to return skbs.
- *     Steve Whitehouse     : Convert to seq_file
- *
- */
+
 
 #include <linux/net.h>
 #include <linux/module.h>
@@ -56,9 +32,7 @@ static int dn_short_output(struct sk_buff *);
 static int dn_phase3_output(struct sk_buff *);
 
 
-/*
- * For talking to broadcast devices: Ethernet & PPP
- */
+
 static const struct neigh_ops dn_long_ops = {
 	.family =		AF_DECnet,
 	.error_report =		dn_long_error_report,
@@ -68,9 +42,7 @@ static const struct neigh_ops dn_long_ops = {
 	.queue_xmit =		dev_queue_xmit,
 };
 
-/*
- * For talking to pointopoint and multidrop devices: DDCMP and X.25
- */
+
 static const struct neigh_ops dn_short_ops = {
 	.family =		AF_DECnet,
 	.error_report =		dn_short_error_report,
@@ -80,12 +52,10 @@ static const struct neigh_ops dn_short_ops = {
 	.queue_xmit =		dev_queue_xmit,
 };
 
-/*
- * For talking to DECnet phase III nodes
- */
+
 static const struct neigh_ops dn_phase3_ops = {
 	.family =		AF_DECnet,
-	.error_report =		dn_short_error_report, /* Can use short version here */
+	.error_report =		dn_short_error_report, 
 	.output =		dn_phase3_output,
 	.connected_output =	dn_phase3_output,
 	.hh_output =		dev_queue_xmit,
@@ -171,19 +141,7 @@ static int dn_neigh_construct(struct neighbour *neigh)
 		return -EINVAL;
 	}
 
-	/*
-	 * Make an estimate of the remote block size by assuming that its
-	 * two less then the device mtu, which it true for ethernet (and
-	 * other things which support long format headers) since there is
-	 * an extra length field (of 16 bits) which isn't part of the
-	 * ethernet headers and which the DECnet specs won't admit is part
-	 * of the DECnet routing headers either.
-	 *
-	 * If we over estimate here its no big deal, the NSP negotiations
-	 * will prevent us from sending packets which are too large for the
-	 * remote node to handle. In any case this figure is normally updated
-	 * by a hello message in most cases.
-	 */
+	
 	dn->blksize = dev->mtu - 2;
 
 	return 0;
@@ -251,7 +209,7 @@ static int dn_long_output(struct sk_buff *skb)
 	lp = (struct dn_long_packet *)(data+3);
 
 	*((__le16 *)data) = cpu_to_le16(skb->len - 2);
-	*(data + 2) = 1 | DN_RT_F_PF; /* Padding */
+	*(data + 2) = 1 | DN_RT_F_PF; 
 
 	lp->msgflg   = DN_RT_PKT_LONG|(cb->rt_flags&(DN_RT_F_IE|DN_RT_F_RQR|DN_RT_F_RTS));
 	lp->d_area   = lp->d_subarea = 0;
@@ -307,10 +265,7 @@ static int dn_short_output(struct sk_buff *skb)
 	return NF_HOOK(PF_DECnet, NF_DN_POST_ROUTING, skb, NULL, neigh->dev, dn_neigh_output_packet);
 }
 
-/*
- * Phase 3 output is the same is short output, execpt that
- * it clears the area bits before transmission.
- */
+
 static int dn_phase3_output(struct sk_buff *skb)
 {
 	struct dst_entry *dst = skb_dst(skb);
@@ -349,24 +304,15 @@ static int dn_phase3_output(struct sk_buff *skb)
 	return NF_HOOK(PF_DECnet, NF_DN_POST_ROUTING, skb, NULL, neigh->dev, dn_neigh_output_packet);
 }
 
-/*
- * Unfortunately, the neighbour code uses the device in its hash
- * function, so we don't get any advantage from it. This function
- * basically does a neigh_lookup(), but without comparing the device
- * field. This is required for the On-Ethernet cache
- */
 
-/*
- * Pointopoint link receives a hello message
- */
+
+
 void dn_neigh_pointopoint_hello(struct sk_buff *skb)
 {
 	kfree_skb(skb);
 }
 
-/*
- * Ethernet router hello message received
- */
+
 int dn_neigh_router_hello(struct sk_buff *skb)
 {
 	struct rtnode_hello_message *msg = (struct rtnode_hello_message *)skb->data;
@@ -409,7 +355,7 @@ int dn_neigh_router_hello(struct sk_buff *skb)
 			}
 		}
 
-		/* Only use routers in our area */
+		
 		if ((le16_to_cpu(src)>>10) == (le16_to_cpu((decnet_address))>>10)) {
 			if (!dn_db->router) {
 				dn_db->router = neigh_clone(neigh);
@@ -426,9 +372,7 @@ int dn_neigh_router_hello(struct sk_buff *skb)
 	return 0;
 }
 
-/*
- * Endnode hello message received
- */
+
 int dn_neigh_endnode_hello(struct sk_buff *skb)
 {
 	struct endnode_hello_message *msg = (struct endnode_hello_message *)skb->data;
@@ -470,12 +414,12 @@ static char *dn_find_slot(char *base, int max, int priority)
 	int i;
 	unsigned char *min = NULL;
 
-	base += 6; /* skip first id */
+	base += 6; 
 
 	for(i = 0; i < max; i++) {
 		if (!min || (*base < *min))
 			min = base;
-		base += 7; /* find next priority */
+		base += 7; 
 	}
 
 	if (!min)

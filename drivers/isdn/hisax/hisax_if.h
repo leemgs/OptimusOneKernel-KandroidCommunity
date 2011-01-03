@@ -1,14 +1,4 @@
-/*
- * Interface between low level (hardware) drivers and 
- * HiSax protocol stack
- *
- * Author       Kai Germaschewski
- * Copyright    2001 by Kai Germaschewski  <kai.germaschewski@gmx.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #ifndef __HISAX_IF_H__
 #define __HISAX_IF_H__
@@ -36,7 +26,7 @@
 #define L1_MODE_FAX	9
 
 struct hisax_if {
-	void *priv; // private to driver
+	void *priv; 
 	void (*l1l2)(struct hisax_if *, int pr, void *arg);
 	void (*l2l1)(struct hisax_if *, int pr, void *arg);
 };
@@ -44,14 +34,14 @@ struct hisax_if {
 struct hisax_b_if {
 	struct hisax_if ifc;
 
-	// private to hisax
+	
 	struct BCState *bcs;
 };
 
 struct hisax_d_if {
 	struct hisax_if ifc;
 
-	// private to hisax
+	
 	struct module *owner;
 	struct IsdnCardState *cs;
 	struct hisax_b_if *b_if[2];

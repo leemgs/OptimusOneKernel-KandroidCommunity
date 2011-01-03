@@ -1,15 +1,4 @@
-/* arch/arm/plat-s3c/include/plat/adc.h
- *
- * Copyright (c) 2008 Simtec Electronics
- *	http://armlinux.simnte.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX ADC driver information
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __ASM_PLAT_ADC_H
 #define __ASM_PLAT_ADC_H __FILE__
@@ -32,4 +21,4 @@ extern struct s3c_adc_client *
 
 extern void s3c_adc_release(struct s3c_adc_client *client);
 
-#endif /* __ASM_PLAT_ADC_H */
+#endif 

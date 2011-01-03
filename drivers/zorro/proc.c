@@ -1,12 +1,4 @@
-/*
- *	Procfs interface for the Zorro bus.
- *
- *	Copyright (C) 1998-2003 Geert Uytterhoeven
- *
- *	Heavily based on the procfs interface for the PCI bus, which is
- *
- *	Copyright (C) 1997, 1998 Martin Mares <mj@atrey.karlin.mff.cuni.cz>
- */
+
 
 #include <linux/types.h>
 #include <linux/zorro.h>
@@ -59,7 +51,7 @@ proc_bus_zorro_read(struct file *file, char __user *buf, size_t nbytes, loff_t *
 	if (pos + nbytes > sizeof(struct ConfigDev))
 		nbytes = sizeof(struct ConfigDev) - pos;
 
-	/* Construct a ConfigDev */
+	
 	memset(&cd, 0, sizeof(cd));
 	cd.cd_Rom = z->rom;
 	cd.cd_SlotAddr = z->slotaddr;

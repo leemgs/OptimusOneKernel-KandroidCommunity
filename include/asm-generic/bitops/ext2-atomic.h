@@ -19,4 +19,4 @@
 		ret;					\
 	})
 
-#endif /* _ASM_GENERIC_BITOPS_EXT2_ATOMIC_H_ */
+#endif 

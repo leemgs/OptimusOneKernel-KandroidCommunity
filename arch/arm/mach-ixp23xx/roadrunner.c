@@ -1,18 +1,4 @@
-/*
- * arch/arm/mach-ixp23xx/roadrunner.c
- *
- * RoadRunner board-specific routines
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright 2005 (c) MontaVista Software, Inc.
- *
- * Based on 2.4 code Copyright 2005 (c) ADI Engineering Corporation
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -45,9 +31,7 @@
 #include <asm/mach/arch.h>
 #include <asm/mach/pci.h>
 
-/*
- * Interrupt mapping
- */
+
 #define INTA		IRQ_ROADRUNNER_PCI_INTA
 #define INTB		IRQ_ROADRUNNER_PCI_INTB
 #define INTC		IRQ_ROADRUNNER_PCI_INTC
@@ -67,15 +51,15 @@ static int __init roadrunner_map_irq(struct pci_dev *dev, u8 idsel, u8 pin)
 	switch(dev->bus->number) {
 		case 0:
 			switch(dev->devfn) {
-			case 0x0: // PCI-PCI bridge
+			case 0x0: 
 				break;
-			case 0x8: // PCI Card Slot
+			case 0x8: 
 				return pci_card_slot_irq[pin - 1];
-			case 0x10: // PMC Slot
+			case 0x10: 
 				return pmc_card_slot_irq[pin - 1];
-			case 0x18: // PMC Slot Secondary Agent
+			case 0x18: 
 				break;
-			case 0x20: // IXP Processor
+			case 0x20: 
 				break;
 			default:
 				return NO_IRQ;
@@ -84,17 +68,17 @@ static int __init roadrunner_map_irq(struct pci_dev *dev, u8 idsel, u8 pin)
 
 		case 1:
 			switch(dev->devfn) {
-			case 0x0: // IDE Controller
+			case 0x0: 
 				return (pin == 1) ? INTC : -1;
-			case 0x8: // USB fun 0
-			case 0x9: // USB fun 1
-			case 0xa: // USB fun 2
+			case 0x8: 
+			case 0x9: 
+			case 0xa: 
 				return usb_irq[pin - 1];
-			case 0x10: // Mini PCI 1
+			case 0x10: 
 				return mini_pci_1_irq[pin-1];
-			case 0x18: // Mini PCI 2
+			case 0x18: 
 				return mini_pci_2_irq[pin-1];
-			case 0x20: // MEM slot
+			case 0x20: 
 				return (pin == 1) ? INTA : -1;
 			default:
 				return NO_IRQ;
@@ -158,9 +142,7 @@ static void __init roadrunner_init(void)
 {
 	platform_device_register(&roadrunner_flash);
 
-	/*
-	 * Mark flash as writeable
-	 */
+	
 	IXP23XX_EXP_CS0[0] |= IXP23XX_FLASH_WRITABLE;
 	IXP23XX_EXP_CS0[1] |= IXP23XX_FLASH_WRITABLE;
 	IXP23XX_EXP_CS0[2] |= IXP23XX_FLASH_WRITABLE;
@@ -170,7 +152,7 @@ static void __init roadrunner_init(void)
 }
 
 MACHINE_START(ROADRUNNER, "ADI Engineering RoadRunner Development Platform")
-	/* Maintainer: Deepak Saxena */
+	
 	.phys_io	= IXP23XX_PERIPHERAL_PHYS,
 	.io_pg_offst	= ((IXP23XX_PERIPHERAL_VIRT >> 18)) & 0xfffc,
 	.map_io		= ixp23xx_map_io,

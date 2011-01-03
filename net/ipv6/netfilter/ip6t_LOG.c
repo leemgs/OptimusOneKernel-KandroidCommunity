@@ -1,14 +1,6 @@
-/*
- * This is a module which is used for logging packets.
- */
 
-/* (C) 2001 Jan Rekorajski <baggins@pld.org.pl>
- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -33,10 +25,10 @@ struct in_device;
 #include <net/route.h>
 #include <linux/netfilter_ipv6/ip6t_LOG.h>
 
-/* Use lock to serialize, so printks don't overlap */
+
 static DEFINE_SPINLOCK(log_lock);
 
-/* One level of recursion won't kill us */
+
 static void dump_packet(const struct nf_loginfo *info,
 			const struct sk_buff *skb, unsigned int ip6hoff,
 			int recurse)
@@ -60,10 +52,10 @@ static void dump_packet(const struct nf_loginfo *info,
 		return;
 	}
 
-	/* Max length: 88 "SRC=0000.0000.0000.0000.0000.0000.0000.0000 DST=0000.0000.0000.0000.0000.0000.0000.0000 " */
+	
 	printk("SRC=%pI6 DST=%pI6 ", &ih->saddr, &ih->daddr);
 
-	/* Max length: 44 "LEN=65535 TC=255 HOPLIMIT=255 FLOWLBL=FFFFF " */
+	
 	printk("LEN=%Zu TC=%u HOPLIMIT=%u FLOWLBL=%u ",
 	       ntohs(ih->payload_len) + sizeof(struct ipv6hdr),
 	       (ntohl(*(__be32 *)ih) & 0x0ff00000) >> 20,
@@ -83,7 +75,7 @@ static void dump_packet(const struct nf_loginfo *info,
 			return;
 		}
 
-		/* Max length: 48 "OPT (...) " */
+		
 		if (logflags & IP6T_LOG_IPOPT)
 			printk("OPT ( ");
 
@@ -100,10 +92,10 @@ static void dump_packet(const struct nf_loginfo *info,
 				return;
 			}
 
-			/* Max length: 6 "65535 " */
+			
 			printk("%u ", ntohs(fh->frag_off) & 0xFFF8);
 
-			/* Max length: 11 "INCOMPLETE " */
+			
 			if (fh->frag_off & htons(0x0001))
 				printk("INCOMPLETE ");
 
@@ -126,13 +118,13 @@ static void dump_packet(const struct nf_loginfo *info,
 			}
 			hdrlen = ipv6_optlen(hp);
 			break;
-		/* Max Length */
+		
 		case IPPROTO_AH:
 			if (logflags & IP6T_LOG_IPOPT) {
 				struct ip_auth_hdr _ahdr;
 				const struct ip_auth_hdr *ah;
 
-				/* Max length: 3 "AH " */
+				
 				printk("AH ");
 
 				if (fragment) {
@@ -143,16 +135,13 @@ static void dump_packet(const struct nf_loginfo *info,
 				ah = skb_header_pointer(skb, ptr, sizeof(_ahdr),
 							&_ahdr);
 				if (ah == NULL) {
-					/*
-					 * Max length: 26 "INCOMPLETE [65535
-					 *  bytes] )"
-					 */
+					
 					printk("INCOMPLETE [%u bytes] )",
 					       skb->len - ptr);
 					return;
 				}
 
-				/* Length: 15 "SPI=0xF1234567 */
+				
 				printk("SPI=0x%x ", ntohl(ah->spi));
 
 			}
@@ -164,7 +153,7 @@ static void dump_packet(const struct nf_loginfo *info,
 				struct ip_esp_hdr _esph;
 				const struct ip_esp_hdr *eh;
 
-				/* Max length: 4 "ESP " */
+				
 				printk("ESP ");
 
 				if (fragment) {
@@ -172,9 +161,7 @@ static void dump_packet(const struct nf_loginfo *info,
 					return;
 				}
 
-				/*
-				 * Max length: 26 "INCOMPLETE [65535 bytes] )"
-				 */
+				
 				eh = skb_header_pointer(skb, ptr, sizeof(_esph),
 							&_esph);
 				if (eh == NULL) {
@@ -183,13 +170,13 @@ static void dump_packet(const struct nf_loginfo *info,
 					return;
 				}
 
-				/* Length: 16 "SPI=0xF1234567 )" */
+				
 				printk("SPI=0x%x )", ntohl(eh->spi) );
 
 			}
 			return;
 		default:
-			/* Max length: 20 "Unknown Ext Hdr 255" */
+			
 			printk("Unknown Ext Hdr %u", currenthdr);
 			return;
 		}
@@ -205,31 +192,31 @@ static void dump_packet(const struct nf_loginfo *info,
 		struct tcphdr _tcph;
 		const struct tcphdr *th;
 
-		/* Max length: 10 "PROTO=TCP " */
+		
 		printk("PROTO=TCP ");
 
 		if (fragment)
 			break;
 
-		/* Max length: 25 "INCOMPLETE [65535 bytes] " */
+		
 		th = skb_header_pointer(skb, ptr, sizeof(_tcph), &_tcph);
 		if (th == NULL) {
 			printk("INCOMPLETE [%u bytes] ", skb->len - ptr);
 			return;
 		}
 
-		/* Max length: 20 "SPT=65535 DPT=65535 " */
+		
 		printk("SPT=%u DPT=%u ",
 		       ntohs(th->source), ntohs(th->dest));
-		/* Max length: 30 "SEQ=4294967295 ACK=4294967295 " */
+		
 		if (logflags & IP6T_LOG_TCPSEQ)
 			printk("SEQ=%u ACK=%u ",
 			       ntohl(th->seq), ntohl(th->ack_seq));
-		/* Max length: 13 "WINDOW=65535 " */
+		
 		printk("WINDOW=%u ", ntohs(th->window));
-		/* Max length: 9 "RES=0x3C " */
+		
 		printk("RES=0x%02x ", (u_int8_t)(ntohl(tcp_flag_word(th) & TCP_RESERVED_BITS) >> 22));
-		/* Max length: 32 "CWR ECE URG ACK PSH RST SYN FIN " */
+		
 		if (th->cwr)
 			printk("CWR ");
 		if (th->ece)
@@ -246,7 +233,7 @@ static void dump_packet(const struct nf_loginfo *info,
 			printk("SYN ");
 		if (th->fin)
 			printk("FIN ");
-		/* Max length: 11 "URGP=65535 " */
+		
 		printk("URGP=%u ", ntohs(th->urg_ptr));
 
 		if ((logflags & IP6T_LOG_TCPOPT)
@@ -265,7 +252,7 @@ static void dump_packet(const struct nf_loginfo *info,
 				return;
 			}
 
-			/* Max length: 127 "OPT (" 15*4*2chars ") " */
+			
 			printk("OPT (");
 			for (i =0; i < optsize; i++)
 				printk("%02X", op[i]);
@@ -279,22 +266,22 @@ static void dump_packet(const struct nf_loginfo *info,
 		const struct udphdr *uh;
 
 		if (currenthdr == IPPROTO_UDP)
-			/* Max length: 10 "PROTO=UDP "     */
+			
 			printk("PROTO=UDP " );
-		else	/* Max length: 14 "PROTO=UDPLITE " */
+		else	
 			printk("PROTO=UDPLITE ");
 
 		if (fragment)
 			break;
 
-		/* Max length: 25 "INCOMPLETE [65535 bytes] " */
+		
 		uh = skb_header_pointer(skb, ptr, sizeof(_udph), &_udph);
 		if (uh == NULL) {
 			printk("INCOMPLETE [%u bytes] ", skb->len - ptr);
 			return;
 		}
 
-		/* Max length: 20 "SPT=65535 DPT=65535 " */
+		
 		printk("SPT=%u DPT=%u LEN=%u ",
 		       ntohs(uh->source), ntohs(uh->dest),
 		       ntohs(uh->len));
@@ -304,26 +291,26 @@ static void dump_packet(const struct nf_loginfo *info,
 		struct icmp6hdr _icmp6h;
 		const struct icmp6hdr *ic;
 
-		/* Max length: 13 "PROTO=ICMPv6 " */
+		
 		printk("PROTO=ICMPv6 ");
 
 		if (fragment)
 			break;
 
-		/* Max length: 25 "INCOMPLETE [65535 bytes] " */
+		
 		ic = skb_header_pointer(skb, ptr, sizeof(_icmp6h), &_icmp6h);
 		if (ic == NULL) {
 			printk("INCOMPLETE [%u bytes] ", skb->len - ptr);
 			return;
 		}
 
-		/* Max length: 18 "TYPE=255 CODE=255 " */
+		
 		printk("TYPE=%u CODE=%u ", ic->icmp6_type, ic->icmp6_code);
 
 		switch (ic->icmp6_type) {
 		case ICMPV6_ECHO_REQUEST:
 		case ICMPV6_ECHO_REPLY:
-			/* Max length: 19 "ID=65535 SEQ=65535 " */
+			
 			printk("ID=%u SEQ=%u ",
 				ntohs(ic->icmp6_identifier),
 				ntohs(ic->icmp6_sequence));
@@ -334,13 +321,13 @@ static void dump_packet(const struct nf_loginfo *info,
 			break;
 
 		case ICMPV6_PARAMPROB:
-			/* Max length: 17 "POINTER=ffffffff " */
+			
 			printk("POINTER=%08x ", ntohl(ic->icmp6_pointer));
-			/* Fall through */
+			
 		case ICMPV6_DEST_UNREACH:
 		case ICMPV6_PKT_TOOBIG:
 		case ICMPV6_TIME_EXCEED:
-			/* Max length: 3+maxlen */
+			
 			if (recurse) {
 				printk("[");
 				dump_packet(info, skb, ptr + sizeof(_icmp6h),
@@ -348,18 +335,18 @@ static void dump_packet(const struct nf_loginfo *info,
 				printk("] ");
 			}
 
-			/* Max length: 10 "MTU=65535 " */
+			
 			if (ic->icmp6_type == ICMPV6_PKT_TOOBIG)
 				printk("MTU=%u ", ntohl(ic->icmp6_mtu));
 		}
 		break;
 	}
-	/* Max length: 10 "PROTO=255 " */
+	
 	default:
 		printk("PROTO=%u ", currenthdr);
 	}
 
-	/* Max length: 15 "UID=4294967295 " */
+	
 	if ((logflags & IP6T_LOG_UID) && recurse && skb->sk) {
 		read_lock_bh(&skb->sk->sk_callback_lock);
 		if (skb->sk->sk_socket && skb->sk->sk_socket->file)
@@ -369,7 +356,7 @@ static void dump_packet(const struct nf_loginfo *info,
 		read_unlock_bh(&skb->sk->sk_callback_lock);
 	}
 
-	/* Max length: 16 "MARK=0xFFFFFFFF " */
+	
 	if (!recurse && skb->mark)
 		printk("MARK=0x%x ", skb->mark);
 }
@@ -403,7 +390,7 @@ ip6t_log_packet(u_int8_t pf,
 		out ? out->name : "");
 	if (in && !out) {
 		unsigned int len;
-		/* MAC logging for input chain only. */
+		
 		printk("MAC=");
 		if (skb->dev && (len = skb->dev->hard_header_len) &&
 		    skb->mac_header != skb->network_header) {

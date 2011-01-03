@@ -1,20 +1,6 @@
-/**
- * @file op_model_xscale.c
- * XScale Performance Monitor Driver
- *
- * @remark Copyright 2000-2004 Deepak Saxena <dsaxena@mvista.com>
- * @remark Copyright 2000-2004 MontaVista Software Inc
- * @remark Copyright 2004 Dave Jiang <dave.jiang@intel.com>
- * @remark Copyright 2004 Intel Corporation
- * @remark Copyright 2004 Zwane Mwaikambo <zwane@arm.linux.org.uk>
- * @remark Copyright 2004 OProfile Authors
- *
- * @remark Read the file COPYING
- *
- * @author Zwane Mwaikambo
- */
 
-/* #define DEBUG */
+
+
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -27,13 +13,13 @@
 #include "op_counter.h"
 #include "op_arm_model.h"
 
-#define	PMU_ENABLE	0x001	/* Enable counters */
-#define PMN_RESET	0x002	/* Reset event counters */
-#define	CCNT_RESET	0x004	/* Reset clock counter */
+#define	PMU_ENABLE	0x001	
+#define PMN_RESET	0x002	
+#define	CCNT_RESET	0x004	
 #define	PMU_RESET	(CCNT_RESET | PMN_RESET)
-#define PMU_CNT64	0x008	/* Make CCNT count every 64th cycle */
+#define PMU_CNT64	0x008	
 
-/* TODO do runtime detection */
+
 #ifdef CONFIG_ARCH_IOP32X
 #define XSCALE_PMU_IRQ  IRQ_IOP32X_CORE_PMU
 #endif
@@ -44,11 +30,7 @@
 #define XSCALE_PMU_IRQ  IRQ_PMU
 #endif
 
-/*
- * Different types of events that can be counted by the XScale PMU
- * as used by Oprofile userspace. Here primarily for documentation
- * purposes.
- */
+
 
 #define EVT_ICACHE_MISS			0x00
 #define	EVT_ICACHE_NO_DELIVER		0x01
@@ -70,7 +52,7 @@
 #define	EVT_BCU_ECC_NO_ELOG		0x14
 #define	EVT_BCU_1_BIT_ERR		0x15
 #define	EVT_RMW				0x16
-/* EVT_CCNT is not hardware defined */
+
 #define EVT_CCNT			0xFE
 #define EVT_UNUSED			0xFF
 
@@ -83,12 +65,7 @@ enum { CCNT, PMN0, PMN1, PMN2, PMN3, MAX_COUNTERS };
 
 static struct pmu_counter results[MAX_COUNTERS];
 
-/*
- * There are two versions of the PMU in current XScale processors
- * with differing register layouts and number of performance counters.
- * e.g. IOP32x is xsc1 whilst IOP33x is xsc2.
- * We detect which register layout to use in xscale_detect_pmu()
- */
+
 enum { PMU_XSC1, PMU_XSC2 };
 
 struct pmu_type {
@@ -128,11 +105,11 @@ static struct pmu_type *pmu;
 static void write_pmnc(u32 val)
 {
 	if (pmu->id == PMU_XSC1) {
-		/* upper 4bits and 7, 11 are write-as-0 */
+		
 		val &= 0xffff77f;
 		__asm__ __volatile__ ("mcr p14, 0, %0, c0, c0, 0" : : "r" (val));
 	} else {
-		/* bits 4-23 are write-as-0, 24-31 are write ignored */
+		
 		val &= 0xf;
 		__asm__ __volatile__ ("mcr p14, 0, %0, c0, c1, 0" : : "r" (val));
 	}
@@ -146,7 +123,7 @@ static u32 read_pmnc(void)
 		__asm__ __volatile__ ("mrc p14, 0, %0, c0, c0, 0" : "=r" (val));
 	else {
 		__asm__ __volatile__ ("mrc p14, 0, %0, c0, c1, 0" : "=r" (val));
-		/* bits 1-2 and 4-23 are read-unpredictable */
+		
 		val &= 0xff000009;
 	}
 
@@ -301,13 +278,13 @@ static void inline __xsc1_check_ctrs(void)
 	int i;
 	u32 pmnc = read_pmnc();
 
-	/* NOTE: there's an A stepping errata that states if an overflow */
-	/*       bit already exists and another occurs, the previous     */
-	/*       Overflow bit gets cleared. There's no workaround.	 */
-	/*	 Fixed in B stepping or later			 	 */
+	
+	
+	
+	
 
-	/* Write the value back to clear the overflow flags. Overflow */
-	/* flags remain in pmnc for use below */
+	
+	
 	write_pmnc(pmnc & ~PMU_ENABLE);
 
 	for (i = CCNT; i <= PMN1; i++) {
@@ -327,7 +304,7 @@ static void inline __xsc2_check_ctrs(void)
 	pmnc &= ~PMU_ENABLE;
 	write_pmnc(pmnc);
 
-	/* read overflow flag register */
+	
 	__asm__ __volatile__ ("mrc p14, 0, %0, c5, c1, 0" : "=r" (flag));
 
 	for (i = CCNT; i <= PMN3; i++) {
@@ -338,7 +315,7 @@ static void inline __xsc2_check_ctrs(void)
 			results[i].ovf++;
 	}
 
-	/* writeback clears overflow bits */
+	
 	__asm__ __volatile__ ("mcr p14, 0, %0, c5, c1, 0" : : "r" (flag));
 }
 

@@ -1,23 +1,4 @@
-/*
- * stradis.c - stradis 4:2:2 mpeg decoder driver
- *
- * Stradis 4:2:2 MPEG-2 Decoder Driver
- * Copyright (C) 1999 Nathan Laredo <laredo@gnu.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -52,15 +33,15 @@
 #include "saa7121.h"
 #include "cs8420.h"
 
-#define DEBUG(x)		/* debug driver */
-#undef  IDEBUG			/* debug irq handler */
-#undef  MDEBUG			/* debug memory management */
+#define DEBUG(x)		
+#undef  IDEBUG			
+#undef  MDEBUG			
 
 #define SAA7146_MAX 6
 
 static struct saa7146 saa7146s[SAA7146_MAX];
 
-static int saa_num;		/* number of SAA7146s in use */
+static int saa_num;		
 
 static int video_nr = -1;
 module_param(video_nr, int, 0);
@@ -110,36 +91,36 @@ static unsigned char rescue_eeprom[64] = {
 };
 #endif
 
-/* ----------------------------------------------------------------------- */
-/* Hardware I2C functions */
+
+
 static void I2CWipe(struct saa7146 *saa)
 {
 	int i;
-	/* set i2c to ~=100kHz, abort transfer, clear busy */
+	
 	saawrite(0x600 | SAA7146_I2C_ABORT, SAA7146_I2C_STATUS);
 	saawrite((SAA7146_MC2_UPLD_I2C << 16) |
 		 SAA7146_MC2_UPLD_I2C, SAA7146_MC2);
-	/* wait for i2c registers to be programmed */
+	
 	for (i = 0; i < 1000 &&
 	     !(saaread(SAA7146_MC2) & SAA7146_MC2_UPLD_I2C); i++)
 		schedule();
 	saawrite(0x600, SAA7146_I2C_STATUS);
 	saawrite((SAA7146_MC2_UPLD_I2C << 16) |
 		 SAA7146_MC2_UPLD_I2C, SAA7146_MC2);
-	/* wait for i2c registers to be programmed */
+	
 	for (i = 0; i < 1000 &&
 	     !(saaread(SAA7146_MC2) & SAA7146_MC2_UPLD_I2C); i++)
 		schedule();
 	saawrite(0x600, SAA7146_I2C_STATUS);
 	saawrite((SAA7146_MC2_UPLD_I2C << 16) |
 		 SAA7146_MC2_UPLD_I2C, SAA7146_MC2);
-	/* wait for i2c registers to be programmed */
+	
 	for (i = 0; i < 1000 &&
 	     !(saaread(SAA7146_MC2) & SAA7146_MC2_UPLD_I2C); i++)
 		schedule();
 }
 
-/* read I2C */
+
 static int I2CRead(struct saa7146 *saa, unsigned char addr,
 		   unsigned char subaddr, int dosub)
 {
@@ -161,11 +142,11 @@ static int I2CRead(struct saa7146 *saa, unsigned char addr,
 			0xf1, SAA7146_I2C_TRANSFER);
 	saawrite((SAA7146_MC2_UPLD_I2C << 16) |
 		 SAA7146_MC2_UPLD_I2C, SAA7146_MC2);
-	/* wait for i2c registers to be programmed */
+	
 	for (i = 0; i < 1000 &&
 	     !(saaread(SAA7146_MC2) & SAA7146_MC2_UPLD_I2C); i++)
 		schedule();
-	/* wait for valid data */
+	
 	for (i = 0; i < 1000 &&
 	     (saaread(SAA7146_I2C_STATUS) & SAA7146_I2C_BUSY); i++)
 		schedule();
@@ -176,11 +157,11 @@ static int I2CRead(struct saa7146 *saa, unsigned char addr,
 	saawrite(0x41, SAA7146_I2C_TRANSFER);
 	saawrite((SAA7146_MC2_UPLD_I2C << 16) |
 		 SAA7146_MC2_UPLD_I2C, SAA7146_MC2);
-	/* wait for i2c registers to be programmed */
+	
 	for (i = 0; i < 1000 &&
 	     !(saaread(SAA7146_MC2) & SAA7146_MC2_UPLD_I2C); i++)
 		schedule();
-	/* wait for valid data */
+	
 	for (i = 0; i < 1000 &&
 	     (saaread(SAA7146_I2C_TRANSFER) & SAA7146_I2C_BUSY); i++)
 		schedule();
@@ -191,7 +172,7 @@ static int I2CRead(struct saa7146 *saa, unsigned char addr,
 	return ((saaread(SAA7146_I2C_TRANSFER) >> 24) & 0xff);
 }
 
-/* set both to write both bytes, reset it to write only b1 */
+
 
 static int I2CWrite(struct saa7146 *saa, unsigned char addr, unsigned char b1,
 		    unsigned char b2, int both)
@@ -223,7 +204,7 @@ static void attach_inform(struct saa7146 *saa, int id)
 
 	DEBUG(printk(KERN_DEBUG "stradis%d: i2c: device found=%02x\n", saa->nr,
 		id));
-	if (id == 0xa0) {	/* we have rev2 or later board, fill in info */
+	if (id == 0xa0) {	
 		for (i = 0; i < 64; i++)
 			saa->boardcfg[i] = I2CRead(saa, 0xa0, i, 1);
 #ifdef USE_RESCUE_EEPROM_SDM275
@@ -256,11 +237,11 @@ static int wait_for_debi_done(struct saa7146 *saa)
 {
 	int i;
 
-	/* wait for registers to be programmed */
+	
 	for (i = 0; i < 100000 &&
 	     !(saaread(SAA7146_MC2) & SAA7146_MC2_UPLD_DEBI); i++)
 		saaread(SAA7146_MC2);
-	/* wait for transfer to complete */
+	
 	for (i = 0; i < 500000 &&
 	     (saaread(SAA7146_PSR) & SAA7146_PSR_DEBI_S); i++)
 		saaread(SAA7146_MC2);
@@ -284,9 +265,9 @@ static int debiwrite(struct saa7146 *saa, u32 config, int addr,
 	if (wait_for_debi_done(saa) < 0)
 		return -1;
 	saawrite(config, SAA7146_DEBI_CONFIG);
-	if (count <= 4)		/* immediate transfer */
+	if (count <= 4)		
 		saawrite(val, SAA7146_DEBI_AD);
-	else			/* block transfer */
+	else			
 		saawrite(virt_to_bus(saa->dmadebi), SAA7146_DEBI_AD);
 	saawrite((cmd = (count << 17) | (addr & 0xffff)), SAA7146_DEBI_COMMAND);
 	saawrite((SAA7146_MC2_UPLD_DEBI << 16) | SAA7146_MC2_UPLD_DEBI,
@@ -308,7 +289,7 @@ static u32 debiread(struct saa7146 *saa, u32 config, int addr, int count)
 	saawrite(config, SAA7146_DEBI_CONFIG);
 	saawrite((SAA7146_MC2_UPLD_DEBI << 16) | SAA7146_MC2_UPLD_DEBI,
 		 SAA7146_MC2);
-	if (count > 4)		/* not an immediate transfer */
+	if (count > 4)		
 		return count;
 	wait_for_debi_done(saa);
 	result = saaread(SAA7146_DEBI_AD);
@@ -326,7 +307,7 @@ static void do_irq_send_data(struct saa7146 *saa)
 	int split, audbytes, vidbytes;
 
 	saawrite(SAA7146_PSR_PIN1, SAA7146_IER);
-	/* if special feature mode in effect, disable audio sending */
+	
 	if (saa->playmode != VID_PLAY_NORMAL)
 		saa->audtail = saa->audhead = 0;
 	if (saa->audhead <= saa->audtail)
@@ -341,7 +322,7 @@ static void do_irq_send_data(struct saa7146 *saa)
 		saawrite(0, SAA7146_IER);
 		return;
 	}
-	/* if at least 1 block audio waiting and audio fifo isn't full */
+	
 	if (audbytes >= 2048 && (debiread(saa, debNormal, IBM_MP2_AUD_FIFO, 2)
 			& 0xff) < 60) {
 		if (saa->audhead > saa->audtail)
@@ -362,7 +343,7 @@ static void do_irq_send_data(struct saa7146 *saa)
 		debiwrite(saa, debAudio, (NewCard ? IBM_MP2_AUD_FIFO :
 			IBM_MP2_AUD_FIFOW), 0, 2048);
 		wake_up_interruptible(&saa->audq);
-		/* if at least 1 block video waiting and video fifo isn't full */
+		
 	} else if (vidbytes >= 30720 && (debiread(saa, debNormal,
 						  IBM_MP2_FIFO, 2)) < 16384) {
 		if (saa->vidhead > saa->vidtail)
@@ -392,14 +373,14 @@ static void send_osd_data(struct saa7146 *saa)
 	int size = saa->osdtail - saa->osdhead;
 	if (size > 30720)
 		size = 30720;
-	/* ensure some multiple of 8 bytes is transferred */
+	
 	size = 8 * ((size + 8) >> 3);
 	if (size) {
 		debiwrite(saa, debNormal, IBM_MP2_OSD_ADDR,
 			  (saa->osdhead >> 3), 2);
 		memcpy(saa->dmadebi, &saa->osdbuf[saa->osdhead], size);
 		saa->osdhead += size;
-		/* block transfer of next 8 bytes to ~32k bytes */
+		
 		debiwrite(saa, debNormal, IBM_MP2_OSD_DATA, 0, size);
 	}
 	if (saa->osdhead >= saa->osdtail) {
@@ -417,7 +398,7 @@ static irqreturn_t saa7146_irq(int irq, void *dev_id)
 
 	count = 0;
 	while (1) {
-		/* get/clear interrupt status bits */
+		
 		stat = saaread(SAA7146_ISR);
 		astat = stat & saaread(SAA7146_IER);
 		if (!astat)
@@ -429,7 +410,7 @@ static irqreturn_t saa7146_irq(int irq, void *dev_id)
 		}
 		if (astat & SAA7146_PSR_PIN1) {
 			int istat;
-			/* the following read will trigger DEBI_S */
+			
 			istat = debiread(saa, debNormal, IBM_MP2_HOST_INT, 2);
 			if (istat & 1) {
 				saawrite(0, SAA7146_IER);
@@ -437,23 +418,23 @@ static irqreturn_t saa7146_irq(int irq, void *dev_id)
 				saawrite(SAA7146_PSR_DEBI_S |
 					 SAA7146_PSR_PIN1, SAA7146_IER);
 			}
-			if (istat & 0x20) {	/* Video Start */
+			if (istat & 0x20) {	
 				saa->vidinfo.frame_count++;
 			}
-			if (istat & 0x400) {	/* Picture Start */
-				/* update temporal reference */
+			if (istat & 0x400) {	
+				
 			}
-			if (istat & 0x200) {	/* Picture Resolution Change */
-				/* read new resolution */
+			if (istat & 0x200) {	
+				
 			}
-			if (istat & 0x100) {	/* New User Data found */
-				/* read new user data */
+			if (istat & 0x100) {	
+				
 			}
-			if (istat & 0x1000) {	/* new GOP/SMPTE */
-				/* read new SMPTE */
+			if (istat & 0x1000) {	
+				
 			}
-			if (istat & 0x8000) {	/* Sequence Start Code */
-				/* reset frame counter, load sizes */
+			if (istat & 0x8000) {	
+				
 				saa->vidinfo.frame_count = 0;
 				saa->vidinfo.h_size = 704;
 				saa->vidinfo.v_size = 480;
@@ -467,7 +448,7 @@ static irqreturn_t saa7146_irq(int irq, void *dev_id)
 				}
 #endif
 			}
-			if (istat & 0x4000) {	/* Sequence Error Code */
+			if (istat & 0x4000) {	
 				if (saa->endmarkhead != saa->endmarktail) {
 					saa->audhead =
 						saa->endmark[saa->endmarkhead];
@@ -611,14 +592,14 @@ static void initialize_cs4341(struct saa7146 *saa)
 {
 	int i;
 	for (i = 0; i < 200; i++) {
-		/* auto mute off, power on, no de-emphasis */
-		/* I2S data up to 24-bit 64xFs internal SCLK */
+		
+		
 		I2CWrite(saa, 0x22, 0x01, 0x11, 2);
-		/* ATAPI mixer settings */
+		
 		I2CWrite(saa, 0x22, 0x02, 0x49, 2);
-		/* attenuation left 3db */
+		
 		I2CWrite(saa, 0x22, 0x03, 0x00, 2);
-		/* attenuation right 3db */
+		
 		I2CWrite(saa, 0x22, 0x04, 0x00, 2);
 		I2CWrite(saa, 0x22, 0x01, 0x10, 2);
 		if (I2CRead(saa, 0x22, 0x02, 1) == 0x49)
@@ -653,9 +634,9 @@ static void initialize_saa7121(struct saa7146 *saa, int dopal)
 	else
 		sequence = init7121ntsc;
 	mod = saaread(SAA7146_PSR) & 0x08;
-	/* initialize PAL/NTSC video encoder */
+	
 	for (i = 0; i < INIT7121LEN; i++) {
-		if (NewCard) {	/* handle new card encoder differences */
+		if (NewCard) {	
 			if (sequence[i * 2] == 0x3a)
 				I2CWrite(saa, 0x88, 0x3a, 0x13, 2);
 			else if (sequence[i * 2] == 0x6b)
@@ -718,9 +699,9 @@ static void set_out_format(struct saa7146 *saa, int mode)
 {
 	initialize_saa7121(saa, (mode == VIDEO_MODE_NTSC ? 0 : 1));
 	saa->boardcfg[2] = mode;
-	/* do not adjust analog video parameters here, use saa7121 init */
-	/* you will affect the SDI output on the new card */
-	if (mode == VIDEO_MODE_PAL) {	/* PAL */
+	
+	
+	if (mode == VIDEO_MODE_PAL) {	
 		debiwrite(saa, debNormal, XILINX_CTL0, 0x0808, 2);
 		mdelay(50);
 		saawrite(0x012002c0, SAA7146_NUM_LINE_BYTE1);
@@ -733,7 +714,7 @@ static void set_out_format(struct saa7146 *saa, int mode)
 		debiwrite(saa, debNormal, IBM_MP2_DISP_DLY,
 			  (1 << 8) |
 			  (NewCard ? PALFirstActive : PALFirstActive - 6), 2);
-	} else {		/* NTSC */
+	} else {		
 		debiwrite(saa, debNormal, XILINX_CTL0, 0x0800, 2);
 		mdelay(50);
 		saawrite(0x00f002c0, SAA7146_NUM_LINE_BYTE1);
@@ -745,12 +726,7 @@ static void set_out_format(struct saa7146 *saa, int mode)
 	}
 }
 
-/* Intialize bitmangler to map from a byte value to the mangled word that
- * must be output to program the Xilinx part through the DEBI port.
- * Xilinx Data Bit->DEBI Bit: 0->15 1->7 2->6 3->12 4->11 5->2 6->1 7->0
- * transfer FPGA code, init IBM chip, transfer IBM microcode
- * rev2 card mangles: 0->7 1->6 2->5 3->4 4->3 5->2 6->1 7->0
- */
+
 static u16 bitmangler[256];
 
 static int initialize_fpga(struct video_code *bitdata)
@@ -760,7 +736,7 @@ static int initialize_fpga(struct video_code *bitdata)
 	u8 *newdma;
 	struct saa7146 *saa;
 
-	/* verify fpga code */
+	
 	for (startindex = 0; startindex < bitdata->datasize; startindex++)
 		if (bitdata->data[startindex] == 255)
 			break;
@@ -768,20 +744,20 @@ static int initialize_fpga(struct video_code *bitdata)
 		printk(KERN_INFO "stradis: bad fpga code\n");
 		return -1;
 	}
-	/* initialize all detected cards */
+	
 	for (num = 0; num < saa_num; num++) {
 		saa = &saa7146s[num];
 		if (saa->boardcfg[0] > 20)
-			continue;	/* card was programmed */
+			continue;	
 		loadtwo = (saa->boardcfg[18] & 0x10);
-		if (!NewCard)	/* we have an old board */
+		if (!NewCard)	
 			for (i = 0; i < 256; i++)
 				bitmangler[i] = ((i & 0x01) << 15) |
 					((i & 0x02) << 6) | ((i & 0x04) << 4) |
 					((i & 0x08) << 9) | ((i & 0x10) << 7) |
 					((i & 0x20) >> 3) | ((i & 0x40) >> 5) |
 					((i & 0x80) >> 7);
-		else		/* else we have a new board */
+		else		
 			for (i = 0; i < 256; i++)
 				bitmangler[i] = ((i & 0x01) << 7) |
 					((i & 0x02) << 5) | ((i & 0x04) << 3) |
@@ -791,9 +767,9 @@ static int initialize_fpga(struct video_code *bitdata)
 
 		dmabuf = (u16 *) saa->dmadebi;
 		newdma = (u8 *) saa->dmadebi;
-		if (NewCard) {	/* SDM2xxx */
+		if (NewCard) {	
 			if (!strncmp(bitdata->loadwhat, "decoder2", 8))
-				continue;	/* fpga not for this card */
+				continue;	
 			if (!strncmp(&saa->boardcfg[42], bitdata->loadwhat, 8))
 				loadfile = 1;
 			else if (loadtwo && !strncmp(&saa->boardcfg[19],
@@ -801,46 +777,46 @@ static int initialize_fpga(struct video_code *bitdata)
 				loadfile = 2;
 			else if (!saa->boardcfg[42] && !strncmp("decxl",
 					bitdata->loadwhat, 8))
-				loadfile = 1;	/* special */
+				loadfile = 1;	
 			else
-				continue;	/* fpga not for this card */
+				continue;	
 			if (loadfile != 1 && loadfile != 2)
-				continue;	/* skip to next card */
+				continue;	
 			if (saa->boardcfg[0] && loadfile == 1)
-				continue;	/* skip to next card */
+				continue;	
 			if (saa->boardcfg[0] != 1 && loadfile == 2)
-				continue;	/* skip to next card */
-			saa->boardcfg[0]++;	/* mark fpga handled */
+				continue;	
+			saa->boardcfg[0]++;	
 			printk("stradis%d: loading %s\n", saa->nr,
 				bitdata->loadwhat);
 			if (loadtwo && loadfile == 2)
 				goto send_fpga_stuff;
-			/* turn on the Audio interface to set PROG low */
+			
 			saawrite(0x00400040, SAA7146_GPIO_CTRL);
-			saaread(SAA7146_PSR);	/* ensure posted write */
-			/* wait for everyone to reset */
+			saaread(SAA7146_PSR);	
+			
 			mdelay(10);
 			saawrite(0x00400000, SAA7146_GPIO_CTRL);
-		} else {	/* original card */
+		} else {	
 			if (strncmp(bitdata->loadwhat, "decoder2", 8))
-				continue;	/* fpga not for this card */
-			/* Pull the Xilinx PROG signal WS3 low */
+				continue;	
+			
 			saawrite(0x02000200, SAA7146_MC1);
-			/* Turn on the Audio interface so can set PROG low */
+			
 			saawrite(0x000000c0, SAA7146_ACON1);
-			/* Pull the Xilinx INIT signal (GPIO2) low */
+			
 			saawrite(0x00400000, SAA7146_GPIO_CTRL);
-			/* Make sure everybody resets */
-			saaread(SAA7146_PSR);	/* ensure posted write */
+			
+			saaread(SAA7146_PSR);	
 			mdelay(10);
-			/* Release the Xilinx PROG signal */
+			
 			saawrite(0x00000000, SAA7146_ACON1);
-			/* Turn off the Audio interface */
+			
 			saawrite(0x02000000, SAA7146_MC1);
 		}
-		/* Release Xilinx INIT signal (WS2) */
+		
 		saawrite(0x00000000, SAA7146_GPIO_CTRL);
-		/* Wait for the INIT to go High */
+		
 		for (i = 0;
 			i < 10000 && !(saaread(SAA7146_PSR) & SAA7146_PSR_PIN2);
 			i++)
@@ -859,7 +835,7 @@ send_fpga_stuff:
 			if (loadtwo && loadfile == 1) {
 				printk("stradis%d: awaiting 2nd FPGA bitfile\n",
 				       saa->nr);
-				continue;	/* skip to next card */
+				continue;	
 			}
 		} else {
 			for (i = startindex; i < bitdata->datasize; i++)
@@ -879,41 +855,41 @@ send_fpga_stuff:
 			continue;
 		}
 		if (!NewCard) {
-			/* Pull the Xilinx INIT signal (GPIO2) low */
+			
 			saawrite(0x00400000, SAA7146_GPIO_CTRL);
-			saaread(SAA7146_PSR);	/* ensure posted write */
+			saaread(SAA7146_PSR);	
 			mdelay(2);
 			saawrite(0x00000000, SAA7146_GPIO_CTRL);
 			mdelay(2);
 		}
 		printk(KERN_INFO "stradis%d: FPGA Loaded\n", saa->nr);
-		saa->boardcfg[0] = 26;	/* mark fpga programmed */
-		/* set VXCO to its lowest frequency */
+		saa->boardcfg[0] = 26;	
+		
 		debiwrite(saa, debNormal, XILINX_PWM, 0, 2);
 		if (NewCard) {
-			/* mute CS3310 */
+			
 			if (HaveCS3310)
 				debiwrite(saa, debNormal, XILINX_CS3310_CMPLT,
 					0, 2);
-			/* set VXCO to PWM mode, release reset, blank on */
+			
 			debiwrite(saa, debNormal, XILINX_CTL0, 0xffc4, 2);
 			mdelay(10);
-			/* unmute CS3310 */
+			
 			if (HaveCS3310)
 				debiwrite(saa, debNormal, XILINX_CTL0,
 					0x2020, 2);
 		}
-		/* set source Black */
+		
 		debiwrite(saa, debNormal, XILINX_CTL0, 0x1707, 2);
-		saa->boardcfg[4] = 22;	/* set NTSC First Active Line */
-		saa->boardcfg[5] = 23;	/* set PAL First Active Line */
-		saa->boardcfg[54] = 2;	/* set NTSC Last Active Line - 256 */
-		saa->boardcfg[55] = 54;	/* set PAL Last Active Line - 256 */
+		saa->boardcfg[4] = 22;	
+		saa->boardcfg[5] = 23;	
+		saa->boardcfg[54] = 2;	
+		saa->boardcfg[55] = 54;	
 		set_out_format(saa, VIDEO_MODE_NTSC);
 		mdelay(50);
-		/* begin IBM chip init */
+		
 		debiwrite(saa, debNormal, IBM_MP2_CHIP_CONTROL, 4, 2);
-		saaread(SAA7146_PSR);	/* wait for reset */
+		saaread(SAA7146_PSR);	
 		mdelay(5);
 		debiwrite(saa, debNormal, IBM_MP2_CHIP_CONTROL, 0, 2);
 		debiread(saa, debNormal, IBM_MP2_CHIP_CONTROL, 2);
@@ -922,13 +898,13 @@ send_fpga_stuff:
 		debiwrite(saa, debNormal, IBM_MP2_CHIP_MODE, 0x2e, 2);
 		if (NewCard) {
 			mdelay(5);
-			/* set i2s rate converter to 48KHz */
+			
 			debiwrite(saa, debNormal, 0x80c0, 6, 2);
-			/* we must init CS8420 first since rev b pulls i2s */
-			/* master clock low and CS4341 needs i2s master to */
-			/* run the i2c port. */
+			
+			
+			
 			if (HaveCS8420)
-				/* 0=consumer, 1=pro */
+				
 				initialize_cs8420(saa, 0);
 
 			mdelay(5);
@@ -943,10 +919,10 @@ send_fpga_stuff:
 			set_genlock_offset(saa, 0);
 		debiwrite(saa, debNormal, IBM_MP2_FRNT_ATTEN, 0, 2);
 #if 0
-		/* enable genlock */
+		
 		debiwrite(saa, debNormal, XILINX_CTL0, 0x8000, 2);
 #else
-		/* disable genlock */
+		
 		debiwrite(saa, debNormal, XILINX_CTL0, 0x8080, 2);
 #endif
 	}
@@ -956,29 +932,29 @@ send_fpga_stuff:
 
 static int do_ibm_reset(struct saa7146 *saa)
 {
-	/* failure if decoder not previously programmed */
+	
 	if (saa->boardcfg[0] < 37)
 		return -EIO;
-	/* mute CS3310 */
+	
 	if (HaveCS3310)
 		debiwrite(saa, debNormal, XILINX_CS3310_CMPLT, 0, 2);
-	/* disable interrupts */
+	
 	saawrite(0, SAA7146_IER);
 	saa->audhead = saa->audtail = 0;
 	saa->vidhead = saa->vidtail = 0;
-	/* tristate debi bus, disable debi transfers */
+	
 	saawrite(0x00880000, SAA7146_MC1);
-	/* ensure posted write */
+	
 	saaread(SAA7146_MC1);
 	mdelay(50);
-	/* re-enable debi transfers */
+	
 	saawrite(0x00880088, SAA7146_MC1);
-	/* set source Black */
+	
 	debiwrite(saa, debNormal, XILINX_CTL0, 0x1707, 2);
-	/* begin IBM chip init */
+	
 	set_out_format(saa, CurrentMode);
 	debiwrite(saa, debNormal, IBM_MP2_CHIP_CONTROL, 4, 2);
-	saaread(SAA7146_PSR);	/* wait for reset */
+	saaread(SAA7146_PSR);	
 	mdelay(5);
 	debiwrite(saa, debNormal, IBM_MP2_CHIP_CONTROL, 0, 2);
 	debiread(saa, debNormal, IBM_MP2_CHIP_CONTROL, 2);
@@ -986,13 +962,13 @@ static int do_ibm_reset(struct saa7146 *saa)
 	debiwrite(saa, debNormal, IBM_MP2_CHIP_MODE, 0x2e, 2);
 	if (NewCard) {
 		mdelay(5);
-		/* set i2s rate converter to 48KHz */
+		
 		debiwrite(saa, debNormal, 0x80c0, 6, 2);
-		/* we must init CS8420 first since rev b pulls i2s */
-		/* master clock low and CS4341 needs i2s master to */
-		/* run the i2c port. */
+		
+		
+		
 		if (HaveCS8420)
-			/* 0=consumer, 1=pro */
+			
 			initialize_cs8420(saa, 1);
 
 		mdelay(5);
@@ -1016,22 +992,22 @@ static int do_ibm_reset(struct saa7146 *saa)
 		int i = CS3310MaxLvl;
 		debiwrite(saa, debNormal, XILINX_CS3310_CMPLT, ((i << 8)| i),2);
 	}
-	/* start video decoder */
+	
 	debiwrite(saa, debNormal, IBM_MP2_CHIP_CONTROL, ChipControl, 2);
-	/* 256k vid, 3520 bytes aud */
+	
 	debiwrite(saa, debNormal, IBM_MP2_RB_THRESHOLD, 0x4037, 2);
 	debiwrite(saa, debNormal, IBM_MP2_AUD_CTL, 0x4573, 2);
 	ibm_send_command(saa, IBM_MP2_PLAY, 0, 0);
-	/* enable buffer threshold irq */
+	
 	debiwrite(saa, debNormal, IBM_MP2_MASK0, 0xc00c, 2);
-	/* clear pending interrupts */
+	
 	debiread(saa, debNormal, IBM_MP2_HOST_INT, 2);
 	debiwrite(saa, debNormal, XILINX_CTL0, 0x1711, 2);
 
 	return 0;
 }
 
-/* load the decoder microcode */
+
 static int initialize_ibmmpeg2(struct video_code *microcode)
 {
 	int i, num;
@@ -1039,7 +1015,7 @@ static int initialize_ibmmpeg2(struct video_code *microcode)
 
 	for (num = 0; num < saa_num; num++) {
 		saa = &saa7146s[num];
-		/* check that FPGA is loaded */
+		
 		debiwrite(saa, debNormal, IBM_MP2_OSD_SIZE, 0xa55a, 2);
 		i = debiread(saa, debNormal, IBM_MP2_OSD_SIZE, 2);
 		if (i != 0xa55a) {
@@ -1051,9 +1027,9 @@ static int initialize_ibmmpeg2(struct video_code *microcode)
 		}
 		if (!strncmp(microcode->loadwhat, "decoder.vid", 11)) {
 			if (saa->boardcfg[0] > 27)
-				continue;	/* skip to next card */
-			/* load video control store */
-			saa->boardcfg[1] = 0x13;	/* no-sync default */
+				continue;	
+			
+			saa->boardcfg[1] = 0x13;	
 			debiwrite(saa, debNormal, IBM_MP2_WR_PROT, 1, 2);
 			debiwrite(saa, debNormal, IBM_MP2_PROC_IADDR, 0, 2);
 			for (i = 0; i < microcode->datasize / 2; i++)
@@ -1068,8 +1044,8 @@ static int initialize_ibmmpeg2(struct video_code *microcode)
 		}
 		if (!strncmp(microcode->loadwhat, "decoder.aud", 11)) {
 			if (saa->boardcfg[0] > 35)
-				continue;	/* skip to next card */
-			/* load audio control store */
+				continue;	
+			
 			debiwrite(saa, debNormal, IBM_MP2_WR_PROT, 1, 2);
 			debiwrite(saa, debNormal, IBM_MP2_AUD_IADDR, 0, 2);
 			for (i = 0; i < microcode->datasize; i++)
@@ -1085,7 +1061,7 @@ static int initialize_ibmmpeg2(struct video_code *microcode)
 					"failed\n", saa->nr);
 				return -1;
 			}
-			/* set PWM to center value */
+			
 			if (NewCard) {
 				debiwrite(saa, debNormal, XILINX_PWM,
 					saa->boardcfg[14] +
@@ -1101,19 +1077,19 @@ static int initialize_ibmmpeg2(struct video_code *microcode)
 			printk(KERN_INFO "stradis%d: IBM MPEGCD%d Inited\n",
 				saa->nr, 18 + (debiread(saa, debNormal,
 				IBM_MP2_CHIP_CONTROL, 2) >> 12));
-			/* start video decoder */
+			
 			debiwrite(saa, debNormal, IBM_MP2_CHIP_CONTROL,
 				ChipControl, 2);
 			debiwrite(saa, debNormal, IBM_MP2_RB_THRESHOLD, 0x4037,
-				2);	/* 256k vid, 3520 bytes aud */
+				2);	
 			debiwrite(saa, debNormal, IBM_MP2_AUD_CTL, 0x4573, 2);
 			ibm_send_command(saa, IBM_MP2_PLAY, 0, 0);
-			/* enable buffer threshold irq */
+			
 			debiwrite(saa, debNormal, IBM_MP2_MASK0, 0xc00c, 2);
 			debiread(saa, debNormal, IBM_MP2_HOST_INT, 2);
-			/* enable gpio irq */
+			
 			saawrite(0x00002000, SAA7146_GPIO_CTRL);
-			/* enable decoder output to HPS */
+			
 			debiwrite(saa, debNormal, XILINX_CTL0, 0x1711, 2);
 			saa->boardcfg[0] = 37;
 		}
@@ -1122,7 +1098,7 @@ static int initialize_ibmmpeg2(struct video_code *microcode)
 	return 0;
 }
 
-static u32 palette2fmt[] = {	/* some of these YUV translations are wrong */
+static u32 palette2fmt[] = {	
 	0xffffffff, 0x86000000, 0x87000000, 0x80000000, 0x8100000, 0x82000000,
 	0x83000000, 0x00000000, 0x03000000, 0x03000000, 0x0a00000, 0x03000000,
 	0x06000000, 0x00000000, 0x03000000, 0x0a000000, 0x0300000
@@ -1132,7 +1108,7 @@ static int bpp2fmt[4] = {
 	VIDEO_PALETTE_RGB32
 };
 
-/* I wish I could find a formula to calculate these... */
+
 static u32 h_prescale[64] = {
 	0x10000000, 0x18040202, 0x18080000, 0x380c0606, 0x38100204, 0x38140808,
 	0x38180000, 0x381c0000, 0x3820161c, 0x38242a3b, 0x38281230, 0x382c4460,
@@ -1180,10 +1156,10 @@ static void saa7146_set_winsize(struct saa7146 *saa)
 	offset = (720896 / saa->win.width) / (offset + 1);
 	saawrite((offset << 12) | 0x0c, SAA7146_HPS_H_SCALE);
 	if (CurrentMode == VIDEO_MODE_NTSC) {
-		yacl = /*(480 / saa->win.height - 1) & 0x3f */ 0;
+		yacl =  0;
 		ysci = 1024 - (saa->win.height * 1024 / 480);
 	} else {
-		yacl = /*(576 / saa->win.height - 1) & 0x3f */ 0;
+		yacl =  0;
 		ysci = 1024 - (saa->win.height * 1024 / 576);
 	}
 	saawrite((1 << 31) | (ysci << 21) | (yacl << 15), SAA7146_HPS_V_SCALE);
@@ -1193,15 +1169,7 @@ static void saa7146_set_winsize(struct saa7146 *saa)
 		SAA7146_MC2_UPLD_HPS_V | SAA7146_MC2_UPLD_HPS_H), SAA7146_MC2);
 }
 
-/* clip_draw_rectangle(cm,x,y,w,h) -- handle clipping an area
- * bitmap is fixed width, 128 bytes (1024 pixels represented)
- * arranged most-sigificant-bit-left in 32-bit words
- * based on saa7146 clipping hardware, it swaps bytes if LE
- * much of this makes up for egcs brain damage -- so if you
- * are wondering "why did he do this?" it is because the C
- * was adjusted to generate the optimal asm output without
- * writing non-portable __asm__ directives.
- */
+
 
 static void clip_draw_rectangle(u32 *clipmap, int x, int y, int w, int h)
 {
@@ -1217,7 +1185,7 @@ static void clip_draw_rectangle(u32 *clipmap, int x, int y, int w, int h)
 		y = 0;
 	}
 	if (w <= 0 || h <= 0 || x > 1023 || y > 639)
-		return;		/* throw away bad clips */
+		return;		
 	if (x + w > 1024)
 		w = 1024 - x;
 	if (y + h > 640)
@@ -1252,19 +1220,17 @@ static void make_clip_tab(struct saa7146 *saa, struct video_clip *cr, int ncr)
 
 	clipmap = saa->dmavid2;
 	if ((width = saa->win.width) > 1023)
-		width = 1023;	/* sanity check */
+		width = 1023;	
 	if ((height = saa->win.height) > 640)
-		height = 639;	/* sanity check */
-	if (ncr > 0) {		/* rectangles pased */
-		/* convert rectangular clips to a bitmap */
-		memset(clipmap, 0, VIDEO_CLIPMAP_SIZE);	/* clear map */
+		height = 639;	
+	if (ncr > 0) {		
+		
+		memset(clipmap, 0, VIDEO_CLIPMAP_SIZE);	
 		for (i = 0; i < ncr; i++)
 			clip_draw_rectangle(clipmap, cr[i].x, cr[i].y,
 				cr[i].width, cr[i].height);
 	}
-	/* clip against viewing window AND screen
-	   so we do not have to rely on the user program
-	 */
+	
 	clip_draw_rectangle(clipmap, (saa->win.x + width > saa->win.swidth) ?
 		(saa->win.swidth - saa->win.x) : width, 0, 1024, 768);
 	clip_draw_rectangle(clipmap, 0,
@@ -1333,7 +1299,7 @@ static long saa_ioctl(struct file *file,
 				((p.contrast & 0xfe00) << 7) |
 				((p.colour & 0xfe00) >> 9), SAA7146_BCS_CTRL);
 			saa->picture = p;
-			/* upload changed registers */
+			
 			saawrite(((SAA7146_MC2_UPLD_HPS_H |
 				SAA7146_MC2_UPLD_HPS_V) << 16) |
 				SAA7146_MC2_UPLD_HPS_H |
@@ -1348,13 +1314,13 @@ static long saa_ioctl(struct file *file,
 			if (copy_from_user(&vw, arg, sizeof(vw)))
 				return -EFAULT;
 
-			/* stop capture */
+			
 			if (vw.flags || vw.width < 16 || vw.height < 16) {
 				saawrite((SAA7146_MC1_TR_E_1 << 16),
 					SAA7146_MC1);
 				return -EINVAL;
 			}
-			/* 32-bit align start and adjust width */
+			
 			if (saa->win.bpp < 4) {
 				int i = vw.x;
 				vw.x = (vw.x + 3) & ~3;
@@ -1375,13 +1341,11 @@ static long saa_ioctl(struct file *file,
 					saa->win.height = 576;
 			}
 
-			/* stop capture */
+			
 			saawrite((SAA7146_MC1_TR_E_1 << 16), SAA7146_MC1);
 			saa7146_set_winsize(saa);
 
-			/*
-			 *    Do any clips.
-			 */
+			
 			if (vw.clipcount < 0) {
 				if (copy_from_user(saa->dmavid2, vw.clips,
 						VIDEO_CLIPMAP_SIZE))
@@ -1399,14 +1363,14 @@ static long saa_ioctl(struct file *file,
 					vfree(vcp);
 					return -EFAULT;
 				}
-			} else	/* nothing clipped */
+			} else	
 				memset(saa->dmavid2, 0, VIDEO_CLIPMAP_SIZE);
 
 			make_clip_tab(saa, vcp, vw.clipcount);
 			if (vw.clipcount > 0)
 				vfree(vcp);
 
-			/* start capture & clip dma if we have an address */
+			
 			if ((saa->cap & 3) && saa->win.vidadr != 0)
 				saawrite(((SAA7146_MC1_TR_E_1 |
 					SAA7146_MC1_TR_E_2) << 16) | 0xffff,
@@ -1485,7 +1449,7 @@ static long saa_ioctl(struct file *file,
 		}
 	case VIDIOCKEY:
 		{
-			/* Will be handled higher up .. */
+			
 			return 0;
 		}
 
@@ -1569,8 +1533,8 @@ static long saa_ioctl(struct file *file,
 				saa->playmode = pmode.mode;
 				return 0;
 			case VID_PLAY_PAUSE:
-				/* IBM removed the PAUSE command */
-				/* they say use SINGLE_FRAME now */
+				
+				
 			case VID_PLAY_SINGLE_FRAME:
 				ibm_send_command(saa, IBM_MP2_SINGLE_FRAME,0,0);
 				if (saa->playmode == pmode.mode) {
@@ -1590,7 +1554,7 @@ static long saa_ioctl(struct file *file,
 				saa->playmode = pmode.mode;
 				return 0;
 			case VID_PLAY_IMMEDIATE_NORMAL:
-				/* ensure transfers resume */
+				
 				debiwrite(saa, debNormal,
 					IBM_MP2_CHIP_CONTROL, ChipControl, 2);
 				ibm_send_command(saa, IBM_MP2_IMED_NORM_PLAY,
@@ -1711,7 +1675,7 @@ static long saa_ioctl(struct file *file,
 			return 0;
 
 		}
-	case VIDIOCGCHAN:	/* this makes xawtv happy */
+	case VIDIOCGCHAN:	
 		{
 			struct video_channel v;
 			if (copy_from_user(&v, arg, sizeof(v)))
@@ -1725,12 +1689,12 @@ static long saa_ioctl(struct file *file,
 				return -EFAULT;
 			return 0;
 		}
-	case VIDIOCSCHAN:	/* this makes xawtv happy */
+	case VIDIOCSCHAN:	
 		{
 			struct video_channel v;
 			if (copy_from_user(&v, arg, sizeof(v)))
 				return -EFAULT;
-			/* do nothing */
+			
 			return 0;
 		}
 	default:
@@ -1773,7 +1737,7 @@ static ssize_t saa_write(struct file *file, const char __user * buf,
 				saawrite(SAA7146_PSR_DEBI_S |
 					SAA7146_PSR_PIN1, SAA7146_IER);
 				saawrite(SAA7146_PSR_PIN1, SAA7146_PSR);
-				/* wait for buffer space to open */
+				
 				interruptible_sleep_on(&saa->audq);
 			}
 			spin_lock_irqsave(&saa->lock, flags);
@@ -1789,7 +1753,7 @@ static ssize_t saa_write(struct file *file, const char __user * buf,
 			blocksize--;
 			if (blocksize > todo)
 				blocksize = todo;
-			/* double check that we really have space */
+			
 			if (!blocksize)
 				return -ENOSPC;
 			if (split < blocksize) {
@@ -1820,7 +1784,7 @@ static ssize_t saa_write(struct file *file, const char __user * buf,
 				saawrite(SAA7146_PSR_DEBI_S |
 					SAA7146_PSR_PIN1, SAA7146_IER);
 				saawrite(SAA7146_PSR_PIN1, SAA7146_PSR);
-				/* wait for buffer space to open */
+				
 				interruptible_sleep_on(&saa->vidq);
 			}
 			spin_lock_irqsave(&saa->lock, flags);
@@ -1836,7 +1800,7 @@ static ssize_t saa_write(struct file *file, const char __user * buf,
 			blocksize--;
 			if (blocksize > todo)
 				blocksize = todo;
-			/* double check that we really have space */
+			
 			if (!blocksize)
 				return -ENOSPC;
 			if (split < blocksize) {
@@ -1869,7 +1833,7 @@ static ssize_t saa_write(struct file *file, const char __user * buf,
 			debiwrite(saa, debNormal, IBM_MP2_DISP_MODE,
 				debiread(saa, debNormal,
 					IBM_MP2_DISP_MODE, 2) | 1, 2);
-			/* trigger osd data transfer */
+			
 			saawrite(SAA7146_PSR_DEBI_S |
 				 SAA7146_PSR_PIN1, SAA7146_IER);
 			saawrite(SAA7146_PSR_PIN1, SAA7146_PSR);
@@ -1889,9 +1853,9 @@ static int saa_open(struct file *file)
 	saa->user++;
 	if (saa->user > 1) {
 		unlock_kernel();
-		return 0;	/* device open already, don't reset */
+		return 0;	
 	}
-	saa->writemode = VID_WRITE_MPEG_VID;	/* default to video */
+	saa->writemode = VID_WRITE_MPEG_VID;	
 	unlock_kernel();
 	return 0;
 }
@@ -1901,9 +1865,9 @@ static int saa_release(struct file *file)
 	struct saa7146 *saa = file->private_data;
 	saa->user--;
 
-	if (saa->user > 0)	/* still someone using device */
+	if (saa->user > 0)	
 		return 0;
-	saawrite(0x007f0000, SAA7146_MC1);	/* stop all overlay dma */
+	saawrite(0x007f0000, SAA7146_MC1);	
 	return 0;
 }
 
@@ -1917,7 +1881,7 @@ static const struct v4l2_file_operations saa_fops = {
 	.mmap = saa_mmap,
 };
 
-/* template for video_device-structure */
+
 static struct video_device saa_template = {
 	.name = "SAA7146A",
 	.fops = &saa_fops,
@@ -1947,7 +1911,7 @@ static int __devinit configure_saa7146(struct pci_dev *pdev, int num)
 	saa->cap = 0;
 	saa->nr = num;
 	saa->playmode = VID_PLAY_NORMAL;
-	memset(saa->boardcfg, 0, 64);	/* clear board config area */
+	memset(saa->boardcfg, 0, 64);	
 	saa->saa7146_mem = NULL;
 	saa->dmavid1 = saa->dmavid2 = saa->dmavid3 = saa->dmaa1in =
 	    saa->dmaa1out = saa->dmaa2in = saa->dmaa2out =
@@ -1984,7 +1948,7 @@ static int __devinit configure_saa7146(struct pci_dev *pdev, int num)
 	}
 
 	memcpy(&saa->video_dev, &saa_template, sizeof(saa_template));
-	saawrite(0, SAA7146_IER);	/* turn off all interrupts */
+	saawrite(0, SAA7146_IER);	
 
 	retval = request_irq(saa->irq, saa7146_irq, IRQF_SHARED | IRQF_DISABLED,
 		"stradis", saa);
@@ -2017,13 +1981,13 @@ static int __devinit init_saa7146(struct pci_dev *pdev)
 	struct saa7146 *saa = pci_get_drvdata(pdev);
 
 	saa->user = 0;
-	/* reset the saa7146 */
+	
 	saawrite(0xffff0000, SAA7146_MC1);
 	mdelay(5);
-	/* enable debi and i2c transfers and pins */
+	
 	saawrite(((SAA7146_MC1_EDP | SAA7146_MC1_EI2C |
 		   SAA7146_MC1_TR_E_DEBI) << 16) | 0xffff, SAA7146_MC1);
-	/* ensure proper state of chip */
+	
 	saawrite(0x00000000, SAA7146_PAGE1);
 	saawrite(0x00f302c0, SAA7146_NUM_LINE_BYTE1);
 	saawrite(0x00000000, SAA7146_PAGE2);
@@ -2033,7 +1997,7 @@ static int __devinit init_saa7146(struct pci_dev *pdev)
 	saawrite(0x00000000, SAA7146_DD1_STREAM_A);
 	saawrite(0x00000000, SAA7146_BRS_CTRL);
 	saawrite(0x80400040, SAA7146_BCS_CTRL);
-	saawrite(0x0000e000 /*| (1<<29) */ , SAA7146_HPS_CTRL);
+	saawrite(0x0000e000  , SAA7146_HPS_CTRL);
 	saawrite(0x00000060, SAA7146_CLIP_FORMAT_CTRL);
 	saawrite(0x00000000, SAA7146_ACON1);
 	saawrite(0x00000000, SAA7146_ACON2);
@@ -2043,18 +2007,18 @@ static int __devinit init_saa7146(struct pci_dev *pdev)
 		SAA7146_MC2_UPLD_HPS_V | SAA7146_MC2_UPLD_DMA2 |
 		SAA7146_MC2_UPLD_DMA1 | SAA7146_MC2_UPLD_I2C) << 16) | 0xffff,
 		SAA7146_MC2);
-	/* setup arbitration control registers */
+	
 	saawrite(0x1412121a, SAA7146_PCI_BT_V1);
 
-	/* allocate 32k dma buffer + 4k for page table */
+	
 	if ((saa->dmadebi = kmalloc(32768 + 4096, GFP_KERNEL)) == NULL) {
 		dev_err(&pdev->dev, "%d: debi kmalloc failed\n", saa->nr);
 		goto err;
 	}
 #if 0
-	saa->pagedebi = saa->dmadebi + 32768;	/* top 4k is for mmu */
-	saawrite(virt_to_bus(saa->pagedebi) /*|0x800 */ , SAA7146_DEBI_PAGE);
-	for (i = 0; i < 12; i++)	/* setup mmu page table */
+	saa->pagedebi = saa->dmadebi + 32768;	
+	saawrite(virt_to_bus(saa->pagedebi)  , SAA7146_DEBI_PAGE);
+	for (i = 0; i < 12; i++)	
 		saa->pagedebi[i] = virt_to_bus((saa->dmadebi + i * 4096));
 #endif
 	saa->audhead = saa->vidhead = saa->osdhead = 0;
@@ -2071,18 +2035,18 @@ static int __devinit init_saa7146(struct pci_dev *pdev)
 		dev_err(&pdev->dev, "%d: malloc failed\n", saa->nr);
 		goto errfree;
 	}
-	/* allocate 81920 byte buffer for clipping */
+	
 	if ((saa->dmavid2 = kzalloc(VIDEO_CLIPMAP_SIZE, GFP_KERNEL)) == NULL) {
 		dev_err(&pdev->dev, "%d: clip kmalloc failed\n", saa->nr);
 		goto errfree;
 	}
-	/* setup clipping registers */
+	
 	saawrite(virt_to_bus(saa->dmavid2), SAA7146_BASE_EVEN2);
 	saawrite(virt_to_bus(saa->dmavid2) + 128, SAA7146_BASE_ODD2);
 	saawrite(virt_to_bus(saa->dmavid2) + VIDEO_CLIPMAP_SIZE,
 		 SAA7146_PROT_ADDR2);
 	saawrite(256, SAA7146_PITCH2);
-	saawrite(4, SAA7146_PAGE2);	/* dma direction: read, no byteswap */
+	saawrite(4, SAA7146_PAGE2);	
 	saawrite(((SAA7146_MC2_UPLD_DMA2) << 16) | SAA7146_MC2_UPLD_DMA2,
 		 SAA7146_MC2);
 	I2CBusScan(saa);
@@ -2102,18 +2066,18 @@ static void stradis_release_saa(struct pci_dev *pdev)
 	u8 command;
 	struct saa7146 *saa = pci_get_drvdata(pdev);
 
-	/* turn off all capturing, DMA and IRQs */
-	saawrite(0xffff0000, SAA7146_MC1);	/* reset chip */
+	
+	saawrite(0xffff0000, SAA7146_MC1);	
 	saawrite(0, SAA7146_MC2);
 	saawrite(0, SAA7146_IER);
 	saawrite(0xffffffffUL, SAA7146_ISR);
 
-	/* disable PCI bus-mastering */
+	
 	pci_read_config_byte(pdev, PCI_COMMAND, &command);
 	command &= ~PCI_COMMAND_MASTER;
 	pci_write_config_byte(pdev, PCI_COMMAND, command);
 
-	/* unmap and free memory */
+	
 	saa->audhead = saa->audtail = saa->osdhead = 0;
 	saa->vidhead = saa->vidtail = saa->osdtail = 0;
 	vfree(saa->vidbuf);

@@ -1,11 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) 1996 Mike Shaver (shaver@zeroknowledge.com)
- */
+
 #include <linux/mm.h>
 #include <linux/sysctl.h>
 #include <linux/spinlock.h>
@@ -183,7 +176,7 @@ static const ctl_table ax25_param_table[] = {
 	},
 #endif
 
-	{ .ctl_name = 0 }	/* that's all, folks! */
+	{ .ctl_name = 0 }	
 };
 
 void ax25_register_sysctl(void)
@@ -216,7 +209,7 @@ void ax25_register_sysctl(void)
 		ax25_table[n].procname     = ax25_dev->dev->name;
 		ax25_table[n].mode         = 0555;
 
-		child[AX25_MAX_VALUES].ctl_name = 0;	/* just in case... */
+		child[AX25_MAX_VALUES].ctl_name = 0;	
 
 		for (k = 0; k < AX25_MAX_VALUES; k++)
 			child[k].data = &ax25_dev->values[k];

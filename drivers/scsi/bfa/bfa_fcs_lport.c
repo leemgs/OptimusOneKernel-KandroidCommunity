@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfa_fcs_port.c BFA FCS port
- */
+
+
 
 #include <fcs/bfa_fcs.h>
 #include <fcs/bfa_fcs_lport.h>
@@ -36,9 +19,7 @@
 
 BFA_TRC_FILE(FCS, PORT);
 
-/**
- * Forward declarations
- */
+
 
 static void     bfa_fcs_port_aen_post(struct bfa_fcs_port_s *port,
 				      enum bfa_lport_aen_event event);
@@ -78,9 +59,7 @@ static struct {
 bfa_fcs_port_n2n_init, bfa_fcs_port_n2n_online,
 			bfa_fcs_port_n2n_offline},};
 
-/**
- *  fcs_port_sm FCS logical port state machine
- */
+
 
 enum bfa_fcs_port_event {
 	BFA_FCS_PORT_SM_CREATE = 1,
@@ -240,13 +219,9 @@ bfa_fcs_port_sm_deleting(struct bfa_fcs_port_s *port,
 
 
 
-/**
- *  fcs_port_pvt
- */
 
-/**
- * Send AEN notification
- */
+
+
 static void
 bfa_fcs_port_aen_post(struct bfa_fcs_port_s *port,
 		      enum bfa_lport_aen_event event)
@@ -295,9 +270,7 @@ bfa_fcs_port_aen_post(struct bfa_fcs_port_s *port,
 	aen_data.lport.lpwwn = lpwwn;
 }
 
-/*
- * Send a LS reject
- */
+
 static void
 bfa_fcs_port_send_ls_rjt(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 			 u8 reason_code, u8 reason_code_expl)
@@ -322,9 +295,7 @@ bfa_fcs_port_send_ls_rjt(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 		      FC_MAX_PDUSZ, 0);
 }
 
-/**
- * Process incoming plogi from a remote port.
- */
+
 static void
 bfa_fcs_port_plogi(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 			struct fc_logi_s *plogi)
@@ -334,9 +305,7 @@ bfa_fcs_port_plogi(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 	bfa_trc(port->fcs, rx_fchs->d_id);
 	bfa_trc(port->fcs, rx_fchs->s_id);
 
-	/*
-	 * If min cfg mode is enabled, drop any incoming PLOGIs
-	 */
+	
 	if (__fcs_min_cfg(port->fcs)) {
 		bfa_trc(port->fcs, rx_fchs->s_id);
 		return;
@@ -344,27 +313,21 @@ bfa_fcs_port_plogi(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 
 	if (fc_plogi_parse(rx_fchs) != FC_PARSE_OK) {
 		bfa_trc(port->fcs, rx_fchs->s_id);
-		/*
-		 * send a LS reject
-		 */
+		
 		bfa_fcs_port_send_ls_rjt(port, rx_fchs,
 					 FC_LS_RJT_RSN_PROTOCOL_ERROR,
 					 FC_LS_RJT_EXP_SPARMS_ERR_OPTIONS);
 		return;
 	}
 
-	/**
-* Direct Attach P2P mode : verify address assigned by the r-port.
-	 */
+	
 	if ((!bfa_fcs_fabric_is_switched(port->fabric))
 	    &&
 	    (memcmp
 	     ((void *)&bfa_fcs_port_get_pwwn(port), (void *)&plogi->port_name,
 	      sizeof(wwn_t)) < 0)) {
 		if (BFA_FCS_PID_IS_WKA(rx_fchs->d_id)) {
-			/*
-			 * Address assigned to us cannot be a WKA
-			 */
+			
 			bfa_fcs_port_send_ls_rjt(port, rx_fchs,
 					FC_LS_RJT_RSN_PROTOCOL_ERROR,
 					FC_LS_RJT_EXP_INVALID_NPORT_ID);
@@ -373,14 +336,10 @@ bfa_fcs_port_plogi(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 		port->pid = rx_fchs->d_id;
 	}
 
-	/**
-	 * First, check if we know the device by pwwn.
-	 */
+	
 	rport = bfa_fcs_port_get_rport_by_pwwn(port, plogi->port_name);
 	if (rport) {
-		/**
-		 * Direct Attach P2P mode: handle address assigned by the rport.
-		 */
+		
 		if ((!bfa_fcs_fabric_is_switched(port->fabric))
 		    &&
 		    (memcmp
@@ -393,47 +352,31 @@ bfa_fcs_port_plogi(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 		return;
 	}
 
-	/**
-	 * Next, lookup rport by PID.
-	 */
+	
 	rport = bfa_fcs_port_get_rport_by_pid(port, rx_fchs->s_id);
 	if (!rport) {
-		/**
-		 * Inbound PLOGI from a new device.
-		 */
+		
 		bfa_fcs_rport_plogi_create(port, rx_fchs, plogi);
 		return;
 	}
 
-	/**
-	 * Rport is known only by PID.
-	 */
+	
 	if (rport->pwwn) {
-		/**
-		 * This is a different device with the same pid. Old device
-		 * disappeared. Send implicit LOGO to old device.
-		 */
+		
 		bfa_assert(rport->pwwn != plogi->port_name);
 		bfa_fcs_rport_logo_imp(rport);
 
-		/**
-		 * Inbound PLOGI from a new device (with old PID).
-		 */
+		
 		bfa_fcs_rport_plogi_create(port, rx_fchs, plogi);
 		return;
 	}
 
-	/**
-	 * PLOGI crossing each other.
-	 */
+	
 	bfa_assert(rport->pwwn == WWN_NULL);
 	bfa_fcs_rport_plogi(rport, rx_fchs, plogi);
 }
 
-/*
- * Process incoming ECHO.
- * Since it does not require a login, it is processed here.
- */
+
 static void
 bfa_fcs_port_echo(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 			struct fc_echo_s *echo, u16 rx_len)
@@ -454,9 +397,7 @@ bfa_fcs_port_echo(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 	len = fc_ls_acc_build(&fchs, bfa_fcxp_get_reqbuf(fcxp), rx_fchs->s_id,
 			      bfa_fcs_port_get_fcid(port), rx_fchs->ox_id);
 
-	/*
-	 * Copy the payload (if any) from the echo frame
-	 */
+	
 	pyld_len = rx_len - sizeof(struct fchs_s);
 	bfa_trc(port->fcs, pyld_len);
 
@@ -470,10 +411,7 @@ bfa_fcs_port_echo(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 		      FC_MAX_PDUSZ, 0);
 }
 
-/*
- * Process incoming RNID.
- * Since it does not require a login, it is processed here.
- */
+
 static void
 bfa_fcs_port_rnid(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 			struct fc_rnid_cmd_s *rnid, u16 rx_len)
@@ -494,26 +432,17 @@ bfa_fcs_port_rnid(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 	if (!fcxp)
 		return;
 
-	/*
-	 * Check Node Indentification Data Format
-	 * We only support General Topology Discovery Format.
-	 * For any other requested Data Formats, we return Common Node Id Data
-	 * only, as per FC-LS.
-	 */
+	
 	bfa_trc(port->fcs, rnid->node_id_data_format);
 	if (rnid->node_id_data_format == RNID_NODEID_DATA_FORMAT_DISCOVERY) {
 		data_format = RNID_NODEID_DATA_FORMAT_DISCOVERY;
-		/*
-		 * Get General topology data for this port
-		 */
+		
 		bfa_fs_port_get_gen_topo_data(port, &gen_topo_data);
 	} else {
 		data_format = RNID_NODEID_DATA_FORMAT_COMMON;
 	}
 
-	/*
-	 * Copy the Node Id Info
-	 */
+	
 	common_id_data.port_name = bfa_fcs_port_get_pwwn(port);
 	common_id_data.node_name = bfa_fcs_port_get_nwwn(port);
 
@@ -528,9 +457,7 @@ bfa_fcs_port_rnid(struct bfa_fcs_port_s *port, struct fchs_s *rx_fchs,
 	return;
 }
 
-/*
- *  Fill out General Topolpgy Discovery Data for RNID ELS.
- */
+
 static void
 bfa_fs_port_get_gen_topo_data(struct bfa_fcs_port_s *port,
 			struct fc_rnid_general_topology_data_s *gen_topo_data)
@@ -540,7 +467,7 @@ bfa_fs_port_get_gen_topo_data(struct bfa_fcs_port_s *port,
 		      sizeof(struct fc_rnid_general_topology_data_s));
 
 	gen_topo_data->asso_type = bfa_os_htonl(RNID_ASSOCIATED_TYPE_HOST);
-	gen_topo_data->phy_port_num = 0;	/* @todo */
+	gen_topo_data->phy_port_num = 0;	
 	gen_topo_data->num_attached_nodes = bfa_os_htonl(1);
 }
 
@@ -606,9 +533,7 @@ bfa_fcs_port_deleted(struct bfa_fcs_port_s *port)
 {
 	bfa_fcs_port_aen_post(port, BFA_LPORT_AEN_DELETE);
 
-	/*
-	 * Base port will be deleted by the OS driver
-	 */
+	
 	if (port->vport) {
 		bfa_fcb_port_delete(port->fcs->bfad, port->port_cfg.roles,
 			port->fabric->vf_drv,
@@ -621,30 +546,22 @@ bfa_fcs_port_deleted(struct bfa_fcs_port_s *port)
 
 
 
-/**
- *  fcs_lport_api BFA FCS port API
- */
-/**
- *   Module initialization
- */
+
+
 void
 bfa_fcs_port_modinit(struct bfa_fcs_s *fcs)
 {
 
 }
 
-/**
- *   Module cleanup
- */
+
 void
 bfa_fcs_port_modexit(struct bfa_fcs_s *fcs)
 {
 	bfa_fcs_modexit_comp(fcs);
 }
 
-/**
- * 		Unsolicited frame receive handling.
- */
+
 void
 bfa_fcs_port_uf_recv(struct bfa_fcs_port_s *lport, struct fchs_s *fchs,
 			u16 len)
@@ -660,39 +577,29 @@ bfa_fcs_port_uf_recv(struct bfa_fcs_port_s *lport, struct fchs_s *fchs,
 		return;
 	}
 
-	/**
-	 * First, handle ELSs that donot require a login.
-	 */
-	/*
-	 * Handle PLOGI first
-	 */
+	
+	
 	if ((fchs->type == FC_TYPE_ELS) &&
 		(els_cmd->els_code == FC_ELS_PLOGI)) {
 		bfa_fcs_port_plogi(lport, fchs, (struct fc_logi_s *) els_cmd);
 		return;
 	}
 
-	/*
-	 * Handle ECHO separately.
-	 */
+	
 	if ((fchs->type == FC_TYPE_ELS) && (els_cmd->els_code == FC_ELS_ECHO)) {
 		bfa_fcs_port_echo(lport, fchs,
 			(struct fc_echo_s *) els_cmd, len);
 		return;
 	}
 
-	/*
-	 * Handle RNID separately.
-	 */
+	
 	if ((fchs->type == FC_TYPE_ELS) && (els_cmd->els_code == FC_ELS_RNID)) {
 		bfa_fcs_port_rnid(lport, fchs,
 			(struct fc_rnid_cmd_s *) els_cmd, len);
 		return;
 	}
 
-	/**
-	 * look for a matching remote port ID
-	 */
+	
 	rport = bfa_fcs_port_get_rport_by_pid(lport, pid);
 	if (rport) {
 		bfa_trc(rport->fcs, fchs->s_id);
@@ -703,9 +610,7 @@ bfa_fcs_port_uf_recv(struct bfa_fcs_port_s *lport, struct fchs_s *fchs,
 		return;
 	}
 
-	/**
-	 * Only handles ELS frames for now.
-	 */
+	
 	if (fchs->type != FC_TYPE_ELS) {
 		bfa_trc(lport->fcs, fchs->type);
 		bfa_assert(0);
@@ -719,32 +624,24 @@ bfa_fcs_port_uf_recv(struct bfa_fcs_port_s *lport, struct fchs_s *fchs,
 	}
 
 	if (els_cmd->els_code == FC_ELS_LOGO) {
-		/**
-		 * @todo Handle LOGO frames received.
-		 */
+		
 		bfa_trc(lport->fcs, els_cmd->els_code);
 		return;
 	}
 
 	if (els_cmd->els_code == FC_ELS_PRLI) {
-		/**
-		 * @todo Handle PRLI frames received.
-		 */
+		
 		bfa_trc(lport->fcs, els_cmd->els_code);
 		return;
 	}
 
-	/**
-	 * Unhandled ELS frames. Send a LS_RJT.
-	 */
+	
 	bfa_fcs_port_send_ls_rjt(lport, fchs, FC_LS_RJT_RSN_CMD_NOT_SUPP,
 				 FC_LS_RJT_EXP_NO_ADDL_INFO);
 
 }
 
-/**
- *   PID based Lookup for a R-Port in the Port R-Port Queue
- */
+
 struct bfa_fcs_rport_s *
 bfa_fcs_port_get_rport_by_pid(struct bfa_fcs_port_s *port, u32 pid)
 {
@@ -761,9 +658,7 @@ bfa_fcs_port_get_rport_by_pid(struct bfa_fcs_port_s *port, u32 pid)
 	return NULL;
 }
 
-/**
- *   PWWN based Lookup for a R-Port in the Port R-Port Queue
- */
+
 struct bfa_fcs_rport_s *
 bfa_fcs_port_get_rport_by_pwwn(struct bfa_fcs_port_s *port, wwn_t pwwn)
 {
@@ -780,9 +675,7 @@ bfa_fcs_port_get_rport_by_pwwn(struct bfa_fcs_port_s *port, wwn_t pwwn)
 	return (NULL);
 }
 
-/**
- *   NWWN based Lookup for a R-Port in the Port R-Port Queue
- */
+
 struct bfa_fcs_rport_s *
 bfa_fcs_port_get_rport_by_nwwn(struct bfa_fcs_port_s *port, wwn_t nwwn)
 {
@@ -799,9 +692,7 @@ bfa_fcs_port_get_rport_by_nwwn(struct bfa_fcs_port_s *port, wwn_t nwwn)
 	return (NULL);
 }
 
-/**
- * Called by rport module when new rports are discovered.
- */
+
 void
 bfa_fcs_port_add_rport(struct bfa_fcs_port_s *port,
 		       struct bfa_fcs_rport_s *rport)
@@ -810,9 +701,7 @@ bfa_fcs_port_add_rport(struct bfa_fcs_port_s *port,
 	port->num_rports++;
 }
 
-/**
- * Called by rport module to when rports are deleted.
- */
+
 void
 bfa_fcs_port_del_rport(struct bfa_fcs_port_s *port,
 		       struct bfa_fcs_rport_s *rport)
@@ -824,59 +713,41 @@ bfa_fcs_port_del_rport(struct bfa_fcs_port_s *port,
 	bfa_sm_send_event(port, BFA_FCS_PORT_SM_DELRPORT);
 }
 
-/**
- * Called by fabric for base port when fabric login is complete.
- * Called by vport for virtual ports when FDISC is complete.
- */
+
 void
 bfa_fcs_port_online(struct bfa_fcs_port_s *port)
 {
 	bfa_sm_send_event(port, BFA_FCS_PORT_SM_ONLINE);
 }
 
-/**
- * Called by fabric for base port when fabric goes offline.
- * Called by vport for virtual ports when virtual port becomes offline.
- */
+
 void
 bfa_fcs_port_offline(struct bfa_fcs_port_s *port)
 {
 	bfa_sm_send_event(port, BFA_FCS_PORT_SM_OFFLINE);
 }
 
-/**
- * Called by fabric to delete base lport and associated resources.
- *
- * Called by vport to delete lport and associated resources. Should call
- * bfa_fcs_vport_delete_comp() for vports on completion.
- */
+
 void
 bfa_fcs_port_delete(struct bfa_fcs_port_s *port)
 {
 	bfa_sm_send_event(port, BFA_FCS_PORT_SM_DELETE);
 }
 
-/**
- * Called by fabric in private loop topology to process LIP event.
- */
+
 void
 bfa_fcs_port_lip(struct bfa_fcs_port_s *port)
 {
 }
 
-/**
- * Return TRUE if port is online, else return FALSE
- */
+
 bfa_boolean_t
 bfa_fcs_port_is_online(struct bfa_fcs_port_s *port)
 {
 	return (bfa_sm_cmp_state(port, bfa_fcs_port_sm_online));
 }
 
-/**
- * Logical port initialization of base or virtual port.
- * Called by fabric for base port or by vport for virtual ports.
- */
+
 void
 bfa_fcs_lport_init(struct bfa_fcs_port_s *lport, struct bfa_fcs_s *fcs,
 		   u16 vf_id, struct bfa_port_cfg_s *port_cfg,
@@ -904,9 +775,7 @@ bfa_fcs_lport_init(struct bfa_fcs_port_s *lport, struct bfa_fcs_s *fcs,
 
 
 
-/**
- *  fcs_lport_api
- */
+
 
 void
 bfa_fcs_port_get_attr(struct bfa_fcs_port_s *port,

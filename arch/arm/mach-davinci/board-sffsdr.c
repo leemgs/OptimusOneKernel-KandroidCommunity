@@ -1,27 +1,4 @@
-/*
- * Lyrtech SFFSDR board support.
- *
- * Copyright (C) 2008 Philip Balister, OpenSDR <philip@opensdr.com>
- * Copyright (C) 2008 Lyrtech <www.lyrtech.com>
- *
- * Based on DV-EVM platform, original copyright follows:
- *
- * Copyright (C) 2007 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -54,29 +31,24 @@
 #include <mach/mux.h>
 
 #define SFFSDR_PHY_MASK		(0x2)
-#define SFFSDR_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
+#define SFFSDR_MDIO_FREQUENCY	(2200000) 
 
 #define DAVINCI_ASYNC_EMIF_CONTROL_BASE   0x01e00000
 #define DAVINCI_ASYNC_EMIF_DATA_CE0_BASE  0x02000000
 
 struct mtd_partition davinci_sffsdr_nandflash_partition[] = {
-	/* U-Boot Environment: Block 0
-	 * UBL:                Block 1
-	 * U-Boot:             Blocks 6-7 (256 kb)
-	 * Integrity Kernel:   Blocks 8-31 (3 Mb)
-	 * Integrity Data:     Blocks 100-END
-	 */
+	
 	{
 		.name		= "Linux Kernel",
 		.offset		= 32 * SZ_128K,
-		.size		= 16 * SZ_128K, /* 2 Mb */
-		.mask_flags	= MTD_WRITEABLE, /* Force read-only */
+		.size		= 16 * SZ_128K, 
+		.mask_flags	= MTD_WRITEABLE, 
 	},
 	{
 		.name		= "Linux ROOT",
 		.offset		= MTDPART_OFS_APPEND,
-		.size		= 256 * SZ_128K, /* 32 Mb */
-		.mask_flags	= 0, /* R/W */
+		.size		= 256 * SZ_128K, 
+		.mask_flags	= 0, 
 	},
 };
 
@@ -98,7 +70,7 @@ static struct resource davinci_sffsdr_nandflash_resource[] = {
 };
 
 static struct platform_device davinci_sffsdr_nandflash_device = {
-	.name		= "davinci_nand", /* Name of driver */
+	.name		= "davinci_nand", 
 	.id		= 0,
 	.dev		= {
 		.platform_data	= &davinci_sffsdr_nandflash_data,
@@ -123,16 +95,12 @@ static struct i2c_board_info __initdata i2c_info[] =  {
 		I2C_BOARD_INFO("24lc64", 0x50),
 		.platform_data	= &eeprom_info,
 	},
-	/* Other I2C devices:
-	 * MSP430,  addr 0x23 (not used)
-	 * PCA9543, addr 0x70 (setup done by U-Boot)
-	 * ADS7828, addr 0x48 (ADC for voltage monitoring.)
-	 */
+	
 };
 
 static struct davinci_i2c_platform_data i2c_pdata = {
-	.bus_freq	= 20 /* kHz */,
-	.bus_delay	= 100 /* usec */,
+	.bus_freq	= 20 ,
+	.bus_delay	= 100 ,
 };
 
 static void __init sffsdr_init_i2c(void)
@@ -164,9 +132,9 @@ static __init void davinci_sffsdr_init(void)
 	davinci_serial_init(&uart_config);
 	soc_info->emac_pdata->phy_mask = SFFSDR_PHY_MASK;
 	soc_info->emac_pdata->mdio_max_freq = SFFSDR_MDIO_FREQUENCY;
-	setup_usb(0, 0); /* We support only peripheral mode. */
+	setup_usb(0, 0); 
 
-	/* mux VLYNQ pins */
+	
 	davinci_cfg_reg(DM644X_VLYNQEN);
 	davinci_cfg_reg(DM644X_VLYNQWD);
 }
@@ -177,7 +145,7 @@ static __init void davinci_sffsdr_irq_init(void)
 }
 
 MACHINE_START(SFFSDR, "Lyrtech SFFSDR")
-	/* Maintainer: Hugo Villeneuve hugo.villeneuve@lyrtech.com */
+	
 	.phys_io      = IO_PHYS,
 	.io_pg_offst  = (__IO_ADDRESS(IO_PHYS) >> 18) & 0xfffc,
 	.boot_params  = (DAVINCI_DDR_BASE + 0x100),

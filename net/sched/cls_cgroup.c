@@ -1,13 +1,4 @@
-/*
- * net/sched/cls_cgroup.c	Control Group Classifier
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Thomas Graf <tgraf@suug.ch>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -100,16 +91,7 @@ static int cls_cgroup_classify(struct sk_buff *skb, struct tcf_proto *tp,
 	struct cls_cgroup_head *head = tp->root;
 	u32 classid;
 
-	/*
-	 * Due to the nature of the classifier it is required to ignore all
-	 * packets originating from softirq context as accessing `current'
-	 * would lead to false results.
-	 *
-	 * This test assumes that all callers of dev_queue_xmit() explicitely
-	 * disable bh. Knowing this, it is possible to detect softirq based
-	 * calls by looking at the number of nested bh disable calls because
-	 * softirqs always disables bh.
-	 */
+	
 	if (softirq_count() != SOFTIRQ_OFFSET)
 		return -1;
 

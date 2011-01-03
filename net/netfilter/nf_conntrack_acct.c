@@ -1,12 +1,6 @@
-/* Accouting handling for netfilter. */
 
-/*
- * (C) 2008 Krzysztof Piotr Oledzki <ole@ans.pl>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/netfilter.h>
 #include <linux/kernel.h>
@@ -39,7 +33,7 @@ static struct ctl_table acct_sysctl_table[] = {
 	},
 	{}
 };
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 unsigned int
 seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir)

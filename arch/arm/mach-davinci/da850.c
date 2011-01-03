@@ -1,16 +1,4 @@
-/*
- * TI DA850/OMAP-L138 chip specific setup
- *
- * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
- *
- * Derived from: arch/arm/mach-davinci/da830.c
- * Original Copyrights follow:
- *
- * 2009 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/clk.h>
@@ -361,32 +349,27 @@ static struct davinci_clk da850_clks[] = {
 	CLK(NULL,		NULL,		NULL),
 };
 
-/*
- * Device specific mux setup
- *
- *		soc	description	mux	mode	mode	mux	dbg
- *					reg	offset	mask	mode
- */
+
 static const struct mux_config da850_pins[] = {
 #ifdef CONFIG_DAVINCI_MUX
-	/* UART0 function */
+	
 	MUX_CFG(DA850, NUART0_CTS,	3,	24,	15,	2,	false)
 	MUX_CFG(DA850, NUART0_RTS,	3,	28,	15,	2,	false)
 	MUX_CFG(DA850, UART0_RXD,	3,	16,	15,	2,	false)
 	MUX_CFG(DA850, UART0_TXD,	3,	20,	15,	2,	false)
-	/* UART1 function */
+	
 	MUX_CFG(DA850, UART1_RXD,	4,	24,	15,	2,	false)
 	MUX_CFG(DA850, UART1_TXD,	4,	28,	15,	2,	false)
-	/* UART2 function */
+	
 	MUX_CFG(DA850, UART2_RXD,	4,	16,	15,	2,	false)
 	MUX_CFG(DA850, UART2_TXD,	4,	20,	15,	2,	false)
-	/* I2C1 function */
+	
 	MUX_CFG(DA850, I2C1_SCL,	4,	16,	15,	4,	false)
 	MUX_CFG(DA850, I2C1_SDA,	4,	20,	15,	4,	false)
-	/* I2C0 function */
+	
 	MUX_CFG(DA850, I2C0_SDA,	4,	12,	15,	2,	false)
 	MUX_CFG(DA850, I2C0_SCL,	4,	8,	15,	2,	false)
-	/* EMAC function */
+	
 	MUX_CFG(DA850, MII_TXEN,	2,	4,	15,	8,	false)
 	MUX_CFG(DA850, MII_TXCLK,	2,	8,	15,	8,	false)
 	MUX_CFG(DA850, MII_COL,		2,	12,	15,	8,	false)
@@ -404,7 +387,7 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850, MII_RXD_0,	3,	28,	15,	8,	false)
 	MUX_CFG(DA850, MDIO_CLK,	4,	0,	15,	8,	false)
 	MUX_CFG(DA850, MDIO_D,		4,	4,	15,	8,	false)
-	/* McASP function */
+	
 	MUX_CFG(DA850,	ACLKR,		0,	0,	15,	1,	false)
 	MUX_CFG(DA850,	ACLKX,		0,	4,	15,	1,	false)
 	MUX_CFG(DA850,	AFSR,		0,	8,	15,	1,	false)
@@ -428,7 +411,7 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850,	AXR_2,		2,	20,	15,	1,	false)
 	MUX_CFG(DA850,	AXR_1,		2,	24,	15,	1,	false)
 	MUX_CFG(DA850,	AXR_0,		2,	28,	15,	1,	false)
-	/* LCD function */
+	
 	MUX_CFG(DA850, LCD_D_7,		16,	8,	15,	2,	false)
 	MUX_CFG(DA850, LCD_D_6,		16,	12,	15,	2,	false)
 	MUX_CFG(DA850, LCD_D_5,		16,	16,	15,	2,	false)
@@ -449,14 +432,14 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850, LCD_HSYNC,	19,	0,	15,	2,	false)
 	MUX_CFG(DA850, LCD_VSYNC,	19,	4,	15,	2,	false)
 	MUX_CFG(DA850, NLCD_AC_ENB_CS,	19,	24,	15,	2,	false)
-	/* MMC/SD0 function */
+	
 	MUX_CFG(DA850, MMCSD0_DAT_0,	10,	8,	15,	2,	false)
 	MUX_CFG(DA850, MMCSD0_DAT_1,	10,	12,	15,	2,	false)
 	MUX_CFG(DA850, MMCSD0_DAT_2,	10,	16,	15,	2,	false)
 	MUX_CFG(DA850, MMCSD0_DAT_3,	10,	20,	15,	2,	false)
 	MUX_CFG(DA850, MMCSD0_CLK,	10,	0,	15,	2,	false)
 	MUX_CFG(DA850, MMCSD0_CMD,	10,	4,	15,	2,	false)
-	/* EMIF2.5/EMIFA function */
+	
 	MUX_CFG(DA850, EMA_D_7,		9,	0,	15,	1,	false)
 	MUX_CFG(DA850, EMA_D_6,		9,	4,	15,	1,	false)
 	MUX_CFG(DA850, EMA_D_5,		9,	8,	15,	1,	false)
@@ -505,7 +488,7 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850, EMA_CLK,		6,	0,	15,	1,	false)
 	MUX_CFG(DA850, EMA_WAIT_1,	6,	24,	15,	1,	false)
 	MUX_CFG(DA850, NEMA_CS_2,	7,	0,	15,	1,	false)
-	/* GPIO function */
+	
 	MUX_CFG(DA850, GPIO2_15,	5,	0,	15,	8,	false)
 	MUX_CFG(DA850, GPIO8_10,	18,	28,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_0,		10,	28,	15,	8,	false)
@@ -595,7 +578,7 @@ const short da850_nor_pins[] __initdata = {
 	-1
 };
 
-/* FIQ are pri 0-1; otherwise 2-7, with 7 lowest priority */
+
 static u8 da850_default_priorities[DA850_N_CP_INTC_IRQ] = {
 	[IRQ_DA8XX_COMMTX]		= 7,
 	[IRQ_DA8XX_COMMRX]		= 7,
@@ -745,12 +728,12 @@ static void __iomem *da850_psc_bases[] = {
 	IO_ADDRESS(DA8XX_PSC1_BASE),
 };
 
-/* Contents of JTAG ID register used to identify exact cpu type */
+
 static struct davinci_id da850_ids[] = {
 	{
 		.variant	= 0x0,
 		.part_no	= 0xb7d1,
-		.manufacturer	= 0x017,	/* 0x02f >> 1 */
+		.manufacturer	= 0x017,	
 		.cpu_id		= DAVINCI_CPU_ID_DA850,
 		.name		= "da850/omap-l138",
 	},
@@ -779,11 +762,7 @@ static struct davinci_timer_instance da850_timer_instance[4] = {
 	},
 };
 
-/*
- * T0_BOT: Timer 0, bottom		: Used for clock_event
- * T0_TOP: Timer 0, top			: Used for clocksource
- * T1_BOT, T1_TOP: Timer 1, bottom & top: Used for watchdog timer
- */
+
 static struct davinci_timer_info da850_timer_info = {
 	.timers		= da850_timer_instance,
 	.clockevent_id	= T0_BOT,

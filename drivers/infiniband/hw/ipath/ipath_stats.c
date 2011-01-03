@@ -1,53 +1,10 @@
-/*
- * Copyright (c) 2006, 2007, 2008 QLogic Corporation. All rights reserved.
- * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include "ipath_kernel.h"
 
 struct infinipath_stats ipath_stats;
 
-/**
- * ipath_snap_cntr - snapshot a chip counter
- * @dd: the infinipath device
- * @creg: the counter to snapshot
- *
- * called from add_timer and user counter read calls, to deal with
- * counters that wrap in "human time".  The words sent and received, and
- * the packets sent and received are all that we worry about.  For now,
- * at least, we don't worry about error counters, because if they wrap
- * that quickly, we probably don't care.  We may eventually just make this
- * handle all the counters.  word counters can wrap in about 20 seconds
- * of full bandwidth traffic, packet counters in a few hours.
- */
+
 
 u64 ipath_snap_cntr(struct ipath_devdata *dd, ipath_creg creg)
 {
@@ -57,8 +14,7 @@ u64 ipath_snap_cntr(struct ipath_devdata *dd, ipath_creg creg)
 	u64 ret;
 
 	t0 = jiffies;
-	/* If fast increment counters are only 32 bits, snapshot them,
-	 * and maintain them as 64bit values in the driver */
+	
 	if (!(dd->ipath_flags & IPATH_32BITCOUNTERS) &&
 	    (creg == dd->ipath_cregs->cr_wordsendcnt ||
 	     creg == dd->ipath_cregs->cr_wordrcvcnt ||
@@ -67,15 +23,9 @@ u64 ipath_snap_cntr(struct ipath_devdata *dd, ipath_creg creg)
 		val64 = ipath_read_creg(dd, creg);
 		val = val64 == ~0ULL ? ~0U : 0;
 		reg64 = 1;
-	} else			/* val64 just to keep gcc quiet... */
+	} else			
 		val64 = val = ipath_read_creg32(dd, creg);
-	/*
-	 * See if a second has passed.  This is just a way to detect things
-	 * that are quite broken.  Normally this should take just a few
-	 * cycles (the check is for long enough that we don't care if we get
-	 * pre-empted.)  An Opteron HT O read timeout is 4 seconds with
-	 * normal NB values
-	 */
+	
 	t1 = jiffies;
 	if (time_before(t0 + HZ, t1) && val == -1) {
 		ipath_dev_err(dd, "Error!  Read counter 0x%x timed out\n",
@@ -129,15 +79,7 @@ bail:
 	return ret;
 }
 
-/**
- * ipath_qcheck - print delta of egrfull/hdrqfull errors for kernel ports
- * @dd: the infinipath device
- *
- * print the delta of egrfull/hdrqfull errors for kernel ports no more than
- * every 5 seconds.  User processes are printed at close, but kernel doesn't
- * close, so...  Separate routine so may call from other places someday, and
- * so function name when printed by _IPATH_INFO is meaningfull
- */
+
 static void ipath_qcheck(struct ipath_devdata *dd)
 {
 	static u64 last_tot_hdrqfull;
@@ -163,12 +105,7 @@ static void ipath_qcheck(struct ipath_devdata *dd)
 		dd->ipath_last_tidfull = ipath_stats.sps_etidfull;
 	}
 
-	/*
-	 * this is actually the number of hdrq full interrupts, not actual
-	 * events, but at the moment that's mostly what I'm interested in.
-	 * Actual count, etc. is in the counters, if needed.  For production
-	 * users this won't ordinarily be printed.
-	 */
+	
 
 	if ((ipath_debug & (__IPATH_PKTDBG | __IPATH_DBG)) &&
 	    ipath_stats.sps_hdrqfull != last_tot_hdrqfull) {
@@ -224,7 +161,7 @@ static void ipath_chk_errormask(struct ipath_devdata *dd)
 
 	if ((hwerrs & dd->ipath_hwerrmask) ||
 		(ctrl & INFINIPATH_C_FREEZEMODE)) {
-		/* force re-interrupt of pending events, just in case */
+		
 		ipath_write_kreg(dd, dd->ipath_kregs->kr_hwerrclear, 0ULL);
 		ipath_write_kreg(dd, dd->ipath_kregs->kr_errorclear, 0ULL);
 		ipath_write_kreg(dd, dd->ipath_kregs->kr_intclear, 0ULL);
@@ -239,12 +176,7 @@ static void ipath_chk_errormask(struct ipath_devdata *dd)
 }
 
 
-/**
- * ipath_get_faststats - get word counters from chip before they overflow
- * @opaque - contains a pointer to the infinipath device ipath_devdata
- *
- * called from add_timer
- */
+
 void ipath_get_faststats(unsigned long opaque)
 {
 	struct ipath_devdata *dd = (struct ipath_devdata *) opaque;
@@ -253,27 +185,20 @@ void ipath_get_faststats(unsigned long opaque)
 	unsigned long flags;
 	u64 traffic_wds;
 
-	/*
-	 * don't access the chip while running diags, or memory diags can
-	 * fail
-	 */
+	
 	if (!dd->ipath_kregbase || !(dd->ipath_flags & IPATH_INITTED) ||
 	    ipath_diag_inuse)
-		/* but re-arm the timer, for diags case; won't hurt other */
+		
 		goto done;
 
-	/*
-	 * We now try to maintain a "active timer", based on traffic
-	 * exceeding a threshold, so we need to check the word-counts
-	 * even if they are 64-bit.
-	 */
+	
 	traffic_wds = ipath_snap_cntr(dd, dd->ipath_cregs->cr_wordsendcnt) +
 		ipath_snap_cntr(dd, dd->ipath_cregs->cr_wordrcvcnt);
 	spin_lock_irqsave(&dd->ipath_eep_st_lock, flags);
 	traffic_wds -= dd->ipath_traffic_wds;
 	dd->ipath_traffic_wds += traffic_wds;
 	if (traffic_wds  >= IPATH_TRAFFIC_ACTIVE_THRESHOLD)
-		atomic_add(5, &dd->ipath_active_time); /* S/B #define */
+		atomic_add(5, &dd->ipath_active_time); 
 	spin_unlock_irqrestore(&dd->ipath_eep_st_lock, flags);
 
 	if (dd->ipath_flags & IPATH_32BITCOUNTERS) {
@@ -283,14 +208,7 @@ void ipath_get_faststats(unsigned long opaque)
 
 	ipath_qcheck(dd);
 
-	/*
-	 * deal with repeat error suppression.  Doesn't really matter if
-	 * last error was almost a full interval ago, or just a few usecs
-	 * ago; still won't get more than 2 per interval.  We may want
-	 * longer intervals for this eventually, could do with mod, counter
-	 * or separate timer.  Also see code in ipath_handle_errors() and
-	 * ipath_handle_hwerrors().
-	 */
+	
 
 	if (dd->ipath_lasterror)
 		dd->ipath_lasterror = 0;
@@ -308,13 +226,7 @@ void ipath_get_faststats(unsigned long opaque)
 			ipath_dev_err(dd, "Re-enabling masked errors "
 				      "(%s)\n", ebuf);
 		else {
-			/*
-			 * rcvegrfull and rcvhdrqfull are "normal", for some
-			 * types of processes (mostly benchmarks) that send
-			 * huge numbers of messages, while not processing
-			 * them.  So only complain about these at debug
-			 * level.
-			 */
+			
 			if (iserr)
 				ipath_dbg(
 					"Re-enabling queue full errors (%s)\n",
@@ -324,14 +236,14 @@ void ipath_get_faststats(unsigned long opaque)
 					" problem interrupt (%s)\n", ebuf);
 		}
 
-		/* re-enable masked errors */
+		
 		dd->ipath_errormask |= dd->ipath_maskederrs;
 		ipath_write_kreg(dd, dd->ipath_kregs->kr_errormask,
 				 dd->ipath_errormask);
 		dd->ipath_maskederrs = 0;
 	}
 
-	/* limit qfull messages to ~one per minute per port */
+	
 	if ((++cnt & 0x10)) {
 		for (i = (int) dd->ipath_cfgports; --i >= 0; ) {
 			struct ipath_portdata *pd = dd->ipath_pd[i];

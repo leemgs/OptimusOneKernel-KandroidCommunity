@@ -1,36 +1,8 @@
-/*
- * Copyright(c) 2007 - 2008 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Maintained at www.Open-FCoE.org
- */
 
-/*
- * Target Discovery
- *
- * This block discovers all FC-4 remote ports, including FCP initiators. It
- * also handles RSCN events and re-discovery if necessary.
- */
 
-/*
- * DISC LOCKING
- *
- * The disc mutex is can be locked when acquiring rport locks, but may not
- * be held when acquiring the lport lock. Refer to fc_lport.c for more
- * details.
- */
+
+
+
 
 #include <linux/timer.h>
 #include <linux/err.h>
@@ -40,8 +12,8 @@
 
 #include <scsi/libfc.h>
 
-#define FC_DISC_RETRY_LIMIT	3	/* max retries */
-#define FC_DISC_RETRY_DELAY	500UL	/* (msecs) delay */
+#define FC_DISC_RETRY_LIMIT	3	
+#define FC_DISC_RETRY_DELAY	500UL	
 
 static void fc_disc_gpn_ft_req(struct fc_disc *);
 static void fc_disc_gpn_ft_resp(struct fc_seq *, struct fc_frame *, void *);
@@ -50,13 +22,7 @@ static void fc_disc_timeout(struct work_struct *);
 static int fc_disc_single(struct fc_lport *, struct fc_disc_port *);
 static void fc_disc_restart(struct fc_disc *);
 
-/**
- * fc_disc_stop_rports() - delete all the remote ports associated with the lport
- * @disc: The discovery job to stop rports on
- *
- * Locking Note: This function expects that the lport mutex is locked before
- * calling it.
- */
+
 void fc_disc_stop_rports(struct fc_disc *disc)
 {
 	struct fc_lport *lport;
@@ -70,15 +36,7 @@ void fc_disc_stop_rports(struct fc_disc *disc)
 	mutex_unlock(&disc->disc_mutex);
 }
 
-/**
- * fc_disc_recv_rscn_req() - Handle Registered State Change Notification (RSCN)
- * @sp: Current sequence of the RSCN exchange
- * @fp: RSCN Frame
- * @lport: Fibre Channel host port instance
- *
- * Locking Note: This function expects that the disc_mutex is locked
- *		 before it is called.
- */
+
 static void fc_disc_recv_rscn_req(struct fc_seq *sp, struct fc_frame *fp,
 				  struct fc_disc *disc)
 {
@@ -97,22 +55,22 @@ static void fc_disc_recv_rscn_req(struct fc_seq *sp, struct fc_frame *fp,
 
 	FC_DISC_DBG(disc, "Received an RSCN event\n");
 
-	/* make sure the frame contains an RSCN message */
+	
 	rp = fc_frame_payload_get(fp, sizeof(*rp));
 	if (!rp)
 		goto reject;
-	/* make sure the page length is as expected (4 bytes) */
+	
 	if (rp->rscn_page_len != sizeof(*pp))
 		goto reject;
-	/* get the RSCN payload length */
+	
 	len = ntohs(rp->rscn_plen);
 	if (len < sizeof(*rp))
 		goto reject;
-	/* make sure the frame contains the expected payload */
+	
 	rp = fc_frame_payload_get(fp, len);
 	if (!rp)
 		goto reject;
-	/* payload must be a multiple of the RSCN page size */
+	
 	len -= sizeof(*rp);
 	if (len % sizeof(*pp))
 		goto reject;
@@ -122,10 +80,7 @@ static void fc_disc_recv_rscn_req(struct fc_seq *sp, struct fc_frame *fp,
 		ev_qual &= ELS_RSCN_EV_QUAL_MASK;
 		fmt = pp->rscn_page_flags >> ELS_RSCN_ADDR_FMT_BIT;
 		fmt &= ELS_RSCN_ADDR_FMT_MASK;
-		/*
-		 * if we get an address format other than port
-		 * (area, domain, fabric), then do a full discovery
-		 */
+		
 		switch (fmt) {
 		case ELS_ADDR_FMT_PORT:
 			FC_DISC_DBG(disc, "Port address format for port "
@@ -150,12 +105,7 @@ static void fc_disc_recv_rscn_req(struct fc_seq *sp, struct fc_frame *fp,
 	}
 	lport->tt.seq_els_rsp_send(sp, ELS_LS_ACC, NULL);
 
-	/*
-	 * If not doing a complete rediscovery, do GPN_ID on
-	 * the individual ports mentioned in the list.
-	 * If any of these get an error, do a full rediscovery.
-	 * In any case, go through the list and free the entries.
-	 */
+	
 	list_for_each_entry_safe(dp, next, &disc_ports, peers) {
 		list_del(&dp->peers);
 		if (!redisc)
@@ -181,16 +131,7 @@ reject:
 	fc_frame_free(fp);
 }
 
-/**
- * fc_disc_recv_req() - Handle incoming requests
- * @sp: Current sequence of the request exchange
- * @fp: The frame
- * @lport: The FC local port
- *
- * Locking Note: This function is called from the EM and will lock
- *		 the disc_mutex before calling the handler for the
- *		 request.
- */
+
 static void fc_disc_recv_req(struct fc_seq *sp, struct fc_frame *fp,
 			     struct fc_lport *lport)
 {
@@ -211,13 +152,7 @@ static void fc_disc_recv_req(struct fc_seq *sp, struct fc_frame *fp,
 	}
 }
 
-/**
- * fc_disc_restart() - Restart discovery
- * @lport: FC discovery context
- *
- * Locking Note: This function expects that the disc mutex
- *		 is already locked.
- */
+
 static void fc_disc_restart(struct fc_disc *disc)
 {
 	if (!disc->disc_callback)
@@ -229,47 +164,27 @@ static void fc_disc_restart(struct fc_disc *disc)
 	if (disc->pending)
 		return;
 
-	/*
-	 * Advance disc_id.  This is an arbitrary non-zero number that will
-	 * match the value in the fc_rport_priv after discovery for all
-	 * freshly-discovered remote ports.  Avoid wrapping to zero.
-	 */
+	
 	disc->disc_id = (disc->disc_id + 2) | 1;
 	disc->retry_count = 0;
 	fc_disc_gpn_ft_req(disc);
 }
 
-/**
- * fc_disc_start() - Fibre Channel Target discovery
- * @lport: FC local port
- * @disc_callback: function to be called when discovery is complete
- */
+
 static void fc_disc_start(void (*disc_callback)(struct fc_lport *,
 						enum fc_disc_event),
 			  struct fc_lport *lport)
 {
 	struct fc_disc *disc = &lport->disc;
 
-	/*
-	 * At this point we may have a new disc job or an existing
-	 * one. Either way, let's lock when we make changes to it
-	 * and send the GPN_FT request.
-	 */
+	
 	mutex_lock(&disc->disc_mutex);
 	disc->disc_callback = disc_callback;
 	fc_disc_restart(disc);
 	mutex_unlock(&disc->disc_mutex);
 }
 
-/**
- * fc_disc_done() - Discovery has been completed
- * @disc: FC discovery context
- * @event: discovery completion status
- *
- * Locking Note: This function expects that the disc mutex is locked before
- * it is called. The discovery callback is then made with the lock released,
- * and the lock is re-taken before returning from this function
- */
+
 static void fc_disc_done(struct fc_disc *disc, enum fc_disc_event event)
 {
 	struct fc_lport *lport = disc->lport;
@@ -283,12 +198,7 @@ static void fc_disc_done(struct fc_disc *disc, enum fc_disc_event event)
 		return;
 	}
 
-	/*
-	 * Go through all remote ports.  If they were found in the latest
-	 * discovery, reverify or log them in.  Otherwise, log them out.
-	 * Skip ports which were never discovered.  These are the dNS port
-	 * and ports which were created by PLOGI.
-	 */
+	
 	list_for_each_entry(rdata, &disc->rports, peers) {
 		if (!rdata->disc_id)
 			continue;
@@ -303,11 +213,7 @@ static void fc_disc_done(struct fc_disc *disc, enum fc_disc_event event)
 	mutex_lock(&disc->disc_mutex);
 }
 
-/**
- * fc_disc_error() - Handle error on dNS request
- * @disc: FC discovery context
- * @fp: The frame pointer
- */
+
 static void fc_disc_error(struct fc_disc *disc, struct fc_frame *fp)
 {
 	struct fc_lport *lport = disc->lport;
@@ -318,18 +224,15 @@ static void fc_disc_error(struct fc_disc *disc, struct fc_frame *fp)
 		    FC_DISC_RETRY_LIMIT);
 
 	if (!fp || PTR_ERR(fp) == -FC_EX_TIMEOUT) {
-		/*
-		 * Memory allocation failure, or the exchange timed out,
-		 * retry after delay.
-		 */
+		
 		if (disc->retry_count < FC_DISC_RETRY_LIMIT) {
-			/* go ahead and retry */
+			
 			if (!fp)
 				delay = msecs_to_jiffies(FC_DISC_RETRY_DELAY);
 			else {
 				delay = msecs_to_jiffies(lport->e_d_tov);
 
-				/* timeout faster first time */
+				
 				if (!disc->retry_count)
 					delay /= 4;
 			}
@@ -340,13 +243,7 @@ static void fc_disc_error(struct fc_disc *disc, struct fc_frame *fp)
 	}
 }
 
-/**
- * fc_disc_gpn_ft_req() - Send Get Port Names by FC-4 type (GPN_FT) request
- * @lport: FC discovery context
- *
- * Locking Note: This function expects that the disc_mutex is locked
- *		 before it is called.
- */
+
 static void fc_disc_gpn_ft_req(struct fc_disc *disc)
 {
 	struct fc_frame *fp;
@@ -374,14 +271,7 @@ err:
 	fc_disc_error(disc, NULL);
 }
 
-/**
- * fc_disc_gpn_ft_parse() - Parse the body of the dNS GPN_FT response.
- * @lport: Fibre Channel host port instance
- * @buf: GPN_FT response buffer
- * @len: size of response buffer
- *
- * Goes through the list of IDs and names resulting from a request.
- */
+
 static int fc_disc_gpn_ft_parse(struct fc_disc *disc, void *buf, size_t len)
 {
 	struct fc_lport *lport;
@@ -396,9 +286,7 @@ static int fc_disc_gpn_ft_parse(struct fc_disc *disc, void *buf, size_t len)
 	lport = disc->lport;
 	disc->seq_count++;
 
-	/*
-	 * Handle partial name record left over from previous call.
-	 */
+	
 	bp = buf;
 	plen = len;
 	np = (struct fc_gpn_ft_resp *)bp;
@@ -414,10 +302,7 @@ static int fc_disc_gpn_ft_parse(struct fc_disc *disc, void *buf, size_t len)
 		np = &disc->partial_buf;
 		memcpy((char *)np + tlen, bp, plen);
 
-		/*
-		 * Set bp so that the loop below will advance it to the
-		 * first valid full name element.
-		 */
+		
 		bp -= tlen;
 		len += tlen;
 		plen += tlen;
@@ -426,13 +311,7 @@ static int fc_disc_gpn_ft_parse(struct fc_disc *disc, void *buf, size_t len)
 			disc->buf_len = 0;
 	}
 
-	/*
-	 * Handle full name records, including the one filled from above.
-	 * Normally, np == bp and plen == len, but from the partial case above,
-	 * bp, len describe the overall buffer, and np, plen describe the
-	 * partial buffer, which if would usually be full now.
-	 * After the first time through the loop, things return to "normal".
-	 */
+	
 	while (plen >= sizeof(*np)) {
 		ids.port_id = ntoh24(np->fp_fid);
 		ids.port_name = ntohll(np->fp_wwpn);
@@ -462,9 +341,7 @@ static int fc_disc_gpn_ft_parse(struct fc_disc *disc, void *buf, size_t len)
 		plen = len;
 	}
 
-	/*
-	 * Save any partial record at the end of the buffer for next time.
-	 */
+	
 	if (error == 0 && len > 0 && len < sizeof(*np)) {
 		if (np != &disc->partial_buf) {
 			FC_DISC_DBG(disc, "Partial buffer remains "
@@ -476,12 +353,7 @@ static int fc_disc_gpn_ft_parse(struct fc_disc *disc, void *buf, size_t len)
 	return error;
 }
 
-/**
- * fc_disc_timeout() - Retry handler for the disc component
- * @work: Structure holding disc obj that needs retry discovery
- *
- * Handle retry of memory allocation for remote ports.
- */
+
 static void fc_disc_timeout(struct work_struct *work)
 {
 	struct fc_disc *disc = container_of(work,
@@ -492,15 +364,7 @@ static void fc_disc_timeout(struct work_struct *work)
 	mutex_unlock(&disc->disc_mutex);
 }
 
-/**
- * fc_disc_gpn_ft_resp() - Handle a response frame from Get Port Names (GPN_FT)
- * @sp: Current sequence of GPN_FT exchange
- * @fp: response frame
- * @lp_arg: Fibre Channel host port instance
- *
- * Locking Note: This function is called without disc mutex held, and
- *		 should do all its processing with the mutex held
- */
+
 static void fc_disc_gpn_ft_resp(struct fc_seq *sp, struct fc_frame *fp,
 				void *disc_arg)
 {
@@ -521,7 +385,7 @@ static void fc_disc_gpn_ft_resp(struct fc_seq *sp, struct fc_frame *fp,
 		return;
 	}
 
-	WARN_ON(!fc_frame_is_linear(fp));	/* buffer must be contiguous */
+	WARN_ON(!fc_frame_is_linear(fp));	
 	fh = fc_frame_header_get(fp);
 	len = fr_len(fp) - sizeof(*fh);
 	seq_cnt = ntohs(fh->fh_seq_cnt);
@@ -533,7 +397,7 @@ static void fc_disc_gpn_ft_resp(struct fc_seq *sp, struct fc_frame *fp,
 			event = DISC_EV_FAILED;
 		} else if (ntohs(cp->ct_cmd) == FC_FS_ACC) {
 
-			/* Accepted, parse the response. */
+			
 			len -= sizeof(*cp);
 			error = fc_disc_gpn_ft_parse(disc, cp + 1, len);
 		} else if (ntohs(cp->ct_cmd) == FC_FS_RJT) {
@@ -565,14 +429,7 @@ static void fc_disc_gpn_ft_resp(struct fc_seq *sp, struct fc_frame *fp,
 	mutex_unlock(&disc->disc_mutex);
 }
 
-/**
- * fc_disc_gpn_id_resp() - Handle a response frame from Get Port Names (GPN_ID)
- * @sp: exchange sequence
- * @fp: response frame
- * @rdata_arg: remote port private data
- *
- * Locking Note: This function is called without disc mutex held.
- */
+
 static void fc_disc_gpn_id_resp(struct fc_seq *sp, struct fc_frame *fp,
 				void *rdata_arg)
 {
@@ -635,15 +492,7 @@ out:
 	kref_put(&rdata->kref, lport->tt.rport_destroy);
 }
 
-/**
- * fc_disc_gpn_id_req() - Send Get Port Names by ID (GPN_ID) request
- * @lport: local port
- * @rdata: remote port private data
- *
- * Locking Note: This function expects that the disc_mutex is locked
- *		 before it is called.
- * On failure, an error code is returned.
- */
+
 static int fc_disc_gpn_id_req(struct fc_lport *lport,
 			      struct fc_rport_priv *rdata)
 {
@@ -660,14 +509,7 @@ static int fc_disc_gpn_id_req(struct fc_lport *lport,
 	return 0;
 }
 
-/**
- * fc_disc_single() - Discover the directory information for a single target
- * @lport: local port
- * @dp: The port to rediscover
- *
- * Locking Note: This function expects that the disc_mutex is locked
- *		 before it is called.
- */
+
 static int fc_disc_single(struct fc_lport *lport, struct fc_disc_port *dp)
 {
 	struct fc_rport_priv *rdata;
@@ -679,10 +521,7 @@ static int fc_disc_single(struct fc_lport *lport, struct fc_disc_port *dp)
 	return fc_disc_gpn_id_req(lport, rdata);
 }
 
-/**
- * fc_disc_stop() - Stop discovery for a given lport
- * @lport: The lport that discovery should stop for
- */
+
 void fc_disc_stop(struct fc_lport *lport)
 {
 	struct fc_disc *disc = &lport->disc;
@@ -693,23 +532,14 @@ void fc_disc_stop(struct fc_lport *lport)
 	}
 }
 
-/**
- * fc_disc_stop_final() - Stop discovery for a given lport
- * @lport: The lport that discovery should stop for
- *
- * This function will block until discovery has been
- * completely stopped and all rports have been deleted.
- */
+
 void fc_disc_stop_final(struct fc_lport *lport)
 {
 	fc_disc_stop(lport);
 	lport->tt.rport_flush_queue();
 }
 
-/**
- * fc_disc_init() - Initialize the discovery block
- * @lport: FC local port
- */
+
 int fc_disc_init(struct fc_lport *lport)
 {
 	struct fc_disc *disc;

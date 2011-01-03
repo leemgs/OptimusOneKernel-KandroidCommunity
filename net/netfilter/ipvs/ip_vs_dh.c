@@ -1,39 +1,6 @@
-/*
- * IPVS:        Destination Hashing scheduling module
- *
- * Authors:     Wensong Zhang <wensong@gnuchina.org>
- *
- *              Inspired by the consistent hashing scheduler patch from
- *              Thomas Proell <proellt@gmx.de>
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Changes:
- *
- */
 
-/*
- * The dh algorithm is to select server by the hash key of destination IP
- * address. The pseudo code is as follows:
- *
- *       n <- servernode[dest_ip];
- *       if (n is dead) OR
- *          (n is overloaded) OR (n.weight <= 0) then
- *                 return NULL;
- *
- *       return n;
- *
- * Notes that servernode is a 256-bucket hash table that maps the hash
- * index derived from packet destination IP address to the current server
- * array. If the dh scheduler is used in cache cluster, it is good to
- * combine it with cache_bypass feature. When the statically assigned
- * server is dead or overloaded, the load balancer can bypass the cache
- * server and send requests to the original server directly.
- *
- */
+
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -46,16 +13,12 @@
 #include <net/ip_vs.h>
 
 
-/*
- *      IPVS DH bucket
- */
+
 struct ip_vs_dh_bucket {
-	struct ip_vs_dest       *dest;          /* real server (cache) */
+	struct ip_vs_dest       *dest;          
 };
 
-/*
- *     for IPVS DH entry hash table
- */
+
 #ifndef CONFIG_IP_VS_DH_TAB_BITS
 #define CONFIG_IP_VS_DH_TAB_BITS        8
 #endif
@@ -64,9 +27,7 @@ struct ip_vs_dh_bucket {
 #define IP_VS_DH_TAB_MASK               (IP_VS_DH_TAB_SIZE - 1)
 
 
-/*
- *	Returns hash value for IPVS DH entry
- */
+
 static inline unsigned ip_vs_dh_hashkey(int af, const union nf_inet_addr *addr)
 {
 	__be32 addr_fold = addr->ip;
@@ -80,9 +41,7 @@ static inline unsigned ip_vs_dh_hashkey(int af, const union nf_inet_addr *addr)
 }
 
 
-/*
- *      Get ip_vs_dest associated with supplied parameters.
- */
+
 static inline struct ip_vs_dest *
 ip_vs_dh_get(int af, struct ip_vs_dh_bucket *tbl,
 	     const union nf_inet_addr *addr)
@@ -91,9 +50,7 @@ ip_vs_dh_get(int af, struct ip_vs_dh_bucket *tbl,
 }
 
 
-/*
- *      Assign all the hash buckets of the specified table with the service.
- */
+
 static int
 ip_vs_dh_assign(struct ip_vs_dh_bucket *tbl, struct ip_vs_service *svc)
 {
@@ -123,9 +80,7 @@ ip_vs_dh_assign(struct ip_vs_dh_bucket *tbl, struct ip_vs_service *svc)
 }
 
 
-/*
- *      Flush all the hash buckets of the specified table.
- */
+
 static void ip_vs_dh_flush(struct ip_vs_dh_bucket *tbl)
 {
 	int i;
@@ -146,7 +101,7 @@ static int ip_vs_dh_init_svc(struct ip_vs_service *svc)
 {
 	struct ip_vs_dh_bucket *tbl;
 
-	/* allocate the DH table for this service */
+	
 	tbl = kmalloc(sizeof(struct ip_vs_dh_bucket)*IP_VS_DH_TAB_SIZE,
 		      GFP_ATOMIC);
 	if (tbl == NULL) {
@@ -158,7 +113,7 @@ static int ip_vs_dh_init_svc(struct ip_vs_service *svc)
 		  "current service\n",
 		  sizeof(struct ip_vs_dh_bucket)*IP_VS_DH_TAB_SIZE);
 
-	/* assign the hash buckets with the updated service */
+	
 	ip_vs_dh_assign(tbl, svc);
 
 	return 0;
@@ -169,10 +124,10 @@ static int ip_vs_dh_done_svc(struct ip_vs_service *svc)
 {
 	struct ip_vs_dh_bucket *tbl = svc->sched_data;
 
-	/* got to clean up hash buckets here */
+	
 	ip_vs_dh_flush(tbl);
 
-	/* release the table itself */
+	
 	kfree(svc->sched_data);
 	IP_VS_DBG(6, "DH hash table (memory=%Zdbytes) released\n",
 		  sizeof(struct ip_vs_dh_bucket)*IP_VS_DH_TAB_SIZE);
@@ -185,29 +140,24 @@ static int ip_vs_dh_update_svc(struct ip_vs_service *svc)
 {
 	struct ip_vs_dh_bucket *tbl = svc->sched_data;
 
-	/* got to clean up hash buckets here */
+	
 	ip_vs_dh_flush(tbl);
 
-	/* assign the hash buckets with the updated service */
+	
 	ip_vs_dh_assign(tbl, svc);
 
 	return 0;
 }
 
 
-/*
- *      If the dest flags is set with IP_VS_DEST_F_OVERLOAD,
- *      consider that the server is overloaded here.
- */
+
 static inline int is_overloaded(struct ip_vs_dest *dest)
 {
 	return dest->flags & IP_VS_DEST_F_OVERLOAD;
 }
 
 
-/*
- *      Destination hashing scheduling
- */
+
 static struct ip_vs_dest *
 ip_vs_dh_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
 {
@@ -237,9 +187,7 @@ ip_vs_dh_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
 }
 
 
-/*
- *      IPVS DH Scheduler structure
- */
+
 static struct ip_vs_scheduler ip_vs_dh_scheduler =
 {
 	.name =			"dh",

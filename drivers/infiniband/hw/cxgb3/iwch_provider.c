@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/device.h>
@@ -173,15 +143,7 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
 
 	if (t3a_device(rhp)) {
 
-		/*
-		 * T3A: Add some fluff to handle extra CQEs inserted
-		 * for various errors.
-		 * Additional CQE possibilities:
-		 *      TERMINATE,
-		 *      incoming RDMA WRITE Failures
-		 *      incoming RDMA READ REQUEST FAILUREs
-		 * NOTE: We cannot ensure the CQ won't overflow.
-		 */
+		
 		entries += 16;
 	}
 	entries = roundup_pow_of_two(entries);
@@ -242,20 +204,20 @@ static int iwch_resize_cq(struct ib_cq *cq, int cqe, struct ib_udata *udata)
 
 	PDBG("%s ib_cq %p cqe %d\n", __func__, cq, cqe);
 
-	/* We don't downsize... */
+	
 	if (cqe <= cq->cqe)
 		return 0;
 
-	/* create new t3_cq with new size */
+	
 	cqe = roundup_pow_of_two(cqe+1);
 	newcq.size_log2 = ilog2(cqe);
 
-	/* Dont allow resize to less than the current wce count */
+	
 	if (cqe < Q_COUNT(chp->cq.rptr, chp->cq.wptr)) {
 		return -ENOMEM;
 	}
 
-	/* Quiesce all QPs using this CQ */
+	
 	ret = iwch_quiesce_qps(chp);
 	if (ret) {
 		return ret;
@@ -266,16 +228,16 @@ static int iwch_resize_cq(struct ib_cq *cq, int cqe, struct ib_udata *udata)
 		return ret;
 	}
 
-	/* copy CQEs */
+	
 	memcpy(newcq.queue, chp->cq.queue, (1 << chp->cq.size_log2) *
 				        sizeof(struct t3_cqe));
 
-	/* old iwch_qp gets new t3_cq but keeps old cqid */
+	
 	oldcq = chp->cq;
 	chp->cq = newcq;
 	chp->cq.cqid = oldcq.cqid;
 
-	/* resize new t3_cq to update the HW context */
+	
 	ret = cxio_resize_cq(&chp->rhp->rdev, &chp->cq);
 	if (ret) {
 		chp->cq = oldcq;
@@ -283,7 +245,7 @@ static int iwch_resize_cq(struct ib_cq *cq, int cqe, struct ib_udata *udata)
 	}
 	chp->ibcq.cqe = (1<<chp->cq.size_log2) - 1;
 
-	/* destroy old t3_cq */
+	
 	oldcq.cqid = newcq.cqid;
 	ret = cxio_destroy_cq(&chp->rhp->rdev, &oldcq);
 	if (ret) {
@@ -291,9 +253,9 @@ static int iwch_resize_cq(struct ib_cq *cq, int cqe, struct ib_udata *udata)
 			__func__, ret);
 	}
 
-	/* add user hooks here */
+	
 
-	/* resume qps */
+	
 	ret = iwch_resume_qps(chp);
 	return ret;
 #else
@@ -364,9 +326,7 @@ static int iwch_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 	    (addr < (rdev_p->rnic_info.udbell_physbase +
 		       rdev_p->rnic_info.udbell_len))) {
 
-		/*
-		 * Map T3 DB register.
-		 */
+		
 		if (vma->vm_flags & VM_READ) {
 			return -EPERM;
 		}
@@ -379,9 +339,7 @@ static int iwch_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 				         len, vma->vm_page_prot);
 	} else {
 
-		/*
-		 * Map WQ or CQ contig dma memory...
-		 */
+		
 		ret = remap_pfn_range(vma, vma->vm_start,
 				      addr >> PAGE_SHIFT,
 				      len, vma->vm_page_prot);
@@ -440,7 +398,7 @@ static int iwch_dereg_mr(struct ib_mr *ib_mr)
 	u32 mmid;
 
 	PDBG("%s ib_mr %p\n", __func__, ib_mr);
-	/* There can be no memory windows */
+	
 	if (atomic_read(&ib_mr->usecnt))
 		return -EINVAL;
 
@@ -485,7 +443,7 @@ static struct ib_mr *iwch_register_phys_mem(struct ib_pd *pd,
 
 	mhp->rhp = rhp;
 
-	/* First check that we have enough alignment */
+	
 	if ((*iova_start & ~PAGE_MASK) != (buffer_list[0].addr & ~PAGE_MASK)) {
 		ret = -EINVAL;
 		goto err;
@@ -556,7 +514,7 @@ static int iwch_reregister_phys_mem(struct ib_mr *mr,
 
 	PDBG("%s ib_mr %p ib_pd %p\n", __func__, mr, pd);
 
-	/* There can be no memory windows */
+	
 	if (atomic_read(&mr->usecnt))
 		return -EINVAL;
 
@@ -564,7 +522,7 @@ static int iwch_reregister_phys_mem(struct ib_mr *mr,
 	rhp = mhp->rhp;
 	php = to_iwch_pd(mr->pd);
 
-	/* make sure we are on the same adapter */
+	
 	if (rhp != php->rhp)
 		return -EINVAL;
 
@@ -720,9 +678,7 @@ static struct ib_mr *iwch_get_dma_mr(struct ib_pd *pd, int acc)
 
 	PDBG("%s ib_pd %p\n", __func__, pd);
 
-	/*
-	 * T3 only supports 32 bits of size.
-	 */
+	
 	bl.size = 0xffffffff;
 	bl.addr = 0;
 	kva = 0;
@@ -901,12 +857,12 @@ static struct ib_qp *iwch_create_qp(struct ib_pd *pd,
 	if (!schp || !rchp)
 		return ERR_PTR(-EINVAL);
 
-	/* The RQT size must be # of entries + 1 rounded up to a power of two */
+	
 	rqsize = roundup_pow_of_two(attrs->cap.max_recv_wr);
 	if (rqsize == attrs->cap.max_recv_wr)
 		rqsize = roundup_pow_of_two(attrs->cap.max_recv_wr+1);
 
-	/* T3 doesn't support RQT depth < 16 */
+	
 	if (rqsize < 16)
 		rqsize = 16;
 
@@ -916,18 +872,11 @@ static struct ib_qp *iwch_create_qp(struct ib_pd *pd,
 	if (attrs->cap.max_inline_data > T3_MAX_INLINE)
 		return ERR_PTR(-EINVAL);
 
-	/*
-	 * NOTE: The SQ and total WQ sizes don't need to be
-	 * a power of two.  However, all the code assumes
-	 * they are. EG: Q_FREECNT() and friends.
-	 */
+	
 	sqsize = roundup_pow_of_two(attrs->cap.max_send_wr);
 	wqsize = roundup_pow_of_two(rqsize + sqsize);
 
-	/*
-	 * Kernel users need more wq space for fastreg WRs which can take
-	 * 2 WR fragments.
-	 */
+	
 	ucontext = pd->uobject ? to_iwch_ucontext(pd->uobject->context) : NULL;
 	if (!ucontext && wqsize < (rqsize + (2 * sqsize)))
 		wqsize = roundup_pow_of_two(rqsize +
@@ -962,11 +911,7 @@ static struct ib_qp *iwch_create_qp(struct ib_pd *pd,
 	qhp->attr.state = IWCH_QP_STATE_IDLE;
 	qhp->attr.next_state = IWCH_QP_STATE_IDLE;
 
-	/*
-	 * XXX - These don't get passed in from the openib user
-	 * at create time.  The CM sets them via a QP modify.
-	 * Need to fix...  I think the CM should
-	 */
+	
 	qhp->attr.enable_rdma_read = 1;
 	qhp->attr.enable_rdma_write = 1;
 	qhp->attr.enable_bind = 1;
@@ -1046,11 +991,11 @@ static int iwch_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
 
 	PDBG("%s ib_qp %p\n", __func__, ibqp);
 
-	/* iwarp does not support the RTR state */
+	
 	if ((attr_mask & IB_QP_STATE) && (attr->qp_state == IB_QPS_RTR))
 		attr_mask &= ~IB_QP_STATE;
 
-	/* Make sure we still have something left to do */
+	
 	if (!attr_mask)
 		return 0;
 
@@ -1350,7 +1295,7 @@ int iwch_register_device(struct iwch_dev *dev)
 				IB_DEVICE_MEM_WINDOW |
 				IB_DEVICE_MEM_MGT_EXTENSIONS;
 
-	/* cxgb3 supports STag 0. */
+	
 	dev->ibdev.local_dma_lkey = 0;
 
 	dev->ibdev.uverbs_cmd_mask =

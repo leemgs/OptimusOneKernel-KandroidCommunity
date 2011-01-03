@@ -1,35 +1,10 @@
-/*
- *  DaVinci Power & Sleep Controller (PSC) defines
- *
- *  Copyright (C) 2006 Texas Instruments.
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
- *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
- *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
- *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
- *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  You should have received a copy of the  GNU General Public License along
- *  with this program; if not, write  to the Free Software Foundation, Inc.,
- *  675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #ifndef __ASM_ARCH_PSC_H
 #define __ASM_ARCH_PSC_H
 
 #define	DAVINCI_PWR_SLEEP_CNTRL_BASE	0x01C41000
 
-/* Power and Sleep Controller (PSC) Domains */
+
 #define DAVINCI_GPSC_ARMDOMAIN      0
 #define DAVINCI_GPSC_DSPDOMAIN      1
 
@@ -81,7 +56,7 @@
 #define DM355_LPSC_RTO			12
 #define DM355_LPSC_VPSS_DAC		41
 
-/* DM365 */
+
 #define DM365_LPSC_TIMER3	5
 #define DM365_LPSC_SPI1		6
 #define DM365_LPSC_MMC_SD1	7
@@ -99,9 +74,7 @@
 #define DM365_LPSC_VPSSMSTR	47
 #define DM365_LPSC_MJCP		50
 
-/*
- * LPSC Assignments
- */
+
 #define DM646X_LPSC_ARM            0
 #define DM646X_LPSC_C64X_CPU       1
 #define DM646X_LPSC_HDVICP0        2
@@ -136,7 +109,7 @@
 #define DM646X_LPSC_TIMER1         35
 #define DM646X_LPSC_ARM_INTC       45
 
-/* PSC0 defines */
+
 #define DA8XX_LPSC0_TPCC		0
 #define DA8XX_LPSC0_TPTC0		1
 #define DA8XX_LPSC0_TPTC1		2
@@ -154,7 +127,7 @@
 #define DA8XX_LPSC0_ARM			14
 #define DA8XX_LPSC0_GEM			15
 
-/* PSC1 defines */
+
 #define DA850_LPSC1_TPCC1		0
 #define DA8XX_LPSC1_USB20		1
 #define DA8XX_LPSC1_USB11		2
@@ -184,4 +157,4 @@ extern int davinci_psc_is_clk_active(unsigned int ctlr, unsigned int id);
 extern void davinci_psc_config(unsigned int domain, unsigned int ctlr,
 		unsigned int id, char enable);
 
-#endif /* __ASM_ARCH_PSC_H */
+#endif 

@@ -1,26 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/gtwx5715-pci.c
- *
- * Gemtek GTWX5715 (Linksys WRV54G) board setup
- *
- * Copyright (C) 2004 George T. Joseph
- * Derived from Coyote
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- */
+
 
 #include <linux/pci.h>
 #include <linux/init.h>
@@ -32,13 +10,7 @@
 #include <mach/gtwx5715.h>
 #include <asm/mach/pci.h>
 
-/*
- * The exact GPIO pins and IRQs are defined in arch-ixp4xx/gtwx5715.h
- * Slot 0 isn't actually populated with a card connector but
- * we initialize it anyway in case a future version has the
- * slot populated or someone with good soldering skills has
- * some free time.
- */
+
 void __init gtwx5715_pci_preinit(void)
 {
 	set_irq_type(GTWX5715_PCI_SLOT0_INTA_IRQ, IRQ_TYPE_LEVEL_LOW);

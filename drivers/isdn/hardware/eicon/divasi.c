@@ -1,14 +1,4 @@
-/* $Id: divasi.c,v 1.25.6.2 2005/01/31 12:22:20 armin Exp $
- *
- * Driver for Eicon DIVA Server ISDN cards.
- * User Mode IDI Interface 
- *
- * Copyright 2000-2003 by Armin Schindler (mac@melware.de)
- * Copyright 2000-2003 Cytronics & Melware (info@melware.de)
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -51,9 +41,7 @@ char *DRIVERRELEASE_IDI = "2.0";
 extern int idifunc_init(void);
 extern void idifunc_finit(void);
 
-/*
- *  helper functions
- */
+
 static char *getrev(const char *revision)
 {
 	char *rev;
@@ -67,9 +55,7 @@ static char *getrev(const char *revision)
 	return rev;
 }
 
-/*
- *  LOCALS
- */
+
 static ssize_t um_idi_read(struct file *file, char __user *buf, size_t count,
 			   loff_t * offset);
 static ssize_t um_idi_write(struct file *file, const char __user *buf,
@@ -80,9 +66,7 @@ static int um_idi_release(struct inode *inode, struct file *file);
 static int remove_entity(void *entity);
 static void diva_um_timer_function(unsigned long data);
 
-/*
- * proc entry
- */
+
 extern struct proc_dir_entry *proc_net_eicon;
 static struct proc_dir_entry *um_idi_proc_entry = NULL;
 
@@ -157,9 +141,7 @@ static int DIVA_INIT_FUNCTION divas_idi_register_chrdev(void)
 	return (1);
 }
 
-/*
-** Driver Load
-*/
+
 static int DIVA_INIT_FUNCTION divasi_init(void)
 {
 	char tmprev[50];
@@ -198,9 +180,7 @@ static int DIVA_INIT_FUNCTION divasi_init(void)
 }
 
 
-/*
-** Driver Unload
-*/
+
 static void DIVA_EXIT_FUNCTION divasi_exit(void)
 {
 	idifunc_finit();
@@ -214,9 +194,7 @@ module_init(divasi_init);
 module_exit(divasi_exit);
 
 
-/*
- *  FILE OPERATIONS
- */
+
 
 static int
 divas_um_idi_copy_to_user(void *os_handle, void *dst, const void *src,
@@ -256,13 +234,13 @@ um_idi_read(struct file *file, char __user *buf, size_t count, loff_t * offset)
 			       file, data, count,
 			       divas_um_idi_copy_to_user);
 	switch (ret) {
-	case 0:		/* no message available */
+	case 0:		
 		ret = (-EAGAIN);
 		break;
-	case (-1):		/* adapter was removed */
+	case (-1):		
 		ret = (-ENODEV);
 		break;
-	case (-2):		/* message_length > length of user buffer */
+	case (-2):		
 		ret = (-EFAULT);
 		break;
 	}
@@ -317,7 +295,7 @@ um_idi_write(struct file *file, const char __user *buf, size_t count,
 	int adapter_nr = 0;
 
 	if (!file->private_data) {
-		/* the first write() selects the adapter_nr */
+		
 		if (count == sizeof(int)) {
 			if (copy_from_user
 			    ((void *) &adapter_nr, buf,
@@ -350,13 +328,13 @@ um_idi_write(struct file *file, const char __user *buf, size_t count,
 					file, data, count,
 					divas_um_idi_copy_from_user);
 		switch (ret) {
-		case 0:	/* no space available */
+		case 0:	
 			ret = (-EAGAIN);
 			break;
-		case (-1):	/* adapter was removed */
+		case (-1):	
 			ret = (-ENODEV);
 			break;
-		case (-2):	/* length of user buffer > max message_length */
+		case (-2):	
 			ret = (-EFAULT);
 			break;
 		}
@@ -468,10 +446,7 @@ void diva_um_timer_function(unsigned long data)
 	DBG_ERR(("entity removal watchdog"))
 }
 
-/*
-**  If application exits without entity removal this function will remove
-**  entity and block until removal is complete
-*/
+
 static int remove_entity(void *entity)
 {
 	struct task_struct *curtask = current;
@@ -492,18 +467,13 @@ static int remove_entity(void *entity)
 	}
 
 	if (!divas_um_idi_entity_assigned(entity) || p_os->aborted) {
-		/*
-		   Entity is not assigned, also can be removed
-		 */
+		
 		return (0);
 	}
 
 	DBG_TRC(("E(%08x) check remove", entity))
 
-	/*
-	   If adapter not answers on remove request inside of
-	   10 Sec, then adapter is dead
-	 */
+	
 	diva_um_idi_start_wdog(entity);
 
 	{
@@ -549,9 +519,7 @@ static int remove_entity(void *entity)
 	return (0);
 }
 
-/*
- * timer watchdog
- */
+
 void diva_um_idi_start_wdog(void *entity)
 {
 	diva_um_idi_os_context_t *p_os;

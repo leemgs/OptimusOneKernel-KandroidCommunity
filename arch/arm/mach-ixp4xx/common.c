@@ -1,17 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/common.c
- *
- * Generic code shared across all IXP4XX platforms
- *
- * Maintainer: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright 2002 (c) Intel Corporation
- * Copyright 2003-2004 (c) MontaVista, Software, Inc. 
- * 
- * This file is licensed under  the terms of the GNU General Public 
- * License version 2. This program is licensed "as is" without any 
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/mm.h>
@@ -45,28 +32,26 @@ static void __init ixp4xx_clocksource_init(void);
 static void __init ixp4xx_clockevent_init(void);
 static struct clock_event_device clockevent_ixp4xx;
 
-/*************************************************************************
- * IXP4xx chipset I/O mapping
- *************************************************************************/
+
 static struct map_desc ixp4xx_io_desc[] __initdata = {
-	{	/* UART, Interrupt ctrl, GPIO, timers, NPEs, MACs, USB .... */
+	{	
 		.virtual	= IXP4XX_PERIPHERAL_BASE_VIRT,
 		.pfn		= __phys_to_pfn(IXP4XX_PERIPHERAL_BASE_PHYS),
 		.length		= IXP4XX_PERIPHERAL_REGION_SIZE,
 		.type		= MT_DEVICE
-	}, {	/* Expansion Bus Config Registers */
+	}, {	
 		.virtual	= IXP4XX_EXP_CFG_BASE_VIRT,
 		.pfn		= __phys_to_pfn(IXP4XX_EXP_CFG_BASE_PHYS),
 		.length		= IXP4XX_EXP_CFG_REGION_SIZE,
 		.type		= MT_DEVICE
-	}, {	/* PCI Registers */
+	}, {	
 		.virtual	= IXP4XX_PCI_CFG_BASE_VIRT,
 		.pfn		= __phys_to_pfn(IXP4XX_PCI_CFG_BASE_PHYS),
 		.length		= IXP4XX_PCI_CFG_REGION_SIZE,
 		.type		= MT_DEVICE
 	},
 #ifdef CONFIG_DEBUG_LL
-	{	/* Debug UART mapping */
+	{	
 		.virtual	= IXP4XX_DEBUG_UART_BASE_VIRT,
 		.pfn		= __phys_to_pfn(IXP4XX_DEBUG_UART_BASE_PHYS),
 		.length		= IXP4XX_DEBUG_UART_REGION_SIZE,
@@ -81,23 +66,15 @@ void __init ixp4xx_map_io(void)
 }
 
 
-/*************************************************************************
- * IXP4xx chipset IRQ handling
- *
- * TODO: GPIO IRQs should be marked invalid until the user of the IRQ
- *       (be it PCI or something else) configures that GPIO line
- *       as an IRQ.
- **************************************************************************/
+
 enum ixp4xx_irq_type {
 	IXP4XX_IRQ_LEVEL, IXP4XX_IRQ_EDGE
 };
 
-/* Each bit represents an IRQ: 1: edge-triggered, 0: level triggered */
+
 static unsigned long long ixp4xx_irq_edge = 0;
 
-/*
- * IRQ -> GPIO mapping table
- */
+
 static signed char irq2gpio[32] = {
 	-1, -1, -1, -1, -1, -1,  0,  1,
 	-1, -1, -1, -1, -1, -1, -1, -1,
@@ -135,9 +112,7 @@ static int ixp4xx_set_irq_type(unsigned int irq, unsigned int type)
 	enum ixp4xx_irq_type irq_type;
 	volatile u32 *int_reg;
 
-	/*
-	 * Only for GPIO IRQs
-	 */
+	
 	if (line < 0)
 		return -EINVAL;
 
@@ -171,23 +146,23 @@ static int ixp4xx_set_irq_type(unsigned int irq, unsigned int type)
 	else
 		ixp4xx_irq_edge &= ~(1 << irq);
 
-	if (line >= 8) {	/* pins 8-15 */
+	if (line >= 8) {	
 		line -= 8;
 		int_reg = IXP4XX_GPIO_GPIT2R;
-	} else {		/* pins 0-7 */
+	} else {		
 		int_reg = IXP4XX_GPIO_GPIT1R;
 	}
 
-	/* Clear the style for the appropriate pin */
+	
 	*int_reg &= ~(IXP4XX_GPIO_STYLE_CLEAR <<
 	    		(line * IXP4XX_GPIO_STYLE_SIZE));
 
 	*IXP4XX_GPIO_GPISR = (1 << line);
 
-	/* Set the new style */
+	
 	*int_reg |= (int_style << (line * IXP4XX_GPIO_STYLE_SIZE));
 
-	/* Configure the line as an input */
+	
 	gpio_line_config(irq2gpio[irq], IXP4XX_GPIO_IN);
 
 	return 0;
@@ -209,10 +184,7 @@ static void ixp4xx_irq_ack(unsigned int irq)
 		*IXP4XX_GPIO_GPISR = (1 << line);
 }
 
-/*
- * Level triggered interrupts on GPIO lines can only be cleared when the
- * interrupt condition disappears.
- */
+
 static void ixp4xx_irq_unmask(unsigned int irq)
 {
 	if (!(ixp4xx_irq_edge & (1 << irq)))
@@ -236,21 +208,21 @@ void __init ixp4xx_init_irq(void)
 {
 	int i = 0;
 
-	/* Route all sources to IRQ instead of FIQ */
+	
 	*IXP4XX_ICLR = 0x0;
 
-	/* Disable all interrupt */
+	
 	*IXP4XX_ICMR = 0x0; 
 
 	if (cpu_is_ixp46x() || cpu_is_ixp43x()) {
-		/* Route upper 32 sources to IRQ instead of FIQ */
+		
 		*IXP4XX_ICLR2 = 0x00;
 
-		/* Disable upper 32 interrupts */
+		
 		*IXP4XX_ICMR2 = 0x00;
 	}
 
-        /* Default to all level triggered */
+        
 	for(i = 0; i < NR_IRQS; i++) {
 		set_irq_chip(i, &ixp4xx_irq_chip);
 		set_irq_handler(i, handle_level_irq);
@@ -259,17 +231,13 @@ void __init ixp4xx_init_irq(void)
 }
 
 
-/*************************************************************************
- * IXP4xx timer tick
- * We use OS timer1 on the CPU for the timer tick and the timestamp 
- * counter as a source of real clock ticks to account for missed jiffies.
- *************************************************************************/
+
 
 static irqreturn_t ixp4xx_timer_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *evt = dev_id;
 
-	/* Clear Pending Interrupt by writing '1' to it */
+	
 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
 
 	evt->event_handler(evt);
@@ -286,16 +254,16 @@ static struct irqaction ixp4xx_timer_irq = {
 
 void __init ixp4xx_timer_init(void)
 {
-	/* Reset/disable counter */
+	
 	*IXP4XX_OSRT1 = 0;
 
-	/* Clear Pending Interrupt by writing '1' to it */
+	
 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
 
-	/* Reset time-stamp counter */
+	
 	*IXP4XX_OSTS = 0;
 
-	/* Connect the interrupt handler and enable the interrupt */
+	
 	setup_irq(IRQ_IXP4XX_TIMER1, &ixp4xx_timer_irq);
 
 	ixp4xx_clocksource_init();
@@ -326,10 +294,7 @@ static struct resource ixp4xx_udc_resources[] = {
 	},
 };
 
-/*
- * USB device controller. The IXP4xx uses the same controller as PXA25X,
- * so we just use the same device.
- */
+
 static struct platform_device ixp4xx_udc_device = {
 	.name           = "pxa25x-udc",
 	.id             = -1,
@@ -357,10 +322,7 @@ static struct resource ixp46x_i2c_resources[] = {
 	}
 };
 
-/*
- * I2C controller. The IXP46x uses the same block as the IOP3xx, so
- * we just use the same device name.
- */
+
 static struct platform_device ixp46x_i2c_controller = {
 	.name		= "IOP3xx-I2C",
 	.id		= 0,
@@ -399,9 +361,7 @@ void __init ixp4xx_sys_init(void)
 			ixp4xx_exp_bus_size >> 20);
 }
 
-/*
- * clocksource
- */
+
 static cycle_t ixp4xx_get_cycles(struct clocksource *cs)
 {
 	return *IXP4XX_OSTS;
@@ -426,9 +386,7 @@ static void __init ixp4xx_clocksource_init(void)
 	clocksource_register(&clocksource_ixp4xx);
 }
 
-/*
- * clockevents
- */
+
 static int ixp4xx_set_next_event(unsigned long evt,
 				 struct clock_event_device *unused)
 {
@@ -451,7 +409,7 @@ static void ixp4xx_set_mode(enum clock_event_mode mode,
  		opts = IXP4XX_OST_ENABLE;
 		break;
 	case CLOCK_EVT_MODE_ONESHOT:
-		/* period set by 'set next_event' */
+		
 		osrt = 0;
 		opts = IXP4XX_OST_ENABLE | IXP4XX_OST_ONE_SHOT;
 		break;

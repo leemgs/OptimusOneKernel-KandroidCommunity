@@ -1,17 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/mfp-pxa2xx.c
- *
- *  PXA2xx pin mux configuration support
- *
- *  The GPIOs on PXA2xx can be configured as one of many alternate
- *  functions, this is by concept samilar to the MFP configuration
- *  on PXA3xx,  what's more important, the low power pin state and
- *  wakeup detection are also supported by the same framework.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -36,8 +23,8 @@ struct gpio_desc {
 	unsigned	can_wakeup	: 1;
 	unsigned	keypad_gpio	: 1;
 	unsigned	dir_inverted	: 1;
-	unsigned int	mask; /* bit mask in PWER or PKWR */
-	unsigned int	mux_mask; /* bit mask of muxed gpio bits, 0 if no mux */
+	unsigned int	mask; 
+	unsigned int	mux_mask; 
 	unsigned long	config;
 };
 
@@ -49,7 +36,7 @@ static int __mfp_config_gpio(unsigned gpio, unsigned long c)
 {
 	unsigned long gafr, mask = GPIO_bit(gpio);
 	int bank = gpio_to_bank(gpio);
-	int uorl = !!(gpio & 0x10); /* GAFRx_U or GAFRx_L ? */
+	int uorl = !!(gpio & 0x10); 
 	int shft = (gpio & 0xf) << 1;
 	int fn = MFP_AF(c);
 	int is_out = (c & MFP_DIR_OUT) ? 1 : 0;
@@ -57,7 +44,7 @@ static int __mfp_config_gpio(unsigned gpio, unsigned long c)
 	if (fn > 3)
 		return -EINVAL;
 
-	/* alternate function and direction at run-time */
+	
 	gafr = (uorl == 0) ? GAFR_L(bank) : GAFR_U(bank);
 	gafr = (gafr & ~(0x3 << shft)) | (fn << shft);
 
@@ -71,7 +58,7 @@ static int __mfp_config_gpio(unsigned gpio, unsigned long c)
 	else
 		GPDR(gpio) &= ~mask;
 
-	/* alternate function and direction at low power mode */
+	
 	switch (c & MFP_LPM_STATE_MASK) {
 	case MFP_LPM_DRIVE_HIGH:
 		PGSR(bank) |= mask;
@@ -84,7 +71,7 @@ static int __mfp_config_gpio(unsigned gpio, unsigned long c)
 	case MFP_LPM_DEFAULT:
 		break;
 	default:
-		/* warning and fall through, treat as MFP_LPM_DEFAULT */
+		
 		pr_warning("%s: GPIO%d: unsupported low power mode\n",
 				__func__, gpio);
 		break;
@@ -95,9 +82,7 @@ static int __mfp_config_gpio(unsigned gpio, unsigned long c)
 	else
 		gpdr_lpm[bank] &= ~mask;
 
-	/* give early warning if MFP_LPM_CAN_WAKEUP is set on the
-	 * configurations of those pins not able to wakeup
-	 */
+	
 	if ((c & MFP_LPM_CAN_WAKEUP) && !gpio_desc[gpio].can_wakeup) {
 		pr_warning("%s: GPIO%d unable to wakeup\n",
 				__func__, gpio);
@@ -220,15 +205,13 @@ static void __init pxa25x_mfp_init(void)
 		gpio_desc[i].mask = GPIO_bit(i);
 	}
 
-	/* PXA26x has additional 4 GPIOs (86/87/88/89) which has the
-	 * direction bit inverted in GPDR2. See PXA26x DM 4.1.1.
-	 */
+	
 	for (i = 86; i <= pxa_last_gpio; i++)
 		gpio_desc[i].dir_inverted = 1;
 }
 #else
 static inline void pxa25x_mfp_init(void) {}
-#endif /* CONFIG_PXA25x */
+#endif 
 
 #ifdef CONFIG_PXA27x
 static int pxa27x_pkwr_gpio[] = {
@@ -278,16 +261,14 @@ static void __init pxa27x_mfp_init(void)
 	int i, gpio;
 
 	for (i = 0; i <= pxa_last_gpio; i++) {
-		/* skip GPIO2, 5, 6, 7, 8, they are not
-		 * valid pins allow configuration
-		 */
+		
 		if (i == 2 || i == 5 || i == 6 || i == 7 || i == 8)
 			continue;
 
 		gpio_desc[i].valid = 1;
 	}
 
-	/* Keypad GPIOs */
+	
 	for (i = 0; i < ARRAY_SIZE(pxa27x_pkwr_gpio); i++) {
 		gpio = pxa27x_pkwr_gpio[i];
 		gpio_desc[gpio].can_wakeup = 1;
@@ -295,9 +276,9 @@ static void __init pxa27x_mfp_init(void)
 		gpio_desc[gpio].mask = 1 << i;
 	}
 
-	/* Overwrite GPIO13 as a PWER wakeup source */
+	
 	for (i = 0; i <= 15; i++) {
-		/* skip GPIO2, 5, 6, 7, 8 */
+		
 		if (GPIO_bit(i) & 0x1e4)
 			continue;
 
@@ -317,7 +298,7 @@ static void __init pxa27x_mfp_init(void)
 }
 #else
 static inline void pxa27x_mfp_init(void) {}
-#endif /* CONFIG_PXA27x */
+#endif 
 
 #ifdef CONFIG_PM
 static unsigned long saved_gafr[2][4];
@@ -377,10 +358,10 @@ static int __init pxa2xx_mfp_init(void)
 	if (cpu_is_pxa27x())
 		pxa27x_mfp_init();
 
-	/* clear RDH bit to enable GPIO receivers after reset/sleep exit */
+	
 	PSSR = PSSR_RDH;
 
-	/* initialize gafr_run[], pgsr_lpm[] from existing values */
+	
 	for (i = 0; i <= gpio_to_bank(pxa_last_gpio); i++)
 		gpdr_lpm[i] = GPDR(i * 32);
 

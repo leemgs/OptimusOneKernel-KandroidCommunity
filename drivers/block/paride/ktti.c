@@ -1,13 +1,4 @@
-/* 
-        ktti.c        (c) 1998  Grant R. Guenther <grant@torque.net>
-                          Under the terms of the GNU General Public License.
 
-	ktti.c is a low-level protocol driver for the KT Technology
-	parallel port adapter.  This adapter is used in the "PHd" 
-        portable hard-drives.  As far as I can tell, this device
-	supports 4-bit mode _only_.  
-
-*/
 
 #define KTTI_VERSION      "1.0"
 
@@ -23,9 +14,7 @@
 
 #define j44(a,b)                (((a>>4)&0x0f)|(b&0xf0))
 
-/* cont = 0 - access the IDE register file 
-   cont = 1 - access the IDE command set 
-*/
+
 
 static int  cont_map[2] = { 0x10, 0x08 };
 

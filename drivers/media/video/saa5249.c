@@ -1,45 +1,4 @@
-/*
- * Modified in order to keep it compatible both with new and old videotext IOCTLs by
- * Michael Geng <linux@MichaelGeng.de>
- *
- *	Cleaned up to use existing videodev interface and allow the idea
- *	of multiple teletext decoders on the video4linux iface. Changed i2c
- *	to cover addressing clashes on device busses. It's also rebuilt so
- *	you can add arbitary multiple teletext devices to Linux video4linux
- *	now (well 32 anyway).
- *
- *	Alan Cox <alan@lxorguk.ukuu.org.uk>
- *
- *	The original driver was heavily modified to match the i2c interface
- *	It was truncated to use the WinTV boards, too.
- *
- *	Copyright (c) 1998 Richard Guenther <richard.guenther@student.uni-tuebingen.de>
- *
- *	Derived From
- *
- * vtx.c:
- * This is a loadable character-device-driver for videotext-interfaces
- * (aka teletext). Please check the Makefile/README for a list of supported
- * interfaces.
- *
- * Copyright (c) 1994-97 Martin Buck  <martin-2.buck@student.uni-ulm.de>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
- * USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -69,37 +28,37 @@ MODULE_LICENSE("GPL");
 
 static const int disp_modes[8][3] =
 {
-	{ 0x46, 0x03, 0x03 },	/* DISPOFF */
-	{ 0x46, 0xcc, 0xcc },	/* DISPNORM */
-	{ 0x44, 0x0f, 0x0f },	/* DISPTRANS */
-	{ 0x46, 0xcc, 0x46 },	/* DISPINS */
-	{ 0x44, 0x03, 0x03 },	/* DISPOFF, interlaced */
-	{ 0x44, 0xcc, 0xcc },	/* DISPNORM, interlaced */
-	{ 0x44, 0x0f, 0x0f },	/* DISPTRANS, interlaced */
-	{ 0x44, 0xcc, 0x46 }	/* DISPINS, interlaced */
+	{ 0x46, 0x03, 0x03 },	
+	{ 0x46, 0xcc, 0xcc },	
+	{ 0x44, 0x0f, 0x0f },	
+	{ 0x46, 0xcc, 0x46 },	
+	{ 0x44, 0x03, 0x03 },	
+	{ 0x44, 0xcc, 0xcc },	
+	{ 0x44, 0x0f, 0x0f },	
+	{ 0x44, 0xcc, 0x46 }	
 };
 
 
 
-#define PAGE_WAIT    msecs_to_jiffies(300)	/* Time between requesting page and */
-						/* checking status bits */
-#define PGBUF_EXPIRE msecs_to_jiffies(15000)	/* Time to wait before retransmitting */
-						/* page regardless of infobits */
+#define PAGE_WAIT    msecs_to_jiffies(300)	
+						
+#define PGBUF_EXPIRE msecs_to_jiffies(15000)	
+						
 typedef struct {
-	u8 pgbuf[VTX_VIRTUALSIZE];		/* Page-buffer */
-	u8 laststat[10];			/* Last value of infobits for DAU */
-	u8 sregs[7];				/* Page-request registers */
-	unsigned long expire;			/* Time when page will be expired */
-	unsigned clrfound : 1;			/* VTXIOCCLRFOUND has been called */
-	unsigned stopped : 1;			/* VTXIOCSTOPDAU has been called */
+	u8 pgbuf[VTX_VIRTUALSIZE];		
+	u8 laststat[10];			
+	u8 sregs[7];				
+	unsigned long expire;			
+	unsigned clrfound : 1;			
+	unsigned stopped : 1;			
 } vdau_t;
 
 struct saa5249_device
 {
 	struct v4l2_subdev sd;
 	struct video_device *vdev;
-	vdau_t vdau[NUM_DAUS];			/* Data for virtual DAUs (the 5249 only has one */
-						/* real DAU, so we have to simulate some more) */
+	vdau_t vdau[NUM_DAUS];			
+						
 	int vtx_use_count;
 	int is_searching[NUM_DAUS];
 	int disp_mode;
@@ -114,22 +73,19 @@ static inline struct saa5249_device *to_dev(struct v4l2_subdev *sd)
 }
 
 
-#define CCTWR 34		/* I�C write/read-address of vtx-chip */
+#define CCTWR 34		
 #define CCTRD 35
-#define NOACK_REPEAT 10		/* Retry access this many times on failure */
-#define CLEAR_DELAY   msecs_to_jiffies(50)	/* Time required to clear a page */
-#define READY_TIMEOUT msecs_to_jiffies(30)	/* Time to wait for ready signal of I2C-bus interface */
-#define INIT_DELAY 500		/* Time in usec to wait at initialization of CEA interface */
-#define START_DELAY 10		/* Time in usec to wait before starting write-cycle (CEA) */
+#define NOACK_REPEAT 10		
+#define CLEAR_DELAY   msecs_to_jiffies(50)	
+#define READY_TIMEOUT msecs_to_jiffies(30)	
+#define INIT_DELAY 500		
+#define START_DELAY 10		
 
 #define VTX_DEV_MINOR 0
 
-static struct video_device saa_template;	/* Declared near bottom */
+static struct video_device saa_template;	
 
-/*
- *	Wait the given number of jiffies (10ms). This calls the scheduler, so the actual
- *	delay may be longer.
- */
+
 
 static void jdelay(unsigned long delay)
 {
@@ -148,9 +104,7 @@ static void jdelay(unsigned long delay)
 }
 
 
-/*
- *	I2C interfaces
- */
+
 
 static int i2c_sendbuf(struct saa5249_device *t, int reg, int count, u8 *data)
 {
@@ -180,11 +134,7 @@ static int i2c_senddata(struct saa5249_device *t, ...)
 	return i2c_sendbuf(t, buf[0], ct-1, buf+1);
 }
 
-/* Get count number of bytes from I²C-device at address adr, store them in buf. Start & stop
- * handshaking is done by this routine, ack will be sent after the last byte to inhibit further
- * sending of data. If uaccess is 'true', data is written to user-space with put_user.
- * Returns -1 if I²C-device didn't send acknowledge, 0 otherwise
- */
+
 
 static int i2c_getdata(struct saa5249_device *t, int count, u8 *buf)
 {
@@ -196,9 +146,7 @@ static int i2c_getdata(struct saa5249_device *t, int count, u8 *buf)
 }
 
 
-/*
- *	Standard character-device-driver functions
- */
+
 
 static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 {
@@ -212,7 +160,7 @@ static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 		info->version_major = VTX_VER_MAJ;
 		info->version_minor = VTX_VER_MIN;
 		info->numpages = NUM_DAUS;
-		/*info->cct_type = CCT_TYPE;*/
+		
 		return 0;
 	}
 
@@ -246,7 +194,7 @@ static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 			req->hour = 0;
 		if (!(req->pagemask & PGMASK_MINUTE))
 			req->minute = 0;
-		if (req->page < 0 || req->page > 0x8ff) /* 7FF ?? */
+		if (req->page < 0 || req->page > 0x8ff) 
 			return -EINVAL;
 		req->page &= 0x7ff;
 		if (req->hour < 0 || req->hour > 0x3f || req->minute < 0 || req->minute > 0x7f ||
@@ -285,28 +233,25 @@ static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 			if (i2c_getdata(t, 10, infobits))
 				return -EIO;
 
-			if (!(infobits[8] & 0x10) && !(infobits[7] & 0xf0) &&	/* check FOUND-bit */
+			if (!(infobits[8] & 0x10) && !(infobits[7] & 0xf0) &&	
 				(memcmp(infobits, t->vdau[req->pgbuf].laststat, sizeof(infobits)) ||
 				time_after_eq(jiffies, t->vdau[req->pgbuf].expire)))
-			{		/* check if new page arrived */
+			{		
 				if (i2c_senddata(t, 8, 0, 0, 0, -1) ||
 					i2c_getdata(t, VTX_PAGESIZE, t->vdau[req->pgbuf].pgbuf))
 					return -EIO;
 				t->vdau[req->pgbuf].expire = jiffies + PGBUF_EXPIRE;
 				memset(t->vdau[req->pgbuf].pgbuf + VTX_PAGESIZE, ' ', VTX_VIRTUALSIZE - VTX_PAGESIZE);
 				if (t->virtual_mode) {
-					/* Packet X/24 */
+					
 					if (i2c_senddata(t, 8, 0, 0x20, 0, -1) ||
 						i2c_getdata(t, 40, t->vdau[req->pgbuf].pgbuf + VTX_PAGESIZE + 20 * 40))
 						return -EIO;
-					/* Packet X/27/0 */
+					
 					if (i2c_senddata(t, 8, 0, 0x21, 0, -1) ||
 						i2c_getdata(t, 40, t->vdau[req->pgbuf].pgbuf + VTX_PAGESIZE + 16 * 40))
 						return -EIO;
-					/* Packet 8/30/0...8/30/15
-					 * FIXME: AFAIK, the 5249 does hamming-decoding for some bytes in packet 8/30,
-					 *        so we should undo this here.
-					 */
+					
 					if (i2c_senddata(t, 8, 0, 0x22, 0, -1) ||
 						i2c_getdata(t, 40, t->vdau[req->pgbuf].pgbuf + VTX_PAGESIZE + 23 * 40))
 						return -EIO;
@@ -363,9 +308,7 @@ static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 		if (copy_to_user(req->buffer, &t->vdau[req->pgbuf].pgbuf[req->start], req->end - req->start + 1))
 			return -EFAULT;
 
-		 /*
-		  *	Always read the time directly from SAA5249
-		  */
+		 
 
 		if (req->start <= 39 && req->end >= 32) {
 			int len;
@@ -379,7 +322,7 @@ static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 			if (copy_to_user(req->buffer + start - req->start, buf, len))
 				return -EFAULT;
 		}
-		/* Insert the current header if DAU is still searching for a page */
+		
 		if (req->start <= 31 && req->end >= 7 && t->is_searching[req->pgbuf]) {
 			char buf[32];
 			int len;
@@ -423,13 +366,13 @@ static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 			return -EIO;
 		if (i2c_senddata(t, 3, 0x20, -1))
 			return -EIO;
-		jdelay(10 * CLEAR_DELAY);			/* I have no idea how long we have to wait here */
+		jdelay(10 * CLEAR_DELAY);			
 		return 0;
 	}
 
 	case VTXIOCSETVIRT:
 	{
-		/* The SAA5249 has virtual-row reception turned on always */
+		
 		t->virtual_mode = (int)(long)arg;
 		return 0;
 	}
@@ -437,11 +380,7 @@ static long do_saa5249_ioctl(struct file *file, unsigned int cmd, void *arg)
 	return -EINVAL;
 }
 
-/*
- * Translates old vtx IOCTLs to new ones
- *
- * This keeps new kernel versions compatible with old userspace programs.
- */
+
 static inline unsigned int vtx_fix_command(unsigned int cmd)
 {
 	switch (cmd) {
@@ -485,9 +424,7 @@ static inline unsigned int vtx_fix_command(unsigned int cmd)
 	return cmd;
 }
 
-/*
- *	Handle the locking
- */
+
 
 static long saa5249_ioctl(struct file *file,
 			 unsigned int cmd, unsigned long arg)
@@ -510,12 +447,12 @@ static int saa5249_open(struct file *file)
 	if (test_and_set_bit(0, &t->in_use))
 		return -EBUSY;
 
-	if (i2c_senddata(t, 0, 0, -1) || /* Select R11 */
-		/* Turn off parity checks (we do this ourselves) */
+	if (i2c_senddata(t, 0, 0, -1) || 
+		
 		i2c_senddata(t, 1, disp_modes[t->disp_mode][0], 0, -1) ||
-		/* Display TV-picture, no virtual rows */
+		
 		i2c_senddata(t, 4, NUM_DAUS, disp_modes[t->disp_mode][1], disp_modes[t->disp_mode][2], 7, -1))
-		/* Set display to page 4 */
+		
 	{
 		clear_bit(0, &t->in_use);
 		return -EIO;
@@ -540,8 +477,8 @@ static int saa5249_release(struct file *file)
 {
 	struct saa5249_device *t = video_drvdata(file);
 
-	i2c_senddata(t, 1, 0x20, -1);		/* Turn off CCT */
-	i2c_senddata(t, 5, 3, 3, -1);		/* Turn off TV-display */
+	i2c_senddata(t, 1, 0x20, -1);		
+	i2c_senddata(t, 5, 3, 3, -1);		
 	clear_bit(0, &t->in_use);
 	return 0;
 }
@@ -594,7 +531,7 @@ static int saa5249_probe(struct i2c_client *client,
 	v4l2_i2c_subdev_init(sd, client, &saa5249_ops);
 	mutex_init(&t->lock);
 
-	/* Now create a video4linux device */
+	
 	t->vdev = video_device_alloc();
 	if (t->vdev == NULL) {
 		kfree(t);
@@ -614,7 +551,7 @@ static int saa5249_probe(struct i2c_client *client,
 	}
 	video_set_drvdata(t->vdev, t);
 
-	/* Register it */
+	
 	err = video_register_device(t->vdev, VFL_TYPE_VTX, -1);
 	if (err < 0) {
 		video_device_release(t->vdev);

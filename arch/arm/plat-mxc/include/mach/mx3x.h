@@ -1,38 +1,11 @@
-/*
- * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #ifndef __ASM_ARCH_MXC_MX31_H__
 #define __ASM_ARCH_MXC_MX31_H__
 
-/*
- * MX31 memory map:
- *
- * Virt		Phys		Size	What
- * ---------------------------------------------------------------------------
- * FC000000	43F00000	1M	AIPS 1
- * FC100000	50000000	1M	SPBA
- * FC200000	53F00000	1M	AIPS 2
- * FC500000	60000000	128M	ROMPATCH
- * FC400000	68000000	128M	AVIC
- *         	70000000	256M	IPU (MAX M2)
- *         	80000000	256M	CSD0 SDRAM/DDR
- *         	90000000	256M	CSD1 SDRAM/DDR
- *         	A0000000	128M	CS0 Flash
- *         	A8000000	128M	CS1 Flash
- *         	B0000000	32M	CS2
- *         	B2000000	32M	CS3
- * F4000000	B4000000	32M	CS4
- *         	B6000000	32M	CS5
- * FC320000	B8000000	64K	NAND, SDRAM, WEIM, M3IF, EMI controllers
- *         	C0000000	64M	PCMCIA/CF
- */
+
 
 #define CS0_BASE_ADDR		0xA0000000
 #define CS1_BASE_ADDR		0xA8000000
@@ -49,15 +22,11 @@
 
 #define PCMCIA_MEM_BASE_ADDR	0xBC000000
 
-/*
- * L2CC
- */
+
 #define L2CC_BASE_ADDR		0x30000000
 #define L2CC_SIZE		SZ_1M
 
-/*
- * AIPS 1
- */
+
 #define AIPS1_BASE_ADDR		0x43F00000
 #define AIPS1_BASE_ADDR_VIRT	0xFC000000
 #define AIPS1_SIZE		SZ_1M
@@ -81,9 +50,7 @@
 #define ECT_IP1_BASE_ADDR	(AIPS1_BASE_ADDR + 0x000B8000)
 #define ECT_IP2_BASE_ADDR	(AIPS1_BASE_ADDR + 0x000BC000)
 
-/*
- * SPBA global module enabled #0
- */
+
 #define SPBA0_BASE_ADDR 	0x50000000
 #define SPBA0_BASE_ADDR_VIRT	0xFC100000
 #define SPBA0_SIZE		SZ_1M
@@ -95,9 +62,7 @@
 #define MSHC1_BASE_ADDR		(SPBA0_BASE_ADDR + 0x00024000)
 #define SPBA_CTRL_BASE_ADDR	(SPBA0_BASE_ADDR + 0x0003C000)
 
-/*
- * AIPS 2
- */
+
 #define AIPS2_BASE_ADDR		0x53F00000
 #define AIPS2_BASE_ADDR_VIRT	0xFC200000
 #define AIPS2_SIZE		SZ_1M
@@ -118,9 +83,7 @@
 #define PWM_BASE_ADDR		(AIPS2_BASE_ADDR + 0x000E0000)
 #define RTIC_BASE_ADDR		(AIPS2_BASE_ADDR + 0x000EC000)
 
-/*
- * ROMP and AVIC
- */
+
 #define ROMP_BASE_ADDR		0x60000000
 #define ROMP_BASE_ADDR_VIRT	0xFC500000
 #define ROMP_SIZE		SZ_1M
@@ -129,9 +92,7 @@
 #define AVIC_BASE_ADDR_VIRT	0xFC400000
 #define AVIC_SIZE		SZ_1M
 
-/*
- * NAND, SDRAM, WEIM, M3IF, EMI controllers
- */
+
 #define X_MEMC_BASE_ADDR	0xB8000000
 #define X_MEMC_BASE_ADDR_VIRT	0xFC320000
 #define X_MEMC_SIZE		SZ_64K
@@ -142,19 +103,12 @@
 #define EMI_CTL_BASE_ADDR	(X_MEMC_BASE_ADDR + 0x4000)
 #define PCMCIA_CTL_BASE_ADDR	EMI_CTL_BASE_ADDR
 
-/*
- * Memory regions and CS
- */
+
 #define IPU_MEM_BASE_ADDR	0x70000000
 #define CSD0_BASE_ADDR		0x80000000
 #define CSD1_BASE_ADDR		0x90000000
 
-/*!
- * This macro defines the physical to virtual address mapping for all the
- * peripheral modules. It is used by passing in the physical address as x
- * and returning the virtual address. If the physical address is not mapped,
- * it returns 0xDEADBEEF
- */
+
 #define IO_ADDRESS(x)   \
 	(void __force __iomem *) \
 	(((x >= AIPS1_BASE_ADDR) && (x < (AIPS1_BASE_ADDR + AIPS1_SIZE))) ? AIPS1_IO_ADDRESS(x):\
@@ -166,9 +120,7 @@
 	((x >= X_MEMC_BASE_ADDR) && (x < (X_MEMC_BASE_ADDR + X_MEMC_SIZE))) ? X_MEMC_IO_ADDRESS(x):\
 	0xDEADBEEF)
 
-/*
- * define the address mapping macros: in physical address order
- */
+
 #define L2CC_IO_ADDRESS(x)  \
 	(((x) - L2CC_BASE_ADDR) + L2CC_BASE_ADDR_VIRT)
 
@@ -199,9 +151,7 @@
 #define PCMCIA_IO_ADDRESS(x) \
 	(((x) - X_MEMC_BASE_ADDR) + X_MEMC_BASE_ADDR_VIRT)
 
-/*
- * Interrupt numbers
- */
+
 #define MXC_INT_I2C3		3
 #define MXC_INT_I2C2		4
 #define MXC_INT_RTIC		6
@@ -241,9 +191,9 @@
 #define MXC_INT_EXT_WDOG	62
 #define MXC_INT_EXT_TV		63
 
-#define PROD_SIGNATURE		0x1	/* For MX31 */
+#define PROD_SIGNATURE		0x1	
 
-/* silicon revisions specific to i.MX31 */
+
 #define CHIP_REV_1_0		0x10
 #define CHIP_REV_1_1		0x11
 #define CHIP_REV_1_2		0x12
@@ -259,7 +209,7 @@
 #define SYSTEM_REV_MIN		CHIP_REV_1_0
 #define SYSTEM_REV_NUM		3
 
-/* Mandatory defines used globally */
+
 
 #if !defined(__ASSEMBLY__) && !defined(__MXC_BOOT_UNCOMPRESS)
 
@@ -271,5 +221,5 @@ static inline int mx31_revision(void)
 }
 #endif
 
-#endif /*  __ASM_ARCH_MXC_MX31_H__ */
+#endif 
 

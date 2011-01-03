@@ -1,28 +1,4 @@
-/*
-    Driver for Philips TDA8083 based QPSK Demodulator
 
-    Copyright (C) 2001 Convergence Integrated Media GmbH
-
-    written by Ralph Metzler <ralph@convergence.de>
-
-    adoption to the new DVB frontend API and diagnostic ioctl's
-    by Holger Waechtler <holger@convergence.de>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -36,7 +12,7 @@
 
 struct tda8083_state {
 	struct i2c_adapter* i2c;
-	/* configuration settings */
+	
 	const struct tda8083_config* config;
 	struct dvb_frontend frontend;
 };
@@ -99,7 +75,7 @@ static inline u8 tda8083_readreg (struct tda8083_state* state, u8 reg)
 
 static int tda8083_set_inversion (struct tda8083_state* state, fe_spectral_inversion_t inversion)
 {
-	/*  XXX FIXME: implement other modes than FEC_AUTO */
+	
 	if (inversion == INVERSION_AUTO)
 		return 0;
 
@@ -208,10 +184,10 @@ static int tda8083_send_diseqc_burst (struct tda8083_state* state, fe_sec_mini_c
 {
 	switch (burst) {
 	case SEC_MINI_A:
-		tda8083_writereg (state, 0x29, (5 << 2));  /* send burst A */
+		tda8083_writereg (state, 0x29, (5 << 2));  
 		break;
 	case SEC_MINI_B:
-		tda8083_writereg (state, 0x29, (7 << 2));  /* send B */
+		tda8083_writereg (state, 0x29, (7 << 2));  
 		break;
 	default:
 		return -EINVAL;
@@ -228,12 +204,12 @@ static int tda8083_send_diseqc_msg (struct dvb_frontend* fe,
 	struct tda8083_state* state = fe->demodulator_priv;
 	int i;
 
-	tda8083_writereg (state, 0x29, (m->msg_len - 3) | (1 << 2)); /* enable */
+	tda8083_writereg (state, 0x29, (m->msg_len - 3) | (1 << 2)); 
 
 	for (i=0; i<m->msg_len; i++)
 		tda8083_writereg (state, 0x23 + i, m->msg[i]);
 
-	tda8083_writereg (state, 0x29, (m->msg_len - 3) | (3 << 2)); /* send!! */
+	tda8083_writereg (state, 0x29, (m->msg_len - 3) | (3 << 2)); 
 
 	tda8083_wait_diseqc_fifo (state, 100);
 
@@ -261,7 +237,7 @@ static int tda8083_read_status(struct dvb_frontend* fe, fe_status_t* status)
 	if (sync & 0x10)
 		*status |= FE_HAS_SYNC;
 
-	if (sync & 0x20) /* frontend can not lock */
+	if (sync & 0x20) 
 		*status |= FE_TIMEDOUT;
 
 	if ((sync & 0x1f) == 0x1f)
@@ -338,12 +314,12 @@ static int tda8083_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
 {
 	struct tda8083_state* state = fe->demodulator_priv;
 
-	/*  FIXME: get symbolrate & frequency offset...*/
-	/*p->frequency = ???;*/
+	
+	
 	p->inversion = (tda8083_readreg (state, 0x0e) & 0x80) ?
 			INVERSION_ON : INVERSION_OFF;
 	p->u.qpsk.fec_inner = tda8083_get_fec (state);
-	/*p->u.qpsk.symbol_rate = tda8083_get_symbolrate (state);*/
+	
 
 	return 0;
 }
@@ -416,18 +392,18 @@ struct dvb_frontend* tda8083_attach(const struct tda8083_config* config,
 {
 	struct tda8083_state* state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct tda8083_state), GFP_KERNEL);
 	if (state == NULL) goto error;
 
-	/* setup the state */
+	
 	state->config = config;
 	state->i2c = i2c;
 
-	/* check if the demod is there */
+	
 	if ((tda8083_readreg(state, 0x00)) != 0x05) goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &tda8083_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;
@@ -442,13 +418,13 @@ static struct dvb_frontend_ops tda8083_ops = {
 	.info = {
 		.name			= "Philips TDA8083 DVB-S",
 		.type			= FE_QPSK,
-		.frequency_min		= 920000,     /* TDA8060 */
-		.frequency_max		= 2200000,    /* TDA8060 */
-		.frequency_stepsize	= 125,   /* kHz for QPSK frontends */
-	/*      .frequency_tolerance	= ???,*/
+		.frequency_min		= 920000,     
+		.frequency_max		= 2200000,    
+		.frequency_stepsize	= 125,   
+	
 		.symbol_rate_min	= 12000000,
 		.symbol_rate_max	= 30000000,
-	/*      .symbol_rate_tolerance	= ???,*/
+	
 		.caps = FE_CAN_INVERSION_AUTO |
 			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
 			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |

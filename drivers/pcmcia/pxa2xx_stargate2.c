@@ -1,17 +1,4 @@
-/*
- * linux/drivers/pcmcia/pxa2xx_stargate2.c
- *
- * Stargate 2 PCMCIA specific routines.
- *
- * Created:	December 6, 2005
- * Author:	Ed C. Epp
- * Copyright:	Intel Corp 2005
- *              Jonathan Cameron <jic23@cam.ac.uk> 2009
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -54,25 +41,25 @@ static void sg2_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 {
 	state->detect = !gpio_get_value(SG2_S0_GPIO_DETECT);
 	state->ready  = !!gpio_get_value(SG2_S0_GPIO_READY);
-	state->bvd1   = 0; /* not available - battery detect on card */
-	state->bvd2   = 0; /* not available */
-	state->vs_3v  = 1; /* not available - voltage detect for card */
-	state->vs_Xv  = 0; /* not available */
-	state->wrprot = 0; /* not available - write protect */
+	state->bvd1   = 0; 
+	state->bvd2   = 0; 
+	state->vs_3v  = 1; 
+	state->vs_Xv  = 0; 
+	state->wrprot = 0; 
 }
 
 static int sg2_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 				       const socket_state_t *state)
 {
-	/* Enable card power */
+	
 	switch (state->Vcc) {
 	case 0:
-		/* sets power ctl register high */
+		
 		gpio_set_value(SG2_S0_POWER_CTL, 1);
 		break;
 	case 33:
 	case 50:
-		/* sets power control register low (clear) */
+		
 		gpio_set_value(SG2_S0_POWER_CTL, 0);
 		msleep(100);
 		break;
@@ -82,7 +69,7 @@ static int sg2_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 		return -1;
 	}
 
-	/* reset */
+	
 	gpio_set_value(SG2_S0_GPIO_RESET, !!(state->flags & SS_RESET));
 
 	return 0;
@@ -131,7 +118,7 @@ static int __init sg2_pcmcia_init(void)
 	ret = gpio_request(SG2_S0_GPIO_RESET, "SG2 CF reset");
 	if (ret)
 		goto error_free_gpio_power_ctl;
-	/* Set gpio directions */
+	
 	gpio_direction_output(SG2_S0_BUFF_CTL, 0);
 	gpio_direction_output(SG2_S0_POWER_CTL, 1);
 	gpio_direction_output(SG2_S0_GPIO_RESET, 1);

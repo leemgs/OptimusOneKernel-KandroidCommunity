@@ -1,29 +1,7 @@
-/*
- * cpia_pp CPiA Parallel Port driver
- *
- * Supports CPiA based parallel port Video Camera's.
- *
- * (C) Copyright 1999 Bas Huisman <bhuism@cs.utwente.nl>
- * (C) Copyright 1999-2000 Scott J. Bertin <sbertin@securenym.net>,
- * (C) Copyright 1999-2000 Peter Pregler <Peter_Pregler@email.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/* define _CPIA_DEBUG_ for verbose debug output (see cpia.h) */
-/* #define _CPIA_DEBUG_  1 */
+
+
+
 
 
 #include <linux/module.h>
@@ -38,7 +16,7 @@
 
 #include <linux/kmod.h>
 
-/* #define _CPIA_DEBUG_		define for verbose debug output */
+
 #include "cpia.h"
 
 static int cpia_pp_open(void *privdata);
@@ -55,7 +33,7 @@ static int cpia_pp_close(void *privdata);
 
 #define PACKET_LENGTH  8
 
-/* Magic numbers for defining port-device mappings */
+
 #define PPCPIA_PARPORT_UNSPEC -4
 #define PPCPIA_PARPORT_AUTO -3
 #define PPCPIA_PARPORT_OFF -2
@@ -79,11 +57,11 @@ struct pp_cam_entry {
 	void *cb_data;
 	int open_count;
 	wait_queue_head_t wq_stream;
-	/* image state flags */
-	int image_ready;	/* we got an interrupt */
-	int image_complete;	/* we have seen 4 EOI */
+	
+	int image_ready;	
+	int image_complete;	
 
-	int streaming; /* we are in streaming mode */
+	int streaming; 
 	int stream_irq;
 };
 
@@ -103,7 +81,7 @@ static struct cpia_camera_ops cpia_pp_ops =
 static LIST_HEAD(cam_list);
 static spinlock_t cam_list_lock_pp;
 
-/* FIXME */
+
 static void cpia_parport_enable_irq( struct parport *port ) {
 	parport_enable_irq(port);
 	mdelay(10);
@@ -116,8 +94,7 @@ static void cpia_parport_disable_irq( struct parport *port ) {
 	return;
 }
 
-/* Special CPiA PPC modes: These are invoked by using the 1284 Extensibility
- * Link Flag during negotiation */
+
 #define UPLOAD_FLAG  0x08
 #define NIBBLE_TRANSFER 0x01
 #define ECP_TRANSFER 0x03
@@ -138,60 +115,46 @@ static void cpia_pp_run_callback(struct work_struct *work)
 	cb_func(cb_data);
 }
 
-/****************************************************************************
- *
- *  CPiA-specific  low-level parport functions for nibble uploads
- *
- ***************************************************************************/
-/*  CPiA nonstandard "Nibble" mode (no nDataAvail signal after each byte). */
-/* The standard kernel parport_ieee1284_read_nibble() fails with the CPiA... */
+
+
+
 
 static size_t cpia_read_nibble (struct parport *port,
 			 void *buffer, size_t len,
 			 int flags)
 {
-	/* adapted verbatim, with one change, from
-	   parport_ieee1284_read_nibble() in drivers/parport/ieee1284-ops.c */
+	
 
 	unsigned char *buf = buffer;
 	int i;
 	unsigned char byte = 0;
 
-	len *= 2; /* in nibbles */
+	len *= 2; 
 	for (i=0; i < len; i++) {
 		unsigned char nibble;
 
-		/* The CPiA firmware suppresses the use of nDataAvail (nFault LO)
-		 * after every second nibble to signal that more
-		 * data is available.  (the total number of Bytes that
-		 * should be sent is known; if too few are received, an error
-		 * will be recorded after a timeout).
-		 * This is incompatible with parport_ieee1284_read_nibble(),
-		 * which expects to find nFault LO after every second nibble.
-		 */
+		
 
-		/* Solution: modify cpia_read_nibble to only check for
-		 * nDataAvail before the first nibble is sent.
-		 */
+		
 
-		/* Does the error line indicate end of data? */
-		if (((i /*& 1*/) == 0) &&
+		
+		if (((i ) == 0) &&
 		    (parport_read_status(port) & PARPORT_STATUS_ERROR)) {
 			DBG("%s: No more nibble data (%d bytes)\n",
 			    port->name, i/2);
 			goto end_of_data;
 		}
 
-		/* Event 7: Set nAutoFd low. */
+		
 		parport_frob_control (port,
 				      PARPORT_CONTROL_AUTOFD,
 				      PARPORT_CONTROL_AUTOFD);
 
-		/* Event 9: nAck goes low. */
+		
 		port->ieee1284.phase = IEEE1284_PH_REV_DATA;
 		if (parport_wait_peripheral (port,
 					     PARPORT_STATUS_ACK, 0)) {
-			/* Timeout -- no more data? */
+			
 				 DBG("%s: Nibble timeout at event 9 (%d bytes)\n",
 				 port->name, i/2);
 			parport_frob_control (port, PARPORT_CONTROL_AUTOFD, 0);
@@ -199,28 +162,28 @@ static size_t cpia_read_nibble (struct parport *port,
 		}
 
 
-		/* Read a nibble. */
+		
 		nibble = parport_read_status (port) >> 3;
 		nibble &= ~8;
 		if ((nibble & 0x10) == 0)
 			nibble |= 8;
 		nibble &= 0xf;
 
-		/* Event 10: Set nAutoFd high. */
+		
 		parport_frob_control (port, PARPORT_CONTROL_AUTOFD, 0);
 
-		/* Event 11: nAck goes high. */
+		
 		if (parport_wait_peripheral (port,
 					     PARPORT_STATUS_ACK,
 					     PARPORT_STATUS_ACK)) {
-			/* Timeout -- no more data? */
+			
 			DBG("%s: Nibble timeout at event 11\n",
 				 port->name);
 			break;
 		}
 
 		if (i & 1) {
-			/* Second nibble */
+			
 			byte |= nibble << 4;
 			*buf++ = byte;
 		} else
@@ -228,10 +191,10 @@ static size_t cpia_read_nibble (struct parport *port,
 	}
 
 	if (i == len) {
-		/* Read the last nibble without checking data avail. */
+		
 		if (parport_read_status (port) & PARPORT_STATUS_ERROR) {
 		end_of_data:
-			/* Go to reverse idle phase. */
+			
 			parport_frob_control (port,
 					      PARPORT_CONTROL_AUTOFD,
 					      PARPORT_CONTROL_AUTOFD);
@@ -244,16 +207,7 @@ static size_t cpia_read_nibble (struct parport *port,
 	return i/2;
 }
 
-/* CPiA nonstandard "Nibble Stream" mode (2 nibbles per cycle, instead of 1)
- * (See CPiA Data sheet p. 31)
- *
- * "Nibble Stream" mode used by CPiA for uploads to non-ECP ports is a
- * nonstandard variant of nibble mode which allows the same (mediocre)
- * data flow of 8 bits per cycle as software-enabled ECP by TRISTATE-capable
- * parallel ports, but works also for  non-TRISTATE-capable ports.
- * (Standard nibble mode only send 4 bits per cycle)
- *
- */
+
 
 static size_t cpia_read_nibble_stream(struct parport *port,
 			       void *buffer, size_t len,
@@ -267,46 +221,46 @@ static size_t cpia_read_nibble_stream(struct parport *port,
 		unsigned char nibble[2], byte = 0;
 		int j;
 
-		/* Image Data is complete when 4 consecutive EOI bytes (0xff) are seen */
+		
 		if (endseen > 3 )
 			break;
 
-		/* Event 7: Set nAutoFd low. */
+		
 		parport_frob_control (port,
 				      PARPORT_CONTROL_AUTOFD,
 				      PARPORT_CONTROL_AUTOFD);
 
-		/* Event 9: nAck goes low. */
+		
 		port->ieee1284.phase = IEEE1284_PH_REV_DATA;
 		if (parport_wait_peripheral (port,
 					     PARPORT_STATUS_ACK, 0)) {
-			/* Timeout -- no more data? */
+			
 				 DBG("%s: Nibble timeout at event 9 (%d bytes)\n",
 				 port->name, i/2);
 			parport_frob_control (port, PARPORT_CONTROL_AUTOFD, 0);
 			break;
 		}
 
-		/* Read lower nibble */
+		
 		nibble[0] = parport_read_status (port) >>3;
 
-		/* Event 10: Set nAutoFd high. */
+		
 		parport_frob_control (port, PARPORT_CONTROL_AUTOFD, 0);
 
-		/* Event 11: nAck goes high. */
+		
 		if (parport_wait_peripheral (port,
 					     PARPORT_STATUS_ACK,
 					     PARPORT_STATUS_ACK)) {
-			/* Timeout -- no more data? */
+			
 			DBG("%s: Nibble timeout at event 11\n",
 				 port->name);
 			break;
 		}
 
-		/* Read upper nibble */
+		
 		nibble[1] = parport_read_status (port) >>3;
 
-		/* reassemble the byte */
+		
 		for (j = 0; j < 2 ; j++ ) {
 			nibble[j] &= ~8;
 			if ((nibble[j] & 0x10) == 0)
@@ -324,31 +278,20 @@ static size_t cpia_read_nibble_stream(struct parport *port,
 	return i;
 }
 
-/****************************************************************************
- *
- *  EndTransferMode
- *
- ***************************************************************************/
+
 static void EndTransferMode(struct pp_cam_entry *cam)
 {
 	parport_negotiate(cam->port, IEEE1284_MODE_COMPAT);
 }
 
-/****************************************************************************
- *
- *  ForwardSetup
- *
- ***************************************************************************/
+
 static int ForwardSetup(struct pp_cam_entry *cam)
 {
 	int retry;
 
-	/* The CPiA uses ECP protocol for Downloads from the Host to the camera.
-	 * This will be software-emulated if ECP hardware is not present
-	 */
+	
 
-	/* the usual camera maximum response time is 10ms, but after receiving
-	 * some commands, it needs up to 40ms. (Data Sheet p. 32)*/
+	
 
 	for(retry = 0; retry < 4; ++retry) {
 		if(!parport_negotiate(cam->port, IEEE1284_MODE_ECP)) {
@@ -362,11 +305,7 @@ static int ForwardSetup(struct pp_cam_entry *cam)
 	}
 	return 0;
 }
-/****************************************************************************
- *
- *  ReverseSetup
- *
- ***************************************************************************/
+
 static int ReverseSetup(struct pp_cam_entry *cam, int extensibility)
 {
 	int retry;
@@ -382,8 +321,7 @@ static int ReverseSetup(struct pp_cam_entry *cam, int extensibility)
 	upload_mode = mode;
 	if(extensibility) mode = UPLOAD_FLAG|transfer_mode|IEEE1284_EXT_LINK;
 
-	/* the usual camera maximum response time is 10ms, but after
-	 * receiving some commands, it needs up to 40ms. */
+	
 
 	for(retry = 0; retry < 4; ++retry) {
 		if(!parport_negotiate(cam->port, mode)) {
@@ -402,11 +340,7 @@ static int ReverseSetup(struct pp_cam_entry *cam, int extensibility)
 	return 0;
 }
 
-/****************************************************************************
- *
- *  WritePacket
- *
- ***************************************************************************/
+
 static int WritePacket(struct pp_cam_entry *cam, const u8 *packet, size_t size)
 {
 	int retval=0;
@@ -428,11 +362,7 @@ static int WritePacket(struct pp_cam_entry *cam, const u8 *packet, size_t size)
 	return retval;
 }
 
-/****************************************************************************
- *
- *  ReadPacket
- *
- ***************************************************************************/
+
 static int ReadPacket(struct pp_cam_entry *cam, u8 *packet, size_t size)
 {
 	int retval=0;
@@ -444,7 +374,7 @@ static int ReadPacket(struct pp_cam_entry *cam, u8 *packet, size_t size)
 		return -EIO;
 	}
 
-	/* support for CPiA variant nibble reads */
+	
 	if(cam->port->ieee1284.mode == IEEE1284_MODE_NIBBLE) {
 		if(cpia_read_nibble(cam->port, packet, size, 0) != size)
 			retval = -EIO;
@@ -456,27 +386,19 @@ static int ReadPacket(struct pp_cam_entry *cam, u8 *packet, size_t size)
 	return retval;
 }
 
-/****************************************************************************
- *
- *  cpia_pp_streamStart
- *
- ***************************************************************************/
+
 static int cpia_pp_streamStart(void *privdata)
 {
 	struct pp_cam_entry *cam = privdata;
 	DBG("\n");
 	cam->streaming=1;
 	cam->image_ready=0;
-	//if (ReverseSetup(cam,1)) return -EIO;
+	
 	if(cam->stream_irq) cpia_parport_enable_irq(cam->port);
 	return 0;
 }
 
-/****************************************************************************
- *
- *  cpia_pp_streamStop
- *
- ***************************************************************************/
+
 static int cpia_pp_streamStop(void *privdata)
 {
 	struct pp_cam_entry *cam = privdata;
@@ -484,21 +406,17 @@ static int cpia_pp_streamStop(void *privdata)
 	DBG("\n");
 	cam->streaming=0;
 	cpia_parport_disable_irq(cam->port);
-	//EndTransferMode(cam);
+	
 
 	return 0;
 }
 
-/****************************************************************************
- *
- *  cpia_pp_streamRead
- *
- ***************************************************************************/
+
 static int cpia_pp_read(struct parport *port, u8 *buffer, int len)
 {
 	int bytes_read;
 
-	/* support for CPiA variant "nibble stream" reads */
+	
 	if(port->ieee1284.mode == IEEE1284_MODE_NIBBLE)
 		bytes_read = cpia_read_nibble_stream(port,buffer,len,0);
 	else {
@@ -526,13 +444,13 @@ static int cpia_pp_streamRead(void *privdata, u8 *buffer, int noblock)
 		DBG("Internal driver error: buffer is NULL\n");
 		return -EINVAL;
 	}
-	//if(cam->streaming) DBG("%d / %d\n", cam->image_ready, noblock);
+	
 	if( cam->stream_irq ) {
 		DBG("%d\n", cam->image_ready);
 		cam->image_ready--;
 	}
 	cam->image_complete=0;
-	if (0/*cam->streaming*/) {
+	if (0) {
 		if(!cam->image_ready) {
 			if(noblock) return -EWOULDBLOCK;
 			interruptible_sleep_on(&cam->wq_stream);
@@ -575,11 +493,7 @@ static int cpia_pp_streamRead(void *privdata, u8 *buffer, int noblock)
 	EndTransferMode(cam);
 	return cam->image_complete ? read_bytes : -EIO;
 }
-/****************************************************************************
- *
- *  cpia_pp_transferCmd
- *
- ***************************************************************************/
+
 static int cpia_pp_transferCmd(void *privdata, u8 *command, u8 *data)
 {
 	int err;
@@ -630,11 +544,7 @@ static int cpia_pp_transferCmd(void *privdata, u8 *command, u8 *data)
 	return retval;
 }
 
-/****************************************************************************
- *
- *  cpia_pp_open
- *
- ***************************************************************************/
+
 static int cpia_pp_open(void *privdata)
 {
 	struct pp_cam_entry *cam = (struct pp_cam_entry *)privdata;
@@ -661,11 +571,7 @@ static int cpia_pp_open(void *privdata)
 	return 0;
 }
 
-/****************************************************************************
- *
- *  cpia_pp_registerCallback
- *
- ***************************************************************************/
+
 static int cpia_pp_registerCallback(void *privdata, void (*cb)(void *cbdata), void *cbdata)
 {
 	struct pp_cam_entry *cam = privdata;
@@ -681,11 +587,7 @@ static int cpia_pp_registerCallback(void *privdata, void (*cb)(void *cbdata), vo
 	return retval;
 }
 
-/****************************************************************************
- *
- *  cpia_pp_close
- *
- ***************************************************************************/
+
 static int cpia_pp_close(void *privdata)
 {
 	struct pp_cam_entry *cam = privdata;
@@ -695,11 +597,7 @@ static int cpia_pp_close(void *privdata)
 	return 0;
 }
 
-/****************************************************************************
- *
- *  cpia_pp_register
- *
- ***************************************************************************/
+
 static int cpia_pp_register(struct parport *port)
 {
 	struct pardevice *pdev = NULL;
@@ -834,7 +732,7 @@ static int __init cpia_pp_init(void)
 static int __init cpia_init(void)
 {
 	if (parport[0]) {
-		/* The user gave some parameters.  Let's see what they were. */
+		
 		if (!strncmp(parport[0], "auto", 4)) {
 			parport_nr[0] = PPCPIA_PARPORT_AUTO;
 		} else {

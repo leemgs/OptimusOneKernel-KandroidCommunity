@@ -1,24 +1,4 @@
-/*
- * drivers/ata/pata_palmld.c
- *
- * Driver for IDE channel in Palm LifeDrive
- *
- * Based on research of:
- *		Alex Osborne <ato@meshy.org>
- *
- * Rewrite for mainline:
- *		Marek Vasut <marek.vasut@gmail.com>
- *
- * Rewritten version based on pata_ixp4xx_cf.c:
- * ixp4xx PATA/Compact Flash driver
- * Copyright (C) 2006-07 Tower Technologies
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -50,17 +30,17 @@ static __devinit int palmld_pata_probe(struct platform_device *pdev)
 	void __iomem *mem;
 	int ret;
 
-	/* allocate host */
+	
 	host = ata_host_alloc(&pdev->dev, 1);
 	if (!host)
 		return -ENOMEM;
 
-	/* remap drive's physical memory address */
+	
 	mem = devm_ioremap(&pdev->dev, PALMLD_IDE_PHYS, 0x1000);
 	if (!mem)
 		return -ENOMEM;
 
-	/* request and activate power GPIO, IRQ GPIO */
+	
 	ret = gpio_request(GPIO_NR_PALMLD_IDE_PWEN, "HDD PWR");
 	if (ret)
 		goto err1;
@@ -75,27 +55,27 @@ static __devinit int palmld_pata_probe(struct platform_device *pdev)
 	if (ret)
 		goto err3;
 
-	/* reset the drive */
+	
 	gpio_set_value(GPIO_NR_PALMLD_IDE_RESET, 0);
 	msleep(30);
 	gpio_set_value(GPIO_NR_PALMLD_IDE_RESET, 1);
 	msleep(30);
 
-	/* setup the ata port */
+	
 	ap = host->ports[0];
 	ap->ops	= &palmld_port_ops;
 	ap->pio_mask = ATA_PIO4;
 	ap->flags |= ATA_FLAG_MMIO | ATA_FLAG_NO_LEGACY | ATA_FLAG_PIO_POLLING;
 
-	/* memory mapping voodoo */
+	
 	ap->ioaddr.cmd_addr = mem + 0x10;
 	ap->ioaddr.altstatus_addr = mem + 0xe;
 	ap->ioaddr.ctl_addr = mem + 0xe;
 
-	/* start the port */
+	
 	ata_sff_std_ports(&ap->ioaddr);
 
-	/* activate host */
+	
 	return ata_host_activate(host, 0, NULL, IRQF_TRIGGER_RISING,
 					&palmld_sht);
 
@@ -113,7 +93,7 @@ static __devexit int palmld_pata_remove(struct platform_device *dev)
 
 	ata_host_detach(host);
 
-	/* power down the HDD */
+	
 	gpio_set_value(GPIO_NR_PALMLD_IDE_PWEN, 0);
 
 	gpio_free(GPIO_NR_PALMLD_IDE_RESET);

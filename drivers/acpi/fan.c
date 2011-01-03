@@ -1,27 +1,4 @@
-/*
- *  acpi_fan.c - ACPI Fan Driver ($Revision: 29 $)
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -69,11 +46,11 @@ static struct acpi_driver acpi_fan_driver = {
 		},
 };
 
-/* thermal cooling device callbacks */
+
 static int fan_get_max_state(struct thermal_cooling_device *cdev, unsigned long
 			     *state)
 {
-	/* ACPI fan device only support two states: ON/OFF */
+	
 	*state = 1;
 	return 0;
 }
@@ -118,9 +95,7 @@ static struct thermal_cooling_device_ops fan_cooling_ops = {
 	.set_cur_state = fan_set_cur_state,
 };
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc)
-   -------------------------------------------------------------------------- */
+
 #ifdef CONFIG_ACPI_PROCFS
 
 static struct proc_dir_entry *acpi_fan_dir;
@@ -201,7 +176,7 @@ static int acpi_fan_add_fs(struct acpi_device *device)
 			return -ENODEV;
 	}
 
-	/* 'status' [R/W] */
+	
 	entry = proc_create_data(ACPI_FAN_FILE_STATE,
 				 S_IFREG | S_IRUGO | S_IWUSR,
 				 acpi_device_dir(device),
@@ -234,9 +209,7 @@ static int acpi_fan_remove_fs(struct acpi_device *device)
 	return 0;
 }
 #endif
-/* --------------------------------------------------------------------------
-                                 Driver Interface
-   -------------------------------------------------------------------------- */
+
 
 static int acpi_fan_add(struct acpi_device *device)
 {

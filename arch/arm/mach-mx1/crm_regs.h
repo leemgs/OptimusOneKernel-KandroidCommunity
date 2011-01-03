@@ -1,10 +1,4 @@
-/*
- * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright (c) 2008 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * This file may be distributed under the terms of the GNU General
- * Public License, version 2.
- */
+
 
 #ifndef __ARCH_ARM_MACH_MX1_CRM_REGS_H__
 #define __ARCH_ARM_MACH_MX1_CRM_REGS_H__
@@ -12,7 +6,7 @@
 #define CCM_BASE	IO_ADDRESS(CCM_BASE_ADDR)
 #define SCM_BASE	IO_ADDRESS(SCM_BASE_ADDR)
 
-/* CCM register addresses */
+
 #define CCM_CSCR	(CCM_BASE + 0x0)
 #define CCM_MPCTL0	(CCM_BASE + 0x4)
 #define CCM_MPCTL1	(CCM_BASE + 0x8)
@@ -41,7 +35,7 @@
 #define CCM_PCDR_PCLK1_OFFSET	0
 #define CCM_PCDR_PCLK1_MASK	0xF
 
-/* SCM register addresses */
+
 #define SCM_SIDR	(SCM_BASE + 0x0)
 #define SCM_FMCR	(SCM_BASE + 0x4)
 #define SCM_GPCR	(SCM_BASE + 0x8)
@@ -52,4 +46,4 @@
 #define SCM_GCCR_MMA_CLK_EN_OFFSET	1
 #define SCM_GCCR_USBD_CLK_EN_OFFSET	0
 
-#endif /* __ARCH_ARM_MACH_MX2_CRM_REGS_H__ */
+#endif 

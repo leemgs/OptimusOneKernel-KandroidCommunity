@@ -1,12 +1,4 @@
-/*
- * 	atalk_proc.c - proc support for Appletalk
- *
- * 	Copyright(c) Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the
- *	Free Software Foundation, version 2.
- */
+
 
 #include <linux/init.h>
 #include <linux/proc_fs.h>

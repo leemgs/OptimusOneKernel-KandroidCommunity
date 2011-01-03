@@ -8,4 +8,4 @@ extern unsigned int hweight16(unsigned int w);
 extern unsigned int hweight8(unsigned int w);
 extern unsigned long hweight64(__u64 w);
 
-#endif /* _ASM_GENERIC_BITOPS_HWEIGHT_H_ */
+#endif 

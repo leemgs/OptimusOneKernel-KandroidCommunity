@@ -1,16 +1,4 @@
-/*
- * Battery and Power Management code for the Sharp SL-C7xx and SL-Cxx00
- * series of PDAs
- *
- * Copyright (c) 2004-2005 Richard Purdie
- *
- * Based on code written by Sharp for 2.4 kernels
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #undef DEBUG
 
@@ -35,26 +23,22 @@
 
 #include "sharpsl.h"
 
-/*
- * Constants
- */
-#define SHARPSL_CHARGE_ON_TIME_INTERVAL        (msecs_to_jiffies(1*60*1000))  /* 1 min */
-#define SHARPSL_CHARGE_FINISH_TIME             (msecs_to_jiffies(10*60*1000)) /* 10 min */
-#define SHARPSL_BATCHK_TIME                    (msecs_to_jiffies(15*1000))    /* 15 sec */
-#define SHARPSL_BATCHK_TIME_SUSPEND            (60*10)                        /* 10 min */
 
-#define SHARPSL_WAIT_CO_TIME                   15  /* 15 sec */
-#define SHARPSL_WAIT_DISCHARGE_ON              100 /* 100 msec */
-#define SHARPSL_CHECK_BATTERY_WAIT_TIME_TEMP   10  /* 10 msec */
-#define SHARPSL_CHECK_BATTERY_WAIT_TIME_VOLT   10  /* 10 msec */
-#define SHARPSL_CHECK_BATTERY_WAIT_TIME_ACIN   10  /* 10 msec */
-#define SHARPSL_CHARGE_WAIT_TIME               15  /* 15 msec */
-#define SHARPSL_CHARGE_CO_CHECK_TIME           5   /* 5 msec */
-#define SHARPSL_CHARGE_RETRY_CNT               1   /* eqv. 10 min */
+#define SHARPSL_CHARGE_ON_TIME_INTERVAL        (msecs_to_jiffies(1*60*1000))  
+#define SHARPSL_CHARGE_FINISH_TIME             (msecs_to_jiffies(10*60*1000)) 
+#define SHARPSL_BATCHK_TIME                    (msecs_to_jiffies(15*1000))    
+#define SHARPSL_BATCHK_TIME_SUSPEND            (60*10)                        
 
-/*
- * Prototypes
- */
+#define SHARPSL_WAIT_CO_TIME                   15  
+#define SHARPSL_WAIT_DISCHARGE_ON              100 
+#define SHARPSL_CHECK_BATTERY_WAIT_TIME_TEMP   10  
+#define SHARPSL_CHECK_BATTERY_WAIT_TIME_VOLT   10  
+#define SHARPSL_CHECK_BATTERY_WAIT_TIME_ACIN   10  
+#define SHARPSL_CHARGE_WAIT_TIME               15  
+#define SHARPSL_CHARGE_CO_CHECK_TIME           5   
+#define SHARPSL_CHARGE_RETRY_CNT               1   
+
+
 #ifdef CONFIG_PM
 static int sharpsl_off_charge_battery(void);
 static int sharpsl_check_battery_voltage(void);
@@ -68,9 +52,7 @@ static void sharpsl_charge_toggle(struct work_struct *private_);
 static void sharpsl_battery_thread(struct work_struct *private_);
 
 
-/*
- * Variables
- */
+
 struct sharpsl_pm_status sharpsl_pm;
 static DECLARE_DELAYED_WORK(toggle_charger, sharpsl_charge_toggle);
 static DECLARE_DELAYED_WORK(sharpsl_bat, sharpsl_battery_thread);
@@ -164,7 +146,7 @@ struct battery_thresh  spitz_battery_levels_noac[] = {
 	{   0,   0},
 };
 
-/* MAX1111 Commands */
+
 #define MAXCTRL_PD0      1u << 0
 #define MAXCTRL_PD1      1u << 1
 #define MAXCTRL_SGL      1u << 2
@@ -172,12 +154,10 @@ struct battery_thresh  spitz_battery_levels_noac[] = {
 #define MAXCTRL_SEL_SH   4
 #define MAXCTRL_STR      1u << 7
 
-/*
- * Read MAX1111 ADC
- */
+
 int sharpsl_pm_pxa_read_max1111(int channel)
 {
-	if (machine_is_tosa()) // Ugly, better move this function into another module
+	if (machine_is_tosa()) 
 	    return 0;
 
 #ifdef CONFIG_CORGI_SSP_DEPRECATED
@@ -186,9 +166,7 @@ int sharpsl_pm_pxa_read_max1111(int channel)
 #else
 	extern int max1111_read_channel(int);
 
-	/* max1111 accepts channels from 0-3, however,
-	 * it is encoded from 0-7 here in the code.
-	 */
+	
 	return max1111_read_channel(channel >> 1);
 #endif
 }
@@ -245,7 +223,7 @@ static void sharpsl_battery_thread(struct work_struct *private_)
 
 	sharpsl_pm.battstat.ac_status = (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN) ? APM_AC_ONLINE : APM_AC_OFFLINE);
 
-	/* Corgi cannot confirm when battery fully charged so periodically kick! */
+	
 	if (!sharpsl_pm.machinfo->batfull_irq && (sharpsl_pm.charge_mode == CHRG_ON)
 			&& time_after(jiffies, sharpsl_pm.charge_start_time +  SHARPSL_CHARGE_ON_TIME_INTERVAL))
 		schedule_delayed_work(&toggle_charger, 0);
@@ -265,8 +243,7 @@ static void sharpsl_battery_thread(struct work_struct *private_)
 	apm_status = get_apm_status(voltage);
 	percent = get_percentage(voltage);
 
-	/* At low battery voltages, the voltage has a tendency to start
-           creeping back up so we try to avoid this here */
+	
 	if ((sharpsl_pm.battstat.ac_status == APM_AC_ONLINE) || (apm_status == APM_BATTERY_STATUS_HIGH) ||  percent <= sharpsl_pm.battstat.mainbat_percent) {
 		sharpsl_pm.battstat.mainbat_voltage = voltage;
 		sharpsl_pm.battstat.mainbat_status = apm_status;
@@ -277,7 +254,7 @@ static void sharpsl_battery_thread(struct work_struct *private_)
 			sharpsl_pm.battstat.mainbat_status, sharpsl_pm.battstat.mainbat_percent, jiffies);
 
 #ifdef CONFIG_BACKLIGHT_CORGI
-	/* If battery is low. limit backlight intensity to save power. */
+	
 	if ((sharpsl_pm.battstat.ac_status != APM_AC_ONLINE)
 			&& ((sharpsl_pm.battstat.mainbat_status == APM_BATTERY_STATUS_LOW) ||
 			(sharpsl_pm.battstat.mainbat_status == APM_BATTERY_STATUS_CRITICAL))) {
@@ -291,7 +268,7 @@ static void sharpsl_battery_thread(struct work_struct *private_)
 	}
 #endif
 
-	/* Suspend if critical battery level */
+	
 	if ((sharpsl_pm.battstat.ac_status != APM_AC_ONLINE)
 			&& (sharpsl_pm.battstat.mainbat_status == APM_BATTERY_STATUS_CRITICAL)
 			&& !(sharpsl_pm.flags & SHARPSL_APM_QUEUED)) {
@@ -382,8 +359,8 @@ static void sharpsl_ac_timer(unsigned long data)
 
 static irqreturn_t sharpsl_ac_isr(int irq, void *dev_id)
 {
-	/* Delay the event slightly to debounce */
-	/* Must be a smaller delay than the chrg_full_isr below */
+	
+	
 	mod_timer(&sharpsl_pm.ac_timer, jiffies + msecs_to_jiffies(250));
 
 	return IRQ_HANDLED;
@@ -412,15 +389,14 @@ static void sharpsl_chrg_full_timer(unsigned long data)
 	}
 }
 
-/* Charging Finished Interrupt (Not present on Corgi) */
-/* Can trigger at the same time as an AC status change so
-   delay until after that has been processed */
+
+
 static irqreturn_t sharpsl_chrg_full_isr(int irq, void *dev_id)
 {
 	if (sharpsl_pm.flags & SHARPSL_SUSPENDED)
 		return IRQ_HANDLED;
 
-	/* delay until after any ac interrupt */
+	
 	mod_timer(&sharpsl_pm.chrg_full_timer, jiffies + msecs_to_jiffies(500));
 
 	return IRQ_HANDLED;
@@ -448,9 +424,7 @@ static irqreturn_t sharpsl_fatal_isr(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * Maintain an average of the last 10 readings
- */
+
 #define SHARPSL_CNV_VALUE_NUM    10
 static int sharpsl_ad_index;
 
@@ -482,15 +456,12 @@ static int sharpsl_average_value(int ad)
 	return (ad_val / sharpsl_ad_index);
 }
 
-/*
- * Take an array of 5 integers, remove the maximum and minimum values
- * and return the average.
- */
+
 static int get_select_val(int *val)
 {
 	int i, j, k, temp, sum = 0;
 
-	/* Find MAX val */
+	
 	temp = val[0];
 	j=0;
 	for (i=1; i<5; i++) {
@@ -500,7 +471,7 @@ static int get_select_val(int *val)
 		}
 	}
 
-	/* Find MIN val */
+	
 	temp = val[4];
 	k=4;
 	for (i=3; i>=0; i--) {
@@ -523,7 +494,7 @@ static int sharpsl_check_battery_temp(void)
 {
 	int val, i, buff[5];
 
-	/* Check battery temperature */
+	
 	for (i=0; i<5; i++) {
 		mdelay(SHARPSL_CHECK_BATTERY_WAIT_TIME_TEMP);
 		sharpsl_pm.machinfo->measure_temp(1);
@@ -548,7 +519,7 @@ static int sharpsl_check_battery_voltage(void)
 {
 	int val, i, buff[5];
 
-	/* disable charge, enable discharge */
+	
 	sharpsl_pm.machinfo->charge(0);
 	sharpsl_pm.machinfo->discharge(1);
 	mdelay(SHARPSL_WAIT_DISCHARGE_ON);
@@ -556,7 +527,7 @@ static int sharpsl_check_battery_voltage(void)
 	if (sharpsl_pm.machinfo->discharge1)
 		sharpsl_pm.machinfo->discharge1(1);
 
-	/* Check battery voltage */
+	
 	for (i=0; i<5; i++) {
 		buff[i] = sharpsl_pm.machinfo->read_devdata(SHARPSL_BATT_VOLT);
 		mdelay(SHARPSL_CHECK_BATTERY_WAIT_TIME_VOLT);
@@ -613,7 +584,7 @@ static int sharpsl_pm_suspend(struct platform_device *pdev, pm_message_t state)
 
 static int sharpsl_pm_resume(struct platform_device *pdev)
 {
-	/* Clear the reset source indicators as they break the bootloader upon reboot */
+	
 	RCSR = 0x0f;
 	sharpsl_average_clear();
 	sharpsl_pm.flags &= ~SHARPSL_APM_QUEUED;
@@ -627,7 +598,7 @@ static void corgi_goto_sleep(unsigned long alarm_time, unsigned int alarm_enable
 	dev_dbg(sharpsl_pm.dev, "Time is: %08x\n",RCNR);
 
 	dev_dbg(sharpsl_pm.dev, "Offline Charge Activate = %d\n",sharpsl_pm.flags & SHARPSL_DO_OFFLINE_CHRG);
-	/* not charging and AC-IN! */
+	
 
 	if ((sharpsl_pm.flags & SHARPSL_DO_OFFLINE_CHRG) && (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN))) {
 		dev_dbg(sharpsl_pm.dev, "Activating Offline Charger...\n");
@@ -638,7 +609,7 @@ static void corgi_goto_sleep(unsigned long alarm_time, unsigned int alarm_enable
 
 	sharpsl_pm.machinfo->presuspend();
 
-	PEDR = 0xffffffff; /* clear it */
+	PEDR = 0xffffffff; 
 
 	sharpsl_pm.flags &= ~SHARPSL_ALARM_ACTIVE;
 	if ((sharpsl_pm.charge_mode == CHRG_ON) && ((alarm_enable && ((alarm_time - RCNR) > (SHARPSL_BATCHK_TIME_SUSPEND + 30))) || !alarm_enable)) {
@@ -708,30 +679,27 @@ static int corgi_pxa_pm_enter(suspend_state_t state)
 	return 0;
 }
 
-/*
- * Check for fatal battery errors
- * Fatal returns -1
- */
+
 static int sharpsl_fatal_check(void)
 {
 	int buff[5], temp, i, acin;
 
 	dev_dbg(sharpsl_pm.dev, "sharpsl_fatal_check entered\n");
 
-	/* Check AC-Adapter */
+	
 	acin = sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN);
 
 	if (acin && (sharpsl_pm.charge_mode == CHRG_ON)) {
 		sharpsl_pm.machinfo->charge(0);
 		udelay(100);
-		sharpsl_pm.machinfo->discharge(1);	/* enable discharge */
+		sharpsl_pm.machinfo->discharge(1);	
 		mdelay(SHARPSL_WAIT_DISCHARGE_ON);
 	}
 
 	if (sharpsl_pm.machinfo->discharge1)
 		sharpsl_pm.machinfo->discharge1(1);
 
-	/* Check battery : check inserting battery ? */
+	
 	for (i=0; i<5; i++) {
 		buff[i] = sharpsl_pm.machinfo->read_devdata(SHARPSL_BATT_VOLT);
 		mdelay(SHARPSL_CHECK_BATTERY_WAIT_TIME_VOLT);
@@ -764,11 +732,7 @@ static int sharpsl_off_charge_error(void)
 	return 1;
 }
 
-/*
- * Charging Control while suspended
- * Return 1 - go straight to sleep
- * Return 0 - sleep or wakeup depending on other factors
- */
+
 static int sharpsl_off_charge_battery(void)
 {
 	int time;
@@ -778,11 +742,11 @@ static int sharpsl_off_charge_battery(void)
 	if (sharpsl_pm.charge_mode == CHRG_OFF) {
 		dev_dbg(sharpsl_pm.dev, "Offline Charger: Step 1\n");
 
-		/* AC Check */
+		
 		if ((sharpsl_ac_check() < 0) || (sharpsl_check_battery_temp() < 0))
 			return sharpsl_off_charge_error();
 
-		/* Start Charging */
+		
 		sharpsl_pm_led(SHARPSL_LED_ON);
 		sharpsl_pm.machinfo->charge(0);
 		mdelay(SHARPSL_CHARGE_WAIT_TIME);
@@ -813,10 +777,10 @@ static int sharpsl_off_charge_battery(void)
 
 		time = RCNR;
 		while(1) {
-			/* Check if any wakeup event had occurred */
+			
 			if (sharpsl_pm.machinfo->charger_wakeup() != 0)
 				return 0;
-			/* Check for timeout */
+			
 			if ((RCNR - time) > SHARPSL_WAIT_CO_TIME)
 				return 1;
 			if (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_CHRGFULL)) {
@@ -836,10 +800,10 @@ static int sharpsl_off_charge_battery(void)
 
 	time = RCNR;
 	while(1) {
-		/* Check if any wakeup event had occurred */
+		
 		if (sharpsl_pm.machinfo->charger_wakeup() != 0)
 			return 0;
-		/* Check for timeout */
+		
 		if ((RCNR-time) > SHARPSL_WAIT_CO_TIME) {
 			if (sharpsl_pm.full_count > SHARPSL_CHARGE_RETRY_CNT) {
 				dev_dbg(sharpsl_pm.dev, "Offline Charger: Not charged sufficiently. Retrying.\n");
@@ -928,7 +892,7 @@ static int __init sharpsl_pm_probe(struct platform_device *pdev)
 	gpio_request(sharpsl_pm.machinfo->gpio_batlock, "Battery Lock");
 	gpio_direction_input(sharpsl_pm.machinfo->gpio_batlock);
 
-	/* Register interrupt handlers */
+	
 	if (request_irq(IRQ_GPIO(sharpsl_pm.machinfo->gpio_acin), sharpsl_ac_isr, IRQF_DISABLED | IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, "AC Input Detect", sharpsl_ac_isr)) {
 		dev_err(sharpsl_pm.dev, "Could not get irq %d.\n", IRQ_GPIO(sharpsl_pm.machinfo->gpio_acin));
 	}
@@ -945,7 +909,7 @@ static int __init sharpsl_pm_probe(struct platform_device *pdev)
 
 	if (sharpsl_pm.machinfo->batfull_irq)
 	{
-		/* Register interrupt handler. */
+		
 		if (request_irq(IRQ_GPIO(sharpsl_pm.machinfo->gpio_batfull), sharpsl_chrg_full_isr, IRQF_DISABLED | IRQF_TRIGGER_RISING, "CO", sharpsl_chrg_full_isr)) {
 			dev_err(sharpsl_pm.dev, "Could not get irq %d.\n", IRQ_GPIO(sharpsl_pm.machinfo->gpio_batfull));
 		}

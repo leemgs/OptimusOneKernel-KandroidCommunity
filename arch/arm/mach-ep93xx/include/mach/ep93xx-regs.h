@@ -1,32 +1,12 @@
-/*
- * arch/arm/mach-ep93xx/include/mach/ep93xx-regs.h
- */
+
 
 #ifndef __ASM_ARCH_EP93XX_REGS_H
 #define __ASM_ARCH_EP93XX_REGS_H
 
-/*
- * EP93xx Physical Memory Map:
- *
- * The ASDO pin is sampled at system reset to select a synchronous or
- * asynchronous boot configuration.  When ASDO is "1" (i.e. pulled-up)
- * the synchronous boot mode is selected.  When ASDO is "0" (i.e
- * pulled-down) the asynchronous boot mode is selected.
- *
- * In synchronous boot mode nSDCE3 is decoded starting at physical address
- * 0x00000000 and nCS0 is decoded starting at 0xf0000000.  For asynchronous
- * boot mode they are swapped with nCS0 decoded at 0x00000000 ann nSDCE3
- * decoded at 0xf0000000.
- *
- * There is known errata for the EP93xx dealing with External Memory
- * Configurations.  Please refer to "AN273: EP93xx Silicon Rev E Design
- * Guidelines" for more information.  This document can be found at:
- *
- *	http://www.cirrus.com/en/pubs/appNote/AN273REV4.pdf
- */
 
-#define EP93XX_CS0_PHYS_BASE_ASYNC	0x00000000	/* ASDO Pin = 0 */
-#define EP93XX_SDCE3_PHYS_BASE_SYNC	0x00000000	/* ASDO Pin = 1 */
+
+#define EP93XX_CS0_PHYS_BASE_ASYNC	0x00000000	
+#define EP93XX_SDCE3_PHYS_BASE_SYNC	0x00000000	
 #define EP93XX_CS1_PHYS_BASE		0x10000000
 #define EP93XX_CS2_PHYS_BASE		0x20000000
 #define EP93XX_CS3_PHYS_BASE		0x30000000
@@ -36,17 +16,10 @@
 #define EP93XX_SDCE0_PHYS_BASE		0xc0000000
 #define EP93XX_SDCE1_PHYS_BASE		0xd0000000
 #define EP93XX_SDCE2_PHYS_BASE		0xe0000000
-#define EP93XX_SDCE3_PHYS_BASE_ASYNC	0xf0000000	/* ASDO Pin = 0 */
-#define EP93XX_CS0_PHYS_BASE_SYNC	0xf0000000	/* ASDO Pin = 1 */
+#define EP93XX_SDCE3_PHYS_BASE_ASYNC	0xf0000000	
+#define EP93XX_CS0_PHYS_BASE_SYNC	0xf0000000	
 
-/*
- * EP93xx linux memory map:
- *
- * virt		phys		size
- * fe800000			5M		per-platform mappings
- * fed00000	80800000	2M		APB
- * fef00000	80000000	1M		AHB
- */
+
 
 #define EP93XX_AHB_PHYS_BASE		0x80000000
 #define EP93XX_AHB_VIRT_BASE		0xfef00000
@@ -63,7 +36,7 @@
 #define EP93XX_APB_IOMEM(x)		IOMEM(EP93XX_APB_VIRT_BASE + (x))
 
 
-/* AHB peripherals */
+
 #define EP93XX_DMA_BASE			EP93XX_AHB_IOMEM(0x00000000)
 
 #define EP93XX_ETHERNET_PHYS_BASE	EP93XX_AHB_PHYS(0x00010000)
@@ -90,7 +63,7 @@
 #define EP93XX_VIC2_BASE		EP93XX_AHB_IOMEM(0x000c0000)
 
 
-/* APB peripherals */
+
 #define EP93XX_TIMER_BASE		EP93XX_APB_IOMEM(0x00010000)
 #define EP93XX_TIMER_REG(x)		(EP93XX_TIMER_BASE + (x))
 #define EP93XX_TIMER1_LOAD		EP93XX_TIMER_REG(0x00)

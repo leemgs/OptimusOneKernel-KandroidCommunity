@@ -1,14 +1,4 @@
-/*
- *	xt_conntrack - Netfilter module to match connection tracking
- *	information. (Superset of Rusty's minimalistic state match.)
- *
- *	(C) 2001  Marc Boucher (marc@mbsi.ca).
- *	Copyright © CC Computer Consultants GmbH, 2007 - 2008
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License version 2 as
- *	published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -86,7 +76,7 @@ ct_proto_port_check(const struct xt_conntrack_mtinfo2 *info,
 	    !(info->invert_flags & XT_CONNTRACK_PROTO))
 		return false;
 
-	/* Shortcut to match all recognized protocols by using ->src.all. */
+	
 	if ((info->match_flags & XT_CONNTRACK_ORIGSRC_PORT) &&
 	    (tuple->src.u.all == info->origsrc_port) ^
 	    !(info->invert_flags & XT_CONNTRACK_ORIGSRC_PORT))

@@ -1,17 +1,4 @@
-/*
- * arch/arm/mach-pnx4008/include/mach/irq.h
- *
- * PNX4008 IRQ controller driver - header file
- * this one is used in entry-arnv.S as well so it cannot contain C code
- *
- * Copyright (c) 2005 Philips Semiconductors
- * Copyright (c) 2005 MontaVista Software, Inc.
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 #ifndef __PNX4008_IRQ_H__
 #define __PNX4008_IRQ_H__
 
@@ -19,7 +6,7 @@
 #define SIC1_VA_BASE            IO_ADDRESS(PNX4008_INTCTRLSIC1_BASE)
 #define SIC2_VA_BASE            IO_ADDRESS(PNX4008_INTCTRLSIC2_BASE)
 
-/* Manual: Chapter 20, page 195 */
+
 
 #define INTC_BIT(irq) (1<< ((irq) & 0x1F))
 
@@ -39,4 +26,4 @@
 
 extern void __init pnx4008_init_irq(void);
 
-#endif /* __PNX4008_IRQ_H__ */
+#endif 

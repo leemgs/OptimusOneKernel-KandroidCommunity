@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/addr-map.c
- *
- * Address map functions for Marvell Kirkwood SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -15,9 +7,7 @@
 #include <mach/hardware.h>
 #include "common.h"
 
-/*
- * Generic Address Decode Windows bit settings
- */
+
 #define TARGET_DDR		0
 #define TARGET_DEV_BUS		1
 #define TARGET_SRAM		3
@@ -33,15 +23,11 @@
 #define ATTR_PCIE_MEM		0xe8
 #define ATTR_SRAM		0x01
 
-/*
- * Helpers to get DDR bank info
- */
+
 #define DDR_BASE_CS_OFF(n)	(0x0000 + ((n) << 3))
 #define DDR_SIZE_CS_OFF(n)	(0x0004 + ((n) << 3))
 
-/*
- * CPU Address Decode Windows registers
- */
+
 #define WIN_OFF(n)		(BRIDGE_VIRT_BASE + 0x0000 + ((n) << 4))
 #define WIN_CTRL_OFF		0x0000
 #define WIN_BASE_OFF		0x0004
@@ -85,9 +71,7 @@ void __init kirkwood_setup_cpu_mbus(void)
 	int i;
 	int cs;
 
-	/*
-	 * First, disable and clear windows.
-	 */
+	
 	for (i = 0; i < 8; i++) {
 		addr = (void __iomem *)WIN_OFF(i);
 
@@ -99,29 +83,21 @@ void __init kirkwood_setup_cpu_mbus(void)
 		}
 	}
 
-	/*
-	 * Setup windows for PCIe IO+MEM space.
-	 */
+	
 	setup_cpu_win(0, KIRKWOOD_PCIE_IO_PHYS_BASE, KIRKWOOD_PCIE_IO_SIZE,
 		      TARGET_PCIE, ATTR_PCIE_IO, KIRKWOOD_PCIE_IO_BUS_BASE);
 	setup_cpu_win(1, KIRKWOOD_PCIE_MEM_PHYS_BASE, KIRKWOOD_PCIE_MEM_SIZE,
 		      TARGET_PCIE, ATTR_PCIE_MEM, KIRKWOOD_PCIE_MEM_BUS_BASE);
 
-	/*
-	 * Setup window for NAND controller.
-	 */
+	
 	setup_cpu_win(2, KIRKWOOD_NAND_MEM_PHYS_BASE, KIRKWOOD_NAND_MEM_SIZE,
 		      TARGET_DEV_BUS, ATTR_DEV_NAND, -1);
 
-	/*
-	 * Setup window for SRAM.
-	 */
+	
 	setup_cpu_win(3, KIRKWOOD_SRAM_PHYS_BASE, KIRKWOOD_SRAM_SIZE,
 		      TARGET_SRAM, ATTR_SRAM, -1);
 
-	/*
-	 * Setup MBUS dram target info.
-	 */
+	
 	kirkwood_mbus_dram_info.mbus_dram_target_id = TARGET_DDR;
 
 	addr = (void __iomem *)DDR_WINDOW_CPU_BASE;
@@ -130,9 +106,7 @@ void __init kirkwood_setup_cpu_mbus(void)
 		u32 base = readl(addr + DDR_BASE_CS_OFF(i));
 		u32 size = readl(addr + DDR_SIZE_CS_OFF(i));
 
-		/*
-		 * Chip select enabled?
-		 */
+		
 		if (size & 1) {
 			struct mbus_dram_window *w;
 

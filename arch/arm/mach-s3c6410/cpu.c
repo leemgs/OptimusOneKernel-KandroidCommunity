@@ -1,14 +1,4 @@
-/* linux/arch/arm/mach-s3c6410/cpu.c
- *
- * Copyright 2008 Simtec Electronics
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -41,25 +31,22 @@
 #include <plat/s3c6400.h>
 #include <plat/s3c6410.h>
 
-/* Initial IO mappings */
+
 
 static struct map_desc s3c6410_iodesc[] __initdata = {
 };
 
-/* s3c6410_map_io
- *
- * register the standard cpu IO areas
-*/
+
 
 void __init s3c6410_map_io(void)
 {
 	iotable_init(s3c6410_iodesc, ARRAY_SIZE(s3c6410_iodesc));
 
-	/* initialise device information early */
+	
 	s3c6410_default_sdhci0();
 	s3c6410_default_sdhci1();
 
-	/* the i2c devices are directly compatible with s3c2440 */
+	
 	s3c_i2c0_setname("s3c2440-i2c");
 	s3c_i2c1_setname("s3c2440-i2c");
 
@@ -77,7 +64,7 @@ void __init s3c6410_init_clocks(int xtal)
 
 void __init s3c6410_init_irq(void)
 {
-	/* VIC0 is missing IRQ7, VIC1 is fully populated. */
+	
 	s3c64xx_init_irq(~0 & ~(1 << 7), ~0);
 }
 

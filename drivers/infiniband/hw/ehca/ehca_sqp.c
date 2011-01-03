@@ -1,43 +1,4 @@
-/*
- *  IBM eServer eHCA Infiniband device driver for Linux on POWER
- *
- *  SQP functions
- *
- *  Authors: Khadija Souissi <souissi@de.ibm.com>
- *           Heiko J Schick <schickhj@de.ibm.com>
- *
- *  Copyright (c) 2005 IBM Corporation
- *
- *  All rights reserved.
- *
- *  This source code is distributed under a dual license of GPL v2.0 and OpenIB
- *  BSD.
- *
- * OpenIB BSD License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials
- * provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include <rdma/ib_mad.h>
 
@@ -52,14 +13,7 @@
 
 #define IB_PMA_CLASS_PORT_INFO		cpu_to_be16(0x0001)
 
-/**
- * ehca_define_sqp - Defines special queue pair 1 (GSI QP). When special queue
- * pair is created successfully, the corresponding port gets active.
- *
- * Define Special Queue pair 0 (SMI QP) is still not supported.
- *
- * @qp_init_attr: Queue pair init attributes with port and queue pair type
- */
+
 
 u64 ehca_define_sqp(struct ehca_shca *shca,
 		    struct ehca_qp *ehca_qp,
@@ -74,7 +28,7 @@ u64 ehca_define_sqp(struct ehca_shca *shca,
 
 	switch (qp_init_attr->qp_type) {
 	case IB_QPT_SMI:
-		/* function not supported yet */
+		
 		break;
 	case IB_QPT_GSI:
 		ret = hipz_h_define_aqp1(shca->ipz_hca_handle,
@@ -99,7 +53,7 @@ u64 ehca_define_sqp(struct ehca_shca *shca,
 		return H_PARAMETER;
 	}
 
-	if (ehca_nr_ports < 0) /* autodetect mode */
+	if (ehca_nr_ports < 0) 
 		return H_SUCCESS;
 
 	for (counter = 0;
@@ -125,14 +79,14 @@ struct ib_perf {
 	u8 data[192];
 } __attribute__ ((packed));
 
-/* TC/SL/FL packed into 32 bits, as in ClassPortInfo */
+
 struct tcslfl {
 	u32 tc:8;
 	u32 sl:4;
 	u32 fl:20;
 } __attribute__ ((packed));
 
-/* IP Version/TC/FL packed into 32 bits, as in GRH */
+
 struct vertcfl {
 	u32 ver:4;
 	u32 tc:8;
@@ -167,7 +121,7 @@ static int ehca_process_perf(struct ib_device *ibdev, u8 port_num,
 	switch (in_perf->mad_hdr.method) {
 	case IB_MGMT_METHOD_GET:
 	case IB_MGMT_METHOD_SET:
-		/* set class port info for redirection */
+		
 		out_perf->mad_hdr.attr_id = IB_PMA_CLASS_PORT_INFO;
 		out_perf->mad_hdr.status = IB_MAD_STATUS_REDIRECT;
 		memset(poi, 0, sizeof(*poi));
@@ -175,7 +129,7 @@ static int ehca_process_perf(struct ib_device *ibdev, u8 port_num,
 		poi->class_version = 1;
 		poi->resp_time_value = 18;
 
-		/* copy local routing information from WC where applicable */
+		
 		tcslfl->sl         = in_wc->sl;
 		poi->redirect_lid  =
 			sport->saved_attr.lid | in_wc->dlid_path_bits;
@@ -185,7 +139,7 @@ static int ehca_process_perf(struct ib_device *ibdev, u8 port_num,
 		ehca_query_pkey(ibdev, port_num, in_wc->pkey_index,
 				&poi->redirect_pkey);
 
-		/* if request was globally routed, copy route info */
+		
 		if (in_grh) {
 			struct vertcfl *vertcfl =
 				(struct vertcfl *)&in_grh->version_tclass_flow;
@@ -194,7 +148,7 @@ static int ehca_process_perf(struct ib_device *ibdev, u8 port_num,
 			tcslfl->tc        = vertcfl->tc;
 			tcslfl->fl        = vertcfl->fl;
 		} else
-			/* else only fill in default GID */
+			
 			ehca_query_gid(ibdev, port_num, 0,
 				       (union ib_gid *)&poi->redirect_gid);
 
@@ -225,7 +179,7 @@ int ehca_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
 	if (!port_num || port_num > ibdev->phys_port_cnt)
 		return IB_MAD_RESULT_FAILURE;
 
-	/* accept only pma request */
+	
 	if (in_mad->mad_hdr.mgmt_class != IB_MGMT_CLASS_PERF_MGMT)
 		return IB_MAD_RESULT_SUCCESS;
 

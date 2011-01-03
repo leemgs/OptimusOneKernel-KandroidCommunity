@@ -1,15 +1,4 @@
-/* arch/arm/plat-s3c/pwm.c
- *
- * Copyright (c) 2007 Ben Dooks
- * Copyright (c) 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>, <ben-linux@fluff.org>
- *
- * S3C series PWM device core
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
-*/
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -46,7 +35,7 @@ struct pwm_device {
 
 static struct clk *clk_scaler[2];
 
-/* Standard setup for a timer block. */
+
 
 #define TIMER_RESOURCE_SIZE (1)
 
@@ -65,9 +54,7 @@ static struct clk *clk_scaler[2];
 	.num_resources	= TIMER_RESOURCE_SIZE,		\
 	.resource	= TIMER_RESOURCE(_tmr_no, _irq),	\
 
-/* since we already have an static mapping for the timer, we do not
- * bother setting any IO resource for the base.
- */
+
 
 struct platform_device s3c_device_timer[] = {
 	[0] = { DEFINE_S3C_TIMER(0, IRQ_TIMER0) },
@@ -200,9 +187,7 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 	unsigned long tcnt;
 	long tcmp;
 
-	/* We currently avoid using 64bit arithmetic by using the
-	 * fact that anything faster than 1Hz is easily representable
-	 * by 32bits. */
+	
 
 	if (period_ns > NS_IN_HZ || duty_ns > NS_IN_HZ)
 		return -ERANGE;
@@ -214,8 +199,7 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 	    duty_ns == pwm->duty_ns)
 		return 0;
 
-	/* The TCMP and TCNT can be read without a lock, they're not
-	 * shared between the timers. */
+	
 
 	tcmp = __raw_readl(S3C2410_TCMPB(pwm->pwm_id));
 	tcnt = __raw_readl(S3C2410_TCNTB(pwm->pwm_id));
@@ -225,7 +209,7 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 	pwm_dbg(pwm, "duty_ns=%d, period_ns=%d (%lu)\n",
 		duty_ns, period_ns, period);
 
-	/* Check to see if we are changing the clock rate of the PWM */
+	
 
 	if (pwm->period_ns != period_ns) {
 		if (pwm_is_tdiv(pwm)) {
@@ -243,12 +227,11 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 	} else
 		tin_ns = NS_IN_HZ / clk_get_rate(pwm->clk);
 
-	/* Note, counters count down */
+	
 
 	tcmp = duty_ns / tin_ns;
 	tcmp = tcnt - tcmp;
-	/* the pwm hw only checks the compare register after a decrement,
-	   so the pin never toggles if tcmp = tcnt */
+	
 	if (tcmp == tcnt)
 		tcmp--;
 
@@ -257,7 +240,7 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 	if (tcmp < 0)
 		tcmp = 0;
 
-	/* Update the PWM register block. */
+	
 
 	local_irq_save(flags);
 
@@ -314,7 +297,7 @@ static int s3c_pwm_probe(struct platform_device *pdev)
 	pwm->pdev = pdev;
 	pwm->pwm_id = id;
 
-	/* calculate base of control bits in TCON */
+	
 	pwm->tcon_base = id == 0 ? 0 : (id * 4) + 4;
 
 	pwm->clk = clk_get(dev, "pwm-tin");

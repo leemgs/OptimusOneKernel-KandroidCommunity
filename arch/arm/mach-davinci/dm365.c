@@ -1,17 +1,4 @@
-/*
- * TI DaVinci DM365 chip specific setup
- *
- * Copyright (C) 2009 Texas Instruments
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation version 2.
- *
- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
- * kind, whether express or implied; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/clk.h>
@@ -36,7 +23,7 @@
 #include "clock.h"
 #include "mux.h"
 
-#define DM365_REF_FREQ		24000000	/* 24 MHz on the DM365 EVM */
+#define DM365_REF_FREQ		24000000	
 
 static struct pll_data pll1_data = {
 	.num		= 1,
@@ -462,7 +449,7 @@ static struct davinci_clk dm365_clks[] = {
 	CLK(NULL, NULL, NULL),
 };
 
-/*----------------------------------------------------------------------*/
+
 
 #define PINMUX0		0x00
 #define PINMUX1		0x04
@@ -720,10 +707,10 @@ static u8 dm365_default_priorities[DAVINCI_N_AINTC_IRQ] = {
 	[IRQ_DM365_EMUINT]		= 7,
 };
 
-/* Four Transfer Controllers on DM365 */
+
 static const s8
 dm365_queue_tc_mapping[][2] = {
-	/* {event queue no, TC no} */
+	
 	{0, 0},
 	{1, 1},
 	{2, 2},
@@ -733,7 +720,7 @@ dm365_queue_tc_mapping[][2] = {
 
 static const s8
 dm365_queue_priority_mapping[][2] = {
-	/* {event queue no, Priority} */
+	
 	{0, 7},
 	{1, 7},
 	{2, 7},
@@ -795,7 +782,7 @@ static struct resource edma_resources[] = {
 		.start	= IRQ_CCERRINT,
 		.flags	= IORESOURCE_IRQ,
 	},
-	/* not using TC*_ERR */
+	
 };
 
 static struct platform_device dm365_edma_device = {
@@ -817,12 +804,12 @@ static struct map_desc dm365_io_desc[] = {
 		.virtual	= SRAM_VIRT,
 		.pfn		= __phys_to_pfn(0x00010000),
 		.length		= SZ_32K,
-		/* MT_MEMORY_NONCACHED requires supersection alignment */
+		
 		.type		= MT_DEVICE,
 	},
 };
 
-/* Contents of JTAG ID register used to identify exact cpu type */
+
 static struct davinci_id dm365_ids[] = {
 	{
 		.variant	= 0x0,
@@ -900,7 +887,7 @@ static struct davinci_soc_info davinci_soc_info_dm365 = {
 	.gpio_base		= IO_ADDRESS(DAVINCI_GPIO_BASE),
 	.gpio_num		= 104,
 	.gpio_irq		= IRQ_DM365_GPIO0,
-	.gpio_unbanked		= 8,	/* really 16 ... skip muxed GPIOs */
+	.gpio_unbanked		= 8,	
 	.serial_dev		= &dm365_serial_device,
 	.emac_pdata		= &dm365_emac_pdata,
 	.sram_dma		= 0x00010000,

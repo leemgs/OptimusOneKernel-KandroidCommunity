@@ -1,14 +1,4 @@
-/*
- * net/sched/gact.c	Generic actions
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * copyright 	Jamal Hadi Salim (2002-4)
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -51,7 +41,7 @@ static int gact_determ(struct tcf_gact *gact)
 
 typedef int (*g_rand)(struct tcf_gact *gact);
 static g_rand gact_rand[MAX_RAND]= { NULL, gact_net_rand, gact_determ };
-#endif /* CONFIG_GACT_PROB */
+#endif 
 
 static const struct nla_policy gact_policy[TCA_GACT_MAX + 1] = {
 	[TCA_GACT_PARMS]	= { .len = sizeof(struct tc_gact) },

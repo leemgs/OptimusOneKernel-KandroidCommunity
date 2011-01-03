@@ -1,22 +1,4 @@
-/*
- * arch/arm/mach-omap2/serial.c
- *
- * OMAP2 serial support.
- *
- * Copyright (C) 2005-2008 Nokia Corporation
- * Author: Paul Mundt <paul.mundt@nokia.com>
- *
- * Major rework for PM support by Kevin Hilman
- *
- * Based off of arch/arm/mach-omap/omap1/serial.c
- *
- * Copyright (C) 2009 Texas Instruments
- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License. See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/serial_8250.h>
@@ -33,7 +15,7 @@
 #include "pm.h"
 #include "prm-regbits-34xx.h"
 
-#define UART_OMAP_WER		0x17	/* Wake-up enable register */
+#define UART_OMAP_WER		0x17	
 
 #define DEFAULT_TIMEOUT (5 * HZ)
 
@@ -59,7 +41,7 @@ struct omap_uart_state {
 #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
 	int context_valid;
 
-	/* Registers to be saved/restored for OFF-mode */
+	
 	u16 dll;
 	u16 dlh;
 	u16 ier;
@@ -142,11 +124,7 @@ static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
 	__raw_writeb(value, p->membase + offset);
 }
 
-/*
- * Internal UARTs need to be initialized for the 8250 autoconfig to work
- * properly. Note that the TX watermark initialization may not be needed
- * once the 8250.c watermark handling code is merged.
- */
+
 static inline void __init omap_uart_reset(struct omap_uart_state *uart)
 {
 	struct plat_serial8250_port *p = uart->p;
@@ -159,7 +137,7 @@ static inline void __init omap_uart_reset(struct omap_uart_state *uart)
 
 #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
 
-static int enable_off_mode; /* to be removed by full off-mode patches */
+static int enable_off_mode; 
 
 static void omap_uart_save_context(struct omap_uart_state *uart)
 {
@@ -196,29 +174,29 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
 	uart->context_valid = 0;
 
 	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
-	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+	serial_write_reg(p, UART_LCR, 0xBF); 
 	efr = serial_read_reg(p, UART_EFR);
 	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
-	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
+	serial_write_reg(p, UART_LCR, 0x0); 
 	serial_write_reg(p, UART_IER, 0x0);
-	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+	serial_write_reg(p, UART_LCR, 0xBF); 
 	serial_write_reg(p, UART_DLL, uart->dll);
 	serial_write_reg(p, UART_DLM, uart->dlh);
-	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
+	serial_write_reg(p, UART_LCR, 0x0); 
 	serial_write_reg(p, UART_IER, uart->ier);
 	serial_write_reg(p, UART_FCR, 0xA1);
-	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+	serial_write_reg(p, UART_LCR, 0xBF); 
 	serial_write_reg(p, UART_EFR, efr);
 	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
 	serial_write_reg(p, UART_OMAP_SCR, uart->scr);
 	serial_write_reg(p, UART_OMAP_WER, uart->wer);
 	serial_write_reg(p, UART_OMAP_SYSC, uart->sysc);
-	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
+	serial_write_reg(p, UART_OMAP_MDR1, 0x00); 
 }
 #else
 static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
 static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
-#endif /* CONFIG_PM && CONFIG_ARCH_OMAP3 */
+#endif 
 
 static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
 {
@@ -246,14 +224,14 @@ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
 
 static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
 {
-	/* Set wake-enable bit */
+	
 	if (uart->wk_en && uart->wk_mask) {
 		u32 v = __raw_readl(uart->wk_en);
 		v |= uart->wk_mask;
 		__raw_writel(v, uart->wk_en);
 	}
 
-	/* Ensure IOPAD wake-enables are set */
+	
 	if (cpu_is_omap34xx() && uart->padconf) {
 		u16 v = omap_ctrl_readw(uart->padconf);
 		v |= OMAP3_PADCONF_WAKEUPENABLE0;
@@ -263,14 +241,14 @@ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
 
 static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
 {
-	/* Clear wake-enable bit */
+	
 	if (uart->wk_en && uart->wk_mask) {
 		u32 v = __raw_readl(uart->wk_en);
 		v &= ~uart->wk_mask;
 		__raw_writel(v, uart->wk_en);
 	}
 
-	/* Ensure IOPAD wake-enables are cleared */
+	
 	if (cpu_is_omap34xx() && uart->padconf) {
 		u16 v = omap_ctrl_readw(uart->padconf);
 		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
@@ -347,7 +325,7 @@ void omap_uart_resume_idle(int num)
 		if (num == uart->num) {
 			omap_uart_enable_clocks(uart);
 
-			/* Check for IO pad wakeup */
+			
 			if (cpu_is_omap34xx() && uart->padconf) {
 				u16 p = omap_ctrl_readw(uart->padconf);
 
@@ -355,7 +333,7 @@ void omap_uart_resume_idle(int num)
 					omap_uart_block_sleep(uart);
 			}
 
-			/* Check for normal UART wakeup */
+			
 			if (__raw_readl(uart->wk_st) & uart->wk_mask)
 				omap_uart_block_sleep(uart);
 			return;
@@ -386,22 +364,14 @@ int omap_uart_can_sleep(void)
 			continue;
 		}
 
-		/* This UART can now safely sleep. */
+		
 		omap_uart_allow_sleep(uart);
 	}
 
 	return can_sleep;
 }
 
-/**
- * omap_uart_interrupt()
- *
- * This handler is used only to detect that *any* UART interrupt has
- * occurred.  It does _nothing_ to handle the interrupt.  Rather,
- * any UART interrupt will trigger the inactivity timer so the
- * UART will not idle or sleep for its timeout period.
- *
- **/
+
 static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
 {
 	struct omap_uart_state *uart = dev_id;
@@ -526,7 +496,7 @@ static ssize_t sleep_timeout_store(struct device *dev,
 	if (uart->timeout)
 		mod_timer(&uart->timer, jiffies + uart->timeout);
 	else
-		/* A zero value means disable timeout feature */
+		
 		omap_uart_block_sleep(uart);
 
 	return n;
@@ -537,7 +507,7 @@ DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show, sleep_timeout_store);
 #else
 static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
 #define DEV_CREATE_FILE(dev, attr)
-#endif /* CONFIG_PM */
+#endif 
 
 static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
 	{
@@ -583,11 +553,7 @@ void __init omap_serial_early_init(void)
 	int i;
 	char name[16];
 
-	/*
-	 * Make sure the serial ports are muxed on at this point.
-	 * You have to mux them off in device drivers later on
-	 * if not needed.
-	 */
+	
 
 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
 		struct omap_uart_state *uart = &omap_uart[i];
@@ -609,7 +575,7 @@ void __init omap_serial_early_init(void)
 			uart->fck = NULL;
 		}
 
-		/* FIXME: Remove this once the clkdev is ready */
+		
 		if (!cpu_is_omap44xx()) {
 			if (!uart->ick || !uart->fck)
 				continue;

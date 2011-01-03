@@ -1,33 +1,9 @@
-/*
- * arch/arm/plat-omap/include/mach/omap34xx.h
- *
- * This file contains the processor specific definitions of the TI OMAP34XX.
- *
- * Copyright (C) 2007 Texas Instruments.
- * Copyright (C) 2007 Nokia Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #ifndef __ASM_ARCH_OMAP34XX_H
 #define __ASM_ARCH_OMAP34XX_H
 
-/*
- * Please place only base defines here and put the rest in device
- * specific headers.
- */
+
 
 #define L4_34XX_BASE		0x48000000
 #define L4_WK_34XX_BASE		0x48300000
@@ -83,5 +59,5 @@
 #define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
 #define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
 #define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
-#endif /* __ASM_ARCH_OMAP34XX_H */
+#endif 
 

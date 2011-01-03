@@ -1,11 +1,4 @@
-/*
- * generic/default IDE host driver
- *
- * Copyright (C) 2004, 2008-2009 Bartlomiej Zolnierkiewicz
- * This code was split off from ide.c.  See it for original copyrights.
- *
- * May be copied or modified under the terms of the GNU General Public License.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -13,7 +6,7 @@
 #include <linux/ide.h>
 #include <linux/pci_ids.h>
 
-/* FIXME: convert arm and m32r to use ide_platform host driver */
+
 #ifdef CONFIG_ARM
 #include <asm/irq.h>
 #endif
@@ -62,18 +55,18 @@ static void ide_generic_check_pci_legacy_iobases(int *primary, int *secondary)
 		if (pci_resource_start(p, 2) == 0x170)
 			*secondary = 1;
 
-		/* Cyrix CS55{1,2}0 pre SFF MWDMA ATA on the bridge */
+		
 		if (p->vendor == PCI_VENDOR_ID_CYRIX &&
 		    (p->device == PCI_DEVICE_ID_CYRIX_5510 ||
 		     p->device == PCI_DEVICE_ID_CYRIX_5520))
 			*primary = *secondary = 1;
 
-		/* Intel MPIIX - PIO ATA on non PCI side of bridge */
+		
 		if (p->vendor == PCI_VENDOR_ID_INTEL &&
 		    p->device == PCI_DEVICE_ID_INTEL_82371MX) {
 			pci_read_config_word(p, 0x6C, &val);
 			if (val & 0x8000) {
-				/* ATA port enabled */
+				
 				if (val & 0x4000)
 					*secondary = 1;
 				else

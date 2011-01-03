@@ -1,27 +1,4 @@
-/*
- * Linux WiMAX
- * Implement and export a method for getting a WiMAX device current state
- *
- * Copyright (C) 2009 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * Based on previous WiMAX core work by:
- *  Copyright (C) 2008 Intel Corporation <linux-wimax@intel.com>
- *  Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- */
+
 
 #include <net/wimax.h>
 #include <net/genetlink.h>
@@ -41,14 +18,7 @@ struct nla_policy wimax_gnl_state_get_policy[WIMAX_GNL_ATTR_MAX + 1] = {
 };
 
 
-/*
- * Exporting to user space over generic netlink
- *
- * Parse the state get command from user space, return a combination
- * value that describe the current state.
- *
- * No attributes.
- */
+
 static
 int wimax_gnl_doit_state_get(struct sk_buff *skb, struct genl_info *info)
 {
@@ -68,7 +38,7 @@ int wimax_gnl_doit_state_get(struct sk_buff *skb, struct genl_info *info)
 	if (wimax_dev == NULL)
 		goto error_no_wimax_dev;
 	dev = wimax_dev_to_dev(wimax_dev);
-	/* Execute the operation and send the result back to user space */
+	
 	result = wimax_state_get(wimax_dev);
 	dev_put(wimax_dev->net_dev);
 error_no_wimax_dev:

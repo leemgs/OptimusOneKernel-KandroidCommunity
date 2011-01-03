@@ -1,11 +1,4 @@
-/*
- * firmware_class.c - Multi purpose firmware loading support
- *
- * Copyright (c) 2003 Manuel Estrada Sainz
- *
- * Please see Documentation/firmware_class/ for more information.
- *
- */
+
 
 #include <linux/capability.h>
 #include <linux/device.h>
@@ -33,10 +26,9 @@ enum {
 	FW_STATUS_ABORT,
 };
 
-static int loading_timeout = 60;	/* In seconds */
+static int loading_timeout = 60;	
 
-/* fw_lock could be moved to 'struct firmware_priv' but since it is just
- * guarding for corner cases a global lock should be OK */
+
 static DEFINE_MUTEX(fw_lock);
 
 struct firmware_priv {
@@ -55,7 +47,7 @@ struct firmware_priv {
 #ifdef CONFIG_FW_LOADER
 extern struct builtin_fw __start_builtin_fw[];
 extern struct builtin_fw __end_builtin_fw[];
-#else /* Module case. Avoid ifdefs later; it'll all optimise out */
+#else 
 static struct builtin_fw *__start_builtin_fw;
 static struct builtin_fw *__end_builtin_fw;
 #endif
@@ -74,18 +66,7 @@ firmware_timeout_show(struct class *class, char *buf)
 	return sprintf(buf, "%d\n", loading_timeout);
 }
 
-/**
- * firmware_timeout_store - set number of seconds to wait for firmware
- * @class: device class pointer
- * @buf: buffer to scan for timeout value
- * @count: number of bytes in @buf
- *
- *	Sets the number of seconds to wait for the firmware.  Once
- *	this expires an error will be returned to the driver and no
- *	firmware will be provided.
- *
- *	Note: zero means 'wait forever'.
- **/
+
 static ssize_t
 firmware_timeout_store(struct class *class, const char *buf, size_t count)
 {
@@ -125,23 +106,22 @@ static ssize_t firmware_loading_show(struct device *dev,
 	return sprintf(buf, "%d\n", loading);
 }
 
-/* Some architectures don't have PAGE_KERNEL_RO */
+static void firmware_free_data(const struct firmware *fw)
+{
+	int i;
+	vunmap(fw->data);
+	if (fw->pages) {
+		for (i = 0; i < PFN_UP(fw->size); i++)
+			__free_page(fw->pages[i]);
+		kfree(fw->pages);
+	}
+}
+
+
 #ifndef PAGE_KERNEL_RO
 #define PAGE_KERNEL_RO PAGE_KERNEL
 #endif
-/**
- * firmware_loading_store - set value in the 'loading' control file
- * @dev: device pointer
- * @attr: device attribute pointer
- * @buf: buffer to scan for loading control value
- * @count: number of bytes in @buf
- *
- *	The relevant values are:
- *
- *	 1: Start a load, discarding any previous partial load.
- *	 0: Conclude the load and hand the data to the driver code.
- *	-1: Conclude the load with an error and discard any written data.
- **/
+
 static ssize_t firmware_loading_store(struct device *dev,
 				      struct device_attribute *attr,
 				      const char *buf, size_t count)
@@ -157,21 +137,21 @@ static ssize_t firmware_loading_store(struct device *dev,
 			mutex_unlock(&fw_lock);
 			break;
 		}
-		vfree(fw_priv->fw->data);
-		fw_priv->fw->data = NULL;
+		firmware_free_data(fw_priv->fw);
+		memset(fw_priv->fw, 0, sizeof(struct firmware));
+		
 		for (i = 0; i < fw_priv->nr_pages; i++)
 			__free_page(fw_priv->pages[i]);
 		kfree(fw_priv->pages);
 		fw_priv->pages = NULL;
 		fw_priv->page_array_size = 0;
 		fw_priv->nr_pages = 0;
-		fw_priv->fw->size = 0;
 		set_bit(FW_STATUS_LOADING, &fw_priv->status);
 		mutex_unlock(&fw_lock);
 		break;
 	case 0:
 		if (test_bit(FW_STATUS_LOADING, &fw_priv->status)) {
-			vfree(fw_priv->fw->data);
+			vunmap(fw_priv->fw->data);
 			fw_priv->fw->data = vmap(fw_priv->pages,
 						 fw_priv->nr_pages,
 						 0, PAGE_KERNEL_RO);
@@ -179,17 +159,20 @@ static ssize_t firmware_loading_store(struct device *dev,
 				dev_err(dev, "%s: vmap() failed\n", __func__);
 				goto err;
 			}
-			/* Pages will be freed by vfree() */
+			
+			fw_priv->fw->pages = fw_priv->pages;
+			fw_priv->pages = NULL;
+
 			fw_priv->page_array_size = 0;
 			fw_priv->nr_pages = 0;
 			complete(&fw_priv->completion);
 			clear_bit(FW_STATUS_LOADING, &fw_priv->status);
 			break;
 		}
-		/* fallthrough */
+		
 	default:
 		dev_err(dev, "%s: unexpected value (%d)\n", __func__, loading);
-		/* fallthrough */
+		
 	case -1:
 	err:
 		fw_load_abort(fw_priv);
@@ -250,7 +233,7 @@ fw_realloc_buffer(struct firmware_priv *fw_priv, int min_size)
 {
 	int pages_needed = ALIGN(min_size, PAGE_SIZE) >> PAGE_SHIFT;
 
-	/* If the array of pages is too small, grow it... */
+	
 	if (fw_priv->page_array_size < pages_needed) {
 		int new_array_size = max(pages_needed,
 					 fw_priv->page_array_size * 2);
@@ -284,17 +267,7 @@ fw_realloc_buffer(struct firmware_priv *fw_priv, int min_size)
 	return 0;
 }
 
-/**
- * firmware_data_write - write method for firmware
- * @kobj: kobject for the device
- * @bin_attr: bin_attr structure
- * @buffer: buffer being written
- * @offset: buffer offset for write in total data store area
- * @count: buffer size
- *
- *	Data written to the 'data' attribute will be later handed to
- *	the driver as a firmware image.
- **/
+
 static ssize_t
 firmware_data_write(struct kobject *kobj, struct bin_attribute *bin_attr,
 		    char *buffer, loff_t offset, size_t count)
@@ -433,7 +406,7 @@ static int fw_setup_device(struct firmware *fw, struct device **dev_p,
 	if (retval)
 		goto out;
 
-	/* Need to pin this module until class device is destroyed */
+	
 	__module_get(THIS_MODULE);
 
 	fw_priv = dev_get_drvdata(f_dev);
@@ -534,21 +507,7 @@ out:
 	return retval;
 }
 
-/**
- * request_firmware: - send firmware request and wait for it
- * @firmware_p: pointer to firmware image
- * @name: name of firmware file
- * @device: device for which firmware is being loaded
- *
- *      @firmware_p will be used to return a firmware image by the name
- *      of @name for device @device.
- *
- *      Should be called from user context where sleeping is allowed.
- *
- *      @name will be used as $FIRMWARE in the uevent environment and
- *      should be distinctive enough not to be confused with any other
- *      firmware image for this or any other device.
- **/
+
 int
 request_firmware(const struct firmware **firmware_p, const char *name,
                  struct device *device)
@@ -557,10 +516,7 @@ request_firmware(const struct firmware **firmware_p, const char *name,
         return _request_firmware(firmware_p, name, device, uevent);
 }
 
-/**
- * release_firmware: - release the resource associated with a firmware image
- * @fw: firmware resource to release
- **/
+
 void
 release_firmware(const struct firmware *fw)
 {
@@ -572,13 +528,13 @@ release_firmware(const struct firmware *fw)
 			if (fw->data == builtin->data)
 				goto free_fw;
 		}
-		vfree(fw->data);
+		firmware_free_data(fw);
 	free_fw:
 		kfree(fw);
 	}
 }
 
-/* Async support */
+
 struct firmware_work {
 	struct work_struct work;
 	struct module *module;
@@ -612,22 +568,7 @@ request_firmware_work_func(void *arg)
 	return ret;
 }
 
-/**
- * request_firmware_nowait: asynchronous version of request_firmware
- * @module: module requesting the firmware
- * @uevent: sends uevent to copy the firmware image if this flag
- *	is non-zero else the firmware copy must be done manually.
- * @name: name of firmware file
- * @device: device for which firmware is being loaded
- * @context: will be passed over to @cont, and
- *	@fw may be %NULL if firmware request fails.
- * @cont: function will be called asynchronously when the firmware
- *	request is over.
- *
- *	Asynchronous variant of request_firmware() for user contexts where
- *	it is not possible to sleep for long time. It can't be called
- *	in atomic contexts.
- **/
+
 int
 request_firmware_nowait(
 	struct module *module, int uevent,

@@ -1,17 +1,4 @@
-/* delayacct.c - per-task delay accounting
- *
- * Copyright (C) Shailabh Nagar, IBM Corp. 2006
- *
- * This program is free software;  you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it would be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
- * the GNU General Public License for more details.
- */
+
 
 #include <linux/sched.h>
 #include <linux/slab.h>
@@ -20,7 +7,7 @@
 #include <linux/sysctl.h>
 #include <linux/delayacct.h>
 
-int delayacct_on __read_mostly = 1;	/* Delay accounting turned on/off */
+int delayacct_on __read_mostly = 1;	
 struct kmem_cache *delayacct_cache;
 
 static int __init delayacct_setup_disable(char *str)
@@ -43,20 +30,14 @@ void __delayacct_tsk_init(struct task_struct *tsk)
 		spin_lock_init(&tsk->delays->lock);
 }
 
-/*
- * Start accounting for a delay statistic using
- * its starting timestamp (@start)
- */
+
 
 static inline void delayacct_start(struct timespec *start)
 {
 	do_posix_clock_monotonic_gettime(start);
 }
 
-/*
- * Finish delay accounting for a statistic using
- * its timestamps (@start, @end), accumalator (@total) and @count
- */
+
 
 static void delayacct_end(struct timespec *start, struct timespec *end,
 				u64 *total, u32 *count)
@@ -85,12 +66,12 @@ void __delayacct_blkio_start(void)
 void __delayacct_blkio_end(void)
 {
 	if (current->delays->flags & DELAYACCT_PF_SWAPIN)
-		/* Swapin block I/O */
+		
 		delayacct_end(&current->delays->blkio_start,
 			&current->delays->blkio_end,
 			&current->delays->swapin_delay,
 			&current->delays->swapin_count);
-	else	/* Other block I/O */
+	else	
 		delayacct_end(&current->delays->blkio_start,
 			&current->delays->blkio_end,
 			&current->delays->blkio_delay,
@@ -105,9 +86,7 @@ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
 	unsigned long flags;
 	struct timespec ts;
 
-	/* Though tsk->delays accessed later, early exit avoids
-	 * unnecessary returning of other data
-	 */
+	
 	if (!tsk->delays)
 		goto done;
 
@@ -122,10 +101,7 @@ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
 	d->cpu_scaled_run_real_total =
 		(tmp < (s64)d->cpu_scaled_run_real_total) ? 0 : tmp;
 
-	/*
-	 * No locking available for sched_info (and too expensive to add one)
-	 * Mitigate by taking snapshot of values
-	 */
+	
 	t1 = tsk->sched_info.pcount;
 	t2 = tsk->sched_info.run_delay;
 	t3 = tsk->se.sum_exec_runtime;
@@ -139,7 +115,7 @@ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
 	d->cpu_run_virtual_total =
 		(tmp < (s64)d->cpu_run_virtual_total) ?	0 : tmp;
 
-	/* zero XXX_total, non-zero XXX_count implies XXX stat overflowed */
+	
 
 	spin_lock_irqsave(&tsk->delays->lock, flags);
 	tmp = d->blkio_delay_total + tsk->delays->blkio_delay;

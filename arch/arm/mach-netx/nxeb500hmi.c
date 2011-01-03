@@ -1,21 +1,4 @@
-/*
- * arch/arm/mach-netx/nxeb500hmi.c
- *
- * Copyright (c) 2005 Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/dma-mapping.h>
 #include <linux/init.h>
@@ -73,13 +56,13 @@ static int nxeb500hmi_clcd_setup(struct clcd_fb *fb)
 	fb->fb.var.green.length = 5;
 	fb->fb.var.green.msb_right = 0;
 
-	/* enable asic control */
+	
 	val = readl(NETX_SYSTEM_IOC_ACCESS_KEY);
 	writel(val, NETX_SYSTEM_IOC_ACCESS_KEY);
 
 	writel(3, NETX_SYSTEM_IOC_CR);
 
-	/* GPIO 14 is used for display enable on newer boards */
+	
 	writel(9, NETX_GPIO_CFG(14));
 
 	val = readl(NETX_PIO_OUTPIO);

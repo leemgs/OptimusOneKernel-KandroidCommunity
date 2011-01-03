@@ -1,15 +1,4 @@
-/*
- *  Macintosh IDE Driver
- *
- *     Copyright (C) 1998 by Michael Schmitz
- *
- *  This driver was written based on information obtained from the MacOS IDE
- *  driver binary by Mikael Forselius
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive for
- *  more details.
- */
+
 
 #include <linux/types.h>
 #include <linux/mm.h>
@@ -22,34 +11,17 @@
 #include <asm/macints.h>
 #include <asm/mac_baboon.h>
 
-#define IDE_BASE 0x50F1A000	/* Base address of IDE controller */
+#define IDE_BASE 0x50F1A000	
 
-/*
- * Generic IDE registers as offsets from the base
- * These match MkLinux so they should be correct.
- */
 
-#define IDE_CONTROL	0x38	/* control/altstatus */
 
-/*
- * Mac-specific registers
- */
+#define IDE_CONTROL	0x38	
 
-/*
- * this register is odd; it doesn't seem to do much and it's
- * not word-aligned like virtually every other hardware register
- * on the Mac...
- */
 
-#define IDE_IFR		0x101	/* (0x101) IDE interrupt flags on Quadra:
-				 *
-				 * Bit 0+1: some interrupt flags
-				 * Bit 2+3: some interrupt enable
-				 * Bit 4:   ??
-				 * Bit 5:   IDE interrupt flag (any hwif)
-				 * Bit 6:   maybe IDE interrupt enable (any hwif) ??
-				 * Bit 7:   Any interrupt condition
-				 */
+
+
+
+#define IDE_IFR		0x101	
 
 volatile unsigned char *ide_ifr = (unsigned char *) (IDE_BASE + IDE_IFR);
 
@@ -95,9 +67,7 @@ static const struct ide_port_info macide_port_info = {
 static const char *mac_ide_name[] =
 	{ "Quadra", "Powerbook", "Powerbook Baboon" };
 
-/*
- * Probe for a Macintosh IDE interface
- */
+
 
 static int __init macide_init(void)
 {

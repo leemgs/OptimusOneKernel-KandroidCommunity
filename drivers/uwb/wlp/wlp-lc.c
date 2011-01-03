@@ -1,26 +1,4 @@
-/*
- * WiMedia Logical Link Control Protocol (WLP)
- *
- * Copyright (C) 2005-2006 Intel Corporation
- * Reinette Chatre <reinette.chatre@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * FIXME: docs
- */
+
 #include <linux/wlp.h>
 
 #include "wlp-internal.h"
@@ -31,11 +9,7 @@ void wlp_neighbor_init(struct wlp_neighbor_e *neighbor)
 	INIT_LIST_HEAD(&neighbor->wssid);
 }
 
-/**
- * Create area for device information storage
- *
- * wlp->mutex must be held
- */
+
 int __wlp_alloc_device_info(struct wlp *wlp)
 {
 	struct device *dev = &wlp->rc->uwb_dev.dev;
@@ -50,24 +24,14 @@ int __wlp_alloc_device_info(struct wlp *wlp)
 }
 
 
-/**
- * Fill in device information using function provided by driver
- *
- * wlp->mutex must be held
- */
+
 static
 void __wlp_fill_device_info(struct wlp *wlp)
 {
 	wlp->fill_device_info(wlp, wlp->dev_info);
 }
 
-/**
- * Setup device information
- *
- * Allocate area for device information and populate it.
- *
- * wlp->mutex must be held
- */
+
 int __wlp_setup_device_info(struct wlp *wlp)
 {
 	int result;
@@ -83,18 +47,7 @@ int __wlp_setup_device_info(struct wlp *wlp)
 	return 0;
 }
 
-/**
- * Remove information about neighbor stored temporarily
- *
- * Information learned during discovey should only be stored when the
- * device enrolls in the neighbor's WSS. We do need to store this
- * information temporarily in order to present it to the user.
- *
- * We are only interested in keeping neighbor WSS information if that
- * neighbor is accepting enrollment.
- *
- * should be called with wlp->nbmutex held
- */
+
 void wlp_remove_neighbor_tmp_info(struct wlp_neighbor_e *neighbor)
 {
 	struct wlp_wssid_e *wssid_e, *next;
@@ -119,13 +72,7 @@ void wlp_remove_neighbor_tmp_info(struct wlp_neighbor_e *neighbor)
 	}
 }
 
-/*
- * Populate WLP neighborhood cache with neighbor information
- *
- * A new neighbor is found. If it is discoverable then we add it to the
- * neighborhood cache.
- *
- */
+
 static
 int wlp_add_neighbor(struct wlp *wlp, struct uwb_dev *dev)
 {
@@ -133,16 +80,10 @@ int wlp_add_neighbor(struct wlp *wlp, struct uwb_dev *dev)
 	int discoverable;
 	struct wlp_neighbor_e *neighbor;
 
-	/*
-	 * FIXME:
-	 * Use contents of WLP IE found in beacon cache to determine if
-	 * neighbor is discoverable.
-	 * The device does not support WLP IE yet so this still needs to be
-	 * done. Until then we assume all devices are discoverable.
-	 */
-	discoverable = 1; /* will be changed when FIXME disappears */
+	
+	discoverable = 1; 
 	if (discoverable) {
-		/* Add neighbor to cache for discovery */
+		
 		neighbor = kzalloc(sizeof(*neighbor), GFP_KERNEL);
 		if (neighbor == NULL) {
 			dev_err(&dev->dev, "Unable to create memory for "
@@ -159,9 +100,7 @@ error_no_mem:
 	return result;
 }
 
-/**
- * Remove one neighbor from cache
- */
+
 static
 void __wlp_neighbor_release(struct wlp_neighbor_e *neighbor)
 {
@@ -177,9 +116,7 @@ void __wlp_neighbor_release(struct wlp_neighbor_e *neighbor)
 	kfree(neighbor);
 }
 
-/**
- * Clear entire neighborhood cache.
- */
+
 static
 void __wlp_neighbors_release(struct wlp *wlp)
 {
@@ -201,23 +138,7 @@ void wlp_neighbors_release(struct wlp *wlp)
 
 
 
-/**
- * Send D1 message to neighbor, receive D2 message
- *
- * @neighbor: neighbor to which D1 message will be sent
- * @wss:      if not NULL, it is an enrollment request for this WSS
- * @wssid:    if wss not NULL, this is the wssid of the WSS in which we
- *            want to enroll
- *
- * A D1/D2 exchange is done for one of two reasons: discovery or
- * enrollment. If done for discovery the D1 message is sent to the neighbor
- * and the contents of the D2 response is stored in a temporary cache.
- * If done for enrollment the @wss and @wssid are provided also. In this
- * case the D1 message is sent to the neighbor, the D2 response is parsed
- * for enrollment of the WSS with wssid.
- *
- * &wss->mutex is held
- */
+
 static
 int wlp_d1d2_exchange(struct wlp *wlp, struct wlp_neighbor_e *neighbor,
 		      struct wlp_wss *wss, struct wlp_uuid *wssid)
@@ -237,7 +158,7 @@ int wlp_d1d2_exchange(struct wlp *wlp, struct wlp_neighbor_e *neighbor,
 		result = -ENXIO;
 		goto out;
 	}
-	/* Send D1 association frame */
+	
 	result = wlp_send_assoc_frame(wlp, wss, dev_addr, WLP_ASSOC_D1);
 	if (result < 0) {
 		dev_err(dev, "Unable to send D1 frame to neighbor "
@@ -245,14 +166,14 @@ int wlp_d1d2_exchange(struct wlp *wlp, struct wlp_neighbor_e *neighbor,
 			dev_addr->data[0], result);
 		goto out;
 	}
-	/* Create session, wait for response */
+	
 	session.exp_message = WLP_ASSOC_D2;
 	session.cb = wlp_session_cb;
 	session.cb_priv = &completion;
 	session.neighbor_addr = *dev_addr;
 	BUG_ON(wlp->session != NULL);
 	wlp->session = &session;
-	/* Wait for D2/F0 frame */
+	
 	result = wait_for_completion_interruptible_timeout(&completion,
 						   WLP_PER_MSG_TIMEOUT * HZ);
 	if (result == 0) {
@@ -267,7 +188,7 @@ int wlp_d1d2_exchange(struct wlp *wlp, struct wlp_neighbor_e *neighbor,
 			dev_addr->data[1], dev_addr->data[0]);
 		goto error_session;
 	}
-	/* Parse message in session->data: it will be either D2 or F0 */
+	
 	skb = session.data;
 	resp = (void *) skb->data;
 
@@ -281,7 +202,7 @@ int wlp_d1d2_exchange(struct wlp *wlp, struct wlp_neighbor_e *neighbor,
 		goto error_resp_parse;
 	}
 	if (wss == NULL) {
-		/* Discovery */
+		
 		result = wlp_parse_d2_frame_to_cache(wlp, skb, neighbor);
 		if (result < 0) {
 			dev_err(dev, "WLP: Unable to parse D2 message from "
@@ -290,7 +211,7 @@ int wlp_d1d2_exchange(struct wlp *wlp, struct wlp_neighbor_e *neighbor,
 			goto error_resp_parse;
 		}
 	} else {
-		/* Enrollment */
+		
 		result = wlp_parse_d2_frame_to_enroll(wss, skb, neighbor,
 						      wssid);
 		if (result < 0) {
@@ -309,11 +230,7 @@ out:
 	return result;
 }
 
-/**
- * Enroll into WSS of provided WSSID by using neighbor as registrar
- *
- * &wss->mutex is held
- */
+
 int wlp_enroll_neighbor(struct wlp *wlp, struct wlp_neighbor_e *neighbor,
 			struct wlp_wss *wss, struct wlp_uuid *wssid)
 {
@@ -354,9 +271,7 @@ error:
 	return result;
 }
 
-/**
- * Discover WSS information of neighbor's active WSS
- */
+
 static
 int wlp_discover_neighbor(struct wlp *wlp,
 			  struct wlp_neighbor_e *neighbor)
@@ -365,19 +280,7 @@ int wlp_discover_neighbor(struct wlp *wlp,
 }
 
 
-/**
- * Each neighbor in the neighborhood cache is discoverable. Discover it.
- *
- * Discovery is done through sending of D1 association frame and parsing
- * the D2 association frame response. Only wssid from D2 will be included
- * in neighbor cache, rest is just displayed to user and forgotten.
- *
- * The discovery is not done in parallel. This is simple and enables us to
- * maintain only one association context.
- *
- * The discovery of one neighbor does not affect the other, but if the
- * discovery of a neighbor fails it is removed from the neighborhood cache.
- */
+
 static
 int wlp_discover_all_neighbors(struct wlp *wlp)
 {
@@ -406,42 +309,25 @@ static int wlp_add_neighbor_helper(struct device *dev, void *priv)
 	return wlp_add_neighbor(wlp, uwb_dev);
 }
 
-/**
- * Discover WLP neighborhood
- *
- * Will send D1 association frame to all devices in beacon group that have
- * discoverable bit set in WLP IE. D2 frames will be received, information
- * displayed to user in @buf. Partial information (from D2 association
- * frame) will be cached to assist with future association
- * requests.
- *
- * The discovery of the WLP neighborhood is triggered by the user. This
- * should occur infrequently and we thus free current cache and re-allocate
- * memory if needed.
- *
- * If one neighbor fails during initial discovery (determining if it is a
- * neighbor or not), we fail all - note that interaction with neighbor has
- * not occured at this point so if a failure occurs we know something went wrong
- * locally. We thus undo everything.
- */
+
 ssize_t wlp_discover(struct wlp *wlp)
 {
 	int result = 0;
 	struct device *dev = &wlp->rc->uwb_dev.dev;
 
 	mutex_lock(&wlp->nbmutex);
-	/* Clear current neighborhood cache. */
+	
 	__wlp_neighbors_release(wlp);
-	/* Determine which devices in neighborhood. Repopulate cache. */
+	
 	result = uwb_dev_for_each(wlp->rc, wlp_add_neighbor_helper, wlp);
 	if (result < 0) {
-		/* May have partial neighbor information, release all. */
+		
 		__wlp_neighbors_release(wlp);
 		goto error_dev_for_each;
 	}
-	/* Discover the properties of devices in neighborhood. */
+	
 	result = wlp_discover_all_neighbors(wlp);
-	/* In case of failure we still print our partial results. */
+	
 	if (result < 0) {
 		dev_err(dev, "Unable to fully discover neighborhood. \n");
 		result = 0;
@@ -451,15 +337,7 @@ error_dev_for_each:
 	return result;
 }
 
-/**
- * Handle events from UWB stack
- *
- * We handle events conservatively. If a neighbor goes off the air we
- * remove it from the neighborhood. If an association process is in
- * progress this function will block waiting for the nbmutex to become
- * free. The association process will thus be allowed to complete before it
- * is removed.
- */
+
 static
 void wlp_uwb_notifs_cb(void *_wlp, struct uwb_dev *uwb_dev,
 		       enum uwb_notifs event)
@@ -515,7 +393,7 @@ int wlp_setup(struct wlp *wlp, struct uwb_rc *rc, struct net_device *ndev)
 
 	wlp->rc = rc;
 	wlp->ndev = ndev;
-	wlp_eda_init(&wlp->eda);/* Set up address cache */
+	wlp_eda_init(&wlp->eda);
 	wlp->uwb_notifs_handler.cb = wlp_uwb_notifs_cb;
 	wlp->uwb_notifs_handler.data = wlp;
 	uwb_notifs_register(rc, &wlp->uwb_notifs_handler);
@@ -545,13 +423,7 @@ void wlp_remove(struct wlp *wlp)
 }
 EXPORT_SYMBOL_GPL(wlp_remove);
 
-/**
- * wlp_reset_all - reset the WLP hardware
- * @wlp: the WLP device to reset.
- *
- * This schedules a full hardware reset of the WLP device.  The radio
- * controller and any other PALs will also be reset.
- */
+
 void wlp_reset_all(struct wlp *wlp)
 {
 	uwb_rc_reset_all(wlp->rc);

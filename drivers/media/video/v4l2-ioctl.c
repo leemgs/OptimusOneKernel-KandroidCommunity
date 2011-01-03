@@ -1,22 +1,10 @@
-/*
- * Video capture interface for Linux version 2
- *
- * A generic framework to process V4L2 ioctl commands.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- *
- * Authors:	Alan Cox, <alan@lxorguk.ukuu.org.uk> (version 1)
- *              Mauro Carvalho Chehab <mchehab@infradead.org> (version 2)
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
 #include <linux/kernel.h>
 
-#define __OLD_VIDIOC_ /* To allow fixing old calls */
+#define __OLD_VIDIOC_ 
 #include <linux/videodev.h>
 #include <linux/videodev2.h>
 
@@ -48,8 +36,7 @@
 			printk(KERN_CONT "%s: " fmt, vfd->name, ## arg);\
 		} while (0)
 
-/* Zero out the end of the struct pointed to by p.  Everthing after, but
- * not including, the specified field is cleared. */
+
 #define CLEAR_AFTER_FIELD(p, field) \
 	memset((u8 *)(p) + offsetof(typeof(*(p)), field) + sizeof((p)->field), \
 	0, sizeof(*(p)) - offsetof(typeof(*(p)), field) - sizeof((p)->field))
@@ -93,17 +80,13 @@ static const struct std_descr standards[] = {
 	{ 0, 			"Unknown"   }
 };
 
-/* video4linux standard ID conversion to standard name
- */
+
 const char *v4l2_norm_to_name(v4l2_std_id id)
 {
 	u32 myid = id;
 	int i;
 
-	/* HACK: ppc32 architecture doesn't have __ucmpdi2 function to handle
-	   64 bit comparations. So, on that architecture, with some gcc
-	   variants, compilation fails. Currently, the max value is 30bit wide.
-	 */
+	
 	BUG_ON(myid != id);
 
 	for (i = 0; standards[i].std; i++)
@@ -113,7 +96,7 @@ const char *v4l2_norm_to_name(v4l2_std_id id)
 }
 EXPORT_SYMBOL(v4l2_norm_to_name);
 
-/* Returns frame period for the given standard */
+
 void v4l2_video_std_frame_period(int id, struct v4l2_fract *frameperiod)
 {
 	if (id & V4L2_STD_525_60) {
@@ -126,8 +109,7 @@ void v4l2_video_std_frame_period(int id, struct v4l2_fract *frameperiod)
 }
 EXPORT_SYMBOL(v4l2_video_std_frame_period);
 
-/* Fill in the fields of a v4l2_standard structure according to the
-   'id' and 'transmission' parameters.  Returns negative on error.  */
+
 int v4l2_video_std_construct(struct v4l2_standard *vs,
 			     int id, const char *name)
 {
@@ -139,8 +121,8 @@ int v4l2_video_std_construct(struct v4l2_standard *vs,
 }
 EXPORT_SYMBOL(v4l2_video_std_construct);
 
-/* ----------------------------------------------------------------- */
-/* some arrays for pretty-printing debug messages of enum types      */
+
+
 
 const char *v4l2_field_names[] = {
 	[V4L2_FIELD_ANY]        = "any",
@@ -177,8 +159,8 @@ static const char *v4l2_memory_names[] = {
 #define prt_names(a, arr) ((((a) >= 0) && ((a) < ARRAY_SIZE(arr))) ? \
 			   arr[a] : "unknown")
 
-/* ------------------------------------------------------------------ */
-/* debug help functions                                               */
+
+
 
 #ifdef CONFIG_VIDEO_V4L1_COMPAT
 static const char *v4l1_ioctls[] = {
@@ -287,8 +269,7 @@ static const char *v4l2_ioctls[] = {
 };
 #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
 
-/* Common ioctl debug function. This function can be used by
-   external ioctl messages as well as internal V4L ioctl */
+
 void v4l_printk_ioctl(unsigned int cmd)
 {
 	char *dir, *type;
@@ -329,9 +310,7 @@ void v4l_printk_ioctl(unsigned int cmd)
 }
 EXPORT_SYMBOL(v4l_printk_ioctl);
 
-/*
- * helper function -- handles userspace copying for ioctl arguments
- */
+
 
 #ifdef __OLD_VIDIOC_
 static unsigned int
@@ -361,9 +340,7 @@ video_fix_command(unsigned int cmd)
 }
 #endif
 
-/*
- * Obsolete usercopy function - Should be removed soon
- */
+
 long
 video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
 		v4l2_kioctl func)
@@ -382,7 +359,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
 	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
 		       cmd == VIDIOC_TRY_EXT_CTRLS);
 
-	/*  Copy arguments into temp kernel buffer  */
+	
 	switch (_IOC_DIR(cmd)) {
 	case _IOC_NONE:
 		parg = NULL;
@@ -393,7 +370,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
 		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
 			parg = sbuf;
 		} else {
-			/* too big to allocate from stack */
+			
 			mbuf = kmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
 			if (NULL == mbuf)
 				return -ENOMEM;
@@ -409,13 +386,12 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
 	if (is_ext_ctrl) {
 		struct v4l2_ext_controls *p = parg;
 
-		/* In case of an error, tell the caller that it wasn't
-		   a specific control that caused it. */
+		
 		p->error_idx = p->count;
 		user_ptr = (void __user *)p->controls;
 		if (p->count) {
 			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
-			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+			
 			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
 			err = -ENOMEM;
 			if (NULL == mbuf)
@@ -427,7 +403,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
 		}
 	}
 
-	/* call driver */
+	
 	err = func(file, cmd, parg);
 	if (err == -ENOIOCTLCMD)
 		err = -EINVAL;
@@ -443,7 +419,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
 		goto out;
 
 out_ext_ctrl:
-	/*  Copy results into user buffer  */
+	
 	switch (_IOC_DIR(cmd)) {
 	case _IOC_READ:
 	case (_IOC_WRITE | _IOC_READ):
@@ -527,19 +503,15 @@ static inline int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
 {
 	__u32 i;
 
-	/* zero the reserved fields */
+	
 	c->reserved[0] = c->reserved[1] = 0;
 	for (i = 0; i < c->count; i++)
 		c->controls[i].reserved2[0] = 0;
 
-	/* V4L2_CID_PRIVATE_BASE cannot be used as control class
-	   when using extended controls.
-	   Only when passed in through VIDIOC_G_CTRL and VIDIOC_S_CTRL
-	   is it allowed for backwards compatibility.
-	 */
+	
 	if (!allow_priv && c->ctrl_class == V4L2_CID_PRIVATE_BASE)
 		return 0;
-	/* Check that all controls are from the same control class. */
+	
 	for (i = 0; i < c->count; i++) {
 		if (V4L2_CTRL_ID2CLASS(c->controls[i].id) != c->ctrl_class) {
 			c->error_idx = i;
@@ -616,13 +588,9 @@ static long __video_do_ioctl(struct file *file,
 	}
 
 #ifdef CONFIG_VIDEO_V4L1_COMPAT
-	/***********************************************************
-	 Handles calls to the obsoleted V4L1 API
-	 Due to the nature of VIDIOCGMBUF, each driver that supports
-	 V4L1 should implement its own handler for this ioctl.
-	 ***********************************************************/
+	
 
-	/* --- streaming capture ------------------------------------- */
+	
 	if (cmd == VIDIOCGMBUF) {
 		struct video_mbuf *p = arg;
 
@@ -636,19 +604,14 @@ static long __video_do_ioctl(struct file *file,
 		return ret;
 	}
 
-	/********************************************************
-	 All other V4L1 calls are handled by v4l1_compat module.
-	 Those calls will be translated into V4L2 calls, and
-	 __video_do_ioctl will be called again, with one or more
-	 V4L2 ioctls.
-	 ********************************************************/
+	
 	if (_IOC_TYPE(cmd) == 'v' && _IOC_NR(cmd) < BASE_VIDIOCPRIVATE)
 		return v4l_compat_translate_ioctl(file, cmd, arg,
 						__video_do_ioctl);
 #endif
 
 	switch (cmd) {
-	/* --- capabilities ------------------------------------------ */
+	
 	case VIDIOC_QUERYCAP:
 	{
 		struct v4l2_capability *cap = (struct v4l2_capability *)arg;
@@ -667,7 +630,7 @@ static long __video_do_ioctl(struct file *file,
 		break;
 	}
 
-	/* --- priority ------------------------------------------ */
+	
 	case VIDIOC_G_PRIORITY:
 	{
 		enum v4l2_priority *p = arg;
@@ -690,7 +653,7 @@ static long __video_do_ioctl(struct file *file,
 		break;
 	}
 
-	/* --- capture ioctls ---------------------------------------- */
+	
 	case VIDIOC_ENUM_FMT:
 	{
 		struct v4l2_fmtdesc *f = arg;
@@ -732,7 +695,7 @@ static long __video_do_ioctl(struct file *file,
 	{
 		struct v4l2_format *f = (struct v4l2_format *)arg;
 
-		/* FIXME: Should be one dump per type */
+		
 		dbgarg(cmd, "type=%s\n", prt_names(f->type, v4l2_type_names));
 
 		switch (f->type) {
@@ -789,7 +752,7 @@ static long __video_do_ioctl(struct file *file,
 	{
 		struct v4l2_format *f = (struct v4l2_format *)arg;
 
-		/* FIXME: Should be one dump per type */
+		
 		dbgarg(cmd, "type=%s\n", prt_names(f->type, v4l2_type_names));
 
 		switch (f->type) {
@@ -840,7 +803,7 @@ static long __video_do_ioctl(struct file *file,
 									fh, f);
 			break;
 		case V4L2_BUF_TYPE_PRIVATE:
-			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
+			
 			if (ops->vidioc_s_fmt_type_private)
 				ret = ops->vidioc_s_fmt_type_private(file,
 								fh, f);
@@ -852,7 +815,7 @@ static long __video_do_ioctl(struct file *file,
 	{
 		struct v4l2_format *f = (struct v4l2_format *)arg;
 
-		/* FIXME: Should be one dump per type */
+		
 		dbgarg(cmd, "type=%s\n", prt_names(f->type,
 						v4l2_type_names));
 		switch (f->type) {
@@ -905,7 +868,7 @@ static long __video_do_ioctl(struct file *file,
 								fh, f);
 			break;
 		case V4L2_BUF_TYPE_PRIVATE:
-			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
+			
 			if (ops->vidioc_try_fmt_type_private)
 				ret = ops->vidioc_try_fmt_type_private(file,
 								fh, f);
@@ -914,10 +877,7 @@ static long __video_do_ioctl(struct file *file,
 
 		break;
 	}
-	/* FIXME: Those buf reqs could be handled here,
-	   with some changes on videobuf to allow its header to be included at
-	   videodev2.h or being merged at videodev2.
-	 */
+	
 	case VIDIOC_REQBUFS:
 	{
 		struct v4l2_requestbuffers *p = arg;
@@ -1040,7 +1000,7 @@ static long __video_do_ioctl(struct file *file,
 		ret = ops->vidioc_streamoff(file, fh, i);
 		break;
 	}
-	/* ---------- tv norms ---------- */
+	
 	case VIDIOC_ENUMSTD:
 	{
 		struct v4l2_standard *p = arg;
@@ -1048,10 +1008,9 @@ static long __video_do_ioctl(struct file *file,
 		unsigned int index = p->index, i, j = 0;
 		const char *descr = "";
 
-		/* Return norm array in a canonical way */
+		
 		for (i = 0; i <= index && id; i++) {
-			/* last std value in the standards array is 0, so this
-			   while always ends there since (id & 0) == 0. */
+			
 			while ((id & standards[j].std) != standards[j].std)
 				j++;
 			curr_id = standards[j].std;
@@ -1084,7 +1043,7 @@ static long __video_do_ioctl(struct file *file,
 		v4l2_std_id *id = arg;
 
 		ret = 0;
-		/* Calls the specific handler */
+		
 		if (ops->vidioc_g_std)
 			ret = ops->vidioc_g_std(file, fh, id);
 		else if (vfd->current_norm)
@@ -1103,16 +1062,16 @@ static long __video_do_ioctl(struct file *file,
 		dbgarg(cmd, "std=%08Lx\n", (long long unsigned)*id);
 
 		norm = (*id) & vfd->tvnorms;
-		if (vfd->tvnorms && !norm)	/* Check if std is supported */
+		if (vfd->tvnorms && !norm)	
 			break;
 
-		/* Calls the specific handler */
+		
 		if (ops->vidioc_s_std)
 			ret = ops->vidioc_s_std(file, fh, &norm);
 		else
 			ret = -EINVAL;
 
-		/* Updates standard information */
+		
 		if (ret >= 0)
 			vfd->current_norm = norm;
 		break;
@@ -1129,8 +1088,8 @@ static long __video_do_ioctl(struct file *file,
 						(unsigned long long)*p);
 		break;
 	}
-	/* ------ input switching ---------- */
-	/* FIXME: Inputs can be handled inside videodev2 */
+	
+	
 	case VIDIOC_ENUMINPUT:
 	{
 		struct v4l2_input *p = arg;
@@ -1171,7 +1130,7 @@ static long __video_do_ioctl(struct file *file,
 		break;
 	}
 
-	/* ------ output switching ---------- */
+	
 	case VIDIOC_ENUMOUTPUT:
 	{
 		struct v4l2_output *p = arg;
@@ -1210,7 +1169,7 @@ static long __video_do_ioctl(struct file *file,
 		break;
 	}
 
-	/* --- controls ---------------------------------------------- */
+	
 	case VIDIOC_QUERYCTRL:
 	{
 		struct v4l2_queryctrl *p = arg;
@@ -1334,7 +1293,7 @@ static long __video_do_ioctl(struct file *file,
 				p->id, p->index);
 		break;
 	}
-	/* --- audio ---------------------------------------------- */
+	
 	case VIDIOC_ENUMAUDIO:
 	{
 		struct v4l2_audio *p = arg;
@@ -1476,7 +1435,7 @@ static long __video_do_ioctl(struct file *file,
 	{
 		struct v4l2_cropcap *p = arg;
 
-		/*FIXME: Should also show v4l2_fract pixelaspect */
+		
 		if (!ops->vidioc_cropcap)
 			break;
 
@@ -1660,7 +1619,7 @@ static long __video_do_ioctl(struct file *file,
 		if (!ops->vidioc_g_sliced_vbi_cap)
 			break;
 
-		/* Clear up to type, everything after type is zerod already */
+		
 		memset(p, 0, offsetof(struct v4l2_sliced_vbi_cap, type));
 
 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
@@ -1802,7 +1761,7 @@ static long __video_do_ioctl(struct file *file,
 		ret = ops->vidioc_default(file, fh, cmd, arg);
 		break;
 	}
-	} /* switch */
+	} 
 
 	if (vfd->debug & V4L2_DEBUG_IOCTL_ARG) {
 		if (ret < 0) {
@@ -1814,12 +1773,10 @@ static long __video_do_ioctl(struct file *file,
 	return ret;
 }
 
-/* In some cases, only a few fields are used as input, i.e. when the app sets
- * "index" and then the driver fills in the rest of the structure for the thing
- * with that index.  We only need to copy up the first non-input field.  */
+
 static unsigned long cmd_input_size(unsigned int cmd)
 {
-	/* Size of structure up to and including 'field' */
+	
 #define CMDINSIZE(cmd, type, field) 				\
 	case VIDIOC_##cmd: 					\
 		return offsetof(struct v4l2_##type, field) + 	\
@@ -1870,12 +1827,12 @@ long video_ioctl2(struct file *file,
 	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
 		       cmd == VIDIOC_TRY_EXT_CTRLS);
 
-	/*  Copy arguments into temp kernel buffer  */
+	
 	if (_IOC_DIR(cmd) != _IOC_NONE) {
 		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
 			parg = sbuf;
 		} else {
-			/* too big to allocate from stack */
+			
 			mbuf = kmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
 			if (NULL == mbuf)
 				return -ENOMEM;
@@ -1889,11 +1846,11 @@ long video_ioctl2(struct file *file,
 			if (copy_from_user(parg, (void __user *)arg, n))
 				goto out;
 
-			/* zero out anything we don't copy from userspace */
+			
 			if (n < _IOC_SIZE(cmd))
 				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
 		} else {
-			/* read-only ioctl */
+			
 			memset(parg, 0, _IOC_SIZE(cmd));
 		}
 	}
@@ -1901,13 +1858,12 @@ long video_ioctl2(struct file *file,
 	if (is_ext_ctrl) {
 		struct v4l2_ext_controls *p = parg;
 
-		/* In case of an error, tell the caller that it wasn't
-		   a specific control that caused it. */
+		
 		p->error_idx = p->count;
 		user_ptr = (void __user *)p->controls;
 		if (p->count) {
 			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
-			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+			
 			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
 			err = -ENOMEM;
 			if (NULL == mbuf)
@@ -1919,7 +1875,7 @@ long video_ioctl2(struct file *file,
 		}
 	}
 
-	/* Handles IOCTL */
+	
 	err = __video_do_ioctl(file, cmd, parg);
 	if (err == -ENOIOCTLCMD)
 		err = -EINVAL;
@@ -1935,7 +1891,7 @@ long video_ioctl2(struct file *file,
 		goto out;
 
 out_ext_ctrl:
-	/*  Copy results into user buffer  */
+	
 	switch (_IOC_DIR(cmd)) {
 	case _IOC_READ:
 	case (_IOC_WRITE | _IOC_READ):

@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa_priv.h>
 #include <bfi/bfi_ctreg.h>
@@ -40,9 +25,7 @@ bfa_hwct_msix_lpu_err_set(struct bfa_s *bfa, bfa_boolean_t msix, int vec)
 		bfa_reg_write(kva + __ct_msix_err_vec_reg[fn], 0);
 }
 
-/**
- * Dummy interrupt handler for handling spurious interrupt during chip-reinit.
- */
+
 static void
 bfa_hwct_msix_dummy(struct bfa_s *bfa, int vec)
 {
@@ -64,18 +47,14 @@ bfa_hwct_reginit(struct bfa_s *bfa)
 	}
 
 	for (i = 0; i < BFI_IOC_MAX_CQS; i++) {
-		/*
-		 * CPE registers
-		 */
+		
 		q = CPE_Q_NUM(fn, i);
 		bfa_regs->cpe_q_pi[i] = (kva + CPE_PI_PTR_Q(q << 5));
 		bfa_regs->cpe_q_ci[i] = (kva + CPE_CI_PTR_Q(q << 5));
 		bfa_regs->cpe_q_depth[i] = (kva + CPE_DEPTH_Q(q << 5));
 		bfa_regs->cpe_q_ctrl[i] = (kva + CPE_QCTRL_Q(q << 5));
 
-		/*
-		 * RME registers
-		 */
+		
 		q = CPE_Q_NUM(fn, i);
 		bfa_regs->rme_q_pi[i] = (kva + RME_PI_PTR_Q(q << 5));
 		bfa_regs->rme_q_ci[i] = (kva + RME_CI_PTR_Q(q << 5));
@@ -102,9 +81,7 @@ bfa_hwct_msix_getvecs(struct bfa_s *bfa, u32 *msix_vecs_bmap,
 	*num_vecs = BFA_MSIX_CT_MAX;
 }
 
-/**
- * Setup MSI-X vector for catapult
- */
+
 void
 bfa_hwct_msix_init(struct bfa_s *bfa, int nvecs)
 {
@@ -148,9 +125,7 @@ bfa_hwct_msix_uninstall(struct bfa_s *bfa)
 		bfa->msix.handler[i] = bfa_hwct_msix_dummy;
 }
 
-/**
- * Enable MSI-X vectors
- */
+
 void
 bfa_hwct_isr_mode_set(struct bfa_s *bfa, bfa_boolean_t msix)
 {

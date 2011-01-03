@@ -1,33 +1,4 @@
-/*
- * pata_cs5536.c	- CS5536 PATA for new ATA layer
- *			  (C) 2007 Martin K. Petersen <mkp@mkp.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307	 USA
- *
- * Documentation:
- *	Available from AMD web site.
- *
- * The IDE timing registers for the CS5536 live in the Geode Machine
- * Specific Register file and not PCI config space.  Most BIOSes
- * virtualize the PCI registers so the chip looks like a standard IDE
- * controller.	Unfortunately not all implementations get this right.
- * In particular some have problems with unaligned accesses to the
- * virtualized PCI registers.  This driver always does full dword
- * writes to work around the issue.  Also, in case of a bad BIOS this
- * driver can be loaded with the "msr=1" parameter which forces using
- * the Machine Specific Registers to configure the device.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -107,13 +78,7 @@ static inline int cs5536_write(struct pci_dev *pdev, int reg, int val)
 	return pci_write_config_dword(pdev, pci_reg[reg], val);
 }
 
-/**
- *	cs5536_cable_detect	-	detect cable type
- *	@ap: Port to detect on
- *
- *	Perform cable detection for ATA66 capable cable. Return a libata
- *	cable type.
- */
+
 
 static int cs5536_cable_detect(struct ata_port *ap)
 {
@@ -128,11 +93,7 @@ static int cs5536_cable_detect(struct ata_port *ap)
 		return ATA_CBL_PATA40;
 }
 
-/**
- *	cs5536_set_piomode		-	PIO setup
- *	@ap: ATA interface
- *	@adev: device on the interface
- */
+
 
 static void cs5536_set_piomode(struct ata_port *ap, struct ata_device *adev)
 {
@@ -180,12 +141,7 @@ static void cs5536_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	cs5536_write(pdev, ETC, etc);
 }
 
-/**
- *	cs5536_set_dmamode		-	DMA timing setup
- *	@ap: ATA interface
- *	@adev: Device being configured
- *
- */
+
 
 static void cs5536_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 {
@@ -209,7 +165,7 @@ static void cs5536_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 		etc |= udma_timings[mode - XFER_UDMA_0] << dshift;
 
 		cs5536_write(pdev, ETC, etc);
-	} else { /* MWDMA */
+	} else { 
 		cs5536_read(pdev, DTC, &dtc);
 
 		dtc &= ~(IDE_DRV_MASK << dshift);
@@ -230,12 +186,7 @@ static struct ata_port_operations cs5536_port_ops = {
 	.set_dmamode		= cs5536_set_dmamode,
 };
 
-/**
- *	cs5536_init_one
- *	@dev: PCI device
- *	@id: Entry in match table
- *
- */
+
 
 static int cs5536_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {

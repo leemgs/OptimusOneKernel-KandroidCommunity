@@ -1,25 +1,4 @@
-/* drivers/mtd/maps/plat-ram.c
- *
- * (c) 2004-2005 Simtec Electronics
- *	http://www.simtec.co.uk/products/SWLINUX/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Generic platfrom device based RAM map
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -38,7 +17,7 @@
 
 #include <asm/io.h>
 
-/* private structure for each mtd platform ram device created */
+
 
 struct platram_info {
 	struct device		*dev;
@@ -50,23 +29,14 @@ struct platram_info {
 	struct platdata_mtd_ram	*pdata;
 };
 
-/* to_platram_info()
- *
- * device private data to struct platram_info conversion
-*/
+
 
 static inline struct platram_info *to_platram_info(struct platform_device *dev)
 {
 	return (struct platram_info *)platform_get_drvdata(dev);
 }
 
-/* platram_setrw
- *
- * call the platform device's set rw/ro control
- *
- * to = 0 => read-only
- *    = 1 => read-write
-*/
+
 
 static inline void platram_setrw(struct platram_info *info, int to)
 {
@@ -77,10 +47,7 @@ static inline void platram_setrw(struct platram_info *info, int to)
 		(info->pdata->set_rw)(info->dev, to);
 }
 
-/* platram_remove
- *
- * called to remove the device from the driver's control
-*/
+
 
 static int platram_remove(struct platform_device *pdev)
 {
@@ -105,11 +72,11 @@ static int platram_remove(struct platform_device *pdev)
 		map_destroy(info->mtd);
 	}
 
-	/* ensure ram is left read-only */
+	
 
 	platram_setrw(info, PLATRAM_RO);
 
-	/* release resources */
+	
 
 	if (info->area) {
 		release_resource(info->area);
@@ -124,11 +91,7 @@ static int platram_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* platram_probe
- *
- * called from device drive system when a device matching our
- * driver is found.
-*/
+
 
 static int platram_probe(struct platform_device *pdev)
 {
@@ -159,7 +122,7 @@ static int platram_probe(struct platform_device *pdev)
 	info->dev = &pdev->dev;
 	info->pdata = pdata;
 
-	/* get the resource for the memory mapping */
+	
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
@@ -172,7 +135,7 @@ static int platram_probe(struct platform_device *pdev)
 	dev_dbg(&pdev->dev, "got platform resource %p (0x%llx)\n", res,
 		(unsigned long long)res->start);
 
-	/* setup map parameters */
+	
 
 	info->map.phys = res->start;
 	info->map.size = resource_size(res);
@@ -180,7 +143,7 @@ static int platram_probe(struct platform_device *pdev)
 			(char *)pdata->mapname : (char *)pdev->name;
 	info->map.bankwidth = pdata->bankwidth;
 
-	/* register our usage of the memory area */
+	
 
 	info->area = request_mem_region(res->start, info->map.size, pdev->name);
 	if (info->area == NULL) {
@@ -189,7 +152,7 @@ static int platram_probe(struct platform_device *pdev)
 		goto exit_free;
 	}
 
-	/* remap the memory area */
+	
 
 	info->map.virt = ioremap(res->start, info->map.size);
 	dev_dbg(&pdev->dev, "virt %p, %lu bytes\n", info->map.virt, info->map.size);
@@ -204,8 +167,7 @@ static int platram_probe(struct platform_device *pdev)
 
 	dev_dbg(&pdev->dev, "initialised map, probing for mtd\n");
 
-	/* probe for the right mtd map driver
-	 * supplied by the platform_data struct */
+	
 
 	if (pdata->map_probes) {
 		const char **map_probes = pdata->map_probes;
@@ -213,7 +175,7 @@ static int platram_probe(struct platform_device *pdev)
 		for ( ; !info->mtd && *map_probes; map_probes++)
 			info->mtd = do_map_probe(*map_probes , &info->map);
 	}
-	/* fallback to map_ram */
+	
 	else
 		info->mtd = do_map_probe("map_ram", &info->map);
 
@@ -228,12 +190,11 @@ static int platram_probe(struct platform_device *pdev)
 
 	platram_setrw(info, PLATRAM_RW);
 
-	/* check to see if there are any available partitions, or wether
-	 * to add this device whole */
+	
 
 #ifdef CONFIG_MTD_PARTITIONS
 	if (!pdata->nr_partitions) {
-		/* try to probe using the supplied probe type */
+		
 		if (pdata->probes) {
 			err = parse_mtd_partitions(info->mtd, pdata->probes,
 					   &info->partitions, 0);
@@ -243,11 +204,11 @@ static int platram_probe(struct platform_device *pdev)
 					info->partitions, err);
 		}
 	}
-	/* use the static mapping */
+	
 	else
 		err = add_mtd_partitions(info->mtd, pdata->partitions,
 				pdata->nr_partitions);
-#endif /* CONFIG_MTD_PARTITIONS */
+#endif 
 
 	if (add_mtd_device(info->mtd)) {
 		dev_err(&pdev->dev, "add_mtd_device() failed\n");
@@ -265,9 +226,9 @@ static int platram_probe(struct platform_device *pdev)
 	return err;
 }
 
-/* device driver info */
 
-/* work with hotplug and coldplug */
+
+
 MODULE_ALIAS("platform:mtd-ram");
 
 static struct platform_driver platram_driver = {
@@ -279,7 +240,7 @@ static struct platform_driver platram_driver = {
 	},
 };
 
-/* module init/exit */
+
 
 static int __init platram_init(void)
 {

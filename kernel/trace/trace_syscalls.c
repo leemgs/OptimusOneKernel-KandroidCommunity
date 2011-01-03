@@ -40,13 +40,13 @@ print_syscall_enter(struct trace_iterator *iter, int flags)
 		return TRACE_TYPE_PARTIAL_LINE;
 
 	for (i = 0; i < entry->nb_args; i++) {
-		/* parameter types */
+		
 		if (trace_flags & TRACE_ITER_VERBOSE) {
 			ret = trace_seq_printf(s, "%s ", entry->types[i]);
 			if (!ret)
 				return TRACE_TYPE_PARTIAL_LINE;
 		}
-		/* parameter values */
+		
 		ret = trace_seq_printf(s, "%s: %lx%s", entry->args[i],
 				       trace->args[i],
 				       i == entry->nb_args - 1 ? "" : ", ");
@@ -400,7 +400,7 @@ static void prof_syscall_enter(struct pt_regs *regs, long id)
 	if (!sys_data)
 		return;
 
-	/* get the size after alignment with the u32 buffer size field */
+	
 	size = sizeof(unsigned long) * sys_data->nb_args + sizeof(*rec);
 	size = ALIGN(size + sizeof(u32), sizeof(u64));
 	size -= sizeof(u32);
@@ -409,7 +409,7 @@ static void prof_syscall_enter(struct pt_regs *regs, long id)
 		      "profile buffer not large enough"))
 		return;
 
-	/* Protect the per cpu buffer, begin the rcu read side */
+	
 	local_irq_save(flags);
 
 	cpu = smp_processor_id();
@@ -424,7 +424,7 @@ static void prof_syscall_enter(struct pt_regs *regs, long id)
 
 	raw_data = per_cpu_ptr(raw_data, cpu);
 
-	/* zero the dead bytes from align to not leak stack to user */
+	
 	*(u64 *)(&raw_data[size - sizeof(u64)]) = 0ULL;
 
 	rec = (struct syscall_trace_enter *) raw_data;
@@ -496,19 +496,16 @@ static void prof_syscall_exit(struct pt_regs *regs, long ret)
 	if (!sys_data)
 		return;
 
-	/* We can probably do that at build time */
+	
 	size = ALIGN(sizeof(*rec) + sizeof(u32), sizeof(u64));
 	size -= sizeof(u32);
 
-	/*
-	 * Impossible, but be paranoid with the future
-	 * How to put this check outside runtime?
-	 */
+	
 	if (WARN_ONCE(size > FTRACE_MAX_PROFILE_SIZE,
 		"exit event has grown above profile buffer size"))
 		return;
 
-	/* Protect the per cpu buffer, begin the rcu read side */
+	
 	local_irq_save(flags);
 	cpu = smp_processor_id();
 
@@ -522,7 +519,7 @@ static void prof_syscall_exit(struct pt_regs *regs, long ret)
 
 	raw_data = per_cpu_ptr(raw_data, cpu);
 
-	/* zero the dead bytes from align to not leak stack to user */
+	
 	*(u64 *)(&raw_data[size - sizeof(u64)]) = 0ULL;
 
 	rec = (struct syscall_trace_exit *)raw_data;

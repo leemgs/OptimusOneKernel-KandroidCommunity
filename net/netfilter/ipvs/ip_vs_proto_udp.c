@@ -1,17 +1,4 @@
-/*
- * ip_vs_proto_udp.c:	UDP load balancing support for IPVS
- *
- * Authors:     Wensong Zhang <wensong@linuxvirtualserver.org>
- *              Julian Anastasov <ja@ssi.bg>
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Changes:
- *
- */
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -99,19 +86,13 @@ udp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
 				&iph.daddr, uh->dest);
 	if (svc) {
 		if (ip_vs_todrop()) {
-			/*
-			 * It seems that we are very loaded.
-			 * We have to drop this packet :(
-			 */
+			
 			ip_vs_service_put(svc);
 			*verdict = NF_DROP;
 			return 0;
 		}
 
-		/*
-		 * Let the virtual server select a real server for the
-		 * incoming connection, and create a connection entry.
-		 */
+		
 		*cpp = ip_vs_schedule(svc, skb);
 		if (!*cpp) {
 			*verdict = ip_vs_leave(svc, skb, pp);
@@ -182,18 +163,16 @@ udp_snat_handler(struct sk_buff *skb,
 		udphoff = ip_hdrlen(skb);
 	oldlen = skb->len - udphoff;
 
-	/* csum_check requires unshared skb */
+	
 	if (!skb_make_writable(skb, udphoff+sizeof(*udph)))
 		return 0;
 
 	if (unlikely(cp->app != NULL)) {
-		/* Some checks before mangling */
+		
 		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
 			return 0;
 
-		/*
-		 *	Call application helper if needed
-		 */
+		
 		if (!ip_vs_app_pkt_out(cp, skb))
 			return 0;
 	}
@@ -201,21 +180,19 @@ udp_snat_handler(struct sk_buff *skb,
 	udph = (void *)skb_network_header(skb) + udphoff;
 	udph->source = cp->vport;
 
-	/*
-	 *	Adjust UDP checksums
-	 */
+	
 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
 		udp_partial_csum_update(cp->af, udph, &cp->daddr, &cp->vaddr,
 					htons(oldlen),
 					htons(skb->len - udphoff));
 	} else if (!cp->app && (udph->check != 0)) {
-		/* Only port and addr are changed, do fast csum update */
+		
 		udp_fast_csum_update(cp->af, udph, &cp->daddr, &cp->vaddr,
 				     cp->dport, cp->vport);
 		if (skb->ip_summed == CHECKSUM_COMPLETE)
 			skb->ip_summed = CHECKSUM_NONE;
 	} else {
-		/* full checksum calculation */
+		
 		udph->check = 0;
 		skb->csum = skb_checksum(skb, udphoff, skb->len - udphoff, 0);
 #ifdef CONFIG_IP_VS_IPV6
@@ -257,19 +234,16 @@ udp_dnat_handler(struct sk_buff *skb,
 		udphoff = ip_hdrlen(skb);
 	oldlen = skb->len - udphoff;
 
-	/* csum_check requires unshared skb */
+	
 	if (!skb_make_writable(skb, udphoff+sizeof(*udph)))
 		return 0;
 
 	if (unlikely(cp->app != NULL)) {
-		/* Some checks before mangling */
+		
 		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
 			return 0;
 
-		/*
-		 *	Attempt ip_vs_app call.
-		 *	It will fix ip_vs_conn
-		 */
+		
 		if (!ip_vs_app_pkt_in(cp, skb))
 			return 0;
 	}
@@ -277,21 +251,19 @@ udp_dnat_handler(struct sk_buff *skb,
 	udph = (void *)skb_network_header(skb) + udphoff;
 	udph->dest = cp->dport;
 
-	/*
-	 *	Adjust UDP checksums
-	 */
+	
 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
 		udp_partial_csum_update(cp->af, udph, &cp->daddr, &cp->vaddr,
 					htons(oldlen),
 					htons(skb->len - udphoff));
 	} else if (!cp->app && (udph->check != 0)) {
-		/* Only port and addr are changed, do fast csum update */
+		
 		udp_fast_csum_update(cp->af, udph, &cp->vaddr, &cp->daddr,
 				     cp->vport, cp->dport);
 		if (skb->ip_summed == CHECKSUM_COMPLETE)
 			skb->ip_summed = CHECKSUM_NONE;
 	} else {
-		/* full checksum calculation */
+		
 		udph->check = 0;
 		skb->csum = skb_checksum(skb, udphoff, skb->len - udphoff, 0);
 #ifdef CONFIG_IP_VS_IPV6
@@ -362,7 +334,7 @@ udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
 				}
 			break;
 		default:
-			/* No need to checksum. */
+			
 			break;
 		}
 	}
@@ -370,10 +342,7 @@ udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
 }
 
 
-/*
- *	Note: the caller guarantees that only one of register_app,
- *	unregister_app or app_conn_bind is called each time.
- */
+
 
 #define	UDP_APP_TAB_BITS	4
 #define	UDP_APP_TAB_SIZE	(1 << UDP_APP_TAB_BITS)
@@ -431,11 +400,11 @@ static int udp_app_conn_bind(struct ip_vs_conn *cp)
 	struct ip_vs_app *inc;
 	int result = 0;
 
-	/* Default binding: bind app only for NAT */
+	
 	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
 		return 0;
 
-	/* Lookup application incarnations and bind the right one */
+	
 	hash = udp_app_hashkey(cp->vport);
 
 	spin_lock(&udp_app_lock);

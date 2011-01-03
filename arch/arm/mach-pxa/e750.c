@@ -1,14 +1,4 @@
-/*
- * Hardware definitions for the Toshiba eseries PDAs
- *
- * Copyright (c) 2003 Ian Molton <spyro@f2s.com>
- *
- * This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -34,7 +24,7 @@
 #include "eseries.h"
 #include "clock.h"
 
-/* ---------------------- E750 LCD definitions -------------------- */
+
 
 static struct w100_gen_regs e750_lcd_regs = {
 	.lcd_format =            0x00008003,
@@ -105,47 +95,47 @@ static struct platform_device e750_fb_device = {
 	.resource       = e750_fb_resources,
 };
 
-/* -------------------- e750 MFP parameters -------------------- */
+
 
 static unsigned long e750_pin_config[] __initdata = {
-	/* Chip selects */
-	GPIO15_nCS_1,   /* CS1 - Flash */
-	GPIO79_nCS_3,   /* CS3 - IMAGEON */
-	GPIO80_nCS_4,   /* CS4 - TMIO */
+	
+	GPIO15_nCS_1,   
+	GPIO79_nCS_3,   
+	GPIO80_nCS_4,   
 
-	/* Clocks */
+	
 	GPIO11_3_6MHz,
 
-	/* BTUART */
+	
 	GPIO42_BTUART_RXD,
 	GPIO43_BTUART_TXD,
 	GPIO44_BTUART_CTS,
 
-	/* TMIO controller */
-	GPIO19_GPIO, /* t7l66xb #PCLR */
-	GPIO45_GPIO, /* t7l66xb #SUSPEND (NOT BTUART!) */
+	
+	GPIO19_GPIO, 
+	GPIO45_GPIO, 
 
-	/* UDC */
+	
 	GPIO13_GPIO,
 	GPIO3_GPIO,
 
-	/* IrDA */
+	
 	GPIO38_GPIO | MFP_LPM_DRIVE_HIGH,
 
-	/* Audio power control */
-	GPIO4_GPIO,  /* Headphone amp power */
-	GPIO7_GPIO,  /* Speaker amp power */
-	GPIO37_GPIO, /* Headphone detect */
+	
+	GPIO4_GPIO,  
+	GPIO7_GPIO,  
+	GPIO37_GPIO, 
 
-	/* PC Card */
-	GPIO8_GPIO,   /* CD0 */
-	GPIO44_GPIO,  /* CD1 */
-	GPIO11_GPIO,  /* IRQ0 */
-	GPIO6_GPIO,   /* IRQ1 */
-	GPIO27_GPIO,  /* RST0 */
-	GPIO24_GPIO,  /* RST1 */
-	GPIO20_GPIO,  /* PWR0 */
-	GPIO23_GPIO,  /* PWR1 */
+	
+	GPIO8_GPIO,   
+	GPIO44_GPIO,  
+	GPIO11_GPIO,  
+	GPIO6_GPIO,   
+	GPIO27_GPIO,  
+	GPIO24_GPIO,  
+	GPIO20_GPIO,  
+	GPIO23_GPIO,  
 	GPIO48_nPOE,
 	GPIO49_nPWE,
 	GPIO50_nPIOR,
@@ -157,11 +147,11 @@ static unsigned long e750_pin_config[] __initdata = {
 	GPIO56_nPWAIT,
 	GPIO57_nIOIS16,
 
-	/* wakeup */
+	
 	GPIO0_GPIO | WAKEUP_ON_EDGE_RISE,
 };
 
-/* ----------------- e750 tc6393xb parameters ------------------ */
+
 
 static struct tc6393xb_platform_data e750_tc6393xb_info = {
 	.irq_base       = IRQ_BOARD_START,
@@ -184,7 +174,7 @@ static struct platform_device e750_tc6393xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-/* ------------------------------------------------------------- */
+
 
 static struct platform_device *devices[] __initdata = {
 	&e750_fb_device,
@@ -204,7 +194,7 @@ static void __init e750_init(void)
 }
 
 MACHINE_START(E750, "Toshiba e750")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= 0xa0000100,

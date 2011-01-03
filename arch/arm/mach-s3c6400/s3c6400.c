@@ -1,13 +1,4 @@
-/* linux/arch/arm/mach-s3c6410/cpu.c
- *
- * Copyright 2009 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -41,12 +32,12 @@
 
 void __init s3c6400_map_io(void)
 {
-	/* setup SDHCI */
+	
 
 	s3c6400_default_sdhci0();
 	s3c6400_default_sdhci1();
 
-	/* the i2c devices are directly compatible with s3c2440 */
+	
 	s3c_i2c0_setname("s3c2440-i2c");
 
 	s3c_device_nand.name = "s3c6400-nand";
@@ -63,8 +54,7 @@ void __init s3c6400_init_clocks(int xtal)
 
 void __init s3c6400_init_irq(void)
 {
-	/* VIC0 does not have IRQS 5..7,
-	 * VIC1 is fully populated. */
+	
 	s3c64xx_init_irq(~0 & ~(0xf << 5), ~0);
 }
 

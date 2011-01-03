@@ -1,16 +1,6 @@
-/* $Id: hscx.h,v 1.8.2.2 2004/01/12 22:52:26 keil Exp $
- *
- * HSCX specific defines
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
 
-/* All Registers original Siemens Spec  */
+
+
 
 #define HSCX_ISTA 0x20
 #define HSCX_CCR1 0x2f

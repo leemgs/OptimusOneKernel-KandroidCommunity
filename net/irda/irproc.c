@@ -1,27 +1,4 @@
-/*********************************************************************
- *
- * Filename:      irproc.c
- * Version:       1.0
- * Description:   Various entries in the /proc file system
- * Status:        Experimental.
- * Author:        Thomas Davis, <ratbert@radiks.net>
- * Created at:    Sat Feb 21 21:33:24 1998
- * Modified at:   Sun Nov 14 08:54:54 1999
- * Modified by:   Dag Brattli <dagb@cs.uit.no>
- *
- *     Copyright (c) 1998-1999, Dag Brattli <dagb@cs.uit.no>
- *     Copyright (c) 1998, Thomas Davis, <ratbert@radiks.net>,
- *     All Rights Reserved.
- *
- *     This program is free software; you can redistribute it and/or
- *     modify it under the terms of the GNU General Public License as
- *     published by the Free Software Foundation; either version 2 of
- *     the License, or (at your option) any later version.
- *
- *     I, Thomas Davis, provide no warranty for any of this software.
- *     This material is provided "AS-IS" and at no charge.
- *
- ********************************************************************/
+
 
 #include <linux/miscdevice.h>
 #include <linux/proc_fs.h>
@@ -56,12 +33,7 @@ static const struct irda_entry irda_dirs[] = {
 	{"irias",	&irias_seq_fops},
 };
 
-/*
- * Function irda_proc_register (void)
- *
- *    Register irda entry in /proc file system
- *
- */
+
 void __init irda_proc_register(void)
 {
 	int i;
@@ -76,12 +48,7 @@ void __init irda_proc_register(void)
 				irda_dirs[i].fops);
 }
 
-/*
- * Function irda_proc_unregister (void)
- *
- *    Unregister irda entry in /proc file system
- *
- */
+
 void irda_proc_unregister(void)
 {
 	int i;

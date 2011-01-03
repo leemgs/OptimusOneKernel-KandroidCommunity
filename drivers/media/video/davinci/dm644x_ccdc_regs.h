@@ -1,26 +1,8 @@
-/*
- * Copyright (C) 2006-2009 Texas Instruments Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #ifndef _DM644X_CCDC_REGS_H
 #define _DM644X_CCDC_REGS_H
 
-/**************************************************************************\
-* Register OFFSET Definitions
-\**************************************************************************/
+
 #define CCDC_PID				0x0
 #define CCDC_PCR				0x4
 #define CCDC_SYN_MODE				0x8
@@ -61,9 +43,7 @@
 #define CCDC_VP_OUT				0x94
 
 
-/***************************************************************
-*	Define for various register bit mask and shifts for CCDC
-****************************************************************/
+
 #define CCDC_FID_POL_MASK			1
 #define CCDC_FID_POL_SHIFT			4
 #define CCDC_HD_POL_MASK			1

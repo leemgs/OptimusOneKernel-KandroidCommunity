@@ -1,14 +1,4 @@
-/* $Id: divasproc.c,v 1.19.4.3 2005/01/31 12:22:20 armin Exp $
- *
- * Low level driver for Eicon DIVA Server ISDN cards.
- * /proc functions
- *
- * Copyright 2000-2003 by Armin Schindler (mac@melware.de)
- * Copyright 2000-2003 Cytronics & Melware (info@melware.de)
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -36,9 +26,7 @@ extern PISDN_ADAPTER IoAdapters[MAX_ADAPTER];
 extern void divas_get_version(char *);
 extern void diva_get_vserial_number(PISDN_ADAPTER IoAdapter, char *buf);
 
-/*********************************************************
- ** Functions for /proc interface / File operations
- *********************************************************/
+
 
 static char *divas_proc_name = "divas";
 static char *adapter_dir_name = "adapter";
@@ -46,9 +34,7 @@ static char *info_proc_name = "info";
 static char *grp_opt_proc_name = "group_optimization";
 static char *d_l1_down_proc_name = "dynamic_l1_down";
 
-/*
-** "divas" entry
-*/
+
 
 extern struct proc_dir_entry *proc_net_eicon;
 static struct proc_dir_entry *divas_proc_entry = NULL;
@@ -141,9 +127,7 @@ void remove_divas_proc(void)
 	}
 }
 
-/*
-** write group_optimization 
-*/
+
 static int
 write_grp_opt(struct file *file, const char __user *buffer, unsigned long count,
 	      void *data)
@@ -172,9 +156,7 @@ write_grp_opt(struct file *file, const char __user *buffer, unsigned long count,
 	return (-EINVAL);
 }
 
-/*
-** write dynamic_l1_down
-*/
+
 static int
 write_d_l1_down(struct file *file, const char __user *buffer, unsigned long count,
 		void *data)
@@ -204,9 +186,7 @@ write_d_l1_down(struct file *file, const char __user *buffer, unsigned long coun
 }
 
 
-/*
-** read dynamic_l1_down 
-*/
+
 static int
 read_d_l1_down(char *page, char **start, off_t off, int count, int *eof,
 	       void *data)
@@ -228,9 +208,7 @@ read_d_l1_down(char *page, char **start, off_t off, int count, int *eof,
 	return ((count < len - off) ? count : len - off);
 }
 
-/*
-** read group_optimization
-*/
+
 static int
 read_grp_opt(char *page, char **start, off_t off, int count, int *eof,
 	     void *data)
@@ -252,9 +230,7 @@ read_grp_opt(char *page, char **start, off_t off, int count, int *eof,
 	return ((count < len - off) ? count : len - off);
 }
 
-/*
-** info write
-*/
+
 static int
 info_write(struct file *file, const char __user *buffer, unsigned long count,
 	   void *data)
@@ -269,7 +245,7 @@ info_write(struct file *file, const char __user *buffer, unsigned long count,
 	if (copy_from_user(c, buffer, 4))
 		return -EFAULT;
 
-	/* this is for test purposes only */
+	
 	if (!memcmp(c, "trap", 4)) {
 		(*(IoAdapter->os_trap_nfy_Fnc)) (IoAdapter, IoAdapter->ANum);
 		return (count);
@@ -277,9 +253,7 @@ info_write(struct file *file, const char __user *buffer, unsigned long count,
 	return (-EINVAL);
 }
 
-/*
-** info read
-*/
+
 static int
 info_read(char *page, char **start, off_t off, int count, int *eof,
 	  void *data)
@@ -363,13 +337,9 @@ info_read(char *page, char **start, off_t off, int count, int *eof,
 	return ((count < len - off) ? count : len - off);
 }
 
-/*
-** adapter proc init/de-init
-*/
 
-/* --------------------------------------------------------------------------
-    Create adapter directory and files in proc file system
-   -------------------------------------------------------------------------- */
+
+
 int create_adapter_proc(diva_os_xdi_adapter_t * a)
 {
 	struct proc_dir_entry *de, *pe;
@@ -408,9 +378,7 @@ int create_adapter_proc(diva_os_xdi_adapter_t * a)
 	return (1);
 }
 
-/* --------------------------------------------------------------------------
-    Remove adapter directory and files in proc file system
-   -------------------------------------------------------------------------- */
+
 void remove_adapter_proc(diva_os_xdi_adapter_t * a)
 {
 	char tmp[16];

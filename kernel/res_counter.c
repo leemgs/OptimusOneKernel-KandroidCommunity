@@ -1,11 +1,4 @@
-/*
- * resource cgroups
- *
- * Copyright 2007 OpenVZ SWsoft Inc
- *
- * Author: Pavel Emelianov <xemul@openvz.org>
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/parser.h>
@@ -137,7 +130,7 @@ int res_counter_memparse_write_strategy(const char *buf,
 {
 	char *end;
 
-	/* return RESOURCE_MAX(unlimited) if "-1" is specified */
+	
 	if (*buf == '-') {
 		*res = simple_strtoull(buf + 1, &end, 10);
 		if (*res != 1 || *end != '\0')
@@ -146,7 +139,7 @@ int res_counter_memparse_write_strategy(const char *buf,
 		return 0;
 	}
 
-	/* FIXME - make memparse() take const char* args */
+	
 	*res = memparse((char *)buf, &end);
 	if (*end != '\0')
 		return -EINVAL;

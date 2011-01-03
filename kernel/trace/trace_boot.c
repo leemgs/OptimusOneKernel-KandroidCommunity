@@ -1,9 +1,4 @@
-/*
- * ring buffer based initcalls tracer
- *
- * Copyright (C) 2008 Frederic Weisbecker <fweisbec@gmail.com>
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/debugfs.h>
@@ -17,11 +12,7 @@
 static struct trace_array *boot_trace;
 static bool pre_initcalls_finished;
 
-/* Tells the boot tracer that the pre_smp_initcalls are finished.
- * So we are ready .
- * It doesn't enable sched events tracing however.
- * You have to call enable_boot_trace to do so.
- */
+
 void start_boot_trace(void)
 {
 	pre_initcalls_finished = true;
@@ -138,9 +129,7 @@ void trace_boot_call(struct boot_trace_call *bt, initcall_t fn)
 	if (!tr || !pre_initcalls_finished)
 		return;
 
-	/* Get its name now since this function could
-	 * disappear because it is in the .init section.
-	 */
+	
 	sprint_symbol(bt->func, (unsigned long)fn);
 	preempt_disable();
 

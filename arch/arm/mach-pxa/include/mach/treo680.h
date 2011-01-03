@@ -1,16 +1,9 @@
-/*
- * GPIOs and interrupts for Palm Treo 680 smartphone
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #ifndef _INCLUDE_TREO680_H_
 #define _INCLUDE_TREO680_H_
 
-/* GPIOs */
+
 #define GPIO_NR_TREO680_POWER_DETECT	0
 #define GPIO_NR_TREO680_AMP_EN		27
 #define GPIO_NR_TREO680_KEYB_BL		24
@@ -34,12 +27,12 @@
 #define GPIO_NR_TREO680_BL_POWER	38
 #define GPIO_NR_TREO680_LCD_POWER	25
 
-/* Various addresses  */
+
 #define TREO680_PHYS_RAM_START	0xa0000000
 #define TREO680_PHYS_IO_START	0x40000000
 #define TREO680_STR_BASE	0xa2000000
 
-/* BACKLIGHT */
+
 #define TREO680_MAX_INTENSITY		254
 #define TREO680_DEFAULT_INTENSITY	160
 #define TREO680_LIMIT_MASK		0x7F

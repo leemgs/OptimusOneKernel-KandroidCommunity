@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/pxa320.c
- *
- * Code specific to PXA320
- *
- * Copyright (C) 2007 Marvell Internation Ltd.
- *
- * 2007-08-21: eric miao <eric.miao@marvell.com>
- *             initial version
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>

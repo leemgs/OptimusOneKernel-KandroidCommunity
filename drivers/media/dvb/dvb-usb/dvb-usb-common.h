@@ -1,10 +1,4 @@
-/* dvb-usb-common.h is part of the DVB USB library.
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- * see dvb-usb-init.c for copyright information.
- *
- * a header file containing prototypes and types for internal use of the dvb-usb-lib
- */
+
 #ifndef _DVB_USB_COMMON_H_
 #define _DVB_USB_COMMON_H_
 
@@ -24,7 +18,7 @@ extern int dvb_usb_disable_rc_polling;
 #define deb_mem(args...)   dprintk(dvb_usb_debug,0x080,args)
 #define deb_uxfer(args...) dprintk(dvb_usb_debug,0x100,args)
 
-/* commonly used  methods */
+
 extern int dvb_usb_download_firmware(struct usb_device *, struct dvb_usb_device_properties *);
 
 extern int dvb_usb_device_power_ctrl(struct dvb_usb_device *d, int onoff);

@@ -1,11 +1,4 @@
-/*
- * Driver for Sharp s921 driver
- *
- * Copyright (C) 2008 Markus Rechberger <mrechberger@sundtek.de>
- *
- * All rights reserved.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>

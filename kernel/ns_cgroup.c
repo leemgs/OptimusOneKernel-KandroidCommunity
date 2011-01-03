@@ -1,8 +1,4 @@
-/*
- * ns_cgroup.c - namespace cgroup subsystem
- *
- * Copyright 2006, 2007 IBM Corp
- */
+
 
 #include <linux/module.h>
 #include <linux/cgroup.h>
@@ -32,16 +28,7 @@ int ns_cgroup_clone(struct task_struct *task, struct pid *pid)
 	return cgroup_clone(task, &ns_subsys, name);
 }
 
-/*
- * Rules:
- *   1. you can only enter a cgroup which is a descendant of your current
- *     cgroup
- *   2. you can only place another process into a cgroup if
- *     a. you have CAP_SYS_ADMIN
- *     b. your cgroup is an ancestor of task's destination cgroup
- *       (hence either you are in the same cgroup as task, or in an
- *        ancestor cgroup thereof)
- */
+
 static int ns_can_attach(struct cgroup_subsys *ss, struct cgroup *new_cgroup,
 			 struct task_struct *task, bool threadgroup)
 {
@@ -71,11 +58,7 @@ static int ns_can_attach(struct cgroup_subsys *ss, struct cgroup *new_cgroup,
 	return 0;
 }
 
-/*
- * Rules: you can only create a cgroup if
- *     1. you are capable(CAP_SYS_ADMIN)
- *     2. the target cgroup is a descendant of your own cgroup
- */
+
 static struct cgroup_subsys_state *ns_create(struct cgroup_subsys *ss,
 						struct cgroup *cgroup)
 {

@@ -1,12 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/leds.c
- *
- * xscale LEDs dispatcher
- *
- * Copyright (C) 2001 Nicolas Pitre
- *
- * Copyright (c) 2001 Jeff Sutherland, Accelent Systems Inc.
- */
+
 #include <linux/compiler.h>
 #include <linux/init.h>
 

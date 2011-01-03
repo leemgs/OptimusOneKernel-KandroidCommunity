@@ -1,13 +1,4 @@
-/*
- * linux/net/sunrpc/svcauth.c
- *
- * The generic interface for RPC authentication on the server side.
- *
- * Copyright (C) 1995, 1996 Olaf Kirch <okir@monad.swb.de>
- *
- * CHANGES
- * 19-Apr-2000 Chris Evans      - Security fix
- */
+
 
 #include <linux/types.h>
 #include <linux/module.h>
@@ -21,9 +12,7 @@
 #define RPCDBG_FACILITY	RPCDBG_AUTH
 
 
-/*
- * Table of authenticators
- */
+
 extern struct auth_ops svcauth_null;
 extern struct auth_ops svcauth_unix;
 
@@ -65,10 +54,7 @@ int svc_set_client(struct svc_rqst *rqstp)
 }
 EXPORT_SYMBOL_GPL(svc_set_client);
 
-/* A request, which was authenticated, has now executed.
- * Time to finalise the credentials and verifier
- * and release and resources
- */
+
 int svc_authorise(struct svc_rqst *rqstp)
 {
 	struct auth_ops *aops = rqstp->rq_authop;
@@ -107,14 +93,7 @@ svc_auth_unregister(rpc_authflavor_t flavor)
 }
 EXPORT_SYMBOL_GPL(svc_auth_unregister);
 
-/**************************************************
- * 'auth_domains' are stored in a hash table indexed by name.
- * When the last reference to an 'auth_domain' is dropped,
- * the object is unhashed and freed.
- * If auth_domain_lookup fails to find an entry, it will return
- * it's second argument 'new'.  If this is non-null, it will
- * have been atomically linked into the table.
- */
+
 
 #define	DN_HASHBITS	6
 #define	DN_HASHMAX	(1<<DN_HASHBITS)

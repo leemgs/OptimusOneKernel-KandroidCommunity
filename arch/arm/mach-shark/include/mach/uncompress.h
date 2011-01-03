@@ -1,11 +1,4 @@
-/*
- * arch/arm/mach-shark/include/mach/uncompress.h
- * by Alexander Schulz
- *
- * derived from:
- * arch/arm/mach-footbridge/include/mach/uncompress.h
- * Copyright (C) 1996,1997,1998 Russell King
- */
+
 
 #define SERIAL_BASE ((volatile unsigned char *)0x400003f8)
 
@@ -44,8 +37,6 @@ static void putr()
 }
 #endif
 
-/*
- * nothing to do
- */
+
 #define arch_decomp_setup()
 #define arch_decomp_wdog()

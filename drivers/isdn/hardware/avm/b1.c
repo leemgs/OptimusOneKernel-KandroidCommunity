@@ -1,13 +1,4 @@
-/* $Id: b1.c,v 1.1.2.2 2004/01/16 21:09:27 keil Exp $
- * 
- * Common module for AVM B1 cards.
- * 
- * Copyright 1999 by Carsten Paeth <calle@calle.de>
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -30,34 +21,34 @@
 
 static char *revision = "$Revision: 1.1.2.2 $";
 
-/* ------------------------------------------------------------- */
+
 
 MODULE_DESCRIPTION("CAPI4Linux: Common support for active AVM cards");
 MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 
-/* ------------------------------------------------------------- */
+
 
 int b1_irq_table[16] =
 {0,
  0,
  0,
- 192,				/* irq 3 */
- 32,				/* irq 4 */
- 160,				/* irq 5 */
- 96,				/* irq 6 */
- 224,				/* irq 7 */
+ 192,				
+ 32,				
+ 160,				
+ 96,				
+ 224,				
  0,
- 64,				/* irq 9 */
- 80,				/* irq 10 */
- 208,				/* irq 11 */
- 48,				/* irq 12 */
+ 64,				
+ 80,				
+ 208,				
+ 48,				
  0,
  0,
- 112,				/* irq 15 */
+ 112,				
 };
 
-/* ------------------------------------------------------------- */	
+	
 
 avmcard *b1_alloc_card(int nr_controllers)
 {
@@ -86,7 +77,7 @@ avmcard *b1_alloc_card(int nr_controllers)
 	return card;
 }
 
-/* ------------------------------------------------------------- */
+
 
 void b1_free_card(avmcard *card)
 {
@@ -94,30 +85,24 @@ void b1_free_card(avmcard *card)
 	kfree(card);
 }
 
-/* ------------------------------------------------------------- */
+
 
 int b1_detect(unsigned int base, enum avmcardtype cardtype)
 {
 	int onoff, i;
 
-	/*
-	 * Statusregister 0000 00xx 
-	 */
+	
 	if ((inb(base + B1_INSTAT) & 0xfc)
 	    || (inb(base + B1_OUTSTAT) & 0xfc))
 		return 1;
-	/*
-	 * Statusregister 0000 001x 
-	 */
-	b1outp(base, B1_INSTAT, 0x2);	/* enable irq */
-	/* b1outp(base, B1_OUTSTAT, 0x2); */
+	
+	b1outp(base, B1_INSTAT, 0x2);	
+	
 	if ((inb(base + B1_INSTAT) & 0xfe) != 0x2
-	    /* || (inb(base + B1_OUTSTAT) & 0xfe) != 0x2 */)
+	    )
 		return 2;
-	/*
-	 * Statusregister 0000 000x 
-	 */
-	b1outp(base, B1_INSTAT, 0x0);	/* disable irq */
+	
+	b1outp(base, B1_INSTAT, 0x0);	
 	b1outp(base, B1_OUTSTAT, 0x0);
 	if ((inb(base + B1_INSTAT) & 0xfe)
 	    || (inb(base + B1_OUTSTAT) & 0xfe))
@@ -270,7 +255,7 @@ int b1_loaded(avmcard *card)
 	return 0;
 }
 
-/* ------------------------------------------------------------- */
+
 
 int b1_load_firmware(struct capi_ctr *ctrl, capiloaddata *data)
 {
@@ -408,7 +393,7 @@ u16 b1_send_message(struct capi_ctr *ctrl, struct sk_buff *skb)
 	return CAPI_NOERROR;
 }
 
-/* ------------------------------------------------------------- */
+
 
 void b1_parse_version(avmctrl_info *cinfo)
 {
@@ -482,7 +467,7 @@ void b1_parse_version(avmctrl_info *cinfo)
 			);
 }
 
-/* ------------------------------------------------------------- */
+
 
 irqreturn_t b1_interrupt(int interrupt, void *devptr)
 {
@@ -517,7 +502,7 @@ irqreturn_t b1_interrupt(int interrupt, void *devptr)
 		DataB3Len = b1_get_slice(card->port, card->databuf);
 		spin_unlock_irqrestore(&card->lock, flags);
 
-		if (MsgLen < 30) { /* not CAPI 64Bit */
+		if (MsgLen < 30) { 
 			memset(card->msgbuf+MsgLen, 0, 30-MsgLen);
 			MsgLen = 30;
 			CAPIMSG_SETLEN(card->msgbuf, 30);
@@ -570,7 +555,7 @@ irqreturn_t b1_interrupt(int interrupt, void *devptr)
 		break;
 
 	case RECEIVE_START:
-	   	/* b1_put_byte(card->port, SEND_POLLACK); */
+	   	
 		spin_unlock_irqrestore(&card->lock, flags);
 		capi_ctr_resume_output(ctrl);
 		break;
@@ -633,7 +618,7 @@ irqreturn_t b1_interrupt(int interrupt, void *devptr)
 	return IRQ_HANDLED;
 }
 
-/* ------------------------------------------------------------- */
+
 int b1ctl_read_proc(char *page, char **start, off_t off,
         		int count, int *eof, struct capi_ctr *ctrl)
 {
@@ -703,7 +688,7 @@ int b1ctl_read_proc(char *page, char **start, off_t off,
 	return ((count < len-off) ? count : len-off);
 }
 
-/* ------------------------------------------------------------- */
+
 
 #ifdef CONFIG_PCI
 

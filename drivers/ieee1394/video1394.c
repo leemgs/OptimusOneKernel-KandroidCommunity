@@ -1,33 +1,4 @@
-/*
- * video1394.c - video driver for OHCI 1394 boards
- * Copyright (C)1999,2000 Sebastien Rougeaux <sebastien.rougeaux@anu.edu.au>
- *                        Peter Schlaile <udbz@rz.uni-karlsruhe.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * NOTES:
- *
- * ioctl return codes:
- * EFAULT is only for invalid address for the argp
- * EINVAL for out of range values
- * EBUSY when trying to use an already used resource
- * ESRCH when trying to free/stop a not used resource
- * EAGAIN for resource allocation failure that could perhaps succeed later
- * ENOTTY for unsupported ioctl request
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/list.h>
 #include <linux/sched.h>
@@ -66,19 +37,17 @@ struct it_dma_prg {
 	struct dma_cmd begin;
 	quadlet_t data[4];
 	struct dma_cmd end;
-	quadlet_t pad[4]; /* FIXME: quick hack for memory alignment */
+	quadlet_t pad[4]; 
 };
 
 struct dma_iso_ctx {
 	struct ti_ohci *ohci;
-	int type; /* OHCI_ISO_TRANSMIT or OHCI_ISO_RECEIVE */
+	int type; 
 	struct ohci1394_iso_tasklet iso_tasklet;
 	int channel;
 	int ctx;
 	int last_buffer;
-	int * next_buffer;  /* For ISO Transmit of video packets
-			       to write the correct SYT field
-			       into the next block */
+	int * next_buffer;  
 	unsigned int num_desc;
 	unsigned int buf_size;
 	unsigned int frame_size;
@@ -95,9 +64,8 @@ struct dma_iso_ctx {
 
 	unsigned int *buffer_status;
 	unsigned int *buffer_prg_assignment;
-        struct timeval *buffer_time; /* time when the buffer was received */
-	unsigned int *last_used_cmd; /* For ISO Transmit with
-					variable sized packets only ! */
+        struct timeval *buffer_time; 
+	unsigned int *last_used_cmd; 
 	int ctrlClear;
 	int ctrlSet;
 	int cmdPtr;
@@ -132,11 +100,11 @@ printk(KERN_INFO "video1394_%d: " fmt "\n" , card , ## args)
 #define DBGMSG(card, fmt, args...) do {} while (0)
 #endif
 
-/* print general (card independent) information */
+
 #define PRINT_G(level, fmt, args...) \
 printk(level "video1394: " fmt "\n" , ## args)
 
-/* print card specific information */
+
 #define PRINT(level, card, fmt, args...) \
 printk(level "video1394_%d: " fmt "\n" , card , ## args)
 
@@ -199,7 +167,7 @@ alloc_dma_iso_ctx(struct ti_ohci *ohci, int type, int num_desc,
 	INIT_LIST_HEAD(&d->link);
 	init_waitqueue_head(&d->waitq);
 
-	/* Init the regions for easy cleanup */
+	
 	dma_region_init(&d->dma);
 
 	if (dma_region_alloc(&d->dma, (d->num_desc - 1) * d->buf_size, ohci->dev,
@@ -232,7 +200,7 @@ alloc_dma_iso_ctx(struct ti_ohci *ohci, int type, int num_desc,
 		free_dma_iso_ctx(d);
 		return NULL;
 	}
-	/* Makes for easier cleanup */
+	
 	for (i = 0; i < d->num_desc; i++)
 		dma_prog_region_init(&d->prg_reg[i]);
 
@@ -265,7 +233,7 @@ alloc_dma_iso_ctx(struct ti_ohci *ohci, int type, int num_desc,
 			d->ir_prg[i] = (struct dma_cmd *)d->prg_reg[i].kvirt;
 		}
 
-	} else {  /* OHCI_ISO_TRANSMIT */
+	} else {  
 		d->ctrlSet = OHCI1394_IsoXmitContextControlSet+16*d->ctx;
 		d->ctrlClear = OHCI1394_IsoXmitContextControlClear+16*d->ctx;
 		d->cmdPtr = OHCI1394_IsoXmitCommandPtr+16*d->ctx;
@@ -380,11 +348,11 @@ static void initialize_dma_ir_prg(struct dma_iso_ctx *d, int n, int flags)
 	unsigned long buf = (unsigned long)d->dma.kvirt;
 	int i;
 
-	/* the first descriptor will read only 4 bytes */
+	
 	ir_prg[0].control = cpu_to_le32(DMA_CTL_INPUT_MORE | DMA_CTL_UPDATE |
 		DMA_CTL_BRANCH | 4);
 
-	/* set the sync flag */
+	
 	if (flags & VIDEO1394_SYNC_FRAMES)
 		ir_prg[0].control |= cpu_to_le32(DMA_CTL_WAIT);
 
@@ -393,9 +361,9 @@ static void initialize_dma_ir_prg(struct dma_iso_ctx *d, int n, int flags)
 	ir_prg[0].branchAddress = cpu_to_le32((dma_prog_region_offset_to_bus(ir_reg,
 					1 * sizeof(struct dma_cmd)) & 0xfffffff0) | 0x1);
 
-	/* If there is *not* only one DMA page per frame (hence, d->nb_cmd==2) */
+	
 	if (d->nb_cmd > 2) {
-		/* The second descriptor will read PAGE_SIZE-4 bytes */
+		
 		ir_prg[1].control = cpu_to_le32(DMA_CTL_INPUT_MORE | DMA_CTL_UPDATE |
 						DMA_CTL_BRANCH | (PAGE_SIZE-4));
 		ir_prg[1].address = cpu_to_le32(dma_region_offset_to_bus(&d->dma, (buf + 4) -
@@ -415,15 +383,15 @@ static void initialize_dma_ir_prg(struct dma_iso_ctx *d, int n, int flags)
 					    (i + 1) * sizeof(struct dma_cmd)) & 0xfffffff0) | 0x1);
 		}
 
-		/* The last descriptor will generate an interrupt */
+		
 		ir_prg[i].control = cpu_to_le32(DMA_CTL_INPUT_MORE | DMA_CTL_UPDATE |
 						DMA_CTL_IRQ | DMA_CTL_BRANCH | d->left_size);
 		ir_prg[i].address = cpu_to_le32(dma_region_offset_to_bus(&d->dma,
 						(buf+(i-1)*PAGE_SIZE) -
 						(unsigned long)d->dma.kvirt));
 	} else {
-		/* Only one DMA page is used. Read d->left_size immediately and */
-		/* generate an interrupt as this is also the last page. */
+		
+		
 		ir_prg[1].control = cpu_to_le32(DMA_CTL_INPUT_MORE | DMA_CTL_UPDATE |
 						DMA_CTL_IRQ | DMA_CTL_BRANCH | (d->left_size-4));
 		ir_prg[1].address = cpu_to_le32(dma_region_offset_to_bus(&d->dma,
@@ -445,25 +413,24 @@ static void initialize_dma_ir_ctx(struct dma_iso_ctx *d, int tag, int flags)
 		reset_ir_status(d, i);
 	}
 
-	/* reset the ctrl register */
+	
 	reg_write(ohci, d->ctrlClear, 0xf0000000);
 
-	/* Set bufferFill */
+	
 	reg_write(ohci, d->ctrlSet, 0x80000000);
 
-	/* Set isoch header */
+	
 	if (flags & VIDEO1394_INCLUDE_ISO_HEADERS)
 		reg_write(ohci, d->ctrlSet, 0x40000000);
 
-	/* Set the context match register to match on all tags,
-	   sync for sync tag, and listen to d->channel */
+	
 	reg_write(ohci, d->ctxMatch, 0xf0000000|((tag&0xf)<<8)|d->channel);
 
-	/* Set up isoRecvIntMask to generate interrupts */
+	
 	reg_write(ohci, OHCI1394_IsoRecvIntMaskSet, 1<<d->ctx);
 }
 
-/* find which context is listening to this channel */
+
 static struct dma_iso_ctx *
 find_ctx(struct list_head *list, int type, int channel)
 {
@@ -514,21 +481,21 @@ static inline void put_timestamp(struct ti_ohci *ohci, struct dma_iso_ctx * d,
 
 	cycleTimer = reg_read(ohci, OHCI1394_IsochronousCycleTimer);
 
-	timeStamp = ((cycleTimer & 0x0fff) + d->syt_offset); /* 11059 = 450 us */
+	timeStamp = ((cycleTimer & 0x0fff) + d->syt_offset); 
 	timeStamp = (timeStamp % 3072 + ((timeStamp / 3072) << 12)
 		+ (cycleTimer & 0xf000)) & 0xffff;
 
 	buf[6] = timeStamp >> 8;
 	buf[7] = timeStamp & 0xff;
 
-    /* if first packet is empty packet, then put timestamp into the next full one too */
+    
     if ( (le32_to_cpu(d->it_prg[n][0].data[1]) >>16) == 0x008) {
    	    buf += d->packet_size;
     	buf[6] = timeStamp >> 8;
 	    buf[7] = timeStamp & 0xff;
 	}
 
-    /* do the next buffer frame too in case of irq latency */
+    
 	n = d->next_buffer[n];
 	if (n == -1) {
 	  return;
@@ -540,7 +507,7 @@ static inline void put_timestamp(struct ti_ohci *ohci, struct dma_iso_ctx * d,
 	buf[6] = timeStamp >> 8;
 	buf[7] = timeStamp & 0xff;
 
-    /* if first packet is empty packet, then put timestamp into the next full one too */
+    
     if ( (le32_to_cpu(d->it_prg[n][0].data[1]) >>16) == 0x008) {
    	    buf += d->packet_size;
     	buf[6] = timeStamp >> 8;
@@ -608,7 +575,7 @@ static void initialize_dma_it_prg(struct dma_iso_ctx *d, int n, int sync_tag)
 
 		it_prg[i].data[0] = cpu_to_le32(
 			(IEEE1394_SPEED_100 << 16)
-			| (/* tag */ 1 << 14)
+			| ( 1 << 14)
 			| (d->channel << 8)
 			| (TCODE_ISO_DATA << 4));
 		if (i==0) it_prg[i].data[0] |= cpu_to_le32(sync_tag);
@@ -631,10 +598,10 @@ static void initialize_dma_it_prg(struct dma_iso_ctx *d, int n, int sync_tag)
 				cpu_to_le32((dma_prog_region_offset_to_bus(it_reg, (i + 1) *
 					sizeof(struct it_dma_prg)) & 0xfffffff0) | 0x3);
 		} else {
-			/* the last prg generates an interrupt */
+			
 			it_prg[i].end.control |= cpu_to_le32(DMA_CTL_UPDATE |
 				DMA_CTL_IRQ | d->left_size);
-			/* the last prg doesn't branch */
+			
 			it_prg[i].begin.branchAddress = 0;
 			it_prg[i].end.branchAddress = 0;
 		}
@@ -676,10 +643,10 @@ static void initialize_dma_it_prg_var_packet_queue(
 				cpu_to_le32((dma_prog_region_offset_to_bus(it_reg, (i + 1) *
 					sizeof(struct it_dma_prg)) & 0xfffffff0) | 0x3);
 		} else {
-			/* the last prg generates an interrupt */
+			
 			it_prg[i].end.control |= cpu_to_le32(DMA_CTL_UPDATE |
 				DMA_CTL_IRQ | size);
-			/* the last prg doesn't branch */
+			
 			it_prg[i].begin.branchAddress = 0;
 			it_prg[i].end.branchAddress = 0;
 			d->last_used_cmd[n] = i;
@@ -702,7 +669,7 @@ static void initialize_dma_it_ctx(struct dma_iso_ctx *d, int sync_tag,
 	for (i=0;i<d->num_desc;i++)
 		initialize_dma_it_prg(d, i, sync_tag);
 
-	/* Set up isoRecvIntMask to generate interrupts */
+	
 	reg_write(ohci, OHCI1394_IsoXmitIntMaskSet, 1<<d->ctx);
 }
 
@@ -738,7 +705,7 @@ static long video1394_ioctl(struct file *file,
 		if (copy_from_user(&v, argp, sizeof(v)))
 			return -EFAULT;
 
-		/* if channel < 0, find lowest available one */
+		
 		if (v.channel < 0) {
 		    mask = (u64)0x1;
 		    for (i=0; ; i++) {
@@ -836,7 +803,7 @@ static long video1394_ioctl(struct file *file,
 		}
 
 		if (copy_to_user(argp, &v, sizeof(v))) {
-			/* FIXME : free allocated dma resources */
+			
 			return -EFAULT;
 		}
 		
@@ -866,7 +833,7 @@ static long video1394_ioctl(struct file *file,
 			return -ESRCH;
 		}
 
-		/* Mark this channel as unused */
+		
 		ohci->ISO_channel_usage &= ~mask;
 
 		if (cmd == VIDEO1394_IOC_UNLISTEN_CHANNEL)
@@ -928,15 +895,15 @@ static long video1394_ioctl(struct file *file,
 		{
 			DBGMSG(ohci->host->id, "Starting iso DMA ctx=%d",d->ctx);
 
-			/* Tell the controller where the first program is */
+			
 			reg_write(ohci, d->cmdPtr,
 				  dma_prog_region_offset_to_bus(&d->prg_reg[d->last_buffer], 0) | 0x1);
 
-			/* Run IR context */
+			
 			reg_write(ohci, d->ctrlSet, 0x8000);
 		}
 		else {
-			/* Wake up dma context if necessary */
+			
 			if (!(reg_read(ohci, d->ctrlSet) & 0x400)) {
 				DBGMSG(ohci->host->id,
 				      "Waking up iso dma ctx=%d", d->ctx);
@@ -966,10 +933,7 @@ static long video1394_ioctl(struct file *file,
 			return -EINVAL;
 		}
 
-		/*
-		 * I change the way it works so that it returns
-		 * the last received frame.
-		 */
+		
 		spin_lock_irqsave(&d->lock, flags);
 		switch(d->buffer_status[v.buffer]) {
 		case VIDEO1394_BUFFER_READY:
@@ -977,7 +941,7 @@ static long video1394_ioctl(struct file *file,
 			break;
 		case VIDEO1394_BUFFER_QUEUED:
 			if (cmd == VIDEO1394_IOC_LISTEN_POLL_BUFFER) {
-			    /* for polling, return error code EINTR */
+			    
 			    spin_unlock_irqrestore(&d->lock, flags);
 			    return -EINTR;
 			}
@@ -998,12 +962,10 @@ static long video1394_ioctl(struct file *file,
 			return -ESRCH;
 		}
 
-		/* set time of buffer */
+		
 		v.filltime = d->buffer_time[v.buffer];
 
-		/*
-		 * Look ahead to see how many more buffers have been received
-		 */
+		
 		i=0;
 		while (d->buffer_status[(v.buffer+1)%(d->num_desc - 1)]==
 		       VIDEO1394_BUFFER_READY) {
@@ -1057,7 +1019,7 @@ static long video1394_ioctl(struct file *file,
 
 		spin_lock_irqsave(&d->lock,flags);
 
-		/* last_buffer is last_prg */
+		
 		next_prg = (d->last_buffer + 1) % d->num_desc;
 		if (d->buffer_status[v.buffer]!=VIDEO1394_BUFFER_FREE) {
 			PRINT(KERN_ERR, ohci->host->id,
@@ -1102,15 +1064,15 @@ static long video1394_ioctl(struct file *file,
 			dma_region_sync_for_device(&d->dma,
 				v.buffer * d->buf_size, d->buf_size);
 
-			/* Tell the controller where the first program is */
+			
 			reg_write(ohci, d->cmdPtr,
 				dma_prog_region_offset_to_bus(&d->prg_reg[next_prg], 0) | 0x3);
 
-			/* Run IT context */
+			
 			reg_write(ohci, d->ctrlSet, 0x8000);
 		}
 		else {
-			/* Wake up dma context if necessary */
+			
 			if (!(reg_read(ohci, d->ctrlSet) & 0x400)) {
 				DBGMSG(ohci->host->id,
 				      "Waking up iso transmit dma ctx=%d",
@@ -1166,14 +1128,7 @@ static long video1394_ioctl(struct file *file,
 	}
 }
 
-/*
- *	This maps the vmalloced and reserved buffer to user space.
- *
- *  FIXME:
- *  - PAGE_READONLY should suffice!?
- *  - remap_pfn_range is kind of inefficient for page by page remapping.
- *    But e.g. pte_alloc() does not work in modules ... :-(
- */
+
 
 static int video1394_mmap(struct file *file, struct vm_area_struct *vma)
 {
@@ -1290,10 +1245,8 @@ static const struct file_operations video1394_fops=
 	.release =	video1394_release
 };
 
-/*** HOTPLUG STUFF **********************************************************/
-/*
- * Export information about protocols/devices supported by this driver.
- */
+
+
 #ifdef MODULE
 static const struct ieee1394_device_id video1394_id_table[] = {
 	{
@@ -1315,7 +1268,7 @@ static const struct ieee1394_device_id video1394_id_table[] = {
 };
 
 MODULE_DEVICE_TABLE(ieee1394, video1394_id_table);
-#endif /* MODULE */
+#endif 
 
 static struct hpsb_protocol_driver video1394_driver = {
 	.name = VIDEO1394_DRIVER_NAME,
@@ -1327,7 +1280,7 @@ static void video1394_add_host (struct hpsb_host *host)
 	struct ti_ohci *ohci;
 	int minor;
 
-	/* We only work with the OHCI-1394 driver */
+	
 	if (strcmp(host->driver->name, OHCI1394_DRIVER_NAME))
 		return;
 
@@ -1459,7 +1412,7 @@ static int video1394_w_wait32(struct file *file, unsigned int cmd, unsigned long
 
 static int video1394_queue_buf32(struct file *file, unsigned int cmd, unsigned long arg)
 {
-        return -EFAULT;   /* ??? was there before. */
+        return -EFAULT;   
 
 	return video1394_ioctl(file,
 				VIDEO1394_IOC_TALK_QUEUE_BUFFER, arg);
@@ -1489,7 +1442,7 @@ static long video1394_compat_ioctl(struct file *f, unsigned cmd, unsigned long a
 	}
 }
 
-#endif /* CONFIG_COMPAT */
+#endif 
 
 static void __exit video1394_exit_module (void)
 {

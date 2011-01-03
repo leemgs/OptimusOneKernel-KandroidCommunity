@@ -1,13 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/colibri-pxa270.c
- *
- *  Support for Toradex PXA270 based Colibri module
- *  Daniel Mack <daniel@caiaq.de>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -36,23 +27,19 @@
 #include "generic.h"
 #include "devices.h"
 
-/*
- * GPIO configuration
- */
+
 static mfp_cfg_t colibri_pxa270_pin_config[] __initdata = {
-	GPIO78_nCS_2,	/* Ethernet CS */
-	GPIO114_GPIO,	/* Ethernet IRQ */
+	GPIO78_nCS_2,	
+	GPIO114_GPIO,	
 };
 
-/*
- * NOR flash
- */
+
 static struct mtd_partition colibri_partitions[] = {
 	{
 		.name =		"Bootloader",
 		.offset =	0x00000000,
 		.size =		0x00040000,
-		.mask_flags =	MTD_WRITEABLE  /* force read-only */
+		.mask_flags =	MTD_WRITEABLE  
 	}, {
 		.name =		"Kernel",
 		.offset =	0x00040000,
@@ -68,7 +55,7 @@ static struct mtd_partition colibri_partitions[] = {
 
 static struct physmap_flash_data colibri_flash_data[] = {
 	{
-		.width		= 4,			/* bankwidth in bytes */
+		.width		= 4,			
 		.parts		= colibri_partitions,
 		.nr_parts	= ARRAY_SIZE(colibri_partitions)
 	}
@@ -90,9 +77,7 @@ static struct platform_device colibri_pxa270_flash_device = {
 	.num_resources = 1,
 };
 
-/*
- * DM9000 Ethernet
- */
+
 #if defined(CONFIG_DM9000)
 static struct resource dm9000_resources[] = {
 	[0] = {
@@ -118,7 +103,7 @@ static struct platform_device dm9000_device = {
 	.num_resources	= ARRAY_SIZE(dm9000_resources),
 	.resource	= dm9000_resources,
 };
-#endif /* CONFIG_DM9000 */
+#endif 
 
 static struct platform_device *colibri_pxa270_devices[] __initdata = {
 	&colibri_pxa270_flash_device,

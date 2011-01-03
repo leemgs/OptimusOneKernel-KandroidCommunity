@@ -1,10 +1,4 @@
-/*
- * MTD map driver for flash on the DC21285 (the StrongARM-110 companion chip)
- *
- * (C) 2000  Nicolas Pitre <nico@fluxnic.net>
- *
- * This code is GPL
- */
+
 #include <linux/module.h>
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -24,27 +18,17 @@
 static struct mtd_info *dc21285_mtd;
 
 #ifdef CONFIG_ARCH_NETWINDER
-/*
- * This is really ugly, but it seams to be the only
- * realiable way to do it, as the cpld state machine
- * is unpredictible. So we have a 25us penalty per
- * write access.
- */
+
 static void nw_en_write(void)
 {
 	unsigned long flags;
 
-	/*
-	 * we want to write a bit pattern XXX1 to Xilinx to enable
-	 * the write gate, which will be open for about the next 2ms.
-	 */
+	
 	spin_lock_irqsave(&nw_gpio_lock, flags);
 	nw_cpld_modify(CPLD_FLASH_WR_ENABLE, CPLD_FLASH_WR_ENABLE);
 	spin_unlock_irqrestore(&nw_gpio_lock, flags);
 
-	/*
-	 * let the ISA bus to catch on...
-	 */
+	
 	udelay(25);
 }
 #else
@@ -144,7 +128,7 @@ static struct map_info dc21285_map = {
 };
 
 
-/* Partition stuff */
+
 #ifdef CONFIG_MTD_PARTITIONS
 static struct mtd_partition *dc21285_parts;
 static const char *probes[] = { "RedBoot", "cmdlinepart", NULL };
@@ -157,7 +141,7 @@ static int __init init_dc21285(void)
 	int nrparts;
 #endif
 
-	/* Determine bankwidth */
+	
 	switch (*CSR_SA110_CNTL & (3<<14)) {
 		case SA110_CNTL_ROMWIDTH_8:
 			dc21285_map.bankwidth = 1;
@@ -184,7 +168,7 @@ static int __init init_dc21285(void)
 	printk (KERN_NOTICE "DC21285 flash support (%d-bit bankwidth)\n",
 		dc21285_map.bankwidth*8);
 
-	/* Let's map the flash area */
+	
 	dc21285_map.virt = ioremap(DC21285_FLASH, 16*1024*1024);
 	if (!dc21285_map.virt) {
 		printk("Failed to ioremap\n");
@@ -213,17 +197,12 @@ static int __init init_dc21285(void)
 		add_mtd_device(dc21285_mtd);
 
 	if(machine_is_ebsa285()) {
-		/*
-		 * Flash timing is determined with bits 19-16 of the
-		 * CSR_SA110_CNTL.  The value is the number of wait cycles, or
-		 * 0 for 16 cycles (the default).  Cycles are 20 ns.
-		 * Here we use 7 for 140 ns flash chips.
-		 */
-		/* access time */
+		
+		
 		*CSR_SA110_CNTL = ((*CSR_SA110_CNTL & ~0x000f0000) | (7 << 16));
-		/* burst time */
+		
 		*CSR_SA110_CNTL = ((*CSR_SA110_CNTL & ~0x00f00000) | (7 << 20));
-		/* tristate time */
+		
 		*CSR_SA110_CNTL = ((*CSR_SA110_CNTL & ~0x0f000000) | (7 << 24));
 	}
 

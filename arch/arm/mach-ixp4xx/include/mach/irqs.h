@@ -1,16 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/include/mach/irqs.h 
- *
- * IRQ definitions for IXP4XX based systems
- *
- * Copyright (C) 2002 Intel Corporation.
- * Copyright (C) 2003 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #ifndef _ARCH_IXP4XX_IRQS_H_
 #define _ARCH_IXP4XX_IRQS_H_
@@ -59,9 +47,7 @@
 #define IRQ_IXP4XX_MCU_ECC	61
 #define IRQ_IXP4XX_EXP_PE	62
 
-/*
- * Only first 32 sources are valid if running on IXP42x systems
- */
+
 #if defined(CONFIG_CPU_IXP46X) || defined(CONFIG_CPU_IXP43X)
 #define NR_IRQS			64
 #else
@@ -70,57 +56,43 @@
 
 #define	XSCALE_PMU_IRQ		(IRQ_IXP4XX_XSCALE_PMU)
 
-/*
- * IXDP425 board IRQs
- */
+
 #define	IRQ_IXDP425_PCI_INTA	IRQ_IXP4XX_GPIO11
 #define	IRQ_IXDP425_PCI_INTB	IRQ_IXP4XX_GPIO10
 #define	IRQ_IXDP425_PCI_INTC	IRQ_IXP4XX_GPIO9
 #define	IRQ_IXDP425_PCI_INTD	IRQ_IXP4XX_GPIO8
 
-/*
- * Gateworks Avila board IRQs
- */
+
 #define	IRQ_AVILA_PCI_INTA	IRQ_IXP4XX_GPIO11
 #define	IRQ_AVILA_PCI_INTB	IRQ_IXP4XX_GPIO10
 #define	IRQ_AVILA_PCI_INTC	IRQ_IXP4XX_GPIO9
 #define	IRQ_AVILA_PCI_INTD	IRQ_IXP4XX_GPIO8
 
 
-/*
- * PrPMC1100 Board IRQs
- */
+
 #define	IRQ_PRPMC1100_PCI_INTA	IRQ_IXP4XX_GPIO11
 #define	IRQ_PRPMC1100_PCI_INTB	IRQ_IXP4XX_GPIO10
 #define	IRQ_PRPMC1100_PCI_INTC	IRQ_IXP4XX_GPIO9
 #define	IRQ_PRPMC1100_PCI_INTD	IRQ_IXP4XX_GPIO8
 
-/*
- * ADI Coyote Board IRQs
- */
+
 #define	IRQ_COYOTE_PCI_SLOT0	IRQ_IXP4XX_GPIO6
 #define	IRQ_COYOTE_PCI_SLOT1	IRQ_IXP4XX_GPIO11
 #define	IRQ_COYOTE_IDE		IRQ_IXP4XX_GPIO5
 
-/*
- * NSLU2 board IRQs
- */
+
 #define        IRQ_NSLU2_PCI_INTA      IRQ_IXP4XX_GPIO11
 #define        IRQ_NSLU2_PCI_INTB      IRQ_IXP4XX_GPIO10
 #define        IRQ_NSLU2_PCI_INTC      IRQ_IXP4XX_GPIO9
 
-/*
- * NAS100D board IRQs
- */
+
 #define        IRQ_NAS100D_PCI_INTA    IRQ_IXP4XX_GPIO11
 #define        IRQ_NAS100D_PCI_INTB    IRQ_IXP4XX_GPIO10
 #define        IRQ_NAS100D_PCI_INTC    IRQ_IXP4XX_GPIO9
 #define        IRQ_NAS100D_PCI_INTD    IRQ_IXP4XX_GPIO8
 #define        IRQ_NAS100D_PCI_INTE    IRQ_IXP4XX_GPIO7
 
-/*
- * D-Link DSM-G600 RevA board IRQs
- */
+
 #define        IRQ_DSMG600_PCI_INTA    IRQ_IXP4XX_GPIO11
 #define        IRQ_DSMG600_PCI_INTB    IRQ_IXP4XX_GPIO10
 #define        IRQ_DSMG600_PCI_INTC    IRQ_IXP4XX_GPIO9
@@ -128,9 +100,7 @@
 #define        IRQ_DSMG600_PCI_INTE    IRQ_IXP4XX_GPIO7
 #define        IRQ_DSMG600_PCI_INTF    IRQ_IXP4XX_GPIO6
 
-/*
- * Freecom FSG-3 Board IRQs
- */
+
 #define        IRQ_FSG_PCI_INTA        IRQ_IXP4XX_GPIO6
 #define        IRQ_FSG_PCI_INTB        IRQ_IXP4XX_GPIO7
 #define        IRQ_FSG_PCI_INTC        IRQ_IXP4XX_GPIO5

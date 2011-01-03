@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfa_fcs_fcpim.h BFA FCS FCP Initiator Mode interfaces/defines.
- */
+
+
 
 #ifndef __BFA_FCS_FCPIM_H__
 #define __BFA_FCS_FCPIM_H__
@@ -29,25 +12,23 @@
 #include <fcs/bfa_fcs_lport.h>
 #include <bfa_fcpim.h>
 
-/*
- * forward declarations
- */
+
 struct bfad_itnim_s;
 
 struct bfa_fcs_itnim_s {
-	bfa_sm_t		sm;		/*  state machine */
-	struct bfa_fcs_rport_s 	*rport;		/*  parent remote rport  */
-	struct bfad_itnim_s   	*itnim_drv;	/*  driver peer instance */
-	struct bfa_fcs_s      	*fcs;		/*  fcs instance         */
-	struct bfa_timer_s 	timer;		/*  timer functions      */
-	struct bfa_itnim_s 	*bfa_itnim;	/*  BFA itnim struct     */
-	bfa_boolean_t	 	seq_rec;	/*  seq recovery support */
-	bfa_boolean_t	 	rec_support;	/*  REC supported        */
-	bfa_boolean_t	 	conf_comp;	/*  FCP_CONF     support */
-	bfa_boolean_t	 	task_retry_id;	/*  task retry id supp   */
-	struct bfa_fcxp_wqe_s 	fcxp_wqe;	/*  wait qelem for fcxp  */
-	struct bfa_fcxp_s *fcxp;		/*  FCXP in use          */
-	struct bfa_itnim_stats_s 	stats;	/*  itn statistics       */
+	bfa_sm_t		sm;		
+	struct bfa_fcs_rport_s 	*rport;		
+	struct bfad_itnim_s   	*itnim_drv;	
+	struct bfa_fcs_s      	*fcs;		
+	struct bfa_timer_s 	timer;		
+	struct bfa_itnim_s 	*bfa_itnim;	
+	bfa_boolean_t	 	seq_rec;	
+	bfa_boolean_t	 	rec_support;	
+	bfa_boolean_t	 	conf_comp;	
+	bfa_boolean_t	 	task_retry_id;	
+	struct bfa_fcxp_wqe_s 	fcxp_wqe;	
+	struct bfa_fcxp_s *fcxp;		
+	struct bfa_itnim_stats_s 	stats;	
 };
 
 
@@ -113,9 +94,7 @@ bfa_fcs_itnim_get_halitn(struct bfa_fcs_itnim_s *itnim)
 	return itnim->bfa_itnim;
 }
 
-/**
- * bfa fcs FCP Initiator mode API functions
- */
+
 void bfa_fcs_itnim_get_attr(struct bfa_fcs_itnim_s *itnim,
 			struct bfa_itnim_attr_s *attr);
 void bfa_fcs_itnim_get_stats(struct bfa_fcs_itnim_s *itnim,
@@ -128,4 +107,4 @@ bfa_status_t bfa_fcs_itnim_stats_get(struct bfa_fcs_port_s *port, wwn_t rpwwn,
 			struct bfa_itnim_stats_s *stats);
 bfa_status_t bfa_fcs_itnim_stats_clear(struct bfa_fcs_port_s *port,
 			wwn_t rpwwn);
-#endif /* __BFA_FCS_FCPIM_H__ */
+#endif 

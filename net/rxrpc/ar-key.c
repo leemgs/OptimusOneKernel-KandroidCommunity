@@ -1,16 +1,4 @@
-/* RxRPC key management
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- *
- * RxRPC keys should have a description of describing their purpose:
- *	"afs@CAMBRIDGE.REDHAT.COM>
- */
+
 
 #include <linux/module.h>
 #include <linux/net.h>
@@ -31,10 +19,7 @@ static void rxrpc_destroy_s(struct key *);
 static void rxrpc_describe(const struct key *, struct seq_file *);
 static long rxrpc_read(const struct key *, char __user *, size_t);
 
-/*
- * rxrpc defined keys take an arbitrary string as the description and an
- * arbitrary blob of data as the payload
- */
+
 struct key_type key_type_rxrpc = {
 	.name		= "rxrpc",
 	.instantiate	= rxrpc_instantiate,
@@ -45,10 +30,7 @@ struct key_type key_type_rxrpc = {
 };
 EXPORT_SYMBOL(key_type_rxrpc);
 
-/*
- * rxrpc server defined keys take "<serviceId>:<securityIndex>" as the
- * description and an 8-byte decryption key as the payload
- */
+
 struct key_type key_type_rxrpc_s = {
 	.name		= "rxrpc_s",
 	.instantiate	= rxrpc_instantiate_s,
@@ -57,10 +39,7 @@ struct key_type key_type_rxrpc_s = {
 	.describe	= rxrpc_describe,
 };
 
-/*
- * parse an RxKAD type XDR format token
- * - the caller guarantees we have at least 4 words
- */
+
 static int rxrpc_instantiate_xdr_rxkad(struct key *key, const __be32 *xdr,
 				       unsigned toklen)
 {
@@ -125,10 +104,10 @@ static int rxrpc_instantiate_xdr_rxkad(struct key *key, const __be32 *xdr,
 		       token->kad->ticket[4], token->kad->ticket[5],
 		       token->kad->ticket[6], token->kad->ticket[7]);
 
-	/* count the number of tokens attached */
+	
 	key->type_data.x[0]++;
 
-	/* attach the data */
+	
 	for (pptoken = (struct rxrpc_key_token **)&key->payload.data;
 	     *pptoken;
 	     pptoken = &(*pptoken)->next)
@@ -158,9 +137,7 @@ static void rxrpc_free_krb5_tagged(struct krb5_tagged_data *td)
 	kfree(td->data);
 }
 
-/*
- * free up an RxK5 token
- */
+
 static void rxrpc_rxk5_free(struct rxk5_key *rxk5)
 {
 	int loop;
@@ -185,9 +162,7 @@ static void rxrpc_rxk5_free(struct rxk5_key *rxk5)
 	kfree(rxk5);
 }
 
-/*
- * extract a krb5 principal
- */
+
 static int rxrpc_krb5_decode_principal(struct krb5_principal *princ,
 				       const __be32 **_xdr,
 				       unsigned *_toklen)
@@ -195,8 +170,7 @@ static int rxrpc_krb5_decode_principal(struct krb5_principal *princ,
 	const __be32 *xdr = *_xdr;
 	unsigned toklen = *_toklen, n_parts, loop, tmp;
 
-	/* there must be at least one name, and at least #names+1 length
-	 * words */
+	
 	if (toklen <= 12)
 		return -EINVAL;
 
@@ -260,9 +234,7 @@ static int rxrpc_krb5_decode_principal(struct krb5_principal *princ,
 	return 0;
 }
 
-/*
- * extract a piece of krb5 tagged data
- */
+
 static int rxrpc_krb5_decode_tagged_data(struct krb5_tagged_data *td,
 					 size_t max_data_size,
 					 const __be32 **_xdr,
@@ -271,7 +243,7 @@ static int rxrpc_krb5_decode_tagged_data(struct krb5_tagged_data *td,
 	const __be32 *xdr = *_xdr;
 	unsigned toklen = *_toklen, len;
 
-	/* there must be at least one tag and one length word */
+	
 	if (toklen <= 8)
 		return -EINVAL;
 
@@ -303,9 +275,7 @@ static int rxrpc_krb5_decode_tagged_data(struct krb5_tagged_data *td,
 	return 0;
 }
 
-/*
- * extract an array of tagged data
- */
+
 static int rxrpc_krb5_decode_tagged_array(struct krb5_tagged_data **_td,
 					  u8 *_n_elem,
 					  u8 max_n_elem,
@@ -318,7 +288,7 @@ static int rxrpc_krb5_decode_tagged_array(struct krb5_tagged_data **_td,
 	unsigned toklen = *_toklen, n_elem, loop;
 	int ret;
 
-	/* there must be at least one count */
+	
 	if (toklen < 4)
 		return -EINVAL;
 
@@ -357,16 +327,14 @@ static int rxrpc_krb5_decode_tagged_array(struct krb5_tagged_data **_td,
 	return 0;
 }
 
-/*
- * extract a krb5 ticket
- */
+
 static int rxrpc_krb5_decode_ticket(u8 **_ticket, u16 *_tktlen,
 				    const __be32 **_xdr, unsigned *_toklen)
 {
 	const __be32 *xdr = *_xdr;
 	unsigned toklen = *_toklen, len;
 
-	/* there must be at least one length word */
+	
 	if (toklen <= 4)
 		return -EINVAL;
 
@@ -396,10 +364,7 @@ static int rxrpc_krb5_decode_ticket(u8 **_ticket, u16 *_tktlen,
 	return 0;
 }
 
-/*
- * parse an RxK5 type XDR format token
- * - the caller guarantees we have at least 4 words
- */
+
 static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 				      unsigned toklen)
 {
@@ -412,8 +377,7 @@ static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 	       ntohl(xdr[0]), ntohl(xdr[1]), ntohl(xdr[2]), ntohl(xdr[3]),
 	       toklen);
 
-	/* reserve some payload space for this subkey - the length of the token
-	 * is a reasonable approximation */
+	
 	ret = key_payload_reserve(key, key->datalen + toklen);
 	if (ret < 0)
 		return ret;
@@ -431,7 +395,7 @@ static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 	token->security_index = RXRPC_SECURITY_RXK5;
 	token->k5 = rxk5;
 
-	/* extract the principals */
+	
 	ret = rxrpc_krb5_decode_principal(&rxk5->client, &xdr, &toklen);
 	if (ret < 0)
 		goto error;
@@ -439,8 +403,7 @@ static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 	if (ret < 0)
 		goto error;
 
-	/* extract the session key and the encoding type (the tag field ->
-	 * ENCTYPE_xxx) */
+	
 	ret = rxrpc_krb5_decode_tagged_data(&rxk5->session, AFSTOKEN_DATA_MAX,
 					    &xdr, &toklen);
 	if (ret < 0)
@@ -465,7 +428,7 @@ static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 	       rxk5->renew_till);
 	_debug("is_skey=%x flags=%x", rxk5->is_skey, rxk5->flags);
 
-	/* extract the permitted client addresses */
+	
 	ret = rxrpc_krb5_decode_tagged_array(&rxk5->addresses,
 					     &rxk5->n_addresses,
 					     AFSTOKEN_K5_ADDRESSES_MAX,
@@ -476,7 +439,7 @@ static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 
 	ASSERTCMP((end_xdr - xdr) << 2, ==, toklen);
 
-	/* extract the tickets */
+	
 	ret = rxrpc_krb5_decode_ticket(&rxk5->ticket, &rxk5->ticket_len,
 				       &xdr, &toklen);
 	if (ret < 0)
@@ -488,7 +451,7 @@ static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 
 	ASSERTCMP((end_xdr - xdr) << 2, ==, toklen);
 
-	/* extract the typed auth data */
+	
 	ret = rxrpc_krb5_decode_tagged_array(&rxk5->authdata,
 					     &rxk5->n_authdata,
 					     AFSTOKEN_K5_AUTHDATA_MAX,
@@ -502,7 +465,7 @@ static int rxrpc_instantiate_xdr_rxk5(struct key *key, const __be32 *xdr,
 	if (toklen != 0)
 		goto inval;
 
-	/* attach the payload to the key */
+	
 	for (pptoken = (struct rxrpc_key_token **)&key->payload.data;
 	     *pptoken;
 	     pptoken = &(*pptoken)->next)
@@ -523,10 +486,7 @@ error:
 	return ret;
 }
 
-/*
- * attempt to parse the data as the XDR format
- * - the caller guarantees we have more than 7 words
- */
+
 static int rxrpc_instantiate_xdr(struct key *key, const void *data, size_t datalen)
 {
 	const __be32 *xdr = data, *token;
@@ -541,17 +501,16 @@ static int rxrpc_instantiate_xdr(struct key *key, const void *data, size_t datal
 	if (datalen > AFSTOKEN_LENGTH_MAX)
 		goto not_xdr;
 
-	/* XDR is an array of __be32's */
+	
 	if (datalen & 3)
 		goto not_xdr;
 
-	/* the flags should be 0 (the setpag bit must be handled by
-	 * userspace) */
+	
 	if (ntohl(*xdr++) != 0)
 		goto not_xdr;
 	datalen -= 4;
 
-	/* check the cell name */
+	
 	len = ntohl(*xdr++);
 	if (len < 1 || len > AFSTOKEN_CELL_MAX)
 		goto not_xdr;
@@ -573,7 +532,7 @@ static int rxrpc_instantiate_xdr(struct key *key, const void *data, size_t datal
 	datalen -= tmp;
 	xdr += tmp >> 2;
 
-	/* get the token count */
+	
 	if (datalen < 12)
 		goto not_xdr;
 	ntoken = ntohl(*xdr++);
@@ -582,7 +541,7 @@ static int rxrpc_instantiate_xdr(struct key *key, const void *data, size_t datal
 	if (ntoken < 1 || ntoken > AFSTOKEN_MAX)
 		goto not_xdr;
 
-	/* check each token wrapper */
+	
 	token = xdr;
 	loop = ntoken;
 	do {
@@ -603,9 +562,7 @@ static int rxrpc_instantiate_xdr(struct key *key, const void *data, size_t datal
 	if (datalen != 0)
 		goto not_xdr;
 
-	/* okay: we're going to assume it's valid XDR format
-	 * - we ignore the cellname, relying on the key to be correctly named
-	 */
+	
 	do {
 		xdr = token;
 		toklen = ntohl(*xdr++);
@@ -646,20 +603,7 @@ error:
 	return ret;
 }
 
-/*
- * instantiate an rxrpc defined key
- * data should be of the form:
- *	OFFSET	LEN	CONTENT
- *	0	4	key interface version number
- *	4	2	security index (type)
- *	6	2	ticket length
- *	8	4	key expiry time (time_t)
- *	12	4	kvno
- *	16	8	session key
- *	24	[len]	ticket
- *
- * if no data is provided, then a no-security key is made
- */
+
 static int rxrpc_instantiate(struct key *key, const void *data, size_t datalen)
 {
 	const struct rxrpc_key_data_v1 *v1;
@@ -670,18 +614,18 @@ static int rxrpc_instantiate(struct key *key, const void *data, size_t datalen)
 
 	_enter("{%x},,%zu", key_serial(key), datalen);
 
-	/* handle a no-security key */
+	
 	if (!data && datalen == 0)
 		return 0;
 
-	/* determine if the XDR payload format is being used */
+	
 	if (datalen > 7 * 4) {
 		ret = rxrpc_instantiate_xdr(key, data, datalen);
 		if (ret != -EPROTO)
 			return ret;
 	}
 
-	/* get the key interface version number */
+	
 	ret = -EINVAL;
 	if (datalen <= 4 || !data)
 		goto error;
@@ -695,7 +639,7 @@ static int rxrpc_instantiate(struct key *key, const void *data, size_t datalen)
 	if (kver != 1)
 		goto error;
 
-	/* deal with a version 1 key */
+	
 	ret = -EINVAL;
 	if (datalen < sizeof(*v1))
 		goto error;
@@ -744,7 +688,7 @@ static int rxrpc_instantiate(struct key *key, const void *data, size_t datalen)
 	memcpy(&token->kad->session_key, &v1->session_key, 8);
 	memcpy(&token->kad->ticket, v1->ticket, v1->ticket_length);
 
-	/* attach the data */
+	
 	key->type_data.x[0]++;
 
 	pp = (struct rxrpc_key_token **)&key->payload.data;
@@ -762,10 +706,7 @@ error:
 	return ret;
 }
 
-/*
- * instantiate a server secret key
- * data should be a pointer to the 8-byte secret key
- */
+
 static int rxrpc_instantiate_s(struct key *key, const void *data,
 			       size_t datalen)
 {
@@ -792,9 +733,7 @@ static int rxrpc_instantiate_s(struct key *key, const void *data,
 	return 0;
 }
 
-/*
- * dispose of the data dangling from the corpse of a rxrpc key
- */
+
 static void rxrpc_destroy(struct key *key)
 {
 	struct rxrpc_key_token *token;
@@ -819,9 +758,7 @@ static void rxrpc_destroy(struct key *key)
 	}
 }
 
-/*
- * dispose of the data dangling from the corpse of a rxrpc key
- */
+
 static void rxrpc_destroy_s(struct key *key)
 {
 	if (key->payload.data) {
@@ -830,17 +767,13 @@ static void rxrpc_destroy_s(struct key *key)
 	}
 }
 
-/*
- * describe the rxrpc key
- */
+
 static void rxrpc_describe(const struct key *key, struct seq_file *m)
 {
 	seq_puts(m, key->description);
 }
 
-/*
- * grab the security key for a socket
- */
+
 int rxrpc_request_key(struct rxrpc_sock *rx, char __user *optval, int optlen)
 {
 	struct key *key;
@@ -874,9 +807,7 @@ int rxrpc_request_key(struct rxrpc_sock *rx, char __user *optval, int optlen)
 	return 0;
 }
 
-/*
- * grab the security keyring for a server socket
- */
+
 int rxrpc_server_keyring(struct rxrpc_sock *rx, char __user *optval,
 			 int optlen)
 {
@@ -911,9 +842,7 @@ int rxrpc_server_keyring(struct rxrpc_sock *rx, char __user *optval,
 	return 0;
 }
 
-/*
- * generate a server data key
- */
+
 int rxrpc_get_server_data_key(struct rxrpc_connection *conn,
 			      const void *session_key,
 			      time_t expiry,
@@ -963,13 +892,7 @@ error:
 }
 EXPORT_SYMBOL(rxrpc_get_server_data_key);
 
-/**
- * rxrpc_get_null_key - Generate a null RxRPC key
- * @keyname: The name to give the key.
- *
- * Generate a null RxRPC key that can be used to indicate anonymous security is
- * required for a particular domain.
- */
+
 struct key *rxrpc_get_null_key(const char *keyname)
 {
 	const struct cred *cred = current_cred();
@@ -992,10 +915,7 @@ struct key *rxrpc_get_null_key(const char *keyname)
 }
 EXPORT_SYMBOL(rxrpc_get_null_key);
 
-/*
- * read the contents of an rxrpc key
- * - this returns the result in XDR form
- */
+
 static long rxrpc_read(const struct key *key,
 		       char __user *buffer, size_t buflen)
 {
@@ -1009,27 +929,25 @@ static long rxrpc_read(const struct key *key,
 
 	_enter("");
 
-	/* we don't know what form we should return non-AFS keys in */
+	
 	if (memcmp(key->description, "afs@", 4) != 0)
 		return -EOPNOTSUPP;
 	cnlen = strlen(key->description + 4);
 
 #define RND(X) (((X) + 3) & ~3)
 
-	/* AFS keys we return in XDR form, so we need to work out the size of
-	 * the XDR */
-	size = 2 * 4;	/* flags, cellname len */
-	size += RND(cnlen);	/* cellname */
-	size += 1 * 4;	/* token count */
+	
+	size = 2 * 4;	
+	size += RND(cnlen);	
+	size += 1 * 4;	
 
 	ntoks = 0;
 	for (token = key->payload.data; token; token = token->next) {
-		toksize = 4;	/* sec index */
+		toksize = 4;	
 
 		switch (token->security_index) {
 		case RXRPC_SECURITY_RXKAD:
-			toksize += 8 * 4;	/* viceid, kvno, key*2, begin,
-						 * end, primary, tktlen */
+			toksize += 8 * 4;	
 			toksize += RND(token->kad->ticket_len);
 			break;
 
@@ -1062,7 +980,7 @@ static long rxrpc_read(const struct key *key,
 				toksize += RND(token->k5->authdata[loop].data_len);
 			break;
 
-		default: /* we have a ticket we can't encode */
+		default: 
 			BUG();
 			continue;
 		}
@@ -1071,7 +989,7 @@ static long rxrpc_read(const struct key *key,
 		ASSERTCMP(toksize, <=, AFSTOKEN_LENGTH_MAX);
 
 		toksizes[ntoks++] = toksize;
-		size += toksize + 4; /* each token has a length word */
+		size += toksize + 4; 
 	}
 
 #undef RND
@@ -1111,8 +1029,8 @@ static long rxrpc_read(const struct key *key,
 		ENCODE_DATA(strlen(_s), _s);	\
 	} while(0)
 
-	ENCODE(0);					/* flags */
-	ENCODE_DATA(cnlen, key->description + 4);	/* cellname */
+	ENCODE(0);					
+	ENCODE_DATA(cnlen, key->description + 4);	
 	ENCODE(ntoks);
 
 	tok = 0;

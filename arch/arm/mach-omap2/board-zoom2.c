@@ -1,13 +1,4 @@
-/*
- * Copyright (C) 2009 Texas Instruments Inc.
- * Mikkel Christensen <mlc@ti.com>
- *
- * Modified from mach-omap2/board-ldp.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -27,7 +18,7 @@
 #include "mmc-twl4030.h"
 #include "sdram-micron-mt46h32m32lf-6.h"
 
-/* Zoom2 has Qwerty keyboard*/
+
 static int board_keymap[] = {
 	KEY(0, 0, KEY_E),
 	KEY(0, 1, KEY_R),
@@ -73,10 +64,10 @@ static int board_keymap[] = {
 	KEY(6, 3, KEY_BACKSPACE),
 	KEY(6, 6, KEY_P),
 	KEY(6, 7, KEY_SELECT),
-	KEY(7, 0, KEY_PROG1),	/*MACRO 1 <User defined> */
-	KEY(7, 1, KEY_PROG2),	/*MACRO 2 <User defined> */
-	KEY(7, 2, KEY_PROG3),	/*MACRO 3 <User defined> */
-	KEY(7, 3, KEY_PROG4),	/*MACRO 4 <User defined> */
+	KEY(7, 0, KEY_PROG1),	
+	KEY(7, 1, KEY_PROG2),	
+	KEY(7, 2, KEY_PROG3),	
+	KEY(7, 3, KEY_PROG4),	
 	KEY(7, 5, KEY_RIGHT),
 	KEY(7, 6, KEY_UP),
 	KEY(7, 7, KEY_DOWN)
@@ -109,7 +100,7 @@ static struct regulator_consumer_supply zoom2_vmmc2_supply = {
 	.supply		= "vmmc",
 };
 
-/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
+
 static struct regulator_init_data zoom2_vmmc1 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -124,7 +115,7 @@ static struct regulator_init_data zoom2_vmmc1 = {
 	.consumer_supplies      = &zoom2_vmmc1_supply,
 };
 
-/* VMMC2 for MMC2 card */
+
 static struct regulator_init_data zoom2_vmmc2 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -139,7 +130,7 @@ static struct regulator_init_data zoom2_vmmc2 = {
 	.consumer_supplies      = &zoom2_vmmc2_supply,
 };
 
-/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
+
 static struct regulator_init_data zoom2_vsim = {
 	.constraints = {
 		.min_uV			= 1800000,
@@ -165,22 +156,18 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
 		.wires		= 4,
 		.gpio_wp	= -EINVAL,
 	},
-	{}      /* Terminator */
+	{}      
 };
 
 static int zoom2_twl_gpio_setup(struct device *dev,
 		unsigned gpio, unsigned ngpio)
 {
-	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-	 * gpio + 1 is "mmc1_cd" (input/IRQ)
-	 */
+	
 	mmc[0].gpio_cd = gpio + 0;
 	mmc[1].gpio_cd = gpio + 1;
 	twl4030_mmc_init(mmc);
 
-	/* link regulators to MMC adapters ... we "know" the
-	 * regulators will be set up only *after* we return.
-	*/
+	
 	zoom2_vmmc1_supply.dev = mmc[0].dev;
 	zoom2_vsim_supply.dev = mmc[0].dev;
 	zoom2_vmmc2_supply.dev = mmc[1].dev;
@@ -190,7 +177,7 @@ static int zoom2_twl_gpio_setup(struct device *dev,
 
 
 static int zoom2_batt_table[] = {
-/* 0 C*/
+
 30800, 29500, 28300, 27100,
 26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
 17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
@@ -234,7 +221,7 @@ static struct twl4030_platform_data zoom2_twldata = {
 	.irq_base	= TWL4030_IRQ_BASE,
 	.irq_end	= TWL4030_IRQ_END,
 
-	/* platform_data for children goes here */
+	
 	.bci		= &zoom2_bci_data,
 	.madc		= &zoom2_madc_data,
 	.usb		= &zoom2_usb_data,

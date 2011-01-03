@@ -1,46 +1,4 @@
-/*
- *  IBM eServer eHCA Infiniband device driver for Linux on POWER
- *
- *  Firmware Infiniband Interface code for POWER
- *
- *  Authors: Christoph Raisch <raisch@de.ibm.com>
- *           Hoang-Nam Nguyen <hnguyen@de.ibm.com>
- *           Joachim Fenkes <fenkes@de.ibm.com>
- *           Gerd Bayer <gerd.bayer@de.ibm.com>
- *           Waleri Fomin <fomin@de.ibm.com>
- *
- *  Copyright (c) 2005 IBM Corporation
- *
- *  All rights reserved.
- *
- *  This source code is distributed under a dual license of GPL v2.0 and OpenIB
- *  BSD.
- *
- * OpenIB BSD License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials
- * provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include <asm/hvcall.h>
 #include "ehca_tools.h"
@@ -128,7 +86,7 @@ static long ehca_plpar_hcall_norets(unsigned long opcode,
 			     opcode, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 
 	for (i = 0; i < 5; i++) {
-		/* serialize hCalls to work around firmware issue */
+		
 		if (ehca_lock_hcalls)
 			spin_lock_irqsave(&hcall_lock, flags);
 
@@ -159,7 +117,7 @@ static long ehca_plpar_hcall_norets(unsigned long opcode,
 }
 
 static long ehca_plpar_hcall9(unsigned long opcode,
-			      unsigned long *outs, /* array of 9 outputs */
+			      unsigned long *outs, 
 			      unsigned long arg1,
 			      unsigned long arg2,
 			      unsigned long arg3,
@@ -180,7 +138,7 @@ static long ehca_plpar_hcall9(unsigned long opcode,
 			     arg6, arg7, arg8, arg9);
 
 	for (i = 0; i < 5; i++) {
-		/* serialize hCalls to work around firmware issue */
+		
 		if (ehca_lock_hcalls)
 			spin_lock_irqsave(&hcall_lock, flags);
 
@@ -229,19 +187,19 @@ u64 hipz_h_alloc_resource_eq(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 	u64 allocate_controls;
 
-	/* resource type */
+	
 	allocate_controls = 3ULL;
 
-	/* ISN is associated */
+	
 	if (neq_control != 1)
 		allocate_controls = (1ULL << (63 - 7)) | allocate_controls;
-	else /* notification event queue */
+	else 
 		allocate_controls = (1ULL << 63) | allocate_controls;
 
 	ret = ehca_plpar_hcall9(H_ALLOC_RESOURCE, outs,
-				adapter_handle.handle,  /* r4 */
-				allocate_controls,      /* r5 */
-				number_of_entries,      /* r6 */
+				adapter_handle.handle,  
+				allocate_controls,      
+				number_of_entries,      
 				0, 0, 0, 0, 0, 0);
 	eq_handle->handle = outs[0];
 	*act_nr_of_entries = (u32)outs[3];
@@ -259,9 +217,9 @@ u64 hipz_h_reset_event(const struct ipz_adapter_handle adapter_handle,
 		       const u64 event_mask)
 {
 	return ehca_plpar_hcall_norets(H_RESET_EVENTS,
-				       adapter_handle.handle, /* r4 */
-				       eq_handle.handle,      /* r5 */
-				       event_mask,	      /* r6 */
+				       adapter_handle.handle, 
+				       eq_handle.handle,      
+				       event_mask,	      
 				       0, 0, 0, 0);
 }
 
@@ -273,11 +231,11 @@ u64 hipz_h_alloc_resource_cq(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_ALLOC_RESOURCE, outs,
-				adapter_handle.handle,   /* r4  */
-				2,	                 /* r5  */
-				param->eq_handle.handle, /* r6  */
-				cq->token,	         /* r7  */
-				param->nr_cqe,           /* r8  */
+				adapter_handle.handle,   
+				2,	                 
+				param->eq_handle.handle, 
+				cq->token,	         
+				param->nr_cqe,           
 				0, 0, 0, 0);
 	cq->ipz_cq_handle.handle = outs[0];
 	param->act_nr_of_entries = (u32)outs[3];
@@ -335,8 +293,8 @@ u64 hipz_h_alloc_resource_qp(const struct ipz_adapter_handle adapter_handle,
 		r12 = EHCA_BMASK_SET(H_ALL_RES_QP_SRQ_QPN, parms->srq_qpn);
 
 	ret = ehca_plpar_hcall9(H_ALLOC_RESOURCE, outs,
-				adapter_handle.handle,	           /* r4  */
-				allocate_controls,	           /* r5  */
+				adapter_handle.handle,	           
+				allocate_controls,	           
 				parms->send_cq_handle.handle,
 				parms->recv_cq_handle.handle,
 				parms->eq_handle.handle,
@@ -380,9 +338,9 @@ u64 hipz_h_query_port(const struct ipz_adapter_handle adapter_handle,
 	}
 
 	ret = ehca_plpar_hcall_norets(H_QUERY_PORT,
-				      adapter_handle.handle, /* r4 */
-				      port_id,	             /* r5 */
-				      r_cb,	             /* r6 */
+				      adapter_handle.handle, 
+				      port_id,	             
+				      r_cb,	             
 				      0, 0, 0, 0);
 
 	if (ehca_debug_level >= 2)
@@ -405,9 +363,9 @@ u64 hipz_h_modify_port(const struct ipz_adapter_handle adapter_handle,
 		port_attributes |= EHCA_BMASK_SET(H_MP_RESET_QKEY_CTR, 1);
 
 	return ehca_plpar_hcall_norets(H_MODIFY_PORT,
-				       adapter_handle.handle, /* r4 */
-				       port_id,               /* r5 */
-				       port_attributes,       /* r6 */
+				       adapter_handle.handle, 
+				       port_id,               
+				       port_attributes,       
 				       0, 0, 0, 0);
 }
 
@@ -423,8 +381,8 @@ u64 hipz_h_query_hca(const struct ipz_adapter_handle adapter_handle,
 	}
 
 	return ehca_plpar_hcall_norets(H_QUERY_HCA,
-				       adapter_handle.handle, /* r4 */
-				       r_cb,                  /* r5 */
+				       adapter_handle.handle, 
+				       r_cb,                  
 				       0, 0, 0, 0, 0);
 }
 
@@ -436,12 +394,12 @@ u64 hipz_h_register_rpage(const struct ipz_adapter_handle adapter_handle,
 			  u64 count)
 {
 	return ehca_plpar_hcall_norets(H_REGISTER_RPAGES,
-				       adapter_handle.handle,      /* r4  */
+				       adapter_handle.handle,      
 				       (u64)queue_type | ((u64)pagesize) << 8,
-				       /* r5  */
-				       resource_handle,	           /* r6  */
-				       logical_address_of_page,    /* r7  */
-				       count,	                   /* r8  */
+				       
+				       resource_handle,	           
+				       logical_address_of_page,    
+				       count,	                   
 				       0, 0);
 }
 
@@ -469,8 +427,8 @@ u64 hipz_h_query_int_state(const struct ipz_adapter_handle adapter_handle,
 {
 	u64 ret;
 	ret = ehca_plpar_hcall_norets(H_QUERY_INT_STATE,
-				      adapter_handle.handle, /* r4 */
-				      ist,                   /* r5 */
+				      adapter_handle.handle, 
+				      ist,                   
 				      0, 0, 0, 0, 0);
 
 	if (ret != H_SUCCESS && ret != H_BUSY)
@@ -528,9 +486,9 @@ u64 hipz_h_disable_and_get_wqe(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_DISABLE_AND_GETC, outs,
-				adapter_handle.handle,     /* r4 */
-				dis_and_get_function_code, /* r5 */
-				qp_handle.handle,	   /* r6 */
+				adapter_handle.handle,     
+				dis_and_get_function_code, 
+				qp_handle.handle,	   
 				0, 0, 0, 0, 0, 0);
 	if (log_addr_next_sq_wqe2processed)
 		*log_addr_next_sq_wqe2processed = (void *)outs[0];
@@ -550,10 +508,10 @@ u64 hipz_h_modify_qp(const struct ipz_adapter_handle adapter_handle,
 	u64 ret;
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 	ret = ehca_plpar_hcall9(H_MODIFY_QP, outs,
-				adapter_handle.handle, /* r4 */
-				qp_handle.handle,      /* r5 */
-				update_mask,	       /* r6 */
-				virt_to_abs(mqpcb),    /* r7 */
+				adapter_handle.handle, 
+				qp_handle.handle,      
+				update_mask,	       
+				virt_to_abs(mqpcb),    
 				0, 0, 0, 0, 0);
 
 	if (ret == H_NOT_ENOUGH_RESOURCES)
@@ -569,9 +527,9 @@ u64 hipz_h_query_qp(const struct ipz_adapter_handle adapter_handle,
 		    struct h_galpa gal)
 {
 	return ehca_plpar_hcall_norets(H_QUERY_QP,
-				       adapter_handle.handle, /* r4 */
-				       qp_handle.handle,      /* r5 */
-				       virt_to_abs(qqpcb),    /* r6 */
+				       adapter_handle.handle, 
+				       qp_handle.handle,      
+				       virt_to_abs(qqpcb),    
 				       0, 0, 0, 0);
 }
 
@@ -587,17 +545,17 @@ u64 hipz_h_destroy_qp(const struct ipz_adapter_handle adapter_handle,
 		return H_RESOURCE;
 	}
 	ret = ehca_plpar_hcall9(H_DISABLE_AND_GETC, outs,
-				adapter_handle.handle,     /* r4 */
-				/* function code */
-				1,	                   /* r5 */
-				qp->ipz_qp_handle.handle,  /* r6 */
+				adapter_handle.handle,     
+				
+				1,	                   
+				qp->ipz_qp_handle.handle,  
 				0, 0, 0, 0, 0, 0);
 	if (ret == H_HARDWARE)
 		ehca_gen_err("HCA not operational. ret=%lli", ret);
 
 	ret = ehca_plpar_hcall_norets(H_FREE_RESOURCE,
-				      adapter_handle.handle,     /* r4 */
-				      qp->ipz_qp_handle.handle,  /* r5 */
+				      adapter_handle.handle,     
+				      qp->ipz_qp_handle.handle,  
 				      0, 0, 0, 0, 0);
 
 	if (ret == H_RESOURCE)
@@ -612,9 +570,9 @@ u64 hipz_h_define_aqp0(const struct ipz_adapter_handle adapter_handle,
 		       u32 port)
 {
 	return ehca_plpar_hcall_norets(H_DEFINE_AQP0,
-				       adapter_handle.handle, /* r4 */
-				       qp_handle.handle,      /* r5 */
-				       port,                  /* r6 */
+				       adapter_handle.handle, 
+				       qp_handle.handle,      
+				       port,                  
 				       0, 0, 0, 0);
 }
 
@@ -628,9 +586,9 @@ u64 hipz_h_define_aqp1(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_DEFINE_AQP1, outs,
-				adapter_handle.handle, /* r4 */
-				qp_handle.handle,      /* r5 */
-				port,	               /* r6 */
+				adapter_handle.handle, 
+				qp_handle.handle,      
+				port,	               
 				0, 0, 0, 0, 0, 0);
 	*pma_qp_nr = (u32)outs[0];
 	*bma_qp_nr = (u32)outs[1];
@@ -650,11 +608,11 @@ u64 hipz_h_attach_mcqp(const struct ipz_adapter_handle adapter_handle,
 	u64 ret;
 
 	ret = ehca_plpar_hcall_norets(H_ATTACH_MCQP,
-				      adapter_handle.handle,  /* r4 */
-				      qp_handle.handle,       /* r5 */
-				      mcg_dlid,               /* r6 */
-				      interface_id,           /* r7 */
-				      subnet_prefix,          /* r8 */
+				      adapter_handle.handle,  
+				      qp_handle.handle,       
+				      mcg_dlid,               
+				      interface_id,           
+				      subnet_prefix,          
 				      0, 0);
 
 	if (ret == H_NOT_ENOUGH_RESOURCES)
@@ -670,11 +628,11 @@ u64 hipz_h_detach_mcqp(const struct ipz_adapter_handle adapter_handle,
 		       u64 subnet_prefix, u64 interface_id)
 {
 	return ehca_plpar_hcall_norets(H_DETACH_MCQP,
-				       adapter_handle.handle, /* r4 */
-				       qp_handle.handle,      /* r5 */
-				       mcg_dlid,              /* r6 */
-				       interface_id,          /* r7 */
-				       subnet_prefix,         /* r8 */
+				       adapter_handle.handle, 
+				       qp_handle.handle,      
+				       mcg_dlid,              
+				       interface_id,          
+				       subnet_prefix,         
 				       0, 0);
 }
 
@@ -691,9 +649,9 @@ u64 hipz_h_destroy_cq(const struct ipz_adapter_handle adapter_handle,
 	}
 
 	ret = ehca_plpar_hcall_norets(H_FREE_RESOURCE,
-				      adapter_handle.handle,     /* r4 */
-				      cq->ipz_cq_handle.handle,  /* r5 */
-				      force_flag != 0 ? 1L : 0L, /* r6 */
+				      adapter_handle.handle,     
+				      cq->ipz_cq_handle.handle,  
+				      force_flag != 0 ? 1L : 0L, 
 				      0, 0, 0, 0);
 
 	if (ret == H_RESOURCE)
@@ -714,8 +672,8 @@ u64 hipz_h_destroy_eq(const struct ipz_adapter_handle adapter_handle,
 	}
 
 	ret = ehca_plpar_hcall_norets(H_FREE_RESOURCE,
-				      adapter_handle.handle,     /* r4 */
-				      eq->ipz_eq_handle.handle,  /* r5 */
+				      adapter_handle.handle,     
+				      eq->ipz_eq_handle.handle,  
 				      0, 0, 0, 0, 0);
 
 	if (ret == H_RESOURCE)
@@ -736,12 +694,12 @@ u64 hipz_h_alloc_resource_mr(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_ALLOC_RESOURCE, outs,
-				adapter_handle.handle,            /* r4 */
-				5,                                /* r5 */
-				vaddr,                            /* r6 */
-				length,                           /* r7 */
-				(((u64)access_ctrl) << 32ULL),    /* r8 */
-				pd.value,                         /* r9 */
+				adapter_handle.handle,            
+				5,                                
+				vaddr,                            
+				length,                           
+				(((u64)access_ctrl) << 32ULL),    
+				pd.value,                         
 				0, 0, 0);
 	outparms->handle.handle = outs[0];
 	outparms->lkey = (u32)outs[2];
@@ -797,8 +755,8 @@ u64 hipz_h_query_mr(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_QUERY_MR, outs,
-				adapter_handle.handle,     /* r4 */
-				mr->ipz_mr_handle.handle,  /* r5 */
+				adapter_handle.handle,     
+				mr->ipz_mr_handle.handle,  
 				0, 0, 0, 0, 0, 0, 0);
 	outparms->len = outs[0];
 	outparms->vaddr = outs[1];
@@ -813,8 +771,8 @@ u64 hipz_h_free_resource_mr(const struct ipz_adapter_handle adapter_handle,
 			    const struct ehca_mr *mr)
 {
 	return ehca_plpar_hcall_norets(H_FREE_RESOURCE,
-				       adapter_handle.handle,    /* r4 */
-				       mr->ipz_mr_handle.handle, /* r5 */
+				       adapter_handle.handle,    
+				       mr->ipz_mr_handle.handle, 
 				       0, 0, 0, 0, 0);
 }
 
@@ -831,13 +789,13 @@ u64 hipz_h_reregister_pmr(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_REREGISTER_PMR, outs,
-				adapter_handle.handle,    /* r4 */
-				mr->ipz_mr_handle.handle, /* r5 */
-				vaddr_in,	          /* r6 */
-				length,                   /* r7 */
-				/* r8 */
+				adapter_handle.handle,    
+				mr->ipz_mr_handle.handle, 
+				vaddr_in,	          
+				length,                   
+				
 				((((u64)access_ctrl) << 32ULL) | pd.value),
-				mr_addr_cb,               /* r9 */
+				mr_addr_cb,               
 				0, 0, 0);
 	outparms->vaddr = outs[1];
 	outparms->lkey = (u32)outs[2];
@@ -858,11 +816,11 @@ u64 hipz_h_register_smr(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_REGISTER_SMR, outs,
-				adapter_handle.handle,            /* r4 */
-				orig_mr->ipz_mr_handle.handle,    /* r5 */
-				vaddr_in,                         /* r6 */
-				(((u64)access_ctrl) << 32ULL),    /* r7 */
-				pd.value,                         /* r8 */
+				adapter_handle.handle,            
+				orig_mr->ipz_mr_handle.handle,    
+				vaddr_in,                         
+				(((u64)access_ctrl) << 32ULL),    
+				pd.value,                         
 				0, 0, 0, 0);
 	outparms->handle.handle = outs[0];
 	outparms->lkey = (u32)outs[2];
@@ -880,9 +838,9 @@ u64 hipz_h_alloc_resource_mw(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_ALLOC_RESOURCE, outs,
-				adapter_handle.handle,      /* r4 */
-				6,                          /* r5 */
-				pd.value,                   /* r6 */
+				adapter_handle.handle,      
+				6,                          
+				pd.value,                   
 				0, 0, 0, 0, 0, 0);
 	outparms->handle.handle = outs[0];
 	outparms->rkey = (u32)outs[3];
@@ -898,8 +856,8 @@ u64 hipz_h_query_mw(const struct ipz_adapter_handle adapter_handle,
 	unsigned long outs[PLPAR_HCALL9_BUFSIZE];
 
 	ret = ehca_plpar_hcall9(H_QUERY_MW, outs,
-				adapter_handle.handle,    /* r4 */
-				mw->ipz_mw_handle.handle, /* r5 */
+				adapter_handle.handle,    
+				mw->ipz_mw_handle.handle, 
 				0, 0, 0, 0, 0, 0, 0);
 	outparms->rkey = (u32)outs[3];
 
@@ -910,8 +868,8 @@ u64 hipz_h_free_resource_mw(const struct ipz_adapter_handle adapter_handle,
 			    const struct ehca_mw *mw)
 {
 	return ehca_plpar_hcall_norets(H_FREE_RESOURCE,
-				       adapter_handle.handle,    /* r4 */
-				       mw->ipz_mw_handle.handle, /* r5 */
+				       adapter_handle.handle,    
+				       mw->ipz_mw_handle.handle, 
 				       0, 0, 0, 0, 0);
 }
 

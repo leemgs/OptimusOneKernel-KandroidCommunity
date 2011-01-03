@@ -1,14 +1,4 @@
-/* $Id: avm_a1.c,v 2.15.2.4 2004/01/13 21:46:03 keil Exp $
- *
- * low level stuff for AVM A1 (Fritz) isdn cards
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -50,7 +40,7 @@ write_fifo(unsigned int adr, u_char * data, int size)
 	outsb(adr, data, size);
 }
 
-/* Interface functions */
+
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -88,9 +78,7 @@ WriteHSCX(struct IsdnCardState *cs, int hscx, u_char offset, u_char value)
 	writereg(cs->hw.avm.hscx[hscx], offset, value);
 }
 
-/*
- * fast interrupt HSCX stuff goes here
- */
+
 
 #define READHSCX(cs, nr, reg) readreg(cs->hw.avm.hscx[nr], reg)
 #define WRITEHSCX(cs, nr, reg, data) writereg(cs->hw.avm.hscx[nr], reg, data)

@@ -1,13 +1,4 @@
-/* $Id: t1pci.c,v 1.1.2.2 2004/01/16 21:09:27 keil Exp $
- * 
- * Module for AVM T1 PCI-card.
- * 
- * Copyright 1999 by Carsten Paeth <calle@calle.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -28,13 +19,13 @@
 #undef CONFIG_T1PCI_DEBUG
 #undef CONFIG_T1PCI_POLLDEBUG
 
-/* ------------------------------------------------------------- */
+
 static char *revision = "$Revision: 1.1.2.2 $";
-/* ------------------------------------------------------------- */
+
 
 static struct pci_device_id t1pci_pci_tbl[] = {
 	{ PCI_VENDOR_ID_AVM, PCI_DEVICE_ID_AVM_T1, PCI_ANY_ID, PCI_ANY_ID },
-	{ }				/* Terminating entry */
+	{ }				
 };
 
 MODULE_DEVICE_TABLE(pci, t1pci_pci_tbl);
@@ -42,7 +33,7 @@ MODULE_DESCRIPTION("CAPI4Linux: Driver for AVM T1 PCI card");
 MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 
-/* ------------------------------------------------------------- */
+
 
 static char *t1pci_procinfo(struct capi_ctr *ctrl);
 
@@ -150,7 +141,7 @@ static int t1pci_add_card(struct capicardparams *p, struct pci_dev *pdev)
 	return retval;
 }
 
-/* ------------------------------------------------------------- */
+
 
 static void t1pci_remove(struct pci_dev *pdev)
 {
@@ -167,7 +158,7 @@ static void t1pci_remove(struct pci_dev *pdev)
 	b1_free_card(card);
 }
 
-/* ------------------------------------------------------------- */
+
 
 static char *t1pci_procinfo(struct capi_ctr *ctrl)
 {
@@ -185,7 +176,7 @@ static char *t1pci_procinfo(struct capi_ctr *ctrl)
 	return cinfo->infobuf;
 }
 
-/* ------------------------------------------------------------- */
+
 
 static int __devinit t1pci_probe(struct pci_dev *dev,
 				 const struct pci_device_id *ent)

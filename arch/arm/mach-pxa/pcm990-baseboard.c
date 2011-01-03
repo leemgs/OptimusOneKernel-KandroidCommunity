@@ -1,24 +1,4 @@
-/*
- *  arch/arm/mach-pxa/pcm990-baseboard.c
- *  Support for the Phytec phyCORE-PXA270 Development Platform (PCM-990).
- *
- *  Refer
- *   http://www.phytec.com/products/rdk/ARM-XScale/phyCORE-XScale-PXA270.html
- *  for additional hardware info
- *
- *  Author:	Juergen Kilb
- *  Created:	April 05, 2005
- *  Copyright:	Phytec Messtechnik GmbH
- *  e-Mail:	armlinux@phytec.de
- *
- *  based on Intel Mainstone Board
- *
- *  Copyright 2007 Juergen Beisert @ Pengutronix (j.beisert@pengutronix.de)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/irq.h>
 #include <linux/platform_device.h>
@@ -42,43 +22,34 @@
 #include "generic.h"
 
 static unsigned long pcm990_pin_config[] __initdata = {
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO112_MMC_CMD,
 	GPIO92_MMC_DAT_0,
 	GPIO109_MMC_DAT_1,
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
-	/* USB */
+	
 	GPIO88_USBH1_PWR,
 	GPIO89_USBH1_PEN,
-	/* PWM0 */
+	
 	GPIO16_PWM0_OUT,
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 };
 
-/*
- * pcm990_lcd_power - control power supply to the LCD
- * @on: 0 = switch off, 1 = switch on
- *
- * Called by the pxafb driver
- */
+
 #ifndef CONFIG_PCM990_DISPLAY_NONE
 static void pcm990_lcd_power(int on, struct fb_var_screeninfo *var)
 {
 	if (on) {
-		/* enable LCD-Latches
-		 * power on LCD
-		 */
+		
 		__PCM990_CTRL_REG(PCM990_CTRL_PHYS + PCM990_CTRL_REG3) =
 			PCM990_CTRL_LCDPWR + PCM990_CTRL_LCDON;
 	} else {
-		/* disable LCD-Latches
-		 * power off LCD
-		 */
+		
 		__PCM990_CTRL_REG(PCM990_CTRL_PHYS + PCM990_CTRL_REG3) = 0x00;
 	}
 }
@@ -145,93 +116,7 @@ static struct platform_device pcm990_backlight_device = {
 	},
 };
 
-/*
- * The PCM-990 development baseboard uses PCM-027's hardware in the
- * following way:
- *
- * - LCD support is in use
- *  - GPIO16 is output for back light on/off with PWM
- *  - GPIO58 ... GPIO73 are outputs for display data
- *  - GPIO74 is output output for LCDFCLK
- *  - GPIO75 is output for LCDLCLK
- *  - GPIO76 is output for LCDPCLK
- *  - GPIO77 is output for LCDBIAS
- * - MMC support is in use
- *  - GPIO32 is output for MMCCLK
- *  - GPIO92 is MMDAT0
- *  - GPIO109 is MMDAT1
- *  - GPIO110 is MMCS0
- *  - GPIO111 is MMCS1
- *  - GPIO112 is MMCMD
- * - IDE/CF card is in use
- *  - GPIO48 is output /POE
- *  - GPIO49 is output /PWE
- *  - GPIO50 is output /PIOR
- *  - GPIO51 is output /PIOW
- *  - GPIO54 is output /PCE2
- *  - GPIO55 is output /PREG
- *  - GPIO56 is input /PWAIT
- *  - GPIO57 is output /PIOS16
- *  - GPIO79 is output PSKTSEL
- *  - GPIO85 is output /PCE1
- * - FFUART is in use
- *  - GPIO34 is input FFRXD
- *  - GPIO35 is input FFCTS
- *  - GPIO36 is input FFDCD
- *  - GPIO37 is input FFDSR
- *  - GPIO38 is input FFRI
- *  - GPIO39 is output FFTXD
- *  - GPIO40 is output FFDTR
- *  - GPIO41 is output FFRTS
- * - BTUART is in use
- *  - GPIO42 is input BTRXD
- *  - GPIO43 is output BTTXD
- *  - GPIO44 is input BTCTS
- *  - GPIO45 is output BTRTS
- * - IRUART is in use
- *  - GPIO46 is input STDRXD
- *  - GPIO47 is output STDTXD
- * - AC97 is in use*)
- *  - GPIO28 is input AC97CLK
- *  - GPIO29 is input AC97DatIn
- *  - GPIO30 is output AC97DatO
- *  - GPIO31 is output AC97SYNC
- *  - GPIO113 is output AC97_RESET
- * - SSP is in use
- *  - GPIO23 is output SSPSCLK
- *  - GPIO24 is output chip select to Max7301
- *  - GPIO25 is output SSPTXD
- *  - GPIO26 is input SSPRXD
- *  - GPIO27 is input for Max7301 IRQ
- *  - GPIO53 is input SSPSYSCLK
- * - SSP3 is in use
- *  - GPIO81 is output SSPTXD3
- *  - GPIO82 is input SSPRXD3
- *  - GPIO83 is output SSPSFRM
- *  - GPIO84 is output SSPCLK3
- *
- * Otherwise claimed GPIOs:
- * GPIO1 -> IRQ from user switch
- * GPIO9 -> IRQ from power management
- * GPIO10 -> IRQ from WML9712 AC97 controller
- * GPIO11 -> IRQ from IDE controller
- * GPIO12 -> IRQ from CF controller
- * GPIO13 -> IRQ from CF controller
- * GPIO14 -> GPIO free
- * GPIO15 -> /CS1 selects baseboard's Control CPLD (U7, 16 bit wide data path)
- * GPIO19 -> GPIO free
- * GPIO20 -> /SDCS2
- * GPIO21 -> /CS3 PC card socket select
- * GPIO33 -> /CS5  network controller select
- * GPIO78 -> /CS2  (16 bit wide data path)
- * GPIO80 -> /CS4  (16 bit wide data path)
- * GPIO86 -> GPIO free
- * GPIO87 -> GPIO free
- * GPIO90 -> LED0 on CPU module
- * GPIO91 -> LED1 on CPI module
- * GPIO117 -> SCL
- * GPIO118 -> SDA
- */
+
 
 static unsigned long pcm990_irq_enabled;
 
@@ -244,7 +129,7 @@ static void pcm990_mask_ack_irq(unsigned int irq)
 static void pcm990_unmask_irq(unsigned int irq)
 {
 	int pcm990_irq = (irq - PCM027_IRQ(0));
-	/* the irq can be acknowledged only if deasserted, so it's done here */
+	
 	PCM990_INTSETCLR |= 1 << pcm990_irq;
 	PCM990_INTMSKENA  = (pcm990_irq_enabled |= (1 << pcm990_irq));
 }
@@ -273,14 +158,14 @@ static void __init pcm990_init_irq(void)
 {
 	int irq;
 
-	/* setup extra PCM990 irqs */
+	
 	for (irq = PCM027_IRQ(0); irq <= PCM027_IRQ(3); irq++) {
 		set_irq_chip(irq, &pcm990_irq_chip);
 		set_irq_handler(irq, handle_level_irq);
 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
 	}
 
-	PCM990_INTMSKENA = 0x00;	/* disable all Interrupts */
+	PCM990_INTMSKENA = 0x00;	
 	PCM990_INTSETCLR = 0xFF;
 
 	set_irq_chained_handler(PCM990_CTRL_INT_IRQ, pcm990_irq_handler);
@@ -337,12 +222,10 @@ static struct pxaohci_platform_data pcm990_ohci_platform_data = {
 	.power_on_delay	= 10,
 };
 
-/*
- * PXA27x Camera specific stuff
- */
+
 #if defined(CONFIG_VIDEO_PXA27x) || defined(CONFIG_VIDEO_PXA27x_MODULE)
 static unsigned long pcm990_camera_pin_config[] = {
-	/* CIF */
+	
 	GPIO98_CIF_DD_0,
 	GPIO105_CIF_DD_1,
 	GPIO104_CIF_DD_2,
@@ -365,15 +248,11 @@ static int pcm990_pxacamera_init(struct device *dev)
 	return 0;
 }
 
-/*
- * CICR4: PCLK_EN:	Pixel clock is supplied by the sensor
- *	MCLK_EN:	Master clock is generated by PXA
- *	PCP:		Data sampled on the falling edge of pixel clock
- */
+
 struct pxacamera_platform_data pcm990_pxacamera_platform_data = {
 	.init	= pcm990_pxacamera_init,
 	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 | PXA_CAMERA_DATAWIDTH_10 |
-		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN/* | PXA_CAMERA_PCP*/,
+		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
 	.mclk_10khz = 1000,
 };
 
@@ -430,10 +309,10 @@ static void pcm990_camera_free_bus(struct soc_camera_link *link)
 	gpio_bus_switch = -EINVAL;
 }
 
-/* Board I2C devices. */
+
 static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
 	{
-		/* Must initialize before the camera(s) */
+		
 		I2C_BOARD_INFO("pca9536", 0x41),
 		.platform_data = &pca9536_data,
 	},
@@ -449,7 +328,7 @@ static struct i2c_board_info pcm990_camera_i2c[] = {
 
 static struct soc_camera_link iclink[] = {
 	{
-		.bus_id			= 0, /* Must match with the camera ID */
+		.bus_id			= 0, 
 		.board_info		= &pcm990_camera_i2c[0],
 		.i2c_adapter_id		= 0,
 		.query_bus_param	= pcm990_camera_query_bus_param,
@@ -457,7 +336,7 @@ static struct soc_camera_link iclink[] = {
 		.free_bus		= pcm990_camera_free_bus,
 		.module_name		= "mt9v022",
 	}, {
-		.bus_id			= 0, /* Must match with the camera ID */
+		.bus_id			= 0, 
 		.board_info		= &pcm990_camera_i2c[1],
 		.i2c_adapter_id		= 0,
 		.query_bus_param	= pcm990_camera_query_bus_param,
@@ -482,39 +361,32 @@ static struct platform_device pcm990_camera[] = {
 		},
 	},
 };
-#endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
+#endif 
 
-/*
- * enable generic access to the base board control CPLDs U6 and U7
- */
+
 static struct map_desc pcm990_io_desc[] __initdata = {
 	{
 		.virtual	= PCM990_CTRL_BASE,
 		.pfn		= __phys_to_pfn(PCM990_CTRL_PHYS),
 		.length		= PCM990_CTRL_SIZE,
-		.type		= MT_DEVICE	/* CPLD */
+		.type		= MT_DEVICE	
 	}, {
 		.virtual	= PCM990_CF_PLD_BASE,
 		.pfn		= __phys_to_pfn(PCM990_CF_PLD_PHYS),
 		.length		= PCM990_CF_PLD_SIZE,
-		.type		= MT_DEVICE	/* CPLD */
+		.type		= MT_DEVICE	
 	}
 };
 
-/*
- * system init for baseboard usage. Will be called by pcm027 init.
- *
- * Add platform devices present on this baseboard and init
- * them from CPU side as far as required to use them later on
- */
+
 void __init pcm990_baseboard_init(void)
 {
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(pcm990_pin_config));
 
-	/* register CPLD access */
+	
 	iotable_init(ARRAY_AND_SIZE(pcm990_io_desc));
 
-	/* register CPLD's IRQ controller */
+	
 	pcm990_init_irq();
 
 #ifndef CONFIG_PCM990_DISPLAY_NONE
@@ -522,10 +394,10 @@ void __init pcm990_baseboard_init(void)
 #endif
 	platform_device_register(&pcm990_backlight_device);
 
-	/* MMC */
+	
 	pxa_set_mci_info(&pcm990_mci_platform_data);
 
-	/* USB host */
+	
 	pxa_set_ohci_info(&pcm990_ohci_platform_data);
 
 	pxa_set_i2c_info(NULL);

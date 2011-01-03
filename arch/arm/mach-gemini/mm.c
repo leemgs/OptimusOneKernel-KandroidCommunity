@@ -1,14 +1,4 @@
-/*
- *  Static mappings for Gemini
- *
- *  Copyright (C) 2001-2006 Storlink, Corp.
- *  Copyright (C) 2008-2009 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 #include <linux/mm.h>
 #include <linux/init.h>
 
@@ -16,7 +6,7 @@
 
 #include <mach/hardware.h>
 
-/* Page table mapping for I/O region */
+
 static struct map_desc gemini_io_desc[] __initdata = {
 	{
 		.virtual	= IO_ADDRESS(GEMINI_GLOBAL_BASE),

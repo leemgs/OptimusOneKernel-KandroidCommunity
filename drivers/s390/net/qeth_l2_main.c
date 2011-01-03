@@ -1,12 +1,4 @@
-/*
- *  drivers/s390/net/qeth_l2_main.c
- *
- *    Copyright IBM Corp. 2007, 2009
- *    Author(s): Utz Bacher <utz.bacher@de.ibm.com>,
- *		 Frank Pavlic <fpavlic@de.ibm.com>,
- *		 Thomas Spatzier <tspat@de.ibm.com>,
- *		 Frank Blaschka <frank.blaschka@de.ibm.com>
- */
+
 
 #define KMSG_COMPONENT "qeth"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -130,7 +122,7 @@ static int qeth_l2_send_setgroupmac_cb(struct qeth_card *card,
 	QETH_DBF_TEXT(TRACE, 2, "L2Sgmacb");
 	cmd = (struct qeth_ipa_cmd *) data;
 	mac = &cmd->data.setdelmac.mac[0];
-	/* MAC already registered, needed in couple/uncouple case */
+	
 	if (cmd->hdr.return_code ==  IPA_RC_L2_DUP_MAC) {
 		QETH_DBF_MESSAGE(2, "Group MAC %pM already existing on %s \n",
 			  mac, QETH_CARD_IFNAME(card));
@@ -236,7 +228,7 @@ static void qeth_l2_fill_header(struct qeth_card *card, struct qeth_hdr *hdr,
 	memset(hdr, 0, sizeof(struct qeth_hdr));
 	hdr->hdr.l2.id = QETH_HEADER_TYPE_LAYER2;
 
-	/* set byte byte 3 to casting flags */
+	
 	if (cast_type == RTN_MULTICAST)
 		hdr->hdr.l2.flags[2] |= QETH_LAYER2_FLAG_MULTICAST;
 	else if (cast_type == RTN_BROADCAST)
@@ -245,9 +237,7 @@ static void qeth_l2_fill_header(struct qeth_card *card, struct qeth_hdr *hdr,
 		hdr->hdr.l2.flags[2] |= QETH_LAYER2_FLAG_UNICAST;
 
 	hdr->hdr.l2.pkt_length = skb->len-QETH_HEADER_SIZE;
-	/* VSWITCH relies on the VLAN
-	 * information to be present in
-	 * the QDIO header */
+	
 	if (veth->h_vlan_proto == __constant_htons(ETH_P_8021Q)) {
 		hdr->hdr.l2.flags[2] |= QETH_LAYER2_FLAG_VLAN;
 		hdr->hdr.l2.vlan_id = ntohs(veth->h_vlan_TCI);
@@ -406,7 +396,7 @@ static void qeth_l2_process_inbound_buffer(struct qeth_card *card,
 	int offset;
 	unsigned int len;
 
-	/* get first element of current buffer */
+	
 	element = (struct qdio_buffer_element *)&buf->buffer->element[0];
 	offset = 0;
 	if (card->options.performance_stats)
@@ -414,7 +404,7 @@ static void qeth_l2_process_inbound_buffer(struct qeth_card *card,
 	while ((skb = qeth_core_get_next_skb(card, buf->buffer, &element,
 				       &offset, &hdr))) {
 		skb->dev = card->dev;
-		/* is device UP ? */
+		
 		if (!(card->dev->flags & IFF_UP)) {
 			dev_kfree_skb_any(skb);
 			continue;
@@ -442,7 +432,7 @@ static void qeth_l2_process_inbound_buffer(struct qeth_card *card,
 				card->osn_info.data_cb(skb);
 				break;
 			}
-			/* else unknown */
+			
 		default:
 			dev_kfree_skb_any(skb);
 			QETH_DBF_TEXT(TRACE, 3, "inbunkno");
@@ -692,7 +682,7 @@ static int qeth_l2_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 			memcpy(((char *)hdr) + sizeof(struct qeth_hdr),
 				skb_mac_header(new_skb), ETH_HLEN);
 		} else {
-			/* create a clone with writeable headroom */
+			
 			new_skb = skb_realloc_headroom(skb,
 						sizeof(struct qeth_hdr));
 			if (!new_skb)
@@ -783,7 +773,7 @@ static void qeth_l2_qdio_input_handler(struct ccw_device *ccwdev,
 		if (!(qdio_err &&
 		      qeth_check_qdio_errors(buffer->buffer, qdio_err, "qinerr")))
 			qeth_l2_process_inbound_buffer(card, buffer, index);
-		/* clear buffer and give back to hardware */
+		
 		qeth_put_buffer_pool_entry(card, buffer->pool_entry);
 		qeth_queue_input_buffer(card, index);
 	}
@@ -971,7 +961,7 @@ static int __qeth_l2_set_online(struct ccwgroup_device *gdev, int recovery_mode)
 	card->state = CARD_STATE_HARDSETUP;
 	qeth_print_status_message(card);
 
-	/* softsetup */
+	
 	QETH_DBF_TEXT(SETUP, 2, "softsetp");
 
 	rc = qeth_send_startlan(card);
@@ -1012,10 +1002,10 @@ static int __qeth_l2_set_online(struct ccwgroup_device *gdev, int recovery_mode)
 			dev_open(card->dev);
 			rtnl_unlock();
 		}
-		/* this also sets saved unicast addresses */
+		
 		qeth_l2_set_multicast_list(card->dev);
 	}
-	/* let user_space know that device is online */
+	
 	kobject_uevent(&gdev->dev.kobj, KOBJ_CHANGE);
 	return 0;
 out_remove:
@@ -1059,7 +1049,7 @@ static int __qeth_l2_set_offline(struct ccwgroup_device *cgdev,
 		QETH_DBF_TEXT_(SETUP, 2, "1err%d", rc);
 	if (recover_flag == CARD_STATE_UP)
 		card->state = CARD_STATE_RECOVER;
-	/* let user_space know that device is offline */
+	
 	kobject_uevent(&cgdev->dev.kobj, KOBJ_CHANGE);
 	return 0;
 }
@@ -1085,7 +1075,7 @@ static int qeth_l2_recover(void *ptr)
 	card->use_hard_stop = 1;
 	__qeth_l2_set_offline(card->gdev, 1);
 	rc = __qeth_l2_set_online(card->gdev, 1);
-	/* don't run another scheduled recovery */
+	
 	qeth_clear_thread_start_bit(card, QETH_RECOVER_THREAD);
 	qeth_clear_thread_running_bit(card, QETH_RECOVER_THREAD);
 	if (!rc)

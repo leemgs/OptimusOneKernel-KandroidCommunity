@@ -1,14 +1,6 @@
-/*
- * kernel/lockdep_internals.h
- *
- * Runtime locking correctness validator
- *
- * lockdep subsystem internal functions and variables.
- */
 
-/*
- * Lock-class usage-state bits:
- */
+
+
 enum lock_usage_bit {
 #define LOCKDEP_STATE(__STATE)		\
 	LOCK_USED_IN_##__STATE,		\
@@ -21,9 +13,7 @@ enum lock_usage_bit {
 	LOCK_USAGE_STATES
 };
 
-/*
- * Usage-state bitmasks:
- */
+
 #define __LOCKF(__STATE)	LOCKF_##__STATE = (1 << LOCK_##__STATE),
 
 enum {
@@ -45,15 +35,7 @@ enum {
 #define LOCKF_USED_IN_IRQ_READ \
 		(LOCKF_USED_IN_HARDIRQ_READ | LOCKF_USED_IN_SOFTIRQ_READ)
 
-/*
- * MAX_LOCKDEP_ENTRIES is the maximum number of lock dependencies
- * we track.
- *
- * We use the per-lock dependency maps in two ways: we grow it by adding
- * every to-be-taken lock to all currently held lock's own dependency
- * table (if it's not there yet), and we check it for lock order
- * conflicts and deadlocks.
- */
+
 #define MAX_LOCKDEP_ENTRIES	16384UL
 
 #define MAX_LOCKDEP_CHAINS_BITS	15
@@ -61,10 +43,7 @@ enum {
 
 #define MAX_LOCKDEP_CHAIN_HLOCKS (MAX_LOCKDEP_CHAINS*5)
 
-/*
- * Stack-trace: tightly packed array of stack backtrace
- * addresses. Protected by the hash_lock.
- */
+
 #define MAX_STACK_TRACE_ENTRIES	262144UL
 
 extern struct list_head all_lock_classes;
@@ -110,9 +89,7 @@ lockdep_count_backward_deps(struct lock_class *class)
 #endif
 
 #ifdef CONFIG_DEBUG_LOCKDEP
-/*
- * Various lockdep statistics:
- */
+
 extern atomic_t chain_lookup_hits;
 extern atomic_t chain_lookup_misses;
 extern atomic_t hardirqs_on_events;

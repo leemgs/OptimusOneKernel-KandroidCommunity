@@ -1,16 +1,6 @@
 #ifndef LLC_H
 #define LLC_H
-/*
- * Copyright (c) 1997 by Procom Technology, Inc.
- * 		 2001-2003 by Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *
- * This program can be redistributed or modified under the terms of the
- * GNU General Public License as published by the Free Software Foundation.
- * This program is distributed without any warranty or implied warranty
- * of merchantability or fitness for a particular purpose.
- *
- * See the GNU General Public License for more details.
- */
+
 
 #include <linux/if.h>
 #include <linux/if_ether.h>
@@ -31,17 +21,7 @@ struct llc_addr {
 #define LLC_SAP_STATE_INACTIVE	1
 #define LLC_SAP_STATE_ACTIVE	2
 
-/**
- * struct llc_sap - Defines the SAP component
- *
- * @station - station this sap belongs to
- * @state - sap state
- * @p_bit - only lowest-order bit used
- * @f_bit - only lowest-order bit used
- * @laddr - SAP value in this 'lsap'
- * @node - entry in station sap_list
- * @sk_list - LLC sockets this one manages
- */
+
 struct llc_sap {
 	unsigned char	 state;
 	unsigned char	 p_bit;
@@ -59,9 +39,9 @@ struct llc_sap {
 	} sk_list;
 };
 
-#define LLC_DEST_INVALID         0      /* Invalid LLC PDU type */
-#define LLC_DEST_SAP             1      /* Type 1 goes here */
-#define LLC_DEST_CONN            2      /* Type 2 goes here */
+#define LLC_DEST_INVALID         0      
+#define LLC_DEST_SAP             1      
+#define LLC_DEST_CONN            2      
 
 extern struct list_head llc_sap_list;
 extern rwlock_t llc_sap_list_lock;
@@ -113,7 +93,7 @@ extern void llc_proc_exit(void);
 #else
 #define llc_proc_init()	(0)
 #define llc_proc_exit()	do { } while(0)
-#endif /* CONFIG_PROC_FS */
+#endif 
 #ifdef CONFIG_SYSCTL
 extern int llc_sysctl_init(void);
 extern void llc_sysctl_exit(void);
@@ -126,5 +106,5 @@ extern int sysctl_llc_station_ack_timeout;
 #else
 #define llc_sysctl_init() (0)
 #define llc_sysctl_exit() do { } while(0)
-#endif /* CONFIG_SYSCTL */
-#endif /* LLC_H */
+#endif 
+#endif 

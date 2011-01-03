@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <log/bfa_log_hal.h>
@@ -21,22 +6,16 @@
 BFA_TRC_FILE(HAL, FCPIM);
 BFA_MODULE(fcpim);
 
-/**
- *  hal_fcpim_mod BFA FCP Initiator Mode module
- */
 
-/**
- * 		Compute and return memory needed by FCP(im) module.
- */
+
+
 static void
 bfa_fcpim_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *km_len,
 		u32 *dm_len)
 {
 	bfa_itnim_meminfo(cfg, km_len, dm_len);
 
-	/**
-	 * IO memory
-	 */
+	
 	if (cfg->fwcfg.num_ioim_reqs < BFA_IOIM_MIN)
 		cfg->fwcfg.num_ioim_reqs = BFA_IOIM_MIN;
 	else if (cfg->fwcfg.num_ioim_reqs > BFA_IOIM_MAX)
@@ -47,9 +26,7 @@ bfa_fcpim_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *km_len,
 
 	*dm_len += cfg->fwcfg.num_ioim_reqs * BFI_IOIM_SNSLEN;
 
-	/**
-	 * task management command memory
-	 */
+	
 	if (cfg->fwcfg.num_tskim_reqs < BFA_TSKIM_MIN)
 		cfg->fwcfg.num_tskim_reqs = BFA_TSKIM_MIN;
 	*km_len += cfg->fwcfg.num_tskim_reqs * sizeof(struct bfa_tskim_s);

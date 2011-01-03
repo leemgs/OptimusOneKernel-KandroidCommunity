@@ -1,25 +1,4 @@
-/*
- * DVB USB Linux driver for Afatech AF9015 DVB-T USB2.0 receiver
- *
- * Copyright (C) 2007 Antti Palosaari <crope@iki.fi>
- *
- * Thanks to Afatech who kindly provided information.
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include "af9015.h"
 #include "af9013.h"
@@ -62,13 +41,13 @@ static struct af9013_config af9015_af9013_config[] = {
 static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
 {
 #define BUF_LEN 63
-#define REQ_HDR_LEN 8 /* send header size */
-#define ACK_HDR_LEN 2 /* rece header size */
+#define REQ_HDR_LEN 8 
+#define ACK_HDR_LEN 2 
 	int act_len, ret;
 	u8 buf[BUF_LEN];
 	u8 write = 1;
 	u8 msg_len = REQ_HDR_LEN;
-	static u8 seq; /* packet sequence number */
+	static u8 seq; 
 
 	if (mutex_lock_interruptible(&af9015_usb_mutex) < 0)
 		return -EAGAIN;
@@ -91,7 +70,7 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
 		break;
 	case READ_I2C:
 		write = 0;
-		buf[2] |= 0x01; /* set I2C direction */
+		buf[2] |= 0x01; 
 	case WRITE_I2C:
 		buf[0] = READ_WRITE_I2C;
 		break;
@@ -110,7 +89,7 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
 		goto error_unlock;
 	}
 
-	/* buffer overflow check */
+	
 	if ((write && (req->data_len > BUF_LEN - REQ_HDR_LEN)) ||
 		(!write && (req->data_len > BUF_LEN - ACK_HDR_LEN))) {
 		err("too much data; cmd:%d len:%d", req->cmd, req->data_len);
@@ -118,7 +97,7 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
 		goto error_unlock;
 	}
 
-	/* write requested */
+	
 	if (write) {
 		memcpy(&buf[REQ_HDR_LEN], req->data, req->data_len);
 		msg_len += req->data_len;
@@ -127,23 +106,22 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
 	deb_xfer(">>> ");
 	debug_dump(buf, msg_len, deb_xfer);
 
-	/* send req */
+	
 	ret = usb_bulk_msg(udev, usb_sndbulkpipe(udev, 0x02), buf, msg_len,
 		&act_len, AF9015_USB_TIMEOUT);
 	if (ret)
 		err("bulk message failed:%d (%d/%d)", ret, msg_len, act_len);
 	else
 		if (act_len != msg_len)
-			ret = -1; /* all data is not send */
+			ret = -1; 
 	if (ret)
 		goto error_unlock;
 
-	/* no ack for those packets */
+	
 	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
 		goto exit_unlock;
 
-	/* write receives seq + status = 2 bytes
-	   read receives seq + status + data = 2 + N bytes */
+	
 	msg_len = ACK_HDR_LEN;
 	if (!write)
 		msg_len += req->data_len;
@@ -159,21 +137,21 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
 	deb_xfer("<<< ");
 	debug_dump(buf, act_len, deb_xfer);
 
-	/* remote controller query status is 1 if remote code is not received */
+	
 	if (req->cmd == GET_IR_CODE && buf[1] == 1) {
-		buf[1] = 0; /* clear command "error" status */
+		buf[1] = 0; 
 		memset(&buf[2], 0, req->data_len);
-		buf[3] = 1; /* no remote code received mark */
+		buf[3] = 1; 
 	}
 
-	/* check status */
+	
 	if (buf[1]) {
 		err("command failed:%d", buf[1]);
 		ret = -1;
 		goto error_unlock;
 	}
 
-	/* read request, copy returned data to return buf */
+	
 	if (!write)
 		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
 
@@ -241,29 +219,7 @@ static int af9015_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 	u8 mbox, addr_len;
 	struct req_t req;
 
-/* TODO: implement bus lock
 
-The bus lock is needed because there is two tuners both using same I2C-address.
-Due to that the only way to select correct tuner is use demodulator I2C-gate.
-
-................................................
-. AF9015 includes integrated AF9013 demodulator.
-. ____________                   ____________  .                ____________
-.|     uC     |                 |   demod    | .               |    tuner   |
-.|------------|                 |------------| .               |------------|
-.|   AF9015   |                 |  AF9013/5  | .               |   MXL5003  |
-.|            |--+----I2C-------|-----/ -----|-.-----I2C-------|            |
-.|            |  |              | addr 0x38  | .               |  addr 0xc6 |
-.|____________|  |              |____________| .               |____________|
-.................|..............................
-		 |               ____________                   ____________
-		 |              |   demod    |                 |    tuner   |
-		 |              |------------|                 |------------|
-		 |              |   AF9013   |                 |   MXL5003  |
-		 +----I2C-------|-----/ -----|-------I2C-------|            |
-				| addr 0x3a  |                 |  addr 0xc6 |
-				|____________|                 |____________|
-*/
 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
 		return -EAGAIN;
 
@@ -357,10 +313,10 @@ static int af9015_do_reg_bit(struct dvb_usb_device *d, u16 addr, u8 bit, u8 op)
 
 	mask <<= bit;
 	if (op) {
-		/* set bit */
+		
 		val |= mask;
 	} else {
-		/* clear bit */
+		
 		mask ^= 0xff;
 		val &= mask;
 	}
@@ -385,8 +341,7 @@ static int af9015_init_endpoint(struct dvb_usb_device *d)
 	u8  packet_size;
 	deb_info("%s: USB speed:%d\n", __func__, d->udev->speed);
 
-	/* Windows driver uses packet count 21 for USB1.1 and 348 for USB2.0.
-	   We use smaller - about 1/4 from the original, 5 and 87. */
+	
 #define TS_PACKET_SIZE            188
 
 #define TS_USB20_PACKET_COUNT      87
@@ -406,64 +361,64 @@ static int af9015_init_endpoint(struct dvb_usb_device *d)
 		packet_size = TS_USB20_MAX_PACKET_SIZE/4;
 	}
 
-	ret = af9015_set_reg_bit(d, 0xd507, 2); /* assert EP4 reset */
+	ret = af9015_set_reg_bit(d, 0xd507, 2); 
 	if (ret)
 		goto error;
-	ret = af9015_set_reg_bit(d, 0xd50b, 1); /* assert EP5 reset */
+	ret = af9015_set_reg_bit(d, 0xd50b, 1); 
 	if (ret)
 		goto error;
-	ret = af9015_clear_reg_bit(d, 0xdd11, 5); /* disable EP4 */
+	ret = af9015_clear_reg_bit(d, 0xdd11, 5); 
 	if (ret)
 		goto error;
-	ret = af9015_clear_reg_bit(d, 0xdd11, 6); /* disable EP5 */
+	ret = af9015_clear_reg_bit(d, 0xdd11, 6); 
 	if (ret)
 		goto error;
-	ret = af9015_set_reg_bit(d, 0xdd11, 5); /* enable EP4 */
-	if (ret)
-		goto error;
-	if (af9015_config.dual_mode) {
-		ret = af9015_set_reg_bit(d, 0xdd11, 6); /* enable EP5 */
-		if (ret)
-			goto error;
-	}
-	ret = af9015_clear_reg_bit(d, 0xdd13, 5); /* disable EP4 NAK */
+	ret = af9015_set_reg_bit(d, 0xdd11, 5); 
 	if (ret)
 		goto error;
 	if (af9015_config.dual_mode) {
-		ret = af9015_clear_reg_bit(d, 0xdd13, 6); /* disable EP5 NAK */
+		ret = af9015_set_reg_bit(d, 0xdd11, 6); 
 		if (ret)
 			goto error;
 	}
-	/* EP4 xfer length */
+	ret = af9015_clear_reg_bit(d, 0xdd13, 5); 
+	if (ret)
+		goto error;
+	if (af9015_config.dual_mode) {
+		ret = af9015_clear_reg_bit(d, 0xdd13, 6); 
+		if (ret)
+			goto error;
+	}
+	
 	ret = af9015_write_reg(d, 0xdd88, frame_size & 0xff);
 	if (ret)
 		goto error;
 	ret = af9015_write_reg(d, 0xdd89, frame_size >> 8);
 	if (ret)
 		goto error;
-	/* EP5 xfer length */
+	
 	ret = af9015_write_reg(d, 0xdd8a, frame_size & 0xff);
 	if (ret)
 		goto error;
 	ret = af9015_write_reg(d, 0xdd8b, frame_size >> 8);
 	if (ret)
 		goto error;
-	ret = af9015_write_reg(d, 0xdd0c, packet_size); /* EP4 packet size */
+	ret = af9015_write_reg(d, 0xdd0c, packet_size); 
 	if (ret)
 		goto error;
-	ret = af9015_write_reg(d, 0xdd0d, packet_size); /* EP5 packet size */
+	ret = af9015_write_reg(d, 0xdd0d, packet_size); 
 	if (ret)
 		goto error;
-	ret = af9015_clear_reg_bit(d, 0xd507, 2); /* negate EP4 reset */
+	ret = af9015_clear_reg_bit(d, 0xd507, 2); 
 	if (ret)
 		goto error;
 	if (af9015_config.dual_mode) {
-		ret = af9015_clear_reg_bit(d, 0xd50b, 1); /* negate EP5 reset */
+		ret = af9015_clear_reg_bit(d, 0xd50b, 1); 
 		if (ret)
 			goto error;
 	}
 
-	/* enable / disable mp2if2 */
+	
 	if (af9015_config.dual_mode)
 		ret = af9015_set_reg_bit(d, 0xd50b, 0);
 	else
@@ -488,7 +443,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
 	fw_params[2] = af9015_config.firmware_checksum >> 8;
 	fw_params[3] = af9015_config.firmware_checksum & 0xff;
 
-	/* wait 2nd demodulator ready */
+	
 	msleep(100);
 
 	ret = af9015_read_reg_i2c(d, 0x3a, 0x98be, &val);
@@ -497,28 +452,28 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
 	else
 		deb_info("%s: firmware status:%02x\n", __func__, val);
 
-	if (val == 0x0c) /* fw is running, no need for download */
+	if (val == 0x0c) 
 		goto exit;
 
-	/* set I2C master clock to fast (to speed up firmware copy) */
-	ret = af9015_write_reg(d, 0xd416, 0x04); /* 0x04 * 400ns */
+	
+	ret = af9015_write_reg(d, 0xd416, 0x04); 
 	if (ret)
 		goto error;
 
 	msleep(50);
 
-	/* copy firmware */
+	
 	ret = af9015_ctrl_msg(d, &req);
 	if (ret)
 		err("firmware copy cmd failed:%d", ret);
 	deb_info("%s: firmware copy done\n", __func__);
 
-	/* set I2C master clock back to normal */
-	ret = af9015_write_reg(d, 0xd416, 0x14); /* 0x14 * 400ns */
+	
+	ret = af9015_write_reg(d, 0xd416, 0x14); 
 	if (ret)
 		goto error;
 
-	/* request boot firmware */
+	
 	ret = af9015_write_reg_i2c(d, af9015_af9013_config[1].demod_address,
 		0xe205, 1);
 	deb_info("%s: firmware boot cmd status:%d\n", __func__, ret);
@@ -528,7 +483,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
 	for (i = 0; i < 15; i++) {
 		msleep(100);
 
-		/* check firmware status */
+		
 		ret = af9015_read_reg_i2c(d,
 			af9015_af9013_config[1].demod_address, 0x98be, &val);
 		deb_info("%s: firmware status cmd status:%d fw status:%02x\n",
@@ -536,7 +491,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
 		if (ret)
 			goto error;
 
-		if (val == 0x0c || val == 0x04) /* success or fail */
+		if (val == 0x0c || val == 0x04) 
 			break;
 	}
 
@@ -553,7 +508,7 @@ exit:
 	return ret;
 }
 
-/* dump eeprom */
+
 static int af9015_eeprom_dump(struct dvb_usb_device *d)
 {
 	u8 reg, val;
@@ -578,7 +533,7 @@ static int af9015_eeprom_dump(struct dvb_usb_device *d)
 static int af9015_download_ir_table(struct dvb_usb_device *d)
 {
 	int i, packets = 0, ret;
-	u16 addr = 0x9a56; /* ir-table start address */
+	u16 addr = 0x9a56; 
 	struct req_t req = {WRITE_MEMORY, 0, 0, 0, 0, 1, NULL};
 	u8 *data = NULL;
 	deb_info("%s:\n", __func__);
@@ -586,11 +541,11 @@ static int af9015_download_ir_table(struct dvb_usb_device *d)
 	data = af9015_config.ir_table;
 	packets = af9015_config.ir_table_size;
 
-	/* no remote */
+	
 	if (!packets)
 		goto exit;
 
-	/* load remote ir-table */
+	
 	for (i = 0; i < packets; i++) {
 		req.addr = addr + i;
 		req.data = &data[i];
@@ -665,12 +620,12 @@ static int af9015_download_firmware(struct usb_device *udev,
 {
 	int i, len, packets, remainder, ret;
 	struct req_t req = {DOWNLOAD_FIRMWARE, 0, 0, 0, 0, 0, NULL};
-	u16 addr = 0x5100; /* firmware start address */
+	u16 addr = 0x5100; 
 	u16 checksum = 0;
 
 	deb_info("%s:\n", __func__);
 
-	/* calc checksum */
+	
 	for (i = 0; i < fw->size; i++)
 		checksum += fw->data[i];
 
@@ -683,7 +638,7 @@ static int af9015_download_firmware(struct usb_device *udev,
 	remainder = fw->size % FW_PACKET_MAX_DATA;
 	len = FW_PACKET_MAX_DATA;
 	for (i = 0; i <= packets; i++) {
-		if (i == packets)  /* set size of the last packet */
+		if (i == packets)  
 			len = remainder;
 
 		req.data_len = len;
@@ -699,7 +654,7 @@ static int af9015_download_firmware(struct usb_device *udev,
 		}
 	}
 
-	/* firmware loaded, request boot */
+	
 	req.cmd = BOOT;
 	ret = af9015_rw_udev(udev, &req);
 	if (ret) {
@@ -718,9 +673,9 @@ static int af9015_read_config(struct usb_device *udev)
 	struct req_t req = {READ_I2C, AF9015_I2C_EEPROM, 0, 0, 1, 1, &val};
 	char manufacturer[10];
 
-	/* IR remote controller */
+	
 	req.addr = AF9015_EEPROM_IR_MODE;
-	/* first message will timeout often due to possible hw bug */
+	
 	for (i = 0; i < 4; i++) {
 		ret = af9015_rw_udev(udev, &req);
 		if (!ret)
@@ -734,7 +689,7 @@ static int af9015_read_config(struct usb_device *udev)
 			af9015_properties[i].rc_key_map = NULL;
 			af9015_properties[i].rc_key_map_size  = 0;
 		} else if (dvb_usb_af9015_remote) {
-			/* load remote defined as module param */
+			
 			switch (dvb_usb_af9015_remote) {
 			case AF9015_REMOTE_A_LINK_DTU_M:
 				af9015_properties[i].rc_key_map =
@@ -808,7 +763,7 @@ static int af9015_read_config(struct usb_device *udev)
 				  ARRAY_SIZE(af9015_ir_table_twinhan);
 				break;
 			case USB_VID_KWORLD_2:
-				/* TODO: use correct rc keys */
+				
 				af9015_properties[i].rc_key_map =
 				  af9015_rc_keys_twinhan;
 				af9015_properties[i].rc_key_map_size =
@@ -817,16 +772,13 @@ static int af9015_read_config(struct usb_device *udev)
 				af9015_config.ir_table_size =
 				  ARRAY_SIZE(af9015_ir_table_kworld);
 				break;
-			/* Check USB manufacturer and product strings and try
-			   to determine correct remote in case of chip vendor
-			   reference IDs are used. */
+			
 			case USB_VID_AFATECH:
 				memset(manufacturer, 0, sizeof(manufacturer));
 				usb_string(udev, udev->descriptor.iManufacturer,
 					manufacturer, sizeof(manufacturer));
 				if (!strcmp("Geniatech", manufacturer)) {
-					/* iManufacturer 1 Geniatech
-					   iProduct      2 AF9015 */
+					
 					af9015_properties[i].rc_key_map =
 					  af9015_rc_keys_mygictv;
 					af9015_properties[i].rc_key_map_size =
@@ -836,8 +788,7 @@ static int af9015_read_config(struct usb_device *udev)
 					af9015_config.ir_table_size =
 					  ARRAY_SIZE(af9015_ir_table_mygictv);
 				} else if (!strcmp("MSI", manufacturer)) {
-					/* iManufacturer 1 MSI
-					   iProduct      2 MSI K-VOX */
+					
 					af9015_properties[i].rc_key_map =
 					  af9015_rc_keys_msi;
 					af9015_properties[i].rc_key_map_size =
@@ -872,7 +823,7 @@ static int af9015_read_config(struct usb_device *udev)
 		}
 	}
 
-	/* TS mode - one or two receivers */
+	
 	req.addr = AF9015_EEPROM_TS_MODE;
 	ret = af9015_rw_udev(udev, &req);
 	if (ret)
@@ -880,15 +831,13 @@ static int af9015_read_config(struct usb_device *udev)
 	af9015_config.dual_mode = val;
 	deb_info("%s: TS mode:%d\n", __func__, af9015_config.dual_mode);
 
-	/* Set adapter0 buffer size according to USB port speed, adapter1 buffer
-	   size can be static because it is enabled only USB2.0 */
+	
 	for (i = 0; i < af9015_properties_count; i++) {
-		/* USB1.1 set smaller buffersize and disable 2nd adapter */
+		
 		if (udev->speed == USB_SPEED_FULL) {
 			af9015_properties[i].adapter[0].stream.u.bulk.buffersize
 				= TS_USB11_FRAME_SIZE;
-			/* disable 2nd adapter because we don't have
-			   PID-filters */
+			
 			af9015_config.dual_mode = 0;
 		} else {
 			af9015_properties[i].adapter[0].stream.u.bulk.buffersize
@@ -897,19 +846,19 @@ static int af9015_read_config(struct usb_device *udev)
 	}
 
 	if (af9015_config.dual_mode) {
-		/* read 2nd demodulator I2C address */
+		
 		req.addr = AF9015_EEPROM_DEMOD2_I2C;
 		ret = af9015_rw_udev(udev, &req);
 		if (ret)
 			goto error;
 		af9015_af9013_config[1].demod_address = val;
 
-		/* enable 2nd adapter */
+		
 		for (i = 0; i < af9015_properties_count; i++)
 			af9015_properties[i].num_adapters = 2;
 
 	} else {
-		 /* disable 2nd adapter */
+		 
 		for (i = 0; i < af9015_properties_count; i++)
 			af9015_properties[i].num_adapters = 1;
 	}
@@ -917,7 +866,7 @@ static int af9015_read_config(struct usb_device *udev)
 	for (i = 0; i < af9015_properties[0].num_adapters; i++) {
 		if (i == 1)
 			offset = AF9015_EEPROM_OFFSET;
-		/* xtal */
+		
 		req.addr = AF9015_EEPROM_XTAL_TYPE1 + offset;
 		ret = af9015_rw_udev(udev, &req);
 		if (ret)
@@ -939,7 +888,7 @@ static int af9015_read_config(struct usb_device *udev)
 		deb_info("%s: [%d] xtal:%d set adc_clock:%d\n", __func__, i,
 			val, af9015_af9013_config[i].adc_clock);
 
-		/* tuner IF */
+		
 		req.addr = AF9015_EEPROM_IF1H + offset;
 		ret = af9015_rw_udev(udev, &req);
 		if (ret)
@@ -953,7 +902,7 @@ static int af9015_read_config(struct usb_device *udev)
 		deb_info("%s: [%d] IF1:%d\n", __func__, i,
 			af9015_af9013_config[0].tuner_if);
 
-		/* MT2060 IF1 */
+		
 		req.addr = AF9015_EEPROM_MT2060_IF1H  + offset;
 		ret = af9015_rw_udev(udev, &req);
 		if (ret)
@@ -967,7 +916,7 @@ static int af9015_read_config(struct usb_device *udev)
 		deb_info("%s: [%d] MT2060 IF1:%d\n", __func__, i,
 			af9015_config.mt2060_if1[i]);
 
-		/* tuner */
+		
 		req.addr =  AF9015_EEPROM_TUNER_ID1 + offset;
 		ret = af9015_rw_udev(udev, &req);
 		if (ret)
@@ -1004,18 +953,17 @@ error:
 	if (ret)
 		err("eeprom read failed:%d", ret);
 
-	/* AverMedia AVerTV Volar Black HD (A850) device have bad EEPROM
-	   content :-( Override some wrong values here. */
+	
 	if (le16_to_cpu(udev->descriptor.idVendor) == USB_VID_AVERMEDIA &&
 	    le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850) {
 		deb_info("%s: AverMedia A850: overriding config\n", __func__);
-		/* disable dual mode */
+		
 		af9015_config.dual_mode = 0;
-		 /* disable 2nd adapter */
+		 
 		for (i = 0; i < af9015_properties_count; i++)
 			af9015_properties[i].num_adapters = 1;
 
-		/* set correct IF */
+		
 		af9015_af9013_config[0].tuner_if = 4570;
 	}
 
@@ -1076,7 +1024,7 @@ static int af9015_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 	return 0;
 }
 
-/* init 2nd I2C adapter */
+
 static int af9015_i2c_init(struct dvb_usb_device *d)
 {
 	int ret;
@@ -1110,21 +1058,21 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
 	struct i2c_adapter *i2c_adap;
 
 	if (adap->id == 0) {
-		/* select I2C adapter */
+		
 		i2c_adap = &adap->dev->i2c_adap;
 
 		deb_info("%s: init I2C\n", __func__);
 		ret = af9015_i2c_init(adap->dev);
 
-		/* dump eeprom (debug) */
+		
 		ret = af9015_eeprom_dump(adap->dev);
 		if (ret)
 			return ret;
 	} else {
-		/* select I2C adapter */
+		
 		i2c_adap = &state->i2c_adap;
 
-		/* copy firmware to 2nd demodulator */
+		
 		if (af9015_config.dual_mode) {
 			ret = af9015_copy_firmware(adap->dev);
 			if (ret) {
@@ -1138,7 +1086,7 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
 		}
 	}
 
-	/* attach demodulator */
+	
 	adap->fe = dvb_attach(af9013_attach, &af9015_af9013_config[adap->id],
 		i2c_adap);
 
@@ -1205,7 +1153,7 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
 	int ret;
 	deb_info("%s: \n", __func__);
 
-	/* select I2C adapter */
+	
 	if (adap->id == 0)
 		i2c_adap = &adap->dev->i2c_adap;
 	else
@@ -1255,34 +1203,34 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
 }
 
 static struct usb_device_id af9015_usb_table[] = {
-/*  0 */{USB_DEVICE(USB_VID_AFATECH,   USB_PID_AFATECH_AF9015_9015)},
+{USB_DEVICE(USB_VID_AFATECH,   USB_PID_AFATECH_AF9015_9015)},
 	{USB_DEVICE(USB_VID_AFATECH,   USB_PID_AFATECH_AF9015_9016)},
 	{USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_GOLD)},
 	{USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV71E)},
 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_399U)},
-/*  5 */{USB_DEVICE(USB_VID_VISIONPLUS,
+{USB_DEVICE(USB_VID_VISIONPLUS,
 		USB_PID_TINYTWIN)},
 	{USB_DEVICE(USB_VID_VISIONPLUS,
 		USB_PID_AZUREWAVE_AD_TU700)},
 	{USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2)},
 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_PC160_2T)},
 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X)},
-/* 10 */{USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
+{USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
 	{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGIVOX_DUO)},
 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X_2)},
 	{USB_DEVICE(USB_VID_TELESTAR,  USB_PID_TELESTAR_STARSTICK_2)},
 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A309)},
-/* 15 */{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGI_VOX_MINI_III)},
+{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGI_VOX_MINI_III)},
 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U)},
 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U_2)},
 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U_3)},
 	{USB_DEVICE(USB_VID_AFATECH,   USB_PID_TREKSTOR_DVBT)},
-/* 20 */{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850)},
+{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850)},
 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A805)},
 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_CONCEPTRONIC_CTVDIGRCU)},
 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_MC810)},
 	{USB_DEVICE(USB_VID_KYE,       USB_PID_GENIUS_TVGO_DVB_T03)},
-/* 25 */{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_399U_2)},
+{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_399U_2)},
 	{0},
 };
 MODULE_DEVICE_TABLE(usb, af9015_usb_table);
@@ -1342,7 +1290,7 @@ static struct dvb_usb_device_properties af9015_properties[] = {
 
 		.i2c_algo = &af9015_i2c_algo,
 
-		.num_device_descs = 9, /* max 9 */
+		.num_device_descs = 9, 
 		.devices = {
 			{
 				.name = "Afatech AF9015 DVB-T USB2.0 stick",
@@ -1448,7 +1396,7 @@ static struct dvb_usb_device_properties af9015_properties[] = {
 
 		.i2c_algo = &af9015_i2c_algo,
 
-		.num_device_descs = 9, /* max 9 */
+		.num_device_descs = 9, 
 		.devices = {
 			{
 				.name = "Xtensions XD-380",
@@ -1554,7 +1502,7 @@ static struct dvb_usb_device_properties af9015_properties[] = {
 
 		.i2c_algo = &af9015_i2c_algo,
 
-		.num_device_descs = 4, /* max 9 */
+		.num_device_descs = 4, 
 		.devices = {
 			{
 				.name = "AverMedia AVerTV Volar GPS 805 (A805)",
@@ -1592,8 +1540,7 @@ static int af9015_usb_probe(struct usb_interface *intf,
 	deb_info("%s: interface:%d\n", __func__,
 		intf->cur_altsetting->desc.bInterfaceNumber);
 
-	/* interface 0 is used by DVB-T receiver and
-	   interface 1 is for remote controller (HID) */
+	
 	if (intf->cur_altsetting->desc.bInterfaceNumber == 0) {
 		ret = af9015_read_config(udev);
 		if (ret)
@@ -1622,7 +1569,7 @@ static void af9015_i2c_exit(struct dvb_usb_device *d)
 	struct af9015_state *state = d->priv;
 	deb_info("%s: \n", __func__);
 
-	/* remove 2nd I2C adapter */
+	
 	if (d->state & DVB_USB_STATE_I2C)
 		i2c_del_adapter(&state->i2c_adap);
 }
@@ -1632,14 +1579,14 @@ static void af9015_usb_device_exit(struct usb_interface *intf)
 	struct dvb_usb_device *d = usb_get_intfdata(intf);
 	deb_info("%s: \n", __func__);
 
-	/* remove 2nd I2C adapter */
+	
 	if (d != NULL && d->desc != NULL)
 		af9015_i2c_exit(d);
 
 	dvb_usb_device_exit(intf);
 }
 
-/* usb specific object needed to register this driver with the usb subsystem */
+
 static struct usb_driver af9015_usb_driver = {
 	.name = "dvb_usb_af9015",
 	.probe = af9015_usb_probe,
@@ -1647,7 +1594,7 @@ static struct usb_driver af9015_usb_driver = {
 	.id_table = af9015_usb_table,
 };
 
-/* module stuff */
+
 static int __init af9015_usb_module_init(void)
 {
 	int ret;
@@ -1660,7 +1607,7 @@ static int __init af9015_usb_module_init(void)
 
 static void __exit af9015_usb_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&af9015_usb_driver);
 }
 

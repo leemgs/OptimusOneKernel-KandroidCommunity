@@ -1,14 +1,4 @@
-/*
- * Hardware definitions for the Toshiba eseries PDAs
- *
- * Copyright (c) 2003 Ian Molton <spyro@f2s.com>
- *
- * This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -28,7 +18,7 @@
 #include "generic.h"
 #include "clock.h"
 
-/* Only e800 has 128MB RAM */
+
 void __init eseries_fixup(struct machine_desc *desc,
 	struct tag *tags, char **cmdline, struct meminfo *mi)
 {
@@ -54,7 +44,7 @@ struct pxaficp_platform_data e7xx_ficp_platform_data = {
 
 int eseries_tmio_enable(struct platform_device *dev)
 {
-	/* Reset - bring SUSPEND high before PCLR */
+	
 	gpio_set_value(GPIO_ESERIES_TMIO_SUSPEND, 0);
 	gpio_set_value(GPIO_ESERIES_TMIO_PCLR, 0);
 	msleep(1);
@@ -93,7 +83,7 @@ void eseries_get_tmio_gpios(void)
 	gpio_direction_output(GPIO_ESERIES_TMIO_PCLR, 0);
 }
 
-/* TMIO controller uses the same resources on all e-series machines. */
+
 struct resource eseries_tmio_resources[] = {
 	[0] = {
 		.start  = PXA_CS4_PHYS,
@@ -107,7 +97,7 @@ struct resource eseries_tmio_resources[] = {
 	},
 };
 
-/* Some e-series hardware cannot control the 32K clock */
+
 static void clk_32k_dummy(struct clk *clk)
 {
 }

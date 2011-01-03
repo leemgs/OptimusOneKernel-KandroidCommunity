@@ -1,22 +1,4 @@
-/*
- * arch/arm/mach-pxa/include/mach/viper.h
- *
- * Author:	Ian Campbell
- * Created:	Feb 03, 2003
- * Copyright:	Arcom Control Systems.
- *
- * Maintained by Marc Zyngier <maz@misterjones.org>
- *			      <marc.zyngier@altran.com>
- *
- * Created based on lubbock.h:
- *  Author:	Nicolas Pitre
- *  Created:	Jun 15, 2001
- *  Copyright:	MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef ARCH_VIPER_H
 #define ARCH_VIPER_H
@@ -60,9 +42,9 @@
 #  define __VIPER_CPLD_REG(x)	(*((volatile u16 *)VIPER_CPLD_P2V(x)))
 #endif
 
-/* board level registers in the CPLD: (offsets from CPLD_BASE) ... */
 
-/* ... Physical addresses */
+
+
 #define _VIPER_LO_IRQ_STATUS	(VIPER_CPLD_PHYS + 0x100000)
 #define _VIPER_ICR_PHYS		(VIPER_CPLD_PHYS + 0x100002)
 #define _VIPER_HI_IRQ_STATUS	(VIPER_CPLD_PHYS + 0x100004)
@@ -71,19 +53,19 @@
 #define VIPER_UARTB_PHYS	(VIPER_CPLD_PHYS + 0x300000)
 #define _VIPER_SRAM_BASE	(VIPER_CPLD_PHYS + 0x800000)
 
-/* ... Virtual addresses */
+
 #define VIPER_LO_IRQ_STATUS	__VIPER_CPLD_REG(_VIPER_LO_IRQ_STATUS)
 #define VIPER_HI_IRQ_STATUS	__VIPER_CPLD_REG(_VIPER_HI_IRQ_STATUS)
 #define VIPER_VERSION		__VIPER_CPLD_REG(_VIPER_VERSION_PHYS)
 #define VIPER_ICR		__VIPER_CPLD_REG(_VIPER_ICR_PHYS)
 
-/* Decode VIPER_VERSION register */
+
 #define VIPER_CPLD_REVISION(x)	(((x) >> 5) & 0x7)
 #define VIPER_BOARD_VERSION(x)	(((x) >> 3) & 0x3)
 #define VIPER_BOARD_ISSUE(x)	(((x) >> 0) & 0x7)
 
-/* Interrupt and Configuration Register (VIPER_ICR) */
-/* This is a write only register. Only CF_RST is used under Linux */
+
+
 
 extern void viper_cf_rst(int state);
 

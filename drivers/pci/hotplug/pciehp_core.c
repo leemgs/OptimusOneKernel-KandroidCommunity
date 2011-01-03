@@ -1,31 +1,4 @@
-/*
- * PCI Express Hot Plug Controller Driver
- *
- * Copyright (C) 1995,2001 Compaq Computer Corporation
- * Copyright (C) 2001 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2001 IBM Corp.
- * Copyright (C) 2003-2004 Intel Corporation
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <greg@kroah.com>, <kristen.c.accardi@intel.com>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -36,7 +9,7 @@
 #include <linux/interrupt.h>
 #include <linux/time.h>
 
-/* Global variables */
+
 int pciehp_debug;
 int pciehp_poll_mode;
 int pciehp_poll_time;
@@ -84,10 +57,7 @@ static struct hotplug_slot_ops pciehp_hotplug_slot_ops = {
   	.get_cur_bus_speed =	get_cur_bus_speed,
 };
 
-/**
- * release_slot - free up the memory used by a slot
- * @hotplug_slot: slot to free
- */
+
 static void release_slot(struct hotplug_slot *hotplug_slot)
 {
 	struct slot *slot = hotplug_slot->private;
@@ -115,7 +85,7 @@ static int init_slot(struct controller *ctrl)
 	if (!info)
 		goto out;
 
-	/* register this slot with the hotplug pci core */
+	
 	hotplug->info = info;
 	hotplug->private = slot;
 	hotplug->release = &release_slot;
@@ -150,9 +120,7 @@ static void cleanup_slot(struct controller *ctrl)
 	pci_hp_deregister(ctrl->slot->hotplug_slot);
 }
 
-/*
- * set_attention_status - Turns the Amber LED for a slot on, off or blink
- */
+
 static int set_attention_status(struct hotplug_slot *hotplug_slot, u8 status)
 {
 	struct slot *slot = hotplug_slot->private;
@@ -303,7 +271,7 @@ static int pciehp_probe(struct pcie_device *dev)
 	}
 	set_service_data(dev, ctrl);
 
-	/* Setup the slot information structures */
+	
 	rc = init_slot(ctrl);
 	if (rc) {
 		if (rc == -EBUSY)
@@ -314,21 +282,21 @@ static int pciehp_probe(struct pcie_device *dev)
 		goto err_out_release_ctlr;
 	}
 
-	/* Enable events after we have setup the data structures */
+	
 	rc = pcie_init_notification(ctrl);
 	if (rc) {
 		ctrl_err(ctrl, "Notification initialization failed\n");
 		goto err_out_release_ctlr;
 	}
 
-	/* Check if slot is occupied */
+	
 	slot = ctrl->slot;
 	pciehp_get_adapter_status(slot, &value);
 	if (value) {
 		if (pciehp_force)
 			pciehp_enable_slot(slot);
 	} else {
-		/* Power off slot if not occupied */
+		
 		if (POWER_CTRL(ctrl)) {
 			rc = pciehp_power_off_slot(slot);
 			if (rc)
@@ -369,12 +337,12 @@ static int pciehp_resume (struct pcie_device *dev)
 		struct slot *slot;
 		u8 status;
 
-		/* reinitialize the chipset's event detection logic */
+		
 		pcie_enable_notification(ctrl);
 
 		slot = ctrl->slot;
 
-		/* Check if slot is occupied */
+		
 		pciehp_get_adapter_status(slot, &status);
 		if (status)
 			pciehp_enable_slot(slot);
@@ -383,7 +351,7 @@ static int pciehp_resume (struct pcie_device *dev)
 	}
 	return 0;
 }
-#endif /* PM */
+#endif 
 
 static struct pcie_port_service_driver hpdriver_portdrv = {
 	.name		= PCIE_MODULE_NAME,
@@ -396,7 +364,7 @@ static struct pcie_port_service_driver hpdriver_portdrv = {
 #ifdef	CONFIG_PM
 	.suspend	= pciehp_suspend,
 	.resume		= pciehp_resume,
-#endif	/* PM */
+#endif	
 };
 
 static int __init pcied_init(void)

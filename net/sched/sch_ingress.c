@@ -1,11 +1,4 @@
-/* net/sched/sch_ingress.c - Ingress qdisc
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Authors:     Jamal Hadi Salim 1999
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -20,7 +13,7 @@ struct ingress_qdisc_data {
 	struct tcf_proto	*filter_list;
 };
 
-/* ------------------------- Class/flow operations ------------------------- */
+
 
 static struct Qdisc *ingress_leaf(struct Qdisc *sch, unsigned long arg)
 {
@@ -54,7 +47,7 @@ static struct tcf_proto **ingress_find_tcf(struct Qdisc *sch, unsigned long cl)
 	return &p->filter_list;
 }
 
-/* --------------------------- Qdisc operations ---------------------------- */
+
 
 static int ingress_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 {
@@ -86,7 +79,7 @@ static int ingress_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 	return result;
 }
 
-/* ------------------------------------------------------------- */
+
 
 static void ingress_destroy(struct Qdisc *sch)
 {

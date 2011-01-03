@@ -1,17 +1,4 @@
-/*
- *  linux/arch/arm/mach-integrator/impd1.c
- *
- *  Copyright (C) 2003 Deep Blue Solutions Ltd, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  This file provides the core support for the IM-PD1 module.
- *
- * Module / boot parameters.
- *   lmid=n   impd1.lmid=n - set the logic module position in stack to 'n'
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/init.h>
@@ -41,8 +28,8 @@ struct impd1_module {
 };
 
 static const struct icst525_params impd1_vco_params = {
-	.ref		= 24000,	/* 24 MHz */
-	.vco_max	= 200000,	/* 200 MHz */
+	.ref		= 24000,	
+	.vco_max	= 200000,	
 	.vd_min		= 12,
 	.vd_max		= 519,
 	.rd_min		= 3,
@@ -90,9 +77,7 @@ void impd1_tweak_control(struct device *dev, u32 mask, u32 val)
 
 EXPORT_SYMBOL(impd1_tweak_control);
 
-/*
- * CLCD support
- */
+
 #define PANEL		PROSPECTOR
 
 #define LTM10C209		1
@@ -184,9 +169,7 @@ static struct clcd_panel prospector = {
 
 #elif PANEL == LTM10C209
 #define PANELTYPE	ltm10c209
-/*
- * Untested.
- */
+
 static struct clcd_panel ltm10c209 = {
 	.mode		= {
 		.name		= "LTM10C209",
@@ -214,17 +197,13 @@ static struct clcd_panel ltm10c209 = {
 };
 #endif
 
-/*
- * Disable all display connectors on the interface module.
- */
+
 static void impd1fb_clcd_disable(struct clcd_fb *fb)
 {
 	impd1_tweak_control(fb->dev->dev.parent, IMPD1_CTRL_DISP_MASK, 0);
 }
 
-/*
- * Enable the relevant connector on the interface module.
- */
+
 static void impd1fb_clcd_enable(struct clcd_fb *fb)
 {
 	impd1_tweak_control(fb->dev->dev.parent, IMPD1_CTRL_DISP_MASK,

@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c64xx/clock.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C64XX Base clock support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -44,7 +32,7 @@ static int clk_48m_ctrl(struct clk *clk, int enable)
 	unsigned long flags;
 	u32 val;
 
-	/* can't rely on clock lock, this register has other usages */
+	
 	local_irq_save(flags);
 
 	val = __raw_readl(S3C64XX_OTHERS);

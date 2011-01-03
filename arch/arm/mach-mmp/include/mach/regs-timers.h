@@ -1,12 +1,4 @@
-/*
- * linux/arch/arm/mach-mmp/include/mach/regs-timers.h
- *
- *   Timers Module
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_MACH_REGS_TIMERS_H
 #define __ASM_MACH_REGS_TIMERS_H
@@ -41,4 +33,4 @@
 #define TMR_CCR_CS_1(x)	(((x) & 0x7) << 2)
 #define TMR_CCR_CS_2(x)	(((x) & 0x3) << 5)
 
-#endif /* __ASM_MACH_REGS_TIMERS_H */
+#endif 

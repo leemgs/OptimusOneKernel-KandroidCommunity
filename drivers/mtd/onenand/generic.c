@@ -1,16 +1,4 @@
-/*
- *  linux/drivers/mtd/onenand/generic.c
- *
- *  Copyright (c) 2005 Samsung Electronics
- *  Kyungmin Park <kyungmin.park@samsung.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Overview:
- *   This is a device driver for the OneNAND flash for generic boards.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -21,13 +9,7 @@
 #include <linux/mtd/partitions.h>
 #include <asm/io.h>
 
-/*
- * Note: Driver name and platform data format have been updated!
- *
- * This version of the driver is named "onenand-flash" and takes struct
- * onenand_platform_data as platform data. The old ARM-specific version
- * with the name "onenand" used to take struct flash_platform_data.
- */
+
 #define DRIVER_NAME	"onenand-flash"
 
 #ifdef CONFIG_MTD_PARTITIONS

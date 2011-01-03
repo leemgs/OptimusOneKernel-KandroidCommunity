@@ -1,13 +1,4 @@
-/*
- *
- * arch/arm/mach-u300/padmux.c
- *
- *
- * Copyright (C) 2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * U300 PADMUX functions
- * Author: Martin Persson <martin.persson@stericsson.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -34,17 +25,9 @@ const u32 pmx_registers[] = {
 	(U300_SYSCON_VBASE + U300_SYSCON_PMC4R)
 };
 
-/* High level functionality */
 
-/* Lazy dog:
- * onmask = {
- *   {"PMC1LR" mask, "PMC1LR" value},
- *   {"PMC1HR" mask, "PMC1HR" value},
- *   {"PMC2R"  mask, "PMC2R"  value},
- *   {"PMC3R"  mask, "PMC3R"  value},
- *   {"PMC4R"  mask, "PMC4R"  value}
- * }
- */
+
+
 static struct pmx mmc_setting = {
 	.setting = U300_APP_PMX_MMC_SETTING,
 	.default_on = false,
@@ -79,7 +62,7 @@ static struct pmx spi_setting = {
 		   },
 };
 
-/* Available padmux settings */
+
 static struct pmx *pmx_settings[] = {
 	&mmc_setting,
 	&spi_setting,
@@ -179,7 +162,7 @@ int pmx_activate(struct device *dev, struct pmx *pmx)
 
 	mutex_lock(&pmx_mutex);
 
-	/* Make sure the required bits are not used */
+	
 	for (i = 0; i < ARRAY_SIZE(pmx_settings); i++) {
 
 		if (pmx_settings[i]->dev == NULL || pmx_settings[i] == pmx)
@@ -189,7 +172,7 @@ int pmx_activate(struct device *dev, struct pmx *pmx)
 
 			if (pmx_settings[i]->onmask[j].mask & pmx->
 				onmask[j].mask) {
-				/* More than one entry on the same bits */
+				
 				WARN(1, "padmux: cannot activate "
 					"setting. Bit conflict with "
 					"an active setting\n");
@@ -250,14 +233,10 @@ int pmx_deactivate(struct device *dev, struct pmx *pmx)
 }
 EXPORT_SYMBOL(pmx_deactivate);
 
-/*
- * For internal use only. If it is to be exported,
- * it should be reentrant. Notice that pmx_activate
- * (i.e. runtime settings) always override default settings.
- */
+
 static int pmx_set_default(void)
 {
-	/* Used to identify several entries on the same bits */
+	
 	u16 modbits[ARRAY_SIZE(pmx_registers)];
 
 	int i, j;
@@ -271,7 +250,7 @@ static int pmx_set_default(void)
 
 		for (j = 0; j < ARRAY_SIZE(pmx_registers); j++) {
 
-			/* Make sure there is only one entry on the same bits */
+			
 			if (modbits[j] & pmx_settings[i]->onmask[j].mask) {
 				BUG();
 				return -EUSERS;
@@ -292,7 +271,7 @@ static int pmx_show(struct seq_file *s, void *data)
 	seq_printf(s, "-------------------------------------------------\n");
 	mutex_lock(&pmx_mutex);
 	for (i = 0; i < ARRAY_SIZE(pmx_settings); i++) {
-		/* Format pmx and device name nicely */
+		
 		char cdp[33];
 		int chars;
 
@@ -336,18 +315,14 @@ static const struct file_operations pmx_operations = {
 
 static int __init init_pmx_read_debugfs(void)
 {
-	/* Expose a simple debugfs interface to view pmx settings */
+	
 	(void) debugfs_create_file("padmux", S_IFREG | S_IRUGO,
 				   NULL, NULL,
 				   &pmx_operations);
 	return 0;
 }
 
-/*
- * This needs to come in after the core_initcall(),
- * because debugfs is not available until
- * the subsystems come up.
- */
+
 module_init(init_pmx_read_debugfs);
 #endif
 
@@ -363,5 +338,5 @@ static int __init pmx_init(void)
 	return 0;
 }
 
-/* Should be initialized before consumers */
+
 core_initcall(pmx_init);

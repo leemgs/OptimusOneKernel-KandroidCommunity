@@ -1,23 +1,10 @@
-/*
- * helper functions for vmalloc capture buffers
- *
- * The functions expect the hardware being able to scatter gather
- * (i.e. the buffers are not linear in physical memory, but fragmented
- * into PAGE_SIZE chunks).  They also assume the driver does not need
- * to touch the video data.
- *
- * (c) 2007 Mauro Carvalho Chehab, <mchehab@infradead.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2
- */
+
 #ifndef _VIDEOBUF_VMALLOC_H
 #define _VIDEOBUF_VMALLOC_H
 
 #include <media/videobuf-core.h>
 
-/* --------------------------------------------------------------------- */
+
 
 struct videobuf_vmalloc_memory
 {
@@ -25,7 +12,7 @@ struct videobuf_vmalloc_memory
 
 	void                *vmalloc;
 
-	/* remap_vmalloc_range seems to need to run after mmap() on some cases */
+	
 	struct vm_area_struct *vma;
 };
 

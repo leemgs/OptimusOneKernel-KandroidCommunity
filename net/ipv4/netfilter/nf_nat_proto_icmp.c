@@ -1,10 +1,4 @@
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -38,7 +32,7 @@ icmp_unique_tuple(struct nf_conntrack_tuple *tuple,
 	unsigned int i;
 
 	range_size = ntohs(range->max.icmp.id) - ntohs(range->min.icmp.id) + 1;
-	/* If no range specified... */
+	
 	if (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED))
 		range_size = 0xFFFF;
 

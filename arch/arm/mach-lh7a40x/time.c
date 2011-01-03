@@ -1,13 +1,4 @@
-/*
- *  arch/arm/mach-lh7a40x/time.c
- *
- *  Copyright (C) 2004 Logic Product Development
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -55,7 +46,7 @@ static struct irqaction lh7a40x_timer_irq = {
 
 static void __init lh7a40x_timer_init (void)
 {
-				/* Stop/disable all timers */
+				
 	TIMER_CONTROL1 = 0;
 	TIMER_CONTROL2 = 0;
 	TIMER_CONTROL3 = 0;

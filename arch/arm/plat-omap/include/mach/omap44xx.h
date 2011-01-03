@@ -1,22 +1,8 @@
-/*:
- * Address mappings and base address for OMAP4 interconnects
- * and peripherals.
- *
- * Copyright (C) 2009 Texas Instruments
- *
- * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #ifndef __ASM_ARCH_OMAP44XX_H
 #define __ASM_ARCH_OMAP44XX_H
 
-/*
- * Please place only base defines here and put the rest in device
- * specific headers.
- */
+
 #define L4_44XX_BASE			0x4a000000
 #define L4_WK_44XX_BASE			0x4a300000
 #define L4_PER_44XX_BASE		0x48000000
@@ -42,5 +28,5 @@
 #define OMAP44XX_WKUPGEN_BASE		0x48281000
 #define OMAP44XX_VA_WKUPGEN_BASE	OMAP2_IO_ADDRESS(OMAP44XX_WKUPGEN_BASE)
 
-#endif /* __ASM_ARCH_OMAP44XX_H */
+#endif 
 

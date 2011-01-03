@@ -1,15 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/gateway7001-setup.c
- *
- * Board setup for the Gateway 7001 board
- *
- * Copyright (C) 2007 Imre Kaloz <kaloz@openwrt.org>
- *
- * based on coyote-setup.c:
- *      Copyright (C) 2003-2005 MontaVista Software, Inc.
- *
- * Author: Imre Kaloz <Kaloz@openwrt.org>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -96,7 +85,7 @@ static void __init gateway7001_init(void)
 
 #ifdef CONFIG_MACH_GATEWAY7001
 MACHINE_START(GATEWAY7001, "Gateway 7001 AP")
-	/* Maintainer: Imre Kaloz <kaloz@openwrt.org> */
+	
 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
 	.map_io		= ixp4xx_map_io,

@@ -1,19 +1,4 @@
-/*
- * linux/arch/arm/common/sa1111.c
- *
- * SA1111 support
- *
- * Original code by John Dorsey
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This file contains all generic SA1111 support.
- *
- * All initialization functions provided here are intended to be called
- * from machine specific code with proper arguments when required.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -37,13 +22,7 @@
 
 extern void __init sa1110_mb_enable(void);
 
-/*
- * We keep the following data for the overall SA1111.  Note that the
- * struct device and struct resource are "fake"; they should be supplied
- * by the bus above us.  However, in the interests of getting all SA1111
- * drivers converted over to the device model, we provide this as an
- * anchor point for all the other drivers.
- */
+
 struct sa1111 {
 	struct device	*dev;
 	struct clk	*clk;
@@ -56,10 +35,7 @@ struct sa1111 {
 #endif
 };
 
-/*
- * We _really_ need to eliminate this.  Its only users
- * are the PWM and DMA checking code.
- */
+
 static struct sa1111 *g_sa1111;
 
 struct sa1111_dev_info {
@@ -143,11 +119,7 @@ void __init sa1111_adjust_zones(int node, unsigned long *size, unsigned long *ho
 	size[0] = sz;
 }
 
-/*
- * SA1111 interrupt support.  Since clearing an IRQ while there are
- * active IRQs causes the interrupt output to pulse, the upper levels
- * will call us again if there are more interrupts to process.
- */
+
 static void
 sa1111_irq_handler(unsigned int irq, struct irq_desc *desc)
 {
@@ -176,7 +148,7 @@ sa1111_irq_handler(unsigned int irq, struct irq_desc *desc)
 		if (stat1 & 1)
 			handle_edge_irq(i, irq_desc + i);
 
-	/* For level-based interrupts */
+	
 	desc->chip->unmask(irq);
 }
 
@@ -207,13 +179,7 @@ static void sa1111_unmask_lowirq(unsigned int irq)
 	sa1111_writel(ie0, mapbase + SA1111_INTEN0);
 }
 
-/*
- * Attempt to re-trigger the interrupt.  The SA1111 contains a register
- * (INTSET) which claims to do this.  However, in practice no amount of
- * manipulation of INTEN and INTSET guarantees that the interrupt will
- * be triggered.  In fact, its very difficult, if not impossible to get
- * INTSET to re-trigger the interrupt.
- */
+
 static int sa1111_retrigger_lowirq(unsigned int irq)
 {
 	unsigned int mask = SA1111_IRQMASK_LO(irq);
@@ -304,13 +270,7 @@ static void sa1111_unmask_highirq(unsigned int irq)
 	sa1111_writel(ie1, mapbase + SA1111_INTEN1);
 }
 
-/*
- * Attempt to re-trigger the interrupt.  The SA1111 contains a register
- * (INTSET) which claims to do this.  However, in practice no amount of
- * manipulation of INTEN and INTSET guarantees that the interrupt will
- * be triggered.  In fact, its very difficult, if not impossible to get
- * INTSET to re-trigger the interrupt.
- */
+
 static int sa1111_retrigger_highirq(unsigned int irq)
 {
 	unsigned int mask = SA1111_IRQMASK_HI(irq);
@@ -386,27 +346,22 @@ static void sa1111_setup_irq(struct sa1111 *sachip)
 	void __iomem *irqbase = sachip->base + SA1111_INTC;
 	unsigned int irq;
 
-	/*
-	 * We're guaranteed that this region hasn't been taken.
-	 */
+	
 	request_mem_region(sachip->phys + SA1111_INTC, 512, "irq");
 
-	/* disable all IRQs */
+	
 	sa1111_writel(0, irqbase + SA1111_INTEN0);
 	sa1111_writel(0, irqbase + SA1111_INTEN1);
 	sa1111_writel(0, irqbase + SA1111_WAKEEN0);
 	sa1111_writel(0, irqbase + SA1111_WAKEEN1);
 
-	/*
-	 * detect on rising edge.  Note: Feb 2001 Errata for SA1111
-	 * specifies that S0ReadyInt and S1ReadyInt should be '1'.
-	 */
+	
 	sa1111_writel(0, irqbase + SA1111_INTPOL0);
 	sa1111_writel(SA1111_IRQMASK_HI(IRQ_S0_READY_NINT) |
 		      SA1111_IRQMASK_HI(IRQ_S1_READY_NINT),
 		      irqbase + SA1111_INTPOL1);
 
-	/* clear all IRQs */
+	
 	sa1111_writel(~0, irqbase + SA1111_INTSTATCLR0);
 	sa1111_writel(~0, irqbase + SA1111_INTSTATCLR1);
 
@@ -424,28 +379,13 @@ static void sa1111_setup_irq(struct sa1111 *sachip)
 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
 	}
 
-	/*
-	 * Register SA1111 interrupt
-	 */
+	
 	set_irq_type(sachip->irq, IRQ_TYPE_EDGE_RISING);
 	set_irq_data(sachip->irq, irqbase);
 	set_irq_chained_handler(sachip->irq, sa1111_irq_handler);
 }
 
-/*
- * Bring the SA1111 out of reset.  This requires a set procedure:
- *  1. nRESET asserted (by hardware)
- *  2. CLK turned on from SA1110
- *  3. nRESET deasserted
- *  4. VCO turned on, PLL_BYPASS turned off
- *  5. Wait lock time, then assert RCLKEn
- *  7. PCR set to allow clocking of individual functions
- *
- * Until we've done this, the only registers we can access are:
- *   SBI_SKCR
- *   SBI_SMCR
- *   SBI_SKID
- */
+
 static void sa1111_wake(struct sa1111 *sachip)
 {
 	unsigned long flags, r;
@@ -454,36 +394,24 @@ static void sa1111_wake(struct sa1111 *sachip)
 
 	clk_enable(sachip->clk);
 
-	/*
-	 * Turn VCO on, and disable PLL Bypass.
-	 */
+	
 	r = sa1111_readl(sachip->base + SA1111_SKCR);
 	r &= ~SKCR_VCO_OFF;
 	sa1111_writel(r, sachip->base + SA1111_SKCR);
 	r |= SKCR_PLL_BYPASS | SKCR_OE_EN;
 	sa1111_writel(r, sachip->base + SA1111_SKCR);
 
-	/*
-	 * Wait lock time.  SA1111 manual _doesn't_
-	 * specify a figure for this!  We choose 100us.
-	 */
+	
 	udelay(100);
 
-	/*
-	 * Enable RCLK.  We also ensure that RDYEN is set.
-	 */
+	
 	r |= SKCR_RCLKEN | SKCR_RDYEN;
 	sa1111_writel(r, sachip->base + SA1111_SKCR);
 
-	/*
-	 * Wait 14 RCLK cycles for the chip to finish coming out
-	 * of reset. (RCLK=24MHz).  This is 590ns.
-	 */
+	
 	udelay(1);
 
-	/*
-	 * Ensure all clocks are initially off.
-	 */
+	
 	sa1111_writel(0, sachip->base + SA1111_SKPCR);
 
 	spin_unlock_irqrestore(&sachip->lock, flags);
@@ -502,9 +430,7 @@ static u32 sa1111_dma_mask[] = {
 	0,
 };
 
-/*
- * Configure the SA1111 shared memory controller.
- */
+
 void
 sa1111_configure_smc(struct sa1111 *sachip, int sdram, unsigned int drac,
 		     unsigned int cas_latency)
@@ -516,11 +442,7 @@ sa1111_configure_smc(struct sa1111 *sachip, int sdram, unsigned int drac,
 
 	sa1111_writel(smcr, sachip->base + SA1111_SMCR);
 
-	/*
-	 * Now clear the bits in the DMA mask to work around the SA1111
-	 * DMA erratum (Intel StrongARM SA-1111 Microprocessor Companion
-	 * Chip Specification Update, June 2000, Erratum #7).
-	 */
+	
 	if (sachip->dev->dma_mask)
 		*sachip->dev->dma_mask &= sa1111_dma_mask[drac >> 2];
 
@@ -582,10 +504,7 @@ sa1111_init_one_child(struct sa1111 *sachip, struct resource *parent,
 	}
 
 #ifdef CONFIG_DMABOUNCE
-	/*
-	 * If the parent device has a DMA mask associated with it,
-	 * propagate it down to the children.
-	 */
+	
 	if (sachip->dev->dma_mask) {
 		dev->dma_mask = *sachip->dev->dma_mask;
 		dev->dev.dma_mask = &dev->dma_mask;
@@ -605,18 +524,7 @@ out:
 	return ret;
 }
 
-/**
- *	sa1111_probe - probe for a single SA1111 chip.
- *	@phys_addr: physical address of device.
- *
- *	Probe for a SA1111 chip.  This must be called
- *	before any other SA1111-specific code.
- *
- *	Returns:
- *	%-ENODEV	device not found.
- *	%-EBUSY		physical address already marked in-use.
- *	%0		successful.
- */
+
 static int
 __sa1111_probe(struct device *me, struct resource *mem, int irq)
 {
@@ -643,19 +551,14 @@ __sa1111_probe(struct device *me, struct resource *mem, int irq)
 	sachip->phys = mem->start;
 	sachip->irq = irq;
 
-	/*
-	 * Map the whole region.  This also maps the
-	 * registers for our children.
-	 */
+	
 	sachip->base = ioremap(mem->start, PAGE_SIZE * 2);
 	if (!sachip->base) {
 		ret = -ENOMEM;
 		goto err_clkput;
 	}
 
-	/*
-	 * Probe for the chip.  Only touch the SBI registers.
-	 */
+	
 	id = sa1111_readl(sachip->base + SA1111_SKID);
 	if ((id & SKID_ID_MASK) != SKID_SA1111_ID) {
 		printk(KERN_DEBUG "SA1111 not detected: ID = %08lx\n", id);
@@ -667,45 +570,28 @@ __sa1111_probe(struct device *me, struct resource *mem, int irq)
 		"silicon revision %lx, metal revision %lx\n",
 		(id & SKID_SIREV_MASK)>>4, (id & SKID_MTREV_MASK));
 
-	/*
-	 * We found it.  Wake the chip up, and initialise.
-	 */
+	
 	sa1111_wake(sachip);
 
 #ifdef CONFIG_ARCH_SA1100
 	{
 	unsigned int val;
 
-	/*
-	 * The SDRAM configuration of the SA1110 and the SA1111 must
-	 * match.  This is very important to ensure that SA1111 accesses
-	 * don't corrupt the SDRAM.  Note that this ungates the SA1111's
-	 * MBGNT signal, so we must have called sa1110_mb_disable()
-	 * beforehand.
-	 */
+	
 	sa1111_configure_smc(sachip, 1,
 			     FExtr(MDCNFG, MDCNFG_SA1110_DRAC0),
 			     FExtr(MDCNFG, MDCNFG_SA1110_TDL0));
 
-	/*
-	 * We only need to turn on DCLK whenever we want to use the
-	 * DMA.  It can otherwise be held firmly in the off position.
-	 * (currently, we always enable it.)
-	 */
+	
 	val = sa1111_readl(sachip->base + SA1111_SKPCR);
 	sa1111_writel(val | SKPCR_DCLKEN, sachip->base + SA1111_SKPCR);
 
-	/*
-	 * Enable the SA1110 memory bus request and grant signals.
-	 */
+	
 	sa1110_mb_enable();
 	}
 #endif
 
-	/*
-	 * The interrupt controller must be initialised before any
-	 * other device to ensure that the interrupts are available.
-	 */
+	
 	if (sachip->irq != NO_IRQ)
 		sa1111_setup_irq(sachip);
 
@@ -745,7 +631,7 @@ static void __sa1111_remove(struct sa1111 *sachip)
 
 	device_for_each_child(sachip->dev, NULL, sa1111_remove_one);
 
-	/* disable all IRQs */
+	
 	sa1111_writel(0, irqbase + SA1111_INTEN0);
 	sa1111_writel(0, irqbase + SA1111_INTEN1);
 	sa1111_writel(0, irqbase + SA1111_WAKEEN0);
@@ -765,30 +651,10 @@ static void __sa1111_remove(struct sa1111 *sachip)
 	kfree(sachip);
 }
 
-/*
- * According to the "Intel StrongARM SA-1111 Microprocessor Companion
- * Chip Specification Update" (June 2000), erratum #7, there is a
- * significant bug in the SA1111 SDRAM shared memory controller.  If
- * an access to a region of memory above 1MB relative to the bank base,
- * it is important that address bit 10 _NOT_ be asserted. Depending
- * on the configuration of the RAM, bit 10 may correspond to one
- * of several different (processor-relative) address bits.
- *
- * This routine only identifies whether or not a given DMA address
- * is susceptible to the bug.
- *
- * This should only get called for sa1111_device types due to the
- * way we configure our device dma_masks.
- */
+
 int dma_needs_bounce(struct device *dev, dma_addr_t addr, size_t size)
 {
-	/*
-	 * Section 4.6 of the "Intel StrongARM SA-1111 Development Module
-	 * User's Guide" mentions that jumpers R51 and R52 control the
-	 * target of SA-1111 DMA (either SDRAM bank 0 on Assabet, or
-	 * SDRAM bank 1 on Neponset). The default configuration selects
-	 * Assabet, so any address in bank 1 is necessarily invalid.
-	 */
+	
 	return ((machine_is_assabet() || machine_is_pfs168()) &&
 		(addr >= 0xc8000000 || (addr + size) >= 0xc8000000));
 }
@@ -801,9 +667,7 @@ struct sa1111_save_data {
 	unsigned char	skpwm0;
 	unsigned char	skpwm1;
 
-	/*
-	 * Interrupt controller
-	 */
+	
 	unsigned int	intpol0;
 	unsigned int	intpol1;
 	unsigned int	inten0;
@@ -831,9 +695,7 @@ static int sa1111_suspend(struct platform_device *dev, pm_message_t state)
 
 	spin_lock_irqsave(&sachip->lock, flags);
 
-	/*
-	 * Save state.
-	 */
+	
 	base = sachip->base;
 	save->skcr     = sa1111_readl(base + SA1111_SKCR);
 	save->skpcr    = sa1111_readl(base + SA1111_SKPCR);
@@ -852,9 +714,7 @@ static int sa1111_suspend(struct platform_device *dev, pm_message_t state)
 	save->wakeen0  = sa1111_readl(base + SA1111_WAKEEN0);
 	save->wakeen1  = sa1111_readl(base + SA1111_WAKEEN1);
 
-	/*
-	 * Disable.
-	 */
+	
 	val = sa1111_readl(sachip->base + SA1111_SKCR);
 	sa1111_writel(val | SKCR_SLEEP, sachip->base + SA1111_SKCR);
 	sa1111_writel(0, sachip->base + SA1111_SKPWM0);
@@ -867,15 +727,7 @@ static int sa1111_suspend(struct platform_device *dev, pm_message_t state)
 	return 0;
 }
 
-/*
- *	sa1111_resume - Restore the SA1111 device state.
- *	@dev: device to restore
- *
- *	Restore the general state of the SA1111; clock control and
- *	interrupt controller.  Other parts of the SA1111 must be
- *	restored by their respective drivers, and must be called
- *	via LDM after this function.
- */
+
 static int sa1111_resume(struct platform_device *dev)
 {
 	struct sa1111 *sachip = platform_get_drvdata(dev);
@@ -889,10 +741,7 @@ static int sa1111_resume(struct platform_device *dev)
 
 	spin_lock_irqsave(&sachip->lock, flags);
 
-	/*
-	 * Ensure that the SA1111 is still here.
-	 * FIXME: shouldn't do this here.
-	 */
+	
 	id = sa1111_readl(sachip->base + SA1111_SKID);
 	if ((id & SKID_ID_MASK) != SKID_SA1111_ID) {
 		__sa1111_remove(sachip);
@@ -901,9 +750,7 @@ static int sa1111_resume(struct platform_device *dev)
 		return 0;
 	}
 
-	/*
-	 * First of all, wake up the chip.
-	 */
+	
 	sa1111_wake(sachip);
 	sa1111_writel(0, sachip->base + SA1111_INTC + SA1111_INTEN0);
 	sa1111_writel(0, sachip->base + SA1111_INTC + SA1111_INTEN1);
@@ -971,15 +818,7 @@ static int sa1111_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/*
- *	Not sure if this should be on the system bus or not yet.
- *	We really want some way to register a system device at
- *	the per-machine level, and then have this driver pick
- *	up the registered devices.
- *
- *	We also need to handle the SDRAM configuration for
- *	PXA250/SA1110 machine classes.
- */
+
 static struct platform_driver sa1111_device_driver = {
 	.probe		= sa1111_probe,
 	.remove		= sa1111_remove,
@@ -990,18 +829,13 @@ static struct platform_driver sa1111_device_driver = {
 	},
 };
 
-/*
- *	Get the parent device driver (us) structure
- *	from a child function device
- */
+
 static inline struct sa1111 *sa1111_chip_driver(struct sa1111_dev *sadev)
 {
 	return (struct sa1111 *)dev_get_drvdata(sadev->dev.parent);
 }
 
-/*
- * The bits in the opdiv field are non-linear.
- */
+
 static unsigned char opdiv_table[] = { 1, 4, 2, 8 };
 
 static unsigned int __sa1111_pll_clock(struct sa1111 *sachip)
@@ -1017,15 +851,7 @@ static unsigned int __sa1111_pll_clock(struct sa1111 *sachip)
 	return 3686400 * fbdiv / (ipdiv * opdiv);
 }
 
-/**
- *	sa1111_pll_clock - return the current PLL clock frequency.
- *	@sadev: SA1111 function block
- *
- *	BUG: we should look at SKCR.  We also blindly believe that
- *	the chip is being fed with the 3.6864MHz clock.
- *
- *	Returns the PLL clock in Hz.
- */
+
 unsigned int sa1111_pll_clock(struct sa1111_dev *sadev)
 {
 	struct sa1111 *sachip = sa1111_chip_driver(sadev);
@@ -1034,14 +860,7 @@ unsigned int sa1111_pll_clock(struct sa1111_dev *sadev)
 }
 EXPORT_SYMBOL(sa1111_pll_clock);
 
-/**
- *	sa1111_select_audio_mode - select I2S or AC link mode
- *	@sadev: SA1111 function block
- *	@mode: One of %SA1111_AUDIO_ACLINK or %SA1111_AUDIO_I2S
- *
- *	Frob the SKCR to select AC Link mode or I2S mode for
- *	the audio block.
- */
+
 void sa1111_select_audio_mode(struct sa1111_dev *sadev, int mode)
 {
 	struct sa1111 *sachip = sa1111_chip_driver(sadev);
@@ -1062,11 +881,7 @@ void sa1111_select_audio_mode(struct sa1111_dev *sadev, int mode)
 }
 EXPORT_SYMBOL(sa1111_select_audio_mode);
 
-/**
- *	sa1111_set_audio_rate - set the audio sample rate
- *	@sadev: SA1111 SAC function block
- *	@rate: sample rate to select
- */
+
 int sa1111_set_audio_rate(struct sa1111_dev *sadev, int rate)
 {
 	struct sa1111 *sachip = sa1111_chip_driver(sadev);
@@ -1087,10 +902,7 @@ int sa1111_set_audio_rate(struct sa1111_dev *sadev, int rate)
 }
 EXPORT_SYMBOL(sa1111_set_audio_rate);
 
-/**
- *	sa1111_get_audio_rate - get the audio sample rate
- *	@sadev: SA1111 SAC function block device
- */
+
 int sa1111_get_audio_rate(struct sa1111_dev *sadev)
 {
 	struct sa1111 *sachip = sa1111_chip_driver(sadev);
@@ -1164,14 +976,9 @@ void sa1111_set_sleep_io(struct sa1111_dev *sadev, unsigned int bits, unsigned i
 }
 EXPORT_SYMBOL(sa1111_set_sleep_io);
 
-/*
- * Individual device operations.
- */
 
-/**
- *	sa1111_enable_device - enable an on-chip SA1111 function block
- *	@sadev: SA1111 function block device to enable
- */
+
+
 void sa1111_enable_device(struct sa1111_dev *sadev)
 {
 	struct sa1111 *sachip = sa1111_chip_driver(sadev);
@@ -1185,10 +992,7 @@ void sa1111_enable_device(struct sa1111_dev *sadev)
 }
 EXPORT_SYMBOL(sa1111_enable_device);
 
-/**
- *	sa1111_disable_device - disable an on-chip SA1111 function block
- *	@sadev: SA1111 function block device to disable
- */
+
 void sa1111_disable_device(struct sa1111_dev *sadev)
 {
 	struct sa1111 *sachip = sa1111_chip_driver(sadev);
@@ -1202,12 +1006,7 @@ void sa1111_disable_device(struct sa1111_dev *sadev)
 }
 EXPORT_SYMBOL(sa1111_disable_device);
 
-/*
- *	SA1111 "Register Access Bus."
- *
- *	We model this as a regular bus type, and hang devices directly
- *	off this.
- */
+
 static int sa1111_match(struct device *_dev, struct device_driver *_drv)
 {
 	struct sa1111_dev *dev = SA1111_DEV(_dev);

@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa_priv.h>
 #include <bfi/bfi_cbreg.h>
@@ -34,17 +19,13 @@ bfa_hwcb_reginit(struct bfa_s *bfa)
 	}
 
 	for (i = 0; i < BFI_IOC_MAX_CQS; i++) {
-		/*
-		 * CPE registers
-		 */
+		
 		q = CPE_Q_NUM(fn, i);
 		bfa_regs->cpe_q_pi[i] = (kva + CPE_Q_PI(q));
 		bfa_regs->cpe_q_ci[i] = (kva + CPE_Q_CI(q));
 		bfa_regs->cpe_q_depth[i] = (kva + CPE_Q_DEPTH(q));
 
-		/*
-		 * RME registers
-		 */
+		
 		q = CPE_Q_NUM(fn, i);
 		bfa_regs->rme_q_pi[i] = (kva + RME_Q_PI(q));
 		bfa_regs->rme_q_ci[i] = (kva + RME_Q_CI(q));
@@ -90,9 +71,7 @@ bfa_hwcb_msix_getvecs(struct bfa_s *bfa, u32 *msix_vecs_bmap,
 	*num_vecs = __HFN_NUMINTS;
 }
 
-/**
- * No special setup required for crossbow -- vector assignments are implicit.
- */
+
 void
 bfa_hwcb_msix_init(struct bfa_s *bfa, int nvecs)
 {
@@ -117,9 +96,7 @@ bfa_hwcb_msix_init(struct bfa_s *bfa, int nvecs)
 		bfa->msix.handler[i] = bfa_msix_lpu_err;
 }
 
-/**
- * Crossbow -- dummy, interrupts are masked
- */
+
 void
 bfa_hwcb_msix_install(struct bfa_s *bfa)
 {
@@ -130,9 +107,7 @@ bfa_hwcb_msix_uninstall(struct bfa_s *bfa)
 {
 }
 
-/**
- * No special enable/disable -- vector assignments are implicit.
- */
+
 void
 bfa_hwcb_isr_mode_set(struct bfa_s *bfa, bfa_boolean_t msix)
 {

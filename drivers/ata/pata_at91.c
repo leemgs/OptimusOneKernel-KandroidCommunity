@@ -1,19 +1,4 @@
-/*
- * PATA driver for AT91SAM9260 Static Memory Controller
- * with CompactFlash interface in True IDE mode
- *
- * Copyright (C) 2009 Matyukevich Sergey
- *
- * Based on:
- *      * generic platform driver by Paul Mundt: drivers/ata/pata_platform.c
- *      * pata_at32 driver by Kristoffer Nyborg Gregertsen
- *      * at91_ide driver by Stanislaw Gruszka
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -55,17 +40,12 @@ static unsigned long calc_mck_cycles(unsigned long ns, unsigned long mck_hz)
 {
 	unsigned long mul;
 
-	/*
-	* cycles = x [nsec] * f [Hz] / 10^9 [ns in sec] =
-	*     x * (f / 1_000_000_000) =
-	*     x * ((f * 65536) / 1_000_000_000) / 65536 =
-	*     x * (((f / 10_000) * 65536) / 100_000) / 65536 =
-	*/
+	
 
 	mul = (mck_hz / 10000) << 16;
 	mul /= 100000;
 
-	return (ns * mul + 65536) >> 16;    /* rounding */
+	return (ns * mul + 65536) >> 16;    
 }
 
 static void set_smc_mode(struct at91_ide_info *info)
@@ -101,15 +81,15 @@ static void set_smc_timing(struct device *dev,
 	active  = nrd_setup + nrd_pulse;
 	recover = read_cycle - active;
 
-	/* Need at least two cycles recovery */
+	
 	if (recover < 2)
 		read_cycle = active + 2;
 
-	/* (CS0, CS1, DIR, OE) <= (CFCE1, CFCE2, CFRNW, NCSX) timings */
+	
 	ncs_read_setup = 1;
 	ncs_read_pulse = read_cycle - 2;
 
-	/* Write timings same as read timings */
+	
 	write_cycle = read_cycle;
 	nwe_setup = nrd_setup;
 	nwe_pulse = nrd_pulse;
@@ -150,7 +130,7 @@ static void pata_at91_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	struct ata_timing timing;
 	int ret;
 
-	/* Compute ATA timing and set it to SMC */
+	
 	ret = ata_timing_compute(adev, adev->pio_mode, &timing, 1000, 0);
 	if (ret) {
 		dev_warn(ap->dev, "Failed to compute ATA timing %d, \
@@ -160,7 +140,7 @@ static void pata_at91_set_piomode(struct ata_port *ap, struct ata_device *adev)
 		set_smc_timing(ap->dev, info, &timing);
 	}
 
-	/* Setup SMC mode */
+	
 	set_smc_mode(info);
 
 	return;
@@ -177,13 +157,13 @@ static unsigned int pata_at91_data_xfer_noirq(struct ata_device *dev,
 	local_irq_save(flags);
 	mode = at91_sys_read(AT91_SMC_MODE(info->cs));
 
-	/* set 16bit mode before writing data */
+	
 	at91_sys_write(AT91_SMC_MODE(info->cs),
 			(mode & ~AT91_SMC_DBW) | AT91_SMC_DBW_16);
 
 	consumed = ata_sff_data_xfer(dev, buf, buflen, rw);
 
-	/* restore 8bit mode after data is written */
+	
 	at91_sys_write(AT91_SMC_MODE(info->cs),
 			(mode & ~AT91_SMC_DBW) | AT91_SMC_DBW_8);
 
@@ -217,7 +197,7 @@ static int __devinit pata_at91_probe(struct platform_device *pdev)
 	int irq = 0;
 	int ret;
 
-	/*  get platform resources: IO/CTL memories and irq/rst pins */
+	
 
 	if (pdev->num_resources != 1) {
 		dev_err(&pdev->dev, "invalid number of resources\n");
@@ -233,7 +213,7 @@ static int __devinit pata_at91_probe(struct platform_device *pdev)
 
 	irq = board->irq_pin;
 
-	/* init ata host */
+	
 
 	host = ata_host_alloc(dev, 1);
 

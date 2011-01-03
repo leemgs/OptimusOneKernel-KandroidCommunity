@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-footbridge/include/mach/irqs.h
- *
- * Copyright (C) 1998 Russell King
- * Copyright (C) 1998 Phil Blundell
- *
- * Changelog:
- *  20-Jan-1998	RMK	Started merge of EBSA286, CATS and NetWinder
- *  01-Feb-1999	PJB	ISA IRQs start at 0 not 16
- */
+
 #include <asm/mach-types.h>
 
 #define NR_IRQS			36
@@ -18,10 +9,7 @@
 #define _DC21285_IRQ(x)		(16 + (x))
 #define _DC21285_INR(x)		((x) - 16)
 
-/*
- * This is a list of all interrupts that the 21285
- * can generate and we handle.
- */
+
 #define IRQ_CONRX		_DC21285_IRQ(0)
 #define IRQ_CONTX		_DC21285_IRQ(1)
 #define IRQ_TIMER1		_DC21285_IRQ(2)
@@ -77,9 +65,7 @@
 #define IRQ_MASK_PCI_DPERR	(1 << 28)
 #define IRQ_MASK_PCI_PERR	(1 << 31)
 
-/*
- * Netwinder interrupt allocations
- */
+
 #define IRQ_NETWINDER_ETHER10	IRQ_IN0
 #define IRQ_NETWINDER_ETHER100	IRQ_IN1
 #define IRQ_NETWINDER_VIDCOMP	IRQ_IN2

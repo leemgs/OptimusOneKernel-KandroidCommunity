@@ -1,26 +1,8 @@
-/*
- * Copyright (C) 2005-2009 Texas Instruments Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #ifndef _DM355_CCDC_REGS_H
 #define _DM355_CCDC_REGS_H
 
-/**************************************************************************\
-* Register OFFSET Definitions
-\**************************************************************************/
+
 #define SYNCEN				0x00
 #define MODESET				0x04
 #define HDWIDTH				0x08
@@ -104,10 +86,7 @@
 #define CSCM7                           0x158
 #define DATAOFST			0x15c
 #define CCDC_REG_LAST			DATAOFST
-/**************************************************************
-*	Define for various register bit mask and shifts for CCDC
-*
-**************************************************************/
+
 #define CCDC_RAW_IP_MODE			0
 #define CCDC_VDHDOUT_INPUT			0
 #define CCDC_YCINSWP_RAW			(0 << 4)
@@ -299,7 +278,7 @@
 #define CCDC_SYNCEN_WEN_MASK			(1 << 1)
 #define CCDC_SYNCEN_WEN_SHIFT			1
 
-/* Power on Defaults in hardware */
+
 #define MODESET_DEFAULT				0x200
 #define CULH_DEFAULT				0xFFFF
 #define CULV_DEFAULT				0xFF

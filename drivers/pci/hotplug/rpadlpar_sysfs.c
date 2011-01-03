@@ -1,17 +1,4 @@
-/*
- * Interface for Dynamic Logical Partitioning of I/O Slots on
- * RPA-compliant PPC64 platform.
- *
- * John Rose <johnrose@austin.ibm.com>
- * October 2003
- *
- * Copyright (C) 2003 IBM.
- *
- *      This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 #include <linux/kobject.h>
 #include <linux/string.h>
 #include <linux/pci.h>
@@ -21,9 +8,7 @@
 
 #define DLPAR_KOBJ_NAME       "control"
 
-/* Those two have no quotes because they are passed to __ATTR() which
- * stringifies the argument (yuck !)
- */
+
 #define ADD_SLOT_ATTR_NAME    add_slot
 #define REMOVE_SLOT_ATTR_NAME remove_slot
 

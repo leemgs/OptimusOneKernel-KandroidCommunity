@@ -1,23 +1,4 @@
-/***************************************************************************
- * Plug-in for MI-0343 image sensor connected to the SN9C1xx PC Camera     *
- * Controllers                                                             *
- *                                                                         *
- * Copyright (C) 2004-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #include "sn9c102_sensor.h"
 #include "sn9c102_devtable.h"
@@ -248,7 +229,7 @@ static const struct sn9c102_sensor mi0343 = {
 			.type = V4L2_CTRL_TYPE_INTEGER,
 			.name = "global gain",
 			.minimum = 0x00,
-			.maximum = (0x3f-0x10)+(0x7f-0x60)+(0xff-0xe0),/*0x6d*/
+			.maximum = (0x3f-0x10)+(0x7f-0x60)+(0xff-0xe0),
 			.step = 0x01,
 			.default_value = 0x00,
 			.flags = 0,

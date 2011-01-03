@@ -1,12 +1,4 @@
-/*
- * kernel/power/main.c - PM subsystem core functionality.
- *
- * Copyright (c) 2003 Patrick Mochel
- * Copyright (c) 2003 Open Source Development Lab
- * 
- * This file is released under the GPLv2
- *
- */
+
 
 #include <linux/kobject.h>
 #include <linux/string.h>
@@ -22,7 +14,7 @@ EXPORT_SYMBOL(pm_flags);
 
 #ifdef CONFIG_PM_SLEEP
 
-/* Routines for PM-transition notifications */
+
 
 static BLOCKING_NOTIFIER_HEAD(pm_chain_head);
 
@@ -71,7 +63,7 @@ static ssize_t pm_test_show(struct kobject *kobj, struct kobj_attribute *attr,
 		}
 
 	if (s != buf)
-		/* convert the last space to a newline */
+		
 		*(s-1) = '\n';
 
 	return (s - buf);
@@ -105,22 +97,13 @@ static ssize_t pm_test_store(struct kobject *kobj, struct kobj_attribute *attr,
 }
 
 power_attr(pm_test);
-#endif /* CONFIG_PM_DEBUG */
+#endif 
 
-#endif /* CONFIG_PM_SLEEP */
+#endif 
 
 struct kobject *power_kobj;
 
-/**
- *	state - control system power state.
- *
- *	show() returns what states are supported, which is hard-coded to
- *	'standby' (Power-On Suspend), 'mem' (Suspend-to-RAM), and
- *	'disk' (Suspend-to-Disk).
- *
- *	store() accepts one of those strings, translates it into the 
- *	proper enumerated value, and initiates a suspend transition.
- */
+
 static ssize_t state_show(struct kobject *kobj, struct kobj_attribute *attr,
 			  char *buf)
 {
@@ -137,7 +120,7 @@ static ssize_t state_show(struct kobject *kobj, struct kobj_attribute *attr,
 	s += sprintf(s, "%s\n", "disk");
 #else
 	if (s != buf)
-		/* convert the last space to a newline */
+		
 		*(s-1) = '\n';
 #endif
 	return (s - buf);
@@ -147,7 +130,11 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 			   const char *buf, size_t n)
 {
 #ifdef CONFIG_SUSPEND
+#ifdef CONFIG_EARLYSUSPEND
+	suspend_state_t state = PM_SUSPEND_ON;
+#else
 	suspend_state_t state = PM_SUSPEND_STANDBY;
+#endif
 	const char * const *s;
 #endif
 	char *p;
@@ -157,7 +144,7 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 	p = memchr(buf, '\n', n);
 	len = p ? p - buf : n;
 
-	/* First, check if we are requested to hibernate */
+	
 	if (len == 4 && !strncmp(buf, "disk", len)) {
 		error = hibernate();
   goto Exit;
@@ -169,7 +156,14 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 			break;
 	}
 	if (state < PM_SUSPEND_MAX && *s)
+#ifdef CONFIG_EARLYSUSPEND
+		if (state == PM_SUSPEND_ON || valid_state(state)) {
+			error = 0;
+			request_suspend_state(state);
+		}
+#else
 		error = enter_state(state);
+#endif
 #endif
 
  Exit:
@@ -201,7 +195,12 @@ pm_trace_store(struct kobject *kobj, struct kobj_attribute *attr,
 }
 
 power_attr(pm_trace);
-#endif /* CONFIG_PM_TRACE */
+#endif 
+
+#ifdef CONFIG_USER_WAKELOCK
+power_attr(wake_lock);
+power_attr(wake_unlock);
+#endif
 
 static struct attribute * g[] = {
 	&state_attr.attr,
@@ -210,6 +209,10 @@ static struct attribute * g[] = {
 #endif
 #if defined(CONFIG_PM_SLEEP) && defined(CONFIG_PM_DEBUG)
 	&pm_test_attr.attr,
+#endif
+#ifdef CONFIG_USER_WAKELOCK
+	&wake_lock_attr.attr,
+	&wake_unlock_attr.attr,
 #endif
 	NULL,
 };

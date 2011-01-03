@@ -1,23 +1,4 @@
-/*
- * linux/arch/arm/mach-at91/board-sam9261ek.c
- *
- *  Copyright (C) 2005 SAN People
- *  Copyright (C) 2006 Atmel
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -55,16 +36,16 @@
 
 static void __init ek_map_io(void)
 {
-	/* Initialize processor: 18.432 MHz crystal */
+	
 	at91sam9261_initialize(18432000);
 
-	/* Setup the LEDs */
+	
 	at91_init_leds(AT91_PIN_PA13, AT91_PIN_PA14);
 
-	/* DBGU on ttyS0. (Rx & Tx only) */
+	
 	at91_register_uart(0, 0, 0);
 
-	/* set serial console to ttyS0 (ie, DBGU) */
+	
 	at91_set_serial_console(0);
 }
 
@@ -74,9 +55,7 @@ static void __init ek_init_irq(void)
 }
 
 
-/*
- * DM9000 ethernet device
- */
+
 #if defined(CONFIG_DM9000)
 static struct resource dm9000_resource[] = {
 	[0] = {
@@ -110,10 +89,7 @@ static struct platform_device dm9000_device = {
 	}
 };
 
-/*
- * SMC timings for the DM9000.
- * Note: These timings were calculated for MASTER_CLOCK = 100000000 according to the DM9000 timings.
- */
+
 static struct sam9_smc_config __initdata dm9000_smc_config = {
 	.ncs_read_setup		= 0,
 	.nrd_setup		= 2,
@@ -134,53 +110,45 @@ static struct sam9_smc_config __initdata dm9000_smc_config = {
 
 static void __init ek_add_device_dm9000(void)
 {
-	/* Configure chip-select 2 (DM9000) */
+	
 	sam9_smc_configure(2, &dm9000_smc_config);
 
-	/* Configure Reset signal as output */
+	
 	at91_set_gpio_output(AT91_PIN_PC10, 0);
 
-	/* Configure Interrupt pin as input, no pull-up */
+	
 	at91_set_gpio_input(AT91_PIN_PC11, 0);
 
 	platform_device_register(&dm9000_device);
 }
 #else
 static void __init ek_add_device_dm9000(void) {}
-#endif /* CONFIG_DM9000 */
+#endif 
 
 
-/*
- * USB Host Port
- */
+
 static struct at91_usbh_data __initdata ek_usbh_data = {
 	.ports		= 2,
 };
 
 
-/*
- * USB Device Port
- */
+
 static struct at91_udc_data __initdata ek_udc_data = {
 	.vbus_pin	= AT91_PIN_PB29,
-	.pullup_pin	= 0,		/* pull-up driven by UDC */
+	.pullup_pin	= 0,		
 };
 
 
-/*
- * MCI (SD/MMC)
- */
+
 static struct at91_mmc_data __initdata ek_mmc_data = {
 	.wire4		= 1,
-//	.det_pin	= ... not connected
-//	.wp_pin		= ... not connected
-//	.vcc_pin	= ... not connected
+
+
+
 };
 
 
-/*
- * NAND flash
- */
+
 static struct mtd_partition __initdata ek_nand_partition[] = {
 	{
 		.name	= "Partition 1",
@@ -203,7 +171,7 @@ static struct mtd_partition * __init nand_partitions(int size, int *num_partitio
 static struct atmel_nand_data __initdata ek_nand_data = {
 	.ale		= 22,
 	.cle		= 21,
-//	.det_pin	= ... not connected
+
 	.rdy_pin	= AT91_PIN_PC15,
 	.enable_pin	= AT91_PIN_PC14,
 	.partition_info	= nand_partitions,
@@ -234,27 +202,25 @@ static struct sam9_smc_config __initdata ek_nand_smc_config = {
 
 static void __init ek_add_device_nand(void)
 {
-	/* setup bus-width (8 or 16) */
+	
 	if (ek_nand_data.bus_width_16)
 		ek_nand_smc_config.mode |= AT91_SMC_DBW_16;
 	else
 		ek_nand_smc_config.mode |= AT91_SMC_DBW_8;
 
-	/* configure chip-select 3 (NAND) */
+	
 	sam9_smc_configure(3, &ek_nand_smc_config);
 
 	at91_add_device_nand(&ek_nand_data);
 }
 
 
-/*
- * ADS7846 Touchscreen
- */
+
 #if defined(CONFIG_TOUCHSCREEN_ADS7846) || defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
 
 static int ads7843_pendown_state(void)
 {
-	return !at91_get_gpio_value(AT91_PIN_PC2);	/* Touchscreen PENIRQ */
+	return !at91_get_gpio_value(AT91_PIN_PC2);	
 }
 
 static struct ads7846_platform_data ads_info = {
@@ -275,16 +241,14 @@ static struct ads7846_platform_data ads_info = {
 
 static void __init ek_add_device_ts(void)
 {
-	at91_set_B_periph(AT91_PIN_PC2, 1);	/* External IRQ0, with pullup */
-	at91_set_gpio_input(AT91_PIN_PA11, 1);	/* Touchscreen BUSY signal */
+	at91_set_B_periph(AT91_PIN_PC2, 1);	
+	at91_set_gpio_input(AT91_PIN_PA11, 1);	
 }
 #else
 static void __init ek_add_device_ts(void) {}
 #endif
 
-/*
- * Audio
- */
+
 static struct at73c213_board_info at73c213_data = {
 	.ssc_id		= 1,
 #if defined(CONFIG_MACH_AT91SAM9261EK)
@@ -303,8 +267,8 @@ static void __init at73c213_set_clk(struct at73c213_board_info *info)
 	pck2 = clk_get(NULL, "pck2");
 	plla = clk_get(NULL, "plla");
 
-	/* AT73C213 MCK Clock */
-	at91_set_B_periph(AT91_PIN_PB31, 0);	/* PCK2 */
+	
+	at91_set_B_periph(AT91_PIN_PB31, 0);	
 
 	clk_set_parent(pck2, plla);
 	clk_put(plla);
@@ -315,11 +279,9 @@ static void __init at73c213_set_clk(struct at73c213_board_info *info)
 static void __init at73c213_set_clk(struct at73c213_board_info *info) {}
 #endif
 
-/*
- * SPI devices
- */
+
 static struct spi_board_info ek_spi_devices[] = {
-	{	/* DataFlash chip */
+	{	
 		.modalias	= "mtd_dataflash",
 		.chip_select	= 0,
 		.max_speed_hz	= 15 * 1000 * 1000,
@@ -329,42 +291,40 @@ static struct spi_board_info ek_spi_devices[] = {
 	{
 		.modalias	= "ads7846",
 		.chip_select	= 2,
-		.max_speed_hz	= 125000 * 26,	/* (max sample rate @ 3V) * (cmd + data + overhead) */
+		.max_speed_hz	= 125000 * 26,	
 		.bus_num	= 0,
 		.platform_data	= &ads_info,
 		.irq		= AT91SAM9261_ID_IRQ0,
-		.controller_data = (void *) AT91_PIN_PA28,	/* CS pin */
+		.controller_data = (void *) AT91_PIN_PA28,	
 	},
 #endif
 #if defined(CONFIG_MTD_AT91_DATAFLASH_CARD)
-	{	/* DataFlash card - jumper (J12) configurable to CS3 or CS0 */
+	{	
 		.modalias	= "mtd_dataflash",
 		.chip_select	= 3,
 		.max_speed_hz	= 15 * 1000 * 1000,
 		.bus_num	= 0,
 	},
 #elif defined(CONFIG_SND_AT73C213) || defined(CONFIG_SND_AT73C213_MODULE)
-	{	/* AT73C213 DAC */
+	{	
 		.modalias	= "at73c213",
 		.chip_select	= 3,
 		.max_speed_hz	= 10 * 1000 * 1000,
 		.bus_num	= 0,
 		.mode		= SPI_MODE_1,
 		.platform_data	= &at73c213_data,
-		.controller_data = (void*) AT91_PIN_PA29,	/* default for CS3 is PA6, but it must be PA29 */
+		.controller_data = (void*) AT91_PIN_PA29,	
 	},
 #endif
 };
 
 
-/*
- * LCD Controller
- */
+
 #if defined(CONFIG_FB_ATMEL) || defined(CONFIG_FB_ATMEL_MODULE)
 
 #if defined(CONFIG_FB_ATMEL_STN)
 
-/* STN */
+
 static struct fb_videomode at91_stn_modes[] = {
         {
 		.name           = "SP06Q002 @ 75",
@@ -401,11 +361,11 @@ static struct fb_monspecs at91fb_default_stn_monspecs = {
 
 static void at91_lcdc_stn_power_control(int on)
 {
-	/* backlight */
-	if (on) {	/* power up */
+	
+	if (on) {	
 		at91_set_gpio_value(AT91_PIN_PC14, 0);
 		at91_set_gpio_value(AT91_PIN_PC15, 0);
-	} else {	/* power down */
+	} else {	
 		at91_set_gpio_value(AT91_PIN_PC14, 1);
 		at91_set_gpio_value(AT91_PIN_PC15, 1);
 	}
@@ -425,7 +385,7 @@ static struct atmel_lcdfb_info __initdata ek_lcdc_data = {
 
 #else
 
-/* TFT */
+
 static struct fb_videomode at91_tft_vga_modes[] = {
 	{
 	        .name           = "TX09D50VM1CCA @ 60",
@@ -461,9 +421,9 @@ static struct fb_monspecs at91fb_default_tft_monspecs = {
 static void at91_lcdc_tft_power_control(int on)
 {
 	if (on)
-		at91_set_gpio_value(AT91_PIN_PA12, 0);	/* power up */
+		at91_set_gpio_value(AT91_PIN_PA12, 0);	
 	else
-		at91_set_gpio_value(AT91_PIN_PA12, 1);	/* power down */
+		at91_set_gpio_value(AT91_PIN_PA12, 1);	
 }
 
 static struct atmel_lcdfb_info __initdata ek_lcdc_data = {
@@ -485,9 +445,7 @@ static struct atmel_lcdfb_info __initdata ek_lcdc_data;
 #endif
 
 
-/*
- * GPIO Buttons
- */
+
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
 static struct gpio_keys_button ek_buttons[] = {
 	{
@@ -536,13 +494,13 @@ static struct platform_device ek_button_device = {
 
 static void __init ek_add_device_buttons(void)
 {
-	at91_set_gpio_input(AT91_PIN_PA27, 1);	/* btn0 */
+	at91_set_gpio_input(AT91_PIN_PA27, 1);	
 	at91_set_deglitch(AT91_PIN_PA27, 1);
-	at91_set_gpio_input(AT91_PIN_PA26, 1);	/* btn1 */
+	at91_set_gpio_input(AT91_PIN_PA26, 1);	
 	at91_set_deglitch(AT91_PIN_PA26, 1);
-	at91_set_gpio_input(AT91_PIN_PA25, 1);	/* btn2 */
+	at91_set_gpio_input(AT91_PIN_PA25, 1);	
 	at91_set_deglitch(AT91_PIN_PA25, 1);
-	at91_set_gpio_input(AT91_PIN_PA24, 1);	/* btn3 */
+	at91_set_gpio_input(AT91_PIN_PA24, 1);	
 	at91_set_deglitch(AT91_PIN_PA24, 1);
 
 	platform_device_register(&ek_button_device);
@@ -551,23 +509,21 @@ static void __init ek_add_device_buttons(void)
 static void __init ek_add_device_buttons(void) {}
 #endif
 
-/*
- * LEDs
- */
+
 static struct gpio_led ek_leds[] = {
-	{	/* "bottom" led, green, userled1 to be defined */
+	{	
 		.name			= "ds7",
 		.gpio			= AT91_PIN_PA14,
 		.active_low		= 1,
 		.default_trigger	= "none",
 	},
-	{	/* "top" led, green, userled2 to be defined */
+	{	
 		.name			= "ds8",
 		.gpio			= AT91_PIN_PA13,
 		.active_low		= 1,
 		.default_trigger	= "none",
 	},
-	{	/* "power" led, yellow */
+	{	
 		.name			= "ds1",
 		.gpio			= AT91_PIN_PA23,
 		.default_trigger	= "heartbeat",
@@ -576,37 +532,37 @@ static struct gpio_led ek_leds[] = {
 
 static void __init ek_board_init(void)
 {
-	/* Serial */
+	
 	at91_add_device_serial();
-	/* USB Host */
+	
 	at91_add_device_usbh(&ek_usbh_data);
-	/* USB Device */
+	
 	at91_add_device_udc(&ek_udc_data);
-	/* I2C */
+	
 	at91_add_device_i2c(NULL, 0);
-	/* NAND */
+	
 	ek_add_device_nand();
-	/* DM9000 ethernet */
+	
 	ek_add_device_dm9000();
 
-	/* spi0 and mmc/sd share the same PIO pins */
+	
 #if defined(CONFIG_SPI_ATMEL) || defined(CONFIG_SPI_ATMEL_MODULE)
-	/* SPI */
+	
 	at91_add_device_spi(ek_spi_devices, ARRAY_SIZE(ek_spi_devices));
-	/* Touchscreen */
+	
 	ek_add_device_ts();
-	/* SSC (to AT73C213) */
+	
 	at73c213_set_clk(&at73c213_data);
 	at91_add_device_ssc(AT91SAM9261_ID_SSC1, ATMEL_SSC_TX);
 #else
-	/* MMC */
+	
 	at91_add_device_mmc(0, &ek_mmc_data);
 #endif
-	/* LCD Controller */
+	
 	at91_add_device_lcdc(&ek_lcdc_data);
-	/* Push Buttons */
+	
 	ek_add_device_buttons();
-	/* LEDs */
+	
 	at91_gpio_leds(ek_leds, ARRAY_SIZE(ek_leds));
 }
 
@@ -615,7 +571,7 @@ MACHINE_START(AT91SAM9261EK, "Atmel AT91SAM9261-EK")
 #else
 MACHINE_START(AT91SAM9G10EK, "Atmel AT91SAM9G10-EK")
 #endif
-	/* Maintainer: Atmel */
+	
 	.phys_io	= AT91_BASE_SYS,
 	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
 	.boot_params	= AT91_SDRAM_BASE + 0x100,

@@ -1,19 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/nslu2-pci.c
- *
- * NSLU2 board-level PCI initialization
- *
- * based on ixdp425-pci.c:
- *	Copyright (C) 2002 Intel Corporation.
- *	Copyright (C) 2003-2004 MontaVista Software, Inc.
- *
- * Maintainer: http://www.nslu2-linux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/pci.h>
 #include <linux/init.h>
@@ -58,7 +43,7 @@ struct hw_pci __initdata nslu2_pci = {
 	.map_irq	= nslu2_map_irq,
 };
 
-int __init nslu2_pci_init(void) /* monkey see, monkey do */
+int __init nslu2_pci_init(void) 
 {
 	if (machine_is_nslu2())
 		pci_common_init(&nslu2_pci);

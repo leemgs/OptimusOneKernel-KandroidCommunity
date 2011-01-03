@@ -1,47 +1,25 @@
-/* DVB USB compliant Linux driver for the Afatech 9005
- * USB1.1 DVB-T receiver.
- *
- * Copyright (C) 2007 Luca Olivetti (luca@ventoso.org)
- *
- * Thanks to Afatech who kindly provided information.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * see Documentation/dvb/REDME.dvb-usb for more information
- */
+
 #include "af9005.h"
 
-/* debug */
+
 int dvb_usb_af9005_debug;
 module_param_named(debug, dvb_usb_af9005_debug, int, 0644);
 MODULE_PARM_DESC(debug,
 		 "set debugging level (1=info,xfer=2,rc=4,reg=8,i2c=16,fw=32 (or-able))."
 		 DVB_USB_DEBUG_STATUS);
-/* enable obnoxious led */
+
 int dvb_usb_af9005_led = 1;
 module_param_named(led, dvb_usb_af9005_led, bool, 0644);
 MODULE_PARM_DESC(led, "enable led (default: 1).");
 
-/* eeprom dump */
+
 static int dvb_usb_af9005_dump_eeprom;
 module_param_named(dump_eeprom, dvb_usb_af9005_dump_eeprom, int, 0);
 MODULE_PARM_DESC(dump_eeprom, "dump contents of the eeprom.");
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
-/* remote control decoder */
+
 static int (*rc_decode) (struct dvb_usb_device *d, u8 *data, int len,
 		u32 *event, int *state);
 static void *rc_keys;
@@ -77,7 +55,7 @@ static int af9005_usb_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen,
 	else
 		ret = actlen != wlen ? -1 : 0;
 
-	/* an answer is expected, and no error before */
+	
 	if (!ret && rbuf && rlen) {
 		if (delay_ms)
 			msleep(delay_ms);
@@ -117,15 +95,15 @@ static int af9005_generic_read_write(struct dvb_usb_device *d, u16 reg,
 		return -EINVAL;
 	}
 
-	obuf[0] = 14;		/* rest of buffer length low */
-	obuf[1] = 0;		/* rest of buffer length high */
+	obuf[0] = 14;		
+	obuf[1] = 0;		
 
-	obuf[2] = AF9005_REGISTER_RW;	/* register operation */
-	obuf[3] = 12;		/* rest of buffer length */
+	obuf[2] = AF9005_REGISTER_RW;	
+	obuf[3] = 12;		
 
-	obuf[4] = st->sequence++;	/* sequence number */
+	obuf[4] = st->sequence++;	
 
-	obuf[5] = (u8) (reg >> 8);	/* register address */
+	obuf[5] = (u8) (reg >> 8);	
 	obuf[6] = (u8) (reg & 0xff);
 
 	if (type == AF9005_OFDM_REG) {
@@ -142,7 +120,7 @@ static int af9005_generic_read_write(struct dvb_usb_device *d, u16 reg,
 		for (i = 0; i < len; i++)
 			obuf[8 + i] = values[i];
 	else if (type == AF9005_TUNER_REG)
-		/* read command for tuner, the first byte contains the i2c address */
+		
 		obuf[8] = values[0];
 	obuf[7] = command;
 
@@ -150,7 +128,7 @@ static int af9005_generic_read_write(struct dvb_usb_device *d, u16 reg,
 	if (ret)
 		return ret;
 
-	/* sanity check */
+	
 	if (ibuf[2] != AF9005_REGISTER_RW_ACK) {
 		err("generic read/write, wrong reply code.");
 		return -EIO;
@@ -163,19 +141,7 @@ static int af9005_generic_read_write(struct dvb_usb_device *d, u16 reg,
 		err("generic read/write, wrong sequence in reply.");
 		return -EIO;
 	}
-	/*
-	   Windows driver doesn't check these fields, in fact sometimes
-	   the register in the reply is different that what has been sent
-
-	   if (ibuf[5] != obuf[5] || ibuf[6] != obuf[6]) {
-	   err("generic read/write, wrong register in reply.");
-	   return -EIO;
-	   }
-	   if (ibuf[7] != command) {
-	   err("generic read/write wrong command in reply.");
-	   return -EIO;
-	   }
-	 */
+	
 	if (ibuf[16] != 0x01) {
 		err("generic read/write wrong status code in reply.");
 		return -EIO;
@@ -302,16 +268,14 @@ static int af9005_usb_write_tuner_registers(struct dvb_usb_device *d,
 int af9005_write_tuner_registers(struct dvb_usb_device *d, u16 reg,
 				 u8 * values, int len)
 {
-	/* don't let the name of this function mislead you: it's just used
-	   as an interface from the firmware to the i2c bus. The actual
-	   i2c addresses are contained in the data */
+	
 	int ret, i, done = 0, fail = 0;
 	u8 temp;
 	ret = af9005_usb_write_tuner_registers(d, reg, values, len);
 	if (ret)
 		return ret;
 	if (reg != 0xffff) {
-		/* check if write done (0xa40d bit 1) or fail (0xa40d bit 2) */
+		
 		for (i = 0; i < 200; i++) {
 			ret =
 			    af9005_read_ofdm_register(d,
@@ -332,7 +296,7 @@ int af9005_write_tuner_registers(struct dvb_usb_device *d, u16 reg,
 		if (i == 200)
 			return -ETIMEDOUT;
 		if (fail) {
-			/* clear write fail bit */
+			
 			af9005_write_register_bits(d,
 						   xd_I2C_i2c_m_status_wdat_fail,
 						   i2c_m_status_wdat_fail_pos,
@@ -340,7 +304,7 @@ int af9005_write_tuner_registers(struct dvb_usb_device *d, u16 reg,
 						   1);
 			return -EIO;
 		}
-		/* clear write done bit */
+		
 		ret =
 		    af9005_write_register_bits(d,
 					       xd_I2C_i2c_m_status_wdat_fail,
@@ -355,30 +319,28 @@ int af9005_write_tuner_registers(struct dvb_usb_device *d, u16 reg,
 int af9005_read_tuner_registers(struct dvb_usb_device *d, u16 reg, u8 addr,
 				u8 * values, int len)
 {
-	/* don't let the name of this function mislead you: it's just used
-	   as an interface from the firmware to the i2c bus. The actual
-	   i2c addresses are contained in the data */
+	
 	int ret, i;
 	u8 temp, buf[2];
 
-	buf[0] = addr;		/* tuner i2c address */
-	buf[1] = values[0];	/* tuner register */
+	buf[0] = addr;		
+	buf[1] = values[0];	
 
-	values[0] = addr + 0x01;	/* i2c read address */
+	values[0] = addr + 0x01;	
 
 	if (reg == APO_REG_I2C_RW_SILICON_TUNER) {
-		/* write tuner i2c address to tuner, 0c00c0 undocumented, found by sniffing */
+		
 		ret = af9005_write_tuner_registers(d, 0x00c0, buf, 2);
 		if (ret)
 			return ret;
 	}
 
-	/* send read command to ofsm */
+	
 	ret = af9005_usb_read_tuner_registers(d, reg, values, 1);
 	if (ret)
 		return ret;
 
-	/* check if read done */
+	
 	for (i = 0; i < 200; i++) {
 		ret = af9005_read_ofdm_register(d, 0xa408, &temp);
 		if (ret)
@@ -390,12 +352,12 @@ int af9005_read_tuner_registers(struct dvb_usb_device *d, u16 reg, u8 addr,
 	if (i == 200)
 		return -ETIMEDOUT;
 
-	/* clear read done bit (by writing 1) */
+	
 	ret = af9005_write_ofdm_register(d, xd_I2C_i2c_m_data8, 1);
 	if (ret)
 		return ret;
 
-	/* get read data (available from 0xa400) */
+	
 	for (i = 0; i < len; i++) {
 		ret = af9005_read_ofdm_register(d, 0xa400 + i, &temp);
 		if (ret)
@@ -457,8 +419,7 @@ static int af9005_i2c_read(struct dvb_usb_device *d, u8 i2caddr, u8 reg,
 static int af9005_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 			   int num)
 {
-	/* only implements what the mt2060 module does, don't know how
-	   to make it really generic */
+	
 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
 	int ret;
 	u8 reg, addr;
@@ -471,7 +432,7 @@ static int af9005_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		warn("more than 2 i2c messages at a time is not handled yet. TODO.");
 
 	if (num == 2) {
-		/* reads a single register */
+		
 		reg = *msg[0].buf;
 		addr = msg[0].addr;
 		value = msg[1].buf;
@@ -479,7 +440,7 @@ static int af9005_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		if (ret == 0)
 			ret = 2;
 	} else {
-		/* write one or more registers */
+		
 		reg = msg[0].buf[0];
 		addr = msg[0].addr;
 		value = &msg[0].buf[1];
@@ -527,7 +488,7 @@ int af9005_send_command(struct dvb_usb_device *d, u8 command, u8 * wbuf,
 	buf[0] = (u8) (packet_len & 0xff);
 	buf[1] = (u8) ((packet_len & 0xff00) >> 8);
 
-	buf[2] = 0x26;		/* packet type */
+	buf[2] = 0x26;		
 	buf[3] = wlen + 3;
 	buf[4] = st->sequence++;
 	buf[5] = command;
@@ -568,16 +529,16 @@ int af9005_read_eeprom(struct dvb_usb_device *d, u8 address, u8 * values,
 	memset(obuf, 0, sizeof(obuf));
 	memset(ibuf, 0, sizeof(ibuf));
 
-	obuf[0] = 14;		/* length of rest of packet low */
-	obuf[1] = 0;		/* length of rest of packer high */
+	obuf[0] = 14;		
+	obuf[1] = 0;		
 
-	obuf[2] = 0x2a;		/* read/write eeprom */
+	obuf[2] = 0x2a;		
 
-	obuf[3] = 12;		/* size */
+	obuf[3] = 12;		
 
 	obuf[4] = st->sequence++;
 
-	obuf[5] = 0;		/* read */
+	obuf[5] = 0;		
 
 	obuf[6] = len;
 	obuf[7] = address;
@@ -618,7 +579,7 @@ static int af9005_boot_packet(struct usb_device *udev, int type, u8 * reply)
 	case FW_CONFIG:
 		buf[2] = 0x11;
 		buf[3] = 0x04;
-		buf[4] = 0x00;	/* sequence number, original driver doesn't increment it here */
+		buf[4] = 0x00;	
 		buf[5] = 0x03;
 		checksum = buf[4] + buf[5];
 		buf[6] = (u8) ((checksum >> 8) & 0xff);
@@ -627,7 +588,7 @@ static int af9005_boot_packet(struct usb_device *udev, int type, u8 * reply)
 	case FW_CONFIRM:
 		buf[2] = 0x11;
 		buf[3] = 0x04;
-		buf[4] = 0x00;	/* sequence number, original driver doesn't increment it here */
+		buf[4] = 0x00;	
 		buf[5] = 0x01;
 		checksum = buf[4] + buf[5];
 		buf[6] = (u8) ((checksum >> 8) & 0xff);
@@ -636,7 +597,7 @@ static int af9005_boot_packet(struct usb_device *udev, int type, u8 * reply)
 	case FW_BOOT:
 		buf[2] = 0x10;
 		buf[3] = 0x08;
-		buf[4] = 0x00;	/* sequence number, original driver doesn't increment it here */
+		buf[4] = 0x00;	
 		buf[5] = 0x97;
 		buf[6] = 0xaa;
 		buf[7] = 0x55;
@@ -844,10 +805,7 @@ static int af9005_frontend_attach(struct dvb_usb_adapter *adap)
 	u8 buf[8];
 	int i;
 
-	/* without these calls the first commands after downloading
-	   the firmware fail. I put these calls here to simulate
-	   what it is done in dvb-usb-init.c.
-	 */
+	
 	struct usb_device *udev = adap->dev->udev;
 	usb_clear_halt(udev, usb_sndbulkpipe(udev, 2));
 	usb_clear_halt(udev, usb_rcvbulkpipe(udev, 1));
@@ -873,15 +831,15 @@ static int af9005_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
 
 	*state = REMOTE_NO_KEY_PRESSED;
 	if (rc_decode == NULL) {
-		/* it shouldn't never come here */
+		
 		return 0;
 	}
-	/* deb_info("rc_query\n"); */
-	obuf[0] = 3;		/* rest of packet length low */
-	obuf[1] = 0;		/* rest of packet lentgh high */
-	obuf[2] = 0x40;		/* read remote */
-	obuf[3] = 1;		/* rest of packet length */
-	obuf[4] = st->sequence++;	/* sequence number */
+	
+	obuf[0] = 3;		
+	obuf[1] = 0;		
+	obuf[2] = 0x40;		
+	obuf[3] = 1;		
+	obuf[4] = st->sequence++;	
 	ret = af9005_usb_generic_rw(d, obuf, 5, ibuf, 256, 0);
 	if (ret) {
 		err("rc query failed");
@@ -955,8 +913,7 @@ static int af9005_pid_filter(struct dvb_usb_adapter *adap, int index,
 	deb_info("set pid filter, index %d, pid %x, onoff %d\n", index,
 		 pid, onoff);
 	if (onoff) {
-		/* cannot use it as pid_filter_ctrl since it has to be done
-		   before setting the first pid */
+		
 		if (adap->feedcount == 1) {
 			deb_info("first pid set, enable pid table\n");
 			ret = af9005_pid_filter_control(adap, onoff);
@@ -1048,17 +1005,17 @@ static struct dvb_usb_device_properties af9005_properties = {
 		     DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
 		     .pid_filter_count = 32,
 		     .pid_filter = af9005_pid_filter,
-		     /* .pid_filter_ctrl = af9005_pid_filter_control, */
+		     
 		     .frontend_attach = af9005_frontend_attach,
-		     /* .tuner_attach     = af9005_tuner_attach, */
-		     /* parameter for the MPEG2-data transfer */
+		     
+		     
 		     .stream = {
 				.type = USB_BULK,
 				.count = 10,
 				.endpoint = 0x04,
 				.u = {
 				      .bulk = {
-					       .buffersize = 4096,	/* actual size seen is 3948 */
+					       .buffersize = 4096,	
 					       }
 				      }
 				},
@@ -1092,7 +1049,7 @@ static struct dvb_usb_device_properties af9005_properties = {
 		    }
 };
 
-/* usb specific object needed to register this driver with the usb subsystem */
+
 static struct usb_driver af9005_usb_driver = {
 	.name = "dvb_usb_af9005",
 	.probe = af9005_usb_probe,
@@ -1100,7 +1057,7 @@ static struct usb_driver af9005_usb_driver = {
 	.id_table = af9005_usb_table,
 };
 
-/* module stuff */
+
 static int __init af9005_usb_module_init(void)
 {
 	int result;
@@ -1124,14 +1081,14 @@ static int __init af9005_usb_module_init(void)
 
 static void __exit af9005_usb_module_exit(void)
 {
-	/* release rc decode symbols */
+	
 	if (rc_decode != NULL)
 		symbol_put(af9005_rc_decode);
 	if (rc_keys != NULL)
 		symbol_put(af9005_rc_keys);
 	if (rc_keys_size != NULL)
 		symbol_put(af9005_rc_keys_size);
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&af9005_usb_driver);
 }
 

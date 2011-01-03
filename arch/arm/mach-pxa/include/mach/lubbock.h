@@ -1,14 +1,4 @@
-/*
- *  arch/arm/mach-pxa/include/mach/lubbock.h
- *
- *  Author:	Nicolas Pitre
- *  Created:	Jun 15, 2001
- *  Copyright:	MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #define LUBBOCK_ETH_PHYS	PXA_CS3_PHYS
 
@@ -23,7 +13,7 @@
 #  define __LUB_REG(x)		LUB_P2V(x)
 #endif
 
-/* FPGA register virtual addresses */
+
 #define LUB_WHOAMI		__LUB_REG(LUBBOCK_FPGA_PHYS + 0x000)
 #define LUB_DISC_BLNK_LED	__LUB_REG(LUBBOCK_FPGA_PHYS + 0x040)
 #define LUB_CONF_SWITCHES	__LUB_REG(LUBBOCK_FPGA_PHYS + 0x050)

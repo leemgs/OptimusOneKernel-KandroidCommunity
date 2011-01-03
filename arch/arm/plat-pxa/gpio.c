@@ -1,16 +1,4 @@
-/*
- *  linux/arch/arm/plat-pxa/gpio.c
- *
- *  Generic PXA GPIO handling
- *
- *  Author:	Nicolas Pitre
- *  Created:	Jun 15, 2001
- *  Copyright:	MontaVista Software Inc.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/irq.h>
@@ -132,7 +120,7 @@ static int __init pxa_init_gpio_chip(int gpio_end)
 		c->get = pxa_gpio_get;
 		c->set = pxa_gpio_set;
 
-		/* number of GPIOs on last bank may be less than 32 */
+		
 		c->ngpio = (gpio + 31 > gpio_end) ? (gpio_end - gpio + 1) : 32;
 		gpiochip_add(c);
 	}
@@ -140,9 +128,7 @@ static int __init pxa_init_gpio_chip(int gpio_end)
 	return 0;
 }
 
-/* Update only those GRERx and GFERx edge detection register bits if those
- * bits are set in c->irq_mask
- */
+
 static inline void update_edge_detect(struct pxa_gpio_chip *c)
 {
 	uint32_t grer, gfer;
@@ -164,9 +150,7 @@ static int pxa_gpio_irq_type(unsigned int irq, unsigned int type)
 	c = gpio_to_chip(gpio);
 
 	if (type == IRQ_TYPE_PROBE) {
-		/* Don't mess with enabled GPIOs using preconfigured edges or
-		 * GPIOs set to alternate function or to output during probe
-		 */
+		
 		if ((c->irq_edge_rise | c->irq_edge_fall) & GPIO_bit(gpio))
 			return 0;
 
@@ -273,10 +257,10 @@ void __init pxa_init_gpio(int mux_irq, int start, int end, set_wake_t fn)
 
 	pxa_last_gpio = end;
 
-	/* Initialize GPIO chips */
+	
 	pxa_init_gpio_chip(end);
 
-	/* clear all GPIO edge detects */
+	
 	for_each_gpio_chip(gpio, c) {
 		__raw_writel(0, c->regbase + GFER_OFFSET);
 		__raw_writel(0, c->regbase + GRER_OFFSET);
@@ -289,7 +273,7 @@ void __init pxa_init_gpio(int mux_irq, int start, int end, set_wake_t fn)
 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
 	}
 
-	/* Install handler for GPIO>=2 edge detect interrupts */
+	
 	set_irq_chained_handler(mux_irq, pxa_gpio_demux_handler);
 	pxa_muxed_gpio_chip.set_wake = fn;
 }
@@ -306,7 +290,7 @@ static int pxa_gpio_suspend(struct sys_device *dev, pm_message_t state)
 		c->saved_grer = __raw_readl(c->regbase + GRER_OFFSET);
 		c->saved_gfer = __raw_readl(c->regbase + GFER_OFFSET);
 
-		/* Clear GPIO transition detect bits */
+		
 		__raw_writel(0xffffffff, c->regbase + GEDR_OFFSET);
 	}
 	return 0;
@@ -318,7 +302,7 @@ static int pxa_gpio_resume(struct sys_device *dev)
 	int gpio;
 
 	for_each_gpio_chip(gpio, c) {
-		/* restore level with set/clear */
+		
 		__raw_writel( c->saved_gplr, c->regbase + GPSR_OFFSET);
 		__raw_writel(~c->saved_gplr, c->regbase + GPCR_OFFSET);
 

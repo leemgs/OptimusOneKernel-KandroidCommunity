@@ -1,21 +1,4 @@
-/*
- *	IPv6 over IPv4 tunnel device - Simple Internet Transition (SIT)
- *	Linux INET6 implementation
- *
- *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>
- *	Alexey Kuznetsov	<kuznet@ms2.inr.ac.ru>
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- *
- *	Changes:
- * Roger Venning <r.venning@telstra.com>:	6to4 support
- * Nate Thompson <nate@thebog.net>:		6to4 support
- * Fred Templin <fred.l.templin@boeing.com>:	isatap support
- */
+
 
 #include <linux/module.h>
 #include <linux/capability.h>
@@ -53,11 +36,7 @@
 #include <net/net_namespace.h>
 #include <net/netns/generic.h>
 
-/*
-   This version of net/ipv6/sit.c is cloned of net/ipv4/ip_gre.c
 
-   For comments look at net/ipv4/ip_gre.c --ANK
- */
 
 #define HASH_SIZE  16
 #define HASH(addr) (((__force u32)addr^((__force u32)addr>>4))&0xF)
@@ -248,9 +227,7 @@ static int ipip6_tunnel_get_prl(struct ip_tunnel *t,
 	if (cmax > 1 && kprl.addr != htonl(INADDR_ANY))
 		cmax = 1;
 
-	/* For simple GET or for root users,
-	 * we try harder to allocate.
-	 */
+	
 	kp = (cmax <= 1 || capable(CAP_NET_ADMIN)) ?
 		kcalloc(cmax, sizeof(*kp), GFP_KERNEL) :
 		NULL;
@@ -260,11 +237,7 @@ static int ipip6_tunnel_get_prl(struct ip_tunnel *t,
 	ca = t->prl_count < cmax ? t->prl_count : cmax;
 
 	if (!kp) {
-		/* We don't try hard to allocate much memory for
-		 * non-root users.
-		 * For root users, retry allocating enough memory for
-		 * the answer.
-		 */
+		
 		kp = kcalloc(ca, sizeof(*kp), GFP_ATOMIC);
 		if (!kp) {
 			ret = -ENOMEM;
@@ -418,10 +391,7 @@ static void ipip6_tunnel_uninit(struct net_device *dev)
 static int ipip6_err(struct sk_buff *skb, u32 info)
 {
 
-/* All the routers (except for Linux) return only
-   8 bytes of packet payload. It means, that precise relaying of
-   ICMP in the real Internet is absolutely infeasible.
- */
+
 	struct iphdr *iph = (struct iphdr*)skb->data;
 	const int type = icmp_hdr(skb)->type;
 	const int code = icmp_hdr(skb)->code;
@@ -437,16 +407,13 @@ static int ipip6_err(struct sk_buff *skb, u32 info)
 		switch (code) {
 		case ICMP_SR_FAILED:
 		case ICMP_PORT_UNREACH:
-			/* Impossible event. */
+			
 			return 0;
 		case ICMP_FRAG_NEEDED:
-			/* Soft state for pmtu is maintained by IP core. */
+			
 			return 0;
 		default:
-			/* All others are translated to HOST_UNREACH.
-			   rfc2003 contains "deep thoughts" about NET_UNREACH,
-			   I believe they are just ether pollution. --ANK
-			 */
+			
 			break;
 		}
 		break;
@@ -532,24 +499,20 @@ out:
 	return 0;
 }
 
-/* Returns the embedded IPv4 address if the IPv6 address
-   comes from 6to4 (RFC 3056) addr space */
+
 
 static inline __be32 try_6to4(struct in6_addr *v6dst)
 {
 	__be32 dst = 0;
 
 	if (v6dst->s6_addr16[0] == htons(0x2002)) {
-		/* 6to4 v6 addr has 16 bits prefix, 32 v4addr, 16 SLA, ... */
+		
 		memcpy(&dst, &v6dst->s6_addr16[1], 4);
 	}
 	return dst;
 }
 
-/*
- *	This function assumes it is being called from dev_queue_xmit()
- *	and that skb is filled properly by that function.
- */
+
 
 static netdev_tx_t ipip6_tunnel_xmit(struct sk_buff *skb,
 				     struct net_device *dev)
@@ -559,10 +522,10 @@ static netdev_tx_t ipip6_tunnel_xmit(struct sk_buff *skb,
 	struct iphdr  *tiph = &tunnel->parms.iph;
 	struct ipv6hdr *iph6 = ipv6_hdr(skb);
 	u8     tos = tunnel->parms.iph.tos;
-	struct rtable *rt;     			/* Route to the other host */
-	struct net_device *tdev;			/* Device to other host */
-	struct iphdr  *iph;			/* Our new IP header */
-	unsigned int max_headroom;		/* The extra header space needed */
+	struct rtable *rt;     			
+	struct net_device *tdev;			
+	struct iphdr  *iph;			
+	unsigned int max_headroom;		
 	__be32 dst = tiph->daddr;
 	int    mtu;
 	struct in6_addr *addr6;
@@ -571,7 +534,7 @@ static netdev_tx_t ipip6_tunnel_xmit(struct sk_buff *skb,
 	if (skb->protocol != htons(ETH_P_IPV6))
 		goto tx_error;
 
-	/* ISATAP (RFC4214) - must come before 6to4 */
+	
 	if (dev->priv_flags & IFF_ISATAP) {
 		struct neighbour *neigh = NULL;
 
@@ -678,9 +641,7 @@ static netdev_tx_t ipip6_tunnel_xmit(struct sk_buff *skb,
 			tunnel->err_count = 0;
 	}
 
-	/*
-	 * Okay, now see if we can stuff it in the buffer as-is.
-	 */
+	
 	max_headroom = LL_RESERVED_SPACE(tdev)+sizeof(struct iphdr);
 
 	if (skb_headroom(skb) < max_headroom || skb_shared(skb) ||
@@ -707,9 +668,7 @@ static netdev_tx_t ipip6_tunnel_xmit(struct sk_buff *skb,
 	skb_dst_drop(skb);
 	skb_dst_set(skb, &rt->u.dst);
 
-	/*
-	 *	Push down and install the IPIP header.
-	 */
+	
 
 	iph 			=	ip_hdr(skb);
 	iph->version		=	4;
@@ -1049,7 +1008,7 @@ err_reg_dev:
 	dev_put(sitn->fb_tunnel_dev);
 	free_netdev(sitn->fb_tunnel_dev);
 err_alloc_dev:
-	/* nothing */
+	
 err_assign:
 	kfree(sitn);
 err_alloc:

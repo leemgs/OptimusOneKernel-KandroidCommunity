@@ -1,27 +1,4 @@
-/*
- * WiMedia Logical Link Control Protocol (WLP)
- * Message construction and parsing
- *
- * Copyright (C) 2007 Intel Corporation
- * Reinette Chatre <reinette.chatre@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * FIXME: docs
- */
+
 
 #include <linux/wlp.h>
 
@@ -87,20 +64,7 @@ static inline void wlp_set_attr_hdr(struct wlp_attr_hdr *hdr, unsigned type,
 	hdr->length = cpu_to_le16(len);
 }
 
-/*
- * Populate fields of a constant sized attribute
- *
- * @returns: total size of attribute including size of new value
- *
- * We have two instances of this function (wlp_pset and wlp_set): one takes
- * the value as a parameter, the other takes a pointer to the value as
- * parameter. They thus only differ in how the value is assigned to the
- * attribute.
- *
- * We use sizeof(*attr) - sizeof(struct wlp_attr_hdr) instead of
- * sizeof(type) to be able to use this same code for the structures that
- * contain 8bit enum values and be able to deal with pointer types.
- */
+
 #define wlp_set(type, type_code, name)					\
 static size_t wlp_set_##name(struct wlp_attr_##name *attr, type value)	\
 {									\
@@ -119,15 +83,7 @@ static size_t wlp_set_##name(struct wlp_attr_##name *attr, type value)	\
 	return sizeof(*attr);						\
 }
 
-/**
- * Populate fields of a variable attribute
- *
- * @returns: total size of attribute including size of new value
- *
- * Provided with a pointer to the memory area reserved for the
- * attribute structure, the field is populated with the value. The
- * reserved memory has to contain enough space for the value.
- */
+
 #define wlp_vset(type, type_code, name)					\
 static size_t wlp_set_##name(struct wlp_attr_##name *attr, type value,	\
 				size_t len)				\
@@ -148,7 +104,7 @@ wlp_pset(struct wlp_uuid *, WLP_ATTR_UUID_E, uuid_e)
 wlp_pset(struct wlp_uuid *, WLP_ATTR_UUID_R, uuid_r)
 wlp_pset(struct wlp_uuid *, WLP_ATTR_WSSID, wssid)
 wlp_pset(struct wlp_dev_type *, WLP_ATTR_PRI_DEV_TYPE, prim_dev_type)
-/*wlp_pset(struct wlp_dev_type *, WLP_ATTR_SEC_DEV_TYPE, sec_dev_type)*/
+
 wlp_set(u8, WLP_ATTR_WLP_VER, version)
 wlp_set(enum wlp_assc_error, WLP_ATTR_WLP_ASSC_ERR, wlp_assc_err)
 wlp_set(enum wlp_wss_sel_mthd, WLP_ATTR_WSS_SEL_MTHD, wss_sel_mthd)
@@ -160,12 +116,7 @@ wlp_pset(struct wlp_nonce *, WLP_ATTR_REG_NONCE, rnonce)
 wlp_set(u8, WLP_ATTR_WSS_TAG, wss_tag)
 wlp_pset(struct uwb_mac_addr *, WLP_ATTR_WSS_VIRT, wss_virt)
 
-/**
- * Fill in the WSS information attributes
- *
- * We currently only support one WSS, and this is assumed in this function
- * that can populate only one WSS information attribute.
- */
+
 static size_t wlp_set_wss_info(struct wlp_attr_wss_info *attr,
 			       struct wlp_wss *wss)
 {
@@ -183,17 +134,7 @@ static size_t wlp_set_wss_info(struct wlp_attr_wss_info *attr,
 	return sizeof(*attr) + used;
 }
 
-/**
- * Verify attribute header
- *
- * @hdr:     Pointer to attribute header that will be verified.
- * @type:    Expected attribute type.
- * @len:     Expected length of attribute value (excluding header).
- *
- * Most attribute values have a known length even when they do have a
- * length field. This knowledge can be used via this function to verify
- * that the length field matches the expected value.
- */
+
 static int wlp_check_attr_hdr(struct wlp *wlp, struct wlp_attr_hdr *hdr,
 		       enum wlp_attr_type type, unsigned len)
 {
@@ -212,21 +153,7 @@ static int wlp_check_attr_hdr(struct wlp *wlp, struct wlp_attr_hdr *hdr,
 	return 0;
 }
 
-/**
- * Check if header of WSS information attribute valid
- *
- * @returns: length of WSS attributes (value of length attribute field) if
- *             valid WSS information attribute found
- *           -ENODATA if no WSS information attribute found
- *           -EIO other error occured
- *
- * The WSS information attribute is optional. The function will be provided
- * with a pointer to data that could _potentially_ be a WSS information
- * attribute. If a valid WSS information attribute is found it will return
- * 0, if no WSS information attribute is found it will return -ENODATA, and
- * another error will be returned if it is a WSS information attribute, but
- * some parsing failure occured.
- */
+
 static int wlp_check_wss_info_attr_hdr(struct wlp *wlp,
 				       struct wlp_attr_hdr *hdr, size_t buflen)
 {
@@ -241,7 +168,7 @@ static int wlp_check_wss_info_attr_hdr(struct wlp *wlp,
 		goto out;
 	}
 	if (le16_to_cpu(hdr->type) != WLP_ATTR_WSS_INFO) {
-		/* WSS information is optional */
+		
 		result = -ENODATA;
 		goto out;
 	}
@@ -259,17 +186,7 @@ out:
 }
 
 
-/**
- * Get value of attribute from fixed size attribute field.
- *
- * @attr:    Pointer to attribute field.
- * @value:   Pointer to variable in which attribute value will be placed.
- * @buflen:  Size of buffer in which attribute field (including header)
- *           can be found.
- * @returns: Amount of given buffer consumed by parsing for this attribute.
- *
- * The size and type of the value is known by the type of the attribute.
- */
+
 #define wlp_get(type, type_code, name)					\
 ssize_t wlp_get_##name(struct wlp *wlp, struct wlp_attr_##name *attr,	\
 		      type *value, ssize_t buflen)			\
@@ -295,19 +212,7 @@ ssize_t wlp_get_##name(struct wlp *wlp, struct wlp_attr_##name *attr,	\
 #define wlp_get_sparse(type, type_code, name) \
 	static wlp_get(type, type_code, name)
 
-/**
- * Get value of attribute from variable sized attribute field.
- *
- * @max:     The maximum size of this attribute. This value is dictated by
- *           the maximum value from the WLP specification.
- *
- * @attr:    Pointer to attribute field.
- * @value:   Pointer to variable that will contain the value. The memory
- *           must already have been allocated for this value.
- * @buflen:  Size of buffer in which attribute field (including header)
- *           can be found.
- * @returns: Amount of given bufferconsumed by parsing for this attribute.
- */
+
 #define wlp_vget(type_val, type_code, name, max)			\
 static ssize_t wlp_get_##name(struct wlp *wlp,				\
 			      struct wlp_attr_##name *attr,		\
@@ -359,14 +264,7 @@ wlp_get_sparse(struct uwb_mac_addr, WLP_ATTR_WSS_VIRT, wss_virt)
 wlp_get_sparse(struct wlp_nonce, WLP_ATTR_ENRL_NONCE, enonce)
 wlp_get_sparse(struct wlp_nonce, WLP_ATTR_REG_NONCE, rnonce)
 
-/* The buffers for the device info attributes can be found in the
- * wlp_device_info struct. These buffers contain one byte more than the
- * max allowed by the spec - this is done to be able to add the
- * terminating \0 for user display. This terminating byte is not required
- * in the actual attribute field (because it has a length field) so the
- * maximum allowed for this value is one less than its size in the
- * structure.
- */
+
 wlp_vget(char, WLP_ATTR_WSS_NAME, wss_name,
 	 FIELD_SIZEOF(struct wlp_wss, name) - 1)
 wlp_vget(char, WLP_ATTR_DEV_NAME, dev_name,
@@ -380,17 +278,7 @@ wlp_vget(char, WLP_ATTR_MODEL_NR, model_nr,
 wlp_vget(char, WLP_ATTR_SERIAL, serial,
 	 FIELD_SIZEOF(struct wlp_device_info, serial) - 1)
 
-/**
- * Retrieve WSS Name, Accept enroll, Secure status, Broadcast from WSS info
- *
- * @attr: pointer to WSS name attribute in WSS information attribute field
- * @info: structure that will be populated with data from WSS information
- *        field (WSS name, Accept enroll, secure status, broadcast address)
- * @buflen: size of buffer
- *
- * Although the WSSID attribute forms part of the WSS info attribute it is
- * retrieved separately and stored in a different location.
- */
+
 static ssize_t wlp_get_wss_info_attrs(struct wlp *wlp,
 				      struct wlp_attr_hdr *attr,
 				      struct wlp_wss_tmp_info *info,
@@ -452,17 +340,7 @@ error_parse:
 	return result;
 }
 
-/**
- * Create a new WSSID entry for the neighbor, allocate temporary storage
- *
- * Each neighbor can have many WSS active. We maintain a list of WSSIDs
- * advertised by neighbor. During discovery we also cache information about
- * these WSS in temporary storage.
- *
- * The temporary storage will be removed after it has been used (eg.
- * displayed to user), the wssid element will be removed from the list when
- * the neighbor is rediscovered or when it disappears.
- */
+
 static struct wlp_wssid_e *wlp_create_wssid_e(struct wlp *wlp,
 					      struct wlp_neighbor_e *neighbor)
 {
@@ -488,17 +366,7 @@ error_alloc:
 	return wssid_e;
 }
 
-/**
- * Parse WSS information attribute
- *
- * @attr: pointer to WSS information attribute header
- * @buflen: size of buffer in which WSS information attribute appears
- * @wssid: will place wssid from WSS info attribute in this location
- * @wss_info: will place other information from WSS information attribute
- * in this location
- *
- * memory for @wssid and @wss_info must be allocated when calling this
- */
+
 static ssize_t wlp_get_wss_info(struct wlp *wlp, struct wlp_attr_wss_info *attr,
 				size_t buflen, struct wlp_uuid *wssid,
 				struct wlp_wss_tmp_info *wss_info)
@@ -543,30 +411,7 @@ out:
 	return result;
 }
 
-/**
- * Retrieve WSS info from association frame
- *
- * @attr:     pointer to WSS information attribute
- * @neighbor: ptr to neighbor being discovered, NULL if enrollment in
- *            progress
- * @wss:      ptr to WSS being enrolled in, NULL if discovery in progress
- * @buflen:   size of buffer in which WSS information appears
- *
- * The WSS information attribute appears in the D2 association message.
- * This message is used in two ways: to discover all neighbors or to enroll
- * into a WSS activated by a neighbor. During discovery we only want to
- * store the WSS info in a cache, to be deleted right after it has been
- * used (eg. displayed to the user). During enrollment we store the WSS
- * information for the lifetime of enrollment.
- *
- * During discovery we are interested in all WSS information, during
- * enrollment we are only interested in the WSS being enrolled in. Even so,
- * when in enrollment we keep parsing the message after finding the WSS of
- * interest, this simplifies the calling routine in that it can be sure
- * that all WSS information attributes have been parsed out of the message.
- *
- * Association frame is process with nbmutex held. The list access is safe.
- */
+
 static ssize_t wlp_get_all_wss_info(struct wlp *wlp,
 				    struct wlp_attr_wss_info *attr,
 				    struct wlp_neighbor_e *neighbor,
@@ -578,7 +423,7 @@ static ssize_t wlp_get_all_wss_info(struct wlp *wlp,
 	struct wlp_attr_wss_info *cur;
 	struct wlp_uuid wssid;
 	struct wlp_wss_tmp_info wss_info;
-	unsigned enroll; /* 0 - discovery to cache, 1 - enrollment */
+	unsigned enroll; 
 	struct wlp_wssid_e *wssid_e;
 	char buf[WLP_WSS_UUID_STRSIZE];
 
@@ -586,9 +431,9 @@ static ssize_t wlp_get_all_wss_info(struct wlp *wlp,
 		goto out;
 
 	if (neighbor != NULL && wss == NULL)
-		enroll = 0; /* discovery */
+		enroll = 0; 
 	else if (wss != NULL && neighbor == NULL)
-		enroll = 1; /* enrollment */
+		enroll = 1; 
 	else
 		goto out;
 
@@ -638,20 +483,14 @@ static ssize_t wlp_get_all_wss_info(struct wlp *wlp,
 	}
 	result = used;
 error_parse:
-	if (result < 0 && !enroll) /* this was a discovery */
+	if (result < 0 && !enroll) 
 		wlp_remove_neighbor_tmp_info(neighbor);
 out:
 	return result;
 
 }
 
-/**
- * Parse WSS information attributes into cache for discovery
- *
- * @attr: the first WSS information attribute in message
- * @neighbor: the neighbor whose cache will be populated
- * @buflen: size of the input buffer
- */
+
 static ssize_t wlp_get_wss_info_to_cache(struct wlp *wlp,
 					 struct wlp_attr_wss_info *attr,
 					 struct wlp_neighbor_e *neighbor,
@@ -660,13 +499,7 @@ static ssize_t wlp_get_wss_info_to_cache(struct wlp *wlp,
 	return wlp_get_all_wss_info(wlp, attr, neighbor, NULL, buflen);
 }
 
-/**
- * Parse WSS information attributes into WSS struct for enrollment
- *
- * @attr: the first WSS information attribute in message
- * @wss: the WSS that will be enrolled
- * @buflen: size of the input buffer
- */
+
 static ssize_t wlp_get_wss_info_to_enroll(struct wlp *wlp,
 					  struct wlp_attr_wss_info *attr,
 					  struct wlp_wss *wss, ssize_t buflen)
@@ -674,16 +507,7 @@ static ssize_t wlp_get_wss_info_to_enroll(struct wlp *wlp,
 	return wlp_get_all_wss_info(wlp, attr, NULL, wss, buflen);
 }
 
-/**
- * Construct a D1 association frame
- *
- * We use the radio control functions to determine the values of the device
- * properties. These are of variable length and the total space needed is
- * tallied first before we start constructing the message. The radio
- * control functions return strings that are terminated with \0. This
- * character should not be included in the message (there is a length field
- * accompanying it in the attribute).
- */
+
 static int wlp_build_assoc_d1(struct wlp *wlp, struct wlp_wss *wss,
 			      struct sk_buff **skb)
 {
@@ -754,16 +578,7 @@ error:
 	return result;
 }
 
-/**
- * Construct a D2 association frame
- *
- * We use the radio control functions to determine the values of the device
- * properties. These are of variable length and the total space needed is
- * tallied first before we start constructing the message. The radio
- * control functions return strings that are terminated with \0. This
- * character should not be included in the message (there is a length field
- * accompanying it in the attribute).
- */
+
 static
 int wlp_build_assoc_d2(struct wlp *wlp, struct wlp_wss *wss,
 		       struct sk_buff **skb, struct wlp_uuid *uuid_e)
@@ -843,13 +658,7 @@ error:
 	return result;
 }
 
-/**
- * Allocate memory for and populate fields of F0 association frame
- *
- * Currently (while focusing on unsecure enrollment) we ignore the
- * nonce's that could be placed in the message. Only the error field is
- * populated by the value provided by the caller.
- */
+
 static
 int wlp_build_assoc_f0(struct wlp *wlp, struct sk_buff **skb,
 		       enum wlp_assc_error error)
@@ -888,13 +697,7 @@ error_alloc:
 	return result;
 }
 
-/**
- * Parse F0 frame
- *
- * We just retrieve the values and print it as an error to the user.
- * Calling function already knows an error occured (F0 indicates error), so
- * we just parse the content as debug for higher layers.
- */
+
 int wlp_parse_f0(struct wlp *wlp, struct sk_buff *skb)
 {
 	struct device *dev = &wlp->rc->uwb_dev.dev;
@@ -939,19 +742,7 @@ error_parse:
 	return result;
 }
 
-/**
- * Retrieve variable device information from association message
- *
- * The device information parsed is not required in any message. This
- * routine will thus not fail if an attribute is not present.
- * The attributes are expected in a certain order, even if all are not
- * present. The "attribute type" value is used to ensure the attributes
- * are parsed in the correct order.
- *
- * If an error is encountered during parsing the function will return an
- * error code, when this happens the given device_info structure may be
- * partially filled.
- */
+
 static
 int wlp_get_variable_info(struct wlp *wlp, void *data,
 			  struct wlp_device_info *dev_info, ssize_t len)
@@ -1061,7 +852,7 @@ int wlp_get_variable_info(struct wlp *wlp, void *data,
 			used += result;
 			break;
 		default:
-			/* This is not variable device information. */
+			
 			goto out;
 			break;
 		}
@@ -1072,12 +863,7 @@ error_parse:
 	return -EINVAL;
 }
 
-/**
- * Parse incoming D1 frame, populate attribute values
- *
- * Caller provides pointers to memory already allocated for attributes
- * expected in the D1 frame. These variables will be populated.
- */
+
 static
 int wlp_parse_d1_frame(struct wlp *wlp, struct sk_buff *skb,
 		       struct wlp_uuid *uuid_e,
@@ -1132,16 +918,7 @@ int wlp_parse_d1_frame(struct wlp *wlp, struct sk_buff *skb,
 error_parse:
 	return result;
 }
-/**
- * Handle incoming D1 frame
- *
- * The frame has already been verified to contain an Association header with
- * the correct version number. Parse the incoming frame, construct and send
- * a D2 frame in response.
- *
- * It is not clear what to do with most fields in the incoming D1 frame. We
- * retrieve and discard the information here for now.
- */
+
 void wlp_handle_d1_frame(struct work_struct *ws)
 {
 	struct wlp_assoc_frame_ctx *frame_ctx = container_of(ws,
@@ -1159,9 +936,9 @@ void wlp_handle_d1_frame(struct work_struct *ws)
 	enum wlp_assc_error assc_err;
 	struct sk_buff *resp = NULL;
 
-	/* Parse D1 frame */
+	
 	mutex_lock(&wss->mutex);
-	mutex_lock(&wlp->mutex); /* to access wlp->uuid */
+	mutex_lock(&wlp->mutex); 
 	memset(&dev_info, 0, sizeof(dev_info));
 	result = wlp_parse_d1_frame(wlp, skb, &uuid_e, &sel_mthd, &dev_info,
 				    &assc_err);
@@ -1182,14 +959,14 @@ void wlp_handle_d1_frame(struct work_struct *ws)
 			goto out;
 		}
 	} else {
-		/* Construct D2 frame */
+		
 		result = wlp_build_assoc_d2(wlp, wss, &resp, &uuid_e);
 		if (result < 0) {
 			dev_err(dev, "WLP: Unable to construct D2 message.\n");
 			goto out;
 		}
 	}
-	/* Send D2 frame */
+	
 	BUG_ON(wlp->xmit_frame == NULL);
 	result = wlp->xmit_frame(wlp, resp, src);
 	if (result < 0) {
@@ -1197,8 +974,8 @@ void wlp_handle_d1_frame(struct work_struct *ws)
 			"message: %d\n", result);
 		if (result == -ENXIO)
 			dev_err(dev, "WLP: Is network interface up? \n");
-		/* We could try again ... */
-		dev_kfree_skb_any(resp); /* we need to free if tx fails */
+		
+		dev_kfree_skb_any(resp); 
 	}
 out:
 	kfree(frame_ctx);
@@ -1206,15 +983,7 @@ out:
 	mutex_unlock(&wss->mutex);
 }
 
-/**
- * Parse incoming D2 frame, create and populate temporary cache
- *
- * @skb: socket buffer in which D2 frame can be found
- * @neighbor: the neighbor that sent the D2 frame
- *
- * Will allocate memory for temporary storage of information learned during
- * discovery.
- */
+
 int wlp_parse_d2_frame_to_cache(struct wlp *wlp, struct sk_buff *skb,
 				struct wlp_neighbor_e *neighbor)
 {
@@ -1298,20 +1067,7 @@ error_parse:
 	return result;
 }
 
-/**
- * Parse incoming D2 frame, populate attribute values of WSS bein enrolled in
- *
- * @wss: our WSS that will be enrolled
- * @skb: socket buffer in which D2 frame can be found
- * @neighbor: the neighbor that sent the D2 frame
- * @wssid: the wssid of the WSS in which we want to enroll
- *
- * Forms part of enrollment sequence. We are trying to enroll in WSS with
- * @wssid by using @neighbor as registrar. A D1 message was sent to
- * @neighbor and now we need to parse the D2 response. The neighbor's
- * response is searched for the requested WSS and if found (and it accepts
- * enrollment), we store the information.
- */
+
 int wlp_parse_d2_frame_to_enroll(struct wlp_wss *wss, struct sk_buff *skb,
 				 struct wlp_neighbor_e *neighbor,
 				 struct wlp_uuid *wssid)
@@ -1373,7 +1129,7 @@ int wlp_parse_d2_frame_to_enroll(struct wlp_wss *wss, struct sk_buff *skb,
 		goto error_parse;
 	}
 	used += result;
-	/* Place device information on stack to continue parsing of message */
+	
 	result = wlp_get_dev_name(wlp, ptr + used, nb_info.name,
 				  len - used);
 	if (result < 0) {
@@ -1411,19 +1167,7 @@ error_parse:
 	return result;
 }
 
-/**
- * Parse C3/C4 frame into provided variables
- *
- * @wssid: will point to copy of wssid retrieved from C3/C4 frame
- * @tag:   will point to copy of tag retrieved from C3/C4 frame
- * @virt_addr: will point to copy of virtual address retrieved from C3/C4
- * frame.
- *
- * Calling function has to allocate memory for these values.
- *
- * skb contains a valid C3/C4 frame, return the individual fields of this
- * frame in the provided variables.
- */
+
 int wlp_parse_c3c4_frame(struct wlp *wlp, struct sk_buff *skb,
 		       struct wlp_uuid *wssid, u8 *tag,
 		       struct uwb_mac_addr *virt_addr)
@@ -1461,11 +1205,7 @@ error_parse:
 	return result;
 }
 
-/**
- * Allocate memory for and populate fields of C1 or C2 association frame
- *
- * The C1 and C2 association frames appear identical - except for the type.
- */
+
 static
 int wlp_build_assoc_c1c2(struct wlp *wlp, struct wlp_wss *wss,
 			 struct sk_buff **skb, enum wlp_assoc_type type)
@@ -1514,11 +1254,7 @@ int wlp_build_assoc_c2(struct wlp *wlp, struct wlp_wss *wss,
 }
 
 
-/**
- * Allocate memory for and populate fields of C3 or C4 association frame
- *
- * The C3 and C4 association frames appear identical - except for the type.
- */
+
 static
 int wlp_build_assoc_c3c4(struct wlp *wlp, struct wlp_wss *wss,
 			 struct sk_buff **skb, enum wlp_assoc_type type)
@@ -1578,14 +1314,14 @@ static int wlp_send_assoc_##type(struct wlp *wlp, struct wlp_wss *wss,	\
 	int result;							\
 	struct sk_buff *skb = NULL;					\
 									\
-	/* Build the frame */						\
+							\
 	result = wlp_build_assoc_##type(wlp, wss, &skb);		\
 	if (result < 0) {						\
 		dev_err(dev, "WLP: Unable to construct %s association "	\
 			"frame: %d\n", wlp_assoc_frame_str(id), result);\
 		goto error_build_assoc;					\
 	}								\
-	/* Send the frame */						\
+							\
 	BUG_ON(wlp->xmit_frame == NULL);				\
 	result = wlp->xmit_frame(wlp, skb, dev_addr);			\
 	if (result < 0) {						\
@@ -1599,8 +1335,8 @@ static int wlp_send_assoc_##type(struct wlp *wlp, struct wlp_wss *wss,	\
 	}								\
 	return 0;							\
 error_xmit:								\
-	/* We could try again ... */					\
-	dev_kfree_skb_any(skb);/*we need to free if tx fails*/		\
+						\
+	dev_kfree_skb_any(skb);		\
 error_build_assoc:							\
 	return result;							\
 }
@@ -1634,13 +1370,7 @@ int wlp_send_assoc_frame(struct wlp *wlp, struct wlp_wss *wss,
 	return result;
 }
 
-/**
- * Handle incoming C1 frame
- *
- * The frame has already been verified to contain an Association header with
- * the correct version number. Parse the incoming frame, construct and send
- * a C2 frame in response.
- */
+
 void wlp_handle_c1_frame(struct work_struct *ws)
 {
 	struct wlp_assoc_frame_ctx *frame_ctx = container_of(ws,
@@ -1656,7 +1386,7 @@ void wlp_handle_c1_frame(struct work_struct *ws)
 	struct wlp_uuid wssid;
 	struct sk_buff *resp = NULL;
 
-	/* Parse C1 frame */
+	
 	mutex_lock(&wss->mutex);
 	result = wlp_get_wssid(wlp, (void *)c1 + sizeof(*c1), &wssid,
 			       len - sizeof(*c1));
@@ -1666,21 +1396,21 @@ void wlp_handle_c1_frame(struct work_struct *ws)
 	}
 	if (!memcmp(&wssid, &wss->wssid, sizeof(wssid))
 	    && wss->state == WLP_WSS_STATE_ACTIVE) {
-		/* Construct C2 frame */
+		
 		result = wlp_build_assoc_c2(wlp, wss, &resp);
 		if (result < 0) {
 			dev_err(dev, "WLP: Unable to construct C2 message.\n");
 			goto out;
 		}
 	} else {
-		/* Construct F0 frame */
+		
 		result = wlp_build_assoc_f0(wlp, &resp, WLP_ASSOC_ERROR_INV);
 		if (result < 0) {
 			dev_err(dev, "WLP: Unable to construct F0 message.\n");
 			goto out;
 		}
 	}
-	/* Send C2 frame */
+	
 	BUG_ON(wlp->xmit_frame == NULL);
 	result = wlp->xmit_frame(wlp, resp, src);
 	if (result < 0) {
@@ -1688,8 +1418,8 @@ void wlp_handle_c1_frame(struct work_struct *ws)
 			"message: %d\n", result);
 		if (result == -ENXIO)
 			dev_err(dev, "WLP: Is network interface up? \n");
-		/* We could try again ... */
-		dev_kfree_skb_any(resp); /* we need to free if tx fails */
+		
+		dev_kfree_skb_any(resp); 
 	}
 out:
 	kfree_skb(frame_ctx->skb);
@@ -1697,14 +1427,7 @@ out:
 	mutex_unlock(&wss->mutex);
 }
 
-/**
- * Handle incoming C3 frame
- *
- * The frame has already been verified to contain an Association header with
- * the correct version number. Parse the incoming frame, construct and send
- * a C4 frame in response. If the C3 frame identifies a WSS that is locally
- * active then we connect to this neighbor (add it to our EDA cache).
- */
+
 void wlp_handle_c3_frame(struct work_struct *ws)
 {
 	struct wlp_assoc_frame_ctx *frame_ctx = container_of(ws,
@@ -1721,7 +1444,7 @@ void wlp_handle_c3_frame(struct work_struct *ws)
 	u8 tag;
 	struct uwb_mac_addr virt_addr;
 
-	/* Parse C3 frame */
+	
 	mutex_lock(&wss->mutex);
 	result = wlp_parse_c3c4_frame(wlp, skb, &wssid, &tag, &virt_addr);
 	if (result < 0) {
@@ -1745,7 +1468,7 @@ void wlp_handle_c3_frame(struct work_struct *ws)
 			}
 		} else {
 			wss->state = WLP_WSS_STATE_CONNECTED;
-			/* Construct C4 frame */
+			
 			result = wlp_build_assoc_c4(wlp, wss, &resp);
 			if (result < 0) {
 				dev_err(dev, "WLP: Unable to construct C4 "
@@ -1754,14 +1477,14 @@ void wlp_handle_c3_frame(struct work_struct *ws)
 			}
 		}
 	} else {
-		/* Construct F0 frame */
+		
 		result = wlp_build_assoc_f0(wlp, &resp, WLP_ASSOC_ERROR_INV);
 		if (result < 0) {
 			dev_err(dev, "WLP: Unable to construct F0 message.\n");
 			goto out;
 		}
 	}
-	/* Send C4 frame */
+	
 	BUG_ON(wlp->xmit_frame == NULL);
 	result = wlp->xmit_frame(wlp, resp, src);
 	if (result < 0) {
@@ -1769,8 +1492,8 @@ void wlp_handle_c3_frame(struct work_struct *ws)
 			"message: %d\n", result);
 		if (result == -ENXIO)
 			dev_err(dev, "WLP: Is network interface up? \n");
-		/* We could try again ... */
-		dev_kfree_skb_any(resp); /* we need to free if tx fails */
+		
+		dev_kfree_skb_any(resp); 
 	}
 out:
 	kfree_skb(frame_ctx->skb);

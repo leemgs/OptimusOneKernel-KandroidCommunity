@@ -1,10 +1,4 @@
-/*
- * linux/kernel/irq/proc.c
- *
- * Copyright (C) 1992, 1998-2004 Linus Torvalds, Ingo Molnar
- *
- * This file contains the /proc/irq/ handling code.
- */
+
 
 #include <linux/irq.h>
 #include <linux/proc_fs.h>
@@ -59,14 +53,9 @@ static ssize_t irq_affinity_proc_write(struct file *file,
 		goto free_cpumask;
 	}
 
-	/*
-	 * Do not allow disabling IRQs completely - it's a too easy
-	 * way to make the system unusable accidentally :-) At least
-	 * one online CPU still has to be targeted.
-	 */
+	
 	if (!cpumask_intersects(new_value, cpu_online_mask)) {
-		/* Special case for empty set - allow the architecture
-		   code to set default SMP affinity. */
+		
 		err = irq_select_affinity_usr(irq) ? -EINVAL : count;
 	} else {
 		irq_set_affinity(irq, new_value);
@@ -116,11 +105,7 @@ static ssize_t default_affinity_write(struct file *file,
 		goto out;
 	}
 
-	/*
-	 * Do not allow disabling IRQs completely - it's a too easy
-	 * way to make the system unusable accidentally :-) At least
-	 * one online CPU still has to be targeted.
-	 */
+	
 	if (!cpumask_intersects(new_value, cpu_online_mask)) {
 		err = -EINVAL;
 		goto out;
@@ -193,7 +178,7 @@ void register_handler_proc(unsigned int irq, struct irqaction *action)
 	memset(name, 0, MAX_NAMELEN);
 	snprintf(name, MAX_NAMELEN, "%s", action->name);
 
-	/* create /proc/irq/1234/handler/ */
+	
 	action->dir = proc_mkdir(name, desc->dir);
 }
 
@@ -212,11 +197,11 @@ void register_irq_proc(unsigned int irq, struct irq_desc *desc)
 	memset(name, 0, MAX_NAMELEN);
 	sprintf(name, "%d", irq);
 
-	/* create /proc/irq/1234 */
+	
 	desc->dir = proc_mkdir(name, root_irq_dir);
 
 #ifdef CONFIG_SMP
-	/* create /proc/irq/<irq>/smp_affinity */
+	
 	proc_create_data("smp_affinity", 0600, desc->dir,
 			 &irq_affinity_proc_fops, (void *)(long)irq);
 #endif
@@ -252,16 +237,14 @@ void init_irq_proc(void)
 	unsigned int irq;
 	struct irq_desc *desc;
 
-	/* create /proc/irq */
+	
 	root_irq_dir = proc_mkdir("irq", NULL);
 	if (!root_irq_dir)
 		return;
 
 	register_default_affinity_proc();
 
-	/*
-	 * Create entries for all existing IRQs.
-	 */
+	
 	for_each_irq_desc(irq, desc) {
 		if (!desc)
 			continue;

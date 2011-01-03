@@ -1,20 +1,6 @@
-/*
- * Freescale STMP37XX/STMP378X core routines
- *
- * Embedded Alley Solutions, Inc <source@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/io.h>
@@ -29,19 +15,12 @@ static int __stmp3xxx_reset_block(void __iomem *hwreg, int just_enable)
 	u32 c;
 	int timeout;
 
-	/* the process of software reset of IP block is done
-	   in several steps:
-
-	   - clear SFTRST and wait for block is enabled;
-	   - clear clock gating (CLKGATE bit);
-	   - set the SFTRST again and wait for block is in reset;
-	   - clear SFTRST and wait for reset completion.
-	*/
+	
 	c = __raw_readl(hwreg);
-	c &= ~(1<<31);		/* clear SFTRST */
+	c &= ~(1<<31);		
 	__raw_writel(c, hwreg);
 	for (timeout = 1000000; timeout > 0; timeout--)
-		/* still in SFTRST state ? */
+		
 		if ((__raw_readl(hwreg) & (1<<31)) == 0)
 			break;
 	if (timeout <= 0) {
@@ -51,15 +30,15 @@ static int __stmp3xxx_reset_block(void __iomem *hwreg, int just_enable)
 	}
 
 	c = __raw_readl(hwreg);
-	c &= ~(1<<30);		/* clear CLKGATE */
+	c &= ~(1<<30);		
 	__raw_writel(c, hwreg);
 
 	if (!just_enable) {
 		c = __raw_readl(hwreg);
-		c |= (1<<31);		/* now again set SFTRST */
+		c |= (1<<31);		
 		__raw_writel(c, hwreg);
 		for (timeout = 1000000; timeout > 0; timeout--)
-			/* poll until CLKGATE set */
+			
 			if (__raw_readl(hwreg) & (1<<30))
 				break;
 		if (timeout <= 0) {
@@ -69,10 +48,10 @@ static int __stmp3xxx_reset_block(void __iomem *hwreg, int just_enable)
 		}
 
 		c = __raw_readl(hwreg);
-		c &= ~(1<<31);		/* clear SFTRST */
+		c &= ~(1<<31);		
 		__raw_writel(c, hwreg);
 		for (timeout = 1000000; timeout > 0; timeout--)
-			/* still in SFTRST state ? */
+			
 			if ((__raw_readl(hwreg) & (1<<31)) == 0)
 				break;
 		if (timeout <= 0) {
@@ -82,11 +61,11 @@ static int __stmp3xxx_reset_block(void __iomem *hwreg, int just_enable)
 		}
 
 		c = __raw_readl(hwreg);
-		c &= ~(1<<30);		/* clear CLKGATE */
+		c &= ~(1<<30);		
 		__raw_writel(c, hwreg);
 	}
 	for (timeout = 1000000; timeout > 0; timeout--)
-		/* still in SFTRST state ? */
+		
 		if ((__raw_readl(hwreg) & (1<<30)) == 0)
 			break;
 
@@ -121,7 +100,7 @@ struct platform_device stmp3xxx_dbguart = {
 
 void __init stmp3xxx_init(void)
 {
-	/* Turn off auto-slow and other tricks */
+	
 	stmp3xxx_clearl(0x7f00000, REGS_CLKCTRL_BASE + HW_CLKCTRL_HBUS);
 
 	stmp3xxx_dma_init();

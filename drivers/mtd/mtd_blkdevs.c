@@ -1,9 +1,4 @@
-/*
- * (C) 2003 David Woodhouse <dwmw2@infradead.org>
- *
- * Interface to Linux 2.5 block layer for MTD 'translation layers'.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/slab.h>
@@ -82,7 +77,7 @@ static int mtd_blktrans_thread(void *arg)
 	struct request_queue *rq = tr->blkcore_priv->rq;
 	struct request *req = NULL;
 
-	/* we might get involved when memory gets low, so use PF_MEMALLOC */
+	
 	current->flags |= PF_MEMALLOC;
 
 	spin_lock_irq(rq->queue_lock);
@@ -141,9 +136,7 @@ static int blktrans_open(struct block_device *bdev, fmode_t mode)
 	if (!try_module_get(tr->owner))
 		goto out_tr;
 
-	/* FIXME: Locking. A hot pluggable device can go away
-	   (del_mtd_device can be called for it) without its module
-	   being unloaded. */
+	
 	dev->mtd->usecount++;
 
 	ret = 0;
@@ -194,7 +187,7 @@ static int blktrans_ioctl(struct block_device *bdev, fmode_t mode,
 	case BLKFLSBUF:
 		if (tr->flush)
 			return tr->flush(dev);
-		/* The core code did the work, we had nothing to do. */
+		
 		return 0;
 	default:
 		return -ENOTTY;
@@ -223,18 +216,18 @@ int add_mtd_blktrans_dev(struct mtd_blktrans_dev *new)
 
 	list_for_each_entry(d, &tr->devs, list) {
 		if (new->devnum == -1) {
-			/* Use first free number */
+			
 			if (d->devnum != last_devnum+1) {
-				/* Found a free devnum. Plug it in here */
+				
 				new->devnum = last_devnum+1;
 				list_add_tail(&new->list, &d->list);
 				goto added;
 			}
 		} else if (d->devnum == new->devnum) {
-			/* Required number taken */
+			
 			return -EBUSY;
 		} else if (d->devnum > new->devnum) {
-			/* Required number was free */
+			
 			list_add_tail(&new->list, &d->list);
 			goto added;
 		}
@@ -275,8 +268,7 @@ int add_mtd_blktrans_dev(struct mtd_blktrans_dev *new)
 		snprintf(gd->disk_name, sizeof(gd->disk_name),
 			 "%s%d", tr->name, new->devnum);
 
-	/* 2.5 has capacity in units of 512 bytes while still
-	   having BLOCK_SIZE_BITS set to 10. Just to keep us amused. */
+	
 	set_capacity(gd, (new->size * tr->blksize) >> 9);
 
 	gd->private_data = new;
@@ -338,9 +330,7 @@ int register_mtd_blktrans(struct mtd_blktrans_ops *tr)
 {
 	int ret, i;
 
-	/* Register the notifier if/when the first device type is
-	   registered, to prevent the link/init ordering from fucking
-	   us over. */
+	
 	if (!blktrans_notifier.list.next)
 		register_mtd_user(&blktrans_notifier);
 
@@ -387,6 +377,10 @@ int register_mtd_blktrans(struct mtd_blktrans_ops *tr)
 		return ret;
 	}
 
+	
+	tr->blkcore_priv->rq->backing_dev_info.ra_pages =
+		(4 * 1024) / PAGE_CACHE_SIZE;
+
 	INIT_LIST_HEAD(&tr->devs);
 	list_add(&tr->list, &blktrans_majors);
 
@@ -406,10 +400,10 @@ int deregister_mtd_blktrans(struct mtd_blktrans_ops *tr)
 
 	mutex_lock(&mtd_table_mutex);
 
-	/* Clean up the kernel thread */
+	
 	kthread_stop(tr->blkcore_priv->thread);
 
-	/* Remove it from the list of active majors */
+	
 	list_del(&tr->list);
 
 	list_for_each_entry_safe(dev, next, &tr->devs, list)
@@ -428,8 +422,7 @@ int deregister_mtd_blktrans(struct mtd_blktrans_ops *tr)
 
 static void __exit mtd_blktrans_exit(void)
 {
-	/* No race here -- if someone's currently in register_mtd_blktrans
-	   we're screwed anyway. */
+	
 	if (blktrans_notifier.list.next)
 		unregister_mtd_user(&blktrans_notifier);
 }

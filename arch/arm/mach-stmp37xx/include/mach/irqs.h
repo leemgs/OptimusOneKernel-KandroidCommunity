@@ -1,20 +1,6 @@
-/*
- * Freescale STMP37XX interrupts
- *
- * Copyright (C) 2005 Sigmatel Inc
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #ifndef _ASM_ARCH_IRQS_H
 #define _ASM_ARCH_IRQS_H
 
@@ -90,10 +76,10 @@
 #define NR_REAL_IRQS		64
 #define NR_IRQS			(NR_REAL_IRQS + 32 * 3)
 
-/* TIMER and BRNOUT are FIQ capable */
+
 #define FIQ_START			IRQ_TIMER0
 
-/* Hard disk IRQ is a GPMI attention IRQ */
+
 #define IRQ_HARDDISK		IRQ_GPMI_ATTENTION
 
-#endif /* _ASM_ARCH_IRQS_H */
+#endif 

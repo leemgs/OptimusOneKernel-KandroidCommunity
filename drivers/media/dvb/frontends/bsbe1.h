@@ -1,49 +1,27 @@
-/*
- * bsbe1.h - ALPS BSBE1 tuner support
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
- *
- *
- * the project's page is at http://www.linuxtv.org
- */
+
 
 #ifndef BSBE1_H
 #define BSBE1_H
 
 static u8 alps_bsbe1_inittab[] = {
-	0x01, 0x15,   /* XTAL = 4MHz, VCO = 352 MHz */
-	0x02, 0x30,   /* MCLK = 88 MHz */
-	0x03, 0x00,   /* ACR output 0 */
-	0x04, 0x7d,   /* F22FR = 0x7d, F22 = f_VCO / 128 / 0x7d = 22 kHz */
-	0x05, 0x05,   /* I2CT = 0, SCLT = 1, SDAT = 1 */
-	0x06, 0x00,   /* DAC output 0 */
-	0x08, 0x40,   /* DiSEqC off, LNB power on OP2/LOCK pin on */
-	0x09, 0x00,   /* FIFO */
-	0x0c, 0x51,   /* OP1/OP0 normal, val = 1 (LNB power on) */
-	0x0d, 0x82,   /* DC offset compensation = on, beta_agc1 = 2 */
-	0x0f, 0x92,   /* AGC1R */
-	0x10, 0x34,   /* AGC2O */
-	0x11, 0x84,   /* TLSR */
-	0x12, 0xb9,   /* CFD */
-	0x15, 0xc9,   /* lock detector threshold */
-	0x28, 0x00,   /* out imp: normal, type: parallel, FEC mode: QPSK */
-	0x33, 0xfc,   /* RS control */
-	0x34, 0x93,   /* count viterbi bit errors per 2E18 bytes */
+	0x01, 0x15,   
+	0x02, 0x30,   
+	0x03, 0x00,   
+	0x04, 0x7d,   
+	0x05, 0x05,   
+	0x06, 0x00,   
+	0x08, 0x40,   
+	0x09, 0x00,   
+	0x0c, 0x51,   
+	0x0d, 0x82,   
+	0x0f, 0x92,   
+	0x10, 0x34,   
+	0x11, 0x84,   
+	0x12, 0xb9,   
+	0x15, 0xc9,   
+	0x28, 0x00,   
+	0x33, 0xfc,   
+	0x34, 0x93,   
 	0xff, 0xff
 };
 

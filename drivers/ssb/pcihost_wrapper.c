@@ -1,15 +1,4 @@
-/*
- * Sonics Silicon Backplane
- * PCI Hostdevice wrapper
- *
- * Copyright (c) 2005 Martin Langer <martin-langer@gmx.de>
- * Copyright (c) 2005 Stefano Brivio <st3@riseup.net>
- * Copyright (c) 2005 Danny van Dyk <kugelfang@gentoo.org>
- * Copyright (c) 2005 Andreas Jaggi <andreas.jaggi@waterwave.ch>
- * Copyright (c) 2005-2007 Michael Buesch <mbuesch@freenet.de>
- *
- * Licensed under the GNU/GPL. See COPYING for details.
- */
+
 
 #include <linux/pci.h>
 #include <linux/ssb/ssb.h>
@@ -47,10 +36,10 @@ static int ssb_pcihost_resume(struct pci_dev *dev)
 
 	return 0;
 }
-#else /* CONFIG_PM */
+#else 
 # define ssb_pcihost_suspend	NULL
 # define ssb_pcihost_resume	NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static int ssb_pcihost_probe(struct pci_dev *dev,
 			     const struct pci_device_id *id)

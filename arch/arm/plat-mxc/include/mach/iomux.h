@@ -1,29 +1,9 @@
-/*
-* Copyright (C) 2008 by Sascha Hauer <kernel@pengutronix.de>
-* Copyright (C) 2009 by Holger Schurig <hs4233@mail.mn-solutions.de>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-* MA 02110-1301, USA.
-*/
+
 
 #ifndef _MXC_IOMUX_H
 #define _MXC_IOMUX_H
 
-/*
-*  GPIO Module and I/O Multiplexer
-*  x = 0..3 for reg_A, reg_B, reg_C, reg_D
-*/
+
 #define VA_GPIO_BASE	IO_ADDRESS(GPIO_BASE_ADDR)
 #define MXC_DDIR(x)    (0x00 + ((x) << 8))
 #define MXC_OCR1(x)    (0x04 + ((x) << 8))
@@ -115,7 +95,7 @@
 #endif
 
 
-/* decode irq number to use with IMR(x), ISR(x) and friends */
+
 #define IRQ_TO_REG(irq) ((irq - MXC_INTERNAL_IRQS) >> 5)
 
 #define IRQ_GPIOA(x)  (MXC_GPIO_IRQ_START + x)

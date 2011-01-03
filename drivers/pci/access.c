@@ -7,18 +7,11 @@
 
 #include "pci.h"
 
-/*
- * This interrupt-safe spinlock protects all accesses to PCI
- * configuration space.
- */
+
 
 static DEFINE_SPINLOCK(pci_lock);
 
-/*
- *  Wrappers for all PCI configuration access functions.  They just check
- *  alignment, do locking and call the low-level functions pointed to
- *  by pci_dev->ops.
- */
+
 
 #define PCI_byte_BAD 0
 #define PCI_word_BAD (pos & 1)
@@ -66,13 +59,7 @@ EXPORT_SYMBOL(pci_bus_write_config_byte);
 EXPORT_SYMBOL(pci_bus_write_config_word);
 EXPORT_SYMBOL(pci_bus_write_config_dword);
 
-/**
- * pci_bus_set_ops - Set raw operations of pci bus
- * @bus:	pci bus struct
- * @ops:	new raw operations
- *
- * Return previous raw operations
- */
+
 struct pci_ops *pci_bus_set_ops(struct pci_bus *bus, struct pci_ops *ops)
 {
 	struct pci_ops *old_ops;
@@ -86,14 +73,7 @@ struct pci_ops *pci_bus_set_ops(struct pci_bus *bus, struct pci_ops *ops)
 }
 EXPORT_SYMBOL(pci_bus_set_ops);
 
-/**
- * pci_read_vpd - Read one entry from Vital Product Data
- * @dev:	pci device struct
- * @pos:	offset in vpd space
- * @count:	number of bytes to read
- * @buf:	pointer to where to store result
- *
- */
+
 ssize_t pci_read_vpd(struct pci_dev *dev, loff_t pos, size_t count, void *buf)
 {
 	if (!dev->vpd || !dev->vpd->ops)
@@ -102,14 +82,7 @@ ssize_t pci_read_vpd(struct pci_dev *dev, loff_t pos, size_t count, void *buf)
 }
 EXPORT_SYMBOL(pci_read_vpd);
 
-/**
- * pci_write_vpd - Write entry to Vital Product Data
- * @dev:	pci device struct
- * @pos:	offset in vpd space
- * @count:	number of bytes to write
- * @buf:	buffer containing write data
- *
- */
+
 ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void *buf)
 {
 	if (!dev->vpd || !dev->vpd->ops)
@@ -118,14 +91,7 @@ ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void 
 }
 EXPORT_SYMBOL(pci_write_vpd);
 
-/*
- * The following routines are to prevent the user from accessing PCI config
- * space when it's unsafe to do so.  Some devices require this during BIST and
- * we're required to prevent it during D-state transitions.
- *
- * We have a bit per device to indicate it's blocked and a global wait queue
- * for callers to sleep on until devices are unblocked.
- */
+
 static DECLARE_WAIT_QUEUE_HEAD(pci_ucfg_wait);
 
 static noinline void pci_wait_ucfg(struct pci_dev *dev)
@@ -179,7 +145,7 @@ PCI_USER_WRITE_CONFIG(byte, u8)
 PCI_USER_WRITE_CONFIG(word, u16)
 PCI_USER_WRITE_CONFIG(dword, u32)
 
-/* VPD access through PCI 2.2+ VPD capability */
+
 
 #define PCI_VPD_PCI22_SIZE (PCI_VPD_ADDR_MASK + 1)
 
@@ -191,12 +157,7 @@ struct pci_vpd_pci22 {
 	u8	cap;
 };
 
-/*
- * Wait for last operation to complete.
- * This code has to spin since there is no other notification from the PCI
- * hardware. Since the VPD is often implemented by serial attachment to an
- * EEPROM, it may take many milliseconds to complete.
- */
+
 static int pci_vpd_pci22_wait(struct pci_dev *dev)
 {
 	struct pci_vpd_pci22 *vpd =
@@ -358,19 +319,13 @@ int pci_vpd_pci22_init(struct pci_dev *dev)
 	return 0;
 }
 
-/**
- * pci_vpd_truncate - Set available Vital Product Data size
- * @dev:	pci device struct
- * @size:	available memory in bytes
- *
- * Adjust size of available VPD area.
- */
+
 int pci_vpd_truncate(struct pci_dev *dev, size_t size)
 {
 	if (!dev->vpd)
 		return -EINVAL;
 
-	/* limited by the access method */
+	
 	if (size > dev->vpd->len)
 		return -EINVAL;
 
@@ -382,14 +337,7 @@ int pci_vpd_truncate(struct pci_dev *dev, size_t size)
 }
 EXPORT_SYMBOL(pci_vpd_truncate);
 
-/**
- * pci_block_user_cfg_access - Block userspace PCI config reads/writes
- * @dev:	pci device struct
- *
- * When user access is blocked, any reads or writes to config space will
- * sleep until access is unblocked again.  We don't allow nesting of
- * block/unblock calls.
- */
+
 void pci_block_user_cfg_access(struct pci_dev *dev)
 {
 	unsigned long flags;
@@ -400,26 +348,19 @@ void pci_block_user_cfg_access(struct pci_dev *dev)
 	dev->block_ucfg_access = 1;
 	spin_unlock_irqrestore(&pci_lock, flags);
 
-	/* If we BUG() inside the pci_lock, we're guaranteed to hose
-	 * the machine */
+	
 	BUG_ON(was_blocked);
 }
 EXPORT_SYMBOL_GPL(pci_block_user_cfg_access);
 
-/**
- * pci_unblock_user_cfg_access - Unblock userspace PCI config reads/writes
- * @dev:	pci device struct
- *
- * This function allows userspace PCI config accesses to resume.
- */
+
 void pci_unblock_user_cfg_access(struct pci_dev *dev)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&pci_lock, flags);
 
-	/* This indicates a problem in the caller, but we don't need
-	 * to kill them, unlike a double-block above. */
+	
 	WARN_ON(!dev->block_ucfg_access);
 
 	dev->block_ucfg_access = 0;

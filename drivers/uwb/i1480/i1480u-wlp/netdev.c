@@ -1,43 +1,4 @@
-/*
- * WUSB Wire Adapter: WLP interface
- * Driver for the Linux Network stack.
- *
- * Copyright (C) 2005-2006 Intel Corporation
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * FIXME: docs
- *
- * Implementation of the netdevice linkage (except tx and rx related stuff).
- *
- * ROADMAP:
- *
- *   ENTRY POINTS (Net device):
- *
- *     i1480u_open(): Called when we ifconfig up the interface;
- *                    associates to a UWB host controller, reserves
- *                    bandwidth (MAS), sets up RX USB URB and starts
- *                    the queue.
- *
- *     i1480u_stop(): Called when we ifconfig down a interface;
- *                    reverses _open().
- *
- *     i1480u_set_config():
- */
+
 
 #include <linux/if_arp.h>
 #include <linux/etherdevice.h>
@@ -49,7 +10,7 @@ struct i1480u_cmd_set_ip_mas {
 	struct uwb_dev_addr addr;
 	u8                  stream;
 	u8                  owner;
-	u8                  type;	/* enum uwb_drp_type */
+	u8                  type;	
 	u8                  baMAS[32];
 } __attribute__((packed));
 
@@ -97,12 +58,8 @@ error_kzalloc:
 	return result;
 }
 
-/*
- * Inform a WLP interface of a MAS reservation
- *
- * @rc is assumed refcnted.
- */
-/* FIXME: detect if remote device is WLP capable? */
+
+
 static int i1480u_mas_set_dev(struct uwb_dev *uwb_dev, struct uwb_rc *rc,
 			      u8 stream, u8 owner, u8 type, unsigned long *mas)
 {
@@ -123,23 +80,7 @@ static int i1480u_mas_set_dev(struct uwb_dev *uwb_dev, struct uwb_rc *rc,
 	return result;
 }
 
-/**
- * Called by bandwidth allocator when change occurs in reservation.
- *
- * @rsv:     The reservation that is being established, modified, or
- *           terminated.
- *
- * When a reservation is established, modified, or terminated the upper layer
- * (WLP here) needs set/update the currently available Media Access Slots
- * that can be use for IP traffic.
- *
- * Our action taken during failure depends on how the reservation is being
- * changed:
- * - if reservation is being established we do nothing if we cannot set the
- *   new MAS to be used
- * - if reservation is being terminated we revert back to PCA whether the
- *   SET IP MAS command succeeds or not.
- */
+
 void i1480u_bw_alloc_cb(struct uwb_rsv *rsv)
 {
 	int result = 0;
@@ -153,7 +94,7 @@ void i1480u_bw_alloc_cb(struct uwb_rsv *rsv)
 	unsigned long *bmp = rsv->mas.bm;
 
 	dev_err(dev, "WLP callback called - sending set ip mas\n");
-	/*user cannot change options while setting configuration*/
+	
 	mutex_lock(&i1480u->options.mutex);
 	switch (rsv->state) {
 	case UWB_RSV_STATE_T_ACCEPTED:
@@ -171,12 +112,12 @@ void i1480u_bw_alloc_cb(struct uwb_rsv *rsv)
 		}
 		break;
 	case UWB_RSV_STATE_NONE:
-		/* revert back to PCA */
+		
 		result = i1480u_mas_set_dev(target_dev, rc, stream, is_owner,
 					    type, bmp);
 		if (result < 0)
 			dev_err(dev, "MAS reservation failed: %d\n", result);
-		/* Revert to PCA even though SET IP MAS failed. */
+		
 		wlp_tx_hdr_set_delivery_id_type(&i1480u->options.def_tx_hdr,
 						i1480u->options.pca_base_priority);
 		wlp_tx_hdr_set_rts_cts(&i1480u->options.def_tx_hdr, 1);
@@ -191,10 +132,7 @@ out:
 	return;
 }
 
-/**
- *
- * Called on 'ifconfig up'
- */
+
 int i1480u_open(struct net_device *net_dev)
 {
 	int result;
@@ -204,7 +142,7 @@ int i1480u_open(struct net_device *net_dev)
 	struct device *dev = &i1480u->usb_iface->dev;
 
 	rc = wlp->rc;
-	result = i1480u_rx_setup(i1480u);		/* Alloc RX stuff */
+	result = i1480u_rx_setup(i1480u);		
 	if (result < 0)
 		goto error_rx_setup;
 
@@ -220,7 +158,7 @@ int i1480u_open(struct net_device *net_dev)
 		goto error_notif_urb_submit;
 	}
 #endif
-	/* Interface is up with an address, now we can create WSS */
+	
 	result = wlp_wss_setup(net_dev, &wlp->wss);
 	if (result < 0) {
 		dev_err(dev, "Can't create WSS: %d. \n", result);
@@ -241,9 +179,7 @@ error_rx_setup:
 }
 
 
-/**
- * Called on 'ifconfig down'
- */
+
 int i1480u_stop(struct net_device *net_dev)
 {
 	struct i1480u *i1480u = netdev_priv(net_dev);
@@ -262,10 +198,7 @@ int i1480u_stop(struct net_device *net_dev)
 	return 0;
 }
 
-/**
- *
- * Change the interface config--we probably don't have to do anything.
- */
+
 int i1480u_set_config(struct net_device *net_dev, struct ifmap *map)
 {
 	int result;
@@ -275,9 +208,7 @@ int i1480u_set_config(struct net_device *net_dev, struct ifmap *map)
 	return result;
 }
 
-/**
- * Change the MTU of the interface
- */
+
 int i1480u_change_mtu(struct net_device *net_dev, int mtu)
 {
 	static union {
@@ -285,7 +216,7 @@ int i1480u_change_mtu(struct net_device *net_dev, int mtu)
 		struct wlp_rx_hdr rx;
 	} i1480u_all_hdrs;
 
-	if (mtu < ETH_HLEN)	/* We encap eth frames */
+	if (mtu < ETH_HLEN)	
 		return -ERANGE;
 	if (mtu > 4000 - sizeof(i1480u_all_hdrs))
 		return -ERANGE;
@@ -293,15 +224,7 @@ int i1480u_change_mtu(struct net_device *net_dev, int mtu)
 	return 0;
 }
 
-/**
- * Stop the network queue
- *
- * Enable WLP substack to stop network queue. We also set the flow control
- * threshold at this time to prevent the flow control from restarting the
- * queue.
- *
- * we are loosing the current threshold value here ... FIXME?
- */
+
 void i1480u_stop_queue(struct wlp *wlp)
 {
 	struct i1480u *i1480u = container_of(wlp, struct i1480u, wlp);
@@ -310,17 +233,7 @@ void i1480u_stop_queue(struct wlp *wlp)
 	netif_stop_queue(net_dev);
 }
 
-/**
- * Start the network queue
- *
- * Enable WLP substack to start network queue. Also re-enable the flow
- * control to manage the queue again.
- *
- * We re-enable the flow control by storing the default threshold in the
- * flow control threshold. This means that if the user modified the
- * threshold before the queue was stopped and restarted that information
- * will be lost. FIXME?
- */
+
 void i1480u_start_queue(struct wlp *wlp)
 {
 	struct i1480u *i1480u = container_of(wlp, struct i1480u, wlp);

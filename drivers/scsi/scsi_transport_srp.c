@@ -1,23 +1,4 @@
-/*
- * SCSI RDMA (SRP) transport class
- *
- * Copyright (C) 2007 FUJITA Tomonori <tomof@acm.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2 of the
- * License.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/jiffies.h>
@@ -185,13 +166,7 @@ static int srp_host_match(struct attribute_container *cont, struct device *dev)
 	return &i->t.host_attrs.ac == cont;
 }
 
-/**
- * srp_rport_add - add a SRP remote port to the device hierarchy
- * @shost:	scsi host the remote port is connected to.
- * @ids:	The port id for the remote port.
- *
- * Publishes a port to the rest of the system.
- */
+
 struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
 				struct srp_rport_identifiers *ids)
 {
@@ -242,12 +217,7 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
 }
 EXPORT_SYMBOL_GPL(srp_rport_add);
 
-/**
- * srp_rport_del  -  remove a SRP remote port
- * @rport:	SRP remote port to remove
- *
- * Removes the specified SRP remote port.
- */
+
 void srp_rport_del(struct srp_rport *rport)
 {
 	struct device *dev = &rport->dev;
@@ -271,13 +241,7 @@ static int do_srp_rport_del(struct device *dev, void *data)
 	return 0;
 }
 
-/**
- * srp_remove_host  -  tear down a Scsi_Host's SRP data structures
- * @shost:	Scsi Host that is torn down
- *
- * Removes all SRP remote ports for a given Scsi_Host.
- * Must be called just before scsi_remove_host for SRP HBAs.
- */
+
 void srp_remove_host(struct Scsi_Host *shost)
 {
 	device_for_each_child(&shost->shost_gendev, NULL, do_srp_rport_del);
@@ -297,10 +261,7 @@ static int srp_it_nexus_response(struct Scsi_Host *shost, u64 nexus, int result)
 	return i->f->it_nexus_response(shost, nexus, result);
 }
 
-/**
- * srp_attach_transport  -  instantiate SRP transport template
- * @ft:		SRP transport class function template
- */
+
 struct scsi_transport_template *
 srp_attach_transport(struct srp_function_template *ft)
 {
@@ -337,10 +298,7 @@ srp_attach_transport(struct srp_function_template *ft)
 }
 EXPORT_SYMBOL_GPL(srp_attach_transport);
 
-/**
- * srp_release_transport  -  release SRP transport template instance
- * @t:		transport template instance
- */
+
 void srp_release_transport(struct scsi_transport_template *t)
 {
 	struct srp_internal *i = to_srp_internal(t);

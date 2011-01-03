@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFA_FCPIM_PRIV_H__
 #define __BFA_FCPIM_PRIV_H__
@@ -31,8 +16,8 @@
 
 #define BFA_TSKIM_MIN   4
 #define BFA_TSKIM_MAX   512
-#define BFA_FCPIM_PATHTOV_DEF	(30 * 1000)	/* in millisecs */
-#define BFA_FCPIM_PATHTOV_MAX	(90 * 1000)	/* in millisecs */
+#define BFA_FCPIM_PATHTOV_DEF	(30 * 1000)	
+#define BFA_FCPIM_PATHTOV_MAX	(90 * 1000)	
 
 #define bfa_fcpim_stats(__fcpim, __stats)   \
     (__fcpim)->stats.__stats ++
@@ -50,12 +35,12 @@ struct bfa_fcpim_mod_s {
 	u32		path_tov;
 	u16		q_depth;
 	u16		rsvd;
-	struct list_head 	itnim_q;        /*  queue of active itnim    */
-	struct list_head 	ioim_free_q;    /*  free IO resources        */
-	struct list_head 	ioim_resfree_q; /*  IOs waiting for f/w      */
-	struct list_head 	ioim_comp_q;    /*  IO global comp Q         */
+	struct list_head 	itnim_q;        
+	struct list_head 	ioim_free_q;    
+	struct list_head 	ioim_resfree_q; 
+	struct list_head 	ioim_comp_q;    
 	struct list_head 	tskim_free_q;
-	u32	ios_active;	/*  current active IOs	      */
+	u32	ios_active;	
 	u32	delay_comp;
 	struct bfa_fcpim_stats_s stats;
 };
@@ -63,83 +48,77 @@ struct bfa_fcpim_mod_s {
 struct bfa_ioim_s;
 struct bfa_tskim_s;
 
-/**
- * BFA IO (initiator mode)
- */
+
 struct bfa_ioim_s {
-	struct list_head qe;		/*  queue elememt            */
-	bfa_sm_t		sm; 	/*  BFA ioim state machine   */
-	struct bfa_s 	        *bfa;	/*  BFA module               */
-	struct bfa_fcpim_mod_s	*fcpim;	/*  parent fcpim module      */
-	struct bfa_itnim_s 	*itnim;	/*  i-t-n nexus for this IO  */
-	struct bfad_ioim_s 	*dio;	/*  driver IO handle         */
-	u16	iotag;		/*  FWI IO tag               */
-	u16	abort_tag;	/*  unqiue abort request tag */
-	u16	nsges;		/*  number of SG elements    */
-	u16	nsgpgs;		/*  number of SG pages       */
-	struct bfa_sgpg_s *sgpg;	/*  first SG page            */
-	struct list_head sgpg_q;		/*  allocated SG pages       */
-	struct bfa_cb_qe_s hcb_qe;	/*  bfa callback qelem       */
-	bfa_cb_cbfn_t io_cbfn;		/*  IO completion handler    */
-	struct bfa_ioim_sp_s *iosp;	/*  slow-path IO handling    */
+	struct list_head qe;		
+	bfa_sm_t		sm; 	
+	struct bfa_s 	        *bfa;	
+	struct bfa_fcpim_mod_s	*fcpim;	
+	struct bfa_itnim_s 	*itnim;	
+	struct bfad_ioim_s 	*dio;	
+	u16	iotag;		
+	u16	abort_tag;	
+	u16	nsges;		
+	u16	nsgpgs;		
+	struct bfa_sgpg_s *sgpg;	
+	struct list_head sgpg_q;		
+	struct bfa_cb_qe_s hcb_qe;	
+	bfa_cb_cbfn_t io_cbfn;		
+	struct bfa_ioim_sp_s *iosp;	
 };
 
 struct bfa_ioim_sp_s {
-	struct bfi_msg_s 	comp_rspmsg;	/*  IO comp f/w response     */
-	u8			*snsinfo;	/*  sense info for this IO   */
-	struct bfa_sgpg_wqe_s sgpg_wqe;	/*  waitq elem for sgpg      */
-	struct bfa_reqq_wait_s reqq_wait;	/*  to wait for room in reqq */
-	bfa_boolean_t		abort_explicit;	/*  aborted by OS            */
-	struct bfa_tskim_s	*tskim;		/*  Relevant TM cmd          */
+	struct bfi_msg_s 	comp_rspmsg;	
+	u8			*snsinfo;	
+	struct bfa_sgpg_wqe_s sgpg_wqe;	
+	struct bfa_reqq_wait_s reqq_wait;	
+	bfa_boolean_t		abort_explicit;	
+	struct bfa_tskim_s	*tskim;		
 };
 
-/**
- * BFA Task management command (initiator mode)
- */
+
 struct bfa_tskim_s {
 	struct list_head          qe;
 	bfa_sm_t		sm;
-	struct bfa_s            *bfa;        /*  BFA module  */
-	struct bfa_fcpim_mod_s  *fcpim;      /*  parent fcpim module      */
-	struct bfa_itnim_s      *itnim;      /*  i-t-n nexus for this IO  */
-	struct bfad_tskim_s         *dtsk;   /*  driver task mgmt cmnd    */
-	bfa_boolean_t        notify;         /*  notify itnim on TM comp  */
-	lun_t                lun;            /*  lun if applicable        */
-	enum fcp_tm_cmnd        tm_cmnd;     /*  task management command  */
-	u16             tsk_tag;        /*  FWI IO tag               */
-	u8              tsecs;          /*  timeout in seconds       */
-	struct bfa_reqq_wait_s  reqq_wait;   /*  to wait for room in reqq */
-	struct list_head              io_q;    /*  queue of affected IOs    */
-	struct bfa_wc_s             wc;      /*  waiting counter          */
-	struct bfa_cb_qe_s	hcb_qe;      /*  bfa callback qelem       */
-	enum bfi_tskim_status   tsk_status;  /*  TM status                */
+	struct bfa_s            *bfa;        
+	struct bfa_fcpim_mod_s  *fcpim;      
+	struct bfa_itnim_s      *itnim;      
+	struct bfad_tskim_s         *dtsk;   
+	bfa_boolean_t        notify;         
+	lun_t                lun;            
+	enum fcp_tm_cmnd        tm_cmnd;     
+	u16             tsk_tag;        
+	u8              tsecs;          
+	struct bfa_reqq_wait_s  reqq_wait;   
+	struct list_head              io_q;    
+	struct bfa_wc_s             wc;      
+	struct bfa_cb_qe_s	hcb_qe;      
+	enum bfi_tskim_status   tsk_status;  
 };
 
-/**
- * BFA i-t-n (initiator mode)
- */
+
 struct bfa_itnim_s {
-	struct list_head    qe;		/*  queue element               */
-	bfa_sm_t	  sm;		/*  i-t-n im BFA state machine  */
-	struct bfa_s      *bfa;		/*  bfa instance                */
-	struct bfa_rport_s *rport;	/*  bfa rport                   */
-	void           *ditn;		/*  driver i-t-n structure      */
-	struct bfi_mhdr_s      mhdr;	/*  pre-built mhdr              */
-	u8         msg_no;		/*  itnim/rport firmware handle */
-	u8         reqq;		/*  CQ for requests             */
-	struct bfa_cb_qe_s    hcb_qe;	/*  bfa callback qelem          */
-	struct list_head pending_q;	/*  queue of pending IO requests*/
-	struct list_head io_q;		/*  queue of active IO requests */
-	struct list_head io_cleanup_q;	/*  IO being cleaned up         */
-	struct list_head tsk_q;		/*  queue of active TM commands */
-	struct list_head  delay_comp_q;/*  queue of failed inflight cmds */
-	bfa_boolean_t   seq_rec;	/*  SQER supported              */
-	bfa_boolean_t   is_online;	/*  itnim is ONLINE for IO      */
-	bfa_boolean_t   iotov_active;	/*  IO TOV timer is active	 */
-	struct bfa_wc_s        wc;	/*  waiting counter             */
-	struct bfa_timer_s timer;	/*  pending IO TOV		 */
-	struct bfa_reqq_wait_s reqq_wait; /*  to wait for room in reqq */
-	struct bfa_fcpim_mod_s *fcpim;	/*  fcpim module                */
+	struct list_head    qe;		
+	bfa_sm_t	  sm;		
+	struct bfa_s      *bfa;		
+	struct bfa_rport_s *rport;	
+	void           *ditn;		
+	struct bfi_mhdr_s      mhdr;	
+	u8         msg_no;		
+	u8         reqq;		
+	struct bfa_cb_qe_s    hcb_qe;	
+	struct list_head pending_q;	
+	struct list_head io_q;		
+	struct list_head io_cleanup_q;	
+	struct list_head tsk_q;		
+	struct list_head  delay_comp_q;
+	bfa_boolean_t   seq_rec;	
+	bfa_boolean_t   is_online;	
+	bfa_boolean_t   iotov_active;	
+	struct bfa_wc_s        wc;	
+	struct bfa_timer_s timer;	
+	struct bfa_reqq_wait_s reqq_wait; 
+	struct bfa_fcpim_mod_s *fcpim;	
 	struct bfa_itnim_hal_stats_s	stats;
 };
 
@@ -150,9 +129,7 @@ struct bfa_itnim_s {
 #define BFA_TSKIM_FROM_TAG(_fcpim, _tmtag)                  \
     (&fcpim->tskim_arr[_tmtag & (fcpim->num_tskim_reqs - 1)])
 
-/*
- * function prototypes
- */
+
 void            bfa_ioim_attach(struct bfa_fcpim_mod_s *fcpim,
 				    struct bfa_meminfo_s *minfo);
 void            bfa_ioim_detach(struct bfa_fcpim_mod_s *fcpim);
@@ -184,5 +161,5 @@ void            bfa_itnim_iodone(struct bfa_itnim_s *itnim);
 void            bfa_itnim_tskdone(struct bfa_itnim_s *itnim);
 bfa_boolean_t   bfa_itnim_hold_io(struct bfa_itnim_s *itnim);
 
-#endif /* __BFA_FCPIM_PRIV_H__ */
+#endif 
 

@@ -1,18 +1,4 @@
-/*
- *	LAPB release 002
- *
- *	This code REQUIRES 2.1.15 or higher/ NET3.038
- *
- *	This module:
- *		This module is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- *	History
- *	LAPB 001	Jonathan Naylor	Started Coding
- *	LAPB 002	Jonathan Naylor	New timer architecture.
- */
+
 
 #include <linux/errno.h>
 #include <linux/types.h>
@@ -90,17 +76,13 @@ static void lapb_t1timer_expiry(unsigned long param)
 
 	switch (lapb->state) {
 
-		/*
-		 *	If we are a DCE, keep going DM .. DM .. DM
-		 */
+		
 		case LAPB_STATE_0:
 			if (lapb->mode & LAPB_DCE)
 				lapb_send_control(lapb, LAPB_DM, LAPB_POLLOFF, LAPB_RESPONSE);
 			break;
 
-		/*
-		 *	Awaiting connection state, send SABM(E), up to N2 times.
-		 */
+		
 		case LAPB_STATE_1:
 			if (lapb->n2count == lapb->n2) {
 				lapb_clear_queues(lapb);
@@ -126,9 +108,7 @@ static void lapb_t1timer_expiry(unsigned long param)
 			}
 			break;
 
-		/*
-		 *	Awaiting disconnection state, send DISC, up to N2 times.
-		 */
+		
 		case LAPB_STATE_2:
 			if (lapb->n2count == lapb->n2) {
 				lapb_clear_queues(lapb);
@@ -147,9 +127,7 @@ static void lapb_t1timer_expiry(unsigned long param)
 			}
 			break;
 
-		/*
-		 *	Data transfer state, restransmit I frames, up to N2 times.
-		 */
+		
 		case LAPB_STATE_3:
 			if (lapb->n2count == lapb->n2) {
 				lapb_clear_queues(lapb);
@@ -166,9 +144,7 @@ static void lapb_t1timer_expiry(unsigned long param)
 			}
 			break;
 
-		/*
-		 *	Frame reject state, restransmit FRMR frames, up to N2 times.
-		 */
+		
 		case LAPB_STATE_4:
 			if (lapb->n2count == lapb->n2) {
 				lapb_clear_queues(lapb);

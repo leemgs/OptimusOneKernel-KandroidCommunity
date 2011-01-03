@@ -1,25 +1,4 @@
-/*
- * arch/arm/mach-ks8695/pci.c
- *
- *  Copyright (C) 2003, Micrel Semiconductors
- *  Copyright (C) 2006, Greg Ungerer <gerg@snapgear.com>
- *  Copyright (C) 2006, Ben Dooks
- *  Copyright (C) 2007, Andrew Victor
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/pci.h>
@@ -51,20 +30,16 @@ static void ks8695_pci_setupconfig(unsigned int bus_nr, unsigned int devfn, unsi
 	pbca |= bus_nr << 16;
 
 	if (bus_nr == 0) {
-		/* use Type-0 transaction */
+		
 		__raw_writel(pbca, KS8695_PCI_VA + KS8695_PBCA);
 	} else {
-		/* use Type-1 transaction */
+		
 		__raw_writel(pbca | PBCA_TYPE1, KS8695_PCI_VA + KS8695_PBCA);
 	}
 }
 
 
-/*
- * The KS8695 datasheet prohibits anything other than 32bit accesses
- * to the IO registers, so all our configuration must be done with
- * 32bit operations, and the correct bit masking and shifting.
- */
+
 
 static int ks8695_pci_readconfig(struct pci_bus *bus,
 			unsigned int devfn, int where, int size, u32 *value)
@@ -172,16 +147,16 @@ static int __init ks8695_pci_setup(int nr, struct pci_sys_data *sys)
 	sys->resource[1] = &pci_mem;
 	sys->resource[2] = NULL;
 
-	/* Assign and enable processor bridge */
+	
 	ks8695_local_writeconfig(PCI_BASE_ADDRESS_0, KS8695_PCIMEM_PA);
 
-	/* Enable bus-master & Memory Space access */
+	
 	ks8695_local_writeconfig(PCI_COMMAND, PCI_COMMAND_MASTER | PCI_COMMAND_MEMORY);
 
-	/* Set cache-line size & latency. */
+	
 	ks8695_local_writeconfig(PCI_CACHE_LINE_SIZE, (32 << 8) | (L1_CACHE_BYTES / sizeof(u32)));
 
-	/* Reserve PCI memory space for PCI-AHB resources */
+	
 	if (!request_mem_region(KS8695_PCIMEM_PA, SZ_64M, "PCI-AHB Bridge")) {
 		printk(KERN_ERR "Cannot allocate PCI-AHB Bridge memory.\n");
 		return -EBUSY;
@@ -214,10 +189,7 @@ static int ks8695_pci_fault(unsigned long addr, unsigned int fsr, struct pt_regs
 
 	__raw_writel(cmdstat, KS8695_PCI_VA + KS8695_CRCFCS);
 
-	/*
-	 * If the instruction being executed was a read,
-	 * make it look like it read all-ones.
-	 */
+	
 	if ((instr & 0x0c100000) == 0x04100000) {
 		int reg = (instr >> 12) & 15;
 		unsigned long val;
@@ -245,29 +217,29 @@ static int ks8695_pci_fault(unsigned long addr, unsigned int fsr, struct pt_regs
 
 static void __init ks8695_pci_preinit(void)
 {
-	/* make software reset to avoid freeze if PCI bus was messed up */
+	
 	__raw_writel(0x80000000, KS8695_PCI_VA + KS8695_PBCS);
 
-	/* stage 1 initialization, subid, subdevice = 0x0001 */
+	
 	__raw_writel(0x00010001, KS8695_PCI_VA + KS8695_CRCSID);
 
-	/* stage 2 initialization */
-	/* prefetch limits with 16 words, retry enable */
+	
+	
 	__raw_writel(0x40000000, KS8695_PCI_VA + KS8695_PBCS);
 
-	/* configure memory mapping */
+	
 	__raw_writel(KS8695_PCIMEM_PA, KS8695_PCI_VA + KS8695_PMBA);
 	__raw_writel(size_mask(KS8695_PCIMEM_SIZE), KS8695_PCI_VA + KS8695_PMBAM);
 	__raw_writel(KS8695_PCIMEM_PA, KS8695_PCI_VA + KS8695_PMBAT);
 	__raw_writel(0, KS8695_PCI_VA + KS8695_PMBAC);
 
-	/* configure IO mapping */
+	
 	__raw_writel(KS8695_PCIIO_PA, KS8695_PCI_VA + KS8695_PIOBA);
 	__raw_writel(size_mask(KS8695_PCIIO_SIZE), KS8695_PCI_VA + KS8695_PIOBAM);
 	__raw_writel(KS8695_PCIIO_PA, KS8695_PCI_VA + KS8695_PIOBAT);
 	__raw_writel(0, KS8695_PCI_VA + KS8695_PIOBAC);
 
-	/* hook in fault handlers */
+	
 	hook_fault_code(8, ks8695_pci_fault, SIGBUS, "external abort on non-linefetch");
 	hook_fault_code(10, ks8695_pci_fault, SIGBUS, "external abort on non-linefetch");
 }
@@ -320,10 +292,10 @@ void __init ks8695_init_pci(struct ks8695_pci_cfg *cfg)
 	printk(KERN_INFO "PCI: Initialising\n");
 	ks8695_show_pciregs();
 
-	/* set Mode */
+	
 	__raw_writel(cfg->mode << 29, KS8695_PCI_VA + KS8695_PBM);
 
-	ks8695_pci.map_irq = cfg->map_irq;	/* board-specific map_irq method */
+	ks8695_pci.map_irq = cfg->map_irq;	
 
 	pci_common_init(&ks8695_pci);
 }

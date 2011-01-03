@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s5pc1xx/s5pc100-clock.c
- *
- * Copyright 2009 Samsung Electronics, Co.
- *	Byungho Min <bhmin@samsung.com>
- *
- * S5PC100 based common clock support
- *
- * Based on plat-s3c64xx/s3c6400-clock.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -34,9 +22,7 @@
 #include <plat/devs.h>
 #include <plat/s5pc100.h>
 
-/* fin_apll, fin_mpll and fin_epll are all the same clock, which we call
- * ext_xtal_mux for want of an actual name from the manual.
-*/
+
 
 static struct clk clk_ext_xtal_mux = {
 	.name		= "ext_xtal",
@@ -84,7 +70,7 @@ static int clk_48m_ctrl(struct clk *clk, int enable)
 	unsigned long flags;
 	u32 val;
 
-	/* can't rely on clock lock, this register has other usages */
+	
 	local_irq_save(flags);
 
 	val = __raw_readl(S5PC1XX_CLK_SRC1);
@@ -266,7 +252,7 @@ static struct clk init_clocks_disable[] = {
 };
 
 static struct clk init_clocks[] = {
-	/* System1 (D0_0) devices */
+	
 	{
 		.name		= "intc",
 		.id		= -1,
@@ -311,7 +297,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D00_CSSYS,
 	},
 
-	/* Memory (D0_1) devices */
+	
 	{
 		.name		= "dmc",
 		.id		= -1,
@@ -350,7 +336,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D01_EBI,
 	},
 
-	/* System2 (D0_2) devices */
+	
 	{
 		.name		= "seckey",
 		.id		= -1,
@@ -365,7 +351,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D02_SDM,
 	},
 
-	/* File (D1_0) devices */
+	
 	{
 		.name		= "pdma0",
 		.id		= -1,
@@ -410,7 +396,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D10_HSMMC2,
 	},
 
-	/* Multimedia1 (D1_1) devices */
+	
 	{
 		.name		= "lcd",
 		.id		= -1,
@@ -455,7 +441,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D11_G3D,
 	},
 
-	/* Multimedia2 (D1_2) devices */
+	
 	{
 		.name		= "tv",
 		.id		= -1,
@@ -488,7 +474,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D12_MFC,
 	},
 
-	/* System (D1_3) devices */
+	
 	{
 		.name		= "chipid",
 		.id		= -1,
@@ -539,7 +525,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D13_RTC,
 	},
 
-	/* Connectivity (D1_4) devices */
+	
 	{
 		.name		= "uart",
 		.id		= 0,
@@ -614,7 +600,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D14_HSIRX,
 	},
 
-	/* Audio (D1_5) devices */
+	
 	{
 		.name		= "iis",
 		.id		= 0,
@@ -677,9 +663,9 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_D15_CG,
 	},
 
-	/* Audio (D2_0) devices: all disabled */
+	
 
-	/* Special Clocks 1 */
+	
 	{
 		.name		= "sclk_hpm",
 		.id		= -1,
@@ -730,7 +716,7 @@ static struct clk init_clocks[] = {
 		.ctrlbit	= S5PC100_CLKGATE_SCLK0_MMC2_48,
 	},
 
-	/* Special Clocks 2 */
+	
 	{
 		.name		= "sclk_tv_54",
 		.id		= -1,
@@ -1011,7 +997,7 @@ static struct clksrc_clk clk_uart_uclk1 = {
 	.reg_source	= S5PC1XX_CLK_SRC1,
 };
 
-/* Clock initialisation code */
+
 
 static struct clksrc_clk *init_parents[] = {
 	&clk_mout_apll,

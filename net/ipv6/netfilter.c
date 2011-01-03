@@ -46,7 +46,7 @@ int ip6_route_me_harder(struct sk_buff *skb)
 		return -EINVAL;
 	}
 
-	/* Drop old route. */
+	
 	skb_dst_drop(skb);
 
 	skb_dst_set(skb, dst);
@@ -54,10 +54,7 @@ int ip6_route_me_harder(struct sk_buff *skb)
 }
 EXPORT_SYMBOL(ip6_route_me_harder);
 
-/*
- * Extra routing may needed on local out, as the QUEUE target never
- * returns control to the table.
- */
+
 
 struct ip6_rt_info {
 	struct in6_addr daddr;
@@ -118,7 +115,7 @@ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
 			skb->ip_summed = CHECKSUM_UNNECESSARY;
 			break;
 		}
-		/* fall through */
+		
 	case CHECKSUM_NONE:
 		skb->csum = ~csum_unfold(
 				csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
@@ -145,7 +142,7 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
 	case CHECKSUM_COMPLETE:
 		if (len == skb->len - dataoff)
 			return nf_ip6_checksum(skb, hook, dataoff, protocol);
-		/* fall through */
+		
 	case CHECKSUM_NONE:
 		hsum = skb_checksum(skb, 0, dataoff, 0);
 		skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
@@ -176,9 +173,7 @@ int __init ipv6_netfilter_init(void)
 	return nf_register_afinfo(&nf_ip6_afinfo);
 }
 
-/* This can be called from inet6_init() on errors, so it cannot
- * be marked __exit. -DaveM
- */
+
 void ipv6_netfilter_fini(void)
 {
 	nf_unregister_afinfo(&nf_ip6_afinfo);

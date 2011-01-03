@@ -1,25 +1,4 @@
-/*
- *  Driver for Xceive XC5000 "QAM/8VSB single chip tuner"
- *
- *  Copyright (c) 2007 Xceive Corporation
- *  Copyright (c) 2007 Steven Toth <stoth@linuxtv.org>
- *  Copyright (c) 2009 Devin Heitmueller <dheitmueller@kernellabs.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -63,26 +42,26 @@ struct xc5000_priv {
 	u8  rf_mode;
 };
 
-/* Misc Defines */
+
 #define MAX_TV_STANDARD			23
 #define XC_MAX_I2C_WRITE_LENGTH		64
 
-/* Signal Types */
+
 #define XC_RF_MODE_AIR			0
 #define XC_RF_MODE_CABLE		1
 
-/* Result codes */
+
 #define XC_RESULT_SUCCESS		0
 #define XC_RESULT_RESET_FAILURE		1
 #define XC_RESULT_I2C_WRITE_FAILURE	2
 #define XC_RESULT_I2C_READ_FAILURE	3
 #define XC_RESULT_OUT_OF_RANGE		5
 
-/* Product id */
+
 #define XC_PRODUCT_ID_FW_NOT_LOADED	0x2000
 #define XC_PRODUCT_ID_FW_LOADED 	0x1388
 
-/* Registers */
+
 #define XREG_INIT         0x00
 #define XREG_VIDEO_MODE   0x01
 #define XREG_AUDIO_MODE   0x02
@@ -90,8 +69,8 @@ struct xc5000_priv {
 #define XREG_D_CODE       0x04
 #define XREG_IF_OUT       0x05
 #define XREG_SEEK_MODE    0x07
-#define XREG_POWER_DOWN   0x0A /* Obsolete */
-#define XREG_SIGNALSOURCE 0x0D /* 0=Air, 1=Cable */
+#define XREG_POWER_DOWN   0x0A 
+#define XREG_SIGNALSOURCE 0x0D 
 #define XREG_SMOOTHEDCVBS 0x0E
 #define XREG_XTALFREQ     0x0F
 #define XREG_FINERFREQ    0x10
@@ -109,46 +88,14 @@ struct xc5000_priv {
 #define XREG_BUSY         0x09
 #define XREG_BUILD        0x0D
 
-/*
-   Basic firmware description. This will remain with
-   the driver for documentation purposes.
 
-   This represents an I2C firmware file encoded as a
-   string of unsigned char. Format is as follows:
-
-   char[0  ]=len0_MSB  -> len = len_MSB * 256 + len_LSB
-   char[1  ]=len0_LSB  -> length of first write transaction
-   char[2  ]=data0 -> first byte to be sent
-   char[3  ]=data1
-   char[4  ]=data2
-   char[   ]=...
-   char[M  ]=dataN  -> last byte to be sent
-   char[M+1]=len1_MSB  -> len = len_MSB * 256 + len_LSB
-   char[M+2]=len1_LSB  -> length of second write transaction
-   char[M+3]=data0
-   char[M+4]=data1
-   ...
-   etc.
-
-   The [len] value should be interpreted as follows:
-
-   len= len_MSB _ len_LSB
-   len=1111_1111_1111_1111   : End of I2C_SEQUENCE
-   len=0000_0000_0000_0000   : Reset command: Do hardware reset
-   len=0NNN_NNNN_NNNN_NNNN   : Normal transaction: number of bytes = {1:32767)
-   len=1WWW_WWWW_WWWW_WWWW   : Wait command: wait for {1:32767} ms
-
-   For the RESET and WAIT commands, the two following bytes will contain
-   immediately the length of the following transaction.
-
-*/
 struct XC_TV_STANDARD {
 	char *Name;
 	u16 AudioMode;
 	u16 VideoMode;
 };
 
-/* Tuner standards */
+
 #define MN_NTSC_PAL_BTSC	0
 #define MN_NTSC_PAL_A2		1
 #define MN_NTSC_PAL_EIAJ	2
@@ -216,9 +163,7 @@ static int xc_send_i2c_data(struct xc5000_priv *priv, u8 *buf, int len)
 	return XC_RESULT_SUCCESS;
 }
 
-/* This routine is never used because the only time we read data from the
-   i2c bus is when we read registers, and we want that to be an atomic i2c
-   transaction in case we are on a multi-master bus */
+
 static int xc_read_i2c_data(struct xc5000_priv *priv, u8 *buf, int len)
 {
 	struct i2c_msg msg = { .addr = priv->i2c_props.addr,
@@ -272,7 +217,7 @@ static int xc_write_reg(struct xc5000_priv *priv, u16 regAddr, u16 i2cData)
 	buf[3] = i2cData & 0xFF;
 	result = xc_send_i2c_data(priv, buf, 4);
 	if (result == XC_RESULT_SUCCESS) {
-		/* wait for busy flag to clear */
+		
 		while ((WatchDogTimer > 0) && (result == XC_RESULT_SUCCESS)) {
 			buf[0] = 0;
 			buf[1] = XREG_BUSY;
@@ -282,10 +227,10 @@ static int xc_write_reg(struct xc5000_priv *priv, u16 regAddr, u16 i2cData)
 				result = xc_read_i2c_data(priv, buf, 2);
 				if (result == XC_RESULT_SUCCESS) {
 					if ((buf[0] == 0) && (buf[1] == 0)) {
-						/* busy flag cleared */
+						
 					break;
 					} else {
-						xc_wait(5); /* wait 5 ms */
+						xc_wait(5); 
 						WatchDogTimer--;
 					}
 				}
@@ -311,19 +256,17 @@ static int xc_load_i2c_sequence(struct dvb_frontend *fe, const u8 *i2c_sequence)
 		(i2c_sequence[index + 1] != 0xFF)) {
 		len = i2c_sequence[index] * 256 + i2c_sequence[index+1];
 		if (len == 0x0000) {
-			/* RESET command */
+			
 			result = xc5000_TunerReset(fe);
 			index += 2;
 			if (result != XC_RESULT_SUCCESS)
 				return result;
 		} else if (len & 0x8000) {
-			/* WAIT command */
+			
 			xc_wait(len & 0x7FFF);
 			index += 2;
 		} else {
-			/* Send i2c data whilst ensuring individual transactions
-			 * do not exceed XC_MAX_I2C_WRITE_LENGTH bytes.
-			 */
+			
 			index += 2;
 			buf[0] = i2c_sequence[index];
 			buf[1] = i2c_sequence[index + 1];
@@ -402,9 +345,7 @@ static int xc_set_RF_frequency(struct xc5000_priv *priv, u32 freq_hz)
 
 	freq_code = (u16)(freq_hz / 15625);
 
-	/* Starting in firmware version 1.1.44, Xceive recommends using the
-	   FINERFREQ for all normal tuning (the doc indicates reg 0x03 should
-	   only be used for fast scanning for channel lock) */
+	
 	return xc_write_reg(priv, XREG_FINERFREQ, freq_code);
 }
 
@@ -551,7 +492,7 @@ static int xc5000_fwupload(struct dvb_frontend *fe)
 	const struct firmware *fw;
 	int ret;
 
-	/* request the firmware, this will block and timeout */
+	
 	printk(KERN_INFO "xc5000: waiting for firmware upload (%s)...\n",
 		XC5000_DEFAULT_FIRMWARE);
 
@@ -593,10 +534,7 @@ static void xc_debug_dump(struct xc5000_priv *priv)
 	u8 fw_majorversion = 0, fw_minorversion = 0;
 	u16 fw_buildversion = 0;
 
-	/* Wait for stats to stabilize.
-	 * Frame Lines needs two frame times after initial lock
-	 * before it is valid.
-	 */
+	
 	xc_wait(100);
 
 	xc_get_ADC_Envelope(priv,  &adc_envelope);
@@ -751,43 +689,41 @@ static int xc5000_set_analog_params(struct dvb_frontend *fe,
 	dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
 		__func__, params->frequency);
 
-	/* Fix me: it could be air. */
+	
 	priv->rf_mode = params->mode;
 	if (params->mode > XC_RF_MODE_CABLE)
 		priv->rf_mode = XC_RF_MODE_CABLE;
 
-	/* params->frequency is in units of 62.5khz */
+	
 	priv->freq_hz = params->frequency * 62500;
 
-	/* FIX ME: Some video standards may have several possible audio
-		   standards. We simply default to one of them here.
-	 */
+	
 	if (params->std & V4L2_STD_MN) {
-		/* default to BTSC audio standard */
+		
 		priv->video_standard = MN_NTSC_PAL_BTSC;
 		goto tune_channel;
 	}
 
 	if (params->std & V4L2_STD_PAL_BG) {
-		/* default to NICAM audio standard */
+		
 		priv->video_standard = BG_PAL_NICAM;
 		goto tune_channel;
 	}
 
 	if (params->std & V4L2_STD_PAL_I) {
-		/* default to NICAM audio standard */
+		
 		priv->video_standard = I_PAL_NICAM;
 		goto tune_channel;
 	}
 
 	if (params->std & V4L2_STD_PAL_DK) {
-		/* default to NICAM audio standard */
+		
 		priv->video_standard = DK_PAL_NICAM;
 		goto tune_channel;
 	}
 
 	if (params->std & V4L2_STD_SECAM_DK) {
-		/* default to A2 DK1 audio standard */
+		
 		priv->video_standard = DK_SECAM_A2DK1;
 		goto tune_channel;
 	}
@@ -869,17 +805,13 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
 			return ret;
 	}
 
-	/* Start the tuner self-calibration process */
+	
 	ret |= xc_initialize(priv);
 
-	/* Wait for calibration to complete.
-	 * We could continue but XC5000 will clock stretch subsequent
-	 * I2C transactions until calibration is complete.  This way we
-	 * don't have to rely on clock stretching working.
-	 */
+	
 	xc_wait(100);
 
-	/* Default to "CABLE" mode */
+	
 	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
 
 	return ret;
@@ -891,13 +823,11 @@ static int xc5000_sleep(struct dvb_frontend *fe)
 
 	dprintk(1, "%s()\n", __func__);
 
-	/* Avoid firmware reload on slow devices */
+	
 	if (no_poweroff)
 		return 0;
 
-	/* According to Xceive technical support, the "powerdown" register
-	   was removed in newer versions of the firmware.  The "supported"
-	   way to sleep the tuner is to pull the reset pin low for 10ms */
+	
 	ret = xc5000_TunerReset(fe);
 	if (ret != XC_RESULT_SUCCESS) {
 		printk(KERN_ERR
@@ -983,26 +913,22 @@ struct dvb_frontend *xc5000_attach(struct dvb_frontend *fe,
 		goto fail;
 		break;
 	case 1:
-		/* new tuner instance */
+		
 		priv->bandwidth = BANDWIDTH_6_MHZ;
 		fe->tuner_priv = priv;
 		break;
 	default:
-		/* existing tuner instance */
+		
 		fe->tuner_priv = priv;
 		break;
 	}
 
 	if (priv->if_khz == 0) {
-		/* If the IF hasn't been set yet, use the value provided by
-		   the caller (occurs in hybrid devices where the analog
-		   call to xc5000_attach occurs before the digital side) */
+		
 		priv->if_khz = cfg->if_khz;
 	}
 
-	/* Check if firmware has been loaded. It is possible that another
-	   instance of the driver has loaded the firmware.
-	 */
+	
 	if (xc5000_readreg(priv, XREG_PRODUCT_ID, &id) != XC_RESULT_SUCCESS)
 		goto fail;
 

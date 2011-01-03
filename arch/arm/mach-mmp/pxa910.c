@@ -1,12 +1,4 @@
-/*
- *  linux/arch/arm/mach-mmp/pxa910.c
- *
- *  Code specific to PXA910
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -84,10 +76,10 @@ static void __init pxa910_init_gpio(void)
 {
 	int i;
 
-	/* enable GPIO clock */
+	
 	__raw_writel(APBC_APBCLK | APBC_FNCLK, APBC_PXA910_GPIO);
 
-	/* unmask GPIO edge detection for all 4 banks - APMASKx */
+	
 	for (i = 0; i < 4; i++)
 		__raw_writel(0xffffffff, APMASK(i));
 
@@ -100,7 +92,7 @@ void __init pxa910_init_irq(void)
 	pxa910_init_gpio();
 }
 
-/* APB peripheral clocks */
+
 static APBC_CLK(uart1, PXA910_UART0, 1, 14745600);
 static APBC_CLK(uart2, PXA910_UART1, 1, 14745600);
 static APBC_CLK(twsi0, PXA168_TWSI0, 1, 33000000);
@@ -110,7 +102,7 @@ static APBC_CLK(pwm2, PXA910_PWM2, 1, 13000000);
 static APBC_CLK(pwm3, PXA910_PWM3, 1, 13000000);
 static APBC_CLK(pwm4, PXA910_PWM4, 1, 13000000);
 
-/* device and clock bindings */
+
 static struct clk_lookup pxa910_clkregs[] = {
 	INIT_CLKREG(&clk_uart1, "pxa2xx-uart.0", NULL),
 	INIT_CLKREG(&clk_uart2, "pxa2xx-uart.1", NULL),
@@ -135,12 +127,12 @@ static int __init pxa910_init(void)
 }
 postcore_initcall(pxa910_init);
 
-/* system timer - clock enabled, 3.25MHz */
+
 #define TIMER_CLK_RST	(APBC_APBCLK | APBC_FNCLK | APBC_FNCLKSEL(3))
 
 static void __init pxa910_timer_init(void)
 {
-	/* reset and configure */
+	
 	__raw_writel(APBC_APBCLK | APBC_RST, APBC_PXA910_TIMERS);
 	__raw_writel(TIMER_CLK_RST, APBC_PXA910_TIMERS);
 
@@ -151,21 +143,9 @@ struct sys_timer pxa910_timer = {
 	.init	= pxa910_timer_init,
 };
 
-/* on-chip devices */
 
-/* NOTE: there are totally 3 UARTs on PXA910:
- *
- *   UART1   - Slow UART (can be used both by AP and CP)
- *   UART2/3 - Fast UART
- *
- * To be backward compatible with the legacy FFUART/BTUART/STUART sequence,
- * they are re-ordered as:
- *
- *   pxa910_device_uart1 - UART2 as FFUART
- *   pxa910_device_uart2 - UART3 as BTUART
- *
- * UART1 is not used by AP for the moment.
- */
+
+
 PXA910_DEVICE(uart1, "pxa2xx-uart", 0, UART2, 0xd4017000, 0x30, 21, 22);
 PXA910_DEVICE(uart2, "pxa2xx-uart", 1, UART3, 0xd4018000, 0x30, 23, 24);
 PXA910_DEVICE(twsi0, "pxa2xx-i2c", 0, TWSI0, 0xd4011000, 0x28);

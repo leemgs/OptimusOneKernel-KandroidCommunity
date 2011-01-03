@@ -1,27 +1,4 @@
-/*
- *    Disk Array driver for Compaq SMART2 Controllers
- *    Copyright 1998 Compaq Computer Corporation
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- *    NON INFRINGEMENT.  See the GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *    Questions/Comments/Bugfixes to iss_storagedev@hp.com
- *
- *    If you want to make changes, improve or add functionality to this
- *    driver, you'll probably need the Compaq Array Controller Interface
- *    Specificiation (Document number ECG086/1198)
- */
+
 #ifndef CPQARRAY_H
 #define CPQARRAY_H
 
@@ -86,7 +63,7 @@ struct ctlr_info {
 	int	log_drives;
 	int	phys_drives;
 
-	struct pci_dev *pci_dev;    /* NULL if EISA */
+	struct pci_dev *pci_dev;    
 	__u32	board_id;
 	char	*product_name;	
 
@@ -123,4 +100,4 @@ struct ctlr_info {
 
 #endif
 
-#endif /* CPQARRAY_H */
+#endif 

@@ -1,20 +1,4 @@
-/*
- * adv7180.c Analog Devices ADV7180 video decoder driver
- * Copyright (c) 2009 Intel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -115,10 +99,7 @@ static const struct v4l2_subdev_ops adv7180_ops = {
 	.video = &adv7180_video_ops,
 };
 
-/*
- * Generic i2c probe
- * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
- */
+
 
 static int adv7180_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
@@ -127,7 +108,7 @@ static int adv7180_probe(struct i2c_client *client,
 	struct v4l2_subdev *sd;
 	int ret;
 
-	/* Check if the adapter supports the needed features */
+	
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -EIO;
 
@@ -140,8 +121,8 @@ static int adv7180_probe(struct i2c_client *client,
 	sd = &state->sd;
 	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
 
-	/* Initialize adv7180 */
-	/* enable autodetection */
+	
+	
 	ret = i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
 		ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM);
 	if (ret > 0)

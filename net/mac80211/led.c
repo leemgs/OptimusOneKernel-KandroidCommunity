@@ -1,12 +1,6 @@
-/*
- * Copyright 2006, Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
-/* just for IFNAMSIZ */
+
+
 #include <linux/if.h>
 #include "led.h"
 
@@ -20,12 +14,12 @@ void ieee80211_led_rx(struct ieee80211_local *local)
 		led_trigger_event(local->rx_led, LED_FULL);
 }
 
-/* q is 1 if a packet was enqueued, 0 if it has been transmitted */
+
 void ieee80211_led_tx(struct ieee80211_local *local, int q)
 {
 	if (unlikely(!local->tx_led))
 		return;
-	/* not sure how this is supposed to work ... */
+	
 	local->tx_led_counter += 2*q-1;
 	if (local->tx_led_counter % 2 == 0)
 		led_trigger_event(local->tx_led, LED_OFF);

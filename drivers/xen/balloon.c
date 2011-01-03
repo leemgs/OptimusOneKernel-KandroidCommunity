@@ -1,36 +1,4 @@
-/******************************************************************************
- * balloon.c
- *
- * Xen balloon driver - enables returning/claiming memory to/from Xen.
- *
- * Copyright (c) 2003, B Dragovic
- * Copyright (c) 2003-2004, M Williamson, K Fraser
- * Copyright (c) 2005 Dan M. Smith, IBM Corporation
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -63,15 +31,12 @@
 #define BALLOON_CLASS_NAME "xen_memory"
 
 struct balloon_stats {
-	/* We aim for 'current allocation' == 'target allocation'. */
+	
 	unsigned long current_pages;
 	unsigned long target_pages;
-	/*
-	 * Drivers may alter the memory reservation independently, but they
-	 * must inform the balloon driver so we avoid hitting the hard limit.
-	 */
+	
 	unsigned long driver_pages;
-	/* Number of pages in high- and low-memory balloons. */
+	
 	unsigned long balloon_low;
 	unsigned long balloon_high;
 };
@@ -82,16 +47,12 @@ static struct sys_device balloon_sysdev;
 
 static int register_balloon(struct sys_device *sysdev);
 
-/*
- * Protects atomic reservation decrease/increase against concurrent increases.
- * Also protects non-atomic updates of current_pages and driver_pages, and
- * balloon lists.
- */
+
 static DEFINE_SPINLOCK(balloon_lock);
 
 static struct balloon_stats balloon_stats;
 
-/* We increase/decrease in batches which fit in a page */
+
 static unsigned long frame_list[PAGE_SIZE / sizeof(unsigned long)];
 
 #ifdef CONFIG_HIGHMEM
@@ -102,16 +63,15 @@ static unsigned long frame_list[PAGE_SIZE / sizeof(unsigned long)];
 #define dec_totalhigh_pages() do {} while(0)
 #endif
 
-/* List of ballooned pages, threaded through the mem_map array. */
+
 static LIST_HEAD(ballooned_pages);
 
-/* Main work function, always executed in process context. */
+
 static void balloon_process(struct work_struct *work);
 static DECLARE_WORK(balloon_worker, balloon_process);
 static struct timer_list balloon_timer;
 
-/* When ballooning out (allocating memory to return to Xen) we don't really
-   want the kernel to try too hard since that can trigger the oom killer. */
+
 #define GFP_BALLOON \
 	(GFP_HIGHUSER | __GFP_NOWARN | __GFP_NORETRY | __GFP_NOMEMALLOC)
 
@@ -122,10 +82,10 @@ static void scrub_page(struct page *page)
 #endif
 }
 
-/* balloon_append: add the given page to the balloon. */
+
 static void balloon_append(struct page *page)
 {
-	/* Lowmem is re-populated first, so highmem pages go at list tail. */
+	
 	if (PageHighMem(page)) {
 		list_add_tail(&page->lru, &ballooned_pages);
 		balloon_stats.balloon_high++;
@@ -138,7 +98,7 @@ static void balloon_append(struct page *page)
 	totalram_pages--;
 }
 
-/* balloon_retrieve: rescue a page from the balloon, if it is not empty. */
+
 static struct page *balloon_retrieve(void)
 {
 	struct page *page;
@@ -232,7 +192,7 @@ static int increase_reservation(unsigned long nr_pages)
 
 		set_phys_to_machine(pfn, frame_list[i]);
 
-		/* Link back into the page tables if not highmem. */
+		
 		if (pfn < max_low_pfn) {
 			int ret;
 			ret = HYPERVISOR_update_va_mapping(
@@ -242,7 +202,7 @@ static int increase_reservation(unsigned long nr_pages)
 			BUG_ON(ret);
 		}
 
-		/* Relinquish the page back to the allocator. */
+		
 		ClearPageReserved(page);
 		init_page_count(page);
 		__free_page(page);
@@ -292,13 +252,13 @@ static int decrease_reservation(unsigned long nr_pages)
 
 	}
 
-	/* Ensure that ballooned highmem pages don't have kmaps. */
+	
 	kmap_flush_unused();
 	flush_tlb_all();
 
 	spin_lock_irqsave(&balloon_lock, flags);
 
-	/* No more mappings: invalidate P2M and add to balloon. */
+	
 	for (i = 0; i < nr_pages; i++) {
 		pfn = mfn_to_pfn(frame_list[i]);
 		set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
@@ -317,12 +277,7 @@ static int decrease_reservation(unsigned long nr_pages)
 	return need_sleep;
 }
 
-/*
- * We avoid multiple worker processes conflicting via the balloon mutex.
- * We may of course race updates of the target counts (which are protected
- * by the balloon lock), or with changes to the Xen hard limit, but we will
- * recover from these in time.
- */
+
 static void balloon_process(struct work_struct *work)
 {
 	int need_sleep = 0;
@@ -343,17 +298,17 @@ static void balloon_process(struct work_struct *work)
 #endif
 	} while ((credit != 0) && !need_sleep);
 
-	/* Schedule more work if there is some still to be done. */
+	
 	if (current_target() != balloon_stats.current_pages)
 		mod_timer(&balloon_timer, jiffies + HZ);
 
 	mutex_unlock(&balloon_mutex);
 }
 
-/* Resets the Xen limit, sets new target, and kicks off processing. */
+
 static void balloon_set_new_target(unsigned long target)
 {
-	/* No need for lock. Not read-modify-write updates. */
+	
 	balloon_stats.target_pages = target;
 	schedule_work(&balloon_worker);
 }
@@ -363,7 +318,7 @@ static struct xenbus_watch target_watch =
 	.node = "memory/target"
 };
 
-/* React to a change in the target key */
+
 static void watch_target(struct xenbus_watch *watch,
 			 const char **vec, unsigned int len)
 {
@@ -372,13 +327,11 @@ static void watch_target(struct xenbus_watch *watch,
 
 	err = xenbus_scanf(XBT_NIL, "memory", "target", "%llu", &new_target);
 	if (err != 1) {
-		/* This is ok (for domain0 at least) - so just return */
+		
 		return;
 	}
 
-	/* The given memory/target value is in KiB, so it needs converting to
-	 * pages. PAGE_SHIFT converts bytes to pages, hence PAGE_SHIFT - 10.
-	 */
+	
 	balloon_set_new_target(new_target >> (PAGE_SHIFT - 10));
 }
 
@@ -419,7 +372,7 @@ static int __init balloon_init(void)
 
 	register_balloon(&balloon_sysdev);
 
-	/* Initialise the balloon with excess memory space. */
+	
 	for (pfn = xen_start_info->nr_pages; pfn < max_pfn; pfn++) {
 		page = pfn_to_page(pfn);
 		if (!PageReserved(page))
@@ -438,7 +391,7 @@ subsys_initcall(balloon_init);
 
 static void balloon_exit(void)
 {
-    /* XXX - release balloon here */
+    
     return;
 }
 

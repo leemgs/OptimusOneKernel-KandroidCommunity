@@ -1,23 +1,4 @@
-/*
- *  Driver for the Conexant CX23885 PCIe bridge
- *
- *  Copyright (c) 2007 Steven Toth <stoth@linuxtv.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -40,7 +21,7 @@ MODULE_PARM_DESC(vbi_debug, "enable debug messages [vbi]");
 		printk(KERN_DEBUG "%s/0: " fmt, dev->name, ## arg);\
 	} while (0)
 
-/* ------------------------------------------------------------------ */
+
 
 int cx23885_vbi_fmt(struct file *file, void *priv,
 	struct v4l2_format *f)
@@ -49,13 +30,13 @@ int cx23885_vbi_fmt(struct file *file, void *priv,
 	struct cx23885_dev *dev = fh->dev;
 
 	if (dev->tvnorm & V4L2_STD_525_60) {
-		/* ntsc */
+		
 		f->fmt.vbi.sampling_rate = 28636363;
 		f->fmt.vbi.start[0] = 10;
 		f->fmt.vbi.start[1] = 273;
 
 	} else if (dev->tvnorm & V4L2_STD_625_50) {
-		/* pal */
+		
 		f->fmt.vbi.sampling_rate = 35468950;
 		f->fmt.vbi.start[0] = 7 - 1;
 		f->fmt.vbi.start[1] = 319 - 1;
@@ -67,18 +48,18 @@ static int cx23885_start_vbi_dma(struct cx23885_dev    *dev,
 			 struct cx23885_dmaqueue *q,
 			 struct cx23885_buffer   *buf)
 {
-	/* setup fifo + format */
+	
 	cx23885_sram_channel_setup(dev, &dev->sram_channels[SRAM_CH02],
 				buf->vb.width, buf->risc.dma);
 
-	/* reset counter */
+	
 	q->count = 1;
 
-	/* enable irqs */
+	
 	cx_set(PCI_INT_MSK, cx_read(PCI_INT_MSK) | 0x01);
 	cx_set(VID_A_INT_MSK, 0x000022);
 
-	/* start dma */
+	
 	cx_set(DEV_CNTRL2, (1<<5));
 	cx_set(VID_A_DMA_CTL, 0x00000022);
 
@@ -132,7 +113,7 @@ void cx23885_vbi_timeout(unsigned long data)
 	spin_unlock_irqrestore(&dev->slock, flags);
 }
 
-/* ------------------------------------------------------------------ */
+
 #define VBI_LINE_LENGTH 2048
 #define VBI_LINE_COUNT 17
 
@@ -198,10 +179,10 @@ vbi_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
 	struct cx23885_dev      *dev  = fh->dev;
 	struct cx23885_dmaqueue *q    = &dev->vbiq;
 
-	/* add jump to stopper */
+	
 	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
 	buf->risc.jmp[1] = cpu_to_le32(q->stopper.dma);
-	buf->risc.jmp[2] = cpu_to_le32(0); /* bits 63-32 */
+	buf->risc.jmp[2] = cpu_to_le32(0); 
 
 	if (list_empty(&q->active)) {
 		list_add_tail(&buf->vb.queue, &q->active);
@@ -219,7 +200,7 @@ vbi_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
 		buf->vb.state = VIDEOBUF_ACTIVE;
 		buf->count    = q->count++;
 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
-		prev->risc.jmp[2] = cpu_to_le32(0); /* Bits 63-32 */
+		prev->risc.jmp[2] = cpu_to_le32(0); 
 		dprintk(2, "[%p/%d] buffer_queue - append to active\n",
 			buf, buf->vb.i);
 	}
@@ -240,9 +221,5 @@ struct videobuf_queue_ops cx23885_vbi_qops = {
 	.buf_release  = vbi_release,
 };
 
-/* ------------------------------------------------------------------ */
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+
+

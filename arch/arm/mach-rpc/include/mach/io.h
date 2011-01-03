@@ -1,15 +1,4 @@
-/*
- *  arch/arm/mach-rpc/include/mach/io.h
- *
- *  Copyright (C) 1997 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Modifications:
- *  06-Dec-1997	RMK	Created.
- */
+
 #ifndef __ASM_ARM_ARCH_IO_H
 #define __ASM_ARM_ARCH_IO_H
 
@@ -17,18 +6,10 @@
 
 #define IO_SPACE_LIMIT 0xffffffff
 
-/*
- * We use two different types of addressing - PC style addresses, and ARM
- * addresses.  PC style accesses the PC hardware with the normal PC IO
- * addresses, eg 0x3f8 for serial#1.  ARM addresses are 0x80000000+
- * and are translated to the start of IO.  Note that all addresses are
- * shifted left!
- */
+
 #define __PORT_PCIO(x)	(!((x) & 0x80000000))
 
-/*
- * Dynamic IO functions.
- */
+
 static inline void __outb (unsigned int value, unsigned int port)
 {
 	unsigned long temp;
@@ -103,12 +84,7 @@ DECLARE_IO(int,l,"")
 #undef DECLARE_IO
 #undef DECLARE_DYN_IN
 
-/*
- * Constant address IO functions
- *
- * These have to be macros for the 'J' constraint to work -
- * +/-4096 immediate operand.
- */
+
 #define __outbc(value,port)							\
 ({										\
 	if (__PORT_PCIO((port)))						\
@@ -196,7 +172,7 @@ DECLARE_IO(int,l,"")
 #define outw(v,p)	(__builtin_constant_p((p)) ? __outwc(v,p) : __outw(v,p))
 #define outl(v,p)	(__builtin_constant_p((p)) ? __outlc(v,p) : __outl(v,p))
 
-/* the following macro is deprecated */
+
 #define ioaddr(port)	((unsigned long)__ioaddr((port)))
 
 #define insb(p,d,l)	__raw_readsb(__ioaddr(p),d,l)
@@ -205,9 +181,7 @@ DECLARE_IO(int,l,"")
 #define outsb(p,d,l)	__raw_writesb(__ioaddr(p),d,l)
 #define outsw(p,d,l)	__raw_writesw(__ioaddr(p),d,l)
 
-/*
- * 1:1 mapping for ioremapped regions.
- */
+
 #define __mem_pci(x)	(x)
 
 #endif

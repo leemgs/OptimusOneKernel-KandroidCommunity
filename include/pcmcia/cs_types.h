@@ -1,16 +1,4 @@
-/*
- * cs_types.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999             David A. Hinds
- */
+
 
 #ifndef _LINUX_CS_TYPES_H
 #define _LINUX_CS_TYPES_H
@@ -38,4 +26,4 @@ typedef struct region_t *memory_handle_t;
 
 typedef char dev_info_t[DEV_NAME_LEN];
 
-#endif /* _LINUX_CS_TYPES_H */
+#endif 

@@ -1,10 +1,4 @@
-/*
- * zfcp device driver
- *
- * Registration and callback for the s390 common I/O layer.
- *
- * Copyright IBM Corporation 2002, 2009
- */
+
 
 #define KMSG_COMPONENT "zfcp"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -56,38 +50,19 @@ static struct ccw_device_id zfcp_ccw_device_id[] = {
 };
 MODULE_DEVICE_TABLE(ccw, zfcp_ccw_device_id);
 
-/**
- * zfcp_ccw_priv_sch - check if subchannel is privileged
- * @adapter: Adapter/Subchannel to check
- */
+
 int zfcp_ccw_priv_sch(struct zfcp_adapter *adapter)
 {
 	return adapter->ccw_device->id.dev_model == ZFCP_MODEL_PRIV;
 }
 
-/**
- * zfcp_ccw_probe - probe function of zfcp driver
- * @ccw_device: pointer to belonging ccw device
- *
- * This function gets called by the common i/o layer for each FCP
- * device found on the current system. This is only a stub to make cio
- * work: To only allocate adapter resources for devices actually used,
- * the allocation is deferred to the first call to ccw_set_online.
- */
+
 static int zfcp_ccw_probe(struct ccw_device *ccw_device)
 {
 	return 0;
 }
 
-/**
- * zfcp_ccw_remove - remove function of zfcp driver
- * @ccw_device: pointer to belonging ccw device
- *
- * This function gets called by the common i/o layer and removes an adapter
- * from the system. Task of this function is to get rid of all units and
- * ports that belong to this adapter. And in addition all resources of this
- * adapter will be freed too.
- */
+
 static void zfcp_ccw_remove(struct ccw_device *ccw_device)
 {
 	struct zfcp_adapter *adapter;
@@ -108,7 +83,7 @@ static void zfcp_ccw_remove(struct ccw_device *ccw_device)
 
 	mutex_lock(&zfcp_data.config_mutex);
 
-	/* this also removes the scsi devices, so call it first */
+	
 	zfcp_adapter_scsi_unregister(adapter);
 
 	write_lock_irq(&zfcp_data.config_lock);
@@ -136,19 +111,7 @@ out:
 	mutex_unlock(&zfcp_data.config_mutex);
 }
 
-/**
- * zfcp_ccw_set_online - set_online function of zfcp driver
- * @ccw_device: pointer to belonging ccw device
- *
- * This function gets called by the common i/o layer and sets an
- * adapter into state online.  The first call will allocate all
- * adapter resources that will be retained until the device is removed
- * via zfcp_ccw_remove.
- *
- * Setting an fcp device online means that it will be registered with
- * the SCSI stack, that the QDIO queues will be set up and that the
- * adapter will be opened.
- */
+
 static int zfcp_ccw_set_online(struct ccw_device *ccw_device)
 {
 	struct zfcp_adapter *adapter;
@@ -168,7 +131,7 @@ static int zfcp_ccw_set_online(struct ccw_device *ccw_device)
 		adapter = dev_get_drvdata(&ccw_device->dev);
 	}
 
-	/* initialize request counter */
+	
 	BUG_ON(!zfcp_reqlist_isempty(adapter));
 	adapter->req_no = 0;
 
@@ -184,13 +147,7 @@ out:
 	return ret;
 }
 
-/**
- * zfcp_ccw_set_offline - set_offline function of zfcp driver
- * @ccw_device: pointer to belonging ccw device
- *
- * This function gets called by the common i/o layer and sets an adapter
- * into state offline.
- */
+
 static int zfcp_ccw_set_offline(struct ccw_device *ccw_device)
 {
 	struct zfcp_adapter *adapter;
@@ -203,14 +160,7 @@ static int zfcp_ccw_set_offline(struct ccw_device *ccw_device)
 	return 0;
 }
 
-/**
- * zfcp_ccw_notify - ccw notify function
- * @ccw_device: pointer to belonging ccw device
- * @event: indicates if adapter was detached or attached
- *
- * This function gets called by the common i/o layer if an adapter has gone
- * or reappeared.
- */
+
 static int zfcp_ccw_notify(struct ccw_device *ccw_device, int event)
 {
 	struct zfcp_adapter *adapter = dev_get_drvdata(&ccw_device->dev);
@@ -244,10 +194,7 @@ static int zfcp_ccw_notify(struct ccw_device *ccw_device, int event)
 	return 1;
 }
 
-/**
- * zfcp_ccw_shutdown - handle shutdown from cio
- * @cdev: device for adapter to shutdown.
- */
+
 static void zfcp_ccw_shutdown(struct ccw_device *cdev)
 {
 	struct zfcp_adapter *adapter;
@@ -279,12 +226,7 @@ struct ccw_driver zfcp_ccw_driver = {
 	.restore     = zfcp_ccw_activate,
 };
 
-/**
- * zfcp_ccw_register - ccw register function
- *
- * Registers the driver at the common i/o layer. This function will be called
- * at module load time/system start.
- */
+
 int __init zfcp_ccw_register(void)
 {
 	return ccw_driver_register(&zfcp_ccw_driver);

@@ -1,18 +1,4 @@
-/*
- * linux/arch/arm/mach-w90x900/irq.c
- *
- * based on linux/arch/arm/plat-s3c24xx/irq.c by Ben Dooks
- *
- * Copyright (c) 2008 Nuvoton technology corporation
- * All rights reserved.
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation;version 2 of the License.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -138,10 +124,7 @@ static void nuc900_irq_mask(unsigned int irq)
 		group_irq_disable(group_irq);
 }
 
-/*
- * By the w90p910 spec,any irq,only write 1
- * to REG_AIC_EOSCR for ACK
- */
+
 
 static void nuc900_irq_ack(unsigned int irq)
 {

@@ -1,15 +1,4 @@
-/*
- * OF helpers for the I2C API
- *
- * Copyright (c) 2008 Jochen Friedrich <jochen@scram.de>
- *
- * Based on a previous patch from Jon Smirl <jonsmirl@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/i2c.h>
 #include <linux/of.h>
@@ -56,11 +45,7 @@ void of_register_i2c_devices(struct i2c_adapter *adap,
 			continue;
 		}
 
-		/*
-		 * Get the node to not lose the dev_archdata->of_node.
-		 * Currently there is no way to put it back, as well as no
-		 * of_unregister_i2c_devices() call.
-		 */
+		
 		of_node_get(node);
 	}
 }
@@ -71,7 +56,7 @@ static int of_dev_node_match(struct device *dev, void *data)
         return dev_archdata_get_node(&dev->archdata) == data;
 }
 
-/* must call put_device() when done with returned i2c_client device */
+
 struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
 {
 	struct device *dev;

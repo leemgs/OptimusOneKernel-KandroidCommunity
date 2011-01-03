@@ -1,15 +1,4 @@
-/* arch/arm/mach-s3c2410/include/mach/gpio-nrs.h
- *
- * Copyright (c) 2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2410 - GPIO bank numbering
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __MACH_GPIONRS_H
 #define __MACH_GPIONRS_H
@@ -25,7 +14,7 @@
 #define S3C2410_GPIO_BANKG   (32*6)
 #define S3C2410_GPIO_BANKH   (32*7)
 
-/* GPIO bank sizes */
+
 #define S3C2410_GPIO_A_NR	(32)
 #define S3C2410_GPIO_B_NR	(32)
 #define S3C2410_GPIO_C_NR	(32)
@@ -55,9 +44,9 @@ enum s3c_gpio_number {
 	S3C2410_GPIO_H_START = S3C2410_GPIO_NEXT(S3C2410_GPIO_G),
 };
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
-/* S3C2410 GPIO number definitions. */
+
 
 #define S3C2410_GPA(_nr)	(S3C2410_GPIO_A_START + (_nr))
 #define S3C2410_GPB(_nr)	(S3C2410_GPIO_B_START + (_nr))
@@ -68,7 +57,7 @@ enum s3c_gpio_number {
 #define S3C2410_GPG(_nr)	(S3C2410_GPIO_G_START + (_nr))
 #define S3C2410_GPH(_nr)	(S3C2410_GPIO_H_START + (_nr))
 
-/* compatibility until drivers can be modified */
+
 
 #define S3C2410_GPA0	S3C2410_GPA(0)
 #define S3C2410_GPA1	S3C2410_GPA(1)
@@ -89,5 +78,5 @@ enum s3c_gpio_number {
 
 #define S3C2410_GPH10	S3C2410_GPH(10)
 
-#endif /* __MACH_GPIONRS_H */
+#endif 
 

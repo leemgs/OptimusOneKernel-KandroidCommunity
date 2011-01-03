@@ -1,21 +1,4 @@
-/*
- * PCIE AER software error injection support.
- *
- * Debuging PCIE AER code is quite difficult because it is hard to
- * trigger various real hardware errors. Software based error
- * injection can fake almost all kinds of errors with the help of a
- * user space helper tool aer-inject, which can be gotten from:
- *   http://www.kernel.org/pub/linux/utils/pci/aer-inject/
- *
- * Copyright 2009 Intel Corporation.
- *     Huang Ying <ying.huang@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -63,7 +46,7 @@ static LIST_HEAD(einjected);
 
 static LIST_HEAD(pci_bus_ops_list);
 
-/* Protect einjected and pci_bus_ops_list */
+
 static DEFINE_SPINLOCK(inject_lock);
 
 static void aer_error_init(struct aer_error *err, unsigned int bus,
@@ -75,7 +58,7 @@ static void aer_error_init(struct aer_error *err, unsigned int bus,
 	err->pos_cap_err = pos_cap_err;
 }
 
-/* inject_lock must be held before calling */
+
 static struct aer_error *__find_aer_error(unsigned int bus, unsigned int devfn)
 {
 	struct aer_error *err;
@@ -87,13 +70,13 @@ static struct aer_error *__find_aer_error(unsigned int bus, unsigned int devfn)
 	return NULL;
 }
 
-/* inject_lock must be held before calling */
+
 static struct aer_error *__find_aer_error_by_dev(struct pci_dev *dev)
 {
 	return __find_aer_error(dev->bus->number, dev->devfn);
 }
 
-/* inject_lock must be held before calling */
+
 static struct pci_ops *__find_pci_bus_ops(struct pci_bus *bus)
 {
 	struct pci_bus_ops *bus_ops;

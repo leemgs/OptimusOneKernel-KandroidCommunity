@@ -1,24 +1,6 @@
-/*
- *  Force feedback support for Zeroplus based devices
- *
- *  Copyright (c) 2005, 2006 Anssi Hannula <anssi.hannula@gmail.com>
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
+
 
 
 #include <linux/hid.h>
@@ -41,11 +23,7 @@ static int zpff_play(struct input_dev *dev, void *data,
 	struct zpff_device *zpff = data;
 	int left, right;
 
-	/*
-	 * The following is specified the other way around in the Zeroplus
-	 * datasheet but the order below is correct for the XFX Executioner;
-	 * however it is possible that the XFX Executioner is an exception
-	 */
+	
 
 	left = effect->u.rumble.strong_magnitude;
 	right = effect->u.rumble.weak_magnitude;

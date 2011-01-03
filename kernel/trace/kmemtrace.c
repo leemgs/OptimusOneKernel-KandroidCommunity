@@ -1,10 +1,4 @@
-/*
- * Memory allocator tracing
- *
- * Copyright (C) 2008 Eduard - Gabriel Munteanu
- * Copyright (C) 2008 Pekka Enberg <penberg@cs.helsinki.fi>
- * Copyright (C) 2008 Frederic Weisbecker <fweisbec@gmail.com>
- */
+
 
 #include <linux/tracepoint.h>
 #include <linux/seq_file.h>
@@ -17,11 +11,11 @@
 #include "trace_output.h"
 #include "trace.h"
 
-/* Select an alternative, minimalistic output than the original one */
+
 #define TRACE_KMEM_OPT_MINIMAL	0x1
 
 static struct tracer_opt kmem_opts[] = {
-	/* Default disable the minimalistic output */
+	
 	{ TRACER_OPT(kmem_minimalistic, TRACE_KMEM_OPT_MINIMAL) },
 	{ }
 };
@@ -33,7 +27,7 @@ static struct tracer_flags kmem_tracer_flags = {
 
 static struct trace_array *kmemtrace_array;
 
-/* Trace allocations */
+
 static inline void kmemtrace_alloc(enum kmemtrace_type_id type_id,
 				   unsigned long call_site,
 				   const void *ptr,
@@ -199,7 +193,7 @@ static void kmem_trace_reset(struct trace_array *tr)
 
 static void kmemtrace_headers(struct seq_file *s)
 {
-	/* Don't need headers for the original kmemtrace output */
+	
 	if (!(kmem_tracer_flags.val & TRACE_KMEM_OPT_MINIMAL))
 		return;
 
@@ -211,10 +205,7 @@ static void kmemtrace_headers(struct seq_file *s)
 	seq_printf(s, "# |\n\n");
 }
 
-/*
- * The following functions give the original output from kmemtrace,
- * plus the origin CPU, since reordering occurs in-kernel now.
- */
+
 
 #define KMEMTRACE_USER_ALLOC	0
 #define KMEMTRACE_USER_FREE	1
@@ -332,7 +323,7 @@ kmemtrace_print_free_user(struct trace_iterator *iter, int flags)
 	return TRACE_TYPE_HANDLED;
 }
 
-/* The two other following provide a more minimalistic output */
+
 static enum print_line_t
 kmemtrace_print_alloc_compress(struct trace_iterator *iter)
 {
@@ -342,12 +333,12 @@ kmemtrace_print_alloc_compress(struct trace_iterator *iter)
 
 	trace_assign_type(entry, iter->ent);
 
-	/* Alloc entry */
+	
 	ret = trace_seq_printf(s, "  +      ");
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Type */
+	
 	switch (entry->type_id) {
 	case KMEMTRACE_TYPE_KMALLOC:
 		ret = trace_seq_printf(s, "K   ");
@@ -365,29 +356,27 @@ kmemtrace_print_alloc_compress(struct trace_iterator *iter)
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Requested */
+	
 	ret = trace_seq_printf(s, "%4zu   ", entry->bytes_req);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Allocated */
+	
 	ret = trace_seq_printf(s, "%4zu   ", entry->bytes_alloc);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Flags
-	 * TODO: would be better to see the name of the GFP flag names
-	 */
+	
 	ret = trace_seq_printf(s, "%08x   ", entry->gfp_flags);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Pointer to allocated */
+	
 	ret = trace_seq_printf(s, "0x%tx   ", (ptrdiff_t)entry->ptr);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Node and call site*/
+	
 	ret = trace_seq_printf(s, "%4d   %pf\n", entry->node,
 						 (void *)entry->call_site);
 	if (!ret)
@@ -405,12 +394,12 @@ kmemtrace_print_free_compress(struct trace_iterator *iter)
 
 	trace_assign_type(entry, iter->ent);
 
-	/* Free entry */
+	
 	ret = trace_seq_printf(s, "  -      ");
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Type */
+	
 	switch (entry->type_id) {
 	case KMEMTRACE_TYPE_KMALLOC:
 		ret = trace_seq_printf(s, "K     ");
@@ -428,17 +417,17 @@ kmemtrace_print_free_compress(struct trace_iterator *iter)
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Skip requested/allocated/flags */
+	
 	ret = trace_seq_printf(s, "                       ");
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Pointer to allocated */
+	
 	ret = trace_seq_printf(s, "0x%tx   ", (ptrdiff_t)entry->ptr);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
 
-	/* Skip node and print call site*/
+	
 	ret = trace_seq_printf(s, "       %pf\n", (void *)entry->call_site);
 	if (!ret)
 		return TRACE_TYPE_PARTIAL_LINE;
@@ -486,7 +475,7 @@ static struct tracer kmem_tracer __read_mostly = {
 
 void kmemtrace_init(void)
 {
-	/* earliest opportunity to start kmem tracing */
+	
 }
 
 static int __init init_kmem_tracer(void)

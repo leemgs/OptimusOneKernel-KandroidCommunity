@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c/dev-i2c1.c
- *
- * Copyright 2008,2009 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C series device definition for i2c device 1
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/string.h>

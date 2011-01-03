@@ -1,13 +1,4 @@
-/*
- * Hauppauge HD PVR USB driver - video 4 linux 2 interface
- *
- * Copyright (C) 2008      Janne Grunau (j@jannau.net)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>

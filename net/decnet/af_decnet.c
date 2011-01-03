@@ -1,103 +1,8 @@
 
-/*
- * DECnet       An implementation of the DECnet protocol suite for the LINUX
- *              operating system.  DECnet is implemented using the  BSD Socket
- *              interface as the means of communication with the user level.
- *
- *              DECnet Socket Layer Interface
- *
- * Authors:     Eduardo Marcelo Serrat <emserrat@geocities.com>
- *              Patrick Caulfield <patrick@pandh.demon.co.uk>
- *
- * Changes:
- *        Steve Whitehouse: Copied from Eduardo Serrat and Patrick Caulfield's
- *                          version of the code. Original copyright preserved
- *                          below.
- *        Steve Whitehouse: Some bug fixes, cleaning up some code to make it
- *                          compatible with my routing layer.
- *        Steve Whitehouse: Merging changes from Eduardo Serrat and Patrick
- *                          Caulfield.
- *        Steve Whitehouse: Further bug fixes, checking module code still works
- *                          with new routing layer.
- *        Steve Whitehouse: Additional set/get_sockopt() calls.
- *        Steve Whitehouse: Fixed TIOCINQ ioctl to be same as Eduardo's new
- *                          code.
- *        Steve Whitehouse: recvmsg() changed to try and behave in a POSIX like
- *                          way. Didn't manage it entirely, but its better.
- *        Steve Whitehouse: ditto for sendmsg().
- *        Steve Whitehouse: A selection of bug fixes to various things.
- *        Steve Whitehouse: Added TIOCOUTQ ioctl.
- *        Steve Whitehouse: Fixes to username2sockaddr & sockaddr2username.
- *        Steve Whitehouse: Fixes to connect() error returns.
- *       Patrick Caulfield: Fixes to delayed acceptance logic.
- *         David S. Miller: New socket locking
- *        Steve Whitehouse: Socket list hashing/locking
- *         Arnaldo C. Melo: use capable, not suser
- *        Steve Whitehouse: Removed unused code. Fix to use sk->allocation
- *                          when required.
- *       Patrick Caulfield: /proc/net/decnet now has object name/number
- *        Steve Whitehouse: Fixed local port allocation, hashed sk list
- *          Matthew Wilcox: Fixes for dn_ioctl()
- *        Steve Whitehouse: New connect/accept logic to allow timeouts and
- *                          prepare for sendpage etc.
- */
 
 
-/******************************************************************************
-    (c) 1995-1998 E.M. Serrat		emserrat@geocities.com
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-HISTORY:
-
-Version           Kernel     Date       Author/Comments
--------           ------     ----       ---------------
-Version 0.0.1     2.0.30    01-dic-97	Eduardo Marcelo Serrat
-					(emserrat@geocities.com)
-
-					First Development of DECnet Socket La-
-					yer for Linux. Only supports outgoing
-					connections.
-
-Version 0.0.2	  2.1.105   20-jun-98   Patrick J. Caulfield
-					(patrick@pandh.demon.co.uk)
-
-					Port to new kernel development version.
-
-Version 0.0.3     2.1.106   25-jun-98   Eduardo Marcelo Serrat
-					(emserrat@geocities.com)
-					_
-					Added support for incoming connections
-					so we can start developing server apps
-					on Linux.
-					-
-					Module Support
-Version 0.0.4     2.1.109   21-jul-98   Eduardo Marcelo Serrat
-				       (emserrat@geocities.com)
-				       _
-					Added support for X11R6.4. Now we can
-					use DECnet transport for X on Linux!!!
-				       -
-Version 0.0.5    2.1.110   01-aug-98   Eduardo Marcelo Serrat
-				       (emserrat@geocities.com)
-				       Removed bugs on flow control
-				       Removed bugs on incoming accessdata
-				       order
-				       -
-Version 0.0.6    2.1.110   07-aug-98   Eduardo Marcelo Serrat
-				       dn_recvmsg fixes
-
-					Patrick J. Caulfield
-				       dn_bind fixes
-*******************************************************************************/
 
 #include <linux/module.h>
 #include <linux/errno.h>
@@ -170,9 +75,7 @@ static struct hlist_head *dn_find_list(struct sock *sk)
 	return &dn_sk_hash[le16_to_cpu(scp->addrloc) & DN_SK_HASH_MASK];
 }
 
-/*
- * Valid ports are those greater than zero and not already in use.
- */
+
 static int check_port(__le16 port)
 {
 	struct sock *sk;
@@ -205,11 +108,7 @@ static unsigned short port = 0x2000;
 	return 1;
 }
 
-/*
- * Since this is only ever called from user
- * level, we don't need a write_lock() version
- * of this.
- */
+
 static int dn_hash_sock(struct sock *sk)
 {
 	struct dn_scp *scp = DN_SK(sk);
@@ -264,11 +163,7 @@ static struct hlist_head *listen_hash(struct sockaddr_dn *addr)
 	return &dn_sk_hash[hash & DN_SK_HASH_MASK];
 }
 
-/*
- * Called to transform a socket from bound (i.e. with a local address)
- * into a listening socket (doesn't need a local port number) and rehashes
- * based upon the object name/number.
- */
+
 static void dn_rehash_sock(struct sock *sk)
 {
 	struct hlist_head *list;
@@ -313,13 +208,7 @@ int dn_sockaddr2username(struct sockaddr_dn *sdn, unsigned char *buf, unsigned c
 	return len;
 }
 
-/*
- * On reception of usernames, we handle types 1 and 0 for destination
- * addresses only. Types 2 and 4 are used for source addresses, but the
- * UIC, GIC are ignored and they are both treated the same way. Type 3
- * is never used as I've no idea what its purpose might be or what its
- * format is.
- */
+
 int dn_username2sockaddr(unsigned char *data, int len, struct sockaddr_dn *sdn, unsigned char *fmt)
 {
 	unsigned char type;
@@ -492,15 +381,15 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
 	sk->sk_sndbuf	   = sysctl_decnet_wmem[1];
 	sk->sk_rcvbuf	   = sysctl_decnet_rmem[1];
 
-	/* Initialization of DECnet Session Control Port		*/
+	
 	scp = DN_SK(sk);
-	scp->state	= DN_O;		/* Open			*/
-	scp->numdat	= 1;		/* Next data seg to tx	*/
-	scp->numoth	= 1;		/* Next oth data to tx  */
-	scp->ackxmt_dat = 0;		/* Last data seg ack'ed */
-	scp->ackxmt_oth = 0;		/* Last oth data ack'ed */
-	scp->ackrcv_dat = 0;		/* Highest data ack recv*/
-	scp->ackrcv_oth = 0;		/* Last oth data ack rec*/
+	scp->state	= DN_O;		
+	scp->numdat	= 1;		
+	scp->numoth	= 1;		
+	scp->ackxmt_dat = 0;		
+	scp->ackxmt_oth = 0;		
+	scp->ackrcv_dat = 0;		
+	scp->ackrcv_oth = 0;		
 	scp->flowrem_sw = DN_SEND;
 	scp->flowloc_sw = DN_SEND;
 	scp->flowrem_dat = 0;
@@ -510,8 +399,8 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
 	scp->services_rem = 0;
 	scp->services_loc = 1 | NSP_FC_NONE;
 	scp->info_rem = 0;
-	scp->info_loc = 0x03; /* NSP version 4.1 */
-	scp->segsize_rem = 230 - DN_MAX_NSP_DATA_HEADER; /* Default: Updated by remote segsize */
+	scp->info_loc = 0x03; 
+	scp->segsize_rem = 230 - DN_MAX_NSP_DATA_HEADER; 
 	scp->nonagle = 0;
 	scp->multi_ireq = 1;
 	scp->accept_mode = ACC_IMMED;
@@ -544,31 +433,18 @@ out:
 	return sk;
 }
 
-/*
- * Keepalive timer.
- * FIXME: Should respond to SO_KEEPALIVE etc.
- */
+
 static void dn_keepalive(struct sock *sk)
 {
 	struct dn_scp *scp = DN_SK(sk);
 
-	/*
-	 * By checking the other_data transmit queue is empty
-	 * we are double checking that we are not sending too
-	 * many of these keepalive frames.
-	 */
+	
 	if (skb_queue_empty(&scp->other_xmit_queue))
 		dn_nsp_send_link(sk, DN_NOCHANGE, 0);
 }
 
 
-/*
- * Timer for shutdown/destroyed sockets.
- * When socket is dead & no packets have been sent for a
- * certain amount of time, they are removed by this
- * routine. Also takes care of sending out DI & DC
- * frames at correct times.
- */
+
 int dn_destroy_timer(struct sock *sk)
 {
 	struct dn_scp *scp = DN_SK(sk);
@@ -590,7 +466,7 @@ int dn_destroy_timer(struct sock *sk)
 
 		case DN_DN:
 			if (scp->nsp_rxtshift < decnet_dn_count) {
-				/* printk(KERN_DEBUG "dn_destroy_timer: DN\n"); */
+				
 				dn_nsp_send_disc(sk, NSP_DISCCONF, NSP_REASON_DC, GFP_ATOMIC);
 				return 0;
 			}
@@ -614,7 +490,7 @@ static void dn_destroy_sock(struct sock *sk)
 {
 	struct dn_scp *scp = DN_SK(sk);
 
-	scp->nsp_rxtshift = 0; /* reset back off */
+	scp->nsp_rxtshift = 0; 
 
 	if (sk->sk_socket) {
 		if (sk->sk_socket->state != SS_UNCONNECTED)
@@ -792,10 +668,7 @@ static int dn_auto_bind(struct socket *sock)
 	scp->addr.sdn_flags  = 0;
 	scp->addr.sdn_objnum = 0;
 
-	/*
-	 * This stuff is to keep compatibility with Eduardo's
-	 * patch. I hope I can dispense with it shortly...
-	 */
+	
 	if ((scp->accessdata.acc_accl != 0) &&
 		(scp->accessdata.acc_accl <= 12)) {
 
@@ -805,7 +678,7 @@ static int dn_auto_bind(struct socket *sock)
 		scp->accessdata.acc_accl = 0;
 		memset(scp->accessdata.acc_acc, 0, 40);
 	}
-	/* End of compatibility stuff */
+	
 
 	scp->addr.sdn_add.a_len = cpu_to_le16(2);
 	rv = dn_dev_bind_default((__le16 *)scp->addr.sdn_add.a_addr);
@@ -1024,9 +897,9 @@ static void dn_access_copy(struct sk_buff *skb, struct accessdata_dn *acc)
 static void dn_user_copy(struct sk_buff *skb, struct optdata_dn *opt)
 {
 	unsigned char *ptr = skb->data;
-	u16 len = *ptr++; /* yes, it's 8bit on the wire */
+	u16 len = *ptr++; 
 
-	BUG_ON(len > 16); /* we've checked the contents earlier */
+	BUG_ON(len > 16); 
 	opt->opt_optl   = cpu_to_le16(len);
 	opt->opt_status = 0;
 	memcpy(opt->opt_data, ptr, len);
@@ -1123,10 +996,7 @@ static int dn_accept(struct socket *sock, struct socket *newsock, int flags)
 	newsk->sk_state  = TCP_LISTEN;
 	memcpy(&(DN_SK(newsk)->addr), &(DN_SK(sk)->addr), sizeof(struct sockaddr_dn));
 
-	/*
-	 * If we are listening on a wild socket, we don't want
-	 * the newly created socket on the wrong hash queue.
-	 */
+	
 	DN_SK(newsk)->addr.sdn_flags &= ~SDF_WILD;
 
 	skb_pull(skb, dn_username2sockaddr(skb->data, skb->len, &(DN_SK(newsk)->addr), &type));
@@ -1162,10 +1032,7 @@ static int dn_accept(struct socket *sock, struct socket *newsock, int flags)
 		sock_reset_flag(newsk, SOCK_ZAPPED);
 		dn_send_conn_ack(newsk);
 
-		/*
-		 * Here we use sk->sk_allocation since although the conn conf is
-		 * for the newsk, the context is the old socket.
-		 */
+		
 		if (DN_SK(newsk)->accept_mode == ACC_IMMED)
 			err = dn_confirm_accept(newsk, &timeo,
 						sk->sk_allocation);
@@ -1468,7 +1335,7 @@ static int __dn_setsockopt(struct socket *sock, int level,int optname, char __us
 			if (scp->nonagle == 2)
 				return -EINVAL;
 			scp->nonagle = (u.val == 0) ? 0 : 1;
-			/* if (scp->nonagle == 1) { Push pending frames } */
+			
 			break;
 
 		case DSO_CORK:
@@ -1477,7 +1344,7 @@ static int __dn_setsockopt(struct socket *sock, int level,int optname, char __us
 			if (scp->nonagle == 1)
 				return -EINVAL;
 			scp->nonagle = (u.val == 0) ? 0 : 2;
-			/* if (scp->nonagle == 0) { Push pending frames } */
+			
 			break;
 
 		case DSO_SERVICES:
@@ -1651,15 +1518,15 @@ static int dn_data_ready(struct sock *sk, struct sk_buff_head *q, int flags, int
 		len += skb->len;
 
 		if (cb->nsp_flags & 0x40) {
-			/* SOCK_SEQPACKET reads to EOM */
+			
 			if (sk->sk_type == SOCK_SEQPACKET)
 				return 1;
-			/* so does SOCK_STREAM unless WAITALL is specified */
+			
 			if (!(flags & MSG_WAITALL))
 				return 1;
 		}
 
-		/* minimum data length for read exceeded */
+		
 		if (len >= target)
 			return 1;
 	}
@@ -1710,9 +1577,7 @@ static int dn_recvmsg(struct kiocb *iocb, struct socket *sock,
 		target = size;
 
 
-	/*
-	 * See if there is data ready to read, sleep if there isn't
-	 */
+	
 	for(;;) {
 		DEFINE_WAIT(wait);
 
@@ -1773,10 +1638,7 @@ static int dn_recvmsg(struct kiocb *iocb, struct socket *sock,
 		if (skb->len == 0) {
 			skb_unlink(skb, queue);
 			kfree_skb(skb);
-			/*
-			 * N.B. Don't refer to skb or cb after this point
-			 * in loop.
-			 */
+			
 			if ((scp->flowloc_sw == DN_DONTSEND) && !dn_congested(sk)) {
 				scp->flowloc_sw = DN_SEND;
 				dn_nsp_send_link(sk, DN_SEND, 0);
@@ -1835,14 +1697,7 @@ static inline int dn_queue_too_long(struct dn_scp *scp, struct sk_buff_head *que
 	return 0;
 }
 
-/*
- * The DECnet spec requires that the "routing layer" accepts packets which
- * are at least 230 bytes in size. This excludes any headers which the NSP
- * layer might add, so we always assume that we'll be using the maximal
- * length header on data packets. The variation in length is due to the
- * inclusion (or not) of the two 16 bit acknowledgement fields so it doesn't
- * make much practical difference.
- */
+
 unsigned dn_mss_from_pmtu(struct net_device *dev, int mtu)
 {
 	unsigned mss = 230 - DN_MAX_NSP_DATA_HEADER;
@@ -1855,9 +1710,7 @@ unsigned dn_mss_from_pmtu(struct net_device *dev, int mtu)
 			mtu -= 6;
 		mtu -= DN_MAX_NSP_DATA_HEADER;
 	} else {
-		/*
-		 * 21 = long header, 16 = guess at MAC header length
-		 */
+		
 		mtu -= (21 + DN_MAX_NSP_DATA_HEADER + 16);
 	}
 	if (mtu > mss)
@@ -1871,11 +1724,11 @@ static inline unsigned int dn_current_mss(struct sock *sk, int flags)
 	struct dn_scp *scp = DN_SK(sk);
 	int mss_now = min_t(int, scp->segsize_loc, scp->segsize_rem);
 
-	/* Other data messages are limited to 16 bytes per packet */
+	
 	if (flags & MSG_OOB)
 		return 16;
 
-	/* This works out the maximum size of segment we can send out */
+	
 	if (dst) {
 		u32 mtu = dst_mtu(dst);
 		mss_now = min_t(int, dn_mss_from_pmtu(dst->dev, mtu), mss_now);
@@ -1884,12 +1737,7 @@ static inline unsigned int dn_current_mss(struct sock *sk, int flags)
 	return mss_now;
 }
 
-/*
- * N.B. We get the timeout wrong here, but then we always did get it
- * wrong before and this is another step along the road to correcting
- * it. It ought to get updated each time we pass through the routine,
- * but in practise it probably doesn't matter too much for now.
- */
+
 static inline struct sk_buff *dn_alloc_send_pskb(struct sock *sk,
 			      unsigned long datalen, int noblock,
 			      int *errcode)
@@ -1929,11 +1777,7 @@ static int dn_sendmsg(struct kiocb *iocb, struct socket *sock,
 
 	lock_sock(sk);
 	timeo = sock_sndtimeo(sk, flags & MSG_DONTWAIT);
-	/*
-	 * The only difference between stream sockets and sequenced packet
-	 * sockets is that the stream sockets always behave as if MSG_EOR
-	 * has been set.
-	 */
+	
 	if (sock->type == SOCK_STREAM) {
 		if (flags & MSG_EOR) {
 			err = -EINVAL;
@@ -1982,18 +1826,13 @@ static int dn_sendmsg(struct kiocb *iocb, struct socket *sock,
 			goto out;
 		}
 
-		/*
-		 * Calculate size that we wish to send.
-		 */
+		
 		len = size - sent;
 
 		if (len > mss)
 			len = mss;
 
-		/*
-		 * Wait for queue size to go down below the window
-		 * size.
-		 */
+		
 		if (dn_queue_too_long(scp, queue, flags)) {
 			DEFINE_WAIT(wait);
 
@@ -2011,12 +1850,7 @@ static int dn_sendmsg(struct kiocb *iocb, struct socket *sock,
 			continue;
 		}
 
-		/*
-		 * Get a suitably sized skb.
-		 * 64 is a bit of a hack really, but its larger than any
-		 * link-layer headers and has served us well as a good
-		 * guess as to their real length.
-		 */
+		
 		skb = dn_alloc_send_pskb(sk, len + 64 + DN_MAX_NSP_DATA_HEADER,
 					 flags & MSG_DONTWAIT, &err);
 
@@ -2389,11 +2223,7 @@ out:
 }
 module_init(decnet_init);
 
-/*
- * Prevent DECnet module unloading until its fixed properly.
- * Requires an audit of the code to check for memory leaks and
- * initialisation problems etc.
- */
+
 #if 0
 static void __exit decnet_exit(void)
 {
@@ -2414,7 +2244,7 @@ static void __exit decnet_exit(void)
 
 	proto_unregister(&dn_proto);
 
-	rcu_barrier_bh(); /* Wait for completion of call_rcu_bh()'s */
+	rcu_barrier_bh(); 
 }
 module_exit(decnet_exit);
 #endif

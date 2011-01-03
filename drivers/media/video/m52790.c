@@ -1,23 +1,4 @@
-/*
- * m52790 i2c ivtv driver.
- * Copyright (C) 2007  Hans Verkuil
- *
- * A/V source switching Mitsubishi M52790SP/FP
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 
 #include <linux/module.h>
@@ -48,7 +29,7 @@ static inline struct m52790_state *to_state(struct v4l2_subdev *sd)
 	return container_of(sd, struct m52790_state, sd);
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static int m52790_write(struct v4l2_subdev *sd)
 {
@@ -61,14 +42,7 @@ static int m52790_write(struct v4l2_subdev *sd)
 	return i2c_smbus_write_byte_data(client, sw1, sw2);
 }
 
-/* Note: audio and video are linked and cannot be switched separately.
-   So audio and video routing commands are identical for this chip.
-   In theory the video amplifier and audio modes could be handled
-   separately for the output, but that seems to be overkill right now.
-   The same holds for implementing an audio mute control, this is now
-   part of the audio output routing. The normal case is that another
-   chip takes care of the actual muting so making it part of the
-   output routing seems to be the right thing to do for now. */
+
 static int m52790_s_routing(struct v4l2_subdev *sd,
 			    u32 input, u32 output, u32 config)
 {
@@ -133,7 +107,7 @@ static int m52790_log_status(struct v4l2_subdev *sd)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops m52790_core_ops = {
 	.log_status = m52790_log_status,
@@ -158,9 +132,9 @@ static const struct v4l2_subdev_ops m52790_ops = {
 	.video = &m52790_video_ops,
 };
 
-/* ----------------------------------------------------------------------- */
 
-/* i2c implementation */
+
+
 
 static int m52790_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
@@ -168,7 +142,7 @@ static int m52790_probe(struct i2c_client *client,
 	struct m52790_state *state;
 	struct v4l2_subdev *sd;
 
-	/* Check if the adapter supports the needed features */
+	
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -EIO;
 
@@ -196,7 +170,7 @@ static int m52790_remove(struct i2c_client *client)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct i2c_device_id m52790_id[] = {
 	{ "m52790", 0 },

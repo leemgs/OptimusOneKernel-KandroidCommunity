@@ -1,27 +1,4 @@
-/* DVB USB compliant linux driver for Technotrend DVB USB boxes and clones
- * (e.g. Pinnacle 400e DVB-S USB2.0).
- *
- * The Pinnacle 400e uses the same protocol as the Technotrend USB1.1 boxes.
- *
- * TDA8263 + TDA10086
- *
- * I2C addresses:
- * 0x08 - LNBP21PD   - LNB power supply
- * 0x0e - TDA10086   - Demodulator
- * 0x50 - FX2 eeprom
- * 0x60 - TDA8263    - Tuner
- * 0x78 ???
- *
- * Copyright (c) 2002 Holger Waechtler <holger@convergence.de>
- * Copyright (c) 2003 Felix Domke <tmbinc@elitedvb.net>
- * Copyright (C) 2005-6 Patrick Boettcher <pb@linuxtv.org>
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #define DVB_USB_LOG_PREFIX "ttusb2"
 #include "dvb-usb.h"
 
@@ -31,7 +8,7 @@
 #include "tda10086.h"
 #include "lnbp21.h"
 
-/* debug */
+
 static int dvb_usb_ttusb2_debug;
 #define deb_info(args...)   dprintk(dvb_usb_ttusb2_debug,0x01,args)
 module_param_named(debug,dvb_usb_ttusb2_debug, int, 0644);
@@ -93,7 +70,7 @@ static int ttusb2_i2c_xfer(struct i2c_adapter *adap,struct i2c_msg msg[],int num
 		obuf[0] = (msg[i].addr << 1) | read;
 		obuf[1] = msg[i].len;
 
-		/* read request */
+		
 		if (read)
 			obuf[2] = msg[i+1].len;
 		else
@@ -126,7 +103,7 @@ static struct i2c_algorithm ttusb2_i2c_algo = {
 	.functionality = ttusb2_i2c_func,
 };
 
-/* Callbacks for DVB USB */
+
 static int ttusb2_identify_state (struct usb_device *udev, struct
 		dvb_usb_device_properties *props, struct dvb_usb_device_description **desc,
 		int *cold)
@@ -177,7 +154,7 @@ static int ttusb2_tuner_attach(struct dvb_usb_adapter *adap)
 	return 0;
 }
 
-/* DVB USB Driver stuff */
+
 static struct dvb_usb_device_properties ttusb2_properties;
 static struct dvb_usb_device_properties ttusb2_properties_s2400;
 
@@ -197,7 +174,7 @@ static struct usb_device_id ttusb2_table [] = {
 	{ USB_DEVICE(USB_VID_PINNACLE, USB_PID_PCTV_450E) },
 	{ USB_DEVICE(USB_VID_TECHNOTREND,
 		USB_PID_TECHNOTREND_CONNECT_S2400) },
-	{}		/* Terminating entry */
+	{}		
 };
 MODULE_DEVICE_TABLE (usb, ttusb2_table);
 
@@ -212,12 +189,12 @@ static struct dvb_usb_device_properties ttusb2_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-			.streaming_ctrl   = NULL, // ttusb2_streaming_ctrl,
+			.streaming_ctrl   = NULL, 
 
 			.frontend_attach  = ttusb2_frontend_attach,
 			.tuner_attach     = ttusb2_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_ISOC,
 				.count = 5,
@@ -269,7 +246,7 @@ static struct dvb_usb_device_properties ttusb2_properties_s2400 = {
 			.frontend_attach  = ttusb2_frontend_attach,
 			.tuner_attach     = ttusb2_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_ISOC,
 				.count = 5,
@@ -308,7 +285,7 @@ static struct usb_driver ttusb2_driver = {
 	.id_table	= ttusb2_table,
 };
 
-/* module stuff */
+
 static int __init ttusb2_module_init(void)
 {
 	int result;
@@ -322,7 +299,7 @@ static int __init ttusb2_module_init(void)
 
 static void __exit ttusb2_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&ttusb2_driver);
 }
 

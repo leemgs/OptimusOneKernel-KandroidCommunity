@@ -1,23 +1,4 @@
-/*
-	STV0900/0903 Multistandard Broadcast Frontend driver
-	Copyright (C) Manu Abraham <abraham.manu@gmail.com>
 
-	Copyright (C) ST Microelectronics
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #ifndef __STV090x_REG_H
 #define __STV090x_REG_H
@@ -847,9 +828,9 @@
 #define STV090x_WIDTH_Px_DVBS2_ENABLE_FIELD	1
 #define STV090x_OFFST_Px_DVBS1_ENABLE_FIELD	6
 #define STV090x_WIDTH_Px_DVBS1_ENABLE_FIELD	1
-#define STV090x_OFFST_Px_CFR_AUTOSCAN_FIELD	5 /* check */
+#define STV090x_OFFST_Px_CFR_AUTOSCAN_FIELD	5 
 #define STV090x_WIDTH_Px_CFR_AUTOSCAN_FIELD	1
-#define STV090x_OFFST_Px_SCAN_ENABLE_FIELD	4 /* check */
+#define STV090x_OFFST_Px_SCAN_ENABLE_FIELD	4 
 #define STV090x_WIDTH_Px_SCAN_ENABLE_FIELD	1
 #define STV090x_OFFST_Px_TUN_AUTOSCAN_FIELD	3
 #define STV090x_WIDTH_Px_TUN_AUTOSCAN_FIELD	1
@@ -870,7 +851,7 @@
 #define STV090x_OFFST_Px_I2C_DEMOD_MODE_FIELD	0
 #define STV090x_WIDTH_Px_I2C_DEMOD_MODE_FIELD	5
 
-#define STV090x_Px_DMDTOM(__x)			(0xF417 - (__x - 1) * 0x200) /* check */
+#define STV090x_Px_DMDTOM(__x)			(0xF417 - (__x - 1) * 0x200) 
 #define STV090x_P1_DMDTOM			STV090x_Px_DMDTOM(1)
 #define STV090x_P2_DMDTOM			STV090x_Px_DMDTOM(2)
 
@@ -885,7 +866,7 @@
 #define STV090x_P2_DMDFLYW			STV090x_Px_DMDFLYW(2)
 #define STV090x_OFFST_Px_I2C_IRQVAL_FIELD	4
 #define STV090x_WIDTH_Px_I2C_IRQVAL_FIELD	4
-#define STV090x_OFFST_Px_FLYWHEEL_CPT_FIELD	0 /* check */
+#define STV090x_OFFST_Px_FLYWHEEL_CPT_FIELD	0 
 #define STV090x_WIDTH_Px_FLYWHEEL_CPT_FIELD	4
 
 #define STV090x_Px_DSTATUS3(__x)		(0xF41D - (__x - 1) * 0x200)
@@ -1450,7 +1431,7 @@
 #define STV090x_OFFST_Px_PLSCRAMB_ROOT0_FIELD	0
 #define STV090x_WIDTH_Px_PLSCRAMB_ROOT0_FIELD	8
 
-#define STV090x_Px_MODCODLST0(__x)		(0xf4b0 - (__x - 1) * 0x200) /* check */
+#define STV090x_Px_MODCODLST0(__x)		(0xf4b0 - (__x - 1) * 0x200) 
 #define STV090x_P1_MODCODLST0			STV090x_Px_MODCODLST0(1)
 #define STV090x_P2_MODCODLST0			STV090x_Px_MODCODLST0(2)
 
@@ -1714,7 +1695,7 @@
 #define STV090x_OFFST_Px_DEMOD_LOCKTIME_FIELD	0
 #define STV090x_WIDTH_Px_DEMOD_LOCKTIME_FIELD	8
 
-#define STV090x_Px_TNRCFG(__x)			(0xf4e0 - (__x - 1) * 0x200) /* check */
+#define STV090x_Px_TNRCFG(__x)			(0xf4e0 - (__x - 1) * 0x200) 
 #define STV090x_P1_TNRCFG			STV090x_Px_TNRCFG(1)
 #define STV090x_P2_TNRCFG			STV090x_Px_TNRCFG(2)
 
@@ -2370,4 +2351,4 @@
 #define STV090x_OFFST_Px_TSTDISRX_SELECT_FIELD		3
 #define STV090x_WIDTH_Px_TSTDISRX_SELECT_FIELD		1
 
-#endif /* __STV090x_REG_H */
+#endif 

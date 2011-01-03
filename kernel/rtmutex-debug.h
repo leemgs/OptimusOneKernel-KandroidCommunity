@@ -1,13 +1,4 @@
-/*
- * RT-Mutexes: blocking mutual exclusion locks with PI support
- *
- * started by Ingo Molnar and Thomas Gleixner:
- *
- *  Copyright (C) 2004-2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
- *  Copyright (C) 2006, Timesys Corp., Thomas Gleixner <tglx@timesys.com>
- *
- * This file contains macros used solely by rtmutex.c. Debug version.
- */
+
 
 extern void
 rt_mutex_deadlock_account_lock(struct rt_mutex *lock, struct task_struct *task);

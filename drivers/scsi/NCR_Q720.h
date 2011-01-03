@@ -1,14 +1,11 @@
-/* -*- mode: c; c-basic-offset: 8 -*- */
 
-/* NCR Quad 720 MCA SCSI Driver
- *
- * Copyright (C) 2003 by James.Bottomley@HansenPartnership.com
- */
+
+
 
 #ifndef _NCR_Q720_H
 #define _NCR_Q720_H
 
-/* The MCA identifier */
+
 #define NCR_Q720_MCA_ID		0x0720
 
 #define NCR_Q720_CLOCK_MHZ	30

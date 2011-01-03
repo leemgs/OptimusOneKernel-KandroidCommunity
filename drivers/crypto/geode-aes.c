@@ -1,10 +1,4 @@
- /* Copyright (C) 2004-2006, Advanced Micro Devices, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+ 
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -20,12 +14,12 @@
 
 #include "geode-aes.h"
 
-/* Static structures */
+
 
 static void __iomem * _iobase;
 static spinlock_t lock;
 
-/* Write a 128 bit field (either a writable key or IV) */
+
 static inline void
 _writefield(u32 offset, void *value)
 {
@@ -34,7 +28,7 @@ _writefield(u32 offset, void *value)
 		iowrite32(((u32 *) value)[i], _iobase + offset + (i * 4));
 }
 
-/* Read a 128 bit field (either a writable key or IV) */
+
 static inline void
 _readfield(u32 offset, void *value)
 {
@@ -53,7 +47,7 @@ do_crypt(void *src, void *dst, int len, u32 flags)
 	iowrite32(virt_to_phys(dst), _iobase + AES_DSTA_REG);
 	iowrite32(len,  _iobase + AES_LENA_REG);
 
-	/* Start the operation */
+	
 	iowrite32(AES_CTRL_START | flags, _iobase + AES_CTRLA_REG);
 
 	do {
@@ -61,7 +55,7 @@ do_crypt(void *src, void *dst, int len, u32 flags)
 		cpu_relax();
 	} while(!(status & AES_INTRA_PENDING) && --counter);
 
-	/* Clear the event */
+	
 	iowrite32((status & 0xFF) | AES_INTRA_PENDING, _iobase + AES_INTR_REG);
 	return counter ? 0 : 1;
 }
@@ -76,17 +70,14 @@ geode_aes_crypt(struct geode_aes_op *op)
 	if (op->len == 0)
 		return 0;
 
-	/* If the source and destination is the same, then
-	 * we need to turn on the coherent flags, otherwise
-	 * we don't need to worry
-	 */
+	
 
 	flags |= (AES_CTRL_DCA | AES_CTRL_SCA);
 
 	if (op->dir == AES_DIR_ENCRYPT)
 		flags |= AES_CTRL_ENCRYPT;
 
-	/* Start the critical section */
+	
 
 	spin_lock_irqsave(&lock, iflags);
 
@@ -111,7 +102,7 @@ geode_aes_crypt(struct geode_aes_op *op)
 	return op->len;
 }
 
-/* CRYPTO-API Functions */
+
 
 static int geode_setkey_cip(struct crypto_tfm *tfm, const u8 *key,
 		unsigned int len)
@@ -127,14 +118,12 @@ static int geode_setkey_cip(struct crypto_tfm *tfm, const u8 *key,
 	}
 
 	if (len != AES_KEYSIZE_192 && len != AES_KEYSIZE_256) {
-		/* not supported at all */
+		
 		tfm->crt_flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
 		return -EINVAL;
 	}
 
-	/*
-	 * The requested key size is not supported by HW, do a fallback
-	 */
+	
 	op->fallback.blk->base.crt_flags &= ~CRYPTO_TFM_REQ_MASK;
 	op->fallback.blk->base.crt_flags |= (tfm->crt_flags & CRYPTO_TFM_REQ_MASK);
 
@@ -160,14 +149,12 @@ static int geode_setkey_blk(struct crypto_tfm *tfm, const u8 *key,
 	}
 
 	if (len != AES_KEYSIZE_192 && len != AES_KEYSIZE_256) {
-		/* not supported at all */
+		
 		tfm->crt_flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
 		return -EINVAL;
 	}
 
-	/*
-	 * The requested key size is not supported by HW, do a fallback
-	 */
+	
 	op->fallback.blk->base.crt_flags &= ~CRYPTO_TFM_REQ_MASK;
 	op->fallback.blk->base.crt_flags |= (tfm->crt_flags & CRYPTO_TFM_REQ_MASK);
 
@@ -534,7 +521,7 @@ geode_aes_probe(struct pci_dev *dev, const struct pci_device_id *id)
 
 	spin_lock_init(&lock);
 
-	/* Clear any pending activity */
+	
 	iowrite32(AES_INTR_PENDING | AES_INTR_MASK, _iobase + AES_INTR_REG);
 
 	if ((ret = crypto_register_alg(&geode_alg)))

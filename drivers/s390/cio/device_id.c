@@ -1,13 +1,4 @@
-/*
- * drivers/s390/cio/device_id.c
- *
- *    Copyright (C) 2002 IBM Deutschland Entwicklung GmbH,
- *			 IBM Corporation
- *    Author(s): Cornelia Huck (cornelia.huck@de.ibm.com)
- *		 Martin Schwidefsky (schwidefsky@de.ibm.com)
- *
- * Sense ID functions.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -26,14 +17,7 @@
 #include "ioasm.h"
 #include "io_sch.h"
 
-/**
- * vm_vdev_to_cu_type - Convert vm virtual device into control unit type
- *			for certain devices.
- * @class: virtual device class
- * @type: virtual device type
- *
- * Returns control unit type if a match was made or %0xffff otherwise.
- */
+
 static int vm_vdev_to_cu_type(int class, int type)
 {
 	static struct {
@@ -78,13 +62,7 @@ static int vm_vdev_to_cu_type(int class, int type)
 	return 0xffff;
 }
 
-/**
- * diag_get_dev_info - retrieve device information via DIAG X'210'
- * @devno: device number
- * @ps: pointer to sense ID data area
- *
- * Returns zero on success, non-zero otherwise.
- */
+
 static int diag_get_dev_info(u16 devno, struct senseid *ps)
 {
 	struct diag210 diag_data;
@@ -101,7 +79,7 @@ static int diag_get_dev_info(u16 devno, struct senseid *ps)
 	if ((ccode == 0) || (ccode == 2)) {
 		ps->reserved = 0xff;
 
-		/* Special case for osa devices. */
+		
 		if (diag_data.vrdcvcla == 0x02 && diag_data.vrdcvtyp == 0x20) {
 			ps->cu_type = 0x3088;
 			ps->cu_model = 0x60;
@@ -125,11 +103,7 @@ static int diag_get_dev_info(u16 devno, struct senseid *ps)
 	return -ENODEV;
 }
 
-/*
- * Start Sense ID helper function.
- * Try to obtain the 'control unit'/'device type' information
- *  associated with the subchannel.
- */
+
 static int
 __ccw_device_sense_id_start(struct ccw_device *cdev)
 {
@@ -138,28 +112,28 @@ __ccw_device_sense_id_start(struct ccw_device *cdev)
 	int ret;
 
 	sch = to_subchannel(cdev->dev.parent);
-	/* Setup sense channel program. */
+	
 	ccw = cdev->private->iccws;
 	ccw->cmd_code = CCW_CMD_SENSE_ID;
 	ccw->cda = (__u32) __pa (&cdev->private->senseid);
 	ccw->count = sizeof (struct senseid);
 	ccw->flags = CCW_FLAG_SLI;
 
-	/* Reset device status. */
+	
 	memset(&cdev->private->irb, 0, sizeof(struct irb));
 
-	/* Try on every path. */
+	
 	ret = -ENODEV;
 	while (cdev->private->imask != 0) {
 		cdev->private->senseid.cu_type = 0xFFFF;
 		if ((sch->opm & cdev->private->imask) != 0 &&
 		    cdev->private->iretry > 0) {
 			cdev->private->iretry--;
-			/* Reset internal retry indication. */
+			
 			cdev->private->flags.intretry = 0;
 			ret = cio_start (sch, cdev->private->iccws,
 					 cdev->private->imask);
-			/* ret is 0, -EBUSY, -EACCES or -ENODEV */
+			
 			if (ret != -EACCES)
 				return ret;
 		}
@@ -182,10 +156,7 @@ ccw_device_sense_id_start(struct ccw_device *cdev)
 		ccw_device_sense_id_done(cdev, ret);
 }
 
-/*
- * Called from interrupt context to check if a valid answer
- * to Sense ID was received.
- */
+
 static int
 ccw_device_check_sense_id(struct ccw_device *cdev)
 {
@@ -195,9 +166,9 @@ ccw_device_check_sense_id(struct ccw_device *cdev)
 	sch = to_subchannel(cdev->dev.parent);
 	irb = &cdev->private->irb;
 
-	/* Check the error cases. */
+	
 	if (irb->scsw.cmd.fctl & (SCSW_FCTL_HALT_FUNC | SCSW_FCTL_CLEAR_FUNC)) {
-		/* Retry Sense ID if requested. */
+		
 		if (cdev->private->flags.intretry) {
 			cdev->private->flags.intretry = 0;
 			return -EAGAIN;
@@ -205,15 +176,7 @@ ccw_device_check_sense_id(struct ccw_device *cdev)
 		return -ETIME;
 	}
 	if (irb->esw.esw0.erw.cons && (irb->ecw[0] & SNS0_CMD_REJECT)) {
-		/*
-		 * if the device doesn't support the SenseID
-		 *  command further retries wouldn't help ...
-		 * NB: We don't check here for intervention required like we
-		 *     did before, because tape devices with no tape inserted
-		 *     may present this status *in conjunction with* the
-		 *     sense id information. So, for intervention required,
-		 *     we use the "whack it until it talks" strategy...
-		 */
+		
 		CIO_MSG_EVENT(0, "SenseID : device %04x on Subchannel "
 			      "0.%x.%04x reports cmd reject\n",
 			      cdev->private->dev_id.devno, sch->schid.ssid,
@@ -247,15 +210,15 @@ ccw_device_check_sense_id(struct ccw_device *cdev)
 		return -EACCES;
 	}
 
-	/* Did we get a proper answer ? */
+	
 	if (irb->scsw.cmd.cc == 0 && cdev->private->senseid.cu_type != 0xFFFF &&
 	    cdev->private->senseid.reserved == 0xFF) {
 		if (irb->scsw.cmd.count < sizeof(struct senseid) - 8)
 			cdev->private->flags.esid = 1;
-		return 0; /* Success */
+		return 0; 
 	}
 
-	/* Hmm, whatever happened, try again. */
+	
 	CIO_MSG_EVENT(2, "SenseID : start_IO() for device %04x on "
 		      "subchannel 0.%x.%04x returns status %02X%02X\n",
 		      cdev->private->dev_id.devno, sch->schid.ssid,
@@ -264,9 +227,7 @@ ccw_device_check_sense_id(struct ccw_device *cdev)
 	return -EAGAIN;
 }
 
-/*
- * Got interrupt for Sense ID.
- */
+
 void
 ccw_device_sense_id_irq(struct ccw_device *cdev, enum dev_event dev_event)
 {
@@ -276,7 +237,7 @@ ccw_device_sense_id_irq(struct ccw_device *cdev, enum dev_event dev_event)
 
 	sch = to_subchannel(cdev->dev.parent);
 	irb = (struct irb *) __LC_IRB;
-	/* Retry sense id, if needed. */
+	
 	if (irb->scsw.cmd.stctl ==
 	    (SCSW_STCTL_STATUS_PEND | SCSW_STCTL_ALERT_STATUS)) {
 		if ((irb->scsw.cmd.cc == 1) || !irb->scsw.cmd.actl) {
@@ -291,30 +252,27 @@ ccw_device_sense_id_irq(struct ccw_device *cdev, enum dev_event dev_event)
 	ret = ccw_device_check_sense_id(cdev);
 	memset(&cdev->private->irb, 0, sizeof(struct irb));
 	switch (ret) {
-	/* 0, -ETIME, -EOPNOTSUPP, -EAGAIN or -EACCES */
-	case 0:			/* Sense id succeeded. */
-	case -ETIME:		/* Sense id stopped by timeout. */
+	
+	case 0:			
+	case -ETIME:		
 		ccw_device_sense_id_done(cdev, ret);
 		break;
-	case -EACCES:		/* channel is not operational. */
+	case -EACCES:		
 		sch->lpm &= ~cdev->private->imask;
 		cdev->private->imask >>= 1;
 		cdev->private->iretry = 5;
-		/* fall through. */
-	case -EAGAIN:		/* try again. */
+		
+	case -EAGAIN:		
 		ret = __ccw_device_sense_id_start(cdev);
 		if (ret == 0 || ret == -EBUSY)
 			break;
-		/* fall through. */
-	default:		/* Sense ID failed. Try asking VM. */
+		
+	default:		
 		if (MACHINE_IS_VM)
 			ret = diag_get_dev_info(cdev->private->dev_id.devno,
 						&cdev->private->senseid);
 		else
-			/*
-			 * If we can't couldn't identify the device type we
-			 *  consider the device "not operational".
-			 */
+			
 			ret = -ENODEV;
 
 		ccw_device_sense_id_done(cdev, ret);

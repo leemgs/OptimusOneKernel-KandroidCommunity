@@ -1,31 +1,4 @@
-/*
- * Standard Hot Plug Controller Driver
- *
- * Copyright (C) 1995,2001 Compaq Computer Corporation
- * Copyright (C) 2001 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2001 IBM Corp.
- * Copyright (C) 2003-2004 Intel Corporation
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <greg@kroah.com>, <kristen.c.accardi@intel.com>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -35,7 +8,7 @@
 #include <linux/workqueue.h>
 #include "shpchp.h"
 
-/* Global variables */
+
 int shpchp_debug;
 int shpchp_poll_mode;
 int shpchp_poll_time;
@@ -80,10 +53,7 @@ static struct hotplug_slot_ops shpchp_hotplug_slot_ops = {
 	.get_cur_bus_speed =	get_cur_bus_speed,
 };
 
-/**
- * release_slot - free up the memory used by a slot
- * @hotplug_slot: slot to free
- */
+
 static void release_slot(struct hotplug_slot *hotplug_slot)
 {
 	struct slot *slot = hotplug_slot->private;
@@ -129,7 +99,7 @@ static int init_slots(struct controller *ctrl)
 		mutex_init(&slot->lock);
 		INIT_DELAYED_WORK(&slot->work, shpchp_queue_pushbutton_work);
 
-		/* register this slot with the hotplug pci core */
+		
 		hotplug_slot->private = slot;
 		hotplug_slot->release = &release_slot;
 		snprintf(name, SLOT_NAME_SIZE, "%d", slot->number);
@@ -183,9 +153,7 @@ void cleanup_slots(struct controller *ctrl)
 	}
 }
 
-/*
- * set_attention_status - Turns the Amber LED for a slot on, off or blink
- */
+
 static int set_attention_status (struct hotplug_slot *hotplug_slot, u8 status)
 {
 	struct slot *slot = get_slot(hotplug_slot);
@@ -345,7 +313,7 @@ static int shpc_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	pci_set_drvdata(pdev, ctrl);
 
-	/* Setup the slot information structures */
+	
 	rc = init_slots(ctrl);
 	if (rc) {
 		ctrl_err(ctrl, "Slot initialization failed\n");
@@ -379,7 +347,7 @@ static void shpc_remove(struct pci_dev *dev)
 
 static struct pci_device_id shpcd_pci_tbl[] = {
 	{PCI_DEVICE_CLASS(((PCI_CLASS_BRIDGE_PCI << 8) | 0x00), ~0)},
-	{ /* end: all zeroes */ }
+	{  }
 };
 MODULE_DEVICE_TABLE(pci, shpcd_pci_tbl);
 

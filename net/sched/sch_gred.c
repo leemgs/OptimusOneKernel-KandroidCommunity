@@ -1,22 +1,4 @@
-/*
- * net/sched/sch_gred.c	Generic Random Early Detection queue.
- *
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Authors:    J Hadi Salim (hadi@cyberus.ca) 1998-2002
- *
- *             991129: -  Bug fix with grio mode
- *		       - a better sing. AvgQ mode with Grio(WRED)
- *		       - A finer grained VQ dequeue based on sugestion
- *		         from Ren Liu
- *		       - More error checks
- *
- *  For all the glorious comments look at include/net/red.h
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -33,12 +15,12 @@ struct gred_sched;
 
 struct gred_sched_data
 {
-	u32		limit;		/* HARD maximal queue length	*/
-	u32      	DP;		/* the drop pramaters */
-	u32		bytesin;	/* bytes seen on virtualQ so far*/
-	u32		packetsin;	/* packets seen on virtualQ so far*/
-	u32		backlog;	/* bytes on the virtualQ */
-	u8		prio;		/* the prio of this vq */
+	u32		limit;		
+	u32      	DP;		
+	u32		bytesin;	
+	u32		packetsin;	
+	u32		backlog;	
+	u8		prio;		
 
 	struct red_parms parms;
 	struct red_stats stats;
@@ -94,7 +76,7 @@ static inline int gred_wred_mode_check(struct Qdisc *sch)
 	struct gred_sched *table = qdisc_priv(sch);
 	int i;
 
-	/* Really ugly O(n^2) but shouldn't be necessary too frequent. */
+	
 	for (i = 0; i < table->DPs; i++) {
 		struct gred_sched_data *q = table->tab[i];
 		int n;
@@ -160,22 +142,18 @@ static int gred_enqueue(struct sk_buff *skb, struct Qdisc* sch)
 		dp = t->def;
 
 		if ((q = t->tab[dp]) == NULL) {
-			/* Pass through packets not assigned to a DP
-			 * if no default DP has been configured. This
-			 * allows for DP flows to be left untouched.
-			 */
+			
 			if (skb_queue_len(&sch->q) < qdisc_dev(sch)->tx_queue_len)
 				return qdisc_enqueue_tail(skb, sch);
 			else
 				goto drop;
 		}
 
-		/* fix tc_index? --could be controvesial but needed for
-		   requeueing */
+		
 		skb->tc_index = (skb->tc_index & ~GRED_VQ_MASK) | dp;
 	}
 
-	/* sum up all the qaves of prios <= to ours to get the new qave */
+	
 	if (!gred_wred_mode(t) && gred_rio_mode(t)) {
 		int i;
 
@@ -349,11 +327,7 @@ static inline int gred_change_table_def(struct Qdisc *sch, struct nlattr *dps)
 	table->def = sopt->def_DP;
 	table->red_flags = sopt->flags;
 
-	/*
-	 * Every entry point to GRED is synchronized with the above code
-	 * and the DP is checked against DPs, i.e. shadowed VQs can no
-	 * longer be found so we can unlock right here.
-	 */
+	
 	sch_tree_unlock(sch);
 
 	if (sopt->grio) {
@@ -520,9 +494,7 @@ static int gred_dump(struct Qdisc *sch, struct sk_buff *skb)
 		memset(&opt, 0, sizeof(opt));
 
 		if (!q) {
-			/* hack -- fix at some point with proper message
-			   This is how we indicate to tc that there is no VQ
-			   at this DP */
+			
 
 			opt.DP = MAX_DPs + i;
 			goto append_opt;

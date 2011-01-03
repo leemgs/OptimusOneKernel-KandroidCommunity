@@ -1,36 +1,27 @@
-/*
- * QLogic Fibre Channel HBA Driver
- * Copyright (c)  2003-2008 QLogic Corporation
- *
- * See LICENSE.qla2xxx for copyright and licensing details.
- */
+
 
 #include "qla_def.h"
 
-/*
- * Driver debug definitions.
- */
-/* #define QL_DEBUG_LEVEL_1  */ /* Output register accesses to COM1 */
-/* #define QL_DEBUG_LEVEL_2  */ /* Output error msgs to COM1 */
-/* #define QL_DEBUG_LEVEL_3  */ /* Output function trace msgs to COM1 */
-/* #define QL_DEBUG_LEVEL_4  */ /* Output NVRAM trace msgs to COM1 */
-/* #define QL_DEBUG_LEVEL_5  */ /* Output ring trace msgs to COM1 */
-/* #define QL_DEBUG_LEVEL_6  */ /* Output WATCHDOG timer trace to COM1 */
-/* #define QL_DEBUG_LEVEL_7  */ /* Output RISC load trace msgs to COM1 */
-/* #define QL_DEBUG_LEVEL_8  */ /* Output ring saturation msgs to COM1 */
-/* #define QL_DEBUG_LEVEL_9  */ /* Output IOCTL trace msgs */
-/* #define QL_DEBUG_LEVEL_10 */ /* Output IOCTL error msgs */
-/* #define QL_DEBUG_LEVEL_11 */ /* Output Mbx Cmd trace msgs */
-/* #define QL_DEBUG_LEVEL_12 */ /* Output IP trace msgs */
-/* #define QL_DEBUG_LEVEL_13 */ /* Output fdmi function trace msgs */
-/* #define QL_DEBUG_LEVEL_14 */ /* Output RSCN trace msgs */
-/* #define QL_DEBUG_LEVEL_15 */ /* Output NPIV trace msgs */
-/* #define QL_DEBUG_LEVEL_16 */ /* Output ISP84XX trace msgs */
-/* #define QL_DEBUG_LEVEL_17 */ /* Output MULTI-Q trace messages */
 
-/*
-* Macros use for debugging the driver.
-*/
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
 
 #define DEBUG(x)	do { if (ql2xextended_error_logging) { x; } } while (0)
 
@@ -132,9 +123,7 @@
 #else
 #define DEBUG16(x)	do {} while (0)
 #endif
-/*
- * Firmware Dump structure definition
- */
+
 
 struct qla2300_fw_dump {
 	uint16_t hccr;

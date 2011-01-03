@@ -1,29 +1,4 @@
-/*
- * file: drivers/pcmcia/bfin_cf.c
- *
- * based on: drivers/pcmcia/omap_cf.c
- * omap_cf.c -- OMAP 16xx CompactFlash controller driver
- *
- * Copyright (c) 2005 David Brownell
- * Copyright (c) 2006-2008 Michael Hennerich Analog Devices Inc.
- *
- * bugs:         enter bugs at http://blackfin.uclinux.org/
- *
- * this program is free software; you can redistribute it and/or modify
- * it under the terms of the gnu general public license as published by
- * the free software foundation; either version 2, or (at your option)
- * any later version.
- *
- * this program is distributed in the hope that it will be useful,
- * but without any warranty; without even the implied warranty of
- * merchantability or fitness for a particular purpose.  see the
- * gnu general public license for more details.
- *
- * you should have received a copy of the gnu general public license
- * along with this program; see the file copying.
- * if not, write to the free software foundation,
- * 59 temple place - suite 330, boston, ma 02111-1307, usa.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -46,12 +21,12 @@
 
 #define	POLL_INTERVAL	(2 * HZ)
 
-#define	CF_ATASEL_ENA 	0x20311802	/* Inverts RESET */
+#define	CF_ATASEL_ENA 	0x20311802	
 #define	CF_ATASEL_DIS 	0x20311800
 
 #define bfin_cf_present(pfx) (gpio_get_value(pfx))
 
-/*--------------------------------------------------------------------------*/
+
 
 static const char driver_name[] = "bfin_cf_pcmcia";
 
@@ -69,7 +44,7 @@ struct bfin_cf_socket {
 	u_short cd_pfx;
 };
 
-/*--------------------------------------------------------------------------*/
+
 static int bfin_cf_reset(void)
 {
 	outw(0, CF_ATASEL_ENA);
@@ -84,7 +59,7 @@ static int bfin_cf_ss_init(struct pcmcia_socket *s)
 	return 0;
 }
 
-/* the timer is primarily to kick this socket's pccardd */
+
 static void bfin_cf_timer(unsigned long _cf)
 {
 	struct bfin_cf_socket *cf = (void *)_cf;
@@ -154,7 +129,7 @@ static int bfin_cf_ss_suspend(struct pcmcia_socket *s)
 	return bfin_cf_set_socket(s, &dead_socket);
 }
 
-/* regions are 2K each:  mem, attrib, io (and reserved-for-ide) */
+
 
 static int bfin_cf_set_io_map(struct pcmcia_socket *s, struct pccard_io_map *io)
 {
@@ -192,7 +167,7 @@ static struct pccard_operations bfin_cf_ops = {
 	.set_mem_map = bfin_cf_set_mem_map,
 };
 
-/*--------------------------------------------------------------------------*/
+
 
 static int __devinit bfin_cf_probe(struct platform_device *pdev)
 {
@@ -208,7 +183,7 @@ static int __devinit bfin_cf_probe(struct platform_device *pdev)
 	if (!irq)
 		return -EINVAL;
 
-	cd_pfx = platform_get_irq(pdev, 1);	/*Card Detect GPIO PIN */
+	cd_pfx = platform_get_irq(pdev, 1);	
 
 	if (gpio_request(cd_pfx, "pcmcia: CD")) {
 		dev_err(&pdev->dev,
@@ -245,7 +220,7 @@ static int __devinit bfin_cf_probe(struct platform_device *pdev)
 	cf->phys_cf_io = io_mem->start;
 	cf->phys_cf_attr = attr_mem->start;
 
-	/* pcmcia layer only remaps "real" memory */
+	
 	cf->socket.io_offset = (unsigned long)
 	    ioremap(cf->phys_cf_io, SZ_2K);
 

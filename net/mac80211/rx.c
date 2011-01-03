@@ -1,13 +1,4 @@
-/*
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- * Copyright 2006-2007	Jiri Benc <jbenc@suse.cz>
- * Copyright 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/jiffies.h>
 #include <linux/kernel.h>
@@ -32,12 +23,7 @@ static u8 ieee80211_sta_manage_reorder_buf(struct ieee80211_hw *hw,
 					   struct sk_buff *skb,
 					   u16 mpdu_seq_num,
 					   int bar_req);
-/*
- * monitor mode reception
- *
- * This function cleans up the SKB, i.e. it removes all the stuff
- * only useful for monitoring.
- */
+
 static struct sk_buff *remove_monitor_info(struct ieee80211_local *local,
 					   struct sk_buff *skb,
 					   int rtap_len)
@@ -48,7 +34,7 @@ static struct sk_buff *remove_monitor_info(struct ieee80211_local *local,
 		if (likely(skb->len > FCS_LEN))
 			skb_trim(skb, skb->len - FCS_LEN);
 		else {
-			/* driver bug */
+			
 			WARN_ON(1);
 			dev_kfree_skb(skb);
 			skb = NULL;
@@ -82,7 +68,7 @@ ieee80211_rx_radiotap_len(struct ieee80211_local *local,
 {
 	int len;
 
-	/* always present fields */
+	
 	len = sizeof(struct ieee80211_radiotap_header) + 9;
 
 	if (status->flag & RX_FLAG_TSFT)
@@ -92,21 +78,17 @@ ieee80211_rx_radiotap_len(struct ieee80211_local *local,
 	if (local->hw.flags & IEEE80211_HW_NOISE_DBM)
 		len += 1;
 
-	if (len & 1) /* padding for RX_FLAGS if necessary */
+	if (len & 1) 
 		len++;
 
-	/* make sure radiotap starts at a naturally aligned address */
+	
 	if (len % 8)
 		len = roundup(len, 8);
 
 	return len;
 }
 
-/*
- * ieee80211_add_rx_radiotap_header - add radiotap header
- *
- * add a radiotap header containing all the fields which the hardware provided.
- */
+
 static void
 ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 				 struct sk_buff *skb,
@@ -120,7 +102,7 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 	rthdr = (struct ieee80211_radiotap_header *)skb_push(skb, rtap_len);
 	memset(rthdr, 0, rtap_len);
 
-	/* radiotap header, set always present flags */
+	
 	rthdr->it_present =
 		cpu_to_le32((1 << IEEE80211_RADIOTAP_FLAGS) |
 			    (1 << IEEE80211_RADIOTAP_CHANNEL) |
@@ -130,9 +112,9 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 
 	pos = (unsigned char *)(rthdr+1);
 
-	/* the order of the following fields is important */
+	
 
-	/* IEEE80211_RADIOTAP_TSFT */
+	
 	if (status->flag & RX_FLAG_TSFT) {
 		*(__le64 *)pos = cpu_to_le64(status->mactime);
 		rthdr->it_present |=
@@ -140,7 +122,7 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 		pos += 8;
 	}
 
-	/* IEEE80211_RADIOTAP_FLAGS */
+	
 	if (local->hw.flags & IEEE80211_HW_RX_INCLUDES_FCS)
 		*pos |= IEEE80211_RADIOTAP_F_FCS;
 	if (status->flag & (RX_FLAG_FAILED_FCS_CRC | RX_FLAG_FAILED_PLCP_CRC))
@@ -149,15 +131,9 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 		*pos |= IEEE80211_RADIOTAP_F_SHORTPRE;
 	pos++;
 
-	/* IEEE80211_RADIOTAP_RATE */
+	
 	if (status->flag & RX_FLAG_HT) {
-		/*
-		 * TODO: add following information into radiotap header once
-		 * suitable fields are defined for it:
-		 * - MCS index (status->rate_idx)
-		 * - HT40 (status->flag & RX_FLAG_40MHZ)
-		 * - short-GI (status->flag & RX_FLAG_SHORT_GI)
-		 */
+		
 		*pos = 0;
 	} else {
 		rthdr->it_present |= cpu_to_le32(1 << IEEE80211_RADIOTAP_RATE);
@@ -165,7 +141,7 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 	}
 	pos++;
 
-	/* IEEE80211_RADIOTAP_CHANNEL */
+	
 	*(__le16 *)pos = cpu_to_le16(status->freq);
 	pos += 2;
 	if (status->band == IEEE80211_BAND_5GHZ)
@@ -179,7 +155,7 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 					     IEEE80211_CHAN_2GHZ);
 	pos += 2;
 
-	/* IEEE80211_RADIOTAP_DBM_ANTSIGNAL */
+	
 	if (local->hw.flags & IEEE80211_HW_SIGNAL_DBM) {
 		*pos = status->signal;
 		rthdr->it_present |=
@@ -187,7 +163,7 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 		pos++;
 	}
 
-	/* IEEE80211_RADIOTAP_DBM_ANTNOISE */
+	
 	if (local->hw.flags & IEEE80211_HW_NOISE_DBM) {
 		*pos = status->noise;
 		rthdr->it_present |=
@@ -195,16 +171,16 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 		pos++;
 	}
 
-	/* IEEE80211_RADIOTAP_LOCK_QUALITY is missing */
+	
 
-	/* IEEE80211_RADIOTAP_ANTENNA */
+	
 	*pos = status->antenna;
 	pos++;
 
-	/* IEEE80211_RADIOTAP_DB_ANTNOISE is not used */
+	
 
-	/* IEEE80211_RADIOTAP_RX_FLAGS */
-	/* ensure 2 byte alignment for the 2 byte field as required */
+	
+	
 	if ((pos - (unsigned char *)rthdr) & 1)
 		pos++;
 	if (status->flag & RX_FLAG_FAILED_PLCP_CRC)
@@ -212,11 +188,7 @@ ieee80211_add_rx_radiotap_header(struct ieee80211_local *local,
 	pos += 2;
 }
 
-/*
- * This function copies a received frame to all monitor interfaces and
- * returns a cleaned-up SKB that no longer includes the FCS nor the
- * radiotap header the driver might have added.
- */
+
 static struct sk_buff *
 ieee80211_rx_monitor(struct ieee80211_local *local, struct sk_buff *origskb,
 		     struct ieee80211_rate *rate)
@@ -229,18 +201,11 @@ ieee80211_rx_monitor(struct ieee80211_local *local, struct sk_buff *origskb,
 	int present_fcs_len = 0;
 	int rtap_len = 0;
 
-	/*
-	 * First, we may need to make a copy of the skb because
-	 *  (1) we need to modify it for radiotap (if not present), and
-	 *  (2) the other RX handlers will modify the skb we got.
-	 *
-	 * We don't need to, of course, if we aren't going to return
-	 * the SKB because it has a bad FCS/PLCP checksum.
-	 */
+	
 	if (status->flag & RX_FLAG_RADIOTAP)
 		rtap_len = ieee80211_get_radiotap_len(origskb->data);
 	else
-		/* room for the radiotap header based on driver features */
+		
 		needed_headroom = ieee80211_rx_radiotap_len(local, status);
 
 	if (local->hw.flags & IEEE80211_HW_RX_INCLUDES_FCS)
@@ -256,27 +221,18 @@ ieee80211_rx_monitor(struct ieee80211_local *local, struct sk_buff *origskb,
 	}
 
 	if (should_drop_frame(origskb, present_fcs_len, rtap_len)) {
-		/* only need to expand headroom if necessary */
+		
 		skb = origskb;
 		origskb = NULL;
 
-		/*
-		 * This shouldn't trigger often because most devices have an
-		 * RX header they pull before we get here, and that should
-		 * be big enough for our radiotap information. We should
-		 * probably export the length to drivers so that we can have
-		 * them allocate enough headroom to start with.
-		 */
+		
 		if (skb_headroom(skb) < needed_headroom &&
 		    pskb_expand_head(skb, needed_headroom, 0, GFP_ATOMIC)) {
 			dev_kfree_skb(skb);
 			return NULL;
 		}
 	} else {
-		/*
-		 * Need to make a copy and possibly remove radiotap header
-		 * and FCS from the original.
-		 */
+		
 		skb = skb_copy_expand(origskb, needed_headroom, 0, GFP_ATOMIC);
 
 		origskb = remove_monitor_info(local, origskb, rtap_len);
@@ -285,7 +241,7 @@ ieee80211_rx_monitor(struct ieee80211_local *local, struct sk_buff *origskb,
 			return origskb;
 	}
 
-	/* if necessary, prepend radiotap information */
+	
 	if (!(status->flag & RX_FLAG_RADIOTAP))
 		ieee80211_add_rx_radiotap_header(local, skb, rate,
 						 needed_headroom);
@@ -333,59 +289,26 @@ static void ieee80211_parse_qos(struct ieee80211_rx_data *rx)
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)rx->skb->data;
 	int tid;
 
-	/* does the frame have a qos control field? */
+	
 	if (ieee80211_is_data_qos(hdr->frame_control)) {
 		u8 *qc = ieee80211_get_qos_ctl(hdr);
-		/* frame has qos control */
+		
 		tid = *qc & IEEE80211_QOS_CTL_TID_MASK;
 		if (*qc & IEEE80211_QOS_CONTROL_A_MSDU_PRESENT)
 			rx->flags |= IEEE80211_RX_AMSDU;
 		else
 			rx->flags &= ~IEEE80211_RX_AMSDU;
 	} else {
-		/*
-		 * IEEE 802.11-2007, 7.1.3.4.1 ("Sequence Number field"):
-		 *
-		 *	Sequence numbers for management frames, QoS data
-		 *	frames with a broadcast/multicast address in the
-		 *	Address 1 field, and all non-QoS data frames sent
-		 *	by QoS STAs are assigned using an additional single
-		 *	modulo-4096 counter, [...]
-		 *
-		 * We also use that counter for non-QoS STAs.
-		 */
+		
 		tid = NUM_RX_DATA_QUEUES - 1;
 	}
 
 	rx->queue = tid;
-	/* Set skb->priority to 1d tag if highest order bit of TID is not set.
-	 * For now, set skb->priority to 0 for other cases. */
+	
 	rx->skb->priority = (tid > 7) ? 0 : tid;
 }
 
-/**
- * DOC: Packet alignment
- *
- * Drivers always need to pass packets that are aligned to two-byte boundaries
- * to the stack.
- *
- * Additionally, should, if possible, align the payload data in a way that
- * guarantees that the contained IP header is aligned to a four-byte
- * boundary. In the case of regular frames, this simply means aligning the
- * payload to a four-byte boundary (because either the IP header is directly
- * contained, or IV/RFC1042 headers that have a length divisible by four are
- * in front of it).
- *
- * With A-MSDU frames, however, the payload data address must yield two modulo
- * four because there are 14-byte 802.3 headers within the A-MSDU frames that
- * push the IP header further back to a multiple of four again. Thankfully, the
- * specs were sane enough this time around to require padding each A-MSDU
- * subframe to a length that is a multiple of four.
- *
- * Padding like Atheros hardware adds which is inbetween the 802.11 header and
- * the payload is not supported, the driver is required to move the 802.11
- * header to be directly in front of the payload in that case.
- */
+
 static void ieee80211_verify_alignment(struct ieee80211_rx_data *rx)
 {
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)rx->skb->data;
@@ -410,7 +333,7 @@ static void ieee80211_verify_alignment(struct ieee80211_rx_data *rx)
 }
 
 
-/* rx handlers */
+
 
 static ieee80211_rx_result debug_noinline
 ieee80211_rx_h_passive_scan(struct ieee80211_rx_data *rx)
@@ -423,14 +346,14 @@ ieee80211_rx_h_passive_scan(struct ieee80211_rx_data *rx)
 
 	if (unlikely(test_bit(SCAN_SW_SCANNING, &local->scanning) &&
 		     (rx->flags & IEEE80211_RX_IN_SCAN))) {
-		/* drop all the other packets during a software scan anyway */
+		
 		if (ieee80211_scan_rx(rx->sdata, skb) != RX_QUEUED)
 			dev_kfree_skb(skb);
 		return RX_QUEUED;
 	}
 
 	if (unlikely(rx->flags & IEEE80211_RX_IN_SCAN)) {
-		/* scanning finished during invoking of handlers */
+		
 		I802_DEBUG_INC(local->rx_handlers_drop_passive_scan);
 		return RX_DROP_UNUSABLE;
 	}
@@ -461,7 +384,7 @@ static int ieee80211_is_multicast_robust_mgmt_frame(struct sk_buff *skb)
 }
 
 
-/* Get the BIP key index from MMIE; return -1 if this is not a BIP frame */
+
 static int ieee80211_get_mmie_keyidx(struct sk_buff *skb)
 {
 	struct ieee80211_mgmt *hdr = (struct ieee80211_mgmt *) skb->data;
@@ -472,7 +395,7 @@ static int ieee80211_get_mmie_keyidx(struct sk_buff *skb)
 		return -1;
 
 	if (!ieee80211_is_robust_mgmt_frame((struct ieee80211_hdr *) hdr))
-		return -1; /* not a robust management frame */
+		return -1; 
 
 	mmie = (struct ieee80211_mmie *)
 		(skb->data + skb->len - sizeof(*mmie));
@@ -506,9 +429,7 @@ ieee80211_rx_mesh_check(struct ieee80211_rx_data *rx)
 		}
 	}
 
-	/* If there is not an established peer link and this is not a peer link
-	 * establisment frame, beacon or probe, drop the frame.
-	 */
+	
 
 	if (!rx->sta || sta_plink_state(rx->sta) != PLINK_ESTAB) {
 		struct ieee80211_mgmt *mgmt;
@@ -549,7 +470,7 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 {
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)rx->skb->data;
 
-	/* Drop duplicate 802.11 retransmissions (IEEE 802.11 Chap. 9.2.9) */
+	
 	if (rx->sta && !is_multicast_ether_addr(hdr->addr1)) {
 		if (unlikely(ieee80211_has_retry(hdr->frame_control) &&
 			     rx->sta->last_seq_ctrl[rx->queue] ==
@@ -568,14 +489,7 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 		return RX_DROP_MONITOR;
 	}
 
-	/* Drop disallowed frame classes based on STA auth/assoc state;
-	 * IEEE 802.11, Chap 5.5.
-	 *
-	 * mac80211 filters only based on association state, i.e. it drops
-	 * Class 3 frames from not associated stations. hostapd sends
-	 * deauth/disassoc frames when needed. In addition, hostapd is
-	 * responsible for filtering on both auth and assoc states.
-	 */
+	
 
 	if (ieee80211_vif_is_mesh(&rx->sdata->vif))
 		return ieee80211_rx_mesh_check(rx);
@@ -588,8 +502,7 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 		     !ieee80211_has_tods(hdr->frame_control) &&
 		     ieee80211_is_data(hdr->frame_control)) ||
 		    !(rx->flags & IEEE80211_RX_RA_MATCH)) {
-			/* Drop IBSS frames and frames for other hosts
-			 * silently. */
+			
 			return RX_DROP_MONITOR;
 		}
 
@@ -610,37 +523,9 @@ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
 	struct ieee80211_key *stakey = NULL;
 	int mmie_keyidx = -1;
 
-	/*
-	 * Key selection 101
-	 *
-	 * There are four types of keys:
-	 *  - GTK (group keys)
-	 *  - IGTK (group keys for management frames)
-	 *  - PTK (pairwise keys)
-	 *  - STK (station-to-station pairwise keys)
-	 *
-	 * When selecting a key, we have to distinguish between multicast
-	 * (including broadcast) and unicast frames, the latter can only
-	 * use PTKs and STKs while the former always use GTKs and IGTKs.
-	 * Unless, of course, actual WEP keys ("pre-RSNA") are used, then
-	 * unicast frames can also use key indices like GTKs. Hence, if we
-	 * don't have a PTK/STK we check the key index for a WEP key.
-	 *
-	 * Note that in a regular BSS, multicast frames are sent by the
-	 * AP only, associated stations unicast the frame to the AP first
-	 * which then multicasts it on their behalf.
-	 *
-	 * There is also a slight problem in IBSS mode: GTKs are negotiated
-	 * with each station, that is something we don't currently handle.
-	 * The spec seems to expect that one negotiates the same key with
-	 * every station but there's no such requirement; VLANs could be
-	 * possible.
-	 */
+	
 
-	/*
-	 * No point in finding a key and decrypting if the frame is neither
-	 * addressed to us nor a multicast frame.
-	 */
+	
 	if (!(rx->flags & IEEE80211_RX_RA_MATCH))
 		return RX_CONTINUE;
 
@@ -652,26 +537,21 @@ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
 
 	if (!is_multicast_ether_addr(hdr->addr1) && stakey) {
 		rx->key = stakey;
-		/* Skip decryption if the frame is not protected. */
+		
 		if (!ieee80211_has_protected(hdr->frame_control))
 			return RX_CONTINUE;
 	} else if (mmie_keyidx >= 0) {
-		/* Broadcast/multicast robust management frame / BIP */
+		
 		if ((rx->status->flag & RX_FLAG_DECRYPTED) &&
 		    (rx->status->flag & RX_FLAG_IV_STRIPPED))
 			return RX_CONTINUE;
 
 		if (mmie_keyidx < NUM_DEFAULT_KEYS ||
 		    mmie_keyidx >= NUM_DEFAULT_KEYS + NUM_DEFAULT_MGMT_KEYS)
-			return RX_DROP_MONITOR; /* unexpected BIP keyidx */
+			return RX_DROP_MONITOR; 
 		rx->key = rcu_dereference(rx->sdata->keys[mmie_keyidx]);
 	} else if (!ieee80211_has_protected(hdr->frame_control)) {
-		/*
-		 * The frame was not protected, so skip decryption. However, we
-		 * need to set rx->key if there is a key that could have been
-		 * used so that the frame may be dropped if encryption would
-		 * have been expected.
-		 */
+		
 		struct ieee80211_key *key = NULL;
 		if (ieee80211_is_mgmt(hdr->frame_control) &&
 		    is_multicast_ether_addr(hdr->addr1) &&
@@ -681,15 +561,7 @@ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
 			rx->key = key;
 		return RX_CONTINUE;
 	} else {
-		/*
-		 * The device doesn't give us the IV so we won't be
-		 * able to look up the key. That's ok though, we
-		 * don't need to decrypt the frame, we just won't
-		 * be able to keep statistics accurate.
-		 * Except for key threshold notifications, should
-		 * we somehow allow the driver to tell us which key
-		 * the hardware used if this flag is set?
-		 */
+		
 		if ((rx->status->flag & RX_FLAG_DECRYPTED) &&
 		    (rx->status->flag & RX_FLAG_IV_STRIPPED))
 			return RX_CONTINUE;
@@ -697,21 +569,14 @@ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
 		hdrlen = ieee80211_hdrlen(hdr->frame_control);
 
 		if (rx->skb->len < 8 + hdrlen)
-			return RX_DROP_UNUSABLE; /* TODO: count this? */
+			return RX_DROP_UNUSABLE; 
 
-		/*
-		 * no need to call ieee80211_wep_get_keyidx,
-		 * it verifies a bunch of things we've done already
-		 */
+		
 		keyidx = rx->skb->data[hdrlen + 3] >> 6;
 
 		rx->key = rcu_dereference(rx->sdata->keys[keyidx]);
 
-		/*
-		 * RSNA-protected unicast frames should always be sent with
-		 * pairwise or station-to-station keys, but for WEP we allow
-		 * using a key index as well.
-		 */
+		
 		if (rx->key && rx->key->conf.alg != ALG_WEP &&
 		    !is_multicast_ether_addr(hdr->addr1))
 			rx->key = NULL;
@@ -719,12 +584,12 @@ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
 
 	if (rx->key) {
 		rx->key->tx_rx_count++;
-		/* TODO: add threshold stuff again */
+		
 	} else {
 		return RX_DROP_MONITOR;
 	}
 
-	/* Check for weak IVs if possible */
+	
 	if (rx->sta && rx->key->conf.alg == ALG_WEP &&
 	    ieee80211_is_data(hdr->frame_control) &&
 	    (!(rx->status->flag & RX_FLAG_IV_STRIPPED) ||
@@ -747,7 +612,7 @@ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
 		break;
 	}
 
-	/* either the frame has been decrypted or will be dropped */
+	
 	rx->status->flag |= RX_FLAG_DECRYPTED;
 
 	return result;
@@ -768,19 +633,19 @@ ieee80211_rx_h_check_more_data(struct ieee80211_rx_data *rx)
 		return RX_CONTINUE;
 
 	if (!ieee80211_has_fromds(hdr->frame_control))
-		/* this is not from AP */
+		
 		return RX_CONTINUE;
 
 	if (!ieee80211_is_data(hdr->frame_control))
 		return RX_CONTINUE;
 
 	if (!ieee80211_has_moredata(hdr->frame_control)) {
-		/* AP has no more frames buffered for us */
+		
 		local->pspolling = false;
 		return RX_CONTINUE;
 	}
 
-	/* more data bit is set, let's request a new frame from the AP */
+	
 	ieee80211_send_pspoll(local, rx->sdata);
 
 	return RX_CONTINUE;
@@ -797,7 +662,7 @@ static void ap_sta_ps_start(struct sta_info *sta)
 #ifdef CONFIG_MAC80211_VERBOSE_PS_DEBUG
 	printk(KERN_DEBUG "%s: STA %pM aid %d enters power save mode\n",
 	       sdata->dev->name, sta->sta.addr, sta->sta.aid);
-#endif /* CONFIG_MAC80211_VERBOSE_PS_DEBUG */
+#endif 
 }
 
 static int ap_sta_ps_end(struct sta_info *sta)
@@ -817,9 +682,9 @@ static int ap_sta_ps_end(struct sta_info *sta)
 #ifdef CONFIG_MAC80211_VERBOSE_PS_DEBUG
 	printk(KERN_DEBUG "%s: STA %pM aid %d exits power save mode\n",
 	       sdata->dev->name, sta->sta.addr, sta->sta.aid);
-#endif /* CONFIG_MAC80211_VERBOSE_PS_DEBUG */
+#endif 
 
-	/* Send all buffered frames to the station */
+	
 	sent = ieee80211_add_pending_skbs(local, &sta->tx_filtered);
 	buffered = ieee80211_add_pending_skbs(local, &sta->ps_tx_buf);
 	sent += buffered;
@@ -829,7 +694,7 @@ static int ap_sta_ps_end(struct sta_info *sta)
 	printk(KERN_DEBUG "%s: STA %pM aid %d sending %d filtered/%d PS frames "
 	       "since STA not sleeping anymore\n", sdata->dev->name,
 	       sta->sta.addr, sta->sta.aid, sent - buffered, buffered);
-#endif /* CONFIG_MAC80211_VERBOSE_PS_DEBUG */
+#endif 
 
 	return sent;
 }
@@ -843,21 +708,14 @@ ieee80211_rx_h_sta_process(struct ieee80211_rx_data *rx)
 	if (!sta)
 		return RX_CONTINUE;
 
-	/*
-	 * Update last_rx only for IBSS packets which are for the current
-	 * BSSID to avoid keeping the current IBSS network alive in cases
-	 * where other STAs start using different BSSID.
-	 */
+	
 	if (rx->sdata->vif.type == NL80211_IFTYPE_ADHOC) {
 		u8 *bssid = ieee80211_get_bssid(hdr, rx->skb->len,
 						NL80211_IFTYPE_ADHOC);
 		if (compare_ether_addr(bssid, rx->sdata->u.ibss.bssid) == 0)
 			sta->last_rx = jiffies;
 	} else if (!is_multicast_ether_addr(hdr->addr1)) {
-		/*
-		 * Mesh beacons will update last_rx when if they are found to
-		 * match the current local configuration when processed.
-		 */
+		
 		sta->last_rx = jiffies;
 	}
 
@@ -873,22 +731,12 @@ ieee80211_rx_h_sta_process(struct ieee80211_rx_data *rx)
 	sta->last_qual = rx->status->qual;
 	sta->last_noise = rx->status->noise;
 
-	/*
-	 * Change STA power saving mode only at the end of a frame
-	 * exchange sequence.
-	 */
+	
 	if (!ieee80211_has_morefrags(hdr->frame_control) &&
 	    (rx->sdata->vif.type == NL80211_IFTYPE_AP ||
 	     rx->sdata->vif.type == NL80211_IFTYPE_AP_VLAN)) {
 		if (test_sta_flags(sta, WLAN_STA_PS)) {
-			/*
-			 * Ignore doze->wake transitions that are
-			 * indicated by non-data frames, the standard
-			 * is unclear here, but for example going to
-			 * PS mode and then scanning would cause a
-			 * doze->wake transition for the probe request,
-			 * and that is clearly undesirable.
-			 */
+			
 			if (ieee80211_is_data(hdr->frame_control) &&
 			    !ieee80211_has_pm(hdr->frame_control))
 				rx->sent_ps_buffered += ap_sta_ps_end(sta);
@@ -898,19 +746,17 @@ ieee80211_rx_h_sta_process(struct ieee80211_rx_data *rx)
 		}
 	}
 
-	/* Drop data::nullfunc frames silently, since they are used only to
-	 * control station power saving mode. */
+	
 	if (ieee80211_is_nullfunc(hdr->frame_control)) {
 		I802_DEBUG_INC(rx->local->rx_handlers_drop_nullfunc);
-		/* Update counter and free packet here to avoid counting this
-		 * as a dropped packed. */
+		
 		sta->rx_packets++;
 		dev_kfree_skb(rx->skb);
 		return RX_QUEUED;
 	}
 
 	return RX_CONTINUE;
-} /* ieee80211_rx_h_sta_process */
+} 
 
 static inline struct ieee80211_fragment_entry *
 ieee80211_reassemble_add(struct ieee80211_sub_if_data *sdata,
@@ -939,7 +785,7 @@ ieee80211_reassemble_add(struct ieee80211_sub_if_data *sdata,
 		__skb_queue_purge(&entry->skb_list);
 	}
 
-	__skb_queue_tail(&entry->skb_list, *skb); /* no need for locking */
+	__skb_queue_tail(&entry->skb_list, *skb); 
 	*skb = NULL;
 	entry->first_frag_time = jiffies;
 	entry->seq = seq;
@@ -975,9 +821,7 @@ ieee80211_reassemble_find(struct ieee80211_sub_if_data *sdata,
 
 		f_hdr = (struct ieee80211_hdr *)entry->skb_list.next->data;
 
-		/*
-		 * Check ftype and addresses are equal, else check next fragment
-		 */
+		
 		if (((hdr->frame_control ^ f_hdr->frame_control) &
 		     cpu_to_le16(IEEE80211_FCTL_FTYPE)) ||
 		    compare_ether_addr(hdr->addr1, f_hdr->addr1) != 0 ||
@@ -1012,7 +856,7 @@ ieee80211_rx_h_defragment(struct ieee80211_rx_data *rx)
 	if (likely((!ieee80211_has_morefrags(fc) && frag == 0) ||
 		   (rx->skb)->len < 24 ||
 		   is_multicast_ether_addr(hdr->addr1))) {
-		/* not fragmented */
+		
 		goto out;
 	}
 	I802_DEBUG_INC(rx->local->rx_handlers_fragments);
@@ -1020,13 +864,12 @@ ieee80211_rx_h_defragment(struct ieee80211_rx_data *rx)
 	seq = (sc & IEEE80211_SCTL_SEQ) >> 4;
 
 	if (frag == 0) {
-		/* This is the first fragment of a new frame. */
+		
 		entry = ieee80211_reassemble_add(rx->sdata, frag, seq,
 						 rx->queue, &(rx->skb));
 		if (rx->key && rx->key->conf.alg == ALG_CCMP &&
 		    ieee80211_has_protected(fc)) {
-			/* Store CCMP PN so that we can verify that the next
-			 * fragment has a sequential PN value. */
+			
 			entry->ccmp = 1;
 			memcpy(entry->last_pn,
 			       rx->key->u.ccmp.rx_pn[rx->queue],
@@ -1035,17 +878,14 @@ ieee80211_rx_h_defragment(struct ieee80211_rx_data *rx)
 		return RX_QUEUED;
 	}
 
-	/* This is a fragment for a frame that should already be pending in
-	 * fragment cache. Add this fragment to the end of the pending entry.
-	 */
+	
 	entry = ieee80211_reassemble_find(rx->sdata, frag, seq, rx->queue, hdr);
 	if (!entry) {
 		I802_DEBUG_INC(rx->local->rx_handlers_drop_defrag);
 		return RX_DROP_MONITOR;
 	}
 
-	/* Verify that MPDUs within one MSDU have sequential PN values.
-	 * (IEEE 802.11i, 8.3.3.4.5) */
+	
 	if (entry->ccmp) {
 		int i;
 		u8 pn[CCMP_PN_LEN], *rpn;
@@ -1087,7 +927,7 @@ ieee80211_rx_h_defragment(struct ieee80211_rx_data *rx)
 		dev_kfree_skb(skb);
 	}
 
-	/* Complete frame has been reassembled - process it now */
+	
 	rx->flags |= IEEE80211_RX_FRAGMENTED;
 
  out:
@@ -1130,20 +970,16 @@ ieee80211_rx_h_ps_poll(struct ieee80211_rx_data *rx)
 		struct ieee80211_hdr *hdr =
 			(struct ieee80211_hdr *) skb->data;
 
-		/*
-		 * Tell TX path to send this frame even though the STA may
-		 * still remain is PS mode after this frame exchange.
-		 */
+		
 		info->flags |= IEEE80211_TX_CTL_PSPOLL_RESPONSE;
 
 #ifdef CONFIG_MAC80211_VERBOSE_PS_DEBUG
 		printk(KERN_DEBUG "STA %pM aid %d: PS Poll (entries after %d)\n",
 		       rx->sta->sta.addr, rx->sta->sta.aid,
 		       skb_queue_len(&rx->sta->ps_tx_buf));
-#endif /* CONFIG_MAC80211_VERBOSE_PS_DEBUG */
+#endif 
 
-		/* Use MoreData flag to indicate whether there are more
-		 * buffered frames for this STA */
+		
 		if (no_pending_pkts)
 			hdr->frame_control &= cpu_to_le16(~IEEE80211_FCTL_MOREDATA);
 		else
@@ -1155,20 +991,14 @@ ieee80211_rx_h_ps_poll(struct ieee80211_rx_data *rx)
 			sta_info_clear_tim_bit(rx->sta);
 #ifdef CONFIG_MAC80211_VERBOSE_PS_DEBUG
 	} else if (!rx->sent_ps_buffered) {
-		/*
-		 * FIXME: This can be the result of a race condition between
-		 *	  us expiring a frame and the station polling for it.
-		 *	  Should we send it a null-func frame indicating we
-		 *	  have nothing buffered for it?
-		 */
+		
 		printk(KERN_DEBUG "%s: STA %pM sent PS Poll even "
 		       "though there are no buffered frames for it\n",
 		       rx->dev->name, rx->sta->sta.addr);
-#endif /* CONFIG_MAC80211_VERBOSE_PS_DEBUG */
+#endif 
 	}
 
-	/* Free PS Poll skb here instead of returning RX_DROP that would
-	 * count as an dropped frame. */
+	
 	dev_kfree_skb(rx->skb);
 
 	return RX_QUEUED;
@@ -1183,11 +1013,11 @@ ieee80211_rx_h_remove_qos_control(struct ieee80211_rx_data *rx)
 	if (!ieee80211_is_data_qos(hdr->frame_control))
 		return RX_CONTINUE;
 
-	/* remove the qos control field, update frame type and meta-data */
+	
 	memmove(data + IEEE80211_QOS_CTL_LEN, data,
 		ieee80211_hdrlen(hdr->frame_control) - IEEE80211_QOS_CTL_LEN);
 	hdr = (struct ieee80211_hdr *)skb_pull(rx->skb, IEEE80211_QOS_CTL_LEN);
-	/* change frame type to non QOS */
+	
 	hdr->frame_control &= ~cpu_to_le16(IEEE80211_STYPE_QOS_DATA);
 
 	return RX_CONTINUE;
@@ -1206,14 +1036,11 @@ ieee80211_802_1x_port_control(struct ieee80211_rx_data *rx)
 static int
 ieee80211_drop_unencrypted(struct ieee80211_rx_data *rx, __le16 fc)
 {
-	/*
-	 * Pass through unencrypted frames if the hardware has
-	 * decrypted them already.
-	 */
+	
 	if (rx->status->flag & RX_FLAG_DECRYPTED)
 		return 0;
 
-	/* Drop unencrypted frames if key is set. */
+	
 	if (unlikely(!ieee80211_has_protected(fc) &&
 		     !ieee80211_is_nullfunc(fc) &&
 		     ieee80211_is_data(fc) &&
@@ -1223,15 +1050,12 @@ ieee80211_drop_unencrypted(struct ieee80211_rx_data *rx, __le16 fc)
 		if (unlikely(ieee80211_is_unicast_robust_mgmt_frame(rx->skb) &&
 			     rx->key))
 			return -EACCES;
-		/* BIP does not use Protected field, so need to check MMIE */
+		
 		if (unlikely(ieee80211_is_multicast_robust_mgmt_frame(rx->skb)
 			     && ieee80211_get_mmie_keyidx(rx->skb) < 0 &&
 			     rx->key))
 			return -EACCES;
-		/*
-		 * When using MFP, Action frames are not allowed prior to
-		 * having configured keys.
-		 */
+		
 		if (unlikely(ieee80211_is_action(fc) && !rx->key &&
 			     ieee80211_is_robust_mgmt_frame(
 				     (struct ieee80211_hdr *) rx->skb->data)))
@@ -1250,19 +1074,14 @@ __ieee80211_data_to_8023(struct ieee80211_rx_data *rx)
 	return ieee80211_data_to_8023(rx->skb, dev->dev_addr, sdata->vif.type);
 }
 
-/*
- * requires that rx->skb is a frame with ethernet header
- */
+
 static bool ieee80211_frame_allowed(struct ieee80211_rx_data *rx, __le16 fc)
 {
 	static const u8 pae_group_addr[ETH_ALEN] __aligned(2)
 		= { 0x01, 0x80, 0xC2, 0x00, 0x00, 0x03 };
 	struct ethhdr *ehdr = (struct ethhdr *) rx->skb->data;
 
-	/*
-	 * Allow EAPOL frames to us/the PAE group address regardless
-	 * of whether the frame was encrypted or not.
-	 */
+	
 	if (ehdr->h_proto == htons(ETH_P_PAE) &&
 	    (compare_ether_addr(ehdr->h_dest, rx->dev->dev_addr) == 0 ||
 	     compare_ether_addr(ehdr->h_dest, pae_group_addr) == 0))
@@ -1275,9 +1094,7 @@ static bool ieee80211_frame_allowed(struct ieee80211_rx_data *rx, __le16 fc)
 	return true;
 }
 
-/*
- * requires that rx->skb is a frame with ethernet header
- */
+
 static void
 ieee80211_deliver_skb(struct ieee80211_rx_data *rx)
 {
@@ -1296,10 +1113,7 @@ ieee80211_deliver_skb(struct ieee80211_rx_data *rx)
 	    !(sdata->flags & IEEE80211_SDATA_DONT_BRIDGE_PACKETS) &&
 	    (rx->flags & IEEE80211_RX_RA_MATCH)) {
 		if (is_multicast_ether_addr(ehdr->h_dest)) {
-			/*
-			 * send multicast frames both to higher layers in
-			 * local net stack and back to the wireless medium
-			 */
+			
 			xmit_skb = skb_copy(skb, GFP_ATOMIC);
 			if (!xmit_skb && net_ratelimit())
 				printk(KERN_DEBUG "%s: failed to clone "
@@ -1307,12 +1121,7 @@ ieee80211_deliver_skb(struct ieee80211_rx_data *rx)
 		} else {
 			dsta = sta_info_get(local, skb->data);
 			if (dsta && dsta->sdata->dev == dev) {
-				/*
-				 * The destination station is associated to
-				 * this AP (in this VLAN), so send the frame
-				 * directly to it and do not pass it to local
-				 * net stack.
-				 */
+				
 				xmit_skb = skb;
 				skb = NULL;
 			}
@@ -1323,13 +1132,7 @@ ieee80211_deliver_skb(struct ieee80211_rx_data *rx)
 		int align __maybe_unused;
 
 #if defined(CONFIG_MAC80211_DEBUG_PACKET_ALIGNMENT) || !defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
-		/*
-		 * 'align' will only take the values 0 or 2 here
-		 * since all frames are required to be aligned
-		 * to 2-byte boundaries when being passed to
-		 * mac80211. That also explains the __skb_push()
-		 * below.
-		 */
+		
 		align = ((unsigned long)(skb->data + sizeof(struct ethhdr))) & 3;
 		if (align) {
 			if (WARN_ON(skb_headroom(skb) < 3)) {
@@ -1346,7 +1149,7 @@ ieee80211_deliver_skb(struct ieee80211_rx_data *rx)
 #endif
 
 		if (skb) {
-			/* deliver to local stack */
+			
 			skb->protocol = eth_type_trans(skb, dev);
 			memset(skb->cb, 0, sizeof(skb->cb));
 			netif_rx(skb);
@@ -1354,7 +1157,7 @@ ieee80211_deliver_skb(struct ieee80211_rx_data *rx)
 	}
 
 	if (xmit_skb) {
-		/* send to wireless media */
+		
 		xmit_skb->protocol = htons(ETH_P_802_3);
 		skb_reset_network_header(xmit_skb);
 		skb_reset_mac_header(xmit_skb);
@@ -1395,7 +1198,7 @@ ieee80211_rx_h_amsdu(struct ieee80211_rx_data *rx)
 	dev->stats.rx_packets++;
 	dev->stats.rx_bytes += skb->len;
 
-	/* skip the wrapping header */
+	
 	eth = (struct ethhdr *) skb_pull(skb, sizeof(struct ethhdr));
 	if (!eth)
 		return RX_DROP_UNUSABLE;
@@ -1410,19 +1213,16 @@ ieee80211_rx_h_amsdu(struct ieee80211_rx_data *rx)
 		memcpy(src, eth->h_source, ETH_ALEN);
 
 		padding = ((4 - subframe_len) & 0x3);
-		/* the last MSDU has no padding */
+		
 		if (subframe_len > remaining)
 			return RX_DROP_UNUSABLE;
 
 		skb_pull(skb, sizeof(struct ethhdr));
-		/* if last subframe reuse skb */
+		
 		if (remaining <= subframe_len + padding)
 			frame = skb;
 		else {
-			/*
-			 * Allocate and reserve two bytes more for payload
-			 * alignment since sizeof(struct ethhdr) is 14.
-			 */
+			
 			frame = dev_alloc_skb(
 				ALIGN(local->hw.extra_tx_headroom, 4) +
 				subframe_len + 2);
@@ -1456,8 +1256,7 @@ ieee80211_rx_h_amsdu(struct ieee80211_rx_data *rx)
 			    ethertype != ETH_P_AARP && ethertype != ETH_P_IPX) ||
 			   compare_ether_addr(payload,
 					      bridge_tunnel_header) == 0)) {
-			/* remove RFC1042 or Bridge-Tunnel
-			 * encapsulation and replace EtherType */
+			
 			skb_pull(frame, 6);
 			memcpy(skb_push(frame, ETH_ALEN), src, ETH_ALEN);
 			memcpy(skb_push(frame, ETH_ALEN), dst, ETH_ALEN);
@@ -1469,7 +1268,7 @@ ieee80211_rx_h_amsdu(struct ieee80211_rx_data *rx)
 		}
 
 		if (!ieee80211_frame_allowed(rx, fc)) {
-			if (skb == frame) /* last frame */
+			if (skb == frame) 
 				return RX_DROP_UNUSABLE;
 			dev_kfree_skb(frame);
 			continue;
@@ -1501,7 +1300,7 @@ ieee80211_rx_h_mesh_fwding(struct ieee80211_rx_data *rx)
 		return RX_CONTINUE;
 
 	if (!mesh_hdr->ttl)
-		/* illegal frame */
+		
 		return RX_DROP_MONITOR;
 
 	if (!is_multicast_ether_addr(hdr->addr1) &&
@@ -1521,7 +1320,7 @@ ieee80211_rx_h_mesh_fwding(struct ieee80211_rx_data *rx)
 		rcu_read_unlock();
 	}
 
-	/* Frame has reached destination.  Don't forward */
+	
 	if (!is_multicast_ether_addr(hdr->addr1) &&
 			compare_ether_addr(rx->dev->dev_addr, hdr->addr3) == 0)
 		return RX_CONTINUE;
@@ -1556,16 +1355,11 @@ ieee80211_rx_h_mesh_fwding(struct ieee80211_rx_data *rx)
 								fwded_mcast);
 			else {
 				int err;
-				/*
-				 * Save TA to addr1 to send TA a path error if a
-				 * suitable next hop is not found
-				 */
+				
 				memcpy(fwd_hdr->addr1, fwd_hdr->addr2,
 						ETH_ALEN);
 				err = mesh_nexthop_lookup(fwd_skb, sdata);
-				/* Failed to immediately resolve next hop:
-				 * fwded frame was dropped or will be added
-				 * later to the pending skb queue.  */
+				
 				if (err)
 					return RX_DROP_MONITOR;
 
@@ -1642,13 +1436,13 @@ ieee80211_rx_h_ctrl(struct ieee80211_rx_data *rx)
 
 		start_seq_num = le16_to_cpu(bar->start_seq_num) >> 4;
 
-		/* reset session timer */
+		
 		if (tid_agg_rx->timeout)
 			mod_timer(&tid_agg_rx->session_timer,
 				  TU_TO_EXP_TIME(tid_agg_rx->timeout));
 
-		/* manage reordering buffer according to requested */
-		/* sequence number */
+		
+		
 		rcu_read_lock();
 		ieee80211_sta_manage_reorder_buf(hw, tid_agg_rx, NULL,
 						 start_seq_num, 1);
@@ -1668,18 +1462,18 @@ static void ieee80211_process_sa_query_req(struct ieee80211_sub_if_data *sdata,
 	struct ieee80211_mgmt *resp;
 
 	if (compare_ether_addr(mgmt->da, sdata->dev->dev_addr) != 0) {
-		/* Not to own unicast address */
+		
 		return;
 	}
 
 	if (compare_ether_addr(mgmt->sa, sdata->u.mgd.bssid) != 0 ||
 	    compare_ether_addr(mgmt->bssid, sdata->u.mgd.bssid) != 0) {
-		/* Not from the current AP or not associated yet. */
+		
 		return;
 	}
 
 	if (len < 24 + 1 + sizeof(resp->u.action.u.sa_query)) {
-		/* Too short SA Query request frame */
+		
 		return;
 	}
 
@@ -1725,18 +1519,13 @@ ieee80211_rx_h_action(struct ieee80211_rx_data *rx)
 	if (ieee80211_drop_unencrypted(rx, mgmt->frame_control))
 		return RX_DROP_MONITOR;
 
-	/* all categories we currently handle have action_code */
+	
 	if (len < IEEE80211_MIN_ACTION_SIZE + 1)
 		return RX_DROP_MONITOR;
 
 	switch (mgmt->u.action.category) {
 	case WLAN_CATEGORY_BACK:
-		/*
-		 * The aggregation code is not prepared to handle
-		 * anything but STA/AP due to the BSSID handling;
-		 * IBSS could work in the code but isn't supported
-		 * by drivers or the standard.
-		 */
+		
 		if (sdata->vif.type != NL80211_IFTYPE_STATION &&
 		    sdata->vif.type != NL80211_IFTYPE_AP_VLAN &&
 		    sdata->vif.type != NL80211_IFTYPE_AP)
@@ -1802,15 +1591,12 @@ ieee80211_rx_h_action(struct ieee80211_rx_data *rx)
 			ieee80211_process_sa_query_req(sdata, mgmt, len);
 			break;
 		case WLAN_ACTION_SA_QUERY_RESPONSE:
-			/*
-			 * SA Query response is currently only used in AP mode
-			 * and it is processed in user space.
-			 */
+			
 			return RX_CONTINUE;
 		}
 		break;
 	default:
-		/* do not process rejected action frames */
+		
 		if (mgmt->u.action.category & 0x80)
 			return RX_DROP_MONITOR;
 
@@ -1859,10 +1645,7 @@ static void ieee80211_rx_michael_mic_report(struct ieee80211_hdr *hdr,
 		keyidx = -1;
 
 	if (!rx->sta) {
-		/*
-		 * Some hardware seem to generate incorrect Michael MIC
-		 * reports; ignore them to avoid triggering countermeasures.
-		 */
+		
 		goto ignore;
 	}
 
@@ -1870,12 +1653,7 @@ static void ieee80211_rx_michael_mic_report(struct ieee80211_hdr *hdr,
 		goto ignore;
 
 	if (rx->sdata->vif.type == NL80211_IFTYPE_AP && keyidx) {
-		/*
-		 * APs with pairwise keys should never receive Michael MIC
-		 * errors for non-zero keyidx because these are reserved for
-		 * group keys and only the AP is sending real multicast
-		 * frames in the BSS.
-		 */
+		
 		goto ignore;
 	}
 
@@ -1890,7 +1668,7 @@ static void ieee80211_rx_michael_mic_report(struct ieee80211_hdr *hdr,
 	rx->skb = NULL;
 }
 
-/* TODO: use IEEE80211_RX_FRAGMENTED */
+
 static void ieee80211_rx_cooked_monitor(struct ieee80211_rx_data *rx)
 {
 	struct ieee80211_sub_if_data *sdata;
@@ -1997,7 +1775,7 @@ static void ieee80211_invoke_rx_handlers(struct ieee80211_sub_if_data *sdata,
 	CALL_RXH(ieee80211_rx_h_defragment)
 	CALL_RXH(ieee80211_rx_h_ps_poll)
 	CALL_RXH(ieee80211_rx_h_michael_mic_verify)
-	/* must be after MMIC verify so header is counted in MPDU mic */
+	
 	CALL_RXH(ieee80211_rx_h_remove_qos_control)
 	CALL_RXH(ieee80211_rx_h_amsdu)
 #ifdef CONFIG_MAC80211_MESH
@@ -2017,7 +1795,7 @@ static void ieee80211_invoke_rx_handlers(struct ieee80211_sub_if_data *sdata,
 		I802_DEBUG_INC(sdata->local->rx_handlers_drop);
 		if (rx->sta)
 			rx->sta->rx_dropped++;
-		/* fall through */
+		
 	case RX_CONTINUE:
 		ieee80211_rx_cooked_monitor(rx);
 		break;
@@ -2033,7 +1811,7 @@ static void ieee80211_invoke_rx_handlers(struct ieee80211_sub_if_data *sdata,
 	}
 }
 
-/* main receive path */
+
 
 static int prepare_for_handlers(struct ieee80211_sub_if_data *sdata,
 				struct ieee80211_rx_data *rx,
@@ -2072,7 +1850,7 @@ static int prepare_for_handlers(struct ieee80211_sub_if_data *sdata,
 		} else if (!rx->sta) {
 			int rate_idx;
 			if (rx->status->flag & RX_FLAG_HT)
-				rate_idx = 0; /* TODO: HT rates */
+				rate_idx = 0; 
 			else
 				rate_idx = rx->status->rate_idx;
 			rx->sta = ieee80211_ibss_add_sta(sdata, bssid, hdr->addr2,
@@ -2109,11 +1887,11 @@ static int prepare_for_handlers(struct ieee80211_sub_if_data *sdata,
 			return 0;
 		break;
 	case NL80211_IFTYPE_MONITOR:
-		/* take everything */
+		
 		break;
 	case NL80211_IFTYPE_UNSPECIFIED:
 	case __NL80211_IFTYPE_AFTER_LAST:
-		/* should never get here */
+		
 		WARN_ON(1);
 		break;
 	}
@@ -2121,10 +1899,7 @@ static int prepare_for_handlers(struct ieee80211_sub_if_data *sdata,
 	return 1;
 }
 
-/*
- * This is the actual Rx frames handler. as it blongs to Rx path it must
- * be called with rcu_read_lock protection.
- */
+
 static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 					 struct sk_buff *skb,
 					 struct ieee80211_rate *rate)
@@ -2188,21 +1963,14 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 		if (!prepares)
 			continue;
 
-		/*
-		 * frame is destined for this interface, but if it's not
-		 * also for the previous one we handle that after the
-		 * loop to avoid copying the SKB once too much
-		 */
+		
 
 		if (!prev) {
 			prev = sdata;
 			continue;
 		}
 
-		/*
-		 * frame was destined for the previous interface
-		 * so invoke RX handlers for it
-		 */
+		
 
 		skb_new = skb_copy(skb, GFP_ATOMIC);
 		if (!skb_new) {
@@ -2255,10 +2023,10 @@ static void ieee80211_release_reorder_frame(struct ieee80211_hw *hw,
 
 	status = IEEE80211_SKB_RXCB(skb);
 
-	/* release the reordered frames to stack */
+	
 	sband = hw->wiphy->bands[status->band];
 	if (status->flag & RX_FLAG_HT)
-		rate = sband->bitrates; /* TODO: HT rates */
+		rate = sband->bitrates; 
 	else
 		rate = &sband->bitrates[status->rate_idx];
 	__ieee80211_rx_handle_packet(hw, skb, rate);
@@ -2270,19 +2038,10 @@ no_frame:
 }
 
 
-/*
- * Timeout (in jiffies) for skb's that are waiting in the RX reorder buffer. If
- * the skb was added to the buffer longer than this time ago, the earlier
- * frames that have not yet been received are assumed to be lost and the skb
- * can be released for processing. This may also release other skb's from the
- * reorder buffer if there are no additional gaps between the frames.
- */
+
 #define HT_RX_REORDER_BUF_TIMEOUT (HZ / 10)
 
-/*
- * As it function blongs to Rx path it must be called with
- * the proper rcu_read_lock protection for its flow.
- */
+
 static u8 ieee80211_sta_manage_reorder_buf(struct ieee80211_hw *hw,
 					   struct tid_ampdu_rx *tid_agg_rx,
 					   struct sk_buff *skb,
@@ -2295,22 +2054,21 @@ static u8 ieee80211_sta_manage_reorder_buf(struct ieee80211_hw *hw,
 	buf_size = tid_agg_rx->buf_size;
 	head_seq_num = tid_agg_rx->head_seq_num;
 
-	/* frame with out of date sequence number */
+	
 	if (seq_less(mpdu_seq_num, head_seq_num)) {
 		dev_kfree_skb(skb);
 		return 1;
 	}
 
-	/* if frame sequence number exceeds our buffering window size or
-	 * block Ack Request arrived - release stored frames */
+	
 	if ((!seq_less(mpdu_seq_num, head_seq_num + buf_size)) || (bar_req)) {
-		/* new head to the ordering buffer */
+		
 		if (bar_req)
 			head_seq_num = mpdu_seq_num;
 		else
 			head_seq_num =
 				seq_inc(seq_sub(mpdu_seq_num, buf_size));
-		/* release stored frames up to new head to stack */
+		
 		while (seq_less(tid_agg_rx->head_seq_num, head_seq_num)) {
 			index = seq_sub(tid_agg_rx->head_seq_num,
 				tid_agg_rx->ssn)
@@ -2322,18 +2080,18 @@ static u8 ieee80211_sta_manage_reorder_buf(struct ieee80211_hw *hw,
 			return 1;
 	}
 
-	/* now the new frame is always in the range of the reordering */
-	/* buffer window */
+	
+	
 	index = seq_sub(mpdu_seq_num, tid_agg_rx->ssn)
 				% tid_agg_rx->buf_size;
-	/* check if we already stored this frame */
+	
 	if (tid_agg_rx->reorder_buf[index]) {
 		dev_kfree_skb(skb);
 		return 1;
 	}
 
-	/* if arrived mpdu is in the right order and nothing else stored */
-	/* release it immediately */
+	
+	
 	if (mpdu_seq_num == tid_agg_rx->head_seq_num &&
 			tid_agg_rx->stored_mpdu_num == 0) {
 		tid_agg_rx->head_seq_num =
@@ -2341,19 +2099,16 @@ static u8 ieee80211_sta_manage_reorder_buf(struct ieee80211_hw *hw,
 		return 0;
 	}
 
-	/* put the frame in the reordering buffer */
+	
 	tid_agg_rx->reorder_buf[index] = skb;
 	tid_agg_rx->reorder_time[index] = jiffies;
 	tid_agg_rx->stored_mpdu_num++;
-	/* release the buffer until next missing frame */
+	
 	index = seq_sub(tid_agg_rx->head_seq_num, tid_agg_rx->ssn)
 						% tid_agg_rx->buf_size;
 	if (!tid_agg_rx->reorder_buf[index] &&
 	    tid_agg_rx->stored_mpdu_num > 1) {
-		/*
-		 * No buffers ready to be released, but check whether any
-		 * frames in the reorder buffer have timed out.
-		 */
+		
 		int j;
 		int skipped = 1;
 		for (j = (index + 1) % tid_agg_rx->buf_size; j != index;
@@ -2375,9 +2130,7 @@ static u8 ieee80211_sta_manage_reorder_buf(struct ieee80211_hw *hw,
 #endif
 			ieee80211_release_reorder_frame(hw, tid_agg_rx, j);
 
-			/*
-			 * Increment the head seq# also for the skipped slots.
-			 */
+			
 			tid_agg_rx->head_seq_num =
 				(tid_agg_rx->head_seq_num + skipped) &
 				SEQ_MASK;
@@ -2407,8 +2160,7 @@ static u8 ieee80211_rx_reorder_ampdu(struct ieee80211_local *local,
 	if (!sta)
 		return ret;
 
-	/* filter the QoS data rx stream according to
-	 * STA/TID and check if this STA/TID is on aggregation */
+	
 	if (!ieee80211_is_data_qos(hdr->frame_control))
 		goto end_reorder;
 
@@ -2419,18 +2171,18 @@ static u8 ieee80211_rx_reorder_ampdu(struct ieee80211_local *local,
 
 	tid_agg_rx = sta->ampdu_mlme.tid_rx[tid];
 
-	/* qos null data frames are excluded */
+	
 	if (unlikely(hdr->frame_control & cpu_to_le16(IEEE80211_STYPE_NULLFUNC)))
 		goto end_reorder;
 
-	/* new un-ordered ampdu frame - process it */
+	
 
-	/* reset session timer */
+	
 	if (tid_agg_rx->timeout)
 		mod_timer(&tid_agg_rx->session_timer,
 			  TU_TO_EXP_TIME(tid_agg_rx->timeout));
 
-	/* if this mpdu is fragmented - terminate rx aggregation session */
+	
 	sc = le16_to_cpu(hdr->seq_ctrl);
 	if (sc & IEEE80211_SCTL_FRAG) {
 		ieee80211_sta_stop_rx_ba_session(sta->sdata, sta->sta.addr,
@@ -2439,7 +2191,7 @@ static u8 ieee80211_rx_reorder_ampdu(struct ieee80211_local *local,
 		goto end_reorder;
 	}
 
-	/* according to mpdu sequence number deal with reordering buffer */
+	
 	mpdu_seq_num = (sc & IEEE80211_SCTL_SEQ) >> 4;
 	ret = ieee80211_sta_manage_reorder_buf(hw, tid_agg_rx, skb,
 						mpdu_seq_num, 0);
@@ -2447,10 +2199,7 @@ static u8 ieee80211_rx_reorder_ampdu(struct ieee80211_local *local,
 	return ret;
 }
 
-/*
- * This is the receive path handler. It is called by a low level driver when an
- * 802.11 MPDU is received from the hardware.
- */
+
 void ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb)
 {
 	struct ieee80211_local *local = hw_to_local(hw);
@@ -2468,31 +2217,20 @@ void ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb)
 	if (WARN_ON(!sband))
 		goto drop;
 
-	/*
-	 * If we're suspending, it is possible although not too likely
-	 * that we'd be receiving frames after having already partially
-	 * quiesced the stack. We can't process such frames then since
-	 * that might, for example, cause stations to be added or other
-	 * driver callbacks be invoked.
-	 */
+	
 	if (unlikely(local->quiescing || local->suspended))
 		goto drop;
 
-	/*
-	 * The same happens when we're not even started,
-	 * but that's worth a warning.
-	 */
+	
 	if (WARN_ON(!local->started))
 		goto drop;
 
 	if (status->flag & RX_FLAG_HT) {
-		/* rate_idx is MCS index */
+		
 		if (WARN_ON(status->rate_idx < 0 ||
 			    status->rate_idx >= 76))
 			goto drop;
-		/* HT rates are not in the table - use the highest legacy rate
-		 * for now since other parts of mac80211 may not yet be fully
-		 * MCS aware. */
+		
 		rate = &sband->bitrates[sband->n_bitrates - 1];
 	} else {
 		if (WARN_ON(status->rate_idx < 0 ||
@@ -2501,37 +2239,17 @@ void ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb)
 		rate = &sband->bitrates[status->rate_idx];
 	}
 
-	/*
-	 * key references and virtual interfaces are protected using RCU
-	 * and this requires that we are in a read-side RCU section during
-	 * receive processing
-	 */
+	
 	rcu_read_lock();
 
-	/*
-	 * Frames with failed FCS/PLCP checksum are not returned,
-	 * all other frames are returned without radiotap header
-	 * if it was previously present.
-	 * Also, frames with less than 16 bytes are dropped.
-	 */
+	
 	skb = ieee80211_rx_monitor(local, skb, rate);
 	if (!skb) {
 		rcu_read_unlock();
 		return;
 	}
 
-	/*
-	 * In theory, the block ack reordering should happen after duplicate
-	 * removal (ieee80211_rx_h_check(), which is an RX handler). As such,
-	 * the call to ieee80211_rx_reorder_ampdu() should really be moved to
-	 * happen as a new RX handler between ieee80211_rx_h_check and
-	 * ieee80211_rx_h_decrypt. This cleanup may eventually happen, but for
-	 * the time being, the call can be here since RX reorder buf processing
-	 * will implicitly skip duplicates. We could, in theory at least,
-	 * process frames that ieee80211_rx_h_passive_scan would drop (e.g.,
-	 * frames from other than operational channel), but that should not
-	 * happen in normal networks.
-	 */
+	
 	if (!ieee80211_rx_reorder_ampdu(local, skb))
 		__ieee80211_rx_handle_packet(hw, skb, rate);
 
@@ -2543,8 +2261,7 @@ void ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb)
 }
 EXPORT_SYMBOL(ieee80211_rx);
 
-/* This is a version of the rx handler that can be called from hard irq
- * context. Post the skb on the queue and schedule the tasklet */
+
 void ieee80211_rx_irqsafe(struct ieee80211_hw *hw, struct sk_buff *skb)
 {
 	struct ieee80211_local *local = hw_to_local(hw);

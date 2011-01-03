@@ -1,49 +1,11 @@
-/*
- * Copyright (c) 2006, 2007, 2008 QLogic Corporation. All rights reserved.
- * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/err.h>
 #include <linux/vmalloc.h>
 
 #include "ipath_verbs.h"
 
-/**
- * ipath_post_srq_receive - post a receive on a shared receive queue
- * @ibsrq: the SRQ to post the receive on
- * @wr: the list of work requests to post
- * @bad_wr: the first WR to cause a problem is put here
- *
- * This may be called from interrupt context.
- */
+
 int ipath_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 			   struct ib_recv_wr **bad_wr)
 {
@@ -80,7 +42,7 @@ int ipath_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 		wqe->num_sge = wr->num_sge;
 		for (i = 0; i < wr->num_sge; i++)
 			wqe->sg_list[i] = wr->sg_list[i];
-		/* Make sure queue entry is written before the head index. */
+		
 		smp_wmb();
 		wq->head = next;
 		spin_unlock_irqrestore(&srq->rq.lock, flags);
@@ -91,12 +53,7 @@ bail:
 	return ret;
 }
 
-/**
- * ipath_create_srq - create a shared receive queue
- * @ibpd: the protection domain of the SRQ to create
- * @srq_init_attr: the attributes of the SRQ
- * @udata: data from libipathverbs when creating a user SRQ
- */
+
 struct ib_srq *ipath_create_srq(struct ib_pd *ibpd,
 				struct ib_srq_init_attr *srq_init_attr,
 				struct ib_udata *udata)
@@ -123,9 +80,7 @@ struct ib_srq *ipath_create_srq(struct ib_pd *ibpd,
 		goto done;
 	}
 
-	/*
-	 * Need to use vmalloc() if we want to support large #s of entries.
-	 */
+	
 	srq->rq.size = srq_init_attr->attr.max_wr + 1;
 	srq->rq.max_sge = srq_init_attr->attr.max_sge;
 	sz = sizeof(struct ib_sge) * srq->rq.max_sge +
@@ -136,10 +91,7 @@ struct ib_srq *ipath_create_srq(struct ib_pd *ibpd,
 		goto bail_srq;
 	}
 
-	/*
-	 * Return the address of the RWQ as the offset to mmap.
-	 * See ipath_mmap() for details.
-	 */
+	
 	if (udata && udata->outlen >= sizeof(__u64)) {
 		int err;
 		u32 s = sizeof(struct ipath_rwq) + srq->rq.size * sz;
@@ -162,9 +114,7 @@ struct ib_srq *ipath_create_srq(struct ib_pd *ibpd,
 	} else
 		srq->ip = NULL;
 
-	/*
-	 * ib_create_srq() will initialize srq->ibsrq.
-	 */
+	
 	spin_lock_init(&srq->rq.lock);
 	srq->rq.wq->head = 0;
 	srq->rq.wq->tail = 0;
@@ -199,13 +149,7 @@ done:
 	return ret;
 }
 
-/**
- * ipath_modify_srq - modify a shared receive queue
- * @ibsrq: the SRQ to modify
- * @attr: the new attributes of the SRQ
- * @attr_mask: indicates which attributes to modify
- * @udata: user data for ipathverbs.so
- */
+
 int ipath_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
 		     enum ib_srq_attr_mask attr_mask,
 		     struct ib_udata *udata)
@@ -219,7 +163,7 @@ int ipath_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
 		struct ipath_rwqe *p;
 		u32 sz, size, n, head, tail;
 
-		/* Check that the requested sizes are below the limits. */
+		
 		if ((attr->max_wr > ib_ipath_max_srq_wrs) ||
 		    ((attr_mask & IB_SRQ_LIMIT) ?
 		     attr->srq_limit : srq->limit) > attr->max_wr) {
@@ -236,7 +180,7 @@ int ipath_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
 			goto bail;
 		}
 
-		/* Check that we can write the offset to mmap. */
+		
 		if (udata && udata->inlen >= sizeof(__u64)) {
 			__u64 offset_addr;
 			__u64 offset = 0;
@@ -254,10 +198,7 @@ int ipath_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
 		}
 
 		spin_lock_irq(&srq->rq.lock);
-		/*
-		 * validate head pointer value and compute
-		 * the number of remaining WQEs.
-		 */
+		
 		owq = srq->rq.wq;
 		head = owq->head;
 		if (head >= srq->rq.size)
@@ -307,10 +248,7 @@ int ipath_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
 
 			ipath_update_mmap_info(dev, ip, s, wq);
 
-			/*
-			 * Return the offset to mmap.
-			 * See ipath_mmap() for details.
-			 */
+			
 			if (udata && udata->inlen >= sizeof(__u64)) {
 				ret = ib_copy_to_udata(udata, &ip->offset,
 						       sizeof(ip->offset));
@@ -352,10 +290,7 @@ int ipath_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
 	return 0;
 }
 
-/**
- * ipath_destroy_srq - destroy a shared receive queue
- * @ibsrq: the SRQ to destroy
- */
+
 int ipath_destroy_srq(struct ib_srq *ibsrq)
 {
 	struct ipath_srq *srq = to_isrq(ibsrq);

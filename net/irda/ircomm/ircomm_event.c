@@ -1,32 +1,4 @@
-/*********************************************************************
- *
- * Filename:      ircomm_event.c
- * Version:       1.0
- * Description:   IrCOMM layer state machine
- * Status:        Stable
- * Author:        Dag Brattli <dagb@cs.uit.no>
- * Created at:    Sun Jun  6 20:33:11 1999
- * Modified at:   Sun Dec 12 13:44:32 1999
- * Modified by:   Dag Brattli <dagb@cs.uit.no>
- *
- *     Copyright (c) 1999 Dag Brattli, All Rights Reserved.
- *
- *     This program is free software; you can redistribute it and/or
- *     modify it under the terms of the GNU General Public License as
- *     published by the Free Software Foundation; either version 2 of
- *     the License, or (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program; if not, write to the Free Software
- *     Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- *     MA 02111-1307 USA
- *
- ********************************************************************/
+
 
 #include <linux/proc_fs.h>
 #include <linux/init.h>
@@ -75,7 +47,7 @@ static const char *const ircomm_event[] = {
 	"IRCOMM_CONTROL_REQUEST",
 	"IRCOMM_CONTROL_INDICATION",
 };
-#endif /* CONFIG_IRDA_DEBUG */
+#endif 
 
 static int (*state[])(struct ircomm_cb *self, IRCOMM_EVENT event,
 		      struct sk_buff *skb, struct ircomm_info *info) =
@@ -86,12 +58,7 @@ static int (*state[])(struct ircomm_cb *self, IRCOMM_EVENT event,
 	ircomm_state_conn,
 };
 
-/*
- * Function ircomm_state_idle (self, event, skb)
- *
- *    IrCOMM is currently idle
- *
- */
+
 static int ircomm_state_idle(struct ircomm_cb *self, IRCOMM_EVENT event,
 			     struct sk_buff *skb, struct ircomm_info *info)
 {
@@ -115,12 +82,7 @@ static int ircomm_state_idle(struct ircomm_cb *self, IRCOMM_EVENT event,
 	return ret;
 }
 
-/*
- * Function ircomm_state_waiti (self, event, skb)
- *
- *    The IrCOMM user has requested an IrCOMM connection to the remote
- *    device and is awaiting confirmation
- */
+
 static int ircomm_state_waiti(struct ircomm_cb *self, IRCOMM_EVENT event,
 			      struct sk_buff *skb, struct ircomm_info *info)
 {
@@ -145,12 +107,7 @@ static int ircomm_state_waiti(struct ircomm_cb *self, IRCOMM_EVENT event,
 	return ret;
 }
 
-/*
- * Function ircomm_state_waitr (self, event, skb)
- *
- *    IrCOMM has received an incoming connection request and is awaiting
- *    response from the user
- */
+
 static int ircomm_state_waitr(struct ircomm_cb *self, IRCOMM_EVENT event,
 			      struct sk_buff *skb, struct ircomm_info *info)
 {
@@ -178,12 +135,7 @@ static int ircomm_state_waitr(struct ircomm_cb *self, IRCOMM_EVENT event,
 	return ret;
 }
 
-/*
- * Function ircomm_state_conn (self, event, skb)
- *
- *    IrCOMM is connected to the peer IrCOMM device
- *
- */
+
 static int ircomm_state_conn(struct ircomm_cb *self, IRCOMM_EVENT event,
 			     struct sk_buff *skb, struct ircomm_info *info)
 {
@@ -200,7 +152,7 @@ static int ircomm_state_conn(struct ircomm_cb *self, IRCOMM_EVENT event,
 		ircomm_data_indication(self, skb);
 		break;
 	case IRCOMM_CONTROL_REQUEST:
-		/* Just send a separate frame for now */
+		
 		ret = self->issue.data_request(self, skb, skb->len);
 		break;
 	case IRCOMM_TTP_DISCONNECT_INDICATION:
@@ -220,12 +172,7 @@ static int ircomm_state_conn(struct ircomm_cb *self, IRCOMM_EVENT event,
 	return ret;
 }
 
-/*
- * Function ircomm_do_event (self, event, skb)
- *
- *    Process event
- *
- */
+
 int ircomm_do_event(struct ircomm_cb *self, IRCOMM_EVENT event,
 		    struct sk_buff *skb, struct ircomm_info *info)
 {
@@ -235,12 +182,7 @@ int ircomm_do_event(struct ircomm_cb *self, IRCOMM_EVENT event,
 	return (*state[self->state])(self, event, skb, info);
 }
 
-/*
- * Function ircomm_next_state (self, state)
- *
- *    Switch state
- *
- */
+
 void ircomm_next_state(struct ircomm_cb *self, IRCOMM_STATE state)
 {
 	self->state = state;

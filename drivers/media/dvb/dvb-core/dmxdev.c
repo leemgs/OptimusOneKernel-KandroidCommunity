@@ -1,24 +1,4 @@
-/*
- * dmxdev.c - DVB demultiplexer device
- *
- * Copyright (C) 2000 Ralph Metzler & Marcus Metzler
- *		      for convergence integrated media GmbH
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation; either version 2.1
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- */
+
 
 #include <linux/sched.h>
 #include <linux/spinlock.h>
@@ -204,7 +184,7 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
 			vfree(mem);
 		}
 	}
-	/* TODO */
+	
 	dvbdev->users--;
 	if(dvbdev->users==-1 && dmxdev->exit==1) {
 		fops_put(file->f_op);
@@ -278,7 +258,7 @@ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
 	buf->data = newmem;
 	buf->size = size;
 
-	/* reset and not flush in case the buffer shrinks */
+	
 	dvb_ringbuffer_reset(buf);
 	spin_unlock_irq(&dmxdev->lock);
 
@@ -319,7 +299,7 @@ static int dvb_dmxdev_set_buffer_size(struct dmxdev_filter *dmxdevfilter,
 	buf->data = newmem;
 	buf->size = size;
 
-	/* reset and not flush in case the buffer shrinks */
+	
 	dvb_ringbuffer_reset(buf);
 	spin_unlock_irq(&dmxdevfilter->dev->lock);
 
@@ -428,7 +408,7 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
 	return 0;
 }
 
-/* stop feed but only mark the specified filter as stopped (state set) */
+
 static int dvb_dmxdev_feed_stop(struct dmxdev_filter *dmxdevfilter)
 {
 	struct dmxdev_feed *feed;
@@ -450,7 +430,7 @@ static int dvb_dmxdev_feed_stop(struct dmxdev_filter *dmxdevfilter)
 	return 0;
 }
 
-/* start feed associated with the specified filter */
+
 static int dvb_dmxdev_feed_start(struct dmxdev_filter *filter)
 {
 	struct dmxdev_feed *feed;
@@ -477,8 +457,7 @@ static int dvb_dmxdev_feed_start(struct dmxdev_filter *filter)
 	return 0;
 }
 
-/* restart section feed if it has filters left associated with it,
-   otherwise release the feed */
+
 static int dvb_dmxdev_feed_restart(struct dmxdev_filter *filter)
 {
 	int i;
@@ -541,7 +520,7 @@ static void dvb_dmxdev_delete_pids(struct dmxdev_filter *dmxdevfilter)
 {
 	struct dmxdev_feed *feed, *tmp;
 
-	/* delete all PIDs */
+	
 	list_for_each_entry_safe(feed, tmp, &dmxdevfilter->feed.ts, next) {
 		list_del(&feed->next);
 		kfree(feed);
@@ -650,7 +629,7 @@ static int dvb_dmxdev_filter_start(struct dmxdev_filter *filter)
 		*secfeed = NULL;
 
 
-		/* find active filter/feed with same PID */
+		
 		for (i = 0; i < dmxdev->filternum; i++) {
 			if (dmxdev->filter[i].state >= DMXDEV_STATE_GO &&
 			    dmxdev->filter[i].type == DMXDEV_TYPE_SEC &&
@@ -660,7 +639,7 @@ static int dvb_dmxdev_filter_start(struct dmxdev_filter *filter)
 			}
 		}
 
-		/* if no feed found, try to allocate new one */
+		
 		if (!*secfeed) {
 			ret = dmxdev->demux->allocate_section_feed(dmxdev->demux,
 								   secfeed,
@@ -811,7 +790,7 @@ static int dvb_dmxdev_add_pid(struct dmxdev *dmxdev,
 	    (filter->state < DMXDEV_STATE_SET))
 		return -EINVAL;
 
-	/* only TS packet filters may have multiple PIDs */
+	
 	if ((filter->params.pes.output != DMX_OUT_TSDEMUX_TAP) &&
 	    (!list_empty(&filter->feed.ts)))
 		return -EINVAL;

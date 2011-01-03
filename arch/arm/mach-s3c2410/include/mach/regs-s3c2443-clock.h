@@ -1,15 +1,4 @@
-/* arch/arm/mach-s3c2410/include/mach/regs-s3c2443-clock.h
- *
- * Copyright (c) 2007 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C2443 clock register definitions
-*/
+
 
 #ifndef __ASM_ARM_REGS_S3C2443_CLOCK
 #define __ASM_ARM_REGS_S3C2443_CLOCK
@@ -81,7 +70,7 @@
 #define S3C2443_CLKDIV0_ARMDIV_12	(13<<9)
 #define S3C2443_CLKDIV0_ARMDIV_16	(15<<9)
 
-/* S3C2443_CLKDIV1 */
+
 
 #define S3C2443_CLKDIV1_CAMDIV_MASK	(15<<26)
 #define S3C2443_CLKDIV1_CAMDIV_SHIFT	(26)
@@ -191,5 +180,5 @@ s3c2443_get_epll(unsigned int pllval, unsigned int baseclk)
 	return (unsigned int)fvco;
 }
 
-#endif /*  __ASM_ARM_REGS_S3C2443_CLOCK */
+#endif 
 

@@ -1,15 +1,4 @@
-/*
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- * Copyright 2006-2007	Jiri Benc <jbenc@suse.cz>
- * Copyright 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * utilities for mac80211
- */
+
 
 #include <net/mac80211.h>
 #include <linux/netdevice.h>
@@ -33,7 +22,7 @@
 #include "led.h"
 #include "wep.h"
 
-/* privid for wiphys to determine whether they belong to us or not */
+
 void *mac80211_wiphy_privid = &mac80211_wiphy_privid;
 
 struct ieee80211_hw *wiphy_to_ieee80211_hw(struct wiphy *wiphy)
@@ -51,12 +40,12 @@ u8 *ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len,
 {
 	__le16 fc = hdr->frame_control;
 
-	 /* drop ACK/CTS frames and incorrect hdr len (ctrl) */
+	 
 	if (len < 16)
 		return NULL;
 
 	if (ieee80211_is_data(fc)) {
-		if (len < 24) /* drop incorrect hdr len (data) */
+		if (len < 24) 
 			return NULL;
 
 		if (ieee80211_has_a4(fc))
@@ -70,7 +59,7 @@ u8 *ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len,
 	}
 
 	if (ieee80211_is_mgmt(fc)) {
-		if (len < 24) /* drop incorrect hdr len (mgmt) */
+		if (len < 24) 
 			return NULL;
 		return hdr->addr3;
 	}
@@ -87,7 +76,7 @@ u8 *ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len,
 			case NL80211_IFTYPE_AP_VLAN:
 				return hdr->addr1;
 			default:
-				break; /* fall through to the return */
+				break; 
 			}
 		}
 	}
@@ -111,46 +100,18 @@ int ieee80211_frame_duration(struct ieee80211_local *local, size_t len,
 {
 	int dur;
 
-	/* calculate duration (in microseconds, rounded up to next higher
-	 * integer if it includes a fractional microsecond) to send frame of
-	 * len bytes (does not include FCS) at the given rate. Duration will
-	 * also include SIFS.
-	 *
-	 * rate is in 100 kbps, so divident is multiplied by 10 in the
-	 * DIV_ROUND_UP() operations.
-	 */
+	
 
 	if (local->hw.conf.channel->band == IEEE80211_BAND_5GHZ || erp) {
-		/*
-		 * OFDM:
-		 *
-		 * N_DBPS = DATARATE x 4
-		 * N_SYM = Ceiling((16+8xLENGTH+6) / N_DBPS)
-		 *	(16 = SIGNAL time, 6 = tail bits)
-		 * TXTIME = T_PREAMBLE + T_SIGNAL + T_SYM x N_SYM + Signal Ext
-		 *
-		 * T_SYM = 4 usec
-		 * 802.11a - 17.5.2: aSIFSTime = 16 usec
-		 * 802.11g - 19.8.4: aSIFSTime = 10 usec +
-		 *	signal ext = 6 usec
-		 */
-		dur = 16; /* SIFS + signal ext */
-		dur += 16; /* 17.3.2.3: T_PREAMBLE = 16 usec */
-		dur += 4; /* 17.3.2.3: T_SIGNAL = 4 usec */
+		
+		dur = 16; 
+		dur += 16; 
+		dur += 4; 
 		dur += 4 * DIV_ROUND_UP((16 + 8 * (len + 4) + 6) * 10,
-					4 * rate); /* T_SYM x N_SYM */
+					4 * rate); 
 	} else {
-		/*
-		 * 802.11b or 802.11g with 802.11b compatibility:
-		 * 18.3.4: TXTIME = PreambleLength + PLCPHeaderTime +
-		 * Ceiling(((LENGTH+PBCC)x8)/DATARATE). PBCC=0.
-		 *
-		 * 802.11 (DS): 15.3.3, 802.11b: 18.3.4
-		 * aSIFSTime = 10 usec
-		 * aPreambleLength = 144 usec or 72 usec with short preamble
-		 * aPLCPHeaderLength = 48 usec or 24 usec with short preamble
-		 */
-		dur = 10; /* aSIFSTime = 10 usec */
+		
+		dur = 10; 
 		dur += short_preamble ? (72 + 24) : (144 + 48);
 
 		dur += DIV_ROUND_UP(8 * (len + 4) * 10, rate);
@@ -159,7 +120,7 @@ int ieee80211_frame_duration(struct ieee80211_local *local, size_t len,
 	return dur;
 }
 
-/* Exported duration function for driver use */
+
 __le16 ieee80211_generic_frame_duration(struct ieee80211_hw *hw,
 					struct ieee80211_vif *vif,
 					size_t frame_len,
@@ -212,13 +173,13 @@ __le16 ieee80211_rts_duration(struct ieee80211_hw *hw,
 			erp = rate->flags & IEEE80211_RATE_ERP_G;
 	}
 
-	/* CTS duration */
+	
 	dur = ieee80211_frame_duration(local, 10, rate->bitrate,
 				       erp, short_preamble);
-	/* Data frame duration */
+	
 	dur += ieee80211_frame_duration(local, frame_len, rate->bitrate,
 					erp, short_preamble);
-	/* ACK duration */
+	
 	dur += ieee80211_frame_duration(local, 10, rate->bitrate,
 					erp, short_preamble);
 
@@ -252,11 +213,11 @@ __le16 ieee80211_ctstoself_duration(struct ieee80211_hw *hw,
 			erp = rate->flags & IEEE80211_RATE_ERP_G;
 	}
 
-	/* Data frame duration */
+	
 	dur = ieee80211_frame_duration(local, frame_len, rate->bitrate,
 				       erp, short_preamble);
 	if (!(frame_txctl->flags & IEEE80211_TX_CTL_NO_ACK)) {
-		/* ACK duration */
+		
 		dur += ieee80211_frame_duration(local, 10, rate->bitrate,
 						erp, short_preamble);
 	}
@@ -277,7 +238,7 @@ static void __ieee80211_wake_queue(struct ieee80211_hw *hw, int queue,
 	__clear_bit(reason, &local->queue_stop_reasons[queue]);
 
 	if (local->queue_stop_reasons[queue] != 0)
-		/* someone still has this queue stopped */
+		
 		return;
 
 	if (!skb_queue_empty(&local->pending[queue]))
@@ -523,13 +484,7 @@ void ieee80211_iterate_active_interfaces_atomic(
 }
 EXPORT_SYMBOL_GPL(ieee80211_iterate_active_interfaces_atomic);
 
-/*
- * Nothing should have been stuffed into the workqueue during
- * the suspend->resume cycle. If this WARN is seen then there
- * is a bug with either the driver suspend or something in
- * mac80211 stuffing into the workqueue which we haven't yet
- * cleared during mac80211's suspend cycle.
- */
+
 static bool ieee80211_can_queue_work(struct ieee80211_local *local)
 {
 	if (WARN(local->suspended && !local->resuming,
@@ -632,17 +587,17 @@ u32 ieee802_11_parse_elems_crc(u8 *start, size_t len,
 		case WLAN_EID_VENDOR_SPECIFIC:
 			if (elen >= 4 && pos[0] == 0x00 && pos[1] == 0x50 &&
 			    pos[2] == 0xf2) {
-				/* Microsoft OUI (00:50:F2) */
+				
 
 				if (calc_crc)
 					crc = crc32_be(crc, pos - 2, elen + 2);
 
 				if (pos[3] == 1) {
-					/* OUI Type 1 - WPA IE */
+					
 					elems->wpa = pos;
 					elems->wpa_len = elen;
 				} else if (elen >= 5 && pos[3] == 2) {
-					/* OUI Type 2 - WMM IE */
+					
 					if (pos[4] == 0) {
 						elems->wmm_info = pos;
 						elems->wmm_info_len = elen;
@@ -748,7 +703,7 @@ void ieee80211_set_wmm_default(struct ieee80211_sub_if_data *sdata)
 		 !(sdata->flags & IEEE80211_SDATA_OPERATING_GMODE);
 
 	for (queue = 0; queue < local_to_hw(local)->queues; queue++) {
-		/* Set defaults according to 802.11-2007 Table 7-37 */
+		
 		aCWmax = 1023;
 		if (use_11b)
 			aCWmin = 31;
@@ -756,20 +711,20 @@ void ieee80211_set_wmm_default(struct ieee80211_sub_if_data *sdata)
 			aCWmin = 15;
 
 		switch (queue) {
-		case 3: /* AC_BK */
+		case 3: 
 			qparam.cw_max = aCWmax;
 			qparam.cw_min = aCWmin;
 			qparam.txop = 0;
 			qparam.aifs = 7;
 			break;
-		default: /* never happens but let's not leave undefined */
-		case 2: /* AC_BE */
+		default: 
+		case 2: 
 			qparam.cw_max = aCWmax;
 			qparam.cw_min = aCWmin;
 			qparam.txop = 0;
 			qparam.aifs = 3;
 			break;
-		case 1: /* AC_VI */
+		case 1: 
 			qparam.cw_max = aCWmin;
 			qparam.cw_min = (aCWmin + 1) / 2 - 1;
 			if (use_11b)
@@ -778,7 +733,7 @@ void ieee80211_set_wmm_default(struct ieee80211_sub_if_data *sdata)
 				qparam.txop = 3008/32;
 			qparam.aifs = 2;
 			break;
-		case 0: /* AC_VO */
+		case 0: 
 			qparam.cw_max = (aCWmin + 1) / 2 - 1;
 			qparam.cw_min = (aCWmin + 1) / 4 - 1;
 			if (use_11b)
@@ -800,7 +755,7 @@ void ieee80211_sta_def_wmm_params(struct ieee80211_sub_if_data *sdata,
 	struct ieee80211_local *local = sdata->local;
 	int i, have_higher_than_11mbit = 0;
 
-	/* cf. IEEE 802.11 9.2.12 */
+	
 	for (i = 0; i < supp_rates_len; i++)
 		if ((supp_rates[i] & 0x7f) * 5 > 110)
 			have_higher_than_11mbit = 1;
@@ -921,18 +876,15 @@ int ieee80211_build_preq_ies(struct ieee80211_local *local, u8 *buffer,
 		memset(pos, 0, sizeof(struct ieee80211_ht_cap));
 		memcpy(pos, &tmp, sizeof(u16));
 		pos += sizeof(u16);
-		/* TODO: needs a define here for << 2 */
+		
 		*pos++ = sband->ht_cap.ampdu_factor |
 			 (sband->ht_cap.ampdu_density << 2);
 		memcpy(pos, &sband->ht_cap.mcs, sizeof(sband->ht_cap.mcs));
 		pos += sizeof(sband->ht_cap.mcs);
-		pos += 2 + 4 + 1; /* ext info, BF cap, antsel */
+		pos += 2 + 4 + 1; 
 	}
 
-	/*
-	 * If adding more here, adjust code in main.c
-	 * that calculates local->scan_ies_len.
-	 */
+	
 
 	if (ie) {
 		memcpy(pos, ie, ie_len);
@@ -1041,14 +993,9 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 	if (local->suspended)
 		local->resuming = true;
 
-	/* restart hardware */
+	
 	if (local->open_count) {
-		/*
-		 * Upon resume hardware can sometimes be goofy due to
-		 * various platform / driver / bus issues, so restarting
-		 * the device may at times not work immediately. Propagate
-		 * the error.
-		 */
+		
 		res = drv_start(local);
 		if (res) {
 			WARN(local->suspended, "Harware became unavailable "
@@ -1060,7 +1007,7 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 		ieee80211_led_radio(local, true);
 	}
 
-	/* add interfaces */
+	
 	list_for_each_entry(sdata, &local->interfaces, list) {
 		if (sdata->vif.type != NL80211_IFTYPE_AP_VLAN &&
 		    sdata->vif.type != NL80211_IFTYPE_MONITOR &&
@@ -1072,7 +1019,7 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 		}
 	}
 
-	/* add STAs back */
+	
 	if (local->ops->sta_notify) {
 		spin_lock_irqsave(&local->sta_lock, flags);
 		list_for_each_entry(sta, &local->sta_list, list) {
@@ -1088,7 +1035,7 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 		spin_unlock_irqrestore(&local->sta_lock, flags);
 	}
 
-	/* Clear Suspend state so that ADDBA requests can be processed */
+	
 
 	rcu_read_lock();
 
@@ -1100,25 +1047,25 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 
 	rcu_read_unlock();
 
-	/* setup RTS threshold */
+	
 	drv_set_rts_threshold(local, hw->wiphy->rts_threshold);
 
-	/* reconfigure hardware */
+	
 	ieee80211_hw_config(local, ~0);
 
 	ieee80211_configure_filter(local);
 
-	/* Finally also reconfigure all the BSS information */
+	
 	list_for_each_entry(sdata, &local->interfaces, list) {
 		u32 changed = ~0;
 		if (!netif_running(sdata->dev))
 			continue;
 		switch (sdata->vif.type) {
 		case NL80211_IFTYPE_STATION:
-			/* disable beacon change bits */
+			
 			changed &= ~(BSS_CHANGED_BEACON |
 				     BSS_CHANGED_BEACON_ENABLED);
-			/* fall through */
+			
 		case NL80211_IFTYPE_ADHOC:
 		case NL80211_IFTYPE_AP:
 		case NL80211_IFTYPE_MESH_POINT:
@@ -1128,7 +1075,7 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 			break;
 		case NL80211_IFTYPE_AP_VLAN:
 		case NL80211_IFTYPE_MONITOR:
-			/* ignore virtual */
+			
 			break;
 		case NL80211_IFTYPE_UNSPECIFIED:
 		case __NL80211_IFTYPE_AFTER_LAST:
@@ -1137,7 +1084,7 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 		}
 	}
 
-	/* add back keys */
+	
 	list_for_each_entry(sdata, &local->interfaces, list)
 		if (netif_running(sdata->dev))
 			ieee80211_enable_keys(sdata);
@@ -1145,15 +1092,12 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 	ieee80211_wake_queues_by_reason(hw,
 			IEEE80211_QUEUE_STOP_REASON_SUSPEND);
 
-	/*
-	 * If this is for hw restart things are still running.
-	 * We may want to change that later, however.
-	 */
+	
 	if (!local->suspended)
 		return 0;
 
 #ifdef CONFIG_PM
-	/* first set suspended false, then resuming */
+	
 	local->suspended = false;
 	mb();
 	local->resuming = false;

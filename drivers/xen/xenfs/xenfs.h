@@ -3,4 +3,4 @@
 
 extern const struct file_operations xenbus_file_ops;
 
-#endif	/* _XENFS_XENBUS_H */
+#endif	

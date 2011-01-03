@@ -1,409 +1,6 @@
-/*
- *      u14-34f.c - Low-level driver for UltraStor 14F/34F SCSI host adapters.
- *
- *      03 Jun 2003 Rev. 8.10 for linux-2.5.70
- *        + Update for new IRQ API.
- *        + Use "goto" when appropriate.
- *        + Drop u14-34f.h.
- *        + Update for new module_param API.
- *        + Module parameters  can now be specified only in the
- *          same format as the kernel boot options.
- *
- *             boot option    old module param 
- *             -----------    ------------------
- *             addr,...       io_port=addr,...
- *             lc:[y|n]       linked_comm=[1|0]
- *             mq:xx          max_queue_depth=xx
- *             tm:[0|1|2]     tag_mode=[0|1|2]
- *             et:[y|n]       ext_tran=[1|0]
- *             of:[y|n]       have_old_firmware=[1|0]
- *
- *          A valid example using the new parameter format is:
- *          modprobe u14-34f "u14-34f=0x340,0x330,lc:y,tm:0,mq:4"
- *
- *          which is equivalent to the old format:
- *          modprobe u14-34f io_port=0x340,0x330 linked_comm=1 tag_mode=0 \
- *                        max_queue_depth=4
- *
- *          With actual module code, u14-34f and u14_34f are equivalent
- *          as module parameter names.
- *
- *      12 Feb 2003 Rev. 8.04 for linux 2.5.60
- *        + Release irq before calling scsi_register.
- *
- *      12 Nov 2002 Rev. 8.02 for linux 2.5.47
- *        + Release driver_lock before calling scsi_register.
- *
- *      11 Nov 2002 Rev. 8.01 for linux 2.5.47
- *        + Fixed bios_param and scsicam_bios_param calling parameters.
- *
- *      28 Oct 2002 Rev. 8.00 for linux 2.5.44-ac4
- *        + Use new tcq and adjust_queue_depth api.
- *        + New command line option (tm:[0-2]) to choose the type of tags:
- *          0 -> disable tagging ; 1 -> simple tags  ; 2 -> ordered tags.
- *          Default is tm:0 (tagged commands disabled).
- *          For compatibility the "tc:" option is an alias of the "tm:"
- *          option; tc:n is equivalent to tm:0 and tc:y is equivalent to
- *          tm:1.
- *
- *      10 Oct 2002 Rev. 7.70 for linux 2.5.42
- *        + Foreport from revision 6.70.
- *
- *      25 Jun 2002 Rev. 6.70 for linux 2.4.19
- *        + Fixed endian-ness problem due to bitfields.
- *
- *      21 Feb 2002 Rev. 6.52 for linux 2.4.18
- *        + Backport from rev. 7.22 (use io_request_lock).
- *
- *      20 Feb 2002 Rev. 7.22 for linux 2.5.5
- *        + Remove any reference to virt_to_bus().
- *        + Fix pio hang while detecting multiple HBAs.
- *
- *      01 Jan 2002 Rev. 7.20 for linux 2.5.1
- *        + Use the dynamic DMA mapping API.
- *
- *      19 Dec 2001 Rev. 7.02 for linux 2.5.1
- *        + Use SCpnt->sc_data_direction if set.
- *        + Use sglist.page instead of sglist.address.
- *
- *      11 Dec 2001 Rev. 7.00 for linux 2.5.1
- *        + Use host->host_lock instead of io_request_lock.
- *
- *       1 May 2001 Rev. 6.05 for linux 2.4.4
- *        + Fix data transfer direction for opcode SEND_CUE_SHEET (0x5d)
- *
- *      25 Jan 2001 Rev. 6.03 for linux 2.4.0
- *        + "check_region" call replaced by "request_region".
- *
- *      22 Nov 2000 Rev. 6.02 for linux 2.4.0-test11
- *        + Removed old scsi error handling support.
- *        + The obsolete boot option flag eh:n is silently ignored.
- *        + Removed error messages while a disk drive is powered up at
- *          boot time.
- *        + Improved boot messages: all tagged capable device are
- *          indicated as "tagged".
- *
- *      16 Sep 1999 Rev. 5.11 for linux 2.2.12 and 2.3.18
- *        + Updated to the new __setup interface for boot command line options.
- *        + When loaded as a module, accepts the new parameter boot_options
- *          which value is a string with the same format of the kernel boot
- *          command line options. A valid example is:
- *          modprobe u14-34f 'boot_options="0x230,0x340,lc:y,mq:4"'
- *
- *      22 Jul 1999 Rev. 5.00 for linux 2.2.10 and 2.3.11
- *        + Removed pre-2.2 source code compatibility.
- *
- *      26 Jul 1998 Rev. 4.33 for linux 2.0.35 and 2.1.111
- *          Added command line option (et:[y|n]) to use the existing
- *          translation (returned by scsicam_bios_param) as disk geometry.
- *          The default is et:n, which uses the disk geometry jumpered
- *          on the board.
- *          The default value et:n is compatible with all previous revisions
- *          of this driver.
- *
- *      28 May 1998 Rev. 4.32 for linux 2.0.33 and 2.1.104
- *          Increased busy timeout from 10 msec. to 200 msec. while
- *          processing interrupts.
- *
- *      18 May 1998 Rev. 4.31 for linux 2.0.33 and 2.1.102
- *          Improved abort handling during the eh recovery process.
- *
- *      13 May 1998 Rev. 4.30 for linux 2.0.33 and 2.1.101
- *          The driver is now fully SMP safe, including the
- *          abort and reset routines.
- *          Added command line options (eh:[y|n]) to choose between
- *          new_eh_code and the old scsi code.
- *          If linux version >= 2.1.101 the default is eh:y, while the eh
- *          option is ignored for previous releases and the old scsi code
- *          is used.
- *
- *      18 Apr 1998 Rev. 4.20 for linux 2.0.33 and 2.1.97
- *          Reworked interrupt handler.
- *
- *      11 Apr 1998 rev. 4.05 for linux 2.0.33 and 2.1.95
- *          Major reliability improvement: when a batch with overlapping
- *          requests is detected, requests are queued one at a time
- *          eliminating any possible board or drive reordering.
- *
- *      10 Apr 1998 rev. 4.04 for linux 2.0.33 and 2.1.95
- *          Improved SMP support (if linux version >= 2.1.95).
- *
- *       9 Apr 1998 rev. 4.03 for linux 2.0.33 and 2.1.94
- *          Performance improvement: when sequential i/o is detected,
- *          always use direct sort instead of reverse sort.
- *
- *       4 Apr 1998 rev. 4.02 for linux 2.0.33 and 2.1.92
- *          io_port is now unsigned long.
- *
- *      17 Mar 1998 rev. 4.01 for linux 2.0.33 and 2.1.88
- *          Use new scsi error handling code (if linux version >= 2.1.88).
- *          Use new interrupt code.
- *
- *      12 Sep 1997 rev. 3.11 for linux 2.0.30 and 2.1.55
- *          Use of udelay inside the wait loops to avoid timeout
- *          problems with fast cpus.
- *          Removed check about useless calls to the interrupt service
- *          routine (reported on SMP systems only).
- *          At initialization time "sorted/unsorted" is displayed instead
- *          of "linked/unlinked" to reinforce the fact that "linking" is
- *          nothing but "elevator sorting" in the actual implementation.
- *
- *      17 May 1997 rev. 3.10 for linux 2.0.30 and 2.1.38
- *          Use of serial_number_at_timeout in abort and reset processing.
- *          Use of the __initfunc and __initdata macro in setup code.
- *          Minor cleanups in the list_statistics code.
- *
- *      24 Feb 1997 rev. 3.00 for linux 2.0.29 and 2.1.26
- *          When loading as a module, parameter passing is now supported
- *          both in 2.0 and in 2.1 style.
- *          Fixed data transfer direction for some SCSI opcodes.
- *          Immediate acknowledge to request sense commands.
- *          Linked commands to each disk device are now reordered by elevator
- *          sorting. Rare cases in which reordering of write requests could
- *          cause wrong results are managed.
- *
- *      18 Jan 1997 rev. 2.60 for linux 2.1.21 and 2.0.28
- *          Added command line options to enable/disable linked commands
- *          (lc:[y|n]), old firmware support (of:[y|n]) and to set the max
- *          queue depth (mq:xx). Default is "u14-34f=lc:n,of:n,mq:8".
- *          Improved command linking.
- *
- *       8 Jan 1997 rev. 2.50 for linux 2.1.20 and 2.0.27
- *          Added linked command support.
- *
- *       3 Dec 1996 rev. 2.40 for linux 2.1.14 and 2.0.27
- *          Added queue depth adjustment.
- *
- *      22 Nov 1996 rev. 2.30 for linux 2.1.12 and 2.0.26
- *          The list of i/o ports to be probed can be overwritten by the
- *          "u14-34f=port0,port1,...." boot command line option.
- *          Scatter/gather lists are now allocated by a number of kmalloc
- *          calls, in order to avoid the previous size limit of 64Kb.
- *
- *      16 Nov 1996 rev. 2.20 for linux 2.1.10 and 2.0.25
- *          Added multichannel support.
- *
- *      27 Sep 1996 rev. 2.12 for linux 2.1.0
- *          Portability cleanups (virtual/bus addressing, little/big endian
- *          support).
- *
- *      09 Jul 1996 rev. 2.11 for linux 2.0.4
- *          "Data over/under-run" no longer implies a redo on all targets.
- *          Number of internal retries is now limited.
- *
- *      16 Apr 1996 rev. 2.10 for linux 1.3.90
- *          New argument "reset_flags" to the reset routine.
- *
- *      21 Jul 1995 rev. 2.02 for linux 1.3.11
- *          Fixed Data Transfer Direction for some SCSI commands.
- *
- *      13 Jun 1995 rev. 2.01 for linux 1.2.10
- *          HAVE_OLD_UX4F_FIRMWARE should be defined for U34F boards when
- *          the firmware prom is not the latest one (28008-006).
- *
- *      11 Mar 1995 rev. 2.00 for linux 1.2.0
- *          Fixed a bug which prevented media change detection for removable
- *          disk drives.
- *
- *      23 Feb 1995 rev. 1.18 for linux 1.1.94
- *          Added a check for scsi_register returning NULL.
- *
- *      11 Feb 1995 rev. 1.17 for linux 1.1.91
- *          U14F qualified to run with 32 sglists.
- *          Now DEBUG_RESET is disabled by default.
- *
- *       9 Feb 1995 rev. 1.16 for linux 1.1.90
- *          Use host->wish_block instead of host->block.
- *
- *       8 Feb 1995 rev. 1.15 for linux 1.1.89
- *          Cleared target_time_out counter while performing a reset.
- *
- *      28 Jan 1995 rev. 1.14 for linux 1.1.86
- *          Added module support.
- *          Log and do a retry when a disk drive returns a target status
- *          different from zero on a recovered error.
- *          Auto detects if U14F boards have an old firmware revision.
- *          Max number of scatter/gather lists set to 16 for all boards
- *          (most installation run fine using 33 sglists, while other
- *          has problems when using more than 16).
- *
- *      16 Jan 1995 rev. 1.13 for linux 1.1.81
- *          Display a message if check_region detects a port address
- *          already in use.
- *
- *      15 Dec 1994 rev. 1.12 for linux 1.1.74
- *          The host->block flag is set for all the detected ISA boards.
- *
- *      30 Nov 1994 rev. 1.11 for linux 1.1.68
- *          Redo i/o on target status CHECK_CONDITION for TYPE_DISK only.
- *          Added optional support for using a single board at a time.
- *
- *      14 Nov 1994 rev. 1.10 for linux 1.1.63
- *
- *      28 Oct 1994 rev. 1.09 for linux 1.1.58  Final BETA release.
- *      16 Jul 1994 rev. 1.00 for linux 1.1.29  Initial ALPHA release.
- *
- *          This driver is a total replacement of the original UltraStor
- *          scsi driver, but it supports ONLY the 14F and 34F boards.
- *          It can be configured in the same kernel in which the original
- *          ultrastor driver is configured to allow the original U24F
- *          support.
- *
- *          Multiple U14F and/or U34F host adapters are supported.
- *
- *  Copyright (C) 1994-2003 Dario Ballabio (ballabio_dario@emc.com)
- *
- *  Alternate email: dario.ballabio@inwind.it, dario.ballabio@tiscalinet.it
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that redistributions of source
- *  code retain the above copyright notice and this comment without
- *  modification.
- *
- *      WARNING: if your 14/34F board has an old firmware revision (see below)
- *               you must change "#undef" into "#define" in the following
- *               statement.
- */
+
 #undef HAVE_OLD_UX4F_FIRMWARE
-/*
- *  The UltraStor 14F, 24F, and 34F are a family of intelligent, high
- *  performance SCSI-2 host adapters.
- *  Here is the scoop on the various models:
- *
- *  14F - ISA first-party DMA HA with floppy support and WD1003 emulation.
- *  24F - EISA Bus Master HA with floppy support and WD1003 emulation.
- *  34F - VESA Local-Bus Bus Master HA (no WD1003 emulation).
- *
- *  This code has been tested with up to two U14F boards, using both
- *  firmware 28004-005/38004-004 (BIOS rev. 2.00) and the latest firmware
- *  28004-006/38004-005 (BIOS rev. 2.01).
- *
- *  The latest firmware is required in order to get reliable operations when
- *  clustering is enabled. ENABLE_CLUSTERING provides a performance increase
- *  up to 50% on sequential access.
- *
- *  Since the struct scsi_host_template structure is shared among all 14F and 34F,
- *  the last setting of use_clustering is in effect for all of these boards.
- *
- *  Here a sample configuration using two U14F boards:
- *
- U14F0: ISA 0x330, BIOS 0xc8000, IRQ 11, DMA 5, SG 32, MB 16, of:n, lc:y, mq:8.
- U14F1: ISA 0x340, BIOS 0x00000, IRQ 10, DMA 6, SG 32, MB 16, of:n, lc:y, mq:8.
- *
- *  The boot controller must have its BIOS enabled, while other boards can
- *  have their BIOS disabled, or enabled to an higher address.
- *  Boards are named Ux4F0, Ux4F1..., according to the port address order in
- *  the io_port[] array.
- *
- *  The following facts are based on real testing results (not on
- *  documentation) on the above U14F board.
- *
- *  - The U14F board should be jumpered for bus on time less or equal to 7
- *    microseconds, while the default is 11 microseconds. This is order to
- *    get acceptable performance while using floppy drive and hard disk
- *    together. The jumpering for 7 microseconds is: JP13 pin 15-16,
- *    JP14 pin 7-8 and pin 9-10.
- *    The reduction has a little impact on scsi performance.
- *
- *  - If scsi bus length exceeds 3m., the scsi bus speed needs to be reduced
- *    from 10Mhz to 5Mhz (do this by inserting a jumper on JP13 pin 7-8).
- *
- *  - If U14F on board firmware is older than 28004-006/38004-005,
- *    the U14F board is unable to provide reliable operations if the scsi
- *    request length exceeds 16Kbyte. When this length is exceeded the
- *    behavior is:
- *    - adapter_status equal 0x96 or 0xa3 or 0x93 or 0x94;
- *    - adapter_status equal 0 and target_status equal 2 on for all targets
- *      in the next operation following the reset.
- *    This sequence takes a long time (>3 seconds), so in the meantime
- *    the SD_TIMEOUT in sd.c could expire giving rise to scsi aborts
- *    (SD_TIMEOUT has been increased from 3 to 6 seconds in 1.1.31).
- *    Because of this I had to DISABLE_CLUSTERING and to work around the
- *    bus reset in the interrupt service routine, returning DID_BUS_BUSY
- *    so that the operations are retried without complains from the scsi.c
- *    code.
- *    Any reset of the scsi bus is going to kill tape operations, since
- *    no retry is allowed for tapes. Bus resets are more likely when the
- *    scsi bus is under heavy load.
- *    Requests using scatter/gather have a maximum length of 16 x 1024 bytes
- *    when DISABLE_CLUSTERING is in effect, but unscattered requests could be
- *    larger than 16Kbyte.
- *
- *    The new firmware has fixed all the above problems.
- *
- *  For U34F boards the latest bios prom is 38008-002 (BIOS rev. 2.01),
- *  the latest firmware prom is 28008-006. Older firmware 28008-005 has
- *  problems when using more than 16 scatter/gather lists.
- *
- *  The list of i/o ports to be probed can be totally replaced by the
- *  boot command line option: "u14-34f=port0,port1,port2,...", where the
- *  port0, port1... arguments are ISA/VESA addresses to be probed.
- *  For example using "u14-34f=0x230,0x340", the driver probes only the two
- *  addresses 0x230 and 0x340 in this order; "u14-34f=0" totally disables
- *  this driver.
- *
- *  After the optional list of detection probes, other possible command line
- *  options are:
- *
- *  et:y  use disk geometry returned by scsicam_bios_param;
- *  et:n  use disk geometry jumpered on the board;
- *  lc:y  enables linked commands;
- *  lc:n  disables linked commands;
- *  tm:0  disables tagged commands (same as tc:n);
- *  tm:1  use simple queue tags (same as tc:y);
- *  tm:2  use ordered queue tags (same as tc:2);
- *  of:y  enables old firmware support;
- *  of:n  disables old firmware support;
- *  mq:xx set the max queue depth to the value xx (2 <= xx <= 8).
- *
- *  The default value is: "u14-34f=lc:n,of:n,mq:8,tm:0,et:n".
- *  An example using the list of detection probes could be:
- *  "u14-34f=0x230,0x340,lc:y,tm:2,of:n,mq:4,et:n".
- *
- *  When loading as a module, parameters can be specified as well.
- *  The above example would be (use 1 in place of y and 0 in place of n):
- *
- *  modprobe u14-34f io_port=0x230,0x340 linked_comm=1 have_old_firmware=0 \
- *                max_queue_depth=4 ext_tran=0 tag_mode=2
- *
- *  ----------------------------------------------------------------------------
- *  In this implementation, linked commands are designed to work with any DISK
- *  or CD-ROM, since this linking has only the intent of clustering (time-wise)
- *  and reordering by elevator sorting commands directed to each device,
- *  without any relation with the actual SCSI protocol between the controller
- *  and the device.
- *  If Q is the queue depth reported at boot time for each device (also named
- *  cmds/lun) and Q > 2, whenever there is already an active command to the
- *  device all other commands to the same device  (up to Q-1) are kept waiting
- *  in the elevator sorting queue. When the active command completes, the
- *  commands in this queue are sorted by sector address. The sort is chosen
- *  between increasing or decreasing by minimizing the seek distance between
- *  the sector of the commands just completed and the sector of the first
- *  command in the list to be sorted.
- *  Trivial math assures that the unsorted average seek distance when doing
- *  random seeks over S sectors is S/3.
- *  When (Q-1) requests are uniformly distributed over S sectors, the average
- *  distance between two adjacent requests is S/((Q-1) + 1), so the sorted
- *  average seek distance for (Q-1) random requests over S sectors is S/Q.
- *  The elevator sorting hence divides the seek distance by a factor Q/3.
- *  The above pure geometric remarks are valid in all cases and the
- *  driver effectively reduces the seek distance by the predicted factor
- *  when there are Q concurrent read i/o operations on the device, but this
- *  does not necessarily results in a noticeable performance improvement:
- *  your mileage may vary....
- *
- *  Note: command reordering inside a batch of queued commands could cause
- *        wrong results only if there is at least one write request and the
- *        intersection (sector-wise) of all requests is not empty.
- *        When the driver detects a batch including overlapping requests
- *        (a really rare event) strict serial (pid) order is enforced.
- *  ----------------------------------------------------------------------------
- *
- *  The boards are named Ux4F0, Ux4F1,... according to the detection order.
- *
- *  In order to support multiple ISA boards in a reliable way,
- *  the driver sets host->wish_block = TRUE for all ISA boards.
- */
+
 
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -457,11 +54,11 @@ static struct scsi_host_template driver_template = {
 #error "Adjust your <asm/byteorder.h> defines"
 #endif
 
-/* Values for the PRODUCT_ID ports for the 14/34F */
-#define PRODUCT_ID1  0x56
-#define PRODUCT_ID2  0x40        /* NOTE: Only upper nibble is used */
 
-/* Subversion values */
+#define PRODUCT_ID1  0x56
+#define PRODUCT_ID2  0x40        
+
+
 #define ISA  0
 #define ESA 1
 
@@ -542,68 +139,67 @@ static struct scsi_host_template driver_template = {
 #define PACKED          __attribute__((packed))
 
 struct sg_list {
-   unsigned int address;                /* Segment Address */
-   unsigned int num_bytes;              /* Segment Length */
+   unsigned int address;                
+   unsigned int num_bytes;              
    };
 
-/* MailBox SCSI Command Packet */
+
 struct mscp {
 
 #if defined(__BIG_ENDIAN_BITFIELD)
    unsigned char sg:1, ca:1, dcn:1, xdir:2, opcode:3;
    unsigned char lun: 3, channel:2, target:3;
 #else
-   unsigned char opcode: 3,             /* type of command */
-                 xdir: 2,               /* data transfer direction */
-                 dcn: 1,                /* disable disconnect */
-                 ca: 1,                 /* use cache (if available) */
-                 sg: 1;                 /* scatter/gather operation */
-   unsigned char target: 3,             /* SCSI target id */
-                 channel: 2,            /* SCSI channel number */
-                 lun: 3;                /* SCSI logical unit number */
+   unsigned char opcode: 3,             
+                 xdir: 2,               
+                 dcn: 1,                
+                 ca: 1,                 
+                 sg: 1;                 
+   unsigned char target: 3,             
+                 channel: 2,            
+                 lun: 3;                
 #endif
 
-   unsigned int data_address PACKED;    /* transfer data pointer */
-   unsigned int data_len PACKED;        /* length in bytes */
-   unsigned int link_address PACKED;    /* for linking command chains */
-   unsigned char clink_id;              /* identifies command in chain */
-   unsigned char use_sg;                /* (if sg is set) 8 bytes per list */
+   unsigned int data_address PACKED;    
+   unsigned int data_len PACKED;        
+   unsigned int link_address PACKED;    
+   unsigned char clink_id;              
+   unsigned char use_sg;                
    unsigned char sense_len;
-   unsigned char cdb_len;               /* 6, 10, or 12 */
-   unsigned char cdb[12];               /* SCSI Command Descriptor Block */
-   unsigned char adapter_status;        /* non-zero indicates HA error */
-   unsigned char target_status;         /* non-zero indicates target error */
+   unsigned char cdb_len;               
+   unsigned char cdb[12];               
+   unsigned char adapter_status;        
+   unsigned char target_status;         
    unsigned int sense_addr PACKED;
 
-   /* Additional fields begin here. */
+   
    struct scsi_cmnd *SCpnt;
-   unsigned int cpp_index;              /* cp index */
+   unsigned int cpp_index;              
 
-   /* All the cp structure is zero filled by queuecommand except the
-      following CP_TAIL_SIZE bytes, initialized by detect */
-   dma_addr_t cp_dma_addr; /* dma handle for this cp structure */
-   struct sg_list *sglist; /* pointer to the allocated SG list */
+   
+   dma_addr_t cp_dma_addr; 
+   struct sg_list *sglist; 
    };
 
 #define CP_TAIL_SIZE (sizeof(struct sglist *) + sizeof(dma_addr_t))
 
 struct hostdata {
-   struct mscp cp[MAX_MAILBOXES];       /* Mailboxes for this board */
-   unsigned int cp_stat[MAX_MAILBOXES]; /* FREE, IN_USE, LOCKED, IN_RESET */
-   unsigned int last_cp_used;           /* Index of last mailbox used */
-   unsigned int iocount;                /* Total i/o done for this board */
-   int board_number;                    /* Number of this board */
-   char board_name[16];                 /* Name of this board */
-   int in_reset;                        /* True if board is doing a reset */
-   int target_to[MAX_TARGET][MAX_CHANNEL]; /* N. of timeout errors on target */
-   int target_redo[MAX_TARGET][MAX_CHANNEL]; /* If TRUE redo i/o on target */
-   unsigned int retries;                /* Number of internal retries */
-   unsigned long last_retried_pid;      /* Pid of last retried command */
-   unsigned char subversion;            /* Bus type, either ISA or ESA */
-   struct pci_dev *pdev;                /* Always NULL */
+   struct mscp cp[MAX_MAILBOXES];       
+   unsigned int cp_stat[MAX_MAILBOXES]; 
+   unsigned int last_cp_used;           
+   unsigned int iocount;                
+   int board_number;                    
+   char board_name[16];                 
+   int in_reset;                        
+   int target_to[MAX_TARGET][MAX_CHANNEL]; 
+   int target_redo[MAX_TARGET][MAX_CHANNEL]; 
+   unsigned int retries;                
+   unsigned long last_retried_pid;      
+   unsigned char subversion;            
+   struct pci_dev *pdev;                
    unsigned char heads;
    unsigned char sectors;
-   char board_id[256];                  /* data from INQUIRY on this board */
+   char board_id[256];                  
    };
 
 static struct Scsi_Host *sh[MAX_BOARDS + 1];
@@ -611,26 +207,26 @@ static const char *driver_name = "Ux4F";
 static char sha[MAX_BOARDS];
 static DEFINE_SPINLOCK(driver_lock);
 
-/* Initialize num_boards so that ihdlr can work while detect is in progress */
+
 static unsigned int num_boards = MAX_BOARDS;
 
 static unsigned long io_port[] = {
 
-   /* Space for MAX_INT_PARAM ports usable while loading as a module */
+   
    SKIP,    SKIP,   SKIP,   SKIP,   SKIP,   SKIP,   SKIP,   SKIP,
    SKIP,    SKIP,
 
-   /* Possible ISA/VESA ports */
+   
    0x330, 0x340, 0x230, 0x240, 0x210, 0x130, 0x140,
 
-   /* End of list */
+   
    0x0
    };
 
 #define HD(board) ((struct hostdata *) &sh[board]->hostdata)
 #define BN(board) (HD(board)->board_name)
 
-/* Device is Little Endian */
+
 #define H2DEV(x) cpu_to_le32(x)
 #define DEV2H(x) le32_to_cpu(x)
 
@@ -767,13 +363,13 @@ static int board_inquiry(unsigned int j) {
 
    HD(j)->cp_stat[0] = IGNORE;
 
-   /* Clear the interrupt indication */
+   
    outb(CMD_CLR_INTR, sh[j]->io_port + REG_SYS_INTR);
 
-   /* Store pointer in OGM address bytes */
+   
    outl(H2DEV(cpp->cp_dma_addr), sh[j]->io_port + REG_OGM);
 
-   /* Issue OGM interrupt */
+   
    outb(CMD_OGM_INTR, sh[j]->io_port + REG_LCL_INTR);
 
    spin_unlock_irq(&driver_lock);
@@ -800,20 +396,20 @@ static int port_detect \
    unsigned char in_byte;
    char *bus_type, dma_name[16];
 
-   /* Allowed BIOS base addresses (NULL indicates reserved) */
+   
    unsigned long bios_segment_table[8] = {
       0,
       0xc4000, 0xc8000, 0xcc000, 0xd0000,
       0xd4000, 0xd8000, 0xdc000
       };
 
-   /* Allowed IRQs */
+   
    unsigned char interrupt_table[4] = { 15, 14, 11, 10 };
 
-   /* Allowed DMA channels for ISA (0 indicates reserved) */
+   
    unsigned char dma_channel_table[4] = { 5, 6, 7, 0 };
 
-   /* Head/sector mappings */
+   
    struct {
       unsigned char heads;
       unsigned char sectors;
@@ -871,7 +467,7 @@ static int port_detect \
    dma_channel = dma_channel_table[config_1.dma_channel];
    subversion = (in_byte & 0x0f);
 
-   /* Board detected, allocate its IRQ */
+   
    if (request_irq(irq, do_interrupt_handler,
              IRQF_DISABLED | ((subversion == ESA) ? IRQF_SHARED : 0),
              driver_name, (void *) &sha[j])) {
@@ -916,10 +512,10 @@ static int port_detect \
    }
 #endif
 
-   /* Probably a bogus host scsi id, set it to the dummy value */
+   
    if (sh[j]->this_id == 0) sh[j]->this_id = -1;
 
-   /* If BIOS is disabled, force enable interrupts */
+   
    if (sh[j]->base == 0) outb(CMD_ENA_INTR, sh[j]->io_port + REG_SYS_MASK);
 
    memset(HD(j), 0, sizeof(struct hostdata));
@@ -1089,7 +685,7 @@ static int u14_34f_detect(struct scsi_host_template *tpnt) {
    if(strlen(boot_options)) option_setup(boot_options);
 
 #if defined(MODULE)
-   /* io_port could have been modified when loading as a module */
+   
    if(io_port[0] != SKIP) {
       setup_done = TRUE;
       io_port[MAX_INT_PARAM] = 0;
@@ -1251,15 +847,14 @@ static int u14_34f_queuecommand(struct scsi_cmnd *SCpnt, void (*done)(struct scs
    unsigned int i, j, k;
    struct mscp *cpp;
 
-   /* j is the board number */
+   
    j = ((struct hostdata *) SCpnt->device->host->hostdata)->board_number;
 
    if (SCpnt->host_scribble)
       panic("%s: qcomm, pid %ld, SCpnt %p already active.\n",
             BN(j), SCpnt->serial_number, SCpnt);
 
-   /* i is the mailbox number, look for the first free mailbox
-      starting from last_cp_used */
+   
    i = HD(j)->last_cp_used + 1;
 
    for (k = 0; k < sh[j]->can_queue; k++, i++) {
@@ -1277,7 +872,7 @@ static int u14_34f_queuecommand(struct scsi_cmnd *SCpnt, void (*done)(struct scs
       return 1;
       }
 
-   /* Set pointer to control packet structure */
+   
    cpp = &HD(j)->cp[i];
 
    memset(cpp, 0, sizeof(struct mscp) - CP_TAIL_SIZE);
@@ -1297,10 +892,10 @@ static int u14_34f_queuecommand(struct scsi_cmnd *SCpnt, void (*done)(struct scs
    cpp->cdb_len = SCpnt->cmd_len;
    memcpy(cpp->cdb, SCpnt->cmnd, SCpnt->cmd_len);
 
-   /* Use data transfer direction SCpnt->sc_data_direction */
+   
    scsi_to_dev_dir(i, j);
 
-   /* Map DMA buffers and SG list */
+   
    map_dma(i, j);
 
    if (linked_comm && SCpnt->device->queue_depth > 2
@@ -1318,10 +913,10 @@ static int u14_34f_queuecommand(struct scsi_cmnd *SCpnt, void (*done)(struct scs
       return 1;
       }
 
-   /* Store pointer in OGM address bytes */
+   
    outl(H2DEV(cpp->cp_dma_addr), sh[j]->io_port + REG_OGM);
 
-   /* Issue OGM interrupt */
+   
    outb(CMD_OGM_INTR, sh[j]->io_port + REG_LCL_INTR);
 
    HD(j)->cp_stat[i] = IN_USE;
@@ -1494,7 +1089,7 @@ static int u14_34f_eh_host_reset(struct scsi_cmnd *SCarg) {
          SCpnt->result = DID_RESET << 16;
          SCpnt->host_scribble = NULL;
 
-         /* This mailbox is still waiting for its interrupt */
+         
          HD(j)->cp_stat[i] = LOCKED;
 
          printk("%s, reset, mbox %d locked, DID_RESET, pid %ld done.\n",
@@ -1507,7 +1102,7 @@ static int u14_34f_eh_host_reset(struct scsi_cmnd *SCarg) {
          SCpnt->result = DID_RESET << 16;
          SCpnt->host_scribble = NULL;
 
-         /* This mailbox was never queued to the adapter */
+         
          HD(j)->cp_stat[i] = FREE;
 
          printk("%s, reset, mbox %d aborting, DID_RESET, pid %ld done.\n",
@@ -1516,7 +1111,7 @@ static int u14_34f_eh_host_reset(struct scsi_cmnd *SCarg) {
 
       else
 
-         /* Any other mailbox has already been set free by interrupt */
+         
          continue;
 
       SCpnt->scsi_done(SCpnt);
@@ -1727,7 +1322,7 @@ static irqreturn_t ihdlr(unsigned int j)
    struct mscp *spp, *cpp;
    int irq = sh[j]->irq;
 
-   /* Check if this board need to be serviced */
+   
    if (!((reg = inb(sh[j]->io_port + REG_SYS_INTR)) & IRQ_ASSERTED)) goto none;
 
    HD(j)->iocount++;
@@ -1735,7 +1330,7 @@ static irqreturn_t ihdlr(unsigned int j)
    if (do_trace) printk("%s: ihdlr, enter, irq %d, count %d.\n", BN(j), irq,
                         HD(j)->iocount);
 
-   /* Check if this board is still busy */
+   
    if (wait_on_busy(sh[j]->io_port, 20 * MAXLOOP)) {
       outb(CMD_CLR_INTR, sh[j]->io_port + REG_SYS_INTR);
       printk("%s: ihdlr, busy timeout error,  irq %d, reg 0x%x, count %d.\n",
@@ -1745,10 +1340,10 @@ static irqreturn_t ihdlr(unsigned int j)
 
    ret = inl(sh[j]->io_port + REG_ICM);
 
-   /* Clear interrupt pending flag */
+   
    outb(CMD_CLR_INTR, sh[j]->io_port + REG_SYS_INTR);
 
-   /* Find the mailbox to be serviced on this board */
+   
    for (i = 0; i < sh[j]->can_queue; i++)
       if (H2DEV(HD(j)->cp[i].cp_dma_addr) == ret) break;
 
@@ -1811,18 +1406,18 @@ static irqreturn_t ihdlr(unsigned int j)
 #endif
 
    switch (spp->adapter_status) {
-      case ASOK:     /* status OK */
+      case ASOK:     
 
-         /* Forces a reset if a disk drive keeps returning BUSY */
+         
          if (tstatus == BUSY && SCpnt->device->type != TYPE_TAPE)
             status = DID_ERROR << 16;
 
-         /* If there was a bus reset, redo operation on each target */
+         
          else if (tstatus != GOOD && SCpnt->device->type == TYPE_DISK
                   && HD(j)->target_redo[scmd_id(SCpnt)][scmd_channel(SCpnt)])
             status = DID_BUS_BUSY << 16;
 
-         /* Works around a flaw in scsi.c */
+         
          else if (tstatus == CHECK_CONDITION
                   && SCpnt->device->type == TYPE_DISK
                   && (SCpnt->sense_buffer[2] & 0xf) == RECOVERED_ERROR)
@@ -1847,7 +1442,7 @@ static irqreturn_t ihdlr(unsigned int j)
          if (HD(j)->last_retried_pid == SCpnt->serial_number) HD(j)->retries = 0;
 
          break;
-      case ASST:     /* Selection Time Out */
+      case ASST:     
 
          if (HD(j)->target_to[scmd_id(SCpnt)][scmd_channel(SCpnt)] > 1)
             status = DID_ERROR << 16;
@@ -1858,18 +1453,18 @@ static irqreturn_t ihdlr(unsigned int j)
 
          break;
 
-      /* Perform a limited number of internal retries */
-      case 0x93:     /* Unexpected bus free */
-      case 0x94:     /* Target bus phase sequence failure */
-      case 0x96:     /* Illegal SCSI command */
-      case 0xa3:     /* SCSI bus reset error */
+      
+      case 0x93:     
+      case 0x94:     
+      case 0x96:     
+      case 0xa3:     
 
          for (c = 0; c <= sh[j]->max_channel; c++)
             for (k = 0; k < sh[j]->max_id; k++)
                HD(j)->target_redo[k][c] = TRUE;
 
 
-      case 0x92:     /* Data over/under-run */
+      case 0x92:     
 
          if (SCpnt->device->type != TYPE_TAPE
              && HD(j)->retries < MAX_INTERNAL_RETRIES) {
@@ -1887,13 +1482,13 @@ static irqreturn_t ihdlr(unsigned int j)
             status = DID_ERROR << 16;
 
          break;
-      case 0x01:     /* Invalid command */
-      case 0x02:     /* Invalid parameters */
-      case 0x03:     /* Invalid data list */
-      case 0x84:     /* SCSI bus abort error */
-      case 0x9b:     /* Auto request sense error */
-      case 0x9f:     /* Unexpected command complete message error */
-      case 0xff:     /* Invalid parameter in the S/G list */
+      case 0x01:     
+      case 0x02:     
+      case 0x03:     
+      case 0x84:     
+      case 0x9b:     
+      case 0x9f:     
+      case 0xff:     
       default:
          status = DID_ERROR << 16;
          break;
@@ -1916,7 +1511,7 @@ static irqreturn_t ihdlr(unsigned int j)
 
    unmap_dma(i, j);
 
-   /* Set the command state to inactive */
+   
    SCpnt->host_scribble = NULL;
 
    SCpnt->scsi_done(SCpnt);
@@ -1935,7 +1530,7 @@ static irqreturn_t do_interrupt_handler(int irq, void *shap) {
    unsigned long spin_flags;
    irqreturn_t ret;
 
-   /* Check if the interrupt must be processed by this handler */
+   
    if ((j = (unsigned int)((char *)shap - sha)) >= num_boards) return IRQ_NONE;
 
    spin_lock_irqsave(sh[j]->host_lock, spin_flags);
@@ -1973,4 +1568,4 @@ static int u14_34f_release(struct Scsi_Host *shpnt) {
 
 #ifndef MODULE
 __setup("u14-34f=", option_setup);
-#endif /* end MODULE */
+#endif 

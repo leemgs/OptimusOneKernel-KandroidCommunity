@@ -1,15 +1,4 @@
-/*
- *	Spanning tree protocol; interface code
- *	Linux ethernet bridge
- *
- *	Authors:
- *	Lennert Buytenhek		<buytenh@gnu.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/etherdevice.h>
@@ -19,17 +8,14 @@
 #include "br_private_stp.h"
 
 
-/* Port id is composed of priority and port number.
- * NB: least significant bits of priority are dropped to
- *     make room for more ports.
- */
+
 static inline port_id br_make_port_id(__u8 priority, __u16 port_no)
 {
 	return ((u16)priority << BR_PORT_BITS)
 		| (port_no & ((1<<BR_PORT_BITS)-1));
 }
 
-/* called under bridge lock */
+
 void br_init_port(struct net_bridge_port *p)
 {
 	p->port_id = br_make_port_id(p->priority, p->port_no);
@@ -39,7 +25,7 @@ void br_init_port(struct net_bridge_port *p)
 	p->config_pending = 0;
 }
 
-/* called under bridge lock */
+
 void br_stp_enable_bridge(struct net_bridge *br)
 {
 	struct net_bridge_port *p;
@@ -58,7 +44,7 @@ void br_stp_enable_bridge(struct net_bridge *br)
 	spin_unlock_bh(&br->lock);
 }
 
-/* NO locks held */
+
 void br_stp_disable_bridge(struct net_bridge *br)
 {
 	struct net_bridge_port *p;
@@ -80,14 +66,14 @@ void br_stp_disable_bridge(struct net_bridge *br)
 	del_timer_sync(&br->gc_timer);
 }
 
-/* called under bridge lock */
+
 void br_stp_enable_port(struct net_bridge_port *p)
 {
 	br_init_port(p);
 	br_port_state_selection(p->br);
 }
 
-/* called under bridge lock */
+
 void br_stp_disable_port(struct net_bridge_port *p)
 {
 	struct net_bridge *br;
@@ -132,7 +118,7 @@ static void br_stp_start(struct net_bridge *br)
 		printk(KERN_INFO "%s: starting userspace STP failed, "
 				"starting kernel STP\n", br->dev->name);
 
-		/* To start timers on any ports left in blocking */
+		
 		spin_lock_bh(&br->lock);
 		br_port_state_selection(br);
 		spin_unlock_bh(&br->lock);
@@ -151,7 +137,7 @@ static void br_stp_stop(struct net_bridge *br)
 			br->dev->name, r);
 
 
-		/* To start timers on any ports left in blocking */
+		
 		spin_lock_bh(&br->lock);
 		br_port_state_selection(br);
 		spin_unlock_bh(&br->lock);
@@ -173,10 +159,10 @@ void br_stp_set_enabled(struct net_bridge *br, unsigned long val)
 	}
 }
 
-/* called under bridge lock */
+
 void br_stp_change_bridge_id(struct net_bridge *br, const unsigned char *addr)
 {
-	/* should be aligned on 2 bytes for compare_ether_addr() */
+	
 	unsigned short oldaddr_aligned[ETH_ALEN >> 1];
 	unsigned char *oldaddr = (unsigned char *)oldaddr_aligned;
 	struct net_bridge_port *p;
@@ -203,10 +189,10 @@ void br_stp_change_bridge_id(struct net_bridge *br, const unsigned char *addr)
 		br_become_root_bridge(br);
 }
 
-/* should be aligned on 2 bytes for compare_ether_addr() */
+
 static const unsigned short br_mac_zero_aligned[ETH_ALEN >> 1];
 
-/* called under bridge lock */
+
 void br_stp_recalculate_bridge_id(struct net_bridge *br)
 {
 	const unsigned char *br_mac_zero =
@@ -214,7 +200,7 @@ void br_stp_recalculate_bridge_id(struct net_bridge *br)
 	const unsigned char *addr = br_mac_zero;
 	struct net_bridge_port *p;
 
-	/* user has chosen a value so keep it */
+	
 	if (br->flags & BR_SET_MAC_ADDR)
 		return;
 
@@ -229,7 +215,7 @@ void br_stp_recalculate_bridge_id(struct net_bridge *br)
 		br_stp_change_bridge_id(br, addr);
 }
 
-/* called under bridge lock */
+
 void br_stp_set_bridge_priority(struct net_bridge *br, u16 newprio)
 {
 	struct net_bridge_port *p;
@@ -254,7 +240,7 @@ void br_stp_set_bridge_priority(struct net_bridge *br, u16 newprio)
 		br_become_root_bridge(br);
 }
 
-/* called under bridge lock */
+
 void br_stp_set_port_priority(struct net_bridge_port *p, u8 newprio)
 {
 	port_id new_port_id = br_make_port_id(newprio, p->port_no);
@@ -271,7 +257,7 @@ void br_stp_set_port_priority(struct net_bridge_port *p, u8 newprio)
 	}
 }
 
-/* called under bridge lock */
+
 void br_stp_set_path_cost(struct net_bridge_port *p, u32 path_cost)
 {
 	p->path_cost = path_cost;

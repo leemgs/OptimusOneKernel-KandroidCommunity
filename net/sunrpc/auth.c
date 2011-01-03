@@ -1,10 +1,4 @@
-/*
- * linux/net/sunrpc/auth.c
- *
- * Generic RPC client authentication API.
- *
- * Copyright (C) 1996, Olaf Kirch <okir@monad.swb.de>
- */
+
 
 #include <linux/types.h>
 #include <linux/sched.h>
@@ -21,9 +15,9 @@
 
 static DEFINE_SPINLOCK(rpc_authflavor_lock);
 static const struct rpc_authops *auth_flavors[RPC_AUTH_MAXFLAVOR] = {
-	&authnull_ops,		/* AUTH_NULL */
-	&authunix_ops,		/* AUTH_UNIX */
-	NULL,			/* others can be loadable modules */
+	&authnull_ops,		
+	&authunix_ops,		
+	NULL,			
 };
 
 static LIST_HEAD(cred_unused);
@@ -135,9 +129,7 @@ rpcauth_unhash_cred(struct rpc_cred *cred)
 	spin_unlock(cache_lock);
 }
 
-/*
- * Initialize RPC credential cache
- */
+
 int
 rpcauth_init_credcache(struct rpc_auth *auth)
 {
@@ -155,9 +147,7 @@ rpcauth_init_credcache(struct rpc_auth *auth)
 }
 EXPORT_SYMBOL_GPL(rpcauth_init_credcache);
 
-/*
- * Destroy a list of credentials
- */
+
 static inline
 void rpcauth_destroy_credlist(struct list_head *head)
 {
@@ -170,10 +160,7 @@ void rpcauth_destroy_credlist(struct list_head *head)
 	}
 }
 
-/*
- * Clear the RPC credential cache, and delete those credentials
- * that are not referenced.
- */
+
 void
 rpcauth_clear_credcache(struct rpc_cred_cache *cache)
 {
@@ -202,9 +189,7 @@ rpcauth_clear_credcache(struct rpc_cred_cache *cache)
 	rpcauth_destroy_credlist(&free);
 }
 
-/*
- * Destroy the RPC credential cache
- */
+
 void
 rpcauth_destroy_credcache(struct rpc_auth *auth)
 {
@@ -221,9 +206,7 @@ EXPORT_SYMBOL_GPL(rpcauth_destroy_credcache);
 
 #define RPC_AUTH_EXPIRY_MORATORIUM (60 * HZ)
 
-/*
- * Remove stale credentials. Avoid sleeping inside the loop.
- */
+
 static int
 rpcauth_prune_expired(struct list_head *free, int nr_to_scan)
 {
@@ -233,7 +216,7 @@ rpcauth_prune_expired(struct list_head *free, int nr_to_scan)
 
 	list_for_each_entry_safe(cred, next, &cred_unused, cr_lru) {
 
-		/* Enforce a 60 second garbage collection moratorium */
+		
 		if (time_in_range_open(cred->cr_expire, expired, jiffies) &&
 		    test_bit(RPCAUTH_CRED_HASHED, &cred->cr_flags) != 0)
 			continue;
@@ -258,9 +241,7 @@ rpcauth_prune_expired(struct list_head *free, int nr_to_scan)
 	return nr_to_scan;
 }
 
-/*
- * Run memory cache shrinker.
- */
+
 static int
 rpcauth_cache_shrinker(int nr_to_scan, gfp_t gfp_mask)
 {
@@ -277,9 +258,7 @@ rpcauth_cache_shrinker(int nr_to_scan, gfp_t gfp_mask)
 	return res;
 }
 
-/*
- * Look up a process' credentials in the authentication cache
- */
+
 struct rpc_cred *
 rpcauth_lookup_credcache(struct rpc_auth *auth, struct auth_cred * acred,
 		int flags)
@@ -445,7 +424,7 @@ rpcauth_bindcred(struct rpc_task *task, struct rpc_cred *cred, int flags)
 void
 put_rpccred(struct rpc_cred *cred)
 {
-	/* Fast path for unhashed credentials */
+	
 	if (test_bit(RPCAUTH_CRED_HASHED, &cred->cr_flags) != 0)
 		goto need_lock;
 
@@ -518,7 +497,7 @@ rpcauth_wrap_req(struct rpc_task *task, kxdrproc_t encode, void *rqstp,
 			task->tk_pid, cred->cr_ops->cr_name, cred);
 	if (cred->cr_ops->crwrap_req)
 		return cred->cr_ops->crwrap_req(task, encode, rqstp, data, obj);
-	/* By default, we encode the arguments normally. */
+	
 	return encode(rqstp, data, obj);
 }
 
@@ -533,7 +512,7 @@ rpcauth_unwrap_resp(struct rpc_task *task, kxdrproc_t decode, void *rqstp,
 	if (cred->cr_ops->crunwrap_resp)
 		return cred->cr_ops->crunwrap_resp(task, decode, rqstp,
 						   data, obj);
-	/* By default, we decode the arguments normally. */
+	
 	return decode(rqstp, data, obj);
 }
 

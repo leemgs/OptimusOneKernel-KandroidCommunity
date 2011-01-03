@@ -1,48 +1,8 @@
-/*-*-linux-c-*-*/
 
-/*
-  Copyright (C) 2008 Cezary Jackiewicz <cezary.jackiewicz (at) gmail.com>
 
-  based on MSI driver
 
-  Copyright (C) 2006 Lennart Poettering <mzxreary (at) 0pointer (dot) de>
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the GNU
-  General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-  02110-1301, USA.
- */
-
-/*
- * comapl-laptop.c - Compal laptop support.
- *
- * This driver exports a few files in /sys/devices/platform/compal-laptop/:
- *
- *   wlan - wlan subsystem state: contains 0 or 1 (rw)
- *
- *   bluetooth - Bluetooth subsystem state: contains 0 or 1 (rw)
- *
- *   raw - raw value taken from embedded controller register (ro)
- *
- * In addition to these platform device attributes the driver
- * registers itself in the Linux backlight control subsystem and is
- * available to userspace under /sys/class/backlight/compal-laptop/.
- *
- * This driver might work on other laptops produced by Compal. If you
- * want to try it you can pass force=1 as argument to the module which
- * will force it to load even when the DMI data doesn't identify the
- * laptop as FL9x.
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -68,7 +28,7 @@ static int force;
 module_param(force, bool, 0);
 MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
 
-/* Hardware access */
+
 
 static int set_lcd_level(int level)
 {
@@ -150,7 +110,7 @@ static int get_wireless_state(int *wlan, int *bluetooth)
 	return 0;
 }
 
-/* Backlight device stuff */
+
 
 static int bl_get_brightness(struct backlight_device *b)
 {
@@ -170,7 +130,7 @@ static struct backlight_ops compalbl_ops = {
 
 static struct backlight_device *compalbl_device;
 
-/* Platform device */
+
 
 static ssize_t show_wlan(struct device *dev,
 	struct device_attribute *attr, char *buf)
@@ -260,7 +220,7 @@ static struct platform_driver compal_driver = {
 
 static struct platform_device *compal_device;
 
-/* Initialization */
+
 
 static int dmi_check_cb(const struct dmi_system_id *id)
 {
@@ -324,7 +284,7 @@ static int __init compal_init(void)
 	if (!force && !dmi_check_system(compal_dmi_table))
 		return -ENODEV;
 
-	/* Register backlight stuff */
+	
 
 	if (!acpi_video_backlight_support()) {
 		compalbl_device = backlight_device_register("compal-laptop", NULL, NULL,
@@ -339,7 +299,7 @@ static int __init compal_init(void)
 	if (ret)
 		goto fail_backlight;
 
-	/* Register platform stuff */
+	
 
 	compal_device = platform_device_alloc("compal-laptop", -1);
 	if (!compal_device) {

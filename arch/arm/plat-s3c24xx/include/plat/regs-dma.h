@@ -1,16 +1,6 @@
-/* arch/arm/mach-s3c2410/include/mach/dma.h
- *
- * Copyright (C) 2003,2004,2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Samsung S3C24XX DMA support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
 
-/* DMA Register definitions */
+
+
 
 #define S3C2410_DMA_DISRC		(0x00)
 #define S3C2410_DMA_DISRCC		(0x04)

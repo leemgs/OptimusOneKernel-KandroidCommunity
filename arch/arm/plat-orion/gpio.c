@@ -1,12 +1,4 @@
-/*
- * arch/arm/plat-orion/gpio.c
- *
- * Marvell Orion SoC GPIO handling.
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -72,9 +64,7 @@ err_out:
 	return false;
 }
 
-/*
- * GENERIC_GPIO primitives.
- */
+
 static int orion_gpio_direction_input(struct gpio_chip *chip, unsigned pin)
 {
 	unsigned long flags;
@@ -84,7 +74,7 @@ static int orion_gpio_direction_input(struct gpio_chip *chip, unsigned pin)
 
 	spin_lock_irqsave(&gpio_lock, flags);
 
-	/* Configure GPIO direction. */
+	
 	__set_direction(pin, 1);
 
 	spin_unlock_irqrestore(&gpio_lock, flags);
@@ -114,13 +104,13 @@ static int orion_gpio_direction_output(struct gpio_chip *chip, unsigned pin,
 
 	spin_lock_irqsave(&gpio_lock, flags);
 
-	/* Disable blinking. */
+	
 	__set_blinking(pin, 0);
 
-	/* Configure GPIO output value. */
+	
 	__set_level(pin, value);
 
-	/* Configure GPIO direction. */
+	
 	__set_direction(pin, 0);
 
 	spin_unlock_irqrestore(&gpio_lock, flags);
@@ -135,7 +125,7 @@ static void orion_gpio_set_value(struct gpio_chip *chip, unsigned pin,
 
 	spin_lock_irqsave(&gpio_lock, flags);
 
-	/* Configure GPIO output value. */
+	
 	__set_level(pin, value);
 
 	spin_unlock_irqrestore(&gpio_lock, flags);
@@ -166,12 +156,10 @@ void __init orion_gpio_init(void)
 	gpiochip_add(&orion_gpiochip);
 }
 
-/*
- * Orion-specific GPIO API extensions.
- */
+
 void __init orion_gpio_set_unused(unsigned pin)
 {
-	/* Configure as output, drive low. */
+	
 	__set_level(pin, 0);
 	__set_direction(pin, 0);
 }
@@ -196,10 +184,10 @@ void orion_gpio_set_blink(unsigned pin, int blink)
 
 	spin_lock_irqsave(&gpio_lock, flags);
 
-	/* Set output value to zero. */
+	
 	__set_level(pin, 0);
 
-	/* Set blinking. */
+	
 	__set_blinking(pin, blink);
 
 	spin_unlock_irqrestore(&gpio_lock, flags);
@@ -207,31 +195,7 @@ void orion_gpio_set_blink(unsigned pin, int blink)
 EXPORT_SYMBOL(orion_gpio_set_blink);
 
 
-/*****************************************************************************
- * Orion GPIO IRQ
- *
- * GPIO_IN_POL register controls whether GPIO_DATA_IN will hold the same
- * value of the line or the opposite value.
- *
- * Level IRQ handlers: DATA_IN is used directly as cause register.
- *                     Interrupt are masked by LEVEL_MASK registers.
- * Edge IRQ handlers:  Change in DATA_IN are latched in EDGE_CAUSE.
- *                     Interrupt are masked by EDGE_MASK registers.
- * Both-edge handlers: Similar to regular Edge handlers, but also swaps
- *                     the polarity to catch the next line transaction.
- *                     This is a race condition that might not perfectly
- *                     work on some use cases.
- *
- * Every eight GPIO lines are grouped (OR'ed) before going up to main
- * cause register.
- *
- *                    EDGE  cause    mask
- *        data-in   /--------| |-----| |----\
- *     -----| |-----                         ---- to main cause reg
- *           X      \----------------| |----/
- *        polarity    LEVEL          mask
- *
- ****************************************************************************/
+
 
 static void gpio_irq_ack(u32 irq)
 {
@@ -279,9 +243,7 @@ static int gpio_irq_set_type(u32 irq, u32 type)
 
 	desc = irq_desc + irq;
 
-	/*
-	 * Set edge/level type.
-	 */
+	
 	if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)) {
 		desc->handle_irq = handle_edge_irq;
 	} else if (type & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
@@ -291,9 +253,7 @@ static int gpio_irq_set_type(u32 irq, u32 type)
 		return -EINVAL;
 	}
 
-	/*
-	 * Configure interrupt polarity.
-	 */
+	
 	if (type == IRQ_TYPE_EDGE_RISING || type == IRQ_TYPE_LEVEL_HIGH) {
 		u = readl(GPIO_IN_POL(pin));
 		u &= ~(1 << (pin & 31));
@@ -307,14 +267,12 @@ static int gpio_irq_set_type(u32 irq, u32 type)
 
 		v = readl(GPIO_IN_POL(pin)) ^ readl(GPIO_DATA_IN(pin));
 
-		/*
-		 * set initial polarity based on current input level
-		 */
+		
 		u = readl(GPIO_IN_POL(pin));
 		if (v & (1 << (pin & 31)))
-			u |= 1 << (pin & 31);		/* falling */
+			u |= 1 << (pin & 31);		
 		else
-			u &= ~(1 << (pin & 31));	/* rising */
+			u &= ~(1 << (pin & 31));	
 		writel(u, GPIO_IN_POL(pin));
 	}
 
@@ -347,7 +305,7 @@ void orion_gpio_irq_handler(int pinoff)
 			continue;
 
 		if ((desc->status & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_EDGE_BOTH) {
-			/* Swap polarity (race with GPIO line) */
+			
 			u32 polarity;
 
 			polarity = readl(GPIO_IN_POL(pin));

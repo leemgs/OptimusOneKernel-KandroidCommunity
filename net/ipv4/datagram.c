@@ -1,15 +1,4 @@
-/*
- *	common UDP/RAW code
- *	Linux INET implementation
- *
- * Authors:
- * 	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
- *
- * 	This program is free software; you can redistribute it and/or
- * 	modify it under the terms of the GNU General Public License
- * 	as published by the Free Software Foundation; either version
- * 	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/types.h>
 #include <linux/module.h>
@@ -61,7 +50,7 @@ int ip4_datagram_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 		return -EACCES;
 	}
 	if (!inet->saddr)
-		inet->saddr = rt->rt_src;	/* Update source address */
+		inet->saddr = rt->rt_src;	
 	if (!inet->rcv_saddr)
 		inet->rcv_saddr = rt->rt_src;
 	inet->daddr = rt->rt_dst;

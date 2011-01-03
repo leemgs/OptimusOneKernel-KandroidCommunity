@@ -1,10 +1,4 @@
-/*
- * linux/drivers/pcmcia/sa1111_generic.c
- *
- * We implement the generic parts of a SA1111 PCMCIA driver.  This
- * basically means we handle everything except controlling the
- * power.  Power is machine specific...
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/ioport.h>
@@ -129,9 +123,7 @@ static int pcmcia_probe(struct sa1111_dev *dev)
 
 	base = dev->mapbase;
 
-	/*
-	 * Initialise the suspend state.
-	 */
+	
 	sa1111_writel(PCSSR_S0_SLEEP | PCSSR_S1_SLEEP, base + SA1111_PCSSR);
 	sa1111_writel(PCCR_S0_FLT | PCCR_S1_FLT, base + SA1111_PCCR);
 

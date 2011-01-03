@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-h4.c
- *
- * Copyright (C) 2005 Nokia Corporation
- * Author: Paul Mundt <paul.mundt@nokia.com>
- *
- * Modified from mach-omap/omap1/board-generic.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -85,28 +74,28 @@ static int h4_keymap[] = {
 };
 
 static struct mtd_partition h4_partitions[] = {
-	/* bootloader (U-Boot, etc) in first sector */
+	
 	{
 	      .name		= "bootloader",
 	      .offset		= 0,
 	      .size		= SZ_128K,
-	      .mask_flags	= MTD_WRITEABLE, /* force read-only */
+	      .mask_flags	= MTD_WRITEABLE, 
 	},
-	/* bootloader params in the next sector */
+	
 	{
 	      .name		= "params",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_128K,
 	      .mask_flags	= 0,
 	},
-	/* kernel */
+	
 	{
 	      .name		= "kernel",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_2M,
 	      .mask_flags	= 0
 	},
-	/* file system */
+	
 	{
 	      .name		= "filesystem",
 	      .offset		= MTDPART_OFS_APPEND,
@@ -165,7 +154,7 @@ static struct platform_device *h4_devices[] __initdata = {
 	&h4_lcd_device,
 };
 
-/* 2420 Sysboot setup (2430 is different) */
+
 static u32 get_sysboot_value(void)
 {
 	return (omap_ctrl_readl(OMAP24XX_CONTROL_STATUS) &
@@ -174,18 +163,14 @@ static u32 get_sysboot_value(void)
 		 OMAP2_SYSBOOT_1_MASK | OMAP2_SYSBOOT_0_MASK));
 }
 
-/* H4-2420's always used muxed mode, H4-2422's always use non-muxed
- *
- * Note: OMAP-GIT doesn't correctly do is_cpu_omap2422 and is_cpu_omap2423
- *  correctly.  The macro needs to look at production_id not just hawkeye.
- */
+
 static u32 is_gpmc_muxed(void)
 {
 	u32 mux;
 	mux = get_sysboot_value();
 	if ((mux & 0xF) == 0xd)
-		return 1;	/* NAND config (could be either) */
-	if (mux & 0x2)		/* if mux'ed */
+		return 1;	
+	if (mux & 0x2)		
 		return 1;
 	else
 		return 0;
@@ -200,7 +185,7 @@ static inline void __init h4_init_debug(void)
 
 	eth_cs	= H4_SMC91X_CS;
 
-	gpmc_fck = clk_get(NULL, "gpmc_fck");	/* Always on ENABLE_ON_INIT */
+	gpmc_fck = clk_get(NULL, "gpmc_fck");	
 	if (IS_ERR(gpmc_fck)) {
 		WARN_ON(1);
 		return;
@@ -216,7 +201,7 @@ static inline void __init h4_init_debug(void)
 	else
 		muxed = 0;
 
-	/* Make sure CS1 timings are correct */
+	
 	gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG1,
 			  0x00011000 | muxed);
 
@@ -232,7 +217,7 @@ static inline void __init h4_init_debug(void)
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x041f1F1F);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000004C4);
-	} else {/* rate = 100000000 */
+	} else {
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f00);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080802);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
@@ -274,34 +259,28 @@ static struct omap_lcd_config h4_lcd_config __initdata = {
 
 static struct omap_usb_config h4_usb_config __initdata = {
 #ifdef	CONFIG_MACH_OMAP2_H4_USB1
-	/* NOTE:  usb1 could also be used with 3 wire signaling */
+	
 	.pins[1]	= 4,
 #endif
 
 #ifdef	CONFIG_MACH_OMAP_H4_OTG
-	/* S1.10 ON -- USB OTG port
-	 * usb0 switched to Mini-AB port and isp1301 transceiver;
-	 * S2.POS3 = OFF, S2.POS4 = ON ... to allow battery charging
-	 */
+	
 	.otg		= 1,
 	.pins[0]	= 4,
 #ifdef	CONFIG_USB_GADGET_OMAP
-	/* use OTG cable, or standard A-to-MiniB */
-	.hmc_mode	= 0x14,	/* 0:dev/otg 1:host 2:disable */
+	
+	.hmc_mode	= 0x14,	
 #elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-	/* use OTG cable, or NONSTANDARD (B-to-MiniB) */
-	.hmc_mode	= 0x11,	/* 0:host 1:host 2:disable */
-#endif	/* XX */
+	
+	.hmc_mode	= 0x11,	
+#endif	
 
 #else
-	/* S1.10 OFF -- usb "download port"
-	 * usb0 switched to Mini-B port and isp1105 transceiver;
-	 * S2.POS3 = ON, S2.POS4 = OFF ... to enable battery charging
-	 */
+	
 	.register_dev	= 1,
 	.pins[0]	= 3,
-/*	.hmc_mode	= 0x14,*/	/* 0:dev 1:host 2:disable */
-	.hmc_mode	= 0x00,		/* 0:dev|otg 1:disable 2:disable */
+	
+	.hmc_mode	= 0x00,		
 #endif
 };
 
@@ -329,11 +308,11 @@ static struct i2c_board_info __initdata h4_i2c_board_info[] = {
 		I2C_BOARD_INFO("isp1301_omap", 0x2d),
 		.irq		= OMAP_GPIO_IRQ(125),
 	},
-	{	/* EEPROM on mainboard */
+	{	
 		I2C_BOARD_INFO("24c01", 0x52),
 		.platform_data	= &m24c01,
 	},
-	{	/* EEPROM on cpu card */
+	{	
 		I2C_BOARD_INFO("24c01", 0x57),
 		.platform_data	= &m24c01,
 	},
@@ -341,11 +320,7 @@ static struct i2c_board_info __initdata h4_i2c_board_info[] = {
 
 static void __init omap_h4_init(void)
 {
-	/*
-	 * Make sure the serial ports are muxed on at this point.
-	 * You have to mux them off in device drivers later on
-	 * if not needed.
-	 */
+	
 #if defined(CONFIG_OMAP_IR) || defined(CONFIG_OMAP_IR_MODULE)
 	omap_cfg_reg(K15_24XX_UART3_TX);
 	omap_cfg_reg(K14_24XX_UART3_RX);
@@ -374,7 +349,7 @@ static void __init omap_h4_map_io(void)
 }
 
 MACHINE_START(OMAP_H4, "OMAP2420 H4 board")
-	/* Maintainer: Paul Mundt <paul.mundt@nokia.com> */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

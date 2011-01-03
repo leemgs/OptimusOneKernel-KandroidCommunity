@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-h720x/h7202-eval.c
- *
- * Copyright (C) 2003 Thomas Gleixner <tglx@linutronix.de>
- *               2003 Robert Schwebel <r.schwebel@pengutronix.de>
- *		 2004 Sascha Hauer <s.hauer@pengutronix.de>
- *
- * Architecture specific stuff for Hynix HMS30C7202 development board
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -53,25 +40,19 @@ static struct platform_device *devices[] __initdata = {
 	&cirrus_device,
 };
 
-/*
- * Hardware init. This is called early in initcalls
- * Place pin inits here. So you avoid adding ugly
- * #ifdef stuff to common drivers.
- * Use this only, if your bootloader is not able
- * to initialize the pins proper.
- */
+
 static void __init init_eval_h7202(void)
 {
 	init_hw_h7202();
 	(void) platform_add_devices(devices, ARRAY_SIZE(devices));
 
-	/* Enable interrupt on portb bit 8 (ethernet) */
+	
 	CPU_REG (GPIO_B_VIRT, GPIO_POL) &= ~(1 << 8);
 	CPU_REG (GPIO_B_VIRT, GPIO_EN) |= (1 << 8);
 }
 
 MACHINE_START(H7202, "Hynix HMS30C7202")
-	/* Maintainer: Robert Schwebel, Pengutronix */
+	
 	.phys_io	= 0x80000000,
 	.io_pg_offst	= ((0xf0000000) >> 18) & 0xfffc,
 	.boot_params	= 0x40000100,

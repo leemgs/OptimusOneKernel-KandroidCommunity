@@ -1,22 +1,4 @@
-/*
- *  linux/arch/arm/mach-integrator/integrator_ap.c
- *
- *  Copyright (C) 2000-2003 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -32,7 +14,7 @@
 #include <mach/hardware.h>
 #include <asm/irq.h>
 #include <asm/setup.h>
-#include <asm/param.h>		/* HZ */
+#include <asm/param.h>		
 #include <asm/mach-types.h>
 
 #include <mach/lm.h>
@@ -45,35 +27,13 @@
 
 #include "common.h"
 
-/* 
- * All IO addresses are mapped onto VA 0xFFFx.xxxx, where x.xxxx
- * is the (PA >> 12).
- *
- * Setup a VA for the Integrator interrupt controller (for header #0,
- * just for now).
- */
+
 #define VA_IC_BASE	IO_ADDRESS(INTEGRATOR_IC_BASE) 
 #define VA_SC_BASE	IO_ADDRESS(INTEGRATOR_SC_BASE)
 #define VA_EBI_BASE	IO_ADDRESS(INTEGRATOR_EBI_BASE)
 #define VA_CMIC_BASE	IO_ADDRESS(INTEGRATOR_HDR_BASE) + INTEGRATOR_HDR_IC_OFFSET
 
-/*
- * Logical      Physical
- * e8000000	40000000	PCI memory		PHYS_PCI_MEM_BASE	(max 512M)
- * ec000000	61000000	PCI config space	PHYS_PCI_CONFIG_BASE	(max 16M)
- * ed000000	62000000	PCI V3 regs		PHYS_PCI_V3_BASE	(max 64k)
- * ee000000	60000000	PCI IO			PHYS_PCI_IO_BASE	(max 16M)
- * ef000000			Cache flush
- * f1000000	10000000	Core module registers
- * f1100000	11000000	System controller registers
- * f1200000	12000000	EBI registers
- * f1300000	13000000	Counter/Timer
- * f1400000	14000000	Interrupt controller
- * f1600000	16000000	UART 0
- * f1700000	17000000	UART 1
- * f1a00000	1a000000	Debug LEDs
- * f1b00000	1b000000	GPIO
- */
+
 
 static struct map_desc ap_io_desc[] __initdata = {
 	{
@@ -172,11 +132,11 @@ static void __init ap_init_irq(void)
 {
 	unsigned int i;
 
-	/* Disable all interrupts initially. */
-	/* Do the core module ones */
+	
+	
 	writel(-1, VA_CMIC_BASE + IRQ_ENABLE_CLEAR);
 
-	/* do the header card stuff next */
+	
 	writel(-1, VA_IC_BASE + IRQ_ENABLE_CLEAR);
 	writel(-1, VA_IC_BASE + FIQ_ENABLE_CLEAR);
 
@@ -200,7 +160,7 @@ static int irq_suspend(struct sys_device *dev, pm_message_t state)
 
 static int irq_resume(struct sys_device *dev)
 {
-	/* disable all irq sources */
+	
 	writel(-1, VA_CMIC_BASE + IRQ_ENABLE_CLEAR);
 	writel(-1, VA_IC_BASE + IRQ_ENABLE_CLEAR);
 	writel(-1, VA_IC_BASE + FIQ_ENABLE_CLEAR);
@@ -234,9 +194,7 @@ static int __init irq_init_sysfs(void)
 
 device_initcall(irq_init_sysfs);
 
-/*
- * Flash handling.
- */
+
 #define SC_CTRLC (VA_SC_BASE + INTEGRATOR_SC_CTRLC_OFFSET)
 #define SC_CTRLS (VA_SC_BASE + INTEGRATOR_SC_CTRLS_OFFSET)
 #define EBI_CSR1 (VA_EBI_BASE + INTEGRATOR_EBI_CSR1_OFFSET)
@@ -345,7 +303,7 @@ static struct sys_timer ap_timer = {
 };
 
 MACHINE_START(INTEGRATOR, "ARM-Integrator")
-	/* Maintainer: ARM Ltd/Deep Blue Solutions Ltd */
+	
 	.phys_io	= 0x16000000,
 	.io_pg_offst	= ((0xf1600000) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

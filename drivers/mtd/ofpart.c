@@ -1,17 +1,4 @@
-/*
- * Flash partitions described by the OF (or flattened) device tree
- *
- * Copyright (C) 2006 MontaVista Software Inc.
- * Author: Vitaly Wool <vwool@ru.mvista.com>
- *
- * Revised to handle newer style flash binding by:
- *   Copyright (C) 2007 David Gibson, IBM Corporation.
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -27,7 +14,7 @@ int __devinit of_mtd_parse_partitions(struct device *dev,
 	struct device_node *pp;
 	int nr_parts, i;
 
-	/* First count the subnodes */
+	
 	pp = NULL;
 	nr_parts = 0;
 	while ((pp = of_get_next_child(node, pp)))

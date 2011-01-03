@@ -1,31 +1,8 @@
-/*****************************************************************************/
 
-/*
- *      dabusb.c  --  dab usb driver.
- *
- *      Copyright (C) 1999  Deti Fliegl (deti@fliegl.de)
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public License
- *      along with this program; if not, write to the Free Software
- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
- *
- *  $Id: dabusb.c,v 1.54 2000/07/24 21:39:39 deti Exp $
- *
- */
 
-/*****************************************************************************/
+
+
+
 
 #include <linux/module.h>
 #include <linux/socket.h>
@@ -44,14 +21,12 @@
 
 #include "dabusb.h"
 
-/*
- * Version Information
- */
+
 #define DRIVER_VERSION "v1.54"
 #define DRIVER_AUTHOR "Deti Fliegl, deti@fliegl.de"
 #define DRIVER_DESC "DAB-USB Interface Driver for Linux (c)1999"
 
-/* --------------------------------------------------------------------- */
+
 
 #ifdef CONFIG_USB_DYNAMIC_MINORS
 #define NRDABUSB 256
@@ -59,13 +34,13 @@
 #define NRDABUSB 4
 #endif
 
-/*-------------------------------------------------------------------*/
+
 
 static dabusb_t dabusb[NRDABUSB];
 static int buffers = 256;
 static struct usb_driver dabusb_driver;
 
-/*-------------------------------------------------------------------*/
+
 
 static int dabusb_add_buf_tail (pdabusb_t s, struct list_head *dst, struct list_head *src)
 {
@@ -76,7 +51,7 @@ static int dabusb_add_buf_tail (pdabusb_t s, struct list_head *dst, struct list_
 	spin_lock_irqsave (&s->lock, flags);
 
 	if (list_empty (src)) {
-		// no elements in source buffer
+		
 		ret = -1;
 		goto err;
 	}
@@ -86,7 +61,7 @@ static int dabusb_add_buf_tail (pdabusb_t s, struct list_head *dst, struct list_
   err:	spin_unlock_irqrestore (&s->lock, flags);
 	return ret;
 }
-/*-------------------------------------------------------------------*/
+
 #ifdef DEBUG
 static void dump_urb (struct urb *urb)
 {
@@ -107,7 +82,7 @@ static void dump_urb (struct urb *urb)
 	dbg("complete              :%p", urb->complete);
 }
 #endif
-/*-------------------------------------------------------------------*/
+
 static int dabusb_cancel_queue (pdabusb_t s, struct list_head *q)
 {
 	unsigned long flags;
@@ -126,7 +101,7 @@ static int dabusb_cancel_queue (pdabusb_t s, struct list_head *q)
 	spin_unlock_irqrestore (&s->lock, flags);
 	return 0;
 }
-/*-------------------------------------------------------------------*/
+
 static int dabusb_free_queue (struct list_head *q)
 {
 	struct list_head *tmp;
@@ -150,7 +125,7 @@ static int dabusb_free_queue (struct list_head *q)
 
 	return 0;
 }
-/*-------------------------------------------------------------------*/
+
 static int dabusb_free_buffers (pdabusb_t s)
 {
 	unsigned long flags;
@@ -166,7 +141,7 @@ static int dabusb_free_buffers (pdabusb_t s)
 	s->got_mem = 0;
 	return 0;
 }
-/*-------------------------------------------------------------------*/
+
 static void dabusb_iso_complete (struct urb *purb)
 {
 	pbuff_t b = purb->context;
@@ -178,7 +153,7 @@ static void dabusb_iso_complete (struct urb *purb)
 
 	dbg("dabusb_iso_complete");
 
-	// process if URB was not killed
+	
 	if (purb->status != -ENOENT) {
 		unsigned int pipe = usb_rcvisocpipe (purb->dev, _DABUSB_ISOPIPE);
 		int pipesize = usb_maxpacket (purb->dev, pipe, usb_pipeout (pipe));
@@ -207,7 +182,7 @@ static void dabusb_iso_complete (struct urb *purb)
 	}
 	wake_up (&s->wait);
 }
-/*-------------------------------------------------------------------*/
+
 static int dabusb_alloc_buffers (pdabusb_t s)
 {
 	int transfer_len = 0;
@@ -269,7 +244,7 @@ static int dabusb_alloc_buffers (pdabusb_t s)
 	dabusb_free_buffers (s);
 	return -ENOMEM;
 }
-/*-------------------------------------------------------------------*/
+
 static int dabusb_bulk (pdabusb_t s, pbulk_transfer_t pb)
 {
 	int ret;
@@ -304,7 +279,7 @@ static int dabusb_bulk (pdabusb_t s, pbulk_transfer_t pb)
 	pb->size = actual_length;
 	return ret;
 }
-/* --------------------------------------------------------------------- */
+
 static int dabusb_writemem (pdabusb_t s, int pos, const unsigned char *data,
 			    int len)
 {
@@ -324,13 +299,13 @@ static int dabusb_writemem (pdabusb_t s, int pos, const unsigned char *data,
 	kfree (transfer_buffer);
 	return ret;
 }
-/* --------------------------------------------------------------------- */
+
 static int dabusb_8051_reset (pdabusb_t s, unsigned char reset_bit)
 {
 	dbg("dabusb_8051_reset: %d",reset_bit);
 	return dabusb_writemem (s, CPUCS_REG, &reset_bit, 1);
 }
-/* --------------------------------------------------------------------- */
+
 static int dabusb_loadmem (pdabusb_t s, const char *fname)
 {
 	int ret;
@@ -369,7 +344,7 @@ static int dabusb_loadmem (pdabusb_t s, const char *fname)
 
 	return ret;
 }
-/* --------------------------------------------------------------------- */
+
 static int dabusb_fpga_clear (pdabusb_t s, pbulk_transfer_t b)
 {
 	b->size = 4;
@@ -382,7 +357,7 @@ static int dabusb_fpga_clear (pdabusb_t s, pbulk_transfer_t b)
 
 	return dabusb_bulk (s, b);
 }
-/* --------------------------------------------------------------------- */
+
 static int dabusb_fpga_init (pdabusb_t s, pbulk_transfer_t b)
 {
 	b->size = 4;
@@ -395,7 +370,7 @@ static int dabusb_fpga_init (pdabusb_t s, pbulk_transfer_t b)
 
 	return dabusb_bulk (s, b);
 }
-/* --------------------------------------------------------------------- */
+
 static int dabusb_fpga_download (pdabusb_t s, const char *fname)
 {
 	pbulk_transfer_t b = kmalloc (sizeof (bulk_transfer_t), GFP_KERNEL);
@@ -432,7 +407,7 @@ static int dabusb_fpga_download (pdabusb_t s, const char *fname)
 	b->data[3] = 60;
 
 	for (n = 0; n <= blen + 60; n += 60) {
-		// some cclks for startup
+		
 		b->size = 64;
 		memcpy (b->data + 4, fw->data + 74 + n, 60);
 		ret = dabusb_bulk (s, b);
@@ -548,7 +523,7 @@ static ssize_t dabusb_read (struct file *file, char __user *buf, size_t count, l
 		spin_unlock_irqrestore(&s->lock, flags);
 
 		if (purb->status == -EINPROGRESS) {
-			if (file->f_flags & O_NONBLOCK)		// return nonblocking
+			if (file->f_flags & O_NONBLOCK)		
 			 {
 				if (!ret)
 					ret = -EAGAIN;
@@ -579,7 +554,7 @@ static ssize_t dabusb_read (struct file *file, char __user *buf, size_t count, l
 			goto err;
 		}
 
-		rem = purb->actual_length - s->readptr;		// set remaining bytes to copy
+		rem = purb->actual_length - s->readptr;		
 
 		if (count >= rem)
 			cnt = rem;
@@ -601,14 +576,14 @@ static ssize_t dabusb_read (struct file *file, char __user *buf, size_t count, l
 		ret += cnt;
 
 		if (s->readptr == purb->actual_length) {
-			// finished, take next buffer
+			
 			if (dabusb_add_buf_tail (s, &s->free_buff_list, &s->rec_buff_list))
 				dev_err(&s->usbdev->dev,
 					"read: dabusb_add_buf_tail failed\n");
 			s->readptr = 0;
 		}
 	}
-      err:			//mutex_unlock(&s->mutex);
+      err:			
 	return ret;
 }
 
@@ -761,7 +736,7 @@ static struct usb_class_driver dabusb_class = {
 };
 
 
-/* --------------------------------------------------------------------- */
+
 static int dabusb_probe (struct usb_interface *intf,
 			 const struct usb_device_id *id)
 {
@@ -774,7 +749,7 @@ static int dabusb_probe (struct usb_interface *intf,
 	    le16_to_cpu(usbdev->descriptor.idProduct),
 	    intf->altsetting->desc.bInterfaceNumber);
 
-	/* We don't handle multiple configurations */
+	
 	if (usbdev->descriptor.bNumConfigurations != 1)
 		return -ENODEV;
 
@@ -852,9 +827,9 @@ static void dabusb_disconnect (struct usb_interface *intf)
 }
 
 static struct usb_device_id dabusb_ids [] = {
-	// { USB_DEVICE(0x0547, 0x2131) },	/* An2131 chip, no boot ROM */
+	
 	{ USB_DEVICE(0x0547, 0x9999) },
-	{ }						/* Terminating entry */
+	{ }						
 };
 
 MODULE_DEVICE_TABLE (usb, dabusb_ids);
@@ -866,14 +841,14 @@ static struct usb_driver dabusb_driver = {
 	.id_table =	dabusb_ids,
 };
 
-/* --------------------------------------------------------------------- */
+
 
 static int __init dabusb_init (void)
 {
 	int retval;
 	unsigned u;
 
-	/* initialize struct */
+	
 	for (u = 0; u < NRDABUSB; u++) {
 		pdabusb_t s = &dabusb[u];
 		memset (s, 0, sizeof (dabusb_t));
@@ -887,7 +862,7 @@ static int __init dabusb_init (void)
 		INIT_LIST_HEAD (&s->rec_buff_list);
 	}
 
-	/* register misc device */
+	
 	retval = usb_register(&dabusb_driver);
 	if (retval)
 		goto out;
@@ -908,7 +883,7 @@ static void __exit dabusb_cleanup (void)
 	usb_deregister (&dabusb_driver);
 }
 
-/* --------------------------------------------------------------------- */
+
 
 MODULE_AUTHOR( DRIVER_AUTHOR );
 MODULE_DESCRIPTION( DRIVER_DESC );
@@ -920,4 +895,4 @@ MODULE_PARM_DESC (buffers, "Number of buffers (default=256)");
 module_init (dabusb_init);
 module_exit (dabusb_cleanup);
 
-/* --------------------------------------------------------------------- */
+

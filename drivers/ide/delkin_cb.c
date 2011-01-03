@@ -1,21 +1,4 @@
-/*
- *  Created 20 Oct 2004 by Mark Lord
- *
- *  Basic support for Delkin/ASKA/Workbit Cardbus CompactFlash adapter
- *
- *  Modeled after the 16-bit PCMCIA driver: ide-cs.c
- *
- *  This is slightly peculiar, in that it is a PCI driver,
- *  but is NOT an IDE PCI driver -- the IDE layer does not directly
- *  support hot insertion/removal of PCI interfaces, so this driver
- *  is unable to use the IDE PCI interfaces.  Instead, it uses the
- *  same interfaces as the ide-cs (PCMCIA) driver uses.
- *  On the plus side, the driver is also smaller/simpler this way.
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive for
- *  more details.
- */
+
 
 #include <linux/types.h>
 #include <linux/module.h>
@@ -25,16 +8,7 @@
 
 #include <asm/io.h>
 
-/*
- * No chip documentation has yet been found,
- * so these configuration values were pulled from
- * a running Win98 system using "debug".
- * This gives around 3MByte/second read performance,
- * which is about 2/3 of what the chip is capable of.
- *
- * There is also a 4KByte mmio region on the card,
- * but its purpose has yet to be reverse-engineered.
- */
+
 static const u8 setup[] = {
 	0x00, 0x05, 0xbe, 0x01, 0x20, 0x8f, 0x00, 0x00,
 	0xa4, 0x1f, 0xb3, 0x1b, 0x00, 0x00, 0x00, 0x80,
@@ -51,8 +25,8 @@ static int delkin_cb_init_chipset(struct pci_dev *dev)
 	unsigned long base = pci_resource_start(dev, 0);
 	int i;
 
-	outb(0x02, base + 0x1e);	/* set nIEN to block interrupts */
-	inb(base + 0x17);		/* read status to clear interrupts */
+	outb(0x02, base + 0x1e);	
+	inb(base + 0x17);		
 
 	for (i = 0; i < sizeof(setup); ++i) {
 		if (setup[i])

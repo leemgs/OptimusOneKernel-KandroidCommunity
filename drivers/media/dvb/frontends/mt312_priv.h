@@ -1,24 +1,4 @@
-/*
-    Driver for Zarlink MT312 QPSK Frontend
 
-    Copyright (C) 2003 Andreas Oberritter <obi@linuxtv.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #ifndef _DVB_FRONTENDS_MT312_PRIV
 #define _DVB_FRONTENDS_MT312_PRIV
@@ -110,8 +90,8 @@ enum mt312_reg_addr {
 	VIT_ERRPER_H = 83,
 	VIT_ERRPER_M = 84,
 	VIT_ERRPER_L = 85,
-	HW_CTRL = 84,	/* ZL10313 only */
-	MPEG_CTRL = 85,	/* ZL10313 only */
+	HW_CTRL = 84,	
+	MPEG_CTRL = 85,	
 	VIT_SETUP = 86,
 	VIT_REF0 = 87,
 	VIT_REF1 = 88,
@@ -162,4 +142,4 @@ enum mt312_model_id {
 	ID_ZL10313 = 5,
 };
 
-#endif				/* DVB_FRONTENDS_MT312_PRIV */
+#endif				

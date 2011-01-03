@@ -23,11 +23,7 @@ int bind_ipi_to_irqhandler(enum ipi_vector ipi,
 			   const char *devname,
 			   void *dev_id);
 
-/*
- * Common unbind function for all event sources. Takes IRQ to unbind from.
- * Automatically closes the underlying event channel (even for bindings
- * made with bind_evtchn_to_irqhandler()).
- */
+
 void unbind_from_irqhandler(unsigned int irq, void *dev_id);
 
 void xen_send_IPI_one(unsigned int cpu, enum ipi_vector vector);
@@ -44,16 +40,15 @@ extern void notify_remote_via_irq(int irq);
 
 extern void xen_irq_resume(void);
 
-/* Clear an irq's pending state, in preparation for polling on it */
+
 void xen_clear_irq_pending(int irq);
 void xen_set_irq_pending(int irq);
 bool xen_test_irq_pending(int irq);
 
-/* Poll waiting for an irq to become pending.  In the usual case, the
-   irq will be disabled so it won't deliver an interrupt. */
+
 void xen_poll_irq(int irq);
 
-/* Determine the IRQ which is bound to an event channel */
+
 unsigned irq_from_evtchn(unsigned int evtchn);
 
-#endif	/* _XEN_EVENTS_H */
+#endif	

@@ -1,34 +1,15 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include "bfad_drv.h"
 #include "bfad_trcmod.h"
 
 BFA_TRC_FILE(LDRV, INTR);
 
-/**
- *  bfa_isr BFA driver interrupt functions
- */
+
 irqreturn_t bfad_intx(int irq, void *dev_id);
 static int msix_disable;
 module_param(msix_disable, int, S_IRUGO | S_IWUSR);
-/**
- * Line based interrupt handler.
- */
+
 irqreturn_t
 bfad_intx(int irq, void *dev_id)
 {
@@ -85,9 +66,7 @@ bfad_msix(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/**
- * Initialize the MSIX entry table.
- */
+
 static void
 bfad_init_msix_entry(struct bfad_s *bfad, struct msix_entry *msix_entries,
 			 int mask, int max_bit)
@@ -133,9 +112,7 @@ bfad_install_msix_handler(struct bfad_s *bfad)
 	return 0;
 }
 
-/**
- * Setup MSIX based interrupt.
- */
+
 int
 bfad_setup_intr(struct bfad_s *bfad)
 {
@@ -143,24 +120,16 @@ bfad_setup_intr(struct bfad_s *bfad)
 	u32 mask = 0, i, num_bit = 0, max_bit = 0;
 	struct msix_entry msix_entries[MAX_MSIX_ENTRY];
 
-	/* Call BFA to get the msix map for this PCI function.  */
+	
 	bfa_msix_getvecs(&bfad->bfa, &mask, &num_bit, &max_bit);
 
-	/* Set up the msix entry table */
+	
 	bfad_init_msix_entry(bfad, msix_entries, mask, max_bit);
 
 	if (!msix_disable) {
 		error = pci_enable_msix(bfad->pcidev, msix_entries, bfad->nvec);
 		if (error) {
-			/*
-			 * Only error number of vector is available.
-			 * We don't have a mechanism to map multiple
-			 * interrupts into one vector, so even if we
-			 * can try to request less vectors, we don't
-			 * know how to associate interrupt events to
-			 *  vectors. Linux doesn't dupicate vectors
-			 * in the MSIX table for this case.
-			 */
+			
 
 			printk(KERN_WARNING "bfad%d: "
 				"pci_enable_msix failed (%d),"
@@ -169,7 +138,7 @@ bfad_setup_intr(struct bfad_s *bfad)
 			goto line_based;
 		}
 
-		/* Save the vectors */
+		
 		for (i = 0; i < bfad->nvec; i++) {
 			bfa_trc(bfad, msix_entries[i].vector);
 			bfad->msix_tab[i].msix.vector = msix_entries[i].vector;
@@ -187,7 +156,7 @@ line_based:
 	if (request_irq
 	    (bfad->pcidev->irq, (irq_handler_t) bfad_intx, BFAD_IRQ_FLAGS,
 	     BFAD_DRIVER_NAME, bfad) != 0) {
-		/* Enable interrupt handler failed */
+		
 		return 1;
 	}
 

@@ -1,12 +1,4 @@
-/*
- * Watchdog driver for Kendin/Micrel KS8695.
- *
- * (C) 2007 Andrew Victor
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/bitops.h>
 #include <linux/errno.h>
@@ -24,8 +16,8 @@
 #include <mach/timex.h>
 #include <mach/regs-timer.h>
 
-#define WDT_DEFAULT_TIME	5	/* seconds */
-#define WDT_MAX_TIME		171	/* seconds */
+#define WDT_DEFAULT_TIME	5	
+#define WDT_MAX_TIME		171	
 
 static int wdt_time = WDT_DEFAULT_TIME;
 static int nowayout = WATCHDOG_NOWAYOUT;
@@ -44,84 +36,68 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
 static unsigned long ks8695wdt_busy;
 static spinlock_t ks8695_lock;
 
-/* ......................................................................... */
 
-/*
- * Disable the watchdog.
- */
+
+
 static inline void ks8695_wdt_stop(void)
 {
 	unsigned long tmcon;
 
 	spin_lock(&ks8695_lock);
-	/* disable timer0 */
+	
 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
 	__raw_writel(tmcon & ~TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
 	spin_unlock(&ks8695_lock);
 }
 
-/*
- * Enable and reset the watchdog.
- */
+
 static inline void ks8695_wdt_start(void)
 {
 	unsigned long tmcon;
 	unsigned long tval = wdt_time * KS8695_CLOCK_RATE;
 
 	spin_lock(&ks8695_lock);
-	/* disable timer0 */
+	
 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
 	__raw_writel(tmcon & ~TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
 
-	/* program timer0 */
+	
 	__raw_writel(tval | T0TC_WATCHDOG, KS8695_TMR_VA + KS8695_T0TC);
 
-	/* re-enable timer0 */
+	
 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
 	__raw_writel(tmcon | TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
 	spin_unlock(&ks8695_lock);
 }
 
-/*
- * Reload the watchdog timer.  (ie, pat the watchdog)
- */
+
 static inline void ks8695_wdt_reload(void)
 {
 	unsigned long tmcon;
 
 	spin_lock(&ks8695_lock);
-	/* disable, then re-enable timer0 */
+	
 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
 	__raw_writel(tmcon & ~TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
 	__raw_writel(tmcon | TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
 	spin_unlock(&ks8695_lock);
 }
 
-/*
- * Change the watchdog time interval.
- */
+
 static int ks8695_wdt_settimeout(int new_time)
 {
-	/*
-	 * All counting occurs at KS8695_CLOCK_RATE / 128 = 0.256 Hz
-	 *
-	 * Since WDV is a 16-bit counter, the maximum period is
-	 * 65536 / 0.256 = 256 seconds.
-	 */
+	
 	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
 		return -EINVAL;
 
-	/* Set new watchdog time. It will be used when
-	   ks8695_wdt_start() is called. */
+	
 	wdt_time = new_time;
 	return 0;
 }
 
-/* ......................................................................... */
 
-/*
- * Watchdog device is opened, and watchdog starts running.
- */
+
+
 static int ks8695_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(0, &ks8695wdt_busy))
@@ -131,14 +107,10 @@ static int ks8695_wdt_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 }
 
-/*
- * Close the watchdog device.
- * If CONFIG_WATCHDOG_NOWAYOUT is NOT defined then the watchdog is also
- *  disabled.
- */
+
 static int ks8695_wdt_close(struct inode *inode, struct file *file)
 {
-	/* Disable the watchdog when file is closed */
+	
 	if (!nowayout)
 		ks8695_wdt_stop();
 	clear_bit(0, &ks8695wdt_busy);
@@ -150,9 +122,7 @@ static struct watchdog_info ks8695_wdt_info = {
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 };
 
-/*
- * Handle commands from user-space.
- */
+
 static long ks8695_wdt_ioctl(struct file *file, unsigned int cmd,
 							unsigned long arg)
 {
@@ -176,16 +146,16 @@ static long ks8695_wdt_ioctl(struct file *file, unsigned int cmd,
 			ks8695_wdt_start();
 		return 0;
 	case WDIOC_KEEPALIVE:
-		ks8695_wdt_reload();	/* pat the watchdog */
+		ks8695_wdt_reload();	
 		return 0;
 	case WDIOC_SETTIMEOUT:
 		if (get_user(new_value, p))
 			return -EFAULT;
 		if (ks8695_wdt_settimeout(new_value))
 			return -EINVAL;
-		/* Enable new time value */
+		
 		ks8695_wdt_start();
-		/* Return current value */
+		
 		return put_user(wdt_time, p);
 	case WDIOC_GETTIMEOUT:
 		return put_user(wdt_time, p);
@@ -194,17 +164,15 @@ static long ks8695_wdt_ioctl(struct file *file, unsigned int cmd,
 	}
 }
 
-/*
- * Pat the watchdog whenever device is written to.
- */
+
 static ssize_t ks8695_wdt_write(struct file *file, const char *data,
 						size_t len, loff_t *ppos)
 {
-	ks8695_wdt_reload();		/* pat the watchdog */
+	ks8695_wdt_reload();		
 	return len;
 }
 
-/* ......................................................................... */
+
 
 static const struct file_operations ks8695wdt_fops = {
 	.owner		= THIS_MODULE,
@@ -289,8 +257,7 @@ static struct platform_driver ks8695wdt_driver = {
 static int __init ks8695_wdt_init(void)
 {
 	spin_lock_init(&ks8695_lock);
-	/* Check that the heartbeat value is within range;
-	   if not reset to the default */
+	
 	if (ks8695_wdt_settimeout(wdt_time)) {
 		ks8695_wdt_settimeout(WDT_DEFAULT_TIME);
 		pr_info("ks8695_wdt: wdt_time value must be 1 <= wdt_time <= %i"

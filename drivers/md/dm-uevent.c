@@ -1,23 +1,4 @@
-/*
- * Device Mapper Uevent Support (dm-uevent)
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright IBM Corporation, 2007
- * 	Author: Mike Anderson <andmike@linux.vnet.ibm.com>
- */
+
 #include <linux/list.h>
 #include <linux/slab.h>
 #include <linux/kobject.h>
@@ -123,13 +104,7 @@ err_nomem:
 	return ERR_PTR(-ENOMEM);
 }
 
-/**
- * dm_send_uevents - send uevents for given list
- *
- * @events:	list of events to send
- * @kobj:	kobject generating event
- *
- */
+
 void dm_send_uevents(struct list_head *events, struct kobject *kobj)
 {
 	int r;
@@ -138,10 +113,7 @@ void dm_send_uevents(struct list_head *events, struct kobject *kobj)
 	list_for_each_entry_safe(event, next, events, elist) {
 		list_del_init(&event->elist);
 
-		/*
-		 * When a device is being removed this copy fails and we
-		 * discard these unsent events.
-		 */
+		
 		if (dm_copy_name_and_uuid(event->md, event->name,
 					  event->uuid)) {
 			DMINFO("%s: skipping sending uevent for lost device",
@@ -170,15 +142,7 @@ uevent_free:
 }
 EXPORT_SYMBOL_GPL(dm_send_uevents);
 
-/**
- * dm_path_uevent - called to create a new path event and queue it
- *
- * @event_type:	path event type enum
- * @ti:			pointer to a dm_target
- * @path:		string containing pathname
- * @nr_valid_paths:	number of valid paths remaining
- *
- */
+
 void dm_path_uevent(enum dm_uevent_type event_type, struct dm_target *ti,
 		   const char *path, unsigned nr_valid_paths)
 {

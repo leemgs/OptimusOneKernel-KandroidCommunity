@@ -1,14 +1,4 @@
-/*
- * Hardware definitions for the Toshiba e330 PDAs
- *
- * Copyright (c) 2003 Ian Molton <spyro@f2s.com>
- *
- * This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -28,7 +18,7 @@
 #include "eseries.h"
 #include "clock.h"
 
-/* -------------------- e330 tc6387xb parameters -------------------- */
+
 
 static struct tc6387xb_platform_data e330_tc6387xb_info = {
 	.enable   = &eseries_tmio_enable,
@@ -47,7 +37,7 @@ static struct platform_device e330_tc6387xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-/* --------------------------------------------------------------- */
+
 
 static struct platform_device *devices[] __initdata = {
 	&e330_tc6387xb_device,
@@ -62,7 +52,7 @@ static void __init e330_init(void)
 }
 
 MACHINE_START(E330, "Toshiba e330")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= 0xa0000100,

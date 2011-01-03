@@ -1,32 +1,18 @@
-/*
- * DaVinci CPU type detection
- *
- * Author: Kevin Hilman, Deep Root Systems, LLC
- *
- * Defines the cpu_is_*() macros for runtime detection of DaVinci
- * device type.  In addtion, if support for a given device is not
- * compiled in to the kernel, the macros return 0 so that
- * resulting code can be optimized out.
- *
- * 2009 (c) Deep Root Systems, LLC. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #ifndef _ASM_ARCH_CPU_H
 #define _ASM_ARCH_CPU_H
 
 #include <mach/common.h>
 
 struct davinci_id {
-	u8	variant;	/* JTAG ID bits 31:28 */
-	u16	part_no;	/* JTAG ID bits 27:12 */
-	u16	manufacturer;	/* JTAG ID bits 11:1 */
+	u8	variant;	
+	u16	part_no;	
+	u16	manufacturer;	
 	u32	cpu_id;
 	char	*name;
 };
 
-/* Can use lower 16 bits of cpu id  for a variant when required */
+
 #define	DAVINCI_CPU_ID_DM6446		0x64460000
 #define	DAVINCI_CPU_ID_DM6467		0x64670000
 #define	DAVINCI_CPU_ID_DM355		0x03550000

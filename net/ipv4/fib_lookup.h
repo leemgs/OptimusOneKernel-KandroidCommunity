@@ -19,7 +19,7 @@ struct fib_alias {
 
 #define FA_S_ACCESSED	0x01
 
-/* Exported by fib_semantics.c */
+
 extern int fib_semantic_match(struct list_head *head,
 			      const struct flowi *flp,
 			      struct fib_result *res, int prefixlen);
@@ -49,4 +49,4 @@ static inline void fib_result_assign(struct fib_result *res,
 		atomic_inc(&fi->fib_clntref);
 }
 
-#endif /* _FIB_LOOKUP_H */
+#endif 

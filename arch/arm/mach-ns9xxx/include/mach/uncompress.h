@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/include/mach/uncompress.h
- *
- * Copyright (C) 2006 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #ifndef __ASM_ARCH_UNCOMPRESS_H
 #define __ASM_ARCH_UNCOMPRESS_H
 
@@ -17,7 +8,7 @@
 
 static void putc_dummy(char c, void __iomem *base)
 {
-	/* nothing */
+	
 }
 
 static void putc_ns9360(char c, void __iomem *base)
@@ -90,7 +81,7 @@ static void putc_ns921x(char c, void __iomem *base)
 static void autodetect(void (**putc)(char, void __iomem *), void __iomem **base)
 {
 	if (((__raw_readl(MSCS) >> 16) & 0xfe) == 0x00) {
-		/* ns9360 or ns9750 */
+		
 		if (NS9360_UART_ENABLED(NS9360_UARTA)) {
 			*putc = putc_ns9360;
 			*base = NS9360_UARTA;
@@ -113,7 +104,7 @@ static void autodetect(void (**putc)(char, void __iomem *), void __iomem **base)
 			return;
 		}
 	} else if (((__raw_readl(MSCS) >> 16) & 0xfe) == 0x02) {
-		/* ns921x */
+		
 		u32 clock = __raw_readl(NS921XSYS_CLOCK);
 
 		if ((clock & (1 << 1)) &&
@@ -158,7 +149,7 @@ static void arch_decomp_setup(void)
 
 static void flush(void)
 {
-	/* nothing */
+	
 }
 
-#endif /* ifndef __ASM_ARCH_UNCOMPRESS_H */
+#endif 

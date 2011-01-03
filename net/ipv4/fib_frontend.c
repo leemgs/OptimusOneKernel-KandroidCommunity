@@ -1,17 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		IPv4 Forwarding Information Base: FIB frontend.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <asm/uaccess.h>
@@ -111,7 +98,7 @@ struct fib_table *fib_get_table(struct net *net, u32 id)
 	rcu_read_unlock();
 	return NULL;
 }
-#endif /* CONFIG_IP_MULTIPLE_TABLES */
+#endif 
 
 void fib_select_default(struct net *net,
 			const struct flowi *flp, struct fib_result *res)
@@ -146,9 +133,7 @@ static void fib_flush(struct net *net)
 		rt_cache_flush(net, -1);
 }
 
-/*
- *	Find the first device with a given source address.
- */
+
 
 struct net_device * ip_dev_find(struct net *net, __be32 addr)
 {
@@ -175,10 +160,7 @@ out:
 	return dev;
 }
 
-/*
- * Find address type as if only "dev" was present in the system. If
- * on_dev is NULL then all interfaces are taken into consideration.
- */
+
 static inline unsigned __inet_dev_addr_type(struct net *net,
 					    const struct net_device *dev,
 					    __be32 addr)
@@ -220,13 +202,7 @@ unsigned int inet_dev_addr_type(struct net *net, const struct net_device *dev,
        return __inet_dev_addr_type(net, dev, addr);
 }
 
-/* Given (packet source, input interface) and optional (dst, oif, tos):
-   - (main) check, that source is valid i.e. not broadcast or our local
-     address.
-   - figure out what "logical" interface this packet arrived
-     and calculate "specific destination" address.
-   - check, that packet arrived from expected physical interface.
- */
+
 
 int fib_validate_source(__be32 src, __be32 dst, u8 tos, int oif,
 			struct net_device *dev, __be32 *spec_dst,
@@ -335,14 +311,7 @@ static int rtentry_to_fib_config(struct net *net, int cmd, struct rtentry *rt,
 	if (rt->rt_dst.sa_family != AF_INET)
 		return -EAFNOSUPPORT;
 
-	/*
-	 * Check mask for validity:
-	 * a) it must be contiguous.
-	 * b) destination must have all host bits clear.
-	 * c) if application forgot to set correct family (AF_INET),
-	 *    reject request unless it is absolutely clear i.e.
-	 *    both family and mask are zero.
-	 */
+	
 	plen = 32;
 	addr = sk_extract_addr(&rt->rt_dst);
 	if (!(rt->rt_flags & RTF_HOST)) {
@@ -451,9 +420,7 @@ static int rtentry_to_fib_config(struct net *net, int cmd, struct rtentry *rt,
 	return 0;
 }
 
-/*
- *	Handle IP routing ioctl calls. These are used to manipulate the routing tables
- */
+
 
 int ip_rt_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 {
@@ -462,8 +429,8 @@ int ip_rt_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 	int err;
 
 	switch (cmd) {
-	case SIOCADDRT:		/* Add a route */
-	case SIOCDELRT:		/* Delete a route */
+	case SIOCADDRT:		
+	case SIOCDELRT:		
 		if (!capable(CAP_NET_ADMIN))
 			return -EPERM;
 
@@ -489,7 +456,7 @@ int ip_rt_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 					err = -ENOBUFS;
 			}
 
-			/* allocated by rtentry_to_fib_config() */
+			
 			kfree(cfg.fc_mx);
 		}
 		rtnl_unlock();
@@ -666,12 +633,7 @@ out:
 	return skb->len;
 }
 
-/* Prepare and feed intra-kernel routing request.
-   Really, it should be netlink message, but :-( netlink
-   can be not configured, so that we feed it directly
-   to fib engine. It is legal, because all events occur
-   only when netlink is already locked.
- */
+
 
 static void fib_magic(int cmd, int type, __be32 dst, int dst_len, struct in_ifaddr *ifa)
 {
@@ -733,7 +695,7 @@ void fib_add_ifaddr(struct in_ifaddr *ifa)
 	if (!(dev->flags&IFF_UP))
 		return;
 
-	/* Add broadcast address, if it is explicitly assigned. */
+	
 	if (ifa->ifa_broadcast && ifa->ifa_broadcast != htonl(0xFFFFFFFF))
 		fib_magic(RTM_NEWROUTE, RTN_BROADCAST, ifa->ifa_broadcast, 32, prim);
 
@@ -742,7 +704,7 @@ void fib_add_ifaddr(struct in_ifaddr *ifa)
 		fib_magic(RTM_NEWROUTE, dev->flags&IFF_LOOPBACK ? RTN_LOCAL :
 			  RTN_UNICAST, prefix, ifa->ifa_prefixlen, prim);
 
-		/* Add network specific broadcasts, when it takes a sense */
+		
 		if (ifa->ifa_prefixlen < 31) {
 			fib_magic(RTM_NEWROUTE, RTN_BROADCAST, prefix, 32, prim);
 			fib_magic(RTM_NEWROUTE, RTN_BROADCAST, prefix|~mask, 32, prim);
@@ -775,11 +737,7 @@ static void fib_del_ifaddr(struct in_ifaddr *ifa)
 		}
 	}
 
-	/* Deletion is more complicated than add.
-	   We should take care of not to delete too much :-)
-
-	   Scan address list to be sure that addresses are really gone.
-	 */
+	
 
 	for (ifa1 = in_dev->ifa_list; ifa1; ifa1 = ifa1->ifa_next) {
 		if (ifa->ifa_local == ifa1->ifa_local)
@@ -801,14 +759,9 @@ static void fib_del_ifaddr(struct in_ifaddr *ifa)
 	if (!(ok&LOCAL_OK)) {
 		fib_magic(RTM_DELROUTE, RTN_LOCAL, ifa->ifa_local, 32, prim);
 
-		/* Check, that this local address finally disappeared. */
+		
 		if (inet_addr_type(dev_net(dev), ifa->ifa_local) != RTN_LOCAL) {
-			/* And the last, but not the least thing.
-			   We must flush stray FIB entries.
-
-			   First of all, we scan fib_info list searching
-			   for stray nexthop entries, then ignite fib_flush.
-			*/
+			
 			if (fib_sync_down_addr(dev_net(dev), ifa->ifa_local))
 				fib_flush(dev_net(dev));
 		}
@@ -874,9 +827,9 @@ static void nl_fib_input(struct sk_buff *skb)
 
 	nl_fib_lookup(frn, tb);
 
-	pid = NETLINK_CB(skb).pid;       /* pid of sending process */
-	NETLINK_CB(skb).pid = 0;         /* from kernel */
-	NETLINK_CB(skb).dst_group = 0;  /* unicast */
+	pid = NETLINK_CB(skb).pid;       
+	NETLINK_CB(skb).pid = 0;         
+	NETLINK_CB(skb).dst_group = 0;  
 	netlink_unicast(net->ipv4.fibnl, skb, pid, MSG_DONTWAIT);
 }
 
@@ -921,9 +874,7 @@ static int fib_inetaddr_event(struct notifier_block *this, unsigned long event, 
 	case NETDEV_DOWN:
 		fib_del_ifaddr(ifa);
 		if (ifa->ifa_dev->ifa_list == NULL) {
-			/* Last address was deleted from this interface.
-			   Disable IP.
-			 */
+			
 			fib_disable_ip(dev, 1);
 		} else {
 			rt_cache_flush(dev_net(dev), -1);

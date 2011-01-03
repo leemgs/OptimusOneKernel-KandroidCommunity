@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/errno.h>
 #include <linux/string.h>
@@ -177,18 +146,7 @@ static const struct ib_field deth_table[] = {
 	  .size_bits    = 24 }
 };
 
-/**
- * ib_ud_header_init - Initialize UD header structure
- * @payload_bytes:Length of packet payload
- * @grh_present:GRH flag (if non-zero, GRH will be included)
- * @header:Structure to initialize
- *
- * ib_ud_header_init() initializes the lrh.link_version, lrh.link_next_header,
- * lrh.packet_length, grh.ip_version, grh.payload_length,
- * grh.next_header, bth.opcode, bth.pad_count and
- * bth.transport_header_version fields of a &struct ib_ud_header given
- * the payload length and whether a GRH will be included.
- */
+
 void ib_ud_header_init(int     		    payload_bytes,
 		       int    		    grh_present,
 		       struct ib_ud_header *header)
@@ -213,8 +171,8 @@ void ib_ud_header_init(int     		    payload_bytes,
 					IB_BTH_BYTES     +
 					IB_DETH_BYTES    +
 					payload_bytes    +
-					4                + /* ICRC     */
-					3) / 4;            /* round up */
+					4                + 
+					3) / 4;            
 
 	header->grh_present          = grh_present;
 	if (grh_present) {
@@ -224,8 +182,8 @@ void ib_ud_header_init(int     		    payload_bytes,
 			cpu_to_be16((IB_BTH_BYTES     +
 				     IB_DETH_BYTES    +
 				     payload_bytes    +
-				     4                + /* ICRC     */
-				     3) & ~3);          /* round up */
+				     4                + 
+				     3) & ~3);          
 		header->grh.next_header     = 0x1b;
 	}
 
@@ -240,14 +198,7 @@ void ib_ud_header_init(int     		    payload_bytes,
 }
 EXPORT_SYMBOL(ib_ud_header_init);
 
-/**
- * ib_ud_header_pack - Pack UD header struct into wire format
- * @header:UD header struct
- * @buf:Buffer to pack into
- *
- * ib_ud_header_pack() packs the UD header structure @header into wire
- * format in the buffer @buf.
- */
+
 int ib_ud_header_pack(struct ib_ud_header *header,
 		      void                *buf)
 {
@@ -280,14 +231,7 @@ int ib_ud_header_pack(struct ib_ud_header *header,
 }
 EXPORT_SYMBOL(ib_ud_header_pack);
 
-/**
- * ib_ud_header_unpack - Unpack UD header struct from wire format
- * @header:UD header struct
- * @buf:Buffer to pack into
- *
- * ib_ud_header_pack() unpacks the UD header structure @header from wire
- * format in the buffer @buf.
- */
+
 int ib_ud_header_unpack(void                *buf,
 			struct ib_ud_header *header)
 {

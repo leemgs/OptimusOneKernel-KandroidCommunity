@@ -6,7 +6,7 @@
 #define MAX_RTR_SOLICITATIONS		3
 #define RTR_SOLICITATION_INTERVAL	(4*HZ)
 
-#define MIN_VALID_LIFETIME		(2*3600)	/* 2 hours */
+#define MIN_VALID_LIFETIME		(2*3600)	
 
 #define TEMP_VALID_LIFETIME		(7*86400)
 #define TEMP_PREFERRED_LIFETIME		(86400)
@@ -101,11 +101,7 @@ static inline unsigned long addrconf_timeout_fixup(u32 timeout,
 	if (timeout == 0xffffffff)
 		return ~0UL;
 
-	/*
-	 * Avoid arithmetic overflow.
-	 * Assuming unit is constant and non-zero, this "if" statement
-	 * will go away on 64bit archs.
-	 */
+	
 	if (0xfffffffe > LONG_MAX / unit && timeout > LONG_MAX / unit)
 		return LONG_MAX / unit;
 
@@ -117,18 +113,14 @@ static inline int addrconf_finite_timeout(unsigned long timeout)
 	return ~timeout;
 }
 
-/*
- *	IPv6 Address Label subsystem (addrlabel.c)
- */
+
 extern int			ipv6_addr_label_init(void);
 extern void			ipv6_addr_label_rtnl_register(void);
 extern u32			ipv6_addr_label(struct net *net,
 						const struct in6_addr *addr,
 						int type, int ifindex);
 
-/*
- *	multicast prototypes (mcast.c)
- */
+
 extern int ipv6_sock_mc_join(struct sock *sk, int ifindex,
 			     const struct in6_addr *addr);
 extern int ipv6_sock_mc_drop(struct sock *sk, int ifindex,
@@ -156,9 +148,7 @@ extern int ipv6_is_mld(struct sk_buff *skb, int nexthdr);
 
 extern void addrconf_prefix_rcv(struct net_device *dev, u8 *opt, int len);
 
-/*
- *	anycast prototypes (anycast.c)
- */
+
 extern int ipv6_sock_ac_join(struct sock *sk,int ifindex,struct in6_addr *addr);
 extern int ipv6_sock_ac_drop(struct sock *sk,int ifindex,struct in6_addr *addr);
 extern void ipv6_sock_ac_close(struct sock *sk);
@@ -170,7 +160,7 @@ extern int ipv6_chk_acast_addr(struct net *net, struct net_device *dev,
 			       struct in6_addr *addr);
 
 
-/* Device notifier */
+
 extern int register_inet6addr_notifier(struct notifier_block *nb);
 extern int unregister_inet6addr_notifier(struct notifier_block *nb);
 
@@ -218,9 +208,7 @@ static inline void in6_ifa_put(struct inet6_ifaddr *ifp)
 
 
 
-/*
- *	compute link-local solicited-node multicast address
- */
+
 
 static inline void addrconf_addr_solict_mult(const struct in6_addr *addr,
 					     struct in6_addr *solicited)

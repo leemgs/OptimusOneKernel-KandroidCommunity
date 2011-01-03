@@ -1,27 +1,4 @@
-/*
- * HP WMI hotkeys
- *
- * Copyright (C) 2008 Red Hat <mjg@redhat.com>
- *
- * Portions based on wistron_btns.c:
- * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
- * Copyright (C) 2005 Bernhard Rosenkraenzer <bero@arklinux.org>
- * Copyright (C) 2005 Dmitry Torokhov <dtor@mail.ru>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -70,7 +47,7 @@ struct bios_return {
 };
 
 struct key_entry {
-	char type;		/* See KE_* below */
+	char type;		
 	u16 code;
 	u16 keycode;
 };
@@ -412,7 +389,7 @@ static int __init hp_wmi_input_setup(void)
 	set_bit(SW_DOCK, hp_wmi_input_dev->swbit);
 	set_bit(SW_TABLET_MODE, hp_wmi_input_dev->swbit);
 
-	/* Set initial hardware state */
+	
 	input_report_switch(hp_wmi_input_dev, SW_DOCK, hp_wmi_dock_state());
 	input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
 			    hp_wmi_tablet_state());
@@ -526,12 +503,7 @@ static int __exit hp_wmi_bios_remove(struct platform_device *device)
 
 static int hp_wmi_resume_handler(struct device *device)
 {
-	/*
-	 * Hardware state may have changed while suspended, so trigger
-	 * input events for the current state. As this is a switch,
-	 * the input layer will only actually pass it on if the state
-	 * changed.
-	 */
+	
 	if (hp_wmi_input_dev) {
 		input_report_switch(hp_wmi_input_dev, SW_DOCK,
 				    hp_wmi_dock_state());

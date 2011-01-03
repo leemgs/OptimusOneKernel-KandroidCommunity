@@ -1,23 +1,11 @@
-/* arch/arm/mach-s5pc100/include/mach/gpio.h
- *
- * Copyright 2009 Samsung Electronics Co.
- *	Byungho Min <bhmin@samsung.com>
- *
- * S5PC100 - GPIO lib support
- *
- * Base on mach-s3c6400/include/mach/gpio.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #define gpio_get_value	__gpio_get_value
 #define gpio_set_value	__gpio_set_value
 #define gpio_cansleep	__gpio_cansleep
 #define gpio_to_irq	__gpio_to_irq
 
-/* GPIO bank sizes */
+
 #define S5PC1XX_GPIO_A0_NR	(8)
 #define S5PC1XX_GPIO_A1_NR	(5)
 #define S5PC1XX_GPIO_B_NR	(8)
@@ -53,12 +41,9 @@
 #define S5PC1XX_GPIO_MP03_NR	(8)
 #define S5PC1XX_GPIO_MP04_NR	(5)
 
-/* GPIO bank numbes */
 
-/* CONFIG_S3C_GPIO_SPACE allows the user to select extra
- * space for debugging purposes so that any accidental
- * change from one gpio bank to another can be caught.
-*/
+
+
 
 #define S5PC1XX_GPIO_NEXT(__gpio) \
 	((__gpio##_START) + (__gpio##_NR) + CONFIG_S3C_GPIO_SPACE + 1)
@@ -100,7 +85,7 @@ enum s3c_gpio_number {
 	S5PC1XX_GPIO_MP04_START	= S5PC1XX_GPIO_NEXT(S5PC1XX_GPIO_MP03),
 };
 
-/* S5PC1XX GPIO number definitions. */
+
 #define S5PC1XX_GPA0(_nr)	(S5PC1XX_GPIO_A0_START + (_nr))
 #define S5PC1XX_GPA1(_nr)	(S5PC1XX_GPIO_A1_START + (_nr))
 #define S5PC1XX_GPB(_nr)	(S5PC1XX_GPIO_B_START + (_nr))
@@ -136,11 +121,11 @@ enum s3c_gpio_number {
 #define S5PC1XX_MP03(_nr)	(S5PC1XX_GPIO_MP03_START + (_nr))
 #define S5PC1XX_MP04(_nr)	(S5PC1XX_GPIO_MP04_START + (_nr))
 
-/* the end of the S5PC1XX specific gpios */
+
 #define S5PC1XX_GPIO_END	(S5PC1XX_MP04(S5PC1XX_GPIO_MP04_NR) + 1)
 #define S3C_GPIO_END		S5PC1XX_GPIO_END
 
-/* define the number of gpios we need to the one after the MP04() range */
+
 #define ARCH_NR_GPIOS	(S5PC1XX_MP04(S5PC1XX_GPIO_MP04_NR) + 1)
 
 #include <asm-generic/gpio.h>

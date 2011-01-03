@@ -1,24 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/gpio.c
- *
- * Copyright (c) 2004-2005 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX GPIO support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 
 #include <linux/kernel.h>
@@ -67,7 +47,7 @@ void s3c2410_gpio_cfgpin(unsigned int pin, unsigned int function)
 		}
 	}
 
-	/* modify the specified register wwith IRQs off */
+	
 
 	local_irq_save(flags);
 
@@ -185,10 +165,10 @@ EXPORT_SYMBOL(s3c2410_modify_misccr);
 int s3c2410_gpio_getirq(unsigned int pin)
 {
 	if (pin < S3C2410_GPF(0) || pin > S3C2410_GPG(15))
-		return -EINVAL;	/* not valid interrupts */
+		return -EINVAL;	
 
 	if (pin < S3C2410_GPG(0) && pin > S3C2410_GPF(7))
-		return -EINVAL;	/* not valid pin */
+		return -EINVAL;	
 
 	if (pin < S3C2410_GPF(4))
 		return (pin - S3C2410_GPF(0)) + IRQ_EINT0;

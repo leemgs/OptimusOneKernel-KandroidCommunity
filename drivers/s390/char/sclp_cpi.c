@@ -1,11 +1,4 @@
-/*
- *  drivers/s390/char/sclp_cpi.c
- *    SCLP control programm identification
- *
- *    Copyright IBM Corp. 2001, 2007
- *    Author(s): Martin Peschke <mpeschke@de.ibm.com>
- *		 Michael Ernst <mernst@de.ibm.com>
- */
+
 
 #include <linux/kmod.h>
 #include <linux/module.h>

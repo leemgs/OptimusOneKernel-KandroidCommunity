@@ -1,128 +1,13 @@
-/* 
-        pf.c    (c) 1997-8  Grant R. Guenther <grant@torque.net>
-                            Under the terms of the GNU General Public License.
 
-        This is the high-level driver for parallel port ATAPI disk
-        drives based on chips supported by the paride module.
 
-        By default, the driver will autoprobe for a single parallel
-        port ATAPI disk drive, but if their individual parameters are
-        specified, the driver can handle up to 4 drives.
 
-        The behaviour of the pf driver can be altered by setting
-        some parameters from the insmod command line.  The following
-        parameters are adjustable:
-
-            drive0      These four arguments can be arrays of       
-            drive1      1-7 integers as follows:
-            drive2
-            drive3      <prt>,<pro>,<uni>,<mod>,<slv>,<lun>,<dly>
-
-                        Where,
-
-                <prt>   is the base of the parallel port address for
-                        the corresponding drive.  (required)
-
-                <pro>   is the protocol number for the adapter that
-                        supports this drive.  These numbers are
-                        logged by 'paride' when the protocol modules
-                        are initialised.  (0 if not given)
-
-                <uni>   for those adapters that support chained
-                        devices, this is the unit selector for the
-                        chain of devices on the given port.  It should
-                        be zero for devices that don't support chaining.
-                        (0 if not given)
-
-                <mod>   this can be -1 to choose the best mode, or one
-                        of the mode numbers supported by the adapter.
-                        (-1 if not given)
-
-                <slv>   ATAPI CDroms can be jumpered to master or slave.
-                        Set this to 0 to choose the master drive, 1 to
-                        choose the slave, -1 (the default) to choose the
-                        first drive found.
-
-		<lun>   Some ATAPI devices support multiple LUNs.
-                        One example is the ATAPI PD/CD drive from
-                        Matshita/Panasonic.  This device has a 
-                        CD drive on LUN 0 and a PD drive on LUN 1.
-                        By default, the driver will search for the
-                        first LUN with a supported device.  Set 
-                        this parameter to force it to use a specific
-                        LUN.  (default -1)
-
-                <dly>   some parallel ports require the driver to 
-                        go more slowly.  -1 sets a default value that
-                        should work with the chosen protocol.  Otherwise,
-                        set this to a small integer, the larger it is
-                        the slower the port i/o.  In some cases, setting
-                        this to zero will speed up the device. (default -1)
-
-	    major	You may use this parameter to overide the
-			default major number (47) that this driver
-			will use.  Be sure to change the device
-			name as well.
-
-	    name	This parameter is a character string that
-			contains the name the kernel will use for this
-			device (in /proc output, for instance).
-			(default "pf").
-
-            cluster     The driver will attempt to aggregate requests
-                        for adjacent blocks into larger multi-block
-                        clusters.  The maximum cluster size (in 512
-                        byte sectors) is set with this parameter.
-                        (default 64)
-
-            verbose     This parameter controls the amount of logging
-                        that the driver will do.  Set it to 0 for
-                        normal operation, 1 to see autoprobe progress
-                        messages, or 2 to see additional debugging
-                        output.  (default 0)
- 
-	    nice        This parameter controls the driver's use of
-			idle CPU time, at the expense of some speed.
-
-        If this driver is built into the kernel, you can use the
-        following command line parameters, with the same values
-        as the corresponding module parameters listed above:
-
-            pf.drive0
-            pf.drive1
-            pf.drive2
-            pf.drive3
-	    pf.cluster
-            pf.nice
-
-        In addition, you can use the parameter pf.disable to disable
-        the driver entirely.
-
-*/
-
-/* Changes:
-
-	1.01	GRG 1998.05.03  Changes for SMP.  Eliminate sti().
-				Fix for drives that don't clear STAT_ERR
-			        until after next CDB delivered.
-				Small change in pf_completion to round
-				up transfer size.
-	1.02    GRG 1998.06.16  Eliminated an Ugh
-	1.03    GRG 1998.08.16  Use HZ in loop timings, extra debugging
-	1.04    GRG 1998.09.24  Added jumbo support
-
-*/
 
 #define PF_VERSION      "1.04"
 #define PF_MAJOR	47
 #define PF_NAME		"pf"
 #define PF_UNITS	4
 
-/* Here are things one can override from the insmod command.
-   Most are autoprobed by paride unless set here.  Verbose is off
-   by default.
 
-*/
 
 static int verbose = 0;
 static int major = PF_MAJOR;
@@ -141,7 +26,7 @@ static int pf_drive_count;
 
 enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV, D_LUN, D_DLY};
 
-/* end of parameters */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -169,17 +54,17 @@ module_param_array(drive3, int, NULL, 0);
 #include "paride.h"
 #include "pseudo.h"
 
-/* constants for faking geometry numbers */
 
-#define PF_FD_MAX	8192	/* use FD geometry under this size */
+
+#define PF_FD_MAX	8192	
 #define PF_FD_HDS	2
 #define PF_FD_SPT	18
 #define PF_HD_HDS	64
 #define PF_HD_SPT	32
 
 #define PF_MAX_RETRIES  5
-#define PF_TMO          800	/* interrupt timeout in jiffies */
-#define PF_SPIN_DEL     50	/* spin delay in micro-seconds  */
+#define PF_TMO          800	
+#define PF_SPIN_DEL     50	
 
 #define PF_SPIN         (1000000*PF_TMO)/(HZ*PF_SPIN_DEL)
 
@@ -224,15 +109,15 @@ static void do_pf_write_done(void);
 #define PF_NAMELEN      8
 
 struct pf_unit {
-	struct pi_adapter pia;	/* interface to paride layer */
+	struct pi_adapter pia;	
 	struct pi_adapter *pi;
-	int removable;		/* removable media device  ?  */
-	int media_status;	/* media present ?  WP ? */
-	int drive;		/* drive */
+	int removable;		
+	int media_status;	
+	int drive;		
 	int lun;
-	int access;		/* count of active opens ... */
-	int present;		/* device present ? */
-	char name[PF_NAMELEN];	/* pf0, pf1, ... */
+	int access;		
+	int present;		
+	char name[PF_NAMELEN];	
 	struct gendisk *disk;
 };
 
@@ -243,24 +128,22 @@ static void pf_lock(struct pf_unit *pf, int func);
 static void pf_eject(struct pf_unit *pf);
 static int pf_check_media(struct gendisk *disk);
 
-static char pf_scratch[512];	/* scratch block buffer */
+static char pf_scratch[512];	
 
-/* the variables below are used mainly in the I/O request engine, which
-   processes only one request at a time.
-*/
 
-static int pf_retries = 0;	/* i/o error retry count */
-static int pf_busy = 0;		/* request being processed ? */
-static struct request *pf_req;	/* current request */
-static int pf_block;		/* address of next requested block */
-static int pf_count;		/* number of blocks still to do */
-static int pf_run;		/* sectors in current cluster */
-static int pf_cmd;		/* current command READ/WRITE */
-static struct pf_unit *pf_current;/* unit of current request */
-static int pf_mask;		/* stopper for pseudo-int */
-static char *pf_buf;		/* buffer for request in progress */
 
-/* kernel glue structures */
+static int pf_retries = 0;	
+static int pf_busy = 0;		
+static struct request *pf_req;	
+static int pf_block;		
+static int pf_count;		
+static int pf_run;		
+static int pf_cmd;		
+static struct pf_unit *pf_current;
+static int pf_mask;		
+static char *pf_buf;		
+
+
 
 static const struct block_device_operations pf_fops = {
 	.owner		= THIS_MODULE,
@@ -419,7 +302,7 @@ static int pf_command(struct pf_unit *pf, char *cmd, int dlen, char *fun)
 
 	write_reg(pf, 4, dlen % 256);
 	write_reg(pf, 5, dlen / 256);
-	write_reg(pf, 7, 0xa0);	/* ATAPI packet command */
+	write_reg(pf, 7, 0xa0);	
 
 	if (pf_wait(pf, STAT_BUSY, STAT_DRQ, fun, "command DRQ")) {
 		pi_disconnect(pf->pi);
@@ -503,17 +386,14 @@ static void pf_eject(struct pf_unit *pf)
 	pf_atapi(pf, ej_cmd, 0, pf_scratch, "eject");
 }
 
-#define PF_RESET_TMO   30	/* in tenths of a second */
+#define PF_RESET_TMO   30	
 
 static void pf_sleep(int cs)
 {
 	schedule_timeout_interruptible(cs);
 }
 
-/* the ATAPI standard actually specifies the contents of all 7 registers
-   after a reset, but the specification is ambiguous concerning the last
-   two bytes, and different drives interpret the standard differently.
- */
+
 
 static int pf_reset(struct pf_unit *pf)
 {
@@ -651,9 +531,7 @@ static int pf_identify(struct pf_unit *pf)
 	return 0;
 }
 
-/*	returns  0, with id set if drive is detected
-	        -1, if drive detection failed
-*/
+
 static int pf_probe(struct pf_unit *pf)
 {
 	if (pf->drive == -1) {
@@ -721,7 +599,7 @@ static int pf_detect(void)
 	return -1;
 }
 
-/* The i/o request engine */
+
 
 static int pf_start(struct pf_unit *pf, int cmd, int b, int c)
 {
@@ -826,7 +704,7 @@ static inline void next_request(int err)
 	spin_unlock_irqrestore(&pf_spin_lock, saved_flags);
 }
 
-/* detach from the calling context - in case the spinlock is held */
+
 static void do_pf_read(void)
 {
 	ps_set_intr(do_pf_read_start, NULL, 0, nice);
@@ -930,7 +808,7 @@ static void do_pf_write_done(void)
 }
 
 static int __init pf_init(void)
-{				/* preliminary initialisation */
+{				
 	struct pf_unit *pf;
 	int unit;
 

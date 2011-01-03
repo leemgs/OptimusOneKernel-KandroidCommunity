@@ -1,11 +1,4 @@
-/*
- * Link physical devices with ACPI devices support
- *
- * Copyright (c) 2005 David Shaohua Li <shaohua.li@intel.com>
- * Copyright (c) 2005 Intel Corp.
- *
- * This file is released under the GPLv2.
- */
+
 #include <linux/init.h>
 #include <linux/list.h>
 #include <linux/device.h>
@@ -84,7 +77,7 @@ static int acpi_find_bridge_device(struct device *dev, acpi_handle * handle)
 	return ret;
 }
 
-/* Get device's handler per its address under its parent */
+
 struct acpi_find_child {
 	acpi_handle handle;
 	acpi_integer address;
@@ -119,14 +112,14 @@ acpi_handle acpi_get_child(acpi_handle parent, acpi_integer address)
 
 EXPORT_SYMBOL(acpi_get_child);
 
-/* Link ACPI devices with physical devices */
+
 static void acpi_glue_data_handler(acpi_handle handle,
 				   void *context)
 {
-	/* we provide an empty handler */
+	
 }
 
-/* Note: a success call will increase reference count by one */
+
 struct device *acpi_get_physical_device(acpi_handle handle)
 {
 	acpi_status status;
@@ -182,7 +175,7 @@ static int acpi_unbind_one(struct device *dev)
 	if (dev == acpi_get_physical_device(dev->archdata.acpi_handle)) {
 		struct acpi_device *acpi_dev;
 
-		/* acpi_get_physical_device increase refcnt by one */
+		
 		put_device(dev);
 
 		if (!acpi_bus_get_device(dev->archdata.acpi_handle,
@@ -194,7 +187,7 @@ static int acpi_unbind_one(struct device *dev)
 		acpi_detach_data(dev->archdata.acpi_handle,
 				 acpi_glue_data_handler);
 		dev->archdata.acpi_handle = NULL;
-		/* acpi_bind_one increase refcnt by one */
+		
 		put_device(dev);
 	} else {
 		dev_err(dev, "Oops, 'acpi_handle' corrupt\n");
@@ -209,7 +202,7 @@ static int acpi_platform_notify(struct device *dev)
 	int ret = -EINVAL;
 
 	if (!dev->bus || !dev->parent) {
-		/* bridge devices genernally haven't bus or parent */
+		
 		ret = acpi_find_bridge_device(dev, &handle);
 		goto end;
 	}

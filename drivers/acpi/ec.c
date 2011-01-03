@@ -1,33 +1,7 @@
-/*
- *  ec.c - ACPI Embedded Controller Driver (v2.1)
- *
- *  Copyright (C) 2006-2008 Alexey Starikovskiy <astarikovskiy@suse.de>
- *  Copyright (C) 2006 Denis Sadykov <denis.m.sadykov@intel.com>
- *  Copyright (C) 2004 Luming Yu <luming.yu@intel.com>
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
 
-/* Uncomment next line to get verbose printout */
-/* #define DEBUG */
+
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -50,13 +24,13 @@
 
 #define PREFIX				"ACPI: EC: "
 
-/* EC status register */
-#define ACPI_EC_FLAG_OBF	0x01	/* Output buffer full */
-#define ACPI_EC_FLAG_IBF	0x02	/* Input buffer full */
-#define ACPI_EC_FLAG_BURST	0x10	/* burst mode */
-#define ACPI_EC_FLAG_SCI	0x20	/* EC-SCI occurred */
 
-/* EC commands */
+#define ACPI_EC_FLAG_OBF	0x01	
+#define ACPI_EC_FLAG_IBF	0x02	
+#define ACPI_EC_FLAG_BURST	0x10	
+#define ACPI_EC_FLAG_SCI	0x20	
+
+
 enum ec_command {
 	ACPI_EC_COMMAND_READ = 0x80,
 	ACPI_EC_COMMAND_WRITE = 0x81,
@@ -65,23 +39,21 @@ enum ec_command {
 	ACPI_EC_COMMAND_QUERY = 0x84,
 };
 
-#define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
-#define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
-#define ACPI_EC_CDELAY		10	/* Wait 10us before polling EC */
-#define ACPI_EC_MSI_UDELAY	550	/* Wait 550us for MSI EC */
+#define ACPI_EC_DELAY		500	
+#define ACPI_EC_UDELAY_GLK	1000	
+#define ACPI_EC_CDELAY		10	
+#define ACPI_EC_MSI_UDELAY	550	
 
-#define ACPI_EC_STORM_THRESHOLD 8	/* number of false interrupts
-					   per one transaction */
+#define ACPI_EC_STORM_THRESHOLD 8	
 
 enum {
-	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
-	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
-	EC_FLAGS_HANDLERS_INSTALLED	/* Handlers for GPE and
-					 * OpReg are installed */
+	EC_FLAGS_QUERY_PENDING,		
+	EC_FLAGS_GPE_STORM,		
+	EC_FLAGS_HANDLERS_INSTALLED	
 };
 
-/* If we find an EC via the ECDT, we need to keep a ptr to its context */
-/* External interfaces use first EC only, so remember */
+
+
 typedef int (*acpi_ec_query_func) (void *data);
 
 struct acpi_ec_query_handler {
@@ -118,13 +90,11 @@ static struct acpi_ec {
 	spinlock_t curr_lock;
 } *boot_ec, *first_ec;
 
-static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
-static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
-static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
+static int EC_FLAGS_MSI; 
+static int EC_FLAGS_VALIDATE_ECDT; 
+static int EC_FLAGS_SKIP_DSDT_SCAN; 
 
-/* --------------------------------------------------------------------------
-                             Transaction Management
-   -------------------------------------------------------------------------- */
+
 
 static inline u8 acpi_ec_read_status(struct acpi_ec *ec)
 {
@@ -194,7 +164,7 @@ static void advance_transaction(struct acpi_ec *ec, u8 status)
 		ec->curr->done = true;
 	goto unlock;
 err:
-	/* false interrupt, state didn't change */
+	
 	if (in_interrupt())
 		++ec->curr->irq_count;
 unlock:
@@ -215,12 +185,12 @@ static int ec_check_sci_sync(struct acpi_ec *ec, u8 state)
 static int ec_poll(struct acpi_ec *ec)
 {
 	unsigned long flags;
-	int repeat = 2; /* number of command restarts */
+	int repeat = 2; 
 	while (repeat--) {
 		unsigned long delay = jiffies +
 			msecs_to_jiffies(ACPI_EC_DELAY);
 		do {
-			/* don't sleep with disabled interrupts */
+			
 			if (EC_FLAGS_MSI || irqs_disabled()) {
 				udelay(ACPI_EC_MSI_UDELAY);
 				if (ec_transaction_done(ec))
@@ -250,9 +220,9 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
 	int ret = 0;
 	if (EC_FLAGS_MSI)
 		udelay(ACPI_EC_MSI_UDELAY);
-	/* start transaction */
+	
 	spin_lock_irqsave(&ec->curr_lock, tmp);
-	/* following two actions should be kept atomic */
+	
 	ec->curr = t;
 	start_transaction(ec);
 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
@@ -274,7 +244,7 @@ static int ec_check_ibf0(struct acpi_ec *ec)
 static int ec_wait_ibf0(struct acpi_ec *ec)
 {
 	unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
-	/* interrupt wait manually if GPE mode is not active */
+	
 	while (time_before(jiffies, delay))
 		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec),
 					msecs_to_jiffies(1)))
@@ -305,18 +275,18 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
 		goto end;
 	}
 	pr_debug(PREFIX "transaction start\n");
-	/* disable GPE during transaction if storm is detected */
+	
 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
 		acpi_disable_gpe(NULL, ec->gpe);
 	}
 
 	status = acpi_ec_transaction_unlocked(ec, t);
 
-	/* check if we received SCI during transaction */
+	
 	ec_check_sci_sync(ec, acpi_ec_read_status(ec));
 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
 		msleep(1);
-		/* it is safe to enable GPE outside of transaction */
+		
 		acpi_enable_gpe(NULL, ec->gpe);
 	} else if (t->irq_count > ACPI_EC_STORM_THRESHOLD) {
 		pr_info(PREFIX "GPE storm detected, "
@@ -375,9 +345,7 @@ static int acpi_ec_write(struct acpi_ec *ec, u8 address, u8 data)
 	return acpi_ec_transaction(ec, &t);
 }
 
-/*
- * Externally callable EC access functions. For now, assume 1 EC only
- */
+
 int ec_burst_enable(void)
 {
 	if (!first_ec)
@@ -454,11 +422,7 @@ static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
 				.wlen = 0, .rlen = 1};
 	if (!ec || !data)
 		return -EINVAL;
-	/*
-	 * Query the EC to find out which _Qxx method we need to evaluate.
-	 * Note that successful completion of the query causes the ACPI_EC_SCI
-	 * bit to be cleared (and thus clearing the interrupt source).
-	 */
+	
 	result = acpi_ec_transaction_unlocked(ec, &t);
 	if (result)
 		return result;
@@ -468,9 +432,7 @@ static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
 	return 0;
 }
 
-/* --------------------------------------------------------------------------
-                                Event Management
-   -------------------------------------------------------------------------- */
+
 int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
 			      acpi_handle handle, acpi_ec_query_func func,
 			      void *data)
@@ -530,7 +492,7 @@ static int acpi_ec_sync_query(struct acpi_ec *ec)
 		return status;
 	list_for_each_entry(handler, &ec->list, node) {
 		if (value == handler->query_bit) {
-			/* have custom handler for this bit */
+			
 			copy = kmalloc(sizeof(*handler), GFP_KERNEL);
 			if (!copy)
 				return -ENOMEM;
@@ -582,9 +544,7 @@ static u32 acpi_ec_gpe_handler(void *data)
 	return ACPI_INTERRUPT_HANDLED;
 }
 
-/* --------------------------------------------------------------------------
-                             Address Space Management
-   -------------------------------------------------------------------------- */
+
 
 static acpi_status
 acpi_ec_space_handler(u32 function, acpi_physical_address address,
@@ -644,9 +604,7 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
 	}
 }
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc)
-   -------------------------------------------------------------------------- */
+
 
 static struct proc_dir_entry *acpi_ec_dir;
 
@@ -710,9 +668,7 @@ static int acpi_ec_remove_fs(struct acpi_device *device)
 	return 0;
 }
 
-/* --------------------------------------------------------------------------
-                               Driver Interface
-   -------------------------------------------------------------------------- */
+
 static acpi_status
 ec_parse_io_ports(struct acpi_resource *resource, void *context);
 
@@ -755,7 +711,7 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
 
 	struct acpi_ec *ec = context;
 
-	/* clear addr values, ec_parse_io_ports depend on it */
+	
 	ec->command_addr = ec->data_addr = 0;
 
 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
@@ -763,13 +719,13 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
 	if (ACPI_FAILURE(status))
 		return status;
 
-	/* Get GPE bit assignment (EC events). */
-	/* TODO: Add support for _GPE returning a package */
+	
+	
 	status = acpi_evaluate_integer(handle, "_GPE", NULL, &tmp);
 	if (ACPI_FAILURE(status))
 		return status;
 	ec->gpe = tmp;
-	/* Use the global lock for all EC transactions? */
+	
 	tmp = 0;
 	acpi_evaluate_integer(handle, "_GLK", NULL, &tmp);
 	ec->global_lock = tmp;
@@ -795,11 +751,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
 						    NULL, ec);
 	if (ACPI_FAILURE(status)) {
 		if (status == AE_NOT_FOUND) {
-			/*
-			 * Maybe OS fails in evaluating the _REG object.
-			 * The AE_NOT_FOUND error will be ignored and OS
-			 * continue to initialize EC.
-			 */
+			
 			printk(KERN_ERR "Fail in evaluating the _REG object"
 				" of EC device. Broken bios is suspected.\n");
 		} else {
@@ -832,7 +784,7 @@ static int acpi_ec_add(struct acpi_device *device)
 	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
 
-	/* Check for boot EC */
+	
 	if (boot_ec &&
 	    (boot_ec->handle == device->handle ||
 	     boot_ec->handle == ACPI_ROOT_OBJECT)) {
@@ -851,7 +803,7 @@ static int acpi_ec_add(struct acpi_device *device)
 
 	ec->handle = device->handle;
 
-	/* Find and register all query methods */
+	
 	acpi_walk_namespace(ACPI_TYPE_METHOD, ec->handle, 1,
 			    acpi_ec_register_query_methods, ec, NULL);
 
@@ -864,7 +816,7 @@ static int acpi_ec_add(struct acpi_device *device)
 
 	ret = ec_install_handlers(ec);
 
-	/* EC is fully operational, allow queries */
+	
 	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
 	return ret;
 }
@@ -901,11 +853,7 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
 	if (resource->type != ACPI_RESOURCE_TYPE_IO)
 		return AE_OK;
 
-	/*
-	 * The first address region returned is the data port, and
-	 * the second address region returned is the status/command
-	 * port.
-	 */
+	
 	if (ec->data_addr == 0)
 		ec->data_addr = resource->data.io.minimum;
 	else if (ec->command_addr == 0)
@@ -932,21 +880,21 @@ static const struct acpi_device_id ec_device_ids[] = {
 	{"", 0},
 };
 
-/* Some BIOS do not survive early DSDT scan, skip it */
+
 static int ec_skip_dsdt_scan(const struct dmi_system_id *id)
 {
 	EC_FLAGS_SKIP_DSDT_SCAN = 1;
 	return 0;
 }
 
-/* ASUStek often supplies us with broken ECDT, validate it */
+
 static int ec_validate_ecdt(const struct dmi_system_id *id)
 {
 	EC_FLAGS_VALIDATE_ECDT = 1;
 	return 0;
 }
 
-/* MSI EC needs special treatment, enable it */
+
 static int ec_flag_msi(const struct dmi_system_id *id)
 {
 	printk(KERN_DEBUG PREFIX "Detected MSI hardware, enabling workarounds.\n");
@@ -985,9 +933,7 @@ int __init acpi_ec_ecdt_probe(void)
 	boot_ec = make_acpi_ec();
 	if (!boot_ec)
 		return -ENOMEM;
-	/*
-	 * Generate a boot ec context
-	 */
+	
 	dmi_check_system(ec_dmi_table);
 	status = acpi_get_table(ACPI_SIG_ECDT, 1,
 				(struct acpi_table_header **)&ecdt_ptr);
@@ -998,29 +944,28 @@ int __init acpi_ec_ecdt_probe(void)
 		boot_ec->gpe = ecdt_ptr->gpe;
 		boot_ec->handle = ACPI_ROOT_OBJECT;
 		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
-		/* Don't trust ECDT, which comes from ASUSTek */
+		
 		if (!EC_FLAGS_VALIDATE_ECDT)
 			goto install;
 		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
 		if (!saved_ec)
 			return -ENOMEM;
 		memcpy(saved_ec, boot_ec, sizeof(struct acpi_ec));
-	/* fall through */
+	
 	}
 
 	if (EC_FLAGS_SKIP_DSDT_SCAN)
 		return -ENODEV;
 
-	/* This workaround is needed only on some broken machines,
-	 * which require early EC, but fail to provide ECDT */
+	
 	printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
 	status = acpi_get_devices(ec_device_ids[0].id, ec_parse_device,
 					boot_ec, NULL);
-	/* Check that acpi_get_devices actually find something */
+	
 	if (ACPI_FAILURE(status) || !boot_ec->handle)
 		goto error;
 	if (saved_ec) {
-		/* try to find good ECDT from ASUSTek */
+		
 		if (saved_ec->command_addr != boot_ec->command_addr ||
 		    saved_ec->data_addr != boot_ec->data_addr ||
 		    saved_ec->gpe != boot_ec->gpe ||
@@ -1032,10 +977,7 @@ int __init acpi_ec_ecdt_probe(void)
 		kfree(saved_ec);
 		saved_ec = NULL;
 	} else {
-		/* We really need to limit this workaround, the only ASUS,
-		* which needs it, has fake EC._INI method, so use it as flag.
-		* Keep boot_ec struct as it will be needed soon.
-		*/
+		
 		acpi_handle dummy;
 		if (!dmi_name_in_vendors("ASUS") ||
 		    ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI",
@@ -1056,7 +998,7 @@ error:
 static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
 {
 	struct acpi_ec *ec = acpi_driver_data(device);
-	/* Stop using GPE */
+	
 	acpi_disable_gpe(NULL, ec->gpe);
 	return 0;
 }
@@ -1064,7 +1006,7 @@ static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
 static int acpi_ec_resume(struct acpi_device *device)
 {
 	struct acpi_ec *ec = acpi_driver_data(device);
-	/* Enable use of GPE back */
+	
 	acpi_enable_gpe(NULL, ec->gpe);
 	return 0;
 }
@@ -1089,7 +1031,7 @@ int __init acpi_ec_init(void)
 	if (!acpi_ec_dir)
 		return -ENODEV;
 
-	/* Now register the driver for the EC */
+	
 	result = acpi_bus_register_driver(&acpi_ec_driver);
 	if (result < 0) {
 		remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
@@ -1099,7 +1041,7 @@ int __init acpi_ec_init(void)
 	return result;
 }
 
-/* EC driver currently not unloadable */
+
 #if 0
 static void __exit acpi_ec_exit(void)
 {
@@ -1110,4 +1052,4 @@ static void __exit acpi_ec_exit(void)
 
 	return;
 }
-#endif	/* 0 */
+#endif	

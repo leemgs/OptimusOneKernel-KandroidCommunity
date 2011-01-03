@@ -1,20 +1,6 @@
-/*
- * Clock manipulation routines for Freescale STMP37XX/STMP378X
- *
- * Author: Vitaly Wool <vital@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #define DEBUG
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -201,23 +187,7 @@ static long lcdif_get_rate(struct clk *clk)
 static int lcdif_set_rate(struct clk *clk, u32 rate)
 {
 	int ret = 0;
-	/*
-	 * On 3700, we can get most timings exact by modifying ref_pix
-	 * and the divider, but keeping the phase timings at 1 (2
-	 * phases per cycle).
-	 *
-	 * ref_pix can be between 480e6*18/35=246.9MHz and 480e6*18/18=480MHz,
-	 * which is between 18/(18*480e6)=2.084ns and 35/(18*480e6)=4.050ns.
-	 *
-	 * ns_cycle >= 2*18e3/(18*480) = 25/6
-	 * ns_cycle <= 2*35e3/(18*480) = 875/108
-	 *
-	 * Multiply the ns_cycle by 'div' to lengthen it until it fits the
-	 * bounds. This is the divider we'll use after ref_pix.
-	 *
-	 * 6 * ns_cycle >= 25 * div
-	 * 108 * ns_cycle <= 875 * div
-	 */
+	
 	u32 ns_cycle = 1000000 / rate;
 	u32 div, reg_val;
 	u32 lowest_result = (u32) -1;
@@ -232,10 +202,7 @@ static int lcdif_set_rate(struct clk *clk, u32 rate)
 			break;
 		if (!upper_bound)
 			continue;
-		/*
-		 * Found a matching div. Calculate fractional divider needed,
-		 * rounded up.
-		 */
+		
 		fracdiv = ((clk->parent->rate / 1000 * 18 / 2) *
 				ns_cycle + 1000 * div - 1) /
 				(1000 * div);
@@ -243,10 +210,10 @@ static int lcdif_set_rate(struct clk *clk, u32 rate)
 			ret = -EINVAL;
 			goto out;
 		}
-		/* Calculate the actual cycle time this results in */
+		
 		ps_result = 6250 * div * fracdiv / 27;
 
-		/* Use the fastest result that doesn't break ns_cycle */
+		
 		if (ps_result <= lowest_result) {
 			lowest_result = ps_result;
 			lowest_div = div;
@@ -264,23 +231,23 @@ static int lcdif_set_rate(struct clk *clk, u32 rate)
 			480*18/lowest_fracdiv, 480*18/lowest_fracdiv/lowest_div,
 			lowest_result / 1000, lowest_result % 1000);
 
-	/* Program ref_pix phase fractional divider */
+	
 	reg_val = __raw_readl(REGS_CLKCTRL_BASE + HW_CLKCTRL_FRAC);
 	reg_val &= ~BM_CLKCTRL_FRAC_PIXFRAC;
 	reg_val |= BF(lowest_fracdiv, CLKCTRL_FRAC_PIXFRAC);
 	__raw_writel(reg_val, REGS_CLKCTRL_BASE + HW_CLKCTRL_FRAC);
 
-	/* Ungate PFD */
+	
 	stmp3xxx_clearl(BM_CLKCTRL_FRAC_CLKGATEPIX,
 			REGS_CLKCTRL_BASE + HW_CLKCTRL_FRAC);
 
-	/* Program pix divider */
+	
 	reg_val = __raw_readl(clk->scale_reg);
 	reg_val &= ~(BM_CLKCTRL_PIX_DIV | BM_CLKCTRL_PIX_CLKGATE);
 	reg_val |= BF(lowest_div, CLKCTRL_PIX_DIV);
 	__raw_writel(reg_val, clk->scale_reg);
 
-	/* Wait for divider update */
+	
 	if (clk->busy_reg) {
 		int i;
 		for (i = 10000; i; i--)
@@ -292,7 +259,7 @@ static int lcdif_set_rate(struct clk *clk, u32 rate)
 		}
 	}
 
-	/* Switch to ref_pix source */
+	
 	reg_val = __raw_readl(REGS_CLKCTRL_BASE + HW_CLKCTRL_CLKSEQ);
 	reg_val &= ~BM_CLKCTRL_CLKSEQ_BYPASS_PIX;
 	__raw_writel(reg_val, REGS_CLKCTRL_BASE + HW_CLKCTRL_CLKSEQ);
@@ -309,7 +276,7 @@ static int cpu_set_rate(struct clk *clk, u32 rate)
 	if (rate < 24000)
 		return -EINVAL;
 	else if (rate == 24000) {
-		/* switch to the 24M source */
+		
 		clk_set_parent(clk, &osc_24M);
 	} else {
 		int i;
@@ -343,16 +310,16 @@ static int cpu_set_rate(struct clk *clk, u32 rate)
 				return -EINVAL;
 		}
 
-		/* 4.6.2 */
+		
 		val = __raw_readl(clk->scale_reg);
 		val &= ~(0x3f << clk->scale_shift);
 		val |= clkctrl_frac;
 		clk_set_parent(clk, &osc_24M);
 		udelay(10);
 		__raw_writel(val, clk->scale_reg);
-		/* ungate */
+		
 		__raw_writel(1<<7, clk->scale_reg + 8);
-		/* write clkctrl_cpu */
+		
 		clk->saved_div = clkctrl_cpu;
 
 		reg_val = __raw_readl(REGS_CLKCTRL_BASE + HW_CLKCTRL_CPU);
@@ -437,7 +404,7 @@ static int clkseq_set_parent(struct clk *clk, struct clk *parent)
 	int ret = -EINVAL;
 	int shift = 8;
 
-	/* bypass? */
+	
 	if (parent == &osc_24M)
 		shift = 4;
 
@@ -601,7 +568,7 @@ static long xbus_get_rate(struct clk *clk)
 }
 
 
-/* Clock ops */
+
 
 static struct clk_ops std_ops = {
 	.enable		= std_clk_enable,
@@ -654,7 +621,7 @@ static struct clk_ops emi_ops = {
 	.get_rate	= emi_get_rate,
 };
 
-/* List of on-chip clocks */
+
 
 static struct clk osc_24M = {
 	.flags		= FIXED_RATE | ENABLED,
@@ -860,7 +827,7 @@ static struct clk usb_clk = {
 	.ops		= &min_ops,
 };
 
-/* list of all the clocks */
+
 static struct clk_lookup onchip_clks[] = {
 	{
 		.con_id = "osc_24M",
@@ -943,7 +910,7 @@ static int __init propagate_rate(struct clk *clk)
 	return 0;
 }
 
-/* Exported API */
+
 unsigned long clk_get_rate(struct clk *clk)
 {
 	if (unlikely(!clk_good(clk)))
@@ -1052,7 +1019,7 @@ void clk_disable(struct clk *clk)
 }
 EXPORT_SYMBOL(clk_disable);
 
-/* Some additional API */
+
 int clk_set_parent(struct clk *clk, struct clk *parent)
 {
 	int ret = -ENODEV;
@@ -1068,13 +1035,13 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 
 	ret = clk->ops->set_parent(clk, parent);
 	if (!ret) {
-		/* disable if usage count is 0 */
+		
 		local_clk_disable(parent);
 
 		parent->usage += clk->usage;
 		clk->parent->usage -= clk->usage;
 
-		/* disable if new usage count is 0 */
+		
 		local_clk_disable(clk->parent);
 
 		clk->parent = parent;

@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Intel Corporation.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *	copyright notice, this list of conditions and the following
- *	disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *	copyright notice, this list of conditions and the following
- *	disclaimer in the documentation and/or other materials
- *	provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/completion.h>
 #include <linux/init.h>
@@ -82,14 +51,14 @@ struct ib_ucm_context {
 	struct ib_cm_id    *cm_id;
 	__u64		   uid;
 
-	struct list_head    events;    /* list of pending events. */
-	struct list_head    file_list; /* member in file ctx list */
+	struct list_head    events;    
+	struct list_head    file_list; 
 };
 
 struct ib_ucm_event {
 	struct ib_ucm_context *ctx;
-	struct list_head file_list; /* member in file event list */
-	struct list_head ctx_list;  /* member in ctx event list */
+	struct list_head file_list; 
+	struct list_head ctx_list;  
 
 	struct ib_cm_id *cm_id;
 	struct ib_ucm_event_resp resp;
@@ -105,7 +74,7 @@ enum {
 	IB_UCM_MAX_DEVICES = 32
 };
 
-/* ib_cm and ib_user_cm modules share /sys/class/infiniband_cm */
+
 extern struct class cm_class;
 
 #define IB_UCM_BASE_DEV MKDEV(IB_UCM_MAJOR, IB_UCM_BASE_MINOR)
@@ -165,7 +134,7 @@ static void ib_ucm_cleanup_events(struct ib_ucm_context *ctx)
 		list_del(&uevent->ctx_list);
 		mutex_unlock(&ctx->file->file_mutex);
 
-		/* clear incoming connections. */
+		
 		if (ib_ucm_new_cm_id(uevent->resp.event))
 			ib_destroy_cm_id(uevent->cm_id);
 
@@ -387,7 +356,7 @@ static int ib_ucm_event_handler(struct ib_cm_id *cm_id,
 err2:
 	kfree(uevent);
 err1:
-	/* Destroy new cm_id's */
+	
 	return ib_ucm_new_cm_id(event->event);
 }
 
@@ -555,9 +524,9 @@ static ssize_t ib_ucm_destroy_id(struct ib_ucm_file *file,
 	ib_ucm_ctx_put(ctx);
 	wait_for_completion(&ctx->comp);
 
-	/* No new events will be generated after destroying the cm_id. */
+	
 	ib_destroy_cm_id(ctx->cm_id);
-	/* Cleanup events not yet reported to the user. */
+	
 	ib_ucm_cleanup_events(ctx);
 
 	resp.events_reported = ctx->events_reported;
@@ -1154,14 +1123,7 @@ static unsigned int ib_ucm_poll(struct file *filp,
 	return mask;
 }
 
-/*
- * ib_ucm_open() does not need the BKL:
- *
- *  - no global state is referred to;
- *  - there is no ioctl method to race against;
- *  - no further module initialization is required for open to work
- *    after the device is registered.
- */
+
 static int ib_ucm_open(struct inode *inode, struct file *filp)
 {
 	struct ib_ucm_file *file;

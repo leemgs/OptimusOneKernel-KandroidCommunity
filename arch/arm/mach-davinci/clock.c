@@ -1,14 +1,4 @@
-/*
- * Clock and PLL control for DaVinci devices
- *
- * Copyright (C) 2006-2007 Texas Instruments.
- * Copyright (C) 2008-2009 Deep Root Systems, LLC
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -108,7 +98,7 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 	if (clk == NULL || IS_ERR(clk))
 		return -EINVAL;
 
-	/* changing the clk rate is not supported */
+	
 	return -EINVAL;
 }
 EXPORT_SYMBOL(clk_set_rate);
@@ -127,11 +117,11 @@ int clk_register(struct clk *clk)
 	list_add_tail(&clk->node, &clocks);
 	mutex_unlock(&clocks_mutex);
 
-	/* If rate is already set, use it */
+	
 	if (clk->rate)
 		return 0;
 
-	/* Otherwise, default to parent rate */
+	
 	if (clk->parent)
 		clk->rate = clk->parent->rate;
 
@@ -151,9 +141,7 @@ void clk_unregister(struct clk *clk)
 EXPORT_SYMBOL(clk_unregister);
 
 #ifdef CONFIG_DAVINCI_RESET_CLOCKS
-/*
- * Disable any unused clocks left on by the bootloader
- */
+
 static int __init clk_disable_unused(void)
 {
 	struct clk *ck;
@@ -165,7 +153,7 @@ static int __init clk_disable_unused(void)
 		if (!(ck->flags & CLK_PSC))
 			continue;
 
-		/* ignore if in Disabled or SwRstDisable states */
+		
 		if (!davinci_psc_is_clk_active(ck->psc_ctlr, ck->lpsc))
 			continue;
 
@@ -184,7 +172,7 @@ static void clk_sysclk_recalc(struct clk *clk)
 	u32 v, plldiv;
 	struct pll_data *pll;
 
-	/* If this is the PLL base clock, no more calculations needed */
+	
 	if (clk->pll_data)
 		return;
 
@@ -193,13 +181,13 @@ static void clk_sysclk_recalc(struct clk *clk)
 
 	clk->rate = clk->parent->rate;
 
-	/* Otherwise, the parent must be a PLL */
+	
 	if (WARN_ON(!clk->parent->pll_data))
 		return;
 
 	pll = clk->parent->pll_data;
 
-	/* If pre-PLL, source clock is before the multiplier and divider(s) */
+	
 	if (clk->flags & PRE_PLL)
 		clk->rate = pll->input_rate;
 
@@ -242,7 +230,7 @@ static void __init clk_pll_init(struct clk *clk)
 			prediv = 1;
 	}
 
-	/* pre-divider is fixed, but (some?) chips won't report that */
+	
 	if (cpu_is_davinci_dm355() && pll->num == 1)
 		prediv = 8;
 
@@ -284,7 +272,7 @@ int __init davinci_clk_init(struct davinci_clk *clocks)
 		if (clk->pll_data)
 			clk_pll_init(clk);
 
-		/* Calculate rates for PLL-derived clocks */
+		
 		else if (clk->flags & CLK_PLL)
 			clk_sysclk_recalc(clk);
 
@@ -294,7 +282,7 @@ int __init davinci_clk_init(struct davinci_clk *clocks)
 		clkdev_add(&c->lk);
 		clk_register(clk);
 
-		/* Turn on clocks that Linux doesn't otherwise manage */
+		
 		if (clk->flags & ALWAYS_ENABLED)
 			clk_enable(clk);
 	}
@@ -321,7 +309,7 @@ static void davinci_ck_stop(struct seq_file *m, void *v)
 {
 }
 
-#define CLKNAME_MAX	10		/* longest clock name */
+#define CLKNAME_MAX	10		
 #define NEST_DELTA	2
 #define NEST_MAX	4
 
@@ -340,7 +328,7 @@ dump_clock(struct seq_file *s, unsigned nest, struct clk *parent)
 	else
 		state = "";
 
-	/* <nest spaces> name <pad to end> */
+	
 	memset(buf, ' ', sizeof(buf) - 1);
 	buf[sizeof(buf) - 1] = 0;
 	i = strlen(parent->name);
@@ -349,9 +337,9 @@ dump_clock(struct seq_file *s, unsigned nest, struct clk *parent)
 
 	seq_printf(s, "%s users=%2d %-3s %9ld Hz\n",
 		   buf, parent->usecount, state, clk_get_rate(parent));
-	/* REVISIT show device associations too */
+	
 
-	/* cost is now small, but not linear... */
+	
 	list_for_each_entry(clk, &clocks, node) {
 		if (clk->parent == parent)
 			dump_clock(s, nest + NEST_DELTA, clk);
@@ -360,9 +348,7 @@ dump_clock(struct seq_file *s, unsigned nest, struct clk *parent)
 
 static int davinci_ck_show(struct seq_file *m, void *v)
 {
-	/* Show clock tree; we know the main oscillator is first.
-	 * We trust nonzero usecounts equate to PSC enables...
-	 */
+	
 	mutex_lock(&clocks_mutex);
 	if (!list_empty(&clocks))
 		dump_clock(m, 0, list_first_entry(&clocks, struct clk, node));
@@ -397,4 +383,4 @@ static int __init davinci_ck_proc_init(void)
 
 }
 __initcall(davinci_ck_proc_init);
-#endif /* CONFIG_DEBUG_PROC_FS */
+#endif 

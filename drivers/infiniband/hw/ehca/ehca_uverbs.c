@@ -1,44 +1,4 @@
-/*
- *  IBM eServer eHCA Infiniband device driver for Linux on POWER
- *
- *  userspace support verbs
- *
- *  Authors: Christoph Raisch <raisch@de.ibm.com>
- *           Hoang-Nam Nguyen <hnguyen@de.ibm.com>
- *           Heiko J Schick <schickhj@de.ibm.com>
- *
- *  Copyright (c) 2005 IBM Corporation
- *
- *  All rights reserved.
- *
- *  This source code is distributed under a dual license of GPL v2.0 and OpenIB
- *  BSD.
- *
- * OpenIB BSD License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials
- * provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "ehca_classes.h"
 #include "ehca_iverbs.h"
@@ -115,7 +75,7 @@ static int ehca_mmap_fw(struct vm_area_struct *vma, struct h_galpas *galpas,
 	physical = galpas->user.fw_handle;
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 	ehca_gen_dbg("vsize=%llx physical=%llx", vsize, physical);
-	/* VM_IO | VM_RESERVED are set by remap_pfn_range() */
+	
 	ret = remap_4k_pfn(vma, vma->vm_start, physical >> EHCA_PAGESHIFT,
 			   vma->vm_page_prot);
 	if (unlikely(ret)) {
@@ -162,7 +122,7 @@ static int ehca_mmap_cq(struct vm_area_struct *vma, struct ehca_cq *cq,
 	int ret;
 
 	switch (rsrc_type) {
-	case 0: /* galpa fw handle */
+	case 0: 
 		ehca_dbg(cq->ib_cq.device, "cq_num=%x fw", cq->cq_number);
 		ret = ehca_mmap_fw(vma, &cq->galpas, &cq->mm_count_galpa);
 		if (unlikely(ret)) {
@@ -173,7 +133,7 @@ static int ehca_mmap_cq(struct vm_area_struct *vma, struct ehca_cq *cq,
 		}
 		break;
 
-	case 1: /* cq queue_addr */
+	case 1: 
 		ehca_dbg(cq->ib_cq.device, "cq_num=%x queue", cq->cq_number);
 		ret = ehca_mmap_queue(vma, &cq->ipz_queue, &cq->mm_count_queue);
 		if (unlikely(ret)) {
@@ -199,7 +159,7 @@ static int ehca_mmap_qp(struct vm_area_struct *vma, struct ehca_qp *qp,
 	int ret;
 
 	switch (rsrc_type) {
-	case 0: /* galpa fw handle */
+	case 0: 
 		ehca_dbg(qp->ib_qp.device, "qp_num=%x fw", qp->ib_qp.qp_num);
 		ret = ehca_mmap_fw(vma, &qp->galpas, &qp->mm_count_galpa);
 		if (unlikely(ret)) {
@@ -210,7 +170,7 @@ static int ehca_mmap_qp(struct vm_area_struct *vma, struct ehca_qp *qp,
 		}
 		break;
 
-	case 1: /* qp rqueue_addr */
+	case 1: 
 		ehca_dbg(qp->ib_qp.device, "qp_num=%x rq", qp->ib_qp.qp_num);
 		ret = ehca_mmap_queue(vma, &qp->ipz_rqueue,
 				      &qp->mm_count_rqueue);
@@ -222,7 +182,7 @@ static int ehca_mmap_qp(struct vm_area_struct *vma, struct ehca_qp *qp,
 		}
 		break;
 
-	case 2: /* qp squeue_addr */
+	case 2: 
 		ehca_dbg(qp->ib_qp.device, "qp_num=%x sq", qp->ib_qp.qp_num);
 		ret = ehca_mmap_queue(vma, &qp->ipz_squeue,
 				      &qp->mm_count_squeue);
@@ -247,20 +207,20 @@ int ehca_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 {
 	u64 fileoffset = vma->vm_pgoff;
 	u32 idr_handle = fileoffset & 0x1FFFFFF;
-	u32 q_type = (fileoffset >> 27) & 0x1;	  /* CQ, QP,...        */
-	u32 rsrc_type = (fileoffset >> 25) & 0x3; /* sq,rq,cmnd_window */
+	u32 q_type = (fileoffset >> 27) & 0x1;	  
+	u32 rsrc_type = (fileoffset >> 25) & 0x3; 
 	u32 ret;
 	struct ehca_cq *cq;
 	struct ehca_qp *qp;
 	struct ib_uobject *uobject;
 
 	switch (q_type) {
-	case  0: /* CQ */
+	case  0: 
 		read_lock(&ehca_cq_idr_lock);
 		cq = idr_find(&ehca_cq_idr, idr_handle);
 		read_unlock(&ehca_cq_idr_lock);
 
-		/* make sure this mmap really belongs to the authorized user */
+		
 		if (!cq)
 			return -EINVAL;
 
@@ -276,12 +236,12 @@ int ehca_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 		}
 		break;
 
-	case 1: /* QP */
+	case 1: 
 		read_lock(&ehca_qp_idr_lock);
 		qp = idr_find(&ehca_qp_idr, idr_handle);
 		read_unlock(&ehca_qp_idr_lock);
 
-		/* make sure this mmap really belongs to the authorized user */
+		
 		if (!qp)
 			return -EINVAL;
 

@@ -1,15 +1,4 @@
-/*
- * omap iommu: omap2/3 architecture specific functions
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
- *		Paul Mundt and Toshihiro Kobayashi
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/err.h>
 #include <linux/device.h>
@@ -19,12 +8,10 @@
 
 #include <mach/iommu.h>
 
-/*
- * omap2 architecture specific register bit definitions
- */
+
 #define IOMMU_ARCH_VERSION	0x00000011
 
-/* SYSCONF */
+
 #define MMU_SYS_IDLE_SHIFT	3
 #define MMU_SYS_IDLE_FORCE	(0 << MMU_SYS_IDLE_SHIFT)
 #define MMU_SYS_IDLE_NONE	(1 << MMU_SYS_IDLE_SHIFT)
@@ -34,10 +21,10 @@
 #define MMU_SYS_SOFTRESET	(1 << 1)
 #define MMU_SYS_AUTOIDLE	1
 
-/* SYSSTATUS */
+
 #define MMU_SYS_RESETDONE	1
 
-/* IRQSTATUS & IRQENABLE */
+
 #define MMU_IRQ_MULTIHITFAULT	(1 << 4)
 #define MMU_IRQ_TABLEWALKFAULT	(1 << 3)
 #define MMU_IRQ_EMUMISS		(1 << 2)
@@ -47,7 +34,7 @@
 	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_EMUMISS | \
 	 MMU_IRQ_TRANSLATIONFAULT)
 
-/* MMU_CNTL */
+
 #define MMU_CNTL_SHIFT		1
 #define MMU_CNTL_MASK		(7 << MMU_CNTL_SHIFT)
 #define MMU_CNTL_EML_TLB	(1 << 3)
@@ -210,7 +197,7 @@ static ssize_t omap2_dump_cr(struct iommu *obj, struct cr_regs *cr, char *buf)
 {
 	char *p = buf;
 
-	/* FIXME: Need more detail analysis of cam/ram */
+	
 	p += sprintf(p, "%08x %08x\n", cr->cam, cr->ram);
 
 	return p - buf;

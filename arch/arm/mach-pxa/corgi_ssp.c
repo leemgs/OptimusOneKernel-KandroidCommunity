@@ -1,13 +1,4 @@
-/*
- *  SSP control code for Sharp Corgi devices
- *
- *  Copyright (c) 2004-2005 Richard Purdie
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -29,23 +20,9 @@ static struct ssp_dev corgi_ssp_dev;
 static struct ssp_state corgi_ssp_state;
 static struct corgissp_machinfo *ssp_machinfo;
 
-/*
- * There are three devices connected to the SSP interface:
- *   1. A touchscreen controller (TI ADS7846 compatible)
- *   2. An LCD controller (with some Backlight functionality)
- *   3. A battery monitoring IC (Maxim MAX1111)
- *
- * Each device uses a different speed/mode of communication.
- *
- * The touchscreen is very sensitive and the most frequently used
- * so the port is left configured for this.
- *
- * Devices are selected using Chip Selects on GPIOs.
- */
 
-/*
- *  ADS7846 Routines
- */
+
+
 unsigned long corgi_ssp_ads7846_putget(ulong data)
 {
 	unsigned long flag;
@@ -65,10 +42,7 @@ unsigned long corgi_ssp_ads7846_putget(ulong data)
 	return ret;
 }
 
-/*
- * NOTE: These functions should always be called in interrupt context
- * and use the _lock and _unlock functions. They are very time sensitive.
- */
+
 void corgi_ssp_ads7846_lock(void)
 {
 	spin_lock(&corgi_ssp_lock);
@@ -102,9 +76,7 @@ EXPORT_SYMBOL(corgi_ssp_ads7846_put);
 EXPORT_SYMBOL(corgi_ssp_ads7846_get);
 
 
-/*
- *  LCD/Backlight Routines
- */
+
 unsigned long corgi_ssp_dac_put(ulong data)
 {
 	unsigned long flag, sscr1 = SSCR1_SPH;
@@ -122,7 +94,7 @@ unsigned long corgi_ssp_dac_put(ulong data)
 	if (ssp_machinfo->cs_lcdcon >= 0)
 		GPCR(ssp_machinfo->cs_lcdcon) = GPIO_bit(ssp_machinfo->cs_lcdcon);
 	ssp_write_word(&corgi_ssp_dev,data);
-	/* Read null data back from device to prevent SSP overflow */
+	
 	ssp_read_word(&corgi_ssp_dev, &tmp);
 	if (ssp_machinfo->cs_lcdcon >= 0)
 		GPSR(ssp_machinfo->cs_lcdcon) = GPIO_bit(ssp_machinfo->cs_lcdcon);
@@ -149,9 +121,7 @@ void corgi_ssp_blduty_set(int duty)
 EXPORT_SYMBOL(corgi_ssp_lcdtg_send);
 EXPORT_SYMBOL(corgi_ssp_blduty_set);
 
-/*
- *  Max1111 Routines
- */
+
 int corgi_ssp_max1111_get(ulong data)
 {
 	unsigned long flag;
@@ -166,15 +136,15 @@ int corgi_ssp_max1111_get(ulong data)
 
 	udelay(1);
 
-	/* TB1/RB1 */
+	
 	ssp_write_word(&corgi_ssp_dev,data);
-	ssp_read_word(&corgi_ssp_dev, (u32*)&voltage1); /* null read */
+	ssp_read_word(&corgi_ssp_dev, (u32*)&voltage1); 
 
-	/* TB12/RB2 */
+	
 	ssp_write_word(&corgi_ssp_dev,0);
 	ssp_read_word(&corgi_ssp_dev, (u32*)&voltage1);
 
-	/* TB13/RB3*/
+	
 	ssp_write_word(&corgi_ssp_dev,0);
 	ssp_read_word(&corgi_ssp_dev, (u32*)&voltage2);
 
@@ -195,9 +165,7 @@ int corgi_ssp_max1111_get(ulong data)
 
 EXPORT_SYMBOL(corgi_ssp_max1111_get);
 
-/*
- *  Support Routines
- */
+
 
 void __init corgi_ssp_set_machinfo(struct corgissp_machinfo *machinfo)
 {
@@ -208,7 +176,7 @@ static int __init corgi_ssp_probe(struct platform_device *dev)
 {
 	int ret;
 
-	/* Chip Select - Disable All */
+	
 	if (ssp_machinfo->cs_lcdcon >= 0)
 		pxa_gpio_mode(ssp_machinfo->cs_lcdcon  | GPIO_OUT | GPIO_DFLT_HIGH);
 	if (ssp_machinfo->cs_max1111 >= 0)
@@ -246,11 +214,11 @@ static int corgi_ssp_suspend(struct platform_device *dev, pm_message_t state)
 static int corgi_ssp_resume(struct platform_device *dev)
 {
 	if (ssp_machinfo->cs_lcdcon >= 0)
-		GPSR(ssp_machinfo->cs_lcdcon) = GPIO_bit(ssp_machinfo->cs_lcdcon);  /* High - Disable LCD Control/Timing Gen */
+		GPSR(ssp_machinfo->cs_lcdcon) = GPIO_bit(ssp_machinfo->cs_lcdcon);  
 	if (ssp_machinfo->cs_max1111 >= 0)
-		GPSR(ssp_machinfo->cs_max1111) = GPIO_bit(ssp_machinfo->cs_max1111); /* High - Disable MAX1111*/
+		GPSR(ssp_machinfo->cs_max1111) = GPIO_bit(ssp_machinfo->cs_max1111); 
 	if (ssp_machinfo->cs_ads7846 >= 0)
-		GPSR(ssp_machinfo->cs_ads7846) = GPIO_bit(ssp_machinfo->cs_ads7846); /* High - Disable ADS7846*/
+		GPSR(ssp_machinfo->cs_ads7846) = GPIO_bit(ssp_machinfo->cs_ads7846); 
 	ssp_restore_state(&corgi_ssp_dev,&corgi_ssp_state);
 	ssp_enable(&corgi_ssp_dev);
 

@@ -1,39 +1,4 @@
-/*
- * Copyright (C) 2006-2009 Texas Instruments Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * CCDC hardware module for DM6446
- * ------------------------------
- *
- * This module is for configuring CCD controller of DM6446 VPFE to capture
- * Raw yuv or Bayer RGB data from a decoder. CCDC has several modules
- * such as Defect Pixel Correction, Color Space Conversion etc to
- * pre-process the Raw Bayer RGB data, before writing it to SDRAM. This
- * module also allows application to configure individual
- * module parameters through VPFE_CMD_S_CCDC_RAW_PARAMS IOCTL.
- * To do so, application includes dm644x_ccdc.h and vpfe_capture.h header
- * files.  The setparams() API is called by vpfe_capture driver
- * to configure module parameters. This file is named DM644x so that other
- * variants such DM6443 may be supported using the same module.
- *
- * TODO: Test Raw bayer parameter settings and bayer capture
- * 	 Split module parameter structure to module specific ioctl structs
- * 	 investigate if enum used for user space type definition
- * 	 to be replaced by #defines or integer
- */
+
 #include <linux/platform_device.h>
 #include <linux/uaccess.h>
 #include <linux/videodev2.h>
@@ -48,7 +13,7 @@ MODULE_AUTHOR("Texas Instruments");
 
 static struct device *dev;
 
-/* Object for CCDC raw mode */
+
 static struct ccdc_params_raw ccdc_hw_params_raw = {
 	.pix_fmt = CCDC_PIXFMT_RAW,
 	.frm_fmt = CCDC_FRMFMT_PROGRESSIVE,
@@ -61,7 +26,7 @@ static struct ccdc_params_raw ccdc_hw_params_raw = {
 	},
 };
 
-/* Object for CCDC ycbcr mode */
+
 static struct ccdc_params_ycbcr ccdc_hw_params_ycbcr = {
 	.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
 	.frm_fmt = CCDC_FRMFMT_INTERLACED,
@@ -76,11 +41,11 @@ static struct ccdc_params_ycbcr ccdc_hw_params_ycbcr = {
 
 #define CCDC_MAX_RAW_YUV_FORMATS	2
 
-/* Raw Bayer formats */
+
 static u32 ccdc_raw_bayer_pix_formats[] =
 	{V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16};
 
-/* Raw YUV formats */
+
 static u32 ccdc_raw_yuv_pix_formats[] =
 	{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
 
@@ -88,7 +53,7 @@ static void *__iomem ccdc_base_addr;
 static int ccdc_addr_size;
 static enum vpfe_hw_if_type ccdc_if_type;
 
-/* register access routines */
+
 static inline u32 regr(u32 offset)
 {
 	return __raw_readl(ccdc_base_addr + offset);
@@ -113,17 +78,13 @@ static void ccdc_enable(int flag)
 static void ccdc_enable_vport(int flag)
 {
 	if (flag)
-		/* enable video port */
+		
 		regw(CCDC_ENABLE_VIDEO_PORT, CCDC_FMTCFG);
 	else
 		regw(CCDC_DISABLE_VIDEO_PORT, CCDC_FMTCFG);
 }
 
-/*
- * ccdc_setwin()
- * This function will configure the window size
- * to be capture in CCDC reg
- */
+
 void ccdc_setwin(struct v4l2_rect *image_win,
 		enum ccdc_frmfmt frm_fmt,
 		int ppc)
@@ -133,11 +94,7 @@ void ccdc_setwin(struct v4l2_rect *image_win,
 	int val = 0, mid_img = 0;
 
 	dev_dbg(dev, "\nStarting ccdc_setwin...");
-	/*
-	 * ppc - per pixel count. indicates how many pixels per cell
-	 * output to SDRAM. example, for ycbcr, it is one y and one c, so 2.
-	 * raw capture this is 1
-	 */
+	
 	horz_start = image_win->left << (ppc - 1);
 	horz_nr_pixels = (image_win->width << (ppc - 1)) - 1;
 	regw((horz_start << CCDC_HORZ_INFO_SPH_SHIFT) | horz_nr_pixels,
@@ -148,20 +105,17 @@ void ccdc_setwin(struct v4l2_rect *image_win,
 	if (frm_fmt == CCDC_FRMFMT_INTERLACED) {
 		vert_nr_lines = (image_win->height >> 1) - 1;
 		vert_start >>= 1;
-		/* Since first line doesn't have any data */
+		
 		vert_start += 1;
-		/* configure VDINT0 */
+		
 		val = (vert_start << CCDC_VDINT_VDINT0_SHIFT);
 		regw(val, CCDC_VDINT);
 
 	} else {
-		/* Since first line doesn't have any data */
+		
 		vert_start += 1;
 		vert_nr_lines = image_win->height - 1;
-		/*
-		 * configure VDINT0 and VDINT1. VDINT1 will be at half
-		 * of image height
-		 */
+		
 		mid_img = vert_start + (image_win->height / 2);
 		val = (vert_start << CCDC_VDINT_VDINT0_SHIFT) |
 		    (mid_img & CCDC_VDINT_VDINT1_MASK);
@@ -235,21 +189,14 @@ static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
 	unsigned int *fpc_physaddr = NULL;
 
 	memcpy(config_params, raw_params, sizeof(*raw_params));
-	/*
-	 * allocate memory for fault pixel table and copy the user
-	 * values to the table
-	 */
+	
 	if (!config_params->fault_pxl.enable)
 		return 0;
 
 	fpc_physaddr = (unsigned int *)config_params->fault_pxl.fpc_table_addr;
 	fpc_virtaddr = (unsigned int *)phys_to_virt(
 				(unsigned long)fpc_physaddr);
-	/*
-	 * Allocate memory for FPC table if current
-	 * FPC table buffer is not big enough to
-	 * accomodate FPC Number requested
-	 */
+	
 	if (raw_params->fault_pxl.fp_num != config_params->fault_pxl.fp_num) {
 		if (fpc_physaddr != NULL) {
 			free_pages((unsigned long)fpc_physaddr,
@@ -258,7 +205,7 @@ static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
 				   FP_NUM_BYTES));
 		}
 
-		/* Allocate memory for FPC table */
+		
 		fpc_virtaddr =
 			(unsigned int *)__get_free_pages(GFP_KERNEL | GFP_DMA,
 							 get_order(raw_params->
@@ -274,7 +221,7 @@ static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
 		    (unsigned int *)virt_to_phys((void *)fpc_virtaddr);
 	}
 
-	/* Copy number of fault pixels and FPC table */
+	
 	config_params->fault_pxl.fp_num = raw_params->fault_pxl.fp_num;
 	if (copy_from_user(fpc_virtaddr,
 			(void __user *)raw_params->fault_pxl.fpc_table_addr,
@@ -304,17 +251,14 @@ static int ccdc_close(struct device *dev)
 	return 0;
 }
 
-/*
- * ccdc_restore_defaults()
- * This function will write defaults to all CCDC registers
- */
+
 static void ccdc_restore_defaults(void)
 {
 	int i;
 
-	/* disable CCDC */
+	
 	ccdc_enable(0);
-	/* set all registers to default value */
+	
 	for (i = 4; i <= 0x94; i += 4)
 		regw(0,  i);
 	regw(CCDC_NO_CULLING, CCDC_CULLING);
@@ -335,7 +279,7 @@ static void ccdc_sbl_reset(void)
 	vpss_clear_wbl_overflow(VPSS_PCR_CCDC_WBL_O);
 }
 
-/* Parameter operations */
+
 static int ccdc_set_params(void __user *params)
 {
 	struct ccdc_config_params_raw ccdc_raw_params;
@@ -358,45 +302,31 @@ static int ccdc_set_params(void __user *params)
 	return -EINVAL;
 }
 
-/*
- * ccdc_config_ycbcr()
- * This function will configure CCDC for YCbCr video capture
- */
+
 void ccdc_config_ycbcr(void)
 {
 	struct ccdc_params_ycbcr *params = &ccdc_hw_params_ycbcr;
 	u32 syn_mode;
 
 	dev_dbg(dev, "\nStarting ccdc_config_ycbcr...");
-	/*
-	 * first restore the CCDC registers to default values
-	 * This is important since we assume default values to be set in
-	 * a lot of registers that we didn't touch
-	 */
+	
 	ccdc_restore_defaults();
 
-	/*
-	 * configure pixel format, frame format, configure video frame
-	 * format, enable output to SDRAM, enable internal timing generator
-	 * and 8bit pack mode
-	 */
+	
 	syn_mode = (((params->pix_fmt & CCDC_SYN_MODE_INPMOD_MASK) <<
 		    CCDC_SYN_MODE_INPMOD_SHIFT) |
 		    ((params->frm_fmt & CCDC_SYN_FLDMODE_MASK) <<
 		    CCDC_SYN_FLDMODE_SHIFT) | CCDC_VDHDEN_ENABLE |
 		    CCDC_WEN_ENABLE | CCDC_DATA_PACK_ENABLE);
 
-	/* setup BT.656 sync mode */
+	
 	if (params->bt656_enable) {
 		regw(CCDC_REC656IF_BT656_EN, CCDC_REC656IF);
 
-		/*
-		 * configure the FID, VD, HD pin polarity,
-		 * fld,hd pol positive, vd negative, 8-bit data
-		 */
+		
 		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE | CCDC_SYN_MODE_8BITS;
 	} else {
-		/* y/c external sync mode */
+		
 		syn_mode |= (((params->fid_pol & CCDC_FID_POL_MASK) <<
 			     CCDC_FID_POL_SHIFT) |
 			     ((params->hd_pol & CCDC_HD_POL_MASK) <<
@@ -406,25 +336,19 @@ void ccdc_config_ycbcr(void)
 	}
 	regw(syn_mode, CCDC_SYN_MODE);
 
-	/* configure video window */
+	
 	ccdc_setwin(&params->win, params->frm_fmt, 2);
 
-	/*
-	 * configure the order of y cb cr in SDRAM, and disable latch
-	 * internal register on vsync
-	 */
+	
 	regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
 		 CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
 
-	/*
-	 * configure the horizontal line offset. This should be a
-	 * on 32 byte bondary. So clear LSB 5 bits
-	 */
+	
 	regw(((params->win.width * 2  + 31) & ~0x1f), CCDC_HSIZE_OFF);
 
-	/* configure the memory line offset */
+	
 	if (params->buf_type == CCDC_BUFTYPE_FLD_INTERLEAVED)
-		/* two fields are interleaved in memory */
+		
 		regw(CCDC_SDOFST_FIELD_INTERLEAVED, CCDC_SDOFST);
 
 	ccdc_sbl_reset();
@@ -437,7 +361,7 @@ static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
 	u32 val;
 
 	if (!bclamp->enable) {
-		/* configure DCSub */
+		
 		val = (bclamp->dc_sub) & CCDC_BLK_DC_SUB_MASK;
 		regw(val, CCDC_DCSUB);
 		dev_dbg(dev, "\nWriting 0x%x to DCSUB...\n", val);
@@ -445,10 +369,7 @@ static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
 		dev_dbg(dev, "\nWriting 0x0000 to CLAMP...\n");
 		return;
 	}
-	/*
-	 * Configure gain,  Start pixel, No of line to be avg,
-	 * No of pixel/line to be avg, & Enable the Black clamping
-	 */
+	
 	val = ((bclamp->sgain & CCDC_BLK_SGAIN_MASK) |
 	       ((bclamp->start_pixel & CCDC_BLK_ST_PXL_MASK) <<
 		CCDC_BLK_ST_PXL_SHIFT) |
@@ -458,7 +379,7 @@ static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
 		CCDC_BLK_SAMPLE_LN_SHIFT) | CCDC_BLK_CLAMP_ENABLE);
 	regw(val, CCDC_CLAMP);
 	dev_dbg(dev, "\nWriting 0x%x to CLAMP...\n", val);
-	/* If Black clamping is enable then make dcsub 0 */
+	
 	regw(CCDC_DCSUB_DEFAULT_VAL, CCDC_DCSUB);
 	dev_dbg(dev, "\nWriting 0x00000000 to DCSUB...\n");
 }
@@ -481,32 +402,29 @@ static void ccdc_config_fpc(struct ccdc_fault_pixel *fpc)
 {
 	u32 val;
 
-	/* Initially disable FPC */
+	
 	val = CCDC_FPC_DISABLE;
 	regw(val, CCDC_FPC);
 
 	if (!fpc->enable)
 		return;
 
-	/* Configure Fault pixel if needed */
+	
 	regw(fpc->fpc_table_addr, CCDC_FPC_ADDR);
 	dev_dbg(dev, "\nWriting 0x%x to FPC_ADDR...\n",
 		       (fpc->fpc_table_addr));
-	/* Write the FPC params with FPC disable */
+	
 	val = fpc->fp_num & CCDC_FPC_FPC_NUM_MASK;
 	regw(val, CCDC_FPC);
 
 	dev_dbg(dev, "\nWriting 0x%x to FPC...\n", val);
-	/* read the FPC register */
+	
 	val = regr(CCDC_FPC) | CCDC_FPC_ENABLE;
 	regw(val, CCDC_FPC);
 	dev_dbg(dev, "\nWriting 0x%x to FPC...\n", val);
 }
 
-/*
- * ccdc_config_raw()
- * This function will configure CCDC for Raw capture mode
- */
+
 void ccdc_config_raw(void)
 {
 	struct ccdc_params_raw *params = &ccdc_hw_params_raw;
@@ -517,19 +435,13 @@ void ccdc_config_raw(void)
 
 	dev_dbg(dev, "\nStarting ccdc_config_raw...");
 
-	/*      Reset CCDC */
+	
 	ccdc_restore_defaults();
 
-	/* Disable latching function registers on VSYNC  */
+	
 	regw(CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
 
-	/*
-	 * Configure the vertical sync polarity(SYN_MODE.VDPOL),
-	 * horizontal sync polarity (SYN_MODE.HDPOL), frame id polarity
-	 * (SYN_MODE.FLDPOL), frame format(progressive or interlace),
-	 * data size(SYNMODE.DATSIZ), &pixel format (Input mode), output
-	 * SDRAM, enable internal timing generator
-	 */
+	
 	syn_mode =
 		(((params->vd_pol & CCDC_VD_POL_MASK) << CCDC_VD_POL_SHIFT) |
 		((params->hd_pol & CCDC_HD_POL_MASK) << CCDC_HD_POL_SHIFT) |
@@ -540,7 +452,7 @@ void ccdc_config_raw(void)
 		((params->pix_fmt & CCDC_PIX_FMT_MASK) << CCDC_PIX_FMT_SHIFT) |
 		CCDC_WEN_ENABLE | CCDC_VDHDEN_ENABLE);
 
-	/* Enable and configure aLaw register if needed */
+	
 	if (config_params->alaw.enable) {
 		val = ((config_params->alaw.gama_wd &
 		      CCDC_ALAW_GAMA_WD_MASK) | CCDC_ALAW_ENABLE);
@@ -548,28 +460,28 @@ void ccdc_config_raw(void)
 		dev_dbg(dev, "\nWriting 0x%x to ALAW...\n", val);
 	}
 
-	/* Configure video window */
+	
 	ccdc_setwin(&params->win, params->frm_fmt, CCDC_PPC_RAW);
 
-	/* Configure Black Clamp */
+	
 	ccdc_config_black_clamp(&config_params->blk_clamp);
 
-	/* Configure Black level compensation */
+	
 	ccdc_config_black_compense(&config_params->blk_comp);
 
-	/* Configure Fault Pixel Correction */
+	
 	ccdc_config_fpc(&config_params->fault_pxl);
 
-	/* If data size is 8 bit then pack the data */
+	
 	if ((config_params->data_sz == CCDC_DATA_8BITS) ||
 	     config_params->alaw.enable)
 		syn_mode |= CCDC_DATA_PACK_ENABLE;
 
 #ifdef CONFIG_DM644X_VIDEO_PORT_ENABLE
-	/* enable video port */
+	
 	val = CCDC_ENABLE_VIDEO_PORT;
 #else
-	/* disable video port */
+	
 	val = CCDC_DISABLE_VIDEO_PORT;
 #endif
 
@@ -579,18 +491,15 @@ void ccdc_config_raw(void)
 	else
 		val |= (config_params->data_sz & CCDC_FMTCFG_VPIN_MASK)
 		    << CCDC_FMTCFG_VPIN_SHIFT;
-	/* Write value in FMTCFG */
+	
 	regw(val, CCDC_FMTCFG);
 
 	dev_dbg(dev, "\nWriting 0x%x to FMTCFG...\n", val);
-	/* Configure the color pattern according to mt9t001 sensor */
+	
 	regw(CCDC_COLPTN_VAL, CCDC_COLPTN);
 
 	dev_dbg(dev, "\nWriting 0xBB11BB11 to COLPTN...\n");
-	/*
-	 * Configure Data formatter(Video port) pixel selection
-	 * (FMT_HORZ, FMT_VERT)
-	 */
+	
 	val = ((params->win.left & CCDC_FMT_HORZ_FMTSPH_MASK) <<
 	      CCDC_FMT_HORZ_FMTSPH_SHIFT) |
 	      (params->win.width & CCDC_FMT_HORZ_FMTLNH_MASK);
@@ -612,30 +521,27 @@ void ccdc_config_raw(void)
 
 	dev_dbg(dev, "\nbelow regw(val, FMT_VERT)...");
 
-	/*
-	 * Configure Horizontal offset register. If pack 8 is enabled then
-	 * 1 pixel will take 1 byte
-	 */
+	
 	if ((config_params->data_sz == CCDC_DATA_8BITS) ||
 	    config_params->alaw.enable)
 		regw((params->win.width + CCDC_32BYTE_ALIGN_VAL) &
 		    CCDC_HSIZE_OFF_MASK, CCDC_HSIZE_OFF);
 	else
-		/* else one pixel will take 2 byte */
+		
 		regw(((params->win.width * CCDC_TWO_BYTES_PER_PIXEL) +
 		    CCDC_32BYTE_ALIGN_VAL) & CCDC_HSIZE_OFF_MASK,
 		    CCDC_HSIZE_OFF);
 
-	/* Set value for SDOFST */
+	
 	if (params->frm_fmt == CCDC_FRMFMT_INTERLACED) {
 		if (params->image_invert_enable) {
-			/* For intelace inverse mode */
+			
 			regw(CCDC_INTERLACED_IMAGE_INVERT, CCDC_SDOFST);
 			dev_dbg(dev, "\nWriting 0x4B6D to SDOFST...\n");
 		}
 
 		else {
-			/* For intelace non inverse mode */
+			
 			regw(CCDC_INTERLACED_NO_IMAGE_INVERT, CCDC_SDOFST);
 			dev_dbg(dev, "\nWriting 0x0249 to SDOFST...\n");
 		}
@@ -644,10 +550,7 @@ void ccdc_config_raw(void)
 		dev_dbg(dev, "\nWriting 0x0000 to SDOFST...\n");
 	}
 
-	/*
-	 * Configure video port pixel selection (VPOUT)
-	 * Here -1 is to make the height value less than FMT_VERT.FMTLNV
-	 */
+	
 	if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE)
 		val = (((params->win.height - 1) & CCDC_VP_OUT_VERT_NUM_MASK))
 		    << CCDC_VP_OUT_VERT_NUM_SHIFT;
@@ -808,7 +711,7 @@ static int ccdc_getfid(void)
 	return (regr(CCDC_SYN_MODE) >> 15) & 1;
 }
 
-/* misc operations */
+
 static inline void ccdc_setfbaddr(unsigned long addr)
 {
 	regw(addr & 0xffffffe0, CCDC_SDR_ADDR);
@@ -826,7 +729,7 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
 		ccdc_hw_params_ycbcr.hd_pol = params->hdpol;
 		break;
 	default:
-		/* TODO add support for raw bayer here */
+		
 		return -EINVAL;
 	}
 	return 0;

@@ -1,15 +1,4 @@
-/*
- *  Driver for Dell laptop extras
- *
- *  Copyright (c) Red Hat <mjg@redhat.com>
- *
- *  Based on documentation in the libsmbios package, Copyright (C) 2005 Dell
- *  Inc.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -26,8 +15,7 @@
 
 #define BRIGHTNESS_TOKEN 0x7d
 
-/* This structure will be modified by the firmware when we enter
- * system management mode, hence the volatiles */
+
 
 struct calling_interface_buffer {
 	u16 class;
@@ -76,13 +64,12 @@ static const struct dmi_system_id __initdata dell_device_table[] = {
 
 static void parse_da_table(const struct dmi_header *dm)
 {
-	/* Final token is a terminator, so we don't want to copy it */
+	
 	int tokens = (dm->length-11)/sizeof(struct calling_interface_token)-1;
 	struct calling_interface_structure *table =
 		container_of(dm, struct calling_interface_structure, header);
 
-	/* 4 bytes of table header, plus 7 bytes of Dell header, plus at least
-	   6 bytes of entry */
+	
 
 	if (dm->length < 17)
 		return;
@@ -106,13 +93,13 @@ static void parse_da_table(const struct dmi_header *dm)
 static void find_tokens(const struct dmi_header *dm, void *dummy)
 {
 	switch (dm->type) {
-	case 0xd4: /* Indexed IO */
+	case 0xd4: 
 		break;
-	case 0xd5: /* Protected Area Type 1 */
+	case 0xd5: 
 		break;
-	case 0xd6: /* Protected Area Type 2 */
+	case 0xd6: 
 		break;
-	case 0xda: /* Calling interface */
+	case 0xda: 
 		parse_da_table(dm);
 		break;
 	}
@@ -149,30 +136,7 @@ dell_send_request(struct calling_interface_buffer *buffer, int class,
 	return buffer;
 }
 
-/* Derived from information in DellWirelessCtl.cpp:
-   Class 17, select 11 is radio control. It returns an array of 32-bit values.
 
-   result[0]: return code
-   result[1]:
-     Bit 0:      Hardware switch supported
-     Bit 1:      Wifi locator supported
-     Bit 2:      Wifi is supported
-     Bit 3:      Bluetooth is supported
-     Bit 4:      WWAN is supported
-     Bit 5:      Wireless keyboard supported
-     Bits 6-7:   Reserved
-     Bit 8:      Wifi is installed
-     Bit 9:      Bluetooth is installed
-     Bit 10:     WWAN is installed
-     Bits 11-15: Reserved
-     Bit 16:     Hardware switch is on
-     Bit 17:     Wifi is blocked
-     Bit 18:     Bluetooth is blocked
-     Bit 19:     WWAN is blocked
-     Bits 20-31: Reserved
-   result[2]: NVRAM size in bytes
-   result[3]: NVRAM format version number
-*/
 
 static int dell_rfkill_set(void *data, bool blocked)
 {
@@ -334,9 +298,7 @@ static int __init dell_init(void)
 	}
 
 #ifdef CONFIG_ACPI
-	/* In the event of an ACPI backlight being available, don't
-	 * register the platform controller.
-	 */
+	
 	if (acpi_video_backlight_support())
 		return 0;
 #endif

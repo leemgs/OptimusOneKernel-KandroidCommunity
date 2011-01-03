@@ -16,18 +16,13 @@
 #define RPCDBG_FACILITY	RPCDBG_AUTH
 
 
-/*
- * AUTHUNIX and AUTHNULL credentials are both handled here.
- * AUTHNULL is treated just like AUTHUNIX except that the uid/gid
- * are always nobody (-2).  i.e. we do the same IP address checks for
- * AUTHNULL as for AUTHUNIX, and that is done here.
- */
+
 
 
 struct unix_domain {
 	struct auth_domain	h;
 	int	addr_changes;
-	/* other stuff later */
+	
 };
 
 extern struct auth_ops svcauth_unix;
@@ -75,17 +70,14 @@ static void svcauth_unix_domain_release(struct auth_domain *dom)
 }
 
 
-/**************************************************
- * cache for IP address to unix_domain
- * as needed by AUTH_UNIX
- */
+
 #define	IP_HASHBITS	8
 #define	IP_HASHMAX	(1<<IP_HASHBITS)
 #define	IP_HASHMASK	(IP_HASHMAX-1)
 
 struct ip_map {
 	struct cache_head	h;
-	char			m_class[8]; /* e.g. "nfsd" */
+	char			m_class[8]; 
 	struct in6_addr		m_addr;
 	struct unix_domain	*m_client;
 	int			m_add_change;
@@ -104,10 +96,7 @@ static void ip_map_put(struct kref *kref)
 }
 
 #if IP_HASHBITS == 8
-/* hash_long on a 64 bit machine is currently REALLY BAD for
- * IP addresses in reverse-endian (i.e. on a little-endian machine).
- * So use a trivial but reliable hash instead
- */
+
 static inline int hash_ip(__be32 ip)
 {
 	int hash = (__force u32)ip ^ ((__force u32)ip>>16);
@@ -182,9 +171,8 @@ static int ip_map_update(struct ip_map *ipm, struct unix_domain *udom, time_t ex
 static int ip_map_parse(struct cache_detail *cd,
 			  char *mesg, int mlen)
 {
-	/* class ipaddress [domainname] */
-	/* should be safe just to use the start of the input buffer
-	 * for scratch: */
+	
+	
 	char *buf = mesg;
 	int len;
 	int b1, b2, b3, b4, b5, b6, b7, b8;
@@ -201,11 +189,11 @@ static int ip_map_parse(struct cache_detail *cd,
 		return -EINVAL;
 	mesg[mlen-1] = 0;
 
-	/* class */
+	
 	len = qword_get(&mesg, class, sizeof(class));
 	if (len <= 0) return -EINVAL;
 
-	/* ip address */
+	
 	len = qword_get(&mesg, buf, mlen);
 	if (len <= 0) return -EINVAL;
 
@@ -232,7 +220,7 @@ static int ip_map_parse(struct cache_detail *cd,
 	if (expiry ==0)
 		return -EINVAL;
 
-	/* domainname, or empty for NEGATIVE */
+	
 	len = qword_get(&mesg, buf, mlen);
 	if (len < 0) return -EINVAL;
 
@@ -271,7 +259,7 @@ static int ip_map_show(struct seq_file *m,
 		return 0;
 	}
 	im = container_of(h, struct ip_map, h);
-	/* class addr domain */
+	
 	ipv6_addr_copy(&addr, &im->m_addr);
 
 	if (test_bit(CACHE_VALID, &h->flags) &&
@@ -331,9 +319,7 @@ static int ip_map_update(struct ip_map *ipm, struct unix_domain *udom, time_t ex
 		set_bit(CACHE_NEGATIVE, &ip.h.flags);
 	else {
 		ip.m_add_change = udom->addr_changes;
-		/* if this is from the legacy set_client system call,
-		 * we need m_add_change to be one higher
-		 */
+		
 		if (expiry == NEVER)
 			ip.m_add_change++;
 	}
@@ -419,11 +405,7 @@ ip_map_cached_get(struct svc_rqst *rqstp)
 		ipm = xprt->xpt_auth_cache;
 		if (ipm != NULL) {
 			if (!cache_valid(&ipm->h)) {
-				/*
-				 * The entry has been invalidated since it was
-				 * remembered, e.g. by a second mount from the
-				 * same IP address.
-				 */
+				
 				xprt->xpt_auth_cache = NULL;
 				spin_unlock(&xprt->xpt_lock);
 				cache_put(&ipm->h, &ip_map_cache);
@@ -444,7 +426,7 @@ ip_map_cached_put(struct svc_rqst *rqstp, struct ip_map *ipm)
 	if (test_bit(XPT_CACHE_AUTH, &xprt->xpt_flags)) {
 		spin_lock(&xprt->xpt_lock);
 		if (xprt->xpt_auth_cache == NULL) {
-			/* newly cached, keep the reference */
+			
 			xprt->xpt_auth_cache = ipm;
 			ipm = NULL;
 		}
@@ -461,11 +443,7 @@ svcauth_unix_info_release(void *info)
 	cache_put(&ipm->h, &ip_map_cache);
 }
 
-/****************************************************************************
- * auth.unix.gid cache
- * simple cache to map a UID to a list of GIDs
- * because AUTH_UNIX aka AUTH_SYS has a max of 16
- */
+
 #define	GID_HASHBITS	8
 #define	GID_HASHMAX	(1<<GID_HASHBITS)
 #define	GID_HASHMASK	(GID_HASHMAX - 1)
@@ -539,7 +517,7 @@ extern struct cache_detail unix_gid_cache;
 static int unix_gid_parse(struct cache_detail *cd,
 			char *mesg, int mlen)
 {
-	/* uid expiry Ngid gid0 gid1 ... gidN-1 */
+	
 	int uid;
 	int gids;
 	int rv;
@@ -751,14 +729,14 @@ svcauth_null_accept(struct svc_rqst *rqstp, __be32 *authp)
 		return SVC_DENIED;
 	}
 
-	/* Signal that mapping to nobody uid/gid is required */
+	
 	cred->cr_uid = (uid_t) -1;
 	cred->cr_gid = (gid_t) -1;
 	cred->cr_group_info = groups_alloc(0);
 	if (cred->cr_group_info == NULL)
-		return SVC_DROP; /* kmalloc failure - client must retry */
+		return SVC_DROP; 
 
-	/* Put NULL verifier */
+	
 	svc_putnl(resv, RPC_AUTH_NULL);
 	svc_putnl(resv, 0);
 
@@ -776,7 +754,7 @@ svcauth_null_release(struct svc_rqst *rqstp)
 		put_group_info(rqstp->rq_cred.cr_group_info);
 	rqstp->rq_cred.cr_group_info = NULL;
 
-	return 0; /* don't drop */
+	return 0; 
 }
 
 
@@ -805,17 +783,17 @@ svcauth_unix_accept(struct svc_rqst *rqstp, __be32 *authp)
 	if ((len -= 3*4) < 0)
 		return SVC_GARBAGE;
 
-	svc_getu32(argv);			/* length */
-	svc_getu32(argv);			/* time stamp */
-	slen = XDR_QUADLEN(svc_getnl(argv));	/* machname length */
+	svc_getu32(argv);			
+	svc_getu32(argv);			
+	slen = XDR_QUADLEN(svc_getnl(argv));	
 	if (slen > 64 || (len -= (slen + 3)*4) < 0)
 		goto badcred;
-	argv->iov_base = (void*)((__be32*)argv->iov_base + slen);	/* skip machname */
+	argv->iov_base = (void*)((__be32*)argv->iov_base + slen);	
 	argv->iov_len -= slen*4;
 
-	cred->cr_uid = svc_getnl(argv);		/* uid */
-	cred->cr_gid = svc_getnl(argv);		/* gid */
-	slen = svc_getnl(argv);			/* gids length */
+	cred->cr_uid = svc_getnl(argv);		
+	cred->cr_gid = svc_getnl(argv);		
+	slen = svc_getnl(argv);			
 	if (slen > 16 || (len -= (slen + 2)*4) < 0)
 		goto badcred;
 	if (unix_gid_find(cred->cr_uid, &cred->cr_group_info, rqstp)
@@ -836,7 +814,7 @@ svcauth_unix_accept(struct svc_rqst *rqstp, __be32 *authp)
 		return SVC_DENIED;
 	}
 
-	/* Put NULL verifier */
+	
 	svc_putnl(resv, RPC_AUTH_NULL);
 	svc_putnl(resv, 0);
 
@@ -851,8 +829,7 @@ badcred:
 static int
 svcauth_unix_release(struct svc_rqst *rqstp)
 {
-	/* Verifier (such as it is) is already in place.
-	 */
+	
 	if (rqstp->rq_client)
 		auth_domain_put(rqstp->rq_client);
 	rqstp->rq_client = NULL;

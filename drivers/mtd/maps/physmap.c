@@ -1,11 +1,4 @@
-/*
- * Normal mappings of chips in physical memory
- *
- * Copyright (C) 2003 MontaVista Software Inc.
- * Author: Jun Sun, jsun@mvista.com or jsun@junsun.net
- *
- * 031022 - [jsun] add run-time configure and partition setup
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -153,9 +146,7 @@ static int physmap_flash_probe(struct platform_device *dev)
 	if (devices_found == 1) {
 		info->cmtd = info->mtd[0];
 	} else if (devices_found > 1) {
-		/*
-		 * We detected multiple devices. Concatenate them together.
-		 */
+		
 #ifdef CONFIG_MTD_CONCAT
 		info->cmtd = mtd_concat_create(info->mtd, devices_found, dev_name(&dev->dev));
 		if (info->cmtd == NULL)
@@ -287,8 +278,8 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
 MODULE_DESCRIPTION("Generic configurable MTD map driver");
 
-/* legacy platform drivers can't hotplug or coldplg */
+
 #ifndef CONFIG_MTD_PHYSMAP_COMPAT
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:physmap-flash");
 #endif

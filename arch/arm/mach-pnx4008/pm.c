@@ -1,15 +1,4 @@
-/*
- * arch/arm/mach-pnx4008/pm.c
- *
- * Power Management driver for PNX4008
- *
- * Authors: Vitaly Wool, Dmitry Chigirev <source@mvista.com>
- *
- * 2005 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 
 #include <linux/pm.h>
 #include <linux/rtc.h>
@@ -39,21 +28,20 @@ static inline void pnx4008_standby(void)
 
 	clk_disable(pll4_clk);
 
-	/*saving portion of SRAM to be used by suspend function. */
+	
 	memcpy(saved_sram, (void *)SRAM_VA, pnx4008_cpu_standby_sz);
 
-	/*make sure SRAM copy gets physically written into SDRAM.
-	   SDRAM will be placed into self-refresh during power down */
+	
 	flush_cache_all();
 
-	/*copy suspend function into SRAM */
+	
 	memcpy((void *)SRAM_VA, pnx4008_cpu_standby, pnx4008_cpu_standby_sz);
 
-	/*do suspend */
+	
 	pnx4008_cpu_standby_ptr = (void *)SRAM_VA;
 	pnx4008_cpu_standby_ptr();
 
-	/*restoring portion of SRAM that was used by suspend function */
+	
 	memcpy((void *)SRAM_VA, saved_sram, pnx4008_cpu_standby_sz);
 
 	clk_enable(pll4_clk);
@@ -74,21 +62,20 @@ static inline void pnx4008_suspend(void)
 	__raw_writel(0xffffffff, START_INT_RSR_REG(SE_PIN_BASE_INT));
 	__raw_writel(0xffffffff, START_INT_RSR_REG(SE_INT_BASE_INT));
 
-	/*saving portion of SRAM to be used by suspend function. */
+	
 	memcpy(saved_sram, (void *)SRAM_VA, pnx4008_cpu_suspend_sz);
 
-	/*make sure SRAM copy gets physically written into SDRAM.
-	   SDRAM will be placed into self-refresh during power down */
+	
 	flush_cache_all();
 
-	/*copy suspend function into SRAM */
+	
 	memcpy((void *)SRAM_VA, pnx4008_cpu_suspend, pnx4008_cpu_suspend_sz);
 
-	/*do suspend */
+	
 	pnx4008_cpu_suspend_ptr = (void *)SRAM_VA;
 	pnx4008_cpu_suspend_ptr();
 
-	/*restoring portion of SRAM that was used by suspend function */
+	
 	memcpy((void *)SRAM_VA, saved_sram, pnx4008_cpu_suspend_sz);
 
 	clk_enable(pll4_clk);

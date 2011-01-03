@@ -1,10 +1,4 @@
-/*
- *  linux/arch/arm/mach-mmp/clock.h
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <asm/clkdev.h>
 
@@ -17,9 +11,9 @@ struct clkops {
 struct clk {
 	const struct clkops	*ops;
 
-	void __iomem	*clk_rst;	/* clock reset control register */
-	int		fnclksel;	/* functional clock select (APBC) */
-	uint32_t	enable_val;	/* value for clock enable (APMU) */
+	void __iomem	*clk_rst;	
+	int		fnclksel;	
+	uint32_t	enable_val;	
 	unsigned long	rate;
 	int		enabled;
 };

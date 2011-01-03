@@ -1,26 +1,4 @@
-/* netsc520.c -- MTD map driver for AMD NetSc520 Demonstration Board
- *
- * Copyright (C) 2001 Mark Langsdorf (mark.langsdorf@amd.com)
- *	based on sc520cdp.c by Sysgo Real-Time Solutions GmbH
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
- *
- * The NetSc520 is a demonstration board for the Elan Sc520 processor available
- * from AMD.  It has a single back of 16 megs of 32-bit Flash ROM and another
- * 16 megs of SDRAM.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -32,26 +10,9 @@
 #include <linux/mtd/partitions.h>
 
 
-/*
-** The single, 16 megabyte flash bank is divided into four virtual
-** partitions.  The first partition is 768 KiB and is intended to
-** store the kernel image loaded by the bootstrap loader.  The second
-** partition is 256 KiB and holds the BIOS image.  The third
-** partition is 14.5 MiB and is intended for the flash file system
-** image.  The last partition is 512 KiB and contains another copy
-** of the BIOS image and the reset vector.
-**
-** Only the third partition should be mounted.  The first partition
-** should not be mounted, but it can erased and written to using the
-** MTD character routines.  The second and fourth partitions should
-** not be touched - it is possible to corrupt the BIOS image by
-** mounting these partitions, and potentially the board will not be
-** recoverable afterwards.
-*/
 
-/* partition_info gives details on the logical partitions that the split the
- * single flash device into. If the size if zero we use up to the end of the
- * device. */
+
+
 static struct mtd_partition partition_info[]={
     {
 	    .name = "NetSc520 boot kernel",

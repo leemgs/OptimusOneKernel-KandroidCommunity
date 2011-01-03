@@ -1,46 +1,8 @@
-/*
- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #include "iwch_provider.h"
 #include "iwch.h"
 
-/*
- * Get one cq entry from cxio and map it to openib.
- *
- * Returns:
- *	0			EMPTY;
- *	1			cqe returned
- *	-EAGAIN		caller must try again
- *	any other -errno	fatal error
- */
+
 static int iwch_poll_cq_one(struct iwch_dev *rhp, struct iwch_cq *chp,
 			    struct ib_wc *wc)
 {
@@ -209,11 +171,7 @@ int iwch_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
 		int i=0;
 #endif
 
-		/*
-		 * Because T3 can post CQEs that are _not_ associated
-		 * with a WR, we might have to poll again after removing
-		 * one of these.
-		 */
+		
 		do {
 			err = iwch_poll_cq_one(rhp, chp, wc + npolled);
 #ifdef DEBUG

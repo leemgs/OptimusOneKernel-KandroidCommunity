@@ -1,11 +1,4 @@
-/* iptables module for the IPv4 and TCP ECN bits, Version 1.5
- *
- * (C) 2002 by Harald Welte <laforge@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/in.h>
 #include <linux/module.h>
@@ -23,8 +16,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
 MODULE_DESCRIPTION("Xtables: Explicit Congestion Notification (ECN) flag modification");
 
-/* set ECT codepoint from IP header.
- * 	return false if there was an error. */
+
 static inline bool
 set_ect_ip(struct sk_buff *skb, const struct ipt_ECN_info *einfo)
 {
@@ -43,14 +35,14 @@ set_ect_ip(struct sk_buff *skb, const struct ipt_ECN_info *einfo)
 	return true;
 }
 
-/* Return false if there was an error. */
+
 static inline bool
 set_ect_tcp(struct sk_buff *skb, const struct ipt_ECN_info *einfo)
 {
 	struct tcphdr _tcph, *tcph;
 	__be16 oldval;
 
-	/* Not enought header? */
+	
 	tcph = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_tcph), &_tcph);
 	if (!tcph)
 		return false;

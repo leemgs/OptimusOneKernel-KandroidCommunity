@@ -1,31 +1,4 @@
-/*
- *  acpi_osl.c - OS-dependent functions ($Revision: 83 $)
- *
- *  Copyright (C) 2000       Andrew Henroid
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *  Copyright (c) 2008 Intel Corporation
- *   Author: Matthew Wilcox <willy@linux.intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -68,12 +41,12 @@ struct acpi_os_dpc {
 #ifdef ENABLE_DEBUGGER
 #include <linux/kdb.h>
 
-/* stuff for debugger support */
+
 int acpi_in_debugger;
 EXPORT_SYMBOL(acpi_in_debugger);
 
 extern char line_buf[80];
-#endif				/*ENABLE_DEBUGGER */
+#endif				
 
 static unsigned int acpi_irq_irq;
 static acpi_osd_handler acpi_irq_handler;
@@ -85,9 +58,8 @@ static struct workqueue_struct *kacpi_hotplug_wq;
 struct acpi_res_list {
 	resource_size_t start;
 	resource_size_t end;
-	acpi_adr_space_type resource_type; /* IO port, System memory, ...*/
-	char name[5];   /* only can have a length of 4 chars, make use of this
-			   one instead of res->name, no need to kalloc then */
+	acpi_adr_space_type resource_type; 
+	char name[5];   
 	struct list_head resource_list;
 	int count;
 };
@@ -95,41 +67,10 @@ struct acpi_res_list {
 static LIST_HEAD(resource_list_head);
 static DEFINE_SPINLOCK(acpi_res_lock);
 
-#define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+#define	OSI_STRING_LENGTH_MAX 64	
 static char osi_additional_string[OSI_STRING_LENGTH_MAX];
 
-/*
- * The story of _OSI(Linux)
- *
- * From pre-history through Linux-2.6.22,
- * Linux responded TRUE upon a BIOS OSI(Linux) query.
- *
- * Unfortunately, reference BIOS writers got wind of this
- * and put OSI(Linux) in their example code, quickly exposing
- * this string as ill-conceived and opening the door to
- * an un-bounded number of BIOS incompatibilities.
- *
- * For example, OSI(Linux) was used on resume to re-POST a
- * video card on one system, because Linux at that time
- * could not do a speedy restore in its native driver.
- * But then upon gaining quick native restore capability,
- * Linux has no way to tell the BIOS to skip the time-consuming
- * POST -- putting Linux at a permanent performance disadvantage.
- * On another system, the BIOS writer used OSI(Linux)
- * to infer native OS support for IPMI!  On other systems,
- * OSI(Linux) simply got in the way of Linux claiming to
- * be compatible with other operating systems, exposing
- * BIOS issues such as skipped device initialization.
- *
- * So "Linux" turned out to be a really poor chose of
- * OSI string, and from Linux-2.6.23 onward we respond FALSE.
- *
- * BIOS writers should NOT query _OSI(Linux) on future systems.
- * Linux will complain on the console when it sees it, and return FALSE.
- * To get Linux to return TRUE for your system  will require
- * a kernel source update to add a DMI entry,
- * or boot with "acpi_osi=Linux"
- */
+
 
 static struct osi_linux {
 	unsigned int	enable:1;
@@ -172,7 +113,7 @@ static int __init acpi_reserve_resources(void)
 	acpi_request_region(&acpi_gbl_FADT.xpm2_control_block, acpi_gbl_FADT.pm2_control_length,
 		"ACPI PM2_CNT_BLK");
 
-	/* Length of GPE blocks must be a non-negative multiple of 2 */
+	
 
 	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1))
 		acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
@@ -208,13 +149,7 @@ static void bind_workqueue(struct workqueue_struct *wq)
 
 acpi_status acpi_os_initialize1(void)
 {
-	/*
-	 * On some machines, a software-initiated SMI causes corruption unless
-	 * the SMI runs on CPU 0.  An SMI can be initiated by any AML, but
-	 * typically it's done in GPE-related methods that are run via
-	 * workqueues, so we can avoid the known corruption cases by binding
-	 * the workqueues to CPU 0.
-	 */
+	
 	kacpid_wq = create_singlethread_workqueue("kacpid");
 	bind_workqueue(kacpid_wq);
 	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
@@ -294,9 +229,7 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
 		return NULL;
 	}
 	if (acpi_gbl_permanent_mmap)
-		/*
-		* ioremap checks to ensure this is in reserved space
-		*/
+		
 		return ioremap((unsigned long)phys, size);
 	else
 		return __acpi_map_table((unsigned long)phys, size);
@@ -398,11 +331,7 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
 
 	acpi_irq_stats_init();
 
-	/*
-	 * Ignore the GSI from the core, and use the value in our copy of the
-	 * FADT. It may not be the same if an interrupt source override exists
-	 * for the SCI.
-	 */
+	
 	gsi = acpi_gbl_FADT.sci_interrupt;
 	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
 		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not registered\n",
@@ -432,9 +361,7 @@ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
 	return AE_OK;
 }
 
-/*
- * Running in interpreter thread context, safe to sleep
- */
+
 
 void acpi_os_sleep(acpi_integer ms)
 {
@@ -454,21 +381,17 @@ void acpi_os_stall(u32 us)
 	}
 }
 
-/*
- * Support ACPI 3.0 AML Timer operand
- * Returns 64-bit free-running, monotonically increasing timer
- * with 100ns granularity
- */
+
 u64 acpi_os_get_timer(void)
 {
 	static u64 t;
 
 #ifdef	CONFIG_HPET
-	/* TBD: use HPET if available */
+	
 #endif
 
 #ifdef	CONFIG_X86_PM_TIMER
-	/* TBD: default to PM timer if HPET was not available */
+	
 #endif
 	if (!t)
 		printk(KERN_ERR PREFIX "acpi_os_get_timer() TBD\n");
@@ -628,9 +551,9 @@ acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
 	return (result ? AE_ERROR : AE_OK);
 }
 
-/* TODO: Change code to take advantage of driver model more */
-static void acpi_os_derive_pci_id_2(acpi_handle rhandle,	/* upper bound  */
-				    acpi_handle chandle,	/* current node */
+
+static void acpi_os_derive_pci_id_2(acpi_handle rhandle,	
+				    acpi_handle chandle,	
 				    struct acpi_pci_id **id,
 				    int *is_bridge, u8 * bus_number)
 {
@@ -659,7 +582,7 @@ static void acpi_os_derive_pci_id_2(acpi_handle rhandle,	/* upper bound  */
 			if (*is_bridge)
 				pci_id->bus = *bus_number;
 
-			/* any nicer way to get bus number of bridge ? */
+			
 			status =
 			    acpi_os_read_pci_configuration(pci_id, 0x0e, &val,
 							   8);
@@ -669,7 +592,7 @@ static void acpi_os_derive_pci_id_2(acpi_handle rhandle,	/* upper bound  */
 				    acpi_os_read_pci_configuration(pci_id, 0x18,
 								   &val, 8);
 				if (!ACPI_SUCCESS(status)) {
-					/* Certainly broken...  FIX ME */
+					
 					return;
 				}
 				*is_bridge = 1;
@@ -686,8 +609,8 @@ static void acpi_os_derive_pci_id_2(acpi_handle rhandle,	/* upper bound  */
 	}
 }
 
-void acpi_os_derive_pci_id(acpi_handle rhandle,	/* upper bound  */
-			   acpi_handle chandle,	/* current node */
+void acpi_os_derive_pci_id(acpi_handle rhandle,	
+			   acpi_handle chandle,	
 			   struct acpi_pci_id **id)
 {
 	int is_bridge = 1;
@@ -707,20 +630,7 @@ static void acpi_os_execute_deferred(struct work_struct *work)
 	kfree(dpc);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_os_execute
- *
- * PARAMETERS:  Type               - Type of the callback
- *              Function           - Function to be executed
- *              Context            - Function parameters
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Depending on type, either queues function for deferred execution or
- *              immediately executes function on a separate thread.
- *
- ******************************************************************************/
+
 
 static acpi_status __acpi_os_execute(acpi_execute_type type,
 	acpi_osd_exec_callback function, void *context, int hp)
@@ -733,14 +643,7 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
 			  "Scheduling function [%p(%p)] for deferred execution.\n",
 			  function, context));
 
-	/*
-	 * Allocate/initialize DPC structure.  Note that this memory will be
-	 * freed by the callee.  The kernel handles the work_struct list  in a
-	 * way that allows us to also free its memory inside the callee.
-	 * Because we may want to schedule several tasks with different
-	 * parameters we can't use the approach some kernel code uses of
-	 * having a static work_struct.
-	 */
+	
 
 	dpc = kmalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
 	if (!dpc)
@@ -749,12 +652,7 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
 	dpc->function = function;
 	dpc->context = context;
 
-	/*
-	 * We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
-	 * because the hotplug code may call driver .remove() functions,
-	 * which invoke flush_scheduled_work/acpi_os_wait_events_complete
-	 * to flush these workqueues.
-	 */
+	
 	queue = hp ? kacpi_hotplug_wq :
 		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
 	dpc->wait = hp ? 1 : 0;
@@ -791,9 +689,7 @@ void acpi_os_wait_events_complete(void *context)
 
 EXPORT_SYMBOL(acpi_os_wait_events_complete);
 
-/*
- * Allocate the memory for a spinlock and initialize it.
- */
+
 acpi_status acpi_os_create_lock(acpi_spinlock * handle)
 {
 	spin_lock_init(*handle);
@@ -801,9 +697,7 @@ acpi_status acpi_os_create_lock(acpi_spinlock * handle)
 	return AE_OK;
 }
 
-/*
- * Deallocate the memory for a spinlock.
- */
+
 void acpi_os_delete_lock(acpi_spinlock handle)
 {
 	return;
@@ -829,12 +723,7 @@ acpi_os_create_semaphore(u32 max_units, u32 initial_units, acpi_handle * handle)
 	return AE_OK;
 }
 
-/*
- * TODO: A better way to delete semaphores?  Linux doesn't have a
- * 'delete_semaphore()' function -- may result in an invalid
- * pointer dereference for non-synchronized consumers.	Should
- * we at least check for blocked threads and signal/cancel them?
- */
+
 
 acpi_status acpi_os_delete_semaphore(acpi_handle handle)
 {
@@ -852,9 +741,7 @@ acpi_status acpi_os_delete_semaphore(acpi_handle handle)
 	return AE_OK;
 }
 
-/*
- * TODO: Support for units > 1?
- */
+
 acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
 {
 	acpi_status status = AE_OK;
@@ -894,9 +781,7 @@ acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
 	return status;
 }
 
-/*
- * TODO: Support for units > 1?
- */
+
 acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units)
 {
 	struct semaphore *sem = (struct semaphore *)handle;
@@ -925,7 +810,7 @@ u32 acpi_os_get_line(char *buffer)
 
 		kdb_read(buffer, sizeof(line_buf));
 
-		/* remove the CR kdb includes */
+		
 		chars = strlen(buffer) - 1;
 		buffer[chars] = '\0';
 	}
@@ -933,7 +818,7 @@ u32 acpi_os_get_line(char *buffer)
 
 	return 0;
 }
-#endif				/*  ACPI_FUTURE_USAGE  */
+#endif				
 
 acpi_status acpi_os_signal(u32 function, void *info)
 {
@@ -942,14 +827,7 @@ acpi_status acpi_os_signal(u32 function, void *info)
 		printk(KERN_ERR PREFIX "Fatal opcode executed\n");
 		break;
 	case ACPI_SIGNAL_BREAKPOINT:
-		/*
-		 * AML Breakpoint
-		 * ACPI spec. says to treat it as a NOP unless
-		 * you are debugging.  So if/when we integrate
-		 * AML debugger into the kernel debugger its
-		 * hook will go here.  But until then it is
-		 * not useful to print anything on breakpoints.
-		 */
+		
 		break;
 	default:
 		break;
@@ -994,7 +872,7 @@ static void __init set_osi_linux(unsigned int enable)
 
 static void __init acpi_cmdline_osi_linux(unsigned int enable)
 {
-	osi_linux.cmdline = 1;	/* cmdline set the default */
+	osi_linux.cmdline = 1;	
 	set_osi_linux(enable);
 
 	return;
@@ -1002,39 +880,33 @@ static void __init acpi_cmdline_osi_linux(unsigned int enable)
 
 void __init acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d)
 {
-	osi_linux.dmi = 1;	/* DMI knows that this box asks OSI(Linux) */
+	osi_linux.dmi = 1;	
 
 	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
 
 	if (enable == -1)
 		return;
 
-	osi_linux.known = 1;	/* DMI knows which OSI(Linux) default needed */
+	osi_linux.known = 1;	
 
 	set_osi_linux(enable);
 
 	return;
 }
 
-/*
- * Modify the list of "OS Interfaces" reported to BIOS via _OSI
- *
- * empty string disables _OSI
- * string starting with '!' disables that string
- * otherwise string is added to list, augmenting built-in strings
- */
+
 int __init acpi_osi_setup(char *str)
 {
 	if (str == NULL || *str == '\0') {
 		printk(KERN_INFO PREFIX "_OSI method disabled\n");
 		acpi_gbl_create_osi_method = FALSE;
 	} else if (!strcmp("!Linux", str)) {
-		acpi_cmdline_osi_linux(0);	/* !enable */
+		acpi_cmdline_osi_linux(0);	
 	} else if (*str == '!') {
 		if (acpi_osi_invalidate(++str) == AE_OK)
 			printk(KERN_INFO PREFIX "Deleted _OSI(%s)\n", str);
 	} else if (!strcmp("Linux", str)) {
-		acpi_cmdline_osi_linux(1);	/* enable */
+		acpi_cmdline_osi_linux(1);	
 	} else if (*osi_additional_string == '\0') {
 		strncpy(osi_additional_string, str, OSI_STRING_LENGTH_MAX);
 		printk(KERN_INFO PREFIX "Added _OSI(%s)\n", str);
@@ -1045,7 +917,7 @@ int __init acpi_osi_setup(char *str)
 
 __setup("acpi_osi=", acpi_osi_setup);
 
-/* enable serialization to combat AE_ALREADY_EXISTS errors */
+
 static int __init acpi_serialize_setup(char *str)
 {
 	printk(KERN_INFO PREFIX "serialize enabled\n");
@@ -1057,15 +929,7 @@ static int __init acpi_serialize_setup(char *str)
 
 __setup("acpi_serialize", acpi_serialize_setup);
 
-/*
- * Wake and Run-Time GPES are expected to be separate.
- * We disable wake-GPEs at run-time to prevent spurious
- * interrupts.
- *
- * However, if a system exists that shares Wake and
- * Run-time events on the same GPE this flag is available
- * to tell Linux to keep the wake-time GPEs enabled at run-time.
- */
+
 static int __init acpi_wake_gpes_always_on_setup(char *str)
 {
 	printk(KERN_INFO PREFIX "wake GPEs not disabled\n");
@@ -1077,22 +941,7 @@ static int __init acpi_wake_gpes_always_on_setup(char *str)
 
 __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
 
-/* Check of resource interference between native drivers and ACPI
- * OperationRegions (SystemIO and System Memory only).
- * IO ports and memory declared in ACPI might be used by the ACPI subsystem
- * in arbitrary AML code and can interfere with legacy drivers.
- * acpi_enforce_resources= can be set to:
- *
- *   - strict (default) (2)
- *     -> further driver trying to access the resources will not load
- *   - lax              (1)
- *     -> further driver trying to access the resources will load, but you
- *     get a system message that something might go wrong...
- *
- *   - no               (0)
- *     -> ACPI Operation Region resources will not be registered
- *
- */
+
 #define ENFORCE_RESOURCES_STRICT 2
 #define ENFORCE_RESOURCES_LAX    1
 #define ENFORCE_RESOURCES_NO     0
@@ -1116,8 +965,7 @@ static int __init acpi_enforce_resources_setup(char *str)
 
 __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
 
-/* Check for resource conflicts between ACPI OperationRegions and native
- * drivers */
+
 int acpi_check_resource_conflict(struct resource *res)
 {
 	struct acpi_res_list *res_list_elem;
@@ -1205,11 +1053,7 @@ int acpi_check_mem_region(resource_size_t start, resource_size_t n,
 }
 EXPORT_SYMBOL(acpi_check_mem_region);
 
-/*
- * Acquire a spinlock.
- *
- * handle is a pointer to the spinlock_t.
- */
+
 
 acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock lockp)
 {
@@ -1218,9 +1062,7 @@ acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock lockp)
 	return flags;
 }
 
-/*
- * Release a spinlock. See above.
- */
+
 
 void acpi_os_release_lock(acpi_spinlock lockp, acpi_cpu_flags flags)
 {
@@ -1229,20 +1071,7 @@ void acpi_os_release_lock(acpi_spinlock lockp, acpi_cpu_flags flags)
 
 #ifndef ACPI_USE_LOCAL_CACHE
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_os_create_cache
- *
- * PARAMETERS:  name      - Ascii name for the cache
- *              size      - Size of each cached object
- *              depth     - Maximum depth of the cache (in objects) <ignored>
- *              cache     - Where the new cache object is returned
- *
- * RETURN:      status
- *
- * DESCRIPTION: Create a cache object
- *
- ******************************************************************************/
+
 
 acpi_status
 acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
@@ -1254,17 +1083,7 @@ acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
 		return AE_OK;
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_os_purge_cache
- *
- * PARAMETERS:  Cache           - Handle to cache object
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Free all objects within the requested cache.
- *
- ******************************************************************************/
+
 
 acpi_status acpi_os_purge_cache(acpi_cache_t * cache)
 {
@@ -1272,18 +1091,7 @@ acpi_status acpi_os_purge_cache(acpi_cache_t * cache)
 	return (AE_OK);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_os_delete_cache
- *
- * PARAMETERS:  Cache           - Handle to cache object
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Free all objects within the requested cache and delete the
- *              cache object.
- *
- ******************************************************************************/
+
 
 acpi_status acpi_os_delete_cache(acpi_cache_t * cache)
 {
@@ -1291,19 +1099,7 @@ acpi_status acpi_os_delete_cache(acpi_cache_t * cache)
 	return (AE_OK);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_os_release_object
- *
- * PARAMETERS:  Cache       - Handle to cache object
- *              Object      - The object to be released
- *
- * RETURN:      None
- *
- * DESCRIPTION: Release an object to the specified cache.  If cache is full,
- *              the object is deleted.
- *
- ******************************************************************************/
+
 
 acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
 {
@@ -1311,18 +1107,7 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
 	return (AE_OK);
 }
 
-/******************************************************************************
- *
- * FUNCTION:    acpi_os_validate_interface
- *
- * PARAMETERS:  interface           - Requested interface to be validated
- *
- * RETURN:      AE_OK if interface is supported, AE_SUPPORT otherwise
- *
- * DESCRIPTION: Match an interface string to the interfaces supported by the
- *              host. Strings originate from an AML call to the _OSI method.
- *
- *****************************************************************************/
+
 
 acpi_status
 acpi_os_validate_interface (char *interface)
@@ -1354,10 +1139,7 @@ static inline int acpi_res_list_add(struct acpi_res_list *res)
 		    res->start == res_list_elem->start &&
 		    res->end == res_list_elem->end) {
 
-			/*
-			 * The Region(addr,len) already exist in the list,
-			 * just increase the count
-			 */
+			
 
 			res_list_elem->count++;
 			return 0;
@@ -1380,10 +1162,7 @@ static inline void acpi_res_list_del(struct acpi_res_list *res)
 		    res->start == res_list_elem->start &&
 		    res->end == res_list_elem->end) {
 
-			/*
-			 * If the res count is decreased to 0,
-			 * remove and free it
-			 */
+			
 
 			if (--res_list_elem->count == 0) {
 				list_del(&res_list_elem->resource_list);
@@ -1405,8 +1184,7 @@ acpi_os_invalidate_address(
 	switch (space_id) {
 	case ACPI_ADR_SPACE_SYSTEM_IO:
 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-		/* Only interference checks against SystemIO and SytemMemory
-		   are needed */
+		
 		res.start = address;
 		res.end = address + length - 1;
 		res.resource_type = space_id;
@@ -1426,21 +1204,7 @@ acpi_os_invalidate_address(
 	return AE_OK;
 }
 
-/******************************************************************************
- *
- * FUNCTION:    acpi_os_validate_address
- *
- * PARAMETERS:  space_id             - ACPI space ID
- *              address             - Physical address
- *              length              - Address length
- *
- * RETURN:      AE_OK if address/length is valid for the space_id. Otherwise,
- *              should return AE_AML_ILLEGAL_ADDRESS.
- *
- * DESCRIPTION: Validate a system address via the host OS. Used to validate
- *              the addresses accessed by AML operation regions.
- *
- *****************************************************************************/
+
 
 acpi_status
 acpi_os_validate_address (
@@ -1457,12 +1221,11 @@ acpi_os_validate_address (
 	switch (space_id) {
 	case ACPI_ADR_SPACE_SYSTEM_IO:
 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-		/* Only interference checks against SystemIO and SytemMemory
-		   are needed */
+		
 		res = kzalloc(sizeof(struct acpi_res_list), GFP_KERNEL);
 		if (!res)
 			return AE_OK;
-		/* ACPI names are fixed to 4 bytes, still better use strlcpy */
+		
 		strlcpy(res->name, name, 5);
 		res->start = address;
 		res->end = address + length - 1;

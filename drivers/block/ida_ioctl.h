@@ -1,24 +1,4 @@
-/*
- *    Disk Array driver for Compaq SMART2 Controllers
- *    Copyright 1998 Compaq Computer Corporation
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- *    NON INFRINGEMENT.  See the GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *    Questions/Comments/Bugfixes to iss_storagedev@hp.com
- *
- */
+
 #ifndef IDA_IOCTL_H
 #define IDA_IOCTL_H
 
@@ -38,14 +18,7 @@ typedef struct _ida_pci_info_struct
 	unsigned char 	dev_fn;
 	__u32 		board_id;
 } ida_pci_info_struct;
-/*
- * Normally, the ioctl determines the logical unit for this command by
- * the major,minor number of the fd passed to ioctl.  If you need to send
- * a command to a different/nonexistant unit (such as during config), you
- * can override the normal behavior by setting the unit valid bit. (Normally,
- * it should be zero) The controller the command is sent to is still
- * determined by the major number of the open device.
- */
+
 
 #define UNITVALID	0x80
 typedef struct {
@@ -55,7 +28,7 @@ typedef struct {
 	__u32	blk;
 	__u16	blk_cnt;
 
-/* currently, sg_cnt is assumed to be 1: only the 0th element of sg is used */
+
 	struct {
 		void	__user *addr;
 		size_t	size;
@@ -84,4 +57,4 @@ typedef struct {
 	} c;
 } ida_ioctl_t;
 
-#endif /* IDA_IOCTL_H */
+#endif 

@@ -1,45 +1,6 @@
-/*******************************************************************************
- *
- * Module Name: rsdump - Functions to display the resource structures.
- *
- ******************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #include <acpi/acpi.h>
 #include "accommon.h"
@@ -48,7 +9,7 @@
 #define _COMPONENT          ACPI_RESOURCES
 ACPI_MODULE_NAME("rsdump")
 #if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
-/* Local prototypes */
+
 static void acpi_rs_out_string(char *title, char *value);
 
 static void acpi_rs_out_integer8(char *title, u8 value);
@@ -79,14 +40,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table);
 #define ACPI_PRT_OFFSET(f)          (u8) ACPI_OFFSET (struct acpi_pci_routing_table,f)
 #define ACPI_RSD_TABLE_SIZE(name)   (sizeof(name) / sizeof (struct acpi_rsdump_info))
 
-/*******************************************************************************
- *
- * Resource Descriptor info tables
- *
- * Note: The first table entry must be a Title or Literal and must contain
- * the table length (number of table entries)
- *
- ******************************************************************************/
+
 
 struct acpi_rsdump_info acpi_rs_dump_irq[7] = {
 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_irq), "IRQ", NULL},
@@ -309,9 +263,7 @@ struct acpi_rsdump_info acpi_rs_dump_generic_reg[6] = {
 	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(generic_reg.address), "Address", NULL}
 };
 
-/*
- * Tables used for common address descriptor flag fields
- */
+
 static struct acpi_rsdump_info acpi_rs_dump_general_flags[5] = {
 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_general_flags), NULL,
 	 NULL},
@@ -349,9 +301,7 @@ static struct acpi_rsdump_info acpi_rs_dump_io_flags[4] = {
 	 "Translation Type", acpi_gbl_trs_decode}
 };
 
-/*
- * Table used to dump _PRT contents
- */
+
 static struct acpi_rsdump_info acpi_rs_dump_prt[5] = {
 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_prt), NULL, NULL},
 	{ACPI_RSD_UINT64, ACPI_PRT_OFFSET(address), "Address", NULL},
@@ -360,17 +310,7 @@ static struct acpi_rsdump_info acpi_rs_dump_prt[5] = {
 	{ACPI_RSD_UINT32, ACPI_PRT_OFFSET(source_index), "Source Index", NULL}
 };
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_dump_descriptor
- *
- * PARAMETERS:  Resource
- *
- * RETURN:      None
- *
- * DESCRIPTION:
- *
- ******************************************************************************/
+
 
 static void
 acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
@@ -380,7 +320,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 	char *name;
 	u8 count;
 
-	/* First table entry must contain the table length (# of table entries) */
+	
 
 	count = table->offset;
 
@@ -391,15 +331,13 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 
 		switch (table->opcode) {
 		case ACPI_RSD_TITLE:
-			/*
-			 * Optional resource title
-			 */
+			
 			if (table->name) {
 				acpi_os_printf("%s Resource\n", name);
 			}
 			break;
 
-			/* Strings */
+			
 
 		case ACPI_RSD_LITERAL:
 			acpi_rs_out_string(name,
@@ -410,7 +348,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 			acpi_rs_out_string(name, ACPI_CAST_PTR(char, target));
 			break;
 
-			/* Data items, 8/16/32/64 bit */
+			
 
 		case ACPI_RSD_UINT8:
 			acpi_rs_out_integer8(name, ACPI_GET8(target));
@@ -428,7 +366,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 			acpi_rs_out_integer64(name, ACPI_GET64(target));
 			break;
 
-			/* Flags: 1-bit and 2-bit flags supported */
+			
 
 		case ACPI_RSD_1BITFLAG:
 			acpi_rs_out_string(name, ACPI_CAST_PTR(char,
@@ -445,10 +383,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 			break;
 
 		case ACPI_RSD_SHORTLIST:
-			/*
-			 * Short byte list (single line output) for DMA and IRQ resources
-			 * Note: The list length is obtained from the previous table entry
-			 */
+			
 			if (previous_target) {
 				acpi_rs_out_title(name);
 				acpi_rs_dump_short_byte_list(*previous_target,
@@ -457,10 +392,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 			break;
 
 		case ACPI_RSD_LONGLIST:
-			/*
-			 * Long byte list for Vendor resource data
-			 * Note: The list length is obtained from the previous table entry
-			 */
+			
 			if (previous_target) {
 				acpi_rs_dump_byte_list(ACPI_GET16
 						       (previous_target),
@@ -469,10 +401,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 			break;
 
 		case ACPI_RSD_DWORDLIST:
-			/*
-			 * Dword list for Extended Interrupt resources
-			 * Note: The list length is obtained from the previous table entry
-			 */
+			
 			if (previous_target) {
 				acpi_rs_dump_dword_list(*previous_target,
 							ACPI_CAST_PTR(u32,
@@ -481,18 +410,14 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 			break;
 
 		case ACPI_RSD_ADDRESS:
-			/*
-			 * Common flags for all Address resources
-			 */
+			
 			acpi_rs_dump_address_common(ACPI_CAST_PTR
 						    (union acpi_resource_data,
 						     target));
 			break;
 
 		case ACPI_RSD_SOURCE:
-			/*
-			 * Optional resource_source for Address resources
-			 */
+			
 			acpi_rs_dump_resource_source(ACPI_CAST_PTR(struct
 								   acpi_resource_source,
 								   target));
@@ -509,18 +434,7 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 	}
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_dump_resource_source
- *
- * PARAMETERS:  resource_source     - Pointer to a Resource Source struct
- *
- * RETURN:      None
- *
- * DESCRIPTION: Common routine for dumping the optional resource_source and the
- *              corresponding resource_source_index.
- *
- ******************************************************************************/
+
 
 static void
 acpi_rs_dump_resource_source(struct acpi_resource_source *resource_source)
@@ -538,24 +452,13 @@ acpi_rs_dump_resource_source(struct acpi_resource_source *resource_source)
 			   resource_source->string_ptr : "[Not Specified]");
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_dump_address_common
- *
- * PARAMETERS:  Resource        - Pointer to an internal resource descriptor
- *
- * RETURN:      None
- *
- * DESCRIPTION: Dump the fields that are common to all Address resource
- *              descriptors
- *
- ******************************************************************************/
+
 
 static void acpi_rs_dump_address_common(union acpi_resource_data *resource)
 {
 	ACPI_FUNCTION_ENTRY();
 
-	/* Decode the type-specific flags */
+	
 
 	switch (resource->address.resource_type) {
 	case ACPI_MEMORY_RANGE:
@@ -580,22 +483,12 @@ static void acpi_rs_dump_address_common(union acpi_resource_data *resource)
 		break;
 	}
 
-	/* Decode the general flags */
+	
 
 	acpi_rs_dump_descriptor(resource, acpi_rs_dump_general_flags);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_dump_resource_list
- *
- * PARAMETERS:  resource_list       - Pointer to a resource descriptor list
- *
- * RETURN:      None
- *
- * DESCRIPTION: Dispatches the structure to the correct dump routine.
- *
- ******************************************************************************/
+
 
 void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
 {
@@ -609,13 +502,13 @@ void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
 		return;
 	}
 
-	/* Walk list and dump all resource descriptors (END_TAG terminates) */
+	
 
 	do {
 		acpi_os_printf("\n[%02X] ", count);
 		count++;
 
-		/* Validate Type before dispatch */
+		
 
 		type = resource_list->type;
 		if (type > ACPI_RESOURCE_TYPE_MAX) {
@@ -625,33 +518,23 @@ void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
 			return;
 		}
 
-		/* Dump the resource descriptor */
+		
 
 		acpi_rs_dump_descriptor(&resource_list->data,
 					acpi_gbl_dump_resource_dispatch[type]);
 
-		/* Point to the next resource structure */
+		
 
 		resource_list =
 		    ACPI_ADD_PTR(struct acpi_resource, resource_list,
 				 resource_list->length);
 
-		/* Exit when END_TAG descriptor is reached */
+		
 
 	} while (type != ACPI_RESOURCE_TYPE_END_TAG);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_dump_irq_list
- *
- * PARAMETERS:  route_table     - Pointer to the routing table to dump.
- *
- * RETURN:      None
- *
- * DESCRIPTION: Print IRQ routing table
- *
- ******************************************************************************/
+
 
 void acpi_rs_dump_irq_list(u8 * route_table)
 {
@@ -667,7 +550,7 @@ void acpi_rs_dump_irq_list(u8 * route_table)
 
 	prt_element = ACPI_CAST_PTR(struct acpi_pci_routing_table, route_table);
 
-	/* Dump all table elements, Exit on zero length element */
+	
 
 	for (count = 0; prt_element->length; count++) {
 		acpi_os_printf("\n[%02X] PCI IRQ Routing Table Package\n",
@@ -679,19 +562,7 @@ void acpi_rs_dump_irq_list(u8 * route_table)
 	}
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_out*
- *
- * PARAMETERS:  Title       - Name of the resource field
- *              Value       - Value of the resource field
- *
- * RETURN:      None
- *
- * DESCRIPTION: Miscellaneous helper functions to consistently format the
- *              output of the resource dump routines
- *
- ******************************************************************************/
+
 
 static void acpi_rs_out_string(char *title, char *value)
 {
@@ -727,18 +598,7 @@ static void acpi_rs_out_title(char *title)
 	acpi_os_printf("%27s : ", title);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_dump*List
- *
- * PARAMETERS:  Length      - Number of elements in the list
- *              Data        - Start of the list
- *
- * RETURN:      None
- *
- * DESCRIPTION: Miscellaneous functions to dump lists of raw data
- *
- ******************************************************************************/
+
 
 static void acpi_rs_dump_byte_list(u16 length, u8 * data)
 {

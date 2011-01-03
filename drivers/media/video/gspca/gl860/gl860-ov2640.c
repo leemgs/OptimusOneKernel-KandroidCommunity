@@ -1,28 +1,12 @@
-/* @file gl860-ov2640.c
- * @author Olivier LORIN, from Malmostoso's logs
- * @date 2009-08-27
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
-/* Sensor : OV2640 */
+
+
 
 #include "gl860.h"
 
 static u8 dat_init1[] = "\x00\x41\x07\x6a\x06\x61\x0d\x6a" "\x10\x10\xc1\x01";
-static u8 dat_init2[] = {0x61}; /* expected */
-static u8 dat_init3[] = {0x51}; /* expected */
+static u8 dat_init2[] = {0x61}; 
+static u8 dat_init3[] = {0x51}; 
 
 static u8 dat_post[] =
 	"\x00\x41\x07\x6a\x06\xef\x0d\x6a" "\x10\x10\xc1\x01";
@@ -32,9 +16,9 @@ static u8 dat_800[]  = "\xd0\x01\xd1\x10\xd2\x58\xd3\x02\xd4\x18\xd5\x21";
 static u8 dat_1280[] = "\xd0\x01\xd1\x18\xd2\xc0\xd3\x02\xd4\x28\xd5\x01";
 static u8 dat_1600[] = "\xd0\x01\xd1\x20\xd2\xb0\xd3\x02\xd4\x30\xd5\x41";
 
-static u8 c50[] = {0x50}; /* expected */
-static u8 c28[] = {0x28}; /* expected */
-static u8 ca8[] = {0xa8}; /* expected */
+static u8 c50[] = {0x50}; 
+static u8 c28[] = {0x28}; 
+static u8 ca8[] = {0xa8}; 
 
 static struct validx tbl_init_at_startup[] = {
 	{0x0000, 0x0000}, {0x0010, 0x0010}, {0x0008, 0x00c0}, {0x0001, 0x00c1},
@@ -108,23 +92,23 @@ static struct validx tbl_sensor_settings_common_b[] = {
 	{0x6001, 0x00ff}, {0x6038, 0x000c},
 	{10, 0xffff},
 	{0x6000, 0x0011},
-	/* backlight=31/64 */
+	
 	{0x6001, 0x00ff}, {0x603e, 0x0024}, {0x6034, 0x0025},
-	/* bright=0/256 */
+	
 	{0x6000, 0x00ff}, {0x6009, 0x007c}, {0x6000, 0x007d},
-	/* wbal=64/128 */
+	
 	{0x6000, 0x00ff}, {0x6003, 0x007c}, {0x6040, 0x007d},
-	/* cntr=0/256 */
+	
 	{0x6000, 0x00ff}, {0x6007, 0x007c}, {0x6000, 0x007d},
-	/* sat=128/256 */
+	
 	{0x6000, 0x00ff}, {0x6001, 0x007c}, {0x6080, 0x007d},
-	/* sharpness=0/32 */
+	
 	{0x6000, 0x00ff}, {0x6001, 0x0092}, {0x60c0, 0x0093},
-	/* hue=0/256 */
+	
 	{0x6000, 0x00ff}, {0x6002, 0x007c}, {0x6000, 0x007d},
-	/* gam=32/64 */
+	
 	{0x6000, 0x00ff}, {0x6008, 0x007c}, {0x6020, 0x007d},
-	/* image right up */
+	
 	{0xffff, 0xffff},
 	{15, 0xffff},
 	{0x6001, 0x00ff}, {0x6000, 0x8004},
@@ -134,9 +118,9 @@ static struct validx tbl_sensor_settings_common_b[] = {
 	{0x6001, 0x00ff}, {0x6000, 0x8004},
 	{0xffff, 0xffff},
 	{0x60f8, 0x0004},
-	/* image right up */
+	
 	{0xffff, 0xffff},
-	/* backlight=31/64 */
+	
 	{0x6001, 0x00ff}, {0x603e, 0x0024}, {0x6034, 0x0025},
 };
 
@@ -209,7 +193,7 @@ static int  ov2640_init_pre_alt(struct gspca_dev *gspca_dev);
 static int  ov2640_init_post_alt(struct gspca_dev *gspca_dev);
 static void ov2640_post_unset_alt(struct gspca_dev *gspca_dev);
 static int  ov2640_camera_settings(struct gspca_dev *gspca_dev);
-/*==========================================================================*/
+
 
 void ov2640_init_settings(struct gspca_dev *gspca_dev)
 {
@@ -243,7 +227,7 @@ void ov2640_init_settings(struct gspca_dev *gspca_dev)
 	sd->dev_post_unset_alt  = ov2640_post_unset_alt;
 }
 
-/*==========================================================================*/
+
 
 static void common(struct gspca_dev *gspca_dev)
 {
@@ -266,7 +250,7 @@ static int ov2640_init_at_startup(struct gspca_dev *gspca_dev)
 	ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, dat_init3);
 
 	ctrl_out(gspca_dev, 0x40, 1, 0x0051, 0x0000, 0, NULL);
-/*	ctrl_out(gspca_dev, 0x40, 11, 0x0000, 0x0000, 0, NULL); */
+
 
 	return 0;
 }
@@ -292,7 +276,7 @@ static int ov2640_init_pre_alt(struct gspca_dev *gspca_dev)
 static int ov2640_init_post_alt(struct gspca_dev *gspca_dev)
 {
 	s32 reso = gspca_dev->cam.cam_mode[(s32) gspca_dev->curr_mode].priv;
-	s32 n; /* reserved for FETCH macros */
+	s32 n; 
 
 	ctrl_out(gspca_dev, 0x40, 5, 0x0001, 0x0000, 0, NULL);
 
@@ -404,7 +388,7 @@ static int ov2640_camera_settings(struct gspca_dev *gspca_dev)
 				0, NULL);
 		ctrl_out(gspca_dev, 0x40, 1, 0x601f + backlight - 10, 0x0025,
 				0, NULL);
-		/* No sd->vold.backlight=backlight; (to be done again later) */
+		
 	}
 
 	if (bright != sd->vold.brightness) {

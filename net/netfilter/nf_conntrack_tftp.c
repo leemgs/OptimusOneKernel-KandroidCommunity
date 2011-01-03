@@ -1,9 +1,4 @@
-/* (C) 2001-2002 Magnus Boden <mb@ozaba.mine.nu>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -55,7 +50,7 @@ static int tftp_help(struct sk_buff *skb,
 	switch (ntohs(tfh->opcode)) {
 	case TFTP_OPCODE_READ:
 	case TFTP_OPCODE_WRITE:
-		/* RRQ and WRQ works the same way */
+		
 		nf_ct_dump_tuple(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
 		nf_ct_dump_tuple(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
 

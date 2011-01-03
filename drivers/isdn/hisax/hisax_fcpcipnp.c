@@ -1,27 +1,7 @@
-/*
- * Driver for AVM Fritz!PCI, Fritz!PCI v2, Fritz!PnP ISDN cards
- *
- * Author       Kai Germaschewski
- * Copyright    2001 by Kai Germaschewski  <kai.germaschewski@gmx.de>
- *              2001 by Karsten Keil       <keil@isdn4linux.de>
- * 
- * based upon Karsten Keil's original avm_pci.c driver
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * Thanks to Wizard Computersysteme GmbH, Bremervoerde and
- *           SoHaNet Technology GmbH, Berlin
- * for supporting the development of this driver
- */
 
 
-/* TODO:
- *
- * o POWER PC
- * o clean up debugging
- * o tx_skb at PH_DEACTIVATE time
- */
+
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -37,15 +17,15 @@
 
 #include "hisax_fcpcipnp.h"
 
-// debugging cruft
+
 #define __debug_variable debug
 #include "hisax_debug.h"
 
 #ifdef CONFIG_HISAX_DEBUG
 static int debug = 0;
-/* static int hdlcfifosize = 32; */
+
 module_param(debug, int, 0);
-/* module_param(hdlcfifosize, int, 0); */
+
 #endif
 
 MODULE_AUTHOR("Kai Germaschewski <kai.germaschewski@gmx.de>/Karsten Keil <kkeil@suse.de>");
@@ -79,11 +59,11 @@ static struct pnp_device_id fcpnp_ids[] __devinitdata = {
 MODULE_DEVICE_TABLE(isapnp, fcpnp_ids);
 #endif
 
-static int protocol = 2;       /* EURO-ISDN Default */
+static int protocol = 2;       
 module_param(protocol, int, 0);
 MODULE_LICENSE("GPL");
 
-// ----------------------------------------------------------------------
+
 
 #define  AVM_INDEX              0x04
 #define  AVM_DATA               0x10
@@ -145,8 +125,8 @@ MODULE_LICENSE("GPL");
 #define  AVM_ISACSX_INDEX       0x04
 #define  AVM_ISACSX_DATA        0x08
 
-// ----------------------------------------------------------------------
-// Fritz!PCI
+
+
 
 static unsigned char fcpci_read_isac(struct isac *isac, unsigned char offset)
 {
@@ -240,8 +220,8 @@ static void fcpci_write_ctrl(struct fritz_bcs *bcs, int which)
 	spin_unlock_irqrestore(&adapter->hw_lock, flags);
 }
 
-// ----------------------------------------------------------------------
-// Fritz!PCI v2
+
+
 
 static unsigned char fcpci2_read_isac(struct isac *isac, unsigned char offset)
 {
@@ -319,8 +299,8 @@ static void fcpci2_write_ctrl(struct fritz_bcs *bcs, int which)
 	outl(bcs->ctrl.ctrl, adapter->io + offset);
 }
 
-// ----------------------------------------------------------------------
-// Fritz!PnP (ISAC access as for Fritz!PCI)
+
+
 
 static u32 fcpnp_read_hdlc_status(struct fritz_adapter *adapter, int nr)
 {
@@ -367,7 +347,7 @@ static void fcpnp_write_ctrl(struct fritz_bcs *bcs, int which)
 	spin_unlock_irqrestore(&adapter->hw_lock, flags);
 }
 
-// ----------------------------------------------------------------------
+
 
 static inline void B_L1L2(struct fritz_bcs *bcs, int pr, void *arg)
 {
@@ -406,7 +386,7 @@ static void hdlc_fill_fifo(struct fritz_bcs *bcs)
 	switch (adapter->type) {
 	case AVM_FRITZ_PCI:
 		spin_lock_irqsave(&adapter->hw_lock, flags);
-		// sets the correct AVM_INDEX, too
+		
 		__fcpci_write_ctrl(bcs, 3);
 		outsl(adapter->io + AVM_DATA + HDLC_FIFO,
 		      p, (count + 3) / 4);
@@ -420,7 +400,7 @@ static void hdlc_fill_fifo(struct fritz_bcs *bcs)
 		break;
 	case AVM_FRITZ_PNP:
 		spin_lock_irqsave(&adapter->hw_lock, flags);
-		// sets the correct AVM_INDEX, too
+		
 		__fcpnp_write_ctrl(bcs, 3);
 		outsb(adapter->io + AVM_DATA, p, count);
 		spin_unlock_irqrestore(&adapter->hw_lock, flags);
@@ -512,9 +492,7 @@ static inline void hdlc_xdu_irq(struct fritz_bcs *bcs)
 	struct fritz_adapter *adapter = bcs->adapter;
 	
 
-	/* Here we lost an TX interrupt, so
-	 * restart transmitting the whole frame.
-	 */
+	
 	bcs->ctrl.sr.xml = 0;
 	bcs->ctrl.sr.cmd |= HDLC_CMD_XRS;
 	adapter->write_ctrl(bcs, 1);
@@ -525,7 +503,7 @@ static inline void hdlc_xdu_irq(struct fritz_bcs *bcs)
 		adapter->write_ctrl(bcs, 1);
 		return;
 	}
-	/* only hdlc restarts the frame, transparent mode must continue */
+	
 	if (bcs->mode == L1_MODE_HDLC) {
 		skb_push(bcs->tx_skb, bcs->tx_cnt);
 		bcs->tx_cnt = 0;
@@ -648,7 +626,7 @@ static void fritz_b_l2l1(struct hisax_if *ifc, int pr, void *arg)
 	}
 }
 
-// ----------------------------------------------------------------------
+
 
 static irqreturn_t
 fcpci2_irq(int intno, void *dev)
@@ -658,7 +636,7 @@ fcpci2_irq(int intno, void *dev)
 
 	val = inb(adapter->io + AVM_STATUS0);
 	if (!(val & AVM_STATUS0_IRQ_MASK))
-		/* hopefully a shared  IRQ reqest */
+		
 		return IRQ_NONE;
 	DBG(2, "STATUS0 %#x", val);
 	if (val & AVM_STATUS0_IRQ_ISAC)
@@ -678,7 +656,7 @@ fcpci_irq(int intno, void *dev)
 
 	sval = inb(adapter->io + 2);
 	if ((sval & AVM_STATUS0_IRQ_MASK) == AVM_STATUS0_IRQ_MASK)
-		/* possibly a shared  IRQ reqest */
+		
 		return IRQ_NONE;
 	DBG(2, "sval %#x", sval);
 	if (!(sval & AVM_STATUS0_IRQ_ISAC))
@@ -689,7 +667,7 @@ fcpci_irq(int intno, void *dev)
 	return IRQ_HANDLED;
 }
 
-// ----------------------------------------------------------------------
+
 
 static inline void fcpci2_init(struct fritz_adapter *adapter)
 {
@@ -708,7 +686,7 @@ static inline void fcpci_init(struct fritz_adapter *adapter)
 	mdelay(10);
 }
 
-// ----------------------------------------------------------------------
+
 
 static int __devinit fcpcipnp_setup(struct fritz_adapter *adapter)
 {
@@ -717,7 +695,7 @@ static int __devinit fcpcipnp_setup(struct fritz_adapter *adapter)
 
 	DBG(1,"");
 
-	isac_init(&adapter->isac); // FIXME is this okay now
+	isac_init(&adapter->isac); 
 
 	retval = -EBUSY;
 	if (!request_region(adapter->io, 32, "fcpcipnp"))
@@ -769,7 +747,7 @@ static int __devinit fcpcipnp_setup(struct fritz_adapter *adapter)
 		break;
 	}
 
-	// Reset
+	
 	outb(0, adapter->io + AVM_STATUS0);
 	mdelay(10);
 	outb(AVM_STATUS0_RESET, adapter->io + AVM_STATUS0);
@@ -832,7 +810,7 @@ static void __devexit fcpcipnp_release(struct fritz_adapter *adapter)
 	release_region(adapter->io, 32);
 }
 
-// ----------------------------------------------------------------------
+
 
 static struct fritz_adapter * __devinit 
 new_adapter(void)

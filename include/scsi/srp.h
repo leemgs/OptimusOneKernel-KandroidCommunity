@@ -1,45 +1,9 @@
-/*
- * Copyright (c) 2005 Cisco Systems.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * $Id$
- */
+
 
 #ifndef SCSI_SRP_H
 #define SCSI_SRP_H
 
-/*
- * Structures and constants for the SCSI RDMA Protocol (SRP) as
- * defined by the INCITS T10 committee.  This file was written using
- * draft Revision 16a of the SRP standard.
- */
+
 
 #include <linux/types.h>
 
@@ -98,12 +62,7 @@ struct srp_direct_buf {
 	__be32  len;
 };
 
-/*
- * We need the packed attribute because the SRP spec puts the list of
- * descriptors at an offset of 20, which is not aligned to the size of
- * struct srp_direct_buf.  The whole structure must be packed to avoid
- * having the 20-byte structure padded to 24 bytes on 64-bit architectures.
- */
+
 struct srp_indirect_buf {
 	struct srp_direct_buf	table_desc;
 	__be32			len;
@@ -128,11 +87,7 @@ struct srp_login_req {
 	u8	target_port_id[16];
 };
 
-/*
- * The SRP spec defines the size of the LOGIN_RSP structure to be 52
- * bytes, so it needs to be packed to avoid having it padded to 56
- * bytes on 64-bit architectures.
- */
+
 struct srp_login_rsp {
 	u8	opcode;
 	u8	reserved1[3];
@@ -169,10 +124,7 @@ struct srp_t_logout {
 	u64	tag;
 };
 
-/*
- * We need the packed attribute because the SRP spec only aligns the
- * 8-byte LUN field to 4 bytes.
- */
+
 struct srp_tsk_mgmt {
 	u8	opcode;
 	u8	sol_not;
@@ -187,10 +139,7 @@ struct srp_tsk_mgmt {
 	u8	reserved5[8];
 };
 
-/*
- * We need the packed attribute because the SRP spec only aligns the
- * 8-byte LUN field to 4 bytes.
- */
+
 struct srp_cmd {
 	u8	opcode;
 	u8	sol_not;
@@ -218,11 +167,7 @@ enum {
 	SRP_RSP_FLAG_DIUNDER  = 1 << 5
 };
 
-/*
- * The SRP spec defines the size of the RSP structure to be 36 bytes,
- * so it needs to be packed to avoid having it padded to 40 bytes on
- * 64-bit architectures.
- */
+
 struct srp_rsp {
 	u8	opcode;
 	u8	sol_not;
@@ -239,4 +184,4 @@ struct srp_rsp {
 	u8	data[0];
 } __attribute__((packed));
 
-#endif /* SCSI_SRP_H */
+#endif 

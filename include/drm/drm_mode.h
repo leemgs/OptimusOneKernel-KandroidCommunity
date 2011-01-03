@@ -1,28 +1,4 @@
-/*
- * Copyright (c) 2007 Dave Airlie <airlied@linux.ie>
- * Copyright (c) 2007 Jakob Bornecrantz <wallbraker@gmail.com>
- * Copyright (c) 2008 Red Hat Inc.
- * Copyright (c) 2007-2008 Tungsten Graphics, Inc., Cedar Park, TX., USA
- * Copyright (c) 2007-2008 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 
 #ifndef _DRM_MODE_H
 #define _DRM_MODE_H
@@ -43,8 +19,8 @@
 #define DRM_MODE_TYPE_USERDEF	(1<<5)
 #define DRM_MODE_TYPE_DRIVER	(1<<6)
 
-/* Video mode flags */
-/* bit compatible with the xorg definitions. */
+
+
 #define DRM_MODE_FLAG_PHSYNC	(1<<0)
 #define DRM_MODE_FLAG_NHSYNC	(1<<1)
 #define DRM_MODE_FLAG_PVSYNC	(1<<2)
@@ -54,27 +30,26 @@
 #define DRM_MODE_FLAG_CSYNC	(1<<6)
 #define DRM_MODE_FLAG_PCSYNC	(1<<7)
 #define DRM_MODE_FLAG_NCSYNC	(1<<8)
-#define DRM_MODE_FLAG_HSKEW	(1<<9) /* hskew provided */
+#define DRM_MODE_FLAG_HSKEW	(1<<9) 
 #define DRM_MODE_FLAG_BCAST	(1<<10)
 #define DRM_MODE_FLAG_PIXMUX	(1<<11)
 #define DRM_MODE_FLAG_DBLCLK	(1<<12)
 #define DRM_MODE_FLAG_CLKDIV2	(1<<13)
 
-/* DPMS flags */
-/* bit compatible with the xorg definitions. */
+
+
 #define DRM_MODE_DPMS_ON	0
 #define DRM_MODE_DPMS_STANDBY	1
 #define DRM_MODE_DPMS_SUSPEND	2
 #define DRM_MODE_DPMS_OFF	3
 
-/* Scaling mode options */
-#define DRM_MODE_SCALE_NONE		0 /* Unmodified timing (display or
-					     software can still scale) */
-#define DRM_MODE_SCALE_FULLSCREEN	1 /* Full screen, ignore aspect */
-#define DRM_MODE_SCALE_CENTER		2 /* Centered, no scaling */
-#define DRM_MODE_SCALE_ASPECT		3 /* Full screen, preserve aspect */
 
-/* Dithering mode options */
+#define DRM_MODE_SCALE_NONE		0 
+#define DRM_MODE_SCALE_FULLSCREEN	1 
+#define DRM_MODE_SCALE_CENTER		2 
+#define DRM_MODE_SCALE_ASPECT		3 
+
+
 #define DRM_MODE_DITHERING_OFF	0
 #define DRM_MODE_DITHERING_ON	1
 
@@ -83,7 +58,7 @@ struct drm_mode_modeinfo {
 	__u16 hdisplay, hsync_start, hsync_end, htotal, hskew;
 	__u16 vdisplay, vsync_start, vsync_end, vtotal, vscan;
 
-	__u32 vrefresh; /* vertical refresh * 1000 */
+	__u32 vrefresh; 
 
 	__u32 flags;
 	__u32 type;
@@ -107,10 +82,10 @@ struct drm_mode_crtc {
 	__u64 set_connectors_ptr;
 	__u32 count_connectors;
 
-	__u32 crtc_id; /**< Id */
-	__u32 fb_id; /**< Id of framebuffer */
+	__u32 crtc_id; 
+	__u32 fb_id; 
 
-	__u32 x, y; /**< Position on the frameuffer */
+	__u32 x, y; 
 
 	__u32 gamma_size;
 	__u32 mode_valid;
@@ -127,14 +102,14 @@ struct drm_mode_get_encoder {
 	__u32 encoder_id;
 	__u32 encoder_type;
 
-	__u32 crtc_id; /**< Id of crtc */
+	__u32 crtc_id; 
 
 	__u32 possible_crtcs;
 	__u32 possible_clones;
 };
 
-/* This is for connectors with multiple signal types. */
-/* Try to match DRM_MODE_CONNECTOR_X as closely as possible. */
+
+
 #define DRM_MODE_SUBCONNECTOR_Automatic	0
 #define DRM_MODE_SUBCONNECTOR_Unknown	0
 #define DRM_MODE_SUBCONNECTOR_DVID	3
@@ -170,20 +145,20 @@ struct drm_mode_get_connector {
 	__u32 count_props;
 	__u32 count_encoders;
 
-	__u32 encoder_id; /**< Current Encoder */
-	__u32 connector_id; /**< Id */
+	__u32 encoder_id; 
+	__u32 connector_id; 
 	__u32 connector_type;
 	__u32 connector_type_id;
 
 	__u32 connection;
-	__u32 mm_width, mm_height; /**< HxW in millimeters */
+	__u32 mm_width, mm_height; 
 	__u32 subpixel;
 };
 
 #define DRM_MODE_PROP_PENDING	(1<<0)
 #define DRM_MODE_PROP_RANGE	(1<<1)
 #define DRM_MODE_PROP_IMMUTABLE	(1<<2)
-#define DRM_MODE_PROP_ENUM	(1<<3) /* enumerated type with text strings */
+#define DRM_MODE_PROP_ENUM	(1<<3) 
 #define DRM_MODE_PROP_BLOB	(1<<4)
 
 struct drm_mode_property_enum {
@@ -192,8 +167,8 @@ struct drm_mode_property_enum {
 };
 
 struct drm_mode_get_property {
-	__u64 values_ptr; /* values and blob lengths */
-	__u64 enum_blob_ptr; /* enum and blob id ptrs */
+	__u64 values_ptr; 
+	__u64 enum_blob_ptr; 
 
 	__u32 prop_id;
 	__u32 flags;
@@ -221,7 +196,7 @@ struct drm_mode_fb_cmd {
 	__u32 pitch;
 	__u32 bpp;
 	__u32 depth;
-	/* driver specific handle */
+	
 	__u32 handle;
 };
 
@@ -233,20 +208,7 @@ struct drm_mode_mode_cmd {
 #define DRM_MODE_CURSOR_BO	(1<<0)
 #define DRM_MODE_CURSOR_MOVE	(1<<1)
 
-/*
- * depending on the value in flags diffrent members are used.
- *
- * CURSOR_BO uses
- *    crtc
- *    width
- *    height
- *    handle - if 0 turns the cursor of
- *
- * CURSOR_MOVE uses
- *    crtc
- *    x
- *    y
- */
+
 struct drm_mode_cursor {
 	__u32 flags;
 	__u32 crtc_id;
@@ -254,7 +216,7 @@ struct drm_mode_cursor {
 	__s32 y;
 	__u32 width;
 	__u32 height;
-	/* driver specific handle */
+	
 	__u32 handle;
 };
 
@@ -262,7 +224,7 @@ struct drm_mode_crtc_lut {
 	__u32 crtc_id;
 	__u32 gamma_size;
 
-	/* pointers to arrays */
+	
 	__u64 red;
 	__u64 green;
 	__u64 blue;

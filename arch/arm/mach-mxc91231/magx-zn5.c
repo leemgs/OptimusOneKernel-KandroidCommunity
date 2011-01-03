@@ -1,8 +1,4 @@
-/*
- * Copyright 2009 Dmitriy Taychenachev <dimichxp@gmail.com>
- *
- * This file is released under the GPLv2 or later.
- */
+
 
 #include <linux/irq.h>
 #include <linux/init.h>
@@ -45,7 +41,7 @@ static void __init zn5_init(void)
 
 static void __init zn5_timer_init(void)
 {
-	mxc91231_clocks_init(26000000); /* 26mhz ckih */
+	mxc91231_clocks_init(26000000); 
 }
 
 struct sys_timer zn5_timer = {

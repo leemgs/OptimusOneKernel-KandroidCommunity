@@ -1,13 +1,4 @@
-/*
- * This is the 1999 rewrite of IP Firewalling, aiming for kernel 2.3.x.
- *
- * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
- * Copyright (C) 2000-2004 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -44,11 +35,11 @@ static struct
 		},
 	},
 	.entries = {
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IP6T_ERROR_INIT,		/* ERROR */
+	.term = IP6T_ERROR_INIT,		
 };
 
 static const struct xt_table packet_filter = {
@@ -58,7 +49,7 @@ static const struct xt_table packet_filter = {
 	.af		= NFPROTO_IPV6,
 };
 
-/* The work comes in here from netfilter.c. */
+
 static unsigned int
 ip6t_in_hook(unsigned int hook,
 		   struct sk_buff *skb,
@@ -78,7 +69,7 @@ ip6t_local_out_hook(unsigned int hook,
 		   int (*okfn)(struct sk_buff *))
 {
 #if 0
-	/* root is playing with raw sockets. */
+	
 	if (skb->len < sizeof(struct iphdr)
 	    || ip_hdrlen(skb) < sizeof(struct iphdr)) {
 		if (net_ratelimit())
@@ -115,13 +106,13 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
 	},
 };
 
-/* Default to forward because I got too much mail already. */
+
 static int forward = NF_ACCEPT;
 module_param(forward, bool, 0000);
 
 static int __net_init ip6table_filter_net_init(struct net *net)
 {
-	/* Register table */
+	
 	net->ipv6.ip6table_filter =
 		ip6t_register_table(net, &packet_filter, &initial_table.repl);
 	if (IS_ERR(net->ipv6.ip6table_filter))
@@ -148,14 +139,14 @@ static int __init ip6table_filter_init(void)
 		return -EINVAL;
 	}
 
-	/* Entry 1 is the FORWARD hook */
+	
 	initial_table.entries[1].target.verdict = -forward - 1;
 
 	ret = register_pernet_subsys(&ip6table_filter_net_ops);
 	if (ret < 0)
 		return ret;
 
-	/* Register hooks */
+	
 	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
 	if (ret < 0)
 		goto cleanup_table;

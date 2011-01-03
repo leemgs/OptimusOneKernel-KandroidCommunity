@@ -1,20 +1,6 @@
-/* -*- linux-c -*- ------------------------------------------------------- *
- *
- *   Copyright 2002 H. Peter Anvin - All Rights Reserved
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, Inc., 53 Temple Place Ste 330,
- *   Boston MA 02111-1307, USA; either version 2 of the License, or
- *   (at your option) any later version; incorporated herein by reference.
- *
- * ----------------------------------------------------------------------- */
 
-/*
- * raid6algos.c
- *
- * Algorithm list and algorithm selection for RAID-6
- */
+
+
 
 #include <linux/raid/pq.h>
 #ifndef __KERNEL__
@@ -22,7 +8,7 @@
 #include <stdio.h>
 #else
 #if !RAID6_USE_EMPTY_ZERO_PAGE
-/* In .bss so it's zeroed */
+
 const char raid6_empty_zero_page[PAGE_SIZE] __attribute__((aligned(256)));
 EXPORT_SYMBOL(raid6_empty_zero_page);
 #endif
@@ -31,7 +17,7 @@ EXPORT_SYMBOL(raid6_empty_zero_page);
 struct raid6_calls raid6_call;
 EXPORT_SYMBOL_GPL(raid6_call);
 
-/* Various routine sets */
+
 extern const struct raid6_calls raid6_intx1;
 extern const struct raid6_calls raid6_intx2;
 extern const struct raid6_calls raid6_intx4;
@@ -84,13 +70,13 @@ const struct raid6_calls * const raid6_algos[] = {
 #ifdef __KERNEL__
 #define RAID6_TIME_JIFFIES_LG2	4
 #else
-/* Need more time to be stable in userspace */
+
 #define RAID6_TIME_JIFFIES_LG2	9
 #define time_before(x, y) ((x) < (y))
 #endif
 
-/* Try to pick the best algorithm */
-/* This code uses the gfmul table as convenient data set to abuse */
+
+
 
 int __init raid6_select_algo(void)
 {
@@ -108,7 +94,7 @@ int __init raid6_select_algo(void)
 		dptrs[i] = ((char *)raid6_gfmul) + PAGE_SIZE*i;
 	}
 
-	/* Normal code - use a 2-page allocation to avoid D$ conflict */
+	
 	syndromes = (void *) __get_free_pages(GFP_KERNEL, 1);
 
 	if ( !syndromes ) {

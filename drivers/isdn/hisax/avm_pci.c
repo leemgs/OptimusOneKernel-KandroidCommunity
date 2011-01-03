@@ -1,16 +1,4 @@
-/* $Id: avm_pci.c,v 1.29.2.4 2004/02/11 13:21:32 keil Exp $
- *
- * low level stuff for AVM Fritz!PCI and ISA PnP isdn cards
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * Thanks to AVM, Berlin for information
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -71,7 +59,7 @@ static const char *avm_pci_rev = "$Revision: 1.29.2.4 $";
 #define  HDLC_CMD_XML_MASK	0x3f00
 
 
-/* Interface functions */
+
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -202,7 +190,7 @@ modehdlc(struct BCState *bcs, int mode, int bc)
 			'A' + hdlc, bcs->mode, mode, hdlc, bc);
 	bcs->hw.hdlc.ctrl.ctrl = 0;
 	switch (mode) {
-		case (-1): /* used for init */
+		case (-1): 
 			bcs->mode = 1;
 			bcs->channel = bc;
 			bc = 0;
@@ -266,7 +254,7 @@ hdlc_empty_fifo(struct BCState *bcs, int count)
 			*ptr++ = in_be32((unsigned *)(cs->hw.avm.isac +_IO_BASE));
 #else
 			*ptr++ = inl(cs->hw.avm.isac);
-#endif /* __powerpc__ */
+#endif 
 			cnt += 4;
 		}
 	} else {
@@ -320,14 +308,14 @@ hdlc_fill_fifo(struct BCState *bcs)
 	bcs->tx_cnt -= count;
 	bcs->hw.hdlc.count += count;
 	bcs->hw.hdlc.ctrl.sr.xml = ((count == fifo_size) ? 0 : count);
-	write_ctrl(bcs, 3);  /* sets the correct index too */
+	write_ctrl(bcs, 3);  
 	if (cs->subtyp == AVM_FRITZ_PCI) {
 		while (cnt<count) {
 #ifdef __powerpc__
 			out_be32((unsigned *)(cs->hw.avm.isac +_IO_BASE), *ptr++);
 #else
 			outl(*ptr++, cs->hw.avm.isac);
-#endif /* __powerpc__ */
+#endif 
 			cnt += 4;
 		}
 	} else {
@@ -394,9 +382,7 @@ HDLC_irq(struct BCState *bcs, u_int stat) {
 		}
 	}
 	if (stat & HDLC_INT_XDU) {
-		/* Here we lost an TX interrupt, so
-		 * restart transmitting the whole frame.
-		 */
+		
 		if (bcs->tx_skb) {
 			skb_push(bcs->tx_skb, bcs->hw.hdlc.count);
 			bcs->tx_cnt += bcs->hw.hdlc.count;
@@ -628,7 +614,7 @@ clear_pending_hdlc_ints(struct IsdnCardState *cs)
 		debugl1(cs, "HDLC 2 VIN %x", val);
 	}
 }
-#endif  /*  0  */
+#endif  
 
 static void
 inithdlc(struct IsdnCardState *cs)
@@ -652,7 +638,7 @@ avm_pcipnp_interrupt(int intno, void *dev_id)
 	spin_lock_irqsave(&cs->lock, flags);
 	sval = inb(cs->hw.avm.cfg_reg + 2);
 	if ((sval & AVM_STATUS0_IRQ_MASK) == AVM_STATUS0_IRQ_MASK) {
-		/* possible a shared  IRQ reqest */
+		
 		spin_unlock_irqrestore(&cs->lock, flags);
 		return IRQ_NONE;
 	}
@@ -707,7 +693,7 @@ AVM_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 			WriteISAC(cs, ISAC_MASK, 0);
 			outb(AVM_STATUS0_DIS_TIMER | AVM_STATUS0_RES_TIMER |
 				AVM_STATUS0_ENA_IRQ, cs->hw.avm.cfg_reg + 2);
-			/* RESET Receiver and Transmitter */
+			
 			WriteISAC(cs, ISAC_CMDR, 0x41);
 			spin_unlock_irqrestore(&cs->lock, flags);
 			return(0);
@@ -771,7 +757,7 @@ static int __devinit avm_setup_rest(struct IsdnCardState *cs)
 
 static int __devinit avm_pnp_setup(struct IsdnCardState *cs)
 {
-	return(1);	/* no-op: success */
+	return(1);	
 }
 
 #else
@@ -783,7 +769,7 @@ static int __devinit avm_pnp_setup(struct IsdnCardState *cs)
 	struct pnp_dev *pnp_avm_d = NULL;
 
 	if (!isapnp_present())
-		return(1);	/* no-op: success */
+		return(1);	
 
 	if ((pnp_avm_c = pnp_find_card(
 		ISAPNP_VENDOR('A', 'V', 'M'),
@@ -813,20 +799,20 @@ static int __devinit avm_pnp_setup(struct IsdnCardState *cs)
 			}
 			cs->subtyp = AVM_FRITZ_PNP;
 
-			return (2);	/* goto 'ready' label */
+			return (2);	
 		}
 	}
 
 	return (1);
 }
 
-#endif /* __ISAPNP__ */
+#endif 
 
 #ifndef CONFIG_PCI_LEGACY
 
 static int __devinit avm_pci_setup(struct IsdnCardState *cs)
 {
-	return(1);	/* no-op: success */
+	return(1);	
 }
 
 #else
@@ -864,7 +850,7 @@ static int __devinit avm_pci_setup(struct IsdnCardState *cs)
 	return (1);
 }
 
-#endif /* CONFIG_PCI_LEGACY */
+#endif 
 
 int __devinit
 setup_avm_pcipnp(struct IsdnCard *card)
@@ -880,7 +866,7 @@ setup_avm_pcipnp(struct IsdnCard *card)
 		return (0);
 
 	if (card->para[1]) {
-		/* old manual method */
+		
 		cs->hw.avm.cfg_reg = card->para[1];
 		cs->irq = card->para[0];
 		cs->subtyp = AVM_FRITZ_PNP;

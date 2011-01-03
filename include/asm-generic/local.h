@@ -5,19 +5,11 @@
 #include <asm/atomic.h>
 #include <asm/types.h>
 
-/*
- * A signed long type for operations which are atomic for a single CPU.
- * Usually used in combination with per-cpu variables.
- *
- * This is the default implementation, which uses atomic_long_t.  Which is
- * rather pointless.  The whole point behind local_t is that some processors
- * can perform atomic adds and subtracts in a manner which is atomic wrt IRQs
- * running on this CPU.  local_t allows exploitation of such capabilities.
- */
 
-/* Implement in terms of atomics. */
 
-/* Don't use typedef: don't want them to be mixed with atomic_t's. */
+
+
+
 typedef struct
 {
 	atomic_long_t a;
@@ -45,17 +37,13 @@ typedef struct
 #define local_add_unless(l, _a, u) atomic_long_add_unless((&(l)->a), (_a), (u))
 #define local_inc_not_zero(l) atomic_long_inc_not_zero(&(l)->a)
 
-/* Non-atomic variants, ie. preemption disabled and won't be touched
- * in interrupt, etc.  Some archs can optimize this case well. */
+
 #define __local_inc(l)		local_set((l), local_read(l) + 1)
 #define __local_dec(l)		local_set((l), local_read(l) - 1)
 #define __local_add(i,l)	local_set((l), local_read(l) + (i))
 #define __local_sub(i,l)	local_set((l), local_read(l) - (i))
 
-/* Use these for per-cpu local_t variables: on some archs they are
- * much more efficient than these naive implementations.  Note they take
- * a variable (eg. mystruct.foo), not an address.
- */
+
 #define cpu_local_read(l)	local_read(&__get_cpu_var(l))
 #define cpu_local_set(l, i)	local_set(&__get_cpu_var(l), (i))
 #define cpu_local_inc(l)	local_inc(&__get_cpu_var(l))
@@ -63,12 +51,10 @@ typedef struct
 #define cpu_local_add(i, l)	local_add((i), &__get_cpu_var(l))
 #define cpu_local_sub(i, l)	local_sub((i), &__get_cpu_var(l))
 
-/* Non-atomic increments, ie. preemption disabled and won't be touched
- * in interrupt, etc.  Some archs can optimize this case well.
- */
+
 #define __cpu_local_inc(l)	__local_inc(&__get_cpu_var(l))
 #define __cpu_local_dec(l)	__local_dec(&__get_cpu_var(l))
 #define __cpu_local_add(i, l)	__local_add((i), &__get_cpu_var(l))
 #define __cpu_local_sub(i, l)	__local_sub((i), &__get_cpu_var(l))
 
-#endif /* _ASM_GENERIC_LOCAL_H */
+#endif 

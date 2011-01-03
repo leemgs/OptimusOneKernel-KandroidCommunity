@@ -1,22 +1,4 @@
-/*
-    ioctl control functions
-    Copyright (C) 2003-2004  Kevin Thayer <nufan_wfk at yahoo.com>
-    Copyright (C) 2005-2007  Hans Verkuil <hverkuil@xs4all.nl>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 #include <linux/kernel.h>
 
 #include "ivtv-driver.h"
@@ -27,7 +9,7 @@
 #include "ivtv-mailbox.h"
 #include "ivtv-controls.h"
 
-/* Must be sorted from low to high control ID! */
+
 static const u32 user_ctrls[] = {
 	V4L2_CID_USER_CLASS,
 	V4L2_CID_BRIGHTNESS,
@@ -60,7 +42,7 @@ int ivtv_queryctrl(struct file *file, void *fh, struct v4l2_queryctrl *qctrl)
 		return -EINVAL;
 
 	switch (qctrl->id) {
-	/* Standard V4L2 controls */
+	
 	case V4L2_CID_USER_CLASS:
 		return v4l2_ctrl_query_fill(qctrl, 0, 0, 0, 0);
 	case V4L2_CID_BRIGHTNESS:
@@ -121,7 +103,7 @@ static int ivtv_try_ctrl(struct file *file, void *fh,
 static int ivtv_s_ctrl(struct ivtv *itv, struct v4l2_control *vctrl)
 {
 	switch (vctrl->id) {
-		/* Standard V4L2 controls */
+		
 	case V4L2_CID_BRIGHTNESS:
 	case V4L2_CID_HUE:
 	case V4L2_CID_SATURATION:
@@ -146,7 +128,7 @@ static int ivtv_s_ctrl(struct ivtv *itv, struct v4l2_control *vctrl)
 static int ivtv_g_ctrl(struct ivtv *itv, struct v4l2_control *vctrl)
 {
 	switch (vctrl->id) {
-		/* Standard V4L2 controls */
+		
 	case V4L2_CID_BRIGHTNESS:
 	case V4L2_CID_HUE:
 	case V4L2_CID_SATURATION:
@@ -174,12 +156,12 @@ static int ivtv_setup_vbi_fmt(struct ivtv *itv, enum v4l2_mpeg_stream_vbi_fmt fm
 	if (atomic_read(&itv->capturing) > 0)
 		return -EBUSY;
 
-	/* First try to allocate sliced VBI buffers if needed. */
+	
 	if (fmt && itv->vbi.sliced_mpeg_data[0] == NULL) {
 		int i;
 
 		for (i = 0; i < IVTV_VBI_FRAMES; i++) {
-			/* Yuck, hardcoded. Needs to be a define */
+			
 			itv->vbi.sliced_mpeg_data[i] = kmalloc(2049, GFP_KERNEL);
 			if (itv->vbi.sliced_mpeg_data[i] == NULL) {
 				while (--i >= 0) {
@@ -196,7 +178,7 @@ static int ivtv_setup_vbi_fmt(struct ivtv *itv, enum v4l2_mpeg_stream_vbi_fmt fm
 	if (itv->vbi.insert_mpeg == 0) {
 		return 0;
 	}
-	/* Need sliced data for mpeg insertion */
+	
 	if (ivtv_get_service_set(itv->vbi.sliced_in) == 0) {
 		if (itv->is_60hz)
 			itv->vbi.sliced_in->service_set = V4L2_SLICED_CAPTION_525;
@@ -268,7 +250,7 @@ int ivtv_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
 				V4L2_MPEG_VIDEO_ENCODING_MPEG_1;
 			struct v4l2_format fmt;
 
-			/* fix videodecoder resolution */
+			
 			fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			fmt.fmt.pix.width = itv->params.width / (is_mpeg1 ? 2 : 1);
 			fmt.fmt.pix.height = itv->params.height;
@@ -280,8 +262,7 @@ int ivtv_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
 		itv->params = p;
 		itv->dualwatch_stereo_mode = p.audio_properties & 0x0300;
 		idx = p.audio_properties & 0x03;
-		/* The audio clock of the digitizer must match the codec sample
-		   rate otherwise you get some very strange effects. */
+		
 		if (idx < ARRAY_SIZE(freqs))
 			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
 		return err;

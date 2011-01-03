@@ -1,34 +1,4 @@
-/*
- * cpcihp_zt5550.c
- *
- * Intel/Ziatech ZT5550 CompactPCI Host Controller driver
- *
- * Copyright 2002 SOMA Networks, Inc.
- * Copyright 2001 Intel San Luis Obispo
- * Copyright 2000,2001 MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
- * AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
- * THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <scottm@somanetworks.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -36,7 +6,7 @@
 #include <linux/errno.h>
 #include <linux/pci.h>
 #include <linux/interrupt.h>
-#include <linux/signal.h>	/* IRQF_SHARED */
+#include <linux/signal.h>	
 #include "cpci_hotplug.h"
 #include "cpcihp_zt5550.h"
 
@@ -56,20 +26,20 @@
 #define info(format, arg...) printk(KERN_INFO "%s: " format "\n", MY_NAME , ## arg)
 #define warn(format, arg...) printk(KERN_WARNING "%s: " format "\n", MY_NAME , ## arg)
 
-/* local variables */
+
 static int debug;
 static int poll;
 static struct cpci_hp_controller_ops zt5550_hpc_ops;
 static struct cpci_hp_controller zt5550_hpc;
 
-/* Primary cPCI bus bridge device */
+
 static struct pci_dev *bus0_dev;
 static struct pci_bus *bus0;
 
-/* Host controller device */
+
 static struct pci_dev *hc_dev;
 
-/* Host controller register addresses */
+
 static void __iomem *hc_registers;
 static void __iomem *csr_hc_index;
 static void __iomem *csr_hc_data;
@@ -81,7 +51,7 @@ static int zt5550_hc_config(struct pci_dev *pdev)
 {
 	int ret;
 
-	/* Since we know that no boards exist with two HC chips, treat it as an error */
+	
 	if(hc_dev) {
 		err("too many host controller devices?");
 		return -EBUSY;
@@ -120,17 +90,13 @@ static int zt5550_hc_config(struct pci_dev *pdev)
 	csr_int_status = hc_registers + CSR_INTSTAT;
 	csr_int_mask = hc_registers + CSR_INTMASK;
 
-	/*
-	 * Disable host control, fault and serial interrupts
-	 */
+	
 	dbg("disabling host control, fault and serial interrupts");
 	writeb((u8) HC_INT_MASK_REG, csr_hc_index);
 	writeb((u8) ALL_INDEXED_INTS_MASK, csr_hc_data);
 	dbg("disabled host control, fault and serial interrupts");
 
-	/*
-	 * Disable timer0, timer1 and ENUM interrupts
-	 */
+	
 	dbg("disabling timer0, timer1 and ENUM interrupts");
 	writeb((u8) ALL_DIRECT_INTS_MASK, csr_int_mask);
 	dbg("disabled timer0, timer1 and ENUM interrupts");
@@ -237,7 +203,7 @@ static int zt5550_hc_init_one (struct pci_dev *pdev, const struct pci_device_id 
 	}
 	dbg("registered controller");
 
-	/* Look for first device matching cPCI bus's bridge vendor and device IDs */
+	
 	if(!(bus0_dev = pci_get_device(PCI_VENDOR_ID_DEC,
 					 PCI_DEVICE_ID_DEC_21154, NULL))) {
 		status = -ENODEV;

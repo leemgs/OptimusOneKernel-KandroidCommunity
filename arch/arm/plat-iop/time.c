@@ -1,17 +1,4 @@
-/*
- * arch/arm/plat-iop/time.c
- *
- * Timer code for IOP32x and IOP33x based systems
- *
- * Author: Deepak Saxena <dsaxena@mvista.com>
- *
- * Copyright 2002-2003 MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -34,9 +21,7 @@ unsigned long iop_gettimeoffset(void)
 {
 	unsigned long offset, temp;
 
-	/* enable cp6, if necessary, to avoid taking the overhead of an
-	 * undefined instruction trap
-	 */
+	
 	asm volatile (
 	"mrc	p15, 0, %0, c15, c1, 0\n\t"
 	"tst	%0, #(1 << 6)\n\t"
@@ -93,10 +78,7 @@ void __init iop_init_time(unsigned long tick_rate)
 	timer_ctl = IOP_TMR_EN | IOP_TMR_PRIVILEGED |
 			IOP_TMR_RELOAD | IOP_TMR_RATIO_1_1;
 
-	/*
-	 * We use timer 0 for our timer interrupt, and timer 1 as
-	 * monotonic counter for tracking missed jiffies.
-	 */
+	
 	write_trr0(ticks_per_jiffy - 1);
 	write_tmr0(timer_ctl);
 	write_trr1(0xffffffff);

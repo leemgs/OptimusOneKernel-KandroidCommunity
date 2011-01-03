@@ -1,14 +1,4 @@
-/*
- * Common power driver for PDAs and phones with one or two external
- * power supplies (AC/USB) connected to main and backup batteries,
- * and optional builtin charger.
- *
- * Copyright © 2007 Anton Vorontsov <cbou@mail.ru>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -161,10 +151,7 @@ static void psy_changed(void)
 {
 	update_charger();
 
-	/*
-	 * Okay, charger set. Now wait a bit before notifying supplicants,
-	 * charge power should stabilize.
-	 */
+	
 	mod_timer(&supply_timer,
 		  jiffies + msecs_to_jiffies(pdata->wait_for_charger));
 }
@@ -184,10 +171,7 @@ static irqreturn_t power_changed_isr(int irq, void *power_supply)
 	else
 		return IRQ_NONE;
 
-	/*
-	 * Wait a bit before reading ac/usb line status and setting charger,
-	 * because ac/usb status readings may lag from irq.
-	 */
+	
 	mod_timer(&charger_timer,
 		  jiffies + msecs_to_jiffies(pdata->wait_for_status));
 
@@ -428,7 +412,7 @@ static int pda_power_resume(struct platform_device *pdev)
 #else
 #define pda_power_suspend NULL
 #define pda_power_resume NULL
-#endif /* CONFIG_PM */
+#endif 
 
 MODULE_ALIAS("platform:pda-power");
 

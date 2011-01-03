@@ -1,34 +1,4 @@
-/******************************************************************************
- * Client-facing interface for the Xenbus driver.  In other words, the
- * interface between the Xenbus and the device-specific code, be it the
- * frontend or the backend of that driver.
- *
- * Copyright (C) 2005 XenSource Ltd
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 
 #include <linux/types.h>
 #include <linux/vmalloc.h>
@@ -54,20 +24,7 @@ const char *xenbus_strstate(enum xenbus_state state)
 }
 EXPORT_SYMBOL_GPL(xenbus_strstate);
 
-/**
- * xenbus_watch_path - register a watch
- * @dev: xenbus device
- * @path: path to watch
- * @watch: watch to register
- * @callback: callback to register
- *
- * Register a @watch on the given path, using the given xenbus_watch structure
- * for storage, and the given @callback function as the callback.  Return 0 on
- * success, or -errno on error.  On success, the given @path will be saved as
- * @watch->node, and remains the caller's to free.  On error, @watch->node will
- * be NULL, the device will switch to %XenbusStateClosing, and the error will
- * be saved in the store.
- */
+
 int xenbus_watch_path(struct xenbus_device *dev, const char *path,
 		      struct xenbus_watch *watch,
 		      void (*callback)(struct xenbus_watch *,
@@ -91,21 +48,7 @@ int xenbus_watch_path(struct xenbus_device *dev, const char *path,
 EXPORT_SYMBOL_GPL(xenbus_watch_path);
 
 
-/**
- * xenbus_watch_pathfmt - register a watch on a sprintf-formatted path
- * @dev: xenbus device
- * @watch: watch to register
- * @callback: callback to register
- * @pathfmt: format of path to watch
- *
- * Register a watch on the given @path, using the given xenbus_watch
- * structure for storage, and the given @callback function as the callback.
- * Return 0 on success, or -errno on error.  On success, the watched path
- * (@path/@path2) will be saved as @watch->node, and becomes the caller's to
- * kfree().  On error, watch->node will be NULL, so the caller has nothing to
- * free, the device will switch to %XenbusStateClosing, and the error will be
- * saved in the store.
- */
+
 int xenbus_watch_pathfmt(struct xenbus_device *dev,
 			 struct xenbus_watch *watch,
 			 void (*callback)(struct xenbus_watch *,
@@ -133,30 +76,10 @@ int xenbus_watch_pathfmt(struct xenbus_device *dev,
 EXPORT_SYMBOL_GPL(xenbus_watch_pathfmt);
 
 
-/**
- * xenbus_switch_state
- * @dev: xenbus device
- * @state: new state
- *
- * Advertise in the store a change of the given driver to the given new_state.
- * Return 0 on success, or -errno on error.  On error, the device will switch
- * to XenbusStateClosing, and the error will be saved in the store.
- */
+
 int xenbus_switch_state(struct xenbus_device *dev, enum xenbus_state state)
 {
-	/* We check whether the state is currently set to the given value, and
-	   if not, then the state is set.  We don't want to unconditionally
-	   write the given state, because we don't want to fire watches
-	   unnecessarily.  Furthermore, if the node has gone, we don't write
-	   to it, as the device will be tearing down, and we don't want to
-	   resurrect that directory.
-
-	   Note that, because of this cached value of our state, this function
-	   will not work inside a Xenstore transaction (something it was
-	   trying to in the past) because dev->state would not get reset if
-	   the transaction was aborted.
-
-	 */
+	
 
 	int current_state;
 	int err;
@@ -171,7 +94,7 @@ int xenbus_switch_state(struct xenbus_device *dev, enum xenbus_state state)
 
 	err = xenbus_printf(XBT_NIL, dev->nodename, "state", "%d", state);
 	if (err) {
-		if (state != XenbusStateClosing) /* Avoid looping */
+		if (state != XenbusStateClosing) 
 			xenbus_dev_fatal(dev, err, "writing new state");
 		return err;
 	}
@@ -190,10 +113,7 @@ int xenbus_frontend_closed(struct xenbus_device *dev)
 }
 EXPORT_SYMBOL_GPL(xenbus_frontend_closed);
 
-/**
- * Return the path to the error node for the given device, or NULL on failure.
- * If the value returned is non-NULL, then it is the caller's to kfree.
- */
+
 static char *error_path(struct xenbus_device *dev)
 {
 	return kasprintf(GFP_KERNEL, "error/%s", dev->nodename);
@@ -240,15 +160,7 @@ fail:
 }
 
 
-/**
- * xenbus_dev_error
- * @dev: xenbus device
- * @err: error to report
- * @fmt: error message format
- *
- * Report the given negative errno into the store, along with the given
- * formatted message.
- */
+
 void xenbus_dev_error(struct xenbus_device *dev, int err, const char *fmt, ...)
 {
 	va_list ap;
@@ -259,16 +171,7 @@ void xenbus_dev_error(struct xenbus_device *dev, int err, const char *fmt, ...)
 }
 EXPORT_SYMBOL_GPL(xenbus_dev_error);
 
-/**
- * xenbus_dev_fatal
- * @dev: xenbus device
- * @err: error to report
- * @fmt: error message format
- *
- * Equivalent to xenbus_dev_error(dev, err, fmt, args), followed by
- * xenbus_switch_state(dev, XenbusStateClosing) to schedule an orderly
- * closedown of this driver and its peer.
- */
+
 
 void xenbus_dev_fatal(struct xenbus_device *dev, int err, const char *fmt, ...)
 {
@@ -282,15 +185,7 @@ void xenbus_dev_fatal(struct xenbus_device *dev, int err, const char *fmt, ...)
 }
 EXPORT_SYMBOL_GPL(xenbus_dev_fatal);
 
-/**
- * xenbus_grant_ring
- * @dev: xenbus device
- * @ring_mfn: mfn of ring to grant
 
- * Grant access to the given @ring_mfn to the peer of the given device.  Return
- * 0 on success, or -errno on error.  On error, the device will switch to
- * XenbusStateClosing, and the error will be saved in the store.
- */
 int xenbus_grant_ring(struct xenbus_device *dev, unsigned long ring_mfn)
 {
 	int err = gnttab_grant_foreign_access(dev->otherend_id, ring_mfn, 0);
@@ -301,12 +196,7 @@ int xenbus_grant_ring(struct xenbus_device *dev, unsigned long ring_mfn)
 EXPORT_SYMBOL_GPL(xenbus_grant_ring);
 
 
-/**
- * Allocate an event channel for the given xenbus_device, assigning the newly
- * created local port to *port.  Return 0 on success, or -errno on error.  On
- * error, the device will switch to XenbusStateClosing, and the error will be
- * saved in the store.
- */
+
 int xenbus_alloc_evtchn(struct xenbus_device *dev, int *port)
 {
 	struct evtchn_alloc_unbound alloc_unbound;
@@ -327,11 +217,7 @@ int xenbus_alloc_evtchn(struct xenbus_device *dev, int *port)
 EXPORT_SYMBOL_GPL(xenbus_alloc_evtchn);
 
 
-/**
- * Bind to an existing interdomain event channel in another domain. Returns 0
- * on success and stores the local port in *port. On error, returns -errno,
- * switches the device to XenbusStateClosing, and saves the error in XenStore.
- */
+
 int xenbus_bind_evtchn(struct xenbus_device *dev, int remote_port, int *port)
 {
 	struct evtchn_bind_interdomain bind_interdomain;
@@ -354,9 +240,7 @@ int xenbus_bind_evtchn(struct xenbus_device *dev, int remote_port, int *port)
 EXPORT_SYMBOL_GPL(xenbus_bind_evtchn);
 
 
-/**
- * Free an existing event channel. Returns 0 on success or -errno on error.
- */
+
 int xenbus_free_evtchn(struct xenbus_device *dev, int port)
 {
 	struct evtchn_close close;
@@ -373,20 +257,7 @@ int xenbus_free_evtchn(struct xenbus_device *dev, int port)
 EXPORT_SYMBOL_GPL(xenbus_free_evtchn);
 
 
-/**
- * xenbus_map_ring_valloc
- * @dev: xenbus device
- * @gnt_ref: grant reference
- * @vaddr: pointer to address to be filled out by mapping
- *
- * Based on Rusty Russell's skeleton driver's map_page.
- * Map a page of memory into this domain from another domain's grant table.
- * xenbus_map_ring_valloc allocates a page of virtual address space, maps the
- * page to that address, and sets *vaddr to that address.
- * Returns 0 on success, and GNTST_* (see xen/include/interface/grant_table.h)
- * or -ENOMEM on error. If an error is returned, device will switch to
- * XenbusStateClosing and the error message will be saved in XenStore.
- */
+
 int xenbus_map_ring_valloc(struct xenbus_device *dev, int gnt_ref, void **vaddr)
 {
 	struct gnttab_map_grant_ref op = {
@@ -415,7 +286,7 @@ int xenbus_map_ring_valloc(struct xenbus_device *dev, int gnt_ref, void **vaddr)
 		return op.status;
 	}
 
-	/* Stuff the handle in an unused field */
+	
 	area->phys_addr = (unsigned long)op.handle;
 
 	*vaddr = area->addr;
@@ -424,20 +295,7 @@ int xenbus_map_ring_valloc(struct xenbus_device *dev, int gnt_ref, void **vaddr)
 EXPORT_SYMBOL_GPL(xenbus_map_ring_valloc);
 
 
-/**
- * xenbus_map_ring
- * @dev: xenbus device
- * @gnt_ref: grant reference
- * @handle: pointer to grant handle to be filled
- * @vaddr: address to be mapped to
- *
- * Map a page of memory into this domain from another domain's grant table.
- * xenbus_map_ring does not allocate the virtual address space (you must do
- * this yourself!). It only maps in the page to the specified address.
- * Returns 0 on success, and GNTST_* (see xen/include/interface/grant_table.h)
- * or -ENOMEM on error. If an error is returned, device will switch to
- * XenbusStateClosing and the error message will be saved in XenStore.
- */
+
 int xenbus_map_ring(struct xenbus_device *dev, int gnt_ref,
 		    grant_handle_t *handle, void *vaddr)
 {
@@ -463,18 +321,7 @@ int xenbus_map_ring(struct xenbus_device *dev, int gnt_ref,
 EXPORT_SYMBOL_GPL(xenbus_map_ring);
 
 
-/**
- * xenbus_unmap_ring_vfree
- * @dev: xenbus device
- * @vaddr: addr to unmap
- *
- * Based on Rusty Russell's skeleton driver's unmap_page.
- * Unmap a page of memory in this domain that was imported from another domain.
- * Use xenbus_unmap_ring_vfree if you mapped in your memory with
- * xenbus_map_ring_valloc (it will free the virtual address space).
- * Returns 0 on success and returns GNTST_* on error
- * (see xen/include/interface/grant_table.h).
- */
+
 int xenbus_unmap_ring_vfree(struct xenbus_device *dev, void *vaddr)
 {
 	struct vm_struct *area;
@@ -482,12 +329,7 @@ int xenbus_unmap_ring_vfree(struct xenbus_device *dev, void *vaddr)
 		.host_addr = (unsigned long)vaddr,
 	};
 
-	/* It'd be nice if linux/vmalloc.h provided a find_vm_area(void *addr)
-	 * method so that we don't have to muck with vmalloc internals here.
-	 * We could force the user to hang on to their struct vm_struct from
-	 * xenbus_map_ring_valloc, but these 6 lines considerably simplify
-	 * this API.
-	 */
+	
 	read_lock(&vmlist_lock);
 	for (area = vmlist; area != NULL; area = area->next) {
 		if (area->addr == vaddr)
@@ -518,16 +360,7 @@ int xenbus_unmap_ring_vfree(struct xenbus_device *dev, void *vaddr)
 EXPORT_SYMBOL_GPL(xenbus_unmap_ring_vfree);
 
 
-/**
- * xenbus_unmap_ring
- * @dev: xenbus device
- * @handle: grant handle
- * @vaddr: addr to unmap
- *
- * Unmap a page of memory in this domain that was imported from another domain.
- * Returns 0 on success and returns GNTST_* on error
- * (see xen/include/interface/grant_table.h).
- */
+
 int xenbus_unmap_ring(struct xenbus_device *dev,
 		      grant_handle_t handle, void *vaddr)
 {
@@ -549,13 +382,7 @@ int xenbus_unmap_ring(struct xenbus_device *dev,
 EXPORT_SYMBOL_GPL(xenbus_unmap_ring);
 
 
-/**
- * xenbus_read_driver_state
- * @path: path for driver
- *
- * Return the state of the driver rooted at the given store path, or
- * XenbusStateUnknown if no state can be read.
- */
+
 enum xenbus_state xenbus_read_driver_state(const char *path)
 {
 	enum xenbus_state result;

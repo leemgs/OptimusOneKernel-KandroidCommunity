@@ -1,20 +1,4 @@
-/*
- * This module is used to copy security markings from packets
- * to connections, and restore security markings from connections
- * back to packets.  This would normally be performed in conjunction
- * with the SECMARK target and state match.
- *
- * Based somewhat on CONNMARK:
- *   Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
- *    by Henrik Nordstrom <hno@marasystems.com>
- *
- * (C) 2006,2008 Red Hat, Inc., James Morris <jmorris@redhat.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 #include <linux/module.h>
 #include <linux/skbuff.h>
 #include <linux/netfilter/x_tables.h>
@@ -30,10 +14,7 @@ MODULE_DESCRIPTION("Xtables: target for copying between connection and security 
 MODULE_ALIAS("ipt_CONNSECMARK");
 MODULE_ALIAS("ip6t_CONNSECMARK");
 
-/*
- * If the packet has a security mark and the connection does not, copy
- * the security mark from the packet to the connection.
- */
+
 static void secmark_save(const struct sk_buff *skb)
 {
 	if (skb->secmark) {
@@ -48,10 +29,7 @@ static void secmark_save(const struct sk_buff *skb)
 	}
 }
 
-/*
- * If packet has no security mark, and the connection does, restore the
- * security mark from the connection to the packet.
- */
+
 static void secmark_restore(struct sk_buff *skb)
 {
 	if (!skb->secmark) {

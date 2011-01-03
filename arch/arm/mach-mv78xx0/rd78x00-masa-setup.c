@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-mv78x00/rd78x00-masa-setup.c
- *
- * Marvell RD-78x00-mASA Development Board Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -39,14 +31,10 @@ static struct mv_sata_platform_data rd78x00_masa_sata_data = {
 
 static void __init rd78x00_masa_init(void)
 {
-	/*
-	 * Basic MV78x00 setup. Needs to be called early.
-	 */
+	
 	mv78xx0_init();
 
-	/*
-	 * Partition on-chip peripherals between the two CPU cores.
-	 */
+	
 	if (mv78xx0_core_index() == 0) {
 		mv78xx0_ehci0_init();
 		mv78xx0_ehci1_init();
@@ -66,9 +54,7 @@ static void __init rd78x00_masa_init(void)
 
 static int __init rd78x00_pci_init(void)
 {
-	/*
-	 * Assign all PCIe devices to CPU core #0.
-	 */
+	
 	if (machine_is_rd78x00_masa() && mv78xx0_core_index() == 0)
 		mv78xx0_pcie_init(1, 1);
 
@@ -77,7 +63,7 @@ static int __init rd78x00_pci_init(void)
 subsys_initcall(rd78x00_pci_init);
 
 MACHINE_START(RD78X00_MASA, "Marvell RD-78x00-MASA Development Board")
-	/* Maintainer: Lennert Buytenhek <buytenh@marvell.com> */
+	
 	.phys_io	= MV78XX0_REGS_PHYS_BASE,
 	.io_pg_offst	= ((MV78XX0_REGS_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

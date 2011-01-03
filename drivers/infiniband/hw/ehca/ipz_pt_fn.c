@@ -1,42 +1,4 @@
-/*
- *  IBM eServer eHCA Infiniband device driver for Linux on POWER
- *
- *  internal queue handling
- *
- *  Authors: Waleri Fomin <fomin@de.ibm.com>
- *           Reinhard Ernst <rernst@de.ibm.com>
- *           Christoph Raisch <raisch@de.ibm.com>
- *
- *  Copyright (c) 2005 IBM Corporation
- *
- *  This source code is distributed under a dual license of GPL v2.0 and OpenIB
- *  BSD.
- *
- * OpenIB BSD License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials
- * provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "ehca_tools.h"
 #include "ipz_pt_fn.h"
@@ -92,11 +54,7 @@ int ipz_queue_abs_to_offset(struct ipz_queue *queue, u64 addr, u64 *q_offset)
 #error Kernel pages must be at least as large than eHCA pages (4K) !
 #endif
 
-/*
- * allocate pages for queue:
- * outer loop allocates whole kernel pages (page aligned) and
- * inner loop divides a kernel page into smaller hca queue pages
- */
+
 static int alloc_queue_pages(struct ipz_queue *queue, const u32 nr_of_pages)
 {
 	int k, f = 0;
@@ -188,7 +146,7 @@ static void free_small_queue_page(struct ipz_queue *queue, struct ehca_pd *pd)
 	}
 
 	if (page->fill == (IPZ_SPAGE_PER_KPAGE >> order) - 1)
-		/* the page was full until we freed the chunk */
+		
 		list_move_tail(&page->list, &pd->free[order]);
 
 	mutex_unlock(&pd->lock);
@@ -210,7 +168,7 @@ int ipz_queue_ctor(struct ehca_pd *pd, struct ipz_queue *queue,
 		return 0;
 	}
 
-	/* init queue fields */
+	
 	queue->queue_length = nr_of_pages * pagesize;
 	queue->pagesize = pagesize;
 	queue->qe_size = qe_size;
@@ -219,7 +177,7 @@ int ipz_queue_ctor(struct ehca_pd *pd, struct ipz_queue *queue,
 	queue->toggle_state = 1;
 	queue->small_page = NULL;
 
-	/* allocate queue page pointers */
+	
 	queue->queue_pages = kmalloc(nr_of_pages * sizeof(void *), GFP_KERNEL);
 	if (!queue->queue_pages) {
 		queue->queue_pages = vmalloc(nr_of_pages * sizeof(void *));
@@ -230,7 +188,7 @@ int ipz_queue_ctor(struct ehca_pd *pd, struct ipz_queue *queue,
 	}
 	memset(queue->queue_pages, 0, nr_of_pages * sizeof(void *));
 
-	/* allocate actual queue pages */
+	
 	if (is_small) {
 		if (!alloc_small_queue_page(queue, pd))
 			goto ipz_queue_ctor_exit0;

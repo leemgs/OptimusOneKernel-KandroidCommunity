@@ -1,45 +1,6 @@
-/*******************************************************************************
- *
- * Module Name: rsmisc - Miscellaneous resource descriptors
- *
- ******************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #include <acpi/acpi.h>
 #include "accommon.h"
@@ -53,20 +14,7 @@ ACPI_MODULE_NAME("rsmisc")
 #define COMPARE_OPCODE(i)           i->resource_offset
 #define COMPARE_TARGET(i)           i->aml_offset
 #define COMPARE_VALUE(i)            i->value
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_convert_aml_to_resource
- *
- * PARAMETERS:  Resource            - Pointer to the resource descriptor
- *              Aml                 - Where the AML descriptor is returned
- *              Info                - Pointer to appropriate conversion table
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Convert an external AML resource descriptor to the corresponding
- *              internal resource descriptor
- *
- ******************************************************************************/
+
 acpi_status
 acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 				union aml_resource *aml,
@@ -85,37 +33,29 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 
 	if (((acpi_size) resource) & 0x3) {
 
-		/* Each internal resource struct is expected to be 32-bit aligned */
+		
 
 		ACPI_WARNING((AE_INFO,
 			      "Misaligned resource pointer (get): %p Type %2.2X Len %X",
 			      resource, resource->type, resource->length));
 	}
 
-	/* Extract the resource Length field (does not include header length) */
+	
 
 	aml_resource_length = acpi_ut_get_resource_length(aml);
 
-	/*
-	 * First table entry must be ACPI_RSC_INITxxx and must contain the
-	 * table length (# of table entries)
-	 */
+	
 	count = INIT_TABLE_LENGTH(info);
 
 	while (count) {
-		/*
-		 * Source is the external AML byte stream buffer,
-		 * destination is the internal resource descriptor
-		 */
+		
 		source = ACPI_ADD_PTR(void, aml, info->aml_offset);
 		destination =
 		    ACPI_ADD_PTR(void, resource, info->resource_offset);
 
 		switch (info->opcode) {
 		case ACPI_RSC_INITGET:
-			/*
-			 * Get the resource type and the initial (minimum) length
-			 */
+			
 			ACPI_MEMSET(resource, 0, INIT_RESOURCE_LENGTH(info));
 			resource->type = INIT_RESOURCE_TYPE(info);
 			resource->length = INIT_RESOURCE_LENGTH(info);
@@ -130,17 +70,13 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_1BITFLAG:
-			/*
-			 * Mask and shift the flag bit
-			 */
+			
 			ACPI_SET8(destination) = (u8)
 			    ((ACPI_GET8(source) >> info->value) & 0x01);
 			break;
 
 		case ACPI_RSC_2BITFLAG:
-			/*
-			 * Mask and shift the flag bits
-			 */
+			
 			ACPI_SET8(destination) = (u8)
 			    ((ACPI_GET8(source) >> info->value) & 0x03);
 			break;
@@ -172,10 +108,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 		case ACPI_RSC_MOVE16:
 		case ACPI_RSC_MOVE32:
 		case ACPI_RSC_MOVE64:
-			/*
-			 * Raw data move. Use the Info value field unless item_count has
-			 * been previously initialized via a COUNT opcode
-			 */
+			
 			if (info->value) {
 				item_count = info->value;
 			}
@@ -195,9 +128,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_ADDRESS:
-			/*
-			 * Common handler for address descriptor flags
-			 */
+			
 			if (!acpi_rs_get_address_common(resource, aml)) {
 				return_ACPI_STATUS
 				    (AE_AML_INVALID_RESOURCE_TYPE);
@@ -205,9 +136,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_SOURCE:
-			/*
-			 * Optional resource_source (Index and String)
-			 */
+			
 			resource->length +=
 			    acpi_rs_get_resource_source(aml_resource_length,
 							info->value,
@@ -215,10 +144,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_SOURCEX:
-			/*
-			 * Optional resource_source (Index and String). This is the more
-			 * complicated case used by the Interrupt() macro
-			 */
+			
 			target =
 			    ACPI_ADD_PTR(char, resource,
 					 info->aml_offset + (item_count * 4));
@@ -229,9 +155,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_BITMASK:
-			/*
-			 * 8-bit encoded bitmask (DMA macro)
-			 */
+			
 			item_count =
 			    acpi_rs_decode_bitmask(ACPI_GET8(source),
 						   destination);
@@ -244,9 +168,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_BITMASK16:
-			/*
-			 * 16-bit encoded bitmask (IRQ macro)
-			 */
+			
 			ACPI_MOVE_16_TO_16(&temp16, source);
 
 			item_count =
@@ -260,9 +182,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_EXIT_NE:
-			/*
-			 * Control - Exit conversion if not equal
-			 */
+			
 			switch (info->resource_offset) {
 			case ACPI_RSC_COMPARE_AML_LENGTH:
 				if (aml_resource_length != info->value) {
@@ -297,7 +217,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
       exit:
 	if (!flags_mode) {
 
-		/* Round the resource struct length up to the next boundary (32 or 64) */
+		
 
 		resource->length =
 		    (u32) ACPI_ROUND_UP_TO_NATIVE_WORD(resource->length);
@@ -305,20 +225,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
 	return_ACPI_STATUS(AE_OK);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_rs_convert_resource_to_aml
- *
- * PARAMETERS:  Resource            - Pointer to the resource descriptor
- *              Aml                 - Where the AML descriptor is returned
- *              Info                - Pointer to appropriate conversion table
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Convert an internal resource descriptor to the corresponding
- *              external AML resource descriptor.
- *
- ******************************************************************************/
+
 
 acpi_status
 acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
@@ -334,17 +241,11 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 
 	ACPI_FUNCTION_TRACE(rs_convert_resource_to_aml);
 
-	/*
-	 * First table entry must be ACPI_RSC_INITxxx and must contain the
-	 * table length (# of table entries)
-	 */
+	
 	count = INIT_TABLE_LENGTH(info);
 
 	while (count) {
-		/*
-		 * Source is the internal resource descriptor,
-		 * destination is the external AML byte stream buffer
-		 */
+		
 		source = ACPI_ADD_PTR(void, resource, info->resource_offset);
 		destination = ACPI_ADD_PTR(void, aml, info->aml_offset);
 
@@ -361,24 +262,18 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_FLAGINIT:
-			/*
-			 * Clear the flag byte
-			 */
+			
 			ACPI_SET8(destination) = 0;
 			break;
 
 		case ACPI_RSC_1BITFLAG:
-			/*
-			 * Mask and shift the flag bit
-			 */
+			
 			ACPI_SET8(destination) |= (u8)
 			    ((ACPI_GET8(source) & 0x01) << info->value);
 			break;
 
 		case ACPI_RSC_2BITFLAG:
-			/*
-			 * Mask and shift the flag bits
-			 */
+			
 			ACPI_SET8(destination) |= (u8)
 			    ((ACPI_GET8(source) & 0x03) << info->value);
 			break;
@@ -419,15 +314,13 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 
 		case ACPI_RSC_ADDRESS:
 
-			/* Set the Resource Type, General Flags, and Type-Specific Flags */
+			
 
 			acpi_rs_set_address_common(aml, resource);
 			break;
 
 		case ACPI_RSC_SOURCEX:
-			/*
-			 * Optional resource_source (Index and String)
-			 */
+			
 			aml_length =
 			    acpi_rs_set_resource_source(aml, (acpi_rs_length)
 							aml_length, source);
@@ -435,10 +328,7 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_SOURCE:
-			/*
-			 * Optional resource_source (Index and String). This is the more
-			 * complicated case used by the Interrupt() macro
-			 */
+			
 			aml_length =
 			    acpi_rs_set_resource_source(aml, info->value,
 							source);
@@ -446,9 +336,7 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_BITMASK:
-			/*
-			 * 8-bit encoded bitmask (DMA macro)
-			 */
+			
 			ACPI_SET8(destination) = (u8)
 			    acpi_rs_encode_bitmask(source,
 						   *ACPI_ADD_PTR(u8, resource,
@@ -456,9 +344,7 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_BITMASK16:
-			/*
-			 * 16-bit encoded bitmask (IRQ macro)
-			 */
+			
 			temp16 = acpi_rs_encode_bitmask(source,
 							*ACPI_ADD_PTR(u8,
 								      resource,
@@ -468,18 +354,14 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_EXIT_LE:
-			/*
-			 * Control - Exit conversion if less than or equal
-			 */
+			
 			if (item_count <= info->value) {
 				goto exit;
 			}
 			break;
 
 		case ACPI_RSC_EXIT_NE:
-			/*
-			 * Control - Exit conversion if not equal
-			 */
+			
 			switch (COMPARE_OPCODE(info)) {
 			case ACPI_RSC_COMPARE_VALUE:
 
@@ -499,9 +381,7 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 			break;
 
 		case ACPI_RSC_EXIT_EQ:
-			/*
-			 * Control - Exit conversion if equal
-			 */
+			
 			if (*ACPI_ADD_PTR(u8, resource,
 					  COMPARE_TARGET(info)) ==
 			    COMPARE_VALUE(info)) {
@@ -524,7 +404,7 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
 }
 
 #if 0
-/* Previous resource validations */
+
 
 if (aml->ext_address64.revision_iD != AML_RESOURCE_EXTENDED_ADDRESS_REVISION) {
 	return_ACPI_STATUS(AE_SUPPORT);
@@ -535,11 +415,7 @@ if (resource->data.start_dpf.performance_robustness >= 3) {
 }
 
 if (((aml->irq.flags & 0x09) == 0x00) || ((aml->irq.flags & 0x09) == 0x09)) {
-	/*
-	 * Only [active_high, edge_sensitive] or [active_low, level_sensitive]
-	 * polarity/trigger interrupts are allowed (ACPI spec, section
-	 * "IRQ Format"), so 0x00 and 0x09 are illegal.
-	 */
+	
 	ACPI_ERROR((AE_INFO,
 		    "Invalid interrupt polarity/trigger in resource list, %X",
 		    aml->irq.flags));
@@ -549,7 +425,7 @@ if (((aml->irq.flags & 0x09) == 0x00) || ((aml->irq.flags & 0x09) == 0x09)) {
 resource->data.extended_irq.interrupt_count = temp8;
 if (temp8 < 1) {
 
-	/* Must have at least one IRQ */
+	
 
 	return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
 }

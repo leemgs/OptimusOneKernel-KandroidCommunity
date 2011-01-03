@@ -1,23 +1,4 @@
-/*
-	Frontend-driver for TwinHan DST Frontend
 
-	Copyright (C) 2003 Jamie Honan
-	Copyright (C) 2004, 2005 Manu Abraham (manu@kromtek.com)
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #ifndef DST_COMMON_H
 #define DST_COMMON_H
@@ -55,7 +36,7 @@
 #define DST_TYPE_HAS_DBOARD	2048
 #define DST_TYPE_HAS_VLF	4096
 
-/*	Card capability list	*/
+
 
 #define DST_TYPE_HAS_MAC	1
 #define DST_TYPE_HAS_DISEQC3	2
@@ -63,20 +44,20 @@
 #define DST_TYPE_HAS_DISEQC5	8
 #define DST_TYPE_HAS_MOTO	16
 #define DST_TYPE_HAS_CA		32
-#define	DST_TYPE_HAS_ANALOG	64	/*	Analog inputs	*/
+#define	DST_TYPE_HAS_ANALOG	64	
 #define DST_TYPE_HAS_SESSION	128
 
 #define TUNER_TYPE_MULTI	1
 #define TUNER_TYPE_UNKNOWN	2
-/*	DVB-S		*/
+
 #define TUNER_TYPE_L64724	4
 #define TUNER_TYPE_STV0299	8
 #define TUNER_TYPE_MB86A15	16
 
-/*	DVB-T		*/
+
 #define TUNER_TYPE_TDA10046	32
 
-/*	ATSC		*/
+
 #define TUNER_TYPE_NXT200x	64
 
 
@@ -85,7 +66,7 @@
 #define RDC_8820_INT		2
 #define RDC_8820_RESET		4
 
-/*	DST Communication	*/
+
 #define GET_REPLY		1
 #define NO_REPLY		0
 
@@ -100,21 +81,21 @@ struct dst_state {
 
 	struct bt878* bt;
 
-	/* configuration settings */
+	
 	const struct dst_config* config;
 
 	struct dvb_frontend frontend;
 
-	/* private ASIC data */
+	
 	u8 tx_tuna[10];
 	u8 rx_tuna[10];
 	u8 rxbuffer[10];
 	u8 diseq_flags;
 	u8 dst_type;
 	u32 type_flags;
-	u32 frequency;		/* intermediate frequency in kHz for QPSK */
+	u32 frequency;		
 	fe_spectral_inversion_t inversion;
-	u32 symbol_rate;	/* symbol rate in Symbols per second */
+	u32 symbol_rate;	
 	fe_code_rate_t fec;
 	fe_sec_voltage_t voltage;
 	fe_sec_tone_mode_t tone;
@@ -160,7 +141,7 @@ struct dst_types {
 
 struct dst_config
 {
-	/* the ASIC i2c address */
+	
 	u8 demod_address;
 };
 
@@ -179,4 +160,4 @@ struct dst_state* dst_attach(struct dst_state* state, struct dvb_adapter *dvb_ad
 struct dvb_device *dst_ca_attach(struct dst_state *state, struct dvb_adapter *dvb_adapter);
 
 
-#endif // DST_COMMON_H
+#endif 

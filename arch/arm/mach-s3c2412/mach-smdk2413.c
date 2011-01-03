@@ -1,15 +1,4 @@
-/* linux/arch/arm/mach-s3c2412/mach-smdk2413.c
- *
- * Copyright (c) 2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Thanks to Dimity Andric (TomTom) and Steven Ryu (Samsung) for the
- * loans of SMDK2413 to work with.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -32,7 +21,7 @@
 #include <asm/irq.h>
 #include <asm/mach-types.h>
 
-//#include <asm/debug-ll.h>
+
 #include <plat/regs-serial.h>
 #include <mach/regs-gpio.h>
 #include <mach/regs-lcd.h>
@@ -68,7 +57,7 @@ static struct s3c2410_uartcfg smdk2413_uartcfgs[] __initdata = {
 		.ulcon	     = 0x03,
 		.ufcon	     = 0x51,
 	},
-	/* IR port */
+	
 	[2] = {
 		.hwport	     = 2,
 		.flags	     = 0,
@@ -105,7 +94,7 @@ static struct s3c2410_udc_mach_info smdk2413_udc_cfg __initdata = {
 
 static struct platform_device *smdk2413_devices[] __initdata = {
 	&s3c_device_usb,
-	//&s3c_device_lcd,
+	
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
 	&s3c_device_iis,
@@ -132,8 +121,7 @@ static void __init smdk2413_map_io(void)
 }
 
 static void __init smdk2413_machine_init(void)
-{	/* Turn off suspend on both USB ports, and switch the
-	 * selectable USB port to USB device mode. */
+{	
 
 	s3c2410_gpio_setpin(S3C2410_GPF(2), 0);
 	s3c2410_gpio_cfgpin(S3C2410_GPF(2), S3C2410_GPIO_OUTPUT);
@@ -151,7 +139,7 @@ static void __init smdk2413_machine_init(void)
 }
 
 MACHINE_START(S3C2413, "S3C2413")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,
@@ -164,7 +152,7 @@ MACHINE_START(S3C2413, "S3C2413")
 MACHINE_END
 
 MACHINE_START(SMDK2412, "SMDK2412")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,
@@ -177,7 +165,7 @@ MACHINE_START(SMDK2412, "SMDK2412")
 MACHINE_END
 
 MACHINE_START(SMDK2413, "SMDK2413")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

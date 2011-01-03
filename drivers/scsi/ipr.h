@@ -1,27 +1,4 @@
-/*
- * ipr.h -- driver for IBM Power Linux RAID adapters
- *
- * Written By: Brian King <brking@us.ibm.com>, IBM Corporation
- *
- * Copyright (C) 2003, 2004 IBM Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Alan Cox <alan@lxorguk.ukuu.org.uk> - Removed several careless u32/dma_addr_t errors
- *				that broke 64bit platforms.
- */
+
 
 #ifndef _IPR_H
 #define _IPR_H
@@ -34,24 +11,15 @@
 #include <scsi/scsi.h>
 #include <scsi/scsi_cmnd.h>
 
-/*
- * Literals
- */
+
 #define IPR_DRIVER_VERSION "2.4.3"
 #define IPR_DRIVER_DATE "(June 10, 2009)"
 
-/*
- * IPR_MAX_CMD_PER_LUN: This defines the maximum number of outstanding
- *	ops per device for devices not running tagged command queuing.
- *	This can be adjusted at runtime through sysfs device attributes.
- */
+
 #define IPR_MAX_CMD_PER_LUN				6
 #define IPR_MAX_CMD_PER_ATA_LUN			1
 
-/*
- * IPR_NUM_BASE_CMD_BLKS: This defines the maximum number of
- *	ops the mid-layer can send to the adapter.
- */
+
 #define IPR_NUM_BASE_CMD_BLKS				100
 
 #define PCI_DEVICE_ID_IBM_OBSIDIAN_E	0x0339
@@ -81,15 +49,11 @@
 
 #define IPR_NAME				"ipr"
 
-/*
- * Return codes
- */
+
 #define IPR_RC_JOB_CONTINUE		1
 #define IPR_RC_JOB_RETURN		2
 
-/*
- * IOASCs
- */
+
 #define IPR_IOASC_NR_INIT_CMD_REQUIRED		0x02040200
 #define IPR_IOASC_NR_IOA_RESET_REQUIRED		0x02048000
 #define IPR_IOASC_SYNC_REQUIRED			0x023f0000
@@ -110,7 +74,7 @@
 #define IPR_IOASC_IOA_WAS_RESET			0x10000001
 #define IPR_IOASC_PCI_ACCESS_ERROR			0x10000002
 
-/* Driver data flags */
+
 #define IPR_USE_LONG_TRANSOP_TIMEOUT		0x00000001
 #define IPR_USE_PCI_WARM_RESET			0x00000002
 
@@ -130,7 +94,7 @@
 
 #define IPR_NUM_RESET_RELOAD_RETRIES		3
 
-/* We need resources for HCAMS, IOA reset, IOA bringdown, and ERP */
+
 #define IPR_NUM_INTERNAL_CMD_BLKS	(IPR_NUM_HCAMS + \
                                      ((IPR_NUM_RESET_RELOAD_RETRIES + 1) * 2) + 3)
 
@@ -156,9 +120,7 @@
 #define IPR_INVALID_RES_HANDLE			0
 #define IPR_IOA_RES_ADDR				0x00ffffff
 
-/*
- * Adapter Commands
- */
+
 #define IPR_QUERY_RSRC_STATE				0xC2
 #define IPR_RESET_DEVICE				0xC3
 #define	IPR_RESET_TYPE_SELECT				0x80
@@ -176,9 +138,7 @@
 #define IPR_IOA_SHUTDOWN				0xF7
 #define	IPR_WR_BUF_DOWNLOAD_AND_SAVE			0x05
 
-/*
- * Timeouts
- */
+
 #define IPR_SHUTDOWN_TIMEOUT			(ipr_fastfail ? 60 * HZ : 10 * 60 * HZ)
 #define IPR_VSET_RW_TIMEOUT			(ipr_fastfail ? 30 * HZ : 2 * 60 * HZ)
 #define IPR_ABBREV_SHUTDOWN_TIMEOUT		(10 * HZ)
@@ -198,16 +158,12 @@
 #define IPR_PCI_RESET_TIMEOUT			(HZ / 2)
 #define IPR_DUMP_TIMEOUT			(15 * HZ)
 
-/*
- * SCSI Literals
- */
+
 #define IPR_VENDOR_ID_LEN			8
 #define IPR_PROD_ID_LEN				16
 #define IPR_SERIAL_NUM_LEN			8
 
-/*
- * Hardware literals
- */
+
 #define IPR_FMT2_MBX_ADDR_MASK				0x0fffffff
 #define IPR_FMT2_MBX_BAR_SEL_MASK			0xf0000000
 #define IPR_FMT2_MKR_BAR_SEL_SHIFT			28
@@ -246,24 +202,18 @@ IPR_PCII_NO_HOST_RRQ | IPR_PCII_IOARRIN_LOST | IPR_PCII_MMIO_ERROR)
 #define IPR_UPROCI_RESET_ALERT			(0x80000000 >> 7)
 #define IPR_UPROCI_IO_DEBUG_ALERT			(0x80000000 >> 9)
 
-#define IPR_LDUMP_MAX_LONG_ACK_DELAY_IN_USEC		200000	/* 200 ms */
-#define IPR_LDUMP_MAX_SHORT_ACK_DELAY_IN_USEC		200000	/* 200 ms */
+#define IPR_LDUMP_MAX_LONG_ACK_DELAY_IN_USEC		200000	
+#define IPR_LDUMP_MAX_SHORT_ACK_DELAY_IN_USEC		200000	
 
-/*
- * Dump literals
- */
+
 #define IPR_MAX_IOA_DUMP_SIZE				(4 * 1024 * 1024)
 #define IPR_NUM_SDT_ENTRIES				511
 #define IPR_MAX_NUM_DUMP_PAGES	((IPR_MAX_IOA_DUMP_SIZE / PAGE_SIZE) + 1)
 
-/*
- * Misc literals
- */
+
 #define IPR_NUM_IOADL_ENTRIES			IPR_MAX_SGLIST
 
-/*
- * Adapter interface types
- */
+
 
 struct ipr_res_addr {
 	u8 reserved;
@@ -372,9 +322,9 @@ struct ipr_supported_device {
 	u8 reserved2[16];
 }__attribute__((packed, aligned (4)));
 
-/* Command packet structure */
+
 struct ipr_cmd_pkt {
-	__be16 reserved;		/* Reserved by IOA */
+	__be16 reserved;		
 	u8 request_type;
 #define IPR_RQTYPE_SCSICDB		0x00
 #define IPR_RQTYPE_IOACMD		0x01
@@ -450,7 +400,7 @@ struct ipr_ioarcb_add_data {
 	}u;
 }__attribute__ ((packed, aligned(4)));
 
-/* IOA Request Control Block    128 bytes  */
+
 struct ipr_ioarcb {
 	__be32 ioarcb_host_pci_addr;
 	__be32 reserved;
@@ -497,13 +447,13 @@ struct ipr_ioasa_gpdd {
 
 struct ipr_ioasa_gata {
 	u8 error;
-	u8 nsect;		/* Interrupt reason */
+	u8 nsect;		
 	u8 lbal;
 	u8 lbam;
 	u8 lbah;
 	u8 device;
 	u8 status;
-	u8 alt_status;	/* ATA CTL */
+	u8 alt_status;	
 	u8 hob_nsect;
 	u8 hob_lbal;
 	u8 hob_lbam;
@@ -523,12 +473,12 @@ struct ipr_ioasa {
 #define IPR_IOASC_SENSE_QUAL(ioasc) (((ioasc) & 0x0000ff00) >> 8)
 #define IPR_IOASC_SENSE_STATUS(ioasc) ((ioasc) & 0x000000ff)
 
-	__be16 ret_stat_len;	/* Length of the returned IOASA */
+	__be16 ret_stat_len;	
 
-	__be16 avail_stat_len;	/* Total Length of status available. */
+	__be16 avail_stat_len;	
 
-	__be32 residual_data_len;	/* number of bytes in the host data */
-	/* buffers that were not used by the IOARCB command. */
+	__be32 residual_data_len;	
+	
 
 	__be32 ilid;
 #define IPR_NO_ILID			0
@@ -540,7 +490,7 @@ struct ipr_ioasa {
 
 	__be32 fd_res_handle;
 
-	__be32 ioasc_specific;	/* status code specific field */
+	__be32 ioasc_specific;	
 #define IPR_ADDITIONAL_STATUS_FMT		0x80000000
 #define IPR_AUTOSENSE_VALID			0x40000000
 #define IPR_ATA_DEVICE_WAS_RESET		0x20000000
@@ -909,7 +859,7 @@ struct ipr_hostrcb {
 	struct ipr_ioa_cfg *ioa_cfg;
 };
 
-/* IPR smart dump table structures */
+
 struct ipr_sdt_entry {
 	__be32 bar_str_offset;
 	__be32 end_offset;
@@ -941,9 +891,7 @@ struct ipr_uc_sdt {
 	struct ipr_sdt_entry entry[1];
 }__attribute__((packed, aligned (4)));
 
-/*
- * Driver types
- */
+
 struct ipr_bus_attributes {
 	u8 bus;
 	u8 qas_enabled;
@@ -1080,7 +1028,7 @@ enum ipr_cache_state {
 	CACHE_INVALID
 };
 
-/* Per-controller data */
+
 struct ipr_ioa_cfg {
 	char eye_catcher[8];
 #define IPR_EYECATCHER			"iprcfg"
@@ -1103,7 +1051,7 @@ struct ipr_ioa_cfg {
 	u8 revid;
 
 	enum ipr_cache_state cache_state;
-	u16 type; /* CCIN of the card */
+	u16 type; 
 
 	u8 log_level;
 #define IPR_MAX_LOG_LEVEL			4
@@ -1117,16 +1065,12 @@ struct ipr_ioa_cfg {
 	struct ipr_trace_entry *trace;
 	u32 trace_index:IPR_NUM_TRACE_INDEX_BITS;
 
-	/*
-	 * Queue for free command blocks
-	 */
+	
 	char ipr_free_label[8];
 #define IPR_FREEQ_LABEL			"free-q"
 	struct list_head free_q;
 
-	/*
-	 * Queue for command blocks outstanding to the adapter
-	 */
+	
 	char ipr_pending_label[8];
 #define IPR_PENDQ_LABEL			"pend-q"
 	struct list_head pending_q;
@@ -1166,8 +1110,8 @@ struct ipr_ioa_cfg {
 	const struct ipr_chip_cfg_t *chip_cfg;
 	const struct ipr_chip_t *ipr_chip;
 
-	void __iomem *hdw_dma_regs;	/* iomapped PCI memory space */
-	unsigned long hdw_dma_regs_pci;	/* raw PCI memory space */
+	void __iomem *hdw_dma_regs;	
+	unsigned long hdw_dma_regs_pci;	
 	void __iomem *ioa_mailbox;
 	struct ipr_interrupts regs;
 
@@ -1238,7 +1182,7 @@ struct ipr_cmnd {
 struct ipr_ses_table_entry {
 	char product_id[17];
 	char compare_product_id_byte[17];
-	u32 max_bus_speed_limit;	/* MB/sec limit for this backplane */
+	u32 max_bus_speed_limit;	
 };
 
 struct ipr_dump_header {
@@ -1349,9 +1293,7 @@ struct ipr_ucode_image_header {
 	struct ipr_software_inq_lid_info lid[1];
 }__attribute__((packed, aligned (4)));
 
-/*
- * Macros
- */
+
 #define IPR_DBG_CMD(CMD) if (ipr_debug) { CMD; }
 
 #ifdef CONFIG_SCSI_IPR_TRACE
@@ -1370,9 +1312,7 @@ struct ipr_ucode_image_header {
 #define ipr_remove_dump_file(kobj, attr) do { } while(0)
 #endif
 
-/*
- * Error logging macros
- */
+
 #define ipr_err(...) printk(KERN_ERR IPR_NAME ": "__VA_ARGS__)
 #define ipr_info(...) printk(KERN_INFO IPR_NAME ": "__VA_ARGS__)
 #define ipr_dbg(...) IPR_DBG_CMD(printk(KERN_INFO IPR_NAME ": "__VA_ARGS__))
@@ -1419,29 +1359,15 @@ struct ipr_ucode_image_header {
 ipr_err("----------------------------------------------------------\n")
 
 
-/*
- * Inlines
- */
 
-/**
- * ipr_is_ioa_resource - Determine if a resource is the IOA
- * @res:	resource entry struct
- *
- * Return value:
- * 	1 if IOA / 0 if not IOA
- **/
+
+
 static inline int ipr_is_ioa_resource(struct ipr_resource_entry *res)
 {
 	return (res->cfgte.flags & IPR_IS_IOA_RESOURCE) ? 1 : 0;
 }
 
-/**
- * ipr_is_af_dasd_device - Determine if a resource is an AF DASD
- * @res:	resource entry struct
- *
- * Return value:
- * 	1 if AF DASD / 0 if not AF DASD
- **/
+
 static inline int ipr_is_af_dasd_device(struct ipr_resource_entry *res)
 {
 	if (IPR_IS_DASD_DEVICE(res->cfgte.std_inq_data) &&
@@ -1452,13 +1378,7 @@ static inline int ipr_is_af_dasd_device(struct ipr_resource_entry *res)
 		return 0;
 }
 
-/**
- * ipr_is_vset_device - Determine if a resource is a VSET
- * @res:	resource entry struct
- *
- * Return value:
- * 	1 if VSET / 0 if not VSET
- **/
+
 static inline int ipr_is_vset_device(struct ipr_resource_entry *res)
 {
 	if (IPR_IS_DASD_DEVICE(res->cfgte.std_inq_data) &&
@@ -1469,13 +1389,7 @@ static inline int ipr_is_vset_device(struct ipr_resource_entry *res)
 		return 0;
 }
 
-/**
- * ipr_is_gscsi - Determine if a resource is a generic scsi resource
- * @res:	resource entry struct
- *
- * Return value:
- * 	1 if GSCSI / 0 if not GSCSI
- **/
+
 static inline int ipr_is_gscsi(struct ipr_resource_entry *res)
 {
 	if (!ipr_is_ioa_resource(res) &&
@@ -1485,13 +1399,7 @@ static inline int ipr_is_gscsi(struct ipr_resource_entry *res)
 		return 0;
 }
 
-/**
- * ipr_is_scsi_disk - Determine if a resource is a SCSI disk
- * @res:	resource entry struct
- *
- * Return value:
- * 	1 if SCSI disk / 0 if not SCSI disk
- **/
+
 static inline int ipr_is_scsi_disk(struct ipr_resource_entry *res)
 {
 	if (ipr_is_af_dasd_device(res) ||
@@ -1501,13 +1409,7 @@ static inline int ipr_is_scsi_disk(struct ipr_resource_entry *res)
 		return 0;
 }
 
-/**
- * ipr_is_gata - Determine if a resource is a generic ATA resource
- * @res:	resource entry struct
- *
- * Return value:
- * 	1 if GATA / 0 if not GATA
- **/
+
 static inline int ipr_is_gata(struct ipr_resource_entry *res)
 {
 	if (!ipr_is_ioa_resource(res) &&
@@ -1517,13 +1419,7 @@ static inline int ipr_is_gata(struct ipr_resource_entry *res)
 		return 0;
 }
 
-/**
- * ipr_is_naca_model - Determine if a resource is using NACA queueing model
- * @res:	resource entry struct
- *
- * Return value:
- * 	1 if NACA queueing model / 0 if not NACA queueing model
- **/
+
 static inline int ipr_is_naca_model(struct ipr_resource_entry *res)
 {
 	if (ipr_is_gscsi(res) && IPR_QUEUEING_MODEL(res) == IPR_QUEUE_NACA_MODEL)
@@ -1531,13 +1427,7 @@ static inline int ipr_is_naca_model(struct ipr_resource_entry *res)
 	return 0;
 }
 
-/**
- * ipr_is_device - Determine if resource address is that of a device
- * @res_addr:	resource address struct
- *
- * Return value:
- * 	1 if AF / 0 if not AF
- **/
+
 static inline int ipr_is_device(struct ipr_res_addr *res_addr)
 {
 	if ((res_addr->bus < IPR_MAX_NUM_BUSES) &&
@@ -1547,13 +1437,7 @@ static inline int ipr_is_device(struct ipr_res_addr *res_addr)
 	return 0;
 }
 
-/**
- * ipr_sdt_is_fmt2 - Determine if a SDT address is in format 2
- * @sdt_word:	SDT address
- *
- * Return value:
- * 	1 if format 2 / 0 if not
- **/
+
 static inline int ipr_sdt_is_fmt2(u32 sdt_word)
 {
 	u32 bar_sel = IPR_GET_FMT2_BAR_SEL(sdt_word);

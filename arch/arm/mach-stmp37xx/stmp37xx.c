@@ -1,20 +1,6 @@
-/*
- * Freescale STMP37XX platform support
- *
- * Embedded Alley Solutions, Inc <source@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -40,32 +26,30 @@
 #include <mach/regs-apbx.h>
 #include "stmp37xx.h"
 
-/*
- * IRQ handling
- */
+
 static void stmp37xx_ack_irq(unsigned int irq)
 {
-	/* Disable IRQ */
+	
 	stmp3xxx_clearl(0x04 << ((irq % 4) * 8),
 		REGS_ICOLL_BASE + HW_ICOLL_PRIORITYn + irq / 4 * 0x10);
 
-	/* ACK current interrupt */
+	
 	__raw_writel(1, REGS_ICOLL_BASE + HW_ICOLL_LEVELACK);
 
-	/* Barrier */
+	
 	(void)__raw_readl(REGS_ICOLL_BASE + HW_ICOLL_STAT);
 }
 
 static void stmp37xx_mask_irq(unsigned int irq)
 {
-	/* IRQ disable */
+	
 	stmp3xxx_clearl(0x04 << ((irq % 4) * 8),
 		REGS_ICOLL_BASE + HW_ICOLL_PRIORITYn + irq / 4 * 0x10);
 }
 
 static void stmp37xx_unmask_irq(unsigned int irq)
 {
-	/* IRQ enable */
+	
 	stmp3xxx_setl(0x04 << ((irq % 4) * 8),
 		REGS_ICOLL_BASE + HW_ICOLL_PRIORITYn + irq / 4 * 0x10);
 }
@@ -81,9 +65,7 @@ void __init stmp37xx_init_irq(void)
 	stmp3xxx_init_irq(&stmp37xx_chip);
 }
 
-/*
- * DMA interrupt handling
- */
+
 void stmp3xxx_arch_dma_enable_interrupt(int channel)
 {
 	switch (STMP3XXX_DMA_BUS(channel)) {
@@ -141,7 +123,7 @@ void stmp3xxx_arch_dma_reset_channel(int channel)
 
 	switch (STMP3XXX_DMA_BUS(channel)) {
 	case STMP3XXX_BUS_APBH:
-		/* Reset channel and wait for it to complete */
+		
 		stmp3xxx_setl(chbit << BP_APBH_CTRL0_RESET_CHANNEL,
 			REGS_APBH_BASE + HW_APBH_CTRL0);
 		while (__raw_readl(REGS_APBH_BASE + HW_APBH_CTRL0) &
@@ -190,14 +172,7 @@ void stmp3xxx_arch_dma_unfreeze(int channel)
 }
 EXPORT_SYMBOL(stmp3xxx_arch_dma_unfreeze);
 
-/*
- * The registers are all very closely mapped, so we might as well map them all
- * with a single mapping
- *
- * Logical      Physical
- * f0000000	80000000	On-chip registers
- * f1000000	00000000	32k on-chip SRAM
- */
+
 static struct map_desc stmp37xx_io_desc[] __initdata = {
 	{
 		.virtual	= (u32)STMP3XXX_REGS_BASE,

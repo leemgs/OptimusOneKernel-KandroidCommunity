@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-loki/common.c
- *
- * Core functions for Marvell Loki (88RC8480) SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -23,9 +15,7 @@
 #include <plat/time.h>
 #include "common.h"
 
-/*****************************************************************************
- * I/O Address Mapping
- ****************************************************************************/
+
 static struct map_desc loki_io_desc[] __initdata = {
 	{
 		.virtual	= LOKI_REGS_VIRT_BASE,
@@ -41,9 +31,7 @@ void __init loki_map_io(void)
 }
 
 
-/*****************************************************************************
- * GE0
- ****************************************************************************/
+
 struct mv643xx_eth_shared_platform_data loki_ge0_shared_data = {
 	.t_clk		= LOKI_TCLK,
 	.dram		= &loki_mbus_dram_info,
@@ -98,9 +86,7 @@ void __init loki_ge0_init(struct mv643xx_eth_platform_data *eth_data)
 }
 
 
-/*****************************************************************************
- * GE1
- ****************************************************************************/
+
 struct mv643xx_eth_shared_platform_data loki_ge1_shared_data = {
 	.t_clk		= LOKI_TCLK,
 	.dram		= &loki_mbus_dram_info,
@@ -155,9 +141,7 @@ void __init loki_ge1_init(struct mv643xx_eth_platform_data *eth_data)
 }
 
 
-/*****************************************************************************
- * SAS/SATA
- ****************************************************************************/
+
 static struct resource loki_sas_resources[] = {
 	{
 		.name	= "mvsas0 mem",
@@ -199,9 +183,7 @@ void __init loki_sas_init(void)
 }
 
 
-/*****************************************************************************
- * UART0
- ****************************************************************************/
+
 static struct plat_serial8250_port loki_uart0_data[] = {
 	{
 		.mapbase	= UART0_PHYS_BASE,
@@ -243,9 +225,7 @@ void __init loki_uart0_init(void)
 }
 
 
-/*****************************************************************************
- * UART1
- ****************************************************************************/
+
 static struct plat_serial8250_port loki_uart1_data[] = {
 	{
 		.mapbase	= UART1_PHYS_BASE,
@@ -287,9 +267,7 @@ void __init loki_uart1_init(void)
 }
 
 
-/*****************************************************************************
- * Time handling
- ****************************************************************************/
+
 static void loki_timer_init(void)
 {
 	orion_time_init(IRQ_LOKI_BRIDGE, LOKI_TCLK);
@@ -300,9 +278,7 @@ struct sys_timer loki_timer = {
 };
 
 
-/*****************************************************************************
- * General
- ****************************************************************************/
+
 void __init loki_init(void)
 {
 	printk(KERN_INFO "Loki ID: 88RC8480. TCLK=%d.\n", LOKI_TCLK);

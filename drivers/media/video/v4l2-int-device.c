@@ -1,26 +1,4 @@
-/*
- * drivers/media/video/v4l2-int-device.c
- *
- * V4L2 internal ioctl interface.
- *
- * Copyright (C) 2007 Nokia Corporation.
- *
- * Contact: Sakari Ailus <sakari.ailus@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/list.h>
@@ -44,11 +22,11 @@ void v4l2_int_device_try_attach_all(void)
 			if (s->type != v4l2_int_type_slave)
 				continue;
 
-			/* Slave is connected? */
+			
 			if (s->u.slave->master)
 				continue;
 
-			/* Slave wants to attach to master? */
+			
 			if (s->u.slave->attach_to[0] != 0
 			    && strncmp(m->name, s->u.slave->attach_to,
 				       V4L2NAMESIZE))
@@ -110,7 +88,7 @@ void v4l2_int_device_unregister(struct v4l2_int_device *d)
 }
 EXPORT_SYMBOL_GPL(v4l2_int_device_unregister);
 
-/* Adapted from search_extable in extable.c. */
+
 static v4l2_int_ioctl_func *find_ioctl(struct v4l2_int_slave *slave, int cmd,
 				       v4l2_int_ioctl_func *no_such_ioctl)
 {

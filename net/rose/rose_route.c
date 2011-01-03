@@ -1,12 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- * Copyright (C) Terry Dawson VK2KTJ (terry@animats.net)
- */
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/socket.h>
@@ -27,7 +19,7 @@
 #include <asm/system.h>
 #include <asm/uaccess.h>
 #include <linux/fcntl.h>
-#include <linux/termios.h>	/* For TIOCINQ/OUTQ */
+#include <linux/termios.h>	
 #include <linux/mm.h>
 #include <linux/interrupt.h>
 #include <linux/notifier.h>
@@ -47,10 +39,7 @@ static DEFINE_SPINLOCK(rose_route_list_lock);
 
 struct rose_neigh *rose_loopback_neigh;
 
-/*
- *	Add a new route to a node, and in the process add the node and the
- *	neighbour if it is new.
- */
+
 static int __must_check rose_add_node(struct rose_route_struct *rose_route,
 	struct net_device *dev)
 {
@@ -127,13 +116,7 @@ static int __must_check rose_add_node(struct rose_route_struct *rose_route,
 		rose_neigh_list  = rose_neigh;
 	}
 
-	/*
-	 * This is a new node to be inserted into the list. Find where it needs
-	 * to be inserted into the list, and insert it. We want to be sure
-	 * to order the list in descending order of mask size to ensure that
-	 * later when we are searching this list the first match will be the
-	 * best match.
-	 */
+	
 	if (rose_node == NULL) {
 		rose_tmpn = rose_node_list;
 		rose_tmpp = NULL;
@@ -147,7 +130,7 @@ static int __must_check rose_add_node(struct rose_route_struct *rose_route,
 			}
 		}
 
-		/* create new node */
+		
 		rose_node = kmalloc(sizeof(*rose_node), GFP_ATOMIC);
 		if (rose_node == NULL) {
 			res = -ENOMEM;
@@ -161,7 +144,7 @@ static int __must_check rose_add_node(struct rose_route_struct *rose_route,
 		rose_node->neighbour[0] = rose_neigh;
 
 		if (rose_tmpn == NULL) {
-			if (rose_tmpp == NULL) {	/* Empty list */
+			if (rose_tmpp == NULL) {	
 				rose_node_list  = rose_node;
 				rose_node->next = NULL;
 			} else {
@@ -169,7 +152,7 @@ static int __must_check rose_add_node(struct rose_route_struct *rose_route,
 				rose_node->next = NULL;
 			}
 		} else {
-			if (rose_tmpp == NULL) {	/* 1st node */
+			if (rose_tmpp == NULL) {	
 				rose_node->next = rose_node_list;
 				rose_node_list  = rose_node;
 			} else {
@@ -182,7 +165,7 @@ static int __must_check rose_add_node(struct rose_route_struct *rose_route,
 		goto out;
 	}
 
-	/* We have space, slot it in */
+	
 	if (rose_node->count < 3) {
 		rose_node->neighbour[rose_node->count] = rose_neigh;
 		rose_node->count++;
@@ -196,9 +179,7 @@ out:
 	return res;
 }
 
-/*
- * Caller is holding rose_node_list_lock.
- */
+
 static void rose_remove_node(struct rose_node *rose_node)
 {
 	struct rose_node *s;
@@ -220,9 +201,7 @@ static void rose_remove_node(struct rose_node *rose_node)
 	}
 }
 
-/*
- * Caller is holding rose_neigh_list_lock.
- */
+
 static void rose_remove_neigh(struct rose_neigh *rose_neigh)
 {
 	struct rose_neigh *s;
@@ -255,9 +234,7 @@ static void rose_remove_neigh(struct rose_neigh *rose_neigh)
 	}
 }
 
-/*
- * Caller is holding rose_route_list_lock.
- */
+
 static void rose_remove_route(struct rose_route *rose_route)
 {
 	struct rose_route *s;
@@ -285,10 +262,7 @@ static void rose_remove_route(struct rose_route *rose_route)
 	}
 }
 
-/*
- *	"Delete" a node. Strictly speaking remove a route to a node. The node
- *	is only deleted if no routes are left to it.
- */
+
 static int rose_del_node(struct rose_route_struct *rose_route,
 	struct net_device *dev)
 {
@@ -361,9 +335,7 @@ out:
 	return err;
 }
 
-/*
- *	Add the loopback neighbour.
- */
+
 void rose_add_loopback_neigh(void)
 {
 	struct rose_neigh *sn;
@@ -395,9 +367,7 @@ void rose_add_loopback_neigh(void)
 	spin_unlock_bh(&rose_neigh_list_lock);
 }
 
-/*
- *	Add a loopback node.
- */
+
 int rose_add_loopback_node(rose_address *address)
 {
 	struct rose_node *rose_node;
@@ -428,7 +398,7 @@ int rose_add_loopback_node(rose_address *address)
 	rose_node->loopback     = 1;
 	rose_node->neighbour[0] = rose_loopback_neigh;
 
-	/* Insert at the head of list. Address is always mask=10 */
+	
 	rose_node->next = rose_node_list;
 	rose_node_list  = rose_node;
 
@@ -440,9 +410,7 @@ out:
 	return err;
 }
 
-/*
- *	Delete a loopback node.
- */
+
 void rose_del_loopback_node(rose_address *address)
 {
 	struct rose_node *rose_node;
@@ -469,9 +437,7 @@ out:
 	spin_unlock_bh(&rose_node_list_lock);
 }
 
-/*
- *	A device has been removed. Remove its routes and neighbours.
- */
+
 void rose_rt_device_down(struct net_device *dev)
 {
 	struct rose_neigh *s, *rose_neigh;
@@ -520,10 +486,8 @@ void rose_rt_device_down(struct net_device *dev)
 	spin_unlock_bh(&rose_node_list_lock);
 }
 
-#if 0 /* Currently unused */
-/*
- *	A device has been removed. Remove its links.
- */
+#if 0 
+
 void rose_route_device_down(struct net_device *dev)
 {
 	struct rose_route *s, *rose_route;
@@ -541,11 +505,7 @@ void rose_route_device_down(struct net_device *dev)
 }
 #endif
 
-/*
- *	Clear all nodes and neighbours out, except for neighbours with
- *	active connections going through them.
- *  Do not clear loopback neighbour and nodes.
- */
+
 static int rose_clear_routes(void)
 {
 	struct rose_neigh *s, *rose_neigh;
@@ -580,10 +540,7 @@ static int rose_clear_routes(void)
 	return 0;
 }
 
-/*
- *	Check that the device given is a valid AX.25 interface that is "up".
- * 	called whith RTNL
- */
+
 static struct net_device *rose_ax25_dev_find(char *devname)
 {
 	struct net_device *dev;
@@ -597,9 +554,7 @@ static struct net_device *rose_ax25_dev_find(char *devname)
 	return NULL;
 }
 
-/*
- *	Find the first active ROSE device, usually "rose0".
- */
+
 struct net_device *rose_dev_first(void)
 {
 	struct net_device *dev, *first = NULL;
@@ -615,9 +570,7 @@ struct net_device *rose_dev_first(void)
 	return first;
 }
 
-/*
- *	Find the ROSE device for the given address.
- */
+
 struct net_device *rose_dev_get(rose_address *addr)
 {
 	struct net_device *dev;
@@ -665,9 +618,7 @@ struct rose_route *rose_route_free_lci(unsigned int lci, struct rose_neigh *neig
 	return NULL;
 }
 
-/*
- *	Find a neighbour or a route given a ROSE address.
- */
+
 struct rose_neigh *rose_get_neigh(rose_address *addr, unsigned char *cause,
 	unsigned char *diagnostic, int new)
 {
@@ -711,9 +662,7 @@ out:
 	return res;
 }
 
-/*
- *	Handle the ioctls that control the routing functions.
- */
+
 int rose_rt_ioctl(unsigned int cmd, void __user *arg)
 {
 	struct rose_route_struct rose_route;
@@ -726,9 +675,9 @@ int rose_rt_ioctl(unsigned int cmd, void __user *arg)
 			return -EFAULT;
 		if ((dev = rose_ax25_dev_find(rose_route.device)) == NULL)
 			return -EINVAL;
-		if (rose_dev_exists(&rose_route.address)) /* Can't add routes to ourself */
+		if (rose_dev_exists(&rose_route.address)) 
 			return -EINVAL;
-		if (rose_route.mask > 10) /* Mask can't be more than 10 digits */
+		if (rose_route.mask > 10) 
 			return -EINVAL;
 		if (rose_route.ndigis > AX25_MAX_DIGIS)
 			return -EINVAL;
@@ -795,11 +744,7 @@ static void rose_del_route_by_neigh(struct rose_neigh *rose_neigh)
 	spin_unlock_bh(&rose_route_list_lock);
 }
 
-/*
- * 	A level 2 link has timed out, therefore it appears to be a poor link,
- *	then don't use that neighbour until it is reset. Blow away all through
- *	routes and connections using this route.
- */
+
 void rose_link_failed(ax25_cb *ax25, int reason)
 {
 	struct rose_neigh *rose_neigh;
@@ -822,10 +767,7 @@ void rose_link_failed(ax25_cb *ax25, int reason)
 	spin_unlock_bh(&rose_neigh_list_lock);
 }
 
-/*
- * 	A device has been "downed" remove its link status. Blow away all
- *	through routes and connections that use this device.
- */
+
 void rose_link_device_down(struct net_device *dev)
 {
 	struct rose_neigh *rose_neigh;
@@ -838,9 +780,7 @@ void rose_link_device_down(struct net_device *dev)
 	}
 }
 
-/*
- *	Route a frame to an appropriate AX.25 connection.
- */
+
 int rose_route_frame(struct sk_buff *skb, ax25_cb *ax25)
 {
 	struct rose_neigh *rose_neigh, *new_neigh;
@@ -882,28 +822,21 @@ int rose_route_frame(struct sk_buff *skb, ax25_cb *ax25)
 		goto out;
 	}
 
-	/*
-	 *	Obviously the link is working, halt the ftimer.
-	 */
+	
 	rose_stop_ftimer(rose_neigh);
 
-	/*
-	 *	LCI of zero is always for us, and its always a restart
-	 * 	frame.
-	 */
+	
 	if (lci == 0) {
 		rose_link_rx_restart(skb, rose_neigh, frametype);
 		goto out;
 	}
 
-	/*
-	 *	Find an existing socket.
-	 */
+	
 	if ((sk = rose_find_socket(lci, rose_neigh)) != NULL) {
 		if (frametype == ROSE_CALL_REQUEST) {
 			struct rose_sock *rose = rose_sk(sk);
 
-			/* Remove an existing unused socket */
+			
 			rose_clear_queues(sk);
 			rose->cause	 = ROSE_NETWORK_CONGESTION;
 			rose->diagnostic = 0;
@@ -926,9 +859,7 @@ int rose_route_frame(struct sk_buff *skb, ax25_cb *ax25)
 		}
 	}
 
-	/*
-	 *	Is is a Call Request and is it for us ?
-	 */
+	
 	if (frametype == ROSE_CALL_REQUEST)
 		if ((dev = rose_dev_get(dest_addr)) != NULL) {
 			res = rose_rx_call_request(skb, dev, rose_neigh, lci);
@@ -941,15 +872,13 @@ int rose_route_frame(struct sk_buff *skb, ax25_cb *ax25)
 		goto out;
 	}
 
-	/*
-	 *	Route it to the next in line if we have an entry for it.
-	 */
+	
 	rose_route = rose_route_list;
 	while (rose_route != NULL) {
 		if (rose_route->lci1 == lci &&
 		    rose_route->neigh1 == rose_neigh) {
 			if (frametype == ROSE_CALL_REQUEST) {
-				/* F6FBB - Remove an existing unused route */
+				
 				rose_remove_route(rose_route);
 				break;
 			} else if (rose_route->neigh2 != NULL) {
@@ -970,7 +899,7 @@ int rose_route_frame(struct sk_buff *skb, ax25_cb *ax25)
 		if (rose_route->lci2 == lci &&
 		    rose_route->neigh2 == rose_neigh) {
 			if (frametype == ROSE_CALL_REQUEST) {
-				/* F6FBB - Remove an existing unused route */
+				
 				rose_remove_route(rose_route);
 				break;
 			} else if (rose_route->neigh1 != NULL) {
@@ -991,12 +920,8 @@ int rose_route_frame(struct sk_buff *skb, ax25_cb *ax25)
 		rose_route = rose_route->next;
 	}
 
-	/*
-	 *	We know that:
-	 *	1. The frame isn't for us,
-	 *	2. It isn't "owned" by any existing route.
-	 */
-	if (frametype != ROSE_CALL_REQUEST) {	/* XXX */
+	
+	if (frametype != ROSE_CALL_REQUEST) {	
 		res = 0;
 		goto out;
 	}
@@ -1011,9 +936,7 @@ int rose_route_frame(struct sk_buff *skb, ax25_cb *ax25)
 		goto out;
 	}
 
-	/*
-	 *	Check for routing loops.
-	 */
+	
 	rose_route = rose_route_list;
 	while (rose_route != NULL) {
 		if (rose_route->rand == facilities.rand &&
@@ -1112,11 +1035,7 @@ static int rose_node_show(struct seq_file *seq, void *v)
 		seq_puts(seq, "address    mask n neigh neigh neigh\n");
 	else {
 		const struct rose_node *rose_node = v;
-		/* if (rose_node->loopback) {
-			seq_printf(seq, "%-10s %04d 1 loopback\n",
-				   rose2asc(rsbuf, &rose_node->address),
-				   rose_node->mask);
-		} else { */
+		
 			seq_printf(seq, "%-10s %04d %d",
 				   rose2asc(rsbuf, &rose_node->address),
 				   rose_node->mask,
@@ -1127,7 +1046,7 @@ static int rose_node_show(struct seq_file *seq, void *v)
 					rose_node->neighbour[i]->number);
 
 			seq_puts(seq, "\n");
-		/* } */
+		
 	}
 	return 0;
 }
@@ -1193,7 +1112,7 @@ static int rose_neigh_show(struct seq_file *seq, void *v)
 	else {
 		struct rose_neigh *rose_neigh = v;
 
-		/* if (!rose_neigh->loopback) { */
+		
 		seq_printf(seq, "%05d %-9s %-4s   %3d %3d  %3s     %3s %3lu %3lu",
 			   rose_neigh->number,
 			   (rose_neigh->loopback) ? "RSLOOP-0" : ax2asc(buf, &rose_neigh->callsign),
@@ -1322,11 +1241,9 @@ const struct file_operations rose_routes_fops = {
 	.release = seq_release,
 };
 
-#endif /* CONFIG_PROC_FS */
+#endif 
 
-/*
- *	Release all memory associated with ROSE routing structures.
- */
+
 void __exit rose_rt_free(void)
 {
 	struct rose_neigh *s, *rose_neigh = rose_neigh_list;

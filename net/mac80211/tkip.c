@@ -1,11 +1,4 @@
-/*
- * Copyright 2002-2004, Instant802 Networks, Inc.
- * Copyright 2005, Devicescape Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/bitops.h>
 #include <linux/types.h>
@@ -20,10 +13,7 @@
 
 #define PHASE1_LOOP_COUNT 8
 
-/*
- * 2-byte by 2-byte subset of the full AES S-box table; second part of this
- * table is identical to first part but byte-swapped
- */
+
 static const u16 tkip_sbox[256] =
 {
 	0xC6A5, 0xF884, 0xEE99, 0xF68D, 0xFF0D, 0xD6BD, 0xDEB1, 0x9154,
@@ -73,13 +63,7 @@ static u8 *write_tkip_iv(u8 *pos, u16 iv16)
 	return pos;
 }
 
-/*
- * P1K := Phase1(TA, TK, TSC)
- * TA = transmitter address (48 bits)
- * TK = dot11DefaultKeyValue or dot11KeyMappingValue (128 bits)
- * TSC = TKIP sequence counter (48 bits, only 32 msb bits used)
- * P1K: 80 bits
- */
+
 static void tkip_mixing_phase1(const u8 *tk, struct tkip_ctx *ctx,
 			       const u8 *ta, u32 tsc_IV32)
 {
@@ -137,13 +121,11 @@ static void tkip_mixing_phase2(const u8 *tk, struct tkip_ctx *ctx,
 		put_unaligned_le16(ppk[i], rc4key + 2 * i);
 }
 
-/* Add TKIP IV and Ext. IV at @pos. @iv0, @iv1, and @iv2 are the first octets
- * of the IV. Returns pointer to the octet following IVs (i.e., beginning of
- * the packet payload). */
+
 u8 *ieee80211_tkip_add_iv(u8 *pos, struct ieee80211_key *key, u16 iv16)
 {
 	pos = write_tkip_iv(pos, iv16);
-	*pos++ = (key->conf.keyidx << 6) | (1 << 5) /* Ext IV */;
+	*pos++ = (key->conf.keyidx << 6) | (1 << 5) ;
 	put_unaligned_le32(key->u.tkip.tx.iv32, pos);
 	return pos + 4;
 }
@@ -180,9 +162,7 @@ void ieee80211_get_tkip_key(struct ieee80211_key_conf *keyconf,
 	}
 #endif
 
-	/* Update the p1k only when the iv16 in the packet wraps around, this
-	 * might occur after the wrap around of iv16 in the key in case of
-	 * fragmented packets. */
+	
 	if (iv16 == 0 || !ctx->initialized)
 		tkip_mixing_phase1(tk, ctx, hdr->addr2, iv32);
 
@@ -195,11 +175,7 @@ void ieee80211_get_tkip_key(struct ieee80211_key_conf *keyconf,
 }
 EXPORT_SYMBOL(ieee80211_get_tkip_key);
 
-/* Encrypt packet payload with TKIP using @key. @pos is a pointer to the
- * beginning of the buffer containing payload. This payload must include
- * headroom of eight octets for IV and Ext. IV and taildroom of four octets
- * for ICV. @payload_len is the length of payload (_not_ including extra
- * headroom and tailroom). @ta is the transmitter addresses. */
+
 void ieee80211_tkip_encrypt_data(struct crypto_blkcipher *tfm,
 				 struct ieee80211_key *key,
 				 u8 *pos, size_t payload_len, u8 *ta)
@@ -208,7 +184,7 @@ void ieee80211_tkip_encrypt_data(struct crypto_blkcipher *tfm,
 	struct tkip_ctx *ctx = &key->u.tkip.tx;
 	const u8 *tk = &key->conf.key[NL80211_TKIP_DATA_OFFSET_ENCR_KEY];
 
-	/* Calculate per-packet key */
+	
 	if (ctx->iv16 == 0 || !ctx->initialized)
 		tkip_mixing_phase1(tk, ctx, ta, ctx->iv32);
 
@@ -218,10 +194,7 @@ void ieee80211_tkip_encrypt_data(struct crypto_blkcipher *tfm,
 	ieee80211_wep_encrypt_data(tfm, rc4key, 16, pos, payload_len);
 }
 
-/* Decrypt packet payload with TKIP using @key. @pos is a pointer to the
- * beginning of the buffer containing IEEE 802.11 header payload, i.e.,
- * including IV, Ext. IV, real data, Michael MIC, ICV. @payload_len is the
- * length of payload, including IV, Ext. IV, MIC, ICV.  */
+
 int ieee80211_tkip_decrypt_data(struct crypto_blkcipher *tfm,
 				struct ieee80211_key *key,
 				u8 *payload, size_t payload_len, u8 *ta,
@@ -281,7 +254,7 @@ int ieee80211_tkip_decrypt_data(struct crypto_blkcipher *tfm,
 
 	if (!key->u.tkip.rx[queue].initialized ||
 	    key->u.tkip.rx[queue].iv32 != iv32) {
-		/* IV16 wrapped around - perform TKIP phase 1 */
+		
 		tkip_mixing_phase1(tk, &key->u.tkip.rx[queue], ta, iv32);
 #ifdef CONFIG_MAC80211_TKIP_DEBUG
 		{
@@ -327,12 +300,7 @@ int ieee80211_tkip_decrypt_data(struct crypto_blkcipher *tfm,
 	res = ieee80211_wep_decrypt_data(tfm, rc4key, 16, pos, payload_len - 12);
  done:
 	if (res == TKIP_DECRYPT_OK) {
-		/*
-		 * Record previously received IV, will be copied into the
-		 * key information after MIC verification. It is possible
-		 * that we don't catch replays of fragments but that's ok
-		 * because the Michael MIC verication will then fail.
-		 */
+		
 		*out_iv32 = iv32;
 		*out_iv16 = iv16;
 	}

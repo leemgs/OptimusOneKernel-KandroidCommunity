@@ -1,22 +1,4 @@
-/*
-*  Copyright (C) 2005 - 2007 by Basler Vision Technologies AG
-*  Author: Thomas Koeller <thomas.koeller.qbaslerweb.com>
-*  Original code by Thies Moeller <thies.moeller@baslerweb.com>
-*
-*  This program is free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program; if not, write to the Free Software
-*  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -40,18 +22,16 @@
 
 #define EXCITE_NANDFLASH_VERSION "0.1"
 
-/* I/O register offsets */
+
 #define EXCITE_NANDFLASH_DATA_BYTE   0x00
 #define EXCITE_NANDFLASH_STATUS_BYTE 0x0c
 #define EXCITE_NANDFLASH_ADDR_BYTE   0x10
 #define EXCITE_NANDFLASH_CMD_BYTE    0x14
 
-/* prefix for debug output */
+
 static const char module_id[] = "excite_nandflash";
 
-/*
- * partition definition
- */
+
 static const struct mtd_partition partition_info[] = {
 	{
 		.name = "eXcite RootFS",
@@ -83,7 +63,7 @@ excite_nand_map_regs(struct platform_device *d, const char *basename)
 	return result;
 }
 
-/* controller and mtd information */
+
 struct excite_nand_drvdata {
 	struct mtd_info board_mtd;
 	struct nand_chip board_chip;
@@ -91,7 +71,7 @@ struct excite_nand_drvdata {
 	void __iomem *tgt;
 };
 
-/* Control function */
+
 static void excite_nand_control(struct mtd_info *mtd, int cmd,
 				       unsigned int ctrl)
 {
@@ -114,7 +94,7 @@ static void excite_nand_control(struct mtd_info *mtd, int cmd,
 		__raw_writeb(cmd, d->tgt);
 }
 
-/* Return 0 if flash is busy, 1 if ready */
+
 static int excite_nand_devready(struct mtd_info *mtd)
 {
 	struct excite_nand_drvdata * const drvdata =
@@ -123,11 +103,7 @@ static int excite_nand_devready(struct mtd_info *mtd)
 	return __raw_readb(drvdata->regs + EXCITE_NANDFLASH_STATUS_BYTE);
 }
 
-/*
- * Called by device layer to remove the driver.
- * The binding to the mtd and all allocated
- * resources are released.
- */
+
 static int __exit excite_nand_remove(struct platform_device *dev)
 {
 	struct excite_nand_drvdata * const this = platform_get_drvdata(dev);
@@ -140,12 +116,10 @@ static int __exit excite_nand_remove(struct platform_device *dev)
 		return -EINVAL;
 	}
 
-	/* first thing we need to do is release our mtd
-	 * then go through freeing the resource used
-	 */
+	
 	nand_release(&this->board_mtd);
 
-	/* free the common resources */
+	
 	iounmap(this->regs);
 	kfree(this);
 
@@ -153,17 +127,12 @@ static int __exit excite_nand_remove(struct platform_device *dev)
 	return 0;
 }
 
-/*
- * Called by device layer when it finds a device matching
- * one our driver can handle. This code checks to see if
- * it can allocate all necessary resources then calls the
- * nand layer to look for devices.
-*/
+
 static int __init excite_nand_probe(struct platform_device *pdev)
 {
-	struct excite_nand_drvdata *drvdata;	/* private driver data */
-	struct nand_chip *board_chip;	/* private flash chip data */
-	struct mtd_info *board_mtd;	/* mtd info for this board */
+	struct excite_nand_drvdata *drvdata;	
+	struct nand_chip *board_chip;	
+	struct mtd_info *board_mtd;	
 	int scan_res;
 
 	drvdata = kzalloc(sizeof(*drvdata), GFP_KERNEL);
@@ -173,10 +142,10 @@ static int __init excite_nand_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	/* bind private data into driver */
+	
 	platform_set_drvdata(pdev, drvdata);
 
-	/* allocate and map the resource */
+	
 	drvdata->regs =
 		excite_nand_map_regs(pdev, EXCITE_NANDFLASH_RESOURCE_REGS);
 
@@ -189,7 +158,7 @@ static int __init excite_nand_probe(struct platform_device *pdev)
 	
 	drvdata->tgt = drvdata->regs + EXCITE_NANDFLASH_DATA_BYTE;
 
-	/* initialise our chip */
+	
 	board_chip = &drvdata->board_chip;
 	board_chip->IO_ADDR_R = board_chip->IO_ADDR_W =
 		drvdata->regs + EXCITE_NANDFLASH_DATA_BYTE;
@@ -198,7 +167,7 @@ static int __init excite_nand_probe(struct platform_device *pdev)
 	board_chip->chip_delay = 25;
 	board_chip->ecc.mode = NAND_ECC_SOFT;
 
-	/* link chip to mtd */
+	
 	board_mtd = &drvdata->board_mtd;
 	board_mtd->priv = board_chip;
 

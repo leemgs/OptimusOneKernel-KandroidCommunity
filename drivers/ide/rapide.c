@@ -1,6 +1,4 @@
-/*
- * Copyright (c) 1996-2002 Russell King.
- */
+
 
 #include <linux/module.h>
 #include <linux/slab.h>

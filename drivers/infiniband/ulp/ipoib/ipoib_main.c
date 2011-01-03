@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2004 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- * Copyright (c) 2004 Voltaire, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include "ipoib.h"
 
@@ -41,7 +9,7 @@
 #include <linux/kernel.h>
 #include <linux/vmalloc.h>
 
-#include <linux/if_arp.h>	/* For ARPHRD_xxx */
+#include <linux/if_arp.h>	
 
 #include <linux/ip.h>
 #include <linux/in.h>
@@ -120,7 +88,7 @@ int ipoib_open(struct net_device *dev)
 	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
 		struct ipoib_dev_priv *cpriv;
 
-		/* Bring up any child interfaces too */
+		
 		mutex_lock(&priv->vlan_mutex);
 		list_for_each_entry(cpriv, &priv->child_intfs, list) {
 			int flags;
@@ -163,7 +131,7 @@ static int ipoib_stop(struct net_device *dev)
 	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
 		struct ipoib_dev_priv *cpriv;
 
-		/* Bring down any child interfaces too */
+		
 		mutex_lock(&priv->vlan_mutex);
 		list_for_each_entry(cpriv, &priv->child_intfs, list) {
 			int flags;
@@ -184,7 +152,7 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 
-	/* dev->mtu > 2K ==> connected mode */
+	
 	if (ipoib_cm_admin_enabled(dev)) {
 		if (new_mtu > ipoib_cm_max_mtu(dev))
 			return -EINVAL;
@@ -274,12 +242,7 @@ static void path_free(struct net_device *dev, struct ipoib_path *path)
 	spin_lock_irqsave(&priv->lock, flags);
 
 	list_for_each_entry_safe(neigh, tn, &path->neigh_list, list) {
-		/*
-		 * It's safe to call ipoib_put_ah() inside priv->lock
-		 * here, because we know that path->ah will always
-		 * hold one more reference, so ipoib_put_ah() will
-		 * never do more than decrement the ref count.
-		 */
+		
 		if (neigh->ah)
 			ipoib_put_ah(neigh->ah);
 
@@ -350,7 +313,7 @@ void ipoib_path_iter_read(struct ipoib_path_iter *iter,
 	*path = iter->path;
 }
 
-#endif /* CONFIG_INFINIBAND_IPOIB_DEBUG */
+#endif 
 
 void ipoib_mark_paths_invalid(struct net_device *dev)
 {
@@ -446,13 +409,7 @@ static void path_rec_completion(int status,
 		list_for_each_entry_safe(neigh, tn, &path->neigh_list, list) {
 			if (neigh->ah) {
 				WARN_ON(neigh->ah != old_ah);
-				/*
-				 * Dropping the ah reference inside
-				 * priv->lock is safe here, because we
-				 * will hold one more reference from
-				 * the original value of path->ah (ie
-				 * old_ah).
-				 */
+				
 				ipoib_put_ah(neigh->ah);
 			}
 			kref_get(&path->ah->ref);
@@ -637,13 +594,13 @@ static void ipoib_path_lookup(struct sk_buff *skb, struct net_device *dev)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(skb->dev);
 
-	/* Look up path record for unicasts */
+	
 	if (skb_dst(skb)->neighbour->ha[4] != 0xff) {
 		neigh_add_path(skb, dev);
 		return;
 	}
 
-	/* Add in the P_Key for multicasts */
+	
 	skb_dst(skb)->neighbour->ha[8] = (priv->pkey >> 8) & 0xff;
 	skb_dst(skb)->neighbour->ha[9] = priv->pkey & 0xff;
 	ipoib_mcast_send(dev, skb_dst(skb)->neighbour->ha + 4, skb);
@@ -667,7 +624,7 @@ static void unicast_arp_send(struct sk_buff *skb, struct net_device *dev,
 			new_path = 1;
 		}
 		if (path) {
-			/* put pseudoheader back on for next time */
+			
 			skb_push(skb, sizeof *phdr);
 			__skb_queue_tail(&path->queue, skb);
 
@@ -696,7 +653,7 @@ static void unicast_arp_send(struct sk_buff *skb, struct net_device *dev,
 		return;
 	} else if ((path->query || !path_rec_start(dev, path)) &&
 		   skb_queue_len(&path->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
-		/* put pseudoheader back on for next time */
+		
 		skb_push(skb, sizeof *phdr);
 		__skb_queue_tail(&path->queue, skb);
 	} else {
@@ -726,13 +683,7 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
 				     sizeof(union ib_gid))) ||
 			     (neigh->dev != dev))) {
 			spin_lock_irqsave(&priv->lock, flags);
-			/*
-			 * It's safe to call ipoib_put_ah() inside
-			 * priv->lock here, because we know that
-			 * path->ah will always hold one more reference,
-			 * so ipoib_put_ah() will never do more than
-			 * decrement the ref count.
-			 */
+			
 			if (neigh->ah)
 				ipoib_put_ah(neigh->ah);
 			list_del(&neigh->list);
@@ -766,13 +717,13 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
 		skb_pull(skb, sizeof *phdr);
 
 		if (phdr->hwaddr[4] == 0xff) {
-			/* Add in the P_Key for multicast*/
+			
 			phdr->hwaddr[8] = (priv->pkey >> 8) & 0xff;
 			phdr->hwaddr[9] = priv->pkey & 0xff;
 
 			ipoib_mcast_send(dev, phdr->hwaddr + 4, skb);
 		} else {
-			/* unicast GID -- should be ARP or RARP reply */
+			
 
 			if ((be16_to_cpup((__be16 *) skb->data) != ETH_P_ARP) &&
 			    (be16_to_cpup((__be16 *) skb->data) != ETH_P_RARP)) {
@@ -802,7 +753,7 @@ static void ipoib_timeout(struct net_device *dev)
 	ipoib_warn(priv, "queue stopped %d, tx_head %u, tx_tail %u\n",
 		   netif_queue_stopped(dev),
 		   priv->tx_head, priv->tx_tail);
-	/* XXX reset QP, etc. */
+	
 }
 
 static int ipoib_hard_header(struct sk_buff *skb,
@@ -817,11 +768,7 @@ static int ipoib_hard_header(struct sk_buff *skb,
 	header->proto = htons(type);
 	header->reserved = 0;
 
-	/*
-	 * If we don't have a neighbour structure, stuff the
-	 * destination address onto the front of the skb so we can
-	 * figure out where to send the packet later.
-	 */
+	
 	if ((!skb_dst(skb) || !skb_dst(skb)->neighbour) && daddr) {
 		struct ipoib_pseudoheader *phdr =
 			(struct ipoib_pseudoheader *) skb_push(skb, sizeof *phdr);
@@ -916,7 +863,7 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 
-	/* Allocate RX/TX "rings" to hold queued skbs */
+	
 	priv->rx_ring =	kzalloc(ipoib_recvq_size * sizeof *priv->rx_ring,
 				GFP_KERNEL);
 	if (!priv->rx_ring) {
@@ -933,7 +880,7 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
 	}
 	memset(priv->tx_ring, 0, ipoib_sendq_size * sizeof *priv->tx_ring);
 
-	/* priv->tx_head, tx_tail & tx_outstanding are already 0 */
+	
 
 	if (ipoib_ib_dev_init(dev, ca, port))
 		goto out_tx_ring_cleanup;
@@ -956,7 +903,7 @@ void ipoib_dev_cleanup(struct net_device *dev)
 
 	ipoib_delete_debug_files(dev);
 
-	/* Delete any child interfaces first */
+	
 	list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list) {
 		unregister_netdev(cpriv->dev);
 		ipoib_dev_cleanup(cpriv->dev);
@@ -985,15 +932,11 @@ static int get_skb_hdr(struct sk_buff *skb, void **iphdr,
 	if (unlikely(skb->protocol != htons(ETH_P_IP)))
 		return -1;
 
-	/*
-	 * In the future we may add an else clause that verifies the
-	 * checksum and allows devices which do not calculate checksum
-	 * to use LRO.
-	 */
+	
 	if (unlikely(skb->ip_summed != CHECKSUM_UNNECESSARY))
 		return -1;
 
-	/* Check for non-TCP packet */
+	
 	skb_reset_network_header(skb);
 	iph = ip_hdr(skb);
 	if (iph->protocol != IPPROTO_TCP)
@@ -1003,7 +946,7 @@ static int get_skb_hdr(struct sk_buff *skb, void **iphdr,
 	skb_set_transport_header(skb, ip_len);
 	*tcph = tcp_hdr(skb);
 
-	/* check if IP header and TCP header are complete */
+	
 	if (ntohs(iph->tot_len) < ip_len + tcp_hdrlen(skb))
 		return -1;
 
@@ -1049,10 +992,7 @@ static void ipoib_setup(struct net_device *dev)
 
 	dev->flags		|= IFF_BROADCAST | IFF_MULTICAST;
 
-	/*
-	 * We add in INFINIBAND_ALEN to allow for the destination
-	 * address "pseudoheader" for skbs without neighbour struct.
-	 */
+	
 	dev->hard_header_len	 = IPOIB_ENCAP_LEN + INFINIBAND_ALEN;
 	dev->addr_len		 = INFINIBAND_ALEN;
 	dev->type		 = ARPHRD_INFINIBAND;
@@ -1153,10 +1093,7 @@ static ssize_t create_child(struct device *dev,
 	if (pkey < 0 || pkey > 0xffff)
 		return -EINVAL;
 
-	/*
-	 * Set the full membership bit, so that we join the right
-	 * broadcast group, etc.
-	 */
+	
 	pkey |= 0x8000;
 
 	ret = ipoib_vlan_add(to_net_dev(dev), pkey);
@@ -1249,7 +1186,7 @@ static struct net_device *ipoib_add_port(const char *format,
 		goto device_init_failed;
 	}
 
-	/* MTU will be reset when mcast join happens */
+	
 	priv->dev->mtu  = IPOIB_UD_MTU(priv->max_ib_mtu);
 	priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
 
@@ -1263,10 +1200,7 @@ static struct net_device *ipoib_add_port(const char *format,
 	if (ipoib_set_dev_features(priv, hca))
 		goto device_init_failed;
 
-	/*
-	 * Set the full membership bit, so that we join the right
-	 * broadcast group, etc.
-	 */
+	
 	priv->pkey |= 0x8000;
 
 	priv->dev->broadcast[8] = priv->pkey >> 8;
@@ -1415,24 +1349,14 @@ static int __init ipoib_init_module(void)
 	ipoib_max_conn_qp = min(ipoib_max_conn_qp, IPOIB_CM_MAX_CONN_QP);
 #endif
 
-	/*
-	 * When copying small received packets, we only copy from the
-	 * linear data part of the SKB, so we rely on this condition.
-	 */
+	
 	BUILD_BUG_ON(IPOIB_CM_COPYBREAK > IPOIB_CM_HEAD_SIZE);
 
 	ret = ipoib_register_debugfs();
 	if (ret)
 		return ret;
 
-	/*
-	 * We create our own workqueue mainly because we want to be
-	 * able to flush it when devices are being removed.  We can't
-	 * use schedule_work()/flush_scheduled_work() because both
-	 * unregister_netdev() and linkwatch_event take the rtnl lock,
-	 * so flush_scheduled_work() can deadlock during device
-	 * removal.
-	 */
+	
 	ipoib_workqueue = create_singlethread_workqueue("ipoib");
 	if (!ipoib_workqueue) {
 		ret = -ENOMEM;

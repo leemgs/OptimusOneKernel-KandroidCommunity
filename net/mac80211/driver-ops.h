@@ -26,7 +26,7 @@ static inline void drv_stop(struct ieee80211_local *local)
 	local->ops->stop(&local->hw);
 	trace_drv_stop(local);
 
-	/* sync away all work on the tasklet before clearing started */
+	
 	tasklet_disable(&local->tasklet);
 	tasklet_enable(&local->tasklet);
 
@@ -257,4 +257,4 @@ static inline void drv_rfkill_poll(struct ieee80211_local *local)
 	if (local->ops->rfkill_poll)
 		local->ops->rfkill_poll(&local->hw);
 }
-#endif /* __MAC80211_DRIVER_OPS */
+#endif 

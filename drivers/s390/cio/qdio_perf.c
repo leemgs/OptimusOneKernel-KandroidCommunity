@@ -1,10 +1,4 @@
-/*
- *  drivers/s390/cio/qdio_perf.c
- *
- *  Copyright IBM Corp. 2008
- *
- *  Author: Jan Glauber (jang@linux.vnet.ibm.com)
- */
+
 #include <linux/kernel.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
@@ -25,9 +19,7 @@ struct qdio_perf_stats perf_stats;
 static struct proc_dir_entry *qdio_perf_pde;
 #endif
 
-/*
- * procfs functions
- */
+
 static int qdio_perf_proc_show(struct seq_file *m, void *v)
 {
 	seq_printf(m, "Number of qdio interrupts\t\t\t: %li\n",
@@ -92,9 +84,7 @@ static const struct file_operations qdio_perf_proc_fops = {
 	.release = single_release,
 };
 
-/*
- * sysfs functions
- */
+
 static ssize_t qdio_perf_stats_show(struct bus_type *bus, char *buf)
 {
 	return sprintf(buf, "%i\n", qdio_performance_stats ? 1 : 0);
@@ -113,7 +103,7 @@ static ssize_t qdio_perf_stats_store(struct bus_type *bus,
 		return count;
 
 	qdio_performance_stats = i;
-	/* reset performance statistics */
+	
 	if (i == 0)
 		memset(&perf_stats, 0, sizeof(struct qdio_perf_stats));
 	return count;

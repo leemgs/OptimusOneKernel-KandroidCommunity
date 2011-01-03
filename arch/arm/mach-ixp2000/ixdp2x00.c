@@ -1,19 +1,4 @@
-/*
- * arch/arm/mach-ixp2000/ixdp2x00.c
- *
- * Code common to IXDP2400 and IXDP2800 platforms.
- *
- * Original Author: Naeem Afzal <naeem.m.afzal@intel.com>
- * Maintainer: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright (C) 2002 Intel Corp.
- * Copyright (C) 2003-2004 MontaVista Software, Inc.
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/mm.h>
@@ -44,17 +29,13 @@
 #include <mach/gpio.h>
 
 
-/*************************************************************************
- * IXDP2x00 IRQ Initialization
- *************************************************************************/
+
 static volatile unsigned long *board_irq_mask;
 static volatile unsigned long *board_irq_stat;
 static unsigned long board_irq_count;
 
 #ifdef CONFIG_ARCH_IXDP2400
-/*
- * Slowport configuration for accessing CPLD registers on IXDP2x00
- */
+
 static struct slowport_cfg slowport_cpld_cfg = {
 	.CCR =	SLOWPORT_CCR_DIV_2,
 	.WTC = 0x00000070,
@@ -69,10 +50,7 @@ static void ixdp2x00_irq_mask(unsigned int irq)
 	unsigned long dummy;
 	static struct slowport_cfg old_cfg;
 
-	/*
-	 * This is ugly in common code but really don't know
-	 * of a better way to handle it. :(
-	 */
+	
 #ifdef CONFIG_ARCH_IXDP2400
 	if (machine_is_ixdp2400())
 		ixp2000_acquire_slowport(&slowport_cpld_cfg, &old_cfg);
@@ -164,13 +142,11 @@ void __init ixdp2x00_init_irq(volatile unsigned long *stat_reg, volatile unsigne
 		set_irq_flags(irq, IRQF_VALID);
 	}
 
-	/* Hook into PCI interrupt */
+	
 	set_irq_chained_handler(IRQ_IXP2000_PCIB, ixdp2x00_irq_handler);
 }
 
-/*************************************************************************
- * IXDP2x00 memory map
- *************************************************************************/
+
 static struct map_desc ixdp2x00_io_desc __initdata = {
 	.virtual	= IXDP2X00_VIRT_CPLD_BASE, 
 	.pfn		= __phys_to_pfn(IXDP2X00_PHYS_CPLD_BASE),
@@ -185,60 +161,12 @@ void __init ixdp2x00_map_io(void)
 	iotable_init(&ixdp2x00_io_desc, 1);
 }
 
-/*************************************************************************
- * IXDP2x00-common PCI init
- *
- * The IXDP2[48]00 has a horrid PCI bus layout. Basically the board 
- * contains two NPUs (ingress and egress) connected over PCI,  both running 
- * instances  of the kernel. So far so good. Peers on the PCI bus running 
- * Linux is a common design in telecom systems. The problem is that instead 
- * of all the devices being controlled by a single host, different
- * devices are controlled by different NPUs on the same bus, leading to
- * multiple hosts on the bus. The exact bus layout looks like:
- *
- *                   Bus 0
- *    Master NPU <-------------------+-------------------> Slave NPU
- *                                   |
- *                                   |
- *                                  P2P 
- *                                   |
- *
- *                  Bus 1            |
- *               <--+------+---------+---------+------+-->
- *                  |      |         |         |      |
- *                  |      |         |         |      |
- *             ... Dev    PMC       Media     Eth0   Eth1 ...
- *
- * The master controls all but Eth1, which is controlled by the
- * slave. What this means is that the both the master and the slave
- * have to scan the bus, but only one of them can enumerate the bus.
- * In addition, after the bus is scanned, each kernel must remove
- * the device(s) it does not control from the PCI dev list otherwise
- * a driver on each NPU will try to manage it and we will have horrible
- * conflicts. Oh..and the slave NPU needs to see the master NPU
- * for Intel's drivers to work properly. Closed source drivers...
- *
- * The way we deal with this is fairly simple but ugly:
- *
- * 1) Let master scan and enumerate the bus completely.
- * 2) Master deletes Eth1 from device list.
- * 3) Slave scans bus and then deletes all but Eth1 (Eth0 on slave)
- *    from device list.
- * 4) Find HW designers and LART them.
- *
- * The boards also do not do normal PCI IRQ routing, or any sort of 
- * sensical  swizzling, so we just need to check where on the  bus a
- * device sits and figure out to which CPLD pin the interrupt is routed.
- * See ixdp2[48]00.c files.
- *
- *************************************************************************/
+
 void ixdp2x00_slave_pci_postinit(void)
 {
 	struct pci_dev *dev;
 
-	/*
-	 * Remove PMC device is there is one
-	 */
+	
 	if((dev = pci_get_bus_and_slot(1, IXDP2X00_PMC_DEVFN))) {
 		pci_remove_bus_device(dev);
 		pci_dev_put(dev);
@@ -249,9 +177,7 @@ void ixdp2x00_slave_pci_postinit(void)
 	pci_dev_put(dev);
 }
 
-/**************************************************************************
- * IXDP2x00 Machine Setup
- *************************************************************************/
+
 static struct flash_platform_data ixdp2x00_platform_data = {
 	.map_name	= "cfi_probe",
 	.width		= 1,

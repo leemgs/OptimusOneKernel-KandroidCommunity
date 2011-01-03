@@ -1,25 +1,4 @@
-/*
- * linux/arch/arm/mach-at91/board-cap9adk.c
- *
- *  Copyright (C) 2007 Stelian Pop <stelian.pop@leadtechdesign.com>
- *  Copyright (C) 2007 Lead Tech Design <www.leadtechdesign.com>
- *  Copyright (C) 2005 SAN People
- *  Copyright (C) 2007 Atmel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -51,16 +30,16 @@
 
 static void __init cap9adk_map_io(void)
 {
-	/* Initialize processor: 12 MHz crystal */
+	
 	at91cap9_initialize(12000000);
 
-	/* Setup the LEDs: USER1 and USER2 LED for cpu/timer... */
+	
 	at91_init_leds(AT91_PIN_PA10, AT91_PIN_PA11);
-	/* ... POWER LED always on */
+	
 	at91_set_gpio_output(AT91_PIN_PC29, 1);
 
-	/* Setup the serial ports and console */
-	at91_register_uart(0, 0, 0);		/* DBGU = ttyS0 */
+	
+	at91_register_uart(0, 0, 0);		
 	at91_set_serial_console(0);
 }
 
@@ -70,27 +49,21 @@ static void __init cap9adk_init_irq(void)
 }
 
 
-/*
- * USB Host port
- */
+
 static struct at91_usbh_data __initdata cap9adk_usbh_data = {
 	.ports		= 2,
 };
 
-/*
- * USB HS Device port
- */
+
 static struct usba_platform_data __initdata cap9adk_usba_udc_data = {
 	.vbus_pin	= AT91_PIN_PB31,
 };
 
-/*
- * ADS7846 Touchscreen
- */
+
 #if defined(CONFIG_TOUCHSCREEN_ADS7846) || defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
 static int ads7843_pendown_state(void)
 {
-	return !at91_get_gpio_value(AT91_PIN_PC4);	/* Touchscreen PENIRQ */
+	return !at91_get_gpio_value(AT91_PIN_PC4);	
 }
 
 static struct ads7846_platform_data ads_info = {
@@ -111,20 +84,18 @@ static struct ads7846_platform_data ads_info = {
 
 static void __init cap9adk_add_device_ts(void)
 {
-	at91_set_gpio_input(AT91_PIN_PC4, 1);	/* Touchscreen PENIRQ */
-	at91_set_gpio_input(AT91_PIN_PC5, 1);	/* Touchscreen BUSY */
+	at91_set_gpio_input(AT91_PIN_PC4, 1);	
+	at91_set_gpio_input(AT91_PIN_PC5, 1);	
 }
 #else
 static void __init cap9adk_add_device_ts(void) {}
 #endif
 
 
-/*
- * SPI devices.
- */
+
 static struct spi_board_info cap9adk_spi_devices[] = {
 #if defined(CONFIG_MTD_AT91_DATAFLASH_CARD)
-	{	/* DataFlash card */
+	{	
 		.modalias	= "mtd_dataflash",
 		.chip_select	= 0,
 		.max_speed_hz	= 15 * 1000 * 1000,
@@ -134,8 +105,8 @@ static struct spi_board_info cap9adk_spi_devices[] = {
 #if defined(CONFIG_TOUCHSCREEN_ADS7846) || defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
 	{
 		.modalias	= "ads7846",
-		.chip_select	= 3,		/* can be 2 or 3, depending on J2 jumper */
-		.max_speed_hz	= 125000 * 26,	/* (max sample rate @ 3V) * (cmd + data + overhead) */
+		.chip_select	= 3,		
+		.max_speed_hz	= 125000 * 26,	
 		.bus_num	= 0,
 		.platform_data	= &ads_info,
 		.irq		= AT91_PIN_PC4,
@@ -144,28 +115,22 @@ static struct spi_board_info cap9adk_spi_devices[] = {
 };
 
 
-/*
- * MCI (SD/MMC)
- */
+
 static struct at91_mmc_data __initdata cap9adk_mmc_data = {
 	.wire4		= 1,
-//	.det_pin	= ... not connected
-//	.wp_pin		= ... not connected
-//	.vcc_pin	= ... not connected
+
+
+
 };
 
 
-/*
- * MACB Ethernet device
- */
+
 static struct at91_eth_data __initdata cap9adk_macb_data = {
 	.is_rmii	= 1,
 };
 
 
-/*
- * NAND flash
- */
+
 static struct mtd_partition __initdata cap9adk_nand_partitions[] = {
 	{
 		.name	= "NAND partition",
@@ -183,8 +148,8 @@ static struct mtd_partition * __init nand_partitions(int size, int *num_partitio
 static struct atmel_nand_data __initdata cap9adk_nand_data = {
 	.ale		= 21,
 	.cle		= 22,
-//	.det_pin	= ... not connected
-//	.rdy_pin	= ... not connected
+
+
 	.enable_pin	= AT91_PIN_PD15,
 	.partition_info	= nand_partitions,
 #if defined(CONFIG_MTD_NAND_ATMEL_BUSWIDTH_16)
@@ -219,22 +184,20 @@ static void __init cap9adk_add_device_nand(void)
 	csa = at91_sys_read(AT91_MATRIX_EBICSA);
 	at91_sys_write(AT91_MATRIX_EBICSA, csa | AT91_MATRIX_EBI_VDDIOMSEL_3_3V);
 
-	/* setup bus-width (8 or 16) */
+	
 	if (cap9adk_nand_data.bus_width_16)
 		cap9adk_nand_smc_config.mode |= AT91_SMC_DBW_16;
 	else
 		cap9adk_nand_smc_config.mode |= AT91_SMC_DBW_8;
 
-	/* configure chip-select 3 (NAND) */
+	
 	sam9_smc_configure(3, &cap9adk_nand_smc_config);
 
 	at91_add_device_nand(&cap9adk_nand_data);
 }
 
 
-/*
- * NOR flash
- */
+
 static struct mtd_partition cap9adk_nor_partitions[] = {
 	{
 		.name		= "NOR partition",
@@ -295,16 +258,14 @@ static __init void cap9adk_add_device_nor(void)
 	csa = at91_sys_read(AT91_MATRIX_EBICSA);
 	at91_sys_write(AT91_MATRIX_EBICSA, csa | AT91_MATRIX_EBI_VDDIOMSEL_3_3V);
 
-	/* configure chip-select 0 (NOR) */
+	
 	sam9_smc_configure(0, &cap9adk_nor_smc_config);
 
 	platform_device_register(&cap9adk_nor_flash);
 }
 
 
-/*
- * LCD Controller
- */
+
 #if defined(CONFIG_FB_ATMEL) || defined(CONFIG_FB_ATMEL_MODULE)
 static struct fb_videomode at91_tft_vga_modes[] = {
 	{
@@ -341,12 +302,12 @@ static struct fb_monspecs at91fb_default_monspecs = {
 static void at91_lcdc_power_control(int on)
 {
 	if (on)
-		at91_set_gpio_value(AT91_PIN_PC0, 0);	/* power up */
+		at91_set_gpio_value(AT91_PIN_PC0, 0);	
 	else
-		at91_set_gpio_value(AT91_PIN_PC0, 1);	/* power down */
+		at91_set_gpio_value(AT91_PIN_PC0, 1);	
 }
 
-/* Driver datas */
+
 static struct atmel_lcdfb_info __initdata cap9adk_lcdc_data = {
 	.default_bpp			= 16,
 	.default_dmacon			= ATMEL_LCDC_DMAEN,
@@ -361,44 +322,42 @@ static struct atmel_lcdfb_info __initdata cap9adk_lcdc_data;
 #endif
 
 
-/*
- * AC97
- */
+
 static struct ac97c_platform_data cap9adk_ac97_data = {
-//	.reset_pin	= ... not connected
+
 };
 
 
 static void __init cap9adk_board_init(void)
 {
-	/* Serial */
+	
 	at91_add_device_serial();
-	/* USB Host */
+	
 	at91_add_device_usbh(&cap9adk_usbh_data);
-	/* USB HS */
+	
 	at91_add_device_usba(&cap9adk_usba_udc_data);
-	/* SPI */
+	
 	at91_add_device_spi(cap9adk_spi_devices, ARRAY_SIZE(cap9adk_spi_devices));
-	/* Touchscreen */
+	
 	cap9adk_add_device_ts();
-	/* MMC */
+	
 	at91_add_device_mmc(1, &cap9adk_mmc_data);
-	/* Ethernet */
+	
 	at91_add_device_eth(&cap9adk_macb_data);
-	/* NAND */
+	
 	cap9adk_add_device_nand();
-	/* NOR Flash */
+	
 	cap9adk_add_device_nor();
-	/* I2C */
+	
 	at91_add_device_i2c(NULL, 0);
-	/* LCD Controller */
+	
 	at91_add_device_lcdc(&cap9adk_lcdc_data);
-	/* AC97 */
+	
 	at91_add_device_ac97(&cap9adk_ac97_data);
 }
 
 MACHINE_START(AT91CAP9ADK, "Atmel AT91CAP9A-DK")
-	/* Maintainer: Stelian Pop <stelian.pop@leadtechdesign.com> */
+	
 	.phys_io	= AT91_BASE_SYS,
 	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
 	.boot_params	= AT91_SDRAM_BASE + 0x100,

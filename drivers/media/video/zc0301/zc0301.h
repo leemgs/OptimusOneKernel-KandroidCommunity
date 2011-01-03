@@ -1,22 +1,4 @@
-/***************************************************************************
- * V4L2 driver for ZC0301[P] Image Processor and Control Chip              *
- *                                                                         *
- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #ifndef _ZC0301_H_
 #define _ZC0301_H_
@@ -41,7 +23,7 @@
 
 #include "zc0301_sensor.h"
 
-/*****************************************************************************/
+
 
 #define ZC0301_DEBUG
 #define ZC0301_DEBUG_LEVEL         2
@@ -56,7 +38,7 @@
 #define ZC0301_CTRL_TIMEOUT        100
 #define ZC0301_FRAME_TIMEOUT       2
 
-/*****************************************************************************/
+
 
 ZC0301_ID_TABLE
 ZC0301_SENSOR_TABLE
@@ -133,7 +115,7 @@ struct zc0301_device {
 	wait_queue_head_t wait_open, wait_frame, wait_stream;
 };
 
-/*****************************************************************************/
+
 
 struct zc0301_device*
 zc0301_match_id(struct zc0301_device* cam, const struct usb_device_id *id)
@@ -147,7 +129,7 @@ zc0301_attach_sensor(struct zc0301_device* cam, struct zc0301_sensor* sensor)
 	memcpy(&cam->sensor, sensor, sizeof(struct zc0301_sensor));
 }
 
-/*****************************************************************************/
+
 
 #undef DBG
 #undef KDBG
@@ -191,6 +173,6 @@ dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n", __FILE__, __func__,   \
 	 __LINE__ , ## args)
 
 #undef PDBGG
-#define PDBGG(fmt, args...) do {;} while(0) /* placeholder */
+#define PDBGG(fmt, args...) do {;} while(0) 
 
-#endif /* _ZC0301_H_ */
+#endif 

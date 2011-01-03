@@ -1,11 +1,4 @@
-/*
- * Access ACPI _OSC method
- *
- * Copyright (C) 2006 Intel Corp.
- *	Tom Long Nguyen (tom.l.nguyen@intel.com)
- *	Zhang Yanmin (yanmin.zhang@intel.com)
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -18,15 +11,7 @@
 #include <linux/delay.h>
 #include "aerdrv.h"
 
-/**
- * aer_osc_setup - run ACPI _OSC method
- * @pciedev: pcie_device which AER is being enabled on
- *
- * @return: Zero on success. Nonzero otherwise.
- *
- * Invoked when PCIE bus loads AER service driver. To avoid conflict with
- * BIOS AER support requires BIOS to yield AER control to OS native driver.
- **/
+
 int aer_osc_setup(struct pcie_device *pciedev)
 {
 	acpi_status status = AE_NOT_FOUND;

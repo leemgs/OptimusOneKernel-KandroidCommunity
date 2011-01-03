@@ -1,10 +1,4 @@
-/*
- * (C) 2008 Krzysztof Piotr Oledzki <ole@ans.pl>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef _NF_CONNTRACK_ACCT_H
 #define _NF_CONNTRACK_ACCT_H
@@ -48,4 +42,4 @@ seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir);
 extern int nf_conntrack_acct_init(struct net *net);
 extern void nf_conntrack_acct_fini(struct net *net);
 
-#endif /* _NF_CONNTRACK_ACCT_H */
+#endif 

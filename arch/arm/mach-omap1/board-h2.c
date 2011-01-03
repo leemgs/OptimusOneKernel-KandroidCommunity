@@ -1,23 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-h2.c
- *
- * Board specific inits for OMAP-1610 H2
- *
- * Copyright (C) 2001 RidgeRun, Inc.
- * Author: Greg Lonnon <glonnon@ridgerun.com>
- *
- * Copyright (C) 2002 MontaVista Software, Inc.
- *
- * Separated FPGA interrupts from innovator1510.c and cleaned up for 2.6
- * Copyright (C) 2004 Nokia Corporation by Tony Lindrgen <tony@atomide.com>
- *
- * H2 specific changes and cleanup
- * Copyright (C) 2004 Nokia Corporation by Imre Deak <imre.deak@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -48,7 +29,7 @@
 
 #include "board-h2.h"
 
-/* At OMAP1610 Innovator the Ethernet is directly connected to CS1 */
+
 #define OMAP1610_ETHR_START		0x04000300
 
 static int h2_keymap[] = {
@@ -91,28 +72,28 @@ static int h2_keymap[] = {
 };
 
 static struct mtd_partition h2_nor_partitions[] = {
-	/* bootloader (U-Boot, etc) in first sector */
+	
 	{
 	      .name		= "bootloader",
 	      .offset		= 0,
 	      .size		= SZ_128K,
-	      .mask_flags	= MTD_WRITEABLE, /* force read-only */
+	      .mask_flags	= MTD_WRITEABLE, 
 	},
-	/* bootloader params in the next sector */
+	
 	{
 	      .name		= "params",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_128K,
 	      .mask_flags	= 0,
 	},
-	/* kernel */
+	
 	{
 	      .name		= "kernel",
 	      .offset		= MTDPART_OFS_APPEND,
 	      .size		= SZ_2M,
 	      .mask_flags	= 0
 	},
-	/* file system */
+	
 	{
 	      .name		= "filesystem",
 	      .offset		= MTDPART_OFS_APPEND,
@@ -129,7 +110,7 @@ static struct flash_platform_data h2_nor_data = {
 };
 
 static struct resource h2_nor_resource = {
-	/* This is on CS3, wherever it's mapped */
+	
 	.flags		= IORESOURCE_MEM,
 };
 
@@ -145,21 +126,18 @@ static struct platform_device h2_nor_device = {
 
 static struct mtd_partition h2_nand_partitions[] = {
 #if 0
-	/* REVISIT:  enable these partitions if you make NAND BOOT
-	 * work on your H2 (rev C or newer); published versions of
-	 * x-load only support P2 and H3.
-	 */
+	
 	{
 		.name		= "xloader",
 		.offset		= 0,
 		.size		= 64 * 1024,
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "bootloader",
 		.offset		= MTDPART_OFS_APPEND,
 		.size		= 256 * 1024,
-		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+		.mask_flags	= MTD_WRITEABLE,	
 	},
 	{
 		.name		= "params",
@@ -179,7 +157,7 @@ static struct mtd_partition h2_nand_partitions[] = {
 	},
 };
 
-/* dip switches control NAND chip access:  8 bit, 16 bit, or neither */
+
 static struct omap_nand_platform_data h2_nand_data = {
 	.options	= NAND_SAMSUNG_LP_OPTIONS,
 	.parts		= h2_nand_partitions,
@@ -202,7 +180,7 @@ static struct platform_device h2_nand_device = {
 
 static struct resource h2_smc91x_resources[] = {
 	[0] = {
-		.start	= OMAP1610_ETHR_START,		/* Physical */
+		.start	= OMAP1610_ETHR_START,		
 		.end	= OMAP1610_ETHR_START + 0xf,
 		.flags	= IORESOURCE_MEM,
 	},
@@ -253,7 +231,7 @@ static struct platform_device h2_kp_device = {
 #if defined(CONFIG_OMAP_IR) || defined(CONFIG_OMAP_IR_MODULE)
 static int h2_transceiver_mode(struct device *dev, int state)
 {
-	/* SIR when low, else MIR/FIR when HIGH */
+	
 	gpio_set_value(H2_IRDA_FIRSEL_GPIO_PIN, !(state & IR_SIRMODE));
 	return 0;
 }
@@ -346,15 +324,15 @@ static void __init h2_init_irq(void)
 }
 
 static struct omap_usb_config h2_usb_config __initdata = {
-	/* usb1 has a Mini-AB port and external isp1301 transceiver */
+	
 	.otg		= 2,
 
 #ifdef	CONFIG_USB_GADGET_OMAP
-	.hmc_mode	= 19,	/* 0:host(off) 1:dev|otg 2:disabled */
-	/* .hmc_mode	= 21,*/	/* 0:host(off) 1:dev(loopback) 2:host(loopback) */
+	.hmc_mode	= 19,	
+		
 #elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-	/* needs OTG cable, or NONSTANDARD (B-to-MiniB) */
-	.hmc_mode	= 20,	/* 1:dev|otg(off) 1:host 2:disabled */
+	
+	.hmc_mode	= 20,	
 #endif
 
 	.pins[1]	= 3,
@@ -372,15 +350,7 @@ static struct omap_board_config_kernel h2_config[] __initdata = {
 
 static void __init h2_init(void)
 {
-	/* Here we assume the NOR boot config:  NOR on CS3 (possibly swapped
-	 * to address 0 by a dip switch), NAND on CS2B.  The NAND driver will
-	 * notice whether a NAND chip is enabled at probe time.
-	 *
-	 * FIXME revC boards (and H3) support NAND-boot, with a dip switch to
-	 * put NOR on CS2B and NAND (which on H2 may be 16bit) on CS3.  Try
-	 * detecting that in code here, to avoid probing every possible flash
-	 * configuration...
-	 */
+	
 	h2_nor_resource.end = h2_nor_resource.start = omap_cs3_phys();
 	h2_nor_resource.end += SZ_32M - 1;
 
@@ -393,11 +363,11 @@ static void __init h2_init(void)
 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
 	omap_cfg_reg(M8_1610_FLASH_CS2B_WE);
 
-	/* MMC:  card detect and WP */
-	/* omap_cfg_reg(U19_ARMIO1); */		/* CD */
-	omap_cfg_reg(BALLOUT_V8_ARMIO3);	/* WP */
+	
+			
+	omap_cfg_reg(BALLOUT_V8_ARMIO3);	
 
-	/* Irda */
+	
 #if defined(CONFIG_OMAP_IR) || defined(CONFIG_OMAP_IR_MODULE)
 	omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7, FUNC_MUX_CTRL_A);
 	if (gpio_request(H2_IRDA_FIRSEL_GPIO_PIN, "IRDA mode") < 0)
@@ -422,7 +392,7 @@ static void __init h2_map_io(void)
 }
 
 MACHINE_START(OMAP_H2, "TI-H2")
-	/* Maintainer: Imre Deak <imre.deak@nokia.com> */
+	
 	.phys_io	= 0xfff00000,
 	.io_pg_offst	= ((0xfef00000) >> 18) & 0xfffc,
 	.boot_params	= 0x10000100,

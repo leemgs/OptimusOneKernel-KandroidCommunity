@@ -1,23 +1,4 @@
-/*
- * Copyright (C) 2006-2008 Nokia Corporation
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; see the file COPYING. If not, write to the Free Software
- * Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Test page read and write on MTD device.
- *
- * Author: Adrian Hunter <ext-adrian.hunter@nokia.com>
- */
+
 
 #include <asm/div64.h>
 #include <linux/init.h>
@@ -125,7 +106,7 @@ static int verify_eraseblock(int ebnum)
 
 	set_random_data(writebuf, mtd->erasesize);
 	for (j = 0; j < pgcnt - 1; ++j, addr += pgsize) {
-		/* Do a read to set the internal dataRAMs to different data */
+		
 		err = mtd->read(mtd, addr0, bufsize, &read, twopages);
 		if (err == -EUCLEAN)
 			err = 0;
@@ -158,10 +139,10 @@ static int verify_eraseblock(int ebnum)
 			errcnt += 1;
 		}
 	}
-	/* Check boundary between eraseblocks */
+	
 	if (addr <= addrn - pgsize - pgsize && !bbt[ebnum + 1]) {
 		unsigned long oldnext = next;
-		/* Do a read to set the internal dataRAMs to different data */
+		
 		err = mtd->read(mtd, addr0, bufsize, &read, twopages);
 		if (err == -EUCLEAN)
 			err = 0;
@@ -226,7 +207,7 @@ static int crosstest(void)
 	for (i = 0; i < ebcnt && bbt[ebcnt - i - 1]; ++i)
 		addrn -= mtd->erasesize;
 
-	/* Read 2nd-to-last page to pp1 */
+	
 	read = 0;
 	addr = addrn - pgsize - pgsize;
 	err = mtd->read(mtd, addr, pgsize, &read, pp1);
@@ -239,7 +220,7 @@ static int crosstest(void)
 		return err;
 	}
 
-	/* Read 3rd-to-last page to pp1 */
+	
 	read = 0;
 	addr = addrn - pgsize - pgsize - pgsize;
 	err = mtd->read(mtd, addr, pgsize, &read, pp1);
@@ -252,7 +233,7 @@ static int crosstest(void)
 		return err;
 	}
 
-	/* Read first page to pp2 */
+	
 	read = 0;
 	addr = addr0;
 	printk(PRINT_PREF "reading page at %#llx\n", (long long)addr);
@@ -266,7 +247,7 @@ static int crosstest(void)
 		return err;
 	}
 
-	/* Read last page to pp3 */
+	
 	read = 0;
 	addr = addrn - pgsize;
 	printk(PRINT_PREF "reading page at %#llx\n", (long long)addr);
@@ -280,7 +261,7 @@ static int crosstest(void)
 		return err;
 	}
 
-	/* Read first page again to pp4 */
+	
 	read = 0;
 	addr = addr0;
 	printk(PRINT_PREF "reading page at %#llx\n", (long long)addr);
@@ -294,7 +275,7 @@ static int crosstest(void)
 		return err;
 	}
 
-	/* pp2 and pp4 should be the same */
+	
 	printk(PRINT_PREF "verifying pages read at %#llx match\n",
 	       (long long)addr0);
 	if (memcmp(pp2, pp4, pgsize)) {
@@ -552,7 +533,7 @@ static int __init mtd_pagetest_init(void)
 	if (err)
 		goto out;
 
-	/* Erase all eraseblocks */
+	
 	printk(PRINT_PREF "erasing whole device\n");
 	for (i = 0; i < ebcnt; ++i) {
 		if (bbt[i])
@@ -564,7 +545,7 @@ static int __init mtd_pagetest_init(void)
 	}
 	printk(PRINT_PREF "erased %u eraseblocks\n", i);
 
-	/* Write all eraseblocks */
+	
 	simple_srand(1);
 	printk(PRINT_PREF "writing whole device\n");
 	for (i = 0; i < ebcnt; ++i) {
@@ -579,7 +560,7 @@ static int __init mtd_pagetest_init(void)
 	}
 	printk(PRINT_PREF "written %u eraseblocks\n", i);
 
-	/* Check all eraseblocks */
+	
 	simple_srand(1);
 	printk(PRINT_PREF "verifying all eraseblocks\n");
 	for (i = 0; i < ebcnt; ++i) {

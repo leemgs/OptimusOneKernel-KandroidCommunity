@@ -1,7 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/neponset.c
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/tty.h>
@@ -21,47 +18,27 @@
 #include <asm/hardware/sa1111.h>
 #include <asm/sizes.h>
 
-/*
- * Install handler for Neponset IRQ.  Note that we have to loop here
- * since the ETHERNET and USAR IRQs are level based, and we need to
- * ensure that the IRQ signal is deasserted before returning.  This
- * is rather unfortunate.
- */
+
 static void
 neponset_irq_handler(unsigned int irq, struct irq_desc *desc)
 {
 	unsigned int irr;
 
 	while (1) {
-		/*
-		 * Acknowledge the parent IRQ.
-		 */
+		
 		desc->chip->ack(irq);
 
-		/*
-		 * Read the interrupt reason register.  Let's have all
-		 * active IRQ bits high.  Note: there is a typo in the
-		 * Neponset user's guide for the SA1111 IRR level.
-		 */
+		
 		irr = IRR ^ (IRR_ETHERNET | IRR_USAR);
 
 		if ((irr & (IRR_ETHERNET | IRR_USAR | IRR_SA1111)) == 0)
 			break;
 
-		/*
-		 * Since there is no individual mask, we have to
-		 * mask the parent IRQ.  This is safe, since we'll
-		 * recheck the register for any pending IRQs.
-		 */
+		
 		if (irr & (IRR_ETHERNET | IRR_USAR)) {
 			desc->chip->mask(irq);
 
-			/*
-			 * Ack the interrupt now to prevent re-entering
-			 * this neponset handler.  Again, this is safe
-			 * since we'll check the IRR register prior to
-			 * leaving.
-			 */
+			
 			desc->chip->ack(irq);
 
 			if (irr & IRR_ETHERNET) {
@@ -143,33 +120,22 @@ static int __devinit neponset_probe(struct platform_device *dev)
 {
 	sa1100_register_uart_fns(&neponset_port_fns);
 
-	/*
-	 * Install handler for GPIO25.
-	 */
+	
 	set_irq_type(IRQ_GPIO25, IRQ_TYPE_EDGE_RISING);
 	set_irq_chained_handler(IRQ_GPIO25, neponset_irq_handler);
 
-	/*
-	 * We would set IRQ_GPIO25 to be a wake-up IRQ, but
-	 * unfortunately something on the Neponset activates
-	 * this IRQ on sleep (ethernet?)
-	 */
+	
 #if 0
 	enable_irq_wake(IRQ_GPIO25);
 #endif
 
-	/*
-	 * Setup other Neponset IRQs.  SA1111 will be done by the
-	 * generic SA1111 code.
-	 */
+	
 	set_irq_handler(IRQ_NEPONSET_SMC9196, handle_simple_irq);
 	set_irq_flags(IRQ_NEPONSET_SMC9196, IRQF_VALID | IRQF_PROBE);
 	set_irq_handler(IRQ_NEPONSET_USAR, handle_simple_irq);
 	set_irq_flags(IRQ_NEPONSET_USAR, IRQF_VALID | IRQF_PROBE);
 
-	/*
-	 * Disable GPIO 0/1 drivers so the buttons work on the module.
-	 */
+	
 	NCR_0 = NCR_GP01_OFF;
 
 	return 0;
@@ -177,16 +143,12 @@ static int __devinit neponset_probe(struct platform_device *dev)
 
 #ifdef CONFIG_PM
 
-/*
- * LDM power management.
- */
+
 static unsigned int neponset_saved_state;
 
 static int neponset_suspend(struct platform_device *dev, pm_message_t state)
 {
-	/*
-	 * Save state.
-	 */
+	
 	neponset_saved_state = NCR_0;
 
 	return 0;
@@ -293,17 +255,11 @@ static int __init neponset_init(void)
 {
 	platform_driver_register(&neponset_device_driver);
 
-	/*
-	 * The Neponset is only present on the Assabet machine type.
-	 */
+	
 	if (!machine_is_assabet())
 		return -ENODEV;
 
-	/*
-	 * Ensure that the memory bus request/grant signals are setup,
-	 * and the grant is held in its inactive state, whether or not
-	 * we actually have a Neponset attached.
-	 */
+	
 	sa1110_mb_disable();
 
 	if (!machine_has_neponset()) {
@@ -323,12 +279,12 @@ static int __init neponset_init(void)
 subsys_initcall(neponset_init);
 
 static struct map_desc neponset_io_desc[] __initdata = {
-	{	/* System Registers */
+	{	
 		.virtual	=  0xf3000000,
 		.pfn		= __phys_to_pfn(0x10000000),
 		.length		= SZ_1M,
 		.type		= MT_DEVICE
-	}, {	/* SA-1111 */
+	}, {	
 		.virtual	=  0xf4000000,
 		.pfn		= __phys_to_pfn(0x40000000),
 		.length		= SZ_1M,

@@ -1,14 +1,4 @@
-/* linux/arch/arm/mach-s3c24a0/include/mach/regs-clock.h
- *
- * Copyright (c) 2003,2004,2005,2006 Simtec Electronics <linux@simtec.co.uk>
- *		      http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C24A0 clock register definitions
-*/
+
 
 #ifndef __ASM_ARCH_24A0_REGS_CLOCK_H
 #define __ASM_ARCH_24A0_REGS_CLOCK_H __FILE__
@@ -19,11 +9,11 @@
 #define S3C24A0_CLKSRC		S3C2410_CLKREG(0x24)
 #define S3C24A0_CLKDIVN		S3C2410_CLKREG(0x28)
 
-/* CLKCON register bits */
+
 
 #define S3C24A0_CLKCON_VLX	(1<<29)
 #define S3C24A0_CLKCON_VPOST	(1<<28)
-#define S3C24A0_CLKCON_WDT	(1<<27)	/* reserved */
+#define S3C24A0_CLKCON_WDT	(1<<27)	
 #define S3C24A0_CLKCON_MPEGDCTQ	(1<<26)
 #define S3C24A0_CLKCON_VPOSTIF	(1<<25)
 #define S3C24A0_CLKCON_MPEG4IF	(1<<24)
@@ -34,7 +24,7 @@
 #define S3C24A0_CLKCON_KEYPAD	(1<<19)
 #define S3C24A0_CLKCON_ADC	(1<<18)
 #define S3C24A0_CLKCON_SDI	(1<<17)
-#define S3C24A0_CLKCON_MS	(1<<16) /* memory stick */
+#define S3C24A0_CLKCON_MS	(1<<16) 
 #define S3C24A0_CLKCON_USBD	(1<<15)
 #define S3C24A0_CLKCON_GPIO	(1<<14)
 #define S3C24A0_CLKCON_IIS	(1<<13)
@@ -50,14 +40,14 @@
 #define S3C24A0_CLKCON_MON	(1<<1)
 #define S3C24A0_CLKCON_STOP	(1<<0)
 
-/* CLKSRC register bits */
 
-#define S3C24A0_CLKSRC_OSC	(1<<8)  /* CLKSRC */
+
+#define S3C24A0_CLKSRC_OSC	(1<<8)  
 #define S3C24A0_CLKSRC_UPLL	(1<<7)
 #define S3C24A0_CLKSRC_MPLL	(1<<5)
 #define S3C24A0_CLKSRC_EXT	(1<<4)
 
-/* Use a single interface with the common code, for s3c24xx */
+
 
 #define S3C2410_MPLLCON		S3C24A0_MPLLCON
 #define S3C2410_UPLLCON		S3C24A0_UPLLCON
@@ -85,4 +75,4 @@
 #define S3C2410_CLKSLOW_SLOW		(0xFF)
 #define S3C2410_CLKSLOW_GET_SLOWVAL(x)	(0x1)
 
-#endif /* __ASM_ARCH_24A0_REGS_CLOCK_H */
+#endif 

@@ -1,16 +1,4 @@
-/*
- * linux/kernel/time/tick-oneshot.c
- *
- * This file contains functions which manage high resolution tick
- * related events.
- *
- * Copyright(C) 2005-2006, Thomas Gleixner <tglx@linutronix.de>
- * Copyright(C) 2005-2007, Red Hat, Inc., Ingo Molnar
- * Copyright(C) 2006-2007, Timesys Corp., Thomas Gleixner
- *
- * This code is licenced under the GPL version 2. For details see
- * kernel-base/COPYING.
- */
+
 #include <linux/cpu.h>
 #include <linux/err.h>
 #include <linux/hrtimer.h>
@@ -22,9 +10,7 @@
 
 #include "tick-internal.h"
 
-/**
- * tick_program_event internal worker function
- */
+
 int tick_dev_program_event(struct clock_event_device *dev, ktime_t expires,
 			   int force)
 {
@@ -37,13 +23,9 @@ int tick_dev_program_event(struct clock_event_device *dev, ktime_t expires,
 		if (!ret || !force)
 			return ret;
 
-		/*
-		 * We tried 2 times to program the device with the given
-		 * min_delta_ns. If that's not working then we double it
-		 * and emit a warning.
-		 */
+		
 		if (++i > 2) {
-			/* Increase the min. delta and try again */
+			
 			if (!dev->min_delta_ns)
 				dev->min_delta_ns = 5000;
 			else
@@ -62,9 +44,7 @@ int tick_dev_program_event(struct clock_event_device *dev, ktime_t expires,
 	}
 }
 
-/**
- * tick_program_event
- */
+
 int tick_program_event(ktime_t expires, int force)
 {
 	struct clock_event_device *dev = __get_cpu_var(tick_cpu_device).evtdev;
@@ -72,9 +52,7 @@ int tick_program_event(ktime_t expires, int force)
 	return tick_dev_program_event(dev, expires, force);
 }
 
-/**
- * tick_resume_onshot - resume oneshot mode
- */
+
 void tick_resume_oneshot(void)
 {
 	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
@@ -84,9 +62,7 @@ void tick_resume_oneshot(void)
 	tick_program_event(ktime_get(), 1);
 }
 
-/**
- * tick_setup_oneshot - setup the event device for oneshot mode (hres or nohz)
- */
+
 void tick_setup_oneshot(struct clock_event_device *newdev,
 			void (*handler)(struct clock_event_device *),
 			ktime_t next_event)
@@ -96,9 +72,7 @@ void tick_setup_oneshot(struct clock_event_device *newdev,
 	tick_dev_program_event(newdev, next_event, 1);
 }
 
-/**
- * tick_switch_to_oneshot - switch to oneshot mode
- */
+
 int tick_switch_to_oneshot(void (*handler)(struct clock_event_device *))
 {
 	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
@@ -128,11 +102,7 @@ int tick_switch_to_oneshot(void (*handler)(struct clock_event_device *))
 	return 0;
 }
 
-/**
- * tick_check_oneshot_mode - check whether the system is in oneshot mode
- *
- * returns 1 when either nohz or highres are enabled. otherwise 0.
- */
+
 int tick_oneshot_mode_active(void)
 {
 	unsigned long flags;
@@ -146,11 +116,7 @@ int tick_oneshot_mode_active(void)
 }
 
 #ifdef CONFIG_HIGH_RES_TIMERS
-/**
- * tick_init_highres - switch to high resolution mode
- *
- * Called with interrupts disabled.
- */
+
 int tick_init_highres(void)
 {
 	return tick_switch_to_oneshot(hrtimer_interrupt);

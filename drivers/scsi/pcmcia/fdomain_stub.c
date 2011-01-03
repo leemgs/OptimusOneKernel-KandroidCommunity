@@ -1,35 +1,4 @@
-/*======================================================================
 
-    A driver for Future Domain-compatible PCMCIA SCSI cards
-
-    fdomain_cs.c 1.47 2001/10/13 00:08:52
-
-    The contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is David A. Hinds
-    <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
-    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU General Public License version 2 (the "GPL"), in
-    which case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-    
-======================================================================*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -51,9 +20,9 @@
 #include <pcmcia/cistpl.h>
 #include <pcmcia/ds.h>
 
-/*====================================================================*/
 
-/* Module parameters */
+
+
 
 MODULE_AUTHOR("David Hinds <dahinds@users.sourceforge.net>");
 MODULE_DESCRIPTION("Future Domain PCMCIA SCSI driver");
@@ -69,7 +38,7 @@ static char *version =
 #define DEBUG(n, args...)
 #endif
 
-/*====================================================================*/
+
 
 typedef struct scsi_info_t {
 	struct pcmcia_device	*p_dev;
@@ -88,7 +57,7 @@ static int fdomain_probe(struct pcmcia_device *link)
 
 	DEBUG(0, "fdomain_attach()\n");
 
-	/* Create new SCSI device */
+	
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
 	if (!info)
 		return -ENOMEM;
@@ -105,9 +74,9 @@ static int fdomain_probe(struct pcmcia_device *link)
 	link->conf.Present = PRESENT_OPTION;
 
 	return fdomain_config(link);
-} /* fdomain_attach */
+} 
 
-/*====================================================================*/
+
 
 static void fdomain_detach(struct pcmcia_device *link)
 {
@@ -116,9 +85,9 @@ static void fdomain_detach(struct pcmcia_device *link)
 	fdomain_release(link);
 
 	kfree(link->priv);
-} /* fdomain_detach */
+} 
 
-/*====================================================================*/
+
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -152,10 +121,10 @@ static int fdomain_config(struct pcmcia_device *link)
     CS_CHECK(RequestIRQ, pcmcia_request_irq(link, &link->irq));
     CS_CHECK(RequestConfiguration, pcmcia_request_configuration(link, &link->conf));
 
-    /* A bad hack... */
+    
     release_region(link->io.BasePort1, link->io.NumPorts1);
 
-    /* Set configuration options for the fdomain driver */
+    
     sprintf(str, "%d,%d", link->io.BasePort1, link->irq.AssignedIRQ);
     fdomain_setup(str);
 
@@ -180,9 +149,9 @@ cs_failed:
 failed:
     fdomain_release(link);
     return -ENODEV;
-} /* fdomain_config */
+} 
 
-/*====================================================================*/
+
 
 static void fdomain_release(struct pcmcia_device *link)
 {
@@ -195,7 +164,7 @@ static void fdomain_release(struct pcmcia_device *link)
 	scsi_unregister(info->host);
 }
 
-/*====================================================================*/
+
 
 static int fdomain_resume(struct pcmcia_device *link)
 {

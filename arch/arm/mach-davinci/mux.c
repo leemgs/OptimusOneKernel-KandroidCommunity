@@ -1,20 +1,4 @@
-/*
- * Utility to set the DAVINCI MUX register from a table in mux.h
- *
- * Author: Vladimir Barinov, MontaVista Software, Inc. <source@mvista.com>
- *
- * Based on linux/arch/arm/plat-omap/mux.c:
- * Copyright (C) 2003 - 2005 Nokia Corporation
- *
- * Written by Tony Lindgren
- *
- * 2007 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- * Copyright (C) 2008 Texas Instruments.
- */
+
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/spinlock.h>
@@ -23,9 +7,7 @@
 #include <mach/mux.h>
 #include <mach/common.h>
 
-/*
- * Sets the DAVINCI MUX register based on the table
- */
+
 int __init_or_module davinci_cfg_reg(const unsigned long index)
 {
 	static DEFINE_SPINLOCK(mux_spin_lock);
@@ -53,7 +35,7 @@ int __init_or_module davinci_cfg_reg(const unsigned long index)
 		return -ENODEV;
 	}
 
-	/* Update the mux register in question */
+	
 	if (cfg->mask) {
 		unsigned	tmp1, tmp2;
 

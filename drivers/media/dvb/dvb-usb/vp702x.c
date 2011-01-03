@@ -1,22 +1,7 @@
-/* DVB USB compliant Linux driver for the TwinhanDTV StarBox USB2.0 DVB-S
- * receiver.
- *
- * Copyright (C) 2005 Ralph Metzler <rjkm@metzlerbros.de>
- *                    Metzler Brothers Systementwicklung GbR
- *
- * Copyright (C) 2005 Patrick Boettcher <patrick.boettcher@desy.de>
- *
- * Thanks to Twinhan who kindly provided hardware and information.
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "vp702x.h"
 
-/* debug */
+
 int dvb_usb_vp702x_debug;
 module_param_named(debug,dvb_usb_vp702x_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DVB_USB_DEBUG_STATUS);
@@ -33,7 +18,7 @@ struct vp702x_device_state {
 	u8 power_state;
 };
 
-/* check for mutex FIXME */
+
 int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
 {
 	int ret = -1;
@@ -155,7 +140,7 @@ static int vp702x_init_pid_filter(struct dvb_usb_adapter *adap)
 	st->pid_filter_can_bypass = 1;
 	st->pid_filter_state = 0x00;
 
-	vp702x_set_pld_mode(adap, 1); // bypass
+	vp702x_set_pld_mode(adap, 1); 
 
 	for (i = 0; i < st->pid_filter_count; i++)
 		vp702x_set_pid(adap, 0xffff, i, 1);
@@ -164,7 +149,7 @@ static int vp702x_init_pid_filter(struct dvb_usb_adapter *adap)
 	vp702x_usb_in_op(adap->dev, 0xb5, 0, 0, b, 10);
 	vp702x_usb_in_op(adap->dev, 0xb5, 1, 0, b, 10);
 
-	//vp702x_set_pld_mode(d, 0); // filter
+	
 	return 0;
 }
 
@@ -173,19 +158,19 @@ static int vp702x_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
 	return 0;
 }
 
-/* keys for the enclosed remote control */
+
 static struct dvb_usb_rc_key vp702x_rc_keys[] = {
 	{ 0x0001, KEY_1 },
 	{ 0x0002, KEY_2 },
 };
 
-/* remote control stuff (does not work with my box) */
+
 static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 {
 	u8 key[10];
 	int i;
 
-/* remove the following return to enabled remote querying */
+
 	return 0;
 
 	vp702x_usb_in_op(d,READ_REMOTE_REQ,0,0,key,10);
@@ -246,8 +231,8 @@ static int vp702x_usb_probe(struct usb_interface *intf,
 
 static struct usb_device_id vp702x_usb_table [] = {
 	    { USB_DEVICE(USB_VID_VISIONPLUS, USB_PID_TWINHAN_VP7021_COLD) },
-//	    { USB_DEVICE(USB_VID_VISIONPLUS, USB_PID_TWINHAN_VP7020_COLD) },
-//	    { USB_DEVICE(USB_VID_VISIONPLUS, USB_PID_TWINHAN_VP7020_WARM) },
+
+
 	    { 0 },
 };
 MODULE_DEVICE_TABLE(usb, vp702x_usb_table);
@@ -267,7 +252,7 @@ static struct dvb_usb_device_properties vp702x_properties = {
 			.streaming_ctrl   = vp702x_streaming_ctrl,
 			.frontend_attach  = vp702x_frontend_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 10,
@@ -294,15 +279,11 @@ static struct dvb_usb_device_properties vp702x_properties = {
 		  .cold_ids = { &vp702x_usb_table[0], NULL },
 		  .warm_ids = { NULL },
 		},
-/*		{ .name = "TwinhanDTV StarBox DVB-S USB2.0 (VP7020)",
-		  .cold_ids = { &vp702x_usb_table[2], NULL },
-		  .warm_ids = { &vp702x_usb_table[3], NULL },
-		},
-*/		{ NULL },
+		{ NULL },
 	}
 };
 
-/* usb specific object needed to register this driver with the usb subsystem */
+
 static struct usb_driver vp702x_usb_driver = {
 	.name		= "dvb_usb_vp702x",
 	.probe 		= vp702x_usb_probe,
@@ -310,7 +291,7 @@ static struct usb_driver vp702x_usb_driver = {
 	.id_table 	= vp702x_usb_table,
 };
 
-/* module stuff */
+
 static int __init vp702x_usb_module_init(void)
 {
 	int result;
@@ -324,7 +305,7 @@ static int __init vp702x_usb_module_init(void)
 
 static void __exit vp702x_usb_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&vp702x_usb_driver);
 }
 

@@ -1,14 +1,4 @@
-/*
- * FireDTV driver (formerly known as FireSAT)
- *
- * Copyright (C) 2004 Andreas Monitzer <andy@monitzer.com>
- * Copyright (C) 2008 Henrik Kurelid <henrik@kurelid.se>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation; either version 2 of
- *	the License, or (at your option) any later version.
- */
+
 
 #include <linux/bitops.h>
 #include <linux/device.h>
@@ -175,7 +165,7 @@ int fdtv_dvb_register(struct firedtv *fdtv)
 	if (err < 0)
 		goto fail_log;
 
-	/*DMX_TS_FILTERING | DMX_SECTION_FILTERING*/
+	
 	fdtv->demux.dmx.capabilities = 0;
 
 	fdtv->demux.priv	= fdtv;
@@ -299,42 +289,42 @@ struct firedtv *fdtv_alloc(struct device *dev,
 
 static struct ieee1394_device_id fdtv_id_table[] = {
 	{
-		/* FloppyDTV S/CI and FloppyDTV S2 */
+		
 		.match_flags	= MATCH_FLAGS,
 		.vendor_id	= DIGITAL_EVERYWHERE_OUI,
 		.model_id	= 0x000024,
 		.specifier_id	= AVC_UNIT_SPEC_ID_ENTRY,
 		.version	= AVC_SW_VERSION_ENTRY,
 	}, {
-		/* FloppyDTV T/CI */
+		
 		.match_flags	= MATCH_FLAGS,
 		.vendor_id	= DIGITAL_EVERYWHERE_OUI,
 		.model_id	= 0x000025,
 		.specifier_id	= AVC_UNIT_SPEC_ID_ENTRY,
 		.version	= AVC_SW_VERSION_ENTRY,
 	}, {
-		/* FloppyDTV C/CI */
+		
 		.match_flags	= MATCH_FLAGS,
 		.vendor_id	= DIGITAL_EVERYWHERE_OUI,
 		.model_id	= 0x000026,
 		.specifier_id	= AVC_UNIT_SPEC_ID_ENTRY,
 		.version	= AVC_SW_VERSION_ENTRY,
 	}, {
-		/* FireDTV S/CI and FloppyDTV S2 */
+		
 		.match_flags	= MATCH_FLAGS,
 		.vendor_id	= DIGITAL_EVERYWHERE_OUI,
 		.model_id	= 0x000034,
 		.specifier_id	= AVC_UNIT_SPEC_ID_ENTRY,
 		.version	= AVC_SW_VERSION_ENTRY,
 	}, {
-		/* FireDTV T/CI */
+		
 		.match_flags	= MATCH_FLAGS,
 		.vendor_id	= DIGITAL_EVERYWHERE_OUI,
 		.model_id	= 0x000035,
 		.specifier_id	= AVC_UNIT_SPEC_ID_ENTRY,
 		.version	= AVC_SW_VERSION_ENTRY,
 	}, {
-		/* FireDTV C/CI */
+		
 		.match_flags	= MATCH_FLAGS,
 		.vendor_id	= DIGITAL_EVERYWHERE_OUI,
 		.model_id	= 0x000036,

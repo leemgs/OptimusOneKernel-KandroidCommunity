@@ -1,23 +1,4 @@
-/*
- * Copyright(c) 2004 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59
- * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The full GNU General Public License is included in this distribution in the
- * file called COPYING.
- */
+
 #ifndef IOATDMA_V2_H
 #define IOATDMA_V2_H
 
@@ -29,10 +10,7 @@
 extern int ioat_pending_level;
 extern int ioat_ring_alloc_order;
 
-/*
- * workaround for IOAT ver.3.0 null descriptor issue
- * (channel returns error when size is 0)
- */
+
 #define NULL_DESC_BUFFER_SIZE 1
 
 #define IOAT_MAX_ORDER 16
@@ -41,18 +19,7 @@ extern int ioat_ring_alloc_order;
 #define ioat_get_max_alloc_order() \
 	(min(ioat_ring_max_alloc_order, IOAT_MAX_ORDER))
 
-/* struct ioat2_dma_chan - ioat v2 / v3 channel attributes
- * @base: common ioat channel parameters
- * @xfercap_log; log2 of channel max transfer length (for fast division)
- * @head: allocated index
- * @issued: hardware notification point
- * @tail: cleanup index
- * @pending: lock free indicator for issued != head
- * @dmacount: identical to 'head' except for occasionally resetting to zero
- * @alloc_order: log2 of the number of allocated descriptors
- * @ring: software ring buffer implementation of hardware ring
- * @ring_lock: protects ring attributes
- */
+
 struct ioat2_dma_chan {
 	struct ioat_chan_common base;
 	size_t xfercap_log;
@@ -78,13 +45,13 @@ static inline u16 ioat2_ring_mask(struct ioat2_dma_chan *ioat)
 	return (1 << ioat->alloc_order) - 1;
 }
 
-/* count of descriptors in flight with the engine */
+
 static inline u16 ioat2_ring_active(struct ioat2_dma_chan *ioat)
 {
 	return (ioat->head - ioat->tail) & ioat2_ring_mask(ioat);
 }
 
-/* count of descriptors pending submission to hardware */
+
 static inline u16 ioat2_ring_pending(struct ioat2_dma_chan *ioat)
 {
 	return (ioat->head - ioat->issued) & ioat2_ring_mask(ioat);
@@ -100,7 +67,7 @@ static inline u16 ioat2_ring_space(struct ioat2_dma_chan *ioat)
 	return num_descs - active;
 }
 
-/* assumes caller already checked space */
+
 static inline u16 ioat2_desc_alloc(struct ioat2_dma_chan *ioat, u16 len)
 {
 	ioat->head += len;
@@ -115,21 +82,7 @@ static inline u16 ioat2_xferlen_to_descs(struct ioat2_dma_chan *ioat, size_t len
 	return num_descs;
 }
 
-/**
- * struct ioat_ring_ent - wrapper around hardware descriptor
- * @hw: hardware DMA descriptor (for memcpy)
- * @fill: hardware fill descriptor
- * @xor: hardware xor descriptor
- * @xor_ex: hardware xor extension descriptor
- * @pq: hardware pq descriptor
- * @pq_ex: hardware pq extension descriptor
- * @pqu: hardware pq update descriptor
- * @raw: hardware raw (un-typed) descriptor
- * @txd: the generic software descriptor for all engines
- * @len: total transaction length for unmap
- * @result: asynchronous result of validate operations
- * @id: identifier for debug
- */
+
 
 struct ioat_ring_ent {
 	union {
@@ -189,4 +142,4 @@ int ioat2_quiesce(struct ioat_chan_common *chan, unsigned long tmo);
 int ioat2_reset_sync(struct ioat_chan_common *chan, unsigned long tmo);
 extern struct kobj_type ioat2_ktype;
 extern struct kmem_cache *ioat2_cache;
-#endif /* IOATDMA_V2_H */
+#endif 

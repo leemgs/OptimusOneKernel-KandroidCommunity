@@ -1,15 +1,4 @@
-/* bnx2i.c: Broadcom NetXtreme II iSCSI driver.
- *
- * Copyright (c) 2006 - 2009 Broadcom Corporation
- * Copyright (c) 2007, 2008 Red Hat, Inc.  All rights reserved.
- * Copyright (c) 2007, 2008 Mike Christie
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Written by: Anil Veerabhadrappa (anilgv@broadcom.com)
- */
+
 
 #include "bnx2i.h"
 
@@ -61,14 +50,7 @@ u64 iscsi_error_mask = 0x00;
 static void bnx2i_unreg_one_device(struct bnx2i_hba *hba) ;
 
 
-/**
- * bnx2i_identify_device - identifies NetXtreme II device type
- * @hba: 		Adapter structure pointer
- *
- * This function identifies the NX2 device type and sets appropriate
- *	queue mailbox register access method, 5709 requires driver to
- *	access MBOX regs using *bin* mode
- */
+
 void bnx2i_identify_device(struct bnx2i_hba *hba)
 {
 	hba->cnic_dev_type = 0;
@@ -88,9 +70,7 @@ void bnx2i_identify_device(struct bnx2i_hba *hba)
 }
 
 
-/**
- * get_adapter_list_head - returns head of adapter list
- */
+
 struct bnx2i_hba *get_adapter_list_head(void)
 {
 	struct bnx2i_hba *hba = NULL;
@@ -112,11 +92,7 @@ hba_not_found:
 }
 
 
-/**
- * bnx2i_find_hba_for_cnic - maps cnic device instance to bnx2i adapter instance
- * @cnic:	pointer to cnic device instance
- *
- */
+
 struct bnx2i_hba *bnx2i_find_hba_for_cnic(struct cnic_dev *cnic)
 {
 	struct bnx2i_hba *hba, *temp;
@@ -133,18 +109,7 @@ struct bnx2i_hba *bnx2i_find_hba_for_cnic(struct cnic_dev *cnic)
 }
 
 
-/**
- * bnx2i_start - cnic callback to initialize & start adapter instance
- * @handle:	transparent handle pointing to adapter structure
- *
- * This function maps adapter structure to pcidev structure and initiates
- *	firmware handshake to enable/initialize on chip iscsi components
- * 	This bnx2i - cnic interface api callback is issued after following
- *	2 conditions are met -
- *	  a) underlying network interface is up (marked by event 'NETDEV_UP'
- *		from netdev
- *	  b) bnx2i adapter instance is registered
- */
+
 void bnx2i_start(void *handle)
 {
 #define BNX2I_INIT_POLL_TIME	(1000 / HZ)
@@ -157,18 +122,12 @@ void bnx2i_start(void *handle)
 }
 
 
-/**
- * bnx2i_stop - cnic callback to shutdown adapter instance
- * @handle:	transparent handle pointing to adapter structure
- *
- * driver checks if adapter is already in shutdown mode, if not start
- *	the shutdown process
- */
+
 void bnx2i_stop(void *handle)
 {
 	struct bnx2i_hba *hba = handle;
 
-	/* check if cleanup happened in GOING_DOWN context */
+	
 	clear_bit(ADAPTER_STATE_UP, &hba->adapter_state);
 	if (!test_and_clear_bit(ADAPTER_STATE_GOING_DOWN,
 				&hba->adapter_state))
@@ -176,13 +135,7 @@ void bnx2i_stop(void *handle)
 					    bnx2i_drop_session);
 }
 
-/**
- * bnx2i_register_device - register bnx2i adapter instance with the cnic driver
- * @hba:	Adapter instance to register
- *
- * registers bnx2i adapter instance with the cnic driver while holding the
- *	adapter structure lock
- */
+
 void bnx2i_register_device(struct bnx2i_hba *hba)
 {
 	int rc;
@@ -199,12 +152,7 @@ void bnx2i_register_device(struct bnx2i_hba *hba)
 }
 
 
-/**
- * bnx2i_reg_dev_all - registers all adapter instances with the cnic driver
- *
- * registers all bnx2i adapter instances with the cnic driver while holding
- *	the global resource lock
- */
+
 void bnx2i_reg_dev_all(void)
 {
 	struct bnx2i_hba *hba, *temp;
@@ -216,13 +164,7 @@ void bnx2i_reg_dev_all(void)
 }
 
 
-/**
- * bnx2i_unreg_one_device - unregister adapter instance with the cnic driver
- * @hba:	Adapter instance to unregister
- *
- * registers bnx2i adapter instance with the cnic driver while holding
- *	the adapter structure lock
- */
+
 static void bnx2i_unreg_one_device(struct bnx2i_hba *hba)
 {
 	if (hba->ofld_conns_active ||
@@ -232,19 +174,12 @@ static void bnx2i_unreg_one_device(struct bnx2i_hba *hba)
 
 	hba->cnic->unregister_device(hba->cnic, CNIC_ULP_ISCSI);
 
-	/* ep_disconnect could come before NETDEV_DOWN, driver won't
-	 * see NETDEV_DOWN as it already unregistered itself.
-	 */
+	
 	hba->adapter_state = 0;
 	clear_bit(BNX2I_CNIC_REGISTERED, &hba->reg_with_cnic);
 }
 
-/**
- * bnx2i_unreg_dev_all - unregisters all bnx2i instances with the cnic driver
- *
- * unregisters all bnx2i adapter instances with the cnic driver while holding
- *	the global resource lock
- */
+
 void bnx2i_unreg_dev_all(void)
 {
 	struct bnx2i_hba *hba, *temp;
@@ -256,15 +191,7 @@ void bnx2i_unreg_dev_all(void)
 }
 
 
-/**
- * bnx2i_init_one - initialize an adapter instance and allocate memory resources
- * @hba:	bnx2i adapter instance
- * @cnic:	cnic device handle
- *
- * Global resource lock is held during critical sections below. This routine is
- *	called from either cnic_register_driver() or device hot plug context and
- *	and does majority of device specific initialization
- */
+
 static int bnx2i_init_one(struct bnx2i_hba *hba, struct cnic_dev *cnic)
 {
 	int rc;
@@ -276,7 +203,7 @@ static int bnx2i_init_one(struct bnx2i_hba *hba, struct cnic_dev *cnic)
 		set_bit(BNX2I_CNIC_REGISTERED, &hba->reg_with_cnic);
 		list_add_tail(&hba->link, &adapter_list);
 		adapter_count++;
-	} else if (rc == -EBUSY) 	/* duplicate registration */
+	} else if (rc == -EBUSY) 	
 		printk(KERN_ALERT "bnx2i, duplicate registration"
 				  "hba=%p, cnic=%p\n", hba, cnic);
 	else if (rc == -EAGAIN)
@@ -292,26 +219,19 @@ static int bnx2i_init_one(struct bnx2i_hba *hba, struct cnic_dev *cnic)
 }
 
 
-/**
- * bnx2i_ulp_init - initialize an adapter instance
- * @dev:	cnic device handle
- *
- * Called from cnic_register_driver() context to initialize all enumerated
- *	cnic devices. This routine allocate adapter structure and other
- *	device specific resources.
- */
+
 void bnx2i_ulp_init(struct cnic_dev *dev)
 {
 	struct bnx2i_hba *hba;
 
-	/* Allocate a HBA structure for this device */
+	
 	hba = bnx2i_alloc_hba(dev);
 	if (!hba) {
 		printk(KERN_ERR "bnx2i init: hba initialization failed\n");
 		return;
 	}
 
-	/* Get PCI related information and update hba struct members */
+	
 	clear_bit(BNX2I_CNIC_REGISTERED, &hba->reg_with_cnic);
 	if (bnx2i_init_one(hba, dev)) {
 		printk(KERN_ERR "bnx2i - hba %p init failed\n", hba);
@@ -321,11 +241,7 @@ void bnx2i_ulp_init(struct cnic_dev *dev)
 }
 
 
-/**
- * bnx2i_ulp_exit - shuts down adapter instance and frees all resources
- * @dev:	cnic device handle
- *
- */
+
 void bnx2i_ulp_exit(struct cnic_dev *dev)
 {
 	struct bnx2i_hba *hba;
@@ -350,13 +266,7 @@ void bnx2i_ulp_exit(struct cnic_dev *dev)
 }
 
 
-/**
- * bnx2i_mod_init - module init entry point
- *
- * initialize any driver wide global data structures such as endpoint pool,
- *	tcp port manager/queue, sysfs. finally driver will register itself
- *	with the cnic module
- */
+
 static int __init bnx2i_mod_init(void)
 {
 	int err;
@@ -391,14 +301,7 @@ out:
 }
 
 
-/**
- * bnx2i_mod_exit - module cleanup/exit entry point
- *
- * Global resource lock and host adapter lock is held during critical sections
- *	in this function. Driver will browse through the adapter list, cleans-up
- *	each instance, unregisters iscsi transport name and finally driver will
- *	unregister itself with the cnic module
- */
+
 static void __exit bnx2i_mod_exit(void)
 {
 	struct bnx2i_hba *hba;

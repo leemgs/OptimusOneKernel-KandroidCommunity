@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFI_LPS_H__
 #define __BFI_LPS_H__
@@ -33,7 +18,7 @@ enum bfi_lps_i2h_msgs {
 };
 
 struct bfi_lps_login_req_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
+	struct bfi_mhdr_s  mh;		
 	u8		lp_tag;
 	u8		alpa;
 	u16	pdu_size;
@@ -45,7 +30,7 @@ struct bfi_lps_login_req_s {
 };
 
 struct bfi_lps_login_rsp_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
+	struct bfi_mhdr_s  mh;		
 	u8		lp_tag;
 	u8		status;
 	u8		lsrjt_rsn;
@@ -60,18 +45,18 @@ struct bfi_lps_login_rsp_s {
 	mac_t		lp_mac;
 	mac_t		fcf_mac;
 	u8		ext_status;
-	u8  	brcd_switch;/*  attached peer is brcd switch	*/
+	u8  	brcd_switch;
 };
 
 struct bfi_lps_logout_req_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
+	struct bfi_mhdr_s  mh;		
 	u8		lp_tag;
 	u8		rsvd[3];
 	wwn_t		port_name;
 };
 
 struct bfi_lps_logout_rsp_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		*/
+	struct bfi_mhdr_s  mh;		
 	u8		lp_tag;
 	u8		status;
 	u8		rsvd[2];
@@ -91,6 +76,6 @@ union bfi_lps_i2h_msg_u {
 
 #pragma pack()
 
-#endif /* __BFI_LPS_H__ */
+#endif 
 
 

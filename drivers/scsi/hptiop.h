@@ -1,20 +1,4 @@
-/*
- * HighPoint RR3xxx/4xxx controller driver for Linux
- * Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * Please report bugs/comments/suggestions to linux@highpoint-tech.com
- *
- * For more information, visit http://www.highpoint-tech.com
- */
+
 #ifndef _HPTIOP_H_
 #define _HPTIOP_H_
 
@@ -88,7 +72,7 @@ struct hpt_iopmv_regs {
 #define MVIOP_MU_OUTBOUND_INT_POSTQUEUE 2
 
 enum hpt_iopmu_message {
-	/* host-to-iop messages */
+	
 	IOPMU_INBOUND_MSG0_NOP = 0,
 	IOPMU_INBOUND_MSG0_RESET,
 	IOPMU_INBOUND_MSG0_FLUSH,
@@ -96,7 +80,7 @@ enum hpt_iopmu_message {
 	IOPMU_INBOUND_MSG0_STOP_BACKGROUND_TASK,
 	IOPMU_INBOUND_MSG0_START_BACKGROUND_TASK,
 	IOPMU_INBOUND_MSG0_MAX = 0xff,
-	/* iop-to-host messages */
+	
 	IOPMU_OUTBOUND_MSG0_REGISTER_DEVICE_0 = 0x100,
 	IOPMU_OUTBOUND_MSG0_REGISTER_DEVICE_MAX = 0x1ff,
 	IOPMU_OUTBOUND_MSG0_UNREGISTER_DEVICE_0 = 0x200,
@@ -110,7 +94,7 @@ struct hpt_iop_request_header {
 	__le32 type;
 	__le32 flags;
 	__le32 result;
-	__le32 context; /* host context */
+	__le32 context; 
 	__le32 context_hi32;
 };
 
@@ -162,7 +146,7 @@ struct hpt_iop_request_set_config {
 
 struct hpt_iopsg {
 	__le32 size;
-	__le32 eot; /* non-zero: end of table */
+	__le32 eot; 
 	__le64 pci_address;
 };
 
@@ -172,7 +156,7 @@ struct hpt_iop_request_block_command {
 	u8     target;
 	u8     lun;
 	u8     pad1;
-	__le16 command; /* IOP_BLOCK_COMMAND_{READ,WRITE} */
+	__le16 command; 
 	__le16 sectors;
 	__le64 lba;
 	struct hpt_iopsg sg_list[1];
@@ -202,7 +186,7 @@ struct hpt_iop_request_ioctl_command {
 	__le32 outbuf_size;
 	__le32 bytes_returned;
 	u8     buf[1];
-	/* out data should be put at buf[(inbuf_size+3)&~3] */
+	
 };
 
 #define HPTIOP_MAX_REQUESTS  256u
@@ -241,7 +225,7 @@ struct hptiop_hba {
 	struct Scsi_Host *host;
 	struct pci_dev *pcidev;
 
-	/* IOP config info */
+	
 	u32     interface_version;
 	u32     firmware_version;
 	u32     sdram_size;
@@ -250,7 +234,7 @@ struct hptiop_hba {
 	u32     max_request_size;
 	u32     max_sg_descriptors;
 
-	u32     req_size; /* host-allocated request buffer size */
+	u32     req_size; 
 
 	u32     iopintf_v2: 1;
 	u32     initialized: 1;
@@ -259,7 +243,7 @@ struct hptiop_hba {
 	struct hptiop_request * req_list;
 	struct hptiop_request reqs[HPTIOP_MAX_REQUESTS];
 
-	/* used to free allocated dma area */
+	
 	void        *dma_coherent;
 	dma_addr_t  dma_coherent_handle;
 
@@ -279,7 +263,7 @@ struct hpt_ioctl_k {
 	void   *outbuf;
 	u32    *bytes_returned;
 	void (*done)(struct hpt_ioctl_k *);
-	int    result; /* HPT_IOCTL_RESULT_ */
+	int    result; 
 };
 
 struct hptiop_adapter_ops {

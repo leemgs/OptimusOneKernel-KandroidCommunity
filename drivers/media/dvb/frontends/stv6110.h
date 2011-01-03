@@ -1,26 +1,4 @@
-/*
- * stv6110.h
- *
- * Driver for ST STV6110 satellite tuner IC.
- *
- * Copyright (C) 2009 NetUP Inc.
- * Copyright (C) 2009 Igor M. Liplianin <liplianin@netup.ru>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef __DVB_STV6110_H__
 #define __DVB_STV6110_H__
@@ -28,7 +6,7 @@
 #include <linux/i2c.h>
 #include "dvb_frontend.h"
 
-/* registers */
+
 #define RSTV6110_CTRL1		0
 #define RSTV6110_CTRL2		1
 #define RSTV6110_TUNING1	2
@@ -41,7 +19,7 @@
 struct stv6110_config {
 	u8 i2c_address;
 	u32 mclk;
-	u8 clk_div;	/* divisor value for the output clock */
+	u8 clk_div;	
 };
 
 #if defined(CONFIG_DVB_STV6110) || (defined(CONFIG_DVB_STV6110_MODULE) \

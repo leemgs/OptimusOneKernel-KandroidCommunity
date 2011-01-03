@@ -1,12 +1,4 @@
-/*
- *	xt_hashlimit - Netfilter module to limit the number of packets per time
- *	seperately for each hashbucket (sourceip/sourceport/dstip/dstport)
- *
- *	(C) 2003-2004 by Harald Welte <laforge@netfilter.org>
- *	Copyright © CC Computer Consultants GmbH, 2007 - 2008
- *
- * Development of this code was funded by Astaro AG, http://www.astaro.com/
- */
+
 #include <linux/module.h>
 #include <linux/spinlock.h>
 #include <linux/random.h>
@@ -40,12 +32,12 @@ MODULE_DESCRIPTION("Xtables: per hash-bucket rate-limit match");
 MODULE_ALIAS("ipt_hashlimit");
 MODULE_ALIAS("ip6t_hashlimit");
 
-/* need to declare this at the top */
+
 static struct proc_dir_entry *hashlimit_procdir4;
 static struct proc_dir_entry *hashlimit_procdir6;
 static const struct file_operations dl_file_ops;
 
-/* hash table crap */
+
 struct dsthash_dst {
 	union {
 		struct {
@@ -64,41 +56,41 @@ struct dsthash_dst {
 };
 
 struct dsthash_ent {
-	/* static / read-only parts in the beginning */
+	
 	struct hlist_node node;
 	struct dsthash_dst dst;
 
-	/* modified structure members in the end */
-	unsigned long expires;		/* precalculated expiry time */
+	
+	unsigned long expires;		
 	struct {
-		unsigned long prev;	/* last modification */
+		unsigned long prev;	
 		u_int32_t credit;
 		u_int32_t credit_cap, cost;
 	} rateinfo;
 };
 
 struct xt_hashlimit_htable {
-	struct hlist_node node;		/* global list of all htables */
+	struct hlist_node node;		
 	atomic_t use;
 	u_int8_t family;
 
-	struct hashlimit_cfg1 cfg;	/* config */
+	struct hashlimit_cfg1 cfg;	
 
-	/* used internally */
-	spinlock_t lock;		/* lock for list_head */
-	u_int32_t rnd;			/* random seed for hash */
+	
+	spinlock_t lock;		
+	u_int32_t rnd;			
 	int rnd_initialized;
-	unsigned int count;		/* number entries in table */
-	struct timer_list timer;	/* timer for gc */
+	unsigned int count;		
+	struct timer_list timer;	
 
-	/* seq_file stuff */
+	
 	struct proc_dir_entry *pde;
 
-	struct hlist_head hash[0];	/* hashtable itself */
+	struct hlist_head hash[0];	
 };
 
-static DEFINE_SPINLOCK(hashlimit_lock);	/* protects htables list */
-static DEFINE_MUTEX(hlimit_mutex);	/* additional checkentry protection */
+static DEFINE_SPINLOCK(hashlimit_lock);	
+static DEFINE_MUTEX(hlimit_mutex);	
 static HLIST_HEAD(hashlimit_htables);
 static struct kmem_cache *hashlimit_cachep __read_mostly;
 
@@ -114,12 +106,7 @@ hash_dst(const struct xt_hashlimit_htable *ht, const struct dsthash_dst *dst)
 	u_int32_t hash = jhash2((const u32 *)dst,
 				sizeof(*dst)/sizeof(u32),
 				ht->rnd);
-	/*
-	 * Instead of returning hash % ht->cfg.size (implying a divide)
-	 * we return the high 32 bits of the (hash * ht->cfg.size) that will
-	 * give results between [0 and cfg.size-1] and same hash distribution,
-	 * but using a multiply, less expensive than a divide
-	 */
+	
 	return ((u64)hash * ht->cfg.size) >> 32;
 }
 
@@ -139,22 +126,21 @@ dsthash_find(const struct xt_hashlimit_htable *ht,
 	return NULL;
 }
 
-/* allocate dsthash_ent, initialize dst, put in htable and lock it */
+
 static struct dsthash_ent *
 dsthash_alloc_init(struct xt_hashlimit_htable *ht,
 		   const struct dsthash_dst *dst)
 {
 	struct dsthash_ent *ent;
 
-	/* initialize hash with random val at the time we allocate
-	 * the first hashtable entry */
+	
 	if (!ht->rnd_initialized) {
 		get_random_bytes(&ht->rnd, sizeof(ht->rnd));
 		ht->rnd_initialized = 1;
 	}
 
 	if (ht->cfg.max && ht->count >= ht->cfg.max) {
-		/* FIXME: do something. question is what.. */
+		
 		if (net_ratelimit())
 			printk(KERN_WARNING
 				"xt_hashlimit: max count of %u reached\n",
@@ -201,7 +187,7 @@ static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int8_t family)
 		if (size < 16)
 			size = 16;
 	}
-	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+	
 	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
 			sizeof(struct list_head) * size);
 	if (!hinfo) {
@@ -210,7 +196,7 @@ static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int8_t family)
 	}
 	minfo->hinfo = hinfo;
 
-	/* copy match config into hashtable config */
+	
 	hinfo->cfg.mode        = minfo->cfg.mode;
 	hinfo->cfg.avg         = minfo->cfg.avg;
 	hinfo->cfg.burst       = minfo->cfg.burst;
@@ -273,7 +259,7 @@ static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int8_t family)
 		if (size < 16)
 			size = 16;
 	}
-	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+	
 	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
 	                sizeof(struct list_head) * size);
 	if (hinfo == NULL) {
@@ -282,7 +268,7 @@ static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int8_t family)
 	}
 	minfo->hinfo = hinfo;
 
-	/* copy match config into hashtable config */
+	
 	memcpy(&hinfo->cfg, &minfo->cfg, sizeof(hinfo->cfg));
 	hinfo->cfg.size = size;
 	if (hinfo->cfg.max == 0)
@@ -337,7 +323,7 @@ static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
 {
 	unsigned int i;
 
-	/* lock hash table and iterate over it */
+	
 	spin_lock_bh(&ht->lock);
 	for (i = 0; i < ht->cfg.size; i++) {
 		struct dsthash_ent *dh;
@@ -350,14 +336,14 @@ static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
 	spin_unlock_bh(&ht->lock);
 }
 
-/* hash table garbage collector, run by timer */
+
 static void htable_gc(unsigned long htlong)
 {
 	struct xt_hashlimit_htable *ht = (struct xt_hashlimit_htable *)htlong;
 
 	htable_selective_cleanup(ht, select_gc);
 
-	/* re-add the timer accordingly */
+	
 	ht->timer.expires = jiffies + msecs_to_jiffies(ht->cfg.gc_interval);
 	add_timer(&ht->timer);
 }
@@ -366,7 +352,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
 {
 	del_timer_sync(&hinfo->timer);
 
-	/* remove proc entry */
+	
 	remove_proc_entry(hinfo->pde->name,
 			  hinfo->family == NFPROTO_IPV4 ? hashlimit_procdir4 :
 						     hashlimit_procdir6);
@@ -403,33 +389,12 @@ static void htable_put(struct xt_hashlimit_htable *hinfo)
 	}
 }
 
-/* The algorithm used is the Simple Token Bucket Filter (TBF)
- * see net/sched/sch_tbf.c in the linux source tree
- */
 
-/* Rusty: This is my (non-mathematically-inclined) understanding of
-   this algorithm.  The `average rate' in jiffies becomes your initial
-   amount of credit `credit' and the most credit you can ever have
-   `credit_cap'.  The `peak rate' becomes the cost of passing the
-   test, `cost'.
 
-   `prev' tracks the last packet hit: you gain one credit per jiffy.
-   If you get credit balance more than this, the extra credit is
-   discarded.  Every time the match passes, you lose `cost' credits;
-   if you don't have that many, the test fails.
 
-   See Alexey's formal explanation in net/sched/sch_tbf.c.
-
-   To get the maximum range, we multiply by this factor (ie. you get N
-   credits per jiffy).  We want to allow a rate as low as 1 per day
-   (slowest userspace tool allows), which means
-   CREDITS_PER_JIFFY*HZ*60*60*24 < 2^32 ie.
-*/
 #define MAX_CPJ (0xFFFFFFFF / (HZ*60*60*24))
 
-/* Repeated shift and or gives us all 1s, final shift and add 1 gives
- * us the power of 2 below the theoretical max, so GCC simply does a
- * shift. */
+
 #define _POW2_BELOW2(x) ((x)|((x)>>1))
 #define _POW2_BELOW4(x) (_POW2_BELOW2(x)|_POW2_BELOW2((x)>>2))
 #define _POW2_BELOW8(x) (_POW2_BELOW4(x)|_POW2_BELOW4((x)>>4))
@@ -439,13 +404,13 @@ static void htable_put(struct xt_hashlimit_htable *hinfo)
 
 #define CREDITS_PER_JIFFY POW2_BELOW32(MAX_CPJ)
 
-/* Precision saver. */
+
 static inline u_int32_t
 user2credits(u_int32_t user)
 {
-	/* If multiplying would overflow... */
+	
 	if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
-		/* Divide first. */
+		
 		return (user / XT_HASHLIMIT_SCALE) * HZ * CREDITS_PER_JIFFY;
 
 	return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE;
@@ -591,13 +556,13 @@ hashlimit_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
 						       hinfo->cfg.burst);
 		dh->rateinfo.cost = user2credits(hinfo->cfg.avg);
 	} else {
-		/* update expiration timeout */
+		
 		dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
 		rateinfo_recalc(dh, now);
 	}
 
 	if (dh->rateinfo.credit >= dh->rateinfo.cost) {
-		/* We're underlimit. */
+		
 		dh->rateinfo.credit -= dh->rateinfo.cost;
 		spin_unlock_bh(&hinfo->lock);
 		return true;
@@ -605,7 +570,7 @@ hashlimit_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
 
 	spin_unlock_bh(&hinfo->lock);
 
-	/* default case: we're overlimit, thus don't match */
+	
 	return false;
 
 hotdrop:
@@ -642,20 +607,20 @@ hashlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 		                          hinfo->cfg.burst);
 		dh->rateinfo.cost = user2credits(hinfo->cfg.avg);
 	} else {
-		/* update expiration timeout */
+		
 		dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
 		rateinfo_recalc(dh, now);
 	}
 
 	if (dh->rateinfo.credit >= dh->rateinfo.cost) {
-		/* below the limit */
+		
 		dh->rateinfo.credit -= dh->rateinfo.cost;
 		spin_unlock_bh(&hinfo->lock);
 		return !(info->cfg.mode & XT_HASHLIMIT_INVERT);
 	}
 
 	spin_unlock_bh(&hinfo->lock);
-	/* default match is underlimit - so over the limit, we need to invert */
+	
 	return info->cfg.mode & XT_HASHLIMIT_INVERT;
 
  hotdrop:
@@ -667,7 +632,7 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
 {
 	struct xt_hashlimit_info *r = par->matchinfo;
 
-	/* Check for overflow. */
+	
 	if (r->cfg.burst == 0 ||
 	    user2credits(r->cfg.avg * r->cfg.burst) < user2credits(r->cfg.avg)) {
 		printk(KERN_ERR "xt_hashlimit: overflow, try lower: %u/%u\n",
@@ -687,12 +652,7 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
 	if (r->name[sizeof(r->name) - 1] != '\0')
 		return false;
 
-	/* This is the best we've got: We cannot release and re-grab lock,
-	 * since checkentry() is called before x_tables.c grabs xt_mutex.
-	 * We also cannot grab the hashtable spinlock, since htable_create will
-	 * call vmalloc, and that can sleep.  And we cannot just re-search
-	 * the list of htable's in htable_create(), since then we would
-	 * create duplicate proc files. -HW */
+	
 	mutex_lock(&hlimit_mutex);
 	r->hinfo = htable_find_get(r->name, par->match->family);
 	if (!r->hinfo && htable_create_v0(r, par->match->family) != 0) {
@@ -708,7 +668,7 @@ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
 {
 	struct xt_hashlimit_mtinfo1 *info = par->matchinfo;
 
-	/* Check for overflow. */
+	
 	if (info->cfg.burst == 0 ||
 	    user2credits(info->cfg.avg * info->cfg.burst) <
 	    user2credits(info->cfg.avg)) {
@@ -728,12 +688,7 @@ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
 			return false;
 	}
 
-	/* This is the best we've got: We cannot release and re-grab lock,
-	 * since checkentry() is called before x_tables.c grabs xt_mutex.
-	 * We also cannot grab the hashtable spinlock, since htable_create will
-	 * call vmalloc, and that can sleep.  And we cannot just re-search
-	 * the list of htable's in htable_create(), since then we would
-	 * create duplicate proc files. -HW */
+	
 	mutex_lock(&hlimit_mutex);
 	info->hinfo = htable_find_get(info->name, par->match->family);
 	if (!info->hinfo && htable_create(info, par->match->family) != 0) {
@@ -837,7 +792,7 @@ static struct xt_match hashlimit_mt_reg[] __read_mostly = {
 #endif
 };
 
-/* PROC stuff */
+
 static void *dl_seq_start(struct seq_file *s, loff_t *pos)
 	__acquires(htable->lock)
 {
@@ -885,7 +840,7 @@ static void dl_seq_stop(struct seq_file *s, void *v)
 static int dl_seq_real_show(struct dsthash_ent *ent, u_int8_t family,
 				   struct seq_file *s)
 {
-	/* recalculate to show accurate numbers */
+	
 	rateinfo_recalc(ent, jiffies);
 
 	switch (family) {

@@ -1,17 +1,4 @@
-/*
- *  linux/arch/arm/mach-pnx4008/dma.c
- *
- *  PNX4008 DMA registration and IRQ dispatching
- *
- *  Author:	Vitaly Wool
- *  Copyright:	MontaVista Software Inc. (c) 2005
- *
- *  Based on the code from Nicolas Pitre
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -54,7 +41,7 @@ struct pnx4008_dma_ll *pnx4008_alloc_ll_entry(dma_addr_t * ll_dma)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ll_lock, flags);
-	if (ll_pool.count > 4) { /* can give one more */
+	if (ll_pool.count > 4) { 
 		ll = *(struct pnx4008_dma_ll **) ll_pool.cur;
 		*ll_dma = ll_pool.dma_addr + ((void *)ll - ll_pool.vaddr);
 		*(void **)ll_pool.cur = **(void ***)ll_pool.cur;
@@ -153,13 +140,13 @@ int pnx4008_request_channel(char *name, int ch,
 {
 	int i, found = 0;
 
-	/* basic sanity checks */
+	
 	if (!name || (ch != -1 && !VALID_CHANNEL(ch)))
 		return -EINVAL;
 
 	pnx4008_dma_lock();
 
-	/* try grabbing a DMA channel with the requested priority */
+	
 	for (i = MAX_DMA_CHANNELS - 1; i >= 0; i--) {
 		if (!dma_channels[i].name && (ch == -1 || ch == i)) {
 			found = 1;
@@ -803,7 +790,7 @@ void pnx4008_dma_split_head_entry(struct pnx4008_dma_config * config,
 			ll->next_dma = ll_dma_old;
 			ll->next = ll_old;
 		}
-		/* adjust last length/tc */
+		
 		ll->ch_ctrl = config->ch_ctrl & (~0x7ff);
 		ll->ch_ctrl |= old_len - new_len * (count - 1);
 		config->ch_ctrl &= 0x7fffffff;
@@ -925,7 +912,7 @@ void pnx4008_dma_split_ll_entry(struct pnx4008_dma_ll * cur_ll,
 			ll->next_dma = ll_dma_old;
 			ll->next = ll_old;
 		}
-		/* adjust last length/tc */
+		
 		ll->ch_ctrl = cur_ll->ch_ctrl & (~0x7ff);
 		ll->ch_ctrl |= old_len - new_len * (count - 1);
 		cur_ll->ch_ctrl &= 0x7fffffff;
@@ -1053,9 +1040,7 @@ static irqreturn_t dma_irq_handler(int irq, void *dev_id)
 					cause |= DMA_TC_INT;
 				channel->irq_handler(i, cause, channel->data);
 			} else {
-				/*
-				 * IRQ for an unregistered DMA channel
-				 */
+				
 				printk(KERN_WARNING
 				       "spurious IRQ for DMA channel %d\n", i);
 			}

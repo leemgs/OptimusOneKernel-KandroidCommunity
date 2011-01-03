@@ -1,14 +1,4 @@
-/* linux/arch/arm/mach-s3c2410/bast-ide.c
- *
- * Copyright 2007 Simtec Electronics
- *	http://www.simtec.co.uk/products/EB2410ITX/
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -28,7 +18,7 @@
 #include <mach/bast-map.h>
 #include <mach/bast-irq.h>
 
-/* IDE ports */
+
 
 static struct pata_platform_info bast_ide_platdata = {
 	.ioport_shift	= 5,

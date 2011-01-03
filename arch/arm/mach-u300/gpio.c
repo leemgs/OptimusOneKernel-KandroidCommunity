@@ -1,20 +1,4 @@
-/*
- *
- * arch/arm/mach-u300/gpio.c
- *
- *
- * Copyright (C) 2007-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * U300 GPIO module.
- * This can driver either of the two basic GPIO cores
- * available in the U300 platforms:
- * COH 901 335   - Used in DB3150 (U300 1.0) and DB3200 (U330 1.0)
- * COH 901 571/3 - Used in DB3210 (U365 2.0) and DB3350 (U335 1.0)
- * Notice that you also have inline macros in <asm-arch/gpio.h>
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- * Author: Jonas Aaberg <jonas.aberg@stericsson.com>
- *
- */
+
 #include <linux/module.h>
 #include <linux/interrupt.h>
 #include <linux/delay.h>
@@ -25,10 +9,10 @@
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 
-/* Reference to GPIO block clock */
+
 static struct clk *clk;
 
-/* Memory resource */
+
 static struct resource *memres;
 static void __iomem *virtbase;
 static struct device *gpiodev;
@@ -79,11 +63,11 @@ static struct u300_gpio_port gpio_ports[] = {
 
 #ifdef U300_COH901571_3
 
-/* Default input value */
+
 #define DEFAULT_OUTPUT_LOW   0
 #define DEFAULT_OUTPUT_HIGH  1
 
-/* GPIO Pull-Up status */
+
 #define DISABLE_PULL_UP  0
 #define ENABLE_PULL_UP  1
 
@@ -97,11 +81,11 @@ struct u300_gpio_configuration_data {
 	unsigned char pull_up;
 };
 
-/* Initial configuration */
+
 const struct u300_gpio_configuration_data
 u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 #ifdef CONFIG_MACH_U300_BS335
-	/* Port 0, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_HIGH,  DISABLE_PULL_UP},
@@ -112,7 +96,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP}
 	},
-	/* Port 1, pins 0-7 */
+	
 	{
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -123,7 +107,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP}
 	},
-	/* Port 2, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -134,7 +118,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP}
 	},
-	/* Port 3, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -145,7 +129,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP}
 	},
-	/* Port 4, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -156,7 +140,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP}
 	},
-	/* Port 5, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -167,7 +151,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP}
 	},
-	/* Port 6, pind 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -181,7 +165,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 #endif
 
 #ifdef CONFIG_MACH_U300_BS365
-	/* Port 0, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -192,7 +176,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP}
 	},
-	/* Port 1, pins 0-7 */
+	
 	{
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
@@ -203,7 +187,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP}
 	},
-	/* Port 2, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,   DISABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
@@ -214,7 +198,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP}
 	},
-	/* Port 3, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
@@ -225,13 +209,13 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP}
 	},
-	/* Port 4, pins 0-7 */
+	
 	{
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_IN,  DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
-		/* These 4 pins doesn't exist on DB3210 */
+		
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
 		{GPIO_OUT, DEFAULT_OUTPUT_LOW,    ENABLE_PULL_UP},
@@ -242,7 +226,7 @@ u300_gpio_config[U300_GPIO_NUM_PORTS][U300_GPIO_PINS_PER_PORT] = {
 #endif
 
 
-/* No users == we can power down GPIO */
+
 static int gpio_users;
 
 struct gpio_struct {
@@ -253,10 +237,7 @@ struct gpio_struct {
 
 static struct gpio_struct gpio_pin[U300_GPIO_MAX];
 
-/*
- * Let drivers register callback in order to get notified when there is
- * an interrupt on the gpio pin
- */
+
 int gpio_register_callback(unsigned gpio, int (*func)(void *arg), void *data)
 {
 	if (gpio_pin[gpio].callback)
@@ -281,7 +262,7 @@ int gpio_unregister_callback(unsigned gpio)
 }
 EXPORT_SYMBOL(gpio_unregister_callback);
 
-/* Non-zero means valid */
+
 int gpio_is_valid(int number)
 {
 	if (number >= 0 &&
@@ -318,7 +299,7 @@ void gpio_free(unsigned gpio)
 }
 EXPORT_SYMBOL(gpio_free);
 
-/* This returns zero or nonzero */
+
 int gpio_get_value(unsigned gpio)
 {
 	return readl(virtbase + U300_GPIO_PXPDIR +
@@ -326,10 +307,7 @@ int gpio_get_value(unsigned gpio)
 }
 EXPORT_SYMBOL(gpio_get_value);
 
-/*
- * We hope that the compiler will optimize away the unused branch
- * in case "value" is a constant
- */
+
 void gpio_set_value(unsigned gpio, int value)
 {
 	u32 val;
@@ -337,7 +315,7 @@ void gpio_set_value(unsigned gpio, int value)
 
 	local_irq_save(flags);
 	if (value) {
-		/* set */
+		
 		val = readl(virtbase + U300_GPIO_PXPDOR +
 		  PIN_TO_PORT(gpio) * U300_GPIO_PORTX_SPACING)
 		  & (1 << (gpio & 0x07));
@@ -345,7 +323,7 @@ void gpio_set_value(unsigned gpio, int value)
 		  U300_GPIO_PXPDOR +
 		  PIN_TO_PORT(gpio) * U300_GPIO_PORTX_SPACING);
 	} else {
-		/* clear */
+		
 		val = readl(virtbase + U300_GPIO_PXPDOR +
 		  PIN_TO_PORT(gpio) * U300_GPIO_PORTX_SPACING)
 		  & (1 << (gpio & 0x07));
@@ -368,10 +346,10 @@ int gpio_direction_input(unsigned gpio)
 	local_irq_save(flags);
 	val = readl(virtbase + U300_GPIO_PXPCR + PIN_TO_PORT(gpio) *
 				U300_GPIO_PORTX_SPACING);
-	/* Mask out this pin*/
+	
 	val &= ~(U300_GPIO_PXPCR_PIN_MODE_MASK << ((gpio & 0x07) << 1));
-	/* This is not needed since it sets the bits to zero.*/
-	/* val |= (U300_GPIO_PXPCR_PIN_MODE_INPUT << (gpio*2)); */
+	
+	
 	writel(val, virtbase + U300_GPIO_PXPCR + PIN_TO_PORT(gpio) *
 				U300_GPIO_PORTX_SPACING);
 	local_irq_restore(flags);
@@ -390,12 +368,9 @@ int gpio_direction_output(unsigned gpio, int value)
 	local_irq_save(flags);
 	val = readl(virtbase + U300_GPIO_PXPCR + PIN_TO_PORT(gpio) *
 				U300_GPIO_PORTX_SPACING);
-	/* Mask out this pin */
+	
 	val &= ~(U300_GPIO_PXPCR_PIN_MODE_MASK << ((gpio & 0x07) << 1));
-	/*
-	 * FIXME: configure for push/pull, open drain or open source per pin
-	 * in setup. The current driver will only support push/pull.
-	 */
+	
 	val |= (U300_GPIO_PXPCR_PIN_MODE_OUTPUT_PUSH_PULL
 			<< ((gpio & 0x07) << 1));
 	writel(val, virtbase + U300_GPIO_PXPCR + PIN_TO_PORT(gpio) *
@@ -406,9 +381,7 @@ int gpio_direction_output(unsigned gpio, int value)
 }
 EXPORT_SYMBOL(gpio_direction_output);
 
-/*
- * Enable an IRQ, edge is rising edge (!= 0) or falling edge (==0).
- */
+
 void enable_irq_on_gpio_pin(unsigned gpio, int edge)
 {
 	u32 val;
@@ -447,7 +420,7 @@ void disable_irq_on_gpio_pin(unsigned gpio)
 }
 EXPORT_SYMBOL(disable_irq_on_gpio_pin);
 
-/* Enable (value == 0) or disable (value == 1) internal pullup */
+
 void gpio_pullup(unsigned gpio, int value)
 {
 	u32 val;
@@ -475,23 +448,23 @@ static irqreturn_t gpio_irq_handler(int irq, void *dev_id)
 	u32 val;
 	int pin;
 
-	/* Read event register */
+	
 	val = readl(virtbase + U300_GPIO_PXIEV + port->number *
 				U300_GPIO_PORTX_SPACING);
-	/* Mask with enable register */
+	
 	val &= readl(virtbase + U300_GPIO_PXIEV + port->number *
 				U300_GPIO_PORTX_SPACING);
-	/* Mask relevant bits */
+	
 	val &= U300_GPIO_PXIEV_ALL_IRQ_EVENT_MASK;
-	/* ACK IRQ (clear event) */
+	
 	writel(val, virtbase + U300_GPIO_PXIEV + port->number *
 				U300_GPIO_PORTX_SPACING);
-	/* Print message */
+	
 	while (val != 0) {
 		unsigned gpio;
 
 		pin = __ffs(val);
-		/* mask off this pin */
+		
 		val &= ~(1 << pin);
 		gpio = (port->number << 3) + pin;
 
@@ -511,7 +484,7 @@ static void gpio_set_initial_values(void)
 	unsigned long flags;
 	u32 val;
 
-	/* Write default values to all pins */
+	
 	for (i = 0; i < U300_GPIO_NUM_PORTS; i++) {
 		val = 0;
 		for (j = 0; j < 8; j++)
@@ -521,17 +494,13 @@ static void gpio_set_initial_values(void)
 		local_irq_restore(flags);
 	}
 
-	/*
-	 * Put all pins that are set to either 'GPIO_OUT' or 'GPIO_NOT_USED'
-	 * to output and 'GPIO_IN' to input for each port. And initalize
-	 * default value on outputs.
-	 */
+	
 	for (i = 0; i < U300_GPIO_NUM_PORTS; i++) {
 		for (j = 0; j < U300_GPIO_PINS_PER_PORT; j++) {
 			local_irq_save(flags);
 			val = readl(virtbase + U300_GPIO_PXPCR +
 					 i * U300_GPIO_PORTX_SPACING);
-			/* Mask out this pin */
+			
 			val &= ~(U300_GPIO_PXPCR_PIN_MODE_MASK << (j << 1));
 
 			if (u300_gpio_config[i][j].pin_usage != GPIO_IN)
@@ -542,7 +511,7 @@ static void gpio_set_initial_values(void)
 		}
 	}
 
-	/* Enable or disable the internal pull-ups in the GPIO ASIC block */
+	
 	for (i = 0; i < U300_GPIO_MAX; i++) {
 		val = 0;
 		for (j = 0; j < 8; j++)
@@ -564,7 +533,7 @@ static int __init gpio_probe(struct platform_device *pdev)
 	gpiodev = &pdev->dev;
 	memset(gpio_pin, 0, sizeof(gpio_pin));
 
-	/* Get GPIO clock */
+	
 	clk = clk_get(&pdev->dev, NULL);
 	if (IS_ERR(clk)) {
 		err = PTR_ERR(clk);
@@ -597,7 +566,7 @@ static int __init gpio_probe(struct platform_device *pdev)
 
 #ifdef U300_COH901335
 	dev_info(gpiodev, "initializing GPIO Controller COH 901 335\n");
-	/* Turn on the GPIO block */
+	
 	writel(U300_GPIO_CR_BLOCK_CLOCK_ENABLE, virtbase + U300_GPIO_CR);
 #endif
 
@@ -628,7 +597,7 @@ static int __init gpio_probe(struct platform_device *pdev)
 				gpio_ports[num_irqs].name);
 			goto err_no_irq;
 		}
-		/* Turns off PortX_irq_force */
+		
 		writel(0x0, virtbase + U300_GPIO_PXIFR +
 				 num_irqs * U300_GPIO_PORTX_SPACING);
 	}
@@ -655,7 +624,7 @@ static int __exit gpio_remove(struct platform_device *pdev)
 {
 	int i;
 
-	/* Turn off the GPIO block */
+	
 	writel(0x00000000U, virtbase + U300_GPIO_CR);
 	for (i = 0 ; i < U300_GPIO_NUM_PORTS; i++)
 		free_irq(gpio_ports[i].irq, &gpio_ports[i]);

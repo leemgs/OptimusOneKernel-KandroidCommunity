@@ -1,28 +1,8 @@
-/*
- *  arch/arm/mach-footbridge/include/mach/hardware.h
- *
- *  Copyright (C) 1998-1999 Russell King.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  This file contains the hardware definitions of the EBSA-285.
- */
+
 #ifndef __ASM_ARCH_HARDWARE_H
 #define __ASM_ARCH_HARDWARE_H
 
-/*   Virtual      Physical	Size
- * 0xff800000	0x40000000	1MB	X-Bus
- * 0xff000000	0x7c000000	1MB	PCI I/O space
- * 0xfe000000	0x42000000	1MB	CSR
- * 0xfd000000	0x78000000	1MB	Outbound write flush (not supported)
- * 0xfc000000	0x79000000	1MB	PCI IACK/special space
- * 0xfb000000	0x7a000000	16MB	PCI Config type 1
- * 0xfa000000	0x7b000000	16MB	PCI Config type 0
- * 0xf9000000	0x50000000	1MB	Cache flush
- * 0xf0000000	0x80000000	16MB	ISA memory
- */
+
 #define XBUS_SIZE		0x00100000
 #define XBUS_BASE		0xff800000
 
@@ -59,13 +39,13 @@
 #define UNCACHEABLE_ADDR	(ARMCSR_BASE + 0x108)
 
 
-/* PIC irq control */
+
 #define PIC_LO			0x20
 #define PIC_MASK_LO		0x21
 #define PIC_HI			0xA0
 #define PIC_MASK_HI		0xA1
 
-/* GPIO pins */
+
 #define GPIO_CCLK		0x800
 #define GPIO_DSCLK		0x400
 #define GPIO_E2CLK		0x200
@@ -79,7 +59,7 @@
 #define GPIO_GREEN_LED		0x002
 #define GPIO_RESET		0x001
 
-/* CPLD pins */
+
 #define CPLD_DS_ENABLE		8
 #define CPLD_7111_DISABLE	4
 #define CPLD_UNMUTE		2

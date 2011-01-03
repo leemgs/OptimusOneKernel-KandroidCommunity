@@ -1,57 +1,6 @@
-/*
 
-  he.c
 
-  ForeRunnerHE ATM Adapter driver for ATM on Linux
-  Copyright (C) 1999-2001  Naval Research Laboratory
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-*/
-
-/*
-
-  he.c
-
-  ForeRunnerHE ATM Adapter driver for ATM on Linux
-  Copyright (C) 1999-2001  Naval Research Laboratory
-
-  Permission to use, copy, modify and distribute this software and its
-  documentation is hereby granted, provided that both the copyright
-  notice and this permission notice appear in all copies of the software,
-  derivative works or modified versions, and any portions thereof, and
-  that both notices appear in supporting documentation.
-
-  NRL ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS" CONDITION AND
-  DISCLAIMS ANY LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER
-  RESULTING FROM THE USE OF THIS SOFTWARE.
-
-  This driver was written using the "Programmer's Reference Manual for
-  ForeRunnerHE(tm)", MANU0361-01 - Rev. A, 08/21/98.
-
-  AUTHORS:
-	chas williams <chas@cmf.nrl.navy.mil>
-	eric kinzie <ekinzie@cmf.nrl.navy.mil>
-
-  NOTES:
-	4096 supported 'connections'
-	group 0 is used for all traffic
-	interrupt queue 0 is used for all interrupts
-	aal0 support (based on work from ulrich.u.muller@nokia.com)
-
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -76,8 +25,8 @@
 #include <linux/sonet.h>
 
 #undef USE_SCATTERGATHER
-#undef USE_CHECKSUM_HW			/* still confused about this */
-/* #undef HE_DEBUG */
+#undef USE_CHECKSUM_HW			
+
 
 #include "he.h"
 #include "suni.h"
@@ -87,11 +36,11 @@
 
 #ifdef HE_DEBUG
 #define HPRINTK(fmt,args...)	printk(KERN_DEBUG DEV_LABEL "%d: " fmt, he_dev->number , ##args)
-#else /* !HE_DEBUG */
+#else 
 #define HPRINTK(fmt,args...)	do { } while (0)
-#endif /* HE_DEBUG */
+#endif 
 
-/* declarations */
+
 
 static int he_open(struct atm_vcc *vcc);
 static void he_close(struct atm_vcc *vcc);
@@ -107,7 +56,7 @@ static unsigned char he_phy_get(struct atm_dev *, unsigned long);
 
 static u8 read_prom_byte(struct he_dev *he_dev, int addr);
 
-/* globals */
+
 
 static struct he_dev *he_devs;
 static int disable64;
@@ -117,28 +66,28 @@ static short rx_skb_reserve = 16;
 static int irq_coalesce = 1;
 static int sdh = 0;
 
-/* Read from EEPROM = 0000 0011b */
+
 static unsigned int readtab[] = {
 	CS_HIGH | CLK_HIGH,
 	CS_LOW | CLK_LOW,
-	CLK_HIGH,               /* 0 */
+	CLK_HIGH,               
 	CLK_LOW,
-	CLK_HIGH,               /* 0 */
+	CLK_HIGH,               
 	CLK_LOW,
-	CLK_HIGH,               /* 0 */
+	CLK_HIGH,               
 	CLK_LOW,
-	CLK_HIGH,               /* 0 */
+	CLK_HIGH,               
 	CLK_LOW,
-	CLK_HIGH,               /* 0 */
+	CLK_HIGH,               
 	CLK_LOW,
-	CLK_HIGH,               /* 0 */
+	CLK_HIGH,               
 	CLK_LOW | SI_HIGH,
-	CLK_HIGH | SI_HIGH,     /* 1 */
+	CLK_HIGH | SI_HIGH,     
 	CLK_LOW | SI_HIGH,
-	CLK_HIGH | SI_HIGH      /* 1 */
+	CLK_HIGH | SI_HIGH      
 };     
  
-/* Clock to read from/write to the EEPROM */
+
 static unsigned int clocktab[] = {
 	CLK_LOW,
 	CLK_HIGH,
@@ -174,14 +123,14 @@ static struct atmdev_ops he_ops =
 #define he_writel(dev, val, reg)	do { writel(val, (dev)->membase + (reg)); wmb(); } while (0)
 #define he_readl(dev, reg)		readl((dev)->membase + (reg))
 
-/* section 2.12 connection memory access */
+
 
 static __inline__ void
 he_writel_internal(struct he_dev *he_dev, unsigned val, unsigned addr,
 								unsigned flags)
 {
 	he_writel(he_dev, val, CON_DAT);
-	(void) he_readl(he_dev, CON_DAT);		/* flush posted writes */
+	(void) he_readl(he_dev, CON_DAT);		
 	he_writel(he_dev, flags | CON_CTL_WRITE | CON_CTL_ADDR(addr), CON_CTL);
 	while (he_readl(he_dev, CON_CTL) & CON_CTL_BUSY);
 }
@@ -213,11 +162,11 @@ he_readl_internal(struct he_dev *he_dev, unsigned addr, unsigned flags)
 			he_readl_internal(dev, reg, CON_CTL_MBOX)
 
 
-/* figure 2.2 connection id */
+
 
 #define he_mkcid(dev, vpi, vci)		(((vpi << (dev)->vcibits) | vci) & 0x1fff)
 
-/* 2.5.1 per connection transmit state registers */
+
 
 #define he_writel_tsr0(dev, val, cid) \
 		he_writel_tcm(dev, val, CONFIG_TSRA | (cid << 3) | 0)
@@ -236,13 +185,7 @@ he_readl_internal(struct he_dev *he_dev, unsigned addr, unsigned flags)
 #define he_writel_tsr4(dev, val, cid) \
 		he_writel_tcm(dev, val, CONFIG_TSRA | (cid << 3) | 4)
 
-	/* from page 2-20
-	 *
-	 * NOTE While the transmit connection is active, bits 23 through 0
-	 *      of this register must not be written by the host.  Byte
-	 *      enables should be used during normal operation when writing
-	 *      the most significant byte.
-	 */
+	
 
 #define he_writel_tsr4_upper(dev, val, cid) \
 		he_writel_internal(dev, val, CONFIG_TSRA | (cid << 3) | 4, \
@@ -294,7 +237,7 @@ he_readl_internal(struct he_dev *he_dev, unsigned addr, unsigned flags)
 							| CON_BYTE_DISABLE_1 \
 							| CON_BYTE_DISABLE_0)
 
-/* 2.7.1 per connection receive state registers */
+
 
 #define he_writel_rsr0(dev, val, cid) \
 		he_writel_rcm(dev, val, 0x00000 | (cid << 3) | 0)
@@ -413,7 +356,7 @@ he_remove_one (struct pci_dev *pci_dev)
 	atm_dev = pci_get_drvdata(pci_dev);
 	he_dev = HE_DEV(atm_dev);
 
-	/* need to remove from he_devs */
+	
 
 	he_stop(he_dev);
 	atm_dev_deregister(atm_dev);
@@ -425,7 +368,7 @@ he_remove_one (struct pci_dev *pci_dev)
 
 
 static unsigned
-rate_to_atmf(unsigned rate)		/* cps to atm forum format */
+rate_to_atmf(unsigned rate)		
 {
 #define NONZERO (1 << 14)
 
@@ -563,23 +506,19 @@ he_init_cs_block(struct he_dev *he_dev)
 	unsigned clock, rate, delta;
 	int reg;
 
-	/* 5.1.7 cs block initialization */
+	
 
 	for (reg = 0; reg < 0x20; ++reg)
 		he_writel_mbox(he_dev, 0x0, CS_STTIM0 + reg);
 
-	/* rate grid timer reload values */
+	
 
 	clock = he_is622(he_dev) ? 66667000 : 50000000;
 	rate = he_dev->atm_dev->link_rate;
 	delta = rate / 16 / 2;
 
 	for (reg = 0; reg < 0x10; ++reg) {
-		/* 2.4 internal transmit function
-		 *
-	 	 * we initialize the first row in the rate grid.
-		 * values are period (in clock cycles) of timer
-		 */
+		
 		unsigned period = clock / rate;
 
 		he_writel_mbox(he_dev, period, CS_TGRLD0 + reg);
@@ -587,14 +526,14 @@ he_init_cs_block(struct he_dev *he_dev)
 	}
 
 	if (he_is622(he_dev)) {
-		/* table 5.2 (4 cells per lbuf) */
+		
 		he_writel_mbox(he_dev, 0x000800fa, CS_ERTHR0);
 		he_writel_mbox(he_dev, 0x000c33cb, CS_ERTHR1);
 		he_writel_mbox(he_dev, 0x0010101b, CS_ERTHR2);
 		he_writel_mbox(he_dev, 0x00181dac, CS_ERTHR3);
 		he_writel_mbox(he_dev, 0x00280600, CS_ERTHR4);
 
-		/* table 5.3, 5.4, 5.5, 5.6, 5.7 */
+		
 		he_writel_mbox(he_dev, 0x023de8b3, CS_ERCTL0);
 		he_writel_mbox(he_dev, 0x1801, CS_ERCTL1);
 		he_writel_mbox(he_dev, 0x68b3, CS_ERCTL2);
@@ -604,7 +543,7 @@ he_init_cs_block(struct he_dev *he_dev)
 
 		he_writel_mbox(he_dev, 0x4680, CS_RTATR);
 
-		/* table 5.8 */
+		
 		he_writel_mbox(he_dev, 0x00159ece, CS_TFBSET);
 		he_writel_mbox(he_dev, 0x68b3, CS_WCRMAX);
 		he_writel_mbox(he_dev, 0x5eb3, CS_WCRMIN);
@@ -612,18 +551,18 @@ he_init_cs_block(struct he_dev *he_dev)
 		he_writel_mbox(he_dev, 0xdeb3, CS_WCRDEC);
 		he_writel_mbox(he_dev, 0x68b3, CS_WCRCEIL);
 
-		/* table 5.9 */
+		
 		he_writel_mbox(he_dev, 0x5, CS_OTPPER);
 		he_writel_mbox(he_dev, 0x14, CS_OTWPER);
 	} else {
-		/* table 5.1 (4 cells per lbuf) */
+		
 		he_writel_mbox(he_dev, 0x000400ea, CS_ERTHR0);
 		he_writel_mbox(he_dev, 0x00063388, CS_ERTHR1);
 		he_writel_mbox(he_dev, 0x00081018, CS_ERTHR2);
 		he_writel_mbox(he_dev, 0x000c1dac, CS_ERTHR3);
 		he_writel_mbox(he_dev, 0x0014051a, CS_ERTHR4);
 
-		/* table 5.3, 5.4, 5.5, 5.6, 5.7 */
+		
 		he_writel_mbox(he_dev, 0x0235e4b1, CS_ERCTL0);
 		he_writel_mbox(he_dev, 0x4701, CS_ERCTL1);
 		he_writel_mbox(he_dev, 0x64b1, CS_ERCTL2);
@@ -633,7 +572,7 @@ he_init_cs_block(struct he_dev *he_dev)
 
 		he_writel_mbox(he_dev, 0x4680, CS_RTATR);
 
-		/* table 5.8 */
+		
 		he_writel_mbox(he_dev, 0x000563b7, CS_TFBSET);
 		he_writel_mbox(he_dev, 0x64b1, CS_WCRMAX);
 		he_writel_mbox(he_dev, 0x5ab1, CS_WCRMIN);
@@ -641,7 +580,7 @@ he_init_cs_block(struct he_dev *he_dev)
 		he_writel_mbox(he_dev, 0xdab1, CS_WCRDEC);
 		he_writel_mbox(he_dev, 0x64b1, CS_WCRCEIL);
 
-		/* table 5.9 */
+		
 		he_writel_mbox(he_dev, 0x6, CS_OTPPER);
 		he_writel_mbox(he_dev, 0x1e, CS_OTWPER);
 	}
@@ -668,33 +607,26 @@ he_init_cs_block_rcm(struct he_dev *he_dev)
 	if (!rategrid)
 		return -ENOMEM;
 
-	/* initialize rate grid group table */
+	
 
 	for (reg = 0x0; reg < 0xff; ++reg)
 		he_writel_rcm(he_dev, 0x0, CONFIG_RCMABR + reg);
 
-	/* initialize rate controller groups */
+	
 
 	for (reg = 0x100; reg < 0x1ff; ++reg)
 		he_writel_rcm(he_dev, 0x0, CONFIG_RCMABR + reg);
 	
-	/* initialize tNrm lookup table */
-
-	/* the manual makes reference to a routine in a sample driver
-	   for proper configuration; fortunately, we only need this
-	   in order to support abr connection */
 	
-	/* initialize rate to group table */
+
+	
+	
+	
 
 	rate = he_dev->atm_dev->link_rate;
 	delta = rate / 32;
 
-	/*
-	 * 2.4 transmit internal functions
-	 * 
-	 * we construct a copy of the rate grid used by the scheduler
-	 * in order to construct the rate to group table below
-	 */
+	
 
 	for (j = 0; j < 16; j++) {
 		(*rategrid)[0][j] = rate;
@@ -708,43 +640,30 @@ he_init_cs_block_rcm(struct he_dev *he_dev)
 			else
 				(*rategrid)[i][j] = (*rategrid)[i - 1][j] / 2;
 
-	/*
-	 * 2.4 transmit internal function
-	 *
-	 * this table maps the upper 5 bits of exponent and mantissa
-	 * of the atm forum representation of the rate into an index
-	 * on rate grid  
-	 */
+	
 
 	rate_atmf = 0;
 	while (rate_atmf < 0x400) {
 		man = (rate_atmf & 0x1f) << 4;
 		exp = rate_atmf >> 5;
 
-		/* 
-			instead of '/ 512', use '>> 9' to prevent a call
-			to divdu3 on x86 platforms
-		*/
+		
 		rate_cps = (unsigned long long) (1 << exp) * (man + 512) >> 9;
 
 		if (rate_cps < 10)
-			rate_cps = 10;	/* 2.2.1 minimum payload rate is 10 cps */
+			rate_cps = 10;	
 
 		for (i = 255; i > 0; i--)
 			if ((*rategrid)[i/16][i%16] >= rate_cps)
-				break;	 /* pick nearest rate instead? */
+				break;	 
 
-		/*
-		 * each table entry is 16 bits: (rate grid index (8 bits)
-		 * and a buffer limit (8 bits)
-		 * there are two table entries in each 32-bit register
-		 */
+		
 
 #ifdef notdef
 		buf = rate_cps * he_dev->tx_numbuffs /
 				(he_dev->atm_dev->link_rate * 2);
 #else
-		/* this is pretty, but avoids _divdu3 and is mostly correct */
+		
 		mult = he_dev->atm_dev->link_rate / ATM_OC3_PCR;
 		if (rate_cps > (272 * mult))
 			buf = 4;
@@ -779,7 +698,7 @@ he_init_group(struct he_dev *he_dev, int group)
 {
 	int i;
 
-	/* small buffer pool */
+	
 	he_dev->rbps_pool = pci_pool_create("rbps", he_dev->pci_dev,
 			CONFIG_RBPS_BUFSIZE, 8, 0);
 	if (he_dev->rbps_pool == NULL) {
@@ -826,7 +745,7 @@ he_init_group(struct he_dev *he_dev, int group)
 			RBP_INT_ENB,
 						G0_RBPS_QI + (group * 32));
 
-	/* large buffer pool */
+	
 	he_dev->rbpl_pool = pci_pool_create("rbpl", he_dev->pci_dev,
 			CONFIG_RBPL_BUFSIZE, 8, 0);
 	if (he_dev->rbpl_pool == NULL) {
@@ -872,7 +791,7 @@ he_init_group(struct he_dev *he_dev, int group)
 			RBP_INT_ENB,
 						G0_RBPL_QI + (group * 32));
 
-	/* rx buffer ready queue */
+	
 
 	he_dev->rbrq_base = pci_alloc_consistent(he_dev->pci_dev,
 		CONFIG_RBRQ_SIZE * sizeof(struct he_rbrq), &he_dev->rbrq_phys);
@@ -896,7 +815,7 @@ he_init_group(struct he_dev *he_dev, int group)
 		he_writel(he_dev, RBRQ_TIME(0) | RBRQ_COUNT(1),
 						G0_RBRQ_I + (group * 16));
 
-	/* tx buffer ready queue */
+	
 
 	he_dev->tbrq_base = pci_alloc_consistent(he_dev->pci_dev,
 		CONFIG_TBRQ_SIZE * sizeof(struct he_tbrq), &he_dev->tbrq_phys);
@@ -954,8 +873,7 @@ he_init_irq(struct he_dev *he_dev)
 {
 	int i;
 
-	/* 2.9.3.5  tail offset for each interrupt queue is located after the
-		    end of the interrupt queue */
+	
 
 	he_dev->irq_base = pci_alloc_consistent(he_dev->pci_dev,
 			(CONFIG_IRQ_SIZE+1) * sizeof(struct he_irq), &he_dev->irq_phys);
@@ -994,7 +912,7 @@ he_init_irq(struct he_dev *he_dev)
 	he_writel(he_dev, 0x0, IRQ3_CNTL);
 	he_writel(he_dev, 0x0, IRQ3_DATA);
 
-	/* 2.9.3.2 interrupt queue mapping registers */
+	
 
 	he_writel(he_dev, 0x0, GRP_10_MAP);
 	he_writel(he_dev, 0x0, GRP_32_MAP);
@@ -1032,11 +950,9 @@ he_start(struct atm_dev *dev)
 	membase = pci_resource_start(pci_dev, 0);
 	HPRINTK("membase = 0x%lx  irq = %d.\n", membase, pci_dev->irq);
 
-	/*
-	 * pci bus controller initialization 
-	 */
+	
 
-	/* 4.3 pci bus controller-specific initialization */
+	
 	if (pci_read_config_dword(pci_dev, GEN_CNTL_0, &gen_cntl_0) != 0) {
 		hprintk("can't read GEN_CNTL_0\n");
 		return -EINVAL;
@@ -1074,14 +990,7 @@ he_start(struct atm_dev *dev)
 		return -EINVAL;
 	}
 
-	/* from table 3.9
-	 *
-	 * LAT_TIMER = 1 + AVG_LAT + BURST_SIZE/BUS_SIZE
-	 * 
-	 * AVG_LAT: The average first data read/write latency [maximum 16 clock cycles]
-	 * BURST_SIZE: 1536 bytes (read) for 622, 768 bytes (read) for 155 [192 clock cycles]
-	 *
-	 */ 
+	 
 #define LAT_TIMER 209
 	if (timer < LAT_TIMER) {
 		HPRINTK("latency timer was %d, setting to %d\n", timer, LAT_TIMER);
@@ -1095,18 +1004,18 @@ he_start(struct atm_dev *dev)
 		return -EINVAL;
 	}
 
-	/* 4.4 card reset */
+	
 	he_writel(he_dev, 0x0, RESET_CNTL);
 	he_writel(he_dev, 0xff, RESET_CNTL);
 
-	udelay(16*1000);	/* 16 ms */
+	udelay(16*1000);	
 	status = he_readl(he_dev, RESET_CNTL);
 	if ((status & BOARD_RST_STATUS) == 0) {
 		hprintk("reset failed\n");
 		return -EINVAL;
 	}
 
-	/* 4.5 set bus width */
+	
 	host_cntl = he_readl(he_dev, HOST_CNTL);
 	if (host_cntl & PCI_BUS_SIZE64)
 		gen_cntl_0 |= ENBL_64;
@@ -1123,7 +1032,7 @@ he_start(struct atm_dev *dev)
 
 	pci_write_config_dword(pci_dev, GEN_CNTL_0, gen_cntl_0);
 
-	/* 4.7 read prom contents */
+	
 	for (i = 0; i < PROD_ID_LEN; ++i)
 		he_dev->prod_id[i] = read_prom_byte(he_dev, PROD_ID + i);
 
@@ -1144,32 +1053,32 @@ he_start(struct atm_dev *dev)
 	he_dev->atm_dev->link_rate = he_is622(he_dev) ?
 						ATM_OC12_PCR : ATM_OC3_PCR;
 
-	/* 4.6 set host endianess */
+	
 	lb_swap = he_readl(he_dev, LB_SWAP);
 	if (he_is622(he_dev))
-		lb_swap &= ~XFER_SIZE;		/* 4 cells */
+		lb_swap &= ~XFER_SIZE;		
 	else
-		lb_swap |= XFER_SIZE;		/* 8 cells */
+		lb_swap |= XFER_SIZE;		
 #ifdef __BIG_ENDIAN
 	lb_swap |= DESC_WR_SWAP | INTR_SWAP | BIG_ENDIAN_HOST;
 #else
 	lb_swap &= ~(DESC_WR_SWAP | INTR_SWAP | BIG_ENDIAN_HOST |
 			DATA_WR_SWAP | DATA_RD_SWAP | DESC_RD_SWAP);
-#endif /* __BIG_ENDIAN */
+#endif 
 	he_writel(he_dev, lb_swap, LB_SWAP);
 
-	/* 4.8 sdram controller initialization */
+	
 	he_writel(he_dev, he_is622(he_dev) ? LB_64_ENB : 0x0, SDRAM_CTL);
 
-	/* 4.9 initialize rnum value */
+	
 	lb_swap |= SWAP_RNUM_MAX(0xf);
 	he_writel(he_dev, lb_swap, LB_SWAP);
 
-	/* 4.10 initialize the interrupt queues */
+	
 	if ((err = he_init_irq(he_dev)) != 0)
 		return err;
 
-	/* 4.11 enable pci bus controller state machines */
+	
 	host_cntl |= (OUTFF_ENB | CMDFF_ENB |
 				QUICK_RD_RETRY | QUICK_WR_RETRY | PERR_INT_ENB);
 	he_writel(he_dev, host_cntl, HOST_CNTL);
@@ -1177,41 +1086,13 @@ he_start(struct atm_dev *dev)
 	gen_cntl_0 |= INT_PROC_ENBL|INIT_ENB;
 	pci_write_config_dword(pci_dev, GEN_CNTL_0, gen_cntl_0);
 
-	/*
-	 * atm network controller initialization
-	 */
+	
 
-	/* 5.1.1 generic configuration state */
+	
 
-	/*
-	 *		local (cell) buffer memory map
-	 *                    
-	 *             HE155                          HE622
-	 *                                                      
-	 *        0 ____________1023 bytes  0 _______________________2047 bytes
-	 *         |            |            |                   |   |
-	 *         |  utility   |            |        rx0        |   |
-	 *        5|____________|         255|___________________| u |
-	 *        6|            |         256|                   | t |
-	 *         |            |            |                   | i |
-	 *         |    rx0     |     row    |        tx         | l |
-	 *         |            |            |                   | i |
-	 *         |            |         767|___________________| t |
-	 *      517|____________|         768|                   | y |
-	 * row  518|            |            |        rx1        |   |
-	 *         |            |        1023|___________________|___|
-	 *         |            |
-	 *         |    tx      |
-	 *         |            |
-	 *         |            |
-	 *     1535|____________|
-	 *     1536|            |
-	 *         |    rx1     |
-	 *     2047|____________|
-	 *
-	 */
+	
 
-	/* total 4096 connections */
+	
 	he_dev->vcibits = CONFIG_DEFAULT_VCIBITS;
 	he_dev->vpibits = CONFIG_DEFAULT_VPIBITS;
 
@@ -1268,7 +1149,7 @@ he_start(struct atm_dev *dev)
 	if (he_dev->tx_numbuffs > 5120)
 		he_dev->tx_numbuffs = 5120;
 
-	/* 5.1.2 configure hardware dependent registers */
+	
 
 	he_writel(he_dev, 
 		SLICE_X(0x2) | ARB_RNUM_MAX(0xf) | TH_PRTY(0x3) |
@@ -1307,7 +1188,7 @@ he_start(struct atm_dev *dev)
 		(he_is622(he_dev) ? PTMR_PRE(67 - 1) : PTMR_PRE(50 - 1)),
 								RH_CONFIG);
 
-	/* 5.1.3 initialize connection memory */
+	
 
 	for (i = 0; i < TCM_MEM_SIZE; ++i)
 		he_writel_tcm(he_dev, 0, i);
@@ -1315,36 +1196,7 @@ he_start(struct atm_dev *dev)
 	for (i = 0; i < RCM_MEM_SIZE; ++i)
 		he_writel_rcm(he_dev, 0, i);
 
-	/*
-	 *	transmit connection memory map
-	 *
-	 *                  tx memory
-	 *          0x0 ___________________
-	 *             |                   |
-	 *             |                   |
-	 *             |       TSRa        |
-	 *             |                   |
-	 *             |                   |
-	 *       0x8000|___________________|
-	 *             |                   |
-	 *             |       TSRb        |
-	 *       0xc000|___________________|
-	 *             |                   |
-	 *             |       TSRc        |
-	 *       0xe000|___________________|
-	 *             |       TSRd        |
-	 *       0xf000|___________________|
-	 *             |       tmABR       |
-	 *      0x10000|___________________|
-	 *             |                   |
-	 *             |       tmTPD       |
-	 *             |___________________|
-	 *             |                   |
-	 *                      ....
-	 *      0x1ffff|___________________|
-	 *
-	 *
-	 */
+	
 
 	he_writel(he_dev, CONFIG_TSRB, TSRB_BA);
 	he_writel(he_dev, CONFIG_TSRC, TSRC_BA);
@@ -1353,38 +1205,13 @@ he_start(struct atm_dev *dev)
 	he_writel(he_dev, CONFIG_TPDBA, TPD_BA);
 
 
-	/*
-	 *	receive connection memory map
-	 *
-	 *          0x0 ___________________
-	 *             |                   |
-	 *             |                   |
-	 *             |       RSRa        |
-	 *             |                   |
-	 *             |                   |
-	 *       0x8000|___________________|
-	 *             |                   |
-	 *             |             rx0/1 |
-	 *             |       LBM         |   link lists of local
-	 *             |             tx    |   buffer memory 
-	 *             |                   |
-	 *       0xd000|___________________|
-	 *             |                   |
-	 *             |      rmABR        |
-	 *       0xe000|___________________|
-	 *             |                   |
-	 *             |       RSRb        |
-	 *             |___________________|
-	 *             |                   |
-	 *                      ....
-	 *       0xffff|___________________|
-	 */
+	
 
 	he_writel(he_dev, 0x08000, RCMLBM_BA);
 	he_writel(he_dev, 0x0e000, RCMRSRB_BA);
 	he_writel(he_dev, 0x0d800, RCMABR_BA);
 
-	/* 5.1.4 initialize local buffer free pools linked lists */
+	
 
 	he_init_rx_lbfp0(he_dev);
 	he_init_rx_lbfp1(he_dev);
@@ -1393,14 +1220,14 @@ he_start(struct atm_dev *dev)
 	he_writel(he_dev, 0x0, RLBC_T);
 	he_writel(he_dev, 0x0, RLBC_H2);
 
-	he_writel(he_dev, 512, RXTHRSH);	/* 10% of r0+r1 buffers */
-	he_writel(he_dev, 256, LITHRSH); 	/* 5% of r0+r1 buffers */
+	he_writel(he_dev, 512, RXTHRSH);	
+	he_writel(he_dev, 256, LITHRSH); 	
 
 	he_init_tx_lbfp(he_dev);
 
 	he_writel(he_dev, he_is622(he_dev) ? 0x104780 : 0x800, UBUFF_BA);
 
-	/* 5.1.5 initialize intermediate receive queues */
+	
 
 	if (he_is622(he_dev)) {
 		he_writel(he_dev, 0x000f, G0_INMQ_S);
@@ -1452,23 +1279,23 @@ he_start(struct atm_dev *dev)
 		he_writel(he_dev, 0x000f, G7_INMQ_L);
 	}
 
-	/* 5.1.6 application tunable parameters */
+	
 
 	he_writel(he_dev, 0x0, MCC);
 	he_writel(he_dev, 0x0, OEC);
 	he_writel(he_dev, 0x0, DCC);
 	he_writel(he_dev, 0x0, CEC);
 	
-	/* 5.1.7 cs block initialization */
+	
 
 	he_init_cs_block(he_dev);
 
-	/* 5.1.8 cs block connection memory initialization */
+	
 	
 	if (he_init_cs_block_rcm(he_dev) < 0)
 		return -ENOMEM;
 
-	/* 5.1.10 initialize host structures */
+	
 
 	he_init_tpdrq(he_dev);
 
@@ -1510,7 +1337,7 @@ he_start(struct atm_dev *dev)
 		he_writel(he_dev, 0x0, G0_TBRQ_S + (group * 16));
 	}
 
-	/* host status page */
+	
 
 	he_dev->hsp = pci_alloc_consistent(he_dev->pci_dev,
 				sizeof(struct he_hsp), &he_dev->hsp_phys);
@@ -1521,17 +1348,17 @@ he_start(struct atm_dev *dev)
 	memset(he_dev->hsp, 0, sizeof(struct he_hsp));
 	he_writel(he_dev, he_dev->hsp_phys, HSP_BA);
 
-	/* initialize framer */
+	
 
 #ifdef CONFIG_ATM_HE_USE_SUNI
 	if (he_isMM(he_dev))
 		suni_init(he_dev->atm_dev);
 	if (he_dev->atm_dev->phy && he_dev->atm_dev->phy->start)
 		he_dev->atm_dev->phy->start(he_dev->atm_dev);
-#endif /* CONFIG_ATM_HE_USE_SUNI */
+#endif 
 
 	if (sdh) {
-		/* this really should be in suni.c but for now... */
+		
 		int val;
 
 		val = he_phy_get(he_dev->atm_dev, SUNI_TPOP_APM);
@@ -1540,7 +1367,7 @@ he_start(struct atm_dev *dev)
 		he_phy_put(he_dev->atm_dev, SUNI_TACP_IUCHP_CLP, SUNI_TACP_IUCHP);
 	}
 
-	/* 5.1.12 enable transmit and receive */
+	
 
 	reg = he_readl_mbox(he_dev, CS_ERCTL0);
 	reg |= TX_ENABLE|ER_ENABLE;
@@ -1557,7 +1384,7 @@ he_start(struct atm_dev *dev)
 	he_dev->total_bw = 0;
 
 
-	/* atm linux initialization */
+	
 
 	he_dev->atm_dev->ci_range.vpi_bits = he_dev->vpibits;
 	he_dev->atm_dev->ci_range.vci_bits = he_dev->vcibits;
@@ -1581,7 +1408,7 @@ he_stop(struct he_dev *he_dev)
 
 	pci_dev = he_dev->pci_dev;
 
-	/* disable interrupts */
+	
 
 	if (he_dev->membase) {
 		pci_read_config_dword(pci_dev, GEN_CNTL_0, &gen_cntl_0);
@@ -1590,7 +1417,7 @@ he_stop(struct he_dev *he_dev)
 
 		tasklet_disable(&he_dev->tasklet);
 
-		/* disable recv and transmit */
+		
 
 		reg = he_readl_mbox(he_dev, CS_ERCTL0);
 		reg &= ~(TX_ENABLE|ER_ENABLE);
@@ -1604,7 +1431,7 @@ he_stop(struct he_dev *he_dev)
 #ifdef CONFIG_ATM_HE_USE_SUNI
 	if (he_dev->atm_dev->phy && he_dev->atm_dev->phy->stop)
 		he_dev->atm_dev->phy->stop(he_dev->atm_dev);
-#endif /* CONFIG_ATM_HE_USE_SUNI */
+#endif 
 
 	if (he_dev->irq)
 		free_irq(he_dev->irq, he_dev);
@@ -1697,11 +1524,7 @@ __alloc_tpd(struct he_dev *he_dev)
 			((((unsigned char *)(buf))[(len)-6] << 8) |	\
 				(((unsigned char *)(buf))[(len)-5]))
 
-/* 2.10.1.2 receive
- *
- * aal5 packets can optionally return the tcp checksum in the lower
- * 16 bits of the crc (RSR0_TCP_CKSUM)
- */
+
 
 #define TCP_CKSUM(buf,len) 						\
 			((((unsigned char *)(buf))[(len)-2] << 8) |	\
@@ -1830,12 +1653,12 @@ he_service_rbrq(struct he_dev *he_dev, int group)
 
 		switch (vcc->qos.aal) {
 			case ATM_AAL0:
-				/* 2.10.1.5 raw cell receive */
+				
 				skb->len = ATM_AAL0_SDU;
 				skb_set_tail_pointer(skb, skb->len);
 				break;
 			case ATM_AAL5:
-				/* 2.10.1.2 aal5 receive */
+				
 
 				skb->len = AAL5_LEN(skb->data, he_vcc->pdu_len);
 				skb_set_tail_pointer(skb, skb->len);
@@ -1908,7 +1731,7 @@ he_service_tbrq(struct he_dev *he_dev, int group)
 	int slot, updated = 0;
 	struct he_tpd *__tpd;
 
-	/* 2.1.6 transmit buffer return queue */
+	
 
 	while (he_dev->tbrq_head != tbrq_tail) {
 		++updated;
@@ -1953,7 +1776,7 @@ he_service_tbrq(struct he_dev *he_dev, int group)
 				
 		}
 
-		if (tpd->skb) {	/* && !TBRQ_MULTIPLE(he_dev->tbrq_head) */
+		if (tpd->skb) {	
 			if (tpd->vcc && tpd->vcc->pop)
 				tpd->vcc->pop(tpd->vcc, tpd->skb);
 			else
@@ -1992,7 +1815,7 @@ he_service_rbpl(struct he_dev *he_dev, int group)
 		newtail = (struct he_rbp *) ((unsigned long)he_dev->rbpl_base |
 						RBPL_MASK(he_dev->rbpl_tail+1));
 
-		/* table 3.42 -- rbpl_tail should never be set to rbpl_head */
+		
 		if ((newtail == rbpl_head) || (newtail->status & RBP_LOANED))
 			break;
 
@@ -2019,7 +1842,7 @@ he_service_rbps(struct he_dev *he_dev, int group)
 		newtail = (struct he_rbp *) ((unsigned long)he_dev->rbps_base |
 						RBPS_MASK(he_dev->rbps_tail+1));
 
-		/* table 3.42 -- rbps_tail should never be set to rbps_head */
+		
 		if ((newtail == rbps_head) || (newtail->status & RBP_LOANED))
 			break;
 
@@ -2052,7 +1875,7 @@ he_tasklet(unsigned long data)
 		switch (type) {
 			case ITYPE_RBRQ_THRESH:
 				HPRINTK("rbrq%d threshold\n", group);
-				/* fall through */
+				
 			case ITYPE_RBRQ_TIMER:
 				if (he_service_rbrq(he_dev, group)) {
 					he_service_rbpl(he_dev, group);
@@ -2061,7 +1884,7 @@ he_tasklet(unsigned long data)
 				break;
 			case ITYPE_TBRQ_THRESH:
 				HPRINTK("tbrq%d threshold\n", group);
-				/* fall through */
+				
 			case ITYPE_TPD_COMPLETE:
 				he_service_tbrq(he_dev, group);
 				break;
@@ -2091,7 +1914,7 @@ he_tasklet(unsigned long data)
 				}
 				break;
 			case ITYPE_TYPE(ITYPE_INVALID):
-				/* see 8.1.1 -- check all queues */
+				
 
 				HPRINTK("isw not updated 0x%x\n", he_dev->irq_head->isw);
 
@@ -2117,7 +1940,7 @@ he_tasklet(unsigned long data)
 			IRQ_SIZE(CONFIG_IRQ_SIZE) |
 			IRQ_THRESH(CONFIG_IRQ_THRESH) |
 			IRQ_TAIL(he_dev->irq_tail), IRQ0_HEAD);
-		(void) he_readl(he_dev, INT_FIFO); /* 8.1.2 controller errata; flush posted writes */
+		(void) he_readl(he_dev, INT_FIFO); 
 	}
 	spin_unlock_irqrestore(&he_dev->global_lock, flags);
 }
@@ -2141,19 +1964,19 @@ he_irq_handler(int irq, void *dev_id)
 		HPRINTK("tailoffset not updated?\n");
 		he_dev->irq_tail = (struct he_irq *) ((unsigned long)he_dev->irq_base |
 			((he_readl(he_dev, IRQ0_BASE) & IRQ_MASK) << 2));
-		(void) he_readl(he_dev, INT_FIFO);	/* 8.1.2 controller errata */
+		(void) he_readl(he_dev, INT_FIFO);	
 	}
 
 #ifdef DEBUG
-	if (he_dev->irq_head == he_dev->irq_tail /* && !IRQ_PENDING */)
+	if (he_dev->irq_head == he_dev->irq_tail )
 		hprintk("spurious (or shared) interrupt?\n");
 #endif
 
 	if (he_dev->irq_head != he_dev->irq_tail) {
 		handled = 1;
 		tasklet_schedule(&he_dev->tasklet);
-		he_writel(he_dev, INT_CLEAR_A, INT_FIFO);	/* clear interrupt */
-		(void) he_readl(he_dev, INT_FIFO);		/* flush posted writes */
+		he_writel(he_dev, INT_CLEAR_A, INT_FIFO);	
+		(void) he_readl(he_dev, INT_FIFO);		
 	}
 	spin_unlock_irqrestore(&he_dev->global_lock, flags);
 	return IRQ_RETVAL(handled);
@@ -2168,16 +1991,11 @@ __enqueue_tpd(struct he_dev *he_dev, struct he_tpd *tpd, unsigned cid)
 	HPRINTK("tpdrq %p cid 0x%x -> tpdrq_tail %p\n",
 					tpd, cid, he_dev->tpdrq_tail);
 
-	/* new_tail = he_dev->tpdrq_tail; */
+	
 	new_tail = (struct he_tpdrq *) ((unsigned long) he_dev->tpdrq_base |
 					TPDRQ_MASK(he_dev->tpdrq_tail+1));
 
-	/*
-	 * check to see if we are about to set the tail == head
-	 * if true, update the head pointer from the adapter
-	 * to see if this is really the case (reading the queue
-	 * head for every enqueue would be unnecessarily slow)
-	 */
+	
 
 	if (new_tail == he_dev->tpdrq_head) {
 		he_dev->tpdrq_head = (struct he_tpdrq *)
@@ -2188,12 +2006,7 @@ __enqueue_tpd(struct he_dev *he_dev, struct he_tpd *tpd, unsigned cid)
 			int slot;
 
 			hprintk("tpdrq full (cid 0x%x)\n", cid);
-			/*
-			 * FIXME
-			 * push tpd onto a transmit backlog queue
-			 * after service_tbrq, service the backlog
-			 * for now, we just drop the pdu
-			 */
+			
 			for (slot = 0; slot < TPD_MAXIOV; ++slot) {
 				if (tpd->iovec[slot].addr)
 					pci_unmap_single(he_dev->pci_dev,
@@ -2213,7 +2026,7 @@ __enqueue_tpd(struct he_dev *he_dev, struct he_tpd *tpd, unsigned cid)
 		}
 	}
 
-	/* 2.1.5 transmit packet descriptor ready queue */
+	
 	list_add_tail(&tpd->entry, &he_dev->outstanding_tpds);
 	he_dev->tpdrq_tail->tpd = TPD_ADDR(tpd->status);
 	he_dev->tpdrq_tail->cid = cid;
@@ -2222,7 +2035,7 @@ __enqueue_tpd(struct he_dev *he_dev, struct he_tpd *tpd, unsigned cid)
 	he_dev->tpdrq_tail = new_tail;
 
 	he_writel(he_dev, TPDRQ_MASK(he_dev->tpdrq_tail), TPDRQ_T);
-	(void) he_readl(he_dev, TPDRQ_T);		/* flush posted writes */
+	(void) he_readl(he_dev, TPDRQ_T);		
 }
 
 static int
@@ -2266,7 +2079,7 @@ he_open(struct atm_vcc *vcc)
 		pcr_goal = atm_pcr_goal(&vcc->qos.txtp);
 		if (pcr_goal == 0)
 			pcr_goal = he_dev->atm_dev->link_rate;
-		if (pcr_goal < 0)	/* means round down, technically */
+		if (pcr_goal < 0)	
 			pcr_goal = -pcr_goal;
 
 		HPRINTK("open tx cid 0x%x pcr_goal %d\n", cid, pcr_goal);
@@ -2297,16 +2110,16 @@ he_open(struct atm_vcc *vcc)
 
 		switch (vcc->qos.txtp.traffic_class) {
 			case ATM_UBR:
-				/* 2.3.3.1 open connection ubr */
+				
 
 				tsr0 = TSR0_UBR | TSR0_GROUP(0) | tsr0_aal |
 					TSR0_USE_WMIN | TSR0_UPDATE_GER;
 				break;
 
 			case ATM_CBR:
-				/* 2.3.3.2 open connection cbr */
+				
 
-				/* 8.2.3 cbr scheduler wrap problem -- limit to 90% total link rate */
+				
 				if ((he_dev->total_bw + pcr_goal)
 					> (he_dev->atm_dev->link_rate * 9 / 10))
 				{
@@ -2314,9 +2127,9 @@ he_open(struct atm_vcc *vcc)
 					goto open_failed;
 				}
 
-				spin_lock_irqsave(&he_dev->global_lock, flags);			/* also protects he_dev->cs_stper[] */
+				spin_lock_irqsave(&he_dev->global_lock, flags);			
 
-				/* find an unused cs_stper register */
+				
 				for (reg = 0; reg < HE_NUM_CS_STPER; ++reg)
 					if (he_dev->cs_stper[reg].inuse == 0 || 
 					    he_dev->cs_stper[reg].pcr == pcr_goal)
@@ -2372,7 +2185,7 @@ he_open(struct atm_vcc *vcc)
 		he_writel_tsr12(he_dev, 0x0, cid);
 		he_writel_tsr13(he_dev, 0x0, cid);
 		he_writel_tsr14(he_dev, 0x0, cid);
-		(void) he_readl_tsr0(he_dev, cid);		/* flush posted writes */
+		(void) he_readl_tsr0(he_dev, cid);		
 		spin_unlock_irqrestore(&he_dev->global_lock, flags);
 	}
 
@@ -2417,11 +2230,10 @@ he_open(struct atm_vcc *vcc)
 
 		he_writel_rsr4(he_dev, rsr4, cid);
 		he_writel_rsr1(he_dev, rsr1, cid);
-		/* 5.1.11 last parameter initialized should be
-			  the open/closed indication in rsr0 */
+		
 		he_writel_rsr0(he_dev,
 			rsr0 | RSR0_START_PDU | RSR0_OPEN_CONN | aal, cid);
-		(void) he_readl_rsr0(he_dev, cid);		/* flush posted writes */
+		(void) he_readl_rsr0(he_dev, cid);		
 
 		spin_unlock_irqrestore(&he_dev->global_lock, flags);
 	}
@@ -2460,9 +2272,9 @@ he_close(struct atm_vcc *vcc)
 
 		HPRINTK("close rx cid 0x%x\n", cid);
 
-		/* 2.7.2.2 close receive operation */
+		
 
-		/* wait for previous close (if any) to finish */
+		
 
 		spin_lock_irqsave(&he_dev->global_lock, flags);
 		while (he_readl(he_dev, RCC_STAT) & RCC_BUSY) {
@@ -2474,7 +2286,7 @@ he_close(struct atm_vcc *vcc)
 		add_wait_queue(&he_vcc->rx_waitq, &wait);
 
 		he_writel_rsr0(he_dev, RSR0_CLOSE_CONN, cid);
-		(void) he_readl_rsr0(he_dev, cid);		/* flush posted writes */
+		(void) he_readl_rsr0(he_dev, cid);		
 		he_writel_mbox(he_dev, cid, RXCON_CLOSE);
 		spin_unlock_irqrestore(&he_dev->global_lock, flags);
 
@@ -2496,14 +2308,7 @@ he_close(struct atm_vcc *vcc)
 
 		HPRINTK("close tx cid 0x%x\n", cid);
 		
-		/* 2.1.2
-		 *
-		 * ... the host must first stop queueing packets to the TPDRQ
-		 * on the connection to be closed, then wait for all outstanding
-		 * packets to be transmitted and their buffers returned to the
-		 * TBRQ. When the last packet on the connection arrives in the
-		 * TBRQ, the host issues the close command to the adapter.
-		 */
+		
 
 		while (((tx_inuse = atomic_read(&sk_atm(vcc)->sk_wmem_alloc)) > 0) &&
 		       (retry < MAX_RETRY)) {
@@ -2517,11 +2322,11 @@ he_close(struct atm_vcc *vcc)
 		if (tx_inuse)
 			hprintk("close tx cid 0x%x tx_inuse = %d\n", cid, tx_inuse);
 
-		/* 2.3.1.1 generic close operations with flush */
+		
 
 		spin_lock_irqsave(&he_dev->global_lock, flags);
 		he_writel_tsr4_upper(he_dev, TSR4_FLUSH_CONN, cid);
-					/* also clears TSR4_SESSION_ENDED */
+					
 
 		switch (vcc->qos.txtp.traffic_class) {
 			case ATM_UBR:
@@ -2533,7 +2338,7 @@ he_close(struct atm_vcc *vcc)
 				he_writel_tsr14_upper(he_dev, TSR14_DELETE, cid);
 				break;
 		}
-		(void) he_readl_tsr4(he_dev, cid);		/* flush posted writes */
+		(void) he_readl_tsr4(he_dev, cid);		
 
 		tpd = __alloc_tpd(he_dev);
 		if (tpd == NULL) {
@@ -2670,10 +2475,9 @@ he_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
 		skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
 
-		if (slot == TPD_MAXIOV) {	/* queue tpd; start new tpd */
+		if (slot == TPD_MAXIOV) {	
 			tpd->vcc = vcc;
-			tpd->skb = NULL;	/* not the last fragment
-						   so dont ->push() yet */
+			tpd->skb = NULL;	
 			wmb();
 
 			__enqueue_tpd(he_dev, tpd, cid);
@@ -2772,9 +2576,9 @@ he_ioctl(struct atm_dev *atm_dev, unsigned int cmd, void __user *arg)
 #ifdef CONFIG_ATM_HE_USE_SUNI
 			if (atm_dev->phy && atm_dev->phy->ioctl)
 				err = atm_dev->phy->ioctl(atm_dev, cmd, arg);
-#else /* CONFIG_ATM_HE_USE_SUNI */
+#else 
 			err = -EINVAL;
-#endif /* CONFIG_ATM_HE_USE_SUNI */
+#endif 
 			break;
 	}
 
@@ -2791,7 +2595,7 @@ he_phy_put(struct atm_dev *atm_dev, unsigned char val, unsigned long addr)
 
 	spin_lock_irqsave(&he_dev->global_lock, flags);
 	he_writel(he_dev, val, FRAMER + (addr*4));
-	(void) he_readl(he_dev, FRAMER + (addr*4));		/* flush posted writes */
+	(void) he_readl(he_dev, FRAMER + (addr*4));		
 	spin_unlock_irqrestore(&he_dev->global_lock, flags);
 }
  
@@ -2894,7 +2698,7 @@ he_proc_read(struct atm_dev *dev, loff_t *pos, char *page)
 	return 0;
 }
 
-/* eeprom routines  -- see 4.7 */
+
 
 static u8 read_prom_byte(struct he_dev *he_dev, int addr)
 {
@@ -2905,17 +2709,17 @@ static u8 read_prom_byte(struct he_dev *he_dev, int addr)
 	val = readl(he_dev->membase + HOST_CNTL);
 	val &= 0xFFFFE0FF;
        
-	/* Turn on write enable */
+	
 	val |= 0x800;
 	he_writel(he_dev, val, HOST_CNTL);
        
-	/* Send READ instruction */
+	
 	for (i = 0; i < ARRAY_SIZE(readtab); i++) {
 		he_writel(he_dev, val | readtab[i], HOST_CNTL);
 		udelay(EEPROM_DELAY);
 	}
        
-	/* Next, we need to send the byte address to read from */
+	
 	for (i = 7; i >= 0; i--) {
 		he_writel(he_dev, val | clocktab[j++] | (((addr >> i) & 1) << 9), HOST_CNTL);
 		udelay(EEPROM_DELAY);
@@ -2925,10 +2729,10 @@ static u8 read_prom_byte(struct he_dev *he_dev, int addr)
        
 	j = 0;
 
-	val &= 0xFFFFF7FF;      /* Turn off write enable */
+	val &= 0xFFFFF7FF;      
 	he_writel(he_dev, val, HOST_CNTL);
        
-	/* Now, we can read data from the EEPROM by clocking it in */
+	
 	for (i = 7; i >= 0; i--) {
 		he_writel(he_dev, val | clocktab[j++], HOST_CNTL);
 		udelay(EEPROM_DELAY);

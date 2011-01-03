@@ -1,20 +1,11 @@
-/*
- * IEEE 1394 for Linux
- *
- * Transaction support.
- *
- * Copyright (C) 1999 Andreas E. Bombe
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- */
+
 
 #include <linux/bitops.h>
 #include <linux/compiler.h>
 #include <linux/hardirq.h>
 #include <linux/spinlock.h>
 #include <linux/string.h>
-#include <linux/sched.h>  /* because linux/wait.h is broken if CONFIG_SMP=n */
+#include <linux/sched.h>  
 #include <linux/wait.h>
 
 #include <asm/bug.h>
@@ -96,8 +87,8 @@ static void fill_phy_packet(struct hpsb_packet *packet, quadlet_t data)
 	packet->header_size = 8;
 	packet->data_size = 0;
 	packet->expect_response = 0;
-	packet->type = hpsb_raw;	/* No CRC added */
-	packet->speed_code = IEEE1394_SPEED_100;	/* Force speed to be 100Mbps */
+	packet->type = hpsb_raw;	
+	packet->speed_code = IEEE1394_SPEED_100;	
 }
 
 static void fill_async_stream_packet(struct hpsb_packet *packet, int length,
@@ -112,15 +103,14 @@ static void fill_async_stream_packet(struct hpsb_packet *packet, int length,
 	packet->tcode = TCODE_ISO_DATA;
 }
 
-/* same as hpsb_get_tlabel, except that it returns immediately */
+
 static int hpsb_get_tlabel_atomic(struct hpsb_packet *packet)
 {
 	unsigned long flags, *tp;
 	u8 *next;
 	int tlabel, n = NODEID_TO_NODE(packet->node_id);
 
-	/* Broadcast transactions are complete once the request has been sent.
-	 * Use the same transaction label for all broadcast transactions. */
+	
 	if (unlikely(n == ALL_NODES)) {
 		packet->tlabel = 0;
 		return 0;
@@ -144,49 +134,18 @@ static int hpsb_get_tlabel_atomic(struct hpsb_packet *packet)
 	return 0;
 }
 
-/**
- * hpsb_get_tlabel - allocate a transaction label
- * @packet: the packet whose tlabel and tl_pool we set
- *
- * Every asynchronous transaction on the 1394 bus needs a transaction
- * label to match the response to the request.  This label has to be
- * different from any other transaction label in an outstanding request to
- * the same node to make matching possible without ambiguity.
- *
- * There are 64 different tlabels, so an allocated tlabel has to be freed
- * with hpsb_free_tlabel() after the transaction is complete (unless it's
- * reused again for the same target node).
- *
- * Return value: Zero on success, otherwise non-zero. A non-zero return
- * generally means there are no available tlabels. If this is called out
- * of interrupt or atomic context, then it will sleep until can return a
- * tlabel or a signal is received.
- */
+
 int hpsb_get_tlabel(struct hpsb_packet *packet)
 {
 	if (irqs_disabled() || in_atomic())
 		return hpsb_get_tlabel_atomic(packet);
 
-	/* NB: The macro wait_event_interruptible() is called with a condition
-	 * argument with side effect.  This is only possible because the side
-	 * effect does not occur until the condition became true, and
-	 * wait_event_interruptible() won't evaluate the condition again after
-	 * that. */
+	
 	return wait_event_interruptible(tlabel_wq,
 					!hpsb_get_tlabel_atomic(packet));
 }
 
-/**
- * hpsb_free_tlabel - free an allocated transaction label
- * @packet: packet whose tlabel and tl_pool needs to be cleared
- *
- * Frees the transaction label allocated with hpsb_get_tlabel().  The
- * tlabel has to be freed after the transaction is complete (i.e. response
- * was received for a split transaction or packet was sent for a unified
- * transaction).
- *
- * A tlabel must not be freed twice.
- */
+
 void hpsb_free_tlabel(struct hpsb_packet *packet)
 {
 	unsigned long flags, *tp;
@@ -205,15 +164,7 @@ void hpsb_free_tlabel(struct hpsb_packet *packet)
 	wake_up_interruptible(&tlabel_wq);
 }
 
-/**
- * hpsb_packet_success - Make sense of the ack and reply codes
- *
- * Make sense of the ack and reply codes and return more convenient error codes:
- * 0 = success.  -%EBUSY = node is busy, try again.  -%EAGAIN = error which can
- * probably resolved by retry.  -%EREMOTEIO = node suffers from an internal
- * error.  -%EACCES = this transaction is not allowed on requested address.
- * -%EINVAL = invalid address at node.
- */
+
 int hpsb_packet_success(struct hpsb_packet *packet)
 {
 	switch (packet->ack_code) {
@@ -273,7 +224,7 @@ int hpsb_packet_success(struct hpsb_packet *packet)
 	case ACKX_SEND_ERROR:
 	case ACKX_ABORTED:
 	case ACKX_TIMEOUT:
-		/* error while sending */
+		
 		return -EAGAIN;
 
 	default:
@@ -324,7 +275,7 @@ struct hpsb_packet *hpsb_make_writepacket(struct hpsb_host *host, nodeid_t node,
 	if (!packet)
 		return NULL;
 
-	if (length % 4) {	/* zero padding bytes */
+	if (length % 4) {	
 		packet->data[length >> 2] = 0;
 	}
 	packet->host = host;
@@ -359,16 +310,15 @@ struct hpsb_packet *hpsb_make_streampacket(struct hpsb_host *host, u8 * buffer,
 	if (!packet)
 		return NULL;
 
-	if (length % 4) {	/* zero padding bytes */
+	if (length % 4) {	
 		packet->data[length >> 2] = 0;
 	}
 	packet->host = host;
 
-	/* Because it is too difficult to determine all PHY speeds and link
-	 * speeds here, we use S100... */
+	
 	packet->speed_code = IEEE1394_SPEED_100;
 
-	/* ...and prevent hpsb_send_packet() from overriding it. */
+	
 	packet->node_id = LOCAL_BUS | ALL_NODES;
 
 	if (hpsb_get_tlabel(packet)) {
@@ -477,21 +427,9 @@ struct hpsb_packet *hpsb_make_phypacket(struct hpsb_host *host, quadlet_t data)
 	return p;
 }
 
-/*
- * FIXME - these functions should probably read from / write to user space to
- * avoid in kernel buffers for user space callers
- */
 
-/**
- * hpsb_read - generic read function
- *
- * Recognizes the local node ID and act accordingly.  Automatically uses a
- * quadlet read request if @length == 4 and and a block read request otherwise.
- * It does not yet support lengths that are not a multiple of 4.
- *
- * You must explicitly specifiy the @generation for which the node ID is valid,
- * to avoid sending packets to the wrong nodes when we race with a bus reset.
- */
+
+
 int hpsb_read(struct hpsb_host *host, nodeid_t node, unsigned int generation,
 	      u64 addr, quadlet_t * buffer, size_t length)
 {
@@ -529,16 +467,7 @@ int hpsb_read(struct hpsb_host *host, nodeid_t node, unsigned int generation,
 	return retval;
 }
 
-/**
- * hpsb_write - generic write function
- *
- * Recognizes the local node ID and act accordingly.  Automatically uses a
- * quadlet write request if @length == 4 and and a block write request
- * otherwise.  It does not yet support lengths that are not a multiple of 4.
- *
- * You must explicitly specifiy the @generation for which the node ID is valid,
- * to avoid sending packets to the wrong nodes when we race with a bus reset.
- */
+
 int hpsb_write(struct hpsb_host *host, nodeid_t node, unsigned int generation,
 	       u64 addr, quadlet_t * buffer, size_t length)
 {

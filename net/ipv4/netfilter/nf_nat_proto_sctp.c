@@ -1,10 +1,4 @@
-/*
- * Copyright (c) 2008 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -46,12 +40,12 @@ sctp_manip_pkt(struct sk_buff *skb,
 	hdr = (struct sctphdr *)(skb->data + hdroff);
 
 	if (maniptype == IP_NAT_MANIP_SRC) {
-		/* Get rid of src ip and src pt */
+		
 		oldip = iph->saddr;
 		newip = tuple->src.u3.ip;
 		hdr->source = tuple->src.u.sctp.port;
 	} else {
-		/* Get rid of dst ip and dst pt */
+		
 		oldip = iph->daddr;
 		newip = tuple->dst.u3.ip;
 		hdr->dest = tuple->dst.u.sctp.port;

@@ -1,20 +1,4 @@
-/*
- * tw9910 Video Driver
- *
- * Copyright (C) 2008 Renesas Solutions Corp.
- * Kuninori Morimoto <morimoto.kuninori@renesas.com>
- *
- * Based on ov772x driver,
- *
- * Copyright (C) 2008 Kuninori Morimoto <morimoto.kuninori@renesas.com>
- * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
- * Copyright (C) 2008 Magnus Damm
- * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -31,61 +15,59 @@
 #define GET_ID(val)  ((val & 0xF8) >> 3)
 #define GET_ReV(val) (val & 0x07)
 
-/*
- * register offset
- */
-#define ID		0x00 /* Product ID Code Register */
-#define STATUS1		0x01 /* Chip Status Register I */
-#define INFORM		0x02 /* Input Format */
-#define OPFORM		0x03 /* Output Format Control Register */
-#define DLYCTR		0x04 /* Hysteresis and HSYNC Delay Control */
-#define OUTCTR1		0x05 /* Output Control I */
-#define ACNTL1		0x06 /* Analog Control Register 1 */
-#define CROP_HI		0x07 /* Cropping Register, High */
-#define VDELAY_LO	0x08 /* Vertical Delay Register, Low */
-#define VACTIVE_LO	0x09 /* Vertical Active Register, Low */
-#define HDELAY_LO	0x0A /* Horizontal Delay Register, Low */
-#define HACTIVE_LO	0x0B /* Horizontal Active Register, Low */
-#define CNTRL1		0x0C /* Control Register I */
-#define VSCALE_LO	0x0D /* Vertical Scaling Register, Low */
-#define SCALE_HI	0x0E /* Scaling Register, High */
-#define HSCALE_LO	0x0F /* Horizontal Scaling Register, Low */
-#define BRIGHT		0x10 /* BRIGHTNESS Control Register */
-#define CONTRAST	0x11 /* CONTRAST Control Register */
-#define SHARPNESS	0x12 /* SHARPNESS Control Register I */
-#define SAT_U		0x13 /* Chroma (U) Gain Register */
-#define SAT_V		0x14 /* Chroma (V) Gain Register */
-#define HUE		0x15 /* Hue Control Register */
+
+#define ID		0x00 
+#define STATUS1		0x01 
+#define INFORM		0x02 
+#define OPFORM		0x03 
+#define DLYCTR		0x04 
+#define OUTCTR1		0x05 
+#define ACNTL1		0x06 
+#define CROP_HI		0x07 
+#define VDELAY_LO	0x08 
+#define VACTIVE_LO	0x09 
+#define HDELAY_LO	0x0A 
+#define HACTIVE_LO	0x0B 
+#define CNTRL1		0x0C 
+#define VSCALE_LO	0x0D 
+#define SCALE_HI	0x0E 
+#define HSCALE_LO	0x0F 
+#define BRIGHT		0x10 
+#define CONTRAST	0x11 
+#define SHARPNESS	0x12 
+#define SAT_U		0x13 
+#define SAT_V		0x14 
+#define HUE		0x15 
 #define CORING1		0x17
-#define CORING2		0x18 /* Coring and IF compensation */
-#define VBICNTL		0x19 /* VBI Control Register */
-#define ACNTL2		0x1A /* Analog Control 2 */
-#define OUTCTR2		0x1B /* Output Control 2 */
-#define SDT		0x1C /* Standard Selection */
-#define SDTR		0x1D /* Standard Recognition */
-#define TEST		0x1F /* Test Control Register */
-#define CLMPG		0x20 /* Clamping Gain */
-#define IAGC		0x21 /* Individual AGC Gain */
-#define AGCGAIN		0x22 /* AGC Gain */
-#define PEAKWT		0x23 /* White Peak Threshold */
-#define CLMPL		0x24 /* Clamp level */
-#define SYNCT		0x25 /* Sync Amplitude */
-#define MISSCNT		0x26 /* Sync Miss Count Register */
-#define PCLAMP		0x27 /* Clamp Position Register */
-#define VCNTL1		0x28 /* Vertical Control I */
-#define VCNTL2		0x29 /* Vertical Control II */
-#define CKILL		0x2A /* Color Killer Level Control */
-#define COMB		0x2B /* Comb Filter Control */
-#define LDLY		0x2C /* Luma Delay and H Filter Control */
-#define MISC1		0x2D /* Miscellaneous Control I */
-#define LOOP		0x2E /* LOOP Control Register */
-#define MISC2		0x2F /* Miscellaneous Control II */
-#define MVSN		0x30 /* Macrovision Detection */
-#define STATUS2		0x31 /* Chip STATUS II */
-#define HFREF		0x32 /* H monitor */
-#define CLMD		0x33 /* CLAMP MODE */
-#define IDCNTL		0x34 /* ID Detection Control */
-#define CLCNTL1		0x35 /* Clamp Control I */
+#define CORING2		0x18 
+#define VBICNTL		0x19 
+#define ACNTL2		0x1A 
+#define OUTCTR2		0x1B 
+#define SDT		0x1C 
+#define SDTR		0x1D 
+#define TEST		0x1F 
+#define CLMPG		0x20 
+#define IAGC		0x21 
+#define AGCGAIN		0x22 
+#define PEAKWT		0x23 
+#define CLMPL		0x24 
+#define SYNCT		0x25 
+#define MISSCNT		0x26 
+#define PCLAMP		0x27 
+#define VCNTL1		0x28 
+#define VCNTL2		0x29 
+#define CKILL		0x2A 
+#define COMB		0x2B 
+#define LDLY		0x2C 
+#define MISC1		0x2D 
+#define LOOP		0x2E 
+#define MISC2		0x2F 
+#define MVSN		0x30 
+#define STATUS2		0x31 
+#define HFREF		0x32 
+#define CLMD		0x33 
+#define IDCNTL		0x34 
+#define CLCNTL1		0x35 
 #define ANAPLLCTL	0x4C
 #define VBIMIN		0x4D
 #define HSLOWCTL	0x4E
@@ -123,79 +105,70 @@
 #define OVSEND		0x6E
 #define VBIDELAY	0x6F
 
-/*
- * register detail
- */
 
-/* INFORM */
-#define FC27_ON     0x40 /* 1 : Input crystal clock frequency is 27MHz */
-#define FC27_FF     0x00 /* 0 : Square pixel mode. */
-			 /*     Must use 24.54MHz for 60Hz field rate */
-			 /*     source or 29.5MHz for 50Hz field rate */
-#define IFSEL_S     0x10 /* 01 : S-video decoding */
-#define IFSEL_C     0x00 /* 00 : Composite video decoding */
-			 /* Y input video selection */
-#define YSEL_M0     0x00 /*  00 : Mux0 selected */
-#define YSEL_M1     0x04 /*  01 : Mux1 selected */
-#define YSEL_M2     0x08 /*  10 : Mux2 selected */
-#define YSEL_M3     0x10 /*  11 : Mux3 selected */
 
-/* OPFORM */
-#define MODE        0x80 /* 0 : CCIR601 compatible YCrCb 4:2:2 format */
-			 /* 1 : ITU-R-656 compatible data sequence format */
-#define LEN         0x40 /* 0 : 8-bit YCrCb 4:2:2 output format */
-			 /* 1 : 16-bit YCrCb 4:2:2 output format.*/
-#define LLCMODE     0x20 /* 1 : LLC output mode. */
-			 /* 0 : free-run output mode */
-#define AINC        0x10 /* Serial interface auto-indexing control */
-			 /* 0 : auto-increment */
-			 /* 1 : non-auto */
-#define VSCTL       0x08 /* 1 : Vertical out ctrl by DVALID */
-			 /* 0 : Vertical out ctrl by HACTIVE and DVALID */
-#define OEN         0x04 /* Output Enable together with TRI_SEL. */
 
-/* OUTCTR1 */
-#define VSP_LO      0x00 /* 0 : VS pin output polarity is active low */
-#define VSP_HI      0x80 /* 1 : VS pin output polarity is active high. */
-			 /* VS pin output control */
-#define VSSL_VSYNC  0x00 /*   0 : VSYNC  */
-#define VSSL_VACT   0x10 /*   1 : VACT   */
-#define VSSL_FIELD  0x20 /*   2 : FIELD  */
-#define VSSL_VVALID 0x30 /*   3 : VVALID */
-#define VSSL_ZERO   0x70 /*   7 : 0      */
-#define HSP_LOW     0x00 /* 0 : HS pin output polarity is active low */
-#define HSP_HI      0x08 /* 1 : HS pin output polarity is active high.*/
-			 /* HS pin output control */
-#define HSSL_HACT   0x00 /*   0 : HACT   */
-#define HSSL_HSYNC  0x01 /*   1 : HSYNC  */
-#define HSSL_DVALID 0x02 /*   2 : DVALID */
-#define HSSL_HLOCK  0x03 /*   3 : HLOCK  */
-#define HSSL_ASYNCW 0x04 /*   4 : ASYNCW */
-#define HSSL_ZERO   0x07 /*   7 : 0      */
+#define FC27_ON     0x40 
+#define FC27_FF     0x00 
+			 
+			 
+#define IFSEL_S     0x10 
+#define IFSEL_C     0x00 
+			 
+#define YSEL_M0     0x00 
+#define YSEL_M1     0x04 
+#define YSEL_M2     0x08 
+#define YSEL_M3     0x10 
 
-/* ACNTL1 */
-#define SRESET      0x80 /* resets the device to its default state
-			  * but all register content remain unchanged.
-			  * This bit is self-resetting.
-			  */
 
-/* VBICNTL */
-/* RTSEL : control the real time signal
-*          output from the MPOUT pin
-*/
+#define MODE        0x80 
+			 
+#define LEN         0x40 
+			 
+#define LLCMODE     0x20 
+			 
+#define AINC        0x10 
+			 
+			 
+#define VSCTL       0x08 
+			 
+#define OEN         0x04 
+
+
+#define VSP_LO      0x00 
+#define VSP_HI      0x80 
+			 
+#define VSSL_VSYNC  0x00 
+#define VSSL_VACT   0x10 
+#define VSSL_FIELD  0x20 
+#define VSSL_VVALID 0x30 
+#define VSSL_ZERO   0x70 
+#define HSP_LOW     0x00 
+#define HSP_HI      0x08 
+			 
+#define HSSL_HACT   0x00 
+#define HSSL_HSYNC  0x01 
+#define HSSL_DVALID 0x02 
+#define HSSL_HLOCK  0x03 
+#define HSSL_ASYNCW 0x04 
+#define HSSL_ZERO   0x07 
+
+
+#define SRESET      0x80 
+
+
+
 #define RTSEL_MASK  0x07
-#define RTSEL_VLOSS 0x00 /* 0000 = Video loss */
-#define RTSEL_HLOCK 0x01 /* 0001 = H-lock */
-#define RTSEL_SLOCK 0x02 /* 0010 = S-lock */
-#define RTSEL_VLOCK 0x03 /* 0011 = V-lock */
-#define RTSEL_MONO  0x04 /* 0100 = MONO */
-#define RTSEL_DET50 0x05 /* 0101 = DET50 */
-#define RTSEL_FIELD 0x06 /* 0110 = FIELD */
-#define RTSEL_RTCO  0x07 /* 0111 = RTCO ( Real Time Control ) */
+#define RTSEL_VLOSS 0x00 
+#define RTSEL_HLOCK 0x01 
+#define RTSEL_SLOCK 0x02 
+#define RTSEL_VLOCK 0x03 
+#define RTSEL_MONO  0x04 
+#define RTSEL_DET50 0x05 
+#define RTSEL_FIELD 0x06 
+#define RTSEL_RTCO  0x07 
 
-/*
- * structure
- */
+
 
 struct regval_list {
 	unsigned char reg_num;
@@ -228,9 +201,7 @@ struct tw9910_priv {
 	const struct tw9910_scale_ctrl *scale;
 };
 
-/*
- * register settings
- */
+
 
 #define ENDMARKER { 0xff, 0xff }
 
@@ -352,9 +323,7 @@ static const struct tw9910_hsync_ctrl tw9910_hsync_ctrl = {
 	.end   = 0x0300,
 };
 
-/*
- * general function
- */
+
 static struct tw9910_priv *to_tw9910(const struct i2c_client *client)
 {
 	return container_of(i2c_get_clientdata(client), struct tw9910_priv,
@@ -422,19 +391,19 @@ static int tw9910_set_hsync(struct i2c_client *client,
 {
 	int ret;
 
-	/* bit 10 - 3 */
+	
 	ret = i2c_smbus_write_byte_data(client, HSGEGIN,
 					(hsync->start & 0x07F8) >> 3);
 	if (ret < 0)
 		return ret;
 
-	/* bit 10 - 3 */
+	
 	ret = i2c_smbus_write_byte_data(client, HSEND,
 					(hsync->end & 0x07F8) >> 3);
 	if (ret < 0)
 		return ret;
 
-	/* bit 2 - 0 */
+	
 	ret = i2c_smbus_read_byte_data(client, HSLOWCTL);
 	if (ret < 0)
 		return ret;
@@ -511,9 +480,7 @@ tw9910_select_norm(struct soc_camera_device *icd, u32 width, u32 height)
 	return ret;
 }
 
-/*
- * soc_camera_ops function
- */
+
 static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct i2c_client *client = sd->priv;
@@ -596,9 +563,7 @@ static int tw9910_g_register(struct v4l2_subdev *sd,
 	if (ret < 0)
 		return ret;
 
-	/* ret      = int
-	 * reg->val = __u64
-	 */
+	
 	reg->val = (__u64)ret;
 
 	return 0;
@@ -626,24 +591,18 @@ static int tw9910_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
 	int                 ret  = -EINVAL;
 	u8                  val;
 
-	/*
-	 * select suitable norm
-	 */
+	
 	priv->scale = tw9910_select_norm(icd, rect->width, rect->height);
 	if (!priv->scale)
 		goto tw9910_set_fmt_error;
 
-	/*
-	 * reset hardware
-	 */
+	
 	tw9910_reset(client);
 	ret = tw9910_write_array(client, tw9910_default_regs);
 	if (ret < 0)
 		goto tw9910_set_fmt_error;
 
-	/*
-	 * set bus width
-	 */
+	
 	val = 0x00;
 	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
 		val = LEN;
@@ -652,9 +611,7 @@ static int tw9910_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
 	if (ret < 0)
 		goto tw9910_set_fmt_error;
 
-	/*
-	 * select MPOUT behavior
-	 */
+	
 	switch (priv->info->mpout) {
 	case TW9910_MPO_VLOSS:
 		val = RTSEL_VLOSS; break;
@@ -680,23 +637,17 @@ static int tw9910_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
 	if (ret < 0)
 		goto tw9910_set_fmt_error;
 
-	/*
-	 * set scale
-	 */
+	
 	ret = tw9910_set_scale(client, priv->scale);
 	if (ret < 0)
 		goto tw9910_set_fmt_error;
 
-	/*
-	 * set cropping
-	 */
+	
 	ret = tw9910_set_cropping(client, &tw9910_cropping_ctrl);
 	if (ret < 0)
 		goto tw9910_set_fmt_error;
 
-	/*
-	 * set hsync
-	 */
+	
 	ret = tw9910_set_hsync(client, &tw9910_hsync_ctrl);
 	if (ret < 0)
 		goto tw9910_set_fmt_error;
@@ -799,7 +750,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 	struct i2c_client *client = sd->priv;
 	struct tw9910_priv *priv = to_tw9910(client);
 	struct v4l2_pix_format *pix = &f->fmt.pix;
-	/* See tw9910_s_crop() - no proper cropping support */
+	
 	struct v4l2_crop a = {
 		.c = {
 			.left	= 0,
@@ -810,9 +761,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 	};
 	int i, ret;
 
-	/*
-	 * check color format
-	 */
+	
 	for (i = 0; i < ARRAY_SIZE(tw9910_color_fmt); i++)
 		if (pix->pixelformat == tw9910_color_fmt[i].fourcc)
 			break;
@@ -842,9 +791,7 @@ static int tw9910_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
 		return -EINVAL;
 	}
 
-	/*
-	 * select suitable norm
-	 */
+	
 	scale = tw9910_select_norm(icd, pix->width, pix->height);
 	if (!scale)
 		return -EINVAL;
@@ -861,17 +808,12 @@ static int tw9910_video_probe(struct soc_camera_device *icd,
 	struct tw9910_priv *priv = to_tw9910(client);
 	s32 val;
 
-	/*
-	 * We must have a parent by now. And it cannot be a wrong one.
-	 * So this entire test is completely redundant.
-	 */
+	
 	if (!icd->dev.parent ||
 	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface)
 		return -ENODEV;
 
-	/*
-	 * tw9910 only use 8 or 16 bit bus width
-	 */
+	
 	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
 	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
 		dev_err(&client->dev, "bus width error\n");
@@ -881,9 +823,7 @@ static int tw9910_video_probe(struct soc_camera_device *icd,
 	icd->formats     = tw9910_color_fmt;
 	icd->num_formats = ARRAY_SIZE(tw9910_color_fmt);
 
-	/*
-	 * check and show Product ID
-	 */
+	
 	val = i2c_smbus_read_byte_data(client, ID);
 
 	if (0x0B != GET_ID(val) ||
@@ -932,9 +872,7 @@ static struct v4l2_subdev_ops tw9910_subdev_ops = {
 	.video	= &tw9910_subdev_video_ops,
 };
 
-/*
- * i2c_driver function
- */
+
 
 static int tw9910_probe(struct i2c_client *client,
 			const struct i2c_device_id *did)
@@ -1013,9 +951,7 @@ static struct i2c_driver tw9910_i2c_driver = {
 	.id_table = tw9910_id,
 };
 
-/*
- * module function
- */
+
 static int __init tw9910_module_init(void)
 {
 	return i2c_add_driver(&tw9910_i2c_driver);

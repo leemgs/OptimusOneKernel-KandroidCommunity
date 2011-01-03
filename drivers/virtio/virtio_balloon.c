@@ -1,23 +1,5 @@
-/* Virtio balloon implementation, inspired by Dor Loar and Marcelo
- * Tosatti's implementations.
- *
- *  Copyright 2008 Rusty Russell IBM Corporation
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
-//#define DEBUG
+
+
 #include <linux/virtio.h>
 #include <linux/virtio_balloon.h>
 #include <linux/swap.h>
@@ -30,23 +12,23 @@ struct virtio_balloon
 	struct virtio_device *vdev;
 	struct virtqueue *inflate_vq, *deflate_vq;
 
-	/* Where the ballooning thread waits for config to change. */
+	
 	wait_queue_head_t config_change;
 
-	/* The thread servicing the balloon. */
+	
 	struct task_struct *thread;
 
-	/* Waiting for host to ack the pages we released. */
+	
 	struct completion acked;
 
-	/* Do we have to tell Host *before* we reuse pages? */
+	
 	bool tell_host_first;
 
-	/* The pages we've told the Host we're not using. */
+	
 	unsigned int num_pages;
 	struct list_head pages;
 
-	/* The array of pfns we tell the Host about. */
+	
 	unsigned int num_pfns;
 	u32 pfns[256];
 };
@@ -61,7 +43,7 @@ static u32 page_to_balloon_pfn(struct page *page)
 	unsigned long pfn = page_to_pfn(page);
 
 	BUILD_BUG_ON(PAGE_SHIFT < VIRTIO_BALLOON_PFN_SHIFT);
-	/* Convert pfn from Linux page size to balloon page size. */
+	
 	return pfn >> (PAGE_SHIFT - VIRTIO_BALLOON_PFN_SHIFT);
 }
 
@@ -83,18 +65,18 @@ static void tell_host(struct virtio_balloon *vb, struct virtqueue *vq)
 
 	init_completion(&vb->acked);
 
-	/* We should always be able to add one buffer to an empty queue. */
+	
 	if (vq->vq_ops->add_buf(vq, &sg, 1, 0, vb) < 0)
 		BUG();
 	vq->vq_ops->kick(vq);
 
-	/* When host has read buffer, this completes via balloon_ack */
+	
 	wait_for_completion(&vb->acked);
 }
 
 static void fill_balloon(struct virtio_balloon *vb, size_t num)
 {
-	/* We can only do one array worth at a time. */
+	
 	num = min(num, ARRAY_SIZE(vb->pfns));
 
 	for (vb->num_pfns = 0; vb->num_pfns < num; vb->num_pfns++) {
@@ -104,7 +86,7 @@ static void fill_balloon(struct virtio_balloon *vb, size_t num)
 				dev_printk(KERN_INFO, &vb->vdev->dev,
 					   "Out of puff! Can't get %zu pages\n",
 					   num);
-			/* Sleep for at least 1/5 of a second before retry. */
+			
 			msleep(200);
 			break;
 		}
@@ -114,7 +96,7 @@ static void fill_balloon(struct virtio_balloon *vb, size_t num)
 		list_add(&page->lru, &vb->pages);
 	}
 
-	/* Didn't get any?  Oh well. */
+	
 	if (vb->num_pfns == 0)
 		return;
 
@@ -135,7 +117,7 @@ static void leak_balloon(struct virtio_balloon *vb, size_t num)
 {
 	struct page *page;
 
-	/* We can only do one array worth at a time. */
+	
 	num = min(num, ARRAY_SIZE(vb->pfns));
 
 	for (vb->num_pfns = 0; vb->num_pfns < num; vb->num_pfns++) {
@@ -220,7 +202,7 @@ static int virtballoon_probe(struct virtio_device *vdev)
 	init_waitqueue_head(&vb->config_change);
 	vb->vdev = vdev;
 
-	/* We expect two virtqueues. */
+	
 	err = vdev->config->find_vqs(vdev, 2, vqs, callbacks, names);
 	if (err)
 		goto out_free_vb;
@@ -253,11 +235,11 @@ static void __devexit virtballoon_remove(struct virtio_device *vdev)
 
 	kthread_stop(vb->thread);
 
-	/* There might be pages left in the balloon: free them. */
+	
 	while (vb->num_pages)
 		leak_balloon(vb, vb->num_pages);
 
-	/* Now we reset the device so we can clean up the queues. */
+	
 	vdev->config->reset(vdev);
 
 	vdev->config->del_vqs(vdev);

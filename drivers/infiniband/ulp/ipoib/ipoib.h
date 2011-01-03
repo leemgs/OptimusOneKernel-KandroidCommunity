@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- * Copyright (c) 2004 Voltaire, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #ifndef _IPOIB_H
 #define _IPOIB_H
@@ -52,7 +20,7 @@
 #include <rdma/ib_sa.h>
 #include <linux/inet_lro.h>
 
-/* constants */
+
 
 enum ipoib_flush_level {
 	IPOIB_FLUSH_LIGHT,
@@ -64,9 +32,9 @@ enum {
 	IPOIB_ENCAP_LEN		  = 4,
 
 	IPOIB_UD_HEAD_SIZE	  = IB_GRH_BYTES + IPOIB_ENCAP_LEN,
-	IPOIB_UD_RX_SG		  = 2, /* max buffer needed for 4K mtu */
+	IPOIB_UD_RX_SG		  = 2, 
 
-	IPOIB_CM_MTU		  = 0x10000 - 0x10, /* padding to align header to 16 */
+	IPOIB_CM_MTU		  = 0x10000 - 0x10, 
 	IPOIB_CM_BUF_SIZE	  = IPOIB_CM_MTU  + IPOIB_ENCAP_LEN,
 	IPOIB_CM_HEAD_SIZE	  = IPOIB_CM_BUF_SIZE % PAGE_SIZE,
 	IPOIB_CM_RX_SG		  = ALIGN(IPOIB_CM_BUF_SIZE, PAGE_SIZE) / PAGE_SIZE,
@@ -95,9 +63,9 @@ enum {
 
 	IPOIB_MAX_BACKOFF_SECONDS = 16,
 
-	IPOIB_MCAST_FLAG_FOUND	  = 0,	/* used in set_multicast_list */
+	IPOIB_MCAST_FLAG_FOUND	  = 0,	
 	IPOIB_MCAST_FLAG_SENDONLY = 1,
-	IPOIB_MCAST_FLAG_BUSY	  = 2,	/* joining or already joined */
+	IPOIB_MCAST_FLAG_BUSY	  = 2,	
 	IPOIB_MCAST_FLAG_ATTACHED = 3,
 
 	IPOIB_MAX_LRO_DESCRIPTORS = 8,
@@ -114,7 +82,7 @@ enum {
 #define	IPOIB_OP_CM     (0)
 #endif
 
-/* structs */
+
 
 struct ipoib_header {
 	__be16	proto;
@@ -125,7 +93,7 @@ struct ipoib_pseudoheader {
 	u8  hwaddr[INFINIBAND_ALEN];
 };
 
-/* Used for all multicast joins (broadcast, IPv4 mcast and IPv6 mcast) */
+
 struct ipoib_mcast {
 	struct ib_sa_mcmember_rec mcmember;
 	struct ib_sa_multicast	 *mc;
@@ -165,41 +133,16 @@ struct ipoib_cm_tx_buf {
 struct ib_cm_id;
 
 struct ipoib_cm_data {
-	__be32 qpn; /* High byte MUST be ignored on receive */
+	__be32 qpn; 
 	__be32 mtu;
 };
 
-/*
- * Quoting 10.3.1 Queue Pair and EE Context States:
- *
- * Note, for QPs that are associated with an SRQ, the Consumer should take the
- * QP through the Error State before invoking a Destroy QP or a Modify QP to the
- * Reset State.  The Consumer may invoke the Destroy QP without first performing
- * a Modify QP to the Error State and waiting for the Affiliated Asynchronous
- * Last WQE Reached Event. However, if the Consumer does not wait for the
- * Affiliated Asynchronous Last WQE Reached Event, then WQE and Data Segment
- * leakage may occur. Therefore, it is good programming practice to tear down a
- * QP that is associated with an SRQ by using the following process:
- *
- * - Put the QP in the Error State
- * - Wait for the Affiliated Asynchronous Last WQE Reached Event;
- * - either:
- *       drain the CQ by invoking the Poll CQ verb and either wait for CQ
- *       to be empty or the number of Poll CQ operations has exceeded
- *       CQ capacity size;
- * - or
- *       post another WR that completes on the same CQ and wait for this
- *       WR to return as a WC;
- * - and then invoke a Destroy QP or Reset QP.
- *
- * We use the second option and wait for a completion on the
- * same CQ before destroying QPs attached to our SRQ.
- */
+
 
 enum ipoib_cm_state {
 	IPOIB_CM_RX_LIVE,
-	IPOIB_CM_RX_ERROR, /* Ignored by stale task */
-	IPOIB_CM_RX_FLUSH  /* Last WQE Reached event observed */
+	IPOIB_CM_RX_ERROR, 
+	IPOIB_CM_RX_FLUSH  
 };
 
 struct ipoib_cm_rx {
@@ -236,11 +179,11 @@ struct ipoib_cm_dev_priv {
 	struct ib_srq	       *srq;
 	struct ipoib_cm_rx_buf *srq_ring;
 	struct ib_cm_id	       *id;
-	struct list_head	passive_ids;   /* state: LIVE */
-	struct list_head	rx_error_list; /* state: ERROR */
-	struct list_head	rx_flush_list; /* state: FLUSH, drain not started */
-	struct list_head	rx_drain_list; /* state: FLUSH, drain started */
-	struct list_head	rx_reap_list;  /* state: FLUSH, drain done */
+	struct list_head	passive_ids;   
+	struct list_head	rx_error_list; 
+	struct list_head	rx_flush_list; 
+	struct list_head	rx_drain_list; 
+	struct list_head	rx_reap_list;  
 	struct work_struct      start_task;
 	struct work_struct      reap_task;
 	struct work_struct      skb_task;
@@ -267,11 +210,7 @@ struct ipoib_lro {
 	struct net_lro_desc lro_desc[IPOIB_MAX_LRO_DESCRIPTORS];
 };
 
-/*
- * Device private locking: network stack tx_lock protects members used
- * in TX fast path, lock protects everything else.  lock nests inside
- * of tx_lock (ie tx_lock must be acquired first if needed).
- */
+
 struct ipoib_dev_priv {
 	spinlock_t lock;
 
@@ -403,12 +342,7 @@ static inline int ipoib_ud_need_sg(unsigned int ib_mtu)
 	return IPOIB_UD_BUF_SIZE(ib_mtu) > PAGE_SIZE;
 }
 
-/*
- * We stash a pointer to our private neighbour information after our
- * hardware address in neigh->ha.  The ALIGN() expression here makes
- * sure that this pointer is stored aligned so that an unaligned
- * load is not needed to dereference it.
- */
+
 static inline struct ipoib_neigh **to_ipoib_neigh(struct neighbour *neigh)
 {
 	return (void*) neigh + ALIGN(offsetof(struct neighbour, ha) +
@@ -421,7 +355,7 @@ void ipoib_neigh_free(struct net_device *dev, struct ipoib_neigh *neigh);
 
 extern struct workqueue_struct *ipoib_workqueue;
 
-/* functions */
+
 
 int ipoib_poll(struct napi_struct *napi, int budget);
 void ipoib_ib_completion(struct ib_cq *cq, void *dev_ptr);
@@ -514,7 +448,7 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
 #define IPOIB_FLAGS_RC		0x80
 #define IPOIB_FLAGS_UC		0x40
 
-/* We don't support UC connections at the moment */
+
 #define IPOIB_CM_SUPPORTED(ha)   (ha[0] & (IPOIB_FLAGS_RC))
 
 extern int ipoib_max_conn_qp;
@@ -714,12 +648,12 @@ extern int ipoib_debug_level;
 		if (mcast_debug_level > 0)		\
 			ipoib_printk(KERN_DEBUG, priv, format , ## arg); \
 	} while (0)
-#else /* CONFIG_INFINIBAND_IPOIB_DEBUG */
+#else 
 #define ipoib_dbg(priv, format, arg...)			\
 	do { (void) (priv); } while (0)
 #define ipoib_dbg_mcast(priv, format, arg...)		\
 	do { (void) (priv); } while (0)
-#endif /* CONFIG_INFINIBAND_IPOIB_DEBUG */
+#endif 
 
 #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG_DATA
 #define ipoib_dbg_data(priv, format, arg...)		\
@@ -727,11 +661,11 @@ extern int ipoib_debug_level;
 		if (data_debug_level > 0)		\
 			ipoib_printk(KERN_DEBUG, priv, format , ## arg); \
 	} while (0)
-#else /* CONFIG_INFINIBAND_IPOIB_DEBUG_DATA */
+#else 
 #define ipoib_dbg_data(priv, format, arg...)		\
 	do { (void) (priv); } while (0)
-#endif /* CONFIG_INFINIBAND_IPOIB_DEBUG_DATA */
+#endif 
 
 #define IPOIB_QPN(ha) (be32_to_cpup((__be32 *) ha) & 0xffffff)
 
-#endif /* _IPOIB_H */
+#endif 

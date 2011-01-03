@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2004 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/module.h>
 #include <linux/string.h>
@@ -55,13 +24,7 @@ struct ib_client_data {
 static LIST_HEAD(device_list);
 static LIST_HEAD(client_list);
 
-/*
- * device_mutex protects access to both device_list and client_list.
- * There's no real point to using multiple locks or something fancier
- * like an rwsem: we always access both lists, and we're always
- * modifying one list or the other list.  In any case this is not a
- * hot path so there's no point in trying to optimize.
- */
+
 static DEFINE_MUTEX(device_mutex);
 
 static int ib_device_check_mandatory(struct ib_device *device)
@@ -160,16 +123,7 @@ static int end_port(struct ib_device *device)
 		0 : device->phys_port_cnt;
 }
 
-/**
- * ib_alloc_device - allocate an IB device struct
- * @size:size of structure to allocate
- *
- * Low-level drivers should use ib_alloc_device() to allocate &struct
- * ib_device.  @size is the size of the structure to be allocated,
- * including any private data used by the low-level driver.
- * ib_dealloc_device() must be used to free structures allocated with
- * ib_alloc_device().
- */
+
 struct ib_device *ib_alloc_device(size_t size)
 {
 	BUG_ON(size < sizeof (struct ib_device));
@@ -178,12 +132,7 @@ struct ib_device *ib_alloc_device(size_t size)
 }
 EXPORT_SYMBOL(ib_alloc_device);
 
-/**
- * ib_dealloc_device - free an IB device struct
- * @device:structure to free
- *
- * Free a structure allocated with ib_alloc_device().
- */
+
 void ib_dealloc_device(struct ib_device *device)
 {
 	if (device->reg_state == IB_DEV_UNINITIALIZED) {
@@ -258,15 +207,7 @@ out:
 	return ret;
 }
 
-/**
- * ib_register_device - Register an IB device with IB core
- * @device:Device to register
- *
- * Low-level drivers use ib_register_device() to register their
- * devices with the IB core.  All registered clients will receive a
- * callback for each device that is added. @device must be allocated
- * with ib_alloc_device().
- */
+
 int ib_register_device(struct ib_device *device)
 {
 	int ret;
@@ -323,12 +264,7 @@ int ib_register_device(struct ib_device *device)
 }
 EXPORT_SYMBOL(ib_register_device);
 
-/**
- * ib_unregister_device - Unregister an IB device
- * @device:Device to unregister
- *
- * Unregister an IB device.  All clients will receive a remove callback.
- */
+
 void ib_unregister_device(struct ib_device *device)
 {
 	struct ib_client *client;
@@ -359,19 +295,7 @@ void ib_unregister_device(struct ib_device *device)
 }
 EXPORT_SYMBOL(ib_unregister_device);
 
-/**
- * ib_register_client - Register an IB client
- * @client:Client to register
- *
- * Upper level users of the IB drivers can use ib_register_client() to
- * register callbacks for IB device addition and removal.  When an IB
- * device is added, each registered client's add method will be called
- * (in the order the clients were registered), and when a device is
- * removed, each client's remove method will be called (in the reverse
- * order that clients were registered).  In addition, when
- * ib_register_client() is called, the client will receive an add
- * callback for all devices already registered.
- */
+
 int ib_register_client(struct ib_client *client)
 {
 	struct ib_device *device;
@@ -389,14 +313,7 @@ int ib_register_client(struct ib_client *client)
 }
 EXPORT_SYMBOL(ib_register_client);
 
-/**
- * ib_unregister_client - Unregister an IB client
- * @client:Client to unregister
- *
- * Upper level users use ib_unregister_client() to remove their client
- * registration.  When ib_unregister_client() is called, the client
- * will receive a remove callback for each IB device still registered.
- */
+
 void ib_unregister_client(struct ib_client *client)
 {
 	struct ib_client_data *context, *tmp;
@@ -423,14 +340,7 @@ void ib_unregister_client(struct ib_client *client)
 }
 EXPORT_SYMBOL(ib_unregister_client);
 
-/**
- * ib_get_client_data - Get IB client context
- * @device:Device to get context for
- * @client:Client to get context for
- *
- * ib_get_client_data() returns client context set with
- * ib_set_client_data().
- */
+
 void *ib_get_client_data(struct ib_device *device, struct ib_client *client)
 {
 	struct ib_client_data *context;
@@ -449,15 +359,7 @@ void *ib_get_client_data(struct ib_device *device, struct ib_client *client)
 }
 EXPORT_SYMBOL(ib_get_client_data);
 
-/**
- * ib_set_client_data - Set IB client context
- * @device:Device to set context for
- * @client:Client to set context for
- * @data:Context to set
- *
- * ib_set_client_data() sets client context that can be retrieved with
- * ib_get_client_data().
- */
+
 void ib_set_client_data(struct ib_device *device, struct ib_client *client,
 			void *data)
 {
@@ -479,15 +381,7 @@ out:
 }
 EXPORT_SYMBOL(ib_set_client_data);
 
-/**
- * ib_register_event_handler - Register an IB event handler
- * @event_handler:Handler to register
- *
- * ib_register_event_handler() registers an event handler that will be
- * called back when asynchronous IB events occur (as defined in
- * chapter 11 of the InfiniBand Architecture Specification).  This
- * callback may occur in interrupt context.
- */
+
 int ib_register_event_handler  (struct ib_event_handler *event_handler)
 {
 	unsigned long flags;
@@ -501,13 +395,7 @@ int ib_register_event_handler  (struct ib_event_handler *event_handler)
 }
 EXPORT_SYMBOL(ib_register_event_handler);
 
-/**
- * ib_unregister_event_handler - Unregister an event handler
- * @event_handler:Handler to unregister
- *
- * Unregister an event handler registered with
- * ib_register_event_handler().
- */
+
 int ib_unregister_event_handler(struct ib_event_handler *event_handler)
 {
 	unsigned long flags;
@@ -520,14 +408,7 @@ int ib_unregister_event_handler(struct ib_event_handler *event_handler)
 }
 EXPORT_SYMBOL(ib_unregister_event_handler);
 
-/**
- * ib_dispatch_event - Dispatch an asynchronous event
- * @event:Event to dispatch
- *
- * Low-level drivers must call ib_dispatch_event() to dispatch the
- * event to all registered event handlers when an asynchronous event
- * occurs.
- */
+
 void ib_dispatch_event(struct ib_event *event)
 {
 	unsigned long flags;
@@ -542,14 +423,7 @@ void ib_dispatch_event(struct ib_event *event)
 }
 EXPORT_SYMBOL(ib_dispatch_event);
 
-/**
- * ib_query_device - Query IB device attributes
- * @device:Device to query
- * @device_attr:Device attributes
- *
- * ib_query_device() returns the attributes of a device through the
- * @device_attr pointer.
- */
+
 int ib_query_device(struct ib_device *device,
 		    struct ib_device_attr *device_attr)
 {
@@ -557,15 +431,7 @@ int ib_query_device(struct ib_device *device,
 }
 EXPORT_SYMBOL(ib_query_device);
 
-/**
- * ib_query_port - Query IB port attributes
- * @device:Device to query
- * @port_num:Port number to query
- * @port_attr:Port attributes
- *
- * ib_query_port() returns the attributes of a port through the
- * @port_attr pointer.
- */
+
 int ib_query_port(struct ib_device *device,
 		  u8 port_num,
 		  struct ib_port_attr *port_attr)
@@ -577,15 +443,7 @@ int ib_query_port(struct ib_device *device,
 }
 EXPORT_SYMBOL(ib_query_port);
 
-/**
- * ib_query_gid - Get GID table entry
- * @device:Device to query
- * @port_num:Port number to query
- * @index:GID table index to query
- * @gid:Returned GID
- *
- * ib_query_gid() fetches the specified GID table entry.
- */
+
 int ib_query_gid(struct ib_device *device,
 		 u8 port_num, int index, union ib_gid *gid)
 {
@@ -593,15 +451,7 @@ int ib_query_gid(struct ib_device *device,
 }
 EXPORT_SYMBOL(ib_query_gid);
 
-/**
- * ib_query_pkey - Get P_Key table entry
- * @device:Device to query
- * @port_num:Port number to query
- * @index:P_Key table index to query
- * @pkey:Returned P_Key
- *
- * ib_query_pkey() fetches the specified P_Key table entry.
- */
+
 int ib_query_pkey(struct ib_device *device,
 		  u8 port_num, u16 index, u16 *pkey)
 {
@@ -609,15 +459,7 @@ int ib_query_pkey(struct ib_device *device,
 }
 EXPORT_SYMBOL(ib_query_pkey);
 
-/**
- * ib_modify_device - Change IB device attributes
- * @device:Device to modify
- * @device_modify_mask:Mask of attributes to change
- * @device_modify:New attribute values
- *
- * ib_modify_device() changes a device's attributes as specified by
- * the @device_modify_mask and @device_modify structure.
- */
+
 int ib_modify_device(struct ib_device *device,
 		     int device_modify_mask,
 		     struct ib_device_modify *device_modify)
@@ -627,17 +469,7 @@ int ib_modify_device(struct ib_device *device,
 }
 EXPORT_SYMBOL(ib_modify_device);
 
-/**
- * ib_modify_port - Modifies the attributes for the specified port.
- * @device: The device to modify.
- * @port_num: The number of the port to modify.
- * @port_modify_mask: Mask used to specify which attributes of the port
- *   to change.
- * @port_modify: New attribute values for the port.
- *
- * ib_modify_port() changes a port's attributes as specified by the
- * @port_modify_mask and @port_modify structure.
- */
+
 int ib_modify_port(struct ib_device *device,
 		   u8 port_num, int port_modify_mask,
 		   struct ib_port_modify *port_modify)
@@ -650,15 +482,7 @@ int ib_modify_port(struct ib_device *device,
 }
 EXPORT_SYMBOL(ib_modify_port);
 
-/**
- * ib_find_gid - Returns the port number and GID table index where
- *   a specified GID value occurs.
- * @device: The device to query.
- * @gid: The GID value to search for.
- * @port_num: The port number of the device where the GID value was found.
- * @index: The index into the GID table where the GID was found.  This
- *   parameter may be NULL.
- */
+
 int ib_find_gid(struct ib_device *device, union ib_gid *gid,
 		u8 *port_num, u16 *index)
 {
@@ -683,14 +507,7 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
 }
 EXPORT_SYMBOL(ib_find_gid);
 
-/**
- * ib_find_pkey - Returns the PKey table index where a specified
- *   PKey value occurs.
- * @device: The device to query.
- * @port_num: The port number of the device to search for the PKey.
- * @pkey: The PKey value to search for.
- * @index: The index into the PKey table where the PKey was found.
- */
+
 int ib_find_pkey(struct ib_device *device,
 		 u8 port_num, u16 pkey, u16 *index)
 {
@@ -733,7 +550,7 @@ static void __exit ib_core_cleanup(void)
 {
 	ib_cache_cleanup();
 	ib_sysfs_cleanup();
-	/* Make sure that any pending umem accounting work is done. */
+	
 	flush_scheduled_work();
 }
 

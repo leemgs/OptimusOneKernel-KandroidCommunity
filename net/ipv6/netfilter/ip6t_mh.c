@@ -1,16 +1,4 @@
-/*
- * Copyright (C)2006 USAGI/WIDE Project
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Author:
- *	Masahide NAKAMURA @USAGI <masahide.nakamura.cz@hitachi.com>
- *
- * Based on net/netfilter/xt_tcpudp.c
- *
- */
+
 #include <linux/types.h>
 #include <linux/module.h>
 #include <net/ip.h>
@@ -30,7 +18,7 @@ MODULE_LICENSE("GPL");
 #define duprintf(format, args...)
 #endif
 
-/* Returns 1 if the type is matched by the range, 0 otherwise */
+
 static inline bool
 type_match(u_int8_t min, u_int8_t max, u_int8_t type, bool invert)
 {
@@ -43,14 +31,13 @@ static bool mh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 	const struct ip6_mh *mh;
 	const struct ip6t_mh *mhinfo = par->matchinfo;
 
-	/* Must not be a fragment. */
+	
 	if (par->fragoff != 0)
 		return false;
 
 	mh = skb_header_pointer(skb, par->thoff, sizeof(_mh), &_mh);
 	if (mh == NULL) {
-		/* We've been asked to examine this packet, and we
-		   can't.  Hence, no choice but to drop. */
+		
 		duprintf("Dropping evil MH tinygram.\n");
 		*par->hotdrop = true;
 		return false;
@@ -71,7 +58,7 @@ static bool mh_mt6_check(const struct xt_mtchk_param *par)
 {
 	const struct ip6t_mh *mhinfo = par->matchinfo;
 
-	/* Must specify no unknown invflags */
+	
 	return !(mhinfo->invflags & ~IP6T_MH_INV_MASK);
 }
 

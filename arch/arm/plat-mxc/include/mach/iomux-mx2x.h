@@ -1,21 +1,4 @@
-/*
-* Copyright (C) 2008 by Sascha Hauer <kernel@pengutronix.de>
-* Copyright (C) 2009 by Holger Schurig <hs4233@mail.mn-solutions.de>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-* MA 02110-1301, USA.
-*/
+
 
 #ifndef _MXC_IOMUX_MX2x_H
 #define _MXC_IOMUX_MX2x_H
@@ -25,7 +8,7 @@
 #endif
 
 
-/* Primary GPIO pin functions */
+
 
 #define PA5_PF_LSCLK            (GPIO_PORTA | GPIO_PF | GPIO_OUT | 5)
 #define PA6_PF_LD0              (GPIO_PORTA | GPIO_PF | GPIO_OUT | 6)
@@ -139,7 +122,7 @@
 #define PF21_PF_CS4             (GPIO_PORTF | GPIO_PF | 21)
 #define PF22_PF_CS5             (GPIO_PORTF | GPIO_PF | 22)
 
-/* Alternate GPIO pin functions */
+
 
 #define PB26_AF_UART4_RTS       (GPIO_PORTB | GPIO_AF | GPIO_IN | 26)
 #define PB28_AF_UART4_TXD       (GPIO_PORTB | GPIO_AF | GPIO_OUT | 28)
@@ -169,7 +152,7 @@
 #define PE22_AF_CSPI3_MOSI      (GPIO_PORTE | GPIO_AF | GPIO_OUT | 22)
 #define PE23_AF_CSPI3_SCLK      (GPIO_PORTE | GPIO_AF | GPIO_OUT | 23)
 
-/* AIN GPIO pin functions */
+
 
 #define PA6_AIN_SLCDC1_DAT0     (GPIO_PORTA | GPIO_AIN | GPIO_OUT | 6)
 #define PA7_AIN_SLCDC1_DAT1     (GPIO_PORTA | GPIO_AIN | GPIO_OUT | 7)
@@ -208,11 +191,11 @@
 #define PC13_AIN_SLCDC1_DAT15   (GPIO_PORTC | GPIO_AIN | GPIO_OUT | 13)
 #define PE5_AIN_PC_SPKOUT       (GPIO_PORTE | GPIO_AIN | GPIO_OUT | 5)
 
-/* BIN GPIO pin functions */
+
 
 #define PE5_BIN_TOUT2           (GPIO_PORTE | GPIO_BIN | GPIO_OUT | 5)
 
-/* CIN GPIO pin functions */
+
 
 #define PA14_CIN_SLCDC1_DAT0    (GPIO_PORTA | GPIO_CIN | GPIO_OUT | 14)
 #define PA15_CIN_SLCDC1_DAT1    (GPIO_PORTA | GPIO_CIN | GPIO_OUT | 15)
@@ -225,7 +208,7 @@
 #define PB30_CIN_UART4_CTS      (GPIO_PORTB | GPIO_CIN | GPIO_OUT | 30)
 #define PE5_CIN_TOUT3           (GPIO_PORTE | GPIO_CIN | GPIO_OUT | 5)
 
-/* AOUT GPIO pin functions */
+
 
 #define PB29_AOUT_UART4_RXD     (GPIO_PORTB | GPIO_AOUT | GPIO_IN | 29)
 #define PB31_AOUT_UART4_RTS     (GPIO_PORTB | GPIO_AOUT | GPIO_IN | 31)

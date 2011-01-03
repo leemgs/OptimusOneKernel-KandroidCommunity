@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2008 open80211s Ltd.
- * Author:     Luis Carlos Cobo <luisca@cozybit.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/etherdevice.h>
 #include <linux/list.h>
@@ -16,10 +9,10 @@
 #include "ieee80211_i.h"
 #include "mesh.h"
 
-/* There will be initially 2^INIT_PATHS_SIZE_ORDER buckets */
+
 #define INIT_PATHS_SIZE_ORDER	2
 
-/* Keep the mean chain length below this constant */
+
 #define MEAN_CHAIN_LEN		2
 
 #define MPATH_EXPIRED(mpath) ((mpath->flags & MESH_PATH_ACTIVE) && \
@@ -29,14 +22,12 @@
 struct mpath_node {
 	struct hlist_node list;
 	struct rcu_head rcu;
-	/* This indirection allows two different tables to point to the same
-	 * mesh_path structure, useful when resizing
-	 */
+	
 	struct mesh_path *mpath;
 };
 
 static struct mesh_table *mesh_paths;
-static struct mesh_table *mpp_paths; /* Store paths for MPP&MAP */
+static struct mesh_table *mpp_paths; 
 
 int mesh_paths_generation;
 static void __mesh_table_free(struct mesh_table *tbl)
@@ -103,21 +94,10 @@ endgrow:
 }
 
 
-/* This lock will have the grow table function as writer and add / delete nodes
- * as readers. When reading the table (i.e. doing lookups) we are well protected
- * by RCU
- */
+
 static DEFINE_RWLOCK(pathtbl_resize_lock);
 
-/**
- *
- * mesh_path_assign_nexthop - update mesh path next hop
- *
- * @mpath: mesh path to update
- * @sta: next hop to assign
- *
- * Locking: mpath->state_lock must be held when calling this function
- */
+
 void mesh_path_assign_nexthop(struct mesh_path *mpath, struct sta_info *sta)
 {
 	struct sk_buff *skb;
@@ -142,15 +122,7 @@ void mesh_path_assign_nexthop(struct mesh_path *mpath, struct sta_info *sta)
 }
 
 
-/**
- * mesh_path_lookup - look up a path in the mesh path table
- * @dst: hardware address (ETH_ALEN length) of destination
- * @sdata: local subif
- *
- * Returns: pointer to the mesh path structure, or NULL if not found
- *
- * Locking: must be called within a read rcu section.
- */
+
 struct mesh_path *mesh_path_lookup(u8 *dst, struct ieee80211_sub_if_data *sdata)
 {
 	struct mesh_path *mpath;
@@ -206,15 +178,7 @@ struct mesh_path *mpp_path_lookup(u8 *dst, struct ieee80211_sub_if_data *sdata)
 }
 
 
-/**
- * mesh_path_lookup_by_idx - look up a path in the mesh path table by its index
- * @idx: index
- * @sdata: local subif, or NULL for all entries
- *
- * Returns: pointer to the mesh path structure, or NULL if not found.
- *
- * Locking: must be called within a read rcu section.
- */
+
 struct mesh_path *mesh_path_lookup_by_idx(int idx, struct ieee80211_sub_if_data *sdata)
 {
 	struct mpath_node *node;
@@ -239,15 +203,7 @@ struct mesh_path *mesh_path_lookup_by_idx(int idx, struct ieee80211_sub_if_data 
 	return NULL;
 }
 
-/**
- * mesh_path_add - allocate and add a new path to the mesh path table
- * @addr: destination address of the path (ETH_ALEN length)
- * @sdata: local subif
- *
- * Returns: 0 on sucess
- *
- * State: the initial state of the new path is set to 0
- */
+
 int mesh_path_add(u8 *dst, struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
@@ -261,7 +217,7 @@ int mesh_path_add(u8 *dst, struct ieee80211_sub_if_data *sdata)
 	u32 hash_idx;
 
 	if (memcmp(dst, sdata->dev->dev_addr, ETH_ALEN) == 0)
-		/* never add ourselves as neighbours */
+		
 		return -ENOTSUPP;
 
 	if (is_multicast_ether_addr(dst))
@@ -378,7 +334,7 @@ int mpp_path_add(u8 *dst, u8 *mpp, struct ieee80211_sub_if_data *sdata)
 	u32 hash_idx;
 
 	if (memcmp(dst, sdata->dev->dev_addr, ETH_ALEN) == 0)
-		/* never add ourselves as neighbours */
+		
 		return -ENOTSUPP;
 
 	if (is_multicast_ether_addr(dst))
@@ -439,14 +395,7 @@ err_path_alloc:
 }
 
 
-/**
- * mesh_plink_broken - deactivates paths and sends perr when a link breaks
- *
- * @sta: broken peer link
- *
- * This function must be called from the rate control algorithm if enough
- * delivery errors suggest that a peer link is no longer usable.
- */
+
 void mesh_plink_broken(struct sta_info *sta)
 {
 	struct mesh_path *mpath;
@@ -474,17 +423,7 @@ void mesh_plink_broken(struct sta_info *sta)
 	rcu_read_unlock();
 }
 
-/**
- * mesh_path_flush_by_nexthop - Deletes mesh paths if their next hop matches
- *
- * @sta - mesh peer to match
- *
- * RCU notes: this function is called when a mesh plink transitions from
- * PLINK_ESTAB to any other state, since PLINK_ESTAB state is the only one that
- * allows path creation. This will happen before the sta can be freed (because
- * sta_info_destroy() calls this) so any reader in a rcu read block will be
- * protected against the plink disappearing.
- */
+
 void mesh_path_flush_by_nexthop(struct sta_info *sta)
 {
 	struct mesh_path *mpath;
@@ -524,14 +463,7 @@ static void mesh_path_node_reclaim(struct rcu_head *rp)
 	kfree(node);
 }
 
-/**
- * mesh_path_del - delete a mesh path from the table
- *
- * @addr: dst address (ETH_ALEN length)
- * @sdata: local subif
- *
- * Returns: 0 if succesful
- */
+
 int mesh_path_del(u8 *addr, struct ieee80211_sub_if_data *sdata)
 {
 	struct mesh_path *mpath;
@@ -568,14 +500,7 @@ enddel:
 	return err;
 }
 
-/**
- * mesh_path_tx_pending - sends pending frames in a mesh path queue
- *
- * @mpath: mesh path to activate
- *
- * Locking: the state_lock of the mpath structure must NOT be held when calling
- * this function.
- */
+
 void mesh_path_tx_pending(struct mesh_path *mpath)
 {
 	if (mpath->flags & MESH_PATH_ACTIVE)
@@ -583,19 +508,7 @@ void mesh_path_tx_pending(struct mesh_path *mpath)
 				&mpath->frame_queue);
 }
 
-/**
- * mesh_path_discard_frame - discard a frame whose path could not be resolved
- *
- * @skb: frame to discard
- * @sdata: network subif the frame was to be sent through
- *
- * If the frame was being forwarded from another MP, a PERR frame will be sent
- * to the precursor.  The precursor's address (i.e. the previous hop) was saved
- * in addr1 of the frame-to-be-forwarded, and would only be overwritten once
- * the destination is successfully resolved.
- *
- * Locking: the function must me called within a rcu_read_lock region
- */
+
 void mesh_path_discard_frame(struct sk_buff *skb,
 			     struct ieee80211_sub_if_data *sdata)
 {
@@ -618,13 +531,7 @@ void mesh_path_discard_frame(struct sk_buff *skb,
 	sdata->u.mesh.mshstats.dropped_frames_no_route++;
 }
 
-/**
- * mesh_path_flush_pending - free the pending queue of a mesh path
- *
- * @mpath: mesh path whose queue has to be freed
- *
- * Locking: the function must me called withing a rcu_read_lock region
- */
+
 void mesh_path_flush_pending(struct mesh_path *mpath)
 {
 	struct sk_buff *skb;
@@ -634,14 +541,7 @@ void mesh_path_flush_pending(struct mesh_path *mpath)
 		mesh_path_discard_frame(skb, mpath->sdata);
 }
 
-/**
- * mesh_path_fix_nexthop - force a specific next hop for a mesh path
- *
- * @mpath: the mesh path to modify
- * @next_hop: the next hop to force
- *
- * Locking: this function must be called holding mpath->state_lock
- */
+
 void mesh_path_fix_nexthop(struct mesh_path *mpath, struct sta_info *next_hop)
 {
 	spin_lock_bh(&mpath->state_lock);

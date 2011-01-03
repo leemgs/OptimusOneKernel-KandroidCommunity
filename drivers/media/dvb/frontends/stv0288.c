@@ -1,27 +1,4 @@
-/*
-	Driver for ST STV0288 demodulator
-	Copyright (C) 2006 Georg Acher, BayCom GmbH, acher (at) baycom (dot) de
-		for Reel Multimedia
-	Copyright (C) 2008 TurboSight.com, Bob Liu <bob@turbosight.com>
-	Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
-		Removed stb6000 specific tuner code and revised some
-		procedures.
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -133,9 +110,9 @@ static int stv0288_set_symbolrate(struct dvb_frontend *fe, u32 srate)
 		b[0] = (unsigned char)((temp >> 12) & 0xff);
 		b[1] = (unsigned char)((temp >> 4) & 0xff);
 		b[2] = (unsigned char)((temp << 4) & 0xf0);
-		stv0288_writeregI(state, 0x28, 0x80); /* SFRH */
-		stv0288_writeregI(state, 0x29, 0); /* SFRM */
-		stv0288_writeregI(state, 0x2a, 0); /* SFRL */
+		stv0288_writeregI(state, 0x28, 0x80); 
+		stv0288_writeregI(state, 0x29, 0); 
+		stv0288_writeregI(state, 0x2a, 0); 
 
 		stv0288_writeregI(state, 0x28, b[0]);
 		stv0288_writeregI(state, 0x29, b[1]);
@@ -174,7 +151,7 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend *fe,
 
 	dprintk("%s\n", __func__);
 
-	if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
+	if (stv0288_writeregI(state, 0x05, 0x16))
 		return -EREMOTEIO;
 
 	if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
@@ -192,12 +169,12 @@ static int stv0288_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
 
 	switch (tone) {
 	case SEC_TONE_ON:
-		if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
+		if (stv0288_writeregI(state, 0x05, 0x10))
 			return -EREMOTEIO;
 		return stv0288_writeregI(state, 0x06, 0xff);
 
 	case SEC_TONE_OFF:
-		if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
+		if (stv0288_writeregI(state, 0x05, 0x13))
 			return -EREMOTEIO;
 		return stv0288_writeregI(state, 0x06, 0x00);
 
@@ -335,7 +312,7 @@ static int stv0288_init(struct dvb_frontend *fe)
 	stv0288_writeregI(state, 0x41, 0x04);
 	msleep(50);
 
-	/* we have default inittab */
+	
 	if (state->config->inittab == NULL) {
 		for (i = 0; !(stv0288_inittab[i] == 0xff &&
 				stv0288_inittab[i + 1] == 0xff); i += 2)
@@ -468,7 +445,7 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
 	if (state->config->set_ts_params)
 		state->config->set_ts_params(fe, 0);
 
-	/* only frequency & symbol_rate are used for tuner*/
+	
 	dfp->frequency = c->frequency;
 	dfp->u.qpsk.symbol_rate = c->symbol_rate;
 	if (fe->ops.tuner_ops.set_params) {
@@ -479,13 +456,13 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
 
 	udelay(10);
 	stv0288_set_symbolrate(fe, c->symbol_rate);
-	/* Carrier lock control register */
+	
 	stv0288_writeregI(state, 0x15, 0xc5);
 
-	tda[0] = 0x2b; /* CFRM */
-	tda[2] = 0x0; /* CFRL */
+	tda[0] = 0x2b; 
+	tda[2] = 0x0; 
 	for (tm = -6; tm < 7;) {
-		/* Viterbi status */
+		
 		if (stv0288_readreg(state, 0x24) & 0x80)
 			break;
 
@@ -532,11 +509,11 @@ static struct dvb_frontend_ops stv0288_ops = {
 		.type			= FE_QPSK,
 		.frequency_min		= 950000,
 		.frequency_max		= 2150000,
-		.frequency_stepsize	= 1000,	 /* kHz for QPSK frontends */
+		.frequency_stepsize	= 1000,	 
 		.frequency_tolerance	= 0,
 		.symbol_rate_min	= 1000000,
 		.symbol_rate_max	= 45000000,
-		.symbol_rate_tolerance	= 500,	/* ppm */
+		.symbol_rate_tolerance	= 500,	
 		.caps = FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
 		      FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 |
 		      FE_CAN_QPSK |
@@ -569,12 +546,12 @@ struct dvb_frontend *stv0288_attach(const struct stv0288_config *config,
 	struct stv0288_state *state = NULL;
 	int id;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct stv0288_state), GFP_KERNEL);
 	if (state == NULL)
 		goto error;
 
-	/* setup the state */
+	
 	state->config = config;
 	state->i2c = i2c;
 	state->initialised = 0;
@@ -588,11 +565,11 @@ struct dvb_frontend *stv0288_attach(const struct stv0288_config *config,
 	id = stv0288_readreg(state, 0x00);
 	dprintk("stv0288 id %x\n", id);
 
-	/* register 0x00 contains 0x11 for STV0288  */
+	
 	if (id != 0x11)
 		goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &stv0288_ops,
 			sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;

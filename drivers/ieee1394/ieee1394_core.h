@@ -12,32 +12,22 @@
 #include "ieee1394_types.h"
 
 struct hpsb_packet {
-	/* This struct is basically read-only for hosts with the exception of
-	 * the data buffer contents and driver_list. */
+	
 
-	/* This can be used for host driver internal linking.
-	 *
-	 * NOTE: This must be left in init state when the driver is done
-	 * with it (e.g. by using list_del_init()), since the core does
-	 * some sanity checks to make sure the packet is not on a
-	 * driver_list when free'ing it. */
+	
 	struct list_head driver_list;
 
 	nodeid_t node_id;
 
-	/* hpsb_raw = send as-is, do not CRC (but still byte-swap it) */
+	
 	enum { hpsb_async, hpsb_raw } __attribute__((packed)) type;
 
-	/* Okay, this is core internal and a no care for hosts.
-	 * queued   = queued for sending
-	 * pending  = sent, waiting for response
-	 * complete = processing completed, successful or not
-	 */
+	
 	enum {
 		hpsb_unused, hpsb_queued, hpsb_pending, hpsb_complete
 	} __attribute__((packed)) state;
 
-	/* These are core-internal. */
+	
 	signed char tlabel;
 	signed char ack_code;
 	unsigned char tcode;
@@ -45,7 +35,7 @@ struct hpsb_packet {
 	unsigned expect_response:1;
 	unsigned no_waiter:1;
 
-	/* Speed to transmit with: 0 = 100Mbps, 1 = 200Mbps, 2 = 400Mbps */
+	
 	unsigned speed_code:2;
 
 	struct hpsb_host *host;
@@ -54,25 +44,24 @@ struct hpsb_packet {
 	atomic_t refcnt;
 	struct list_head queue;
 
-	/* Function (and possible data to pass to it) to call when this
-	 * packet is completed.  */
+	
 	void (*complete_routine)(void *);
 	void *complete_data;
 
-	/* Store jiffies for implementing bus timeouts. */
+	
 	unsigned long sendtime;
 
-	/* Core-internal.  */
-	size_t allocated_data_size;	/* as allocated */
+	
+	size_t allocated_data_size;	
 
-	/* Sizes are in bytes. To be set by caller of hpsb_alloc_packet. */
-	size_t data_size;		/* as filled in */
-	size_t header_size;		/* as filled in, not counting the CRC */
+	
+	size_t data_size;		
+	size_t header_size;		
 
-	/* Buffers */
-	quadlet_t *data;		/* can be DMA-mapped */
+	
+	quadlet_t *data;		
 	quadlet_t header[5];
-	quadlet_t embedded_data[0];	/* keep as last member */
+	quadlet_t embedded_data[0];	
 };
 
 void hpsb_set_packet_complete_task(struct hpsb_packet *packet,
@@ -85,12 +74,7 @@ void abort_timedouts(unsigned long __opaque);
 struct hpsb_packet *hpsb_alloc_packet(size_t data_size);
 void hpsb_free_packet(struct hpsb_packet *packet);
 
-/**
- * get_hpsb_generation - generation counter for the complete 1394 subsystem
- *
- * Generation gets incremented on every change in the subsystem (notably on bus
- * resets). Use the functions, not the variable.
- */
+
 static inline unsigned int get_hpsb_generation(struct hpsb_host *host)
 {
 	return atomic_read(&host->generation);
@@ -111,28 +95,7 @@ void hpsb_packet_sent(struct hpsb_host *host, struct hpsb_packet *packet,
 void hpsb_packet_received(struct hpsb_host *host, quadlet_t *data, size_t size,
 			  int write_acked);
 
-/*
- * CHARACTER DEVICE DISPATCHING
- *
- * All ieee1394 character device drivers share the same major number
- * (major 171).  The 256 minor numbers are allocated to the various
- * task-specific interfaces (raw1394, video1394, dv1394, etc) in
- * blocks of 16.
- *
- * The core ieee1394.o module allocates the device number region
- * 171:0-255, the various drivers must then cdev_add() their cdev
- * objects to handle their respective sub-regions.
- *
- * Minor device number block allocations:
- *
- * Block 0  (  0- 15)  raw1394
- * Block 1  ( 16- 31)  video1394
- * Block 2  ( 32- 47)  dv1394
- *
- * Blocks 3-14 free for future allocation
- *
- * Block 15 (240-255)  reserved for drivers under development, etc.
- */
+
 
 #define IEEE1394_MAJOR			 171
 
@@ -151,9 +114,7 @@ void hpsb_packet_received(struct hpsb_host *host, quadlet_t *data, size_t size,
 #define IEEE1394_EXPERIMENTAL_DEV MKDEV(IEEE1394_MAJOR, \
 					IEEE1394_MINOR_BLOCK_EXPERIMENTAL * 16)
 
-/**
- * ieee1394_file_to_instance - get the index within a minor number block
- */
+
 static inline unsigned char ieee1394_file_to_instance(struct file *file)
 {
 	int idx = cdev_index(file->f_path.dentry->d_inode);
@@ -164,9 +125,9 @@ static inline unsigned char ieee1394_file_to_instance(struct file *file)
 
 extern int hpsb_disable_irm;
 
-/* Our sysfs bus entry */
+
 extern struct bus_type ieee1394_bus_type;
 extern struct class hpsb_host_class;
 extern struct class *hpsb_protocol_class;
 
-#endif /* _IEEE1394_CORE_H */
+#endif 

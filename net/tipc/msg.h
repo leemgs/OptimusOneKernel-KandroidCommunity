@@ -1,38 +1,4 @@
-/*
- * net/tipc/msg.h: Include file for TIPC message header routines
- *
- * Copyright (c) 2000-2007, Ericsson AB
- * Copyright (c) 2005-2008, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #ifndef _TIPC_MSG_H
 #define _TIPC_MSG_H
@@ -41,24 +7,18 @@
 
 #define TIPC_VERSION              2
 
-#define SHORT_H_SIZE              24	/* Connected, in-cluster messages */
-#define DIR_MSG_H_SIZE            32	/* Directly addressed messages */
-#define LONG_H_SIZE               40	/* Named messages */
-#define MCAST_H_SIZE              44	/* Multicast messages */
-#define INT_H_SIZE                40	/* Internal messages */
-#define MIN_H_SIZE                24	/* Smallest legal TIPC header size */
-#define MAX_H_SIZE                60	/* Largest possible TIPC header size */
+#define SHORT_H_SIZE              24	
+#define DIR_MSG_H_SIZE            32	
+#define LONG_H_SIZE               40	
+#define MCAST_H_SIZE              44	
+#define INT_H_SIZE                40	
+#define MIN_H_SIZE                24	
+#define MAX_H_SIZE                60	
 
 #define MAX_MSG_SIZE (MAX_H_SIZE + TIPC_MAX_USER_MSG_SIZE)
 
 
-/*
-		TIPC user data message header format, version 2
 
-	- Fundamental definitions available to privileged TIPC users
-	  are located in tipc_msg.h.
-	- Remaining definitions available to TIPC internal users appear below.
-*/
 
 
 static inline void msg_set_word(struct tipc_msg *m, u32 w, u32 val)
@@ -83,9 +43,7 @@ static inline void msg_swap_words(struct tipc_msg *msg, u32 a, u32 b)
 	msg->hdr[b] = temp;
 }
 
-/*
- * Word 0
- */
+
 
 static inline u32 msg_version(struct tipc_msg *m)
 {
@@ -158,9 +116,7 @@ static inline void msg_set_size(struct tipc_msg *m, u32 sz)
 }
 
 
-/*
- * Word 1
- */
+
 
 static inline void msg_set_type(struct tipc_msg *m, u32 n)
 {
@@ -208,9 +164,7 @@ static inline void msg_set_bcast_ack(struct tipc_msg *m, u32 n)
 }
 
 
-/*
- * Word 2
- */
+
 
 static inline u32 msg_ack(struct tipc_msg *m)
 {
@@ -232,15 +186,7 @@ static inline void msg_set_seqno(struct tipc_msg *m, u32 n)
 	msg_set_bits(m, 2, 0, 0xffff, n);
 }
 
-/*
- * TIPC may utilize the "link ack #" and "link seq #" fields of a short
- * message header to hold the destination node for the message, since the
- * normal "dest node" field isn't present.  This cache is only referenced
- * when required, so populating the cache of a longer message header is
- * harmless (as long as the header has the two link sequence fields present).
- *
- * Note: Host byte order is OK here, since the info never goes off-card.
- */
+
 
 static inline u32 msg_destnode_cache(struct tipc_msg *m)
 {
@@ -252,9 +198,7 @@ static inline void msg_set_destnode_cache(struct tipc_msg *m, u32 dnode)
 	m->hdr[2] = dnode;
 }
 
-/*
- * Words 3-10
- */
+
 
 
 static inline void msg_set_prevnode(struct tipc_msg *m, u32 a)
@@ -345,42 +289,9 @@ static inline struct tipc_msg *msg_get_wrapped(struct tipc_msg *m)
 }
 
 
-/*
-		TIPC internal message header format, version 2
 
-       1 0 9 8 7 6 5 4|3 2 1 0 9 8 7 6|5 4 3 2 1 0 9 8|7 6 5 4 3 2 1 0
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w0:|vers |msg usr|hdr sz |n|resrv|            packet size          |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w1:|m typ|      sequence gap       |       broadcast ack no        |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w2:| link level ack no/bc_gap_from |     seq no / bcast_gap_to     |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w3:|                       previous node                           |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w4:|  next sent broadcast/fragm no | next sent pkt/ fragm msg no   |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w5:|          session no           |rsv=0|r|berid|link prio|netpl|p|
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w6:|                      originating node                         |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w7:|                      destination node                         |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w8:|                   transport sequence number                   |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   w9:|   msg count / bcast tag       |       link tolerance          |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      \                                                               \
-      /                     User Specific Data                        /
-      \                                                               \
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-      NB: CONN_MANAGER use data message format. LINK_CONFIG has own format.
-*/
 
-/*
- * Internal users
- */
 
 #define  BCAST_PROTOCOL       5
 #define  MSG_BUNDLER          6
@@ -393,25 +304,19 @@ static inline struct tipc_msg *msg_get_wrapped(struct tipc_msg *m)
 #define  LINK_CONFIG          13
 #define  DSC_H_SIZE           40
 
-/*
- *  Connection management protocol messages
- */
+
 
 #define CONN_PROBE        0
 #define CONN_PROBE_REPLY  1
 #define CONN_ACK          2
 
-/*
- * Name distributor messages
- */
+
 
 #define PUBLICATION       0
 #define WITHDRAWAL        1
 
 
-/*
- * Word 1
- */
+
 
 static inline u32 msg_seq_gap(struct tipc_msg *m)
 {
@@ -434,9 +339,7 @@ static inline void msg_set_req_links(struct tipc_msg *m, u32 n)
 }
 
 
-/*
- * Word 2
- */
+
 
 static inline u32 msg_dest_domain(struct tipc_msg *m)
 {
@@ -469,9 +372,7 @@ static inline void msg_set_bcgap_to(struct tipc_msg *m, u32 n)
 }
 
 
-/*
- * Word 4
- */
+
 
 static inline u32 msg_last_bcast(struct tipc_msg *m)
 {
@@ -536,9 +437,7 @@ static inline void msg_set_link_selector(struct tipc_msg *m, u32 n)
 	msg_set_bits(m, 4, 0, 1, (n & 1));
 }
 
-/*
- * Word 5
- */
+
 
 static inline u32 msg_session(struct tipc_msg *m)
 {
@@ -606,9 +505,7 @@ static inline void msg_clear_redundant_link(struct tipc_msg *m)
 }
 
 
-/*
- * Word 9
- */
+
 
 static inline u32 msg_msgcnt(struct tipc_msg *m)
 {
@@ -650,9 +547,7 @@ static inline void msg_set_link_tolerance(struct tipc_msg *m, u32 n)
 	msg_set_bits(m, 9, 0, 0xffff, n);
 }
 
-/*
- * Routing table message data
- */
+
 
 
 static inline u32 msg_remote_node(struct tipc_msg *m)
@@ -670,40 +565,30 @@ static inline void msg_set_dataoctet(struct tipc_msg *m, u32 pos)
 	msg_data(m)[pos + 4] = 1;
 }
 
-/*
- * Segmentation message types
- */
+
 
 #define FIRST_FRAGMENT     0
 #define FRAGMENT           1
 #define LAST_FRAGMENT      2
 
-/*
- * Link management protocol message types
- */
+
 
 #define STATE_MSG       0
 #define RESET_MSG       1
 #define ACTIVATE_MSG    2
 
-/*
- * Changeover tunnel message types
- */
+
 #define DUPLICATE_MSG    0
 #define ORIGINAL_MSG     1
 
-/*
- * Routing table message types
- */
+
 #define EXT_ROUTING_TABLE    0
 #define LOCAL_ROUTING_TABLE  1
 #define SLAVE_ROUTING_TABLE  2
 #define ROUTE_ADDITION       3
 #define ROUTE_REMOVAL        4
 
-/*
- * Config protocol message types
- */
+
 
 #define DSC_REQ_MSG          0
 #define DSC_RESP_MSG         1
@@ -738,9 +623,7 @@ static inline void msg_init(struct tipc_msg *m, u32 user, u32 type,
 	}
 }
 
-/**
- * msg_calc_data_size - determine total data size for message
- */
+
 
 static inline int msg_calc_data_size(struct iovec const *msg_sect, u32 num_sect)
 {
@@ -752,13 +635,7 @@ static inline int msg_calc_data_size(struct iovec const *msg_sect, u32 num_sect)
 	return dsz;
 }
 
-/**
- * msg_build - create message using specified header and data
- *
- * Note: Caller must not hold any locks in case copy_from_user() is interrupted!
- *
- * Returns message data size or errno
- */
+
 
 static inline int msg_build(struct tipc_msg *hdr,
 			    struct iovec const *msg_sect, u32 num_sect,

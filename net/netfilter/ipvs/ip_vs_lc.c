@@ -1,18 +1,4 @@
-/*
- * IPVS:        Least-Connection Scheduling module
- *
- * Authors:     Wensong Zhang <wensong@linuxvirtualserver.org>
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Changes:
- *     Wensong Zhang            :     added the ip_vs_lc_update_svc
- *     Wensong Zhang            :     added any dest with weight=0 is quiesced
- *
- */
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -26,21 +12,13 @@
 static inline unsigned int
 ip_vs_lc_dest_overhead(struct ip_vs_dest *dest)
 {
-	/*
-	 * We think the overhead of processing active connections is 256
-	 * times higher than that of inactive connections in average. (This
-	 * 256 times might not be accurate, we will change it later) We
-	 * use the following formula to estimate the overhead now:
-	 *		  dest->activeconns*256 + dest->inactconns
-	 */
+	
 	return (atomic_read(&dest->activeconns) << 8) +
 		atomic_read(&dest->inactconns);
 }
 
 
-/*
- *	Least Connection scheduling
- */
+
 static struct ip_vs_dest *
 ip_vs_lc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
 {
@@ -49,14 +27,7 @@ ip_vs_lc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
 
 	IP_VS_DBG(6, "%s(): Scheduling...\n", __func__);
 
-	/*
-	 * Simply select the server with the least number of
-	 *        (activeconns<<5) + inactconns
-	 * Except whose weight is equal to zero.
-	 * If the weight is equal to zero, it means that the server is
-	 * quiesced, the existing connections to the server still get
-	 * served, but no new connection is assigned to the server.
-	 */
+	
 
 	list_for_each_entry(dest, &svc->destinations, n_list) {
 		if ((dest->flags & IP_VS_DEST_F_OVERLOAD) ||

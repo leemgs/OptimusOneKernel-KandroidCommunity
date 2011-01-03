@@ -1,35 +1,4 @@
-/*
-    Retrieve encoded MAC address from 24C16 serial 2-wire EEPROM,
-    decode it and store it in the associated adapter struct for
-    use by dvb_net.c
 
-    This card appear to have the 24C16 write protect held to ground,
-    thus permitting normal read/write operation. Theoretically it
-    would be possible to write routines to burn a different (encoded)
-    MAC address into the EEPROM.
-
-    Robert Schlabbach	GMX
-    Michael Glaum	KVH Industries
-    Holger Waechtler	Convergence
-
-    Copyright (C) 2002-2003 Ralph Metzler <rjkm@metzlerbros.de>
-			    Metzler Brothers Systementwicklung GbR
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <asm/errno.h>
 #include <linux/init.h>
@@ -68,7 +37,7 @@ static int getmac_tt(u8 * decodedMAC, u8 * encodedMAC)
 	u8 data[20];
 	int i;
 
-	/* In case there is a sig check failure have the orig contents available */
+	
 	memcpy(data, encodedMAC, 20);
 
 	for (i = 0; i < 20; i++)
@@ -95,11 +64,11 @@ static int ttpci_eeprom_read_encodedMAC(struct i2c_adapter *adapter, u8 * encode
 		{ .addr = 0x50, .flags = I2C_M_RD, .buf = encodedMAC, .len = 20 }
 	};
 
-	/* dprintk("%s\n", __func__); */
+	
 
 	ret = i2c_transfer(adapter, msg, 2);
 
-	if (ret != 2)		/* Assume EEPROM isn't there */
+	if (ret != 2)		
 		return (-ENODEV);
 
 	return 0;
@@ -114,7 +83,7 @@ int ttpci_eeprom_parse_mac(struct i2c_adapter *adapter, u8 *proposed_mac)
 
 	ret = ttpci_eeprom_read_encodedMAC(adapter, encodedMAC);
 
-	if (ret != 0) {		/* Will only be -ENODEV */
+	if (ret != 0) {		
 		dprintk("Couldn't read from EEPROM: not there?\n");
 		memset(proposed_mac, 0, 6);
 		return ret;

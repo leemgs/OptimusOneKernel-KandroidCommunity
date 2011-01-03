@@ -1,11 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- */
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/socket.h>
@@ -26,10 +19,7 @@
 #include <linux/interrupt.h>
 #include <net/rose.h>
 
-/*
- *	This procedure is passed a buffer descriptor for an iframe. It builds
- *	the rest of the control part of the frame and then writes it out.
- */
+
 static void rose_send_iframe(struct sock *sk, struct sk_buff *skb)
 {
 	struct rose_sock *rose = rose_sk(sk);
@@ -68,10 +58,7 @@ void rose_kick(struct sock *sk)
 
 	rose->vs = start;
 
-	/*
-	 * Transmit data until either we're out of data to send or
-	 * the window is full.
-	 */
+	
 
 	skb  = skb_dequeue(&sk->sk_write_queue);
 
@@ -83,16 +70,12 @@ void rose_kick(struct sock *sk)
 
 		skb_set_owner_w(skbn, sk);
 
-		/*
-		 * Transmit the frame copy.
-		 */
+		
 		rose_send_iframe(sk, skbn);
 
 		rose->vs = (rose->vs + 1) % ROSE_MODULUS;
 
-		/*
-		 * Requeue the original data frame.
-		 */
+		
 		skb_queue_tail(&rose->ack_queue, skb);
 
 	} while (rose->vs != end &&
@@ -104,10 +87,7 @@ void rose_kick(struct sock *sk)
 	rose_stop_timer(sk);
 }
 
-/*
- * The following routines are taken from page 170 of the 7th ARRL Computer
- * Networking Conference paper, as is the whole state machine.
- */
+
 
 void rose_enquiry_response(struct sock *sk)
 {

@@ -1,20 +1,4 @@
-/*
- *  Copyright (C) 2009 Sascha Hauer, Pengutronix
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -48,7 +32,7 @@
 
 static const struct fb_videomode fb_modedb[] = {
 	{
-		/* 240x320 @ 60 Hz */
+		
 		.name		= "Sharp-LQ035Q7",
 		.refresh	= 60,
 		.xres		= 240,
@@ -64,7 +48,7 @@ static const struct fb_videomode fb_modedb[] = {
 		.vmode		= FB_VMODE_NONINTERLACED,
 		.flag		= 0,
 	}, {
-		/* 240x320 @ 60 Hz */
+		
 		.name		= "TX090",
 		.refresh	= 60,
 		.xres		= 240,
@@ -130,7 +114,7 @@ static struct at24_platform_data board_eeprom = {
 
 static struct i2c_board_info pcm043_i2c_devices[] = {
        {
-		I2C_BOARD_INFO("at24", 0x52), /* E0=0, E1=1, E2=0 */
+		I2C_BOARD_INFO("at24", 0x52), 
 		.platform_data = &board_eeprom,
 	}, {
 		I2C_BOARD_INFO("pcf8563", 0x51),
@@ -144,17 +128,17 @@ static struct platform_device *devices[] __initdata = {
 };
 
 static struct pad_desc pcm043_pads[] = {
-	/* UART1 */
+	
 	MX35_PAD_CTS1__UART1_CTS,
 	MX35_PAD_RTS1__UART1_RTS,
 	MX35_PAD_TXD1__UART1_TXD_MUX,
 	MX35_PAD_RXD1__UART1_RXD_MUX,
-	/* UART2 */
+	
 	MX35_PAD_CTS2__UART2_CTS,
 	MX35_PAD_RTS2__UART2_RTS,
 	MX35_PAD_TXD2__UART2_TXD_MUX,
 	MX35_PAD_RXD2__UART2_RXD_MUX,
-	/* FEC */
+	
 	MX35_PAD_FEC_TX_CLK__FEC_TX_CLK,
 	MX35_PAD_FEC_RX_CLK__FEC_RX_CLK,
 	MX35_PAD_FEC_RX_DV__FEC_RX_DV,
@@ -173,10 +157,10 @@ static struct pad_desc pcm043_pads[] = {
 	MX35_PAD_FEC_TDATA2__FEC_TDATA_2,
 	MX35_PAD_FEC_RDATA3__FEC_RDATA_3,
 	MX35_PAD_FEC_TDATA3__FEC_TDATA_3,
-	/* I2C1 */
+	
 	MX35_PAD_I2C1_CLK__I2C1_SCL,
 	MX35_PAD_I2C1_DAT__I2C1_SDA,
-	/* Display */
+	
 	MX35_PAD_LD0__IPU_DISPB_DAT_0,
 	MX35_PAD_LD1__IPU_DISPB_DAT_1,
 	MX35_PAD_LD2__IPU_DISPB_DAT_2,
@@ -202,13 +186,11 @@ static struct pad_desc pcm043_pads[] = {
 	MX35_PAD_D3_VSYNC__IPU_DISPB_D3_VSYNC,
 	MX35_PAD_D3_REV__IPU_DISPB_D3_REV,
 	MX35_PAD_D3_CLS__IPU_DISPB_D3_CLS,
-	/* gpio */
+	
 	MX35_PAD_ATA_CS0__GPIO2_6,
 };
 
-/*
- * Board specific initialization.
- */
+
 static void __init mxc_board_init(void)
 {
 	mxc_iomux_v3_setup_multiple_pads(pcm043_pads, ARRAY_SIZE(pcm043_pads));
@@ -240,7 +222,7 @@ struct sys_timer pcm043_timer = {
 };
 
 MACHINE_START(PCM043, "Phytec Phycore pcm043")
-	/* Maintainer: Pengutronix */
+	
 	.phys_io	= AIPS1_BASE_ADDR,
 	.io_pg_offst	= ((AIPS1_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params    = PHYS_OFFSET + 0x100,

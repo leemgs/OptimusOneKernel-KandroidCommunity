@@ -1,26 +1,26 @@
-/* net/atm/clip.c - RFC1577 Classical IP over ATM */
 
-/* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
+
+
 
 #include <linux/string.h>
 #include <linux/errno.h>
-#include <linux/kernel.h> /* for UINT_MAX */
+#include <linux/kernel.h> 
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/netdevice.h>
 #include <linux/skbuff.h>
 #include <linux/wait.h>
 #include <linux/timer.h>
-#include <linux/if_arp.h> /* for some manifest constants */
+#include <linux/if_arp.h> 
 #include <linux/notifier.h>
 #include <linux/atm.h>
 #include <linux/atmdev.h>
 #include <linux/atmclip.h>
 #include <linux/atmarp.h>
 #include <linux/capability.h>
-#include <linux/ip.h> /* for net/route.h */
-#include <linux/in.h> /* for struct sockaddr_in */
-#include <linux/if.h> /* for IFF_UP */
+#include <linux/ip.h> 
+#include <linux/in.h> 
+#include <linux/if.h> 
 #include <linux/inetdevice.h>
 #include <linux/bitops.h>
 #include <linux/poison.h>
@@ -28,11 +28,11 @@
 #include <linux/seq_file.h>
 #include <linux/rcupdate.h>
 #include <linux/jhash.h>
-#include <net/route.h> /* for struct rtable and routing */
-#include <net/icmp.h> /* icmp_send */
-#include <asm/param.h> /* for HZ */
-#include <asm/byteorder.h> /* for htons etc. */
-#include <asm/system.h> /* save/restore_flags */
+#include <net/route.h> 
+#include <net/icmp.h> 
+#include <asm/param.h> 
+#include <asm/byteorder.h> 
+#include <asm/system.h> 
 #include <asm/uaccess.h>
 #include <asm/atomic.h>
 
@@ -74,7 +74,7 @@ static void link_vcc(struct clip_vcc *clip_vcc, struct atmarp_entry *entry)
 	pr_debug("link_vcc %p to entry %p (neigh %p)\n", clip_vcc, entry,
 		entry->neigh);
 	clip_vcc->entry = entry;
-	clip_vcc->xoff = 0;	/* @@@ may overrun buffer by one packet */
+	clip_vcc->xoff = 0;	
 	clip_vcc->next = entry->vccs;
 	entry->vccs = clip_vcc;
 	entry->neigh->used = jiffies;
@@ -89,20 +89,20 @@ static void unlink_clip_vcc(struct clip_vcc *clip_vcc)
 		printk(KERN_CRIT "!clip_vcc->entry (clip_vcc %p)\n", clip_vcc);
 		return;
 	}
-	netif_tx_lock_bh(entry->neigh->dev);	/* block clip_start_xmit() */
+	netif_tx_lock_bh(entry->neigh->dev);	
 	entry->neigh->used = jiffies;
 	for (walk = &entry->vccs; *walk; walk = &(*walk)->next)
 		if (*walk == clip_vcc) {
 			int error;
 
-			*walk = clip_vcc->next;	/* atomic */
+			*walk = clip_vcc->next;	
 			clip_vcc->entry = NULL;
 			if (clip_vcc->xoff)
 				netif_wake_queue(entry->neigh->dev);
 			if (entry->vccs)
 				goto out;
 			entry->expires = jiffies - 1;
-			/* force resolution or expiration */
+			
 			error = neigh_update(entry->neigh, NULL, NUD_NONE,
 					     NEIGH_UPDATE_F_ADMIN);
 			if (error)
@@ -116,7 +116,7 @@ static void unlink_clip_vcc(struct clip_vcc *clip_vcc)
 	netif_tx_unlock_bh(entry->neigh->dev);
 }
 
-/* The neighbour entry n->lock is held. */
+
 static int neigh_check_cb(struct neighbour *n)
 {
 	struct atmarp_entry *entry = NEIGH2ENTRY(n);
@@ -176,10 +176,10 @@ static int clip_arp_rcv(struct sk_buff *skb)
 }
 
 static const unsigned char llc_oui[] = {
-	0xaa,	/* DSAP: non-ISO */
-	0xaa,	/* SSAP: non-ISO */
-	0x03,	/* Ctrl: Unnumbered Information Command PDU */
-	0x00,	/* OUI: EtherType */
+	0xaa,	
+	0xaa,	
+	0x03,	
+	0x00,	
 	0x00,
 	0x00
 };
@@ -193,13 +193,13 @@ static void clip_push(struct atm_vcc *vcc, struct sk_buff *skb)
 		pr_debug("removing VCC %p\n", clip_vcc);
 		if (clip_vcc->entry)
 			unlink_clip_vcc(clip_vcc);
-		clip_vcc->old_push(vcc, NULL);	/* pass on the bad news */
+		clip_vcc->old_push(vcc, NULL);	
 		kfree(clip_vcc);
 		return;
 	}
 	atm_return(vcc, skb->truesize);
 	skb->dev = clip_vcc->entry ? clip_vcc->entry->neigh->dev : clip_devs;
-	/* clip_vcc->entry == NULL if we don't have an IP address yet */
+	
 	if (!skb->dev) {
 		dev_kfree_skb_any(skb);
 		return;
@@ -227,10 +227,7 @@ static void clip_push(struct atm_vcc *vcc, struct sk_buff *skb)
 	netif_rx(skb);
 }
 
-/*
- * Note: these spinlocks _must_not_ block on non-SMP. The only goal is that
- * clip_pop is atomic with respect to the critical section in clip_start_xmit.
- */
+
 
 static void clip_pop(struct atm_vcc *vcc, struct sk_buff *skb)
 {
@@ -241,7 +238,7 @@ static void clip_pop(struct atm_vcc *vcc, struct sk_buff *skb)
 
 	pr_debug("clip_pop(vcc %p)\n", vcc);
 	clip_vcc->old_pop(vcc, skb);
-	/* skb->dev == NULL in outbound ARP packets */
+	
 	if (!dev)
 		return;
 	spin_lock_irqsave(&PRIV(dev)->xoff_lock, flags);
@@ -323,7 +320,7 @@ static struct neigh_table clip_tbl = {
 	.constructor 	= clip_constructor,
 	.id 		= "clip_arp_cache",
 
-	/* parameters are copied from ARP ... */
+	
 	.parms = {
 		.tbl 			= &clip_tbl,
 		.base_reachable_time 	= 30 * HZ,
@@ -345,14 +342,9 @@ static struct neigh_table clip_tbl = {
 	.gc_thresh3 	= 1024,
 };
 
-/* @@@ copy bh locking from arp.c -- need to bh-enable atm code before */
 
-/*
- * We play with the resolve flag: 0 and 1 have the usual meaning, but -1 means
- * to allocate the neighbour entry but not to ask atmarpd for resolution. Also,
- * don't increment the usage count. This is used to create entries in
- * clip_setentry.
- */
+
+
 
 static int clip_encap(struct atm_vcc *vcc, int mode)
 {
@@ -380,7 +372,7 @@ static netdev_tx_t clip_start_xmit(struct sk_buff *skb,
 #if 0
 		skb_dst(skb)->neighbour = clip_find_neighbour(skb_dst(skb), 1);
 		if (!skb_dst(skb)->neighbour) {
-			dev_kfree_skb(skb);	/* lost that one */
+			dev_kfree_skb(skb);	
 			dev->stats.tx_dropped++;
 			return 0;
 		}
@@ -393,7 +385,7 @@ static netdev_tx_t clip_start_xmit(struct sk_buff *skb,
 	entry = NEIGH2ENTRY(skb_dst(skb)->neighbour);
 	if (!entry->vccs) {
 		if (time_after(jiffies, entry->expires)) {
-			/* should be resolved */
+			
 			entry->expires = jiffies + ATMARP_RETRY_DELAY * HZ;
 			to_atmarpd(act_need, PRIV(dev)->number, entry->ip);
 		}
@@ -419,7 +411,7 @@ static netdev_tx_t clip_start_xmit(struct sk_buff *skb,
 	ATM_SKB(skb)->atm_options = vcc->atm_options;
 	entry->vccs->last_use = jiffies;
 	pr_debug("atm_skb(%p)->vcc(%p)->dev(%p)\n", skb, vcc, vcc->dev);
-	old = xchg(&entry->vccs->xoff, 1);	/* assume XOFF ... */
+	old = xchg(&entry->vccs->xoff, 1);	
 	if (old) {
 		printk(KERN_WARNING "clip_start_xmit: XOFF->XOFF transition\n");
 		return NETDEV_TX_OK;
@@ -432,14 +424,11 @@ static netdev_tx_t clip_start_xmit(struct sk_buff *skb,
 		return NETDEV_TX_OK;
 	}
 	spin_lock_irqsave(&clip_priv->xoff_lock, flags);
-	netif_stop_queue(dev);	/* XOFF -> throttle immediately */
+	netif_stop_queue(dev);	
 	barrier();
 	if (!entry->vccs->xoff)
 		netif_start_queue(dev);
-	/* Oh, we just raced with clip_pop. netif_start_queue should be
-	   good enough, because nothing should really be asleep because
-	   of the brief netif_stop_queue. If this isn't true or if it
-	   changes, use netif_wake_queue instead. */
+	
 	spin_unlock_irqrestore(&clip_priv->xoff_lock, flags);
 	return NETDEV_TX_OK;
 }
@@ -477,7 +466,7 @@ static int clip_mkip(struct atm_vcc *vcc, int timeout)
 	skb_queue_splice_init(rq, &queue);
 	spin_unlock_irqrestore(&rq->lock, flags);
 
-	/* re-process everything received between connection setup and MKIP */
+	
 	skb_queue_walk_safe(&queue, skb, tmp) {
 		if (!clip_devs) {
 			atm_return(vcc, skb->truesize);
@@ -552,12 +541,12 @@ static void clip_setup(struct net_device *dev)
 	dev->type = ARPHRD_ATM;
 	dev->hard_header_len = RFC1483LLC_LEN;
 	dev->mtu = RFC1626_MTU;
-	dev->tx_queue_len = 100;	/* "normal" queue (packets) */
-	/* When using a "real" qdisc, the qdisc determines the queue */
-	/* length. tx_queue_len is only used for the default case, */
-	/* without any more elaborate queuing. 100 is a reasonable */
-	/* compromise between decent burst-tolerance and protection */
-	/* against memory hogs. */
+	dev->tx_queue_len = 100;	
+	
+	
+	
+	
+	
 	dev->priv_flags &= ~IFF_XMIT_DST_RELEASE;
 }
 
@@ -608,7 +597,7 @@ static int clip_device_event(struct notifier_block *this, unsigned long event,
 		return NOTIFY_DONE;
 	}
 
-	/* ignore non-CLIP devices */
+	
 	if (dev->type != ARPHRD_ATM || dev->netdev_ops != &clip_netdev_ops)
 		return NOTIFY_DONE;
 
@@ -636,10 +625,7 @@ static int clip_inet_event(struct notifier_block *this, unsigned long event,
 	struct in_device *in_dev;
 
 	in_dev = ((struct in_ifaddr *)ifa)->ifa_dev;
-	/*
-	 * Transitions are of the down-change-up type, so it's sufficient to
-	 * handle the change on up.
-	 */
+	
 	if (event != NETDEV_UP)
 		return NOTIFY_DONE;
 	return clip_device_event(this, NETDEV_CHANGE, in_dev->dev);
@@ -698,12 +684,12 @@ static int atm_init_atmarp(struct atm_vcc *vcc)
 	atmarpd = vcc;
 	set_bit(ATM_VF_META,&vcc->flags);
 	set_bit(ATM_VF_READY,&vcc->flags);
-	    /* allow replies and avoid getting closed if signaling dies */
+	    
 	vcc->dev = &atmarpd_dev;
 	vcc_insert_socket(sk_atm(vcc));
 	vcc->push = NULL;
-	vcc->pop = NULL; /* crash */
-	vcc->push_oam = NULL; /* crash */
+	vcc->pop = NULL; 
+	vcc->push_oam = NULL; 
 	rtnl_unlock();
 	return 0;
 }
@@ -785,7 +771,7 @@ static void svc_addr(struct seq_file *seq, struct sockaddr_atmsvc *addr)
 	}
 }
 
-/* This means the neighbour entry has no attached VCC objects. */
+
 #define SEQ_NO_VCC_TOKEN	((void *) 2)
 
 static void atmarp_info(struct seq_file *seq, struct net_device *dev,
@@ -834,10 +820,10 @@ static void atmarp_info(struct seq_file *seq, struct net_device *dev,
 }
 
 struct clip_seq_state {
-	/* This member must be first. */
+	
 	struct neigh_seq_state ns;
 
-	/* Local to clip specific iteration. */
+	
 	struct clip_vcc *vcc;
 };
 
@@ -970,15 +956,10 @@ static void atm_clip_exit_noproc(void)
 
 	deregister_atm_ioctl(&clip_ioctl_ops);
 
-	/* First, stop the idle timer, so it stops banging
-	 * on the table.
-	 */
+	
 	del_timer_sync(&idle_timer);
 
-	/* Next, purge the table, so that the device
-	 * unregister loop below does not hang due to
-	 * device references remaining in the table.
-	 */
+	
 	neigh_ifdown(&clip_tbl, NULL);
 
 	dev = clip_devs;
@@ -989,7 +970,7 @@ static void atm_clip_exit_noproc(void)
 		dev = next;
 	}
 
-	/* Now it is safe to fully shutdown whole table. */
+	
 	neigh_table_clear(&clip_tbl);
 
 	clip_tbl_hook = NULL;

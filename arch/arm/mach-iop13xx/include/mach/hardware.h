@@ -14,15 +14,10 @@ extern void iop13xx_set_atu_mmr_bases(void);
 #define PCIBIOS_MIN_IO      (iop13xx_pcibios_min_io)
 #define PCIBIOS_MIN_MEM     (iop13xx_pcibios_min_mem)
 
-/*
- * Generic chipset bits
- *
- */
+
 #include "iop13xx.h"
 
-/*
- * Board specific bits
- */
+
 #include "iq81340.h"
 
-#endif  /* _ASM_ARCH_HARDWARE_H */
+#endif  

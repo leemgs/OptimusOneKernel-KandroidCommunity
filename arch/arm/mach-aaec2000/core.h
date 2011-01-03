@@ -1,13 +1,4 @@
-/*
- *  linux/arch/arm/mach-aaec2000/core.h
- *
- *  Copyright (c) 2005 Nicolas Bellido Y Ortega
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/amba/bus.h>
 #include <linux/amba/clcd.h>

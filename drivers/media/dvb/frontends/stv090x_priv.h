@@ -1,23 +1,4 @@
-/*
-	STV0900/0903 Multistandard Broadcast Frontend driver
-	Copyright (C) Manu Abraham <abraham.manu@gmail.com>
 
-	Copyright (C) ST Microelectronics
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #ifndef __STV090x_PRIV_H
 #define __STV090x_PRIV_H
@@ -212,11 +193,11 @@ struct stv090x_long_frame_crloop {
 struct stv090x_short_frame_crloop {
 	enum stv090x_modulation	modulation;
 
-	u8 crl_2;  /*      SR <   3M */
-	u8 crl_5;  /*  3 < SR <=  7M */
-	u8 crl_10; /*  7 < SR <= 15M */
-	u8 crl_20; /* 10 < SR <= 25M */
-	u8 crl_30; /* 10 < SR <= 45M */
+	u8 crl_2;  
+	u8 crl_5;  
+	u8 crl_10; 
+	u8 crl_20; 
+	u8 crl_30; 
 };
 
 struct stv090x_reg {
@@ -239,7 +220,7 @@ struct stv090x_state {
 	const struct stv090x_config	*config;
 	struct dvb_frontend		frontend;
 
-	u32				*verbose; /* Cached module verbosity */
+	u32				*verbose; 
 
 	enum stv090x_delsys		delsys;
 	enum stv090x_fec		fec;
@@ -255,7 +236,7 @@ struct stv090x_state {
 	u32				frequency;
 	u32				srate;
 
-	s32				mclk; /* Masterclock Divider factor */
+	s32				mclk; 
 	s32				tuner_bw;
 
 	u32				tuner_refclk;
@@ -266,4 +247,4 @@ struct stv090x_state {
 	s32				FecTimeout;
 };
 
-#endif /* __STV090x_PRIV_H */
+#endif 

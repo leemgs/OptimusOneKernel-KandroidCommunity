@@ -7,9 +7,7 @@
 #include <linux/pid.h>
 #include <linux/nsproxy.h>
 
-/* Well, we should have at least one descriptor open
- * to accept passed FDs 8)
- */
+
 #define SCM_MAX_FD	255
 
 struct scm_fp_list
@@ -21,10 +19,10 @@ struct scm_fp_list
 
 struct scm_cookie
 {
-	struct ucred		creds;		/* Skb credentials	*/
-	struct scm_fp_list	*fp;		/* Passed files		*/
+	struct ucred		creds;		
+	struct scm_fp_list	*fp;		
 #ifdef CONFIG_SECURITY_NETWORK
-	u32			secid;		/* Passed security ID 	*/
+	u32			secid;		
 #endif
 };
 
@@ -42,7 +40,7 @@ static __inline__ void unix_get_peersec_dgram(struct socket *sock, struct scm_co
 #else
 static __inline__ void unix_get_peersec_dgram(struct socket *sock, struct scm_cookie *scm)
 { }
-#endif /* CONFIG_SECURITY_NETWORK */
+#endif 
 
 static __inline__ void scm_destroy(struct scm_cookie *scm)
 {
@@ -83,7 +81,7 @@ static inline void scm_passec(struct socket *sock, struct msghdr *msg, struct sc
 #else
 static inline void scm_passec(struct socket *sock, struct msghdr *msg, struct scm_cookie *scm)
 { }
-#endif /* CONFIG_SECURITY_NETWORK */
+#endif 
 
 static __inline__ void scm_recv(struct socket *sock, struct msghdr *msg,
 				struct scm_cookie *scm, int flags)
@@ -108,5 +106,5 @@ static __inline__ void scm_recv(struct socket *sock, struct msghdr *msg,
 }
 
 
-#endif /* __LINUX_NET_SCM_H */
+#endif 
 

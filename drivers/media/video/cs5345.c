@@ -1,21 +1,4 @@
-/*
- * cs5345 Cirrus Logic 24-bit, 192 kHz Stereo Audio ADC
- * Copyright (C) 2007 Hans Verkuil
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 
 #include <linux/module.h>
@@ -37,7 +20,7 @@ module_param(debug, bool, 0644);
 MODULE_PARM_DESC(debug, "Debugging messages, 0=Off (default), 1=On");
 
 
-/* ----------------------------------------------------------------------- */
+
 
 static inline int cs5345_write(struct v4l2_subdev *sd, u8 reg, u8 value)
 {
@@ -142,7 +125,7 @@ static int cs5345_log_status(struct v4l2_subdev *sd)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops cs5345_core_ops = {
 	.log_status = cs5345_log_status,
@@ -164,14 +147,14 @@ static const struct v4l2_subdev_ops cs5345_ops = {
 	.audio = &cs5345_audio_ops,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static int cs5345_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
 	struct v4l2_subdev *sd;
 
-	/* Check if the adapter supports the needed features */
+	
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -EIO;
 
@@ -189,7 +172,7 @@ static int cs5345_probe(struct i2c_client *client,
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static int cs5345_remove(struct i2c_client *client)
 {
@@ -200,7 +183,7 @@ static int cs5345_remove(struct i2c_client *client)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct i2c_device_id cs5345_id[] = {
 	{ "cs5345", 0 },

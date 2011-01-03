@@ -1,13 +1,4 @@
-/* linux/arch/arm/plat-s3c64xx/cpufreq.c
- *
- * Copyright 2009 Wolfson Microelectronics plc
- *
- * S3C64xx CPUfreq Support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -214,14 +205,13 @@ static int __init s3c64xx_cpufreq_driver_init(struct cpufreq_policy *policy)
 	while (freq->frequency != CPUFREQ_TABLE_END) {
 		unsigned long r;
 
-		/* Check for frequencies we can generate */
+		
 		r = clk_round_rate(armclk, freq->frequency * 1000);
 		r /= 1000;
 		if (r != freq->frequency)
 			freq->frequency = CPUFREQ_ENTRY_INVALID;
 
-		/* If we have no regulator then assume startup
-		 * frequency is the maximum we can support. */
+		
 		if (!vddarm && freq->frequency > s3c64xx_cpufreq_get_speed(0))
 			freq->frequency = CPUFREQ_ENTRY_INVALID;
 
@@ -230,8 +220,7 @@ static int __init s3c64xx_cpufreq_driver_init(struct cpufreq_policy *policy)
 
 	policy->cur = clk_get_rate(armclk) / 1000;
 
-	/* Pick a conservative guess in ns: we'll need ~1 I2C/SPI
-	 * write plus clock reprogramming. */
+	
 	policy->cpuinfo.transition_latency = 2 * 1000 * 1000;
 
 	ret = cpufreq_frequency_table_cpuinfo(policy, s3c64xx_freq_table);

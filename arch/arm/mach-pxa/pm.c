@@ -1,15 +1,4 @@
-/*
- * PXA250/210 Power Management Routines
- *
- * Original code for the SA11x0:
- * Copyright (c) 2001 Cliff Brake <cbrake@accelent.com>
- *
- * Modified for the PXA250 by Nicolas Pitre:
- * Copyright (c) 2002 Monta Vista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License.
- */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/suspend.h>
@@ -26,29 +15,29 @@ int pxa_pm_enter(suspend_state_t state)
 	int i;
 
 #ifdef CONFIG_IWMMXT
-	/* force any iWMMXt context to ram **/
+	
 	if (elf_hwcap & HWCAP_IWMMXT)
 		iwmmxt_task_disable(NULL);
 #endif
 
-	/* skip registers saving for standby */
+	
 	if (state != PM_SUSPEND_STANDBY) {
 		pxa_cpu_pm_fns->save(sleep_save);
-		/* before sleeping, calculate and save a checksum */
+		
 		for (i = 0; i < pxa_cpu_pm_fns->save_count - 1; i++)
 			sleep_save_checksum += sleep_save[i];
 	}
 
-	/* *** go zzz *** */
+	
 	pxa_cpu_pm_fns->enter(state);
 	cpu_init();
 
 	if (state != PM_SUSPEND_STANDBY) {
-		/* after sleeping, validate the checksum */
+		
 		for (i = 0; i < pxa_cpu_pm_fns->save_count - 1; i++)
 			checksum += sleep_save[i];
 
-		/* if invalid, display message and wait for a hardware reset */
+		
 		if (checksum != sleep_save_checksum) {
 
 			lubbock_set_hexled(0xbadbadc5);

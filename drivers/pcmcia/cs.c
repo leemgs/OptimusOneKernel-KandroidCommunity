@@ -1,16 +1,4 @@
-/*
- * cs.c -- Kernel Card Services - core services
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999		David A. Hinds
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -41,7 +29,7 @@
 #include "cs_internal.h"
 
 
-/* Module parameters */
+
 
 MODULE_AUTHOR("David Hinds <dahinds@users.sourceforge.net>");
 MODULE_DESCRIPTION("Linux Kernel Card Services");
@@ -49,17 +37,17 @@ MODULE_LICENSE("GPL");
 
 #define INT_MODULE_PARM(n, v) static int n = v; module_param(n, int, 0444)
 
-INT_MODULE_PARM(setup_delay,	10);		/* centiseconds */
-INT_MODULE_PARM(resume_delay,	20);		/* centiseconds */
-INT_MODULE_PARM(shutdown_delay,	3);		/* centiseconds */
-INT_MODULE_PARM(vcc_settle,	40);		/* centiseconds */
-INT_MODULE_PARM(reset_time,	10);		/* usecs */
-INT_MODULE_PARM(unreset_delay,	10);		/* centiseconds */
-INT_MODULE_PARM(unreset_check,	10);		/* centiseconds */
-INT_MODULE_PARM(unreset_limit,	30);		/* unreset_check's */
+INT_MODULE_PARM(setup_delay,	10);		
+INT_MODULE_PARM(resume_delay,	20);		
+INT_MODULE_PARM(shutdown_delay,	3);		
+INT_MODULE_PARM(vcc_settle,	40);		
+INT_MODULE_PARM(reset_time,	10);		
+INT_MODULE_PARM(unreset_delay,	10);		
+INT_MODULE_PARM(unreset_check,	10);		
+INT_MODULE_PARM(unreset_limit,	30);		
 
-/* Access speed for attribute memory windows */
-INT_MODULE_PARM(cis_speed,	300);		/* ns */
+
+INT_MODULE_PARM(cis_speed,	300);		
 
 #ifdef CONFIG_PCMCIA_DEBUG
 static int pc_debug;
@@ -79,7 +67,7 @@ socket_state_t dead_socket = {
 EXPORT_SYMBOL(dead_socket);
 
 
-/* List of all sockets, protected by a rwsem */
+
 LIST_HEAD(pcmcia_socket_list);
 EXPORT_SYMBOL(pcmcia_socket_list);
 
@@ -87,17 +75,7 @@ DECLARE_RWSEM(pcmcia_socket_list_rwsem);
 EXPORT_SYMBOL(pcmcia_socket_list_rwsem);
 
 
-/*
- * Low-level PCMCIA socket drivers need to register with the PCCard
- * core using pcmcia_register_socket.
- *
- * socket drivers are expected to use the following callbacks in their
- * .drv struct:
- *  - pcmcia_socket_dev_suspend
- *  - pcmcia_socket_dev_resume
- * These functions check for the appropriate struct pcmcia_soket arrays,
- * and pass them to the low-level functions pcmcia_{suspend,resume}_socket
- */
+
 static int socket_early_resume(struct pcmcia_socket *skt);
 static int socket_late_resume(struct pcmcia_socket *skt);
 static int socket_resume(struct pcmcia_socket *skt);
@@ -178,10 +156,7 @@ static void pcmcia_release_socket(struct device *dev)
 
 static int pccardd(void *__skt);
 
-/**
- * pcmcia_register_socket - add a new pcmcia socket device
- * @socket: the &socket to register
- */
+
 int pcmcia_register_socket(struct pcmcia_socket *socket)
 {
 	struct task_struct *tsk;
@@ -194,10 +169,7 @@ int pcmcia_register_socket(struct pcmcia_socket *socket)
 
 	spin_lock_init(&socket->lock);
 
-	/* try to obtain a socket number [yes, it gets ugly if we
-	 * register more than 2^sizeof(unsigned int) pcmcia
-	 * sockets... but the socket number is deprecated
-	 * anyways, so I don't care] */
+	
 	down_write(&pcmcia_socket_list_rwsem);
 	if (list_empty(&pcmcia_socket_list))
 		socket->sock = 0;
@@ -218,19 +190,16 @@ int pcmcia_register_socket(struct pcmcia_socket *socket)
 	up_write(&pcmcia_socket_list_rwsem);
 
 #ifndef CONFIG_CARDBUS
-	/*
-	 * If we do not support Cardbus, ensure that
-	 * the Cardbus socket capability is disabled.
-	 */
+	
 	socket->features &= ~SS_CAP_CARDBUS;
 #endif
 
-	/* set proper values in socket->dev */
+	
 	dev_set_drvdata(&socket->dev, socket);
 	socket->dev.class = &pcmcia_socket_class;
 	dev_set_name(&socket->dev, "pcmcia_socket%u", socket->sock);
 
-	/* base address = 0, map = 0 */
+	
 	socket->cis_mem.flags = 0;
 	socket->cis_mem.speed = cis_speed;
 
@@ -269,14 +238,11 @@ int pcmcia_register_socket(struct pcmcia_socket *socket)
 	list_del(&socket->socket_list);
 	up_write(&pcmcia_socket_list_rwsem);
 	return ret;
-} /* pcmcia_register_socket */
+} 
 EXPORT_SYMBOL(pcmcia_register_socket);
 
 
-/**
- * pcmcia_unregister_socket - remove a pcmcia socket device
- * @socket: the &socket to unregister
- */
+
 void pcmcia_unregister_socket(struct pcmcia_socket *socket)
 {
 	if (!socket)
@@ -289,15 +255,15 @@ void pcmcia_unregister_socket(struct pcmcia_socket *socket)
 
 	release_cis_mem(socket);
 
-	/* remove from our own list */
+	
 	down_write(&pcmcia_socket_list_rwsem);
 	list_del(&socket->socket_list);
 	up_write(&pcmcia_socket_list_rwsem);
 
-	/* wait for sysfs to drop all references */
+	
 	release_resource_db(socket);
 	wait_for_completion(&socket->socket_released);
-} /* pcmcia_unregister_socket */
+} 
 EXPORT_SYMBOL(pcmcia_unregister_socket);
 
 
@@ -318,15 +284,9 @@ struct pcmcia_socket * pcmcia_get_socket_by_nr(unsigned int nr)
 }
 EXPORT_SYMBOL(pcmcia_get_socket_by_nr);
 
-/*
- * The central event handler.  Send_event() sends an event to the
- * 16-bit subsystem, which then calls the relevant device drivers.
- * Parse_events() interprets the event bits from
- * a card status change report.  Do_shutdown() handles the high
- * priority stuff associated with a card removal.
- */
 
-/* NOTE: send_event needs to be called with skt->sem held. */
+
+
 
 static int send_event(struct pcmcia_socket *s, event_t event, int priority)
 {
@@ -387,12 +347,7 @@ static int socket_reset(struct pcmcia_socket *skt)
 	return -ETIMEDOUT;
 }
 
-/*
- * socket_setup() and socket_shutdown() are called by the main event handler
- * when card insertion and removal events are received.
- * socket_setup() turns on socket power and resets the socket, in two stages.
- * socket_shutdown() unconfigures a socket and turns off socket power.
- */
+
 static void socket_shutdown(struct pcmcia_socket *s)
 {
 	int status;
@@ -404,7 +359,7 @@ static void socket_shutdown(struct pcmcia_socket *s)
 	msleep(shutdown_delay * 10);
 	s->state &= SOCKET_INUSE;
 
-	/* Blank out the socket state */
+	
 	s->socket = dead_socket;
 	s->ops->init(s);
 	s->ops->set_socket(s, &s->socket);
@@ -416,7 +371,7 @@ static void socket_shutdown(struct pcmcia_socket *s)
 #endif
 	s->functions = 0;
 
-	/* give socket some time to power down */
+	
 	msleep(100);
 
 	s->ops->get_status(s, &status);
@@ -464,9 +419,7 @@ static int socket_setup(struct pcmcia_socket *skt, int initial_delay)
 		skt->state |= SOCKET_CARDBUS;
 	}
 
-	/*
-	 * Decode the card voltage requirements, and apply power to the card.
-	 */
+	
 	if (status & SS_3VCARD)
 		skt->socket.Vcc = skt->socket.Vpp = 33;
 	else if (!(status & SS_XVCARD))
@@ -482,9 +435,7 @@ static int socket_setup(struct pcmcia_socket *skt, int initial_delay)
 	skt->socket.flags = 0;
 	skt->ops->set_socket(skt, &skt->socket);
 
-	/*
-	 * Wait "vcc_settle" for the supply to stabilise.
-	 */
+	
 	msleep(vcc_settle * 10);
 
 	skt->ops->get_status(skt, &status);
@@ -501,10 +452,7 @@ static int socket_setup(struct pcmcia_socket *skt, int initial_delay)
 	return status;
 }
 
-/*
- * Handle card insertion.  Setup the socket, reset the card,
- * and then tell the rest of PCMCIA that a card is present.
- */
+
 static int socket_insert(struct pcmcia_socket *skt)
 {
 	int ret;
@@ -572,18 +520,12 @@ static int socket_late_resume(struct pcmcia_socket *skt)
 	}
 
 	if (skt->resume_status == 0) {
-		/*
-		 * FIXME: need a better check here for cardbus cards.
-		 */
+		
 		if (verify_cis_cache(skt) != 0) {
 			cs_dbg(skt, 4, "cis mismatch - different card\n");
 			socket_remove_drivers(skt);
 			destroy_cis_cache(skt);
-			/*
-			 * Workaround: give DS time to schedule removal.
-			 * Remove me once the 100ms delay is eliminated
-			 * in ds.c
-			 */
+			
 			msleep(200);
 			send_event(skt, CS_EVENT_CARD_INSERTION, CS_EVENT_PRI_LOW);
 		} else {
@@ -599,11 +541,7 @@ static int socket_late_resume(struct pcmcia_socket *skt)
 	return 0;
 }
 
-/*
- * Resume a socket.  If a card is present, verify its CIS against
- * our cached copy.  If they are different, the card has been
- * replaced, and we need to tell the drivers.
- */
+
 static int socket_resume(struct pcmcia_socket *skt)
 {
 	if (!(skt->state & SOCKET_SUSPEND))
@@ -620,17 +558,7 @@ static void socket_remove(struct pcmcia_socket *skt)
 	socket_shutdown(skt);
 }
 
-/*
- * Process a socket card detect status change.
- *
- * If we don't have a card already present, delay the detect event for
- * about 20ms (to be on the safe side) before reading the socket status.
- *
- * Some i82365-based systems send multiple SS_DETECT events during card
- * insertion, and the "card present" status bit seems to bounce.  This
- * will probably be true with GPIO-based card detection systems after
- * the product has aged.
- */
+
 static void socket_detect_change(struct pcmcia_socket *skt)
 {
 	if (!(skt->state & SOCKET_SUSPEND)) {
@@ -659,7 +587,7 @@ static int pccardd(void *__skt)
 	skt->ops->init(skt);
 	skt->ops->set_socket(skt, &skt->socket);
 
-	/* register with the device core */
+	
 	ret = device_register(&skt->dev);
 	if (ret) {
 		dev_printk(KERN_WARNING, &skt->dev,
@@ -706,20 +634,17 @@ static int pccardd(void *__skt)
 		schedule();
 		try_to_freeze();
 	}
-	/* make sure we are running before we exit */
+	
 	set_current_state(TASK_RUNNING);
 
-	/* remove from the device core */
+	
 	pccard_sysfs_remove_socket(&skt->dev);
 	device_unregister(&skt->dev);
 
 	return 0;
 }
 
-/*
- * Yenta (at least) probes interrupts before registering the socket and
- * starting the handler thread.
- */
+
 void pcmcia_parse_events(struct pcmcia_socket *s, u_int events)
 {
 	unsigned long flags;
@@ -731,20 +656,20 @@ void pcmcia_parse_events(struct pcmcia_socket *s, u_int events)
 
 		wake_up_process(s->thread);
 	}
-} /* pcmcia_parse_events */
+} 
 EXPORT_SYMBOL(pcmcia_parse_events);
 
 
-/* register pcmcia_callback */
+
 int pccard_register_pcmcia(struct pcmcia_socket *s, struct pcmcia_callback *c)
 {
         int ret = 0;
 
-	/* s->skt_mutex also protects s->callback */
+	
 	mutex_lock(&s->skt_mutex);
 
 	if (c) {
-		/* registration */
+		
 		if (s->callback) {
 			ret = -EBUSY;
 			goto err;
@@ -764,10 +689,7 @@ int pccard_register_pcmcia(struct pcmcia_socket *s, struct pcmcia_callback *c)
 EXPORT_SYMBOL(pccard_register_pcmcia);
 
 
-/* I'm not sure which "reset" function this is supposed to use,
- * but for now, it uses the low-level interface's reset, not the
- * CIS register.
- */
+
 
 int pcmcia_reset_card(struct pcmcia_socket *skt)
 {
@@ -807,13 +729,11 @@ int pcmcia_reset_card(struct pcmcia_socket *skt)
 	mutex_unlock(&skt->skt_mutex);
 
 	return ret;
-} /* reset_card */
+} 
 EXPORT_SYMBOL(pcmcia_reset_card);
 
 
-/* These shut down or wake up a socket.  They are sort of user
- * initiated versions of the APM suspend and resume actions.
- */
+
 int pcmcia_suspend_card(struct pcmcia_socket *skt)
 {
 	int ret;
@@ -840,7 +760,7 @@ int pcmcia_suspend_card(struct pcmcia_socket *skt)
 	mutex_unlock(&skt->skt_mutex);
 
 	return ret;
-} /* suspend_card */
+} 
 EXPORT_SYMBOL(pcmcia_suspend_card);
 
 
@@ -867,11 +787,11 @@ int pcmcia_resume_card(struct pcmcia_socket *skt)
 	mutex_unlock(&skt->skt_mutex);
 
 	return ret;
-} /* resume_card */
+} 
 EXPORT_SYMBOL(pcmcia_resume_card);
 
 
-/* These handle user requests to eject or insert a card. */
+
 int pcmcia_eject_card(struct pcmcia_socket *skt)
 {
 	int ret;
@@ -897,7 +817,7 @@ int pcmcia_eject_card(struct pcmcia_socket *skt)
 	mutex_unlock(&skt->skt_mutex);
 
 	return ret;
-} /* eject_card */
+} 
 EXPORT_SYMBOL(pcmcia_eject_card);
 
 
@@ -922,7 +842,7 @@ int pcmcia_insert_card(struct pcmcia_socket *skt)
 	mutex_unlock(&skt->skt_mutex);
 
 	return ret;
-} /* insert_card */
+} 
 EXPORT_SYMBOL(pcmcia_insert_card);
 
 

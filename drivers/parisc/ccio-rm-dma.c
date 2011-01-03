@@ -1,37 +1,4 @@
-/*
- * ccio-rm-dma.c:
- *	DMA management routines for first generation cache-coherent machines.
- *	"Real Mode" operation refers to U2/Uturn chip operation. The chip
- *      can perform coherency checks w/o using the I/O MMU. That's all we
- *      need until support for more than 4GB phys mem is needed.
- * 
- *	This is the trivial case - basically what x86 does.
- *
- *	Drawbacks of using Real Mode are:
- *	o outbound DMA is slower since one isn't using the prefetching
- *	  U2 can do for outbound DMA.
- *	o Ability to do scatter/gather in HW is also lost.
- *      o only known to work with PCX-W processor. (eg C360)
- *        (PCX-U/U+ are not coherent with U2 in real mode.)
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- *
- * Original version/author:
- *      CVSROOT=:pserver:anonymous@198.186.203.37:/cvsroot/linux-parisc
- *      cvs -z3 co linux/arch/parisc/kernel/dma-rm.c
- *
- *	(C) Copyright 2000 Philipp Rumpf <prumpf@tux.org>
- *
- *
- * Adopted for The Puffin Group's parisc-linux port by Grant Grundler.
- *	(C) Copyright 2000 Grant Grundler <grundler@puffin.external.hp.com>
- *	
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -45,9 +12,7 @@
 #include <asm/hardware.h>
 #include <asm/page.h>
 
-/* Only chose "ccio" since that's what HP-UX calls it....
-** Make it easier for folks to migrate from one to the other :^)
-*/
+
 #define MODULE_NAME "ccio"
 
 #define U2_IOA_RUNWAY 0x580
@@ -73,7 +38,7 @@ static int ccio_dma_supported( struct pci_dev *dev, u64 mask)
 		return(0);
 	}
 
-	/* only support 32-bit devices (ie PCI/GSC) */
+	
 	return((int) (mask >= 0xffffffffUL));
 }
 
@@ -107,7 +72,7 @@ static dma_addr_t ccio_map_single(struct pci_dev *dev, void *ptr, size_t size,
 static void ccio_unmap_single(struct pci_dev *dev, dma_addr_t dma_addr,
 			    size_t size, int direction)
 {
-	/* Nothing to do */
+	
 }
 
 
@@ -115,7 +80,7 @@ static int ccio_map_sg(struct pci_dev *dev, struct scatterlist *sglist, int nent
 {
 	int tmp = nents;
 
-        /* KISS: map each buffer separately. */
+        
 	while (nents) {
 		sg_dma_address(sglist) = ccio_map_single(dev, sglist->address, sglist->length, direction);
 		sg_dma_len(sglist) = sglist->length;
@@ -137,7 +102,7 @@ static void ccio_unmap_sg(struct pci_dev *dev, struct scatterlist *sglist, int n
 	}
 	return;
 #else
-	/* Do nothing (copied from current ccio_unmap_single()  :^) */
+	
 #endif
 }
 
@@ -150,18 +115,14 @@ static struct pci_dma_ops ccio_ops = {
 	ccio_unmap_single,
 	ccio_map_sg,
 	ccio_unmap_sg,
-	NULL,                   /* dma_sync_single_for_cpu : NOP for U2 */
-	NULL,                   /* dma_sync_single_for_device : NOP for U2 */
-	NULL,                   /* dma_sync_sg_for_cpu     : ditto */
-	NULL,                   /* dma_sync_sg_for_device     : ditto */
+	NULL,                   
+	NULL,                   
+	NULL,                   
+	NULL,                   
 };
 
 
-/*
-** Determine if u2 should claim this chip (return 0) or not (return 1).
-** If so, initialize the chip and tell other partners in crime they
-** have work to do.
-*/
+
 static int
 ccio_probe(struct parisc_device *dev)
 {
@@ -169,13 +130,10 @@ ccio_probe(struct parisc_device *dev)
 			dev->id.hversion == U2_BC_GSC ? "U2" : "UTurn",
 			dev->hpa.start);
 
-/*
-** FIXME - should check U2 registers to verify it's really running
-** in "Real Mode".
-*/
+
 
 #if 0
-/* will need this for "Virtual Mode" operation */
+
 	ccio_hw_init(ccio_dev);
 	ccio_common_init(ccio_dev);
 #endif

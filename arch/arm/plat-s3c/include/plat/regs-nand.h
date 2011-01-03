@@ -1,14 +1,4 @@
-/* arch/arm/mach-s3c2410/include/mach/regs-nand.h
- *
- * Copyright (c) 2004,2005 Simtec Electronics <linux@simtec.co.uk>
- *		      http://www.simtec.co.uk/products/SWLINUX/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C2410 NAND register definitions
-*/
+
 
 #ifndef __ASM_ARM_REGS_NAND
 #define __ASM_ARM_REGS_NAND
@@ -85,7 +75,7 @@
 #define S3C2412_NFCONF_NANDBOOT		(1<<31)
 #define S3C2412_NFCONF_ECCCLKCON	(1<<30)
 #define S3C2412_NFCONF_ECC_MLC		(1<<24)
-#define S3C2412_NFCONF_TACLS_MASK	(7<<12)	/* 1 extra bit of Tacls */
+#define S3C2412_NFCONF_TACLS_MASK	(7<<12)	
 
 #define S3C2412_NFCONT_ECC4_DIRWR	(1<<18)
 #define S3C2412_NFCONT_LOCKTIGHT	(1<<17)
@@ -119,5 +109,5 @@
 
 
 
-#endif /* __ASM_ARM_REGS_NAND */
+#endif 
 

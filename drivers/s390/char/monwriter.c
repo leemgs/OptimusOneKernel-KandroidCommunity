@@ -1,10 +1,4 @@
-/*
- * Character device driver for writing z/VM *MONITOR service records.
- *
- * Copyright IBM Corp. 2006, 2009
- *
- * Author(s): Melissa Howland <Melissa.Howland@us.ibm.com>
- */
+
 
 #define KMSG_COMPONENT "monwriter"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -51,9 +45,7 @@ struct mon_private {
 	struct mutex thread_mutex;
 };
 
-/*
- * helper functions
- */
+
 
 static int monwrite_diag(struct monwrite_hdr *myhdr, char *buffer, int fcn)
 {
@@ -168,15 +160,13 @@ static int monwrite_new_data(struct mon_private *monpriv)
 		monpriv->current_buf = NULL;
 		break;
 	default:
-		/* monhdr->mon_function is checked in monwrite_new_hdr */
+		
 		BUG();
 	}
 	return rc;
 }
 
-/*
- * file operations
- */
+
 
 static int monwrite_open(struct inode *inode, struct file *filp)
 {
@@ -284,9 +274,7 @@ static struct miscdevice mon_dev = {
 	.minor	= MISC_DYNAMIC_MINOR,
 };
 
-/*
- * suspend/resume
- */
+
 
 static int monwriter_freeze(struct device *dev)
 {
@@ -342,9 +330,7 @@ static struct platform_driver monwriter_pdrv = {
 
 static struct platform_device *monwriter_pdev;
 
-/*
- * module init/exit
- */
+
 
 static int __init mon_init(void)
 {

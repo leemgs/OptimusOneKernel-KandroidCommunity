@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #ifndef __BFA_DEFS_ADAPTER_H__
 #define __BFA_DEFS_ADAPTER_H__
 
@@ -21,19 +6,15 @@
 #include <defs/bfa_defs_version.h>
 #include <defs/bfa_defs_mfg.h>
 
-/**
- * BFA adapter level attributes.
- */
+
 enum {
 	BFA_ADAPTER_SERIAL_NUM_LEN = STRSZ(BFA_MFG_SERIALNUM_SIZE),
-					/*
-					 *!< adapter serial num length
-					 */
-	BFA_ADAPTER_MODEL_NAME_LEN  = 16,  /*  model name length */
-	BFA_ADAPTER_MODEL_DESCR_LEN = 128, /*  model description length */
-	BFA_ADAPTER_MFG_NAME_LEN    = 8,   /*  manufacturer name length */
-	BFA_ADAPTER_SYM_NAME_LEN    = 64,  /*  adapter symbolic name length */
-	BFA_ADAPTER_OS_TYPE_LEN	    = 64,  /*  adapter os type length */
+					
+	BFA_ADAPTER_MODEL_NAME_LEN  = 16,  
+	BFA_ADAPTER_MODEL_DESCR_LEN = 128, 
+	BFA_ADAPTER_MFG_NAME_LEN    = 8,   
+	BFA_ADAPTER_SYM_NAME_LEN    = 64,  
+	BFA_ADAPTER_OS_TYPE_LEN	    = 64,  
 };
 
 struct bfa_adapter_attr_s {
@@ -62,21 +43,16 @@ struct bfa_adapter_attr_s {
 	u8	        cna_capable;
 };
 
-/**
- * BFA adapter level events
- * Arguments below are in BFAL context from Mgmt
- * BFA_PORT_AEN_ADD:        [in]: None     [out]: serial_num, pwwn, nports
- * BFA_PORT_AEN_REMOVE:     [in]: pwwn     [out]: serial_num, pwwn, nports
- */
+
 enum bfa_adapter_aen_event {
-	BFA_ADAPTER_AEN_ADD 	= 1,	/*  New Adapter found event */
-	BFA_ADAPTER_AEN_REMOVE 	= 2,	/*  Adapter removed event */
+	BFA_ADAPTER_AEN_ADD 	= 1,	
+	BFA_ADAPTER_AEN_REMOVE 	= 2,	
 };
 
 struct bfa_adapter_aen_data_s {
 	char            serial_num[BFA_ADAPTER_SERIAL_NUM_LEN];
-	u32        nports;	/*  Number of NPorts */
-	wwn_t           pwwn;	/*  WWN of one of its physical port */
+	u32        nports;	
+	wwn_t           pwwn;	
 };
 
-#endif /* __BFA_DEFS_ADAPTER_H__ */
+#endif 

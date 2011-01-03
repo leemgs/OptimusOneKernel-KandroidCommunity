@@ -1,34 +1,4 @@
-/*
-* Copyright (c) 2006 - 2009 Intel-NE, Inc.  All rights reserved.
-*
-* This software is available to you under a choice of one of two
-* licenses.  You may choose to be licensed under the terms of the GNU
-* General Public License (GPL) Version 2, available from the file
-* COPYING in the main directory of this source tree, or the
-* OpenIB.org BSD license below:
-*
-*     Redistribution and use in source and binary forms, with or
-*     without modification, are permitted provided that the following
-*     conditions are met:
-*
-*      - Redistributions of source code must retain the above
-*        copyright notice, this list of conditions and the following
-*        disclaimer.
-*
-*      - Redistributions in binary form must reproduce the above
-*        copyright notice, this list of conditions and the following
-*        disclaimer in the documentation and/or other materials
-*        provided with the distribution.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-* BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-* ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-* CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*/
+
 
 #ifndef __NES_HW_H
 #define __NES_HW_H
@@ -772,25 +742,21 @@ enum nes_iwarp_cqe_minor_code {
 #define NES_EEPROM_READ_REQUEST (1<<16)
 #define NES_MAC_ADDR_VALID      (1<<20)
 
-/*
- * NES index registers init values.
- */
+
 struct nes_init_values {
 	u32 index;
 	u32 data;
 	u8  wrt;
 };
 
-/*
- * NES registers in BAR0.
- */
+
 struct nes_pci_regs {
 	u32 int_status;
 	u32 int_mask;
 	u32 int_pending;
 	u32 intf_int_status;
 	u32 intf_int_mask;
-	u32 other_regs[59];	 /* pad out to 256 bytes for now */
+	u32 other_regs[59];	 
 };
 
 #define NES_CQP_SQ_SIZE    128
@@ -876,15 +842,15 @@ struct nes_first_frag {
 };
 
 struct nes_hw_nic {
-	struct nes_first_frag    *first_frag_vbase;	/* virtual address of first frags */
-	struct nes_hw_nic_sq_wqe *sq_vbase;			/* virtual address of sq */
-	struct nes_hw_nic_rq_wqe *rq_vbase;			/* virtual address of rq */
+	struct nes_first_frag    *first_frag_vbase;	
+	struct nes_hw_nic_sq_wqe *sq_vbase;			
+	struct nes_hw_nic_rq_wqe *rq_vbase;			
 	struct sk_buff           *tx_skb[NES_NIC_WQ_SIZE];
 	struct sk_buff           *rx_skb[NES_NIC_WQ_SIZE];
 	dma_addr_t frag_paddr[NES_NIC_WQ_SIZE];
 	unsigned long first_frag_overflow[BITS_TO_LONGS(NES_NIC_WQ_SIZE)];
-	dma_addr_t sq_pbase;			/* PCI memory for host rings */
-	dma_addr_t rq_pbase;			/* PCI memory for host rings */
+	dma_addr_t sq_pbase;			
+	dma_addr_t rq_pbase;			
 
 	u16 qp_id;
 	u16 sq_head;
@@ -900,9 +866,9 @@ struct nes_hw_nic {
 };
 
 struct nes_hw_nic_cq {
-	struct nes_hw_nic_cqe volatile *cq_vbase;	/* PCI memory for host rings */
+	struct nes_hw_nic_cqe volatile *cq_vbase;	
 	void (*ce_handler)(struct nes_device *nesdev, struct nes_hw_nic_cq *cq);
-	dma_addr_t cq_pbase;	/* PCI memory for host rings */
+	dma_addr_t cq_pbase;	
 	int rx_cqes_completed;
 	int cqe_allocs_pending;
 	int rx_pkts_indicated;
@@ -913,12 +879,12 @@ struct nes_hw_nic_cq {
 };
 
 struct nes_hw_qp {
-	struct nes_hw_qp_wqe *sq_vbase;		/* PCI memory for host rings */
-	struct nes_hw_qp_wqe *rq_vbase;		/* PCI memory for host rings */
-	void                 *q2_vbase;			/* PCI memory for host rings */
-	dma_addr_t sq_pbase;	/* PCI memory for host rings */
-	dma_addr_t rq_pbase;	/* PCI memory for host rings */
-	dma_addr_t q2_pbase;	/* PCI memory for host rings */
+	struct nes_hw_qp_wqe *sq_vbase;		
+	struct nes_hw_qp_wqe *rq_vbase;		
+	void                 *q2_vbase;			
+	dma_addr_t sq_pbase;	
+	dma_addr_t rq_pbase;	
+	dma_addr_t q2_pbase;	
 	u32 qp_id;
 	u16 sq_head;
 	u16 sq_tail;
@@ -931,24 +897,24 @@ struct nes_hw_qp {
 };
 
 struct nes_hw_cq {
-	struct nes_hw_cqe *cq_vbase;	/* PCI memory for host rings */
+	struct nes_hw_cqe *cq_vbase;	
 	void (*ce_handler)(struct nes_device *nesdev, struct nes_hw_cq *cq);
-	dma_addr_t cq_pbase;	/* PCI memory for host rings */
+	dma_addr_t cq_pbase;	
 	u16 cq_head;
 	u16 cq_size;
 	u16 cq_number;
 };
 
 struct nes_hw_ceq {
-	struct nes_hw_ceqe volatile *ceq_vbase;	/* PCI memory for host rings */
-	dma_addr_t ceq_pbase;	/* PCI memory for host rings */
+	struct nes_hw_ceqe volatile *ceq_vbase;	
+	dma_addr_t ceq_pbase;	
 	u16 ceq_head;
 	u16 ceq_size;
 };
 
 struct nes_hw_aeq {
-	struct nes_hw_aeqe volatile *aeq_vbase;	/* PCI memory for host rings */
-	dma_addr_t aeq_pbase;	/* PCI memory for host rings */
+	struct nes_hw_aeqe volatile *aeq_vbase;	
+	dma_addr_t aeq_pbase;	
 	u16 aeq_head;
 	u16 aeq_size;
 };
@@ -992,7 +958,7 @@ struct nes_arp_entry {
 #define NES_PFT_SIZE		    48
 
 struct nes_hw_tune_timer {
-    /* u16 cq_count; */
+    
     u16 threshold_low;
     u16 threshold_target;
     u16 threshold_high;
@@ -1026,7 +992,7 @@ struct nes_adapter {
 
 	struct list_head list;
 	struct list_head active_listeners;
-	/* list of the netdev's associated with each logical port */
+	
 	struct list_head nesvnic_list[4];
 
 	struct timer_list  mh_timer;
@@ -1039,7 +1005,7 @@ struct nes_adapter {
 
 	struct nes_arp_entry arp_table[NES_MAX_ARP_TABLE_SIZE];
 
-	/* Adapter CEQ and AEQs */
+	
 	struct nes_hw_ceq ceq[16];
 	struct nes_hw_aeq aeq[8];
 
@@ -1075,7 +1041,7 @@ struct nes_adapter {
 	u32 next_pd;
 	u32 hte_index_mask;
 
-	/* EEPROM information */
+	
 	u32 rx_pool_size;
 	u32 tx_pool_size;
 	u32 rx_threshold;
@@ -1104,7 +1070,7 @@ struct nes_adapter {
 	u32 timer_int_limit;
 	u32 wqm_quanta;
 
-	/* Adapter base MAC address */
+	
 	u32 mac_addr_low;
 	u16 mac_addr_high;
 
@@ -1113,28 +1079,28 @@ struct nes_adapter {
 
 	u16 max_irrq_wr;
 
-	/* pd config for each port */
+	
 	u16 pd_config_size[4];
 	u16 pd_config_base[4];
 
 	u16 link_interrupt_count[4];
 	u8 crit_error_count[32];
 
-	/* the phy index for each port */
+	
 	u8  phy_index[4];
 	u8  mac_sw_state[4];
 	u8  mac_link_down[4];
 	u8  phy_type[4];
 	u8  log_port;
 
-	/* PCI information */
+	
 	unsigned int  devfn;
 	unsigned char bus_number;
 	unsigned char OneG_Mode;
 
 	unsigned char ref_count;
 	u8            netdev_count;
-	u8            netdev_max;	/* from host nic address count in EEPROM */
+	u8            netdev_max;	
 	u8            port_count;
 	u8            virtwq;
 	u8            send_term_ok;
@@ -1150,7 +1116,7 @@ struct nes_pbl {
 	unsigned long    user_base;
 	u32              pbl_size;
 	struct list_head list;
-	/* TODO: need to add list for two level tables */
+	
 };
 
 struct nes_listener {
@@ -1178,7 +1144,7 @@ struct nes_vnic {
 	u64 endnode_nstat_tx_octets;
 	u64 endnode_nstat_tx_frames;
 	u64 endnode_ipv4_tcp_retransmits;
-	/* void *mem; */
+	
 	struct nes_device *nesdev;
 	struct net_device *netdev;
 	struct vlan_group *vlan_grp;
@@ -1186,10 +1152,10 @@ struct nes_vnic {
 	atomic_t          rx_skb_timer_running;
 	int               budget;
 	u32               msg_enable;
-	/* u32 tx_avail; */
+	
 	__be32            local_ipaddr;
 	struct napi_struct   napi;
-	spinlock_t           tx_lock;	/* could use netdev tx lock? */
+	spinlock_t           tx_lock;	
 	struct timer_list    rq_wqes_timer;
 	u32                  nic_mem_size;
 	void                 *nic_vbase;
@@ -1202,13 +1168,13 @@ struct nes_vnic {
 	void (*post_cqp_request)(struct nes_device*, struct nes_cqp_request *);
 	int (*mcrq_mcast_filter)( struct nes_vnic* nesvnic, __u8* dmi_addr );
 	struct net_device_stats netstats;
-	/* used to put the netdev on the adapters logical port list */
+	
 	struct list_head list;
 	u16 max_frame_size;
 	u8  netdev_open;
 	u8  linkup;
 	u8  logical_port;
-	u8  netdev_index;  /* might not be needed, indexes nesdev->netdev */
+	u8  netdev_index;  
 	u8  perfect_filter_index;
 	u8  nic_index;
 	u8  qp_nic_index[4];
@@ -1225,7 +1191,7 @@ struct nes_ib_device {
 	struct ib_device ibdev;
 	struct nes_vnic *nesvnic;
 
-	/* Virtual RNIC Limits */
+	
 	u32 max_mr;
 	u32 max_qp;
 	u32 max_cq;
@@ -1301,7 +1267,7 @@ struct nes_terminate_hdr {
 	u8 rsvd;
 };
 
-/* Used to determine how to fill in terminate error codes */
+
 #define IWARP_OPCODE_WRITE		0
 #define IWARP_OPCODE_READREQ		1
 #define IWARP_OPCODE_READRSP		2
@@ -1311,7 +1277,7 @@ struct nes_terminate_hdr {
 #define IWARP_OPCODE_SEND_SE_INV	6
 #define IWARP_OPCODE_TERM		7
 
-/* These values are used only during terminate processing */
+
 #define TERM_DDP_LEN_TAGGED	14
 #define TERM_DDP_LEN_UNTAGGED	18
 #define TERM_RDMA_LEN		28
@@ -1323,4 +1289,4 @@ struct nes_terminate_hdr {
 #define nes_vlan_rx vlan_hwaccel_receive_skb
 #define nes_netif_rx netif_receive_skb
 
-#endif		/* __NES_HW_H */
+#endif		

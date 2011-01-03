@@ -1,12 +1,4 @@
-/*
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- * Copyright (c) 2006 Jiri Benc <jbenc@suse.cz>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/rtnetlink.h>
@@ -37,7 +29,7 @@ int ieee80211_rate_control_register(struct rate_control_ops *ops)
 	mutex_lock(&rate_ctrl_mutex);
 	list_for_each_entry(alg, &rate_ctrl_algs, list) {
 		if (!strcmp(alg->ops->name, ops->name)) {
-			/* don't register an algorithm twice */
+			
 			WARN_ON(1);
 			mutex_unlock(&rate_ctrl_mutex);
 			return -EALREADY;
@@ -95,7 +87,7 @@ ieee80211_try_rate_control_ops_get(const char *name)
 	return ops;
 }
 
-/* Get the rate control algorithm. */
+
 static struct rate_control_ops *
 ieee80211_rate_control_ops_get(const char *name)
 {
@@ -113,10 +105,10 @@ ieee80211_rate_control_ops_get(const char *name)
 		ops = ieee80211_try_rate_control_ops_get(alg_name);
 	}
 	if (!ops && name)
-		/* try default if specific alg requested but not found */
+		
 		ops = ieee80211_try_rate_control_ops_get(ieee80211_default_rc_algo);
 
-	/* try built-in one if specific alg requested but not found */
+	
 	if (!ops && strlen(CONFIG_MAC80211_RC_DEFAULT))
 		ops = ieee80211_try_rate_control_ops_get(CONFIG_MAC80211_RC_DEFAULT);
 
@@ -255,9 +247,7 @@ void rate_control_get_rate(struct ieee80211_sub_if_data *sdata,
 		info->flags |= IEEE80211_TX_INTFL_RCALGO;
 	}
 
-	/*
-	 * try to enforce the maximum rate the user wanted
-	 */
+	
 	if (sdata->max_ratectrl_rateidx > -1)
 		for (i = 0; i < IEEE80211_TX_MAX_RATES; i++) {
 			if (info->control.rates[i].flags & IEEE80211_TX_RC_MCS)

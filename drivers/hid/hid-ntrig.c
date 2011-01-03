@@ -1,17 +1,6 @@
-/*
- *  HID driver for N-Trig touchscreens
- *
- *  Copyright (c) 2008 Rafi Rubin
- *  Copyright (c) 2009 Stephane Chatty
- *
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/hid.h>
@@ -32,11 +21,7 @@ struct ntrig_data {
 	char inverted;
 };
 
-/*
- * this driver is aimed at two firmware versions in circulation:
- *  - dual pen/finger single touch
- *  - finger multitouch, pen not working
- */
+
 
 static int ntrig_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 		struct hid_field *field, struct hid_usage *usage,
@@ -65,20 +50,20 @@ static int ntrig_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 
 	case HID_UP_DIGITIZER:
 		switch (usage->hid) {
-		/* we do not want to map these for now */
-		case HID_DG_CONTACTID: /* value is useless */
+		
+		case HID_DG_CONTACTID: 
 		case HID_DG_INPUTMODE:
 		case HID_DG_DEVICEINDEX:
 		case HID_DG_CONTACTCOUNT:
 		case HID_DG_CONTACTMAX:
 			return -1;
 
-		/* original mapping by Rafi Rubin */
+		
 		case HID_DG_CONFIDENCE:
 			nt_map_key_clear(BTN_TOOL_DOUBLETAP);
 			return 1;
 
-		/* width/height mapped on TouchMajor/TouchMinor/Orientation */
+		
 		case HID_DG_WIDTH:
 			hid_map_usage(hi, usage, bit, max,
 					EV_ABS, ABS_MT_TOUCH_MAJOR);
@@ -93,7 +78,7 @@ static int ntrig_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 		return 0;
 
 	case 0xff000000:
-		/* we do not want to map these: no input-oriented meaning */
+		
 		return -1;
 	}
 
@@ -111,12 +96,7 @@ static int ntrig_input_mapped(struct hid_device *hdev, struct hid_input *hi,
 	return 0;
 }
 
-/*
- * this function is called upon all reports
- * so that we can filter contact point information,
- * decide whether we are in multi or single touch mode
- * and call input_mt_sync after each point if necessary
- */
+
 static int ntrig_event (struct hid_device *hid, struct hid_field *field,
 		                        struct hid_usage *usage, __s32 value)
 {
@@ -146,7 +126,7 @@ static int ntrig_event (struct hid_device *hid, struct hid_field *field,
 			break;
 		case HID_DG_CONTACTID:
 			nd->id = value;
-			/* we receive this only when in multitouch mode */
+			
 			nd->found_contact_id = 1;
 			break;
 		case HID_DG_WIDTH:
@@ -154,11 +134,7 @@ static int ntrig_event (struct hid_device *hid, struct hid_field *field,
 			break;
 		case HID_DG_HEIGHT:
 			nd->h = value;
-			/*
-			 * when in single touch mode, this is the last
-			 * report received in a finger event. We want
-			 * to emit a normal (X, Y) position
-			 */
+			
 			if (!nd->found_contact_id) {
 				if (nd->pen_active && nd->finger_active) {
 					input_report_key(input, BTN_TOOL_DOUBLETAP, 0);
@@ -169,11 +145,7 @@ static int ntrig_event (struct hid_device *hid, struct hid_field *field,
 			}
 			break;
 		case HID_DG_TIPPRESSURE:
-			/*
-			 * when in single touch mode, this is the last
-			 * report received in a pen event. We want
-			 * to emit a normal (X, Y) position
-			 */
+			
 			if (! nd->found_contact_id) {
 				if (nd->pen_active && nd->finger_active) {
 					input_report_key(input,
@@ -189,15 +161,10 @@ static int ntrig_event (struct hid_device *hid, struct hid_field *field,
 			}
 			break;
 		case 0xff000002:
-			/*
-			 * we receive this when the device is in multitouch
-			 * mode. The first of the three values tagged with
-			 * this usage tells if the contact point is real
-			 * or a placeholder
-			 */
+			
 			if (!nd->reading_a_point || value != 1)
 				break;
-			/* emit a normal (X, Y) for the first point only */
+			
 			if (nd->id == 0) {
 				input_event(input, EV_ABS, ABS_X, nd->x);
 				input_event(input, EV_ABS, ABS_Y, nd->y);
@@ -225,12 +192,12 @@ static int ntrig_event (struct hid_device *hid, struct hid_field *field,
 			break;
 
 		default:
-			/* fallback to the generic hidinput handling */
+			
 			return 0;
 		}
 	}
 
-	/* we have handled the hidinput part, now remains hiddev */
+	
         if (hid->claimed & HID_CLAIMED_HIDDEV && hid->hiddev_hid_event)
                 hid->hiddev_hid_event(hid, field, usage, value);
 

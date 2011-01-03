@@ -1,12 +1,4 @@
-/*
- * Copyright 2003-2005	Devicescape Software, Inc.
- * Copyright (c) 2006	Jiri Benc <jbenc@suse.cz>
- * Copyright 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/debugfs.h>
 #include <linux/ieee80211.h>
@@ -15,7 +7,7 @@
 #include "debugfs_sta.h"
 #include "sta_info.h"
 
-/* sta attributtes */
+
 
 #define STA_READ(name, buflen, field, format_string)			\
 static ssize_t sta_ ##name## _read(struct file *file,			\
@@ -178,15 +170,7 @@ void ieee80211_sta_debugfs_add(struct sta_info *sta)
 
 	snprintf(mac, sizeof(mac), "%pM", sta->sta.addr);
 
-	/*
-	 * This might fail due to a race condition:
-	 * When mac80211 unlinks a station, the debugfs entries
-	 * remain, but it is already possible to link a new
-	 * station with the same address which triggers adding
-	 * it to debugfs; therefore, if the old station isn't
-	 * destroyed quickly enough the old station's debugfs
-	 * dir might still be around.
-	 */
+	
 	sta->debugfs.dir = debugfs_create_dir(mac, stations_dir);
 	if (!sta->debugfs.dir)
 		return;

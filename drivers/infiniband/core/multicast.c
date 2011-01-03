@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2006 Intel Corporation.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/completion.h>
 #include <linux/dma-mapping.h>
@@ -217,12 +187,7 @@ static void queue_join(struct mcast_member *member)
 	spin_unlock_irqrestore(&group->lock, flags);
 }
 
-/*
- * A multicast group has three types of members: full member, non member, and
- * send only member.  We need to keep track of the number of members of each
- * type based on their join state.  Adjust the number of members the belong to
- * the specified join states.
- */
+
 static void adjust_membership(struct mcast_group *group, u8 join_state, int inc)
 {
 	int i;
@@ -232,12 +197,7 @@ static void adjust_membership(struct mcast_group *group, u8 join_state, int inc)
 			group->members[i] += inc;
 }
 
-/*
- * If a multicast group has zero members left for a particular join state, but
- * the group is still a member with the SA, we need to leave that join state.
- * Determine which join states we still belong to, but that do not have any
- * active members.
- */
+
 static u8 get_leave_state(struct mcast_group *group)
 {
 	u8 leave_state = 0;
@@ -281,7 +241,7 @@ static int check_selector(ib_sa_comp_mask comp_mask,
 static int cmp_rec(struct ib_sa_mcmember_rec *src,
 		   struct ib_sa_mcmember_rec *dst, ib_sa_comp_mask comp_mask)
 {
-	/* MGID must already match */
+	
 
 	if (comp_mask & IB_SA_MCMEMBER_REC_PORT_GID &&
 	    memcmp(&src->port_gid, &dst->port_gid, sizeof src->port_gid))
@@ -320,7 +280,7 @@ static int cmp_rec(struct ib_sa_mcmember_rec *src,
 	if (comp_mask & IB_SA_MCMEMBER_REC_SCOPE && src->scope != dst->scope)
 		return -EINVAL;
 
-	/* join_state checked separately, proxy_join ignored */
+	
 
 	return 0;
 }
@@ -491,9 +451,7 @@ retest:
 	}
 }
 
-/*
- * Fail a join request if it is still active - at the head of the pending queue.
- */
+
 static void process_join_error(struct mcast_group *group, int status)
 {
 	struct mcast_member *member;
@@ -594,13 +552,7 @@ found:
 	return group;
 }
 
-/*
- * We serialize all join requests to a single group to make our lives much
- * easier.  Otherwise, two users could try to join the same group
- * simultaneously, with different configurations, one could leave while the
- * join is in progress, etc., which makes locking around error recovery
- * difficult.
- */
+
 struct ib_sa_multicast *
 ib_sa_join_multicast(struct ib_sa_client *client,
 		     struct ib_device *device, u8 port_num,
@@ -640,12 +592,7 @@ ib_sa_join_multicast(struct ib_sa_client *client,
 		goto err;
 	}
 
-	/*
-	 * The user will get the multicast structure in their callback.  They
-	 * could then free the multicast structure before we can return from
-	 * this routine.  So we save the pointer to return before queuing
-	 * any callback.
-	 */
+	
 	multicast = &member->multicast;
 	queue_join(member);
 	return multicast;
@@ -674,7 +621,7 @@ void ib_sa_free_multicast(struct ib_sa_multicast *multicast)
 	if (group->state == MCAST_IDLE) {
 		group->state = MCAST_BUSY;
 		spin_unlock_irq(&group->lock);
-		/* Continue to hold reference on group until callback */
+		
 		queue_work(mcast_wq, &group->work);
 	} else {
 		spin_unlock_irq(&group->lock);

@@ -1,13 +1,4 @@
-/* linux/arch/arm/mach-s5pc100/mach-smdkc100.c
- *
- * Copyright 2009 Samsung Electronics Co.
- * Author: Byungho Min <bhmin@samsung.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -91,7 +82,7 @@ static void __init smdkc100_machine_init(void)
 }
 
 MACHINE_START(SMDKC100, "SMDKC100")
-	/* Maintainer: Byungho Min <bhmin@samsung.com> */
+	
 	.phys_io	= S5PC1XX_PA_UART & 0xfff00000,
 	.io_pg_offst	= (((u32)S5PC1XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S5PC100_PA_SDRAM + 0x100,

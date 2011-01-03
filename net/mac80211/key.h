@@ -1,11 +1,4 @@
-/*
- * Copyright 2002-2004, Instant802 Networks, Inc.
- * Copyright 2005, Devicescape Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef IEEE80211_KEY_H
 #define IEEE80211_KEY_H
@@ -33,22 +26,7 @@ struct ieee80211_local;
 struct ieee80211_sub_if_data;
 struct sta_info;
 
-/**
- * enum ieee80211_internal_key_flags - internal key flags
- *
- * @KEY_FLAG_UPLOADED_TO_HARDWARE: Indicates that this key is present
- *	in the hardware for TX crypto hardware acceleration.
- * @KEY_FLAG_TODO_DELETE: Key is marked for deletion and will, after an
- *	RCU grace period, no longer be reachable other than from the
- *	todo list.
- * @KEY_FLAG_TODO_HWACCEL_ADD: Key needs to be added to hardware acceleration.
- * @KEY_FLAG_TODO_HWACCEL_REMOVE: Key needs to be removed from hardware
- *	acceleration.
- * @KEY_FLAG_TODO_DEFKEY: Key is default key and debugfs needs to be updated.
- * @KEY_FLAG_TODO_ADD_DEBUGFS: Key needs to be added to debugfs.
- * @KEY_FLAG_TODO_DEFMGMTKEY: Key is default management key and debugfs needs
- *	to be updated.
- */
+
 enum ieee80211_internal_key_flags {
 	KEY_FLAG_UPLOADED_TO_HARDWARE	= BIT(0),
 	KEY_FLAG_TODO_DELETE		= BIT(1),
@@ -71,28 +49,28 @@ struct ieee80211_key {
 	struct ieee80211_sub_if_data *sdata;
 	struct sta_info *sta;
 
-	/* for sdata list */
+	
 	struct list_head list;
-	/* for todo list */
+	
 	struct list_head todo;
 
-	/* protected by todo lock! */
+	
 	unsigned int flags;
 
 	union {
 		struct {
-			/* last used TSC */
+			
 			struct tkip_ctx tx;
 
-			/* last received RSC */
+			
 			struct tkip_ctx rx[NUM_RX_DATA_QUEUES];
 		} tkip;
 		struct {
 			u8 tx_pn[6];
 			u8 rx_pn[NUM_RX_DATA_QUEUES][6];
 			struct crypto_cipher *tfm;
-			u32 replays; /* dot11RSNAStatsCCMPReplays */
-			/* scratch buffers for virt_to_page() (crypto API) */
+			u32 replays; 
+			
 #ifndef AES_BLOCK_LEN
 #define AES_BLOCK_LEN 16
 #endif
@@ -103,15 +81,15 @@ struct ieee80211_key {
 			u8 tx_pn[6];
 			u8 rx_pn[6];
 			struct crypto_cipher *tfm;
-			u32 replays; /* dot11RSNAStatsCMACReplays */
-			u32 icverrors; /* dot11RSNAStatsCMACICVErrors */
-			/* scratch buffers for virt_to_page() (crypto API) */
+			u32 replays; 
+			u32 icverrors; 
+			
 			u8 tx_crypto_buf[2 * AES_BLOCK_LEN];
 			u8 rx_crypto_buf[2 * AES_BLOCK_LEN];
 		} aes_cmac;
 	} u;
 
-	/* number of times this key has been used */
+	
 	int tx_rx_count;
 
 #ifdef CONFIG_MAC80211_DEBUGFS
@@ -134,10 +112,7 @@ struct ieee80211_key {
 	} debugfs;
 #endif
 
-	/*
-	 * key config, must be last because it contains key
-	 * material as variable length member
-	 */
+	
 	struct ieee80211_key_conf conf;
 };
 
@@ -146,10 +121,7 @@ struct ieee80211_key *ieee80211_key_alloc(enum ieee80211_key_alg alg,
 					  size_t key_len,
 					  const u8 *key_data,
 					  size_t seq_len, const u8 *seq);
-/*
- * Insert a key into data structures (sdata, sta if necessary)
- * to make it used, free old key.
- */
+
 void ieee80211_key_link(struct ieee80211_key *key,
 			struct ieee80211_sub_if_data *sdata,
 			struct sta_info *sta);
@@ -163,4 +135,4 @@ void ieee80211_disable_keys(struct ieee80211_sub_if_data *sdata);
 
 void ieee80211_key_todo(void);
 
-#endif /* IEEE80211_KEY_H */
+#endif 

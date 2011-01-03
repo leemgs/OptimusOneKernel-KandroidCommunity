@@ -1,29 +1,12 @@
-/*
- * Freescale STMP378X SoC pin multiplexing
- *
- * Author: Vladislav Buzov <vbuzov@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #ifndef __ASM_ARCH_PINS_H
 #define __ASM_ARCH_PINS_H
 
-/*
- * Define all STMP378x pins, a pin name corresponds to a STMP378x hardware
- * interface  this pin belongs to.
- */
 
-/* Bank 0 */
+
+
 #define PINID_GPMI_D00		STMP3XXX_PINID(0, 0)
 #define PINID_GPMI_D01		STMP3XXX_PINID(0, 1)
 #define PINID_GPMI_D02		STMP3XXX_PINID(0, 2)
@@ -57,7 +40,7 @@
 #define PINID_I2C_SCL		STMP3XXX_PINID(0, 30)
 #define PINID_I2C_SDA		STMP3XXX_PINID(0, 31)
 
-/* Bank 1 */
+
 #define PINID_LCD_D00		STMP3XXX_PINID(1, 0)
 #define PINID_LCD_D01		STMP3XXX_PINID(1, 1)
 #define PINID_LCD_D02		STMP3XXX_PINID(1, 2)
@@ -90,7 +73,7 @@
 #define PINID_PWM3		STMP3XXX_PINID(1, 29)
 #define PINID_PWM4		STMP3XXX_PINID(1, 30)
 
-/* Bank 2 */
+
 #define PINID_SSP1_CMD		STMP3XXX_PINID(2, 0)
 #define PINID_SSP1_DETECT	STMP3XXX_PINID(2, 1)
 #define PINID_SSP1_DATA0	STMP3XXX_PINID(2, 2)
@@ -124,7 +107,7 @@
 #define PINID_EMI_RASN		STMP3XXX_PINID(2, 30)
 #define PINID_EMI_WEN		STMP3XXX_PINID(2, 31)
 
-/* Bank 3 */
+
 #define PINID_EMI_D00		STMP3XXX_PINID(3, 0)
 #define PINID_EMI_D01		STMP3XXX_PINID(3, 1)
 #define PINID_EMI_D02		STMP3XXX_PINID(3, 2)
@@ -148,4 +131,4 @@
 #define PINID_EMI_CLK		STMP3XXX_PINID(3, 20)
 #define PINID_EMI_CLKN		STMP3XXX_PINID(3, 21)
 
-#endif /* __ASM_ARCH_PINS_H */
+#endif 

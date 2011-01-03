@@ -1,91 +1,8 @@
-/*
- * Copyright(c) 2007 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Maintained at www.Open-FCoE.org
- */
 
-/*
- * PORT LOCKING NOTES
- *
- * These comments only apply to the 'port code' which consists of the lport,
- * disc and rport blocks.
- *
- * MOTIVATION
- *
- * The lport, disc and rport blocks all have mutexes that are used to protect
- * those objects. The main motivation for these locks is to prevent from
- * having an lport reset just before we send a frame. In that scenario the
- * lport's FID would get set to zero and then we'd send a frame with an
- * invalid SID. We also need to ensure that states don't change unexpectedly
- * while processing another state.
- *
- * HEIRARCHY
- *
- * The following heirarchy defines the locking rules. A greater lock
- * may be held before acquiring a lesser lock, but a lesser lock should never
- * be held while attempting to acquire a greater lock. Here is the heirarchy-
- *
- * lport > disc, lport > rport, disc > rport
- *
- * CALLBACKS
- *
- * The callbacks cause complications with this scheme. There is a callback
- * from the rport (to either lport or disc) and a callback from disc
- * (to the lport).
- *
- * As rports exit the rport state machine a callback is made to the owner of
- * the rport to notify success or failure. Since the callback is likely to
- * cause the lport or disc to grab its lock we cannot hold the rport lock
- * while making the callback. To ensure that the rport is not free'd while
- * processing the callback the rport callbacks are serialized through a
- * single-threaded workqueue. An rport would never be free'd while in a
- * callback handler becuase no other rport work in this queue can be executed
- * at the same time.
- *
- * When discovery succeeds or fails a callback is made to the lport as
- * notification. Currently, succesful discovery causes the lport to take no
- * action. A failure will cause the lport to reset. There is likely a circular
- * locking problem with this implementation.
- */
 
-/*
- * LPORT LOCKING
- *
- * The critical sections protected by the lport's mutex are quite broad and
- * may be improved upon in the future. The lport code and its locking doesn't
- * influence the I/O path, so excessive locking doesn't penalize I/O
- * performance.
- *
- * The strategy is to lock whenever processing a request or response. Note
- * that every _enter_* function corresponds to a state change. They generally
- * change the lports state and then send a request out on the wire. We lock
- * before calling any of these functions to protect that state change. This
- * means that the entry points into the lport block manage the locks while
- * the state machine can transition between states (i.e. _enter_* functions)
- * while always staying protected.
- *
- * When handling responses we also hold the lport mutex broadly. When the
- * lport receives the response frame it locks the mutex and then calls the
- * appropriate handler for the particuar response. Generally a response will
- * trigger a state change and so the lock must already be held.
- *
- * Retries also have to consider the locking. The retries occur from a work
- * context and the work function will lock the lport and then retry the state
- * (i.e. _enter_* function).
- */
+
+
+
 
 #include <linux/timer.h>
 #include <asm/unaligned.h>
@@ -95,11 +12,11 @@
 #include <scsi/libfc.h>
 #include <scsi/fc_encode.h>
 
-/* Fabric IDs to use for point-to-point mode, chosen on whims. */
+
 #define FC_LOCAL_PTP_FID_LO   0x010101
 #define FC_LOCAL_PTP_FID_HI   0x010102
 
-#define	DNS_DELAY	      3 /* Discovery delay after RSCN (in seconds)*/
+#define	DNS_DELAY	      3 
 
 static void fc_lport_error(struct fc_lport *, struct fc_frame *);
 
@@ -130,15 +47,7 @@ static int fc_frame_drop(struct fc_lport *lport, struct fc_frame *fp)
 	return 0;
 }
 
-/**
- * fc_lport_rport_callback() - Event handler for rport events
- * @lport: The lport which is receiving the event
- * @rdata: private remote port data
- * @event: The event that occured
- *
- * Locking Note: The rport lock should not be held when calling
- *		 this function.
- */
+
 static void fc_lport_rport_callback(struct fc_lport *lport,
 				    struct fc_rport_priv *rdata,
 				    enum fc_rport_event event)
@@ -173,10 +82,7 @@ static void fc_lport_rport_callback(struct fc_lport *lport,
 	mutex_unlock(&lport->lp_mutex);
 }
 
-/**
- * fc_lport_state() - Return a string which represents the lport's state
- * @lport: The lport whose state is to converted to a string
- */
+
 static const char *fc_lport_state(struct fc_lport *lport)
 {
 	const char *cp;
@@ -187,13 +93,7 @@ static const char *fc_lport_state(struct fc_lport *lport)
 	return cp;
 }
 
-/**
- * fc_lport_ptp_setup() - Create an rport for point-to-point mode
- * @lport: The lport to attach the ptp rport to
- * @fid: The FID of the ptp rport
- * @remote_wwpn: The WWPN of the ptp rport
- * @remote_wwnn: The WWNN of the ptp rport
- */
+
 static void fc_lport_ptp_setup(struct fc_lport *lport,
 			       u32 remote_fid, u64 remote_wwpn,
 			       u64 remote_wwnn)
@@ -213,7 +113,7 @@ static void fc_lport_ptp_setup(struct fc_lport *lport,
 
 void fc_get_host_port_type(struct Scsi_Host *shost)
 {
-	/* TODO - currently just NPORT */
+	
 	fc_host_port_type(shost) = FC_PORTTYPE_NPORT;
 }
 EXPORT_SYMBOL(fc_get_host_port_type);
@@ -279,9 +179,7 @@ struct fc_host_statistics *fc_get_host_stats(struct Scsi_Host *shost)
 }
 EXPORT_SYMBOL(fc_get_host_stats);
 
-/*
- * Fill in FLOGI command for request.
- */
+
 static void
 fc_lport_flogi_fill(struct fc_lport *lport, struct fc_els_flogi *flogi,
 		    unsigned int op)
@@ -296,13 +194,13 @@ fc_lport_flogi_fill(struct fc_lport *lport, struct fc_els_flogi *flogi,
 	sp = &flogi->fl_csp;
 	sp->sp_hi_ver = 0x20;
 	sp->sp_lo_ver = 0x20;
-	sp->sp_bb_cred = htons(10);	/* this gets set by gateway */
+	sp->sp_bb_cred = htons(10);	
 	sp->sp_bb_data = htons((u16) lport->mfs);
-	cp = &flogi->fl_cssp[3 - 1];	/* class 3 parameters */
+	cp = &flogi->fl_cssp[3 - 1];	
 	cp->cp_class = htons(FC_CPC_VALID | FC_CPC_SEQ);
 	if (op != ELS_FLOGI) {
 		sp->sp_features = htons(FC_SP_FT_CIRO);
-		sp->sp_tot_seq = htons(255);	/* seq. we accept */
+		sp->sp_tot_seq = htons(255);	
 		sp->sp_rel_off = htons(0x1f);
 		sp->sp_e_d_tov = htonl(lport->e_d_tov);
 
@@ -312,9 +210,7 @@ fc_lport_flogi_fill(struct fc_lport *lport, struct fc_els_flogi *flogi,
 	}
 }
 
-/*
- * Add a supported FC-4 type.
- */
+
 static void fc_lport_add_fc4_type(struct fc_lport *lport, enum fc_fh_type type)
 {
 	__be32 *mp;
@@ -323,15 +219,7 @@ static void fc_lport_add_fc4_type(struct fc_lport *lport, enum fc_fh_type type)
 	*mp = htonl(ntohl(*mp) | 1UL << (type % FC_NS_BPW));
 }
 
-/**
- * fc_lport_recv_rlir_req() - Handle received Registered Link Incident Report.
- * @lport: Fibre Channel local port recieving the RLIR
- * @sp: current sequence in the RLIR exchange
- * @fp: RLIR request frame
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this function.
- */
+
 static void fc_lport_recv_rlir_req(struct fc_seq *sp, struct fc_frame *fp,
 				   struct fc_lport *lport)
 {
@@ -342,15 +230,7 @@ static void fc_lport_recv_rlir_req(struct fc_seq *sp, struct fc_frame *fp,
 	fc_frame_free(fp);
 }
 
-/**
- * fc_lport_recv_echo_req() - Handle received ECHO request
- * @lport: Fibre Channel local port recieving the ECHO
- * @sp: current sequence in the ECHO exchange
- * @fp: ECHO request frame
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this function.
- */
+
 static void fc_lport_recv_echo_req(struct fc_seq *sp, struct fc_frame *in_fp,
 				   struct fc_lport *lport)
 {
@@ -384,15 +264,7 @@ static void fc_lport_recv_echo_req(struct fc_seq *sp, struct fc_frame *in_fp,
 	fc_frame_free(in_fp);
 }
 
-/**
- * fc_lport_recv_rnid_req() - Handle received Request Node ID data request
- * @sp:	   The sequence in the RNID exchange
- * @fp:	   The RNID request frame
- * @lport: The local port recieving the RNID
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this function.
- */
+
 static void fc_lport_recv_rnid_req(struct fc_seq *sp, struct fc_frame *in_fp,
 				   struct fc_lport *lport)
 {
@@ -423,7 +295,7 @@ static void fc_lport_recv_rnid_req(struct fc_seq *sp, struct fc_frame *in_fp,
 		len = sizeof(*rp);
 		if (fmt != ELS_RNIDF_GEN ||
 		    ntohl(lport->rnid_gen.rnid_atype) == 0) {
-			fmt = ELS_RNIDF_NONE;	/* nothing to provide */
+			fmt = ELS_RNIDF_NONE;	
 			len -= sizeof(rp->gen);
 		}
 		fp = fc_frame_alloc(lport, len);
@@ -451,15 +323,7 @@ static void fc_lport_recv_rnid_req(struct fc_seq *sp, struct fc_frame *in_fp,
 	fc_frame_free(in_fp);
 }
 
-/**
- * fc_lport_recv_logo_req() - Handle received fabric LOGO request
- * @lport: Fibre Channel local port recieving the LOGO
- * @sp: current sequence in the LOGO exchange
- * @fp: LOGO request frame
- *
- * Locking Note: The lport lock is exected to be held before calling
- * this function.
- */
+
 static void fc_lport_recv_logo_req(struct fc_seq *sp, struct fc_frame *fp,
 				   struct fc_lport *lport)
 {
@@ -468,13 +332,7 @@ static void fc_lport_recv_logo_req(struct fc_seq *sp, struct fc_frame *fp,
 	fc_frame_free(fp);
 }
 
-/**
- * fc_fabric_login() - Start the lport state machine
- * @lport: The lport that should log into the fabric
- *
- * Locking Note: This function should not be called
- *		 with the lport lock held.
- */
+
 int fc_fabric_login(struct fc_lport *lport)
 {
 	int rc = -1;
@@ -490,10 +348,7 @@ int fc_fabric_login(struct fc_lport *lport)
 }
 EXPORT_SYMBOL(fc_fabric_login);
 
-/**
- * fc_linkup() - Handler for transport linkup events
- * @lport: The lport whose link is up
- */
+
 void fc_linkup(struct fc_lport *lport)
 {
 	printk(KERN_INFO "libfc: Link up on port (%6x)\n",
@@ -510,10 +365,7 @@ void fc_linkup(struct fc_lport *lport)
 }
 EXPORT_SYMBOL(fc_linkup);
 
-/**
- * fc_linkdown() - Handler for transport linkdown events
- * @lport: The lport whose link is down
- */
+
 void fc_linkdown(struct fc_lport *lport)
 {
 	mutex_lock(&lport->lp_mutex);
@@ -529,13 +381,7 @@ void fc_linkdown(struct fc_lport *lport)
 }
 EXPORT_SYMBOL(fc_linkdown);
 
-/**
- * fc_fabric_logoff() - Logout of the fabric
- * @lport:	      fc_lport pointer to logoff the fabric
- *
- * Return value:
- *	0 for success, -1 for failure
- */
+
 int fc_fabric_logoff(struct fc_lport *lport)
 {
 	lport->tt.disc_stop_final(lport);
@@ -552,18 +398,7 @@ int fc_fabric_logoff(struct fc_lport *lport)
 }
 EXPORT_SYMBOL(fc_fabric_logoff);
 
-/**
- * fc_lport_destroy() - unregister a fc_lport
- * @lport:	      fc_lport pointer to unregister
- *
- * Return value:
- *	None
- * Note:
- * exit routine for fc_lport instance
- * clean-up all the allocated memory
- * and free up other system resources.
- *
- */
+
 int fc_lport_destroy(struct fc_lport *lport)
 {
 	mutex_lock(&lport->lp_mutex);
@@ -579,15 +414,7 @@ int fc_lport_destroy(struct fc_lport *lport)
 }
 EXPORT_SYMBOL(fc_lport_destroy);
 
-/**
- * fc_set_mfs() - sets up the mfs for the corresponding fc_lport
- * @lport: fc_lport pointer to unregister
- * @mfs: the new mfs for fc_lport
- *
- * Set mfs for the given fc_lport to the new mfs.
- *
- * Return: 0 for success
- */
+
 int fc_set_mfs(struct fc_lport *lport, u32 mfs)
 {
 	unsigned int old_mfs;
@@ -615,11 +442,7 @@ int fc_set_mfs(struct fc_lport *lport, u32 mfs)
 }
 EXPORT_SYMBOL(fc_set_mfs);
 
-/**
- * fc_lport_disc_callback() - Callback for discovery events
- * @lport: FC local port
- * @event: The discovery event
- */
+
 void fc_lport_disc_callback(struct fc_lport *lport, enum fc_disc_event event)
 {
 	switch (event) {
@@ -639,13 +462,7 @@ void fc_lport_disc_callback(struct fc_lport *lport, enum fc_disc_event event)
 	}
 }
 
-/**
- * fc_rport_enter_ready() - Enter the ready state and start discovery
- * @lport: Fibre Channel local port that is ready
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_ready(struct fc_lport *lport)
 {
 	FC_LPORT_DBG(lport, "Entered READY from state %s\n",
@@ -657,19 +474,7 @@ static void fc_lport_enter_ready(struct fc_lport *lport)
 		lport->tt.disc_start(fc_lport_disc_callback, lport);
 }
 
-/**
- * fc_lport_recv_flogi_req() - Receive a FLOGI request
- * @sp_in: The sequence the FLOGI is on
- * @rx_fp: The frame the FLOGI is in
- * @lport: The lport that recieved the request
- *
- * A received FLOGI request indicates a point-to-point connection.
- * Accept it with the common service parameters indicating our N port.
- * Set up to do a PLOGI if we have the higher-number WWPN.
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this function.
- */
+
 static void fc_lport_recv_flogi_req(struct fc_seq *sp_in,
 				    struct fc_frame *rx_fp,
 				    struct fc_lport *lport)
@@ -701,11 +506,7 @@ static void fc_lport_recv_flogi_req(struct fc_seq *sp_in,
 	}
 	FC_LPORT_DBG(lport, "FLOGI from port WWPN %llx\n", remote_wwpn);
 
-	/*
-	 * XXX what is the right thing to do for FIDs?
-	 * The originator might expect our S_ID to be 0xfffffe.
-	 * But if so, both of us could end up with the same FID.
-	 */
+	
 	local_fid = FC_LOCAL_PTP_FID_LO;
 	if (remote_wwpn < lport->wwpn) {
 		local_fid = FC_LOCAL_PTP_FID_HI;
@@ -724,10 +525,7 @@ static void fc_lport_recv_flogi_req(struct fc_seq *sp_in,
 		fc_lport_flogi_fill(lport, new_flp, ELS_FLOGI);
 		new_flp->fl_cmd = (u8) ELS_LS_ACC;
 
-		/*
-		 * Send the response.  If this fails, the originator should
-		 * repeat the sequence.
-		 */
+		
 		f_ctl = FC_FC_EX_CTX | FC_FC_LAST_SEQ | FC_FC_END_SEQ;
 		ep = fc_seq_exch(sp);
 		fc_fill_fc_hdr(fp, FC_RCTL_ELS_REP, ep->did, ep->sid,
@@ -745,18 +543,7 @@ out:
 	fc_frame_free(rx_fp);
 }
 
-/**
- * fc_lport_recv_req() - The generic lport request handler
- * @lport: The lport that received the request
- * @sp: The sequence the request is on
- * @fp: The frame the request is in
- *
- * This function will see if the lport handles the request or
- * if an rport should handle the request.
- *
- * Locking Note: This function should not be called with the lport
- *		 lock held becuase it will grab the lock.
- */
+
 static void fc_lport_recv_req(struct fc_lport *lport, struct fc_seq *sp,
 			      struct fc_frame *fp)
 {
@@ -765,18 +552,12 @@ static void fc_lport_recv_req(struct fc_lport *lport, struct fc_seq *sp,
 
 	mutex_lock(&lport->lp_mutex);
 
-	/*
-	 * Handle special ELS cases like FLOGI, LOGO, and
-	 * RSCN here.  These don't require a session.
-	 * Even if we had a session, it might not be ready.
-	 */
+	
 	if (!lport->link_up)
 		fc_frame_free(fp);
 	else if (fh->fh_type == FC_TYPE_ELS &&
 		 fh->fh_r_ctl == FC_RCTL_ELS_REQ) {
-		/*
-		 * Check opcode.
-		 */
+		
 		recv = lport->tt.rport_recv_req;
 		switch (fc_frame_payload_op(fp)) {
 		case ELS_FLOGI:
@@ -809,20 +590,11 @@ static void fc_lport_recv_req(struct fc_lport *lport, struct fc_seq *sp,
 	}
 	mutex_unlock(&lport->lp_mutex);
 
-	/*
-	 *  The common exch_done for all request may not be good
-	 *  if any request requires longer hold on exhange. XXX
-	 */
+	
 	lport->tt.exch_done(sp);
 }
 
-/**
- * fc_lport_reset() - Reset an lport
- * @lport: The lport which should be reset
- *
- * Locking Note: This functions should not be called with the
- *		 lport lock held.
- */
+
 int fc_lport_reset(struct fc_lport *lport)
 {
 	cancel_delayed_work_sync(&lport->retry_work);
@@ -833,13 +605,7 @@ int fc_lport_reset(struct fc_lport *lport)
 }
 EXPORT_SYMBOL(fc_lport_reset);
 
-/**
- * fc_lport_reset_locked() - Reset the local port
- * @lport: Fibre Channel local port to be reset
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_reset_locked(struct fc_lport *lport)
 {
 	if (lport->dns_rp)
@@ -854,13 +620,7 @@ static void fc_lport_reset_locked(struct fc_lport *lport)
 	fc_host_port_id(lport->host) = 0;
 }
 
-/**
- * fc_lport_enter_reset() - Reset the local port
- * @lport: Fibre Channel local port to be reset
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_reset(struct fc_lport *lport)
 {
 	FC_LPORT_DBG(lport, "Entered RESET state from %s state\n",
@@ -872,13 +632,7 @@ static void fc_lport_enter_reset(struct fc_lport *lport)
 		fc_lport_enter_flogi(lport);
 }
 
-/**
- * fc_lport_enter_disabled() - disable the local port
- * @lport: Fibre Channel local port to be reset
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_disabled(struct fc_lport *lport)
 {
 	FC_LPORT_DBG(lport, "Entered disabled state from %s state\n",
@@ -888,15 +642,7 @@ static void fc_lport_enter_disabled(struct fc_lport *lport)
 	fc_lport_reset_locked(lport);
 }
 
-/**
- * fc_lport_error() - Handler for any errors
- * @lport: The fc_lport object
- * @fp: The frame pointer
- *
- * If the error was caused by a resource allocation failure
- * then wait for half a second and retry, otherwise retry
- * after the e_d_tov time.
- */
+
 static void fc_lport_error(struct fc_lport *lport, struct fc_frame *fp)
 {
 	unsigned long delay = 0;
@@ -905,10 +651,7 @@ static void fc_lport_error(struct fc_lport *lport, struct fc_frame *fp)
 		     lport->retry_count);
 
 	if (!fp || PTR_ERR(fp) == -FC_EX_TIMEOUT) {
-		/*
-		 * Memory allocation failure, or the exchange timed out.
-		 *  Retry after delay
-		 */
+		
 		if (lport->retry_count < lport->max_retry_count) {
 			lport->retry_count++;
 			if (!fp)
@@ -935,17 +678,7 @@ static void fc_lport_error(struct fc_lport *lport, struct fc_frame *fp)
 	}
 }
 
-/**
- * fc_lport_rft_id_resp() - Handle response to Register Fibre
- *			    Channel Types by ID (RPN_ID) request
- * @sp: current sequence in RPN_ID exchange
- * @fp: response frame
- * @lp_arg: Fibre Channel host port instance
- *
- * Locking Note: This function will be called without the lport lock
- * held, but it will lock, call an _enter_* function or fc_lport_error
- * and then unlock the lport.
- */
+
 static void fc_lport_rft_id_resp(struct fc_seq *sp, struct fc_frame *fp,
 				 void *lp_arg)
 {
@@ -989,17 +722,7 @@ err:
 	mutex_unlock(&lport->lp_mutex);
 }
 
-/**
- * fc_lport_rpn_id_resp() - Handle response to Register Port
- *			    Name by ID (RPN_ID) request
- * @sp: current sequence in RPN_ID exchange
- * @fp: response frame
- * @lp_arg: Fibre Channel host port instance
- *
- * Locking Note: This function will be called without the lport lock
- * held, but it will lock, call an _enter_* function or fc_lport_error
- * and then unlock the lport.
- */
+
 static void fc_lport_rpn_id_resp(struct fc_seq *sp, struct fc_frame *fp,
 				 void *lp_arg)
 {
@@ -1043,16 +766,7 @@ err:
 	mutex_unlock(&lport->lp_mutex);
 }
 
-/**
- * fc_lport_scr_resp() - Handle response to State Change Register (SCR) request
- * @sp: current sequence in SCR exchange
- * @fp: response frame
- * @lp_arg: Fibre Channel lport port instance that sent the registration request
- *
- * Locking Note: This function will be called without the lport lock
- * held, but it will lock, call an _enter_* function or fc_lport_error
- * and then unlock the lport.
- */
+
 static void fc_lport_scr_resp(struct fc_seq *sp, struct fc_frame *fp,
 			      void *lp_arg)
 {
@@ -1091,13 +805,7 @@ err:
 	mutex_unlock(&lport->lp_mutex);
 }
 
-/**
- * fc_lport_enter_scr() - Send a State Change Register (SCR) request
- * @lport: Fibre Channel local port to register for state changes
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_scr(struct fc_lport *lport)
 {
 	struct fc_frame *fp;
@@ -1118,13 +826,7 @@ static void fc_lport_enter_scr(struct fc_lport *lport)
 		fc_lport_error(lport, NULL);
 }
 
-/**
- * fc_lport_enter_rft_id() - Register FC4-types with the name server
- * @lport: Fibre Channel local port to register
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_rft_id(struct fc_lport *lport)
 {
 	struct fc_frame *fp;
@@ -1142,7 +844,7 @@ static void fc_lport_enter_rft_id(struct fc_lport *lport)
 		if (ntohl(lps->ff_type_map[i]) != 0)
 			break;
 	if (i < 0) {
-		/* nothing to register, move on to SCR */
+		
 		fc_lport_enter_scr(lport);
 		return;
 	}
@@ -1160,13 +862,7 @@ static void fc_lport_enter_rft_id(struct fc_lport *lport)
 		fc_lport_error(lport, fp);
 }
 
-/**
- * fc_rport_enter_rft_id() - Register port name with the name server
- * @lport: Fibre Channel local port to register
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_rpn_id(struct fc_lport *lport)
 {
 	struct fc_frame *fp;
@@ -1193,13 +889,7 @@ static struct fc_rport_operations fc_lport_rport_ops = {
 	.event_callback = fc_lport_rport_callback,
 };
 
-/**
- * fc_rport_enter_dns() - Create a rport to the name server
- * @lport: Fibre Channel local port requesting a rport for the name server
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_dns(struct fc_lport *lport)
 {
 	struct fc_rport_priv *rdata;
@@ -1223,10 +913,7 @@ err:
 	fc_lport_error(lport, NULL);
 }
 
-/**
- * fc_lport_timeout() - Handler for the retry_work timer.
- * @work: The work struct of the fc_lport
- */
+
 static void fc_lport_timeout(struct work_struct *work)
 {
 	struct fc_lport *lport =
@@ -1267,16 +954,7 @@ static void fc_lport_timeout(struct work_struct *work)
 	mutex_unlock(&lport->lp_mutex);
 }
 
-/**
- * fc_lport_logo_resp() - Handle response to LOGO request
- * @sp: current sequence in LOGO exchange
- * @fp: response frame
- * @lp_arg: Fibre Channel lport port instance that sent the LOGO request
- *
- * Locking Note: This function will be called without the lport lock
- * held, but it will lock, call an _enter_* function or fc_lport_error
- * and then unlock the lport.
- */
+
 static void fc_lport_logo_resp(struct fc_seq *sp, struct fc_frame *fp,
 			       void *lp_arg)
 {
@@ -1315,13 +993,7 @@ err:
 	mutex_unlock(&lport->lp_mutex);
 }
 
-/**
- * fc_rport_enter_logo() - Logout of the fabric
- * @lport: Fibre Channel local port to be logged out
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 static void fc_lport_enter_logo(struct fc_lport *lport)
 {
 	struct fc_frame *fp;
@@ -1343,16 +1015,7 @@ static void fc_lport_enter_logo(struct fc_lport *lport)
 		fc_lport_error(lport, NULL);
 }
 
-/**
- * fc_lport_flogi_resp() - Handle response to FLOGI request
- * @sp: current sequence in FLOGI exchange
- * @fp: response frame
- * @lp_arg: Fibre Channel lport port instance that sent the FLOGI request
- *
- * Locking Note: This function will be called without the lport lock
- * held, but it will lock, call an _enter_* function or fc_lport_error
- * and then unlock the lport.
- */
+
 static void fc_lport_flogi_resp(struct fc_seq *sp, struct fc_frame *fp,
 				void *lp_arg)
 {
@@ -1434,13 +1097,7 @@ err:
 	mutex_unlock(&lport->lp_mutex);
 }
 
-/**
- * fc_rport_enter_flogi() - Send a FLOGI request to the fabric manager
- * @lport: Fibre Channel local port to be logged in to the fabric
- *
- * Locking Note: The lport lock is expected to be held before calling
- * this routine.
- */
+
 void fc_lport_enter_flogi(struct fc_lport *lport)
 {
 	struct fc_frame *fp;
@@ -1459,7 +1116,7 @@ void fc_lport_enter_flogi(struct fc_lport *lport)
 		fc_lport_error(lport, NULL);
 }
 
-/* Configure a fc_lport */
+
 int fc_lport_config(struct fc_lport *lport)
 {
 	INIT_DELAYED_WORK(&lport->retry_work, fc_lport_timeout);
@@ -1491,7 +1148,7 @@ int fc_lport_init(struct fc_lport *lport)
 	fc_host_supported_fc4s(lport->host)[2] = 1;
 	fc_host_supported_fc4s(lport->host)[7] = 1;
 
-	/* This value is also unchanging */
+	
 	memset(fc_host_active_fc4s(lport->host), 0,
 	       sizeof(fc_host_active_fc4s(lport->host)));
 	fc_host_active_fc4s(lport->host)[2] = 1;

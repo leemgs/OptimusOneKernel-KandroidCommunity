@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFI_FCXP_H__
 #define __BFI_FCXP_H__
@@ -32,40 +17,36 @@ enum bfi_fcxp_i2h {
 
 #define BFA_FCXP_MAX_SGES	2
 
-/**
- * FCXP send request structure
- */
+
 struct bfi_fcxp_send_req_s {
-	struct bfi_mhdr_s  mh;		/*  Common msg header		    */
-	u16        fcxp_tag;	/*  driver request tag		    */
-	u16        max_frmsz;	/*  max send frame size	    */
-	u16        vf_id;		/*  vsan tag if applicable	    */
-	u16        rport_fw_hndl;	/*  FW Handle for the remote port  */
-	u8         class;		/*  FC class used for req/rsp	    */
-	u8         rsp_timeout;	/*  timeout in secs, 0-no response */
-	u8         cts;		/*  continue sequence		    */
-	u8         lp_tag;		/*  lport tag			    */
-	struct fchs_s   fchs;		/*  request FC header structure    */
-	u32        req_len;	/*  request payload length	    */
-	u32        rsp_maxlen;	/*  max response length expected   */
-	struct bfi_sge_s   req_sge[BFA_FCXP_MAX_SGES];	/*  request buf    */
-	struct bfi_sge_s   rsp_sge[BFA_FCXP_MAX_SGES];	/*  response buf   */
+	struct bfi_mhdr_s  mh;		
+	u16        fcxp_tag;	
+	u16        max_frmsz;	
+	u16        vf_id;		
+	u16        rport_fw_hndl;	
+	u8         class;		
+	u8         rsp_timeout;	
+	u8         cts;		
+	u8         lp_tag;		
+	struct fchs_s   fchs;		
+	u32        req_len;	
+	u32        rsp_maxlen;	
+	struct bfi_sge_s   req_sge[BFA_FCXP_MAX_SGES];	
+	struct bfi_sge_s   rsp_sge[BFA_FCXP_MAX_SGES];	
 };
 
-/**
- * FCXP send response structure
- */
+
 struct bfi_fcxp_send_rsp_s {
-	struct bfi_mhdr_s  mh;		/*  Common msg header		    */
-	u16        fcxp_tag;	/*  send request tag		    */
-	u8         req_status;	/*  request status		    */
+	struct bfi_mhdr_s  mh;		
+	u16        fcxp_tag;	
+	u8         req_status;	
 	u8         rsvd;
-	u32        rsp_len;	/*  actual response length	    */
-	u32        residue_len;	/*  residual response length	    */
-	struct fchs_s   fchs;		/*  response FC header structure   */
+	u32        rsp_len;	
+	u32        residue_len;	
+	struct fchs_s   fchs;		
 };
 
 #pragma pack()
 
-#endif /* __BFI_FCXP_H__ */
+#endif 
 

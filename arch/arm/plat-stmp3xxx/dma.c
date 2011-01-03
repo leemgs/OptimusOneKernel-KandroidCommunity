@@ -1,20 +1,6 @@
-/*
- * DMA helper routines for Freescale STMP37XX/STMP378X
- *
- * Author: dmitry pervushin <dpervushin@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #include <linux/kernel.h>
 #include <linux/device.h>
 #include <linux/dmapool.h>
@@ -53,7 +39,7 @@ int stmp3xxx_dma_request(int ch, struct device *dev, const char *name)
 		err = -EBUSY;
 		goto out;
 	}
-	/* Create a pool to allocate dma commands from */
+	
 	user->pool = dma_pool_create(name, dev, pool_item_size,
 				     pool_alignment, PAGE_SIZE);
 	if (user->pool == NULL) {
@@ -132,11 +118,11 @@ int stmp3xxx_dma_allocate_command(int channel,
 		goto out;
 	}
 
-	/* Allocate memory for a command from the buffer */
+	
 	descriptor->command =
 	    dma_pool_alloc(user->pool, GFP_KERNEL, &descriptor->handle);
 
-	/* Check it worked */
+	
 	if (!descriptor->command) {
 		err = -ENOMEM;
 		goto out;
@@ -163,11 +149,11 @@ int stmp3xxx_dma_free_command(int channel,
 		goto out;
 	}
 
-	/* Return the command memory to the pool */
+	
 	dma_pool_free(channels[channel].pool, descriptor->command,
 		      descriptor->handle);
 
-	/* Initialise descriptor so we're not tempted to use it */
+	
 	descriptor->command = NULL;
 	descriptor->handle = 0;
 	descriptor->virtual_buf_ptr = NULL;
@@ -200,10 +186,9 @@ void stmp3xxx_dma_go(int channel,
 		return;
 	}
 
-	/* Set next command */
+	
 	__raw_writel(head->handle, c);
-	/* Set counting semaphore (kicks off transfer). Assumes
-	   peripheral has been set up correctly */
+	
 	__raw_writel(semaphore, s);
 }
 EXPORT_SYMBOL(stmp3xxx_dma_go);
@@ -227,9 +212,7 @@ int stmp3xxx_dma_running(int channel)
 }
 EXPORT_SYMBOL(stmp3xxx_dma_running);
 
-/*
- * Circular dma chain management
- */
+
 void stmp3xxx_dma_free_chain(struct stmp37xx_circ_dma_chain *chain)
 {
 	int i;
@@ -255,10 +238,7 @@ int stmp3xxx_dma_make_chain(int ch, struct stmp37xx_circ_dma_chain *chain,
 		err = stmp3xxx_dma_allocate_command(ch, &descriptors[i]);
 		if (err) {
 			WARN_ON(err);
-			/*
-			 * Couldn't allocate the whole chain.
-			 * deallocate what has been allocated
-			 */
+			
 			if (i) {
 				do {
 					stmp3xxx_dma_free_command(ch,
@@ -269,7 +249,7 @@ int stmp3xxx_dma_make_chain(int ch, struct stmp37xx_circ_dma_chain *chain,
 			return err;
 		}
 
-		/* link them! */
+		
 		if (i > 0) {
 			descriptors[i - 1].next_descr = &descriptors[i];
 			descriptors[i - 1].command->next =
@@ -277,7 +257,7 @@ int stmp3xxx_dma_make_chain(int ch, struct stmp37xx_circ_dma_chain *chain,
 		}
 	}
 
-	/* make list circular */
+	
 	descriptors[items - 1].next_descr = &descriptors[0];
 	descriptors[items - 1].command->next = descriptors[0].handle;
 
@@ -347,8 +327,7 @@ void stmp37xx_circ_advance_active(struct stmp37xx_circ_dma_chain *chain,
 		return;
 	}
 
-	/* Set counting semaphore (kicks off transfer). Assumes
-	   peripheral has been set up correctly */
+	
 	stmp3xxx_clearl(mask_clr, c);
 	stmp3xxx_setl(mask, c);
 }
@@ -448,7 +427,7 @@ static struct dma_notifier_block dma_cpufreq_nb = {
 		.notifier_call = dma_cpufreq_notifier,
 	},
 };
-#endif /* CONFIG_CPU_FREQ */
+#endif 
 
 void __init stmp3xxx_dma_init(void)
 {
@@ -459,5 +438,5 @@ void __init stmp3xxx_dma_init(void)
 #ifdef CONFIG_CPU_FREQ
 	cpufreq_register_notifier(&dma_cpufreq_nb.nb,
 				CPUFREQ_TRANSITION_NOTIFIER);
-#endif /* CONFIG_CPU_FREQ */
+#endif 
 }

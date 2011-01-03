@@ -1,16 +1,4 @@
-/* Generic system definitions, based on MN10300 definitions.
- *
- * It should be possible to use these on really simple architectures,
- * but it serves more as a starting point for new ports.
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licence
- * as published by the Free Software Foundation; either version
- * 2 of the Licence, or (at your option) any later version.
- */
+
 #ifndef __ASM_GENERIC_SYSTEM_H
 #define __ASM_GENERIC_SYSTEM_H
 
@@ -24,7 +12,7 @@
 
 struct task_struct;
 
-/* context switching is now performed out-of-line in switch_to.S */
+
 extern struct task_struct *__switch_to(struct task_struct *,
 		struct task_struct *);
 #define switch_to(prev, next, last)					\
@@ -36,15 +24,9 @@ extern struct task_struct *__switch_to(struct task_struct *,
 
 #define nop() asm volatile ("nop")
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-/*
- * Force strict CPU ordering.
- * And yes, this is required on UP too when we're talking
- * to devices.
- *
- * This implementation only contains a compiler barrier.
- */
+
 
 #define mb()	asm volatile ("": : :"memory")
 #define rmb()	mb()
@@ -66,13 +48,10 @@ extern struct task_struct *__switch_to(struct task_struct *,
 #define read_barrier_depends()		do {} while (0)
 #define smp_read_barrier_depends()	do {} while (0)
 
-/*
- * we make sure local_irq_enable() doesn't cause priority inversion
- */
+
 #ifndef __ASSEMBLY__
 
-/* This function doesn't exist, so you'll get a linker error
- *    if something tries to do an invalid xchg().  */
+
 extern void __xchg_called_with_bad_pointer(void);
 
 static inline
@@ -90,7 +69,7 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u8 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u8 */
+#endif 
 
 	case 2:
 #ifdef __xchg_u16
@@ -101,7 +80,7 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u16 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u16 */
+#endif 
 
 	case 4:
 #ifdef __xchg_u32
@@ -112,7 +91,7 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u32 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u32 */
+#endif 
 
 #ifdef CONFIG_64BIT
 	case 8:
@@ -124,8 +103,8 @@ unsigned long __xchg(unsigned long x, volatile void *ptr, int size)
 		*(volatile u64 *)ptr = x;
 		local_irq_restore(flags);
 		return ret;
-#endif /* __xchg_u64 */
-#endif /* CONFIG_64BIT */
+#endif 
+#endif 
 
 	default:
 		__xchg_called_with_bad_pointer();
@@ -155,7 +134,7 @@ static inline unsigned long __cmpxchg(volatile unsigned long *m,
 					(unsigned long)(o),	\
 					(unsigned long)(n)))
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-#endif /* __KERNEL__ */
-#endif /* __ASM_GENERIC_SYSTEM_H */
+#endif 
+#endif 

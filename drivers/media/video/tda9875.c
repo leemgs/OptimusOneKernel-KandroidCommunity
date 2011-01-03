@@ -1,22 +1,4 @@
-/*
- * For the TDA9875 chip
- * (The TDA9875 is used on the Diamond DTV2000 french version
- * Other cards probably use these chips as well.)
- * This driver will not complain if used with any
- * other i2c device with the same address.
- *
- * Copyright (c) 2000 Guillaume Delvit based on Gerd Knorr source and
- * Eric Sandeen
- * Copyright (c) 2006 Mauro Carvalho Chehab <mchehab@infradead.org>
- * This code is placed under the terms of the GNU General Public License
- * Based on tda9855.c by Steve VanDeBogart (vandebo@uclink.berkeley.edu)
- * Which was based on tda8425.c by Greg Alexander (c) 1998
- *
- * OPTIONS:
- * debug   - set to 1 if you'd like to see debug messages
- *
- *  Revision: 0.1 - original version
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -31,12 +13,12 @@
 #include <media/v4l2-i2c-drv.h>
 #include <media/i2c-addr.h>
 
-static int debug; /* insmod parameter */
+static int debug; 
 module_param(debug, int, S_IRUGO | S_IWUSR);
 MODULE_LICENSE("GPL");
 
 
-/* This is a superset of the TDA9875 */
+
 struct tda9875 {
 	struct v4l2_subdev sd;
 	int rvol, lvol;
@@ -50,54 +32,50 @@ static inline struct tda9875 *to_state(struct v4l2_subdev *sd)
 
 #define dprintk  if (debug) printk
 
-/* The TDA9875 is made by Philips Semiconductor
- * http://www.semiconductors.philips.com
- * TDA9875: I2C-bus controlled DSP audio processor, FM demodulator
- *
- */
 
-		/* subaddresses for TDA9875 */
-#define TDA9875_MUT         0x12  /*General mute  (value --> 0b11001100*/
-#define TDA9875_CFG         0x01  /* Config register (value --> 0b00000000 */
-#define TDA9875_DACOS       0x13  /*DAC i/o select (ADC) 0b0000100*/
-#define TDA9875_LOSR        0x16  /*Line output select regirter 0b0100 0001*/
 
-#define TDA9875_CH1V        0x0c  /*Channel 1 volume (mute)*/
-#define TDA9875_CH2V        0x0d  /*Channel 2 volume (mute)*/
-#define TDA9875_SC1         0x14  /*SCART 1 in (mono)*/
-#define TDA9875_SC2         0x15  /*SCART 2 in (mono)*/
+		
+#define TDA9875_MUT         0x12  
+#define TDA9875_CFG         0x01  
+#define TDA9875_DACOS       0x13  
+#define TDA9875_LOSR        0x16  
 
-#define TDA9875_ADCIS       0x17  /*ADC input select (mono) 0b0110 000*/
-#define TDA9875_AER         0x19  /*Audio effect (AVL+Pseudo) 0b0000 0110*/
-#define TDA9875_MCS         0x18  /*Main channel select (DAC) 0b0000100*/
-#define TDA9875_MVL         0x1a  /* Main volume gauche */
-#define TDA9875_MVR         0x1b  /* Main volume droite */
-#define TDA9875_MBA         0x1d  /* Main Basse */
-#define TDA9875_MTR         0x1e  /* Main treble */
-#define TDA9875_ACS         0x1f  /* Auxilary channel select (FM) 0b0000000*/
-#define TDA9875_AVL         0x20  /* Auxilary volume gauche */
-#define TDA9875_AVR         0x21  /* Auxilary volume droite */
-#define TDA9875_ABA         0x22  /* Auxilary Basse */
-#define TDA9875_ATR         0x23  /* Auxilary treble */
+#define TDA9875_CH1V        0x0c  
+#define TDA9875_CH2V        0x0d  
+#define TDA9875_SC1         0x14  
+#define TDA9875_SC2         0x15  
 
-#define TDA9875_MSR         0x02  /* Monitor select register */
-#define TDA9875_C1MSB       0x03  /* Carrier 1 (FM) frequency register MSB */
-#define TDA9875_C1MIB       0x04  /* Carrier 1 (FM) frequency register (16-8]b */
-#define TDA9875_C1LSB       0x05  /* Carrier 1 (FM) frequency register LSB */
-#define TDA9875_C2MSB       0x06  /* Carrier 2 (nicam) frequency register MSB */
-#define TDA9875_C2MIB       0x07  /* Carrier 2 (nicam) frequency register (16-8]b */
-#define TDA9875_C2LSB       0x08  /* Carrier 2 (nicam) frequency register LSB */
-#define TDA9875_DCR         0x09  /* Demodulateur configuration regirter*/
-#define TDA9875_DEEM        0x0a  /* FM de-emphasis regirter*/
-#define TDA9875_FMAT        0x0b  /* FM Matrix regirter*/
+#define TDA9875_ADCIS       0x17  
+#define TDA9875_AER         0x19  
+#define TDA9875_MCS         0x18  
+#define TDA9875_MVL         0x1a  
+#define TDA9875_MVR         0x1b  
+#define TDA9875_MBA         0x1d  
+#define TDA9875_MTR         0x1e  
+#define TDA9875_ACS         0x1f  
+#define TDA9875_AVL         0x20  
+#define TDA9875_AVR         0x21  
+#define TDA9875_ABA         0x22  
+#define TDA9875_ATR         0x23  
 
-/* values */
-#define TDA9875_MUTE_ON	    0xff /* general mute */
-#define TDA9875_MUTE_OFF    0xcc /* general no mute */
+#define TDA9875_MSR         0x02  
+#define TDA9875_C1MSB       0x03  
+#define TDA9875_C1MIB       0x04  
+#define TDA9875_C1LSB       0x05  
+#define TDA9875_C2MSB       0x06  
+#define TDA9875_C2MIB       0x07  
+#define TDA9875_C2LSB       0x08  
+#define TDA9875_DCR         0x09  
+#define TDA9875_DEEM        0x0a  
+#define TDA9875_FMAT        0x0b  
+
+
+#define TDA9875_MUTE_ON	    0xff 
+#define TDA9875_MUTE_OFF    0xcc 
 
 
 
-/* Begin code */
+
 
 static int tda9875_write(struct v4l2_subdev *sd, int subaddr, unsigned char val)
 {
@@ -158,42 +136,42 @@ static void do_tda9875_init(struct v4l2_subdev *sd)
 	struct tda9875 *t = to_state(sd);
 
 	v4l2_dbg(1, debug, sd, "In tda9875_init\n");
-	tda9875_write(sd, TDA9875_CFG, 0xd0); /*reg de config 0 (reset)*/
-	tda9875_write(sd, TDA9875_MSR, 0x03);    /* Monitor 0b00000XXX*/
-	tda9875_write(sd, TDA9875_C1MSB, 0x00);  /*Car1(FM) MSB XMHz*/
-	tda9875_write(sd, TDA9875_C1MIB, 0x00);  /*Car1(FM) MIB XMHz*/
-	tda9875_write(sd, TDA9875_C1LSB, 0x00);  /*Car1(FM) LSB XMHz*/
-	tda9875_write(sd, TDA9875_C2MSB, 0x00);  /*Car2(NICAM) MSB XMHz*/
-	tda9875_write(sd, TDA9875_C2MIB, 0x00);  /*Car2(NICAM) MIB XMHz*/
-	tda9875_write(sd, TDA9875_C2LSB, 0x00);  /*Car2(NICAM) LSB XMHz*/
-	tda9875_write(sd, TDA9875_DCR, 0x00);    /*Demod config 0x00*/
-	tda9875_write(sd, TDA9875_DEEM, 0x44);   /*DE-Emph 0b0100 0100*/
-	tda9875_write(sd, TDA9875_FMAT, 0x00);   /*FM Matrix reg 0x00*/
-	tda9875_write(sd, TDA9875_SC1, 0x00);    /* SCART 1 (SC1)*/
-	tda9875_write(sd, TDA9875_SC2, 0x01);    /* SCART 2 (sc2)*/
+	tda9875_write(sd, TDA9875_CFG, 0xd0); 
+	tda9875_write(sd, TDA9875_MSR, 0x03);    
+	tda9875_write(sd, TDA9875_C1MSB, 0x00);  
+	tda9875_write(sd, TDA9875_C1MIB, 0x00);  
+	tda9875_write(sd, TDA9875_C1LSB, 0x00);  
+	tda9875_write(sd, TDA9875_C2MSB, 0x00);  
+	tda9875_write(sd, TDA9875_C2MIB, 0x00);  
+	tda9875_write(sd, TDA9875_C2LSB, 0x00);  
+	tda9875_write(sd, TDA9875_DCR, 0x00);    
+	tda9875_write(sd, TDA9875_DEEM, 0x44);   
+	tda9875_write(sd, TDA9875_FMAT, 0x00);   
+	tda9875_write(sd, TDA9875_SC1, 0x00);    
+	tda9875_write(sd, TDA9875_SC2, 0x01);    
 
-	tda9875_write(sd, TDA9875_CH1V, 0x10);  /* Channel volume 1 mute*/
-	tda9875_write(sd, TDA9875_CH2V, 0x10);  /* Channel volume 2 mute */
-	tda9875_write(sd, TDA9875_DACOS, 0x02); /* sig DAC i/o(in:nicam)*/
-	tda9875_write(sd, TDA9875_ADCIS, 0x6f); /* sig ADC input(in:mono)*/
-	tda9875_write(sd, TDA9875_LOSR, 0x00);  /* line out (in:mono)*/
-	tda9875_write(sd, TDA9875_AER, 0x00);   /*06 Effect (AVL+PSEUDO) */
-	tda9875_write(sd, TDA9875_MCS, 0x44);   /* Main ch select (DAC) */
-	tda9875_write(sd, TDA9875_MVL, 0x03);   /* Vol Main left 10dB */
-	tda9875_write(sd, TDA9875_MVR, 0x03);   /* Vol Main right 10dB*/
-	tda9875_write(sd, TDA9875_MBA, 0x00);   /* Main Bass Main 0dB*/
-	tda9875_write(sd, TDA9875_MTR, 0x00);   /* Main Treble Main 0dB*/
-	tda9875_write(sd, TDA9875_ACS, 0x44);   /* Aux chan select (dac)*/
-	tda9875_write(sd, TDA9875_AVL, 0x00);   /* Vol Aux left 0dB*/
-	tda9875_write(sd, TDA9875_AVR, 0x00);   /* Vol Aux right 0dB*/
-	tda9875_write(sd, TDA9875_ABA, 0x00);   /* Aux Bass Main 0dB*/
-	tda9875_write(sd, TDA9875_ATR, 0x00);   /* Aux Aigus Main 0dB*/
+	tda9875_write(sd, TDA9875_CH1V, 0x10);  
+	tda9875_write(sd, TDA9875_CH2V, 0x10);  
+	tda9875_write(sd, TDA9875_DACOS, 0x02); 
+	tda9875_write(sd, TDA9875_ADCIS, 0x6f); 
+	tda9875_write(sd, TDA9875_LOSR, 0x00);  
+	tda9875_write(sd, TDA9875_AER, 0x00);   
+	tda9875_write(sd, TDA9875_MCS, 0x44);   
+	tda9875_write(sd, TDA9875_MVL, 0x03);   
+	tda9875_write(sd, TDA9875_MVR, 0x03);   
+	tda9875_write(sd, TDA9875_MBA, 0x00);   
+	tda9875_write(sd, TDA9875_MTR, 0x00);   
+	tda9875_write(sd, TDA9875_ACS, 0x44);   
+	tda9875_write(sd, TDA9875_AVL, 0x00);   
+	tda9875_write(sd, TDA9875_AVR, 0x00);   
+	tda9875_write(sd, TDA9875_ABA, 0x00);   
+	tda9875_write(sd, TDA9875_ATR, 0x00);   
 
-	tda9875_write(sd, TDA9875_MUT, 0xcc);   /* General mute  */
+	tda9875_write(sd, TDA9875_MUT, 0xcc);   
 
-	t->lvol = t->rvol = 0;  	/* 0dB */
-	t->bass = 0; 			/* 0dB */
-	t->treble = 0;  		/* 0dB */
+	t->lvol = t->rvol = 0;  	
+	t->bass = 0; 			
+	t->treble = 0;  		
 	tda9875_set(sd);
 }
 
@@ -223,10 +201,10 @@ static int tda9875_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		return 0;
 	}
 	case V4L2_CID_AUDIO_BASS:
-		ctrl->value = (t->bass+12)*2427;    /* min -12 max +15 */
+		ctrl->value = (t->bass+12)*2427;    
 		return 0;
 	case V4L2_CID_AUDIO_TREBLE:
-		ctrl->value = (t->treble+12)*2730;/* min -12 max +12 */
+		ctrl->value = (t->treble+12)*2730;
 		return 0;
 	}
 	return -EINVAL;
@@ -314,7 +292,7 @@ static int tda9875_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
 	return -EINVAL;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops tda9875_core_ops = {
 	.queryctrl = tda9875_queryctrl,
@@ -326,12 +304,10 @@ static const struct v4l2_subdev_ops tda9875_ops = {
 	.core = &tda9875_core_ops,
 };
 
-/* ----------------------------------------------------------------------- */
 
 
-/* *********************** *
- * i2c interface functions *
- * *********************** */
+
+
 
 static int tda9875_checkit(struct i2c_client *client, int addr)
 {
@@ -340,7 +316,7 @@ static int tda9875_checkit(struct i2c_client *client, int addr)
 	dic = i2c_read_register(client, addr, 254);
 	rev = i2c_read_register(client, addr, 255);
 
-	if (dic == 0 || dic == 2) { /* tda9875 and tda9875A */
+	if (dic == 0 || dic == 2) { 
 		v4l_info(client, "tda9875%s rev. %d detected at 0x%02x\n",
 			dic == 0 ? "" : "A", rev, addr << 1);
 		return 1;

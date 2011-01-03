@@ -1,27 +1,4 @@
-/*
- * ACPI related functions for PCI Express Hot Plug driver.
- *
- * Copyright (C) 2008 Kenji Kaneshige
- * Copyright (C) 2008 Fujitsu Limited.
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/acpi.h>
 #include <linux/pci.h>
@@ -76,7 +53,7 @@ static int __initdata dup_slot_id;
 static int __initdata acpi_slot_detected;
 static struct list_head __initdata dummy_slots = LIST_HEAD_INIT(dummy_slots);
 
-/* Dummy driver for dumplicate name detection */
+
 static int __init dummy_probe(struct pcie_device *dev)
 {
 	int pos;
@@ -84,7 +61,7 @@ static int __init dummy_probe(struct pcie_device *dev)
 	acpi_handle handle;
 	struct dummy_slot *slot, *tmp;
 	struct pci_dev *pdev = dev->port;
-	/* Note: pciehp_detect_mode != PCIEHP_DETECT_ACPI here */
+	
 	if (pciehp_get_hp_hw_control_from_firmware(pdev))
 		return -ENODEV;
 	if (!(pos = pci_find_capability(pdev, PCI_CAP_ID_EXP)))
@@ -102,7 +79,7 @@ static int __init dummy_probe(struct pcie_device *dev)
 	handle = DEVICE_ACPI_HANDLE(&pdev->dev);
 	if (!acpi_slot_detected && acpi_pci_detect_ejectable(handle))
 		acpi_slot_detected = 1;
-	return -ENODEV;         /* dummy driver always returns error */
+	return -ENODEV;         
 }
 
 static struct pcie_port_service_driver __initdata dummy_driver = {

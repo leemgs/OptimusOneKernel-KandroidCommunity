@@ -1,20 +1,4 @@
-/*
- * "security" table for IPv6
- *
- * This is for use by Mandatory Access Control (MAC) security models,
- * which need to be able to manage security policy in separate context
- * to DAC.
- *
- * Based on iptable_mangle.c
- *
- * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
- * Copyright (C) 2000-2004 Netfilter Core Team <coreteam <at> netfilter.org>
- * Copyright (C) 2008 Red Hat, Inc., James Morris <jmorris <at> redhat.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/netfilter_ipv6/ip6_tables.h>
 
@@ -49,11 +33,11 @@ static const struct
 		},
 	},
 	.entries = {
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IP6T_ERROR_INIT,		/* ERROR */
+	.term = IP6T_ERROR_INIT,		
 };
 
 static const struct xt_table security_table = {
@@ -92,7 +76,7 @@ ip6t_local_out_hook(unsigned int hook,
 		    const struct net_device *out,
 		    int (*okfn)(struct sk_buff *))
 {
-	/* TBD: handle short packets via raw socket */
+	
 	return ip6t_do_table(skb, hook, in, out,
 			     dev_net(out)->ipv6.ip6table_security);
 }

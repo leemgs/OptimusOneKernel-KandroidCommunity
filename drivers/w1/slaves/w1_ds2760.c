@@ -1,13 +1,4 @@
-/*
- * 1-Wire implementation for the ds2760 chip
- *
- * Copyright © 2004-2005, Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
- *
- * Use consistent with the GNU GPL is permitted,
- * provided that this copyright notice is
- * preserved in its entirety in all copies and derived works.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -48,7 +39,7 @@ static int w1_ds2760_io(struct device *dev, char *buf, int addr, size_t count,
 			w1_write_8(sl->master, W1_DS2760_WRITE_DATA);
 			w1_write_8(sl->master, addr);
 			w1_write_block(sl->master, buf, count);
-			/* XXX w1_write_block returns void, not n_written */
+			
 		}
 	}
 

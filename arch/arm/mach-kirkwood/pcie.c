@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/pcie.c
- *
- * PCIe functions for Marvell Kirkwood SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/pci.h>
@@ -28,11 +20,7 @@ void __init kirkwood_pcie_id(u32 *dev, u32 *rev)
 
 static int pcie_valid_config(int bus, int dev)
 {
-	/*
-	 * Don't go out when trying to access --
-	 * 1. nonexisting device on local bus
-	 * 2. where there's no device connected (no link)
-	 */
+	
 	if (bus == 0 && dev == 0)
 		return 1;
 
@@ -46,11 +34,7 @@ static int pcie_valid_config(int bus, int dev)
 }
 
 
-/*
- * PCIe config cycles are done by programming the PCIE_CONF_ADDR register
- * and then reading the PCIE_CONF_DATA register. Need to make sure these
- * transactions are atomic.
- */
+
 static DEFINE_SPINLOCK(kirkwood_pcie_lock);
 
 static int pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
@@ -98,21 +82,15 @@ static int __init kirkwood_pcie_setup(int nr, struct pci_sys_data *sys)
 	struct resource *res;
 	extern unsigned int kirkwood_clk_ctrl;
 
-	/*
-	 * Generic PCIe unit setup.
-	 */
+	
 	orion_pcie_setup(PCIE_BASE, &kirkwood_mbus_dram_info);
 
-	/*
-	 * Request resources.
-	 */
+	
 	res = kzalloc(sizeof(struct resource) * 2, GFP_KERNEL);
 	if (!res)
 		panic("pcie_setup unable to alloc resources");
 
-	/*
-	 * IORESOURCE_IO
-	 */
+	
 	res[0].name = "PCIe I/O Space";
 	res[0].flags = IORESOURCE_IO;
 	res[0].start = KIRKWOOD_PCIE_IO_BUS_BASE;
@@ -121,9 +99,7 @@ static int __init kirkwood_pcie_setup(int nr, struct pci_sys_data *sys)
 		panic("Request PCIe IO resource failed\n");
 	sys->resource[0] = &res[0];
 
-	/*
-	 * IORESOURCE_MEM
-	 */
+	
 	res[1].name = "PCIe Memory Space";
 	res[1].flags = IORESOURCE_MEM;
 	res[1].start = KIRKWOOD_PCIE_MEM_BUS_BASE;
@@ -142,9 +118,7 @@ static int __init kirkwood_pcie_setup(int nr, struct pci_sys_data *sys)
 
 static void __devinit rc_pci_fixup(struct pci_dev *dev)
 {
-	/*
-	 * Prevent enumeration of root complex.
-	 */
+	
 	if (dev->bus->parent == NULL && dev->devfn == 0) {
 		int i;
 

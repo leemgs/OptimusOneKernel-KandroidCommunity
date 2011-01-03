@@ -1,31 +1,4 @@
-/*
- * PCI Express Hot Plug Controller Driver
- *
- * Copyright (C) 1995,2001 Compaq Computer Corporation
- * Copyright (C) 2001 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2001 IBM Corp.
- * Copyright (C) 2003-2004 Intel Corporation
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <greg@kroah.com>, <kristen.c.accardi@intel.com>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -59,12 +32,10 @@ u8 pciehp_handle_attention_button(struct slot *p_slot)
 	u32 event_type;
 	struct controller *ctrl = p_slot->ctrl;
 
-	/* Attention Button Change */
+	
 	ctrl_dbg(ctrl, "Attention button interrupt received\n");
 
-	/*
-	 *  Button pressed - See if need to TAKE ACTION!!!
-	 */
+	
 	ctrl_info(ctrl, "Button pressed on Slot(%s)\n", slot_name(p_slot));
 	event_type = INT_BUTTON_PRESS;
 
@@ -79,20 +50,16 @@ u8 pciehp_handle_switch_change(struct slot *p_slot)
 	u32 event_type;
 	struct controller *ctrl = p_slot->ctrl;
 
-	/* Switch Change */
+	
 	ctrl_dbg(ctrl, "Switch interrupt received\n");
 
 	pciehp_get_latch_status(p_slot, &getstatus);
 	if (getstatus) {
-		/*
-		 * Switch opened
-		 */
+		
 		ctrl_info(ctrl, "Latch open on Slot(%s)\n", slot_name(p_slot));
 		event_type = INT_SWITCH_OPEN;
 	} else {
-		/*
-		 *  Switch closed
-		 */
+		
 		ctrl_info(ctrl, "Latch close on Slot(%s)\n", slot_name(p_slot));
 		event_type = INT_SWITCH_CLOSE;
 	}
@@ -108,23 +75,17 @@ u8 pciehp_handle_presence_change(struct slot *p_slot)
 	u8 presence_save;
 	struct controller *ctrl = p_slot->ctrl;
 
-	/* Presence Change */
+	
 	ctrl_dbg(ctrl, "Presence/Notify input change\n");
 
-	/* Switch is open, assume a presence change
-	 * Save the presence state
-	 */
+	
 	pciehp_get_adapter_status(p_slot, &presence_save);
 	if (presence_save) {
-		/*
-		 * Card Present
-		 */
+		
 		ctrl_info(ctrl, "Card present on Slot(%s)\n", slot_name(p_slot));
 		event_type = INT_PRESENCE_ON;
 	} else {
-		/*
-		 * Not Present
-		 */
+		
 		ctrl_info(ctrl, "Card not present on Slot(%s)\n",
 			  slot_name(p_slot));
 		event_type = INT_PRESENCE_OFF;
@@ -140,20 +101,16 @@ u8 pciehp_handle_power_fault(struct slot *p_slot)
 	u32 event_type;
 	struct controller *ctrl = p_slot->ctrl;
 
-	/* power fault */
+	
 	ctrl_dbg(ctrl, "Power fault interrupt received\n");
 
 	if (!pciehp_query_power_fault(p_slot)) {
-		/*
-		 * power fault Cleared
-		 */
+		
 		ctrl_info(ctrl, "Power fault cleared on Slot(%s)\n",
 			  slot_name(p_slot));
 		event_type = INT_POWER_FAULT_CLEAR;
 	} else {
-		/*
-		 *   power fault
-		 */
+		
 		ctrl_info(ctrl, "Power fault on Slot(%s)\n", slot_name(p_slot));
 		event_type = INT_POWER_FAULT;
 		ctrl_info(ctrl, "Power fault bit %x set\n", 0);
@@ -164,24 +121,18 @@ u8 pciehp_handle_power_fault(struct slot *p_slot)
 	return 1;
 }
 
-/* The following routines constitute the bulk of the
-   hotplug controller logic
- */
+
 
 static void set_slot_off(struct controller *ctrl, struct slot * pslot)
 {
-	/* turn off slot, turn on Amber LED, turn off Green LED if supported*/
+	
 	if (POWER_CTRL(ctrl)) {
 		if (pciehp_power_off_slot(pslot)) {
 			ctrl_err(ctrl,
 				 "Issue of Slot Power Off command failed\n");
 			return;
 		}
-		/*
-		 * After turning power off, we must wait for at least 1 second
-		 * before taking any action that relies on power having been
-		 * removed from the slot/adapter.
-		 */
+		
 		msleep(1000);
 	}
 
@@ -197,13 +148,7 @@ static void set_slot_off(struct controller *ctrl, struct slot * pslot)
 	}
 }
 
-/**
- * board_added - Called after a board has been added to the system.
- * @p_slot: &slot where board is added
- *
- * Turns power on for the board.
- * Configures board.
- */
+
 static int board_added(struct slot *p_slot)
 {
 	int retval = 0;
@@ -211,7 +156,7 @@ static int board_added(struct slot *p_slot)
 	struct pci_bus *parent = ctrl->pcie->port->subordinate;
 
 	if (POWER_CTRL(ctrl)) {
-		/* Power on slot */
+		
 		retval = pciehp_power_on_slot(p_slot);
 		if (retval)
 			return retval;
@@ -220,7 +165,7 @@ static int board_added(struct slot *p_slot)
 	if (PWR_LED(ctrl))
 		pciehp_green_led_blink(p_slot);
 
-	/* Check link training status */
+	
 	retval = pciehp_check_link_status(ctrl);
 	if (retval) {
 		ctrl_err(ctrl, "Failed to check link status\n");
@@ -228,7 +173,7 @@ static int board_added(struct slot *p_slot)
 		return retval;
 	}
 
-	/* Check for a power fault */
+	
 	if (pciehp_query_power_fault(p_slot)) {
 		ctrl_dbg(ctrl, "Power fault detected\n");
 		retval = -EIO;
@@ -252,10 +197,7 @@ err_exit:
 	return retval;
 }
 
-/**
- * remove_board - Turns off slot and LEDs
- * @p_slot: slot where board is being removed
- */
+
 static int remove_board(struct slot *p_slot)
 {
 	int retval = 0;
@@ -266,22 +208,18 @@ static int remove_board(struct slot *p_slot)
 		return retval;
 
 	if (POWER_CTRL(ctrl)) {
-		/* power off slot */
+		
 		retval = pciehp_power_off_slot(p_slot);
 		if (retval) {
 			ctrl_err(ctrl,
 				 "Issue of Slot Disable command failed\n");
 			return retval;
 		}
-		/*
-		 * After turning power off, we must wait for at least 1 second
-		 * before taking any action that relies on power having been
-		 * removed from the slot/adapter.
-		 */
+		
 		msleep(1000);
 	}
 
-	/* turn off Green LED */
+	
 	if (PWR_LED(ctrl))
 		pciehp_green_led_off(p_slot);
 
@@ -293,13 +231,7 @@ struct power_work_info {
 	struct work_struct work;
 };
 
-/**
- * pciehp_power_thread - handle pushbutton events
- * @work: &struct work_struct describing work to be done
- *
- * Scheduled procedure to handle blocking stuff for the pushbuttons.
- * Handles all pending events and exits.
- */
+
 static void pciehp_power_thread(struct work_struct *work)
 {
 	struct power_work_info *info =
@@ -382,9 +314,7 @@ static int update_slot_info(struct slot *slot)
 	return result;
 }
 
-/*
- * Note: This function must be called with slot->lock held
- */
+
 static void handle_button_press_event(struct slot *p_slot)
 {
 	struct controller *ctrl = p_slot->ctrl;
@@ -404,7 +334,7 @@ static void handle_button_press_event(struct slot *p_slot)
 				  "PCI slot #%s - powering on due to button "
 				  "press.\n", slot_name(p_slot));
 		}
-		/* blink green LED and turn off amber */
+		
 		if (PWR_LED(ctrl))
 			pciehp_green_led_blink(p_slot);
 		if (ATTN_LED(ctrl))
@@ -414,11 +344,7 @@ static void handle_button_press_event(struct slot *p_slot)
 		break;
 	case BLINKINGOFF_STATE:
 	case BLINKINGON_STATE:
-		/*
-		 * Cancel if we are still blinking; this means that we
-		 * press the attention again before the 5 sec. limit
-		 * expires to cancel hot-add or hot-remove
-		 */
+		
 		ctrl_info(ctrl, "Button cancel on Slot(%s)\n", slot_name(p_slot));
 		cancel_delayed_work(&p_slot->work);
 		if (p_slot->state == BLINKINGOFF_STATE) {
@@ -436,11 +362,7 @@ static void handle_button_press_event(struct slot *p_slot)
 		break;
 	case POWEROFF_STATE:
 	case POWERON_STATE:
-		/*
-		 * Ignore if the slot is on power-on or power-off state;
-		 * this means that the previous attention button action
-		 * to hot-add or hot-remove is undergoing
-		 */
+		
 		ctrl_info(ctrl, "Button ignore on Slot(%s)\n", slot_name(p_slot));
 		update_slot_info(p_slot);
 		break;
@@ -450,9 +372,7 @@ static void handle_button_press_event(struct slot *p_slot)
 	}
 }
 
-/*
- * Note: This function must be called with slot->lock held
- */
+
 static void handle_surprise_event(struct slot *p_slot)
 {
 	u8 getstatus;

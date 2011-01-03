@@ -1,21 +1,4 @@
-/*
- * board-omap3pandora.c (Pandora Handheld Console)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -47,7 +30,7 @@
 
 #define OMAP3_PANDORA_TS_GPIO		94
 
-/* hardware debounce: (value + 1) * 31us */
+
 #define GPIO_DEBOUNCE_TIME		127
 
 static struct gpio_led pandora_gpio_leds[] = {
@@ -128,13 +111,13 @@ static struct platform_device pandora_keys_gpio = {
 
 static void __init pandora_keys_gpio_init(void)
 {
-	/* set debounce time for GPIO banks 4 and 6 */
+	
 	omap_set_gpio_debounce_time(32 * 3, GPIO_DEBOUNCE_TIME);
 	omap_set_gpio_debounce_time(32 * 5, GPIO_DEBOUNCE_TIME);
 }
 
 static int board_keymap[] = {
-	/* row, col, code */
+	
 	KEY(0, 0, KEY_9),
 	KEY(0, 1, KEY_8),
 	KEY(0, 2, KEY_I),
@@ -214,7 +197,7 @@ static struct twl4030_hsmmc_info omap3pandora_mmc[] = {
 		.gpio_cd	= -EINVAL,
 		.gpio_wp	= -EINVAL,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct regulator_consumer_supply pandora_vmmc1_supply = {
@@ -228,12 +211,12 @@ static struct regulator_consumer_supply pandora_vmmc2_supply = {
 static int omap3pandora_twl_gpio_setup(struct device *dev,
 		unsigned gpio, unsigned ngpio)
 {
-	/* gpio + {0,1} is "mmc{0,1}_cd" (input/IRQ) */
+	
 	omap3pandora_mmc[0].gpio_cd = gpio + 0;
 	omap3pandora_mmc[1].gpio_cd = gpio + 1;
 	twl4030_mmc_init(omap3pandora_mmc);
 
-	/* link regulators to MMC adapters */
+	
 	pandora_vmmc1_supply.dev = omap3pandora_mmc[0].dev;
 	pandora_vmmc2_supply.dev = omap3pandora_mmc[1].dev;
 
@@ -247,7 +230,7 @@ static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
 	.setup		= omap3pandora_twl_gpio_setup,
 };
 
-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+
 static struct regulator_init_data pandora_vmmc1 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -262,7 +245,7 @@ static struct regulator_init_data pandora_vmmc1 = {
 	.consumer_supplies	= &pandora_vmmc1_supply,
 };
 
-/* VMMC2 for MMC2 pins CMD, CLK, DAT0..DAT3 (max 100 mA) */
+
 static struct regulator_init_data pandora_vmmc2 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -304,7 +287,7 @@ static int __init omap3pandora_i2c_init(void)
 {
 	omap_register_i2c_bus(1, 2600, omap3pandora_i2c_boardinfo,
 			ARRAY_SIZE(omap3pandora_i2c_boardinfo));
-	/* i2c2 pins are not connected */
+	
 	omap_register_i2c_bus(3, 400, NULL, 0);
 	return 0;
 }
@@ -343,7 +326,7 @@ static struct ads7846_platform_data ads7846_config = {
 
 static struct omap2_mcspi_device_config ads7846_mcspi_config = {
 	.turbo_mode	= 0,
-	.single_channel	= 1,	/* 0: slave, 1: master */
+	.single_channel	= 1,	
 };
 
 static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
@@ -399,7 +382,7 @@ static void __init omap3pandora_init(void)
 	pandora_keys_gpio_init();
 	usb_musb_init();
 
-	/* Ensure SDRC pins are mux'd for self-refresh */
+	
 	omap_cfg_reg(H16_34XX_SDRC_CKE0);
 	omap_cfg_reg(H17_34XX_SDRC_CKE1);
 }

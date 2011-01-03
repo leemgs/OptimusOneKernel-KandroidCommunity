@@ -1,8 +1,4 @@
-/*
- *		INETPEER - A storage for permanent information about peers
- *
- *  Authors:	Andrey V. Savochkin <saw@msu.ru>
- */
+
 
 #ifndef _NET_INETPEER_H
 #define _NET_INETPEER_H
@@ -15,30 +11,29 @@
 
 struct inet_peer
 {
-	/* group together avl_left,avl_right,v4daddr to speedup lookups */
+	
 	struct inet_peer	*avl_left, *avl_right;
-	__be32			v4daddr;	/* peer's address */
+	__be32			v4daddr;	
 	__u16			avl_height;
-	__u16			ip_id_count;	/* IP ID for the next packet */
+	__u16			ip_id_count;	
 	struct list_head	unused;
-	__u32			dtime;		/* the time of last use of not
-						 * referenced entries */
+	__u32			dtime;		
 	atomic_t		refcnt;
-	atomic_t		rid;		/* Frag reception counter */
+	atomic_t		rid;		
 	__u32			tcp_ts;
 	unsigned long		tcp_ts_stamp;
 };
 
 void			inet_initpeers(void) __init;
 
-/* can be called with or without local BH being disabled */
+
 struct inet_peer	*inet_getpeer(__be32 daddr, int create);
 
-/* can be called from BH context or outside */
+
 extern void inet_putpeer(struct inet_peer *p);
 
 extern spinlock_t inet_peer_idlock;
-/* can be called with or without local BH being disabled */
+
 static inline __u16	inet_getid(struct inet_peer *p, int more)
 {
 	__u16 id;
@@ -50,4 +45,4 @@ static inline __u16	inet_getid(struct inet_peer *p, int more)
 	return id;
 }
 
-#endif /* _NET_INETPEER_H */
+#endif 

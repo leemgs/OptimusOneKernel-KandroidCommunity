@@ -1,17 +1,9 @@
-/*
- * General-Purpose Memory Controller for OMAP2
- *
- * Copyright (C) 2005-2006 Nokia Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __OMAP2_GPMC_H
 #define __OMAP2_GPMC_H
 
-/* Maximum Number of Chip Selects */
+
 #define GPMC_CS_NUM		8
 
 #define GPMC_CS_CONFIG1		0x00
@@ -53,41 +45,38 @@
 #define GPMC_CONFIG1_FCLK_DIV3          (GPMC_CONFIG1_FCLK_DIV(2))
 #define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
 
-/*
- * Note that all values in this struct are in nanoseconds, while
- * the register values are in gpmc_fck cycles.
- */
+
 struct gpmc_timings {
-	/* Minimum clock period for synchronous mode */
+	
 	u16 sync_clk;
 
-	/* Chip-select signal timings corresponding to GPMC_CS_CONFIG2 */
-	u16 cs_on;		/* Assertion time */
-	u16 cs_rd_off;		/* Read deassertion time */
-	u16 cs_wr_off;		/* Write deassertion time */
+	
+	u16 cs_on;		
+	u16 cs_rd_off;		
+	u16 cs_wr_off;		
 
-	/* ADV signal timings corresponding to GPMC_CONFIG3 */
-	u16 adv_on;		/* Assertion time */
-	u16 adv_rd_off;		/* Read deassertion time */
-	u16 adv_wr_off;		/* Write deassertion time */
+	
+	u16 adv_on;		
+	u16 adv_rd_off;		
+	u16 adv_wr_off;		
 
-	/* WE signals timings corresponding to GPMC_CONFIG4 */
-	u16 we_on;		/* WE assertion time */
-	u16 we_off;		/* WE deassertion time */
+	
+	u16 we_on;		
+	u16 we_off;		
 
-	/* OE signals timings corresponding to GPMC_CONFIG4 */
-	u16 oe_on;		/* OE assertion time */
-	u16 oe_off;		/* OE deassertion time */
+	
+	u16 oe_on;		
+	u16 oe_off;		
 
-	/* Access time and cycle time timings corresponding to GPMC_CONFIG5 */
-	u16 page_burst_access;	/* Multiple access word delay */
-	u16 access;		/* Start-cycle to first data valid delay */
-	u16 rd_cycle;		/* Total read cycle time */
-	u16 wr_cycle;		/* Total write cycle time */
+	
+	u16 page_burst_access;	
+	u16 access;		
+	u16 rd_cycle;		
+	u16 wr_cycle;		
 
-	/* The following are only on OMAP3430 */
-	u16 wr_access;		/* WRACCESSTIME */
-	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+	
+	u16 wr_access;		
+	u16 wr_data_mux_bus;	
 };
 
 extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);

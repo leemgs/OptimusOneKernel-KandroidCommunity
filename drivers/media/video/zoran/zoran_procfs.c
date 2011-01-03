@@ -1,31 +1,4 @@
-/*
- * Zoran zr36057/zr36067 PCI controller driver, for the
- * Pinnacle/Miro DC10/DC10+/DC30/DC30+, Iomega Buz, Linux
- * Media Labs LML33/LML33R10.
- *
- * This part handles the procFS entries (/proc/ZORAN[%d])
- *
- * Copyright (C) 2000 Serguei Miridonov <mirsev@cicese.mx>
- *
- * Currently maintained by:
- *   Ronald Bultje    <rbultje@ronald.bitfreak.net>
- *   Laurent Pinchart <laurent.pinchart@skynet.be>
- *   Mailinglist      <mjpeg-users@lists.sf.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -82,7 +55,7 @@ static const struct procfs_params_zr36067 zr67[] = {
 	{"NAY", 0x114, 0xffff, 16},
 	{"PAY", 0x114, 0xffff, 0},
 
-	/* {"",,,}, */
+	
 
 	{NULL, 0, 0, 0},
 };
@@ -141,7 +114,7 @@ static ssize_t zoran_write(struct file *file, const char __user *buffer,
 	char *string, *sp;
 	char *line, *ldelim, *varname, *svar, *tdelim;
 
-	if (count > 32768)	/* Stupidity filter */
+	if (count > 32768)	
 		return -EINVAL;
 
 	string = sp = vmalloc(count + 1);

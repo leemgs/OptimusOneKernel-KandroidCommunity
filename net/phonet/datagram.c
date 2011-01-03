@@ -1,27 +1,4 @@
-/*
- * File: datagram.c
- *
- * Datagram (ISI) Phonet sockets
- *
- * Copyright (C) 2008 Nokia Corporation.
- *
- * Contact: Remi Denis-Courmont <remi.denis-courmont@nokia.com>
- * Original author: Sakari Ailus <sakari.ailus@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/socket.h>
@@ -33,7 +10,7 @@
 
 static int pn_backlog_rcv(struct sock *sk, struct sk_buff *skb);
 
-/* associated socket ceases to exist */
+
 static void pn_sock_close(struct sock *sk, long timeout)
 {
 	sk_common_release(sk);
@@ -56,7 +33,7 @@ static int pn_ioctl(struct sock *sk, int cmd, unsigned long arg)
 	return -ENOIOCTLCMD;
 }
 
-/* Destroy socket. All references are gone. */
+
 static void pn_destruct(struct sock *sk)
 {
 	skb_queue_purge(&sk->sk_receive_queue);
@@ -100,13 +77,10 @@ static int pn_sendmsg(struct kiocb *iocb, struct sock *sk,
 		return err;
 	}
 
-	/*
-	 * Fill in the Phonet header and
-	 * finally pass the packet forwards.
-	 */
+	
 	err = pn_skb_send(sk, skb, target);
 
-	/* If ok, return len. */
+	
 	return (err >= 0) ? len : err;
 }
 
@@ -155,7 +129,7 @@ out_nofree:
 	return rval;
 }
 
-/* Queue an skb for a sock. */
+
 static int pn_backlog_rcv(struct sock *sk, struct sk_buff *skb)
 {
 	int err = sock_queue_rcv_skb(sk, skb);
@@ -167,7 +141,7 @@ static int pn_backlog_rcv(struct sock *sk, struct sk_buff *skb)
 	return err ? NET_RX_DROP : NET_RX_SUCCESS;
 }
 
-/* Module registration */
+
 static struct proto pn_proto = {
 	.close		= pn_sock_close,
 	.ioctl		= pn_ioctl,

@@ -1,55 +1,8 @@
-/*-*-linux-c-*-*/
 
-/*
-  Copyright (C) 2006 Lennart Poettering <mzxreary (at) 0pointer (dot) de>
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-  02110-1301, USA.
- */
 
-/*
- * msi-laptop.c - MSI S270 laptop support. This laptop is sold under
- * various brands, including "Cytron/TCM/Medion/Tchibo MD96100".
- *
- * Driver also supports S271, S420 models.
- *
- * This driver exports a few files in /sys/devices/platform/msi-laptop-pf/:
- *
- *   lcd_level - Screen brightness: contains a single integer in the
- *   range 0..8. (rw)
- *
- *   auto_brightness - Enable automatic brightness control: contains
- *   either 0 or 1. If set to 1 the hardware adjusts the screen
- *   brightness automatically when the power cord is
- *   plugged/unplugged. (rw)
- *
- *   wlan - WLAN subsystem enabled: contains either 0 or 1. (ro)
- *
- *   bluetooth - Bluetooth subsystem enabled: contains either 0 or 1
- *   Please note that this file is constantly 0 if no Bluetooth
- *   hardware is available. (ro)
- *
- * In addition to these platform device attributes the driver
- * registers itself in the Linux backlight control subsystem and is
- * available to userspace under /sys/class/backlight/msi-laptop-bl/.
- *
- * This driver might work on other laptops produced by MSI. If you
- * want to try it you can pass force=1 as argument to the module which
- * will force it to load even when the DMI data doesn't identify the
- * laptop as MSI S270. YMMV.
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -74,7 +27,7 @@ static int auto_brightness;
 module_param(auto_brightness, int, 0);
 MODULE_PARM_DESC(auto_brightness, "Enable automatic brightness control (0: disabled; 1: enabled; 2: don't touch)");
 
-/* Hardware access */
+
 
 static int set_lcd_level(int level)
 {
@@ -148,7 +101,7 @@ static int get_wireless_state(int *wlan, int *bluetooth)
 	return 0;
 }
 
-/* Backlight device stuff */
+
 
 static int bl_get_brightness(struct backlight_device *b)
 {
@@ -168,7 +121,7 @@ static struct backlight_ops msibl_ops = {
 
 static struct backlight_device *msibl_device;
 
-/* Platform device */
+
 
 static ssize_t show_wlan(struct device *dev,
 	struct device_attribute *attr, char *buf)
@@ -280,7 +233,7 @@ static struct platform_driver msipf_driver = {
 
 static struct platform_device *msipf_device;
 
-/* Initialization */
+
 
 static int dmi_check_cb(const struct dmi_system_id *id)
 {
@@ -345,7 +298,7 @@ static int __init msi_init(void)
 	if (auto_brightness < 0 || auto_brightness > 2)
 		return -EINVAL;
 
-	/* Register backlight stuff */
+	
 
 	if (acpi_video_backlight_support()) {
 		printk(KERN_INFO "MSI: Brightness ignored, must be controlled "
@@ -362,7 +315,7 @@ static int __init msi_init(void)
 	if (ret)
 		goto fail_backlight;
 
-	/* Register platform stuff */
+	
 
 	msipf_device = platform_device_alloc("msi-laptop-pf", -1);
 	if (!msipf_device) {
@@ -378,9 +331,7 @@ static int __init msi_init(void)
 	if (ret)
 		goto fail_platform_device2;
 
-	/* Disable automatic brightness control by default because
-	 * this module was probably loaded to do brightness control in
-	 * software. */
+	
 
 	if (auto_brightness != 2)
 		set_auto_brightness(auto_brightness);
@@ -416,7 +367,7 @@ static void __exit msi_cleanup(void)
 	platform_driver_unregister(&msipf_driver);
 	backlight_device_unregister(msibl_device);
 
-	/* Enable automatic brightness control again */
+	
 	if (auto_brightness != 2)
 		set_auto_brightness(1);
 

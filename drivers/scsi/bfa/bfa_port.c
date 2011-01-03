@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <defs/bfa_defs_port.h>
 #include <cs/bfa_trc.h>
@@ -50,51 +35,24 @@ bfa_port_stats_swap(struct bfa_port_s *port, union bfa_pport_stats_u *stats)
 #endif
 	}
 
-    /** todo
-     * QoS stats r also swapped as 64bit; that structure also
-     * has to use 64 bit counters
-     */
+    
 }
 
-/**
- * bfa_port_enable_isr()
- *
- *
- * @param[in] port - Pointer to the port module
- *            status - Return status from the f/w
- *
- * @return void
- */
+
 static void
 bfa_port_enable_isr(struct bfa_port_s *port, bfa_status_t status)
 {
 	bfa_assert(0);
 }
 
-/**
- * bfa_port_disable_isr()
- *
- *
- * @param[in] port - Pointer to the port module
- *            status - Return status from the f/w
- *
- * @return void
- */
+
 static void
 bfa_port_disable_isr(struct bfa_port_s *port, bfa_status_t status)
 {
 	bfa_assert(0);
 }
 
-/**
- * bfa_port_get_stats_isr()
- *
- *
- * @param[in] port - Pointer to the Port module
- *            status - Return status from the f/w
- *
- * @return void
- */
+
 static void
 bfa_port_get_stats_isr(struct bfa_port_s *port, bfa_status_t status)
 {
@@ -113,15 +71,7 @@ bfa_port_get_stats_isr(struct bfa_port_s *port, bfa_status_t status)
 	}
 }
 
-/**
- * bfa_port_clear_stats_isr()
- *
- *
- * @param[in] port - Pointer to the Port module
- *            status - Return status from the f/w
- *
- * @return void
- */
+
 static void
 bfa_port_clear_stats_isr(struct bfa_port_s *port, bfa_status_t status)
 {
@@ -134,14 +84,7 @@ bfa_port_clear_stats_isr(struct bfa_port_s *port, bfa_status_t status)
 	}
 }
 
-/**
- * bfa_port_isr()
- *
- *
- * @param[in] Pointer to the Port module data structure.
- *
- * @return void
- */
+
 static void
 bfa_port_isr(void *cbarg, struct bfi_mbmsg_s *m)
 {
@@ -165,9 +108,7 @@ bfa_port_isr(void *cbarg, struct bfi_mbmsg_s *m)
 		break;
 
 	case BFI_PORT_I2H_GET_STATS_RSP:
-		/*
-		 * Stats busy flag is still set? (may be cmd timed out)
-		 */
+		
 		if (port->stats_busy == BFA_FALSE)
 			break;
 		bfa_port_get_stats_isr(port, i2hmsg->getstats_rsp.status);
@@ -184,30 +125,14 @@ bfa_port_isr(void *cbarg, struct bfi_mbmsg_s *m)
 	}
 }
 
-/**
- * bfa_port_meminfo()
- *
- *
- * @param[in] void
- *
- * @return Size of DMA region
- */
+
 u32
 bfa_port_meminfo(void)
 {
 	return BFA_ROUNDUP(sizeof(union bfa_pport_stats_u), BFA_DMA_ALIGN_SZ);
 }
 
-/**
- * bfa_port_mem_claim()
- *
- *
- * @param[in] port Port module pointer
- * 	      dma_kva Kernel Virtual Address of Port DMA Memory
- * 	      dma_pa  Physical Address of Port DMA Memory
- *
- * @return void
- */
+
 void
 bfa_port_mem_claim(struct bfa_port_s *port, u8 *dma_kva, u64 dma_pa)
 {
@@ -215,22 +140,14 @@ bfa_port_mem_claim(struct bfa_port_s *port, u8 *dma_kva, u64 dma_pa)
 	port->stats_dma.pa = dma_pa;
 }
 
-/**
- * bfa_port_enable()
- *
- *   Send the Port enable request to the f/w
- *
- * @param[in] Pointer to the Port module data structure.
- *
- * @return Status
- */
+
 bfa_status_t
 bfa_port_enable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
 		void *cbarg)
 {
 	struct bfi_port_generic_req_s *m;
 
-	/** todo Not implemented */
+	
 	bfa_assert(0);
 
 	if (!bfa_ioc_is_operational(port->ioc)) {
@@ -257,22 +174,14 @@ bfa_port_enable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
 	return BFA_STATUS_OK;
 }
 
-/**
- * bfa_port_disable()
- *
- *   Send the Port disable request to the f/w
- *
- * @param[in] Pointer to the Port module data structure.
- *
- * @return Status
- */
+
 bfa_status_t
 bfa_port_disable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
 		 void *cbarg)
 {
 	struct bfi_port_generic_req_s *m;
 
-	/** todo Not implemented */
+	
 	bfa_assert(0);
 
 	if (!bfa_ioc_is_operational(port->ioc)) {
@@ -299,15 +208,7 @@ bfa_port_disable(struct bfa_port_s *port, bfa_port_endis_cbfn_t cbfn,
 	return BFA_STATUS_OK;
 }
 
-/**
- * bfa_port_get_stats()
- *
- *   Send the request to the f/w to fetch Port statistics.
- *
- * @param[in] Pointer to the Port module data structure.
- *
- * @return Status
- */
+
 bfa_status_t
 bfa_port_get_stats(struct bfa_port_s *port, union bfa_pport_stats_u *stats,
 		   bfa_port_stats_cbfn_t cbfn, void *cbarg)
@@ -339,14 +240,7 @@ bfa_port_get_stats(struct bfa_port_s *port, union bfa_pport_stats_u *stats,
 	return BFA_STATUS_OK;
 }
 
-/**
- * bfa_port_clear_stats()
- *
- *
- * @param[in] Pointer to the Port module data structure.
- *
- * @return Status
- */
+
 bfa_status_t
 bfa_port_clear_stats(struct bfa_port_s *port, bfa_port_stats_cbfn_t cbfn,
 		     void *cbarg)
@@ -376,22 +270,13 @@ bfa_port_clear_stats(struct bfa_port_s *port, bfa_port_stats_cbfn_t cbfn,
 	return BFA_STATUS_OK;
 }
 
-/**
- * bfa_port_hbfail()
- *
- *
- * @param[in] Pointer to the Port module data structure.
- *
- * @return void
- */
+
 void
 bfa_port_hbfail(void *arg)
 {
 	struct bfa_port_s *port = (struct bfa_port_s *)arg;
 
-	/*
-	 * Fail any pending get_stats/clear_stats requests
-	 */
+	
 	if (port->stats_busy) {
 		if (port->stats_cbfn)
 			port->stats_cbfn(port->dev, BFA_STATUS_FAILED);
@@ -399,9 +284,7 @@ bfa_port_hbfail(void *arg)
 		port->stats_busy = BFA_FALSE;
 	}
 
-	/*
-	 * Clear any enable/disable is pending
-	 */
+	
 	if (port->endis_pending) {
 		if (port->endis_cbfn)
 			port->endis_cbfn(port->dev, BFA_STATUS_FAILED);
@@ -410,20 +293,7 @@ bfa_port_hbfail(void *arg)
 	}
 }
 
-/**
- * bfa_port_attach()
- *
- *
- * @param[in] port - Pointer to the Port module data structure
- *            ioc  - Pointer to the ioc module data structure
- *            dev  - Pointer to the device driver module data structure
- *                   The device driver specific mbox ISR functions have
- *                   this pointer as one of the parameters.
- *            trcmod -
- *            logmod -
- *
- * @return void
- */
+
 void
 bfa_port_attach(struct bfa_port_s *port, struct bfa_ioc_s *ioc, void *dev,
 		struct bfa_trc_mod_s *trcmod, struct bfa_log_mod_s *logmod)
@@ -445,14 +315,7 @@ bfa_port_attach(struct bfa_port_s *port, struct bfa_ioc_s *ioc, void *dev,
 	bfa_trc(port, 0);
 }
 
-/**
- * bfa_port_detach()
- *
- *
- * @param[in] port - Pointer to the Port module data structure
- *
- * @return void
- */
+
 void
 bfa_port_detach(struct bfa_port_s *port)
 {

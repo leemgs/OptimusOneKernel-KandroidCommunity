@@ -18,11 +18,7 @@ struct multipath_private_data {
 
 typedef struct multipath_private_data multipath_conf_t;
 
-/*
- * this is our 'private' 'collective' MULTIPATH buffer head.
- * it contains information about what kind of IO operations were started
- * for this MULTIPATH operation, and about their status:
- */
+
 
 struct multipath_bh {
 	mddev_t			*mddev;

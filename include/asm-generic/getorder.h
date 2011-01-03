@@ -5,7 +5,7 @@
 
 #include <linux/compiler.h>
 
-/* Pure 2^n version of get_order */
+
 static inline __attribute_const__ int get_order(unsigned long size)
 {
 	int order;
@@ -19,6 +19,6 @@ static inline __attribute_const__ int get_order(unsigned long size)
 	return order;
 }
 
-#endif	/* __ASSEMBLY__ */
+#endif	
 
-#endif	/* __ASM_GENERIC_GETORDER_H */
+#endif	

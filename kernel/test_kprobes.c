@@ -1,18 +1,4 @@
-/*
- * test_kprobes.c - simple sanity test for *probes
- *
- * Copyright IBM Corp. 2008
- *
- * This program is free software;  you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it would be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
- * the GNU General Public License for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/kprobes.h>
@@ -115,7 +101,7 @@ static int test_kprobes(void)
 	int ret;
 	struct kprobe *kps[2] = {&kp, &kp2};
 
-	kp.addr = 0; /* addr should be cleard for reusing kprobe. */
+	kp.addr = 0; 
 	ret = register_kprobes(kps, 2);
 	if (ret < 0) {
 		printk(KERN_ERR "Kprobe smoke test failed: "
@@ -210,7 +196,7 @@ static int test_jprobes(void)
 	int ret;
 	struct jprobe *jps[2] = {&jp, &jp2};
 
-	jp.kp.addr = 0; /* addr should be cleard for reusing kprobe. */
+	jp.kp.addr = 0; 
 	ret = register_jprobes(jps, 2);
 	if (ret < 0) {
 		printk(KERN_ERR "Kprobe smoke test failed: "
@@ -323,7 +309,7 @@ static int test_kretprobes(void)
 	int ret;
 	struct kretprobe *rps[2] = {&rp, &rp2};
 
-	rp.kp.addr = 0; /* addr should be cleard for reusing kprobe. */
+	rp.kp.addr = 0; 
 	ret = register_kretprobes(rps, 2);
 	if (ret < 0) {
 		printk(KERN_ERR "Kprobe smoke test failed: "
@@ -349,7 +335,7 @@ static int test_kretprobes(void)
 	unregister_kretprobes(rps, 2);
 	return 0;
 }
-#endif /* CONFIG_KRETPROBES */
+#endif 
 
 int init_test_probes(void)
 {
@@ -393,7 +379,7 @@ int init_test_probes(void)
 	ret = test_kretprobes();
 	if (ret < 0)
 		errors++;
-#endif /* CONFIG_KRETPROBES */
+#endif 
 
 	if (errors)
 		printk(KERN_ERR "BUG: Kprobe smoke test: %d out of "

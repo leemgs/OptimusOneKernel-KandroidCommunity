@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <cs/bfa_log.h>
 #include <aen/bfa_aen_adapter.h>
@@ -32,7 +17,7 @@
 struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
-/* messages define for BFA_AEN_CAT_ADAPTER Module */
+
 {BFA_AEN_ADAPTER_ADD, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG, BFA_LOG_INFO,
  "BFA_AEN_ADAPTER_ADD",
  "New adapter found: SN = %s, base port WWN = %s.",
@@ -46,7 +31,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for BFA_AEN_CAT_AUDIT Module */
+
 {BFA_AEN_AUDIT_AUTH_ENABLE, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG,
  BFA_LOG_INFO, "BFA_AEN_AUDIT_AUTH_ENABLE",
  "Authentication enabled for base port: WWN = %s.",
@@ -60,7 +45,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for BFA_AEN_CAT_ETHPORT Module */
+
 {BFA_AEN_ETHPORT_LINKUP, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG, BFA_LOG_INFO,
  "BFA_AEN_ETHPORT_LINKUP",
  "Base port ethernet linkup: mac = %s.",
@@ -84,7 +69,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for BFA_AEN_CAT_IOC Module */
+
 {BFA_AEN_IOC_HBGOOD, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG, BFA_LOG_INFO,
  "BFA_AEN_IOC_HBGOOD",
  "Heart Beat of IOC %d is good.",
@@ -113,7 +98,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for BFA_AEN_CAT_ITNIM Module */
+
 {BFA_AEN_ITNIM_ONLINE, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG, BFA_LOG_INFO,
  "BFA_AEN_ITNIM_ONLINE",
  "Target (WWN = %s) is online for initiator (WWN = %s).",
@@ -132,7 +117,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for BFA_AEN_CAT_LPORT Module */
+
 {BFA_AEN_LPORT_NEW, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG, BFA_LOG_INFO,
  "BFA_AEN_LPORT_NEW",
  "New logical port created: WWN = %s, Role = %s.",
@@ -197,7 +182,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for BFA_AEN_CAT_PORT Module */
+
 {BFA_AEN_PORT_ONLINE, BFA_LOG_ATTR_NONE, BFA_LOG_INFO, "BFA_AEN_PORT_ONLINE",
  "Base port online: WWN = %s.",
  ((BFA_LOG_S << BFA_LOG_ARG0) | 0), 1},
@@ -275,7 +260,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for BFA_AEN_CAT_RPORT Module */
+
 {BFA_AEN_RPORT_ONLINE, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG, BFA_LOG_INFO,
  "BFA_AEN_RPORT_ONLINE",
  "Remote port (WWN = %s) online for logical port (WWN = %s).",
@@ -306,7 +291,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for FCS Module */
+
 {BFA_LOG_FCS_FABRIC_NOSWITCH, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG,
  BFA_LOG_INFO, "FCS_FABRIC_NOSWITCH",
  "No switched fabric presence is detected.",
@@ -322,7 +307,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for HAL Module */
+
 {BFA_LOG_HAL_ASSERT, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG, BFA_LOG_ERROR,
  "HAL_ASSERT",
  "Assertion failure: %s:%d: %s",
@@ -350,7 +335,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for LINUX Module */
+
 {BFA_LOG_LINUX_DEVICE_CLAIMED, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG,
  BFA_LOG_INFO, "LINUX_DEVICE_CLAIMED",
  "bfa device at %s claimed.",
@@ -415,7 +400,7 @@ struct bfa_log_msgdef_s bfa_log_msg_array[] = {
 
 
 
-/* messages define for WDRV Module */
+
 {BFA_LOG_WDRV_IOC_INIT_ERROR, BFA_LOG_ATTR_NONE | BFA_LOG_ATTR_LOG,
  BFA_LOG_INFO, "WDRV_IOC_INIT_ERROR",
  "IOC initialization has failed.",

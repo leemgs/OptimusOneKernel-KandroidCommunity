@@ -1,27 +1,4 @@
-/*
- * stv0900_core.c
- *
- * Driver for ST STV0900 satellite demodulator IC.
- *
- * Copyright (C) ST Microelectronics.
- * Copyright (C) 2009 NetUP Inc.
- * Copyright (C) 2009 Igor M. Liplianin <liplianin@netup.ru>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -37,26 +14,24 @@
 static int stvdebug = 1;
 module_param_named(debug, stvdebug, int, 0644);
 
-/* internal params node */
+
 struct stv0900_inode {
-	/* pointer for internal params, one for each pair of demods */
+	
 	struct stv0900_internal		*internal;
 	struct stv0900_inode		*next_inode;
 };
 
-/* first internal params */
+
 static struct stv0900_inode *stv0900_first_inode;
 
-/* find chip by i2c adapter and i2c address */
+
 static struct stv0900_inode *find_inode(struct i2c_adapter *i2c_adap,
 							u8 i2c_addr)
 {
 	struct stv0900_inode *temp_chip = stv0900_first_inode;
 
 	if (temp_chip != NULL) {
-		/*
-		 Search of the last stv0900 chip or
-		 find it by i2c adapter and i2c address */
+		
 		while ((temp_chip != NULL) &&
 			((temp_chip->internal->i2c_adap != i2c_adap) ||
 			(temp_chip->internal->i2c_addr != i2c_addr)))
@@ -68,7 +43,7 @@ static struct stv0900_inode *find_inode(struct i2c_adapter *i2c_adap,
 	return temp_chip;
 }
 
-/* deallocating chip */
+
 static void remove_inode(struct stv0900_internal *internal)
 {
 	struct stv0900_inode *prev_node = stv0900_first_inode;
@@ -93,7 +68,7 @@ static void remove_inode(struct stv0900_internal *internal)
 	}
 }
 
-/* allocating new chip */
+
 static struct stv0900_inode *append_internal(struct stv0900_internal *internal)
 {
 	struct stv0900_inode *new_node = stv0900_first_inode;
@@ -225,7 +200,7 @@ enum fe_stv0900_error stv0900_initialize(struct stv0900_internal *i_params)
 	if (i_params != NULL) {
 		i_params->chip_id = stv0900_read_reg(i_params, R0900_MID);
 		if (i_params->errs == STV0900_NO_ERROR) {
-			/*Startup sequence*/
+			
 			stv0900_write_reg(i_params, R0900_P1_DMDISTATE, 0x5c);
 			stv0900_write_reg(i_params, R0900_P2_DMDISTATE, 0x5c);
 			stv0900_write_reg(i_params, R0900_P1_TNRCFG, 0x6c);
@@ -243,7 +218,7 @@ enum fe_stv0900_error stv0900_initialize(struct stv0900_internal *i_params)
 						| i_params->clkmode);
 				break;
 			default:
-				/* preserve SELOSCI bit */
+				
 				i = 0x02 & stv0900_read_reg(i_params, R0900_SYNTCTRL);
 				stv0900_write_reg(i_params, R0900_SYNTCTRL, 0x20 | i);
 				break;
@@ -306,12 +281,8 @@ enum fe_stv0900_error stv0900_set_mclk(struct stv0900_internal *i_params, u32 mc
 			i_params->mclk = stv0900_get_mclk_freq(i_params,
 							i_params->quartz);
 
-			/*Set the DiseqC frequency to 22KHz */
-			/*
-				Formula:
-				DiseqC_TX_Freq= MasterClock/(32*F22TX_Reg)
-				DiseqC_RX_Freq= MasterClock/(32*F22RX_Reg)
-			*/
+			
+			
 			m_div = i_params->mclk / 704000;
 			stv0900_write_reg(i_params, R0900_P1_F22TX, m_div);
 			stv0900_write_reg(i_params, R0900_P1_F22RX, m_div);
@@ -723,9 +694,9 @@ static int stv0900_read_ucblocks(struct dvb_frontend *fe, u32 * ucblocks)
 
 	*ucblocks = 0x0;
 	if (stv0900_get_standard(fe, demod) == STV0900_DVBS2_STANDARD) {
-		/* DVB-S2 delineator errors count */
+		
 
-		/* retreiving number for errnous headers */
+		
 		dmd_reg(err_field0, R0900_P1_BBFCRCKO0,
 					R0900_P2_BBFCRCKO0);
 		dmd_reg(err_field1, R0900_P1_BBFCRCKO1,
@@ -735,7 +706,7 @@ static int stv0900_read_ucblocks(struct dvb_frontend *fe, u32 * ucblocks)
 		err_val0 = stv0900_read_reg(i_params, err_field0);
 		header_err_val = (err_val1<<8) | err_val0;
 
-		/* retreiving number for errnous packets */
+		
 		dmd_reg(err_field0, R0900_P1_UPCRCKO0,
 					R0900_P2_UPCRCKO0);
 		dmd_reg(err_field1, R0900_P1_UPCRCKO1,
@@ -1742,7 +1713,7 @@ static int stv0900_diseqc_send(struct stv0900_internal *i_params , u8 *Data,
 		stv0900_write_bits(i_params, F0900_P1_DIS_PRECHARGE, 1);
 		while (i < NbData) {
 			while (stv0900_get_bits(i_params, F0900_P1_FIFO_FULL))
-				;/* checkpatch complains */
+				;
 			stv0900_write_reg(i_params, R0900_P1_DISTXDATA, Data[i]);
 			i++;
 		}
@@ -1760,7 +1731,7 @@ static int stv0900_diseqc_send(struct stv0900_internal *i_params , u8 *Data,
 
 		while (i < NbData) {
 			while (stv0900_get_bits(i_params, F0900_P2_FIFO_FULL))
-				;/* checkpatch complains */
+				;
 			stv0900_write_reg(i_params, R0900_P2_DISTXDATA, Data[i]);
 			i++;
 		}
@@ -1802,11 +1773,11 @@ static int stv0900_send_burst(struct dvb_frontend *fe, fe_sec_mini_cmd_t burst)
 
 	switch (burst) {
 	case SEC_MINI_A:
-		stv0900_write_bits(i_params, mode_field, 3);/* Unmodulated */
+		stv0900_write_bits(i_params, mode_field, 3);
 		stv0900_write_reg(i_params, diseqc_fifo, 0x00);
 		break;
 	case SEC_MINI_B:
-		stv0900_write_bits(i_params, mode_field, 2);/* Modulated */
+		stv0900_write_bits(i_params, mode_field, 2);
 		stv0900_write_reg(i_params, diseqc_fifo, 0xff);
 		break;
 	}
@@ -1871,14 +1842,14 @@ static int stv0900_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
 	dmd_reg(reset_field, F0900_P1_DISEQC_RESET, F0900_P2_DISEQC_RESET);
 
 	if (tone) {
-		/*Set the DiseqC mode to 22Khz continues tone*/
+		
 		stv0900_write_bits(i_params, mode_field, 0);
 		stv0900_write_bits(i_params, reset_field, 1);
-		/*release DiseqC reset to enable the 22KHz tone*/
+		
 		stv0900_write_bits(i_params, reset_field, 0);
 	} else {
 		stv0900_write_bits(i_params, mode_field, 0);
-		/*maintain the DiseqC reset to disable the 22KHz tone*/
+		
 		stv0900_write_bits(i_params, reset_field, 1);
 	}
 

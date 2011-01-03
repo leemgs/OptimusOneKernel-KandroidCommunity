@@ -1,11 +1,4 @@
-/*
- *  Copyright (C) 2000-2002 Andre Hedrick <andre@linux-ide.org>
- *  Copyright (C) 2006-2007 MontaVista Software, Inc. <source@mvista.com>
- *
- * This is a look-alike variation of the ICH0 PIIX4 Ultra-66,
- * but this keeps the ISA-Bridge and slots alive.
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/module.h>
@@ -29,7 +22,7 @@ static void slc90e66_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	u16 master_data;
 	u8 slave_data;
 	int control = 0;
-				     /* ISP  RTC */
+				     
 	static const u8 timings[][2] = {
 					{ 0, 0 },
 					{ 0, 0 },
@@ -41,16 +34,16 @@ static void slc90e66_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	pci_read_config_word(dev, master_port, &master_data);
 
 	if (pio > 1)
-		control |= 1;	/* Programmable timing on */
+		control |= 1;	
 	if (drive->media == ide_disk)
-		control |= 4;	/* Prefetch, post write */
+		control |= 4;	
 	if (ide_pio_need_iordy(drive, pio))
-		control |= 2;	/* IORDY */
+		control |= 2;	
 	if (is_slave) {
 		master_data |=  0x4000;
 		master_data &= ~0x0070;
 		if (pio > 1) {
-			/* Set PPE, IE and TIME */
+			
 			master_data |= control << 4;
 		}
 		pci_read_config_byte(dev, slave_port, &slave_data);
@@ -60,7 +53,7 @@ static void slc90e66_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	} else {
 		master_data &= ~0x3307;
 		if (pio > 1) {
-			/* enable PPE, IE and TIME */
+			
 			master_data |= control;
 		}
 		master_data |= (timings[pio][0] << 12) | (timings[pio][1] << 8);
@@ -108,7 +101,7 @@ static void slc90e66_set_dma_mode(ide_drive_t *drive, const u8 speed)
 		if (speed >= XFER_MW_DMA_0)
 			pio = mwdma_to_pio[speed - XFER_MW_DMA_0];
 		else
-			pio = 2; /* only SWDMA2 is allowed */
+			pio = 2; 
 
 		slc90e66_set_pio_mode(drive, pio);
 	}
@@ -121,7 +114,7 @@ static u8 slc90e66_cable_detect(ide_hwif_t *hwif)
 
 	pci_read_config_byte(dev, 0x47, &reg47);
 
-	/* bit[0(1)]: 0:80, 1:40 */
+	
 	return (reg47 & mask) ? ATA_CBL_PATA40 : ATA_CBL_PATA80;
 }
 

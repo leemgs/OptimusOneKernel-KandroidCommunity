@@ -1,31 +1,8 @@
 
-/*
- *
-  Copyright (c) Eicon Networks, 2002.
- *
-  This source file is supplied for the use with
-  Eicon Networks range of DIVA Server Adapters.
- *
-  Eicon File Revision :    2.1
- *
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
-  any later version.
- *
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU General Public License for more details.
- *
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 #ifndef DSPDIDS_H_
 #define DSPDIDS_H_
-/*---------------------------------------------------------------------------*/
+
 #define DSP_DID_INVALID   0
 #define DSP_DID_DIVA   1
 #define DSP_DID_DIVA_PRO  2
@@ -70,6 +47,6 @@
 #define DSP_DID_PARTIAL_OVERLAY_FSK 612
 #define DSP_DID_PARTIAL_OVERLAY_FAX 613
 #define DSP_DID_TASK_TIKRNL05  700
-/*---------------------------------------------------------------------------*/
+
 #endif
-/*---------------------------------------------------------------------------*/
+

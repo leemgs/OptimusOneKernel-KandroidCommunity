@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-orion5x/dns323-setup.c
- *
- * Copyright (C) 2007 Herbert Valerio Riedel <hvr@gnu.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -39,17 +29,13 @@
 #define DNS323_GPIO_KEY_POWER		9
 #define DNS323_GPIO_KEY_RESET		10
 
-/****************************************************************************
- * PCI setup
- */
+
 
 static int __init dns323_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
-	/*
-	 * Check for devices with hard-wired IRQs.
-	 */
+	
 	irq = orion5x_pci_map_irq(dev, slot, pin);
 	if (irq != -1)
 		return irq;
@@ -76,9 +62,7 @@ static int __init dns323_dev_id(void)
 
 static int __init dns323_pci_init(void)
 {
-	/* The 5182 doesn't really use its PCI bus, and initialising PCI
-	 * gets in the way of initialising the SATA controller.
-	 */
+	
 	if (machine_is_dns323() && dns323_dev_id() != MV88F5182_DEV_ID)
 		pci_common_init(&dns323_pci);
 
@@ -87,16 +71,7 @@ static int __init dns323_pci_init(void)
 
 subsys_initcall(dns323_pci_init);
 
-/****************************************************************************
- * 8MiB NOR flash (Spansion S29GL064M90TFIR4)
- *
- * Layout as used by D-Link:
- *  0x00000000-0x00010000 : "MTD1"
- *  0x00010000-0x00020000 : "MTD2"
- *  0x00020000-0x001a0000 : "Linux Kernel"
- *  0x001a0000-0x007d0000 : "File System"
- *  0x007d0000-0x00800000 : "u-boot"
- */
+
 
 #define DNS323_NOR_BOOT_BASE 0xf4000000
 #define DNS323_NOR_BOOT_SIZE SZ_8M
@@ -147,17 +122,13 @@ static struct platform_device dns323_nor_flash = {
 	.num_resources	= 1,
 };
 
-/****************************************************************************
- * Ethernet
- */
+
 
 static struct mv643xx_eth_platform_data dns323_eth_data = {
 	.phy_addr = MV643XX_ETH_PHY_ADDR(8),
 };
 
-/* dns323_parse_hex_*() taken from tsx09-common.c; should a common copy of these
- * functions be kept somewhere?
- */
+
 static int __init dns323_parse_hex_nibble(char n)
 {
 	if (n >= '0' && n <= '9')
@@ -192,14 +163,12 @@ static int __init dns323_read_mac_addr(void)
 	int i;
 	char *mac_page;
 
-	/* MAC address is stored as a regular ol' string in /dev/mtdblock4
-	 * (0x007d0000-0x00800000) starting at offset 196480 (0x2ff80).
-	 */
+	
 	mac_page = ioremap(DNS323_NOR_BOOT_BASE + 0x7d0000 + 196480, 1024);
 	if (!mac_page)
 		return -ENOMEM;
 
-	/* Sanity check the string we're looking at */
+	
 	for (i = 0; i < 5; i++) {
 		if (*(mac_page + (i * 3) + 2) != ':') {
 			goto error_fail;
@@ -231,9 +200,7 @@ error_fail:
 	return -EINVAL;
 }
 
-/****************************************************************************
- * GPIO LEDs (simple - doesn't use hardware blinking support)
- */
+
 
 static struct gpio_led dns323_leds[] = {
 	{
@@ -264,9 +231,7 @@ static struct platform_device dns323_gpio_leds = {
 	},
 };
 
-/****************************************************************************
- * GPIO Attached Keys
- */
+
 
 static struct gpio_keys_button dns323_buttons[] = {
 	{
@@ -296,28 +261,24 @@ static struct platform_device dns323_button_device = {
 	},
 };
 
-/*****************************************************************************
- * SATA
- */
+
 static struct mv_sata_platform_data dns323_sata_data = {
        .n_ports        = 2,
 };
 
-/****************************************************************************
- * General Setup
- */
+
 static struct orion5x_mpp_mode dns323_mv88f5181_mpp_modes[] __initdata = {
 	{  0, MPP_PCIE_RST_OUTn },
-	{  1, MPP_GPIO },		/* right amber LED (sata ch0) */
-	{  2, MPP_GPIO },		/* left amber LED (sata ch1) */
+	{  1, MPP_GPIO },		
+	{  2, MPP_GPIO },		
 	{  3, MPP_UNUSED },
-	{  4, MPP_GPIO },		/* power button LED */
-	{  5, MPP_GPIO },		/* power button LED */
-	{  6, MPP_GPIO },		/* GMT G751-2f overtemp */
-	{  7, MPP_GPIO },		/* M41T80 nIRQ/OUT/SQW */
-	{  8, MPP_GPIO },		/* triggers power off */
-	{  9, MPP_GPIO },		/* power button switch */
-	{ 10, MPP_GPIO },		/* reset button switch */
+	{  4, MPP_GPIO },		
+	{  5, MPP_GPIO },		
+	{  6, MPP_GPIO },		
+	{  7, MPP_GPIO },		
+	{  8, MPP_GPIO },		
+	{  9, MPP_GPIO },		
+	{ 10, MPP_GPIO },		
 	{ 11, MPP_UNUSED },
 	{ 12, MPP_UNUSED },
 	{ 13, MPP_UNUSED },
@@ -332,16 +293,16 @@ static struct orion5x_mpp_mode dns323_mv88f5181_mpp_modes[] __initdata = {
 
 static struct orion5x_mpp_mode dns323_mv88f5182_mpp_modes[] __initdata = {
 	{  0, MPP_UNUSED },
-	{  1, MPP_GPIO },		/* right amber LED (sata ch0) */
-	{  2, MPP_GPIO },		/* left amber LED (sata ch1) */
+	{  1, MPP_GPIO },		
+	{  2, MPP_GPIO },		
 	{  3, MPP_UNUSED },
-	{  4, MPP_GPIO },		/* power button LED */
-	{  5, MPP_GPIO },		/* power button LED */
-	{  6, MPP_GPIO },		/* GMT G751-2f overtemp */
-	{  7, MPP_GPIO },		/* M41T80 nIRQ/OUT/SQW */
-	{  8, MPP_GPIO },		/* triggers power off */
-	{  9, MPP_GPIO },		/* power button switch */
-	{ 10, MPP_GPIO },		/* reset button switch */
+	{  4, MPP_GPIO },		
+	{  5, MPP_GPIO },		
+	{  6, MPP_GPIO },		
+	{  7, MPP_GPIO },		
+	{  8, MPP_GPIO },		
+	{  9, MPP_GPIO },		
+	{ 10, MPP_GPIO },		
 	{ 11, MPP_UNUSED },
 	{ 12, MPP_SATA_LED },
 	{ 13, MPP_SATA_LED },
@@ -354,14 +315,7 @@ static struct orion5x_mpp_mode dns323_mv88f5182_mpp_modes[] __initdata = {
 	{ -1 },
 };
 
-/*
- * On the DNS-323 the following devices are attached via I2C:
- *
- *  i2c addr | chip        | description
- *  0x3e     | GMT G760Af  | fan speed PWM controller
- *  0x48     | GMT G751-2f | temp. sensor and therm. watchdog (LM75 compatible)
- *  0x68     | ST M41T80   | RTC w/ alarm
- */
+
 static struct i2c_board_info __initdata dns323_i2c_devices[] = {
 	{
 		I2C_BOARD_INFO("g760a", 0x3e),
@@ -372,7 +326,7 @@ static struct i2c_board_info __initdata dns323_i2c_devices[] = {
 	},
 };
 
-/* DNS-323 specific power off method */
+
 static void dns323_power_off(void)
 {
 	pr_info("%s: triggering power-off...\n", __func__);
@@ -381,22 +335,18 @@ static void dns323_power_off(void)
 
 static void __init dns323_init(void)
 {
-	/* Setup basic Orion functions. Need to be called early. */
+	
 	orion5x_init();
 
-	/* Just to be tricky, the 5182 has a completely different
-	 * set of MPP modes to the 5181.
-	 */
+	
 	if (dns323_dev_id() == MV88F5182_DEV_ID)
 		orion5x_mpp_conf(dns323_mv88f5182_mpp_modes);
 	else {
 		orion5x_mpp_conf(dns323_mv88f5181_mpp_modes);
-		writel(0, MPP_DEV_CTRL);		/* DEV_D[31:16] */
+		writel(0, MPP_DEV_CTRL);		
 	}
 
-	/* setup flash mapping
-	 * CS3 holds a 8 MB Spansion S29GL064M90TFIR4
-	 */
+	
 	orion5x_setup_dev_boot_win(DNS323_NOR_BOOT_BASE, DNS323_NOR_BOOT_SIZE);
 	platform_device_register(&dns323_nor_flash);
 
@@ -407,9 +357,7 @@ static void __init dns323_init(void)
 	i2c_register_board_info(0, dns323_i2c_devices,
 				ARRAY_SIZE(dns323_i2c_devices));
 
-	/*
-	 * Configure peripherals.
-	 */
+	
 	if (dns323_read_mac_addr() < 0)
 		printk("DNS323: Failed to read MAC address\n");
 
@@ -418,22 +366,20 @@ static void __init dns323_init(void)
 	orion5x_i2c_init();
 	orion5x_uart0_init();
 
-	/* The 5182 has its SATA controller on-chip, and needs its own little
-	 * init routine.
-	 */
+	
 	if (dns323_dev_id() == MV88F5182_DEV_ID)
 		orion5x_sata_init(&dns323_sata_data);
 
-	/* register dns323 specific power-off method */
+	
 	if (gpio_request(DNS323_GPIO_POWER_OFF, "POWEROFF") != 0 ||
 	    gpio_direction_output(DNS323_GPIO_POWER_OFF, 0) != 0)
 		pr_err("DNS323: failed to setup power-off GPIO\n");
 	pm_power_off = dns323_power_off;
 }
 
-/* Warning: D-Link uses a wrong mach-type (=526) in their bootloader */
+
 MACHINE_START(DNS323, "D-Link DNS-323")
-	/* Maintainer: Herbert Valerio Riedel <hvr@gnu.org> */
+	
 	.phys_io	= ORION5X_REGS_PHYS_BASE,
 	.io_pg_offst	= ((ORION5X_REGS_VIRT_BASE) >> 18) & 0xFFFC,
 	.boot_params	= 0x00000100,

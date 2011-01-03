@@ -1,24 +1,4 @@
-/*
- * SCSI target lib functions
- *
- * Copyright (C) 2005 Mike Christie <michaelc@cs.wisc.edu>
- * Copyright (C) 2005 FUJITA Tomonori <tomof@acm.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 #include <linux/blkdev.h>
 #include <linux/hash.h>
 #include <linux/module.h>
@@ -35,14 +15,11 @@
 static struct workqueue_struct *scsi_tgtd;
 static struct kmem_cache *scsi_tgt_cmd_cache;
 
-/*
- * TODO: this struct will be killed when the block layer supports large bios
- * and James's work struct code is in
- */
+
 struct scsi_tgt_cmd {
-	/* TODO replace work with James b's code */
+	
 	struct work_struct work;
-	/* TODO fix limits of some drivers */
+	
 	struct bio *bio;
 
 	struct list_head hash_list;
@@ -60,19 +37,7 @@ struct scsi_tgt_queuedata {
 	spinlock_t cmd_hash_lock;
 };
 
-/*
- * Function:	scsi_host_get_command()
- *
- * Purpose:	Allocate and setup a scsi command block and blk request
- *
- * Arguments:	shost	- scsi host
- *		data_dir - dma data dir
- *		gfp_mask- allocator flags
- *
- * Returns:	The allocated scsi command structure.
- *
- * This should be called by target LLDs to get a command.
- */
+
 struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *shost,
 					enum dma_data_direction data_dir,
 					gfp_t gfp_mask)
@@ -82,7 +47,7 @@ struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *shost,
 	struct scsi_cmnd *cmd;
 	struct scsi_tgt_cmd *tcmd;
 
-	/* Bail if we can't get a reference to the device */
+	
 	if (!get_device(&shost->shost_gendev))
 		return NULL;
 
@@ -90,11 +55,7 @@ struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *shost,
 	if (!tcmd)
 		goto put_dev;
 
-	/*
-	 * The blk helpers are used to the READ/WRITE requests
-	 * transfering data from a initiator point of view. Since
-	 * we are in target mode we want the opposite.
-	 */
+	
 	rq = blk_get_request(shost->uspace_req_q, !write, gfp_mask);
 	if (!rq)
 		goto free_tcmd;
@@ -129,18 +90,7 @@ put_dev:
 }
 EXPORT_SYMBOL_GPL(scsi_host_get_command);
 
-/*
- * Function:	scsi_host_put_command()
- *
- * Purpose:	Free a scsi command block
- *
- * Arguments:	shost	- scsi host
- * 		cmd	- command block to free
- *
- * Returns:	Nothing.
- *
- * Notes:	The command must not belong to any lists.
- */
+
 void scsi_host_put_command(struct Scsi_Host *shost, struct scsi_cmnd *cmd)
 {
 	struct request_queue *q = shost->uspace_req_q;
@@ -204,23 +154,14 @@ static void init_scsi_tgt_cmd(struct request *rq, struct scsi_tgt_cmd *tcmd,
 	spin_unlock_irqrestore(&qdata->cmd_hash_lock, flags);
 }
 
-/*
- * scsi_tgt_alloc_queue - setup queue used for message passing
- * shost: scsi host
- *
- * This should be called by the LLD after host allocation.
- * And will be released when the host is released.
- */
+
 int scsi_tgt_alloc_queue(struct Scsi_Host *shost)
 {
 	struct scsi_tgt_queuedata *queuedata;
 	struct request_queue *q;
 	int err, i;
 
-	/*
-	 * Do we need to send a netlink event or should uspace
-	 * just respond to the hotplug event?
-	 */
+	
 	q = __scsi_alloc_queue(shost, NULL);
 	if (!q)
 		return -ENOMEM;
@@ -233,17 +174,9 @@ int scsi_tgt_alloc_queue(struct Scsi_Host *shost)
 	queuedata->shost = shost;
 	q->queuedata = queuedata;
 
-	/*
-	 * this is a silly hack. We should probably just queue as many
-	 * command as is recvd to userspace. uspace can then make
-	 * sure we do not overload the HBA
-	 */
+	
 	q->nr_requests = shost->can_queue;
-	/*
-	 * We currently only support software LLDs so this does
-	 * not matter for now. Do we need this for the cards we support?
-	 * If so we should make it a host template value.
-	 */
+	
 	blk_queue_dma_alignment(q, 0);
 	shost->uspace_req_q = q;
 
@@ -299,12 +232,7 @@ struct Scsi_Host *scsi_tgt_cmd_to_host(struct scsi_cmnd *cmd)
 }
 EXPORT_SYMBOL_GPL(scsi_tgt_cmd_to_host);
 
-/*
- * scsi_tgt_queue_command - queue command for userspace processing
- * @cmd:	scsi command
- * @scsilun:	scsi lun
- * @tag:	unique value to identify this command for tmf
- */
+
 int scsi_tgt_queue_command(struct scsi_cmnd *cmd, u64 itn_id,
 			   struct scsi_lun *scsilun, u64 tag)
 {
@@ -320,10 +248,7 @@ int scsi_tgt_queue_command(struct scsi_cmnd *cmd, u64 itn_id,
 }
 EXPORT_SYMBOL_GPL(scsi_tgt_queue_command);
 
-/*
- * This is run from a interrupt handler normally and the unmap
- * needs process context so we must queue
- */
+
 static void scsi_tgt_cmd_done(struct scsi_cmnd *cmd)
 {
 	struct scsi_tgt_cmd *tcmd = cmd->request->end_io_data;
@@ -353,7 +278,7 @@ static int scsi_tgt_transfer_response(struct scsi_cmnd *cmd)
 	return 0;
 }
 
-/* TODO: test this crap and replace bio_map_user with new interface maybe */
+
 static int scsi_map_user_pages(struct scsi_tgt_cmd *tcmd, struct scsi_cmnd *cmd,
 			       unsigned long uaddr, unsigned int len, int rw)
 {
@@ -364,15 +289,7 @@ static int scsi_map_user_pages(struct scsi_tgt_cmd *tcmd, struct scsi_cmnd *cmd,
 	dprintk("%lx %u\n", uaddr, len);
 	err = blk_rq_map_user(q, rq, NULL, (void *)uaddr, len, GFP_KERNEL);
 	if (err) {
-		/*
-		 * TODO: need to fixup sg_tablesize, max_segment_size,
-		 * max_sectors, etc for modern HW and software drivers
-		 * where this value is bogus.
-		 *
-		 * TODO2: we can alloc a reserve buffer of max size
-		 * we can handle and do the slow copy path for really large
-		 * IO.
-		 */
+		
 		eprintk("Could not handle request of size %u.\n", len);
 		return err;
 	}
@@ -383,10 +300,7 @@ static int scsi_map_user_pages(struct scsi_tgt_cmd *tcmd, struct scsi_cmnd *cmd,
 		scsi_release_buffers(cmd);
 		goto unmap_rq;
 	}
-	/*
-	 * we use REQ_TYPE_BLOCK_PC so scsi_init_io doesn't set the
-	 * length for us.
-	 */
+	
 	cmd->sdb.length = blk_rq_bytes(rq);
 
 	return 0;
@@ -458,7 +372,7 @@ int scsi_tgt_kspace_exec(int host_no, u64 itn_id, int result, u64 tag,
 	dprintk("%d %llu %d %u %lx %u\n", host_no, (unsigned long long) tag,
 		result, len, uaddr, rw);
 
-	/* TODO: replace with a O(1) alg */
+	
 	shost = scsi_host_lookup(host_no);
 	if (!shost) {
 		printk(KERN_ERR "Could not find host no %d\n", host_no);
@@ -487,10 +401,7 @@ int scsi_tgt_kspace_exec(int host_no, u64 itn_id, int result, u64 tag,
 		scsi_tgt_abort_cmd(shost, cmd);
 		goto done;
 	}
-	/*
-	 * store the userspace values here, the working values are
-	 * in the request_* values
-	 */
+	
 	tcmd = cmd->request->end_io_data;
 	cmd->result = result;
 
@@ -500,10 +411,7 @@ int scsi_tgt_kspace_exec(int host_no, u64 itn_id, int result, u64 tag,
 	if (len) {
 		err = scsi_map_user_pages(rq->end_io_data, cmd, uaddr, len, rw);
 		if (err) {
-			/*
-			 * user-space daemon bugs or OOM
-			 * TODO: we can do better for OOM.
-			 */
+			
 			struct scsi_tgt_queuedata *qdata;
 			struct list_head *head;
 			unsigned long flags;
@@ -533,7 +441,7 @@ int scsi_tgt_tsk_mgmt_request(struct Scsi_Host *shost, u64 itn_id,
 {
 	int err;
 
-	/* TODO: need to retry if this fails. */
+	
 	err = scsi_tgt_uspace_send_tsk_mgmt(shost->host_no, itn_id,
 					    function, tag, scsilun, data);
 	if (err < 0)
@@ -571,7 +479,7 @@ int scsi_tgt_it_nexus_create(struct Scsi_Host *shost, u64 itn_id,
 {
 	int err;
 
-	/* TODO: need to retry if this fails. */
+	
 	err = scsi_tgt_uspace_send_it_nexus_request(shost->host_no, itn_id, 0,
 						    initiator);
 	if (err < 0)
@@ -585,7 +493,7 @@ int scsi_tgt_it_nexus_destroy(struct Scsi_Host *shost, u64 itn_id)
 {
 	int err;
 
-	/* TODO: need to retry if this fails. */
+	
 	err = scsi_tgt_uspace_send_it_nexus_request(shost->host_no,
 						    itn_id, 1, NULL);
 	if (err < 0)

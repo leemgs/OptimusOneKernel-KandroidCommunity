@@ -1,18 +1,9 @@
-/*
- * broadsheetfb.h - definitions for the broadsheet framebuffer driver
- *
- * Copyright (C) 2008 by Jaya Kumar
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License. See the file COPYING in the main directory of this archive for
- * more details.
- *
- */
+
 
 #ifndef _LINUX_BROADSHEETFB_H_
 #define _LINUX_BROADSHEETFB_H_
 
-/* Broadsheet command defines */
+
 #define BS_CMD_INIT_SYS_RUN	0x06
 #define BS_CMD_INIT_DSPE_CFG	0x09
 #define BS_CMD_INIT_DSPE_TMG	0x0A
@@ -29,12 +20,12 @@
 #define BS_CMD_UPD_FULL		0x33
 #define BS_CMD_UPD_GDRV_CLR	0x37
 
-/* Broadsheet pin interface specific defines */
+
 #define BS_CS	0x01
 #define BS_DC 	0x02
 #define BS_WR 	0x03
 
-/* struct used by broadsheet. board specific stuff comes from *board */
+
 struct broadsheetfb_par {
 	struct fb_info *info;
 	struct broadsheet_board *board;
@@ -43,7 +34,7 @@ struct broadsheetfb_par {
 	wait_queue_head_t waitq;
 };
 
-/* board specific routines */
+
 struct broadsheet_board {
 	struct module *owner;
 	int (*init)(struct broadsheetfb_par *);

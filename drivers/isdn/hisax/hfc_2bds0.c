@@ -1,14 +1,4 @@
-/* $Id: hfc_2bds0.c,v 1.18.2.6 2004/02/11 13:21:33 keil Exp $
- *
- * specific routines for CCD's HFC 2BDS0
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/sched.h>
@@ -16,10 +6,7 @@
 #include "hfc_2bds0.h"
 #include "isdnl1.h"
 #include <linux/interrupt.h>
-/*
-#define KDEBUG_DEF
-#include "kdebug.h"
-*/
+
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)
@@ -65,7 +52,7 @@ WriteReg(struct IsdnCardState *cs, int data, u_char reg, u_char value)
 #endif
 }
 
-/* Interface functions */
+
 
 static u_char
 readreghfcd(struct IsdnCardState *cs, u_char offset)
@@ -462,7 +449,7 @@ hfc_l2l1(struct PStack *st, int pr, void *arg)
 				skb_queue_tail(&bcs->squeue, skb);
 			} else {
 				bcs->tx_skb = skb;
-//				test_and_set_bit(BC_FLG_BUSY, &bcs->Flag);
+
 				bcs->cs->BC_Send_Data(bcs);
 			}
 			spin_unlock_irqrestore(&bcs->cs->lock, flags);
@@ -472,7 +459,7 @@ hfc_l2l1(struct PStack *st, int pr, void *arg)
 			if (bcs->tx_skb) {
 				printk(KERN_WARNING "hfc_l2l1: this shouldn't happen\n");
 			} else {
-//				test_and_set_bit(BC_FLG_BUSY, &bcs->Flag);
+
 				bcs->tx_skb = skb;
 				bcs->cs->BC_Send_Data(bcs);
 			}
@@ -772,7 +759,7 @@ hfc2bds0_interrupt(struct IsdnCardState *cs, u_char val)
 			test_bit(FLG_LOCK_ATOMIC, &cs->HW_Flags) ?
 			"locked" : "unlocked");
 	val &= cs->hw.hfcD.int_m1;
-	if (val & 0x40) { /* TE state machine irq */
+	if (val & 0x40) { 
 		exval = cs->readisac(cs, HFCD_STATES) & 0xf;
 		if (cs->debug & L1_DEB_ISAC)
 			debugl1(cs, "ph_state chg %d->%d", cs->dc.hfcd.ph_state,
@@ -853,10 +840,10 @@ hfc2bds0_interrupt(struct IsdnCardState *cs, u_char val)
 				}
 			}
 		}
-		if (val & 0x20) {	/* receive dframe */
+		if (val & 0x20) {	
 			receive_dmsg(cs);
 		}
-		if (val & 0x04) {	/* dframe transmitted */
+		if (val & 0x04) {	
 			if (test_and_clear_bit(FLG_DBUSY_TIMER, &cs->HW_Flags))
 				del_timer(&cs->dbusytimer);
 			if (test_and_clear_bit(FLG_L1_DBUSY, &cs->HW_Flags))
@@ -914,14 +901,14 @@ HFCD_l1hw(struct PStack *st, int pr, void *arg)
 			spin_lock_irqsave(&cs->lock, flags);
 			if (cs->tx_skb) {
 				skb_queue_tail(&cs->sq, skb);
-#ifdef L2FRAME_DEBUG		/* psa */
+#ifdef L2FRAME_DEBUG		
 				if (cs->debug & L1_DEB_LAPD)
 					Logl2Frame(cs, skb, "PH_DATA Queued", 0);
 #endif
 			} else {
 				cs->tx_skb = skb;
 				cs->tx_cnt = 0;
-#ifdef L2FRAME_DEBUG		/* psa */
+#ifdef L2FRAME_DEBUG		
 				if (cs->debug & L1_DEB_LAPD)
 					Logl2Frame(cs, skb, "PH_DATA", 0);
 #endif
@@ -949,7 +936,7 @@ HFCD_l1hw(struct PStack *st, int pr, void *arg)
 				dlogframe(cs, skb, 0);
 			cs->tx_skb = skb;
 			cs->tx_cnt = 0;
-#ifdef L2FRAME_DEBUG		/* psa */
+#ifdef L2FRAME_DEBUG		
 			if (cs->debug & L1_DEB_LAPD)
 				Logl2Frame(cs, skb, "PH_DATA_PULLED", 0);
 #endif
@@ -961,7 +948,7 @@ HFCD_l1hw(struct PStack *st, int pr, void *arg)
 			spin_unlock_irqrestore(&cs->lock, flags);
 			break;
 		case (PH_PULL | REQUEST):
-#ifdef L2FRAME_DEBUG		/* psa */
+#ifdef L2FRAME_DEBUG		
 			if (cs->debug & L1_DEB_LAPD)
 				debugl1(cs, "-> PH_REQUEST_PULL");
 #endif
@@ -973,9 +960,9 @@ HFCD_l1hw(struct PStack *st, int pr, void *arg)
 			break;
 		case (HW_RESET | REQUEST):
 			spin_lock_irqsave(&cs->lock, flags);
-			cs->writeisac(cs, HFCD_STATES, HFCD_LOAD_STATE | 3); /* HFC ST 3 */
+			cs->writeisac(cs, HFCD_STATES, HFCD_LOAD_STATE | 3); 
 			udelay(6);
-			cs->writeisac(cs, HFCD_STATES, 3); /* HFC ST 2 */
+			cs->writeisac(cs, HFCD_STATES, 3); 
 			cs->hw.hfcD.mst_m |= HFCD_MASTER;
 			cs->writeisac(cs, HFCD_MST_MODE, cs->hw.hfcD.mst_m);
 			cs->writeisac(cs, HFCD_STATES, HFCD_ACTIVATE | HFCD_DO_ACTION);

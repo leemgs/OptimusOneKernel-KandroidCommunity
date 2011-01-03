@@ -1,20 +1,4 @@
-/*
- * Driver for the mt9m111 sensor
- *
- * Copyright (C) 2008 Erik Andrén
- * Copyright (C) 2007 Ilyes Gouta. Based on the m5603x Linux Driver Project.
- * Copyright (C) 2005 m5603x Linux Driver Project <m5602@x3ng.com.br>
- *
- * Portions of code to USB interface and ALi driver software,
- * Copyright (c) 2006 Willem Duinker
- * v4l2 interface modeled after the V4L2 driver
- * for SN9C10x PC Camera Controllers
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include "m5602_mt9m111.h"
 
@@ -166,14 +150,13 @@ int mt9m111_probe(struct sd *sd)
 			info("Forcing a %s sensor", mt9m111.name);
 			goto sensor_found;
 		}
-		/* If we want to force another sensor, don't try to probe this
-		 * one */
+		
 		return -ENODEV;
 	}
 
 	info("Probing for a mt9m111 sensor");
 
-	/* Do the preinit */
+	
 	for (i = 0; i < ARRAY_SIZE(preinit_mt9m111); i++) {
 		if (preinit_mt9m111[i][0] == BRIDGE) {
 			m5602_write_bridge(sd,
@@ -220,7 +203,7 @@ int mt9m111_init(struct sd *sd)
 	int i, err = 0;
 	s32 *sensor_settings = sd->sensor_priv;
 
-	/* Init the sensor */
+	
 	for (i = 0; i < ARRAY_SIZE(init_mt9m111) && !err; i++) {
 		u8 data[2];
 
@@ -384,10 +367,10 @@ static int mt9m111_set_vflip(struct gspca_dev *gspca_dev, __s32 val)
 
 	sensor_settings[VFLIP_IDX] = val;
 
-	/* The mt9m111 is flipped by default */
+	
 	val = !val;
 
-	/* Set the correct page map */
+	
 	err = m5602_write_sensor(sd, MT9M111_PAGE_MAP, data, 2);
 	if (err < 0)
 		return err;
@@ -424,10 +407,10 @@ static int mt9m111_set_hflip(struct gspca_dev *gspca_dev, __s32 val)
 
 	sensor_settings[HFLIP_IDX] = val;
 
-	/* The mt9m111 is flipped by default */
+	
 	val = !val;
 
-	/* Set the correct page map */
+	
 	err = m5602_write_sensor(sd, MT9M111_PAGE_MAP, data, 2);
 	if (err < 0)
 		return err;
@@ -493,7 +476,7 @@ static int mt9m111_set_gain(struct gspca_dev *gspca_dev, __s32 val)
 
 	sensor_settings[GAIN_IDX] = val;
 
-	/* Set the correct page map */
+	
 	err = m5602_write_sensor(sd, MT9M111_PAGE_MAP, data, 2);
 	if (err < 0)
 		return err;

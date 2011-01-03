@@ -1,11 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- */
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/socket.h>
@@ -41,10 +34,7 @@ static struct listen_struct {
 } *listen_list = NULL;
 static DEFINE_SPINLOCK(listen_lock);
 
-/*
- * Do not register the internal protocols AX25_P_TEXT, AX25_P_SEGMENT,
- * AX25_P_IP or AX25_P_ARP ...
- */
+
 void ax25_register_pid(struct ax25_protocol *ap)
 {
 	write_lock_bh(&protocol_list_lock);

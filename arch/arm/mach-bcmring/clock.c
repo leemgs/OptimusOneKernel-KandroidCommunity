@@ -1,16 +1,4 @@
-/*****************************************************************************
-* Copyright 2001 - 2009 Broadcom Corporation.  All rights reserved.
-*
-* Unless you and Broadcom execute a separate written software license
-* agreement governing use of this software, this software is licensed to you
-* under the terms of the GNU General Public License version 2, available at
-* http://www.broadcom.com/licenses/GPLv2.php (the "GPL").
-*
-* Notwithstanding the above, under no circumstances may you combine this
-* software in any way with any other Broadcom software provided under a
-* license other than the GPL, without Broadcom's express prior written
-* consent.
-*****************************************************************************/
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -45,19 +33,19 @@ static void __clk_enable(struct clk *clk)
 	if (!clk)
 		return;
 
-	/* enable parent clock first */
+	
 	if (clk->parent)
 		__clk_enable(clk->parent);
 
 	if (clk->use_cnt++ == 0) {
-		if (clk_is_pll1(clk)) {	/* PLL1 */
+		if (clk_is_pll1(clk)) {	
 			chipcHw_pll1Enable(clk->rate_hz, 0);
-		} else if (clk_is_pll2(clk)) {	/* PLL2 */
+		} else if (clk_is_pll2(clk)) {	
 			chipcHw_pll2Enable(clk->rate_hz);
-		} else if (clk_is_using_xtal(clk)) {	/* source is crystal */
+		} else if (clk_is_using_xtal(clk)) {	
 			if (!clk_is_primary(clk))
 				chipcHw_bypassClockEnable(clk->csp_id);
-		} else {	/* source is PLL */
+		} else {	
 			chipcHw_setClockEnable(clk->csp_id);
 		}
 	}
@@ -86,14 +74,14 @@ static void __clk_disable(struct clk *clk)
 	BUG_ON(clk->use_cnt == 0);
 
 	if (--clk->use_cnt == 0) {
-		if (clk_is_pll1(clk)) {	/* PLL1 */
+		if (clk_is_pll1(clk)) {	
 			chipcHw_pll1Disable();
-		} else if (clk_is_pll2(clk)) {	/* PLL2 */
+		} else if (clk_is_pll2(clk)) {	
 			chipcHw_pll2Disable();
-		} else if (clk_is_using_xtal(clk)) {	/* source is crystal */
+		} else if (clk_is_using_xtal(clk)) {	
 			if (!clk_is_primary(clk))
 				chipcHw_bypassClockDisable(clk->csp_id);
-		} else {	/* source is PLL */
+		} else {	
 			chipcHw_setClockDisable(clk->csp_id);
 		}
 	}
@@ -194,7 +182,7 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 	if (!clk_is_primary(parent) || !clk_is_bypassable(clk))
 		return -EINVAL;
 
-	/* if more than one user, parent is not allowed */
+	
 	if (clk->use_cnt > 1)
 		return -EBUSY;
 
@@ -209,12 +197,12 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 	else
 		clk->mode &= (~CLK_MODE_XTAL);
 
-	/* if clock is active */
+	
 	if (clk->use_cnt != 0) {
 		clk->use_cnt--;
-		/* enable clock with the new parent */
+		
 		__clk_enable(clk);
-		/* disable the old parent */
+		
 		__clk_disable(old_parent);
 	}
 	spin_unlock_irqrestore(&clk_lock, flags);

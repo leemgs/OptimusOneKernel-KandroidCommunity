@@ -1,16 +1,4 @@
-/*
- * net/sched/mirred.c	packet mirroring and redirect actions
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Jamal Hadi Salim (2002-4)
- *
- * TODO: Add ingress support (and socket redirect support)
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -167,9 +155,7 @@ bad_mirred:
 		m->tcf_bstats.bytes += qdisc_pkt_len(skb);
 		m->tcf_bstats.packets++;
 		spin_unlock(&m->tcf_lock);
-		/* should we be asking for packet to be dropped?
-		 * may make sense for redirect case only
-		*/
+		
 		return TC_ACT_SHOT;
 	}
 
@@ -190,7 +176,7 @@ bad_mirred:
 		if (m->tcfm_ok_push)
 			skb_push(skb2, skb2->dev->hard_header_len);
 
-	/* mirror is always swallowed */
+	
 	if (m->tcfm_eaction != TCA_EGRESS_MIRROR)
 		skb2->tc_verd = SET_TC_FROM(skb2->tc_verd, at);
 

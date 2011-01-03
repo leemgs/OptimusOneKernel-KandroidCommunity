@@ -1,13 +1,4 @@
-/*
- * V4L2 Driver for i.MX3x camera host
- *
- * Copyright (C) 2008
- * Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -29,7 +20,7 @@
 
 #define MX3_CAM_DRV_NAME "mx3-camera"
 
-/* CMOS Sensor Interface Registers */
+
 #define CSI_REG_START		0x60
 
 #define CSI_SENS_CONF		(0x60 - CSI_REG_START)
@@ -61,38 +52,20 @@
 #define MAX_VIDEO_MEM 16
 
 struct mx3_camera_buffer {
-	/* common v4l buffer stuff -- must be first */
+	
 	struct videobuf_buffer			vb;
 	const struct soc_camera_data_format	*fmt;
 
-	/* One descriptot per scatterlist (per frame) */
+	
 	struct dma_async_tx_descriptor		*txd;
 
-	/* We have to "build" a scatterlist ourselves - one element per frame */
+	
 	struct scatterlist			sg;
 };
 
-/**
- * struct mx3_camera_dev - i.MX3x camera (CSI) object
- * @dev:		camera device, to which the coherent buffer is attached
- * @icd:		currently attached camera sensor
- * @clk:		pointer to clock
- * @base:		remapped register base address
- * @pdata:		platform data
- * @platform_flags:	platform flags
- * @mclk:		master clock frequency in Hz
- * @capture:		list of capture videobuffers
- * @lock:		protects video buffer lists
- * @active:		active video buffer
- * @idmac_channel:	array of pointers to IPU DMAC DMA channels
- * @soc_host:		embedded soc_host object
- */
+
 struct mx3_camera_dev {
-	/*
-	 * i.MX3x is only supposed to handle one camera on its Camera Sensor
-	 * Interface. If anyone ever builds hardware to enable more than one
-	 * camera _simultaneously_, they will have to modify this driver too
-	 */
+	
 	struct soc_camera_device *icd;
 	struct clk		*clk;
 
@@ -104,11 +77,11 @@ struct mx3_camera_dev {
 	unsigned long		mclk;
 
 	struct list_head	capture;
-	spinlock_t		lock;		/* Protects video buffer lists */
+	spinlock_t		lock;		
 	struct mx3_camera_buffer *active;
 
-	/* IDMAC / dmaengine interface */
-	struct idmac_channel	*idmac_channel[1];	/* We need one channel */
+	
+	struct idmac_channel	*idmac_channel[1];	
 
 	struct soc_camera_host	soc_host;
 };
@@ -130,7 +103,7 @@ static void csi_reg_write(struct mx3_camera_dev *mx3, u32 value, off_t reg)
 	__raw_writel(value, mx3->base + reg);
 }
 
-/* Called from the IPU IDMAC ISR */
+
 static void mx3_cam_dma_done(void *arg)
 {
 	struct idmac_tx_desc *desc = to_tx_desc(arg);
@@ -157,10 +130,7 @@ static void mx3_cam_dma_done(void *arg)
 		mx3_cam->active = NULL;
 		spin_unlock(&mx3_cam->lock);
 
-		/*
-		 * stop capture - without further buffers IPU_CHA_BUF0_RDY will
-		 * not get updated
-		 */
+		
 		return;
 	}
 
@@ -182,10 +152,7 @@ static void free_buffer(struct videobuf_queue *vq, struct mx3_camera_buffer *buf
 	dev_dbg(icd->dev.parent, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
 		vb, vb->baddr, vb->bsize);
 
-	/*
-	 * This waits until this buffer is out of danger, i.e., until it is no
-	 * longer in STATE_QUEUED or STATE_ACTIVE
-	 */
+	
 	videobuf_waiton(vb, 0, 0);
 	if (txd) {
 		ichan = to_idmac_chan(txd->chan);
@@ -197,25 +164,16 @@ static void free_buffer(struct videobuf_queue *vq, struct mx3_camera_buffer *buf
 	vb->state = VIDEOBUF_NEEDS_INIT;
 }
 
-/*
- * Videobuf operations
- */
 
-/*
- * Calculate the __buffer__ (not data) size and number of buffers.
- * Called with .vb_lock held
- */
+
+
 static int mx3_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
 			      unsigned int *size)
 {
 	struct soc_camera_device *icd = vq->priv_data;
 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
 	struct mx3_camera_dev *mx3_cam = ici->priv;
-	/*
-	 * bits-per-pixel (depth) as specified in camera's pixel format does
-	 * not necessarily match what the camera interface writes to RAM, but
-	 * it should be good enough for now.
-	 */
+	
 	unsigned int bpp = DIV_ROUND_UP(icd->current_fmt->depth, 8);
 
 	if (!mx3_cam->idmac_channel[0])
@@ -232,7 +190,7 @@ static int mx3_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
 	return 0;
 }
 
-/* Called with .vb_lock held */
+
 static int mx3_videobuf_prepare(struct videobuf_queue *vq,
 		struct videobuf_buffer *vb, enum v4l2_field field)
 {
@@ -241,15 +199,12 @@ static int mx3_videobuf_prepare(struct videobuf_queue *vq,
 	struct mx3_camera_dev *mx3_cam = ici->priv;
 	struct mx3_camera_buffer *buf =
 		container_of(vb, struct mx3_camera_buffer, vb);
-	/* current_fmt _must_ always be set */
+	
 	size_t new_size = icd->user_width * icd->user_height *
 		((icd->current_fmt->depth + 7) >> 3);
 	int ret;
 
-	/*
-	 * I think, in buf_prepare you only have to protect global data,
-	 * the actual buffer is yours
-	 */
+	
 
 	if (buf->fmt	!= icd->current_fmt ||
 	    vb->width	!= icd->user_width ||
@@ -264,7 +219,7 @@ static int mx3_videobuf_prepare(struct videobuf_queue *vq,
 	}
 
 	if (vb->baddr && vb->bsize < new_size) {
-		/* User provided buffer, but it is too small */
+		
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -273,23 +228,15 @@ static int mx3_videobuf_prepare(struct videobuf_queue *vq,
 		struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
 		struct scatterlist *sg = &buf->sg;
 
-		/*
-		 * The total size of video-buffers that will be allocated / mapped.
-		 * *size that we calculated in videobuf_setup gets assigned to
-		 * vb->bsize, and now we use the same calculation to get vb->size.
-		 */
+		
 		vb->size = new_size;
 
-		/* This actually (allocates and) maps buffers */
+		
 		ret = videobuf_iolock(vq, vb, NULL);
 		if (ret)
 			goto fail;
 
-		/*
-		 * We will have to configure the IDMAC channel. It has two slots
-		 * for DMA buffers, we shall enter the first two buffers there,
-		 * and then submit new buffers in DMA-ready interrupts
-		 */
+		
 		sg_init_table(sg, 1);
 		sg_dma_address(sg)	= videobuf_to_dma_contig(vb);
 		sg_dma_len(sg)		= vb->size;
@@ -318,7 +265,7 @@ out:
 
 static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
 {
-	/* Add more formats as need arises and test possibilities appear... */
+	
 	switch (fourcc) {
 	case V4L2_PIX_FMT_RGB565:
 		return IPU_PIX_FMT_RGB565;
@@ -333,10 +280,7 @@ static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
 	}
 }
 
-/*
- * Called with .vb_lock mutex held and
- * under spinlock_irqsave(&mx3_cam->lock, ...)
- */
+
 static void mx3_videobuf_queue(struct videobuf_queue *vq,
 			       struct videobuf_buffer *vb)
 {
@@ -353,14 +297,14 @@ static void mx3_videobuf_queue(struct videobuf_queue *vq,
 
 	BUG_ON(!irqs_disabled());
 
-	/* This is the configuration of one sg-element */
+	
 	video->out_pixel_fmt	= fourcc_to_ipu_pix(data_fmt->fourcc);
 	video->out_width	= icd->user_width;
 	video->out_height	= icd->user_height;
 	video->out_stride	= icd->user_width;
 
 #ifdef DEBUG
-	/* helps to see what DMA actually has written */
+	
 	memset((void *)vb->baddr, 0xaa, vb->bsize);
 #endif
 
@@ -384,7 +328,7 @@ static void mx3_videobuf_queue(struct videobuf_queue *vq,
 	if (cookie >= 0)
 		return;
 
-	/* Submit error */
+	
 	vb->state = VIDEOBUF_PREPARED;
 
 	list_del_init(&vb->queue);
@@ -393,7 +337,7 @@ static void mx3_videobuf_queue(struct videobuf_queue *vq,
 		mx3_cam->active = NULL;
 }
 
-/* Called with .vb_lock held */
+
 static void mx3_videobuf_release(struct videobuf_queue *vq,
 				 struct videobuf_buffer *vb)
 {
@@ -441,23 +385,23 @@ static void mx3_camera_init_videobuf(struct videobuf_queue *q,
 				       sizeof(struct mx3_camera_buffer), icd);
 }
 
-/* First part of ipu_csi_init_interface() */
+
 static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
 				struct soc_camera_device *icd)
 {
 	u32 conf;
 	long rate;
 
-	/* Set default size: ipu_csi_set_window_size() */
+	
 	csi_reg_write(mx3_cam, (640 - 1) | ((480 - 1) << 16), CSI_ACT_FRM_SIZE);
-	/* ...and position to 0:0: ipu_csi_set_window_pos() */
+	
 	conf = csi_reg_read(mx3_cam, CSI_OUT_FRM_CTRL) & 0xffff0000;
 	csi_reg_write(mx3_cam, conf, CSI_OUT_FRM_CTRL);
 
-	/* We use only gated clock synchronisation mode so far */
+	
 	conf = 0 << CSI_SENS_CONF_SENS_PRTCL_SHIFT;
 
-	/* Set generic data, platform-biggest bus-width */
+	
 	conf |= CSI_SENS_CONF_DATA_FMT_BAYER;
 
 	if (mx3_cam->platform_flags & MX3_CAMERA_DATAWIDTH_15)
@@ -466,7 +410,7 @@ static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
 		conf |= 2 << CSI_SENS_CONF_DATA_WIDTH_SHIFT;
 	else if (mx3_cam->platform_flags & MX3_CAMERA_DATAWIDTH_8)
 		conf |= 1 << CSI_SENS_CONF_DATA_WIDTH_SHIFT;
-	else/* if (mx3_cam->platform_flags & MX3_CAMERA_DATAWIDTH_4)*/
+	else
 		conf |= 0 << CSI_SENS_CONF_DATA_WIDTH_SHIFT;
 
 	if (mx3_cam->platform_flags & MX3_CAMERA_CLK_SRC)
@@ -482,7 +426,7 @@ static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
 	if (mx3_cam->platform_flags & MX3_CAMERA_VSP)
 		conf |= 1 << CSI_SENS_CONF_VSYNC_POL_SHIFT;
 
-	/* ipu_csi_init_interface() */
+	
 	csi_reg_write(mx3_cam, conf, CSI_SENS_CONF);
 
 	clk_enable(mx3_cam->clk);
@@ -492,7 +436,7 @@ static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
 		clk_set_rate(mx3_cam->clk, rate);
 }
 
-/* Called with .video_lock held */
+
 static int mx3_camera_add_device(struct soc_camera_device *icd)
 {
 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
@@ -511,7 +455,7 @@ static int mx3_camera_add_device(struct soc_camera_device *icd)
 	return 0;
 }
 
-/* Called with .video_lock held */
+
 static void mx3_camera_remove_device(struct soc_camera_device *icd)
 {
 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
@@ -540,7 +484,7 @@ static bool channel_change_requested(struct soc_camera_device *icd,
 	struct mx3_camera_dev *mx3_cam = ici->priv;
 	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
 
-	/* Do buffers have to be re-allocated or channel re-configured? */
+	
 	return ichan && rect->width * rect->height >
 		icd->user_width * icd->user_height;
 }
@@ -548,12 +492,7 @@ static bool channel_change_requested(struct soc_camera_device *icd,
 static int test_platform_param(struct mx3_camera_dev *mx3_cam,
 			       unsigned char buswidth, unsigned long *flags)
 {
-	/*
-	 * Platform specified synchronization and pixel clock polarities are
-	 * only a recommendation and are only used during probing. MX3x
-	 * camera interface only works in master mode, i.e., uses HSYNC and
-	 * VSYNC signals from the sensor
-	 */
+	
 	*flags = SOCAM_MASTER |
 		SOCAM_HSYNC_ACTIVE_HIGH |
 		SOCAM_HSYNC_ACTIVE_LOW |
@@ -564,8 +503,7 @@ static int test_platform_param(struct mx3_camera_dev *mx3_cam,
 		SOCAM_DATA_ACTIVE_HIGH |
 		SOCAM_DATA_ACTIVE_LOW;
 
-	/* If requested data width is supported by the platform, use it or any
-	 * possible lower value - i.MX31 is smart enough to schift bits */
+	
 	switch (buswidth) {
 	case 15:
 		if (!(mx3_cam->platform_flags & MX3_CAMERA_DATAWIDTH_15))
@@ -710,7 +648,7 @@ static int mx3_camera_get_formats(struct soc_camera_device *icd, int idx,
 		}
 	default:
 passthrough:
-		/* Generic pass-through */
+		
 		formats++;
 		if (xlate) {
 			xlate->host_fmt = icd->formats + idx;
@@ -731,7 +669,7 @@ static void configure_geometry(struct mx3_camera_dev *mx3_cam,
 {
 	u32 ctrl, width_field, height_field;
 
-	/* Setup frame size - this cannot be changed on-the-fly... */
+	
 	width_field = width - 1;
 	height_field = height - 1;
 	csi_reg_write(mx3_cam, width_field | (height_field << 16), CSI_SENS_FRM_SIZE);
@@ -741,9 +679,9 @@ static void configure_geometry(struct mx3_camera_dev *mx3_cam,
 
 	csi_reg_write(mx3_cam, width_field | (height_field << 16), CSI_ACT_FRM_SIZE);
 
-	/* ...and position */
+	
 	ctrl = csi_reg_read(mx3_cam, CSI_OUT_FRM_CTRL) & 0xffff0000;
-	/* Sensor does the cropping */
+	
 	csi_reg_write(mx3_cam, ctrl | 0 | (0 << 8), CSI_OUT_FRM_CTRL);
 }
 
@@ -752,7 +690,7 @@ static int acquire_dma_channel(struct mx3_camera_dev *mx3_cam)
 	dma_cap_mask_t mask;
 	struct dma_chan *chan;
 	struct idmac_channel **ichan = &mx3_cam->idmac_channel[0];
-	/* We have to use IDMAC_IC_7 for Bayer / generic data */
+	
 	struct dma_chan_request rq = {.mx3_cam = mx3_cam,
 				      .id = IDMAC_IC_7};
 
@@ -781,10 +719,7 @@ static int acquire_dma_channel(struct mx3_camera_dev *mx3_cam)
 	return 0;
 }
 
-/*
- * FIXME: learn to use stride != width, then we can keep stride properly aligned
- * and support arbitrary (even) widths.
- */
+
 static inline void stride_align(__s32 *width)
 {
 	if (((*width + 7) &  ~7) < 4096)
@@ -793,10 +728,7 @@ static inline void stride_align(__s32 *width)
 		*width = *width &  ~7;
 }
 
-/*
- * As long as we don't implement host-side cropping and scaling, we can use
- * default g_crop and cropcap from soc_camera.c
- */
+
 static int mx3_camera_set_crop(struct soc_camera_device *icd,
 			       struct v4l2_crop *a)
 {
@@ -815,13 +747,13 @@ static int mx3_camera_set_crop(struct soc_camera_device *icd,
 	if (ret < 0)
 		return ret;
 
-	/* The capture device might have changed its output  */
+	
 	ret = v4l2_subdev_call(sd, video, g_fmt, &f);
 	if (ret < 0)
 		return ret;
 
 	if (pix->width & 7) {
-		/* Ouch! We can only handle 8-byte aligned width... */
+		
 		stride_align(&pix->width);
 		ret = v4l2_subdev_call(sd, video, s_fmt, &f);
 		if (ret < 0)
@@ -829,10 +761,7 @@ static int mx3_camera_set_crop(struct soc_camera_device *icd,
 	}
 
 	if (pix->width != icd->user_width || pix->height != icd->user_height) {
-		/*
-		 * We now know pixel formats and can decide upon DMA-channel(s)
-		 * So far only direct camera-to-memory is supported
-		 */
+		
 		if (channel_change_requested(icd, rect)) {
 			int ret = acquire_dma_channel(mx3_cam);
 			if (ret < 0)
@@ -875,11 +804,7 @@ static int mx3_camera_set_fmt(struct soc_camera_device *icd,
 	if (ret < 0)
 		return ret;
 
-	/*
-	 * Might have to perform a complete interface initialisation like in
-	 * ipu_csi_init_interface() in mxc_v4l2_s_param(). Also consider
-	 * mxc_v4l2_s_fmt()
-	 */
+	
 
 	configure_geometry(mx3_cam, pix->width, pix->height);
 
@@ -910,7 +835,7 @@ static int mx3_camera_try_fmt(struct soc_camera_device *icd,
 		return -EINVAL;
 	}
 
-	/* limit to MX3 hardware capabilities */
+	
 	if (pix->height > 4096)
 		pix->height = 4096;
 	if (pix->width > 4096)
@@ -920,9 +845,9 @@ static int mx3_camera_try_fmt(struct soc_camera_device *icd,
 		DIV_ROUND_UP(xlate->host_fmt->depth, 8);
 	pix->sizeimage = pix->height * pix->bytesperline;
 
-	/* camera has to see its format, but the user the original one */
+	
 	pix->pixelformat = xlate->cam_fmt->fourcc;
-	/* limit to sensor capabilities */
+	
 	ret = v4l2_subdev_call(sd, video, try_fmt, f);
 	pix->pixelformat = xlate->host_fmt->fourcc;
 
@@ -954,7 +879,7 @@ static unsigned int mx3_camera_poll(struct file *file, poll_table *pt)
 static int mx3_camera_querycap(struct soc_camera_host *ici,
 			       struct v4l2_capability *cap)
 {
-	/* cap->name is set by the firendly caller:-> */
+	
 	strlcpy(cap->card, "i.MX3x Camera", sizeof(cap->card));
 	cap->version = KERNEL_VERSION(0, 2, 2);
 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
@@ -994,7 +919,7 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
 		return -EINVAL;
 	}
 
-	/* Make choices, based on platform preferences */
+	
 	if ((common_flags & SOCAM_HSYNC_ACTIVE_HIGH) &&
 	    (common_flags & SOCAM_HSYNC_ACTIVE_LOW)) {
 		if (mx3_cam->platform_flags & MX3_CAMERA_HSP)
@@ -1027,8 +952,7 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
 			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
 	}
 
-	/* Make the camera work in widest common mode, we'll take care of
-	 * the rest */
+	
 	if (common_flags & SOCAM_DATAWIDTH_15)
 		common_flags = (common_flags & ~SOCAM_DATAWIDTH_MASK) |
 			SOCAM_DATAWIDTH_15;
@@ -1049,12 +973,7 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
 		return ret;
 	}
 
-	/*
-	 * So far only gated clock mode is supported. Add a line
-	 *	(3 << CSI_SENS_CONF_SENS_PRTCL_SHIFT) |
-	 * below and select the required mode when supporting other
-	 * synchronisation protocols.
-	 */
+	
 	sens_conf = csi_reg_read(mx3_cam, CSI_SENS_CONF) &
 		~((1 << CSI_SENS_CONF_VSYNC_POL_SHIFT) |
 		  (1 << CSI_SENS_CONF_HSYNC_POL_SHIFT) |
@@ -1063,9 +982,9 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
 		  (3 << CSI_SENS_CONF_DATA_FMT_SHIFT) |
 		  (3 << CSI_SENS_CONF_DATA_WIDTH_SHIFT));
 
-	/* TODO: Support RGB and YUV formats */
+	
 
-	/* This has been set in mx3_camera_activate(), but we clear it above */
+	
 	sens_conf |= CSI_SENS_CONF_DATA_FMT_BAYER;
 
 	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
@@ -1077,7 +996,7 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
 	if (common_flags & SOCAM_DATA_ACTIVE_LOW)
 		sens_conf |= 1 << CSI_SENS_CONF_DATA_POL_SHIFT;
 
-	/* Just do what we're asked to do */
+	
 	switch (xlate->host_fmt->depth) {
 	case 4:
 		dw = 0 << CSI_SENS_CONF_DATA_WIDTH_SHIFT;
@@ -1089,10 +1008,7 @@ static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
 		dw = 2 << CSI_SENS_CONF_DATA_WIDTH_SHIFT;
 		break;
 	default:
-		/*
-		 * Actually it can only be 15 now, default is just to silence
-		 * compiler warnings
-		 */
+		
 	case 15:
 		dw = 3 << CSI_SENS_CONF_DATA_WIDTH_SHIFT;
 	}
@@ -1152,8 +1068,7 @@ static int __devinit mx3_camera_probe(struct platform_device *pdev)
 	if (!(mx3_cam->platform_flags & (MX3_CAMERA_DATAWIDTH_4 |
 			MX3_CAMERA_DATAWIDTH_8 | MX3_CAMERA_DATAWIDTH_10 |
 			MX3_CAMERA_DATAWIDTH_15))) {
-		/* Platform hasn't set available data widths. This is bad.
-		 * Warn and use a default. */
+		
 		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available "
 			 "data widths, using default 8 bit\n");
 		mx3_cam->platform_flags |= MX3_CAMERA_DATAWIDTH_8;
@@ -1167,7 +1082,7 @@ static int __devinit mx3_camera_probe(struct platform_device *pdev)
 		mx3_cam->mclk = 20000000;
 	}
 
-	/* list of video-buffers */
+	
 	INIT_LIST_HEAD(&mx3_cam->capture);
 	spin_lock_init(&mx3_cam->lock);
 
@@ -1191,7 +1106,7 @@ static int __devinit mx3_camera_probe(struct platform_device *pdev)
 	if (err)
 		goto ecamhostreg;
 
-	/* IDMAC interface */
+	
 	dmaengine_get();
 
 	return 0;
@@ -1219,10 +1134,7 @@ static int __devexit mx3_camera_remove(struct platform_device *pdev)
 
 	iounmap(mx3_cam->base);
 
-	/*
-	 * The channel has either not been allocated,
-	 * or should have been released
-	 */
+	
 	if (WARN_ON(mx3_cam->idmac_channel[0]))
 		dma_release_channel(&mx3_cam->idmac_channel[0]->dma_chan);
 

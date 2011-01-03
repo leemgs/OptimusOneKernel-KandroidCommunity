@@ -1,18 +1,4 @@
-/*
- * spectrum management
- *
- * Copyright 2003, Jouni Malinen <jkmaline@cc.hut.fi>
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- * Copyright 2006-2007  Jiri Benc <jbenc@suse.cz>
- * Copyright 2007, Michael Wu <flamingice@sourmilk.net>
- * Copyright 2007-2008, Intel Corporation
- * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/ieee80211.h>
 #include <net/cfg80211.h>
@@ -72,13 +58,7 @@ void ieee80211_process_measurement_req(struct ieee80211_sub_if_data *sdata,
 				       struct ieee80211_mgmt *mgmt,
 				       size_t len)
 {
-	/*
-	 * Ignoring measurement request is spec violation.
-	 * Mandatory measurements must be reported optional
-	 * measurements might be refused or reported incapable
-	 * For now just refuse
-	 * TODO: Answer basic measurement as unmeasured
-	 */
+	
 	ieee80211_send_refuse_measurement_request(sdata,
 			&mgmt->u.action.u.measurement.msr_elem,
 			mgmt->sa, mgmt->bssid,

@@ -1,14 +1,4 @@
-/* $Id: s0box.c,v 2.6.2.4 2004/01/13 23:48:39 keil Exp $
- *
- * low level stuff for Creatix S0BOX
- *
- * Author       Enrik Berkhan
- * Copyright    by Enrik Berkhan <enrik@starfleet.inka.de>
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/init.h>
 #include "hisax.h"
@@ -90,7 +80,7 @@ write_fifo(unsigned int padr, signed int adr, u_char * data, int size)
 	return;
 }
 
-/* Interface functions */
+
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -128,9 +118,7 @@ WriteHSCX(struct IsdnCardState *cs, int hscx, u_char offset, u_char value)
 	writereg(cs->hw.teles3.cfg_reg, cs->hw.teles3.hscx[hscx], offset, value);
 }
 
-/*
- * fast interrupt HSCX stuff goes here
- */
+
 
 #define READHSCX(cs, nr, reg) readreg(cs->hw.teles3.cfg_reg, cs->hw.teles3.hscx[nr], reg)
 #define WRITEHSCX(cs, nr, reg, data) writereg(cs->hw.teles3.cfg_reg, cs->hw.teles3.hscx[nr], reg, data)

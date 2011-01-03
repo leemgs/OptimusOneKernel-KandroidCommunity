@@ -1,15 +1,8 @@
-/* dvb-usb-ids.h is part of the DVB USB library.
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de) see
- * dvb-usb-init.c for copyright information.
- *
- * a header file containing define's for the USB device supported by the
- * various drivers.
- */
+
 #ifndef _DVB_USB_IDS_H_
 #define _DVB_USB_IDS_H_
 
-/* Vendor IDs */
+
 #define USB_VID_ADSTECH				0x06e1
 #define USB_VID_AFATECH				0x15a4
 #define USB_VID_ALCOR_MICRO			0x058f
@@ -62,7 +55,7 @@
 #define USB_VID_HUMAX_COEX			0x10b9
 #define USB_VID_774				0x7a69
 
-/* Product IDs */
+
 #define USB_PID_ADSTECH_USB2_COLD			0xa333
 #define USB_PID_ADSTECH_USB2_WARM			0xa334
 #define USB_PID_AFATECH_AF9005				0x9020

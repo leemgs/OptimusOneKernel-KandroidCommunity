@@ -1,20 +1,7 @@
-/*
- * ioctl32.c: Conversion between 32bit and 64bit native ioctls.
- *	Separated from fs stuff by Arnd Bergmann <arnd@arndb.de>
- *
- * Copyright (C) 1997-2000  Jakub Jelinek  (jakub@redhat.com)
- * Copyright (C) 1998  Eddie C. Dost  (ecd@skynet.be)
- * Copyright (C) 2001,2002  Andi Kleen, SuSE Labs
- * Copyright (C) 2003       Pavel Machek (pavel@suse.cz)
- * Copyright (C) 2005       Philippe De Muyter (phdm@macqel.be)
- * Copyright (C) 2008       Hans Verkuil <hverkuil@xs4all.nl>
- *
- * These routines maintain argument size conversion between 32bit and 64bit
- * ioctls.
- */
+
 
 #include <linux/compat.h>
-#define __OLD_VIDIOC_ /* To allow fixing old calls*/
+#define __OLD_VIDIOC_ 
 #include <linux/videodev.h>
 #include <linux/videodev2.h>
 #include <linux/module.h>
@@ -28,7 +15,7 @@ struct video_tuner32 {
 	compat_int_t tuner;
 	char name[32];
 	compat_ulong_t rangelow, rangehigh;
-	u32 flags;	/* It is really u32 in videodev.h */
+	u32 flags;	
 	u16 mode, signal;
 };
 
@@ -77,9 +64,7 @@ static int get_video_buffer32(struct video_buffer *kp, struct video_buffer32 __u
 		get_user(kp->bytesperline, &up->bytesperline))
 			return -EFAULT;
 
-	/* This is actually a physical address stored
-	 * as a void pointer.
-	 */
+	
 	kp->base = (void *)(unsigned long) tmp;
 
 	return 0;
@@ -100,7 +85,7 @@ static int put_video_buffer32(struct video_buffer *kp, struct video_buffer32 __u
 }
 
 struct video_clip32 {
-	s32 x, y, width, height;	/* It's really s32 in videodev.h */
+	s32 x, y, width, height;	
 	compat_caddr_t next;
 };
 
@@ -142,8 +127,7 @@ static int get_video_window32(struct video_window *kp, struct video_window32 __u
 		return -EFAULT;
 	uclips = compat_ptr(p);
 
-	/* If nclips < 0, then it is a clipping bitmap of size
-	   VIDEO_CLIPMAP_SIZE */
+	
 	if (nclips < 0) {
 		if (!access_ok(VERIFY_READ, uclips, VIDEO_CLIPMAP_SIZE))
 			return -EFAULT;
@@ -153,7 +137,7 @@ static int get_video_window32(struct video_window *kp, struct video_window32 __u
 		return 0;
 	}
 
-	/* Otherwise it is an array of video_clip structs. */
+	
 	if (!access_ok(VERIFY_READ, uclips, nclips * sizeof(struct video_clip)))
 		return -EFAULT;
 
@@ -175,7 +159,7 @@ static int get_video_window32(struct video_window *kp, struct video_window32 __u
 	return 0;
 }
 
-/* You get back everything except the clips... */
+
 static int put_video_window32(struct video_window *kp, struct video_window32 __user *up)
 {
 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct video_window32)) ||
@@ -191,7 +175,7 @@ static int put_video_window32(struct video_window *kp, struct video_window32 __u
 }
 
 struct video_code32 {
-	char		loadwhat[16];	/* name or tag of file being passed */
+	char		loadwhat[16];	
 	compat_int_t	datasize;
 	unsigned char	*data;
 };
@@ -247,7 +231,7 @@ struct v4l2_window32 {
 	struct v4l2_rect        w;
 	enum v4l2_field  	field;
 	__u32			chromakey;
-	compat_caddr_t		clips; /* actually struct v4l2_clip32 * */
+	compat_caddr_t		clips; 
 	__u32			clipcount;
 	compat_caddr_t		bitmap;
 };
@@ -345,7 +329,7 @@ struct v4l2_format32 {
 		struct v4l2_window32	win;
 		struct v4l2_vbi_format	vbi;
 		struct v4l2_sliced_vbi_format	sliced;
-		__u8	raw_data[200];        /* user-defined */
+		__u8	raw_data[200];        
 	} fmt;
 };
 
@@ -413,16 +397,16 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
 
 struct v4l2_standard32 {
 	__u32		     index;
-	__u32		     id[2]; /* __u64 would get the alignment wrong */
+	__u32		     id[2]; 
 	__u8		     name[24];
-	struct v4l2_fract    frameperiod; /* Frames, not fields */
+	struct v4l2_fract    frameperiod; 
 	__u32		     framelines;
 	__u32		     reserved[4];
 };
 
 static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
 {
-	/* other fields are not set by the user, nor used by the driver */
+	
 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_standard32)) ||
 		get_user(kp->index, &up->index))
 		return -EFAULT;
@@ -452,7 +436,7 @@ struct v4l2_buffer32 {
 	struct v4l2_timecode	timecode;
 	__u32			sequence;
 
-	/* memory location */
+	
 	enum v4l2_memory        memory;
 	union {
 		__u32           offset;
@@ -566,18 +550,17 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
 }
 
 struct v4l2_input32 {
-	__u32	     index;		/*  Which input */
-	__u8	     name[32];		/*  Label */
-	__u32	     type;		/*  Type of input */
-	__u32	     audioset;		/*  Associated audios (bitfield) */
-	__u32        tuner;             /*  Associated tuner */
+	__u32	     index;		
+	__u8	     name[32];		
+	__u32	     type;		
+	__u32	     audioset;		
+	__u32        tuner;             
 	v4l2_std_id  std;
 	__u32	     status;
 	__u32	     reserved[4];
 } __attribute__ ((packed));
 
-/* The 64-bit v4l2_input struct has extra padding at the end of the struct.
-   Otherwise it is identical to the 32-bit version. */
+
 static inline int get_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
 {
 	if (copy_from_user(kp, up, sizeof(struct v4l2_input32)))
@@ -597,7 +580,7 @@ struct v4l2_ext_controls32 {
        __u32 count;
        __u32 error_idx;
        __u32 reserved[2];
-       compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+       compat_caddr_t controls; 
 };
 
 struct v4l2_ext_control32 {
@@ -607,16 +590,13 @@ struct v4l2_ext_control32 {
 	union {
 		__s32 value;
 		__s64 value64;
-		compat_caddr_t string; /* actually char * */
+		compat_caddr_t string; 
 	};
 } __attribute__ ((packed));
 
-/* The following function really belong in v4l2-common, but that causes
-   a circular dependency between modules. We need to think about this, but
-   for now this will do. */
 
-/* Return non-zero if this control is a pointer type. Currently only
-   type STRING is a pointer type. */
+
+
 static inline int ctrl_is_pointer(u32 id)
 {
 	switch (id) {
@@ -696,9 +676,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
 	while (--n >= 0) {
 		unsigned size = sizeof(*ucontrols);
 
-		/* Do not modify the pointer when copying a pointer control.
-		   The contents of the pointer was changed, not the pointer
-		   itself. */
+		
 		if (ctrl_is_pointer(kcontrols->id))
 			size -= sizeof(ucontrols->value64);
 		if (copy_in_user(ucontrols, kcontrols, size))
@@ -757,7 +735,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
 	int compatible_arg = 1;
 	long err = 0;
 
-	/* First, convert the command. */
+	
 	switch (cmd) {
 #ifdef CONFIG_VIDEO_V4L1_COMPAT
 	case VIDIOCGTUNER32: cmd = VIDIOCGTUNER; break;
@@ -900,9 +878,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
 		set_fs(old_fs);
 	}
 
-	/* Special case: even after an error we need to put the
-	   results back for these ioctls since the error_idx will
-	   contain information on which control failed. */
+	
 	switch (cmd) {
 	case VIDIOC_G_EXT_CTRLS:
 	case VIDIOC_S_EXT_CTRLS:
@@ -1081,11 +1057,11 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 
 #ifdef CONFIG_VIDEO_V4L1_COMPAT
-	/* BTTV specific... */
+	
 	case _IOW('v',  BASE_VIDIOCPRIVATE+0, char [256]):
 	case _IOR('v',  BASE_VIDIOCPRIVATE+1, char [256]):
 	case _IOR('v' , BASE_VIDIOCPRIVATE+2, unsigned int):
-	case _IOW('v' , BASE_VIDIOCPRIVATE+3, char [16]): /* struct bttv_pll_info */
+	case _IOW('v' , BASE_VIDIOCPRIVATE+3, char [16]): 
 	case _IOR('v' , BASE_VIDIOCPRIVATE+4, int):
 	case _IOR('v' , BASE_VIDIOCPRIVATE+5, int):
 	case _IOR('v' , BASE_VIDIOCPRIVATE+6, int):

@@ -1,22 +1,4 @@
-/*
- * vrc4171_card.c, NEC VRC4171 Card Controller driver for Socket Services.
- *
- * Copyright (C) 2003-2005  Yoichi Yuasa <yuasa@linux-mips.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/init.h>
 #include <linux/ioport.h>
 #include <linux/interrupt.h>
@@ -47,7 +29,7 @@ MODULE_LICENSE("GPL");
 
 #define CARD_CONTROLLER_INDEX	0x03e0
 #define CARD_CONTROLLER_DATA	0x03e1
- /* Power register */
+ 
   #define VPP_GET_VCC		0x01
   #define POWER_ENABLE		0x10
  #define CARD_VOLTAGE_SENSE	0x1f
@@ -291,7 +273,7 @@ static int pccard_get_status(struct pcmcia_socket *sock, u_int *value)
 		val |= SS_3VCARD;
 		break;
 	default:
-		/* 5V only */
+		
 		break;
 	}
 
@@ -309,7 +291,7 @@ static inline uint8_t set_Vcc_value(u_char Vcc)
 		return VCC_5V;
 	}
 
-	/* Small voltage is chosen for safety. */
+	
 	return VCC_3V;
 }
 
@@ -352,7 +334,7 @@ static int pccard_set_socket(struct pcmcia_socket *sock, socket_state_t *state)
 
         cscint = 0;
         exca_write_byte(slot, I365_CSCINT, cscint);
-	exca_read_byte(slot, I365_CSC);	/* clear CardStatus change */
+	exca_read_byte(slot, I365_CSC);	
 	if (state->csc_mask != 0)
 		cscint |= socket->csc_irq << 8;
 	if (state->flags & SS_IOCARD) {

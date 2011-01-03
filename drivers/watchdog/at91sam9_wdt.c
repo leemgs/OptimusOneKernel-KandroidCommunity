@@ -1,19 +1,6 @@
-/*
- * Watchdog driver for Atmel AT91SAM9x processors.
- *
- * Copyright (C) 2008 Renaud CERRATO r.cerrato@til-technologies.fr
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
 
-/*
- * The Watchdog Timer Mode Register can be only written to once. If the
- * timeout need to be set from Linux, be sure that the bootstrap or the
- * bootloader doesn't write to this register.
- */
+
+
 
 #include <linux/errno.h>
 #include <linux/fs.h>
@@ -35,20 +22,17 @@
 
 #define DRV_NAME "AT91SAM9 Watchdog"
 
-/* AT91SAM9 watchdog runs a 12bit counter @ 256Hz,
- * use this to convert a watchdog
- * value from/to milliseconds.
- */
+
 #define ms_to_ticks(t)	(((t << 8) / 1000) - 1)
 #define ticks_to_ms(t)	(((t + 1) * 1000) >> 8)
 
-/* Hardware timeout in seconds */
+
 #define WDT_HW_TIMEOUT 2
 
-/* Timer heartbeat (500ms) */
+
 #define WDT_TIMEOUT	(HZ/2)
 
-/* User land timeout */
+
 #define WDT_HEARTBEAT 15
 static int heartbeat = WDT_HEARTBEAT;
 module_param(heartbeat, int, 0);
@@ -63,26 +47,22 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
 static void at91_ping(unsigned long data);
 
 static struct {
-	unsigned long next_heartbeat;	/* the next_heartbeat for the timer */
+	unsigned long next_heartbeat;	
 	unsigned long open;
 	char expect_close;
-	struct timer_list timer;	/* The timer that pings the watchdog */
+	struct timer_list timer;	
 } at91wdt_private;
 
-/* ......................................................................... */
 
 
-/*
- * Reload the watchdog timer.  (ie, pat the watchdog)
- */
+
+
 static inline void at91_wdt_reset(void)
 {
 	at91_sys_write(AT91_WDT_CR, AT91_WDT_KEY | AT91_WDT_WDRSTT);
 }
 
-/*
- * Timer tick
- */
+
 static void at91_ping(unsigned long data)
 {
 	if (time_before(jiffies, at91wdt_private.next_heartbeat) ||
@@ -93,9 +73,7 @@ static void at91_ping(unsigned long data)
 		printk(KERN_CRIT DRV_NAME": I will reset your machine !\n");
 }
 
-/*
- * Watchdog device is opened, and watchdog starts running.
- */
+
 static int at91_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(0, &at91wdt_private.open))
@@ -107,14 +85,12 @@ static int at91_wdt_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 }
 
-/*
- * Close the watchdog device.
- */
+
 static int at91_wdt_close(struct inode *inode, struct file *file)
 {
 	clear_bit(0, &at91wdt_private.open);
 
-	/* stop internal ping */
+	
 	if (!at91wdt_private.expect_close)
 		del_timer(&at91wdt_private.timer);
 
@@ -122,33 +98,25 @@ static int at91_wdt_close(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
- * Set the watchdog time interval in 1/256Hz (write-once)
- * Counter is 12 bit.
- */
+
 static int at91_wdt_settimeout(unsigned int timeout)
 {
 	unsigned int reg;
 	unsigned int mr;
 
-	/* Check if disabled */
+	
 	mr = at91_sys_read(AT91_WDT_MR);
 	if (mr & AT91_WDT_WDDIS) {
 		printk(KERN_ERR DRV_NAME": sorry, watchdog is disabled\n");
 		return -EIO;
 	}
 
-	/*
-	 * All counting occurs at SLOW_CLOCK / 128 = 256 Hz
-	 *
-	 * Since WDV is a 12-bit counter, the maximum period is
-	 * 4096 / 256 = 16 seconds.
-	 */
-	reg = AT91_WDT_WDRSTEN	/* causes watchdog reset */
-		/* | AT91_WDT_WDRPROC	causes processor reset only */
-		| AT91_WDT_WDDBGHLT	/* disabled in debug mode */
-		| AT91_WDT_WDD		/* restart at any time */
-		| (timeout & AT91_WDT_WDV);  /* timer value */
+	
+	reg = AT91_WDT_WDRSTEN	
+		
+		| AT91_WDT_WDDBGHLT	
+		| AT91_WDT_WDD		
+		| (timeout & AT91_WDT_WDV);  
 	at91_sys_write(AT91_WDT_MR, reg);
 
 	return 0;
@@ -160,9 +128,7 @@ static const struct watchdog_info at91_wdt_info = {
 						WDIOF_MAGICCLOSE,
 };
 
-/*
- * Handle commands from user-space.
- */
+
 static long at91_wdt_ioctl(struct file *file,
 		unsigned int cmd, unsigned long arg)
 {
@@ -190,7 +156,7 @@ static long at91_wdt_ioctl(struct file *file,
 		heartbeat = new_value;
 		at91wdt_private.next_heartbeat = jiffies + heartbeat * HZ;
 
-		return put_user(new_value, p);  /* return current value */
+		return put_user(new_value, p);  
 
 	case WDIOC_GETTIMEOUT:
 		return put_user(heartbeat, p);
@@ -198,16 +164,14 @@ static long at91_wdt_ioctl(struct file *file,
 	return -ENOTTY;
 }
 
-/*
- * Pat the watchdog whenever device is written to.
- */
+
 static ssize_t at91_wdt_write(struct file *file, const char *data, size_t len,
 								loff_t *ppos)
 {
 	if (!len)
 		return 0;
 
-	/* Scan for magic character */
+	
 	if (!nowayout) {
 		size_t i;
 
@@ -229,7 +193,7 @@ static ssize_t at91_wdt_write(struct file *file, const char *data, size_t len,
 	return len;
 }
 
-/* ......................................................................... */
+
 
 static const struct file_operations at91wdt_fops = {
 	.owner			= THIS_MODULE,
@@ -254,7 +218,7 @@ static int __init at91wdt_probe(struct platform_device *pdev)
 		return -EBUSY;
 	at91wdt_miscdev.parent = &pdev->dev;
 
-	/* Set watchdog */
+	
 	res = at91_wdt_settimeout(ms_to_ticks(WDT_HW_TIMEOUT * 1000));
 	if (res)
 		return res;

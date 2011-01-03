@@ -1,23 +1,4 @@
-/*
- * xt_LED.c - netfilter target to make LEDs blink upon packet matches
- *
- * Copyright (C) 2008 Adam Nielsen <a.nielsen@shikadi.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -31,11 +12,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Adam Nielsen <a.nielsen@shikadi.net>");
 MODULE_DESCRIPTION("Xtables: trigger LED devices on packet match");
 
-/*
- * This is declared in here (the kernel module) only, to avoid having these
- * dependencies in userspace code.  This is what xt_led_info.internal_data
- * points to.
- */
+
 struct xt_led_info_internal {
 	struct led_trigger netfilter_led_trigger;
 	struct timer_list timer;
@@ -47,27 +24,24 @@ led_tg(struct sk_buff *skb, const struct xt_target_param *par)
 	const struct xt_led_info *ledinfo = par->targinfo;
 	struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
 
-	/*
-	 * If "always blink" is enabled, and there's still some time until the
-	 * LED will switch off, briefly switch it off now.
-	 */
+	
 	if ((ledinfo->delay > 0) && ledinfo->always_blink &&
 	    timer_pending(&ledinternal->timer))
 		led_trigger_event(&ledinternal->netfilter_led_trigger,LED_OFF);
 
 	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
 
-	/* If there's a positive delay, start/update the timer */
+	
 	if (ledinfo->delay > 0) {
 		mod_timer(&ledinternal->timer,
 			  jiffies + msecs_to_jiffies(ledinfo->delay));
 
-	/* Otherwise if there was no delay given, blink as fast as possible */
+	
 	} else if (ledinfo->delay == 0) {
 		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
 	}
 
-	/* else the delay is negative, which means switch on and stay on */
+	
 
 	return XT_CONTINUE;
 }
@@ -109,7 +83,7 @@ static bool led_tg_check(const struct xt_tgchk_param *par)
 		goto exit_alloc;
 	}
 
-	/* See if we need to set up a timer */
+	
 	if (ledinfo->delay > 0)
 		setup_timer(&ledinternal->timer, led_timeout_callback,
 			    (unsigned long)ledinfo);

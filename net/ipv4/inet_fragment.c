@@ -1,15 +1,4 @@
-/*
- * inet fragments management
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * 		Authors:	Pavel Emelyanov <xemul@openvz.org>
- *				Started as consolidation of ipv4/ip_fragment.c,
- *				ipv6/reassembly. and ipv6 nf conntrack reassembly
- */
+
 
 #include <linux/list.h>
 #include <linux/spinlock.h>
@@ -40,7 +29,7 @@ static void inet_frag_secret_rebuild(unsigned long dummy)
 			if (hval != i) {
 				hlist_del(&q->list);
 
-				/* Relink to new hash chain. */
+				
 				hlist_add_head(&q->list, &f->hash[hval]);
 			}
 		}
@@ -137,7 +126,7 @@ void inet_frag_destroy(struct inet_frag_queue *q, struct inet_frags *f,
 	WARN_ON(!(q->last_in & INET_FRAG_COMPLETE));
 	WARN_ON(del_timer(&q->timer) != 0);
 
-	/* Release all fragment data. */
+	
 	fp = q->fragments;
 	nf = q->net;
 	while (fp) {
@@ -201,17 +190,10 @@ static struct inet_frag_queue *inet_frag_intern(struct netns_frags *nf,
 	unsigned int hash;
 
 	write_lock(&f->lock);
-	/*
-	 * While we stayed w/o the lock other CPU could update
-	 * the rnd seed, so we need to re-calculate the hash
-	 * chain. Fortunatelly the qp_in can be used to get one.
-	 */
+	
 	hash = f->hashfn(qp_in);
 #ifdef CONFIG_SMP
-	/* With SMP race we have to recheck hash table, because
-	 * such entry could be created on other cpu, while we
-	 * promoted read lock to write lock.
-	 */
+	
 	hlist_for_each_entry(qp, n, &f->hash[hash], list) {
 		if (qp->net == nf && f->match(qp, arg)) {
 			atomic_inc(&qp->refcnt);

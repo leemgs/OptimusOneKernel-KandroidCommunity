@@ -1,12 +1,4 @@
-/*
- *  arch/arm/mach-aaec2000/include/mach/uncompress.h
- *
- *  Copyright (c) 2005 Nicolas Bellido Y Ortega
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_ARCH_UNCOMPRESS_H
 #define __ASM_ARCH_UNCOMPRESS_H
@@ -28,11 +20,11 @@ static void putc(int c)
 		return;
 	} while (0);
 
-	/* wait for space in the UART's transmitter */
+	
 	while ((UART(UART_SR) & UART_SR_TxFF))
 		barrier();
 
-	/* send the character out. */
+	
 	UART(UART_DR) = c;
 }
 
@@ -43,4 +35,4 @@ static inline void flush(void)
 #define arch_decomp_setup()
 #define arch_decomp_wdog()
 
-#endif /* __ASM_ARCH_UNCOMPRESS_H */
+#endif 

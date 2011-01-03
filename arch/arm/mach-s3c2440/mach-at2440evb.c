@@ -1,16 +1,4 @@
-/* linux/arch/arm/mach-s3c2440/mach-at2440evb.c
- *
- * Copyright (c) 2008 Ramax Lo <ramaxlo@gmail.com>
- *      Based on mach-anubis.c by Ben Dooks <ben@simtec.co.uk>
- *      and modifications by SBZ <sbz@spgui.org> and
- *      Weibing <http://weibing.blogbus.com>
- *
- * For product information, visit http://www.arm9e.com/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -50,7 +38,7 @@
 #include <plat/mci.h>
 
 static struct map_desc at2440evb_iodesc[] __initdata = {
-	/* Nothing here */
+	
 };
 
 #define UCON S3C2410_UCON_DEFAULT
@@ -94,7 +82,7 @@ static struct s3c2410_uartcfg at2440evb_uartcfgs[] __initdata = {
 	},
 };
 
-/* NAND Flash on AT2440EVB board */
+
 
 static struct mtd_partition at2440evb_default_nand_part[] = {
 	[0] = {
@@ -131,7 +119,7 @@ static struct s3c2410_platform_nand at2440evb_nand_info = {
 	.sets		= at2440evb_nand_sets,
 };
 
-/* DM9000AEP 10/100 ethernet controller */
+
 
 static struct resource at2440evb_dm9k_resource[] = {
 	[0] = {
@@ -169,7 +157,7 @@ static struct s3c24xx_mci_pdata at2440evb_mci_pdata = {
 	.gpio_detect	= S3C2410_GPG(10),
 };
 
-/* 7" LCD panel */
+
 
 static struct s3c2410fb_display at2440evb_lcd_cfg __initdata = {
 
@@ -184,7 +172,7 @@ static struct s3c2410fb_display at2440evb_lcd_cfg __initdata = {
 	.width		= 800,
 	.height		= 480,
 
-	.pixclock	= 33333, /* HCLK 60 MHz, divisor 2 */
+	.pixclock	= 33333, 
 	.xres		= 800,
 	.yres		= 480,
 	.bpp		= 16,

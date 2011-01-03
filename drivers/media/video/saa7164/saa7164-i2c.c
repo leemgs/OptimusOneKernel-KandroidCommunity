@@ -1,23 +1,4 @@
-/*
- *  Driver for the NXP SAA7164 PCIe bridge
- *
- *  Copyright (c) 2009 Steven Toth <stoth@kernellabs.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -39,12 +20,12 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
 		dprintk(DBGLVL_I2C, "%s(num = %d) addr = 0x%02x  len = 0x%x\n",
 			__func__, num, msgs[i].addr, msgs[i].len);
 		if (msgs[i].flags & I2C_M_RD) {
-			/* Unsupported - Yet*/
+			
 			printk(KERN_ERR "%s() Unsupported - Yet\n", __func__);
 			continue;
 		} else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
 			   msgs[i].addr == msgs[i + 1].addr) {
-			/* write then read from same address */
+			
 
 			retval = saa7164_api_i2c_read(bus, msgs[i].addr,
 				msgs[i].len, msgs[i].buf,
@@ -56,7 +37,7 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
 			if (retval < 0)
 				goto err;
 		} else {
-			/* write */
+			
 			retval = saa7164_api_i2c_write(bus, msgs[i].addr,
 				msgs[i].len, msgs[i].buf);
 		}
@@ -88,7 +69,7 @@ static struct i2c_algorithm saa7164_i2c_algo_template = {
 	.functionality	= saa7164_functionality,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static struct i2c_adapter saa7164_i2c_adap_template = {
 	.name              = "saa7164",

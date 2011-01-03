@@ -1,23 +1,4 @@
-/* linux/arch/arm/mach-s3c2443/irq.c
- *
- * Copyright (c) 2007 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -45,8 +26,7 @@ static inline void s3c2443_irq_demux(unsigned int irq, unsigned int len)
 	unsigned int subsrc, submsk;
 	unsigned int end;
 
-	/* read the current pending interrupts, and the mask
-	 * for what it is available */
+	
 
 	subsrc = __raw_readl(S3C2410_SUBSRCPND);
 	submsk = __raw_readl(S3C2410_INTSUBMSK);
@@ -65,7 +45,7 @@ static inline void s3c2443_irq_demux(unsigned int irq, unsigned int len)
 	}
 }
 
-/* WDT/AC97 sub interrupts */
+
 
 static void s3c2443_irq_demux_wdtac97(unsigned int irq, struct irq_desc *desc)
 {
@@ -97,7 +77,7 @@ static struct irq_chip s3c2443_irq_wdtac97 = {
 };
 
 
-/* LCD sub interrupts */
+
 
 static void s3c2443_irq_demux_lcd(unsigned int irq, struct irq_desc *desc)
 {
@@ -129,7 +109,7 @@ static struct irq_chip s3c2443_irq_lcd = {
 };
 
 
-/* DMA sub interrupts */
+
 
 static void s3c2443_irq_demux_dma(unsigned int irq, struct irq_desc *desc)
 {
@@ -162,7 +142,7 @@ static struct irq_chip s3c2443_irq_dma = {
 };
 
 
-/* UART3 sub interrupts */
+
 
 static void s3c2443_irq_demux_uart3(unsigned int irq, struct irq_desc *desc)
 {
@@ -195,7 +175,7 @@ static struct irq_chip s3c2443_irq_uart3 = {
 };
 
 
-/* CAM sub interrupts */
+
 
 static void s3c2443_irq_demux_cam(unsigned int irq, struct irq_desc *desc)
 {
@@ -226,7 +206,7 @@ static struct irq_chip s3c2443_irq_cam = {
 	.ack	    = s3c2443_irq_cam_ack,
 };
 
-/* IRQ initialisation code */
+
 
 static int __init s3c2443_add_sub(unsigned int base,
 				   void (*demux)(unsigned int,

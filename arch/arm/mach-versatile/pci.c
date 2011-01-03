@@ -1,19 +1,4 @@
-/*
- *  linux/arch/arm/mach-versatile/pci.c
- *
- * (C) Copyright Koninklijke Philips Electronics NV 2004. All rights reserved.
- * You can redistribute and/or modify this software under the terms of version 2
- * of the GNU General Public License as published by the Free Software Foundation.
- * THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
- * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * Koninklijke Philips Electronics nor its subsidiaries is obligated to provide any support for this software.
- *
- * ARM Versatile PCI driver.
- *
- * 14/04/2005 Initial version, colin.king@philips.com
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/pci.h>
 #include <linux/slab.h>
@@ -28,17 +13,7 @@
 #include <asm/system.h>
 #include <asm/mach/pci.h>
 
-/*
- * these spaces are mapped using the following base registers:
- *
- * Usage Local Bus Memory         Base/Map registers used
- *
- * Mem   50000000 - 5FFFFFFF      LB_BASE0/LB_MAP0,  non prefetch
- * Mem   60000000 - 6FFFFFFF      LB_BASE1/LB_MAP1,  prefetch
- * IO    44000000 - 4FFFFFFF      LB_BASE2/LB_MAP2,  IO
- * Cfg   42000000 - 42FFFFFF	  PCI config
- *
- */
+
 #define __IO_ADDRESS(n) ((void __iomem *)(unsigned long)IO_ADDRESS(n))
 #define SYS_PCICTL		__IO_ADDRESS(VERSATILE_SYS_PCICTL)
 #define PCI_IMAP0		__IO_ADDRESS(VERSATILE_PCI_CORE_BASE+0x0)
@@ -81,9 +56,7 @@ static void __iomem *__pci_addr(struct pci_bus *bus,
 {
 	unsigned int busnr = bus->number;
 
-	/*
-	 * Trap out illegal values
-	 */
+	
 	if (offset > 255)
 		BUG();
 	if (busnr > 255)
@@ -103,7 +76,7 @@ static int versatile_read_config(struct pci_bus *bus, unsigned int devfn, int wh
 	int slot = PCI_SLOT(devfn);
 
 	if (pci_slot_ignore & (1 << slot)) {
-		/* Ignore this slot */
+		
 		switch (size) {
 		case 1:
 			v = 0xff;
@@ -215,11 +188,7 @@ static int __init pci_versatile_setup_resources(struct resource **resource)
 		goto release_non_mem;
 	}
 
-	/*
-	 * bus->resource[0] is the IO resource for this bus
-	 * bus->resource[1] is the mem resource for this bus
-	 * bus->resource[2] is the prefetch mem resource for this bus
-	 */
+	
 	resource[0] = &io_mem;
 	resource[1] = &non_mem;
 	resource[2] = &pre_mem;
@@ -261,10 +230,7 @@ int __init pci_versatile_setup(int nr, struct pci_sys_data *sys)
 		goto out;
 	}
 
-	/*
-	 *  We need to discover the PCI core first to configure itself
-	 *  before the main PCI probing is performed
-	 */
+	
 	for (i=0; i<32; i++)
 		if ((__raw_readl(VERSATILE_PCI_VIRT_BASE+(i<<11)+DEVICE_ID_OFFSET) == VP_PCI_DEVICE_ID) &&
 		    (__raw_readl(VERSATILE_PCI_VIRT_BASE+(i<<11)+CLASS_ID_OFFSET) == VP_PCI_CLASS_ID)) {
@@ -287,16 +253,12 @@ int __init pci_versatile_setup(int nr, struct pci_sys_data *sys)
 	val |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER | PCI_COMMAND_INVALIDATE;
 	__raw_writel(val, local_pci_cfg_base + CSR_OFFSET);
 
-	/*
-	 * Configure the PCI inbound memory windows to be 1:1 mapped to SDRAM
-	 */
+	
 	__raw_writel(PHYS_OFFSET, local_pci_cfg_base + PCI_BASE_ADDRESS_0);
 	__raw_writel(PHYS_OFFSET, local_pci_cfg_base + PCI_BASE_ADDRESS_1);
 	__raw_writel(PHYS_OFFSET, local_pci_cfg_base + PCI_BASE_ADDRESS_2);
 
-	/*
-	 * Do not to map Versatile FPGA PCI device into memory space
-	 */
+	
 	pci_slot_ignore |= (1 << myslot);
 	ret = 1;
 
@@ -323,20 +285,13 @@ void __init pci_versatile_preinit(void)
 	__raw_writel(1, SYS_PCICTL);
 }
 
-/*
- * map the specified device/slot/pin to an IRQ.   Different backplanes may need to modify this.
- */
+
 static int __init versatile_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 	int devslot = PCI_SLOT(dev->devfn);
 
-	/* slot,  pin,	irq
-	 *  24     1     27
-	 *  25     1     28
-	 *  26     1     29
-	 *  27     1     30
-	 */
+	
 	irq = 27 + ((slot + pin - 1) & 3);
 
 	printk("PCI map irq: slot %d, pin %d, devslot %d, irq: %d\n",slot,pin,devslot,irq);

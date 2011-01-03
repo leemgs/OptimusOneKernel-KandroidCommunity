@@ -1,23 +1,4 @@
-/*
- * PPS core file
- *
- *
- * Copyright (C) 2005-2009   Rodolfo Giometti <giometti@linux.it>
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 
 #include <linux/kernel.h>
@@ -30,16 +11,12 @@
 #include <linux/poll.h>
 #include <linux/pps_kernel.h>
 
-/*
- * Local variables
- */
+
 
 static dev_t pps_devt;
 static struct class *pps_class;
 
-/*
- * Char device methods
- */
+
 
 static unsigned int pps_cdev_poll(struct file *file, poll_table *wait)
 {
@@ -73,7 +50,7 @@ static long pps_cdev_ioctl(struct file *file,
 
 		spin_lock_irq(&pps->lock);
 
-		/* Get the current parameters */
+		
 		params = pps->params;
 
 		spin_unlock_irq(&pps->lock);
@@ -87,7 +64,7 @@ static long pps_cdev_ioctl(struct file *file,
 	case PPS_SETPARAMS:
 		pr_debug("PPS_SETPARAMS: source %d\n", pps->id);
 
-		/* Check the capabilities */
+		
 		if (!capable(CAP_SYS_TIME))
 			return -EPERM;
 
@@ -100,7 +77,7 @@ static long pps_cdev_ioctl(struct file *file,
 			return -EINVAL;
 		}
 
-		/* Check for supported capabilities */
+		
 		if ((params.mode & ~pps->info.mode) != 0) {
 			pr_debug("unsupported capabilities (%x)\n",
 								params.mode);
@@ -109,12 +86,12 @@ static long pps_cdev_ioctl(struct file *file,
 
 		spin_lock_irq(&pps->lock);
 
-		/* Save the new parameters */
+		
 		pps->params = params;
 
-		/* Restore the read only parameters */
+		
 		if ((params.mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
-			/* section 3.3 of RFC 2783 interpreted */
+			
 			pr_debug("time format unspecified (%x)\n",
 								params.mode);
 			pps->params.mode |= PPS_TSFMT_TSPEC;
@@ -145,7 +122,7 @@ static long pps_cdev_ioctl(struct file *file,
 
 		pps->go = 0;
 
-		/* Manage the timeout */
+		
 		if (fdata.timeout.flags & PPS_TIME_INVALID)
 			err = wait_event_interruptible(pps->queue, pps->go);
 		else {
@@ -163,13 +140,13 @@ static long pps_cdev_ioctl(struct file *file,
 			}
 		}
 
-		/* Check for pending signals */
+		
 		if (err == -ERESTARTSYS) {
 			pr_debug("pending signal caught\n");
 			return -EINTR;
 		}
 
-		/* Return the fetched timestamp */
+		
 		spin_lock_irq(&pps->lock);
 
 		fdata.info.assert_sequence = pps->assert_sequence;
@@ -213,15 +190,13 @@ static int pps_cdev_release(struct inode *inode, struct file *file)
 {
 	struct pps_device *pps = file->private_data;
 
-	/* Free the PPS source and wake up (possible) deregistration */
+	
 	pps_put_source(pps);
 
 	return 0;
 }
 
-/*
- * Char device stuff
- */
+
 
 static const struct file_operations pps_cdev_fops = {
 	.owner		= THIS_MODULE,
@@ -270,9 +245,7 @@ void pps_unregister_cdev(struct pps_device *pps)
 	cdev_del(&pps->cdev);
 }
 
-/*
- * Module stuff
- */
+
 
 static void __exit pps_exit(void)
 {

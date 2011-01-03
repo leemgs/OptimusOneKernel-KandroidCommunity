@@ -49,9 +49,7 @@ extern const char *to_msgs[];
 extern const char *ii_msgs[];
 extern const char *ext_msgs[];
 
-/*
- * relevant NB regs
- */
+
 struct err_regs {
 	u32 nbcfg;
 	u32 nbsh;
@@ -66,4 +64,4 @@ void amd_register_ecc_decoder(void (*f)(int, struct err_regs *));
 void amd_unregister_ecc_decoder(void (*f)(int, struct err_regs *));
 void amd_decode_nb_mce(int, struct err_regs *, int);
 
-#endif /* _EDAC_MCE_AMD_H */
+#endif 

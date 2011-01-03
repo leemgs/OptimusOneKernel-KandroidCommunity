@@ -1,4 +1,4 @@
-/* mailbox.h */
+
 
 #ifndef MAILBOX_H
 #define MAILBOX_H
@@ -23,17 +23,17 @@ struct omap_mbox_ops {
 	omap_mbox_type_t	type;
 	int		(*startup)(struct omap_mbox *mbox);
 	void		(*shutdown)(struct omap_mbox *mbox);
-	/* fifo */
+	
 	mbox_msg_t	(*fifo_read)(struct omap_mbox *mbox);
 	void		(*fifo_write)(struct omap_mbox *mbox, mbox_msg_t msg);
 	int		(*fifo_empty)(struct omap_mbox *mbox);
 	int		(*fifo_full)(struct omap_mbox *mbox);
-	/* irq */
+	
 	void		(*enable_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
 	void		(*disable_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
 	void		(*ack_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
 	int		(*is_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
-	/* ctx */
+	
 	void		(*save_ctx)(struct omap_mbox *mbox);
 	void		(*restore_ctx)(struct omap_mbox *mbox);
 };
@@ -93,4 +93,4 @@ static inline void omap_mbox_restore_ctx(struct omap_mbox *mbox)
 	mbox->ops->restore_ctx(mbox);
 }
 
-#endif /* MAILBOX_H */
+#endif 

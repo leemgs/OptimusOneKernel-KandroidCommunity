@@ -1,37 +1,4 @@
-/*
- * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- * Copyright (c) 2005 Mellanox Technologies. All rights reserved.
- * Copyright (c) 2004, 2005 Voltaire, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
@@ -107,10 +74,7 @@ static void ipoib_ud_skb_put_frags(struct ipoib_dev_priv *priv,
 	if (ipoib_ud_need_sg(priv->max_ib_mtu)) {
 		skb_frag_t *frag = &skb_shinfo(skb)->frags[0];
 		unsigned int size;
-		/*
-		 * There is only two buffers needed for max_payload = 4K,
-		 * first buf size is IPOIB_UD_HEAD_SIZE
-		 */
+		
 		skb->tail += IPOIB_UD_HEAD_SIZE;
 		skb->len  += length;
 
@@ -162,11 +126,7 @@ static struct sk_buff *ipoib_alloc_rx_skb(struct net_device *dev, int id)
 	if (unlikely(!skb))
 		return NULL;
 
-	/*
-	 * IB will leave a 40 byte gap for a GRH and IPoIB adds a 4 byte
-	 * header.  So we need 4 more bytes to get to 48 and align the
-	 * IP header to a multiple of 16.
-	 */
+	
 	skb_reserve(skb, 4);
 
 	mapping = priv->rx_ring[id].mapping;
@@ -245,20 +205,14 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
 		return;
 	}
 
-	/*
-	 * Drop packets that this interface sent, ie multicast packets
-	 * that the HCA has replicated.
-	 */
+	
 	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num)
 		goto repost;
 
 	memcpy(mapping, priv->rx_ring[wr_id].mapping,
 	       IPOIB_UD_RX_SG * sizeof *mapping);
 
-	/*
-	 * If we can't allocate a new RX buffer, dump
-	 * this packet and reuse the old buffer.
-	 */
+	
 	if (unlikely(!ipoib_alloc_rx_skb(dev, wr_id))) {
 		++dev->stats.rx_dropped;
 		goto repost;
@@ -280,7 +234,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
 	dev->stats.rx_bytes += skb->len;
 
 	skb->dev = dev;
-	/* XXX get correct PACKET_ type here */
+	
 	skb->pkt_type = PACKET_HOST;
 
 	if (test_bit(IPOIB_FLAG_CSUM, &priv->flags) && likely(wc->csum_ok))
@@ -469,7 +423,7 @@ static void drain_tx_cq(struct net_device *dev)
 
 	netif_tx_lock(dev);
 	while (poll_tx(priv))
-		; /* nothing */
+		; 
 
 	if (netif_queue_stopped(dev))
 		mod_timer(&priv->poll_timer, jiffies + 1);
@@ -558,13 +512,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
 	ipoib_dbg_data(priv, "sending packet, length=%d address=%p qpn=0x%06x\n",
 		       skb->len, address, qpn);
 
-	/*
-	 * We put the skb into the tx_ring _before_ we call post_send()
-	 * because it's entirely possible that the completion handler will
-	 * run before we execute anything after the post_send().  That
-	 * means we have to make sure everything is properly recorded and
-	 * our state is consistent before we call post_send().
-	 */
+	
 	tx_req = &priv->tx_ring[priv->tx_head & (ipoib_sendq_size - 1)];
 	tx_req->skb = skb;
 	if (unlikely(ipoib_dma_map_tx(priv->ca, tx_req))) {
@@ -605,7 +553,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
 
 	if (unlikely(priv->tx_outstanding > MAX_SEND_CQE))
 		while (poll_tx(priv))
-			; /* nothing */
+			; 
 }
 
 static void __ipoib_reap_ah(struct net_device *dev)
@@ -725,7 +673,7 @@ int ipoib_ib_dev_down(struct net_device *dev, int flush)
 	clear_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
 	netif_carrier_off(dev);
 
-	/* Shutdown the P_Key thread if still active */
+	
 	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
 		mutex_lock(&pkey_mutex);
 		set_bit(IPOIB_PKEY_STOP, &priv->flags);
@@ -761,21 +709,13 @@ void ipoib_drain_cq(struct net_device *dev)
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 	int i, n;
 
-	/*
-	 * We call completion handling routines that expect to be
-	 * called from the BH-disabled NAPI poll context, so disable
-	 * BHs here too.
-	 */
+	
 	local_bh_disable();
 
 	do {
 		n = ib_poll_cq(priv->recv_cq, IPOIB_NUM_WC, priv->ibwc);
 		for (i = 0; i < n; ++i) {
-			/*
-			 * Convert any successful completions to flush
-			 * errors to avoid passing packets up the
-			 * stack after bringing the device down.
-			 */
+			
 			if (priv->ibwc[i].status == IB_WC_SUCCESS)
 				priv->ibwc[i].status = IB_WC_WR_FLUSH_ERR;
 
@@ -790,7 +730,7 @@ void ipoib_drain_cq(struct net_device *dev)
 	} while (n == IPOIB_NUM_WC);
 
 	while (poll_tx(priv))
-		; /* nothing */
+		; 
 
 	local_bh_enable();
 }
@@ -808,15 +748,12 @@ int ipoib_ib_dev_stop(struct net_device *dev, int flush)
 
 	ipoib_cm_dev_stop(dev);
 
-	/*
-	 * Move our QP to the error state and then reinitialize in
-	 * when all work requests have completed or have been flushed.
-	 */
+	
 	qp_attr.qp_state = IB_QPS_ERR;
 	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
 		ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
 
-	/* Wait for all sends and receives to complete */
+	
 	begin = jiffies;
 
 	while (priv->tx_head != priv->tx_tail || recvs_pending(dev)) {
@@ -824,10 +761,7 @@ int ipoib_ib_dev_stop(struct net_device *dev, int flush)
 			ipoib_warn(priv, "timing out; %d sends %d receives not completed\n",
 				   priv->tx_head - priv->tx_tail, recvs_pending(dev));
 
-			/*
-			 * assume the HW is wedged and just free up
-			 * all our pending work requests.
-			 */
+			
 			while ((int) priv->tx_tail - (int) priv->tx_head < 0) {
 				tx_req = &priv->tx_ring[priv->tx_tail &
 							(ipoib_sendq_size - 1)];
@@ -865,7 +799,7 @@ timeout:
 	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
 		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
 
-	/* Wait for all AHs to be reaped */
+	
 	set_bit(IPOIB_STOP_REAPER, &priv->flags);
 	cancel_delayed_work(&priv->ah_reap_task);
 	if (flush)
@@ -924,10 +858,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
 
 	mutex_lock(&priv->vlan_mutex);
 
-	/*
-	 * Flush any child interfaces too -- they might be up even if
-	 * the parent is down.
-	 */
+	
 	list_for_each_entry(cpriv, &priv->child_intfs, list)
 		__ipoib_ib_dev_flush(cpriv, level);
 
@@ -952,7 +883,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
 				return;
 		}
 
-		/* restart QP only if P_Key index is changed */
+		
 		if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
 		    new_index == priv->pkey_index) {
 			ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
@@ -974,10 +905,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
 		ipoib_ib_dev_open(dev);
 	}
 
-	/*
-	 * The device could have been brought down between the start and when
-	 * we get here, don't bring it back up if it's not configured up
-	 */
+	
 	if (test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
 		if (level >= IPOIB_FLUSH_NORMAL)
 			ipoib_ib_dev_up(dev);
@@ -1021,15 +949,7 @@ void ipoib_ib_dev_cleanup(struct net_device *dev)
 	ipoib_transport_dev_cleanup(dev);
 }
 
-/*
- * Delayed P_Key Assigment Interim Support
- *
- * The following is initial implementation of delayed P_Key assigment
- * mechanism. It is using the same approach implemented for the multicast
- * group join. The single goal of this implementation is to quickly address
- * Bug #2507. This implementation will probably be removed when the P_Key
- * change async notification is available.
- */
+
 
 void ipoib_pkey_poll(struct work_struct *work)
 {
@@ -1055,11 +975,11 @@ int ipoib_pkey_dev_delay_open(struct net_device *dev)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 
-	/* Look for the interface pkey value in the IB Port P_Key table and */
-	/* set the interface pkey assigment flag                            */
+	
+	
 	ipoib_pkey_dev_check_presence(dev);
 
-	/* P_Key value not assigned yet - start polling */
+	
 	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
 		mutex_lock(&pkey_mutex);
 		clear_bit(IPOIB_PKEY_STOP, &priv->flags);

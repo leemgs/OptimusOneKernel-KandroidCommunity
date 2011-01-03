@@ -1,31 +1,4 @@
-/*
- * Copyright (c) 2001 Jean-Fredric Clere, Nikolas Zimmermann, Georg Acher
- *		      Mark Cave-Ayland, Carlo E Prelz, Dick Streefland
- * Copyright (c) 2002, 2003 Tuukka Toivonen
- * Copyright (c) 2008 Erik Andrén
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * P/N 861037:      Sensor HDCS1000        ASIC STV0600
- * P/N 861050-0010: Sensor HDCS1000        ASIC STV0600
- * P/N 861050-0020: Sensor Photobit PB100  ASIC STV0600-1 - QuickCam Express
- * P/N 861055:      Sensor ST VV6410       ASIC STV0610   - LEGO cam
- * P/N 861075-0040: Sensor HDCS1000        ASIC
- * P/N 961179-0700: Sensor ST VV6410       ASIC STV0602   - Dexxa WebCam USB
- * P/N 861040-0000: Sensor ST VV6410       ASIC STV0610   - QuickCam Web
- */
+
 
 #include "stv06xx_sensor.h"
 
@@ -74,8 +47,7 @@ int stv06xx_read_bridge(struct sd *sd, u16 address, u8 *i2c_data)
 	return (err < 0) ? err : 0;
 }
 
-/* Wraps the normal write sensor bytes / words functions for writing a
-   single value */
+
 int stv06xx_write_sensor(struct sd *sd, u8 address, u16 value)
 {
 	if (sd->sensor->i2c_len == 2) {
@@ -112,7 +84,7 @@ int stv06xx_write_sensor_bytes(struct sd *sd, const u8 *data, u8 len)
 
 	PDEBUG(D_CONF, "I2C: Command buffer contains %d entries", len);
 	for (i = 0; i < len;) {
-		/* Build the command buffer */
+		
 		memset(buf, 0, I2C_BUFFER_LENGTH);
 		for (j = 0; j < I2C_MAX_BYTES && i < len; j++, i++) {
 			buf[j] = data[2*i];
@@ -121,7 +93,7 @@ int stv06xx_write_sensor_bytes(struct sd *sd, const u8 *data, u8 len)
 			data[2*i+1], data[2*i]);
 		}
 		buf[0x20] = sd->sensor->i2c_addr;
-		buf[0x21] = j - 1; /* Number of commands to send - 1 */
+		buf[0x21] = j - 1; 
 		buf[0x22] = I2C_WRITE_CMD;
 		err = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
 				      0x04, 0x40, 0x0400, 0, buf,
@@ -142,7 +114,7 @@ int stv06xx_write_sensor_words(struct sd *sd, const u16 *data, u8 len)
 	PDEBUG(D_CONF, "I2C: Command buffer contains %d entries", len);
 
 	for (i = 0; i < len;) {
-		/* Build the command buffer */
+		
 		memset(buf, 0, I2C_BUFFER_LENGTH);
 		for (j = 0; j < I2C_MAX_WORDS && i < len; j++, i++) {
 			buf[j] = data[2*i];
@@ -152,7 +124,7 @@ int stv06xx_write_sensor_words(struct sd *sd, const u16 *data, u8 len)
 				data[2*i+1], data[2*i]);
 		}
 		buf[0x20] = sd->sensor->i2c_addr;
-		buf[0x21] = j - 1; /* Number of commands to send - 1 */
+		buf[0x21] = j - 1; 
 		buf[0x22] = I2C_WRITE_CMD;
 		err = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
 				0x04, 0x40, 0x0400, 0, buf,
@@ -174,14 +146,14 @@ int stv06xx_read_sensor(struct sd *sd, const u8 address, u16 *value)
 	if (err < 0)
 		return err;
 
-	/* Clear mem */
+	
 	memset(buf, 0, I2C_BUFFER_LENGTH);
 
 	buf[0] = address;
 	buf[0x20] = sd->sensor->i2c_addr;
 	buf[0x21] = 0;
 
-	/* Read I2C register */
+	
 	buf[0x22] = I2C_READ_CMD;
 
 	err = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
@@ -206,7 +178,7 @@ int stv06xx_read_sensor(struct sd *sd, const u8 address, u16 *value)
 	return (err < 0) ? err : 0;
 }
 
-/* Dumps all bridge registers */
+
 static void stv06xx_dump_bridge(struct sd *sd)
 {
 	int i;
@@ -237,7 +209,7 @@ static void stv06xx_dump_bridge(struct sd *sd)
 	}
 }
 
-/* this function is called at probe and resume time */
+
 static int stv06xx_init(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -245,8 +217,7 @@ static int stv06xx_init(struct gspca_dev *gspca_dev)
 
 	PDEBUG(D_PROBE, "Initializing camera");
 
-	/* Let the usb init settle for a bit
-	   before performing the initialization */
+	
 	msleep(250);
 
 	err = sd->sensor->init(sd);
@@ -257,18 +228,18 @@ static int stv06xx_init(struct gspca_dev *gspca_dev)
 	return (err < 0) ? err : 0;
 }
 
-/* Start the camera */
+
 static int stv06xx_start(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int err;
 
-	/* Prepare the sensor for start */
+	
 	err = sd->sensor->start(sd);
 	if (err < 0)
 		goto out;
 
-	/* Start isochronous streaming */
+	
 	err = stv06xx_write_bridge(sd, STV_ISO_ENABLE, 1);
 
 out:
@@ -285,7 +256,7 @@ static void stv06xx_stopN(struct gspca_dev *gspca_dev)
 	int err;
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	/* stop ISO-streaming */
+	
 	err = stv06xx_write_bridge(sd, STV_ISO_ENABLE, 0);
 	if (err < 0)
 		goto out;
@@ -299,29 +270,17 @@ out:
 		PDEBUG(D_STREAM, "Stopped streaming");
 }
 
-/*
- * Analyse an USB packet of the data stream and store it appropriately.
- * Each packet contains an integral number of chunks. Each chunk has
- * 2-bytes identification, followed by 2-bytes that describe the chunk
- * length. Known/guessed chunk identifications are:
- * 8001/8005/C001/C005 - Begin new frame
- * 8002/8006/C002/C006 - End frame
- * 0200/4200           - Contains actual image data, bayer or compressed
- * 0005                - 11 bytes of unknown data
- * 0100                - 2 bytes of unknown data
- * The 0005 and 0100 chunks seem to appear only in compressed stream.
- */
+
 static void stv06xx_pkt_scan(struct gspca_dev *gspca_dev,
-			struct gspca_frame *frame,	/* target */
-			__u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+			struct gspca_frame *frame,	
+			__u8 *data,			
+			int len)			
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	PDEBUG(D_PACK, "Packet of length %d arrived", len);
 
-	/* A packet may contain several frames
-	   loop until the whole packet is reached */
+	
 	while (len) {
 		int id, chunk_len;
 
@@ -330,10 +289,10 @@ static void stv06xx_pkt_scan(struct gspca_dev *gspca_dev,
 			return;
 		}
 
-		/* Capture the id */
+		
 		id = (data[0] << 8) | data[1];
 
-		/* Capture the chunk length */
+		
 		chunk_len = (data[2] << 8) | data[3];
 		PDEBUG(D_PACK, "Chunk id: %x, length: %d", id, chunk_len);
 
@@ -347,7 +306,7 @@ static void stv06xx_pkt_scan(struct gspca_dev *gspca_dev,
 			return;
 		}
 
-		/* First byte seem to be 02=data 2nd byte is unknown??? */
+		
 		if (sd->bridge == BRIDGE_ST6422 && (id & 0xFF00) == 0x0200)
 			goto frame_data;
 
@@ -376,7 +335,7 @@ frame_data:
 		case 0xc005:
 			PDEBUG(D_PACK, "Starting new frame");
 
-			/* Create a new frame, chunk length should be zero */
+			
 			gspca_frame_add(gspca_dev, FIRST_PACKET,
 					frame, data, 0);
 
@@ -393,7 +352,7 @@ frame_data:
 		case 0xc002:
 			PDEBUG(D_PACK, "End of frame detected");
 
-			/* Complete the last frame (if any) */
+			
 			frame = gspca_frame_add(gspca_dev, LAST_PACKET,
 						frame, data, 0);
 
@@ -404,23 +363,20 @@ frame_data:
 
 		case 0x0005:
 			PDEBUG(D_PACK, "Chunk 0x005 detected");
-			/* Unknown chunk with 11 bytes of data,
-			   occurs just before end of each frame
-			   in compressed mode */
+			
 			break;
 
 		case 0x0100:
 			PDEBUG(D_PACK, "Chunk 0x0100 detected");
-			/* Unknown chunk with 2 bytes of data,
-			   occurs 2-3 times per USB interrupt */
+			
 			break;
 		case 0x42ff:
 			PDEBUG(D_PACK, "Chunk 0x42ff detected");
-			/* Special chunk seen sometimes on the ST6422 */
+			
 			break;
 		default:
 			PDEBUG(D_PACK, "Unknown chunk 0x%04x detected", id);
-			/* Unknown chunk */
+			
 		}
 		data    += chunk_len;
 		len     -= chunk_len;
@@ -430,7 +386,7 @@ frame_data:
 static int stv06xx_config(struct gspca_dev *gspca_dev,
 			  const struct usb_device_id *id);
 
-/* sub-driver description */
+
 static const struct sd_desc sd_desc = {
 	.name = MODULE_NAME,
 	.config = stv06xx_config,
@@ -440,7 +396,7 @@ static const struct sd_desc sd_desc = {
 	.pkt_scan = stv06xx_pkt_scan
 };
 
-/* This function is called at probe time */
+
 static int stv06xx_config(struct gspca_dev *gspca_dev,
 			  const struct usb_device_id *id)
 {
@@ -483,27 +439,27 @@ static int stv06xx_config(struct gspca_dev *gspca_dev,
 
 
 
-/* -- module initialisation -- */
+
 static const __devinitdata struct usb_device_id device_table[] = {
-	/* QuickCam Express */
+	
 	{USB_DEVICE(0x046d, 0x0840), .driver_info = BRIDGE_STV600 },
-	/* LEGO cam / QuickCam Web */
+	
 	{USB_DEVICE(0x046d, 0x0850), .driver_info = BRIDGE_STV610 },
-	/* Dexxa WebCam USB */
+	
 	{USB_DEVICE(0x046d, 0x0870), .driver_info = BRIDGE_STV602 },
-	/* QuickCam Messenger */
+	
 	{USB_DEVICE(0x046D, 0x08F0), .driver_info = BRIDGE_ST6422 },
-	/* QuickCam Communicate */
+	
 	{USB_DEVICE(0x046D, 0x08F5), .driver_info = BRIDGE_ST6422 },
-	/* QuickCam Messenger (new) */
+	
 	{USB_DEVICE(0x046D, 0x08F6), .driver_info = BRIDGE_ST6422 },
-	/* QuickCam Messenger (new) */
+	
 	{USB_DEVICE(0x046D, 0x08DA), .driver_info = BRIDGE_ST6422 },
 	{}
 };
 MODULE_DEVICE_TABLE(usb, device_table);
 
-/* -- device connect -- */
+
 static int sd_probe(struct usb_interface *intf,
 			const struct usb_device_id *id)
 {
@@ -534,7 +490,7 @@ static struct usb_driver sd_driver = {
 #endif
 };
 
-/* -- module insert / remove -- */
+
 static int __init sd_mod_init(void)
 {
 	int ret;

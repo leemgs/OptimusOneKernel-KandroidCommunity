@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/rd88f6192-nas-setup.c
- *
- * Marvell RD-88F6192-NAS Reference Board Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -48,9 +40,7 @@ static struct spi_board_info __initdata rd88F6192_spi_slave_info[] = {
 
 static void __init rd88f6192_init(void)
 {
-	/*
-	 * Basic setup. Needs to be called early.
-	 */
+	
 	kirkwood_init();
 
 	kirkwood_ehci_init();
@@ -72,7 +62,7 @@ static int __init rd88f6192_pci_init(void)
 subsys_initcall(rd88f6192_pci_init);
 
 MACHINE_START(RD88F6192_NAS, "Marvell RD-88F6192-NAS Development Board")
-	/* Maintainer: Saeed Bishara <saeed@marvell.com> */
+	
 	.phys_io	= KIRKWOOD_REGS_PHYS_BASE,
 	.io_pg_offst	= ((KIRKWOOD_REGS_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

@@ -1,9 +1,4 @@
-/*
- * Filtering ARP tables module.
- *
- * Copyright (C) 2002 David S. Miller (davem@redhat.com)
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/netfilter_arp/arp_tables.h>
@@ -38,9 +33,9 @@ static const struct
 		},
 	},
 	.entries = {
-		ARPT_STANDARD_INIT(NF_ACCEPT),	/* ARP_IN */
-		ARPT_STANDARD_INIT(NF_ACCEPT),	/* ARP_OUT */
-		ARPT_STANDARD_INIT(NF_ACCEPT),	/* ARP_FORWARD */
+		ARPT_STANDARD_INIT(NF_ACCEPT),	
+		ARPT_STANDARD_INIT(NF_ACCEPT),	
+		ARPT_STANDARD_INIT(NF_ACCEPT),	
 	},
 	.term = ARPT_ERROR_INIT,
 };
@@ -52,7 +47,7 @@ static const struct xt_table packet_filter = {
 	.af		= NFPROTO_ARP,
 };
 
-/* The work comes in here from netfilter.c */
+
 static unsigned int arpt_in_hook(unsigned int hook,
 				 struct sk_buff *skb,
 				 const struct net_device *in,
@@ -99,7 +94,7 @@ static struct nf_hook_ops arpt_ops[] __read_mostly = {
 
 static int __net_init arptable_filter_net_init(struct net *net)
 {
-	/* Register table */
+	
 	net->ipv4.arptable_filter =
 		arpt_register_table(net, &packet_filter, &initial_table.repl);
 	if (IS_ERR(net->ipv4.arptable_filter))

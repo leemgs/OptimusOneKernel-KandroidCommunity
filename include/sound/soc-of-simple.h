@@ -1,8 +1,4 @@
-/*
- * OF helpers for ALSA SoC
- *
- * Copyright (C) 2008, Secret Lab Technologies Ltd.
- */
+
 
 #ifndef _INCLUDE_SOC_OF_H_
 #define _INCLUDE_SOC_OF_H_
@@ -22,4 +18,4 @@ int of_snd_soc_register_platform(struct snd_soc_platform *platform,
 
 #endif
 
-#endif /* _INCLUDE_SOC_OF_H_ */
+#endif 

@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/time-ns9360.c
- *
- * Copyright (C) 2006,2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #include <linux/jiffies.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
@@ -56,7 +47,7 @@ static void ns9360_clockevent_setmode(enum clock_event_mode mode,
 		REGSET(tc, SYS_TCx, REN, DIS);
 		REGSET(tc, SYS_TCx, INTS, EN);
 
-		/* fall through */
+		
 
 	case CLOCK_EVT_MODE_UNUSED:
 	case CLOCK_EVT_MODE_SHUTDOWN:
@@ -103,7 +94,7 @@ static irqreturn_t ns9360_clockevent_handler(int irq, void *dev_id)
 
 	struct clock_event_device *evt = &ns9360_clockevent_device;
 
-	/* clear irq */
+	
 	tc = __raw_readl(SYS_TC(timerno));
 	if (REGGET(tc, SYS_TCx, REN) == SYS_TCx_REN_DIS) {
 		REGSET(tc, SYS_TCx, TEN, DIS);

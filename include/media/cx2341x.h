@@ -1,20 +1,4 @@
-/*
-    cx23415/6/8 header containing common defines.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 #ifndef CX2341X_H
 #define CX2341X_H
@@ -32,19 +16,19 @@ enum cx2341x_cap {
 };
 
 struct cx2341x_mpeg_params {
-	/* misc */
+	
 	u32 capabilities;
 	enum cx2341x_port port;
 	u16 width;
 	u16 height;
 	u16 is_50hz;
 
-	/* stream */
+	
 	enum v4l2_mpeg_stream_type stream_type;
 	enum v4l2_mpeg_stream_vbi_fmt stream_vbi_fmt;
 	u16 stream_insert_nav_packets;
 
-	/* audio */
+	
 	enum v4l2_mpeg_audio_sampling_freq audio_sampling_freq;
 	enum v4l2_mpeg_audio_encoding audio_encoding;
 	enum v4l2_mpeg_audio_l2_bitrate audio_l2_bitrate;
@@ -56,7 +40,7 @@ struct cx2341x_mpeg_params {
 	u32 audio_properties;
 	u16 audio_mute;
 
-	/* video */
+	
 	enum v4l2_mpeg_video_encoding video_encoding;
 	enum v4l2_mpeg_video_aspect video_aspect;
 	u16 video_b_frames;
@@ -69,7 +53,7 @@ struct cx2341x_mpeg_params {
 	u16 video_mute;
 	u32 video_mute_yuv;
 
-	/* encoding filters */
+	
 	enum v4l2_mpeg_cx2341x_video_spatial_filter_mode video_spatial_filter_mode;
 	u16 video_spatial_filter;
 	enum v4l2_mpeg_cx2341x_video_luma_spatial_filter_type video_luma_spatial_filter_type;
@@ -99,14 +83,14 @@ int cx2341x_ext_ctrls(struct cx2341x_mpeg_params *params, int busy,
 void cx2341x_fill_defaults(struct cx2341x_mpeg_params *p);
 void cx2341x_log_status(const struct cx2341x_mpeg_params *p, const char *prefix);
 
-/* Firmware names */
+
 #define CX2341X_FIRM_ENC_FILENAME "v4l-cx2341x-enc.fw"
-/* Decoder firmware for the cx23415 only */
+
 #define CX2341X_FIRM_DEC_FILENAME "v4l-cx2341x-dec.fw"
 
-/* Firmware API commands */
 
-/* MPEG decoder API, specific to the cx23415 */
+
+
 #define CX2341X_DEC_PING_FW 			0x00
 #define CX2341X_DEC_START_PLAYBACK 		0x01
 #define CX2341X_DEC_STOP_PLAYBACK 		0x02
@@ -129,7 +113,7 @@ void cx2341x_log_status(const struct cx2341x_mpeg_params *p, const char *prefix)
 #define CX2341X_DEC_SET_DECODER_SOURCE 		0x1a
 #define CX2341X_DEC_SET_PREBUFFERING		0x1e
 
-/* MPEG encoder API */
+
 #define CX2341X_ENC_PING_FW 			0x80
 #define CX2341X_ENC_START_CAPTURE 		0x81
 #define CX2341X_ENC_STOP_CAPTURE 		0x82
@@ -172,7 +156,7 @@ void cx2341x_log_status(const struct cx2341x_mpeg_params *p, const char *prefix)
 #define CX2341X_ENC_SET_VERT_CROP_LINE		0xdb
 #define CX2341X_ENC_MISC 			0xdc
 
-/* OSD API, specific to the cx23415 */
+
 #define CX2341X_OSD_GET_FRAMEBUFFER 		0x41
 #define CX2341X_OSD_GET_PIXEL_FORMAT 		0x42
 #define CX2341X_OSD_SET_PIXEL_FORMAT 		0x43
@@ -195,4 +179,4 @@ void cx2341x_log_status(const struct cx2341x_mpeg_params *p, const char *prefix)
 #define CX2341X_OSD_GET_ALPHA_CONTENT_INDEX 	0x61
 #define CX2341X_OSD_SET_ALPHA_CONTENT_INDEX 	0x62
 
-#endif /* CX2341X_H */
+#endif 

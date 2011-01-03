@@ -1,23 +1,4 @@
-/*
-   cx231xx_vbi.c - driver for Conexant Cx23100/101/102 USB video capture devices
 
-   Copyright (C) 2008 <srinivasa.deevi at conexant dot com>
-	Based on cx88 driver
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
 #include <linux/init.h>
 #include <linux/list.h>
@@ -77,9 +58,7 @@ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
 	}
 }
 
-/*
- * Controls the isoc copy of each urb packet
- */
+
 static inline int cx231xx_isoc_vbi_copy(struct cx231xx *dev, struct urb *urb)
 {
 	struct cx231xx_buffer *buf;
@@ -103,7 +82,7 @@ static inline int cx231xx_isoc_vbi_copy(struct cx231xx *dev, struct urb *urb)
 
 	buf = dev->vbi_mode.isoc_ctl.buf;
 
-	/* get buffer pointer and length */
+	
 	p_buffer = urb->transfer_buffer;
 	buffer_size = urb->actual_length;
 
@@ -111,12 +90,10 @@ static inline int cx231xx_isoc_vbi_copy(struct cx231xx *dev, struct urb *urb)
 		bytes_parsed = 0;
 
 		if (dma_q->is_partial_line) {
-			/* Handle the case where we were working on a partial
-			   line */
+			
 			sav_eav = dma_q->last_sav;
 		} else {
-			/* Check for a SAV/EAV overlapping the
-			   buffer boundary */
+			
 
 			sav_eav = cx231xx_find_boundary_SAV_EAV(p_buffer,
 							  dma_q->partial_buf,
@@ -124,39 +101,37 @@ static inline int cx231xx_isoc_vbi_copy(struct cx231xx *dev, struct urb *urb)
 		}
 
 		sav_eav &= 0xF0;
-		/* Get the first line if we have some portion of an SAV/EAV from
-		   the last buffer or a partial line */
+		
 		if (sav_eav) {
 			bytes_parsed += cx231xx_get_vbi_line(dev, dma_q,
-				sav_eav,		       /* SAV/EAV */
-				p_buffer + bytes_parsed,       /* p_buffer */
-				buffer_size - bytes_parsed);   /* buffer size */
+				sav_eav,		       
+				p_buffer + bytes_parsed,       
+				buffer_size - bytes_parsed);   
 		}
 
-		/* Now parse data that is completely in this buffer */
+		
 		dma_q->is_partial_line = 0;
 
 		while (bytes_parsed < buffer_size) {
 			u32 bytes_used = 0;
 
 			sav_eav = cx231xx_find_next_SAV_EAV(
-				p_buffer + bytes_parsed,	/* p_buffer */
-				buffer_size - bytes_parsed, /* buffer size */
-				&bytes_used);	/* bytes used to get SAV/EAV */
+				p_buffer + bytes_parsed,	
+				buffer_size - bytes_parsed, 
+				&bytes_used);	
 
 			bytes_parsed += bytes_used;
 
 			sav_eav &= 0xF0;
 			if (sav_eav && (bytes_parsed < buffer_size)) {
 				bytes_parsed += cx231xx_get_vbi_line(dev,
-					dma_q, sav_eav,	/* SAV/EAV */
-					p_buffer+bytes_parsed, /* p_buffer */
-					buffer_size-bytes_parsed);/*buf size*/
+					dma_q, sav_eav,	
+					p_buffer+bytes_parsed, 
+					buffer_size-bytes_parsed);
 			}
 		}
 
-		/* Save the last four bytes of the buffer so we can
-		check the buffer boundary condition next time */
+		
 		memcpy(dma_q->partial_buf, p_buffer + buffer_size - 4, 4);
 		bytes_parsed = 0;
 	}
@@ -164,9 +139,7 @@ static inline int cx231xx_isoc_vbi_copy(struct cx231xx *dev, struct urb *urb)
 	return rc;
 }
 
-/* ------------------------------------------------------------------
-	Vbi buf operations
-   ------------------------------------------------------------------*/
+
 
 static int
 vbi_buffer_setup(struct videobuf_queue *vq, unsigned int *count,
@@ -189,7 +162,7 @@ vbi_buffer_setup(struct videobuf_queue *vq, unsigned int *count,
 	return 0;
 }
 
-/* This is called *without* dev->slock held; please keep it that way */
+
 static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
 {
 	struct cx231xx_fh *fh = vq->priv_data;
@@ -198,15 +171,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
 	if (in_interrupt())
 		BUG();
 
-	/* We used to wait for the buffer to finish here, but this didn't work
-	   because, as we were keeping the state as VIDEOBUF_QUEUED,
-	   videobuf_queue_cancel marked it as finished for us.
-	   (Also, it could wedge forever if the hardware was misconfigured.)
-
-	   This should be safe; by the time we get here, the buffer isn't
-	   queued anymore. If we ever start marking the buffers as
-	   VIDEOBUF_ACTIVE, it won't be, though.
-	 */
+	
 	spin_lock_irqsave(&dev->vbi_mode.slock, flags);
 	if (dev->vbi_mode.isoc_ctl.buf == buf)
 		dev->vbi_mode.isoc_ctl.buf = NULL;
@@ -296,13 +261,9 @@ struct videobuf_queue_ops cx231xx_vbi_qops = {
 	.buf_release = vbi_buffer_release,
 };
 
-/* ------------------------------------------------------------------
-	URB control
-   ------------------------------------------------------------------*/
 
-/*
- * IRQ callback, called by URB callback
- */
+
+
 static void cx231xx_irq_vbi_callback(struct urb *urb)
 {
 	struct cx231xx_dmaqueue *dma_q = urb->context;
@@ -312,25 +273,25 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
 	int rc;
 
 	switch (urb->status) {
-	case 0:		/* success */
-	case -ETIMEDOUT:	/* NAK */
+	case 0:		
+	case -ETIMEDOUT:	
 		break;
-	case -ECONNRESET:	/* kill */
+	case -ECONNRESET:	
 	case -ENOENT:
 	case -ESHUTDOWN:
 		return;
-	default:		/* error */
+	default:		
 		cx231xx_err(DRIVER_NAME "urb completition error %d.\n",
 			    urb->status);
 		break;
 	}
 
-	/* Copy data from URB */
+	
 	spin_lock(&dev->vbi_mode.slock);
 	rc = dev->vbi_mode.isoc_ctl.isoc_copy(dev, urb);
 	spin_unlock(&dev->vbi_mode.slock);
 
-	/* Reset status */
+	
 	urb->status = 0;
 
 	urb->status = usb_submit_urb(urb, GFP_ATOMIC);
@@ -340,9 +301,7 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
 	}
 }
 
-/*
- * Stop and Deallocate URBs
- */
+
 void cx231xx_uninit_vbi_isoc(struct cx231xx *dev)
 {
 	struct urb *urb;
@@ -383,9 +342,7 @@ void cx231xx_uninit_vbi_isoc(struct cx231xx *dev)
 }
 EXPORT_SYMBOL_GPL(cx231xx_uninit_vbi_isoc);
 
-/*
- * Allocate URBs and start IRQ
- */
+
 int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 			  int num_bufs, int max_pkt_size,
 			  int (*isoc_copy) (struct cx231xx *dev,
@@ -399,10 +356,10 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 
 	cx231xx_info(DRIVER_NAME "cx231xx: called cx231xx_prepare_isoc\n");
 
-	/* De-allocates all pending stuff */
+	
 	cx231xx_uninit_vbi_isoc(dev);
 
-	/* clear if any halt */
+	
 	usb_clear_halt(dev->udev,
 		       usb_rcvbulkpipe(dev->udev,
 				       dev->vbi_mode.end_point_addr));
@@ -440,7 +397,7 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 
 	sb_size = max_packets * dev->vbi_mode.isoc_ctl.max_pkt_size;
 
-	/* allocate urbs and transfer buffers */
+	
 	for (i = 0; i < dev->vbi_mode.isoc_ctl.num_bufs; i++) {
 
 		urb = usb_alloc_urb(0, GFP_KERNEL);
@@ -472,7 +429,7 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 
 	init_waitqueue_head(&dma_q->wq);
 
-	/* submit urbs and enables IRQ */
+	
 	for (i = 0; i < dev->vbi_mode.isoc_ctl.num_bufs; i++) {
 		rc = usb_submit_urb(dev->vbi_mode.isoc_ctl.urb[i], GFP_ATOMIC);
 		if (rc) {
@@ -521,15 +478,13 @@ u32 cx231xx_get_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	return bytes_copied;
 }
 
-/*
- * Announces that a buffer were filled and request the next
- */
+
 static inline void vbi_buffer_filled(struct cx231xx *dev,
 				     struct cx231xx_dmaqueue *dma_q,
 				     struct cx231xx_buffer *buf)
 {
-	/* Advice that buffer was filled */
-	/* cx231xx_info(DRIVER_NAME "[%p/%d] wakeup\n", buf, buf->vb.i); */
+	
+	
 
 	buf->vb.state = VIDEOBUF_DONE;
 	buf->vb.field_count++;
@@ -551,10 +506,10 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	if (dma_q->current_field != field_number)
 		cx231xx_reset_vbi_buffer(dev, dma_q);
 
-	/* get the buffer pointer */
+	
 	buf = dev->vbi_mode.isoc_ctl.buf;
 
-	/* Remember the field number for next time */
+	
 	dma_q->current_field = field_number;
 
 	bytes_to_copy = dma_q->bytes_left_in_line;
@@ -570,8 +525,7 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 
 	dma_q->is_partial_line = 1;
 
-	/* If we don't have a buffer, just return the number of bytes we would
-	   have copied if we had a buffer. */
+	
 	if (!buf) {
 		dma_q->bytes_left_in_line -= bytes_to_copy;
 		dma_q->is_partial_line =
@@ -579,7 +533,7 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 		return bytes_to_copy;
 	}
 
-	/* copy the data to video buffer */
+	
 	cx231xx_do_vbi_copy(dev, dma_q, p_line, bytes_to_copy);
 
 	dma_q->pos += bytes_to_copy;
@@ -604,9 +558,7 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	return bytes_to_copy;
 }
 
-/*
- * video-buf generic routine to get the next available buffer
- */
+
 static inline void get_next_vbi_buf(struct cx231xx_dmaqueue *dma_q,
 				    struct cx231xx_buffer **buf)
 {
@@ -622,10 +574,10 @@ static inline void get_next_vbi_buf(struct cx231xx_dmaqueue *dma_q,
 		return;
 	}
 
-	/* Get the next buffer */
+	
 	*buf = list_entry(dma_q->active.next, struct cx231xx_buffer, vb.queue);
 
-	/* Cleans up buffer - Usefull for testing for frame/URB loss */
+	
 	outp = videobuf_to_vmalloc(&(*buf)->vb);
 	memset(outp, 0, (*buf)->vb.size);
 
@@ -642,7 +594,7 @@ void cx231xx_reset_vbi_buffer(struct cx231xx *dev,
 	buf = dev->vbi_mode.isoc_ctl.buf;
 
 	if (buf == NULL) {
-		/* first try to get the buffer */
+		
 		get_next_vbi_buf(dma_q, &buf);
 
 		dma_q->pos = 0;
@@ -678,7 +630,7 @@ int cx231xx_do_vbi_copy(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	offset = (dma_q->lines_completed * _line_size) +
 		 current_line_bytes_copied;
 
-	/* prepare destination address */
+	
 	startwrite = p_out_buffer + offset;
 
 	lencopy = dma_q->bytes_left_in_line > bytes_to_copy ?

@@ -1,13 +1,4 @@
-/*
- * linux/arch/arm/plat-omap/debug-devices.c
- *
- * Copyright (C) 2005 Nokia Corporation
- * Modified from mach-omap2/board-h4.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -20,9 +11,7 @@
 #include <mach/gpio.h>
 
 
-/* Many OMAP development platforms reuse the same "debug board"; these
- * platforms include H2, H3, H4, and Perseus2.
- */
+
 
 static struct resource smc91x_resources[] = {
 	[0] = {
@@ -56,10 +45,10 @@ static struct platform_device led_device = {
 static struct platform_device *debug_devices[] __initdata = {
 	&smc91x_device,
 	&led_device,
-	/* ps2 kbd + mouse ports */
-	/* 4 extra uarts */
-	/* 6 input dip switches */
-	/* 8 output pins */
+	
+	
+	
+	
 };
 
 int __init debug_card_init(u32 addr, unsigned gpio)

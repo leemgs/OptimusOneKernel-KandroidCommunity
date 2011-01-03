@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/pm-simtec.c
- *
- * Copyright (c) 2004 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * http://armlinux.simtec.co.uk/
- *
- * Power Management helpers for Simtec S3C24XX implementations
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -37,16 +25,13 @@
 
 #define COPYRIGHT ", (c) 2005 Simtec Electronics"
 
-/* pm_simtec_init
- *
- * enable the power management functions
-*/
+
 
 static __init int pm_simtec_init(void)
 {
 	unsigned long gstatus4;
 
-	/* check which machine we are running on */
+	
 
 	if (!machine_is_bast() && !machine_is_vr1000() &&
 	    !machine_is_anubis() && !machine_is_osiris() &&

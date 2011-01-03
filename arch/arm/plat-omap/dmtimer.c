@@ -1,33 +1,4 @@
-/*
- * linux/arch/arm/plat-omap/dmtimer.c
- *
- * OMAP Dual-Mode Timers
- *
- * Copyright (C) 2005 Nokia Corporation
- * OMAP2 support by Juha Yrjola
- * API improvements and OMAP2 clock framework support by Timo Teras
- *
- * Copyright (C) 2009 Texas Instruments
- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the  GNU General Public License along
- * with this program; if not, write  to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/spinlock.h>
@@ -41,7 +12,7 @@
 #include <mach/dmtimer.h>
 #include <mach/irqs.h>
 
-/* register offsets */
+
 #define _OMAP_TIMER_ID_OFFSET		0x00
 #define _OMAP_TIMER_OCP_CFG_OFFSET	0x10
 #define _OMAP_TIMER_SYS_STAT_OFFSET	0x14
@@ -56,17 +27,17 @@
 #define		OMAP_TIMER_CTRL_TCM_HIGHTOLOW	(0x2 << 8)
 #define		OMAP_TIMER_CTRL_TCM_BOTHEDGES	(0x3 << 8)
 #define		OMAP_TIMER_CTRL_SCPWM		(1 << 7)
-#define		OMAP_TIMER_CTRL_CE		(1 << 6) /* compare enable */
-#define		OMAP_TIMER_CTRL_PRE		(1 << 5) /* prescaler enable */
-#define		OMAP_TIMER_CTRL_PTV_SHIFT	2 /* prescaler value shift */
+#define		OMAP_TIMER_CTRL_CE		(1 << 6) 
+#define		OMAP_TIMER_CTRL_PRE		(1 << 5) 
+#define		OMAP_TIMER_CTRL_PTV_SHIFT	2 
 #define		OMAP_TIMER_CTRL_POSTED		(1 << 2)
-#define		OMAP_TIMER_CTRL_AR		(1 << 1) /* auto-reload enable */
-#define		OMAP_TIMER_CTRL_ST		(1 << 0) /* start timer */
+#define		OMAP_TIMER_CTRL_AR		(1 << 1) 
+#define		OMAP_TIMER_CTRL_ST		(1 << 0) 
 #define _OMAP_TIMER_COUNTER_OFFSET	0x28
 #define _OMAP_TIMER_LOAD_OFFSET		0x2c
 #define _OMAP_TIMER_TRIGGER_OFFSET	0x30
 #define _OMAP_TIMER_WRITE_PEND_OFFSET	0x34
-#define		WP_NONE			0	/* no write pending bit */
+#define		WP_NONE			0	
 #define		WP_TCLR			(1 << 0)
 #define		WP_TCRR			(1 << 1)
 #define		WP_TLDR			(1 << 2)
@@ -80,14 +51,14 @@
 #define _OMAP_TIMER_MATCH_OFFSET	0x38
 #define _OMAP_TIMER_CAPTURE_OFFSET	0x3c
 #define _OMAP_TIMER_IF_CTRL_OFFSET	0x40
-#define _OMAP_TIMER_CAPTURE2_OFFSET		0x44	/* TCAR2, 34xx only */
-#define _OMAP_TIMER_TICK_POS_OFFSET		0x48	/* TPIR, 34xx only */
-#define _OMAP_TIMER_TICK_NEG_OFFSET		0x4c	/* TNIR, 34xx only */
-#define _OMAP_TIMER_TICK_COUNT_OFFSET		0x50	/* TCVR, 34xx only */
-#define _OMAP_TIMER_TICK_INT_MASK_SET_OFFSET	0x54	/* TOCR, 34xx only */
-#define _OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET	0x58	/* TOWR, 34xx only */
+#define _OMAP_TIMER_CAPTURE2_OFFSET		0x44	
+#define _OMAP_TIMER_TICK_POS_OFFSET		0x48	
+#define _OMAP_TIMER_TICK_NEG_OFFSET		0x4c	
+#define _OMAP_TIMER_TICK_COUNT_OFFSET		0x50	
+#define _OMAP_TIMER_TICK_INT_MASK_SET_OFFSET	0x54	
+#define _OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET	0x58	
 
-/* register offsets with the write pending bit encoded */
+
 #define	WPSHIFT					16
 
 #define OMAP_TIMER_ID_REG			(_OMAP_TIMER_ID_OFFSET \
@@ -309,11 +280,7 @@ static struct clk **dm_source_clocks;
 
 static spinlock_t dm_timer_lock;
 
-/*
- * Reads timer registers in posted and non-posted mode. The posted mode bit
- * is encoded in reg. Note that in posted mode write pending bit must be
- * checked. Otherwise a read of a non completed write will produce an error.
- */
+
 static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
 {
 	if (timer->posted)
@@ -323,12 +290,7 @@ static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
 	return readl(timer->io_base + (reg & 0xff));
 }
 
-/*
- * Writes timer registers in posted and non-posted mode. The posted mode bit
- * is encoded in reg. Note that in posted mode the write pending bit must be
- * checked. Otherwise a write on a register which has a pending write will be
- * lost.
- */
+
 static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
 						u32 value)
 {
@@ -364,17 +326,15 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
 	omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
 
 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
-	l |= 0x02 << 3;  /* Set to smart-idle mode */
-	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle */
+	l |= 0x02 << 3;  
+	l |= 0x2 << 8;   
 
-	/*
-	 * Enable wake-up on OMAP2 CPUs.
-	 */
+	
 	if (cpu_class_is_omap2())
 		l |= 1 << 2;
 	omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_REG, l);
 
-	/* Match hardware reset default of posted mode */
+	
 	omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG,
 			OMAP_TIMER_CTRL_POSTED);
 	timer->posted = 1;
@@ -477,19 +437,16 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
 
 #if defined(CONFIG_ARCH_OMAP1)
 
-/**
- * omap_dm_timer_modify_idlect_mask - Check if any running timers use ARMXOR
- * @inputmask: current value of idlect mask
- */
+
 __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
 {
 	int i;
 
-	/* If ARMXOR cannot be idled this function call is unnecessary */
+	
 	if (!(inputmask & (1 << 1)))
 		return inputmask;
 
-	/* If any active timer is using ARMXOR return modified mask */
+	
 	for (i = 0; i < dm_timer_count; i++) {
 		u32 l;
 
@@ -583,10 +540,7 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
 	ret = clk_set_parent(timer->fclk, dm_source_clocks[source]);
 	clk_enable(timer->fclk);
 
-	/*
-	 * When the functional clock disappears, too quick writes seem
-	 * to cause an abort. XXX Is this still necessary?
-	 */
+	
 	__delay(150000);
 
 	return ret;
@@ -612,7 +566,7 @@ void omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
 }
 EXPORT_SYMBOL_GPL(omap_dm_timer_set_load);
 
-/* Optimized set_load which removes costly spin wait in timer_start */
+
 void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
                             unsigned int load)
 {

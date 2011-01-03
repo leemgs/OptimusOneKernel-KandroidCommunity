@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s5pc1xx/cpu.c
- *
- * Copyright 2009 Samsung Electronics Co.
- *	Byungho Min <bhmin@samsung.com>
- *
- * S5PC1XX CPU Support
- *
- * Based on plat-s3c64xx/cpu.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -33,7 +21,7 @@
 
 #include <plat/s5pc100.h>
 
-/* table of supported CPUs */
+
 
 static const char name_s5pc100[] = "S5PC100";
 
@@ -48,9 +36,9 @@ static struct cpu_table cpu_ids[] __initdata = {
 		.name		= name_s5pc100,
 	},
 };
-/* minimal IO mapping */
 
-/* see notes on uart map in arch/arm/mach-s5pc100/include/mach/debug-macro.S */
+
+
 #define UART_OFFS (S3C_PA_UART & 0xffff)
 
 static struct map_desc s5pc1xx_iodesc[] __initdata = {
@@ -97,13 +85,13 @@ static struct map_desc s5pc1xx_iodesc[] __initdata = {
 	},
 };
 
-/* read cpu identification code */
+
 
 void __init s5pc1xx_init_io(struct map_desc *mach_desc, int size)
 {
 	unsigned long idcode;
 
-	/* initialise the io descriptors we need for initialisation */
+	
 	iotable_init(s5pc1xx_iodesc, ARRAY_SIZE(s5pc1xx_iodesc));
 	iotable_init(mach_desc, size);
 

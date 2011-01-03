@@ -1,14 +1,4 @@
-/*
- * rbtx4939-flash (based on physmap.c)
- *
- * This is a simplified physmap driver with map_init callback function.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Copyright (C) 2009 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>

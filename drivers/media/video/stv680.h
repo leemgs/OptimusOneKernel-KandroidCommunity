@@ -1,42 +1,21 @@
-/****************************************************************************
- *
- *  Filename: stv680.h
- *
- *  Description:
- *     This is a USB driver for STV0680 based usb video cameras.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- ****************************************************************************/
 
-/* size of usb transfers */
+
+
 #define STV680_PACKETSIZE	4096
 
-/* number of queued bulk transfers to use, may have problems if > 1 */
+
 #define STV680_NUMSBUF		1
 
-/* number of frames supported by the v4l part */
+
 #define STV680_NUMFRAMES	2
 
-/* scratch buffers for passing data to the decoders: 2 or 4 are good */
+
 #define STV680_NUMSCRATCH	2
 
-/* number of nul sized packets to receive before kicking the camera */
+
 #define STV680_MAX_NULLPACKETS	200
 
-/* number of decoding errors before kicking the camera */
+
 #define STV680_MAX_ERRORS	100
 
 #define USB_PENCAM_VENDOR_ID	0x0553
@@ -46,7 +25,7 @@
 #define USB_CREATIVEGOMINI_PRODUCT_ID	0x4007
 
 #define PENCAM_TIMEOUT          1000
-/* fmt 4 */
+
 #define STV_VIDEO_PALETTE       VIDEO_PALETTE_RGB24
 
 static struct usb_device_id device_table[] = {
@@ -61,11 +40,11 @@ struct stv680_sbuf {
 };
 
 enum {
-	FRAME_UNUSED,		/* Unused (no MCAPTURE) */
-	FRAME_READY,		/* Ready to start grabbing */
-	FRAME_GRABBING,		/* In the process of being grabbed into */
-	FRAME_DONE,		/* Finished grabbing, but not been synced yet */
-	FRAME_ERROR,		/* Something bad happened while processing */
+	FRAME_UNUSED,		
+	FRAME_READY,		
+	FRAME_GRABBING,		
+	FRAME_DONE,		
+	FRAME_ERROR,		
 };
 
 enum {
@@ -75,7 +54,7 @@ enum {
 	BUFFER_DONE,
 };
 
-/* raw camera data <- sbuf (urb transfer buf) */
+
 struct stv680_scratch {
 	unsigned char *data;
 	volatile int state;
@@ -83,49 +62,49 @@ struct stv680_scratch {
 	int length;
 };
 
-/* processed data for display ends up here, after bayer */
+
 struct stv680_frame {
-	unsigned char *data;	/* Frame buffer */
-	volatile int grabstate;	/* State of grabbing */
+	unsigned char *data;	
+	volatile int grabstate;	
 	unsigned char *curline;
 	int curlinepix;
 	int curpix;
 };
 
-/* this is almost the video structure uvd_t, with extra parameters for stv */
+
 struct usb_stv {
 	struct video_device *vdev;
 
 	struct usb_device *udev;
 
-	unsigned char bulk_in_endpointAddr;	/* __u8  the address of the bulk in endpoint */
+	unsigned char bulk_in_endpointAddr;	
 	char *camera_name;
 
-	unsigned int VideoMode;	/* 0x0100 = VGA, 0x0000 = CIF, 0x0300 = QVGA */
+	unsigned int VideoMode;	
 	int SupportedModes;
 	int CIF;
 	int VGA;
 	int QVGA;
-	int cwidth;		/* camera width */
-	int cheight;		/* camera height */
-	int maxwidth;		/* max video width */
-	int maxheight;		/* max video height */
-	int vwidth;		/* current width for video window */
-	int vheight;		/* current height for video window */
+	int cwidth;		
+	int cheight;		
+	int maxwidth;		
+	int maxheight;		
+	int vwidth;		
+	int vheight;		
 	unsigned long int rawbufsize;
-	unsigned long int maxframesize;	/* rawbufsize * 3 for RGB */
+	unsigned long int maxframesize;	
 
 	int origGain;
-	int origMode;		/* original camera mode */
+	int origMode;		
 
-	struct mutex lock;	/* to lock the structure */
-	int user;		/* user count for exclusive use */
-	int removed;		/* device disconnected */
-	int streaming;		/* Are we streaming video? */
-	char *fbuf;		/* Videodev buffer area */
-	struct urb *urb[STV680_NUMSBUF];	/* # of queued bulk transfers */
-	int curframe;		/* Current receiving frame */
-	struct stv680_frame frame[STV680_NUMFRAMES];	/* # frames supported by v4l part */
+	struct mutex lock;	
+	int user;		
+	int removed;		
+	int streaming;		
+	char *fbuf;		
+	struct urb *urb[STV680_NUMSBUF];	
+	int curframe;		
+	struct stv680_frame frame[STV680_NUMFRAMES];	
 	int readcount;
 	int framecount;
 	int error;
@@ -133,7 +112,7 @@ struct usb_stv {
 	int scratch_next;
 	int scratch_use;
 	int scratch_overflow;
-	struct stv680_scratch scratch[STV680_NUMSCRATCH];	/* for decoders */
+	struct stv680_scratch scratch[STV680_NUMSCRATCH];	
 	struct stv680_sbuf sbuf[STV680_NUMSBUF];
 
 	unsigned int brightness;
@@ -143,9 +122,9 @@ struct usb_stv {
 	unsigned int contrast;
 	unsigned int hue;
 	unsigned int palette;
-	unsigned int depth;	/* rgb24 in bits */
+	unsigned int depth;	
 
-	wait_queue_head_t wq;	/* Processes waiting */
+	wait_queue_head_t wq;	
 
 	int nullpackets;
 };

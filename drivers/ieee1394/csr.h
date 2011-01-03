@@ -8,7 +8,7 @@
 
 #define CSR_REGISTER_BASE		0xfffff0000000ULL
 
-/* register offsets relative to CSR_REGISTER_BASE */
+
 #define CSR_STATE_CLEAR			0x0
 #define CSR_STATE_SET			0x4
 #define CSR_NODE_IDS			0x8
@@ -34,10 +34,10 @@
 #define CSR_SPEED_MAP			0x2000
 #define CSR_SPEED_MAP_END		0x3000
 
-/* IEEE 1394 bus specific Configuration ROM Key IDs */
+
 #define IEEE1394_KV_ID_POWER_REQUIREMENTS (0x30)
 
-/* IEEE 1394 Bus Information Block specifics */
+
 #define CSR_BUS_INFO_SIZE (5 * sizeof(quadlet_t))
 
 #define CSR_IRMC_SHIFT			31
@@ -62,7 +62,7 @@ struct csr_control {
 	quadlet_t state;
 	quadlet_t node_ids;
 	quadlet_t split_timeout_hi, split_timeout_lo;
-	unsigned long expire;	/* Calculated from split_timeout */
+	unsigned long expire;	
 	quadlet_t cycle_time;
 	quadlet_t bus_time;
 	quadlet_t bus_manager_id;
@@ -70,12 +70,12 @@ struct csr_control {
 	quadlet_t channels_available_hi, channels_available_lo;
 	quadlet_t broadcast_channel;
 
-	/* Bus Info */
+	
 	quadlet_t guid_hi, guid_lo;
 	u8 cyc_clk_acc;
 	u8 max_rec;
 	u8 max_rom;
-	u8 generation;	/* Only use values between 0x2 and 0xf */
+	u8 generation;	
 	u8 lnk_spd;
 
 	unsigned long gen_timestamp[16];
@@ -91,9 +91,9 @@ extern struct csr1212_bus_ops csr_bus_ops;
 int init_csr(void);
 void cleanup_csr(void);
 
-/* hpsb_update_config_rom() is deprecated */
+
 struct hpsb_host;
 int hpsb_update_config_rom(struct hpsb_host *host, const quadlet_t *new_rom,
 			   size_t size, unsigned char rom_version);
 
-#endif /* _IEEE1394_CSR_H */
+#endif 

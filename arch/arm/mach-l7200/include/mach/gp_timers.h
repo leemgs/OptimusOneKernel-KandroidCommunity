@@ -1,20 +1,10 @@
-/*
- * arch/arm/mach-l7200/include/mach/gp_timers.h
- *
- * Copyright (C) 2000 Steve Hill (sjhill@cotw.com)
- *
- * Changelog:
- *   07-28-2000	SJH	Created file
- *   08-02-2000	SJH	Used structure for registers
- */
+
 #ifndef _ASM_ARCH_GPTIMERS_H
 #define _ASM_ARCH_GPTIMERS_H
 
 #include <mach/hardware.h>
 
-/*
- * Layout of L7200 general purpose timer registers
- */
+
 struct GPT_Regs {
 	unsigned int TIMERLOAD;
 	unsigned int TIMERVALUE;
@@ -26,9 +16,7 @@ struct GPT_Regs {
 #define l7200_timer1_regs	((volatile struct GPT_Regs *) (GPT_BASE))
 #define l7200_timer2_regs	((volatile struct GPT_Regs *) (GPT_BASE + 0x20))
 
-/*
- * General register values
- */
+
 #define	GPT_PRESCALE_1		0x00000000
 #define	GPT_PRESCALE_16		0x00000004
 #define	GPT_PRESCALE_256	0x00000008

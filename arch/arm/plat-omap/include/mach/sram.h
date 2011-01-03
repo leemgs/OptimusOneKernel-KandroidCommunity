@@ -1,12 +1,4 @@
-/*
- * arch/arm/plat-omap/include/mach/sram.h
- *
- * Interface for functions that need to be run in internal SRAM
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ARCH_ARM_OMAP_SRAM_H
 #define __ARCH_ARM_OMAP_SRAM_H
@@ -28,7 +20,7 @@ extern u32 omap3_configure_core_dpll(
 			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
 			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
 
-/* Do not use these */
+
 extern void omap1_sram_reprogram_clock(u32 ckctl, u32 dpllctl);
 extern unsigned long omap1_sram_reprogram_clock_sz;
 

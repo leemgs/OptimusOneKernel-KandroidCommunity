@@ -1,31 +1,4 @@
-/*
- *
- * BRIEF MODULE DESCRIPTION
- *      IT8172 IDE controller support
- *
- * Copyright (C) 2000 MontaVista Software Inc.
- * Copyright (C) 2008 Shane McDonald
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
- *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
- *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
- *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
- *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  You should have received a copy of the  GNU General Public License along
- *  with this program; if not, write  to the Free Software Foundation, Inc.,
- *  675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -44,30 +17,21 @@ static void it8172_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	u16 drive_enables;
 	u32 drive_timing;
 
-	/*
-	 * The highest value of DIOR/DIOW pulse width and recovery time
-	 * that can be set in the IT8172 is 8 PCI clock cycles.  As a result,
-	 * it cannot be configured for PIO mode 0.  This table sets these
-	 * parameters to the maximum supported by the IT8172.
-	 */
+	
 	static const u8 timings[] = { 0x3f, 0x3c, 0x1b, 0x12, 0x0a };
 
 	pci_read_config_word(dev, 0x40, &drive_enables);
 	pci_read_config_dword(dev, 0x44, &drive_timing);
 
-	/*
-	 * Enable port 0x44. The IT8172 spec is confused; it calls
-	 * this register the "Slave IDE Timing Register", but in fact,
-	 * it controls timing for both master and slave drives.
-	 */
+	
 	drive_enables |= 0x4000;
 
 	drive_enables &= drive->dn ? 0xc006 : 0xc060;
 	if (drive->media == ide_disk)
-		/* enable prefetch */
+		
 		drive_enables |= 0x0004 << (drive->dn * 4);
 	if (ide_pio_need_iordy(drive, pio))
-		/* enable IORDY sample-point */
+		
 		drive_enables |= 0x0002 << (drive->dn * 4);
 
 	drive_timing &= drive->dn ? 0x00003f00 : 0x000fc000;
@@ -129,7 +93,7 @@ static int __devinit it8172_init_one(struct pci_dev *dev,
 					const struct pci_device_id *id)
 {
 	if ((dev->class >> 8) != PCI_CLASS_STORAGE_IDE)
-		return -ENODEV; /* IT8172 is more than an IDE controller */
+		return -ENODEV; 
 	return ide_pci_init_one(dev, &it8172_port_info, NULL);
 }
 

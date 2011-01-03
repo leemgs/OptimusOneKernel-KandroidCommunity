@@ -1,24 +1,4 @@
-  /*
-     Driver for Philips tda8262/tda8263 DVBS Silicon tuners
-
-     (c) 2006 Andrew de Quincey
-
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-
-     GNU General Public License for more details.
-
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-  */
+  
 
 #include <linux/module.h>
 #include <linux/dvb/frontend.h>
@@ -33,7 +13,7 @@ static int debug;
 	} while (0)
 
 struct tda826x_priv {
-	/* i2c details */
+	
 	int i2c_address;
 	struct i2c_adapter *i2c;
 	u8 has_loopthrough:1;
@@ -84,8 +64,8 @@ static int tda826x_set_params(struct dvb_frontend *fe, struct dvb_frontend_param
 
 	div = (params->frequency + (1000-1)) / 1000;
 
-	/* BW = ((1 + RO) * SR/2 + 5) * 1.3      [SR in MSPS, BW in MHz] */
-	/* with R0 = 0.35 and some transformations: */
+	
+	
 	ksyms = params->u.qpsk.symbol_rate / 1000;
 	bandwidth = (878 * ksyms + 6500000) / 1000000 + 1;
 	if (bandwidth < 5)
@@ -93,19 +73,19 @@ static int tda826x_set_params(struct dvb_frontend *fe, struct dvb_frontend_param
 	else if (bandwidth > 36)
 		bandwidth = 36;
 
-	buf[0] = 0x00; // subaddress
-	buf[1] = 0x09; // powerdown RSSI + the magic value 1
+	buf[0] = 0x00; 
+	buf[1] = 0x09; 
 	if (!priv->has_loopthrough)
-		buf[1] |= 0x20; // power down loopthrough if not needed
-	buf[2] = (1<<5) | 0x0b; // 1Mhz + 0.45 VCO
+		buf[1] |= 0x20; 
+	buf[2] = (1<<5) | 0x0b; 
 	buf[3] = div >> 7;
 	buf[4] = div << 1;
-	buf[5] = ((bandwidth - 5) << 3) | 7; /* baseband cut-off */
-	buf[6] = 0xfe; // baseband gain 9 db + no RF attenuation
-	buf[7] = 0x83; // charge pumps at high, tests off
-	buf[8] = 0x80; // recommended value 4 for AMPVCO + disable ports.
-	buf[9] = 0x1a; // normal caltime + recommended values for SELTH + SELVTL
-	buf[10] = 0xd4; // recommended value 13 for BBIAS + unknown bit set on
+	buf[5] = ((bandwidth - 5) << 3) | 7; 
+	buf[6] = 0xfe; 
+	buf[7] = 0x83; 
+	buf[8] = 0x80; 
+	buf[9] = 0x1a; 
+	buf[10] = 0xd4; 
 
 	if (fe->ops.i2c_gate_ctrl)
 		fe->ops.i2c_gate_ctrl(fe, 1);

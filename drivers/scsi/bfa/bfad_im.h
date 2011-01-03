@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFAD_IM_H__
 #define __BFAD_IM_H__
@@ -47,9 +32,7 @@ void bfad_im_scsi_host_free(struct bfad_s *bfad,
 #define BFA_QUEUE_FULL_RAMP_UP_TIME 120
 #define BFAD_KOBJ_NAME_LEN 20
 
-/*
- * itnim flags
- */
+
 #define ITNIM_MAPPED		0x00000001
 
 #define SCSI_TASK_MGMT		0x00000001
@@ -79,9 +62,7 @@ enum bfad_itnim_state {
 	ITNIM_STATE_FREE,
 };
 
-/*
- * Per itnim data structure
- */
+
 struct bfad_itnim_s {
 	struct list_head list_entry;
 	struct bfa_fcs_itnim_s fcs_itnim;
@@ -136,9 +117,7 @@ struct bfad_itnim_s *bfad_os_get_itnim(struct bfad_im_port_s *im_port, int id);
 int bfad_os_scsi_add_host(struct Scsi_Host *shost,
 		struct bfad_im_port_s *im_port, struct bfad_s *bfad);
 
-/*
- * scsi_host_template entries
- */
+
 void bfad_im_itnim_unmap(struct bfad_im_port_s  *im_port,
 			 struct bfad_itnim_s *itnim);
 

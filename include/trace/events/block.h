@@ -521,8 +521,8 @@ TRACE_EVENT(block_rq_remap,
 		  (unsigned long long)__entry->old_sector)
 );
 
-#endif /* _TRACE_BLOCK_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>
 

@@ -1,17 +1,4 @@
-/*
- * ip_vs_proto.c: transport protocol load balancing support for IPVS
- *
- * Authors:     Wensong Zhang <wensong@linuxvirtualserver.org>
- *              Julian Anastasov <ja@ssi.bg>
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Changes:
- *
- */
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -31,21 +18,15 @@
 #include <net/ip_vs.h>
 
 
-/*
- * IPVS protocols can only be registered/unregistered when the ipvs
- * module is loaded/unloaded, so no lock is needed in accessing the
- * ipvs protocol table.
- */
 
-#define IP_VS_PROTO_TAB_SIZE		32	/* must be power of 2 */
+
+#define IP_VS_PROTO_TAB_SIZE		32	
 #define IP_VS_PROTO_HASH(proto)		((proto) & (IP_VS_PROTO_TAB_SIZE-1))
 
 static struct ip_vs_protocol *ip_vs_proto_table[IP_VS_PROTO_TAB_SIZE];
 
 
-/*
- *	register an ipvs protocol
- */
+
 static int __used __init register_ip_vs_protocol(struct ip_vs_protocol *pp)
 {
 	unsigned hash = IP_VS_PROTO_HASH(pp->protocol);
@@ -60,9 +41,7 @@ static int __used __init register_ip_vs_protocol(struct ip_vs_protocol *pp)
 }
 
 
-/*
- *	unregister an ipvs protocol
- */
+
 static int unregister_ip_vs_protocol(struct ip_vs_protocol *pp)
 {
 	struct ip_vs_protocol **pp_p;
@@ -82,9 +61,7 @@ static int unregister_ip_vs_protocol(struct ip_vs_protocol *pp)
 }
 
 
-/*
- *	get ip_vs_protocol object by its proto.
- */
+
 struct ip_vs_protocol * ip_vs_proto_get(unsigned short proto)
 {
 	struct ip_vs_protocol *pp;
@@ -99,9 +76,7 @@ struct ip_vs_protocol * ip_vs_proto_get(unsigned short proto)
 }
 
 
-/*
- *	Propagate event for state change to all protocols
- */
+
 void ip_vs_protocol_timeout_change(int flags)
 {
 	struct ip_vs_protocol *pp;
@@ -123,9 +98,7 @@ ip_vs_create_timeout_table(int *table, int size)
 }
 
 
-/*
- *	Set timeout value for state specified by name
- */
+
 int
 ip_vs_set_state_timeout(int *table, int num, const char *const *names,
 			const char *name, int to)
@@ -274,7 +247,7 @@ void ip_vs_protocol_cleanup(void)
 	struct ip_vs_protocol *pp;
 	int i;
 
-	/* unregister all the ipvs protocols */
+	
 	for (i = 0; i < IP_VS_PROTO_TAB_SIZE; i++) {
 		while ((pp = ip_vs_proto_table[i]) != NULL)
 			unregister_ip_vs_protocol(pp);

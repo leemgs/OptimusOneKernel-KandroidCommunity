@@ -1,25 +1,4 @@
-/* linux/drivers/mtd/nand/s3c2410.c
- *
- * Copyright © 2004-2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Samsung S3C2410/S3C2440/S3C2412 NAND driver
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #ifdef CONFIG_MTD_NAND_S3C2410_DEBUG
 #define DEBUG
@@ -61,8 +40,7 @@ static const int clock_stop = 0;
 #endif
 
 
-/* new oob placement block for use with hardware ecc generation
- */
+
 
 static struct nand_ecclayout nand_hw_eccoob = {
 	.eccbytes = 3,
@@ -70,18 +48,11 @@ static struct nand_ecclayout nand_hw_eccoob = {
 	.oobfree = {{8, 8}}
 };
 
-/* controller and mtd information */
+
 
 struct s3c2410_nand_info;
 
-/**
- * struct s3c2410_nand_mtd - driver MTD structure
- * @mtd: The MTD instance to pass to the MTD layer.
- * @chip: The NAND chip information.
- * @set: The platform information supplied for this set of NAND chips.
- * @info: Link back to the hardware information.
- * @scan_res: The result from calling nand_scan_ident().
-*/
+
 struct s3c2410_nand_mtd {
 	struct mtd_info			mtd;
 	struct nand_chip		chip;
@@ -96,30 +67,16 @@ enum s3c_cpu_type {
 	TYPE_S3C2440,
 };
 
-/* overview of the s3c2410 nand state */
 
-/**
- * struct s3c2410_nand_info - NAND controller state.
- * @mtds: An array of MTD instances on this controoler.
- * @platform: The platform data for this board.
- * @device: The platform device we bound to.
- * @area: The IO area resource that came from request_mem_region().
- * @clk: The clock resource for this controller.
- * @regs: The area mapped for the hardware registers described by @area.
- * @sel_reg: Pointer to the register controlling the NAND selection.
- * @sel_bit: The bit in @sel_reg to select the NAND chip.
- * @mtd_count: The number of MTDs created from this controller.
- * @save_sel: The contents of @sel_reg to be saved over suspend.
- * @clk_rate: The clock rate from @clk.
- * @cpu_type: The exact type of this controller.
- */
+
+
 struct s3c2410_nand_info {
-	/* mtd info */
+	
 	struct nand_hw_control		controller;
 	struct s3c2410_nand_mtd		*mtds;
 	struct s3c2410_platform_nand	*platform;
 
-	/* device info */
+	
 	struct device			*device;
 	struct resource			*area;
 	struct clk			*clk;
@@ -137,7 +94,7 @@ struct s3c2410_nand_info {
 #endif
 };
 
-/* conversion functions */
+
 
 static struct s3c2410_nand_mtd *s3c2410_nand_mtd_toours(struct mtd_info *mtd)
 {
@@ -164,18 +121,11 @@ static inline int allow_clk_stop(struct s3c2410_nand_info *info)
 	return clock_stop;
 }
 
-/* timing calculations */
+
 
 #define NS_IN_KHZ 1000000
 
-/**
- * s3c_nand_calc_rate - calculate timing data.
- * @wanted: The cycle time in nanoseconds.
- * @clk: The clock rate in kHz.
- * @max: The maximum divider value.
- *
- * Calculate the timing value from the given parameters.
- */
+
 static int s3c_nand_calc_rate(int wanted, unsigned long clk, int max)
 {
 	int result;
@@ -197,16 +147,9 @@ static int s3c_nand_calc_rate(int wanted, unsigned long clk, int max)
 
 #define to_ns(ticks,clk) (((ticks) * NS_IN_KHZ) / (unsigned int)(clk))
 
-/* controller setup */
 
-/**
- * s3c2410_nand_setrate - setup controller timing information.
- * @info: The controller instance.
- *
- * Given the information supplied by the platform, calculate and set
- * the necessary timing registers in the hardware to generate the
- * necessary timing cycles to the hardware.
- */
+
+
 static int s3c2410_nand_setrate(struct s3c2410_nand_info *info)
 {
 	struct s3c2410_platform_nand *plat = info->platform;
@@ -216,17 +159,17 @@ static int s3c2410_nand_setrate(struct s3c2410_nand_info *info)
 	unsigned long uninitialized_var(set), cfg, uninitialized_var(mask);
 	unsigned long flags;
 
-	/* calculate the timing information for the controller */
+	
 
 	info->clk_rate = clkrate;
-	clkrate /= 1000;	/* turn clock into kHz for ease of use */
+	clkrate /= 1000;	
 
 	if (plat != NULL) {
 		tacls = s3c_nand_calc_rate(plat->tacls, clkrate, tacls_max);
 		twrph0 = s3c_nand_calc_rate(plat->twrph0, clkrate, 8);
 		twrph1 = s3c_nand_calc_rate(plat->twrph1, clkrate, 8);
 	} else {
-		/* default timings */
+		
 		tacls = tacls_max;
 		twrph0 = 8;
 		twrph1 = 8;
@@ -280,13 +223,7 @@ static int s3c2410_nand_setrate(struct s3c2410_nand_info *info)
 	return 0;
 }
 
-/**
- * s3c2410_nand_inithw - basic hardware initialisation
- * @info: The hardware state.
- *
- * Do the basic initialisation of the hardware, using s3c2410_nand_setrate()
- * to setup the hardware access speeds and set the controller to be enabled.
-*/
+
 static int s3c2410_nand_inithw(struct s3c2410_nand_info *info)
 {
 	int ret;
@@ -302,7 +239,7 @@ static int s3c2410_nand_inithw(struct s3c2410_nand_info *info)
 
  	case TYPE_S3C2440:
  	case TYPE_S3C2412:
-		/* enable the controller and de-assert nFCE */
+		
 
 		writel(S3C2440_NFCONT_ENABLE, info->regs + S3C2440_NFCONT);
 	}
@@ -310,19 +247,7 @@ static int s3c2410_nand_inithw(struct s3c2410_nand_info *info)
 	return 0;
 }
 
-/**
- * s3c2410_nand_select_chip - select the given nand chip
- * @mtd: The MTD instance for this chip.
- * @chip: The chip number.
- *
- * This is called by the MTD layer to either select a given chip for the
- * @mtd instance, or to indicate that the access has finished and the
- * chip can be de-selected.
- *
- * The routine ensures that the nFCE line is correctly setup, and any
- * platform specific selection code is called to route nFCE to the specific
- * chip.
- */
+
 static void s3c2410_nand_select_chip(struct mtd_info *mtd, int chip)
 {
 	struct s3c2410_nand_info *info;
@@ -360,10 +285,7 @@ static void s3c2410_nand_select_chip(struct mtd_info *mtd, int chip)
 		clk_disable(info->clk);
 }
 
-/* s3c2410_nand_hwcontrol
- *
- * Issue command and address cycles to the chip
-*/
+
 
 static void s3c2410_nand_hwcontrol(struct mtd_info *mtd, int cmd,
 				   unsigned int ctrl)
@@ -379,7 +301,7 @@ static void s3c2410_nand_hwcontrol(struct mtd_info *mtd, int cmd,
 		writeb(cmd, info->regs + S3C2410_NFADDR);
 }
 
-/* command and control functions */
+
 
 static void s3c2440_nand_hwcontrol(struct mtd_info *mtd, int cmd,
 				   unsigned int ctrl)
@@ -395,10 +317,7 @@ static void s3c2440_nand_hwcontrol(struct mtd_info *mtd, int cmd,
 		writeb(cmd, info->regs + S3C2440_NFADDR);
 }
 
-/* s3c2410_nand_devready()
- *
- * returns 0 if the nand is busy, 1 if it is ready
-*/
+
 
 static int s3c2410_nand_devready(struct mtd_info *mtd)
 {
@@ -418,7 +337,7 @@ static int s3c2412_nand_devready(struct mtd_info *mtd)
 	return readb(info->regs + S3C2412_NFSTAT) & S3C2412_NFSTAT_READY;
 }
 
-/* ECC handling functions */
+
 
 static int s3c2410_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 				     u_char *read_ecc, u_char *calc_ecc)
@@ -440,29 +359,25 @@ static int s3c2410_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 		 diff0, diff1, diff2);
 
 	if (diff0 == 0 && diff1 == 0 && diff2 == 0)
-		return 0;		/* ECC is ok */
+		return 0;		
 
-	/* sometimes people do not think about using the ECC, so check
-	 * to see if we have an 0xff,0xff,0xff read ECC and then ignore
-	 * the error, on the assumption that this is an un-eccd page.
-	 */
+	
 	if (read_ecc[0] == 0xff && read_ecc[1] == 0xff && read_ecc[2] == 0xff
 	    && info->platform->ignore_unset_ecc)
 		return 0;
 
-	/* Can we correct this ECC (ie, one row and column change).
-	 * Note, this is similar to the 256 error code on smartmedia */
+	
 
 	if (((diff0 ^ (diff0 >> 1)) & 0x55) == 0x55 &&
 	    ((diff1 ^ (diff1 >> 1)) & 0x55) == 0x55 &&
 	    ((diff2 ^ (diff2 >> 1)) & 0x55) == 0x55) {
-		/* calculate the bit position of the error */
+		
 
 		bit  = ((diff2 >> 3) & 1) |
 		       ((diff2 >> 4) & 2) |
 		       ((diff2 >> 5) & 4);
 
-		/* calculate the byte position of the error */
+		
 
 		byte = ((diff2 << 7) & 0x100) |
 		       ((diff1 << 0) & 0x80)  |
@@ -481,9 +396,7 @@ static int s3c2410_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 		return 1;
 	}
 
-	/* if there is only one bit difference in the ECC, then
-	 * one of only a row or column parity has changed, which
-	 * means the error is most probably in the ECC itself */
+	
 
 	diff0 |= (diff1 << 8);
 	diff0 |= (diff2 << 16);
@@ -494,11 +407,7 @@ static int s3c2410_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 	return -1;
 }
 
-/* ECC functions
- *
- * These allow the s3c2410 and s3c2440 to use the controller's ECC
- * generator block to ECC the data as it passes through]
-*/
+
 
 static void s3c2410_nand_enable_hwecc(struct mtd_info *mtd, int mode)
 {
@@ -570,9 +479,7 @@ static int s3c2440_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat, u
 	return 0;
 }
 
-/* over-ride the standard functions for a little more speed. We can
- * use read/write block to move the data buffers to/from the controller
-*/
+
 
 static void s3c2410_nand_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 {
@@ -586,7 +493,7 @@ static void s3c2440_nand_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 
 	readsl(info->regs + S3C2440_NFDATA, buf, len >> 2);
 
-	/* cleanup if we've got less than a word to do */
+	
 	if (len & 3) {
 		buf += len & ~3;
 
@@ -607,7 +514,7 @@ static void s3c2440_nand_write_buf(struct mtd_info *mtd, const u_char *buf, int 
 
 	writesl(info->regs + S3C2440_NFDATA, buf, len >> 2);
 
-	/* cleanup any fractional write */
+	
 	if (len & 3) {
 		buf += len & ~3;
 
@@ -616,7 +523,7 @@ static void s3c2440_nand_write_buf(struct mtd_info *mtd, const u_char *buf, int 
 	}
 }
 
-/* cpufreq driver support */
+
 
 #ifdef CONFIG_CPU_FREQ
 
@@ -662,7 +569,7 @@ static inline void s3c2410_nand_cpufreq_deregister(struct s3c2410_nand_info *inf
 }
 #endif
 
-/* device management functions */
+
 
 static int s3c24xx_nand_remove(struct platform_device *pdev)
 {
@@ -675,9 +582,7 @@ static int s3c24xx_nand_remove(struct platform_device *pdev)
 
 	s3c2410_nand_cpufreq_deregister(info);
 
-	/* Release all our mtds  and their partitions, then go through
-	 * freeing the resources used
-	 */
+	
 
 	if (info->mtds != NULL) {
 		struct s3c2410_nand_mtd *ptr = info->mtds;
@@ -691,7 +596,7 @@ static int s3c24xx_nand_remove(struct platform_device *pdev)
 		kfree(info->mtds);
 	}
 
-	/* free the common resources */
+	
 
 	if (info->clk != NULL && !IS_ERR(info->clk)) {
 		if (!allow_clk_stop(info))
@@ -752,16 +657,7 @@ static int s3c2410_nand_add_partition(struct s3c2410_nand_info *info,
 }
 #endif
 
-/**
- * s3c2410_nand_init_chip - initialise a single instance of an chip
- * @info: The base NAND controller the chip is on.
- * @nmtd: The new controller MTD instance to fill in.
- * @set: The information passed from the board specific platform data.
- *
- * Initialise the given @nmtd from the information in @info and @set. This
- * readies the structure for use with the MTD layer functions by ensuring
- * all pointers are setup and the necessary control routines selected.
- */
+
 static void s3c2410_nand_init_chip(struct s3c2410_nand_info *info,
 				   struct s3c2410_nand_mtd *nmtd,
 				   struct s3c2410_nand_set *set)
@@ -863,24 +759,12 @@ static void s3c2410_nand_init_chip(struct s3c2410_nand_info *info,
 		break;
 	}
 
-	/* If you use u-boot BBT creation code, specifying this flag will
-	 * let the kernel fish out the BBT from the NAND, and also skip the
-	 * full NAND scan that can take 1/2s or so. Little things... */
+	
 	if (set->flash_bbt)
 		chip->options |= NAND_USE_FLASH_BBT | NAND_SKIP_BBTSCAN;
 }
 
-/**
- * s3c2410_nand_update_chip - post probe update
- * @info: The controller instance.
- * @nmtd: The driver version of the MTD instance.
- *
- * This routine is called after the chip probe has succesfully completed
- * and the relevant per-chip information updated. This call ensure that
- * we update the internal state accordingly.
- *
- * The internal state is currently limited to the ECC state information.
-*/
+
 static void s3c2410_nand_update_chip(struct s3c2410_nand_info *info,
 				     struct s3c2410_nand_mtd *nmtd)
 {
@@ -892,8 +776,7 @@ static void s3c2410_nand_update_chip(struct s3c2410_nand_info *info,
 	if (chip->ecc.mode != NAND_ECC_HW)
 		return;
 
-		/* change the behaviour depending on wether we are using
-		 * the large or small page nand device */
+		
 
 	if (chip->page_shift > 10) {
 		chip->ecc.size	    = 256;
@@ -905,13 +788,7 @@ static void s3c2410_nand_update_chip(struct s3c2410_nand_info *info,
 	}
 }
 
-/* s3c24xx_nand_probe
- *
- * called by device layer when it finds a device matching
- * one our driver can handled. This code checks to see if
- * it can allocate all necessary resources then calls the
- * nand layer to look for devices
-*/
+
 static int s3c24xx_nand_probe(struct platform_device *pdev)
 {
 	struct s3c2410_platform_nand *plat = to_nand_plat(pdev);
@@ -942,7 +819,7 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
 	spin_lock_init(&info->controller.lock);
 	init_waitqueue_head(&info->controller.wq);
 
-	/* get the clock source and enable it */
+	
 
 	info->clk = clk_get(&pdev->dev, "nand");
 	if (IS_ERR(info->clk)) {
@@ -953,9 +830,9 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
 
 	clk_enable(info->clk);
 
-	/* allocate and map the resource */
+	
 
-	/* currently we assume we have the one resource */
+	
 	res  = pdev->resource;
 	size = res->end - res->start + 1;
 
@@ -980,7 +857,7 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
 
 	dev_dbg(&pdev->dev, "mapped registers at %p\n", info->regs);
 
-	/* initialise the hardware */
+	
 
 	err = s3c2410_nand_inithw(info);
 	if (err != 0)
@@ -991,7 +868,7 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
 
 	info->mtd_count = nr_sets;
 
-	/* allocate our information */
+	
 
 	size = nr_sets * sizeof(*info->mtds);
 	info->mtds = kmalloc(size, GFP_KERNEL);
@@ -1003,7 +880,7 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
 
 	memset(info->mtds, 0, size);
 
-	/* initialise all possible chips */
+	
 
 	nmtd = info->mtds;
 
@@ -1047,7 +924,7 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
 	return err;
 }
 
-/* PM Support */
+
 #ifdef CONFIG_PM
 
 static int s3c24xx_nand_suspend(struct platform_device *dev, pm_message_t pm)
@@ -1057,10 +934,7 @@ static int s3c24xx_nand_suspend(struct platform_device *dev, pm_message_t pm)
 	if (info) {
 		info->save_sel = readl(info->sel_reg);
 
-		/* For the moment, we must ensure nFCE is high during
-		 * the time we are suspended. This really should be
-		 * handled by suspending the MTDs we are using, but
-		 * that is currently not the case. */
+		
 
 		writel(info->save_sel | info->sel_bit, info->sel_reg);
 
@@ -1080,7 +954,7 @@ static int s3c24xx_nand_resume(struct platform_device *dev)
 		clk_enable(info->clk);
 		s3c2410_nand_inithw(info);
 
-		/* Restore the state of the nFCE line. */
+		
 
 		sel = readl(info->sel_reg);
 		sel &= ~info->sel_bit;
@@ -1099,7 +973,7 @@ static int s3c24xx_nand_resume(struct platform_device *dev)
 #define s3c24xx_nand_resume NULL
 #endif
 
-/* driver device registration */
+
 
 static struct platform_device_id s3c24xx_driver_ids[] = {
 	{
@@ -1113,7 +987,7 @@ static struct platform_device_id s3c24xx_driver_ids[] = {
 		.driver_data	= TYPE_S3C2412,
 	}, {
 		.name		= "s3c6400-nand",
-		.driver_data	= TYPE_S3C2412, /* compatible with 2412 */
+		.driver_data	= TYPE_S3C2412, 
 	},
 	{ }
 };

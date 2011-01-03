@@ -1,14 +1,4 @@
-/*
- * Generic GPIO driver for logic cells found in the Nomadik SoC
- *
- * Copyright (C) 2008,2009 STMicroelectronics
- * Copyright (C) 2009 Alessandro Rubini <rubini@unipv.it>
- *   Rewritten based on work by Prafulla WADASKAR <prafulla.wadaskar@st.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -23,13 +13,7 @@
 #include <mach/hardware.h>
 #include <mach/gpio.h>
 
-/*
- * The GPIO module in the Nomadik family of Systems-on-Chip is an
- * AMBA device, managing 32 pins and alternate functions.  The logic block
- * is currently only used in the Nomadik.
- *
- * Symbols in this file are called "nmk_gpio" for "nomadik gpio"
- */
+
 
 #define NMK_GPIO_PER_CHIP 32
 struct nmk_gpio_chip {
@@ -37,12 +21,12 @@ struct nmk_gpio_chip {
 	void __iomem *addr;
 	unsigned int parent_irq;
 	spinlock_t *lock;
-	/* Keep track of configured edges */
+	
 	u32 edge_rising;
 	u32 edge_falling;
 };
 
-/* Mode functions */
+
 int nmk_gpio_set_mode(int gpio, int gpio_mode)
 {
 	struct nmk_gpio_chip *nmk_chip;
@@ -89,7 +73,7 @@ int nmk_gpio_get_mode(int gpio)
 EXPORT_SYMBOL(nmk_gpio_get_mode);
 
 
-/* IRQ functions */
+
 static inline int nmk_gpio_get_bitmask(int gpio)
 {
 	return 1 << (gpio % 32);
@@ -120,7 +104,7 @@ static void nmk_gpio_irq_mask(unsigned int irq)
 	if (!nmk_chip)
 		return;
 
-	/* we must individually clear the two edges */
+	
 	spin_lock_irqsave(&nmk_chip->lock, flags);
 	if (nmk_chip->edge_rising & bitmask) {
 		reg = readl(nmk_chip->addr + NMK_GPIO_RWIMSC);
@@ -148,7 +132,7 @@ static void nmk_gpio_irq_unmask(unsigned int irq)
 	if (!nmk_chip)
 		return;
 
-	/* we must individually set the two edges */
+	
 	spin_lock_irqsave(&nmk_chip->lock, flags);
 	if (nmk_chip->edge_rising & bitmask) {
 		reg = readl(nmk_chip->addr + NMK_GPIO_RWIMSC);
@@ -222,7 +206,7 @@ static void nmk_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 		gpio_irq = first_irq + __ffs(pending);
 		generic_handle_irq(gpio_irq);
 	}
-	if (0) {/* don't ack parent irq, as ack == disable */
+	if (0) {
 		host_chip = get_irq_chip(irq);
 		host_chip->ack(irq);
 	}
@@ -245,7 +229,7 @@ static int nmk_gpio_init_irq(struct nmk_gpio_chip *nmk_chip)
 	return 0;
 }
 
-/* I/O Functions */
+
 static int nmk_gpio_make_input(struct gpio_chip *chip, unsigned offset)
 {
 	struct nmk_gpio_chip *nmk_chip =
@@ -287,7 +271,7 @@ static void nmk_gpio_set_output(struct gpio_chip *chip, unsigned offset,
 		writel(bit, nmk_chip->addr + NMK_GPIO_DATC);
 }
 
-/* This structure is replicated for each GPIO block allocated at probe time */
+
 static struct gpio_chip nmk_gpio_template = {
 	.direction_input	= nmk_gpio_make_input,
 	.get			= nmk_gpio_get_input,
@@ -314,10 +298,7 @@ static int __init nmk_gpio_probe(struct amba_device *dev, struct amba_id *id)
 		ret = -ENOMEM;
 		goto out_amba;
 	}
-	/*
-	 * The virt address in nmk_chip->addr is in the nomadik register space,
-	 * so we can simply convert the resource address, without remapping
-	 */
+	
 	nmk_chip->addr = io_p2v(dev->res.start);
 	nmk_chip->chip = nmk_gpio_template;
 	nmk_chip->parent_irq = pdata->parent_irq;
@@ -361,7 +342,7 @@ static int nmk_gpio_remove(struct amba_device *dev)
 }
 
 
-/* We have 0x1f080060 and 0x1f180060, accept both using the mask */
+
 static struct amba_id nmk_gpio_ids[] = {
 	{
 		.id	= 0x1f080060,
@@ -377,7 +358,7 @@ static struct amba_driver nmk_gpio_driver = {
 		},
 	.probe = nmk_gpio_probe,
 	.remove = nmk_gpio_remove,
-	.suspend = NULL, /* to be done */
+	.suspend = NULL, 
 	.resume = NULL,
 	.id_table = nmk_gpio_ids,
 };

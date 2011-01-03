@@ -1,22 +1,6 @@
-/*
- *  Bluetooth Wacom Tablet support
- *
- *  Copyright (c) 1999 Andreas Gal
- *  Copyright (c) 2000-2005 Vojtech Pavlik <vojtech@suse.cz>
- *  Copyright (c) 2005 Michael Haboustak <mike-@cinci.rr.com> for Concept2, Inc
- *  Copyright (c) 2006-2007 Jiri Kosina
- *  Copyright (c) 2007 Paul Walmsley
- *  Copyright (c) 2008 Jiri Slaby <jirislaby@gmail.com>
- *  Copyright (c) 2006 Andrew Zabolotny <zap@homelink.ru>
- *  Copyright (c) 2009 Bastien Nocera <hadess@hadess.net>
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/hid.h>
@@ -45,40 +29,40 @@ static int wacom_raw_event(struct hid_device *hdev, struct hid_report *report,
 	hidinput = list_entry(hdev->inputs.next, struct hid_input, list);
 	input = hidinput->input;
 
-	/* Check if this is a tablet report */
+	
 	if (data[0] != 0x03)
 		return 0;
 
-	/* Get X & Y positions */
+	
 	x = le16_to_cpu(*(__le16 *) &data[2]);
 	y = le16_to_cpu(*(__le16 *) &data[4]);
 
-	/* Get current tool identifier */
-	if (data[1] & 0x90) { /* If pen is in the in/active area */
+	
+	if (data[1] & 0x90) { 
 		switch ((data[1] >> 5) & 3) {
-		case 0:	/* Pen */
+		case 0:	
 			tool = BTN_TOOL_PEN;
 			break;
 
-		case 1: /* Rubber */
+		case 1: 
 			tool = BTN_TOOL_RUBBER;
 			break;
 
-		case 2: /* Mouse with wheel */
-		case 3: /* Mouse without wheel */
+		case 2: 
+		case 3: 
 			tool = BTN_TOOL_MOUSE;
 			break;
 		}
 
-		/* Reset tool if out of active tablet area */
+		
 		if (!(data[1] & 0x10))
 			tool = 0;
 	}
 
-	/* If tool changed, notify input subsystem */
+	
 	if (wdata->tool != tool) {
 		if (wdata->tool) {
-			/* Completely reset old tool state */
+			
 			if (wdata->tool == BTN_TOOL_MOUSE) {
 				input_report_key(input, BTN_LEFT, 0);
 				input_report_key(input, BTN_RIGHT, 0);
@@ -104,17 +88,17 @@ static int wacom_raw_event(struct hid_device *hdev, struct hid_report *report,
 		input_report_abs(input, ABS_Y, y);
 
 		switch ((data[1] >> 5) & 3) {
-		case 2: /* Mouse with wheel */
+		case 2: 
 			input_report_key(input, BTN_MIDDLE, data[1] & 0x04);
 			rw = (data[6] & 0x01) ? -1 :
 				(data[6] & 0x02) ? 1 : 0;
 			input_report_rel(input, REL_WHEEL, rw);
-			/* fall through */
+			
 
-		case 3: /* Mouse without wheel */
+		case 3: 
 			input_report_key(input, BTN_LEFT, data[1] & 0x01);
 			input_report_key(input, BTN_RIGHT, data[1] & 0x02);
-			/* Compute distance between mouse and tablet */
+			
 			rw = 44 - (data[6] >> 2);
 			if (rw < 0)
 				rw = 0;
@@ -135,8 +119,7 @@ static int wacom_raw_event(struct hid_device *hdev, struct hid_report *report,
 		input_sync(input);
 	}
 
-	/* Report the state of the two buttons at the top of the tablet
-	 * as two extra fingerpad keys (buttons 4 & 5). */
+	
 	rw = data[7] & 0x03;
 	if (rw != wdata->butstate) {
 		wdata->butstate = rw;
@@ -180,7 +163,7 @@ static int wacom_probe(struct hid_device *hdev,
 	hidinput = list_entry(hdev->inputs.next, struct hid_input, list);
 	input = hidinput->input;
 
-	/* Basics */
+	
 	input->evbit[0] |= BIT(EV_KEY) | BIT(EV_ABS) | BIT(EV_REL);
 	input->absbit[0] |= BIT(ABS_X) | BIT(ABS_Y) |
 		BIT(ABS_PRESSURE) | BIT(ABS_DISTANCE);
@@ -193,11 +176,11 @@ static int wacom_probe(struct hid_device *hdev,
 	set_bit(BTN_RIGHT, input->keybit);
 	set_bit(BTN_MIDDLE, input->keybit);
 
-	/* Pad */
+	
 	input->evbit[0] |= BIT(EV_MSC);
 	input->mscbit[0] |= BIT(MSC_SERIAL);
 
-	/* Distance, rubber and mouse */
+	
 	input->absbit[0] |= BIT(ABS_DISTANCE);
 	set_bit(BTN_TOOL_RUBBER, input->keybit);
 	set_bit(BTN_TOOL_MOUSE, input->keybit);

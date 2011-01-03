@@ -1,35 +1,16 @@
-/*
- *  Driver for the Auvitek AU0828 USB bridge
- *
- *  Copyright (c) 2008 Steven Toth <stoth@linuxtv.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/usb.h>
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 #include <media/tveeprom.h>
 
-/* Analog */
+
 #include <linux/videodev2.h>
 #include <media/videobuf-vmalloc.h>
 #include <media/v4l2-device.h>
 
-/* DVB */
+
 #include "demux.h"
 #include "dmxdev.h"
 #include "dvb_demux.h"
@@ -44,15 +25,15 @@
 #define URB_COUNT   16
 #define URB_BUFSIZE (0xe522)
 
-/* Analog constants */
+
 #define NTSC_STD_W      720
 #define NTSC_STD_H      480
 
 #define AU0828_INTERLACED_DEFAULT       1
 #define V4L2_CID_PRIVATE_SHARPNESS  (V4L2_CID_PRIVATE_BASE + 0)
 
-/* Defination for AU0828 USB transfer */
-#define AU0828_MAX_ISO_BUFS    12  /* maybe resize this value in the future */
+
+#define AU0828_MAX_ISO_BUFS    12  
 #define AU0828_ISO_PACKETS_PER_URB      10
 
 #define AU0828_MIN_BUF 4
@@ -106,7 +87,7 @@ enum au0828_stream_state {
 
 #define AUVI_INPUT(nr) (dev->board.input[nr])
 
-/* device state */
+
 enum au0828_dev_state {
 	DEV_INITIALIZED = 0x01,
 	DEV_DISCONNECTED = 0x02,
@@ -115,49 +96,49 @@ enum au0828_dev_state {
 
 struct au0828_fh {
 	struct au0828_dev *dev;
-	unsigned int  stream_on:1;	/* Locks streams */
+	unsigned int  stream_on:1;	
 	struct videobuf_queue        vb_vidq;
 	enum v4l2_buf_type           type;
 };
 
 struct au0828_usb_isoc_ctl {
-		/* max packet size of isoc transaction */
+		
 	int				max_pkt_size;
 
-		/* number of allocated urbs */
+		
 	int				num_bufs;
 
-		/* urb for isoc transfers */
+		
 	struct urb			**urb;
 
-		/* transfer buffers for isoc transfer */
+		
 	char				**transfer_buffer;
 
-		/* Last buffer command and region */
+		
 	u8				cmd;
 	int				pos, size, pktsize;
 
-		/* Last field: ODD or EVEN? */
+		
 	int				field;
 
-		/* Stores incomplete commands */
+		
 	u32				tmp_buf;
 	int				tmp_buf_len;
 
-		/* Stores already requested buffers */
+		
 	struct au0828_buffer    	*buf;
 
-		/* Stores the number of received fields */
+		
 	int				nfields;
 
-		/* isoc urb callback */
+		
 	int (*isoc_copy) (struct au0828_dev *dev, struct urb *urb);
 
 };
 
-/* buffer for one video frame */
+
 struct au0828_buffer {
-	/* common v4l buffer stuff -- must be first */
+	
 	struct videobuf_buffer vb;
 
 	struct list_head frame;
@@ -171,7 +152,7 @@ struct au0828_dmaqueue {
 
 	wait_queue_head_t          wq;
 
-	/* Counters to control buffer fill */
+	
 	int                        pos;
 };
 
@@ -182,20 +163,20 @@ struct au0828_dev {
 	struct au0828_board	board;
 	u8			ctrlmsg[64];
 
-	/* I2C */
+	
 	struct i2c_adapter		i2c_adap;
 	struct i2c_algorithm		i2c_algo;
 	struct i2c_client		i2c_client;
 	u32 				i2c_rc;
 
-	/* Digital */
+	
 	struct au0828_dvb		dvb;
 
-	/* Analog */
+	
 	struct list_head au0828list;
 	struct v4l2_device v4l2_dev;
 	int users;
-	unsigned int stream_on:1;	/* Locks streams */
+	unsigned int stream_on:1;	
 	struct video_device *vdev;
 	struct video_device *vbi_dev;
 	int width;
@@ -218,26 +199,25 @@ struct au0828_dev {
 
 	struct mutex lock;
 
-	/* Isoc control struct */
+	
 	struct au0828_dmaqueue vidq;
 	struct au0828_usb_isoc_ctl isoc_ctl;
 	spinlock_t slock;
 
-	/* usb transfer */
-	int alt;		/* alternate */
-	int max_pkt_size;	/* max packet size of isoc transaction */
-	int num_alt;		/* Number of alternative settings */
-	unsigned int *alt_max_pkt_size;	/* array of wMaxPacketSize */
-	struct urb *urb[AU0828_MAX_ISO_BUFS];	/* urb for isoc transfers */
-	char *transfer_buffer[AU0828_MAX_ISO_BUFS];/* transfer buffers for isoc
-						   transfer */
+	
+	int alt;		
+	int max_pkt_size;	
+	int num_alt;		
+	unsigned int *alt_max_pkt_size;	
+	struct urb *urb[AU0828_MAX_ISO_BUFS];	
+	char *transfer_buffer[AU0828_MAX_ISO_BUFS];
 
-	/* USB / URB Related */
+	
 	int		urb_streaming;
 	struct urb	*urbs[URB_COUNT];
 };
 
-/* ----------------------------------------------------------- */
+
 #define au0828_read(dev, reg) au0828_readreg(dev, reg)
 #define au0828_write(dev, reg, value) au0828_writereg(dev, reg, value)
 #define au0828_andor(dev, reg, mask, value) 				\
@@ -247,14 +227,14 @@ struct au0828_dev {
 #define au0828_set(dev, reg, bit) au0828_andor(dev, (reg), (bit), (bit))
 #define au0828_clear(dev, reg, bit) au0828_andor(dev, (reg), (bit), 0)
 
-/* ----------------------------------------------------------- */
-/* au0828-core.c */
+
+
 extern u32 au0828_read(struct au0828_dev *dev, u16 reg);
 extern u32 au0828_write(struct au0828_dev *dev, u16 reg, u32 val);
 extern int au0828_debug;
 
-/* ----------------------------------------------------------- */
-/* au0828-cards.c */
+
+
 extern struct au0828_board au0828_boards[];
 extern struct usb_device_id au0828_usb_id_table[];
 extern void au0828_gpio_setup(struct au0828_dev *dev);
@@ -262,20 +242,20 @@ extern int au0828_tuner_callback(void *priv, int component,
 				 int command, int arg);
 extern void au0828_card_setup(struct au0828_dev *dev);
 
-/* ----------------------------------------------------------- */
-/* au0828-i2c.c */
+
+
 extern int au0828_i2c_register(struct au0828_dev *dev);
 extern int au0828_i2c_unregister(struct au0828_dev *dev);
 
-/* ----------------------------------------------------------- */
-/* au0828-video.c */
+
+
 int au0828_analog_register(struct au0828_dev *dev,
 			   struct usb_interface *interface);
 int au0828_analog_stream_disable(struct au0828_dev *d);
 void au0828_analog_unregister(struct au0828_dev *dev);
 
-/* ----------------------------------------------------------- */
-/* au0828-dvb.c */
+
+
 extern int au0828_dvb_register(struct au0828_dev *dev);
 extern void au0828_dvb_unregister(struct au0828_dev *dev);
 

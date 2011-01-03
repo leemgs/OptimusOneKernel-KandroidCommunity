@@ -1,20 +1,6 @@
-/*
- * Freescale STMP37XX/STMP378X DMA helper interface
- *
- * Embedded Alley Solutions, Inc <source@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #ifndef __ASM_PLAT_STMP3XXX_DMA_H
 #define __ASM_PLAT_STMP3XXX_DMA_H
 
@@ -48,9 +34,9 @@ struct stmp3xxx_dma_descriptor {
 	struct stmp3xxx_dma_command *command;
 	dma_addr_t handle;
 
-	/* The virtual address of the buffer pointer */
+	
 	void *virtual_buf_ptr;
-	/* The next descriptor in a the DMA chain (optional) */
+	
 	struct stmp3xxx_dma_descriptor *next_descr;
 };
 
@@ -107,10 +93,7 @@ void stmp3xxx_dma_set_alt_target(int ch, int target);
 void stmp3xxx_dma_suspend(void);
 void stmp3xxx_dma_resume(void);
 
-/*
- * STMP37xx and STMP378x have different DMA control
- * registers layout
- */
+
 
 void stmp3xxx_arch_dma_freeze(int ch);
 void stmp3xxx_arch_dma_unfreeze(int ch);
@@ -150,4 +133,4 @@ static inline int stmp3xxx_dma_is_interrupt(int ch)
 	return stmp3xxx_arch_dma_is_interrupt(ch);
 }
 
-#endif /* __ASM_PLAT_STMP3XXX_DMA_H */
+#endif 

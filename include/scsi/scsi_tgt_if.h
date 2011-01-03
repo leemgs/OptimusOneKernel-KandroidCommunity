@@ -1,33 +1,13 @@
-/*
- * SCSI target kernel/user interface
- *
- * Copyright (C) 2005 FUJITA Tomonori <tomof@acm.org>
- * Copyright (C) 2005 Mike Christie <michaelc@cs.wisc.edu>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 #ifndef __SCSI_TARGET_IF_H
 #define __SCSI_TARGET_IF_H
 
-/* user -> kernel */
+
 #define	TGT_UEVENT_CMD_RSP		0x0001
 #define	TGT_UEVENT_IT_NEXUS_RSP		0x0002
 #define	TGT_UEVENT_TSK_MGMT_RSP		0x0003
 
-/* kernel -> user */
+
 #define	TGT_KEVENT_CMD_REQ		0x1001
 #define	TGT_KEVENT_CMD_DONE		0x1002
 #define	TGT_KEVENT_IT_NEXUS_REQ		0x1003
@@ -44,7 +24,7 @@ struct tgt_event {
 	struct tgt_event_hdr hdr;
 
 	union {
-		/* user-> kernel */
+		
 		struct {
 			int host_no;
 			int result;
@@ -69,7 +49,7 @@ struct tgt_event {
 			__u32 function;
 		} it_nexus_rsp;
 
-		/* kernel -> user */
+		
 		struct {
 			int host_no;
 			uint32_t data_len;

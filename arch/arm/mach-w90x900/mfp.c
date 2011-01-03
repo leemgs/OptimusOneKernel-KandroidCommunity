@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-w90x900/mfp.c
- *
- * Copyright (c) 2008 Nuvoton technology corporation
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation;version 2 of the License.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -56,9 +46,9 @@ void mfp_set_groupf(struct device *dev)
 	mfpen = __raw_readl(REG_MFSEL);
 
 	if (strcmp(dev_id, "nuc900-emc") == 0)
-		mfpen |= GPSELF;/*enable mac*/
+		mfpen |= GPSELF;
 	else
-		mfpen &= ~GPSELF;/*GPIOF[9:0]*/
+		mfpen &= ~GPSELF;
 
 	__raw_writel(mfpen, REG_MFSEL);
 
@@ -80,15 +70,15 @@ void mfp_set_groupc(struct device *dev)
 	mfpen = __raw_readl(REG_MFSEL);
 
 	if (strcmp(dev_id, "nuc900-lcd") == 0)
-		mfpen |= GPSELC;/*enable lcd*/
+		mfpen |= GPSELC;
 	else if (strcmp(dev_id, "nuc900-kpi") == 0) {
-		mfpen &= (~GPSELC);/*enable kpi*/
+		mfpen &= (~GPSELC);
 		mfpen |= ENKPI;
 	} else if (strcmp(dev_id, "nuc900-nand") == 0) {
-		mfpen &= (~GPSELC);/*enable nand*/
+		mfpen &= (~GPSELC);
 		mfpen |= ENNAND;
 	} else
-		mfpen &= (~GPSELC);/*GPIOC[14:0]*/
+		mfpen &= (~GPSELC);
 
 	__raw_writel(mfpen, REG_MFSEL);
 
@@ -109,14 +99,14 @@ void mfp_set_groupi(struct device *dev)
 
 	mfpen = __raw_readl(REG_MFSEL);
 
-	mfpen &= ~GPSELEI1;/*default gpio16*/
+	mfpen &= ~GPSELEI1;
 
 	if (strcmp(dev_id, "nuc900-wdog") == 0)
-		mfpen |= GPSELEI1;/*enable wdog*/
+		mfpen |= GPSELEI1;
 	else if (strcmp(dev_id, "nuc900-atapi") == 0)
-		mfpen |= GPSELEI0;/*enable atapi*/
+		mfpen |= GPSELEI0;
 	else if (strcmp(dev_id, "nuc900-keypad") == 0)
-		mfpen &= ~GPSELEI0;/*enable keypad*/
+		mfpen &= ~GPSELEI0;
 
 	__raw_writel(mfpen, REG_MFSEL);
 
@@ -139,15 +129,15 @@ void mfp_set_groupg(struct device *dev)
 
 	if (strcmp(dev_id, "nuc900-spi") == 0) {
 		mfpen &= ~(GPIOG0TO1 | GPIOG2TO3);
-		mfpen |= ENSPI;/*enable spi*/
+		mfpen |= ENSPI;
 	} else if (strcmp(dev_id, "nuc900-i2c0") == 0) {
 		mfpen &= ~(GPIOG0TO1);
-		mfpen |= ENI2C0;/*enable i2c0*/
+		mfpen |= ENI2C0;
 	} else if (strcmp(dev_id, "nuc900-i2c1") == 0) {
 		mfpen &= ~(GPIOG2TO3);
-		mfpen |= ENI2C1;/*enable i2c1*/
+		mfpen |= ENI2C1;
 	} else {
-		mfpen &= ~(GPIOG0TO1 | GPIOG2TO3);/*GPIOG[3:0]*/
+		mfpen &= ~(GPIOG0TO1 | GPIOG2TO3);
 	}
 
 	__raw_writel(mfpen, REG_MFSEL);

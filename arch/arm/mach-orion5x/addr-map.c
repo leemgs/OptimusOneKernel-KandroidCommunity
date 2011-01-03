@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-orion5x/addr-map.c
- *
- * Address map functions for Marvell Orion 5x SoCs
- *
- * Maintainer: Tzachi Perelstein <tzachi@marvell.com>
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -18,29 +8,9 @@
 #include <mach/hardware.h>
 #include "common.h"
 
-/*
- * The Orion has fully programable address map. There's a separate address
- * map for each of the device _master_ interfaces, e.g. CPU, PCI, PCIe, USB,
- * Gigabit Ethernet, DMA/XOR engines, etc. Each interface has its own
- * address decode windows that allow it to access any of the Orion resources.
- *
- * CPU address decoding --
- * Linux assumes that it is the boot loader that already setup the access to
- * DDR and internal registers.
- * Setup access to PCI and PCIe IO/MEM space is issued by this file.
- * Setup access to various devices located on the device bus interface (e.g.
- * flashes, RTC, etc) should be issued by machine-setup.c according to
- * specific board population (by using orion5x_setup_*_win()).
- *
- * Non-CPU Masters address decoding --
- * Unlike the CPU, we setup the access from Orion's master interfaces to DDR
- * banks only (the typical use case).
- * Setup access for each master to DDR is issued by platform device setup.
- */
 
-/*
- * Generic Address Decode Windows bit settings
- */
+
+
 #define TARGET_DDR		0
 #define TARGET_DEV_BUS		1
 #define TARGET_PCI		3
@@ -57,16 +27,12 @@
 #define ATTR_DEV_BOOT		0xf
 #define ATTR_SRAM		0x0
 
-/*
- * Helpers to get DDR bank info
- */
+
 #define ORION5X_DDR_REG(x)	(ORION5X_DDR_VIRT_BASE | (x))
 #define DDR_BASE_CS(n)		ORION5X_DDR_REG(0x1500 + ((n) << 3))
 #define DDR_SIZE_CS(n)		ORION5X_DDR_REG(0x1504 + ((n) << 3))
 
-/*
- * CPU Address Decode Windows registers
- */
+
 #define ORION5X_BRIDGE_REG(x)	(ORION5X_BRIDGE_VIRT_BASE | (x))
 #define CPU_WIN_CTRL(n)		ORION5X_BRIDGE_REG(0x000 | ((n) << 4))
 #define CPU_WIN_BASE(n)		ORION5X_BRIDGE_REG(0x004 | ((n) << 4))
@@ -119,9 +85,7 @@ void __init orion5x_setup_cpu_mbus_bridge(void)
 	int i;
 	int cs;
 
-	/*
-	 * First, disable and clear windows.
-	 */
+	
 	for (i = 0; i < 8; i++) {
 		writel(0, CPU_WIN_BASE(i));
 		writel(0, CPU_WIN_CTRL(i));
@@ -131,9 +95,7 @@ void __init orion5x_setup_cpu_mbus_bridge(void)
 		}
 	}
 
-	/*
-	 * Setup windows for PCI+PCIe IO+MEM space.
-	 */
+	
 	setup_cpu_win(0, ORION5X_PCIE_IO_PHYS_BASE, ORION5X_PCIE_IO_SIZE,
 		TARGET_PCIE, ATTR_PCIE_IO, ORION5X_PCIE_IO_BUS_BASE);
 	setup_cpu_win(1, ORION5X_PCI_IO_PHYS_BASE, ORION5X_PCI_IO_SIZE,
@@ -144,18 +106,14 @@ void __init orion5x_setup_cpu_mbus_bridge(void)
 		TARGET_PCI, ATTR_PCI_MEM, -1);
 	win_alloc_count = 4;
 
-	/*
-	 * Setup MBUS dram target info.
-	 */
+	
 	orion5x_mbus_dram_info.mbus_dram_target_id = TARGET_DDR;
 
 	for (i = 0, cs = 0; i < 4; i++) {
 		u32 base = readl(DDR_BASE_CS(i));
 		u32 size = readl(DDR_SIZE_CS(i));
 
-		/*
-		 * Chip select enabled?
-		 */
+		
 		if (size & 1) {
 			struct mbus_dram_window *w;
 

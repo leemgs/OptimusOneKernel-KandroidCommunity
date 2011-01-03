@@ -1,58 +1,21 @@
-/* audit -- definition of audit_context structure and supporting types 
- *
- * Copyright 2003-2004 Red Hat, Inc.
- * Copyright 2005 Hewlett-Packard Development Company, L.P.
- * Copyright 2005 IBM Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/fs.h>
 #include <linux/audit.h>
 #include <linux/skbuff.h>
 
-/* 0 = no checking
-   1 = put_count checking
-   2 = verbose put_count checking
-*/
+
 #define AUDIT_DEBUG 0
 
-/* At task start time, the audit_state is set in the audit_context using
-   a per-task filter.  At syscall entry, the audit_state is augmented by
-   the syscall filter. */
+
 enum audit_state {
-	AUDIT_DISABLED,		/* Do not create per-task audit_context.
-				 * No syscall-specific audit records can
-				 * be generated. */
-	AUDIT_SETUP_CONTEXT,	/* Create the per-task audit_context,
-				 * but don't necessarily fill it in at
-				 * syscall entry time (i.e., filter
-				 * instead). */
-	AUDIT_BUILD_CONTEXT,	/* Create the per-task audit_context,
-				 * and always fill it in at syscall
-				 * entry time.  This makes a full
-				 * syscall record available if some
-				 * other part of the kernel decides it
-				 * should be recorded. */
-	AUDIT_RECORD_CONTEXT	/* Create the per-task audit_context,
-				 * always fill it in at syscall entry
-				 * time, and always write out the audit
-				 * record at syscall exit time.  */
+	AUDIT_DISABLED,		
+	AUDIT_SETUP_CONTEXT,	
+	AUDIT_BUILD_CONTEXT,	
+	AUDIT_RECORD_CONTEXT	
 };
 
-/* Rule lists */
+
 struct audit_watch;
 struct audit_tree;
 struct audit_chunk;
@@ -103,7 +66,7 @@ extern struct mutex audit_filter_mutex;
 extern void audit_free_rule_rcu(struct rcu_head *);
 extern struct list_head audit_filter_list[];
 
-/* audit watch functions */
+
 extern unsigned long audit_watch_inode(struct audit_watch *watch);
 extern dev_t audit_watch_dev(struct audit_watch *watch);
 extern void audit_put_watch(struct audit_watch *watch);
@@ -138,7 +101,7 @@ extern void audit_kill_trees(struct list_head *);
 #define audit_trim_trees() (void)0
 #define audit_put_tree(tree) (void)0
 #define audit_tag_tree(old, new) -EINVAL
-#define audit_tree_path(rule) ""	/* never called */
+#define audit_tree_path(rule) ""	
 #define audit_kill_trees(list) BUG()
 #endif
 

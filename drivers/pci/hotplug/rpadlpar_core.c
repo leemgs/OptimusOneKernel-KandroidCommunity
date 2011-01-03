@@ -1,19 +1,4 @@
-/*
- * Interface for Dynamic Logical Partitioning of I/O Slots on
- * RPA-compliant PPC64 platform.
- *
- * John Rose <johnrose@austin.ibm.com>
- * Linda Xie <lxie@us.ibm.com>
- *
- * October 2003
- *
- * Copyright (C) 2003 IBM.
- *
- *      This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 
 #undef DEBUG
 
@@ -57,7 +42,7 @@ static struct device_node *find_vio_slot_node(char *drc_name)
 	return dn;
 }
 
-/* Find dlpar-capable pci node that contains the specified name and type */
+
 static struct device_node *find_php_slot_pci_node(char *drc_name,
 						  char *drc_type)
 {
@@ -101,15 +86,7 @@ static struct device_node *find_dlpar_node(char *drc_name, int *node_type)
 	return NULL;
 }
 
-/**
- * find_php_slot - return hotplug slot structure for device node
- * @dn: target &device_node
- *
- * This routine will return the hotplug slot structure
- * for a given device node. Note that built-in PCI slots
- * may be dlpar-able, but not hot-pluggable, so this routine
- * will return NULL for built-in PCI slots.
- */
+
 static struct slot *find_php_slot(struct device_node *dn)
 {
 	struct list_head *tmp, *n;
@@ -146,7 +123,7 @@ static void dlpar_pci_add_bus(struct device_node *dn)
 
 	eeh_add_device_tree_early(dn);
 
-	/* Add EADS device to PHB bus, adding new entry to bus->devices */
+	
 	dev = of_create_pci_dev(dn, phb->bus, pdn->devfn);
 	if (!dev) {
 		printk(KERN_ERR "%s: failed to create pci dev for %s\n",
@@ -154,19 +131,15 @@ static void dlpar_pci_add_bus(struct device_node *dn)
 		return;
 	}
 
-	/* Scan below the new bridge */
+	
 	if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
 	    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS)
 		of_scan_pci_bridge(dn, dev);
 
-	/* Map IO space for child bus, which may or may not succeed */
+	
 	pcibios_map_io_space(dev->subordinate);
 
-	/* Finish adding it : resource allocation, adding devices, etc...
-	 * Note that we need to perform the finish pass on the -parent-
-	 * bus of the EADS bridge so the bridge device itself gets
-	 * properly added
-	 */
+	
 	pcibios_finish_adding_to_bus(phb->bus);
 }
 
@@ -178,10 +151,10 @@ static int dlpar_add_pci_slot(char *drc_name, struct device_node *dn)
 	if (pcibios_find_pci_bus(dn))
 		return -EINVAL;
 
-	/* Add pci bus */
+	
 	dlpar_pci_add_bus(dn);
 
-	/* Confirm new bridge dev was created */
+	
 	phb = PCI_DN(dn)->phb;
 	dev = dlpar_find_new_dev(phb->bus, dn);
 
@@ -197,7 +170,7 @@ static int dlpar_add_pci_slot(char *drc_name, struct device_node *dn)
 		return -EIO;
 	}
 
-	/* Add hotplug slot */
+	
 	if (rpaphp_add_slot(dn)) {
 		printk(KERN_ERR "%s: unable to add hotplug slot %s\n",
 			__func__, drc_name);
@@ -215,7 +188,7 @@ static int dlpar_remove_phb(char *drc_name, struct device_node *dn)
 	if (!pcibios_find_pci_bus(dn))
 		return -EINVAL;
 
-	/* If pci slot is hotplugable, use hotplug to remove it */
+	
 	slot = find_php_slot(dn);
 	if (slot && rpaphp_deregister_slot(slot)) {
 		printk(KERN_ERR "%s: unable to remove hotplug slot %s\n",
@@ -239,7 +212,7 @@ static int dlpar_add_phb(char *drc_name, struct device_node *dn)
 	struct pci_controller *phb;
 
 	if (PCI_DN(dn) && PCI_DN(dn)->phb) {
-		/* PHB already exists */
+		
 		return -EINVAL;
 	}
 
@@ -269,18 +242,7 @@ static int dlpar_add_vio_slot(char *drc_name, struct device_node *dn)
 	return 0;
 }
 
-/**
- * dlpar_add_slot - DLPAR add an I/O Slot
- * @drc_name: drc-name of newly added slot
- *
- * Make the hotplug module and the kernel aware of a newly added I/O Slot.
- * Return Codes:
- * 0			Success
- * -ENODEV		Not a valid drc_name
- * -EINVAL		Slot already added
- * -ERESTARTSYS		Signalled before obtaining lock
- * -EIO			Internal PCI Error
- */
+
 int dlpar_add_slot(char *drc_name)
 {
 	struct device_node *dn = NULL;
@@ -290,7 +252,7 @@ int dlpar_add_slot(char *drc_name)
 	if (mutex_lock_interruptible(&rpadlpar_mutex))
 		return -ERESTARTSYS;
 
-	/* Find newly added node */
+	
 	dn = find_dlpar_node(drc_name, &node_type);
 	if (!dn) {
 		rc = -ENODEV;
@@ -315,16 +277,7 @@ exit:
 	return rc;
 }
 
-/**
- * dlpar_remove_vio_slot - DLPAR remove a virtual I/O Slot
- * @drc_name: drc-name of newly added slot
- * @dn: &device_node
- *
- * Remove the kernel and hotplug representations of an I/O Slot.
- * Return Codes:
- * 0			Success
- * -EINVAL		Vio dev doesn't exist
- */
+
 static int dlpar_remove_vio_slot(char *drc_name, struct device_node *dn)
 {
 	struct vio_dev *vio_dev;
@@ -337,17 +290,7 @@ static int dlpar_remove_vio_slot(char *drc_name, struct device_node *dn)
 	return 0;
 }
 
-/**
- * dlpar_remove_pci_slot - DLPAR remove a PCI I/O Slot
- * @drc_name: drc-name of newly added slot
- * @dn: &device_node
- *
- * Remove the kernel and hotplug representations of a PCI I/O Slot.
- * Return Codes:
- * 0			Success
- * -ENODEV		Not a valid drc_name
- * -EIO			Internal PCI Error
- */
+
 int dlpar_remove_pci_slot(char *drc_name, struct device_node *dn)
 {
 	struct pci_bus *bus;
@@ -373,17 +316,17 @@ int dlpar_remove_pci_slot(char *drc_name, struct device_node *dn)
 		}
 	}
 
-	/* Remove all devices below slot */
+	
 	pcibios_remove_pci_devices(bus);
 
-	/* Unmap PCI IO space */
+	
 	if (pcibios_unmap_io_space(bus)) {
 		printk(KERN_ERR "%s: failed to unmap bus range\n",
 			__func__);
 		return -ERANGE;
 	}
 
-	/* Remove the EADS bridge device itself */
+	
 	BUG_ON(!bus->self);
 	pr_debug("PCI: Now removing bridge device %s\n", pci_name(bus->self));
 	eeh_remove_bus_device(bus->self);
@@ -392,18 +335,7 @@ int dlpar_remove_pci_slot(char *drc_name, struct device_node *dn)
 	return 0;
 }
 
-/**
- * dlpar_remove_slot - DLPAR remove an I/O Slot
- * @drc_name: drc-name of newly added slot
- *
- * Remove the kernel and hotplug representations of an I/O Slot.
- * Return Codes:
- * 0			Success
- * -ENODEV		Not a valid drc_name
- * -EINVAL		Slot already removed
- * -ERESTARTSYS		Signalled before obtaining lock
- * -EIO			Internal Error
- */
+
 int dlpar_remove_slot(char *drc_name)
 {
 	struct device_node *dn;

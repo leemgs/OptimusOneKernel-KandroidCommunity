@@ -1,26 +1,4 @@
-/*
- *  usbvision-cards.c
- *  usbvision cards definition file
- *
- * Copyright (c) 1999-2005 Joerg Heckenbach <joerg@heckenbach-aw.de>
- *
- * This module is part of usbvision driver project.
- * Updates to driver completed by Dwaine P. Garden
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 
 #include <linux/list.h>
@@ -29,7 +7,7 @@
 #include "usbvision.h"
 #include "usbvision-cards.h"
 
-/* Supported Devices: A table for usbvision.c*/
+
 struct usbvision_device_data_st  usbvision_device_data[] = {
 	[XANBOO] = {
 		.Interface     = -1,
@@ -1028,7 +1006,7 @@ struct usbvision_device_data_st  usbvision_device_data[] = {
 };
 const int usbvision_device_data_size=ARRAY_SIZE(usbvision_device_data);
 
-/* Supported Devices */
+
 
 struct usb_device_id usbvision_table [] = {
 	{ USB_DEVICE(0x0a6f, 0x0400), .driver_info=XANBOO },
@@ -1097,7 +1075,7 @@ struct usb_device_id usbvision_table [] = {
 	{ USB_DEVICE(0x2304, 0x0301), .driver_info=PINNA_LINX_VD_IN_CAB_PAL },
 	{ USB_DEVICE(0x2304, 0x0419), .driver_info=PINNA_PCTV_BUNGEE_PAL_FM },
 	{ USB_DEVICE(0x2400, 0x4200), .driver_info=HPG_WINTV },
-	{ },    /* terminate list */
+	{ },    
 };
 
 MODULE_DEVICE_TABLE (usb, usbvision_table);

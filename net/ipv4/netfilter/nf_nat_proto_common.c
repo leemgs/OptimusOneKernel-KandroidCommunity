@@ -1,11 +1,4 @@
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- * (C) 2008 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/random.h>
@@ -49,14 +42,14 @@ bool nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
 	else
 		portptr = &tuple->dst.u.all;
 
-	/* If no range specified... */
+	
 	if (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED)) {
-		/* If it's dst rewrite, can't change port */
+		
 		if (maniptype == IP_NAT_MANIP_DST)
 			return false;
 
 		if (ntohs(*portptr) < 1024) {
-			/* Loose convention: >> 512 is credential passing */
+			
 			if (ntohs(*portptr) < 512) {
 				min = 1;
 				range_size = 511 - min + 1;

@@ -1,8 +1,4 @@
-/* display7seg.c - Driver implementation for the 7-segment display
- *                 present on Sun Microsystems CP1400 and CP1500
- *
- * Copyright (c) 2000 Eric Brower (ebrower@usa.net)
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -11,12 +7,12 @@
 #include <linux/major.h>
 #include <linux/init.h>
 #include <linux/miscdevice.h>
-#include <linux/ioport.h>		/* request_region */
+#include <linux/ioport.h>		
 #include <linux/smp_lock.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <asm/atomic.h>
-#include <asm/uaccess.h>		/* put_/get_user			*/
+#include <asm/uaccess.h>		
 #include <asm/io.h>
 
 #include <asm/display7seg.h>
@@ -25,22 +21,9 @@
 #define DRIVER_NAME	"d7s"
 #define PFX		DRIVER_NAME ": "
 
-static int sol_compat = 0;		/* Solaris compatibility mode	*/
+static int sol_compat = 0;		
 
-/* Solaris compatibility flag -
- * The Solaris implementation omits support for several
- * documented driver features (ref Sun doc 806-0180-03).  
- * By default, this module supports the documented driver 
- * abilities, rather than the Solaris implementation:
- *
- * 	1) Device ALWAYS reverts to OBP-specified FLIPPED mode
- * 	   upon closure of device or module unload.
- * 	2) Device ioctls D7SIOCRD/D7SIOCWR honor toggling of
- * 	   FLIP bit
- *
- * If you wish the device to operate as under Solaris,
- * omitting above features, set this parameter to non-zero.
- */
+
 module_param(sol_compat, int, 0);
 MODULE_PARM_DESC(sol_compat, 
 		 "Disables documented functionality omitted from Solaris driver");
@@ -56,17 +39,7 @@ struct d7s {
 };
 struct d7s *d7s_device;
 
-/*
- * Register block address- see header for details
- * -----------------------------------------
- * | DP | ALARM | FLIP | 4 | 3 | 2 | 1 | 0 |
- * -----------------------------------------
- *
- * DP 		- Toggles decimal point on/off 
- * ALARM	- Toggles "Alarm" LED green/red
- * FLIP		- Inverts display for upside-down mounted board
- * bits 0-4	- 7-segment display contents
- */
+
 static atomic_t d7s_users = ATOMIC_INIT(0);
 
 static int d7s_open(struct inode *inode, struct file *f)
@@ -80,10 +53,7 @@ static int d7s_open(struct inode *inode, struct file *f)
 
 static int d7s_release(struct inode *inode, struct file *f)
 {
-	/* Reset flipped state to OBP default only if
-	 * no other users have the device open and we
-	 * are not operating in solaris-compat mode
-	 */
+	
 	if (atomic_dec_and_test(&d7s_users) && !sol_compat) {
 		struct d7s *p = d7s_device;
 		u8 regval = 0;
@@ -112,9 +82,7 @@ static long d7s_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	lock_kernel();
 	switch (cmd) {
 	case D7SIOCWR:
-		/* assign device register values we mask-out D7S_FLIP
-		 * if in sol_compat mode
-		 */
+		
 		if (get_user(ireg, (int __user *) arg)) {
 			error = -EFAULT;
 			break;
@@ -129,12 +97,7 @@ static long d7s_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 
 	case D7SIOCRD:
-		/* retrieve device register values
-		 * NOTE: Solaris implementation returns D7S_FLIP bit
-		 * as toggled by user, even though it does not honor it.
-		 * This driver will not misinform you about the state
-		 * of your hardware while in sol_compat mode
-		 */
+		
 		if (put_user(regs, (int __user *) arg)) {
 			error = -EFAULT;
 			break;
@@ -142,7 +105,7 @@ static long d7s_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 
 	case D7SIOCTM:
-		/* toggle device mode-- flip display orientation */
+		
 		if (regs & D7S_FLIP)
 			regs &= ~D7S_FLIP;
 		else
@@ -198,9 +161,7 @@ static int __devinit d7s_probe(struct of_device *op,
 		goto out_iounmap;
 	}
 
-	/* OBP option "d7s-flipped?" is honored as default for the
-	 * device, and reset default when detached
-	 */
+	
 	regs = readb(p->regs);
 	opts = of_find_node_by_path("/options");
 	if (opts &&
@@ -240,7 +201,7 @@ static int __devexit d7s_remove(struct of_device *op)
 	struct d7s *p = dev_get_drvdata(&op->dev);
 	u8 regs = readb(p->regs);
 
-	/* Honor OBP d7s-flipped? unless operating in solaris-compat mode */
+	
 	if (sol_compat) {
 		if (p->flipped)
 			regs |= D7S_FLIP;

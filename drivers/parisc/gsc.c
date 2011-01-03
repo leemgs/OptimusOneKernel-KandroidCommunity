@@ -1,17 +1,4 @@
-/*
- * Interrupt management for most GSC and related devices.
- *
- * (c) Copyright 1999 Alex deVries for The Puffin Group
- * (c) Copyright 1999 Grant Grundler for Hewlett-Packard
- * (c) Copyright 1999 Matthew Wilcox
- * (c) Copyright 2000 Helge Deller
- * (c) Copyright 2001 Matthew Wilcox for Hewlett-Packard
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- */
+
 
 #include <linux/bitops.h>
 #include <linux/errno.h>
@@ -54,7 +41,7 @@ int gsc_claim_irq(struct gsc_irq *i, int irq)
 {
 	int c = irq;
 
-	irq += CPU_IRQ_BASE; /* virtualize the IRQ first */
+	irq += CPU_IRQ_BASE; 
 
 	irq = txn_claim_irq(irq);
 	if (irq < 0) {
@@ -72,7 +59,7 @@ int gsc_claim_irq(struct gsc_irq *i, int irq)
 EXPORT_SYMBOL(gsc_alloc_irq);
 EXPORT_SYMBOL(gsc_claim_irq);
 
-/* Common interrupt demultiplexer used by Asp, Lasi & Wax.  */
+
 irqreturn_t gsc_asic_intr(int gsc_asic_irq, void *dev)
 {
 	unsigned long irr;
@@ -116,7 +103,7 @@ static void gsc_asic_disable_irq(unsigned int irq)
 	DEBPRINTK(KERN_DEBUG "%s(%d) %s: IMR 0x%x\n", __func__, irq,
 			irq_dev->name, imr);
 
-	/* Disable the IRQ line by clearing the bit in the IMR */
+	
 	imr = gsc_readl(irq_dev->hpa + OFFSET_IMR);
 	imr &= ~(1 << local_irq);
 	gsc_writel(imr, irq_dev->hpa + OFFSET_IMR);
@@ -132,14 +119,11 @@ static void gsc_asic_enable_irq(unsigned int irq)
 	DEBPRINTK(KERN_DEBUG "%s(%d) %s: IMR 0x%x\n", __func__, irq,
 			irq_dev->name, imr);
 
-	/* Enable the IRQ line by setting the bit in the IMR */
+	
 	imr = gsc_readl(irq_dev->hpa + OFFSET_IMR);
 	imr |= 1 << local_irq;
 	gsc_writel(imr, irq_dev->hpa + OFFSET_IMR);
-	/*
-	 * FIXME: read IPR to make sure the IRQ isn't already pending.
-	 *   If so, we need to read IRR and manually call do_irq().
-	 */
+	
 }
 
 static unsigned int gsc_asic_startup_irq(unsigned int irq)
@@ -196,8 +180,7 @@ static int gsc_fixup_irqs_callback(struct device *dev, void *data)
 	struct parisc_device *padev = to_parisc_device(dev);
 	struct gsc_fixup_struct *gf = data;
 
-	/* work-around for 715/64 and others which have parent
-	   at path [5] and children at path [5/0/x] */
+	
 	if (padev->id.hw_type == HPHW_FAULTY)
 		gsc_fixup_irqs(padev, gf->ctrl, gf->choose_irq);
 	gf->choose_irq(padev, gf->ctrl);
@@ -223,15 +206,15 @@ int gsc_common_setup(struct parisc_device *parent, struct gsc_asic *gsc_asic)
 
 	gsc_asic->gsc = parent;
 
-	/* Initialise local irq -> global irq mapping */
+	
 	for (i = 0; i < 32; i++) {
 		gsc_asic->global_irq[i] = NO_IRQ;
 	}
 
-	/* allocate resource region */
+	
 	res = request_mem_region(gsc_asic->hpa, 0x100000, gsc_asic->name);
 	if (res) {
-		res->flags = IORESOURCE_MEM; 	/* do not mark it busy ! */
+		res->flags = IORESOURCE_MEM; 	
 	}
 
 #if 0

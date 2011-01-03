@@ -1,8 +1,7 @@
 #ifndef IEEE1394_RAW1394_PRIVATE_H
 #define IEEE1394_RAW1394_PRIVATE_H
 
-/* header for definitions that are private to the raw1394 driver
-   and not visible to user-space */
+
 
 #define RAW1394_DEVICE_MAJOR      171
 #define RAW1394_DEVICE_NAME       "raw1394"
@@ -28,30 +27,30 @@ struct file_info {
 
         struct hpsb_host *host;
 
-        struct list_head req_pending;	/* protected by reqlists_lock */
-        struct list_head req_complete;	/* protected by reqlists_lock */
+        struct list_head req_pending;	
+        struct list_head req_complete;	
         spinlock_t reqlists_lock;
         wait_queue_head_t wait_complete;
 
-        struct list_head addr_list;	/* protected by host_info_lock */
+        struct list_head addr_list;	
 
         u8 __user *fcp_buffer;
 
-        u8 notification; /* (busreset-notification) RAW1394_NOTIFY_OFF/ON */
+        u8 notification; 
 
-	/* new rawiso API */
+	
 	enum raw1394_iso_state iso_state;
 	struct hpsb_iso *iso_handle;
 
-	/* User space's CSR1212 dynamic ConfigROM directories */
+	
 	struct csr1212_keyval *csr1212_dirs[RAW1394_MAX_USER_CSR_DIRS];
 
-	/* Legacy ConfigROM update flag */
+	
 	u8 cfgrom_upd;
 };
 
 struct arm_addr {
-        struct list_head addr_list; /* file_info list */
+        struct list_head addr_list; 
         u64    start, end;
         u64    arm_tag;
         u8     access_rights;
@@ -59,7 +58,7 @@ struct arm_addr {
         u8     client_transactions;
         u64    recvb;
         u16    rec_length;
-        u8     *addr_space_buffer; /* accessed by read/write/lock requests */
+        u8     *addr_space_buffer; 
 };
 
 struct pending_request {
@@ -75,7 +74,7 @@ struct pending_request {
 struct host_info {
         struct list_head list;
         struct hpsb_host *host;
-        struct list_head file_info_list;  /* protected by host_info_lock */
+        struct list_head file_info_list;  
 };
 
-#endif  /* IEEE1394_RAW1394_PRIVATE_H */
+#endif  

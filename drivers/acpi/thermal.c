@@ -1,35 +1,4 @@
-/*
- *  acpi_thermal.c - ACPI Thermal Zone Driver ($Revision: 41 $)
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This driver fully implements the ACPI thermal policy as described in the
- *  ACPI 2.0 Specification.
- *
- *  TBD: 1. Implement passive cooling hysteresis.
- *       2. Enhance passive cooling (CPU) states/limit interface to support
- *          concepts of 'multiple limiters', upper/lower limits, etc.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -178,8 +147,8 @@ struct acpi_thermal_trips {
 };
 
 struct acpi_thermal_flags {
-	u8 cooling_mode:1;	/* _SCP */
-	u8 devices:1;		/* _TZD */
+	u8 cooling_mode:1;	
+	u8 devices:1;		
 	u8 reserved:6;
 };
 
@@ -242,9 +211,7 @@ static const struct file_operations acpi_thermal_polling_fops = {
 	.release = single_release,
 };
 
-/* --------------------------------------------------------------------------
-                             Thermal Zone Management
-   -------------------------------------------------------------------------- */
+
 
 static int acpi_thermal_get_temperature(struct acpi_thermal *tz)
 {
@@ -292,7 +259,7 @@ static int acpi_thermal_set_polling(struct acpi_thermal *tz, int seconds)
 	if (!tz)
 		return -EINVAL;
 
-	tz->polling_frequency = seconds * 10;	/* Convert value to deci-seconds */
+	tz->polling_frequency = seconds * 10;	
 
 	tz->thermal_zone->polling_delay = seconds * 1000;
 
@@ -345,13 +312,7 @@ static int acpi_thermal_set_cooling_mode(struct acpi_thermal *tz, int mode)
 			      ACPI_TRIPS_PASSIVE | ACPI_TRIPS_ACTIVE |	\
 			      ACPI_TRIPS_DEVICES)
 
-/*
- * This exception is thrown out in two cases:
- * 1.An invalid trip point becomes invalid or a valid trip point becomes invalid
- *   when re-evaluating the AML code.
- * 2.TODO: Devices listed in _PSL, _ALx, _TZD may change.
- *   We need to re-bind the cooling devices of a thermal zone when this occurs.
- */
+
 #define ACPI_THERMAL_TRIPS_EXCEPTION(flags, str)	\
 do {	\
 	if (flags != ACPI_TRIPS_INIT)	\
@@ -368,17 +329,12 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
 	int valid = 0;
 	int i;
 
-	/* Critical Shutdown (required) */
+	
 	if (flag & ACPI_TRIPS_CRITICAL) {
 		status = acpi_evaluate_integer(tz->device->handle,
 				"_CRT", NULL, &tmp);
 		tz->trips.critical.temperature = tmp;
-		/*
-		 * Treat freezing temperatures as invalid as well; some
-		 * BIOSes return really low values and cause reboots at startup.
-		 * Below zero (Celsius) values clearly aren't right for sure..
-		 * ... so lets discard those as invalid.
-		 */
+		
 		if (ACPI_FAILURE(status) ||
 				tz->trips.critical.temperature <= 2732) {
 			tz->trips.critical.flags.valid = 0;
@@ -396,9 +352,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
 				tz->trips.critical.flags.valid = 0;
 			} else if (crt > 0) {
 				unsigned long crt_k = CELSIUS_TO_KELVIN(crt);
-				/*
-				 * Allow override critical threshold
-				 */
+				
 				if (crt_k > tz->trips.critical.temperature)
 					printk(KERN_WARNING PREFIX
 						"Critical threshold %d C\n", crt);
@@ -407,7 +361,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
 		}
 	}
 
-	/* Critical Sleep (optional) */
+	
 	if (flag & ACPI_TRIPS_HOT) {
 		status = acpi_evaluate_integer(tz->device->handle,
 				"_HOT", NULL, &tmp);
@@ -424,7 +378,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
 		}
 	}
 
-	/* Passive (optional) */
+	
 	if (((flag & ACPI_TRIPS_PASSIVE) && tz->trips.passive.flags.valid) ||
 		(flag == ACPI_TRIPS_INIT)) {
 		valid = tz->trips.passive.flags.valid;
@@ -492,13 +446,13 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
 				ACPI_THERMAL_TRIPS_EXCEPTION(flag, "state");
 	}
 
-	/* Active (optional) */
+	
 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
 		char name[5] = { '_', 'A', 'C', ('0' + i), '\0' };
 		valid = tz->trips.active[i].flags.valid;
 
 		if (act == -1)
-			break; /* disable all active trip points */
+			break; 
 
 		if ((flag == ACPI_TRIPS_INIT) || ((flag & ACPI_TRIPS_ACTIVE) &&
 			tz->trips.active[i].flags.valid)) {
@@ -514,10 +468,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
 					tz->trips.active[0].temperature =
 						CELSIUS_TO_KELVIN(act);
 				else
-					/*
-					 * Don't allow override higher than
-					 * the next higher trip point
-					 */
+					
 					tz->trips.active[i - 1].temperature =
 						(tz->trips.active[i - 2].temperature <
 						CELSIUS_TO_KELVIN(act) ?
@@ -585,7 +536,7 @@ static void acpi_thermal_check(void *data)
 	thermal_zone_device_update(tz->thermal_zone);
 }
 
-/* sys I/F for generic thermal sysfs support */
+
 #define KELVIN_TO_MILLICELSIUS(t, off) (((t) - (off)) * 100)
 
 static int thermal_get_temp(struct thermal_zone_device *thermal,
@@ -630,9 +581,7 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
 	if (!tz)
 		return -EINVAL;
 
-	/*
-	 * enable/disable thermal management from ACPI thermal driver
-	 */
+	
 	if (mode == THERMAL_DEVICE_ENABLED)
 		enable = 1;
 	else if (mode == THERMAL_DEVICE_DISABLED)
@@ -951,9 +900,7 @@ static void acpi_thermal_unregister_thermal_zone(struct acpi_thermal *tz)
 }
 
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc)
-   -------------------------------------------------------------------------- */
+
 
 static struct proc_dir_entry *acpi_thermal_dir;
 
@@ -1204,7 +1151,7 @@ static int acpi_thermal_add_fs(struct acpi_device *device)
 			return -ENODEV;
 	}
 
-	/* 'state' [R] */
+	
 	entry = proc_create_data(ACPI_THERMAL_FILE_STATE,
 				 S_IRUGO, acpi_device_dir(device),
 				 &acpi_thermal_state_fops,
@@ -1212,7 +1159,7 @@ static int acpi_thermal_add_fs(struct acpi_device *device)
 	if (!entry)
 		return -ENODEV;
 
-	/* 'temperature' [R] */
+	
 	entry = proc_create_data(ACPI_THERMAL_FILE_TEMPERATURE,
 				 S_IRUGO, acpi_device_dir(device),
 				 &acpi_thermal_temp_fops,
@@ -1220,7 +1167,7 @@ static int acpi_thermal_add_fs(struct acpi_device *device)
 	if (!entry)
 		return -ENODEV;
 
-	/* 'trip_points' [R] */
+	
 	entry = proc_create_data(ACPI_THERMAL_FILE_TRIP_POINTS,
 				 S_IRUGO,
 				 acpi_device_dir(device),
@@ -1229,7 +1176,7 @@ static int acpi_thermal_add_fs(struct acpi_device *device)
 	if (!entry)
 		return -ENODEV;
 
-	/* 'cooling_mode' [R/W] */
+	
 	entry = proc_create_data(ACPI_THERMAL_FILE_COOLING_MODE,
 				 S_IFREG | S_IRUGO | S_IWUSR,
 				 acpi_device_dir(device),
@@ -1238,7 +1185,7 @@ static int acpi_thermal_add_fs(struct acpi_device *device)
 	if (!entry)
 		return -ENODEV;
 
-	/* 'polling_frequency' [R/W] */
+	
 	entry = proc_create_data(ACPI_THERMAL_FILE_POLLING_FREQ,
 				 S_IFREG | S_IRUGO | S_IWUSR,
 				 acpi_device_dir(device),
@@ -1270,9 +1217,7 @@ static int acpi_thermal_remove_fs(struct acpi_device *device)
 	return 0;
 }
 
-/* --------------------------------------------------------------------------
-                                 Driver Interface
-   -------------------------------------------------------------------------- */
+
 
 static void acpi_thermal_notify(struct acpi_device *device, u32 event)
 {
@@ -1315,22 +1260,22 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
 	if (!tz)
 		return -EINVAL;
 
-	/* Get temperature [_TMP] (required) */
+	
 	result = acpi_thermal_get_temperature(tz);
 	if (result)
 		return result;
 
-	/* Get trip points [_CRT, _PSV, etc.] (required) */
+	
 	result = acpi_thermal_get_trip_points(tz);
 	if (result)
 		return result;
 
-	/* Set the cooling mode [_SCP] to active cooling (default) */
+	
 	result = acpi_thermal_set_cooling_mode(tz, ACPI_THERMAL_MODE_ACTIVE);
 	if (!result)
 		tz->flags.cooling_mode = 1;
 
-	/* Get default polling frequency [_TZP] (optional) */
+	
 	if (tzp)
 		tz->polling_frequency = tzp;
 	else
@@ -1339,16 +1284,7 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
 	return 0;
 }
 
-/*
- * The exact offset between Kelvin and degree Celsius is 273.15. However ACPI
- * handles temperature values with a single decimal place. As a consequence,
- * some implementations use an offset of 273.1 and others use an offset of
- * 273.2. Try to find out which one is being used, to present the most
- * accurate and visually appealing number.
- *
- * The heuristic below should work for all ACPI thermal zones which have a
- * critical trip point with a value being a multiple of 0.5 degree Celsius.
- */
+
 static void acpi_thermal_guess_offset(struct acpi_thermal *tz)
 {
 	if (tz->trips.critical.flags.valid &&
@@ -1476,7 +1412,7 @@ static int thermal_tzp(const struct dmi_system_id *d) {
 	if (tzp == 0) {
 		printk(KERN_NOTICE "ACPI: %s detected: "
 			"enabling thermal zone polling\n", d->ident);
-		tzp = 300;	/* 300 dS = 30 Seconds */
+		tzp = 300;	
 	}
 	return 0;
 }
@@ -1491,10 +1427,7 @@ static int thermal_psv(const struct dmi_system_id *d) {
 }
 
 static struct dmi_system_id thermal_dmi_table[] __initdata = {
-	/*
-	 * Award BIOS on this AOpen makes thermal control almost worthless.
-	 * http://bugzilla.kernel.org/show_bug.cgi?id=8842
-	 */
+	
 	{
 	 .callback = thermal_act,
 	 .ident = "AOpen i915GMm-HFS",

@@ -1,29 +1,4 @@
-/*
- * LPDDR flash memory device operations. This module provides read, write,
- * erase, lock/unlock support for LPDDR flash memories
- * (C) 2008 Korolev Alexey <akorolev@infradead.org>
- * (C) 2008 Vasiliy Leonenko <vasiliy.leonenko@gmail.com>
- * Many thanks to Roman Borisov for intial enabling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- * TODO:
- * Implement VPP management
- * Implement XIP support
- * Implement OTP support
- */
+
 #include <linux/mtd/pfow.h>
 #include <linux/mtd/qinfo.h>
 
@@ -60,7 +35,7 @@ struct mtd_info *lpddr_cmdset(struct map_info *map)
 	mtd->priv = map;
 	mtd->type = MTD_NORFLASH;
 
-	/* Fill in the default mtd operations */
+	
 	mtd->read = lpddr_read;
 	mtd->type = MTD_NORFLASH;
 	mtd->flags = MTD_CAP_NORFLASH;
@@ -103,8 +78,7 @@ struct mtd_info *lpddr_cmdset(struct map_info *map)
 			chip->start += j << lpddr->chipshift;
 			chip->oldstate = chip->state = FL_READY;
 			chip->priv = &shared[i];
-			/* those should be reset too since
-			   they create memory references. */
+			
 			init_waitqueue_head(&chip->wq);
 			spin_lock_init(&chip->_spinlock);
 			chip->mutex = &chip->_spinlock;
@@ -124,7 +98,7 @@ static int wait_for_ready(struct map_info *map, struct flchip *chip,
 	flstate_t chip_state = chip->state;
 	int ret = 0;
 
-	/* set our timeout to 8 times the expected delay */
+	
 	timeo = chip_op_time * 8;
 	if (!timeo)
 		timeo = 500000;
@@ -142,14 +116,10 @@ static int wait_for_ready(struct map_info *map, struct flchip *chip,
 			break;
 		}
 
-		/* OK Still waiting. Drop the lock, wait a while and retry. */
+		
 		spin_unlock(chip->mutex);
 		if (sleep_time >= 1000000/HZ) {
-			/*
-			 * Half of the normal delay still remaining
-			 * can be performed with a sleeping delay instead
-			 * of busy waiting.
-			 */
+			
 			msleep(sleep_time/1000);
 			timeo -= sleep_time;
 			sleep_time = 1000000/HZ;
@@ -161,7 +131,7 @@ static int wait_for_ready(struct map_info *map, struct flchip *chip,
 		spin_lock(chip->mutex);
 
 		while (chip->state != chip_state) {
-			/* Someone's suspended the operation: sleep */
+			
 			DECLARE_WAITQUEUE(wait, current);
 			set_current_state(TASK_UNINTERRUPTIBLE);
 			add_wait_queue(&chip->wq, &wait);
@@ -171,14 +141,14 @@ static int wait_for_ready(struct map_info *map, struct flchip *chip,
 			spin_lock(chip->mutex);
 		}
 		if (chip->erase_suspended || chip->write_suspended)  {
-			/* Suspend has occured while sleep: reset timeout */
+			
 			timeo = reset_timeo;
 			chip->erase_suspended = chip->write_suspended = 0;
 		}
 	}
-	/* check status for errors */
+	
 	if (dsr & DSR_ERR) {
-		/* Clear DSR*/
+		
 		map_write(map, CMD(~(DSR_ERR)), map->pfow_base + PFOW_DSR);
 		printk(KERN_WARNING"%s: Bad status on wait: 0x%x \n",
 				map->name, dsr);
@@ -197,38 +167,13 @@ static int get_chip(struct map_info *map, struct flchip *chip, int mode)
  retry:
 	if (chip->priv && (mode == FL_WRITING || mode == FL_ERASING)
 		&& chip->state != FL_SYNCING) {
-		/*
-		 * OK. We have possibility for contension on the write/erase
-		 * operations which are global to the real chip and not per
-		 * partition.  So let's fight it over in the partition which
-		 * currently has authority on the operation.
-		 *
-		 * The rules are as follows:
-		 *
-		 * - any write operation must own shared->writing.
-		 *
-		 * - any erase operation must own _both_ shared->writing and
-		 *   shared->erasing.
-		 *
-		 * - contension arbitration is handled in the owner's context.
-		 *
-		 * The 'shared' struct can be read and/or written only when
-		 * its lock is taken.
-		 */
+		
 		struct flchip_shared *shared = chip->priv;
 		struct flchip *contender;
 		spin_lock(&shared->lock);
 		contender = shared->writing;
 		if (contender && contender != chip) {
-			/*
-			 * The engine to perform desired operation on this
-			 * partition is already in use by someone else.
-			 * Let's fight over it in the context of the chip
-			 * currently using it.  If it is possible to suspend,
-			 * that other partition will do just that, otherwise
-			 * it'll happily send us to sleep.  In any case, when
-			 * get_chip returns success we're clear to go ahead.
-			 */
+			
 			ret = spin_trylock(contender->mutex);
 			spin_unlock(&shared->lock);
 			if (!ret)
@@ -247,8 +192,7 @@ static int get_chip(struct map_info *map, struct flchip *chip, int mode)
 			}
 			spin_lock(&shared->lock);
 
-			/* We should not own chip if it is already in FL_SYNCING
-			 * state. Put contender and retry. */
+			
 			if (chip->state == FL_SYNCING) {
 				put_chip(map, contender);
 				spin_unlock(contender->mutex);
@@ -257,8 +201,7 @@ static int get_chip(struct map_info *map, struct flchip *chip, int mode)
 			spin_unlock(contender->mutex);
 		}
 
-		/* Check if we have suspended erase on this chip.
-		   Must sleep in such a case. */
+		
 		if (mode == FL_ERASING && shared->erasing
 		    && shared->erasing->oldstate == FL_ERASING) {
 			spin_unlock(&shared->lock);
@@ -271,7 +214,7 @@ static int get_chip(struct map_info *map, struct flchip *chip, int mode)
 			goto retry;
 		}
 
-		/* We now own it */
+		
 		shared->writing = chip;
 		if (mode == FL_ERASING)
 			shared->erasing = chip;
@@ -291,7 +234,7 @@ static int chip_ready(struct map_info *map, struct flchip *chip, int mode)
 	int ret = 0;
 	DECLARE_WAITQUEUE(wait, current);
 
-	/* Prevent setting state FL_SYNCING for chip in suspended state. */
+	
 	if (FL_SYNCING == mode && FL_READY != chip->oldstate)
 		goto sleep;
 
@@ -311,8 +254,8 @@ static int chip_ready(struct map_info *map, struct flchip *chip, int mode)
 		chip->state = FL_ERASE_SUSPENDING;
 		ret = wait_for_ready(map, chip, 0);
 		if (ret) {
-			/* Oops. something got wrong. */
-			/* Resume and pretend we weren't here.  */
+			
+			
 			map_write(map, CMD(LPDDR_RESUME),
 				map->pfow_base + PFOW_COMMAND_CODE);
 			map_write(map, CMD(LPDDR_START_EXECUTION),
@@ -326,9 +269,9 @@ static int chip_ready(struct map_info *map, struct flchip *chip, int mode)
 		chip->erase_suspended = 1;
 		chip->state = FL_READY;
 		return 0;
-		/* Erase suspend */
+		
 	case FL_POINT:
-		/* Only if there's no operation suspended... */
+		
 		if (mode == FL_READY && chip->oldstate == FL_READY)
 			return 0;
 
@@ -350,10 +293,10 @@ static void put_chip(struct map_info *map, struct flchip *chip)
 		struct flchip_shared *shared = chip->priv;
 		spin_lock(&shared->lock);
 		if (shared->writing == chip && chip->oldstate == FL_READY) {
-			/* We own the ability to write, but we're done */
+			
 			shared->writing = shared->erasing;
 			if (shared->writing && shared->writing != chip) {
-				/* give back the ownership */
+				
 				struct flchip *loaner = shared->writing;
 				spin_lock(loaner->mutex);
 				spin_unlock(&shared->lock);
@@ -367,13 +310,7 @@ static void put_chip(struct map_info *map, struct flchip *chip)
 			shared->erasing = NULL;
 			shared->writing = NULL;
 		} else if (shared->erasing == chip && shared->writing != chip) {
-			/*
-			 * We own the ability to erase without the ability
-			 * to write, which means the erase was suspended
-			 * and some other partition is currently writing.
-			 * Don't let the switch below mess things up since
-			 * we don't have ownership to resume anything.
-			 */
+			
 			spin_unlock(&shared->lock);
 			wake_up(&chip->wq);
 			return;
@@ -419,7 +356,7 @@ int do_write_buffer(struct map_info *map, struct flchip *chip,
 		spin_unlock(chip->mutex);
 		return ret;
 	}
-	/* Figure out the number of words to write */
+	
 	word_gap = (-adr & (map_bankwidth(map)-1));
 	words = (len - word_gap + map_bankwidth(map) - 1) / map_bankwidth(map);
 	if (!word_gap) {
@@ -429,8 +366,8 @@ int do_write_buffer(struct map_info *map, struct flchip *chip,
 		adr -= word_gap;
 		datum = map_word_ff(map);
 	}
-	/* Write data */
-	/* Get the program buffer offset from PFOW register data first*/
+	
+	
 	prog_buf_ofs = map->pfow_base + CMDVAL(map_read(map,
 				map->pfow_base + PFOW_PROGRAM_BUFFER_OFFSET));
 	vec = *pvec;
@@ -466,7 +403,7 @@ int do_write_buffer(struct map_info *map, struct flchip *chip,
 	*pvec = vec;
 	*pvec_seek = vec_seek;
 
-	/* GO GO GO */
+	
 	send_pfow_command(map, LPDDR_BUFF_PROGRAM, adr, wbufsize, NULL);
 	chip->state = FL_WRITING;
 	ret = wait_for_ready(map, chip, (1<<lpddr->qinfo->ProgBufferTime));
@@ -545,7 +482,7 @@ static int lpddr_point(struct mtd_info *mtd, loff_t adr, size_t len,
 	if (!map->virt || (adr + len > mtd->size))
 		return -EINVAL;
 
-	/* ofs: offset within the first chip that the first read should start */
+	
 	ofs = adr - (chipnum << lpddr->chipshift);
 
 	*mtdbuf = (void *)map->virt + chip->start + ofs;
@@ -557,7 +494,7 @@ static int lpddr_point(struct mtd_info *mtd, loff_t adr, size_t len,
 		if (chipnum >= lpddr->numchips)
 			break;
 
-		/* We cannot point across chips that are virtually disjoint */
+		
 		if (!last_end)
 			last_end = chip->start;
 		else if (chip->start != last_end)
@@ -567,7 +504,7 @@ static int lpddr_point(struct mtd_info *mtd, loff_t adr, size_t len,
 			thislen = (1<<lpddr->chipshift) - ofs;
 		else
 			thislen = len;
-		/* get the chip */
+		
 		spin_lock(chip->mutex);
 		ret = get_chip(map, chip, FL_POINT);
 		spin_unlock(chip->mutex);
@@ -594,7 +531,7 @@ static void lpddr_unpoint (struct mtd_info *mtd, loff_t adr, size_t len)
 	int chipnum = adr >> lpddr->chipshift;
 	unsigned long ofs;
 
-	/* ofs: offset within the first chip that the first read should start */
+	
 	ofs = adr - (chipnum << lpddr->chipshift);
 
 	while (len) {
@@ -665,7 +602,7 @@ static int lpddr_writev(struct mtd_info *mtd, const struct kvec *vecs,
 	vec_seek = 0;
 
 	do {
-		/* We must not cross write block boundaries */
+		
 		int size = wbufsize - (ofs & (wbufsize-1));
 
 		if (size > len)
@@ -680,8 +617,7 @@ static int lpddr_writev(struct mtd_info *mtd, const struct kvec *vecs,
 		(*retlen) += size;
 		len -= size;
 
-		/* Be nice and reschedule with the chip in a usable
-		 * state for other processes */
+		
 		cond_resched();
 
 	} while (len);

@@ -1,21 +1,4 @@
-/*
- * arch/arm/plat-mxc/include/mach/iomux-mx25.h
- *
- * Copyright (C) 2009 by Lothar Wassmann <LW@KARO-electronics.de>
- *
- * based on arch/arm/mach-mx25/mx25_pins.h
- *    Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * and
- * arch/arm/plat-mxc/include/mach/iomux-mx35.h
- *    Copyright (C, NO_PAD_CTRL) 2009 by Jan Weitzel Phytec Messtechnik GmbH <armlinux@phytec.de>
- *
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
 #ifndef __IOMUX_MX25_H__
 #define __IOMUX_MX25_H__
 
@@ -25,18 +8,11 @@
 #error Please include mach/iomux.h
 #endif
 
-/*
- *
- * @brief MX25 I/O Pin List
- *
- * @ingroup GPIO_MX25
- */
+
 
 #ifndef __ASSEMBLY__
 
-/*
- * IOMUX/PAD Bit field definitions
- */
+
 
 #define MX25_PAD_A10__A10		IOMUX_PAD(0x000, 0x008, 0x00, 0, 0, NO_PAD_CTRL)
 #define MX25_PAD_A10__GPIO_4_0		IOMUX_PAD(0x000, 0x008, 0x05, 0, 0, NO_PAD_CTRL)
@@ -513,5 +489,5 @@
 #define MX25_PAD_CTL_GRP_DVS_SDHC1	IOMUX_PAD(0x458, 0x000, 0, 0, 0, NO_PAD_CTRL)
 #define MX25_PAD_CTL_GRP_DVS_LCD	IOMUX_PAD(0x45c, 0x000, 0, 0, 0, NO_PAD_CTRL)
 
-#endif // __ASSEMBLY__
-#endif // __IOMUX_MX25_H__
+#endif 
+#endif 

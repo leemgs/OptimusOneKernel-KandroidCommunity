@@ -1,18 +1,4 @@
-/*
- *  This code exports profiling data as debugfs files to userspace.
- *
- *    Copyright IBM Corp. 2009
- *    Author(s): Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
- *
- *    Uses gcc-internal data definitions.
- *    Based on the gcov-kernel patch by:
- *		 Hubertus Franke <frankeh@us.ibm.com>
- *		 Nigel Hinds <nhinds@us.ibm.com>
- *		 Rajan Ravindran <rajancr@us.ibm.com>
- *		 Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
- *		 Paul Larson
- *		 Yi CDL Yang
- */
+
 
 #define pr_fmt(fmt)	"gcov: " fmt
 
@@ -27,25 +13,7 @@
 #include <linux/seq_file.h>
 #include "gcov.h"
 
-/**
- * struct gcov_node - represents a debugfs entry
- * @list: list head for child node list
- * @children: child nodes
- * @all: list head for list of all nodes
- * @parent: parent node
- * @info: associated profiling data structure if not a directory
- * @ghost: when an object file containing profiling data is unloaded we keep a
- *         copy of the profiling data here to allow collecting coverage data
- *         for cleanup code. Such a node is called a "ghost".
- * @dentry: main debugfs entry, either a directory or data file
- * @links: associated symbolic links
- * @name: data file basename
- *
- * struct gcov_node represents an entity within the gcov/ subdirectory
- * of debugfs. There are directory and data file nodes. The latter represent
- * the actual synthesized data file plus any associated symbolic links which
- * are needed by the gcov tool to work correctly.
- */
+
 struct gcov_node {
 	struct list_head list;
 	struct list_head children;
@@ -65,7 +33,7 @@ static struct dentry *reset_dentry;
 static LIST_HEAD(all_head);
 static DEFINE_MUTEX(node_lock);
 
-/* If non-zero, keep copies of profiling data for unloaded modules. */
+
 static int gcov_persist = 1;
 
 static int __init gcov_persist_setup(char *str)
@@ -83,12 +51,7 @@ static int __init gcov_persist_setup(char *str)
 }
 __setup("gcov_persist=", gcov_persist_setup);
 
-/*
- * seq_file.start() implementation for gcov data files. Note that the
- * gcov_iterator interface is designed to be more restrictive than seq_file
- * (no start from arbitrary position, etc.), to simplify the iterator
- * implementation.
- */
+
 static void *gcov_seq_start(struct seq_file *seq, loff_t *pos)
 {
 	loff_t i;
@@ -101,7 +64,7 @@ static void *gcov_seq_start(struct seq_file *seq, loff_t *pos)
 	return seq->private;
 }
 
-/* seq_file.next() implementation for gcov data files. */
+
 static void *gcov_seq_next(struct seq_file *seq, void *data, loff_t *pos)
 {
 	struct gcov_iterator *iter = data;
@@ -113,7 +76,7 @@ static void *gcov_seq_next(struct seq_file *seq, void *data, loff_t *pos)
 	return iter;
 }
 
-/* seq_file.show() implementation for gcov data files. */
+
 static int gcov_seq_show(struct seq_file *seq, void *data)
 {
 	struct gcov_iterator *iter = data;
@@ -125,7 +88,7 @@ static int gcov_seq_show(struct seq_file *seq, void *data)
 
 static void gcov_seq_stop(struct seq_file *seq, void *data)
 {
-	/* Unused. */
+	
 }
 
 static const struct seq_operations gcov_seq_ops = {
@@ -135,11 +98,7 @@ static const struct seq_operations gcov_seq_ops = {
 	.stop	= gcov_seq_stop,
 };
 
-/*
- * Return the profiling data set for a given node. This can either be the
- * original profiling data structure or a duplicate (also called "ghost")
- * in case the associated object file has been unloaded.
- */
+
 static struct gcov_info *get_node_info(struct gcov_node *node)
 {
 	if (node->info)
@@ -148,10 +107,7 @@ static struct gcov_info *get_node_info(struct gcov_node *node)
 	return node->ghost;
 }
 
-/*
- * open() implementation for gcov data files. Create a copy of the profiling
- * data set and initialize the iterator and seq_file interface.
- */
+
 static int gcov_seq_open(struct inode *inode, struct file *file)
 {
 	struct gcov_node *node = inode->i_private;
@@ -161,10 +117,7 @@ static int gcov_seq_open(struct inode *inode, struct file *file)
 	int rc = -ENOMEM;
 
 	mutex_lock(&node_lock);
-	/*
-	 * Read from a profiling data copy to minimize reference tracking
-	 * complexity and concurrent access.
-	 */
+	
 	info = gcov_info_dup(get_node_info(node));
 	if (!info)
 		goto out_unlock;
@@ -187,10 +140,7 @@ err_free_info:
 	goto out_unlock;
 }
 
-/*
- * release() implementation for gcov data files. Release resources allocated
- * by open().
- */
+
 static int gcov_seq_release(struct inode *inode, struct file *file)
 {
 	struct gcov_iterator *iter;
@@ -207,10 +157,7 @@ static int gcov_seq_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
- * Find a node by the associated data file name. Needs to be called with
- * node_lock held.
- */
+
 static struct gcov_node *get_node_by_name(const char *name)
 {
 	struct gcov_node *node;
@@ -227,11 +174,7 @@ static struct gcov_node *get_node_by_name(const char *name)
 
 static void remove_node(struct gcov_node *node);
 
-/*
- * write() implementation for gcov data files. Reset profiling data for the
- * associated file. If the object file has been unloaded (i.e. this is
- * a "ghost" node), remove the debug fs node as well.
- */
+
 static ssize_t gcov_seq_write(struct file *file, const char __user *addr,
 			      size_t len, loff_t *pos)
 {
@@ -244,25 +187,20 @@ static ssize_t gcov_seq_write(struct file *file, const char __user *addr,
 	mutex_lock(&node_lock);
 	node = get_node_by_name(info->filename);
 	if (node) {
-		/* Reset counts or remove node for unloaded modules. */
+		
 		if (node->ghost)
 			remove_node(node);
 		else
 			gcov_info_reset(node->info);
 	}
-	/* Reset counts for open file. */
+	
 	gcov_info_reset(info);
 	mutex_unlock(&node_lock);
 
 	return len;
 }
 
-/*
- * Given a string <path> representing a file path of format:
- *   path/to/file.gcda
- * construct and return a new string:
- *   <dir/>path/to/file.<ext>
- */
+
 static char *link_target(const char *dir, const char *path, const char *ext)
 {
 	char *target;
@@ -284,12 +222,7 @@ static char *link_target(const char *dir, const char *path, const char *ext)
 	return target;
 }
 
-/*
- * Construct a string representing the symbolic link target for the given
- * gcov data file name and link type. Depending on the link type and the
- * location of the data file, the link target can either point to a
- * subdirectory of srctree, objtree or in an external location.
- */
+
 static char *get_link_target(const char *filename, const struct gcov_link *ext)
 {
 	const char *rel;
@@ -302,7 +235,7 @@ static char *get_link_target(const char *filename, const struct gcov_link *ext)
 		else
 			result = link_target(objtree, rel, ext->ext);
 	} else {
-		/* External compilation. */
+		
 		result = link_target(NULL, filename, ext->ext);
 	}
 
@@ -311,10 +244,7 @@ static char *get_link_target(const char *filename, const struct gcov_link *ext)
 
 #define SKEW_PREFIX	".tmp_"
 
-/*
- * For a filename .tmp_filename.ext return filename.ext. Needed to compensate
- * for filename skewing caused by the mod-versioning mechanism.
- */
+
 static const char *deskew(const char *basename)
 {
 	if (strncmp(basename, SKEW_PREFIX, sizeof(SKEW_PREFIX) - 1) == 0)
@@ -322,10 +252,7 @@ static const char *deskew(const char *basename)
 	return basename;
 }
 
-/*
- * Create links to additional files (usually .c and .gcno files) which the
- * gcov tool expects to find in the same directory as the gcov data file.
- */
+
 static void add_links(struct gcov_node *node, struct dentry *parent)
 {
 	char *basename;
@@ -334,7 +261,7 @@ static void add_links(struct gcov_node *node, struct dentry *parent)
 	int i;
 
 	for (num = 0; gcov_link[num].ext; num++)
-		/* Nothing. */;
+		;
 	node->links = kcalloc(num, sizeof(struct dentry *), GFP_KERNEL);
 	if (!node->links)
 		return;
@@ -371,7 +298,7 @@ static const struct file_operations gcov_data_fops = {
 	.write		= gcov_seq_write,
 };
 
-/* Basic initialization of a new node. */
+
 static void init_node(struct gcov_node *node, struct gcov_info *info,
 		      const char *name, struct gcov_node *parent)
 {
@@ -384,10 +311,7 @@ static void init_node(struct gcov_node *node, struct gcov_info *info,
 		strcpy(node->name, name);
 }
 
-/*
- * Create a new node and associated debugfs entry. Needs to be called with
- * node_lock held.
- */
+
 static struct gcov_node *new_node(struct gcov_node *parent,
 				  struct gcov_info *info, const char *name)
 {
@@ -399,7 +323,7 @@ static struct gcov_node *new_node(struct gcov_node *parent,
 		return NULL;
 	}
 	init_node(node, info, name, parent);
-	/* Differentiate between gcov data file nodes and directory nodes. */
+	
 	if (info) {
 		node->dentry = debugfs_create_file(deskew(node->name), 0600,
 					parent->dentry, node, &gcov_data_fops);
@@ -418,7 +342,7 @@ static struct gcov_node *new_node(struct gcov_node *parent,
 	return node;
 }
 
-/* Remove symbolic links associated with node. */
+
 static void remove_links(struct gcov_node *node)
 {
 	int i;
@@ -431,10 +355,7 @@ static void remove_links(struct gcov_node *node)
 	node->links = NULL;
 }
 
-/*
- * Remove node from all lists and debugfs and release associated resources.
- * Needs to be called with node_lock held.
- */
+
 static void release_node(struct gcov_node *node)
 {
 	list_del(&node->list);
@@ -446,7 +367,7 @@ static void release_node(struct gcov_node *node)
 	kfree(node);
 }
 
-/* Release node and empty parents. Needs to be called with node_lock held. */
+
 static void remove_node(struct gcov_node *node)
 {
 	struct gcov_node *parent;
@@ -458,10 +379,7 @@ static void remove_node(struct gcov_node *node)
 	}
 }
 
-/*
- * Find child node with given basename. Needs to be called with node_lock
- * held.
- */
+
 static struct gcov_node *get_child_by_name(struct gcov_node *parent,
 					   const char *name)
 {
@@ -475,10 +393,7 @@ static struct gcov_node *get_child_by_name(struct gcov_node *parent,
 	return NULL;
 }
 
-/*
- * write() implementation for reset file. Reset all profiling data to zero
- * and remove ghost nodes.
- */
+
 static ssize_t reset_write(struct file *file, const char __user *addr,
 			   size_t len, loff_t *pos)
 {
@@ -491,7 +406,7 @@ restart:
 			gcov_info_reset(node->info);
 		else if (list_empty(&node->children)) {
 			remove_node(node);
-			/* Several nodes may have gone - restart loop. */
+			
 			goto restart;
 		}
 	}
@@ -500,11 +415,11 @@ restart:
 	return len;
 }
 
-/* read() implementation for reset file. Unused. */
+
 static ssize_t reset_read(struct file *file, char __user *addr, size_t len,
 			  loff_t *pos)
 {
-	/* Allow read operation so that a recursive copy won't fail. */
+	
 	return 0;
 }
 
@@ -513,10 +428,7 @@ static const struct file_operations gcov_reset_fops = {
 	.read	= reset_read,
 };
 
-/*
- * Create a node for a given profiling data set and add it to all lists and
- * debugfs. Needs to be called with node_lock held.
- */
+
 static void add_node(struct gcov_info *info)
 {
 	char *filename;
@@ -529,7 +441,7 @@ static void add_node(struct gcov_info *info)
 	if (!filename)
 		return;
 	parent = &root_node;
-	/* Create directory nodes along the path. */
+	
 	for (curr = filename; (next = strchr(curr, '/')); curr = next + 1) {
 		if (curr == next)
 			continue;
@@ -550,7 +462,7 @@ static void add_node(struct gcov_info *info)
 		}
 		parent = node;
 	}
-	/* Create file node. */
+	
 	node = new_node(parent, info, curr);
 	if (!node)
 		goto err_remove;
@@ -563,10 +475,7 @@ err_remove:
 	goto out;
 }
 
-/*
- * The profiling data set associated with this node is being unloaded. Store a
- * copy of the profiling data and turn this node into a "ghost".
- */
+
 static int ghost_node(struct gcov_node *node)
 {
 	node->ghost = gcov_info_dup(node->info);
@@ -580,10 +489,7 @@ static int ghost_node(struct gcov_node *node)
 	return 0;
 }
 
-/*
- * Profiling data for this node has been loaded again. Add profiling data
- * from previous instantiation and turn this node into a regular node.
- */
+
 static void revive_node(struct gcov_node *node, struct gcov_info *info)
 {
 	if (gcov_info_is_compatible(node->ghost, info))
@@ -597,10 +503,7 @@ static void revive_node(struct gcov_node *node, struct gcov_info *info)
 	node->info = info;
 }
 
-/*
- * Callback to create/remove profiling files when code compiled with
- * -fprofile-arcs is loaded/unloaded.
- */
+
 void gcov_event(enum gcov_action action, struct gcov_info *info)
 {
 	struct gcov_node *node;
@@ -609,7 +512,7 @@ void gcov_event(enum gcov_action action, struct gcov_info *info)
 	node = get_node_by_name(info->filename);
 	switch (action) {
 	case GCOV_ADD:
-		/* Add new node or revive ghost. */
+		
 		if (!node) {
 			add_node(info);
 			break;
@@ -622,7 +525,7 @@ void gcov_event(enum gcov_action action, struct gcov_info *info)
 		}
 		break;
 	case GCOV_REMOVE:
-		/* Remove node or turn into ghost. */
+		
 		if (!node) {
 			pr_warning("could not remove '%s' (not found)\n",
 				   info->filename);
@@ -638,28 +541,22 @@ void gcov_event(enum gcov_action action, struct gcov_info *info)
 	mutex_unlock(&node_lock);
 }
 
-/* Create debugfs entries. */
+
 static __init int gcov_fs_init(void)
 {
 	int rc = -EIO;
 
 	init_node(&root_node, NULL, NULL, NULL);
-	/*
-	 * /sys/kernel/debug/gcov will be parent for the reset control file
-	 * and all profiling files.
-	 */
+	
 	root_node.dentry = debugfs_create_dir("gcov", NULL);
 	if (!root_node.dentry)
 		goto err_remove;
-	/*
-	 * Create reset file which resets all profiling counts when written
-	 * to.
-	 */
+	
 	reset_dentry = debugfs_create_file("reset", 0600, root_node.dentry,
 					   NULL, &gcov_reset_fops);
 	if (!reset_dentry)
 		goto err_remove;
-	/* Replay previous events to get our fs hierarchy up-to-date. */
+	
 	gcov_enable_events();
 	return 0;
 

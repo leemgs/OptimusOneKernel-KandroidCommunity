@@ -1,34 +1,4 @@
-/******************************************************************************
- * xenbus_comms.c
- *
- * Low level code to talks to Xen Store: ringbuffer and event channel.
- *
- * Copyright (C) 2005 Rusty Russell, IBM Corporation
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 
 #include <linux/wait.h>
 #include <linux/interrupt.h>
@@ -82,13 +52,7 @@ static const void *get_input_chunk(XENSTORE_RING_IDX cons,
 	return buf + MASK_XENSTORE_IDX(cons);
 }
 
-/**
- * xb_write - low level write
- * @data: buffer to send
- * @len: length of buffer
- *
- * Returns 0 on success, error otherwise.
- */
+
 int xb_write(const void *data, unsigned len)
 {
 	struct xenstore_domain_interface *intf = xen_store_interface;
@@ -106,7 +70,7 @@ int xb_write(const void *data, unsigned len)
 		if (rc < 0)
 			return rc;
 
-		/* Read indexes, then verify. */
+		
 		cons = intf->req_cons;
 		prod = intf->req_prod;
 		if (!check_indexes(cons, prod)) {
@@ -120,18 +84,18 @@ int xb_write(const void *data, unsigned len)
 		if (avail > len)
 			avail = len;
 
-		/* Must write data /after/ reading the consumer index. */
+		
 		mb();
 
 		memcpy(dst, data, avail);
 		data += avail;
 		len -= avail;
 
-		/* Other side must not see new producer until data is there. */
+		
 		wmb();
 		intf->req_prod += avail;
 
-		/* Implies mb(): other side will see the updated producer. */
+		
 		notify_remote_via_evtchn(xen_store_evtchn);
 	}
 
@@ -163,7 +127,7 @@ int xb_read(void *data, unsigned len)
 		if (rc < 0)
 			return rc;
 
-		/* Read indexes, then verify. */
+		
 		cons = intf->rsp_cons;
 		prod = intf->rsp_prod;
 		if (!check_indexes(cons, prod)) {
@@ -177,29 +141,27 @@ int xb_read(void *data, unsigned len)
 		if (avail > len)
 			avail = len;
 
-		/* Must read data /after/ reading the producer index. */
+		
 		rmb();
 
 		memcpy(data, src, avail);
 		data += avail;
 		len -= avail;
 
-		/* Other side must not see free space until we've copied out */
+		
 		mb();
 		intf->rsp_cons += avail;
 
 		pr_debug("Finished read of %i bytes (%i to go)\n", avail, len);
 
-		/* Implies mb(): other side will see the updated consumer. */
+		
 		notify_remote_via_evtchn(xen_store_evtchn);
 	}
 
 	return 0;
 }
 
-/**
- * xb_init_comms - Set up interrupt handler off store event channel.
- */
+
 int xb_init_comms(void)
 {
 	struct xenstore_domain_interface *intf = xen_store_interface;
@@ -216,7 +178,7 @@ int xb_init_comms(void)
 	}
 
 	if (xenbus_irq) {
-		/* Already have an irq; assume we're resuming */
+		
 		rebind_evtchn_irq(xen_store_evtchn, xenbus_irq);
 	} else {
 		int err;

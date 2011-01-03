@@ -1,22 +1,4 @@
-/*
- * Copyright 2006 Freescale Semiconductor, Inc.
- * Copyright 2006-2007 Motorola, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #ifndef _ARCH_ARM_MACH_MXC91231_CRM_REGS_H_
 #define _ARCH_ARM_MACH_MXC91231_CRM_REGS_H_
@@ -31,7 +13,7 @@
 #define MXC_PLL2_BASE			MXC91231_IO_ADDRESS(MXC91231_PLL2_BASE_ADDR)
 #define MXC_CLKCTL_BASE			MXC91231_IO_ADDRESS(MXC91231_CLKCTL_BASE_ADDR)
 
-/* PLL Register Offsets */
+
 #define MXC_PLL_DP_CTL			0x00
 #define MXC_PLL_DP_CONFIG		0x04
 #define MXC_PLL_DP_OP			0x08
@@ -41,7 +23,7 @@
 #define MXC_PLL_DP_HFS_MFD		0x20
 #define MXC_PLL_DP_HFS_MFN		0x24
 
-/* PLL Register Bit definitions */
+
 #define MXC_PLL_DP_CTL_DPDCK0_2_EN	0x1000
 #define MXC_PLL_DP_CTL_ADE		0x800
 #define MXC_PLL_DP_CTL_REF_CLK_DIV	0x400
@@ -65,7 +47,7 @@
 #define MXC_PLL_DP_MFN_OFFSET		0
 #define MXC_PLL_DP_MFN_MASK		0x7FFFFFF
 
-/* CRM AP Register Offsets */
+
 #define MXC_CRMAP_ASCSR			(MXC_CRM_AP_BASE + 0x00)
 #define MXC_CRMAP_ACDR			(MXC_CRM_AP_BASE + 0x04)
 #define MXC_CRMAP_ACDER1		(MXC_CRM_AP_BASE + 0x08)
@@ -94,7 +76,7 @@
 #define MXC_CRMAP_APOR			(MXC_CRM_AP_BASE + 0x64)
 #define MXC_CRMAP_ADFMR			(MXC_CRM_AP_BASE + 0x68)
 
-/* CRM AP Register Bit definitions */
+
 #define MXC_CRMAP_ASCSR_CRS			0x10000
 #define MXC_CRMAP_ASCSR_AP_PATDIV2_OFFSET	15
 #define MXC_CRMAP_ASCSR_AP_PATREF_DIV2		0x8000
@@ -300,10 +282,10 @@
 #define MXC_CRMAP_ACR_CKOD			(1 << 7)
 #define MXC_CRMAP_ACR_CKOS_MASK			(0x7 << 4)
 
-/* AP Warm reset */
+
 #define MXC_CRMAP_AMCR_SW_AP			(1 << 14)
 
-/* Bit definitions of ACGCR in CRM_AP for tree level clock gating */
+
 #define MXC_CRMAP_ACGCR_ACG0_STOP_WAIT		0x00000001
 #define MXC_CRMAP_ACGCR_ACG0_STOP		0x00000003
 #define MXC_CRMAP_ACGCR_ACG0_RUN		0x00000007
@@ -341,11 +323,11 @@
 
 #define NUM_GATE_CTRL				6
 
-/* CRM COM Register Offsets */
+
 #define MXC_CRMCOM_CSCR				(MXC_CRM_COM_BASE + 0x0C)
 #define MXC_CRMCOM_CCCR				(MXC_CRM_COM_BASE + 0x10)
 
-/* CRM COM Bit Definitions */
+
 #define MXC_CRMCOM_CSCR_PPD1			0x08000000
 #define MXC_CRMCOM_CSCR_CKOHSEL			(1 << 18)
 #define MXC_CRMCOM_CSCR_CKOSEL			(1 << 17)
@@ -354,7 +336,7 @@
 #define MXC_CRMCOM_CCCR_CC_SEL_OFFSET		0
 #define MXC_CRMCOM_CCCR_CC_SEL_MASK		0x3
 
-/* DSM Register Offsets */
+
 #define MXC_DSM_SLEEP_TIME			(MXC_DSM_BASE + 0x0c)
 #define MXC_DSM_CONTROL0			(MXC_DSM_BASE + 0x20)
 #define MXC_DSM_CONTROL1			(MXC_DSM_BASE + 0x24)
@@ -364,7 +346,7 @@
 #define MXC_DSM_MGPER				(MXC_DSM_BASE + 0x4c)
 #define MXC_DSM_CRM_CONTROL			(MXC_DSM_BASE + 0x50)
 
-/* Bit definitions of various registers in DSM */
+
 #define MXC_DSM_CRM_CTRL_DVFS_BYP		0x00000008
 #define MXC_DSM_CRM_CTRL_DVFS_VCTRL		0x00000004
 #define MXC_DSM_CRM_CTRL_LPMD1			0x00000002
@@ -375,25 +357,25 @@
 #define MXC_DSM_CONTROL0_STBY_COMMIT_EN		0x00000200
 #define MXC_DSM_CONTROL0_MSTR_EN		0x00000001
 #define MXC_DSM_CONTROL0_RESTART		0x00000010
-/* Counter Block reset */
+
 #define MXC_DSM_CONTROL1_CB_RST			0x00000002
-/* State Machine reset */
+
 #define MXC_DSM_CONTROL1_SM_RST			0x00000004
-/* Bit needed to reset counter block */
+
 #define MXC_CONTROL1_RST_CNT32			0x00000008
 #define MXC_DSM_CONTROL1_RST_CNT32_EN		0x00000800
 #define MXC_DSM_CONTROL1_SLEEP			0x00000100
 #define MXC_DSM_CONTROL1_WAKEUP_DISABLE		0x00004000
 #define MXC_DSM_CTREN_CNT32			0x00000001
 
-/* Magic Fix enable bit */
+
 #define MXC_DSM_MGPER_EN_MGFX			0x80000000
 #define MXC_DSM_MGPER_PER_MASK			0x000003FF
 #define MXC_DSM_MGPER_PER(n)			(MXC_DSM_MGPER_PER_MASK & n)
 
-/* Address offsets of the CLKCTL registers */
+
 #define MXC_CLKCTL_GP_CTRL	(MXC_CLKCTL_BASE + 0x00)
 #define MXC_CLKCTL_GP_SER	(MXC_CLKCTL_BASE + 0x04)
 #define MXC_CLKCTL_GP_CER	(MXC_CLKCTL_BASE + 0x08)
 
-#endif /* _ARCH_ARM_MACH_MXC91231_CRM_REGS_H_ */
+#endif 

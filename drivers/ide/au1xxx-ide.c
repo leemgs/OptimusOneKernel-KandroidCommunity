@@ -1,32 +1,4 @@
-/*
- * BRIEF MODULE DESCRIPTION
- * AMD Alchemy Au1xxx IDE interface routines over the Static Bus
- *
- * Copyright (c) 2003-2005 AMD, Personal Connectivity Solutions
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR
- * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Note: for more information, please refer "AMD Alchemy Au1200/Au1550 IDE
- *       Interface and Linux Device Driver" Application Note.
- */
+
 #include <linux/types.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -43,7 +15,7 @@
 #define DRV_NAME	"au1200-ide"
 #define DRV_AUTHOR	"Enrico Walther <enrico.walther@amd.com> / Pete Popov <ppopov@embeddedalley.com>"
 
-/* enable the burstmode in the dbdma */
+
 #define IDE_AU1XXX_BURSTMODE	1
 
 static _auide_hwif auide_hwif;
@@ -103,12 +75,12 @@ static void au1xxx_set_pio_mode(ide_drive_t *drive, const u8 pio)
 {
 	int mem_sttime = 0, mem_stcfg = au_readl(MEM_STCFG2);
 
-	/* set pio mode! */
+	
 	switch(pio) {
 	case 0:
 		mem_sttime = SBC_IDE_TIMING(PIO0);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg |= TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -118,7 +90,7 @@ static void au1xxx_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	case 1:
 		mem_sttime = SBC_IDE_TIMING(PIO1);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg |= TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -128,7 +100,7 @@ static void au1xxx_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	case 2:
 		mem_sttime = SBC_IDE_TIMING(PIO2);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg &= ~TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -138,7 +110,7 @@ static void au1xxx_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	case 3:
 		mem_sttime = SBC_IDE_TIMING(PIO3);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg &= ~TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -149,7 +121,7 @@ static void au1xxx_set_pio_mode(ide_drive_t *drive, const u8 pio)
 	case 4:
 		mem_sttime = SBC_IDE_TIMING(PIO4);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg &= ~TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -170,7 +142,7 @@ static void auide_set_dma_mode(ide_drive_t *drive, const u8 speed)
 	case XFER_MW_DMA_2:
 		mem_sttime = SBC_IDE_TIMING(MDMA2);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg &= ~TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -180,7 +152,7 @@ static void auide_set_dma_mode(ide_drive_t *drive, const u8 speed)
 	case XFER_MW_DMA_1:
 		mem_sttime = SBC_IDE_TIMING(MDMA1);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg &= ~TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -190,7 +162,7 @@ static void auide_set_dma_mode(ide_drive_t *drive, const u8 speed)
 	case XFER_MW_DMA_0:
 		mem_sttime = SBC_IDE_TIMING(MDMA0);
 
-		/* set configuration for RCS2# */
+		
 		mem_stcfg |= TS_MASK;
 		mem_stcfg &= ~TCSOE_MASK;
 		mem_stcfg &= ~TOECS_MASK;
@@ -204,9 +176,7 @@ static void auide_set_dma_mode(ide_drive_t *drive, const u8 speed)
 	au_writel(mem_stcfg,MEM_STCFG2);
 }
 
-/*
- * Multi-Word DMA + DbDMA functions
- */
+
 
 #ifdef CONFIG_BLK_DEV_IDE_AU1XXX_MDMA2_DBDMA
 static int auide_build_dmatable(ide_drive_t *drive, struct ide_cmd *cmd)
@@ -217,10 +187,10 @@ static int auide_build_dmatable(ide_drive_t *drive, struct ide_cmd *cmd)
 	int i = cmd->sg_nents, count = 0;
 	int iswrite = !!(cmd->tf_flags & IDE_TFLAG_WRITE);
 
-	/* Save for interrupt context */
+	
 	ahwif->drive = drive;
 
-	/* fill the descriptors */
+	
 	sg = hwif->sg_table;
 	while (i && sg_dma_len(sg)) {
 		u32 cur_addr;
@@ -239,7 +209,7 @@ static int auide_build_dmatable(ide_drive_t *drive, struct ide_cmd *cmd)
 				return 0;
 			}
 
-			/* Lets enable intr for the last descriptor only */
+			
 			if (1==i)
 				flags = DDMA_FLAGS_IE;
 			else
@@ -272,7 +242,7 @@ static int auide_build_dmatable(ide_drive_t *drive, struct ide_cmd *cmd)
 	if (count)
 		return 1;
 
-	return 0; /* revert to PIO for this request */
+	return 0; 
 }
 
 static int auide_dma_end(ide_drive_t *drive)
@@ -295,9 +265,7 @@ static int auide_dma_setup(ide_drive_t *drive, struct ide_cmd *cmd)
 
 static int auide_dma_test_irq(ide_drive_t *drive)
 {
-	/* If dbdma didn't execute the STOP command yet, the
-	 * active bit is still set
-	 */
+	
 	drive->waiting_for_dma++;
 	if (drive->waiting_for_dma >= DMA_WAIT_TIMEOUT) {
 		printk(KERN_WARNING "%s: timeout waiting for ddma to \
@@ -319,7 +287,7 @@ static void auide_ddma_tx_callback(int irq, void *param)
 static void auide_ddma_rx_callback(int irq, void *param)
 {
 }
-#endif /* end CONFIG_BLK_DEV_IDE_AU1XXX_MDMA2_DBDMA */
+#endif 
 
 static void auide_init_dbdma_dev(dbdev_tab_t *dev, u32 dev_id, u32 tsize, u32 devwidth, u32 flags)
 {
@@ -350,8 +318,8 @@ static int auide_ddma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 
 	dev_id	 = IDE_DDMA_REQ;
 
-	tsize    =  8; /*  1 */
-	devwidth = 32; /* 16 */
+	tsize    =  8; 
+	devwidth = 32; 
 
 #ifdef IDE_AU1XXX_BURSTMODE 
 	flags = DEV_FLAGS_SYNC | DEV_FLAGS_BURSTABLE;
@@ -359,7 +327,7 @@ static int auide_ddma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 	flags = DEV_FLAGS_SYNC;
 #endif
 
-	/* setup dev_tab for tx channel */
+	
 	auide_init_dbdma_dev( &source_dev_tab,
 			      dev_id,
 			      tsize, devwidth, DEV_FLAGS_OUT | flags);
@@ -370,19 +338,19 @@ static int auide_ddma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 			      tsize, devwidth, DEV_FLAGS_IN | flags);
  	auide->rx_dev_id = au1xxx_ddma_add_device( &source_dev_tab );
 	
-	/* We also need to add a target device for the DMA */
+	
 	auide_init_dbdma_dev( &target_dev_tab,
 			      (u32)DSCR_CMD0_ALWAYS,
 			      tsize, devwidth, DEV_FLAGS_ANYUSE);
 	auide->target_dev_id = au1xxx_ddma_add_device(&target_dev_tab);	
  
-	/* Get a channel for TX */
+	
 	auide->tx_chan = au1xxx_dbdma_chan_alloc(auide->target_dev_id,
 						 auide->tx_dev_id,
 						 auide_ddma_tx_callback,
 						 (void*)auide);
  
-	/* Get a channel for RX */
+	
 	auide->rx_chan = au1xxx_dbdma_chan_alloc(auide->rx_dev_id,
 						 auide->target_dev_id,
 						 auide_ddma_rx_callback,
@@ -393,7 +361,7 @@ static int auide_ddma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 	auide->rx_desc_head = (void*)au1xxx_dbdma_ring_alloc(auide->rx_chan,
 							     NUM_DESCRIPTORS);
 
-	/* FIXME: check return value */
+	
 	(void)ide_allocate_dma_engine(hwif);
 	
 	au1xxx_dbdma_start( auide->tx_chan );
@@ -414,7 +382,7 @@ static int auide_ddma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 	flags = DEV_FLAGS_SYNC;
 #endif
 
-	/* setup dev_tab for tx channel */
+	
 	auide_init_dbdma_dev( &source_dev_tab,
 			      (u32)DSCR_CMD0_ALWAYS,
 			      8, 32, DEV_FLAGS_OUT | flags);
@@ -425,13 +393,13 @@ static int auide_ddma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 			      8, 32, DEV_FLAGS_IN | flags);
  	auide->rx_dev_id = au1xxx_ddma_add_device( &source_dev_tab );
 	
-	/* Get a channel for TX */
+	
 	auide->tx_chan = au1xxx_dbdma_chan_alloc(DSCR_CMD0_ALWAYS,
 						 auide->tx_dev_id,
 						 NULL,
 						 (void*)auide);
  
-	/* Get a channel for RX */
+	
 	auide->rx_chan = au1xxx_dbdma_chan_alloc(auide->rx_dev_id,
 						 DSCR_CMD0_ALWAYS,
 						 NULL,
@@ -454,11 +422,11 @@ static void auide_setup_ports(struct ide_hw *hw, _auide_hwif *ahwif)
 	int i;
 	unsigned long *ata_regs = hw->io_ports_array;
 
-	/* FIXME? */
+	
 	for (i = 0; i < 8; i++)
 		*ata_regs++ = ahwif->regbase + (i << IDE_REG_SHIFT);
 
-	/* set the Alternative Status register */
+	
 	*ata_regs = ahwif->regbase + (14 << IDE_REG_SHIFT);
 }
 

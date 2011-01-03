@@ -1,15 +1,4 @@
-/*
- * I2C client/driver for the Maxim/Dallas DS2782 Stand-Alone Fuel Gauge IC
- *
- * Copyright (C) 2009 Bluewater Systems Ltd
- *
- * Author: Ryan Mallon <ryan@bluewatersys.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -20,16 +9,16 @@
 #include <linux/idr.h>
 #include <linux/power_supply.h>
 
-#define DS2782_REG_RARC		0x06	/* Remaining active relative capacity */
+#define DS2782_REG_RARC		0x06	
 
 #define DS2782_REG_VOLT_MSB	0x0c
 #define DS2782_REG_TEMP_MSB	0x0a
 #define DS2782_REG_CURRENT_MSB	0x0e
 
-/* EEPROM Block */
-#define DS2782_REG_RSNSP	0x69	/* Sense resistor value */
 
-/* Current unit measurement in uA for a 1 milli-ohm sense resistor */
+#define DS2782_REG_RSNSP	0x69	
+
+
 #define DS2782_CURRENT_UNITS	1563
 
 #define to_ds2782_info(x) container_of(x, struct ds2782_info, battery)
@@ -77,12 +66,7 @@ static int ds2782_get_temp(struct ds2782_info *info, int *temp)
 	s16 raw;
 	int err;
 
-	/*
-	 * Temperature is measured in units of 0.125 degrees celcius, the
-	 * power_supply class measures temperature in tenths of degrees
-	 * celsius. The temperature value is stored as a 10 bit number, plus
-	 * sign in the upper bits of a 16 bit register.
-	 */
+	
 	err = ds2782_read_reg16(info, DS2782_REG_TEMP_MSB, &raw);
 	if (err)
 		return err;
@@ -97,10 +81,7 @@ static int ds2782_get_current(struct ds2782_info *info, int *current_uA)
 	u8 sense_res_raw;
 	s16 raw;
 
-	/*
-	 * The units of measurement for current are dependent on the value of
-	 * the sense resistor.
-	 */
+	
 	err = ds2782_read_reg(info, DS2782_REG_RSNSP, &sense_res_raw);
 	if (err)
 		return err;
@@ -124,10 +105,7 @@ static int ds2782_get_voltage(struct ds2782_info *info, int *voltage_uA)
 	s16 raw;
 	int err;
 
-	/*
-	 * Voltage is measured in units of 4.88mV. The voltage is stored as
-	 * a 10-bit number plus sign, in the upper bits of a 16-bit register
-	 */
+	
 	err = ds2782_read_reg16(info, DS2782_REG_VOLT_MSB, &raw);
 	if (err)
 		return err;
@@ -249,7 +227,7 @@ static int ds2782_battery_probe(struct i2c_client *client,
 	int ret;
 	int num;
 
-	/* Get an ID for this battery */
+	
 	ret = idr_pre_get(&battery_id, GFP_KERNEL);
 	if (ret == 0) {
 		ret = -ENOMEM;

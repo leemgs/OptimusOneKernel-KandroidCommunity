@@ -1,23 +1,4 @@
-/*
- *  Driver for the Auvitek USB bridge
- *
- *  Copyright (c) 2008 Steven Toth <stoth@linuxtv.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -37,9 +18,9 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 #define _BULKPIPESIZE 0xe522
 
 static u8 hauppauge_hvr950q_led_states[] = {
-	0x00, /* off */
-	0x02, /* yellow */
-	0x04, /* green */
+	0x00, 
+	0x02, 
+	0x04, 
 };
 
 static struct au8522_led_config hauppauge_hvr950q_led_cfg = {
@@ -51,9 +32,9 @@ static struct au8522_led_config hauppauge_hvr950q_led_cfg = {
 	.led_states  = hauppauge_hvr950q_led_states,
 	.num_led_states = sizeof(hauppauge_hvr950q_led_states),
 
-	.vsb8_strong   = 20 /* dB */ * 10,
-	.qam64_strong  = 25 /* dB */ * 10,
-	.qam256_strong = 32 /* dB */ * 10,
+	.vsb8_strong   = 20  * 10,
+	.qam64_strong  = 25  * 10,
+	.qam256_strong = 32  * 10,
 };
 
 static struct au8522_config hauppauge_hvr950q_config = {
@@ -92,7 +73,7 @@ static struct tda18271_config hauppauge_woodbury_tunerconfig = {
 	.gate    = TDA18271_GATE_DIGITAL,
 };
 
-/*-------------------------------------------------------------------*/
+
 static void urb_completion(struct urb *purb)
 {
 	u8 *ptr;
@@ -115,14 +96,14 @@ static void urb_completion(struct urb *purb)
 
 	ptr = (u8 *)purb->transfer_buffer;
 
-	/* Feed the transport payload into the kernel demux */
+	
 	dvb_dmx_swfilter_packets(&dev->dvb.demux,
 		purb->transfer_buffer, purb->actual_length / 188);
 
-	/* Clean the buffer before we requeue */
+	
 	memset(purb->transfer_buffer, 0, URB_BUFSIZE);
 
-	/* Requeue URB */
+	
 	usb_submit_urb(purb, GFP_ATOMIC);
 }
 
@@ -214,7 +195,7 @@ static int au0828_dvb_start_feed(struct dvb_demux_feed *feed)
 	if (dvb) {
 		mutex_lock(&dvb->lock);
 		if (dvb->feeding++ == 0) {
-			/* Start transport */
+			
 			au0828_write(dev, 0x608, 0x90);
 			au0828_write(dev, 0x609, 0x72);
 			au0828_write(dev, 0x60a, 0x71);
@@ -239,7 +220,7 @@ static int au0828_dvb_stop_feed(struct dvb_demux_feed *feed)
 	if (dvb) {
 		mutex_lock(&dvb->lock);
 		if (--dvb->feeding == 0) {
-			/* Stop transport */
+			
 			au0828_write(dev, 0x608, 0x00);
 			au0828_write(dev, 0x609, 0x00);
 			au0828_write(dev, 0x60a, 0x00);
@@ -259,7 +240,7 @@ static int dvb_register(struct au0828_dev *dev)
 
 	dprintk(1, "%s()\n", __func__);
 
-	/* register adapter */
+	
 	result = dvb_register_adapter(&dvb->adapter, DRIVER_NAME, THIS_MODULE,
 				      &dev->usbdev->dev, adapter_nr);
 	if (result < 0) {
@@ -269,7 +250,7 @@ static int dvb_register(struct au0828_dev *dev)
 	}
 	dvb->adapter.priv = dev;
 
-	/* register frontend */
+	
 	result = dvb_register_frontend(&dvb->adapter, dvb->frontend);
 	if (result < 0) {
 		printk(KERN_ERR "%s: dvb_register_frontend failed "
@@ -277,7 +258,7 @@ static int dvb_register(struct au0828_dev *dev)
 		goto fail_frontend;
 	}
 
-	/* register demux stuff */
+	
 	dvb->demux.dmx.capabilities =
 		DMX_TS_FILTERING | DMX_SECTION_FILTERING |
 		DMX_MEMORY_BASED_FILTERING;
@@ -326,7 +307,7 @@ static int dvb_register(struct au0828_dev *dev)
 		goto fail_fe_conn;
 	}
 
-	/* register network adapter */
+	
 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
 	return 0;
 
@@ -366,10 +347,7 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
 	dvb_unregister_adapter(&dvb->adapter);
 }
 
-/* All the DVB attach calls go here, this function get's modified
- * for each new card. No other function in this file needs
- * to change.
- */
+
 int au0828_dvb_register(struct au0828_dev *dev)
 {
 	struct au0828_dvb *dvb = &dev->dvb;
@@ -377,7 +355,7 @@ int au0828_dvb_register(struct au0828_dev *dev)
 
 	dprintk(1, "%s()\n", __func__);
 
-	/* init frontend */
+	
 	switch (dev->boardnr) {
 	case AU0828_BOARD_HAUPPAUGE_HVR850:
 	case AU0828_BOARD_HAUPPAUGE_HVR950Q:
@@ -426,10 +404,10 @@ int au0828_dvb_register(struct au0828_dev *dev)
 		       __func__);
 		return -1;
 	}
-	/* define general-purpose callback pointer */
+	
 	dvb->frontend->callback = au0828_tuner_callback;
 
-	/* register everything */
+	
 	ret = dvb_register(dev);
 	if (ret < 0) {
 		if (dvb->frontend->ops.release)

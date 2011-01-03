@@ -1,33 +1,4 @@
-/*======================================================================
 
-    A driver for PCMCIA IDE/ATA disk cards
-
-    The contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is David A. Hinds
-    <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
-    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU General Public License version 2 (the "GPL"), in
-    which case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-
-======================================================================*/
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -52,9 +23,9 @@
 
 #define DRV_NAME "ide-cs"
 
-/*====================================================================*/
 
-/* Module parameters */
+
+
 
 MODULE_AUTHOR("David Hinds <dahinds@users.sourceforge.net>");
 MODULE_DESCRIPTION("PCMCIA ATA/IDE card driver");
@@ -69,7 +40,7 @@ INT_MODULE_PARM(pc_debug, 0);
 #define DEBUG(n, args...)
 #endif
 
-/*====================================================================*/
+
 
 typedef struct ide_info_t {
 	struct pcmcia_device	*p_dev;
@@ -86,13 +57,7 @@ static void ide_detach(struct pcmcia_device *p_dev);
 
 
 
-/*======================================================================
 
-    ide_attach() creates an "instance" of the driver, allocating
-    local data structures for one device.  The device is registered
-    with Card Services.
-
-======================================================================*/
 
 static int ide_probe(struct pcmcia_device *link)
 {
@@ -100,7 +65,7 @@ static int ide_probe(struct pcmcia_device *link)
 
     DEBUG(0, "ide_attach()\n");
 
-    /* Create new ide device */
+    
     info = kzalloc(sizeof(*info), GFP_KERNEL);
     if (!info)
 	return -ENOMEM;
@@ -117,16 +82,9 @@ static int ide_probe(struct pcmcia_device *link)
     link->conf.IntType = INT_MEMORY_AND_IO;
 
     return ide_config(link);
-} /* ide_attach */
+} 
 
-/*======================================================================
 
-    This deletes a driver "instance".  The device is de-registered
-    with Card Services.  If it has been released, all local data
-    structures are freed.  Otherwise, the structures will be freed
-    when the device is released.
-
-======================================================================*/
 
 static void ide_detach(struct pcmcia_device *link)
 {
@@ -145,7 +103,7 @@ static void ide_detach(struct pcmcia_device *link)
     release_region(data_addr, 8);
 
     kfree(info);
-} /* ide_detach */
+} 
 
 static const struct ide_port_ops idecs_port_ops = {
 	.quirkproc		= ide_undecoded_slave,
@@ -193,7 +151,7 @@ static struct ide_host *idecs_register(unsigned long io, unsigned long ctl,
     if (hwif->present)
 	return host;
 
-    /* retry registration in case device is still spinning up */
+    
     for (i = 0; i < 10; i++) {
 	msleep(100);
 	ide_port_scan(hwif);
@@ -209,13 +167,7 @@ out_release:
     return NULL;
 }
 
-/*======================================================================
 
-    ide_config() is scheduled to run after a CARD_INSERTION event
-    is received, to configure the PCMCIA socket, and to make the
-    ide device available to the system.
-
-======================================================================*/
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -234,7 +186,7 @@ static int pcmcia_check_one_config(struct pcmcia_device *pdev,
 {
 	struct pcmcia_config_check *stk = priv_data;
 
-	/* Check for matching Vcc, unless we're desperate */
+	
 	if (!stk->skip_vcc) {
 		if (cfg->vcc.present & (1 << CISTPL_POWER_VNOM)) {
 			if (vcc != cfg->vcc.param[CISTPL_POWER_VNOM] / 10000)
@@ -272,7 +224,7 @@ static int pcmcia_check_one_config(struct pcmcia_device *pdev,
 			stk->ctl_base = pdev->io.BasePort1 + 0x0e;
 		} else
 			return -ENODEV;
-		/* If we've got this far, we're done */
+		
 		return 0;
 	}
 	return -ENODEV;
@@ -301,7 +253,7 @@ static int ide_config(struct pcmcia_device *link)
     if (pcmcia_loop_config(link, pcmcia_check_one_config, stk)) {
 	    stk->skip_vcc = 1;
 	    if (pcmcia_loop_config(link, pcmcia_check_one_config, stk))
-		    goto failed; /* No suitable config found */
+		    goto failed; 
     }
     io_base = link->io.BasePort1;
     ctl_base = stk->ctl_base;
@@ -309,10 +261,10 @@ static int ide_config(struct pcmcia_device *link)
     CS_CHECK(RequestIRQ, pcmcia_request_irq(link, &link->irq));
     CS_CHECK(RequestConfiguration, pcmcia_request_configuration(link, &link->conf));
 
-    /* disable drive interrupts during IDE probe */
+    
     outb(0x02, ctl_base);
 
-    /* special setup for KXLC005 card */
+    
     if (is_kme)
 	outb(0x81, ctl_base+1);
 
@@ -348,15 +300,9 @@ failed:
     kfree(stk);
     ide_release(link);
     return -ENODEV;
-} /* ide_config */
+} 
 
-/*======================================================================
 
-    After a card is removed, ide_release() will unregister the net
-    device, and release the PCMCIA configuration.  If the device is
-    still open, this will be postponed until it is closed.
-
-======================================================================*/
 
 static void ide_release(struct pcmcia_device *link)
 {
@@ -366,43 +312,35 @@ static void ide_release(struct pcmcia_device *link)
     DEBUG(0, "ide_release(0x%p)\n", link);
 
     if (info->ndev)
-	/* FIXME: if this fails we need to queue the cleanup somehow
-	   -- need to investigate the required PCMCIA magic */
+	
 	ide_host_remove(host);
 
     info->ndev = 0;
 
     pcmcia_disable_device(link);
-} /* ide_release */
+} 
 
 
-/*======================================================================
 
-    The card status event handler.  Mostly, this schedules other
-    stuff to run after an event is received.  A CARD_REMOVAL event
-    also sets some flags to discourage the ide drivers from
-    talking to the ports.
-
-======================================================================*/
 
 static struct pcmcia_device_id ide_ids[] = {
 	PCMCIA_DEVICE_FUNC_ID(4),
-	PCMCIA_DEVICE_MANF_CARD(0x0000, 0x0000),	/* Corsair */
-	PCMCIA_DEVICE_MANF_CARD(0x0007, 0x0000),	/* Hitachi */
-	PCMCIA_DEVICE_MANF_CARD(0x000a, 0x0000),	/* I-O Data CFA */
-	PCMCIA_DEVICE_MANF_CARD(0x001c, 0x0001),	/* Mitsubishi CFA */
+	PCMCIA_DEVICE_MANF_CARD(0x0000, 0x0000),	
+	PCMCIA_DEVICE_MANF_CARD(0x0007, 0x0000),	
+	PCMCIA_DEVICE_MANF_CARD(0x000a, 0x0000),	
+	PCMCIA_DEVICE_MANF_CARD(0x001c, 0x0001),	
 	PCMCIA_DEVICE_MANF_CARD(0x0032, 0x0704),
 	PCMCIA_DEVICE_MANF_CARD(0x0032, 0x2904),
-	PCMCIA_DEVICE_MANF_CARD(0x0045, 0x0401),	/* SanDisk CFA */
-	PCMCIA_DEVICE_MANF_CARD(0x004f, 0x0000),	/* Kingston */
-	PCMCIA_DEVICE_MANF_CARD(0x0097, 0x1620), 	/* TI emulated */
-	PCMCIA_DEVICE_MANF_CARD(0x0098, 0x0000),	/* Toshiba */
+	PCMCIA_DEVICE_MANF_CARD(0x0045, 0x0401),	
+	PCMCIA_DEVICE_MANF_CARD(0x004f, 0x0000),	
+	PCMCIA_DEVICE_MANF_CARD(0x0097, 0x1620), 	
+	PCMCIA_DEVICE_MANF_CARD(0x0098, 0x0000),	
 	PCMCIA_DEVICE_MANF_CARD(0x00a4, 0x002d),
-	PCMCIA_DEVICE_MANF_CARD(0x00ce, 0x0000),	/* Samsung */
-	PCMCIA_DEVICE_MANF_CARD(0x0319, 0x0000),	/* Hitachi */
+	PCMCIA_DEVICE_MANF_CARD(0x00ce, 0x0000),	
+	PCMCIA_DEVICE_MANF_CARD(0x0319, 0x0000),	
 	PCMCIA_DEVICE_MANF_CARD(0x2080, 0x0001),
-	PCMCIA_DEVICE_MANF_CARD(0x4e01, 0x0100),	/* Viking CFA */
-	PCMCIA_DEVICE_MANF_CARD(0x4e01, 0x0200),	/* Lexar, Viking CFA */
+	PCMCIA_DEVICE_MANF_CARD(0x4e01, 0x0100),	
+	PCMCIA_DEVICE_MANF_CARD(0x4e01, 0x0200),	
 	PCMCIA_DEVICE_PROD_ID123("Caravelle", "PSC-IDE ", "PSC000", 0x8c36137c, 0xd0693ab8, 0x2768a9f0),
 	PCMCIA_DEVICE_PROD_ID123("CDROM", "IDE", "MCD-601p", 0x1b9179ca, 0xede88951, 0x0d902f74),
 	PCMCIA_DEVICE_PROD_ID123("PCMCIA", "IDE CARD", "F1", 0x281f1c5d, 0x1907960c, 0xf7fde8b9),

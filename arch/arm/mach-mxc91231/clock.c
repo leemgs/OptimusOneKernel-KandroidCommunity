@@ -117,7 +117,7 @@ static struct clk ckil_clk = {
 	.get_rate = clk_ckil_get_rate,
 };
 
-/* plls stuff */
+
 static struct clk mcu_pll_clk;
 static struct clk dsp_pll_clk;
 static struct clk usb_pll_clk;
@@ -177,9 +177,7 @@ static unsigned long clk_pll_get_rate(struct clk *clk)
 	else
 		mfn_abs = mfn;
 
-/* XXX: actually this asumes that ckih is fed to pll, but spec says
- * that ckih_x2 is also possible. need to check this out.
- */
+
 	ref_clk = clk_get_rate(&ckih_clk);
 
 	ref_clk *= 2;
@@ -240,9 +238,9 @@ static struct clk usb_pll_clk = {
 	.enable = clk_pll_enable,
 	.disable = clk_pll_disable,
 };
-/* plls stuff end */
 
-/* ap_ref_clk stuff */
+
+
 static struct clk ap_ref_clk;
 
 static unsigned long clk_ap_ref_get_rate(struct clk *clk)
@@ -253,17 +251,17 @@ static unsigned long clk_ap_ref_get_rate(struct clk *clk)
 	ascsr = __raw_readl(MXC_CRMAP_ASCSR);
 	acsr = __raw_readl(MXC_CRMAP_ACSR);
 
-	/* 0 for ckih, 1 for ckih*2 */
+	
 	ap_isel = ascsr & MXC_CRMAP_ASCSR_APISEL;
-	/* reg divider */
+	
 	ap_pat_ref_div_2 = (ascsr >> MXC_CRMAP_ASCSR_AP_PATDIV2_OFFSET) & 0x1;
-	/* undocumented, 1 for disabling divider */
+	
 	ads = (acsr >> MXC_CRMAP_ACSR_ADS_OFFSET) & 0x1;
-	/* 0 for pat_ref, 1 for divider out */
+	
 	acs = acsr & MXC_CRMAP_ACSR_ACS;
 
 	if (acs & !ads)
-		/* use divided clock */
+		
 		return clk_get_rate(clk->parent) / (ap_pat_ref_div_2 ? 2 : 1);
 
 	return clk_get_rate(clk->parent) * (ap_isel ? 2 : 1);
@@ -273,9 +271,9 @@ static struct clk ap_ref_clk = {
 	.parent = &ckih_clk,
 	.get_rate = clk_ap_ref_get_rate,
 };
-/* ap_ref_clk stuff end */
 
-/* ap_pre_dfs_clk stuff */
+
+
 static struct clk ap_pre_dfs_clk;
 
 static unsigned long clk_ap_pre_dfs_get_rate(struct clk *clk)
@@ -298,9 +296,9 @@ static unsigned long clk_ap_pre_dfs_get_rate(struct clk *clk)
 static struct clk ap_pre_dfs_clk = {
 	.get_rate = clk_ap_pre_dfs_get_rate,
 };
-/* ap_pre_dfs_clk stuff end */
 
-/* usb_clk stuff */
+
+
 static struct clk usb_clk;
 
 static struct clk *clk_usb_parent(struct clk *clk)
@@ -332,7 +330,7 @@ static struct clk usb_clk = {
 	.enable = _clk_1bit_enable,
 	.disable = _clk_1bit_disable,
 };
-/* usb_clk stuff end */
+
 
 static unsigned long clk_ipg_get_rate(struct clk *clk)
 {
@@ -355,7 +353,7 @@ static struct clk ahb_clk = {
 	.get_rate = clk_ahb_get_rate,
 };
 
-/* perclk_clk stuff */
+
 static struct clk perclk_clk;
 
 static unsigned long clk_perclk_get_rate(struct clk *clk)
@@ -373,9 +371,9 @@ static struct clk perclk_clk = {
 	.parent = &ckih_clk,
 	.get_rate = clk_perclk_get_rate,
 };
-/* perclk_clk stuff end */
 
-/* uart_clk stuff */
+
+
 static struct clk uart_clk[];
 
 static unsigned long clk_uart_get_rate(struct clk *clk)
@@ -423,9 +421,9 @@ static struct clk uart_clk[] = {
 		.disable = _clk_1bit_disable,
 	},
 };
-/* uart_clk stuff end */
 
-/* sdhc_clk stuff */
+
+
 static struct clk nfc_clk;
 
 static unsigned long clk_nfc_get_rate(struct clk *clk)
@@ -442,9 +440,9 @@ static struct clk nfc_clk = {
 	.enable = _clk_1bit_enable,
 	.disable = _clk_1bit_disable,
 };
-/* sdhc_clk stuff end */
 
-/* sdhc_clk stuff */
+
+
 static struct clk sdhc_clk[];
 
 static struct clk *clk_sdhc_parent(struct clk *clk)
@@ -551,9 +549,9 @@ static struct clk sdhc_clk[] = {
 		.disable = clk_sdhc_disable,
 	},
 };
-/* sdhc_clk stuff end */
 
-/* wdog_clk stuff */
+
+
 static struct clk wdog_clk[] = {
 	{
 		.id = 0,
@@ -571,9 +569,9 @@ static struct clk wdog_clk[] = {
 		.disable = _clk_3bit_disable,
 	},
 };
-/* wdog_clk stuff end */
 
-/* gpt_clk stuff */
+
+
 static struct clk gpt_clk = {
 	.parent = &ipg_clk,
 	.enable_reg = MXC_CRMAP_AMLPMRC,
@@ -581,9 +579,9 @@ static struct clk gpt_clk = {
 	.enable = _clk_3bit_enable,
 	.disable = _clk_3bit_disable,
 };
-/* gpt_clk stuff end */
 
-/* cspi_clk stuff */
+
+
 static struct clk cspi_clk[] = {
 	{
 		.id = 0,
@@ -601,7 +599,7 @@ static struct clk cspi_clk[] = {
 		.disable = _clk_3bit_disable,
 	},
 };
-/* cspi_clk stuff end */
+
 
 #define _REGISTER_CLOCK(d, n, c) \
 	{ \

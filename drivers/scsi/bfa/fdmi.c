@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  port_api.c BFA FCS port
- */
+
+
 
 
 #include <bfa.h>
@@ -33,9 +16,7 @@ BFA_TRC_FILE(FCS, FDMI);
 
 #define BFA_FCS_FDMI_CMD_MAX_RETRIES 2
 
-/*
- * forward declarations
- */
+
 static void     bfa_fcs_port_fdmi_send_rhba(void *fdmi_cbarg,
 					    struct bfa_fcxp_s *fcxp_alloced);
 static void     bfa_fcs_port_fdmi_send_rprt(void *fdmi_cbarg,
@@ -76,13 +57,9 @@ void bfa_fcs_fdmi_get_hbaattr(struct bfa_fcs_port_fdmi_s *fdmi,
 			struct bfa_fcs_fdmi_hba_attr_s *hba_attr);
 void bfa_fcs_fdmi_get_portattr(struct bfa_fcs_port_fdmi_s *fdmi,
 			struct bfa_fcs_fdmi_port_attr_s *port_attr);
-/**
- *  fcs_fdmi_sm FCS FDMI state machine
- */
 
-/**
- *  FDMI State Machine events
- */
+
+
 enum port_fdmi_event {
 	FDMISM_EVENT_PORT_ONLINE = 1,
 	FDMISM_EVENT_PORT_OFFLINE = 2,
@@ -116,9 +93,7 @@ static void     bfa_fcs_port_fdmi_sm_rpa_retry(struct bfa_fcs_port_fdmi_s *fdmi,
 			enum port_fdmi_event event);
 static void     bfa_fcs_port_fdmi_sm_online(struct bfa_fcs_port_fdmi_s *fdmi,
 			enum port_fdmi_event event);
-/**
- * 		Start in offline state - awaiting MS to send start.
- */
+
 static void
 bfa_fcs_port_fdmi_sm_offline(struct bfa_fcs_port_fdmi_s *fdmi,
 			     enum port_fdmi_event event)
@@ -133,18 +108,12 @@ bfa_fcs_port_fdmi_sm_offline(struct bfa_fcs_port_fdmi_s *fdmi,
 	switch (event) {
 	case FDMISM_EVENT_PORT_ONLINE:
 		if (port->vport) {
-			/*
-			 * For Vports, register a new port.
-			 */
+			
 			bfa_sm_set_state(fdmi,
 					 bfa_fcs_port_fdmi_sm_sending_rprt);
 			bfa_fcs_port_fdmi_send_rprt(fdmi, NULL);
 		} else {
-			/*
-			 * For a base port, we should first register the HBA
-			 * atribute. The HBA attribute also contains the base
-			 *  port registration.
-			 */
+			
 			bfa_sm_set_state(fdmi,
 					 bfa_fcs_port_fdmi_sm_sending_rhba);
 			bfa_fcs_port_fdmi_send_rhba(fdmi, NULL);
@@ -195,27 +164,20 @@ bfa_fcs_port_fdmi_sm_rhba(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	switch (event) {
 	case FDMISM_EVENT_RSP_ERROR:
-		/*
-		 * if max retries have not been reached, start timer for a
-		 * delayed retry
-		 */
+		
 		if (fdmi->retry_cnt++ < BFA_FCS_FDMI_CMD_MAX_RETRIES) {
 			bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_rhba_retry);
 			bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(port),
 					&fdmi->timer, bfa_fcs_port_fdmi_timeout,
 					fdmi, BFA_FCS_RETRY_TIMEOUT);
 		} else {
-			/*
-			 * set state to offline
-			 */
+			
 			bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_offline);
 		}
 		break;
 
 	case FDMISM_EVENT_RSP_OK:
-		/*
-		 * Initiate Register Port Attributes
-		 */
+		
 		bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_sending_rpa);
 		fdmi->retry_cnt = 0;
 		bfa_fcs_port_fdmi_send_rpa(fdmi, NULL);
@@ -242,9 +204,7 @@ bfa_fcs_port_fdmi_sm_rhba_retry(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	switch (event) {
 	case FDMISM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_sending_rhba);
 		bfa_fcs_port_fdmi_send_rhba(fdmi, NULL);
 		break;
@@ -259,9 +219,7 @@ bfa_fcs_port_fdmi_sm_rhba_retry(struct bfa_fcs_port_fdmi_s *fdmi,
 	}
 }
 
-/*
-* RPRT : Register Port
- */
+
 static void
 bfa_fcs_port_fdmi_sm_sending_rprt(struct bfa_fcs_port_fdmi_s *fdmi,
 				  enum port_fdmi_event event)
@@ -298,10 +256,7 @@ bfa_fcs_port_fdmi_sm_rprt(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	switch (event) {
 	case FDMISM_EVENT_RSP_ERROR:
-		/*
-		 * if max retries have not been reached, start timer for a
-		 * delayed retry
-		 */
+		
 		if (fdmi->retry_cnt++ < BFA_FCS_FDMI_CMD_MAX_RETRIES) {
 			bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_rprt_retry);
 			bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(port),
@@ -309,9 +264,7 @@ bfa_fcs_port_fdmi_sm_rprt(struct bfa_fcs_port_fdmi_s *fdmi,
 					fdmi, BFA_FCS_RETRY_TIMEOUT);
 
 		} else {
-			/*
-			 * set state to offline
-			 */
+			
 			bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_offline);
 			fdmi->retry_cnt = 0;
 		}
@@ -343,9 +296,7 @@ bfa_fcs_port_fdmi_sm_rprt_retry(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	switch (event) {
 	case FDMISM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_sending_rprt);
 		bfa_fcs_port_fdmi_send_rprt(fdmi, NULL);
 		break;
@@ -360,9 +311,7 @@ bfa_fcs_port_fdmi_sm_rprt_retry(struct bfa_fcs_port_fdmi_s *fdmi,
 	}
 }
 
-/*
- * Register Port Attributes
- */
+
 static void
 bfa_fcs_port_fdmi_sm_sending_rpa(struct bfa_fcs_port_fdmi_s *fdmi,
 				 enum port_fdmi_event event)
@@ -399,19 +348,14 @@ bfa_fcs_port_fdmi_sm_rpa(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	switch (event) {
 	case FDMISM_EVENT_RSP_ERROR:
-		/*
-		 * if max retries have not been reached, start timer for a
-		 * delayed retry
-		 */
+		
 		if (fdmi->retry_cnt++ < BFA_FCS_FDMI_CMD_MAX_RETRIES) {
 			bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_rpa_retry);
 			bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(port),
 					&fdmi->timer, bfa_fcs_port_fdmi_timeout,
 					fdmi, BFA_FCS_RETRY_TIMEOUT);
 		} else {
-			/*
-			 * set state to offline
-			 */
+			
 			bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_offline);
 			fdmi->retry_cnt = 0;
 		}
@@ -443,9 +387,7 @@ bfa_fcs_port_fdmi_sm_rpa_retry(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	switch (event) {
 	case FDMISM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(fdmi, bfa_fcs_port_fdmi_sm_sending_rpa);
 		bfa_fcs_port_fdmi_send_rpa(fdmi, NULL);
 		break;
@@ -480,9 +422,7 @@ bfa_fcs_port_fdmi_sm_online(struct bfa_fcs_port_fdmi_s *fdmi,
 }
 
 
-/**
-*   RHBA : Register HBA Attributes.
- */
+
 static void
 bfa_fcs_port_fdmi_send_rhba(void *fdmi_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -525,16 +465,14 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 				  u8 *pyld)
 {
 	struct bfa_fcs_port_s *port = fdmi->ms->port;
-	struct bfa_fcs_fdmi_hba_attr_s hba_attr;	/* @todo */
-	struct bfa_fcs_fdmi_hba_attr_s *fcs_hba_attr = &hba_attr; /* @todo */
+	struct bfa_fcs_fdmi_hba_attr_s hba_attr;	
+	struct bfa_fcs_fdmi_hba_attr_s *fcs_hba_attr = &hba_attr; 
 	struct fdmi_rhba_s    *rhba = (struct fdmi_rhba_s *) pyld;
 	struct fdmi_attr_s    *attr;
 	u8        *curr_ptr;
 	u16        len, count;
 
-	/*
-	 * get hba attributes
-	 */
+	
 	bfa_fcs_fdmi_get_hbaattr(fdmi, fcs_hba_attr);
 
 	rhba->hba_id = bfa_fcs_port_get_pwwn(port);
@@ -546,14 +484,10 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 	count = 0;
 	len += sizeof(rhba->hba_attr_blk.attr_count);
 
-	/*
-	 * fill out the invididual entries of the HBA attrib Block
-	 */
+	
 	curr_ptr = (u8 *) &rhba->hba_attr_blk.hba_attr;
 
-	/*
-	 * Node Name
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_NODENAME);
 	attr->len = sizeof(wwn_t);
@@ -565,14 +499,12 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * Manufacturer
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_MANUFACTURER);
 	attr->len = (u16) strlen(fcs_hba_attr->manufacturer);
 	memcpy(attr->value, fcs_hba_attr->manufacturer, attr->len);
-	/* variable fields need to be 4 byte aligned */
+	
 	attr->len = fc_roundup(attr->len, sizeof(u32));
 	curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 	len += attr->len;
@@ -581,14 +513,12 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * Serial Number
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_SERIALNUM);
 	attr->len = (u16) strlen(fcs_hba_attr->serial_num);
 	memcpy(attr->value, fcs_hba_attr->serial_num, attr->len);
-	/* variable fields need to be 4 byte aligned */
+	
 	attr->len = fc_roundup(attr->len, sizeof(u32));
 	curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 	len += attr->len;
@@ -597,14 +527,12 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * Model
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_MODEL);
 	attr->len = (u16) strlen(fcs_hba_attr->model);
 	memcpy(attr->value, fcs_hba_attr->model, attr->len);
-	/* variable fields need to be 4 byte aligned */
+	
 	attr->len = fc_roundup(attr->len, sizeof(u32));
 	curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 	len += attr->len;
@@ -613,14 +541,12 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * Model Desc
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_MODEL_DESC);
 	attr->len = (u16) strlen(fcs_hba_attr->model_desc);
 	memcpy(attr->value, fcs_hba_attr->model_desc, attr->len);
-	/* variable fields need to be 4 byte aligned */
+	
 	attr->len = fc_roundup(attr->len, sizeof(u32));
 	curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 	len += attr->len;
@@ -629,15 +555,13 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * H/W Version
-	 */
+	
 	if (fcs_hba_attr->hw_version[0] != '\0') {
 		attr = (struct fdmi_attr_s *) curr_ptr;
 		attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_HW_VERSION);
 		attr->len = (u16) strlen(fcs_hba_attr->hw_version);
 		memcpy(attr->value, fcs_hba_attr->hw_version, attr->len);
-		/* variable fields need to be 4 byte aligned */
+		
 		attr->len = fc_roundup(attr->len, sizeof(u32));
 		curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 		len += attr->len;
@@ -647,14 +571,12 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 				     sizeof(attr->len));
 	}
 
-	/*
-	 * Driver Version
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_DRIVER_VERSION);
 	attr->len = (u16) strlen(fcs_hba_attr->driver_version);
 	memcpy(attr->value, fcs_hba_attr->driver_version, attr->len);
-	/* variable fields need to be 4 byte aligned */
+	
 	attr->len = fc_roundup(attr->len, sizeof(u32));
 	curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 	len += attr->len;;
@@ -663,15 +585,13 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * Option Rom Version
-	 */
+	
 	if (fcs_hba_attr->option_rom_ver[0] != '\0') {
 		attr = (struct fdmi_attr_s *) curr_ptr;
 		attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_ROM_VERSION);
 		attr->len = (u16) strlen(fcs_hba_attr->option_rom_ver);
 		memcpy(attr->value, fcs_hba_attr->option_rom_ver, attr->len);
-		/* variable fields need to be 4 byte aligned */
+		
 		attr->len = fc_roundup(attr->len, sizeof(u32));
 		curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 		len += attr->len;
@@ -681,14 +601,12 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 				     sizeof(attr->len));
 	}
 
-	/*
-	 * f/w Version = driver version
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_FW_VERSION);
 	attr->len = (u16) strlen(fcs_hba_attr->driver_version);
 	memcpy(attr->value, fcs_hba_attr->driver_version, attr->len);
-	/* variable fields need to be 4 byte aligned */
+	
 	attr->len = fc_roundup(attr->len, sizeof(u32));
 	curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 	len += attr->len;
@@ -697,15 +615,13 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * OS Name
-	 */
+	
 	if (fcs_hba_attr->os_name[0] != '\0') {
 		attr = (struct fdmi_attr_s *) curr_ptr;
 		attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_OS_NAME);
 		attr->len = (u16) strlen(fcs_hba_attr->os_name);
 		memcpy(attr->value, fcs_hba_attr->os_name, attr->len);
-		/* variable fields need to be 4 byte aligned */
+		
 		attr->len = fc_roundup(attr->len, sizeof(u32));
 		curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 		len += attr->len;
@@ -715,9 +631,7 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 				     sizeof(attr->len));
 	}
 
-	/*
-	 * MAX_CT_PAYLOAD
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_HBA_ATTRIB_MAX_CT);
 	attr->len = sizeof(fcs_hba_attr->max_ct_pyld);
@@ -728,9 +642,7 @@ bfa_fcs_port_fdmi_build_rhba_pyld(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * Update size of payload
-	 */
+	
 	len += ((sizeof(attr->type) + sizeof(attr->len)) * count);
 
 	rhba->hba_attr_blk.attr_count = bfa_os_htonl(count);
@@ -749,9 +661,7 @@ bfa_fcs_port_fdmi_rhba_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		bfa_sm_send_event(fdmi, FDMISM_EVENT_RSP_ERROR);
@@ -771,9 +681,7 @@ bfa_fcs_port_fdmi_rhba_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	bfa_sm_send_event(fdmi, FDMISM_EVENT_RSP_ERROR);
 }
 
-/**
-*   RPRT : Register Port
- */
+
 static void
 bfa_fcs_port_fdmi_send_rprt(void *fdmi_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -811,9 +719,7 @@ bfa_fcs_port_fdmi_send_rprt(void *fdmi_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 	bfa_sm_send_event(fdmi, FDMISM_EVENT_RPRT_SENT);
 }
 
-/**
- * This routine builds Port Attribute Block that used in RPA, RPRT commands.
- */
+
 static          u16
 bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 				       u8 *pyld)
@@ -825,21 +731,15 @@ bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 	u16        len;
 	u8         count = 0;
 
-	/*
-	 * get port attributes
-	 */
+	
 	bfa_fcs_fdmi_get_portattr(fdmi, &fcs_port_attr);
 
 	len = sizeof(port_attrib->attr_count);
 
-	/*
-	 * fill out the invididual entries
-	 */
+	
 	curr_ptr = (u8 *) &port_attrib->port_attr;
 
-	/*
-	 * FC4 Types
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_PORT_ATTRIB_FC4_TYPES);
 	attr->len = sizeof(fcs_port_attr.supp_fc4_types);
@@ -851,9 +751,7 @@ bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * Supported Speed
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_PORT_ATTRIB_SUPP_SPEED);
 	attr->len = sizeof(fcs_port_attr.supp_speed);
@@ -865,9 +763,7 @@ bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * current Port Speed
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_PORT_ATTRIB_PORT_SPEED);
 	attr->len = sizeof(fcs_port_attr.curr_speed);
@@ -879,9 +775,7 @@ bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * max frame size
-	 */
+	
 	attr = (struct fdmi_attr_s *) curr_ptr;
 	attr->type = bfa_os_htons(FDMI_PORT_ATTRIB_FRAME_SIZE);
 	attr->len = sizeof(fcs_port_attr.max_frm_size);
@@ -893,15 +787,13 @@ bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 		bfa_os_htons(attr->len + sizeof(attr->type) +
 			     sizeof(attr->len));
 
-	/*
-	 * OS Device Name
-	 */
+	
 	if (fcs_port_attr.os_device_name[0] != '\0') {
 		attr = (struct fdmi_attr_s *) curr_ptr;
 		attr->type = bfa_os_htons(FDMI_PORT_ATTRIB_DEV_NAME);
 		attr->len = (u16) strlen(fcs_port_attr.os_device_name);
 		memcpy(attr->value, fcs_port_attr.os_device_name, attr->len);
-		/* variable fields need to be 4 byte aligned */
+		
 		attr->len = fc_roundup(attr->len, sizeof(u32));
 		curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 		len += attr->len;
@@ -911,15 +803,13 @@ bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 				     sizeof(attr->len));
 
 	}
-	/*
-	 * Host Name
-	 */
+	
 	if (fcs_port_attr.host_name[0] != '\0') {
 		attr = (struct fdmi_attr_s *) curr_ptr;
 		attr->type = bfa_os_htons(FDMI_PORT_ATTRIB_HOST_NAME);
 		attr->len = (u16) strlen(fcs_port_attr.host_name);
 		memcpy(attr->value, fcs_port_attr.host_name, attr->len);
-		/* variable fields need to be 4 byte aligned */
+		
 		attr->len = fc_roundup(attr->len, sizeof(u32));
 		curr_ptr += sizeof(attr->type) + sizeof(attr->len) + attr->len;
 		len += attr->len;
@@ -930,9 +820,7 @@ bfa_fcs_port_fdmi_build_portattr_block(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	}
 
-	/*
-	 * Update size of payload
-	 */
+	
 	port_attrib->attr_count = bfa_os_htonl(count);
 	len += ((sizeof(attr->type) + sizeof(attr->len)) * count);
 	return len;
@@ -969,9 +857,7 @@ bfa_fcs_port_fdmi_rprt_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		bfa_sm_send_event(fdmi, FDMISM_EVENT_RSP_ERROR);
@@ -991,9 +877,7 @@ bfa_fcs_port_fdmi_rprt_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	bfa_sm_send_event(fdmi, FDMISM_EVENT_RSP_ERROR);
 }
 
-/**
-*   RPA : Register Port Attributes.
- */
+
 static void
 bfa_fcs_port_fdmi_send_rpa(void *fdmi_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -1061,9 +945,7 @@ bfa_fcs_port_fdmi_rpa_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		bfa_sm_send_event(fdmi, FDMISM_EVENT_RSP_ERROR);
@@ -1130,10 +1012,7 @@ bfa_fcs_fdmi_get_hbaattr(struct bfa_fcs_port_fdmi_s *fdmi,
 	strncpy(hba_attr->os_name, driver_info->host_os_name,
 		sizeof(hba_attr->os_name));
 
-	/*
-	 * If there is a patch level, append it to the os name along with a
-	 * separator
-	 */
+	
 	if (driver_info->host_os_patch[0] != '\0') {
 		strncat(hba_attr->os_name, BFA_FCS_PORT_SYMBNAME_SEPARATOR,
 			sizeof(BFA_FCS_PORT_SYMBNAME_SEPARATOR));
@@ -1155,40 +1034,26 @@ bfa_fcs_fdmi_get_portattr(struct bfa_fcs_port_fdmi_s *fdmi,
 
 	bfa_os_memset(port_attr, 0, sizeof(struct bfa_fcs_fdmi_port_attr_s));
 
-	/*
-	 * get pport attributes from hal
-	 */
+	
 	bfa_pport_get_attr(port->fcs->bfa, &pport_attr);
 
-	/*
-	 * get FC4 type Bitmask
-	 */
+	
 	fc_get_fc4type_bitmask(FC_TYPE_FCP, port_attr->supp_fc4_types);
 
-	/*
-	 * Supported Speeds
-	 */
+	
 	port_attr->supp_speed = bfa_os_htonl(BFA_FCS_FDMI_SUPORTED_SPEEDS);
 
-	/*
-	 * Current Speed
-	 */
+	
 	port_attr->curr_speed = bfa_os_htonl(pport_attr.speed);
 
-	/*
-	 * Max PDU Size.
-	 */
+	
 	port_attr->max_frm_size = bfa_os_htonl(FC_MAX_PDUSZ);
 
-	/*
-	 * OS device Name
-	 */
+	
 	strncpy(port_attr->os_device_name, (char *)driver_info->os_device_name,
 		sizeof(port_attr->os_device_name));
 
-	/*
-	 * Host name
-	 */
+	
 	strncpy(port_attr->host_name, (char *)driver_info->host_machine_name,
 		sizeof(port_attr->host_name));
 

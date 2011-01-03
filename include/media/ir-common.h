@@ -1,24 +1,4 @@
-/*
- *
- * some common structs and functions to handle infrared remotes via
- * input layer ...
- *
- * (c) 2003 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #ifndef _IR_COMMON
 #define _IR_COMMON
@@ -28,11 +8,11 @@
 #include <linux/interrupt.h>
 
 #define IR_TYPE_RC5     1
-#define IR_TYPE_PD      2 /* Pulse distance encoded IR */
+#define IR_TYPE_PD      2 
 #define IR_TYPE_OTHER  99
 
 #define IR_KEYTAB_TYPE u32
-#define IR_KEYTAB_SIZE	128  /* enougth for rc5, probably need more some day */
+#define IR_KEYTAB_SIZE	128  
 
 struct ir_scancode {
 	u16	scancode;
@@ -53,26 +33,25 @@ struct ir_scancode_table {
 #define RC5_INSTR(x)	((x)&63)
 
 struct ir_input_state {
-	/* configuration */
+	
 	int                ir_type;
 	IR_KEYTAB_TYPE     ir_codes[IR_KEYTAB_SIZE];
 
-	/* key info */
-	u32                ir_raw;      /* raw data */
-	u32                ir_key;      /* ir key code */
-	u32                keycode;     /* linux key code */
-	int                keypressed;  /* current state */
+	
+	u32                ir_raw;      
+	u32                ir_key;      
+	u32                keycode;     
+	int                keypressed;  
 };
 
-/* this was saa7134_ir and bttv_ir, moved here for
- * rc5 decoding. */
+
 struct card_ir {
 	struct input_dev        *dev;
 	struct ir_input_state   ir;
 	char                    name[32];
 	char                    phys[32];
 
-	/* Usual gpio signalling */
+	
 
 	u32                     mask_keycode;
 	u32                     mask_keydown;
@@ -80,24 +59,24 @@ struct card_ir {
 	u32                     polling;
 	u32                     last_gpio;
 	int			shift_by;
-	int			start; // What should RC5_START() be
-	int			addr; // What RC5_ADDR() should be.
+	int			start; 
+	int			addr; 
 	int			rc5_key_timeout;
 	int			rc5_remote_gap;
 	struct work_struct      work;
 	struct timer_list       timer;
 
-	/* RC5 gpio */
+	
 	u32 rc5_gpio;
-	struct timer_list timer_end;	/* timer_end for code completion */
-	struct timer_list timer_keyup;	/* timer_end for key release */
-	u32 last_rc5;			/* last good rc5 code */
-	u32 last_bit;			/* last raw bit seen */
-	u32 code;			/* raw code under construction */
-	struct timeval base_time;	/* time of last seen code */
-	int active;			/* building raw code */
+	struct timer_list timer_end;	
+	struct timer_list timer_keyup;	
+	u32 last_rc5;			
+	u32 last_bit;			
+	u32 code;			
+	struct timeval base_time;	
+	int active;			
 
-	/* NEC decoding */
+	
 	u32			nec_gpio;
 	struct tasklet_struct   tlet;
 };
@@ -115,7 +94,7 @@ int  ir_decode_pulsedistance(u32 *samples, int count, int low, int high);
 void ir_rc5_timer_end(unsigned long data);
 void ir_rc5_timer_keyup(unsigned long data);
 
-/* Keymaps to be used by other modules */
+
 
 extern struct ir_scancode_table ir_codes_empty_table;
 extern struct ir_scancode_table ir_codes_avermedia_table;

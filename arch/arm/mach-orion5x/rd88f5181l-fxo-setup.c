@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-orion5x/rd88f5181l-fxo-setup.c
- *
- * Marvell Orion-VoIP FXO Reference Design Setup
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -26,19 +18,13 @@
 #include "common.h"
 #include "mpp.h"
 
-/*****************************************************************************
- * RD-88F5181L FXO Info
- ****************************************************************************/
-/*
- * 8M NOR flash Device bus boot chip select
- */
+
+
 #define RD88F5181L_FXO_NOR_BOOT_BASE		0xff800000
 #define RD88F5181L_FXO_NOR_BOOT_SIZE		SZ_8M
 
 
-/*****************************************************************************
- * 8M NOR Flash on Device bus Boot chip select
- ****************************************************************************/
+
 static struct physmap_flash_data rd88f5181l_fxo_nor_boot_flash_data = {
 	.width		= 1,
 };
@@ -61,30 +47,28 @@ static struct platform_device rd88f5181l_fxo_nor_boot_flash = {
 };
 
 
-/*****************************************************************************
- * General Setup
- ****************************************************************************/
+
 static struct orion5x_mpp_mode rd88f5181l_fxo_mpp_modes[] __initdata = {
-	{  0, MPP_GPIO },		/* LED1 CardBus LED (front panel) */
-	{  1, MPP_GPIO },		/* PCI_intA */
-	{  2, MPP_GPIO },		/* Hard Reset / Factory Init*/
-	{  3, MPP_GPIO },		/* FXS or DAA select */
-	{  4, MPP_GPIO },		/* LED6 - phone LED (front panel) */
-	{  5, MPP_GPIO },		/* LED5 - phone LED (front panel) */
-	{  6, MPP_PCI_CLK },		/* CPU PCI refclk */
-	{  7, MPP_PCI_CLK },		/* PCI/PCIe refclk */
-	{  8, MPP_GPIO },		/* CardBus reset */
-	{  9, MPP_GPIO },		/* GE_RXERR */
-	{ 10, MPP_GPIO },		/* LED2 MiniPCI LED (front panel) */
-	{ 11, MPP_GPIO },		/* Lifeline control */
-	{ 12, MPP_GIGE },		/* GE_TXD[4] */
-	{ 13, MPP_GIGE },		/* GE_TXD[5] */
-	{ 14, MPP_GIGE },		/* GE_TXD[6] */
-	{ 15, MPP_GIGE },		/* GE_TXD[7] */
-	{ 16, MPP_GIGE },		/* GE_RXD[4] */
-	{ 17, MPP_GIGE },		/* GE_RXD[5] */
-	{ 18, MPP_GIGE },		/* GE_RXD[6] */
-	{ 19, MPP_GIGE },		/* GE_RXD[7] */
+	{  0, MPP_GPIO },		
+	{  1, MPP_GPIO },		
+	{  2, MPP_GPIO },		
+	{  3, MPP_GPIO },		
+	{  4, MPP_GPIO },		
+	{  5, MPP_GPIO },		
+	{  6, MPP_PCI_CLK },		
+	{  7, MPP_PCI_CLK },		
+	{  8, MPP_GPIO },		
+	{  9, MPP_GPIO },		
+	{ 10, MPP_GPIO },		
+	{ 11, MPP_GPIO },		
+	{ 12, MPP_GIGE },		
+	{ 13, MPP_GIGE },		
+	{ 14, MPP_GIGE },		
+	{ 15, MPP_GIGE },		
+	{ 16, MPP_GIGE },		
+	{ 17, MPP_GIGE },		
+	{ 18, MPP_GIGE },		
+	{ 19, MPP_GIGE },		
 	{ -1 },
 };
 
@@ -110,16 +94,12 @@ static struct dsa_platform_data rd88f5181l_fxo_switch_plat_data = {
 
 static void __init rd88f5181l_fxo_init(void)
 {
-	/*
-	 * Setup basic Orion functions. Need to be called early.
-	 */
+	
 	orion5x_init();
 
 	orion5x_mpp_conf(rd88f5181l_fxo_mpp_modes);
 
-	/*
-	 * Configure peripherals.
-	 */
+	
 	orion5x_ehci0_init();
 	orion5x_eth_init(&rd88f5181l_fxo_eth_data);
 	orion5x_eth_switch_init(&rd88f5181l_fxo_switch_plat_data, NO_IRQ);
@@ -135,16 +115,12 @@ rd88f5181l_fxo_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
-	/*
-	 * Check for devices with hard-wired IRQs.
-	 */
+	
 	irq = orion5x_pci_map_irq(dev, slot, pin);
 	if (irq != -1)
 		return irq;
 
-	/*
-	 * Mini-PCI / Cardbus slot.
-	 */
+	
 	return gpio_to_irq(1);
 }
 
@@ -168,7 +144,7 @@ static int __init rd88f5181l_fxo_pci_init(void)
 subsys_initcall(rd88f5181l_fxo_pci_init);
 
 MACHINE_START(RD88F5181L_FXO, "Marvell Orion-VoIP FXO Reference Design")
-	/* Maintainer: Nicolas Pitre <nico@marvell.com> */
+	
 	.phys_io	= ORION5X_REGS_PHYS_BASE,
 	.io_pg_offst	= ((ORION5X_REGS_VIRT_BASE) >> 18) & 0xFFFC,
 	.boot_params	= 0x00000100,

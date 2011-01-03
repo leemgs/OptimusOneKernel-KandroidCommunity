@@ -1,17 +1,4 @@
-/*
- * drivers/char/watchdog/ixp4xx_wdt.c
- *
- * Watchdog driver for Intel IXP4xx network processors
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright 2004 (c) MontaVista, Software, Inc.
- * Based on sa1100 driver, Copyright (C) 2000 Oleg Drokin <green@crimea.edu>
- *
- * This file is licensed under  the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -26,7 +13,7 @@
 #include <mach/hardware.h>
 
 static int nowayout = WATCHDOG_NOWAYOUT;
-static int heartbeat = 60;	/* (secs) Default is 1 minute */
+static int heartbeat = 60;	
 static unsigned long wdt_status;
 static unsigned long boot_status;
 static DEFINE_SPINLOCK(wdt_lock);
@@ -133,7 +120,7 @@ static long ixp4xx_wdt_ioctl(struct file *file, unsigned int cmd,
 
 		heartbeat = time;
 		wdt_enable();
-		/* Fall through */
+		
 
 	case WDIOC_GETTIMEOUT:
 		ret = put_user(heartbeat, (int *)arg);

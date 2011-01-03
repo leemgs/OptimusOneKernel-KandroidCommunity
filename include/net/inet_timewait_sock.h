@@ -1,17 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		Definitions for a generic INET TIMEWAIT sock
- *
- *		From code originally in net/tcp.h
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #ifndef _INET_TIMEWAIT_SOCK_
 #define _INET_TIMEWAIT_SOCK_
 
@@ -35,10 +22,7 @@ struct inet_hashinfo;
 #define INET_TWDR_RECYCLE_SLOTS_LOG	5
 #define INET_TWDR_RECYCLE_SLOTS		(1 << INET_TWDR_RECYCLE_SLOTS_LOG)
 
-/*
- * If time > 4sec, it is "slow" path, no recycling is required,
- * so that we select tick to get range about 4 seconds.
- */
+
 #if HZ <= 16 || HZ > 4096
 # error Unsupported: HZ <= 16 or HZ > 4096
 #elif HZ <= 32
@@ -59,13 +43,13 @@ struct inet_hashinfo;
 # define INET_TWDR_RECYCLE_TICK (12 + 2 - INET_TWDR_RECYCLE_SLOTS_LOG)
 #endif
 
-/* TIME_WAIT reaping mechanism. */
-#define INET_TWDR_TWKILL_SLOTS	8 /* Please keep this a power of 2. */
+
+#define INET_TWDR_TWKILL_SLOTS	8 
 
 #define INET_TWDR_TWKILL_QUOTA 100
 
 struct inet_timewait_death_row {
-	/* Short-time timewait calendar */
+	
 	int			twcal_hand;
 	unsigned long		twcal_jiffie;
 	struct timer_list	twcal_timer;
@@ -96,16 +80,9 @@ extern void inet_twdr_twcal_tick(unsigned long data);
 
 struct inet_bind_bucket;
 
-/*
- * This is a TIME_WAIT sock. It works around the memory consumption
- * problems of sockets in such a state on heavily loaded servers, but
- * without violating the protocol specification.
- */
+
 struct inet_timewait_sock {
-	/*
-	 * Now struct sock also uses sock_common, so please just
-	 * don't add nothing before this first member (__tw_common) --acme
-	 */
+	
 	struct sock_common	__tw_common;
 #define tw_family		__tw_common.skc_family
 #define tw_state		__tw_common.skc_state
@@ -119,20 +96,20 @@ struct inet_timewait_sock {
 #define tw_net			__tw_common.skc_net
 	int			tw_timeout;
 	volatile unsigned char	tw_substate;
-	/* 3 bits hole, try to pack */
+	
 	unsigned char		tw_rcv_wscale;
-	/* Socket demultiplex comparisons on incoming packets. */
-	/* these five are in inet_sock */
+	
+	
 	__be16			tw_sport;
 	__be32			tw_daddr __attribute__((aligned(INET_TIMEWAIT_ADDRCMP_ALIGN_BYTES)));
 	__be32			tw_rcv_saddr;
 	__be16			tw_dport;
 	__u16			tw_num;
 	kmemcheck_bitfield_begin(flags);
-	/* And these are ours. */
+	
 	unsigned int		tw_ipv6only     : 1,
 				tw_transparent  : 1,
-				tw_pad		: 14,	/* 14 bits hole */
+				tw_pad		: 14,	
 				tw_ipv6_offset  : 16;
 	kmemcheck_bitfield_end(flags);
 	unsigned long		tw_ttd;
@@ -232,4 +209,4 @@ void twsk_net_set(struct inet_timewait_sock *twsk, struct net *net)
 	twsk->tw_net = net;
 #endif
 }
-#endif	/* _INET_TIMEWAIT_SOCK_ */
+#endif	

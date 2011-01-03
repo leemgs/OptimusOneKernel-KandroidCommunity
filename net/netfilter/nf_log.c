@@ -10,8 +10,7 @@
 
 #include "nf_internals.h"
 
-/* Internal logging interface, which relies on the real
-   LOG target modules */
+
 
 #define NF_LOG_PREFIXLEN		128
 #define NFLOGGER_NAME_LEN		64
@@ -32,7 +31,7 @@ static struct nf_logger *__find_logger(int pf, const char *str_logger)
 	return NULL;
 }
 
-/* return EEXIST if the same logger is registred, 0 on success. */
+
 int nf_log_register(u_int8_t pf, struct nf_logger *logger)
 {
 	const struct nf_logger *llog;
@@ -50,7 +49,7 @@ int nf_log_register(u_int8_t pf, struct nf_logger *logger)
 		for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
 			list_add_tail(&(logger->list[i]), &(nf_loggers_l[i]));
 	} else {
-		/* register at end of list to honor first register win */
+		
 		list_add_tail(&logger->list[pf], &nf_loggers_l[pf]);
 		llog = rcu_dereference(nf_loggers[pf]);
 		if (llog == NULL)
@@ -204,7 +203,7 @@ static const struct file_operations nflog_file_ops = {
 };
 
 
-#endif /* PROC_FS */
+#endif 
 
 #ifdef CONFIG_SYSCTL
 static struct ctl_path nf_log_sysctl_path[] = {
@@ -288,7 +287,7 @@ static __init int netfilter_log_sysctl_init(void)
 {
 	return 0;
 }
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 int __init netfilter_log_init(void)
 {
@@ -299,7 +298,7 @@ int __init netfilter_log_init(void)
 		return -1;
 #endif
 
-	/* Errors will trigger panic, unroll on error is unnecessary. */
+	
 	r = netfilter_log_sysctl_init();
 	if (r < 0)
 		return r;

@@ -1,9 +1,4 @@
-/*
- * mt9v011 -Micron 1/4-Inch VGA Digital Image Sensor
- *
- * Copyright (c) 2009 Mauro Carvalho Chehab (mchehab@redhat.com)
- * This code is placed under the terms of the GNU General Public License v2
- */
+
 
 #ifndef MT9V011_H_
 #define MT9V011_H_

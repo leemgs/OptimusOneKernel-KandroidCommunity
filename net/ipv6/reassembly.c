@@ -1,31 +1,6 @@
-/*
- *	IPv6 fragment reassembly
- *	Linux INET6 implementation
- *
- *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>
- *
- *	Based on: net/ipv4/ip_fragment.c
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
 
-/*
- *	Fixes:
- *	Andi Kleen	Make it work with multiple hosts.
- *			More RFC compliance.
- *
- *      Horst von Brand Add missing #include <linux/string.h>
- *	Alexey Kuznetsov	SMP races, threading, cleanup.
- *	Patrick McHardy		LRU queue of frag heads for evictor.
- *	Mitsuru KANDA @USAGI	Register inet6_protocol{}.
- *	David Stevens and
- *	YOSHIFUJI,H. @USAGI	Always remove fragment header to
- *				calculate ICV correctly.
- */
+
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/string.h>
@@ -63,15 +38,13 @@ struct ip6frag_skb_cb
 #define FRAG6_CB(skb)	((struct ip6frag_skb_cb*)((skb)->cb))
 
 
-/*
- *	Equivalent of ipv4 struct ipq
- */
+
 
 struct frag_queue
 {
 	struct inet_frag_queue	q;
 
-	__be32			id;		/* fragment id		*/
+	__be32			id;		
 	u32			user;
 	struct in6_addr		saddr;
 	struct in6_addr		daddr;
@@ -96,10 +69,7 @@ int ip6_frag_mem(struct net *net)
 static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
 			  struct net_device *dev);
 
-/*
- * callers should be careful not to use the hash value outside the ipfrag_lock
- * as doing so could race with ipfrag_hash_rnd being recalculated.
- */
+
 unsigned int inet6_hash_frag(__be32 id, const struct in6_addr *saddr,
 			     const struct in6_addr *daddr, u32 rnd)
 {
@@ -148,7 +118,7 @@ int ip6_frag_match(struct inet_frag_queue *q, void *a)
 }
 EXPORT_SYMBOL(ip6_frag_match);
 
-/* Memory Tracking Functions. */
+
 static inline void frag_kfree_skb(struct netns_frags *nf,
 		struct sk_buff *skb, int *work)
 {
@@ -170,16 +140,14 @@ void ip6_frag_init(struct inet_frag_queue *q, void *a)
 }
 EXPORT_SYMBOL(ip6_frag_init);
 
-/* Destruction primitives. */
+
 
 static __inline__ void fq_put(struct frag_queue *fq)
 {
 	inet_frag_put(&fq->q, &ip6_frags);
 }
 
-/* Kill fq entry. It is not destroyed immediately,
- * because caller (and someone more) holds reference count.
- */
+
 static __inline__ void fq_kill(struct frag_queue *fq)
 {
 	inet_frag_kill(&fq->q, &ip6_frags);
@@ -219,15 +187,11 @@ static void ip6_frag_expire(unsigned long data)
 	IP6_INC_STATS_BH(net, __in6_dev_get(dev), IPSTATS_MIB_REASMFAILS);
 	rcu_read_unlock();
 
-	/* Don't send error if the first segment did not arrive. */
+	
 	if (!(fq->q.last_in & INET_FRAG_FIRST_IN) || !fq->q.fragments)
 		goto out;
 
-	/*
-	   But use as source device on which LAST ARRIVED
-	   segment was received. And do not use fq->dev
-	   pointer directly, device might already disappeared.
-	 */
+	
 	fq->q.fragments->dev = dev;
 	icmpv6_send(fq->q.fragments, ICMPV6_TIME_EXCEED, ICMPV6_EXC_FRAGTIME, 0, dev);
 out:
@@ -295,24 +259,18 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
 						  0));
 	}
 
-	/* Is this the final fragment? */
+	
 	if (!(fhdr->frag_off & htons(IP6_MF))) {
-		/* If we already have some bits beyond end
-		 * or have different end, the segment is corrupted.
-		 */
+		
 		if (end < fq->q.len ||
 		    ((fq->q.last_in & INET_FRAG_LAST_IN) && end != fq->q.len))
 			goto err;
 		fq->q.last_in |= INET_FRAG_LAST_IN;
 		fq->q.len = end;
 	} else {
-		/* Check if the fragment is rounded to 8 bytes.
-		 * Required by the RFC.
-		 */
+		
 		if (end & 0x7) {
-			/* RFC2460 says always send parameter problem in
-			 * this case. -DaveM
-			 */
+			
 			IP6_INC_STATS_BH(net, ip6_dst_idev(skb_dst(skb)),
 					 IPSTATS_MIB_INHDRERRORS);
 			icmpv6_param_prob(skb, ICMPV6_HDR_FIELD,
@@ -320,7 +278,7 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
 			return -1;
 		}
 		if (end > fq->q.len) {
-			/* Some bits beyond end -> corruption. */
+			
 			if (fq->q.last_in & INET_FRAG_LAST_IN)
 				goto err;
 			fq->q.len = end;
@@ -330,28 +288,22 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
 	if (end == offset)
 		goto err;
 
-	/* Point into the IP datagram 'data' part. */
+	
 	if (!pskb_pull(skb, (u8 *) (fhdr + 1) - skb->data))
 		goto err;
 
 	if (pskb_trim_rcsum(skb, end - offset))
 		goto err;
 
-	/* Find out which fragments are in front and at the back of us
-	 * in the chain of fragments so far.  We must know where to put
-	 * this fragment, right?
-	 */
+	
 	prev = NULL;
 	for(next = fq->q.fragments; next != NULL; next = next->next) {
 		if (FRAG6_CB(next)->offset >= offset)
-			break;	/* bingo! */
+			break;	
 		prev = next;
 	}
 
-	/* We found where to put this one.  Check for overlap with
-	 * preceding fragment, and, if needed, align things so that
-	 * any overlaps are eliminated.
-	 */
+	
 	if (prev) {
 		int i = (FRAG6_CB(prev)->offset + prev->len) - offset;
 
@@ -366,19 +318,15 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
 		}
 	}
 
-	/* Look for overlap with succeeding segments.
-	 * If we can merge fragments, do it.
-	 */
+	
 	while (next && FRAG6_CB(next)->offset < end) {
-		int i = end - FRAG6_CB(next)->offset; /* overlap is 'i' bytes */
+		int i = end - FRAG6_CB(next)->offset; 
 
 		if (i < next->len) {
-			/* Eat head of the next overlapped fragment
-			 * and leave the loop. The next ones cannot overlap.
-			 */
+			
 			if (!pskb_pull(next, i))
 				goto err;
-			FRAG6_CB(next)->offset += i;	/* next fragment */
+			FRAG6_CB(next)->offset += i;	
 			fq->q.meat -= i;
 			if (next->ip_summed != CHECKSUM_UNNECESSARY)
 				next->ip_summed = CHECKSUM_NONE;
@@ -386,9 +334,7 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
 		} else {
 			struct sk_buff *free_it = next;
 
-			/* Old fragment is completely overridden with
-			 * new one drop it.
-			 */
+			
 			next = next->next;
 
 			if (prev)
@@ -403,7 +349,7 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
 
 	FRAG6_CB(skb)->offset = offset;
 
-	/* Insert this fragment in the chain of fragments. */
+	
 	skb->next = next;
 	if (prev)
 		prev->next = skb;
@@ -419,9 +365,7 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
 	fq->q.meat += skb->len;
 	atomic_add(skb->truesize, &fq->q.net->mem);
 
-	/* The first fragment.
-	 * nhoffset is obtained from the first fragment, of course.
-	 */
+	
 	if (offset == 0) {
 		fq->nhoffset = nhoff;
 		fq->q.last_in |= INET_FRAG_FIRST_IN;
@@ -443,15 +387,7 @@ err:
 	return -1;
 }
 
-/*
- *	Check if this packet is complete.
- *	Returns NULL on failure by any reason, and pointer
- *	to current nexthdr field in reassembled frame.
- *
- *	It is called with locked fq, and caller must check that
- *	queue is eligible for reassembly i.e. it is not COMPLETE,
- *	the last and the first frames arrived and all the bits are here.
- */
+
 static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
 			  struct net_device *dev)
 {
@@ -462,7 +398,7 @@ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
 
 	fq_kill(fq);
 
-	/* Make the one we just received the head. */
+	
 	if (prev) {
 		head = prev->next;
 		fp = skb_clone(head, GFP_ATOMIC);
@@ -483,20 +419,18 @@ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
 	WARN_ON(head == NULL);
 	WARN_ON(FRAG6_CB(head)->offset != 0);
 
-	/* Unfragmented part is taken from the first segment. */
+	
 	payload_len = ((head->data - skb_network_header(head)) -
 		       sizeof(struct ipv6hdr) + fq->q.len -
 		       sizeof(struct frag_hdr));
 	if (payload_len > IPV6_MAXPLEN)
 		goto out_oversize;
 
-	/* Head of list must not be cloned. */
+	
 	if (skb_cloned(head) && pskb_expand_head(head, 0, 0, GFP_ATOMIC))
 		goto out_oom;
 
-	/* If the first fragment is fragmented itself, we split
-	 * it to two chunks: the first with data and paged part
-	 * and the second, holding only fragments. */
+	
 	if (skb_has_frags(head)) {
 		struct sk_buff *clone;
 		int i, plen = 0;
@@ -517,8 +451,7 @@ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
 		atomic_add(clone->truesize, &fq->q.net->mem);
 	}
 
-	/* We have to remove fragment header from datagram and to relocate
-	 * header in order to calculate ICV correctly. */
+	
 	nhoff = fq->nhoffset;
 	skb_network_header(head)[nhoff] = skb_transport_header(head)[0];
 	memmove(head->head + sizeof(struct frag_hdr), head->head,
@@ -548,7 +481,7 @@ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
 	ipv6_hdr(head)->payload_len = htons(payload_len);
 	IP6CB(head)->nhoff = nhoff;
 
-	/* Yes, and fold redundant checksum back. 8) */
+	
 	if (head->ip_summed == CHECKSUM_COMPLETE)
 		head->csum = csum_partial(skb_network_header(head),
 					  skb_network_header_len(head),
@@ -583,7 +516,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
 
 	IP6_INC_STATS_BH(net, ip6_dst_idev(skb_dst(skb)), IPSTATS_MIB_REASMREQDS);
 
-	/* Jumbo payload inhibits frag. header */
+	
 	if (hdr->payload_len==0)
 		goto fail_hdr;
 
@@ -595,7 +528,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
 	fhdr = (struct frag_hdr *)skb_transport_header(skb);
 
 	if (!(fhdr->frag_off & htons(0xFFF9))) {
-		/* It is not a fragmented frame */
+		
 		skb->transport_header += sizeof(struct frag_hdr);
 		IP6_INC_STATS_BH(net,
 				 ip6_dst_idev(skb_dst(skb)), IPSTATS_MIB_REASMOKS);

@@ -1,13 +1,4 @@
-/*
- * This is the 1999 rewrite of IP Firewalling, aiming for kernel 2.3.x.
- *
- * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
- * Copyright (C) 2000-2004 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
 #include <linux/netdevice.h>
@@ -27,7 +18,7 @@ MODULE_DESCRIPTION("iptables mangle table");
 			    (1 << NF_INET_LOCAL_OUT) | \
 			    (1 << NF_INET_POST_ROUTING))
 
-/* Ouch - five different hooks? Maybe this should be a config option..... -- BC */
+
 static const struct
 {
 	struct ipt_replace repl;
@@ -55,13 +46,13 @@ static const struct
 		},
 	},
 	.entries = {
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IPT_ERROR_INIT,			/* ERROR */
+	.term = IPT_ERROR_INIT,			
 };
 
 static const struct xt_table packet_mangler = {
@@ -71,7 +62,7 @@ static const struct xt_table packet_mangler = {
 	.af		= NFPROTO_IPV4,
 };
 
-/* The work comes in here from netfilter.c. */
+
 static unsigned int
 ipt_pre_routing_hook(unsigned int hook,
 		     struct sk_buff *skb,
@@ -129,12 +120,12 @@ ipt_local_hook(unsigned int hook,
 	__be32 saddr, daddr;
 	u_int32_t mark;
 
-	/* root is playing with raw sockets. */
+	
 	if (skb->len < sizeof(struct iphdr)
 	    || ip_hdrlen(skb) < sizeof(struct iphdr))
 		return NF_ACCEPT;
 
-	/* Save things which could affect route */
+	
 	mark = skb->mark;
 	iph = ip_hdr(skb);
 	saddr = iph->saddr;
@@ -143,7 +134,7 @@ ipt_local_hook(unsigned int hook,
 
 	ret = ipt_do_table(skb, hook, in, out,
 			   dev_net(out)->ipv4.iptable_mangle);
-	/* Reroute for ANY change. */
+	
 	if (ret != NF_DROP && ret != NF_STOLEN && ret != NF_QUEUE) {
 		iph = ip_hdr(skb);
 
@@ -198,7 +189,7 @@ static struct nf_hook_ops ipt_ops[] __read_mostly = {
 
 static int __net_init iptable_mangle_net_init(struct net *net)
 {
-	/* Register table */
+	
 	net->ipv4.iptable_mangle =
 		ipt_register_table(net, &packet_mangler, &initial_table.repl);
 	if (IS_ERR(net->ipv4.iptable_mangle))
@@ -224,7 +215,7 @@ static int __init iptable_mangle_init(void)
 	if (ret < 0)
 		return ret;
 
-	/* Register hooks */
+	
 	ret = nf_register_hooks(ipt_ops, ARRAY_SIZE(ipt_ops));
 	if (ret < 0)
 		goto cleanup_table;

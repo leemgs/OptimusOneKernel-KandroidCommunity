@@ -1,21 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/generic.c
- *
- *  Author:	Nicolas Pitre
- *  Created:	Jun 15, 2001
- *  Copyright:	MontaVista Software Inc.
- *
- * Code common to all PXA machines.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Since this file should be linked before any other machine specific file,
- * the __initcall() here will be executed first.  This serves as default
- * initialization stuff for PXA machines which can be overridden later if
- * need be.
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -56,11 +39,7 @@ unsigned long get_clock_tick_rate(void)
 }
 EXPORT_SYMBOL(get_clock_tick_rate);
 
-/*
- * Get the clock frequency as reflected by CCCR and the turbo flag.
- * We assume these values have been applied via a fcs.
- * If info is not 0 we also display the current settings.
- */
+
 unsigned int get_clk_frequency_khz(int info)
 {
 	if (cpu_is_pxa25x())
@@ -72,9 +51,7 @@ unsigned int get_clk_frequency_khz(int info)
 }
 EXPORT_SYMBOL(get_clk_frequency_khz);
 
-/*
- * Return the current memory clock frequency in units of 10kHz
- */
+
 unsigned int get_memclk_frequency_10khz(void)
 {
 	if (cpu_is_pxa25x())
@@ -86,36 +63,29 @@ unsigned int get_memclk_frequency_10khz(void)
 }
 EXPORT_SYMBOL(get_memclk_frequency_10khz);
 
-/*
- * Intel PXA2xx internal register mapping.
- *
- * Note 1: not all PXA2xx variants implement all those addresses.
- *
- * Note 2: virtual 0xfffe0000-0xffffffff is reserved for the vector table
- *         and cache flush area.
- */
+
 static struct map_desc standard_io_desc[] __initdata = {
-  	{	/* Devs */
+  	{	
 		.virtual	=  0xf2000000,
 		.pfn		= __phys_to_pfn(0x40000000),
 		.length		= 0x02000000,
 		.type		= MT_DEVICE
-	}, {	/* Mem Ctl */
+	}, {	
 		.virtual	=  0xf6000000,
 		.pfn		= __phys_to_pfn(0x48000000),
 		.length		= 0x00200000,
 		.type		= MT_DEVICE
-	}, {	/* Camera */
+	}, {	
 		.virtual	=  0xfa000000,
 		.pfn		= __phys_to_pfn(0x50000000),
 		.length		= 0x00100000,
 		.type		= MT_DEVICE
-	}, {	/* IMem ctl */
+	}, {	
 		.virtual	=  0xfe000000,
 		.pfn		= __phys_to_pfn(0x58000000),
 		.length		= 0x00100000,
 		.type		= MT_DEVICE
-	}, {	/* UNCACHED_PHYS_0 */
+	}, {	
 		.virtual	= 0xff000000,
 		.pfn		= __phys_to_pfn(0x00000000),
 		.length		= 0x00100000,
@@ -129,9 +99,7 @@ void __init pxa_map_io(void)
 	get_clk_frequency_khz(1);
 }
 
-/*
- * Configure pins for GPIO or other functions
- */
+
 int pxa_gpio_mode(int gpio_mode)
 {
 	unsigned long flags;

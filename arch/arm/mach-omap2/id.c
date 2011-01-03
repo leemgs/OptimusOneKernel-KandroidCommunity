@@ -1,18 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/id.c
- *
- * OMAP2 CPU identification code
- *
- * Copyright (C) 2005 Nokia Corporation
- * Written by Tony Lindgren <tony@atomide.com>
- *
- * Copyright (C) 2009 Texas Instruments
- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -35,13 +21,7 @@ unsigned int omap_rev(void)
 }
 EXPORT_SYMBOL(omap_rev);
 
-/**
- * omap_chip_is - test whether currently running OMAP matches a chip type
- * @oc: omap_chip_t to test against
- *
- * Test whether the currently-running OMAP chip matches the supplied
- * chip type 'oc'.  Returns 1 upon a match; 0 upon failure.
- */
+
 int omap_chip_is(struct omap_chip_id oci)
 {
 	return (oci.oc & omap_chip.oc) ? 1 : 0;
@@ -70,7 +50,7 @@ out:
 EXPORT_SYMBOL(omap_type);
 
 
-/*----------------------------------------------------------------------------*/
+
 
 #define OMAP_TAP_IDCODE		0x0204
 #define OMAP_TAP_DIE_ID_0	0x0218
@@ -81,12 +61,12 @@ EXPORT_SYMBOL(omap_type);
 #define read_tap_reg(reg)	__raw_readl(tap_base  + (reg))
 
 struct omap_id {
-	u16	hawkeye;	/* Silicon type (Hawkeye id) */
-	u8	dev;		/* Device type from production_id reg */
-	u32	type;		/* Combined type id copied to omap_revision */
+	u16	hawkeye;	
+	u8	dev;		
+	u32	type;		
 };
 
-/* Register values to detect the OMAP version */
+
 static struct omap_id omap_ids[] __initdata = {
 	{ .hawkeye = 0xb5d9, .dev = 0x0, .type = 0x24200024 },
 	{ .hawkeye = 0xb5d9, .dev = 0x1, .type = 0x24201024 },
@@ -126,7 +106,7 @@ void __init omap24xx_check_revision(void)
 	pr_debug("OMAP_TAP_PROD_ID_0: 0x%08x DEV_TYPE: %i\n",
 		 prod_id, dev_type);
 
-	/* Check hawkeye ids */
+	
 	for (i = 0; i < ARRAY_SIZE(omap_ids); i++) {
 		if (hawkeye == omap_ids[i].hawkeye)
 			break;
@@ -162,23 +142,14 @@ void __init omap34xx_check_revision(void)
 	u8 rev;
 	char *rev_name = "ES1.0";
 
-	/*
-	 * We cannot access revision registers on ES1.0.
-	 * If the processor type is Cortex-A8 and the revision is 0x0
-	 * it means its Cortex r0p0 which is 3430 ES1.0.
-	 */
+	
 	cpuid = read_cpuid(CPUID_ID);
 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
 		omap_revision = OMAP3430_REV_ES1_0;
 		goto out;
 	}
 
-	/*
-	 * Detection for 34xx ES2.0 and above can be done with just
-	 * hawkeye and rev. See TRM 1.5.2 Device Identification.
-	 * Note that rev does not map directly to our defined processor
-	 * revision numbers as ES1.0 uses value 0.
-	 */
+	
 	idcode = read_tap_reg(OMAP_TAP_IDCODE);
 	hawkeye = (idcode >> 12) & 0xffff;
 	rev = (idcode >> 28) & 0xff;
@@ -202,7 +173,7 @@ void __init omap34xx_check_revision(void)
 			rev_name = "ES3.1";
 			break;
 		default:
-			/* Use the latest known revision as default */
+			
 			omap_revision = OMAP3430_REV_ES3_1;
 			rev_name = "Unknown revision\n";
 		}
@@ -212,15 +183,10 @@ out:
 	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
 }
 
-/*
- * Try to detect the exact revision of the omap we're running on
- */
+
 void __init omap2_check_revision(void)
 {
-	/*
-	 * At this point we have an idea about the processor revision set
-	 * earlier with omap2_set_globals_tap().
-	 */
+	
 	if (cpu_is_omap24xx())
 		omap24xx_check_revision();
 	else if (cpu_is_omap34xx())
@@ -231,15 +197,12 @@ void __init omap2_check_revision(void)
 	} else
 		pr_err("OMAP revision unknown, please fix!\n");
 
-	/*
-	 * OK, now we know the exact revision. Initialize omap_chip bits
-	 * for powerdowmain and clockdomain code.
-	 */
+	
 	if (cpu_is_omap243x()) {
-		/* Currently only supports 2430ES2.1 and 2430-all */
+		
 		omap_chip.oc |= CHIP_IS_OMAP2430;
 	} else if (cpu_is_omap242x()) {
-		/* Currently only supports 2420ES2.1.1 and 2420-all */
+		
 		omap_chip.oc |= CHIP_IS_OMAP2420;
 	} else if (cpu_is_omap343x()) {
 		omap_chip.oc = CHIP_IS_OMAP3430;
@@ -257,13 +220,7 @@ void __init omap2_check_revision(void)
 	}
 }
 
-/*
- * Set up things for map_io and processor detection later on. Gets called
- * pretty much first thing from board init. For multi-omap, this gets
- * cpu_is_omapxxxx() working accurately enough for map_io. Then we'll try to
- * detect the exact revision later on in omap2_detect_revision() once map_io
- * is done.
- */
+
 void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
 {
 	omap_revision = omap2_globals->class;

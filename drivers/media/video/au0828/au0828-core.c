@@ -1,23 +1,4 @@
-/*
- *  Driver for the Auvitek USB bridge
- *
- *  Copyright (c) 2008 Steven Toth <stoth@linuxtv.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/videodev2.h>
@@ -26,12 +7,7 @@
 
 #include "au0828.h"
 
-/*
- * 1 = General debug messages
- * 2 = USB handling
- * 4 = I2C related
- * 8 = Bridge related
- */
+
 int au0828_debug;
 module_param_named(debug, au0828_debug, int, 0644);
 MODULE_PARM_DESC(debug, "enable debug messages");
@@ -49,7 +25,7 @@ static int send_control_msg(struct au0828_dev *dev, u16 request, u32 value,
 static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
 	u16 index, unsigned char *cp, u16 size);
 
-/* USB Direction */
+
 #define CMD_REQUEST_IN		0x00
 #define CMD_REQUEST_OUT		0x01
 
@@ -92,7 +68,7 @@ static int send_control_msg(struct au0828_dev *dev, u16 request, u32 value,
 	mutex_lock(&dev->mutex);
 	if (dev->usbdev) {
 
-		/* cp must be memory that has been allocated by kmalloc */
+		
 		status = usb_control_msg(dev->usbdev,
 				usb_sndctrlpipe(dev->usbdev, 0),
 				request,
@@ -122,7 +98,7 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
 
 		memset(dev->ctrlmsg, 0, sizeof(dev->ctrlmsg));
 
-		/* cp must be memory that has been allocated by kmalloc */
+		
 		status = usb_control_msg(dev->usbdev,
 				usb_rcvctrlpipe(dev->usbdev, 0),
 				request,
@@ -148,13 +124,13 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
 
 	dprintk(1, "%s()\n", __func__);
 
-	/* Digital TV */
+	
 	au0828_dvb_unregister(dev);
 
 	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED)
 		au0828_analog_unregister(dev);
 
-	/* I2C */
+	
 	au0828_i2c_unregister(dev);
 
 	v4l2_device_unregister(&dev->v4l2_dev);
@@ -186,11 +162,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
 		le16_to_cpu(usbdev->descriptor.idProduct),
 		ifnum);
 
-	/*
-	 * Make sure we have 480 Mbps of bandwidth, otherwise things like
-	 * video stream wouldn't likely work, since 12 Mbps is generally
-	 * not enough even for most Digital TV streams.
-	 */
+	
 	if (usbdev->speed != USB_SPEED_HIGH && disable_usb_speed_check == 0) {
 		printk(KERN_ERR "au0828: Device initialization failed.\n");
 		printk(KERN_ERR "au0828: Device must be connected to a "
@@ -209,7 +181,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
 	dev->usbdev = usbdev;
 	dev->boardnr = id->driver_info;
 
-	/* Create the v4l2_device */
+	
 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
 	if (retval) {
 		printk(KERN_ERR "%s() v4l2_device_register failed\n",
@@ -218,27 +190,26 @@ static int au0828_usb_probe(struct usb_interface *interface,
 		return -EIO;
 	}
 
-	/* Power Up the bridge */
+	
 	au0828_write(dev, REG_600, 1 << 4);
 
-	/* Bring up the GPIO's and supporting devices */
+	
 	au0828_gpio_setup(dev);
 
-	/* I2C */
+	
 	au0828_i2c_register(dev);
 
-	/* Setup */
+	
 	au0828_card_setup(dev);
 
-	/* Analog TV */
+	
 	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED)
 		au0828_analog_register(dev, interface);
 
-	/* Digital TV */
+	
 	au0828_dvb_register(dev);
 
-	/* Store the pointer to the au0828_dev so it can be accessed in
-	   au0828_usb_disconnect */
+	
 	usb_set_intfdata(interface, dev);
 
 	printk(KERN_INFO "Registered device AU0828 [%s]\n",

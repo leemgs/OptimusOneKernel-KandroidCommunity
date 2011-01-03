@@ -117,10 +117,10 @@ TRACE_EVENT(module_request,
 		  __get_str(name), (int)__entry->wait, (void *)__entry->ip)
 );
 
-#endif /* CONFIG_MODULES */
+#endif 
 
-#endif /* _TRACE_MODULE_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>
 

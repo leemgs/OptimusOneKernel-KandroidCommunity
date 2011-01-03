@@ -1,22 +1,4 @@
-/*******************************************************************
- * This file is part of the Emulex Linux Device Driver for         *
- * Fibre Channel Host Bus Adapters.                                *
- * Copyright (C) 2004-2008 Emulex.  All rights reserved.           *
- * EMULEX and SLI are trademarks of Emulex.                        *
- * www.emulex.com                                                  *
- *                                                                 *
- * This program is free software; you can redistribute it and/or   *
- * modify it under the terms of version 2 of the GNU General       *
- * Public License as published by the Free Software Foundation.    *
- * This program is distributed in the hope that it will be useful. *
- * ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND          *
- * WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,  *
- * FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT, ARE      *
- * DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS ARE HELD *
- * TO BE LEGALLY INVALID.  See the GNU General Public License for  *
- * more details, a copy of which can be found in the file COPYING  *
- * included with this package.                                     *
- *******************************************************************/
+
 
 typedef int (*node_filter)(struct lpfc_nodelist *, void *);
 
@@ -285,7 +267,7 @@ void __lpfc_mbuf_free(struct lpfc_hba *, void *, dma_addr_t);
 void lpfc_mbuf_free(struct lpfc_hba *, void *, dma_addr_t);
 
 void lpfc_in_buf_free(struct lpfc_hba *, struct lpfc_dmabuf *);
-/* Function prototypes. */
+
 const char* lpfc_info(struct Scsi_Host *);
 int lpfc_scan_finished(struct Scsi_Host *, unsigned long);
 
@@ -328,7 +310,7 @@ extern void lpfc_debugfs_slow_ring_trc(struct lpfc_hba *, char *, uint32_t,
 	uint32_t, uint32_t);
 extern struct lpfc_hbq_init *lpfc_hbq_defs[];
 
-/* externs BlockGuard */
+
 extern char *_dump_buf_data;
 extern unsigned long _dump_buf_data_order;
 extern char *_dump_buf_dif;
@@ -340,7 +322,7 @@ extern unsigned int pgcnt;
 extern unsigned int lpfc_prot_mask;
 extern unsigned char lpfc_prot_guard;
 
-/* Interface exported by fabric iocb scheduler */
+
 void lpfc_fabric_abort_nport(struct lpfc_nodelist *);
 void lpfc_fabric_abort_hba(struct lpfc_hba *);
 void lpfc_fabric_block_timeout(unsigned long);
@@ -367,7 +349,7 @@ void lpfc_start_fdiscs(struct lpfc_hba *phba);
 #define HBA_EVENT_LINK_UP                2
 #define HBA_EVENT_LINK_DOWN              3
 
-/* functions to support SGIOv4/bsg interface */
+
 int lpfc_bsg_request(struct fc_bsg_job *);
 int lpfc_bsg_timeout(struct fc_bsg_job *);
 void lpfc_bsg_ct_unsol_event(struct lpfc_hba *, struct lpfc_sli_ring *,

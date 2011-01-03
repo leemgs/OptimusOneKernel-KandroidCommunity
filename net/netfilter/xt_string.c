@@ -1,11 +1,4 @@
-/* String matching match for iptables
- *
- * (C) 2005 Pablo Neira Ayuso <pablo@eurodev.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -46,7 +39,7 @@ static bool string_mt_check(const struct xt_mtchk_param *par)
 	struct ts_config *ts_conf;
 	int flags = TS_AUTOLOAD;
 
-	/* Damn, can't handle this case properly with iptables... */
+	
 	if (conf->from_offset > conf->to_offset)
 		return false;
 	if (conf->algo[XT_STRING_MAX_ALGO_NAME_SIZE - 1] != '\0')

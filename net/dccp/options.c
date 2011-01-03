@@ -1,16 +1,4 @@
-/*
- *  net/dccp/options.c
- *
- *  An implementation of the DCCP protocol
- *  Copyright (c) 2005 Aristeu Sergio Rozanski Filho <aris@cathedrallabs.org>
- *  Copyright (c) 2005 Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
- *  Copyright (c) 2005 Ian McDonald <ian.mcdonald@jandi.co.nz>
- *
- *      This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 #include <linux/dccp.h>
 #include <linux/module.h>
 #include <linux/types.h>
@@ -43,11 +31,7 @@ u64 dccp_decode_value_var(const u8 *bf, const u8 len)
 	return value;
 }
 
-/**
- * dccp_parse_options  -  Parse DCCP options present in @skb
- * @sk: client|server|listening dccp socket (when @dreq != NULL)
- * @dreq: request socket to use during connection setup, or NULL
- */
+
 int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 		       struct sk_buff *skb)
 {
@@ -75,7 +59,7 @@ int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 		len   = 0;
 		value = NULL;
 
-		/* Check if this isn't a single byte option */
+		
 		if (opt > DCCPO_MAX_RESERVED) {
 			if (opt_ptr == opt_end)
 				goto out_nonsensical_length;
@@ -83,10 +67,7 @@ int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 			len = *opt_ptr++;
 			if (len < 2)
 				goto out_nonsensical_length;
-			/*
-			 * Remove the type and len fields, leaving
-			 * just the value size
-			 */
+			
 			len	-= 2;
 			value	= opt_ptr;
 			opt_ptr += len;
@@ -95,18 +76,7 @@ int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 				goto out_nonsensical_length;
 		}
 
-		/*
-		 * CCID-Specific Options (from RFC 4340, sec. 10.3):
-		 *
-		 * Option numbers 128 through 191 are for options sent from the
-		 * HC-Sender to the HC-Receiver; option numbers 192 through 255
-		 * are for options sent from the HC-Receiver to	the HC-Sender.
-		 *
-		 * CCID-specific options are ignored during connection setup, as
-		 * negotiation may still be in progress (see RFC 4340, 10.3).
-		 * The same applies to Ack Vectors, as these depend on the CCID.
-		 *
-		 */
+		
 		if (dreq != NULL && (opt >= 128 ||
 		    opt == DCCPO_ACK_VECTOR_0 || opt == DCCPO_ACK_VECTOR_1))
 			goto ignore_option;
@@ -129,7 +99,7 @@ int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 				      (unsigned long long)opt_recv->dccpor_ndp);
 			break;
 		case DCCPO_CHANGE_L ... DCCPO_CONFIRM_R:
-			if (pkt_type == DCCP_PKT_DATA)      /* RFC 4340, 6 */
+			if (pkt_type == DCCP_PKT_DATA)      
 				break;
 			rc = dccp_feat_parse_options(sk, dreq, mandatory, opt,
 						    *value, value + 1, len - 1);
@@ -138,7 +108,7 @@ int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 			break;
 		case DCCPO_ACK_VECTOR_0:
 		case DCCPO_ACK_VECTOR_1:
-			if (dccp_packet_without_ack(skb))   /* RFC 4340, 11.4 */
+			if (dccp_packet_without_ack(skb))   
 				break;
 			if (dp->dccps_hc_rx_ackvec != NULL &&
 			    dccp_ackvec_parse(sk, skb, &ackno, opt, value, len))
@@ -147,11 +117,7 @@ int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 		case DCCPO_TIMESTAMP:
 			if (len != 4)
 				goto out_invalid_option;
-			/*
-			 * RFC 4340 13.1: "The precise time corresponding to
-			 * Timestamp Value zero is not specified". We use
-			 * zero to indicate absence of a meaningful timestamp.
-			 */
+			
 			opt_val = get_unaligned((__be32 *)value);
 			if (unlikely(opt_val == 0)) {
 				DCCP_WARN("Timestamp with zero value\n");
@@ -187,27 +153,27 @@ int dccp_parse_options(struct sock *sk, struct dccp_request_sock *dreq,
 
 			value += 4;
 
-			if (len == 4) {		/* no elapsed time included */
+			if (len == 4) {		
 				dccp_pr_debug_cat("\n");
 				break;
 			}
 
-			if (len == 6) {		/* 2-byte elapsed time */
+			if (len == 6) {		
 				__be16 opt_val2 = get_unaligned((__be16 *)value);
 				elapsed_time = ntohs(opt_val2);
-			} else {		/* 4-byte elapsed time */
+			} else {		
 				opt_val = get_unaligned((__be32 *)value);
 				elapsed_time = ntohl(opt_val);
 			}
 
 			dccp_pr_debug_cat(", ELAPSED_TIME=%u\n", elapsed_time);
 
-			/* Give precedence to the biggest ELAPSED_TIME */
+			
 			if (elapsed_time > opt_recv->dccpor_elapsed_time)
 				opt_recv->dccpor_elapsed_time = elapsed_time;
 			break;
 		case DCCPO_ELAPSED_TIME:
-			if (dccp_packet_without_ack(skb))   /* RFC 4340, 13.2 */
+			if (dccp_packet_without_ack(skb))   
 				break;
 
 			if (len == 2) {
@@ -254,12 +220,12 @@ ignore_option:
 			mandatory = 0;
 	}
 
-	/* mandatory was the last byte in option list -> reset connection */
+	
 	if (mandatory)
 		goto out_invalid_option;
 
 out_nonsensical_length:
-	/* RFC 4340, 5.8: ignore option and all remaining option space */
+	
 	return 0;
 
 out_invalid_option:
@@ -389,8 +355,7 @@ EXPORT_SYMBOL_GPL(dccp_insert_option_elapsed_time);
 int dccp_insert_option_timestamp(struct sock *sk, struct sk_buff *skb)
 {
 	__be32 now = htonl(dccp_timestamp());
-	/* yes this will overflow but that is the point as we want a
-	 * 10 usec 32 bit timer which mean it wraps every 11.9 hours */
+	
 
 	return dccp_insert_option(sk, skb, DCCPO_TIMESTAMP, &now, sizeof(now));
 }
@@ -441,11 +406,7 @@ static int dccp_insert_option_timestamp_echo(struct dccp_sock *dp,
 	return 0;
 }
 
-/**
- * dccp_insert_option_mandatory  -  Mandatory option (5.8.2)
- * Note that since we are using skb_push, this function needs to be called
- * _after_ inserting the option it is supposed to influence (stack order).
- */
+
 int dccp_insert_option_mandatory(struct sk_buff *skb)
 {
 	if (DCCP_SKB_CB(skb)->dccpd_opt_len >= DCCP_MAX_OPT_LEN)
@@ -456,24 +417,13 @@ int dccp_insert_option_mandatory(struct sk_buff *skb)
 	return 0;
 }
 
-/**
- * dccp_insert_fn_opt  -  Insert single Feature-Negotiation option into @skb
- * @type: %DCCPO_CHANGE_L, %DCCPO_CHANGE_R, %DCCPO_CONFIRM_L, %DCCPO_CONFIRM_R
- * @feat: one out of %dccp_feature_numbers
- * @val: NN value or SP array (preferred element first) to copy
- * @len: true length of @val in bytes (excluding first element repetition)
- * @repeat_first: whether to copy the first element of @val twice
- * The last argument is used to construct Confirm options, where the preferred
- * value and the preference list appear separately (RFC 4340, 6.3.1). Preference
- * lists are kept such that the preferred entry is always first, so we only need
- * to copy twice, and avoid the overhead of cloning into a bigger array.
- */
+
 int dccp_insert_fn_opt(struct sk_buff *skb, u8 type, u8 feat,
 		       u8 *val, u8 len, bool repeat_first)
 {
 	u8 tot_len, *to;
 
-	/* take the `Feature' field and possible repetition into account */
+	
 	if (len > (DCCP_SINGLE_OPT_MAXLEN - 2)) {
 		DCCP_WARN("length %u for feature %u too large\n", len, feat);
 		return -1;
@@ -501,7 +451,7 @@ int dccp_insert_fn_opt(struct sk_buff *skb, u8 type, u8 feat,
 	return 0;
 }
 
-/* The length of all options needs to be a multiple of 4 (5.8) */
+
 static void dccp_insert_option_padding(struct sk_buff *skb)
 {
 	int padding = DCCP_SKB_CB(skb)->dccpd_opt_len % 4;
@@ -524,15 +474,12 @@ int dccp_insert_options(struct sock *sk, struct sk_buff *skb)
 
 	if (DCCP_SKB_CB(skb)->dccpd_type != DCCP_PKT_DATA) {
 
-		/* Feature Negotiation */
+		
 		if (dccp_feat_insert_opts(dp, NULL, skb))
 			return -1;
 
 		if (DCCP_SKB_CB(skb)->dccpd_type == DCCP_PKT_REQUEST) {
-			/*
-			 * Obtain RTT sample from Request/Response exchange.
-			 * This is currently used in CCID 3 initialisation.
-			 */
+			
 			if (dccp_insert_option_timestamp(sk, skb))
 				return -1;
 

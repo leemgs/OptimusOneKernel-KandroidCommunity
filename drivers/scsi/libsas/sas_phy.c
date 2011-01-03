@@ -1,26 +1,4 @@
-/*
- * Serial Attached SCSI (SAS) Phy class
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- */
+
 
 #include "sas_internal.h"
 #include <scsi/scsi_host.h>
@@ -28,7 +6,7 @@
 #include <scsi/scsi_transport_sas.h>
 #include "../scsi_sas_internal.h"
 
-/* ---------- Phy events ---------- */
+
 
 static void sas_phye_loss_of_signal(struct work_struct *work)
 {
@@ -102,7 +80,7 @@ static void sas_phye_spinup_hold(struct work_struct *work)
 	i->dft->lldd_control_phy(phy, PHY_FUNC_RELEASE_SPINUP_HOLD, NULL);
 }
 
-/* ---------- Phy class registration ---------- */
+
 
 int sas_register_phys(struct sas_ha_struct *sas_ha)
 {
@@ -123,7 +101,7 @@ int sas_register_phys(struct sas_ha_struct *sas_ha)
 		[PORTE_HARD_RESET] = sas_porte_hard_reset,
 	};
 
-	/* Now register the phys. */
+	
 	for (i = 0; i < sas_ha->num_phys; i++) {
 		int k;
 		struct asd_sas_phy *phy = sas_ha->sas_phy[i];

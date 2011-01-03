@@ -1,38 +1,4 @@
-/* SCTP kernel implementation
- * (C) Copyright 2007 Hewlett-Packard Development Company, L.P.
- *
- * This file is part of the SCTP kernel implementation
- *
- * This SCTP implementation is free software;
- * you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This SCTP implementation is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 ************************
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU CC; see the file COPYING.  If not, write to
- * the Free Software Foundation, 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
- *
- * Please send any bug reports or fixes you make to the
- * email address(es):
- *    lksctp developers <lksctp-developers@lists.sourceforge.net>
- *
- * Or submit a bug report through the following website:
- *    http://www.sf.net/projects/lksctp
- *
- * Written or modified by:
- *   Vlad Yasevich     <vladislav.yasevich@hp.com>
- *
- * Any bugs reported given to us we will try to fix... any fixes shared will
- * be incorporated into the next SCTP release.
- */
+
 
 #ifndef __sctp_auth_h__
 #define __sctp_auth_h__
@@ -45,27 +11,21 @@ struct sctp_association;
 struct sctp_authkey;
 struct sctp_hmacalgo;
 
-/*
- * Define a generic struct that will hold all the info
- * necessary for an HMAC transform
- */
+
 struct sctp_hmac {
-	__u16 hmac_id;		/* one of the above ids */
-	char *hmac_name;	/* name for loading */
-	__u16 hmac_len;		/* length of the signature */
+	__u16 hmac_id;		
+	char *hmac_name;	
+	__u16 hmac_len;		
 };
 
-/* This is generic structure that containst authentication bytes used
- * as keying material.  It's a what is referred to as byte-vector all
- * over SCTP-AUTH
- */
+
 struct sctp_auth_bytes {
 	atomic_t refcnt;
 	__u32 len;
 	__u8  data[];
 };
 
-/* Definition for a shared key, weather endpoint or association */
+
 struct sctp_shared_key {
 	struct list_head key_list;
 	__u16 key_id;
@@ -110,7 +70,7 @@ void sctp_auth_calculate_hmac(const struct sctp_association *asoc,
 			    struct sk_buff *skb,
 			    struct sctp_auth_chunk *auth, gfp_t gfp);
 
-/* API Helpers */
+
 int sctp_auth_ep_add_chunkid(struct sctp_endpoint *ep, __u8 chunk_id);
 int sctp_auth_ep_set_hmacs(struct sctp_endpoint *ep,
 			    struct sctp_hmacalgo *hmacs);

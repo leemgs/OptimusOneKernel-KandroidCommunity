@@ -1,23 +1,4 @@
-/*
- * stk-webcam.h : Driver for Syntek 1125 USB webcam controller
- *
- * Copyright (C) 2006 Nicolas VIVIEN
- * Copyright 2007-2008 Jaime Velasco Juan <jsagarribay@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #ifndef STKWEBCAM_H
 #define STKWEBCAM_H
@@ -46,7 +27,7 @@ struct stk_iso_buf {
 	struct urb *urb;
 };
 
-/* Streaming IO buffers */
+
 struct stk_sio_buffer {
 	struct v4l2_buffer v4lbuf;
 	char *buffer;
@@ -99,7 +80,7 @@ struct stk_camera {
 
 	u8 isoc_ep;
 
-	/* Not sure if this is right */
+	
 	atomic_t urbs_used;
 
 	struct stk_video vsettings;
@@ -112,7 +93,7 @@ struct stk_camera {
 	struct stk_iso_buf *isobufs;
 
 	int frame_size;
-	/* Streaming buffers */
+	
 	unsigned int n_sbufs;
 	struct stk_sio_buffer *sio_bufs;
 	struct list_head sio_avail;

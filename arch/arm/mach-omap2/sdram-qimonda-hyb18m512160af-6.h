@@ -1,22 +1,11 @@
-/*
- * SDRC register values for the Qimonda HYB18M512160AF-6
- *
- * Copyright (C) 2008-2009 Texas Instruments, Inc.
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Paul Walmsley
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef ARCH_ARM_MACH_OMAP2_SDRAM_QIMONDA_HYB18M512160AF6
 #define ARCH_ARM_MACH_OMAP2_SDRAM_QIMONDA_HYB18M512160AF6
 
 #include <mach/sdrc.h>
 
-/* Qimonda HYB18M512160AF-6 */
+
 static struct omap_sdrc_params hyb18m512160af6_sdrc_params[] = {
 	[0] = {
 		.rate	     = 166000000,

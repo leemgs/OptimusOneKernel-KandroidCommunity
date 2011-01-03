@@ -1,14 +1,4 @@
-/*
- *	Linux ethernet bridge
- *
- *	Authors:
- *	Lennert Buytenhek		<buytenh@gnu.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #ifndef _BR_PRIVATE_STP_H
 #define _BR_PRIVATE_STP_H
@@ -30,7 +20,7 @@ struct br_config_bpdu
 	int		forward_delay;
 };
 
-/* called under bridge lock */
+
 static inline int br_is_designated_port(const struct net_bridge_port *p)
 {
 	return !memcmp(&p->designated_bridge, &p->br->bridge_id, 8) &&
@@ -38,7 +28,7 @@ static inline int br_is_designated_port(const struct net_bridge_port *p)
 }
 
 
-/* br_stp.c */
+
 extern void br_become_root_bridge(struct net_bridge *br);
 extern void br_config_bpdu_generation(struct net_bridge *);
 extern void br_configuration_update(struct net_bridge *);
@@ -49,7 +39,7 @@ extern void br_transmit_config(struct net_bridge_port *p);
 extern void br_transmit_tcn(struct net_bridge *br);
 extern void br_topology_change_detection(struct net_bridge *br);
 
-/* br_stp_bpdu.c */
+
 extern void br_send_config_bpdu(struct net_bridge_port *, struct br_config_bpdu *);
 extern void br_send_tcn_bpdu(struct net_bridge_port *);
 

@@ -1,26 +1,4 @@
-/*
- * Serial Attached SCSI (SAS) Port class
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- */
+
 
 #include "sas_internal.h"
 
@@ -28,13 +6,7 @@
 #include <scsi/scsi_transport_sas.h>
 #include "../scsi_sas_internal.h"
 
-/**
- * sas_form_port -- add this phy to a port
- * @phy: the phy of interest
- *
- * This function adds this phy to an existing port, thus creating a wide
- * port, or it creates a port and adds the phy to the port.
- */
+
 static void sas_form_port(struct asd_sas_phy *phy)
 {
 	int i;
@@ -56,7 +28,7 @@ static void sas_form_port(struct asd_sas_phy *phy)
 		}
 	}
 
-	/* see if the phy should be part of a wide port */
+	
 	spin_lock_irqsave(&sas_ha->phy_port_lock, flags);
 	for (i = 0; i < sas_ha->num_phys; i++) {
 		port = sas_ha->sas_port[i];
@@ -65,14 +37,14 @@ static void sas_form_port(struct asd_sas_phy *phy)
 		    memcmp(port->attached_sas_addr,
 			   phy->attached_sas_addr, SAS_ADDR_SIZE) == 0 &&
 		    port->num_phys > 0) {
-			/* wide port */
+			
 			SAS_DPRINTK("phy%d matched wide port%d\n", phy->id,
 				    port->id);
 			break;
 		}
 		spin_unlock(&port->phy_list_lock);
 	}
-	/* The phy does not match any existing port, create a new one */
+	
 	if (i == sas_ha->num_phys) {
 		for (i = 0; i < sas_ha->num_phys; i++) {
 			port = sas_ha->sas_port[i];
@@ -94,7 +66,7 @@ static void sas_form_port(struct asd_sas_phy *phy)
 		return;
 	}
 
-	/* add the phy to the port */
+	
 	list_add_tail(&phy->port_phy_el, &port->phy_list);
 	phy->port = port;
 	port->num_phys++;
@@ -131,20 +103,14 @@ static void sas_form_port(struct asd_sas_phy *phy)
 	if (port->port_dev)
 		port->port_dev->pathways = port->num_phys;
 
-	/* Tell the LLDD about this port formation. */
+	
 	if (si->dft->lldd_port_formed)
 		si->dft->lldd_port_formed(phy);
 
 	sas_discover_event(phy->port, DISCE_DISCOVER_DOMAIN);
 }
 
-/**
- * sas_deform_port -- remove this phy from the port it belongs to
- * @phy: the phy of interest
- *
- * This is called when the physical link to the other phy has been
- * lost (on this phy), in Event thread context. We cannot delay here.
- */
+
 void sas_deform_port(struct asd_sas_phy *phy)
 {
 	struct sas_ha_struct *sas_ha = phy->ha;
@@ -154,7 +120,7 @@ void sas_deform_port(struct asd_sas_phy *phy)
 	unsigned long flags;
 
 	if (!port)
-		return;		  /* done by a phy event */
+		return;		  
 
 	if (port->port_dev)
 		port->port_dev->pathways--;
@@ -194,7 +160,7 @@ void sas_deform_port(struct asd_sas_phy *phy)
 	return;
 }
 
-/* ---------- SAS port events ---------- */
+
 
 void sas_porte_bytes_dmaed(struct work_struct *work)
 {
@@ -263,7 +229,7 @@ void sas_porte_hard_reset(struct work_struct *work)
 	sas_deform_port(phy);
 }
 
-/* ---------- SAS port registration ---------- */
+
 
 static void sas_init_port(struct asd_sas_port *port,
 			  struct sas_ha_struct *sas_ha, int i)
@@ -282,7 +248,7 @@ int sas_register_ports(struct sas_ha_struct *sas_ha)
 {
 	int i;
 
-	/* initialize the ports and discovery */
+	
 	for (i = 0; i < sas_ha->num_phys; i++) {
 		struct asd_sas_port *port = sas_ha->sas_port[i];
 

@@ -1,16 +1,4 @@
-/*
- * proc_llc.c - proc interface for LLC
- *
- * Copyright (c) 2001 by Jay Schulist <jschlst@samba.org>
- *		 2002-2003 by Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *
- * This program can be redistributed or modified under the terms of the
- * GNU General Public License as published by the Free Software Foundation.
- * This program is distributed without any warranty or implied warranty
- * of merchantability or fitness for a particular purpose.
- *
- * See the GNU General Public License for more details.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -122,7 +110,7 @@ static int llc_seq_socket_show(struct seq_file *seq, void *v)
 	sk = v;
 	llc = llc_sk(sk);
 
-	/* FIXME: check if the address is multicast */
+	
 	seq_printf(seq, "%2X  %2X ", sk->sk_type, 0);
 
 	if (llc->dev)

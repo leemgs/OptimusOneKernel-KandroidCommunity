@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/leds-h2p2-debug.c
- *
- * Copyright 2003 by Texas Instruments Incorporated
- *
- * There are 16 LEDs on the debug board (all green); four may be used
- * for logical 'green', 'amber', 'red', and 'blue' (after "claiming").
- *
- * The "surfer" expansion board and H2 sample board also have two-color
- * green+red LEDs (in parallel), used here for timer and idle indicators.
- */
+
 #include <linux/init.h>
 #include <linux/kernel_stat.h>
 #include <linux/sched.h>
@@ -62,7 +52,7 @@ void h2p2_dbg_leds_event(led_event_t evt)
 
 	case led_stop:
 	case led_halted:
-		/* all leds off during suspend or shutdown */
+		
 
 		if (! machine_is_omap_perseus2()) {
 			gpio_set_value(GPIO_TIMER, 0);
@@ -156,9 +146,7 @@ void h2p2_dbg_leds_event(led_event_t evt)
 	}
 
 
-	/*
-	 *  Actually burn the LEDs
-	 */
+	
 	if (led_state & LED_STATE_ENABLED)
 		__raw_writew(~hw_led_state, &fpga->leds);
 

@@ -1,14 +1,4 @@
-/*
- *  Interrupt routines for Gemini
- *
- *  Copyright (C) 2001-2006 Storlink, Corp.
- *  Copyright (C) 2008-2009 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/ioport.h>
@@ -72,10 +62,7 @@ void __init gemini_init_irq(void)
 {
 	unsigned int i, mode = 0, level = 0;
 
-	/*
-	 * Disable arch_idle() by default since it is buggy
-	 * For more info see arch/arm/mach-gemini/include/mach/system.h
-	 */
+	
 	disable_hlt();
 
 	request_resource(&iomem_resource, &irq_resource);
@@ -92,11 +79,11 @@ void __init gemini_init_irq(void)
 		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
 	}
 
-	/* Disable all interrupts */
+	
 	__raw_writel(0, IRQ_MASK(IO_ADDRESS(GEMINI_INTERRUPT_BASE)));
 	__raw_writel(0, FIQ_MASK(IO_ADDRESS(GEMINI_INTERRUPT_BASE)));
 
-	/* Set interrupt mode */
+	
 	__raw_writel(mode, IRQ_TMODE(IO_ADDRESS(GEMINI_INTERRUPT_BASE)));
 	__raw_writel(level, IRQ_TLEVEL(IO_ADDRESS(GEMINI_INTERRUPT_BASE)));
 }

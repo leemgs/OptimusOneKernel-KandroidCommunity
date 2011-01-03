@@ -1,14 +1,4 @@
-/*
- * Transparent proxy support for Linux/iptables
- *
- * Copyright (c) 2006-2007 BalaBit IT Ltd.
- * Author: Balazs Scheidler, Krisztian Kovacs
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 
@@ -26,7 +16,7 @@ nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
 {
 	struct sock *sk;
 
-	/* look up socket */
+	
 	switch (protocol) {
 	case IPPROTO_TCP:
 		if (listening_only)
@@ -66,7 +56,7 @@ nf_tproxy_destructor(struct sk_buff *skb)
 		nf_tproxy_put_sock(sk);
 }
 
-/* consumes sk */
+
 int
 nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk)
 {

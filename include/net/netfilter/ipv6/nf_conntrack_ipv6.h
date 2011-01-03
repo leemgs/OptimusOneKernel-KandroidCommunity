@@ -20,4 +20,4 @@ struct inet_frags_ctl;
 #include <linux/sysctl.h>
 extern struct ctl_table nf_ct_ipv6_sysctl_table[];
 
-#endif /* _NF_CONNTRACK_IPV6_H*/
+#endif 

@@ -1,37 +1,4 @@
-/*
- * Mars MR97310A library
- *
- * Copyright (C) 2009 Kyle Guinn <elyk03@gmail.com>
- *
- * Support for the MR97310A cameras in addition to the Aiptek Pencam VGA+
- * and for the routines for detecting and classifying these various cameras,
- *
- * Copyright (C) 2009 Theodore Kilgore <kilgota@auburn.edu>
- *
- * Acknowledgements:
- *
- * The MR97311A support in gspca/mars.c has been helpful in understanding some
- * of the registers in these cameras.
- *
- * Hans de Goede <hdgoede@redhat.com> and
- * Thomas Kaiser <thomas@kaiser-linux.li>
- * have assisted with their experience. Each of them has also helped by
- * testing a previously unsupported camera.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #define MODULE_NAME "mr97310a"
 
@@ -57,17 +24,17 @@ MODULE_AUTHOR("Kyle Guinn <elyk03@gmail.com>,"
 MODULE_DESCRIPTION("GSPCA/Mars-Semi MR97310A USB Camera Driver");
 MODULE_LICENSE("GPL");
 
-/* global parameters */
+
 int force_sensor_type = -1;
 module_param(force_sensor_type, int, 0644);
 MODULE_PARM_DESC(force_sensor_type, "Force sensor type (-1 (auto), 0 or 1)");
 
-/* specific webcam descriptor */
+
 struct sd {
-	struct gspca_dev gspca_dev;  /* !! must be the first item */
+	struct gspca_dev gspca_dev;  
 	u8 sof_read;
-	u8 cam_type;	/* 0 is CIF and 1 is VGA */
-	u8 sensor_type;	/* We use 0 and 1 here, too. */
+	u8 cam_type;	
+	u8 sensor_type;	
 	u8 do_lcd_stop;
 
 	int brightness;
@@ -92,7 +59,7 @@ static void setbrightness(struct gspca_dev *gspca_dev);
 static void setexposure(struct gspca_dev *gspca_dev);
 static void setgain(struct gspca_dev *gspca_dev);
 
-/* V4L2 controls supported by the driver */
+
 static struct ctrl sd_ctrls[] = {
 	{
 #define BRIGHTNESS_IDX 0
@@ -169,7 +136,7 @@ static const struct v4l2_pix_format vga_mode[] = {
 		.priv = 0},
 };
 
-/* the bytes to write are in gspca_dev->usb_buf */
+
 static int mr_write(struct gspca_dev *gspca_dev, int len)
 {
 	int rc;
@@ -183,7 +150,7 @@ static int mr_write(struct gspca_dev *gspca_dev, int len)
 	return rc;
 }
 
-/* the bytes are read into gspca_dev->usb_buf */
+
 static int mr_read(struct gspca_dev *gspca_dev, int len)
 {
 	int rc;
@@ -360,7 +327,7 @@ static u8 get_sensor_id(struct gspca_dev *gspca_dev)
 	return gspca_dev->usb_buf[0];
 }
 
-/* this function is called at probe time */
+
 static int sd_config(struct gspca_dev *gspca_dev,
 		     const struct usb_device_id *id)
 {
@@ -385,19 +352,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
 
 		msleep(200);
 		data[0] = get_sensor_id(gspca_dev);
-		/*
-		 * Known CIF cameras. If you have another to report, please do
-		 *
-		 * Name			byte just read		sd->sensor_type
-		 *					reported by
-		 * Sakar Spy-shot	0x28		T. Kilgore	0
-		 * Innovage		0xf5 (unstable)	T. Kilgore	0
-		 * Vivitar Mini		0x53		H. De Goede	0
-		 * Vivitar Mini		0x04 / 0x24	E. Rodriguez	0
-		 * Vivitar Mini		0x08		T. Kilgore	1
-		 * Elta-Media 8212dc	0x23		T. Kaiser	1
-		 * Philips dig. keych.	0x37		T. Kilgore	1
-		 */
+		
 		if ((data[0] & 0x78) == 8 ||
 		    ((data[0] & 0x2) == 0x2 && data[0] != 0x53))
 			sd->sensor_type = 1;
@@ -429,7 +384,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	return 0;
 }
 
-/* this function is called at probe and resume time */
+
 static int sd_init(struct gspca_dev *gspca_dev)
 {
 	return 0;
@@ -444,17 +399,17 @@ static int start_cif_cam(struct gspca_dev *gspca_dev)
 		0x00,
 		0x0d,
 		0x01,
-		0x00, /* Hsize/8 for 352 or 320 */
-		0x00, /* Vsize/4 for 288 or 240 */
-		0x13, /* or 0xbb, depends on sensor */
-		0x00, /* Hstart, depends on res. */
-		0x00, /* reserved ? */
-		0x00, /* Vstart, depends on res. and sensor */
-		0x50, /* 0x54 to get 176 or 160 */
+		0x00, 
+		0x00, 
+		0x13, 
+		0x00, 
+		0x00, 
+		0x00, 
+		0x50, 
 		0xc0
 	};
 
-	/* Note: Some of the above descriptions guessed from MR97113A driver */
+	
 	data[0] = 0x01;
 	data[1] = 0x01;
 	err_code = mr_write(gspca_dev, 2);
@@ -467,23 +422,23 @@ static int start_cif_cam(struct gspca_dev *gspca_dev)
 
 	switch (gspca_dev->width) {
 	case 160:
-		data[9] |= 0x04;  /* reg 8, 2:1 scale down from 320 */
-		/* fall thru */
+		data[9] |= 0x04;  
+		
 	case 320:
 	default:
-		data[3] = 0x28;			   /* reg 2, H size/8 */
-		data[4] = 0x3c;			   /* reg 3, V size/4 */
-		data[6] = 0x14;			   /* reg 5, H start  */
-		data[8] = 0x1a + sd->sensor_type;  /* reg 7, V start  */
+		data[3] = 0x28;			   
+		data[4] = 0x3c;			   
+		data[6] = 0x14;			   
+		data[8] = 0x1a + sd->sensor_type;  
 		break;
 	case 176:
-		data[9] |= 0x04;  /* reg 8, 2:1 scale down from 352 */
-		/* fall thru */
+		data[9] |= 0x04;  
+		
 	case 352:
-		data[3] = 0x2c;			   /* reg 2, H size/8 */
-		data[4] = 0x48;			   /* reg 3, V size/4 */
-		data[6] = 0x06;			   /* reg 5, H start  */
-		data[8] = 0x06 - sd->sensor_type;  /* reg 7, V start  */
+		data[3] = 0x2c;			   
+		data[4] = 0x48;			   
+		data[6] = 0x06;			   
+		data[8] = 0x06 - sd->sensor_type;  
 		break;
 	}
 	err_code = mr_write(gspca_dev, 11);
@@ -511,11 +466,11 @@ static int start_cif_cam(struct gspca_dev *gspca_dev)
 		};
 		err_code = sensor_write_regs(gspca_dev, cif_sensor0_init_data,
 					 ARRAY_SIZE(cif_sensor0_init_data));
-	} else {	/* sd->sensor_type = 1 */
+	} else {	
 		const struct sensor_w_data cif_sensor1_init_data[] = {
-			/* Reg 3,4, 7,8 get set by the controls */
+			
 			{0x02, 0x00, {0x10}, 1},
-			{0x05, 0x01, {0x22}, 1}, /* 5/6 also seen as 65h/32h */
+			{0x05, 0x01, {0x22}, 1}, 
 			{0x06, 0x01, {0x00}, 1},
 			{0x09, 0x02, {0x0e}, 1},
 			{0x0a, 0x02, {0x05}, 1},
@@ -543,7 +498,7 @@ static int start_cif_cam(struct gspca_dev *gspca_dev)
 	msleep(200);
 
 	data[0] = 0x00;
-	data[1] = 0x4d;  /* ISOC transfering enable... */
+	data[1] = 0x4d;  
 	err_code = mr_write(gspca_dev, 2);
 	if (err_code < 0)
 		return err_code;
@@ -559,15 +514,10 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 	const __u8 startup_string[] = {0x00, 0x0d, 0x01, 0x00, 0x00, 0x2b,
 				       0x00, 0x00, 0x00, 0x50, 0xc0};
 
-	/* What some of these mean is explained in start_cif_cam(), above */
+	
 	sd->sof_read = 0;
 
-	/*
-	 * We have to know which camera we have, because the register writes
-	 * depend upon the camera. This test, run before we actually enter
-	 * the initialization routine, distinguishes most of the cameras, If
-	 * needed, another routine is done later, too.
-	 */
+	
 	memset(data, 0, 16);
 	data[0] = 0x20;
 	err_code = mr_write(gspca_dev, 1);
@@ -581,22 +531,13 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 	PDEBUG(D_PROBE, "Byte reported is %02x", data[0]);
 
 	msleep(200);
-	/*
-	 * Known VGA cameras. If you have another to report, please do
-	 *
-	 * Name			byte just read		sd->sensor_type
-	 *				sd->do_lcd_stop
-	 * Aiptek Pencam VGA+	0x31		0	1
-	 * ION digital		0x31		0	1
-	 * Argus DC-1620	0x30		1	0
-	 * Argus QuickClix	0x30		1	1 (not caught here)
-	 */
+	
 	sd->sensor_type = data[0] & 1;
 	sd->do_lcd_stop = (~data[0]) & 1;
 
 
 
-	/* Streaming setup begins here. */
+	
 
 
 	data[0] = 0x01;
@@ -605,10 +546,7 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 	if (err_code < 0)
 		return err_code;
 
-	/*
-	 * A second test can now resolve any remaining ambiguity in the
-	 * identification of the camera type,
-	 */
+	
 	if (!sd->sensor_type) {
 		data[0] = get_sensor_id(gspca_dev);
 		if (data[0] == 0x7f) {
@@ -624,18 +562,7 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 		       sd->sensor_type);
 	}
 
-	/*
-	 * Known VGA cameras.
-	 * This test is only run if the previous test returned 0x30, but
-	 * here is the information for all others, too, just for reference.
-	 *
-	 * Name			byte just read		sd->sensor_type
-	 *
-	 * Aiptek Pencam VGA+	0xfb	(this test not run)	1
-	 * ION digital		0xbd	(this test not run)	1
-	 * Argus DC-1620	0xe5	(no change)		0
-	 * Argus QuickClix	0x7f	(reclassified)		1
-	 */
+	
 	memcpy(data, startup_string, 11);
 	if (!sd->sensor_type) {
 		data[5]  = 0x00;
@@ -644,31 +571,31 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 
 	switch (gspca_dev->width) {
 	case 160:
-		data[9] |= 0x0c;  /* reg 8, 4:1 scale down */
-		/* fall thru */
+		data[9] |= 0x0c;  
+		
 	case 320:
-		data[9] |= 0x04;  /* reg 8, 2:1 scale down */
-		/* fall thru */
+		data[9] |= 0x04;  
+		
 	case 640:
 	default:
-		data[3] = 0x50;  /* reg 2, H size/8 */
-		data[4] = 0x78;  /* reg 3, V size/4 */
-		data[6] = 0x04;  /* reg 5, H start */
-		data[8] = 0x03;  /* reg 7, V start */
+		data[3] = 0x50;  
+		data[4] = 0x78;  
+		data[6] = 0x04;  
+		data[8] = 0x03;  
 		if (sd->do_lcd_stop)
-			data[8] = 0x04;  /* Bayer tile shifted */
+			data[8] = 0x04;  
 		break;
 
 	case 176:
-		data[9] |= 0x04;  /* reg 8, 2:1 scale down */
-		/* fall thru */
+		data[9] |= 0x04;  
+		
 	case 352:
-		data[3] = 0x2c;  /* reg 2, H size */
-		data[4] = 0x48;  /* reg 3, V size */
-		data[6] = 0x94;  /* reg 5, H start */
-		data[8] = 0x63;  /* reg 7, V start */
+		data[3] = 0x2c;  
+		data[4] = 0x48;  
+		data[6] = 0x94;  
+		data[8] = 0x63;  
 		if (sd->do_lcd_stop)
-			data[8] = 0x64;  /* Bayer tile shifted */
+			data[8] = 0x64;  
 		break;
 	}
 
@@ -677,7 +604,7 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 		return err_code;
 
 	if (!sd->sensor_type) {
-		/* The only known sensor_type 0 cam is the Argus DC-1620 */
+		
 		const struct sensor_w_data vga_sensor0_init_data[] = {
 			{0x01, 0x00, {0x0c, 0x00, 0x04}, 3},
 			{0x14, 0x00, {0x01, 0xe4, 0x02, 0x84}, 4},
@@ -688,12 +615,12 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 		};
 		err_code = sensor_write_regs(gspca_dev, vga_sensor0_init_data,
 					 ARRAY_SIZE(vga_sensor0_init_data));
-	} else {	/* sd->sensor_type = 1 */
+	} else {	
 		const struct sensor_w_data vga_sensor1_init_data[] = {
 			{0x02, 0x00, {0x06, 0x59, 0x0c, 0x16, 0x00,
 				0x07, 0x00, 0x01}, 8},
 			{0x11, 0x04, {0x01}, 1},
-			/*{0x0a, 0x00, {0x00, 0x01, 0x00, 0x00, 0x01, */
+			
 			{0x0a, 0x00, {0x01, 0x06, 0x00, 0x00, 0x01,
 				0x00, 0x0a}, 7},
 			{0x11, 0x04, {0x01}, 1},
@@ -709,7 +636,7 @@ static int start_vga_cam(struct gspca_dev *gspca_dev)
 
 	msleep(200);
 	data[0] = 0x00;
-	data[1] = 0x4d;  /* ISOC transfering enable... */
+	data[1] = 0x4d;  
 	err_code = mr_write(gspca_dev, 2);
 
 	return err_code;
@@ -723,10 +650,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	cam = &gspca_dev->cam;
 	sd->sof_read = 0;
-	/*
-	 * Some of the supported cameras require the memory pointer to be
-	 * set to 0, or else they will not stream.
-	 */
+	
 	zero_the_pointer(gspca_dev);
 	msleep(200);
 	if (sd->cam_type == CAM_TYPE_CIF) {
@@ -748,7 +672,7 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
 	if (result < 0)
 		PDEBUG(D_ERR, "Camera Stop failed");
 
-	/* Not all the cams need this, but even if not, probably a good idea */
+	
 	zero_the_pointer(gspca_dev);
 	if (sd->do_lcd_stop) {
 		gspca_dev->usb_buf[0] = 0x19;
@@ -767,7 +691,7 @@ static void setbrightness(struct gspca_dev *gspca_dev)
 	if (gspca_dev->ctrl_dis & (1 << BRIGHTNESS_IDX))
 		return;
 
-	/* Note register 7 is also seen as 0x8x or 0xCx in dumps */
+	
 	if (sd->brightness > 0) {
 		sensor_write1(gspca_dev, 7, 0x00);
 		val = sd->brightness;
@@ -795,28 +719,21 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		u8 clockdiv;
 		int exposure;
 
-		/* We have both a clock divider and an exposure register.
-		   We first calculate the clock divider, as that determines
-		   the maximum exposure and then we calculayte the exposure
-		   register setting (which goes from 0 - 511).
-
-		   Note our 0 - 4095 exposure is mapped to 0 - 511
-		   milliseconds exposure time */
+		
 		clockdiv = (60 * sd->exposure + 7999) / 8000;
 
-		/* Limit framerate to not exceed usb bandwidth */
+		
 		if (clockdiv < 3 && gspca_dev->width >= 320)
 			clockdiv = 3;
 		else if (clockdiv < 2)
 			clockdiv = 2;
 
-		/* Frame exposure time in ms = 1000 * clockdiv / 60 ->
-		exposure = (sd->exposure / 8) * 511 / (1000 * clockdiv / 60) */
+		
 		exposure = (60 * 511 * sd->exposure) / (8000 * clockdiv);
 		if (exposure > 511)
 			exposure = 511;
 
-		/* exposure register value is reversed! */
+		
 		exposure = 511 - exposure;
 
 		sensor_write1(gspca_dev, 0x02, clockdiv);
@@ -893,13 +810,13 @@ static int sd_getgain(struct gspca_dev *gspca_dev, __s32 *val)
 	return 0;
 }
 
-/* Include pac common sof detection functions */
+
 #include "pac_common.h"
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			struct gspca_frame *frame,    /* target */
-			__u8 *data,                   /* isoc packet */
-			int len)                      /* iso packet length */
+			struct gspca_frame *frame,    
+			__u8 *data,                   
+			int len)                      
 {
 	unsigned char *sof;
 
@@ -907,7 +824,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	if (sof) {
 		int n;
 
-		/* finish decoding current frame */
+		
 		n = sof - data;
 		if (n > sizeof pac_sof_marker)
 			n -= sizeof pac_sof_marker;
@@ -915,7 +832,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 			n = 0;
 		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame,
 					data, n);
-		/* Start next frame. */
+		
 		gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
 			pac_sof_marker, sizeof pac_sof_marker);
 		len -= sof - data;
@@ -924,7 +841,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
 }
 
-/* sub-driver description */
+
 static const struct sd_desc sd_desc = {
 	.name = MODULE_NAME,
 	.ctrls = sd_ctrls,
@@ -936,16 +853,16 @@ static const struct sd_desc sd_desc = {
 	.pkt_scan = sd_pkt_scan,
 };
 
-/* -- module initialisation -- */
+
 static const __devinitdata struct usb_device_id device_table[] = {
-	{USB_DEVICE(0x08ca, 0x0111)},	/* Aiptek Pencam VGA+ */
-	{USB_DEVICE(0x093a, 0x010f)},	/* All other known MR97310A VGA cams */
-	{USB_DEVICE(0x093a, 0x010e)},	/* All known MR97310A CIF cams */
+	{USB_DEVICE(0x08ca, 0x0111)},	
+	{USB_DEVICE(0x093a, 0x010f)},	
+	{USB_DEVICE(0x093a, 0x010e)},	
 	{}
 };
 MODULE_DEVICE_TABLE(usb, device_table);
 
-/* -- device connect -- */
+
 static int sd_probe(struct usb_interface *intf,
 		    const struct usb_device_id *id)
 {
@@ -964,7 +881,7 @@ static struct usb_driver sd_driver = {
 #endif
 };
 
-/* -- module insert / remove -- */
+
 static int __init sd_mod_init(void)
 {
 	int ret;

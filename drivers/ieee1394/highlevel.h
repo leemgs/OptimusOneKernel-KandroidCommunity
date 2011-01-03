@@ -11,44 +11,37 @@ struct module;
 
 struct hpsb_host;
 
-/* internal to ieee1394 core */
+
 struct hpsb_address_serve {
-	struct list_head host_list;	/* per host list */
-	struct list_head hl_list;	/* hpsb_highlevel list */
+	struct list_head host_list;	
+	struct list_head hl_list;	
 	const struct hpsb_address_ops *op;
 	struct hpsb_host *host;
-	u64 start;	/* first address handled, quadlet aligned */
-	u64 end;	/* first address behind, quadlet aligned */
+	u64 start;	
+	u64 end;	
 };
 
-/* Only the following structures are of interest to actual highlevel drivers. */
+
 
 struct hpsb_highlevel {
 	const char *name;
 
-	/* Any of the following pointers can legally be NULL. */
+	
 
-	/* New host initialized.  Will also be called during
-	 * hpsb_register_highlevel for all hosts already installed. */
+	
 	void (*add_host)(struct hpsb_host *host);
 
-	/* Host about to be removed.  Will also be called during
-	 * hpsb_unregister_highlevel once for each host. */
+	
 	void (*remove_host)(struct hpsb_host *host);
 
-	/* Host experienced bus reset with possible configuration changes.
-	 * Note that this one may occur during interrupt/bottom half handling.
-	 * You can not expect to be able to do stock hpsb_reads. */
+	
 	void (*host_reset)(struct hpsb_host *host);
 
-	/* A write request was received on either the FCP_COMMAND (direction =
-	 * 0) or the FCP_RESPONSE (direction = 1) register.  The cts arg
-	 * contains the cts field (first byte of data). */
+	
 	void (*fcp_request)(struct hpsb_host *host, int nodeid, int direction,
 			    int cts, u8 *data, size_t length);
 
-	/* These are initialized by the subsystem when the
-	 * hpsb_higlevel is registered. */
+	
 	struct list_head hl_list;
 	struct list_head irq_list;
 	struct list_head addr_list;
@@ -58,27 +51,15 @@ struct hpsb_highlevel {
 };
 
 struct hpsb_address_ops {
-	/*
-	 * Null function pointers will make the respective operation complete
-	 * with RCODE_TYPE_ERROR.  Makes for easy to implement read-only
-	 * registers (just leave everything but read NULL).
-	 *
-	 * All functions shall return appropriate IEEE 1394 rcodes.
-	 */
+	
 
-	/* These functions have to implement block reads for themselves.
-	 *
-	 * These functions either return a response code or a negative number.
-	 * In the first case a response will be generated.  In the latter case,
-	 * no response will be sent and the driver which handled the request
-	 * will send the response itself. */
+	
 	int (*read)(struct hpsb_host *host, int nodeid, quadlet_t *buffer,
 		    u64 addr, size_t length, u16 flags);
 	int (*write)(struct hpsb_host *host, int nodeid, int destid,
 		     quadlet_t *data, u64 addr, size_t length, u16 flags);
 
-	/* Lock transactions: write results of ext_tcode operation into
-	 * *store. */
+	
 	int (*lock)(struct hpsb_host *host, int nodeid, quadlet_t *store,
 		    u64 addr, quadlet_t data, quadlet_t arg, int ext_tcode,
 		    u16 flags);
@@ -103,12 +84,7 @@ int highlevel_lock64(struct hpsb_host *host, int nodeid, octlet_t *store,
 void highlevel_fcp_request(struct hpsb_host *host, int nodeid, int direction,
 			   void *data, size_t length);
 
-/**
- * hpsb_init_highlevel - initialize a struct hpsb_highlevel
- *
- * This is only necessary if hpsb_get_hostinfo_bykey can be called
- * before hpsb_register_highlevel.
- */
+
 static inline void hpsb_init_highlevel(struct hpsb_highlevel *hl)
 {
 	rwlock_init(&hl->host_info_lock);
@@ -138,4 +114,4 @@ void *hpsb_get_hostinfo_bykey(struct hpsb_highlevel *hl, unsigned long key);
 int hpsb_set_hostinfo(struct hpsb_highlevel *hl, struct hpsb_host *host,
 		      void *data);
 
-#endif /* IEEE1394_HIGHLEVEL_H */
+#endif 

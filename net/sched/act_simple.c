@@ -1,14 +1,4 @@
-/*
- * net/sched/simp.c	Simple example of an action
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Jamal Hadi Salim (2005-8)
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -44,10 +34,7 @@ static int tcf_simp(struct sk_buff *skb, struct tc_action *a, struct tcf_result 
 	d->tcf_bstats.bytes += qdisc_pkt_len(skb);
 	d->tcf_bstats.packets++;
 
-	/* print policy string followed by _ then packet count
-	 * Example if this was the 3rd packet and the string was "hello"
-	 * then it would look like "hello_3" (without quotes)
-	 **/
+	
 	printk("simple: %s_%d\n",
 	       (char *)d->tcfd_defdata, d->tcf_bstats.packets);
 	spin_unlock(&d->tcf_lock);

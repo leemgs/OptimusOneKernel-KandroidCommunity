@@ -1,20 +1,4 @@
-/*
- * BQ27x00 battery driver
- *
- * Copyright (C) 2008 Rodolfo Giometti <giometti@linux.it>
- * Copyright (C) 2008 Eurotech S.p.A. <info@eurotech.it>
- *
- * Based on a previous work by Copyright (C) 2008 Texas Instruments, Inc.
- *
- * This package is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- */
+
 #include <linux/module.h>
 #include <linux/param.h>
 #include <linux/jiffies.h>
@@ -30,13 +14,11 @@
 
 #define BQ27x00_REG_TEMP		0x06
 #define BQ27x00_REG_VOLT		0x08
-#define BQ27x00_REG_RSOC		0x0B /* Relative State-of-Charge */
+#define BQ27x00_REG_RSOC		0x0B 
 #define BQ27x00_REG_AI			0x14
 #define BQ27x00_REG_FLAGS		0x0A
 
-/* If the system has several batteries we need a different name for each
- * of them...
- */
+
 static DEFINE_IDR(battery_id);
 static DEFINE_MUTEX(battery_mutex);
 
@@ -67,9 +49,7 @@ static enum power_supply_property bq27x00_battery_props[] = {
 	POWER_SUPPLY_PROP_TEMP,
 };
 
-/*
- * Common code for BQ27x00 devices
- */
+
 
 static int bq27x00_read(u8 reg, int *rt_value, int b_single,
 			struct bq27x00_device_info *di)
@@ -82,10 +62,7 @@ static int bq27x00_read(u8 reg, int *rt_value, int b_single,
 	return ret;
 }
 
-/*
- * Return the battery temperature in Celsius degrees
- * Or < 0 if something fails.
- */
+
 static int bq27x00_battery_temperature(struct bq27x00_device_info *di)
 {
 	int ret;
@@ -100,10 +77,7 @@ static int bq27x00_battery_temperature(struct bq27x00_device_info *di)
 	return (temp >> 2) - 273;
 }
 
-/*
- * Return the battery Voltage in milivolts
- * Or < 0 if something fails.
- */
+
 static int bq27x00_battery_voltage(struct bq27x00_device_info *di)
 {
 	int ret;
@@ -118,11 +92,7 @@ static int bq27x00_battery_voltage(struct bq27x00_device_info *di)
 	return volt;
 }
 
-/*
- * Return the battery average current
- * Note that current can be negative signed as well
- * Or 0 if something fails.
- */
+
 static int bq27x00_battery_current(struct bq27x00_device_info *di)
 {
 	int ret;
@@ -146,10 +116,7 @@ static int bq27x00_battery_current(struct bq27x00_device_info *di)
 	return curr;
 }
 
-/*
- * Return the battery Relative State-of-Charge
- * Or < 0 if something fails.
- */
+
 static int bq27x00_battery_rsoc(struct bq27x00_device_info *di)
 {
 	int ret;
@@ -205,9 +172,7 @@ static void bq27x00_powersupply_init(struct bq27x00_device_info *di)
 	di->bat.external_power_changed = NULL;
 }
 
-/*
- * BQ27200 specific code
- */
+
 
 static int bq27200_read(u8 reg, int *rt_value, int b_single,
 			struct bq27x00_device_info *di)
@@ -257,7 +222,7 @@ static int bq27200_battery_probe(struct i2c_client *client,
 	int num;
 	int retval = 0;
 
-	/* Get new ID for the new battery device */
+	
 	retval = idr_pre_get(&battery_id, GFP_KERNEL);
 	if (retval == 0)
 		return -ENOMEM;
@@ -340,9 +305,7 @@ static int bq27200_battery_remove(struct i2c_client *client)
 	return 0;
 }
 
-/*
- * Module stuff
- */
+
 
 static const struct i2c_device_id bq27200_id[] = {
 	{ "bq27200", 0 },

@@ -1,11 +1,4 @@
-/*
- * zfcp device driver
- *
- * Userspace interface for accessing the
- * Access Control Lists / Control File Data Channel
- *
- * Copyright IBM Corporation 2008, 2009
- */
+
 
 #define KMSG_COMPONENT "zfcp"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -31,16 +24,7 @@
 #define ZFCP_CFDC_IOC \
 	_IOWR(ZFCP_CFDC_IOC_MAGIC, 0, struct zfcp_cfdc_data)
 
-/**
- * struct zfcp_cfdc_data - data for ioctl cfdc interface
- * @signature: request signature
- * @devno: FCP adapter device number
- * @command: command code
- * @fsf_status: returns status of FSF command to userspace
- * @fsf_status_qual: returned to userspace
- * @payloads: access conflicts list
- * @control_file: access control table
- */
+
 struct zfcp_cfdc_data {
 	u32 signature;
 	u32 devno;

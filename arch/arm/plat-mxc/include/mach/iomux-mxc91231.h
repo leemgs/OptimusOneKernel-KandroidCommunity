@@ -1,74 +1,38 @@
-/*
- * Copyright 2004-2006 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright (C) 2008 by Sascha Hauer <kernel@pengutronix.de>
- * Copyright (C) 2009 by Dmitriy Taychenachev <dimichxp@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #ifndef __MACH_IOMUX_MXC91231_H__
 #define __MACH_IOMUX_MXC91231_H__
 
-/*
- * various IOMUX output functions
- */
 
-#define	IOMUX_OCONFIG_GPIO (0 << 4)	/* used as GPIO */
-#define	IOMUX_OCONFIG_FUNC (1 << 4)	/* used as function */
-#define	IOMUX_OCONFIG_ALT1 (2 << 4)	/* used as alternate function 1 */
-#define	IOMUX_OCONFIG_ALT2 (3 << 4)	/* used as alternate function 2 */
-#define	IOMUX_OCONFIG_ALT3 (4 << 4)	/* used as alternate function 3 */
-#define	IOMUX_OCONFIG_ALT4 (5 << 4)	/* used as alternate function 4 */
-#define	IOMUX_OCONFIG_ALT5 (6 << 4)	/* used as alternate function 5 */
-#define	IOMUX_OCONFIG_ALT6 (7 << 4)	/* used as alternate function 6 */
-#define	IOMUX_ICONFIG_NONE  0	 	/* not configured for input */
-#define	IOMUX_ICONFIG_GPIO  1		/* used as GPIO */
-#define	IOMUX_ICONFIG_FUNC  2		/* used as function */
-#define	IOMUX_ICONFIG_ALT1  4		/* used as alternate function 1 */
-#define	IOMUX_ICONFIG_ALT2  8		/* used as alternate function 2 */
+
+#define	IOMUX_OCONFIG_GPIO (0 << 4)	
+#define	IOMUX_OCONFIG_FUNC (1 << 4)	
+#define	IOMUX_OCONFIG_ALT1 (2 << 4)	
+#define	IOMUX_OCONFIG_ALT2 (3 << 4)	
+#define	IOMUX_OCONFIG_ALT3 (4 << 4)	
+#define	IOMUX_OCONFIG_ALT4 (5 << 4)	
+#define	IOMUX_OCONFIG_ALT5 (6 << 4)	
+#define	IOMUX_OCONFIG_ALT6 (7 << 4)	
+#define	IOMUX_ICONFIG_NONE  0	 	
+#define	IOMUX_ICONFIG_GPIO  1		
+#define	IOMUX_ICONFIG_FUNC  2		
+#define	IOMUX_ICONFIG_ALT1  4		
+#define	IOMUX_ICONFIG_ALT2  8		
 
 #define IOMUX_CONFIG_GPIO (IOMUX_OCONFIG_GPIO | IOMUX_ICONFIG_GPIO)
 #define IOMUX_CONFIG_FUNC (IOMUX_OCONFIG_FUNC | IOMUX_ICONFIG_FUNC)
 #define IOMUX_CONFIG_ALT1 (IOMUX_OCONFIG_ALT1 | IOMUX_ICONFIG_ALT1)
 #define IOMUX_CONFIG_ALT2 (IOMUX_OCONFIG_ALT2 | IOMUX_ICONFIG_ALT2)
 
-/*
- * setups a single pin:
- * 	- reserves the pin so that it is not claimed by another driver
- * 	- setups the iomux according to the configuration
- * 	- if the pin is configured as a GPIO, we claim it throug kernel gpiolib
- */
+
 int mxc_iomux_alloc_pin(const unsigned int pin_mode, const char *label);
-/*
- * setups mutliple pins
- * convenient way to call the above function with tables
- */
+
 int mxc_iomux_setup_multiple_pins(unsigned int *pin_list, unsigned count,
 		const char *label);
 
-/*
- * releases a single pin:
- * 	- make it available for a future use by another driver
- * 	- frees the GPIO if the pin was configured as GPIO
- * 	- DOES NOT reconfigure the IOMUX in its reset state
- */
+
 void mxc_iomux_release_pin(const unsigned int pin_mode);
-/*
- * releases multiple pins
- * convenvient way to call the above function with tables
- */
+
 void mxc_iomux_release_multiple_pins(unsigned int *pin_list, int count);
 
 #define MUX_SIDE_AP		(0)
@@ -113,7 +77,7 @@ void mxc_iomux_release_multiple_pins(unsigned int *pin_list, int count);
 	(pin | (mode << MUX_MODE_SHIFT))
 
 enum iomux_pins {
-	/* AP Side pins */
+	
 	MXC91231_PIN_AP_CLE		= IOMUX_PIN(0, 0,  0,  0, 0, 24),
 	MXC91231_PIN_AP_ALE		= IOMUX_PIN(0, 0,  1,  0, 1, 24),
 	MXC91231_PIN_AP_CE_B		= IOMUX_PIN(0, 0,  2,  0, 2, 24),
@@ -219,7 +183,7 @@ enum iomux_pins {
 	MXC91231_PIN_AP_KPCOL1		= IOMUX_PIN(0, 7,  0, 25, 2, 11),
 	MXC91231_PIN_AP_KPCOL2		= IOMUX_PIN(0, 7,  0, 25, 3, 11),
 
-	/* Shared pins */
+	
 	MXC91231_PIN_SP_U3_TXD		= IOMUX_PIN(1, 3,  0,  0, 0, 28),
 	MXC91231_PIN_SP_U3_RXD		= IOMUX_PIN(1, 3,  1,  0, 1, 28),
 	MXC91231_PIN_SP_U3_RTS_B	= IOMUX_PIN(1, 3,  2,  0, 2, 28),
@@ -268,11 +232,7 @@ enum iomux_pins {
 
 #define PIN_MAX		(PIN_AP_MAX + PIN_SP_MAX)
 
-/*
- * Convenience values for use with mxc_iomux_mode()
- *
- * Format here is MXC91231_PIN_(pin name)__(function)
- */
+
 
 #define MXC91231_PIN_SP_USB_DAT_VP__USB_DAT_VP \
 	IOMUX_MODE(MXC91231_PIN_SP_USB_DAT_VP, IOMUX_CONFIG_FUNC)
@@ -284,4 +244,4 @@ enum iomux_pins {
 	IOMUX_MODE(MXC91231_PIN_SP_USB_SE0_VM, IOMUX_CONFIG_ALT1)
 
 
-#endif /* __MACH_IOMUX_MXC91231_H__ */
+#endif 

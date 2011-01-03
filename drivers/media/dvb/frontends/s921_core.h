@@ -1,11 +1,11 @@
 #ifndef _S921_CORE_H
 #define _S921_CORE_H
-//#define u8 unsigned int
-//#define u32 unsigned int
 
 
 
-//#define EINVAL -1
+
+
+
 #define E_OK 0
 
 struct s921_isdb_t {

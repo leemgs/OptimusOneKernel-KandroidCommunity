@@ -1,14 +1,4 @@
-/*
- * Generic Platform Camera Driver
- *
- * Copyright (C) 2008 Magnus Damm
- * Based on mt9m001 driver,
- * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -123,9 +113,9 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
 
 	icd = to_soc_camera_dev(p->dev);
 
-	/* soc-camera convention: control's drvdata points to the subdev */
+	
 	platform_set_drvdata(pdev, &priv->subdev);
-	/* Set the control device reference */
+	
 	dev_set_drvdata(&icd->dev, &pdev->dev);
 
 	icd->y_skip_top		= 0;

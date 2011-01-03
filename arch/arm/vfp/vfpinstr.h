@@ -1,15 +1,4 @@
-/*
- *  linux/arch/arm/vfp/vfpinstr.h
- *
- *  Copyright (C) 2004 ARM Limited.
- *  Written by Deep Blue Solutions Limited.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * VFP instruction masks.
- */
+
 #define INST_CPRTDO(inst)	(((inst) & 0x0f000000) == 0x0e000000)
 #define INST_CPRT(inst)		((inst) & (1 << 4))
 #define INST_CPRT_L(inst)	((inst) & (1 << 20))
@@ -65,10 +54,7 @@
 #define FPSCR_C (1 << 29)
 #define FPSCR_V	(1 << 28)
 
-/*
- * Since we aren't building with -mfpu=vfp, we need to code
- * these instructions using their MRC/MCR equivalents.
- */
+
 #define vfpreg(_vfp_) #_vfp_
 
 #define fmrx(_vfp_) ({			\

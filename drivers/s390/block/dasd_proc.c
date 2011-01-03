@@ -1,15 +1,4 @@
-/*
- * File...........: linux/drivers/s390/block/dasd_proc.c
- * Author(s)......: Holger Smolinski <Holger.Smolinski@de.ibm.com>
- *		    Horst Hummel <Horst.Hummel@de.ibm.com>
- *		    Carsten Otte <Cotte@de.ibm.com>
- *		    Martin Schwidefsky <schwidefsky@de.ibm.com>
- * Bugreports.to..: <Linux390@de.ibm.com>
- * (C) IBM Corporation, IBM Deutschland Entwicklung GmbH, 1999-2002
- *
- * /proc interface for the dasd driver.
- *
- */
+
 
 #define KMSG_COMPONENT "dasd"
 
@@ -21,7 +10,7 @@
 #include <asm/debug.h>
 #include <asm/uaccess.h>
 
-/* This is ugly... */
+
 #define PRINTK_HEADER "dasd_proc:"
 
 #include "dasd_int.h"
@@ -43,14 +32,14 @@ dasd_get_user_string(const char __user *user_buf, size_t user_len)
 		kfree(buffer);
 		return ERR_PTR(-EFAULT);
 	}
-	/* got the string, now strip linefeed. */
+	
 	if (buffer[user_len - 1] == '\n')
 		buffer[user_len - 1] = 0;
 	else
 		buffer[user_len] = 0;
 	return buffer;
 }
-#endif /* CONFIG_DASD_PROFILE */
+#endif 
 
 static int
 dasd_devices_show(struct seq_file *m, void *v)
@@ -68,29 +57,29 @@ dasd_devices_show(struct seq_file *m, void *v)
 		dasd_put_device(device);
 		return 0;
 	}
-	/* Print device number. */
+	
 	seq_printf(m, "%s", dev_name(&device->cdev->dev));
-	/* Print discipline string. */
+	
 	if (device->discipline != NULL)
 		seq_printf(m, "(%s)", device->discipline->name);
 	else
 		seq_printf(m, "(none)");
-	/* Print kdev. */
+	
 	if (block->gdp)
 		seq_printf(m, " at (%3d:%6d)",
 			   MAJOR(disk_devt(block->gdp)),
 			   MINOR(disk_devt(block->gdp)));
 	else
 		seq_printf(m, "  at (???:??????)");
-	/* Print device name. */
+	
 	if (block->gdp)
 		seq_printf(m, " is %-8s", block->gdp->disk_name);
 	else
 		seq_printf(m, " is ????????");
-	/* Print devices features. */
+	
 	substr = (device->features & DASD_FEATURE_READONLY) ? "(ro)" : " ";
 	seq_printf(m, "%4s: ", substr);
-	/* Print device status information. */
+	
 	switch (device->state) {
 	case DASD_STATE_NEW:
 		seq_printf(m, "new");
@@ -191,7 +180,7 @@ dasd_statistics_array(char *str, unsigned int *array, int factor)
 	str += sprintf(str,"\n");
 	return str;
 }
-#endif /* CONFIG_DASD_PROFILE */
+#endif 
 
 static int
 dasd_statistics_read(char *page, char **start, off_t off,
@@ -203,7 +192,7 @@ dasd_statistics_read(char *page, char **start, off_t off,
 	char *str;
 	int factor;
 
-	/* check for active profiling */
+	
 	if (dasd_profile_level == DASD_PROFILE_OFF) {
 		len = sprintf(page, "Statistics are off - they might be "
 				    "switched on using 'echo set on > "
@@ -212,7 +201,7 @@ dasd_statistics_read(char *page, char **start, off_t off,
 	}
 
 	prof = &dasd_global_profile;
-	/* prevent couter 'overflow' on output */
+	
 	for (factor = 1; (prof->dasd_io_reqs / factor) > 9999999;
 	     factor *= 10);
 
@@ -268,18 +257,18 @@ dasd_statistics_write(struct file *file, const char __user *user_buf,
 		return PTR_ERR(buffer);
 	DBF_EVENT(DBF_DEBUG, "/proc/dasd/statictics: '%s'\n", buffer);
 
-	/* check for valid verbs */
+	
 	for (str = buffer; isspace(*str); str++);
 	if (strncmp(str, "set", 3) == 0 && isspace(str[3])) {
-		/* 'set xxx' was given */
+		
 		for (str = str + 4; isspace(*str); str++);
 		if (strcmp(str, "on") == 0) {
-			/* switch on statistics profiling */
+			
 			dasd_profile_level = DASD_PROFILE_ON;
 			pr_info("The statistics feature has been switched "
 				"on\n");
 		} else if (strcmp(str, "off") == 0) {
-			/* switch off and reset statistics profiling */
+			
 			memset(&dasd_global_profile,
 			       0, sizeof (struct dasd_profile_info_t));
 			dasd_profile_level = DASD_PROFILE_OFF;
@@ -288,7 +277,7 @@ dasd_statistics_write(struct file *file, const char __user *user_buf,
 		} else
 			goto out_error;
 	} else if (strncmp(str, "reset", 5) == 0) {
-		/* reset the statistics */
+		
 		memset(&dasd_global_profile, 0,
 		       sizeof (struct dasd_profile_info_t));
 		pr_info("The statistics have been reset\n");
@@ -304,13 +293,10 @@ out_error:
 #else
 	pr_warning("/proc/dasd/statistics: is not activated in this kernel\n");
 	return user_len;
-#endif				/* CONFIG_DASD_PROFILE */
+#endif				
 }
 
-/*
- * Create dasd proc-fs entries.
- * In case creation failed, cleanup and return -ENOENT.
- */
+
 int
 dasd_proc_init(void)
 {

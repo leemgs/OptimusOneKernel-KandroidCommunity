@@ -1,45 +1,4 @@
-/*
- * raw.c - Raw sockets for protocol family CAN
- *
- * Copyright (c) 2002-2007 Volkswagen Group Electronic Research
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Volkswagen nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * Alternatively, provided that this notice is retained in full, this
- * software may be distributed under the terms of the GNU General
- * Public License ("GPL") version 2, in which case the provisions of the
- * GPL apply INSTEAD OF those given above.
- *
- * The provided data structures and external interfaces from this code
- * are not restricted to be used by modules with a GPL compatible license.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- *
- * Send feedback to <socketcan-users@lists.berlios.de>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -66,15 +25,7 @@ MODULE_ALIAS("can-proto-1");
 
 #define MASK_ALL 0
 
-/*
- * A raw socket has a list of can_filters attached to it, each receiving
- * the CAN frames matching that filter.  If the filter list is empty,
- * no CAN frames will be received by the socket.  The default after
- * opening the socket, is to have one filter which receives all frames.
- * The filter list is allocated dynamically with the exception of the
- * list containing only one item.  This common case is optimized by
- * storing the single filter in dfilter, to avoid using dynamic memory.
- */
+
 
 struct raw_sock {
 	struct sock sk;
@@ -83,9 +34,9 @@ struct raw_sock {
 	struct notifier_block notifier;
 	int loopback;
 	int recv_own_msgs;
-	int count;                 /* number of active filters */
-	struct can_filter dfilter; /* default/single filter */
-	struct can_filter *filter; /* pointer to filter(s) */
+	int count;                 
+	struct can_filter dfilter; 
+	struct can_filter *filter; 
 	can_err_mask_t err_mask;
 };
 
@@ -100,21 +51,16 @@ static void raw_rcv(struct sk_buff *skb, void *data)
 	struct raw_sock *ro = raw_sk(sk);
 	struct sockaddr_can *addr;
 
-	/* check the received tx sock reference */
+	
 	if (!ro->recv_own_msgs && skb->sk == sk)
 		return;
 
-	/* clone the given skb to be able to enqueue it into the rcv queue */
+	
 	skb = skb_clone(skb, GFP_ATOMIC);
 	if (!skb)
 		return;
 
-	/*
-	 *  Put the datagram to the queue so that raw_recvmsg() can
-	 *  get it from there.  We need to pass the interface index to
-	 *  raw_recvmsg().  We pass a whole struct sockaddr_can in skb->cb
-	 *  containing the interface index.
-	 */
+	
 
 	BUILD_BUG_ON(sizeof(skb->cb) < sizeof(struct sockaddr_can));
 	addr = (struct sockaddr_can *)skb->cb;
@@ -137,7 +83,7 @@ static int raw_enable_filters(struct net_device *dev, struct sock *sk,
 				      filter[i].can_mask,
 				      raw_rcv, sk, "raw");
 		if (err) {
-			/* clean up successfully registered filters */
+			
 			while (--i >= 0)
 				can_rx_unregister(dev, filter[i].can_id,
 						  filter[i].can_mask,
@@ -225,7 +171,7 @@ static int raw_notifier(struct notifier_block *nb,
 
 	case NETDEV_UNREGISTER:
 		lock_sock(sk);
-		/* remove current filters & unregister */
+		
 		if (ro->bound)
 			raw_disable_allfilters(dev, sk);
 
@@ -259,17 +205,17 @@ static int raw_init(struct sock *sk)
 	ro->bound            = 0;
 	ro->ifindex          = 0;
 
-	/* set default filter to single entry dfilter */
+	
 	ro->dfilter.can_id   = 0;
 	ro->dfilter.can_mask = MASK_ALL;
 	ro->filter           = &ro->dfilter;
 	ro->count            = 1;
 
-	/* set default loopback behaviour */
+	
 	ro->loopback         = 1;
 	ro->recv_own_msgs    = 0;
 
-	/* set notifier */
+	
 	ro->notifier.notifier_call = raw_notifier;
 
 	register_netdevice_notifier(&ro->notifier);
@@ -286,7 +232,7 @@ static int raw_release(struct socket *sock)
 
 	lock_sock(sk);
 
-	/* remove current filters & unregister */
+	
 	if (ro->bound) {
 		if (ro->ifindex) {
 			struct net_device *dev;
@@ -351,19 +297,19 @@ static int raw_bind(struct socket *sock, struct sockaddr *uaddr, int len)
 
 		ifindex = dev->ifindex;
 
-		/* filters set by default/setsockopt */
+		
 		err = raw_enable_allfilters(dev, sk);
 		dev_put(dev);
 	} else {
 		ifindex = 0;
 
-		/* filters set by default/setsockopt */
+		
 		err = raw_enable_allfilters(NULL, sk);
 	}
 
 	if (!err) {
 		if (ro->bound) {
-			/* unregister old filters */
+			
 			if (ro->ifindex) {
 				struct net_device *dev;
 
@@ -415,8 +361,8 @@ static int raw_setsockopt(struct socket *sock, int level, int optname,
 {
 	struct sock *sk = sock->sk;
 	struct raw_sock *ro = raw_sk(sk);
-	struct can_filter *filter = NULL;  /* dyn. alloc'ed filters */
-	struct can_filter sfilter;         /* single filter */
+	struct can_filter *filter = NULL;  
+	struct can_filter sfilter;         
 	struct net_device *dev = NULL;
 	can_err_mask_t err_mask = 0;
 	int count = 0;
@@ -436,7 +382,7 @@ static int raw_setsockopt(struct socket *sock, int level, int optname,
 		count = optlen / sizeof(struct can_filter);
 
 		if (count > 1) {
-			/* filter does not fit into dfilter => alloc space */
+			
 			filter = kmalloc(optlen, GFP_KERNEL);
 			if (!filter)
 				return -ENOMEM;
@@ -456,7 +402,7 @@ static int raw_setsockopt(struct socket *sock, int level, int optname,
 			dev = dev_get_by_index(&init_net, ro->ifindex);
 
 		if (ro->bound) {
-			/* (try to) register the new filters */
+			
 			if (count == 1)
 				err = raw_enable_filters(dev, sk, &sfilter, 1);
 			else
@@ -468,17 +414,17 @@ static int raw_setsockopt(struct socket *sock, int level, int optname,
 				goto out_fil;
 			}
 
-			/* remove old filter registrations */
+			
 			raw_disable_filters(dev, sk, ro->filter, ro->count);
 		}
 
-		/* remove old filter space */
+		
 		if (ro->count > 1)
 			kfree(ro->filter);
 
-		/* link new filters to the socket */
+		
 		if (count == 1) {
-			/* copy filter data for single filter */
+			
 			ro->dfilter = sfilter;
 			filter = &ro->dfilter;
 		}
@@ -507,19 +453,19 @@ static int raw_setsockopt(struct socket *sock, int level, int optname,
 		if (ro->bound && ro->ifindex)
 			dev = dev_get_by_index(&init_net, ro->ifindex);
 
-		/* remove current error mask */
+		
 		if (ro->bound) {
-			/* (try to) register the new err_mask */
+			
 			err = raw_enable_errfilter(dev, sk, err_mask);
 
 			if (err)
 				goto out_err;
 
-			/* remove old err_mask registration */
+			
 			raw_disable_errfilter(dev, sk, ro->err_mask);
 		}
 
-		/* link new err_mask to the socket */
+		
 		ro->err_mask = err_mask;
 
  out_err:
@@ -723,7 +669,7 @@ static struct proto_ops raw_ops __read_mostly = {
 	.accept        = sock_no_accept,
 	.getname       = raw_getname,
 	.poll          = datagram_poll,
-	.ioctl         = NULL,		/* use can_ioctl() from af_can.c */
+	.ioctl         = NULL,		
 	.listen        = sock_no_listen,
 	.shutdown      = sock_no_shutdown,
 	.setsockopt    = raw_setsockopt,

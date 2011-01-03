@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2005 Voltaire Inc.  All rights reserved.
- * Copyright (c) 2005 Intel Corporation.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #if !defined(IB_ADDR_H)
 #define IB_ADDR_H
@@ -45,15 +14,10 @@ struct rdma_addr_client {
 	struct completion comp;
 };
 
-/**
- * rdma_addr_register_client - Register an address client.
- */
+
 void rdma_addr_register_client(struct rdma_addr_client *client);
 
-/**
- * rdma_addr_unregister_client - Deregister an address client.
- * @client: Client object to deregister.
- */
+
 void rdma_addr_unregister_client(struct rdma_addr_client *client);
 
 struct rdma_dev_addr {
@@ -64,28 +28,10 @@ struct rdma_dev_addr {
 	struct net_device *src_dev;
 };
 
-/**
- * rdma_translate_ip - Translate a local IP address to an RDMA hardware
- *   address.
- */
+
 int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr);
 
-/**
- * rdma_resolve_ip - Resolve source and destination IP addresses to
- *   RDMA hardware addresses.
- * @client: Address client associated with request.
- * @src_addr: An optional source address to use in the resolution.  If a
- *   source address is not provided, a usable address will be returned via
- *   the callback.
- * @dst_addr: The destination address to resolve.
- * @addr: A reference to a data location that will receive the resolved
- *   addresses.  The data location must remain valid until the callback has
- *   been invoked.
- * @timeout_ms: Amount of time to wait for the address resolution to complete.
- * @callback: Call invoked once address resolution has completed, timed out,
- *   or been canceled.  A status of 0 indicates success.
- * @context: User-specified context associated with the call.
- */
+
 int rdma_resolve_ip(struct rdma_addr_client *client,
 		    struct sockaddr *src_addr, struct sockaddr *dst_addr,
 		    struct rdma_dev_addr *addr, int timeout_ms,
@@ -157,4 +103,4 @@ static inline void iw_addr_get_dgid(struct rdma_dev_addr *dev_addr,
 	memcpy(gid, dev_addr->dst_dev_addr, sizeof *gid);
 }
 
-#endif /* IB_ADDR_H */
+#endif 

@@ -1,27 +1,4 @@
-/*
- * demux.h
- *
- * Copyright (c) 2002 Convergence GmbH
- *
- * based on code:
- * Copyright (c) 2000 Nokia Research Center
- *                    Tampere, FINLAND
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation; either version 2.1
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- */
+
 
 #ifndef __DEMUX_H
 #define __DEMUX_H
@@ -32,21 +9,17 @@
 #include <linux/time.h>
 #include <linux/dvb/dmx.h>
 
-/*--------------------------------------------------------------------------*/
-/* Common definitions */
-/*--------------------------------------------------------------------------*/
 
-/*
- * DMX_MAX_FILTER_SIZE: Maximum length (in bytes) of a section/PES filter.
- */
+
+
+
+
 
 #ifndef DMX_MAX_FILTER_SIZE
 #define DMX_MAX_FILTER_SIZE 18
 #endif
 
-/*
- * DMX_MAX_SECFEED_SIZE: Maximum length (in bytes) of a private section feed filter.
- */
+
 
 #ifndef DMX_MAX_SECTION_SIZE
 #define DMX_MAX_SECTION_SIZE 4096
@@ -56,38 +29,34 @@
 #endif
 
 
-/*
- * enum dmx_success: Success codes for the Demux Callback API.
- */
+
 
 enum dmx_success {
-  DMX_OK = 0, /* Received Ok */
-  DMX_LENGTH_ERROR, /* Incorrect length */
-  DMX_OVERRUN_ERROR, /* Receiver ring buffer overrun */
-  DMX_CRC_ERROR, /* Incorrect CRC */
-  DMX_FRAME_ERROR, /* Frame alignment error */
-  DMX_FIFO_ERROR, /* Receiver FIFO overrun */
-  DMX_MISSED_ERROR /* Receiver missed packet */
+  DMX_OK = 0, 
+  DMX_LENGTH_ERROR, 
+  DMX_OVERRUN_ERROR, 
+  DMX_CRC_ERROR, 
+  DMX_FRAME_ERROR, 
+  DMX_FIFO_ERROR, 
+  DMX_MISSED_ERROR 
 } ;
 
-/*--------------------------------------------------------------------------*/
-/* TS packet reception */
-/*--------------------------------------------------------------------------*/
 
-/* TS filter type for set() */
 
-#define TS_PACKET       1   /* send TS packets (188 bytes) to callback (default) */
-#define	TS_PAYLOAD_ONLY 2   /* in case TS_PACKET is set, only send the TS
-			       payload (<=184 bytes per packet) to callback */
-#define TS_DECODER      4   /* send stream to built-in decoder (if present) */
-#define TS_DEMUX        8   /* in case TS_PACKET is set, send the TS to
-			       the demux device, not to the dvr device */
 
-/* PES type for filters which write to built-in decoder */
-/* these should be kept identical to the types in dmx.h */
+
+
+
+#define TS_PACKET       1   
+#define	TS_PAYLOAD_ONLY 2   
+#define TS_DECODER      4   
+#define TS_DEMUX        8   
+
+
+
 
 enum dmx_ts_pes
-{  /* also send packets to decoder (if it exists) */
+{  
 	DMX_TS_PES_AUDIO0,
 	DMX_TS_PES_VIDEO0,
 	DMX_TS_PES_TELETEXT0,
@@ -123,9 +92,9 @@ enum dmx_ts_pes
 
 
 struct dmx_ts_feed {
-	int is_filtering; /* Set to non-zero when filtering in progress */
-	struct dmx_demux *parent; /* Back-pointer */
-	void *priv; /* Pointer to private data of the API client */
+	int is_filtering; 
+	struct dmx_demux *parent; 
+	void *priv; 
 	int (*set) (struct dmx_ts_feed *feed,
 		    u16 pid,
 		    int type,
@@ -136,22 +105,22 @@ struct dmx_ts_feed {
 	int (*stop_filtering) (struct dmx_ts_feed* feed);
 };
 
-/*--------------------------------------------------------------------------*/
-/* Section reception */
-/*--------------------------------------------------------------------------*/
+
+
+
 
 struct dmx_section_filter {
 	u8 filter_value [DMX_MAX_FILTER_SIZE];
 	u8 filter_mask [DMX_MAX_FILTER_SIZE];
 	u8 filter_mode [DMX_MAX_FILTER_SIZE];
-	struct dmx_section_feed* parent; /* Back-pointer */
-	void* priv; /* Pointer to private data of the API client */
+	struct dmx_section_feed* parent; 
+	void* priv; 
 };
 
 struct dmx_section_feed {
-	int is_filtering; /* Set to non-zero when filtering in progress */
-	struct dmx_demux* parent; /* Back-pointer */
-	void* priv; /* Pointer to private data of the API client */
+	int is_filtering; 
+	struct dmx_demux* parent; 
+	void* priv; 
 
 	int check_crc;
 	u32 crc_val;
@@ -172,9 +141,9 @@ struct dmx_section_feed {
 	int (*stop_filtering) (struct dmx_section_feed* feed);
 };
 
-/*--------------------------------------------------------------------------*/
-/* Callback functions */
-/*--------------------------------------------------------------------------*/
+
+
+
 
 typedef int (*dmx_ts_cb) ( const u8 * buffer1,
 			   size_t buffer1_length,
@@ -190,9 +159,9 @@ typedef int (*dmx_section_cb) (	const u8 * buffer1,
 				struct dmx_section_filter * source,
 				enum dmx_success success);
 
-/*--------------------------------------------------------------------------*/
-/* DVB Front-End */
-/*--------------------------------------------------------------------------*/
+
+
+
 
 enum dmx_frontend_source {
 	DMX_MEMORY_FE,
@@ -200,51 +169,40 @@ enum dmx_frontend_source {
 	DMX_FRONTEND_1,
 	DMX_FRONTEND_2,
 	DMX_FRONTEND_3,
-	DMX_STREAM_0,    /* external stream input, e.g. LVDS */
+	DMX_STREAM_0,    
 	DMX_STREAM_1,
 	DMX_STREAM_2,
 	DMX_STREAM_3
 };
 
 struct dmx_frontend {
-	struct list_head connectivity_list; /* List of front-ends that can
-					       be connected to a particular
-					       demux */
+	struct list_head connectivity_list; 
 	enum dmx_frontend_source source;
 };
 
-/*--------------------------------------------------------------------------*/
-/* MPEG-2 TS Demux */
-/*--------------------------------------------------------------------------*/
 
-/*
- * Flags OR'ed in the capabilities field of struct dmx_demux.
- */
+
+
+
+
 
 #define DMX_TS_FILTERING                        1
 #define DMX_PES_FILTERING                       2
 #define DMX_SECTION_FILTERING                   4
-#define DMX_MEMORY_BASED_FILTERING              8    /* write() available */
+#define DMX_MEMORY_BASED_FILTERING              8    
 #define DMX_CRC_CHECKING                        16
 #define DMX_TS_DESCRAMBLING                     32
 
-/*
- * Demux resource type identifier.
-*/
 
-/*
- * DMX_FE_ENTRY(): Casts elements in the list of registered
- * front-ends from the generic type struct list_head
- * to the type * struct dmx_frontend
- *.
-*/
+
+
 
 #define DMX_FE_ENTRY(list) list_entry(list, struct dmx_frontend, connectivity_list)
 
 struct dmx_demux {
-	u32 capabilities;            /* Bitfield of capability flags */
-	struct dmx_frontend* frontend;    /* Front-end connected to the demux */
-	void* priv;                  /* Pointer to private data of the API client */
+	u32 capabilities;            
+	struct dmx_frontend* frontend;    
+	void* priv;                  
 	int (*open) (struct dmx_demux* demux);
 	int (*close) (struct dmx_demux* demux);
 	int (*write) (struct dmx_demux* demux, const char __user *buf, size_t count);
@@ -277,4 +235,4 @@ struct dmx_demux {
 			u64 *stc, unsigned int *base);
 };
 
-#endif /* #ifndef __DEMUX_H */
+#endif 

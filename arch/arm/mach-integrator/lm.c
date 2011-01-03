@@ -1,12 +1,4 @@
-/*
- *  linux/arch/arm/mach-integrator/lm.c
- *
- *  Copyright (C) 2003 Deep Blue Solutions Ltd, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/device.h>
@@ -45,8 +37,8 @@ static struct bus_type lm_bustype = {
 	.match		= lm_match,
 	.probe		= lm_bus_probe,
 	.remove		= lm_bus_remove,
-//	.suspend	= lm_bus_suspend,
-//	.resume		= lm_bus_resume,
+
+
 };
 
 static int __init lm_init(void)

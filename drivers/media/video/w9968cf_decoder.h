@@ -1,27 +1,9 @@
-/***************************************************************************
- * Video decoder for the W996[87]CF driver for Linux.                      *
- *                                                                         *
- * Copyright (C) 2003 2004 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #ifndef _W9968CF_DECODER_H_
 #define _W9968CF_DECODER_H_
 
-/* Comment/uncomment this for high/low quality of compressed video */
+
 #define W9968CF_DEC_FAST_LOWQUALITY_VIDEO
 
 #ifdef W9968CF_DEC_FAST_LOWQUALITY_VIDEO
@@ -83,4 +65,4 @@ extern int w9968cf_check_headers(const unsigned char* Pin,
 extern int w9968cf_decode(const char* Pin, const unsigned long BUF_SIZE,
 			  const unsigned W, const unsigned H, char* Pout);
 
-#endif /* _W9968CF_DECODER_H_ */
+#endif 

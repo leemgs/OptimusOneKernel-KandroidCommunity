@@ -1,16 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/stargate2.c
- *
- *  Author:	Ed C. Epp
- *  Created:	Nov 05, 2002
- *  Copyright:	Intel Corp.
- *
- *  Modified 2009:  Jonathan Cameron <jic23@cam.ac.uk>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/device.h>
@@ -55,29 +43,29 @@
 #include "devices.h"
 #include "generic.h"
 
-/* Bluetooth */
+
 #define SG2_BT_RESET		81
 
-/* SD */
+
 #define SG2_GPIO_nSD_DETECT	90
 #define SG2_SD_POWER_ENABLE	89
 
 static unsigned long stargate2_pin_config[] __initdata = {
 
-	GPIO15_nCS_1, /* SRAM */
-	/* SMC91x */
+	GPIO15_nCS_1, 
+	
 	GPIO80_nCS_4,
-	GPIO40_GPIO, /*cable detect?*/
-	/* Device Identification for wakeup*/
+	GPIO40_GPIO, 
+	
 	GPIO102_GPIO,
 
-	/* Button */
+	
 	GPIO91_GPIO | WAKEUP_ON_LEVEL_HIGH,
 
-	/* DA9030 */
+	
 	GPIO1_GPIO,
 
-	/* Compact Flash */
+	
 	GPIO79_PSKTSEL,
 	GPIO48_nPOE,
 	GPIO49_nPWE,
@@ -88,80 +76,78 @@ static unsigned long stargate2_pin_config[] __initdata = {
 	GPIO55_nPREG,
 	GPIO56_nPWAIT,
 	GPIO57_nIOIS16,
-	GPIO120_GPIO, /* Buff ctrl */
-	GPIO108_GPIO, /* Power ctrl */
-	GPIO82_GPIO, /* Reset */
-	GPIO53_GPIO, /* SG2_S0_GPIO_DETECT */
+	GPIO120_GPIO, 
+	GPIO108_GPIO, 
+	GPIO82_GPIO, 
+	GPIO53_GPIO, 
 
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO112_MMC_CMD,
 	GPIO92_MMC_DAT_0,
 	GPIO109_MMC_DAT_1,
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
-	GPIO90_GPIO, /* nSD detect */
-	GPIO89_GPIO, /* SD_POWER_ENABLE */
+	GPIO90_GPIO, 
+	GPIO89_GPIO, 
 
-	/* Bluetooth */
-	GPIO81_GPIO, /* reset */
+	
+	GPIO81_GPIO, 
 
-	/* cc2420 802.15.4 radio */
-	GPIO22_GPIO,		/* CC_RSTN  (out)*/
-	GPIO114_GPIO,		/* CC_FIFO (in) */
-	GPIO116_GPIO, 		/* CC_CCA (in) */
-	GPIO0_GPIO,		/* CC_FIFOP (in) */
-	GPIO16_GPIO,		/* CCSFD (in) */
-	GPIO39_GPIO,		/* CSn (out) */
+	
+	GPIO22_GPIO,		
+	GPIO114_GPIO,		
+	GPIO116_GPIO, 		
+	GPIO0_GPIO,		
+	GPIO16_GPIO,		
+	GPIO39_GPIO,		
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 
-	/* SSP 3 - 802.15.4 radio */
-	GPIO39_GPIO, /* chip select */
+	
+	GPIO39_GPIO, 
 	GPIO34_SSP3_SCLK,
 	GPIO35_SSP3_TXD,
 	GPIO41_SSP3_RXD,
 
-	/* SSP 2 */
+	
 	GPIO11_SSP2_RXD,
 	GPIO38_SSP2_TXD,
 	GPIO36_SSP2_SCLK,
-	GPIO37_GPIO, /* chip select */
+	GPIO37_GPIO, 
 
-	/* SSP 1 */
+	
 	GPIO26_SSP1_RXD,
 	GPIO25_SSP1_TXD,
 	GPIO23_SSP1_SCLK,
-	GPIO24_GPIO, /* chip select */
+	GPIO24_GPIO, 
 
-	/* BTUART */
+	
 	GPIO42_BTUART_RXD,
 	GPIO43_BTUART_TXD,
 	GPIO44_BTUART_CTS,
 	GPIO45_BTUART_RTS,
 
-	/* STUART */
+	
 	GPIO46_STUART_RXD,
 	GPIO47_STUART_TXD,
 
-	/* Basic sensor board */
-	GPIO96_GPIO,	/* accelerometer interrupt */
-	GPIO99_GPIO,	/* ADC interrupt */
+	
+	GPIO96_GPIO,	
+	GPIO99_GPIO,	
 
-	/* Connector pins specified as gpios */
-	GPIO94_GPIO, /* large basic connector pin 14 */
-	GPIO10_GPIO, /* large basic connector pin 23 */
+	
+	GPIO94_GPIO, 
+	GPIO10_GPIO, 
 
-	/* SHT15 */
+	
 	GPIO100_GPIO,
 	GPIO98_GPIO,
 };
 
-/**
- * stargate2_reset_bluetooth() reset the bluecore to ensure consistent state
- **/
+
 static int stargate2_reset_bluetooth(void)
 {
 	int err;
@@ -172,7 +158,7 @@ static int stargate2_reset_bluetooth(void)
 	}
 	gpio_direction_output(SG2_BT_RESET, 1);
 	mdelay(5);
-	/* now reset it - 5 msec minimum */
+	
 	gpio_set_value(SG2_BT_RESET, 0);
 	mdelay(10);
 	gpio_set_value(SG2_BT_RESET, 1);
@@ -216,111 +202,107 @@ static struct regulator_consumer_supply stargate2_sensor_3_con[] = {
 enum stargate2_ldos{
 	vcc_vref,
 	vcc_cc2420,
-	/* a mote connector? */
+	
 	vcc_mica,
-	/* the CSR bluecore chip */
+	
 	vcc_bt,
-	/* The two voltages available to sensor boards */
+	
 	vcc_sensor_1_8,
 	vcc_sensor_3,
-	/* directly connected to the pxa27x */
+	
 	vcc_sram_ext,
 	vcc_pxa_pll,
-	vcc_pxa_usim, /* Reference voltage for certain gpios */
+	vcc_pxa_usim, 
 	vcc_pxa_mem,
 	vcc_pxa_flash,
-	vcc_pxa_core, /*Dc-Dc buck not yet supported */
+	vcc_pxa_core, 
 	vcc_lcd,
 	vcc_bb,
-	vcc_bbio, /*not sure!*/
-	vcc_io, /* cc2420 802.15.4 radio and pxa vcc_io ?*/
+	vcc_bbio, 
+	vcc_io, 
 };
 
-/* The values of the various regulator constraints are obviously dependent
- * on exactly what is wired to each ldo.  Unfortunately this information is
- * not generally available.  More information has been requested from Xbow.
- */
+
 static struct regulator_init_data stargate2_ldo_init_data[] = {
 	[vcc_bbio] = {
-		.constraints = { /* board default 1.8V */
+		.constraints = { 
 			.name = "vcc_bbio",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
 	[vcc_bb] = {
-		.constraints = { /* board default 2.8V */
+		.constraints = { 
 			.name = "vcc_bb",
 			.min_uV = 2700000,
 			.max_uV = 3000000,
 		},
 	},
 	[vcc_pxa_flash] = {
-		.constraints = {/* default is 1.8V */
+		.constraints = {
 			.name = "vcc_pxa_flash",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
-	[vcc_cc2420] = { /* also vcc_io */
+	[vcc_cc2420] = { 
 		.constraints = {
-			/* board default is 2.8V */
+			
 			.name = "vcc_cc2420",
 			.min_uV = 2700000,
 			.max_uV = 3300000,
 		},
 	},
-	[vcc_vref] = { /* Reference for what? */
-		.constraints = { /* default 1.8V */
+	[vcc_vref] = { 
+		.constraints = { 
 			.name = "vcc_vref",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
 	[vcc_sram_ext] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_sram_ext",
 			.min_uV = 2800000,
 			.max_uV = 2800000,
 		},
 	},
 	[vcc_mica] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_mica",
 			.min_uV = 2800000,
 			.max_uV = 2800000,
 		},
 	},
 	[vcc_bt] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_bt",
 			.min_uV = 2800000,
 			.max_uV = 2800000,
 		},
 	},
 	[vcc_lcd] = {
-		.constraints = { /* default 2.8V */
+		.constraints = { 
 			.name = "vcc_lcd",
 			.min_uV = 2700000,
 			.max_uV = 3300000,
 		},
 	},
-	[vcc_io] = { /* Same or higher than everything
-			  * bar vccbat and vccusb */
-		.constraints = { /* default 2.8V */
+	[vcc_io] = { 
+		.constraints = { 
 			.name = "vcc_io",
 			.min_uV = 2692000,
 			.max_uV = 3300000,
 		},
 	},
 	[vcc_sensor_1_8] = {
-		.constraints = { /* default 1.8V */
+		.constraints = { 
 			.name = "vcc_sensor_1_8",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
 		},
 	},
-	[vcc_sensor_3] = { /* curiously default 2.8V */
+	[vcc_sensor_3] = { 
 		.constraints = {
 			.name = "vcc_sensor_3",
 			.min_uV = 2800000,
@@ -329,7 +311,7 @@ static struct regulator_init_data stargate2_ldo_init_data[] = {
 		.num_consumer_supplies = ARRAY_SIZE(stargate2_sensor_3_con),
 		.consumer_supplies = stargate2_sensor_3_con,
 	},
-	[vcc_pxa_pll] = { /* 1.17V - 1.43V, default 1.3V*/
+	[vcc_pxa_pll] = { 
 		.constraints = {
 			.name = "vcc_pxa_pll",
 			.min_uV = 1170000,
@@ -337,14 +319,14 @@ static struct regulator_init_data stargate2_ldo_init_data[] = {
 		},
 	},
 	[vcc_pxa_usim] = {
-		.constraints = { /* default 1.8V */
+		.constraints = { 
 			.name = "vcc_pxa_usim",
 			.min_uV = 1710000,
 			.max_uV = 2160000,
 		},
 	},
 	[vcc_pxa_mem] = {
-		.constraints = { /* default 1.8V */
+		.constraints = { 
 			.name = "vcc_pxa_mem",
 			.min_uV = 1800000,
 			.max_uV = 1800000,
@@ -418,7 +400,7 @@ static struct da903x_subdev_info stargate2_da9030_subdevs[] = {
 		.id = DA9030_ID_LDO17,
 		.platform_data = &stargate2_ldo_init_data[vcc_pxa_usim],
 	}, {
-		.name = "da903x-regulator", /*pxa vcc i/o and cc2420 vcc i/o */
+		.name = "da903x-regulator", 
 		.id = DA9030_ID_LDO18,
 		.platform_data = &stargate2_ldo_init_data[vcc_io],
 	}, {
@@ -466,10 +448,7 @@ static struct platform_device smc91x_device = {
 
 static struct pxamci_platform_data stargate2_mci_platform_data;
 
-/*
- * The card detect interrupt isn't debounced so we delay it by 250ms
- * to give the card a chance to fully insert / eject.
- */
+
 static int stargate2_mci_init(struct device *dev,
 			      irq_handler_t stargate2_detect_int,
 			      void *data)
@@ -489,7 +468,7 @@ static int stargate2_mci_init(struct device *dev,
 		goto free_power_en;
 	}
 	gpio_direction_input(SG2_GPIO_nSD_DETECT);
-	/* Delay to allow for full insertion */
+	
 	stargate2_mci_platform_data.detect_delay = msecs_to_jiffies(250);
 
 	err = request_irq(IRQ_GPIO(SG2_GPIO_nSD_DETECT),
@@ -511,11 +490,7 @@ static int stargate2_mci_init(struct device *dev,
 	return err;
 }
 
-/**
- * stargate2_mci_setpower() - set state of mmc power supply
- *
- * Very simple control. Either it is on or off and is controlled by
- * a gpio pin */
+
 static void stargate2_mci_setpower(struct device *dev, unsigned int vdd)
 {
 	gpio_set_value(SG2_SD_POWER_ENABLE, !!vdd);
@@ -578,13 +553,7 @@ static struct platform_device stargate2_flash_device = {
 	.num_resources = 1,
 };
 
-/*
- * SRAM - The Stargate 2 has 32MB of SRAM.
- *
- * Here it is made available as an MTD. This will then
- * typically have a cifs filesystem created on it to provide
- * fast temporary storage.
- */
+
 static struct resource sram_resources = {
 	.start = PXA_CS1_PHYS,
 	.end = PXA_CS1_PHYS + SZ_32M-1,
@@ -621,9 +590,7 @@ static struct at24_platform_data pca9500_eeprom_pdata = {
 
 
 static struct i2c_board_info __initdata stargate2_i2c_board_info[] = {
-	/* Techically this a pca9500 - but it's compatible with the 8574
-	 * for gpio expansion and the 24c02 for eeprom access.
-	 */
+	
 	{
 		.type = "pcf8574",
 		.addr =  0x27,
@@ -635,21 +602,17 @@ static struct i2c_board_info __initdata stargate2_i2c_board_info[] = {
 	}, {
 		.type = "max1238",
 		.addr = 0x35,
-	}, { /* ITS400 Sensor board only */
+	}, { 
 		.type = "max1363",
 		.addr = 0x34,
-		/* Through a nand gate - Also beware, on V2 sensor board the
-		 * pull up resistors are missing.
-		 */
+		
 		.irq = IRQ_GPIO(99),
-	}, { /* ITS400 Sensor board only */
+	}, { 
 		.type = "tsl2561",
 		.addr = 0x49,
-		/* Through a nand gate - Also beware, on V2 sensor board the
-		 * pull up resistors are missing.
-		 */
+		
 		.irq = IRQ_GPIO(99),
-	}, { /* ITS400 Sensor board only */
+	}, { 
 		.type = "tmp175",
 		.addr = 0x4A,
 		.irq = IRQ_GPIO(96),
@@ -677,8 +640,7 @@ static struct pxa2xx_spi_master pxa_ssp_master_2_info = {
 	.num_chipselect = 1,
 };
 
-/* An upcoming kernel change will scrap SFRM usage so these
- * drivers have been moved to use gpio's via cs_control */
+
 static struct pxa2xx_spi_chip staccel_chip_info = {
 	.tx_threshold = 8,
 	.rx_threshold = 8,
@@ -698,7 +660,7 @@ static struct pxa2xx_spi_chip cc2420_info = {
 static struct spi_board_info spi_board_info[] __initdata = {
 	{
 		.modalias = "lis3l02dq",
-		.max_speed_hz = 8000000,/* 8MHz max spi frequency at 3V */
+		.max_speed_hz = 8000000,
 		.bus_num = 1,
 		.chip_select = 0,
 		.controller_data = &staccel_chip_info,
@@ -724,9 +686,7 @@ static void sg2_udc_command(int cmd)
 	}
 }
 
-/* Board doesn't support cable detection - so always lie and say
- * something is there.
- */
+
 static int sg2_udc_detect(void)
 {
 	return 1;
@@ -754,13 +714,12 @@ static struct i2c_pxa_platform_data i2c_pdata = {
 
 static void __init stargate2_init(void)
 {
-	/* This is probably a board specific hack as this must be set
-	   prior to connecting the MFP stuff up. */
+	
 	MECR &= ~MECR_NOS;
 
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(stargate2_pin_config));
 
-	/* spi chip selects */
+	
 	gpio_direction_output(37, 0);
 	gpio_direction_output(24, 0);
 	gpio_direction_output(39, 0);

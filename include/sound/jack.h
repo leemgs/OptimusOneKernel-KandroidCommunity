@@ -1,45 +1,19 @@
 #ifndef __SOUND_JACK_H
 #define __SOUND_JACK_H
 
-/*
- *  Jack abstraction layer
- *
- *  Copyright 2008 Wolfson Microelectronics plc
- *
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- */
+
 
 #include <sound/core.h>
 
 struct input_dev;
 
-/**
- * Jack types which can be reported.  These values are used as a
- * bitmask.
- *
- * Note that this must be kept in sync with the lookup table in
- * sound/core/jack.c.
- */
+
 enum snd_jack_types {
 	SND_JACK_HEADPHONE	= 0x0001,
 	SND_JACK_MICROPHONE	= 0x0002,
 	SND_JACK_HEADSET	= SND_JACK_HEADPHONE | SND_JACK_MICROPHONE,
 	SND_JACK_LINEOUT	= 0x0004,
-	SND_JACK_MECHANICAL	= 0x0008, /* If detected separately */
+	SND_JACK_MECHANICAL	= 0x0008, 
 	SND_JACK_VIDEOOUT	= 0x0010,
 	SND_JACK_AVOUT		= SND_JACK_LINEOUT | SND_JACK_VIDEOOUT,
 };

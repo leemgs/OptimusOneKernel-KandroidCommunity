@@ -1,29 +1,4 @@
-/*
- * vvvvvvvvvvvvvvvvvvvvvvv Original vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
- *  Copyright (C) 1992  Eric Youngdale
- *  Simulate a host adapter with 2 disks attached.  Do a lot of checking
- *  to make sure that we are not getting blocks mixed up, and PANIC if
- *  anything out of the ordinary is seen.
- * ^^^^^^^^^^^^^^^^^^^^^^^ Original ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- *
- *  This version is more generic, simulating a variable number of disk
- *  (or disk like devices) sharing a common amount of RAM. To be more
- *  realistic, the simulated devices have the transport attributes of
- *  SAS disks.
- *
- *
- *  For documentation see http://www.torque.net/sg/sdebug26.html
- *
- *   D. Gilbert (dpg) work for Magneto-Optical device test [20010421]
- *   dpg: work for devfs large number of disks [20010809]
- *        forked for lk 2.5 series [20011216, 20020101]
- *        use vmalloc() more inquiry+mode_sense [20020302]
- *        add timers for delayed responses [20020721]
- *   Patrick Mansfield <patmans@us.ibm.com> max_luns+scsi_level [20021031]
- *   Mike Anderson <andmike@us.ibm.com> sysfs work [20021118]
- *   dpg: change style of boot options to "scsi_debug.num_tgts=2" and
- *        module options to "modprobe scsi_debug num_tgts=2" [20021221]
- */
+
 
 #include <linux/module.h>
 
@@ -58,7 +33,7 @@
 #define SCSI_DEBUG_VERSION "1.81"
 static const char * scsi_debug_version_date = "20070104";
 
-/* Additional Sense Code (ASC) */
+
 #define NO_ADDITIONAL_SENSE 0x0
 #define LOGICAL_UNIT_NOT_READY 0x4
 #define UNRECOVERED_READ_ERR 0x11
@@ -74,24 +49,22 @@ static const char * scsi_debug_version_date = "20070104";
 #define THRESHOLD_EXCEEDED 0x5d
 #define LOW_POWER_COND_ON 0x5e
 
-/* Additional Sense Code Qualifier (ASCQ) */
+
 #define ACK_NAK_TO 0x3
 
-#define SDEBUG_TAGGED_QUEUING 0 /* 0 | MSG_SIMPLE_TAG | MSG_ORDERED_TAG */
+#define SDEBUG_TAGGED_QUEUING 0 
 
-/* Default values for driver parameters */
+
 #define DEF_NUM_HOST   1
 #define DEF_NUM_TGTS   1
 #define DEF_MAX_LUNS   1
-/* With these defaults, this driver will make 1 host with 1 target
- * (id 0) containing 1 logical unit (lun 0). That is 1 device.
- */
+
 #define DEF_DELAY   1
 #define DEF_DEV_SIZE_MB   8
 #define DEF_EVERY_NTH   0
 #define DEF_NUM_PARTS   0
 #define DEF_OPTS   0
-#define DEF_SCSI_LEVEL   5    /* INQUIRY, byte2 [5->SPC-3] */
+#define DEF_SCSI_LEVEL   5    
 #define DEF_PTYPE   0
 #define DEF_D_SENSE   0
 #define DEF_NO_LUN_0   0
@@ -106,7 +79,7 @@ static const char * scsi_debug_version_date = "20070104";
 #define DEF_PHYSBLK_EXP 0
 #define DEF_LOWEST_ALIGNED 0
 
-/* bit mask values for scsi_debug_opts */
+
 #define SCSI_DEBUG_OPT_NOISE   1
 #define SCSI_DEBUG_OPT_MEDIUM_ERR   2
 #define SCSI_DEBUG_OPT_TIMEOUT   4
@@ -114,29 +87,12 @@ static const char * scsi_debug_version_date = "20070104";
 #define SCSI_DEBUG_OPT_TRANSPORT_ERR   16
 #define SCSI_DEBUG_OPT_DIF_ERR   32
 #define SCSI_DEBUG_OPT_DIX_ERR   64
-/* When "every_nth" > 0 then modulo "every_nth" commands:
- *   - a no response is simulated if SCSI_DEBUG_OPT_TIMEOUT is set
- *   - a RECOVERED_ERROR is simulated on successful read and write
- *     commands if SCSI_DEBUG_OPT_RECOVERED_ERR is set.
- *   - a TRANSPORT_ERROR is simulated on successful read and write
- *     commands if SCSI_DEBUG_OPT_TRANSPORT_ERR is set.
- *
- * When "every_nth" < 0 then after "- every_nth" commands:
- *   - a no response is simulated if SCSI_DEBUG_OPT_TIMEOUT is set
- *   - a RECOVERED_ERROR is simulated on successful read and write
- *     commands if SCSI_DEBUG_OPT_RECOVERED_ERR is set.
- *   - a TRANSPORT_ERROR is simulated on successful read and write
- *     commands if SCSI_DEBUG_OPT_TRANSPORT_ERR is set.
- * This will continue until some other action occurs (e.g. the user
- * writing a new value (other than -1 or 1) to every_nth via sysfs).
- */
 
-/* when 1==SCSI_DEBUG_OPT_MEDIUM_ERR, a medium error is simulated at this
- * sector on read commands: */
-#define OPT_MEDIUM_ERR_ADDR   0x1234 /* that's sector 4660 in decimal */
 
-/* If REPORT LUNS has luns >= 256 it can choose "flat space" (value 1)
- * or "peripheral device" addressing (value 0) */
+
+#define OPT_MEDIUM_ERR_ADDR   0x1234 
+
+
 #define SAM2_LUN_ADDRESS_METHOD 0
 #define SAM2_WLUN_REPORT_LUNS 0xc101
 
@@ -146,10 +102,10 @@ static int scsi_debug_dev_size_mb = DEF_DEV_SIZE_MB;
 static int scsi_debug_every_nth = DEF_EVERY_NTH;
 static int scsi_debug_max_luns = DEF_MAX_LUNS;
 static int scsi_debug_num_parts = DEF_NUM_PARTS;
-static int scsi_debug_num_tgts = DEF_NUM_TGTS; /* targets per host */
+static int scsi_debug_num_tgts = DEF_NUM_TGTS; 
 static int scsi_debug_opts = DEF_OPTS;
 static int scsi_debug_scsi_level = DEF_SCSI_LEVEL;
-static int scsi_debug_ptype = DEF_PTYPE; /* SCSI peripheral type (0==disk) */
+static int scsi_debug_ptype = DEF_PTYPE; 
 static int scsi_debug_dsense = DEF_D_SENSE;
 static int scsi_debug_no_lun_0 = DEF_NO_LUN_0;
 static int scsi_debug_virtual_gb = DEF_VIRTUAL_GB;
@@ -169,13 +125,12 @@ static int scsi_debug_cmnd_count = 0;
 #define DEV_REMOVEABLE(TGT)    (0)
 
 static unsigned int sdebug_store_sectors;
-static sector_t sdebug_capacity;	/* in sectors */
+static sector_t sdebug_capacity;	
 
-/* old BIOS stuff, kernel may get rid of them but some mode sense pages
-   may still need them */
-static int sdebug_heads;		/* heads per disk */
-static int sdebug_cylinders_per;	/* cylinders per surface */
-static int sdebug_sectors_per;		/* sectors per cylinder */
+
+static int sdebug_heads;		
+static int sdebug_cylinders_per;	
+static int sdebug_sectors_per;		
 
 #define SDEBUG_MAX_PARTS 4
 
@@ -186,7 +141,7 @@ static int sdebug_sectors_per;		/* sectors per cylinder */
 
 struct sdebug_dev_info {
 	struct list_head dev_list;
-	unsigned char sense_buff[SDEBUG_SENSE_LEN];	/* weak nexus */
+	unsigned char sense_buff[SDEBUG_SENSE_LEN];	
 	unsigned int channel;
 	unsigned int target;
 	unsigned int lun;
@@ -221,8 +176,8 @@ struct sdebug_queued_cmd {
 };
 static struct sdebug_queued_cmd queued_arr[SCSI_DEBUG_CANQUEUE];
 
-static unsigned char * fake_storep;	/* ramdisk storage */
-static unsigned char *dif_storep;	/* protection info */
+static unsigned char * fake_storep;	
+static unsigned char *dif_storep;	
 
 static int num_aborts = 0;
 static int num_dev_resets = 0;
@@ -276,7 +231,7 @@ static void sdebug_max_tgts_luns(void)
 			hpnt->max_id = scsi_debug_num_tgts + 1;
 		else
 			hpnt->max_id = scsi_debug_num_tgts;
-		/* scsi_debug_max_luns; */
+		
 		hpnt->max_lun = SAM2_WLUN_REPORT_LUNS;
 	}
 	spin_unlock(&sdebug_host_list_lock);
@@ -360,7 +315,7 @@ static int scsi_debug_ioctl(struct scsi_device *dev, int cmd, void __user *arg)
 		printk(KERN_INFO "scsi_debug: ioctl: cmd=0x%x\n", cmd);
 	}
 	return -EINVAL;
-	/* return -ENOTTY; // correct return but upsets fdisk */
+	
 }
 
 static int check_readiness(struct scsi_cmnd * SCpnt, int reset_only,
@@ -385,7 +340,7 @@ static int check_readiness(struct scsi_cmnd * SCpnt, int reset_only,
 	return 0;
 }
 
-/* Returns 0 if ok else (DID_ERROR << 16). Sets scp->resid . */
+
 static int fill_from_dev_buffer(struct scsi_cmnd *scp, unsigned char *arr,
 				int arr_len)
 {
@@ -407,7 +362,7 @@ static int fill_from_dev_buffer(struct scsi_cmnd *scp, unsigned char *arr,
 	return 0;
 }
 
-/* Returns number of bytes fetched into 'arr' or -1 if error. */
+
 static int fetch_to_dev_buffer(struct scsi_cmnd *scp, unsigned char *arr,
 			       int arr_len)
 {
@@ -433,8 +388,8 @@ static int inquiry_evpd_83(unsigned char * arr, int port_group_id,
 	char b[32];
 
 	port_a = target_dev_id + 1;
-	/* T10 vendor identifier field format (faked) */
-	arr[0] = 0x2;	/* ASCII */
+	
+	arr[0] = 0x2;	
 	arr[1] = 0x1;
 	arr[2] = 0x0;
 	memcpy(&arr[4], inq_vendor_id, 8);
@@ -444,12 +399,12 @@ static int inquiry_evpd_83(unsigned char * arr, int port_group_id,
 	arr[3] = num;
 	num += 4;
 	if (dev_id_num >= 0) {
-		/* NAA-5, Logical unit identifier (binary) */
-		arr[num++] = 0x1;	/* binary (not necessarily sas) */
-		arr[num++] = 0x3;	/* PIV=0, lu, naa */
+		
+		arr[num++] = 0x1;	
+		arr[num++] = 0x3;	
 		arr[num++] = 0x0;
 		arr[num++] = 0x8;
-		arr[num++] = 0x53;  /* naa-5 ieee company id=0x333333 (fake) */
+		arr[num++] = 0x53;  
 		arr[num++] = 0x33;
 		arr[num++] = 0x33;
 		arr[num++] = 0x30;
@@ -457,22 +412,22 @@ static int inquiry_evpd_83(unsigned char * arr, int port_group_id,
 		arr[num++] = (dev_id_num >> 16) & 0xff;
 		arr[num++] = (dev_id_num >> 8) & 0xff;
 		arr[num++] = dev_id_num & 0xff;
-		/* Target relative port number */
-		arr[num++] = 0x61;	/* proto=sas, binary */
-		arr[num++] = 0x94;	/* PIV=1, target port, rel port */
-		arr[num++] = 0x0;	/* reserved */
-		arr[num++] = 0x4;	/* length */
-		arr[num++] = 0x0;	/* reserved */
-		arr[num++] = 0x0;	/* reserved */
+		
+		arr[num++] = 0x61;	
+		arr[num++] = 0x94;	
+		arr[num++] = 0x0;	
+		arr[num++] = 0x4;	
+		arr[num++] = 0x0;	
+		arr[num++] = 0x0;	
 		arr[num++] = 0x0;
-		arr[num++] = 0x1;	/* relative port A */
+		arr[num++] = 0x1;	
 	}
-	/* NAA-5, Target port identifier */
-	arr[num++] = 0x61;	/* proto=sas, binary */
-	arr[num++] = 0x93;	/* piv=1, target port, naa */
+	
+	arr[num++] = 0x61;	
+	arr[num++] = 0x93;	
 	arr[num++] = 0x0;
 	arr[num++] = 0x8;
-	arr[num++] = 0x52;	/* naa-5, company id=0x222222 (fake) */
+	arr[num++] = 0x52;	
 	arr[num++] = 0x22;
 	arr[num++] = 0x22;
 	arr[num++] = 0x20;
@@ -480,21 +435,21 @@ static int inquiry_evpd_83(unsigned char * arr, int port_group_id,
 	arr[num++] = (port_a >> 16) & 0xff;
 	arr[num++] = (port_a >> 8) & 0xff;
 	arr[num++] = port_a & 0xff;
-	/* NAA-5, Target port group identifier */
-	arr[num++] = 0x61;	/* proto=sas, binary */
-	arr[num++] = 0x95;	/* piv=1, target port group id */
+	
+	arr[num++] = 0x61;	
+	arr[num++] = 0x95;	
 	arr[num++] = 0x0;
 	arr[num++] = 0x4;
 	arr[num++] = 0;
 	arr[num++] = 0;
 	arr[num++] = (port_group_id >> 8) & 0xff;
 	arr[num++] = port_group_id & 0xff;
-	/* NAA-5, Target device identifier */
-	arr[num++] = 0x61;	/* proto=sas, binary */
-	arr[num++] = 0xa3;	/* piv=1, target device, naa */
+	
+	arr[num++] = 0x61;	
+	arr[num++] = 0xa3;	
 	arr[num++] = 0x0;
 	arr[num++] = 0x8;
-	arr[num++] = 0x52;	/* naa-5, company id=0x222222 (fake) */
+	arr[num++] = 0x52;	
 	arr[num++] = 0x22;
 	arr[num++] = 0x22;
 	arr[num++] = 0x20;
@@ -502,9 +457,9 @@ static int inquiry_evpd_83(unsigned char * arr, int port_group_id,
 	arr[num++] = (target_dev_id >> 16) & 0xff;
 	arr[num++] = (target_dev_id >> 8) & 0xff;
 	arr[num++] = target_dev_id & 0xff;
-	/* SCSI name string: Target device identifier */
-	arr[num++] = 0x63;	/* proto=sas, UTF-8 */
-	arr[num++] = 0xa8;	/* piv=1, target device, SCSI name string */
+	
+	arr[num++] = 0x63;	
+	arr[num++] = 0xa8;	
 	arr[num++] = 0x0;
 	arr[num++] = 24;
 	memcpy(arr + num, "naa.52222220", 12);
@@ -519,7 +474,7 @@ static int inquiry_evpd_83(unsigned char * arr, int port_group_id,
 
 
 static unsigned char vpd84_data[] = {
-/* from 4th byte */ 0x22,0x22,0x22,0x0,0xbb,0x0,
+ 0x22,0x22,0x22,0x0,0xbb,0x0,
     0x22,0x22,0x22,0x0,0xbb,0x1,
     0x22,0x22,0x22,0x0,0xbb,0x2,
 };
@@ -537,26 +492,26 @@ static int inquiry_evpd_85(unsigned char * arr)
 	const char * na2 = "http://www.kernel.org/log";
 	int plen, olen;
 
-	arr[num++] = 0x1;	/* lu, storage config */
-	arr[num++] = 0x0;	/* reserved */
+	arr[num++] = 0x1;	
+	arr[num++] = 0x0;	
 	arr[num++] = 0x0;
 	olen = strlen(na1);
 	plen = olen + 1;
 	if (plen % 4)
 		plen = ((plen / 4) + 1) * 4;
-	arr[num++] = plen;	/* length, null termianted, padded */
+	arr[num++] = plen;	
 	memcpy(arr + num, na1, olen);
 	memset(arr + num + olen, 0, plen - olen);
 	num += plen;
 
-	arr[num++] = 0x4;	/* lu, logging */
-	arr[num++] = 0x0;	/* reserved */
+	arr[num++] = 0x4;	
+	arr[num++] = 0x0;	
 	arr[num++] = 0x0;
 	olen = strlen(na2);
 	plen = olen + 1;
 	if (plen % 4)
 		plen = ((plen / 4) + 1) * 4;
-	arr[num++] = plen;	/* length, null terminated, padded */
+	arr[num++] = plen;	
 	memcpy(arr + num, na2, olen);
 	memset(arr + num + olen, 0, plen - olen);
 	num += plen;
@@ -564,7 +519,7 @@ static int inquiry_evpd_85(unsigned char * arr)
 	return num;
 }
 
-/* SCSI ports VPD page */
+
 static int inquiry_evpd_88(unsigned char * arr, int target_dev_id)
 {
 	int num = 0;
@@ -572,20 +527,20 @@ static int inquiry_evpd_88(unsigned char * arr, int target_dev_id)
 
 	port_a = target_dev_id + 1;
 	port_b = port_a + 1;
-	arr[num++] = 0x0;	/* reserved */
-	arr[num++] = 0x0;	/* reserved */
+	arr[num++] = 0x0;	
+	arr[num++] = 0x0;	
 	arr[num++] = 0x0;
-	arr[num++] = 0x1;	/* relative port 1 (primary) */
+	arr[num++] = 0x1;	
 	memset(arr + num, 0, 6);
 	num += 6;
 	arr[num++] = 0x0;
-	arr[num++] = 12;	/* length tp descriptor */
-	/* naa-5 target port identifier (A) */
-	arr[num++] = 0x61;	/* proto=sas, binary */
-	arr[num++] = 0x93;	/* PIV=1, target port, NAA */
-	arr[num++] = 0x0;	/* reserved */
-	arr[num++] = 0x8;	/* length */
-	arr[num++] = 0x52;	/* NAA-5, company_id=0x222222 (fake) */
+	arr[num++] = 12;	
+	
+	arr[num++] = 0x61;	
+	arr[num++] = 0x93;	
+	arr[num++] = 0x0;	
+	arr[num++] = 0x8;	
+	arr[num++] = 0x52;	
 	arr[num++] = 0x22;
 	arr[num++] = 0x22;
 	arr[num++] = 0x20;
@@ -594,20 +549,20 @@ static int inquiry_evpd_88(unsigned char * arr, int target_dev_id)
 	arr[num++] = (port_a >> 8) & 0xff;
 	arr[num++] = port_a & 0xff;
 
-	arr[num++] = 0x0;	/* reserved */
-	arr[num++] = 0x0;	/* reserved */
+	arr[num++] = 0x0;	
+	arr[num++] = 0x0;	
 	arr[num++] = 0x0;
-	arr[num++] = 0x2;	/* relative port 2 (secondary) */
+	arr[num++] = 0x2;	
 	memset(arr + num, 0, 6);
 	num += 6;
 	arr[num++] = 0x0;
-	arr[num++] = 12;	/* length tp descriptor */
-	/* naa-5 target port identifier (B) */
-	arr[num++] = 0x61;	/* proto=sas, binary */
-	arr[num++] = 0x93;	/* PIV=1, target port, NAA */
-	arr[num++] = 0x0;	/* reserved */
-	arr[num++] = 0x8;	/* length */
-	arr[num++] = 0x52;	/* NAA-5, company_id=0x222222 (fake) */
+	arr[num++] = 12;	
+	
+	arr[num++] = 0x61;	
+	arr[num++] = 0x93;	
+	arr[num++] = 0x0;	
+	arr[num++] = 0x8;	
+	arr[num++] = 0x52;	
 	arr[num++] = 0x22;
 	arr[num++] = 0x22;
 	arr[num++] = 0x20;
@@ -621,7 +576,7 @@ static int inquiry_evpd_88(unsigned char * arr, int target_dev_id)
 
 
 static unsigned char vpd89_data[] = {
-/* from 4th byte */ 0,0,0,0,
+ 0,0,0,0,
 'l','i','n','u','x',' ',' ',' ',
 'S','A','T',' ','s','c','s','i','_','d','e','b','u','g',' ',' ',
 '1','2','3','4',
@@ -672,7 +627,7 @@ static int inquiry_evpd_89(unsigned char * arr)
 
 
 static unsigned char vpdb0_data[] = {
-	/* from 4th byte */ 0,0,0,4,
+	 0,0,0,4,
 	0,0,0x4,0,
 	0,0,0,64,
 };
@@ -719,18 +674,18 @@ static int resp_inquiry(struct scsi_cmnd * scp, int target,
 	if (! arr)
 		return DID_REQUEUE << 16;
 	if (devip->wlun)
-		pq_pdt = 0x1e;	/* present, wlun */
+		pq_pdt = 0x1e;	
 	else if (scsi_debug_no_lun_0 && (0 == devip->lun))
-		pq_pdt = 0x7f;	/* not present, no device type */
+		pq_pdt = 0x7f;	
 	else
 		pq_pdt = (scsi_debug_ptype & 0x1f);
 	arr[0] = pq_pdt;
-	if (0x2 & cmd[1]) {  /* CMDDT bit set */
+	if (0x2 & cmd[1]) {  
 		mk_sense_buffer(devip, ILLEGAL_REQUEST, INVALID_FIELD_IN_CDB,
 			       	0);
 		kfree(arr);
 		return check_condition_result;
-	} else if (0x1 & cmd[1]) {  /* EVPD bit set */
+	} else if (0x1 & cmd[1]) {  
 		int lu_id_num, port_group_id, target_dev_id, len;
 		char lu_id_str[6];
 		int host_no = devip->sdbg_host->shost->host_no;
@@ -744,69 +699,69 @@ static int resp_inquiry(struct scsi_cmnd * scp, int target,
 		target_dev_id = ((host_no + 1) * 2000) +
 				 (devip->target * 1000) - 3;
 		len = scnprintf(lu_id_str, 6, "%d", lu_id_num);
-		if (0 == cmd[2]) { /* supported vital product data pages */
-			arr[1] = cmd[2];	/*sanity */
+		if (0 == cmd[2]) { 
+			arr[1] = cmd[2];	
 			n = 4;
-			arr[n++] = 0x0;   /* this page */
-			arr[n++] = 0x80;  /* unit serial number */
-			arr[n++] = 0x83;  /* device identification */
-			arr[n++] = 0x84;  /* software interface ident. */
-			arr[n++] = 0x85;  /* management network addresses */
-			arr[n++] = 0x86;  /* extended inquiry */
-			arr[n++] = 0x87;  /* mode page policy */
-			arr[n++] = 0x88;  /* SCSI ports */
-			arr[n++] = 0x89;  /* ATA information */
-			arr[n++] = 0xb0;  /* Block limits (SBC) */
-			arr[n++] = 0xb1;  /* Block characteristics (SBC) */
-			arr[3] = n - 4;	  /* number of supported VPD pages */
-		} else if (0x80 == cmd[2]) { /* unit serial number */
-			arr[1] = cmd[2];	/*sanity */
+			arr[n++] = 0x0;   
+			arr[n++] = 0x80;  
+			arr[n++] = 0x83;  
+			arr[n++] = 0x84;  
+			arr[n++] = 0x85;  
+			arr[n++] = 0x86;  
+			arr[n++] = 0x87;  
+			arr[n++] = 0x88;  
+			arr[n++] = 0x89;  
+			arr[n++] = 0xb0;  
+			arr[n++] = 0xb1;  
+			arr[3] = n - 4;	  
+		} else if (0x80 == cmd[2]) { 
+			arr[1] = cmd[2];	
 			arr[3] = len;
 			memcpy(&arr[4], lu_id_str, len);
-		} else if (0x83 == cmd[2]) { /* device identification */
-			arr[1] = cmd[2];	/*sanity */
+		} else if (0x83 == cmd[2]) { 
+			arr[1] = cmd[2];	
 			arr[3] = inquiry_evpd_83(&arr[4], port_group_id,
 						 target_dev_id, lu_id_num,
 						 lu_id_str, len);
-		} else if (0x84 == cmd[2]) { /* Software interface ident. */
-			arr[1] = cmd[2];	/*sanity */
+		} else if (0x84 == cmd[2]) { 
+			arr[1] = cmd[2];	
 			arr[3] = inquiry_evpd_84(&arr[4]);
-		} else if (0x85 == cmd[2]) { /* Management network addresses */
-			arr[1] = cmd[2];	/*sanity */
+		} else if (0x85 == cmd[2]) { 
+			arr[1] = cmd[2];	
 			arr[3] = inquiry_evpd_85(&arr[4]);
-		} else if (0x86 == cmd[2]) { /* extended inquiry */
-			arr[1] = cmd[2];	/*sanity */
-			arr[3] = 0x3c;	/* number of following entries */
+		} else if (0x86 == cmd[2]) { 
+			arr[1] = cmd[2];	
+			arr[3] = 0x3c;	
 			if (scsi_debug_dif == SD_DIF_TYPE3_PROTECTION)
-				arr[4] = 0x4;	/* SPT: GRD_CHK:1 */
+				arr[4] = 0x4;	
 			else if (scsi_debug_dif)
-				arr[4] = 0x5;   /* SPT: GRD_CHK:1, REF_CHK:1 */
+				arr[4] = 0x5;   
 			else
-				arr[4] = 0x0;   /* no protection stuff */
-			arr[5] = 0x7;   /* head of q, ordered + simple q's */
-		} else if (0x87 == cmd[2]) { /* mode page policy */
-			arr[1] = cmd[2];	/*sanity */
-			arr[3] = 0x8;	/* number of following entries */
-			arr[4] = 0x2;	/* disconnect-reconnect mp */
-			arr[6] = 0x80;	/* mlus, shared */
-			arr[8] = 0x18;	 /* protocol specific lu */
-			arr[10] = 0x82;	 /* mlus, per initiator port */
-		} else if (0x88 == cmd[2]) { /* SCSI Ports */
-			arr[1] = cmd[2];	/*sanity */
+				arr[4] = 0x0;   
+			arr[5] = 0x7;   
+		} else if (0x87 == cmd[2]) { 
+			arr[1] = cmd[2];	
+			arr[3] = 0x8;	
+			arr[4] = 0x2;	
+			arr[6] = 0x80;	
+			arr[8] = 0x18;	 
+			arr[10] = 0x82;	 
+		} else if (0x88 == cmd[2]) { 
+			arr[1] = cmd[2];	
 			arr[3] = inquiry_evpd_88(&arr[4], target_dev_id);
-		} else if (0x89 == cmd[2]) { /* ATA information */
-			arr[1] = cmd[2];        /*sanity */
+		} else if (0x89 == cmd[2]) { 
+			arr[1] = cmd[2];        
 			n = inquiry_evpd_89(&arr[4]);
 			arr[2] = (n >> 8);
 			arr[3] = (n & 0xff);
-		} else if (0xb0 == cmd[2]) { /* Block limits (SBC) */
-			arr[1] = cmd[2];        /*sanity */
+		} else if (0xb0 == cmd[2]) { 
+			arr[1] = cmd[2];        
 			arr[3] = inquiry_evpd_b0(&arr[4]);
-		} else if (0xb1 == cmd[2]) { /* Block characteristics (SBC) */
-			arr[1] = cmd[2];        /*sanity */
+		} else if (0xb1 == cmd[2]) { 
+			arr[1] = cmd[2];        
 			arr[3] = inquiry_evpd_b1(&arr[4]);
 		} else {
-			/* Illegal request, invalid field in cdb */
+			
 			mk_sense_buffer(devip, ILLEGAL_REQUEST,
 					INVALID_FIELD_IN_CDB, 0);
 			kfree(arr);
@@ -818,30 +773,30 @@ static int resp_inquiry(struct scsi_cmnd * scp, int target,
 		kfree(arr);
 		return ret;
 	}
-	/* drops through here for a standard inquiry */
-	arr[1] = DEV_REMOVEABLE(target) ? 0x80 : 0;	/* Removable disk */
+	
+	arr[1] = DEV_REMOVEABLE(target) ? 0x80 : 0;	
 	arr[2] = scsi_debug_scsi_level;
-	arr[3] = 2;    /* response_data_format==2 */
+	arr[3] = 2;    
 	arr[4] = SDEBUG_LONG_INQ_SZ - 5;
-	arr[5] = scsi_debug_dif ? 1 : 0; /* PROTECT bit */
+	arr[5] = scsi_debug_dif ? 1 : 0; 
 	if (0 == scsi_debug_vpd_use_hostno)
-		arr[5] = 0x10; /* claim: implicit TGPS */
-	arr[6] = 0x10; /* claim: MultiP */
-	/* arr[6] |= 0x40; ... claim: EncServ (enclosure services) */
-	arr[7] = 0xa; /* claim: LINKED + CMDQUE */
+		arr[5] = 0x10; 
+	arr[6] = 0x10; 
+	
+	arr[7] = 0xa; 
 	memcpy(&arr[8], inq_vendor_id, 8);
 	memcpy(&arr[16], inq_product_id, 16);
 	memcpy(&arr[32], inq_product_rev, 4);
-	/* version descriptors (2 bytes each) follow */
-	arr[58] = 0x0; arr[59] = 0x77; /* SAM-3 ANSI */
-	arr[60] = 0x3; arr[61] = 0x14;  /* SPC-3 ANSI */
+	
+	arr[58] = 0x0; arr[59] = 0x77; 
+	arr[60] = 0x3; arr[61] = 0x14;  
 	n = 62;
 	if (scsi_debug_ptype == 0) {
-		arr[n++] = 0x3; arr[n++] = 0x3d; /* SBC-2 ANSI */
+		arr[n++] = 0x3; arr[n++] = 0x3d; 
 	} else if (scsi_debug_ptype == 1) {
-		arr[n++] = 0x3; arr[n++] = 0x60; /* SSC-2 no version */
+		arr[n++] = 0x3; arr[n++] = 0x60; 
 	}
-	arr[n++] = 0xc; arr[n++] = 0xf;  /* SAS-1.1 rev 10 */
+	arr[n++] = 0xc; arr[n++] = 0xf;  
 	ret = fill_from_dev_buffer(scp, arr,
 			    min(alloc_len, SDEBUG_LONG_INQ_SZ));
 	kfree(arr);
@@ -865,25 +820,25 @@ static int resp_requests(struct scsi_cmnd * scp,
 	if ((iec_m_pg[2] & 0x4) && (6 == (iec_m_pg[3] & 0xf))) {
 		if (want_dsense) {
 			arr[0] = 0x72;
-			arr[1] = 0x0;		/* NO_SENSE in sense_key */
+			arr[1] = 0x0;		
 			arr[2] = THRESHOLD_EXCEEDED;
-			arr[3] = 0xff;		/* TEST set and MRIE==6 */
+			arr[3] = 0xff;		
 		} else {
 			arr[0] = 0x70;
-			arr[2] = 0x0;		/* NO_SENSE in sense_key */
-			arr[7] = 0xa;   	/* 18 byte sense buffer */
+			arr[2] = 0x0;		
+			arr[7] = 0xa;   	
 			arr[12] = THRESHOLD_EXCEEDED;
-			arr[13] = 0xff;		/* TEST set and MRIE==6 */
+			arr[13] = 0xff;		
 		}
 	} else {
 		memcpy(arr, sbuff, SDEBUG_SENSE_LEN);
 		if ((cmd[1] & 1) && (! scsi_debug_dsense)) {
-			/* DESC bit set and sense_buff in fixed format */
+			
 			memset(arr, 0, sizeof(arr));
 			arr[0] = 0x72;
-			arr[1] = sbuff[2];     /* sense key */
-			arr[2] = sbuff[12];    /* asc */
-			arr[3] = sbuff[13];    /* ascq */
+			arr[1] = sbuff[2];     
+			arr[2] = sbuff[12];    
+			arr[3] = sbuff[13];    
 			len = 8;
 		}
 	}
@@ -929,7 +884,7 @@ static int resp_readcap(struct scsi_cmnd * scp,
 
 	if ((errsts = check_readiness(scp, 1, devip)))
 		return errsts;
-	/* following just in case virtual_gb changed */
+	
 	sdebug_capacity = get_sdebug_capacity();
 	memset(arr, 0, SDEBUG_READCAP_ARR_SZ);
 	if (sdebug_capacity < 0xffffffff) {
@@ -962,7 +917,7 @@ static int resp_readcap16(struct scsi_cmnd * scp,
 		return errsts;
 	alloc_len = ((cmd[10] << 24) + (cmd[11] << 16) + (cmd[12] << 8)
 		     + cmd[13]);
-	/* following just in case virtual_gb changed */
+	
 	sdebug_capacity = get_sdebug_capacity();
 	memset(arr, 0, SDEBUG_READCAP16_ARR_SZ);
 	capac = sdebug_capacity - 1;
@@ -977,8 +932,8 @@ static int resp_readcap16(struct scsi_cmnd * scp,
 	arr[15] = scsi_debug_lowest_aligned & 0xff;
 
 	if (scsi_debug_dif) {
-		arr[12] = (scsi_debug_dif - 1) << 1; /* P_TYPE */
-		arr[12] |= 1; /* PROT_EN */
+		arr[12] = (scsi_debug_dif - 1) << 1; 
+		arr[12] |= 1; 
 	}
 
 	return fill_from_dev_buffer(scp, arr,
@@ -1002,50 +957,43 @@ static int resp_report_tgtpgs(struct scsi_cmnd * scp,
 	arr = kzalloc(SDEBUG_MAX_TGTPGS_ARR_SZ, GFP_ATOMIC);
 	if (! arr)
 		return DID_REQUEUE << 16;
-	/*
-	 * EVPD page 0x88 states we have two ports, one
-	 * real and a fake port with no device connected.
-	 * So we create two port groups with one port each
-	 * and set the group with port B to unavailable.
-	 */
-	port_a = 0x1; /* relative port A */
-	port_b = 0x2; /* relative port B */
+	
+	port_a = 0x1; 
+	port_b = 0x2; 
 	port_group_a = (((host_no + 1) & 0x7f) << 8) +
 	    (devip->channel & 0x7f);
 	port_group_b = (((host_no + 1) & 0x7f) << 8) +
 	    (devip->channel & 0x7f) + 0x80;
 
-	/*
-	 * The asymmetric access state is cycled according to the host_id.
-	 */
+	
 	n = 4;
 	if (0 == scsi_debug_vpd_use_hostno) {
-	    arr[n++] = host_no % 3; /* Asymm access state */
-	    arr[n++] = 0x0F; /* claim: all states are supported */
+	    arr[n++] = host_no % 3; 
+	    arr[n++] = 0x0F; 
 	} else {
-	    arr[n++] = 0x0; /* Active/Optimized path */
-	    arr[n++] = 0x01; /* claim: only support active/optimized paths */
+	    arr[n++] = 0x0; 
+	    arr[n++] = 0x01; 
 	}
 	arr[n++] = (port_group_a >> 8) & 0xff;
 	arr[n++] = port_group_a & 0xff;
-	arr[n++] = 0;    /* Reserved */
-	arr[n++] = 0;    /* Status code */
-	arr[n++] = 0;    /* Vendor unique */
-	arr[n++] = 0x1;  /* One port per group */
-	arr[n++] = 0;    /* Reserved */
-	arr[n++] = 0;    /* Reserved */
+	arr[n++] = 0;    
+	arr[n++] = 0;    
+	arr[n++] = 0;    
+	arr[n++] = 0x1;  
+	arr[n++] = 0;    
+	arr[n++] = 0;    
 	arr[n++] = (port_a >> 8) & 0xff;
 	arr[n++] = port_a & 0xff;
-	arr[n++] = 3;    /* Port unavailable */
-	arr[n++] = 0x08; /* claim: only unavailalbe paths are supported */
+	arr[n++] = 3;    
+	arr[n++] = 0x08; 
 	arr[n++] = (port_group_b >> 8) & 0xff;
 	arr[n++] = port_group_b & 0xff;
-	arr[n++] = 0;    /* Reserved */
-	arr[n++] = 0;    /* Status code */
-	arr[n++] = 0;    /* Vendor unique */
-	arr[n++] = 0x1;  /* One port per group */
-	arr[n++] = 0;    /* Reserved */
-	arr[n++] = 0;    /* Reserved */
+	arr[n++] = 0;    
+	arr[n++] = 0;    
+	arr[n++] = 0;    
+	arr[n++] = 0x1;  
+	arr[n++] = 0;    
+	arr[n++] = 0;    
 	arr[n++] = (port_b >> 8) & 0xff;
 	arr[n++] = port_b & 0xff;
 
@@ -1055,12 +1003,7 @@ static int resp_report_tgtpgs(struct scsi_cmnd * scp,
 	arr[2] = (rlen >> 8) & 0xff;
 	arr[3] = rlen & 0xff;
 
-	/*
-	 * Return the smallest value of either
-	 * - The allocated length
-	 * - The constructed command length
-	 * - The maximum array size
-	 */
+	
 	rlen = min(alen,n);
 	ret = fill_from_dev_buffer(scp, arr,
 				   min(rlen, SDEBUG_MAX_TGTPGS_ARR_SZ));
@@ -1068,10 +1011,10 @@ static int resp_report_tgtpgs(struct scsi_cmnd * scp,
 	return ret;
 }
 
-/* <<Following mode page info copied from ST318451LW>> */
+
 
 static int resp_err_recov_pg(unsigned char * p, int pcontrol, int target)
-{	/* Read-Write Error Recovery page for mode_sense */
+{	
 	unsigned char err_recov_pg[] = {0x1, 0xa, 0xc0, 11, 240, 0, 0, 0,
 					5, 0, 0xff, 0xff};
 
@@ -1082,7 +1025,7 @@ static int resp_err_recov_pg(unsigned char * p, int pcontrol, int target)
 }
 
 static int resp_disconnect_pg(unsigned char * p, int pcontrol, int target)
-{ 	/* Disconnect-Reconnect page for mode_sense */
+{ 	
 	unsigned char disconnect_pg[] = {0x2, 0xe, 128, 128, 0, 10, 0, 0,
 					 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -1093,7 +1036,7 @@ static int resp_disconnect_pg(unsigned char * p, int pcontrol, int target)
 }
 
 static int resp_format_pg(unsigned char * p, int pcontrol, int target)
-{       /* Format device page for mode_sense */
+{       
 	unsigned char format_pg[] = {0x3, 0x16, 0, 0, 0, 0, 0, 0,
 				     0, 0, 0, 0, 0, 0, 0, 0,
 				     0, 0, 0, 0, 0x40, 0, 0, 0};
@@ -1104,14 +1047,14 @@ static int resp_format_pg(unsigned char * p, int pcontrol, int target)
 	p[12] = (scsi_debug_sector_size >> 8) & 0xff;
 	p[13] = scsi_debug_sector_size & 0xff;
 	if (DEV_REMOVEABLE(target))
-		p[20] |= 0x20; /* should agree with INQUIRY */
+		p[20] |= 0x20; 
 	if (1 == pcontrol)
 		memset(p + 2, 0, sizeof(format_pg) - 2);
 	return sizeof(format_pg);
 }
 
 static int resp_caching_pg(unsigned char * p, int pcontrol, int target)
-{ 	/* Caching page for mode_sense */
+{ 	
 	unsigned char caching_pg[] = {0x8, 18, 0x14, 0, 0xff, 0xff, 0, 0,
 		0xff, 0xff, 0xff, 0xff, 0x80, 0x14, 0, 0,     0, 0, 0, 0};
 
@@ -1122,8 +1065,8 @@ static int resp_caching_pg(unsigned char * p, int pcontrol, int target)
 }
 
 static int resp_ctrl_m_pg(unsigned char * p, int pcontrol, int target)
-{ 	/* Control mode page for mode_sense */
-	unsigned char ch_ctrl_m_pg[] = {/* 0xa, 10, */ 0x6, 0, 0, 0, 0, 0,
+{ 	
+	unsigned char ch_ctrl_m_pg[] = { 0x6, 0, 0, 0, 0, 0,
 				        0, 0, 0, 0};
 	unsigned char d_ctrl_m_pg[] = {0xa, 10, 2, 0, 0, 0, 0, 0,
 				     0, 0, 0x2, 0x4b};
@@ -1134,7 +1077,7 @@ static int resp_ctrl_m_pg(unsigned char * p, int pcontrol, int target)
 		ctrl_m_pg[2] &= ~0x4;
 
 	if (scsi_debug_ato)
-		ctrl_m_pg[5] |= 0x80; /* ATO=1 */
+		ctrl_m_pg[5] |= 0x80; 
 
 	memcpy(p, ctrl_m_pg, sizeof(ctrl_m_pg));
 	if (1 == pcontrol)
@@ -1146,8 +1089,8 @@ static int resp_ctrl_m_pg(unsigned char * p, int pcontrol, int target)
 
 
 static int resp_iec_m_pg(unsigned char * p, int pcontrol, int target)
-{	/* Informational Exceptions control mode page for mode_sense */
-	unsigned char ch_iec_m_pg[] = {/* 0x1c, 0xa, */ 0x4, 0xf, 0, 0, 0, 0,
+{	
+	unsigned char ch_iec_m_pg[] = { 0x4, 0xf, 0, 0, 0, 0,
 				       0, 0, 0x0, 0x0};
 	unsigned char d_iec_m_pg[] = {0x1c, 0xa, 0x08, 0, 0, 0, 0, 0,
 				      0, 0, 0x0, 0x0};
@@ -1161,7 +1104,7 @@ static int resp_iec_m_pg(unsigned char * p, int pcontrol, int target)
 }
 
 static int resp_sas_sf_m_pg(unsigned char * p, int pcontrol, int target)
-{	/* SAS SSP mode page - short format for mode_sense */
+{	
 	unsigned char sas_sf_m_pg[] = {0x19, 0x6,
 		0x6, 0x0, 0x7, 0xd0, 0x0, 0x0};
 
@@ -1174,7 +1117,7 @@ static int resp_sas_sf_m_pg(unsigned char * p, int pcontrol, int target)
 
 static int resp_sas_pcd_m_spg(unsigned char * p, int pcontrol, int target,
 			      int target_dev_id)
-{	/* SAS phy control and discover mode page for mode_sense */
+{	
 	unsigned char sas_pcd_m_pg[] = {0x59, 0x1, 0, 0x64, 0, 0x6, 0, 2,
 		    0, 0, 0, 0, 0x10, 0x9, 0x8, 0x0,
 		    0x52, 0x22, 0x22, 0x20, 0x0, 0x0, 0x0, 0x0,
@@ -1208,7 +1151,7 @@ static int resp_sas_pcd_m_spg(unsigned char * p, int pcontrol, int target,
 }
 
 static int resp_sas_sha_m_spg(unsigned char * p, int pcontrol)
-{	/* SAS SSP shared protocol specific port mode subpage */
+{	
 	unsigned char sas_sha_m_pg[] = {0x59, 0x2, 0, 0xc, 0, 0x6, 0x10, 0,
 		    0, 0, 0, 0, 0, 0, 0, 0,
 		};
@@ -1246,14 +1189,14 @@ static int resp_mode_sense(struct scsi_cmnd * scp, int target,
 		bd_len = 0;
 	alloc_len = msense_6 ? cmd[4] : ((cmd[7] << 8) | cmd[8]);
 	memset(arr, 0, SDEBUG_MAX_MSENSE_SZ);
-	if (0x3 == pcontrol) {  /* Saving values not supported */
+	if (0x3 == pcontrol) {  
 		mk_sense_buffer(devip, ILLEGAL_REQUEST, SAVING_PARAMS_UNSUP,
 			       	0);
 		return check_condition_result;
 	}
 	target_dev_id = ((devip->sdbg_host->shost->host_no + 1) * 2000) +
 			(devip->target * 1000) - 3;
-	/* set DPOFUA bit for disks */
+	
 	if (0 == scsi_debug_ptype)
 		dev_spec = (DEV_READONLY(target) ? 0x80 : 0x0) | 0x10;
 	else
@@ -1265,8 +1208,8 @@ static int resp_mode_sense(struct scsi_cmnd * scp, int target,
 	} else {
 		arr[3] = dev_spec;
 		if (16 == bd_len)
-			arr[4] = 0x1;	/* set LONGLBA bit */
-		arr[7] = bd_len;	/* assume 255 or less */
+			arr[4] = 0x1;	
+		arr[7] = bd_len;	
 		offset = 8;
 	}
 	ap = arr + offset;
@@ -1303,33 +1246,33 @@ static int resp_mode_sense(struct scsi_cmnd * scp, int target,
 	}
 
 	if ((subpcode > 0x0) && (subpcode < 0xff) && (0x19 != pcode)) {
-		/* TODO: Control Extension page */
+		
 		mk_sense_buffer(devip, ILLEGAL_REQUEST, INVALID_FIELD_IN_CDB,
 			       	0);
 		return check_condition_result;
 	}
 	switch (pcode) {
-	case 0x1:	/* Read-Write error recovery page, direct access */
+	case 0x1:	
 		len = resp_err_recov_pg(ap, pcontrol, target);
 		offset += len;
 		break;
-	case 0x2:	/* Disconnect-Reconnect page, all devices */
+	case 0x2:	
 		len = resp_disconnect_pg(ap, pcontrol, target);
 		offset += len;
 		break;
-        case 0x3:       /* Format device page, direct access */
+        case 0x3:       
                 len = resp_format_pg(ap, pcontrol, target);
                 offset += len;
                 break;
-	case 0x8:	/* Caching page, direct access */
+	case 0x8:	
 		len = resp_caching_pg(ap, pcontrol, target);
 		offset += len;
 		break;
-	case 0xa:	/* Control Mode page, all devices */
+	case 0xa:	
 		len = resp_ctrl_m_pg(ap, pcontrol, target);
 		offset += len;
 		break;
-	case 0x19:	/* if spc==1 then sas phy, control+discover */
+	case 0x19:	
 		if ((subpcode > 0x2) && (subpcode < 0xff)) {
 		        mk_sense_buffer(devip, ILLEGAL_REQUEST,
 					INVALID_FIELD_IN_CDB, 0);
@@ -1345,11 +1288,11 @@ static int resp_mode_sense(struct scsi_cmnd * scp, int target,
 			len += resp_sas_sha_m_spg(ap + len, pcontrol);
 		offset += len;
 		break;
-	case 0x1c:	/* Informational Exceptions Mode page, all devices */
+	case 0x1c:	
 		len = resp_iec_m_pg(ap, pcontrol, target);
 		offset += len;
 		break;
-	case 0x3f:	/* Read all Mode pages */
+	case 0x3f:	
 		if ((0 == subpcode) || (0xff == subpcode)) {
 			len = resp_err_recov_pg(ap, pcontrol, target);
 			len += resp_disconnect_pg(ap + len, pcontrol, target);
@@ -1436,7 +1379,7 @@ static int resp_mode_select(struct scsi_cmnd * scp, int mselect6,
 		return check_condition_result;
 	}
 	switch (mpage) {
-	case 0xa:      /* Control Mode page */
+	case 0xa:      
 		if (ctrl_m_pg[1] == arr[off + 1]) {
 			memcpy(ctrl_m_pg + 2, arr + off + 2,
 			       sizeof(ctrl_m_pg) - 2);
@@ -1444,7 +1387,7 @@ static int resp_mode_select(struct scsi_cmnd * scp, int mselect6,
 			return 0;
 		}
 		break;
-	case 0x1c:      /* Informational Exceptions Mode page */
+	case 0x1c:      
 		if (iec_m_pg[1] == arr[off + 1]) {
 			memcpy(iec_m_pg + 2, arr + off + 2,
 			       sizeof(iec_m_pg) - 2);
@@ -1475,7 +1418,7 @@ static int resp_ie_l_pg(unsigned char * arr)
 		};
 
         memcpy(arr, ie_l_pg, sizeof(ie_l_pg));
-	if (iec_m_pg[2] & 0x4) {	/* TEST bit set */
+	if (iec_m_pg[2] & 0x4) {	
 		arr[4] = THRESHOLD_EXCEEDED;
 		arr[5] = 0xff;
 	}
@@ -1508,17 +1451,17 @@ static int resp_log_sense(struct scsi_cmnd * scp,
 	arr[0] = pcode;
 	if (0 == subpcode) {
 		switch (pcode) {
-		case 0x0:	/* Supported log pages log page */
+		case 0x0:	
 			n = 4;
-			arr[n++] = 0x0;		/* this page */
-			arr[n++] = 0xd;		/* Temperature */
-			arr[n++] = 0x2f;	/* Informational exceptions */
+			arr[n++] = 0x0;		
+			arr[n++] = 0xd;		
+			arr[n++] = 0x2f;	
 			arr[3] = n - 4;
 			break;
-		case 0xd:	/* Temperature log page */
+		case 0xd:	
 			arr[3] = resp_temp_l_pg(arr + 4);
 			break;
-		case 0x2f:	/* Informational exceptions log page */
+		case 0x2f:	
 			arr[3] = resp_ie_l_pg(arr + 4);
 			break;
 		default:
@@ -1530,28 +1473,28 @@ static int resp_log_sense(struct scsi_cmnd * scp,
 		arr[0] |= 0x40;
 		arr[1] = subpcode;
 		switch (pcode) {
-		case 0x0:	/* Supported log pages and subpages log page */
+		case 0x0:	
 			n = 4;
 			arr[n++] = 0x0;
-			arr[n++] = 0x0;		/* 0,0 page */
+			arr[n++] = 0x0;		
 			arr[n++] = 0x0;
-			arr[n++] = 0xff;	/* this page */
+			arr[n++] = 0xff;	
 			arr[n++] = 0xd;
-			arr[n++] = 0x0;		/* Temperature */
+			arr[n++] = 0x0;		
 			arr[n++] = 0x2f;
-			arr[n++] = 0x0;	/* Informational exceptions */
+			arr[n++] = 0x0;	
 			arr[3] = n - 4;
 			break;
-		case 0xd:	/* Temperature subpages */
+		case 0xd:	
 			n = 4;
 			arr[n++] = 0xd;
-			arr[n++] = 0x0;		/* Temperature */
+			arr[n++] = 0x0;		
 			arr[3] = n - 4;
 			break;
-		case 0x2f:	/* Informational exceptions subpages */
+		case 0x2f:	
 			n = 4;
 			arr[n++] = 0x2f;
-			arr[n++] = 0x0;		/* Informational exceptions */
+			arr[n++] = 0x0;		
 			arr[3] = n - 4;
 			break;
 		default:
@@ -1576,7 +1519,7 @@ static int check_device_access_params(struct sdebug_dev_info *devi,
 		mk_sense_buffer(devi, ILLEGAL_REQUEST, ADDR_OUT_OF_RANGE, 0);
 		return check_condition_result;
 	}
-	/* transfer length excessive (tie in to block limits VPD page) */
+	
 	if (num > sdebug_store_sectors) {
 		mk_sense_buffer(devi, ILLEGAL_REQUEST, INVALID_FIELD_IN_CDB, 0);
 		return check_condition_result;
@@ -1673,7 +1616,7 @@ static int prot_verify_read(struct scsi_cmnd *SCpnt, sector_t start_sec,
 		ei_lba++;
 	}
 
-	resid = sectors * 8; /* Bytes of protection data to copy into sgl */
+	resid = sectors * 8; 
 	sector = start_sec;
 
 	scsi_for_each_prot_sg(SCpnt, psgl, scsi_prot_sg_count(SCpnt), i) {
@@ -1684,7 +1627,7 @@ static int prot_verify_read(struct scsi_cmnd *SCpnt, sector_t start_sec,
 
 		sector += len >> 3;
 		if (sector >= sdebug_store_sectors) {
-			/* Force wrap */
+			
 			tmp_sec = sector;
 			sector = do_div(tmp_sec, sdebug_store_sectors);
 		}
@@ -1711,12 +1654,12 @@ static int resp_read(struct scsi_cmnd *SCpnt, unsigned long long lba,
 	if ((SCSI_DEBUG_OPT_MEDIUM_ERR & scsi_debug_opts) &&
 	    (lba <= OPT_MEDIUM_ERR_ADDR) &&
 	    ((lba + num) > OPT_MEDIUM_ERR_ADDR)) {
-		/* claim unrecoverable read error */
+		
 		mk_sense_buffer(devip, MEDIUM_ERROR, UNRECOVERED_READ_ERR,
 				0);
-		/* set info field and valid bit for fixed descriptor */
+		
 		if (0x70 == (devip->sense_buff[0] & 0x7f)) {
-			devip->sense_buff[0] |= 0x80;	/* Valid bit */
+			devip->sense_buff[0] |= 0x80;	
 			ret = OPT_MEDIUM_ERR_ADDR;
 			devip->sense_buff[3] = (ret >> 24) & 0xff;
 			devip->sense_buff[4] = (ret >> 16) & 0xff;
@@ -1726,7 +1669,7 @@ static int resp_read(struct scsi_cmnd *SCpnt, unsigned long long lba,
 		return check_condition_result;
 	}
 
-	/* DIX + T10 DIF */
+	
 	if (scsi_debug_dix && scsi_prot_sg_count(SCpnt)) {
 		int prot_ret = prot_verify_read(SCpnt, lba, num, ei_lba);
 
@@ -1784,16 +1727,14 @@ static int prot_verify_write(struct scsi_cmnd *SCpnt, sector_t start_sec,
 	paddr = kmap_atomic(sg_page(psgl), KM_IRQ1) + psgl->offset;
 	ppage_offset = 0;
 
-	/* For each data page */
+	
 	scsi_for_each_sg(SCpnt, dsgl, scsi_sg_count(SCpnt), i) {
 		daddr = kmap_atomic(sg_page(dsgl), KM_IRQ0) + dsgl->offset;
 
-		/* For each sector-sized chunk in data page */
+		
 		for (j = 0 ; j < dsgl->length ; j += scsi_debug_sector_size) {
 
-			/* If we're at the end of the current
-			 * protection page advance to the next one
-			 */
+			
 			if (ppage_offset >= psgl->length) {
 				kunmap_atomic(paddr, KM_IRQ1);
 				psgl = sg_next(psgl);
@@ -1853,17 +1794,13 @@ static int prot_verify_write(struct scsi_cmnd *SCpnt, sector_t start_sec,
 				goto out;
 			}
 
-			/* Would be great to copy this in bigger
-			 * chunks.  However, for the sake of
-			 * correctness we need to verify each sector
-			 * before writing it to "stable" storage
-			 */
+			
 			memcpy(dif_storep + dif_offset(sector), sdt, 8);
 
 			sector++;
 
 			if (sector == sdebug_store_sectors)
-				sector = 0;	/* Force wrap */
+				sector = 0;	
 
 			start_sec++;
 			ei_lba++;
@@ -1898,7 +1835,7 @@ static int resp_write(struct scsi_cmnd *SCpnt, unsigned long long lba,
 	if (ret)
 		return ret;
 
-	/* DIX + T10 DIF */
+	
 	if (scsi_debug_dix && scsi_prot_sg_count(SCpnt)) {
 		int prot_ret = prot_verify_write(SCpnt, lba, num, ei_lba);
 
@@ -1939,7 +1876,7 @@ static int resp_report_luns(struct scsi_cmnd * scp,
 			       	0);
 		return check_condition_result;
 	}
-	/* can produce response with up to 16k luns (lun 0 to lun 16383) */
+	
 	memset(arr, 0, SDEBUG_RLUN_ARR_SZ);
 	lun_cnt = scsi_debug_max_luns;
 	if (1 == select_report)
@@ -1986,7 +1923,7 @@ static int resp_xdwriteread(struct scsi_cmnd *scp, unsigned long long lba,
 	struct scatterlist *sg;
 	struct scsi_data_buffer *sdb = scsi_in(scp);
 
-	/* better not to use temporary buffer. */
+	
 	buf = kmalloc(scsi_bufflen(scp), GFP_ATOMIC);
 	if (!buf)
 		return ret;
@@ -2012,7 +1949,7 @@ out:
 	return ret;
 }
 
-/* When timer goes off this function is called. */
+
 static void timer_intr_handler(unsigned long indx)
 {
 	struct sdebug_queued_cmd * sqcp;
@@ -2034,7 +1971,7 @@ static void timer_intr_handler(unsigned long indx)
 	sqcp->in_use = 0;
 	if (sqcp->done_funct) {
 		sqcp->a_cmnd->result = sqcp->scsi_result;
-		sqcp->done_funct(sqcp->a_cmnd); /* callback to mid level */
+		sqcp->done_funct(sqcp->a_cmnd); 
 	}
 	sqcp->done_funct = NULL;
 	spin_unlock_irqrestore(&queued_arr_lock, iflags);
@@ -2078,7 +2015,7 @@ static struct sdebug_dev_info * devInfoReg(struct scsi_device * sdev)
 				open_devip = devip;
 		}
 	}
-	if (!open_devip) { /* try and make a new one */
+	if (!open_devip) { 
 		open_devip = sdebug_device_create(sdbg_host, GFP_ATOMIC);
 		if (!open_devip) {
 			printk(KERN_ERR "%s: out of memory at line %d\n",
@@ -2126,7 +2063,7 @@ static int scsi_debug_slave_configure(struct scsi_device *sdp)
 		sdp->host->max_cmd_len = SCSI_DEBUG_MAX_CMD_LEN;
 	devip = devInfoReg(sdp);
 	if (NULL == devip)
-		return 1;	/* no resources, will be marked offline */
+		return 1;	
 	sdp->hostdata = devip;
 	if (sdp->host->cmd_per_lun)
 		scsi_adjust_queue_depth(sdp, SDEBUG_TAGGED_QUEUING,
@@ -2144,13 +2081,13 @@ static void scsi_debug_slave_destroy(struct scsi_device *sdp)
 		printk(KERN_INFO "scsi_debug: slave_destroy <%u %u %u %u>\n",
 		       sdp->host->host_no, sdp->channel, sdp->id, sdp->lun);
 	if (devip) {
-		/* make this slot avaliable for re-use */
+		
 		devip->used = 0;
 		sdp->hostdata = NULL;
 	}
 }
 
-/* Returns 1 if found 'cmnd' and deleted its timer. else returns 0 */
+
 static int stop_queued_cmnd(struct scsi_cmnd *cmnd)
 {
 	unsigned long iflags;
@@ -2171,7 +2108,7 @@ static int stop_queued_cmnd(struct scsi_cmnd *cmnd)
 	return (k < SCSI_DEBUG_CANQUEUE) ? 1 : 0;
 }
 
-/* Deletes (stops) timers of all queued commands */
+
 static void stop_all_queued(void)
 {
 	unsigned long iflags;
@@ -2277,7 +2214,7 @@ static int scsi_debug_host_reset(struct scsi_cmnd * SCpnt)
 	return SUCCESS;
 }
 
-/* Initializes timers in queued array */
+
 static void __init init_all_queued(void)
 {
 	unsigned long iflags;
@@ -2302,7 +2239,7 @@ static void __init sdebug_build_parts(unsigned char *ramp,
 	int sectors_per_part, num_sectors, k;
 	int heads_by_sects, start_sec, end_sec;
 
-	/* assume partition table already zeroed */
+	
 	if ((scsi_debug_num_parts < 1) || (store_size < 1048576))
 		return;
 	if (scsi_debug_num_parts > SDEBUG_MAX_PARTS) {
@@ -2321,7 +2258,7 @@ static void __init sdebug_build_parts(unsigned char *ramp,
 	starts[scsi_debug_num_parts] = num_sectors;
 	starts[scsi_debug_num_parts + 1] = 0;
 
-	ramp[510] = 0x55;	/* magic partition markings */
+	ramp[510] = 0x55;	
 	ramp[511] = 0xAA;
 	pp = (struct partition *)(ramp + 0x1be);
 	for (k = 0; starts[k + 1]; ++k, ++pp) {
@@ -2341,7 +2278,7 @@ static void __init sdebug_build_parts(unsigned char *ramp,
 
 		pp->start_sect = start_sec;
 		pp->nr_sects = end_sec - start_sec + 1;
-		pp->sys_ind = 0x83;	/* plain Linux partition */
+		pp->sys_ind = 0x83;	
 	}
 }
 
@@ -2359,7 +2296,7 @@ static int schedule_resp(struct scsi_cmnd * cmnd,
 		}
 	}
 	if (cmnd && devip) {
-		/* simulate autosense by this driver */
+		
 		if (SAM_STAT_CHECK_CONDITION == (scsi_result & 0xff))
 			memcpy(cmnd->sense_buffer, devip->sense_buff,
 			       (SCSI_SENSE_BUFFERSIZE > SDEBUG_SENSE_LEN) ?
@@ -2385,7 +2322,7 @@ static int schedule_resp(struct scsi_cmnd * cmnd,
 		if (k >= SCSI_DEBUG_CANQUEUE) {
 			spin_unlock_irqrestore(&queued_arr_lock, iflags);
 			printk(KERN_WARNING "scsi_debug: can_queue exceeded\n");
-			return 1;	/* report busy to mid level */
+			return 1;	
 		}
 		sqcp->in_use = 1;
 		sqcp->a_cmnd = cmnd;
@@ -2401,12 +2338,7 @@ static int schedule_resp(struct scsi_cmnd * cmnd,
 		return 0;
 	}
 }
-/* Note: The following macros create attribute files in the
-   /sys/module/scsi_debug/parameters directory. Unfortunately this
-   driver is unaware of a change and cannot trigger auxiliary actions
-   as it can when the corresponding attribute in the
-   /sys/bus/pseudo/drivers/scsi_debug directory is changed.
- */
+
 module_param_named(add_host, scsi_debug_add_host, int, S_IRUGO | S_IWUSR);
 module_param_named(delay, scsi_debug_delay, int, S_IRUGO | S_IWUSR);
 module_param_named(dev_size_mb, scsi_debug_dev_size_mb, int, S_IRUGO);
@@ -2470,9 +2402,7 @@ static const char * scsi_debug_info(struct Scsi_Host * shp)
 	return sdebug_info;
 }
 
-/* scsi_debug_proc_info
- * Used if the driver currently has no own support for /proc/scsi
- */
+
 static int scsi_debug_proc_info(struct Scsi_Host *host, char *buffer, char **start, off_t offset,
 				int length, int inout)
 {
@@ -2516,7 +2446,7 @@ static int scsi_debug_proc_info(struct Scsi_Host *host, char *buffer, char **sta
 		len = 0;
 		begin = pos;
 	}
-	*start = buffer + (offset - begin);	/* Start of wanted data */
+	*start = buffer + (offset - begin);	
 	len -= (offset - begin);
 	if (len > length)
 		len = length;
@@ -2817,12 +2747,7 @@ static ssize_t sdebug_ato_show(struct device_driver *ddp, char *buf)
 DRIVER_ATTR(ato, S_IRUGO, sdebug_ato_show, NULL);
 
 
-/* Note: The following function creates attribute files in the
-   /sys/bus/pseudo/drivers/scsi_debug directory. The advantage of these
-   files (over those found in the /sys/module/scsi_debug/parameters
-   directory) is that auxiliary actions can be triggered when an attribute
-   is changed. For example see: sdebug_add_host_store() above.
- */
+
 static int do_create_driverfs_files(void)
 {
 	int ret;
@@ -2940,12 +2865,12 @@ static int __init scsi_debug_init(void)
 	}
 
 	if (scsi_debug_dev_size_mb < 1)
-		scsi_debug_dev_size_mb = 1;  /* force minimum 1 MB ramdisk */
+		scsi_debug_dev_size_mb = 1;  
 	sz = (unsigned long)scsi_debug_dev_size_mb * 1048576;
 	sdebug_store_sectors = sz / scsi_debug_sector_size;
 	sdebug_capacity = get_sdebug_capacity();
 
-	/* play around with geometry, don't waste too much on track 0 */
+	
 	sdebug_heads = 8;
 	sdebug_sectors_per = 32;
 	if (scsi_debug_dev_size_mb >= 16)
@@ -2955,7 +2880,7 @@ static int __init scsi_debug_init(void)
 	sdebug_cylinders_per = (unsigned long)sdebug_capacity /
 			       (sdebug_sectors_per * sdebug_heads);
 	if (sdebug_cylinders_per >= 1024) {
-		/* other LLDs do this; implies >= 1GB ram disk ... */
+		
 		sdebug_heads = 255;
 		sdebug_sectors_per = 63;
 		sdebug_cylinders_per = (unsigned long)sdebug_capacity /
@@ -3198,15 +3123,15 @@ int scsi_debug_queuecommand(struct scsi_cmnd *SCpnt, done_funct_t done)
 		if (scsi_debug_every_nth < -1)
 			scsi_debug_every_nth = -1;
 		if (SCSI_DEBUG_OPT_TIMEOUT & scsi_debug_opts)
-			return 0; /* ignore command causing timeout */
+			return 0; 
 		else if (SCSI_DEBUG_OPT_RECOVERED_ERR & scsi_debug_opts)
-			inj_recovered = 1; /* to reads and writes below */
+			inj_recovered = 1; 
 		else if (SCSI_DEBUG_OPT_TRANSPORT_ERR & scsi_debug_opts)
-			inj_transport = 1; /* to reads and writes below */
+			inj_transport = 1; 
 		else if (SCSI_DEBUG_OPT_DIF_ERR & scsi_debug_opts)
-			inj_dif = 1; /* to reads and writes below */
+			inj_dif = 1; 
 		else if (SCSI_DEBUG_OPT_DIX_ERR & scsi_debug_opts)
-			inj_dix = 1; /* to reads and writes below */
+			inj_dix = 1; 
 	}
 
 	if (devip->wlun) {
@@ -3215,7 +3140,7 @@ int scsi_debug_queuecommand(struct scsi_cmnd *SCpnt, done_funct_t done)
 		case REQUEST_SENSE:
 		case TEST_UNIT_READY:
 		case REPORT_LUNS:
-			break;  /* only allowable wlun commands */
+			break;  
 		default:
 			if (SCSI_DEBUG_OPT_NOISE & scsi_debug_opts)
 				printk(KERN_INFO "scsi_debug: Opcode: 0x%x "
@@ -3229,15 +3154,15 @@ int scsi_debug_queuecommand(struct scsi_cmnd *SCpnt, done_funct_t done)
 	}
 
 	switch (*cmd) {
-	case INQUIRY:     /* mandatory, ignore unit attention */
+	case INQUIRY:     
 		delay_override = 1;
 		errsts = resp_inquiry(SCpnt, target, devip);
 		break;
-	case REQUEST_SENSE:	/* mandatory, ignore unit attention */
+	case REQUEST_SENSE:	
 		delay_override = 1;
 		errsts = resp_requests(SCpnt, devip);
 		break;
-	case REZERO_UNIT:	/* actually this is REWIND for SSC */
+	case REZERO_UNIT:	
 	case START_STOP:
 		errsts = resp_start_stop(SCpnt, devip);
 		break;
@@ -3249,10 +3174,10 @@ int scsi_debug_queuecommand(struct scsi_cmnd *SCpnt, done_funct_t done)
 			printk(KERN_INFO "scsi_debug: Medium removal %s\n",
 			       cmd[4] ? "inhibited" : "enabled");
 		break;
-	case SEND_DIAGNOSTIC:     /* mandatory */
+	case SEND_DIAGNOSTIC:     
 		errsts = check_readiness(SCpnt, 1, devip);
 		break;
-	case TEST_UNIT_READY:     /* mandatory */
+	case TEST_UNIT_READY:     
 		delay_override = 1;
 		errsts = check_readiness(SCpnt, 0, devip);
 		break;
@@ -3292,7 +3217,7 @@ int scsi_debug_queuecommand(struct scsi_cmnd *SCpnt, done_funct_t done)
 	case READ_16:
 	case READ_12:
 	case READ_10:
-		/* READ{10,12,16} and DIF Type 2 are natural enemies */
+		
 		if (scsi_debug_dif == SD_DIF_TYPE2_PROTECTION &&
 		    cmd[1] & 0xe0) {
 			mk_sense_buffer(devip, ILLEGAL_REQUEST,
@@ -3306,7 +3231,7 @@ int scsi_debug_queuecommand(struct scsi_cmnd *SCpnt, done_funct_t done)
 		    (cmd[1] & 0xe0) == 0)
 			printk(KERN_ERR "Unprotected RD/WR to DIF device\n");
 
-		/* fall through */
+		
 	case READ_6:
 read:
 		errsts = check_readiness(SCpnt, 0, devip);
@@ -3332,17 +3257,17 @@ read:
 			errsts = illegal_condition_result;
 		}
 		break;
-	case REPORT_LUNS:	/* mandatory, ignore unit attention */
+	case REPORT_LUNS:	
 		delay_override = 1;
 		errsts = resp_report_luns(SCpnt, devip);
 		break;
-	case VERIFY:		/* 10 byte SBC-2 command */
+	case VERIFY:		
 		errsts = check_readiness(SCpnt, 0, devip);
 		break;
 	case WRITE_16:
 	case WRITE_12:
 	case WRITE_10:
-		/* WRITE{10,12,16} and DIF Type 2 are natural enemies */
+		
 		if (scsi_debug_dif == SD_DIF_TYPE2_PROTECTION &&
 		    cmd[1] & 0xe0) {
 			mk_sense_buffer(devip, ILLEGAL_REQUEST,
@@ -3356,7 +3281,7 @@ read:
 		    (cmd[1] & 0xe0) == 0)
 			printk(KERN_ERR "Unprotected RD/WR to DIF device\n");
 
-		/* fall through */
+		
 	case WRITE_6:
 write:
 		errsts = check_readiness(SCpnt, 0, devip);
@@ -3449,7 +3374,7 @@ write:
 			       "supported\n", *cmd);
 		errsts = check_readiness(SCpnt, 1, devip);
 		if (errsts)
-			break;	/* Unit attention takes precedence */
+			break;	
 		mk_sense_buffer(devip, ILLEGAL_REQUEST, INVALID_OPCODE, 0);
 		errsts = check_condition_result;
 		break;
@@ -3504,7 +3429,7 @@ static int sdebug_driver_probe(struct device * dev)
 		hpnt->max_id = scsi_debug_num_tgts + 1;
 	else
 		hpnt->max_id = scsi_debug_num_tgts;
-	hpnt->max_lun = SAM2_WLUN_REPORT_LUNS;	/* = scsi_debug_max_luns; */
+	hpnt->max_lun = SAM2_WLUN_REPORT_LUNS;	
 
 	host_prot = 0;
 

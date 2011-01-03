@@ -1,14 +1,4 @@
-/*
- * drivers/mtd/nand/orion_nand.c
- *
- * NAND support for Marvell Orion SoC platforms
- *
- * Tzachi Perelstein <tzachi@marvell.com>
- *
- * This file is licensed under  the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -126,7 +116,7 @@ static int __init orion_nand_probe(struct platform_device *pdev)
 	mtd->name = "orion_nand";
 	num_part = parse_mtd_partitions(mtd, part_probes, &partitions, 0);
 #endif
-	/* If cmdline partitions have been passed, let them be used */
+	
 	if (num_part <= 0) {
 		num_part = board->nr_parts;
 		partitions = board->parts;

@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/cpu-freq-debugfs.c
- *
- * Copyright (c) 2009 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX CPU Frequency scaling - debugfs status support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>

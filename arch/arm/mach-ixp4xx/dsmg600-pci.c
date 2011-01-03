@@ -1,20 +1,4 @@
-/*
- * DSM-G600 board-level PCI initialization
- *
- * Copyright (C) 2006 Tower Technologies
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- * based on ixdp425-pci.c:
- *	Copyright (C) 2002 Intel Corporation.
- *	Copyright (C) 2003-2004 MontaVista Software, Inc.
- *
- * Maintainer: http://www.nslu2-linux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/pci.h>
 #include <linux/init.h>

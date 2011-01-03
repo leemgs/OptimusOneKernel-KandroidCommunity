@@ -1,20 +1,4 @@
-/*
- *	iovec manipulation routines.
- *
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- *	Fixes:
- *		Andrew Lunn	:	Errors in iovec copying.
- *		Pedro Roque	:	Added memcpy_fromiovecend and
- *					csum_..._fromiovecend.
- *		Andi Kleen	:	fixed error handling for 2.1
- *		Alexey Kuznetsov:	2.1 optimisations
- *		Andi Kleen	:	Fix csum*fromiovecend for IPv6.
- */
+
 
 #include <linux/errno.h>
 #include <linux/module.h>
@@ -28,13 +12,7 @@
 #include <net/checksum.h>
 #include <net/sock.h>
 
-/*
- *	Verify iovec. The caller must ensure that the iovec is big enough
- *	to hold the message iovec.
- *
- *	Save time not doing access_ok. copy_*_user will make this work
- *	in any case.
- */
+
 
 int verify_iovec(struct msghdr *m, struct iovec *iov, struct sockaddr *address, int mode)
 {
@@ -61,11 +39,7 @@ int verify_iovec(struct msghdr *m, struct iovec *iov, struct sockaddr *address, 
 
 	for (ct = 0; ct < m->msg_iovlen; ct++) {
 		err += iov[ct].iov_len;
-		/*
-		 * Goal is not to verify user data, but to prevent returning
-		 * negative value, which is interpreted as errno.
-		 * Overflow is still possible, but it is harmless.
-		 */
+		
 		if (err < 0)
 			return -EMSGSIZE;
 	}
@@ -73,11 +47,7 @@ int verify_iovec(struct msghdr *m, struct iovec *iov, struct sockaddr *address, 
 	return err;
 }
 
-/*
- *	Copy kernel to iovec. Returns -EFAULT on error.
- *
- *	Note: this modifies the original iovec.
- */
+
 
 int memcpy_toiovec(struct iovec *iov, unsigned char *kdata, int len)
 {
@@ -97,16 +67,14 @@ int memcpy_toiovec(struct iovec *iov, unsigned char *kdata, int len)
 	return 0;
 }
 
-/*
- *	Copy kernel to iovec. Returns -EFAULT on error.
- */
+
 
 int memcpy_toiovecend(const struct iovec *iov, unsigned char *kdata,
 		      int offset, int len)
 {
 	int copy;
 	for (; len > 0; ++iov) {
-		/* Skip over the finished iovecs */
+		
 		if (unlikely(offset >= iov->iov_len)) {
 			offset -= iov->iov_len;
 			continue;
@@ -122,11 +90,7 @@ int memcpy_toiovecend(const struct iovec *iov, unsigned char *kdata,
 	return 0;
 }
 
-/*
- *	Copy iovec to kernel. Returns -EFAULT on error.
- *
- *	Note: this modifies the original iovec.
- */
+
 
 int memcpy_fromiovec(unsigned char *kdata, struct iovec *iov, int len)
 {
@@ -146,14 +110,12 @@ int memcpy_fromiovec(unsigned char *kdata, struct iovec *iov, int len)
 	return 0;
 }
 
-/*
- *	Copy iovec from kernel. Returns -EFAULT on error.
- */
+
 
 int memcpy_fromiovecend(unsigned char *kdata, const struct iovec *iov,
 			int offset, int len)
 {
-	/* Skip over the finished iovecs */
+	
 	while (offset >= iov->iov_len) {
 		offset -= iov->iov_len;
 		iov++;
@@ -174,21 +136,14 @@ int memcpy_fromiovecend(unsigned char *kdata, const struct iovec *iov,
 	return 0;
 }
 
-/*
- *	And now for the all-in-one: copy and checksum from a user iovec
- *	directly to a datagram
- *	Calls to csum_partial but the last must be in 32 bit chunks
- *
- *	ip_build_xmit must ensure that when fragmenting only the last
- *	call to this function will be unaligned also.
- */
+
 int csum_partial_copy_fromiovecend(unsigned char *kdata, struct iovec *iov,
 				 int offset, unsigned int len, __wsum *csump)
 {
 	__wsum csum = *csump;
 	int partial_cnt = 0, err = 0;
 
-	/* Skip over the finished iovecs */
+	
 	while (offset >= iov->iov_len) {
 		offset -= iov->iov_len;
 		iov++;
@@ -200,11 +155,11 @@ int csum_partial_copy_fromiovecend(unsigned char *kdata, struct iovec *iov,
 
 		offset = 0;
 
-		/* There is a remnant from previous iov. */
+		
 		if (partial_cnt) {
 			int par_len = 4 - partial_cnt;
 
-			/* iov component is too short ... */
+			
 			if (par_len > copy) {
 				if (copy_from_user(kdata, base, copy))
 					goto out_fault;

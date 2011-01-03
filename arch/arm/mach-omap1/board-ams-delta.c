@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-ams-delta.c
- *
- * Modified from board-generic.c
- *
- * Board specific inits for the Amstrad E3 (codename Delta) videophone
- *
- * Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -37,22 +25,22 @@ static u8 ams_delta_latch1_reg;
 static u16 ams_delta_latch2_reg;
 
 static int ams_delta_keymap[] = {
-	KEY(0, 0, KEY_F1),		/* Advert    */
+	KEY(0, 0, KEY_F1),		
 
-	KEY(3, 0, KEY_COFFEE),		/* Games     */
-	KEY(2, 0, KEY_QUESTION),	/* Directory */
-	KEY(3, 2, KEY_CONNECT),		/* Internet  */
-	KEY(2, 1, KEY_SHOP),		/* Services  */
-	KEY(1, 1, KEY_PHONE),		/* VoiceMail */
+	KEY(3, 0, KEY_COFFEE),		
+	KEY(2, 0, KEY_QUESTION),	
+	KEY(3, 2, KEY_CONNECT),		
+	KEY(2, 1, KEY_SHOP),		
+	KEY(1, 1, KEY_PHONE),		
 
-	KEY(1, 0, KEY_DELETE),		/* Delete    */
-	KEY(2, 2, KEY_PLAY),		/* Play      */
-	KEY(0, 1, KEY_PAGEUP),		/* Up        */
-	KEY(3, 1, KEY_PAGEDOWN),	/* Down      */
-	KEY(0, 2, KEY_EMAIL),		/* ReadEmail */
-	KEY(1, 2, KEY_STOP),		/* Stop      */
+	KEY(1, 0, KEY_DELETE),		
+	KEY(2, 2, KEY_PLAY),		
+	KEY(0, 1, KEY_PAGEUP),		
+	KEY(3, 1, KEY_PAGEDOWN),	
+	KEY(0, 2, KEY_EMAIL),		
+	KEY(1, 2, KEY_STOP),		
 
-	/* Numeric keypad portion */
+	
 	KEY(7, 0, KEY_KP1),
 	KEY(6, 0, KEY_KP2),
 	KEY(5, 0, KEY_KP3),
@@ -64,22 +52,22 @@ static int ams_delta_keymap[] = {
 	KEY(5, 2, KEY_KP9),
 	KEY(6, 3, KEY_KP0),
 	KEY(7, 3, KEY_KPASTERISK),
-	KEY(5, 3, KEY_KPDOT),		/* # key     */
-	KEY(2, 7, KEY_NUMLOCK),		/* Mute      */
-	KEY(1, 7, KEY_KPMINUS),		/* Recall    */
-	KEY(1, 6, KEY_KPPLUS),		/* Redial    */
-	KEY(6, 7, KEY_KPSLASH),		/* Handsfree */
-	KEY(0, 6, KEY_ENTER),		/* Video     */
+	KEY(5, 3, KEY_KPDOT),		
+	KEY(2, 7, KEY_NUMLOCK),		
+	KEY(1, 7, KEY_KPMINUS),		
+	KEY(1, 6, KEY_KPPLUS),		
+	KEY(6, 7, KEY_KPSLASH),		
+	KEY(0, 6, KEY_ENTER),		
 
-	KEY(4, 7, KEY_CAMERA),		/* Photo     */
+	KEY(4, 7, KEY_CAMERA),		
 
-	KEY(4, 0, KEY_F2),		/* Home      */
-	KEY(4, 1, KEY_F3),		/* Office    */
-	KEY(4, 2, KEY_F4),		/* Mobile    */
-	KEY(7, 7, KEY_F5),		/* SMS       */
-	KEY(5, 7, KEY_F6),		/* Email     */
+	KEY(4, 0, KEY_F2),		
+	KEY(4, 1, KEY_F3),		
+	KEY(4, 2, KEY_F4),		
+	KEY(7, 7, KEY_F5),		
+	KEY(5, 7, KEY_F6),		
 
-	/* QWERTY portion of keypad */
+	
 	KEY(4, 3, KEY_Q),
 	KEY(3, 3, KEY_W),
 	KEY(2, 3, KEY_E),
@@ -110,8 +98,8 @@ static int ams_delta_keymap[] = {
 	KEY(3, 6, KEY_M),
 	KEY(2, 6, KEY_SPACE),
 
-	KEY(0, 7, KEY_LEFTSHIFT),	/* Vol up    */
-	KEY(3, 7, KEY_LEFTCTRL),	/* Vol down  */
+	KEY(0, 7, KEY_LEFTSHIFT),	
+	KEY(3, 7, KEY_LEFTCTRL),	
 
 	0
 };
@@ -138,21 +126,21 @@ static void __init ams_delta_init_irq(void)
 }
 
 static struct map_desc ams_delta_io_desc[] __initdata = {
-	/* AMS_DELTA_LATCH1 */
+	
 	{
 		.virtual	= AMS_DELTA_LATCH1_VIRT,
 		.pfn		= __phys_to_pfn(AMS_DELTA_LATCH1_PHYS),
 		.length		= 0x01000000,
 		.type		= MT_DEVICE
 	},
-	/* AMS_DELTA_LATCH2 */
+	
 	{
 		.virtual	= AMS_DELTA_LATCH2_VIRT,
 		.pfn		= __phys_to_pfn(AMS_DELTA_LATCH2_PHYS),
 		.length		= 0x01000000,
 		.type		= MT_DEVICE
 	},
-	/* AMS_DELTA_MODEM */
+	
 	{
 		.virtual	= AMS_DELTA_MODEM_VIRT,
 		.pfn		= __phys_to_pfn(AMS_DELTA_MODEM_PHYS),
@@ -219,7 +207,7 @@ static struct platform_device *ams_delta_devices[] __initdata = {
 
 static void __init ams_delta_init(void)
 {
-	/* mux pins for uarts */
+	
 	omap_cfg_reg(UART1_TX);
 	omap_cfg_reg(UART1_RTS);
 
@@ -230,7 +218,7 @@ static void __init ams_delta_init(void)
 	omap_serial_init();
 	omap_register_i2c_bus(1, 100, NULL, 0);
 
-	/* Clear latch2 (NAND, LCD, modem enable) */
+	
 	ams_delta_latch2_write(~0, 0);
 
 	omap_usb_init(&ams_delta_usb_config);
@@ -243,7 +231,7 @@ static struct plat_serial8250_port ams_delta_modem_ports[] = {
 	{
 		.membase	= (void *) AMS_DELTA_MODEM_VIRT,
 		.mapbase	= AMS_DELTA_MODEM_PHYS,
-		.irq		= -EINVAL, /* changed later */
+		.irq		= -EINVAL, 
 		.flags		= UPF_BOOT_AUTOCONF,
 		.irqflags	= IRQF_TRIGGER_RISING,
 		.iotype		= UPIO_MEM,
@@ -280,7 +268,7 @@ static void __init ams_delta_map_io(void)
 }
 
 MACHINE_START(AMS_DELTA, "Amstrad E3 (Delta)")
-	/* Maintainer: Jonathan McDowell <noodles@earth.li> */
+	
 	.phys_io	= 0xfff00000,
 	.io_pg_offst	= ((0xfef00000) >> 18) & 0xfffc,
 	.boot_params	= 0x10000100,

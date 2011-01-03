@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #include <bfa.h>
 #include <bfi/bfi_cbreg.h>
 #include <bfa_port_priv.h>
@@ -40,9 +25,7 @@ bfa_msix_all(struct bfa_s *bfa, int vec)
 	bfa_intx(bfa);
 }
 
-/**
- *  hal_intr_api
- */
+
 bfa_boolean_t
 bfa_intx(struct bfa_s *bfa)
 {
@@ -53,9 +36,7 @@ bfa_intx(struct bfa_s *bfa)
 	if (!intr)
 		return BFA_FALSE;
 
-	/**
-	 * RME completion queue interrupt
-	 */
+	
 	qintr = intr & __HFN_INT_RME_MASK;
 	bfa_reg_write(bfa->iocfc.bfa_regs.intr_status, qintr);
 
@@ -67,9 +48,7 @@ bfa_intx(struct bfa_s *bfa)
 	if (!intr)
 		return BFA_TRUE;
 
-	/**
-	 * CPE completion queue interrupt
-	 */
+	
 	qintr = intr & __HFN_INT_CPE_MASK;
 	bfa_reg_write(bfa->iocfc.bfa_regs.intr_status, qintr);
 
@@ -134,9 +113,7 @@ bfa_msix_reqq(struct bfa_s *bfa, int qid)
 
 	waitq = bfa_reqq(bfa, qid);
 	list_for_each_safe(qe, qen, waitq) {
-		/**
-		 * Callback only as long as there is room in request queue
-		 */
+		
 		if (bfa_reqq_full(bfa, qid))
 			break;
 
@@ -185,9 +162,7 @@ bfa_msix_rspq(struct bfa_s *bfa, int rsp_qid)
 		}
 	}
 
-	/**
-	 * update CI
-	 */
+	
 	bfa_rspq_ci(bfa, rsp_qid) = pi;
 	bfa_reg_write(bfa->iocfc.bfa_regs.rme_q_ci[rsp_qid], pi);
 	bfa_os_mmiowb();

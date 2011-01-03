@@ -1,28 +1,4 @@
-/*
- *
- * dvb_ringbuffer.c: ring buffer implementation for the dvb driver
- *
- * Copyright (C) 2003 Oliver Endriss
- * Copyright (C) 2004 Andrew de Quincey
- *
- * based on code originally found in av7110.c & dvb_ci.c:
- * Copyright (C) 1999-2003 Ralph  Metzler
- *                       & Marcus Metzler for convergence integrated media GmbH
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation; either version 2.1
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 
 
@@ -238,14 +214,14 @@ void dvb_ringbuffer_pkt_dispose(struct dvb_ringbuffer *rbuf, size_t idx)
 
 	rbuf->data[(idx + 2) % rbuf->size] = PKT_DISPOSED;
 
-	// clean up disposed packets
+	
 	while(dvb_ringbuffer_avail(rbuf) > DVB_RINGBUFFER_PKTHDRSIZE) {
 		if (DVB_RINGBUFFER_PEEK(rbuf, 2) == PKT_DISPOSED) {
 			pktlen = DVB_RINGBUFFER_PEEK(rbuf, 0) << 8;
 			pktlen |= DVB_RINGBUFFER_PEEK(rbuf, 1);
 			DVB_RINGBUFFER_SKIP(rbuf, pktlen + DVB_RINGBUFFER_PKTHDRSIZE);
 		} else {
-			// first packet is not disposed, so we stop cleaning now
+			
 			break;
 		}
 	}
@@ -282,7 +258,7 @@ ssize_t dvb_ringbuffer_pkt_next(struct dvb_ringbuffer *rbuf, size_t idx, size_t*
 		idx = (idx + curpktlen + DVB_RINGBUFFER_PKTHDRSIZE) % rbuf->size;
 	}
 
-	// no packets available
+	
 	return -1;
 }
 

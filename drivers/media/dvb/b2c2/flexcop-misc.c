@@ -1,8 +1,4 @@
-/*
- * Linux driver for digital TV devices equipped with B2C2 FlexcopII(b)/III
- * flexcop-misc.c - miscellaneous functions
- * see flexcop.c for copyright information
- */
+
 #include "flexcop.h"
 
 void flexcop_determine_revision(struct flexcop_device *fc)
@@ -35,7 +31,7 @@ void flexcop_determine_revision(struct flexcop_device *fc)
 	else
 		deb_info("this FlexCop has "
 				"the 6 basic main hardware pid filter.\n");
-	/* bus parts have to decide if hw pid filtering is used or not. */
+	
 }
 
 static const char *flexcop_revision_names[] = {

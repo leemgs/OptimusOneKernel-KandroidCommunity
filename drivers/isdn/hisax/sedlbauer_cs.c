@@ -1,39 +1,4 @@
-/*======================================================================
 
-    A Sedlbauer PCMCIA client driver
-
-    This driver is for the Sedlbauer Speed Star and Speed Star II, 
-    which are ISDN PCMCIA Cards.
-    
-    The contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is David A. Hinds
-    <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
-    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
-
-    Modifications from dummy_cs.c are Copyright (C) 1999-2001 Marcus Niemann
-    <maniemann@users.sourceforge.net>. All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU General Public License version 2 (the "GPL"), in
-    which case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-    
-======================================================================*/
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -57,13 +22,7 @@ MODULE_DESCRIPTION("ISDN4Linux: PCMCIA client driver for Sedlbauer cards");
 MODULE_AUTHOR("Marcus Niemann");
 MODULE_LICENSE("Dual MPL/GPL");
 
-/*
-   All the PCMCIA modules use PCMCIA_DEBUG to control debugging.  If
-   you do not define PCMCIA_DEBUG at all, all the debug code will be
-   left out.  If you compile with PCMCIA_DEBUG=0, the debug code will
-   be present but disabled -- but it can then be enabled for specific
-   modules at load time with a 'pc_debug=#' option to insmod.
-*/
+
 
 #ifdef PCMCIA_DEBUG
 static int pc_debug = PCMCIA_DEBUG;
@@ -76,57 +35,27 @@ static char *version =
 #endif
 
 
-/*====================================================================*/
 
-/* Parameters that can be set with 'insmod' */
 
-static int protocol = 2;        /* EURO-ISDN Default */
+
+
+static int protocol = 2;        
 module_param(protocol, int, 0);
 
-/*====================================================================*/
 
-/*
-   The event() function is this driver's Card Services event handler.
-   It will be called by Card Services when an appropriate card status
-   event is received.  The config() and release() entry points are
-   used to configure or release a socket, in response to card
-   insertion and ejection events.  They are invoked from the sedlbauer
-   event handler. 
-*/
+
+
 
 static int sedlbauer_config(struct pcmcia_device *link);
 static void sedlbauer_release(struct pcmcia_device *link);
 
-/*
-   The attach() and detach() entry points are used to create and destroy
-   "instances" of the driver, where each instance represents everything
-   needed to manage one actual PCMCIA card.
-*/
+
 
 static void sedlbauer_detach(struct pcmcia_device *p_dev);
 
-/*
-   You'll also need to prototype all the functions that will actually
-   be used to talk to your device.  See 'memory_cs' for a good example
-   of a fully self-sufficient driver; the other drivers rely more or
-   less on other parts of the kernel.
-*/
 
-/*
-   A driver needs to provide a dev_node_t structure for each device
-   on a card.  In some cases, there is only one device per card (for
-   example, ethernet cards, modems).  In other cases, there may be
-   many actual or logical devices (SCSI adapters, memory cards with
-   multiple partitions).  The dev_node_t structures need to be kept
-   in a linked list starting at the 'dev' field of a struct pcmcia_device
-   structure.  We allocate them in the card's private data structure,
-   because they generally shouldn't be allocated dynamically.
 
-   In this case, we also provide a flag to indicate if a device is
-   "stopped" due to a power management event, or card ejection.  The
-   device IO routines can use a flag like this to throttle IO to a
-   card that is not ready to accept it.
-*/
+
    
 typedef struct local_info_t {
 	struct pcmcia_device	*p_dev;
@@ -135,17 +64,7 @@ typedef struct local_info_t {
     int			cardnr;
 } local_info_t;
 
-/*======================================================================
 
-    sedlbauer_attach() creates an "instance" of the driver, allocating
-    local data structures for one device.  The device is registered
-    with Card Services.
-
-    The dev_link structure is initialized, but we don't actually
-    configure the card at this point -- we wait until we receive a
-    card insertion event.
-    
-======================================================================*/
 
 static int sedlbauer_probe(struct pcmcia_device *link)
 {
@@ -153,7 +72,7 @@ static int sedlbauer_probe(struct pcmcia_device *link)
 
     DEBUG(0, "sedlbauer_attach()\n");
 
-    /* Allocate space for private device-specific data */
+    
     local = kzalloc(sizeof(local_info_t), GFP_KERNEL);
     if (!local) return -ENOMEM;
     local->cardnr = -1;
@@ -161,22 +80,15 @@ static int sedlbauer_probe(struct pcmcia_device *link)
     local->p_dev = link;
     link->priv = local;
 
-    /* Interrupt setup */
+    
     link->irq.Attributes = IRQ_TYPE_DYNAMIC_SHARING|IRQ_FIRST_SHARED;
     link->irq.IRQInfo1 = IRQ_LEVEL_ID;
     link->irq.Handler = NULL;
 
-    /*
-      General socket configuration defaults can go here.  In this
-      client, we assume very little, and rely on the CIS for almost
-      everything.  In most clients, many details (i.e., number, sizes,
-      and attributes of IO windows) are fixed by the nature of the
-      device, and can be hard-wired here.
-    */
+    
 
-    /* from old sedl_cs 
-    */
-    /* The io structure describes IO port mapping */
+    
+    
     link->io.NumPorts1 = 8;
     link->io.Attributes1 = IO_DATA_PATH_WIDTH_8;
     link->io.IOAddrLines = 3;
@@ -185,16 +97,9 @@ static int sedlbauer_probe(struct pcmcia_device *link)
     link->conf.IntType = INT_MEMORY_AND_IO;
 
     return sedlbauer_config(link);
-} /* sedlbauer_attach */
+} 
 
-/*======================================================================
 
-    This deletes a driver "instance".  The device is de-registered
-    with Card Services.  If it has been released, all local data
-    structures are freed.  Otherwise, the structures will be freed
-    when the device is released.
-
-======================================================================*/
 
 static void sedlbauer_detach(struct pcmcia_device *link)
 {
@@ -203,17 +108,11 @@ static void sedlbauer_detach(struct pcmcia_device *link)
 	((local_info_t *)link->priv)->stop = 1;
 	sedlbauer_release(link);
 
-	/* This points to the parent local_info_t struct */
+	
 	kfree(link->priv);
-} /* sedlbauer_detach */
+} 
 
-/*======================================================================
 
-    sedlbauer_config() is scheduled to run after a CARD_INSERTION event
-    is received, to configure the PCMCIA socket, and to make the
-    device available to the system.
-    
-======================================================================*/
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
 
@@ -228,14 +127,14 @@ static int sedlbauer_config_check(struct pcmcia_device *p_dev,
 	if (cfg->index == 0)
 		return -ENODEV;
 
-	/* Does this card need audio output? */
+	
 	if (cfg->flags & CISTPL_CFTABLE_AUDIO) {
 		p_dev->conf.Attributes |= CONF_ENABLE_SPKR;
 		p_dev->conf.Status = CCSR_AUDIO_ENA;
 	}
 
-	/* Use power settings for Vcc and Vpp if present */
-	/*  Note that the CIS values need to be rescaled */
+	
+	
 	if (cfg->vcc.present & (1<<CISTPL_POWER_VNOM)) {
 		if (vcc != cfg->vcc.param[CISTPL_POWER_VNOM]/10000)
 			return -ENODEV;
@@ -249,11 +148,11 @@ static int sedlbauer_config_check(struct pcmcia_device *p_dev,
 	else if (dflt->vpp1.present & (1<<CISTPL_POWER_VNOM))
 		p_dev->conf.Vpp = dflt->vpp1.param[CISTPL_POWER_VNOM]/10000;
 
-	/* Do we need to allocate an interrupt? */
+	
 	if (cfg->irq.IRQInfo1 || dflt->irq.IRQInfo1)
 		p_dev->conf.Attributes |= CONF_ENABLE_IRQ;
 
-	/* IO window settings */
+	
 	p_dev->io.NumPorts1 = p_dev->io.NumPorts2 = 0;
 	if ((cfg->io.nwin > 0) || (dflt->io.nwin > 0)) {
 		cistpl_io_t *io = (cfg->io.nwin) ? &cfg->io : &dflt->io;
@@ -269,22 +168,12 @@ static int sedlbauer_config_check(struct pcmcia_device *p_dev,
 			p_dev->io.BasePort2 = io->win[1].base;
 			p_dev->io.NumPorts2 = io->win[1].len;
 		}
-		/* This reserves IO space but doesn't actually enable it */
+		
 		if (pcmcia_request_io(p_dev, &p_dev->io) != 0)
 			return -ENODEV;
 	}
 
-	/*
-	  Now set up a common memory window, if needed.  There is room
-	  in the struct pcmcia_device structure for one memory window handle,
-	  but if the base addresses need to be saved, or if multiple
-	  windows are needed, the info should go in the private data
-	  structure for this device.
-
-	  Note that the memory window base is a physical address, and
-	  needs to be mapped to virtual space with ioremap() before it
-	  is used.
-	*/
+	
 	if ((cfg->mem.nwin > 0) || (dflt->mem.nwin > 0)) {
 		cistpl_mem_t *mem = (cfg->mem.nwin) ? &cfg->mem : &dflt->mem;
 		memreq_t map;
@@ -318,46 +207,24 @@ static int sedlbauer_config(struct pcmcia_device *link)
     if (!req)
 	    return -ENOMEM;
 
-    /*
-      In this loop, we scan the CIS for configuration table entries,
-      each of which describes a valid card configuration, including
-      voltage, IO window, memory window, and interrupt settings.
-
-      We make no assumptions about the card to be configured: we use
-      just the information available in the CIS.  In an ideal world,
-      this would work for any PCMCIA card, but it requires a complete
-      and accurate CIS.  In practice, a driver usually "knows" most of
-      these things without consulting the CIS, and most client drivers
-      will only use the CIS to fill in implementation-defined details.
-    */
+    
     last_ret = pcmcia_loop_config(link, sedlbauer_config_check, req);
     if (last_ret)
 	    goto failed;
 
-    /*
-       Allocate an interrupt line.  Note that this does not assign a
-       handler to the interrupt, unless the 'Handler' member of the
-       irq structure is initialized.
-    */
+    
     if (link->conf.Attributes & CONF_ENABLE_IRQ)
 	CS_CHECK(RequestIRQ, pcmcia_request_irq(link, &link->irq));
 	
-    /*
-       This actually configures the PCMCIA socket -- setting up
-       the I/O windows and the interrupt mapping, and putting the
-       card and host interface into "Memory and IO" mode.
-    */
+    
     CS_CHECK(RequestConfiguration, pcmcia_request_configuration(link, &link->conf));
 
-    /*
-      At this point, the dev_node_t structure(s) need to be
-      initialized and arranged in a linked list at link->dev.
-    */
+    
     sprintf(dev->node.dev_name, "sedlbauer");
     dev->node.major = dev->node.minor = 0;
     link->dev_node = &dev->node;
 
-    /* Finally, report what we've done */
+    
     printk(KERN_INFO "%s: index 0x%02x:",
 	   dev->node.dev_name, link->conf.ConfigIndex);
     if (link->conf.Vpp)
@@ -397,15 +264,9 @@ failed:
     sedlbauer_release(link);
     return -ENODEV;
 
-} /* sedlbauer_config */
+} 
 
-/*======================================================================
 
-    After a card is removed, sedlbauer_release() will unregister the
-    device, and release the PCMCIA configuration.  If the device is
-    still open, this will be postponed until it is closed.
-    
-======================================================================*/
 
 static void sedlbauer_release(struct pcmcia_device *link)
 {
@@ -414,13 +275,13 @@ static void sedlbauer_release(struct pcmcia_device *link)
 
     if (local) {
     	if (local->cardnr >= 0) {
-    	    /* no unregister function with hisax */
+    	    
 	    HiSax_closecard(local->cardnr);
 	}
     }
 
     pcmcia_disable_device(link);
-} /* sedlbauer_release */
+} 
 
 static int sedlbauer_suspend(struct pcmcia_device *link)
 {
@@ -448,7 +309,7 @@ static struct pcmcia_device_id sedlbauer_ids[] = {
 	PCMCIA_DEVICE_PROD_ID123("SEDLBAUER", "ISDN-Adapter", " (C) 93-94 VK", 0x81fb79f5, 0xe4e9bc12, 0x8db143fe),
 	PCMCIA_DEVICE_PROD_ID123("SEDLBAUER", "ISDN-Adapter", " (c) 93-95 VK", 0x81fb79f5, 0xe4e9bc12, 0xb391ab4c),
 	PCMCIA_DEVICE_PROD_ID12("HST High Soft Tech GmbH", "Saphir II B", 0xd79e0b84, 0x21d083ae),
-/*	PCMCIA_DEVICE_PROD_ID1234("SEDLBAUER", 0x81fb79f5), */ /* too generic*/
+ 
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, sedlbauer_ids);

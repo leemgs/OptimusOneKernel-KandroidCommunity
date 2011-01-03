@@ -1,27 +1,4 @@
-/*
- * File: pn_netlink.c
- *
- * Phonet netlink interface
- *
- * Copyright (C) 2008 Nokia Corporation.
- *
- * Contact: Remi Denis-Courmont <remi.denis-courmont@nokia.com>
- * Original author: Sakari Ailus <sakari.ailus@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/netlink.h>
@@ -82,7 +59,7 @@ static int addr_doit(struct sk_buff *skb, struct nlmsghdr *nlh, void *attr)
 		return -EINVAL;
 	pnaddr = nla_get_u8(tb[IFA_LOCAL]);
 	if (pnaddr & 3)
-		/* Phonet addresses only have 6 high-order bits */
+		
 		return -EINVAL;
 
 	dev = __dev_get_by_index(net, ifm->ifa_index);
@@ -166,7 +143,7 @@ int __init phonet_netlink_register(void)
 	if (err)
 		return err;
 
-	/* Further __rtnl_register() cannot fail */
+	
 	__rtnl_register(PF_PHONET, RTM_DELADDR, addr_doit, NULL);
 	__rtnl_register(PF_PHONET, RTM_GETADDR, NULL, getaddr_dumpit);
 	return 0;

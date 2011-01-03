@@ -1,35 +1,6 @@
-/**
- * @file op_model_mpcore.c
- * MPCORE Event Monitor Driver
- * @remark Copyright 2004 ARM SMP Development Team
- * @remark Copyright 2000-2004 Deepak Saxena <dsaxena@mvista.com>
- * @remark Copyright 2000-2004 MontaVista Software Inc
- * @remark Copyright 2004 Dave Jiang <dave.jiang@intel.com>
- * @remark Copyright 2004 Intel Corporation
- * @remark Copyright 2004 Zwane Mwaikambo <zwane@arm.linux.org.uk>
- * @remark Copyright 2004 Oprofile Authors
- *
- * @remark Read the file COPYING
- *
- * @author Zwane Mwaikambo
- *
- *  Counters:
- *    0: PMN0 on CPU0, per-cpu configurable event counter
- *    1: PMN1 on CPU0, per-cpu configurable event counter
- *    2: CCNT on CPU0
- *    3: PMN0 on CPU1
- *    4: PMN1 on CPU1
- *    5: CCNT on CPU1
- *    6: PMN0 on CPU1
- *    7: PMN1 on CPU1
- *    8: CCNT on CPU1
- *    9: PMN0 on CPU1
- *   10: PMN1 on CPU1
- *   11: CCNT on CPU1
- *   12-19: configurable SCU event counters
- */
 
-/* #define DEBUG */
+
+
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -49,19 +20,13 @@
 #include "op_model_arm11_core.h"
 #include "op_model_mpcore.h"
 
-/*
- * MPCore SCU event monitor support
- */
+
 #define SCU_EVENTMONITORS_VA_BASE __io_address(REALVIEW_EB11MP_SCU_BASE + 0x10)
 
-/*
- * Bitmask of used SCU counters
- */
+
 static unsigned int scu_em_used;
 
-/*
- * 2 helper fns take a counter number from 0-7 (not the userspace-visible counter number)
- */
+
 static inline void scu_reset_counter(struct eventmonitor __iomem *emc, unsigned int n)
 {
 	writel(-(u32)counter_config[SCU_COUNTER(n)].count, &emc->MC[n]);
@@ -73,9 +38,7 @@ static inline void scu_set_event(struct eventmonitor __iomem *emc, unsigned int 
 	writeb(event, &emc->MCEB[n]);
 }
 
-/*
- * SCU counters' IRQ handler (one IRQ per counter => 2 IRQs per CPU)
- */
+
 static irqreturn_t scu_em_interrupt(int irq, void *arg)
 {
 	struct eventmonitor __iomem *emc = SCU_EVENTMONITORS_VA_BASE;
@@ -85,13 +48,13 @@ static irqreturn_t scu_em_interrupt(int irq, void *arg)
 	oprofile_add_sample(get_irq_regs(), SCU_COUNTER(cnt));
 	scu_reset_counter(emc, cnt);
 
-	/* Clear overflow flag for this counter */
+	
 	writel(1 << (cnt + 16), &emc->PMCR);
 
 	return IRQ_HANDLED;
 }
 
-/* Configure just the SCU counters that the user has requested */
+
 static void scu_setup(void)
 {
 	struct eventmonitor __iomem *emc = SCU_EVENTMONITORS_VA_BASE;
@@ -102,7 +65,7 @@ static void scu_setup(void)
 	for (i = 0; i < NUM_SCU_COUNTERS; i++) {
 		if (counter_config[SCU_COUNTER(i)].enabled &&
 		    counter_config[SCU_COUNTER(i)].event) {
-			scu_set_event(emc, i, 0); /* disable counter for now */
+			scu_set_event(emc, i, 0); 
 			scu_em_used |= 1 << i;
 		}
 	}
@@ -115,9 +78,7 @@ static int scu_start(void)
 	unsigned long event;
 	int ret = 0;
 
-	/*
-	 * request the SCU counter interrupts that we need
-	 */
+	
 	for (i = 0; i < NUM_SCU_COUNTERS; i++) {
 		if (scu_em_used & (1 << i)) {
 			ret = request_irq(IRQ_EB11MP_PMU_SCU0 + i, scu_em_interrupt, IRQF_DISABLED, "SCU PMU", NULL);
@@ -129,9 +90,7 @@ static int scu_start(void)
 		}
 	}
 
-	/*
-	 * clear overflow and enable interrupt for all used counters
-	 */
+	
 	temp = readl(&emc->PMCR);
 	for (i = 0; i < NUM_SCU_COUNTERS; i++) {
 		if (scu_em_used & (1 << i)) {
@@ -139,14 +98,14 @@ static int scu_start(void)
 			event = counter_config[SCU_COUNTER(i)].event;
 			scu_set_event(emc, i, event);
 
-			/* clear overflow/interrupt */
+			
 			temp |= 1 << (i + 16);
-			/* enable interrupt*/
+			
 			temp |= 1 << (i + 8);
 		}
 	}
 
-	/* Enable all 8 counters */
+	
 	temp |= PMCR_E;
 	writel(temp, &emc->PMCR);
 
@@ -163,8 +122,8 @@ static void scu_stop(void)
 	struct eventmonitor __iomem *emc = SCU_EVENTMONITORS_VA_BASE;
 	unsigned int temp, i;
 
-	/* Disable counter interrupts */
-	/* Don't disable all 8 counters (with the E bit) as they may be in use */
+	
+	
 	temp = readl(&emc->PMCR);
 	for (i = 0; i < NUM_SCU_COUNTERS; i++) {
 		if (scu_em_used & (1 << i))
@@ -172,7 +131,7 @@ static void scu_stop(void)
 	}
 	writel(temp, &emc->PMCR);
 
-	/* Free counter interrupts and reset counters */
+	
 	for (i = 0; i < NUM_SCU_COUNTERS; i++) {
 		if (scu_em_used & (1 << i)) {
 			scu_reset_counter(emc, i);
@@ -209,15 +168,12 @@ static int em_call_function(int (*fn)(void))
 	return data.ret;
 }
 
-/*
- * Glue to stick the individual ARM11 PMUs and the SCU
- * into the oprofile framework.
- */
+
 static int em_setup_ctrs(void)
 {
 	int ret;
 
-	/* Configure CPU counters by cross-calling to the other CPUs */
+	
 	ret = em_call_function(arm11_setup_pmu);
 	if (ret == 0)
 		scu_setup();
@@ -254,10 +210,7 @@ static void em_stop(void)
 	scu_stop();
 }
 
-/*
- * Why isn't there a function to route an IRQ to a specific CPU in
- * genirq?
- */
+
 static void em_route_irq(int irq, unsigned int cpu)
 {
 	struct irq_desc *desc = irq_desc + irq;
@@ -271,9 +224,7 @@ static void em_route_irq(int irq, unsigned int cpu)
 
 static int em_setup(void)
 {
-	/*
-	 * Send SCU PMU interrupts to the "owner" CPU.
-	 */
+	
 	em_route_irq(IRQ_EB11MP_PMU_SCU0, 0);
 	em_route_irq(IRQ_EB11MP_PMU_SCU1, 0);
 	em_route_irq(IRQ_EB11MP_PMU_SCU2, 1);
@@ -283,9 +234,7 @@ static int em_setup(void)
 	em_route_irq(IRQ_EB11MP_PMU_SCU6, 3);
 	em_route_irq(IRQ_EB11MP_PMU_SCU7, 3);
 
-	/*
-	 * Send CP15 PMU interrupts to the owner CPU.
-	 */
+	
 	em_route_irq(IRQ_EB11MP_PMU_CPU0, 0);
 	em_route_irq(IRQ_EB11MP_PMU_CPU1, 1);
 	em_route_irq(IRQ_EB11MP_PMU_CPU2, 2);

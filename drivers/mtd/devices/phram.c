@@ -1,19 +1,4 @@
-/**
- * Copyright (c) ????		Jochen Schäuble <psionic@psionic.de>
- * Copyright (c) 2003-2004	Joern Engel <joern@wh.fh-wedel.de>
- *
- * Usage:
- *
- * one commend line parameter per device, each in the form:
- *   phram=<name>,<start>,<len>
- * <name> may be up to 63 characters.
- * <start> and <len> can be octal, decimal or hexadecimal.  If followed
- * by "ki", "Mi" or "Gi", the numbers will be interpreted as kilo, mega or
- * gigabytes.
- *
- * Example:
- *	phram=swap,64Mi,128Mi phram=test,900Mi,1Mi
- */
+
 
 #define pr_fmt(fmt) "phram: " fmt
 
@@ -43,10 +28,7 @@ static int phram_erase(struct mtd_info *mtd, struct erase_info *instr)
 
 	memset(start + instr->addr, 0xff, instr->len);
 
-	/* This'll catch a few races. Free the thing before returning :)
-	 * I don't feel at all ashamed. This kind of thing is possible anyway
-	 * with flash, but unlikely.
-	 */
+	
 
 	instr->state = MTD_ERASE_DONE;
 
@@ -61,7 +43,7 @@ static int phram_point(struct mtd_info *mtd, loff_t from, size_t len,
 	if (from + len > mtd->size)
 		return -EINVAL;
 
-	/* can we return a physical address with this driver? */
+	
 	if (phys)
 		return -EINVAL;
 
@@ -179,7 +161,7 @@ static int ustrtoul(const char *cp, char **endp, unsigned int base)
 		result *= 1024;
 	case 'k':
 		result *= 1024;
-	/* By dwmw2 editorial decree, "ki", "Mi" or "Gi" are to be used. */
+	
 		if ((*endp)[1] == 'i')
 			(*endp) += 2;
 	}

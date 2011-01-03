@@ -1,12 +1,4 @@
-/*
- * net/dsa/slave.c - Slave device handling
- * Copyright (c) 2008-2009 Marvell Semiconductor
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/list.h>
 #include <linux/netdevice.h>
@@ -14,7 +6,7 @@
 #include <linux/phy.h>
 #include "dsa_priv.h"
 
-/* slave mii_bus handling ***************************************************/
+
 static int dsa_slave_phy_read(struct mii_bus *bus, int addr, int reg)
 {
 	struct dsa_switch *ds = bus->priv;
@@ -47,7 +39,7 @@ void dsa_slave_mii_bus_init(struct dsa_switch *ds)
 }
 
 
-/* slave device handling ****************************************************/
+
 static int dsa_slave_init(struct net_device *dev)
 {
 	struct dsa_slave_priv *p = netdev_priv(dev);
@@ -173,7 +165,7 @@ static int dsa_slave_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 }
 
 
-/* ethtool operations *******************************************************/
+
 static int
 dsa_slave_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 {
@@ -335,7 +327,7 @@ static const struct net_device_ops trailer_netdev_ops = {
 };
 #endif
 
-/* slave device setup *******************************************************/
+
 struct net_device *
 dsa_slave_create(struct dsa_switch *ds, struct device *parent,
 		 int port, char *name)

@@ -1,30 +1,22 @@
-/*
- * linux/arch/arm/mach-kirkwood/mpp.h -- Multi Purpose Pins
- *
- * Copyright 2009: Marvell Technology Group Ltd.
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __KIRKWOOD_MPP_H
 #define __KIRKWOOD_MPP_H
 
 #define MPP(_num, _sel, _in, _out, _F6180, _F6190, _F6192, _F6281) ( \
-	/* MPP number */		((_num) & 0xff) | \
-	/* MPP select value */		(((_sel) & 0xf) << 8) | \
-	/* may be input signal */	((!!(_in)) << 12) | \
-	/* may be output signal */	((!!(_out)) << 13) | \
-	/* available on F6180 */	((!!(_F6180)) << 14) | \
-	/* available on F6190 */	((!!(_F6190)) << 15) | \
-	/* available on F6192 */	((!!(_F6192)) << 16) | \
-	/* available on F6281 */	((!!(_F6281)) << 17))
+			((_num) & 0xff) | \
+			(((_sel) & 0xf) << 8) | \
+		((!!(_in)) << 12) | \
+		((!!(_out)) << 13) | \
+		((!!(_F6180)) << 14) | \
+		((!!(_F6190)) << 15) | \
+		((!!(_F6192)) << 16) | \
+		((!!(_F6281)) << 17))
 
 #define MPP_NUM(x)	((x) & 0xff)
 #define MPP_SEL(x)	(((x) >> 8) & 0xf)
 
-				/*   num sel  i  o  6180 6190 6192 6281 */
+				
 
 #define MPP_INPUT_MASK		MPP(  0, 0x0, 1, 0, 0,   0,   0,   0    )
 #define MPP_OUTPUT_MASK		MPP(  0, 0x0, 0, 1, 0,   0,   0,   0    )

@@ -1,30 +1,11 @@
-/*
- * Driver for the mt9m111 sensor
- *
- * Copyright (C) 2008 Erik Andrén
- * Copyright (C) 2007 Ilyes Gouta. Based on the m5603x Linux Driver Project.
- * Copyright (C) 2005 m5603x Linux Driver Project <m5602@x3ng.com.br>
- *
- * Portions of code to USB interface and ALi driver software,
- * Copyright (c) 2006 Willem Duinker
- * v4l2 interface modeled after the V4L2 driver
- * for SN9C10x PC Camera Controllers
- *
- * Some defines taken from the mt9m111 sensor driver
- * Copyright (C) 2008, Robert Jarzmik <robert.jarzmik@free.fr>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2.
- *
- */
+
 
 #ifndef M5602_MT9M111_H_
 #define M5602_MT9M111_H_
 
 #include "m5602_sensor.h"
 
-/*****************************************************************************/
+
 
 #define MT9M111_SC_CHIPVER			0x00
 #define MT9M111_SC_ROWSTART			0x01
@@ -102,9 +83,9 @@
 #define MT9M111_BLUE_GAIN_DEFAULT		0x20
 #define MT9M111_RED_GAIN_DEFAULT		0x20
 
-/*****************************************************************************/
 
-/* Kernel module parameters */
+
+
 extern int force_sensor;
 extern int dump_sensor;
 
@@ -243,17 +224,17 @@ static const unsigned char init_mt9m111[][4] =
 	{SENSOR, 0x63, 0x00, 0x00},
 	{SENSOR, 0x64, 0x00, 0x00},
 
-	{SENSOR, MT9M111_SC_ROWSTART, 0x00, 0x0d}, /* 13 */
-	{SENSOR, MT9M111_SC_COLSTART, 0x00, 0x12}, /* 18 */
-	{SENSOR, MT9M111_SC_WINDOW_HEIGHT, 0x04, 0x00}, /* 1024 */
-	{SENSOR, MT9M111_SC_WINDOW_WIDTH, 0x05, 0x10}, /* 1296 */
-	{SENSOR, MT9M111_SC_HBLANK_CONTEXT_B, 0x01, 0x60}, /* 352 */
-	{SENSOR, MT9M111_SC_VBLANK_CONTEXT_B, 0x00, 0x11}, /* 17 */
-	{SENSOR, MT9M111_SC_HBLANK_CONTEXT_A, 0x01, 0x60}, /* 352 */
-	{SENSOR, MT9M111_SC_VBLANK_CONTEXT_A, 0x00, 0x11}, /* 17 */
-	{SENSOR, MT9M111_SC_R_MODE_CONTEXT_A, 0x01, 0x0f}, /* 271 */
+	{SENSOR, MT9M111_SC_ROWSTART, 0x00, 0x0d}, 
+	{SENSOR, MT9M111_SC_COLSTART, 0x00, 0x12}, 
+	{SENSOR, MT9M111_SC_WINDOW_HEIGHT, 0x04, 0x00}, 
+	{SENSOR, MT9M111_SC_WINDOW_WIDTH, 0x05, 0x10}, 
+	{SENSOR, MT9M111_SC_HBLANK_CONTEXT_B, 0x01, 0x60}, 
+	{SENSOR, MT9M111_SC_VBLANK_CONTEXT_B, 0x00, 0x11}, 
+	{SENSOR, MT9M111_SC_HBLANK_CONTEXT_A, 0x01, 0x60}, 
+	{SENSOR, MT9M111_SC_VBLANK_CONTEXT_A, 0x00, 0x11}, 
+	{SENSOR, MT9M111_SC_R_MODE_CONTEXT_A, 0x01, 0x0f}, 
 	{SENSOR, 0x30, 0x04, 0x00},
-	/* Set number of blank rows chosen to 400 */
+	
 	{SENSOR, MT9M111_SC_SHUTTER_WIDTH, 0x01, 0x90},
 };
 

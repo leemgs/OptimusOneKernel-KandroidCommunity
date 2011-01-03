@@ -1,10 +1,4 @@
-/*
- *    pata_winbond.c - Winbond VLB ATA controllers
- *	(C) 2006 Red Hat
- *
- *    Support for the Winbond 83759A when operating in advanced mode.
- *    Multichip mode is not currently supported.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -18,7 +12,7 @@
 #define DRV_NAME "pata_winbond"
 #define DRV_VERSION "0.0.3"
 
-#define NR_HOST 4	/* Two winbond controllers, two channels each */
+#define NR_HOST 4	
 
 struct winbond_data {
 	unsigned long config;
@@ -69,8 +63,8 @@ static void winbond_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	reg = winbond_readcfg(winbond->config, 0x81);
 
-	/* Get the timing data in cycles */
-	if (reg & 0x40)		/* Fast VLB bus, assume 50MHz */
+	
+	if (reg & 0x40)		
 		ata_timing_compute(adev, adev->pio_mode, &t, 20000, 1000);
 	else
 		ata_timing_compute(adev, adev->pio_mode, &t, 30303, 1000);
@@ -80,13 +74,13 @@ static void winbond_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	timing = (active << 4) | recovery;
 	winbond_writecfg(winbond->config, timing, reg);
 
-	/* Load the setup timing */
+	
 
 	reg = 0x35;
 	if (adev->class != ATA_DEV_ATA)
-		reg |= 0x08;	/* FIFO off */
+		reg |= 0x08;	
 	if (!ata_pio_need_iordy(adev))
-		reg |= 0x02;	/* IORDY off */
+		reg |= 0x02;	
 	reg |= (clamp_val(t.setup, 0, 3) << 6);
 	winbond_writecfg(winbond->config, timing + 1, reg);
 }
@@ -132,16 +126,7 @@ static struct ata_port_operations winbond_port_ops = {
 	.set_piomode	= winbond_set_piomode,
 };
 
-/**
- *	winbond_init_one		-	attach a winbond interface
- *	@type: Type to display
- *	@io: I/O port start
- *	@irq: interrupt line
- *	@fast: True if on a > 33Mhz VLB
- *
- *	Register a VLB bus IDE interface. Such interfaces are PIO and we
- *	assume do not support IRQ sharing.
- */
+
 
 static __init int winbond_init_one(unsigned long port)
 {
@@ -150,18 +135,18 @@ static __init int winbond_init_one(unsigned long port)
 	int i, rc;
 
 	reg = winbond_readcfg(port, 0x81);
-	reg |= 0x80;	/* jumpered mode off */
+	reg |= 0x80;	
 	winbond_writecfg(port, 0x81, reg);
 	reg = winbond_readcfg(port, 0x83);
-	reg |= 0xF0;	/* local control */
+	reg |= 0xF0;	
 	winbond_writecfg(port, 0x83, reg);
 	reg = winbond_readcfg(port, 0x85);
-	reg |= 0xF0;	/* programmable timing */
+	reg |= 0xF0;	
 	winbond_writecfg(port, 0x85, reg);
 
 	reg = winbond_readcfg(port, 0x81);
 
-	if (!(reg & 0x03))		/* Disabled */
+	if (!(reg & 0x03))		
 		return -ENODEV;
 
 	for (i = 0; i < 2 ; i ++) {
@@ -200,12 +185,12 @@ static __init int winbond_init_one(unsigned long port)
 		ap->ioaddr.ctl_addr = ctl_addr;
 		ata_sff_std_ports(&ap->ioaddr);
 
-		/* hook in a private data structure per channel */
+		
 		host->private_data = &winbond_data[nr_winbond_host];
 		winbond_data[nr_winbond_host].config = port;
 		winbond_data[nr_winbond_host].platform_dev = pdev;
 
-		/* activate */
+		
 		rc = ata_host_activate(host, 14 + i, ata_sff_interrupt, 0,
 				       &winbond_sht);
 		if (rc)
@@ -221,11 +206,7 @@ static __init int winbond_init_one(unsigned long port)
 	return rc;
 }
 
-/**
- *	winbond_init		-	attach winbond interfaces
- *
- *	Attach winbond IDE interfaces by scanning the ports it may occupy.
- */
+
 
 static __init int winbond_init(void)
 {
@@ -237,9 +218,7 @@ static __init int winbond_init(void)
 	if (probe_winbond == 0)
 		return -ENODEV;
 
-	/*
- 	 *	Check both base addresses
-	 */
+	
 
 	for (i = 0; i < 2; i++) {
 		if (probe_winbond & (1<<i)) {

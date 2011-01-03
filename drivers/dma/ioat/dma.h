@@ -1,23 +1,4 @@
-/*
- * Copyright(c) 2004 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59
- * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The full GNU General Public License is included in this distribution in the
- * file called COPYING.
- */
+
 #ifndef IOATDMA_H
 #define IOATDMA_H
 
@@ -42,31 +23,10 @@
 
 #define chan_num(ch) ((int)((ch)->reg_base - (ch)->device->reg_base) / 0x80)
 
-/*
- * workaround for IOAT ver.3.0 null descriptor issue
- * (channel returns error when size is 0)
- */
+
 #define NULL_DESC_BUFFER_SIZE 1
 
-/**
- * struct ioatdma_device - internal representation of a IOAT device
- * @pdev: PCI-Express device
- * @reg_base: MMIO register space base address
- * @dma_pool: for allocating DMA descriptors
- * @common: embedded struct dma_device
- * @version: version of ioatdma device
- * @msix_entries: irq handlers
- * @idx: per channel data
- * @dca: direct cache access context
- * @intr_quirk: interrupt setup quirk (for ioat_v1 devices)
- * @enumerate_channels: hw version specific channel enumeration
- * @reset_hw: hw version specific channel (re)initialization
- * @cleanup_tasklet: select between the v2 and v3 cleanup routines
- * @timer_fn: select between the v2 and v3 timer watchdog routines
- * @self_test: hardware version specific self test for each supported op type
- *
- * Note: the v3 cleanup routine supports raid operations
- */
+
 struct ioatdma_device {
 	struct pci_dev *pdev;
 	void __iomem *reg_base;
@@ -112,13 +72,11 @@ struct ioat_sysfs_entry {
 	ssize_t (*show)(struct dma_chan *, char *);
 };
 
-/**
- * struct ioat_dma_chan - internal representation of a DMA channel
- */
+
 struct ioat_dma_chan {
 	struct ioat_chan_common base;
 
-	size_t xfercap;	/* XFERCAP register value expanded out */
+	size_t xfercap;	
 
 	spinlock_t desc_lock;
 	struct list_head free_desc;
@@ -141,13 +99,7 @@ static inline struct ioat_dma_chan *to_ioat_chan(struct dma_chan *c)
 	return container_of(chan, struct ioat_dma_chan, base);
 }
 
-/**
- * ioat_is_complete - poll the status of an ioat transaction
- * @c: channel handle
- * @cookie: transaction identifier
- * @done: if set, updated with last completed transaction
- * @used: if set, updated with last used transaction
- */
+
 static inline enum dma_status
 ioat_is_complete(struct dma_chan *c, dma_cookie_t cookie,
 		 dma_cookie_t *done, dma_cookie_t *used)
@@ -167,16 +119,9 @@ ioat_is_complete(struct dma_chan *c, dma_cookie_t cookie,
 	return dma_async_is_complete(cookie, last_complete, last_used);
 }
 
-/* wrapper around hardware descriptor format + additional software fields */
 
-/**
- * struct ioat_desc_sw - wrapper around hardware descriptor
- * @hw: hardware DMA descriptor (for memcpy)
- * @node: this descriptor will either be on the free list,
- *     or attached to a transaction list (tx_list)
- * @txd: the generic software descriptor for all engines
- * @id: identifier for debug
- */
+
+
 struct ioat_desc_sw {
 	struct ioat_dma_descriptor *hw;
 	struct list_head node;
@@ -231,9 +176,7 @@ static inline u64 ioat_chansts(struct ioat_chan_common *chan)
 	u64 status;
 	u32 status_lo;
 
-	/* We need to read the low address first as this causes the
-	 * chipset to latch the upper bits for the subsequent read
-	 */
+	
 	status_lo = readl(chan->reg_base + IOAT_CHANSTS_OFFSET_LOW(ver));
 	status = readl(chan->reg_base + IOAT_CHANSTS_OFFSET_HIGH(ver));
 	status <<= 32;
@@ -312,7 +255,7 @@ static inline bool is_ioat_suspended(unsigned long status)
 	return ((status & IOAT_CHANSTS_STATUS) == IOAT_CHANSTS_SUSPENDED);
 }
 
-/* channel was fatally programmed */
+
 static inline bool is_ioat_bug(unsigned long err)
 {
 	return !!err;
@@ -350,4 +293,4 @@ void ioat_kobject_del(struct ioatdma_device *device);
 extern struct sysfs_ops ioat_sysfs_ops;
 extern struct ioat_sysfs_entry ioat_version_attr;
 extern struct ioat_sysfs_entry ioat_cap_attr;
-#endif /* IOATDMA_H */
+#endif 

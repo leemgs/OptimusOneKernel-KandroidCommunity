@@ -1,17 +1,4 @@
-/*
- * ADV7343 encoder related structure and register definitions
- *
- * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation version 2.
- *
- * This program is distributed .as is. WITHOUT ANY WARRANTY of any
- * kind, whether express or implied; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #ifndef ADV7343_REG_H
 #define ADV7343_REGS_H
@@ -22,7 +9,7 @@ struct adv7343_std_info {
 	v4l2_std_id stdid;
 };
 
-/* Register offset macros */
+
 #define ADV7343_POWER_MODE_REG		(0x00)
 #define ADV7343_MODE_SELECT_REG		(0x01)
 #define ADV7343_MODE_REG0		(0x02)
@@ -59,14 +46,12 @@ struct adv7343_std_info {
 #define ADV7343_SD_HUE_REG		(0xA0)
 #define ADV7343_SD_BRIGHTNESS_WSS	(0xA1)
 
-/* Default values for the registers */
+
 #define ADV7343_POWER_MODE_REG_DEFAULT		(0x10)
-#define ADV7343_HD_MODE_REG1_DEFAULT		(0x3C)	/* Changed Default
-							   720p EAVSAV code*/
-#define ADV7343_HD_MODE_REG2_DEFAULT		(0x01)	/* Changed Pixel data
-							   valid */
-#define ADV7343_HD_MODE_REG3_DEFAULT		(0x00)	/* Color delay 0 clks */
-#define ADV7343_HD_MODE_REG4_DEFAULT		(0xE8)	/* Changed */
+#define ADV7343_HD_MODE_REG1_DEFAULT		(0x3C)	
+#define ADV7343_HD_MODE_REG2_DEFAULT		(0x01)	
+#define ADV7343_HD_MODE_REG3_DEFAULT		(0x00)	
+#define ADV7343_HD_MODE_REG4_DEFAULT		(0xE8)	
 #define ADV7343_HD_MODE_REG5_DEFAULT		(0x08)
 #define ADV7343_HD_MODE_REG6_DEFAULT		(0x00)
 #define ADV7343_HD_MODE_REG7_DEFAULT		(0x00)
@@ -89,28 +74,28 @@ struct adv7343_std_info {
 #define ADV7343_SD_MODE_REG7_DEFAULT		(0x04)
 #define ADV7343_SD_MODE_REG8_DEFAULT		(0x00)
 
-/* Bit masks for Mode Select Register */
+
 #define INPUT_MODE_MASK			(0x70)
 #define SD_INPUT_MODE			(0x00)
 #define HD_720P_INPUT_MODE		(0x10)
 #define HD_1080I_INPUT_MODE		(0x10)
 
-/* Bit masks for Mode Register 0 */
+
 #define TEST_PATTERN_BLACK_BAR_EN	(0x04)
 #define YUV_OUTPUT_SELECT		(0x20)
 #define RGB_OUTPUT_SELECT		(0xDF)
 
-/* Bit masks for DAC output levels */
+
 #define DAC_OUTPUT_LEVEL_MASK		(0xFF)
 #define POSITIVE_GAIN_MAX		(0x40)
 #define POSITIVE_GAIN_MIN		(0x00)
 #define NEGATIVE_GAIN_MAX		(0xFF)
 #define NEGATIVE_GAIN_MIN		(0xC0)
 
-/* Bit masks for soft reset register */
+
 #define SOFT_RESET			(0x02)
 
-/* Bit masks for HD Mode Register 1 */
+
 #define OUTPUT_STD_MASK		(0x03)
 #define OUTPUT_STD_SHIFT	(0)
 #define OUTPUT_STD_EIA0_2	(0x00)
@@ -132,7 +117,7 @@ struct adv7343_std_info {
 #define STD_MODE_525P		(0x00)
 #define STD_MODE_625P		(0x03)
 
-/* Bit masks for SD Mode Register 1 */
+
 #define SD_STD_MASK		(0x03)
 #define SD_STD_NTSC		(0x00)
 #define SD_STD_PAL_BDGHI	(0x01)
@@ -143,7 +128,7 @@ struct adv7343_std_info {
 #define SD_CHROMA_FLTR_MASK	(0x7)
 #define SD_CHROMA_FLTR_SHIFT	(0x5)
 
-/* Bit masks for SD Mode Register 2 */
+
 #define SD_PBPR_SSAF_EN		(0x01)
 #define SD_PBPR_SSAF_DI		(0xFE)
 #define SD_DAC_1_DI		(0xFD)
@@ -156,7 +141,7 @@ struct adv7343_std_info {
 #define SD_ACTIVE_EDGE_EN	(0x80)
 #define SD_ACTIVE_EDGE_DI	(0x7F)
 
-/* Bit masks for HD Mode Register 6 */
+
 #define HD_RGB_INPUT_EN		(0x02)
 #define HD_RGB_INPUT_DI		(0xFD)
 #define HD_PBPR_SYNC_EN		(0x04)

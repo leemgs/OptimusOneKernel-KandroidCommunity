@@ -1,15 +1,4 @@
-/*
- * Hardware definitions for Palm Treo 680
- *
- * Author:     Tomas Cech <sleep_walker@suse.cz>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * (find more info at www.hackndev.com)
- *
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/delay.h>
@@ -47,21 +36,19 @@
 #include "generic.h"
 #include "devices.h"
 
-/******************************************************************************
- * Pin configuration
- ******************************************************************************/
+
 static unsigned long treo680_pin_config[] __initdata = {
-	/* MMC */
+	
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
 	GPIO109_MMC_DAT_1,
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
 	GPIO112_MMC_CMD,
-	GPIO33_GPIO,				/* SD read only */
-	GPIO113_GPIO,				/* SD detect */
+	GPIO33_GPIO,				
+	GPIO113_GPIO,				
 
-	/* AC97 */
+	
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
 	GPIO30_AC97_SDATA_OUT,
@@ -69,17 +56,17 @@ static unsigned long treo680_pin_config[] __initdata = {
 	GPIO89_AC97_SYSCLK,
 	GPIO95_AC97_nRESET,
 
-	/* IrDA */
+	
 	GPIO46_FICP_RXD,
 	GPIO47_FICP_TXD,
 
-	/* PWM */
+	
 	GPIO16_PWM0_OUT,
 
-	/* USB */
-	GPIO1_GPIO | WAKEUP_ON_EDGE_BOTH,	/* usb detect */
+	
+	GPIO1_GPIO | WAKEUP_ON_EDGE_BOTH,	
 
-	/* MATRIX KEYPAD */
+	
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO101_KP_MKIN_1,
 	GPIO102_KP_MKIN_2,
@@ -95,9 +82,9 @@ static unsigned long treo680_pin_config[] __initdata = {
 	GPIO107_KP_MKOUT_4,
 	GPIO108_KP_MKOUT_5,
 	GPIO96_KP_MKOUT_6,
-	GPIO93_KP_DKIN_0 | WAKEUP_ON_LEVEL_HIGH,	/* Hotsync button */
+	GPIO93_KP_DKIN_0 | WAKEUP_ON_LEVEL_HIGH,	
 
-	/* LCD */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -118,7 +105,7 @@ static unsigned long treo680_pin_config[] __initdata = {
 	GPIO75_LCD_LCLK,
 	GPIO76_LCD_PCLK,
 
-	/* Quick Capture Interface */
+	
 	GPIO84_CIF_FV,
 	GPIO85_CIF_LV,
 	GPIO53_CIF_MCLK,
@@ -132,27 +119,25 @@ static unsigned long treo680_pin_config[] __initdata = {
 	GPIO17_CIF_DD_6,
 	GPIO12_CIF_DD_7,
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 
-	/* GSM */
-	GPIO14_GPIO | WAKEUP_ON_EDGE_BOTH,	/* GSM host wake up */
+	
+	GPIO14_GPIO | WAKEUP_ON_EDGE_BOTH,	
 	GPIO34_FFUART_RXD,
 	GPIO35_FFUART_CTS,
 	GPIO39_FFUART_TXD,
 	GPIO41_FFUART_RTS,
 
-	/* MISC. */
-	GPIO0_GPIO | WAKEUP_ON_EDGE_BOTH,	/* external power detect */
-	GPIO15_GPIO | WAKEUP_ON_EDGE_BOTH,	/* silent switch */
-	GPIO116_GPIO,				/* headphone detect */
-	GPIO11_GPIO | WAKEUP_ON_EDGE_BOTH,	/* bluetooth host wake up */
+	
+	GPIO0_GPIO | WAKEUP_ON_EDGE_BOTH,	
+	GPIO15_GPIO | WAKEUP_ON_EDGE_BOTH,	
+	GPIO116_GPIO,				
+	GPIO11_GPIO | WAKEUP_ON_EDGE_BOTH,	
 };
 
-/******************************************************************************
- * SD/MMC card controller
- ******************************************************************************/
+
 static struct pxamci_platform_data treo680_mci_platform_data = {
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO_NR_TREO680_SD_DETECT_N,
@@ -160,61 +145,59 @@ static struct pxamci_platform_data treo680_mci_platform_data = {
 	.gpio_power		= GPIO_NR_TREO680_SD_POWER,
 };
 
-/******************************************************************************
- * GPIO keyboard
- ******************************************************************************/
+
 static unsigned int treo680_matrix_keys[] = {
-	KEY(0, 0, KEY_F8),		/* Red/Off/Power */
+	KEY(0, 0, KEY_F8),		
 	KEY(0, 1, KEY_LEFT),
-	KEY(0, 2, KEY_LEFTCTRL),	/* Alternate */
+	KEY(0, 2, KEY_LEFTCTRL),	
 	KEY(0, 3, KEY_L),
 	KEY(0, 4, KEY_A),
 	KEY(0, 5, KEY_Q),
 	KEY(0, 6, KEY_P),
 
-	KEY(1, 0, KEY_RIGHTCTRL),	/* Menu */
+	KEY(1, 0, KEY_RIGHTCTRL),	
 	KEY(1, 1, KEY_RIGHT),
-	KEY(1, 2, KEY_LEFTSHIFT),	/* Left shift */
+	KEY(1, 2, KEY_LEFTSHIFT),	
 	KEY(1, 3, KEY_Z),
 	KEY(1, 4, KEY_S),
 	KEY(1, 5, KEY_W),
 
-	KEY(2, 0, KEY_F1),		/* Phone */
+	KEY(2, 0, KEY_F1),		
 	KEY(2, 1, KEY_UP),
 	KEY(2, 2, KEY_0),
 	KEY(2, 3, KEY_X),
 	KEY(2, 4, KEY_D),
 	KEY(2, 5, KEY_E),
 
-	KEY(3, 0, KEY_F10),		/* Calendar */
+	KEY(3, 0, KEY_F10),		
 	KEY(3, 1, KEY_DOWN),
 	KEY(3, 2, KEY_SPACE),
 	KEY(3, 3, KEY_C),
 	KEY(3, 4, KEY_F),
 	KEY(3, 5, KEY_R),
 
-	KEY(4, 0, KEY_F12),		/* Mail */
+	KEY(4, 0, KEY_F12),		
 	KEY(4, 1, KEY_KPENTER),
-	KEY(4, 2, KEY_RIGHTALT),	/* Alt */
+	KEY(4, 2, KEY_RIGHTALT),	
 	KEY(4, 3, KEY_V),
 	KEY(4, 4, KEY_G),
 	KEY(4, 5, KEY_T),
 
-	KEY(5, 0, KEY_F9),		/* Home */
-	KEY(5, 1, KEY_PAGEUP),		/* Side up */
+	KEY(5, 0, KEY_F9),		
+	KEY(5, 1, KEY_PAGEUP),		
 	KEY(5, 2, KEY_DOT),
 	KEY(5, 3, KEY_B),
 	KEY(5, 4, KEY_H),
 	KEY(5, 5, KEY_Y),
 
-	KEY(6, 0, KEY_TAB),		/* Side Activate */
-	KEY(6, 1, KEY_PAGEDOWN),	/* Side down */
+	KEY(6, 0, KEY_TAB),		
+	KEY(6, 1, KEY_PAGEDOWN),	
 	KEY(6, 2, KEY_ENTER),
 	KEY(6, 3, KEY_N),
 	KEY(6, 4, KEY_J),
 	KEY(6, 5, KEY_U),
 
-	KEY(7, 0, KEY_F6),		/* Green/Call */
+	KEY(7, 0, KEY_F6),		
 	KEY(7, 1, KEY_O),
 	KEY(7, 2, KEY_BACKSPACE),
 	KEY(7, 3, KEY_M),
@@ -233,17 +216,13 @@ static struct pxa27x_keypad_platform_data treo680_keypad_platform_data = {
 	.debounce_interval	= 30,
 };
 
-/******************************************************************************
- * aSoC audio
- ******************************************************************************/
+
 
 static pxa2xx_audio_ops_t treo680_ac97_pdata = {
 	.reset_gpio	= 95,
 };
 
-/******************************************************************************
- * Backlight
- ******************************************************************************/
+
 static int treo680_backlight_init(struct device *dev)
 {
 	int ret;
@@ -292,17 +271,13 @@ static struct platform_device treo680_backlight = {
 	},
 };
 
-/******************************************************************************
- * IrDA
- ******************************************************************************/
+
 static struct pxaficp_platform_data treo680_ficp_info = {
 	.gpio_pwdown		= GPIO_NR_TREO680_IR_EN,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
-/******************************************************************************
- * UDC
- ******************************************************************************/
+
 static struct pxa2xx_udc_mach_info treo680_udc_info __initdata = {
 	.gpio_vbus		= GPIO_NR_TREO680_USB_DETECT,
 	.gpio_vbus_inverted	= 1,
@@ -310,18 +285,14 @@ static struct pxa2xx_udc_mach_info treo680_udc_info __initdata = {
 };
 
 
-/******************************************************************************
- * USB host
- ******************************************************************************/
+
 static struct pxaohci_platform_data treo680_ohci_info = {
 	.port_mode    = PMM_PERPORT_MODE,
 	.flags        = ENABLE_PORT1 | ENABLE_PORT3,
 	.power_budget = 0,
 };
 
-/******************************************************************************
- * Power supply
- ******************************************************************************/
+
 static int power_supply_init(struct device *dev)
 {
 	int ret;
@@ -371,9 +342,7 @@ static struct platform_device power_supply = {
 	},
 };
 
-/******************************************************************************
- * Vibra and LEDs
- ******************************************************************************/
+
 static struct gpio_led gpio_leds[] = {
 	{
 		.name			= "treo680:vibra:vibra",
@@ -406,10 +375,8 @@ static struct platform_device treo680_leds = {
 };
 
 
-/******************************************************************************
- * Framebuffer
- ******************************************************************************/
-/* TODO: add support for 324x324 */
+
+
 static struct pxafb_mode_info treo680_lcd_modes[] = {
 {
 	.pixclock		= 86538,
@@ -438,31 +405,27 @@ static struct pxafb_mach_info treo680_lcd_screen = {
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
 
-/******************************************************************************
- * Power management - standby
- ******************************************************************************/
+
 static void __init treo680_pm_init(void)
 {
 	static u32 resume[] = {
-		0xe3a00101,	/* mov	r0,	#0x40000000 */
-		0xe380060f,	/* orr	r0, r0, #0x00f00000 */
-		0xe590f008,	/* ldr	pc, [r0, #0x08] */
+		0xe3a00101,	
+		0xe380060f,	
+		0xe590f008,	
 	};
 
-	/* this is where the bootloader jumps */
+	
 	memcpy(phys_to_virt(TREO680_STR_BASE), resume, sizeof(resume));
 }
 
-/******************************************************************************
- * Machine init
- ******************************************************************************/
+
 static struct platform_device *devices[] __initdata = {
 	&treo680_backlight,
 	&treo680_leds,
 	&power_supply,
 };
 
-/* setup udc GPIOs initial state */
+
 static void __init treo680_udc_init(void)
 {
 	if (!gpio_request(GPIO_NR_TREO680_USB_PULLUP, "UDC Vbus")) {

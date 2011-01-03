@@ -1,29 +1,4 @@
-/*
- * Aic94xx SAS/SATA driver header file.
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This file is part of the aic94xx driver.
- *
- * The aic94xx driver is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 of the
- * License.
- *
- * The aic94xx driver is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with the aic94xx driver; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * $Id: //depot/aic94xx/aic94xx.h#31 $
- */
+
 
 #ifndef _AIC94XX_H_
 #define _AIC94XX_H_
@@ -53,7 +28,7 @@
 #define ASD_DPRINTK(fmt, ...)
 #endif
 
-/* 2*ITNL timeout + 1 second */
+
 #define AIC94XX_SCB_TIMEOUT  (5*HZ)
 
 extern struct kmem_cache *asd_dma_token_cache;
@@ -80,7 +55,7 @@ void asd_invalidate_edb(struct asd_ascb *ascb, int edb_id);
 
 int  asd_execute_task(struct sas_task *, int num, gfp_t gfp_flags);
 
-/* ---------- TMFs ---------- */
+
 int  asd_abort_task(struct sas_task *);
 int  asd_abort_task_set(struct domain_device *, u8 *lun);
 int  asd_clear_aca(struct domain_device *, u8 *lun);
@@ -89,11 +64,11 @@ int  asd_lu_reset(struct domain_device *, u8 *lun);
 int  asd_I_T_nexus_reset(struct domain_device *dev);
 int  asd_query_task(struct sas_task *);
 
-/* ---------- Adapter and Port management ---------- */
+
 int  asd_clear_nexus_port(struct asd_sas_port *port);
 int  asd_clear_nexus_ha(struct sas_ha_struct *sas_ha);
 
-/* ---------- Phy Management ---------- */
+
 int  asd_control_phy(struct asd_sas_phy *phy, enum phy_func func, void *arg);
 
 #endif

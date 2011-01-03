@@ -1,20 +1,4 @@
-/* @file gl860.h
- * @author Olivier LORIN, tiré du pilote Syntek par Nicolas VIVIEN
- * @date 2009-08-27
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 #ifndef GL860_DEV_H
 #define GL860_DEV_H
 #include <linux/version.h>
@@ -59,9 +43,9 @@ struct sd_gl860 {
 	u8  AC50Hz;
 };
 
-/* Specific webcam descriptor */
+
 struct sd {
-	struct gspca_dev gspca_dev;	/* !! must be the first item */
+	struct gspca_dev gspca_dev;	
 
 	struct sd_gl860 vcur;
 	struct sd_gl860 vold;

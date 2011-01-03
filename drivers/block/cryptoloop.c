@@ -1,23 +1,4 @@
-/*
-   Linux loop encryption enabling module
 
-   Copyright (C)  2002 Herbert Valerio Riedel <hvr@gnu.org>
-   Copyright (C)  2003 Fruhwirth Clemens <clemens@endorphin.org>
-
-   This module is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This module is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this module; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 #include <linux/module.h>
 
@@ -42,13 +23,13 @@ cryptoloop_init(struct loop_device *lo, const struct loop_info64 *info)
 	int err = -EINVAL;
 	int cipher_len;
 	int mode_len;
-	char cms[LO_NAME_SIZE];			/* cipher-mode string */
+	char cms[LO_NAME_SIZE];			
 	char *cipher;
 	char *mode;
-	char *cmsp = cms;			/* c-m string pointer */
+	char *cmsp = cms;			
 	struct crypto_blkcipher *tfm;
 
-	/* encryption breaks for non sector aligned offsets */
+	
 
 	if (info->lo_offset % LOOP_IV_SECTOR_SIZE)
 		goto out;

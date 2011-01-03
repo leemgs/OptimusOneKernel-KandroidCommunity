@@ -1,13 +1,4 @@
-/* RxRPC individual remote procedure call handling
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/circ_buf.h>
@@ -46,9 +37,7 @@ static void rxrpc_dead_call_expired(unsigned long _call);
 static void rxrpc_ack_time_expired(unsigned long _call);
 static void rxrpc_resend_time_expired(unsigned long _call);
 
-/*
- * allocate a new call
- */
+
 static struct rxrpc_call *rxrpc_alloc_call(gfp_t gfp)
 {
 	struct rxrpc_call *call;
@@ -95,9 +84,7 @@ static struct rxrpc_call *rxrpc_alloc_call(gfp_t gfp)
 	return call;
 }
 
-/*
- * allocate a new client call and attempt to get a connection slot for it
- */
+
 static struct rxrpc_call *rxrpc_alloc_client_call(
 	struct rxrpc_sock *rx,
 	struct rxrpc_transport *trans,
@@ -138,10 +125,7 @@ static struct rxrpc_call *rxrpc_alloc_client_call(
 	return call;
 }
 
-/*
- * set up a call for the given data
- * - called in process context with IRQs enabled
- */
+
 struct rxrpc_call *rxrpc_get_client_call(struct rxrpc_sock *rx,
 					 struct rxrpc_transport *trans,
 					 struct rxrpc_conn_bundle *bundle,
@@ -156,8 +140,7 @@ struct rxrpc_call *rxrpc_get_client_call(struct rxrpc_sock *rx,
 	       rx, trans ? trans->debug_id : -1, bundle ? bundle->debug_id : -1,
 	       user_call_ID, create);
 
-	/* search the extant calls first for one that matches the specified
-	 * user ID */
+	
 	read_lock(&rx->call_lock);
 
 	p = rx->calls.rb_node;
@@ -177,8 +160,7 @@ struct rxrpc_call *rxrpc_get_client_call(struct rxrpc_sock *rx,
 	if (!create || !trans)
 		return ERR_PTR(-EBADSLT);
 
-	/* not yet present - create a candidate for a new record and then
-	 * redo the search */
+	
 	candidate = rxrpc_alloc_client_call(rx, trans, bundle, gfp);
 	if (IS_ERR(candidate)) {
 		_leave(" = %ld", PTR_ERR(candidate));
@@ -204,7 +186,7 @@ struct rxrpc_call *rxrpc_get_client_call(struct rxrpc_sock *rx,
 			goto found_extant_second;
 	}
 
-	/* second search also failed; add the new call */
+	
 	call = candidate;
 	candidate = NULL;
 	rxrpc_get_call(call);
@@ -222,14 +204,14 @@ struct rxrpc_call *rxrpc_get_client_call(struct rxrpc_sock *rx,
 	_leave(" = %p [new]", call);
 	return call;
 
-	/* we found the call in the list immediately */
+	
 found_extant_call:
 	rxrpc_get_call(call);
 	read_unlock(&rx->call_lock);
 	_leave(" = %p [extant %d]", call, atomic_read(&call->usage));
 	return call;
 
-	/* we found the call on the second time through the list */
+	
 found_extant_second:
 	rxrpc_get_call(call);
 	write_unlock(&rx->call_lock);
@@ -238,10 +220,7 @@ found_extant_second:
 	return call;
 }
 
-/*
- * set up an incoming call
- * - called in process context with IRQs enabled
- */
+
 struct rxrpc_call *rxrpc_incoming_call(struct rxrpc_sock *rx,
 				       struct rxrpc_connection *conn,
 				       struct rxrpc_header *hdr,
@@ -271,11 +250,11 @@ struct rxrpc_call *rxrpc_incoming_call(struct rxrpc_sock *rx,
 
 	write_lock_bh(&conn->lock);
 
-	/* set the channel for this call */
+	
 	call = conn->channels[candidate->channel];
 	_debug("channel[%u] is %p", candidate->channel, call);
 	if (call && call->call_id == hdr->callNumber) {
-		/* already set; must've been a duplicate packet */
+		
 		_debug("extant call [%d]", call->state);
 		ASSERTCMP(call->conn, ==, conn);
 
@@ -295,8 +274,7 @@ struct rxrpc_call *rxrpc_incoming_call(struct rxrpc_sock *rx,
 	}
 
 	if (call) {
-		/* it seems the channel is still in use from the previous call
-		 * - ditch the old binding if its call is now complete */
+		
 		_debug("CALL: %u { %s }",
 		       call->debug_id, rxrpc_call_states[call->state]);
 
@@ -310,7 +288,7 @@ struct rxrpc_call *rxrpc_incoming_call(struct rxrpc_sock *rx,
 		}
 	}
 
-	/* check the call number isn't duplicate */
+	
 	_debug("check dup");
 	call_id = hdr->callNumber;
 	p = &conn->calls.rb_node;
@@ -327,7 +305,7 @@ struct rxrpc_call *rxrpc_incoming_call(struct rxrpc_sock *rx,
 			goto old_call;
 	}
 
-	/* make the call available */
+	
 	_debug("new call");
 	call = candidate;
 	candidate = NULL;
@@ -372,10 +350,7 @@ old_call:
 	return ERR_PTR(-ECONNRESET);
 }
 
-/*
- * find an extant server call
- * - called in process context with IRQs enabled
- */
+
 struct rxrpc_call *rxrpc_find_server_call(struct rxrpc_sock *rx,
 					  unsigned long user_call_ID)
 {
@@ -384,8 +359,7 @@ struct rxrpc_call *rxrpc_find_server_call(struct rxrpc_sock *rx,
 
 	_enter("%p,%lx", rx, user_call_ID);
 
-	/* search the extant calls for one that matches the specified user
-	 * ID */
+	
 	read_lock(&rx->call_lock);
 
 	p = rx->calls.rb_node;
@@ -404,7 +378,7 @@ struct rxrpc_call *rxrpc_find_server_call(struct rxrpc_sock *rx,
 	_leave(" = NULL");
 	return NULL;
 
-	/* we found the call in the list immediately */
+	
 found_extant_call:
 	rxrpc_get_call(call);
 	read_unlock(&rx->call_lock);
@@ -412,9 +386,7 @@ found_extant_call:
 	return call;
 }
 
-/*
- * detach a call from a socket and set up for release
- */
+
 void rxrpc_release_call(struct rxrpc_call *call)
 {
 	struct rxrpc_connection *conn = call->conn;
@@ -430,9 +402,7 @@ void rxrpc_release_call(struct rxrpc_call *call)
 		BUG();
 	spin_unlock_bh(&call->lock);
 
-	/* dissociate from the socket
-	 * - the socket's ref on the call is passed to the death timer
-	 */
+	
 	_debug("RELEASE CALL %p (%d CONN %p)", call, call->debug_id, conn);
 
 	write_lock_bh(&rx->call_lock);
@@ -449,7 +419,7 @@ void rxrpc_release_call(struct rxrpc_call *call)
 	}
 	write_unlock_bh(&rx->call_lock);
 
-	/* free up the channel for reuse */
+	
 	spin_lock(&conn->trans->client_lock);
 	write_lock_bh(&conn->lock);
 	write_lock(&call->state_lock);
@@ -497,7 +467,7 @@ void rxrpc_release_call(struct rxrpc_call *call)
 	write_unlock(&call->state_lock);
 	write_unlock_bh(&conn->lock);
 
-	/* clean up the Rx queue */
+	
 	if (!skb_queue_empty(&call->rx_queue) ||
 	    !skb_queue_empty(&call->rx_oos_queue)) {
 		struct rxrpc_skb_priv *sp;
@@ -538,9 +508,7 @@ void rxrpc_release_call(struct rxrpc_call *call)
 	_leave("");
 }
 
-/*
- * handle a dead call being ready for reaping
- */
+
 static void rxrpc_dead_call_expired(unsigned long _call)
 {
 	struct rxrpc_call *call = (struct rxrpc_call *) _call;
@@ -553,10 +521,7 @@ static void rxrpc_dead_call_expired(unsigned long _call)
 	rxrpc_put_call(call);
 }
 
-/*
- * mark a call as to be released, aborting it if it's still in progress
- * - called with softirqs disabled
- */
+
 static void rxrpc_mark_call_released(struct rxrpc_call *call)
 {
 	bool sched;
@@ -579,9 +544,7 @@ static void rxrpc_mark_call_released(struct rxrpc_call *call)
 	write_unlock(&call->state_lock);
 }
 
-/*
- * release all the calls associated with a socket
- */
+
 void rxrpc_release_calls_on_socket(struct rxrpc_sock *rx)
 {
 	struct rxrpc_call *call;
@@ -591,13 +554,13 @@ void rxrpc_release_calls_on_socket(struct rxrpc_sock *rx)
 
 	read_lock_bh(&rx->call_lock);
 
-	/* mark all the calls as no longer wanting incoming packets */
+	
 	for (p = rb_first(&rx->calls); p; p = rb_next(p)) {
 		call = rb_entry(p, struct rxrpc_call, sock_node);
 		rxrpc_mark_call_released(call);
 	}
 
-	/* kill the not-yet-accepted incoming calls */
+	
 	list_for_each_entry(call, &rx->secureq, accept_link) {
 		rxrpc_mark_call_released(call);
 	}
@@ -610,9 +573,7 @@ void rxrpc_release_calls_on_socket(struct rxrpc_sock *rx)
 	_leave("");
 }
 
-/*
- * release a call
- */
+
 void __rxrpc_put_call(struct rxrpc_call *call)
 {
 	ASSERT(call != NULL);
@@ -629,9 +590,7 @@ void __rxrpc_put_call(struct rxrpc_call *call)
 	_leave("");
 }
 
-/*
- * clean up a call
- */
+
 static void rxrpc_cleanup_call(struct rxrpc_call *call)
 {
 	_net("DESTROY CALL %d", call->debug_id);
@@ -693,9 +652,7 @@ static void rxrpc_cleanup_call(struct rxrpc_call *call)
 	kmem_cache_free(rxrpc_call_jar, call);
 }
 
-/*
- * destroy a call
- */
+
 static void rxrpc_destroy_call(struct work_struct *work)
 {
 	struct rxrpc_call *call =
@@ -714,10 +671,7 @@ static void rxrpc_destroy_call(struct work_struct *work)
 	_leave("");
 }
 
-/*
- * preemptively destroy all the call records from a transport endpoint rather
- * than waiting for them to time out
- */
+
 void __exit rxrpc_destroy_all_calls(void)
 {
 	struct rxrpc_call *call;
@@ -764,9 +718,7 @@ void __exit rxrpc_destroy_all_calls(void)
 	_leave("");
 }
 
-/*
- * handle call lifetime being exceeded
- */
+
 static void rxrpc_call_life_expired(unsigned long _call)
 {
 	struct rxrpc_call *call = (struct rxrpc_call *) _call;
@@ -783,9 +735,7 @@ static void rxrpc_call_life_expired(unsigned long _call)
 	read_unlock_bh(&call->state_lock);
 }
 
-/*
- * handle resend timer expiry
- */
+
 static void rxrpc_resend_time_expired(unsigned long _call)
 {
 	struct rxrpc_call *call = (struct rxrpc_call *) _call;
@@ -803,9 +753,7 @@ static void rxrpc_resend_time_expired(unsigned long _call)
 	read_unlock_bh(&call->state_lock);
 }
 
-/*
- * handle ACK timer expiry
- */
+
 static void rxrpc_ack_time_expired(unsigned long _call)
 {
 	struct rxrpc_call *call = (struct rxrpc_call *) _call;

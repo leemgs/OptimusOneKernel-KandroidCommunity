@@ -1,11 +1,4 @@
-/*
- * Copyright (C) 2003 Christoph Hellwig.
- *	Released under GPL v2.
- *
- * Support for old-style host templates.
- *
- * NOTE:  Do not use this for new drivers ever.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>

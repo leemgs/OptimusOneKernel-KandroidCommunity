@@ -1,23 +1,4 @@
-/*
-    NXP TDA10048HN DVB OFDM demodulator driver
 
-    Copyright (C) 2009 Steven Toth <stoth@kernellabs.com>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -33,7 +14,7 @@
 #define TDA10048_DEFAULT_FIRMWARE "dvb-fe-tda10048-1.0.fw"
 #define TDA10048_DEFAULT_FIRMWARE_SIZE 24878
 
-/* Register name definitions */
+
 #define TDA10048_IDENTITY          0x00
 #define TDA10048_VERSION           0x01
 #define TDA10048_DSP_CODE_CPT      0x0C
@@ -139,7 +120,7 @@ struct tda10048_state {
 
 	struct i2c_adapter *i2c;
 
-	/* We'll cache and update the attach config settings */
+	
 	struct tda10048_config config;
 	struct dvb_frontend frontend;
 
@@ -310,7 +291,7 @@ static int tda10048_set_phy2(struct dvb_frontend *fe, u32 sample_freq_hz,
 		return -EINVAL;
 
 	if (if_hz < (sample_freq_hz / 2)) {
-		/* PHY2 = (if2/fs) * 2^15 */
+		
 		t = if_hz;
 		t *= 10;
 		t *= 32768;
@@ -318,7 +299,7 @@ static int tda10048_set_phy2(struct dvb_frontend *fe, u32 sample_freq_hz,
 		t += 5;
 		do_div(t, 10);
 	} else {
-		/* PHY2 = ((IF1-fs)/fs) * 2^15 */
+		
 		t = sample_freq_hz - if_hz;
 		t *= 10;
 		t *= 32768;
@@ -352,10 +333,10 @@ static int tda10048_set_wref(struct dvb_frontend *fe, u32 sample_freq_hz,
 	if (bw == BANDWIDTH_7_MHZ)
 		b = 7000000;
 
-	/* WREF = (B / (7 * fs)) * 2^31 */
+	
 	t = b * 10;
-	/* avoid warning: this decimal constant is unsigned only in ISO C90 */
-	/* t *= 2147483648 on 32bit platforms */
+	
+	
 	t *= (2048 * 1024);
 	t *= 1024;
 	z = 7 * sample_freq_hz;
@@ -389,7 +370,7 @@ static int tda10048_set_invwref(struct dvb_frontend *fe, u32 sample_freq_hz,
 	if (bw == BANDWIDTH_7_MHZ)
 		b = 7000000;
 
-	/* INVWREF = ((7 * fs) / B) * 2^5 */
+	
 	t = sample_freq_hz;
 	t *= 7;
 	t *= 32;
@@ -410,7 +391,7 @@ static int tda10048_set_bandwidth(struct dvb_frontend *fe,
 	struct tda10048_state *state = fe->demodulator_priv;
 	dprintk(1, "%s(bw=%d)\n", __func__, bw);
 
-	/* Bandwidth setting may need to be adjusted */
+	
 	switch (bw) {
 	case BANDWIDTH_6_MHZ:
 	case BANDWIDTH_7_MHZ:
@@ -437,7 +418,7 @@ static int tda10048_set_if(struct dvb_frontend *fe, enum fe_bandwidth bw)
 
 	dprintk(1, "%s(bw = %d)\n", __func__, bw);
 
-	/* based on target bandwidth and clk we calculate pll factors */
+	
 	switch (bw) {
 	case BANDWIDTH_6_MHZ:
 		if_freq_khz = config->dtv6_if_freq_khz;
@@ -477,13 +458,13 @@ static int tda10048_set_if(struct dvb_frontend *fe, enum fe_bandwidth bw)
 	dprintk(1, "- pll_nfactor = %d\n", state->pll_nfactor);
 	dprintk(1, "- pll_pfactor = %d\n", state->pll_pfactor);
 
-	/* Calculate the sample frequency */
+	
 	state->sample_freq = state->xtal_hz * (state->pll_mfactor + 45);
 	state->sample_freq /= (state->pll_nfactor + 1);
 	state->sample_freq /= (state->pll_pfactor + 4);
 	dprintk(1, "- sample_freq = %d\n", state->sample_freq);
 
-	/* Update the I/F */
+	
 	tda10048_set_phy2(fe, state->sample_freq, state->freq_if_hz);
 
 	return 0;
@@ -502,7 +483,7 @@ static int tda10048_firmware_upload(struct dvb_frontend *fe)
 	if ((wlen != TDA10048_BULKWRITE_200) && (wlen != TDA10048_BULKWRITE_50))
 		wlen = TDA10048_BULKWRITE_200;
 
-	/* request the firmware, this will block and timeout */
+	
 	printk(KERN_INFO "%s: waiting for firmware upload (%s)...\n",
 		__func__,
 		TDA10048_DEFAULT_FIRMWARE);
@@ -526,7 +507,7 @@ static int tda10048_firmware_upload(struct dvb_frontend *fe)
 	} else {
 		printk(KERN_INFO "%s: firmware uploading\n", __func__);
 
-		/* Soft reset */
+		
 		tda10048_writereg(state, TDA10048_CONF_TRISTATE1,
 			tda10048_readreg(state, TDA10048_CONF_TRISTATE1)
 				& 0xfe);
@@ -534,18 +515,18 @@ static int tda10048_firmware_upload(struct dvb_frontend *fe)
 			tda10048_readreg(state, TDA10048_CONF_TRISTATE1)
 				| 0x01);
 
-		/* Put the demod into host download mode */
+		
 		tda10048_writereg(state, TDA10048_CONF_C4_1,
 			tda10048_readreg(state, TDA10048_CONF_C4_1) & 0xf9);
 
-		/* Boot the DSP */
+		
 		tda10048_writereg(state, TDA10048_CONF_C4_1,
 			tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x08);
 
-		/* Prepare for download */
+		
 		tda10048_writereg(state, TDA10048_DSP_CODE_CPT, 0);
 
-		/* Download the firmware payload */
+		
 		while (pos < fw->size) {
 
 			if ((fw->size - pos) > wlen)
@@ -560,7 +541,7 @@ static int tda10048_firmware_upload(struct dvb_frontend *fe)
 		}
 
 		ret = -EIO;
-		/* Wait up to 250ms for the DSP to boot */
+		
 		for (cnt = 0; cnt < 250 ; cnt += 10) {
 
 			msleep(10);
@@ -600,13 +581,13 @@ static int tda10048_set_inversion(struct dvb_frontend *fe, int inversion)
 	return 0;
 }
 
-/* Retrieve the demod settings */
+
 static int tda10048_get_tps(struct tda10048_state *state,
 	struct dvb_ofdm_parameters *p)
 {
 	u8 val;
 
-	/* Make sure the TPS regs are valid */
+	
 	if (!(tda10048_readreg(state, TDA10048_AUTO) & 0x01))
 		return -EAGAIN;
 
@@ -722,7 +703,7 @@ static int tda10048_output_mode(struct dvb_frontend *fe, int serial)
 	struct tda10048_state *state = fe->demodulator_priv;
 	dprintk(1, "%s(%d)\n", __func__, serial);
 
-	/* Ensure pins are out of tri-state */
+	
 	tda10048_writereg(state, TDA10048_CONF_TRISTATE1, 0x21);
 	tda10048_writereg(state, TDA10048_CONF_TRISTATE2, 0x00);
 
@@ -737,8 +718,8 @@ static int tda10048_output_mode(struct dvb_frontend *fe, int serial)
 	return 0;
 }
 
-/* Talk to the demod, set the FEC, GUARD, QAM settings etc */
-/* TODO: Support manual tuning with specific params */
+
+
 static int tda10048_set_frontend(struct dvb_frontend *fe,
 	struct dvb_frontend_parameters *p)
 {
@@ -746,7 +727,7 @@ static int tda10048_set_frontend(struct dvb_frontend *fe,
 
 	dprintk(1, "%s(frequency=%d)\n", __func__, p->frequency);
 
-	/* Update the I/F pll's if the bandwidth changes */
+	
 	if (p->u.ofdm.bandwidth != state->bandwidth) {
 		tda10048_set_if(fe, p->u.ofdm.bandwidth);
 		tda10048_set_bandwidth(fe, p->u.ofdm.bandwidth);
@@ -763,13 +744,13 @@ static int tda10048_set_frontend(struct dvb_frontend *fe,
 			fe->ops.i2c_gate_ctrl(fe, 0);
 	}
 
-	/* Enable demod TPS auto detection and begin acquisition */
+	
 	tda10048_writereg(state, TDA10048_AUTO, 0x57);
 
 	return 0;
 }
 
-/* Establish sane defaults and load firmware. */
+
 static int tda10048_init(struct dvb_frontend *fe)
 {
 	struct tda10048_state *state = fe->demodulator_priv;
@@ -778,24 +759,24 @@ static int tda10048_init(struct dvb_frontend *fe)
 
 	dprintk(1, "%s()\n", __func__);
 
-	/* Apply register defaults */
+	
 	for (i = 0; i < ARRAY_SIZE(init_tab); i++)
 		tda10048_writereg(state, init_tab[i].reg, init_tab[i].data);
 
 	if (state->fwloaded == 0)
 		ret = tda10048_firmware_upload(fe);
 
-	/* Set either serial or parallel */
+	
 	tda10048_output_mode(fe, config->output_mode);
 
-	/* Set inversion */
+	
 	tda10048_set_inversion(fe, config->inversion);
 
-	/* Establish default RF values */
+	
 	tda10048_set_if(fe, BANDWIDTH_8_MHZ);
 	tda10048_set_bandwidth(fe, BANDWIDTH_8_MHZ);
 
-	/* Ensure we leave the gate closed */
+	
 	tda10048_i2c_gate_ctrl(fe, 0);
 
 	return ret;
@@ -833,7 +814,7 @@ static int tda10048_read_ber(struct dvb_frontend *fe, u32 *ber)
 
 	dprintk(1, "%s()\n", __func__);
 
-	/* TODO: A reset may be required here */
+	
 	*ber = tda10048_readreg(state, TDA10048_CBER_MSB) << 8 |
 		tda10048_readreg(state, TDA10048_CBER_LSB);
 
@@ -857,7 +838,7 @@ static int tda10048_read_signal_strength(struct dvb_frontend *fe,
 	return 0;
 }
 
-/* SNR lookup table */
+
 static struct snr_tab {
 	u8 val;
 	u8 data;
@@ -1051,7 +1032,7 @@ static void tda10048_establish_defaults(struct dvb_frontend *fe)
 	struct tda10048_state *state = fe->demodulator_priv;
 	struct tda10048_config *config = &state->config;
 
-	/* Validate/default the config */
+	
 	if (config->dtv6_if_freq_khz == 0) {
 		config->dtv6_if_freq_khz = TDA10048_IF_4300;
 		printk(KERN_WARNING "%s() tda10048_config.dtv6_if_freq_khz "
@@ -1094,38 +1075,38 @@ struct dvb_frontend *tda10048_attach(const struct tda10048_config *config,
 
 	dprintk(1, "%s()\n", __func__);
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct tda10048_state), GFP_KERNEL);
 	if (state == NULL)
 		goto error;
 
-	/* setup the state and clone the config */
+	
 	memcpy(&state->config, config, sizeof(*config));
 	state->i2c = i2c;
 	state->fwloaded = 0;
 	state->bandwidth = BANDWIDTH_8_MHZ;
 
-	/* check if the demod is present */
+	
 	if (tda10048_readreg(state, TDA10048_IDENTITY) != 0x048)
 		goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &tda10048_ops,
 		sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 
-	/* Establish any defaults the the user didn't pass */
+	
 	tda10048_establish_defaults(&state->frontend);
 
-	/* Set the xtal and freq defaults */
+	
 	if (tda10048_set_if(&state->frontend, BANDWIDTH_8_MHZ) != 0)
 		goto error;
 
-	/* Default bandwidth */
+	
 	if (tda10048_set_bandwidth(&state->frontend, BANDWIDTH_8_MHZ) != 0)
 		goto error;
 
-	/* Leave the gate closed */
+	
 	tda10048_i2c_gate_ctrl(&state->frontend, 0);
 
 	return &state->frontend;

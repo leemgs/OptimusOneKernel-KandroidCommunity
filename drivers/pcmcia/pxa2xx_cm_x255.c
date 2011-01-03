@@ -1,14 +1,4 @@
-/*
- * linux/drivers/pcmcia/pxa/pxa_cm_x255.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Compulab Ltd., 2003, 2007, 2008
- * Mike Rapoport <mike@compulab.co.il>
- *
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/irq.h>
@@ -71,7 +61,7 @@ static void cmx255_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 	state->bvd2   = 1;
 	state->vs_3v  = 0;
 	state->vs_Xv  = 0;
-	state->wrprot = 0;  /* not available */
+	state->wrprot = 0;  
 }
 
 

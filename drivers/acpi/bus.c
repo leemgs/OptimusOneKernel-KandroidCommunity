@@ -1,26 +1,4 @@
-/*
- *  acpi_bus.c - ACPI Bus Driver ($Revision: 80 $)
- *
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -68,9 +46,7 @@ static struct dmi_system_id __cpuinitdata power_nocheck_dmi_table[] = {
 };
 
 
-/* --------------------------------------------------------------------------
-                                Device Management
-   -------------------------------------------------------------------------- */
+
 
 int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
 {
@@ -80,7 +56,7 @@ int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
 	if (!device)
 		return -EINVAL;
 
-	/* TBD: Support fixed-feature devices */
+	
 
 	status = acpi_get_data(handle, acpi_bus_data_handler, (void **)device);
 	if (ACPI_FAILURE(status) || !*device) {
@@ -161,9 +137,7 @@ int acpi_bus_get_private_data(acpi_handle handle, void **data)
 }
 EXPORT_SYMBOL(acpi_bus_get_private_data);
 
-/* --------------------------------------------------------------------------
-                                 Power Management
-   -------------------------------------------------------------------------- */
+
 
 int acpi_bus_get_power(acpi_handle handle, int *state)
 {
@@ -180,16 +154,13 @@ int acpi_bus_get_power(acpi_handle handle, int *state)
 	*state = ACPI_STATE_UNKNOWN;
 
 	if (!device->flags.power_manageable) {
-		/* TBD: Non-recursive algorithm for walking up hierarchy */
+		
 		if (device->parent)
 			*state = device->parent->power.state;
 		else
 			*state = ACPI_STATE_D0;
 	} else {
-		/*
-		 * Get the device's power state either directly (via _PSC) or
-		 * indirectly (via power resources).
-		 */
+		
 		if (device->power.flags.explicit_get) {
 			status = acpi_evaluate_integer(device->handle, "_PSC",
 						       NULL, &psc);
@@ -228,27 +199,16 @@ int acpi_bus_set_power(acpi_handle handle, int state)
 	if ((state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
 		return -EINVAL;
 
-	/* Make sure this is a valid target state */
+	
 
 	if (!device->flags.power_manageable) {
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device `[%s]' is not power manageable\n",
 				kobject_name(&device->dev.kobj)));
 		return -ENODEV;
 	}
-	/*
-	 * Get device's current power state
-	 */
+	
 	if (!acpi_power_nocheck) {
-		/*
-		 * Maybe the incorrect power state is returned on the bogus
-		 * bios, which is different with the real power state.
-		 * For example: the bios returns D0 state and the real power
-		 * state is D3. OS expects to set the device to D0 state. In
-		 * such case if OS uses the power state returned by the BIOS,
-		 * the device can't be transisted to the correct power state.
-		 * So if the acpi_power_nocheck is set, it is unnecessary to
-		 * get the power state by calling acpi_bus_get_power.
-		 */
+		
 		acpi_bus_get_power(device->handle, &device->power.state);
 	}
 	if ((state == device->power.state) && !device->flags.force_power_state) {
@@ -268,13 +228,7 @@ int acpi_bus_set_power(acpi_handle handle, int state)
 		return -ENODEV;
 	}
 
-	/*
-	 * Transition Power
-	 * ----------------
-	 * On transitions to a high-powered state we first apply power (via
-	 * power resources) then evalute _PSx.  Conversly for transitions to
-	 * a lower-powered state.
-	 */
+	
 	if (state < device->power.state) {
 		if (device->power.flags.power_resources) {
 			result = acpi_power_transition(device, state);
@@ -406,7 +360,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
 	context->ret.length = ACPI_ALLOCATE_BUFFER;
 	context->ret.pointer = NULL;
 
-	/* Setting up input parameters */
+	
 	input.count = 4;
 	input.pointer = in_params;
 	in_params[0].type 		= ACPI_TYPE_BUFFER;
@@ -435,7 +389,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
 		status = AE_TYPE;
 		goto out_kfree;
 	}
-	/* Need to ignore the bit0 in result code */
+	
 	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
 	if (errors) {
 		if (errors & OSC_REQUEST_ERROR)
@@ -489,7 +443,7 @@ static void acpi_bus_osc_support(void)
 	acpi_handle handle;
 
 	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
-	capbuf[OSC_SUPPORT_TYPE] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
+	capbuf[OSC_SUPPORT_TYPE] = OSC_SB_PR3_SUPPORT; 
 #if defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR) ||\
 			defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR_MODULE)
 	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PAD_SUPPORT;
@@ -502,12 +456,10 @@ static void acpi_bus_osc_support(void)
 		return;
 	if (ACPI_SUCCESS(acpi_run_osc(handle, &context)))
 		kfree(context.ret.pointer);
-	/* do we need to check the returned cap? Sounds no */
+	
 }
 
-/* --------------------------------------------------------------------------
-                                Event Management
-   -------------------------------------------------------------------------- */
+
 
 #ifdef CONFIG_ACPI_PROC_EVENT
 static DEFINE_SPINLOCK(acpi_bus_event_lock);
@@ -522,7 +474,7 @@ int acpi_bus_generate_proc_event4(const char *device_class, const char *bus_id, 
 	struct acpi_bus_event *event;
 	unsigned long flags = 0;
 
-	/* drop event on the floor if no one's listening */
+	
 	if (!event_is_open)
 		return 0;
 
@@ -601,11 +553,9 @@ int acpi_bus_receive_event(struct acpi_bus_event *event)
 	return 0;
 }
 
-#endif	/* CONFIG_ACPI_PROC_EVENT */
+#endif	
 
-/* --------------------------------------------------------------------------
-                             Notification Handling
-   -------------------------------------------------------------------------- */
+
 
 static void acpi_bus_check_device(acpi_handle handle)
 {
@@ -620,10 +570,7 @@ static void acpi_bus_check_device(acpi_handle handle)
 
 	old_status = device->status;
 
-	/*
-	 * Make sure this device's parent is present before we go about
-	 * messing with the device.
-	 */
+	
 	if (device->parent && !device->parent->status.present) {
 		device->status = device->parent->status;
 		return;
@@ -636,27 +583,22 @@ static void acpi_bus_check_device(acpi_handle handle)
 	if (STRUCT_TO_INT(old_status) == STRUCT_TO_INT(device->status))
 		return;
 
-	/*
-	 * Device Insertion/Removal
-	 */
+	
 	if ((device->status.present) && !(old_status.present)) {
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device insertion detected\n"));
-		/* TBD: Handle device insertion */
+		
 	} else if (!(device->status.present) && (old_status.present)) {
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device removal detected\n"));
-		/* TBD: Handle device removal */
+		
 	}
 }
 
 static void acpi_bus_check_scope(acpi_handle handle)
 {
-	/* Status Change? */
+	
 	acpi_bus_check_device(handle);
 
-	/*
-	 * TBD: Enumerate child devices within this device's scope and
-	 *       run acpi_bus_check_device()'s on them.
-	 */
+	
 }
 
 static BLOCKING_NOTIFIER_HEAD(acpi_bus_notify_list);
@@ -672,11 +614,7 @@ void unregister_acpi_bus_notifier(struct notifier_block *nb)
 }
 EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
 
-/**
- * acpi_bus_notify
- * ---------------
- * Callback for all 'system-level' device notifications (values 0x00-0x7F).
- */
+
 static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
 {
 	struct acpi_device *device = NULL;
@@ -692,42 +630,36 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
 
 	case ACPI_NOTIFY_BUS_CHECK:
 		acpi_bus_check_scope(handle);
-		/*
-		 * TBD: We'll need to outsource certain events to non-ACPI
-		 *      drivers via the device manager (device.c).
-		 */
+		
 		break;
 
 	case ACPI_NOTIFY_DEVICE_CHECK:
 		acpi_bus_check_device(handle);
-		/*
-		 * TBD: We'll need to outsource certain events to non-ACPI
-		 *      drivers via the device manager (device.c).
-		 */
+		
 		break;
 
 	case ACPI_NOTIFY_DEVICE_WAKE:
-		/* TBD */
+		
 		break;
 
 	case ACPI_NOTIFY_EJECT_REQUEST:
-		/* TBD */
+		
 		break;
 
 	case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
-		/* TBD: Exactly what does 'light' mean? */
+		
 		break;
 
 	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
-		/* TBD */
+		
 		break;
 
 	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
-		/* TBD */
+		
 		break;
 
 	case ACPI_NOTIFY_POWER_FAULT:
-		/* TBD */
+		
 		break;
 
 	default:
@@ -746,9 +678,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
 	}
 }
 
-/* --------------------------------------------------------------------------
-                             Initialization/Cleanup
-   -------------------------------------------------------------------------- */
+
 
 static int __init acpi_bus_init_irq(void)
 {
@@ -758,10 +688,7 @@ static int __init acpi_bus_init_irq(void)
 	char *message = NULL;
 
 
-	/*
-	 * Let the system know what interrupt model we are using by
-	 * evaluating the \_PIC object, if exists.
-	 */
+	
 
 	switch (acpi_irq_model) {
 	case ACPI_IRQ_MODEL_PIC:
@@ -806,7 +733,7 @@ void __init acpi_early_init(void)
 
 	printk(KERN_INFO PREFIX "Core revision %08x\n", ACPI_CA_VERSION);
 
-	/* enable workarounds, unless strict ACPI spec. compliance */
+	
 	if (!acpi_strict)
 		acpi_gbl_enable_interpreter_slack = TRUE;
 
@@ -835,19 +762,16 @@ void __init acpi_early_init(void)
 
 #ifdef CONFIG_X86
 	if (!acpi_ioapic) {
-		/* compatible (0) means level (3) */
+		
 		if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
 			acpi_sci_flags &= ~ACPI_MADT_TRIGGER_MASK;
 			acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
 		}
-		/* Set PIC-mode SCI trigger type */
+		
 		acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
 					 (acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
 	} else {
-		/*
-		 * now that acpi_gbl_FADT is initialized,
-		 * update it with result from INT_SRC_OVR parsing
-		 */
+		
 		acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
 	}
 #endif
@@ -884,16 +808,9 @@ static int __init acpi_bus_init(void)
 		goto error1;
 	}
 
-	/*
-	 * ACPI 2.0 requires the EC driver to be loaded and work before
-	 * the EC device is found in the namespace (i.e. before acpi_initialize_objects()
-	 * is called).
-	 *
-	 * This is accomplished by looking for the ECDT table, and getting
-	 * the EC parameters out of that.
-	 */
+	
 	status = acpi_ec_ecdt_probe();
-	/* Ignore result. Not having an ECDT is not fatal. */
+	
 
 	acpi_bus_osc_support();
 
@@ -903,27 +820,20 @@ static int __init acpi_bus_init(void)
 		goto error1;
 	}
 
-	/*
-	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
-	 * is necessary to enable it as early as possible.
-	 */
+	
 	acpi_boot_ec_enable();
 
 	printk(KERN_INFO PREFIX "Interpreter enabled\n");
 
-	/* Initialize sleep structures */
+	
 	acpi_sleep_init();
 
-	/*
-	 * Get the system interrupt model and evaluate \_PIC.
-	 */
+	
 	result = acpi_bus_init_irq();
 	if (result)
 		goto error1;
 
-	/*
-	 * Register the for all standard device notifications.
-	 */
+	
 	status =
 	    acpi_install_notify_handler(ACPI_ROOT_OBJECT, ACPI_SYSTEM_NOTIFY,
 					&acpi_bus_notify, NULL);
@@ -933,14 +843,12 @@ static int __init acpi_bus_init(void)
 		goto error1;
 	}
 
-	/*
-	 * Create the top ACPI proc directory
-	 */
+	
 	acpi_root_dir = proc_mkdir(ACPI_BUS_FILE_ROOT, NULL);
 
 	return 0;
 
-	/* Mimic structured exception handling */
+	
       error1:
 	acpi_terminate();
 	return -ENODEV;
@@ -983,10 +891,7 @@ static int __init acpi_init(void)
 	if (acpi_disabled)
 		return result;
 
-	/*
-	 * If the laptop falls into the DMI check table, the power state check
-	 * will be disabled in the course of device power transistion.
-	 */
+	
 	dmi_check_system(power_nocheck_dmi_table);
 
 	acpi_scan_init();

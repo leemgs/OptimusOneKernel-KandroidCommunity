@@ -1,27 +1,4 @@
-/*
- *  pci_bind.c - ACPI PCI Device Binding ($Revision: 2 $)
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -62,10 +39,7 @@ static int acpi_pci_bind(struct acpi_device *device)
 	if (!dev)
 		return 0;
 
-	/*
-	 * Install the 'bind' function to facilitate callbacks for
-	 * children of the P2P bridge.
-	 */
+	
 	if (dev->subordinate) {
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 				  "Device %04x:%02x:%02x.%d is a PCI bridge\n",
@@ -75,14 +49,7 @@ static int acpi_pci_bind(struct acpi_device *device)
 		device->ops.unbind = acpi_pci_unbind;
 	}
 
-	/*
-	 * Evaluate and parse _PRT, if exists.  This code allows parsing of
-	 * _PRT objects within the scope of non-bridge devices.  Note that
-	 * _PRTs within the scope of a PCI bridge assume the bridge's
-	 * subordinate bus number.
-	 *
-	 * TBD: Can _PRTs exist within the scope of non-bridge PCI devices?
-	 */
+	
 	status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
 	if (ACPI_FAILURE(status))
 		goto out;

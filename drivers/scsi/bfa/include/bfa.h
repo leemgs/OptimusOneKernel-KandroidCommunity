@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #ifndef __BFA_H__
 #define __BFA_H__
 
@@ -34,9 +19,7 @@ struct bfa_s;
 
 struct bfa_pcidev_s;
 
-/**
- * PCI devices supported by the current BFA
- */
+
 struct bfa_pciid_s {
 	u16        device_id;
 	u16        vendor_id;
@@ -44,9 +27,7 @@ struct bfa_pciid_s {
 
 extern char     bfa_version[];
 
-/**
- * BFA Power Mgmt Commands
- */
+
 enum bfa_pm_cmd {
 	BFA_PM_CTL_D0 = 0,
 	BFA_PM_CTL_D1 = 1,
@@ -54,22 +35,20 @@ enum bfa_pm_cmd {
 	BFA_PM_CTL_D3 = 3,
 };
 
-/**
- * BFA memory resources
- */
+
 enum bfa_mem_type {
-	BFA_MEM_TYPE_KVA = 1,	/*! Kernel Virtual Memory *(non-dma-able) */
-	BFA_MEM_TYPE_DMA = 2,	/*! DMA-able memory */
+	BFA_MEM_TYPE_KVA = 1,	
+	BFA_MEM_TYPE_DMA = 2,	
 	BFA_MEM_TYPE_MAX = BFA_MEM_TYPE_DMA,
 };
 
 struct bfa_mem_elem_s {
-	enum bfa_mem_type mem_type;	/*  see enum bfa_mem_type 	*/
-	u32        mem_len;	/*  Total Length in Bytes	*/
-	u8       	*kva;		/*  kernel virtual address	*/
-	u64        dma;		/*  dma address if DMA memory	*/
-	u8       	*kva_curp;	/*  kva allocation cursor	*/
-	u64        dma_curp;	/*  dma allocation cursor	*/
+	enum bfa_mem_type mem_type;	
+	u32        mem_len;	
+	u8       	*kva;		
+	u64        dma;		
+	u8       	*kva_curp;	
+	u64        dma_curp;	
 };
 
 struct bfa_meminfo_s {
@@ -82,9 +61,7 @@ struct bfa_meminfo_s {
 #define bfa_meminfo_dma_phys(_m)	\
 	(_m)->meminfo[BFA_MEM_TYPE_DMA - 1].dma_curp
 
-/**
- * Generic Scatter Gather Element used by driver
- */
+
 struct bfa_sge_s {
 	u32        sg_len;
 	void           *sg_addr;
@@ -97,9 +74,7 @@ struct bfa_sge_s {
 } while (0)
 
 
-/*
- * bfa stats interfaces
- */
+
 #define bfa_stats(_mod, _stats)	(_mod)->stats._stats ++
 
 #define bfa_ioc_get_stats(__bfa, __ioc_stats)	\
@@ -107,9 +82,7 @@ struct bfa_sge_s {
 #define bfa_ioc_clear_stats(__bfa)	\
 	bfa_ioc_clr_stats(&(__bfa)->ioc)
 
-/*
- * bfa API functions
- */
+
 void bfa_get_pciids(struct bfa_pciid_s **pciids, int *npciids);
 void bfa_cfg_get_default(struct bfa_iocfc_cfg_s *cfg);
 void bfa_cfg_get_min(struct bfa_iocfc_cfg_s *cfg);
@@ -166,12 +139,10 @@ void bfa_timer_tick(struct bfa_s *bfa);
 #define bfa_timer_start(_bfa, _timer, _timercb, _arg, _timeout)	\
 	bfa_timer_begin(&(_bfa)->timer_mod, _timer, _timercb, _arg, _timeout)
 
-/*
- * BFA debug API functions
- */
+
 bfa_status_t bfa_debug_fwtrc(struct bfa_s *bfa, void *trcdata, int *trclen);
 bfa_status_t bfa_debug_fwsave(struct bfa_s *bfa, void *trcdata, int *trclen);
 
 #include "bfa_priv.h"
 
-#endif /* __BFA_H__ */
+#endif 

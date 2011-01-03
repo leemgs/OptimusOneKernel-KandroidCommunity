@@ -1,17 +1,6 @@
 #ifndef _CCID_H
 #define _CCID_H
-/*
- *  net/dccp/ccid.h
- *
- *  An implementation of the DCCP protocol
- *  Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *
- *  CCID infrastructure
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License version 2 as
- *	published by the Free Software Foundation.
- */
+
 
 #include <net/sock.h>
 #include <linux/compiler.h>
@@ -23,26 +12,7 @@
 
 struct tcp_info;
 
-/**
- *  struct ccid_operations  -  Interface to Congestion-Control Infrastructure
- *
- *  @ccid_id: numerical CCID ID (up to %CCID_MAX, cf. table 5 in RFC 4340, 10.)
- *  @ccid_ccmps: the CCMPS including network/transport headers (0 when disabled)
- *  @ccid_name: alphabetical identifier string for @ccid_id
- *  @ccid_hc_{r,t}x_slab: memory pool for the receiver/sender half-connection
- *  @ccid_hc_{r,t}x_obj_size: size of the receiver/sender half-connection socket
- *
- *  @ccid_hc_{r,t}x_init: CCID-specific initialisation routine (before startup)
- *  @ccid_hc_{r,t}x_exit: CCID-specific cleanup routine (before destruction)
- *  @ccid_hc_rx_packet_recv: implements the HC-receiver side
- *  @ccid_hc_{r,t}x_parse_options: parsing routine for CCID/HC-specific options
- *  @ccid_hc_{r,t}x_insert_options: insert routine for CCID/HC-specific options
- *  @ccid_hc_tx_packet_recv: implements feedback processing for the HC-sender
- *  @ccid_hc_tx_send_packet: implements the sending part of the HC-sender
- *  @ccid_hc_tx_packet_sent: does accounting for packets in flight by HC-sender
- *  @ccid_hc_{r,t}x_get_info: INET_DIAG information for HC-receiver/sender
- *  @ccid_hc_{r,t}x_getsockopt: socket options specific to HC-receiver/sender
- */
+
 struct ccid_operations {
 	unsigned char		ccid_id;
 	__u32			ccid_ccmps;
@@ -51,7 +21,7 @@ struct ccid_operations {
 				*ccid_hc_tx_slab;
 	__u32			ccid_hc_rx_obj_size,
 				ccid_hc_tx_obj_size;
-	/* Interface Routines */
+	
 	int		(*ccid_hc_rx_init)(struct ccid *ccid, struct sock *sk);
 	int		(*ccid_hc_tx_init)(struct ccid *ccid, struct sock *sk);
 	void		(*ccid_hc_rx_exit)(struct sock *sk);
@@ -230,4 +200,4 @@ static inline int ccid_hc_tx_getsockopt(struct ccid *ccid, struct sock *sk,
 						 optval, optlen);
 	return rc;
 }
-#endif /* _CCID_H */
+#endif 

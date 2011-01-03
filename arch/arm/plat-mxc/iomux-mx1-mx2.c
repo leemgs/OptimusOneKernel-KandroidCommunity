@@ -1,27 +1,4 @@
-/*
- *  arch/arm/mach-mxc/generic.c
- *
- *  author: Sascha Hauer
- *  Created: april 20th, 2004
- *  Copyright: Synertronixx GmbH
- *
- *  Common code for i.MX machines
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/errno.h>
 #include <linux/init.h>
@@ -41,7 +18,7 @@ void mxc_gpio_mode(int gpio_mode)
 	unsigned int ocr = (gpio_mode & GPIO_OCR_MASK) >> GPIO_OCR_SHIFT;
 	unsigned int tmp;
 
-	/* Pullup enable */
+	
 	tmp = __raw_readl(VA_GPIO_BASE + MXC_PUEN(port));
 	if (gpio_mode & GPIO_PUEN)
 		tmp |= (1 << pin);
@@ -49,7 +26,7 @@ void mxc_gpio_mode(int gpio_mode)
 		tmp &= ~(1 << pin);
 	__raw_writel(tmp, VA_GPIO_BASE + MXC_PUEN(port));
 
-	/* Data direction */
+	
 	tmp = __raw_readl(VA_GPIO_BASE + MXC_DDIR(port));
 	if (gpio_mode & GPIO_OUT)
 		tmp |= 1 << pin;
@@ -57,7 +34,7 @@ void mxc_gpio_mode(int gpio_mode)
 		tmp &= ~(1 << pin);
 	__raw_writel(tmp, VA_GPIO_BASE + MXC_DDIR(port));
 
-	/* Primary / alternate function */
+	
 	tmp = __raw_readl(VA_GPIO_BASE + MXC_GPR(port));
 	if (gpio_mode & GPIO_AF)
 		tmp |= (1 << pin);
@@ -65,7 +42,7 @@ void mxc_gpio_mode(int gpio_mode)
 		tmp &= ~(1 << pin);
 	__raw_writel(tmp, VA_GPIO_BASE + MXC_GPR(port));
 
-	/* use as gpio? */
+	
 	tmp = __raw_readl(VA_GPIO_BASE + MXC_GIUS(port));
 	if (gpio_mode & (GPIO_PF | GPIO_AF))
 		tmp &= ~(1 << pin);

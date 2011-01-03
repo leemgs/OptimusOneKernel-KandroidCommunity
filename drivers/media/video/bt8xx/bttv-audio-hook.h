@@ -1,9 +1,4 @@
-/*
- * Handlers for board audio hooks, splitted from bttv-cards
- *
- * Copyright (c) 2006 Mauro Carvalho Chehab (mchehab@infradead.org)
- * This code is placed under the terms of the GNU General Public License
- */
+
 
 #include "bttvp.h"
 

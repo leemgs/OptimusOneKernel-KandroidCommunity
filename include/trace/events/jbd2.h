@@ -240,7 +240,7 @@ TRACE_EVENT(jbd2_checkpoint_stats,
 		  __entry->forced_to_close, __entry->written, __entry->dropped)
 );
 
-#endif /* _TRACE_JBD2_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>

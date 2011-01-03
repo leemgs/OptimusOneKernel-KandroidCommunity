@@ -1,23 +1,6 @@
-/*
- * cardbus.c -- 16-bit PCMCIA core support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999		David A. Hinds
- */
 
-/*
- * Cardbus handling has been re-written to be more of a PCI bridge thing,
- * and the PCI code basically does all the resource handling.
- *
- *		Linus, Jan 2000
- */
+
+
 
 
 #include <linux/module.h>
@@ -36,30 +19,23 @@
 #include <pcmcia/cistpl.h>
 #include "cs_internal.h"
 
-/*====================================================================*/
 
-/* Offsets in the Expansion ROM Image Header */
-#define ROM_SIGNATURE		0x0000	/* 2 bytes */
-#define ROM_DATA_PTR		0x0018	/* 2 bytes */
 
-/* Offsets in the CardBus PC Card Data Structure */
-#define PCDATA_SIGNATURE	0x0000	/* 4 bytes */
-#define PCDATA_VPD_PTR		0x0008	/* 2 bytes */
-#define PCDATA_LENGTH		0x000a	/* 2 bytes */
+
+#define ROM_SIGNATURE		0x0000	
+#define ROM_DATA_PTR		0x0018	
+
+
+#define PCDATA_SIGNATURE	0x0000	
+#define PCDATA_VPD_PTR		0x0008	
+#define PCDATA_LENGTH		0x000a	
 #define PCDATA_REVISION		0x000c
-#define PCDATA_IMAGE_SZ		0x0010	/* 2 bytes */
-#define PCDATA_ROM_LEVEL	0x0012	/* 2 bytes */
+#define PCDATA_IMAGE_SZ		0x0010	
+#define PCDATA_ROM_LEVEL	0x0012	
 #define PCDATA_CODE_TYPE	0x0014
 #define PCDATA_INDICATOR	0x0015
 
-/*=====================================================================
 
-    Expansion ROM's have a special layout, and pointers specify an
-    image number and an offset within that image.  xlate_rom_addr()
-    converts an image/offset address to an absolute offset from the
-    ROM's base address.
-    
-=====================================================================*/
 
 static u_int xlate_rom_addr(void __iomem *b, u_int addr)
 {
@@ -80,13 +56,7 @@ static u_int xlate_rom_addr(void __iomem *b, u_int addr)
 	return 0;
 }
 
-/*=====================================================================
 
-    These are similar to setup_cis_mem and release_cis_mem for 16-bit
-    cards.  The "result" that is used externally is the cb_cis_virt
-    pointer in the struct pcmcia_socket structure.
-    
-=====================================================================*/
 
 static void cb_release_cis_mem(struct pcmcia_socket * s)
 {
@@ -120,12 +90,7 @@ static int cb_setup_cis_mem(struct pcmcia_socket * s, struct resource *res)
 	return 0;
 }
 
-/*=====================================================================
 
-    This is used by the CIS processing code to read CIS information
-    from a CardBus device.
-    
-=====================================================================*/
 
 int read_cb_mem(struct pcmcia_socket * s, int space, u_int addr, u_int len, void *ptr)
 {
@@ -138,7 +103,7 @@ int read_cb_mem(struct pcmcia_socket * s, int space, u_int addr, u_int len, void
 	if (!dev)
 		goto fail;
 
-	/* Config space? */
+	
 	if (space == 0) {
 		if (addr + len > 0x100)
 			goto failput;
@@ -176,19 +141,9 @@ fail:
 	return -1;
 }
 
-/*=====================================================================
 
-    cb_alloc() and cb_free() allocate and free the kernel data
-    structures for a Cardbus device, and handle the lowest level PCI
-    device setup issues.
-    
-=====================================================================*/
 
-/*
- * Since there is only one interrupt available to CardBus
- * devices, all devices downstream of this device must
- * be using this IRQ.
- */
+
 static void cardbus_assign_irqs(struct pci_bus *bus, int irq)
 {
 	struct pci_dev *dev;
@@ -223,14 +178,12 @@ int __ref cb_alloc(struct pcmcia_socket * s)
 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS)
 				max = pci_scan_bridge(bus, dev, max, pass);
 
-	/*
-	 * Size all resources below the CardBus controller.
-	 */
+	
 	pci_bus_size_bridges(bus);
 	pci_bus_assign_resources(bus);
 	cardbus_assign_irqs(bus, s->pci_irq);
 
-	/* socket specific tune function */
+	
 	if (s->tune_bridge)
 		s->tune_bridge(s, bus);
 

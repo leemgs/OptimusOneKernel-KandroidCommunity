@@ -1,20 +1,4 @@
-/*
- *  Copyright (C) 2008 Valentin Longchamp, EPFL Mobots group
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/delay.h>
 #include <linux/fsl_devices.h>
@@ -44,24 +28,24 @@
 #include "devices.h"
 
 static unsigned int moboard_pins[] = {
-	/* UART0 */
+	
 	MX31_PIN_CTS1__CTS1, MX31_PIN_RTS1__RTS1,
 	MX31_PIN_TXD1__TXD1, MX31_PIN_RXD1__RXD1,
-	/* UART4 */
+	
 	MX31_PIN_PC_RST__CTS5, MX31_PIN_PC_VS2__RTS5,
 	MX31_PIN_PC_BVD2__TXD5, MX31_PIN_PC_BVD1__RXD5,
-	/* I2C0 */
+	
 	MX31_PIN_I2C_DAT__I2C1_SDA, MX31_PIN_I2C_CLK__I2C1_SCL,
-	/* I2C1 */
+	
 	MX31_PIN_DCD_DTE1__I2C2_SDA, MX31_PIN_RI_DTE1__I2C2_SCL,
-	/* SDHC1 */
+	
 	MX31_PIN_SD1_DATA3__SD1_DATA3, MX31_PIN_SD1_DATA2__SD1_DATA2,
 	MX31_PIN_SD1_DATA1__SD1_DATA1, MX31_PIN_SD1_DATA0__SD1_DATA0,
 	MX31_PIN_SD1_CLK__SD1_CLK, MX31_PIN_SD1_CMD__SD1_CMD,
 	MX31_PIN_ATA_CS0__GPIO3_26, MX31_PIN_ATA_CS1__GPIO3_27,
-	/* USB reset */
+	
 	MX31_PIN_GPIO1_0__GPIO1_0,
-	/* USB OTG */
+	
 	MX31_PIN_USBOTG_DATA0__USBOTG_DATA0,
 	MX31_PIN_USBOTG_DATA1__USBOTG_DATA1,
 	MX31_PIN_USBOTG_DATA2__USBOTG_DATA2,
@@ -73,10 +57,10 @@ static unsigned int moboard_pins[] = {
 	MX31_PIN_USBOTG_CLK__USBOTG_CLK, MX31_PIN_USBOTG_DIR__USBOTG_DIR,
 	MX31_PIN_USBOTG_NXT__USBOTG_NXT, MX31_PIN_USBOTG_STP__USBOTG_STP,
 	MX31_PIN_USB_OC__GPIO1_30,
-	/* LEDs */
+	
 	MX31_PIN_SVEN0__GPIO2_0, MX31_PIN_STX0__GPIO2_1,
 	MX31_PIN_SRX0__GPIO2_2, MX31_PIN_SIMPD0__GPIO2_3,
-	/* SEL */
+	
 	MX31_PIN_DTR_DCE1__GPIO2_8, MX31_PIN_DSR_DCE1__GPIO2_9,
 	MX31_PIN_RI_DCE1__GPIO2_10, MX31_PIN_DCD_DCE1__GPIO2_11,
 };
@@ -166,9 +150,7 @@ static struct imxmmc_platform_data sdhc1_pdata = {
 	.exit	= moboard_sdhc1_exit,
 };
 
-/*
- * this pin is dedicated for all mx31moboard systems, so we do it here
- */
+
 #define USB_RESET_B	IOMUX_TO_GPIO(MX31_PIN_GPIO1_0)
 
 static void usb_xcvr_reset(void)
@@ -274,9 +256,7 @@ static struct platform_device *devices[] __initdata = {
 static int mx31moboard_baseboard;
 core_param(mx31moboard_baseboard, mx31moboard_baseboard, int, 0444);
 
-/*
- * Board specific initialization.
- */
+
 static void __init mxc_board_init(void)
 {
 	mxc_iomux_setup_multiple_pins(moboard_pins, ARRAY_SIZE(moboard_pins),
@@ -324,7 +304,7 @@ struct sys_timer mx31moboard_timer = {
 };
 
 MACHINE_START(MX31MOBOARD, "EPFL Mobots mx31moboard")
-	/* Maintainer: Valentin Longchamp, EPFL Mobots group */
+	
 	.phys_io	= AIPS1_BASE_ADDR,
 	.io_pg_offst	= ((AIPS1_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params    = PHYS_OFFSET + 0x100,

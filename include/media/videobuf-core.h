@@ -1,17 +1,4 @@
-/*
- * generic helper functions for handling video4linux capture buffers
- *
- * (c) 2007 Mauro Carvalho Chehab, <mchehab@infradead.org>
- *
- * Highly based on video-buf written originally by:
- * (c) 2001,02 Gerd Knorr <kraxel@bytesex.org>
- * (c) 2006 Mauro Carvalho Chehab, <mchehab@infradead.org>
- * (c) 2006 Ted Walther and John Sokol
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2
- */
+
 
 #ifndef _VIDEOBUF_CORE_H
 #define _VIDEOBUF_CORE_H
@@ -29,28 +16,9 @@
 struct videobuf_buffer;
 struct videobuf_queue;
 
-/* --------------------------------------------------------------------- */
 
-/*
- * A small set of helper functions to manage video4linux buffers.
- *
- * struct videobuf_buffer holds the data structures used by the helper
- * functions, additionally some commonly used fields for v4l buffers
- * (width, height, lists, waitqueue) are in there.  That struct should
- * be used as first element in the drivers buffer struct.
- *
- * about the mmap helpers (videobuf_mmap_*):
- *
- * The mmaper function allows to map any subset of contingous buffers.
- * This includes one mmap() call for all buffers (which the original
- * video4linux API uses) as well as one mmap() for every single buffer
- * (which v4l2 uses).
- *
- * If there is a valid mapping for a buffer, buffer->baddr/bsize holds
- * userspace address + size which can be feeded into the
- * videobuf_dma_init_user function listed above.
- *
- */
+
+
 
 struct videobuf_mapping {
 	unsigned int count;
@@ -73,38 +41,38 @@ struct videobuf_buffer {
 	unsigned int            i;
 	u32                     magic;
 
-	/* info about the buffer */
+	
 	unsigned int            width;
 	unsigned int            height;
-	unsigned int            bytesperline; /* use only if != 0 */
+	unsigned int            bytesperline; 
 	unsigned long           size;
 	unsigned int            input;
 	enum v4l2_field         field;
 	enum videobuf_state     state;
-	struct list_head        stream;  /* QBUF/DQBUF list */
+	struct list_head        stream;  
 
-	/* touched by irq handler */
+	
 	struct list_head        queue;
 	wait_queue_head_t       done;
 	unsigned int            field_count;
 	struct timeval          ts;
 
-	/* Memory type */
+	
 	enum v4l2_memory        memory;
 
-	/* buffer size */
+	
 	size_t                  bsize;
 
-	/* buffer offset (mmap + overlay) */
+	
 	size_t                  boff;
 
-	/* buffer addr (userland ptr!) */
+	
 	unsigned long           baddr;
 
-	/* for mmap'ed buffers */
+	
 	struct videobuf_mapping *map;
 
-	/* Private pointer to allow specific methods to store their data */
+	
 	int			privsize;
 	void                    *priv;
 };
@@ -123,7 +91,7 @@ struct videobuf_queue_ops {
 
 #define MAGIC_QTYPE_OPS	0x12261003
 
-/* Helper operations - device type dependent */
+
 struct videobuf_qtype_ops {
 	u32                     magic;
 
@@ -158,13 +126,13 @@ struct videobuf_queue {
 	spinlock_t                 *irqlock;
 	struct device		   *dev;
 
-	wait_queue_head_t	   wait; /* wait if queue is empty */
+	wait_queue_head_t	   wait; 
 
 	enum v4l2_buf_type         type;
-	unsigned int               inputs; /* for V4L2_BUF_FLAG_INPUT */
+	unsigned int               inputs; 
 	unsigned int               msize;
 	enum v4l2_field            field;
-	enum v4l2_field            last;   /* for field=V4L2_FIELD_ALTERNATE */
+	enum v4l2_field            last;   
 	struct videobuf_buffer     *bufs[VIDEO_MAX_FRAME];
 	struct videobuf_queue_ops  *ops;
 	struct videobuf_qtype_ops  *int_ops;
@@ -173,14 +141,14 @@ struct videobuf_queue {
 	unsigned int               reading:1;
 	unsigned int		   is_mmapped:1;
 
-	/* capture via mmap() + ioctl(QBUF/DQBUF) */
+	
 	struct list_head           stream;
 
-	/* capture via read() */
+	
 	unsigned int               read_off;
 	struct videobuf_buffer     *read_buf;
 
-	/* driver private data */
+	
 	void                       *priv_data;
 };
 
@@ -190,7 +158,7 @@ int videobuf_iolock(struct videobuf_queue* q, struct videobuf_buffer *vb,
 
 void *videobuf_alloc(struct videobuf_queue* q);
 
-/* Used on videobuf-dvb */
+
 void *videobuf_queue_to_vmalloc (struct videobuf_queue* q,
 				 struct videobuf_buffer *buf);
 

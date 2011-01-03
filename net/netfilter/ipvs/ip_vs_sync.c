@@ -1,21 +1,4 @@
-/*
- * IPVS         An implementation of the IP virtual server support for the
- *              LINUX operating system.  IPVS is now implemented as a module
- *              over the NetFilter framework. IPVS can be used to build a
- *              high-performance and highly available server based on a
- *              cluster of servers.
- *
- * Authors:     Wensong Zhang <wensong@linuxvirtualserver.org>
- *
- * ip_vs_sync:  sync connection info from master load balancer to backups
- *              through multicast
- *
- * Changes:
- *	Alexandre Cassen	:	Added master & backup support at a time.
- *	Alexandre Cassen	:	Added SyncID support for incoming sync
- *					messages filtering.
- *	Justin Ossevoort	:	Fix endian problem on sync message size.
- */
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -28,7 +11,7 @@
 #include <linux/delay.h>
 #include <linux/skbuff.h>
 #include <linux/in.h>
-#include <linux/igmp.h>                 /* for ip_mc_join_group */
+#include <linux/igmp.h>                 
 #include <linux/udp.h>
 #include <linux/err.h>
 #include <linux/kthread.h>
@@ -40,35 +23,33 @@
 
 #include <net/ip_vs.h>
 
-#define IP_VS_SYNC_GROUP 0xe0000051    /* multicast addr - 224.0.0.81 */
-#define IP_VS_SYNC_PORT  8848          /* multicast port */
+#define IP_VS_SYNC_GROUP 0xe0000051    
+#define IP_VS_SYNC_PORT  8848          
 
 
-/*
- *	IPVS sync connection entry
- */
+
 struct ip_vs_sync_conn {
 	__u8			reserved;
 
-	/* Protocol, addresses and port numbers */
-	__u8			protocol;       /* Which protocol (TCP/UDP) */
+	
+	__u8			protocol;       
 	__be16			cport;
 	__be16                  vport;
 	__be16                  dport;
-	__be32                  caddr;          /* client address */
-	__be32                  vaddr;          /* virtual address */
-	__be32                  daddr;          /* destination address */
+	__be32                  caddr;          
+	__be32                  vaddr;          
+	__be32                  daddr;          
 
-	/* Flags and state transition */
-	__be16                  flags;          /* status flags */
-	__be16                  state;          /* state info */
+	
+	__be16                  flags;          
+	__be16                  state;          
 
-	/* The sequence options start here */
+	
 };
 
 struct ip_vs_sync_conn_options {
-	struct ip_vs_seq        in_seq;         /* incoming seq. struct */
-	struct ip_vs_seq        out_seq;        /* outgoing seq. struct */
+	struct ip_vs_seq        in_seq;         
+	struct ip_vs_seq        out_seq;        
 };
 
 struct ip_vs_sync_thread_data {
@@ -81,39 +62,20 @@ struct ip_vs_sync_thread_data {
 (sizeof(struct ip_vs_sync_conn) + sizeof(struct ip_vs_sync_conn_options))
 
 
-/*
-  The master mulitcasts messages to the backup load balancers in the
-  following format.
 
-       0                   1                   2                   3
-       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |  Count Conns  |    SyncID     |            Size               |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                                                               |
-      |                    IPVS Sync Connection (1)                   |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                            .                                  |
-      |                            .                                  |
-      |                            .                                  |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                                                               |
-      |                    IPVS Sync Connection (n)                   |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-*/
 
 #define SYNC_MESG_HEADER_LEN	4
-#define MAX_CONNS_PER_SYNCBUFF	255 /* nr_conns in ip_vs_sync_mesg is 8 bit */
+#define MAX_CONNS_PER_SYNCBUFF	255 
 
 struct ip_vs_sync_mesg {
 	__u8                    nr_conns;
 	__u8                    syncid;
 	__u16                   size;
 
-	/* ip_vs_sync_conn entries start here */
+	
 };
 
-/* the maximum length of sync (sending/receiving) message */
+
 static int sync_send_mesg_maxlen;
 static int sync_recv_mesg_maxlen;
 
@@ -121,35 +83,35 @@ struct ip_vs_sync_buff {
 	struct list_head        list;
 	unsigned long           firstuse;
 
-	/* pointers for the message data */
+	
 	struct ip_vs_sync_mesg  *mesg;
 	unsigned char           *head;
 	unsigned char           *end;
 };
 
 
-/* the sync_buff list head and the lock */
+
 static LIST_HEAD(ip_vs_sync_queue);
 static DEFINE_SPINLOCK(ip_vs_sync_lock);
 
-/* current sync_buff for accepting new conn entries */
+
 static struct ip_vs_sync_buff   *curr_sb = NULL;
 static DEFINE_SPINLOCK(curr_sb_lock);
 
-/* ipvs sync daemon state */
+
 volatile int ip_vs_sync_state = IP_VS_STATE_NONE;
 volatile int ip_vs_master_syncid = 0;
 volatile int ip_vs_backup_syncid = 0;
 
-/* multicast interface name */
+
 char ip_vs_master_mcast_ifn[IP_VS_IFNAME_MAXLEN];
 char ip_vs_backup_mcast_ifn[IP_VS_IFNAME_MAXLEN];
 
-/* sync daemon tasks */
+
 static struct task_struct *sync_master_thread;
 static struct task_struct *sync_backup_thread;
 
-/* multicast addr */
+
 static struct sockaddr_in mcast_addr = {
 	.sin_family		= AF_INET,
 	.sin_port		= cpu_to_be16(IP_VS_SYNC_PORT),
@@ -211,10 +173,7 @@ static inline void sb_queue_tail(struct ip_vs_sync_buff *sb)
 	spin_unlock(&ip_vs_sync_lock);
 }
 
-/*
- *	Get the current sync buffer if it has been created for more
- *	than the specified time or the specified time is zero.
- */
+
 static inline struct ip_vs_sync_buff *
 get_curr_sync_buff(unsigned long time)
 {
@@ -232,10 +191,7 @@ get_curr_sync_buff(unsigned long time)
 }
 
 
-/*
- *      Add an ip_vs_conn information into the current sync_buff.
- *      Called by ip_vs_in.
- */
+
 void ip_vs_sync_conn(struct ip_vs_conn *cp)
 {
 	struct ip_vs_sync_mesg *m;
@@ -256,7 +212,7 @@ void ip_vs_sync_conn(struct ip_vs_conn *cp)
 	m = curr_sb->mesg;
 	s = (struct ip_vs_sync_conn *)curr_sb->head;
 
-	/* copy members */
+	
 	s->protocol = cp->protocol;
 	s->cport = cp->cport;
 	s->vport = cp->vport;
@@ -276,23 +232,20 @@ void ip_vs_sync_conn(struct ip_vs_conn *cp)
 	m->size += len;
 	curr_sb->head += len;
 
-	/* check if there is a space for next one */
+	
 	if (curr_sb->head+FULL_CONN_SIZE > curr_sb->end) {
 		sb_queue_tail(curr_sb);
 		curr_sb = NULL;
 	}
 	spin_unlock(&curr_sb_lock);
 
-	/* synchronize its controller if it has */
+	
 	if (cp->control)
 		ip_vs_sync_conn(cp->control);
 }
 
 
-/*
- *      Process received multicast message and create the corresponding
- *      ip_vs_conn entries.
- */
+
 static void ip_vs_process_message(const char *buffer, const size_t buflen)
 {
 	struct ip_vs_sync_mesg *m = (struct ip_vs_sync_mesg *)buffer;
@@ -309,7 +262,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
 		return;
 	}
 
-	/* Convert size back to host byte order */
+	
 	m->size = ntohs(m->size);
 
 	if (buflen != m->size) {
@@ -317,7 +270,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
 		return;
 	}
 
-	/* SyncID sanity check */
+	
 	if (ip_vs_backup_syncid != 0 && m->syncid != ip_vs_backup_syncid) {
 		IP_VS_DBG(7, "Ignoring incoming msg with syncid = %d\n",
 			  m->syncid);
@@ -361,7 +314,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
 				continue;
 			}
 		} else {
-			/* protocol in templates is not used for state/timeout */
+			
 			pp = NULL;
 			if (state > 0) {
 				IP_VS_DBG(2, "Invalid template state %u in sync msg\n",
@@ -383,18 +336,14 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
 					     (union nf_inet_addr *)&s->vaddr,
 					     s->vport);
 		if (!cp) {
-			/*
-			 * Find the appropriate destination for the connection.
-			 * If it is not found the connection will remain unbound
-			 * but still handled.
-			 */
+			
 			dest = ip_vs_find_dest(AF_INET,
 					       (union nf_inet_addr *)&s->daddr,
 					       s->dport,
 					       (union nf_inet_addr *)&s->vaddr,
 					       s->vport,
 					       s->protocol);
-			/*  Set the approprite ativity flag */
+			
 			if (s->protocol == IPPROTO_TCP) {
 				if (state != IP_VS_TCP_S_ESTABLISHED)
 					flags |= IP_VS_CONN_F_INACTIVE;
@@ -421,7 +370,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
 				atomic_dec(&dest->refcnt);
 		} else if ((cp->dest) && (cp->protocol == IPPROTO_TCP) &&
 			   (cp->state != state)) {
-			/* update active/inactive flag for the connection */
+			
 			dest = cp->dest;
 			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
 				(state != IP_VS_TCP_S_ESTABLISHED)) {
@@ -441,12 +390,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
 		atomic_set(&cp->in_pkts, sysctl_ip_vs_sync_threshold[0]);
 		cp->state = state;
 		cp->old_state = cp->state;
-		/*
-		 * We can not recover the right timeout for templates
-		 * in all cases, we can not find the right fwmark
-		 * virtual service. If needed, we can do it for
-		 * non-fwmark persistent services.
-		 */
+		
 		if (!(flags & IP_VS_CONN_F_TEMPLATE) && pp->timeout_table)
 			cp->timeout = pp->timeout_table[state];
 		else
@@ -456,35 +400,29 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
 }
 
 
-/*
- *      Setup loopback of outgoing multicasts on a sending socket
- */
+
 static void set_mcast_loop(struct sock *sk, u_char loop)
 {
 	struct inet_sock *inet = inet_sk(sk);
 
-	/* setsockopt(sock, SOL_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)); */
+	
 	lock_sock(sk);
 	inet->mc_loop = loop ? 1 : 0;
 	release_sock(sk);
 }
 
-/*
- *      Specify TTL for outgoing multicasts on a sending socket
- */
+
 static void set_mcast_ttl(struct sock *sk, u_char ttl)
 {
 	struct inet_sock *inet = inet_sk(sk);
 
-	/* setsockopt(sock, SOL_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)); */
+	
 	lock_sock(sk);
 	inet->mc_ttl = ttl;
 	release_sock(sk);
 }
 
-/*
- *      Specifiy default interface for outgoing multicasts
- */
+
 static int set_mcast_if(struct sock *sk, char *ifname)
 {
 	struct net_device *dev;
@@ -498,17 +436,14 @@ static int set_mcast_if(struct sock *sk, char *ifname)
 
 	lock_sock(sk);
 	inet->mc_index = dev->ifindex;
-	/*  inet->mc_addr  = 0; */
+	
 	release_sock(sk);
 
 	return 0;
 }
 
 
-/*
- *	Set the maximum length of sync message according to the
- *	specified interface's MTU.
- */
+
 static int set_sync_mesg_maxlen(int sync_state)
 {
 	struct net_device *dev;
@@ -539,11 +474,7 @@ static int set_sync_mesg_maxlen(int sync_state)
 }
 
 
-/*
- *      Join a multicast group.
- *      the group is specified by a class D multicast address 224.0.0.0/8
- *      in the in_addr structure passed in as a parameter.
- */
+
 static int
 join_mcast_group(struct sock *sk, struct in_addr *addr, char *ifname)
 {
@@ -586,7 +517,7 @@ static int bind_mcastif_addr(struct socket *sock, char *ifname)
 	IP_VS_DBG(7, "binding socket with (%s) %pI4\n",
 		  ifname, &addr);
 
-	/* Now bind the socket with the address of multicast interface */
+	
 	sin.sin_family	     = AF_INET;
 	sin.sin_addr.s_addr  = addr;
 	sin.sin_port         = 0;
@@ -594,15 +525,13 @@ static int bind_mcastif_addr(struct socket *sock, char *ifname)
 	return sock->ops->bind(sock, (struct sockaddr*)&sin, sizeof(sin));
 }
 
-/*
- *      Set up sending multicast socket over UDP
- */
+
 static struct socket * make_send_sock(void)
 {
 	struct socket *sock;
 	int result;
 
-	/* First create a socket */
+	
 	result = sock_create_kern(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
 	if (result < 0) {
 		pr_err("Error during creation of socket; terminating\n");
@@ -639,22 +568,20 @@ static struct socket * make_send_sock(void)
 }
 
 
-/*
- *      Set up receiving multicast socket over UDP
- */
+
 static struct socket * make_receive_sock(void)
 {
 	struct socket *sock;
 	int result;
 
-	/* First create a socket */
+	
 	result = sock_create_kern(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
 	if (result < 0) {
 		pr_err("Error during creation of socket; terminating\n");
 		return ERR_PTR(result);
 	}
 
-	/* it is equivalent to the REUSEADDR option in user-space */
+	
 	sock->sk->sk_reuse = 1;
 
 	result = sock->ops->bind(sock, (struct sockaddr *) &mcast_addr,
@@ -664,7 +591,7 @@ static struct socket * make_receive_sock(void)
 		goto error;
 	}
 
-	/* join the multicast group */
+	
 	result = join_mcast_group(sock->sk,
 			(struct in_addr *) &mcast_addr.sin_addr,
 			ip_vs_backup_mcast_ifn);
@@ -705,7 +632,7 @@ ip_vs_send_sync_msg(struct socket *sock, struct ip_vs_sync_mesg *msg)
 
 	msize = msg->size;
 
-	/* Put size in network byte order */
+	
 	msg->size = htons(msg->size);
 
 	if (ip_vs_send_async(sock, (char *)msg, msize) != msize)
@@ -721,7 +648,7 @@ ip_vs_receive(struct socket *sock, char *buffer, const size_t buflen)
 
 	EnterFunction(7);
 
-	/* Receive a packet */
+	
 	iov.iov_base     = buffer;
 	iov.iov_len      = (size_t)buflen;
 
@@ -750,7 +677,7 @@ static int sync_thread_master(void *data)
 			ip_vs_sync_buff_release(sb);
 		}
 
-		/* check if entries stay in curr_sb for 2 seconds */
+		
 		sb = get_curr_sync_buff(2 * HZ);
 		if (sb) {
 			ip_vs_send_sync_msg(tinfo->sock, sb->mesg);
@@ -760,17 +687,17 @@ static int sync_thread_master(void *data)
 		schedule_timeout_interruptible(HZ);
 	}
 
-	/* clean up the sync_buff queue */
+	
 	while ((sb=sb_dequeue())) {
 		ip_vs_sync_buff_release(sb);
 	}
 
-	/* clean up the current sync_buff */
+	
 	if ((sb = get_curr_sync_buff(0))) {
 		ip_vs_sync_buff_release(sb);
 	}
 
-	/* release the sending multicast socket */
+	
 	sock_release(tinfo->sock);
 	kfree(tinfo);
 
@@ -792,7 +719,7 @@ static int sync_thread_backup(void *data)
 			 !skb_queue_empty(&tinfo->sock->sk->sk_receive_queue)
 			 || kthread_should_stop());
 
-		/* do we have data now? */
+		
 		while (!skb_queue_empty(&(tinfo->sock->sk->sk_receive_queue))) {
 			len = ip_vs_receive(tinfo->sock, tinfo->buf,
 					sync_recv_mesg_maxlen);
@@ -801,15 +728,14 @@ static int sync_thread_backup(void *data)
 				break;
 			}
 
-			/* disable bottom half, because it accesses the data
-			   shared by softirq while getting/creating conns */
+			
 			local_bh_disable();
 			ip_vs_process_message(tinfo->buf, len);
 			local_bh_enable();
 		}
 	}
 
-	/* release the sending multicast socket */
+	
 	sock_release(tinfo->sock);
 	kfree(tinfo->buf);
 	kfree(tinfo);
@@ -882,11 +808,11 @@ int start_sync_thread(int state, char *mcast_ifn, __u8 syncid)
 		goto outtinfo;
 	}
 
-	/* mark as active */
+	
 	*realtask = task;
 	ip_vs_sync_state |= state;
 
-	/* increase the module use count */
+	
 	ip_vs_use_count_inc();
 
 	return 0;
@@ -913,11 +839,7 @@ int stop_sync_thread(int state)
 		pr_info("stopping master sync thread %d ...\n",
 			task_pid_nr(sync_master_thread));
 
-		/*
-		 * The lock synchronizes with sb_queue_tail(), so that we don't
-		 * add sync buffers to the queue, when we are already in
-		 * progress of stopping the master sync daemon.
-		 */
+		
 
 		spin_lock_bh(&ip_vs_sync_lock);
 		ip_vs_sync_state &= ~IP_VS_STATE_MASTER;
@@ -938,7 +860,7 @@ int stop_sync_thread(int state)
 		return -EINVAL;
 	}
 
-	/* decrease the module use count */
+	
 	ip_vs_use_count_dec();
 
 	return 0;

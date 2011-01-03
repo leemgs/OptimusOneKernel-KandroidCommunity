@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/leds-assabet.c
- *
- * Copyright (C) 2000 John Dorsey <john+@cs.cmu.edu>
- *
- * Original (leds-footbridge.c) by Russell King
- *
- * Assabet uses the LEDs as follows:
- *   - Green - toggles state every 50 timer interrupts
- *   - Red   - on if system is not idle
- */
+
 #include <linux/init.h>
 
 #include <mach/hardware.h>

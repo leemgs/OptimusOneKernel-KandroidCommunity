@@ -1,19 +1,12 @@
-/*
- * idle-task scheduling class.
- *
- * (NOTE: these are not related to SCHED_IDLE tasks which are
- *  handled in sched_fair.c)
- */
+
 
 #ifdef CONFIG_SMP
 static int select_task_rq_idle(struct task_struct *p, int sd_flag, int flags)
 {
-	return task_cpu(p); /* IDLE tasks as never migrated */
+	return task_cpu(p); 
 }
-#endif /* CONFIG_SMP */
-/*
- * Idle tasks are unconditionally rescheduled:
- */
+#endif 
+
 static void check_preempt_curr_idle(struct rq *rq, struct task_struct *p, int flags)
 {
 	resched_task(rq->idle);
@@ -22,15 +15,12 @@ static void check_preempt_curr_idle(struct rq *rq, struct task_struct *p, int fl
 static struct task_struct *pick_next_task_idle(struct rq *rq)
 {
 	schedstat_inc(rq, sched_goidle);
-	/* adjust the active tasks as we might go into a long sleep */
+	
 	calc_load_account_active(rq);
 	return rq->idle;
 }
 
-/*
- * It is not legal to sleep in the idle task - print a warning
- * message if some code attempts to do it:
- */
+
 static void
 dequeue_task_idle(struct rq *rq, struct task_struct *p, int sleep)
 {
@@ -73,7 +63,7 @@ static void set_curr_task_idle(struct rq *rq)
 static void switched_to_idle(struct rq *rq, struct task_struct *p,
 			     int running)
 {
-	/* Can this actually happen?? */
+	
 	if (running)
 		resched_task(rq->curr);
 	else
@@ -83,13 +73,9 @@ static void switched_to_idle(struct rq *rq, struct task_struct *p,
 static void prio_changed_idle(struct rq *rq, struct task_struct *p,
 			      int oldprio, int running)
 {
-	/* This can happen for hot plug CPUS */
+	
 
-	/*
-	 * Reschedule if we are currently running on this runqueue and
-	 * our priority decreased, or if we are not currently running on
-	 * this runqueue and our priority is higher than the current's
-	 */
+	
 	if (running) {
 		if (p->prio > oldprio)
 			resched_task(rq->curr);
@@ -102,14 +88,12 @@ unsigned int get_rr_interval_idle(struct task_struct *task)
 	return 0;
 }
 
-/*
- * Simple, special scheduling class for the per-CPU idle tasks:
- */
-static const struct sched_class idle_sched_class = {
-	/* .next is NULL */
-	/* no enqueue/yield_task for idle tasks */
 
-	/* dequeue is not valid, we print a debug message there: */
+static const struct sched_class idle_sched_class = {
+	
+	
+
+	
 	.dequeue_task		= dequeue_task_idle,
 
 	.check_preempt_curr	= check_preempt_curr_idle,
@@ -132,5 +116,5 @@ static const struct sched_class idle_sched_class = {
 	.prio_changed		= prio_changed_idle,
 	.switched_to		= switched_to_idle,
 
-	/* no .task_new for idle tasks */
+	
 };

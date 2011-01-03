@@ -1,23 +1,4 @@
-/* linux/arch/arm/mach-s3c2412/irq.c
- *
- * Copyright (c) 2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -42,11 +23,7 @@
 #define INTMSK(start, end) ((1 << ((end) + 1 - (start))) - 1)
 #define INTMSK_SUB(start, end) (INTMSK(start, end) << ((start - S3C2410_IRQSUB(0))))
 
-/* the s3c2412 changes the behaviour of IRQ_EINT0 through IRQ_EINT3 by
- * having them turn up in both the INT* and the EINT* registers. Whilst
- * both show the status, they both now need to be acked when the IRQs
- * go off.
-*/
+
 
 static void
 s3c2412_irq_mask(unsigned int irqno)
@@ -111,7 +88,7 @@ static struct irq_chip s3c2412_irq_eint0t4 = {
 
 #define INTBIT(x)	(1 << ((x) - S3C2410_IRQSUB(0)))
 
-/* CF and SDI sub interrupts */
+
 
 static void s3c2412_irq_demux_cfsdi(unsigned int irq, struct irq_desc *desc)
 {
@@ -180,7 +157,7 @@ static int s3c2412_irq_add(struct sys_device *sysdev)
 		set_irq_flags(irqno, IRQF_VALID);
 	}
 
-	/* add demux support for CF/SDI */
+	
 
 	set_irq_chained_handler(IRQ_S3C2412_CFSDI, s3c2412_irq_demux_cfsdi);
 
@@ -190,7 +167,7 @@ static int s3c2412_irq_add(struct sys_device *sysdev)
 		set_irq_flags(irqno, IRQF_VALID);
 	}
 
-	/* change RTC IRQ's set wake method */
+	
 
 	s3c2412_irq_rtc_chip = s3c_irq_chip;
 	s3c2412_irq_rtc_chip.set_wake = s3c2412_irq_rtc_wake;

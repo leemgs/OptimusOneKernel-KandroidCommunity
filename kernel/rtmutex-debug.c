@@ -1,21 +1,4 @@
-/*
- * RT-Mutexes: blocking mutual exclusion locks with PI support
- *
- * started by Ingo Molnar and Thomas Gleixner:
- *
- *  Copyright (C) 2004-2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
- *  Copyright (C) 2006 Timesys Corp., Thomas Gleixner <tglx@timesys.com>
- *
- * This code is based on the rt.c implementation in the preempt-rt tree.
- * Portions of said code are
- *
- *  Copyright (C) 2004  LynuxWorks, Inc., Igor Manyilov, Bill Huey
- *  Copyright (C) 2006  Esben Nielsen
- *  Copyright (C) 2006  Kihon Technologies Inc.,
- *			Steven Rostedt <rostedt@goodmis.org>
- *
- * See rt.c in preempt-rt for proper credits and further information
- */
+
 #include <linux/sched.h>
 #include <linux/delay.h>
 #include <linux/module.h>
@@ -76,12 +59,7 @@ do {						\
 # define SMP_TRACE_BUG_ON_LOCKED(c)	do { } while (0)
 #endif
 
-/*
- * deadlock detection flag. We turn it off when we detect
- * the first problem because we dont want to recurse back
- * into the tracing code when doing error printk or
- * executing a BUG():
- */
+
 static int rt_trace_on = 1;
 
 static void printk_task(struct task_struct *p)
@@ -115,11 +93,7 @@ void rt_mutex_debug_task_free(struct task_struct *task)
 	WARN_ON(task->pi_blocked_on);
 }
 
-/*
- * We fill out the fields in the waiter to store the information about
- * the deadlock. We print when we return. act_waiter can be NULL in
- * case of a remove waiter operation.
- */
+
 void debug_rt_mutex_deadlock(int detect, struct rt_mutex_waiter *act_waiter,
 			     struct rt_mutex *lock)
 {
@@ -221,9 +195,7 @@ void debug_rt_mutex_free_waiter(struct rt_mutex_waiter *waiter)
 
 void debug_rt_mutex_init(struct rt_mutex *lock, const char *name)
 {
-	/*
-	 * Make sure we are not reinitializing a held lock:
-	 */
+	
 	debug_check_no_locks_freed((void *)lock, sizeof(*lock));
 	lock->name = name;
 }

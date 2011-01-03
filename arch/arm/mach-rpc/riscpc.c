@@ -1,14 +1,4 @@
-/*
- *  linux/arch/arm/mach-rpc/riscpc.c
- *
- *  Copyright (C) 1998-2001 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Architecture specific fixups.
- */
+
 #include <linux/kernel.h>
 #include <linux/tty.h>
 #include <linux/delay.h>
@@ -63,17 +53,17 @@ static int __init parse_tag_acorn(const struct tag *tag)
 __tagtable(ATAG_ACORN, parse_tag_acorn);
 
 static struct map_desc rpc_io_desc[] __initdata = {
- 	{	/* VRAM		*/
+ 	{	
 		.virtual	=  SCREEN_BASE,
 		.pfn		= __phys_to_pfn(SCREEN_START),
 		.length		= 	2*1048576,
 		.type		= MT_DEVICE
-	}, {	/* IO space	*/
+	}, {	
 		.virtual	=  (u32)IO_BASE,
 		.pfn		= __phys_to_pfn(IO_START),
 		.length		= 	IO_SIZE	 ,
 		.type		= MT_DEVICE
-	}, {	/* EASI space	*/
+	}, {	
 		.virtual	= EASI_BASE,
 		.pfn		= __phys_to_pfn(EASI_START),
 		.length		= EASI_SIZE,
@@ -85,19 +75,15 @@ static void __init rpc_map_io(void)
 {
 	iotable_init(rpc_io_desc, ARRAY_SIZE(rpc_io_desc));
 
-	/*
-	 * Turn off floppy.
-	 */
+	
 	writeb(0xc, PCIO_BASE + (0x3f2 << 2));
 
-	/*
-	 * RiscPC can't handle half-word loads and stores
-	 */
+	
 	elf_hwcap &= ~HWCAP_HALF;
 }
 
 static struct resource acornfb_resources[] = {
-	{	/* VIDC */
+	{	
 		.start		= 0x03400000,
 		.end		= 0x035fffff,
 		.flags		= IORESOURCE_MEM,
@@ -190,7 +176,7 @@ static struct platform_device pata_device = {
 	.resource		= pata_resources,
 	.dev			= {
 		.platform_data	= &pata_platform_data,
-		.coherent_dma_mask = ~0,	/* grumble */
+		.coherent_dma_mask = ~0,	
 	},
 };
 
@@ -217,7 +203,7 @@ arch_initcall(rpc_init);
 extern struct sys_timer ioc_timer;
 
 MACHINE_START(RISCPC, "Acorn-RiscPC")
-	/* Maintainer: Russell King */
+	
 	.phys_io	= 0x03000000,
 	.io_pg_offst	= ((0xe0000000) >> 18) & 0xfffc,
 	.boot_params	= 0x10000100,

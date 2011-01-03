@@ -1,28 +1,10 @@
-/*
- * DVB USB Linux driver for Alcor Micro AU6610 DVB-T USB2.0.
- *
- * Copyright (C) 2006 Antti Palosaari <crope@iki.fi>
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include "au6610.h"
 #include "zl10353.h"
 #include "qt1010.h"
 
-/* debug */
+
 static int dvb_usb_au6610_debug;
 module_param_named(debug, dvb_usb_au6610_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level" DVB_USB_DEBUG_STATUS);
@@ -33,8 +15,7 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
 {
 	int ret;
 	u16 index;
-	u8 usb_buf[6]; /* enough for all known requests,
-			  read returns 5 and write 6 bytes */
+	u8 usb_buf[6]; 
 	switch (wlen) {
 	case 1:
 		index = wbuf[0] << 8;
@@ -57,7 +38,7 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
 	switch (operation) {
 	case AU6610_REQ_I2C_READ:
 	case AU6610_REQ_USB_READ:
-		/* requested value is always 5th byte in buffer */
+		
 		rbuf[0] = usb_buf[4];
 	}
 
@@ -68,11 +49,11 @@ static int au6610_i2c_msg(struct dvb_usb_device *d, u8 addr,
 			  u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
 {
 	u8 request;
-	u8 wo = (rbuf == NULL || rlen == 0); /* write-only */
+	u8 wo = (rbuf == NULL || rlen == 0); 
 
 	if (wo) {
 		request = AU6610_REQ_I2C_WRITE;
-	} else { /* rw */
+	} else { 
 		request = AU6610_REQ_I2C_READ;
 	}
 
@@ -80,7 +61,7 @@ static int au6610_i2c_msg(struct dvb_usb_device *d, u8 addr,
 }
 
 
-/* I2C */
+
 static int au6610_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 			   int num)
 {
@@ -94,7 +75,7 @@ static int au6610_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		return -EAGAIN;
 
 	for (i = 0; i < num; i++) {
-		/* write/read request */
+		
 		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
 			if (au6610_i2c_msg(d, msg[i].addr, msg[i].buf,
 					   msg[i].len, msg[i+1].buf,
@@ -121,7 +102,7 @@ static struct i2c_algorithm au6610_i2c_algo = {
 	.functionality = au6610_i2c_func,
 };
 
-/* Callbacks for DVB USB */
+
 static struct zl10353_config au6610_zl10353_config = {
 	.demod_address = 0x0f,
 	.no_tuner = 1,
@@ -149,7 +130,7 @@ static int au6610_qt1010_tuner_attach(struct dvb_usb_adapter *adap)
 			  &au6610_qt1010_config) == NULL ? -ENODEV : 0;
 }
 
-/* DVB USB Driver stuff */
+
 static struct dvb_usb_device_properties au6610_properties;
 
 static int au6610_probe(struct usb_interface *intf,
@@ -180,7 +161,7 @@ static int au6610_probe(struct usb_interface *intf,
 
 static struct usb_device_id au6610_table [] = {
 	{ USB_DEVICE(USB_VID_ALCOR_MICRO, USB_PID_SIGMATEK_DVB_110) },
-	{ }		/* Terminating entry */
+	{ }		
 };
 MODULE_DEVICE_TABLE(usb, au6610_table);
 
@@ -231,7 +212,7 @@ static struct usb_driver au6610_driver = {
 	.id_table   = au6610_table,
 };
 
-/* module stuff */
+
 static int __init au6610_module_init(void)
 {
 	int ret;
@@ -245,7 +226,7 @@ static int __init au6610_module_init(void)
 
 static void __exit au6610_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&au6610_driver);
 }
 

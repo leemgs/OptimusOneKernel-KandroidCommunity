@@ -1,14 +1,4 @@
-/*
- * This is the 1999 rewrite of IP Firewalling, aiming for kernel 2.3.x.
- *
- * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
- * Copyright (C) 2000-2004 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -46,11 +36,11 @@ static struct
 		},
 	},
 	.entries = {
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IPT_ERROR_INIT,			/* ERROR */
+	.term = IPT_ERROR_INIT,			
 };
 
 static const struct xt_table packet_filter = {
@@ -60,7 +50,7 @@ static const struct xt_table packet_filter = {
 	.af		= NFPROTO_IPV4,
 };
 
-/* The work comes in here from netfilter.c. */
+
 static unsigned int
 ipt_local_in_hook(unsigned int hook,
 		  struct sk_buff *skb,
@@ -90,7 +80,7 @@ ipt_local_out_hook(unsigned int hook,
 		   const struct net_device *out,
 		   int (*okfn)(struct sk_buff *))
 {
-	/* root is playing with raw sockets. */
+	
 	if (skb->len < sizeof(struct iphdr) ||
 	    ip_hdrlen(skb) < sizeof(struct iphdr))
 		return NF_ACCEPT;
@@ -122,13 +112,13 @@ static struct nf_hook_ops ipt_ops[] __read_mostly = {
 	},
 };
 
-/* Default to forward because I got too much mail already. */
+
 static int forward = NF_ACCEPT;
 module_param(forward, bool, 0000);
 
 static int __net_init iptable_filter_net_init(struct net *net)
 {
-	/* Register table */
+	
 	net->ipv4.iptable_filter =
 		ipt_register_table(net, &packet_filter, &initial_table.repl);
 	if (IS_ERR(net->ipv4.iptable_filter))
@@ -155,14 +145,14 @@ static int __init iptable_filter_init(void)
 		return -EINVAL;
 	}
 
-	/* Entry 1 is the FORWARD hook */
+	
 	initial_table.entries[1].target.verdict = -forward - 1;
 
 	ret = register_pernet_subsys(&iptable_filter_net_ops);
 	if (ret < 0)
 		return ret;
 
-	/* Register hooks */
+	
 	ret = nf_register_hooks(ipt_ops, ARRAY_SIZE(ipt_ops));
 	if (ret < 0)
 		goto cleanup_table;

@@ -1,24 +1,9 @@
-/*
- * OMAP24XX powerdomain definitions
- *
- * Copyright (C) 2007-2008 Texas Instruments, Inc.
- * Copyright (C) 2007-2008 Nokia Corporation
- *
- * Written by Paul Walmsley
- * Debugging and integration fixes by Jouni Högander
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef ARCH_ARM_MACH_OMAP2_POWERDOMAINS24XX
 #define ARCH_ARM_MACH_OMAP2_POWERDOMAINS24XX
 
-/*
- * N.B. If powerdomains are added or removed from this file, update
- * the array in mach-omap2/powerdomains.h.
- */
+
 
 #include <mach/powerdomain.h>
 
@@ -28,17 +13,14 @@
 #include "cm.h"
 #include "cm-regbits-24xx.h"
 
-/* 24XX powerdomains and dependencies */
+
 
 #ifdef CONFIG_ARCH_OMAP24XX
 
 
-/* Wakeup dependency source arrays */
 
-/*
- * 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP
- * 2430 PM_WKDEP_MDM: same as above
- */
+
+
 static struct pwrdm_dep dsp_mdm_24xx_wkdeps[] = {
 	{
 		.pwrdm_name = "core_pwrdm",
@@ -55,10 +37,7 @@ static struct pwrdm_dep dsp_mdm_24xx_wkdeps[] = {
 	{ NULL },
 };
 
-/*
- * 2420 PM_WKDEP_MPU: CORE, DSP, WKUP
- * 2430 adds MDM
- */
+
 static struct pwrdm_dep mpu_24xx_wkdeps[] = {
 	{
 		.pwrdm_name = "core_pwrdm",
@@ -79,10 +58,7 @@ static struct pwrdm_dep mpu_24xx_wkdeps[] = {
 	{ NULL },
 };
 
-/*
- * 2420 PM_WKDEP_CORE: DSP, GFX, MPU, WKUP
- * 2430 adds MDM
- */
+
 static struct pwrdm_dep core_24xx_wkdeps[] = {
 	{
 		.pwrdm_name = "dsp_pwrdm",
@@ -108,7 +84,7 @@ static struct pwrdm_dep core_24xx_wkdeps[] = {
 };
 
 
-/* Powerdomains */
+
 
 static struct powerdomain dsp_pwrdm = {
 	.name		  = "dsp_pwrdm",
@@ -153,30 +129,28 @@ static struct powerdomain core_24xx_pwrdm = {
 	.dep_bit	  = OMAP24XX_EN_CORE_SHIFT,
 	.banks		  = 3,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
-		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
-		[2] = PWRSTS_OFF_RET,	 /* MEM3RETSTATE */
+		[0] = PWRSTS_OFF_RET,	 
+		[1] = PWRSTS_OFF_RET,	 
+		[2] = PWRSTS_OFF_RET,	 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
-		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
-		[2] = PWRSTS_OFF_RET_ON, /* MEM3ONSTATE */
+		[0] = PWRSTS_OFF_RET_ON, 
+		[1] = PWRSTS_OFF_RET_ON, 
+		[2] = PWRSTS_OFF_RET_ON, 
 	},
 };
 
-#endif	   /* CONFIG_ARCH_OMAP24XX */
+#endif	   
 
 
 
-/*
- * 2430-specific powerdomains
- */
+
 
 #ifdef CONFIG_ARCH_OMAP2430
 
-/* XXX 2430 KILLDOMAINWKUP bit?  No current users apparently */
 
-/* Another case of bit name collisions between several registers: EN_MDM */
+
+
 static struct powerdomain mdm_pwrdm = {
 	.name		  = "mdm_pwrdm",
 	.prcm_offs	  = OMAP2430_MDM_MOD,
@@ -187,14 +161,14 @@ static struct powerdomain mdm_pwrdm = {
 	.pwrsts_logic_ret = PWRDM_POWER_RET,
 	.banks		  = 1,
 	.pwrsts_mem_ret	  = {
-		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
+		[0] = PWRDM_POWER_RET, 
 	},
 	.pwrsts_mem_on	  = {
-		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+		[0] = PWRDM_POWER_ON,  
 	},
 };
 
-#endif     /* CONFIG_ARCH_OMAP2430 */
+#endif     
 
 
 #endif

@@ -1,17 +1,4 @@
-/*
- * Gemini gpiochip and interrupt routines
- *
- * Copyright (C) 2008-2009 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * Based on plat-mxc/gpio.c:
- *  MXC GPIO support. (c) 2008 Daniel Mack <daniel@caiaq.de>
- *  Copyright 2008 Juergen Beisert, kernel@pengutronix.de
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -24,7 +11,7 @@
 
 #define GPIO_BASE(x)		IO_ADDRESS(GEMINI_GPIO_BASE(x))
 
-/* GPIO registers definition */
+
 #define GPIO_DATA_OUT		0x0
 #define GPIO_DATA_IN		0x4
 #define GPIO_DIR		0x8
@@ -212,7 +199,7 @@ void __init gemini_gpio_init(void)
 	int i, j;
 
 	for (i = 0; i < GPIO_PORT_NUM; i++) {
-		/* disable, unmask and clear all interrupts */
+		
 		__raw_writel(0x0, GPIO_BASE(i) + GPIO_INT_EN);
 		__raw_writel(0x0, GPIO_BASE(i) + GPIO_INT_MASK);
 		__raw_writel(~0x0, GPIO_BASE(i) + GPIO_INT_CLR);

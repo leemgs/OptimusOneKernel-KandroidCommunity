@@ -1,18 +1,4 @@
-/**
- * @file op_model_mpcore.c
- * MPCORE Event Monitor Driver
- * @remark Copyright 2004 ARM SMP Development Team
- * @remark Copyright 2000-2004 Deepak Saxena <dsaxena@mvista.com>
- * @remark Copyright 2000-2004 MontaVista Software Inc
- * @remark Copyright 2004 Dave Jiang <dave.jiang@intel.com>
- * @remark Copyright 2004 Intel Corporation
- * @remark Copyright 2004 Zwane Mwaikambo <zwane@arm.linux.org.uk>
- * @remark Copyright 2004 Oprofile Authors
- *
- * @remark Read the file COPYING
- *
- * @author Zwane Mwaikambo
- */
+
 #ifndef OP_MODEL_MPCORE_H
 #define OP_MODEL_MPCORE_H
 
@@ -22,11 +8,7 @@ struct eventmonitor {
 	unsigned long MC[8];
 };
 
-/*
- * List of userspace counter numbers: note that the structure is important.
- * The code relies on CPUn's counters being CPU0's counters + 3n
- * and on CPU0's counters starting at 0
- */
+
 
 #define COUNTER_CPU0_PMN0 0
 #define COUNTER_CPU0_PMN1 1

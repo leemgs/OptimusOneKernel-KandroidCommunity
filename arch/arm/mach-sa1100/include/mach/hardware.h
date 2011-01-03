@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-sa1100/include/mach/hardware.h
- *
- * Copyright (C) 1998 Nicolas Pitre <nico@fluxnic.net>
- *
- * This file contains the hardware definitions for SA1100 architecture
- *
- * 2000/05/23 John Dorsey <john+@cs.cmu.edu>
- *      Definitions for SA1111 added.
- */
+
 
 #ifndef __ASM_ARCH_HARDWARE_H
 #define __ASM_ARCH_HARDWARE_H
@@ -16,20 +7,11 @@
 #define UNCACHEABLE_ADDR	0xfa050000
 
 
-/*
- * SA1100 internal I/O mappings
- *
- * We have the following mapping:
- *      phys            virt
- *      80000000        f8000000
- *      90000000        fa000000
- *      a0000000        fc000000
- *      b0000000        fe000000
- */
 
-#define VIO_BASE        0xf8000000	/* virtual start of IO space */
-#define VIO_SHIFT       3		/* x = IO space shrink power */
-#define PIO_START       0x80000000	/* physical start of IO space */
+
+#define VIO_BASE        0xf8000000	
+#define VIO_SHIFT       3		
+#define PIO_START       0x80000000	
 
 #define io_p2v( x )             \
    ( (((x)&0x00ffffff) | (((x)&0x30000000)>>VIO_SHIFT)) + VIO_BASE )
@@ -76,4 +58,4 @@ static inline unsigned long get_clock_tick_rate(void)
 #include "SA-1101.h"
 #endif
 
-#endif  /* _ASM_ARCH_HARDWARE_H */
+#endif  

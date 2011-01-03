@@ -1,15 +1,4 @@
-/*
- *      uvc_status.c  --  USB Video Class driver - Status endpoint
- *
- *      Copyright (C) 2007-2009
- *          Laurent Pinchart (laurent.pinchart@skynet.be)
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/input.h>
@@ -18,9 +7,7 @@
 
 #include "uvcvideo.h"
 
-/* --------------------------------------------------------------------------
- * Input device
- */
+
 #ifdef CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV
 static int uvc_input_init(struct uvc_device *dev)
 {
@@ -72,11 +59,9 @@ static void uvc_input_report_key(struct uvc_device *dev, unsigned int code,
 #define uvc_input_init(dev)
 #define uvc_input_cleanup(dev)
 #define uvc_input_report_key(dev, code, value)
-#endif /* CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV */
+#endif 
 
-/* --------------------------------------------------------------------------
- * Status interrupt endpoint
- */
+
 static void uvc_event_streaming(struct uvc_device *dev, __u8 *data, int len)
 {
 	if (len < 3) {
@@ -120,11 +105,10 @@ static void uvc_status_complete(struct urb *urb)
 	case 0:
 		break;
 
-	case -ENOENT:		/* usb_kill_urb() called. */
-	case -ECONNRESET:	/* usb_unlink_urb() called. */
-	case -ESHUTDOWN:	/* The endpoint is being disabled. */
-	case -EPROTO:		/* Device is disconnected (reported by some
-				 * host controller). */
+	case -ENOENT:		
+	case -ECONNRESET:	
+	case -ESHUTDOWN:	
+	case -EPROTO:		
 		return;
 
 	default:
@@ -151,7 +135,7 @@ static void uvc_status_complete(struct urb *urb)
 		}
 	}
 
-	/* Resubmit the URB. */
+	
 	urb->interval = dev->int_ep->desc.bInterval;
 	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
 		uvc_printk(KERN_ERR, "Failed to resubmit status URB (%d).\n",
@@ -182,9 +166,7 @@ int uvc_status_init(struct uvc_device *dev)
 
 	pipe = usb_rcvintpipe(dev->udev, ep->desc.bEndpointAddress);
 
-	/* For high-speed interrupt endpoints, the bInterval value is used as
-	 * an exponent of two. Some developers forgot about it.
-	 */
+	
 	interval = ep->desc.bInterval;
 	if (interval > 16 && dev->udev->speed == USB_SPEED_HIGH &&
 	    (dev->quirks & UVC_QUIRK_STATUS_INTERVAL))

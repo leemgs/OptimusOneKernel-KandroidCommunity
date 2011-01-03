@@ -1,13 +1,4 @@
-/* $Id: capifs.c,v 1.1.2.3 2004/01/16 21:09:26 keil Exp $
- * 
- * Copyright 2000 by Carsten Paeth <calle@calle.de>
- *
- * Heavily based on devpts filesystem from H. Peter Anvin
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/fs.h>
 #include <linux/mount.h>
@@ -15,7 +6,7 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/ctype.h>
-#include <linux/sched.h>	/* current */
+#include <linux/sched.h>	
 
 #include "capifs.h"
 
@@ -23,11 +14,11 @@ MODULE_DESCRIPTION("CAPI4Linux: /dev/capi/ filesystem");
 MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 
-/* ------------------------------------------------------------------ */
+
 
 static char *revision = "$Revision: 1.1.2.3 $";
 
-/* ------------------------------------------------------------------ */
+
 
 #define CAPIFS_SUPER_MAGIC (('C'<<8)|'N')
 
@@ -42,7 +33,7 @@ static struct {
 	umode_t mode;
 } config = {.mode = 0600};
 
-/* ------------------------------------------------------------------ */
+
 
 static int capifs_remount(struct super_block *s, int *flags, char *data)
 {
@@ -159,12 +150,12 @@ void capifs_new_ncci(unsigned int number, dev_t device)
 
 	dentry = get_node(number);
 
-	/* config contents is protected by root's i_mutex */
+	
 	inode->i_uid = config.setuid ? config.uid : current_fsuid();
 	inode->i_gid = config.setgid ? config.gid : current_fsgid();
 	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
 	init_special_inode(inode, S_IFCHR|config.mode, device);
-	//inode->i_op = &capifs_file_inode_operations;
+	
 
 	if (!IS_ERR(dentry) && !dentry->d_inode)
 		d_instantiate(dentry, inode);

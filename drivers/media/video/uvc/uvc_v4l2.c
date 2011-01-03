@@ -1,15 +1,4 @@
-/*
- *      uvc_v4l2.c  --  USB Video Class driver - V4L2 API
- *
- *      Copyright (C) 2005-2009
- *          Laurent Pinchart (laurent.pinchart@skynet.be)
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/version.h>
@@ -27,19 +16,9 @@
 
 #include "uvcvideo.h"
 
-/* ------------------------------------------------------------------------
- * V4L2 interface
- */
 
-/*
- * Mapping V4L2 controls to UVC controls can be straighforward if done well.
- * Most of the UVC controls exist in V4L2, and can be mapped directly. Some
- * must be grouped (for instance the Red Balance, Blue Balance and Do White
- * Balance V4L2 controls use the White Balance Component UVC control) or
- * otherwise translated. The approach we take here is to use a translation
- * table for the controls that can be mapped directly, and handle the others
- * manually.
- */
+
+
 static int uvc_v4l2_query_menu(struct uvc_video_chain *chain,
 	struct v4l2_querymenu *query_menu)
 {
@@ -65,12 +44,7 @@ static int uvc_v4l2_query_menu(struct uvc_video_chain *chain,
 	return 0;
 }
 
-/*
- * Find the frame interval closest to the requested frame interval for the
- * given frame format and size. This should be done by the device as part of
- * the Video Probe and Commit negotiation, but some hardware don't implement
- * that feature.
- */
+
 static __u32 uvc_try_frame_interval(struct uvc_frame *frame, __u32 interval)
 {
 	unsigned int i;
@@ -125,7 +99,7 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
 			fcc[0], fcc[1], fcc[2], fcc[3],
 			fmt->fmt.pix.width, fmt->fmt.pix.height);
 
-	/* Check if the hardware supports the requested format. */
+	
 	for (i = 0; i < stream->nformats; ++i) {
 		format = &stream->format[i];
 		if (format->fcc == fmt->fmt.pix.pixelformat)
@@ -138,10 +112,7 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
 		return -EINVAL;
 	}
 
-	/* Find the closest image size. The distance between image sizes is
-	 * the size in pixels of the non-overlapping regions between the
-	 * requested size and the frame-specified size.
-	 */
+	
 	rw = fmt->fmt.pix.width;
 	rh = fmt->fmt.pix.height;
 	maxd = (unsigned int)-1;
@@ -167,35 +138,24 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
 		return -EINVAL;
 	}
 
-	/* Use the default frame interval. */
+	
 	interval = frame->dwDefaultFrameInterval;
 	uvc_trace(UVC_TRACE_FORMAT, "Using default frame interval %u.%u us "
 		"(%u.%u fps).\n", interval/10, interval%10, 10000000/interval,
 		(100000000/interval)%10);
 
-	/* Set the format index, frame index and frame interval. */
+	
 	memset(probe, 0, sizeof *probe);
-	probe->bmHint = 1;	/* dwFrameInterval */
+	probe->bmHint = 1;	
 	probe->bFormatIndex = format->index;
 	probe->bFrameIndex = frame->bFrameIndex;
 	probe->dwFrameInterval = uvc_try_frame_interval(frame, interval);
-	/* Some webcams stall the probe control set request when the
-	 * dwMaxVideoFrameSize field is set to zero. The UVC specification
-	 * clearly states that the field is read-only from the host, so this
-	 * is a webcam bug. Set dwMaxVideoFrameSize to the value reported by
-	 * the webcam to work around the problem.
-	 *
-	 * The workaround could probably be enabled for all webcams, so the
-	 * quirk can be removed if needed. It's currently useful to detect
-	 * webcam bugs and fix them before they hit the market (providing
-	 * developers test their webcams with the Linux driver as well as with
-	 * the Windows driver).
-	 */
+	
 	if (stream->dev->quirks & UVC_QUIRK_PROBE_EXTRAFIELDS)
 		probe->dwMaxVideoFrameSize =
 			stream->ctrl.dwMaxVideoFrameSize;
 
-	/* Probe the device. */
+	
 	ret = uvc_probe_video(stream, probe);
 	if (ret < 0)
 		goto done;
@@ -326,14 +286,14 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming *stream,
 		timeperframe.numerator, timeperframe.denominator, interval);
 	probe.dwFrameInterval = uvc_try_frame_interval(frame, interval);
 
-	/* Probe the device with the new settings. */
+	
 	ret = uvc_probe_video(stream, &probe);
 	if (ret < 0)
 		return ret;
 
 	memcpy(&stream->ctrl, &probe, sizeof probe);
 
-	/* Return the actual frame period. */
+	
 	timeperframe.numerator = probe.dwFrameInterval;
 	timeperframe.denominator = 10000000;
 	uvc_simplify_fraction(&timeperframe.numerator,
@@ -347,42 +307,18 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming *stream,
 	return 0;
 }
 
-/* ------------------------------------------------------------------------
- * Privilege management
- */
 
-/*
- * Privilege management is the multiple-open implementation basis. The current
- * implementation is completely transparent for the end-user and doesn't
- * require explicit use of the VIDIOC_G_PRIORITY and VIDIOC_S_PRIORITY ioctls.
- * Those ioctls enable finer control on the device (by making possible for a
- * user to request exclusive access to a device), but are not mature yet.
- * Switching to the V4L2 priority mechanism might be considered in the future
- * if this situation changes.
- *
- * Each open instance of a UVC device can either be in a privileged or
- * unprivileged state. Only a single instance can be in a privileged state at
- * a given time. Trying to perform an operation that requires privileges will
- * automatically acquire the required privileges if possible, or return -EBUSY
- * otherwise. Privileges are dismissed when closing the instance.
- *
- * Operations that require privileges are:
- *
- * - VIDIOC_S_INPUT
- * - VIDIOC_S_PARM
- * - VIDIOC_S_FMT
- * - VIDIOC_TRY_FMT
- * - VIDIOC_REQBUFS
- */
+
+
 static int uvc_acquire_privileges(struct uvc_fh *handle)
 {
 	int ret = 0;
 
-	/* Always succeed if the handle is already privileged. */
+	
 	if (handle->state == UVC_HANDLE_ACTIVE)
 		return 0;
 
-	/* Check if the device already has a privileged handle. */
+	
 	mutex_lock(&uvc_driver.open_mutex);
 	if (atomic_inc_return(&handle->stream->active) != 1) {
 		atomic_dec(&handle->stream->active);
@@ -410,9 +346,7 @@ static int uvc_has_privileges(struct uvc_fh *handle)
 	return handle->state == UVC_HANDLE_ACTIVE;
 }
 
-/* ------------------------------------------------------------------------
- * V4L2 file operations
- */
+
 
 static int uvc_v4l2_open(struct file *file)
 {
@@ -433,7 +367,7 @@ static int uvc_v4l2_open(struct file *file)
 	if (ret < 0)
 		goto done;
 
-	/* Create the device handle. */
+	
 	handle = kzalloc(sizeof *handle, GFP_KERNEL);
 	if (handle == NULL) {
 		usb_autopm_put_interface(stream->dev->intf);
@@ -470,7 +404,7 @@ static int uvc_v4l2_release(struct file *file)
 
 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_release\n");
 
-	/* Only free resources if this is a privileged handle. */
+	
 	if (uvc_has_privileges(handle)) {
 		uvc_video_enable(stream, 0);
 
@@ -481,7 +415,7 @@ static int uvc_v4l2_release(struct file *file)
 		mutex_unlock(&stream->queue.mutex);
 	}
 
-	/* Release the file handle. */
+	
 	uvc_dismiss_privileges(handle);
 	kfree(handle);
 	file->private_data = NULL;
@@ -503,7 +437,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	long ret = 0;
 
 	switch (cmd) {
-	/* Query capabilities */
+	
 	case VIDIOC_QUERYCAP:
 	{
 		struct v4l2_capability *cap = arg;
@@ -523,7 +457,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		break;
 	}
 
-	/* Get, Set & Query control */
+	
 	case VIDIOC_QUERYCTRL:
 		return uvc_query_v4l2_ctrl(chain, arg);
 
@@ -623,7 +557,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		break;
 	}
 
-	/* Get, Set & Enum input */
+	
 	case VIDIOC_ENUMINPUT:
 	{
 		const struct uvc_entity *selector = chain->selector;
@@ -700,7 +634,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 			UVC_SU_INPUT_SELECT_CONTROL, &input, 1);
 	}
 
-	/* Try, Get, Set & Enum format */
+	
 	case VIDIOC_ENUM_FMT:
 	{
 		struct v4l2_fmtdesc *fmt = arg;
@@ -746,7 +680,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	case VIDIOC_G_FMT:
 		return uvc_v4l2_get_format(stream, arg);
 
-	/* Frame size enumeration */
+	
 	case VIDIOC_ENUM_FRAMESIZES:
 	{
 		struct v4l2_frmsizeenum *fsize = arg;
@@ -754,7 +688,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		struct uvc_frame *frame;
 		int i;
 
-		/* Look for the given pixel format */
+		
 		for (i = 0; i < stream->nformats; i++) {
 			if (stream->format[i].fcc ==
 					fsize->pixel_format) {
@@ -775,7 +709,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		break;
 	}
 
-	/* Frame interval enumeration */
+	
 	case VIDIOC_ENUM_FRAMEINTERVALS:
 	{
 		struct v4l2_frmivalenum *fival = arg;
@@ -783,7 +717,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		struct uvc_frame *frame = NULL;
 		int i;
 
-		/* Look for the given pixel format and frame size */
+		
 		for (i = 0; i < stream->nformats; i++) {
 			if (stream->format[i].fcc ==
 					fival->pixel_format) {
@@ -835,7 +769,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		break;
 	}
 
-	/* Get & Set streaming parameters */
+	
 	case VIDIOC_G_PARM:
 		return uvc_v4l2_get_streamparm(stream, arg);
 
@@ -845,7 +779,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 
 		return uvc_v4l2_set_streamparm(stream, arg);
 
-	/* Cropping and scaling */
+	
 	case VIDIOC_CROPCAP:
 	{
 		struct v4l2_cropcap *ccap = arg;
@@ -870,7 +804,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	case VIDIOC_S_CROP:
 		return -EINVAL;
 
-	/* Buffers & streaming */
+	
 	case VIDIOC_REQBUFS:
 	{
 		struct v4l2_requestbuffers *rb = arg;
@@ -948,7 +882,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		return uvc_video_enable(stream, 0);
 	}
 
-	/* Analog video standards make no sense for digital cameras. */
+	
 	case VIDIOC_ENUMSTD:
 	case VIDIOC_QUERYSTD:
 	case VIDIOC_G_STD:
@@ -963,7 +897,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		uvc_trace(UVC_TRACE_IOCTL, "Unsupported ioctl 0x%08x\n", cmd);
 		return -EINVAL;
 
-	/* Dynamic controls. */
+	
 	case UVCIOC_CTRL_ADD:
 	{
 		struct uvc_xu_control_info *xinfo = arg;
@@ -1054,9 +988,7 @@ static ssize_t uvc_v4l2_read(struct file *file, char __user *data,
 	return -ENODEV;
 }
 
-/*
- * VMA operations.
- */
+
 static void uvc_vm_open(struct vm_area_struct *vma)
 {
 	struct uvc_buffer *buffer = vma->vm_private_data;
@@ -1103,10 +1035,7 @@ static int uvc_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
 		goto done;
 	}
 
-	/*
-	 * VM_IO marks the area as being an mmaped region for I/O to a
-	 * device. It also prevents the region from being core dumped.
-	 */
+	
 	vma->vm_flags |= VM_IO;
 
 	addr = (unsigned long)queue->mem + buffer->buf.m.offset;

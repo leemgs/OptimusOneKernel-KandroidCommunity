@@ -1,12 +1,4 @@
-/* tuner-xc2028
- *
- * Copyright (c) 2007-2008 Mauro Carvalho Chehab (mchehab@infradead.org)
- *
- * Copyright (c) 2007 Michel Ludwig (michel.ludwig@gmail.com)
- *       - frontend interface
- *
- * This code is placed under the terms of the GNU General Public License v2
- */
+
 
 #include <linux/i2c.h>
 #include <asm/div64.h>
@@ -56,7 +48,7 @@ MODULE_PARM_DESC(firmware_name, "Firmware file name. Allows overriding the "
 static LIST_HEAD(hybrid_tuner_instance_list);
 static DEFINE_MUTEX(xc2028_list_mutex);
 
-/* struct for storing firmware table */
+
 struct firmware_description {
 	unsigned int  type;
 	v4l2_std_id   id;
@@ -327,7 +319,7 @@ static int load_all_firmwares(struct dvb_frontend *fe)
 			goto corrupt;
 		}
 
-		/* Checks if there's enough bytes to read */
+		
 		if (endp - p < sizeof(type) + sizeof(id) + sizeof(size))
 			goto header;
 
@@ -440,14 +432,14 @@ static int seek_firmware(struct dvb_frontend *fe, unsigned int type,
 	if (!(type & SCODE))
 		type_mask = ~0;
 
-	/* Seek for exact match */
+	
 	for (i = 0; i < priv->firm_size; i++) {
 		if ((type == (priv->firm[i].type & type_mask)) &&
 		    (*id == priv->firm[i].id))
 			goto found;
 	}
 
-	/* Seek for generic video standard match */
+	
 	for (i = 0; i < priv->firm_size; i++) {
 		v4l2_std_id match_mask;
 		int nr_matches;
@@ -460,7 +452,7 @@ static int seek_firmware(struct dvb_frontend *fe, unsigned int type,
 			continue;
 
 		if ((*id & match_mask) == *id)
-			goto found; /* Supports all the requested standards */
+			goto found; 
 
 		nr_matches = hweight64(match_mask);
 		if (nr_matches > best_nr_matches) {
@@ -478,7 +470,7 @@ static int seek_firmware(struct dvb_frontend *fe, unsigned int type,
 		goto found;
 	}
 
-	/*FIXME: Would make sense to seek for type "hint" match ? */
+	
 
 	i = -ENOENT;
 	goto ret;
@@ -499,12 +491,7 @@ static inline int do_tuner_callback(struct dvb_frontend *fe, int cmd, int arg)
 {
 	struct xc2028_data *priv = fe->tuner_priv;
 
-	/* analog side (tuner-core) uses i2c_adap->algo_data.
-	 * digital side is not guaranteed to have algo_data defined.
-	 *
-	 * digital side will always have fe->dvb defined.
-	 * analog side (tuner-core) doesn't (yet) define fe->dvb.
-	 */
+	
 
 	return (!fe->callback) ? -EINVAL :
 		fe->callback(((fe->dvb) && (fe->dvb->priv)) ?
@@ -536,7 +523,7 @@ static int load_firmware(struct dvb_frontend *fe, unsigned int type,
 	while (p < endp) {
 		__u16 size;
 
-		/* Checks if there's enough bytes to read */
+		
 		if (p + sizeof(size) > endp) {
 			tuner_err("Firmware chunk size is wrong\n");
 			return -EINVAL;
@@ -549,7 +536,7 @@ static int load_firmware(struct dvb_frontend *fe, unsigned int type,
 			return 0;
 
 		if (!size) {
-			/* Special callback command received */
+			
 			rc = do_tuner_callback(fe, XC2028_TUNER_RESET, 0);
 			if (rc < 0) {
 				tuner_err("Error at RESET code %d\n",
@@ -577,7 +564,7 @@ static int load_firmware(struct dvb_frontend *fe, unsigned int type,
 			continue;
 		}
 
-		/* Checks for a sleep command */
+		
 		if (size & 0x8000) {
 			msleep(size & 0x7fff);
 			continue;
@@ -593,7 +580,7 @@ static int load_firmware(struct dvb_frontend *fe, unsigned int type,
 		p++;
 		size--;
 
-		/* Sends message chunks */
+		
 		while (size > 0) {
 			int len = (size < priv->ctrl.max_len - 1) ?
 				   size : priv->ctrl.max_len - 1;
@@ -643,8 +630,7 @@ static int load_scode(struct dvb_frontend *fe, unsigned int type,
 			return -EINVAL;
 		p += 12 * scode;
 	} else {
-		/* 16 SCODE entries per file; each SCODE entry is 12 bytes and
-		 * has a 2-byte size header in the firmware format. */
+		
 		if (priv->firm[pos].size != 14 * 16 || scode >= 16 ||
 		    le16_to_cpu(*(__u16 *)(p + 14 * scode)) != 12)
 			return -EINVAL;
@@ -722,22 +708,22 @@ retry:
 		printk("scode_nr %d\n", new_fw.scode_nr);
 	}
 
-	/* No need to reload base firmware if it matches */
+	
 	if (((BASE | new_fw.type) & BASE_TYPES) ==
 	    (priv->cur_fw.type & BASE_TYPES)) {
 		tuner_dbg("BASE firmware not changed.\n");
 		goto skip_base;
 	}
 
-	/* Updating BASE - forget about all currently loaded firmware */
+	
 	memset(&priv->cur_fw, 0, sizeof(priv->cur_fw));
 
-	/* Reset is needed before loading firmware */
+	
 	rc = do_tuner_callback(fe, XC2028_TUNER_RESET, 0);
 	if (rc < 0)
 		goto fail;
 
-	/* BASE firmwares are all std0 */
+	
 	std0 = 0;
 	rc = load_firmware(fe, BASE | new_fw.type, &std0);
 	if (rc < 0) {
@@ -746,7 +732,7 @@ retry:
 		goto fail;
 	}
 
-	/* Load INIT1, if needed */
+	
 	tuner_dbg("Load init1 firmware, if exists\n");
 
 	rc = load_firmware(fe, BASE | INIT1 | new_fw.type, &std0);
@@ -760,17 +746,14 @@ retry:
 	}
 
 skip_base:
-	/*
-	 * No need to reload standard specific firmware if base firmware
-	 * was not reloaded and requested video standards have not changed.
-	 */
+	
 	if (priv->cur_fw.type == (BASE | new_fw.type) &&
 	    priv->cur_fw.std_req == std) {
 		tuner_dbg("Std-specific firmware already loaded.\n");
 		goto skip_std_specific;
 	}
 
-	/* Reloading std-specific firmware forces a SCODE update */
+	
 	priv->cur_fw.scode_table = 0;
 
 	rc = load_firmware(fe, new_fw.type, &new_fw.id);
@@ -790,7 +773,7 @@ skip_std_specific:
 	if (new_fw.type & FM)
 		goto check_device;
 
-	/* Load SCODE firmware, if exists */
+	
 	tuner_dbg("Trying to load scode %d\n", new_fw.scode_nr);
 
 	rc = load_scode(fe, new_fw.type | new_fw.scode_table, &new_fw.id,
@@ -808,13 +791,13 @@ check_device:
 		  hwmodel, (version & 0xf000) >> 12, (version & 0xf00) >> 8,
 		  (version & 0xf0) >> 4, version & 0xf);
 
-	/* Check firmware version against what we downloaded. */
+	
 	if (priv->firm_version != ((version & 0xf0) << 4 | (version & 0x0f))) {
 		tuner_err("Incorrect readback of firmware version.\n");
 		goto fail;
 	}
 
-	/* Check that the tuner hardware model remains consistent over time. */
+	
 	if (priv->hwmodel == 0 && (hwmodel == 2028 || hwmodel == 3028)) {
 		priv->hwmodel = hwmodel;
 		priv->hwvers  = version & 0xff00;
@@ -827,12 +810,7 @@ check_device:
 
 	memcpy(&priv->cur_fw, &new_fw, sizeof(priv->cur_fw));
 
-	/*
-	 * By setting BASE in cur_fw.type only after successfully loading all
-	 * firmwares, we can:
-	 * 1. Identify that BASE firmware with type=0 has been loaded;
-	 * 2. Tell whether BASE firmware was just changed the next time through.
-	 */
+	
 	priv->cur_fw.type |= BASE;
 
 	return 0;
@@ -861,21 +839,21 @@ static int xc2028_signal(struct dvb_frontend *fe, u16 *strength)
 
 	mutex_lock(&priv->lock);
 
-	/* Sync Lock Indicator */
+	
 	rc = xc2028_get_reg(priv, 0x0002, &frq_lock);
 	if (rc < 0)
 		goto ret;
 
-	/* Frequency is locked */
+	
 	if (frq_lock == 1)
 		signal = 32768;
 
-	/* Get SNR of the video signal */
+	
 	rc = xc2028_get_reg(priv, 0x0040, &signal);
 	if (rc < 0)
 		goto ret;
 
-	/* Use both frq_lock and signal to generate the result */
+	
 	signal = signal || ((signal & 0x07) << 12);
 
 ret:
@@ -890,7 +868,7 @@ ret:
 
 #define DIV 15625
 
-static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+static int generic_set_freq(struct dvb_frontend *fe, u32 freq ,
 			    enum tuner_mode new_mode,
 			    unsigned int type,
 			    v4l2_std_id std,
@@ -910,42 +888,28 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
 	if (check_firmware(fe, type, std, int_freq) < 0)
 		goto ret;
 
-	/* On some cases xc2028 can disable video output, if
-	 * very weak signals are received. By sending a soft
-	 * reset, this is re-enabled. So, it is better to always
-	 * send a soft reset before changing channels, to be sure
-	 * that xc2028 will be in a safe state.
-	 * Maybe this might also be needed for DTV.
-	 */
+	
 	if (new_mode == T_ANALOG_TV)
 		rc = send_seq(priv, {0x00, 0x00});
 
-	/*
-	 * Digital modes require an offset to adjust to the
-	 * proper frequency.
-	 * Analog modes require offset = 0
-	 */
+	
 	if (new_mode == T_DIGITAL_TV) {
-		/* Sets the offset according with firmware */
+		
 		if (priv->cur_fw.type & DTV6)
 			offset = 1750000;
 		else if (priv->cur_fw.type & DTV7)
 			offset = 2250000;
-		else	/* DTV8 or DTV78 */
+		else	
 			offset = 2750000;
 
-		/*
-		 * We must adjust the offset by 500kHz  when
-		 * tuning a 7MHz VHF channel with DTV78 firmware
-		 * (used in Australia, Italy and Germany)
-		 */
+		
 		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
 			offset -= 500000;
 	}
 
 	div = (freq - offset + DIV / 2) / DIV;
 
-	/* CMD= Set frequency */
+	
 	if (priv->firm_version < 0x0202)
 		rc = send_seq(priv, {0x00, 0x02, 0x00, 0x00});
 	else
@@ -953,10 +917,7 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
 	if (rc < 0)
 		goto ret;
 
-	/* Return code shouldn't be checked.
-	   The reset CLK is needed only with tm6000.
-	   Driver should work fine even if this fails.
-	 */
+	
 	do_tuner_callback(fe, XC2028_RESET_CLK, 1);
 
 	msleep(10);
@@ -1001,15 +962,15 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
 				T_RADIO, type, 0, 0);
 	}
 
-	/* if std is not defined, choose one */
+	
 	if (!p->std)
 		p->std = V4L2_STD_MN;
 
-	/* PAL/M, PAL/N, PAL/Nc and NTSC variants should use 6MHz firmware */
+	
 	if (!(p->std & V4L2_STD_MN))
 		type |= F8MHZ;
 
-	/* Add audio hack to std mask */
+	
 	p->std |= parse_audio_std_option();
 
 	return generic_set_freq(fe, 62500l * p->frequency,
@@ -1029,20 +990,16 @@ static int xc2028_set_params(struct dvb_frontend *fe,
 	switch(fe->ops.info.type) {
 	case FE_OFDM:
 		bw = p->u.ofdm.bandwidth;
-		/*
-		 * The only countries with 6MHz seem to be Taiwan/Uruguay.
-		 * Both seem to require QAM firmware for OFDM decoding
-		 * Tested in Taiwan by Terry Wu <terrywu2009@gmail.com>
-		 */
+		
 		if (bw == BANDWIDTH_6_MHZ)
 			type |= QAM;
 		break;
 	case FE_ATSC:
 		bw = BANDWIDTH_6_MHZ;
-		/* The only ATSC firmware (at least on v2.7) is D2633 */
+		
 		type |= ATSC | D2633;
 		break;
-	/* DVB-S and pure QAM (FE_QAM) are not supported */
+	
 	default:
 		return -EINVAL;
 	}
@@ -1073,10 +1030,7 @@ static int xc2028_set_params(struct dvb_frontend *fe,
 		tuner_err("error: bandwidth not supported.\n");
 	};
 
-	/*
-	  Selects between D2633 or D2620 firmware.
-	  It doesn't make sense for ATSC, since it should be D2633 on all cases
-	 */
+	
 	if (fe->ops.info.type != FE_ATSC) {
 		switch (priv->ctrl.type) {
 		case XC2028_D2633:
@@ -1087,7 +1041,7 @@ static int xc2028_set_params(struct dvb_frontend *fe,
 			break;
 		case XC2028_AUTO:
 		default:
-			/* Zarlink seems to need D2633 */
+			
 			if (priv->ctrl.demod == XC3028_FE_ZARLINK456)
 				type |= D2633;
 			else
@@ -1095,17 +1049,10 @@ static int xc2028_set_params(struct dvb_frontend *fe,
 		}
 	}
 
-	/* All S-code tables need a 200kHz shift */
+	
 	if (priv->ctrl.demod) {
 		demod = priv->ctrl.demod + 200;
-		/*
-		 * The DTV7 S-code table needs a 700 kHz shift.
-		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
-		 *
-		 * DTV7 is only used in Australia.  Germany or Italy may also
-		 * use this firmware after initialization, but a tune to a UHF
-		 * channel should then cause DTV78 to be used.
-		 */
+		
 		if (type & DTV7)
 			demod += 500;
 	}
@@ -1119,7 +1066,7 @@ static int xc2028_sleep(struct dvb_frontend *fe)
 	struct xc2028_data *priv = fe->tuner_priv;
 	int rc = 0;
 
-	/* Avoid firmware reload on slow devices or if PM disabled */
+	
 	if (no_poweroff || priv->ctrl.disable_power_mgmt)
 		return 0;
 
@@ -1136,7 +1083,7 @@ static int xc2028_sleep(struct dvb_frontend *fe)
 	else
 		rc = send_seq(priv, {0x80, 0x08, 0x00, 0x00});
 
-	priv->cur_fw.type = 0;	/* need firmware reload */
+	priv->cur_fw.type = 0;	
 
 	mutex_unlock(&priv->lock);
 
@@ -1151,7 +1098,7 @@ static int xc2028_dvb_release(struct dvb_frontend *fe)
 
 	mutex_lock(&xc2028_list_mutex);
 
-	/* only perform final cleanup if this is the last instance */
+	
 	if (hybrid_tuner_report_instance_count(priv) == 1) {
 		kfree(priv->ctrl.fname);
 		free_firmware(priv);
@@ -1250,11 +1197,11 @@ struct dvb_frontend *xc2028_attach(struct dvb_frontend *fe,
 					      "xc2028");
 	switch (instance) {
 	case 0:
-		/* memory allocation failure */
+		
 		goto fail;
 		break;
 	case 1:
-		/* new tuner instance */
+		
 		priv->ctrl.max_len = 13;
 
 		mutex_init(&priv->lock);
@@ -1262,7 +1209,7 @@ struct dvb_frontend *xc2028_attach(struct dvb_frontend *fe,
 		fe->tuner_priv = priv;
 		break;
 	case 2:
-		/* existing tuner instance */
+		
 		fe->tuner_priv = priv;
 		break;
 	}

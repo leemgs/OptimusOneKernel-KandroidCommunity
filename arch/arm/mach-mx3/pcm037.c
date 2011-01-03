@@ -1,20 +1,4 @@
-/*
- *  Copyright (C) 2008 Sascha Hauer, Pengutronix
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -67,7 +51,7 @@ static int __init pcm037_variant_setup(char *str)
 	return 1;
 }
 
-/* Supported values: "pcm970" (default) and "eet" */
+
 __setup("pcm037_variant=", pcm037_variant_setup);
 
 enum pcm037_board_variant pcm037_variant(void)
@@ -75,7 +59,7 @@ enum pcm037_board_variant pcm037_variant(void)
 	return pcm037_instance;
 }
 
-/* UART1 with RTS/CTS handshake signals */
+
 static unsigned int pcm037_uart1_handshake_pins[] = {
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
@@ -83,28 +67,28 @@ static unsigned int pcm037_uart1_handshake_pins[] = {
 	MX31_PIN_RXD1__RXD1,
 };
 
-/* UART1 without RTS/CTS handshake signals */
+
 static unsigned int pcm037_uart1_pins[] = {
 	MX31_PIN_TXD1__TXD1,
 	MX31_PIN_RXD1__RXD1,
 };
 
 static unsigned int pcm037_pins[] = {
-	/* I2C */
+	
 	MX31_PIN_CSPI2_MOSI__SCL,
 	MX31_PIN_CSPI2_MISO__SDA,
 	MX31_PIN_CSPI2_SS2__I2C3_SDA,
 	MX31_PIN_CSPI2_SCLK__I2C3_SCL,
-	/* SDHC1 */
+	
 	MX31_PIN_SD1_DATA3__SD1_DATA3,
 	MX31_PIN_SD1_DATA2__SD1_DATA2,
 	MX31_PIN_SD1_DATA1__SD1_DATA1,
 	MX31_PIN_SD1_DATA0__SD1_DATA0,
 	MX31_PIN_SD1_CLK__SD1_CLK,
 	MX31_PIN_SD1_CMD__SD1_CMD,
-	IOMUX_MODE(MX31_PIN_SCK6, IOMUX_CONFIG_GPIO), /* card detect */
-	IOMUX_MODE(MX31_PIN_SFS6, IOMUX_CONFIG_GPIO), /* write protect */
-	/* SPI1 */
+	IOMUX_MODE(MX31_PIN_SCK6, IOMUX_CONFIG_GPIO), 
+	IOMUX_MODE(MX31_PIN_SFS6, IOMUX_CONFIG_GPIO), 
+	
 	MX31_PIN_CSPI1_MOSI__MOSI,
 	MX31_PIN_CSPI1_MISO__MISO,
 	MX31_PIN_CSPI1_SCLK__SCLK,
@@ -112,21 +96,21 @@ static unsigned int pcm037_pins[] = {
 	MX31_PIN_CSPI1_SS0__SS0,
 	MX31_PIN_CSPI1_SS1__SS1,
 	MX31_PIN_CSPI1_SS2__SS2,
-	/* UART2 */
+	
 	MX31_PIN_TXD2__TXD2,
 	MX31_PIN_RXD2__RXD2,
 	MX31_PIN_CTS2__CTS2,
 	MX31_PIN_RTS2__RTS2,
-	/* UART3 */
+	
 	MX31_PIN_CSPI3_MOSI__RXD3,
 	MX31_PIN_CSPI3_MISO__TXD3,
 	MX31_PIN_CSPI3_SCLK__RTS3,
 	MX31_PIN_CSPI3_SPI_RDY__CTS3,
-	/* LAN9217 irq pin */
+	
 	IOMUX_MODE(MX31_PIN_GPIO3_1, IOMUX_CONFIG_GPIO),
-	/* Onewire */
+	
 	MX31_PIN_BATT_LINE__OWIRE,
-	/* Framebuffer */
+	
 	MX31_PIN_LD0__LD0,
 	MX31_PIN_LD1__LD1,
 	MX31_PIN_LD2__LD2,
@@ -154,7 +138,7 @@ static unsigned int pcm037_pins[] = {
 	MX31_PIN_D3_SPL__D3_SPL,
 	MX31_PIN_D3_CLS__D3_CLS,
 	MX31_PIN_LCS0__GPI03_23,
-	/* CSI */
+	
 	IOMUX_MODE(MX31_PIN_CSI_D5, IOMUX_CONFIG_GPIO),
 	MX31_PIN_CSI_D6__CSI_D6,
 	MX31_PIN_CSI_D7__CSI_D7,
@@ -170,7 +154,7 @@ static unsigned int pcm037_pins[] = {
 	MX31_PIN_CSI_MCLK__CSI_MCLK,
 	MX31_PIN_CSI_PIXCLK__CSI_PIXCLK,
 	MX31_PIN_CSI_VSYNC__CSI_VSYNC,
-	/* GPIO */
+	
 	IOMUX_MODE(MX31_PIN_ATA_DMACK, IOMUX_CONFIG_GPIO),
 };
 
@@ -199,7 +183,7 @@ static int usbotg_pins[] = {
 	MX31_PIN_USBOTG_STP__USBOTG_STP,
 };
 
-/* USB OTG HS port */
+
 static int __init gpio_usbotg_hs_activate(void)
 {
 	int ret = mxc_iomux_setup_multiple_pins(usbotg_pins,
@@ -226,7 +210,7 @@ static int __init gpio_usbotg_hs_activate(void)
 	return 0;
 }
 
-/* OTG config */
+
 static struct fsl_usb2_platform_data usb_pdata = {
 	.operating_mode	= FSL_USB2_DR_DEVICE,
 	.phy_mode	= FSL_USB2_PHY_ULPI,
@@ -317,7 +301,7 @@ static struct at24_platform_data board_eeprom = {
 
 static int pcm037_camera_power(struct device *dev, int on)
 {
-	/* disable or enable the camera in X7 or X8 PCM970 connector */
+	
 	gpio_set_value(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), !on);
 	return 0;
 }
@@ -329,7 +313,7 @@ static struct i2c_board_info pcm037_i2c_2_devices[] = {
 };
 
 static struct soc_camera_link iclink = {
-	.bus_id		= 0,		/* Must match with the camera ID */
+	.bus_id		= 0,		
 	.power		= pcm037_camera_power,
 	.board_info	= &pcm037_i2c_2_devices[0],
 	.i2c_adapter_id	= 2,
@@ -338,7 +322,7 @@ static struct soc_camera_link iclink = {
 
 static struct i2c_board_info pcm037_i2c_devices[] = {
 	{
-		I2C_BOARD_INFO("at24", 0x52), /* E0=0, E1=1, E2=0 */
+		I2C_BOARD_INFO("at24", 0x52), 
 		.platform_data = &board_eeprom,
 	}, {
 		I2C_BOARD_INFO("pcf8563", 0x51),
@@ -353,7 +337,7 @@ static struct platform_device pcm037_camera = {
 	},
 };
 
-/* Not connected by default */
+
 #ifdef PCM970_SDHC_RW_SWITCH
 static int pcm970_sdhc1_get_ro(struct device *dev)
 {
@@ -442,7 +426,7 @@ static int __init pcm037_camera_alloc_dma(const size_t buf_size)
 					dma_handle, dma_handle, buf_size,
 					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
 
-	/* The way we call dma_declare_coherent_memory only a malloc can fail */
+	
 	return dma & DMA_MEMORY_MAP ? 0 : -ENOMEM;
 }
 
@@ -458,7 +442,7 @@ static struct ipu_platform_data mx3_ipu_data = {
 
 static const struct fb_videomode fb_modedb[] = {
 	{
-		/* 240x320 @ 60 Hz Sharp */
+		
 		.name		= "Sharp-LQ035Q7DH06-QVGA",
 		.refresh	= 60,
 		.xres		= 240,
@@ -475,7 +459,7 @@ static const struct fb_videomode fb_modedb[] = {
 		.vmode		= FB_VMODE_NONINTERLACED,
 		.flag		= 0,
 	}, {
-		/* 240x320 @ 60 Hz */
+		
 		.name		= "TX090",
 		.refresh	= 60,
 		.xres		= 240,
@@ -491,7 +475,7 @@ static const struct fb_videomode fb_modedb[] = {
 		.vmode		= FB_VMODE_NONINTERLACED,
 		.flag		= 0,
 	}, {
-		/* 240x320 @ 60 Hz */
+		
 		.name		= "CMEL-OLED",
 		.refresh	= 60,
 		.xres		= 240,
@@ -543,9 +527,7 @@ static struct platform_device pcm970_sja1000 = {
 	.num_resources = ARRAY_SIZE(pcm970_sja1000_resources),
 };
 
-/*
- * Board specific initialization.
- */
+
 static void __init mxc_board_init(void)
 {
 	int ret;
@@ -569,7 +551,7 @@ static void __init mxc_board_init(void)
 
 	mxc_register_device(&mxc_w1_master_device, NULL);
 
-	/* LAN9217 IRQ pin */
+	
 	ret = gpio_request(IOMUX_TO_GPIO(MX31_PIN_GPIO3_1), "lan9217-irq");
 	if (ret)
 		pr_warning("could not get LAN irq gpio\n");
@@ -579,7 +561,7 @@ static void __init mxc_board_init(void)
 	}
 
 
-	/* I2C adapters and devices */
+	
 	i2c_register_board_info(1, pcm037_i2c_devices,
 			ARRAY_SIZE(pcm037_i2c_devices));
 
@@ -593,8 +575,8 @@ static void __init mxc_board_init(void)
 	if (!gpio_usbotg_hs_activate())
 		mxc_register_device(&mxc_otg_udc_device, &usb_pdata);
 
-	/* CSI */
-	/* Camera power: default - off */
+	
+	
 	ret = gpio_request(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), "mt9t031-power");
 	if (!ret)
 		gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), 1);
@@ -617,7 +599,7 @@ struct sys_timer pcm037_timer = {
 };
 
 MACHINE_START(PCM037, "Phytec Phycore pcm037")
-	/* Maintainer: Pengutronix */
+	
 	.phys_io	= AIPS1_BASE_ADDR,
 	.io_pg_offst	= ((AIPS1_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params    = PHYS_OFFSET + 0x100,

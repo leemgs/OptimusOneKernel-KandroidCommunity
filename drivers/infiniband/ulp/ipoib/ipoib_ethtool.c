@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/ethtool.h>
@@ -68,12 +38,7 @@ static int ipoib_set_coalesce(struct net_device *dev,
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 	int ret;
 
-	/*
-	 * Since IPoIB uses a single CQ for both rx and tx, we assume
-	 * that rx params dictate the configuration.  These values are
-	 * saved in the private data and returned when ipoib_get_coalesce()
-	 * is called.
-	 */
+	
 	if (coal->rx_coalesce_usecs       > 0xffff ||
 	    coal->rx_max_coalesced_frames > 0xffff)
 		return -EINVAL;
@@ -123,7 +88,7 @@ static void ipoib_get_ethtool_stats(struct net_device *dev,
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 	int index = 0;
 
-	/* Get LRO statistics */
+	
 	data[index++] = priv->lro.lro_mgr.stats.aggregated;
 	data[index++] = priv->lro.lro_mgr.stats.flushed;
 	if (priv->lro.lro_mgr.stats.flushed)

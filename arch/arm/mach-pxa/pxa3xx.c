@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/pxa3xx.c
- *
- * code specific to pxa3xx aka Monahans
- *
- * Copyright (C) 2006 Marvell International Ltd.
- *
- * 2007-09-02: eric miao <eric.miao@marvell.com>
- *             initial version
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -36,32 +23,28 @@
 #include "devices.h"
 #include "clock.h"
 
-/* Crystal clock: 13MHz */
+
 #define BASE_CLK	13000000
 
-/* Ring Oscillator Clock: 60MHz */
+
 #define RO_CLK		60000000
 
 #define ACCR_D0CS	(1 << 26)
 #define ACCR_PCCE	(1 << 11)
 
-/* crystal frequency to static memory controller multiplier (SMCFS) */
+
 static unsigned char smcfs_mult[8] = { 6, 0, 8, 0, 0, 16, };
 
-/* crystal frequency to HSIO bus frequency multiplier (HSS) */
+
 static unsigned char hss_mult[4] = { 8, 12, 16, 0 };
 
-/*
- * Get the clock frequency as reflected by CCSR and the turbo flag.
- * We assume these values have been applied via a fcs.
- * If info is not 0 we also display the current settings.
- */
+
 unsigned int pxa3xx_get_clk_frequency_khz(int info)
 {
 	unsigned long acsr, xclkcfg;
 	unsigned int t, xl, xn, hss, ro, XL, XN, CLK, HSS;
 
-	/* Read XCLKCFG register turbo bit */
+	
 	__asm__ __volatile__("mrc\tp14, 0, %0, c6, c0, 0" : "=r"(xclkcfg));
 	t = xclkcfg & 0x1;
 
@@ -95,10 +78,7 @@ unsigned int pxa3xx_get_clk_frequency_khz(int info)
 	return CLK / 1000;
 }
 
-/*
- * Return the current static memory controller clock frequency
- * in units of 10kHz
- */
+
 unsigned int pxa3xx_get_memclk_frequency_10khz(void)
 {
 	unsigned long acsr;
@@ -114,13 +94,11 @@ unsigned int pxa3xx_get_memclk_frequency_10khz(void)
 
 void pxa3xx_clear_reset_status(unsigned int mask)
 {
-	/* RESET_STATUS_* has a 1:1 mapping with ARSR */
+	
 	ARSR = mask;
 }
 
-/*
- * Return the current AC97 clock frequency.
- */
+
 static unsigned long clk_pxa3xx_ac97_getrate(struct clk *clk)
 {
 	unsigned long rate = 312000000;
@@ -128,18 +106,14 @@ static unsigned long clk_pxa3xx_ac97_getrate(struct clk *clk)
 
 	ac97_div = AC97_DIV;
 
-	/* This may loose precision for some rates but won't for the
-	 * standard 24.576MHz.
-	 */
+	
 	rate /= (ac97_div >> 12) & 0x7fff;
 	rate *= (ac97_div & 0xfff);
 
 	return rate;
 }
 
-/*
- * Return the current HSIO bus clock frequency
- */
+
 static unsigned long clk_pxa3xx_hsio_getrate(struct clk *clk)
 {
 	unsigned long acsr;
@@ -249,7 +223,7 @@ static DEFINE_PXA3_CKEN(pxa3xx_mmc2, MMC2, 19500000, 0);
 
 static struct clk_lookup pxa3xx_clkregs[] = {
 	INIT_CLKREG(&clk_pxa3xx_pout, NULL, "CLK_POUT"),
-	/* Power I2C clock is always on */
+	
 	INIT_CLKREG(&clk_dummy, "pxa3xx-pwri2c.1", NULL),
 	INIT_CLKREG(&clk_pxa3xx_lcd, "pxa2xx-fb", NULL),
 	INIT_CLKREG(&clk_pxa3xx_camera, NULL, "CAMCLK"),
@@ -304,14 +278,7 @@ static void pxa3xx_cpu_pm_restore(unsigned long *sleep_save)
 	RESTORE(CKENB);
 }
 
-/*
- * Enter a standby mode (S0D1C2 or S0D2C2).  Upon wakeup, the dynamic
- * memory controller has to be reinitialised, so we place some code
- * in the SRAM to perform this function.
- *
- * We disable FIQs across the standby - otherwise, we might receive a
- * FIQ while the SDRAM is unavailable.
- */
+
 static void pxa3xx_cpu_standby(unsigned int pwrmode)
 {
 	extern const char pm_enter_standby_start[], pm_enter_standby_end[];
@@ -335,13 +302,7 @@ static void pxa3xx_cpu_standby(unsigned int pwrmode)
 	AD2D1ER = 0;
 }
 
-/*
- * NOTE:  currently, the OBM (OEM Boot Module) binary comes along with
- * PXA3xx development kits assumes that the resuming process continues
- * with the address stored within the first 4 bytes of SDRAM. The PSPR
- * register is used privately by BootROM and OBM, and _must_ be set to
- * 0x5c014000 for the moment.
- */
+
 static void pxa3xx_cpu_pm_suspend(void)
 {
 	volatile unsigned long *p = (volatile void *)0xc0000000;
@@ -350,22 +311,22 @@ static void pxa3xx_cpu_pm_suspend(void)
 	extern void pxa3xx_cpu_suspend(void);
 	extern void pxa3xx_cpu_resume(void);
 
-	/* resuming from D2 requires the HSIO2/BOOT/TPM clocks enabled */
+	
 	CKENA |= (1 << CKEN_BOOT) | (1 << CKEN_TPM);
 	CKENB |= 1 << (CKEN_HSIO2 & 0x1f);
 
-	/* clear and setup wakeup source */
+	
 	AD3SR = ~0;
 	AD3ER = wakeup_src;
 	ASCR = ASCR;
 	ARSR = ARSR;
 
-	PCFR |= (1u << 13);			/* L1_DIS */
-	PCFR &= ~((1u << 12) | (1u << 1));	/* L0_EN | SL_ROD */
+	PCFR |= (1u << 13);			
+	PCFR &= ~((1u << 12) | (1u << 1));	
 
 	PSPR = 0x5c014000;
 
-	/* overwrite with the resume address */
+	
 	*p = virt_to_phys(pxa3xx_cpu_resume);
 
 	pxa3xx_cpu_suspend();
@@ -377,9 +338,7 @@ static void pxa3xx_cpu_pm_suspend(void)
 
 static void pxa3xx_cpu_pm_enter(suspend_state_t state)
 {
-	/*
-	 * Don't sleep if no wakeup sources are defined
-	 */
+	
 	if (wakeup_src == 0) {
 		printk(KERN_ERR "Not suspending: no wakeup sources\n");
 		return;
@@ -417,18 +376,12 @@ static void __init pxa3xx_init_pm(void)
 		return;
 	}
 
-	/*
-	 * Since we copy wakeup code into the SRAM, we need to ensure
-	 * that it is preserved over the low power modes.  Note: bit 8
-	 * is undocumented in the developer manual, but must be set.
-	 */
+	
 	AD1R |= ADXR_L2 | ADXR_R0;
 	AD2R |= ADXR_L2 | ADXR_R0;
 	AD3R |= ADXR_L2 | ADXR_R0;
 
-	/*
-	 * Clear the resume enable registers.
-	 */
+	
 	AD1D0ER = 0;
 	AD2D0ER = 0;
 	AD2D1ER = 0;
@@ -532,7 +485,7 @@ static inline void pxa3xx_init_pm(void) {}
 
 void __init pxa3xx_init_irq(void)
 {
-	/* enable CP6 access */
+	
 	u32 value;
 	__asm__ __volatile__("mrc p15, 0, %0, c15, c1, 0\n": "=r"(value));
 	value |= (1 << 6);
@@ -542,9 +495,7 @@ void __init pxa3xx_init_irq(void)
 	pxa_init_gpio(IRQ_GPIO_2_x, 2, 127, NULL);
 }
 
-/*
- * device registration specific to PXA3xx.
- */
+
 
 void __init pxa3xx_set_i2c_power_info(struct i2c_pxa_platform_data *info)
 {
@@ -585,12 +536,7 @@ static int __init pxa3xx_init(void)
 
 		reset_status = ARSR;
 
-		/*
-		 * clear RDH bit every time after reset
-		 *
-		 * Note: the last 3 bits DxS are write-1-to-clear so carefully
-		 * preserve them here in case they will be referenced later
-		 */
+		
 		ASCR &= ~(ASCR_RDH | ASCR_D1S | ASCR_D2S | ASCR_D3S);
 
 		clks_register(pxa3xx_clkregs, ARRAY_SIZE(pxa3xx_clkregs));

@@ -1,11 +1,4 @@
-/*
- * DMA region bookkeeping routines
- *
- * Copyright (C) 2002 Maas Digital LLC
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- */
+
 
 #ifndef IEEE1394_DMA_H
 #define IEEE1394_DMA_H
@@ -17,16 +10,7 @@ struct pci_dev;
 struct scatterlist;
 struct vm_area_struct;
 
-/**
- * struct dma_prog_region - small contiguous DMA buffer
- * @kvirt:    kernel virtual address
- * @dev:      PCI device
- * @n_pages:  number of kernel pages
- * @bus_addr: base bus address
- *
- * a small, physically contiguous DMA buffer with random-access, synchronous
- * usage characteristics
- */
+
 struct dma_prog_region {
 	unsigned char *kvirt;
 	struct pci_dev *dev;
@@ -34,7 +18,7 @@ struct dma_prog_region {
 	dma_addr_t bus_addr;
 };
 
-/* clear out all fields but do not allocate any memory */
+
 void dma_prog_region_init(struct dma_prog_region *prog);
 int dma_prog_region_alloc(struct dma_prog_region *prog, unsigned long n_bytes,
 			  struct pci_dev *dev);
@@ -46,18 +30,7 @@ static inline dma_addr_t dma_prog_region_offset_to_bus(
 	return prog->bus_addr + offset;
 }
 
-/**
- * struct dma_region - large non-contiguous DMA buffer
- * @virt:        kernel virtual address
- * @dev:         PCI device
- * @n_pages:     number of kernel pages
- * @n_dma_pages: number of IOMMU pages
- * @sglist:      IOMMU mapping
- * @direction:   PCI_DMA_TODEVICE, etc.
- *
- * a large, non-physically-contiguous DMA buffer with streaming, asynchronous
- * usage characteristics
- */
+
 struct dma_region {
 	unsigned char *kvirt;
 	struct pci_dev *dev;
@@ -80,10 +53,8 @@ int  dma_region_mmap(struct dma_region *dma, struct file *file,
 dma_addr_t dma_region_offset_to_bus(struct dma_region *dma,
 				    unsigned long offset);
 
-/**
- * dma_region_i - macro to index into a DMA region (or dma_prog_region)
- */
+
 #define dma_region_i(_dma, _type, _index) \
 	( ((_type*) ((_dma)->kvirt)) + (_index) )
 
-#endif /* IEEE1394_DMA_H */
+#endif 

@@ -1,33 +1,4 @@
-/*
- *	Adaptec AAC series RAID controller driver
- *	(c) Copyright 2001 Red Hat Inc.
- *
- * based on the old aacraid driver that is..
- * Adaptec aacraid device driver for Linux.
- *
- * Copyright (c) 2000-2007 Adaptec, Inc. (aacraid@adaptec.com)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, write to
- * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Module Name:
- *  dpcsup.c
- *
- * Abstract: All DPC processing routines for the cyclone board occur here.
- *
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -40,15 +11,7 @@
 
 #include "aacraid.h"
 
-/**
- *	aac_response_normal	-	Handle command replies
- *	@q: Queue to read from
- *
- *	This DPC routine will be run when the adapter interrupts us to let us
- *	know there is a response on our normal priority queue. We will pull off
- *	all QE there are and wake up all the waiters before exiting. We will
- *	take a spinlock out on the queue before operating on it.
- */
+
 
 unsigned int aac_response_normal(struct aac_queue * q)
 {
@@ -60,12 +23,7 @@ unsigned int aac_response_normal(struct aac_queue * q)
 	unsigned long flags;
 
 	spin_lock_irqsave(q->lock, flags);	
-	/*
-	 *	Keep pulling response QEs off the response queue and waking
-	 *	up the waiters until there are no more QEs. We then return
-	 *	back to the system. If no response was requesed we just
-	 *	deallocate the Fib here and continue.
-	 */
+	
 	while(aac_consumer_get(dev, q, &entry))
 	{
 		int fast;
@@ -75,14 +33,7 @@ unsigned int aac_response_normal(struct aac_queue * q)
 		hwfib = fib->hw_fib_va;
 		
 		aac_consumer_free(dev, q, HostNormRespQueue);
-		/*
-		 *	Remove this fib from the Outstanding I/O queue.
-		 *	But only if it has not already been timed out.
-		 *
-		 *	If the fib has been timed out already, then just 
-		 *	continue. The caller has already been notified that
-		 *	the fib timed out.
-		 */
+		
 		dev->queues->queue[AdapNormCmdQueue].numpending--;
 
 		if (unlikely(fib->flags & FIB_CONTEXT_FLAG_TIMED_OUT)) {
@@ -95,9 +46,7 @@ unsigned int aac_response_normal(struct aac_queue * q)
 		spin_unlock_irqrestore(q->lock, flags);
 
 		if (fast) {
-			/*
-			 *	Doctor the fib
-			 */
+			
 			*(__le32 *)hwfib->data = cpu_to_le32(ST_OK);
 			hwfib->header.XferState |= cpu_to_le32(AdapterProcessed);
 		}
@@ -116,10 +65,7 @@ unsigned int aac_response_normal(struct aac_queue * q)
 				FIB_COUNTER_INCREMENT(aac_config.NoResponseRecved);
 			else 
 				FIB_COUNTER_INCREMENT(aac_config.AsyncRecved);
-			/*
-			 *	NOTE:  we cannot touch the fib after this
-			 *	    call, because it may have been deallocated.
-			 */
+			
 			fib->flags = 0;
 			fib->callback(fib->callback_data, fib);
 		} else {
@@ -149,15 +95,7 @@ unsigned int aac_response_normal(struct aac_queue * q)
 }
 
 
-/**
- *	aac_command_normal	-	handle commands
- *	@q: queue to process
- *
- *	This DPC routine will be queued when the adapter interrupts us to 
- *	let us know there is a command on our normal priority queue. We will 
- *	pull off all QE there are and wake up all the waiters before exiting.
- *	We will take a spinlock out on the queue before operating on it.
- */
+
  
 unsigned int aac_command_normal(struct aac_queue *q)
 {
@@ -167,11 +105,7 @@ unsigned int aac_command_normal(struct aac_queue *q)
 
 	spin_lock_irqsave(q->lock, flags);
 
-	/*
-	 *	Keep pulling response QEs off the response queue and waking
-	 *	up the waiters until there are no more QEs. We then return
-	 *	back to the system.
-	 */
+	
 	while(aac_consumer_get(dev, q, &entry))
 	{
 		struct fib fibctx;
@@ -182,11 +116,7 @@ unsigned int aac_command_normal(struct aac_queue *q)
 		index = le32_to_cpu(entry->addr) / sizeof(struct hw_fib);
 		hw_fib = &dev->aif_base_va[index];
 		
-		/*
-		 *	Allocate a FIB at all costs. For non queued stuff
-		 *	we can just use the stack so we are happy. We need
-		 *	a fib object in order to manage the linked lists
-		 */
+		
 		if (dev->aif_thread)
 			if((fib = kmalloc(sizeof(struct fib), GFP_ATOMIC)) == NULL)
 				fib = &fibctx;
@@ -207,9 +137,7 @@ unsigned int aac_command_normal(struct aac_queue *q)
 		} else {
 	 	        aac_consumer_free(dev, q, HostNormCmdQueue);
 			spin_unlock_irqrestore(q->lock, flags);
-			/*
-			 *	Set the status of this FIB
-			 */
+			
 			*(__le32 *)hw_fib->data = cpu_to_le32(ST_OK);
 			aac_fib_adapter_complete(fib, sizeof(u32));
 			spin_lock_irqsave(q->lock, flags);
@@ -220,15 +148,7 @@ unsigned int aac_command_normal(struct aac_queue *q)
 }
 
 
-/**
- *	aac_intr_normal	-	Handle command replies
- *	@dev: Device
- *	@index: completion reference
- *
- *	This DPC routine will be run when the adapter interrupts us to let us
- *	know there is a response on our normal priority queue. We will pull off
- *	all QE there are and wake up all the waiters before exiting.
- */
+
 
 unsigned int aac_intr_normal(struct aac_dev * dev, u32 index)
 {
@@ -239,13 +159,9 @@ unsigned int aac_intr_normal(struct aac_dev * dev, u32 index)
 		struct aac_queue *q = &dev->queues->queue[HostNormCmdQueue];
 		unsigned long flags;
 
-		if (index == 0xFFFFFFFEL) /* Special Case */
-			return 0;	  /* Do nothing */
-		/*
-		 *	Allocate a FIB. For non queued stuff we can just use
-		 * the stack so we are happy. We need a fib object in order to
-		 * manage the linked lists.
-		 */
+		if (index == 0xFFFFFFFEL) 
+			return 0;	  
+		
 		if ((!dev->aif_thread)
 		 || (!(fib = kzalloc(sizeof(struct fib),GFP_ATOMIC))))
 			return 1;
@@ -272,14 +188,7 @@ unsigned int aac_intr_normal(struct aac_dev * dev, u32 index)
 		struct fib * fib = &dev->fibs[index >> 2];
 		struct hw_fib * hwfib = fib->hw_fib_va;
 
-		/*
-		 *	Remove this fib from the Outstanding I/O queue.
-		 *	But only if it has not already been timed out.
-		 *
-		 *	If the fib has been timed out already, then just 
-		 *	continue. The caller has already been notified that
-		 *	the fib timed out.
-		 */
+		
 		dev->queues->queue[AdapNormCmdQueue].numpending--;
 
 		if (unlikely(fib->flags & FIB_CONTEXT_FLAG_TIMED_OUT)) {
@@ -289,9 +198,7 @@ unsigned int aac_intr_normal(struct aac_dev * dev, u32 index)
 		}
 
 		if (fast) {
-			/*
-			 *	Doctor the fib
-			 */
+			
 			*(__le32 *)hwfib->data = cpu_to_le32(ST_OK);
 			hwfib->header.XferState |= cpu_to_le32(AdapterProcessed);
 		}
@@ -310,10 +217,7 @@ unsigned int aac_intr_normal(struct aac_dev * dev, u32 index)
 				FIB_COUNTER_INCREMENT(aac_config.NoResponseRecved);
 			else 
 				FIB_COUNTER_INCREMENT(aac_config.AsyncRecved);
-			/*
-			 *	NOTE:  we cannot touch the fib after this
-			 *	    call, because it may have been deallocated.
-			 */
+			
 			fib->flags = 0;
 			fib->callback(fib->callback_data, fib);
 		} else {

@@ -1,12 +1,4 @@
-/*
- *  Amiga Gayle IDE Driver
- *
- *     Created 9 Jul 1997 by Geert Uytterhoeven
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive for
- *  more details.
- */
+
 
 #include <linux/types.h>
 #include <linux/mm.h>
@@ -23,33 +15,24 @@
 #include <asm/amigayle.h>
 
 
-    /*
-     *  Bases of the IDE interfaces
-     */
+    
 
-#define GAYLE_BASE_4000	0xdd2020	/* A4000/A4000T */
-#define GAYLE_BASE_1200	0xda0000	/* A1200/A600 and E-Matrix 530 */
+#define GAYLE_BASE_4000	0xdd2020	
+#define GAYLE_BASE_1200	0xda0000	
 
 #define GAYLE_IDEREG_SIZE	0x2000
 
-    /*
-     *  Offsets from one of the above bases
-     */
+    
 
 #define GAYLE_CONTROL	0x101a
 
-    /*
-     *  These are at different offsets from the base
-     */
+    
 
-#define GAYLE_IRQ_4000	0xdd3020	/* MSB = 1, Harddisk is source of */
-#define GAYLE_IRQ_1200	0xda9000	/* interrupt */
+#define GAYLE_IRQ_4000	0xdd3020	
+#define GAYLE_IRQ_1200	0xda9000	
 
 
-    /*
-     *  Offset of the secondary port for IDE doublers
-     *  Note that GAYLE_CONTROL is NOT available then!
-     */
+    
 
 #define GAYLE_NEXT_PORT	0x1000
 
@@ -62,9 +45,7 @@ static int ide_doubler;
 module_param_named(doubler, ide_doubler, bool, 0);
 MODULE_PARM_DESC(doubler, "enable support for IDE doublers");
 
-    /*
-     *  Check and acknowledge the interrupt status
-     */
+    
 
 static int gayle_test_irq(ide_hwif_t *hwif)
 {
@@ -118,9 +99,7 @@ static const struct ide_port_info gayle_port_info = {
 	.chipset		= ide_generic,
 };
 
-    /*
-     *  Probe for a Gayle IDE interface (and optionally for an IDE doubler)
-     */
+    
 
 static int __init gayle_init(void)
 {

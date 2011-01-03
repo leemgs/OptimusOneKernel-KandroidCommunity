@@ -1,40 +1,4 @@
-/*
- * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
- * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
- * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
- * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/errno.h>
 #include <linux/err.h>
@@ -94,7 +58,7 @@ rdma_node_get_transport(enum rdma_node_type node_type)
 }
 EXPORT_SYMBOL(rdma_node_get_transport);
 
-/* Protection domains */
+
 
 struct ib_pd *ib_alloc_pd(struct ib_device *device)
 {
@@ -121,7 +85,7 @@ int ib_dealloc_pd(struct ib_pd *pd)
 }
 EXPORT_SYMBOL(ib_dealloc_pd);
 
-/* Address handles */
+
 
 struct ib_ah *ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
 {
@@ -216,7 +180,7 @@ int ib_destroy_ah(struct ib_ah *ah)
 }
 EXPORT_SYMBOL(ib_destroy_ah);
 
-/* Shared receive queues */
+
 
 struct ib_srq *ib_create_srq(struct ib_pd *pd,
 			     struct ib_srq_init_attr *srq_init_attr)
@@ -278,7 +242,7 @@ int ib_destroy_srq(struct ib_srq *srq)
 }
 EXPORT_SYMBOL(ib_destroy_srq);
 
-/* Queue pairs */
+
 
 struct ib_qp *ib_create_qp(struct ib_pd *pd,
 			   struct ib_qp_init_attr *qp_init_attr)
@@ -603,7 +567,7 @@ int ib_destroy_qp(struct ib_qp *qp)
 }
 EXPORT_SYMBOL(ib_destroy_qp);
 
-/* Completion queues */
+
 
 struct ib_cq *ib_create_cq(struct ib_device *device,
 			   ib_comp_handler comp_handler,
@@ -650,7 +614,7 @@ int ib_resize_cq(struct ib_cq *cq, int cqe)
 }
 EXPORT_SYMBOL(ib_resize_cq);
 
-/* Memory regions */
+
 
 struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
 {
@@ -798,7 +762,7 @@ void ib_free_fast_reg_page_list(struct ib_fast_reg_page_list *page_list)
 }
 EXPORT_SYMBOL(ib_free_fast_reg_page_list);
 
-/* Memory windows */
+
 
 struct ib_mw *ib_alloc_mw(struct ib_pd *pd)
 {
@@ -833,7 +797,7 @@ int ib_dealloc_mw(struct ib_mw *mw)
 }
 EXPORT_SYMBOL(ib_dealloc_mw);
 
-/* "Fast" memory regions */
+
 
 struct ib_fmr *ib_alloc_fmr(struct ib_pd *pd,
 			    int mr_access_flags,
@@ -881,7 +845,7 @@ int ib_dealloc_fmr(struct ib_fmr *fmr)
 }
 EXPORT_SYMBOL(ib_dealloc_fmr);
 
-/* Multicast groups */
+
 
 int ib_attach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
 {

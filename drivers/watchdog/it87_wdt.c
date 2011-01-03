@@ -1,33 +1,4 @@
-/*
- *	Watchdog Timer Driver
- *	   for ITE IT87xx Environment Control - Low Pin Count Input / Output
- *
- *	(c) Copyright 2007  Oliver Schuster <olivers137@aol.com>
- *
- *	Based on softdog.c	by Alan Cox,
- *		 83977f_wdt.c	by Jose Goncalves,
- *		 it87.c		by Chris Gauthron, Jean Delvare
- *
- *	Data-sheets: Publicly available at the ITE website
- *		    http://www.ite.com.tw/
- *
- *	Support of the watchdog timers, which are available on
- *	IT8716, IT8718, IT8726 and IT8712 (J,K version).
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
- *
- *	You should have received a copy of the GNU General Public License
- *	along with this program; if not, write to the Free Software
- *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -51,65 +22,65 @@
 #define DRIVER_VERSION		WATCHDOG_NAME " driver, v" WATCHDOG_VERSION "\n"
 #define WD_MAGIC		'V'
 
-/* Defaults for Module Parameter */
+
 #define DEFAULT_NOGAMEPORT	0
 #define DEFAULT_EXCLUSIVE	1
 #define DEFAULT_TIMEOUT 	60
 #define DEFAULT_TESTMODE	0
 #define DEFAULT_NOWAYOUT	WATCHDOG_NOWAYOUT
 
-/* IO Ports */
+
 #define REG		0x2e
 #define VAL		0x2f
 
-/* Logical device Numbers LDN */
+
 #define GPIO		0x07
 #define GAMEPORT	0x09
 #define CIR		0x0a
 
-/* Configuration Registers and Functions */
+
 #define LDNREG		0x07
 #define CHIPID		0x20
 #define CHIPREV 	0x22
 #define ACTREG		0x30
 #define BASEREG 	0x60
 
-/* Chip Id numbers */
+
 #define NO_DEV_ID	0xffff
 #define IT8705_ID	0x8705
 #define IT8712_ID	0x8712
 #define IT8716_ID	0x8716
 #define IT8718_ID	0x8718
-#define IT8726_ID	0x8726	/* the data sheet suggest wrongly 0x8716 */
+#define IT8726_ID	0x8726	
 
-/* GPIO Configuration Registers LDN=0x07 */
+
 #define WDTCTRL 	0x71
 #define WDTCFG		0x72
 #define WDTVALLSB	0x73
 #define WDTVALMSB	0x74
 
-/* GPIO Bits WDTCTRL */
+
 #define WDT_CIRINT	0x80
 #define WDT_MOUSEINT	0x40
 #define WDT_KYBINT	0x20
-#define WDT_GAMEPORT	0x10 /* not it8718 */
+#define WDT_GAMEPORT	0x10 
 #define WDT_FORCE	0x02
 #define WDT_ZERO	0x01
 
-/* GPIO Bits WDTCFG */
+
 #define WDT_TOV1	0x80
 #define WDT_KRST	0x40
 #define WDT_TOVE	0x20
 #define WDT_PWROK	0x10
 #define WDT_INT_MASK	0x0f
 
-/* CIR Configuration Register LDN=0x0a */
+
 #define CIR_ILS 	0x70
 
-/* The default Base address is not always available, we use this */
+
 #define CIR_BASE	0x0208
 
-/* CIR Controller */
+
 #define CIR_DR(b)	(b)
 #define CIR_IER(b)	(b + 1)
 #define CIR_RCR(b)	(b + 2)
@@ -121,10 +92,10 @@
 #define CIR_BDHR(b)	(b + 6)
 #define CIR_IIR(b)	(b + 7)
 
-/* Default Base address of Game port */
+
 #define GP_BASE_DEFAULT	0x0201
 
-/* wdt_status */
+
 #define WDTS_TIMER_RUN	0
 #define WDTS_DEV_OPEN	1
 #define WDTS_KEEPALIVE	2
@@ -158,7 +129,7 @@ module_param(nowayout, int, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started, default="
 		__MODULE_STRING(WATCHDOG_NOWAYOUT));
 
-/* Superio Chip */
+
 
 static inline void superio_enter(void)
 {
@@ -210,14 +181,14 @@ static inline void superio_outw(int val, int reg)
 	outb(val, VAL);
 }
 
-/* watchdog timer handling */
+
 
 static void wdt_keepalive(void)
 {
 	if (test_bit(WDTS_USE_GP, &wdt_status))
 		inb(base);
 	else
-		/* The timer reloads with around 5 msec delay */
+		
 		outb(0x55, CIR_DR(base));
 	set_bit(WDTS_KEEPALIVE, &wdt_status);
 }
@@ -262,15 +233,7 @@ static void wdt_stop(void)
 	spin_unlock_irqrestore(&spinlock, flags);
 }
 
-/**
- *	wdt_set_timeout - set a new timeout value with watchdog ioctl
- *	@t: timeout value in seconds
- *
- *	The hardware device has a 16 bit watchdog timer, thus the
- *	timeout time ranges between 1 and 65535 seconds.
- *
- *	Used within WDIOC_SETTIMEOUT watchdog device ioctl.
- */
+
 
 static int wdt_set_timeout(int t)
 {
@@ -295,18 +258,7 @@ static int wdt_set_timeout(int t)
 	return 0;
 }
 
-/**
- *	wdt_get_status - determines the status supported by watchdog ioctl
- *	@status: status returned to user space
- *
- *	The status bit of the device does not allow to distinguish
- *	between a regular system reset and a watchdog forced reset.
- *	But, in test mode it is useful, so it is supported through
- *	WDIOC_GETSTATUS watchdog ioctl. Additionally the driver
- *	reports the keepalive signal and the acception of the magic.
- *
- *	Used within WDIOC_GETSTATUS watchdog device ioctl.
- */
+
 
 static int wdt_get_status(int *status)
 {
@@ -333,17 +285,9 @@ static int wdt_get_status(int *status)
 	return 0;
 }
 
-/* /dev/watchdog handling */
 
-/**
- *	wdt_open - watchdog file_operations .open
- *	@inode: inode of the device
- *	@file: file handle to the device
- *
- *	The watchdog timer starts by opening the device.
- *
- *	Used within the file operation of the watchdog device.
- */
+
+
 
 static int wdt_open(struct inode *inode, struct file *file)
 {
@@ -357,18 +301,7 @@ static int wdt_open(struct inode *inode, struct file *file)
 	return nonseekable_open(inode, file);
 }
 
-/**
- *	wdt_release - watchdog file_operations .release
- *	@inode: inode of the device
- *	@file: file handle to the device
- *
- *	Closing the watchdog device either stops the watchdog timer
- *	or in the case, that nowayout is set or the magic character
- *	wasn't written, a critical warning about an running watchdog
- *	timer is given.
- *
- *	Used within the file operation of the watchdog device.
- */
+
 
 static int wdt_release(struct inode *inode, struct file *file)
 {
@@ -386,18 +319,7 @@ static int wdt_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/**
- *	wdt_write - watchdog file_operations .write
- *	@file: file handle to the watchdog
- *	@buf: buffer to write
- *	@count: count of bytes
- *	@ppos: pointer to the position to write. No seeks allowed
- *
- *	A write to a watchdog device is defined as a keepalive signal. Any
- *	write of data will do, as we don't define content meaning.
- *
- *	Used within the file operation of the watchdog device.
- */
+
 
 static ssize_t wdt_write(struct file *file, const char __user *buf,
 			    size_t count, loff_t *ppos)
@@ -409,7 +331,7 @@ static ssize_t wdt_write(struct file *file, const char __user *buf,
 	if (!nowayout) {
 		size_t ofs;
 
-	/* note: just in case someone wrote the magic character long ago */
+	
 		for (ofs = 0; ofs != count; ofs++) {
 			char c;
 			if (get_user(c, buf + ofs))
@@ -427,17 +349,7 @@ static struct watchdog_info ident = {
 	.identity = WATCHDOG_NAME,
 };
 
-/**
- *	wdt_ioctl - watchdog file_operations .unlocked_ioctl
- *	@file: file handle to the device
- *	@cmd: watchdog command
- *	@arg: argument pointer
- *
- *	The watchdog API defines a common set of functions for all watchdogs
- *	according to their available features.
- *
- *	Used within the file operation of the watchdog device.
- */
+
 
 static long wdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -570,7 +482,7 @@ static int __init it87_wdt_init(void)
 	superio_outb(WDT_TOV1, WDTCFG);
 	superio_outb(0x00, WDTCTRL);
 
-	/* First try to get Gameport support */
+	
 	if (chip_type != IT8718_ID && !nogameport) {
 		superio_select(GAMEPORT);
 		base = superio_inw(BASEREG);
@@ -591,7 +503,7 @@ static int __init it87_wdt_init(void)
 		spin_unlock_irqrestore(&spinlock, flags);
 	}
 
-	/* If we haven't Gameport support, try to get CIR support */
+	
 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
 		if (!request_region(CIR_BASE, 8, WATCHDOG_NAME)) {
 			if (rc == -EIO)
@@ -645,7 +557,7 @@ static int __init it87_wdt_init(void)
 		goto err_out_reboot;
 	}
 
-	/* Initialize CIR to use it as keepalive source */
+	
 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
 		outb(0x00, CIR_RCR(base));
 		outb(0xc0, CIR_TCR1(base));

@@ -1,17 +1,4 @@
-/*
- *  Board-specific setup code for the AT91SAM9M10G45 Evaluation Kit family
- *
- *  Covers: * AT91SAM9G45-EKES  board
- *          * AT91SAM9M10G45-EK board
- *
- *  Copyright (C) 2009 Atmel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -48,17 +35,17 @@
 
 static void __init ek_map_io(void)
 {
-	/* Initialize processor: 12.000 MHz crystal */
+	
 	at91sam9g45_initialize(12000000);
 
-	/* DGBU on ttyS0. (Rx & Tx only) */
+	
 	at91_register_uart(0, 0, 0);
 
-	/* USART0 not connected on the -EK board */
-	/* USART1 on ttyS2. (Rx, Tx, RTS, CTS) */
+	
+	
 	at91_register_uart(AT91SAM9G45_ID_US1, 2, ATMEL_UART_CTS | ATMEL_UART_RTS);
 
-	/* set serial console to ttyS0 (ie, DBGU) */
+	
 	at91_set_serial_console(0);
 }
 
@@ -68,28 +55,22 @@ static void __init ek_init_irq(void)
 }
 
 
-/*
- * USB HS Host port (common to OHCI & EHCI)
- */
+
 static struct at91_usbh_data __initdata ek_usbh_hs_data = {
 	.ports		= 2,
 	.vbus_pin	= {AT91_PIN_PD1, AT91_PIN_PD3},
 };
 
 
-/*
- * USB HS Device port
- */
+
 static struct usba_platform_data __initdata ek_usba_udc_data = {
 	.vbus_pin	= AT91_PIN_PB19,
 };
 
 
-/*
- * SPI devices.
- */
+
 static struct spi_board_info ek_spi_devices[] = {
-	{	/* DataFlash chip */
+	{	
 		.modalias	= "mtd_dataflash",
 		.chip_select	= 0,
 		.max_speed_hz	= 15 * 1000 * 1000,
@@ -98,18 +79,14 @@ static struct spi_board_info ek_spi_devices[] = {
 };
 
 
-/*
- * MACB Ethernet device
- */
+
 static struct at91_eth_data __initdata ek_macb_data = {
 	.phy_irq_pin	= AT91_PIN_PD5,
 	.is_rmii	= 1,
 };
 
 
-/*
- * NAND flash
- */
+
 static struct mtd_partition __initdata ek_nand_partition[] = {
 	{
 		.name	= "Partition 1",
@@ -129,7 +106,7 @@ static struct mtd_partition * __init nand_partitions(int size, int *num_partitio
 	return ek_nand_partition;
 }
 
-/* det_pin is not connected */
+
 static struct atmel_nand_data __initdata ek_nand_data = {
 	.ale		= 21,
 	.cle		= 22,
@@ -163,22 +140,20 @@ static struct sam9_smc_config __initdata ek_nand_smc_config = {
 
 static void __init ek_add_device_nand(void)
 {
-	/* setup bus-width (8 or 16) */
+	
 	if (ek_nand_data.bus_width_16)
 		ek_nand_smc_config.mode |= AT91_SMC_DBW_16;
 	else
 		ek_nand_smc_config.mode |= AT91_SMC_DBW_8;
 
-	/* configure chip-select 3 (NAND) */
+	
 	sam9_smc_configure(3, &ek_nand_smc_config);
 
 	at91_add_device_nand(&ek_nand_data);
 }
 
 
-/*
- * LCD Controller
- */
+
 #if defined(CONFIG_FB_ATMEL) || defined(CONFIG_FB_ATMEL_MODULE)
 static struct fb_videomode at91_tft_vga_modes[] = {
 	{
@@ -212,7 +187,7 @@ static struct fb_monspecs at91fb_default_monspecs = {
 					| ATMEL_LCDC_DISTYPE_TFT \
 					| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE)
 
-/* Driver datas */
+
 static struct atmel_lcdfb_info __initdata ek_lcdc_data = {
 	.lcdcon_is_backlight		= true,
 	.default_bpp			= 32,
@@ -228,26 +203,24 @@ static struct atmel_lcdfb_info __initdata ek_lcdc_data;
 #endif
 
 
-/*
- * GPIO Buttons
- */
+
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
 static struct gpio_keys_button ek_buttons[] = {
-	{	/* BP1, "leftclic" */
+	{	
 		.code		= BTN_LEFT,
 		.gpio		= AT91_PIN_PB6,
 		.active_low	= 1,
 		.desc		= "left_click",
 		.wakeup		= 1,
 	},
-	{	/* BP2, "rightclic" */
+	{	
 		.code		= BTN_RIGHT,
 		.gpio		= AT91_PIN_PB7,
 		.active_low	= 1,
 		.desc		= "right_click",
 		.wakeup		= 1,
 	},
-		/* BP3, "joystick" */
+		
 	{
 		.code		= KEY_LEFT,
 		.gpio		= AT91_PIN_PB14,
@@ -310,31 +283,26 @@ static void __init ek_add_device_buttons(void) {}
 #endif
 
 
-/*
- * AC97
- * reset_pin is not connected: NRST
- */
+
 static struct ac97c_platform_data ek_ac97_data = {
 };
 
 
-/*
- * LEDs ... these could all be PWM-driven, for variable brightness
- */
+
 static struct gpio_led ek_leds[] = {
-	{	/* "top" led, red, powerled */
+	{	
 		.name			= "d8",
 		.gpio			= AT91_PIN_PD30,
 		.default_trigger	= "heartbeat",
 	},
-	{	/* "left" led, green, userled2, pwm3 */
+	{	
 		.name			= "d6",
 		.gpio			= AT91_PIN_PD0,
 		.active_low		= 1,
 		.default_trigger	= "nand-disk",
 	},
 #if !(defined(CONFIG_LEDS_ATMEL_PWM) || defined(CONFIG_LEDS_ATMEL_PWM_MODULE))
-	{	/* "right" led, green, userled1, pwm1 */
+	{	
 		.name			= "d7",
 		.gpio			= AT91_PIN_PD31,
 		.active_low		= 1,
@@ -344,14 +312,12 @@ static struct gpio_led ek_leds[] = {
 };
 
 
-/*
- * PWM Leds
- */
+
 static struct gpio_led ek_pwm_led[] = {
 #if defined(CONFIG_LEDS_ATMEL_PWM) || defined(CONFIG_LEDS_ATMEL_PWM_MODULE)
-	{	/* "right" led, green, userled1, pwm1 */
+	{	
 		.name			= "d7",
-		.gpio			= 1,	/* is PWM channel number */
+		.gpio			= 1,	
 		.active_low		= 1,
 		.default_trigger	= "none",
 	},
@@ -362,33 +328,33 @@ static struct gpio_led ek_pwm_led[] = {
 
 static void __init ek_board_init(void)
 {
-	/* Serial */
+	
 	at91_add_device_serial();
-	/* USB HS Host */
+	
 	at91_add_device_usbh_ohci(&ek_usbh_hs_data);
-	/* USB HS Device */
+	
 	at91_add_device_usba(&ek_usba_udc_data);
-	/* SPI */
+	
 	at91_add_device_spi(ek_spi_devices, ARRAY_SIZE(ek_spi_devices));
-	/* Ethernet */
+	
 	at91_add_device_eth(&ek_macb_data);
-	/* NAND */
+	
 	ek_add_device_nand();
-	/* I2C */
+	
 	at91_add_device_i2c(0, NULL, 0);
-	/* LCD Controller */
+	
 	at91_add_device_lcdc(&ek_lcdc_data);
-	/* Push Buttons */
+	
 	ek_add_device_buttons();
-	/* AC97 */
+	
 	at91_add_device_ac97(&ek_ac97_data);
-	/* LEDs */
+	
 	at91_gpio_leds(ek_leds, ARRAY_SIZE(ek_leds));
 	at91_pwm_leds(ek_pwm_led, ARRAY_SIZE(ek_pwm_led));
 }
 
 MACHINE_START(AT91SAM9G45EKES, "Atmel AT91SAM9G45-EKES")
-	/* Maintainer: Atmel */
+	
 	.phys_io	= AT91_BASE_SYS,
 	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
 	.boot_params	= AT91_SDRAM_BASE + 0x100,

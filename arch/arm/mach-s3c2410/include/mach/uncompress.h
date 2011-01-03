@@ -1,16 +1,5 @@
 
-/* arch/arm/mach-s3c2410/include/mach/uncompress.h
- *
- * Copyright (c) 2003, 2007 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2410 - uncompress code
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __ASM_ARCH_UNCOMPRESS_H
 #define __ASM_ARCH_UNCOMPRESS_H
@@ -18,7 +7,7 @@
 #include <mach/regs-gpio.h>
 #include <mach/map.h>
 
-/* working in physical space... */
+
 #undef S3C2410_GPIOREG
 #define S3C2410_GPIOREG(x) ((S3C24XX_PA_GPIO + (x)))
 
@@ -50,4 +39,4 @@ static void arch_detect_cpu(void)
 	}
 }
 
-#endif /* __ASM_ARCH_UNCOMPRESS_H */
+#endif 

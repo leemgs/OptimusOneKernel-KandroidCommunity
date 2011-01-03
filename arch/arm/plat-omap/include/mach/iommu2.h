@@ -1,23 +1,11 @@
-/*
- * omap iommu: omap2 architecture specific definitions
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __MACH_IOMMU2_H
 #define __MACH_IOMMU2_H
 
 #include <linux/io.h>
 
-/*
- * MMU Register offsets
- */
+
 #define MMU_REVISION		0x00
 #define MMU_SYSCONFIG		0x10
 #define MMU_SYSSTATUS		0x14
@@ -39,9 +27,7 @@
 
 #define MMU_REG_SIZE		256
 
-/*
- * MMU Register bit definitions
- */
+
 #define MMU_LOCK_BASE_SHIFT	10
 #define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
 #define MMU_LOCK_BASE(x)	\
@@ -80,9 +66,7 @@
 #define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
 #define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
 
-/*
- * register accessors
- */
+
 static inline u32 iommu_read_reg(struct iommu *obj, size_t offs)
 {
 	return __raw_readl(obj->regbase + offs);
@@ -93,4 +77,4 @@ static inline void iommu_write_reg(struct iommu *obj, u32 val, size_t offs)
 	__raw_writel(val, obj->regbase + offs);
 }
 
-#endif /* __MACH_IOMMU2_H */
+#endif 

@@ -1,13 +1,4 @@
-/*
- *  indycam.c - Silicon Graphics IndyCam digital camera driver
- *
- *  Copyright (C) 2003 Ladislav Michl <ladis@linux-mips.org>
- *  Copyright (C) 2004,2005 Mikael Nousiainen <tmnousia@cc.hut.fi>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/delay.h>
 #include <linux/errno.h>
@@ -19,7 +10,7 @@
 #include <linux/mm.h>
 #include <linux/slab.h>
 
-/* IndyCam decodes stream of photons into digital image representation ;-) */
+
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
 #include <media/v4l2-device.h>
@@ -36,7 +27,7 @@ MODULE_AUTHOR("Mikael Nousiainen <tmnousia@cc.hut.fi>");
 MODULE_LICENSE("GPL");
 
 
-// #define INDYCAM_DEBUG
+
 
 #ifdef INDYCAM_DEBUG
 #define dprintk(x...) printk("IndyCam: " x);
@@ -57,17 +48,17 @@ static inline struct indycam *to_indycam(struct v4l2_subdev *sd)
 }
 
 static const u8 initseq[] = {
-	INDYCAM_CONTROL_AGCENA,		/* INDYCAM_CONTROL */
-	INDYCAM_SHUTTER_60,		/* INDYCAM_SHUTTER */
-	INDYCAM_GAIN_DEFAULT,		/* INDYCAM_GAIN */
-	0x00,				/* INDYCAM_BRIGHTNESS (read-only) */
-	INDYCAM_RED_BALANCE_DEFAULT,	/* INDYCAM_RED_BALANCE */
-	INDYCAM_BLUE_BALANCE_DEFAULT,	/* INDYCAM_BLUE_BALANCE */
-	INDYCAM_RED_SATURATION_DEFAULT,	/* INDYCAM_RED_SATURATION */
-	INDYCAM_BLUE_SATURATION_DEFAULT,/* INDYCAM_BLUE_SATURATION */
+	INDYCAM_CONTROL_AGCENA,		
+	INDYCAM_SHUTTER_60,		
+	INDYCAM_GAIN_DEFAULT,		
+	0x00,				
+	INDYCAM_RED_BALANCE_DEFAULT,	
+	INDYCAM_BLUE_BALANCE_DEFAULT,	
+	INDYCAM_RED_SATURATION_DEFAULT,	
+	INDYCAM_BLUE_SATURATION_DEFAULT,
 };
 
-/* IndyCam register handling */
+
 
 static int indycam_read_reg(struct v4l2_subdev *sd, u8 reg, u8 *value)
 {
@@ -129,7 +120,7 @@ static int indycam_write_block(struct v4l2_subdev *sd, u8 reg,
 	return 0;
 }
 
-/* Helper functions */
+
 
 #ifdef INDYCAM_DEBUG
 static void indycam_regdump_debug(struct v4l2_subdev *sd)
@@ -282,7 +273,7 @@ static int indycam_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	return ret;
 }
 
-/* I2C-interface */
+
 
 static int indycam_g_chip_ident(struct v4l2_subdev *sd,
 		struct v4l2_dbg_chip_ident *chip)
@@ -294,7 +285,7 @@ static int indycam_g_chip_ident(struct v4l2_subdev *sd,
 		       camera->version);
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops indycam_core_ops = {
 	.g_chip_ident = indycam_g_chip_ident,
@@ -337,7 +328,7 @@ static int indycam_probe(struct i2c_client *client,
 
 	indycam_regdump(sd);
 
-	// initialize
+	
 	err = indycam_write_block(sd, 0, sizeof(initseq), (u8 *)&initseq);
 	if (err) {
 		printk(KERN_ERR "IndyCam initialization failed\n");
@@ -347,7 +338,7 @@ static int indycam_probe(struct i2c_client *client,
 
 	indycam_regdump(sd);
 
-	// white balance
+	
 	err = indycam_write_reg(sd, INDYCAM_REG_CONTROL,
 			  INDYCAM_CONTROL_AGCENA | INDYCAM_CONTROL_AWBCTL);
 	if (err) {

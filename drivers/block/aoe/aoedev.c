@@ -1,8 +1,5 @@
-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-/*
- * aoedev.c
- * AoE device utility functions; maintains device list.
- */
+
+
 
 #include <linux/hdreg.h>
 #include <linux/blkdev.h>
@@ -157,13 +154,12 @@ aoedev_flush(const char __user *str, size_t cnt)
 	while ((d = rmd)) {
 		rmd = d->next;
 		del_timer_sync(&d->timer);
-		aoedev_freedev(d);	/* must be able to sleep */
+		aoedev_freedev(d);	
 	}
 	return 0;
 }
 
-/* I'm not really sure that this is a realistic problem, but if the
-network driver goes gonzo let's just leak memory after complaining. */
+
 static void
 skbfree(struct sk_buff *skb)
 {
@@ -197,7 +193,7 @@ skbpoolfree(struct aoedev *d)
 	__skb_queue_head_init(&d->skbpool);
 }
 
-/* find it or malloc it */
+
 struct aoedev *
 aoedev_by_sysminor_m(ulong sysminor)
 {
@@ -223,7 +219,7 @@ aoedev_by_sysminor_m(ulong sysminor)
 	d->timer.function = dummy_timer;
 	d->timer.expires = jiffies + HZ;
 	add_timer(&d->timer);
-	d->bufpool = NULL;	/* defer to aoeblk_gdalloc */
+	d->bufpool = NULL;	
 	d->tgt = d->targets;
 	INIT_LIST_HEAD(&d->bufq);
 	d->sysminor = sysminor;

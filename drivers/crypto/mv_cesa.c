@@ -1,11 +1,4 @@
-/*
- * Support for Marvell's crypto engine which can be found on some Orion5X
- * boards.
- *
- * Author: Sebastian Andrzej Siewior < sebastian at breakpoint dot cc >
- * License: GPLv2
- *
- */
+
 #include <crypto/aes.h>
 #include <crypto/algapi.h>
 #include <linux/crypto.h>
@@ -16,46 +9,23 @@
 #include <linux/scatterlist.h>
 
 #include "mv_cesa.h"
-/*
- * STM:
- *   /---------------------------------------\
- *   |					     | request complete
- *  \./					     |
- * IDLE -> new request -> BUSY -> done -> DEQUEUE
- *                         /°\               |
- *			    |		     | more scatter entries
- *			    \________________/
- */
+
 enum engine_status {
 	ENGINE_IDLE,
 	ENGINE_BUSY,
 	ENGINE_W_DEQUEUE,
 };
 
-/**
- * struct req_progress - used for every crypt request
- * @src_sg_it:		sg iterator for src
- * @dst_sg_it:		sg iterator for dst
- * @sg_src_left:	bytes left in src to process (scatter list)
- * @src_start:		offset to add to src start position (scatter list)
- * @crypt_len:		length of current crypt process
- * @sg_dst_left:	bytes left dst to process in this scatter list
- * @dst_start:		offset to add to dst start position (scatter list)
- * @total_req_bytes:	total number of bytes processed (request).
- *
- * sg helper are used to iterate over the scatterlist. Since the size of the
- * SRAM may be less than the scatter size, this struct struct is used to keep
- * track of progress within current scatterlist.
- */
+
 struct req_progress {
 	struct sg_mapping_iter src_sg_it;
 	struct sg_mapping_iter dst_sg_it;
 
-	/* src mostly */
+	
 	int sg_src_left;
 	int src_start;
 	int crypt_len;
-	/* dst mostly */
+	
 	int sg_dst_left;
 	int dst_start;
 	int total_req_bytes;
@@ -67,7 +37,7 @@ struct crypto_priv {
 	int irq;
 	struct task_struct *queue_th;
 
-	/* the lock protects queue and eng_st */
+	
 	spinlock_t lock;
 	struct crypto_queue queue;
 	enum engine_status eng_st;
@@ -111,7 +81,7 @@ static void compute_aes_dec_key(struct mv_ctx *ctx)
 	switch (ctx->key_len) {
 	case AES_KEYSIZE_256:
 		key_pos -= 2;
-		/* fall */
+		
 	case AES_KEYSIZE_192:
 		key_pos -= 2;
 		memcpy(&ctx->aes_dec_key[4], &gen_aes_key.key_enc[key_pos],
@@ -216,13 +186,10 @@ static void mv_process_current_q(int first_block)
 			sizeof(struct sec_accel_config));
 
 	writel(SRAM_CONFIG, cpg->reg + SEC_ACCEL_DESC_P0);
-	/* GO */
+	
 	writel(SEC_CMD_EN_SEC_ACCL0, cpg->reg + SEC_ACCEL_CMD);
 
-	/*
-	 * XXX: add timer if the interrupt does not occur for some mystery
-	 * reason
-	 */
+	
 }
 
 static void mv_crypto_algo_completion(void)
@@ -267,7 +234,7 @@ static void dequeue_complete_req(void)
 
 	BUG_ON(cpg->eng_st != ENGINE_W_DEQUEUE);
 	if (cpg->p.total_req_bytes < req->nbytes) {
-		/* process next scatter list entry */
+		
 		cpg->eng_st = ENGINE_BUSY;
 		mv_process_current_q(0);
 	} else {

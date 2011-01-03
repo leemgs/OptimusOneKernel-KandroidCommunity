@@ -1,22 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		IPv4 Forwarding Information Base: policy rules.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- * 		Thomas Graf <tgraf@suug.ch>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Fixes:
- * 		Rani Assaf	:	local_rule cannot be deleted
- *		Marc Boucher	:	routing by fwmark
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -253,9 +235,9 @@ static u32 fib4_rule_default_pref(struct fib_rules_ops *ops)
 
 static size_t fib4_rule_nlmsg_payload(struct fib_rule *rule)
 {
-	return nla_total_size(4) /* dst */
-	       + nla_total_size(4) /* src */
-	       + nla_total_size(4); /* flow */
+	return nla_total_size(4) 
+	       + nla_total_size(4) 
+	       + nla_total_size(4); 
 }
 
 static void fib4_rule_flush_cache(struct fib_rules_ops *ops)
@@ -316,7 +298,7 @@ int __net_init fib4_rules_init(struct net *net)
 	return 0;
 
 fail:
-	/* also cleans all rules already added */
+	
 	fib_rules_unregister(ops);
 	kfree(ops);
 	return err;

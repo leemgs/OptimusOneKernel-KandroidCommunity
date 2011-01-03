@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <cs/bfa_debug.h>
 #include <bfa_priv.h>
@@ -28,10 +13,8 @@
 
 BFA_TRC_FILE(HAL, IOCFC);
 
-/**
- * IOC local definitions
- */
-#define BFA_IOCFC_TOV		5000	/* msecs */
+
+#define BFA_IOCFC_TOV		5000	
 
 enum {
 	BFA_IOCFC_ACT_NONE	= 0,
@@ -40,9 +23,7 @@ enum {
 	BFA_IOCFC_ACT_DISABLE	= 3,
 };
 
-/*
- * forward declarations
- */
+
 static void bfa_iocfc_enable_cbfn(void *bfa_arg, enum bfa_status status);
 static void bfa_iocfc_disable_cbfn(void *bfa_arg);
 static void bfa_iocfc_hbfail_cbfn(void *bfa_arg);
@@ -57,9 +38,7 @@ static void bfa_iocfc_stats_timeout(void *bfa_arg);
 
 static struct bfa_ioc_cbfn_s bfa_iocfc_cbfn;
 
-/**
- *  bfa_ioc_pvt BFA IOC private functions
- */
+
 
 static void
 bfa_iocfc_cqs_sz(struct bfa_iocfc_cfg_s *cfg, u32 *dm_len)
@@ -71,17 +50,13 @@ bfa_iocfc_cqs_sz(struct bfa_iocfc_cfg_s *cfg, u32 *dm_len)
 	per_rspq_sz = BFA_ROUNDUP((cfg->drvcfg.num_rspq_elems * BFI_LMSG_SZ),
 							BFA_DMA_ALIGN_SZ);
 
-	/*
-	 * Calculate CQ size
-	 */
+	
 	for (i = 0; i < cfg->fwcfg.num_cqs; i++) {
 		*dm_len = *dm_len + per_reqq_sz;
 		*dm_len = *dm_len + per_rspq_sz;
 	}
 
-	/*
-	 * Calculate Shadow CI/PI size
-	 */
+	
 	for (i = 0; i < cfg->fwcfg.num_cqs; i++)
 		*dm_len += (2 * BFA_CACHELINE_SZ);
 }
@@ -97,9 +72,7 @@ bfa_iocfc_fw_cfg_sz(struct bfa_iocfc_cfg_s *cfg, u32 *dm_len)
 	*dm_len += BFA_ROUNDUP(sizeof(struct bfa_fw_stats_s), BFA_CACHELINE_SZ);
 }
 
-/**
- * Use the Mailbox interface to send BFI_IOCFC_H2I_CFG_REQ
- */
+
 static void
 bfa_iocfc_send_cfg(void *bfa_arg)
 {
@@ -116,18 +89,14 @@ bfa_iocfc_send_cfg(void *bfa_arg)
 	iocfc->cfgdone = BFA_FALSE;
 	bfa_iocfc_reset_queues(bfa);
 
-	/**
-	 * initialize IOC configuration info
-	 */
+	
 	cfg_info->endian_sig = BFI_IOC_ENDIAN_SIG;
 	cfg_info->num_cqs = cfg->fwcfg.num_cqs;
 
 	bfa_dma_be_addr_set(cfg_info->cfgrsp_addr, iocfc->cfgrsp_dma.pa);
 	bfa_dma_be_addr_set(cfg_info->stats_addr, iocfc->stats_pa);
 
-	/**
-	 * dma map REQ and RSP circular queues and shadow pointers
-	 */
+	
 	for (i = 0; i < cfg->fwcfg.num_cqs; i++) {
 		bfa_dma_be_addr_set(cfg_info->req_cq_ba[i],
 				       iocfc->req_cq_ba[i].pa);
@@ -144,9 +113,7 @@ bfa_iocfc_send_cfg(void *bfa_arg)
 			bfa_os_htons(cfg->drvcfg.num_rspq_elems);
 	}
 
-	/**
-	 * dma map IOC configuration itself
-	 */
+	
 	bfi_h2i_set(cfg_req.mh, BFI_MC_IOCFC, BFI_IOCFC_H2I_CFG_REQ,
 			bfa_lpuid(bfa));
 	bfa_dma_be_addr_set(cfg_req.ioc_cfg_dma_addr, iocfc->cfg_info.pa);
@@ -167,9 +134,7 @@ bfa_iocfc_init_mem(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 
 	bfa_os_assign(iocfc->cfg, *cfg);
 
-	/**
-	 * Initialize chip specific handlers.
-	 */
+	
 	if (bfa_ioc_devid(&bfa->ioc) == BFA_PCI_DEVICE_ID_CT) {
 		iocfc->hwif.hw_reginit = bfa_hwct_reginit;
 		iocfc->hwif.hw_rspq_ack = bfa_hwct_rspq_ack;
@@ -205,17 +170,12 @@ bfa_iocfc_mem_claim(struct bfa_s *bfa, struct bfa_iocfc_cfg_s *cfg,
 	dm_kva = bfa_meminfo_dma_virt(meminfo);
 	dm_pa = bfa_meminfo_dma_phys(meminfo);
 
-	/*
-	 * First allocate dma memory for IOC.
-	 */
+	
 	bfa_ioc_mem_claim(&bfa->ioc, dm_kva, dm_pa);
 	dm_kva += bfa_ioc_meminfo();
 	dm_pa  += bfa_ioc_meminfo();
 
-	/*
-	 * Claim DMA-able memory for the request/response queues and for shadow
-	 * ci/pi registers
-	 */
+	
 	per_reqq_sz = BFA_ROUNDUP((cfg->drvcfg.num_reqq_elems * BFI_LMSG_SZ),
 							BFA_DMA_ALIGN_SZ);
 	per_rspq_sz = BFA_ROUNDUP((cfg->drvcfg.num_rspq_elems * BFI_LMSG_SZ),
@@ -247,18 +207,14 @@ bfa_iocfc_mem_claim(struct bfa_s *bfa, struct bfa_iocfc_cfg_s *cfg,
 		dm_pa += BFA_CACHELINE_SZ;
 	}
 
-	/*
-	 * Claim DMA-able memory for the config info page
-	 */
+	
 	bfa->iocfc.cfg_info.kva = dm_kva;
 	bfa->iocfc.cfg_info.pa = dm_pa;
 	bfa->iocfc.cfginfo = (struct bfi_iocfc_cfg_s *) dm_kva;
 	dm_kva += BFA_ROUNDUP(sizeof(struct bfi_iocfc_cfg_s), BFA_CACHELINE_SZ);
 	dm_pa += BFA_ROUNDUP(sizeof(struct bfi_iocfc_cfg_s), BFA_CACHELINE_SZ);
 
-	/*
-	 * Claim DMA-able memory for the config response
-	 */
+	
 	bfa->iocfc.cfgrsp_dma.kva = dm_kva;
 	bfa->iocfc.cfgrsp_dma.pa = dm_pa;
 	bfa->iocfc.cfgrsp = (struct bfi_iocfc_cfgrsp_s *) dm_kva;
@@ -269,9 +225,7 @@ bfa_iocfc_mem_claim(struct bfa_s *bfa, struct bfa_iocfc_cfg_s *cfg,
 	dm_pa += BFA_ROUNDUP(sizeof(struct bfi_iocfc_cfgrsp_s),
 			     BFA_CACHELINE_SZ);
 
-	/*
-	 * Claim DMA-able memory for iocfc stats
-	 */
+	
 	bfa->iocfc.stats_kva = dm_kva;
 	bfa->iocfc.stats_pa = dm_pa;
 	bfa->iocfc.fw_stats = (struct bfa_fw_stats_s *) dm_kva;
@@ -288,9 +242,7 @@ bfa_iocfc_mem_claim(struct bfa_s *bfa, struct bfa_iocfc_cfg_s *cfg,
 	}
 }
 
-/**
- * BFA submodules initialization completion notification.
- */
+
 static void
 bfa_iocfc_initdone_submod(struct bfa_s *bfa)
 {
@@ -300,9 +252,7 @@ bfa_iocfc_initdone_submod(struct bfa_s *bfa)
 		hal_mods[i]->initdone(bfa);
 }
 
-/**
- * Start BFA submodules.
- */
+
 static void
 bfa_iocfc_start_submod(struct bfa_s *bfa)
 {
@@ -314,9 +264,7 @@ bfa_iocfc_start_submod(struct bfa_s *bfa)
 		hal_mods[i]->start(bfa);
 }
 
-/**
- * Disable BFA submodules.
- */
+
 static void
 bfa_iocfc_disable_submod(struct bfa_s *bfa)
 {
@@ -363,9 +311,7 @@ bfa_iocfc_disable_cb(void *bfa_arg, bfa_boolean_t compl)
 		complete(&bfad->disable_comp);
 }
 
-/**
- * Update BFA configuration from firmware configuration.
- */
+
 static void
 bfa_iocfc_cfgrsp(struct bfa_s *bfa)
 {
@@ -387,9 +333,7 @@ bfa_iocfc_cfgrsp(struct bfa_s *bfa)
 
 	iocfc->cfgdone = BFA_TRUE;
 
-	/**
-	 * Configuration is complete - initialize/start submodules
-	 */
+	
 	if (iocfc->action == BFA_IOCFC_ACT_INIT)
 		bfa_cb_queue(bfa, &iocfc->init_hcb_qe, bfa_iocfc_init_cb, bfa);
 	else
@@ -511,9 +455,7 @@ bfa_iocfc_reset_queues(struct bfa_s *bfa)
 	}
 }
 
-/**
- * IOC enable request is complete
- */
+
 static void
 bfa_iocfc_enable_cbfn(void *bfa_arg, enum bfa_status status)
 {
@@ -531,9 +473,7 @@ bfa_iocfc_enable_cbfn(void *bfa_arg, enum bfa_status status)
 	bfa_iocfc_send_cfg(bfa);
 }
 
-/**
- * IOC disable request is complete
- */
+
 static void
 bfa_iocfc_disable_cbfn(void *bfa_arg)
 {
@@ -552,9 +492,7 @@ bfa_iocfc_disable_cbfn(void *bfa_arg)
 	}
 }
 
-/**
- * Notify sub-modules of hardware failure.
- */
+
 static void
 bfa_iocfc_hbfail_cbfn(void *bfa_arg)
 {
@@ -570,9 +508,7 @@ bfa_iocfc_hbfail_cbfn(void *bfa_arg)
 			     bfa);
 }
 
-/**
- * Actions on chip-reset completion.
- */
+
 static void
 bfa_iocfc_reset_cbfn(void *bfa_arg)
 {
@@ -584,18 +520,14 @@ bfa_iocfc_reset_cbfn(void *bfa_arg)
 
 
 
-/**
- *  bfa_ioc_public
- */
 
-/**
- * Query IOC memory requirement information.
- */
+
+
 void
 bfa_iocfc_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *km_len,
 		u32 *dm_len)
 {
-	/* dma memory for IOC */
+	
 	*dm_len += bfa_ioc_meminfo();
 
 	bfa_iocfc_fw_cfg_sz(cfg, dm_len);
@@ -603,9 +535,7 @@ bfa_iocfc_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *km_len,
 	*km_len += bfa_ioc_debug_trcsz(bfa_auto_recover);
 }
 
-/**
- * Query IOC memory requirement information.
- */
+
 void
 bfa_iocfc_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 		   struct bfa_meminfo_s *meminfo, struct bfa_pcidev_s *pcidev)
@@ -622,9 +552,7 @@ bfa_iocfc_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 	bfa_ioc_pci_init(&bfa->ioc, pcidev, BFI_MC_IOCFC);
 	bfa_ioc_mbox_register(&bfa->ioc, bfa_mbox_isrs);
 
-	/**
-	 * Choose FC (ssid: 0x1C) v/s FCoE (ssid: 0x14) mode.
-	 */
+	
 	if (0)
 		bfa_ioc_set_fcmode(&bfa->ioc);
 
@@ -637,18 +565,14 @@ bfa_iocfc_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 		INIT_LIST_HEAD(&bfa->reqq_waitq[i]);
 }
 
-/**
- * Query IOC memory requirement information.
- */
+
 void
 bfa_iocfc_detach(struct bfa_s *bfa)
 {
 	bfa_ioc_detach(&bfa->ioc);
 }
 
-/**
- * Query IOC memory requirement information.
- */
+
 void
 bfa_iocfc_init(struct bfa_s *bfa)
 {
@@ -657,10 +581,7 @@ bfa_iocfc_init(struct bfa_s *bfa)
 	bfa_msix_install(bfa);
 }
 
-/**
- * IOC start called from bfa_start(). Called to start IOC operations
- * at driver instantiation for this instance.
- */
+
 void
 bfa_iocfc_start(struct bfa_s *bfa)
 {
@@ -668,10 +589,7 @@ bfa_iocfc_start(struct bfa_s *bfa)
 		bfa_iocfc_start_submod(bfa);
 }
 
-/**
- * IOC stop called from bfa_stop(). Called only when driver is unloaded
- * for this instance.
- */
+
 void
 bfa_iocfc_stop(struct bfa_s *bfa)
 {
@@ -708,9 +626,7 @@ bfa_iocfc_isr(void *bfaarg, struct bfi_mbmsg_s *m)
 			      bfa);
 		break;
 	case BFI_IOCFC_I2H_CLEAR_STATS_RSP:
-		/*
-		 * check for timer pop before processing the rsp
-		 */
+		
 		if (iocfc->stats_busy == BFA_FALSE
 		    || iocfc->stats_status == BFA_STATUS_ETIMER)
 			break;
@@ -825,9 +741,7 @@ bfa_iocfc_clear_stats(struct bfa_s *bfa, bfa_cb_ioc_t cbfn, void *cbarg)
 	return (BFA_STATUS_OK);
 }
 
-/**
- * Enable IOC after it is disabled.
- */
+
 void
 bfa_iocfc_enable(struct bfa_s *bfa)
 {
@@ -854,9 +768,7 @@ bfa_iocfc_is_operational(struct bfa_s *bfa)
 	return bfa_ioc_is_operational(&bfa->ioc) && bfa->iocfc.cfgdone;
 }
 
-/**
- * Return boot target port wwns -- read from boot information in flash.
- */
+
 void
 bfa_iocfc_get_bootwwns(struct bfa_s *bfa, u8 *nwwns, wwn_t **wwns)
 {

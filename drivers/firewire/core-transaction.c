@@ -1,22 +1,4 @@
-/*
- * Core IEEE1394 transaction logic
- *
- * Copyright (C) 2004-2006 Kristian Hoegsberg <krh@bitplanet.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 #include <linux/bug.h>
 #include <linux/completion.h>
@@ -96,26 +78,16 @@ static int close_transaction(struct fw_transaction *transaction,
 	return -ENOENT;
 }
 
-/*
- * Only valid for transactions that are potentially pending (ie have
- * been sent).
- */
+
 int fw_cancel_transaction(struct fw_card *card,
 			  struct fw_transaction *transaction)
 {
-	/*
-	 * Cancel the packet transmission if it's still queued.  That
-	 * will call the packet transmission callback which cancels
-	 * the transaction.
-	 */
+	
 
 	if (card->driver->cancel_packet(card, &transaction->packet) == 0)
 		return 0;
 
-	/*
-	 * If the request packet has already been sent, we need to see
-	 * if the transaction is still pending and remove it in that case.
-	 */
+	
 
 	return close_transaction(transaction, card, RCODE_CANCELLED);
 }
@@ -146,10 +118,7 @@ static void transmit_complete_callback(struct fw_packet *packet,
 		close_transaction(t, card, RCODE_TYPE_ERROR);
 		break;
 	default:
-		/*
-		 * In this case the ack is really a juju specific
-		 * rcode, so just forward that to the callback.
-		 */
+		
 		close_transaction(t, card, status);
 		break;
 	}
@@ -226,45 +195,7 @@ static void fw_fill_request(struct fw_packet *packet, int tcode, int tlabel,
 	packet->payload_bus = 0;
 }
 
-/**
- * This function provides low-level access to the IEEE1394 transaction
- * logic.  Most C programs would use either fw_read(), fw_write() or
- * fw_lock() instead - those function are convenience wrappers for
- * this function.  The fw_send_request() function is primarily
- * provided as a flexible, one-stop entry point for languages bindings
- * and protocol bindings.
- *
- * FIXME: Document this function further, in particular the possible
- * values for rcode in the callback.  In short, we map ACK_COMPLETE to
- * RCODE_COMPLETE, internal errors set errno and set rcode to
- * RCODE_SEND_ERROR (which is out of range for standard ieee1394
- * rcodes).  All other rcodes are forwarded unchanged.  For all
- * errors, payload is NULL, length is 0.
- *
- * Can not expect the callback to be called before the function
- * returns, though this does happen in some cases (ACK_COMPLETE and
- * errors).
- *
- * The payload is only used for write requests and must not be freed
- * until the callback has been called.
- *
- * @param card the card from which to send the request
- * @param tcode the tcode for this transaction.  Do not use
- *   TCODE_LOCK_REQUEST directly, instead use TCODE_LOCK_MASK_SWAP
- *   etc. to specify tcode and ext_tcode.
- * @param node_id the destination node ID (bus ID and PHY ID concatenated)
- * @param generation the generation for which node_id is valid
- * @param speed the speed to use for sending the request
- * @param offset the 48 bit offset on the destination node
- * @param payload the data payload for the request subaction
- * @param length the length in bytes of the data to read
- * @param callback function to be called when the transaction is completed
- * @param callback_data pointer to arbitrary data, which will be
- *   passed to the callback
- *
- * In case of asynchronous stream packets i.e. TCODE_STREAM_DATA, the caller
- * needs to synthesize @destination_id with fw_stream_packet_destination_id().
- */
+
 void fw_send_request(struct fw_card *card, struct fw_transaction *t, int tcode,
 		     int destination_id, int generation, int speed,
 		     unsigned long long offset, void *payload, size_t length,
@@ -273,17 +204,11 @@ void fw_send_request(struct fw_card *card, struct fw_transaction *t, int tcode,
 	unsigned long flags;
 	int tlabel;
 
-	/*
-	 * Bump the flush timer up 100ms first of all so we
-	 * don't race with a flush timer callback.
-	 */
+	
 
 	mod_timer(&card->flush_timer, jiffies + DIV_ROUND_UP(HZ, 10));
 
-	/*
-	 * Allocate tlabel from the bitmap and put the transaction on
-	 * the list while holding the card spinlock.
-	 */
+	
 
 	spin_lock_irqsave(&card->lock, flags);
 
@@ -332,11 +257,7 @@ static void transaction_callback(struct fw_card *card, int rcode,
 	complete(&d->done);
 }
 
-/**
- * fw_run_transaction - send request and sleep until transaction is completed
- *
- * Returns the RCODE.
- */
+
 int fw_run_transaction(struct fw_card *card, int tcode, int destination_id,
 		       int generation, int speed, unsigned long long offset,
 		       void *payload, size_t length)
@@ -406,11 +327,7 @@ void fw_flush_transactions(struct fw_card *card)
 	list_for_each_entry_safe(t, next, &list, link) {
 		card->driver->cancel_packet(card, &t->packet);
 
-		/*
-		 * At this point cancel_packet will never call the
-		 * transaction callback, since we just took all the
-		 * transactions out of the list.  So do it here.
-		 */
+		
 		t->callback(card, RCODE_CANCELLED, NULL, 0, t->callback_data);
 	}
 }
@@ -460,23 +377,9 @@ const struct fw_address_region fw_csr_region =
 	  .end   = CSR_REGISTER_BASE | CSR_CONFIG_ROM_END,  };
 const struct fw_address_region fw_unit_space_region =
 	{ .start = 0xfffff0000900ULL, .end = 0x1000000000000ULL, };
-#endif  /*  0  */
+#endif  
 
-/**
- * fw_core_add_address_handler - register for incoming requests
- * @handler: callback
- * @region: region in the IEEE 1212 node space address range
- *
- * region->start, ->end, and handler->length have to be quadlet-aligned.
- *
- * When a request is received that falls within the specified address range,
- * the specified callback is invoked.  The parameters passed to the callback
- * give the details of the particular request.
- *
- * Return value:  0 on success, non-zero otherwise.
- * The start offset of the handler's address region is determined by
- * fw_core_add_address_handler() and is returned in handler->offset.
- */
+
 int fw_core_add_address_handler(struct fw_address_handler *handler,
 				const struct fw_address_region *region)
 {
@@ -514,9 +417,7 @@ int fw_core_add_address_handler(struct fw_address_handler *handler,
 }
 EXPORT_SYMBOL(fw_core_add_address_handler);
 
-/**
- * fw_core_remove_address_handler - unregister an address handler
- */
+
 void fw_core_remove_address_handler(struct fw_address_handler *handler)
 {
 	unsigned long flags;
@@ -666,7 +567,7 @@ static struct fw_request *allocate_request(struct fw_packet *p)
 void fw_send_response(struct fw_card *card,
 		      struct fw_request *request, int rcode)
 {
-	/* unified transaction or broadcast transaction: don't respond */
+	
 	if (request->ack != ACK_PENDING ||
 	    HEADER_DESTINATION_IS_BROADCAST(request->request_header[0])) {
 		kfree(request);
@@ -697,7 +598,7 @@ void fw_core_handle_request(struct fw_card *card, struct fw_packet *p)
 
 	request = allocate_request(p);
 	if (request == NULL) {
-		/* FIXME: send statically allocated busy packet. */
+		
 		return;
 	}
 
@@ -713,13 +614,7 @@ void fw_core_handle_request(struct fw_card *card, struct fw_packet *p)
 						   offset, request->length);
 	spin_unlock_irqrestore(&address_handler_lock, flags);
 
-	/*
-	 * FIXME: lookup the fw_node corresponding to the sender of
-	 * this request and pass that to the address handler instead
-	 * of the node ID.  We may also want to move the address
-	 * allocations to fw_node so we only do this callback if the
-	 * upper layers registered it for this node.
-	 */
+	
 
 	if (handler == NULL)
 		fw_send_response(card, request, RCODE_ADDRESS_ERROR);
@@ -762,10 +657,7 @@ void fw_core_handle_response(struct fw_card *card, struct fw_packet *p)
 		return;
 	}
 
-	/*
-	 * FIXME: sanity check packet, is length correct, does tcodes
-	 * and addresses match.
-	 */
+	
 
 	switch (tcode) {
 	case TCODE_READ_QUADLET_RESPONSE:
@@ -785,16 +677,13 @@ void fw_core_handle_response(struct fw_card *card, struct fw_packet *p)
 		break;
 
 	default:
-		/* Should never happen, this is just to shut up gcc. */
+		
 		data = NULL;
 		data_length = 0;
 		break;
 	}
 
-	/*
-	 * The response handler may be executed while the request handler
-	 * is still pending.  Cancel the request handler.
-	 */
+	
 	card->driver->cancel_packet(card, &t->packet);
 
 	t->callback(card, rcode, data, data_length, t->callback_data);
@@ -882,18 +771,12 @@ static void handle_registers(struct fw_card *card, struct fw_request *request,
 	case CSR_BANDWIDTH_AVAILABLE:
 	case CSR_CHANNELS_AVAILABLE_HI:
 	case CSR_CHANNELS_AVAILABLE_LO:
-		/*
-		 * FIXME: these are handled by the OHCI hardware and
-		 * the stack never sees these request. If we add
-		 * support for a new type of controller that doesn't
-		 * handle this in hardware we need to deal with these
-		 * transactions.
-		 */
+		
 		BUG();
 		break;
 
 	case CSR_BUSY_TIMEOUT:
-		/* FIXME: Implement this. */
+		
 
 	default:
 		rcode = RCODE_ADDRESS_ERROR;
@@ -913,22 +796,22 @@ MODULE_DESCRIPTION("Core IEEE1394 transaction logic");
 MODULE_LICENSE("GPL");
 
 static const u32 vendor_textual_descriptor[] = {
-	/* textual descriptor leaf () */
+	
 	0x00060000,
 	0x00000000,
 	0x00000000,
-	0x4c696e75,		/* L i n u */
-	0x78204669,		/* x   F i */
-	0x72657769,		/* r e w i */
-	0x72650000,		/* r e     */
+	0x4c696e75,		
+	0x78204669,		
+	0x72657769,		
+	0x72650000,		
 };
 
 static const u32 model_textual_descriptor[] = {
-	/* model descriptor leaf () */
+	
 	0x00030000,
 	0x00000000,
 	0x00000000,
-	0x4a756a75,		/* J u j u */
+	0x4a756a75,		
 };
 
 static struct fw_descriptor vendor_id_descriptor = {

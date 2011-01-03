@@ -1,51 +1,12 @@
-/*
- * Device driver for the SYMBIOS/LSILOGIC 53C8XX and 53C1010 family 
- * of PCI-SCSI IO processors.
- *
- * Copyright (C) 1999-2001  Gerard Roudier <groudier@free.fr>
- *
- * This driver is derived from the Linux sym53c8xx driver.
- * Copyright (C) 1998-2000  Gerard Roudier
- *
- * The sym53c8xx driver is derived from the ncr53c8xx driver that had been 
- * a port of the FreeBSD ncr driver to Linux-1.2.13.
- *
- * The original ncr driver has been written for 386bsd and FreeBSD by
- *         Wolfgang Stanglmeier        <wolf@cologne.de>
- *         Stefan Esser                <se@mi.Uni-Koeln.de>
- * Copyright (C) 1994  Wolfgang Stanglmeier
- *
- * Other major contributions:
- *
- * NVRAM detection and reading.
- * Copyright (C) 1997 Richard Waltham <dormouse@farsrobt.demon.co.uk>
- *
- *-----------------------------------------------------------------------------
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #ifndef SYM_MISC_H
 #define SYM_MISC_H
 
-/*
- *  A la VMS/CAM-3 queue management.
- */
+
 typedef struct sym_quehead {
-	struct sym_quehead *flink;	/* Forward  pointer */
-	struct sym_quehead *blink;	/* Backward pointer */
+	struct sym_quehead *flink;	
+	struct sym_quehead *blink;	
 } SYM_QUEHEAD;
 
 #define sym_que_init(ptr) do { \
@@ -153,38 +114,25 @@ static inline struct sym_quehead *sym_remque_tail(struct sym_quehead *head)
 	return elem;
 }
 
-/*
- *  This one may be useful.
- */
+
 #define FOR_EACH_QUEUED_ELEMENT(head, qp) \
 	for (qp = (head)->flink; qp != (head); qp = qp->flink)
-/*
- *  FreeBSD does not offer our kind of queue in the CAM CCB.
- *  So, we have to cast.
- */
+
 #define sym_qptr(p)	((struct sym_quehead *) (p))
 
-/*
- *  Simple bitmap operations.
- */ 
+ 
 #define sym_set_bit(p, n)	(((u32 *)(p))[(n)>>5] |=  (1<<((n)&0x1f)))
 #define sym_clr_bit(p, n)	(((u32 *)(p))[(n)>>5] &= ~(1<<((n)&0x1f)))
 #define sym_is_bit(p, n)	(((u32 *)(p))[(n)>>5] &   (1<<((n)&0x1f)))
 
-/*
- * The below round up/down macros are to be used with a constant 
- * as argument (sizeof(...) for example), for the compiler to 
- * optimize the whole thing.
- */
+
 #define _U_(a,m)	(a)<=(1<<m)?m:
 
-/*
- * Round up logarithm to base 2 of a 16 bit constant.
- */
+
 #define _LGRU16_(a) \
 ( \
  _U_(a, 0)_U_(a, 1)_U_(a, 2)_U_(a, 3)_U_(a, 4)_U_(a, 5)_U_(a, 6)_U_(a, 7) \
  _U_(a, 8)_U_(a, 9)_U_(a,10)_U_(a,11)_U_(a,12)_U_(a,13)_U_(a,14)_U_(a,15) \
  16)
 
-#endif /* SYM_MISC_H */
+#endif 

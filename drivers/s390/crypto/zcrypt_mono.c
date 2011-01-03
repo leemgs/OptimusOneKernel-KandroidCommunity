@@ -1,29 +1,4 @@
-/*
- *  linux/drivers/s390/crypto/zcrypt_mono.c
- *
- *  zcrypt 2.1.0
- *
- *  Copyright (C)  2001, 2006 IBM Corporation
- *  Author(s): Robert Burroughs
- *	       Eric Rossman (edrossma@us.ibm.com)
- *
- *  Hotplug & misc device support: Jochen Roehrig (roehrig@de.ibm.com)
- *  Major cleanup & driver split: Martin Schwidefsky <schwidefsky@de.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -42,9 +17,7 @@
 #include "zcrypt_pcixcc.h"
 #include "zcrypt_cex2a.h"
 
-/**
- * The module initialization code.
- */
+
 static int __init zcrypt_init(void)
 {
 	int rc;
@@ -83,9 +56,7 @@ out:
 	return rc;
 }
 
-/**
- * The module termination code.
- */
+
 static void __exit zcrypt_exit(void)
 {
 	zcrypt_cex2a_exit();

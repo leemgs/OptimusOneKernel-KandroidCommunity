@@ -1,19 +1,9 @@
-/*
- * cxgb3i_ddp.c: Chelsio S3xx iSCSI DDP Manager.
- *
- * Copyright (c) 2008 Chelsio Communications, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Written by: Karen Xie (kxie@chelsio.com)
- */
+
 
 #include <linux/skbuff.h>
 #include <linux/scatterlist.h>
 
-/* from cxgb3 LLD */
+
 #include "common.h"
 #include "t3_cpl.h"
 #include "t3cdev.h"
@@ -34,18 +24,7 @@
 #define ddp_log_debug(fmt...)
 #endif
 
-/*
- * iSCSI Direct Data Placement
- *
- * T3 h/w can directly place the iSCSI Data-In or Data-Out PDU's payload into
- * pre-posted final destination host-memory buffers based on the Initiator
- * Task Tag (ITT) in Data-In or Target Task Tag (TTT) in Data-Out PDUs.
- *
- * The host memory address is programmed into h/w in the format of pagepod
- * entries.
- * The location of the pagepod entry is encoded into ddp tag which is used or
- * is the base for ITT/TTT.
- */
+
 
 #define DDP_PGIDX_MAX		4
 #define DDP_THRESHOLD	2048
@@ -53,9 +32,7 @@ static unsigned char ddp_page_order[DDP_PGIDX_MAX] = {0, 1, 2, 4};
 static unsigned char ddp_page_shift[DDP_PGIDX_MAX] = {12, 13, 14, 16};
 static unsigned char page_idx = DDP_PGIDX_MAX;
 
-/*
- * functions to program the pagepod in h/w
- */
+
 static inline void ulp_mem_io_set_hdr(struct sk_buff *skb, unsigned int addr)
 {
 	struct ulp_mem_io *req = (struct ulp_mem_io *)skb->head;
@@ -80,7 +57,7 @@ static int set_ddp_map(struct cxgb3i_ddp_info *ddp, struct pagepod_hdr *hdr,
 		struct pagepod *ppod;
 		int j, pidx;
 
-		/* hold on to the skb until we clear the ddp mapping */
+		
 		skb_get(skb);
 
 		ulp_mem_io_set_hdr(skb, pm_addr);
@@ -126,7 +103,7 @@ static inline int ddp_find_unused_entries(struct cxgb3i_ddp_info *ddp,
 {
 	unsigned int i, j, k;
 
-	/* not enough entries */
+	
 	if ((max - start) < count)
 		return -EBUSY;
 
@@ -189,11 +166,7 @@ static inline int ddp_alloc_gl_skb(struct cxgb3i_ddp_info *ddp, int idx,
 	return 0;
 }
 
-/**
- * cxgb3i_ddp_find_page_index - return ddp page index for a given page size
- * @pgsz: page size
- * return the ddp page index, if no match is found return DDP_PGIDX_MAX.
- */
+
 int cxgb3i_ddp_find_page_index(unsigned long pgsz)
 {
 	int i;
@@ -206,10 +179,7 @@ int cxgb3i_ddp_find_page_index(unsigned long pgsz)
 	return DDP_PGIDX_MAX;
 }
 
-/**
- * cxgb3i_ddp_adjust_page_table - adjust page table with PAGE_SIZE
- * return the ddp page index, if no match is found return DDP_PGIDX_MAX.
- */
+
 int cxgb3i_ddp_adjust_page_table(void)
 {
 	int i;
@@ -224,7 +194,7 @@ int cxgb3i_ddp_adjust_page_table(void)
 	base_order = get_order(1UL << ddp_page_shift[0]);
 	order = get_order(1 << PAGE_SHIFT);
 	for (i = 0; i < DDP_PGIDX_MAX; i++) {
-		/* first is the kernel page size, then just doubling the size */
+		
 		ddp_page_order[i] = order - base_order + i;
 		ddp_page_shift[i] = PAGE_SHIFT + i;
 	}
@@ -267,21 +237,7 @@ unmap:
 	return -ENOMEM;
 }
 
-/**
- * cxgb3i_ddp_make_gl - build ddp page buffer list
- * @xferlen: total buffer length
- * @sgl: page buffer scatter-gather list
- * @sgcnt: # of page buffers
- * @pdev: pci_dev, used for pci map
- * @gfp: allocation mode
- *
- * construct a ddp page buffer list from the scsi scattergather list.
- * coalesce buffers as much as possible, and obtain dma addresses for
- * each page.
- *
- * Return the cxgb3i_gather_list constructed from the page buffers if the
- * memory can be used for ddp. Return NULL otherwise.
- */
+
 struct cxgb3i_gather_list *cxgb3i_ddp_make_gl(unsigned int xferlen,
 					      struct scatterlist *sgl,
 					      unsigned int sgcnt,
@@ -321,10 +277,7 @@ struct cxgb3i_gather_list *cxgb3i_ddp_make_gl(unsigned int xferlen,
 		if (sgpage == page && sg->offset == sgoffset + sglen)
 			sglen += sg->length;
 		else {
-			/* make sure the sgl is fit for ddp:
-			 * each has the same page size, and
-			 * all of the middle pages are used completely
-			 */
+			
 			if ((j && sgoffset) ||
 			    ((i != sgcnt - 1) &&
 			     ((sglen + sgoffset) & ~PAGE_MASK)))
@@ -353,12 +306,7 @@ error_out:
 	return NULL;
 }
 
-/**
- * cxgb3i_ddp_release_gl - release a page buffer list
- * @gl: a ddp page buffer list
- * @pdev: pci_dev used for pci_unmap
- * free a ddp page buffer list resulted from cxgb3i_ddp_make_gl().
- */
+
 void cxgb3i_ddp_release_gl(struct cxgb3i_gather_list *gl,
 			   struct pci_dev *pdev)
 {
@@ -366,18 +314,7 @@ void cxgb3i_ddp_release_gl(struct cxgb3i_gather_list *gl,
 	kfree(gl);
 }
 
-/**
- * cxgb3i_ddp_tag_reserve - set up ddp for a data transfer
- * @tdev: t3cdev adapter
- * @tid: connection id
- * @tformat: tag format
- * @tagp: contains s/w tag initially, will be updated with ddp/hw tag
- * @gl: the page momory list
- * @gfp: allocation mode
- *
- * ddp setup for a given page buffer list and construct the ddp tag.
- * return 0 if success, < 0 otherwise.
- */
+
 int cxgb3i_ddp_tag_reserve(struct t3cdev *tdev, unsigned int tid,
 			   struct cxgb3i_tag_format *tformat, u32 *tagp,
 			   struct cxgb3i_gather_list *gl, gfp_t gfp)
@@ -447,12 +384,7 @@ unmark_entries:
 	return err;
 }
 
-/**
- * cxgb3i_ddp_tag_release - release a ddp tag
- * @tdev: t3cdev adapter
- * @tag: ddp tag
- * ddp cleanup for a given ddp tag and release all the resources held
- */
+
 void cxgb3i_ddp_tag_release(struct t3cdev *tdev, u32 tag)
 {
 	struct cxgb3i_ddp_info *ddp = tdev->ulp_iscsi;
@@ -495,7 +427,7 @@ static int setup_conn_pgidx(struct t3cdev *tdev, unsigned int tid, int pg_idx,
 	if (!skb)
 		return -ENOMEM;
 
-	/* set up ulp submode and page size */
+	
 	req = (struct cpl_set_tcb_field *)skb_put(skb, sizeof(*req));
 	req->wr.wr_hi = htonl(V_WR_OP(FW_WROPCODE_FORWARD));
 	OPCODE_TID(req) = htonl(MK_OPCODE_TID(CPL_SET_TCB_FIELD, tid));
@@ -510,28 +442,14 @@ static int setup_conn_pgidx(struct t3cdev *tdev, unsigned int tid, int pg_idx,
 	return 0;
 }
 
-/**
- * cxgb3i_setup_conn_host_pagesize - setup the conn.'s ddp page size
- * @tdev: t3cdev adapter
- * @tid: connection id
- * @reply: request reply from h/w
- * set up the ddp page size based on the host PAGE_SIZE for a connection
- * identified by tid
- */
+
 int cxgb3i_setup_conn_host_pagesize(struct t3cdev *tdev, unsigned int tid,
 				    int reply)
 {
 	return setup_conn_pgidx(tdev, tid, page_idx, reply);
 }
 
-/**
- * cxgb3i_setup_conn_pagesize - setup the conn.'s ddp page size
- * @tdev: t3cdev adapter
- * @tid: connection id
- * @reply: request reply from h/w
- * @pgsz: ddp page size
- * set up the ddp page size for a connection identified by tid
- */
+
 int cxgb3i_setup_conn_pagesize(struct t3cdev *tdev, unsigned int tid,
 				int reply, unsigned long pgsz)
 {
@@ -540,15 +458,7 @@ int cxgb3i_setup_conn_pagesize(struct t3cdev *tdev, unsigned int tid,
 	return setup_conn_pgidx(tdev, tid, pgidx, reply);
 }
 
-/**
- * cxgb3i_setup_conn_digest - setup conn. digest setting
- * @tdev: t3cdev adapter
- * @tid: connection id
- * @hcrc: header digest enabled
- * @dcrc: data digest enabled
- * @reply: request reply from h/w
- * set up the iscsi digest settings for a connection identified by tid
- */
+
 int cxgb3i_setup_conn_digest(struct t3cdev *tdev, unsigned int tid,
 			     int hcrc, int dcrc, int reply)
 {
@@ -560,7 +470,7 @@ int cxgb3i_setup_conn_digest(struct t3cdev *tdev, unsigned int tid,
 	if (!skb)
 		return -ENOMEM;
 
-	/* set up ulp submode and page size */
+	
 	req = (struct cpl_set_tcb_field *)skb_put(skb, sizeof(*req));
 	req->wr.wr_hi = htonl(V_WR_OP(FW_WROPCODE_FORWARD));
 	OPCODE_TID(req) = htonl(MK_OPCODE_TID(CPL_SET_TCB_FIELD, tid));
@@ -576,14 +486,7 @@ int cxgb3i_setup_conn_digest(struct t3cdev *tdev, unsigned int tid,
 }
 
 
-/**
- * cxgb3i_adapter_ddp_info - read the adapter's ddp information
- * @tdev: t3cdev adapter
- * @tformat: tag format
- * @txsz: max tx pdu payload size, filled in by this func.
- * @rxsz: max rx pdu payload size, filled in by this func.
- * setup the tag format for a given iscsi entity
- */
+
 int cxgb3i_adapter_ddp_info(struct t3cdev *tdev,
 			    struct cxgb3i_tag_format *tformat,
 			    unsigned int *txsz, unsigned int *rxsz)
@@ -617,12 +520,7 @@ int cxgb3i_adapter_ddp_info(struct t3cdev *tdev,
 	return 0;
 }
 
-/**
- * cxgb3i_ddp_cleanup - release the cxgb3 adapter's ddp resource
- * @tdev: t3cdev adapter
- * release all the resource held by the ddp pagepod manager for a given
- * adapter if needed
- */
+
 
 static void ddp_cleanup(struct kref *kref)
 {
@@ -659,11 +557,7 @@ void cxgb3i_ddp_cleanup(struct t3cdev *tdev)
 		kref_put(&ddp->refcnt, ddp_cleanup);
 }
 
-/**
- * ddp_init - initialize the cxgb3 adapter's ddp resource
- * @tdev: t3cdev adapter
- * initialize the ddp pagepod manager for a given adapter
- */
+
 static void ddp_init(struct t3cdev *tdev)
 {
 	struct cxgb3i_ddp_info *ddp = tdev->ulp_iscsi;
@@ -745,9 +639,7 @@ free_ddp_map:
 	cxgb3i_free_big_mem(ddp);
 }
 
-/**
- * cxgb3i_ddp_init - initialize ddp functions
- */
+
 void cxgb3i_ddp_init(struct t3cdev *tdev)
 {
 	if (page_idx == DDP_PGIDX_MAX) {

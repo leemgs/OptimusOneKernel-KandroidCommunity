@@ -1,11 +1,4 @@
-/* IP tables module for matching the value of the IPv4 and TCP ECN bits
- *
- * (C) 2002 by Harald Welte <laforge@gnumonks.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/in.h>
 #include <linux/ip.h>
@@ -35,9 +28,7 @@ static inline bool match_tcp(const struct sk_buff *skb,
 	struct tcphdr _tcph;
 	const struct tcphdr *th;
 
-	/* In practice, TCP match does this, so can't fail.  But let's
-	 * be good citizens.
-	 */
+	
 	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_tcph), &_tcph);
 	if (th == NULL) {
 		*hotdrop = false;

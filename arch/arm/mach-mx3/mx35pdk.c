@@ -1,22 +1,4 @@
-/*
- * Copyright 2009 Freescale Semiconductor, Inc. All Rights Reserved.
- *
- * Author: Fabio Estevam <fabio.estevam@freescale.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -45,12 +27,12 @@ static struct platform_device *devices[] __initdata = {
 };
 
 static struct pad_desc mx35pdk_pads[] = {
-	/* UART1 */
+	
 	MX35_PAD_CTS1__UART1_CTS,
 	MX35_PAD_RTS1__UART1_RTS,
 	MX35_PAD_TXD1__UART1_TXD_MUX,
 	MX35_PAD_RXD1__UART1_RXD_MUX,
-	/* FEC */
+	
 	MX35_PAD_FEC_TX_CLK__FEC_TX_CLK,
 	MX35_PAD_FEC_RX_CLK__FEC_RX_CLK,
 	MX35_PAD_FEC_RX_DV__FEC_RX_DV,
@@ -71,9 +53,7 @@ static struct pad_desc mx35pdk_pads[] = {
 	MX35_PAD_FEC_TDATA3__FEC_TDATA_3,
 };
 
-/*
- * Board specific initialization.
- */
+
 static void __init mxc_board_init(void)
 {
 	mxc_iomux_v3_setup_multiple_pads(mx35pdk_pads, ARRAY_SIZE(mx35pdk_pads));
@@ -93,7 +73,7 @@ struct sys_timer mx35pdk_timer = {
 };
 
 MACHINE_START(MX35_3DS, "Freescale MX35PDK")
-	/* Maintainer: Freescale Semiconductor, Inc */
+	
 	.phys_io	= AIPS1_BASE_ADDR,
 	.io_pg_offst	= ((AIPS1_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params    = PHYS_OFFSET + 0x100,

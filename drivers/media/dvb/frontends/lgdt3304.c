@@ -1,9 +1,4 @@
-/*
- * Driver for LG ATSC lgdt3304 driver
- *
- * Copyright (C) 2008 Markus Rechberger <mrechberger@sundtek.de>
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -114,8 +109,8 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe, struct dvb_frontend_
 	int err = 0;
 
 	static __u8 lgdt3304_vsb8_data[] = {
-		/* 16bit  , 8bit */
-		/* regs   , val  */
+		
+		
 		0x00, 0x00, 0x02,
 		0x00, 0x00, 0x13,
 		0x00, 0x0d, 0x02,
@@ -139,13 +134,13 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe, struct dvb_frontend_
 		0x05, 0x0e, 0x5b,
 	};
 
-	/* not yet tested .. */
+	
 	static __u8 lgdt3304_qam64_data[] = {
-		/* 16bit  , 8bit */
-		/* regs   , val  */
+		
+		
 		0x00, 0x00, 0x18,
 		0x00, 0x0d, 0x02,
-		//0x00, 0x0e, 0x02,
+		
 		0x00, 0x12, 0x2a,
 		0x00, 0x13, 0x00,
 		0x03, 0x14, 0xe3,
@@ -158,11 +153,11 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe, struct dvb_frontend_
 	};
 
 
-	/* tested with KWorld a340 */
+	
 	static __u8 lgdt3304_qam256_data[] = {
-		/* 16bit  , 8bit */
-		/* regs   , val  */
-		0x00, 0x00, 0x01,  //0x19,
+		
+		
+		0x00, 0x00, 0x01,  
 		0x00, 0x12, 0x2a,
 		0x00, 0x13, 0x80,
 		0x00, 0x0d, 0x02,
@@ -175,7 +170,7 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe, struct dvb_frontend_
 		0x03, 0x0b, 0x9b,
 
 		0x03, 0x0d, 0x14,
-		//0x05, 0x0e, 0x5b,
+		
 		0x01, 0x06, 0x4a,
 		0x01, 0x07, 0x3d,
 		0x01, 0x08, 0x70,

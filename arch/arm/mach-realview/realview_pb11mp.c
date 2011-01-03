@@ -1,23 +1,4 @@
-/*
- *  linux/arch/arm/mach-realview/realview_pb11mp.c
- *
- *  Copyright (C) 2008 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -124,9 +105,7 @@ static struct pl061_platform_data gpio2_plat_data = {
 	.irq_base	= -1,
 };
 
-/*
- * RealView PB11MPCore AMBA devices
- */
+
 
 #define GPIO2_IRQ		{ IRQ_PB11MP_GPIO2, NO_IRQ }
 #define GPIO2_DMA		{ 0, 0 }
@@ -171,14 +150,14 @@ static struct pl061_platform_data gpio2_plat_data = {
 #define PB11MP_SSP_IRQ		{ IRQ_PB11MP_SSP, NO_IRQ }
 #define PB11MP_SSP_DMA		{ 9, 8 }
 
-/* FPGA Primecells */
+
 AMBA_DEVICE(aaci,	"fpga:aaci",	AACI,		NULL);
 AMBA_DEVICE(mmc0,	"fpga:mmc0",	MMCI0,		&realview_mmc0_plat_data);
 AMBA_DEVICE(kmi0,	"fpga:kmi0",	KMI0,		NULL);
 AMBA_DEVICE(kmi1,	"fpga:kmi1",	KMI1,		NULL);
 AMBA_DEVICE(uart3,	"fpga:uart3",	PB11MP_UART3,	NULL);
 
-/* DevChip Primecells */
+
 AMBA_DEVICE(smc,	"dev:smc",	PB11MP_SMC,	NULL);
 AMBA_DEVICE(sctl,	"dev:sctl",	SCTL,		NULL);
 AMBA_DEVICE(wdog,	"dev:wdog",	PB11MP_WATCHDOG, NULL);
@@ -192,7 +171,7 @@ AMBA_DEVICE(uart1,	"dev:uart1",	PB11MP_UART1,	NULL);
 AMBA_DEVICE(uart2,	"dev:uart2",	PB11MP_UART2,	NULL);
 AMBA_DEVICE(ssp0,	"dev:ssp0",	PB11MP_SSP,	NULL);
 
-/* Primecells on the NEC ISSP chip */
+
 AMBA_DEVICE(clcd,	"issp:clcd",	PB11MP_CLCD,	&clcd_plat_data);
 AMBA_DEVICE(dmac,	"issp:dmac",	DMAC,		NULL);
 
@@ -218,9 +197,7 @@ static struct amba_device *amba_devs[] __initdata = {
 	&kmi1_device,
 };
 
-/*
- * RealView PB11MPCore platform devices
- */
+
 static struct resource realview_pb11mp_flash_resource[] = {
 	[0] = {
 		.start		= REALVIEW_PB11MP_FLASH0_BASE,
@@ -264,19 +241,19 @@ static void __init gic_init_irq(void)
 {
 	unsigned int pldctrl;
 
-	/* new irq mode with no DCC */
+	
 	writel(0x0000a05f, __io_address(REALVIEW_SYS_LOCK));
 	pldctrl = readl(__io_address(REALVIEW_SYS_BASE)	+ REALVIEW_PB11MP_SYS_PLD_CTRL1);
 	pldctrl |= 2 << 22;
 	writel(pldctrl, __io_address(REALVIEW_SYS_BASE) + REALVIEW_PB11MP_SYS_PLD_CTRL1);
 	writel(0x00000000, __io_address(REALVIEW_SYS_LOCK));
 
-	/* ARM11MPCore test chip GIC, primary */
+	
 	gic_cpu_base_addr = __io_address(REALVIEW_TC11MP_GIC_CPU_BASE);
 	gic_dist_init(0, __io_address(REALVIEW_TC11MP_GIC_DIST_BASE), 29);
 	gic_cpu_init(0, gic_cpu_base_addr);
 
-	/* board GIC, secondary */
+	
 	gic_dist_init(1, __io_address(REALVIEW_PB11MP_GIC_DIST_BASE), IRQ_PB11MP_GIC_START);
 	gic_cpu_init(1, __io_address(REALVIEW_PB11MP_GIC_CPU_BASE));
 	gic_cascade_irq(1, IRQ_TC11MP_PB_IRQ1);
@@ -305,10 +282,7 @@ static void realview_pb11mp_reset(char mode)
 		REALVIEW_SYS_RESETCTL_OFFSET;
 	unsigned int val;
 
-	/*
-	 * To reset, we hit the on-board reset register
-	 * in the system FPGA
-	 */
+	
 	val = __raw_readl(hdr_ctrl);
 	val |= REALVIEW_PB11MP_SYS_CTRL_RESET_CONFIGCLR;
 	__raw_writel(val, hdr_ctrl);
@@ -319,8 +293,7 @@ static void __init realview_pb11mp_init(void)
 	int i;
 
 #ifdef CONFIG_CACHE_L2X0
-	/* 1MB (128KB/way), 8-way associativity, evmon/parity/share enabled
-	 * Bits:  .... ...0 0111 1001 0000 .... .... .... */
+	
 	l2x0_init(__io_address(REALVIEW_TC11MP_L220_BASE), 0x00790000, 0xfe000fff);
 #endif
 
@@ -343,7 +316,7 @@ static void __init realview_pb11mp_init(void)
 }
 
 MACHINE_START(REALVIEW_PB11MP, "ARM-RealView PB11MPCore")
-	/* Maintainer: ARM Ltd/Deep Blue Solutions Ltd */
+	
 	.phys_io	= REALVIEW_PB11MP_UART0_BASE,
 	.io_pg_offst	= (IO_ADDRESS(REALVIEW_PB11MP_UART0_BASE) >> 18) & 0xfffc,
 	.boot_params	= PHYS_OFFSET + 0x00000100,

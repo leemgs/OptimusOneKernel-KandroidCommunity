@@ -1,45 +1,6 @@
-/******************************************************************************
- *
- * Name: acopcode.h - AML opcode information for the AML parser and interpreter
- *
- *****************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #ifndef __ACOPCODE_H__
 #define __ACOPCODE_H__
@@ -49,24 +10,16 @@
 #define MAX_INTERNAL_OPCODE
 #define NUM_INTERNAL_OPCODE         (MAX_INTERNAL_OPCODE + 1)
 
-/* Used for non-assigned opcodes */
+
 
 #define _UNK                        0x6B
 
-/*
- * Reserved ASCII characters.  Do not use any of these for
- * internal opcodes, since they are used to differentiate
- * name strings from AML opcodes
- */
+
 #define _ASC                        0x6C
 #define _NAM                        0x6C
 #define _PFX                        0x6D
 
-/*
- * All AML opcodes and the parse-time arguments for each.  Used by the AML
- * parser  Each list is compressed into a 32-bit number and stored in the
- * master opcode table (in psopcode.c).
- */
+
 #define ARGP_ACCESSFIELD_OP             ARGP_LIST1 (ARGP_NAMESTRING)
 #define ARGP_ACQUIRE_OP                 ARGP_LIST2 (ARGP_SUPERNAME,  ARGP_WORDDATA)
 #define ARGP_ADD_OP                     ARGP_LIST3 (ARGP_TERMARG,    ARGP_TERMARG,       ARGP_TARGET)
@@ -190,13 +143,7 @@
 #define ARGP_WORD_OP                    ARGP_LIST1 (ARGP_WORDDATA)
 #define ARGP_ZERO_OP                    ARG_NONE
 
-/*
- * All AML opcodes and the runtime arguments for each.  Used by the AML
- * interpreter  Each list is compressed into a 32-bit number and stored
- * in the master opcode table (in psopcode.c).
- *
- * (Used by prep_operands procedure and the ASL Compiler)
- */
+
 #define ARGI_ACCESSFIELD_OP             ARGI_INVALID_OPCODE
 #define ARGI_ACQUIRE_OP                 ARGI_LIST2 (ARGI_MUTEX,      ARGI_INTEGER)
 #define ARGI_ADD_OP                     ARGI_LIST3 (ARGI_INTEGER,    ARGI_INTEGER,       ARGI_TARGETREF)
@@ -320,4 +267,4 @@
 #define ARGI_WORD_OP                    ARGI_INVALID_OPCODE
 #define ARGI_ZERO_OP                    ARG_NONE
 
-#endif				/* __ACOPCODE_H__ */
+#endif				

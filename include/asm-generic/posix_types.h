@@ -2,13 +2,7 @@
 #define __ASM_GENERIC_POSIX_TYPES_H
 
 #include <asm/bitsperlong.h>
-/*
- * This file is generally used by user-level software, so you need to
- * be a little careful about namespace pollution etc.
- *
- * First the types that are often defined in different ways across
- * architectures, so that you can override them.
- */
+
 
 #ifndef __kernel_ino_t
 typedef unsigned long	__kernel_ino_t;
@@ -57,10 +51,7 @@ typedef __kernel_gid_t	__kernel_old_gid_t;
 typedef unsigned int	__kernel_old_dev_t;
 #endif
 
-/*
- * Most 32 bit architectures use "unsigned int" size_t,
- * and all 64 bit architectures use "unsigned long" size_t.
- */
+
 #ifndef __kernel_size_t
 #if __BITS_PER_LONG != 64
 typedef unsigned int	__kernel_size_t;
@@ -73,9 +64,7 @@ typedef long		__kernel_ptrdiff_t;
 #endif
 #endif
 
-/*
- * anything below here should be completely generic
- */
+
 typedef long		__kernel_off_t;
 typedef long long	__kernel_loff_t;
 typedef long		__kernel_time_t;
@@ -116,10 +105,7 @@ static inline int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
 	return (__p->fds_bits[__tmp] & (1UL<<__rem)) != 0;
 }
 
-/*
- * This will unroll the loop for the normal constant case (8 ints,
- * for a 256-bit fd_set)
- */
+
 #undef __FD_ZERO
 static inline void __FD_ZERO(__kernel_fd_set *__p)
 {
@@ -160,6 +146,6 @@ static inline void __FD_ZERO(__kernel_fd_set *__p)
 	}
 }
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* __ASM_GENERIC_POSIX_TYPES_H */
+#endif 

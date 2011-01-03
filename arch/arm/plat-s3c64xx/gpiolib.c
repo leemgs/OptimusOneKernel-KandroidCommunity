@@ -1,16 +1,4 @@
-/* arch/arm/plat-s3c64xx/gpiolib.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      Ben Dooks <ben@simtec.co.uk>
- *      http://armlinux.simtec.co.uk/
- *
- * S3C64XX - GPIOlib support 
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/irq.h>
@@ -24,30 +12,7 @@
 #include <plat/gpio-cfg-helpers.h>
 #include <plat/regs-gpio.h>
 
-/* GPIO bank summary:
- *
- * Bank	GPIOs	Style	SlpCon	ExtInt Group
- * A	8	4Bit	Yes	1
- * B	7	4Bit	Yes	1
- * C	8	4Bit	Yes	2
- * D	5	4Bit	Yes	3
- * E	5	4Bit	Yes	None
- * F	16	2Bit	Yes	4 [1]
- * G	7	4Bit	Yes	5
- * H	10	4Bit[2]	Yes	6
- * I	16	2Bit	Yes	None
- * J	12	2Bit	Yes	None
- * K	16	4Bit[2]	No	None
- * L	15	4Bit[2] No	None
- * M	6	4Bit	No	IRQ_EINT
- * N	16	2Bit	No	IRQ_EINT
- * O	16	2Bit	Yes	7
- * P	15	2Bit	Yes	8
- * Q	9	2Bit	Yes	9
- *
- * [1] BANKF pins 14,15 do not form part of the external interrupt sources
- * [2] BANK has two control registers, GPxCON0 and GPxCON1
- */
+
 
 #define OFF_GPCON	(0x00)
 #define OFF_GPDAT	(0x04)
@@ -60,20 +25,7 @@
 #define gpio_dbg(x...) printk(KERN_DEBUG x)
 #endif
 
-/* The s3c64xx_gpiolib_4bit routines are to control the gpio banks where
- * the gpio configuration register (GPxCON) has 4 bits per GPIO, as the
- * following example:
- *
- * base + 0x00: Control register, 4 bits per gpio
- *	        gpio n: 4 bits starting at (4*n)
- *		0000 = input, 0001 = output, others mean special-function
- * base + 0x04: Data register, 1 bit per gpio
- *		bit n: data bit n
- *
- * Note, since the data register is one bit per gpio and is at base + 0x4
- * we can use s3c_gpiolib_get and s3c_gpiolib_set to change the state of
- * the output.
-*/
+
 
 static int s3c64xx_gpiolib_4bit_input(struct gpio_chip *chip, unsigned offset)
 {
@@ -117,26 +69,7 @@ static int s3c64xx_gpiolib_4bit_output(struct gpio_chip *chip,
 	return 0;
 }
 
-/* The next set of routines are for the case where the GPIO configuration
- * registers are 4 bits per GPIO but there is more than one register (the
- * bank has more than 8 GPIOs.
- *
- * This case is the similar to the 4 bit case, but the registers are as
- * follows:
- *
- * base + 0x00: Control register, 4 bits per gpio (lower 8 GPIOs)
- *	        gpio n: 4 bits starting at (4*n)
- *		0000 = input, 0001 = output, others mean special-function
- * base + 0x04: Control register, 4 bits per gpio (up to 8 additions GPIOs)
- *	        gpio n: 4 bits starting at (4*n)
- *		0000 = input, 0001 = output, others mean special-function
- * base + 0x08: Data register, 1 bit per gpio
- *		bit n: data bit n
- *
- * To allow us to use the s3c_gpiolib_get and s3c_gpiolib_set routines we
- * store the 'base + 0x4' address so that these routines see the data
- * register at ourchip->base + 0x04.
-*/
+
 
 static int s3c64xx_gpiolib_4bit2_input(struct gpio_chip *chip, unsigned offset)
 {

@@ -183,6 +183,9 @@ export KBUILD_BUILDHOST := $(SUBARCH)
 ARCH		?= $(SUBARCH)
 CROSS_COMPILE	?= arm-eabi-
 
+ARCH		?= arm
+CROSS_COMPILE	?= arm-cortex_a8_selp-linux-gnueabi-
+
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
 SRCARCH 	:= $(ARCH)

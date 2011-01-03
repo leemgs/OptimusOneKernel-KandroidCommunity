@@ -1,28 +1,11 @@
-/*
- * cxgb3i_ddp.h: Chelsio S3xx iSCSI DDP Manager.
- *
- * Copyright (c) 2008 Chelsio Communications, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Written by: Karen Xie (kxie@chelsio.com)
- */
+
 
 #ifndef __CXGB3I_ULP2_DDP_H__
 #define __CXGB3I_ULP2_DDP_H__
 
 #include <linux/vmalloc.h>
 
-/**
- * struct cxgb3i_tag_format - cxgb3i ulp tag format for an iscsi entity
- *
- * @sw_bits:	# of bits used by iscsi software layer
- * @rsvd_bits:	# of bits used by h/w
- * @rsvd_shift:	h/w bits shift left
- * @rsvd_mask:	reserved bit mask
- */
+
 struct cxgb3i_tag_format {
 	unsigned char sw_bits;
 	unsigned char rsvd_bits;
@@ -31,16 +14,7 @@ struct cxgb3i_tag_format {
 	u32 rsvd_mask;
 };
 
-/**
- * struct cxgb3i_gather_list - cxgb3i direct data placement memory
- *
- * @tag:	ddp tag
- * @length:	total data buffer length
- * @offset:	initial offset to the 1st page
- * @nelem:	# of pages
- * @pages:	page pointers
- * @phys_addr:	physical address
- */
+
 struct cxgb3i_gather_list {
 	u32 tag;
 	unsigned int length;
@@ -50,25 +24,7 @@ struct cxgb3i_gather_list {
 	dma_addr_t phys_addr[0];
 };
 
-/**
- * struct cxgb3i_ddp_info - cxgb3i direct data placement for pdu payload
- *
- * @list:	list head to link elements
- * @refcnt:	ref. count
- * @tdev:	pointer to t3cdev used by cxgb3 driver
- * @max_txsz:	max tx packet size for ddp
- * @max_rxsz:	max rx packet size for ddp
- * @llimit:	lower bound of the page pod memory
- * @ulimit:	upper bound of the page pod memory
- * @nppods:	# of page pod entries
- * @idx_last:	page pod entry last used
- * @idx_bits:	# of bits the pagepod index would take
- * @idx_mask:	pagepod index mask
- * @rsvd_tag_mask: tag mask
- * @map_lock:	lock to synchonize access to the page pod map
- * @gl_map:	ddp memory gather list
- * @gl_skb:	skb used to program the pagepod
- */
+
 struct cxgb3i_ddp_info {
 	struct list_head list;
 	struct kref refcnt;
@@ -89,15 +45,13 @@ struct cxgb3i_ddp_info {
 	struct sk_buff **gl_skb;
 };
 
-#define ISCSI_PDU_NONPAYLOAD_LEN	312 /* bhs(48) + ahs(256) + digest(8) */
+#define ISCSI_PDU_NONPAYLOAD_LEN	312 
 #define ULP2_MAX_PKT_SIZE	16224
 #define ULP2_MAX_PDU_PAYLOAD	(ULP2_MAX_PKT_SIZE - ISCSI_PDU_NONPAYLOAD_LEN)
 #define PPOD_PAGES_MAX		4
-#define PPOD_PAGES_SHIFT	2	/* 4 pages per pod */
+#define PPOD_PAGES_SHIFT	2	
 
-/*
- * struct pagepod_hdr, pagepod - pagepod format
- */
+
 struct pagepod_hdr {
 	u32 vld_tid;
 	u32 pgsz_tag_clr;
@@ -111,7 +65,7 @@ struct pagepod {
 	u64 addr[PPOD_PAGES_MAX + 1];
 };
 
-#define PPOD_SIZE		sizeof(struct pagepod)	/* 64 */
+#define PPOD_SIZE		sizeof(struct pagepod)	
 #define PPOD_SIZE_SHIFT		6
 
 #define PPOD_COLOR_SHIFT	0
@@ -141,10 +95,7 @@ struct pagepod {
 #define M_PPOD_PGSZ    0x3
 #define V_PPOD_PGSZ(x) ((x) << S_PPOD_PGSZ)
 
-/*
- * large memory chunk allocation/release
- * use vmalloc() if kmalloc() fails
- */
+
 static inline void *cxgb3i_alloc_big_mem(unsigned int size,
 					 gfp_t gfp)
 {
@@ -164,35 +115,15 @@ static inline void cxgb3i_free_big_mem(void *addr)
 		kfree(addr);
 }
 
-/*
- * cxgb3i ddp tag are 32 bits, it consists of reserved bits used by h/w and
- * non-reserved bits that can be used by the iscsi s/w.
- * The reserved bits are identified by the rsvd_bits and rsvd_shift fields
- * in struct cxgb3i_tag_format.
- *
- * The upper most reserved bit can be used to check if a tag is ddp tag or not:
- * 	if the bit is 0, the tag is a valid ddp tag
- */
 
-/**
- * cxgb3i_is_ddp_tag - check if a given tag is a hw/ddp tag
- * @tformat: tag format information
- * @tag: tag to be checked
- *
- * return true if the tag is a ddp tag, false otherwise.
- */
+
+
 static inline int cxgb3i_is_ddp_tag(struct cxgb3i_tag_format *tformat, u32 tag)
 {
 	return !(tag & (1 << (tformat->rsvd_bits + tformat->rsvd_shift - 1)));
 }
 
-/**
- * cxgb3i_sw_tag_usable - check if s/w tag has enough bits left for hw bits
- * @tformat: tag format information
- * @sw_tag: s/w tag to be checked
- *
- * return true if the tag can be used for hw ddp tag, false otherwise.
- */
+
 static inline int cxgb3i_sw_tag_usable(struct cxgb3i_tag_format *tformat,
 					u32 sw_tag)
 {
@@ -200,13 +131,7 @@ static inline int cxgb3i_sw_tag_usable(struct cxgb3i_tag_format *tformat,
 	return !sw_tag;
 }
 
-/**
- * cxgb3i_set_non_ddp_tag - mark a given s/w tag as an invalid ddp tag
- * @tformat: tag format information
- * @sw_tag: s/w tag to be checked
- *
- * insert 1 at the upper most reserved bit to mark it as an invalid ddp tag.
- */
+
 static inline u32 cxgb3i_set_non_ddp_tag(struct cxgb3i_tag_format *tformat,
 					 u32 sw_tag)
 {
@@ -222,11 +147,7 @@ static inline u32 cxgb3i_set_non_ddp_tag(struct cxgb3i_tag_format *tformat,
 	return sw_tag | 1 << shift;
 }
 
-/**
- * cxgb3i_ddp_tag_base - shift s/w tag bits so that reserved bits are not used
- * @tformat: tag format information
- * @sw_tag: s/w tag to be checked
- */
+
 static inline u32 cxgb3i_ddp_tag_base(struct cxgb3i_tag_format *tformat,
 				      u32 sw_tag)
 {
@@ -242,13 +163,7 @@ static inline u32 cxgb3i_ddp_tag_base(struct cxgb3i_tag_format *tformat,
 	return sw_tag;
 }
 
-/**
- * cxgb3i_tag_rsvd_bits - get the reserved bits used by the h/w
- * @tformat: tag format information
- * @tag: tag to be checked
- *
- * return the reserved bits in the tag
- */
+
 static inline u32 cxgb3i_tag_rsvd_bits(struct cxgb3i_tag_format *tformat,
 				       u32 tag)
 {
@@ -257,13 +172,7 @@ static inline u32 cxgb3i_tag_rsvd_bits(struct cxgb3i_tag_format *tformat,
 	return 0;
 }
 
-/**
- * cxgb3i_tag_nonrsvd_bits - get the non-reserved bits used by the s/w
- * @tformat: tag format information
- * @tag: tag to be checked
- *
- * return the non-reserved bits in the tag.
- */
+
 static inline u32 cxgb3i_tag_nonrsvd_bits(struct cxgb3i_tag_format *tformat,
 					  u32 tag)
 {

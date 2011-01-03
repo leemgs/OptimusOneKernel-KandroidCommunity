@@ -1,6 +1,4 @@
-/*
- * Operations on the network namespace
- */
+
 #ifndef __NET_NET_NAMESPACE_H
 #define __NET_NET_NAMESPACE_H
 
@@ -29,16 +27,12 @@ struct net_generic;
 struct sock;
 
 struct net {
-	atomic_t		count;		/* To decided when the network
-						 *  namespace should be freed.
-						 */
+	atomic_t		count;		
 #ifdef NETNS_REFCNT_DEBUG
-	atomic_t		use_count;	/* To track references we
-						 * destroy on demand
-						 */
+	atomic_t		use_count;	
 #endif
-	struct list_head	list;		/* list of network namespaces */
-	struct work_struct	work;		/* work struct for freeing */
+	struct list_head	list;		
+	struct work_struct	work;		
 
 	struct proc_dir_entry 	*proc_net;
 	struct proc_dir_entry 	*proc_net_stat;
@@ -47,17 +41,17 @@ struct net {
 	struct ctl_table_set	sysctls;
 #endif
 
-	struct net_device       *loopback_dev;          /* The loopback */
+	struct net_device       *loopback_dev;          
 
 	struct list_head 	dev_base_head;
 	struct hlist_head 	*dev_name_head;
 	struct hlist_head	*dev_index_head;
 
-	/* core fib_rules */
+	
 	struct list_head	rules_ops;
 	spinlock_t		rules_mod_lock;
 
-	struct sock 		*rtnl;			/* rtnetlink socket */
+	struct sock 		*rtnl;			
 	struct sock		*genl_sock;
 
 	struct netns_core	core;
@@ -89,7 +83,7 @@ struct net {
 
 #include <linux/seq_file_net.h>
 
-/* Init's network namespace */
+
 extern struct net init_net;
 
 #ifdef CONFIG_NET
@@ -97,16 +91,16 @@ extern struct net init_net;
 
 extern struct net *copy_net_ns(unsigned long flags, struct net *net_ns);
 
-#else /* CONFIG_NET */
+#else 
 
 #define INIT_NET_NS(net_ns)
 
 static inline struct net *copy_net_ns(unsigned long flags, struct net *net_ns)
 {
-	/* There is nothing to copy so this is a noop */
+	
 	return net_ns;
 }
-#endif /* CONFIG_NET */
+#endif 
 
 
 extern struct list_head net_namespace_list;
@@ -124,11 +118,7 @@ static inline struct net *get_net(struct net *net)
 
 static inline struct net *maybe_get_net(struct net *net)
 {
-	/* Used when we know struct net exists but we
-	 * aren't guaranteed a previous reference count
-	 * exists.  If the reference count is zero this
-	 * function fails and returns NULL.
-	 */
+	
 	if (!atomic_inc_not_zero(&net->count))
 		net = NULL;
 	return net;
@@ -234,25 +224,7 @@ struct pernet_operations {
 	void (*exit)(struct net *net);
 };
 
-/*
- * Use these carefully.  If you implement a network device and it
- * needs per network namespace operations use device pernet operations,
- * otherwise use pernet subsys operations.
- *
- * Network interfaces need to be removed from a dying netns _before_
- * subsys notifiers can be called, as most of the network code cleanup
- * (which is done from subsys notifiers) runs with the assumption that
- * dev_remove_pack has been called so no new packets will arrive during
- * and after the cleanup functions have been called.  dev_remove_pack
- * is not per namespace so instead the guarantee of no more packets
- * arriving in a network namespace is provided by ensuring that all
- * network devices and all sockets have left the network namespace
- * before the cleanup methods are called.
- *
- * For the longest time the ipv4 icmp code was registered as a pernet
- * device which caused kernel oops, and panics during network
- * namespace cleanup.   So please don't get this wrong.
- */
+
 extern int register_pernet_subsys(struct pernet_operations *);
 extern void unregister_pernet_subsys(struct pernet_operations *);
 extern int register_pernet_gen_subsys(int *id, struct pernet_operations *);
@@ -272,4 +244,4 @@ extern struct ctl_table_header *register_net_sysctl_rotable(
 	const struct ctl_path *path, struct ctl_table *table);
 extern void unregister_net_sysctl_table(struct ctl_table_header *header);
 
-#endif /* __NET_NET_NAMESPACE_H */
+#endif 

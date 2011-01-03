@@ -1,71 +1,4 @@
-/*
- * Copyright (C) 2008-2009 Texas Instruments Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- * Driver name : VPFE Capture driver
- *    VPFE Capture driver allows applications to capture and stream video
- *    frames on DaVinci SoCs (DM6446, DM355 etc) from a YUV source such as
- *    TVP5146 or  Raw Bayer RGB image data from an image sensor
- *    such as Microns' MT9T001, MT9T031 etc.
- *
- *    These SoCs have, in common, a Video Processing Subsystem (VPSS) that
- *    consists of a Video Processing Front End (VPFE) for capturing
- *    video/raw image data and Video Processing Back End (VPBE) for displaying
- *    YUV data through an in-built analog encoder or Digital LCD port. This
- *    driver is for capture through VPFE. A typical EVM using these SoCs have
- *    following high level configuration.
- *
- *
- *    decoder(TVP5146/		YUV/
- * 	     MT9T001)   -->  Raw Bayer RGB ---> MUX -> VPFE (CCDC/ISIF)
- *    				data input              |      |
- *							V      |
- *						      SDRAM    |
- *							       V
- *							   Image Processor
- *							       |
- *							       V
- *							     SDRAM
- *    The data flow happens from a decoder connected to the VPFE over a
- *    YUV embedded (BT.656/BT.1120) or separate sync or raw bayer rgb interface
- *    and to the input of VPFE through an optional MUX (if more inputs are
- *    to be interfaced on the EVM). The input data is first passed through
- *    CCDC (CCD Controller, a.k.a Image Sensor Interface, ISIF). The CCDC
- *    does very little or no processing on YUV data and does pre-process Raw
- *    Bayer RGB data through modules such as Defect Pixel Correction (DFC)
- *    Color Space Conversion (CSC), data gain/offset etc. After this, data
- *    can be written to SDRAM or can be connected to the image processing
- *    block such as IPIPE (on DM355 only).
- *
- *    Features supported
- *  		- MMAP IO
- *		- Capture using TVP5146 over BT.656
- *		- support for interfacing decoders using sub device model
- *		- Work with DM355 or DM6446 CCDC to do Raw Bayer RGB/YUV
- *		  data capture to SDRAM.
- *    TODO list
- *		- Support multiple REQBUF after open
- *		- Support for de-allocating buffers through REQBUF
- *		- Support for Raw Bayer RGB capture
- *		- Support for chaining Image Processor
- *		- Support for static allocation of buffers
- *		- Support for USERPTR IO
- *		- Support for STREAMON before QBUF
- *		- Support for control ioctls
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -92,28 +25,28 @@ MODULE_DESCRIPTION("VPFE Video for Linux Capture Driver");
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Texas Instruments");
 
-/* standard information */
+
 struct vpfe_standard {
 	v4l2_std_id std_id;
 	unsigned int width;
 	unsigned int height;
 	struct v4l2_fract pixelaspect;
-	/* 0 - progressive, 1 - interlaced */
+	
 	int frame_format;
 };
 
-/* ccdc configuration */
+
 struct ccdc_config {
-	/* This make sure vpfe is probed and ready to go */
+	
 	int vpfe_probed;
-	/* name of ccdc device */
+	
 	char name[32];
-	/* for storing mem maps for CCDC */
+	
 	int ccdc_addr_size;
 	void *__iomem ccdc_addr;
 };
 
-/* data structures */
+
 static struct vpfe_config_params config_params = {
 	.min_numbuffers = 3,
 	.numbuffers = 3,
@@ -121,11 +54,11 @@ static struct vpfe_config_params config_params = {
 	.device_bufsize = 720 * 576 * 2,
 };
 
-/* ccdc device registered */
+
 static struct ccdc_hw_device *ccdc_dev;
-/* lock for accessing ccdc information */
+
 static DEFINE_MUTEX(ccdc_lock);
-/* ccdc configuration */
+
 static struct ccdc_config *ccdc_cfg;
 
 const struct vpfe_standard vpfe_standards[] = {
@@ -133,7 +66,7 @@ const struct vpfe_standard vpfe_standards[] = {
 	{V4L2_STD_625_50, 720, 576, {54, 59}, 1},
 };
 
-/* Used when raw Bayer image from ccdc is directly captured to SDRAM */
+
 static const struct vpfe_pixel_format vpfe_pix_fmts[] = {
 	{
 		.fmtdesc = {
@@ -191,10 +124,7 @@ static const struct vpfe_pixel_format vpfe_pix_fmts[] = {
 	},
 };
 
-/*
- * vpfe_lookup_pix_format()
- * lookup an entry in the vpfe pix format table based on pix_format
- */
+
 static const struct vpfe_pixel_format *vpfe_lookup_pix_format(u32 pix_format)
 {
 	int i;
@@ -206,10 +136,7 @@ static const struct vpfe_pixel_format *vpfe_lookup_pix_format(u32 pix_format)
 	return NULL;
 }
 
-/*
- * vpfe_register_ccdc_device. CCDC module calls this to
- * register with vpfe capture
- */
+
 int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
 {
 	int ret = 0;
@@ -235,18 +162,14 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
 
 	mutex_lock(&ccdc_lock);
 	if (NULL == ccdc_cfg) {
-		/*
-		 * TODO. Will this ever happen? if so, we need to fix it.
-		 * Proabably we need to add the request to a linked list and
-		 * walk through it during vpfe probe
-		 */
+		
 		printk(KERN_ERR "vpfe capture not initialized\n");
 		ret = -1;
 		goto unlock;
 	}
 
 	if (strcmp(dev->name, ccdc_cfg->name)) {
-		/* ignore this ccdc */
+		
 		ret = -1;
 		goto unlock;
 	}
@@ -266,10 +189,7 @@ unlock:
 }
 EXPORT_SYMBOL(vpfe_register_ccdc_device);
 
-/*
- * vpfe_unregister_ccdc_device. CCDC module calls this to
- * unregister with vpfe capture
- */
+
 void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev)
 {
 	if (NULL == dev) {
@@ -281,7 +201,7 @@ void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev)
 		dev->name);
 
 	if (strcmp(dev->name, ccdc_cfg->name)) {
-		/* ignore this ccdc */
+		
 		return;
 	}
 
@@ -292,9 +212,7 @@ void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev)
 }
 EXPORT_SYMBOL(vpfe_unregister_ccdc_device);
 
-/*
- * vpfe_get_ccdc_image_format - Get image parameters based on CCDC settings
- */
+
 static int vpfe_get_ccdc_image_format(struct vpfe_device *vpfe_dev,
 				 struct v4l2_format *f)
 {
@@ -331,10 +249,7 @@ static int vpfe_get_ccdc_image_format(struct vpfe_device *vpfe_dev,
 	return 0;
 }
 
-/*
- * vpfe_config_ccdc_image_format()
- * For a pix format, configure ccdc to setup the capture
- */
+
 static int vpfe_config_ccdc_image_format(struct vpfe_device *vpfe_dev)
 {
 	enum ccdc_frmfmt frm_fmt = CCDC_FRMFMT_INTERLACED;
@@ -346,18 +261,18 @@ static int vpfe_config_ccdc_image_format(struct vpfe_device *vpfe_dev)
 			"couldn't set pix format in ccdc\n");
 		return -EINVAL;
 	}
-	/* configure the image window */
+	
 	ccdc_dev->hw_ops.set_image_window(&vpfe_dev->crop);
 
 	switch (vpfe_dev->fmt.fmt.pix.field) {
 	case V4L2_FIELD_INTERLACED:
-		/* do nothing, since it is default */
+		
 		ret = ccdc_dev->hw_ops.set_buftype(
 				CCDC_BUFTYPE_FLD_INTERLEAVED);
 		break;
 	case V4L2_FIELD_NONE:
 		frm_fmt = CCDC_FRMFMT_PROGRESSIVE;
-		/* buffer type only applicable for interlaced scan */
+		
 		break;
 	case V4L2_FIELD_SEQ_TB:
 		ret = ccdc_dev->hw_ops.set_buftype(
@@ -367,21 +282,12 @@ static int vpfe_config_ccdc_image_format(struct vpfe_device *vpfe_dev)
 		return -EINVAL;
 	}
 
-	/* set the frame format */
+	
 	if (!ret)
 		ret = ccdc_dev->hw_ops.set_frame_format(frm_fmt);
 	return ret;
 }
-/*
- * vpfe_config_image_format()
- * For a given standard, this functions sets up the default
- * pix format & crop values in the vpfe device and ccdc.  It first
- * starts with defaults based values from the standard table.
- * It then checks if sub device support g_fmt and then override the
- * values based on that.Sets crop values to match with scan resolution
- * starting at 0,0. It calls vpfe_config_ccdc_image_format() set the
- * values in ccdc
- */
+
 static int vpfe_config_image_format(struct vpfe_device *vpfe_dev,
 				    const v4l2_std_id *std_id)
 {
@@ -413,18 +319,18 @@ static int vpfe_config_image_format(struct vpfe_device *vpfe_dev,
 	vpfe_dev->fmt.fmt.pix.width = vpfe_dev->crop.width;
 	vpfe_dev->fmt.fmt.pix.height = vpfe_dev->crop.height;
 
-	/* first field and frame format based on standard frame format */
+	
 	if (vpfe_dev->std_info.frame_format) {
 		vpfe_dev->fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-		/* assume V4L2_PIX_FMT_UYVY as default */
+		
 		vpfe_dev->fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
 	} else {
 		vpfe_dev->fmt.fmt.pix.field = V4L2_FIELD_NONE;
-		/* assume V4L2_PIX_FMT_SBGGR8 */
+		
 		vpfe_dev->fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR8;
 	}
 
-	/* if sub device supports g_fmt, override the defaults */
+	
 	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
 			sdinfo->grp_id, video, g_fmt, &vpfe_dev->fmt);
 
@@ -434,12 +340,12 @@ static int vpfe_config_image_format(struct vpfe_device *vpfe_dev,
 		return ret;
 	}
 
-	/* Sets the values in CCDC */
+	
 	ret = vpfe_config_ccdc_image_format(vpfe_dev);
 	if (ret)
 		return ret;
 
-	/* Update the values of sizeimage and bytesperline */
+	
 	if (!ret) {
 		vpfe_dev->fmt.fmt.pix.bytesperline =
 			ccdc_dev->hw_ops.get_line_length();
@@ -454,19 +360,19 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
 {
 	int ret = 0;
 
-	/* set first input of current subdevice as the current input */
+	
 	vpfe_dev->current_input = 0;
 
-	/* set default standard */
+	
 	vpfe_dev->std_index = 0;
 
-	/* Configure the default format information */
+	
 	ret = vpfe_config_image_format(vpfe_dev,
 				&vpfe_standards[vpfe_dev->std_index].std_id);
 	if (ret)
 		return ret;
 
-	/* now open the ccdc device to initialize it */
+	
 	mutex_lock(&ccdc_lock);
 	if (NULL == ccdc_dev) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "ccdc device not registered\n");
@@ -487,10 +393,7 @@ unlock:
 	return ret;
 }
 
-/*
- * vpfe_open : It creates object of file handle structure and
- * stores it in private_data  member of filepointer
- */
+
 static int vpfe_open(struct file *file)
 {
 	struct vpfe_device *vpfe_dev = video_drvdata(file);
@@ -503,29 +406,29 @@ static int vpfe_open(struct file *file)
 		return -ENODEV;
 	}
 
-	/* Allocate memory for the file handle object */
+	
 	fh = kmalloc(sizeof(struct vpfe_fh), GFP_KERNEL);
 	if (NULL == fh) {
 		v4l2_err(&vpfe_dev->v4l2_dev,
 			"unable to allocate memory for file handle object\n");
 		return -ENOMEM;
 	}
-	/* store pointer to fh in private_data member of file */
+	
 	file->private_data = fh;
 	fh->vpfe_dev = vpfe_dev;
 	mutex_lock(&vpfe_dev->lock);
-	/* If decoder is not initialized. initialize it */
+	
 	if (!vpfe_dev->initialized) {
 		if (vpfe_initialize_device(vpfe_dev)) {
 			mutex_unlock(&vpfe_dev->lock);
 			return -ENODEV;
 		}
 	}
-	/* Increment device usrs counter */
+	
 	vpfe_dev->usrs++;
-	/* Set io_allowed member to false */
+	
 	fh->io_allowed = 0;
-	/* Initialize priority of this instance to default priority */
+	
 	fh->prio = V4L2_PRIORITY_UNSET;
 	v4l2_prio_open(&vpfe_dev->prio, &fh->prio);
 	mutex_unlock(&vpfe_dev->lock);
@@ -556,7 +459,7 @@ static void vpfe_process_buffer_complete(struct vpfe_device *vpfe_dev)
 	vpfe_dev->cur_frm = vpfe_dev->next_frm;
 }
 
-/* ISR for VINT0*/
+
 static irqreturn_t vpfe_isr(int irq, void *dev_id)
 {
 	struct vpfe_device *vpfe_dev = dev_id;
@@ -567,16 +470,16 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nStarting vpfe_isr...\n");
 	field = vpfe_dev->fmt.fmt.pix.field;
 
-	/* if streaming not started, don't do anything */
+	
 	if (!vpfe_dev->started)
 		return IRQ_HANDLED;
 
-	/* only for 6446 this will be applicable */
+	
 	if (NULL != ccdc_dev->hw_ops.reset)
 		ccdc_dev->hw_ops.reset();
 
 	if (field == V4L2_FIELD_NONE) {
-		/* handle progressive frame capture */
+		
 		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
 			"frame format is progressive...\n");
 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
@@ -584,27 +487,20 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
 		return IRQ_HANDLED;
 	}
 
-	/* interlaced or TB capture check which field we are in hardware */
+	
 	fid = ccdc_dev->hw_ops.getfid();
 
-	/* switch the software maintained field id */
+	
 	vpfe_dev->field_id ^= 1;
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "field id = %x:%x.\n",
 		fid, vpfe_dev->field_id);
 	if (fid == vpfe_dev->field_id) {
-		/* we are in-sync here,continue */
+		
 		if (fid == 0) {
-			/*
-			 * One frame is just being captured. If the next frame
-			 * is available, release the current frame and move on
-			 */
+			
 			if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
 				vpfe_process_buffer_complete(vpfe_dev);
-			/*
-			 * based on whether the two fields are stored
-			 * interleavely or separately in memory, reconfigure
-			 * the CCDC memory address
-			 */
+			
 			if (field == V4L2_FIELD_SEQ_TB) {
 				addr =
 				  videobuf_to_dma_contig(vpfe_dev->cur_frm);
@@ -613,35 +509,27 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
 			}
 			return IRQ_HANDLED;
 		}
-		/*
-		 * if one field is just being captured configure
-		 * the next frame get the next frame from the empty
-		 * queue if no frame is available hold on to the
-		 * current buffer
-		 */
+		
 		spin_lock(&vpfe_dev->dma_queue_lock);
 		if (!list_empty(&vpfe_dev->dma_queue) &&
 		    vpfe_dev->cur_frm == vpfe_dev->next_frm)
 			vpfe_schedule_next_buffer(vpfe_dev);
 		spin_unlock(&vpfe_dev->dma_queue_lock);
 	} else if (fid == 0) {
-		/*
-		 * out of sync. Recover from any hardware out-of-sync.
-		 * May loose one frame
-		 */
+		
 		vpfe_dev->field_id = fid;
 	}
 	return IRQ_HANDLED;
 }
 
-/* vdint1_isr - isr handler for VINT1 interrupt */
+
 static irqreturn_t vdint1_isr(int irq, void *dev_id)
 {
 	struct vpfe_device *vpfe_dev = dev_id;
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
 
-	/* if streaming not started, don't do anything */
+	
 	if (!vpfe_dev->started)
 		return IRQ_HANDLED;
 
@@ -676,7 +564,7 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
 	return 0;
 }
 
-/* vpfe_stop_ccdc_capture: stop streaming in ccdc/isif */
+
 static void vpfe_stop_ccdc_capture(struct vpfe_device *vpfe_dev)
 {
 	vpfe_dev->started = 0;
@@ -685,10 +573,7 @@ static void vpfe_stop_ccdc_capture(struct vpfe_device *vpfe_dev)
 		ccdc_dev->hw_ops.enable_out_to_sdram(0);
 }
 
-/*
- * vpfe_release : This function deletes buffer queue, frees the
- * buffers and the vpfe file  handle
- */
+
 static int vpfe_release(struct file *file)
 {
 	struct vpfe_device *vpfe_dev = video_drvdata(file);
@@ -698,9 +583,9 @@ static int vpfe_release(struct file *file)
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_release\n");
 
-	/* Get the device lock */
+	
 	mutex_lock(&vpfe_dev->lock);
-	/* if this instance is doing IO */
+	
 	if (fh->io_allowed) {
 		if (vpfe_dev->started) {
 			sdinfo = vpfe_dev->current_subdev;
@@ -718,11 +603,11 @@ static int vpfe_release(struct file *file)
 		vpfe_dev->numbuffers = config_params.numbuffers;
 	}
 
-	/* Decrement device usrs counter */
+	
 	vpfe_dev->usrs--;
-	/* Close the priority */
+	
 	v4l2_prio_close(&vpfe_dev->prio, &fh->prio);
-	/* If this is the last file handle */
+	
 	if (!vpfe_dev->usrs) {
 		vpfe_dev->initialized = 0;
 		if (ccdc_dev->hw_ops.close)
@@ -731,18 +616,15 @@ static int vpfe_release(struct file *file)
 	}
 	mutex_unlock(&vpfe_dev->lock);
 	file->private_data = NULL;
-	/* Free memory allocated to file handle object */
+	
 	kfree(fh);
 	return 0;
 }
 
-/*
- * vpfe_mmap : It is used to map kernel space buffers
- * into user spaces
- */
+
 static int vpfe_mmap(struct file *file, struct vm_area_struct *vma)
 {
-	/* Get the device object and file handle object */
+	
 	struct vpfe_device *vpfe_dev = video_drvdata(file);
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_mmap\n");
@@ -750,9 +632,7 @@ static int vpfe_mmap(struct file *file, struct vm_area_struct *vma)
 	return videobuf_mmap_mapper(&vpfe_dev->buffer_queue, vma);
 }
 
-/*
- * vpfe_poll: It is used for select/poll system call
- */
+
 static unsigned int vpfe_poll(struct file *file, poll_table *wait)
 {
 	struct vpfe_device *vpfe_dev = video_drvdata(file);
@@ -765,7 +645,7 @@ static unsigned int vpfe_poll(struct file *file, poll_table *wait)
 	return 0;
 }
 
-/* vpfe capture driver file operations */
+
 static const struct v4l2_file_operations vpfe_fops = {
 	.owner = THIS_MODULE,
 	.open = vpfe_open,
@@ -775,23 +655,7 @@ static const struct v4l2_file_operations vpfe_fops = {
 	.poll = vpfe_poll
 };
 
-/*
- * vpfe_check_format()
- * This function adjust the input pixel format as per hardware
- * capabilities and update the same in pixfmt.
- * Following algorithm used :-
- *
- *	If given pixformat is not in the vpfe list of pix formats or not
- *	supported by the hardware, current value of pixformat in the device
- *	is used
- *	If given field is not supported, then current field is used. If field
- *	is different from current, then it is matched with that from sub device.
- *	Minimum height is 2 lines for interlaced or tb field and 1 line for
- *	progressive. Maximum height is clamped to active active lines of scan
- *	Minimum width is 32 bytes in memory and width is clamped to active
- *	pixels of scan.
- *	bytesperline is a multiple of 32.
- */
+
 static const struct vpfe_pixel_format *
 	vpfe_check_format(struct vpfe_device *vpfe_dev,
 			  struct v4l2_pix_format *pixfmt)
@@ -803,15 +667,12 @@ static const struct vpfe_pixel_format *
 
 	vpfe_pix_fmt = vpfe_lookup_pix_format(pixfmt->pixelformat);
 	if (NULL == vpfe_pix_fmt) {
-		/*
-		 * use current pixel format in the vpfe device. We
-		 * will find this pix format in the table
-		 */
+		
 		pixfmt->pixelformat = vpfe_dev->fmt.fmt.pix.pixelformat;
 		vpfe_pix_fmt = vpfe_lookup_pix_format(pixfmt->pixelformat);
 	}
 
-	/* check if hw supports it */
+	
 	temp = 0;
 	found = 0;
 	while (ccdc_dev->hw_ops.enum_pix(&pix, temp) >= 0) {
@@ -823,34 +684,25 @@ static const struct vpfe_pixel_format *
 	}
 
 	if (!found) {
-		/* use current pixel format */
+		
 		pixfmt->pixelformat = vpfe_dev->fmt.fmt.pix.pixelformat;
-		/*
-		 * Since this is currently used in the vpfe device, we
-		 * will find this pix format in the table
-		 */
+		
 		vpfe_pix_fmt = vpfe_lookup_pix_format(pixfmt->pixelformat);
 	}
 
-	/* check what field format is supported */
+	
 	if (pixfmt->field == V4L2_FIELD_ANY) {
-		/* if field is any, use current value as default */
+		
 		pixfmt->field = vpfe_dev->fmt.fmt.pix.field;
 	}
 
-	/*
-	 * if field is not same as current field in the vpfe device
-	 * try matching the field with the sub device field
-	 */
+	
 	if (vpfe_dev->fmt.fmt.pix.field != pixfmt->field) {
-		/*
-		 * If field value is not in the supported fields, use current
-		 * field used in the device as default
-		 */
+		
 		switch (pixfmt->field) {
 		case V4L2_FIELD_INTERLACED:
 		case V4L2_FIELD_SEQ_TB:
-			/* if sub device is supporting progressive, use that */
+			
 			if (!vpfe_dev->std_info.frame_format)
 				pixfmt->field = V4L2_FIELD_NONE;
 			break;
@@ -860,13 +712,13 @@ static const struct vpfe_pixel_format *
 			break;
 
 		default:
-			/* use current field as default */
+			
 			pixfmt->field = vpfe_dev->fmt.fmt.pix.field;
 			break;
 		}
 	}
 
-	/* Now adjust image resolutions supported */
+	
 	if (pixfmt->field == V4L2_FIELD_INTERLACED ||
 	    pixfmt->field == V4L2_FIELD_SEQ_TB)
 		min_height = 2;
@@ -881,13 +733,10 @@ static const struct vpfe_pixel_format *
 	pixfmt->width = clamp((pixfmt->width), min_width, max_width);
 	pixfmt->height = clamp((pixfmt->height), min_height, max_height);
 
-	/* If interlaced, adjust height to be a multiple of 2 */
+	
 	if (pixfmt->field == V4L2_FIELD_INTERLACED)
 		pixfmt->height &= (~1);
-	/*
-	 * recalculate bytesperline and sizeimage since width
-	 * and height might have changed
-	 */
+	
 	pixfmt->bytesperline = (((pixfmt->width * vpfe_pix_fmt->bpp) + 31)
 				& ~31);
 	if (pixfmt->pixelformat == V4L2_PIX_FMT_NV12)
@@ -926,7 +775,7 @@ static int vpfe_g_fmt_vid_cap(struct file *file, void *priv,
 	int ret = 0;
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_fmt_vid_cap\n");
-	/* Fill in the information about format */
+	
 	*fmt = vpfe_dev->fmt;
 	return ret;
 }
@@ -944,7 +793,7 @@ static int vpfe_enum_fmt_vid_cap(struct file *file, void  *priv,
 	if (ccdc_dev->hw_ops.enum_pix(&pix, fmt->index) < 0)
 		return -EINVAL;
 
-	/* Fill in the information about format */
+	
 	pix_fmt = vpfe_lookup_pix_format(pix);
 	if (NULL != pix_fmt) {
 		temp_index = fmt->index;
@@ -964,27 +813,27 @@ static int vpfe_s_fmt_vid_cap(struct file *file, void *priv,
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_fmt_vid_cap\n");
 
-	/* If streaming is started, return error */
+	
 	if (vpfe_dev->started) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "Streaming is started\n");
 		return -EBUSY;
 	}
 
-	/* Check for valid frame format */
+	
 	pix_fmts = vpfe_check_format(vpfe_dev, &fmt->fmt.pix);
 
 	if (NULL == pix_fmts)
 		return -EINVAL;
 
-	/* store the pixel format in the device  object */
+	
 	ret = mutex_lock_interruptible(&vpfe_dev->lock);
 	if (ret)
 		return ret;
 
-	/* First detach any IRQ if currently attached */
+	
 	vpfe_detach_irq(vpfe_dev);
 	vpfe_dev->fmt = *fmt;
-	/* set image capture parameters in the ccdc */
+	
 	ret = vpfe_config_ccdc_image_format(vpfe_dev);
 	mutex_unlock(&vpfe_dev->lock);
 	return ret;
@@ -1004,10 +853,7 @@ static int vpfe_try_fmt_vid_cap(struct file *file, void *priv,
 	return 0;
 }
 
-/*
- * vpfe_get_subdev_input_index - Get subdev index and subdev input index for a
- * given app input index
- */
+
 static int vpfe_get_subdev_input_index(struct vpfe_device *vpfe_dev,
 					int *subdev_index,
 					int *subdev_input_index,
@@ -1029,11 +875,7 @@ static int vpfe_get_subdev_input_index(struct vpfe_device *vpfe_dev,
 	return -EINVAL;
 }
 
-/*
- * vpfe_get_app_input - Get app input index for a given subdev input index
- * driver stores the input index of the current sub device and translate it
- * when application request the current input
- */
+
 static int vpfe_get_app_input_index(struct vpfe_device *vpfe_dev,
 				    int *app_input_index)
 {
@@ -1101,10 +943,7 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
 	if (ret)
 		return ret;
 
-	/*
-	 * If streaming is started return device busy
-	 * error
-	 */
+	
 	if (vpfe_dev->started) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "Streaming is on\n");
 		ret = -EBUSY;
@@ -1139,12 +978,12 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
 	vpfe_dev->current_input = index;
 	vpfe_dev->std_index = 0;
 
-	/* set the bus/interface parameter for the sub device in ccdc */
+	
 	ret = ccdc_dev->hw_ops.set_hw_if_params(&sdinfo->ccdc_if_params);
 	if (ret)
 		goto unlock_out;
 
-	/* set the default image parameters in the device */
+	
 	ret = vpfe_config_image_format(vpfe_dev,
 				&vpfe_standards[vpfe_dev->std_index].std_id);
 unlock_out:
@@ -1164,7 +1003,7 @@ static int vpfe_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
 	sdinfo = vpfe_dev->current_subdev;
 	if (ret)
 		return ret;
-	/* Call querystd function of decoder device */
+	
 	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
 					 video, querystd, std_id);
 	mutex_unlock(&vpfe_dev->lock);
@@ -1179,13 +1018,13 @@ static int vpfe_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_std\n");
 
-	/* Call decoder driver function to set the standard */
+	
 	ret = mutex_lock_interruptible(&vpfe_dev->lock);
 	if (ret)
 		return ret;
 
 	sdinfo = vpfe_dev->current_subdev;
-	/* If streaming is started, return device busy error */
+	
 	if (vpfe_dev->started) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "streaming is started\n");
 		ret = -EBUSY;
@@ -1214,9 +1053,7 @@ static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *std_id)
 	*std_id = vpfe_standards[vpfe_dev->std_index].std_id;
 	return 0;
 }
-/*
- *  Videobuf operations
- */
+
 static int vpfe_videobuf_setup(struct videobuf_queue *vq,
 				unsigned int *count,
 				unsigned int *size)
@@ -1243,7 +1080,7 @@ static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_prepare\n");
 
-	/* If buffer is not initialized, initialize it */
+	
 	if (VIDEOBUF_NEEDS_INIT == vb->state) {
 		vb->width = vpfe_dev->fmt.fmt.pix.width;
 		vb->height = vpfe_dev->fmt.fmt.pix.height;
@@ -1257,19 +1094,19 @@ static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
 static void vpfe_videobuf_queue(struct videobuf_queue *vq,
 				struct videobuf_buffer *vb)
 {
-	/* Get the file handle object and device object */
+	
 	struct vpfe_fh *fh = vq->priv_data;
 	struct vpfe_device *vpfe_dev = fh->vpfe_dev;
 	unsigned long flags;
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_queue\n");
 
-	/* add the buffer to the DMA queue */
+	
 	spin_lock_irqsave(&vpfe_dev->dma_queue_lock, flags);
 	list_add_tail(&vb->queue, &vpfe_dev->dma_queue);
 	spin_unlock_irqrestore(&vpfe_dev->dma_queue_lock, flags);
 
-	/* Change state of the buffer */
+	
 	vb->state = VIDEOBUF_QUEUED;
 }
 
@@ -1282,10 +1119,7 @@ static void vpfe_videobuf_release(struct videobuf_queue *vq,
 
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_videobuf_release\n");
 
-	/*
-	 * We need to flush the buffer from the dma queue since
-	 * they are de-allocated
-	 */
+	
 	spin_lock_irqsave(&vpfe_dev->dma_queue_lock, flags);
 	INIT_LIST_HEAD(&vpfe_dev->dma_queue);
 	spin_unlock_irqrestore(&vpfe_dev->dma_queue_lock, flags);
@@ -1300,10 +1134,7 @@ static struct videobuf_queue_ops vpfe_videobuf_qops = {
 	.buf_release    = vpfe_videobuf_release,
 };
 
-/*
- * vpfe_reqbufs. currently support REQBUF only once opening
- * the device.
- */
+
 static int vpfe_reqbufs(struct file *file, void *priv,
 			struct v4l2_requestbuffers *req_buf)
 {
@@ -1319,7 +1150,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
 	}
 
 	if (V4L2_MEMORY_USERPTR == req_buf->memory) {
-		/* we don't support user ptr IO */
+		
 		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs:"
 			 " USERPTR IO not supported\n");
 		return  -EINVAL;
@@ -1370,7 +1201,7 @@ static int vpfe_querybuf(struct file *file, void *priv,
 		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid memory\n");
 		return -EINVAL;
 	}
-	/* Call videobuf_querybuf to get information */
+	
 	return videobuf_querybuf(&vpfe_dev->buffer_queue, buf);
 }
 
@@ -1387,10 +1218,7 @@ static int vpfe_qbuf(struct file *file, void *priv,
 		return -EINVAL;
 	}
 
-	/*
-	 * If this file handle is not allowed to do IO,
-	 * return error
-	 */
+	
 	if (!fh->io_allowed) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
 		return -EACCES;
@@ -1413,10 +1241,7 @@ static int vpfe_dqbuf(struct file *file, void *priv,
 				      buf, file->f_flags & O_NONBLOCK);
 }
 
-/*
- * vpfe_calculate_offsets : This function calculates buffers offset
- * for top and bottom field
- */
+
 static void vpfe_calculate_offsets(struct vpfe_device *vpfe_dev)
 {
 	struct v4l2_rect image_win;
@@ -1427,7 +1252,7 @@ static void vpfe_calculate_offsets(struct vpfe_device *vpfe_dev)
 	vpfe_dev->field_off = image_win.height * image_win.width;
 }
 
-/* vpfe_start_ccdc_capture: start streaming in ccdc/isif */
+
 static void vpfe_start_ccdc_capture(struct vpfe_device *vpfe_dev)
 {
 	ccdc_dev->hw_ops.enable(1);
@@ -1436,11 +1261,7 @@ static void vpfe_start_ccdc_capture(struct vpfe_device *vpfe_dev)
 	vpfe_dev->started = 1;
 }
 
-/*
- * vpfe_streamon. Assume the DMA queue is not empty.
- * application is expected to call QBUF before calling
- * this ioctl. If not, driver returns error
- */
+
 static int vpfe_streamon(struct file *file, void *priv,
 			 enum v4l2_buf_type buf_type)
 {
@@ -1457,7 +1278,7 @@ static int vpfe_streamon(struct file *file, void *priv,
 		return -EINVAL;
 	}
 
-	/* If file handle is not allowed IO, return error */
+	
 	if (!fh->io_allowed) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
 		return -EACCES;
@@ -1472,13 +1293,13 @@ static int vpfe_streamon(struct file *file, void *priv,
 		return -EINVAL;
 	}
 
-	/* If buffer queue is empty, return error */
+	
 	if (list_empty(&vpfe_dev->buffer_queue.stream)) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "buffer queue is empty\n");
 		return -EIO;
 	}
 
-	/* Call videobuf_streamon to start streaming * in videobuf */
+	
 	ret = videobuf_streamon(&vpfe_dev->buffer_queue);
 	if (ret)
 		return ret;
@@ -1487,19 +1308,19 @@ static int vpfe_streamon(struct file *file, void *priv,
 	ret = mutex_lock_interruptible(&vpfe_dev->lock);
 	if (ret)
 		goto streamoff;
-	/* Get the next frame from the buffer queue */
+	
 	vpfe_dev->next_frm = list_entry(vpfe_dev->dma_queue.next,
 					struct videobuf_buffer, queue);
 	vpfe_dev->cur_frm = vpfe_dev->next_frm;
-	/* Remove buffer from the buffer queue */
+	
 	list_del(&vpfe_dev->cur_frm->queue);
-	/* Mark state of the current frame to active */
+	
 	vpfe_dev->cur_frm->state = VIDEOBUF_ACTIVE;
-	/* Initialize field_id and started member */
+	
 	vpfe_dev->field_id = 0;
 	addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
 
-	/* Calculate field offset */
+	
 	vpfe_calculate_offsets(vpfe_dev);
 
 	if (vpfe_attach_irq(vpfe_dev) < 0) {
@@ -1540,13 +1361,13 @@ static int vpfe_streamoff(struct file *file, void *priv,
 		return -EINVAL;
 	}
 
-	/* If io is allowed for this file handle, return error */
+	
 	if (!fh->io_allowed) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
 		return -EACCES;
 	}
 
-	/* If streaming is not started, return error */
+	
 	if (!vpfe_dev->started) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "device started\n");
 		return -EINVAL;
@@ -1610,7 +1431,7 @@ static int vpfe_s_crop(struct file *file, void *priv,
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_crop\n");
 
 	if (vpfe_dev->started) {
-		/* make sure streaming is not started */
+		
 		v4l2_err(&vpfe_dev->v4l2_dev,
 			"Cannot change crop when streaming is ON\n");
 		return -EBUSY;
@@ -1627,10 +1448,10 @@ static int vpfe_s_crop(struct file *file, void *priv,
 		goto unlock_out;
 	}
 
-	/* adjust the width to 16 pixel boundry */
+	
 	crop->c.width = ((crop->c.width + 15) & ~0xf);
 
-	/* make sure parameters are valid */
+	
 	if ((crop->c.left + crop->c.width >
 		vpfe_dev->std_info.active_pixels) ||
 	    (crop->c.top + crop->c.height >
@@ -1663,7 +1484,7 @@ static long vpfe_param_handler(struct file *file, void *priv,
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
 
 	if (vpfe_dev->started) {
-		/* only allowed if streaming is not started */
+		
 		v4l2_err(&vpfe_dev->v4l2_dev, "device already started\n");
 		return -EBUSY;
 	}
@@ -1697,7 +1518,7 @@ unlock_out:
 }
 
 
-/* vpfe capture ioctl operations */
+
 static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
 	.vidioc_querycap	 = vpfe_querycap,
 	.vidioc_g_fmt_vid_cap    = vpfe_g_fmt_vid_cap,
@@ -1726,15 +1547,12 @@ static struct vpfe_device *vpfe_initialize(void)
 {
 	struct vpfe_device *vpfe_dev;
 
-	/* Default number of buffers should be 3 */
+	
 	if ((numbuffers > 0) &&
 	    (numbuffers < config_params.min_numbuffers))
 		numbuffers = config_params.min_numbuffers;
 
-	/*
-	 * Set buffer size to min buffers size if invalid buffer size is
-	 * given
-	 */
+	
 	if (bufsize < config_params.min_bufsize)
 		bufsize = config_params.min_bufsize;
 
@@ -1743,7 +1561,7 @@ static struct vpfe_device *vpfe_initialize(void)
 	if (numbuffers)
 		config_params.device_bufsize = bufsize;
 
-	/* Allocate memory for device objects */
+	
 	vpfe_dev = kzalloc(sizeof(*vpfe_dev), GFP_KERNEL);
 
 	return vpfe_dev;
@@ -1804,11 +1622,7 @@ out:
 	return -1;
 }
 
-/*
- * vpfe_probe : This function creates device entries by register
- * itself to the V4L2 driver and initializes fields of each
- * device objects
- */
+
 static __init int vpfe_probe(struct platform_device *pdev)
 {
 	struct vpfe_subdev_info *sdinfo;
@@ -1820,7 +1634,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 	int ret = -ENOMEM, i, j;
 	int num_subdevs = 0;
 
-	/* Get the pointer to the device object */
+	
 	vpfe_dev = vpfe_initialize();
 
 	if (!vpfe_dev) {
@@ -1847,13 +1661,13 @@ static __init int vpfe_probe(struct platform_device *pdev)
 		goto probe_free_dev_mem;
 	}
 
-	/* enable vpss clocks */
+	
 	ret = vpfe_enable_clock(vpfe_dev);
 	if (ret)
 		goto probe_free_dev_mem;
 
 	mutex_lock(&ccdc_lock);
-	/* Allocate memory for ccdc configuration */
+	
 	ccdc_cfg = kmalloc(sizeof(struct ccdc_config), GFP_KERNEL);
 	if (NULL == ccdc_cfg) {
 		v4l2_err(pdev->dev.driver,
@@ -1862,7 +1676,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 	}
 
 	strncpy(ccdc_cfg->name, vpfe_cfg->ccdc, 32);
-	/* Get VINT0 irq resource */
+	
 	res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	if (!res1) {
 		v4l2_err(pdev->dev.driver,
@@ -1872,7 +1686,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 	}
 	vpfe_dev->ccdc_irq0 = res1->start;
 
-	/* Get VINT1 irq resource */
+	
 	res1 = platform_get_resource(pdev,
 				IORESOURCE_IRQ, 1);
 	if (!res1) {
@@ -1883,7 +1697,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 	}
 	vpfe_dev->ccdc_irq1 = res1->start;
 
-	/* Get address base of CCDC */
+	
 	res1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!res1) {
 		v4l2_err(pdev->dev.driver,
@@ -1916,7 +1730,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 		goto probe_out_unmap1;
 	}
 
-	/* Allocate memory for video device */
+	
 	vfd = video_device_alloc();
 	if (NULL == vfd) {
 		ret = -ENOMEM;
@@ -1925,7 +1739,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 		goto probe_out_release_irq;
 	}
 
-	/* Initialize field of video device */
+	
 	vfd->release		= video_device_release;
 	vfd->fops		= &vpfe_fops;
 	vfd->ioctl_ops		= &vpfe_ioctl_ops;
@@ -1939,7 +1753,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 		 (VPFE_CAPTURE_VERSION_CODE >> 16) & 0xff,
 		 (VPFE_CAPTURE_VERSION_CODE >> 8) & 0xff,
 		 (VPFE_CAPTURE_VERSION_CODE) & 0xff);
-	/* Set video_dev to the video device */
+	
 	vpfe_dev->video_dev	= vfd;
 
 	ret = v4l2_device_register(&pdev->dev, &vpfe_dev->v4l2_dev);
@@ -1953,12 +1767,12 @@ static __init int vpfe_probe(struct platform_device *pdev)
 	spin_lock_init(&vpfe_dev->dma_queue_lock);
 	mutex_init(&vpfe_dev->lock);
 
-	/* Initialize field of the device objects */
+	
 	vpfe_dev->numbuffers = config_params.numbuffers;
 
-	/* Initialize prio member of device object */
+	
 	v4l2_prio_init(&vpfe_dev->prio);
-	/* register video device */
+	
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
 		"trying to register vpfe device.\n");
 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
@@ -1974,9 +1788,9 @@ static __init int vpfe_probe(struct platform_device *pdev)
 	}
 
 	v4l2_info(&vpfe_dev->v4l2_dev, "video device registered\n");
-	/* set the driver data in platform device */
+	
 	platform_set_drvdata(pdev, vpfe_dev);
-	/* set driver private data */
+	
 	video_set_drvdata(vpfe_dev->video_dev, vpfe_dev);
 	i2c_adap = i2c_get_adapter(1);
 	vpfe_cfg = pdev->dev.platform_data;
@@ -1995,7 +1809,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 
 		sdinfo = &vpfe_cfg->sub_devs[i];
 
-		/* Load up the subdevice */
+		
 		vpfe_dev->sd[i] =
 			v4l2_i2c_new_subdev_board(&vpfe_dev->v4l2_dev,
 						  i2c_adap,
@@ -2007,7 +1821,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
 				  "v4l2 sub device %s registered\n",
 				  sdinfo->name);
 			vpfe_dev->sd[i]->grp_id = sdinfo->grp_id;
-			/* update tvnorms from the sub devices */
+			
 			for (j = 0; j < sdinfo->num_inputs; j++) {
 				inps = &sdinfo->inputs[j];
 				vfd->tvnorms |= inps->std;
@@ -2020,10 +1834,10 @@ static __init int vpfe_probe(struct platform_device *pdev)
 		}
 	}
 
-	/* set first sub device as current one */
+	
 	vpfe_dev->current_subdev = &vpfe_cfg->sub_devs[0];
 
-	/* We have at least one sub device to work with */
+	
 	mutex_unlock(&ccdc_lock);
 	return 0;
 
@@ -2051,9 +1865,7 @@ probe_free_dev_mem:
 	return ret;
 }
 
-/*
- * vpfe_remove : It un-register device from V4L2 driver
- */
+
 static int vpfe_remove(struct platform_device *pdev)
 {
 	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
@@ -2079,14 +1891,14 @@ static int vpfe_remove(struct platform_device *pdev)
 static int
 vpfe_suspend(struct device *dev)
 {
-	/* add suspend code here later */
+	
 	return -1;
 }
 
 static int
 vpfe_resume(struct device *dev)
 {
-	/* add resume code here later */
+	
 	return -1;
 }
 
@@ -2108,13 +1920,11 @@ static struct platform_driver vpfe_driver = {
 static __init int vpfe_init(void)
 {
 	printk(KERN_NOTICE "vpfe_init\n");
-	/* Register driver to the kernel */
+	
 	return platform_driver_register(&vpfe_driver);
 }
 
-/*
- * vpfe_cleanup : This function un-registers device driver
- */
+
 static void vpfe_cleanup(void)
 {
 	platform_driver_unregister(&vpfe_driver);

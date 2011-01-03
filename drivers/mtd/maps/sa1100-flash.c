@@ -1,8 +1,4 @@
-/*
- * Flash memory access on SA11x0 based devices
- *
- * (C) 2000 Nicolas Pitre <nico@fluxnic.net>
- */
+
 #include <linux/module.h>
 #include <linux/types.h>
 #include <linux/ioport.h>
@@ -24,16 +20,13 @@
 #include <asm/mach/flash.h>
 
 #if 0
-/*
- * This is here for documentation purposes only - until these people
- * submit their machine types.  It will be gone January 2005.
- */
+
 static struct mtd_partition consus_partitions[] = {
 	{
 		.name		= "Consus boot firmware",
 		.offset		= 0,
 		.size		= 0x00040000,
-		.mask_flags	= MTD_WRITABLE, /* force read-only */
+		.mask_flags	= MTD_WRITABLE, 
 	}, {
 		.name		= "Consus kernel",
 		.offset		= 0x00040000,
@@ -42,20 +35,11 @@ static struct mtd_partition consus_partitions[] = {
 	}, {
 		.name		= "Consus disk",
 		.offset		= 0x00140000,
-		/* The rest (up to 16M) for jffs.  We could put 0 and
-		   make it find the size automatically, but right now
-		   i have 32 megs.  jffs will use all 32 megs if given
-		   the chance, and this leads to horrible problems
-		   when you try to re-flash the image because blob
-		   won't erase the whole partition. */
+		
 		.size		= 0x01000000 - 0x00140000,
 		.mask_flags	= 0,
 	}, {
-		/* this disk is a secondary disk, which can be used as
-		   needed, for simplicity, make it the size of the other
-		   consus partition, although realistically it could be
-		   the remainder of the disk (depending on the file
-		   system used) */
+		
 		 .name		= "Consus disk2",
 		 .offset	= 0x01000000,
 		 .size		= 0x01000000 - 0x00140000,
@@ -63,7 +47,7 @@ static struct mtd_partition consus_partitions[] = {
 	}
 };
 
-/* Frodo has 2 x 16M 28F128J3A flash chips in bank 0: */
+
 static struct mtd_partition frodo_partitions[] =
 {
 	{
@@ -115,12 +99,7 @@ static void jornada56x_set_vpp(int vpp)
 	GPDR |= GPIO_GPIO26;
 }
 
-/*
- * Machine        Phys          Size    set_vpp
- * Consus    : SA1100_CS0_PHYS SZ_32M
- * Frodo     : SA1100_CS0_PHYS SZ_32M
- * Jornada56x: SA1100_CS0_PHYS SZ_32M jornada56x_set_vpp
- */
+
 #endif
 
 struct sa_subdev_info {
@@ -162,10 +141,7 @@ static int sa1100_probe_subdev(struct sa_subdev_info *subdev, struct resource *r
 	phys = res->start;
 	size = res->end - phys + 1;
 
-	/*
-	 * Retrieve the bankwidth from the MSC registers.
-	 * We currently only implement CS0 and CS1 here.
-	 */
+	
 	switch (phys) {
 	default:
 		printk(KERN_WARNING "SA1100 flash: unknown base address "
@@ -198,10 +174,7 @@ static int sa1100_probe_subdev(struct sa_subdev_info *subdev, struct resource *r
 
 	simple_map_init(&subdev->map);
 
-	/*
-	 * Now let's probe for the actual flash.  Do it here since
-	 * specific machine settings might have been set above.
-	 */
+	
 	subdev->mtd = do_map_probe(subdev->plat->map_name, &subdev->map);
 	if (subdev->mtd == NULL) {
 		ret = -ENXIO;
@@ -254,9 +227,7 @@ sa1100_setup_mtd(struct platform_device *pdev, struct flash_platform_data *plat)
 	struct sa_info *info;
 	int nr, size, i, ret = 0;
 
-	/*
-	 * Count number of devices.
-	 */
+	
 	for (nr = 0; ; nr++)
 		if (!platform_get_resource(pdev, IORESOURCE_MEM, nr))
 			break;
@@ -268,9 +239,7 @@ sa1100_setup_mtd(struct platform_device *pdev, struct flash_platform_data *plat)
 
 	size = sizeof(struct sa_info) + sizeof(struct sa_subdev_info) * nr;
 
-	/*
-	 * Allocate the map_info structs in one go.
-	 */
+	
 	info = kzalloc(size, GFP_KERNEL);
 	if (!info) {
 		ret = -ENOMEM;
@@ -283,9 +252,7 @@ sa1100_setup_mtd(struct platform_device *pdev, struct flash_platform_data *plat)
 			goto err;
 	}
 
-	/*
-	 * Claim and then map the memory regions.
-	 */
+	
 	for (i = 0; i < nr; i++) {
 		struct sa_subdev_info *subdev = &info->subdev[i];
 		struct resource *res;
@@ -305,17 +272,11 @@ sa1100_setup_mtd(struct platform_device *pdev, struct flash_platform_data *plat)
 
 	info->num_subdev = i;
 
-	/*
-	 * ENXIO is special.  It means we didn't find a chip when we probed.
-	 */
+	
 	if (ret != 0 && !(ret == -ENXIO && info->num_subdev > 0))
 		goto err;
 
-	/*
-	 * If we found one device, don't bother with concat support.  If
-	 * we found multiple devices, use concat if we have it available,
-	 * otherwise fail.  Either way, it'll be called "sa1100".
-	 */
+	
 	if (info->num_subdev == 1) {
 		strcpy(info->subdev[0].name, plat->name);
 		info->mtd = info->subdev[0].mtd;
@@ -323,9 +284,7 @@ sa1100_setup_mtd(struct platform_device *pdev, struct flash_platform_data *plat)
 	} else if (info->num_subdev > 1) {
 #ifdef CONFIG_MTD_CONCAT
 		struct mtd_info *cdev[nr];
-		/*
-		 * We detected multiple devices.  Concatenate them together.
-		 */
+		
 		for (i = 0; i < info->num_subdev; i++)
 			cdev[i] = info->subdev[i].mtd;
 
@@ -368,9 +327,7 @@ static int __devinit sa1100_mtd_probe(struct platform_device *pdev)
 		goto out;
 	}
 
-	/*
-	 * Partition selection stuff.
-	 */
+	
 #ifdef CONFIG_MTD_PARTITIONS
 	nr_parts = parse_mtd_partitions(info->mtd, part_probes, &parts, 0);
 	if (nr_parts > 0) {

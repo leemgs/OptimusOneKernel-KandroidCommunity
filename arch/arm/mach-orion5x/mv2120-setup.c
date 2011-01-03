@@ -1,12 +1,4 @@
-/*
- * Copyright (C) 2007 Herbert Valerio Riedel <hvr@gnu.org>
- * Copyright (C) 2008 Martin Michlmayr <tbm@cyrius.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -35,9 +27,7 @@
 #define MV2120_GPIO_POWER_OFF	19
 
 
-/*****************************************************************************
- * Ethernet
- ****************************************************************************/
+
 static struct mv643xx_eth_platform_data mv2120_eth_data = {
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(8),
 };
@@ -105,30 +95,28 @@ static struct platform_device mv2120_button_device = {
 };
 
 
-/****************************************************************************
- * General Setup
- ****************************************************************************/
+
 static struct orion5x_mpp_mode mv2120_mpp_modes[] __initdata = {
-	{  0, MPP_GPIO },		/* Sys status LED */
-	{  1, MPP_GPIO },		/* Sys error LED */
-	{  2, MPP_GPIO },		/* OverTemp interrupt */
-	{  3, MPP_GPIO },		/* RTC interrupt */
-	{  4, MPP_GPIO },		/* V_LED 5V */
-	{  5, MPP_GPIO },		/* V_LED 3.3V */
+	{  0, MPP_GPIO },		
+	{  1, MPP_GPIO },		
+	{  2, MPP_GPIO },		
+	{  3, MPP_GPIO },		
+	{  4, MPP_GPIO },		
+	{  5, MPP_GPIO },		
 	{  6, MPP_UNUSED },
 	{  7, MPP_UNUSED },
-	{  8, MPP_GPIO },		/* SATA 0 fail LED */
-	{  9, MPP_GPIO },		/* SATA 1 fail LED */
+	{  8, MPP_GPIO },		
+	{  9, MPP_GPIO },		
 	{ 10, MPP_UNUSED },
 	{ 11, MPP_UNUSED },
-	{ 12, MPP_SATA_LED },		/* SATA 0 presence */
-	{ 13, MPP_SATA_LED },		/* SATA 1 presence */
-	{ 14, MPP_SATA_LED },		/* SATA 0 active */
-	{ 15, MPP_SATA_LED },		/* SATA 1 active */
+	{ 12, MPP_SATA_LED },		
+	{ 13, MPP_SATA_LED },		
+	{ 14, MPP_SATA_LED },		
+	{ 15, MPP_SATA_LED },		
 	{ 16, MPP_UNUSED },
-	{ 17, MPP_GPIO },		/* Reset button */
-	{ 18, MPP_GPIO },		/* Power button */
-	{ 19, MPP_GPIO },		/* Power off */
+	{ 17, MPP_GPIO },		
+	{ 18, MPP_GPIO },		
+	{ 19, MPP_GPIO },		
 	{ -1 },
 };
 
@@ -189,14 +177,12 @@ static void mv2120_power_off(void)
 
 static void __init mv2120_init(void)
 {
-	/* Setup basic Orion functions. Need to be called early. */
+	
 	orion5x_init();
 
 	orion5x_mpp_conf(mv2120_mpp_modes);
 
-	/*
-	 * Configure peripherals.
-	 */
+	
 	orion5x_ehci0_init();
 	orion5x_ehci1_init();
 	orion5x_eth_init(&mv2120_eth_data);
@@ -219,16 +205,16 @@ static void __init mv2120_init(void)
 	i2c_register_board_info(0, &mv2120_i2c_rtc, 1);
 	platform_device_register(&mv2120_leds);
 
-	/* register mv2120 specific power-off method */
+	
 	if (gpio_request(MV2120_GPIO_POWER_OFF, "POWEROFF") != 0 ||
 	    gpio_direction_output(MV2120_GPIO_POWER_OFF, 1) != 0)
 		pr_err("mv2120: failed to setup power-off GPIO\n");
 	pm_power_off = mv2120_power_off;
 }
 
-/* Warning: HP uses a wrong mach-type (=526) in their bootloader */
+
 MACHINE_START(MV2120, "HP Media Vault mv2120")
-	/* Maintainer: Martin Michlmayr <tbm@cyrius.com> */
+	
 	.phys_io	= ORION5X_REGS_PHYS_BASE,
 	.io_pg_offst	= ((ORION5X_REGS_VIRT_BASE) >> 18) & 0xFFFC,
 	.boot_params	= 0x00000100,

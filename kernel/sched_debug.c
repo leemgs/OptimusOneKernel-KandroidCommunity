@@ -1,14 +1,4 @@
-/*
- * kernel/time/sched_debug.c
- *
- * Print the CFS rbtree
- *
- * Copyright(C) 2007, Red Hat, Inc., Ingo Molnar
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/proc_fs.h>
 #include <linux/sched.h>
@@ -16,10 +6,7 @@
 #include <linux/kallsyms.h>
 #include <linux/utsname.h>
 
-/*
- * This allows printing both to /proc/sched_debug and
- * to the console
- */
+
 #define SEQ_printf(m, x...)			\
  do {						\
 	if (m)					\
@@ -28,9 +15,7 @@
 		printk(x);			\
  } while (0)
 
-/*
- * Ease the printing of nsec fields:
- */
+
 static long long nsec_high(unsigned long long nsec)
 {
 	if ((long long)nsec < 0) {
@@ -149,7 +134,7 @@ static void print_rq(struct seq_file *m, struct rq *rq, int rq_cpu)
 	(defined(CONFIG_FAIR_GROUP_SCHED) || defined(CONFIG_RT_GROUP_SCHED))
 static void task_group_path(struct task_group *tg, char *buf, int buflen)
 {
-	/* may be NULL if the underlying cgroup isn't fully-created yet */
+	
 	if (!tg->css.cgroup) {
 		buf[0] = '\0';
 		return;

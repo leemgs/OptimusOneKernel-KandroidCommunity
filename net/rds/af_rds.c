@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2006 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/module.h>
 #include <linux/errno.h>
 #include <linux/kernel.h>
@@ -40,21 +9,13 @@
 #include "rds.h"
 #include "rdma.h"
 
-/* this is just used for stats gathering :/ */
+
 static DEFINE_SPINLOCK(rds_sock_lock);
 static unsigned long rds_sock_count;
 static LIST_HEAD(rds_sock_list);
 DECLARE_WAIT_QUEUE_HEAD(rds_poll_waitq);
 
-/*
- * This is called as the final descriptor referencing this socket is closed.
- * We have to unbind the socket so that another socket can be bound to the
- * address it was using.
- *
- * We have to be careful about racing with the incoming path.  sock_orphan()
- * sets SOCK_DEAD and we use that as an indicator to the rx path that new
- * messages shouldn't be queued.
- */
+
 static int rds_release(struct socket *sock)
 {
 	struct sock *sk = sock->sk;
@@ -67,9 +28,7 @@ static int rds_release(struct socket *sock)
 	rs = rds_sk_to_rs(sk);
 
 	sock_orphan(sk);
-	/* Note - rds_clear_recv_queue grabs rs_recv_lock, so
-	 * that ensures the recv path has completed messing
-	 * with the socket. */
+	
 	rds_clear_recv_queue(rs);
 	rds_cong_remove_socket(rs);
 	rds_remove_bound(rs);
@@ -88,15 +47,7 @@ out:
 	return 0;
 }
 
-/*
- * Careful not to race with rds_release -> sock_orphan which clears sk_sleep.
- * _bh() isn't OK here, we're called from interrupt handlers.  It's probably OK
- * to wake the waitqueue after sk_sleep is clear as we hold a sock ref, but
- * this seems more conservative.
- * NB - normally, one would use sk_callback_lock for this, but we can
- * get here from interrupts, whereas the network code grabs sk_callback_lock
- * with _lock_bh only - so relying on sk_callback_lock introduces livelocks.
- */
+
 void rds_wake_sk_sleep(struct rds_sock *rs)
 {
 	unsigned long flags;
@@ -114,7 +65,7 @@ static int rds_getname(struct socket *sock, struct sockaddr *uaddr,
 
 	memset(sin->sin_zero, 0, sizeof(sin->sin_zero));
 
-	/* racey, don't care */
+	
 	if (peer) {
 		if (!rs->rs_conn_addr)
 			return -ENOTCONN;
@@ -132,23 +83,7 @@ static int rds_getname(struct socket *sock, struct sockaddr *uaddr,
 	return 0;
 }
 
-/*
- * RDS' poll is without a doubt the least intuitive part of the interface,
- * as POLLIN and POLLOUT do not behave entirely as you would expect from
- * a network protocol.
- *
- * POLLIN is asserted if
- *  -	there is data on the receive queue.
- *  -	to signal that a previously congested destination may have become
- *	uncongested
- *  -	A notification has been queued to the socket (this can be a congestion
- *	update, or a RDMA completion).
- *
- * POLLOUT is asserted if there is room on the send queue. This does not mean
- * however, that the next sendmsg() call will succeed. If the application tries
- * to send to a congested destination, the system call may still fail (and
- * return ENOBUFS).
- */
+
 static unsigned int rds_poll(struct file *file, struct socket *sock,
 			     poll_table *wait)
 {
@@ -163,9 +98,7 @@ static unsigned int rds_poll(struct file *file, struct socket *sock,
 
 	read_lock_irqsave(&rs->rs_recv_lock, flags);
 	if (!rs->rs_cong_monitor) {
-		/* When a congestion map was updated, we signal POLLIN for
-		 * "historical" reasons. Applications can also poll for
-		 * WRBAND instead. */
+		
 		if (rds_cong_updated_since(&rs->rs_cong_track))
 			mask |= (POLLIN | POLLRDNORM | POLLWRBAND);
 	} else {
@@ -195,9 +128,9 @@ static int rds_cancel_sent_to(struct rds_sock *rs, char __user *optval,
 	struct sockaddr_in sin;
 	int ret = 0;
 
-	/* racing with another thread binding seems ok here */
+	
 	if (rs->rs_bound_addr == 0) {
-		ret = -ENOTCONN; /* XXX not a great errno */
+		ret = -ENOTCONN; 
 		goto out;
 	}
 
@@ -455,7 +388,7 @@ static void rds_sock_inc_info(struct socket *sock, unsigned int len,
 		sk = rds_rs_to_sk(rs);
 		read_lock(&rs->rs_recv_lock);
 
-		/* XXX too lazy to maintain counts.. */
+		
 		list_for_each_entry(inc, &rs->rs_recv_queue, i_item) {
 			total++;
 			if (total <= len)

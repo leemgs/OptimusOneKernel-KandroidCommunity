@@ -1,9 +1,4 @@
-/*
- * USB NB Camera driver
- *
- * HISTORY:
- * 25-Dec-2002 Dmitri      Removed lighting, sharpness parameters, methods.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -14,14 +9,12 @@
 #define	ULTRACAM_VENDOR_ID	0x0461
 #define	ULTRACAM_PRODUCT_ID	0x0813
 
-#define MAX_CAMERAS		4	/* How many devices we allow to connect */
+#define MAX_CAMERAS		4	
 
-/*
- * This structure lives in uvd_t->user field.
- */
+
 typedef struct {
-	int initialized;	/* Had we already sent init sequence? */
-	int camera_model;	/* What type of IBM camera we got? */
+	int initialized;	
+	int camera_model;	
 	int has_hdr;
 } ultracam_t;
 #define	ULTRACAM_T(uvd)	((ultracam_t *)((uvd)->user_data))
@@ -30,7 +23,7 @@ static struct usbvideo *cams = NULL;
 
 static int debug;
 
-static int flags; /* FLAGS_DISPLAY_HINTS | FLAGS_OVERLAY_STATS; */
+static int flags; 
 
 static const int min_canvasWidth  = 8;
 static const int min_canvasHeight = 4;
@@ -39,20 +32,7 @@ static const int min_canvasHeight = 4;
 #define FRAMERATE_MAX	6
 static int framerate = -1;
 
-/*
- * Here we define several initialization variables. They may
- * be used to automatically set color, hue, brightness and
- * contrast to desired values. This is particularly useful in
- * case of webcams (which have no controls and no on-screen
- * output) and also when a client V4L software is used that
- * does not have some of those controls. In any case it's
- * good to have startup values as options.
- *
- * These values are all in [0..255] range. This simplifies
- * operation. Note that actual values of V4L variables may
- * be scaled up (as much as << 8). User can see that only
- * on overlay output, however, or through a V4L client.
- */
+
 static int init_brightness = 128;
 static int init_contrast = 192;
 static int init_color = 128;
@@ -84,16 +64,7 @@ MODULE_PARM_DESC(init_hue, "Hue preconfiguration: 0-255 (default=128)");
 module_param(hue_correction, int, 0);
 MODULE_PARM_DESC(hue_correction, "YUV colorspace regulation: 0-255 (default=128)");
 
-/*
- * ultracam_ProcessIsocData()
- *
- * Generic routine to parse the ring queue data. It employs either
- * ultracam_find_header() or ultracam_parse_lines() to do most
- * of work.
- *
- * 02-Nov-2000 First (mostly dummy) version.
- * 06-Nov-2000 Rewrote to dump all data into frame.
- */
+
 static void ultracam_ProcessIsocData(struct uvd *uvd, struct usbvideo_frame *frame)
 {
 	int n;
@@ -101,22 +72,22 @@ static void ultracam_ProcessIsocData(struct uvd *uvd, struct usbvideo_frame *fra
 	assert(uvd != NULL);
 	assert(frame != NULL);
 
-	/* Try to move data from queue into frame buffer */
+	
 	n = RingQueue_GetLength(&uvd->dp);
 	if (n > 0) {
 		int m;
-		/* See how much spare we have left */
+		
 		m = uvd->max_frame_size - frame->seqRead_Length;
 		if (n > m)
 			n = m;
-		/* Now move that much data into frame buffer */
+		
 		RingQueue_Dequeue(
 			&uvd->dp,
 			frame->data + frame->seqRead_Length,
 			m);
 		frame->seqRead_Length += m;
 	}
-	/* See if we filled the frame */
+	
 	if (frame->seqRead_Length >= uvd->max_frame_size) {
 		frame->frameState = FrameState_Done;
 		uvd->curframe = -1;
@@ -124,12 +95,7 @@ static void ultracam_ProcessIsocData(struct uvd *uvd, struct usbvideo_frame *fra
 	}
 }
 
-/*
- * ultracam_veio()
- *
- * History:
- * 1/27/00  Added check for dev == NULL; this happens if camera is unplugged.
- */
+
 static int ultracam_veio(
 	struct uvd *uvd,
 	unsigned char req,
@@ -138,7 +104,7 @@ static int ultracam_veio(
 	int is_out)
 {
 	static const char proc[] = "ultracam_veio";
-	unsigned char cp[8] /* = { 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef } */;
+	unsigned char cp[8] ;
 	int i;
 
 	if (!CAMERA_IS_OPERATIONAL(uvd))
@@ -182,26 +148,18 @@ static int ultracam_veio(
 	return i;
 }
 
-/*
- * ultracam_calculate_fps()
- */
+
 static int ultracam_calculate_fps(struct uvd *uvd)
 {
 	return 3 + framerate*4 + framerate/2;
 }
 
-/*
- * ultracam_adjust_contrast()
- */
+
 static void ultracam_adjust_contrast(struct uvd *uvd)
 {
 }
 
-/*
- * ultracam_set_brightness()
- *
- * This procedure changes brightness of the picture.
- */
+
 static void ultracam_set_brightness(struct uvd *uvd)
 {
 }
@@ -210,12 +168,7 @@ static void ultracam_set_hue(struct uvd *uvd)
 {
 }
 
-/*
- * ultracam_adjust_picture()
- *
- * This procedure gets called from V4L interface to update picture settings.
- * Here we change brightness and contrast.
- */
+
 static void ultracam_adjust_picture(struct uvd *uvd)
 {
 	ultracam_adjust_contrast(uvd);
@@ -223,23 +176,12 @@ static void ultracam_adjust_picture(struct uvd *uvd)
 	ultracam_set_hue(uvd);
 }
 
-/*
- * ultracam_video_stop()
- *
- * This code tells camera to stop streaming. The interface remains
- * configured and bandwidth - claimed.
- */
+
 static void ultracam_video_stop(struct uvd *uvd)
 {
 }
 
-/*
- * ultracam_reinit_iso()
- *
- * This procedure sends couple of commands to the camera and then
- * resets the video pipe. This sequence was observed to reinit the
- * camera or, at least, to initiate ISO data stream.
- */
+
 static void ultracam_reinit_iso(struct uvd *uvd, int do_stop)
 {
 }
@@ -268,13 +210,11 @@ static int ultracam_alternateSetting(struct uvd *uvd, int setting)
 	return 0;
 }
 
-/*
- * Return negative code on failure, 0 on success.
- */
+
 static int ultracam_setup_on_open(struct uvd *uvd)
 {
-	int setup_ok = 0; /* Success by default */
-	/* Send init sequence only once, it's large! */
+	int setup_ok = 0; 
+	
 	if (!ULTRACAM_T(uvd)->initialized) {
 		ultracam_alternateSetting(uvd, 0x04);
 		ultracam_alternateSetting(uvd, 0x00);
@@ -477,7 +417,7 @@ static void ultracam_configure_video(struct uvd *uvd)
 	uvd->vpic.hue = init_hue << 8;
 	uvd->vpic.brightness = init_brightness << 8;
 	uvd->vpic.contrast = init_contrast << 8;
-	uvd->vpic.whiteness = 105 << 8; /* This one isn't used */
+	uvd->vpic.whiteness = 105 << 8; 
 	uvd->vpic.depth = 24;
 	uvd->vpic.palette = VIDEO_PALETTE_RGB24;
 
@@ -499,16 +439,7 @@ static void ultracam_configure_video(struct uvd *uvd)
 	strcpy(uvd->vchan.name, "Camera");
 }
 
-/*
- * ultracam_probe()
- *
- * This procedure queries device descriptor and accepts the interface
- * if it looks like our camera.
- *
- * History:
- * 12-Nov-2000 Reworked to comply with new probe() signature.
- * 23-Jan-2001 Added compatibility with 2.2.x kernels.
- */
+
 static int ultracam_probe(struct usb_interface *intf, const struct usb_device_id *devid)
 {
 	struct usb_device *dev = interface_to_usbdev(intf);
@@ -520,14 +451,14 @@ static int ultracam_probe(struct usb_interface *intf, const struct usb_device_id
 	if (debug >= 1)
 		dev_info(&intf->dev, "ultracam_probe\n");
 
-	/* We don't handle multi-config cameras */
+	
 	if (dev->descriptor.bNumConfigurations != 1)
 		return -ENODEV;
 
 	dev_info(&intf->dev, "IBM Ultra camera found (rev. 0x%04x)\n",
 		 le16_to_cpu(dev->descriptor.bcdDevice));
 
-	/* Validate found interface: must have one ISO endpoint */
+	
 	nas = intf->num_altsetting;
 	if (debug > 0)
 		dev_info(&intf->dev, "Number of alternate settings=%d.\n",
@@ -536,7 +467,7 @@ static int ultracam_probe(struct usb_interface *intf, const struct usb_device_id
 		err("Too few alternate settings for this camera!");
 		return -ENODEV;
 	}
-	/* Validate all alternate settings */
+	
 	for (ix=0; ix < nas; ix++) {
 		const struct usb_host_interface *interface;
 		const struct usb_endpoint_descriptor *endpoint;
@@ -582,9 +513,9 @@ static int ultracam_probe(struct usb_interface *intf, const struct usb_device_id
 						 "Active setting=%d. "
 						 "maxPS=%d.\n", i, maxPS);
 			} else {
-				/* Got another active alt. setting */
+				
 				if (maxPS < le16_to_cpu(endpoint->wMaxPacketSize)) {
-					/* This one is better! */
+					
 					actInterface = i;
 					maxPS = le16_to_cpu(endpoint->wMaxPacketSize);
 					if (debug > 0) {
@@ -605,7 +536,7 @@ static int ultracam_probe(struct usb_interface *intf, const struct usb_device_id
 
 	uvd = usbvideo_AllocateDevice(cams);
 	if (uvd != NULL) {
-		/* Here uvd is a fully allocated uvd object */
+		
 		uvd->flags = flags;
 		uvd->debug = debug;
 		uvd->dev = dev;
@@ -616,12 +547,12 @@ static int ultracam_probe(struct usb_interface *intf, const struct usb_device_id
 		uvd->iso_packet_len = maxPS;
 		uvd->paletteBits = 1L << VIDEO_PALETTE_RGB24;
 		uvd->defaultPalette = VIDEO_PALETTE_RGB24;
-		uvd->canvas = VIDEOSIZE(640, 480);	/* FIXME */
-		uvd->videosize = uvd->canvas; /* ultracam_size_to_videosize(size);*/
+		uvd->canvas = VIDEOSIZE(640, 480);	
+		uvd->videosize = uvd->canvas; 
 
-		/* Initialize ibmcam-specific data */
+		
 		assert(ULTRACAM_T(uvd) != NULL);
-		ULTRACAM_T(uvd)->camera_model = 0; /* Not used yet */
+		ULTRACAM_T(uvd)->camera_model = 0; 
 		ULTRACAM_T(uvd)->initialized = 0;
 
 		ultracam_configure_video(uvd);
@@ -643,14 +574,10 @@ static int ultracam_probe(struct usb_interface *intf, const struct usb_device_id
 
 static struct usb_device_id id_table[] = {
 	{ USB_DEVICE(ULTRACAM_VENDOR_ID, ULTRACAM_PRODUCT_ID) },
-	{ }  /* Terminating entry */
+	{ }  
 };
 
-/*
- * ultracam_init()
- *
- * This code is run to initialize the driver.
- */
+
 static int __init ultracam_init(void)
 {
 	struct usbvideo_cb cbTbl;

@@ -1,12 +1,4 @@
-/*
- * kernel/ksysfs.c - sysfs attributes in /sys/kernel, which
- * 		     are not related to any other subsystem
- *
- * Copyright (C) 2004 Kay Sievers <kay.sievers@vrfy.org>
- * 
- * This file is release under the GPLv2
- *
- */
+
 
 #include <linux/kobject.h>
 #include <linux/string.h>
@@ -25,7 +17,7 @@ static struct kobj_attribute _name##_attr = \
 	__ATTR(_name, 0644, _name##_show, _name##_store)
 
 #if defined(CONFIG_HOTPLUG)
-/* current uevent sequence number */
+
 static ssize_t uevent_seqnum_show(struct kobject *kobj,
 				  struct kobj_attribute *attr, char *buf)
 {
@@ -33,7 +25,7 @@ static ssize_t uevent_seqnum_show(struct kobject *kobj,
 }
 KERNEL_ATTR_RO(uevent_seqnum);
 
-/* uevent helper program, used during early boo */
+
 static ssize_t uevent_helper_show(struct kobject *kobj,
 				  struct kobj_attribute *attr, char *buf)
 {
@@ -68,11 +60,7 @@ static ssize_t profiling_store(struct kobject *kobj,
 
 	if (prof_on)
 		return -EEXIST;
-	/*
-	 * This eventually calls into get_option() which
-	 * has a ton of callers and is not const.  It is
-	 * easiest to cast it away here.
-	 */
+	
 	profile_setup((char *)buf);
 	ret = profile_init();
 	if (ret)
@@ -109,11 +97,9 @@ static ssize_t vmcoreinfo_show(struct kobject *kobj,
 }
 KERNEL_ATTR_RO(vmcoreinfo);
 
-#endif /* CONFIG_KEXEC */
+#endif 
 
-/*
- * Make /sys/kernel/notes give the raw contents of our kernel .notes section.
- */
+
 extern const void __start_notes __attribute__((weak));
 extern const void __stop_notes __attribute__((weak));
 #define	notes_size (&__stop_notes - &__start_notes)
@@ -176,7 +162,7 @@ static int __init ksysfs_init(void)
 			goto group_exit;
 	}
 
-	/* create the /sys/kernel/uids/ directory */
+	
 	error = uids_sysfs_init();
 	if (error)
 		goto notes_exit;

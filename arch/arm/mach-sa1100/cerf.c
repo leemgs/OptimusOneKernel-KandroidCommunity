@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/cerf.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Apr-2003 : Removed some old PDA crud [FB]
- * Oct-2003 : Added uart2 resource [FB]
- * Jan-2004 : Removed io map for flash [FB]
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -100,7 +90,7 @@ static void __init cerf_init_irq(void)
 }
 
 static struct map_desc cerf_io_desc[] __initdata = {
-  	{	/* Crystal Ethernet Chip */
+  	{	
 		.virtual	=  0xf0000000,
 		.pfn		= __phys_to_pfn(0x08000000),
 		.length		= 0x00100000,
@@ -114,10 +104,10 @@ static void __init cerf_map_io(void)
 	iotable_init(cerf_io_desc, ARRAY_SIZE(cerf_io_desc));
 
 	sa1100_register_uart(0, 3);
-	sa1100_register_uart(1, 2); /* disable this and the uart2 device for sa1100_fir */
+	sa1100_register_uart(1, 2); 
 	sa1100_register_uart(2, 1);
 
-	/* set some GPDR bits here while it's safe */
+	
 	GPDR |= CERF_GPIO_CF_RESET;
 }
 
@@ -134,7 +124,7 @@ static void __init cerf_init(void)
 }
 
 MACHINE_START(CERF, "Intrinsyc CerfBoard/CerfCube")
-	/* Maintainer: support@intrinsyc.com */
+	
 	.phys_io	= 0x80000000,
 	.io_pg_offst	= ((0xf8000000) >> 18) & 0xfffc,
 	.map_io		= cerf_map_io,

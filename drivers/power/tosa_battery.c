@@ -1,14 +1,4 @@
-/*
- * Battery and Power Management code for the Sharp SL-6000x
- *
- * Copyright (c) 2005 Dirk Opfer
- * Copyright (c) 2008 Dmitry Baryshkov
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/power_supply.h>
@@ -21,7 +11,7 @@
 #include <asm/mach-types.h>
 #include <mach/tosa.h>
 
-static DEFINE_MUTEX(bat_lock); /* protects gpio pins */
+static DEFINE_MUTEX(bat_lock); 
 static struct work_struct bat_work;
 
 struct tosa_bat {
@@ -29,7 +19,7 @@ struct tosa_bat {
 	struct power_supply psy;
 	int full_chrg;
 
-	struct mutex work_lock; /* protects data */
+	struct mutex work_lock; 
 
 	bool (*is_present)(struct tosa_bat *bat);
 	int gpio_full;
@@ -331,14 +321,14 @@ static struct {
 #ifdef CONFIG_PM
 static int tosa_bat_suspend(struct platform_device *dev, pm_message_t state)
 {
-	/* flush all pending status updates */
+	
 	flush_scheduled_work();
 	return 0;
 }
 
 static int tosa_bat_resume(struct platform_device *dev)
 {
-	/* things may have changed while we were away */
+	
 	schedule_work(&bat_work);
 	return 0;
 }
@@ -421,7 +411,7 @@ err_psy_reg_jacket:
 	power_supply_unregister(&tosa_bat_main.psy);
 err_psy_reg_main:
 
-	/* see comment in tosa_bat_remove */
+	
 	flush_scheduled_work();
 
 	i--;
@@ -444,12 +434,7 @@ static int __devexit tosa_bat_remove(struct platform_device *dev)
 	power_supply_unregister(&tosa_bat_jacket.psy);
 	power_supply_unregister(&tosa_bat_main.psy);
 
-	/*
-	 * now flush all pending work.
-	 * we won't get any more schedules, since all
-	 * sources (isr and external_power_changed)
-	 * are unregistered now.
-	 */
+	
 	flush_scheduled_work();
 
 	for (i = ARRAY_SIZE(gpios) - 1; i >= 0; i--)

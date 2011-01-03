@@ -1,21 +1,4 @@
-/*
- * Compress: Compression algorithms under the cryptographic API.
- *
- * Copyright 2008 Sony Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.
- * If not, see <http://www.gnu.org/licenses/>.
- */
+
 
 #ifndef _CRYPTO_COMPRESS_H
 #define _CRYPTO_COMPRESS_H
@@ -24,18 +7,18 @@
 
 
 struct comp_request {
-	const void *next_in;		/* next input byte */
-	void *next_out;			/* next output byte */
-	unsigned int avail_in;		/* bytes available at next_in */
-	unsigned int avail_out;		/* bytes available at next_out */
+	const void *next_in;		
+	void *next_out;			
+	unsigned int avail_in;		
+	unsigned int avail_out;		
 };
 
 enum zlib_comp_params {
-	ZLIB_COMP_LEVEL = 1,		/* e.g. Z_DEFAULT_COMPRESSION */
-	ZLIB_COMP_METHOD,		/* e.g. Z_DEFLATED */
-	ZLIB_COMP_WINDOWBITS,		/* e.g. MAX_WBITS */
-	ZLIB_COMP_MEMLEVEL,		/* e.g. DEF_MEM_LEVEL */
-	ZLIB_COMP_STRATEGY,		/* e.g. Z_DEFAULT_STRATEGY */
+	ZLIB_COMP_LEVEL = 1,		
+	ZLIB_COMP_METHOD,		
+	ZLIB_COMP_WINDOWBITS,		
+	ZLIB_COMP_MEMLEVEL,		
+	ZLIB_COMP_STRATEGY,		
 	__ZLIB_COMP_MAX,
 };
 
@@ -43,7 +26,7 @@ enum zlib_comp_params {
 
 
 enum zlib_decomp_params {
-	ZLIB_DECOMP_WINDOWBITS = 1,	/* e.g. DEF_WBITS */
+	ZLIB_DECOMP_WINDOWBITS = 1,	
 	__ZLIB_DECOMP_MAX,
 };
 
@@ -142,4 +125,4 @@ static inline int crypto_decompress_final(struct crypto_pcomp *tfm,
 	return crypto_pcomp_alg(tfm)->decompress_final(tfm, req);
 }
 
-#endif	/* _CRYPTO_COMPRESS_H */
+#endif	

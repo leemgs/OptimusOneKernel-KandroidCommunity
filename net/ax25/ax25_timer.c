@@ -1,17 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Alan Cox GW4PTS (alan@lxorguk.ukuu.org.uk)
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- * Copyright (C) Tomi Manninen OH2BNS (oh2bns@sral.fi)
- * Copyright (C) Darryl Miles G7LED (dlm@g7led.demon.co.uk)
- * Copyright (C) Joerg Reuter DL1BKE (jreuter@yaina.de)
- * Copyright (C) Frederic Rible F1OAT (frible@teaser.fr)
- * Copyright (C) 2002 Ralf Baechle DO1GRB (ralf@gnu.org)
- */
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/socket.h>

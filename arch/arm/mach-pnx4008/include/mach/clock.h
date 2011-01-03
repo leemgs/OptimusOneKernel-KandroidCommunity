@@ -1,15 +1,4 @@
-/*
- * arch/arm/mach-pnx4008/include/mach/clock.h
- *
- * Clock control driver for PNX4008 - header file
- *
- * Authors: Vitaly Wool, Dmitry Chigirev <source@mvista.com>
- *
- * 2005 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #ifndef __PNX4008_CLOCK_H__
 #define __PNX4008_CLOCK_H__
 
@@ -57,6 +46,6 @@ struct clk;
 #define CLK_RATE_48MHZ 48000
 #define CLK_RATE_32KHZ 32
 
-#define PNX4008_UART_CLK CLK_RATE_13MHZ * 1000 /* in MHz */
+#define PNX4008_UART_CLK CLK_RATE_13MHZ * 1000 
 
 #endif

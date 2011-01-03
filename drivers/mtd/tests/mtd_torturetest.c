@@ -1,27 +1,4 @@
-/*
- * Copyright (C) 2006-2008 Artem Bityutskiy
- * Copyright (C) 2006-2008 Jarkko Lavinen
- * Copyright (C) 2006-2008 Adrian Hunter
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; see the file COPYING. If not, write to the Free Software
- * Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Authors: Artem Bityutskiy, Jarkko Lavinen, Adria Hunter
- *
- * WARNING: this test program may kill your flash and your device. Do not
- * use it unless you know what you do. Authors are not responsible for any
- * damage caused by this program.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -64,15 +41,15 @@ MODULE_PARM_DESC(cycles_count, "how many erase cycles to do "
 
 static struct mtd_info *mtd;
 
-/* This buffer contains 0x555555...0xAAAAAA... pattern */
+
 static unsigned char *patt_5A5;
-/* This buffer contains 0xAAAAAA...0x555555... pattern */
+
 static unsigned char *patt_A5A;
-/* This buffer contains all 0xFF bytes */
+
 static unsigned char *patt_FF;
-/* This a temporary buffer is use when checking data */
+
 static unsigned char *check_buf;
-/* How many erase cycles were done */
+
 static unsigned int erase_cycles;
 
 static int pgsize;
@@ -90,9 +67,7 @@ static inline void stop_timing(void)
 	do_gettimeofday(&finish);
 }
 
-/*
- * Erase eraseblock number @ebnum.
- */
+
 static inline int erase_eraseblock(int ebnum)
 {
 	int err;
@@ -119,10 +94,7 @@ static inline int erase_eraseblock(int ebnum)
 	return 0;
 }
 
-/*
- * Check that the contents of eraseblock number @enbum is equivalent to the
- * @buf buffer.
- */
+
 static inline int check_eraseblock(int ebnum, unsigned char *buf)
 {
 	int err, retries = 0;
@@ -158,7 +130,7 @@ retry:
 		report_corrupt(check_buf, buf);
 
 		if (retries++ < RETRIES) {
-			/* Try read again */
+			
 			yield();
 			printk(PRINT_PREF "re-try reading data from EB %d\n",
 			       ebnum);
@@ -266,7 +238,7 @@ static int __init tort_init(void)
 
 	err = 0;
 
-	/* Initialize patterns */
+	
 	memset(patt_FF, 0xFF, mtd->erasesize);
 	for (i = 0; i < mtd->erasesize / pgsize; i++) {
 		if (!(i & 1)) {
@@ -278,9 +250,7 @@ static int __init tort_init(void)
 		}
 	}
 
-	/*
-	 * Check if there is a bad eraseblock among those we are going to test.
-	 */
+	
 	memset(&bad_ebs[0], 0, sizeof(int) * ebcnt);
 	if (mtd->block_isbad) {
 		for (i = eb; i < eb + ebcnt; i++) {
@@ -305,7 +275,7 @@ static int __init tort_init(void)
 		int i;
 		void *patt;
 
-		/* Erase all eraseblocks */
+		
 		for (i = eb; i < eb + ebcnt; i++) {
 			if (bad_ebs[i - eb])
 				continue;
@@ -315,7 +285,7 @@ static int __init tort_init(void)
 			cond_resched();
 		}
 
-		/* Check if the eraseblocks contain only 0xFF bytes */
+		
 		if (check) {
 			for (i = eb; i < eb + ebcnt; i++) {
 				if (bad_ebs[i - eb])
@@ -330,7 +300,7 @@ static int __init tort_init(void)
 			}
 		}
 
-		/* Write the pattern */
+		
 		for (i = eb; i < eb + ebcnt; i++) {
 			if (bad_ebs[i - eb])
 				continue;
@@ -344,7 +314,7 @@ static int __init tort_init(void)
 			cond_resched();
 		}
 
-		/* Verify what we wrote */
+		
 		if (check) {
 			for (i = eb; i < eb + ebcnt; i++) {
 				if (bad_ebs[i - eb])
@@ -414,10 +384,7 @@ static int countdiffs(unsigned char *buf, unsigned char *check_buf,
 static void print_bufs(unsigned char *read, unsigned char *written, int start,
 		       int len);
 
-/*
- * Report the detailed information about how the read EB differs from what was
- * written.
- */
+
 static void report_corrupt(unsigned char *read, unsigned char *written)
 {
 	int i;
@@ -492,10 +459,7 @@ static void print_bufs(unsigned char *read, unsigned char *written, int start,
 	}
 }
 
-/*
- * Count the number of differing bytes and bits and return the first differing
- * offset.
- */
+
 static int countdiffs(unsigned char *buf, unsigned char *check_buf,
 		      unsigned offset, unsigned len, unsigned *bytesp,
 		      unsigned *bitsp)

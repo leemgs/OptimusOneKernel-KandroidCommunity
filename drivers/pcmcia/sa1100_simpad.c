@@ -1,9 +1,4 @@
-/*
- * drivers/pcmcia/sa1100_simpad.c
- *
- * PCMCIA implementation routines for simpad
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -37,8 +32,8 @@ static void simpad_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_free_irqs(skt, irqs, ARRAY_SIZE(irqs));
 
-	/* Disable CF bus: */
-	//set_cs3_bit(PCMCIA_BUFF_DIS);
+	
+	
 	clear_cs3_bit(PCMCIA_RESET);       
 }
 
@@ -51,9 +46,9 @@ simpad_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 
 	state->detect=((levels & GPIO_CF_CD)==0)?1:0;
 	state->ready=(levels & GPIO_CF_IRQ)?1:0;
-	state->bvd1=1; /* Not available on Simpad. */
-	state->bvd2=1; /* Not available on Simpad. */
-	state->wrprot=0; /* Not available on Simpad. */
+	state->bvd1=1; 
+	state->bvd2=1; 
+	state->wrprot=0; 
   
 	if((cs3reg & 0x0c) == 0x0c) {
 		state->vs_3v=0;
@@ -72,7 +67,7 @@ simpad_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 
 	local_irq_save(flags);
 
-	/* Murphy: see table of MIC2562a-1 */
+	
 	switch (state->Vcc) {
 	case 0:
 		clear_cs3_bit(VCC_3V_EN|VCC_5V_EN|EN0|EN1);

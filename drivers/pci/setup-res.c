@@ -1,20 +1,8 @@
-/*
- *	drivers/pci/setup-res.c
- *
- * Extruded from code written by
- *      Dave Rusling (david.rusling@reo.mts.dec.com)
- *      David Mosberger (davidm@cs.arizona.edu)
- *	David Miller (davem@redhat.com)
- *
- * Support routines for initializing a PCI subsystem.
- */
 
-/* fixed for multiple pci buses, 1999 Andrea Arcangeli <andrea@suse.de> */
 
-/*
- * Nov 2000, Ivan Kokshaysky <ink@jurassic.park.msu.ru>
- *	     Resource sorting
- */
+
+
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -34,18 +22,11 @@ void pci_update_resource(struct pci_dev *dev, int resno)
 	enum pci_bar_type type;
 	struct resource *res = dev->resource + resno;
 
-	/*
-	 * Ignore resources for unimplemented BARs and unused resource slots
-	 * for 64 bit BARs.
-	 */
+	
 	if (!res->flags)
 		return;
 
-	/*
-	 * Ignore non-moveable resources.  This might be legacy resources for
-	 * which no functional BAR register exists or another important
-	 * system resource we shouldn't move around.
-	 */
+	
 	if (res->flags & IORESOURCE_PCI_FIXED)
 		return;
 
@@ -126,15 +107,15 @@ void pci_disable_bridge_window(struct pci_dev *dev)
 {
 	dev_dbg(&dev->dev, "Disabling bridge window.\n");
 
-	/* MMIO Base/Limit */
+	
 	pci_write_config_dword(dev, PCI_MEMORY_BASE, 0x0000fff0);
 
-	/* Prefetchable MMIO Base/Limit */
+	
 	pci_write_config_dword(dev, PCI_PREF_LIMIT_UPPER32, 0);
 	pci_write_config_dword(dev, PCI_PREF_MEMORY_BASE, 0x0000fff0);
 	pci_write_config_dword(dev, PCI_PREF_BASE_UPPER32, 0xffffffff);
 }
-#endif	/* CONFIG_PCI_QUIRKS */
+#endif	
 
 static int __pci_assign_resource(struct pci_bus *bus, struct pci_dev *dev,
 				 int resno)
@@ -147,18 +128,13 @@ static int __pci_assign_resource(struct pci_bus *bus, struct pci_dev *dev,
 	min = (res->flags & IORESOURCE_IO) ? PCIBIOS_MIN_IO : PCIBIOS_MIN_MEM;
 	align = pci_resource_alignment(dev, res);
 
-	/* First, try exact prefetching match.. */
+	
 	ret = pci_bus_alloc_resource(bus, res, size, align, min,
 				     IORESOURCE_PREFETCH,
 				     pcibios_align_resource, dev);
 
 	if (ret < 0 && (res->flags & IORESOURCE_PREFETCH)) {
-		/*
-		 * That failed.
-		 *
-		 * But a prefetching area can handle a non-prefetching
-		 * window (it will just not perform as well).
-		 */
+		
 		ret = pci_bus_alloc_resource(bus, res, size, align, min, 0,
 					     pcibios_align_resource, dev);
 	}
@@ -205,7 +181,7 @@ int pci_assign_resource(struct pci_dev *dev, int resno)
 	return ret;
 }
 
-/* Sort resources by alignment */
+
 void pdev_sort_resources(struct pci_dev *dev, struct resource_list *head)
 {
 	int i;

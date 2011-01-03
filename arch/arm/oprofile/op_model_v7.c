@@ -1,14 +1,4 @@
-/**
- * op_model_v7.c
- * ARM V7 (Cortex A8) Event Monitor Driver
- *
- * Copyright 2008 Jean Pihet <jpihet@mvista.com>
- * Copyright 2004 ARM SMP Development Team
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/oprofile.h>
@@ -20,12 +10,119 @@
 #include "op_arm_model.h"
 #include "op_model_v7.h"
 
-/* #define DEBUG */
+
+#if defined(CONFIG_ARCH_QSD8X50) || defined(CONFIG_ARCH_MSM7X30)
+#define MAX_EVT 63
 
 
-/*
- * ARM V7 PMNC support
- */
+
+struct scorp_evt {
+	u32 evt_type;
+	u32 val;
+	u8 grp;
+	u32 evt_type_act;
+};
+
+static const struct scorp_evt sc_evt[] = {
+	{0x4c, 0x80000500, 0, 0x4d},
+	{0x4d, 0x86000000, 0, 0x4f},
+	{0x4e, 0x87000000, 0, 0x4f},
+	{0x4f, 0x80080000, 0, 0x4e},
+	{0x50, 0x8000000a, 0, 0x4c},
+	{0x51, 0x80000a00, 0, 0x4d},
+	{0x52, 0x800a0000, 0, 0x4e},
+	{0x53, 0x8a000000, 0, 0x4f},
+	{0x54, 0x8000000b, 0, 0x4c},
+	{0x55, 0x80000b00, 0, 0x4d},
+	{0x56, 0x800b0000, 0, 0x4e},
+	{0x57, 0x8b000000, 0, 0x4f},
+	{0x58, 0x8000000c, 0, 0x4c},
+	{0x59, 0x80000c00, 0, 0x4d},
+	{0x5a, 0x8000000d, 0, 0x4c},
+	{0x5b, 0x80000d00, 0, 0x4d},
+	{0x5c, 0x800d0000, 0, 0x4e},
+	{0x5d, 0x8d000000, 0, 0x4f},
+
+	{0x5e, 0x80000600, 1, 0x51},
+	{0x5f, 0x80060000, 1, 0x52},
+	{0x60, 0x86000000, 1, 0x53},
+	{0x61, 0x89000000, 1, 0x53},
+	{0x62, 0x8000000d, 1, 0x50},
+	{0x63, 0x800d0000, 1, 0x52},
+	{0x64, 0x8d000000, 1, 0x53},
+	{0x65, 0x8000000e, 1, 0x50},
+	{0x66, 0x80000e00, 1, 0x51},
+	{0x67, 0x800e0000, 1, 0x52},
+	{0x68, 0x8e000000, 1, 0x53},
+
+	{0x69, 0x80000001, 2, 0x54},
+	{0x6a, 0x80000100, 2, 0x55},
+	{0x6b, 0x80020000, 2, 0x56},
+	{0x6c, 0x82000000, 2, 0x57},
+	{0x6d, 0x80000003, 2, 0x54},
+	{0x6e, 0x80000300, 2, 0x55},
+	{0x6f, 0x80030000, 2, 0x56},
+	{0x70, 0x83000000, 2, 0x57},
+	{0x71, 0x80000400, 2, 0x55},
+	{0x72, 0x80040000, 2, 0x56},
+	{0x73, 0x84000000, 2, 0x57},
+	{0x74, 0x80000800, 2, 0x55},
+	{0x75, 0x88000000, 2, 0x57},
+	{0x76, 0x80000900, 2, 0x55},
+	{0x77, 0x80090000, 2, 0x56},
+	{0x78, 0x89000000, 2, 0x57},
+
+	{0x79, 0x80000001, 3, 0x58},
+	{0x7a, 0x80000100, 3, 0x59},
+	{0x7b, 0x80010000, 3, 0x5a},
+	{0x7c, 0x81000000, 3, 0x5b},
+	{0x7d, 0x80000002, 3, 0x58},
+	{0x7e, 0x80000200, 3, 0x59},
+	{0x7f, 0x80020000, 3, 0x5a},
+	{0x80, 0x82000000, 3, 0x5b},
+	{0x81, 0x80000003, 3, 0x58},
+	{0x82, 0x80000300, 3, 0x59},
+	{0x83, 0x80030000, 3, 0x5a},
+	{0x84, 0x83000000, 3, 0x5b},
+	{0x85, 0x80000009, 3, 0x58},
+	{0x86, 0x80090000, 3, 0x5a},
+	{0x87, 0x8000000a, 3, 0x58},
+	{0x88, 0x8000000c, 3, 0x58},
+	{0x89, 0x80000c00, 3, 0x59},
+	{0x8a, 0x800c0000, 3, 0x5a},
+	{0x8b, 0x8c000000, 3, 0x5b}
+};
+
+unsigned int get_evt_code(unsigned int evt_type)
+{
+	u32 i;
+	for (i = 0; i < MAX_EVT; i++) {
+		if (sc_evt[i].evt_type == evt_type)
+			return sc_evt[i].val;
+	}
+	return 0;
+}
+
+unsigned int get_evt_type_act(unsigned int evt_type)
+{
+	u32 i;
+	for (i = 0; i < MAX_EVT; i++) {
+		if (sc_evt[i].evt_type == evt_type)
+			return sc_evt[i].evt_type_act;
+	}
+	return 0;
+}
+
+unsigned int get_evt_grp(unsigned int evt_type)
+{
+	u32 i;
+	for (i = 0; i < MAX_EVT; i++) {
+		if (sc_evt[i].evt_type == evt_type)
+			return sc_evt[i].grp;
+	}
+	return 5;
+}
+#endif
 
 static u32 cnt_en[CNTMAX];
 
@@ -110,10 +207,10 @@ static inline u32 armv7_pmnc_getreset_flags(void)
 {
 	u32 val;
 
-	/* Read */
+	
 	asm volatile("mrc p15, 0, %0, c9, c12, 3" : "=r" (val));
 
-	/* Write to clear flags */
+	
 	val &= FLAG_MASK;
 	asm volatile("mcr p15, 0, %0, c9, c12, 3" : : "r" (val));
 
@@ -184,6 +281,17 @@ static void armv7_pmnc_reset_counter(unsigned int cnt)
 int armv7_setup_pmnc(void)
 {
 	unsigned int cnt;
+#if defined(CONFIG_ARCH_QSD8X50) || defined(CONFIG_ARCH_MSM7X30)
+	u32 val = 0;
+	u32 gr;
+	u32 lpm2val, lpm0val;
+	u32 lpm1val, l2pmval;
+
+	lpm2val = 0;
+	lpm0val = 0;
+	lpm1val = 0;
+	l2pmval = 0;
+#endif
 
 	if (armv7_pmnc_read() & PMNC_E) {
 		printk(KERN_ERR "oprofile: CPU%u PMNC still enabled when setup"
@@ -191,21 +299,15 @@ int armv7_setup_pmnc(void)
 		return -EBUSY;
 	}
 
-	/*
-	 * Initialize & Reset PMNC: C bit, D bit and P bit.
-	 *  Note: Using a slower count for CCNT (D bit: divide by 64) results
-	 *   in a more stable system
-	 */
-	armv7_pmnc_write(PMNC_P | PMNC_C | PMNC_D);
+	
+	armv7_pmnc_write(PMNC_P | PMNC_C);
 
 
 	for (cnt = CCNT; cnt < CNTMAX; cnt++) {
 		unsigned long event;
 		u32 cpu_cnt = CPU_COUNTER(smp_processor_id(), cnt);
 
-		/*
-		 * Disable counter
-		 */
+		
 		armv7_pmnc_disable_counter(cnt);
 		cnt_en[cnt] = 0;
 
@@ -213,27 +315,58 @@ int armv7_setup_pmnc(void)
 			continue;
 
 		event = counter_config[cpu_cnt].event & 255;
+#if defined(CONFIG_ARCH_QSD8X50) || defined(CONFIG_ARCH_MSM7X30)
+		if (event >= 0x40)
+			event = get_evt_type_act(event);
+#endif
 
-		/*
-		 * Set event (if destined for PMNx counters)
-		 * We don't need to set the event if it's a cycle count
-		 */
+		
 		if (cnt != CCNT)
 			armv7_pmnc_write_evtsel(cnt, event);
 
-		/*
-		 * Enable interrupt for this counter
-		 */
+#if defined(CONFIG_ARCH_QSD8X50)  || defined(CONFIG_ARCH_MSM7X30)
+		if (event >= 0x40) {
+			val = 0x0;
+			asm volatile("mcr p15, 0, %0, c9, c15, 0" : :
+						"r" (val));
+			val = get_evt_code(counter_config[cpu_cnt].event & 255);
+			gr = get_evt_grp(counter_config[cpu_cnt].event & 255);
+			switch (gr) {
+			case 0:
+				lpm0val = lpm0val | val;
+				val = lpm0val;
+				asm volatile("mcr p15, 0, %0, c15, c0, 0" : :
+						"r" (val));
+				break;
+			case 1:
+				lpm1val = lpm1val | val;
+				val = lpm1val;
+				asm volatile("mcr p15, 1, %0, c15, c0, 0" : :
+						"r" (val));
+				break;
+			case 2:
+				lpm2val = lpm2val | val;
+				val = lpm2val;
+				asm volatile("mcr p15, 2, %0, c15, c0, 0" : :
+						"r" (val));
+				break;
+			case 3:
+				l2pmval = l2pmval | val;
+				val = l2pmval;
+				asm volatile("mcr p15, 3, %0, c15, c2, 0" : :
+						"r" (val));
+				break;
+
+			}
+		}
+#endif
+		
 		armv7_pmnc_enable_intens(cnt);
 
-		/*
-		 * Reset counter
-		 */
+		
 		armv7_pmnc_reset_counter(cnt);
 
-		/*
-		 * Enable counter
-		 */
+		
 		armv7_pmnc_enable_counter(cnt);
 		cnt_en[cnt] = 1;
 	}
@@ -251,9 +384,7 @@ static inline void armv7_stop_pmnc(void)
 	armv7_pmnc_write(armv7_pmnc_read() & ~PMNC_E);
 }
 
-/*
- * CPU counters' IRQ handler (one IRQ per CPU)
- */
+
 static irqreturn_t armv7_pmnc_interrupt(int irq, void *arg)
 {
 	struct pt_regs *regs = get_irq_regs();
@@ -261,28 +392,20 @@ static irqreturn_t armv7_pmnc_interrupt(int irq, void *arg)
 	u32 flags;
 
 
-	/*
-	 * Stop IRQ generation
-	 */
+	
 	armv7_stop_pmnc();
 
-	/*
-	 * Get and reset overflow status flags
-	 */
+	
 	flags = armv7_pmnc_getreset_flags();
 
-	/*
-	 * Cycle counter
-	 */
+	
 	if (flags & FLAG_C) {
 		u32 cpu_cnt = CPU_COUNTER(smp_processor_id(), CCNT);
 		armv7_pmnc_reset_counter(CCNT);
 		oprofile_add_sample(regs, cpu_cnt);
 	}
 
-	/*
-	 * PMNC counters 0:3
-	 */
+	
 	for (cnt = CNT0; cnt < CNTMAX; cnt++) {
 		if (flags & (1 << (cnt - CNT0))) {
 			u32 cpu_cnt = CPU_COUNTER(smp_processor_id(), cnt);
@@ -291,9 +414,7 @@ static irqreturn_t armv7_pmnc_interrupt(int irq, void *arg)
 		}
 	}
 
-	/*
-	 * Allow IRQ generation
-	 */
+	
 	armv7_start_pmnc();
 
 	return IRQ_HANDLED;
@@ -370,6 +491,12 @@ static void armv7_pmnc_dump_regs(void)
 static int irqs[] = {
 #ifdef CONFIG_ARCH_OMAP3
 	INT_34XX_BENCH_MPU_EMUL,
+#endif
+#ifdef CONFIG_ARCH_QSD8X50
+	INT_ARM11_PM,
+#endif
+#ifdef CONFIG_ARCH_MSM7X30
+	INT_ARM11_PM,
 #endif
 };
 

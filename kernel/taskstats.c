@@ -1,20 +1,4 @@
-/*
- * taskstats.c - Export per-task statistics to userland
- *
- * Copyright (C) Shailabh Nagar, IBM Corp. 2006
- *           (C) Balbir Singh,   IBM Corp. 2006
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/taskstats_kern.h>
@@ -29,10 +13,7 @@
 #include <net/genetlink.h>
 #include <asm/atomic.h>
 
-/*
- * Maximum length of a cpumask that can be specified in
- * the TASKSTATS_CMD_ATTR_REGISTER/DEREGISTER_CPUMASK attribute
- */
+
 #define TASKSTATS_CPUMASK_MAXLEN	(100+6*NR_CPUS)
 
 static DEFINE_PER_CPU(__u32, taskstats_seqnum);
@@ -82,9 +63,7 @@ static int prepare_reply(struct genl_info *info, u8 cmd, struct sk_buff **skbp,
 	struct sk_buff *skb;
 	void *reply;
 
-	/*
-	 * If new attributes are added, please revisit this allocation
-	 */
+	
 	skb = genlmsg_new(size, GFP_KERNEL);
 	if (!skb)
 		return -ENOMEM;
@@ -105,9 +84,7 @@ static int prepare_reply(struct genl_info *info, u8 cmd, struct sk_buff **skbp,
 	return 0;
 }
 
-/*
- * Send taskstats data in @skb to listener with nl_pid @pid
- */
+
 static int send_reply(struct sk_buff *skb, struct genl_info *info)
 {
 	struct genlmsghdr *genlhdr = nlmsg_data(nlmsg_hdr(skb));
@@ -123,9 +100,7 @@ static int send_reply(struct sk_buff *skb, struct genl_info *info)
 	return genlmsg_reply(skb, info);
 }
 
-/*
- * Send taskstats data in @skb to listeners registered for @cpu's exit data
- */
+
 static void send_cpu_listeners(struct sk_buff *skb,
 					struct listener_list *listeners)
 {
@@ -165,7 +140,7 @@ static void send_cpu_listeners(struct sk_buff *skb,
 	if (!delcount)
 		return;
 
-	/* Delete invalidated entries */
+	
 	down_write(&listeners->sem);
 	list_for_each_entry_safe(s, tmp, &listeners->list, list) {
 		if (!s->valid) {
@@ -193,25 +168,20 @@ static int fill_pid(pid_t pid, struct task_struct *tsk,
 		get_task_struct(tsk);
 
 	memset(stats, 0, sizeof(*stats));
-	/*
-	 * Each accounting subsystem adds calls to its functions to
-	 * fill in relevant parts of struct taskstsats as follows
-	 *
-	 *	per-task-foo(stats, tsk);
-	 */
+	
 
 	delayacct_add_tsk(stats, tsk);
 
-	/* fill in basic acct fields */
+	
 	stats->version = TASKSTATS_VERSION;
 	stats->nvcsw = tsk->nvcsw;
 	stats->nivcsw = tsk->nivcsw;
 	bacct_add_tsk(stats, tsk);
 
-	/* fill in extended acct fields */
+	
 	xacct_add_tsk(stats, tsk);
 
-	/* Define err: label here if needed */
+	
 	put_task_struct(tsk);
 	return rc;
 
@@ -224,10 +194,7 @@ static int fill_tgid(pid_t tgid, struct task_struct *first,
 	unsigned long flags;
 	int rc = -ESRCH;
 
-	/*
-	 * Add additional stats from live tasks except zombie thread group
-	 * leaders who are already counted with the dead tasks
-	 */
+	
 	rcu_read_lock();
 	if (!first)
 		first = find_task_by_vpid(tgid);
@@ -244,12 +211,7 @@ static int fill_tgid(pid_t tgid, struct task_struct *first,
 	do {
 		if (tsk->exit_state)
 			continue;
-		/*
-		 * Accounting subsystem can call its functions here to
-		 * fill in relevant parts of struct taskstsats as follows
-		 *
-		 *	per-task-foo(stats, tsk);
-		 */
+		
 		delayacct_add_tsk(stats, tsk);
 
 		stats->nvcsw += tsk->nvcsw;
@@ -262,10 +224,7 @@ out:
 	rcu_read_unlock();
 
 	stats->version = TASKSTATS_VERSION;
-	/*
-	 * Accounting subsystems can also add calls here to modify
-	 * fields of taskstats.
-	 */
+	
 	return rc;
 }
 
@@ -278,12 +237,7 @@ static void fill_tgid_exit(struct task_struct *tsk)
 	if (!tsk->signal->stats)
 		goto ret;
 
-	/*
-	 * Each accounting subsystem calls its functions here to
-	 * accumalate its per-task stats for tsk, into the per-tgid structure
-	 *
-	 *	per-task-foo(tsk->signal->stats, tsk);
-	 */
+	
 	delayacct_add_tsk(tsk->signal->stats, tsk);
 ret:
 	spin_unlock_irqrestore(&tsk->sighand->siglock, flags);
@@ -317,7 +271,7 @@ static int add_del_listener(pid_t pid, const struct cpumask *mask, int isadd)
 		return 0;
 	}
 
-	/* Deregister or cleanup */
+	
 cleanup:
 	for_each_cpu(cpu, mask) {
 		listeners = &per_cpu(listener_array, cpu);
@@ -455,9 +409,7 @@ free_return_rc:
 	}
 	free_cpumask_var(mask);
 
-	/*
-	 * Size includes space for nested attributes
-	 */
+	
 	size = nla_total_size(sizeof(u32)) +
 		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
 
@@ -501,7 +453,7 @@ static struct taskstats *taskstats_tgid_alloc(struct task_struct *tsk)
 	if (sig->stats || thread_group_empty(tsk))
 		goto ret;
 
-	/* No problem if kmem_cache_zalloc() fails */
+	
 	stats = kmem_cache_zalloc(taskstats_cache, GFP_KERNEL);
 
 	spin_lock_irq(&tsk->sighand->siglock);
@@ -517,7 +469,7 @@ ret:
 	return sig->stats;
 }
 
-/* Send pid data out on exit */
+
 void taskstats_exit(struct task_struct *tsk, int group_dead)
 {
 	int rc;
@@ -530,17 +482,15 @@ void taskstats_exit(struct task_struct *tsk, int group_dead)
 	if (!family_registered)
 		return;
 
-	/*
-	 * Size includes space for nested attributes
-	 */
+	
 	size = nla_total_size(sizeof(u32)) +
 		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
 
 	is_thread_group = !!taskstats_tgid_alloc(tsk);
 	if (is_thread_group) {
-		/* PID + STATS + TGID + STATS */
+		
 		size = 2 * size;
-		/* fill the tsk->signal->stats structure */
+		
 		fill_tgid_exit(tsk);
 	}
 
@@ -560,9 +510,7 @@ void taskstats_exit(struct task_struct *tsk, int group_dead)
 	if (rc < 0)
 		goto err;
 
-	/*
-	 * Doesn't matter if tsk is the leader or the last group member leaving
-	 */
+	
 	if (!is_thread_group || !group_dead)
 		goto send;
 
@@ -591,7 +539,7 @@ static struct genl_ops cgroupstats_ops = {
 	.policy		= cgroupstats_cmd_get_policy,
 };
 
-/* Needed early in initialization */
+
 void __init taskstats_init_early(void)
 {
 	unsigned int i;
@@ -629,8 +577,5 @@ err:
 	return rc;
 }
 
-/*
- * late initcall ensures initialization of statistics collection
- * mechanisms precedes initialization of the taskstats interface
- */
+
 late_initcall(taskstats_init);

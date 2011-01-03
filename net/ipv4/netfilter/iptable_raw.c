@@ -1,8 +1,4 @@
-/*
- * 'raw' table, which is the very first hooked in at PRE_ROUTING and LOCAL_OUT .
- *
- * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
- */
+
 #include <linux/module.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
 #include <net/ip.h>
@@ -30,10 +26,10 @@ static const struct
 		},
 	},
 	.entries = {
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
-		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
+		IPT_STANDARD_INIT(NF_ACCEPT),	
+		IPT_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IPT_ERROR_INIT,			/* ERROR */
+	.term = IPT_ERROR_INIT,			
 };
 
 static const struct xt_table packet_raw = {
@@ -43,7 +39,7 @@ static const struct xt_table packet_raw = {
 	.af = NFPROTO_IPV4,
 };
 
-/* The work comes in here from netfilter.c. */
+
 static unsigned int
 ipt_hook(unsigned int hook,
 	 struct sk_buff *skb,
@@ -62,7 +58,7 @@ ipt_local_hook(unsigned int hook,
 	       const struct net_device *out,
 	       int (*okfn)(struct sk_buff *))
 {
-	/* root is playing with raw sockets. */
+	
 	if (skb->len < sizeof(struct iphdr) ||
 	    ip_hdrlen(skb) < sizeof(struct iphdr))
 		return NF_ACCEPT;
@@ -70,7 +66,7 @@ ipt_local_hook(unsigned int hook,
 			    dev_net(out)->ipv4.iptable_raw);
 }
 
-/* 'raw' is the very first table. */
+
 static struct nf_hook_ops ipt_ops[] __read_mostly = {
 	{
 		.hook = ipt_hook,
@@ -90,7 +86,7 @@ static struct nf_hook_ops ipt_ops[] __read_mostly = {
 
 static int __net_init iptable_raw_net_init(struct net *net)
 {
-	/* Register table */
+	
 	net->ipv4.iptable_raw =
 		ipt_register_table(net, &packet_raw, &initial_table.repl);
 	if (IS_ERR(net->ipv4.iptable_raw))
@@ -116,7 +112,7 @@ static int __init iptable_raw_init(void)
 	if (ret < 0)
 		return ret;
 
-	/* Register hooks */
+	
 	ret = nf_register_hooks(ipt_ops, ARRAY_SIZE(ipt_ops));
 	if (ret < 0)
 		goto cleanup_table;

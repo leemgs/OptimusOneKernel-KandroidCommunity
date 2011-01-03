@@ -1,27 +1,4 @@
-/*
- * CompactPCI Hot Plug Driver PCI functions
- *
- * Copyright (C) 2002,2005 by SOMA Networks, Inc.
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <scottm@somanetworks.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -128,7 +105,7 @@ int cpci_check_and_clear_ins(struct slot* slot)
 				     &hs_csr))
 		return 0;
 	if (hs_csr & HS_CSR_INS) {
-		/* Clear INS (by setting it) */
+		
 		if (pci_bus_write_config_word(slot->bus,
 					      slot->devfn,
 					      hs_cap + 2,
@@ -177,7 +154,7 @@ int cpci_clear_ext(struct slot* slot)
 				     &hs_csr))
 		return -ENODEV;
 	if (hs_csr & HS_CSR_EXT) {
-		/* Clear EXT (by setting it) */
+		
 		if (pci_bus_write_config_word(slot->bus,
 					      slot->devfn,
 					      hs_cap + 2,
@@ -246,9 +223,7 @@ int cpci_led_off(struct slot* slot)
 }
 
 
-/*
- * Device configuration functions
- */
+
 
 int __ref cpci_configure_slot(struct slot *slot)
 {
@@ -263,15 +238,12 @@ int __ref cpci_configure_slot(struct slot *slot)
 		slot->dev = pci_get_slot(slot->bus, slot->devfn);
 	}
 
-	/* Still NULL? Well then scan for it! */
+	
 	if (slot->dev == NULL) {
 		int n;
 		dbg("pci_dev still null");
 
-		/*
-		 * This will generate pci_dev structures for all functions, but
-		 * we will only call this case when lookup fails.
-		 */
+		
 		n = pci_scan_slot(slot->bus, slot->devfn);
 		dbg("%s: pci_scan_slot returned %d", __func__, n);
 		slot->dev = pci_get_slot(slot->bus, slot->devfn);
@@ -290,7 +262,7 @@ int __ref cpci_configure_slot(struct slot *slot)
 			continue;
 		if ((dev->hdr_type == PCI_HEADER_TYPE_BRIDGE) ||
 		    (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS)) {
-			/* Find an unused bus number for the new bridge */
+			
 			struct pci_bus *child;
 			unsigned char busnr, start = parent->secondary;
 			unsigned char end = parent->subordinate;

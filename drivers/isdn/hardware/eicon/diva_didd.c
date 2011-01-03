@@ -1,15 +1,4 @@
-/* $Id: diva_didd.c,v 1.13.6.4 2005/02/11 19:40:25 armin Exp $
- *
- * DIDD Interface module for Eicon active cards.
- * 
- * Functions are in dadapter.c 
- * 
- * Copyright 2002-2003 by Armin Schindler (mac@melware.de) 
- * Copyright 2002-2003 Cytronics & Melware (info@melware.de)
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>

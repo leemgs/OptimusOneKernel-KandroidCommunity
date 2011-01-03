@@ -1,10 +1,4 @@
-/*
- * This file contains helper code to handle channel
- * settings and keeping track of what is possible at
- * any point in time.
- *
- * Copyright 2009	Johannes Berg <johannes@sipsolutions.net>
- */
+
 
 #include <net/cfg80211.h>
 #include "core.h"
@@ -22,13 +16,7 @@ rdev_fixed_channel(struct cfg80211_registered_device *rdev,
 		if (wdev == for_wdev)
 			continue;
 
-		/*
-		 * Lock manually to tell lockdep about allowed
-		 * nesting here if for_wdev->mtx is held already.
-		 * This is ok as it's all under the rdev devlist
-		 * mutex and as such can only be done once at any
-		 * given time.
-		 */
+		
 		mutex_lock_nested(&wdev->mtx, SINGLE_DEPTH_NESTING);
 		if (wdev->current_bss)
 			result = wdev->current_bss->pub.channel;
@@ -57,7 +45,7 @@ int rdev_set_freq(struct cfg80211_registered_device *rdev,
 
 	chan = ieee80211_get_channel(&rdev->wiphy, freq);
 
-	/* Primary channel not allowed */
+	
 	if (!chan || chan->flags & IEEE80211_CHAN_DISABLED)
 		return -EINVAL;
 

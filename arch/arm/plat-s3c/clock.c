@@ -1,30 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/clock.c
- *
- * Copyright (c) 2004-2005 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX Core clock control support
- *
- * Based on, and code from linux/arch/arm/mach-versatile/clock.c
- **
- **  Copyright (C) 2004 ARM Limited.
- **  Written by Deep Blue Solutions Limited.
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -48,24 +22,21 @@
 #include <plat/clock.h>
 #include <plat/cpu.h>
 
-/* clock information */
+
 
 static LIST_HEAD(clocks);
 
-/* We originally used an mutex here, but some contexts (see resume)
- * are calling functions such as clk_set_parent() with IRQs disabled
- * causing an BUG to be triggered.
- */
+
 DEFINE_SPINLOCK(clocks_lock);
 
-/* enable and disable calls for use with the clk struct */
+
 
 static int clk_null_enable(struct clk *clk, int enable)
 {
 	return 0;
 }
 
-/* Clock API calls */
+
 
 struct clk *clk_get(struct device *dev, const char *id)
 {
@@ -89,8 +60,7 @@ struct clk *clk_get(struct device *dev, const char *id)
 		}
 	}
 
-	/* check for the case where a device was supplied, but the
-	 * clock that was being searched for is not device specific */
+	
 
 	if (IS_ERR(clk)) {
 		list_for_each_entry(p, &clocks, list) {
@@ -174,9 +144,7 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 	if (IS_ERR(clk))
 		return -EINVAL;
 
-	/* We do not default just do a clk->rate = rate as
-	 * the clock may have been made this way by choice.
-	 */
+	
 
 	WARN_ON(clk->set_rate == NULL);
 
@@ -222,7 +190,7 @@ EXPORT_SYMBOL(clk_set_rate);
 EXPORT_SYMBOL(clk_get_parent);
 EXPORT_SYMBOL(clk_set_parent);
 
-/* base clocks */
+
 
 static int clk_default_setrate(struct clk *clk, unsigned long rate)
 {
@@ -302,16 +270,16 @@ struct clk s3c24xx_uclk = {
 	.id		= -1,
 };
 
-/* initialise the clock system */
+
 
 int s3c24xx_register_clock(struct clk *clk)
 {
 	if (clk->enable == NULL)
 		clk->enable = clk_null_enable;
 
-	/* add to the list of available clocks */
+	
 
-	/* Quick check to see if this clock has already been registered. */
+	
 	BUG_ON(clk->list.prev != clk->list.next);
 
 	spin_lock(&clocks_lock);
@@ -333,7 +301,7 @@ int s3c24xx_register_clocks(struct clk **clks, int nr_clks)
 	return fails;
 }
 
-/* initalise all the clocks */
+
 
 int __init s3c24xx_register_baseclocks(unsigned long xtal)
 {
@@ -341,7 +309,7 @@ int __init s3c24xx_register_baseclocks(unsigned long xtal)
 
 	clk_xtal.rate = xtal;
 
-	/* register our clocks */
+	
 
 	if (s3c24xx_register_clock(&clk_xtal) < 0)
 		printk(KERN_ERR "failed to register master xtal\n");

@@ -1,26 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET  is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		Definitions for the IP router.
- *
- * Version:	@(#)route.h	1.0.4	05/27/93
- *
- * Authors:	Ross Biro
- *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
- * Fixes:
- *		Alan Cox	:	Reformatted. Added ip_rt_local()
- *		Alan Cox	:	Support for TCP parameters.
- *		Alexey Kuznetsov:	Major changes for new routing code.
- *		Mike McLagan    :	Routing by source
- *		Robert Olsson   :	Added rt_cache statistics
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #ifndef _ROUTE_H
 #define _ROUTE_H
 
@@ -42,8 +20,7 @@
 #define RTO_ONLINK	0x01
 
 #define RTO_CONN	0
-/* RTO_CONN is not used (being alias for 0), but preserved not to break
- * some modules referring to it. */
+
 
 #define RT_CONN_FLAGS(sk)   (RT_TOS(inet_sk(sk)->tos) | sock_flag(sk, SOCK_LOCALROUTE))
 
@@ -56,7 +33,7 @@ struct rtable
 		struct dst_entry	dst;
 	} u;
 
-	/* Cache lookup keys */
+	
 	struct flowi		fl;
 
 	struct in_device	*idev;
@@ -65,16 +42,16 @@ struct rtable
 	unsigned		rt_flags;
 	__u16			rt_type;
 
-	__be32			rt_dst;	/* Path destination	*/
-	__be32			rt_src;	/* Path source		*/
+	__be32			rt_dst;	
+	__be32			rt_src;	
 	int			rt_iif;
 
-	/* Info on neighbour */
+	
 	__be32			rt_gateway;
 
-	/* Miscellaneous cached information */
-	__be32			rt_spec_dst; /* RFC1122 specific destination */
-	struct inet_peer	*peer; /* long-living peer info */
+	
+	__be32			rt_spec_dst; 
+	struct inet_peer	*peer; 
 };
 
 struct ip_rt_acct
@@ -213,4 +190,4 @@ static inline int inet_iif(const struct sk_buff *skb)
 	return skb_rtable(skb)->rt_iif;
 }
 
-#endif	/* _ROUTE_H */
+#endif	

@@ -1,28 +1,4 @@
-/*
- * Copyright (C)2002 USAGI/WIDE Project
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Authors
- *
- *	Mitsuru KANDA @USAGI       : IPv6 Support
- * 	Kazunori MIYAZAWA @USAGI   :
- * 	Kunihiro Ishiguro <kunihiro@ipinfusion.com>
- *
- * 	This file is derived from net/ipv4/esp.c
- */
+
 
 #include <crypto/aead.h>
 #include <crypto/authenc.h>
@@ -49,14 +25,7 @@ struct esp_skb_cb {
 
 #define ESP_SKB_CB(__skb) ((struct esp_skb_cb *)&((__skb)->cb[0]))
 
-/*
- * Allocate an AEAD request structure with extra space for SG and IV.
- *
- * For alignment considerations the IV is placed at the front, followed
- * by the request and finally the SG list.
- *
- * TODO: Use spare space in skb for this where possible.
- */
+
 static void *esp_alloc_tmp(struct crypto_aead *aead, int nfrags)
 {
 	unsigned int len;
@@ -145,10 +114,10 @@ static int esp6_output(struct xfrm_state *x, struct sk_buff *skb)
 	u8 *tail;
 	struct esp_data *esp = x->data;
 
-	/* skb is pure payload to encrypt */
+	
 	err = -ENOMEM;
 
-	/* Round to block size */
+	
 	clen = skb->len;
 
 	aead = esp->aead;
@@ -172,7 +141,7 @@ static int esp6_output(struct xfrm_state *x, struct sk_buff *skb)
 	asg = esp_givreq_sg(aead, req);
 	sg = asg + 1;
 
-	/* Fill padding... */
+	
 	tail = skb_tail_pointer(trailer);
 	do {
 		int i;
@@ -244,7 +213,7 @@ static int esp_input_done2(struct sk_buff *skb, int err)
 		goto out;
 	}
 
-	/* ... check padding bits here. Silly. :-) */
+	
 
 	pskb_trim(skb, skb->len - alen - padlen - 2);
 	__skb_pull(skb, hlen);
@@ -252,7 +221,7 @@ static int esp_input_done2(struct sk_buff *skb, int err)
 
 	err = nexthdr[1];
 
-	/* RFC4303: Drop dummy packets without any error */
+	
 	if (err == IPPROTO_NONE)
 		err = -EINVAL;
 
@@ -312,7 +281,7 @@ static int esp6_input(struct xfrm_state *x, struct sk_buff *skb)
 
 	esph = (struct ip_esp_hdr *)skb->data;
 
-	/* Get ivec. This can be wrong, check against another impls. */
+	
 	iv = esph->enc_data;
 
 	sg_init_table(sg, nfrags);

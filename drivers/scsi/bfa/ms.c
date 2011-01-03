@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 
 #include <bfa.h>
@@ -27,9 +12,7 @@
 BFA_TRC_FILE(FCS, MS);
 
 #define BFA_FCS_MS_CMD_MAX_RETRIES  2
-/*
- * forward declarations
- */
+
 static void     bfa_fcs_port_ms_send_plogi(void *ms_cbarg,
 					   struct bfa_fcxp_s *fcxp_alloced);
 static void     bfa_fcs_port_ms_timeout(void *arg);
@@ -59,13 +42,9 @@ static void     bfa_fcs_port_ms_gfn_response(void *fcsarg,
 					     u32 rsp_len,
 					     u32 resid_len,
 					     struct fchs_s *rsp_fchs);
-/**
- *  fcs_ms_sm FCS MS state machine
- */
 
-/**
- *  MS State Machine events
- */
+
+
 enum port_ms_event {
 	MSSM_EVENT_PORT_ONLINE = 1,
 	MSSM_EVENT_PORT_OFFLINE = 2,
@@ -98,9 +77,7 @@ static void     bfa_fcs_port_ms_sm_gfn_retry(struct bfa_fcs_port_ms_s *ms,
 					     enum port_ms_event event);
 static void     bfa_fcs_port_ms_sm_online(struct bfa_fcs_port_ms_s *ms,
 					  enum port_ms_event event);
-/**
- * 		Start in offline state - awaiting NS to send start.
- */
+
 static void
 bfa_fcs_port_ms_sm_offline(struct bfa_fcs_port_ms_s *ms,
 			   enum port_ms_event event)
@@ -153,9 +130,7 @@ bfa_fcs_port_ms_sm_plogi(struct bfa_fcs_port_ms_s *ms, enum port_ms_event event)
 
 	switch (event) {
 	case MSSM_EVENT_RSP_ERROR:
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
 		bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_plogi_retry);
 		bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ms->port), &ms->timer,
 				bfa_fcs_port_ms_timeout, ms,
@@ -163,23 +138,16 @@ bfa_fcs_port_ms_sm_plogi(struct bfa_fcs_port_ms_s *ms, enum port_ms_event event)
 		break;
 
 	case MSSM_EVENT_RSP_OK:
-		/*
-		 * since plogi is done, now invoke MS related sub-modules
-		 */
+		
 		bfa_fcs_port_fdmi_online(ms);
 
-		/**
-		 * if this is a Vport, go to online state.
-		 */
+		
 		if (ms->port->vport) {
 			bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_online);
 			break;
 		}
 
-		/*
-		 * For a base port we need to get the
-		 * switch's IP address.
-		 */
+		
 		bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_gmal_sending);
 		bfa_fcs_port_ms_send_gmal(ms, NULL);
 		break;
@@ -203,9 +171,7 @@ bfa_fcs_port_ms_sm_plogi_retry(struct bfa_fcs_port_ms_s *ms,
 
 	switch (event) {
 	case MSSM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_plogi_sending);
 		bfa_fcs_port_ms_send_plogi(ms, NULL);
 		break;
@@ -230,9 +196,7 @@ bfa_fcs_port_ms_sm_online(struct bfa_fcs_port_ms_s *ms,
 	switch (event) {
 	case MSSM_EVENT_PORT_OFFLINE:
 		bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_offline);
-		/*
-		 * now invoke MS related sub-modules
-		 */
+		
 		bfa_fcs_port_fdmi_offline(ms);
 		break;
 
@@ -278,9 +242,7 @@ bfa_fcs_port_ms_sm_gmal(struct bfa_fcs_port_ms_s *ms, enum port_ms_event event)
 
 	switch (event) {
 	case MSSM_EVENT_RSP_ERROR:
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
 		if (ms->retry_cnt++ < BFA_FCS_MS_CMD_MAX_RETRIES) {
 			bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_gmal_retry);
 			bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ms->port),
@@ -317,9 +279,7 @@ bfa_fcs_port_ms_sm_gmal_retry(struct bfa_fcs_port_ms_s *ms,
 
 	switch (event) {
 	case MSSM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_gmal_sending);
 		bfa_fcs_port_ms_send_gmal(ms, NULL);
 		break;
@@ -334,9 +294,7 @@ bfa_fcs_port_ms_sm_gmal_retry(struct bfa_fcs_port_ms_s *ms,
 	}
 }
 
-/**
- *  ms_pvt MS local functions
- */
+
 
 static void
 bfa_fcs_port_ms_send_gmal(void *ms_cbarg, struct bfa_fcxp_s *fcxp_alloced)
@@ -385,9 +343,7 @@ bfa_fcs_port_ms_gmal_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	bfa_trc(port->fcs, req_status);
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		bfa_sm_send_event(ms, MSSM_EVENT_RSP_ERROR);
@@ -404,12 +360,7 @@ bfa_fcs_port_ms_gmal_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 			bfa_sm_send_event(ms, MSSM_EVENT_RSP_ERROR);
 			return;
 		}
-		/*
-		 * The response could contain multiple Entries.
-		 * Entries for SNMP interface, etc.
-		 * We look for the entry with a telnet prefix.
-		 * First "http://" entry refers to IP addr
-		 */
+		
 
 		gmal_entry = (struct fc_gmal_entry_s *)gmal_resp->ms_ma;
 		while (num_entries > 0) {
@@ -417,17 +368,11 @@ bfa_fcs_port_ms_gmal_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 			    (gmal_entry->prefix, CT_GMAL_RESP_PREFIX_HTTP,
 			     sizeof(gmal_entry->prefix)) == 0) {
 
-				/*
-				 * if the IP address is terminating with a '/',
-				 * remove it. *Byte 0 consists of the length
-				 * of the string.
-				 */
+				
 				rsp_str = &(gmal_entry->prefix[0]);
 				if (rsp_str[gmal_entry->len - 1] == '/')
 					rsp_str[gmal_entry->len - 1] = 0;
-				/*
-				 * copy IP Address to fabric
-				 */
+				
 				strncpy(bfa_fcs_port_get_fabric_ipaddr(port),
 					gmal_entry->ip_addr,
 					BFA_FCS_FABRIC_IPADDR_SZ);
@@ -478,9 +423,7 @@ bfa_fcs_port_ms_sm_gfn(struct bfa_fcs_port_ms_s *ms, enum port_ms_event event)
 
 	switch (event) {
 	case MSSM_EVENT_RSP_ERROR:
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
 		if (ms->retry_cnt++ < BFA_FCS_MS_CMD_MAX_RETRIES) {
 			bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_gfn_retry);
 			bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ms->port),
@@ -515,9 +458,7 @@ bfa_fcs_port_ms_sm_gfn_retry(struct bfa_fcs_port_ms_s *ms,
 
 	switch (event) {
 	case MSSM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_gfn_sending);
 		bfa_fcs_port_ms_send_gfn(ms, NULL);
 		break;
@@ -532,9 +473,7 @@ bfa_fcs_port_ms_sm_gfn_retry(struct bfa_fcs_port_ms_s *ms,
 	}
 }
 
-/**
- *  ms_pvt MS local functions
- */
+
 
 static void
 bfa_fcs_port_ms_send_gfn(void *ms_cbarg, struct bfa_fcxp_s *fcxp_alloced)
@@ -579,9 +518,7 @@ bfa_fcs_port_ms_gfn_response(void *fcsarg, struct bfa_fcxp_s *fcxp, void *cbarg,
 	bfa_trc(port->fcs, req_status);
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		bfa_sm_send_event(ms, MSSM_EVENT_RSP_ERROR);
@@ -593,9 +530,7 @@ bfa_fcs_port_ms_gfn_response(void *fcsarg, struct bfa_fcxp_s *fcxp, void *cbarg,
 
 	if (cthdr->cmd_rsp_code == CT_RSP_ACCEPT) {
 		gfn_resp = (wwn_t *) (cthdr + 1);
-		/*
-		 * check if it has actually changed
-		 */
+		
 		if ((memcmp
 		     ((void *)&bfa_fcs_port_get_fabric_name(port), gfn_resp,
 		      sizeof(wwn_t)) != 0))
@@ -609,9 +544,7 @@ bfa_fcs_port_ms_gfn_response(void *fcsarg, struct bfa_fcxp_s *fcxp, void *cbarg,
 	bfa_sm_send_event(ms, MSSM_EVENT_RSP_ERROR);
 }
 
-/**
- *  ms_pvt MS local functions
- */
+
 
 static void
 bfa_fcs_port_ms_send_plogi(void *ms_cbarg, struct bfa_fcxp_s *fcxp_alloced)
@@ -662,9 +595,7 @@ bfa_fcs_port_ms_plogi_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	bfa_trc(port->fcs, req_status);
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		port->stats.ms_plogi_rsp_err++;
 		bfa_trc(port->fcs, req_status);
@@ -722,9 +653,7 @@ bfa_fcs_port_ms_init(struct bfa_fcs_port_s *port)
 	ms->port = port;
 	bfa_sm_set_state(ms, bfa_fcs_port_ms_sm_offline);
 
-	/*
-	 * Invoke init routines of sub modules.
-	 */
+	
 	bfa_fcs_port_fdmi_init(ms);
 }
 
@@ -751,9 +680,7 @@ bfa_fcs_port_ms_fabric_rscn(struct bfa_fcs_port_s *port)
 {
 	struct bfa_fcs_port_ms_s *ms = BFA_FCS_GET_MS_FROM_PORT(port);
 
-	/*
-	 * @todo.  Handle this only when in Online state
-	 */
+	
 	if (bfa_sm_cmp_state(ms, bfa_fcs_port_ms_sm_online))
 		bfa_sm_send_event(ms, MSSM_EVENT_PORT_FABRIC_RSCN);
 }

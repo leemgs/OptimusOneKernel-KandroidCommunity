@@ -1,17 +1,4 @@
-/*
- * arch/arm/mach-kirkwood/cpuidle.c
- *
- * CPU idle Marvell Kirkwood SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- *
- * The cpu idle uses wait-for-interrupt and DDR self refresh in order
- * to implement two idle states -
- * #1 wait-for-interrupt
- * #2 wait-for-interrupt and DDR self refresh
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -30,7 +17,7 @@ static struct cpuidle_driver kirkwood_idle_driver = {
 
 static DEFINE_PER_CPU(struct cpuidle_device, kirkwood_cpuidle_device);
 
-/* Actual code that puts the SoC in different idle states */
+
 static int kirkwood_enter_idle(struct cpuidle_device *dev,
 			       struct cpuidle_state *state)
 {
@@ -40,16 +27,10 @@ static int kirkwood_enter_idle(struct cpuidle_device *dev,
 	local_irq_disable();
 	do_gettimeofday(&before);
 	if (state == &dev->states[0])
-		/* Wait for interrupt state */
+		
 		cpu_do_idle();
 	else if (state == &dev->states[1]) {
-		/*
-		 * Following write will put DDR in self refresh.
-		 * Note that we have 256 cycles before DDR puts it
-		 * self in self-refresh, so the wait-for-interrupt
-		 * call afterwards won't get the DDR from self refresh
-		 * mode.
-		 */
+		
 		writel(0x7, DDR_OPERATION_BASE);
 		cpu_do_idle();
 	}
@@ -60,7 +41,7 @@ static int kirkwood_enter_idle(struct cpuidle_device *dev,
 	return idle_time;
 }
 
-/* Initialize CPU idle by registering the idle states */
+
 static int kirkwood_init_cpuidle(void)
 {
 	struct cpuidle_device *device;
@@ -70,7 +51,7 @@ static int kirkwood_init_cpuidle(void)
 	device = &per_cpu(kirkwood_cpuidle_device, smp_processor_id());
 	device->state_count = KIRKWOOD_MAX_STATES;
 
-	/* Wait for interrupt state */
+	
 	device->states[0].enter = kirkwood_enter_idle;
 	device->states[0].exit_latency = 1;
 	device->states[0].target_residency = 10000;
@@ -78,7 +59,7 @@ static int kirkwood_init_cpuidle(void)
 	strcpy(device->states[0].name, "WFI");
 	strcpy(device->states[0].desc, "Wait for interrupt");
 
-	/* Wait for interrupt and DDR self refresh state */
+	
 	device->states[1].enter = kirkwood_enter_idle;
 	device->states[1].exit_latency = 10;
 	device->states[1].target_residency = 10000;

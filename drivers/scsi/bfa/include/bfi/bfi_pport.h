@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #ifndef __BFI_PPORT_H__
 #define __BFI_PPORT_H__
 
@@ -47,111 +32,77 @@ enum bfi_pport_i2h {
 	BFI_PPORT_I2H_CLEAR_QOS_STATS_RSP	= BFA_I2HM(10),
 };
 
-/**
- * Generic REQ type
- */
+
 struct bfi_pport_generic_req_s {
-	struct bfi_mhdr_s  mh;		/*  msg header			    */
-	u32        msgtag;		/*  msgtag for reply		    */
+	struct bfi_mhdr_s  mh;		
+	u32        msgtag;		
 };
 
-/**
- * Generic RSP type
- */
+
 struct bfi_pport_generic_rsp_s {
-	struct bfi_mhdr_s  mh;		/*  common msg header		    */
-	u8         status;		/*  port enable status		    */
+	struct bfi_mhdr_s  mh;		
+	u8         status;		
 	u8         rsvd[3];
-	u32        msgtag;		/*  msgtag for reply		    */
+	u32        msgtag;		
 };
 
-/**
- * BFI_PPORT_H2I_ENABLE_REQ
- */
+
 struct bfi_pport_enable_req_s {
-	struct bfi_mhdr_s  mh;		/*  msg header			    */
+	struct bfi_mhdr_s  mh;		
 	u32        rsvd1;
-	wwn_t           nwwn;		/*  node wwn of physical port	    */
-	wwn_t           pwwn;		/*  port wwn of physical port	    */
-	struct bfa_pport_cfg_s port_cfg;	/*  port configuration	    */
-	union bfi_addr_u  stats_dma_addr;	/*  DMA address for stats  */
-	u32        msgtag;		/*  msgtag for reply		    */
+	wwn_t           nwwn;		
+	wwn_t           pwwn;		
+	struct bfa_pport_cfg_s port_cfg;	
+	union bfi_addr_u  stats_dma_addr;	
+	u32        msgtag;		
 	u32        rsvd2;
 };
 
-/**
- * BFI_PPORT_I2H_ENABLE_RSP
- */
+
 #define bfi_pport_enable_rsp_t struct bfi_pport_generic_rsp_s
 
-/**
- * BFI_PPORT_H2I_DISABLE_REQ
- */
+
 #define bfi_pport_disable_req_t struct bfi_pport_generic_req_s
 
-/**
- * BFI_PPORT_I2H_DISABLE_RSP
- */
+
 #define bfi_pport_disable_rsp_t struct bfi_pport_generic_rsp_s
 
-/**
- * BFI_PPORT_H2I_GET_STATS_REQ
- */
+
 #define bfi_pport_get_stats_req_t struct bfi_pport_generic_req_s
 
-/**
- * BFI_PPORT_I2H_GET_STATS_RSP
- */
+
 #define bfi_pport_get_stats_rsp_t struct bfi_pport_generic_rsp_s
 
-/**
- * BFI_PPORT_H2I_CLEAR_STATS_REQ
- */
+
 #define bfi_pport_clear_stats_req_t struct bfi_pport_generic_req_s
 
-/**
- * BFI_PPORT_I2H_CLEAR_STATS_RSP
- */
+
 #define bfi_pport_clear_stats_rsp_t struct bfi_pport_generic_rsp_s
 
-/**
- * BFI_PPORT_H2I_GET_QOS_STATS_REQ
- */
+
 #define bfi_pport_get_qos_stats_req_t struct bfi_pport_generic_req_s
 
-/**
- * BFI_PPORT_H2I_GET_QOS_STATS_RSP
- */
+
 #define bfi_pport_get_qos_stats_rsp_t struct bfi_pport_generic_rsp_s
 
-/**
- * BFI_PPORT_H2I_CLEAR_QOS_STATS_REQ
- */
+
 #define bfi_pport_clear_qos_stats_req_t struct bfi_pport_generic_req_s
 
-/**
- * BFI_PPORT_H2I_CLEAR_QOS_STATS_RSP
- */
+
 #define bfi_pport_clear_qos_stats_rsp_t struct bfi_pport_generic_rsp_s
 
-/**
- * BFI_PPORT_H2I_SET_SVC_PARAMS_REQ
- */
+
 struct bfi_pport_set_svc_params_req_s {
-	struct bfi_mhdr_s  mh;		/*  msg header */
-	u16        tx_bbcredit;	/*  Tx credits */
+	struct bfi_mhdr_s  mh;		
+	u16        tx_bbcredit;	
 	u16        rsvd;
 };
 
-/**
- * BFI_PPORT_I2H_SET_SVC_PARAMS_RSP
- */
 
-/**
- * BFI_PPORT_I2H_EVENT
- */
+
+
 struct bfi_pport_event_s {
-	struct bfi_mhdr_s 	mh;	/*  common msg header */
+	struct bfi_mhdr_s 	mh;	
 	struct bfa_pport_link_s	link_state;
 };
 
@@ -180,5 +131,5 @@ union bfi_pport_i2h_msg_u {
 
 #pragma pack()
 
-#endif /* __BFI_PPORT_H__ */
+#endif 
 

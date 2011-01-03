@@ -1,11 +1,4 @@
-/*
- * arch/arm/mach-l7200/include/mach/aux_reg.h
- *
- * Copyright (C) 2000 Steve Hill (sjhill@cotw.com)
- *
- * Changelog:
- *   08-02-2000	SJH	Created file
- */
+
 #ifndef _ASM_ARCH_AUXREG_H
 #define _ASM_ARCH_AUXREG_H
 
@@ -13,9 +6,7 @@
 
 #define l7200aux_reg	*((volatile unsigned int *) (AUX_BASE))
 
-/*
- * Auxillary register values
- */
+
 #define AUX_CLEAR		0x00000000
 #define AUX_DIAG_LED_ON		0x00000002
 #define AUX_RTS_UART1		0x00000004

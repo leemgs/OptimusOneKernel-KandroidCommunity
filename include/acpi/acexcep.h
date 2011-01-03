@@ -1,52 +1,11 @@
-/******************************************************************************
- *
- * Name: acexcep.h - Exception codes returned by the ACPI subsystem
- *
- *****************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #ifndef __ACEXCEP_H__
 #define __ACEXCEP_H__
 
-/*
- * Exceptions returned by external ACPI interfaces
- */
+
 #define AE_CODE_ENVIRONMENTAL           0x0000
 #define AE_CODE_PROGRAMMER              0x1000
 #define AE_CODE_ACPI_TABLES             0x2000
@@ -59,9 +18,7 @@
 
 #define AE_OK                           (acpi_status) 0x0000
 
-/*
- * Environmental exceptions
- */
+
 #define AE_ERROR                        (acpi_status) (0x0001 | AE_CODE_ENVIRONMENTAL)
 #define AE_NO_ACPI_TABLES               (acpi_status) (0x0002 | AE_CODE_ENVIRONMENTAL)
 #define AE_NO_NAMESPACE                 (acpi_status) (0x0003 | AE_CODE_ENVIRONMENTAL)
@@ -92,9 +49,7 @@
 
 #define AE_CODE_ENV_MAX                 0x001B
 
-/*
- * Programmer exceptions
- */
+
 #define AE_BAD_PARAMETER                (acpi_status) (0x0001 | AE_CODE_PROGRAMMER)
 #define AE_BAD_CHARACTER                (acpi_status) (0x0002 | AE_CODE_PROGRAMMER)
 #define AE_BAD_PATHNAME                 (acpi_status) (0x0003 | AE_CODE_PROGRAMMER)
@@ -107,9 +62,7 @@
 
 #define AE_CODE_PGM_MAX                 0x0009
 
-/*
- * Acpi table exceptions
- */
+
 #define AE_BAD_SIGNATURE                (acpi_status) (0x0001 | AE_CODE_ACPI_TABLES)
 #define AE_BAD_HEADER                   (acpi_status) (0x0002 | AE_CODE_ACPI_TABLES)
 #define AE_BAD_CHECKSUM                 (acpi_status) (0x0003 | AE_CODE_ACPI_TABLES)
@@ -118,10 +71,7 @@
 
 #define AE_CODE_TBL_MAX                 0x0005
 
-/*
- * AML exceptions.  These are caused by problems with
- * the actual AML byte stream
- */
+
 #define AE_AML_BAD_OPCODE               (acpi_status) (0x0001 | AE_CODE_AML)
 #define AE_AML_NO_OPERAND               (acpi_status) (0x0002 | AE_CODE_AML)
 #define AE_AML_OPERAND_TYPE             (acpi_status) (0x0003 | AE_CODE_AML)
@@ -158,9 +108,7 @@
 
 #define AE_CODE_AML_MAX                 0x0021
 
-/*
- * Internal exceptions used for control
- */
+
 #define AE_CTRL_RETURN_VALUE            (acpi_status) (0x0001 | AE_CODE_CONTROL)
 #define AE_CTRL_PENDING                 (acpi_status) (0x0002 | AE_CODE_CONTROL)
 #define AE_CTRL_TERMINATE               (acpi_status) (0x0003 | AE_CODE_CONTROL)
@@ -177,14 +125,11 @@
 
 #define AE_CODE_CTRL_MAX                0x000D
 
-/* Exception strings for acpi_format_exception */
+
 
 #ifdef DEFINE_ACPI_GLOBALS
 
-/*
- * String versions of the exception codes above
- * These strings must match the corresponding defines exactly
- */
+
 char const *acpi_gbl_exception_names_env[] = {
 	"AE_OK",
 	"AE_ERROR",
@@ -292,6 +237,6 @@ char const *acpi_gbl_exception_names_ctrl[] = {
 	"AE_CTRL_PARSE_PENDING"
 };
 
-#endif				/* ACPI GLOBALS */
+#endif				
 
-#endif				/* __ACEXCEP_H__ */
+#endif				

@@ -1,16 +1,4 @@
-/* $Id: netjet.h,v 2.8.2.2 2004/01/12 22:52:28 keil Exp $
- *
- * NETjet common header file
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- *              by Matt Henderson,
- *                 Traverse Technologies P/L www.traverse.com.au
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

@@ -1,29 +1,4 @@
-/*
- *  linux/drivers/s390/crypto/zcrypt_cca_key.h
- *
- *  zcrypt 2.1.0
- *
- *  Copyright (C)  2001, 2006 IBM Corporation
- *  Author(s): Robert Burroughs
- *	       Eric Rossman (edrossma@us.ibm.com)
- *
- *  Hotplug & misc device support: Jochen Roehrig (roehrig@de.ibm.com)
- *  Major cleanup & driver split: Martin Schwidefsky <schwidefsky@de.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef _ZCRYPT_CCA_KEY_H_
 #define _ZCRYPT_CCA_KEY_H_
@@ -34,13 +9,7 @@ struct T6_keyBlock_hdr {
 	unsigned short flags;
 };
 
-/**
- * mapping for the cca private ME key token.
- * Three parts of interest here: the header, the private section and
- * the public section.
- *
- * mapping for the cca key token header
- */
+
 struct cca_token_hdr {
 	unsigned char  token_identifier;
 	unsigned char  version;
@@ -50,9 +19,7 @@ struct cca_token_hdr {
 
 #define CCA_TKN_HDR_ID_EXT 0x1E
 
-/**
- * mapping for the cca private ME section
- */
+
 struct cca_private_ext_ME_sec {
 	unsigned char  section_identifier;
 	unsigned char  version;
@@ -72,12 +39,7 @@ struct cca_private_ext_ME_sec {
 
 #define CCA_PVT_USAGE_ALL 0x80
 
-/**
- * mapping for the cca public section
- * In a private key, the modulus doesn't appear in the public
- * section. So, an arbitrary public exponent of 0x010001 will be
- * used, for a section length of 0x0F always.
- */
+
 struct cca_public_sec {
 	unsigned char  section_identifier;
 	unsigned char  version;
@@ -85,21 +47,10 @@ struct cca_public_sec {
 	unsigned char  reserved[2];
 	unsigned short exponent_len;
 	unsigned short modulus_bit_len;
-	unsigned short modulus_byte_len;    /* In a private key, this is 0 */
+	unsigned short modulus_byte_len;    
 } __attribute__((packed));
 
-/**
- * mapping for the cca private CRT key 'token'
- * The first three parts (the only parts considered in this release)
- * are: the header, the private section and the public section.
- * The header and public section are the same as for the
- * struct cca_private_ext_ME
- *
- * Following the structure are the quantities p, q, dp, dq, u, pad,
- * and modulus, in that order, where pad_len is the modulo 8
- * complement of the residue modulo 8 of the sum of
- * (p_len + q_len + dp_len + dq_len + u_len).
- */
+
 struct cca_pvt_ext_CRT_sec {
 	unsigned char  section_identifier;
 	unsigned char  version;
@@ -125,16 +76,7 @@ struct cca_pvt_ext_CRT_sec {
 #define CCA_PVT_EXT_CRT_SEC_ID_PVT 0x08
 #define CCA_PVT_EXT_CRT_SEC_FMT_CL 0x40
 
-/**
- * Set up private key fields of a type6 MEX message.
- * Note that all numerics in the key token are big-endian,
- * while the entries in the key block header are little-endian.
- *
- * @mex: pointer to user input data
- * @p: pointer to memory area for the key
- *
- * Returns the size of the key area or -EFAULT
- */
+
 static inline int zcrypt_type6_mex_key_de(struct ica_rsa_modexpo *mex,
 					  void *p, int big_endian)
 {
@@ -174,20 +116,16 @@ static inline int zcrypt_type6_mex_key_de(struct ica_rsa_modexpo *mex,
 	key->pvtMeHdr = static_pvt_me_hdr;
 	key->pvtMeSec = static_pvt_me_sec;
 	key->pubMeSec = static_pub_me_sec;
-	/*
-	 * In a private key, the modulus doesn't appear in the public
-	 * section. So, an arbitrary public exponent of 0x010001 will be
-	 * used.
-	 */
+	
 	memcpy(key->exponent, pk_exponent, 3);
 
-	/* key parameter block */
+	
 	temp = key->pvtMeSec.exponent +
 		sizeof(key->pvtMeSec.exponent) - mex->inputdatalength;
 	if (copy_from_user(temp, mex->b_key, mex->inputdatalength))
 		return -EFAULT;
 
-	/* modulus */
+	
 	temp = key->pvtMeSec.modulus +
 		sizeof(key->pvtMeSec.modulus) - mex->inputdatalength;
 	if (copy_from_user(temp, mex->n_modulus, mex->inputdatalength))
@@ -196,17 +134,7 @@ static inline int zcrypt_type6_mex_key_de(struct ica_rsa_modexpo *mex,
 	return sizeof(*key);
 }
 
-/**
- * Set up private key fields of a type6 MEX message. The _pad variant
- * strips leading zeroes from the b_key.
- * Note that all numerics in the key token are big-endian,
- * while the entries in the key block header are little-endian.
- *
- * @mex: pointer to user input data
- * @p: pointer to memory area for the key
- *
- * Returns the size of the key area or -EFAULT
- */
+
 static inline int zcrypt_type6_mex_key_en(struct ica_rsa_modexpo *mex,
 					  void *p, int big_endian)
 {
@@ -230,11 +158,11 @@ static inline int zcrypt_type6_mex_key_en(struct ica_rsa_modexpo *mex,
 	key->pubHdr = static_pub_hdr;
 	key->pubSec = static_pub_sec;
 
-	/* key parameter block */
+	
 	temp = key->exponent;
 	if (copy_from_user(temp, mex->b_key, mex->inputdatalength))
 		return -EFAULT;
-	/* Strip leading zeroes from b_key. */
+	
 	for (i = 0; i < mex->inputdatalength; i++)
 		if (temp[i])
 			break;
@@ -242,7 +170,7 @@ static inline int zcrypt_type6_mex_key_en(struct ica_rsa_modexpo *mex,
 		return -EINVAL;
 	memmove(temp, temp + i, mex->inputdatalength - i);
 	temp += mex->inputdatalength - i;
-	/* modulus */
+	
 	if (copy_from_user(temp, mex->n_modulus, mex->inputdatalength))
 		return -EFAULT;
 
@@ -263,16 +191,7 @@ static inline int zcrypt_type6_mex_key_en(struct ica_rsa_modexpo *mex,
 	return sizeof(*key) + 2*mex->inputdatalength - i;
 }
 
-/**
- * Set up private key fields of a type6 CRT message.
- * Note that all numerics in the key token are big-endian,
- * while the entries in the key block header are little-endian.
- *
- * @mex: pointer to user input data
- * @p: pointer to memory area for the key
- *
- * Returns the size of the key area or -EFAULT
- */
+
 static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
 				       void *p, int big_endian)
 {
@@ -299,7 +218,7 @@ static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
 	key_len = 3*long_len + 2*short_len + pad_len + crt->inputdatalength;
 	size = sizeof(*key) + key_len + sizeof(*pub) + 3;
 
-	/* parameter block.key block */
+	
 	if (big_endian) {
 		key->t6_hdr.blen = cpu_to_be16(size);
 		key->t6_hdr.ulen = cpu_to_be16(size - 2);
@@ -308,11 +227,11 @@ static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
 		key->t6_hdr.ulen = cpu_to_le16(size - 2);
 	}
 
-	/* key token header */
+	
 	key->token.token_identifier = CCA_TKN_HDR_ID_EXT;
 	key->token.token_length = size - 6;
 
-	/* private section */
+	
 	key->pvt.section_identifier = CCA_PVT_EXT_CRT_SEC_ID_PVT;
 	key->pvt.section_length = sizeof(key->pvt) + key_len;
 	key->pvt.key_format = CCA_PVT_EXT_CRT_SEC_FMT_CL;
@@ -322,7 +241,7 @@ static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
 	key->pvt.mod_len = crt->inputdatalength;
 	key->pvt.pad_len = pad_len;
 
-	/* key parts */
+	
 	if (copy_from_user(key->key_parts, crt->np_prime, long_len) ||
 	    copy_from_user(key->key_parts + long_len,
 					crt->nq_prime, short_len) ||
@@ -338,13 +257,9 @@ static inline int zcrypt_type6_crt_key(struct ica_rsa_modexpo_crt *crt,
 	pub = (struct cca_public_sec *)(key->key_parts + key_len);
 	*pub = static_cca_pub_sec;
 	pub->modulus_bit_len = 8 * crt->inputdatalength;
-	/*
-	 * In a private key, the modulus doesn't appear in the public
-	 * section. So, an arbitrary public exponent of 0x010001 will be
-	 * used.
-	 */
+	
 	memcpy((char *) (pub + 1), pk_exponent, 3);
 	return size;
 }
 
-#endif /* _ZCRYPT_CCA_KEY_H_ */
+#endif 

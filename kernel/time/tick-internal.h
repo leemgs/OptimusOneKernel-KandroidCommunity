@@ -1,6 +1,4 @@
-/*
- * tick internal variable and functions used by low/high res code
- */
+
 
 #define TICK_DO_TIMER_NONE	-1
 #define TICK_DO_TIMER_BOOT	-2
@@ -16,9 +14,7 @@ extern void tick_handle_periodic(struct clock_event_device *dev);
 
 extern void clockevents_shutdown(struct clock_event_device *dev);
 
-/*
- * NO_HZ / high resolution timer shared code
- */
+
 #ifdef CONFIG_TICK_ONESHOT
 extern void tick_setup_oneshot(struct clock_event_device *newdev,
 			       void (*handler)(struct clock_event_device *),
@@ -37,7 +33,7 @@ extern void tick_shutdown_broadcast_oneshot(unsigned int *cpup);
 extern int tick_resume_broadcast_oneshot(struct clock_event_device *bc);
 extern int tick_broadcast_oneshot_active(void);
 extern void tick_check_oneshot_broadcast(int cpu);
-# else /* BROADCAST */
+# else 
 static inline void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
 {
 	BUG();
@@ -47,9 +43,9 @@ static inline void tick_broadcast_switch_to_oneshot(void) { }
 static inline void tick_shutdown_broadcast_oneshot(unsigned int *cpup) { }
 static inline int tick_broadcast_oneshot_active(void) { return 0; }
 static inline void tick_check_oneshot_broadcast(int cpu) { }
-# endif /* !BROADCAST */
+# endif 
 
-#else /* !ONESHOT */
+#else 
 static inline
 void tick_setup_oneshot(struct clock_event_device *newdev,
 			void (*handler)(struct clock_event_device *),
@@ -77,11 +73,9 @@ static inline int tick_resume_broadcast_oneshot(struct clock_event_device *bc)
 	return 0;
 }
 static inline int tick_broadcast_oneshot_active(void) { return 0; }
-#endif /* !TICK_ONESHOT */
+#endif 
 
-/*
- * Broadcasting support
- */
+
 #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
 extern int tick_device_uses_broadcast(struct clock_event_device *dev, int cpu);
 extern int tick_check_broadcast_device(struct clock_event_device *dev);
@@ -94,7 +88,7 @@ extern int tick_resume_broadcast(void);
 extern void
 tick_set_periodic_handler(struct clock_event_device *dev, int broadcast);
 
-#else /* !BROADCAST */
+#else 
 
 static inline int tick_check_broadcast_device(struct clock_event_device *dev)
 {
@@ -116,19 +110,15 @@ static inline void tick_shutdown_broadcast(unsigned int *cpup) { }
 static inline void tick_suspend_broadcast(void) { }
 static inline int tick_resume_broadcast(void) { return 0; }
 
-/*
- * Set the periodic handler in non broadcast mode
- */
+
 static inline void tick_set_periodic_handler(struct clock_event_device *dev,
 					     int broadcast)
 {
 	dev->event_handler = tick_handle_periodic;
 }
-#endif /* !BROADCAST */
+#endif 
 
-/*
- * Check, if the device is functional or a dummy for broadcast
- */
+
 static inline int tick_device_is_functional(struct clock_event_device *dev)
 {
 	return !(dev->features & CLOCK_EVT_FEAT_DUMMY);

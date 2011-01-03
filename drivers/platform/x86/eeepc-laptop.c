@@ -1,20 +1,4 @@
-/*
- *  eepc-laptop.c - Asus Eee PC extras
- *
- *  Based on asus_acpi.c as patched for the Eee PC by Asus:
- *  ftp://ftp.asus.com/pub/ASUS/EeePC/701/ASUS_ACPI_071126.rar
- *  Based on eee.c from eeepc-linux
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- */
+
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
@@ -44,9 +28,7 @@
 #define EEEPC_HOTK_HID		"ASUS010"
 
 
-/*
- * Definitions for Asus EeePC
- */
+
 #define	NOTIFY_WLAN_ON	0x10
 #define NOTIFY_BRN_MIN	0x20
 #define NOTIFY_BRN_MAX	0x2f
@@ -93,7 +75,7 @@ enum {
 	CM_ASL_HWCF,
 	CM_ASL_LID,
 	CM_ASL_TYPE,
-	CM_ASL_PANELPOWER,	/*P901*/
+	CM_ASL_PANELPOWER,	
 	CM_ASL_TPD
 };
 
@@ -119,24 +101,20 @@ static const char *cm_setv[] = {
 
 #define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
 
-#define EEEPC_EC_FAN_PWM	EEEPC_EC "SC02" /* Fan PWM duty cycle (%) */
+#define EEEPC_EC_FAN_PWM	EEEPC_EC "SC02" 
 #define EEEPC_EC_SC02		0x63
-#define EEEPC_EC_FAN_HRPM	EEEPC_EC "SC05" /* High byte, fan speed (RPM) */
-#define EEEPC_EC_FAN_LRPM	EEEPC_EC "SC06" /* Low byte, fan speed (RPM) */
-#define EEEPC_EC_FAN_CTRL	EEEPC_EC "SFB3" /* Byte containing SF25  */
+#define EEEPC_EC_FAN_HRPM	EEEPC_EC "SC05" 
+#define EEEPC_EC_FAN_LRPM	EEEPC_EC "SC06" 
+#define EEEPC_EC_FAN_CTRL	EEEPC_EC "SFB3" 
 #define EEEPC_EC_SFB3		0xD3
 
-/*
- * This is the main structure, we can use it to store useful information
- * about the hotk device
- */
+
 struct eeepc_hotk {
-	struct acpi_device *device;	/* the device we are in */
-	acpi_handle handle;		/* the handle of the hotk device */
-	u32 cm_supported;		/* the control methods supported
-					   by this BIOS */
-	uint init_flag;			/* Init flags */
-	u16 event_count[128];		/* count for each event */
+	struct acpi_device *device;	
+	acpi_handle handle;		
+	u32 cm_supported;		
+	uint init_flag;			
+	u16 event_count[128];		
 	struct input_dev *inputdev;
 	u16 *keycode_map;
 	struct rfkill *wlan_rfkill;
@@ -147,10 +125,10 @@ struct eeepc_hotk {
 	struct mutex hotplug_lock;
 };
 
-/* The actual device the driver binds to */
+
 static struct eeepc_hotk *ehotk;
 
-/* Platform device/driver */
+
 static int eeepc_hotk_thaw(struct device *device);
 static int eeepc_hotk_restore(struct device *device);
 
@@ -178,7 +156,7 @@ struct key_entry {
 enum { KE_KEY, KE_END };
 
 static struct key_entry eeepc_keymap[] = {
-	/* Sleep already handled via generic ACPI code */
+	
 	{KE_KEY, 0x10, KEY_WLAN },
 	{KE_KEY, 0x11, KEY_WLAN },
 	{KE_KEY, 0x12, KEY_PROG1 },
@@ -197,9 +175,7 @@ static struct key_entry eeepc_keymap[] = {
 	{KE_END, 0},
 };
 
-/*
- * The hotkey driver declaration
- */
+
 static int eeepc_hotk_add(struct acpi_device *device);
 static int eeepc_hotk_remove(struct acpi_device *device, int type);
 static void eeepc_hotk_notify(struct acpi_device *device, u32 event);
@@ -222,7 +198,7 @@ static struct acpi_driver eeepc_hotk_driver = {
 	},
 };
 
-/* PCI hotplug ops */
+
 static int eeepc_get_adapter_status(struct hotplug_slot *slot, u8 *value);
 
 static struct hotplug_slot_ops eeepc_hotplug_slot_ops = {
@@ -231,15 +207,13 @@ static struct hotplug_slot_ops eeepc_hotplug_slot_ops = {
 	.get_power_status = eeepc_get_adapter_status,
 };
 
-/* The backlight device /sys/class/backlight */
+
 static struct backlight_device *eeepc_backlight_device;
 
-/* The hwmon device */
+
 static struct device *eeepc_hwmon_device;
 
-/*
- * The backlight class declaration
- */
+
 static int read_brightness(struct backlight_device *bd);
 static int update_bl_status(struct backlight_device *bd);
 static struct backlight_ops eeepcbl_ops = {
@@ -251,9 +225,7 @@ MODULE_AUTHOR("Corentin Chary, Eric Cooper");
 MODULE_DESCRIPTION(EEEPC_HOTK_NAME);
 MODULE_LICENSE("GPL");
 
-/*
- * ACPI Helpers
- */
+
 static int write_acpi_int(acpi_handle handle, const char *method, int val,
 			  struct acpi_buffer *output)
 {
@@ -310,9 +282,7 @@ static int get_acpi(int cm)
 	return value;
 }
 
-/*
- * Backlight
- */
+
 static int read_brightness(struct backlight_device *bd)
 {
 	return get_acpi(CM_ASL_PANELBRIGHT);
@@ -329,9 +299,7 @@ static int update_bl_status(struct backlight_device *bd)
 	return set_brightness(bd, bd->props.brightness);
 }
 
-/*
- * Rfkill helpers
- */
+
 
 static bool eeepc_wlan_rfkill_blocked(void)
 {
@@ -352,17 +320,12 @@ static const struct rfkill_ops eeepc_rfkill_ops = {
 
 static void __devinit eeepc_enable_camera(void)
 {
-	/*
-	 * If the following call to set_acpi() fails, it's because there's no
-	 * camera so we can ignore the error.
-	 */
+	
 	if (get_acpi(CM_ASL_CAMERA) == 0)
 		set_acpi(CM_ASL_CAMERA, 1);
 }
 
-/*
- * Sys helpers
- */
+
 static int parse_arg(const char *buf, unsigned long count, int *val)
 {
 	if (!count)
@@ -506,9 +469,7 @@ static struct attribute_group platform_attribute_group = {
 	.attrs = platform_attributes
 };
 
-/*
- * Hotkey functions
- */
+
 static struct key_entry *eepc_get_entry_by_scancode(int code)
 {
 	struct key_entry *key;
@@ -568,8 +529,7 @@ static void cmsg_quirk(int cm, const char *name)
 {
 	int dummy;
 
-	/* Some BIOSes do not report cm although it is avaliable.
-	   Check if cm_getv[cm] works and, if yes, assume cm should be set. */
+	
 	if (!(ehotk->cm_supported & (1 << cm))
 	    && !read_acpi_int(ehotk->handle, cm_getv[cm], &dummy)) {
 		pr_info("%s (%x) not reported by BIOS,"
@@ -602,7 +562,7 @@ static int eeepc_hotk_check(void)
 		} else {
 			pr_notice("Hotkey init flags 0x%x\n", ehotk->init_flag);
 		}
-		/* get control methods supported */
+		
 		if (read_acpi_int(ehotk->handle, "CMSG"
 				   , &ehotk->cm_supported)) {
 			pr_err("Get control methods supported failed\n");
@@ -621,7 +581,7 @@ static int eeepc_hotk_check(void)
 
 static int notify_brn(void)
 {
-	/* returns the *previous* brightness, or -1 */
+	
 	struct backlight_device *bd = eeepc_backlight_device;
 	if (bd) {
 		int old = bd->props.brightness;
@@ -665,7 +625,7 @@ static void eeepc_rfkill_hotplug(void)
 		if (!blocked) {
 			dev = pci_get_slot(bus, 0);
 			if (dev) {
-				/* Device already present */
+				
 				pci_dev_put(dev);
 				goto out_unlock;
 			}
@@ -715,19 +675,17 @@ static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
 					count);
 	if (ehotk->inputdev) {
 		if (brn != -ENODEV) {
-			/* brightness-change events need special
-			 * handling for conversion to key events
-			 */
+			
 			if (brn < 0)
 				brn = event;
 			else
 				brn += NOTIFY_BRN_MIN;
 			if (event < brn)
-				event = NOTIFY_BRN_MIN; /* brightness down */
+				event = NOTIFY_BRN_MIN; 
 			else if (event > brn)
-				event = NOTIFY_BRN_MIN + 2; /* ... up */
+				event = NOTIFY_BRN_MIN + 2; 
 			else
-				event = NOTIFY_BRN_MIN + 1; /* ... unchanged */
+				event = NOTIFY_BRN_MIN + 1; 
 		}
 		key = eepc_get_entry_by_scancode(event);
 		if (key) {
@@ -835,11 +793,7 @@ static int eeepc_hotk_thaw(struct device *device)
 	if (ehotk->wlan_rfkill) {
 		bool wlan;
 
-		/*
-		 * Work around bios bug - acpi _PTS turns off the wireless led
-		 * during suspend.  Normally it restores it on resume, but
-		 * we should kick it ourselves in case hibernation is aborted.
-		 */
+		
 		wlan = get_acpi(CM_ASL_WLAN);
 		set_acpi(CM_ASL_WLAN, wlan);
 	}
@@ -849,7 +803,7 @@ static int eeepc_hotk_thaw(struct device *device)
 
 static int eeepc_hotk_restore(struct device *device)
 {
-	/* Refresh both wlan rfkill state and pci hotplug */
+	
 	if (ehotk->wlan_rfkill)
 		eeepc_rfkill_hotplug();
 
@@ -866,9 +820,7 @@ static int eeepc_hotk_restore(struct device *device)
 	return 0;
 }
 
-/*
- * Hwmon
- */
+
 static int eeepc_get_fan_pwm(void)
 {
 	int value = 0;
@@ -970,9 +922,7 @@ static struct attribute_group hwmon_attribute_group = {
 	.attrs = hwmon_attributes
 };
 
-/*
- * exit/init
- */
+
 static void eeepc_backlight_exit(void)
 {
 	if (eeepc_backlight_device)
@@ -990,10 +940,7 @@ static void eeepc_rfkill_exit(void)
 		rfkill_destroy(ehotk->wlan_rfkill);
 		ehotk->wlan_rfkill = NULL;
 	}
-	/*
-	 * Refresh pci hotplug in case the rfkill state was changed after
-	 * eeepc_unregister_rfkill_notifier()
-	 */
+	
 	eeepc_rfkill_hotplug();
 	if (ehotk->hotplug_slot)
 		pci_hp_deregister(ehotk->hotplug_slot);
@@ -1096,20 +1043,14 @@ static int eeepc_rfkill_init(struct device *dev)
 		goto exit;
 
 	result = eeepc_setup_pci_hotplug();
-	/*
-	 * If we get -EBUSY then something else is handling the PCI hotplug -
-	 * don't fail in this case
-	 */
+	
 	if (result == -EBUSY)
 		result = 0;
 
 	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P5");
 	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
 	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
-	/*
-	 * Refresh pci hotplug in case the rfkill state was changed during
-	 * setup.
-	 */
+	
 	eeepc_rfkill_hotplug();
 
 exit:
@@ -1213,7 +1154,7 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
 		goto fail_platform_driver;
 	eeepc_enable_camera();
 
-	/* Register platform stuff */
+	
 	result = platform_driver_register(&platform_driver);
 	if (result)
 		goto fail_platform_driver;

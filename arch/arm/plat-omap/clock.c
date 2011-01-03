@@ -1,15 +1,4 @@
-/*
- *  linux/arch/arm/plat-omap/clock.c
- *
- *  Copyright (C) 2004 - 2008 Nokia corporation
- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
- *
- *  Modified for omap shared clock framework by Tony Lindgren <tony@atomide.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
@@ -32,15 +21,11 @@ static DEFINE_SPINLOCK(clockfw_lock);
 
 static struct clk_functions *arch_clock;
 
-/*-------------------------------------------------------------------------
- * Standard clock functions defined in include/linux/clk.h
- *-------------------------------------------------------------------------*/
 
-/* This functions is moved to arch/arm/common/clkdev.c. For OMAP4 since
- * clock framework is not up , it is defined here to avoid rework in
- * every driver. Also dummy prcm reset function is added */
 
-/* Dummy hooks only for OMAP4.For rest OMAPs, common clkdev is used */
+
+
+
 #if defined(CONFIG_ARCH_OMAP4)
 struct clk *clk_get(struct device *dev, const char *id)
 {
@@ -68,7 +53,7 @@ int clk_enable(struct clk *clk)
 	unsigned long flags;
 	int ret = 0;
 	if (cpu_is_omap44xx())
-		/* OMAP4 clk framework not supported yet */
+		
 		return 0;
 
 	if (clk == NULL || IS_ERR(clk))
@@ -122,9 +107,7 @@ unsigned long clk_get_rate(struct clk *clk)
 }
 EXPORT_SYMBOL(clk_get_rate);
 
-/*-------------------------------------------------------------------------
- * Optional clock functions defined in include/linux/clk.h
- *-------------------------------------------------------------------------*/
+
 
 long clk_round_rate(struct clk *clk, unsigned long rate)
 {
@@ -171,7 +154,7 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 	int ret = -EINVAL;
 
 	if (cpu_is_omap44xx())
-	/* OMAP4 clk framework not supported yet */
+	
 		return 0;
 	if (clk == NULL || IS_ERR(clk) || parent == NULL || IS_ERR(parent))
 		return ret;
@@ -199,16 +182,11 @@ struct clk *clk_get_parent(struct clk *clk)
 }
 EXPORT_SYMBOL(clk_get_parent);
 
-/*-------------------------------------------------------------------------
- * OMAP specific clock functions shared between omap1 and omap2
- *-------------------------------------------------------------------------*/
+
 
 unsigned int __initdata mpurate;
 
-/*
- * By default we use the rate set by the bootloader.
- * You can override this with mpurate= cmdline option.
- */
+
 static int __init omap_clk_setup(char *str)
 {
 	get_option(&str, &mpurate);
@@ -223,7 +201,7 @@ static int __init omap_clk_setup(char *str)
 }
 __setup("mpurate=", omap_clk_setup);
 
-/* Used for clocks that always have same value as the parent clock */
+
 unsigned long followparent_recalc(struct clk *clk)
 {
 	return clk->parent->rate;
@@ -236,11 +214,10 @@ void clk_reparent(struct clk *child, struct clk *parent)
 		list_add(&child->sibling, &parent->children);
 	child->parent = parent;
 
-	/* now do the debugfs renaming to reattach the child
-	   to the proper parent */
+	
 }
 
-/* Propagate rate to children */
+
 void propagate_rate(struct clk * tclk)
 {
 	struct clk *clkp;
@@ -254,13 +231,7 @@ void propagate_rate(struct clk * tclk)
 
 static LIST_HEAD(root_clks);
 
-/**
- * recalculate_root_clocks - recalculate and propagate all root clocks
- *
- * Recalculates all root clocks (clocks with no parent), which if the
- * clock's .recalc is set correctly, should also propagate their rates.
- * Called at init.
- */
+
 void recalculate_root_clocks(void)
 {
 	struct clk *clkp;
@@ -272,13 +243,7 @@ void recalculate_root_clocks(void)
 	}
 }
 
-/**
- * clk_preinit - initialize any fields in the struct clk before clk init
- * @clk: struct clk * to initialize
- *
- * Initialize any struct clk fields needed before normal clk initialization
- * can run.  No return value.
- */
+
 void clk_preinit(struct clk *clk)
 {
 	INIT_LIST_HEAD(&clk->children);
@@ -289,9 +254,7 @@ int clk_register(struct clk *clk)
 	if (clk == NULL || IS_ERR(clk))
 		return -EINVAL;
 
-	/*
-	 * trap out already registered clocks
-	 */
+	
 	if (clk->node.next || clk->node.prev)
 		return 0;
 
@@ -333,9 +296,7 @@ void clk_enable_init_clocks(void)
 }
 EXPORT_SYMBOL(clk_enable_init_clocks);
 
-/*
- * Low level helpers
- */
+
 static int clkll_enable_null(struct clk *clk)
 {
 	return 0;
@@ -363,12 +324,10 @@ void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
 EXPORT_SYMBOL(clk_init_cpufreq_table);
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #ifdef CONFIG_OMAP_RESET_CLOCKS
-/*
- * Disable any unused clocks left on by the bootloader
- */
+
 static int __init clk_disable_unused(void)
 {
 	struct clk *ck;
@@ -405,9 +364,7 @@ int __init clk_init(struct clk_functions * custom_clocks)
 }
 
 #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
-/*
- *	debugfs support to trace clock tree hierarchy and attributes
- */
+
 static struct dentry *clk_debugfs_root;
 
 static int clk_debugfs_register_one(struct clk *c)
@@ -493,4 +450,4 @@ err_out:
 }
 late_initcall(clk_debugfs_init);
 
-#endif /* defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS) */
+#endif 

@@ -1,19 +1,4 @@
-/* $Id: packet.c,v 1.5.8.1 2001/09/23 22:24:59 kai Exp $
- *
- * Copyright (C) 1996  SpellCaster Telecommunications Inc.
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * For more information, please contact gpl-info@spellcast.com or write:
- *
- *     SpellCaster Telecommunications Inc.
- *     5621 Finch Avenue East, Unit #3
- *     Scarborough, Ontario  Canada
- *     M1B 2T9
- *     +1 (416) 297-8565
- *     +1 (416) 297-6433 Facsimile
- */
+
 
 #include "includes.h"
 #include "hardware.h"
@@ -55,15 +40,13 @@ int sndpkt(int devId, int channel, int ack, struct sk_buff *data)
 
 	ReqLnkWrite.buff_offset = sc_adapter[card]->channel[channel].next_sendbuf *
 		BUFFER_SIZE + sc_adapter[card]->channel[channel].first_sendbuf;
-	ReqLnkWrite.msg_len = data->len; /* sk_buff size */
+	ReqLnkWrite.msg_len = data->len; 
 	pr_debug("%s: writing %d bytes to buffer offset 0x%lx\n",
 			sc_adapter[card]->devicename,
 			ReqLnkWrite.msg_len, ReqLnkWrite.buff_offset);
 	memcpy_toshmem(card, (char *)ReqLnkWrite.buff_offset, data->data, ReqLnkWrite.msg_len);
 
-	/*
-	 * sendmessage
-	 */
+	
 	pr_debug("%s: sndpkt size=%d, buf_offset=0x%lx buf_indx=%d\n",
 		sc_adapter[card]->devicename,
 		ReqLnkWrite.msg_len, ReqLnkWrite.buff_offset,
@@ -125,12 +108,10 @@ void rcvpkt(int card, RspMessage *rcvmsg)
 			rcvmsg->phy_link_no-1, skb);
 
 	case 0x03:
-		/*
-	 	 * Recycle the buffer
-	 	 */
+		
 		pr_debug("%s: buffer size : %d\n",
 				sc_adapter[card]->devicename, BUFFER_SIZE);
-/*		memset_shmem(card, rcvmsg->msg_data.response.buff_offset, 0, BUFFER_SIZE); */
+
 		newll.buff_offset = rcvmsg->msg_data.response.buff_offset;
 		newll.msg_len = BUFFER_SIZE;
 		pr_debug("%s: recycled buffer at offset 0x%lx size %d\n",
@@ -153,9 +134,7 @@ int setup_buffers(int card, int c)
 		return -ENODEV;
 	}
 
-	/*
-	 * Calculate the buffer offsets (send/recv/send/recv)
-	 */
+	
 	pr_debug("%s: setting up channel buffer space in shared RAM\n",
 			sc_adapter[card]->devicename);
 	buffer_size = BUFFER_SIZE;
@@ -183,9 +162,7 @@ int setup_buffers(int card, int c)
 				sc_adapter[card]->channel[c-1].free_sendbufs,
 				sc_adapter[card]->channel[c-1].next_sendbuf);
 
-	/*
-	 * Prep the receive buffers
-	 */
+	
 	pr_debug("%s: adding %d RecvBuffers:\n",
 			sc_adapter[card]->devicename, nBuffers /2);
 	for (i = 0 ; i < nBuffers / 2; i++) {

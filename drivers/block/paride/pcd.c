@@ -1,115 +1,13 @@
-/* 
-	pcd.c	(c) 1997-8  Grant R. Guenther <grant@torque.net>
-		            Under the terms of the GNU General Public License.
 
-	This is a high-level driver for parallel port ATAPI CD-ROM
-        drives based on chips supported by the paride module.
 
-        By default, the driver will autoprobe for a single parallel
-        port ATAPI CD-ROM drive, but if their individual parameters are
-        specified, the driver can handle up to 4 drives.
 
-        The behaviour of the pcd driver can be altered by setting
-        some parameters from the insmod command line.  The following
-        parameters are adjustable:
-
-            drive0      These four arguments can be arrays of       
-            drive1      1-6 integers as follows:
-            drive2
-            drive3      <prt>,<pro>,<uni>,<mod>,<slv>,<dly>
-
-                        Where,
-
-                <prt>   is the base of the parallel port address for
-                        the corresponding drive.  (required)
-
-                <pro>   is the protocol number for the adapter that
-                        supports this drive.  These numbers are
-                        logged by 'paride' when the protocol modules
-                        are initialised.  (0 if not given)
-
-                <uni>   for those adapters that support chained
-                        devices, this is the unit selector for the
-                        chain of devices on the given port.  It should
-                        be zero for devices that don't support chaining.
-                        (0 if not given)
-
-                <mod>   this can be -1 to choose the best mode, or one
-                        of the mode numbers supported by the adapter.
-                        (-1 if not given)
-
-		<slv>   ATAPI CD-ROMs can be jumpered to master or slave.
-			Set this to 0 to choose the master drive, 1 to
-                        choose the slave, -1 (the default) to choose the
-			first drive found.
-
-                <dly>   some parallel ports require the driver to 
-                        go more slowly.  -1 sets a default value that
-                        should work with the chosen protocol.  Otherwise,
-                        set this to a small integer, the larger it is
-                        the slower the port i/o.  In some cases, setting
-                        this to zero will speed up the device. (default -1)
-                        
-            major       You may use this parameter to overide the
-                        default major number (46) that this driver
-                        will use.  Be sure to change the device
-                        name as well.
-
-            name        This parameter is a character string that
-                        contains the name the kernel will use for this
-                        device (in /proc output, for instance).
-                        (default "pcd")
-
-            verbose     This parameter controls the amount of logging
-                        that the driver will do.  Set it to 0 for
-                        normal operation, 1 to see autoprobe progress
-                        messages, or 2 to see additional debugging
-                        output.  (default 0)
-  
-            nice        This parameter controls the driver's use of
-                        idle CPU time, at the expense of some speed.
- 
-	If this driver is built into the kernel, you can use kernel
-        the following command line parameters, with the same values
-        as the corresponding module parameters listed above:
-
-	    pcd.drive0
-	    pcd.drive1
-	    pcd.drive2
-	    pcd.drive3
-	    pcd.nice
-
-        In addition, you can use the parameter pcd.disable to disable
-        the driver entirely.
-
-*/
-
-/* Changes:
-
-	1.01	GRG 1998.01.24	Added test unit ready support
-	1.02    GRG 1998.05.06  Changes to pcd_completion, ready_wait,
-				and loosen interpretation of ATAPI
-			        standard for clearing error status.
-				Use spinlocks. Eliminate sti().
-	1.03    GRG 1998.06.16  Eliminated an Ugh
-	1.04	GRG 1998.08.15  Added extra debugging, improvements to
-				pcd_completion, use HZ in loop timing
-	1.05	GRG 1998.08.16	Conformed to "Uniform CD-ROM" standard
-	1.06    GRG 1998.08.19  Added audio ioctl support
-	1.07    GRG 1998.09.24  Increased reset timeout, added jumbo support
-
-*/
 
 #define	PCD_VERSION	"1.07"
 #define PCD_MAJOR	46
 #define PCD_NAME	"pcd"
 #define PCD_UNITS	4
 
-/* Here are things one can override from the insmod command.
-   Most are autoprobed by paride unless set here.  Verbose is off
-   by default.
 
-*/
 
 static int verbose = 0;
 static int major = PCD_MAJOR;
@@ -127,7 +25,7 @@ static int pcd_drive_count;
 
 enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV, D_DLY};
 
-/* end of parameters */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -155,10 +53,10 @@ module_param_array(drive3, int, NULL, 0);
 #include "pseudo.h"
 
 #define PCD_RETRIES	     5
-#define PCD_TMO		   800	/* timeout in jiffies */
-#define PCD_DELAY           50	/* spin delay in uS */
-#define PCD_READY_TMO	    20	/* in seconds */
-#define PCD_RESET_TMO	   100	/* in tenths of a second */
+#define PCD_TMO		   800	
+#define PCD_DELAY           50	
+#define PCD_READY_TMO	    20	
+#define PCD_RESET_TMO	   100	
 
 #define PCD_SPIN	(1000000*PCD_TMO)/(HZ*PCD_DELAY)
 
@@ -187,39 +85,34 @@ static void do_pcd_request(struct request_queue * q);
 static void do_pcd_read(void);
 
 struct pcd_unit {
-	struct pi_adapter pia;	/* interface to paride layer */
+	struct pi_adapter pia;	
 	struct pi_adapter *pi;
-	int drive;		/* master/slave */
-	int last_sense;		/* result of last request sense */
-	int changed;		/* media change seen */
-	int present;		/* does this unit exist ? */
-	char *name;		/* pcd0, pcd1, etc */
-	struct cdrom_device_info info;	/* uniform cdrom interface */
+	int drive;		
+	int last_sense;		
+	int changed;		
+	int present;		
+	char *name;		
+	struct cdrom_device_info info;	
 	struct gendisk *disk;
 };
 
 static struct pcd_unit pcd[PCD_UNITS];
 
 static char pcd_scratch[64];
-static char pcd_buffer[2048];	/* raw block buffer */
-static int pcd_bufblk = -1;	/* block in buffer, in CD units,
-				   -1 for nothing there. See also
-				   pd_unit.
-				 */
+static char pcd_buffer[2048];	
+static int pcd_bufblk = -1;	
 
-/* the variables below are used mainly in the I/O request engine, which
-   processes only one request at a time.
-*/
 
-static struct pcd_unit *pcd_current; /* current request's drive */
+
+static struct pcd_unit *pcd_current; 
 static struct request *pcd_req;
-static int pcd_retries;		/* retries on current request */
-static int pcd_busy;		/* request being processed ? */
-static int pcd_sector;		/* address of next requested sector */
-static int pcd_count;		/* number of blocks still to do */
-static char *pcd_buf;		/* buffer for request in progress */
+static int pcd_retries;		
+static int pcd_busy;		
+static int pcd_sector;		
+static int pcd_count;		
+static char *pcd_buf;		
 
-/* kernel glue structures */
+
 
 static int pcd_block_open(struct block_device *bdev, fmode_t mode)
 {
@@ -300,7 +193,7 @@ static void pcd_init_units(void)
 		cd->info.mask = 0;
 		disk->major = major;
 		disk->first_minor = unit;
-		strcpy(disk->disk_name, cd->name);	/* umm... */
+		strcpy(disk->disk_name, cd->name);	
 		disk->fops = &pcd_bdops;
 	}
 }
@@ -369,7 +262,7 @@ static int pcd_command(struct pcd_unit *cd, char *cmd, int dlen, char *fun)
 
 	write_reg(cd, 4, dlen % 256);
 	write_reg(cd, 5, dlen / 256);
-	write_reg(cd, 7, 0xa0);	/* ATAPI packet command */
+	write_reg(cd, 7, 0xa0);	
 
 	if (pcd_wait(cd, IDE_BUSY, IDE_DRQ, fun, "command DRQ")) {
 		pi_disconnect(cd->pi);
@@ -525,7 +418,7 @@ static int pcd_reset(struct pcd_unit *cd)
 	write_reg(cd, 6, 0xa0 + 0x10 * cd->drive);
 	write_reg(cd, 7, 8);
 
-	pcd_sleep(20 * HZ / 1000);	/* delay a bit */
+	pcd_sleep(20 * HZ / 1000);	
 
 	k = 0;
 	while ((k++ < PCD_RESET_TMO) && (status_reg(cd) & IDE_BUSY))
@@ -570,7 +463,7 @@ static int pcd_ready_wait(struct pcd_unit *cd, int tmo)
 		k++;
 		pcd_sleep(HZ);
 	}
-	return 0x000020;	/* timeout */
+	return 0x000020;	
 }
 
 static int pcd_drive_status(struct cdrom_device_info *cdi, int slot_nr)
@@ -615,10 +508,7 @@ static int pcd_identify(struct pcd_unit *cd, char *id)
 	return 0;
 }
 
-/*
- * returns  0, with id set if drive is detected
- *	    -1, if drive detection failed
- */
+
 static int pcd_probe(struct pcd_unit *cd, int ms, char *id)
 {
 	if (ms == -1) {
@@ -646,7 +536,7 @@ static void pcd_probe_capabilities(void)
 		r = pcd_atapi(cd, cmd, 18, buffer, "mode sense capabilities");
 		if (r)
 			continue;
-		/* we should now have the cap page */
+		
 		if ((buffer[11] & 1) == 0)
 			cd->info.mask |= CDC_CD_R;
 		if ((buffer[11] & 2) == 0)
@@ -672,7 +562,7 @@ static int pcd_detect(void)
 	       name, name, PCD_VERSION, major, nice);
 
 	k = 0;
-	if (pcd_drive_count == 0) { /* nothing spec'd - so autoprobe for 1 */
+	if (pcd_drive_count == 0) { 
 		cd = pcd;
 		if (pi_init(cd->pi, 1, -1, -1, -1, -1, -1, pcd_buffer,
 			    PI_PCD, verbose, cd->name)) {
@@ -707,7 +597,7 @@ static int pcd_detect(void)
 	return -1;
 }
 
-/* I/O request processing */
+
 static struct request_queue *pcd_queue;
 
 static void do_pcd_request(struct request_queue * q)
@@ -826,7 +716,7 @@ static void do_pcd_read_drq(void)
 	spin_unlock_irqrestore(&pcd_lock, saved_flags);
 }
 
-/* the audio_ioctl stuff is adapted from sr_ioctl.c */
+
 
 static int pcd_audio_ioctl(struct cdrom_device_info *cdi, unsigned int cmd, void *arg)
 {
@@ -921,7 +811,7 @@ static int __init pcd_init(void)
 	if (pcd_detect())
 		return -ENODEV;
 
-	/* get the atapi capabilities page */
+	
 	pcd_probe_capabilities();
 
 	if (register_blkdev(major, name)) {

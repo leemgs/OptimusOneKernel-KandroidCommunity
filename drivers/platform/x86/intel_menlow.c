@@ -1,31 +1,4 @@
-/*
- *  intel_menlow.c - Intel menlow Driver for thermal management extension
- *
- *  Copyright (C) 2008 Intel Corp
- *  Copyright (C) 2008 Sujith Thomas <sujith.thomas@intel.com>
- *  Copyright (C) 2008 Zhang Rui <rui.zhang@intel.com>
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; version 2 of the License.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This driver creates the sys I/F for programming the sensors.
- *  It also implements the driver for intel menlow memory controller (hardware
- *  id is INT0002) which makes use of the platform specific ACPI methods
- *  to get/set bandwidth.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -43,20 +16,14 @@ MODULE_AUTHOR("Zhang Rui");
 MODULE_DESCRIPTION("Intel Menlow platform specific driver");
 MODULE_LICENSE("GPL");
 
-/*
- * Memory controller device control
- */
+
 
 #define MEMORY_GET_BANDWIDTH "GTHS"
 #define MEMORY_SET_BANDWIDTH "STHS"
 #define MEMORY_ARG_CUR_BANDWIDTH 1
 #define MEMORY_ARG_MAX_BANDWIDTH 0
 
-/*
- * GTHS returning 'n' would mean that [0,n-1] states are supported
- * In that case max_cstate would be n-1
- * GTHS returning '0' would mean that no bandwidth control states are supported
- */
+
 static int memory_get_max_bandwidth(struct thermal_cooling_device *cdev,
 				    unsigned long *max_state)
 {
@@ -146,9 +113,7 @@ static struct thermal_cooling_device_ops memory_cooling_ops = {
 	.set_cur_state = memory_set_cur_bandwidth,
 };
 
-/*
- * Memory Device Management
- */
+
 static int intel_menlow_memory_add(struct acpi_device *device)
 {
 	int result = -ENODEV;
@@ -224,9 +189,7 @@ static struct acpi_driver intel_menlow_memory_driver = {
 		},
 };
 
-/*
- * Sensor control on menlow platform
- */
+
 
 #define THERMAL_AUX0 0
 #define THERMAL_AUX1 1
@@ -245,12 +208,7 @@ struct intel_menlow_attribute {
 static LIST_HEAD(intel_menlow_attr_list);
 static DEFINE_MUTEX(intel_menlow_attr_lock);
 
-/*
- * sensor_get_auxtrip - get the current auxtrip value from sensor
- * @name: Thermalzone name
- * @auxtype : AUX0/AUX1
- * @buf: syfs buffer
- */
+
 static int sensor_get_auxtrip(acpi_handle handle, int index,
 							unsigned long long *value)
 {
@@ -267,12 +225,7 @@ static int sensor_get_auxtrip(acpi_handle handle, int index,
 	return 0;
 }
 
-/*
- * sensor_set_auxtrip - set the new auxtrip value to sensor
- * @name: Thermalzone name
- * @auxtype : AUX0/AUX1
- * @buf: syfs buffer
- */
+
 static int sensor_set_auxtrip(acpi_handle handle, int index, int value)
 {
 	acpi_status status;
@@ -300,7 +253,7 @@ static int sensor_set_auxtrip(acpi_handle handle, int index, int value)
 	if (ACPI_FAILURE(status))
 		return -EIO;
 
-	/* do we need to check the return value of SAX0/SAX1 ? */
+	
 
 	return 0;
 }
@@ -340,7 +293,7 @@ static ssize_t aux0_store(struct device *dev,
 	int value;
 	int result;
 
-	/*Sanity check; should be a positive integer */
+	
 	if (!sscanf(buf, "%d", &value))
 		return -EINVAL;
 
@@ -359,7 +312,7 @@ static ssize_t aux1_store(struct device *dev,
 	int value;
 	int result;
 
-	/*Sanity check; should be a positive integer */
+	
 	if (!sscanf(buf, "%d", &value))
 		return -EINVAL;
 
@@ -370,7 +323,7 @@ static ssize_t aux1_store(struct device *dev,
 	return result ? result : count;
 }
 
-/* BIOS can enable/disable the thermal user application in dabney platform */
+
 #define BIOS_ENABLED "\\_TZ.GSTS"
 static ssize_t bios_enabled_show(struct device *dev,
 				 struct device_attribute *attr, char *buf)
@@ -426,7 +379,7 @@ static acpi_status intel_menlow_register_sensor(acpi_handle handle, u32 lvl,
 	if (result)
 		return 0;
 
-	/* _TZ must have the AUX0/1 methods */
+	
 	status = acpi_get_handle(handle, GET_AUX0, &dummy);
 	if (ACPI_FAILURE(status))
 		goto not_found;
@@ -455,10 +408,7 @@ static acpi_status intel_menlow_register_sensor(acpi_handle handle, u32 lvl,
 	if (result)
 		return AE_ERROR;
 
-	/*
-	 * create the "dabney_enabled" attribute which means the user app
-	 * should be loaded or not
-	 */
+	
 
 	result = intel_menlow_add_one_attribute("bios_enabled", 0444,
 						bios_enabled_show, NULL,
@@ -497,17 +447,17 @@ static int __init intel_menlow_module_init(void)
 	if (acpi_disabled)
 		return result;
 
-	/* Looking for the \_TZ.GSTS method */
+	
 	status = acpi_evaluate_integer(NULL, BIOS_ENABLED, NULL, &enable);
 	if (ACPI_FAILURE(status) || !enable)
 		return -ENODEV;
 
-	/* Looking for ACPI device MEM0 with hardware id INT0002 */
+	
 	result = acpi_bus_register_driver(&intel_menlow_memory_driver);
 	if (result)
 		return result;
 
-	/* Looking for sensors in each ACPI thermal zone */
+	
 	status = acpi_walk_namespace(ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT,
 				     ACPI_UINT32_MAX,
 				     intel_menlow_register_sensor, NULL, NULL);

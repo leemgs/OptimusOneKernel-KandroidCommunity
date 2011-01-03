@@ -1,14 +1,4 @@
-/* DVB USB framework compliant Linux driver for the
-*	DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101,
-*	TeVii S600, S630, S650 Cards
-* Copyright (C) 2008,2009 Igor M. Liplianin (liplianin@me.by)
-*
-*	This program is free software; you can redistribute it and/or modify it
-*	under the terms of the GNU General Public License as published by the
-*	Free Software Foundation, version 2.
-*
-* see Documentation/dvb/README.dvb-usb for more information
-*/
+
 #include "dw2102.h"
 #include "si21xx.h"
 #include "stv0299.h"
@@ -51,7 +41,7 @@
 #define REG_1F_SYMBOLRATE_BYTE0 0x1f
 #define REG_20_SYMBOLRATE_BYTE1 0x20
 #define REG_21_SYMBOLRATE_BYTE2 0x21
-/* on my own*/
+
 #define DW2102_VOLTAGE_CTRL (0x1800)
 #define DW2102_RC_QUERY (0x1a00)
 
@@ -60,13 +50,13 @@ struct dvb_usb_rc_keys_table {
 	int rc_keys_size;
 };
 
-/* debug */
+
 static int dvb_usb_dw2102_debug;
 module_param_named(debug, dvb_usb_dw2102_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info 2=xfer 4=rc(or-able))."
 						DVB_USB_DEBUG_STATUS);
 
-/* keymaps */
+
 static int ir_keymap;
 module_param_named(keymap, ir_keymap, int, 0644);
 MODULE_PARM_DESC(keymap, "set keymap 0=default 1=dvbworld 2=tevii 3=tbs  ...");
@@ -93,7 +83,7 @@ static int dw210x_op_rw(struct usb_device *dev, u8 request, u16 value,
 	return ret;
 }
 
-/* I2C */
+
 static int dw2102_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		int num)
 {
@@ -109,8 +99,8 @@ static int dw2102_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 
 	switch (num) {
 	case 2:
-		/* read stv0299 register */
-		value = msg[0].buf[0];/* register */
+		
+		value = msg[0].buf[0];
 		for (i = 0; i < msg[1].len; i++) {
 			value = value + i;
 			ret = dw210x_op_rw(d->udev, 0xb5, value, 0,
@@ -121,7 +111,7 @@ static int dw2102_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 	case 1:
 		switch (msg[0].addr) {
 		case 0x68:
-			/* write to stv0299 register */
+			
 			buf6[0] = 0x2a;
 			buf6[1] = msg[0].buf[0];
 			buf6[2] = msg[0].buf[1];
@@ -130,7 +120,7 @@ static int dw2102_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 			break;
 		case 0x60:
 			if (msg[0].flags == 0) {
-			/* write to tuner pll */
+			
 				buf6[0] = 0x2c;
 				buf6[1] = 5;
 				buf6[2] = 0xc0;
@@ -141,7 +131,7 @@ static int dw2102_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 				ret = dw210x_op_rw(d->udev, 0xb2, 0, 0,
 						buf6, 7, DW210X_WRITE_MSG);
 			} else {
-			/* read from tuner */
+			
 				ret = dw210x_op_rw(d->udev, 0xb5, 0, 0,
 						buf6, 1, DW210X_READ_MSG);
 				msg[0].buf[0] = buf6[0];
@@ -182,13 +172,13 @@ static int dw2102_serit_i2c_transfer(struct i2c_adapter *adap,
 
 	switch (num) {
 	case 2:
-		/* read si2109 register by number */
+		
 		buf6[0] = 0xd0;
 		buf6[1] = msg[0].len;
 		buf6[2] = msg[0].buf[0];
 		ret = dw210x_op_rw(d->udev, 0xc2, 0, 0,
 				buf6, msg[0].len + 2, DW210X_WRITE_MSG);
-		/* read si2109 register */
+		
 		ret = dw210x_op_rw(d->udev, 0xc3, 0xd0, 0,
 				buf6, msg[1].len + 2, DW210X_READ_MSG);
 		memcpy(msg[1].buf, buf6 + 2, msg[1].len);
@@ -197,7 +187,7 @@ static int dw2102_serit_i2c_transfer(struct i2c_adapter *adap,
 	case 1:
 		switch (msg[0].addr) {
 		case 0x68:
-			/* write to si2109 register */
+			
 			buf6[0] = 0xd0;
 			buf6[1] = msg[0].len;
 			memcpy(buf6 + 2, msg[0].buf, msg[0].len);
@@ -236,15 +226,15 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
 
 	switch (num) {
 	case 2: {
-		/* read */
-		/* first write first register number */
+		
+		
 		u8 ibuf[msg[1].len + 2], obuf[3];
 		obuf[0] = 0xd0;
 		obuf[1] = msg[0].len;
 		obuf[2] = msg[0].buf[0];
 		ret = dw210x_op_rw(d->udev, 0xc2, 0, 0,
 				obuf, msg[0].len + 2, DW210X_WRITE_MSG);
-		/* second read registers */
+		
 		ret = dw210x_op_rw(d->udev, 0xc3, 0xd1 , 0,
 				ibuf, msg[1].len + 2, DW210X_READ_MSG);
 		memcpy(msg[1].buf, ibuf + 2, msg[1].len);
@@ -254,7 +244,7 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
 	case 1:
 		switch (msg[0].addr) {
 		case 0x68: {
-			/* write to register */
+			
 			u8 obuf[msg[0].len + 2];
 			obuf[0] = 0xd0;
 			obuf[1] = msg[0].len;
@@ -264,7 +254,7 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
 			break;
 		}
 		case 0x61: {
-			/* write to tuner */
+			
 			u8 obuf[msg[0].len + 2];
 			obuf[0] = 0xc2;
 			obuf[1] = msg[0].len;
@@ -310,15 +300,15 @@ static int dw2104_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[], i
 
 	switch (num) {
 	case 2: {
-		/* read */
-		/* first write first register number */
+		
+		
 		u8 ibuf[msg[1].len + 2], obuf[3];
 		obuf[0] = 0xaa;
 		obuf[1] = msg[0].len;
 		obuf[2] = msg[0].buf[0];
 		ret = dw210x_op_rw(d->udev, 0xc2, 0, 0,
 				obuf, msg[0].len + 2, DW210X_WRITE_MSG);
-		/* second read registers */
+		
 		ret = dw210x_op_rw(d->udev, 0xc3, 0xab , 0,
 				ibuf, msg[1].len + 2, DW210X_READ_MSG);
 		memcpy(msg[1].buf, ibuf + 2, msg[1].len);
@@ -329,8 +319,8 @@ static int dw2104_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[], i
 		switch (msg[0].addr) {
 		case 0x55: {
 			if (msg[0].buf[0] == 0xf7) {
-				/* firmware */
-				/* Write in small blocks */
+				
+				
 				u8 obuf[19];
 				obuf[0] = 0xaa;
 				obuf[1] = 0x11;
@@ -345,7 +335,7 @@ static int dw2104_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[], i
 					len -= 16;
 				} while (len > 0);
 			} else {
-				/* write to register */
+				
 				u8 obuf[msg[0].len + 2];
 				obuf[0] = 0xaa;
 				obuf[1] = msg[0].len;
@@ -392,15 +382,15 @@ static int dw3101_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 
 	switch (num) {
 	case 2: {
-		/* read */
-		/* first write first register number */
+		
+		
 		u8 ibuf[msg[1].len + 2], obuf[3];
 		obuf[0] = msg[0].addr << 1;
 		obuf[1] = msg[0].len;
 		obuf[2] = msg[0].buf[0];
 		ret = dw210x_op_rw(d->udev, 0xc2, 0, 0,
 				obuf, msg[0].len + 2, DW210X_WRITE_MSG);
-		/* second read registers */
+		
 		ret = dw210x_op_rw(d->udev, 0xc3, 0x19 , 0,
 				ibuf, msg[1].len + 2, DW210X_READ_MSG);
 		memcpy(msg[1].buf, ibuf + 2, msg[1].len);
@@ -411,7 +401,7 @@ static int dw3101_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		switch (msg[0].addr) {
 		case 0x60:
 		case 0x0c: {
-			/* write to register */
+			
 			u8 obuf[msg[0].len + 2];
 			obuf[0] = msg[0].addr << 1;
 			obuf[1] = msg[0].len;
@@ -454,7 +444,7 @@ static int s630_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		return -EAGAIN;
 
 	switch (num) {
-	case 2: { /* read */
+	case 2: { 
 		u8 ibuf[msg[1].len], obuf[3];
 		obuf[0] = msg[1].len;
 		obuf[1] = (msg[0].addr << 1);
@@ -472,7 +462,7 @@ static int s630_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
 		switch (msg[0].addr) {
 		case 0x60:
 		case 0x0e: {
-			/* write to zl10313, zl10039 register, */
+			
 			u8 obuf[msg[0].len + 2];
 			obuf[0] = msg[0].len + 1;
 			obuf[1] = (msg[0].addr << 1);
@@ -661,7 +651,7 @@ static struct dvb_usb_device_properties dw2104_properties;
 static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
 {
 	if (dw2102_properties.i2c_algo == &dw2102_serit_i2c_algo) {
-		/*dw2102_properties.adapter->tuner_attach = NULL;*/
+		
 		d->fe = dvb_attach(si21xx_attach, &serit_sp1511lhb_config,
 					&d->dev->i2c_adap);
 		if (d->fe != NULL) {
@@ -671,7 +661,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
 		}
 	}
 	if (dw2102_properties.i2c_algo == &dw2102_earda_i2c_algo) {
-		/*dw2102_properties.adapter->tuner_attach = dw2102_tuner_attach;*/
+		
 		d->fe = dvb_attach(stv0288_attach, &earda_config,
 					&d->dev->i2c_adap);
 		if (d->fe != NULL) {
@@ -682,7 +672,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
 	}
 
 	if (dw2102_properties.i2c_algo == &dw2102_i2c_algo) {
-		/*dw2102_properties.adapter->tuner_attach = dw2102_tuner_attach;*/
+		
 		d->fe = dvb_attach(stv0299_attach, &sharp_z0194a_config,
 					&d->dev->i2c_adap);
 		if (d->fe != NULL) {
@@ -749,8 +739,8 @@ static int s630_zl10039_tuner_attach(struct dvb_usb_adapter *adap)
 }
 
 static struct dvb_usb_rc_key dw210x_rc_keys[] = {
-	{ 0xf80a, KEY_Q },		/*power*/
-	{ 0xf80c, KEY_M },		/*mute*/
+	{ 0xf80a, KEY_Q },		
+	{ 0xf80c, KEY_M },		
 	{ 0xf811, KEY_1 },
 	{ 0xf812, KEY_2 },
 	{ 0xf813, KEY_3 },
@@ -761,25 +751,25 @@ static struct dvb_usb_rc_key dw210x_rc_keys[] = {
 	{ 0xf818, KEY_8 },
 	{ 0xf819, KEY_9 },
 	{ 0xf810, KEY_0 },
-	{ 0xf81c, KEY_PAGEUP },	/*ch+*/
-	{ 0xf80f, KEY_PAGEDOWN },	/*ch-*/
-	{ 0xf81a, KEY_O },		/*vol+*/
-	{ 0xf80e, KEY_Z },		/*vol-*/
-	{ 0xf804, KEY_R },		/*rec*/
-	{ 0xf809, KEY_D },		/*fav*/
-	{ 0xf808, KEY_BACKSPACE },	/*rewind*/
-	{ 0xf807, KEY_A },		/*fast*/
-	{ 0xf80b, KEY_P },		/*pause*/
-	{ 0xf802, KEY_ESC },	/*cancel*/
-	{ 0xf803, KEY_G },		/*tab*/
-	{ 0xf800, KEY_UP },		/*up*/
-	{ 0xf81f, KEY_ENTER },	/*ok*/
-	{ 0xf801, KEY_DOWN },	/*down*/
-	{ 0xf805, KEY_C },		/*cap*/
-	{ 0xf806, KEY_S },		/*stop*/
-	{ 0xf840, KEY_F },		/*full*/
-	{ 0xf81e, KEY_W },		/*tvmode*/
-	{ 0xf81b, KEY_B },		/*recall*/
+	{ 0xf81c, KEY_PAGEUP },	
+	{ 0xf80f, KEY_PAGEDOWN },	
+	{ 0xf81a, KEY_O },		
+	{ 0xf80e, KEY_Z },		
+	{ 0xf804, KEY_R },		
+	{ 0xf809, KEY_D },		
+	{ 0xf808, KEY_BACKSPACE },	
+	{ 0xf807, KEY_A },		
+	{ 0xf80b, KEY_P },		
+	{ 0xf802, KEY_ESC },	
+	{ 0xf803, KEY_G },		
+	{ 0xf800, KEY_UP },		
+	{ 0xf81f, KEY_ENTER },	
+	{ 0xf801, KEY_DOWN },	
+	{ 0xf805, KEY_C },		
+	{ 0xf806, KEY_S },		
+	{ 0xf840, KEY_F },		
+	{ 0xf81e, KEY_W },		
+	{ 0xf81b, KEY_B },		
 };
 
 static struct dvb_usb_rc_key tevii_rc_keys[] = {
@@ -885,7 +875,7 @@ static int dw2102_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 		.len = 2
 	};
 	int i;
-	/* override keymap */
+	
 	if ((ir_keymap > 0) && (ir_keymap <= ARRAY_SIZE(keys_tables))) {
 		keymap = keys_tables[ir_keymap - 1].rc_keys ;
 		keymap_size = keys_tables[ir_keymap - 1].rc_keys_size;
@@ -954,7 +944,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
 	info("start downloading DW210X firmware");
 	p = kmalloc(fw->size, GFP_KERNEL);
 	reset = 1;
-	/*stop the CPU*/
+	
 	dw210x_op_rw(dev, 0xa0, 0x7f92, 0, &reset, 1, DW210X_WRITE_MSG);
 	dw210x_op_rw(dev, 0xa0, 0xe600, 0, &reset, 1, DW210X_WRITE_MSG);
 
@@ -969,7 +959,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
 				break;
 			}
 		}
-		/* restart the CPU */
+		
 		reset = 0;
 		if (ret || dw210x_op_rw(dev, 0xa0, 0x7f92, 0, &reset, 1,
 					DW210X_WRITE_MSG) != 1) {
@@ -981,7 +971,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
 			err("could not restart the USB controller CPU.");
 			ret = -EINVAL;
 		}
-		/* init registers */
+		
 		switch (dev->descriptor.idProduct) {
 		case USB_PID_TEVII_S650:
 			dw2104_properties.rc_key_map = tevii_rc_keys;
@@ -991,7 +981,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
 			reset = 1;
 			dw210x_op_rw(dev, 0xc4, 0x0000, 0, &reset, 1,
 					DW210X_WRITE_MSG);
-			/* break omitted intentionally */
+			
 		case USB_PID_DW3101:
 			reset = 0;
 			dw210x_op_rw(dev, 0xbf, 0x0040, 0, &reset, 0,
@@ -1003,7 +993,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
 					DW210X_WRITE_MSG);
 			dw210x_op_rw(dev, 0xb9, 0x0000, 0, &reset16[0], 2,
 					DW210X_READ_MSG);
-			/* check STV0299 frontend  */
+			
 			dw210x_op_rw(dev, 0xb5, 0, 0, &reset16[0], 2,
 					DW210X_READ_MSG);
 			if ((reset16[0] == 0xa1) || (reset16[0] == 0x80)) {
@@ -1011,7 +1001,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
 				dw2102_properties.adapter->tuner_attach = &dw2102_tuner_attach;
 				break;
 			} else {
-				/* check STV0288 frontend  */
+				
 				reset16[0] = 0xd0;
 				reset16[1] = 1;
 				reset16[2] = 0;
@@ -1056,7 +1046,7 @@ static struct dvb_usb_device_properties dw2102_properties = {
 	.rc_query = dw2102_rc_query,
 
 	.generic_bulk_ctrl_endpoint = 0x81,
-	/* parameter for the MPEG2-data transfer */
+	
 	.num_adapters = 1,
 	.download_firmware = dw2102_load_firmware,
 	.read_mac_address = dw210x_read_mac_address,
@@ -1107,7 +1097,7 @@ static struct dvb_usb_device_properties dw2104_properties = {
 	.rc_query = dw2102_rc_query,
 
 	.generic_bulk_ctrl_endpoint = 0x81,
-	/* parameter for the MPEG2-data transfer */
+	
 	.num_adapters = 1,
 	.download_firmware = dw2102_load_firmware,
 	.read_mac_address = dw210x_read_mac_address,
@@ -1115,7 +1105,7 @@ static struct dvb_usb_device_properties dw2104_properties = {
 		{
 			.frontend_attach = dw2104_frontend_attach,
 			.streaming_ctrl = NULL,
-			/*.tuner_attach = dw2104_tuner_attach,*/
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 8,
@@ -1154,7 +1144,7 @@ static struct dvb_usb_device_properties dw3101_properties = {
 	.rc_query = dw2102_rc_query,
 
 	.generic_bulk_ctrl_endpoint = 0x81,
-	/* parameter for the MPEG2-data transfer */
+	
 	.num_adapters = 1,
 	.download_firmware = dw2102_load_firmware,
 	.read_mac_address = dw210x_read_mac_address,

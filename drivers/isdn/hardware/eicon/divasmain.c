@@ -1,13 +1,4 @@
-/* $Id: divasmain.c,v 1.55.4.6 2005/02/09 19:28:20 armin Exp $
- *
- * Low level driver for Eicon DIVA Server ISDN cards.
- *
- * Copyright 2000-2003 by Armin Schindler (mac@melware.de)
- * Copyright 2000-2003 Cytronics & Melware (info@melware.de)
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -69,17 +60,8 @@ typedef struct _diva_os_thread_dpc {
 	diva_os_soft_isr_t *psoft_isr;
 } diva_os_thread_dpc_t;
 
-/* --------------------------------------------------------------------------
-    PCI driver interface section
-   -------------------------------------------------------------------------- */
-/*
-  vendor, device	Vendor and device ID to match (or PCI_ANY_ID)
-  subvendor,	Subsystem vendor and device ID to match (or PCI_ANY_ID)
-  subdevice
-  class,		Device class to match. The class_mask tells which bits
-  class_mask	of the class are honored during the comparison.
-  driver_data	Data private to the driver.
-  */
+
+
 
 #if !defined(PCI_DEVICE_ID_EICON_MAESTRAP_2)
 #define PCI_DEVICE_ID_EICON_MAESTRAP_2       0xE015
@@ -109,45 +91,43 @@ typedef struct _diva_os_thread_dpc {
 #define PCI_DEVICE_ID_EICON_BRI2M_2_VOIP     0xE01B
 #endif
 
-/*
-  This table should be sorted by PCI device ID
-  */
+
 static struct pci_device_id divas_pci_tbl[] = {
-/* Diva Server BRI-2M PCI 0xE010 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_MAESTRA,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_MAESTRA_PCI},
-/* Diva Server 4BRI-8M PCI 0xE012 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_MAESTRAQ,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_Q_8M_PCI},
-/* Diva Server 4BRI-8M 2.0 PCI 0xE013 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_MAESTRAQ_U,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_Q_8M_V2_PCI},
-/* Diva Server PRI-30M PCI 0xE014 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_MAESTRAP,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_P_30M_PCI},
-/* Diva Server PRI 2.0 adapter 0xE015 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_MAESTRAP_2,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_P_30M_V2_PCI},
-/* Diva Server Voice 4BRI-8M PCI 0xE016 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_4BRI_VOIP,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_VOICE_Q_8M_PCI},
-/* Diva Server Voice 4BRI-8M 2.0 PCI 0xE017 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_4BRI_2_VOIP,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_VOICE_Q_8M_V2_PCI},
-/* Diva Server BRI-2M 2.0 PCI 0xE018 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_BRI2M_2,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_B_2M_V2_PCI},
-/* Diva Server Voice PRI 2.0 PCI 0xE019 */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_MAESTRAP_2_VOIP,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	 CARDTYPE_DIVASRV_VOICE_P_30M_V2_PCI},
-/* Diva Server 2FX 0xE01A */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_2F,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_B_2F_PCI},
-/* Diva Server Voice BRI-2M 2.0 PCI 0xE01B */
+
 	{PCI_VENDOR_ID_EICON, PCI_DEVICE_ID_EICON_BRI2M_2_VOIP,
 	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARDTYPE_DIVASRV_VOICE_B_2M_V2_PCI},
-	{0,}			/* 0 terminated list. */
+	{0,}			
 };
 MODULE_DEVICE_TABLE(pci, divas_pci_tbl);
 
@@ -162,9 +142,7 @@ static struct pci_driver diva_pci_driver = {
 	.id_table = divas_pci_tbl,
 };
 
-/*********************************************************
- ** little helper functions
- *********************************************************/
+
 static char *getrev(const char *revision)
 {
 	char *rev;
@@ -199,9 +177,7 @@ void divas_get_version(char *p)
 		getrev(tmprev), diva_xdi_common_code_build, DIVA_BUILD, major);
 }
 
-/* --------------------------------------------------------------------------
-    PCI Bus services  
-   -------------------------------------------------------------------------- */
+
 byte diva_os_get_pci_bus(void *pci_dev_handle)
 {
 	struct pci_dev *pdev = (struct pci_dev *) pci_dev_handle;
@@ -258,21 +234,21 @@ void PCIwrite(byte bus, byte func, int offset, void *data, int length,
 	struct pci_dev *dev = (struct pci_dev *) pci_dev_handle;
 
 	switch (length) {
-	case 1:		/* byte */
+	case 1:		
 		pci_write_config_byte(dev, offset,
 				      *(unsigned char *) data);
 		break;
-	case 2:		/* word */
+	case 2:		
 		pci_write_config_word(dev, offset,
 				      *(unsigned short *) data);
 		break;
-	case 4:		/* dword */
+	case 4:		
 		pci_write_config_dword(dev, offset,
 				       *(unsigned int *) data);
 		break;
 
-	default:		/* buffer */
-		if (!(length % 4) && !(length & 0x03)) {	/* Copy as dword */
+	default:		
+		if (!(length % 4) && !(length & 0x03)) {	
 			dword *p = (dword *) data;
 			length /= 4;
 
@@ -281,7 +257,7 @@ void PCIwrite(byte bus, byte func, int offset, void *data, int length,
 						       *(unsigned int *)
 						       p++);
 			}
-		} else {	/* copy as byte stream */
+		} else {	
 			byte *p = (byte *) data;
 
 			while (length--) {
@@ -299,18 +275,18 @@ void PCIread(byte bus, byte func, int offset, void *data, int length,
 	struct pci_dev *dev = (struct pci_dev *) pci_dev_handle;
 
 	switch (length) {
-	case 1:		/* byte */
+	case 1:		
 		pci_read_config_byte(dev, offset, (unsigned char *) data);
 		break;
-	case 2:		/* word */
+	case 2:		
 		pci_read_config_word(dev, offset, (unsigned short *) data);
 		break;
-	case 4:		/* dword */
+	case 4:		
 		pci_read_config_dword(dev, offset, (unsigned int *) data);
 		break;
 
-	default:		/* buffer */
-		if (!(length % 4) && !(length & 0x03)) {	/* Copy as dword */
+	default:		
+		if (!(length % 4) && !(length & 0x03)) {	
 			dword *p = (dword *) data;
 			length /= 4;
 
@@ -319,7 +295,7 @@ void PCIread(byte bus, byte func, int offset, void *data, int length,
 						      (unsigned int *)
 						      p++);
 			}
-		} else {	/* copy as byte stream */
+		} else {	
 			byte *p = (byte *) data;
 
 			while (length--) {
@@ -331,11 +307,7 @@ void PCIread(byte bus, byte func, int offset, void *data, int length,
 	}
 }
 
-/*
-  Init map with DMA pages. It is not problem if some allocations fail -
-  the channels that will not get one DMA page will use standard PIO
-  interface
-  */
+
 static void *diva_pci_alloc_consistent(struct pci_dev *hwdev,
 				       size_t size,
 				       dma_addr_t * dma_handle,
@@ -381,10 +353,7 @@ void diva_init_dma_map(void *hdev,
 	*ppmap = pmap;
 }
 
-/*
-  Free all contained in the map entries and memory used by the map
-  Should be always called after adapter removal from DIDD array
-  */
+
 void diva_free_dma_map(void *hdev, struct _diva_dma_map_entry *pmap)
 {
 	struct pci_dev *pdev = (struct pci_dev *) hdev;
@@ -412,9 +381,7 @@ void diva_free_dma_map(void *hdev, struct _diva_dma_map_entry *pmap)
 }
 
 
-/*********************************************************
- ** I/O port utilities  
- *********************************************************/
+
 
 int
 diva_os_register_io_port(void *adapter, int on, unsigned long port,
@@ -445,9 +412,7 @@ void divasa_unmap_pci_bar(void __iomem *bar)
 	}
 }
 
-/*********************************************************
- ** I/O port access 
- *********************************************************/
+
 byte __inline__ inpp(void __iomem *addr)
 {
 	return (inb((unsigned long) addr));
@@ -478,9 +443,7 @@ void __inline__ outpp(void __iomem *addr, word p)
 	outb(p, (unsigned long) addr);
 }
 
-/* --------------------------------------------------------------------------
-    IRQ request / remove  
-   -------------------------------------------------------------------------- */
+
 int diva_os_register_irq(void *context, byte irq, const char *name)
 {
 	int result = request_irq(irq, diva_os_irq_wrapper,
@@ -493,9 +456,7 @@ void diva_os_remove_irq(void *context, byte irq)
 	free_irq(irq, context);
 }
 
-/* --------------------------------------------------------------------------
-    DPC framework implementation
-   -------------------------------------------------------------------------- */
+
 static void diva_os_dpc_proc(unsigned long context)
 {
 	diva_os_thread_dpc_t *psoft_isr = (diva_os_thread_dpc_t *) context;
@@ -555,9 +516,7 @@ void diva_os_remove_soft_isr(diva_os_soft_isr_t * psoft_isr)
 	}
 }
 
-/*
- * kernel/user space copy functions
- */
+
 static int
 xdi_copy_to_user(void *os_handle, void __user *dst, const void *src, int length)
 {
@@ -576,9 +535,7 @@ xdi_copy_from_user(void *os_handle, void *dst, const void __user *src, int lengt
 	return (length);
 }
 
-/*
- * device node operations
- */
+
 static int divas_open(struct inode *inode, struct file *file)
 {
 	cycle_kernel_lock();
@@ -610,10 +567,10 @@ static ssize_t divas_write(struct file *file, const char __user *buf,
 	ret = diva_xdi_write(file->private_data, file,
 			     buf, count, xdi_copy_from_user);
 	switch (ret) {
-	case -1:		/* Message should be removed from rx mailbox first */
+	case -1:		
 		ret = -EBUSY;
 		break;
-	case -2:		/* invalid adapter was specified in this call */
+	case -2:		
 		ret = -ENOMEM;
 		break;
 	case -3:
@@ -641,13 +598,13 @@ static ssize_t divas_read(struct file *file, char __user *buf,
 	ret = diva_xdi_read(file->private_data, file,
 			    buf, count, xdi_copy_to_user);
 	switch (ret) {
-	case -1:		/* RX mailbox is empty */
+	case -1:		
 		ret = -EAGAIN;
 		break;
-	case -2:		/* no memory, mailbox was cleared, last command is failed */
+	case -2:		
 		ret = -ENOMEM;
 		break;
-	case -3:		/* can't copy to user, retry */
+	case -3:		
 		ret = -EFAULT;
 		break;
 	}
@@ -690,9 +647,7 @@ static int DIVA_INIT_FUNCTION divas_register_chrdev(void)
 	return (1);
 }
 
-/* --------------------------------------------------------------------------
-    PCI driver section
-   -------------------------------------------------------------------------- */
+
 static int __devinit divas_init_one(struct pci_dev *pdev,
 				    const struct pci_device_id *ent)
 {
@@ -769,9 +724,7 @@ static void __devexit divas_remove_one(struct pci_dev *pdev)
 
 }
 
-/* --------------------------------------------------------------------------
-    Driver Load / Startup  
-   -------------------------------------------------------------------------- */
+
 static int DIVA_INIT_FUNCTION divas_init(void)
 {
 	char tmprev[50];
@@ -833,9 +786,7 @@ static int DIVA_INIT_FUNCTION divas_init(void)
 	return (ret);
 }
 
-/* --------------------------------------------------------------------------
-    Driver Unload
-   -------------------------------------------------------------------------- */
+
 static void DIVA_EXIT_FUNCTION divas_exit(void)
 {
 	pci_unregister_driver(&diva_pci_driver);

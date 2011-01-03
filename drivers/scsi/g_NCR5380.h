@@ -1,33 +1,6 @@
-/*
- * Generic Generic NCR5380 driver defines
- *
- * Copyright 1993, Drew Eckhardt
- *	Visionary Computing
- *	(Unix and Linux consulting and custom programming)
- *	drew@colorado.edu
- *      +1 (303) 440-4894
- *
- * NCR53C400 extensions (c) 1994,1995,1996, Kevin Lentin
- *    K.Lentin@cs.monash.edu.au
- *
- * ALPHA RELEASE 1. 
- *
- * For more information, please consult 
- *
- * NCR 5380 Family
- * SCSI Protocol Controller
- * Databook
- *
- * NCR Microelectronics
- * 1635 Aeroplaza Drive
- * Colorado Springs, CO 80916
- * 1+ (719) 578-3400
- * 1+ (800) 334-5454
- */
 
-/*
- * $Log: generic_NCR5380.h,v $
- */
+
+
 
 #ifndef GENERIC_NCR5380_H
 #define GENERIC_NCR5380_H
@@ -91,7 +64,7 @@ static const char* generic_NCR5380_info(struct Scsi_Host *);
     NCR5380_map_name = (NCR5380_map_type)((instance)->NCR5380_instance_name)
 
 #else 
-/* therefore CONFIG_SCSI_G_NCR5380_MEM */
+
 
 #define NCR5380_map_config memory
 #define NCR5380_map_type unsigned long
@@ -131,7 +104,7 @@ static const char* generic_NCR5380_info(struct Scsi_Host *);
 #define BOARD_NCR53C400A 2
 #define BOARD_DTC3181E	3
 
-#endif /* else def HOSTS_C */
-#endif /* ndef ASM */
-#endif /* GENERIC_NCR5380_H */
+#endif 
+#endif 
+#endif 
 

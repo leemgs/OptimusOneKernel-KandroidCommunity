@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved.
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __PHYPORT_DEFS_H__
 #define __PHYPORT_DEFS_H__
@@ -20,13 +6,9 @@
 #define BNA_TXF_ID_MAX  	64
 #define BNA_RXF_ID_MAX  	64
 
-/*
- * Statistics
- */
 
-/*
- * TxF Frame Statistics
- */
+
+
 struct bna_stats_txf {
 	u64        ucast_octets;
 	u64        ucast;
@@ -41,13 +23,11 @@ struct bna_stats_txf {
 	u64        bcast_vlan;
 
 	u64        errors;
-	u64        filter_vlan;	/* frames filtered due to VLAN */
-	u64        filter_mac_sa;	/* frames filtered due to SA check */
+	u64        filter_vlan;	
+	u64        filter_mac_sa;	
 };
 
-/*
- * RxF Frame Statistics
- */
+
 struct bna_stats_rxf {
 	u64        ucast_octets;
 	u64        ucast;
@@ -63,9 +43,7 @@ struct bna_stats_rxf {
 	u64        frame_drops;
 };
 
-/*
- * FC Tx Frame Statistics
- */
+
 struct bna_stats_fc_tx {
 	u64        txf_ucast_octets;
 	u64        txf_ucast;
@@ -84,9 +62,7 @@ struct bna_stats_fc_tx {
 	u64        txf_fid_parity_errors;
 };
 
-/*
- * FC Rx Frame Statistics
- */
+
 struct bna_stats_fc_rx {
 	u64        rxf_ucast_octets;
 	u64        rxf_ucast;
@@ -101,9 +77,7 @@ struct bna_stats_fc_rx {
 	u64        rxf_bcast_vlan;
 };
 
-/*
- * RAD Frame Statistics
- */
+
 struct cna_stats_rad {
 	u64        rx_frames;
 	u64        rx_octets;
@@ -124,37 +98,29 @@ struct cna_stats_rad {
 	u64        rx_drops;
 };
 
-/*
- * BPC Tx Registers
- */
+
 struct cna_stats_bpc_tx {
 	u64        tx_pause[8];
-	u64        tx_zero_pause[8];	/*  Pause cancellation */
-	u64        tx_first_pause[8];	/*  Pause initiation rather
-						 *than retention */
+	u64        tx_zero_pause[8];	
+	u64        tx_first_pause[8];	
 };
 
-/*
- * BPC Rx Registers
- */
+
 struct cna_stats_bpc_rx {
 	u64        rx_pause[8];
-	u64        rx_zero_pause[8];	/*  Pause cancellation */
-	u64        rx_first_pause[8];	/*  Pause initiation rather
-						 *than retention */
+	u64        rx_zero_pause[8];	
+	u64        rx_first_pause[8];	
 };
 
-/*
- * MAC Rx Statistics
- */
+
 struct cna_stats_mac_rx {
-	u64        frame_64;	/* both rx and tx counter */
-	u64        frame_65_127;	/* both rx and tx counter */
-	u64        frame_128_255;	/* both rx and tx counter */
-	u64        frame_256_511;	/* both rx and tx counter */
-	u64        frame_512_1023;	/* both rx and tx counter */
-	u64        frame_1024_1518;	/* both rx and tx counter */
-	u64        frame_1518_1522;	/* both rx and tx counter */
+	u64        frame_64;	
+	u64        frame_65_127;	
+	u64        frame_128_255;	
+	u64        frame_256_511;	
+	u64        frame_512_1023;	
+	u64        frame_1024_1518;	
+	u64        frame_1518_1522;	
 	u64        rx_bytes;
 	u64        rx_packets;
 	u64        rx_fcs_error;
@@ -174,9 +140,7 @@ struct cna_stats_mac_rx {
 	u64        rx_drop;
 };
 
-/*
- * MAC Tx Statistics
- */
+
 struct cna_stats_mac_tx {
 	u64        tx_bytes;
 	u64        tx_packets;
@@ -200,9 +164,7 @@ struct cna_stats_mac_tx {
 	u64        tx_fragments;
 };
 
-/*
- * Complete statistics
- */
+
 struct bna_stats {
 	struct cna_stats_mac_rx mac_rx_stats;
 	struct cna_stats_bpc_rx bpc_rx_stats;

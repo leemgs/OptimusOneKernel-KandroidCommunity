@@ -1,9 +1,4 @@
-/*
- * h/w branch tracer for x86 based on BTS
- *
- * Copyright (C) 2008-2009 Intel Corporation.
- * Markus Metzger <markus.t.metzger@gmail.com>, 2008-2009
- */
+
 #include <linux/kallsyms.h>
 #include <linux/debugfs.h>
 #include <linux/ftrace.h>
@@ -57,7 +52,7 @@ static int bts_trace_init(struct trace_array *tr)
 	trace_hw_branches_suspended = 0;
 	put_online_cpus();
 
-	/* If we could not enable tracing on a single cpu, we fail. */
+	
 	return trace_hw_branches_enabled ? 0 : -EOPNOTSUPP;
 }
 
@@ -109,7 +104,7 @@ static int __cpuinit bts_hotcpu_handler(struct notifier_block *nfb,
 	switch (action) {
 	case CPU_ONLINE:
 	case CPU_DOWN_FAILED:
-		/* The notification is sent with interrupts enabled. */
+		
 		if (trace_hw_branches_enabled) {
 			bts_trace_init_cpu(cpu);
 
@@ -120,7 +115,7 @@ static int __cpuinit bts_hotcpu_handler(struct notifier_block *nfb,
 		break;
 
 	case CPU_DOWN_PREPARE:
-		/* The notification is sent with interrupts enabled. */
+		
 		if (likely(per_cpu(tracer, cpu))) {
 			ds_release_bts(per_cpu(tracer, cpu));
 			per_cpu(tracer, cpu) = NULL;
@@ -219,11 +214,7 @@ static void trace_bts_at(const struct bts_trace *trace, void *at)
 	}
 }
 
-/*
- * Collect the trace on the current cpu and write it into the ftrace buffer.
- *
- * pre: tracing must be suspended on the current cpu
- */
+
 static void trace_bts_cpu(void *arg)
 {
 	struct trace_array *tr = (struct trace_array *)arg;
@@ -260,11 +251,7 @@ static void trace_bts_prepare(struct trace_iterator *iter)
 	for_each_online_cpu(cpu)
 		if (likely(per_cpu(tracer, cpu)))
 			ds_suspend_bts(per_cpu(tracer, cpu));
-	/*
-	 * We need to collect the trace on the respective cpu since ftrace
-	 * implicitly adds the record for the current cpu.
-	 * Once that is more flexible, we could collect the data from any cpu.
-	 */
+	
 	on_each_cpu(trace_bts_cpu, iter->tr, 1);
 
 	for_each_online_cpu(cpu)
@@ -300,7 +287,7 @@ struct tracer bts_tracer __read_mostly =
 	.close		= trace_bts_close,
 #ifdef CONFIG_FTRACE_SELFTEST
 	.selftest	= trace_selftest_startup_hw_branches,
-#endif /* CONFIG_FTRACE_SELFTEST */
+#endif 
 };
 
 __init static int init_bts_trace(void)

@@ -1,22 +1,11 @@
-/*
- * Copyright 2005-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 
 #ifndef __ASM_ARCH_MXC_BOARD_MX21ADS_H__
 #define __ASM_ARCH_MXC_BOARD_MX21ADS_H__
 
-/*
- * Memory-mapped I/O on MX21ADS base board
- */
+
 #define MX21ADS_MMIO_BASE_ADDR   0xF5000000
 #define MX21ADS_MMIO_SIZE        SZ_16M
 
@@ -29,11 +18,11 @@
 #define MX21ADS_VERSION_REG         MX21ADS_REG_ADDR(0x400000)
 #define MX21ADS_IO_REG              MX21ADS_REG_ADDR(0x800000)
 
-/* MX21ADS_IO_REG bit definitions */
-#define MX21ADS_IO_SD_WP        0x0001 /* read */
-#define MX21ADS_IO_TP6          0x0001 /* write */
-#define MX21ADS_IO_SW_SEL       0x0002 /* read */
-#define MX21ADS_IO_TP7          0x0002 /* write */
+
+#define MX21ADS_IO_SD_WP        0x0001 
+#define MX21ADS_IO_TP6          0x0001 
+#define MX21ADS_IO_SW_SEL       0x0002 
+#define MX21ADS_IO_TP7          0x0002 
 #define MX21ADS_IO_RESET_E_UART 0x0004
 #define MX21ADS_IO_RESET_BASE   0x0008
 #define MX21ADS_IO_CSI_CTL2     0x0010
@@ -49,4 +38,4 @@
 #define MX21ADS_IO_LED4_ON      0x4000
 #define MX21ADS_IO_LED3_ON      0x8000
 
-#endif				/* __ASM_ARCH_MXC_BOARD_MX21ADS_H__ */
+#endif				

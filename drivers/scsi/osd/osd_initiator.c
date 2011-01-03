@@ -1,43 +1,4 @@
-/*
- * osd_initiator - Main body of the osd initiator library.
- *
- * Note: The file does not contain the advanced security functionality which
- * is only needed by the security_manager's initiators.
- *
- * Copyright (C) 2008 Panasas Inc.  All rights reserved.
- *
- * Authors:
- *   Boaz Harrosh <bharrosh@panasas.com>
- *   Benny Halevy <bhalevy@panasas.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *  3. Neither the name of the Panasas company nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include <scsi/osd_initiator.h>
 #include <scsi/osd_sec.h>
@@ -60,7 +21,7 @@ MODULE_LICENSE("GPL");
 
 static inline void build_test(void)
 {
-	/* structures were not packed */
+	
 	BUILD_BUG_ON(sizeof(struct osd_capability) != OSD_CAP_LEN);
 	BUILD_BUG_ON(sizeof(struct osdv2_cdb) != OSD_TOTAL_CDB_LEN);
 	BUILD_BUG_ON(sizeof(struct osdv1_cdb) != OSDv1_TOTAL_CDB_LEN);
@@ -81,13 +42,13 @@ static int _osd_print_system_info(struct osd_dev *od, void *caps)
 		ATTR_DEF_RI(OSD_ATTR_RI_PRODUCT_IDENTIFICATION, 16),
 		ATTR_DEF_RI(OSD_ATTR_RI_PRODUCT_MODEL, 32),
 		ATTR_DEF_RI(OSD_ATTR_RI_PRODUCT_REVISION_LEVEL, 4),
-		ATTR_DEF_RI(OSD_ATTR_RI_PRODUCT_SERIAL_NUMBER, 64 /*variable*/),
-		ATTR_DEF_RI(OSD_ATTR_RI_OSD_NAME, 64 /*variable*/),
+		ATTR_DEF_RI(OSD_ATTR_RI_PRODUCT_SERIAL_NUMBER, 64 ),
+		ATTR_DEF_RI(OSD_ATTR_RI_OSD_NAME, 64 ),
 		ATTR_DEF_RI(OSD_ATTR_RI_TOTAL_CAPACITY, 8),
 		ATTR_DEF_RI(OSD_ATTR_RI_USED_CAPACITY, 8),
 		ATTR_DEF_RI(OSD_ATTR_RI_NUMBER_OF_PARTITIONS, 8),
 		ATTR_DEF_RI(OSD_ATTR_RI_CLOCK, 6),
-		/* IBM-OSD-SIM Has a bug with this one put it last */
+		
 		ATTR_DEF_RI(OSD_ATTR_RI_OSD_SYSTEM_ID, 20),
 	};
 	void *iter = NULL, *pFirst;
@@ -98,7 +59,7 @@ static int _osd_print_system_info(struct osd_dev *od, void *caps)
 	if (!or)
 		return -ENOMEM;
 
-	/* get attrs */
+	
 	osd_req_get_attributes(or, &osd_root_object);
 	osd_req_add_get_attr_list(or, get_attrs, ARRAY_SIZE(get_attrs));
 
@@ -156,16 +117,16 @@ static int _osd_print_system_info(struct osd_dev *od, void *caps)
 	if (a >= nelem)
 		goto out;
 
-	/* FIXME: Where are the time utilities */
+	
 	pFirst = get_attrs[a++].val_ptr;
 	OSD_INFO("CLOCK                  [0x%02x%02x%02x%02x%02x%02x]\n",
 		((char *)pFirst)[0], ((char *)pFirst)[1],
 		((char *)pFirst)[2], ((char *)pFirst)[3],
 		((char *)pFirst)[4], ((char *)pFirst)[5]);
 
-	if (a < nelem) { /* IBM-OSD-SIM bug, Might not have it */
+	if (a < nelem) { 
 		unsigned len = get_attrs[a].len;
-		char sid_dump[32*4 + 2]; /* 2nibbles+space+ASCII */
+		char sid_dump[32*4 + 2]; 
 
 		hex_dump_to_buffer(get_attrs[a].val_ptr, len, 32, 1,
 				   sid_dump, sizeof(sid_dump), true);
@@ -182,7 +143,7 @@ int osd_auto_detect_ver(struct osd_dev *od, void *caps)
 {
 	int ret;
 
-	/* Auto-detect the osd version */
+	
 	ret = _osd_print_system_info(od, caps);
 	if (ret) {
 		osd_dev_set_ver(od, OSD_VER1);
@@ -244,10 +205,7 @@ static int _osd_req_alist_elem_decode(struct osd_request *or,
 		oa->attr_page = be32_to_cpu(attr->attr_page);
 		oa->attr_id = be32_to_cpu(attr->attr_id);
 
-		/* OSD1: On empty attributes we return a pointer to 2 bytes
-		 * of zeros. This keeps similar behaviour with OSD2.
-		 * (See below)
-		 */
+		
 		oa->val_ptr = likely(oa->len) ? attr->attr_val :
 						(u8 *)&attr->attr_bytes;
 	} else {
@@ -264,11 +222,7 @@ static int _osd_req_alist_elem_decode(struct osd_request *or,
 		oa->attr_page = be32_to_cpu(attr->attr_page);
 		oa->attr_id = be32_to_cpu(attr->attr_id);
 
-		/* OSD2: For convenience, on empty attributes, we return 8 bytes
-		 * of zeros here. This keeps the same behaviour with OSD2r04,
-		 * and is nice with null terminating ASCII fields.
-		 * oa->val_ptr == NULL marks the end-of-list, or error.
-		 */
+		
 		oa->val_ptr = likely(oa->len) ? attr->attr_val : attr->reserved;
 	}
 	return inc;
@@ -321,7 +275,7 @@ static bool _osd_req_is_alist_type(struct osd_request *or,
 	}
 }
 
-/* This is for List-objects not Attributes-Lists */
+
 static void _osd_req_encode_olist(struct osd_request *or,
 	struct osd_obj_id_list *list)
 {
@@ -364,13 +318,13 @@ void osd_dev_init(struct osd_dev *osdd, struct scsi_device *scsi_device)
 #ifdef OSD_VER1_SUPPORT
 	osdd->version = OSD_VER2;
 #endif
-	/* TODO: Allocate pools for osd_request attributes ... */
+	
 }
 EXPORT_SYMBOL(osd_dev_init);
 
 void osd_dev_fini(struct osd_dev *osdd)
 {
-	/* TODO: De-allocate pools */
+	
 
 	osdd->scsi_device = NULL;
 }
@@ -380,7 +334,7 @@ static struct osd_request *_osd_request_alloc(gfp_t gfp)
 {
 	struct osd_request *or;
 
-	/* TODO: Use mempool with one saved request */
+	
 	or = kzalloc(sizeof(*or), gfp);
 	return or;
 }
@@ -424,12 +378,7 @@ static void _put_request(struct request *rq , bool is_async)
 		WARN_ON(rq->bio);
 		__blk_put_request(rq->q, rq);
 	} else {
-		/*
-		 * If osd_finalize_request() was called but the request was not
-		 * executed through the block layer, then we must release BIOs.
-		 * TODO: Keep error code in or->async_error. Need to audit all
-		 *       code paths.
-		 */
+		
 		if (unlikely(rq->bio))
 			blk_end_request(rq, -ENOMEM, blk_rq_bytes(rq));
 		else
@@ -440,7 +389,7 @@ static void _put_request(struct request *rq , bool is_async)
 void osd_end_request(struct osd_request *or)
 {
 	struct request *rq = or->request;
-	/* IMPORTANT: make sure this agrees with osd_execute_request_async */
+	
 	bool is_async = (or->request->end_io_data == or);
 
 	_osd_free_seg(or, &or->set_attr);
@@ -541,22 +490,15 @@ static int _alloc_get_attr_list(struct osd_request *or)
 	return _osd_realloc_seg(or, &or->get_attr, or->get_attr.total_bytes);
 }
 
-/*
- * Common to all OSD commands
- */
+
 
 static void _osdv1_req_encode_common(struct osd_request *or,
 	__be16 act, const struct osd_obj_id *obj, u64 offset, u64 len)
 {
 	struct osdv1_cdb *ocdb = &or->cdb.v1;
 
-	/*
-	 * For speed, the commands
-	 *	OSD_ACT_PERFORM_SCSI_COMMAND	, V1 0x8F7E, V2 0x8F7C
-	 *	OSD_ACT_SCSI_TASK_MANAGEMENT	, V1 0x8F7F, V2 0x8F7D
-	 * are not supported here. Should pass zero and set after the call
-	 */
-	act &= cpu_to_be16(~0x0080); /* V1 action code */
+	
+	act &= cpu_to_be16(~0x0080); 
 
 	OSD_DEBUG("OSDv1 execute opcode 0x%x\n", be16_to_cpu(act));
 
@@ -596,11 +538,9 @@ static void _osd_req_encode_common(struct osd_request *or,
 		_osdv2_req_encode_common(or, act, obj, offset, len);
 }
 
-/*
- * Device commands
- */
-/*TODO: void osd_req_set_master_seed_xchg(struct osd_request *, ...); */
-/*TODO: void osd_req_set_master_key(struct osd_request *, ...); */
+
+
+
 
 void osd_req_format(struct osd_request *or, u64 tot_capacity)
 {
@@ -632,13 +572,10 @@ void osd_req_flush_obsd(struct osd_request *or,
 }
 EXPORT_SYMBOL(osd_req_flush_obsd);
 
-/*TODO: void osd_req_perform_scsi_command(struct osd_request *,
-	const u8 *cdb, ...); */
-/*TODO: void osd_req_task_management(struct osd_request *, ...); */
 
-/*
- * Partition commands
- */
+
+
+
 static void _osd_req_encode_partition(struct osd_request *or,
 	__be16 act, osd_id partition)
 {
@@ -662,9 +599,7 @@ void osd_req_remove_partition(struct osd_request *or, osd_id partition)
 }
 EXPORT_SYMBOL(osd_req_remove_partition);
 
-/*TODO: void osd_req_set_partition_key(struct osd_request *,
-	osd_id partition, u8 new_key_id[OSD_CRYPTO_KEYID_SIZE],
-	u8 seed[OSD_CRYPTO_SEED_SIZE]); */
+
 
 static int _osd_req_list_objects(struct osd_request *or,
 	__be16 action, const struct osd_obj_id *obj, osd_id initial_id,
@@ -728,13 +663,9 @@ void osd_req_flush_partition(struct osd_request *or,
 }
 EXPORT_SYMBOL(osd_req_flush_partition);
 
-/*
- * Collection commands
- */
-/*TODO: void osd_req_create_collection(struct osd_request *,
-	const struct osd_obj_id *); */
-/*TODO: void osd_req_remove_collection(struct osd_request *,
-	const struct osd_obj_id *); */
+
+
+
 
 int osd_req_list_collection_objects(struct osd_request *or,
 	const struct osd_obj_id *obj, osd_id initial_id,
@@ -745,7 +676,7 @@ int osd_req_list_collection_objects(struct osd_request *or,
 }
 EXPORT_SYMBOL(osd_req_list_collection_objects);
 
-/*TODO: void query(struct osd_request *, ...); V2 */
+
 
 void osd_req_flush_collection(struct osd_request *or,
 	const struct osd_obj_id *obj, enum osd_options_flush_scope_values op)
@@ -755,12 +686,10 @@ void osd_req_flush_collection(struct osd_request *or,
 }
 EXPORT_SYMBOL(osd_req_flush_collection);
 
-/*TODO: void get_member_attrs(struct osd_request *, ...); V2 */
-/*TODO: void set_member_attrs(struct osd_request *, ...); V2 */
 
-/*
- * Object commands
- */
+
+
+
 void osd_req_create_object(struct osd_request *or, struct osd_obj_id *obj)
 {
 	_osd_req_encode_common(or, OSD_ACT_CREATE, obj, 0, 0);
@@ -774,9 +703,7 @@ void osd_req_remove_object(struct osd_request *or, struct osd_obj_id *obj)
 EXPORT_SYMBOL(osd_req_remove_object);
 
 
-/*TODO: void osd_req_create_multi(struct osd_request *or,
-	struct osd_obj_id *first, struct osd_obj_id_list *list, unsigned nelem);
-*/
+
 
 void osd_req_write(struct osd_request *or,
 	const struct osd_obj_id *obj, u64 offset,
@@ -799,24 +726,20 @@ int osd_req_write_kern(struct osd_request *or,
 	if (IS_ERR(bio))
 		return PTR_ERR(bio);
 
-	bio->bi_rw |= (1 << BIO_RW); /* FIXME: bio_set_dir() */
+	bio->bi_rw |= (1 << BIO_RW); 
 	osd_req_write(or, obj, offset, bio, len);
 	return 0;
 }
 EXPORT_SYMBOL(osd_req_write_kern);
 
-/*TODO: void osd_req_append(struct osd_request *,
-	const struct osd_obj_id *, struct bio *data_out); */
-/*TODO: void osd_req_create_write(struct osd_request *,
-	const struct osd_obj_id *, struct bio *data_out, u64 offset); */
-/*TODO: void osd_req_clear(struct osd_request *,
-	const struct osd_obj_id *, u64 offset, u64 len); */
-/*TODO: void osd_req_punch(struct osd_request *,
-	const struct osd_obj_id *, u64 offset, u64 len); V2 */
+
+
+
+
 
 void osd_req_flush_object(struct osd_request *or,
 	const struct osd_obj_id *obj, enum osd_options_flush_scope_values op,
-	/*V2*/ u64 offset, /*V2*/ u64 len)
+	 u64 offset,  u64 len)
 {
 	if (unlikely(osd_req_is_ver1(or) && (offset || len))) {
 		OSD_DEBUG("OSD Ver1 flush on specific range ignored\n");
@@ -869,9 +792,7 @@ void osd_req_set_attributes(struct osd_request *or,
 }
 EXPORT_SYMBOL(osd_req_set_attributes);
 
-/*
- * Attributes List-mode
- */
+
 
 int osd_req_add_set_attr_list(struct osd_request *or,
 	const struct osd_attr *oa, unsigned nelem)
@@ -887,7 +808,7 @@ int osd_req_add_set_attr_list(struct osd_request *or,
 	}
 	or->attributes_mode = OSD_CDB_GET_SET_ATTR_LISTS;
 
-	if (!total_bytes) { /* first-time: allocate and put list header */
+	if (!total_bytes) { 
 		total_bytes = _osd_req_sizeof_alist_header(or);
 		ret = _alloc_set_attr_list(or, oa, nelem, total_bytes);
 		if (ret)
@@ -929,7 +850,7 @@ static int _req_append_segment(struct osd_request *or,
 	int ret;
 
 	if (padding) {
-		/* check if we can just add it to last buffer */
+		
 		if (last_seg &&
 		    (padding <= last_seg->alloc_size - last_seg->total_bytes))
 			pad_buff = last_seg->buff + last_seg->total_bytes;
@@ -992,12 +913,12 @@ int osd_req_add_get_attr_list(struct osd_request *or,
 	}
 	or->attributes_mode = OSD_CDB_GET_SET_ATTR_LISTS;
 
-	/* first time calc data-in list header size */
+	
 	if (!or->get_attr.total_bytes)
 		or->get_attr.total_bytes = _osd_req_sizeof_alist_header(or);
 
-	/* calc data-out info */
-	if (!total_bytes) { /* first-time: allocate and put list header */
+	
+	if (!total_bytes) { 
 		unsigned max_bytes;
 
 		total_bytes = _osd_req_sizeof_alist_header(or);
@@ -1033,7 +954,7 @@ int osd_req_add_get_attr_list(struct osd_request *or,
 
 		attr_last += cur_size;
 
-		/* calc data-in size */
+		
 		or->get_attr.total_bytes +=
 			_osd_req_alist_elem_size(or, oa->len);
 		++oa;
@@ -1070,7 +991,7 @@ static int _osd_req_finalize_get_attr_list(struct osd_request *or)
 	if (ret)
 		return ret;
 
-	/* The out-going buffer info update */
+	
 	OSD_DEBUG("out-going\n");
 	cdbh->attrs_list.get_attr_desc_bytes =
 		cpu_to_be32(or->enc_get_attr.total_bytes);
@@ -1084,7 +1005,7 @@ static int _osd_req_finalize_get_attr_list(struct osd_request *or)
 		return ret;
 	or->out.last_seg = &or->enc_get_attr;
 
-	/* The incoming buffer info update */
+	
 	OSD_DEBUG("in-coming\n");
 	cdbh->attrs_list.get_attr_alloc_length =
 		cpu_to_be32(or->get_attr.total_bytes);
@@ -1125,7 +1046,7 @@ int osd_req_decode_get_attr_list(struct osd_request *or,
 		cur_p = *iterator;
 		cur_bytes = (*iterator - or->get_attr.buff) - sizeof_attr_list;
 		returned_bytes = or->get_attr.total_bytes;
-	} else { /* first time decode the list header */
+	} else { 
 		cur_bytes = sizeof_attr_list;
 		returned_bytes = _osd_req_alist_size(or, or->get_attr.buff) +
 					sizeof_attr_list;
@@ -1167,9 +1088,7 @@ int osd_req_decode_get_attr_list(struct osd_request *or,
 }
 EXPORT_SYMBOL(osd_req_decode_get_attr_list);
 
-/*
- * Attributes Page-mode
- */
+
 
 int osd_req_add_get_attr_page(struct osd_request *or,
 	u32 page_id, void *attar_page, unsigned max_page_len,
@@ -1192,12 +1111,12 @@ int osd_req_add_get_attr_page(struct osd_request *or,
 
 	cdbh->attrs_page.get_attr_page = cpu_to_be32(page_id);
 	cdbh->attrs_page.get_attr_alloc_length = cpu_to_be32(max_page_len);
-	/* ocdb->attrs_page.get_attr_offset; */
+	
 
 	cdbh->attrs_page.set_attr_page = cpu_to_be32(set_one_attr->attr_page);
 	cdbh->attrs_page.set_attr_id = cpu_to_be32(set_one_attr->attr_id);
 	cdbh->attrs_page.set_attr_length = cpu_to_be32(set_one_attr->len);
-	/* ocdb->attrs_page.set_attr_offset; */
+	
 	return 0;
 }
 EXPORT_SYMBOL(osd_req_add_get_attr_page);
@@ -1208,7 +1127,7 @@ static int _osd_req_finalize_attr_page(struct osd_request *or)
 	unsigned in_padding, out_padding;
 	int ret;
 
-	/* returned page */
+	
 	cdbh->attrs_page.get_attr_offset =
 		osd_req_encode_offset(or, or->in.total_bytes, &in_padding);
 
@@ -1217,7 +1136,7 @@ static int _osd_req_finalize_attr_page(struct osd_request *or)
 	if (ret)
 		return ret;
 
-	/* set one value */
+	
 	cdbh->attrs_page.set_attr_offset =
 		osd_req_encode_offset(or, or->out.total_bytes, &out_padding);
 
@@ -1275,7 +1194,7 @@ static int _osd_req_finalize_data_integrity(struct osd_request *or,
 			return ret;
 		or->out.last_seg = NULL;
 
-		/* they are now all chained to request sign them all together */
+		
 		osd_sec_sign_data(&or->out_data_integ, or->out.req->bio,
 				  cap_key);
 	}
@@ -1301,9 +1220,7 @@ static int _osd_req_finalize_data_integrity(struct osd_request *or,
 	return 0;
 }
 
-/*
- * osd_finalize_request and helpers
- */
+
 static struct request *_make_request(struct request_queue *q, bool has_write,
 			      struct _osd_io_info *oii, gfp_t flags)
 {
@@ -1347,7 +1264,7 @@ static int _init_blk_request(struct osd_request *or,
 	if (has_out) {
 		or->out.req = req;
 		if (has_in) {
-			/* allocate bidi request */
+			
 			req = _make_request(q, false, &or->in, flags);
 			if (IS_ERR(req)) {
 				OSD_DEBUG("blk_get_request for bidi failed\n");
@@ -1405,10 +1322,7 @@ int osd_finalize_request(struct osd_request *or,
 	if (or->attributes_mode == OSD_CDB_GET_ATTR_PAGE_SET_ONE) {
 		ret = _osd_req_finalize_attr_page(or);
 	} else {
-		/* TODO: I think that for the GET_ATTR command these 2 should
-		 * be reversed to keep them in execution order (for embeded
-		 * targets with low memory footprint)
-		 */
+		
 		ret = _osd_req_finalize_set_attr_list(or);
 		if (ret) {
 			OSD_DEBUG("_osd_req_finalize_set_attr_list failed\n");
@@ -1504,7 +1418,7 @@ int osd_req_decode_sense_full(struct osd_request *or,
 		sense_len -= cur_len;
 
 		if (sense_len < 0)
-			break; /* sense was truncated */
+			break; 
 
 		switch (ssd->descriptor_type) {
 		case scsi_sense_information:
@@ -1533,7 +1447,7 @@ int osd_req_decode_sense_full(struct osd_request *or,
 			break;
 		}
 		case osd_sense_object_identification:
-		{ /*FIXME: Keep first not last, Store in array*/
+		{ 
 			struct osd_sense_identification_data_descriptor
 				*osidd = cur_descriptor;
 
@@ -1559,7 +1473,7 @@ int osd_req_decode_sense_full(struct osd_request *or,
 				*osricd = cur_descriptor;
 			const unsigned len =
 					  sizeof(osricd->integrity_check_value);
-			char key_dump[len*4 + 2]; /* 2nibbles+space+ASCII */
+			char key_dump[len*4 + 2]; 
 
 			hex_dump_to_buffer(osricd->integrity_check_value, len,
 				       32, 1, key_dump, sizeof(key_dump), true);
@@ -1594,7 +1508,7 @@ int osd_req_decode_sense_full(struct osd_request *or,
 					attr_page, attr_id);
 			}
 		}
-		/*These are not legal for OSD*/
+		
 		case scsi_sense_field_replaceable_unit:
 			OSD_SENSE_PRINT2("scsi_sense_field_replaceable_unit\n");
 			break;
@@ -1625,10 +1539,7 @@ int osd_req_decode_sense_full(struct osd_request *or,
 }
 EXPORT_SYMBOL(osd_req_decode_sense_full);
 
-/*
- * Implementation of osd_sec.h API
- * TODO: Move to a separate osd_sec.c file at a later stage.
- */
+
 
 enum { OSD_SEC_CAP_V1_ALL_CAPS =
 	OSD_SEC_CAP_APPEND | OSD_SEC_CAP_OBJ_MGMT | OSD_SEC_CAP_REMOVE   |
@@ -1667,12 +1578,9 @@ void osd_sec_init_nosec_doall_caps(void *caps,
 	memset(cap, 0, sizeof(*cap));
 
 	cap->h.format = OSD_SEC_CAP_FORMAT_VER1;
-	cap->h.integrity_algorithm__key_version = 0; /* MAKE_BYTE(0, 0); */
+	cap->h.integrity_algorithm__key_version = 0; 
 	cap->h.security_method = OSD_SEC_NOSEC;
-/*	cap->expiration_time;
-	cap->AUDIT[30-10];
-	cap->discriminator[42-30];
-	cap->object_created_time; */
+
 	cap->h.object_type = type;
 	osd_sec_set_caps(&cap->h, OSD_SEC_CAP_V1_ALL_CAPS);
 	cap->h.object_descriptor_type = descriptor_type;
@@ -1682,13 +1590,11 @@ void osd_sec_init_nosec_doall_caps(void *caps,
 }
 EXPORT_SYMBOL(osd_sec_init_nosec_doall_caps);
 
-/* FIXME: Extract version from caps pointer.
- *        Also Pete's target only supports caps from OSDv1 for now
- */
+
 void osd_set_caps(struct osd_cdb *cdb, const void *caps)
 {
 	bool is_ver1 = true;
-	/* NOTE: They start at same address */
+	
 	memcpy(&cdb->v1.caps, caps, is_ver1 ? OSDv1_CAP_LEN : OSD_CAP_LEN);
 }
 
@@ -1706,13 +1612,7 @@ void osd_sec_sign_data(void *data_integ __unused,
 {
 }
 
-/*
- * Declared in osd_protocol.h
- * 4.12.5 Data-In and Data-Out buffer offsets
- * byte offset = mantissa * (2^(exponent+8))
- * Returns the smallest allowed encoded offset that contains given @offset
- * The actual encoded offset returned is @offset + *@padding.
- */
+
 osd_cdb_offset __osd_encode_offset(
 	u64 offset, unsigned *padding, int min_shift, int max_shift)
 {

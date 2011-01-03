@@ -1,12 +1,4 @@
-/* arch/arm/mach-lh7a40x/irq-kev7a400.c
- *
- *  Copyright (C) 2004 Coastal Environmental Systems
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/init.h>
@@ -18,9 +10,9 @@
 
 #include "common.h"
 
-  /* KEV7a400 CPLD IRQ handling */
+  
 
-static u16 CPLD_IRQ_mask;	/* Mask for CPLD IRQs, 1 == unmasked */
+static u16 CPLD_IRQ_mask;	
 
 static void
 lh7a400_ack_cpld_irq (u32 irq)
@@ -61,7 +53,7 @@ lh7a400_cpld_handler (unsigned int irq, struct irq_desc *desc)
 	}
 }
 
-  /* IRQ initialization */
+  
 
 void __init
 lh7a400_init_board_irq (void)
@@ -76,18 +68,18 @@ lh7a400_init_board_irq (void)
 	}
 	set_irq_chained_handler (IRQ_CPLD, kev7a400_cpld_handler);
 
-		/* Clear all CPLD interrupts */
-	CPLD_CL_INT = 0xff; /* CPLD_INTR_MMC_CD | CPLD_INTR_ETH_INT; */
+		
+	CPLD_CL_INT = 0xff; 
 
-    /* *** FIXME CF enabled in ide-probe.c */
+    
 
-	GPIO_GPIOINTEN = 0;		/* Disable all GPIO interrupts */
+	GPIO_GPIOINTEN = 0;		
 	barrier();
 	GPIO_INTTYPE1
-		= (GPIO_INTR_PCC1_CD | GPIO_INTR_PCC1_CD); /* Edge trig. */
-	GPIO_INTTYPE2 = 0;		/* Falling edge & low-level */
-	GPIO_GPIOFEOI = 0xff;		/* Clear all GPIO interrupts */
-	GPIO_GPIOINTEN = 0xff;		/* Enable all GPIO interrupts */
+		= (GPIO_INTR_PCC1_CD | GPIO_INTR_PCC1_CD); 
+	GPIO_INTTYPE2 = 0;		
+	GPIO_GPIOFEOI = 0xff;		
+	GPIO_GPIOINTEN = 0xff;		
 
 	init_FIQ();
 }

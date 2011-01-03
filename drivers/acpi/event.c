@@ -1,10 +1,4 @@
-/*
- * event.c - exporting ACPI events via procfs
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- */
+
 
 #include <linux/spinlock.h>
 #include <linux/proc_fs.h>
@@ -20,7 +14,7 @@
 ACPI_MODULE_NAME("event");
 
 #ifdef CONFIG_ACPI_PROC_EVENT
-/* Global vars for handling event proc entry */
+
 static DEFINE_SPINLOCK(acpi_system_event_lock);
 int event_is_open = 0;
 extern struct list_head acpi_bus_event_list;
@@ -110,9 +104,9 @@ static const struct file_operations acpi_system_event_ops = {
 	.release = acpi_system_close_event,
 	.poll = acpi_system_poll_event,
 };
-#endif	/* CONFIG_ACPI_PROC_EVENT */
+#endif	
 
-/* ACPI notifier chain */
+
 static BLOCKING_NOTIFIER_HEAD(acpi_chain_head);
 
 int acpi_notifier_call_chain(struct acpi_device *dev, u32 type, u32 data)
@@ -149,18 +143,18 @@ struct acpi_genl_event {
 	u32 data;
 };
 
-/* attributes of acpi_genl_family */
+
 enum {
 	ACPI_GENL_ATTR_UNSPEC,
-	ACPI_GENL_ATTR_EVENT,	/* ACPI event info needed by user space */
+	ACPI_GENL_ATTR_EVENT,	
 	__ACPI_GENL_ATTR_MAX,
 };
 #define ACPI_GENL_ATTR_MAX (__ACPI_GENL_ATTR_MAX - 1)
 
-/* commands supported by the acpi_genl_family */
+
 enum {
 	ACPI_GENL_CMD_UNSPEC,
-	ACPI_GENL_CMD_EVENT,	/* kernel->user notifications for ACPI events */
+	ACPI_GENL_CMD_EVENT,	
 	__ACPI_GENL_CMD_MAX,
 };
 #define ACPI_GENL_CMD_MAX (__ACPI_GENL_CMD_MAX - 1)
@@ -191,7 +185,7 @@ int acpi_bus_generate_netlink_event(const char *device_class,
 	int size;
 	int result;
 
-	/* allocate memory */
+	
 	size = nla_total_size(sizeof(struct acpi_genl_event)) +
 	    nla_total_size(0);
 
@@ -199,7 +193,7 @@ int acpi_bus_generate_netlink_event(const char *device_class,
 	if (!skb)
 		return -ENOMEM;
 
-	/* add the genetlink message header */
+	
 	msg_header = genlmsg_put(skb, 0, acpi_event_seqnum++,
 				 &acpi_event_genl_family, 0,
 				 ACPI_GENL_CMD_EVENT);
@@ -208,7 +202,7 @@ int acpi_bus_generate_netlink_event(const char *device_class,
 		return -ENOMEM;
 	}
 
-	/* fill the data */
+	
 	attr =
 	    nla_reserve(skb, ACPI_GENL_ATTR_EVENT,
 			sizeof(struct acpi_genl_event));
@@ -230,7 +224,7 @@ int acpi_bus_generate_netlink_event(const char *device_class,
 	event->type = type;
 	event->data = data;
 
-	/* send multicast genetlink message */
+	
 	result = genlmsg_end(skb, msg_header);
 	if (result < 0) {
 		nlmsg_free(skb);
@@ -285,14 +279,14 @@ static int __init acpi_event_init(void)
 	if (acpi_disabled)
 		return 0;
 
-	/* create genetlink for acpi event */
+	
 	error = acpi_event_genetlink_init();
 	if (error)
 		printk(KERN_WARNING PREFIX
 		       "Failed to create genetlink family for ACPI event\n");
 
 #ifdef CONFIG_ACPI_PROC_EVENT
-	/* 'event' [R] */
+	
 	entry = proc_create("event", S_IRUSR, acpi_root_dir,
 			    &acpi_system_event_ops);
 	if (!entry)

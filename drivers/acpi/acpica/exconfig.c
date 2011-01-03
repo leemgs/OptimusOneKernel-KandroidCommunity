@@ -1,45 +1,6 @@
-/******************************************************************************
- *
- * Module Name: exconfig - Namespace reconfiguration (Load/Unload opcodes)
- *
- *****************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #include <acpi/acpi.h>
 #include "accommon.h"
@@ -52,7 +13,7 @@
 #define _COMPONENT          ACPI_EXECUTER
 ACPI_MODULE_NAME("exconfig")
 
-/* Local prototypes */
+
 static acpi_status
 acpi_ex_add_table(u32 table_index,
 		  struct acpi_namespace_node *parent_node,
@@ -62,20 +23,7 @@ static acpi_status
 acpi_ex_region_read(union acpi_operand_object *obj_desc,
 		    u32 length, u8 *buffer);
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ex_add_table
- *
- * PARAMETERS:  Table               - Pointer to raw table
- *              parent_node         - Where to load the table (scope)
- *              ddb_handle          - Where to return the table handle.
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Common function to Install and Load an ACPI table with a
- *              returned table handle.
- *
- ******************************************************************************/
+
 
 static acpi_status
 acpi_ex_add_table(u32 table_index,
@@ -87,24 +35,24 @@ acpi_ex_add_table(u32 table_index,
 
 	ACPI_FUNCTION_TRACE(ex_add_table);
 
-	/* Create an object to be the table handle */
+	
 
 	obj_desc = acpi_ut_create_internal_object(ACPI_TYPE_LOCAL_REFERENCE);
 	if (!obj_desc) {
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
-	/* Init the table handle */
+	
 
 	obj_desc->common.flags |= AOPOBJ_DATA_VALID;
 	obj_desc->reference.class = ACPI_REFCLASS_TABLE;
 	*ddb_handle = obj_desc;
 
-	/* Install the new table into the local data structures */
+	
 
 	obj_desc->reference.value = table_index;
 
-	/* Add the table to the namespace */
+	
 
 	status = acpi_ns_load_table(table_index, parent_node);
 	if (ACPI_FAILURE(status)) {
@@ -113,7 +61,7 @@ acpi_ex_add_table(u32 table_index,
 		return_ACPI_STATUS(status);
 	}
 
-	/* Execute any module-level code that was found in the table */
+	
 
 	acpi_ex_exit_interpreter();
 	acpi_ns_exec_module_code_list();
@@ -122,18 +70,7 @@ acpi_ex_add_table(u32 table_index,
 	return_ACPI_STATUS(status);
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ex_load_table_op
- *
- * PARAMETERS:  walk_state          - Current state with operands
- *              return_desc         - Where to store the return object
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Load an ACPI table from the RSDT/XSDT
- *
- ******************************************************************************/
+
 
 acpi_status
 acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
@@ -150,7 +87,7 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
 
 	ACPI_FUNCTION_TRACE(ex_load_table_op);
 
-	/* Validate lengths for the signature_string, OEMIDString, OEMtable_iD */
+	
 
 	if ((operand[0]->string.length > ACPI_NAME_SIZE) ||
 	    (operand[1]->string.length > ACPI_OEM_ID_SIZE) ||
@@ -158,7 +95,7 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
-	/* Find the ACPI table in the RSDT/XSDT */
+	
 
 	status = acpi_tb_find_table(operand[0]->string.pointer,
 				    operand[1]->string.pointer,
@@ -168,7 +105,7 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
 			return_ACPI_STATUS(status);
 		}
 
-		/* Table not found, return an Integer=0 and AE_OK */
+		
 
 		ddb_handle = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
 		if (!ddb_handle) {
@@ -181,18 +118,15 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
 		return_ACPI_STATUS(AE_OK);
 	}
 
-	/* Default nodes */
+	
 
 	start_node = walk_state->scope_info->scope.node;
 	parent_node = acpi_gbl_root_node;
 
-	/* root_path (optional parameter) */
+	
 
 	if (operand[3]->string.length > 0) {
-		/*
-		 * Find the node referenced by the root_path_string. This is the
-		 * location within the namespace where the table will be loaded.
-		 */
+		
 		status =
 		    acpi_ns_get_node(start_node, operand[3]->string.pointer,
 				     ACPI_NS_SEARCH_PARENT, &parent_node);
@@ -201,7 +135,7 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
 		}
 	}
 
-	/* parameter_path (optional parameter) */
+	
 
 	if (operand[4]->string.length > 0) {
 		if ((operand[4]->string.pointer[0] != '\\') &&

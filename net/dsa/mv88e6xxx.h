@@ -1,12 +1,4 @@
-/*
- * net/dsa/mv88e6xxx.h - Marvell 88e6xxx switch chip support
- * Copyright (c) 2008 Marvell Semiconductor
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #ifndef __MV88E6XXX_H
 #define __MV88E6XXX_H
@@ -16,28 +8,18 @@
 #define REG_GLOBAL2		0x1c
 
 struct mv88e6xxx_priv_state {
-	/*
-	 * When using multi-chip addressing, this mutex protects
-	 * access to the indirect access registers.  (In single-chip
-	 * mode, this mutex is effectively useless.)
-	 */
+	
 	struct mutex	smi_mutex;
 
 #ifdef CONFIG_NET_DSA_MV88E6XXX_NEED_PPU
-	/*
-	 * Handles automatic disabling and re-enabling of the PHY
-	 * polling unit.
-	 */
+	
 	struct mutex		ppu_mutex;
 	int			ppu_disabled;
 	struct work_struct	ppu_work;
 	struct timer_list	ppu_timer;
 #endif
 
-	/*
-	 * This mutex serialises access to the statistics unit.
-	 * Hold this mutex over snapshot + dump sequences.
-	 */
+	
 	struct mutex	stats_mutex;
 };
 

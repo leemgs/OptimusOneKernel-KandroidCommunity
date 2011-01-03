@@ -1,23 +1,4 @@
-/*
- * Copyright (C) 2009 Eric Benard - eric@eukrea.com
- *
- * Based on pcm970-baseboard.c which is :
- * Copyright (C) 2008 Juergen Beisert (kernel@pengutronix.de)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/gpio.h>
 #include <linux/irq.h>
@@ -37,29 +18,29 @@
 #include "devices.h"
 
 static int eukrea_mbimx27_pins[] = {
-	/* UART2 */
+	
 	PE3_PF_UART2_CTS,
 	PE4_PF_UART2_RTS,
 	PE6_PF_UART2_TXD,
 	PE7_PF_UART2_RXD,
-	/* UART3 */
+	
 	PE8_PF_UART3_TXD,
 	PE9_PF_UART3_RXD,
 	PE10_PF_UART3_CTS,
 	PE11_PF_UART3_RTS,
-	/* UART4 */
+	
 	PB26_AF_UART4_RTS,
 	PB28_AF_UART4_TXD,
 	PB29_AF_UART4_CTS,
 	PB31_AF_UART4_RXD,
-	/* SDHC1*/
+	
 	PE18_PF_SD1_D0,
 	PE19_PF_SD1_D1,
 	PE20_PF_SD1_D2,
 	PE21_PF_SD1_D3,
 	PE22_PF_SD1_CMD,
 	PE23_PF_SD1_CLK,
-	/* display */
+	
 	PA5_PF_LSCLK,
 	PA6_PF_LD0,
 	PA7_PF_LD1,
@@ -83,7 +64,7 @@ static int eukrea_mbimx27_pins[] = {
 	PA29_PF_VSYNC,
 	PA30_PF_CONTRAST,
 	PA31_PF_OE_ACD,
-	/* SPI1 */
+	
 	PD28_PF_CSPI1_SS0,
 	PD29_PF_CSPI1_SCLK,
 	PD30_PF_CSPI1_MISO,
@@ -211,12 +192,7 @@ static struct platform_device *platform_devices[] __initdata = {
 	&leds_gpio,
 };
 
-/*
- * system init for baseboard usage. Will be called by cpuimx27 init.
- *
- * Add platform devices present on this baseboard and init
- * them from CPU side as far as required to use them later on
- */
+
 void __init eukrea_mbimx27_baseboard_init(void)
 {
 	mxc_gpio_setup_multiple_pins(eukrea_mbimx27_pins,
@@ -230,7 +206,7 @@ void __init eukrea_mbimx27_baseboard_init(void)
 
 #if defined(CONFIG_TOUCHSCREEN_ADS7846)
 	|| defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
-	/* SPI and ADS7846 Touchscreen controler init */
+	
 	mxc_gpio_mode(GPIO_PORTD | 28 | GPIO_GPIO | GPIO_OUT);
 	mxc_gpio_mode(GPIO_PORTD | 25 | GPIO_GPIO | GPIO_IN);
 	mxc_register_device(&mxc_spi_device0, &eukrea_mbimx27_spi_0_data);
@@ -239,10 +215,10 @@ void __init eukrea_mbimx27_baseboard_init(void)
 	ads7846_dev_init();
 #endif
 
-	/* Leds configuration */
+	
 	mxc_gpio_mode(GPIO_PORTF | 16 | GPIO_GPIO | GPIO_OUT);
 	mxc_gpio_mode(GPIO_PORTF | 19 | GPIO_GPIO | GPIO_OUT);
-	/* Backlight */
+	
 	mxc_gpio_mode(GPIO_PORTE | 5 | GPIO_GPIO | GPIO_OUT);
 
 	platform_add_devices(platform_devices, ARRAY_SIZE(platform_devices));

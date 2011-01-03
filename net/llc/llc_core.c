@@ -1,16 +1,4 @@
-/*
- * llc_core.c - Minimum needed routines for sap handling and module init/exit
- *
- * Copyright (c) 1997 by Procom Technology, Inc.
- * 		 2001-2003 by Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *
- * This program can be redistributed or modified under the terms of the
- * GNU General Public License as published by the Free Software Foundation.
- * This program is distributed without any warranty or implied warranty
- * of merchantability or fitness for a particular purpose.
- *
- * See the GNU General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/interrupt.h>
@@ -25,17 +13,13 @@
 LIST_HEAD(llc_sap_list);
 DEFINE_RWLOCK(llc_sap_list_lock);
 
-/**
- *	llc_sap_alloc - allocates and initializes sap.
- *
- *	Allocates and initializes sap.
- */
+
 static struct llc_sap *llc_sap_alloc(void)
 {
 	struct llc_sap *sap = kzalloc(sizeof(*sap), GFP_ATOMIC);
 
 	if (sap) {
-		/* sap->laddr.mac - leave as a null, it's filled by bind */
+		
 		sap->state = LLC_SAP_STATE_ACTIVE;
 		rwlock_init(&sap->sk_list.lock);
 		atomic_set(&sap->refcnt, 1);
@@ -43,23 +27,13 @@ static struct llc_sap *llc_sap_alloc(void)
 	return sap;
 }
 
-/**
- *	llc_add_sap - add sap to station list
- *	@sap: Address of the sap
- *
- *	Adds a sap to the LLC's station sap list.
- */
+
 static void llc_add_sap(struct llc_sap *sap)
 {
 	list_add_tail(&sap->node, &llc_sap_list);
 }
 
-/**
- *	llc_del_sap - del sap from station list
- *	@sap: Address of the sap
- *
- *	Removes a sap to the LLC's station sap list.
- */
+
 static void llc_del_sap(struct llc_sap *sap)
 {
 	write_lock_bh(&llc_sap_list_lock);
@@ -79,15 +53,7 @@ out:
 	return sap;
 }
 
-/**
- *	llc_sap_find - searchs a SAP in station
- *	@sap_value: sap to be found
- *
- *	Searchs for a sap in the sap list of the LLC's station upon the sap ID.
- *	If the sap is found it will be refcounted and the user will have to do
- *	a llc_sap_put after use.
- *	Returns the sap or %NULL if not found.
- */
+
 struct llc_sap *llc_sap_find(unsigned char sap_value)
 {
 	struct llc_sap* sap;
@@ -100,15 +66,7 @@ struct llc_sap *llc_sap_find(unsigned char sap_value)
 	return sap;
 }
 
-/**
- *	llc_sap_open - open interface to the upper layers.
- *	@lsap: SAP number.
- *	@func: rcv func for datalink protos
- *
- *	Interface function to upper layer. Each one who wants to get a SAP
- *	(for example NetBEUI) should call this function. Returns the opened
- *	SAP for success, NULL for failure.
- */
+
 struct llc_sap *llc_sap_open(unsigned char lsap,
 			     int (*func)(struct sk_buff *skb,
 					 struct net_device *dev,
@@ -118,7 +76,7 @@ struct llc_sap *llc_sap_open(unsigned char lsap,
 	struct llc_sap *sap = NULL;
 
 	write_lock_bh(&llc_sap_list_lock);
-	if (__llc_sap_find(lsap)) /* SAP already exists */
+	if (__llc_sap_find(lsap)) 
 		goto out;
 	sap = llc_sap_alloc();
 	if (!sap)
@@ -131,15 +89,7 @@ out:
 	return sap;
 }
 
-/**
- *	llc_sap_close - close interface for upper layers.
- *	@sap: SAP to be closed.
- *
- *	Close interface function to upper layer. Each one who wants to
- *	close an open SAP (for example NetBEUI) should call this function.
- * 	Removes this sap from the list of saps in the station and then
- * 	frees the memory for this sap.
- */
+
 void llc_sap_close(struct llc_sap *sap)
 {
 	WARN_ON(!hlist_empty(&sap->sk_list.list));

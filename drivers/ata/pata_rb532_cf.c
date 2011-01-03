@@ -1,23 +1,4 @@
-/*
- *  A low-level PATA driver to handle a Compact Flash connected on the
- *  Mikrotik's RouterBoard 532 board.
- *
- *  Copyright (C) 2007 Gabor Juhos <juhosg at openwrt.org>
- *  Copyright (C) 2008 Florian Fainelli <florian@openwrt.org>
- *
- *  This file was based on: drivers/ata/pata_ixp4xx_cf.c
- *	Copyright (C) 2006-07 Tower Technologies
- *	Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- *  Also was based on the driver for Linux 2.4.xx published by Mikrotik for
- *  their RouterBoard 1xx and 5xx series devices. The original Mikrotik code
- *  seems not to have a license.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -42,7 +23,7 @@
 #define RB500_CF_REG_BASE	0x0800
 #define RB500_CF_REG_ERR	0x080D
 #define RB500_CF_REG_CTRL	0x080E
-/* 32bit buffered data register offset */
+
 #define RB500_CF_REG_DBUF32	0x0C00
 
 struct rb532_cf_info {
@@ -51,7 +32,7 @@ struct rb532_cf_info {
 	unsigned int	irq;
 };
 
-/* ------------------------------------------------------------------------ */
+
 
 static irqreturn_t rb532_pata_irq_handler(int irq, void *dev_instance)
 {
@@ -73,13 +54,13 @@ static struct ata_port_operations rb532_pata_port_ops = {
 	.sff_data_xfer		= ata_sff_data_xfer32,
 };
 
-/* ------------------------------------------------------------------------ */
+
 
 static struct scsi_host_template rb532_pata_sht = {
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-/* ------------------------------------------------------------------------ */
+
 
 static void rb532_pata_setup_ports(struct ata_host *ah)
 {
@@ -135,7 +116,7 @@ static __devinit int rb532_pata_driver_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	/* allocate host */
+	
 	ah = ata_host_alloc(&pdev->dev, RB500_CF_MAXPORTS);
 	if (!ah)
 		return -ENOMEM;
@@ -188,7 +169,7 @@ static __devexit int rb532_pata_driver_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:" DRV_NAME);
 
 static struct platform_driver rb532_pata_platform_driver = {
@@ -200,7 +181,7 @@ static struct platform_driver rb532_pata_platform_driver = {
 	},
 };
 
-/* ------------------------------------------------------------------------ */
+
 
 #define DRV_INFO DRV_DESC " version " DRV_VERSION
 

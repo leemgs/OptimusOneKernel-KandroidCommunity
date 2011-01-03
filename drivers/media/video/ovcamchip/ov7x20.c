@@ -1,33 +1,22 @@
-/* OmniVision OV7620/OV7120 Camera Chip Support Code
- *
- * Copyright (c) 1999-2004 Mark McClelland <mark@alpha.dyndns.org>
- * http://alpha.dyndns.org/ov511/
- *
- * OV7620 fixes by Charl P. Botha <cpbotha@ieee.org>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version. NO WARRANTY OF ANY KIND is expressed or implied.
- */
+
 
 #define DEBUG
 
 #include <linux/slab.h>
 #include "ovcamchip_priv.h"
 
-/* Registers */
-#define REG_GAIN		0x00	/* gain [5:0] */
-#define REG_BLUE		0x01	/* blue gain */
-#define REG_RED			0x02	/* red gain */
-#define REG_SAT			0x03	/* saturation */
-#define REG_BRT			0x06	/* Y brightness */
-#define REG_SHARP		0x07	/* analog sharpness */
-#define REG_BLUE_BIAS		0x0C	/* WB blue ratio [5:0] */
-#define REG_RED_BIAS		0x0D	/* WB red ratio [5:0] */
-#define REG_EXP			0x10	/* exposure */
 
-/* Default control settings. Values are in terms of V4L2 controls. */
+#define REG_GAIN		0x00	
+#define REG_BLUE		0x01	
+#define REG_RED			0x02	
+#define REG_SAT			0x03	
+#define REG_BRT			0x06	
+#define REG_SHARP		0x07	
+#define REG_BLUE_BIAS		0x0C	
+#define REG_RED_BIAS		0x0D	
+#define REG_EXP			0x10	
+
+
 #define OV7120_DFL_BRIGHT     0x60
 #define OV7620_DFL_BRIGHT     0x60
 #define OV7120_DFL_SAT        0xb0
@@ -36,13 +25,12 @@
 #define DFL_AUTO_GAIN            1
 #define OV7120_DFL_GAIN       0x00
 #define OV7620_DFL_GAIN       0x00
-/* NOTE: Since autoexposure is the default, these aren't programmed into the
- * OV7x20 chip. They are just here because V4L2 expects a default */
+
 #define OV7120_DFL_EXP        0x7f
 #define OV7620_DFL_EXP        0x7f
 
-/* Window parameters */
-#define HWSBASE 0x2F	/* From 7620.SET (spec is wrong) */
+
+#define HWSBASE 0x2F	
 #define HWEBASE 0x2F
 #define VWSBASE 0x05
 #define VWEBASE 0x05
@@ -56,18 +44,18 @@ struct ov7x20 {
 	int mirror;
 };
 
-/* Contrast look-up table */
+
 static unsigned char ctab[] = {
 	0x01, 0x05, 0x09, 0x11, 0x15, 0x35, 0x37, 0x57,
 	0x5b, 0xa5, 0xa7, 0xc7, 0xc9, 0xcf, 0xef, 0xff
 };
 
-/* Settings for (Black & White) OV7120 camera chip */
+
 static struct ovcamchip_regvals regvals_init_7120[] = {
-	{ 0x12, 0x80 }, /* reset */
-	{ 0x13, 0x00 }, /* Autoadjust off */
-	{ 0x12, 0x20 }, /* Disable AWB */
-	{ 0x13, DFL_AUTO_GAIN?0x01:0x00 }, /* Autoadjust on (if desired) */
+	{ 0x12, 0x80 }, 
+	{ 0x13, 0x00 }, 
+	{ 0x12, 0x20 }, 
+	{ 0x13, DFL_AUTO_GAIN?0x01:0x00 }, 
 	{ 0x00, OV7120_DFL_GAIN },
 	{ 0x01, 0x80 },
 	{ 0x02, 0x80 },
@@ -91,7 +79,7 @@ static struct ovcamchip_regvals regvals_init_7120[] = {
 	{ 0x23, 0x00 },
 	{ 0x26, 0xa0 },
 	{ 0x27, 0xfa },
-	{ 0x28, 0x20 }, /* DON'T set bit 6. It is for the OV7620 only */
+	{ 0x28, 0x20 }, 
 	{ 0x29, DFL_AUTO_EXP?0x00:0x80 },
 	{ 0x2a, 0x10 },
 	{ 0x2b, 0x00 },
@@ -104,7 +92,7 @@ static struct ovcamchip_regvals regvals_init_7120[] = {
 	{ 0x62, 0x5f },
 	{ 0x63, 0xd5 },
 	{ 0x64, 0x57 },
-	{ 0x65, 0x83 }, /* OV says "don't change this value" */
+	{ 0x65, 0x83 }, 
 	{ 0x66, 0x55 },
 	{ 0x67, 0x92 },
 	{ 0x68, 0xcf },
@@ -130,12 +118,12 @@ static struct ovcamchip_regvals regvals_init_7120[] = {
 	{ 0x7c, 0x00 },
 	{ 0x24, 0x3a },
 	{ 0x25, 0x60 },
-	{ 0xff, 0xff },	/* END MARKER */
+	{ 0xff, 0xff },	
 };
 
-/* Settings for (color) OV7620 camera chip */
+
 static struct ovcamchip_regvals regvals_init_7620[] = {
-	{ 0x12, 0x80 }, /* reset */
+	{ 0x12, 0x80 }, 
 	{ 0x00, OV7620_DFL_GAIN },
 	{ 0x01, 0x80 },
 	{ 0x02, 0x80 },
@@ -199,12 +187,10 @@ static struct ovcamchip_regvals regvals_init_7620[] = {
 	{ 0x7a, 0x80 },
 	{ 0x7b, 0xe2 },
 	{ 0x7c, 0x00 },
-	{ 0xff, 0xff },	/* END MARKER */
+	{ 0xff, 0xff },	
 };
 
-/* Returns index into the specified look-up table, with 'n' elements, for which
- * the value is greater than or equal to "val". If a match isn't found, (n-1)
- * is returned. The entries in the table must be in ascending order. */
+
 static inline int ov7x20_lut_find(unsigned char lut[], int n, unsigned char val)
 {
 	int i = 0;
@@ -215,7 +201,7 @@ static inline int ov7x20_lut_find(unsigned char lut[], int n, unsigned char val)
 	return i;
 }
 
-/* This initializes the OV7x20 camera chip and relevant variables. */
+
 static int ov7x20_init(struct i2c_client *c)
 {
 	struct ovcamchip *ov = i2c_get_clientdata(c);
@@ -262,12 +248,12 @@ static int ov7x20_set_v4l1_control(struct i2c_client *c,
 	switch (ctl->id) {
 	case OVCAMCHIP_CID_CONT:
 	{
-		/* Use Y gamma control instead. Bit 0 enables it. */
+		
 		rc = ov_write(c, 0x64, ctab[v >> 12]);
 		break;
 	}
 	case OVCAMCHIP_CID_BRIGHT:
-		/* 7620 doesn't like manual changes when in auto mode */
+		
 		if (!s->auto_brt)
 			rc = ov_write(c, REG_BRT, v >> 8);
 		else
@@ -391,7 +377,7 @@ static int ov7x20_mode_init(struct i2c_client *c, struct ovcamchip_window *win)
 	struct ovcamchip *ov = i2c_get_clientdata(c);
 	int qvga = win->quarter;
 
-	/******** QVGA-specific regs ********/
+	
 	ov_write_mask(c, 0x14, qvga?0x20:0x00, 0x20);
 	ov_write_mask(c, 0x28, qvga?0x00:0x20, 0x20);
 	ov_write(c, 0x24, qvga?0x20:0x3a);
@@ -401,7 +387,7 @@ static int ov7x20_mode_init(struct i2c_client *c, struct ovcamchip_window *win)
 		ov_write_mask(c, 0x67, qvga?0xf0:0x90, 0xf0);
 	ov_write_mask(c, 0x74, qvga?0x20:0x00, 0x20);
 
-	/******** Clock programming ********/
+	
 
 	ov_write(c, 0x11, win->clockdiv);
 

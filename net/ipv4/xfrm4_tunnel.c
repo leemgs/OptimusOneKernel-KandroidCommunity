@@ -1,7 +1,4 @@
-/* xfrm4_tunnel.c: Generic IP tunnel transformer.
- *
- * Copyright (C) 2003 David S. Miller (davem@redhat.com)
- */
+
 
 #include <linux/skbuff.h>
 #include <linux/module.h>

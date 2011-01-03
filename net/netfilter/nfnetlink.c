@@ -1,18 +1,4 @@
-/* Netfilter messages via netlink socket. Allows for user space
- * protocol helpers and general trouble making from userspace.
- *
- * (C) 2001 by Jay Schulist <jschlst@samba.org>,
- * (C) 2002-2005 by Harald Welte <laforge@gnumonks.org>
- * (C) 2005,2007 by Pablo Neira Ayuso <pablo@netfilter.org>
- *
- * Initial netfilter messages via netlink development funded and
- * generally made possible by Network Robots, Inc. (www.networkrobots.com)
- *
- * Further development of this code funded by Astaro AG (http://www.astaro.com)
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -126,7 +112,7 @@ int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags)
 }
 EXPORT_SYMBOL_GPL(nfnetlink_unicast);
 
-/* Process one complete nfnetlink message. */
+
 static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 {
 	const struct nfnl_callback *nc;
@@ -136,7 +122,7 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	if (security_netlink_recv(skb, CAP_NET_ADMIN))
 		return -EPERM;
 
-	/* All the messages must at least contain nfgenmsg */
+	
 	if (nlh->nlmsg_len < NLMSG_LENGTH(sizeof(struct nfgenmsg)))
 		return 0;
 

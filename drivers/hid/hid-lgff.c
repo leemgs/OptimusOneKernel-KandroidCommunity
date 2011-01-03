@@ -1,31 +1,6 @@
-/*
- * Force feedback support for hid-compliant for some of the devices from
- * Logitech, namely:
- * - WingMan Cordless RumblePad
- * - WingMan Force 3D
- *
- *  Copyright (c) 2002-2004 Johann Deneux
- *  Copyright (c) 2006 Anssi Hannula <anssi.hannula@gmail.com>
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so by
- * e-mail - mail your message to <johann.deneux@it.uu.se>
- */
+
+
 
 #include <linux/input.h>
 #include <linux/usb.h>
@@ -85,7 +60,7 @@ static int hid_lgff_play(struct input_dev *dev, void *data, struct ff_effect *ef
 
 	switch (effect->type) {
 	case FF_CONSTANT:
-		x = effect->u.ramp.start_level + 0x7f;	/* 0x7f is center */
+		x = effect->u.ramp.start_level + 0x7f;	
 		y = effect->u.ramp.end_level + 0x7f;
 		CLAMP(x);
 		CLAMP(y);
@@ -124,8 +99,8 @@ static void hid_lgff_set_autocenter(struct input_dev *dev, u16 magnitude)
 	magnitude = (magnitude >> 12) & 0xf;
 	*value++ = 0xfe;
 	*value++ = 0x0d;
-	*value++ = magnitude;   /* clockwise strength */
-	*value++ = magnitude;   /* counter-clockwise strength */
+	*value++ = magnitude;   
+	*value++ = magnitude;   
 	*value++ = 0x80;
 	*value++ = 0x00;
 	*value = 0x00;
@@ -143,13 +118,13 @@ int lgff_init(struct hid_device* hid)
 	int error;
 	int i;
 
-	/* Find the report to use */
+	
 	if (list_empty(report_list)) {
 		err_hid("No output report found");
 		return -1;
 	}
 
-	/* Check that the report looks ok */
+	
 	report = list_entry(report_list->next, struct hid_report, list);
 	field = report->field[0];
 	if (!field) {

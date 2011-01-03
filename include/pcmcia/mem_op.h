@@ -1,16 +1,4 @@
-/*
- * mem_op.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The initial developer of the original code is David A. Hinds
- * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- * are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- * (C) 1999             David A. Hinds
- */
+
 
 #ifndef _LINUX_MEM_OP_H
 #define _LINUX_MEM_OP_H
@@ -18,12 +6,7 @@
 #include <asm/uaccess.h>
 #include <asm/io.h>
 
-/*
-   If UNSAFE_MEMCPY is defined, we use the (optimized) system routines
-   to copy between a card and kernel memory.  These routines do 32-bit
-   operations which may not work with all PCMCIA controllers.  The
-   safe versions defined here will do only 8-bit and 16-bit accesses.
-*/
+
 
 #ifdef UNSAFE_MEMCPY
 
@@ -59,7 +42,7 @@ static inline void copy_user_to_pc(void *to, const void *from, size_t n)
     }
 }
 
-#else /* UNSAFE_MEMCPY */
+#else 
 
 static inline void copy_from_pc(void *to, void __iomem *from, size_t n)
 {
@@ -111,6 +94,6 @@ static inline void copy_user_to_pc(void __iomem *to, void __user *from, size_t n
 	}
 }
 
-#endif /* UNSAFE_MEMCPY */
+#endif 
 
-#endif /* _LINUX_MEM_OP_H */
+#endif 

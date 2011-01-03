@@ -1,32 +1,13 @@
-/*
- * arch/arm/mach-w90x900/include/mach/irqs.h
- *
- * Copyright (c) 2008 Nuvoton technology corporation.
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * Based on arch/arm/mach-s3c2410/include/mach/irqs.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation;version 2 of the License.
- *
- */
+
 
 #ifndef __ASM_ARCH_IRQS_H
 #define __ASM_ARCH_IRQS_H
 
-/*
- * we keep the first set of CPU IRQs out of the range of
- * the ISA space, so that the PC104 has them to itself
- * and we don't end up having to do horrible things to the
- * standard ISA drivers....
- *
- */
+
 
 #define W90X900_IRQ(x)	(x)
 
-/* Main cpu interrupts */
+
 
 #define IRQ_WDT		W90X900_IRQ(1)
 #define IRQ_GROUP0	W90X900_IRQ(2)
@@ -61,7 +42,7 @@
 #define IRQ_ADC		W90X900_IRQ(31)
 #define NR_IRQS		(IRQ_ADC+1)
 
-/*for irq group*/
+
 
 #define	IRQ_PS2_PORT0	0x10000000
 #define	IRQ_PS2_PORT1	0x20000000
@@ -83,4 +64,4 @@
 #define	IRQ_GROUP1_IRQ6	0x00000040
 #define	IRQ_GROUP1_IRQ7	0x00000080
 
-#endif /* __ASM_ARCH_IRQ_H */
+#endif 

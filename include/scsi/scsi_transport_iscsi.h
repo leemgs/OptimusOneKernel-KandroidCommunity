@@ -1,25 +1,4 @@
-/*
- * iSCSI transport class definitions
- *
- * Copyright (C) IBM Corporation, 2004
- * Copyright (C) Mike Christie, 2004 - 2006
- * Copyright (C) Dmitry Yusupov, 2004 - 2005
- * Copyright (C) Alex Aizman, 2004 - 2005
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 #ifndef SCSI_TRANSPORT_ISCSI_H
 #define SCSI_TRANSPORT_ISCSI_H
 
@@ -37,53 +16,12 @@ struct iscsi_conn;
 struct iscsi_task;
 struct sockaddr;
 
-/**
- * struct iscsi_transport - iSCSI Transport template
- *
- * @name:		transport name
- * @caps:		iSCSI Data-Path capabilities
- * @create_session:	create new iSCSI session object
- * @destroy_session:	destroy existing iSCSI session object
- * @create_conn:	create new iSCSI connection
- * @bind_conn:		associate this connection with existing iSCSI session
- *			and specified transport descriptor
- * @destroy_conn:	destroy inactive iSCSI connection
- * @set_param:		set iSCSI parameter. Return 0 on success, -ENODATA
- *			when param is not supported, and a -Exx value on other
- *			error.
- * @get_param		get iSCSI parameter. Must return number of bytes
- *			copied to buffer on success, -ENODATA when param
- *			is not supported, and a -Exx value on other error
- * @start_conn:		set connection to be operational
- * @stop_conn:		suspend/recover/terminate connection
- * @send_pdu:		send iSCSI PDU, Login, Logout, NOP-Out, Reject, Text.
- * @session_recovery_timedout: notify LLD a block during recovery timed out
- * @init_task:		Initialize a iscsi_task and any internal structs.
- *			When offloading the data path, this is called from
- *			queuecommand with the session lock, or from the
- *			iscsi_conn_send_pdu context with the session lock.
- *			When not offloading the data path, this is called
- *			from the scsi work queue without the session lock.
- * @xmit_task		Requests LLD to transfer cmd task. Returns 0 or the
- *			the number of bytes transferred on success, and -Exyz
- *			value on error. When offloading the data path, this
- *			is called from queuecommand with the session lock, or
- *			from the iscsi_conn_send_pdu context with the session
- *			lock. When not offloading the data path, this is called
- *			from the scsi work queue without the session lock.
- * @cleanup_task:	requests LLD to fail task. Called with session lock
- *			and after the connection has been suspended and
- *			terminated during recovery. If called
- *			from abort task then connection is not suspended
- *			or terminated but sk_callback_lock is held
- *
- * Template API provided by iSCSI Transport
- */
+
 struct iscsi_transport {
 	struct module *owner;
 	char *name;
 	unsigned int caps;
-	/* LLD sets this to indicate what values it can export to sysfs */
+	
 	uint64_t param_mask;
 	uint64_t host_param_mask;
 	struct iscsi_cls_session *(*create_session) (struct iscsi_endpoint *ep,
@@ -136,15 +74,11 @@ struct iscsi_transport {
 	int (*set_path) (struct Scsi_Host *shost, struct iscsi_path *params);
 };
 
-/*
- * transport registration upcalls
- */
+
 extern struct scsi_transport_template *iscsi_register_transport(struct iscsi_transport *tt);
 extern int iscsi_unregister_transport(struct iscsi_transport *tt);
 
-/*
- * control plane upcalls
- */
+
 extern void iscsi_conn_error_event(struct iscsi_cls_conn *conn,
 				   enum iscsi_err error);
 extern int iscsi_recv_pdu(struct iscsi_cls_conn *conn, struct iscsi_hdr *hdr,
@@ -155,13 +89,13 @@ extern int iscsi_offload_mesg(struct Scsi_Host *shost,
 			      char *data, uint16_t data_size);
 
 struct iscsi_cls_conn {
-	struct list_head conn_list;	/* item in connlist */
-	void *dd_data;			/* LLD private data */
+	struct list_head conn_list;	
+	void *dd_data;			
 	struct iscsi_transport *transport;
-	uint32_t cid;			/* connection id */
+	uint32_t cid;			
 
-	int active;			/* must be accessed with the connlock */
-	struct device dev;		/* sysfs transport/container device */
+	int active;			
+	struct device dev;		
 };
 
 #define iscsi_dev_to_conn(_dev) \
@@ -170,7 +104,7 @@ struct iscsi_cls_conn {
 #define iscsi_conn_to_session(_conn) \
 	iscsi_dev_to_session(_conn->dev.parent)
 
-/* iscsi class session state */
+
 enum {
 	ISCSI_SESSION_LOGGED_IN,
 	ISCSI_SESSION_FAILED,
@@ -180,7 +114,7 @@ enum {
 #define ISCSI_MAX_TARGET -1
 
 struct iscsi_cls_session {
-	struct list_head sess_list;		/* item in session_list */
+	struct list_head sess_list;		
 	struct iscsi_transport *transport;
 	spinlock_t lock;
 	struct work_struct block_work;
@@ -188,16 +122,16 @@ struct iscsi_cls_session {
 	struct work_struct scan_work;
 	struct work_struct unbind_work;
 
-	/* recovery fields */
+	
 	int recovery_tmo;
 	struct delayed_work recovery_work;
 
 	unsigned int target_id;
 
 	int state;
-	int sid;				/* session id */
-	void *dd_data;				/* LLD private data */
-	struct device dev;	/* sysfs transport/container device */
+	int sid;				
+	void *dd_data;				
+	struct device dev;	
 };
 
 #define iscsi_dev_to_session(_dev) \
@@ -218,14 +152,12 @@ extern void iscsi_host_for_each_session(struct Scsi_Host *shost,
 				void (*fn)(struct iscsi_cls_session *));
 
 struct iscsi_endpoint {
-	void *dd_data;			/* LLD private data */
+	void *dd_data;			
 	struct device dev;
 	uint64_t id;
 };
 
-/*
- * session and connection functions that can be used by HW iSCSI LLDs
- */
+
 #define iscsi_cls_session_printk(prefix, _cls_session, fmt, a...) \
 	dev_printk(prefix, &(_cls_session)->dev, fmt, ##a)
 

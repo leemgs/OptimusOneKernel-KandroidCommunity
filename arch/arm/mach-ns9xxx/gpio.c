@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/gpio.c
- *
- * Copyright (C) 2006,2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/compiler.h>
 #include <linux/init.h>
@@ -29,10 +20,10 @@
 #define GPIO_MAX 49
 #endif
 
-/* protects BBU_GCONFx and BBU_GCTRLx */
+
 static spinlock_t gpio_lock = __SPIN_LOCK_UNLOCKED(gpio_lock);
 
-/* only access gpiores with atomic ops */
+
 static DECLARE_BITMAP(gpiores, GPIO_MAX + 1);
 
 static inline int ns9xxx_valid_gpio(unsigned gpio)

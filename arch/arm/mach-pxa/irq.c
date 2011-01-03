@@ -1,16 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/irq.c
- *
- *  Generic PXA IRQ handling
- *
- *  Author:	Nicolas Pitre
- *  Created:	Jun 15, 2001
- *  Copyright:	MontaVista Software Inc.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -31,9 +19,7 @@
 #define _ICMR(n)	(*((((n) - PXA_IRQ(0)) & ~0x1f) ? &ICMR2 : &ICMR))
 #define _ICLR(n)	(*((((n) - PXA_IRQ(0)) & ~0x1f) ? &ICLR2 : &ICLR))
 
-/*
- * This is for peripheral IRQs internal to the PXA chip.
- */
+
 
 static int pxa_internal_irq_nr;
 
@@ -54,9 +40,7 @@ static struct irq_chip pxa_internal_irq_chip = {
 	.unmask		= pxa_unmask_irq,
 };
 
-/*
- * GPIO IRQs for GPIO 0 and 1
- */
+
 static int pxa_set_low_gpio_type(unsigned int irq, unsigned int type)
 {
 	int gpio = irq - IRQ_GPIO0;
@@ -106,7 +90,7 @@ static void __init pxa_init_low_gpio_irq(set_wake_t fn)
 {
 	int irq;
 
-	/* clear edge detection on GPIO 0 and 1 */
+	
 	GFER0 &= ~0x3;
 	GRER0 &= ~0x3;
 	GEDR0 = 0x3;
@@ -129,17 +113,17 @@ void __init pxa_init_irq(int irq_nr, set_wake_t fn)
 	pxa_internal_irq_nr = irq_nr;
 
 	for (irq = PXA_IRQ(0); irq < PXA_IRQ(irq_nr); irq += 32) {
-		_ICMR(irq) = 0;	/* disable all IRQs */
-		_ICLR(irq) = 0;	/* all IRQs are IRQ, not FIQ */
+		_ICMR(irq) = 0;	
+		_ICLR(irq) = 0;	
 	}
 
-	/* initialize interrupt priority */
+	
 	if (cpu_is_pxa27x() || cpu_is_pxa3xx()) {
 		for (i = 0; i < irq_nr; i++)
 			IPR(i) = i | (1 << 31);
 	}
 
-	/* only unmasked interrupts kick us out of idle */
+	
 	ICCR = 1;
 
 	for (irq = PXA_IRQ(0); irq < PXA_IRQ(irq_nr); irq++) {

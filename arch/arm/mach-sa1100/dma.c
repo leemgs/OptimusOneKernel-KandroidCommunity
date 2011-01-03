@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-sa1100/dma.c
- *
- * Support functions for the SA11x0 internal DMA channels.
- *
- * Copyright (C) 2000, 2001 by Nicolas Pitre
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/interrupt.h>
@@ -31,10 +21,10 @@
 
 
 typedef struct {
-	const char *device_id;		/* device name */
-	u_long device;			/* this channel device, 0  if unused*/
-	dma_callback_t callback;	/* to call when DMA completes */
-	void *data;			/* ... with private data ptr */
+	const char *device_id;		
+	u_long device;			
+	dma_callback_t callback;	
+	void *data;			
 } sa1100_dma_t;
 
 static sa1100_dma_t dma_chan[SA1100_DMA_CHANNELS];
@@ -64,33 +54,7 @@ static irqreturn_t dma_irq_handler(int irq, void *dev_id)
 }
 
 
-/**
- *	sa1100_request_dma - allocate one of the SA11x0's DMA chanels
- *	@device: The SA11x0 peripheral targeted by this request
- *	@device_id: An ascii name for the claiming device
- *	@callback: Function to be called when the DMA completes
- *	@data: A cookie passed back to the callback function
- *	@dma_regs: Pointer to the location of the allocated channel's identifier
- *
- * 	This function will search for a free DMA channel and returns the
- * 	address of the hardware registers for that channel as the channel
- * 	identifier. This identifier is written to the location pointed by
- * 	@dma_regs. The list of possible values for @device are listed into
- * 	arch/arm/mach-sa1100/include/mach/dma.h as a dma_device_t enum.
- *
- * 	Note that reading from a port and writing to the same port are
- * 	actually considered as two different streams requiring separate
- * 	DMA registrations.
- *
- * 	The @callback function is called from interrupt context when one
- * 	of the two possible DMA buffers in flight has terminated. That
- * 	function has to be small and efficient while posponing more complex
- * 	processing to a lower priority execution context.
- *
- * 	If no channels are available, or if the desired @device is already in
- * 	use by another DMA channel, then an error code is returned.  This
- * 	function must be called before any other DMA calls.
- **/
+
 
 int sa1100_request_dma (dma_device_t device, const char *device_id,
 			dma_callback_t callback, void *data,
@@ -148,14 +112,7 @@ int sa1100_request_dma (dma_device_t device, const char *device_id,
 }
 
 
-/**
- * 	sa1100_free_dma - free a SA11x0 DMA channel
- * 	@regs: identifier for the channel to free
- *
- * 	This clears all activities on a given DMA channel and releases it
- * 	for future requests.  The @regs identifier is provided by a
- * 	successful call to sa1100_request_dma().
- **/
+
 
 void sa1100_free_dma(dma_regs_t *regs)
 {
@@ -182,37 +139,7 @@ void sa1100_free_dma(dma_regs_t *regs)
 }
 
 
-/**
- * 	sa1100_start_dma - submit a data buffer for DMA
- * 	@regs: identifier for the channel to use
- * 	@dma_ptr: buffer physical (or bus) start address
- * 	@size: buffer size
- *
- * 	This function hands the given data buffer to the hardware for DMA
- * 	access. If another buffer is already in flight then this buffer
- * 	will be queued so the DMA engine will switch to it automatically
- * 	when the previous one is done.  The DMA engine is actually toggling
- * 	between two buffers so at most 2 successful calls can be made before
- * 	one of them terminates and the callback function is called.
- *
- * 	The @regs identifier is provided by a successful call to
- * 	sa1100_request_dma().
- *
- * 	The @size must not be larger than %MAX_DMA_SIZE.  If a given buffer
- * 	is larger than that then it's the caller's responsibility to split
- * 	it into smaller chunks and submit them separately. If this is the
- * 	case then a @size of %CUT_DMA_SIZE is recommended to avoid ending
- * 	up with too small chunks. The callback function can be used to chain
- * 	submissions of buffer chunks.
- *
- * 	Error return values:
- * 	%-EOVERFLOW:	Given buffer size is too big.
- * 	%-EBUSY:	Both DMA buffers are already in use.
- * 	%-EAGAIN:	Both buffers were busy but one of them just completed
- * 			but the interrupt handler has to execute first.
- *
- * 	This function returs 0 on success.
- **/
+
 
 int sa1100_start_dma(dma_regs_t *regs, dma_addr_t dma_ptr, u_int size)
 {
@@ -230,7 +157,7 @@ int sa1100_start_dma(dma_regs_t *regs, dma_addr_t dma_ptr, u_int size)
 	local_irq_save(flags);
 	status = regs->RdDCSR;
 
-	/* If both DMA buffers are started, there's nothing else we can do. */
+	
 	if ((status & (DCSR_STRTA | DCSR_STRTB)) == (DCSR_STRTA | DCSR_STRTB)) {
 		DPRINTK("start: st %#x busy\n", status);
 		ret = -EBUSY;
@@ -240,7 +167,7 @@ int sa1100_start_dma(dma_regs_t *regs, dma_addr_t dma_ptr, u_int size)
 	if (((status & DCSR_BIU) && (status & DCSR_STRTB)) ||
 	    (!(status & DCSR_BIU) && !(status & DCSR_STRTA))) {
 		if (status & DCSR_DONEA) {
-			/* give a chance for the interrupt to be processed */
+			
 			ret = -EAGAIN;
 			goto out;
 		}
@@ -250,7 +177,7 @@ int sa1100_start_dma(dma_regs_t *regs, dma_addr_t dma_ptr, u_int size)
 		DPRINTK("start a=%#x s=%d on A\n", dma_ptr, size);
 	} else {
 		if (status & DCSR_DONEB) {
-			/* give a chance for the interrupt to be processed */
+			
 			ret = -EAGAIN;
 			goto out;
 		}
@@ -267,40 +194,13 @@ out:
 }
 
 
-/**
- * 	sa1100_get_dma_pos - return current DMA position
- * 	@regs: identifier for the channel to use
- *
- * 	This function returns the current physical (or bus) address for the
- * 	given DMA channel.  If the channel is running i.e. not in a stopped
- * 	state then the caller must disable interrupts prior calling this
- * 	function and process the returned value before re-enabling them to
- * 	prevent races with the completion interrupt handler and the callback
- * 	function. The validation of the returned value is the caller's
- * 	responsibility as well -- the hardware seems to return out of range
- * 	values when the DMA engine completes a buffer.
- *
- * 	The @regs identifier is provided by a successful call to
- * 	sa1100_request_dma().
- **/
+
 
 dma_addr_t sa1100_get_dma_pos(dma_regs_t *regs)
 {
 	int status;
 
-	/*
-	 * We must determine whether buffer A or B is active.
-	 * Two possibilities: either we are in the middle of
-	 * a buffer, or the DMA controller just switched to the
-	 * next toggle but the interrupt hasn't been serviced yet.
-	 * The former case is straight forward.  In the later case,
-	 * we'll do like if DMA is just at the end of the previous
-	 * toggle since all registers haven't been reset yet.
-	 * This goes around the edge case and since we're always
-	 * a little behind anyways it shouldn't make a big difference.
-	 * If DMA has been stopped prior calling this then the
-	 * position is exact.
-	 */
+	
 	status = regs->RdDCSR;
 	if ((!(status & DCSR_BIU) &&  (status & DCSR_STRTA)) ||
 	    ( (status & DCSR_BIU) && !(status & DCSR_STRTB)))
@@ -310,16 +210,7 @@ dma_addr_t sa1100_get_dma_pos(dma_regs_t *regs)
 }
 
 
-/**
- * 	sa1100_reset_dma - reset a DMA channel
- * 	@regs: identifier for the channel to use
- *
- * 	This function resets and reconfigure the given DMA channel. This is
- * 	particularly useful after a sleep/wakeup event.
- *
- * 	The @regs identifier is provided by a successful call to
- * 	sa1100_request_dma().
- **/
+
 
 void sa1100_reset_dma(dma_regs_t *regs)
 {

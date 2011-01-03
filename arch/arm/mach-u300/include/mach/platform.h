@@ -1,13 +1,4 @@
-/*
- *
- * arch/arm/mach-u300/include/mach/platform.h
- *
- *
- * Copyright (C) 2006-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * Basic platform init and mapping functions.
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 
 #ifndef __ASSEMBLY__
 

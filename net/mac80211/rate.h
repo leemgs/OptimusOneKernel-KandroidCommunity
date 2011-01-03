@@ -1,12 +1,4 @@
-/*
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005, Devicescape Software, Inc.
- * Copyright (c) 2006 Jiri Benc <jbenc@suse.cz>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef IEEE80211_RATE_H
 #define IEEE80211_RATE_H
@@ -26,8 +18,7 @@ struct rate_control_ref {
 	struct kref kref;
 };
 
-/* Get a reference to the rate control algorithm. If `name' is NULL, get the
- * first available algorithm. */
+
 struct rate_control_ref *rate_control_alloc(const char *name,
 					    struct ieee80211_local *local);
 void rate_control_get_rate(struct ieee80211_sub_if_data *sdata,
@@ -112,13 +103,13 @@ static inline void rate_control_remove_sta_debugfs(struct sta_info *sta)
 #endif
 }
 
-/* functions for rate control related to a device */
+
 int ieee80211_init_rate_ctrl_alg(struct ieee80211_local *local,
 				 const char *name);
 void rate_control_deinitialize(struct ieee80211_local *local);
 
 
-/* Rate control algorithms */
+
 #ifdef CONFIG_MAC80211_RC_PID
 extern int rc80211_pid_init(void);
 extern void rc80211_pid_exit(void);
@@ -146,4 +137,4 @@ static inline void rc80211_minstrel_exit(void)
 #endif
 
 
-#endif /* IEEE80211_RATE_H */
+#endif 

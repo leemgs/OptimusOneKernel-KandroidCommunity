@@ -1,28 +1,4 @@
-/*
- * arch/arm/mach-ep93xx/edb93xx.c
- * Cirrus Logic EDB93xx Development Board support.
- *
- * EDB93XX, EDB9301, EDB9307A
- * Copyright (C) 2008-2009 H Hartley Sweeten <hsweeten@visionengravers.com>
- *
- * EDB9302
- * Copyright (C) 2006 George Kashperko <george@chas.com.ua>
- *
- * EDB9302A, EDB9315, EDB9315A
- * Copyright (C) 2006 Lennert Buytenhek <buytenh@wantstofly.org>
- *
- * EDB9307
- * Copyright (C) 2007 Herbert Valerio Riedel <hvr@gnu.org>
- *
- * EDB9312
- * Copyright (C) 2006 Infosys Technologies Limited
- *                    Toufeeq Hussain <toufeeq_hussain@infosys.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -79,16 +55,14 @@ static struct ep93xx_eth_data edb93xx_eth_data = {
 };
 
 
-/*************************************************************************
- * EDB93xx i2c peripheral handling
- *************************************************************************/
+
 static struct i2c_gpio_platform_data edb93xx_i2c_gpio_data = {
 	.sda_pin		= EP93XX_GPIO_LINE_EEDAT,
 	.sda_is_open_drain	= 0,
 	.scl_pin		= EP93XX_GPIO_LINE_EECLK,
 	.scl_is_open_drain	= 0,
-	.udelay			= 0,	/* default to 100 kHz */
-	.timeout		= 0,	/* default to 100 ms */
+	.udelay			= 0,	
+	.timeout		= 0,	
 };
 
 static struct i2c_board_info __initdata edb93xxa_i2c_board_info[] = {
@@ -129,7 +103,7 @@ static void __init edb93xx_init_machine(void)
 
 #ifdef CONFIG_MACH_EDB9301
 MACHINE_START(EDB9301, "Cirrus Logic EDB9301 Evaluation Board")
-	/* Maintainer: H Hartley Sweeten <hsweeten@visionengravers.com> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,
@@ -142,7 +116,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_EDB9302
 MACHINE_START(EDB9302, "Cirrus Logic EDB9302 Evaluation Board")
-	/* Maintainer: George Kashperko <george@chas.com.ua> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,
@@ -155,7 +129,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_EDB9302A
 MACHINE_START(EDB9302A, "Cirrus Logic EDB9302A Evaluation Board")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE0_PHYS_BASE + 0x100,
@@ -168,7 +142,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_EDB9307
 MACHINE_START(EDB9307, "Cirrus Logic EDB9307 Evaluation Board")
-	/* Maintainer: Herbert Valerio Riedel <hvr@gnu.org> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,
@@ -181,7 +155,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_EDB9307A
 MACHINE_START(EDB9307A, "Cirrus Logic EDB9307A Evaluation Board")
-	/* Maintainer: H Hartley Sweeten <hsweeten@visionengravers.com> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE0_PHYS_BASE + 0x100,
@@ -194,7 +168,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_EDB9312
 MACHINE_START(EDB9312, "Cirrus Logic EDB9312 Evaluation Board")
-	/* Maintainer: Toufeeq Hussain <toufeeq_hussain@infosys.com> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,
@@ -207,7 +181,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_EDB9315
 MACHINE_START(EDB9315, "Cirrus Logic EDB9315 Evaluation Board")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,
@@ -220,7 +194,7 @@ MACHINE_END
 
 #ifdef CONFIG_MACH_EDB9315A
 MACHINE_START(EDB9315A, "Cirrus Logic EDB9315A Evaluation Board")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE0_PHYS_BASE + 0x100,

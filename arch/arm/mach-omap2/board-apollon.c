@@ -1,20 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-apollon.c
- *
- * Copyright (C) 2005,2006 Samsung Electronics
- * Author: Kyungmin Park <kyungmin.park@samsung.com>
- *
- * Modified from mach-omap/omap2/board-h4.c
- *
- * Code for apollon OMAP2 board. Should work on many OMAP2 systems where
- * the bootloader passes the board-specific data to the kernel.
- * Do not put any board specific code to this file; create a new machine
- * type if you need custom low-level initializations.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -41,7 +25,7 @@
 #include <mach/gpmc.h>
 #include <mach/control.h>
 
-/* LED & Switch macros */
+
 #define LED0_GPIO13		13
 #define LED1_GPIO14		14
 #define LED2_GPIO15		15
@@ -192,7 +176,7 @@ static inline void __init apollon_init_smc91x(void)
 	struct clk *gpmc_fck;
 	int eth_cs;
 
-	gpmc_fck = clk_get(NULL, "gpmc_fck");	/* Always on ENABLE_ON_INIT */
+	gpmc_fck = clk_get(NULL, "gpmc_fck");	
 	if (IS_ERR(gpmc_fck)) {
 		WARN_ON(1);
 		return;
@@ -203,7 +187,7 @@ static inline void __init apollon_init_smc91x(void)
 
 	eth_cs = APOLLON_ETH_CS;
 
-	/* Make sure CS1 timings are correct */
+	
 	gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG1, 0x00011200);
 
 	if (rate >= 160000000) {
@@ -218,7 +202,7 @@ static inline void __init apollon_init_smc91x(void)
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x041f1F1F);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000004C4);
-	} else {/* rate = 100000000 */
+	} else {
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f00);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080802);
 		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
@@ -250,7 +234,7 @@ out:
 
 static struct omap_usb_config apollon_usb_config __initdata = {
 	.register_dev	= 1,
-	.hmc_mode	= 0x14,	/* 0:dev 1:host1 2:disable */
+	.hmc_mode	= 0x14,	
 
 	.pins[0]	= 6,
 };
@@ -275,15 +259,15 @@ static void __init omap_apollon_init_irq(void)
 
 static void __init apollon_led_init(void)
 {
-	/* LED0 - AA10 */
+	
 	omap_cfg_reg(AA10_242X_GPIO13);
 	gpio_request(LED0_GPIO13, "LED0");
 	gpio_direction_output(LED0_GPIO13, 0);
-	/* LED1  - AA6 */
+	
 	omap_cfg_reg(AA6_242X_GPIO14);
 	gpio_request(LED1_GPIO14, "LED1");
 	gpio_direction_output(LED1_GPIO14, 0);
-	/* LED2  - AA4 */
+	
 	omap_cfg_reg(AA4_242X_GPIO15);
 	gpio_request(LED2_GPIO15, "LED2");
 	gpio_direction_output(LED2_GPIO15, 0);
@@ -291,8 +275,8 @@ static void __init apollon_led_init(void)
 
 static void __init apollon_usb_init(void)
 {
-	/* USB device */
-	/* DEVICE_SUSPEND */
+	
+	
 	omap_cfg_reg(P21_242X_GPIO12);
 	gpio_request(12, "USB suspend");
 	gpio_direction_output(12, 0);
@@ -307,19 +291,15 @@ static void __init omap_apollon_init(void)
 	apollon_flash_init();
 	apollon_usb_init();
 
-	/* REVISIT: where's the correct place */
+	
 	omap_cfg_reg(W19_24XX_SYS_NIRQ);
 
-	/* Use Interal loop-back in MMC/SDIO Module Input Clock selection */
+	
 	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
 	v |= (1 << 24);
 	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
 
-	/*
- 	 * Make sure the serial ports are muxed on at this point.
-	 * You have to mux them off in device drivers later on
-	 * if not needed.
-	 */
+	
 	platform_add_devices(apollon_devices, ARRAY_SIZE(apollon_devices));
 	omap_serial_init();
 }
@@ -331,7 +311,7 @@ static void __init omap_apollon_map_io(void)
 }
 
 MACHINE_START(OMAP_APOLLON, "OMAP24xx Apollon")
-	/* Maintainer: Kyungmin Park <kyungmin.park@samsung.com> */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

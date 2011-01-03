@@ -1,18 +1,4 @@
-/*
- * arch/arm/mach-pnx4008/include/mach/platform.h
- *
- * PNX4008 Base addresses - header file
- *
- * Author: Dmitry Chigirev <source@mvista.com>
- *
- * Based on reference code received from Philips:
- * Copyright (C) 2003 Philips Semiconductors
- *
- * 2005 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 
 
 #ifndef __ASM_ARCH_PLATFORM_H__

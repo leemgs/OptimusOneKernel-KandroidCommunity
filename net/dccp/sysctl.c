@@ -1,13 +1,4 @@
-/*
- *  net/dccp/sysctl.c
- *
- *  An implementation of the DCCP protocol
- *  Arnaldo Carvalho de Melo <acme@mandriva.com>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License v2
- *	as published by the Free Software Foundation.
- */
+
 
 #include <linux/mm.h>
 #include <linux/sysctl.h>
@@ -18,7 +9,7 @@
 #error This file should not be compiled without CONFIG_SYSCTL defined
 #endif
 
-/* Boundary values */
+
 static int		zero     = 0,
 			u8_max   = 0xFF;
 static unsigned long	seqw_min = 32;
@@ -30,7 +21,7 @@ static struct ctl_table dccp_default_table[] = {
 		.maxlen		= sizeof(sysctl_dccp_sequence_window),
 		.mode		= 0644,
 		.proc_handler	= proc_doulongvec_minmax,
-		.extra1		= &seqw_min,		/* RFC 4340, 7.5.2 */
+		.extra1		= &seqw_min,		
 	},
 	{
 		.procname	= "rx_ccid",
@@ -39,7 +30,7 @@ static struct ctl_table dccp_default_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
-		.extra2		= &u8_max,		/* RFC 4340, 10. */
+		.extra2		= &u8_max,		
 	},
 	{
 		.procname	= "tx_ccid",
@@ -48,7 +39,7 @@ static struct ctl_table dccp_default_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
-		.extra2		= &u8_max,		/* RFC 4340, 10. */
+		.extra2		= &u8_max,		
 	},
 	{
 		.procname	= "request_retries",

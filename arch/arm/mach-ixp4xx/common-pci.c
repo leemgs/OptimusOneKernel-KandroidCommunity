@@ -1,19 +1,4 @@
-/*
- * arch/arm/mach-ixp4xx/common-pci.c 
- *
- * IXP4XX PCI routines for all platforms
- *
- * Maintainer: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright (C) 2002 Intel Corporation.
- * Copyright (C) 2003 Greg Ungerer <gerg@snapgear.com>
- * Copyright (C) 2003-2004 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/sched.h>
 #include <linux/kernel.h>
@@ -36,29 +21,16 @@
 #include <mach/hardware.h>
 
 
-/*
- * IXP4xx PCI read function is dependent on whether we are 
- * running A0 or B0 (AppleGate) silicon.
- */
+
 int (*ixp4xx_pci_read)(u32 addr, u32 cmd, u32* data);
 
-/*
- * Base address for PCI regsiter region
- */
+
 unsigned long ixp4xx_pci_reg_base = 0;
 
-/*
- * PCI cfg an I/O routines are done by programming a 
- * command/byte enable register, and then read/writing
- * the data from a data regsiter. We need to ensure
- * these transactions are atomic or we will end up
- * with corrupt data on the bus or in a driver.
- */
+
 static DEFINE_SPINLOCK(ixp4xx_pci_lock);
 
-/*
- * Read from PCI config space
- */
+
 static void crp_read(u32 ad_cbe, u32 *data)
 {
 	unsigned long flags;
@@ -68,9 +40,7 @@ static void crp_read(u32 ad_cbe, u32 *data)
 	spin_unlock_irqrestore(&ixp4xx_pci_lock, flags);
 }
 
-/*
- * Write to PCI config space
- */
+
 static void crp_write(u32 ad_cbe, u32 data)
 { 
 	unsigned long flags;
@@ -82,11 +52,11 @@ static void crp_write(u32 ad_cbe, u32 data)
 
 static inline int check_master_abort(void)
 {
-	/* check Master Abort bit after access */
+	
 	unsigned long isr = *PCI_ISR;
 
 	if (isr & PCI_ISR_PFE) {
-		/* make sure the Master Abort bit is reset */    
+		    
 		*PCI_ISR = PCI_ISR_PFE;
 		pr_debug("%s failed\n", __func__);
 		return 1;
@@ -105,10 +75,7 @@ int ixp4xx_pci_read_errata(u32 addr, u32 cmd, u32* data)
 
 	*PCI_NP_AD = addr;
 
-	/* 
-	 * PCI workaround  - only works if NP PCI space reads have 
-	 * no side effects!!! Read 8 times. last one will be good.
-	 */
+	
 	for (i = 0; i < 8; i++) {
 		*PCI_NP_CBE = cmd;
 		*data = *PCI_NP_RDATA;
@@ -131,10 +98,10 @@ int ixp4xx_pci_read_no_errata(u32 addr, u32 cmd, u32* data)
 
 	*PCI_NP_AD = addr;
 
-	/* set up and execute the read */    
+	    
 	*PCI_NP_CBE = cmd;
 
-	/* the result of the read is now in NP_RDATA */
+	
 	*data = *PCI_NP_RDATA; 
 
 	if(check_master_abort())
@@ -153,10 +120,10 @@ int ixp4xx_pci_write(u32 addr, u32 cmd, u32 data)
 
 	*PCI_NP_AD = addr;
 
-	/* set up the write */
+	
 	*PCI_NP_CBE = cmd;
 
-	/* execute the write by writing to NP_WDATA */
+	
 	*PCI_NP_WDATA = data;
 
 	if(check_master_abort())
@@ -170,27 +137,24 @@ static u32 ixp4xx_config_addr(u8 bus_num, u16 devfn, int where)
 {
 	u32 addr;
 	if (!bus_num) {
-		/* type 0 */
+		
 		addr = BIT(32-PCI_SLOT(devfn)) | ((PCI_FUNC(devfn)) << 8) | 
 		    (where & ~3);	
 	} else {
-		/* type 1 */
+		
 		addr = (bus_num << 16) | ((PCI_SLOT(devfn)) << 11) | 
 			((PCI_FUNC(devfn)) << 8) | (where & ~3) | 1;
 	}
 	return addr;
 }
 
-/*
- * Mask table, bits to mask for quantity of size 1, 2 or 4 bytes.
- * 0 and 3 are not valid indexes...
- */
+
 static u32 bytemask[] = {
-	/*0*/	0,
-	/*1*/	0xff,
-	/*2*/	0xffff,
-	/*3*/	0,
-	/*4*/	0xffffffff,
+		0,
+		0xff,
+		0xffff,
+		0,
+		0xffffffff,
 };
 
 static u32 local_byte_lane_enable_bits(u32 n, int size)
@@ -288,9 +252,7 @@ struct pci_ops ixp4xx_ops = {
 	.write = ixp4xx_pci_write_config,
 };
 
-/*
- * PCI abort handler
- */
+
 static int abort_handler(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 {
 	u32 isr, status;
@@ -300,15 +262,12 @@ static int abort_handler(unsigned long addr, unsigned int fsr, struct pt_regs *r
 	pr_debug("PCI: abort_handler addr = %#lx, isr = %#x, "
 		"status = %#x\n", addr, isr, status);
 
-	/* make sure the Master Abort bit is reset */    
+	    
 	*PCI_ISR = PCI_ISR_PFE;
 	status |= PCI_STATUS_REC_MASTER_ABORT;
 	local_write_config(PCI_STATUS, 2, status);
 
-	/*
-	 * If it was an imprecise abort, then we need to correct the
-	 * return address to be _after_ the instruction.
-	 */
+	
 	if (fsr & (1 << 10))
 		regs->ARM_pc += 4;
 
@@ -316,9 +275,7 @@ static int abort_handler(unsigned long addr, unsigned int fsr, struct pt_regs *r
 }
 
 
-/*
- * Setup DMA mask to 64MB on PCI devices. Ignore all other devices.
- */
+
 static int ixp4xx_pci_platform_notify(struct device *dev)
 {
 	if(dev->bus == &pci_bus_type) {
@@ -342,20 +299,13 @@ int dma_needs_bounce(struct device *dev, dma_addr_t dma_addr, size_t size)
 	return (dev->bus == &pci_bus_type ) && ((dma_addr + size) >= SZ_64M);
 }
 
-/*
- * Only first 64MB of memory can be accessed via PCI.
- * We use GFP_DMA to allocate safe buffers to do map/unmap.
- * This is really ugly and we need a better way of specifying
- * DMA-capable regions of memory.
- */
+
 void __init ixp4xx_adjust_zones(int node, unsigned long *zone_size,
 	unsigned long *zhole_size)
 {
 	unsigned int sz = SZ_64M >> PAGE_SHIFT;
 
-	/*
-	 * Only adjust if > 64M on current system
-	 */
+	
 	if (node || (zone_size[0] <= sz))
 		return;
 
@@ -369,10 +319,7 @@ void __init ixp4xx_pci_preinit(void)
 {
 	unsigned long cpuid = read_cpuid_id();
 
-	/*
-	 * Determine which PCI read method to use.
-	 * Rev 0 IXP425 requires workaround.
-	 */
+	
 	if (!(cpuid & 0xf) && cpu_is_ixp42x()) {
 		printk("PCI: IXP42x A0 silicon detected - "
 			"PCI Non-Prefetch Workaround Enabled\n");
@@ -381,21 +328,15 @@ void __init ixp4xx_pci_preinit(void)
 		ixp4xx_pci_read = ixp4xx_pci_read_no_errata;
 
 
-	/* hook in our fault handler for PCI errors */
+	
 	hook_fault_code(16+6, abort_handler, SIGBUS, "imprecise external abort");
 
 	pr_debug("setup PCI-AHB(inbound) and AHB-PCI(outbound) address mappings\n");
 
-	/*
-	 * We use identity AHB->PCI address translation
-	 * in the 0x48000000 to 0x4bffffff address space
-	 */
+	
 	*PCI_PCIMEMBASE = 0x48494A4B;
 
-	/*
-	 * We also use identity PCI->AHB address translation
-	 * in 4 16MB BARs that begin at the physical memory start
-	 */
+	
 	*PCI_AHBMEMBASE = (PHYS_OFFSET & 0xFF000000) +
 		((PHYS_OFFSET & 0xFF000000) >> 8) +
 		((PHYS_OFFSET & 0xFF000000) >> 16) +
@@ -407,24 +348,16 @@ void __init ixp4xx_pci_preinit(void)
 
 		pr_debug("setup BARs in controller\n");
 
-		/*
-		 * We configure the PCI inbound memory windows to be
-		 * 1:1 mapped to SDRAM
-		 */
+		
 		local_write_config(PCI_BASE_ADDRESS_0, 4, PHYS_OFFSET);
 		local_write_config(PCI_BASE_ADDRESS_1, 4, PHYS_OFFSET + SZ_16M);
 		local_write_config(PCI_BASE_ADDRESS_2, 4, PHYS_OFFSET + SZ_32M);
 		local_write_config(PCI_BASE_ADDRESS_3, 4, PHYS_OFFSET + SZ_48M);
 
-		/*
-		 * Enable CSR window at 64 MiB to allow PCI masters
-		 * to continue prefetching past 64 MiB boundary.
-		 */
+		
 		local_write_config(PCI_BASE_ADDRESS_4, 4, PHYS_OFFSET + SZ_64M);
 
-		/*
-		 * Enable the IO window to be way up high, at 0xfffffc00
-		 */
+		
 		local_write_config(PCI_BASE_ADDRESS_5, 4, 0xfffffc01);
 	} else {
 		printk("PCI: IXP4xx is target - No bus scan performed\n");
@@ -441,12 +374,7 @@ void __init ixp4xx_pci_preinit(void)
 	pr_debug("clear error bits in ISR\n");
 	*PCI_ISR = PCI_ISR_PSE | PCI_ISR_PFE | PCI_ISR_PPE | PCI_ISR_AHBE;
 
-	/*
-	 * Set Initialize Complete in PCI Control Register: allow IXP4XX to
-	 * respond to PCI configuration cycles. Specify that the AHB bus is
-	 * operating in big endian mode. Set up byte lane swapping between 
-	 * little-endian PCI and the big-endian AHB bus 
-	 */
+	
 #ifdef __ARMEB__
 	*PCI_CSR = PCI_CSR_IC | PCI_CSR_ABE | PCI_CSR_PDS | PCI_CSR_ADS;
 #else
@@ -465,10 +393,7 @@ int ixp4xx_setup(int nr, struct pci_sys_data *sys)
 
 	res = kzalloc(sizeof(*res) * 2, GFP_KERNEL);
 	if (res == NULL) {
-		/* 
-		 * If we're out of memory this early, something is wrong,
-		 * so we might as well catch it here.
-		 */
+		
 		panic("PCI: unable to allocate resources?\n");
 	}
 
@@ -506,14 +431,7 @@ struct pci_bus * __devinit ixp4xx_scan_bus(int nr, struct pci_sys_data *sys)
 	return pci_scan_bus(sys->busnr, &ixp4xx_ops, sys);
 }
 
-/*
- * We override these so we properly do dmabounce otherwise drivers
- * are able to set the dma_mask to 0xffffffff and we can no longer
- * trap bounces. :(
- *
- * We just return true on everyhing except for < 64MB in which case 
- * we will fail miseralby and die since we can't handle that case.
- */
+
 int
 pci_set_dma_mask(struct pci_dev *dev, u64 mask)
 {

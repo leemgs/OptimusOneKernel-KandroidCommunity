@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/plat-omap/common.c
- *
- * Code common to all OMAP machines.
- * The file is created by Tony Lindgren <tony@atomide.com>
- *
- * Copyright (C) 2009 Texas Instruments
- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -54,8 +42,7 @@ static const void *get_config(u16 tag, size_t len, int skip, size_t *len_out)
 	struct omap_board_config_kernel *kinfo = NULL;
 	int i;
 
-	/* Try to find the config from the board-specific structures
-	 * in the kernel. */
+	
 	for (i = 0; i < omap_board_config_size; i++) {
 		if (omap_board_config[i].tag == tag) {
 			if (skip == 0) {
@@ -83,12 +70,7 @@ const void *omap_get_var_config(u16 tag, size_t *len)
 }
 EXPORT_SYMBOL(omap_get_var_config);
 
-/*
- * 32KHz clocksource ... always available, on pretty most chips except
- * OMAP 730 and 1510.  Other timers could be used as clocksources, with
- * higher resolution in free-running counter modes (e.g. 12 MHz xtal),
- * but systems won't necessarily want to spend resources that way.
- */
+
 
 #define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
 
@@ -141,10 +123,7 @@ static cycle_t omap44xx_32k_read(struct clocksource *cs)
 #define omap44xx_32k_read	NULL
 #endif
 
-/*
- * Kernel assumes that sched_clock can be called early but may not have
- * things ready yet.
- */
+
 static cycle_t omap_32k_read_dummy(struct clocksource *cs)
 {
 	return 0;
@@ -159,10 +138,7 @@ static struct clocksource clocksource_32k = {
 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
 };
 
-/*
- * Returns current time from boot in nsecs. It's OK for this to wrap
- * around for now, as it's just a relative time stamp.
- */
+
 unsigned long long sched_clock(void)
 {
 	return clocksource_cyc2ns(clocksource_32k.read(&clocksource_32k),
@@ -204,9 +180,9 @@ static int __init omap_init_clocksource_32k(void)
 }
 arch_initcall(omap_init_clocksource_32k);
 
-#endif	/* !(defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP15XX)) */
+#endif	
 
-/* Global address base setup code */
+
 
 #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
 

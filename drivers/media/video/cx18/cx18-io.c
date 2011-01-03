@@ -1,24 +1,4 @@
-/*
- *  cx18 driver PCI memory mapped IO access routines
- *
- *  Copyright (C) 2007  Hans Verkuil <hverkuil@xs4all.nl>
- *  Copyright (C) 2008  Andy Walls <awalls@radix.net>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- *  02111-1307  USA
- */
+
 
 #include "cx18-driver.h"
 #include "cx18-io.h"
@@ -30,7 +10,7 @@ void cx18_memset_io(struct cx18 *cx, void __iomem *addr, int val, size_t count)
 	u16 val2 = val | (val << 8);
 	u32 val4 = val2 | (val2 << 16);
 
-	/* Align writes on the CX23418's addresses */
+	
 	if ((count > 0) && ((unsigned long)dst & 1)) {
 		cx18_writeb(cx, (u8) val, dst);
 		count--;

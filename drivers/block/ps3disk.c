@@ -1,22 +1,4 @@
-/*
- * PS3 Disk Storage Driver
- *
- * Copyright (C) 2007 Sony Computer Entertainment Inc.
- * Copyright 2007 Sony Corp.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published
- * by the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
+
 
 #include <linux/ata.h>
 #include <linux/blkdev.h>
@@ -38,7 +20,7 @@
 
 
 struct ps3disk_private {
-	spinlock_t lock;		/* Request queue spinlock */
+	spinlock_t lock;		
 	struct request_queue *queue;
 	struct gendisk *gendisk;
 	unsigned int blocking_factor;
@@ -75,8 +57,8 @@ enum lv1_ata_proto {
 };
 
 enum lv1_ata_in_out {
-	DIR_WRITE = 0,			/* memory -> device */
-	DIR_READ = 1			/* device -> memory */
+	DIR_WRITE = 0,			
+	DIR_READ = 1			
 };
 
 static int ps3disk_major;
@@ -301,7 +283,7 @@ static int ps3disk_sync_cache(struct ps3_storage_device *dev)
 }
 
 
-/* ATA helpers copied from drivers/ata/libata-core.c */
+
 
 static void swap_buf_le16(u16 *buf, unsigned int buf_words)
 {
@@ -310,7 +292,7 @@ static void swap_buf_le16(u16 *buf, unsigned int buf_words)
 
 	for (i = 0; i < buf_words; i++)
 		buf[i] = le16_to_cpu(buf[i]);
-#endif /* __BIG_ENDIAN */
+#endif 
 }
 
 static u64 ata_id_n_sectors(const u16 *id)
@@ -391,7 +373,7 @@ static int ps3disk_identify(struct ps3_storage_device *dev)
 
 	swap_buf_le16(id, ATA_ID_WORDS);
 
-	/* All we're interested in are raw capacity and model name */
+	
 	priv->raw_capacity = ata_id_n_sectors(id);
 	ata_id_c_string(id, priv->model, ATA_ID_PROD, sizeof(priv->model));
 	return 0;

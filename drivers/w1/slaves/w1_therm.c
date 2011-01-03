@@ -1,23 +1,4 @@
-/*
- *	w1_therm.c
- *
- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the therms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <asm/types.h>
 
@@ -37,11 +18,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
 MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
 
-/* Allow the strong pullup to be disabled, but default to enabled.
- * If it was disabled a parasite powered device might not get the require
- * current to do a temperature conversion.  If it is enabled parasite powered
- * devices have a better chance of getting the current required.
- */
+
 static int w1_strong_pullup = 1;
 module_param_named(strong_pullup, w1_strong_pullup, int, 0);
 
@@ -94,7 +71,7 @@ struct w1_therm_family_converter
 	int			(*convert)(u8 rom[9]);
 };
 
-/* The return value is millidegrees Centigrade. */
+
 static inline int w1_DS18B20_convert_temp(u8 rom[9]);
 static inline int w1_DS18S20_convert_temp(u8 rom[9]);
 
@@ -183,7 +160,7 @@ static ssize_t w1_therm_read(struct device *device,
 			int count = 0;
 			unsigned int tm = 750;
 
-			/* 750ms strong pullup (or delay) after the convert */
+			
 			if (w1_strong_pullup)
 				w1_next_pullup(dev, tm);
 			w1_write_8(dev, W1_CONVERT_TEMP);

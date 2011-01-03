@@ -1,15 +1,4 @@
-/*
- * DA8XX/OMAP L1XX platform device data
- *
- * Copyright (c) 2007-2009, MontaVista Software, Inc. <source@mvista.com>
- * Derived from code that was:
- *	Copyright (C) 2006 Komal Shah <komal_shah802003@yahoo.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -28,7 +17,7 @@
 #define DA8XX_TPCC_BASE			0x01c00000
 #define DA8XX_TPTC0_BASE		0x01c08000
 #define DA8XX_TPTC1_BASE		0x01c08400
-#define DA8XX_WDOG_BASE			0x01c21000 /* DA8XX_TIMER64P1_BASE */
+#define DA8XX_WDOG_BASE			0x01c21000 
 #define DA8XX_I2C0_BASE			0x01c22000
 #define DA8XX_EMAC_CPPI_PORT_BASE	0x01e20000
 #define DA8XX_EMAC_CPGMACSS_BASE	0x01e22000
@@ -87,14 +76,14 @@ static const s8 da8xx_dma_chan_no_event[] = {
 };
 
 static const s8 da8xx_queue_tc_mapping[][2] = {
-	/* {event queue no, TC no} */
+	
 	{0, 0},
 	{1, 1},
 	{-1, -1}
 };
 
 static const s8 da8xx_queue_priority_mapping[][2] = {
-	/* {event queue no, Priority} */
+	
 	{0, 3},
 	{1, 7},
 	{-1, -1}
@@ -289,13 +278,13 @@ static struct resource da830_mcasp1_resources[] = {
 		.end	= DAVINCI_DA830_MCASP1_REG_BASE + (SZ_1K * 12) - 1,
 		.flags	= IORESOURCE_MEM,
 	},
-	/* TX event */
+	
 	{
 		.start	= DAVINCI_DA830_DMA_MCASP1_AXEVT,
 		.end	= DAVINCI_DA830_DMA_MCASP1_AXEVT,
 		.flags	= IORESOURCE_DMA,
 	},
-	/* RX event */
+	
 	{
 		.start	= DAVINCI_DA830_DMA_MCASP1_AREVT,
 		.end	= DAVINCI_DA830_DMA_MCASP1_AREVT,
@@ -317,13 +306,13 @@ static struct resource da850_mcasp_resources[] = {
 		.end	= DAVINCI_DA8XX_MCASP0_REG_BASE + (SZ_1K * 12) - 1,
 		.flags	= IORESOURCE_MEM,
 	},
-	/* TX event */
+	
 	{
 		.start	= DAVINCI_DA8XX_DMA_MCASP0_AXEVT,
 		.end	= DAVINCI_DA8XX_DMA_MCASP0_AXEVT,
 		.flags	= IORESOURCE_DMA,
 	},
-	/* RX event */
+	
 	{
 		.start	= DAVINCI_DA8XX_DMA_MCASP0_AREVT,
 		.end	= DAVINCI_DA8XX_DMA_MCASP0_AREVT,
@@ -345,7 +334,7 @@ int __init da8xx_register_emac(void)
 
 void __init da8xx_init_mcasp(int id, struct snd_platform_data *pdata)
 {
-	/* DA830/OMAP-L137 has 3 instances of McASP */
+	
 	if (cpu_is_davinci_da830() && id == 1) {
 		da830_mcasp1_device.dev.platform_data = pdata;
 		platform_device_register(&da830_mcasp1_device);
@@ -386,12 +375,12 @@ static struct da8xx_lcdc_platform_data da850_evm_lcdc_pdata = {
 };
 
 static struct resource da8xx_lcdc_resources[] = {
-	[0] = { /* registers */
+	[0] = { 
 		.start  = DA8XX_LCD_CNTRL_BASE,
 		.end    = DA8XX_LCD_CNTRL_BASE + SZ_4K - 1,
 		.flags  = IORESOURCE_MEM,
 	},
-	[1] = { /* interrupt */
+	[1] = { 
 		.start  = IRQ_DA8XX_LCDINT,
 		.end    = IRQ_DA8XX_LCDINT,
 		.flags  = IORESOURCE_IRQ,
@@ -414,22 +403,22 @@ int __init da8xx_register_lcdc(void)
 }
 
 static struct resource da8xx_mmcsd0_resources[] = {
-	{		/* registers */
+	{		
 		.start	= DA8XX_MMCSD0_BASE,
 		.end	= DA8XX_MMCSD0_BASE + SZ_4K - 1,
 		.flags	= IORESOURCE_MEM,
 	},
-	{		/* interrupt */
+	{		
 		.start	= IRQ_DA8XX_MMCSDINT0,
 		.end	= IRQ_DA8XX_MMCSDINT0,
 		.flags	= IORESOURCE_IRQ,
 	},
-	{		/* DMA RX */
+	{		
 		.start	= EDMA_CTLR_CHAN(0, 16),
 		.end	= EDMA_CTLR_CHAN(0, 16),
 		.flags	= IORESOURCE_DMA,
 	},
-	{		/* DMA TX */
+	{		
 		.start	= EDMA_CTLR_CHAN(0, 17),
 		.end	= EDMA_CTLR_CHAN(0, 17),
 		.flags	= IORESOURCE_DMA,

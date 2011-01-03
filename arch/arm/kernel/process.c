@@ -1,13 +1,4 @@
-/*
- *  linux/arch/arm/kernel/process.c
- *
- *  Copyright (C) 1996-2000 Russell King - Converted to ARM.
- *  Original Copyright (C) 1995  Linus Torvalds
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <stdarg.h>
 
 #include <linux/module.h>
@@ -85,35 +76,22 @@ __setup("hlt", hlt_setup);
 
 void arm_machine_restart(char mode, const char *cmd)
 {
-	/*
-	 * Clean and disable cache, and turn off interrupts
-	 */
+	
 	cpu_proc_fin();
 
-	/*
-	 * Tell the mm system that we are going to reboot -
-	 * we may need it to insert some 1:1 mappings so that
-	 * soft boot works.
-	 */
+	
 	setup_mm_for_reboot(mode);
 
-	/*
-	 * Now call the architecture specific reboot code.
-	 */
+	
 	arch_reset(mode, cmd);
 
-	/*
-	 * Whoops - the architecture was unable to reboot.
-	 * Tell the user!
-	 */
+	
 	mdelay(1000);
 	printk("Reboot failed -- System halted\n");
 	while (1);
 }
 
-/*
- * Function pointers to optional machine specific functions
- */
+
 void (*pm_power_off)(void);
 EXPORT_SYMBOL(pm_power_off);
 
@@ -121,10 +99,7 @@ void (*arm_pm_restart)(char str, const char *cmd) = arm_machine_restart;
 EXPORT_SYMBOL_GPL(arm_pm_restart);
 
 
-/*
- * This is our default idle handler.  We need to disable
- * interrupts here to ensure we don't miss a wakeup call.
- */
+
 static void default_idle(void)
 {
 	if (!need_resched())
@@ -135,17 +110,12 @@ static void default_idle(void)
 void (*pm_idle)(void) = default_idle;
 EXPORT_SYMBOL(pm_idle);
 
-/*
- * The idle thread, has rather strange semantics for calling pm_idle,
- * but this is what x86 does and we need to do the same, so that
- * things like cpuidle get called in the same way.  The only difference
- * is that we always respect 'hlt_counter' to prevent low power idle.
- */
+
 void cpu_idle(void)
 {
 	local_fiq_enable();
 
-	/* endless idle loop with no priority at all */
+	
 	while (1) {
 		tick_nohz_stop_sched_tick(1);
 		leds_event(led_idle_start);
@@ -163,11 +133,7 @@ void cpu_idle(void)
 				stop_critical_timings();
 				pm_idle();
 				start_critical_timings();
-				/*
-				 * This will eventually be removed - pm_idle
-				 * functions should always return with IRQs
-				 * enabled.
-				 */
+				
 				WARN_ON(irqs_disabled());
 				local_irq_enable();
 			}
@@ -179,6 +145,19 @@ void cpu_idle(void)
 		preempt_disable();
 	}
 }
+
+static void do_nothing(void *unused)
+{
+}
+
+void cpu_idle_wait(void)
+{
+	smp_mb();
+	
+	smp_call_function(do_nothing, NULL, 1);
+}
+EXPORT_SYMBOL_GPL(cpu_idle_wait);
+
 
 static char reboot_mode = 'h';
 
@@ -206,6 +185,66 @@ void machine_restart(char *cmd)
 	arm_pm_restart(reboot_mode, cmd);
 }
 
+
+static void show_data(unsigned long addr, int nbytes, const char *name)
+{
+	int	i, j;
+	int	nlines;
+	u32	*p;
+
+	
+	if (addr < PAGE_OFFSET || addr > -256UL)
+		return;
+
+	printk("\n%s: %#lx:\n", name, addr);
+
+	
+	p = (u32 *)(addr & ~(sizeof(u32) - 1));
+	nbytes += (addr & (sizeof(u32) - 1));
+	nlines = (nbytes + 31) / 32;
+
+
+	for (i = 0; i < nlines; i++) {
+		
+		printk("%04lx ", (unsigned long)p & 0xffff);
+		for (j = 0; j < 8; j++) {
+			u32	data;
+			if (probe_kernel_address(p, data)) {
+				printk(" ********");
+			} else {
+				printk(" %08x", data);
+			}
+			++p;
+		}
+		printk("\n");
+	}
+}
+
+static void show_extra_register_data(struct pt_regs *regs, int nbytes)
+{
+	mm_segment_t fs;
+
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	show_data(regs->ARM_pc - nbytes, nbytes * 2, "PC");
+	show_data(regs->ARM_lr - nbytes, nbytes * 2, "LR");
+	show_data(regs->ARM_sp - nbytes, nbytes * 2, "SP");
+	show_data(regs->ARM_ip - nbytes, nbytes * 2, "IP");
+	show_data(regs->ARM_fp - nbytes, nbytes * 2, "FP");
+	show_data(regs->ARM_r0 - nbytes, nbytes * 2, "R0");
+	show_data(regs->ARM_r1 - nbytes, nbytes * 2, "R1");
+	show_data(regs->ARM_r2 - nbytes, nbytes * 2, "R2");
+	show_data(regs->ARM_r3 - nbytes, nbytes * 2, "R3");
+	show_data(regs->ARM_r4 - nbytes, nbytes * 2, "R4");
+	show_data(regs->ARM_r5 - nbytes, nbytes * 2, "R5");
+	show_data(regs->ARM_r6 - nbytes, nbytes * 2, "R6");
+	show_data(regs->ARM_r7 - nbytes, nbytes * 2, "R7");
+	show_data(regs->ARM_r8 - nbytes, nbytes * 2, "R8");
+	show_data(regs->ARM_r9 - nbytes, nbytes * 2, "R9");
+	show_data(regs->ARM_r10 - nbytes, nbytes * 2, "R10");
+	set_fs(fs);
+}
+
 void __show_regs(struct pt_regs *regs)
 {
 	unsigned long flags;
@@ -217,6 +256,9 @@ void __show_regs(struct pt_regs *regs)
 		init_utsname()->version);
 	print_symbol("PC is at %s\n", instruction_pointer(regs));
 	print_symbol("LR is at %s\n", regs->ARM_lr);
+#ifdef CONFIG_MACH_LGE
+	printk(KERN_EMERG"<<<<<\n");
+#endif
 	printk("pc : [<%08lx>]    lr : [<%08lx>]    psr: %08lx\n"
 	       "sp : %08lx  ip : %08lx  fp : %08lx\n",
 		regs->ARM_pc, regs->ARM_lr, regs->ARM_cpsr,
@@ -264,6 +306,8 @@ void __show_regs(struct pt_regs *regs)
 		printk("Control: %08x%s\n", ctrl, buf);
 	}
 #endif
+
+	show_extra_register_data(regs, 128);
 }
 
 void show_regs(struct pt_regs * regs)
@@ -274,16 +318,15 @@ void show_regs(struct pt_regs * regs)
 	__backtrace();
 }
 
-/*
- * Free current thread data structures etc..
- */
-void exit_thread(void)
-{
-}
-
 ATOMIC_NOTIFIER_HEAD(thread_notify_head);
 
 EXPORT_SYMBOL_GPL(thread_notify_head);
+
+
+void exit_thread(void)
+{
+	thread_notify(THREAD_NOTIFY_EXIT, current_thread_info());
+}
 
 void flush_thread(void)
 {
@@ -299,9 +342,6 @@ void flush_thread(void)
 
 void release_thread(struct task_struct *dead_task)
 {
-	struct thread_info *thread = task_thread_info(dead_task);
-
-	thread_notify(THREAD_NOTIFY_RELEASE, thread);
 }
 
 asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
@@ -327,18 +367,14 @@ copy_thread(unsigned long clone_flags, unsigned long stack_start,
 	return 0;
 }
 
-/*
- * Fill in the task's elfregs structure for a core dump.
- */
+
 int dump_task_regs(struct task_struct *t, elf_gregset_t *elfregs)
 {
 	elf_core_copy_regs(elfregs, task_pt_regs(t));
 	return 1;
 }
 
-/*
- * fill in the fpe structure for a core dump...
- */
+
 int dump_fpu (struct pt_regs *regs, struct user_fp *fp)
 {
 	struct thread_info *thread = current_thread_info();
@@ -351,11 +387,7 @@ int dump_fpu (struct pt_regs *regs, struct user_fp *fp)
 }
 EXPORT_SYMBOL(dump_fpu);
 
-/*
- * Shuffle the argument into the correct register before calling the
- * thread function.  r1 is the thread argument, r2 is the pointer to
- * the thread function, and r3 points to the exit function.
- */
+
 extern void kernel_thread_helper(void);
 asm(	".section .text\n"
 "	.align\n"
@@ -384,9 +416,7 @@ asm(	".section .text\n"
 #define kernel_thread_exit	do_exit
 #endif
 
-/*
- * Create a kernel thread.
- */
+
 pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
 {
 	struct pt_regs regs;
@@ -412,7 +442,7 @@ unsigned long get_wchan(struct task_struct *p)
 
 	frame.fp = thread_saved_fp(p);
 	frame.sp = thread_saved_sp(p);
-	frame.lr = 0;			/* recovered from the stack */
+	frame.lr = 0;			
 	frame.pc = thread_saved_pc(p);
 	do {
 		int ret = unwind_frame(&frame);

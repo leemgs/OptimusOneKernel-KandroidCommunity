@@ -1,13 +1,4 @@
-/*
- *  linux/arch/arm/mach-mmp/aspenite.c
- *
- *  Support for the Marvell PXA168-based Aspenite and Zylonite2
- *  Development Platform.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  publishhed by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -24,7 +15,7 @@
 #include "common.h"
 
 static unsigned long common_pin_config[] __initdata = {
-	/* Data Flash Interface */
+	
 	GPIO0_DFI_D15,
 	GPIO1_DFI_D14,
 	GPIO2_DFI_D13,
@@ -42,7 +33,7 @@ static unsigned long common_pin_config[] __initdata = {
 	GPIO14_DFI_D1,
 	GPIO15_DFI_D0,
 
-	/* Static Memory Controller */
+	
 	GPIO18_SMC_nCS0,
 	GPIO34_SMC_nCS1,
 	GPIO23_SMC_nLUA,
@@ -51,9 +42,9 @@ static unsigned long common_pin_config[] __initdata = {
 	GPIO29_SMC_SCLK,
 	GPIO35_SMC_BE1,
 	GPIO36_SMC_BE2,
-	GPIO27_GPIO,	/* Ethernet IRQ */
+	GPIO27_GPIO,	
 
-	/* UART1 */
+	
 	GPIO107_UART1_RXD,
 	GPIO108_UART1_TXD,
 };
@@ -89,10 +80,10 @@ static void __init common_init(void)
 {
 	mfp_config(ARRAY_AND_SIZE(common_pin_config));
 
-	/* on-chip devices */
+	
 	pxa168_add_uart(1);
 
-	/* off-chip devices */
+	
 	platform_device_register(&smc91x_device);
 }
 

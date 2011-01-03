@@ -1,13 +1,4 @@
-/*
- * OF-platform PATA driver
- *
- * Copyright (c) 2007  MontaVista Software, Inc.
- *                     Anton Vorontsov <avorontsov@ru.mvista.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License (Version 2) as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -35,9 +26,7 @@ static int __devinit pata_of_platform_probe(struct of_device *ofdev,
 	}
 
 	if (of_device_is_compatible(dn, "electra-ide")) {
-		/* Altstatus is really at offset 0x3f6 from the primary window
-		 * on electra-ide. Adjust ctl_res and io_res accordingly.
-		 */
+		
 		ctl_res = io_res;
 		ctl_res.start = ctl_res.start+0x3f6;
 		io_res.end = ctl_res.start-1;

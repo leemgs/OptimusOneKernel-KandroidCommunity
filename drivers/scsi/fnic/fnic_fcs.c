@@ -1,20 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #include <linux/errno.h>
 #include <linux/pci.h>
 #include <linux/skbuff.h>
@@ -55,11 +39,11 @@ void fnic_handle_link(struct work_struct *work)
 
 	if (old_link_status == fnic->link_status) {
 		if (!fnic->link_status)
-			/* DOWN -> DOWN */
+			
 			spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 		else {
 			if (old_link_down_cnt != fnic->link_down_cnt) {
-				/* UP -> DOWN -> UP */
+				
 				fnic->lport->host_stats.link_failure_count++;
 				spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 				FNIC_FCS_DBG(KERN_DEBUG, fnic->lport->host,
@@ -69,16 +53,16 @@ void fnic_handle_link(struct work_struct *work)
 					     "link up\n");
 				fc_linkup(fnic->lport);
 			} else
-				/* UP -> UP */
+				
 				spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 		}
 	} else if (fnic->link_status) {
-		/* DOWN -> UP */
+		
 		spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 		FNIC_FCS_DBG(KERN_DEBUG, fnic->lport->host, "link up\n");
 		fc_linkup(fnic->lport);
 	} else {
-		/* UP -> DOWN */
+		
 		fnic->lport->host_stats.link_failure_count++;
 		spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 		FNIC_FCS_DBG(KERN_DEBUG, fnic->lport->host, "link down\n");
@@ -87,9 +71,7 @@ void fnic_handle_link(struct work_struct *work)
 
 }
 
-/*
- * This function passes incoming fabric frames to libFC
- */
+
 void fnic_handle_frame(struct work_struct *work)
 {
 	struct fnic *fnic = container_of(work, struct fnic, frame_work);
@@ -107,7 +89,7 @@ void fnic_handle_frame(struct work_struct *work)
 			return;
 		}
 		fp = (struct fc_frame *)skb;
-		/* if Flogi resp frame, register the address */
+		
 		if (fr_flags(fp)) {
 			vnic_dev_add_addr(fnic->vdev,
 					  fnic->data_src_addr);
@@ -185,10 +167,7 @@ static inline int fnic_handle_flogi_resp(struct fnic *fnic,
 
 	if (fnic->state == FNIC_IN_ETH_MODE) {
 
-		/*
-		 * Check if oxid matches on taking the lock. A new Flogi
-		 * issued by libFC might have changed the fnic cached oxid
-		 */
+		
 		if (fnic->flogi_oxid != ntohs(fh->fh_ox_id)) {
 			FNIC_FCS_DBG(KERN_DEBUG, fnic->lport->host,
 				     "Flogi response oxid not"
@@ -200,17 +179,12 @@ static inline int fnic_handle_flogi_resp(struct fnic *fnic,
 			goto handle_flogi_resp_end;
 		}
 
-		/* Drop older cached flogi response frame, cache this frame */
+		
 		old_flogi_resp = fnic->flogi_resp;
 		fnic->flogi_resp = fp;
 		fnic->flogi_oxid = FC_XID_UNKNOWN;
 
-		/*
-		 * this frame is part of flogi get the src mac addr from this
-		 * frame if the src mac is fcoui based then we mark the
-		 * address mode flag to use fcoui base for dst mac addr
-		 * otherwise we have to store the fcoe gateway addr
-		 */
+		
 		eth_hdr = (struct ethhdr *)skb_mac_header(fp_skb(fp));
 		memcpy(mac, eth_hdr->h_source, ETH_ALEN);
 
@@ -221,17 +195,13 @@ static inline int fnic_handle_flogi_resp(struct fnic *fnic,
 			memcpy(fnic->dest_addr, mac, ETH_ALEN);
 		}
 
-		/*
-		 * Except for Flogi frame, all outbound frames from us have the
-		 * Eth Src address as FC_FCOE_OUI"our_sid". Flogi frame uses
-		 * the vnic MAC address as the Eth Src address
-		 */
+		
 		fc_fcoe_set_mac(fnic->data_src_addr, fh->fh_d_id);
 
-		/* We get our s_id from the d_id of the flogi resp frame */
+		
 		fnic->s_id = ntoh24(fh->fh_d_id);
 
-		/* Change state to reflect transition from Eth to FC mode */
+		
 		fnic->state = FNIC_IN_ETH_TRANS_FC_MODE;
 
 	} else {
@@ -247,23 +217,17 @@ static inline int fnic_handle_flogi_resp(struct fnic *fnic,
 
 	spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 
-	/* Drop older cached frame */
+	
 	if (old_flogi_resp)
 		dev_kfree_skb_irq(fp_skb(old_flogi_resp));
 
-	/*
-	 * send flogi reg request to firmware, this will put the fnic in
-	 * in FC mode
-	 */
+	
 	ret = fnic_flogi_reg_handler(fnic);
 
 	if (ret < 0) {
 		int free_fp = 1;
 		spin_lock_irqsave(&fnic->fnic_lock, flags);
-		/*
-		 * free the frame is some other thread is not
-		 * pointing to it
-		 */
+		
 		if (fnic->flogi_resp != fp)
 			free_fp = 0;
 		else
@@ -280,7 +244,7 @@ static inline int fnic_handle_flogi_resp(struct fnic *fnic,
 	return ret;
 }
 
-/* Returns 1 for a response that matches cached flogi oxid */
+
 static inline int is_matching_flogi_resp_frame(struct fnic *fnic,
 					       struct fc_frame *fp)
 {
@@ -354,7 +318,7 @@ static void fnic_rq_cmpl_frame_recv(struct vnic_rq *rq, struct cq_desc
 		eth_hdrs_stripped = 0;
 
 	} else {
-		/* wrong CQ type*/
+		
 		shost_printk(KERN_ERR, fnic->lport->host,
 			     "fnic rq_cmpl wrong cq type x%x\n", type);
 		goto drop;
@@ -377,21 +341,14 @@ static void fnic_rq_cmpl_frame_recv(struct vnic_rq *rq, struct cq_desc
 
 	fp = (struct fc_frame *)skb;
 
-	/*
-	 * If frame is an ELS response that matches the cached FLOGI OX_ID,
-	 * and is accept, issue flogi_reg_request copy wq request to firmware
-	 * to register the S_ID and determine whether FC_OUI mode or GW mode.
-	 */
+	
 	if (is_matching_flogi_resp_frame(fnic, fp)) {
 		if (!eth_hdrs_stripped) {
 			if (fc_frame_payload_op(fp) == ELS_LS_ACC) {
 				fnic_handle_flogi_resp(fnic, fp);
 				return;
 			}
-			/*
-			 * Recd. Flogi reject. No point registering
-			 * with fw, but forward to libFC
-			 */
+			
 			goto forward;
 		}
 		goto drop;
@@ -405,7 +362,7 @@ forward:
 		spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 		goto drop;
 	}
-	/* Use fr_flags to indicate whether succ. flogi resp or not */
+	
 	fr_flags(fp) = 0;
 	fr_dev(fp) = fnic->lport;
 	spin_unlock_irqrestore(&fnic->fnic_lock, flags);
@@ -454,11 +411,7 @@ int fnic_rq_cmpl_handler(struct fnic *fnic, int rq_work_to_do)
 	return tot_rq_work_done;
 }
 
-/*
- * This function is called once at init time to allocate and fill RQ
- * buffers. Subsequently, it is called in the interrupt context after RQ
- * buffer processing to replenish the buffers in the RQ
- */
+
 int fnic_alloc_rq_frame(struct vnic_rq *rq)
 {
 	struct fnic *fnic = vnic_dev_priv(rq->vdev);
@@ -571,10 +524,7 @@ fnic_send_frame_end:
 	return ret;
 }
 
-/*
- * fnic_send
- * Routine to send a raw frame
- */
+
 int fnic_send(struct fc_lport *lp, struct fc_frame *fp)
 {
 	struct fnic *fnic = lport_priv(lp);
@@ -592,15 +542,15 @@ int fnic_send(struct fc_lport *lp, struct fc_frame *fp)
 	}
 
 	fh = fc_frame_header_get(fp);
-	/* if not an Flogi frame, send it out, this is the common case */
+	
 	if (!is_flogi_frame(fh))
 		return fnic_send_frame(fnic, fp);
 
-	/* Flogi frame, now enter the state machine */
+	
 
 	spin_lock_irqsave(&fnic->fnic_lock, flags);
 again:
-	/* Get any old cached frames, free them after dropping lock */
+	
 	old_flogi = fnic->flogi;
 	fnic->flogi = NULL;
 	old_flogi_resp = fnic->flogi_resp;
@@ -646,29 +596,14 @@ again:
 		break;
 
 	case FNIC_IN_FC_TRANS_ETH_MODE:
-		/*
-		 * A reset is pending with the firmware. Store the flogi
-		 * and its oxid. The transition out of this state happens
-		 * only when Firmware completes the reset, either with
-		 * success or failed. If success, transition to
-		 * FNIC_IN_ETH_MODE, if fail, then transition to
-		 * FNIC_IN_FC_MODE
-		 */
+		
 		fnic->flogi = fp;
 		fnic->flogi_oxid = ntohs(fh->fh_ox_id);
 		spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 		break;
 
 	case FNIC_IN_ETH_MODE:
-		/*
-		 * The fw/hw is already in eth mode. Store the oxid,
-		 * and send the flogi frame out. The transition out of this
-		 * state happens only we receive flogi response from the
-		 * network, and the oxid matches the cached oxid when the
-		 * flogi frame was sent out. If they match, then we issue
-		 * a flogi_reg request and transition to state
-		 * FNIC_IN_ETH_TRANS_FC_MODE
-		 */
+		
 		fnic->flogi_oxid = ntohs(fh->fh_ox_id);
 		spin_unlock_irqrestore(&fnic->fnic_lock, flags);
 		ret = fnic_send_frame(fnic, fp);

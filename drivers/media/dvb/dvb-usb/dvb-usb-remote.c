@@ -1,10 +1,4 @@
-/* dvb-usb-remote.c is part of the DVB USB library.
- *
- * Copyright (C) 2004-6 Patrick Boettcher (patrick.boettcher@desy.de)
- * see dvb-usb-init.c for copyright information.
- *
- * This file contains functions for initializing the input-device and for handling remote-control-queries.
- */
+
 #include "dvb-usb-common.h"
 #include <linux/usb/input.h>
 
@@ -16,18 +10,14 @@ static int dvb_usb_getkeycode(struct input_dev *dev,
 	struct dvb_usb_rc_key *keymap = d->props.rc_key_map;
 	int i;
 
-	/* See if we can match the raw key code. */
+	
 	for (i = 0; i < d->props.rc_key_map_size; i++)
 		if (keymap[i].scan == scancode) {
 			*keycode = keymap[i].event;
 			return 0;
 		}
 
-	/*
-	 * If is there extra space, returns KEY_RESERVED,
-	 * otherwise, input core won't let dvb_usb_setkeycode
-	 * to work
-	 */
+	
 	for (i = 0; i < d->props.rc_key_map_size; i++)
 		if (keymap[i].event == KEY_RESERVED ||
 		    keymap[i].event == KEY_UNKNOWN) {
@@ -46,14 +36,14 @@ static int dvb_usb_setkeycode(struct input_dev *dev,
 	struct dvb_usb_rc_key *keymap = d->props.rc_key_map;
 	int i;
 
-	/* Search if it is replacing an existing keycode */
+	
 	for (i = 0; i < d->props.rc_key_map_size; i++)
 		if (keymap[i].scan == scancode) {
 			keymap[i].event = keycode;
 			return 0;
 		}
 
-	/* Search if is there a clean entry. If so, use it */
+	
 	for (i = 0; i < d->props.rc_key_map_size; i++)
 		if (keymap[i].event == KEY_RESERVED ||
 		    keymap[i].event == KEY_UNKNOWN) {
@@ -62,22 +52,12 @@ static int dvb_usb_setkeycode(struct input_dev *dev,
 			return 0;
 		}
 
-	/*
-	 * FIXME: Currently, it is not possible to increase the size of
-	 * scancode table. For it to happen, one possibility
-	 * would be to allocate a table with key_map_size + 1,
-	 * copying data, appending the new key on it, and freeing
-	 * the old one - or maybe just allocating some spare space
-	 */
+	
 
 	return -EINVAL;
 }
 
-/* Remote-control poll function - called every dib->rc_query_interval ms to see
- * whether the remote control has received anything.
- *
- * TODO: Fix the repeat rate of the input device.
- */
+
 static void dvb_usb_read_remote_control(struct work_struct *work)
 {
 	struct dvb_usb_device *d =
@@ -85,10 +65,9 @@ static void dvb_usb_read_remote_control(struct work_struct *work)
 	u32 event;
 	int state;
 
-	/* TODO: need a lock here.  We can simply skip checking for the remote control
-	   if we're busy. */
+	
 
-	/* when the parameter has been set to 1 via sysfs while the driver was running */
+	
 	if (dvb_usb_disable_rc_polling)
 		return;
 
@@ -114,40 +93,7 @@ static void dvb_usb_read_remote_control(struct work_struct *work)
 			break;
 	}
 
-/* improved repeat handling ???
-	switch (state) {
-		case REMOTE_NO_KEY_PRESSED:
-			deb_rc("NO KEY PRESSED\n");
-			if (d->last_state != REMOTE_NO_KEY_PRESSED) {
-				deb_rc("releasing event %d\n",d->last_event);
-				input_event(d->rc_input_dev, EV_KEY, d->last_event, 0);
-				input_sync(d->rc_input_dev);
-			}
-			d->last_state = REMOTE_NO_KEY_PRESSED;
-			d->last_event = 0;
-			break;
-		case REMOTE_KEY_PRESSED:
-			deb_rc("KEY PRESSED\n");
-			deb_rc("pressing event %d\n",event);
 
-			input_event(d->rc_input_dev, EV_KEY, event, 1);
-			input_sync(d->rc_input_dev);
-
-			d->last_event = event;
-			d->last_state = REMOTE_KEY_PRESSED;
-			break;
-		case REMOTE_KEY_REPEAT:
-			deb_rc("KEY_REPEAT\n");
-			if (d->last_state != REMOTE_NO_KEY_PRESSED) {
-				deb_rc("repeating event %d\n",d->last_event);
-				input_event(d->rc_input_dev, EV_KEY, d->last_event, 2);
-				input_sync(d->rc_input_dev);
-				d->last_state = REMOTE_KEY_REPEAT;
-			}
-		default:
-			break;
-	}
-*/
 
 schedule:
 	schedule_delayed_work(&d->rc_query_work,msecs_to_jiffies(d->props.rc_interval));
@@ -179,7 +125,7 @@ int dvb_usb_remote_init(struct dvb_usb_device *d)
 	input_dev->getkeycode = dvb_usb_getkeycode;
 	input_dev->setkeycode = dvb_usb_setkeycode;
 
-	/* set the bits for the keys */
+	
 	deb_rc("key map size: %d\n", d->props.rc_key_map_size);
 	for (i = 0; i < d->props.rc_key_map_size; i++) {
 		deb_rc("setting bit for event %d item %d\n",
@@ -187,11 +133,11 @@ int dvb_usb_remote_init(struct dvb_usb_device *d)
 		set_bit(d->props.rc_key_map[i].event, input_dev->keybit);
 	}
 
-	/* Start the remote-control polling. */
+	
 	if (d->props.rc_interval < 40)
-		d->props.rc_interval = 100; /* default */
+		d->props.rc_interval = 100; 
 
-	/* setting these two values to non-zero, we have to manage key repeats */
+	
 	input_dev->rep[REP_PERIOD] = d->props.rc_interval;
 	input_dev->rep[REP_DELAY]  = d->props.rc_interval + 150;
 
@@ -245,7 +191,7 @@ int dvb_usb_nec_rc_key_to_event(struct dvb_usb_device *d,
 				deb_err("remote control checksum failed.\n");
 				break;
 			}
-			/* See if we can match the raw key code. */
+			
 			for (i = 0; i < d->props.rc_key_map_size; i++)
 				if (rc5_custom(&keymap[i]) == keybuf[1] &&
 					rc5_data(&keymap[i]) == keybuf[3]) {

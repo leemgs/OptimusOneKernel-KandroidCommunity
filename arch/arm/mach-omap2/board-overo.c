@@ -1,23 +1,4 @@
-/*
- * board-overo.c (Gumstix Overo)
- *
- * Initial code: Steve Sakoman <steve@sakoman.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/clk.h>
 #include <linux/delay.h>
@@ -73,7 +54,7 @@
 
 static struct omap2_mcspi_device_config ads7846_mcspi_config = {
 	.turbo_mode	= 0,
-	.single_channel	= 1,	/* 0: slave, 1: master */
+	.single_channel	= 1,	
 };
 
 static int ads7846_get_pendown_state(void)
@@ -187,28 +168,28 @@ static inline void __init overo_init_smsc911x(void) { return; }
 static struct mtd_partition overo_nand_partitions[] = {
 	{
 		.name           = "xloader",
-		.offset         = 0,			/* Offset = 0x00000 */
+		.offset         = 0,			
 		.size           = 4 * NAND_BLOCK_SIZE,
 		.mask_flags     = MTD_WRITEABLE
 	},
 	{
 		.name           = "uboot",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = 14 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name           = "uboot environment",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x240000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = 2 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name           = "linux",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = 32 * NAND_BLOCK_SIZE,
 	},
 	{
 		.name           = "rootfs",
-		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
+		.offset         = MTDPART_OFS_APPEND,	
 		.size           = MTDPART_SIZ_FULL,
 	},
 };
@@ -216,7 +197,7 @@ static struct mtd_partition overo_nand_partitions[] = {
 static struct omap_nand_platform_data overo_nand_data = {
 	.parts = overo_nand_partitions,
 	.nr_parts = ARRAY_SIZE(overo_nand_partitions),
-	.dma_channel = -1,	/* disable DMA in OMAP NAND driver */
+	.dma_channel = -1,	
 };
 
 static struct resource overo_nand_resource = {
@@ -241,7 +222,7 @@ static void __init overo_flash_init(void)
 
 	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
 
-	/* find out the chip-select on which NAND exists */
+	
 	while (cs < GPMC_CS_NUM) {
 		u32 ret = 0;
 		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
@@ -285,9 +266,9 @@ static struct twl4030_hsmmc_info mmc[] = {
 		.gpio_cd	= -EINVAL,
 		.gpio_wp	= -EINVAL,
 		.transceiver	= true,
-		.ocr_mask	= 0x00100000,	/* 3.3V */
+		.ocr_mask	= 0x00100000,	
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct regulator_consumer_supply overo_vmmc1_supply = {
@@ -329,7 +310,7 @@ static struct regulator_init_data overo_vmmc1 = {
 	.consumer_supplies	= &overo_vmmc1_supply,
 };
 
-/* mmc2 (WLAN) and Bluetooth don't use twl4030 regulators */
+
 
 static struct twl4030_platform_data overo_twldata = {
 	.irq_base	= TWL4030_IRQ_BASE,
@@ -352,7 +333,7 @@ static int __init overo_i2c_init(void)
 {
 	omap_register_i2c_bus(1, 2600, overo_i2c_boardinfo,
 			ARRAY_SIZE(overo_i2c_boardinfo));
-	/* i2c2 pins are used for gpio */
+	
 	omap_register_i2c_bus(3, 400, NULL, 0);
 	return 0;
 }
@@ -394,7 +375,7 @@ static void __init overo_init(void)
 	overo_ads7846_init();
 	overo_init_smsc911x();
 
-	/* Ensure SDRC pins are mux'd for self-refresh */
+	
 	omap_cfg_reg(H16_34XX_SDRC_CKE0);
 	omap_cfg_reg(H17_34XX_SDRC_CKE1);
 

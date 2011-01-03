@@ -1,60 +1,6 @@
-/* sfi_core.c Simple Firmware Interface - core internals */
 
-/*
 
-  This file is provided under a dual BSD/GPLv2 license.  When using or
-  redistributing this file, you may do so under either license.
 
-  GPL LICENSE SUMMARY
-
-  Copyright(c) 2009 Intel Corporation. All rights reserved.
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of version 2 of the GNU General Public License as
-  published by the Free Software Foundation.
-
-  This program is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-  The full GNU General Public License is included in this distribution
-  in the file called LICENSE.GPL.
-
-  BSD LICENSE
-
-  Copyright(c) 2009 Intel Corporation. All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions
-  are met:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in
-      the documentation and/or other materials provided with the
-      distribution.
-    * Neither the name of Intel Corporation nor the names of its
-      contributors may be used to endorse or promote products derived
-      from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-*/
 
 #define KMSG_COMPONENT "SFI"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -82,18 +28,10 @@ EXPORT_SYMBOL(sfi_disabled);
 static u64 syst_pa __read_mostly;
 static struct sfi_table_simple *syst_va __read_mostly;
 
-/*
- * FW creates and saves the SFI tables in memory. When these tables get
- * used, they may need to be mapped to virtual address space, and the mapping
- * can happen before or after the ioremap() is ready, so a flag is needed
- * to indicating this
- */
+
 static u32 sfi_use_ioremap __read_mostly;
 
-/*
- * sfi_un/map_memory calls early_ioremap/iounmap which is a __init function
- * and introduces section mismatch. So use __ref to make it calm.
- */
+
 static void __iomem * __ref sfi_map_memory(u64 phys, u32 size)
 {
 	if (!phys || !size)
@@ -125,10 +63,7 @@ static void sfi_print_table_header(unsigned long long pa,
 		header->oem_table_id);
 }
 
-/*
- * sfi_verify_table()
- * Sanity check table lengh, calculate checksum
- */
+
 static int sfi_verify_table(struct sfi_table_header *table)
 {
 
@@ -136,7 +71,7 @@ static int sfi_verify_table(struct sfi_table_header *table)
 	u8 *puchar = (u8 *)table;
 	u32 length = table->len;
 
-	/* Sanity check table length against arbitrary 1MB limit */
+	
 	if (length > 0x100000) {
 		pr_err("Invalid table length 0x%x\n", length);
 		return -1;
@@ -153,13 +88,7 @@ static int sfi_verify_table(struct sfi_table_header *table)
 	return 0;
 }
 
-/*
- * sfi_map_table()
- *
- * Return address of mapped table
- * Check for common case that we can re-use mapping to SYST,
- * which requires syst_pa, syst_va to be initialized.
- */
+
 struct sfi_table_header *sfi_map_table(u64 pa)
 {
 	struct sfi_table_header *th;
@@ -170,11 +99,11 @@ struct sfi_table_header *sfi_map_table(u64 pa)
 	else
 		th = (void *)syst_va + (pa - syst_pa);
 
-	 /* If table fits on same page as its header, we are done */
+	 
 	if (TABLE_ON_PAGE(th, th, th->len))
 		return th;
 
-	/* Entire table does not fit on same page as SYST */
+	
 	length = th->len;
 	if (!TABLE_ON_PAGE(syst_pa, pa, sizeof(struct sfi_table_header)))
 		sfi_unmap_memory(th, sizeof(struct sfi_table_header));
@@ -182,12 +111,7 @@ struct sfi_table_header *sfi_map_table(u64 pa)
 	return sfi_map_memory(pa, length);
 }
 
-/*
- * sfi_unmap_table()
- *
- * Undoes effect of sfi_map_table() by unmapping table
- * if it did not completely fit on same page as SYST.
- */
+
 void sfi_unmap_table(struct sfi_table_header *th)
 {
 	if (!TABLE_ON_PAGE(syst_va, th, th->len))
@@ -209,23 +133,7 @@ static int sfi_table_check_key(struct sfi_table_header *th,
 	return 0;
 }
 
-/*
- * This function will be used in 2 cases:
- * 1. used to enumerate and verify the tables addressed by SYST/XSDT,
- *    thus no signature will be given (in kernel boot phase)
- * 2. used to parse one specific table, signature must exist, and
- *    the mapped virt address will be returned, and the virt space
- *    will be released by call sfi_put_table() later
- *
- * This two cases are from two different functions with two different
- * sections and causes section mismatch warning. So use __ref to tell
- * modpost not to make any noise.
- *
- * Return value:
- *	NULL:			when can't find a table matching the key
- *	ERR_PTR(error):		error value
- *	virt table address:	when a matched table is found
- */
+
 struct sfi_table_header *
  __ref sfi_check_table(u64 pa, struct sfi_table_key *key)
 {
@@ -242,19 +150,14 @@ struct sfi_table_header *
 			ret = ERR_PTR(-EINVAL);
 	} else {
 		if (!sfi_table_check_key(th, key))
-			return th;	/* Success */
+			return th;	
 	}
 
 	sfi_unmap_table(th);
 	return ret;
 }
 
-/*
- * sfi_get_table()
- *
- * Search SYST for the specified table with the signature in
- * the key, and return the mapped table
- */
+
 struct sfi_table_header *sfi_get_table(struct sfi_table_key *key)
 {
 	struct sfi_table_header *th;
@@ -275,7 +178,7 @@ void sfi_put_table(struct sfi_table_header *th)
 	sfi_unmap_table(th);
 }
 
-/* Find table with signature, run handler on it */
+
 int sfi_table_parse(char *signature, char *oem_id, char *oem_table_id,
 			sfi_table_handler handler)
 {
@@ -301,12 +204,7 @@ exit:
 }
 EXPORT_SYMBOL_GPL(sfi_table_parse);
 
-/*
- * sfi_parse_syst()
- * Checksum all the tables in SYST and print their headers
- *
- * success: set syst_va, return 0
- */
+
 static int __init sfi_parse_syst(void)
 {
 	struct sfi_table_key key = SFI_ANY_KEY;
@@ -327,15 +225,7 @@ static int __init sfi_parse_syst(void)
 	return 0;
 }
 
-/*
- * The OS finds the System Table by searching 16-byte boundaries between
- * physical address 0x000E0000 and 0x000FFFFF. The OS shall search this region
- * starting at the low address and shall stop searching when the 1st valid SFI
- * System Table is found.
- *
- * success: set syst_pa, return 0
- * fail: return -1
- */
+
 static __init int sfi_find_syst(void)
 {
 	unsigned long offset, len;
@@ -363,16 +253,14 @@ static __init int sfi_find_syst(void)
 		if (sfi_verify_table(syst_hdr))
 			continue;
 
-		/*
-		 * Enforce SFI spec mandate that SYST reside within a page.
-		 */
+		
 		if (!ON_SAME_PAGE(syst_pa, syst_pa + syst_hdr->len)) {
 			pr_info("SYST 0x%llx + 0x%x crosses page\n",
 					syst_pa, syst_hdr->len);
 			continue;
 		}
 
-		/* Success */
+		
 		syst_pa = SFI_SYST_SEARCH_BEGIN + offset;
 		sfi_unmap_memory(start, len);
 		return 0;
@@ -408,7 +296,7 @@ void __init sfi_init_late(void)
 	length = syst_va->header.len;
 	sfi_unmap_memory(syst_va, sizeof(struct sfi_table_simple));
 
-	/* Use ioremap now after it is ready */
+	
 	sfi_use_ioremap = 1;
 	syst_va = sfi_map_memory(syst_pa, length);
 

@@ -1,17 +1,4 @@
-/*
- *  linux/arch/arm/kernel/sys_arm.c
- *
- *  Copyright (C) People who wrote linux/arch/i386/kernel/sys_i386.c
- *  Copyright (C) 1995, 1996 Russell King.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  This file contains various random system calls that
- *  have a non-standard calling sequence on the Linux/arm
- *  platform.
- */
+
 #include <linux/module.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -54,10 +41,7 @@ out:
 	return error;
 }
 
-/*
- * Perform the select(nd, in, out, ex, tv) and mmap() system
- * calls.
- */
+
 
 struct sel_arg_struct {
 	unsigned long n;
@@ -71,22 +55,18 @@ asmlinkage int old_select(struct sel_arg_struct __user *arg)
 
 	if (copy_from_user(&a, arg, sizeof(a)))
 		return -EFAULT;
-	/* sys_select() does the appropriate kernel locking */
+	
 	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
 }
 
 #if !defined(CONFIG_AEABI) || defined(CONFIG_OABI_COMPAT)
-/*
- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
- *
- * This is really horribly ugly.
- */
+
 asmlinkage int sys_ipc(uint call, int first, int second, int third,
 		       void __user *ptr, long fifth)
 {
 	int version, ret;
 
-	version = call >> 16; /* hack for backward compatibility */
+	version = call >> 16; 
 	call &= 0xffff;
 
 	switch (call) {
@@ -141,7 +121,7 @@ asmlinkage int sys_ipc(uint call, int first, int second, int third,
 				return ret;
 			return put_user(raddr, (ulong __user *)third);
 		}
-		case 1: /* Of course, we don't support iBCS2! */
+		case 1: 
 			return -EINVAL;
 		}
 	case SHMDT: 
@@ -157,22 +137,18 @@ asmlinkage int sys_ipc(uint call, int first, int second, int third,
 }
 #endif
 
-/* Fork a new task - this creates a new program thread.
- * This is called indirectly via a small wrapper
- */
+
 asmlinkage int sys_fork(struct pt_regs *regs)
 {
 #ifdef CONFIG_MMU
 	return do_fork(SIGCHLD, regs->ARM_sp, regs, 0, NULL, NULL);
 #else
-	/* can not support in nommu mode */
+	
 	return(-EINVAL);
 #endif
 }
 
-/* Clone a task - this clones the calling program thread.
- * This is called indirectly via a small wrapper
- */
+
 asmlinkage int sys_clone(unsigned long clone_flags, unsigned long newsp,
 			 int __user *parent_tidptr, int tls_val,
 			 int __user *child_tidptr, struct pt_regs *regs)
@@ -188,9 +164,7 @@ asmlinkage int sys_vfork(struct pt_regs *regs)
 	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs->ARM_sp, regs, 0, NULL, NULL);
 }
 
-/* sys_execve() executes a new program.
- * This is called indirectly via a small wrapper
- */
+
 asmlinkage int sys_execve(char __user *filenamei, char __user * __user *argv,
 			  char __user * __user *envp, struct pt_regs *regs)
 {
@@ -218,22 +192,17 @@ int kernel_execve(const char *filename, char *const argv[], char *const envp[])
 	if (ret < 0)
 		goto out;
 
-	/*
-	 * Save argc to the register structure for userspace.
-	 */
+	
 	regs.ARM_r0 = ret;
 
-	/*
-	 * We were successful.  We won't be returning to our caller, but
-	 * instead to user space by manipulating the kernel stack.
-	 */
+	
 	asm(	"add	r0, %0, %1\n\t"
 		"mov	r1, %2\n\t"
 		"mov	r2, %3\n\t"
-		"bl	memmove\n\t"	/* copy regs to top of stack */
-		"mov	r8, #0\n\t"	/* not a syscall */
-		"mov	r9, %0\n\t"	/* thread structure */
-		"mov	sp, r0\n\t"	/* reposition stack pointer */
+		"bl	memmove\n\t"	
+		"mov	r8, #0\n\t"	
+		"mov	r9, %0\n\t"	
+		"mov	sp, r0\n\t"	
 		"b	ret_to_user"
 		:
 		: "r" (current_thread_info()),
@@ -247,10 +216,7 @@ int kernel_execve(const char *filename, char *const argv[], char *const envp[])
 }
 EXPORT_SYMBOL(kernel_execve);
 
-/*
- * Since loff_t is a 64 bit type we avoid a lot of ABI hassle
- * with a different argument ordering.
- */
+
 asmlinkage long sys_arm_fadvise64_64(int fd, int advice,
 				     loff_t offset, loff_t len)
 {

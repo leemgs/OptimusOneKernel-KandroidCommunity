@@ -1,13 +1,4 @@
-/*
- * IPv6 packet mangling table, a port of the IPv4 mangle table to IPv6
- *
- * Copyright (C) 2000-2001 by Harald Welte <laforge@gnumonks.org>
- * Copyright (C) 2000-2004 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/netfilter_ipv6/ip6_tables.h>
 
@@ -48,13 +39,13 @@ static const struct
 		},
 	},
 	.entries = {
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
-		IP6T_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
+		IP6T_STANDARD_INIT(NF_ACCEPT),	
 	},
-	.term = IP6T_ERROR_INIT,		/* ERROR */
+	.term = IP6T_ERROR_INIT,		
 };
 
 static const struct xt_table packet_mangler = {
@@ -64,7 +55,7 @@ static const struct xt_table packet_mangler = {
 	.af		= NFPROTO_IPV6,
 };
 
-/* The work comes in here from netfilter.c. */
+
 static unsigned int
 ip6t_in_hook(unsigned int hook,
 	 struct sk_buff *skb,
@@ -101,7 +92,7 @@ ip6t_local_out_hook(unsigned int hook,
 	u_int32_t flowlabel, mark;
 
 #if 0
-	/* root is playing with raw sockets. */
+	
 	if (skb->len < sizeof(struct iphdr)
 	    || ip_hdrlen(skb) < sizeof(struct iphdr)) {
 		if (net_ratelimit())
@@ -110,13 +101,13 @@ ip6t_local_out_hook(unsigned int hook,
 	}
 #endif
 
-	/* save source/dest address, mark, hoplimit, flowlabel, priority,  */
+	
 	memcpy(&saddr, &ipv6_hdr(skb)->saddr, sizeof(saddr));
 	memcpy(&daddr, &ipv6_hdr(skb)->daddr, sizeof(daddr));
 	mark = skb->mark;
 	hop_limit = ipv6_hdr(skb)->hop_limit;
 
-	/* flowlabel and prio (includes version, which shouldn't change either */
+	
 	flowlabel = *((u_int32_t *)ipv6_hdr(skb));
 
 	ret = ip6t_do_table(skb, hook, in, out,
@@ -172,7 +163,7 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
 
 static int __net_init ip6table_mangle_net_init(struct net *net)
 {
-	/* Register table */
+	
 	net->ipv6.ip6table_mangle =
 		ip6t_register_table(net, &packet_mangler, &initial_table.repl);
 	if (IS_ERR(net->ipv6.ip6table_mangle))
@@ -198,7 +189,7 @@ static int __init ip6table_mangle_init(void)
 	if (ret < 0)
 		return ret;
 
-	/* Register hooks */
+	
 	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
 	if (ret < 0)
 		goto cleanup_table;

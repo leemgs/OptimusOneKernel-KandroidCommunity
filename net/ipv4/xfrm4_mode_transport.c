@@ -1,8 +1,4 @@
-/*
- * xfrm4_mode_transport.c - Transport mode encapsulation for IPv4.
- *
- * Copyright (c) 2004-2006 Herbert Xu <herbert@gondor.apana.org.au>
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -13,11 +9,7 @@
 #include <net/ip.h>
 #include <net/xfrm.h>
 
-/* Add encapsulation header.
- *
- * The IP header will be moved forward to make space for the encapsulation
- * header.
- */
+
 static int xfrm4_transport_output(struct xfrm_state *x, struct sk_buff *skb)
 {
 	struct iphdr *iph = ip_hdr(skb);
@@ -32,14 +24,7 @@ static int xfrm4_transport_output(struct xfrm_state *x, struct sk_buff *skb)
 	return 0;
 }
 
-/* Remove encapsulation header.
- *
- * The IP header will be moved over the top of the encapsulation header.
- *
- * On entry, skb->h shall point to where the IP header should be and skb->nh
- * shall be set to where the IP header currently is.  skb->data shall point
- * to the start of the payload.
- */
+
 static int xfrm4_transport_input(struct xfrm_state *x, struct sk_buff *skb)
 {
 	int ihl = skb->data - skb_transport_header(skb);

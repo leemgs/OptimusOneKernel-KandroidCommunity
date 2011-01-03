@@ -1,24 +1,4 @@
-/*
-    Conexant cx22700 DVB OFDM demodulator driver
 
-    Copyright (C) 2001-2002 Convergence Integrated Media GmbH
-	Holger Waechtler <holger@convergence.de>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -178,8 +158,8 @@ static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_paramet
 
 	cx22700_writereg (state, 0x06, val);
 
-	cx22700_writereg (state, 0x08, 0x04 | 0x02);  /* use user tps parameters */
-	cx22700_writereg (state, 0x08, 0x04);         /* restart aquisition */
+	cx22700_writereg (state, 0x08, 0x04 | 0x02);  
+	cx22700_writereg (state, 0x08, 0x04);         
 
 	return 0;
 }
@@ -193,7 +173,7 @@ static int cx22700_get_tps (struct cx22700_state* state, struct dvb_ofdm_paramet
 
 	dprintk ("%s\n", __func__);
 
-	if (!(cx22700_readreg(state, 0x07) & 0x20))  /*  tps valid? */
+	if (!(cx22700_readreg(state, 0x07) & 0x20))  
 		return -EAGAIN;
 
 	val = cx22700_readreg (state, 0x01);
@@ -235,7 +215,7 @@ static int cx22700_init (struct dvb_frontend* fe)
 
 	dprintk("cx22700_init: init chip\n");
 
-	cx22700_writereg (state, 0x00, 0x02);   /*  soft reset */
+	cx22700_writereg (state, 0x00, 0x02);   
 	cx22700_writereg (state, 0x00, 0x00);
 
 	msleep(10);
@@ -322,7 +302,7 @@ static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
 {
 	struct cx22700_state* state = fe->demodulator_priv;
 
-	cx22700_writereg (state, 0x00, 0x02); /* XXX CHECKME: soft reset*/
+	cx22700_writereg (state, 0x00, 0x02); 
 	cx22700_writereg (state, 0x00, 0x00);
 
 	if (fe->ops.tuner_ops.set_params) {
@@ -332,8 +312,8 @@ static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
 
 	cx22700_set_inversion (state, p->inversion);
 	cx22700_set_tps (state, &p->u.ofdm);
-	cx22700_writereg (state, 0x37, 0x01);  /* PAL loop filter off */
-	cx22700_writereg (state, 0x00, 0x01);  /* restart acquire */
+	cx22700_writereg (state, 0x37, 0x01);  
+	cx22700_writereg (state, 0x00, 0x01);  
 
 	return 0;
 }
@@ -379,18 +359,18 @@ struct dvb_frontend* cx22700_attach(const struct cx22700_config* config,
 {
 	struct cx22700_state* state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct cx22700_state), GFP_KERNEL);
 	if (state == NULL) goto error;
 
-	/* setup the state */
+	
 	state->config = config;
 	state->i2c = i2c;
 
-	/* check if the demod is there */
+	
 	if (cx22700_readreg(state, 0x07) < 0) goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &cx22700_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;

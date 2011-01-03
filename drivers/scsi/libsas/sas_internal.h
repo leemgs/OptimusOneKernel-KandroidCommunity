@@ -1,27 +1,4 @@
-/*
- * Serial Attached SCSI (SAS) class internal header file
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
- *
- */
+
 
 #ifndef _SAS_INTERNAL_H_
 #define _SAS_INTERNAL_H_
@@ -134,7 +111,7 @@ static inline void sas_fill_in_rphy(struct domain_device *dev,
 	rphy->identify.target_port_protocols = dev->tproto;
 	switch (dev->dev_type) {
 	case SATA_DEV:
-		/* FIXME: need sata device type */
+		
 	case SAS_END_DEV:
 		rphy->identify.device_type = SAS_END_DEVICE;
 		break;
@@ -157,7 +134,7 @@ static inline void sas_add_parent_port(struct domain_device *dev, int phy_id)
 
 	if (!ex->parent_port) {
 		ex->parent_port = sas_port_alloc(&dev->rphy->dev, phy_id);
-		/* FIXME: error handling */
+		
 		BUG_ON(!ex->parent_port);
 		BUG_ON(sas_port_add(ex->parent_port));
 		sas_port_mark_backlink(ex->parent_port);
@@ -165,4 +142,4 @@ static inline void sas_add_parent_port(struct domain_device *dev, int phy_id)
 	sas_port_add_phy(ex->parent_port, ex_phy->phy);
 }
 
-#endif /* _SAS_INTERNAL_H_ */
+#endif 

@@ -1,13 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/time.c
- *
- * Copyright (C) 1998 Deborah Wallach.
- * Twiddles  (C) 1999 Hugo Fiennes <hugo@empeg.com>
- *
- * 2000/03/29 (C) Nicolas Pitre <nico@fluxnic.net>
- *	Rewritten: big cleanup, much simpler, better HZ accuracy.
- *
- */
+
 #include <linux/init.h>
 #include <linux/errno.h>
 #include <linux/interrupt.h>
@@ -24,7 +15,7 @@ static irqreturn_t sa1100_ost0_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *c = dev_id;
 
-	/* Disarm the compare/match, signal the event. */
+	
 	OIER &= ~OIER_E0;
 	OSSR = OSSR_M0;
 	c->event_handler(c);
@@ -100,8 +91,8 @@ static struct irqaction sa1100_timer_irq = {
 
 static void __init sa1100_timer_init(void)
 {
-	OIER = 0;		/* disable any timer interrupts */
-	OSSR = 0xf;		/* clear status on all timers */
+	OIER = 0;		
+	OSSR = 0xf;		
 
 	ckevt_sa1100_osmr0.mult =
 		div_sc(3686400, NSEC_PER_SEC, ckevt_sa1100_osmr0.shift);
@@ -141,9 +132,7 @@ static void sa1100_timer_resume(void)
 	OSMR3 = osmr[3];
 	OIER = oier;
 
-	/*
-	 * OSMR0 is the system timer: make sure OSCR is sufficiently behind
-	 */
+	
 	OSCR = OSMR0 - LATCH;
 }
 #else

@@ -1,13 +1,4 @@
-/*
- * Serial Attached SCSI (SAS) Expander discovery and configuration
- *
- * Copyright (C) 2007 James E.J. Bottomley
- *		<James.Bottomley@HansenPartnership.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 only.
- */
+
 #include <linux/scatterlist.h>
 #include <linux/blkdev.h>
 
@@ -78,11 +69,11 @@ static void sas_report_phy_sata(struct sas_ha_struct *sas_ha, u8 *resp_data,
 	memcpy(resp_data + 16, sas_ha->sas_phy[phy_id]->attached_sas_addr,
 	       SAS_ADDR_SIZE);
 
-	/* check to see if we have a valid d2h fis */
+	
 	if (fis->fis_type != 0x34)
 		return;
 
-	/* the d2h fis is required by the standard to be in LE format */
+	
 	for (i = 0; i < 20; i += 4) {
 		u8 *dst = resp_data + 24 + i, *src =
 			&sas_ha->sas_phy[phy_id]->port->port_dev->frame_rcvd[i];
@@ -136,7 +127,7 @@ int sas_smp_host_handler(struct Scsi_Host *shost, struct request *req,
 	struct sas_ha_struct *sas_ha = SHOST_TO_SAS_HA(shost);
 	int error = -EINVAL;
 
-	/* eight is the minimum size for request and response frames */
+	
 	if (blk_rq_bytes(req) < 8 || blk_rq_bytes(rsp) < 8)
 		goto out;
 
@@ -149,8 +140,7 @@ int sas_smp_host_handler(struct Scsi_Host *shost, struct request *req,
 
 	req_data = kzalloc(blk_rq_bytes(req), GFP_KERNEL);
 
-	/* make sure frame can always be built ... we copy
-	 * back only the requested length */
+	
 	resp_data = kzalloc(max(blk_rq_bytes(rsp), 128U), GFP_KERNEL);
 
 	if (!req_data || !resp_data) {
@@ -167,11 +157,10 @@ int sas_smp_host_handler(struct Scsi_Host *shost, struct request *req,
 	if (req_data[0] != SMP_REQUEST)
 		goto out;
 
-	/* always succeeds ... even if we can't process the request
-	 * the result is in the response frame */
+	
 	error = 0;
 
-	/* set up default don't know response */
+	
 	resp_data[0] = SMP_RESPONSE;
 	resp_data[1] = req_data[1];
 	resp_data[2] = SMP_RESP_FUNC_UNK;
@@ -195,7 +184,7 @@ int sas_smp_host_handler(struct Scsi_Host *shost, struct request *req,
 		break;
 
 	case SMP_READ_GPIO_REG:
-		/* FIXME: need GPIO support in the transport class */
+		
 		break;
 
 	case SMP_DISCOVER:
@@ -210,8 +199,7 @@ int sas_smp_host_handler(struct Scsi_Host *shost, struct request *req,
 		break;
 
 	case SMP_REPORT_PHY_ERR_LOG:
-		/* FIXME: could implement this with additional
-		 * libsas callbacks providing the HW supports it */
+		
 		break;
 
 	case SMP_REPORT_PHY_SATA:
@@ -226,15 +214,15 @@ int sas_smp_host_handler(struct Scsi_Host *shost, struct request *req,
 		break;
 
 	case SMP_REPORT_ROUTE_INFO:
-		/* Can't implement; hosts have no routes */
+		
 		break;
 
 	case SMP_WRITE_GPIO_REG:
-		/* FIXME: need GPIO support in the transport class */
+		
 		break;
 
 	case SMP_CONF_ROUTE_INFO:
-		/* Can't implement; hosts have no routes */
+		
 		break;
 
 	case SMP_PHY_CONTROL:
@@ -251,11 +239,11 @@ int sas_smp_host_handler(struct Scsi_Host *shost, struct request *req,
 		break;
 
 	case SMP_PHY_TEST_FUNCTION:
-		/* FIXME: should this be implemented? */
+		
 		break;
 
 	default:
-		/* probably a 2.0 function */
+		
 		break;
 	}
 

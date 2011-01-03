@@ -2,7 +2,7 @@
 
 #define MAX_RESOURCE_DMA	2
 
-/* structure for describing the on-chip devices */
+
 struct pxa_device_desc {
 	const char	*dev_name;
 	const char	*drv_name;

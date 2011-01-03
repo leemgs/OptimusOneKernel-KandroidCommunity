@@ -1,125 +1,6 @@
-/* 
-	pg.c    (c) 1998  Grant R. Guenther <grant@torque.net>
-			  Under the terms of the GNU General Public License.
 
-	The pg driver provides a simple character device interface for
-	sending ATAPI commands to a device.  With the exception of the
-	ATAPI reset operation, all operations are performed by a pair
-	of read and write operations to the appropriate /dev/pgN device.
-	A write operation delivers a command and any outbound data in
-	a single buffer.  Normally, the write will succeed unless the
-	device is offline or malfunctioning, or there is already another
-	command pending.  If the write succeeds, it should be followed
-	immediately by a read operation, to obtain any returned data and
-	status information.  A read will fail if there is no operation
-	in progress.
 
-	As a special case, the device can be reset with a write operation,
-	and in this case, no following read is expected, or permitted.
 
-	There are no ioctl() operations.  Any single operation
-	may transfer at most PG_MAX_DATA bytes.  Note that the driver must
-	copy the data through an internal buffer.  In keeping with all
-	current ATAPI devices, command packets are assumed to be exactly
-	12 bytes in length.
-
-	To permit future changes to this interface, the headers in the
-	read and write buffers contain a single character "magic" flag.
-	Currently this flag must be the character "P".
-
-	By default, the driver will autoprobe for a single parallel
-	port ATAPI device, but if their individual parameters are
-	specified, the driver can handle up to 4 devices.
-
-	To use this device, you must have the following device 
-	special files defined:
-
-		/dev/pg0 c 97 0
-		/dev/pg1 c 97 1
-		/dev/pg2 c 97 2
-		/dev/pg3 c 97 3
-
-	(You'll need to change the 97 to something else if you use
-	the 'major' parameter to install the driver on a different
-	major number.)
-
-	The behaviour of the pg driver can be altered by setting
-	some parameters from the insmod command line.  The following
-	parameters are adjustable:
-
-	    drive0      These four arguments can be arrays of       
-	    drive1      1-6 integers as follows:
-	    drive2
-	    drive3      <prt>,<pro>,<uni>,<mod>,<slv>,<dly>
-
-			Where,
-
-		<prt>   is the base of the parallel port address for
-			the corresponding drive.  (required)
-
-		<pro>   is the protocol number for the adapter that
-			supports this drive.  These numbers are
-			logged by 'paride' when the protocol modules
-			are initialised.  (0 if not given)
-
-		<uni>   for those adapters that support chained
-			devices, this is the unit selector for the
-			chain of devices on the given port.  It should
-			be zero for devices that don't support chaining.
-			(0 if not given)
-
-		<mod>   this can be -1 to choose the best mode, or one
-			of the mode numbers supported by the adapter.
-			(-1 if not given)
-
-		<slv>   ATAPI devices can be jumpered to master or slave.
-			Set this to 0 to choose the master drive, 1 to
-			choose the slave, -1 (the default) to choose the
-			first drive found.
-
-		<dly>   some parallel ports require the driver to 
-			go more slowly.  -1 sets a default value that
-			should work with the chosen protocol.  Otherwise,
-			set this to a small integer, the larger it is
-			the slower the port i/o.  In some cases, setting
-			this to zero will speed up the device. (default -1)
-
-	    major	You may use this parameter to overide the
-			default major number (97) that this driver
-			will use.  Be sure to change the device
-			name as well.
-
-	    name	This parameter is a character string that
-			contains the name the kernel will use for this
-			device (in /proc output, for instance).
-			(default "pg").
-
-	    verbose     This parameter controls the amount of logging
-			that is done by the driver.  Set it to 0 for 
-			quiet operation, to 1 to enable progress
-			messages while the driver probes for devices,
-			or to 2 for full debug logging.  (default 0)
-
-	If this driver is built into the kernel, you can use 
-	the following command line parameters, with the same values
-	as the corresponding module parameters listed above:
-
-	    pg.drive0
-	    pg.drive1
-	    pg.drive2
-	    pg.drive3
-
-	In addition, you can use the parameter pg.disable to disable
-	the driver entirely.
-
-*/
-
-/* Changes:
-
-	1.01	GRG 1998.06.16	Bug fixes
-	1.02    GRG 1998.09.24  Added jumbo support
-
-*/
 
 #define PG_VERSION      "1.02"
 #define PG_MAJOR	97
@@ -130,11 +11,7 @@
 #define PI_PG	4
 #endif
 
-/* Here are things one can override from the insmod command.
-   Most are autoprobed by paride unless set here.  Verbose is 0
-   by default.
 
-*/
 
 static int verbose = 0;
 static int major = PG_MAJOR;
@@ -151,7 +28,7 @@ static int pg_drive_count;
 
 enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV, D_DLY};
 
-/* end of parameters */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -161,7 +38,7 @@ enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV, D_DLY};
 #include <linux/mtio.h>
 #include <linux/pg.h>
 #include <linux/device.h>
-#include <linux/sched.h>	/* current, TASK_* */
+#include <linux/sched.h>	
 #include <linux/smp_lock.h>
 #include <linux/jiffies.h>
 
@@ -177,7 +54,7 @@ module_param_array(drive3, int, NULL, 0);
 
 #include "paride.h"
 
-#define PG_SPIN_DEL     50	/* spin delay in micro-seconds  */
+#define PG_SPIN_DEL     50	
 #define PG_SPIN         200
 #define PG_TMO		HZ
 #define PG_RESET_TMO	10*HZ
@@ -204,29 +81,29 @@ static int pg_detect(void);
 #define PG_NAMELEN      8
 
 struct pg {
-	struct pi_adapter pia;	/* interface to paride layer */
+	struct pi_adapter pia;	
 	struct pi_adapter *pi;
-	int busy;		/* write done, read expected */
-	int start;		/* jiffies at command start */
-	int dlen;		/* transfer size requested */
-	unsigned long timeout;	/* timeout requested */
-	int status;		/* last sense key */
-	int drive;		/* drive */
-	unsigned long access;	/* count of active opens ... */
-	int present;		/* device present ? */
+	int busy;		
+	int start;		
+	int dlen;		
+	unsigned long timeout;	
+	int status;		
+	int drive;		
+	unsigned long access;	
+	int present;		
 	char *bufptr;
-	char name[PG_NAMELEN];	/* pg0, pg1, ... */
+	char name[PG_NAMELEN];	
 };
 
 static struct pg devices[PG_UNITS];
 
 static int pg_identify(struct pg *dev, int log);
 
-static char pg_scratch[512];	/* scratch block buffer */
+static char pg_scratch[512];	
 
 static struct class *pg_class;
 
-/* kernel glue structures */
+
 
 static const struct file_operations pg_fops = {
 	.owner = THIS_MODULE,
@@ -326,7 +203,7 @@ static int pg_command(struct pg *dev, char *cmd, int dlen, unsigned long tmo)
 
 	write_reg(dev, 4, dlen % 256);
 	write_reg(dev, 5, dlen / 256);
-	write_reg(dev, 7, 0xa0);	/* ATAPI packet command */
+	write_reg(dev, 7, 0xa0);	
 
 	if (pg_wait(dev, STAT_BUSY, STAT_DRQ, tmo, "command DRQ"))
 		goto fail;
@@ -454,10 +331,7 @@ static int pg_identify(struct pg *dev, int log)
 	return 0;
 }
 
-/*
- * returns  0, with id set if drive is detected
- *	   -1, if drive detection failed
- */
+
 static int pg_probe(struct pg *dev)
 {
 	if (dev->drive == -1) {
@@ -677,7 +551,7 @@ static int __init pg_init(void)
 		}
 		goto out;
 	}
-	major = err;	/* In case the user specified `major=0' (dynamic) */
+	major = err;	
 	pg_class = class_create(THIS_MODULE, "pg");
 	if (IS_ERR(pg_class)) {
 		err = PTR_ERR(pg_class);

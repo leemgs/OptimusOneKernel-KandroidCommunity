@@ -1,20 +1,6 @@
-/*
- * Freescale STMP378X platform support
- *
- * Embedded Alley Solutions, Inc <source@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -44,32 +30,30 @@
 #include <mach/regs-i2c.h>
 
 #include "stmp378x.h"
-/*
- * IRQ handling
- */
+
 static void stmp378x_ack_irq(unsigned int irq)
 {
-	/* Tell ICOLL to release IRQ line */
+	
 	__raw_writel(0, REGS_ICOLL_BASE + HW_ICOLL_VECTOR);
 
-	/* ACK current interrupt */
-	__raw_writel(0x01 /* BV_ICOLL_LEVELACK_IRQLEVELACK__LEVEL0 */,
+	
+	__raw_writel(0x01 ,
 			REGS_ICOLL_BASE + HW_ICOLL_LEVELACK);
 
-	/* Barrier */
+	
 	(void)__raw_readl(REGS_ICOLL_BASE + HW_ICOLL_STAT);
 }
 
 static void stmp378x_mask_irq(unsigned int irq)
 {
-	/* IRQ disable */
+	
 	stmp3xxx_clearl(BM_ICOLL_INTERRUPTn_ENABLE,
 			REGS_ICOLL_BASE + HW_ICOLL_INTERRUPTn + irq * 0x10);
 }
 
 static void stmp378x_unmask_irq(unsigned int irq)
 {
-	/* IRQ enable */
+	
 	stmp3xxx_setl(BM_ICOLL_INTERRUPTn_ENABLE,
 		      REGS_ICOLL_BASE + HW_ICOLL_INTERRUPTn + irq * 0x10);
 }
@@ -85,9 +69,7 @@ void __init stmp378x_init_irq(void)
 	stmp3xxx_init_irq(&stmp378x_chip);
 }
 
-/*
- * DMA interrupt handling
- */
+
 void stmp3xxx_arch_dma_enable_interrupt(int channel)
 {
 	void __iomem *c1, *c2;
@@ -172,7 +154,7 @@ void stmp3xxx_arch_dma_reset_channel(int channel)
 		return;
 	}
 
-	/* Reset channel and wait for it to complete */
+	
 	stmp3xxx_setl(mask, c0);
 	while (__raw_readl(c0) & mask)
 		cpu_relax();
@@ -211,14 +193,7 @@ void stmp3xxx_arch_dma_unfreeze(int channel)
 }
 EXPORT_SYMBOL(stmp3xxx_arch_dma_unfreeze);
 
-/*
- * The registers are all very closely mapped, so we might as well map them all
- * with a single mapping
- *
- * Logical      Physical
- * f0000000	80000000	On-chip registers
- * f1000000	00000000	32k on-chip SRAM
- */
+
 
 static struct map_desc stmp378x_io_desc[] __initdata = {
 	{
@@ -238,11 +213,7 @@ static struct map_desc stmp378x_io_desc[] __initdata = {
 
 static u64 common_dmamask = DMA_BIT_MASK(32);
 
-/*
- * devices that are present only on stmp378x, not on all 3xxx boards:
- * 	PxP
- * 	I2C
- */
+
 static struct resource pxp_resource[] = {
 	{
 		.flags	= IORESOURCE_MEM,

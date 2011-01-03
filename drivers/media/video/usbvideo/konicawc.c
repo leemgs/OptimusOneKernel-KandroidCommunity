@@ -1,16 +1,4 @@
-/*
- * konicawc.c - konica webcam driver
- *
- * Author: Simon Evans <spse@secret.org.uk>
- *
- * Copyright (C) 2002 Simon Evans
- *
- * Licence: GPL
- *
- * Driver for USB webcams based on Konica chipset. This
- * chipset is used in Intel YC76 camera.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -65,11 +53,10 @@ static const int debug;
 #endif
 
 
-/* Some default values for initial camera settings,
-   can be set by modprobe */
+
 
 static int size;
-static int speed = 6;		/* Speed (fps) 0 (slowest) to 6 (fastest) */
+static int speed = 6;		
 static int brightness =	MAX_BRIGHTNESS/2;
 static int contrast =	MAX_CONTRAST/2;
 static int saturation =	MAX_SATURATION/2;
@@ -78,10 +65,7 @@ static int whitebal =	3*(MAX_WHITEBAL/4);
 
 static const int spd_to_iface[] = { 1, 0, 3, 2, 4, 5, 6 };
 
-/* These FPS speeds are from the windows config box. They are
- * indexed on size (0-2) and speed (0-6). Divide by 3 to get the
- * real fps.
- */
+
 
 static const int spd_to_fps[][7] = { { 24, 40, 48, 60, 72, 80, 100 },
 			       { 24, 40, 48, 60, 72, 80, 100 },
@@ -100,22 +84,22 @@ static const struct cam_size camera_sizes[] = { { 160, 120, 0x7 },
 					  { 320, 240, 0x5 } };
 
 struct konicawc {
-	u8 brightness;		/* camera uses 0 - 9, x11 for real value */
-	u8 contrast;		/* as above */
-	u8 saturation;		/* as above */
-	u8 sharpness;		/* as above */
-	u8 white_bal;		/* 0 - 33, x11 for real value */
-	u8 speed;		/* Stored as 0 - 6, used as index in spd_to_* (above) */
-	u8 size;		/* Frame Size */
+	u8 brightness;		
+	u8 contrast;		
+	u8 saturation;		
+	u8 sharpness;		
+	u8 white_bal;		
+	u8 speed;		
+	u8 size;		
 	int height;
 	int width;
 	struct urb *sts_urb[USBVIDEO_NUMSBUF];
 	u8 sts_buf[USBVIDEO_NUMSBUF][FRAMES_PER_DESC];
 	struct urb *last_data_urb;
 	int lastframe;
-	int cur_frame_size;	/* number of bytes in current frame size */
-	int maxline;		/* number of lines per frame */
-	int yplanesz;		/* Number of bytes in the Y plane */
+	int cur_frame_size;	
+	int maxline;		
+	int yplanesz;		
 	unsigned int buttonsts:1;
 #ifdef CONFIG_INPUT
 	struct input_dev *input;
@@ -274,7 +258,7 @@ static inline void konicawc_register_input(struct konicawc *cam, struct usb_devi
 static inline void konicawc_unregister_input(struct konicawc *cam) { }
 static inline void konicawc_report_buttonstat(struct konicawc *cam) { }
 
-#endif /* CONFIG_INPUT */
+#endif 
 
 static int konicawc_compress_iso(struct uvd *uvd, struct urb *dataurb, struct urb *stsurb)
 {
@@ -292,7 +276,7 @@ static int konicawc_compress_iso(struct uvd *uvd, struct urb *dataurb, struct ur
 		cdata = dataurb->transfer_buffer +
 			dataurb->iso_frame_desc[i].offset;
 
-		/* Detect and ignore errored packets */
+		
 		if (st < 0) {
 			DEBUG(1, "Data error: packet=%d. len=%d. status=%d.",
 			      i, n, st);
@@ -300,32 +284,23 @@ static int konicawc_compress_iso(struct uvd *uvd, struct urb *dataurb, struct ur
 			continue;
 		}
 
-		/* Detect and ignore empty packets */
+		
 		if (n <= 0) {
 			uvd->stats.iso_skip_count++;
 			continue;
 		}
 
-		/* See what the status data said about the packet */
+		
 		sts = *(status+stsurb->iso_frame_desc[i].offset);
 
-		/* sts: 0x80-0xff: frame start with frame number (ie 0-7f)
-		 * otherwise:
-		 * bit 0 0: keep packet
-		 *	 1: drop packet (padding data)
-		 *
-		 * bit 4 0 button not clicked
-		 *       1 button clicked
-		 * button is used to `take a picture' (in software)
-		 */
+		
 
 		if(sts < 0x80) {
 			button = !!(sts & 0x40);
 			sts &= ~0x40;
 		}
 
-		/* work out the button status, but don't do
-		   anything with it for now */
+		
 
 		if(button != cam->buttonsts) {
 			DEBUG(2, "button: %sclicked", button ? "" : "un");
@@ -333,7 +308,7 @@ static int konicawc_compress_iso(struct uvd *uvd, struct urb *dataurb, struct ur
 			konicawc_report_buttonstat(cam);
 		}
 
-		if(sts == 0x01) { /* drop frame */
+		if(sts == 0x01) { 
 			discard++;
 			continue;
 		}
@@ -350,7 +325,7 @@ static int konicawc_compress_iso(struct uvd *uvd, struct urb *dataurb, struct ur
 		}
 
 		keep++;
-		if(sts & 0x80) { /* frame start */
+		if(sts & 0x80) { 
 			unsigned char marker[] = { 0, 0xff, 0, 0x00 };
 
 			if(cam->lastframe == -2) {
@@ -363,7 +338,7 @@ static int konicawc_compress_iso(struct uvd *uvd, struct urb *dataurb, struct ur
 			totlen += 4;
 		}
 
-		totlen += n;	/* Little local accounting */
+		totlen += n;	
 		RingQueue_Enqueue(&uvd->dp, cdata, n);
 	}
 	DEBUG(8, "finished: keep = %d discard = %d bad = %d added %d bytes",
@@ -393,7 +368,7 @@ static void konicawc_isoc_irq(struct urb *urb)
 	struct uvd *uvd = urb->context;
 	struct konicawc *cam = (struct konicawc *)uvd->user_data;
 
-	/* We don't want to do anything if we are about to be removed! */
+	
 	if (!CAMERA_IS_OPERATIONAL(uvd))
 		return;
 
@@ -410,7 +385,7 @@ static void konicawc_isoc_irq(struct urb *urb)
 		cam->last_data_urb = urb;
 		return;
 	}
-	/* Copy the data received into ring queue */
+	
 	if(cam->last_data_urb) {
 		int len = 0;
 		if(urb->start_frame != cam->last_data_urb->start_frame)
@@ -454,7 +429,7 @@ static int konicawc_start_data(struct uvd *uvd)
 	}
 	uvd->curframe = -1;
 	konicawc_camera_on(uvd);
-	/* Alternate interface 1 is is the biggest frame size */
+	
 	i = usb_set_interface(dev, uvd->iface, uvd->ifaceAltActive);
 	if (i < 0) {
 		err("usb_set_interface error");
@@ -462,7 +437,7 @@ static int konicawc_start_data(struct uvd *uvd)
 		return -EBUSY;
 	}
 
-	/* We double buffer the Iso lists */
+	
 	for (i=0; i < USBVIDEO_NUMSBUF; i++) {
 		int j, k;
 		struct urb *urb = uvd->sbuf[i].urb;
@@ -498,7 +473,7 @@ static int konicawc_start_data(struct uvd *uvd)
 
 	cam->last_data_urb = NULL;
 
-	/* Submit all URBs */
+	
 	for (i=0; i < USBVIDEO_NUMSBUF; i++) {
 		errFlag = usb_submit_urb(cam->sts_urb[i], GFP_KERNEL);
 		if (errFlag)
@@ -528,14 +503,14 @@ static void konicawc_stop_data(struct uvd *uvd)
 	cam = (struct konicawc *)uvd->user_data;
 	cam->last_data_urb = NULL;
 
-	/* Unschedule all of the iso td's */
+	
 	for (i=0; i < USBVIDEO_NUMSBUF; i++) {
 		usb_kill_urb(uvd->sbuf[i].urb);
 		usb_kill_urb(cam->sts_urb[i]);
 	}
 
 	if (!uvd->remove_pending) {
-		/* Set packet size to 0 */
+		
 		j = usb_set_interface(uvd->dev, uvd->iface, uvd->ifaceAltInactive);
 		if (j < 0) {
 			err("usb_set_interface() error %d.", j);
@@ -595,23 +570,19 @@ static void konicawc_process_isoc(struct uvd *uvd, struct usbvideo_frame *frame)
 	if(frame->scanstate == ScanState_Scanning)
 		return;
 
-	/* Try to move data from queue into frame buffer
-	 * We get data in blocks of 384 bytes made up of:
-	 * 256 Y, 64 U, 64 V.
-	 * This needs to be written out as a Y plane, a U plane and a V plane.
-	 */
+	
 
 	while ( frame->curline < maxline && (RingQueue_GetLength(&uvd->dp) >= 384)) {
-		/* Y */
+		
 		RingQueue_Dequeue(&uvd->dp, frame->data + (frame->curline * 256), 256);
-		/* U */
+		
 		RingQueue_Dequeue(&uvd->dp, frame->data + yplanesz + (frame->curline * 64), 64);
-		/* V */
+		
 		RingQueue_Dequeue(&uvd->dp, frame->data + (5 * yplanesz)/4 + (frame->curline * 64), 64);
 		frame->seqRead_Length += 384;
 		frame->curline++;
 	}
-	/* See if we filled the frame */
+	
 	if (frame->curline == maxline) {
 		DEBUG(5, "got whole frame");
 
@@ -699,7 +670,7 @@ static int konicawc_set_video_mode(struct uvd *uvd, struct video_window *vw)
 		konicawc_set_camera_size(uvd);
 	}
 
-	/* Flush the input queue and clear any current frame in progress */
+	
 
 	RingQueue_Flush(&uvd->dp);
 	cam->lastframe = -2;
@@ -766,7 +737,7 @@ static void konicawc_configure_video(struct uvd *uvd)
 	uvd->vchan.type = VIDEO_TYPE_CAMERA;
 	strcpy(uvd->vchan.name, "Camera");
 
-	/* Talk to device */
+	
 	DEBUG(1, "device init");
 	if(!konicawc_get_misc(uvd, 0x3, 0, 0x10, buf, 2))
 		DEBUG(2, "3,10 -> %2.2x %2.2x", buf[0], buf[1]);
@@ -787,7 +758,7 @@ static int konicawc_probe(struct usb_interface *intf, const struct usb_device_id
 
 	DEBUG(1, "konicawc_probe(%p)", intf);
 
-	/* We don't handle multi-config cameras */
+	
 	if (dev->descriptor.bNumConfigurations != 1)
 		return -ENODEV;
 
@@ -795,13 +766,13 @@ static int konicawc_probe(struct usb_interface *intf, const struct usb_device_id
 		 le16_to_cpu(dev->descriptor.bcdDevice));
 	RESTRICT_TO_RANGE(speed, 0, MAX_SPEED);
 
-	/* Validate found interface: must have one ISO endpoint */
+	
 	nas = intf->num_altsetting;
 	if (nas != 8) {
 		err("Incorrect number of alternate settings (%d) for this camera!", nas);
 		return -ENODEV;
 	}
-	/* Validate all alternate settings */
+	
 	for (ix=0; ix < nas; ix++) {
 		const struct usb_host_interface *interface;
 		const struct usb_endpoint_descriptor *endpoint;
@@ -842,7 +813,7 @@ static int konicawc_probe(struct usb_interface *intf, const struct usb_device_id
 			}
 		} else {
 			if (i == spd_to_iface[speed]) {
-				/* This one is the requested one */
+				
 				actInterface = i;
 			}
 		}
@@ -859,7 +830,7 @@ static int konicawc_probe(struct usb_interface *intf, const struct usb_device_id
 	uvd = usbvideo_AllocateDevice(cams);
 	if (uvd != NULL) {
 		struct konicawc *cam = (struct konicawc *)(uvd->user_data);
-		/* Here uvd is a fully allocated uvd object */
+		
 		for(i = 0; i < USBVIDEO_NUMSBUF; i++) {
 			cam->sts_urb[i] = usb_alloc_urb(FRAMES_PER_DESC, GFP_KERNEL);
 			if(cam->sts_urb[i] == NULL) {
@@ -889,7 +860,7 @@ static int konicawc_probe(struct usb_interface *intf, const struct usb_device_id
 		uvd->canvas = VIDEOSIZE(320, 240);
 		uvd->videosize = VIDEOSIZE(cam->width, cam->height);
 
-		/* Initialize konicawc specific data */
+		
 		konicawc_configure_video(uvd);
 
 		i = usbvideo_RegisterVideoDevice(uvd);
@@ -925,8 +896,8 @@ static void konicawc_free_uvd(struct uvd *uvd)
 
 
 static struct usb_device_id id_table[] = {
-	{ USB_DEVICE(0x04c8, 0x0720) }, /* Intel YC 76 */
-	{ }  /* Terminating entry */
+	{ USB_DEVICE(0x04c8, 0x0720) }, 
+	{ }  
 };
 
 

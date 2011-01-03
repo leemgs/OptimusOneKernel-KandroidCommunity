@@ -1,30 +1,8 @@
-/*
- *  arch/arm/mach-versatile/include/mach/irqs.h
- *
- *  Copyright (C) 2003 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <mach/platform.h>
 
-/* 
- *  IRQ interrupts definitions are the same as the INT definitions
- *  held within platform.h
- */
+
 #define IRQ_VIC_START		0
 #define IRQ_WDOGINT		(IRQ_VIC_START + INT_WDOGINT)
 #define IRQ_SOFTINT		(IRQ_VIC_START + INT_SOFTINT)
@@ -60,9 +38,7 @@
 #define IRQ_VICSOURCE31		(IRQ_VIC_START + INT_VICSOURCE31)
 #define IRQ_VIC_END		(IRQ_VIC_START + 31)
 
-/* 
- *  FIQ interrupts definitions are the same as the INT definitions.
- */
+
 #define FIQ_WDOGINT		INT_WDOGINT
 #define FIQ_SOFTINT		INT_SOFTINT
 #define FIQ_COMMRx		INT_COMMRx
@@ -97,9 +73,7 @@
 #define FIQ_VICSOURCE31		INT_VICSOURCE31
 
 
-/*
- * Secondary interrupt controller
- */
+
 #define IRQ_SIC_START		32
 #define IRQ_SIC_MMCI0B 		(IRQ_SIC_START + SIC_INT_MMCI0B)
 #define IRQ_SIC_MMCI1B 		(IRQ_SIC_START + SIC_INT_MMCI1B)

@@ -14,4 +14,4 @@
 #define minix_find_first_zero_bit(addr,size) \
 	generic_find_first_zero_le_bit((unsigned long *)(addr),(size))
 
-#endif /* _ASM_GENERIC_BITOPS_MINIX_LE_H_ */
+#endif 

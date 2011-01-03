@@ -1,12 +1,4 @@
-/*
- *   Channel report handling code
- *
- *    Copyright IBM Corp. 2000,2009
- *    Author(s): Ingo Adlung <adlung@de.ibm.com>,
- *		 Martin Schwidefsky <schwidefsky@de.ibm.com>,
- *		 Cornelia Huck <cornelia.huck@de.ibm.com>,
- *		 Heiko Carstens <heiko.carstens@de.ibm.com>,
- */
+
 
 #include <linux/semaphore.h>
 #include <linux/mutex.h>
@@ -18,13 +10,7 @@ static struct semaphore crw_semaphore;
 static DEFINE_MUTEX(crw_handler_mutex);
 static crw_handler_t crw_handlers[NR_RSCS];
 
-/**
- * crw_register_handler() - register a channel report word handler
- * @rsc: reporting source code to handle
- * @handler: handler to be registered
- *
- * Returns %0 on success and a negative error value otherwise.
- */
+
 int crw_register_handler(int rsc, crw_handler_t handler)
 {
 	int rc = 0;
@@ -40,10 +26,7 @@ int crw_register_handler(int rsc, crw_handler_t handler)
 	return rc;
 }
 
-/**
- * crw_unregister_handler() - unregister a channel report word handler
- * @rsc: reporting source code to handle
- */
+
 void crw_unregister_handler(int rsc)
 {
 	if ((rsc < 0) || (rsc >= NR_RSCS))
@@ -53,9 +36,7 @@ void crw_unregister_handler(int rsc)
 	mutex_unlock(&crw_handler_mutex);
 }
 
-/*
- * Retrieve CRWs and call function to handle event.
- */
+
 static int crw_collect_info(void *unused)
 {
 	struct crw crw[2];
@@ -96,7 +77,7 @@ repeat:
 		       crw[chain].slct, crw[chain].oflw, crw[chain].chn,
 		       crw[chain].rsc, crw[chain].anc, crw[chain].erc,
 		       crw[chain].rsid);
-		/* Check for overflows. */
+		
 		if (crw[chain].oflw) {
 			int i;
 
@@ -119,7 +100,7 @@ repeat:
 		if (handler)
 			handler(&crw[0], chain ? &crw[1] : NULL, 0);
 		mutex_unlock(&crw_handler_mutex);
-		/* chain is always 0 or 1 here. */
+		
 		chain = crw[chain].chn ? chain + 1 : 0;
 	}
 	goto repeat;
@@ -131,10 +112,7 @@ void crw_handle_channel_report(void)
 	up(&crw_semaphore);
 }
 
-/*
- * Separate initcall needed for semaphore initialization since
- * crw_handle_channel_report might be called before crw_machine_check_init.
- */
+
 static int __init crw_init_semaphore(void)
 {
 	init_MUTEX_LOCKED(&crw_semaphore);
@@ -142,10 +120,7 @@ static int __init crw_init_semaphore(void)
 }
 pure_initcall(crw_init_semaphore);
 
-/*
- * Machine checks for the channel subsystem must be enabled
- * after the channel subsystem is initialized
- */
+
 static int __init crw_machine_check_init(void)
 {
 	struct task_struct *task;
@@ -153,7 +128,7 @@ static int __init crw_machine_check_init(void)
 	task = kthread_run(crw_collect_info, NULL, "kmcheck");
 	if (IS_ERR(task))
 		return PTR_ERR(task);
-	ctl_set_bit(14, 28);	/* enable channel report MCH */
+	ctl_set_bit(14, 28);	
 	return 0;
 }
 device_initcall(crw_machine_check_init);

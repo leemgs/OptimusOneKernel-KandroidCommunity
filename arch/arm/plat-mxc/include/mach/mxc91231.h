@@ -1,36 +1,13 @@
-/*
- *  Copyright 2004-2006 Freescale Semiconductor, Inc. All Rights Reserved.
- *    - Platform specific register memory map
- *
- *  Copyright 2005-2007 Motorola, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #ifndef __MACH_MXC91231_H__
 #define __MACH_MXC91231_H__
 
-/*
- * L2CC
- */
+
 #define MXC91231_L2CC_BASE_ADDR		0x30000000
 #define MXC91231_L2CC_BASE_ADDR_VIRT	0xF9000000
 #define MXC91231_L2CC_SIZE		SZ_64K
 
-/*
- * AIPS 1
- */
+
 #define MXC91231_AIPS1_BASE_ADDR	0x43F00000
 #define MXC91231_AIPS1_BASE_ADDR_VIRT	0xFC000000
 #define MXC91231_AIPS1_SIZE		SZ_1M
@@ -53,9 +30,7 @@
 #define MXC91231_IOMUX_AP_BASE_ADDR	(MXC91231_AIPS1_BASE_ADDR + 0xAC000)
 #define MXC91231_CTI_AP_BASE_ADDR	(MXC91231_AIPS1_BASE_ADDR + 0xB8000)
 
-/*
- * AIPS 2
- */
+
 #define MXC91231_AIPS2_BASE_ADDR	0x53F00000
 #define MXC91231_AIPS2_BASE_ADDR_VIRT	0xFC100000
 #define MXC91231_AIPS2_SIZE		SZ_1M
@@ -79,9 +54,7 @@
 #define MXC91231_RTIC_BASE_ADDR		(MXC91231_AIPS2_BASE_ADDR + 0xEC000)
 #define MXC91231_LPMC_BASE_ADDR		(MXC91231_AIPS2_BASE_ADDR + 0xF0000)
 
-/*
- * SPBA global module 0
- */
+
 #define MXC91231_SPBA0_BASE_ADDR	0x50000000
 #define MXC91231_SPBA0_BASE_ADDR_VIRT	0xFC200000
 #define MXC91231_SPBA0_SIZE		SZ_1M
@@ -109,9 +82,7 @@
 #define MXC91231_SAHARA_BASE_ADDR	(MXC91231_SPBA0_BASE_ADDR + 0x5C000)
 #define MXC91231_PLL3_BASE_ADDR		(MXC91231_SPBA0_BASE_ADDR + 0x60000)
 
-/*
- * SPBA global module 1
- */
+
 #define MXC91231_SPBA1_BASE_ADDR	0x52000000
 #define MXC91231_SPBA1_BASE_ADDR_VIRT	0xFC300000
 #define MXC91231_SPBA1_SIZE		SZ_1M
@@ -119,9 +90,7 @@
 #define MXC91231_MQSPI_BASE_ADDR	(MXC91231_SPBA1_BASE_ADDR + 0x34000)
 #define MXC91231_EL1T_BASE_ADDR		(MXC91231_SPBA1_BASE_ADDR + 0x38000)
 
-/*!
- * Defines for SPBA modules
- */
+
 #define MXC91231_SPBA_SDHC1		0x04
 #define MXC91231_SPBA_SDHC2		0x08
 #define MXC91231_SPBA_UART3		0x0C
@@ -144,9 +113,7 @@
 #define MXC91231_SPBA_GPIO4		0x58
 #define MXC91231_SPBA_SAHARA		0x5C
 
-/*
- * ROMP and AVIC
- */
+
 #define MXC91231_ROMP_BASE_ADDR		0x60000000
 #define MXC91231_ROMP_BASE_ADDR_VIRT	0xFC400000
 #define MXC91231_ROMP_SIZE		SZ_64K
@@ -155,9 +122,7 @@
 #define MXC91231_AVIC_BASE_ADDR_VIRT	0xFC410000
 #define MXC91231_AVIC_SIZE		SZ_64K
 
-/*
- * NAND, SDRAM, WEIM, M3IF, EMI controllers
- */
+
 #define MXC91231_X_MEMC_BASE_ADDR	0xB8000000
 #define MXC91231_X_MEMC_BASE_ADDR_VIRT	0xFC420000
 #define MXC91231_X_MEMC_SIZE		SZ_64K
@@ -168,11 +133,7 @@
 #define MXC91231_M3IF_BASE_ADDR		(MXC91231_X_MEMC_BASE_ADDR + 0x3000)
 #define MXC91231_EMI_CTL_BASE_ADDR	(MXC91231_X_MEMC_BASE_ADDR + 0x4000)
 
-/*
- * Memory regions and CS
- * CPLD is connected on CS4
- * CS5 is TP1021 or it is not connected
- * */
+
 #define MXC91231_FB_RAM_BASE_ADDR	0x78000000
 #define MXC91231_FB_RAM_SIZE		SZ_256K
 #define MXC91231_CSD0_BASE_ADDR		0x80000000
@@ -184,20 +145,15 @@
 #define MXC91231_CS4_BASE_ADDR		0xB4000000
 #define MXC91231_CS5_BASE_ADDR		0xB6000000
 
-/* Is given address belongs to the specified memory region? */
+
 #define ADDRESS_IN_REGION(addr, start, size) \
 	(((addr) >= (start)) && ((addr) < (start)+(size)))
 
-/* Is given address belongs to the specified named `module'? */
+
 #define MXC91231_IS_MODULE(addr, module) \
 	ADDRESS_IN_REGION(addr, MXC91231_ ## module ## _BASE_ADDR, \
 	                        MXC91231_ ## module ## _SIZE)
-/*
- * This macro defines the physical to virtual address mapping for all the
- * peripheral modules. It is used by passing in the physical address as x
- * and returning the virtual address. If the physical address is not mapped,
- * it returns 0xDEADBEEF
- */
+
 
 #define MXC91231_IO_ADDRESS(x) \
 	(void __iomem *) \
@@ -212,9 +168,7 @@
 	 0xDEADBEEF)
 
 
-/*
- * define the address mapping macros: in physical address order
- */
+
 #define MXC91231_L2CC_IO_ADDRESS(x)  \
 	(((x) - MXC91231_L2CC_BASE_ADDR) + MXC91231_L2CC_BASE_ADDR_VIRT)
 
@@ -239,9 +193,7 @@
 #define MXC91231_X_MEMC_IO_ADDRESS(x)  \
 	(((x) - MXC91231_X_MEMC_BASE_ADDR) + MXC91231_X_MEMC_BASE_ADDR_VIRT)
 
-/*
- * Interrupt numbers
- */
+
 #define MXC91231_INT_GPIO3		0
 #define MXC91231_INT_EL1T_CI		1
 #define MXC91231_INT_EL1T_RFCI		2
@@ -312,4 +264,4 @@
 #define MXC91231_MAX_INT_LINES		63
 #define MXC91231_MAX_EXT_LINES		8
 
-#endif /* __MACH_MXC91231_H__ */
+#endif 

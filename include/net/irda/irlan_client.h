@@ -1,26 +1,4 @@
-/*********************************************************************
- *                
- * Filename:      irlan_client.h
- * Version:       0.3
- * Description:   IrDA LAN access layer
- * Status:        Experimental.
- * Author:        Dag Brattli <dagb@cs.uit.no>
- * Created at:    Sun Aug 31 20:14:37 1997
- * Modified at:   Thu Apr 22 14:13:34 1999
- * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
- *     Copyright (c) 1998 Dag Brattli <dagb@cs.uit.no>, All Rights Reserved.
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
- *     the License, or (at your option) any later version.
- *
- *     Neither Dag Brattli nor University of Tromsø admit liability nor
- *     provide warranty for any of this software. This material is 
- *     provided "AS-IS" and at no charge.
- *
- ********************************************************************/
+
 
 #ifndef IRLAN_CLIENT_H
 #define IRLAN_CLIENT_H

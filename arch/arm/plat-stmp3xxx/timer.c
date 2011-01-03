@@ -1,20 +1,6 @@
-/*
- * System timer for Freescale STMP37XX/STMP378X
- *
- * Embedded Alley Solutions, Inc <source@embeddedalley.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/spinlock.h>
@@ -34,7 +20,7 @@ stmp3xxx_timer_interrupt(int irq, void *dev_id)
 {
 	struct clock_event_device *c = dev_id;
 
-	/* timer 0 */
+	
 	if (__raw_readl(REGS_TIMROT_BASE + HW_TIMROT_TIMCTRL0) &
 			BM_TIMROT_TIMCTRLn_IRQ) {
 		stmp3xxx_clearl(BM_TIMROT_TIMCTRLn_IRQ,
@@ -42,7 +28,7 @@ stmp3xxx_timer_interrupt(int irq, void *dev_id)
 		c->event_handler(c);
 	}
 
-	/* timer 1 */
+	
 	else if (__raw_readl(REGS_TIMROT_BASE + HW_TIMROT_TIMCTRL1)
 			& BM_TIMROT_TIMCTRLn_IRQ) {
 		stmp3xxx_clearl(BM_TIMROT_TIMCTRLn_IRQ,
@@ -65,7 +51,7 @@ static int
 stmp3xxx_timrot_set_next_event(unsigned long delta,
 		struct clock_event_device *dev)
 {
-	/* reload the timer */
+	
 	__raw_writel(delta, REGS_TIMROT_BASE + HW_TIMROT_TIMCOUNT0);
 	return 0;
 }
@@ -101,9 +87,7 @@ static struct irqaction stmp3xxx_timer_irq = {
 };
 
 
-/*
- * Set up timer interrupt, and return the current time in seconds.
- */
+
 static void __init stmp3xxx_init_timer(void)
 {
 	cksrc_stmp3xxx.mult = clocksource_hz2mult(CLOCK_TICK_RATE,
@@ -116,19 +100,19 @@ static void __init stmp3xxx_init_timer(void)
 
 	stmp3xxx_reset_block(REGS_TIMROT_BASE, false);
 
-	/* clear two timers */
+	
 	__raw_writel(0, REGS_TIMROT_BASE + HW_TIMROT_TIMCOUNT0);
 	__raw_writel(0, REGS_TIMROT_BASE + HW_TIMROT_TIMCOUNT1);
 
-	/* configure them */
+	
 	__raw_writel(
-		(8 << BP_TIMROT_TIMCTRLn_SELECT) |  /* 32 kHz */
+		(8 << BP_TIMROT_TIMCTRLn_SELECT) |  
 		BM_TIMROT_TIMCTRLn_RELOAD |
 		BM_TIMROT_TIMCTRLn_UPDATE |
 		BM_TIMROT_TIMCTRLn_IRQ_EN,
 			REGS_TIMROT_BASE + HW_TIMROT_TIMCTRL0);
 	__raw_writel(
-		(8 << BP_TIMROT_TIMCTRLn_SELECT) |  /* 32 kHz */
+		(8 << BP_TIMROT_TIMCTRLn_SELECT) |  
 		BM_TIMROT_TIMCTRLn_RELOAD |
 		BM_TIMROT_TIMCTRLn_UPDATE |
 		BM_TIMROT_TIMCTRLn_IRQ_EN,
@@ -159,13 +143,13 @@ void stmp3xxx_resume_timer(void)
 	stmp3xxx_clearl(BM_TIMROT_ROTCTRL_SFTRST | BM_TIMROT_ROTCTRL_CLKGATE,
 			REGS_TIMROT_BASE + HW_TIMROT_ROTCTRL);
 	__raw_writel(
-		8 << BP_TIMROT_TIMCTRLn_SELECT |  /* 32 kHz */
+		8 << BP_TIMROT_TIMCTRLn_SELECT |  
 		BM_TIMROT_TIMCTRLn_RELOAD |
 		BM_TIMROT_TIMCTRLn_UPDATE |
 		BM_TIMROT_TIMCTRLn_IRQ_EN,
 			REGS_TIMROT_BASE + HW_TIMROT_TIMCTRL0);
 	__raw_writel(
-		8 << BP_TIMROT_TIMCTRLn_SELECT |  /* 32 kHz */
+		8 << BP_TIMROT_TIMCTRLn_SELECT |  
 		BM_TIMROT_TIMCTRLn_RELOAD |
 		BM_TIMROT_TIMCTRLn_UPDATE |
 		BM_TIMROT_TIMCTRLn_IRQ_EN,
@@ -180,7 +164,7 @@ void stmp3xxx_resume_timer(void)
 #define stmp3xxx_suspend_timer	NULL
 #define	stmp3xxx_resume_timer	NULL
 
-#endif	/* CONFIG_PM */
+#endif	
 
 struct sys_timer stmp3xxx_timer = {
 	.init		= stmp3xxx_init_timer,

@@ -1,6 +1,4 @@
-/* Kernel module to match connection tracking byte counter.
- * GPL (C) 2002 Martin Devera (devik@cdi.cz).
- */
+
 #include <linux/module.h>
 #include <linux/bitops.h>
 #include <linux/skbuff.h>
@@ -22,7 +20,7 @@ connbytes_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 	const struct xt_connbytes_info *sinfo = par->matchinfo;
 	const struct nf_conn *ct;
 	enum ip_conntrack_info ctinfo;
-	u_int64_t what = 0;	/* initialize to make gcc happy */
+	u_int64_t what = 0;	
 	u_int64_t bytes = 0;
 	u_int64_t pkts = 0;
 	const struct nf_conn_counter *counters;

@@ -1,21 +1,12 @@
-/* arch/arm/mach-lh7a40x/include/mach/constants.h
- *
- *  Copyright (C) 2004 Coastal Environmental Systems
- *  Copyright (C) 2004 Logic Product Development
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
+
 
 #ifndef __ASM_ARCH_CONSTANTS_H
 #define __ASM_ARCH_CONSTANTS_H
 
 
-/* Addressing constants */
 
-	/* SoC CPU IO addressing */
+
+	
 #define IO_PHYS			(0x80000000)
 #define IO_VIRT			(0xf8000000)
 #define IO_SIZE			(0x0000B000)
@@ -28,7 +19,7 @@
 
 #if defined (CONFIG_MACH_LPD7A400) || defined (CONFIG_MACH_LPD7A404)
 
-# define IOBARRIER_PHYS		0x10000000 /* Second bank, fastest timing */
+# define IOBARRIER_PHYS		0x10000000 
 # define IOBARRIER_VIRT		0xf0000000
 # define IOBARRIER_SIZE		PAGE_SIZE
 
@@ -36,10 +27,10 @@
 # define CF_VIRT		0xf6020000
 # define CF_SIZE		(8*1024)
 
-	/* The IO mappings for the LPD CPLD are, unfortunately, sparse.  */
+	
 # define CPLDX_PHYS(x)		(0x70000000 | ((x) << 20))
 # define CPLDX_VIRT(x)		(0xf7000000 | ((x) << 16))
-# define CPLD00_PHYS		CPLDX_PHYS (0x00) /* Wired LAN */
+# define CPLD00_PHYS		CPLDX_PHYS (0x00) 
 # define CPLD00_VIRT		CPLDX_VIRT (0x00)
 # define CPLD00_SIZE		PAGE_SIZE
 # define CPLD02_PHYS		CPLDX_PHYS (0x02)
@@ -80,12 +71,12 @@
 # define CPLD1A_SIZE		PAGE_SIZE
 #endif
 
-	/* Timing constants */
+	
 
-#define	XTAL_IN			14745600	/* 14.7456 MHz crystal */
-#define PLL_CLOCK		(XTAL_IN * 21)	/* 309 MHz PLL clock */
-#define MAX_HCLK_KHZ		100000		/* HCLK max limit ~100MHz */
+#define	XTAL_IN			14745600	
+#define PLL_CLOCK		(XTAL_IN * 21)	
+#define MAX_HCLK_KHZ		100000		
 #define HCLK			(99993600)
-//#define HCLK			(119808000)
 
-#endif /* __ASM_ARCH_CONSTANTS_H */
+
+#endif 

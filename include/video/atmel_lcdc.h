@@ -1,39 +1,16 @@
-/*
- *  Header file for AT91/AT32 LCD Controller
- *
- *  Data structure and register user interface
- *
- *  Copyright (C) 2007 Atmel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #ifndef __ATMEL_LCDC_H__
 #define __ATMEL_LCDC_H__
 
 #include <linux/workqueue.h>
 
-/* Way LCD wires are connected to the chip:
- * Some Atmel chips use BGR color mode (instead of standard RGB)
- * A swapped wiring onboard can bring to RGB mode.
- */
+
 #define ATMEL_LCDC_WIRING_BGR	0
 #define ATMEL_LCDC_WIRING_RGB	1
 #define ATMEL_LCDC_WIRING_RGB555	2
 
 
- /* LCD Controller info data structure, stored in device platform_data */
+ 
 struct atmel_lcdfb_info {
 	spinlock_t		lock;
 	struct fb_info		*info;
@@ -215,4 +192,4 @@ struct atmel_lcdfb_info {
 
 #define ATMEL_LCDC_LUT(n)	(0x0c00 + ((n)*4))
 
-#endif /* __ATMEL_LCDC_H__ */
+#endif 

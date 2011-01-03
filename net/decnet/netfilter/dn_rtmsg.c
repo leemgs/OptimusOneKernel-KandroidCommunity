@@ -1,17 +1,4 @@
-/*
- * DECnet       An implementation of the DECnet protocol suite for the LINUX
- *              operating system.  DECnet is implemented using the  BSD Socket
- *              interface as the means of communication with the user level.
- *
- *              DECnet Routing Message Grabulator
- *
- *              (C) 2000 ChyGwyn Limited  -  http://www.chygwyn.com/
- *              This code may be copied under the GPL v.2 or at your option
- *              any later version.
- *
- * Author:      Steven Whitehouse <steve@chygwyn.com>
- *
- */
+
 #include <linux/module.h>
 #include <linux/skbuff.h>
 #include <linux/init.h>
@@ -110,7 +97,7 @@ static inline void dnrmg_receive_user_skb(struct sk_buff *skb)
 	if (security_netlink_recv(skb, CAP_NET_ADMIN))
 		RCV_SKB_FAIL(-EPERM);
 
-	/* Eventually we might send routing messages too */
+	
 
 	RCV_SKB_FAIL(-EINVAL);
 }

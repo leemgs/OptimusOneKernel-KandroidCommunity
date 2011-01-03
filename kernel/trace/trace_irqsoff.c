@@ -1,14 +1,4 @@
-/*
- * trace irqs off critical timings
- *
- * Copyright (C) 2007-2008 Steven Rostedt <srostedt@redhat.com>
- * Copyright (C) 2008 Ingo Molnar <mingo@redhat.com>
- *
- * From code in the latency_tracer, that is:
- *
- *  Copyright (C) 2004-2006 Ingo Molnar
- *  Copyright (C) 2004 William Lee Irwin III
- */
+
 #include <linux/kallsyms.h>
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
@@ -55,20 +45,11 @@ irq_trace(void)
 # define irq_trace() (0)
 #endif
 
-/*
- * Sequence count - we record it when starting a measurement and
- * skip the latency if the sequence has changed - some other section
- * did a maximum and could disturb our measurement with serial console
- * printouts, etc. Truly coinciding maximum latencies should be rare
- * and what happens together happens separately as well, so this doesnt
- * decrease the validity of the maximum found:
- */
+
 static __cacheline_aligned_in_smp	unsigned long max_sequence;
 
 #ifdef CONFIG_FUNCTION_TRACER
-/*
- * irqsoff uses its own tracer function to keep the overhead down:
- */
+
 static void
 irqsoff_tracer_call(unsigned long ip, unsigned long parent_ip)
 {
@@ -78,18 +59,13 @@ irqsoff_tracer_call(unsigned long ip, unsigned long parent_ip)
 	long disabled;
 	int cpu;
 
-	/*
-	 * Does not matter if we preempt. We test the flags
-	 * afterward, to see if irqs are disabled or not.
-	 * If we preempt and get a false positive, the flags
-	 * test will fail.
-	 */
+	
 	cpu = raw_smp_processor_id();
 	if (likely(!per_cpu(tracing_cpu, cpu)))
 		return;
 
 	local_save_flags(flags);
-	/* slight chance to get a false positive on tracing_cpu */
+	
 	if (!irqs_disabled_flags(flags))
 		return;
 
@@ -106,11 +82,9 @@ static struct ftrace_ops trace_ops __read_mostly =
 {
 	.func = irqsoff_tracer_call,
 };
-#endif /* CONFIG_FUNCTION_TRACER */
+#endif 
 
-/*
- * Should this new latency be reported/recorded?
- */
+
 static int report_latency(cycle_t delta)
 {
 	if (tracing_thresh) {
@@ -146,7 +120,7 @@ check_critical_timing(struct trace_array *tr,
 
 	spin_lock_irqsave(&max_trace_lock, flags);
 
-	/* check if we are still the max latency */
+	
 	if (!report_latency(delta))
 		goto out_unlock;
 
@@ -218,7 +192,7 @@ stop_critical_timing(unsigned long ip, unsigned long parent_ip)
 	unsigned long flags;
 
 	cpu = raw_smp_processor_id();
-	/* Always clear the tracing cpu on stopping the trace */
+	
 	if (unlikely(per_cpu(tracing_cpu, cpu)))
 		per_cpu(tracing_cpu, cpu) = 0;
 	else
@@ -242,7 +216,7 @@ stop_critical_timing(unsigned long ip, unsigned long parent_ip)
 	atomic_dec(&data->disabled);
 }
 
-/* start and stop critical timings used to for stoppage (in idle) */
+
 void start_critical_timings(void)
 {
 	if (preempt_trace() || irq_trace())
@@ -271,11 +245,9 @@ void time_hardirqs_off(unsigned long a0, unsigned long a1)
 		start_critical_timing(a0, a1);
 }
 
-#else /* !CONFIG_PROVE_LOCKING */
+#else 
 
-/*
- * Stubs:
- */
+
 
 void early_boot_irqs_off(void)
 {
@@ -297,9 +269,7 @@ inline void print_irqtrace_events(struct task_struct *curr)
 {
 }
 
-/*
- * We are only interested in hardirq on/off events:
- */
+
 void trace_hardirqs_on(void)
 {
 	if (!preempt_trace() && irq_trace())
@@ -328,8 +298,8 @@ void trace_hardirqs_off_caller(unsigned long caller_addr)
 }
 EXPORT_SYMBOL(trace_hardirqs_off_caller);
 
-#endif /* CONFIG_PROVE_LOCKING */
-#endif /*  CONFIG_IRQSOFF_TRACER */
+#endif 
+#endif 
 
 #ifdef CONFIG_PREEMPT_TRACER
 void trace_preempt_on(unsigned long a0, unsigned long a1)
@@ -343,7 +313,7 @@ void trace_preempt_off(unsigned long a0, unsigned long a1)
 	if (preempt_trace())
 		start_critical_timing(a0, a1);
 }
-#endif /* CONFIG_PREEMPT_TRACER */
+#endif 
 
 static void start_irqsoff_tracer(struct trace_array *tr)
 {
@@ -367,7 +337,7 @@ static void __irqsoff_tracer_init(struct trace_array *tr)
 
 	tracing_max_latency = 0;
 	irqsoff_trace = tr;
-	/* make sure that the tracer is visible */
+	
 	smp_wmb();
 	tracing_reset_online_cpus(tr);
 	start_irqsoff_tracer(tr);

@@ -1,8 +1,4 @@
-/*
- * trace_export.c - export basic ftrace utilities to user space
- *
- * Copyright (C) 2009 Steven Rostedt <srostedt@redhat.com>
- */
+
 #include <linux/stringify.h>
 #include <linux/kallsyms.h>
 #include <linux/seq_file.h>
@@ -18,7 +14,7 @@
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM	ftrace
 
-/* not needed for this file */
+
 #undef __field_struct
 #define __field_struct(type, item)
 
@@ -52,7 +48,7 @@ static void __used ____ftrace_check_##name(void)		\
 {								\
 	struct ____ftrace_##name *__entry = NULL;		\
 								\
-	/* force cmpile-time check on F_printk() */		\
+			\
 	printk(print);						\
 }
 

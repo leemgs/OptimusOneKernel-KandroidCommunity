@@ -1,8 +1,4 @@
-/*
- * cfg80211 MLME SAP interface
- *
- * Copyright (c) 2009, Jouni Malinen <j@w1.fi>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -68,12 +64,7 @@ void cfg80211_send_rx_assoc(struct net_device *dev, const u8 *buf, size_t len)
 
 	status_code = le16_to_cpu(mgmt->u.assoc_resp.status_code);
 
-	/*
-	 * This is a bit of a hack, we don't notify userspace of
-	 * a (re-)association reply if we tried to send a reassoc
-	 * and got a reject -- we only try again with an assoc
-	 * frame instead of reassoc.
-	 */
+	
 	if (status_code != WLAN_STATUS_SUCCESS && wdev->conn &&
 	    cfg80211_sme_failed_reassoc(wdev))
 		goto out;
@@ -88,49 +79,33 @@ void cfg80211_send_rx_assoc(struct net_device *dev, const u8 *buf, size_t len)
 				   ETH_ALEN) == 0) {
 				bss = wdev->auth_bsses[i];
 				wdev->auth_bsses[i] = NULL;
-				/* additional reference to drop hold */
+				
 				cfg80211_ref_bss(bss);
 				break;
 			}
 		}
 
-		/*
-		 * We might be coming here because the driver reported
-		 * a successful association at the same time as the
-		 * user requested a deauth. In that case, we will have
-		 * removed the BSS from the auth_bsses list due to the
-		 * deauth request when the assoc response makes it. If
-		 * the two code paths acquire the lock the other way
-		 * around, that's just the standard situation of a
-		 * deauth being requested while connected.
-		 */
+		
 		if (!bss)
 			goto out;
 	} else if (wdev->conn) {
 		cfg80211_sme_failed_assoc(wdev);
 		need_connect_result = false;
-		/*
-		 * do not call connect_result() now because the
-		 * sme will schedule work that does it later.
-		 */
+		
 		goto out;
 	}
 
 	if (!wdev->conn && wdev->sme_state == CFG80211_SME_IDLE) {
-		/*
-		 * This is for the userspace SME, the CONNECTING
-		 * state will be changed to CONNECTED by
-		 * __cfg80211_connect_result() below.
-		 */
+		
 		wdev->sme_state = CFG80211_SME_CONNECTING;
 	}
 
-	/* this consumes one bss reference (unless bss is NULL) */
+	
 	__cfg80211_connect_result(dev, mgmt->bssid, NULL, 0, ie, len - ieoffs,
 				  status_code,
 				  status_code == WLAN_STATUS_SUCCESS,
 				  bss ? &bss->pub : NULL);
-	/* drop hold now, and also reference acquired above */
+	
 	if (bss) {
 		cfg80211_unhold_bss(bss);
 		cfg80211_put_bss(&bss->pub);
@@ -207,7 +182,7 @@ void cfg80211_send_deauth(struct net_device *dev, const u8 *buf, size_t len,
 	BUG_ON(cookie && wdev != cookie);
 
 	if (cookie) {
-		/* called within callback */
+		
 		__cfg80211_send_deauth(dev, buf, len);
 	} else {
 		wdev_lock(wdev);
@@ -267,7 +242,7 @@ void cfg80211_send_disassoc(struct net_device *dev, const u8 *buf, size_t len,
 	BUG_ON(cookie && wdev != cookie);
 
 	if (cookie) {
-		/* called within callback */
+		
 		__cfg80211_send_disassoc(dev, buf, len);
 	} else {
 		wdev_lock(wdev);
@@ -371,7 +346,7 @@ void cfg80211_michael_mic_failure(struct net_device *dev, const u8 *addr,
 }
 EXPORT_SYMBOL(cfg80211_michael_mic_failure);
 
-/* some MLME handling for userspace SME */
+
 int __cfg80211_mlme_auth(struct cfg80211_registered_device *rdev,
 			 struct net_device *dev,
 			 struct ieee80211_channel *chan,
@@ -429,7 +404,7 @@ int __cfg80211_mlme_auth(struct cfg80211_registered_device *rdev,
 		}
 	}
 
-	/* we need one free slot for disassoc and one for this auth */
+	
 	if (nfree < 2) {
 		err = -ENOSPC;
 		goto out;
@@ -514,7 +489,7 @@ int __cfg80211_mlme_assoc(struct cfg80211_registered_device *rdev,
 
 	err = rdev->ops->assoc(&rdev->wiphy, dev, &req);
  out:
-	/* still a reference in wdev->auth_bsses[slot] */
+	
 	cfg80211_put_bss(req.bss);
 	return err;
 }

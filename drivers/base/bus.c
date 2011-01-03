@@ -1,14 +1,4 @@
-/*
- * bus.c - bus driver management
- *
- * Copyright (c) 2002-3 Patrick Mochel
- * Copyright (c) 2002-3 Open Source Development Labs
- * Copyright (c) 2007 Greg Kroah-Hartman <gregkh@suse.de>
- * Copyright (c) 2007 Novell Inc.
- *
- * This file is released under the GPLv2
- *
- */
+
 
 #include <linux/device.h>
 #include <linux/module.h>
@@ -21,9 +11,7 @@
 #define to_bus_attr(_attr) container_of(_attr, struct bus_attribute, attr)
 #define to_bus(obj) container_of(obj, struct bus_type_private, subsys.kobj)
 
-/*
- * sysfs bindings for drivers
- */
+
 
 #define to_drv_attr(_attr) container_of(_attr, struct driver_attribute, attr)
 
@@ -88,9 +76,7 @@ static struct kobj_type driver_ktype = {
 	.release	= driver_release,
 };
 
-/*
- * sysfs bindings for buses
- */
+
 static ssize_t bus_attr_show(struct kobject *kobj, struct attribute *attr,
 			     char *buf)
 {
@@ -162,7 +148,7 @@ static struct kset *bus_kset;
 
 
 #ifdef CONFIG_HOTPLUG
-/* Manually detach a device from its associated driver. */
+
 static ssize_t driver_unbind(struct device_driver *drv,
 			     const char *buf, size_t count)
 {
@@ -172,7 +158,7 @@ static ssize_t driver_unbind(struct device_driver *drv,
 
 	dev = bus_find_device_by_name(bus, NULL, buf);
 	if (dev && dev->driver == drv) {
-		if (dev->parent)	/* Needed for USB */
+		if (dev->parent)	
 			down(&dev->parent->sem);
 		device_release_driver(dev);
 		if (dev->parent)
@@ -185,11 +171,7 @@ static ssize_t driver_unbind(struct device_driver *drv,
 }
 static DRIVER_ATTR(unbind, S_IWUSR, NULL, driver_unbind);
 
-/*
- * Manually attach a device to a driver.
- * Note: the driver must want to bind to the device,
- * it is not possible to override the driver's id table.
- */
+
 static ssize_t driver_bind(struct device_driver *drv,
 			   const char *buf, size_t count)
 {
@@ -199,7 +181,7 @@ static ssize_t driver_bind(struct device_driver *drv,
 
 	dev = bus_find_device_by_name(bus, NULL, buf);
 	if (dev && dev->driver == NULL && driver_match_device(drv, dev)) {
-		if (dev->parent)	/* Needed for USB */
+		if (dev->parent)	
 			down(&dev->parent->sem);
 		down(&dev->sem);
 		err = driver_probe_device(drv, dev);
@@ -208,10 +190,10 @@ static ssize_t driver_bind(struct device_driver *drv,
 			up(&dev->parent->sem);
 
 		if (err > 0) {
-			/* success */
+			
 			err = count;
 		} else if (err == 0) {
-			/* driver didn't accept device */
+			
 			err = -ENODEV;
 		}
 	}
@@ -263,25 +245,7 @@ static struct device *next_device(struct klist_iter *i)
 	return dev;
 }
 
-/**
- * bus_for_each_dev - device iterator.
- * @bus: bus type.
- * @start: device to start iterating from.
- * @data: data for the callback.
- * @fn: function to be called for each device.
- *
- * Iterate over @bus's list of devices, and call @fn for each,
- * passing it @data. If @start is not NULL, we use that device to
- * begin iterating from.
- *
- * We check the return of @fn each time. If it returns anything
- * other than 0, we break out and return that value.
- *
- * NOTE: The device that returns a non-zero value is not retained
- * in any way, nor is its refcount incremented. If the caller needs
- * to retain this data, it should do so, and increment the reference
- * count in the supplied callback.
- */
+
 int bus_for_each_dev(struct bus_type *bus, struct device *start,
 		     void *data, int (*fn)(struct device *, void *))
 {
@@ -301,21 +265,7 @@ int bus_for_each_dev(struct bus_type *bus, struct device *start,
 }
 EXPORT_SYMBOL_GPL(bus_for_each_dev);
 
-/**
- * bus_find_device - device iterator for locating a particular device.
- * @bus: bus type
- * @start: Device to begin with
- * @data: Data to pass to match function
- * @match: Callback function to check device
- *
- * This is similar to the bus_for_each_dev() function above, but it
- * returns a reference to a device that is 'found' for later use, as
- * determined by the @match callback.
- *
- * The callback should return 0 if the device doesn't match and non-zero
- * if it does.  If the callback returns non-zero, this function will
- * return to the caller and not iterate over any more devices.
- */
+
 struct device *bus_find_device(struct bus_type *bus,
 			       struct device *start, void *data,
 			       int (*match)(struct device *dev, void *data))
@@ -343,16 +293,7 @@ static int match_name(struct device *dev, void *data)
 	return sysfs_streq(name, dev_name(dev));
 }
 
-/**
- * bus_find_device_by_name - device iterator for locating a particular device of a specific name
- * @bus: bus type
- * @start: Device to begin with
- * @name: name of the device to match
- *
- * This is similar to the bus_find_device() function above, but it handles
- * searching by a name automatically, no need to write another strcmp matching
- * function.
- */
+
 struct device *bus_find_device_by_name(struct bus_type *bus,
 				       struct device *start, const char *name)
 {
@@ -372,25 +313,7 @@ static struct device_driver *next_driver(struct klist_iter *i)
 	return NULL;
 }
 
-/**
- * bus_for_each_drv - driver iterator
- * @bus: bus we're dealing with.
- * @start: driver to start iterating on.
- * @data: data to pass to the callback.
- * @fn: function to call for each driver.
- *
- * This is nearly identical to the device iterator above.
- * We iterate over each driver that belongs to @bus, and call
- * @fn for each. If @fn returns anything but 0, we break out
- * and return it. If @start is not NULL, we use it as the head
- * of the list.
- *
- * NOTE: we don't return the driver that returns a non-zero
- * value, nor do we leave the reference count incremented for that
- * driver. If the caller needs to know that info, it must set it
- * in the callback. It must also be sure to increment the refcount
- * so it doesn't disappear before returning to the caller.
- */
+
 int bus_for_each_drv(struct bus_type *bus, struct device_driver *start,
 		     void *data, int (*fn)(struct device_driver *, void *))
 {
@@ -455,14 +378,7 @@ static inline int make_deprecated_bus_links(struct device *dev) { return 0; }
 static inline void remove_deprecated_bus_links(struct device *dev) { }
 #endif
 
-/**
- * bus_add_device - add device to bus
- * @dev: device being added
- *
- * - Add device's bus attributes.
- * - Create links to device's bus.
- * - Add the device to its bus's list of devices.
- */
+
 int bus_add_device(struct device *dev)
 {
 	struct bus_type *bus = bus_get(dev->bus);
@@ -499,12 +415,7 @@ out_put:
 	return error;
 }
 
-/**
- * bus_probe_device - probe drivers for a new device
- * @dev: device to probe
- *
- * - Automatically probe for a driver if the bus allows it.
- */
+
 void bus_probe_device(struct device *dev)
 {
 	struct bus_type *bus = dev->bus;
@@ -516,15 +427,7 @@ void bus_probe_device(struct device *dev)
 	}
 }
 
-/**
- * bus_remove_device - remove device from bus
- * @dev: device to be removed
- *
- * - Remove symlink from bus's directory.
- * - Delete device from bus's list.
- * - Detach from its driver.
- * - Drop reference taken in bus_add_device().
- */
+
 void bus_remove_device(struct device *dev)
 {
 	if (dev->bus) {
@@ -575,10 +478,7 @@ static void driver_remove_attrs(struct bus_type *bus,
 }
 
 #ifdef CONFIG_HOTPLUG
-/*
- * Thanks to drivers making their tables __devinit, we can't allow manual
- * bind and unbind from userspace unless CONFIG_HOTPLUG is enabled.
- */
+
 static int __must_check add_bind_files(struct device_driver *drv)
 {
 	int ret;
@@ -640,10 +540,7 @@ static ssize_t driver_uevent_store(struct device_driver *drv,
 }
 static DRIVER_ATTR(uevent, S_IWUSR, NULL, driver_uevent_store);
 
-/**
- * bus_add_driver - Add a driver to the bus.
- * @drv: driver.
- */
+
 int bus_add_driver(struct device_driver *drv)
 {
 	struct bus_type *bus;
@@ -685,7 +582,7 @@ int bus_add_driver(struct device_driver *drv)
 	}
 	error = driver_add_attrs(bus, drv);
 	if (error) {
-		/* How the hell do we get out of this pickle? Give up */
+		
 		printk(KERN_ERR "%s: driver_add_attrs(%s) failed\n",
 			__func__, drv->name);
 	}
@@ -693,7 +590,7 @@ int bus_add_driver(struct device_driver *drv)
 	if (!drv->suppress_bind_attrs) {
 		error = add_bind_files(drv);
 		if (error) {
-			/* Ditto */
+			
 			printk(KERN_ERR "%s: add_bind_files(%s) failed\n",
 				__func__, drv->name);
 		}
@@ -711,14 +608,7 @@ out_put_bus:
 	return error;
 }
 
-/**
- * bus_remove_driver - delete driver from bus's knowledge.
- * @drv: driver.
- *
- * Detach the driver from the devices it controls, and remove
- * it from its bus's list of drivers. Finally, we drop the reference
- * to the bus we took in bus_add_driver().
- */
+
 void bus_remove_driver(struct device_driver *drv)
 {
 	if (!drv->bus)
@@ -736,14 +626,14 @@ void bus_remove_driver(struct device_driver *drv)
 	bus_put(drv->bus);
 }
 
-/* Helper for bus_rescan_devices's iter */
+
 static int __must_check bus_rescan_devices_helper(struct device *dev,
 						  void *data)
 {
 	int ret = 0;
 
 	if (!dev->driver) {
-		if (dev->parent)	/* Needed for USB */
+		if (dev->parent)	
 			down(&dev->parent->sem);
 		ret = device_attach(dev);
 		if (dev->parent)
@@ -752,33 +642,18 @@ static int __must_check bus_rescan_devices_helper(struct device *dev,
 	return ret < 0 ? ret : 0;
 }
 
-/**
- * bus_rescan_devices - rescan devices on the bus for possible drivers
- * @bus: the bus to scan.
- *
- * This function will look for devices on the bus with no driver
- * attached and rescan it against existing drivers to see if it matches
- * any by calling device_attach() for the unbound devices.
- */
+
 int bus_rescan_devices(struct bus_type *bus)
 {
 	return bus_for_each_dev(bus, NULL, NULL, bus_rescan_devices_helper);
 }
 EXPORT_SYMBOL_GPL(bus_rescan_devices);
 
-/**
- * device_reprobe - remove driver for a device and probe for a new driver
- * @dev: the device to reprobe
- *
- * This function detaches the attached driver (if any) for the given
- * device and restarts the driver probing process.  It is intended
- * to use if probing criteria changed during a devices lifetime and
- * driver attachment should change accordingly.
- */
+
 int device_reprobe(struct device *dev)
 {
 	if (dev->driver) {
-		if (dev->parent)        /* Needed for USB */
+		if (dev->parent)        
 			down(&dev->parent->sem);
 		device_release_driver(dev);
 		if (dev->parent)
@@ -788,28 +663,17 @@ int device_reprobe(struct device *dev)
 }
 EXPORT_SYMBOL_GPL(device_reprobe);
 
-/**
- * find_bus - locate bus by name.
- * @name: name of bus.
- *
- * Call kset_find_obj() to iterate over list of buses to
- * find a bus by name. Return bus if found.
- *
- * Note that kset_find_obj increments bus' reference count.
- */
+
 #if 0
 struct bus_type *find_bus(char *name)
 {
 	struct kobject *k = kset_find_obj(bus_kset, name);
 	return k ? to_bus(k) : NULL;
 }
-#endif  /*  0  */
+#endif  
 
 
-/**
- * bus_add_attrs - Add default attributes for this bus.
- * @bus: Bus that has just been registered.
- */
+
 
 static int bus_add_attrs(struct bus_type *bus)
 {
@@ -868,14 +732,7 @@ static ssize_t bus_uevent_store(struct bus_type *bus,
 }
 static BUS_ATTR(uevent, S_IWUSR, NULL, bus_uevent_store);
 
-/**
- * bus_register - register a bus with the system.
- * @bus: bus.
- *
- * Once we have that, we registered the bus with the kobject
- * infrastructure, then register the children subsystems it has:
- * the devices and drivers that belong to the bus.
- */
+
 int bus_register(struct bus_type *bus)
 {
 	int retval;
@@ -951,13 +808,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(bus_register);
 
-/**
- * bus_unregister - remove a bus from the system
- * @bus: bus.
- *
- * Unregister the child subsystems and the bus itself.
- * Finally, we call bus_put() to release the refcount
- */
+
 void bus_unregister(struct bus_type *bus)
 {
 	pr_debug("bus: '%s': unregistering\n", bus->name);
@@ -996,13 +847,7 @@ struct klist *bus_get_device_klist(struct bus_type *bus)
 }
 EXPORT_SYMBOL_GPL(bus_get_device_klist);
 
-/*
- * Yes, this forcably breaks the klist abstraction temporarily.  It
- * just wants to sort the klist, not change reference counts and
- * take/drop locks rapidly in the process.  It does all this while
- * holding the lock for the list, so objects can't otherwise be
- * added/removed while we're swizzling.
- */
+
 static void device_insertion_sort_klist(struct device *a, struct list_head *list,
 					int (*compare)(const struct device *a,
 							const struct device *b))

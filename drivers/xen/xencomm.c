@@ -1,29 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- * Copyright (C) IBM Corp. 2006
- *
- * Authors: Hollis Blanchard <hollisb@us.ibm.com>
- */
+
 
 #include <linux/gfp.h>
 #include <linux/mm.h>
 #include <asm/page.h>
 #include <xen/xencomm.h>
 #include <xen/interface/xen.h>
-#include <asm/xen/xencomm.h>	/* for xencomm_is_phys_contiguous() */
+#include <asm/xen/xencomm.h>	
 
 static int xencomm_init(struct xencomm_desc *desc,
 			void *buffer, unsigned long bytes)
@@ -37,7 +19,7 @@ static int xencomm_init(struct xencomm_desc *desc,
 		int offset;
 		int chunksz;
 
-		offset = vaddr % PAGE_SIZE; /* handle partial pages */
+		offset = vaddr % PAGE_SIZE; 
 		chunksz = min(PAGE_SIZE - offset, bytes - recorded);
 
 		paddr = xencomm_vtop(vaddr);
@@ -58,7 +40,7 @@ static int xencomm_init(struct xencomm_desc *desc,
 		return -ENOSPC;
 	}
 
-	/* mark remaining addresses invalid (just for safety) */
+	
 	while (i < desc->nr_addrs)
 		desc->address[i++] = XENCOMM_INVALID;
 
@@ -78,11 +60,7 @@ static struct xencomm_desc *xencomm_alloc(gfp_t gfp_mask,
 	unsigned long size = sizeof(*desc) +
 		sizeof(desc->address[0]) * nr_addrs;
 
-	/*
-	 * slab allocator returns at least sizeof(void*) aligned pointer.
-	 * When sizeof(*desc) > sizeof(void*), struct xencomm_desc might
-	 * cross page boundary.
-	 */
+	
 	if (sizeof(*desc) > sizeof(void *)) {
 		unsigned long order = get_order(size);
 		desc = (struct xencomm_desc *)__get_free_pages(gfp_mask,
@@ -126,13 +104,13 @@ static int xencomm_create(void *buffer, unsigned long bytes,
 	pr_debug("%s: %p[%ld]\n", __func__, buffer, bytes);
 
 	if (bytes == 0) {
-		/* don't create a descriptor; Xen recognizes NULL. */
+		
 		BUG_ON(buffer != NULL);
 		*ret = NULL;
 		return 0;
 	}
 
-	BUG_ON(buffer == NULL); /* 'bytes' is non-zero */
+	BUG_ON(buffer == NULL); 
 
 	desc = xencomm_alloc(gfp_mask, buffer, bytes);
 	if (!desc) {
@@ -162,7 +140,7 @@ static struct xencomm_handle *xencomm_create_inline(void *ptr)
 	return (struct xencomm_handle *)(paddr | XENCOMM_INLINE_FLAG);
 }
 
-/* "mini" routine, for stack-based communications: */
+
 static int xencomm_create_mini(void *buffer,
 	unsigned long bytes, struct xencomm_mini *xc_desc,
 	struct xencomm_desc **ret)

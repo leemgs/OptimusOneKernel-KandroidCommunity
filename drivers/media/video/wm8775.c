@@ -1,29 +1,4 @@
-/*
- * wm8775 - driver version 0.0.1
- *
- * Copyright (C) 2004 Ulf Eklund <ivtv at eklund.to>
- *
- * Based on saa7115 driver
- *
- * Copyright (C) 2005 Hans Verkuil <hverkuil@xs4all.nl>
- * - Cleanup
- * - V4L2 API update
- * - sound fixes
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -42,7 +17,7 @@ MODULE_LICENSE("GPL");
 
 
 
-/* ----------------------------------------------------------------------- */
+
 
 enum {
 	R7 = 7, R11 = 11,
@@ -52,7 +27,7 @@ enum {
 
 struct wm8775_state {
 	struct v4l2_subdev sd;
-	u8 input;		/* Last selected input (0-0xf) */
+	u8 input;		
 	u8 muted;
 };
 
@@ -84,11 +59,7 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
 {
 	struct wm8775_state *state = to_state(sd);
 
-	/* There are 4 inputs and one output. Zero or more inputs
-	   are multiplexed together to the output. Hence there are
-	   16 combinations.
-	   If only one input is active (the normal case) then the
-	   input values 1, 2, 4 or 8 should be used. */
+	
 	if (input > 15) {
 		v4l2_err(sd, "Invalid input %d.\n", input);
 		return -EINVAL;
@@ -148,10 +119,7 @@ static int wm8775_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *fre
 {
 	struct wm8775_state *state = to_state(sd);
 
-	/* If I remove this, then it can happen that I have no
-	   sound the first time I tune from static to a valid channel.
-	   It's difficult to reproduce and is almost certainly related
-	   to the zero cross detect circuit. */
+	
 	wm8775_write(sd, R21, 0x0c0);
 	wm8775_write(sd, R14, 0x1d4);
 	wm8775_write(sd, R15, 0x1d4);
@@ -159,7 +127,7 @@ static int wm8775_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *fre
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops wm8775_core_ops = {
 	.log_status = wm8775_log_status,
@@ -182,14 +150,11 @@ static const struct v4l2_subdev_ops wm8775_ops = {
 	.audio = &wm8775_audio_ops,
 };
 
-/* ----------------------------------------------------------------------- */
 
-/* i2c implementation */
 
-/*
- * Generic i2c probe
- * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
- */
+
+
+
 
 static int wm8775_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
@@ -197,7 +162,7 @@ static int wm8775_probe(struct i2c_client *client,
 	struct wm8775_state *state;
 	struct v4l2_subdev *sd;
 
-	/* Check if the adapter supports the needed features */
+	
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -EIO;
 
@@ -212,34 +177,33 @@ static int wm8775_probe(struct i2c_client *client,
 	state->input = 2;
 	state->muted = 0;
 
-	/* Initialize wm8775 */
+	
 
-	/* RESET */
+	
 	wm8775_write(sd, R23, 0x000);
-	/* Disable zero cross detect timeout */
+	
 	wm8775_write(sd, R7, 0x000);
-	/* Left justified, 24-bit mode */
+	
 	wm8775_write(sd, R11, 0x021);
-	/* Master mode, clock ratio 256fs */
+	
 	wm8775_write(sd, R12, 0x102);
-	/* Powered up */
+	
 	wm8775_write(sd, R13, 0x000);
-	/* ADC gain +2.5dB, enable zero cross */
+	
 	wm8775_write(sd, R14, 0x1d4);
-	/* ADC gain +2.5dB, enable zero cross */
+	
 	wm8775_write(sd, R15, 0x1d4);
-	/* ALC Stereo, ALC target level -1dB FS max gain +8dB */
+	
 	wm8775_write(sd, R16, 0x1bf);
-	/* Enable gain control, use zero cross detection,
-	   ALC hold time 42.6 ms */
+	
 	wm8775_write(sd, R17, 0x185);
-	/* ALC gain ramp up delay 34 s, ALC gain ramp down delay 33 ms */
+	
 	wm8775_write(sd, R18, 0x0a2);
-	/* Enable noise gate, threshold -72dBfs */
+	
 	wm8775_write(sd, R19, 0x005);
-	/* Transient window 4ms, lower PGA gain limit -1dB */
+	
 	wm8775_write(sd, R20, 0x07a);
-	/* LRBOTH = 1, use input 2. */
+	
 	wm8775_write(sd, R21, 0x102);
 	return 0;
 }

@@ -1,17 +1,4 @@
-/*
- * arch/arm/mach-iop32x/iq80321.c
- *
- * Board support code for the Intel IQ80321 platform.
- *
- * Author: Rory Bolt <rorybolt@pacbell.net>
- * Copyright (C) 2002 Rory Bolt
- * Copyright (C) 2004 Intel Corp.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/mm.h>
 #include <linux/init.h>
@@ -35,12 +22,10 @@
 #include <asm/pgtable.h>
 #include <mach/time.h>
 
-/*
- * IQ80321 timer tick configuration.
- */
+
 static void __init iq80321_timer_init(void)
 {
-	/* 33.333 MHz crystal.  */
+	
 	iop_init_time(200000000);
 }
 
@@ -50,11 +35,9 @@ static struct sys_timer iq80321_timer = {
 };
 
 
-/*
- * IQ80321 I/O.
- */
+
 static struct map_desc iq80321_io_desc[] __initdata = {
- 	{	/* on-board devices */
+ 	{	
 		.virtual	= IQ80321_UART,
 		.pfn		= __phys_to_pfn(IQ80321_UART),
 		.length		= 0x00100000,
@@ -69,28 +52,26 @@ void __init iq80321_map_io(void)
 }
 
 
-/*
- * IQ80321 PCI.
- */
+
 static int __init
 iq80321_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
 	if ((slot == 2 || slot == 6) && pin == 1) {
-		/* PCI-X Slot INTA */
+		
 		irq = IRQ_IOP32X_XINT2;
 	} else if ((slot == 2 || slot == 6) && pin == 2) {
-		/* PCI-X Slot INTA */
+		
 		irq = IRQ_IOP32X_XINT3;
 	} else if ((slot == 2 || slot == 6) && pin == 3) {
-		/* PCI-X Slot INTA */
+		
 		irq = IRQ_IOP32X_XINT0;
 	} else if ((slot == 2 || slot == 6) && pin == 4) {
-		/* PCI-X Slot INTA */
+		
 		irq = IRQ_IOP32X_XINT1;
 	} else if (slot == 4 || slot == 8) {
-		/* Gig-E */
+		
 		irq = IRQ_IOP32X_XINT0;
 	} else {
 		printk(KERN_ERR "iq80321_pci_map_irq() called for unknown "
@@ -123,9 +104,7 @@ static int __init iq80321_pci_init(void)
 subsys_initcall(iq80321_pci_init);
 
 
-/*
- * IQ80321 machine initialisation.
- */
+
 static struct physmap_flash_data iq80321_flash_data = {
 	.width		= 1,
 };
@@ -187,7 +166,7 @@ static void __init iq80321_init_machine(void)
 }
 
 MACHINE_START(IQ80321, "Intel IQ80321")
-	/* Maintainer: Intel Corp. */
+	
 	.phys_io	= IQ80321_UART,
 	.io_pg_offst	= ((IQ80321_UART) >> 18) & 0xfffc,
 	.boot_params	= 0xa0000100,

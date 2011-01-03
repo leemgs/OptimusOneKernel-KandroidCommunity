@@ -1,16 +1,4 @@
-/*
- * linux/drivers/pcmcia/pxa2xx_palmtc.c
- *
- * Driver for Palm Tungsten|C PCMCIA
- *
- * Copyright (C) 2008 Alex Osborne <ato@meshy.org>
- * Copyright (C) 2009 Marek Vasut <marek.vasut@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -99,7 +87,7 @@ static void palmtc_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 static void palmtc_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 					struct pcmcia_state *state)
 {
-	state->detect = 1; /* always inserted */
+	state->detect = 1; 
 	state->ready  = !!gpio_get_value(GPIO_NR_PALMTC_PCMCIA_READY);
 	state->bvd1   = 1;
 	state->bvd2   = 1;
@@ -124,25 +112,25 @@ static int palmtc_wifi_powerup(void)
 	gpio_set_value(GPIO_NR_PALMTC_PCMCIA_POWER3, 1);
 	mdelay(50);
 
-	/* Power up the card, 1.8V first, after a while 3.3V */
+	
 	gpio_set_value(GPIO_NR_PALMTC_PCMCIA_POWER1, 1);
 	mdelay(100);
 	gpio_set_value(GPIO_NR_PALMTC_PCMCIA_POWER2, 1);
 
-	/* Wait till the card is ready */
+	
 	while (!gpio_get_value(GPIO_NR_PALMTC_PCMCIA_PWRREADY) &&
 		timeout) {
 		mdelay(1);
 		timeout--;
 	}
 
-	/* Power down the WiFi in case of error */
+	
 	if (!timeout) {
 		palmtc_wifi_powerdown();
 		return 1;
 	}
 
-	/* Reset the card */
+	
 	gpio_set_value(GPIO_NR_PALMTC_PCMCIA_RESET, 1);
 	mdelay(20);
 	gpio_set_value(GPIO_NR_PALMTC_PCMCIA_RESET, 0);

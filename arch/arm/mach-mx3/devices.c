@@ -1,21 +1,4 @@
-/*
- * Copyright 2006-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Sascha Hauer, kernel@pengutronix.de
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA  02110-1301, USA.
- */
+
 
 #include <linux/dma-mapping.h>
 #include <linux/module.h>
@@ -125,9 +108,9 @@ struct platform_device mxc_uart_device4 = {
 	.resource = uart4,
 	.num_resources = ARRAY_SIZE(uart4),
 };
-#endif /* CONFIG_ARCH_MX31 */
+#endif 
 
-/* GPIO port description */
+
 static struct mxc_gpio_port imx_gpio_ports[] = {
 	{
 		.chip.label = "gpio-0",
@@ -169,7 +152,7 @@ struct platform_device mxc_w1_master_device = {
 
 static struct resource mxc_nand_resources[] = {
 	{
-		.start	= 0, /* runtime dependent */
+		.start	= 0, 
 		.end	= 0,
 		.flags	= IORESOURCE_MEM,
 	}, {
@@ -296,11 +279,11 @@ struct platform_device mxc_rnga_device = {
 	.num_resources = 1,
 	.resource = rnga_resources,
 };
-#endif /* CONFIG_ARCH_MX31 */
+#endif 
 
-/* i.MX31 Image Processing Unit */
 
-/* The resource order is important! */
+
+
 static struct resource mx3_ipu_rsrc[] = {
 	{
 		.start = IPU_CTRL_BASE_ADDR,
@@ -378,7 +361,7 @@ static struct resource otg_resources[] = {
 
 static u64 otg_dmamask = DMA_BIT_MASK(32);
 
-/* OTG gadget device */
+
 struct platform_device mxc_otg_udc_device = {
 	.name		= "fsl-usb2-udc",
 	.id		= -1,
@@ -390,7 +373,7 @@ struct platform_device mxc_otg_udc_device = {
 	.num_resources	= ARRAY_SIZE(otg_resources),
 };
 
-/* OTG host */
+
 struct platform_device mxc_otg_host = {
 	.name = "mxc-ehci",
 	.id = 0,
@@ -402,7 +385,7 @@ struct platform_device mxc_otg_host = {
 	.num_resources = ARRAY_SIZE(otg_resources),
 };
 
-/* USB host 1 */
+
 
 static u64 usbh1_dmamask = ~(u32)0;
 
@@ -429,7 +412,7 @@ struct platform_device mxc_usbh1 = {
 	.num_resources = ARRAY_SIZE(mxc_usbh1_resources),
 };
 
-/* USB host 2 */
+
 static u64 usbh2_dmamask = ~(u32)0;
 
 static struct resource mxc_usbh2_resources[] = {
@@ -455,10 +438,7 @@ struct platform_device mxc_usbh2 = {
 	.num_resources = ARRAY_SIZE(mxc_usbh2_resources),
 };
 
-/*
- * SPI master controller
- * 3 channels
- */
+
 static struct resource mxc_spi_0_resources[] = {
 	{
 	       .start = CSPI1_BASE_ADDR,

@@ -1,9 +1,4 @@
-/*
- * net/dst.h	Protocol independent destination cache definitions.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- */
+
 
 #ifndef _NET_DST_H
 #define _NET_DST_H
@@ -16,23 +11,14 @@
 #include <net/neighbour.h>
 #include <asm/processor.h>
 
-/*
- * 0 - no debugging messages
- * 1 - rare events and bugs (default)
- * 2 - trace mode.
- */
+
 #define RT_CACHE_DEBUG		0
 
 #define DST_GC_MIN	(HZ/10)
 #define DST_GC_INC	(HZ/2)
 #define DST_GC_MAX	(120*HZ)
 
-/* Each dst_entry has reference count and sits in some parent list(s).
- * When it is removed from parent list, it is "freed" (dst_free).
- * After this it enters dead state (dst->obsolete > 0) and if its refcnt
- * is zero, it can be destroyed immediately, otherwise it is added
- * to gc list and garbage collector periodically checks the refcnt.
- */
+
 
 struct sk_buff;
 
@@ -50,11 +36,11 @@ struct dst_entry
 #define DST_NOHASH		8
 	unsigned long		expires;
 
-	unsigned short		header_len;	/* more space at head required */
-	unsigned short		trailer_len;	/* space to reserve at tail */
+	unsigned short		header_len;	
+	unsigned short		trailer_len;	
 
 	unsigned int		rate_tokens;
-	unsigned long		rate_last;	/* rate limiting for ICMP */
+	unsigned long		rate_last;	
 
 	struct dst_entry	*path;
 
@@ -79,20 +65,14 @@ struct dst_entry
 #endif
 
 
-	/*
-	 * Align __refcnt to a 64 bytes alignment
-	 * (L1_CACHE_SIZE would be too much)
-	 */
+	
 #ifdef CONFIG_64BIT
 	long			__pad_to_align_refcnt[2];
 #else
 	long			__pad_to_align_refcnt[1];
 #endif
-	/*
-	 * __refcnt wants to be on a different cache line from
-	 * input/output/ops or performance tanks badly
-	 */
-	atomic_t		__refcnt;	/* client references	*/
+	
+	atomic_t		__refcnt;	
 	int			__use;
 	unsigned long		lastuse;
 	union {
@@ -114,14 +94,12 @@ dst_metric(const struct dst_entry *dst, int metric)
 static inline u32 dst_mtu(const struct dst_entry *dst)
 {
 	u32 mtu = dst_metric(dst, RTAX_MTU);
-	/*
-	 * Alexey put it here, so ask him about it :)
-	 */
+	
 	barrier();
 	return mtu;
 }
 
-/* RTT metrics are stored in milliseconds for user ABI, but used as jiffies */
+
 static inline unsigned long dst_metric_rtt(const struct dst_entry *dst, int metric)
 {
 	return msecs_to_jiffies(dst_metric(dst, metric));
@@ -137,7 +115,7 @@ static inline u32
 dst_allfrag(const struct dst_entry *dst)
 {
 	int ret = dst_metric(dst, RTAX_FEATURES) & RTAX_FEATURE_ALLFRAG;
-	/* Yes, _exactly_. This is paranoia. */
+	
 	barrier();
 	return ret;
 }
@@ -150,10 +128,7 @@ dst_metric_locked(struct dst_entry *dst, int metric)
 
 static inline void dst_hold(struct dst_entry * dst)
 {
-	/*
-	 * If your kernel compilation stops here, please check
-	 * __pad_to_align_refcnt declaration in struct dst_entry
-	 */
+	
 	BUILD_BUG_ON(offsetof(struct dst_entry, __refcnt) & 63);
 	atomic_inc(&dst->__refcnt);
 }
@@ -181,9 +156,7 @@ static inline void skb_dst_drop(struct sk_buff *skb)
 	skb->_skb_dst = 0UL;
 }
 
-/* Children define the path of the packet through the
- * Linux networking.  Thus, destinations are stackable.
- */
+
 
 static inline struct dst_entry *dst_pop(struct dst_entry *dst)
 {
@@ -247,13 +220,13 @@ static inline void dst_set_expires(struct dst_entry *dst, int timeout)
 		dst->expires = expires;
 }
 
-/* Output packet to network from transport.  */
+
 static inline int dst_output(struct sk_buff *skb)
 {
 	return skb_dst(skb)->output(skb);
 }
 
-/* Input packet from network to transport.  */
+
 static inline int dst_input(struct sk_buff *skb)
 {
 	return skb_dst(skb)->input(skb);
@@ -268,7 +241,7 @@ static inline struct dst_entry *dst_check(struct dst_entry *dst, u32 cookie)
 
 extern void		dst_init(void);
 
-/* Flags for xfrm_lookup flags argument. */
+
 enum {
 	XFRM_LOOKUP_WAIT = 1 << 0,
 	XFRM_LOOKUP_ICMP = 1 << 1,
@@ -294,4 +267,4 @@ extern int __xfrm_lookup(struct net *net, struct dst_entry **dst_p,
 #endif
 #endif
 
-#endif /* _NET_DST_H */
+#endif 

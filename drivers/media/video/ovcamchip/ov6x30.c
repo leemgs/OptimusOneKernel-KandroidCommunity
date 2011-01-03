@@ -1,32 +1,23 @@
-/* OmniVision OV6630/OV6130 Camera Chip Support Code
- *
- * Copyright (c) 1999-2004 Mark McClelland <mark@alpha.dyndns.org>
- * http://alpha.dyndns.org/ov511/
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version. NO WARRANTY OF ANY KIND is expressed or implied.
- */
+
 
 #define DEBUG
 
 #include <linux/slab.h>
 #include "ovcamchip_priv.h"
 
-/* Registers */
-#define REG_GAIN		0x00	/* gain [5:0] */
-#define REG_BLUE		0x01	/* blue gain */
-#define REG_RED			0x02	/* red gain */
-#define REG_SAT			0x03	/* saturation [7:3] */
-#define REG_CNT			0x05	/* Y contrast [3:0] */
-#define REG_BRT			0x06	/* Y brightness */
-#define REG_SHARP		0x07	/* sharpness */
-#define REG_WB_BLUE		0x0C	/* WB blue ratio [5:0] */
-#define REG_WB_RED		0x0D	/* WB red ratio [5:0] */
-#define REG_EXP			0x10	/* exposure */
 
-/* Window parameters */
+#define REG_GAIN		0x00	
+#define REG_BLUE		0x01	
+#define REG_RED			0x02	
+#define REG_SAT			0x03	
+#define REG_CNT			0x05	
+#define REG_BRT			0x06	
+#define REG_SHARP		0x07	
+#define REG_WB_BLUE		0x0C	
+#define REG_WB_RED		0x0D	
+#define REG_EXP			0x10	
+
+
 #define HWSBASE 0x38
 #define HWEBASE 0x3A
 #define VWSBASE 0x05
@@ -41,21 +32,21 @@ struct ov6x30 {
 };
 
 static struct ovcamchip_regvals regvals_init_6x30[] = {
-	{ 0x12, 0x80 }, /* reset */
-	{ 0x00, 0x1f }, /* Gain */
-	{ 0x01, 0x99 }, /* Blue gain */
-	{ 0x02, 0x7c }, /* Red gain */
-	{ 0x03, 0xc0 }, /* Saturation */
-	{ 0x05, 0x0a }, /* Contrast */
-	{ 0x06, 0x95 }, /* Brightness */
-	{ 0x07, 0x2d }, /* Sharpness */
+	{ 0x12, 0x80 }, 
+	{ 0x00, 0x1f }, 
+	{ 0x01, 0x99 }, 
+	{ 0x02, 0x7c }, 
+	{ 0x03, 0xc0 }, 
+	{ 0x05, 0x0a }, 
+	{ 0x06, 0x95 }, 
+	{ 0x07, 0x2d }, 
 	{ 0x0c, 0x20 },
 	{ 0x0d, 0x20 },
 	{ 0x0e, 0x20 },
 	{ 0x0f, 0x05 },
-	{ 0x10, 0x9a }, /* "exposure check" */
-	{ 0x11, 0x00 }, /* Pixel clock = fastest */
-	{ 0x12, 0x24 }, /* Enable AGC and AWB */
+	{ 0x10, 0x9a }, 
+	{ 0x11, 0x00 }, 
+	{ 0x12, 0x24 }, 
 	{ 0x13, 0x21 },
 	{ 0x14, 0x80 },
 	{ 0x15, 0x01 },
@@ -70,16 +61,16 @@ static struct ovcamchip_regvals regvals_init_6x30[] = {
 	{ 0x20, 0x20 },
 	{ 0x21, 0x10 },
 	{ 0x22, 0x88 },
-	{ 0x23, 0xc0 }, /* Crystal circuit power level */
-	{ 0x25, 0x9a }, /* Increase AEC black pixel ratio */
-	{ 0x26, 0xb2 }, /* BLC enable */
+	{ 0x23, 0xc0 }, 
+	{ 0x25, 0x9a }, 
+	{ 0x26, 0xb2 }, 
 	{ 0x27, 0xa2 },
 	{ 0x28, 0x00 },
 	{ 0x29, 0x00 },
-	{ 0x2a, 0x84 }, /* (keep) */
-	{ 0x2b, 0xa8 }, /* (keep) */
+	{ 0x2a, 0x84 }, 
+	{ 0x2b, 0xa8 }, 
 	{ 0x2c, 0xa0 },
-	{ 0x2d, 0x95 },	/* Enable auto-brightness */
+	{ 0x2d, 0x95 },	
 	{ 0x2e, 0x88 },
 	{ 0x33, 0x26 },
 	{ 0x34, 0x03 },
@@ -93,10 +84,10 @@ static struct ovcamchip_regvals regvals_init_6x30[] = {
 	{ 0x3d, 0x80 },
 	{ 0x3e, 0x80 },
 	{ 0x3f, 0x0e },
-	{ 0x40, 0x00 }, /* White bal */
-	{ 0x41, 0x00 }, /* White bal */
+	{ 0x40, 0x00 }, 
+	{ 0x41, 0x00 }, 
 	{ 0x42, 0x80 },
-	{ 0x43, 0x3f }, /* White bal */
+	{ 0x43, 0x3f }, 
 	{ 0x44, 0x80 },
 	{ 0x45, 0x20 },
 	{ 0x46, 0x20 },
@@ -106,29 +97,29 @@ static struct ovcamchip_regvals regvals_init_6x30[] = {
 	{ 0x4a, 0x00 },
 	{ 0x4b, 0x80 },
 	{ 0x4c, 0xd0 },
-	{ 0x4d, 0x10 }, /* U = 0.563u, V = 0.714v */
+	{ 0x4d, 0x10 }, 
 	{ 0x4e, 0x40 },
-	{ 0x4f, 0x07 }, /* UV average mode, color killer: strongest */
+	{ 0x4f, 0x07 }, 
 	{ 0x50, 0xff },
-	{ 0x54, 0x23 }, /* Max AGC gain: 18dB */
+	{ 0x54, 0x23 }, 
 	{ 0x55, 0xff },
 	{ 0x56, 0x12 },
-	{ 0x57, 0x81 }, /* (default) */
+	{ 0x57, 0x81 }, 
 	{ 0x58, 0x75 },
-	{ 0x59, 0x01 }, /* AGC dark current compensation: +1 */
+	{ 0x59, 0x01 }, 
 	{ 0x5a, 0x2c },
-	{ 0x5b, 0x0f }, /* AWB chrominance levels */
+	{ 0x5b, 0x0f }, 
 	{ 0x5c, 0x10 },
 	{ 0x3d, 0x80 },
 	{ 0x27, 0xa6 },
-	/* Toggle AWB off and on */
+	
 	{ 0x12, 0x20 },
 	{ 0x12, 0x24 },
 
-	{ 0xff, 0xff },	/* END MARKER */
+	{ 0xff, 0xff },	
 };
 
-/* This initializes the OV6x30 camera chip and relevant variables. */
+
 static int ov6x30_init(struct i2c_client *c)
 {
 	struct ovcamchip *ov = i2c_get_clientdata(c);
@@ -293,34 +284,30 @@ static int ov6x30_get_control(struct i2c_client *c,
 
 static int ov6x30_mode_init(struct i2c_client *c, struct ovcamchip_window *win)
 {
-	/******** QCIF-specific regs ********/
+	
 
 	ov_write_mask(c, 0x14, win->quarter?0x20:0x00, 0x20);
 
-	/******** Palette-specific regs ********/
+	
 
 	if (win->format == VIDEO_PALETTE_GREY) {
 		if (c->adapter->id == I2C_HW_SMBUS_OV518) {
-			/* Do nothing - we're already in 8-bit mode */
+			
 		} else {
 			ov_write_mask(c, 0x13, 0x20, 0x20);
 		}
 	} else {
-		/* The OV518 needs special treatment. Although both the OV518
-		 * and the OV6630 support a 16-bit video bus, only the 8 bit Y
-		 * bus is actually used. The UV bus is tied to ground.
-		 * Therefore, the OV6630 needs to be in 8-bit multiplexed
-		 * output mode */
+		
 
 		if (c->adapter->id == I2C_HW_SMBUS_OV518) {
-			/* Do nothing - we want to stay in 8-bit mode */
-			/* Warning: Messing with reg 0x13 breaks OV518 color */
+			
+			
 		} else {
 			ov_write_mask(c, 0x13, 0x00, 0x20);
 		}
 	}
 
-	/******** Clock programming ********/
+	
 
 	ov_write(c, 0x11, win->clockdiv);
 
@@ -340,7 +327,7 @@ static int ov6x30_set_window(struct i2c_client *c, struct ovcamchip_window *win)
 		vwscale = 0;
 	} else {
 		hwscale = 1;
-		vwscale = 1;	/* The datasheet says 0; it's wrong */
+		vwscale = 1;	
 	}
 
 	ov_write(c, 0x17, HWSBASE + (win->x >> hwscale));

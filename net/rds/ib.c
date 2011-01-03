@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2006 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/in.h>
 #include <linux/if.h>
@@ -42,7 +11,7 @@
 #include "ib.h"
 
 unsigned int fmr_pool_size = RDS_FMR_POOL_SIZE;
-unsigned int fmr_message_size = RDS_FMR_SIZE + 1; /* +1 allows for unaligned MRs */
+unsigned int fmr_message_size = RDS_FMR_SIZE + 1; 
 unsigned int rds_ib_retry_count = RDS_IB_DEFAULT_RETRY_COUNT;
 
 module_param(fmr_pool_size, int, 0444);
@@ -54,7 +23,7 @@ MODULE_PARM_DESC(rds_ib_retry_count, " Number of hw retries before reporting an 
 
 struct list_head rds_ib_devices;
 
-/* NOTE: if also grabbing ibdev lock, grab this first */
+
 DEFINE_SPINLOCK(ib_nodev_conns_lock);
 LIST_HEAD(ib_nodev_conns);
 
@@ -63,7 +32,7 @@ void rds_ib_add_one(struct ib_device *device)
 	struct rds_ib_device *rds_ibdev;
 	struct ib_device_attr *dev_attr;
 
-	/* Only handle IB (no iWARP) devices */
+	
 	if (device->node_type != RDMA_NODE_IB_CA)
 		return;
 
@@ -166,7 +135,7 @@ static int rds_ib_conn_info_visitor(struct rds_connection *conn,
 	struct rds_info_rdma_connection *iinfo = buffer;
 	struct rds_ib_connection *ic;
 
-	/* We will only ever look at IB transports */
+	
 	if (conn->c_trans != &rds_ib_transport)
 		return 0;
 
@@ -204,25 +173,14 @@ static void rds_ib_ic_info(struct socket *sock, unsigned int len,
 }
 
 
-/*
- * Early RDS/IB was built to only bind to an address if there is an IPoIB
- * device with that address set.
- *
- * If it were me, I'd advocate for something more flexible.  Sending and
- * receiving should be device-agnostic.  Transports would try and maintain
- * connections between peers who have messages queued.  Userspace would be
- * allowed to influence which paths have priority.  We could call userspace
- * asserting this policy "routing".
- */
+
 static int rds_ib_laddr_check(__be32 addr)
 {
 	int ret;
 	struct rdma_cm_id *cm_id;
 	struct sockaddr_in sin;
 
-	/* Create a CMA ID and try to bind it. This catches both
-	 * IB and iWARP capable NICs.
-	 */
+	
 	cm_id = rdma_create_id(NULL, NULL, RDMA_PS_TCP);
 	if (IS_ERR(cm_id))
 		return PTR_ERR(cm_id);
@@ -231,10 +189,9 @@ static int rds_ib_laddr_check(__be32 addr)
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = addr;
 
-	/* rdma_bind_addr will only succeed for IB & iWARP devices */
+	
 	ret = rdma_bind_addr(cm_id, (struct sockaddr *)&sin);
-	/* due to this, we will claim to support iWARP devices unless we
-	   check node_type. */
+	
 	if (ret || cm_id->device->node_type != RDMA_NODE_IB_CA)
 		ret = -EADDRNOTAVAIL;
 

@@ -11,4 +11,4 @@ static inline
 void cfg80211_debugfs_rdev_del(struct cfg80211_registered_device *rdev) {}
 #endif
 
-#endif /* __CFG80211_DEBUGFS_H */
+#endif 

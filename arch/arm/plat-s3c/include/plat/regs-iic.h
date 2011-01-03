@@ -1,19 +1,9 @@
-/* arch/arm/mach-s3c2410/include/mach/regs-iic.h
- *
- * Copyright (c) 2004 Simtec Electronics <linux@simtec.co.uk>
- *		http://www.simtec.co.uk/products/SWLINUX/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C2410 I2C Controller
-*/
+
 
 #ifndef __ASM_ARCH_REGS_IIC_H
 #define __ASM_ARCH_REGS_IIC_H __FILE__
 
-/* see s3c2410x user guide, v1.1, section 9 (p447) for more info */
+
 
 #define S3C2410_IICREG(x) (x)
 
@@ -53,4 +43,4 @@
 
 #define S3C2410_IICLC_FILTER_ON		(1<<2)
 
-#endif /* __ASM_ARCH_REGS_IIC_H */
+#endif 

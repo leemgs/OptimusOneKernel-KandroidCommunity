@@ -1,37 +1,4 @@
-/*
- *  linux/net/sunrpc/gss_mech_switch.c
- *
- *  Copyright (c) 2001 The Regents of the University of Michigan.
- *  All rights reserved.
- *
- *  J. Bruce Fields   <bfields@umich.edu>
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *  3. Neither the name of the University nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- *  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- *  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- *  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/slab.h>
@@ -203,7 +170,7 @@ gss_svc_to_pseudoflavor(struct gss_api_mech *gm, u32 service)
 			return gm->gm_pfs[i].pseudoflavor;
 		}
 	}
-	return RPC_AUTH_MAXFLAVOR; /* illegal value */
+	return RPC_AUTH_MAXFLAVOR; 
 }
 EXPORT_SYMBOL_GPL(gss_svc_to_pseudoflavor);
 
@@ -244,8 +211,7 @@ gss_mech_put(struct gss_api_mech * gm)
 
 EXPORT_SYMBOL_GPL(gss_mech_put);
 
-/* The mech could probably be determined from the token instead, but it's just
- * as easy for now to pass it in. */
+
 int
 gss_import_sec_context(const void *input_token, size_t bufsize,
 		       struct gss_api_mech	*mech,
@@ -259,7 +225,7 @@ gss_import_sec_context(const void *input_token, size_t bufsize,
 		->gss_import_sec_context(input_token, bufsize, *ctx_id);
 }
 
-/* gss_get_mic: compute a mic over message and return mic_token. */
+
 
 u32
 gss_get_mic(struct gss_ctx	*context_handle,
@@ -272,7 +238,7 @@ gss_get_mic(struct gss_ctx	*context_handle,
 			      mic_token);
 }
 
-/* gss_verify_mic: check whether the provided mic_token verifies message. */
+
 
 u32
 gss_verify_mic(struct gss_ctx		*context_handle,
@@ -305,9 +271,7 @@ gss_unwrap(struct gss_ctx	*ctx_id,
 }
 
 
-/* gss_delete_sec_context: free all resources associated with context_handle.
- * Note this differs from the RFC 2744-specified prototype in that we don't
- * bother returning an output token, since it would never be used anyway. */
+
 
 u32
 gss_delete_sec_context(struct gss_ctx	**context_handle)

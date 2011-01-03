@@ -1,23 +1,4 @@
-/*
- * This file is part of the zfcp device driver for
- * FCP adapters for IBM System z9 and zSeries.
- *
- * Copyright IBM Corp. 2008, 2009
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef ZFCP_DBF_H
 #define ZFCP_DBF_H
@@ -31,10 +12,10 @@
 
 struct zfcp_dbf_dump {
 	u8 tag[ZFCP_DBF_TAG_SIZE];
-	u32 total_size;		/* size of total dump data */
-	u32 offset;		/* how much data has being already dumped */
-	u32 size;		/* how much data comes with this record */
-	u8 data[];		/* dump data */
+	u32 total_size;		
+	u32 offset;		
+	u32 size;		
+	u8 data[];		
 } __attribute__ ((packed));
 
 struct zfcp_dbf_rec_record_thread {
@@ -248,10 +229,7 @@ void zfcp_dbf_hba_fsf_resp(const char *tag2, int level,
 		_zfcp_dbf_hba_fsf_response(tag2, level, req, dbf);
 }
 
-/**
- * zfcp_dbf_hba_fsf_response - trace event for request completion
- * @fsf_req: request that has been completed
- */
+
 static inline void zfcp_dbf_hba_fsf_response(struct zfcp_fsf_req *req)
 {
 	struct zfcp_dbf *dbf = req->adapter->dbf;
@@ -276,12 +254,7 @@ static inline void zfcp_dbf_hba_fsf_response(struct zfcp_fsf_req *req)
 	}
  }
 
-/**
- * zfcp_dbf_hba_fsf_unsol - trace event for an unsolicited status buffer
- * @tag: tag indicating which kind of unsolicited status has been received
- * @dbf: reference to dbf structure
- * @status_buffer: buffer containing payload of unsolicited status
- */
+
 static inline
 void zfcp_dbf_hba_fsf_unsol(const char *tag, struct zfcp_dbf *dbf,
 			    struct fsf_status_read_buffer *buf)
@@ -301,14 +274,7 @@ void zfcp_dbf_scsi(const char *tag, const char *tag2, int level,
 		_zfcp_dbf_scsi(tag, tag2, level, dbf, scmd, req, old_id);
 }
 
-/**
- * zfcp_dbf_scsi_result - trace event for SCSI command completion
- * @tag: tag indicating success or failure of SCSI command
- * @level: trace level applicable for this event
- * @adapter: adapter that has been used to issue the SCSI command
- * @scmd: SCSI command pointer
- * @fsf_req: request used to issue SCSI command (might be NULL)
- */
+
 static inline
 void zfcp_dbf_scsi_result(const char *tag, int level, struct zfcp_dbf *dbf,
 			  struct scsi_cmnd *scmd, struct zfcp_fsf_req *fsf_req)
@@ -316,14 +282,7 @@ void zfcp_dbf_scsi_result(const char *tag, int level, struct zfcp_dbf *dbf,
 	zfcp_dbf_scsi("rslt", tag, level, dbf, scmd, fsf_req, 0);
 }
 
-/**
- * zfcp_dbf_scsi_abort - trace event for SCSI command abort
- * @tag: tag indicating success or failure of abort operation
- * @adapter: adapter thas has been used to issue SCSI command to be aborted
- * @scmd: SCSI command to be aborted
- * @new_req: request containing abort (might be NULL)
- * @old_id: identifier of request containg SCSI command to be aborted
- */
+
 static inline
 void zfcp_dbf_scsi_abort(const char *tag, struct zfcp_dbf *dbf,
 			 struct scsi_cmnd *scmd, struct zfcp_fsf_req *new_req,
@@ -332,13 +291,7 @@ void zfcp_dbf_scsi_abort(const char *tag, struct zfcp_dbf *dbf,
 	zfcp_dbf_scsi("abrt", tag, 1, dbf, scmd, new_req, old_id);
 }
 
-/**
- * zfcp_dbf_scsi_devreset - trace event for Logical Unit or Target Reset
- * @tag: tag indicating success or failure of reset operation
- * @flag: indicates type of reset (Target Reset, Logical Unit Reset)
- * @unit: unit that needs reset
- * @scsi_cmnd: SCSI command which caused this error recovery
- */
+
 static inline
 void zfcp_dbf_scsi_devreset(const char *tag, u8 flag, struct zfcp_unit *unit,
 			    struct scsi_cmnd *scsi_cmnd)
@@ -347,4 +300,4 @@ void zfcp_dbf_scsi_devreset(const char *tag, u8 flag, struct zfcp_unit *unit,
 			    unit->port->adapter->dbf, scsi_cmnd, NULL, 0);
 }
 
-#endif /* ZFCP_DBF_H */
+#endif 

@@ -1,29 +1,4 @@
-/*
- *  HP Compaq TC1100 Tablet WMI Extras Driver
- *
- *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
- *  Copyright (C) 2004 Jamey Hicks <jamey.hicks@hp.com>
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -72,9 +47,7 @@ struct tc1100_data {
 
 static struct tc1100_data suspend_data;
 
-/* --------------------------------------------------------------------------
-				Device Management
-   -------------------------------------------------------------------------- */
+
 
 static int get_state(u32 *out, u8 instance)
 {
@@ -148,13 +121,9 @@ static int set_state(u32 *in, u8 instance)
 	return 0;
 }
 
-/* --------------------------------------------------------------------------
-				FS Interface (/sys)
-   -------------------------------------------------------------------------- */
 
-/*
- * Read/ write bool sysfs macro
- */
+
+
 #define show_set_bool(value, instance) \
 static ssize_t \
 show_bool_##value(struct device *dev, struct device_attribute *attr, \
@@ -208,9 +177,7 @@ add_sysfs_error:
 	return ret;
 }
 
-/* --------------------------------------------------------------------------
-				Driver Model
-   -------------------------------------------------------------------------- */
+
 
 static int tc1100_probe(struct platform_device *device)
 {

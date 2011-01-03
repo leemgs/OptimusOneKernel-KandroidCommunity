@@ -1,12 +1,4 @@
-/*
- * Software WEP encryption implementation
- * Copyright 2002, Jouni Malinen <jkmaline@cc.hut.fi>
- * Copyright 2003, Instant802 Networks, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/types.h>
@@ -26,7 +18,7 @@
 
 int ieee80211_wep_init(struct ieee80211_local *local)
 {
-	/* start WEP IV from a random value */
+	
 	get_random_bytes(&local->wep_iv, WEP_IV_LEN);
 
 	local->wep_tx_tfm = crypto_alloc_blkcipher("ecb(arc4)", 0,
@@ -52,11 +44,7 @@ void ieee80211_wep_free(struct ieee80211_local *local)
 
 static inline bool ieee80211_wep_weak_iv(u32 iv, int keylen)
 {
-	/*
-	 * Fluhrer, Mantin, and Shamir have reported weaknesses in the
-	 * key scheduling algorithm of RC4. At least IVs (KeyByte + 3,
-	 * 0xff, N) can be used to speedup attacks, so avoid using them.
-	 */
+	
 	if ((iv & 0xff00) == 0xff00) {
 		u8 B = (iv >> 16) & 0xff;
 		if (B >= 3 && B < 3 + keylen)
@@ -118,9 +106,7 @@ static void ieee80211_wep_remove_iv(struct ieee80211_local *local,
 }
 
 
-/* Perform WEP encryption using given key. data buffer must have tailroom
- * for 4-byte ICV. data_len must not include this ICV. Note: this function
- * does _not_ add IV. data = RC4(data | CRC32(data)) */
+
 void ieee80211_wep_encrypt_data(struct crypto_blkcipher *tfm, u8 *rc4key,
 				size_t klen, u8 *data, size_t data_len)
 {
@@ -137,13 +123,7 @@ void ieee80211_wep_encrypt_data(struct crypto_blkcipher *tfm, u8 *rc4key,
 }
 
 
-/* Perform WEP encryption on given skb. 4 bytes of extra space (IV) in the
- * beginning of the buffer 4 bytes of extra space (ICV) in the end of the
- * buffer will be added. Both IV and ICV will be transmitted, so the
- * payload length increases with 8 bytes.
- *
- * WEP frame payload: IV + TX key idx, RC4(data), ICV = RC4(CRC32(data))
- */
+
 int ieee80211_wep_encrypt(struct ieee80211_local *local,
 			  struct sk_buff *skb,
 			  const u8 *key, int keylen, int keyidx)
@@ -158,13 +138,13 @@ int ieee80211_wep_encrypt(struct ieee80211_local *local,
 
 	len = skb->len - (iv + WEP_IV_LEN - skb->data);
 
-	/* Prepend 24-bit IV to RC4 key */
+	
 	memcpy(rc4key, iv, 3);
 
-	/* Copy rest of the WEP key (the secret part) */
+	
 	memcpy(rc4key + 3, key, keylen);
 
-	/* Add room for ICV */
+	
 	skb_put(skb, WEP_ICV_LEN);
 
 	ieee80211_wep_encrypt_data(local->wep_tx_tfm, rc4key, keylen + 3,
@@ -174,9 +154,7 @@ int ieee80211_wep_encrypt(struct ieee80211_local *local,
 }
 
 
-/* Perform WEP decryption using given key. data buffer includes encrypted
- * payload, including 4-byte ICV, but _not_ IV. data_len must not include ICV.
- * Return 0 on success and -1 on ICV mismatch. */
+
 int ieee80211_wep_decrypt_data(struct crypto_blkcipher *tfm, u8 *rc4key,
 			       size_t klen, u8 *data, size_t data_len)
 {
@@ -190,21 +168,14 @@ int ieee80211_wep_decrypt_data(struct crypto_blkcipher *tfm, u8 *rc4key,
 
 	crc = cpu_to_le32(~crc32_le(~0, data, data_len));
 	if (memcmp(&crc, data + data_len, WEP_ICV_LEN) != 0)
-		/* ICV mismatch */
+		
 		return -1;
 
 	return 0;
 }
 
 
-/* Perform WEP decryption on given skb. Buffer includes whole WEP part of
- * the frame: IV (4 bytes), encrypted payload (including SNAP header),
- * ICV (4 bytes). skb->len includes both IV and ICV.
- *
- * Returns 0 if frame was decrypted successfully and ICV was correct and -1 on
- * failure. If frame is OK, IV and ICV will be removed, i.e., decrypted payload
- * is moved to the beginning of the skb and skb length will be reduced.
- */
+
 static int ieee80211_wep_decrypt(struct ieee80211_local *local,
 				 struct sk_buff *skb,
 				 struct ieee80211_key *key)
@@ -237,10 +208,10 @@ static int ieee80211_wep_decrypt(struct ieee80211_local *local,
 	if (!rc4key)
 		return -1;
 
-	/* Prepend 24-bit IV to RC4 key */
+	
 	memcpy(rc4key, skb->data + hdrlen, 3);
 
-	/* Copy rest of the WEP key (the secret part) */
+	
 	memcpy(rc4key + 3, key->conf.key, key->conf.keylen);
 
 	if (ieee80211_wep_decrypt_data(local->wep_rx_tfm, rc4key, klen,
@@ -250,10 +221,10 @@ static int ieee80211_wep_decrypt(struct ieee80211_local *local,
 
 	kfree(rc4key);
 
-	/* Trim ICV */
+	
 	skb_trim(skb, skb->len - WEP_ICV_LEN);
 
-	/* Remove IV */
+	
 	memmove(skb->data + WEP_IV_LEN, skb->data, hdrlen);
 	skb_pull(skb, WEP_IV_LEN);
 
@@ -292,7 +263,7 @@ ieee80211_crypto_wep_decrypt(struct ieee80211_rx_data *rx)
 			return RX_DROP_UNUSABLE;
 	} else if (!(rx->status->flag & RX_FLAG_IV_STRIPPED)) {
 		ieee80211_wep_remove_iv(rx->local, rx->skb, rx->key);
-		/* remove ICV */
+		
 		skb_trim(rx->skb, rx->skb->len - WEP_ICV_LEN);
 	}
 

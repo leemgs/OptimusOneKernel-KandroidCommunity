@@ -1,23 +1,4 @@
-/*
- *  linux/arch/arm/mach-realview/realview_pba8.c
- *
- *  Copyright (C) 2008 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -114,9 +95,7 @@ static struct pl061_platform_data gpio2_plat_data = {
 	.irq_base	= -1,
 };
 
-/*
- * RealView PBA8Core AMBA devices
- */
+
 
 #define GPIO2_IRQ		{ IRQ_PBA8_GPIO2, NO_IRQ }
 #define GPIO2_DMA		{ 0, 0 }
@@ -161,14 +140,14 @@ static struct pl061_platform_data gpio2_plat_data = {
 #define PBA8_SSP_IRQ		{ IRQ_PBA8_SSP, NO_IRQ }
 #define PBA8_SSP_DMA		{ 9, 8 }
 
-/* FPGA Primecells */
+
 AMBA_DEVICE(aaci,	"fpga:aaci",	AACI,		NULL);
 AMBA_DEVICE(mmc0,	"fpga:mmc0",	MMCI0,		&realview_mmc0_plat_data);
 AMBA_DEVICE(kmi0,	"fpga:kmi0",	KMI0,		NULL);
 AMBA_DEVICE(kmi1,	"fpga:kmi1",	KMI1,		NULL);
 AMBA_DEVICE(uart3,	"fpga:uart3",	PBA8_UART3,	NULL);
 
-/* DevChip Primecells */
+
 AMBA_DEVICE(smc,	"dev:smc",	PBA8_SMC,	NULL);
 AMBA_DEVICE(sctl,	"dev:sctl",	SCTL,		NULL);
 AMBA_DEVICE(wdog,	"dev:wdog",	PBA8_WATCHDOG, NULL);
@@ -182,7 +161,7 @@ AMBA_DEVICE(uart1,	"dev:uart1",	PBA8_UART1,	NULL);
 AMBA_DEVICE(uart2,	"dev:uart2",	PBA8_UART2,	NULL);
 AMBA_DEVICE(ssp0,	"dev:ssp0",	PBA8_SSP,	NULL);
 
-/* Primecells on the NEC ISSP chip */
+
 AMBA_DEVICE(clcd,	"issp:clcd",	PBA8_CLCD,	&clcd_plat_data);
 AMBA_DEVICE(dmac,	"issp:dmac",	DMAC,		NULL);
 
@@ -208,9 +187,7 @@ static struct amba_device *amba_devs[] __initdata = {
 	&kmi1_device,
 };
 
-/*
- * RealView PB-A8 platform devices
- */
+
 static struct resource realview_pba8_flash_resource[] = {
 	[0] = {
 		.start		= REALVIEW_PBA8_FLASH0_BASE,
@@ -252,7 +229,7 @@ static struct resource realview_pba8_isp1761_resources[] = {
 
 static void __init gic_init_irq(void)
 {
-	/* ARM PB-A8 on-board GIC */
+	
 	gic_cpu_base_addr = __io_address(REALVIEW_PBA8_GIC_CPU_BASE);
 	gic_dist_init(0, __io_address(REALVIEW_PBA8_GIC_DIST_BASE), IRQ_PBA8_GIC_START);
 	gic_cpu_init(0, __io_address(REALVIEW_PBA8_GIC_CPU_BASE));
@@ -294,7 +271,7 @@ static void __init realview_pba8_init(void)
 }
 
 MACHINE_START(REALVIEW_PBA8, "ARM-RealView PB-A8")
-	/* Maintainer: ARM Ltd/Deep Blue Solutions Ltd */
+	
 	.phys_io	= REALVIEW_PBA8_UART0_BASE,
 	.io_pg_offst	= (IO_ADDRESS(REALVIEW_PBA8_UART0_BASE) >> 18) & 0xfffc,
 	.boot_params	= PHYS_OFFSET + 0x00000100,

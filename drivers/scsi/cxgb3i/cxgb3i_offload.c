@@ -1,16 +1,4 @@
-/*
- * cxgb3i_offload.c: Chelsio S3xx iscsi offloaded tcp connection management
- *
- * Copyright (C) 2003-2008 Chelsio Communications.  All rights reserved.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the LICENSE file included in this
- * release for licensing terms and conditions.
- *
- * Written by:	Dimitris Michailidis (dm@chelsio.com)
- *		Karen Xie (kxie@chelsio.com)
- */
+
 
 #include <linux/if_vlan.h>
 #include <linux/version.h>
@@ -40,9 +28,7 @@
 #define c3cn_rx_debug(fmt...)
 #endif
 
-/*
- * module parameters releated to offloaded iscsi connection
- */
+
 static int cxgb3_rcv_win = 256 * 1024;
 module_param(cxgb3_rcv_win, int, 0644);
 MODULE_PARM_DESC(cxgb3_rcv_win, "TCP receive window in bytes (default=256KB)");
@@ -64,28 +50,14 @@ static unsigned int cxgb3_sport_base = 20000;
 module_param(cxgb3_sport_base, uint, 0644);
 MODULE_PARM_DESC(cxgb3_sport_base, "starting port number (default=20000)");
 
-/*
- * cxgb3i tcp connection data(per adapter) list
- */
+
 static LIST_HEAD(cdata_list);
 static DEFINE_RWLOCK(cdata_rwlock);
 
 static int c3cn_push_tx_frames(struct s3_conn *c3cn, int req_completion);
 static void c3cn_release_offload_resources(struct s3_conn *c3cn);
 
-/*
- * iscsi source port management
- *
- * Find a free source port in the port allocation map. We use a very simple
- * rotor scheme to look for the next free port.
- *
- * If a source port has been specified make sure that it doesn't collide with
- * our normal source port allocation map.  If it's outside the range of our
- * allocation/deallocation scheme just let them use it.
- *
- * If the source port is outside our allocation range, the caller is
- * responsible for keeping track of their port usage.
- */
+
 static int c3cn_get_port(struct s3_conn *c3cn, struct cxgb3i_sdev_data *cdata)
 {
 	unsigned int start;
@@ -195,16 +167,9 @@ static void c3cn_closed(struct s3_conn *c3cn)
 	cxgb3i_conn_closing(c3cn);
 }
 
-/*
- * CPL (Chelsio Protocol Language) defines a message passing interface between
- * the host driver and T3 asic.
- * The section below implments CPLs that related to iscsi tcp connection
- * open/close/abort and data send/receive.
- */
 
-/*
- * CPL connection active open request: host ->
- */
+
+
 static unsigned int find_best_mtu(const struct t3c_data *d, unsigned short mtu)
 {
 	int i = 0;
@@ -297,12 +262,7 @@ static void act_open_req_arp_failure(struct t3cdev *dev, struct sk_buff *skb)
 	__kfree_skb(skb);
 }
 
-/*
- * CPL connection close request: host ->
- *
- * Close a connection by sending a CPL_CLOSE_CON_REQ message and queue it to
- * the write queue (i.e., after any unsent txt data).
- */
+
 static void skb_entail(struct s3_conn *c3cn, struct sk_buff *skb,
 		       int flags)
 {
@@ -332,13 +292,7 @@ static void send_close_req(struct s3_conn *c3cn)
 		c3cn_push_tx_frames(c3cn, 1);
 }
 
-/*
- * CPL connection abort request: host ->
- *
- * Send an ABORT_REQ message. Makes sure we do not send multiple ABORT_REQs
- * for the same connection and also that we do not try to send a message
- * after the connection has closed.
- */
+
 static void abort_arp_failure(struct t3cdev *cdev, struct sk_buff *skb)
 {
 	struct cpl_abort_req *req = cplhdr(skb);
@@ -373,7 +327,7 @@ static void send_abort_req(struct s3_conn *c3cn)
 
 	c3cn_set_flag(c3cn, C3CN_ABORT_RPL_PENDING);
 
-	/* Purge the send queue so we don't send anything after an abort. */
+	
 	c3cn_purge_write_queue(c3cn);
 
 	c3cn->cpl_abort_req = NULL;
@@ -392,11 +346,7 @@ static void send_abort_req(struct s3_conn *c3cn)
 	l2t_send(c3cn->cdev, skb, c3cn->l2t);
 }
 
-/*
- * CPL connection abort reply: host ->
- *
- * Send an ABORT_RPL message in response of the ABORT_REQ received.
- */
+
 static void send_abort_rpl(struct s3_conn *c3cn, int rst_status)
 {
 	struct sk_buff *skb = c3cn->cpl_abort_rpl;
@@ -413,11 +363,7 @@ static void send_abort_rpl(struct s3_conn *c3cn, int rst_status)
 	cxgb3_ofld_send(c3cn->cdev, skb);
 }
 
-/*
- * CPL connection rx data ack: host ->
- * Send RX credits through an RX_DATA_ACK CPL message. Returns the number of
- * credits sent.
- */
+
 static u32 send_rx_credits(struct s3_conn *c3cn, u32 credits, u32 dack)
 {
 	struct sk_buff *skb;
@@ -436,20 +382,9 @@ static u32 send_rx_credits(struct s3_conn *c3cn, u32 credits, u32 dack)
 	return credits;
 }
 
-/*
- * CPL connection tx data: host ->
- *
- * Send iscsi PDU via TX_DATA CPL message. Returns the number of
- * credits sent.
- * Each TX_DATA consumes work request credit (wrs), so we need to keep track of
- * how many we've used so far and how many are pending (i.e., yet ack'ed by T3).
- */
 
-/*
- * For ULP connections HW may inserts digest bytes into the pdu. Those digest
- * bytes are not sent by the host but are part of the TCP payload and therefore
- * consume TCP sequence space.
- */
+
+
 static const unsigned int cxgb3_ulp_extra_len[] = { 0, 4, 4, 8 };
 static inline unsigned int ulp_extra_len(const struct sk_buff *skb)
 {
@@ -458,12 +393,7 @@ static inline unsigned int ulp_extra_len(const struct sk_buff *skb)
 
 static unsigned int wrlen __read_mostly;
 
-/*
- * The number of WRs needed for an skb depends on the number of fragments
- * in the skb and whether it has any payload in its main body.  This maps the
- * length of the gather list represented by an skb into the # of necessary WRs.
- * The extra two fragments are for iscsi bhs and payload padding.
- */
+
 #define SKB_WR_LIST_SIZE	(MAX_SKB_FRAGS + 2)
 static unsigned int skb_wrs[SKB_WR_LIST_SIZE] __read_mostly;
 
@@ -471,7 +401,7 @@ static void s3_init_wr_tab(unsigned int wr_len)
 {
 	int i;
 
-	if (skb_wrs[1])		/* already initialized */
+	if (skb_wrs[1])		
 		return;
 
 	for (i = 1; i < SKB_WR_LIST_SIZE; i++) {
@@ -490,22 +420,13 @@ static inline void reset_wr_list(struct s3_conn *c3cn)
 	c3cn->wr_pending_head = c3cn->wr_pending_tail = NULL;
 }
 
-/*
- * Add a WR to a connections's list of pending WRs.  This is a singly-linked
- * list of sk_buffs operating as a FIFO.  The head is kept in wr_pending_head
- * and the tail in wr_pending_tail.
- */
+
 static inline void enqueue_wr(struct s3_conn *c3cn,
 			      struct sk_buff *skb)
 {
 	skb_tx_wr_next(skb) = NULL;
 
-	/*
-	 * We want to take an extra reference since both us and the driver
-	 * need to free the packet before it's really freed. We know there's
-	 * just one user currently so we use atomic_set rather than skb_get
-	 * to avoid the atomic op.
-	 */
+	
 	atomic_set(&skb->users, 2);
 
 	if (!c3cn->wr_pending_head)
@@ -542,7 +463,7 @@ static inline struct sk_buff *dequeue_wr(struct s3_conn *c3cn)
 	struct sk_buff *skb = c3cn->wr_pending_head;
 
 	if (likely(skb)) {
-		/* Don't bother clearing the tail */
+		
 		c3cn->wr_pending_head = skb_tx_wr_next(skb);
 		skb_tx_wr_next(skb) = NULL;
 	}
@@ -567,32 +488,23 @@ static inline void make_tx_data_wr(struct s3_conn *c3cn, struct sk_buff *skb,
 			(req_completion ? F_WR_COMPL : 0));
 	req->wr_lo = htonl(V_WR_TID(c3cn->tid));
 	req->sndseq = htonl(c3cn->snd_nxt);
-	/* len includes the length of any HW ULP additions */
+	
 	req->len = htonl(len);
 	req->param = htonl(V_TX_PORT(c3cn->l2t->smt_idx));
-	/* V_TX_ULP_SUBMODE sets both the mode and submode */
+	
 	req->flags = htonl(V_TX_ULP_SUBMODE(skb_ulp_mode(skb)) |
 			   V_TX_SHOVE((skb_peek(&c3cn->write_queue) ? 0 : 1)));
 
 	if (!c3cn_flag(c3cn, C3CN_TX_DATA_SENT)) {
 		req->flags |= htonl(V_TX_ACK_PAGES(2) | F_TX_INIT |
 				    V_TX_CPU_IDX(c3cn->qset));
-		/* Sendbuffer is in units of 32KB. */
+		
 		req->param |= htonl(V_TX_SNDBUF(cxgb3_snd_win >> 15));
 		c3cn_set_flag(c3cn, C3CN_TX_DATA_SENT);
 	}
 }
 
-/**
- * c3cn_push_tx_frames -- start transmit
- * @c3cn: the offloaded connection
- * @req_completion: request wr_ack or not
- *
- * Prepends TX_DATA_WR or CPL_CLOSE_CON_REQ headers to buffers waiting in a
- * connection's send queue and sends them on to T3.  Must be called with the
- * connection's lock held.  Returns the amount of send buffer space that was
- * freed as a result of sending queued data to T3.
- */
+
 static void arp_failure_discard(struct t3cdev *cdev, struct sk_buff *skb)
 {
 	kfree_skb(skb);
@@ -618,7 +530,7 @@ static int c3cn_push_tx_frames(struct s3_conn *c3cn, int req_completion)
 
 	while (c3cn->wr_avail
 	       && (skb = skb_peek(&c3cn->write_queue)) != NULL) {
-		int len = skb->len;	/* length before skb_push */
+		int len = skb->len;	
 		int frags = skb_shinfo(skb)->nr_frags + (len != skb->data_len);
 		int wrs_needed = skb_wrs[frags];
 
@@ -637,7 +549,7 @@ static int c3cn_push_tx_frames(struct s3_conn *c3cn, int req_completion)
 
 		__skb_unlink(skb, &c3cn->write_queue);
 		skb->priority = CPL_PRIORITY_DATA;
-		skb->csum = wrs_needed;	/* remember this until the WR_ACK */
+		skb->csum = wrs_needed;	
 		c3cn->wr_avail -= wrs_needed;
 		c3cn->wr_unacked += wrs_needed;
 		enqueue_wr(c3cn, skb);
@@ -669,11 +581,7 @@ static int c3cn_push_tx_frames(struct s3_conn *c3cn, int req_completion)
 	return total_size;
 }
 
-/*
- * process_cpl_msg: -> host
- * Top-level CPL message processing used by most CPL messages that
- * pertain to connections.
- */
+
 static inline void process_cpl_msg(void (*fn)(struct s3_conn *,
 					      struct sk_buff *),
 				   struct s3_conn *c3cn,
@@ -684,12 +592,7 @@ static inline void process_cpl_msg(void (*fn)(struct s3_conn *,
 	spin_unlock_bh(&c3cn->lock);
 }
 
-/*
- * process_cpl_msg_ref: -> host
- * Similar to process_cpl_msg() but takes an extra connection reference around
- * the call to the handler.  Should be used if the handler may drop a
- * connection reference.
- */
+
 static inline void process_cpl_msg_ref(void (*fn) (struct s3_conn *,
 						   struct sk_buff *),
 				       struct s3_conn *c3cn,
@@ -700,11 +603,7 @@ static inline void process_cpl_msg_ref(void (*fn) (struct s3_conn *,
 	c3cn_put(c3cn);
 }
 
-/*
- * Process a CPL_ACT_ESTABLISH message: -> host
- * Updates connection state from an active establish CPL message.  Runs with
- * the connection lock held.
- */
+
 
 static inline void s3_free_atid(struct t3cdev *cdev, unsigned int tid)
 {
@@ -720,10 +619,7 @@ static void c3cn_established(struct s3_conn *c3cn, u32 snd_isn,
 
 	c3cn->write_seq = c3cn->snd_nxt = c3cn->snd_una = snd_isn;
 
-	/*
-	 * Causes the first RX_DATA_ACK to supply any Rx credits we couldn't
-	 * pass through opt0.
-	 */
+	
 	if (cxgb3_rcv_win > (M_RCV_BUFSIZ << 10))
 		c3cn->rcv_wup -= cxgb3_rcv_win - (M_RCV_BUFSIZ << 10);
 
@@ -737,7 +633,7 @@ static void c3cn_established(struct s3_conn *c3cn, u32 snd_isn,
 static void process_act_establish(struct s3_conn *c3cn, struct sk_buff *skb)
 {
 	struct cpl_act_establish *req = cplhdr(skb);
-	u32 rcv_isn = ntohl(req->rcv_isn);	/* real RCV_ISN + 1 */
+	u32 rcv_isn = ntohl(req->rcv_isn);	
 
 	c3cn_conn_debug("c3cn 0x%p, state %u, flag 0x%lx.\n",
 			c3cn, c3cn->state, c3cn->flags);
@@ -752,7 +648,7 @@ static void process_act_establish(struct s3_conn *c3cn, struct sk_buff *skb)
 	__kfree_skb(skb);
 
 	if (unlikely(c3cn_flag(c3cn, C3CN_ACTIVE_CLOSE_NEEDED)))
-		/* upper layer has requested closing */
+		
 		send_abort_req(c3cn);
 	else {
 		if (skb_queue_len(&c3cn->write_queue))
@@ -784,10 +680,7 @@ static int do_act_establish(struct t3cdev *cdev, struct sk_buff *skb,
 	return 0;
 }
 
-/*
- * Process a CPL_ACT_OPEN_RPL message: -> host
- * Handle active open failures.
- */
+
 static int act_open_rpl_status_to_errno(int status)
 {
 	switch (status) {
@@ -862,10 +755,7 @@ static int do_act_open_rpl(struct t3cdev *cdev, struct sk_buff *skb, void *ctx)
 	return 0;
 }
 
-/*
- * Process PEER_CLOSE CPL messages: -> host
- * Handle peer FIN.
- */
+
 static void process_peer_close(struct s3_conn *c3cn, struct sk_buff *skb)
 {
 	c3cn_conn_debug("c3cn 0x%p, state %u, flag 0x%lx.\n",
@@ -906,10 +796,7 @@ static int do_peer_close(struct t3cdev *cdev, struct sk_buff *skb, void *ctx)
 	return 0;
 }
 
-/*
- * Process CLOSE_CONN_RPL CPL message: -> host
- * Process a peer ACK to our FIN.
- */
+
 static void process_close_con_rpl(struct s3_conn *c3cn, struct sk_buff *skb)
 {
 	struct cpl_close_con_rpl *rpl = cplhdr(skb);
@@ -917,7 +804,7 @@ static void process_close_con_rpl(struct s3_conn *c3cn, struct sk_buff *skb)
 	c3cn_conn_debug("c3cn 0x%p, state %u, flag 0x%lx.\n",
 			c3cn, c3cn->state, c3cn->flags);
 
-	c3cn->snd_una = ntohl(rpl->snd_nxt) - 1;	/* exclude FIN */
+	c3cn->snd_una = ntohl(rpl->snd_nxt) - 1;	
 
 	if (c3cn_flag(c3cn, C3CN_ABORT_RPL_PENDING))
 		goto out;
@@ -953,17 +840,13 @@ static int do_close_con_rpl(struct t3cdev *cdev, struct sk_buff *skb,
 	return 0;
 }
 
-/*
- * Process ABORT_REQ_RSS CPL message: -> host
- * Process abort requests.  If we are waiting for an ABORT_RPL we ignore this
- * request except that we need to reply to it.
- */
+
 
 static int abort_status_to_errno(struct s3_conn *c3cn, int abort_reason,
 				 int *need_rst)
 {
 	switch (abort_reason) {
-	case CPL_ERR_BAD_SYN: /* fall through */
+	case CPL_ERR_BAD_SYN: 
 	case CPL_ERR_CONN_RESET:
 		return c3cn->state > C3CN_STATE_ESTABLISHED ?
 			EPIPE : ECONNRESET;
@@ -1020,13 +903,7 @@ static int do_abort_req(struct t3cdev *cdev, struct sk_buff *skb, void *ctx)
 	return 0;
 }
 
-/*
- * Process ABORT_RPL_RSS CPL message: -> host
- * Process abort replies.  We only process these messages if we anticipate
- * them as the coordination between SW and HW in this area is somewhat lacking
- * and sometimes we get ABORT_RPLs after we are done with the connection that
- * originated the ABORT_REQ.
- */
+
 static void process_abort_rpl(struct s3_conn *c3cn, struct sk_buff *skb)
 {
 	c3cn_conn_debug("c3cn 0x%p, state %u, flag 0x%lx.\n",
@@ -1056,22 +933,11 @@ static int do_abort_rpl(struct t3cdev *cdev, struct sk_buff *skb, void *ctx)
 			rpl->status, c3cn, c3cn ? c3cn->state : 0,
 			c3cn ? c3cn->flags : 0UL);
 
-	/*
-	 * Ignore replies to post-close aborts indicating that the abort was
-	 * requested too late.  These connections are terminated when we get
-	 * PEER_CLOSE or CLOSE_CON_RPL and by the time the abort_rpl_rss
-	 * arrives the TID is either no longer used or it has been recycled.
-	 */
+	
 	if (rpl->status == CPL_ERR_ABORT_FAILED)
 		goto discard;
 
-	/*
-	 * Sometimes we've already closed the connection, e.g., a post-close
-	 * abort races with ABORT_REQ_RSS, the latter frees the connection
-	 * expecting the ABORT_REQ will fail with CPL_ERR_ABORT_FAILED,
-	 * but FW turns the ABORT_REQ into a regular one and so we get
-	 * ABORT_RPL_RSS with status 0 and no connection.
-	 */
+	
 	if (!c3cn)
 		goto discard;
 
@@ -1083,11 +949,7 @@ discard:
 	return 0;
 }
 
-/*
- * Process RX_ISCSI_HDR CPL message: -> host
- * Handle received PDUs, the payload could be DDP'ed. If not, the payload
- * follow after the bhs.
- */
+
 static void process_rx_iscsi_hdr(struct s3_conn *c3cn, struct sk_buff *skb)
 {
 	struct cpl_iscsi_hdr *hdr_cpl = cplhdr(skb);
@@ -1111,7 +973,7 @@ static void process_rx_iscsi_hdr(struct s3_conn *c3cn, struct sk_buff *skb)
 	__skb_pull(skb, sizeof(struct cpl_iscsi_hdr));
 
 	len = hdr_len = ntohs(hdr_cpl->len);
-	/* msg coalesce is off or not enough data received */
+	
 	if (skb->len <= hdr_len) {
 		cxgb3i_log_error("%s: TID %u, ISCSI_HDR, skb len %u < %u.\n",
 				 c3cn->cdev->name, c3cn->tid,
@@ -1168,11 +1030,7 @@ static int do_iscsi_hdr(struct t3cdev *t3dev, struct sk_buff *skb, void *ctx)
 	return 0;
 }
 
-/*
- * Process TX_DATA_ACK CPL messages: -> host
- * Process an acknowledgment of WR completion.  Advance snd_una and send the
- * next batch of work requests from the write queue.
- */
+
 static void check_wr_invariants(struct s3_conn *c3cn)
 {
 	int pending = count_pending_wrs(c3cn);
@@ -1259,10 +1117,7 @@ static int do_wr_ack(struct t3cdev *cdev, struct sk_buff *skb, void *ctx)
 	return 0;
 }
 
-/*
- * for each connection, pre-allocate skbs needed for close/abort requests. So
- * that we can service the request right away.
- */
+
 static void c3cn_free_cpl_skbs(struct s3_conn *c3cn)
 {
 	if (c3cn->cpl_close)
@@ -1300,11 +1155,7 @@ free_cpl_skbs:
 	return -ENOMEM;
 }
 
-/**
- * c3cn_release_offload_resources - release offload resource
- * @c3cn: the offloaded iscsi tcp connection.
- * Release resources held by an offload connection (TID, L2T entry, etc.)
- */
+
 static void c3cn_release_offload_resources(struct s3_conn *c3cn)
 {
 	struct t3cdev *cdev = c3cn->cdev;
@@ -1324,10 +1175,10 @@ static void c3cn_release_offload_resources(struct s3_conn *c3cn)
 			c3cn->l2t = NULL;
 		}
 		if (c3cn->state == C3CN_STATE_CONNECTING)
-			/* we have ATID */
+			
 			s3_free_atid(cdev, tid);
 		else {
-			/* we have TID */
+			
 			cxgb3_remove_tid(cdev, (void *)c3cn, tid);
 			c3cn_put(c3cn);
 		}
@@ -1337,10 +1188,7 @@ static void c3cn_release_offload_resources(struct s3_conn *c3cn)
 	c3cn->cdev = NULL;
 }
 
-/**
- * cxgb3i_c3cn_create - allocate and initialize an s3_conn structure
- * returns the s3_conn structure allocated.
- */
+
 struct s3_conn *cxgb3i_c3cn_create(void)
 {
 	struct s3_conn *c3cn;
@@ -1349,8 +1197,7 @@ struct s3_conn *cxgb3i_c3cn_create(void)
 	if (!c3cn)
 		return NULL;
 
-	/* pre-allocate close/abort cpl, so we don't need to wait for memory
-	   when close/abort is requested. */
+	
 	if (c3cn_alloc_cpl_skbs(c3cn) < 0)
 		goto free_c3cn;
 
@@ -1393,10 +1240,10 @@ static void c3cn_active_close(struct s3_conn *c3cn)
 	case C3CN_STATE_CLOSE_WAIT_1:
 	case C3CN_STATE_CLOSE_WAIT_2:
 	case C3CN_STATE_ABORTING:
-		/* nothing need to be done */
+		
 		break;
 	case C3CN_STATE_CONNECTING:
-		/* defer until cpl_act_open_rpl or cpl_act_establish */
+		
 		c3cn_set_flag(c3cn, C3CN_ACTIVE_CLOSE_NEEDED);
 		break;
 	case C3CN_STATE_ESTABLISHED:
@@ -1411,7 +1258,7 @@ static void c3cn_active_close(struct s3_conn *c3cn)
 
 	if (close_req) {
 		if (data_lost)
-			/* Unread data was tossed, zap the connection. */
+			
 			send_abort_req(c3cn);
 		else
 			send_close_req(c3cn);
@@ -1421,11 +1268,7 @@ static void c3cn_active_close(struct s3_conn *c3cn)
 	c3cn_put(c3cn);
 }
 
-/**
- * cxgb3i_c3cn_release - close and release an iscsi tcp connection and any
- * 	resource held
- * @c3cn: the iscsi tcp connection
- */
+
 void cxgb3i_c3cn_release(struct s3_conn *c3cn)
 {
 	c3cn_conn_debug("c3cn 0x%p, s %u, f 0x%lx.\n",
@@ -1456,14 +1299,7 @@ static int is_cxgb3_dev(struct net_device *dev)
 	return 0;
 }
 
-/**
- * cxgb3_egress_dev - return the cxgb3 egress device
- * @root_dev: the root device anchoring the search
- * @c3cn: the connection used to determine egress port in bonding mode
- * @context: in bonding mode, indicates a connection set up or failover
- *
- * Return egress device or NULL if the egress device isn't one of our ports.
- */
+
 static struct net_device *cxgb3_egress_dev(struct net_device *root_dev,
 					   struct s3_conn *c3cn,
 					   int context)
@@ -1502,9 +1338,7 @@ static struct rtable *find_route(struct net_device *dev,
 	return rt;
 }
 
-/*
- * Assign offload parameters to some connection fields.
- */
+
 static void init_offload_conn(struct s3_conn *c3cn,
 			      struct t3cdev *cdev,
 			      struct dst_entry *dst)
@@ -1526,10 +1360,7 @@ static int initiate_act_open(struct s3_conn *c3cn, struct net_device *dev)
 
 	c3cn_conn_debug("c3cn 0x%p, state %u, flag 0x%lx.\n",
 			c3cn, c3cn->state, c3cn->flags);
-	/*
-	 * Initialize connection data.  Note that the flags and ULP mode are
-	 * initialized higher up ...
-	 */
+	
 	c3cn->dev = dev;
 	c3cn->cdev = cdev;
 	c3cn->tid = cxgb3_alloc_atid(cdev, cdata->client, c3cn);
@@ -1567,13 +1398,7 @@ out_err:
 }
 
 
-/**
- * cxgb3i_c3cn_connect - initiates an iscsi tcp connection to a given address
- * @c3cn: the iscsi tcp connection
- * @usin: destination address
- *
- * return 0 if active open request is sent, < 0 otherwise.
- */
+
 int cxgb3i_c3cn_connect(struct net_device *dev, struct s3_conn *c3cn,
 			struct sockaddr_in *usin)
 {
@@ -1615,10 +1440,10 @@ int cxgb3i_c3cn_connect(struct net_device *dev, struct s3_conn *c3cn,
 	if (!c3cn->saddr.sin_addr.s_addr)
 		c3cn->saddr.sin_addr.s_addr = rt->rt_src;
 
-	/* now commit destination to connection */
+	
 	c3cn->dst_cache = &rt->u.dst;
 
-	/* try to establish an offloaded connection */
+	
 	dev = cxgb3_egress_dev(c3cn->dst_cache->dev, c3cn, 0);
 	if (dev == NULL) {
 		c3cn_conn_debug("c3cn 0x%p, egress dev NULL.\n", c3cn);
@@ -1627,7 +1452,7 @@ int cxgb3i_c3cn_connect(struct net_device *dev, struct s3_conn *c3cn,
 	cdata = NDEV2CDATA(dev);
 	cdev = cdata->cdev;
 
-	/* get a source port if one hasn't been provided */
+	
 	err = c3cn_get_port(c3cn, cdata);
 	if (err)
 		return err;
@@ -1653,16 +1478,10 @@ int cxgb3i_c3cn_connect(struct net_device *dev, struct s3_conn *c3cn,
 	if (!initiate_act_open(c3cn, dev))
 		return 0;
 
-	/*
-	 * If we get here, we don't have an offload connection so simply
-	 * return a failure.
-	 */
+	
 	err = -ENOTSUPP;
 
-	/*
-	 * This trashes the connection and releases the local port,
-	 * if necessary.
-	 */
+	
 	c3cn_conn_debug("c3cn 0x%p -> CLOSED.\n", c3cn);
 	c3cn_set_state(c3cn, C3CN_STATE_CLOSED);
 	ip_rt_put(rt);
@@ -1670,14 +1489,7 @@ int cxgb3i_c3cn_connect(struct net_device *dev, struct s3_conn *c3cn,
 	return err;
 }
 
-/**
- * cxgb3i_c3cn_rx_credits - ack received tcp data.
- * @c3cn: iscsi tcp connection
- * @copied: # of bytes processed
- *
- * Called after some received data has been read.  It returns RX credits
- * to the HW for the amount of data processed.
- */
+
 void cxgb3i_c3cn_rx_credits(struct s3_conn *c3cn, int copied)
 {
 	struct t3cdev *cdev;
@@ -1698,26 +1510,14 @@ void cxgb3i_c3cn_rx_credits(struct s3_conn *c3cn, int copied)
 
 	dack = F_RX_DACK_CHANGE | V_RX_DACK_MODE(1);
 
-	/*
-	 * For coalescing to work effectively ensure the receive window has
-	 * at least 16KB left.
-	 */
+	
 	must_send = credits + 16384 >= cxgb3_rcv_win;
 
 	if (must_send || credits >= cxgb3_rx_credit_thres)
 		c3cn->rcv_wup += send_rx_credits(c3cn, credits, dack);
 }
 
-/**
- * cxgb3i_c3cn_send_pdus - send the skbs containing iscsi pdus
- * @c3cn: iscsi tcp connection
- * @skb: skb contains the iscsi pdu
- *
- * Add a list of skbs to a connection send queue. The skbs must comply with
- * the max size limit of the device and have a headroom of at least
- * TX_HEADER_LEN bytes.
- * Return # of bytes queued.
- */
+
 int cxgb3i_c3cn_send_pdus(struct s3_conn *c3cn, struct sk_buff *skb)
 {
 	struct sk_buff *next;
@@ -1838,11 +1638,7 @@ int cxgb3i_sdev_init(cxgb3_cpl_handler_func *cpl_handlers)
 	return 0;
 }
 
-/**
- * cxgb3i_sdev_add - allocate and initialize resources for each adapter found
- * @cdev:	t3cdev adapter
- * @client:	cxgb3 driver client
- */
+
 void cxgb3i_sdev_add(struct t3cdev *cdev, struct cxgb3_client *client)
 {
 	struct cxgb3i_sdev_data *cdata;
@@ -1887,10 +1683,7 @@ free_cdata:
 	cxgb3i_free_big_mem(cdata);
 }
 
-/**
- * cxgb3i_sdev_remove - free the allocated resources for the adapter
- * @cdev:	t3cdev adapter
- */
+
 void cxgb3i_sdev_remove(struct t3cdev *cdev)
 {
 	struct cxgb3i_sdev_data *cdata = CXGB3_SDEV_DATA(cdev);

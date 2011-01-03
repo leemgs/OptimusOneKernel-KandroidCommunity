@@ -1,20 +1,6 @@
-/*
- * TI DaVinci DM646X EVM board
- *
- * Derived from: arch/arm/mach-davinci/board-evm.c
- * Copyright (C) 2006 Texas Instruments.
- *
- * (C) 2007-2008, MontaVista Software, Inc.
- *
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- *
- */
 
-/**************************************************************************
- * Included Files
- **************************************************************************/
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -57,12 +43,12 @@
 #define HAS_ATA 0
 #endif
 
-/* CPLD Register 0 bits to control ATA */
+
 #define DM646X_EVM_ATA_RST		BIT(0)
 #define DM646X_EVM_ATA_PWD		BIT(1)
 
 #define DM646X_EVM_PHY_MASK		(0x2)
-#define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
+#define DM646X_EVM_MDIO_FREQUENCY	(2200000) 
 
 #define VIDCLKCTL_OFFSET	(DAVINCI_SYSTEM_MODULE_BASE + 0x38)
 #define VSCLKDIS_OFFSET		(DAVINCI_SYSTEM_MODULE_BASE + 0x6c)
@@ -85,14 +71,14 @@
 
 static void __iomem *vpif_vidclkctl_reg;
 static void __iomem *vpif_vsclkdis_reg;
-/* spin lock for updating above registers */
+
 static spinlock_t vpif_reg_lock;
 
 static struct davinci_uart_config uart_config __initdata = {
 	.enabled_uarts = (1 << 0),
 };
 
-/* CPLD Register 0 Client: used for I/O Control */
+
 static int cpld_reg0_probe(struct i2c_client *client,
 			   const struct i2c_device_id *id)
 {
@@ -113,7 +99,7 @@ static int cpld_reg0_probe(struct i2c_client *client,
 			},
 		};
 
-		/* Clear ATA_RSTn and ATA_PWD bits to enable ATA operation. */
+		
 		i2c_transfer(client->adapter, msg, 1);
 		data &= ~(DM646X_EVM_ATA_RST | DM646X_EVM_ATA_PWD);
 		i2c_transfer(client->adapter, msg + 1, 1);
@@ -133,7 +119,7 @@ static struct i2c_driver dm6467evm_cpld_driver = {
 	.probe		= cpld_reg0_probe,
 };
 
-/* LEDS */
+
 
 static struct gpio_led evm_leds[] = {
 	{ .name = "DS1", .active_low = 1, },
@@ -271,10 +257,7 @@ static struct pcf857x_platform_data pcf_data = {
 	.teardown	= evm_pcf_teardown,
 };
 
-/* Most of this EEPROM is unused, but U-Boot uses some data:
- *  - 0x7f00, 6 bytes Ethernet Address
- *  - ... newer boards may have more
- */
+
 
 static struct at24_platform_data eeprom_info = {
 	.byte_len       = (256*1024) / 8,
@@ -368,8 +351,8 @@ static struct i2c_board_info __initdata i2c_info[] =  {
 };
 
 static struct davinci_i2c_platform_data i2c_pdata = {
-	.bus_freq       = 100 /* kHz */,
-	.bus_delay      = 0 /* usec */,
+	.bus_freq       = 100 ,
+	.bus_delay      = 0 ,
 };
 
 static int set_vpif_clock(int mux_mode, int hd)
@@ -382,7 +365,7 @@ static int set_vpif_clock(int mux_mode, int hd)
 	if (!vpif_vidclkctl_reg || !vpif_vsclkdis_reg || !cpld_client)
 		return -ENXIO;
 
-	/* disable the clock */
+	
 	spin_lock_irqsave(&vpif_reg_lock, flags);
 	value = __raw_readl(vpif_vsclkdis_reg);
 	value |= (VIDCH3CLK | VIDCH2CLK);
@@ -415,7 +398,7 @@ static int set_vpif_clock(int mux_mode, int hd)
 
 	spin_lock_irqsave(&vpif_reg_lock, flags);
 	value = __raw_readl(vpif_vsclkdis_reg);
-	/* enable the clock */
+	
 	value &= ~(VIDCH3CLK | VIDCH2CLK);
 	__raw_writel(value, vpif_vsclkdis_reg);
 	spin_unlock_irqrestore(&vpif_reg_lock, flags);
@@ -453,20 +436,13 @@ static struct vpif_display_config dm646x_vpif_display_config = {
 	.card_name	= "DM646x EVM",
 };
 
-/**
- * setup_vpif_input_path()
- * @channel: channel id (0 - CH0, 1 - CH1)
- * @sub_dev_name: ptr sub device name
- *
- * This will set vpif input to capture data from tvp514x or
- * tvp7002.
- */
+
 static int setup_vpif_input_path(int channel, const char *sub_dev_name)
 {
 	int err = 0;
 	int val;
 
-	/* for channel 1, we don't do anything */
+	
 	if (channel != 0)
 		return 0;
 
@@ -489,12 +465,7 @@ static int setup_vpif_input_path(int channel, const char *sub_dev_name)
 	return 0;
 }
 
-/**
- * setup_vpif_input_channel_mode()
- * @mux_mode:  mux mode. 0 - 1 channel or (1) - 2 channel
- *
- * This will setup input mode to one channel (TVP7002) or 2 channel (TVP5147)
- */
+
 static int setup_vpif_input_channel_mode(int mux_mode)
 {
 	unsigned long flags;

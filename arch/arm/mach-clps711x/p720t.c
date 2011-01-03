@@ -1,22 +1,4 @@
-/*
- *  linux/arch/arm/mach-clps711x/p720t.c
- *
- *  Copyright (C) 2000-2001 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/types.h>
@@ -36,11 +18,7 @@
 
 #include "common.h"
 
-/*
- * Map the P720T system PLD.  It occupies two address spaces:
- *  SYSPLD_PHYS_BASE and SYSPLD_PHYS_BASE + 0x00400000
- * We map both here.
- */
+
 static struct map_desc p720t_io_desc[] __initdata = {
 	{
 		.virtual	= SYSPLD_VIRT_BASE,
@@ -59,9 +37,7 @@ static void __init
 fixup_p720t(struct machine_desc *desc, struct tag *tag,
 	    char **cmdline, struct meminfo *mi)
 {
-	/*
-	 * Our bootloader doesn't setup any tags (yet).
-	 */
+	
 	if (tag->hdr.tag != ATAG_CORE) {
 		tag->hdr.tag = ATAG_CORE;
 		tag->hdr.size = tag_size(tag_core);
@@ -88,7 +64,7 @@ static void __init p720t_map_io(void)
 }
 
 MACHINE_START(P720T, "ARM-Prospector720T")
-	/* Maintainer: ARM Ltd/Deep Blue Solutions Ltd */
+	
 	.phys_io	= 0x80000000,
 	.io_pg_offst	= ((0xff000000) >> 18) & 0xfffc,
 	.boot_params	= 0xc0000100,
@@ -100,10 +76,7 @@ MACHINE_END
 
 static int p720t_hw_init(void)
 {
-	/*
-	 * Power down as much as possible in case we don't
-	 * have the drivers loaded.
-	 */
+	
 	PLD_LCDEN = 0;
 	PLD_PWR  &= ~(PLD_S4_ON|PLD_S3_ON|PLD_S2_ON|PLD_S1_ON);
 

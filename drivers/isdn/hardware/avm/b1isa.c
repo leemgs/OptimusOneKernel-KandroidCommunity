@@ -1,13 +1,4 @@
-/* $Id: b1isa.c,v 1.1.2.3 2004/02/10 01:07:12 keil Exp $
- * 
- * Module for AVM B1 ISA-card.
- * 
- * Copyright 1999 by Carsten Paeth <calle@calle.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -25,17 +16,17 @@
 #include <linux/isdn/capilli.h>
 #include "avmcard.h"
 
-/* ------------------------------------------------------------- */
+
 
 static char *revision = "$Revision: 1.1.2.3 $";
 
-/* ------------------------------------------------------------- */
+
 
 MODULE_DESCRIPTION("CAPI4Linux: Driver for AVM B1 ISA card");
 MODULE_AUTHOR("Carsten Paeth");
 MODULE_LICENSE("GPL");
 
-/* ------------------------------------------------------------- */
+
 
 static void b1isa_remove(struct pci_dev *pdev)
 {
@@ -56,7 +47,7 @@ static void b1isa_remove(struct pci_dev *pdev)
 	b1_free_card(card);
 }
 
-/* ------------------------------------------------------------- */
+
 
 static char *b1isa_procinfo(struct capi_ctr *ctrl);
 
@@ -162,7 +153,7 @@ static char *b1isa_procinfo(struct capi_ctr *ctrl)
 	return cinfo->infobuf;
 }
 
-/* ------------------------------------------------------------- */
+
 
 #define MAX_CARDS 4
 static struct pci_dev isa_dev[MAX_CARDS];

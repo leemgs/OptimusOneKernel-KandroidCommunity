@@ -1,12 +1,4 @@
-/*
- *  linux/arch/arm/mach-mmp/ttc_dkb.c
- *
- *  Support for the Marvell PXA910-based TTC_DKB Development Platform.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  publishhed by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -23,7 +15,7 @@
 #define ARRAY_AND_SIZE(x)       (x), ARRAY_SIZE(x)
 
 static unsigned long ttc_dkb_pin_config[] __initdata = {
-	/* UART2 */
+	
 	GPIO47_UART2_RXD,
 	GPIO48_UART2_TXD,
 };
@@ -32,7 +24,7 @@ static void __init ttc_dkb_init(void)
 {
 	mfp_config(ARRAY_AND_SIZE(ttc_dkb_pin_config));
 
-	/* on-chip devices */
+	
 	pxa910_add_uart(1);
 }
 

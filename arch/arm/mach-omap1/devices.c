@@ -1,13 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/devices.c
- *
- * OMAP1 platform device setup/initialization
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -24,7 +15,7 @@
 #include <mach/gpio.h>
 #include <mach/mmc.h>
 
-/*-------------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_RTC_DRV_OMAP) || defined(CONFIG_RTC_DRV_OMAP_MODULE)
 
@@ -100,7 +91,7 @@ static inline void omap_init_mbox(void)
 static inline void omap_init_mbox(void) { }
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
 
@@ -118,14 +109,14 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
 		}
 		if (mmc_controller->slots[0].wires == 4) {
 			omap_cfg_reg(MMC_DAT1);
-			/* NOTE: DAT2 can be on W10 (here) or M15 */
+			
 			if (!mmc_controller->slots[0].nomux)
 				omap_cfg_reg(MMC_DAT2);
 			omap_cfg_reg(MMC_DAT3);
 		}
 	}
 
-	/* Block 2 is on newer chips, and has many pinout options */
+	
 	if (cpu_is_omap16xx() && controller_nr == 1) {
 		if (!mmc_controller->slots[1].nomux) {
 			omap_cfg_reg(Y8_1610_MMC2_CMD);
@@ -138,13 +129,13 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
 				omap_cfg_reg(R10_1610_MMC2_DAT3);
 			}
 
-			/* These are needed for the level shifter */
+			
 			omap_cfg_reg(V9_1610_MMC2_CMDDIR);
 			omap_cfg_reg(V5_1610_MMC2_DATDIR0);
 			omap_cfg_reg(W19_1610_MMC2_DATDIR1);
 		}
 
-		/* Feedback clock must be set on OMAP-1710 MMC2 */
+		
 		if (cpu_is_omap1710())
 			omap_writel(omap_readl(MOD_CONF_CTRL_1) | (1 << 24),
 					MOD_CONF_CTRL_1);
@@ -187,7 +178,7 @@ void __init omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
 
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_OMAP_STI)
 
@@ -226,33 +217,12 @@ static inline void omap_init_sti(void)
 static inline void omap_init_sti(void) {}
 #endif
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * This gets called after board-specific INIT_MACHINE, and initializes most
- * on-chip peripherals accessible on this board (except for few like USB):
- *
- *  (a) Does any "standard config" pin muxing needed.  Board-specific
- *	code will have muxed GPIO pins and done "nonstandard" setup;
- *	that code could live in the boot loader.
- *  (b) Populating board-specific platform_data with the data drivers
- *	rely on to handle wiring variations.
- *  (c) Creating platform devices as meaningful on this board and
- *	with this kernel configuration.
- *
- * Claiming GPIOs, and setting their direction and initial values, is the
- * responsibility of the device drivers.  So is responding to probe().
- *
- * Board-specific knowlege like creating devices or pin setup is to be
- * kept out of drivers as much as possible.  In particular, pin setup
- * may be handled by the boot loader, and drivers should expect it will
- * normally have been done by the time they're probed.
- */
+
+
 static int __init omap1_init_devices(void)
 {
-	/* please keep these calls, and their implementations above,
-	 * in alphabetical order so they're easier to sort through.
-	 */
+	
 
 	omap_init_mbox();
 	omap_init_rtc();

@@ -1,10 +1,4 @@
-/*
- * trace stack traces
- *
- * Copyright (C) 2004-2008, Soeren Sandmann
- * Copyright (C) 2007 Steven Rostedt <srostedt@redhat.com>
- * Copyright (C) 2008 Ingo Molnar <mingo@redhat.com>
- */
+
 #include <linux/kallsyms.h>
 #include <linux/debugfs.h>
 #include <linux/hrtimer.h>
@@ -21,16 +15,12 @@
 static struct trace_array	*sysprof_trace;
 static int __read_mostly	tracer_enabled;
 
-/*
- * 1 msec sample interval by default:
- */
+
 static unsigned long sample_period = 1000000;
 static const unsigned int sample_max_depth = 512;
 
 static DEFINE_MUTEX(sample_timer_lock);
-/*
- * Per CPU hrtimers that do the profiling:
- */
+
 static DEFINE_PER_CPU(struct hrtimer, stack_trace_hrtimer);
 
 struct stack_frame {
@@ -63,17 +53,17 @@ struct backtrace_info {
 static void
 backtrace_warning_symbol(void *data, char *msg, unsigned long symbol)
 {
-	/* Ignore warnings */
+	
 }
 
 static void backtrace_warning(void *data, char *msg)
 {
-	/* Ignore warnings */
+	
 }
 
 static int backtrace_stack(void *data, char *name)
 {
-	/* Don't bother with IRQ stacks for now */
+	
 	return -1;
 }
 
@@ -150,9 +140,7 @@ static void timer_notify(struct pt_regs *regs, int cpu)
 	else
 		i = 0;
 
-	/*
-	 * Trace user stack if we are not a kernel thread
-	 */
+	
 	if (current->mm && i < sample_max_depth) {
 		regs = (struct pt_regs *)current->thread.sp0 - 1;
 
@@ -177,9 +165,7 @@ static void timer_notify(struct pt_regs *regs, int cpu)
 
 	}
 
-	/*
-	 * Special trace entry if we overflow the max depth:
-	 */
+	
 	if (i == sample_max_depth)
 		__trace_special(tr, data, -1, -1, -1);
 
@@ -188,7 +174,7 @@ static void timer_notify(struct pt_regs *regs, int cpu)
 
 static enum hrtimer_restart stack_trace_timer_fn(struct hrtimer *hrtimer)
 {
-	/* trace here */
+	
 	timer_notify(get_irq_regs(), smp_processor_id());
 
 	hrtimer_forward_now(hrtimer, ns_to_ktime(sample_period));
@@ -300,9 +286,7 @@ sysprof_sample_write(struct file *filp, const char __user *ubuf,
 	buf[cnt] = 0;
 
 	val = simple_strtoul(buf, NULL, 10);
-	/*
-	 * Enforce a minimum sample period of 100 usecs:
-	 */
+	
 	if (val < 100)
 		val = 100;
 

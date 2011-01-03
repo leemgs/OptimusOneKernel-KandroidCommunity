@@ -1,16 +1,4 @@
-/*
- * devtmpfs - kernel-maintained tmpfs-based /dev
- *
- * Copyright (C) 2009, Kay Sievers <kay.sievers@vrfy.org>
- *
- * During bootup, before any driver core device is registered,
- * devtmpfs, a tmpfs-based filesystem is created. Every driver-core
- * device which requests a device node, will add a node in this
- * filesystem.
- * By default, all devices are named after the the name of the
- * device, owned by root and have a default mode of 0600. Subsystems
- * can overwrite the default setting if needed.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/syscalls.h>
@@ -99,7 +87,7 @@ static int create_path(const char *nodepath)
 	if (err == 0) {
 		struct dentry *dentry;
 
-		/* create directory right away */
+		
 		dentry = lookup_create(&nd, 1);
 		if (!IS_ERR(dentry)) {
 			err = vfs_mkdir(nd.path.dentry->d_inode,
@@ -112,7 +100,7 @@ static int create_path(const char *nodepath)
 	} else if (err == -ENOENT) {
 		char *s;
 
-		/* parent directories do not exist, create them */
+		
 		s = path;
 		while (1) {
 			s = strchr(s, '/');
@@ -159,7 +147,7 @@ int devtmpfs_create_node(struct device *dev)
 	err = vfs_path_lookup(dev_mnt->mnt_root, dev_mnt,
 			      nodename, LOOKUP_PARENT, &nd);
 	if (err == -ENOENT) {
-		/* create missing parent directories */
+		
 		create_path(nodename);
 		err = vfs_path_lookup(dev_mnt->mnt_root, dev_mnt,
 				      nodename, LOOKUP_PARENT, &nd);
@@ -175,7 +163,7 @@ int devtmpfs_create_node(struct device *dev)
 		err = vfs_mknod(nd.path.dentry->d_inode,
 				dentry, mode, dev->devt);
 		sys_umask(umask);
-		/* mark as kernel created inode */
+		
 		if (!err)
 			dentry->d_inode->i_private = &dev_mnt;
 		dput(dentry);
@@ -246,11 +234,11 @@ static int delete_path(const char *nodepath)
 
 static int dev_mynode(struct device *dev, struct inode *inode, struct kstat *stat)
 {
-	/* did we create it */
+	
 	if (inode->i_private != &dev_mnt)
 		return 0;
 
-	/* does the dev_t match */
+	
 	if (is_blockdev(dev)) {
 		if (!S_ISBLK(stat->mode))
 			return 0;
@@ -261,7 +249,7 @@ static int dev_mynode(struct device *dev, struct inode *inode, struct kstat *sta
 	if (stat->rdev != dev->devt)
 		return 0;
 
-	/* ours */
+	
 	return 1;
 }
 
@@ -318,10 +306,7 @@ out:
 	return err;
 }
 
-/*
- * If configured, or requested by the commandline, devtmpfs will be
- * auto-mounted after the kernel mounted the root filesystem.
- */
+
 int devtmpfs_mount(const char *mountpoint)
 {
 	struct path path;
@@ -345,10 +330,7 @@ int devtmpfs_mount(const char *mountpoint)
 	return err;
 }
 
-/*
- * Create devtmpfs instance, driver-core devices will add their device
- * nodes here.
- */
+
 int __init devtmpfs_init(void)
 {
 	int err;

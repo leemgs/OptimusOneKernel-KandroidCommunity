@@ -1,20 +1,4 @@
-/*
- * Driver for the po1030 sensor
- *
- * Copyright (c) 2008 Erik Andrén
- * Copyright (c) 2007 Ilyes Gouta. Based on the m5603x Linux Driver Project.
- * Copyright (c) 2005 m5603x Linux Driver Project <m5602@x3ng.com.br>
- *
- * Portions of code to USB interface and ALi driver software,
- * Copyright (c) 2006 Willem Duinker
- * v4l2 interface modeled after the V4L2 driver
- * for SN9C10x PC Camera Controllers
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include "m5602_po1030.h"
 
@@ -200,14 +184,13 @@ int po1030_probe(struct sd *sd)
 			info("Forcing a %s sensor", po1030.name);
 			goto sensor_found;
 		}
-		/* If we want to force another sensor, don't try to probe this
-		 * one */
+		
 		return -ENODEV;
 	}
 
 	info("Probing for a po1030 sensor");
 
-	/* Run the pre-init to actually probe the unit */
+	
 	for (i = 0; i < ARRAY_SIZE(preinit_po1030); i++) {
 		u8 data = preinit_po1030[i][2];
 		if (preinit_po1030[i][0] == SENSOR)
@@ -249,7 +232,7 @@ int po1030_init(struct sd *sd)
 	s32 *sensor_settings = sd->sensor_priv;
 	int i, err = 0;
 
-	/* Init the sensor */
+	
 	for (i = 0; i < ARRAY_SIZE(init_po1030) && !err; i++) {
 		u8 data[2] = {0x00, 0x00};
 
@@ -756,7 +739,7 @@ static void po1030_dump_registers(struct sd *sd)
 		else
 			info("register 0x%x is read only", address);
 
-		/* Restore original value */
+		
 		m5602_write_sensor(sd, address, &old_value, 1);
 	}
 }

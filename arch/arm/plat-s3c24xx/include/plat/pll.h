@@ -1,11 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/include/plat/pll.h
- *
- * Copyright 2008 Simtec Electronics
- *      Ben Dooks <ben@simtec.co.uk>
- *      http://armlinux.simtec.co.uk/
- *
- * S3C24xx - common pll registers and code
- */
+
 
 #define S3C24XX_PLLCON_MDIVSHIFT	12
 #define S3C24XX_PLLCON_PDIVSHIFT	4

@@ -1,48 +1,14 @@
-/*
- *  linux/drivers/s390/crypto/zcrypt_pcica.h
- *
- *  zcrypt 2.1.0
- *
- *  Copyright (C)  2001, 2006 IBM Corporation
- *  Author(s): Robert Burroughs
- *	       Eric Rossman (edrossma@us.ibm.com)
- *
- *  Hotplug & misc device support: Jochen Roehrig (roehrig@de.ibm.com)
- *  Major cleanup & driver split: Martin Schwidefsky <schwidefsky@de.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef _ZCRYPT_PCICA_H_
 #define _ZCRYPT_PCICA_H_
 
-/**
- * The type 4 message family is associated with a PCICA card.
- *
- * The four members of the family are described below.
- *
- * Note that all unsigned char arrays are right-justified and left-padded
- * with zeroes.
- *
- * Note that all reserved fields must be zeroes.
- */
+
 struct type4_hdr {
 	unsigned char  reserved1;
-	unsigned char  msg_type_code;	/* 0x04 */
+	unsigned char  msg_type_code;	
 	unsigned short msg_len;
-	unsigned char  request_code;	/* 0x40 */
+	unsigned char  request_code;	
 	unsigned char  msg_fmt;
 	unsigned short reserved2;
 } __attribute__((packed));
@@ -55,7 +21,7 @@ struct type4_hdr {
 #define TYPE4_SCR_FMT 0x40
 #define TYPE4_LCR_FMT 0x50
 
-/* Mod-Exp, with a small modulus */
+
 struct type4_sme {
 	struct type4_hdr header;
 	unsigned char	 message[128];
@@ -63,7 +29,7 @@ struct type4_sme {
 	unsigned char	 modulus[128];
 } __attribute__((packed));
 
-/* Mod-Exp, with a large modulus */
+
 struct type4_lme {
 	struct type4_hdr header;
 	unsigned char	 message[256];
@@ -71,7 +37,7 @@ struct type4_lme {
 	unsigned char	 modulus[256];
 } __attribute__((packed));
 
-/* CRT, with a small modulus */
+
 struct type4_scr {
 	struct type4_hdr header;
 	unsigned char	 message[128];
@@ -82,7 +48,7 @@ struct type4_scr {
 	unsigned char	 u[72];
 } __attribute__((packed));
 
-/* CRT, with a large modulus */
+
 struct type4_lcr {
 	struct type4_hdr header;
 	unsigned char	 message[256];
@@ -93,14 +59,7 @@ struct type4_lcr {
 	unsigned char	 u[136];
 } __attribute__((packed));
 
-/**
- * The type 84 response family is associated with a PCICA card.
- *
- * Note that all unsigned char arrays are right-justified and left-padded
- * with zeroes.
- *
- * Note that all reserved fields must be zeroes.
- */
+
 
 struct type84_hdr {
 	unsigned char  reserved1;
@@ -114,4 +73,4 @@ struct type84_hdr {
 int zcrypt_pcica_init(void);
 void zcrypt_pcica_exit(void);
 
-#endif /* _ZCRYPT_PCICA_H_ */
+#endif 

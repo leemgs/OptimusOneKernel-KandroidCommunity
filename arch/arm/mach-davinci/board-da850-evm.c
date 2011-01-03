@@ -1,16 +1,4 @@
-/*
- * TI DA850/OMAP-L138 EVM board
- *
- * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
- *
- * Derived from: arch/arm/mach-davinci/board-da830-evm.c
- * Original Copyrights follow:
- *
- * 2007, 2009 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -34,7 +22,7 @@
 #include <mach/nand.h>
 
 #define DA850_EVM_PHY_MASK		0x1
-#define DA850_EVM_MDIO_FREQUENCY	2200000 /* PHY bus frequency */
+#define DA850_EVM_MDIO_FREQUENCY	2200000 
 
 #define DA850_LCD_BL_PIN		GPIO_TO_PIN(2, 15)
 #define DA850_LCD_PWR_PIN		GPIO_TO_PIN(8, 10)
@@ -75,11 +63,7 @@ static struct platform_device da850_evm_norflash_device = {
 	.resource	= da850_evm_norflash_resource,
 };
 
-/* DA850/OMAP-L138 EVM includes a 512 MByte large-page NAND flash
- * (128K blocks). It may be used instead of the (default) SPI flash
- * to boot, using TI's tools to install the secondary boot loader
- * (UBL) and U-Boot.
- */
+
 struct mtd_partition da850_evm_nandflash_partition[] = {
 	{
 		.name		= "u-boot env",
@@ -150,8 +134,8 @@ static struct i2c_board_info __initdata da850_evm_i2c_devices[] = {
 };
 
 static struct davinci_i2c_platform_data da850_evm_i2c_0_pdata = {
-	.bus_freq	= 100,	/* kHz */
-	.bus_delay	= 0,	/* usec */
+	.bus_freq	= 100,	
+	.bus_delay	= 0,	
 };
 
 static struct davinci_uart_config da850_evm_uart_config __initdata = {
@@ -163,7 +147,7 @@ static struct platform_device *da850_evm_devices[] __initdata = {
 	&da850_evm_norflash_device,
 };
 
-/* davinci da850 evm audio machine driver */
+
 static u8 da850_iis_serializer_direction[] = {
 	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
 	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
@@ -218,16 +202,16 @@ static int da850_lcd_hw_init(void)
 	gpio_direction_output(DA850_LCD_BL_PIN, 0);
 	gpio_direction_output(DA850_LCD_PWR_PIN, 0);
 
-	/* disable lcd backlight */
+	
 	gpio_set_value(DA850_LCD_BL_PIN, 0);
 
-	/* disable lcd power */
+	
 	gpio_set_value(DA850_LCD_PWR_PIN, 0);
 
-	/* enable lcd power */
+	
 	gpio_set_value(DA850_LCD_PWR_PIN, 1);
 
-	/* enable lcd backlight */
+	
 	gpio_set_value(DA850_LCD_BL_PIN, 1);
 
 	return 0;
@@ -242,7 +226,7 @@ static void __init da850_evm_init_nor(void)
 
 	aemif_addr = ioremap(DA8XX_AEMIF_CTL_BASE, SZ_32K);
 
-	/* Configure data bus width of CS2 to 16 bit */
+	
 	writel(readl(aemif_addr + DA8XX_AEMIF_CE2CFG_OFFSET) |
 		DA8XX_AEMIF_ASIZE_16BIT,
 		aemif_addr + DA8XX_AEMIF_CE2CFG_OFFSET);
@@ -352,11 +336,7 @@ static __init void da850_evm_init(void)
 	i2c_register_board_info(1, da850_evm_i2c_devices,
 			ARRAY_SIZE(da850_evm_i2c_devices));
 
-	/*
-	 * shut down uart 0 and 1; they are not used on the board and
-	 * accessing them causes endless "too much work in irq53" messages
-	 * with arago fs
-	 */
+	
 	__raw_writel(0, IO_ADDRESS(DA8XX_UART1_BASE) + 0x30);
 	__raw_writel(0, IO_ADDRESS(DA8XX_UART0_BASE) + 0x30);
 

@@ -1,24 +1,9 @@
-/*
- * arch/arm/mach-w90x900/include/mach/regs-irq.h
- *
- * Copyright (c) 2008 Nuvoton technology corporation
- * All rights reserved.
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * Based on arch/arm/mach-s3c2410/include/mach/regs-irq.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #ifndef ___ASM_ARCH_REGS_IRQ_H
 #define ___ASM_ARCH_REGS_IRQ_H
 
-/* Advance Interrupt Controller (AIC) Registers */
+
 
 #define AIC_BA    		W90X900_VA_IRQ
 
@@ -41,11 +26,11 @@
 #define AIC_IPER		(0x10C)
 #define AIC_ISNR		(0x110)
 
-/*16-18 bits of REG_AIC_GEN define irq(2-4) group*/
+
 
 #define TIMER2_IRQ		(1 << 16)
 #define TIMER3_IRQ		(1 << 17)
 #define TIMER4_IRQ		(1 << 18)
 #define TIME_GROUP_IRQ		(TIMER2_IRQ|TIMER3_IRQ|TIMER4_IRQ)
 
-#endif /* ___ASM_ARCH_REGS_IRQ_H */
+#endif 

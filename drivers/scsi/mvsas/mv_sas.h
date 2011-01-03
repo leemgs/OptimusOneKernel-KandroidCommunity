@@ -1,26 +1,4 @@
-/*
- * Marvell 88SE64xx/88SE94xx main function head file
- *
- * Copyright 2007 Red Hat, Inc.
- * Copyright 2008 Marvell. <kewei@marvell.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 of the
- * License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
-*/
+
 
 #ifndef _MV_SAS_H_
 #define _MV_SAS_H_
@@ -47,7 +25,7 @@
 #define DRV_VERSION		"0.8.2"
 #define _MV_DUMP		0
 #define MVS_ID_NOT_MAPPED	0x7f
-/* #define DISABLE_HOTPLUG_DMA_FIX */
+
 #define MAX_EXP_RUNNING_REQ	2
 #define WIDE_PORT_MAX_PHY		4
 #define	MV_DISABLE_NCQ	0
@@ -188,14 +166,14 @@ struct mvs_err_info {
 };
 
 struct mvs_cmd_hdr {
-	__le32			flags;	/* PRD tbl len; SAS, SATA ctl */
-	__le32			lens;	/* cmd, max resp frame len */
-	__le32			tags;	/* targ port xfer tag; tag */
-	__le32			data_len;	/* data xfer len */
-	__le64			cmd_tbl;  	/* command table address */
-	__le64			open_frame;	/* open addr frame address */
-	__le64			status_buf;	/* status buffer address */
-	__le64			prd_tbl;		/* PRD tbl address */
+	__le32			flags;	
+	__le32			lens;	
+	__le32			tags;	
+	__le32			data_len;	
+	__le64			cmd_tbl;  	
+	__le64			open_frame;	
+	__le64			status_buf;	
+	__le64			prd_tbl;		
 	__le32			reserved[4];
 };
 
@@ -253,9 +231,7 @@ struct mvs_slot_info {
 	u32 tx;
 	u32 slot_tag;
 
-	/* DMA buffer for storing cmd tbl, open addr frame, status buffer,
-	 * and PRD table
-	 */
+	
 	void *buf;
 	dma_addr_t buf_dma;
 #if _MV_DUMP
@@ -270,43 +246,43 @@ struct mvs_slot_info {
 struct mvs_info {
 	unsigned long flags;
 
-	/* host-wide lock */
+	
 	spinlock_t lock;
 
-	/* our device */
+	
 	struct pci_dev *pdev;
 	struct device *dev;
 
-	/* enhanced mode registers */
+	
 	void __iomem *regs;
 
-	/* peripheral or soc registers */
+	
 	void __iomem *regs_ex;
 	u8 sas_addr[SAS_ADDR_SIZE];
 
-	/* SCSI/SAS glue */
+	
 	struct sas_ha_struct *sas;
 	struct Scsi_Host *shost;
 
-	/* TX (delivery) DMA ring */
+	
 	__le32 *tx;
 	dma_addr_t tx_dma;
 
-	/* cached next-producer idx */
+	
 	u32 tx_prod;
 
-	/* RX (completion) DMA ring */
+	
 	__le32	*rx;
 	dma_addr_t rx_dma;
 
-	/* RX consumer idx */
+	
 	u32 rx_cons;
 
-	/* RX'd FIS area */
+	
 	__le32 *rx_fis;
 	dma_addr_t rx_fis_dma;
 
-	/* DMA command header slots */
+	
 	struct mvs_cmd_hdr *slot;
 	dma_addr_t slot_dma;
 
@@ -315,7 +291,7 @@ struct mvs_info {
 
 	int tags_num;
 	DECLARE_BITMAP(tags, MVS_SLOTS);
-	/* further per-slot information */
+	
 	struct mvs_phy phy[MVS_MAX_PHYS];
 	struct mvs_port port[MVS_MAX_PHYS];
 	u32 irq;
@@ -364,7 +340,7 @@ struct mvs_task_exec_info {
 };
 
 
-/******************** function prototype *********************/
+
 void mvs_get_sas_addr(void *buf, u32 buflen);
 void mvs_tag_clear(struct mvs_info *mvi, u32 tag);
 void mvs_tag_free(struct mvs_info *mvi, u32 tag);

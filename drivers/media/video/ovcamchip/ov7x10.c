@@ -1,53 +1,42 @@
-/* OmniVision OV7610/OV7110 Camera Chip Support Code
- *
- * Copyright (c) 1999-2004 Mark McClelland <mark@alpha.dyndns.org>
- * http://alpha.dyndns.org/ov511/
- *
- * Color fixes by by Orion Sky Lawlor <olawlor@acm.org> (2/26/2000)
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version. NO WARRANTY OF ANY KIND is expressed or implied.
- */
+
 
 #define DEBUG
 
 #include <linux/slab.h>
 #include "ovcamchip_priv.h"
 
-/* Registers */
-#define REG_GAIN		0x00	/* gain [5:0] */
-#define REG_BLUE		0x01	/* blue channel balance */
-#define REG_RED			0x02	/* red channel balance */
-#define REG_SAT			0x03	/* saturation */
-#define REG_CNT			0x05	/* Y contrast */
-#define REG_BRT			0x06	/* Y brightness */
-#define REG_BLUE_BIAS		0x0C	/* blue channel bias [5:0] */
-#define REG_RED_BIAS		0x0D	/* red channel bias [5:0] */
-#define REG_GAMMA_COEFF		0x0E	/* gamma settings */
-#define REG_WB_RANGE		0x0F	/* AEC/ALC/S-AWB settings */
-#define REG_EXP			0x10	/* manual exposure setting */
-#define REG_CLOCK		0x11	/* polarity/clock prescaler */
-#define REG_FIELD_DIVIDE	0x16	/* field interval/mode settings */
-#define REG_HWIN_START		0x17	/* horizontal window start */
-#define REG_HWIN_END		0x18	/* horizontal window end */
-#define REG_VWIN_START		0x19	/* vertical window start */
-#define REG_VWIN_END		0x1A	/* vertical window end */
-#define REG_PIXEL_SHIFT   	0x1B	/* pixel shift */
-#define REG_YOFFSET		0x21	/* Y channel offset */
-#define REG_UOFFSET		0x22	/* U channel offset */
-#define REG_ECW			0x24	/* exposure white level for AEC */
-#define REG_ECB			0x25	/* exposure black level for AEC */
-#define REG_FRAMERATE_H		0x2A	/* frame rate MSB + misc */
-#define REG_FRAMERATE_L		0x2B	/* frame rate LSB */
-#define REG_ALC			0x2C	/* Auto Level Control settings */
-#define REG_VOFFSET		0x2E	/* V channel offset adjustment */
-#define REG_ARRAY_BIAS		0x2F	/* array bias -- don't change */
-#define REG_YGAMMA		0x33	/* misc gamma settings [7:6] */
-#define REG_BIAS_ADJUST		0x34	/* misc bias settings */
 
-/* Window parameters */
+#define REG_GAIN		0x00	
+#define REG_BLUE		0x01	
+#define REG_RED			0x02	
+#define REG_SAT			0x03	
+#define REG_CNT			0x05	
+#define REG_BRT			0x06	
+#define REG_BLUE_BIAS		0x0C	
+#define REG_RED_BIAS		0x0D	
+#define REG_GAMMA_COEFF		0x0E	
+#define REG_WB_RANGE		0x0F	
+#define REG_EXP			0x10	
+#define REG_CLOCK		0x11	
+#define REG_FIELD_DIVIDE	0x16	
+#define REG_HWIN_START		0x17	
+#define REG_HWIN_END		0x18	
+#define REG_VWIN_START		0x19	
+#define REG_VWIN_END		0x1A	
+#define REG_PIXEL_SHIFT   	0x1B	
+#define REG_YOFFSET		0x21	
+#define REG_UOFFSET		0x22	
+#define REG_ECW			0x24	
+#define REG_ECB			0x25	
+#define REG_FRAMERATE_H		0x2A	
+#define REG_FRAMERATE_L		0x2B	
+#define REG_ALC			0x2C	
+#define REG_VOFFSET		0x2E	
+#define REG_ARRAY_BIAS		0x2F	
+#define REG_YGAMMA		0x33	
+#define REG_BIAS_ADJUST		0x34	
+
+
 #define HWSBASE 0x38
 #define HWEBASE 0x3a
 #define VWSBASE 0x05
@@ -60,17 +49,7 @@ struct ov7x10 {
 	int mirror;
 };
 
-/* Lawrence Glaister <lg@jfm.bc.ca> reports:
- *
- * Register 0x0f in the 7610 has the following effects:
- *
- * 0x85 (AEC method 1): Best overall, good contrast range
- * 0x45 (AEC method 2): Very overexposed
- * 0xa5 (spec sheet default): Ok, but the black level is
- *	shifted resulting in loss of contrast
- * 0x05 (old driver setting): very overexposed, too much
- *	contrast
- */
+
 static struct ovcamchip_regvals regvals_init_7x10[] = {
 	{ 0x10, 0xff },
 	{ 0x16, 0x03 },
@@ -78,8 +57,8 @@ static struct ovcamchip_regvals regvals_init_7x10[] = {
 	{ 0x2b, 0xac },
 	{ 0x12, 0x00 },
 	{ 0x38, 0x81 },
-	{ 0x28, 0x24 },	/* 0c */
-	{ 0x0f, 0x85 },	/* lg's setting */
+	{ 0x28, 0x24 },	
+	{ 0x0f, 0x85 },	
 	{ 0x15, 0x01 },
 	{ 0x20, 0x1c },
 	{ 0x23, 0x2a },
@@ -99,10 +78,10 @@ static struct ovcamchip_regvals regvals_init_7x10[] = {
 	{ 0x11, 0x01 },
 	{ 0x0c, 0x24 },
 	{ 0x0d, 0x24 },
-	{ 0xff, 0xff },	/* END MARKER */
+	{ 0xff, 0xff },	
 };
 
-/* This initializes the OV7x10 camera chip and relevant variables. */
+
 static int ov7x10_init(struct i2c_client *c)
 {
 	struct ovcamchip *ov = i2c_get_clientdata(c);
@@ -260,11 +239,11 @@ static int ov7x10_mode_init(struct i2c_client *c, struct ovcamchip_window *win)
 {
 	int qvga = win->quarter;
 
-	/******** QVGA-specific regs ********/
+	
 
 	ov_write(c, 0x14, qvga?0x24:0x04);
 
-	/******** Palette-specific regs ********/
+	
 
 	if (win->format == VIDEO_PALETTE_GREY) {
 		ov_write_mask(c, 0x0e, 0x40, 0x40);
@@ -274,11 +253,11 @@ static int ov7x10_mode_init(struct i2c_client *c, struct ovcamchip_window *win)
 		ov_write_mask(c, 0x13, 0x00, 0x20);
 	}
 
-	/******** Clock programming ********/
+	
 
 	ov_write(c, 0x11, win->clockdiv);
 
-	/******** Resolution-specific ********/
+	
 
 	if (win->width == 640 && win->height == 480)
 		ov_write(c, 0x35, 0x9e);

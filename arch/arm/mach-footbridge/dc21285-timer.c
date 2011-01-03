@@ -1,9 +1,4 @@
-/*
- *  linux/arch/arm/mach-footbridge/dc21285-timer.c
- *
- *  Copyright (C) 1998 Russell King.
- *  Copyright (C) 1998 Phil Blundell
- */
+
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
@@ -16,9 +11,7 @@
 
 #include "common.h"
 
-/*
- * Footbridge timer 1 support.
- */
+
 static unsigned long timer1_latch;
 
 static unsigned long timer1_gettimeoffset (void)
@@ -44,9 +37,7 @@ static struct irqaction footbridge_timer_irq = {
 	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
 };
 
-/*
- * Set up timer interrupt.
- */
+
 static void __init footbridge_timer_init(void)
 {
 	timer1_latch = (mem_fclk_21285 + 8 * HZ) / (16 * HZ);

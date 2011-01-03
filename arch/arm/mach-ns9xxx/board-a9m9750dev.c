@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/board-a9m9750dev.c
- *
- * Copyright (C) 2006,2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #include <linux/irq.h>
 
 #include <asm/mach/map.h>
@@ -23,7 +14,7 @@
 #include "board-a9m9750dev.h"
 
 static struct map_desc board_a9m9750dev_io_desc[] __initdata = {
-	{ /* FPGA on CS0 */
+	{ 
 		.virtual = io_p2v(NS9XXX_CSxSTAT_PHYS(0)),
 		.pfn = __phys_to_pfn(NS9XXX_CSxSTAT_PHYS(0)),
 		.length = NS9XXX_CS0STAT_LENGTH,
@@ -39,7 +30,7 @@ void __init board_a9m9750dev_map_io(void)
 
 static void a9m9750dev_fpga_ack_irq(unsigned int irq)
 {
-	/* nothing */
+	
 }
 
 static void a9m9750dev_fpga_mask_irq(unsigned int irq)
@@ -112,7 +103,7 @@ void __init board_a9m9750dev_init_irq(void)
 		set_irq_flags(i, IRQF_VALID);
 	}
 
-	/* IRQ_NS9XXX_EXT2: level sensitive + active low */
+	
 	eic = __raw_readl(SYS_EIC(2));
 	REGSET(eic, SYS_EIC, PLTY, AL);
 	REGSET(eic, SYS_EIC, LVEDG, LEVEL);
@@ -126,18 +117,18 @@ void __init board_a9m9750dev_init_machine(void)
 {
 	u32 reg;
 
-	/* setup static CS0: memory base ... */
+	
 	reg = __raw_readl(SYS_SMCSSMB(0));
 	REGSETIM(reg, SYS_SMCSSMB, CSxB, NS9XXX_CSxSTAT_PHYS(0) >> 12);
 	__raw_writel(reg, SYS_SMCSSMB(0));
 
-	/* ... and mask */
+	
 	reg = __raw_readl(SYS_SMCSSMM(0));
 	REGSETIM(reg, SYS_SMCSSMM, CSxM, 0xfffff);
 	REGSET(reg, SYS_SMCSSMM, CSEx, EN);
 	__raw_writel(reg, SYS_SMCSSMM(0));
 
-	/* setup static CS0: memory configuration */
+	
 	reg = __raw_readl(MEM_SMC(0));
 	REGSET(reg, MEM_SMC, PSMC, OFF);
 	REGSET(reg, MEM_SMC, BSMC, OFF);
@@ -148,7 +139,7 @@ void __init board_a9m9750dev_init_machine(void)
 	REGSET(reg, MEM_SMC, MW, 8);
 	__raw_writel(reg, MEM_SMC(0));
 
-	/* setup static CS0: timing */
+	
 	__raw_writel(0x2, MEM_SMWED(0));
 	__raw_writel(0x2, MEM_SMOED(0));
 	__raw_writel(0x6, MEM_SMRD(0));

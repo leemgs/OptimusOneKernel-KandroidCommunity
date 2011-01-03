@@ -1,30 +1,4 @@
-/*
- *
- * MyCable board specific pcmcia routines.
- *
- * Copyright 2003 MontaVista Software Inc.
- * Author: Pete Popov, MontaVista Software, Inc.
- *         	ppopov@mvista.com or source@mvista.com
- *
- * ########################################################################
- *
- *  This program is free software; you can distribute it and/or modify it
- *  under the terms of the GNU General Public License (Version 2) as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- *  for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
- *
- * ########################################################################
- *
- *
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/delay.h>
@@ -65,12 +39,12 @@ static int xxs1500_pcmcia_init(struct pcmcia_init *init)
 
 static int xxs1500_pcmcia_shutdown(void)
 {
-	/* turn off power */
+	
 	au_writel(au_readl(GPIO2_PINSTATE) | (1<<14)|(1<<30),
 			GPIO2_OUTPUT);
 	au_sync_delay(100);
 
-	/* assert reset */
+	
 	au_writel(au_readl(GPIO2_PINSTATE) | (1<<4)|(1<<20),
 			GPIO2_OUTPUT);
 	au_sync_delay(100);
@@ -104,9 +78,9 @@ xxs1500_pcmcia_socket_state(unsigned sock, struct pcmcia_state *state)
 			case 2:
 				state->vs_3v=1;
 				break;
-			case 3: /* 5V */
+			case 3: 
 			default:
-				/* return without setting 'detect' */
+				
 				printk(KERN_ERR "au1x00_cs: unsupported VS\n",
 						vs);
 				return;
@@ -144,18 +118,18 @@ xxs1500_pcmcia_configure_socket(const struct pcmcia_configure *configure)
 			configure->vcc, configure->vpp, configure->reset);
 
 	switch(configure->vcc){
-		case 33: /* Vcc 3.3V */
-			/* turn on power */
+		case 33: 
+			
 			DEBUG("turn on power\n");
 			au_writel((au_readl(GPIO2_PINSTATE) & ~(1<<14))|(1<<30),
 					GPIO2_OUTPUT);
 			au_sync_delay(100);
 			break;
-		case 50: /* Vcc 5V */
-		default: /* what's this ? */
+		case 50: 
+		default: 
 			printk(KERN_ERR "au1x00_cs: unsupported VCC\n");
-		case 0:  /* Vcc 0 */
-			/* turn off power */
+		case 0:  
+			
 			au_sync_delay(100);
 			au_writel(au_readl(GPIO2_PINSTATE) | (1<<14)|(1<<30),
 					GPIO2_OUTPUT);

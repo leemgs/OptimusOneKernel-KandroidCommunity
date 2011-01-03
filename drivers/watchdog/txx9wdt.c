@@ -1,12 +1,4 @@
-/*
- * txx9wdt: A Hardware Watchdog Driver for TXx9 SoCs
- *
- * Copyright (C) 2007 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/types.h>
@@ -22,9 +14,9 @@
 #include <linux/io.h>
 #include <asm/txx9tmr.h>
 
-#define TIMER_MARGIN	60		/* Default is 60 seconds */
+#define TIMER_MARGIN	60		
 
-static int timeout = TIMER_MARGIN;	/* in seconds */
+static int timeout = TIMER_MARGIN;	
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
 	"Watchdog timeout in seconds. "
@@ -37,7 +29,7 @@ MODULE_PARM_DESC(nowayout,
 	"Watchdog cannot be stopped once started "
 	"(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
-#define WD_TIMER_CCD	7	/* 1/256 */
+#define WD_TIMER_CCD	7	
 #define WD_TIMER_CLK	(clk_get_rate(txx9_imclk) / (2 << WD_TIMER_CCD))
 #define WD_MAX_TIMEOUT	((0xffffffff >> (32 - TXX9_TIMER_BITS)) / WD_TIMER_CLK)
 
@@ -59,7 +51,7 @@ static void txx9wdt_start(void)
 	spin_lock(&txx9_lock);
 	__raw_writel(WD_TIMER_CLK * timeout, &txx9wdt_reg->cpra);
 	__raw_writel(WD_TIMER_CCD, &txx9wdt_reg->ccdr);
-	__raw_writel(0, &txx9wdt_reg->tisr);	/* clear pending interrupt */
+	__raw_writel(0, &txx9wdt_reg->tisr);	
 	__raw_writel(TXx9_TMTCR_TCE | TXx9_TMTCR_CCDE | TXx9_TMTCR_TMODE_WDOG,
 		     &txx9wdt_reg->tcr);
 	__raw_writel(TXx9_TMWTMR_TWIE | TXx9_TMWTMR_TWC, &txx9wdt_reg->wtmr);
@@ -158,7 +150,7 @@ static long txx9wdt_ioctl(struct file *file, unsigned int cmd,
 		timeout = new_timeout;
 		txx9wdt_stop();
 		txx9wdt_start();
-		/* Fall */
+		
 	case WDIOC_GETTIMEOUT:
 		return put_user(timeout, p);
 	default:

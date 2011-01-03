@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2006 - 2009 Intel-NE, Inc.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -57,9 +26,7 @@ static u16 nes_read16_eeprom(void __iomem *addr, u16 offset);
 u32 mh_detected;
 u32 mh_pauses_sent;
 
-/**
- * nes_read_eeprom_values -
- */
+
 int nes_read_eeprom_values(struct nes_device *nesdev, struct nes_adapter *nesadapter)
 {
 	u32 mac_addr_low;
@@ -71,9 +38,9 @@ int nes_read_eeprom_values(struct nes_device *nesdev, struct nes_adapter *nesada
 	u8  major_ver = 0;
 	u8  minor_ver = 0;
 
-	/* TODO: deal with EEPROM endian issues */
+	
 	if (nesadapter->firmware_eeprom_offset == 0) {
-		/* Read the EEPROM Parameters */
+		
 		eeprom_data = nes_read16_eeprom(nesdev->regs, 0);
 		nes_debug(NES_DBG_HW, "EEPROM Offset 0  = 0x%04X\n", eeprom_data);
 		eeprom_offset = 2 + (((eeprom_data & 0x007f) << 3) <<
@@ -190,7 +157,7 @@ int nes_read_eeprom_values(struct nes_device *nesdev, struct nes_adapter *nesada
 				(u32)((u8)eeprom_data);
 
 no_fw_rev:
-		/* eeprom is valid */
+		
 		eeprom_offset = nesadapter->software_eeprom_offset;
 		eeprom_offset += 8;
 		nesadapter->netdev_max = (u8)nes_read16_eeprom(nesdev->regs, eeprom_offset);
@@ -208,25 +175,25 @@ no_fw_rev:
 		nesadapter->mac_addr_low = mac_addr_low;
 		nesadapter->mac_addr_high = mac_addr_high;
 
-		/* Read the Phy Type array */
+		
 		eeprom_offset += 10;
 		eeprom_data = nes_read16_eeprom(nesdev->regs, eeprom_offset);
 		nesadapter->phy_type[0] = (u8)(eeprom_data >> 8);
 		nesadapter->phy_type[1] = (u8)eeprom_data;
 
-		/* Read the port array */
+		
 		eeprom_offset += 2;
 		eeprom_data = nes_read16_eeprom(nesdev->regs, eeprom_offset);
 		nesadapter->phy_type[2] = (u8)(eeprom_data >> 8);
 		nesadapter->phy_type[3] = (u8)eeprom_data;
-		/* port_count is set by soft reset reg */
+		
 		nes_debug(NES_DBG_HW, "port_count = %u, port 0 -> %u, port 1 -> %u,"
 				" port 2 -> %u, port 3 -> %u\n",
 				nesadapter->port_count,
 				nesadapter->phy_type[0], nesadapter->phy_type[1],
 				nesadapter->phy_type[2], nesadapter->phy_type[3]);
 
-		/* Read PD config array */
+		
 		eeprom_offset += 10;
 		eeprom_data = nes_read16_eeprom(nesdev->regs, eeprom_offset);
 		nesadapter->pd_config_size[0] = eeprom_data;
@@ -263,8 +230,8 @@ no_fw_rev:
 		nes_debug(NES_DBG_HW, "PD3 config, size=0x%04x, base=0x%04x\n",
 				nesadapter->pd_config_size[3], nesadapter->pd_config_base[3]);
 
-		/* Read Rx Pool Size */
-		eeprom_offset += 22;   /* 46 */
+		
+		eeprom_offset += 22;   
 		eeprom_data = nes_read16_eeprom(nesdev->regs, eeprom_offset);
 		eeprom_offset += 2;
 		nesadapter->rx_pool_size = (((u32)eeprom_data) << 16) +
@@ -359,9 +326,7 @@ no_fw_rev:
 }
 
 
-/**
- * nes_read16_eeprom
- */
+
 static u16 nes_read16_eeprom(void __iomem *addr, u16 offset)
 {
 	writel(NES_EEPROM_READ_REQUEST + (offset >> 1),
@@ -375,9 +340,7 @@ static u16 nes_read16_eeprom(void __iomem *addr, u16 offset)
 }
 
 
-/**
- * nes_write_1G_phy_reg
- */
+
 void nes_write_1G_phy_reg(struct nes_device *nesdev, u8 phy_reg, u8 phy_addr, u16 data)
 {
 	struct nes_adapter *nesadapter = nesdev->nesadapter;
@@ -393,7 +356,7 @@ void nes_write_1G_phy_reg(struct nes_device *nesdev, u8 phy_reg, u8 phy_addr, u1
 		udelay(30);
 		u32temp = nes_read_indexed(nesdev, NES_IDX_MAC_INT_STATUS);
 		if (u32temp & 1) {
-			/* nes_debug(NES_DBG_PHY, "Phy interrupt status = 0x%X.\n", u32temp); */
+			
 			nes_write_indexed(nesdev, NES_IDX_MAC_INT_STATUS, 1);
 			break;
 		}
@@ -406,11 +369,7 @@ void nes_write_1G_phy_reg(struct nes_device *nesdev, u8 phy_reg, u8 phy_addr, u1
 }
 
 
-/**
- * nes_read_1G_phy_reg
- * This routine only issues the read, the data must be read
- * separately.
- */
+
 void nes_read_1G_phy_reg(struct nes_device *nesdev, u8 phy_reg, u8 phy_addr, u16 *data)
 {
 	struct nes_adapter *nesadapter = nesdev->nesadapter;
@@ -418,8 +377,7 @@ void nes_read_1G_phy_reg(struct nes_device *nesdev, u8 phy_reg, u8 phy_addr, u16
 	u32 counter;
 	unsigned long flags;
 
-	/* nes_debug(NES_DBG_PHY, "phy addr = %d, mac_index = %d\n",
-			phy_addr, nesdev->mac_index); */
+	
 	spin_lock_irqsave(&nesadapter->phy_lock, flags);
 
 	nes_write_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL,
@@ -428,7 +386,7 @@ void nes_read_1G_phy_reg(struct nes_device *nesdev, u8 phy_reg, u8 phy_addr, u16
 		udelay(30);
 		u32temp = nes_read_indexed(nesdev, NES_IDX_MAC_INT_STATUS);
 		if (u32temp & 1) {
-			/* nes_debug(NES_DBG_PHY, "Phy interrupt status = 0x%X.\n", u32temp); */
+			
 			nes_write_indexed(nesdev, NES_IDX_MAC_INT_STATUS, 1);
 			break;
 		}
@@ -444,9 +402,7 @@ void nes_read_1G_phy_reg(struct nes_device *nesdev, u8 phy_reg, u8 phy_addr, u16
 }
 
 
-/**
- * nes_write_10G_phy_reg
- */
+
 void nes_write_10G_phy_reg(struct nes_device *nesdev, u16 phy_addr, u8 dev_addr, u16 phy_reg,
 		u16 data)
 {
@@ -456,7 +412,7 @@ void nes_write_10G_phy_reg(struct nes_device *nesdev, u16 phy_addr, u8 dev_addr,
 
 	port_addr = phy_addr;
 
-	/* set address */
+	
 	nes_write_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL,
 			0x00020000 | (u32)phy_reg | (((u32)dev_addr) << 18) | (((u32)port_addr) << 23));
 	for (counter = 0; counter < 100 ; counter++) {
@@ -471,7 +427,7 @@ void nes_write_10G_phy_reg(struct nes_device *nesdev, u16 phy_addr, u8 dev_addr,
 		nes_debug(NES_DBG_PHY, "Phy is not responding. interrupt status = 0x%X.\n",
 				u32temp);
 
-	/* set data */
+	
 	nes_write_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL,
 			0x10020000 | (u32)data | (((u32)dev_addr) << 18) | (((u32)port_addr) << 23));
 	for (counter = 0; counter < 100 ; counter++) {
@@ -488,11 +444,7 @@ void nes_write_10G_phy_reg(struct nes_device *nesdev, u16 phy_addr, u8 dev_addr,
 }
 
 
-/**
- * nes_read_10G_phy_reg
- * This routine only issues the read, the data must be read
- * separately.
- */
+
 void nes_read_10G_phy_reg(struct nes_device *nesdev, u8 phy_addr, u8 dev_addr, u16 phy_reg)
 {
 	u32 port_addr;
@@ -501,7 +453,7 @@ void nes_read_10G_phy_reg(struct nes_device *nesdev, u8 phy_addr, u8 dev_addr, u
 
 	port_addr = phy_addr;
 
-	/* set address */
+	
 	nes_write_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL,
 			0x00020000 | (u32)phy_reg | (((u32)dev_addr) << 18) | (((u32)port_addr) << 23));
 	for (counter = 0; counter < 100 ; counter++) {
@@ -516,7 +468,7 @@ void nes_read_10G_phy_reg(struct nes_device *nesdev, u8 phy_addr, u8 dev_addr, u
 		nes_debug(NES_DBG_PHY, "Phy is not responding. interrupt status = 0x%X.\n",
 				u32temp);
 
-	/* issue read */
+	
 	nes_write_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL,
 			0x30020000 | (((u32)dev_addr) << 18) | (((u32)port_addr) << 23));
 	for (counter = 0; counter < 100 ; counter++) {
@@ -533,9 +485,7 @@ void nes_read_10G_phy_reg(struct nes_device *nesdev, u8 phy_addr, u8 dev_addr, u
 }
 
 
-/**
- * nes_get_cqp_request
- */
+
 struct nes_cqp_request *nes_get_cqp_request(struct nes_device *nesdev)
 {
 	unsigned long flags;
@@ -598,9 +548,7 @@ void nes_put_cqp_request(struct nes_device *nesdev,
 		nes_free_cqp_request(nesdev, cqp_request);
 }
 
-/**
- * nes_post_cqp_request
- */
+
 void nes_post_cqp_request(struct nes_device *nesdev,
 			  struct nes_cqp_request *cqp_request)
 {
@@ -631,7 +579,7 @@ void nes_post_cqp_request(struct nes_device *nesdev,
 				cqp_request->waiting, atomic_read(&cqp_request->refcount));
 		barrier();
 
-		/* Ring doorbell (1 WQEs) */
+		
 		nes_write32(nesdev->regs+NES_WQE_ALLOC, 0x01800000 | nesdev->cqp.qp_id);
 
 		barrier();
@@ -650,9 +598,7 @@ void nes_post_cqp_request(struct nes_device *nesdev,
 }
 
 
-/**
- * nes_arp_table
- */
+
 int nes_arp_table(struct nes_device *nesdev, u32 ip_addr, u8 *mac_addr, u32 action)
 {
 	struct nes_adapter *nesadapter = nesdev->nesadapter;
@@ -684,7 +630,7 @@ int nes_arp_table(struct nes_device *nesdev, u32 ip_addr, u8 *mac_addr, u32 acti
 		return arp_index;
 	}
 
-	/* DELETE or RESOLVE */
+	
 	if (arp_index == nesadapter->arp_table_size) {
 		tmp_addr = cpu_to_be32(ip_addr);
 		nes_debug(NES_DBG_NETDEV, "MAC for %pI4 not in ARP table - cannot %s\n",
@@ -709,9 +655,7 @@ int nes_arp_table(struct nes_device *nesdev, u32 ip_addr, u8 *mac_addr, u32 acti
 }
 
 
-/**
- * nes_mh_fix
- */
+
 void nes_mh_fix(unsigned long parm)
 {
 	unsigned long flags;
@@ -797,7 +741,7 @@ void nes_mh_fix(unsigned long parm)
 		mac_exact_match = nes_read_indexed(nesdev, NES_IDX_MAC_EXACT_MATCH_BOTTOM);
 		mpp_debug = nes_read_indexed(nesdev, NES_IDX_MPP_DEBUG);
 
-		/* one last ditch effort to avoid a false positive */
+		
 		mac_tx_pauses = nes_read_indexed(nesdev, NES_IDX_MAC_TX_PAUSE_FRAMES);
 		if (mac_tx_pauses) {
 			nesdev->last_mac_tx_pauses = nesdev->mac_pause_frames_sent;
@@ -814,7 +758,7 @@ void nes_mh_fix(unsigned long parm)
 
 		while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET)
 				& 0x00000040) != 0x00000040) && (i++ < 5000)) {
-			/* mdelay(1); */
+			
 		}
 
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0, 0x00000008);
@@ -850,9 +794,7 @@ no_mh_work:
 	add_timer(&nesdev->nesadapter->mh_timer);
 }
 
-/**
- * nes_clc
- */
+
 void nes_clc(unsigned long parm)
 {
 	unsigned long flags;
@@ -866,14 +808,12 @@ void nes_clc(unsigned long parm)
     nesadapter->link_interrupt_count[3] = 0;
 	spin_unlock_irqrestore(&nesadapter->phy_lock, flags);
 
-	nesadapter->lc_timer.expires = jiffies + 3600 * HZ;  /* 1 hour */
+	nesadapter->lc_timer.expires = jiffies + 3600 * HZ;  
 	add_timer(&nesadapter->lc_timer);
 }
 
 
-/**
- * nes_dump_mem
- */
+
 void nes_dump_mem(unsigned int dump_debug_level, void *addr, int length)
 {
 	char  xlate[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -918,7 +858,7 @@ void nes_dump_mem(unsigned int dump_debug_level, void *addr, int length)
 		ptr++;
 
 		if (num_ascii >= 17) {
-			/* output line and reset */
+			
 			nes_debug(dump_debug_level, "   %s |  %s\n", hex_buf, ascii_buf);
 			memset(ascii_buf, 0, 20);
 			memset(hex_buf, 0, 80);
@@ -927,7 +867,7 @@ void nes_dump_mem(unsigned int dump_debug_level, void *addr, int length)
 		}
 	}
 
-	/* output the rest */
+	
 	if (num_ascii) {
 		while (num_ascii < 17) {
 			if (num_ascii == 8) {

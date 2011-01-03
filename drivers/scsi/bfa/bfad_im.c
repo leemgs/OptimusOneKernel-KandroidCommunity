@@ -1,23 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfad_im.c Linux driver IM module.
- */
+
+
 
 #include "bfad_drv.h"
 #include "bfad_im.h"
@@ -67,7 +50,7 @@ bfa_cb_ioim_done(void *drv, struct bfad_ioim_s *dio,
 		cmnd->result = ScsiResult(DID_ERROR, 0);
 	}
 
-	/* Unmap DMA, if host is NULL, it means a scsi passthru cmd */
+	
 	if (cmnd->device->host != NULL)
 		scsi_dma_unmap(cmnd);
 
@@ -79,10 +62,10 @@ bfa_cb_ioim_done(void *drv, struct bfad_ioim_s *dio,
 		itnim = itnim_data->itnim;
 		if (!cmnd->result && itnim &&
 			 (bfa_lun_queue_depth > cmnd->device->queue_depth)) {
-			/* Queue depth adjustment for good status completion */
+			
 			bfad_os_ramp_up_qdepth(itnim, cmnd->device);
 		} else if (cmnd->result == SAM_STAT_TASK_SET_FULL && itnim) {
-			/* qfull handling */
+			
 			bfad_os_handle_qfull(itnim, cmnd->device);
 		}
 	}
@@ -99,13 +82,13 @@ bfa_cb_ioim_good_comp(void *drv, struct bfad_ioim_s *dio)
 
 	cmnd->result = ScsiResult(DID_OK, SCSI_STATUS_GOOD);
 
-	/* Unmap DMA, if host is NULL, it means a scsi passthru cmd */
+	
 	if (cmnd->device->host != NULL)
 		scsi_dma_unmap(cmnd);
 
 	cmnd->host_scribble = NULL;
 
-	/* Queue depth adjustment */
+	
 	if (bfa_lun_queue_depth > cmnd->device->queue_depth) {
 		itnim_data = cmnd->device->hostdata;
 		if (itnim_data) {
@@ -126,7 +109,7 @@ bfa_cb_ioim_abort(void *drv, struct bfad_ioim_s *dio)
 
 	cmnd->result = ScsiResult(DID_ERROR, 0);
 
-	/* Unmap DMA, if host is NULL, it means a scsi passthru cmd */
+	
 	if (cmnd->device->host != NULL)
 		scsi_dma_unmap(cmnd);
 
@@ -155,12 +138,8 @@ bfa_cb_ioim_resfree(void *drv)
 {
 }
 
-/**
- *  Scsi_Host_template SCSI host template
- */
-/**
- * Scsi_Host template entry, returns BFAD PCI info.
- */
+
+
 static const char *
 bfad_im_info(struct Scsi_Host *shost)
 {
@@ -181,11 +160,7 @@ bfad_im_info(struct Scsi_Host *shost)
 	return bfa_buf;
 }
 
-/**
- * Scsi_Host template entry, aborts the specified SCSI command.
- *
- * Returns: SUCCESS or FAILED.
- */
+
 static int
 bfad_im_abort_handler(struct scsi_cmnd *cmnd)
 {
@@ -201,7 +176,7 @@ bfad_im_abort_handler(struct scsi_cmnd *cmnd)
 	spin_lock_irqsave(&bfad->bfad_lock, flags);
 	hal_io = (struct bfa_ioim_s *) cmnd->host_scribble;
 	if (!hal_io) {
-		/* IO has been completed, retrun success */
+		
 		rc = SUCCESS;
 		goto out;
 	}
@@ -216,7 +191,7 @@ bfad_im_abort_handler(struct scsi_cmnd *cmnd)
 	bfa_ioim_abort(hal_io);
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 
-	/* Need to wait until the command get aborted */
+	
 	timeout = 10;
 	while ((struct bfa_ioim_s *) cmnd->host_scribble == hal_io) {
 		set_current_state(TASK_UNINTERRUPTIBLE);
@@ -252,10 +227,7 @@ bfad_im_target_reset_send(struct bfad_s *bfad, struct scsi_cmnd *cmnd,
 		goto out;
 	}
 
-	/*
-	 * Set host_scribble to NULL to avoid aborting a task command if
-	 * happens.
-	 */
+	
 	cmnd->host_scribble = NULL;
 	cmnd->SCp.Status = 0;
 	bfa_itnim = bfa_fcs_itnim_get_halitn(&itnim->fcs_itnim);
@@ -265,12 +237,7 @@ out:
 	return rc;
 }
 
-/**
- * Scsi_Host template entry, resets a LUN and abort its all commands.
- *
- * Returns: SUCCESS or FAILED.
- *
- */
+
 static int
 bfad_im_reset_lun_handler(struct scsi_cmnd *cmnd)
 {
@@ -304,10 +271,7 @@ bfad_im_reset_lun_handler(struct scsi_cmnd *cmnd)
 		goto out;
 	}
 
-	/**
-	 * Set host_scribble to NULL to avoid aborting a task command
-	 * if happens.
-	 */
+	
 	cmnd->host_scribble = NULL;
 	cmnd->SCp.ptr = (char *)&wq;
 	cmnd->SCp.Status = 0;
@@ -331,9 +295,7 @@ out:
 	return rc;
 }
 
-/**
- * Scsi_Host template entry, resets the bus and abort all commands.
- */
+
 static int
 bfad_im_reset_bus_handler(struct scsi_cmnd *cmnd)
 {
@@ -358,7 +320,7 @@ bfad_im_reset_bus_handler(struct scsi_cmnd *cmnd)
 				continue;
 			}
 
-			/* wait target reset to complete */
+			
 			spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 			wait_event(wq, test_bit(IO_DONE_BIT,
 					(unsigned long *)&cmnd->SCp.Status));
@@ -381,9 +343,7 @@ bfad_im_reset_bus_handler(struct scsi_cmnd *cmnd)
 	return SUCCESS;
 }
 
-/**
- * Scsi_Host template entry slave_destroy.
- */
+
 static void
 bfad_im_slave_destroy(struct scsi_device *sdev)
 {
@@ -391,14 +351,9 @@ bfad_im_slave_destroy(struct scsi_device *sdev)
 	return;
 }
 
-/**
- *  BFA FCS itnim callbacks
- */
 
-/**
- * BFA FCS itnim alloc callback, after successful PRLI
- * Context: Interrupt
- */
+
+
 void
 bfa_fcb_itnim_alloc(struct bfad_s *bfad, struct bfa_fcs_itnim_s **itnim,
 		    struct bfad_itnim_s **itnim_drv)
@@ -411,17 +366,12 @@ bfa_fcb_itnim_alloc(struct bfad_s *bfad, struct bfa_fcs_itnim_s **itnim,
 	*itnim = &(*itnim_drv)->fcs_itnim;
 	(*itnim_drv)->state = ITNIM_STATE_NONE;
 
-	/*
-	 * Initiaze the itnim_work
-	 */
+	
 	INIT_WORK(&(*itnim_drv)->itnim_work, bfad_im_itnim_work_handler);
 	bfad->bfad_flags |= BFAD_RPORT_ONLINE;
 }
 
-/**
- * BFA FCS itnim free callback.
- * Context: Interrupt. bfad_lock is held
- */
+
 void
 bfa_fcb_itnim_free(struct bfad_s *bfad, struct bfad_itnim_s *itnim_drv)
 {
@@ -430,11 +380,11 @@ bfa_fcb_itnim_free(struct bfad_s *bfad, struct bfad_itnim_s *itnim_drv)
 	u32 fcid;
 	char wwpn_str[32], fcid_str[16];
 
-	/* online to free state transtion should not happen */
+	
 	bfa_assert(itnim_drv->state != ITNIM_STATE_ONLINE);
 
 	itnim_drv->queue_work = 1;
-	/* offline request is not yet done, use the same request to free */
+	
 	if (itnim_drv->state == ITNIM_STATE_OFFLINE_PENDING)
 		itnim_drv->queue_work = 0;
 
@@ -451,10 +401,7 @@ bfa_fcb_itnim_free(struct bfad_s *bfad, struct bfad_itnim_s *itnim_drv)
 	bfad_os_itnim_process(itnim_drv);
 }
 
-/**
- * BFA FCS itnim online callback.
- * Context: Interrupt. bfad_lock is held
- */
+
 void
 bfa_fcb_itnim_online(struct bfad_itnim_s *itnim_drv)
 {
@@ -468,10 +415,7 @@ bfa_fcb_itnim_online(struct bfad_itnim_s *itnim_drv)
 	bfad_os_itnim_process(itnim_drv);
 }
 
-/**
- * BFA FCS itnim offline callback.
- * Context: Interrupt. bfad_lock is held
- */
+
 void
 bfa_fcb_itnim_offline(struct bfad_itnim_s *itnim_drv)
 {
@@ -491,18 +435,13 @@ bfa_fcb_itnim_offline(struct bfad_itnim_s *itnim_drv)
 	bfad_os_itnim_process(itnim_drv);
 }
 
-/**
- * BFA FCS itnim timeout callback.
- * Context: Interrupt. bfad_lock is held
- */
+
 void bfa_fcb_itnim_tov(struct bfad_itnim_s *itnim)
 {
 	itnim->state = ITNIM_STATE_TIMEOUT;
 }
 
-/**
- * Path TOV processing begin notification -- dummy for linux
- */
+
 void
 bfa_fcb_itnim_tov_begin(struct bfad_itnim_s *itnim)
 {
@@ -510,9 +449,7 @@ bfa_fcb_itnim_tov_begin(struct bfad_itnim_s *itnim)
 
 
 
-/**
- * Allocate a Scsi_Host for a port.
- */
+
 int
 bfad_im_scsi_host_alloc(struct bfad_s *bfad, struct bfad_im_port_s *im_port)
 {
@@ -552,7 +489,7 @@ bfad_im_scsi_host_alloc(struct bfad_s *bfad, struct bfad_im_port_s *im_port)
 		goto out_fc_rel;
 	}
 
-	/* setup host fixed attribute if the lk supports */
+	
 	bfad_os_fc_host_init(im_port);
 
 	return 0;
@@ -641,7 +578,7 @@ bfad_im_port_clean(struct bfad_im_port_s *im_port)
 		kfree(bp);
 	}
 
-	/* the itnim_mapped_list must be empty at this time */
+	
 	bfa_assert(list_empty(&im_port->itnim_mapped_list));
 
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
@@ -756,14 +693,7 @@ bfad_os_thread_workq(struct bfad_s *bfad)
 	return BFA_STATUS_OK;
 }
 
-/**
- * Scsi_Host template entry.
- *
- * Description:
- * OS entry point to adjust the queue_depths on a per-device basis.
- * Called once per device during the bus scan.
- * Return non-zero if fails.
- */
+
 static int
 bfad_im_slave_configure(struct scsi_device *sdev)
 {
@@ -900,7 +830,7 @@ bfad_os_get_itnim(struct bfad_im_port_s *im_port, int id)
 {
 	struct bfad_itnim_s   *itnim = NULL;
 
-	/* Search the mapped list for this target ID */
+	
 	list_for_each_entry(itnim, &im_port->itnim_mapped_list, list_entry) {
 		if (id == itnim->scsi_tgt_id)
 			return itnim;
@@ -909,9 +839,7 @@ bfad_os_get_itnim(struct bfad_im_port_s *im_port, int id)
 	return NULL;
 }
 
-/**
- * Scsi_Host template entry slave_alloc
- */
+
 static int
 bfad_im_slave_alloc(struct scsi_device *sdev)
 {
@@ -946,12 +874,12 @@ bfad_os_fc_host_init(struct bfad_im_port_s *im_port)
 	memset(fc_host_supported_fc4s(host), 0,
 	       sizeof(fc_host_supported_fc4s(host)));
 	if (bfad_supported_fc4s & (BFA_PORT_ROLE_FCP_IM | BFA_PORT_ROLE_FCP_TM))
-		/* For FCP type 0x08 */
+		
 		fc_host_supported_fc4s(host)[2] = 1;
 	if (bfad_supported_fc4s & BFA_PORT_ROLE_FCP_IPFC)
-		/* For LLC/SNAP type 0x05 */
+		
 		fc_host_supported_fc4s(host)[3] = 0x20;
-	/* For fibre channel services type 0x20 */
+	
 	fc_host_supported_fc4s(host)[7] = 1;
 
 	memset(&attr.ioc_attr, 0, sizeof(attr.ioc_attr));
@@ -1010,10 +938,7 @@ bfad_im_fc_rport_add(struct bfad_im_port_s *im_port, struct bfad_itnim_s *itnim)
 	return;
 }
 
-/**
- * Work queue handler using FC transport service
-* Context: kernel
- */
+
 static void
 bfad_im_itnim_work_handler(struct work_struct *work)
 {
@@ -1106,9 +1031,7 @@ bfad_im_itnim_work_handler(struct work_struct *work)
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 }
 
-/**
- * Scsi_Host template entry, queue a SCSI command to the BFAD.
- */
+
 static int
 bfad_im_queuecommand(struct scsi_cmnd *cmnd, void (*done) (struct scsi_cmnd *))
 {
@@ -1207,20 +1130,15 @@ bfad_os_get_linkup_delay(struct bfad_s *bfad)
 	wwn_t           *wwns;
 	int             ldelay;
 
-	/*
-	 * Querying for the boot target port wwns
-	 * -- read from boot information in flash.
-	 * If nwwns > 0 => boot over SAN and set bfa_linkup_delay = 30
-	 * else => local boot machine set bfa_linkup_delay = 10
-	 */
+	
 
 	bfa_iocfc_get_bootwwns(&bfad->bfa, &nwwns, &wwns);
 
 	if (nwwns > 0) {
-		/* If boot over SAN; linkup_delay = 30sec */
+		
 		ldelay = 30;
 	} else {
-		/* If local boot; linkup_delay = 10sec */
+		
 		ldelay = 0;
 	}
 

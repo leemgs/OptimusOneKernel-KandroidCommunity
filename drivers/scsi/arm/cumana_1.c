@@ -1,8 +1,4 @@
-/*
- * Generic Generic NCR5380 driver
- *
- * Copyright 1995-2002, Russell King
- */
+
 #include <linux/module.h>
 #include <linux/signal.h>
 #include <linux/ioport.h>

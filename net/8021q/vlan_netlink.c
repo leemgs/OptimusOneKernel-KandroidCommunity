@@ -1,12 +1,4 @@
-/*
- *	VLAN netlink control interface
- *
- * 	Copyright (c) 2007 Patrick McHardy <kaber@trash.net>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	version 2 as published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/netdevice.h>
@@ -159,7 +151,7 @@ static inline size_t vlan_qos_map_size(unsigned int n)
 {
 	if (n == 0)
 		return 0;
-	/* IFLA_VLAN_{EGRESS,INGRESS}_QOS + n * IFLA_VLAN_QOS_MAPPING */
+	
 	return nla_total_size(sizeof(struct nlattr)) +
 	       nla_total_size(sizeof(struct ifla_vlan_qos_mapping)) * n;
 }
@@ -168,8 +160,8 @@ static size_t vlan_get_size(const struct net_device *dev)
 {
 	struct vlan_dev_info *vlan = vlan_dev_info(dev);
 
-	return nla_total_size(2) +	/* IFLA_VLAN_ID */
-	       sizeof(struct ifla_vlan_flags) + /* IFLA_VLAN_FLAGS */
+	return nla_total_size(2) +	
+	       sizeof(struct ifla_vlan_flags) + 
 	       vlan_qos_map_size(vlan->nr_ingress_mappings) +
 	       vlan_qos_map_size(vlan->nr_egress_mappings);
 }

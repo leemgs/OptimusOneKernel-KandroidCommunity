@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/mmc-twl4030.c
- *
- * Copyright (C) 2007-2008 Texas Instruments
- * Copyright (C) 2008 Nokia Corporation
- * Author: Texas Instruments
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/err.h>
 #include <linux/io.h>
 #include <linux/module.h>
@@ -37,12 +27,7 @@ static u16 control_devconf1_offset;
 
 static struct twl_mmc_controller {
 	struct omap_mmc_platform_data	*mmc;
-	/* Vcc == configured supply
-	 * Vcc_alt == optional
-	 *   -	MMC1, supply for DAT4..DAT7
-	 *   -	MMC2/MMC2, external level shifter voltage supply, for
-	 *	chip (SDIO, eMMC, etc) or transceiver (MMC2 only)
-	 */
+	
 	struct regulator		*vcc;
 	struct regulator		*vcc_aux;
 	char				name[HSMMC_NAME_LEN + 1];
@@ -61,7 +46,7 @@ static int twl_mmc_card_detect(int irq)
 		if (irq != mmc->slots[0].card_detect_irq)
 			continue;
 
-		/* NOTE: assumes card detect signal is active-low */
+		
 		return !gpio_get_value_cansleep(mmc->slots[0].switch_pin);
 	}
 	return -ENOSYS;
@@ -71,7 +56,7 @@ static int twl_mmc_get_ro(struct device *dev, int slot)
 {
 	struct omap_mmc_platform_data *mmc = dev->platform_data;
 
-	/* NOTE: assumes write protect signal is active-high */
+	
 	return gpio_get_value_cansleep(mmc->slots[0].gpio_wp);
 }
 
@@ -79,20 +64,18 @@ static int twl_mmc_get_cover_state(struct device *dev, int slot)
 {
 	struct omap_mmc_platform_data *mmc = dev->platform_data;
 
-	/* NOTE: assumes card detect signal is active-low */
+	
 	return !gpio_get_value_cansleep(mmc->slots[0].switch_pin);
 }
 
-/*
- * MMC Slot Initialization.
- */
+
 static int twl_mmc_late_init(struct device *dev)
 {
 	struct omap_mmc_platform_data *mmc = dev->platform_data;
 	int ret = 0;
 	int i;
 
-	/* MMC/SD/SDIO doesn't require a card detect switch */
+	
 	if (gpio_is_valid(mmc->slots[0].switch_pin)) {
 		ret = gpio_request(mmc->slots[0].switch_pin, "mmc_cd");
 		if (ret)
@@ -102,7 +85,7 @@ static int twl_mmc_late_init(struct device *dev)
 			goto err;
 	}
 
-	/* require at least main regulator */
+	
 	for (i = 0; i < ARRAY_SIZE(hsmmc); i++) {
 		if (hsmmc[i].name == mmc->slots[0].name) {
 			struct regulator *reg;
@@ -112,10 +95,7 @@ static int twl_mmc_late_init(struct device *dev)
 			reg = regulator_get(dev, "vmmc");
 			if (IS_ERR(reg)) {
 				dev_dbg(dev, "vmmc regulator missing\n");
-				/* HACK: until fixed.c regulator is usable,
-				 * we don't require a main regulator
-				 * for MMC2 or MMC3
-				 */
+				
 				if (i != 0)
 					break;
 				ret = PTR_ERR(reg);
@@ -125,17 +105,11 @@ static int twl_mmc_late_init(struct device *dev)
 			hsmmc[i].vcc = reg;
 			mmc->slots[0].ocr_mask = mmc_regulator_get_ocrmask(reg);
 
-			/* allow an aux regulator */
+			
 			reg = regulator_get(dev, "vmmc_aux");
 			hsmmc[i].vcc_aux = IS_ERR(reg) ? NULL : reg;
 
-			/* UGLY HACK:  workaround regulator framework bugs.
-			 * When the bootloader leaves a supply active, it's
-			 * initialized with zero usecount ... and we can't
-			 * disable it without first enabling it.  Until the
-			 * framework is fixed, we need a workaround like this
-			 * (which is safe for MMC, but not in general).
-			 */
+			
 			if (regulator_is_enabled(hsmmc[i].vcc) > 0) {
 				regulator_enable(hsmmc[i].vcc);
 				regulator_disable(hsmmc[i].vcc);
@@ -202,7 +176,7 @@ static int twl_mmc_resume(struct device *dev, int slot)
 
 static int twl4030_mmc_get_context_loss(struct device *dev)
 {
-	/* FIXME: PM DPS not implemented yet */
+	
 	return 0;
 }
 
@@ -218,16 +192,7 @@ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
 	struct twl_mmc_controller *c = &hsmmc[0];
 	struct omap_mmc_platform_data *mmc = dev->platform_data;
 
-	/*
-	 * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
-	 * card with Vcc regulator (from twl4030 or whatever).  OMAP has both
-	 * 1.8V and 3.0V modes, controlled by the PBIAS register.
-	 *
-	 * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
-	 * is most naturally TWL VSIM; those pins also use PBIAS.
-	 *
-	 * FIXME handle VMMC1A as needed ...
-	 */
+	
 	if (power_on) {
 		if (cpu_is_omap2430()) {
 			reg = omap_ctrl_readl(OMAP243X_CONTROL_DEVCONF1);
@@ -251,7 +216,7 @@ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
 
 		ret = mmc_regulator_set_ocr(c->vcc, vdd);
 
-		/* 100ms delay required for PBIAS configuration */
+		
 		msleep(100);
 		reg = omap_ctrl_readl(control_pbias_offset);
 		reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
@@ -267,7 +232,7 @@ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
 
 		ret = mmc_regulator_set_ocr(c->vcc, 0);
 
-		/* 100ms delay required for PBIAS configuration */
+		
 		msleep(100);
 		reg = omap_ctrl_readl(control_pbias_offset);
 		reg |= (OMAP2_PBIASSPEEDCTRL0 | OMAP2_PBIASLITEPWRDNZ0 |
@@ -295,27 +260,13 @@ static int twl_mmc23_set_power(struct device *dev, int slot, int power_on, int v
 	if (c == NULL)
 		return -ENODEV;
 
-	/* If we don't see a Vcc regulator, assume it's a fixed
-	 * voltage always-on regulator.
-	 */
+	
 	if (!c->vcc)
 		return 0;
 
-	/*
-	 * Assume Vcc regulator is used only to power the card ... OMAP
-	 * VDDS is used to power the pins, optionally with a transceiver to
-	 * support cards using voltages other than VDDS (1.8V nominal).  When a
-	 * transceiver is used, DAT3..7 are muxed as transceiver control pins.
-	 *
-	 * In some cases this regulator won't support enable/disable;
-	 * e.g. it's a fixed rail for a WLAN chip.
-	 *
-	 * In other cases vcc_aux switches interface power.  Example, for
-	 * eMMC cards it represents VccQ.  Sometimes transceivers or SDIO
-	 * chips/cards need an interface voltage rail too.
-	 */
+	
 	if (power_on) {
-		/* only MMC2 supports a CLKIN */
+		
 		if (mmc->slots[0].internal_clock) {
 			u32 reg;
 
@@ -324,7 +275,7 @@ static int twl_mmc23_set_power(struct device *dev, int slot, int power_on, int v
 			omap_ctrl_writel(reg, control_devconf1_offset);
 		}
 		ret = mmc_regulator_set_ocr(c->vcc, vdd);
-		/* enable interface voltage rail, if needed */
+		
 		if (ret == 0 && c->vcc_aux) {
 			ret = regulator_enable(c->vcc_aux);
 			if (ret < 0)
@@ -366,10 +317,7 @@ static int twl_mmc23_set_sleep(struct device *dev, int slot, int sleep, int vdd,
 	if (c == NULL)
 		return -ENODEV;
 
-	/*
-	 * If we don't see a Vcc regulator, assume it's a fixed
-	 * voltage always-on regulator.
-	 */
+	
 	if (!c->vcc)
 		return 0;
 
@@ -379,7 +327,7 @@ static int twl_mmc23_set_sleep(struct device *dev, int slot, int sleep, int vdd,
 		return regulator_set_mode(c->vcc, mode);
 
 	if (cardsleep) {
-		/* VCC can be turned off if card is asleep */
+		
 		struct regulator *vcc_aux = c->vcc_aux;
 
 		c->vcc_aux = NULL;
@@ -442,7 +390,7 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
 		mmc->dma_mask = 0xffffffff;
 		mmc->init = twl_mmc_late_init;
 
-		/* note: twl4030 card detect GPIOs can disable VMMCx ... */
+		
 		if (gpio_is_valid(c->gpio_cd)) {
 			mmc->cleanup = twl_mmc_cleanup;
 			mmc->suspend = twl_mmc_suspend;
@@ -460,7 +408,7 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
 		mmc->get_context_loss_count =
 				twl4030_mmc_get_context_loss;
 
-		/* write protect normally uses an OMAP gpio */
+		
 		if (gpio_is_valid(c->gpio_wp)) {
 			gpio_request(c->gpio_wp, "mmc_wp");
 			gpio_direction_input(c->gpio_wp);
@@ -476,17 +424,12 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
 		if (c->power_saving)
 			mmc->slots[0].power_saving = 1;
 
-		/* NOTE:  MMC slots should have a Vcc regulator set up.
-		 * This may be from a TWL4030-family chip, another
-		 * controllable regulator, or a fixed supply.
-		 *
-		 * temporary HACK: ocr_mask instead of fixed supply
-		 */
+		
 		mmc->slots[0].ocr_mask = c->ocr_mask;
 
 		switch (c->mmc) {
 		case 1:
-			/* on-chip level shifting via PBIAS0/PBIAS1 */
+			
 			mmc->slots[0].set_power = twl_mmc1_set_power;
 			mmc->slots[0].set_sleep = twl_mmc1_set_sleep;
 			break;
@@ -495,9 +438,9 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
 				c->transceiver = 1;
 			if (c->transceiver && c->wires > 4)
 				c->wires = 4;
-			/* FALLTHROUGH */
+			
 		case 3:
-			/* off-chip level shifting, or none */
+			
 			mmc->slots[0].set_power = twl_mmc23_set_power;
 			mmc->slots[0].set_sleep = twl_mmc23_set_sleep;
 			break;
@@ -511,7 +454,7 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
 
 	omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
 
-	/* pass the device nodes back to board setup code */
+	
 	for (c = controllers; c->mmc; c++) {
 		struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
 

@@ -1,28 +1,4 @@
-/*
- *  sata_uli.c - ULi Electronics SATA
- *
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
- *  libata documentation is available via 'make {ps|pdf}docs',
- *  as Documentation/DocBook/libata.*
- *
- *  Hardware documentation available under NDA.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -45,11 +21,11 @@ enum {
 
 	uli_max_ports		= 4,
 
-	/* PCI configuration registers */
-	ULI5287_BASE		= 0x90, /* sata0 phy SCR registers */
-	ULI5287_OFFS		= 0x10, /* offset from sata0->sata1 phy regs */
-	ULI5281_BASE		= 0x60, /* sata0 phy SCR  registers */
-	ULI5281_OFFS		= 0x60, /* offset from sata0->sata1 phy regs */
+	
+	ULI5287_BASE		= 0x90, 
+	ULI5287_OFFS		= 0x10, 
+	ULI5281_BASE		= 0x60, 
+	ULI5281_OFFS		= 0x60, 
 };
 
 struct uli_priv {
@@ -65,7 +41,7 @@ static const struct pci_device_id uli_pci_tbl[] = {
 	{ PCI_VDEVICE(AL, 0x5287), uli_5287 },
 	{ PCI_VDEVICE(AL, 0x5281), uli_5281 },
 
-	{ }	/* terminate list */
+	{ }	
 };
 
 static struct pci_driver uli_pci_driver = {
@@ -136,7 +112,7 @@ static int uli_scr_read(struct ata_link *link, unsigned int sc_reg, u32 *val)
 
 static int uli_scr_write(struct ata_link *link, unsigned int sc_reg, u32 val)
 {
-	if (sc_reg > SCR_CONTROL) //SCR_CONTROL=2, SCR_ERROR=1, SCR_STATUS=0
+	if (sc_reg > SCR_CONTROL) 
 		return -EINVAL;
 
 	uli_scr_cfg_write(link, sc_reg, val);
@@ -165,7 +141,7 @@ static int uli_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (board_idx == uli_5287)
 		n_ports = 4;
 
-	/* allocate the host */
+	
 	host = ata_host_alloc_pinfo(&pdev->dev, ppi, n_ports);
 	if (!host)
 		return -ENOMEM;
@@ -175,7 +151,7 @@ static int uli_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 		return -ENOMEM;
 	host->private_data = hpriv;
 
-	/* the first two ports are standard SFF */
+	
 	rc = ata_pci_sff_init_host(host);
 	if (rc)
 		return rc;
@@ -188,9 +164,7 @@ static int uli_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	switch (board_idx) {
 	case uli_5287:
-		/* If there are four, the last two live right after
-		 * the standard SFF ports.
-		 */
+		
 		hpriv->scr_cfg_addr[0] = ULI5287_BASE;
 		hpriv->scr_cfg_addr[1] = ULI5287_BASE + ULI5287_OFFS;
 

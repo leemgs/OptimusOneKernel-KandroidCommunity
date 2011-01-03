@@ -1,9 +1,4 @@
-/* linux/drivers/mtd/maps/scx200_docflash.c
 
-   Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
-
-   National Semiconductor SCx200 flash mapped with DOCCS
-*/
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -23,9 +18,9 @@ MODULE_AUTHOR("Christer Weinigel <wingel@hack.org>");
 MODULE_DESCRIPTION("NatSemi SCx200 DOCCS Flash Driver");
 MODULE_LICENSE("GPL");
 
-static int probe = 0;		/* Don't autoprobe */
-static unsigned size = 0x1000000; /* 16 MiB the whole ISA address space */
-static unsigned width = 8;	/* Default to 8 bits wide */
+static int probe = 0;		
+static unsigned size = 0x1000000; 
+static unsigned width = 8;	
 static char *flashtype = "cfi_probe";
 
 module_param(probe, int, 0);
@@ -59,11 +54,11 @@ static struct mtd_partition partition_info[] = {
 	{
 		.name   = "DOCCS File system",
 		.offset = 0x100000,
-		.size   = ~0	/* calculate from flash size */
+		.size   = ~0	
 	},
 	{
 		.name   = "DOCCS High BIOS",
-		.offset = ~0, 	/* calculate from flash size */
+		.offset = ~0, 	
 		.size   = 0x80000
 	},
 };
@@ -90,14 +85,14 @@ static int __init init_scx200_docflash(void)
 				      NULL)) == NULL)
 		return -ENODEV;
 
-	/* check that we have found the configuration block */
+	
 	if (!scx200_cb_present()) {
 		pci_dev_put(bridge);
 		return -ENODEV;
 	}
 
 	if (probe) {
-		/* Try to use the present flash mapping if any */
+		
 		pci_read_config_dword(bridge, SCx200_DOCCS_BASE, &base);
 		pci_read_config_dword(bridge, SCx200_DOCCS_CTRL, &ctrl);
 		pci_dev_put(bridge);
@@ -228,9 +223,4 @@ static void __exit cleanup_scx200_docflash(void)
 module_init(init_scx200_docflash);
 module_exit(cleanup_scx200_docflash);
 
-/*
-    Local variables:
-        compile-command: "make -k -C ../../.. SUBDIRS=drivers/mtd/maps modules"
-        c-basic-offset: 8
-    End:
-*/
+

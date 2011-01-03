@@ -1,55 +1,6 @@
-/*
- * sbp2.c - SBP-2 protocol driver for IEEE-1394
- *
- * Copyright (C) 2000 James Goodwin, Filanet Corporation (www.filanet.com)
- * jamesg@filanet.com (JSG)
- *
- * Copyright (C) 2003 Ben Collins <bcollins@debian.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
-/*
- * Brief Description:
- *
- * This driver implements the Serial Bus Protocol 2 (SBP-2) over IEEE-1394
- * under Linux. The SBP-2 driver is implemented as an IEEE-1394 high-level
- * driver. It also registers as a SCSI lower-level driver in order to accept
- * SCSI commands for transport using SBP-2.
- *
- * You may access any attached SBP-2 (usually storage devices) as regular
- * SCSI devices. E.g. mount /dev/sda1, fdisk, mkfs, etc..
- *
- * See http://www.t10.org/drafts.htm#sbp2 for the final draft of the SBP-2
- * specification and for where to purchase the official standard.
- *
- * TODO:
- *   - look into possible improvements of the SCSI error handlers
- *   - handle Unit_Characteristics.mgt_ORB_timeout and .ORB_size
- *   - handle Logical_Unit_Number.ordered
- *   - handle src == 1 in status blocks
- *   - reimplement the DMA mapping in absence of physical DMA so that
- *     bus_to_virt is no longer required
- *   - debug the handling of absent physical DMA
- *   - replace CONFIG_IEEE1394_SBP2_PHYS_DMA by automatic detection
- *     (this is easy but depends on the previous two TODO items)
- *   - make the parameter serialize_io configurable per device
- *   - move all requests to fetch agent registers into non-atomic context,
- *     replace all usages of sbp2util_node_write_no_wait by true transactions
- * Grep for inline FIXME comments below.
- */
+
+
 
 #include <linux/blkdev.h>
 #include <linux/compiler.h>
@@ -81,7 +32,7 @@
 #include <asm/types.h>
 
 #ifdef CONFIG_IEEE1394_SBP2_PHYS_DMA
-#include <asm/io.h> /* for bus_to_virt */
+#include <asm/io.h> 
 #endif
 
 #include <scsi/scsi.h>
@@ -101,101 +52,33 @@
 #include "nodemgr.h"
 #include "sbp2.h"
 
-/*
- * Module load parameter definitions
- */
 
-/*
- * Change max_speed on module load if you have a bad IEEE-1394
- * controller that has trouble running 2KB packets at 400mb.
- *
- * NOTE: On certain OHCI parts I have seen short packets on async transmit
- * (probably due to PCI latency/throughput issues with the part). You can
- * bump down the speed if you are running into problems.
- */
+
+
 static int sbp2_max_speed = IEEE1394_SPEED_MAX;
 module_param_named(max_speed, sbp2_max_speed, int, 0644);
 MODULE_PARM_DESC(max_speed, "Limit data transfer speed (5 <= 3200, "
 		 "4 <= 1600, 3 <= 800, 2 <= 400, 1 <= 200, 0 = 100 Mb/s)");
 
-/*
- * Set serialize_io to 0 or N to use dynamically appended lists of command ORBs.
- * This is and always has been buggy in multiple subtle ways. See above TODOs.
- */
+
 static int sbp2_serialize_io = 1;
 module_param_named(serialize_io, sbp2_serialize_io, bool, 0444);
 MODULE_PARM_DESC(serialize_io, "Serialize requests coming from SCSI drivers "
 		 "(default = Y, faster but buggy = N)");
 
-/*
- * Adjust max_sectors if you'd like to influence how many sectors each SCSI
- * command can transfer at most. Please note that some older SBP-2 bridge
- * chips are broken for transfers greater or equal to 128KB, therefore
- * max_sectors used to be a safe 255 sectors for many years. We now have a
- * default of 0 here which means that we let the SCSI stack choose a limit.
- *
- * The SBP2_WORKAROUND_128K_MAX_TRANS flag, if set either in the workarounds
- * module parameter or in the sbp2_workarounds_table[], will override the
- * value of max_sectors. We should use sbp2_workarounds_table[] to cover any
- * bridge chip which becomes known to need the 255 sectors limit.
- */
+
 static int sbp2_max_sectors;
 module_param_named(max_sectors, sbp2_max_sectors, int, 0444);
 MODULE_PARM_DESC(max_sectors, "Change max sectors per I/O supported "
 		 "(default = 0 = use SCSI stack's default)");
 
-/*
- * Exclusive login to sbp2 device? In most cases, the sbp2 driver should
- * do an exclusive login, as it's generally unsafe to have two hosts
- * talking to a single sbp2 device at the same time (filesystem coherency,
- * etc.). If you're running an sbp2 device that supports multiple logins,
- * and you're either running read-only filesystems or some sort of special
- * filesystem supporting multiple hosts, e.g. OpenGFS, Oracle Cluster
- * File System, or Lustre, then set exclusive_login to zero.
- *
- * So far only bridges from Oxford Semiconductor are known to support
- * concurrent logins. Depending on firmware, four or two concurrent logins
- * are possible on OXFW911 and newer Oxsemi bridges.
- */
+
 static int sbp2_exclusive_login = 1;
 module_param_named(exclusive_login, sbp2_exclusive_login, bool, 0644);
 MODULE_PARM_DESC(exclusive_login, "Exclusive login to sbp2 device "
 		 "(default = Y, use N for concurrent initiators)");
 
-/*
- * If any of the following workarounds is required for your device to work,
- * please submit the kernel messages logged by sbp2 to the linux1394-devel
- * mailing list.
- *
- * - 128kB max transfer
- *   Limit transfer size. Necessary for some old bridges.
- *
- * - 36 byte inquiry
- *   When scsi_mod probes the device, let the inquiry command look like that
- *   from MS Windows.
- *
- * - skip mode page 8
- *   Suppress sending of mode_sense for mode page 8 if the device pretends to
- *   support the SCSI Primary Block commands instead of Reduced Block Commands.
- *
- * - fix capacity
- *   Tell sd_mod to correct the last sector number reported by read_capacity.
- *   Avoids access beyond actual disk limits on devices with an off-by-one bug.
- *   Don't use this with devices which don't have this bug.
- *
- * - delay inquiry
- *   Wait extra SBP2_INQUIRY_DELAY seconds after login before SCSI inquiry.
- *
- * - power condition
- *   Set the power condition field in the START STOP UNIT commands sent by
- *   sd_mod on suspend, resume, and shutdown (if manage_start_stop is on).
- *   Some disks need this to spin down or to resume properly.
- *
- * - override internal blacklist
- *   Instead of adding to the built-in blacklist, use only the workarounds
- *   specified in the module load parameter.
- *   Useful if a blacklist entry interfered with a non-broken device.
- */
+
 static int sbp2_default_workarounds;
 module_param_named(workarounds, sbp2_default_workarounds, int, 0644);
 MODULE_PARM_DESC(workarounds, "Work around device bugs (default = 0"
@@ -209,22 +92,7 @@ MODULE_PARM_DESC(workarounds, "Work around device bugs (default = 0"
 	", override internal blacklist = " __stringify(SBP2_WORKAROUND_OVERRIDE)
 	", or a combination)");
 
-/*
- * This influences the format of the sysfs attribute
- * /sys/bus/scsi/devices/.../ieee1394_id.
- *
- * The default format is like in older kernels:  %016Lx:%d:%d
- * It contains the target's EUI-64, a number given to the logical unit by
- * the ieee1394 driver's nodemgr (starting at 0), and the LUN.
- *
- * The long format is:  %016Lx:%06x:%04x
- * It contains the target's EUI-64, the unit directory's directory_ID as per
- * IEEE 1212 clause 7.7.19, and the LUN.  This format comes closest to the
- * format of SBP(-3) target port and logical unit identifier as per SAM (SCSI
- * Architecture Model) rev.2 to 4 annex A.  Therefore and because it is
- * independent of the implementation of the ieee1394 nodemgr, the longer format
- * is recommended for future use.
- */
+
 static int sbp2_long_sysfs_ieee1394_id;
 module_param_named(long_ieee1394_id, sbp2_long_sysfs_ieee1394_id, bool, 0644);
 MODULE_PARM_DESC(long_ieee1394_id, "8+3+2 bytes format of ieee1394_id in sysfs "
@@ -234,9 +102,7 @@ MODULE_PARM_DESC(long_ieee1394_id, "8+3+2 bytes format of ieee1394_id in sysfs "
 #define SBP2_INFO(fmt, args...)	HPSB_INFO("sbp2: "fmt, ## args)
 #define SBP2_ERR(fmt, args...)	HPSB_ERR("sbp2: "fmt, ## args)
 
-/*
- * Globals
- */
+
 static void sbp2scsi_complete_all_commands(struct sbp2_lu *, u32);
 static void sbp2scsi_complete_command(struct sbp2_lu *, u32, struct scsi_cmnd *,
 				      void (*)(struct scsi_cmnd *));
@@ -282,9 +148,7 @@ static const struct hpsb_address_ops sbp2_physdma_ops = {
 #endif
 
 
-/*
- * Interface to driver core and IEEE 1394 core
- */
+
 static const struct ieee1394_device_id sbp2_id_table[] = {
 	{
 	 .match_flags	= IEEE1394_MATCH_SPECIFIER_ID | IEEE1394_MATCH_VERSION,
@@ -309,9 +173,7 @@ static struct hpsb_protocol_driver sbp2_driver = {
 };
 
 
-/*
- * Interface to SCSI core
- */
+
 static int sbp2scsi_queuecommand(struct scsi_cmnd *,
 				 void (*)(struct scsi_cmnd *));
 static int sbp2scsi_abort(struct scsi_cmnd *);
@@ -347,93 +209,80 @@ static struct scsi_host_template sbp2_shost_template = {
 	.sdev_attrs		 = sbp2_sysfs_sdev_attrs,
 };
 
-#define SBP2_ROM_VALUE_WILDCARD ~0         /* match all */
-#define SBP2_ROM_VALUE_MISSING  0xff000000 /* not present in the unit dir. */
+#define SBP2_ROM_VALUE_WILDCARD ~0         
+#define SBP2_ROM_VALUE_MISSING  0xff000000 
 
-/*
- * List of devices with known bugs.
- *
- * The firmware_revision field, masked with 0xffff00, is the best indicator
- * for the type of bridge chip of a device.  It yields a few false positives
- * but this did not break correctly behaving devices so far.
- */
+
 static const struct {
 	u32 firmware_revision;
 	u32 model;
 	unsigned workarounds;
 } sbp2_workarounds_table[] = {
-	/* DViCO Momobay CX-1 with TSB42AA9 bridge */ {
+	 {
 		.firmware_revision	= 0x002800,
 		.model			= 0x001010,
 		.workarounds		= SBP2_WORKAROUND_INQUIRY_36 |
 					  SBP2_WORKAROUND_MODE_SENSE_8 |
 					  SBP2_WORKAROUND_POWER_CONDITION,
 	},
-	/* DViCO Momobay FX-3A with TSB42AA9A bridge */ {
+	 {
 		.firmware_revision	= 0x002800,
 		.model			= 0x000000,
 		.workarounds		= SBP2_WORKAROUND_POWER_CONDITION,
 	},
-	/* Initio bridges, actually only needed for some older ones */ {
+	 {
 		.firmware_revision	= 0x000200,
 		.model			= SBP2_ROM_VALUE_WILDCARD,
 		.workarounds		= SBP2_WORKAROUND_INQUIRY_36,
 	},
-	/* PL-3507 bridge with Prolific firmware */ {
+	 {
 		.firmware_revision	= 0x012800,
 		.model			= SBP2_ROM_VALUE_WILDCARD,
 		.workarounds		= SBP2_WORKAROUND_POWER_CONDITION,
 	},
-	/* Symbios bridge */ {
+	 {
 		.firmware_revision	= 0xa0b800,
 		.model			= SBP2_ROM_VALUE_WILDCARD,
 		.workarounds		= SBP2_WORKAROUND_128K_MAX_TRANS,
 	},
-	/* Datafab MD2-FW2 with Symbios/LSILogic SYM13FW500 bridge */ {
+	 {
 		.firmware_revision	= 0x002600,
 		.model			= SBP2_ROM_VALUE_WILDCARD,
 		.workarounds		= SBP2_WORKAROUND_128K_MAX_TRANS,
 	},
-	/*
-	 * iPod 2nd generation: needs 128k max transfer size workaround
-	 * iPod 3rd generation: needs fix capacity workaround
-	 */
+	
 	{
 		.firmware_revision	= 0x0a2700,
 		.model			= 0x000000,
 		.workarounds		= SBP2_WORKAROUND_128K_MAX_TRANS |
 					  SBP2_WORKAROUND_FIX_CAPACITY,
 	},
-	/* iPod 4th generation */ {
+	 {
 		.firmware_revision	= 0x0a2700,
 		.model			= 0x000021,
 		.workarounds		= SBP2_WORKAROUND_FIX_CAPACITY,
 	},
-	/* iPod mini */ {
+	 {
 		.firmware_revision	= 0x0a2700,
 		.model			= 0x000022,
 		.workarounds		= SBP2_WORKAROUND_FIX_CAPACITY,
 	},
-	/* iPod mini */ {
+	 {
 		.firmware_revision	= 0x0a2700,
 		.model			= 0x000023,
 		.workarounds		= SBP2_WORKAROUND_FIX_CAPACITY,
 	},
-	/* iPod Photo */ {
+	 {
 		.firmware_revision	= 0x0a2700,
 		.model			= 0x00007e,
 		.workarounds		= SBP2_WORKAROUND_FIX_CAPACITY,
 	}
 };
 
-/**************************************
- * General utility functions
- **************************************/
+
 
 #ifndef __BIG_ENDIAN
-/*
- * Converts a buffer from be32 to cpu byte ordering. Length is in bytes.
- */
+
 static inline void sbp2util_be32_to_cpu_buffer(void *buffer, int length)
 {
 	u32 *temp = buffer;
@@ -442,9 +291,7 @@ static inline void sbp2util_be32_to_cpu_buffer(void *buffer, int length)
 		temp[length] = be32_to_cpu(temp[length]);
 }
 
-/*
- * Converts a buffer from cpu to be32 byte ordering. Length is in bytes.
- */
+
 static inline void sbp2util_cpu_to_be32_buffer(void *buffer, int length)
 {
 	u32 *temp = buffer;
@@ -452,18 +299,15 @@ static inline void sbp2util_cpu_to_be32_buffer(void *buffer, int length)
 	for (length = (length >> 2); length--; )
 		temp[length] = cpu_to_be32(temp[length]);
 }
-#else /* BIG_ENDIAN */
-/* Why waste the cpu cycles? */
+#else 
+
 #define sbp2util_be32_to_cpu_buffer(x,y) do {} while (0)
 #define sbp2util_cpu_to_be32_buffer(x,y) do {} while (0)
 #endif
 
 static DECLARE_WAIT_QUEUE_HEAD(sbp2_access_wq);
 
-/*
- * Waits for completion of an SBP-2 access request.
- * Returns nonzero if timed out or prematurely interrupted.
- */
+
 static int sbp2util_access_timeout(struct sbp2_lu *lu, int timeout)
 {
 	long leftover;
@@ -480,10 +324,7 @@ static void sbp2_free_packet(void *packet)
 	hpsb_free_packet(packet);
 }
 
-/*
- * This is much like hpsb_node_write(), except it ignores the response
- * subaction and returns immediately. Can be used from atomic context.
- */
+
 static int sbp2util_node_write_no_wait(struct node_entry *ne, u64 addr,
 				       quadlet_t *buf, size_t len)
 {
@@ -505,8 +346,7 @@ static int sbp2util_node_write_no_wait(struct node_entry *ne, u64 addr,
 static void sbp2util_notify_fetch_agent(struct sbp2_lu *lu, u64 offset,
 					quadlet_t *data, size_t len)
 {
-	/* There is a small window after a bus reset within which the node
-	 * entry's generation is current but the reconnect wasn't completed. */
+	
 	if (unlikely(atomic_read(&lu->state) == SBP2LU_STATE_IN_RESET))
 		return;
 
@@ -514,8 +354,7 @@ static void sbp2util_notify_fetch_agent(struct sbp2_lu *lu, u64 offset,
 			    data, len))
 		SBP2_ERR("sbp2util_notify_fetch_agent failed.");
 
-	/* Now accept new SCSI commands, unless a bus reset happended during
-	 * hpsb_node_write. */
+	
 	if (likely(atomic_read(&lu->state) != SBP2LU_STATE_IN_RESET))
 		scsi_unblock_requests(lu->shost);
 }
@@ -601,10 +440,7 @@ static void sbp2util_remove_command_orb_pool(struct sbp2_lu *lu,
 	return;
 }
 
-/*
- * Finds the sbp2_command for a given outstanding command ORB.
- * Only looks at the in-use list.
- */
+
 static struct sbp2_command_info *sbp2util_find_command_for_orb(
 				struct sbp2_lu *lu, dma_addr_t orb)
 {
@@ -623,11 +459,7 @@ static struct sbp2_command_info *sbp2util_find_command_for_orb(
 	return NULL;
 }
 
-/*
- * Finds the sbp2_command for a given outstanding SCpnt.
- * Only looks at the in-use list.
- * Must be called with lu->cmd_orb_lock held.
- */
+
 static struct sbp2_command_info *sbp2util_find_command_for_SCpnt(
 				struct sbp2_lu *lu, void *SCpnt)
 {
@@ -663,10 +495,7 @@ static struct sbp2_command_info *sbp2util_allocate_command_orb(
 	return cmd;
 }
 
-/*
- * Unmaps the DMAs of a command and moves the command to the completed ORB list.
- * Must be called with lu->cmd_orb_lock held.
- */
+
 static void sbp2util_mark_command_completed(struct sbp2_lu *lu,
 					    struct sbp2_command_info *cmd)
 {
@@ -678,17 +507,13 @@ static void sbp2util_mark_command_completed(struct sbp2_lu *lu,
 	list_move_tail(&cmd->list, &lu->cmd_orb_completed);
 }
 
-/*
- * Is lu valid? Is the 1394 node still present?
- */
+
 static inline int sbp2util_node_is_available(struct sbp2_lu *lu)
 {
 	return lu && lu->ne && !lu->ne->in_limbo;
 }
 
-/*********************************************
- * IEEE-1394 core driver stack related section
- *********************************************/
+
 
 static int sbp2_probe(struct device *dev)
 {
@@ -697,8 +522,7 @@ static int sbp2_probe(struct device *dev)
 
 	ud = container_of(dev, struct unit_directory, device);
 
-	/* Don't probe UD's that have the LUN flag. We'll probe the LUN(s)
-	 * instead. */
+	
 	if (ud->flags & UNIT_DIRECTORY_HAS_LUN_DIRECTORY)
 		return -ENODEV;
 
@@ -722,12 +546,10 @@ static int sbp2_remove(struct device *dev)
 		return 0;
 
 	if (lu->shost) {
-		/* Get rid of enqueued commands if there is no chance to
-		 * send them. */
+		
 		if (!sbp2util_node_is_available(lu))
 			sbp2scsi_complete_all_commands(lu, DID_NO_CONNECT);
-		/* scsi_remove_device() may trigger shutdown functions of SCSI
-		 * highlevel drivers which would deadlock if blocked. */
+		
 		atomic_set(&lu->state, SBP2LU_STATE_IN_SHUTDOWN);
 		scsi_unblock_requests(lu->shost);
 	}
@@ -748,25 +570,17 @@ static int sbp2_update(struct unit_directory *ud)
 	struct sbp2_lu *lu = dev_get_drvdata(&ud->device);
 
 	if (sbp2_reconnect_device(lu) != 0) {
-		/*
-		 * Reconnect failed.  If another bus reset happened,
-		 * let nodemgr proceed and call sbp2_update again later
-		 * (or sbp2_remove if this node went away).
-		 */
+		
 		if (!hpsb_node_entry_valid(lu->ne))
 			return 0;
-		/*
-		 * Or the target rejected the reconnect because we weren't
-		 * fast enough.  Try a regular login, but first log out
-		 * just in case of any weirdness.
-		 */
+		
 		sbp2_logout_device(lu);
 
 		if (sbp2_login_device(lu) != 0) {
 			if (!hpsb_node_entry_valid(lu->ne))
 				return 0;
 
-			/* Maybe another initiator won the login. */
+			
 			SBP2_ERR("Failed to reconnect to sbp2 device!");
 			return -EBUSY;
 		}
@@ -776,12 +590,10 @@ static int sbp2_update(struct unit_directory *ud)
 	sbp2_agent_reset(lu, 1);
 	sbp2_max_speed_and_size(lu);
 
-	/* Complete any pending commands with busy (so they get retried)
-	 * and remove them from our queue. */
+	
 	sbp2scsi_complete_all_commands(lu, DID_BUS_BUSY);
 
-	/* Accept new commands unless there was another bus reset in the
-	 * meantime. */
+	
 	if (hpsb_node_entry_valid(lu->ne)) {
 		atomic_set(&lu->state, SBP2LU_STATE_RUNNING);
 		scsi_unblock_requests(lu->shost);
@@ -828,8 +640,7 @@ static struct sbp2_lu *sbp2_alloc_device(struct unit_directory *ud)
 		INIT_LIST_HEAD(&hi->logical_units);
 
 #ifdef CONFIG_IEEE1394_SBP2_PHYS_DMA
-		/* Handle data movement if physical dma is not
-		 * enabled or not supported on host controller */
+		
 		if (!hpsb_register_addrspace(&sbp2_highlevel, ud->ne->host,
 					     &sbp2_physdma_ops,
 					     0x0ULL, 0xfffffffcULL)) {
@@ -843,7 +654,7 @@ static struct sbp2_lu *sbp2_alloc_device(struct unit_directory *ud)
 		BUG_ON(dma_set_max_seg_size(hi->host->device.parent,
 					    SBP2_MAX_SEG_SIZE));
 
-	/* Prevent unloading of the 1394 host */
+	
 	if (!try_module_get(hi->host->driver->owner)) {
 		SBP2_ERR("failed to get a reference on 1394 host driver");
 		goto failed_alloc;
@@ -855,14 +666,7 @@ static struct sbp2_lu *sbp2_alloc_device(struct unit_directory *ud)
 	list_add_tail(&lu->lu_list, &hi->logical_units);
 	write_unlock_irqrestore(&sbp2_hi_logical_units_lock, flags);
 
-	/* Register the status FIFO address range. We could use the same FIFO
-	 * for targets at different nodes. However we need different FIFOs per
-	 * target in order to support multi-unit devices.
-	 * The FIFO is located out of the local host controller's physical range
-	 * but, if possible, within the posted write area. Status writes will
-	 * then be performed as unified transactions. This slightly reduces
-	 * bandwidth usage, and some Prolific based devices seem to require it.
-	 */
+	
 	lu->status_fifo_addr = hpsb_allocate_and_register_addrspace(
 			&sbp2_highlevel, ud->ne->host, &sbp2_ops,
 			sizeof(struct sbp2_status_block), sizeof(quadlet_t),
@@ -959,8 +763,7 @@ static int sbp2_start_device(struct sbp2_lu *lu)
 	if (sbp2util_create_command_orb_pool(lu))
 		goto alloc_fail;
 
-	/* Wait a second before trying to log in. Previously logged in
-	 * initiators need a chance to reconnect. */
+	
 	if (msleep_interruptible(1000)) {
 		sbp2_remove_device(lu);
 		return -EINTR;
@@ -1059,10 +862,7 @@ no_hi:
 }
 
 #ifdef CONFIG_IEEE1394_SBP2_PHYS_DMA
-/*
- * Deal with write requests on adapters which do not support physical DMA or
- * have it switched off.
- */
+
 static int sbp2_handle_physdma_write(struct hpsb_host *host, int nodeid,
 				     int destid, quadlet_t *data, u64 addr,
 				     size_t length, u16 flags)
@@ -1071,10 +871,7 @@ static int sbp2_handle_physdma_write(struct hpsb_host *host, int nodeid,
 	return RCODE_COMPLETE;
 }
 
-/*
- * Deal with read requests on adapters which do not support physical DMA or
- * have it switched off.
- */
+
 static int sbp2_handle_physdma_read(struct hpsb_host *host, int nodeid,
 				    quadlet_t *data, u64 addr, size_t length,
 				    u16 flags)
@@ -1084,9 +881,7 @@ static int sbp2_handle_physdma_read(struct hpsb_host *host, int nodeid,
 }
 #endif
 
-/**************************************
- * SBP-2 protocol related section
- **************************************/
+
 
 static int sbp2_query_logins(struct sbp2_lu *lu)
 {
@@ -1173,7 +968,7 @@ static int sbp2_login_device(struct sbp2_lu *lu)
 		return -EIO;
 	}
 
-	/* assume no password */
+	
 	lu->login_orb->password_hi = 0;
 	lu->login_orb->password_lo = 0;
 
@@ -1181,7 +976,7 @@ static int sbp2_login_device(struct sbp2_lu *lu)
 	lu->login_orb->login_response_hi = ORB_SET_NODE_ID(hi->host->node_id);
 	lu->login_orb->lun_misc = ORB_SET_FUNCTION(SBP2_LOGIN_REQUEST);
 
-	/* one second reconnect time */
+	
 	lu->login_orb->lun_misc |= ORB_SET_RECONNECT(0);
 	lu->login_orb->lun_misc |= ORB_SET_EXCLUSIVE(sbp2_exclusive_login);
 	lu->login_orb->lun_misc |= ORB_SET_NOTIFY(1);
@@ -1206,13 +1001,13 @@ static int sbp2_login_device(struct sbp2_lu *lu)
 
 	hpsb_node_write(lu->ne, lu->management_agent_addr, data, 8);
 
-	/* wait up to 20 seconds for login status */
+	
 	if (sbp2util_access_timeout(lu, 20*HZ)) {
 		SBP2_ERR("Error logging into SBP-2 device - timed out");
 		return -EIO;
 	}
 
-	/* make sure that the returned status matches the login ORB */
+	
 	if (lu->status_block.ORB_offset_lo != lu->login_orb_dma) {
 		SBP2_ERR("Error logging into SBP-2 device - timed out");
 		return -EIO;
@@ -1268,7 +1063,7 @@ static int sbp2_logout_device(struct sbp2_lu *lu)
 	if (error)
 		return error;
 
-	/* wait up to 1 second for the device to complete logout */
+	
 	if (sbp2util_access_timeout(lu, HZ))
 		return -EIO;
 
@@ -1310,13 +1105,13 @@ static int sbp2_reconnect_device(struct sbp2_lu *lu)
 	if (error)
 		return error;
 
-	/* wait up to 1 second for reconnect status */
+	
 	if (sbp2util_access_timeout(lu, HZ)) {
 		SBP2_ERR("Error reconnecting to SBP-2 device - timed out");
 		return -EIO;
 	}
 
-	/* make sure that the returned status matches the reconnect ORB */
+	
 	if (lu->status_block.ORB_offset_lo != lu->reconnect_orb_dma) {
 		SBP2_ERR("Error reconnecting to SBP-2 device - timed out");
 		return -EIO;
@@ -1331,10 +1126,7 @@ static int sbp2_reconnect_device(struct sbp2_lu *lu)
 	return 0;
 }
 
-/*
- * Set the target node's Single Phase Retry limit. Affects the target's retry
- * behaviour if our node is too busy to accept requests.
- */
+
 static int sbp2_set_busy_timeout(struct sbp2_lu *lu)
 {
 	quadlet_t data;
@@ -1374,8 +1166,7 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
 			break;
 
 		case SBP2_UNIT_CHARACTERISTICS_KEY:
-			/* FIXME: This is ignored so far.
-			 * See SBP-2 clause 7.4.8. */
+			
 			unit_characteristics = kv->value.immediate;
 			break;
 
@@ -1384,9 +1175,7 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
 			break;
 
 		default:
-			/* FIXME: Check for SBP2_DEVICE_TYPE_AND_LUN_KEY.
-			 * Its "ordered" bit has consequences for command ORB
-			 * list handling. See SBP-2 clauses 4.6, 7.4.11, 10.2 */
+			
 			break;
 		}
 	}
@@ -1416,8 +1205,7 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
 			  workarounds, firmware_revision, ud->vendor_id,
 			  model);
 
-	/* We would need one SCSI host template for each target to adjust
-	 * max_sectors on the fly, therefore warn only. */
+	
 	if (workarounds & SBP2_WORKAROUND_128K_MAX_TRANS &&
 	    (sbp2_max_sectors * 512) > (128 * 1024))
 		SBP2_INFO("Node " NODE_BUS_FMT ": Bridge only supports 128KB "
@@ -1426,8 +1214,7 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
 			  NODE_BUS_ARGS(ud->ne->host, ud->ne->nodeid),
 			  sbp2_max_sectors);
 
-	/* If this is a logical unit directory entry, process the parent
-	 * to get the values. */
+	
 	if (ud->flags & UNIT_DIRECTORY_LUN_DIRECTORY) {
 		struct unit_directory *parent_ud = container_of(
 			ud->device.parent, struct unit_directory, device);
@@ -1442,15 +1229,7 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
 
 #define SBP2_PAYLOAD_TO_BYTES(p) (1 << ((p) + 2))
 
-/*
- * This function is called in order to determine the max speed and packet
- * size we can use in our ORBs. Note, that we (the driver and host) only
- * initiate the transaction. The SBP-2 device actually transfers the data
- * (by reading from the DMA area we tell it). This means that the SBP-2
- * device decides the actual maximum data it can transfer. We just tell it
- * the speed that it needs to use, and the max_rec the host supports, and
- * it takes care of the rest.
- */
+
 static int sbp2_max_speed_and_size(struct sbp2_lu *lu)
 {
 	struct sbp2_fwhost_info *hi = lu->hi;
@@ -1464,13 +1243,11 @@ static int sbp2_max_speed_and_size(struct sbp2_lu *lu)
 			  hpsb_speedto_str[sbp2_max_speed]);
 	}
 
-	/* Payload size is the lesser of what our speed supports and what
-	 * our host supports.  */
+	
 	payload = min(sbp2_speedto_max_payload[lu->speed_code],
 		      (u8) (hi->host->csr.max_rec - 1));
 
-	/* If physical DMA is off, work around limitation in ohci1394:
-	 * packet size must not exceed PAGE_SIZE */
+	
 	if (lu->ne->host->low_addr_space < (1ULL << 32))
 		while (SBP2_PAYLOAD_TO_BYTES(payload) + 24 > PAGE_SIZE &&
 		       payload)
@@ -1492,7 +1269,7 @@ static int sbp2_agent_reset(struct sbp2_lu *lu, int wait)
 	int retval;
 	unsigned long flags;
 
-	/* flush lu->protocol_work */
+	
 	if (wait)
 		flush_scheduled_work();
 
@@ -1509,7 +1286,7 @@ static int sbp2_agent_reset(struct sbp2_lu *lu, int wait)
 		return -EIO;
 	}
 
-	/* make sure that the ORB_POINTER is written on next command */
+	
 	spin_lock_irqsave(&lu->cmd_orb_lock, flags);
 	lu->last_orb = NULL;
 	spin_unlock_irqrestore(&lu->cmd_orb_lock, flags);
@@ -1536,7 +1313,7 @@ static int sbp2_prep_command_orb_sg(struct sbp2_command_orb *orb,
 	orb->data_descriptor_hi = ORB_SET_NODE_ID(hi->host->node_id);
 	orb->misc |= ORB_SET_DIRECTION(orb_direction);
 
-	/* special case if only one element (and less than 64KB in size) */
+	
 	if (n == 1) {
 		orb->misc |= ORB_SET_DATA_SIZE(sg_dma_len(sg));
 		orb->data_descriptor_lo = sg_dma_address(sg);
@@ -1576,14 +1353,7 @@ static int sbp2_create_command_orb(struct sbp2_lu *lu,
 
 	dma_sync_single_for_cpu(dmadev, cmd->command_orb_dma,
 				sizeof(struct sbp2_command_orb), DMA_TO_DEVICE);
-	/*
-	 * Set-up our command ORB.
-	 *
-	 * NOTE: We're doing unrestricted page tables (s/g), as this is
-	 * best performance (at least with the devices I have). This means
-	 * that data_size becomes the number of s/g elements, and
-	 * page_size should be zero (for unrestricted).
-	 */
+	
 	orb->next_ORB_hi = ORB_SET_NULL_PTR(1);
 	orb->next_ORB_lo = 0x0;
 	orb->misc = ORB_SET_MAX_PAYLOAD(lu->max_payload_size);
@@ -1601,7 +1371,7 @@ static int sbp2_create_command_orb(struct sbp2_lu *lu,
 		orb_direction = ORB_DIRECTION_NO_DATA_TRANSFER;
 	}
 
-	/* set up our page table stuff */
+	
 	if (orb_direction == ORB_DIRECTION_NO_DATA_TRANSFER) {
 		orb->data_descriptor_hi = 0x0;
 		orb->data_descriptor_lo = 0x0;
@@ -1634,34 +1404,25 @@ static void sbp2_link_orb_command(struct sbp2_lu *lu,
 	size_t length;
 	unsigned long flags;
 
-	/* check to see if there are any previous orbs to use */
+	
 	spin_lock_irqsave(&lu->cmd_orb_lock, flags);
 	last_orb = lu->last_orb;
 	last_orb_dma = lu->last_orb_dma;
 	if (!last_orb) {
-		/*
-		 * last_orb == NULL means: We know that the target's fetch agent
-		 * is not active right now.
-		 */
+		
 		addr += SBP2_ORB_POINTER_OFFSET;
 		data[0] = ORB_SET_NODE_ID(hi->host->node_id);
 		data[1] = cmd->command_orb_dma;
 		sbp2util_cpu_to_be32_buffer(data, 8);
 		length = 8;
 	} else {
-		/*
-		 * last_orb != NULL means: We know that the target's fetch agent
-		 * is (very probably) not dead or in reset state right now.
-		 * We have an ORB already sent that we can append a new one to.
-		 * The target's fetch agent may or may not have read this
-		 * previous ORB yet.
-		 */
+		
 		dma_sync_single_for_cpu(hi->host->device.parent, last_orb_dma,
 					sizeof(struct sbp2_command_orb),
 					DMA_TO_DEVICE);
 		last_orb->next_ORB_lo = cpu_to_be32(cmd->command_orb_dma);
 		wmb();
-		/* Tells hardware that this pointer is valid */
+		
 		last_orb->next_ORB_hi = 0;
 		dma_sync_single_for_device(hi->host->device.parent,
 					   last_orb_dma,
@@ -1676,14 +1437,7 @@ static void sbp2_link_orb_command(struct sbp2_lu *lu,
 	spin_unlock_irqrestore(&lu->cmd_orb_lock, flags);
 
 	if (sbp2util_node_write_no_wait(lu->ne, addr, data, length)) {
-		/*
-		 * sbp2util_node_write_no_wait failed. We certainly ran out
-		 * of transaction labels, perhaps just because there were no
-		 * context switches which gave khpsbpkt a chance to collect
-		 * free tlabels. Try again in non-atomic context. If necessary,
-		 * the workqueue job will sleep to guaranteedly get a tlabel.
-		 * We do not accept new commands until the job is over.
-		 */
+		
 		scsi_block_requests(lu->shost);
 		PREPARE_WORK(&lu->protocol_work,
 			     last_orb ? sbp2util_write_doorbell:
@@ -1708,13 +1462,11 @@ static int sbp2_send_command(struct sbp2_lu *lu, struct scsi_cmnd *SCpnt,
 	return 0;
 }
 
-/*
- * Translates SBP-2 status into SCSI sense data for check conditions
- */
+
 static unsigned int sbp2_status_to_sense_data(unchar *sbp2_status,
 					      unchar *sense_data)
 {
-	/* OK, it's pretty ugly... ;-) */
+	
 	sense_data[0] = 0x70;
 	sense_data[1] = 0x0;
 	sense_data[2] = sbp2_status[9];
@@ -1761,7 +1513,7 @@ static int sbp2_handle_status_write(struct hpsb_host *host, int nodeid,
 		return RCODE_ADDRESS_ERROR;
 	}
 
-	/* Find the unit which wrote the status. */
+	
 	read_lock_irqsave(&sbp2_hi_logical_units_lock, flags);
 	list_for_each_entry(lu_tmp, &hi->logical_units, lu_list) {
 		if (lu_tmp->ne->nodeid == nodeid &&
@@ -1777,26 +1529,20 @@ static int sbp2_handle_status_write(struct hpsb_host *host, int nodeid,
 		return RCODE_ADDRESS_ERROR;
 	}
 
-	/* Put response into lu status fifo buffer. The first two bytes
-	 * come in big endian bit order. Often the target writes only a
-	 * truncated status block, minimally the first two quadlets. The rest
-	 * is implied to be zeros. */
+	
 	sb = &lu->status_block;
 	memset(sb->command_set_dependent, 0, sizeof(sb->command_set_dependent));
 	memcpy(sb, data, length);
 	sbp2util_be32_to_cpu_buffer(sb, 8);
 
-	/* Ignore unsolicited status. Handle command ORB status. */
+	
 	if (unlikely(STATUS_GET_SRC(sb->ORB_offset_hi_misc) == 2))
 		cmd = NULL;
 	else
 		cmd = sbp2util_find_command_for_orb(lu, sb->ORB_offset_lo);
 	if (cmd) {
-		/* Grab SCSI command pointers and check status. */
-		/*
-		 * FIXME: If the src field in the status is 1, the ORB DMA must
-		 * not be reused until status for a subsequent ORB is received.
-		 */
+		
+		
 		SCpnt = cmd->Current_SCpnt;
 		spin_lock_irqsave(&lu->cmd_orb_lock, flags);
 		sbp2util_mark_command_completed(lu, cmd);
@@ -1823,19 +1569,14 @@ static int sbp2_handle_status_write(struct hpsb_host *host, int nodeid,
                                 sbp2_agent_reset(lu, 0);
 		}
 
-		/* Check here to see if there are no commands in-use. If there
-		 * are none, we know that the fetch agent left the active state
-		 * _and_ that we did not reactivate it yet. Therefore clear
-		 * last_orb so that next time we write directly to the
-		 * ORB_POINTER register. That way the fetch agent does not need
-		 * to refetch the next_ORB. */
+		
 		spin_lock_irqsave(&lu->cmd_orb_lock, flags);
 		if (list_empty(&lu->cmd_orb_inuse))
 			lu->last_orb = NULL;
 		spin_unlock_irqrestore(&lu->cmd_orb_lock, flags);
 
 	} else {
-		/* It's probably status after a management request. */
+		
 		if ((sb->ORB_offset_lo == lu->reconnect_orb_dma) ||
 		    (sb->ORB_offset_lo == lu->login_orb_dma) ||
 		    (sb->ORB_offset_lo == lu->query_logins_orb_dma) ||
@@ -1851,9 +1592,7 @@ static int sbp2_handle_status_write(struct hpsb_host *host, int nodeid,
 	return RCODE_COMPLETE;
 }
 
-/**************************************
- * SCSI interface related section
- **************************************/
+
 
 static int sbp2scsi_queuecommand(struct scsi_cmnd *SCpnt,
 				 void (*done)(struct scsi_cmnd *))
@@ -1872,9 +1611,7 @@ static int sbp2scsi_queuecommand(struct scsi_cmnd *SCpnt,
 		goto done;
 	}
 
-	/* Multiple units are currently represented to the SCSI core as separate
-	 * targets, not as one target with multiple LUs. Therefore return
-	 * selection time-out to any IO directed at non-zero LUNs. */
+	
 	if (unlikely(SCpnt->device->lun))
 		goto done;
 
@@ -1884,8 +1621,7 @@ static int sbp2scsi_queuecommand(struct scsi_cmnd *SCpnt,
 		goto done;
 	}
 
-	/* Bidirectional commands are not yet implemented,
-	 * and unknown transfer direction not handled. */
+	
 	if (unlikely(SCpnt->sc_data_direction == DMA_BIDIRECTIONAL)) {
 		SBP2_ERR("Cannot handle DMA_BIDIRECTIONAL - rejecting command");
 		result = DID_ERROR << 16;
@@ -1927,9 +1663,7 @@ static void sbp2scsi_complete_all_commands(struct sbp2_lu *lu, u32 status)
 	return;
 }
 
-/*
- * Complete a regular SCSI command. Can be called in atomic context.
- */
+
 static void sbp2scsi_complete_command(struct sbp2_lu *lu, u32 scsi_status,
 				      struct scsi_cmnd *SCpnt,
 				      void (*done)(struct scsi_cmnd *))
@@ -1972,15 +1706,14 @@ static void sbp2scsi_complete_command(struct sbp2_lu *lu, u32 scsi_status,
 		SCpnt->result = DID_ERROR << 16;
 	}
 
-	/* If a bus reset is in progress and there was an error, complete
-	 * the command as busy so that it will get retried. */
+	
 	if (!hpsb_node_entry_valid(lu->ne)
 	    && (scsi_status != SBP2_SCSI_STATUS_GOOD)) {
 		SBP2_ERR("Completing command with busy (bus reset)");
 		SCpnt->result = DID_BUS_BUSY << 16;
 	}
 
-	/* Tell the SCSI stack that we're done with this command. */
+	
 	done(SCpnt);
 }
 
@@ -1994,7 +1727,7 @@ static int sbp2scsi_slave_alloc(struct scsi_device *sdev)
 	lu->sdev = sdev;
 	sdev->allow_restart = 1;
 
-	/* SBP-2 requires quadlet alignment of the data buffers. */
+	
 	blk_queue_update_dma_alignment(sdev->request_queue, 4 - 1);
 
 	if (lu->workarounds & SBP2_WORKAROUND_INQUIRY_36)
@@ -2032,10 +1765,7 @@ static void sbp2scsi_slave_destroy(struct scsi_device *sdev)
 	return;
 }
 
-/*
- * Called by scsi stack when something has really gone wrong.
- * Usually called when a command has timed-out for some reason.
- */
+
 static int sbp2scsi_abort(struct scsi_cmnd *SCpnt)
 {
 	struct sbp2_lu *lu = (struct sbp2_lu *)SCpnt->device->host->hostdata[0];
@@ -2048,7 +1778,7 @@ static int sbp2scsi_abort(struct scsi_cmnd *SCpnt)
 	if (sbp2util_node_is_available(lu)) {
 		sbp2_agent_reset(lu, 1);
 
-		/* Return a matching command structure to the free pool. */
+		
 		spin_lock_irqsave(&lu->cmd_orb_lock, flags);
 		cmd = sbp2util_find_command_for_SCpnt(lu, SCpnt);
 		if (cmd) {
@@ -2066,9 +1796,7 @@ static int sbp2scsi_abort(struct scsi_cmnd *SCpnt)
 	return SUCCESS;
 }
 
-/*
- * Called by scsi stack when something has really gone wrong.
- */
+
 static int sbp2scsi_reset(struct scsi_cmnd *SCpnt)
 {
 	struct sbp2_lu *lu = (struct sbp2_lu *)SCpnt->device->host->hostdata[0];

@@ -1,24 +1,9 @@
-/* linux/arch/arm/plat-s5pc1xx/include/plat/irqs.h
- *
- * Copyright 2009 Samsung Electronics Co.
- *      Byungho Min <bhmin@samsung.com>
- *
- * S5PC1XX - Common IRQ support
- *
- * Based on plat-s3c64xx/include/plat/irqs.h
- */
+
 
 #ifndef __ASM_PLAT_S5PC1XX_IRQS_H
 #define __ASM_PLAT_S5PC1XX_IRQS_H __FILE__
 
-/* we keep the first set of CPU IRQs out of the range of
- * the ISA space, so that the PC104 has them to itself
- * and we don't end up having to do horrible things to the
- * standard ISA drivers....
- *
- * note, since we're using the VICs, our start must be a
- * mulitple of 32 to allow the common code to work
- */
+
 
 #define S3C_IRQ_OFFSET		(32)
 
@@ -28,9 +13,7 @@
 #define S3C_VIC1_BASE		S3C_IRQ(32)
 #define S3C_VIC2_BASE		S3C_IRQ(64)
 
-/* UART interrupts, each UART has 4 intterupts per channel so
- * use the space between the ISA and S3C main interrupts. Note, these
- * are not in the same order as the S3C24XX series! */
+
 
 #define IRQ_S3CUART_BASE0	(16)
 #define IRQ_S3CUART_BASE1	(20)
@@ -58,15 +41,13 @@
 #define IRQ_S3CUART_TX3		(IRQ_S3CUART_BASE3 + UART_IRQ_TXD)
 #define IRQ_S3CUART_ERR3	(IRQ_S3CUART_BASE3 + UART_IRQ_ERR)
 
-/* VIC based IRQs */
+
 
 #define S5PC1XX_IRQ_VIC0(x)	(S3C_VIC0_BASE + (x))
 #define S5PC1XX_IRQ_VIC1(x)	(S3C_VIC1_BASE + (x))
 #define S5PC1XX_IRQ_VIC2(x)	(S3C_VIC2_BASE + (x))
 
-/*
- * VIC0: system, DMA, timer
- */
+
 #define IRQ_EINT0		S5PC1XX_IRQ_VIC0(0)
 #define IRQ_EINT1		S5PC1XX_IRQ_VIC0(1)
 #define IRQ_EINT2		S5PC1XX_IRQ_VIC0(2)
@@ -99,9 +80,7 @@
 #define IRQ_RTC_TIC		S5PC1XX_IRQ_VIC0(29)
 #define IRQ_GPIOINT		S5PC1XX_IRQ_VIC0(30)
 
-/*
- * VIC1: ARM, power, memory, connectivity
- */
+
 #define IRQ_CORTEX0		S5PC1XX_IRQ_VIC1(0)
 #define IRQ_CORTEX1		S5PC1XX_IRQ_VIC1(1)
 #define IRQ_CORTEX2		S5PC1XX_IRQ_VIC1(2)
@@ -134,9 +113,7 @@
 #define IRQ_MIPICSI		S5PC1XX_IRQ_VIC1(29)
 #define IRQ_MIPIDSI		S5PC1XX_IRQ_VIC1(30)
 
-/*
- * VIC2: multimedia, audio, security
- */
+
 #define IRQ_LCD0		S5PC1XX_IRQ_VIC2(0)
 #define IRQ_LCD1		S5PC1XX_IRQ_VIC2(1)
 #define IRQ_LCD2		S5PC1XX_IRQ_VIC2(2)
@@ -178,5 +155,5 @@
 
 #define NR_IRQS 		(IRQ_EINT(31)+1)
 
-#endif /* __ASM_PLAT_S5PC1XX_IRQS_H */
+#endif 
 

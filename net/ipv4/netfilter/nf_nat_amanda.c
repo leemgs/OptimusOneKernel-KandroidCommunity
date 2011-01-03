@@ -1,12 +1,4 @@
-/* Amanda extension for TCP NAT alteration.
- * (C) 2002 by Brian J. Murrell <netfilter@interlinx.bc.ca>
- * based on a copy of HW's ip_nat_irc.c as well as other modules
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -34,15 +26,14 @@ static unsigned int help(struct sk_buff *skb,
 	u_int16_t port;
 	unsigned int ret;
 
-	/* Connection comes from client. */
+	
 	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
 	exp->dir = IP_CT_DIR_ORIGINAL;
 
-	/* When you see the packet, we need to NAT it the same as the
-	 * this one (ie. same IP: it will be TCP and master is UDP). */
+	
 	exp->expectfn = nf_nat_follow_master;
 
-	/* Try to get same port: if not, try to change it. */
+	
 	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
 		exp->tuple.dst.u.tcp.port = htons(port);
 		if (nf_ct_expect_related(exp) == 0)

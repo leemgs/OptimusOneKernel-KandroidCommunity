@@ -1,13 +1,4 @@
-/* cxgb3i_init.c: Chelsio S3xx iSCSI driver.
- *
- * Copyright (c) 2008 Chelsio Communications, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Written by: Karen Xie (kxie@chelsio.com)
- */
+
 
 #include "cxgb3i.h"
 
@@ -37,10 +28,7 @@ static struct cxgb3_client t3c_client = {
 	.event_handler = s3_event_handler,
 };
 
-/**
- * open_s3_dev - register with cxgb3 LLD
- * @t3dev:	cxgb3 adapter instance
- */
+
 static void open_s3_dev(struct t3cdev *t3dev)
 {
 	static int vers_printed;
@@ -55,10 +43,7 @@ static void open_s3_dev(struct t3cdev *t3dev)
 	cxgb3i_adapter_open(t3dev);
 }
 
-/**
- * close_s3_dev - de-register with cxgb3 LLD
- * @t3dev:	cxgb3 adapter instance
- */
+
 static void close_s3_dev(struct t3cdev *t3dev)
 {
 	cxgb3i_adapter_close(t3dev);
@@ -85,12 +70,7 @@ static void s3_event_handler(struct t3cdev *tdev, u32 event, u32 port)
 	}
 }
 
-/**
- * cxgb3i_init_module - module init entry point
- *
- * initialize any driver wide global data structures and register itself
- *	with the cxgb3 module
- */
+
 static int __init cxgb3i_init_module(void)
 {
 	int err;
@@ -112,12 +92,7 @@ static int __init cxgb3i_init_module(void)
 	return 0;
 }
 
-/**
- * cxgb3i_exit_module - module cleanup/exit entry point
- *
- * go through the driver hba list and for each hba, release any resource held.
- *	and unregisters iscsi transport and the cxgb3 module
- */
+
 static void __exit cxgb3i_exit_module(void)
 {
 	cxgb3_unregister_client(&t3c_client);

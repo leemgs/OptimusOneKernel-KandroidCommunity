@@ -1,46 +1,6 @@
-/******************************************************************************
- *
- * Module Name: nsutils - Utilities for accessing ACPI namespace, accessing
- *                        parents and siblings and Scope manipulation
- *
- *****************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #include <acpi/acpi.h>
 #include "accommon.h"
@@ -51,27 +11,14 @@
 #define _COMPONENT          ACPI_NAMESPACE
 ACPI_MODULE_NAME("nsutils")
 
-/* Local prototypes */
+
 static u8 acpi_ns_valid_path_separator(char sep);
 
 #ifdef ACPI_OBSOLETE_FUNCTIONS
 acpi_name acpi_ns_find_parent_name(struct acpi_namespace_node *node_to_search);
 #endif
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ns_report_error
- *
- * PARAMETERS:  module_name         - Caller's module name (for error output)
- *              line_number         - Caller's line number (for error output)
- *              internal_name       - Name or path of the namespace node
- *              lookup_status       - Exception code from NS lookup
- *
- * RETURN:      None
- *
- * DESCRIPTION: Print warning message with full pathname
- *
- ******************************************************************************/
+
 
 void
 acpi_ns_report_error(const char *module_name,
@@ -86,18 +33,18 @@ acpi_ns_report_error(const char *module_name,
 
 	if (lookup_status == AE_BAD_CHARACTER) {
 
-		/* There is a non-ascii character in the name */
+		
 
 		ACPI_MOVE_32_TO_32(&bad_name,
 				   ACPI_CAST_PTR(u32, internal_name));
 		acpi_os_printf("[0x%4.4X] (NON-ASCII)", bad_name);
 	} else {
-		/* Convert path to external format */
+		
 
 		status = acpi_ns_externalize_name(ACPI_UINT32_MAX,
 						  internal_name, NULL, &name);
 
-		/* Print target name */
+		
 
 		if (ACPI_SUCCESS(status)) {
 			acpi_os_printf("[%s]", name);
@@ -114,22 +61,7 @@ acpi_ns_report_error(const char *module_name,
 		       acpi_format_exception(lookup_status));
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ns_report_method_error
- *
- * PARAMETERS:  module_name         - Caller's module name (for error output)
- *              line_number         - Caller's line number (for error output)
- *              Message             - Error message to use on failure
- *              prefix_node         - Prefix relative to the path
- *              Path                - Path to the node (optional)
- *              method_status       - Execution status
- *
- * RETURN:      None
- *
- * DESCRIPTION: Print warning message with full pathname
- *
- ******************************************************************************/
+
 
 void
 acpi_ns_report_method_error(const char *module_name,
@@ -156,17 +88,7 @@ acpi_ns_report_method_error(const char *module_name,
 	acpi_os_printf(", %s\n", acpi_format_exception(method_status));
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ns_print_node_pathname
- *
- * PARAMETERS:  Node            - Object
- *              Message         - Prefix message
- *
- * DESCRIPTION: Print an object's full namespace pathname
- *              Manages allocation/freeing of a pathname buffer
- *
- ******************************************************************************/
+
 
 void
 acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
@@ -180,7 +102,7 @@ acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
 		return;
 	}
 
-	/* Convert handle to full pathname and print it (with supplied message) */
+	
 
 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
 
@@ -195,17 +117,7 @@ acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
 	}
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ns_valid_root_prefix
- *
- * PARAMETERS:  Prefix          - Character to be checked
- *
- * RETURN:      TRUE if a valid prefix
- *
- * DESCRIPTION: Check if a character is a valid ACPI Root prefix
- *
- ******************************************************************************/
+
 
 u8 acpi_ns_valid_root_prefix(char prefix)
 {
@@ -320,13 +232,13 @@ void acpi_ns_get_internal_name_length(struct acpi_namestring_info *info)
 		info->fully_qualified = TRUE;
 		next_external_char++;
 
-		/* Skip redundant root_prefix, like \\_SB.PCI0.SBRG.EC0 */
+		
 
 		while (acpi_ns_valid_root_prefix(*next_external_char)) {
 			next_external_char++;
 		}
 	} else {
-		/* Handle Carat prefixes */
+		
 
 		while (*next_external_char == '^') {
 			info->num_carats++;
@@ -334,11 +246,7 @@ void acpi_ns_get_internal_name_length(struct acpi_namestring_info *info)
 		}
 	}
 
-	/*
-	 * Determine the number of ACPI name "segments" by counting the number of
-	 * path separators within the string. Start with one segment since the
-	 * segment count is [(# separators) + 1], and zero separators is ok.
-	 */
+	
 	if (*next_external_char) {
 		info->num_segments = 1;
 		for (i = 0; next_external_char[i]; i++) {
@@ -354,18 +262,7 @@ void acpi_ns_get_internal_name_length(struct acpi_namestring_info *info)
 	info->next_external_char = next_external_char;
 }
 
-/*******************************************************************************
- *
- * FUNCTION:    acpi_ns_build_internal_name
- *
- * PARAMETERS:  Info            - Info struct fully initialized
- *
- * RETURN:      Status
- *
- * DESCRIPTION: Construct the internal (AML) namestring
- *              corresponding to the external (ASL) namestring.
- *
- ******************************************************************************/
+
 
 acpi_status acpi_ns_build_internal_name(struct acpi_namestring_info *info)
 {
@@ -377,7 +274,7 @@ acpi_status acpi_ns_build_internal_name(struct acpi_namestring_info *info)
 
 	ACPI_FUNCTION_TRACE(ns_build_internal_name);
 
-	/* Setup the correct prefixes, counts, and pointers */
+	
 
 	if (info->fully_qualified) {
 		internal_name[0] = '\\';
@@ -969,7 +866,7 @@ acpi_name acpi_ns_find_parent_name(struct acpi_namespace_node * child_node)
 
 	if (child_node) {
 
-		/* Valid entry.  Get the parent Node */
+		
 
 		parent_node = acpi_ns_get_parent_node(child_node);
 		if (parent_node) {

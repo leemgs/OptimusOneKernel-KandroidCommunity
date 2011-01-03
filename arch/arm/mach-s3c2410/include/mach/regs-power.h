@@ -1,14 +1,4 @@
-/* arch/arm/mach-s3c2410/include/mach/regs-power.h
- *
- * Copyright (c) 2003,2004,2005,2006 Simtec Electronics <linux@simtec.co.uk>
- *		      http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C24XX power control register definitions
-*/
+
 
 #ifndef __ASM_ARM_REGS_PWR
 #define __ASM_ARM_REGS_PWR __FILE__
@@ -37,4 +27,4 @@
 #define S3C2412_PWRCFG_RTC_MASKIRQ		(1<<8)
 #define S3C2412_PWRCFG_NAND_NORST		(1<<9)
 
-#endif /* __ASM_ARM_REGS_PWR */
+#endif 

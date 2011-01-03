@@ -1,20 +1,6 @@
-/*
- * bitmap.c two-level bitmap (C) Peter T. Breuer (ptb@ot.uc3m.es) 2003
- *
- * bitmap_create  - sets up the bitmap structure
- * bitmap_destroy - destroys the bitmap structure
- *
- * additions, Copyright (C) 2003-2004, Paul Clements, SteelEye Technology, Inc.:
- * - added disk storage for bitmap
- * - changes to allow various bitmap chunk sizes
- */
 
-/*
- * Still to do:
- *
- * flush after percent set rather than just time based. (maybe both).
- * wait if count gets too high, wake when it drops to half.
- */
+
+
 
 #include <linux/blkdev.h>
 #include <linux/module.h>
@@ -30,28 +16,28 @@
 #include "md.h"
 #include "bitmap.h"
 
-/* debug macros */
+
 
 #define DEBUG 0
 
 #if DEBUG
-/* these are for debugging purposes only! */
 
-/* define one and only one of these */
-#define INJECT_FAULTS_1 0 /* cause bitmap_alloc_page to fail always */
-#define INJECT_FAULTS_2 0 /* cause bitmap file to be kicked when first bit set*/
-#define INJECT_FAULTS_3 0 /* treat bitmap file as kicked at init time */
-#define INJECT_FAULTS_4 0 /* undef */
-#define INJECT_FAULTS_5 0 /* undef */
+
+
+#define INJECT_FAULTS_1 0 
+#define INJECT_FAULTS_2 0 
+#define INJECT_FAULTS_3 0 
+#define INJECT_FAULTS_4 0 
+#define INJECT_FAULTS_5 0 
 #define INJECT_FAULTS_6 0
 
-/* if these are defined, the driver will fail! debug only */
-#define INJECT_FATAL_FAULT_1 0 /* fail kmalloc, causing bitmap_create to fail */
-#define INJECT_FATAL_FAULT_2 0 /* undef */
-#define INJECT_FATAL_FAULT_3 0 /* undef */
+
+#define INJECT_FATAL_FAULT_1 0 
+#define INJECT_FATAL_FAULT_2 0 
+#define INJECT_FATAL_FAULT_3 0 
 #endif
 
-//#define DPRINTK PRINTK /* set this NULL to avoid verbose debug output */
+
 #define DPRINTK(x...) do { } while(0)
 
 #ifndef PRINTK
@@ -68,9 +54,7 @@ static inline char * bmname(struct bitmap *bitmap)
 }
 
 
-/*
- * just a placeholder - calls kmalloc for bitmap pages
- */
+
 static unsigned char *bitmap_alloc_page(struct bitmap *bitmap)
 {
 	unsigned char *page;
@@ -88,25 +72,14 @@ static unsigned char *bitmap_alloc_page(struct bitmap *bitmap)
 	return page;
 }
 
-/*
- * for now just a placeholder -- just calls kfree for bitmap pages
- */
+
 static void bitmap_free_page(struct bitmap *bitmap, unsigned char *page)
 {
 	PRINTK("%s: bitmap_free_page: free page %p\n", bmname(bitmap), page);
 	kfree(page);
 }
 
-/*
- * check a page and, if necessary, allocate it (or hijack it if the alloc fails)
- *
- * 1) check to see if this page is allocated, if it's not then try to alloc
- * 2) if the alloc fails, set the page's hijacked flag so we'll use the
- *    page pointer directly as a counter
- *
- * if we find our page, we increment the page's refcount so that it stays
- * allocated while we're using it
- */
+
 static int bitmap_checkpage(struct bitmap *bitmap, unsigned long page, int create)
 __releases(bitmap->lock)
 __acquires(bitmap->lock)
@@ -114,18 +87,15 @@ __acquires(bitmap->lock)
 	unsigned char *mappage;
 
 	if (page >= bitmap->pages) {
-		/* This can happen if bitmap_start_sync goes beyond
-		 * End-of-device while looking for a whole page.
-		 * It is harmless.
-		 */
+		
 		return -EINVAL;
 	}
 
 
-	if (bitmap->bp[page].hijacked) /* it's hijacked, don't try to alloc */
+	if (bitmap->bp[page].hijacked) 
 		return 0;
 
-	if (bitmap->bp[page].map) /* page is already allocated, just return */
+	if (bitmap->bp[page].map) 
 		return 0;
 
 	if (!create)
@@ -133,32 +103,31 @@ __acquires(bitmap->lock)
 
 	spin_unlock_irq(&bitmap->lock);
 
-	/* this page has not been allocated yet */
+	
 
 	if ((mappage = bitmap_alloc_page(bitmap)) == NULL) {
 		PRINTK("%s: bitmap map page allocation failed, hijacking\n",
 			bmname(bitmap));
-		/* failed - set the hijacked flag so that we can use the
-		 * pointer as a counter */
+		
 		spin_lock_irq(&bitmap->lock);
 		if (!bitmap->bp[page].map)
 			bitmap->bp[page].hijacked = 1;
 		goto out;
 	}
 
-	/* got a page */
+	
 
 	spin_lock_irq(&bitmap->lock);
 
-	/* recheck the page */
+	
 
 	if (bitmap->bp[page].map || bitmap->bp[page].hijacked) {
-		/* somebody beat us to getting the page */
+		
 		bitmap_free_page(bitmap, mappage);
 		return 0;
 	}
 
-	/* no page was in place and we have one, so install it */
+	
 
 	memset(mappage, 0, PAGE_SIZE);
 	bitmap->bp[page].map = mappage;
@@ -168,30 +137,28 @@ out:
 }
 
 
-/* if page is completely empty, put it back on the free list, or dealloc it */
-/* if page was hijacked, unmark the flag so it might get alloced next time */
-/* Note: lock should be held when calling this */
+
+
+
 static void bitmap_checkfree(struct bitmap *bitmap, unsigned long page)
 {
 	char *ptr;
 
-	if (bitmap->bp[page].count) /* page is still busy */
+	if (bitmap->bp[page].count) 
 		return;
 
-	/* page is no longer in use, it can be released */
+	
 
-	if (bitmap->bp[page].hijacked) { /* page was hijacked, undo this now */
+	if (bitmap->bp[page].hijacked) { 
 		bitmap->bp[page].hijacked = 0;
 		bitmap->bp[page].map = NULL;
 		return;
 	}
 
-	/* normal case, free the page */
+	
 
 #if 0
-/* actually ... let's not.  We will probably need the page again exactly when
- * memory is tight and we are flusing to disk
- */
+
 	return;
 #else
 	ptr = bitmap->bp[page].map;
@@ -203,20 +170,16 @@ static void bitmap_checkfree(struct bitmap *bitmap, unsigned long page)
 }
 
 
-/*
- * bitmap file handling - read and write the bitmap file and its superblock
- */
 
-/*
- * basic page I/O operations
- */
 
-/* IO operations when bitmap is stored near all superblocks */
+
+
+
 static struct page *read_sb_page(mddev_t *mddev, long offset,
 				 struct page *page,
 				 unsigned long index, int size)
 {
-	/* choose a good rdev and read the page from there */
+	
 
 	mdk_rdev_t *rdev;
 	sector_t target;
@@ -237,8 +200,7 @@ static struct page *read_sb_page(mddev_t *mddev, long offset,
 				 roundup(size, bdev_logical_block_size(rdev->bdev)),
 				 page, READ)) {
 			page->index = index;
-			attach_page_buffers(page, NULL); /* so that free_buffer will
-							  * quietly no-op */
+			attach_page_buffers(page, NULL); 
 			return page;
 		}
 	}
@@ -248,21 +210,14 @@ static struct page *read_sb_page(mddev_t *mddev, long offset,
 
 static mdk_rdev_t *next_active_rdev(mdk_rdev_t *rdev, mddev_t *mddev)
 {
-	/* Iterate the disks of an mddev, using rcu to protect access to the
-	 * linked list, and raising the refcount of devices we return to ensure
-	 * they don't disappear while in use.
-	 * As devices are only added or removed when raid_disk is < 0 and
-	 * nr_pending is 0 and In_sync is clear, the entries we return will
-	 * still be in the same position on the list when we re-enter
-	 * list_for_each_continue_rcu.
-	 */
+	
 	struct list_head *pos;
 	rcu_read_lock();
 	if (rdev == NULL)
-		/* start at the beginning */
+		
 		pos = &mddev->disks;
 	else {
-		/* release the previous rdev and start from there. */
+		
 		rdev_dec_pending(rdev, mddev);
 		pos = &rdev->same_set;
 	}
@@ -270,7 +225,7 @@ static mdk_rdev_t *next_active_rdev(mdk_rdev_t *rdev, mddev_t *mddev)
 		rdev = list_entry(pos, mdk_rdev_t, same_set);
 		if (rdev->raid_disk >= 0 &&
 		    !test_bit(Faulty, &rdev->flags)) {
-			/* this is a usable devices */
+			
 			atomic_inc(&rdev->nr_pending);
 			rcu_read_unlock();
 			return rdev;
@@ -290,30 +245,28 @@ static int write_sb_page(struct bitmap *bitmap, struct page *page, int wait)
 			if (page->index == bitmap->file_pages-1)
 				size = roundup(bitmap->last_page_size,
 					       bdev_logical_block_size(rdev->bdev));
-			/* Just make sure we aren't corrupting data or
-			 * metadata
-			 */
+			
 			if (bitmap->offset < 0) {
-				/* DATA  BITMAP METADATA  */
+				
 				if (bitmap->offset
 				    + (long)(page->index * (PAGE_SIZE/512))
 				    + size/512 > 0)
-					/* bitmap runs in to metadata */
+					
 					goto bad_alignment;
 				if (rdev->data_offset + mddev->dev_sectors
 				    > rdev->sb_start + bitmap->offset)
-					/* data runs in to bitmap */
+					
 					goto bad_alignment;
 			} else if (rdev->sb_start < rdev->data_offset) {
-				/* METADATA BITMAP DATA */
+				
 				if (rdev->sb_start
 				    + bitmap->offset
 				    + page->index*(PAGE_SIZE/512) + size/512
 				    > rdev->data_offset)
-					/* bitmap runs in to data */
+					
 					goto bad_alignment;
 			} else {
-				/* DATA METADATA BITMAP - no problems */
+				
 			}
 			md_super_write(mddev, rdev,
 				       rdev->sb_start + bitmap->offset
@@ -331,9 +284,7 @@ static int write_sb_page(struct bitmap *bitmap, struct page *page, int wait)
 }
 
 static void bitmap_file_kick(struct bitmap *bitmap);
-/*
- * write out a page to a file
- */
+
 static void write_page(struct bitmap *bitmap, struct page *page, int wait)
 {
 	struct buffer_head *bh;
@@ -378,7 +329,7 @@ static void end_bitmap_write(struct buffer_head *bh, int uptodate)
 		wake_up(&bitmap->write_wait);
 }
 
-/* copied from buffer.c */
+
 static void
 __clear_page_buffers(struct page *page)
 {
@@ -399,13 +350,7 @@ static void free_buffers(struct page *page)
 	put_page(page);
 }
 
-/* read a page from a file.
- * We both read the page, and attach buffers to the page to record the
- * address of each block (using bmap).  These addresses will be used
- * to write the block later, completely bypassing the filesystem.
- * This usage is similar to how swap files are handled, and allows us
- * to write to a file with no concerns of memory allocation failing.
- */
+
 static struct page *read_page(struct file *file, unsigned long index,
 			      struct bitmap *bitmap,
 			      unsigned long count)
@@ -438,7 +383,7 @@ static struct page *read_page(struct file *file, unsigned long index,
 		else {
 			bh->b_blocknr = bmap(inode, block);
 			if (bh->b_blocknr == 0) {
-				/* Cannot use this file! */
+				
 				free_buffers(page);
 				page = ERR_PTR(-EINVAL);
 				goto out;
@@ -476,20 +421,18 @@ out:
 	return page;
 }
 
-/*
- * bitmap file superblock operations
- */
 
-/* update the event counter and sync the superblock to disk */
+
+
 void bitmap_update_sb(struct bitmap *bitmap)
 {
 	bitmap_super_t *sb;
 	unsigned long flags;
 
-	if (!bitmap || !bitmap->mddev) /* no bitmap for this array */
+	if (!bitmap || !bitmap->mddev) 
 		return;
 	spin_lock_irqsave(&bitmap->lock, flags);
-	if (!bitmap->sb_page) { /* no superblock */
+	if (!bitmap->sb_page) { 
 		spin_unlock_irqrestore(&bitmap->lock, flags);
 		return;
 	}
@@ -497,7 +440,7 @@ void bitmap_update_sb(struct bitmap *bitmap)
 	sb = (bitmap_super_t *)kmap_atomic(bitmap->sb_page, KM_USER0);
 	sb->events = cpu_to_le64(bitmap->mddev->events);
 	if (bitmap->mddev->events < bitmap->events_cleared) {
-		/* rocking back to read-only */
+		
 		bitmap->events_cleared = bitmap->mddev->events;
 		sb->events_cleared = cpu_to_le64(bitmap->events_cleared);
 	}
@@ -505,7 +448,7 @@ void bitmap_update_sb(struct bitmap *bitmap)
 	write_page(bitmap, bitmap->sb_page, 1);
 }
 
-/* print out the bitmap file superblock */
+
 void bitmap_print_sb(struct bitmap *bitmap)
 {
 	bitmap_super_t *sb;
@@ -534,7 +477,7 @@ void bitmap_print_sb(struct bitmap *bitmap)
 	kunmap_atomic(sb, KM_USER0);
 }
 
-/* read the superblock from the bitmap file and initialize some bitmap fields */
+
 static int bitmap_read_sb(struct bitmap *bitmap)
 {
 	char *reason = NULL;
@@ -543,7 +486,7 @@ static int bitmap_read_sb(struct bitmap *bitmap)
 	unsigned long long events;
 	int err = -EINVAL;
 
-	/* page 0 is the superblock, read it... */
+	
 	if (bitmap->file) {
 		loff_t isize = i_size_read(bitmap->file->f_mapping->host);
 		int bytes = isize > PAGE_SIZE ? PAGE_SIZE : isize;
@@ -566,7 +509,7 @@ static int bitmap_read_sb(struct bitmap *bitmap)
 	daemon_sleep = le32_to_cpu(sb->daemon_sleep);
 	write_behind = le32_to_cpu(sb->write_behind);
 
-	/* verify that the bitmap-specific fields are valid */
+	
 	if (sb->magic != cpu_to_le32(BITMAP_MAGIC))
 		reason = "bad magic";
 	else if (le32_to_cpu(sb->version) < BITMAP_MAJOR_LO ||
@@ -586,16 +529,13 @@ static int bitmap_read_sb(struct bitmap *bitmap)
 		goto out;
 	}
 
-	/* keep the array size field of the bitmap superblock up to date */
+	
 	sb->sync_size = cpu_to_le64(bitmap->mddev->resync_max_sectors);
 
 	if (!bitmap->mddev->persistent)
 		goto success;
 
-	/*
-	 * if we have a persistent array superblock, compare the
-	 * bitmap's UUID and event counter to the mddev's
-	 */
+	
 	if (memcmp(sb->uuid, bitmap->mddev->uuid, 16)) {
 		printk(KERN_INFO "%s: bitmap superblock UUID mismatch\n",
 			bmname(bitmap));
@@ -609,7 +549,7 @@ static int bitmap_read_sb(struct bitmap *bitmap)
 		sb->state |= cpu_to_le32(BITMAP_STALE);
 	}
 success:
-	/* assign fields using values from superblock */
+	
 	bitmap->chunksize = chunksize;
 	bitmap->daemon_sleep = daemon_sleep;
 	bitmap->daemon_lastrun = jiffies;
@@ -633,7 +573,7 @@ enum bitmap_mask_op {
 	MASK_UNSET
 };
 
-/* record the state of the bitmap in the superblock.  Return the old value */
+
 static int bitmap_mask_state(struct bitmap *bitmap, enum bitmap_state bits,
 			     enum bitmap_mask_op op)
 {
@@ -642,7 +582,7 @@ static int bitmap_mask_state(struct bitmap *bitmap, enum bitmap_state bits,
 	int old;
 
 	spin_lock_irqsave(&bitmap->lock, flags);
-	if (!bitmap->sb_page) { /* can't set the state */
+	if (!bitmap->sb_page) { 
 		spin_unlock_irqrestore(&bitmap->lock, flags);
 		return 0;
 	}
@@ -660,29 +600,21 @@ static int bitmap_mask_state(struct bitmap *bitmap, enum bitmap_state bits,
 	return old;
 }
 
-/*
- * general bitmap file operations
- */
 
-/* calculate the index of the page that contains this bit */
+
+
 static inline unsigned long file_page_index(unsigned long chunk)
 {
 	return CHUNK_BIT_OFFSET(chunk) >> PAGE_BIT_SHIFT;
 }
 
-/* calculate the (bit) offset of this bit within a page */
+
 static inline unsigned long file_page_offset(unsigned long chunk)
 {
 	return CHUNK_BIT_OFFSET(chunk) & (PAGE_BITS - 1);
 }
 
-/*
- * return a pointer to the page in the filemap that contains the given bit
- *
- * this lookup is complicated by the fact that the bitmap sb might be exactly
- * 1 page (e.g., x86) or less than 1 page -- so the bitmap might start on page
- * 0 or page 1
- */
+
 static inline struct page *filemap_get_page(struct bitmap *bitmap,
 					unsigned long chunk)
 {
@@ -710,7 +642,7 @@ static void bitmap_file_unmap(struct bitmap *bitmap)
 	spin_unlock_irqrestore(&bitmap->lock, flags);
 
 	while (pages--)
-		if (map[pages]->index != 0) /* 0 is sb_page, release it below */
+		if (map[pages]->index != 0) 
 			free_buffers(map[pages]);
 	kfree(map);
 	kfree(attr);
@@ -742,11 +674,7 @@ static void bitmap_file_put(struct bitmap *bitmap)
 }
 
 
-/*
- * bitmap_file_kick - if an error occurs while manipulating the bitmap file
- * then it is no longer reliable, so we stop using it and we mark the file
- * as failed in the superblock
- */
+
 static void bitmap_file_kick(struct bitmap *bitmap)
 {
 	char *path, *ptr = NULL;
@@ -778,9 +706,9 @@ static void bitmap_file_kick(struct bitmap *bitmap)
 }
 
 enum bitmap_page_attr {
-	BITMAP_PAGE_DIRTY = 0, // there are set bits that need to be synced
-	BITMAP_PAGE_CLEAN = 1, // there are bits that might need to be cleared
-	BITMAP_PAGE_NEEDWRITE=2, // there are cleared bits that need to be synced
+	BITMAP_PAGE_DIRTY = 0, 
+	BITMAP_PAGE_CLEAN = 1, 
+	BITMAP_PAGE_NEEDWRITE=2, 
 };
 
 static inline void set_page_attr(struct bitmap *bitmap, struct page *page,
@@ -801,13 +729,7 @@ static inline unsigned long test_page_attr(struct bitmap *bitmap, struct page *p
 	return test_bit((page->index<<2) + attr, bitmap->filemap_attr);
 }
 
-/*
- * bitmap_file_set_bit -- called before performing a write to the md device
- * to set (and eventually sync) a particular bit in the bitmap file
- *
- * we set the bit immediately, then we record the page number so that
- * when an unplug occurs, we can flush the dirty pages out to disk
- */
+
 static void bitmap_file_set_bit(struct bitmap *bitmap, sector_t block)
 {
 	unsigned long bit;
@@ -823,7 +745,7 @@ static void bitmap_file_set_bit(struct bitmap *bitmap, sector_t block)
 	if (!page) return;
 	bit = file_page_offset(chunk);
 
- 	/* set the bit */
+ 	
 	kaddr = kmap_atomic(page, KM_USER0);
 	if (bitmap->flags & BITMAP_HOSTENDIAN)
 		set_bit(bit, kaddr);
@@ -832,14 +754,12 @@ static void bitmap_file_set_bit(struct bitmap *bitmap, sector_t block)
 	kunmap_atomic(kaddr, KM_USER0);
 	PRINTK("set file bit %lu page %lu\n", bit, page->index);
 
-	/* record page number so it gets flushed to disk when unplug occurs */
+	
 	set_page_attr(bitmap, page, BITMAP_PAGE_DIRTY);
 
 }
 
-/* this gets called when the md device is ready to unplug its underlying
- * (slave) device queues -- before we let any writes go down, we need to
- * sync the dirty pages of the bitmap file to disk */
+
 void bitmap_unplug(struct bitmap *bitmap)
 {
 	unsigned long i, flags;
@@ -850,8 +770,7 @@ void bitmap_unplug(struct bitmap *bitmap)
 	if (!bitmap)
 		return;
 
-	/* look at each page to see if there are any set bits that need to be
-	 * flushed out to disk */
+	
 	for (i = 0; i < bitmap->file_pages; i++) {
 		spin_lock_irqsave(&bitmap->lock, flags);
 		if (!bitmap->filemap) {
@@ -870,7 +789,7 @@ void bitmap_unplug(struct bitmap *bitmap)
 		if (dirty | need_write)
 			write_page(bitmap, page, 0);
 	}
-	if (wait) { /* if any writes were performed, we need to wait on them */
+	if (wait) { 
 		if (bitmap->file)
 			wait_event(bitmap->write_wait,
 				   atomic_read(&bitmap->pending_writes)==0);
@@ -882,17 +801,7 @@ void bitmap_unplug(struct bitmap *bitmap)
 }
 
 static void bitmap_set_memory_bits(struct bitmap *bitmap, sector_t offset, int needed);
-/* * bitmap_init_from_disk -- called at bitmap_create time to initialize
- * the in-memory bitmap from the on-disk bitmap -- also, sets up the
- * memory mapping of the bitmap file
- * Special cases:
- *   if there's no bitmap file, or if the bitmap file had been
- *   previously kicked from the array, we mark all the bits as
- *   1's in order to cause a full resync.
- *
- * We ignore all bits for sectors that end earlier than 'start'.
- * This is used when reading an out-of-date bitmap...
- */
+
 static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 {
 	unsigned long i, chunks, index, oldindex, bit;
@@ -936,7 +845,7 @@ static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 	if (!bitmap->filemap)
 		goto err;
 
-	/* We need 4 bits per page, rounded up to a multiple of sizeof(unsigned long) */
+	
 	bitmap->filemap_attr = kzalloc(
 		roundup( DIV_ROUND_UP(num_pages*4, 8), sizeof(unsigned long)),
 		GFP_KERNEL);
@@ -949,20 +858,16 @@ static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 		int b;
 		index = file_page_index(i);
 		bit = file_page_offset(i);
-		if (index != oldindex) { /* this is a new page, read it in */
+		if (index != oldindex) { 
 			int count;
-			/* unmap the old page, we're done with it */
+			
 			if (index == num_pages-1)
 				count = bytes + sizeof(bitmap_super_t)
 					- index * PAGE_SIZE;
 			else
 				count = PAGE_SIZE;
 			if (index == 0) {
-				/*
-				 * if we're here then the superblock page
-				 * contains some bits (PAGE_SIZE != sizeof sb)
-				 * we've already read it in, so just use it
-				 */
+				
 				page = bitmap->sb_page;
 				offset = sizeof(bitmap_super_t);
 				if (!file)
@@ -979,7 +884,7 @@ static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 						    index, count);
 				offset = 0;
 			}
-			if (IS_ERR(page)) { /* read error */
+			if (IS_ERR(page)) { 
 				ret = PTR_ERR(page);
 				goto err;
 			}
@@ -991,10 +896,7 @@ static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 			bitmap->last_page_size = count;
 
 			if (outofdate) {
-				/*
-				 * if bitmap is out of date, dirty the
-			 	 * whole page and write it out
-				 */
+				
 				paddr = kmap_atomic(page, KM_USER0);
 				memset(paddr + offset, 0xff,
 				       PAGE_SIZE - offset);
@@ -1013,7 +915,7 @@ static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 			b = ext2_test_bit(bit, paddr);
 		kunmap_atomic(paddr, KM_USER0);
 		if (b) {
-			/* if the disk bit is set, set the memory bit */
+			
 			int needed = ((sector_t)(i+1) << (CHUNK_BLOCK_SHIFT(bitmap))
 				      >= start);
 			bitmap_set_memory_bits(bitmap,
@@ -1024,11 +926,11 @@ static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 		}
 	}
 
- 	/* everything went OK */
+ 	
 	ret = 0;
 	bitmap_mask_state(bitmap, BITMAP_STALE, MASK_UNSET);
 
-	if (bit_cnt) { /* Kick recovery if any bits were set */
+	if (bit_cnt) { 
 		set_bit(MD_RECOVERY_NEEDED, &bitmap->mddev->recovery);
 		md_wakeup_thread(bitmap->mddev->thread);
 	}
@@ -1047,9 +949,7 @@ static int bitmap_init_from_disk(struct bitmap *bitmap, sector_t start)
 
 void bitmap_write_all(struct bitmap *bitmap)
 {
-	/* We don't actually write all bitmap blocks here,
-	 * just flag them as needing to be written
-	 */
+	
 	int i;
 
 	for (i=0; i < bitmap->file_pages; i++)
@@ -1063,20 +963,14 @@ static void bitmap_count_page(struct bitmap *bitmap, sector_t offset, int inc)
 	sector_t chunk = offset >> CHUNK_BLOCK_SHIFT(bitmap);
 	unsigned long page = chunk >> PAGE_COUNTER_SHIFT;
 	bitmap->bp[page].count += inc;
-/*
-	if (page == 0) printk("count page 0, offset %llu: %d gives %d\n",
-			      (unsigned long long)offset, inc, bitmap->bp[page].count);
-*/
+
 	bitmap_checkfree(bitmap, page);
 }
 static bitmap_counter_t *bitmap_get_counter(struct bitmap *bitmap,
 					    sector_t offset, int *blocks,
 					    int create);
 
-/*
- * bitmap daemon -- periodically wakes up to clean bits and flush pages
- *			out to disk
- */
+
 
 void bitmap_daemon_work(mddev_t *mddev)
 {
@@ -1087,9 +981,7 @@ void bitmap_daemon_work(mddev_t *mddev)
 	int blocks;
 	void *paddr;
 
-	/* Use a mutex to guard daemon_work against
-	 * bitmap_destroy.
-	 */
+	
 	mutex_lock(&mddev->bitmap_mutex);
 	bitmap = mddev->bitmap;
 	if (bitmap == NULL) {
@@ -1110,13 +1002,13 @@ void bitmap_daemon_work(mddev_t *mddev)
 	for (j = 0; j < bitmap->chunks; j++) {
 		bitmap_counter_t *bmc;
 		if (!bitmap->filemap)
-			/* error or shutdown */
+			
 			break;
 
 		page = filemap_get_page(bitmap, j);
 
 		if (page != lastpage) {
-			/* skip this page unless it's marked as needing cleaning */
+			
 			if (!test_page_attr(bitmap, page, BITMAP_PAGE_CLEAN)) {
 				int need_write = test_page_attr(bitmap, page,
 								BITMAP_PAGE_NEEDWRITE);
@@ -1133,7 +1025,7 @@ void bitmap_daemon_work(mddev_t *mddev)
 				continue;
 			}
 
-			/* grab the new page, sync and release the old */
+			
 			if (lastpage != NULL) {
 				if (test_page_attr(bitmap, lastpage, BITMAP_PAGE_NEEDWRITE)) {
 					clear_page_attr(bitmap, lastpage, BITMAP_PAGE_NEEDWRITE);
@@ -1147,9 +1039,7 @@ void bitmap_daemon_work(mddev_t *mddev)
 				spin_unlock_irqrestore(&bitmap->lock, flags);
 			lastpage = page;
 
-			/* We are possibly going to clear some bits, so make
-			 * sure that events_cleared is up-to-date.
-			 */
+			
 			if (bitmap->need_sync) {
 				bitmap_super_t *sb;
 				bitmap->need_sync = 0;
@@ -1166,23 +1056,21 @@ void bitmap_daemon_work(mddev_t *mddev)
 					 (sector_t)j << CHUNK_BLOCK_SHIFT(bitmap),
 					 &blocks, 0);
 		if (bmc) {
-/*
-  if (j < 100) printk("bitmap: j=%lu, *bmc = 0x%x\n", j, *bmc);
-*/
+
 			if (*bmc)
 				bitmap->allclean = 0;
 
 			if (*bmc == 2) {
-				*bmc=1; /* maybe clear the bit next time */
+				*bmc=1; 
 				set_page_attr(bitmap, page, BITMAP_PAGE_CLEAN);
 			} else if (*bmc == 1) {
-				/* we can clear the bit */
+				
 				*bmc = 0;
 				bitmap_count_page(bitmap,
 						  (sector_t)j << CHUNK_BLOCK_SHIFT(bitmap),
 						  -1);
 
-				/* clear the bit */
+				
 				paddr = kmap_atomic(page, KM_USER0);
 				if (bitmap->flags & BITMAP_HOSTENDIAN)
 					clear_bit(file_page_offset(j), paddr);
@@ -1195,7 +1083,7 @@ void bitmap_daemon_work(mddev_t *mddev)
 	}
 	spin_unlock_irqrestore(&bitmap->lock, flags);
 
-	/* now sync the final page */
+	
 	if (lastpage != NULL) {
 		spin_lock_irqsave(&bitmap->lock, flags);
 		if (test_page_attr(bitmap, lastpage, BITMAP_PAGE_NEEDWRITE)) {
@@ -1220,10 +1108,7 @@ static bitmap_counter_t *bitmap_get_counter(struct bitmap *bitmap,
 __releases(bitmap->lock)
 __acquires(bitmap->lock)
 {
-	/* If 'create', we might release the lock and reclaim it.
-	 * The lock must have been taken with interrupts enabled.
-	 * If !create, we don't release the lock.
-	 */
+	
 	sector_t chunk = offset >> CHUNK_BLOCK_SHIFT(bitmap);
 	unsigned long page = chunk >> PAGE_COUNTER_SHIFT;
 	unsigned long pageoff = (chunk & PAGE_COUNTER_MASK) << COUNTER_BYTE_SHIFT;
@@ -1234,18 +1119,17 @@ __acquires(bitmap->lock)
 		*blocks = csize - (offset & (csize- 1));
 		return NULL;
 	}
-	/* now locked ... */
+	
 
-	if (bitmap->bp[page].hijacked) { /* hijacked pointer */
-		/* should we use the first or second counter field
-		 * of the hijacked pointer? */
+	if (bitmap->bp[page].hijacked) { 
+		
 		int hi = (pageoff > PAGE_COUNTER_MASK);
 		csize = ((sector_t)1) << (CHUNK_BLOCK_SHIFT(bitmap) +
 					  PAGE_COUNTER_SHIFT - 1);
 		*blocks = csize - (offset & (csize- 1));
 		return  &((bitmap_counter_t *)
 			  &bitmap->bp[page].map)[hi];
-	} else { /* page is allocated */
+	} else { 
 		csize = ((sector_t)1) << (CHUNK_BLOCK_SHIFT(bitmap));
 		*blocks = csize - (offset & (csize- 1));
 		return (bitmap_counter_t *)
@@ -1276,10 +1160,7 @@ int bitmap_startwrite(struct bitmap *bitmap, sector_t offset, unsigned long sect
 
 		if (unlikely((*bmc & COUNTER_MAX) == COUNTER_MAX)) {
 			DEFINE_WAIT(__wait);
-			/* note that it is safe to do the prepare_to_wait
-			 * after the test as long as we do it before dropping
-			 * the spinlock.
-			 */
+			
 			prepare_to_wait(&bitmap->overflow_wait, &__wait,
 					TASK_UNINTERRUPTIBLE);
 			spin_unlock_irq(&bitmap->lock);
@@ -1294,7 +1175,7 @@ int bitmap_startwrite(struct bitmap *bitmap, sector_t offset, unsigned long sect
 			bitmap_file_set_bit(bitmap, offset);
 			bitmap_count_page(bitmap,offset, 1);
 			blk_plug_device_unlocked(bitmap->mddev->queue);
-			/* fall through */
+			
 		case 1:
 			*bmc = 2;
 		}
@@ -1322,7 +1203,7 @@ void bitmap_endwrite(struct bitmap *bitmap, sector_t offset, unsigned long secto
 		  atomic_read(&bitmap->behind_writes), bitmap->max_write_behind);
 	}
 	if (bitmap->mddev->degraded)
-		/* Never clear bits or update events_cleared when degraded */
+		
 		success = 0;
 
 	while (sectors) {
@@ -1368,20 +1249,20 @@ static int __bitmap_start_sync(struct bitmap *bitmap, sector_t offset, int *bloc
 {
 	bitmap_counter_t *bmc;
 	int rv;
-	if (bitmap == NULL) {/* FIXME or bitmap set as 'failed' */
+	if (bitmap == NULL) {
 		*blocks = 1024;
-		return 1; /* always resync if no bitmap */
+		return 1; 
 	}
 	spin_lock_irq(&bitmap->lock);
 	bmc = bitmap_get_counter(bitmap, offset, blocks, 0);
 	rv = 0;
 	if (bmc) {
-		/* locked */
+		
 		if (RESYNC(*bmc))
 			rv = 1;
 		else if (NEEDED(*bmc)) {
 			rv = 1;
-			if (!degraded) { /* don't set/clear bits if degraded */
+			if (!degraded) { 
 				*bmc |= RESYNC_MASK;
 				*bmc &= ~NEEDED_MASK;
 			}
@@ -1395,13 +1276,7 @@ static int __bitmap_start_sync(struct bitmap *bitmap, sector_t offset, int *bloc
 int bitmap_start_sync(struct bitmap *bitmap, sector_t offset, int *blocks,
 		      int degraded)
 {
-	/* bitmap_start_sync must always report on multiples of whole
-	 * pages, otherwise resync (which is very PAGE_SIZE based) will
-	 * get confused.
-	 * So call __bitmap_start_sync repeatedly (if needed) until
-	 * At least PAGE_SIZE>>9 blocks are covered.
-	 * Return the 'or' of the result.
-	 */
+	
 	int rv = 0;
 	int blocks1;
 
@@ -1419,9 +1294,7 @@ void bitmap_end_sync(struct bitmap *bitmap, sector_t offset, int *blocks, int ab
 {
 	bitmap_counter_t *bmc;
 	unsigned long flags;
-/*
-	if (offset == 0) printk("bitmap_end_sync 0 (%d)\n", aborted);
-*/	if (bitmap == NULL) {
+	if (bitmap == NULL) {
 		*blocks = 1024;
 		return;
 	}
@@ -1429,10 +1302,8 @@ void bitmap_end_sync(struct bitmap *bitmap, sector_t offset, int *blocks, int ab
 	bmc = bitmap_get_counter(bitmap, offset, blocks, 0);
 	if (bmc == NULL)
 		goto unlock;
-	/* locked */
-/*
-	if (offset == 0) printk("bitmap_end sync found 0x%x, blocks %d\n", *bmc, *blocks);
-*/
+	
+
 	if (RESYNC(*bmc)) {
 		*bmc &= ~RESYNC_MASK;
 
@@ -1453,10 +1324,7 @@ void bitmap_end_sync(struct bitmap *bitmap, sector_t offset, int *blocks, int ab
 
 void bitmap_close_sync(struct bitmap *bitmap)
 {
-	/* Sync has finished, and any bitmap chunks that weren't synced
-	 * properly have been aborted.  It remains to us to clear the
-	 * RESYNC bit wherever it is still on
-	 */
+	
 	sector_t sector = 0;
 	int blocks;
 	if (!bitmap)
@@ -1498,10 +1366,7 @@ void bitmap_cond_end_sync(struct bitmap *bitmap, sector_t sector)
 
 static void bitmap_set_memory_bits(struct bitmap *bitmap, sector_t offset, int needed)
 {
-	/* For each chunk covered by any of these sectors, set the
-	 * counter to 1 and set resync_needed.  They should all
-	 * be 0 at this point
-	 */
+	
 
 	int secs;
 	bitmap_counter_t *bmc;
@@ -1522,7 +1387,7 @@ static void bitmap_set_memory_bits(struct bitmap *bitmap, sector_t offset, int n
 	bitmap->allclean = 0;
 }
 
-/* dirty the memory and file bits for bitmap chunks "s" to "e" */
+
 void bitmap_dirty_bits(struct bitmap *bitmap, unsigned long s, unsigned long e)
 {
 	unsigned long chunk;
@@ -1534,20 +1399,16 @@ void bitmap_dirty_bits(struct bitmap *bitmap, unsigned long s, unsigned long e)
 	}
 }
 
-/*
- * flush out any pending updates
- */
+
 void bitmap_flush(mddev_t *mddev)
 {
 	struct bitmap *bitmap = mddev->bitmap;
 	int sleep;
 
-	if (!bitmap) /* there was no bitmap */
+	if (!bitmap) 
 		return;
 
-	/* run the daemon_work three time to ensure everything is flushed
-	 * that can be
-	 */
+	
 	sleep = bitmap->daemon_sleep;
 	bitmap->daemon_sleep = 0;
 	bitmap_daemon_work(mddev);
@@ -1557,26 +1418,24 @@ void bitmap_flush(mddev_t *mddev)
 	bitmap_update_sb(bitmap);
 }
 
-/*
- * free memory that was allocated
- */
+
 static void bitmap_free(struct bitmap *bitmap)
 {
 	unsigned long k, pages;
 	struct bitmap_page *bp;
 
-	if (!bitmap) /* there was no bitmap */
+	if (!bitmap) 
 		return;
 
-	/* release the bitmap file and kill the daemon */
+	
 	bitmap_file_put(bitmap);
 
 	bp = bitmap->bp;
 	pages = bitmap->pages;
 
-	/* free all allocated memory */
+	
 
-	if (bp) /* deallocate the page memory */
+	if (bp) 
 		for (k = 0; k < pages; k++)
 			if (bp[k].map && !bp[k].hijacked)
 				kfree(bp[k].map);
@@ -1588,11 +1447,11 @@ void bitmap_destroy(mddev_t *mddev)
 {
 	struct bitmap *bitmap = mddev->bitmap;
 
-	if (!bitmap) /* there was no bitmap */
+	if (!bitmap) 
 		return;
 
 	mutex_lock(&mddev->bitmap_mutex);
-	mddev->bitmap = NULL; /* disconnect from the md device */
+	mddev->bitmap = NULL; 
 	mutex_unlock(&mddev->bitmap_mutex);
 	if (mddev->thread)
 		mddev->thread->timeout = MAX_SCHEDULE_TIMEOUT;
@@ -1600,10 +1459,7 @@ void bitmap_destroy(mddev_t *mddev)
 	bitmap_free(bitmap);
 }
 
-/*
- * initialize the bitmap structure
- * if this returns an error, bitmap_destroy must be called to do clean up
- */
+
 int bitmap_create(mddev_t *mddev)
 {
 	struct bitmap *bitmap;
@@ -1616,7 +1472,7 @@ int bitmap_create(mddev_t *mddev)
 
 	BUILD_BUG_ON(sizeof(bitmap_super_t) != 256);
 
-	if (!file && !mddev->bitmap_offset) /* bitmap disabled, nothing to do */
+	if (!file && !mddev->bitmap_offset) 
 		return 0;
 
 	BUG_ON(file && mddev->bitmap_offset);
@@ -1636,20 +1492,17 @@ int bitmap_create(mddev_t *mddev)
 	bitmap->offset = mddev->bitmap_offset;
 	if (file) {
 		get_file(file);
-		/* As future accesses to this file will use bmap,
-		 * and bypass the page cache, we must sync the file
-		 * first.
-		 */
+		
 		vfs_fsync(file, file->f_dentry, 1);
 	}
-	/* read superblock from bitmap file (this sets bitmap->chunksize) */
+	
 	err = bitmap_read_sb(bitmap);
 	if (err)
 		goto error;
 
 	bitmap->chunkshift = ffz(~bitmap->chunksize);
 
-	/* now that chunksize and chunkshift are set, we can use these macros */
+	
  	chunks = (blocks + CHUNK_BLOCK_RATIO(bitmap) - 1) >>
 			CHUNK_BLOCK_SHIFT(bitmap);
  	pages = (chunks + PAGE_COUNTER_RATIO - 1) / PAGE_COUNTER_RATIO;
@@ -1672,12 +1525,11 @@ int bitmap_create(mddev_t *mddev)
 	if (!bitmap->bp)
 		goto error;
 
-	/* now that we have some pages available, initialize the in-memory
-	 * bitmap from the on-disk bitmap */
+	
 	start = 0;
 	if (mddev->degraded == 0
 	    || bitmap->events_cleared == mddev->events)
-		/* no need to keep dirty bits to optimise a re-add of a missing device */
+		
 		start = mddev->recovery_cp;
 	err = bitmap_init_from_disk(bitmap, start);
 
@@ -1700,7 +1552,7 @@ int bitmap_create(mddev_t *mddev)
 	return err;
 }
 
-/* the bitmap API -- for raid personalities */
+
 EXPORT_SYMBOL(bitmap_startwrite);
 EXPORT_SYMBOL(bitmap_endwrite);
 EXPORT_SYMBOL(bitmap_start_sync);

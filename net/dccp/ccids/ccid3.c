@@ -1,37 +1,4 @@
-/*
- *  Copyright (c) 2007   The University of Aberdeen, Scotland, UK
- *  Copyright (c) 2005-7 The University of Waikato, Hamilton, New Zealand.
- *  Copyright (c) 2005-7 Ian McDonald <ian.mcdonald@jandi.co.nz>
- *
- *  An implementation of the DCCP protocol
- *
- *  This code has been developed by the University of Waikato WAND
- *  research group. For further information please see http://www.wand.net.nz/
- *
- *  This code also uses code from Lulea University, rereleased as GPL by its
- *  authors:
- *  Copyright (c) 2003 Nils-Erik Mattsson, Joacim Haggmark, Magnus Erixzon
- *
- *  Changes to meet Linux coding standards, to make it meet latest ccid3 draft
- *  and to make it work as a loadable module in the DCCP stack written by
- *  Arnaldo Carvalho de Melo <acme@conectiva.com.br>.
- *
- *  Copyright (c) 2005 Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 #include "../dccp.h"
 #include "ccid3.h"
 
@@ -44,9 +11,7 @@ static int ccid3_debug;
 #define ccid3_pr_debug(format, a...)
 #endif
 
-/*
- *	Transmitter Half-Connection Routines
- */
+
 #ifdef CONFIG_IP_DCCP_CCID3_DEBUG
 static const char *ccid3_tx_state_name(enum ccid3_hc_tx_states state)
 {
@@ -74,15 +39,7 @@ static void ccid3_hc_tx_set_state(struct sock *sk,
 	hctx->ccid3hctx_state = state;
 }
 
-/*
- * Compute the initial sending rate X_init in the manner of RFC 3390:
- *
- *	X_init  =  min(4 * s, max(2 * s, 4380 bytes)) / RTT
- *
- * Note that RFC 3390 uses MSS, RFC 4342 refers to RFC 3390, and rfc3448bis
- * (rev-02) clarifies the use of RFC 3390 with regard to the above formula.
- * For consistency with other parts of the code, X_init is scaled by 2^6.
- */
+
 static inline u64 rfc3390_initial_rate(struct sock *sk)
 {
 	const struct ccid3_hc_tx_sock *hctx = ccid3_hc_tx_sk(sk);
@@ -92,16 +49,14 @@ static inline u64 rfc3390_initial_rate(struct sock *sk)
 	return scaled_div(w_init << 6, hctx->ccid3hctx_rtt);
 }
 
-/*
- * Recalculate t_ipi and delta (should be called whenever X changes)
- */
+
 static void ccid3_update_send_interval(struct ccid3_hc_tx_sock *hctx)
 {
-	/* Calculate new t_ipi = s / X_inst (X_inst is in 64 * bytes/second) */
+	
 	hctx->ccid3hctx_t_ipi = scaled_div32(((u64)hctx->ccid3hctx_s) << 6,
 					     hctx->ccid3hctx_x);
 
-	/* Calculate new delta by delta = min(t_ipi / 2, t_gran / 2) */
+	
 	hctx->ccid3hctx_delta = min_t(u32, hctx->ccid3hctx_t_ipi / 2,
 					   TFRC_OPSYS_HALF_TIME_GRAN);
 
@@ -118,16 +73,7 @@ static u32 ccid3_hc_tx_idle_rtt(struct ccid3_hc_tx_sock *hctx, ktime_t now)
 	return delta / hctx->ccid3hctx_rtt;
 }
 
-/**
- * ccid3_hc_tx_update_x  -  Update allowed sending rate X
- * @stamp: most recent time if available - can be left NULL.
- * This function tracks draft rfc3448bis, check there for latest details.
- *
- * Note: X and X_recv are both stored in units of 64 * bytes/second, to support
- *       fine-grained resolution of sending rates. This requires scaling by 2^6
- *       throughout the code. Only X_calc is unscaled (in bytes/second).
- *
- */
+
 static void ccid3_hc_tx_update_x(struct sock *sk, ktime_t *stamp)
 {
 	struct ccid3_hc_tx_sock *hctx = ccid3_hc_tx_sk(sk);
@@ -135,12 +81,7 @@ static void ccid3_hc_tx_update_x(struct sock *sk, ktime_t *stamp)
 	const  __u64 old_x = hctx->ccid3hctx_x;
 	ktime_t now = stamp ? *stamp : ktime_get_real();
 
-	/*
-	 * Handle IDLE periods: do not reduce below RFC3390 initial sending rate
-	 * when idling [RFC 4342, 5.1]. Definition of idling is from rfc3448bis:
-	 * a sender is idle if it has not sent anything over a 2-RTT-period.
-	 * For consistency with X and X_recv, min_rate is also scaled by 2^6.
-	 */
+	
 	if (ccid3_hc_tx_idle_rtt(hctx, now) >= 2) {
 		min_rate = rfc3390_initial_rate(sk);
 		min_rate = max(min_rate, 2 * hctx->ccid3hctx_x_recv);
@@ -175,10 +116,7 @@ static void ccid3_hc_tx_update_x(struct sock *sk, ktime_t *stamp)
 	}
 }
 
-/*
- *	Track the mean packet size `s' (cf. RFC 4342, 5.3 and  RFC 3448, 4.1)
- *	@len: DCCP packet payload size in bytes
- */
+
 static inline void ccid3_hc_tx_update_s(struct ccid3_hc_tx_sock *hctx, int len)
 {
 	const u16 old_s = hctx->ccid3hctx_s;
@@ -189,10 +127,7 @@ static inline void ccid3_hc_tx_update_s(struct ccid3_hc_tx_sock *hctx, int len)
 		ccid3_update_send_interval(hctx);
 }
 
-/*
- *	Update Window Counter using the algorithm from [RFC 4342, 8.1].
- *	As elsewhere, RTT > 0 is assumed by using dccp_sample_rtt().
- */
+
 static inline void ccid3_hc_tx_update_win_count(struct ccid3_hc_tx_sock *hctx,
 						ktime_t now)
 {
@@ -202,7 +137,7 @@ static inline void ccid3_hc_tx_update_win_count(struct ccid3_hc_tx_sock *hctx,
 	if (quarter_rtts > 0) {
 		hctx->ccid3hctx_t_last_win_count = now;
 		hctx->ccid3hctx_last_win_count  += min(quarter_rtts, 5U);
-		hctx->ccid3hctx_last_win_count	&= 0xF;		/* mod 16 */
+		hctx->ccid3hctx_last_win_count	&= 0xF;		
 	}
 }
 
@@ -214,8 +149,8 @@ static void ccid3_hc_tx_no_feedback_timer(unsigned long data)
 
 	bh_lock_sock(sk);
 	if (sock_owned_by_user(sk)) {
-		/* Try again later. */
-		/* XXX: set some sensible MIB */
+		
+		
 		goto restart_timer;
 	}
 
@@ -227,28 +162,17 @@ static void ccid3_hc_tx_no_feedback_timer(unsigned long data)
 	else if (hctx->ccid3hctx_state != TFRC_SSTATE_NO_FBACK)
 		goto out;
 
-	/*
-	 * Determine new allowed sending rate X as per draft rfc3448bis-00, 4.4
-	 */
-	if (hctx->ccid3hctx_t_rto == 0 ||	/* no feedback received yet */
+	
+	if (hctx->ccid3hctx_t_rto == 0 ||	
 	    hctx->ccid3hctx_p == 0) {
 
-		/* halve send rate directly */
+		
 		hctx->ccid3hctx_x = max(hctx->ccid3hctx_x / 2,
 					(((__u64)hctx->ccid3hctx_s) << 6) /
 								    TFRC_T_MBI);
 		ccid3_update_send_interval(hctx);
 	} else {
-		/*
-		 *  Modify the cached value of X_recv
-		 *
-		 *  If (X_calc > 2 * X_recv)
-		 *    X_recv = max(X_recv / 2, s / (2 * t_mbi));
-		 *  Else
-		 *    X_recv = X_calc / 4;
-		 *
-		 *  Note that X_recv is scaled by 2^6 while X_calc is not
-		 */
+		
 		BUG_ON(hctx->ccid3hctx_p && !hctx->ccid3hctx_x_calc);
 
 		if (hctx->ccid3hctx_x_calc > (hctx->ccid3hctx_x_recv >> 5))
@@ -265,11 +189,8 @@ static void ccid3_hc_tx_no_feedback_timer(unsigned long data)
 	ccid3_pr_debug("Reduced X to %llu/64 bytes/sec\n",
 			(unsigned long long)hctx->ccid3hctx_x);
 
-	/*
-	 * Set new timeout for the nofeedback timer.
-	 * See comments in packet_recv() regarding the value of t_RTO.
-	 */
-	if (unlikely(hctx->ccid3hctx_t_rto == 0))	/* no feedback yet */
+	
+	if (unlikely(hctx->ccid3hctx_t_rto == 0))	
 		t_nfb = TFRC_INITIAL_TIMEOUT;
 	else
 		t_nfb = max(hctx->ccid3hctx_t_rto, 2 * hctx->ccid3hctx_t_ipi);
@@ -282,12 +203,7 @@ out:
 	sock_put(sk);
 }
 
-/*
- * returns
- *   > 0: delay (in msecs) that should pass before actually sending
- *   = 0: can send immediately
- *   < 0: error condition; do not send packet
- */
+
 static int ccid3_hc_tx_send_packet(struct sock *sk, struct sk_buff *skb)
 {
 	struct dccp_sock *dp = dccp_sk(sk);
@@ -295,11 +211,7 @@ static int ccid3_hc_tx_send_packet(struct sock *sk, struct sk_buff *skb)
 	ktime_t now = ktime_get_real();
 	s64 delay;
 
-	/*
-	 * This function is called only for Data and DataAck packets. Sending
-	 * zero-sized Data(Ack)s is theoretically possible, but for congestion
-	 * control this case is pathological - ignore it.
-	 */
+	
 	if (unlikely(skb->len == 0))
 		return -EBADMSG;
 
@@ -311,28 +223,19 @@ static int ccid3_hc_tx_send_packet(struct sock *sk, struct sk_buff *skb)
 		hctx->ccid3hctx_last_win_count	 = 0;
 		hctx->ccid3hctx_t_last_win_count = now;
 
-		/* Set t_0 for initial packet */
+		
 		hctx->ccid3hctx_t_nom = now;
 
 		hctx->ccid3hctx_s = skb->len;
 
-		/*
-		 * Use initial RTT sample when available: recommended by erratum
-		 * to RFC 4342. This implements the initialisation procedure of
-		 * draft rfc3448bis, section 4.2. Remember, X is scaled by 2^6.
-		 */
+		
 		if (dp->dccps_syn_rtt) {
 			ccid3_pr_debug("SYN RTT = %uus\n", dp->dccps_syn_rtt);
 			hctx->ccid3hctx_rtt  = dp->dccps_syn_rtt;
 			hctx->ccid3hctx_x    = rfc3390_initial_rate(sk);
 			hctx->ccid3hctx_t_ld = now;
 		} else {
-			/*
-			 * Sender does not have RTT sample:
-			 * - set fallback RTT (RFC 4340, 3.4) since a RTT value
-			 *   is needed in several parts (e.g.  window counter);
-			 * - set sending rate X_pps = 1pps as per RFC 3448, 4.2.
-			 */
+			
 			hctx->ccid3hctx_rtt = DCCP_FALLBACK_RTT;
 			hctx->ccid3hctx_x   = hctx->ccid3hctx_s;
 			hctx->ccid3hctx_x <<= 6;
@@ -345,14 +248,7 @@ static int ccid3_hc_tx_send_packet(struct sock *sk, struct sk_buff *skb)
 	case TFRC_SSTATE_FBACK:
 		delay = ktime_us_delta(hctx->ccid3hctx_t_nom, now);
 		ccid3_pr_debug("delay=%ld\n", (long)delay);
-		/*
-		 *	Scheduling of packet transmissions [RFC 3448, 4.6]
-		 *
-		 * if (t_now > t_nom - delta)
-		 *       // send the packet now
-		 * else
-		 *       // send the packet in (t_nom - t_now) milliseconds.
-		 */
+		
 		if (delay - (s64)hctx->ccid3hctx_delta >= 1000)
 			return (u32)delay / 1000L;
 
@@ -363,11 +259,11 @@ static int ccid3_hc_tx_send_packet(struct sock *sk, struct sk_buff *skb)
 		return -EINVAL;
 	}
 
-	/* prepare to send now (add options etc.) */
+	
 	dp->dccps_hc_tx_insert_options = 1;
 	DCCP_SKB_CB(skb)->dccpd_ccval = hctx->ccid3hctx_last_win_count;
 
-	/* set the nominal send time for the next following packet */
+	
 	hctx->ccid3hctx_t_nom = ktime_add_us(hctx->ccid3hctx_t_nom,
 					     hctx->ccid3hctx_t_ipi);
 	return 0;
@@ -392,11 +288,11 @@ static void ccid3_hc_tx_packet_recv(struct sock *sk, struct sk_buff *skb)
 	unsigned long t_nfb;
 	u32 pinv, r_sample;
 
-	/* we are only interested in ACKs */
+	
 	if (!(DCCP_SKB_CB(skb)->dccpd_type == DCCP_PKT_ACK ||
 	      DCCP_SKB_CB(skb)->dccpd_type == DCCP_PKT_DATAACK))
 		return;
-	/* ... and only in the established state */
+	
 	if (hctx->ccid3hctx_state != TFRC_SSTATE_FBACK &&
 	    hctx->ccid3hctx_state != TFRC_SSTATE_NO_FBACK)
 		return;
@@ -404,7 +300,7 @@ static void ccid3_hc_tx_packet_recv(struct sock *sk, struct sk_buff *skb)
 	opt_recv = &hctx->ccid3hctx_options_received;
 	now = ktime_get_real();
 
-	/* Estimate RTT from history if ACK number is valid */
+	
 	r_sample = tfrc_tx_hist_rtt(hctx->ccid3hctx_hist,
 				    DCCP_SKB_CB(skb)->dccpd_ack_seq, now);
 	if (r_sample == 0) {
@@ -414,31 +310,25 @@ static void ccid3_hc_tx_packet_recv(struct sock *sk, struct sk_buff *skb)
 		return;
 	}
 
-	/* Update receive rate in units of 64 * bytes/second */
+	
 	hctx->ccid3hctx_x_recv = opt_recv->ccid3or_receive_rate;
 	hctx->ccid3hctx_x_recv <<= 6;
 
-	/* Update loss event rate (which is scaled by 1e6) */
+	
 	pinv = opt_recv->ccid3or_loss_event_rate;
-	if (pinv == ~0U || pinv == 0)	       /* see RFC 4342, 8.5   */
+	if (pinv == ~0U || pinv == 0)	       
 		hctx->ccid3hctx_p = 0;
-	else				       /* can not exceed 100% */
+	else				       
 		hctx->ccid3hctx_p = scaled_div(1, pinv);
-	/*
-	 * Validate new RTT sample and update moving average
-	 */
+	
 	r_sample = dccp_sample_rtt(sk, r_sample);
 	hctx->ccid3hctx_rtt = tfrc_ewma(hctx->ccid3hctx_rtt, r_sample, 9);
-	/*
-	 * Update allowed sending rate X as per draft rfc3448bis-00, 4.2/3
-	 */
+	
 	if (hctx->ccid3hctx_state == TFRC_SSTATE_NO_FBACK) {
 		ccid3_hc_tx_set_state(sk, TFRC_SSTATE_FBACK);
 
 		if (hctx->ccid3hctx_t_rto == 0) {
-			/*
-			 * Initial feedback packet: Larger Initial Windows (4.2)
-			 */
+			
 			hctx->ccid3hctx_x    = rfc3390_initial_rate(sk);
 			hctx->ccid3hctx_t_ld = now;
 
@@ -446,14 +336,12 @@ static void ccid3_hc_tx_packet_recv(struct sock *sk, struct sk_buff *skb)
 
 			goto done_computing_x;
 		} else if (hctx->ccid3hctx_p == 0) {
-			/*
-			 * First feedback after nofeedback timer expiry (4.3)
-			 */
+			
 			goto done_computing_x;
 		}
 	}
 
-	/* Update sending rate (step 4 of [RFC 3448, 4.3]) */
+	
 	if (hctx->ccid3hctx_p > 0)
 		hctx->ccid3hctx_x_calc =
 				tfrc_calc_x(hctx->ccid3hctx_s,
@@ -471,28 +359,17 @@ done_computing_x:
 			       (unsigned)(hctx->ccid3hctx_x_recv >> 6),
 			       (unsigned)(hctx->ccid3hctx_x >> 6));
 
-	/* unschedule no feedback timer */
+	
 	sk_stop_timer(sk, &hctx->ccid3hctx_no_feedback_timer);
 
-	/*
-	 * As we have calculated new ipi, delta, t_nom it is possible
-	 * that we now can send a packet, so wake up dccp_wait_for_ccid
-	 */
+	
 	sk->sk_write_space(sk);
 
-	/*
-	 * Update timeout interval for the nofeedback timer.
-	 * We use a configuration option to increase the lower bound.
-	 * This can help avoid triggering the nofeedback timer too
-	 * often ('spinning') on LANs with small RTTs.
-	 */
+	
 	hctx->ccid3hctx_t_rto = max_t(u32, 4 * hctx->ccid3hctx_rtt,
 					   (CONFIG_IP_DCCP_CCID3_RTO *
 					    (USEC_PER_SEC / 1000)));
-	/*
-	 * Schedule no feedback timer to expire in
-	 * max(t_RTO, 2 * s/X)  =  max(t_RTO, 2 * t_ipi)
-	 */
+	
 	t_nfb = max(hctx->ccid3hctx_t_rto, 2 * hctx->ccid3hctx_t_ipi);
 
 	ccid3_pr_debug("%s(%p), Scheduled no feedback timer to "
@@ -592,7 +469,7 @@ static void ccid3_hc_tx_get_info(struct sock *sk, struct tcp_info *info)
 {
 	struct ccid3_hc_tx_sock *hctx;
 
-	/* Listen socks doesn't have a private CCID block */
+	
 	if (sk->sk_state == DCCP_LISTEN)
 		return;
 
@@ -607,7 +484,7 @@ static int ccid3_hc_tx_getsockopt(struct sock *sk, const int optname, int len,
 	const struct ccid3_hc_tx_sock *hctx;
 	const void *val;
 
-	/* Listen socks doesn't have a private CCID block */
+	
 	if (sk->sk_state == DCCP_LISTEN)
 		return -EINVAL;
 
@@ -629,11 +506,9 @@ static int ccid3_hc_tx_getsockopt(struct sock *sk, const int optname, int len,
 	return 0;
 }
 
-/*
- *	Receiver Half-Connection Routines
- */
 
-/* CCID3 feedback types */
+
+
 enum ccid3_fback_type {
 	CCID3_FBACK_NONE = 0,
 	CCID3_FBACK_INITIAL,
@@ -684,22 +559,13 @@ static void ccid3_hc_rx_send_feedback(struct sock *sk,
 	switch (fbtype) {
 	case CCID3_FBACK_INITIAL:
 		hcrx->ccid3hcrx_x_recv = 0;
-		hcrx->ccid3hcrx_pinv   = ~0U;   /* see RFC 4342, 8.5 */
+		hcrx->ccid3hcrx_pinv   = ~0U;   
 		break;
 	case CCID3_FBACK_PARAM_CHANGE:
-		/*
-		 * When parameters change (new loss or p > p_prev), we do not
-		 * have a reliable estimate for R_m of [RFC 3448, 6.2] and so
-		 * need to  reuse the previous value of X_recv. However, when
-		 * X_recv was 0 (due to early loss), this would kill X down to
-		 * s/t_mbi (i.e. one packet in 64 seconds).
-		 * To avoid such drastic reduction, we approximate X_recv as
-		 * the number of bytes since last feedback.
-		 * This is a safe fallback, since X is bounded above by X_calc.
-		 */
+		
 		if (hcrx->ccid3hcrx_x_recv > 0)
 			break;
-		/* fall through */
+		
 	case CCID3_FBACK_PERIODIC:
 		delta = ktime_us_delta(now, hcrx->ccid3hcrx_tstamp_last_feedback);
 		if (delta <= 0)
@@ -748,16 +614,7 @@ static int ccid3_hc_rx_insert_options(struct sock *sk, struct sk_buff *skb)
 	return 0;
 }
 
-/**
- * ccid3_first_li  -  Implements [RFC 5348, 6.3.1]
- *
- * Determine the length of the first loss interval via inverse lookup.
- * Assume that X_recv can be computed by the throughput equation
- *		    s
- *	X_recv = --------
- *		 R * fval
- * Find some p such that f(p) = fval; return 1/p (scaled).
- */
+
 static u32 ccid3_first_li(struct sock *sk)
 {
 	struct ccid3_hc_rx_sock *hcrx = ccid3_hc_rx_sk(sk);
@@ -771,7 +628,7 @@ static u32 ccid3_first_li(struct sock *sk)
 
 	delta = ktime_to_us(net_timedelta(hcrx->ccid3hcrx_tstamp_last_feedback));
 	x_recv = scaled_div32(hcrx->ccid3hcrx_bytes_recv, delta);
-	if (x_recv == 0) {		/* would also trigger divide-by-zero */
+	if (x_recv == 0) {		
 		DCCP_WARN("X_recv==0\n");
 		if ((x_recv = hcrx->ccid3hcrx_x_recv) == 0) {
 			DCCP_BUG("stored value of X_recv is zero");
@@ -802,30 +659,22 @@ static void ccid3_hc_rx_packet_recv(struct sock *sk, struct sk_buff *skb)
 			do_feedback = CCID3_FBACK_INITIAL;
 			ccid3_hc_rx_set_state(sk, TFRC_RSTATE_DATA);
 			hcrx->ccid3hcrx_s = payload;
-			/*
-			 * Not necessary to update ccid3hcrx_bytes_recv here,
-			 * since X_recv = 0 for the first feedback packet (cf.
-			 * RFC 3448, 6.3) -- gerrit
-			 */
+			
 		}
 		goto update_records;
 	}
 
 	if (tfrc_rx_hist_duplicate(&hcrx->ccid3hcrx_hist, skb))
-		return; /* done receiving */
+		return; 
 
 	if (is_data_packet) {
 		const u32 payload = skb->len - dccp_hdr(skb)->dccph_doff * 4;
-		/*
-		 * Update moving-average of s and the sum of received payload bytes
-		 */
+		
 		hcrx->ccid3hcrx_s = tfrc_ewma(hcrx->ccid3hcrx_s, payload, 9);
 		hcrx->ccid3hcrx_bytes_recv += payload;
 	}
 
-	/*
-	 * Perform loss detection and handle pending losses
-	 */
+	
 	if (tfrc_rx_handle_loss(&hcrx->ccid3hcrx_hist, &hcrx->ccid3hcrx_li_hist,
 				skb, ndp, ccid3_first_li, sk)) {
 		do_feedback = CCID3_FBACK_PARAM_CHANGE;
@@ -833,35 +682,24 @@ static void ccid3_hc_rx_packet_recv(struct sock *sk, struct sk_buff *skb)
 	}
 
 	if (tfrc_rx_hist_loss_pending(&hcrx->ccid3hcrx_hist))
-		return; /* done receiving */
+		return; 
 
-	/*
-	 * Handle data packets: RTT sampling and monitoring p
-	 */
+	
 	if (unlikely(!is_data_packet))
 		goto update_records;
 
 	if (!tfrc_lh_is_initialised(&hcrx->ccid3hcrx_li_hist)) {
 		const u32 sample = tfrc_rx_hist_sample_rtt(&hcrx->ccid3hcrx_hist, skb);
-		/*
-		 * Empty loss history: no loss so far, hence p stays 0.
-		 * Sample RTT values, since an RTT estimate is required for the
-		 * computation of p when the first loss occurs; RFC 3448, 6.3.1.
-		 */
+		
 		if (sample != 0)
 			hcrx->ccid3hcrx_rtt = tfrc_ewma(hcrx->ccid3hcrx_rtt, sample, 9);
 
 	} else if (tfrc_lh_update_i_mean(&hcrx->ccid3hcrx_li_hist, skb)) {
-		/*
-		 * Step (3) of [RFC 3448, 6.1]: Recompute I_mean and, if I_mean
-		 * has decreased (resp. p has increased), send feedback now.
-		 */
+		
 		do_feedback = CCID3_FBACK_PARAM_CHANGE;
 	}
 
-	/*
-	 * Check if the periodic once-per-RTT feedback is due; RFC 4342, 10.3
-	 */
+	
 	if (SUB16(dccp_hdr(skb)->dccph_ccval, hcrx->ccid3hcrx_last_counter) > 3)
 		do_feedback = CCID3_FBACK_PERIODIC;
 
@@ -896,7 +734,7 @@ static void ccid3_hc_rx_get_info(struct sock *sk, struct tcp_info *info)
 {
 	const struct ccid3_hc_rx_sock *hcrx;
 
-	/* Listen socks doesn't have a private CCID block */
+	
 	if (sk->sk_state == DCCP_LISTEN)
 		return;
 
@@ -913,7 +751,7 @@ static int ccid3_hc_rx_getsockopt(struct sock *sk, const int optname, int len,
 	struct tfrc_rx_info rx_info;
 	const void *val;
 
-	/* Listen socks doesn't have a private CCID block */
+	
 	if (sk->sk_state == DCCP_LISTEN)
 		return -EINVAL;
 

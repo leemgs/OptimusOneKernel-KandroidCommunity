@@ -1,18 +1,4 @@
-/*
- * net/sched/sch_red.c	Random Early Detection queue.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- * Changes:
- * J Hadi Salim 980914:	computation fixes
- * Alexey Makarenko <makar@phoenix.kharkov.ua> 990814: qave on idle link was calculated incorrectly.
- * J Hadi Salim 980816:  ECN support
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -23,22 +9,11 @@
 #include <net/red.h>
 
 
-/*	Parameters, settable by user:
-	-----------------------------
 
-	limit		- bytes (must be > qth_max + burst)
-
-	Hard limit on queue length, should be chosen >qth_max
-	to allow packet bursts. This parameter does not
-	affect the algorithms behaviour and can be chosen
-	arbitrarily high (well, less than ram size)
-	Really, this limit will never be reached
-	if RED works correctly.
- */
 
 struct red_sched_data
 {
-	u32			limit;		/* HARD maximal queue length */
+	u32			limit;		
 	unsigned char		flags;
 	struct red_parms	parms;
 	struct red_stats	stats;

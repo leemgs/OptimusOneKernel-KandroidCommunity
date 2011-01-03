@@ -1,25 +1,4 @@
-/*
- * Jeilinj subdriver
- *
- * Supports some Jeilin dual-mode cameras which use bulk transport and
- * download raw JPEG data.
- *
- * Copyright (C) 2009 Theodore Kilgore
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #define MODULE_NAME "jeilinj"
 
@@ -31,24 +10,24 @@ MODULE_AUTHOR("Theodore Kilgore <kilgota@auburn.edu>");
 MODULE_DESCRIPTION("GSPCA/JEILINJ USB Camera Driver");
 MODULE_LICENSE("GPL");
 
-/* Default timeouts, in ms */
+
 #define JEILINJ_CMD_TIMEOUT 500
 #define JEILINJ_DATA_TIMEOUT 1000
 
-/* Maximum transfer size to use. */
+
 #define JEILINJ_MAX_TRANSFER 0x200
 
 #define FRAME_HEADER_LEN 0x10
 
-/* Structure to hold all of our device specific stuff */
+
 struct sd {
-	struct gspca_dev gspca_dev;	/* !! must be the first item */
+	struct gspca_dev gspca_dev;	
 	const struct v4l2_pix_format *cap_mode;
-	/* Driver stuff */
+	
 	struct work_struct work_struct;
 	struct workqueue_struct *work_thread;
-	u8 quality;				 /* image quality */
-	u8 jpegqual;				/* webcam quality */
+	u8 quality;				 
+	u8 jpegqual;				
 	u8 *jpeg_hdr;
 };
 
@@ -57,7 +36,7 @@ struct sd {
 		unsigned char ack_wanted;
 	};
 
-/* AFAICT these cameras will only do 320x240. */
+
 static struct v4l2_pix_format jlj_mode[] = {
 	{ 320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
 		.bytesperline = 320,
@@ -66,12 +45,9 @@ static struct v4l2_pix_format jlj_mode[] = {
 		.priv = 0}
 };
 
-/*
- * cam uses endpoint 0x03 to send commands, 0x84 for read commands,
- * and 0x82 for bulk transfer.
- */
 
-/* All commands are two bytes only */
+
+
 static int jlj_write2(struct gspca_dev *gspca_dev, unsigned char *command)
 {
 	int retval;
@@ -86,7 +62,7 @@ static int jlj_write2(struct gspca_dev *gspca_dev, unsigned char *command)
 	return retval;
 }
 
-/* Responses are one byte only */
+
 static int jlj_read1(struct gspca_dev *gspca_dev, unsigned char response)
 {
 	int retval;
@@ -166,26 +142,17 @@ static int jlj_stop(struct gspca_dev *gspca_dev)
 	return retval;
 }
 
-/* This function is called as a workqueue function and runs whenever the camera
- * is streaming data. Because it is a workqueue function it is allowed to sleep
- * so we can use synchronous USB calls. To avoid possible collisions with other
- * threads attempting to use the camera's USB interface the gspca usb_lock is
- * used when performing the one USB control operation inside the workqueue,
- * which tells the camera to close the stream. In practice the only thing
- * which needs to be protected against is the usb_set_interface call that
- * gspca makes during stream_off. Otherwise the camera doesn't provide any
- * controls that the user could try to change.
- */
+
 
 static void jlj_dostream(struct work_struct *work)
 {
 	struct sd *dev = container_of(work, struct sd, work_struct);
 	struct gspca_dev *gspca_dev = &dev->gspca_dev;
 	struct gspca_frame *frame;
-	int blocks_left; /* 0x200-sized blocks remaining in current frame. */
+	int blocks_left; 
 	int size_in_blocks;
 	int act_len;
-	int discarding = 0; /* true if we failed to get space for frame. */
+	int discarding = 0; 
 	int packet_type;
 	int ret;
 	u8 *buffer;
@@ -198,18 +165,14 @@ static void jlj_dostream(struct work_struct *work)
 	while (gspca_dev->present && gspca_dev->streaming) {
 		if (!gspca_dev->present)
 			goto quit_stream;
-		/* Start a new frame, and add the JPEG header, first thing */
+		
 		frame = gspca_get_i_frame(gspca_dev);
 		if (frame && !discarding)
 			gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
 					dev->jpeg_hdr, JPEG_HDR_SZ);
 		 else
 			discarding = 1;
-		/*
-		 * Now request data block 0. Line 0 reports the size
-		 * to download, in blocks of size 0x200, and also tells the
-		 * "actual" data size, in bytes, which seems best to ignore.
-		 */
+		
 		ret = usb_bulk_msg(gspca_dev->dev,
 				usb_rcvbulkpipe(gspca_dev->dev, 0x82),
 				buffer, JEILINJ_MAX_TRANSFER, &act_len,
@@ -224,7 +187,7 @@ static void jlj_dostream(struct work_struct *work)
 		PDEBUG(D_STREAM, "blocks_left = 0x%x", blocks_left);
 		packet_type = INTER_PACKET;
 		if (frame && !discarding)
-			/* Toss line 0 of data block 0, keep the rest. */
+			
 			gspca_frame_add(gspca_dev, packet_type,
 				frame, buffer + FRAME_HEADER_LEN,
 				JEILINJ_MAX_TRANSFER - FRAME_HEADER_LEN);
@@ -262,7 +225,7 @@ quit_stream:
 	kfree(buffer);
 }
 
-/* This function is called at probe time just before sd_init */
+
 static int sd_config(struct gspca_dev *gspca_dev,
 		const struct usb_device_id *id)
 {
@@ -277,45 +240,45 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	cam->cam_mode = jlj_mode;
 	cam->nmodes = 1;
 	cam->bulk = 1;
-	/* We don't use the buffer gspca allocates so make it small. */
+	
 	cam->bulk_size = 32;
 	INIT_WORK(&dev->work_struct, jlj_dostream);
 	return 0;
 }
 
-/* called on streamoff with alt==0 and on disconnect */
-/* the usb_lock is held at entry - restore on exit */
+
+
 static void sd_stop0(struct gspca_dev *gspca_dev)
 {
 	struct sd *dev = (struct sd *) gspca_dev;
 
-	/* wait for the work queue to terminate */
+	
 	mutex_unlock(&gspca_dev->usb_lock);
-	/* This waits for jlj_dostream to finish */
+	
 	destroy_workqueue(dev->work_thread);
 	dev->work_thread = NULL;
 	mutex_lock(&gspca_dev->usb_lock);
 	kfree(dev->jpeg_hdr);
 }
 
-/* this function is called at probe and resume time */
+
 static int sd_init(struct gspca_dev *gspca_dev)
 {
 	return 0;
 }
 
-/* Set up for getting frames. */
+
 static int sd_start(struct gspca_dev *gspca_dev)
 {
 	struct sd *dev = (struct sd *) gspca_dev;
 	int ret;
 
-	/* create the JPEG header */
+	
 	dev->jpeg_hdr = kmalloc(JPEG_HDR_SZ, GFP_KERNEL);
 	if (dev->jpeg_hdr == NULL)
 		return -ENOMEM;
 	jpeg_define(dev->jpeg_hdr, gspca_dev->height, gspca_dev->width,
-			0x21);          /* JPEG 422 */
+			0x21);          
 	jpeg_set_qual(dev->jpeg_hdr, dev->quality);
 	PDEBUG(D_STREAM, "Start streaming at 320x240");
 	ret = jlj_start(gspca_dev);
@@ -323,14 +286,14 @@ static int sd_start(struct gspca_dev *gspca_dev)
 		PDEBUG(D_ERR, "Start streaming command failed");
 		return ret;
 	}
-	/* Start the workqueue function to do the streaming */
+	
 	dev->work_thread = create_singlethread_workqueue(MODULE_NAME);
 	queue_work(dev->work_thread, &dev->work_struct);
 
 	return 0;
 }
 
-/* Table of supported USB devices */
+
 static const __devinitdata struct usb_device_id device_table[] = {
 	{USB_DEVICE(0x0979, 0x0280)},
 	{}
@@ -338,7 +301,7 @@ static const __devinitdata struct usb_device_id device_table[] = {
 
 MODULE_DEVICE_TABLE(usb, device_table);
 
-/* sub-driver description */
+
 static const struct sd_desc sd_desc = {
 	.name   = MODULE_NAME,
 	.config = sd_config,
@@ -347,7 +310,7 @@ static const struct sd_desc sd_desc = {
 	.stop0  = sd_stop0,
 };
 
-/* -- device connect -- */
+
 static int sd_probe(struct usb_interface *intf,
 		const struct usb_device_id *id)
 {
@@ -368,7 +331,7 @@ static struct usb_driver sd_driver = {
 #endif
 };
 
-/* -- module insert / remove -- */
+
 static int __init sd_mod_init(void)
 {
 	int ret;

@@ -1,17 +1,10 @@
-/*
- * QLogic Fibre Channel HBA Driver
- * Copyright (c)  2003-2008 QLogic Corporation
- *
- * See LICENSE.qla2xxx for copyright and licensing details.
- */
+
 #ifndef __QLA_GBL_H
 #define	__QLA_GBL_H
 
 #include <linux/interrupt.h>
 
-/*
- * Global Function Prototypes in qla_init.c source file.
- */
+
 extern int qla2x00_initialize_adapter(scsi_qla_host_t *);
 
 extern int qla2100_pci_config(struct scsi_qla_host *);
@@ -60,9 +53,7 @@ extern int qla2x00_async_login_done(struct scsi_qla_host *, fc_port_t *,
 extern int qla2x00_async_logout_done(struct scsi_qla_host *, fc_port_t *,
     uint16_t *);
 
-/*
- * Global Data in qla_os.c source file.
- */
+
 extern char qla2x00_version_str[];
 
 extern int ql2xlogintimeout;
@@ -102,9 +93,7 @@ extern void qla2x00_free_host(struct scsi_qla_host *);
 extern void qla2x00_relogin(struct scsi_qla_host *);
 extern void qla2x00_do_work(struct scsi_qla_host *);
 
-/*
- * Global Functions in qla_mid.c source file.
- */
+
 extern struct scsi_host_template qla2xxx_driver_template;
 extern struct scsi_transport_template *qla2xxx_transport_vport_template;
 extern void qla2x00_timer(scsi_qla_host_t *);
@@ -141,9 +130,7 @@ extern void qla2x00_async_event(scsi_qla_host_t *, struct rsp_que *,
 	uint16_t *);
 extern int  qla2x00_vp_abort_isp(scsi_qla_host_t *);
 
-/*
- * Global Function Prototypes in qla_iocb.c source file.
- */
+
 extern uint16_t qla2x00_calc_iocbs_32(uint16_t);
 extern uint16_t qla2x00_calc_iocbs_64(uint16_t);
 extern void qla2x00_build_scsi_iocbs_32(srb_t *, cmd_entry_t *, uint16_t);
@@ -156,9 +143,7 @@ int __qla2x00_marker(struct scsi_qla_host *, struct req_que *, struct rsp_que *,
 						uint16_t, uint16_t, uint8_t);
 extern int qla2x00_start_sp(srb_t *);
 
-/*
- * Global Function Prototypes in qla_mbx.c source file.
- */
+
 extern int
 qla2x00_load_ram(scsi_qla_host_t *, dma_addr_t, uint32_t, uint32_t);
 
@@ -325,9 +310,7 @@ qla2x00_read_ram_word(scsi_qla_host_t *, uint32_t, uint32_t *);
 extern int
 qla2x00_write_ram_word(scsi_qla_host_t *, uint32_t, uint32_t);
 
-/*
- * Global Function Prototypes in qla_isr.c source file.
- */
+
 extern irqreturn_t qla2100_intr_handler(int, void *);
 extern irqreturn_t qla2300_intr_handler(int, void *);
 extern irqreturn_t qla24xx_intr_handler(int, void *);
@@ -337,9 +320,7 @@ qla24xx_process_response_queue(struct scsi_qla_host *, struct rsp_que *);
 extern int qla2x00_request_irqs(struct qla_hw_data *, struct rsp_que *);
 extern void qla2x00_free_irqs(scsi_qla_host_t *);
 
-/*
- * Global Function Prototypes in qla_sup.c source file.
- */
+
 extern void qla2x00_release_nvram_protection(scsi_qla_host_t *);
 extern uint32_t *qla24xx_read_flash_data(scsi_qla_host_t *, uint32_t *,
     uint32_t, uint32_t);
@@ -382,9 +363,7 @@ extern int qla2xxx_get_vpd_field(scsi_qla_host_t *, char *, char *, size_t);
 
 extern void qla2xxx_flash_npiv_conf(scsi_qla_host_t *);
 
-/*
- * Global Function Prototypes in qla_dbg.c source file.
- */
+
 extern void qla2100_fw_dump(scsi_qla_host_t *, int);
 extern void qla2300_fw_dump(scsi_qla_host_t *, int);
 extern void qla24xx_fw_dump(scsi_qla_host_t *, int);
@@ -393,9 +372,7 @@ extern void qla81xx_fw_dump(scsi_qla_host_t *, int);
 extern void qla2x00_dump_regs(scsi_qla_host_t *);
 extern void qla2x00_dump_buffer(uint8_t *, uint32_t);
 
-/*
- * Global Function Prototypes in qla_gs.c source file.
- */
+
 extern void *qla2x00_prep_ms_iocb(scsi_qla_host_t *, uint32_t, uint32_t);
 extern void *qla24xx_prep_ms_iocb(scsi_qla_host_t *, uint32_t, uint32_t);
 extern int qla2x00_ga_nxt(scsi_qla_host_t *, fc_port_t *);
@@ -413,9 +390,7 @@ extern int qla2x00_gfpn_id(scsi_qla_host_t *, sw_info_t *);
 extern int qla2x00_gpsc(scsi_qla_host_t *, sw_info_t *);
 extern void qla2x00_get_sym_node_name(scsi_qla_host_t *, uint8_t *);
 
-/*
- * Global Function Prototypes in qla_attr.c source file.
- */
+
 struct device_attribute;
 extern struct device_attribute *qla2x00_host_attrs[];
 struct fc_function_template;
@@ -427,13 +402,11 @@ extern void qla2x00_init_host_attr(scsi_qla_host_t *);
 extern void qla2x00_alloc_sysfs_attr(scsi_qla_host_t *);
 extern void qla2x00_free_sysfs_attr(scsi_qla_host_t *);
 
-/*
- * Global Function Prototypes in qla_dfs.c source file.
- */
+
 extern int qla2x00_dfs_setup(scsi_qla_host_t *);
 extern int qla2x00_dfs_remove(scsi_qla_host_t *);
 
-/* Globa function prototypes for multi-q */
+
 extern int qla25xx_request_irq(struct rsp_que *);
 extern int qla25xx_init_req_que(struct scsi_qla_host *, struct req_que *);
 extern int qla25xx_init_rsp_que(struct scsi_qla_host *, struct rsp_que *);
@@ -455,4 +428,4 @@ extern void qla25xx_wrt_rsp_reg(struct qla_hw_data *, uint16_t, uint16_t);
 extern void qla24xx_wrt_rsp_reg(struct qla_hw_data *, uint16_t, uint16_t);
 extern struct scsi_qla_host * qla25xx_get_host(struct rsp_que *);
 
-#endif /* _QLA_GBL_H */
+#endif 

@@ -1,35 +1,18 @@
-/* Virtio ring implementation.
- *
- *  Copyright 2007 Rusty Russell IBM Corporation
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 #include <linux/virtio.h>
 #include <linux/virtio_ring.h>
 #include <linux/virtio_config.h>
 #include <linux/device.h>
 
 #ifdef DEBUG
-/* For development, we want to crash whenever the ring is screwed. */
+
 #define BAD_RING(_vq, fmt, args...)				\
 	do {							\
 		dev_err(&(_vq)->vq.vdev->dev,			\
 			"%s:"fmt, (_vq)->vq.name, ##args);	\
 		BUG();						\
 	} while (0)
-/* Caller is supposed to guarantee no reentry. */
+
 #define START_USE(_vq)						\
 	do {							\
 		if ((_vq)->in_use)				\
@@ -55,40 +38,40 @@ struct vring_virtqueue
 {
 	struct virtqueue vq;
 
-	/* Actual memory layout for this queue */
+	
 	struct vring vring;
 
-	/* Other side has made a mess, don't try any more. */
+	
 	bool broken;
 
-	/* Host supports indirect buffers */
+	
 	bool indirect;
 
-	/* Number of free buffers */
+	
 	unsigned int num_free;
-	/* Head of free buffer list. */
+	
 	unsigned int free_head;
-	/* Number we've added since last sync. */
+	
 	unsigned int num_added;
 
-	/* Last used index we've seen. */
+	
 	u16 last_used_idx;
 
-	/* How to notify other side. FIXME: commonalize hcalls! */
+	
 	void (*notify)(struct virtqueue *vq);
 
 #ifdef DEBUG
-	/* They're supposed to lock for us. */
+	
 	unsigned int in_use;
 #endif
 
-	/* Tokens for callbacks. */
+	
 	void *data[];
 };
 
 #define to_vvq(_vq) container_of(_vq, struct vring_virtqueue, vq)
 
-/* Set up an indirect table of descriptors and add it to the queue. */
+
 static int vring_add_indirect(struct vring_virtqueue *vq,
 			      struct scatterlist sg[],
 			      unsigned int out,
@@ -102,7 +85,7 @@ static int vring_add_indirect(struct vring_virtqueue *vq,
 	if (!desc)
 		return vq->vring.num;
 
-	/* Transfer entries from the sg list into the indirect page */
+	
 	for (i = 0; i < out; i++) {
 		desc[i].flags = VRING_DESC_F_NEXT;
 		desc[i].addr = sg_phys(sg);
@@ -118,20 +101,20 @@ static int vring_add_indirect(struct vring_virtqueue *vq,
 		sg++;
 	}
 
-	/* Last one doesn't continue. */
+	
 	desc[i-1].flags &= ~VRING_DESC_F_NEXT;
 	desc[i-1].next = 0;
 
-	/* We're about to use a buffer */
+	
 	vq->num_free--;
 
-	/* Use a single buffer which doesn't continue */
+	
 	head = vq->free_head;
 	vq->vring.desc[head].flags = VRING_DESC_F_INDIRECT;
 	vq->vring.desc[head].addr = virt_to_phys(desc);
 	vq->vring.desc[head].len = i * sizeof(struct vring_desc);
 
-	/* Update free pointer */
+	
 	vq->free_head = vq->vring.desc[head].next;
 
 	return head;
@@ -150,8 +133,7 @@ static int vring_add_buf(struct virtqueue *_vq,
 
 	BUG_ON(data == NULL);
 
-	/* If the host supports indirect descriptor tables, and we have multiple
-	 * buffers, then go indirect. FIXME: tune this threshold */
+	
 	if (vq->indirect && (out + in) > 1 && vq->num_free) {
 		head = vring_add_indirect(vq, sg, out, in);
 		if (head != vq->vring.num)
@@ -164,16 +146,14 @@ static int vring_add_buf(struct virtqueue *_vq,
 	if (vq->num_free < out + in) {
 		pr_debug("Can't add buf len %i - avail = %i\n",
 			 out + in, vq->num_free);
-		/* FIXME: for historical reasons, we force a notify here if
-		 * there are outgoing parts to the buffer.  Presumably the
-		 * host should service the ring ASAP. */
+		
 		if (out)
 			vq->notify(&vq->vq);
 		END_USE(vq);
 		return -ENOSPC;
 	}
 
-	/* We're about to use some buffers from the free list. */
+	
 	vq->num_free -= out + in;
 
 	head = vq->free_head;
@@ -191,25 +171,24 @@ static int vring_add_buf(struct virtqueue *_vq,
 		prev = i;
 		sg++;
 	}
-	/* Last one doesn't continue. */
+	
 	vq->vring.desc[prev].flags &= ~VRING_DESC_F_NEXT;
 
-	/* Update free pointer */
+	
 	vq->free_head = i;
 
 add_head:
-	/* Set token. */
+	
 	vq->data[head] = data;
 
-	/* Put entry in available array (but don't update avail->idx until they
-	 * do sync).  FIXME: avoid modulus here? */
+	
 	avail = (vq->vring.avail->idx + vq->num_added++) % vq->vring.num;
 	vq->vring.avail->ring[avail] = head;
 
 	pr_debug("Added buffer head %i to %p\n", head, vq);
 	END_USE(vq);
 
-	/* If we're indirect, we can fit many (assuming not OOM). */
+	
 	if (vq->indirect)
 		return vq->num_free ? vq->vring.num : 0;
 	return vq->num_free;
@@ -219,18 +198,17 @@ static void vring_kick(struct virtqueue *_vq)
 {
 	struct vring_virtqueue *vq = to_vvq(_vq);
 	START_USE(vq);
-	/* Descriptors and available array need to be set before we expose the
-	 * new available array entries. */
+	
 	wmb();
 
 	vq->vring.avail->idx += vq->num_added;
 	vq->num_added = 0;
 
-	/* Need to update avail index before checking if we should notify */
+	
 	mb();
 
 	if (!(vq->vring.used->flags & VRING_USED_F_NO_NOTIFY))
-		/* Prod other side to tell it about changes. */
+		
 		vq->notify(&vq->vq);
 
 	END_USE(vq);
@@ -240,13 +218,13 @@ static void detach_buf(struct vring_virtqueue *vq, unsigned int head)
 {
 	unsigned int i;
 
-	/* Clear data ptr. */
+	
 	vq->data[head] = NULL;
 
-	/* Put back on free list: find end */
+	
 	i = head;
 
-	/* Free the indirect table */
+	
 	if (vq->vring.desc[i].flags & VRING_DESC_F_INDIRECT)
 		kfree(phys_to_virt(vq->vring.desc[i].addr));
 
@@ -257,7 +235,7 @@ static void detach_buf(struct vring_virtqueue *vq, unsigned int head)
 
 	vq->vring.desc[i].next = vq->free_head;
 	vq->free_head = head;
-	/* Plus final descriptor */
+	
 	vq->num_free++;
 }
 
@@ -285,7 +263,7 @@ static void *vring_get_buf(struct virtqueue *_vq, unsigned int *len)
 		return NULL;
 	}
 
-	/* Only get used array entries after they have been exposed by host. */
+	
 	rmb();
 
 	i = vq->vring.used->ring[vq->last_used_idx%vq->vring.num].id;
@@ -300,7 +278,7 @@ static void *vring_get_buf(struct virtqueue *_vq, unsigned int *len)
 		return NULL;
 	}
 
-	/* detach_buf clears data, so grab it now. */
+	
 	ret = vq->data[i];
 	detach_buf(vq, i);
 	vq->last_used_idx++;
@@ -321,8 +299,7 @@ static bool vring_enable_cb(struct virtqueue *_vq)
 
 	START_USE(vq);
 
-	/* We optimistically turn back on interrupts, then check if there was
-	 * more to do. */
+	
 	vq->vring.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
 	mb();
 	if (unlikely(more_used(vq))) {
@@ -373,7 +350,7 @@ struct virtqueue *vring_new_virtqueue(unsigned int num,
 	struct vring_virtqueue *vq;
 	unsigned int i;
 
-	/* We assume num is a power of 2. */
+	
 	if (num & (num - 1)) {
 		dev_warn(&vdev->dev, "Bad virtqueue length %u\n", num);
 		return NULL;
@@ -399,11 +376,11 @@ struct virtqueue *vring_new_virtqueue(unsigned int num,
 
 	vq->indirect = virtio_has_feature(vdev, VIRTIO_RING_F_INDIRECT_DESC);
 
-	/* No callback?  Tell other side not to bother us. */
+	
 	if (!callback)
 		vq->vring.avail->flags |= VRING_AVAIL_F_NO_INTERRUPT;
 
-	/* Put everything in free lists. */
+	
 	vq->num_free = num;
 	vq->free_head = 0;
 	for (i = 0; i < num-1; i++)
@@ -420,7 +397,7 @@ void vring_del_virtqueue(struct virtqueue *vq)
 }
 EXPORT_SYMBOL_GPL(vring_del_virtqueue);
 
-/* Manipulates transport-specific feature bits. */
+
 void vring_transport_features(struct virtio_device *vdev)
 {
 	unsigned int i;
@@ -430,7 +407,7 @@ void vring_transport_features(struct virtio_device *vdev)
 		case VIRTIO_RING_F_INDIRECT_DESC:
 			break;
 		default:
-			/* We don't understand this bit. */
+			
 			clear_bit(i, vdev->features);
 		}
 	}

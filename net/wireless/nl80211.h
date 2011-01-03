@@ -59,4 +59,4 @@ void nl80211_send_ibss_bssid(struct cfg80211_registered_device *rdev,
 			     struct net_device *netdev, const u8 *bssid,
 			     gfp_t gfp);
 
-#endif /* __NET_WIRELESS_NL80211_H */
+#endif 

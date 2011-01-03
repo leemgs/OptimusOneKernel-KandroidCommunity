@@ -1,18 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		Definitions for inet_sock
- *
- * Authors:	Many, reorganised here by
- * 		Arnaldo Carvalho de Melo <acme@mandriva.com>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #ifndef _INET_SOCK_H
 #define _INET_SOCK_H
 
@@ -27,17 +13,7 @@
 #include <net/request_sock.h>
 #include <net/netns/hash.h>
 
-/** struct ip_options - IP Options
- *
- * @faddr - Saved first hop address
- * @is_data - Options in __data, rather than skb
- * @is_strictroute - Strict source route
- * @srr_is_hit - Packet destination addr was our one
- * @is_changed - IP checksum more not valid
- * @rr_needaddr - Need to record addr of outgoing dev
- * @ts_needtime - Need to record timestamp
- * @ts_needaddr - Need to record addr of outgoing dev
- */
+
 struct ip_options {
 	__be32		faddr;
 	unsigned char	optlen;
@@ -89,32 +65,14 @@ struct ip_mc_socklist;
 struct ipv6_pinfo;
 struct rtable;
 
-/** struct inet_sock - representation of INET sockets
- *
- * @sk - ancestor class
- * @pinet6 - pointer to IPv6 control block
- * @daddr - Foreign IPv4 addr
- * @rcv_saddr - Bound local IPv4 addr
- * @dport - Destination port
- * @num - Local port
- * @saddr - Sending source
- * @uc_ttl - Unicast TTL
- * @sport - Source port
- * @id - ID counter for DF pkts
- * @tos - TOS
- * @mc_ttl - Multicasting TTL
- * @is_icsk - is this an inet_connection_sock?
- * @mc_index - Multicast device index
- * @mc_list - Group array
- * @cork - info to build ip hdr on each ip frag while socket is corked
- */
+
 struct inet_sock {
-	/* sk and pinet6 has to be the first two members of inet_sock */
+	
 	struct sock		sk;
 #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 	struct ipv6_pinfo	*pinet6;
 #endif
-	/* Socket demultiplex comparisons on incoming packets. */
+	
 	__be32			daddr;
 	__be32			rcv_saddr;
 	__be16			dport;
@@ -143,14 +101,14 @@ struct inet_sock {
 		unsigned int		fragsize;
 		struct ip_options	*opt;
 		struct dst_entry	*dst;
-		int			length; /* Total length of all frames */
+		int			length; 
 		__be32			addr;
 		struct flowi		fl;
 	} cork;
 };
 
-#define IPCORK_OPT	1	/* ip-options has been held in ipcork.opt */
-#define IPCORK_ALLFRAG	2	/* always fragment (for ipv6 for now) */
+#define IPCORK_OPT	1	
+#define IPCORK_ALLFRAG	2	
 
 static inline struct inet_sock *inet_sk(const struct sock *sk)
 {
@@ -217,4 +175,4 @@ static inline __u8 inet_sk_flowi_flags(const struct sock *sk)
 	return inet_sk(sk)->transparent ? FLOWI_FLAG_ANYSRC : 0;
 }
 
-#endif	/* _INET_SOCK_H */
+#endif	

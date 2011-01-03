@@ -1,38 +1,6 @@
-/*
- *  linux/net/sunrpc/gss_krb5_crypto.c
- *
- *  Copyright (c) 2000 The Regents of the University of Michigan.
- *  All rights reserved.
- *
- *  Andy Adamson   <andros@umich.edu>
- *  Bruce Fields   <bfields@umich.edu>
- */
 
-/*
- * Copyright (C) 1998 by the FundsXpress, INC.
- *
- * All rights reserved.
- *
- * Export of this software from the United States of America may require
- * a specific license from the United States Government.  It is the
- * responsibility of any person or organization contemplating export to
- * obtain such a license before exporting.
- *
- * WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
- * distribute this software and its documentation for any purpose and
- * without fee is hereby granted, provided that the above copyright
- * notice appear in all copies and that both that copyright notice and
- * this permission notice appear in supporting documentation, and that
- * the name of FundsXpress. not be used in advertising or publicity pertaining
- * to distribution of the software without specific, written prior
- * permission.  FundsXpress makes no representations about the suitability of
- * this software for any purpose.  It is provided "as is" without express
- * or implied warranty.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- */
+
+
 
 #include <linux/err.h>
 #include <linux/types.h>
@@ -124,12 +92,12 @@ checksummer(struct scatterlist *sg, void *data)
 	return crypto_hash_update(desc, sg, sg->length);
 }
 
-/* checksum the plaintext data and hdrlen bytes of the token header */
+
 s32
 make_checksum(char *cksumname, char *header, int hdrlen, struct xdr_buf *body,
 		   int body_offset, struct xdr_netobj *cksum)
 {
-	struct hash_desc                desc; /* XXX add to ctx? */
+	struct hash_desc                desc; 
 	struct scatterlist              sg[1];
 	int err;
 
@@ -158,7 +126,7 @@ out:
 }
 
 struct encryptor_desc {
-	u8 iv[8]; /* XXX hard-coded blocksize */
+	u8 iv[8]; 
 	struct blkcipher_desc desc;
 	int pos;
 	struct xdr_buf *outbuf;
@@ -179,13 +147,12 @@ encryptor(struct scatterlist *sg, void *data)
 	int fraglen, ret;
 	int page_pos;
 
-	/* Worst case is 4 fragments: head, end of page 1, start
-	 * of page 2, tail.  Anything more is a bug. */
+	
 	BUG_ON(desc->fragno > 3);
 
 	page_pos = desc->pos - outbuf->head[0].iov_len;
 	if (page_pos >= 0 && page_pos < outbuf->page_len) {
-		/* pages are not in place: */
+		
 		int i = (page_pos + outbuf->page_base) >> PAGE_CACHE_SHIFT;
 		in_page = desc->pages[i];
 	} else {
@@ -199,7 +166,7 @@ encryptor(struct scatterlist *sg, void *data)
 	desc->fraglen += sg->length;
 	desc->pos += sg->length;
 
-	fraglen = thislen & 7; /* XXX hardcoded blocksize */
+	fraglen = thislen & 7; 
 	thislen -= fraglen;
 
 	if (thislen == 0)
@@ -257,7 +224,7 @@ gss_encrypt_xdr_buf(struct crypto_blkcipher *tfm, struct xdr_buf *buf,
 }
 
 struct decryptor_desc {
-	u8 iv[8]; /* XXX hard-coded blocksize */
+	u8 iv[8]; 
 	struct blkcipher_desc desc;
 	struct scatterlist frags[4];
 	int fragno;
@@ -271,15 +238,14 @@ decryptor(struct scatterlist *sg, void *data)
 	int thislen = desc->fraglen + sg->length;
 	int fraglen, ret;
 
-	/* Worst case is 4 fragments: head, end of page 1, start
-	 * of page 2, tail.  Anything more is a bug. */
+	
 	BUG_ON(desc->fragno > 3);
 	sg_set_page(&desc->frags[desc->fragno], sg_page(sg), sg->length,
 		    sg->offset);
 	desc->fragno++;
 	desc->fraglen += sg->length;
 
-	fraglen = thislen & 7; /* XXX hardcoded blocksize */
+	fraglen = thislen & 7; 
 	thislen -= fraglen;
 
 	if (thislen == 0)
@@ -312,7 +278,7 @@ gss_decrypt_xdr_buf(struct crypto_blkcipher *tfm, struct xdr_buf *buf,
 {
 	struct decryptor_desc desc;
 
-	/* XXXJBF: */
+	
 	BUG_ON((buf->len - offset) % crypto_blkcipher_blocksize(tfm) != 0);
 
 	memset(desc.iv, 0, sizeof(desc.iv));

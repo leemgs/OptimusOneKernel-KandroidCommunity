@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-orion5x/common.c
- *
- * Core functions for Marvell Orion 5x SoCs
- *
- * Maintainer: Tzachi Perelstein <tzachi@marvell.com>
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -35,9 +25,7 @@
 #include <plat/time.h>
 #include "common.h"
 
-/*****************************************************************************
- * I/O Address Mapping
- ****************************************************************************/
+
 static struct map_desc orion5x_io_desc[] __initdata = {
 	{
 		.virtual	= ORION5X_REGS_VIRT_BASE,
@@ -68,9 +56,7 @@ void __init orion5x_map_io(void)
 }
 
 
-/*****************************************************************************
- * EHCI
- ****************************************************************************/
+
 static struct orion_ehci_data orion5x_ehci_data = {
 	.dram		= &orion5x_mbus_dram_info,
 	.phy_version	= EHCI_PHY_ORION,
@@ -79,9 +65,7 @@ static struct orion_ehci_data orion5x_ehci_data = {
 static u64 ehci_dmamask = 0xffffffffUL;
 
 
-/*****************************************************************************
- * EHCI0
- ****************************************************************************/
+
 static struct resource orion5x_ehci0_resources[] = {
 	{
 		.start	= ORION5X_USB0_PHYS_BASE,
@@ -112,9 +96,7 @@ void __init orion5x_ehci0_init(void)
 }
 
 
-/*****************************************************************************
- * EHCI1
- ****************************************************************************/
+
 static struct resource orion5x_ehci1_resources[] = {
 	{
 		.start	= ORION5X_USB1_PHYS_BASE,
@@ -145,9 +127,7 @@ void __init orion5x_ehci1_init(void)
 }
 
 
-/*****************************************************************************
- * GigE
- ****************************************************************************/
+
 struct mv643xx_eth_shared_platform_data orion5x_eth_shared_data = {
 	.dram		= &orion5x_mbus_dram_info,
 };
@@ -203,9 +183,7 @@ void __init orion5x_eth_init(struct mv643xx_eth_platform_data *eth_data)
 }
 
 
-/*****************************************************************************
- * Ethernet switch
- ****************************************************************************/
+
 static struct resource orion5x_switch_resources[] = {
 	{
 		.start	= 0,
@@ -240,13 +218,11 @@ void __init orion5x_eth_switch_init(struct dsa_platform_data *d, int irq)
 }
 
 
-/*****************************************************************************
- * I2C
- ****************************************************************************/
+
 static struct mv64xxx_i2c_pdata orion5x_i2c_pdata = {
-	.freq_m		= 8, /* assumes 166 MHz TCLK */
+	.freq_m		= 8, 
 	.freq_n		= 3,
-	.timeout	= 1000, /* Default timeout of 1 second */
+	.timeout	= 1000, 
 };
 
 static struct resource orion5x_i2c_resources[] = {
@@ -277,9 +253,7 @@ void __init orion5x_i2c_init(void)
 }
 
 
-/*****************************************************************************
- * SATA
- ****************************************************************************/
+
 static struct resource orion5x_sata_resources[] = {
 	{
 		.name	= "sata base",
@@ -312,9 +286,7 @@ void __init orion5x_sata_init(struct mv_sata_platform_data *sata_data)
 }
 
 
-/*****************************************************************************
- * SPI
- ****************************************************************************/
+
 static struct orion_spi_info orion5x_spi_plat_data = {
 	.tclk			= 0,
 	.enable_clock_fix	= 1,
@@ -345,9 +317,7 @@ void __init orion5x_spi_init()
 }
 
 
-/*****************************************************************************
- * UART0
- ****************************************************************************/
+
 static struct plat_serial8250_port orion5x_uart0_data[] = {
 	{
 		.mapbase	= UART0_PHYS_BASE,
@@ -389,9 +359,7 @@ void __init orion5x_uart0_init(void)
 }
 
 
-/*****************************************************************************
- * UART1
- ****************************************************************************/
+
 static struct plat_serial8250_port orion5x_uart1_data[] = {
 	{
 		.mapbase	= UART1_PHYS_BASE,
@@ -433,9 +401,7 @@ void __init orion5x_uart1_init(void)
 }
 
 
-/*****************************************************************************
- * XOR engine
- ****************************************************************************/
+
 struct mv_xor_platform_shared_data orion5x_xor_shared_data = {
 	.dram		= &orion5x_mbus_dram_info,
 };
@@ -522,10 +488,7 @@ void __init orion5x_xor_init(void)
 {
 	platform_device_register(&orion5x_xor_shared);
 
-	/*
-	 * two engines can't do memset simultaneously, this limitation
-	 * satisfied by removing memset support from one of the engines.
-	 */
+	
 	dma_cap_set(DMA_MEMCPY, orion5x_xor0_data.cap_mask);
 	dma_cap_set(DMA_XOR, orion5x_xor0_data.cap_mask);
 	platform_device_register(&orion5x_xor0_channel);
@@ -573,9 +536,7 @@ static int __init orion5x_crypto_init(void)
 	return platform_device_register(&orion5x_crypto_device);
 }
 
-/*****************************************************************************
- * Watchdog
- ****************************************************************************/
+
 static struct orion_wdt_platform_data orion5x_wdt_data = {
 	.tclk			= 0,
 };
@@ -596,9 +557,7 @@ void __init orion5x_wdt_init(void)
 }
 
 
-/*****************************************************************************
- * Time handling
- ****************************************************************************/
+
 int orion5x_tclk;
 
 int __init orion5x_find_tclk(void)
@@ -624,12 +583,8 @@ struct sys_timer orion5x_timer = {
 };
 
 
-/*****************************************************************************
- * General
- ****************************************************************************/
-/*
- * Identify device ID and rev from PCIe configuration header space '0'.
- */
+
+
 static void __init orion5x_id(u32 *dev, u32 *rev, char **dev_name)
 {
 	orion5x_pcie_id(dev, rev);
@@ -682,38 +637,25 @@ void __init orion5x_init(void)
 	orion5x_uart0_data[0].uartclk = orion5x_tclk;
 	orion5x_uart1_data[0].uartclk = orion5x_tclk;
 
-	/*
-	 * Setup Orion address map
-	 */
+	
 	orion5x_setup_cpu_mbus_bridge();
 
-	/*
-	 * Don't issue "Wait for Interrupt" instruction if we are
-	 * running on D0 5281 silicon.
-	 */
+	
 	if (dev == MV88F5281_DEV_ID && rev == MV88F5281_REV_D0) {
 		printk(KERN_INFO "Orion: Applying 5281 D0 WFI workaround.\n");
 		disable_hlt();
 	}
 
-	/*
-	 * The 5082/5181l/5182/6082/6082l/6183 have crypto
-	 * while 5180n/5181/5281 don't have crypto.
-	 */
+	
 	if ((dev == MV88F5181_DEV_ID && rev >= MV88F5181L_REV_A0) ||
 	    dev == MV88F5182_DEV_ID || dev == MV88F6183_DEV_ID)
 		orion5x_crypto_init();
 
-	/*
-	 * Register watchdog driver
-	 */
+	
 	orion5x_wdt_init();
 }
 
-/*
- * Many orion-based systems have buggy bootloader implementations.
- * This is a common fixup for bogus memory tags.
- */
+
 void __init tag_fixup_mem32(struct machine_desc *mdesc, struct tag *t,
 			    char **from, struct meminfo *meminfo)
 {

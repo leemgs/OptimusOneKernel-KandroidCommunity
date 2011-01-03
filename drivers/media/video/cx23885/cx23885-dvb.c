@@ -1,23 +1,4 @@
-/*
- *  Driver for the Conexant CX23885 PCIe bridge
- *
- *  Copyright (c) 2006 Steven Toth <stoth@linuxtv.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -62,7 +43,7 @@ static unsigned int debug;
 		printk(KERN_DEBUG "%s/0: " fmt, dev->name, ## arg);\
 	} while (0)
 
-/* ------------------------------------------------------------------ */
+
 
 static unsigned int alt_tuner;
 module_param(alt_tuner, int, 0644);
@@ -70,7 +51,7 @@ MODULE_PARM_DESC(alt_tuner, "Enable alternate tuner configuration");
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
-/* ------------------------------------------------------------------ */
+
 
 static int dvb_buf_setup(struct videobuf_queue *q,
 			 unsigned int *count, unsigned int *size)
@@ -293,68 +274,63 @@ static struct lgdt3305_config hauppauge_lgdt3305_config = {
 };
 
 static struct dibx000_agc_config xc3028_agc_config = {
-	BAND_VHF | BAND_UHF,	/* band_caps */
+	BAND_VHF | BAND_UHF,	
 
-	/* P_agc_use_sd_mod1=0, P_agc_use_sd_mod2=0, P_agc_freq_pwm_div=0,
-	 * P_agc_inv_pwm1=0, P_agc_inv_pwm2=0,
-	 * P_agc_inh_dc_rv_est=0, P_agc_time_est=3, P_agc_freeze=0,
-	 * P_agc_nb_est=2, P_agc_write=0
-	 */
+	
 	(0 << 15) | (0 << 14) | (0 << 11) | (0 << 10) | (0 << 9) | (0 << 8) |
-		(3 << 5) | (0 << 4) | (2 << 1) | (0 << 0), /* setup */
+		(3 << 5) | (0 << 4) | (2 << 1) | (0 << 0), 
 
-	712,	/* inv_gain */
-	21,	/* time_stabiliz */
+	712,	
+	21,	
 
-	0,	/* alpha_level */
-	118,	/* thlock */
+	0,	
+	118,	
 
-	0,	/* wbd_inv */
-	2867,	/* wbd_ref */
-	0,	/* wbd_sel */
-	2,	/* wbd_alpha */
+	0,	
+	2867,	
+	0,	
+	2,	
 
-	0,	/* agc1_max */
-	0,	/* agc1_min */
-	39718,	/* agc2_max */
-	9930,	/* agc2_min */
-	0,	/* agc1_pt1 */
-	0,	/* agc1_pt2 */
-	0,	/* agc1_pt3 */
-	0,	/* agc1_slope1 */
-	0,	/* agc1_slope2 */
-	0,	/* agc2_pt1 */
-	128,	/* agc2_pt2 */
-	29,	/* agc2_slope1 */
-	29,	/* agc2_slope2 */
+	0,	
+	0,	
+	39718,	
+	9930,	
+	0,	
+	0,	
+	0,	
+	0,	
+	0,	
+	0,	
+	128,	
+	29,	
+	29,	
 
-	17,	/* alpha_mant */
-	27,	/* alpha_exp */
-	23,	/* beta_mant */
-	51,	/* beta_exp */
+	17,	
+	27,	
+	23,	
+	51,	
 
-	1,	/* perform_agc_softsplit */
+	1,	
 };
 
-/* PLL Configuration for COFDM BW_MHz = 8.000000
- * With external clock = 30.000000 */
+
 static struct dibx000_bandwidth_config xc3028_bw_config = {
-	60000,	/* internal */
-	30000,	/* sampling */
-	1,	/* pll_cfg: prediv */
-	8,	/* pll_cfg: ratio */
-	3,	/* pll_cfg: range */
-	1,	/* pll_cfg: reset */
-	0,	/* pll_cfg: bypass */
-	0,	/* misc: refdiv */
-	0,	/* misc: bypclk_div */
-	1,	/* misc: IO_CLK_en_core */
-	1,	/* misc: ADClkSrc */
-	0,	/* misc: modulo */
-	(3 << 14) | (1 << 12) | (524 << 0), /* sad_cfg: refsel, sel, freq_15k */
-	(1 << 25) | 5816102, /* ifreq = 5.200000 MHz */
-	20452225, /* timf */
-	30000000  /* xtal_hz */
+	60000,	
+	30000,	
+	1,	
+	8,	
+	3,	
+	1,	
+	0,	
+	0,	
+	0,	
+	1,	
+	1,	
+	0,	
+	(3 << 14) | (1 << 12) | (524 << 0), 
+	(1 << 25) | 5816102, 
+	20452225, 
+	30000000  
 };
 
 static struct dib7000p_config hauppauge_hvr1400_dib7000_config = {
@@ -395,19 +371,19 @@ static struct stv0900_reg stv0900_ts_regs[] = {
 	{ R0900_P2_TSCFGH, 0xe0 },
 	{ R0900_P1_TSCFGL, 0x20 },
 	{ R0900_P2_TSCFGL, 0x20 },
-	{ 0xffff, 0xff }, /* terminate */
+	{ 0xffff, 0xff }, 
 };
 
 static struct stv0900_config netup_stv0900_config = {
 	.demod_address = 0x68,
 	.xtal = 8000000,
-	.clkmode = 3,/* 0-CLKI, 2-XTALI, else AUTO */
-	.diseqc_mode = 2,/* 2/3 PWM */
+	.clkmode = 3,
+	.diseqc_mode = 2,
 	.ts_config_regs = stv0900_ts_regs,
-	.tun1_maddress = 0,/* 0x60 */
-	.tun2_maddress = 3,/* 0x63 */
-	.tun1_adc = 1,/* 1 Vpp */
-	.tun2_adc = 1,/* 1 Vpp */
+	.tun1_maddress = 0,
+	.tun2_maddress = 3,
+	.tun1_adc = 1,
+	.tun2_adc = 1,
 };
 
 static struct stv6110_config netup_stv6110_tunerconfig_a = {
@@ -428,11 +404,11 @@ static int tbs_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
 	struct cx23885_dev *dev = port->dev;
 
 	if (voltage == SEC_VOLTAGE_18)
-		cx_write(MC417_RWD, 0x00001e00);/* GPIO-13 high */
+		cx_write(MC417_RWD, 0x00001e00);
 	else if (voltage == SEC_VOLTAGE_13)
-		cx_write(MC417_RWD, 0x00001a00);/* GPIO-13 low */
+		cx_write(MC417_RWD, 0x00001a00);
 	else
-		cx_write(MC417_RWD, 0x00001800);/* GPIO-12 low */
+		cx_write(MC417_RWD, 0x00001800);
 	return 0;
 }
 
@@ -454,8 +430,8 @@ static struct lgs8gxx_config mygica_x8506_lgs8gl5_config = {
 	.serial_ts = 0,
 	.ts_clk_pol = 1,
 	.ts_clk_gated = 1,
-	.if_clk_freq = 30400, /* 30.4 MHz */
-	.if_freq = 5380, /* 5.38 MHz */
+	.if_clk_freq = 30400, 
+	.if_freq = 5380, 
 	.if_neg_center = 1,
 	.ext_adc = 0,
 	.adc_signed = 0,
@@ -497,12 +473,12 @@ static struct lgs8gxx_config magicpro_prohdtve2_lgs8g75_config = {
 	.serial_ts = 0,
 	.ts_clk_pol = 1,
 	.ts_clk_gated = 1,
-	.if_clk_freq = 30400, /* 30.4 MHz */
-	.if_freq = 6500, /* 6.50 MHz */
+	.if_clk_freq = 30400, 
+	.if_freq = 6500, 
 	.if_neg_center = 1,
 	.ext_adc = 0,
 	.adc_signed = 1,
-	.adc_vpp = 2, /* 1.6 Vpp */
+	.adc_vpp = 2, 
 	.if_neg_edge = 1,
 };
 
@@ -518,15 +494,15 @@ static int dvb_register(struct cx23885_tsport *port)
 	struct videobuf_dvb_frontend *fe0;
 	int ret;
 
-	/* Get the first frontend */
+	
 	fe0 = videobuf_dvb_get_frontend(&port->frontends, 1);
 	if (!fe0)
 		return -EINVAL;
 
-	/* init struct videobuf_dvb */
+	
 	fe0->dvb.name = dev->name;
 
-	/* init frontend */
+	
 	switch (dev->board) {
 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
 		i2c_bus = &dev->i2c_bus[0];
@@ -551,8 +527,8 @@ static int dvb_register(struct cx23885_tsport *port)
 				   &hauppauge_hvr127x_config);
 		}
 
-		/* FIXME: temporary hack */
-		/* define bridge override to set_frontend */
+		
+		
 		port->set_frontend_save = fe0->dvb.frontend->ops.set_frontend;
 		fe0->dvb.frontend->ops.set_frontend = cx23885_dvb_set_frontend;
 
@@ -694,8 +670,7 @@ static int dvb_register(struct cx23885_tsport *port)
 				.fname   = XC3028L_DEFAULT_FIRMWARE,
 				.max_len = 64,
 				.demod   = 5000,
-				/* This is true for all demods with
-					v36 firmware? */
+				
 				.type    = XC2028_D2633,
 			};
 
@@ -801,7 +776,7 @@ static int dvb_register(struct cx23885_tsport *port)
 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
 		i2c_bus = &dev->i2c_bus[0];
 		switch (port->nr) {
-		/* port B */
+		
 		case 1:
 			fe0->dvb.frontend = dvb_attach(stv0900_attach,
 							&netup_stv0900_config,
@@ -822,7 +797,7 @@ static int dvb_register(struct cx23885_tsport *port)
 				}
 			}
 			break;
-		/* port C */
+		
 		case 2:
 			fe0->dvb.frontend = dvb_attach(stv0900_attach,
 							&netup_stv0900_config,
@@ -893,20 +868,20 @@ static int dvb_register(struct cx23885_tsport *port)
 			dev->name);
 		return -1;
 	}
-	/* define general-purpose callback pointer */
+	
 	fe0->dvb.frontend->callback = cx23885_tuner_callback;
 
-	/* Put the analog decoder in standby to keep it quiet */
+	
 	call_all(dev, tuner, s_standby);
 
 	if (fe0->dvb.frontend->ops.analog_ops.standby)
 		fe0->dvb.frontend->ops.analog_ops.standby(fe0->dvb.frontend);
 
-	/* register everything */
+	
 	ret = videobuf_dvb_register_bus(&port->frontends, THIS_MODULE, port,
 		&dev->pci->dev, adapter_nr, 0);
 
-	/* init CI & MAC */
+	
 	switch (dev->board) {
 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI: {
 		static struct netup_card_info cinfo;
@@ -939,15 +914,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
 	struct cx23885_dev *dev = port->dev;
 	int err, i;
 
-	/* Here we need to allocate the correct number of frontends,
-	 * as reflected in the cards struct. The reality is that currrently
-	 * no cx23885 boards support this - yet. But, if we don't modify this
-	 * code then the second frontend would never be allocated (later)
-	 * and fail with error before the attach in dvb_register().
-	 * Without these changes we risk an OOPS later. The changes here
-	 * are for safety, and should provide a good foundation for the
-	 * future addition of any multi-frontend cx23885 based boards.
-	 */
+	
 	printk(KERN_INFO "%s() allocating %d frontend(s)\n", __func__,
 		port->num_frontends);
 
@@ -971,8 +938,8 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
 
 		err = -ENODEV;
 
-		/* dvb stuff */
-		/* We have to init the queue for each frontend on a port. */
+		
+		
 		printk(KERN_INFO "%s: cx23885 based dvb card\n", dev->name);
 		videobuf_queue_sg_init(&fe0->dvb.dvbq, &dvb_qops,
 			    &dev->pci->dev, &port->slock,
@@ -991,13 +958,7 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
 {
 	struct videobuf_dvb_frontend *fe0;
 
-	/* FIXME: in an error condition where the we have
-	 * an expected number of frontends (attach problem)
-	 * then this might not clean up correctly, if 1
-	 * is invalid.
-	 * This comment only applies to future boards IF they
-	 * implement MFE support.
-	 */
+	
 	fe0 = videobuf_dvb_get_frontend(&port->frontends, 1);
 	if (fe0->dvb.frontend)
 		videobuf_dvb_unregister_bus(&port->frontends);

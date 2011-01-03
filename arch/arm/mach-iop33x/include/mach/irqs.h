@@ -1,20 +1,9 @@
-/*
- * arch/arm/mach-iop33x/include/mach/irqs.h
- *
- * Author:	Dave Jiang (dave.jiang@intel.com)
- * Copyright:	(C) 2003 Intel Corp.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __IRQS_H
 #define __IRQS_H
 
-/*
- * IOP80331 chipset interrupts
- */
+
 #define IRQ_IOP33X_DMA0_EOT	0
 #define IRQ_IOP33X_DMA0_EOC	1
 #define IRQ_IOP33X_DMA1_EOT	2

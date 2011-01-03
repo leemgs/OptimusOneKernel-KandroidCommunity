@@ -1,21 +1,4 @@
-/*
- *  linux/arch/arm/mach-footbridge/netwinder-leds.c
- *
- *  Copyright (C) 1998-1999 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * NetWinder LED control routines.
- *
- * The Netwinder uses the leds as follows:
- *  - Green - toggles state every 50 timer interrupts
- *  - Red   - On if the system is not idle
- *
- * Changelog:
- *   02-05-1999	RMK	Various cleanups
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>

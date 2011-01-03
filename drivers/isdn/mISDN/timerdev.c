@@ -1,21 +1,4 @@
-/*
- *
- * general timer device for using in ISDN stacks
- *
- * Author	Karsten Keil <kkeil@novell.com>
- *
- * Copyright 2008  by Karsten Keil <kkeil@novell.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/poll.h>
 #include <linux/vmalloc.h>
@@ -34,7 +17,7 @@ struct mISDNtimerdev {
 	struct list_head	expired;
 	wait_queue_head_t	wait;
 	u_int			work;
-	spinlock_t		lock; /* protect lists */
+	spinlock_t		lock; 
 };
 
 struct mISDNtimer {
@@ -200,9 +183,7 @@ misdn_del_timer(struct mISDNtimerdev *dev, int id)
 	list_for_each_entry(timer, &dev->pending, list) {
 		if (timer->id == id) {
 			list_del_init(&timer->list);
-			/* RED-PEN AK: race -- timer can be still running on
-			 * other CPU. Needs reference count I think
-			 */
+			
 			del_timer(&timer->tl);
 			ret = timer->id;
 			kfree(timer);

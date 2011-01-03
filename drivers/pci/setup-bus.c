@@ -1,21 +1,6 @@
-/*
- *	drivers/pci/setup-bus.c
- *
- * Extruded from code written by
- *      Dave Rusling (david.rusling@reo.mts.dec.com)
- *      David Mosberger (davidm@cs.arizona.edu)
- *	David Miller (davem@redhat.com)
- *
- * Support routines for initializing a PCI subsystem.
- */
 
-/*
- * Nov 2000, Ivan Kokshaysky <ink@jurassic.park.msu.ru>
- *	     PCI-PCI bridges cleanup, sorted resource allocation.
- * Feb 2002, Ivan Kokshaysky <ink@jurassic.park.msu.ru>
- *	     Converted to allocation in 3 passes, which gives
- *	     tighter packing. Prefetchable range support.
- */
+
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -38,12 +23,12 @@ static void pbus_assign_resources_sorted(const struct pci_bus *bus)
 	list_for_each_entry(dev, &bus->devices, bus_list) {
 		u16 class = dev->class >> 8;
 
-		/* Don't touch classless devices or host bridges or ioapics.  */
+		
 		if (class == PCI_CLASS_NOT_DEFINED ||
 		    class == PCI_CLASS_BRIDGE_HOST)
 			continue;
 
-		/* Don't touch ioapic devices already enabled by firmware */
+		
 		if (class == PCI_CLASS_SYSTEM_PIC) {
 			u16 command;
 			pci_read_config_word(dev, PCI_COMMAND, &command);
@@ -78,10 +63,7 @@ void pci_setup_cardbus(struct pci_bus *bus)
 
 	pcibios_resource_to_bus(bridge, &region, bus->resource[0]);
 	if (bus->resource[0]->flags & IORESOURCE_IO) {
-		/*
-		 * The IO resource is allocated a range twice as large as it
-		 * would normally need.  This allows us to set both IO regs.
-		 */
+		
 		dev_info(&bridge->dev, "  IO window: %#08lx-%#08lx\n",
 		       (unsigned long)region.start,
 		       (unsigned long)region.end);
@@ -126,17 +108,7 @@ void pci_setup_cardbus(struct pci_bus *bus)
 }
 EXPORT_SYMBOL(pci_setup_cardbus);
 
-/* Initialize bridges with base/limit values we have collected.
-   PCI-to-PCI Bridge Architecture Specification rev. 1.1 (1998)
-   requires that if there is no I/O ports or memory behind the
-   bridge, corresponding range must be turned off by writing base
-   value greater than limit to the bridge's base/limit registers.
 
-   Note: care must be taken when updating I/O base/limit registers
-   of bridges which support 32-bit I/O. This update requires two
-   config space writes, so it's quite possible that an I/O window of
-   the bridge will have some undesirable address (e.g. 0) after the
-   first write. Ditto 64-bit prefetchable MMIO.  */
 static void pci_setup_bridge(struct pci_bus *bus)
 {
 	struct pci_dev *bridge = bus->self;
@@ -149,34 +121,33 @@ static void pci_setup_bridge(struct pci_bus *bus)
 	dev_info(&bridge->dev, "PCI bridge, secondary bus %04x:%02x\n",
 		 pci_domain_nr(bus), bus->number);
 
-	/* Set up the top and bottom of the PCI I/O segment for this bus. */
+	
 	pcibios_resource_to_bus(bridge, &region, bus->resource[0]);
 	if (bus->resource[0]->flags & IORESOURCE_IO) {
 		pci_read_config_dword(bridge, PCI_IO_BASE, &l);
 		l &= 0xffff0000;
 		l |= (region.start >> 8) & 0x00f0;
 		l |= region.end & 0xf000;
-		/* Set up upper 16 bits of I/O base/limit. */
+		
 		io_upper16 = (region.end & 0xffff0000) | (region.start >> 16);
 		dev_info(&bridge->dev, "  IO window: %#04lx-%#04lx\n",
 		    (unsigned long)region.start,
 		    (unsigned long)region.end);
 	}
 	else {
-		/* Clear upper 16 bits of I/O base/limit. */
+		
 		io_upper16 = 0;
 		l = 0x00f0;
 		dev_info(&bridge->dev, "  IO window: disabled\n");
 	}
-	/* Temporarily disable the I/O range before updating PCI_IO_BASE. */
+	
 	pci_write_config_dword(bridge, PCI_IO_BASE_UPPER16, 0x0000ffff);
-	/* Update lower 16 bits of I/O base/limit. */
+	
 	pci_write_config_dword(bridge, PCI_IO_BASE, l);
-	/* Update upper 16 bits of I/O base/limit. */
+	
 	pci_write_config_dword(bridge, PCI_IO_BASE_UPPER16, io_upper16);
 
-	/* Set up the top and bottom of the PCI Memory segment
-	   for this bus. */
+	
 	pcibios_resource_to_bus(bridge, &region, bus->resource[1]);
 	if (bus->resource[1]->flags & IORESOURCE_MEM) {
 		l = (region.start >> 16) & 0xfff0;
@@ -191,12 +162,10 @@ static void pci_setup_bridge(struct pci_bus *bus)
 	}
 	pci_write_config_dword(bridge, PCI_MEMORY_BASE, l);
 
-	/* Clear out the upper 32 bits of PREF limit.
-	   If PCI_PREF_BASE_UPPER32 was non-zero, this temporarily
-	   disables PREF range, which is ok. */
+	
 	pci_write_config_dword(bridge, PCI_PREF_LIMIT_UPPER32, 0);
 
-	/* Set up PREF base/limit. */
+	
 	bu = lu = 0;
 	pcibios_resource_to_bus(bridge, &region, bus->resource[2]);
 	if (bus->resource[2]->flags & IORESOURCE_PREFETCH) {
@@ -218,16 +187,14 @@ static void pci_setup_bridge(struct pci_bus *bus)
 	}
 	pci_write_config_dword(bridge, PCI_PREF_MEMORY_BASE, l);
 
-	/* Set the upper 32 bits of PREF base & limit. */
+	
 	pci_write_config_dword(bridge, PCI_PREF_BASE_UPPER32, bu);
 	pci_write_config_dword(bridge, PCI_PREF_LIMIT_UPPER32, lu);
 
 	pci_write_config_word(bridge, PCI_BRIDGE_CONTROL, bus->bridge_ctl);
 }
 
-/* Check whether the bridge supports optional I/O and
-   prefetchable memory ranges. If not, the respective
-   base/limit registers must be read-only and read as 0. */
+
 static void pci_bridge_check_ranges(struct pci_bus *bus)
 {
 	u16 io;
@@ -246,9 +213,7 @@ static void pci_bridge_check_ranges(struct pci_bus *bus)
  	}
  	if (io)
 		b_res[0].flags |= IORESOURCE_IO;
-	/*  DECchip 21050 pass 2 errata: the bridge may miss an address
-	    disconnect boundary by one PCI data phase.
-	    Workaround: do not use prefetching on this device. */
+	
 	if (bridge->vendor == PCI_VENDOR_ID_DEC && bridge->device == 0x0001)
 		return;
 	pci_read_config_dword(bridge, PCI_PREF_MEMORY_BASE, &pmem);
@@ -264,7 +229,7 @@ static void pci_bridge_check_ranges(struct pci_bus *bus)
 			b_res[2].flags |= IORESOURCE_MEM_64;
 	}
 
-	/* double check if bridge does support 64 bit pref */
+	
 	if (b_res[2].flags & IORESOURCE_MEM_64) {
 		u32 mem_base_hi, tmp;
 		pci_read_config_dword(bridge, PCI_PREF_BASE_UPPER32,
@@ -279,10 +244,7 @@ static void pci_bridge_check_ranges(struct pci_bus *bus)
 	}
 }
 
-/* Helper function for sizing routines: find first available
-   bus resource of a given type. Note: we intentionally skip
-   the bus resources which have already been assigned (that is,
-   have non-NULL parent resource). */
+
 static struct resource *find_free_bus_resource(struct pci_bus *bus, unsigned long type)
 {
 	int i;
@@ -300,10 +262,7 @@ static struct resource *find_free_bus_resource(struct pci_bus *bus, unsigned lon
 	return NULL;
 }
 
-/* Sizing the IO windows of the PCI-PCI bridge is trivial,
-   since these windows have 4K granularity and the IO ranges
-   of non-bridge PCI devices are limited to 256 bytes.
-   We must be careful with the ISA aliasing though. */
+
 static void pbus_size_io(struct pci_bus *bus, resource_size_t min_size)
 {
 	struct pci_dev *dev;
@@ -325,7 +284,7 @@ static void pbus_size_io(struct pci_bus *bus, resource_size_t min_size)
 			r_size = resource_size(r);
 
 			if (r_size < 0x400)
-				/* Might be re-aligned for ISA */
+				
 				size += r_size;
 			else
 				size1 += r_size;
@@ -333,8 +292,7 @@ static void pbus_size_io(struct pci_bus *bus, resource_size_t min_size)
 	}
 	if (size < min_size)
 		size = min_size;
-/* To be fixed in 2.5: we should have sort of HAVE_ISA
-   flag in the struct pci_bus. */
+
 #if defined(CONFIG_ISA) || defined(CONFIG_EISA)
 	size = (size & 0xff) + ((size & ~0xffUL) << 2);
 #endif
@@ -343,20 +301,19 @@ static void pbus_size_io(struct pci_bus *bus, resource_size_t min_size)
 		b_res->flags = 0;
 		return;
 	}
-	/* Alignment of the IO window is always 4K */
+	
 	b_res->start = 4096;
 	b_res->end = b_res->start + size - 1;
 	b_res->flags |= IORESOURCE_STARTALIGN;
 }
 
-/* Calculate the size of the bus and minimal alignment which
-   guarantees that all child resources fit in this size. */
+
 static int pbus_size_mem(struct pci_bus *bus, unsigned long mask,
 			 unsigned long type, resource_size_t min_size)
 {
 	struct pci_dev *dev;
 	resource_size_t min_align, align, size;
-	resource_size_t aligns[12];	/* Alignments from 1Mb to 2Gb */
+	resource_size_t aligns[12];	
 	int order, max_order;
 	struct resource *b_res = find_free_bus_resource(bus, type);
 	unsigned int mem64_mask = 0;
@@ -381,7 +338,7 @@ static int pbus_size_mem(struct pci_bus *bus, unsigned long mask,
 			if (r->parent || (r->flags & mask) != type)
 				continue;
 			r_size = resource_size(r);
-			/* For bridges size != alignment */
+			
 			align = pci_resource_alignment(dev, r);
 			order = __ffs(align) - 20;
 			if (order > 11) {
@@ -393,8 +350,7 @@ static int pbus_size_mem(struct pci_bus *bus, unsigned long mask,
 			size += r_size;
 			if (order < 0)
 				order = 0;
-			/* Exclude ranges with size > align from
-			   calculation of the alignment. */
+			
 			if (r_size == align)
 				aligns[order] += align;
 			if (order > max_order)
@@ -436,10 +392,7 @@ static void pci_bus_size_cardbus(struct pci_bus *bus)
 	struct resource *b_res = &bridge->resource[PCI_BRIDGE_RESOURCES];
 	u16 ctrl;
 
-	/*
-	 * Reserve some resources for CardBus.  We reserve
-	 * a fixed amount of bus space for CardBus bridges.
-	 */
+	
 	b_res[0].start = 0;
 	b_res[0].end = pci_cardbus_io_size - 1;
 	b_res[0].flags |= IORESOURCE_IO | IORESOURCE_SIZEALIGN;
@@ -448,10 +401,7 @@ static void pci_bus_size_cardbus(struct pci_bus *bus)
 	b_res[1].end = pci_cardbus_io_size - 1;
 	b_res[1].flags |= IORESOURCE_IO | IORESOURCE_SIZEALIGN;
 
-	/*
-	 * Check whether prefetchable memory is supported
-	 * by this bridge.
-	 */
+	
 	pci_read_config_word(bridge, PCI_CB_BRIDGE_CONTROL, &ctrl);
 	if (!(ctrl & PCI_CB_BRIDGE_CTL_PREFETCH_MEM0)) {
 		ctrl |= PCI_CB_BRIDGE_CTL_PREFETCH_MEM0;
@@ -459,11 +409,7 @@ static void pci_bus_size_cardbus(struct pci_bus *bus)
 		pci_read_config_word(bridge, PCI_CB_BRIDGE_CONTROL, &ctrl);
 	}
 
-	/*
-	 * If we have prefetchable memory support, allocate
-	 * two regions.  Otherwise, allocate one region of
-	 * twice the size.
-	 */
+	
 	if (ctrl & PCI_CB_BRIDGE_CTL_PREFETCH_MEM0) {
 		b_res[2].start = 0;
 		b_res[2].end = pci_cardbus_mem_size - 1;
@@ -502,13 +448,13 @@ void __ref pci_bus_size_bridges(struct pci_bus *bus)
 		}
 	}
 
-	/* The root bus? */
+	
 	if (!bus->self)
 		return;
 
 	switch (bus->self->class >> 8) {
 	case PCI_CLASS_BRIDGE_CARDBUS:
-		/* don't size cardbuses yet. */
+		
 		break;
 
 	case PCI_CLASS_BRIDGE_PCI:
@@ -519,15 +465,11 @@ void __ref pci_bus_size_bridges(struct pci_bus *bus)
 		}
 	default:
 		pbus_size_io(bus, min_io_size);
-		/* If the bridge supports prefetchable range, size it
-		   separately. If it doesn't, or its prefetchable window
-		   has already been allocated by arch code, try
-		   non-prefetchable range for both types of PCI memory
-		   resources. */
+		
 		mask = IORESOURCE_MEM;
 		prefmask = IORESOURCE_MEM | IORESOURCE_PREFETCH;
 		if (pbus_size_mem(bus, prefmask, prefmask, min_mem_size))
-			mask = prefmask; /* Success, size non-prefetch only. */
+			mask = prefmask; 
 		else
 			min_mem_size += min_mem_size;
 		pbus_size_mem(bus, mask, IORESOURCE_MEM, min_mem_size);
@@ -606,18 +548,17 @@ pci_assign_unassigned_resources(void)
 {
 	struct pci_bus *bus;
 
-	/* Depth first, calculate sizes and alignments of all
-	   subordinate buses. */
+	
 	list_for_each_entry(bus, &pci_root_buses, node) {
 		pci_bus_size_bridges(bus);
 	}
-	/* Depth last, allocate resources and update the hardware. */
+	
 	list_for_each_entry(bus, &pci_root_buses, node) {
 		pci_bus_assign_resources(bus);
 		pci_enable_bridges(bus);
 	}
 
-	/* dump the resource on buses */
+	
 	list_for_each_entry(bus, &pci_root_buses, node) {
 		pci_bus_dump_resources(bus);
 	}

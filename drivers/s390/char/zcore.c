@@ -1,13 +1,4 @@
-/*
- * zcore module to export memory content and register sets for creating system
- * dumps on SCSI disks (zfcpdump). The "zcore/mem" debugfs file shows the same
- * dump format as s390 standalone dumps.
- *
- * For more information please refer to Documentation/s390/zfcpdump.txt
- *
- * Copyright IBM Corp. 2003,2008
- * Author(s): Michael Holzheu
- */
+
 
 #define KMSG_COMPONENT "zdump"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -30,14 +21,14 @@
 
 #define TO_USER		0
 #define TO_KERNEL	1
-#define CHUNK_INFO_SIZE	34 /* 2 16-byte char, each followed by blank */
+#define CHUNK_INFO_SIZE	34 
 
 enum arch_id {
 	ARCH_S390	= 0,
 	ARCH_S390X	= 1,
 };
 
-/* dump system info */
+
 
 struct sys_info {
 	enum arch_id	arch;
@@ -62,14 +53,7 @@ static struct dentry *zcore_memmap_file;
 static struct dentry *zcore_reipl_file;
 static struct ipl_parameter_block *ipl_block;
 
-/*
- * Copy memory from HSA to kernel or user memory (not reentrant):
- *
- * @dest:  Kernel or user buffer where memory should be copied to
- * @src:   Start address within HSA where data should be copied
- * @count: Size of buffer, which should be copied
- * @mode:  Either TO_KERNEL or TO_USER
- */
+
 static int memcpy_hsa(void *dest, unsigned long src, size_t count, int mode)
 {
 	int offs, blk_num;
@@ -78,7 +62,7 @@ static int memcpy_hsa(void *dest, unsigned long src, size_t count, int mode)
 	if (count == 0)
 		return 0;
 
-	/* copy first block */
+	
 	offs = 0;
 	if ((src % PAGE_SIZE) != 0) {
 		blk_num = src / PAGE_SIZE + 2;
@@ -97,7 +81,7 @@ static int memcpy_hsa(void *dest, unsigned long src, size_t count, int mode)
 	if (offs == count)
 		goto out;
 
-	/* copy middle */
+	
 	for (; (offs + PAGE_SIZE) <= count; offs += PAGE_SIZE) {
 		blk_num = (src + offs) / PAGE_SIZE + 2;
 		if (sclp_sdias_copy(buf, blk_num, 1)) {
@@ -114,7 +98,7 @@ static int memcpy_hsa(void *dest, unsigned long src, size_t count, int mode)
 	if (offs == count)
 		goto out;
 
-	/* copy last block */
+	
 	blk_num = (src + offs) / PAGE_SIZE + 2;
 	if (sclp_sdias_copy(buf, blk_num, 1)) {
 		TRACE("sclp_sdias_copy() failed\n");
@@ -151,7 +135,7 @@ static int memcpy_real(void *dest, unsigned long src, size_t count)
 
 	if (count == 0)
 		return 0;
-	flags = __raw_local_irq_stnsm(0xf8UL); /* switch to real mode */
+	flags = __raw_local_irq_stnsm(0xf8UL); 
 	asm volatile (
 		"0:	mvcle	%1,%2,0x0\n"
 		"1:	jo	0b\n"
@@ -184,9 +168,7 @@ static int memcpy_real_user(void __user *dest, unsigned long src, size_t count)
 }
 
 #ifdef __s390x__
-/*
- * Convert s390x (64 bit) cpu info to s390 (32 bit) cpu info
- */
+
 static void __init s390x_to_s390_regs(union save_area *out, union save_area *in,
 				      int cpu)
 {
@@ -198,15 +180,15 @@ static void __init s390x_to_s390_regs(union save_area *out, union save_area *in,
 		out->s390.ctrl_regs[i] =
 			in->s390x.ctrl_regs[i] & 0x00000000ffffffff;
 	}
-	/* locore for 31 bit has only space for fpregs 0,2,4,6 */
+	
 	out->s390.fp_regs[0] = in->s390x.fp_regs[0];
 	out->s390.fp_regs[1] = in->s390x.fp_regs[2];
 	out->s390.fp_regs[2] = in->s390x.fp_regs[4];
 	out->s390.fp_regs[3] = in->s390x.fp_regs[6];
 	memcpy(&(out->s390.psw[0]), &(in->s390x.psw[0]), 4);
-	out->s390.psw[1] |= 0x8; /* set bit 12 */
+	out->s390.psw[1] |= 0x8; 
 	memcpy(&(out->s390.psw[4]),&(in->s390x.psw[12]), 4);
-	out->s390.psw[4] |= 0x80; /* set (31bit) addressing bit */
+	out->s390.psw[4] |= 0x80; 
 	out->s390.pref_reg = in->s390x.pref_reg;
 	out->s390.timer = in->s390x.timer;
 	out->s390.clk_cmp = in->s390x.clk_cmp;
@@ -224,13 +206,13 @@ static void __init s390x_to_s390_save_areas(void)
 	}
 }
 
-#endif /* __s390x__ */
+#endif 
 
 static int __init init_cpu_info(enum arch_id arch)
 {
 	union save_area *sa;
 
-	/* get info for boot cpu from lowcore, stored in the HSA */
+	
 
 	sa = kmalloc(sizeof(*sa), GFP_KERNEL);
 	if (!sa)
@@ -243,7 +225,7 @@ static int __init init_cpu_info(enum arch_id arch)
 	zfcpdump_save_areas[0] = sa;
 
 #ifdef __s390x__
-	/* convert s390x regs to s390, if we are dumping an s390 Linux */
+	
 
 	if (arch == ARCH_S390)
 		s390x_to_s390_save_areas();
@@ -260,7 +242,7 @@ static DEFINE_MUTEX(zcore_mutex);
 #define DUMP_ARCH_S390	1
 #define HEADER_SIZE	4096
 
-/* dump header dumped according to s390 crash dump format */
+
 
 struct zcore_header {
 	u64 magic;
@@ -296,14 +278,7 @@ static struct zcore_header zcore_header = {
 #endif
 };
 
-/*
- * Copy lowcore info to buffer. Use map in order to copy only register parts.
- *
- * @buf:    User buffer
- * @sa:     Pointer to save area
- * @sa_off: Offset in save area to copy
- * @len:    Number of bytes to copy
- */
+
 static int copy_lc(void __user *buf, void *sa, int sa_off, int len)
 {
 	int i;
@@ -318,13 +293,7 @@ static int copy_lc(void __user *buf, void *sa, int sa_off, int len)
 	return 0;
 }
 
-/*
- * Copy lowcores info to memory, if necessary
- *
- * @buf:   User buffer
- * @addr:  Start address of buffer in dump memory
- * @count: Size of buffer
- */
+
 static int zcore_add_lc(char __user *buf, unsigned long start, size_t count)
 {
 	unsigned long end;
@@ -335,8 +304,8 @@ static int zcore_add_lc(char __user *buf, unsigned long start, size_t count)
 
 	end = start + count;
 	while (zfcpdump_save_areas[i]) {
-		unsigned long cp_start, cp_end; /* copy range */
-		unsigned long sa_start, sa_end; /* save area range */
+		unsigned long cp_start, cp_end; 
+		unsigned long sa_start, sa_end; 
 		unsigned long prefix;
 		unsigned long sa_off, len, buf_off;
 
@@ -366,18 +335,13 @@ next:
 	return 0;
 }
 
-/*
- * Read routine for zcore character device
- * First 4K are dump header
- * Next 32MB are HSA Memory
- * Rest is read from absolute Memory
- */
+
 static ssize_t zcore_read(struct file *file, char __user *buf, size_t count,
 			  loff_t *ppos)
 {
-	unsigned long mem_start; /* Start address in memory */
-	size_t mem_offs;	 /* Offset in dump memory */
-	size_t hdr_count;	 /* Size of header part of output buffer */
+	unsigned long mem_start; 
+	size_t mem_offs;	 
+	size_t hdr_count;	 
 	size_t size;
 	int rc;
 
@@ -390,7 +354,7 @@ static ssize_t zcore_read(struct file *file, char __user *buf, size_t count,
 
 	count = min(count, (size_t) (sys_info.mem_size + HEADER_SIZE - *ppos));
 
-	/* Copy dump header */
+	
 	if (*ppos < HEADER_SIZE) {
 		size = min(count, (size_t) (HEADER_SIZE - *ppos));
 		if (copy_to_user(buf, &zcore_header + *ppos, size)) {
@@ -406,7 +370,7 @@ static ssize_t zcore_read(struct file *file, char __user *buf, size_t count,
 
 	mem_offs = 0;
 
-	/* Copy from HSA data */
+	
 	if (*ppos < (ZFCPDUMP_HSA_SIZE + HEADER_SIZE)) {
 		size = min((count - hdr_count), (size_t) (ZFCPDUMP_HSA_SIZE
 			   - mem_start));
@@ -417,21 +381,14 @@ static ssize_t zcore_read(struct file *file, char __user *buf, size_t count,
 		mem_offs += size;
 	}
 
-	/* Copy from real mem */
+	
 	size = count - mem_offs - hdr_count;
 	rc = memcpy_real_user(buf + hdr_count + mem_offs, mem_start + mem_offs,
 			      size);
 	if (rc)
 		goto fail;
 
-	/*
-	 * Since s390 dump analysis tools like lcrash or crash
-	 * expect register sets in the prefix pages of the cpus,
-	 * we copy them into the read buffer, if necessary.
-	 * buf + hdr_count: Start of memory part of output buffer
-	 * mem_start: Start memory address to copy from
-	 * count - hdr_count: Size of memory area to copy
-	 */
+	
 	if (zcore_add_lc(buf + hdr_count, mem_start, count - hdr_count)) {
 		rc = -EFAULT;
 		goto fail;
@@ -589,9 +546,7 @@ static void __init set_s390x_lc_mask(union save_area *map)
 	memset(&map->s390x.ctrl_regs, 0xff, sizeof(map->s390x.ctrl_regs));
 }
 
-/*
- * Initialize dump globals for a given architecture
- */
+
 static int __init sys_info_init(enum arch_id arch)
 {
 	int rc;
@@ -679,10 +634,7 @@ static int __init zcore_header_init(int arch, struct zcore_header *hdr)
 	return 0;
 }
 
-/*
- * Provide IPL parameter information block from either HSA or memory
- * for future reipl
- */
+
 static int __init zcore_reipl_init(void)
 {
 	struct ipib_info ipib_info;

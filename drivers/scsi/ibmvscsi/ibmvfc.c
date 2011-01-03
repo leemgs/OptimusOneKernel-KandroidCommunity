@@ -1,25 +1,4 @@
-/*
- * ibmvfc.c -- driver for IBM Power Virtual Fibre Channel Adapter
- *
- * Written By: Brian King <brking@linux.vnet.ibm.com>, IBM Corporation
- *
- * Copyright (C) IBM Corporation, 2008
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -148,11 +127,7 @@ static void ibmvfc_npiv_logout(struct ibmvfc_host *);
 static const char *unknown_error = "unknown error";
 
 #ifdef CONFIG_SCSI_IBMVFC_TRACE
-/**
- * ibmvfc_trc_start - Log a start trace entry
- * @evt:		ibmvfc event struct
- *
- **/
+
 static void ibmvfc_trc_start(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -182,11 +157,7 @@ static void ibmvfc_trc_start(struct ibmvfc_event *evt)
 	};
 }
 
-/**
- * ibmvfc_trc_end - Log an end trace entry
- * @evt:		ibmvfc event struct
- *
- **/
+
 static void ibmvfc_trc_end(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -226,14 +197,7 @@ static void ibmvfc_trc_end(struct ibmvfc_event *evt)
 #define ibmvfc_trc_end(evt) do { } while (0)
 #endif
 
-/**
- * ibmvfc_get_err_index - Find the index into cmd_status for the fcp response
- * @status:		status / error class
- * @error:		error
- *
- * Return value:
- *	index into cmd_status / -EINVAL on failure
- **/
+
 static int ibmvfc_get_err_index(u16 status, u16 error)
 {
 	int i;
@@ -246,14 +210,7 @@ static int ibmvfc_get_err_index(u16 status, u16 error)
 	return -EINVAL;
 }
 
-/**
- * ibmvfc_get_cmd_error - Find the error description for the fcp response
- * @status:		status / error class
- * @error:		error
- *
- * Return value:
- *	error description string
- **/
+
 static const char *ibmvfc_get_cmd_error(u16 status, u16 error)
 {
 	int rc = ibmvfc_get_err_index(status, error);
@@ -262,13 +219,7 @@ static const char *ibmvfc_get_cmd_error(u16 status, u16 error)
 	return unknown_error;
 }
 
-/**
- * ibmvfc_get_err_result - Find the scsi status to return for the fcp response
- * @vfc_cmd:	ibmvfc command struct
- *
- * Return value:
- *	SCSI result value to return for completed command
- **/
+
 static int ibmvfc_get_err_result(struct ibmvfc_cmd *vfc_cmd)
 {
 	int err;
@@ -286,14 +237,7 @@ static int ibmvfc_get_err_result(struct ibmvfc_cmd *vfc_cmd)
 	return rsp->scsi_status | (DID_ERROR << 16);
 }
 
-/**
- * ibmvfc_retry_cmd - Determine if error status is retryable
- * @status:		status / error class
- * @error:		error
- *
- * Return value:
- *	1 if error should be retried / 0 if it should not
- **/
+
 static int ibmvfc_retry_cmd(u16 status, u16 error)
 {
 	int rc = ibmvfc_get_err_index(status, error);
@@ -351,13 +295,7 @@ static const struct {
 	{ 0xF6, "devices not in a common zone" },
 };
 
-/**
- * ibmvfc_get_ls_explain - Return the FC Explain description text
- * @status:	FC Explain status
- *
- * Returns:
- *	error string
- **/
+
 static const char *ibmvfc_get_ls_explain(u16 status)
 {
 	int i;
@@ -369,13 +307,7 @@ static const char *ibmvfc_get_ls_explain(u16 status)
 	return unknown_fc_explain;
 }
 
-/**
- * ibmvfc_get_gs_explain - Return the FC Explain description text
- * @status:	FC Explain status
- *
- * Returns:
- *	error string
- **/
+
 static const char *ibmvfc_get_gs_explain(u16 status)
 {
 	int i;
@@ -401,13 +333,7 @@ static const struct {
 
 static const char *unknown_fc_type = "unknown fc type";
 
-/**
- * ibmvfc_get_fc_type - Return the FC Type description text
- * @status:	FC Type error status
- *
- * Returns:
- *	error string
- **/
+
 static const char *ibmvfc_get_fc_type(u16 status)
 {
 	int i;
@@ -419,12 +345,7 @@ static const char *ibmvfc_get_fc_type(u16 status)
 	return unknown_fc_type;
 }
 
-/**
- * ibmvfc_set_tgt_action - Set the next init action for the target
- * @tgt:		ibmvfc target struct
- * @action:		action to perform
- *
- **/
+
 static void ibmvfc_set_tgt_action(struct ibmvfc_target *tgt,
 				  enum ibmvfc_target_action action)
 {
@@ -439,14 +360,7 @@ static void ibmvfc_set_tgt_action(struct ibmvfc_target *tgt,
 	}
 }
 
-/**
- * ibmvfc_set_host_state - Set the state for the host
- * @vhost:		ibmvfc host struct
- * @state:		state to set host to
- *
- * Returns:
- *	0 if state changed / non-zero if not changed
- **/
+
 static int ibmvfc_set_host_state(struct ibmvfc_host *vhost,
 				  enum ibmvfc_host_state state)
 {
@@ -464,12 +378,7 @@ static int ibmvfc_set_host_state(struct ibmvfc_host *vhost,
 	return rc;
 }
 
-/**
- * ibmvfc_set_host_action - Set the next init action for the host
- * @vhost:		ibmvfc host struct
- * @action:		action to perform
- *
- **/
+
 static void ibmvfc_set_host_action(struct ibmvfc_host *vhost,
 				   enum ibmvfc_host_action action)
 {
@@ -513,13 +422,7 @@ static void ibmvfc_set_host_action(struct ibmvfc_host *vhost,
 	};
 }
 
-/**
- * ibmvfc_reinit_host - Re-start host initialization (no NPIV Login)
- * @vhost:		ibmvfc host struct
- *
- * Return value:
- *	nothing
- **/
+
 static void ibmvfc_reinit_host(struct ibmvfc_host *vhost)
 {
 	if (vhost->action == IBMVFC_HOST_ACTION_NONE) {
@@ -533,12 +436,7 @@ static void ibmvfc_reinit_host(struct ibmvfc_host *vhost)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_link_down - Handle a link down event from the adapter
- * @vhost:	ibmvfc host struct
- * @state:	ibmvfc host state to enter
- *
- **/
+
 static void ibmvfc_link_down(struct ibmvfc_host *vhost,
 			     enum ibmvfc_host_state state)
 {
@@ -555,14 +453,7 @@ static void ibmvfc_link_down(struct ibmvfc_host *vhost,
 	LEAVE;
 }
 
-/**
- * ibmvfc_init_host - Start host initialization
- * @vhost:		ibmvfc host struct
- * @relogin:	is this a re-login?
- *
- * Return value:
- *	nothing
- **/
+
 static void ibmvfc_init_host(struct ibmvfc_host *vhost, int relogin)
 {
 	struct ibmvfc_target *tgt;
@@ -591,54 +482,28 @@ static void ibmvfc_init_host(struct ibmvfc_host *vhost, int relogin)
 	}
 }
 
-/**
- * ibmvfc_send_crq - Send a CRQ
- * @vhost:	ibmvfc host struct
- * @word1:	the first 64 bits of the data
- * @word2:	the second 64 bits of the data
- *
- * Return value:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_send_crq(struct ibmvfc_host *vhost, u64 word1, u64 word2)
 {
 	struct vio_dev *vdev = to_vio_dev(vhost->dev);
 	return plpar_hcall_norets(H_SEND_CRQ, vdev->unit_address, word1, word2);
 }
 
-/**
- * ibmvfc_send_crq_init - Send a CRQ init message
- * @vhost:	ibmvfc host struct
- *
- * Return value:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_send_crq_init(struct ibmvfc_host *vhost)
 {
 	ibmvfc_dbg(vhost, "Sending CRQ init\n");
 	return ibmvfc_send_crq(vhost, 0xC001000000000000LL, 0);
 }
 
-/**
- * ibmvfc_send_crq_init_complete - Send a CRQ init complete message
- * @vhost:	ibmvfc host struct
- *
- * Return value:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_send_crq_init_complete(struct ibmvfc_host *vhost)
 {
 	ibmvfc_dbg(vhost, "Sending CRQ init complete\n");
 	return ibmvfc_send_crq(vhost, 0xC002000000000000LL, 0);
 }
 
-/**
- * ibmvfc_release_crq_queue - Deallocates data and unregisters CRQ
- * @vhost:	ibmvfc host struct
- *
- * Frees irq, deallocates a page for messages, unmaps dma, and unregisters
- * the crq with the hypervisor.
- **/
+
 static void ibmvfc_release_crq_queue(struct ibmvfc_host *vhost)
 {
 	long rc;
@@ -658,19 +523,13 @@ static void ibmvfc_release_crq_queue(struct ibmvfc_host *vhost)
 	free_page((unsigned long)crq->msgs);
 }
 
-/**
- * ibmvfc_reenable_crq_queue - reenables the CRQ
- * @vhost:	ibmvfc host struct
- *
- * Return value:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_reenable_crq_queue(struct ibmvfc_host *vhost)
 {
 	int rc;
 	struct vio_dev *vdev = to_vio_dev(vhost->dev);
 
-	/* Re-enable the CRQ */
+	
 	do {
 		rc = plpar_hcall_norets(H_ENABLE_CRQ, vdev->unit_address);
 	} while (rc == H_IN_PROGRESS || rc == H_BUSY || H_IS_LONG_BUSY(rc));
@@ -681,20 +540,14 @@ static int ibmvfc_reenable_crq_queue(struct ibmvfc_host *vhost)
 	return rc;
 }
 
-/**
- * ibmvfc_reset_crq - resets a crq after a failure
- * @vhost:	ibmvfc host struct
- *
- * Return value:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_reset_crq(struct ibmvfc_host *vhost)
 {
 	int rc;
 	struct vio_dev *vdev = to_vio_dev(vhost->dev);
 	struct ibmvfc_crq_queue *crq = &vhost->crq;
 
-	/* Close the CRQ */
+	
 	do {
 		rc = plpar_hcall_norets(H_FREE_CRQ, vdev->unit_address);
 	} while (rc == H_BUSY || H_IS_LONG_BUSY(rc));
@@ -703,16 +556,16 @@ static int ibmvfc_reset_crq(struct ibmvfc_host *vhost)
 	vhost->logged_in = 0;
 	ibmvfc_set_host_action(vhost, IBMVFC_HOST_ACTION_NONE);
 
-	/* Clean out the queue */
+	
 	memset(crq->msgs, 0, PAGE_SIZE);
 	crq->cur = 0;
 
-	/* And re-open it again */
+	
 	rc = plpar_hcall_norets(H_REG_CRQ, vdev->unit_address,
 				crq->msg_token, PAGE_SIZE);
 
 	if (rc == H_CLOSED)
-		/* Adapter is good, but other end is not ready */
+		
 		dev_warn(vhost->dev, "Partner adapter not ready\n");
 	else if (rc != 0)
 		dev_warn(vhost->dev, "Couldn't register crq (rc=%d)\n", rc);
@@ -720,30 +573,19 @@ static int ibmvfc_reset_crq(struct ibmvfc_host *vhost)
 	return rc;
 }
 
-/**
- * ibmvfc_valid_event - Determines if event is valid.
- * @pool:	event_pool that contains the event
- * @evt:	ibmvfc event to be checked for validity
- *
- * Return value:
- *	1 if event is valid / 0 if event is not valid
- **/
+
 static int ibmvfc_valid_event(struct ibmvfc_event_pool *pool,
 			      struct ibmvfc_event *evt)
 {
 	int index = evt - pool->events;
-	if (index < 0 || index >= pool->size)	/* outside of bounds */
+	if (index < 0 || index >= pool->size)	
 		return 0;
-	if (evt != pool->events + index)	/* unaligned */
+	if (evt != pool->events + index)	
 		return 0;
 	return 1;
 }
 
-/**
- * ibmvfc_free_event - Free the specified event
- * @evt:	ibmvfc_event to be freed
- *
- **/
+
 static void ibmvfc_free_event(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -754,13 +596,7 @@ static void ibmvfc_free_event(struct ibmvfc_event *evt)
 	list_add_tail(&evt->queue, &vhost->free);
 }
 
-/**
- * ibmvfc_scsi_eh_done - EH done function for queuecommand commands
- * @evt:	ibmvfc event struct
- *
- * This function does not setup any error status, that must be done
- * before this function gets called.
- **/
+
 static void ibmvfc_scsi_eh_done(struct ibmvfc_event *evt)
 {
 	struct scsi_cmnd *cmnd = evt->cmnd;
@@ -776,14 +612,7 @@ static void ibmvfc_scsi_eh_done(struct ibmvfc_event *evt)
 	ibmvfc_free_event(evt);
 }
 
-/**
- * ibmvfc_fail_request - Fail request with specified error code
- * @evt:		ibmvfc event struct
- * @error_code:	error code to fail request with
- *
- * Return value:
- *	none
- **/
+
 static void ibmvfc_fail_request(struct ibmvfc_event *evt, int error_code)
 {
 	if (evt->cmnd) {
@@ -798,14 +627,7 @@ static void ibmvfc_fail_request(struct ibmvfc_event *evt, int error_code)
 	evt->done(evt);
 }
 
-/**
- * ibmvfc_purge_requests - Our virtual adapter just shut down. Purge any sent requests
- * @vhost:		ibmvfc host struct
- * @error_code:	error code to fail requests with
- *
- * Return value:
- *	none
- **/
+
 static void ibmvfc_purge_requests(struct ibmvfc_host *vhost, int error_code)
 {
 	struct ibmvfc_event *evt, *pos;
@@ -815,10 +637,7 @@ static void ibmvfc_purge_requests(struct ibmvfc_host *vhost, int error_code)
 		ibmvfc_fail_request(evt, error_code);
 }
 
-/**
- * ibmvfc_hard_reset_host - Reset the connection to the server by breaking the CRQ
- * @vhost:	struct ibmvfc host to reset
- **/
+
 static void ibmvfc_hard_reset_host(struct ibmvfc_host *vhost)
 {
 	int rc;
@@ -834,10 +653,7 @@ static void ibmvfc_hard_reset_host(struct ibmvfc_host *vhost)
 		ibmvfc_link_down(vhost, IBMVFC_LINK_DOWN);
 }
 
-/**
- * __ibmvfc_reset_host - Reset the connection to the server (no locking)
- * @vhost:	struct ibmvfc host to reset
- **/
+
 static void __ibmvfc_reset_host(struct ibmvfc_host *vhost)
 {
 	if (vhost->logged_in && vhost->action != IBMVFC_HOST_ACTION_LOGO_WAIT &&
@@ -850,10 +666,7 @@ static void __ibmvfc_reset_host(struct ibmvfc_host *vhost)
 		ibmvfc_hard_reset_host(vhost);
 }
 
-/**
- * ibmvfc_reset_host - Reset the connection to the server
- * @vhost:	ibmvfc host struct
- **/
+
 static void ibmvfc_reset_host(struct ibmvfc_host *vhost)
 {
 	unsigned long flags;
@@ -863,13 +676,7 @@ static void ibmvfc_reset_host(struct ibmvfc_host *vhost)
 	spin_unlock_irqrestore(vhost->host->host_lock, flags);
 }
 
-/**
- * ibmvfc_retry_host_init - Retry host initialization if allowed
- * @vhost:	ibmvfc host struct
- *
- * Returns: 1 if init will be retried / 0 if not
- *
- **/
+
 static int ibmvfc_retry_host_init(struct ibmvfc_host *vhost)
 {
 	int retry = 0;
@@ -892,13 +699,7 @@ static int ibmvfc_retry_host_init(struct ibmvfc_host *vhost)
 	return retry;
 }
 
-/**
- * __ibmvfc_get_target - Find the specified scsi_target (no locking)
- * @starget:	scsi target struct
- *
- * Return value:
- *	ibmvfc_target struct / NULL if not found
- **/
+
 static struct ibmvfc_target *__ibmvfc_get_target(struct scsi_target *starget)
 {
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
@@ -913,13 +714,7 @@ static struct ibmvfc_target *__ibmvfc_get_target(struct scsi_target *starget)
 	return NULL;
 }
 
-/**
- * ibmvfc_get_target - Find the specified scsi_target
- * @starget:	scsi target struct
- *
- * Return value:
- *	ibmvfc_target struct / NULL if not found
- **/
+
 static struct ibmvfc_target *ibmvfc_get_target(struct scsi_target *starget)
 {
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
@@ -932,13 +727,7 @@ static struct ibmvfc_target *ibmvfc_get_target(struct scsi_target *starget)
 	return tgt;
 }
 
-/**
- * ibmvfc_get_host_speed - Get host port speed
- * @shost:		scsi host struct
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_get_host_speed(struct Scsi_Host *shost)
 {
 	struct ibmvfc_host *vhost = shost_priv(shost);
@@ -976,13 +765,7 @@ static void ibmvfc_get_host_speed(struct Scsi_Host *shost)
 	spin_unlock_irqrestore(shost->host_lock, flags);
 }
 
-/**
- * ibmvfc_get_host_port_state - Get host port state
- * @shost:		scsi host struct
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_get_host_port_state(struct Scsi_Host *shost)
 {
 	struct ibmvfc_host *vhost = shost_priv(shost);
@@ -1015,14 +798,7 @@ static void ibmvfc_get_host_port_state(struct Scsi_Host *shost)
 	spin_unlock_irqrestore(shost->host_lock, flags);
 }
 
-/**
- * ibmvfc_set_rport_dev_loss_tmo - Set rport's device loss timeout
- * @rport:		rport struct
- * @timeout:	timeout value
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_set_rport_dev_loss_tmo(struct fc_rport *rport, u32 timeout)
 {
 	if (timeout)
@@ -1031,24 +807,14 @@ static void ibmvfc_set_rport_dev_loss_tmo(struct fc_rport *rport, u32 timeout)
 		rport->dev_loss_tmo = 1;
 }
 
-/**
- * ibmvfc_release_tgt - Free memory allocated for a target
- * @kref:		kref struct
- *
- **/
+
 static void ibmvfc_release_tgt(struct kref *kref)
 {
 	struct ibmvfc_target *tgt = container_of(kref, struct ibmvfc_target, kref);
 	kfree(tgt);
 }
 
-/**
- * ibmvfc_get_starget_node_name - Get SCSI target's node name
- * @starget:	scsi target struct
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_get_starget_node_name(struct scsi_target *starget)
 {
 	struct ibmvfc_target *tgt = ibmvfc_get_target(starget);
@@ -1057,13 +823,7 @@ static void ibmvfc_get_starget_node_name(struct scsi_target *starget)
 		kref_put(&tgt->kref, ibmvfc_release_tgt);
 }
 
-/**
- * ibmvfc_get_starget_port_name - Get SCSI target's port name
- * @starget:	scsi target struct
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_get_starget_port_name(struct scsi_target *starget)
 {
 	struct ibmvfc_target *tgt = ibmvfc_get_target(starget);
@@ -1072,13 +832,7 @@ static void ibmvfc_get_starget_port_name(struct scsi_target *starget)
 		kref_put(&tgt->kref, ibmvfc_release_tgt);
 }
 
-/**
- * ibmvfc_get_starget_port_id - Get SCSI target's port ID
- * @starget:	scsi target struct
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_get_starget_port_id(struct scsi_target *starget)
 {
 	struct ibmvfc_target *tgt = ibmvfc_get_target(starget);
@@ -1087,13 +841,7 @@ static void ibmvfc_get_starget_port_id(struct scsi_target *starget)
 		kref_put(&tgt->kref, ibmvfc_release_tgt);
 }
 
-/**
- * ibmvfc_wait_while_resetting - Wait while the host resets
- * @vhost:		ibmvfc host struct
- *
- * Return value:
- * 	0 on success / other on failure
- **/
+
 static int ibmvfc_wait_while_resetting(struct ibmvfc_host *vhost)
 {
 	long timeout = wait_event_timeout(vhost->init_wait_q,
@@ -1106,13 +854,7 @@ static int ibmvfc_wait_while_resetting(struct ibmvfc_host *vhost)
 	return timeout ? 0 : -EIO;
 }
 
-/**
- * ibmvfc_issue_fc_host_lip - Re-initiate link initialization
- * @shost:		scsi host struct
- *
- * Return value:
- * 	0 on success / other on failure
- **/
+
 static int ibmvfc_issue_fc_host_lip(struct Scsi_Host *shost)
 {
 	struct ibmvfc_host *vhost = shost_priv(shost);
@@ -1122,12 +864,7 @@ static int ibmvfc_issue_fc_host_lip(struct Scsi_Host *shost)
 	return ibmvfc_wait_while_resetting(vhost);
 }
 
-/**
- * ibmvfc_gather_partition_info - Gather info about the LPAR
- *
- * Return value:
- *	none
- **/
+
 static void ibmvfc_gather_partition_info(struct ibmvfc_host *vhost)
 {
 	struct device_node *rootdn;
@@ -1147,13 +884,7 @@ static void ibmvfc_gather_partition_info(struct ibmvfc_host *vhost)
 	of_node_put(rootdn);
 }
 
-/**
- * ibmvfc_set_login_info - Setup info for NPIV login
- * @vhost:	ibmvfc host struct
- *
- * Return value:
- *	none
- **/
+
 static void ibmvfc_set_login_info(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_npiv_login *login_info = &vhost->login_info;
@@ -1186,12 +917,7 @@ static void ibmvfc_set_login_info(struct ibmvfc_host *vhost)
 	strncpy(login_info->drc_name, location, IBMVFC_MAX_NAME);
 }
 
-/**
- * ibmvfc_init_event_pool - Allocates and initializes the event pool for a host
- * @vhost:	ibmvfc host who owns the event pool
- *
- * Returns zero on success.
- **/
+
 static int ibmvfc_init_event_pool(struct ibmvfc_host *vhost)
 {
 	int i;
@@ -1227,11 +953,7 @@ static int ibmvfc_init_event_pool(struct ibmvfc_host *vhost)
 	return 0;
 }
 
-/**
- * ibmvfc_free_event_pool - Frees memory of the event pool of a host
- * @vhost:	ibmvfc host who owns the event pool
- *
- **/
+
 static void ibmvfc_free_event_pool(struct ibmvfc_host *vhost)
 {
 	int i;
@@ -1254,12 +976,7 @@ static void ibmvfc_free_event_pool(struct ibmvfc_host *vhost)
 	LEAVE;
 }
 
-/**
- * ibmvfc_get_event - Gets the next free event in pool
- * @vhost:	ibmvfc host struct
- *
- * Returns a free event from the pool.
- **/
+
 static struct ibmvfc_event *ibmvfc_get_event(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_event *evt;
@@ -1271,13 +988,7 @@ static struct ibmvfc_event *ibmvfc_get_event(struct ibmvfc_host *vhost)
 	return evt;
 }
 
-/**
- * ibmvfc_init_event - Initialize fields in an event struct that are always
- *				required.
- * @evt:	The event
- * @done:	Routine to call when the event is responded to
- * @format:	SRP or MAD format
- **/
+
 static void ibmvfc_init_event(struct ibmvfc_event *evt,
 			      void (*done) (struct ibmvfc_event *), u8 format)
 {
@@ -1288,12 +999,7 @@ static void ibmvfc_init_event(struct ibmvfc_event *evt,
 	evt->eh_comp = NULL;
 }
 
-/**
- * ibmvfc_map_sg_list - Initialize scatterlist
- * @scmd:	scsi command struct
- * @nseg:	number of scatterlist segments
- * @md:	memory descriptor list to initialize
- **/
+
 static void ibmvfc_map_sg_list(struct scsi_cmnd *scmd, int nseg,
 			       struct srp_direct_buf *md)
 {
@@ -1307,16 +1013,7 @@ static void ibmvfc_map_sg_list(struct scsi_cmnd *scmd, int nseg,
 	}
 }
 
-/**
- * ibmvfc_map_sg_data - Maps dma for a scatterlist and initializes decriptor fields
- * @scmd:		Scsi_Cmnd with the scatterlist
- * @evt:		ibmvfc event struct
- * @vfc_cmd:	vfc_cmd that contains the memory descriptor
- * @dev:		device for which to map dma memory
- *
- * Returns:
- *	0 on success / non-zero on failure
- **/
+
 static int ibmvfc_map_sg_data(struct scsi_cmnd *scmd,
 			      struct ibmvfc_event *evt,
 			      struct ibmvfc_cmd *vfc_cmd, struct device *dev)
@@ -1371,12 +1068,7 @@ static int ibmvfc_map_sg_data(struct scsi_cmnd *scmd,
 	return 0;
 }
 
-/**
- * ibmvfc_timeout - Internal command timeout handler
- * @evt:	struct ibmvfc_event that timed out
- *
- * Called when an internally generated command times out
- **/
+
 static void ibmvfc_timeout(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -1384,21 +1076,14 @@ static void ibmvfc_timeout(struct ibmvfc_event *evt)
 	ibmvfc_reset_host(vhost);
 }
 
-/**
- * ibmvfc_send_event - Transforms event to u64 array and calls send_crq()
- * @evt:		event to be sent
- * @vhost:		ibmvfc host struct
- * @timeout:	timeout in seconds - 0 means do not time command
- *
- * Returns the value returned from ibmvfc_send_crq(). (Zero for success)
- **/
+
 static int ibmvfc_send_event(struct ibmvfc_event *evt,
 			     struct ibmvfc_host *vhost, unsigned long timeout)
 {
 	u64 *crq_as_u64 = (u64 *) &evt->crq;
 	int rc;
 
-	/* Copy the IU into the transfer area */
+	
 	*evt->xfer_iu = evt->iu;
 	if (evt->crq.format == IBMVFC_CMD_FORMAT)
 		evt->xfer_iu->cmd.tag = (u64)evt;
@@ -1423,11 +1108,7 @@ static int ibmvfc_send_event(struct ibmvfc_event *evt,
 		list_del(&evt->queue);
 		del_timer(&evt->timer);
 
-		/* If send_crq returns H_CLOSED, return SCSI_MLQUEUE_HOST_BUSY.
-		 * Firmware will send a CRQ with a transport event (0xFF) to
-		 * tell this client what has happened to the transport. This
-		 * will be handled in ibmvfc_handle_crq()
-		 */
+		
 		if (rc == H_CLOSED) {
 			if (printk_ratelimit())
 				dev_warn(vhost->dev, "Send warning. Receive queue closed, will retry.\n");
@@ -1451,11 +1132,7 @@ static int ibmvfc_send_event(struct ibmvfc_event *evt,
 	return 0;
 }
 
-/**
- * ibmvfc_log_error - Log an error for the failed command if appropriate
- * @evt:	ibmvfc event to log
- *
- **/
+
 static void ibmvfc_log_error(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_cmd *vfc_cmd = &evt->xfer_iu->cmd;
@@ -1484,11 +1161,7 @@ static void ibmvfc_log_error(struct ibmvfc_event *evt)
 		    rsp->flags, rsp_code, scsi_get_resid(cmnd), rsp->scsi_status);
 }
 
-/**
- * ibmvfc_relogin - Log back into the specified device
- * @sdev:	scsi device struct
- *
- **/
+
 static void ibmvfc_relogin(struct scsi_device *sdev)
 {
 	struct ibmvfc_host *vhost = shost_priv(sdev->host);
@@ -1505,12 +1178,7 @@ static void ibmvfc_relogin(struct scsi_device *sdev)
 	ibmvfc_reinit_host(vhost);
 }
 
-/**
- * ibmvfc_scsi_done - Handle responses from commands
- * @evt:	ibmvfc event to be handled
- *
- * Used as a callback when sending scsi cmds.
- **/
+
 static void ibmvfc_scsi_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_cmd *vfc_cmd = &evt->xfer_iu->cmd;
@@ -1559,13 +1227,7 @@ static void ibmvfc_scsi_done(struct ibmvfc_event *evt)
 	ibmvfc_free_event(evt);
 }
 
-/**
- * ibmvfc_host_chkready - Check if the host can accept commands
- * @vhost:	 struct ibmvfc host
- *
- * Returns:
- *	1 if host can accept command / 0 if not
- **/
+
 static inline int ibmvfc_host_chkready(struct ibmvfc_host *vhost)
 {
 	int result = 0;
@@ -1589,14 +1251,7 @@ static inline int ibmvfc_host_chkready(struct ibmvfc_host *vhost)
 	return result;
 }
 
-/**
- * ibmvfc_queuecommand - The queuecommand function of the scsi template
- * @cmnd:	struct scsi_cmnd to be executed
- * @done:	Callback function to be called when cmnd is completed
- *
- * Returns:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_queuecommand(struct scsi_cmnd *cmnd,
 			       void (*done) (struct scsi_cmnd *))
 {
@@ -1663,29 +1318,17 @@ static int ibmvfc_queuecommand(struct scsi_cmnd *cmnd,
 	return 0;
 }
 
-/**
- * ibmvfc_sync_completion - Signal that a synchronous command has completed
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_sync_completion(struct ibmvfc_event *evt)
 {
-	/* copy the response back */
+	
 	if (evt->sync_iu)
 		*evt->sync_iu = *evt->xfer_iu;
 
 	complete(&evt->comp);
 }
 
-/**
- * ibmvfc_reset_device - Reset the device with the specified reset type
- * @sdev:	scsi device to reset
- * @type:	reset type
- * @desc:	reset type description for log messages
- *
- * Returns:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_reset_device(struct scsi_device *sdev, int type, char *desc)
 {
 	struct ibmvfc_host *vhost = shost_priv(sdev->host);
@@ -1750,16 +1393,7 @@ static int ibmvfc_reset_device(struct scsi_device *sdev, int type, char *desc)
 	return rsp_rc;
 }
 
-/**
- * ibmvfc_abort_task_set - Abort outstanding commands to the device
- * @sdev:	scsi device to abort commands
- *
- * This sends an Abort Task Set to the VIOS for the specified device. This does
- * NOT send any cancel to the VIOS. That must be done separately.
- *
- * Returns:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_abort_task_set(struct scsi_device *sdev)
 {
 	struct ibmvfc_host *vhost = shost_priv(sdev->host);
@@ -1839,17 +1473,7 @@ static int ibmvfc_abort_task_set(struct scsi_device *sdev)
 	return rsp_rc;
 }
 
-/**
- * ibmvfc_cancel_all - Cancel all outstanding commands to the device
- * @sdev:	scsi device to cancel commands
- * @type:	type of error recovery being performed
- *
- * This sends a cancel to the VIOS for the specified device. This does
- * NOT send any abort to the actual device. That must be done separately.
- *
- * Returns:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_cancel_all(struct scsi_device *sdev, int type)
 {
 	struct ibmvfc_host *vhost = shost_priv(sdev->host);
@@ -1923,14 +1547,7 @@ static int ibmvfc_cancel_all(struct scsi_device *sdev, int type)
 	return 0;
 }
 
-/**
- * ibmvfc_match_target - Match function for specified target
- * @evt:	ibmvfc event struct
- * @device:	device to match (starget)
- *
- * Returns:
- *	1 if event matches starget / 0 if event does not match starget
- **/
+
 static int ibmvfc_match_target(struct ibmvfc_event *evt, void *device)
 {
 	if (evt->cmnd && scsi_target(evt->cmnd->device) == device)
@@ -1938,14 +1555,7 @@ static int ibmvfc_match_target(struct ibmvfc_event *evt, void *device)
 	return 0;
 }
 
-/**
- * ibmvfc_match_lun - Match function for specified LUN
- * @evt:	ibmvfc event struct
- * @device:	device to match (sdev)
- *
- * Returns:
- *	1 if event matches sdev / 0 if event does not match sdev
- **/
+
 static int ibmvfc_match_lun(struct ibmvfc_event *evt, void *device)
 {
 	if (evt->cmnd && evt->cmnd->device == device)
@@ -1953,15 +1563,7 @@ static int ibmvfc_match_lun(struct ibmvfc_event *evt, void *device)
 	return 0;
 }
 
-/**
- * ibmvfc_wait_for_ops - Wait for ops to complete
- * @vhost:	ibmvfc host struct
- * @device:	device to match (starget or sdev)
- * @match:	match function
- *
- * Returns:
- *	SUCCESS / FAILED
- **/
+
 static int ibmvfc_wait_for_ops(struct ibmvfc_host *vhost, void *device,
 			       int (*match) (struct ibmvfc_event *, void *))
 {
@@ -2008,13 +1610,7 @@ static int ibmvfc_wait_for_ops(struct ibmvfc_host *vhost, void *device,
 	return SUCCESS;
 }
 
-/**
- * ibmvfc_eh_abort_handler - Abort a command
- * @cmd:	scsi command to abort
- *
- * Returns:
- *	SUCCESS / FAILED
- **/
+
 static int ibmvfc_eh_abort_handler(struct scsi_cmnd *cmd)
 {
 	struct scsi_device *sdev = cmd->device;
@@ -2034,13 +1630,7 @@ static int ibmvfc_eh_abort_handler(struct scsi_cmnd *cmd)
 	return rc;
 }
 
-/**
- * ibmvfc_eh_device_reset_handler - Reset a single LUN
- * @cmd:	scsi command struct
- *
- * Returns:
- *	SUCCESS / FAILED
- **/
+
 static int ibmvfc_eh_device_reset_handler(struct scsi_cmnd *cmd)
 {
 	struct scsi_device *sdev = cmd->device;
@@ -2060,37 +1650,21 @@ static int ibmvfc_eh_device_reset_handler(struct scsi_cmnd *cmd)
 	return rc;
 }
 
-/**
- * ibmvfc_dev_cancel_all - Device iterated cancel all function
- * @sdev:	scsi device struct
- * @data:	return code
- *
- **/
+
 static void ibmvfc_dev_cancel_all(struct scsi_device *sdev, void *data)
 {
 	unsigned long *rc = data;
 	*rc |= ibmvfc_cancel_all(sdev, IBMVFC_TMF_TGT_RESET);
 }
 
-/**
- * ibmvfc_dev_abort_all - Device iterated abort task set function
- * @sdev:	scsi device struct
- * @data:	return code
- *
- **/
+
 static void ibmvfc_dev_abort_all(struct scsi_device *sdev, void *data)
 {
 	unsigned long *rc = data;
 	*rc |= ibmvfc_abort_task_set(sdev);
 }
 
-/**
- * ibmvfc_eh_target_reset_handler - Reset the target
- * @cmd:	scsi command struct
- *
- * Returns:
- *	SUCCESS / FAILED
- **/
+
 static int ibmvfc_eh_target_reset_handler(struct scsi_cmnd *cmd)
 {
 	struct scsi_device *sdev = cmd->device;
@@ -2112,11 +1686,7 @@ static int ibmvfc_eh_target_reset_handler(struct scsi_cmnd *cmd)
 	return rc;
 }
 
-/**
- * ibmvfc_eh_host_reset_handler - Reset the connection to the server
- * @cmd:	struct scsi_cmnd having problems
- *
- **/
+
 static int ibmvfc_eh_host_reset_handler(struct scsi_cmnd *cmd)
 {
 	int rc;
@@ -2127,13 +1697,7 @@ static int ibmvfc_eh_host_reset_handler(struct scsi_cmnd *cmd)
 	return rc ? FAILED : SUCCESS;
 }
 
-/**
- * ibmvfc_terminate_rport_io - Terminate all pending I/O to the rport.
- * @rport:		rport struct
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_terminate_rport_io(struct fc_rport *rport)
 {
 	struct scsi_target *starget = to_scsi_target(&rport->dev);
@@ -2176,11 +1740,7 @@ static const struct {
 
 static const char *unknown_ae = "Unknown async";
 
-/**
- * ibmvfc_get_ae_desc - Get text description for async event
- * @ae:	async event
- *
- **/
+
 static const char *ibmvfc_get_ae_desc(u64 ae)
 {
 	int i;
@@ -2192,12 +1752,7 @@ static const char *ibmvfc_get_ae_desc(u64 ae)
 	return unknown_ae;
 }
 
-/**
- * ibmvfc_handle_async - Handle an async event from the adapter
- * @crq:	crq to process
- * @vhost:	ibmvfc host struct
- *
- **/
+
 static void ibmvfc_handle_async(struct ibmvfc_async_crq *crq,
 				struct ibmvfc_host *vhost)
 {
@@ -2278,12 +1833,7 @@ static void ibmvfc_handle_async(struct ibmvfc_async_crq *crq,
 	};
 }
 
-/**
- * ibmvfc_handle_crq - Handles and frees received events in the CRQ
- * @crq:	Command/Response queue
- * @vhost:	ibmvfc host struct
- *
- **/
+
 static void ibmvfc_handle_crq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost)
 {
 	long rc;
@@ -2294,7 +1844,7 @@ static void ibmvfc_handle_crq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost)
 		switch (crq->format) {
 		case IBMVFC_CRQ_INIT:
 			dev_info(vhost->dev, "Partner initialized\n");
-			/* Send back a response */
+			
 			rc = ibmvfc_send_crq_init_complete(vhost);
 			if (rc == 0)
 				ibmvfc_init_host(vhost, 0);
@@ -2314,7 +1864,7 @@ static void ibmvfc_handle_crq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost)
 		vhost->logged_in = 0;
 		ibmvfc_set_host_action(vhost, IBMVFC_HOST_ACTION_NONE);
 		if (crq->format == IBMVFC_PARTITION_MIGRATED) {
-			/* We need to re-setup the interpartition connection */
+			
 			dev_info(vhost->dev, "Re-enabling adapter\n");
 			vhost->client_migrated = 1;
 			ibmvfc_purge_requests(vhost, DID_REQUEUE);
@@ -2346,10 +1896,7 @@ static void ibmvfc_handle_crq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost)
 	if (crq->format == IBMVFC_ASYNC_EVENT)
 		return;
 
-	/* The only kind of payload CRQs we should get are responses to
-	 * things we send. Make sure this response is to something we
-	 * actually sent
-	 */
+	
 	if (unlikely(!ibmvfc_valid_event(&vhost->pool, evt))) {
 		dev_err(vhost->dev, "Returned correlation_token 0x%08llx is invalid!\n",
 			crq->ioba);
@@ -2368,14 +1915,7 @@ static void ibmvfc_handle_crq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost)
 	evt->done(evt);
 }
 
-/**
- * ibmvfc_scan_finished - Check if the device scan is done.
- * @shost:	scsi host struct
- * @time:	current elapsed time
- *
- * Returns:
- *	0 if scan is not done / 1 if scan is done
- **/
+
 static int ibmvfc_scan_finished(struct Scsi_Host *shost, unsigned long time)
 {
 	unsigned long flags;
@@ -2395,16 +1935,7 @@ static int ibmvfc_scan_finished(struct Scsi_Host *shost, unsigned long time)
 	return done;
 }
 
-/**
- * ibmvfc_slave_alloc - Setup the device's task set value
- * @sdev:	struct scsi_device device to configure
- *
- * Set the device's task set value so that error handling works as
- * expected.
- *
- * Returns:
- *	0 on success / -ENXIO if device does not exist
- **/
+
 static int ibmvfc_slave_alloc(struct scsi_device *sdev)
 {
 	struct Scsi_Host *shost = sdev->host;
@@ -2421,16 +1952,7 @@ static int ibmvfc_slave_alloc(struct scsi_device *sdev)
 	return 0;
 }
 
-/**
- * ibmvfc_target_alloc - Setup the target's task set value
- * @starget:	struct scsi_target
- *
- * Set the target's task set value so that error handling works as
- * expected.
- *
- * Returns:
- *	0 on success / -ENXIO if device does not exist
- **/
+
 static int ibmvfc_target_alloc(struct scsi_target *starget)
 {
 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
@@ -2443,16 +1965,7 @@ static int ibmvfc_target_alloc(struct scsi_target *starget)
 	return 0;
 }
 
-/**
- * ibmvfc_slave_configure - Configure the device
- * @sdev:	struct scsi_device device to configure
- *
- * Enable allow_restart for a device if it is a disk. Adjust the
- * queue_depth here also.
- *
- * Returns:
- *	0
- **/
+
 static int ibmvfc_slave_configure(struct scsi_device *sdev)
 {
 	struct Scsi_Host *shost = sdev->host;
@@ -2474,14 +1987,7 @@ static int ibmvfc_slave_configure(struct scsi_device *sdev)
 	return 0;
 }
 
-/**
- * ibmvfc_change_queue_depth - Change the device's queue depth
- * @sdev:	scsi device struct
- * @qdepth:	depth to set
- *
- * Return value:
- * 	actual depth set
- **/
+
 static int ibmvfc_change_queue_depth(struct scsi_device *sdev, int qdepth)
 {
 	if (qdepth > IBMVFC_MAX_CMDS_PER_LUN)
@@ -2491,14 +1997,7 @@ static int ibmvfc_change_queue_depth(struct scsi_device *sdev, int qdepth)
 	return sdev->queue_depth;
 }
 
-/**
- * ibmvfc_change_queue_type - Change the device's queue type
- * @sdev:		scsi device struct
- * @tag_type:	type of tags to use
- *
- * Return value:
- * 	actual queue type set
- **/
+
 static int ibmvfc_change_queue_type(struct scsi_device *sdev, int tag_type)
 {
 	if (sdev->tagged_supported) {
@@ -2570,14 +2069,7 @@ static ssize_t ibmvfc_show_host_capabilities(struct device *dev,
 	return snprintf(buf, PAGE_SIZE, "%llx\n", vhost->login_buf->resp.capabilities);
 }
 
-/**
- * ibmvfc_show_log_level - Show the adapter's error logging level
- * @dev:	class device struct
- * @buf:	buffer
- *
- * Return value:
- * 	number of bytes printed to buffer
- **/
+
 static ssize_t ibmvfc_show_log_level(struct device *dev,
 				     struct device_attribute *attr, char *buf)
 {
@@ -2592,14 +2084,7 @@ static ssize_t ibmvfc_show_log_level(struct device *dev,
 	return len;
 }
 
-/**
- * ibmvfc_store_log_level - Change the adapter's error logging level
- * @dev:	class device struct
- * @buf:	buffer
- *
- * Return value:
- * 	number of bytes printed to buffer
- **/
+
 static ssize_t ibmvfc_store_log_level(struct device *dev,
 				      struct device_attribute *attr,
 				      const char *buf, size_t count)
@@ -2624,17 +2109,7 @@ static DEVICE_ATTR(log_level, S_IRUGO | S_IWUSR,
 		   ibmvfc_show_log_level, ibmvfc_store_log_level);
 
 #ifdef CONFIG_SCSI_IBMVFC_TRACE
-/**
- * ibmvfc_read_trace - Dump the adapter trace
- * @kobj:		kobject struct
- * @bin_attr:	bin_attribute struct
- * @buf:		buffer
- * @off:		offset
- * @count:		buffer size
- *
- * Return value:
- *	number of bytes printed to buffer
- **/
+
 static ssize_t ibmvfc_read_trace(struct kobject *kobj,
 				 struct bin_attribute *bin_attr,
 				 char *buf, loff_t off, size_t count)
@@ -2704,13 +2179,7 @@ static struct scsi_host_template driver_template = {
 	.shost_attrs = ibmvfc_attrs,
 };
 
-/**
- * ibmvfc_next_async_crq - Returns the next entry in async queue
- * @vhost:	ibmvfc host struct
- *
- * Returns:
- *	Pointer to next entry in queue / NULL if empty
- **/
+
 static struct ibmvfc_async_crq *ibmvfc_next_async_crq(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_async_crq_queue *async_crq = &vhost->async_crq;
@@ -2726,13 +2195,7 @@ static struct ibmvfc_async_crq *ibmvfc_next_async_crq(struct ibmvfc_host *vhost)
 	return crq;
 }
 
-/**
- * ibmvfc_next_crq - Returns the next entry in message queue
- * @vhost:	ibmvfc host struct
- *
- * Returns:
- *	Pointer to next entry in queue / NULL if empty
- **/
+
 static struct ibmvfc_crq *ibmvfc_next_crq(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_crq_queue *queue = &vhost->crq;
@@ -2748,14 +2211,7 @@ static struct ibmvfc_crq *ibmvfc_next_crq(struct ibmvfc_host *vhost)
 	return crq;
 }
 
-/**
- * ibmvfc_interrupt - Interrupt handler
- * @irq:		number of irq to handle, not used
- * @dev_instance: ibmvfc_host that received interrupt
- *
- * Returns:
- *	IRQ_HANDLED
- **/
+
 static irqreturn_t ibmvfc_interrupt(int irq, void *dev_instance)
 {
 	struct ibmvfc_host *vhost = (struct ibmvfc_host *)dev_instance;
@@ -2768,13 +2224,7 @@ static irqreturn_t ibmvfc_interrupt(int irq, void *dev_instance)
 	return IRQ_HANDLED;
 }
 
-/**
- * ibmvfc_tasklet - Interrupt handler tasklet
- * @data:		ibmvfc host struct
- *
- * Returns:
- *	Nothing
- **/
+
 static void ibmvfc_tasklet(void *data)
 {
 	struct ibmvfc_host *vhost = data;
@@ -2786,13 +2236,13 @@ static void ibmvfc_tasklet(void *data)
 
 	spin_lock_irqsave(vhost->host->host_lock, flags);
 	while (!done) {
-		/* Pull all the valid messages off the async CRQ */
+		
 		while ((async = ibmvfc_next_async_crq(vhost)) != NULL) {
 			ibmvfc_handle_async(async, vhost);
 			async->valid = 0;
 		}
 
-		/* Pull all the valid messages off the CRQ */
+		
 		while ((crq = ibmvfc_next_crq(vhost)) != NULL) {
 			ibmvfc_handle_crq(crq, vhost);
 			crq->valid = 0;
@@ -2814,12 +2264,7 @@ static void ibmvfc_tasklet(void *data)
 	spin_unlock_irqrestore(vhost->host->host_lock, flags);
 }
 
-/**
- * ibmvfc_init_tgt - Set the next init job step for the target
- * @tgt:		ibmvfc target struct
- * @job_step:	job step to perform
- *
- **/
+
 static void ibmvfc_init_tgt(struct ibmvfc_target *tgt,
 			    void (*job_step) (struct ibmvfc_target *))
 {
@@ -2828,14 +2273,7 @@ static void ibmvfc_init_tgt(struct ibmvfc_target *tgt,
 	wake_up(&tgt->vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_retry_tgt_init - Attempt to retry a step in target initialization
- * @tgt:		ibmvfc target struct
- * @job_step:	initialization job step
- *
- * Returns: 1 if step will be retried / 0 if not
- *
- **/
+
 static int ibmvfc_retry_tgt_init(struct ibmvfc_target *tgt,
 				  void (*job_step) (struct ibmvfc_target *))
 {
@@ -2848,7 +2286,7 @@ static int ibmvfc_retry_tgt_init(struct ibmvfc_target *tgt,
 	return 1;
 }
 
-/* Defined in FC-LS */
+
 static const struct {
 	int code;
 	int retry;
@@ -2865,11 +2303,7 @@ static const struct {
 	{ 8, 1, 0 },
 };
 
-/**
- * ibmvfc_get_prli_rsp - Find PRLI response index
- * @flags:	PRLI response flags
- *
- **/
+
 static int ibmvfc_get_prli_rsp(u16 flags)
 {
 	int i;
@@ -2882,11 +2316,7 @@ static int ibmvfc_get_prli_rsp(u16 flags)
 	return 0;
 }
 
-/**
- * ibmvfc_tgt_prli_done - Completion handler for Process Login
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_tgt_prli_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_target *tgt = evt->tgt;
@@ -2950,11 +2380,7 @@ static void ibmvfc_tgt_prli_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_tgt_send_prli - Send a process login
- * @tgt:	ibmvfc target struct
- *
- **/
+
 static void ibmvfc_tgt_send_prli(struct ibmvfc_target *tgt)
 {
 	struct ibmvfc_process_login *prli;
@@ -2989,11 +2415,7 @@ static void ibmvfc_tgt_send_prli(struct ibmvfc_target *tgt)
 		tgt_dbg(tgt, "Sent process login\n");
 }
 
-/**
- * ibmvfc_tgt_plogi_done - Completion handler for Port Login
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_tgt_plogi_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_target *tgt = evt->tgt;
@@ -3046,11 +2468,7 @@ static void ibmvfc_tgt_plogi_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_tgt_send_plogi - Send PLOGI to the specified target
- * @tgt:	ibmvfc target struct
- *
- **/
+
 static void ibmvfc_tgt_send_plogi(struct ibmvfc_target *tgt)
 {
 	struct ibmvfc_port_login *plogi;
@@ -3082,11 +2500,7 @@ static void ibmvfc_tgt_send_plogi(struct ibmvfc_target *tgt)
 		tgt_dbg(tgt, "Sent port login\n");
 }
 
-/**
- * ibmvfc_tgt_implicit_logout_done - Completion handler for Implicit Logout MAD
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_tgt_implicit_logout_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_target *tgt = evt->tgt;
@@ -3121,11 +2535,7 @@ static void ibmvfc_tgt_implicit_logout_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_tgt_implicit_logout - Initiate an Implicit Logout for specified target
- * @tgt:		ibmvfc target struct
- *
- **/
+
 static void ibmvfc_tgt_implicit_logout(struct ibmvfc_target *tgt)
 {
 	struct ibmvfc_implicit_logout *mad;
@@ -3156,14 +2566,7 @@ static void ibmvfc_tgt_implicit_logout(struct ibmvfc_target *tgt)
 		tgt_dbg(tgt, "Sent Implicit Logout\n");
 }
 
-/**
- * ibmvfc_adisc_needs_plogi - Does device need PLOGI?
- * @mad:	ibmvfc passthru mad struct
- * @tgt:	ibmvfc target struct
- *
- * Returns:
- *	1 if PLOGI needed / 0 if PLOGI not needed
- **/
+
 static int ibmvfc_adisc_needs_plogi(struct ibmvfc_passthru_mad *mad,
 				    struct ibmvfc_target *tgt)
 {
@@ -3178,11 +2581,7 @@ static int ibmvfc_adisc_needs_plogi(struct ibmvfc_passthru_mad *mad,
 	return 0;
 }
 
-/**
- * ibmvfc_tgt_adisc_done - Completion handler for ADISC
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_tgt_adisc_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_target *tgt = evt->tgt;
@@ -3221,11 +2620,7 @@ static void ibmvfc_tgt_adisc_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_init_passthru - Initialize an event struct for FC passthru
- * @evt:		ibmvfc event struct
- *
- **/
+
 static void ibmvfc_init_passthru(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_passthru_mad *mad = &evt->iu.passthru;
@@ -3249,16 +2644,7 @@ static void ibmvfc_init_passthru(struct ibmvfc_event *evt)
 	mad->iu.rsp.len = sizeof(mad->fc_iu.response);
 }
 
-/**
- * ibmvfc_tgt_adisc_cancel_done - Completion handler when cancelling an ADISC
- * @evt:		ibmvfc event struct
- *
- * Just cleanup this event struct. Everything else is handled by
- * the ADISC completion handler. If the ADISC never actually comes
- * back, we still have the timer running on the ADISC event struct
- * which will fire and cause the CRQ to get reset.
- *
- **/
+
 static void ibmvfc_tgt_adisc_cancel_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -3271,14 +2657,7 @@ static void ibmvfc_tgt_adisc_cancel_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_adisc_timeout - Handle an ADISC timeout
- * @tgt:		ibmvfc target struct
- *
- * If an ADISC times out, send a cancel. If the cancel times
- * out, reset the CRQ. When the ADISC comes back as cancelled,
- * log back into the target.
- **/
+
 static void ibmvfc_adisc_timeout(struct ibmvfc_target *tgt)
 {
 	struct ibmvfc_host *vhost = tgt->vhost;
@@ -3323,17 +2702,7 @@ static void ibmvfc_adisc_timeout(struct ibmvfc_target *tgt)
 	spin_unlock_irqrestore(vhost->host->host_lock, flags);
 }
 
-/**
- * ibmvfc_tgt_adisc - Initiate an ADISC for specified target
- * @tgt:		ibmvfc target struct
- *
- * When sending an ADISC we end up with two timers running. The
- * first timer is the timer in the ibmvfc target struct. If this
- * fires, we send a cancel to the target. The second timer is the
- * timer on the ibmvfc event for the ADISC, which is longer. If that
- * fires, it means the ADISC timed out and our attempt to cancel it
- * also failed, so we need to reset the CRQ.
- **/
+
 static void ibmvfc_tgt_adisc(struct ibmvfc_target *tgt)
 {
 	struct ibmvfc_passthru_mad *mad;
@@ -3381,11 +2750,7 @@ static void ibmvfc_tgt_adisc(struct ibmvfc_target *tgt)
 		tgt_dbg(tgt, "Sent ADISC\n");
 }
 
-/**
- * ibmvfc_tgt_query_target_done - Completion handler for Query Target MAD
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_tgt_query_target_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_target *tgt = evt->tgt;
@@ -3433,11 +2798,7 @@ static void ibmvfc_tgt_query_target_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_tgt_query_target - Initiate a Query Target for specified target
- * @tgt:	ibmvfc target struct
- *
- **/
+
 static void ibmvfc_tgt_query_target(struct ibmvfc_target *tgt)
 {
 	struct ibmvfc_query_tgt *query_tgt;
@@ -3468,14 +2829,7 @@ static void ibmvfc_tgt_query_target(struct ibmvfc_target *tgt)
 		tgt_dbg(tgt, "Sent Query Target\n");
 }
 
-/**
- * ibmvfc_alloc_target - Allocate and initialize an ibmvfc target
- * @vhost:		ibmvfc host struct
- * @scsi_id:	SCSI ID to allocate target for
- *
- * Returns:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_alloc_target(struct ibmvfc_host *vhost, u64 scsi_id)
 {
 	struct ibmvfc_target *tgt;
@@ -3515,13 +2869,7 @@ unlock_out:
 	return 0;
 }
 
-/**
- * ibmvfc_alloc_targets - Allocate and initialize ibmvfc targets
- * @vhost:		ibmvfc host struct
- *
- * Returns:
- *	0 on success / other on failure
- **/
+
 static int ibmvfc_alloc_targets(struct ibmvfc_host *vhost)
 {
 	int i, rc;
@@ -3533,11 +2881,7 @@ static int ibmvfc_alloc_targets(struct ibmvfc_host *vhost)
 	return rc;
 }
 
-/**
- * ibmvfc_discover_targets_done - Completion handler for discover targets MAD
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_discover_targets_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -3568,11 +2912,7 @@ static void ibmvfc_discover_targets_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_discover_targets - Send Discover Targets MAD
- * @vhost:	ibmvfc host struct
- *
- **/
+
 static void ibmvfc_discover_targets(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_discover_targets *mad;
@@ -3595,11 +2935,7 @@ static void ibmvfc_discover_targets(struct ibmvfc_host *vhost)
 		ibmvfc_link_down(vhost, IBMVFC_LINK_DEAD);
 }
 
-/**
- * ibmvfc_npiv_login_done - Completion handler for NPIV Login
- * @evt:	ibmvfc event struct
- *
- **/
+
 static void ibmvfc_npiv_login_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -3678,11 +3014,7 @@ static void ibmvfc_npiv_login_done(struct ibmvfc_event *evt)
 	wake_up(&vhost->work_wait_q);
 }
 
-/**
- * ibmvfc_npiv_login - Sends NPIV login
- * @vhost:	ibmvfc host struct
- *
- **/
+
 static void ibmvfc_npiv_login(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_npiv_login_mad *mad;
@@ -3709,11 +3041,7 @@ static void ibmvfc_npiv_login(struct ibmvfc_host *vhost)
 		ibmvfc_link_down(vhost, IBMVFC_LINK_DEAD);
 };
 
-/**
- * ibmvfc_npiv_logout_done - Completion handler for NPIV Logout
- * @vhost:		ibmvfc host struct
- *
- **/
+
 static void ibmvfc_npiv_logout_done(struct ibmvfc_event *evt)
 {
 	struct ibmvfc_host *vhost = evt->vhost;
@@ -3741,11 +3069,7 @@ static void ibmvfc_npiv_logout_done(struct ibmvfc_event *evt)
 	ibmvfc_hard_reset_host(vhost);
 }
 
-/**
- * ibmvfc_npiv_logout - Issue an NPIV Logout
- * @vhost:		ibmvfc host struct
- *
- **/
+
 static void ibmvfc_npiv_logout(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_npiv_logout_mad *mad;
@@ -3768,13 +3092,7 @@ static void ibmvfc_npiv_logout(struct ibmvfc_host *vhost)
 		ibmvfc_link_down(vhost, IBMVFC_LINK_DEAD);
 }
 
-/**
- * ibmvfc_dev_init_to_do - Is there target initialization work to do?
- * @vhost:		ibmvfc host struct
- *
- * Returns:
- *	1 if work to do / 0 if not
- **/
+
 static int ibmvfc_dev_init_to_do(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_target *tgt;
@@ -3788,13 +3106,7 @@ static int ibmvfc_dev_init_to_do(struct ibmvfc_host *vhost)
 	return 0;
 }
 
-/**
- * __ibmvfc_work_to_do - Is there task level work to do? (no locking)
- * @vhost:		ibmvfc host struct
- *
- * Returns:
- *	1 if work to do / 0 if not
- **/
+
 static int __ibmvfc_work_to_do(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_target *tgt;
@@ -3830,13 +3142,7 @@ static int __ibmvfc_work_to_do(struct ibmvfc_host *vhost)
 	return 1;
 }
 
-/**
- * ibmvfc_work_to_do - Is there task level work to do?
- * @vhost:		ibmvfc host struct
- *
- * Returns:
- *	1 if work to do / 0 if not
- **/
+
 static int ibmvfc_work_to_do(struct ibmvfc_host *vhost)
 {
 	unsigned long flags;
@@ -3848,12 +3154,7 @@ static int ibmvfc_work_to_do(struct ibmvfc_host *vhost)
 	return rc;
 }
 
-/**
- * ibmvfc_log_ae - Log async events if necessary
- * @vhost:		ibmvfc host struct
- * @events:		events to log
- *
- **/
+
 static void ibmvfc_log_ae(struct ibmvfc_host *vhost, int events)
 {
 	if (events & IBMVFC_AE_RSCN)
@@ -3866,11 +3167,7 @@ static void ibmvfc_log_ae(struct ibmvfc_host *vhost, int events)
 		fc_host_post_event(vhost->host, fc_get_event_number(), FCH_EVT_LINKUP, 0);
 }
 
-/**
- * ibmvfc_tgt_add_rport - Tell the FC transport about a new remote port
- * @tgt:		ibmvfc target struct
- *
- **/
+
 static void ibmvfc_tgt_add_rport(struct ibmvfc_target *tgt)
 {
 	struct ibmvfc_host *vhost = tgt->vhost;
@@ -3908,11 +3205,7 @@ static void ibmvfc_tgt_add_rport(struct ibmvfc_target *tgt)
 	spin_unlock_irqrestore(vhost->host->host_lock, flags);
 }
 
-/**
- * ibmvfc_do_work - Do task level work
- * @vhost:		ibmvfc host struct
- *
- **/
+
 static void ibmvfc_do_work(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_target *tgt;
@@ -4027,13 +3320,7 @@ static void ibmvfc_do_work(struct ibmvfc_host *vhost)
 	spin_unlock_irqrestore(vhost->host->host_lock, flags);
 }
 
-/**
- * ibmvfc_work - Do task level work
- * @data:		ibmvfc host struct
- *
- * Returns:
- *	zero
- **/
+
 static int ibmvfc_work(void *data)
 {
 	struct ibmvfc_host *vhost = data;
@@ -4057,16 +3344,7 @@ static int ibmvfc_work(void *data)
 	return 0;
 }
 
-/**
- * ibmvfc_init_crq - Initializes and registers CRQ with hypervisor
- * @vhost:	ibmvfc host struct
- *
- * Allocates a page for messages, maps it for dma, and registers
- * the crq with the hypervisor.
- *
- * Return value:
- *	zero on success / other on failure
- **/
+
 static int ibmvfc_init_crq(struct ibmvfc_host *vhost)
 {
 	int rc, retrc = -ENOMEM;
@@ -4091,7 +3369,7 @@ static int ibmvfc_init_crq(struct ibmvfc_host *vhost)
 					crq->msg_token, PAGE_SIZE);
 
 	if (rc == H_RESOURCE)
-		/* maybe kexecing and resource is busy. try a reset */
+		
 		retrc = rc = ibmvfc_reset_crq(vhost);
 
 	if (rc == H_CLOSED)
@@ -4131,13 +3409,7 @@ map_failed:
 	return retrc;
 }
 
-/**
- * ibmvfc_free_mem - Free memory for vhost
- * @vhost:	ibmvfc host struct
- *
- * Return value:
- * 	none
- **/
+
 static void ibmvfc_free_mem(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_async_crq_queue *async_q = &vhost->async_crq;
@@ -4156,13 +3428,7 @@ static void ibmvfc_free_mem(struct ibmvfc_host *vhost)
 	LEAVE;
 }
 
-/**
- * ibmvfc_alloc_mem - Allocate memory for vhost
- * @vhost:	ibmvfc host struct
- *
- * Return value:
- * 	0 on success / non-zero on failure
- **/
+
 static int ibmvfc_alloc_mem(struct ibmvfc_host *vhost)
 {
 	struct ibmvfc_async_crq_queue *async_q = &vhost->async_crq;
@@ -4248,11 +3514,7 @@ nomem:
 	return -ENOMEM;
 }
 
-/**
- * ibmvfc_rport_add_thread - Worker thread for rport adds
- * @work:	work struct
- *
- **/
+
 static void ibmvfc_rport_add_thread(struct work_struct *work)
 {
 	struct ibmvfc_host *vhost = container_of(work, struct ibmvfc_host,
@@ -4298,14 +3560,7 @@ static void ibmvfc_rport_add_thread(struct work_struct *work)
 	LEAVE;
 }
 
-/**
- * ibmvfc_probe - Adapter hot plug add entry point
- * @vdev:	vio device struct
- * @id:	vio device id struct
- *
- * Return value:
- * 	0 on success / non-zero on failure
- **/
+
 static int ibmvfc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 {
 	struct ibmvfc_host *vhost;
@@ -4400,13 +3655,7 @@ out:
 	return rc;
 }
 
-/**
- * ibmvfc_remove - Adapter hot plug remove entry point
- * @vdev:	vio device struct
- *
- * Return value:
- * 	0
- **/
+
 static int ibmvfc_remove(struct vio_dev *vdev)
 {
 	struct ibmvfc_host *vhost = dev_get_drvdata(&vdev->dev);
@@ -4435,14 +3684,7 @@ static int ibmvfc_remove(struct vio_dev *vdev)
 	return 0;
 }
 
-/**
- * ibmvfc_get_desired_dma - Calculate DMA resources needed by the driver
- * @vdev:	vio device struct
- *
- * Return value:
- *	Number of bytes the driver will need to DMA map at the same time in
- *	order to perform well.
- */
+
 static unsigned long ibmvfc_get_desired_dma(struct vio_dev *vdev)
 {
 	unsigned long pool_dma = max_requests * sizeof(union ibmvfc_iu);
@@ -4500,12 +3742,7 @@ static struct fc_function_template ibmvfc_transport_functions = {
 	.show_starget_port_id = 1,
 };
 
-/**
- * ibmvfc_module_init - Initialize the ibmvfc module
- *
- * Return value:
- * 	0 on success / other on failure
- **/
+
 static int __init ibmvfc_module_init(void)
 {
 	int rc;
@@ -4526,12 +3763,7 @@ static int __init ibmvfc_module_init(void)
 	return rc;
 }
 
-/**
- * ibmvfc_module_exit - Teardown the ibmvfc module
- *
- * Return value:
- * 	nothing
- **/
+
 static void __exit ibmvfc_module_exit(void)
 {
 	vio_unregister_driver(&ibmvfc_driver);

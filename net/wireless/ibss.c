@@ -1,8 +1,4 @@
-/*
- * Some IBSS support code for cfg80211.
- *
- * Copyright 2009	Johannes Berg <johannes@sipsolutions.net>
- */
+
 
 #include <linux/etherdevice.h>
 #include <linux/if_arp.h>
@@ -139,10 +135,7 @@ static void __cfg80211_clear_ibss(struct net_device *dev, bool nowext)
 	kfree(wdev->connect_keys);
 	wdev->connect_keys = NULL;
 
-	/*
-	 * Delete all the keys ... pairwise keys can't really
-	 * exist any more anyway, but default keys might.
-	 */
+	
 	if (rdev->ops->del_key)
 		for (i = 0; i < 6; i++)
 			rdev->ops->del_key(wdev->wiphy, dev, i, NULL);
@@ -216,7 +209,7 @@ int cfg80211_ibss_wext_join(struct cfg80211_registered_device *rdev,
 	if (!wdev->wext.ibss.beacon_interval)
 		wdev->wext.ibss.beacon_interval = 100;
 
-	/* try to find an IBSS channel if none requested ... */
+	
 	if (!wdev->wext.ibss.channel) {
 		for (band = 0; band < IEEE80211_NUM_BANDS; band++) {
 			struct ieee80211_supported_band *sband;
@@ -244,7 +237,7 @@ int cfg80211_ibss_wext_join(struct cfg80211_registered_device *rdev,
 			return -EINVAL;
 	}
 
-	/* don't join -- SSID is not there */
+	
 	if (!wdev->wext.ibss.ssid_len)
 		return 0;
 
@@ -280,7 +273,7 @@ int cfg80211_ibss_wext_siwfreq(struct net_device *dev,
 	struct ieee80211_channel *chan = NULL;
 	int err, freq;
 
-	/* call only for ibss! */
+	
 	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_ADHOC))
 		return -EINVAL;
 
@@ -316,7 +309,7 @@ int cfg80211_ibss_wext_siwfreq(struct net_device *dev,
 		wdev->wext.ibss.channel = chan;
 		wdev->wext.ibss.channel_fixed = true;
 	} else {
-		/* cfg80211_ibss_wext_join will pick one if needed */
+		
 		wdev->wext.ibss.channel_fixed = false;
 	}
 
@@ -336,7 +329,7 @@ int cfg80211_ibss_wext_giwfreq(struct net_device *dev,
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct ieee80211_channel *chan = NULL;
 
-	/* call only for ibss! */
+	
 	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_ADHOC))
 		return -EINVAL;
 
@@ -353,7 +346,7 @@ int cfg80211_ibss_wext_giwfreq(struct net_device *dev,
 		return 0;
 	}
 
-	/* no channel if not joining */
+	
 	return -EINVAL;
 }
 
@@ -366,7 +359,7 @@ int cfg80211_ibss_wext_siwessid(struct net_device *dev,
 	size_t len = data->length;
 	int err;
 
-	/* call only for ibss! */
+	
 	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_ADHOC))
 		return -EINVAL;
 
@@ -382,7 +375,7 @@ int cfg80211_ibss_wext_siwessid(struct net_device *dev,
 	if (err)
 		return err;
 
-	/* iwconfig uses nul termination in SSID.. */
+	
 	if (len > 0 && ssid[len - 1] == '\0')
 		len--;
 
@@ -405,7 +398,7 @@ int cfg80211_ibss_wext_giwessid(struct net_device *dev,
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 
-	/* call only for ibss! */
+	
 	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_ADHOC))
 		return -EINVAL;
 
@@ -435,7 +428,7 @@ int cfg80211_ibss_wext_siwap(struct net_device *dev,
 	u8 *bssid = ap_addr->sa_data;
 	int err;
 
-	/* call only for ibss! */
+	
 	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_ADHOC))
 		return -EINVAL;
 
@@ -445,15 +438,15 @@ int cfg80211_ibss_wext_siwap(struct net_device *dev,
 	if (ap_addr->sa_family != ARPHRD_ETHER)
 		return -EINVAL;
 
-	/* automatic mode */
+	
 	if (is_zero_ether_addr(bssid) || is_broadcast_ether_addr(bssid))
 		bssid = NULL;
 
-	/* both automatic */
+	
 	if (!bssid && !wdev->wext.ibss.bssid)
 		return 0;
 
-	/* fixed already - and no change */
+	
 	if (wdev->wext.ibss.bssid && bssid &&
 	    compare_ether_addr(bssid, wdev->wext.ibss.bssid) == 0)
 		return 0;
@@ -488,7 +481,7 @@ int cfg80211_ibss_wext_giwap(struct net_device *dev,
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 
-	/* call only for ibss! */
+	
 	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_ADHOC))
 		return -EINVAL;
 

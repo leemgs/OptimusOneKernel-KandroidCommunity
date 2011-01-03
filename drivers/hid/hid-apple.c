@@ -1,20 +1,6 @@
-/*
- *  USB HID quirks support for Linux
- *
- *  Copyright (c) 1999 Andreas Gal
- *  Copyright (c) 2000-2005 Vojtech Pavlik <vojtech@suse.cz>
- *  Copyright (c) 2005 Michael Haboustak <mike-@cinci.rr.com> for Concept2, Inc
- *  Copyright (c) 2006-2007 Jiri Kosina
- *  Copyright (c) 2007 Paul Walmsley
- *  Copyright (c) 2008 Jiri Slaby <jirislaby@gmail.com>
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/hid.h>
@@ -128,7 +114,7 @@ static const struct apple_key_translation *apple_find_translation(
 {
 	const struct apple_key_translation *trans;
 
-	/* Look for the translation */
+	
 	for (trans = table; trans->from; trans++)
 		if (trans->from == from)
 			return trans;
@@ -235,9 +221,7 @@ static int apple_event(struct hid_device *hdev, struct hid_field *field,
 	return 0;
 }
 
-/*
- * MacBook JIS keyboard has wrong logical maximum
- */
+
 static void apple_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 		unsigned int rsize)
 {
@@ -257,7 +241,7 @@ static void apple_setup_input(struct input_dev *input)
 
 	set_bit(KEY_NUMLOCK, input->keybit);
 
-	/* Enable all needed keys */
+	
 	for (trans = apple_fn_keys; trans->from; trans++)
 		set_bit(trans->to, input->keybit);
 
@@ -276,14 +260,14 @@ static int apple_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 		unsigned long **bit, int *max)
 {
 	if (usage->hid == (HID_UP_CUSTOM | 0x0003)) {
-		/* The fn key on Apple USB keyboards */
+		
 		set_bit(EV_REP, hi->input->evbit);
 		hid_map_usage_clear(hi, usage, bit, max, EV_KEY, KEY_FN);
 		apple_setup_input(hi->input);
 		return 1;
 	}
 
-	/* we want the hid layer to go through standard path (set and ignore) */
+	
 	return 0;
 }
 

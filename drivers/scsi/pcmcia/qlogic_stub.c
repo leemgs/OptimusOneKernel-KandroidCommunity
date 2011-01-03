@@ -1,35 +1,4 @@
-/*======================================================================
 
-    A driver for the Qlogic SCSI card
-
-    qlogic_cs.c 1.79 2000/06/12 21:27:26
-
-    The contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is David A. Hinds
-    <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
-    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU General Public License version 2 (the "GPL"), in which
-    case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-    
-======================================================================*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -54,10 +23,7 @@
 #include <pcmcia/ds.h>
 #include <pcmcia/ciscode.h>
 
-/* Set the following to 2 to use normal interrupt (active high/totempole-
- * tristate), otherwise use 0 (REQUIRED FOR PCMCIA) for active low, open
- * drain
- */
+
 #define INT_TYPE	0
 
 static char qlogic_name[] = "qlogic_cs";
@@ -87,7 +53,7 @@ static struct scsi_host_template qlogicfas_driver_template = {
 	.use_clustering		= DISABLE_CLUSTERING,
 };
 
-/*====================================================================*/
+
 
 typedef struct scsi_info_t {
 	struct pcmcia_device	*p_dev;
@@ -103,15 +69,15 @@ static int qlogic_config(struct pcmcia_device * link);
 static struct Scsi_Host *qlogic_detect(struct scsi_host_template *host,
 				struct pcmcia_device *link, int qbase, int qlirq)
 {
-	int qltyp;		/* type of chip */
+	int qltyp;		
 	int qinitid;
-	struct Scsi_Host *shost;	/* registered host structure */
+	struct Scsi_Host *shost;	
 	struct qlogicfas408_priv *priv;
 
 	qltyp = qlogicfas408_get_chip_type(qbase, INT_TYPE);
 	qinitid = host->this_id;
 	if (qinitid < 0)
-		qinitid = 7;	/* if no ID, use 7 */
+		qinitid = 7;	
 
 	qlogicfas408_setup(qbase, qinitid, INT_TYPE);
 
@@ -161,7 +127,7 @@ static int qlogic_probe(struct pcmcia_device *link)
 
 	DEBUG(0, "qlogic_attach()\n");
 
-	/* Create new SCSI device */
+	
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
 	if (!info)
 		return -ENOMEM;
@@ -177,9 +143,9 @@ static int qlogic_probe(struct pcmcia_device *link)
 	link->conf.Present = PRESENT_OPTION;
 
 	return qlogic_config(link);
-}				/* qlogic_attach */
+}				
 
-/*====================================================================*/
+
 
 static void qlogic_detach(struct pcmcia_device *link)
 {
@@ -188,9 +154,9 @@ static void qlogic_detach(struct pcmcia_device *link)
 	qlogic_release(link);
 	kfree(link->priv);
 
-}				/* qlogic_detach */
+}				
 
-/*====================================================================*/
+
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -228,13 +194,13 @@ static int qlogic_config(struct pcmcia_device * link)
 	CS_CHECK(RequestConfiguration, pcmcia_request_configuration(link, &link->conf));
 
 	if ((info->manf_id == MANFID_MACNICA) || (info->manf_id == MANFID_PIONEER) || (info->manf_id == 0x0098)) {
-		/* set ATAcmd */
+		
 		outb(0xb4, link->io.BasePort1 + 0xd);
 		outb(0x24, link->io.BasePort1 + 0x9);
 		outb(0x04, link->io.BasePort1 + 0xd);
 	}
 
-	/* The KXL-810AN has a bigger IO port window */
+	
 	if (link->io.NumPorts1 == 32)
 		host = qlogic_detect(&qlogicfas_driver_template, link,
 			link->io.BasePort1 + 16, link->irq.AssignedIRQ);
@@ -259,9 +225,9 @@ cs_failed:
 failed:
 	return -ENODEV;
 
-}				/* qlogic_config */
+}				
 
-/*====================================================================*/
+
 
 static void qlogic_release(struct pcmcia_device *link)
 {
@@ -277,7 +243,7 @@ static void qlogic_release(struct pcmcia_device *link)
 	scsi_host_put(info->host);
 }
 
-/*====================================================================*/
+
 
 static int qlogic_resume(struct pcmcia_device *link)
 {
@@ -291,7 +257,7 @@ static int qlogic_resume(struct pcmcia_device *link)
 		outb(0x24, link->io.BasePort1 + 0x9);
 		outb(0x04, link->io.BasePort1 + 0xd);
 	}
-	/* Ugggglllyyyy!!! */
+	
 	qlogicfas408_bus_reset(NULL);
 
 	return 0;
@@ -312,9 +278,9 @@ static struct pcmcia_device_id qlogic_ids[] = {
 	PCMCIA_DEVICE_PROD_ID12("RATOC System Inc.", "SCSI2 CARD 37", 0x85c10e17, 0x1a2640c1),
 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "SCSC200A PC CARD SCSI", 0xb4585a1a, 0xa6f06ebe),
 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "SCSC200B PC CARD SCSI-10", 0xb4585a1a, 0x0a88dea0),
-	/* these conflict with other cards! */
-	/* PCMCIA_DEVICE_PROD_ID123("MACNICA", "MIRACLE SCSI", "mPS100", 0x20841b68, 0xf8dedaeb, 0x89f7fafb), */
-	/* PCMCIA_DEVICE_PROD_ID123("MACNICA", "MIRACLE SCSI", "mPS100", 0x20841b68, 0xf8dedaeb, 0x89f7fafb), */
+	
+	
+	
 	PCMCIA_DEVICE_NULL,
 };
 MODULE_DEVICE_TABLE(pcmcia, qlogic_ids);

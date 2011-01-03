@@ -1,14 +1,4 @@
-/*
- *  arch/arm/mach-pxa/colibri-pxa3xx.c
- *
- *  Common functions for all Toradex PXA3xx modules
- *
- *  Daniel Mack <daniel@caiaq.de>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -39,12 +29,7 @@ void __init colibri_pxa3xx_init_eth(struct ax_plat_data *plat_data)
 	int i;
 	u64 serial = ((u64) system_serial_high << 32) | system_serial_low;
 
-	/*
-	 * If the bootloader passed in a serial boot tag, which contains a
-	 * valid ethernet MAC, pass it to the interface. Toradex ships the
-	 * modules with their own bootloader which provides a valid MAC
-	 * this way.
-	 */
+	
 
 	for (i = 0; i < ETHER_ADDR_LEN; i++) {
 		ether_mac_addr[i] = serial & 0xff;
@@ -111,14 +96,12 @@ void __init colibri_pxa3xx_init_mmc(mfp_cfg_t *pins, int len, int detect_pin)
 	mmc_detect_pin = detect_pin;
 	pxa_set_mci_info(&colibri_pxa3xx_mci_platform_data);
 }
-#endif /* CONFIG_MMC_PXA || CONFIG_MMC_PXA_MODULE */
+#endif 
 
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
 static int lcd_bl_pin;
 
-/*
- * LCD panel (Sharp LQ043T3DX02)
- */
+
 static void colibri_lcd_backlight(int on)
 {
 	gpio_set_value(lcd_bl_pin, !!on);
@@ -164,19 +147,19 @@ static struct mtd_partition colibri_nand_partitions[] = {
 		.name        = "bootloader",
 		.offset      = 0,
 		.size        = SZ_512K,
-		.mask_flags  = MTD_WRITEABLE, /* force read-only */
+		.mask_flags  = MTD_WRITEABLE, 
 	},
 	{
 		.name        = "kernel",
 		.offset      = MTDPART_OFS_APPEND,
 		.size        = SZ_4M,
-		.mask_flags  = MTD_WRITEABLE, /* force read-only */
+		.mask_flags  = MTD_WRITEABLE, 
 	},
 	{
 		.name        = "reserved",
 		.offset      = MTDPART_OFS_APPEND,
 		.size        = SZ_1M,
-		.mask_flags  = MTD_WRITEABLE, /* force read-only */
+		.mask_flags  = MTD_WRITEABLE, 
 	},
 	{
 		.name        = "fs",

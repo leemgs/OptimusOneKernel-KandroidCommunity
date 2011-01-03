@@ -1,14 +1,4 @@
-/* arch/arm/mach-s3c2410/include/mach/regs-timer.h
- *
- * Copyright (c) 2003 Simtec Electronics <linux@simtec.co.uk>
- *		      http://www.simtec.co.uk/products/SWLINUX/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C2410 Timer configuration
-*/
+
 
 #ifndef __ASM_ARCH_REGS_TIMER_H
 #define __ASM_ARCH_REGS_TIMER_H
@@ -78,16 +68,14 @@
 #define S3C64XX_TCFG1_MUX_DIV4	  (2<<0)
 #define S3C64XX_TCFG1_MUX_DIV8    (3<<0)
 #define S3C64XX_TCFG1_MUX_DIV16   (4<<0)
-#define S3C64XX_TCFG1_MUX_TCLK    (5<<0)  /* 3 sets of TCLK */
+#define S3C64XX_TCFG1_MUX_TCLK    (5<<0)  
 #define S3C64XX_TCFG1_MUX_MASK	  (15<<0)
 
 #define S3C2410_TCFG1_SHIFT(x)	  ((x) * 4)
 
-/* for each timer, we have an count buffer, an compare buffer and
- * an observation buffer
-*/
 
-/* WARNING - timer 4 has no buffer reg, and it's observation is at +4 */
+
+
 
 #define S3C2410_TCNTB(tmr)    S3C_TIMERREG2(tmr, 0x00)
 #define S3C2410_TCMPB(tmr)    S3C_TIMERREG2(tmr, 0x04)
@@ -118,7 +106,7 @@
 #define S3C2410_TCON_T0MANUALUPD  (1<<1)
 #define S3C2410_TCON_T0START	  (1<<0)
 
-#endif /*  __ASM_ARCH_REGS_TIMER_H */
+#endif 
 
 
 

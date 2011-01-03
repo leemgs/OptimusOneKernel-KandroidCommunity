@@ -1,38 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/timer32k.c
- *
- * OMAP 32K Timer
- *
- * Copyright (C) 2004 - 2005 Nokia Corporation
- * Partial timer rewrite and additional dynamic tick timer support by
- * Tony Lindgen <tony@atomide.com> and
- * Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
- * OMAP Dual-mode timer framework support by Timo Teras
- *
- * MPU timer code based on the older MPU timer code for OMAP
- * Copyright (C) 2000 RidgeRun, Inc.
- * Author: Greg Lonnon <glonnon@ridgerun.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the  GNU General Public License along
- * with this program; if not, write  to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -56,17 +22,7 @@
 
 struct sys_timer omap_timer;
 
-/*
- * ---------------------------------------------------------------------------
- * 32KHz OS timer
- *
- * This currently works only on 16xx, as 1510 does not have the continuous
- * 32KHz synchronous timer. The 32KHz synchronous timer is used to keep track
- * of time in addition to the 32KHz OS timer. Using only the 32KHz OS timer
- * on 1510 would be possible, but the timer would not be as accurate as
- * with the 32KHz synchronized timer.
- * ---------------------------------------------------------------------------
- */
+
 
 #if defined(CONFIG_ARCH_OMAP16XX)
 #define TIMER_32K_SYNCHRONIZED		0xfffbc410
@@ -74,7 +30,7 @@ struct sys_timer omap_timer;
 #error OMAP 32KHz timer does not currently work on 15XX!
 #endif
 
-/* 16xx specific defines */
+
 #define OMAP1_32K_TIMER_BASE		0xfffb9000
 #define OMAP1_32K_TIMER_CR		0x08
 #define OMAP1_32K_TIMER_TVR		0x00
@@ -82,10 +38,7 @@ struct sys_timer omap_timer;
 
 #define OMAP_32K_TICKS_PER_SEC		(32768)
 
-/*
- * TRM says 1 / HZ = ( TVR + 1) / 32768, so TRV = (32768 / HZ) - 1
- * so with HZ = 128, TVR = 255.
- */
+
 #define OMAP_32K_TIMER_TICK_PERIOD	((OMAP_32K_TICKS_PER_SEC / HZ) - 1)
 
 #define JIFFIES_TO_HW_TICKS(nr_jiffies, clock_rate)			\
@@ -150,10 +103,7 @@ static struct clock_event_device clockevent_32k_timer = {
 	.set_mode	= omap_32k_timer_set_mode,
 };
 
-/*
- * The 32KHz synchronized timer is an additional timer on 16xx.
- * It is always running.
- */
+
 static inline unsigned long omap_32k_sync_timer_read(void)
 {
 	return omap_readl(TIMER_32K_SYNCHRONIZED);
@@ -191,11 +141,7 @@ static __init void omap_init_32k_timer(void)
 	clockevents_register_device(&clockevent_32k_timer);
 }
 
-/*
- * ---------------------------------------------------------------------------
- * Timer initialization
- * ---------------------------------------------------------------------------
- */
+
 static void __init omap_timer_init(void)
 {
 #ifdef CONFIG_OMAP_DM_TIMER

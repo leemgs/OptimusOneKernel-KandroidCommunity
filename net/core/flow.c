@@ -1,8 +1,4 @@
-/* flow.c: Generic flow cache.
- *
- * Copyright (C) 2003 Alexey N. Kuznetsov (kuznet@ms2.inr.ac.ru)
- * Copyright (C) 2003 David S. Miller (davem@redhat.com)
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -141,10 +137,7 @@ typedef u64 flow_compare_t;
 typedef u32 flow_compare_t;
 #endif
 
-/* I hear what you're saying, use memcmp.  But memcmp cannot make
- * important assumptions that we can here, such as alignment and
- * constant size.
- */
+
 static int flow_key_compare(struct flowi *key1, struct flowi *key2)
 {
 	flow_compare_t *k1, *k1_lim, *k2;
@@ -176,8 +169,7 @@ void *flow_cache_lookup(struct net *net, struct flowi *key, u16 family, u8 dir,
 	cpu = smp_processor_id();
 
 	fle = NULL;
-	/* Packet really early in init?  Making flow_cache_init a
-	 * pre-smp initcall would solve this.  --RR */
+	
 	if (!flow_table(cpu))
 		goto nocache;
 
@@ -291,7 +283,7 @@ void flow_cache_flush(void)
 	struct flow_flush_info info;
 	static DEFINE_MUTEX(flow_flush_sem);
 
-	/* Don't want cpus going down or up during this. */
+	
 	get_online_cpus();
 	mutex_lock(&flow_flush_sem);
 	atomic_set(&info.cpuleft, num_online_cpus());
@@ -316,7 +308,7 @@ static void __init flow_cache_cpu_prepare(int cpu)
 	     (PAGE_SIZE << order) <
 		     (sizeof(struct flow_cache_entry *)*flow_hash_size);
 	     order++)
-		/* NOTHING */;
+		;
 
 	flow_table(cpu) = (struct flow_cache_entry **)
 		__get_free_pages(GFP_KERNEL|__GFP_ZERO, order);

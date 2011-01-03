@@ -1,20 +1,9 @@
-/*
- * arch/arm/mach-iop32x/include/mach/irqs.h
- *
- * Author:	Rory Bolt <rorybolt@pacbell.net>
- * Copyright:	(C) 2002 Rory Bolt
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __IRQS_H
 #define __IRQS_H
 
-/*
- * IOP80321 chipset interrupts
- */
+
 #define IRQ_IOP32X_DMA0_EOT	0
 #define IRQ_IOP32X_DMA0_EOC	1
 #define IRQ_IOP32X_DMA1_EOT	2

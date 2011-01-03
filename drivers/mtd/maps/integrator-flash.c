@@ -1,28 +1,4 @@
-/*======================================================================
 
-    drivers/mtd/maps/integrator-flash.c: ARM Integrator flash map driver
-
-    Copyright (C) 2000 ARM Limited
-    Copyright (C) 2003 Deep Blue Solutions Ltd.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-   This is access code for flashes using ARM's flash partitioning
-   standards.
-
-======================================================================*/
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -87,9 +63,7 @@ static int armflash_subdev_probe(struct armflash_subdev_info *subdev,
 		goto no_mem;
 	}
 
-	/*
-	 * look for CFI based flash parts fitted to this board
-	 */
+	
 	subdev->map.size	= size;
 	subdev->map.bankwidth	= plat->width;
 	subdev->map.phys	= res->start;
@@ -99,11 +73,7 @@ static int armflash_subdev_probe(struct armflash_subdev_info *subdev,
 
 	simple_map_init(&subdev->map);
 
-	/*
-	 * Also, the CFI layer automatically works out what size
-	 * of chips we have, and does the necessary identification
-	 * for us automatically.
-	 */
+	
 	subdev->mtd = do_map_probe(plat->map_name, &subdev->map);
 	if (!subdev->mtd) {
 		err = -ENXIO;
@@ -112,7 +82,7 @@ static int armflash_subdev_probe(struct armflash_subdev_info *subdev,
 
 	subdev->mtd->owner = THIS_MODULE;
 
-	/* Successful? */
+	
 	if (err == 0)
 		return err;
 
@@ -144,7 +114,7 @@ static int armflash_probe(struct platform_device *dev)
 	struct armflash_info *info;
 	int i, nr, err;
 
-	/* Count the number of devices */
+	
 	for (nr = 0; ; nr++)
 		if (!platform_get_resource(dev, IORESOURCE_MEM, nr))
 			break;
@@ -176,7 +146,7 @@ static int armflash_probe(struct platform_device *dev)
 			break;
 
 		if (nr == 1)
-			/* No MTD concatenation, just use the default name */
+			
 			subdev->name = kstrdup(dev_name(&dev->dev), GFP_KERNEL);
 		else
 			subdev->name = kasprintf(GFP_KERNEL, "%s-%d",
@@ -205,9 +175,7 @@ static int armflash_probe(struct platform_device *dev)
 #ifdef CONFIG_MTD_CONCAT
 		struct mtd_info *cdev[info->nr_subdev];
 
-		/*
-		 * We detected multiple devices.  Concatenate them together.
-		 */
+		
 		for (i = 0; i < info->nr_subdev; i++)
 			cdev[i] = info->subdev[i].mtd;
 
@@ -238,9 +206,7 @@ static int armflash_probe(struct platform_device *dev)
 		return err;
 	}
 
-	/*
-	 * We got an error, free all resources.
-	 */
+	
  cleanup:
 	if (info->mtd) {
 		del_mtd_partitions(info->mtd);

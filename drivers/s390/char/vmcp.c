@@ -1,15 +1,4 @@
-/*
- * Copyright IBM Corp. 2004,2007
- * Interface implementation for communication with the z/VM control program
- * Author(s): Christian Borntraeger <borntraeger@de.ibm.com>
- *
- *
- * z/VMs CP offers the possibility to issue commands via the diagnose code 8
- * this driver implements a character device that issues these commands and
- * returns the answer of CP.
 
- * The idea of this driver is based on cpint from Neale Ferguson and #CP in CMS
- */
 
 #define KMSG_COMPONENT "vmcp"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -119,23 +108,12 @@ vmcp_write(struct file *file, const char __user *buff, size_t count,
 				   &session->resp_code);
 	mutex_unlock(&session->mutex);
 	kfree(cmd);
-	*ppos = 0;		/* reset the file pointer after a command */
+	*ppos = 0;		
 	return count;
 }
 
 
-/*
- * These ioctls are available, as the semantics of the diagnose 8 call
- * does not fit very well into a Linux call. Diagnose X'08' is described in
- * CP Programming Services SC24-6084-00
- *
- * VMCP_GETCODE: gives the CP return code back to user space
- * VMCP_SETBUF: sets the response buffer for the next write call. diagnose 8
- * expects adjacent pages in real storage and to make matters worse, we
- * dont know the size of the response. Therefore we default to PAGESIZE and
- * let userspace to change the response size, if userspace expects a bigger
- * response
- */
+
 static long vmcp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct vmcp_session *session;

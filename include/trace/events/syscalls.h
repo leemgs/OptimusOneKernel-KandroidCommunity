@@ -61,10 +61,10 @@ TRACE_EVENT_FN(sys_exit,
 	syscall_regfunc, syscall_unregfunc
 );
 
-#endif /* CONFIG_HAVE_SYSCALL_TRACEPOINTS */
+#endif 
 
-#endif /* _TRACE_EVENTS_SYSCALLS_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>
 

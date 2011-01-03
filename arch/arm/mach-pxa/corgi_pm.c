@@ -1,13 +1,4 @@
-/*
- * Battery and Power Management code for the Sharp SL-C7xx
- *
- * Copyright (c) 2005 Richard Purdie
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/stat.h>
@@ -28,12 +19,12 @@
 #include <mach/pxa2xx-gpio.h>
 #include "sharpsl.h"
 
-#define SHARPSL_CHARGE_ON_VOLT         0x99  /* 2.9V */
-#define SHARPSL_CHARGE_ON_TEMP         0xe0  /* 2.9V */
-#define SHARPSL_CHARGE_ON_ACIN_HIGH    0x9b  /* 6V */
-#define SHARPSL_CHARGE_ON_ACIN_LOW     0x34  /* 2V */
-#define SHARPSL_FATAL_ACIN_VOLT        182   /* 3.45V */
-#define SHARPSL_FATAL_NOACIN_VOLT      170   /* 3.40V */
+#define SHARPSL_CHARGE_ON_VOLT         0x99  
+#define SHARPSL_CHARGE_ON_TEMP         0xe0  
+#define SHARPSL_CHARGE_ON_ACIN_HIGH    0x9b  
+#define SHARPSL_CHARGE_ON_ACIN_LOW     0x34  
+#define SHARPSL_FATAL_ACIN_VOLT        182   
+#define SHARPSL_FATAL_NOACIN_VOLT      170   
 
 static void corgi_charger_init(void)
 {
@@ -80,7 +71,7 @@ static void corgi_presuspend(void)
 	int i;
 	unsigned long wakeup_mask;
 
-	/* charging , so CHARGE_ON bit is HIGH during OFF. */
+	
 	if (READ_GPIO_BIT(CORGI_GPIO_CHRG_ON))
 		PGSR1 |= GPIO_bit(CORGI_GPIO_CHRG_ON);
 	else
@@ -96,7 +87,7 @@ static void corgi_presuspend(void)
 	else
 		PGSR1 &= ~GPIO_bit(CORGI_GPIO_CHRG_UKN);
 
-	/* Resume on keyboard power key */
+	
 	PGSR2 = (PGSR2 & ~CORGI_GPIO_ALL_STROBE_BIT) | CORGI_GPIO_STROBE_BIT(0);
 
 	wakeup_mask = GPIO_bit(CORGI_GPIO_KEY_INT) | GPIO_bit(CORGI_GPIO_WAKEUP) | GPIO_bit(CORGI_GPIO_AC_IN) | GPIO_bit(CORGI_GPIO_CHRG_FULL);
@@ -122,10 +113,7 @@ static void corgi_postsuspend(void)
 {
 }
 
-/*
- * Check what brought us out of the suspend.
- * Return: 0 to sleep, otherwise wake
- */
+
 static int corgi_should_wakeup(unsigned int resume_on_alarm)
 {
 	int is_resume = 0;
@@ -134,11 +122,11 @@ static int corgi_should_wakeup(unsigned int resume_on_alarm)
 
 	if ((PEDR & GPIO_bit(CORGI_GPIO_AC_IN))) {
 		if (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN)) {
-			/* charge on */
+			
 			dev_dbg(sharpsl_pm.dev, "ac insert\n");
 			sharpsl_pm.flags |= SHARPSL_DO_OFFLINE_CHRG;
 		} else {
-			/* charge off */
+			
 			dev_dbg(sharpsl_pm.dev, "ac remove\n");
 			sharpsl_pm_led(SHARPSL_LED_OFF);
 			sharpsl_pm.machinfo->charge(0);

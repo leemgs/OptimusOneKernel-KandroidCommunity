@@ -1,31 +1,9 @@
-/*
- * arch/arm/mach-loki/include/mach/loki.h
- *
- * Generic definitions for Marvell Loki (88RC8480) SoC flavors
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ASM_ARCH_LOKI_H
 #define __ASM_ARCH_LOKI_H
 
-/*
- * Marvell Loki (88RC8480) address maps.
- *
- * phys
- * d0000000	on-chip peripheral registers
- * e0000000	PCIe 0 Memory space
- * e8000000	PCIe 1 Memory space
- * f0000000	PCIe 0 I/O space
- * f0100000	PCIe 1 I/O space
- *
- * virt		phys		size
- * fed00000	d0000000	1M	on-chip peripheral registers
- * fee00000	f0000000	64K	PCIe 0 I/O space
- * fef00000	f0100000	64K	PCIe 1 I/O space
- */
+
 
 #define LOKI_REGS_PHYS_BASE		0xd0000000
 #define LOKI_REGS_VIRT_BASE		0xfed00000
@@ -47,9 +25,7 @@
 #define LOKI_PCIE1_MEM_PHYS_BASE	0xe8000000
 #define LOKI_PCIE1_MEM_SIZE		SZ_128M
 
-/*
- * Register Map
- */
+
 #define DEV_BUS_PHYS_BASE	(LOKI_REGS_PHYS_BASE | 0x10000)
 #define DEV_BUS_VIRT_BASE	(LOKI_REGS_VIRT_BASE | 0x10000)
 #define  UART0_PHYS_BASE	(DEV_BUS_PHYS_BASE | 0x2000)

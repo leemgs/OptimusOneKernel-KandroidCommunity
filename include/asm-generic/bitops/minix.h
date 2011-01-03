@@ -12,4 +12,4 @@
 #define minix_find_first_zero_bit(addr,size) \
 	find_first_zero_bit((unsigned long *)(addr),(size))
 
-#endif /* _ASM_GENERIC_BITOPS_MINIX_H_ */
+#endif 

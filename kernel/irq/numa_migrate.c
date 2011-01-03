@@ -1,9 +1,4 @@
-/*
- * NUMA irq-desc migration code
- *
- * Migrate IRQ data structures (irq_desc, chip_data, etc.) over to
- * the new "home node" of the IRQ.
- */
+
 
 #include <linux/irq.h>
 #include <linux/module.h>
@@ -69,7 +64,7 @@ static struct irq_desc *__real_move_irq_desc(struct irq_desc *old_desc,
 
 	spin_lock_irqsave(&sparse_irq_lock, flags);
 
-	/* We have to check it to avoid races with another CPU */
+	
 	desc = irq_desc_ptrs[irq];
 
 	if (desc && old_desc != desc)
@@ -79,12 +74,12 @@ static struct irq_desc *__real_move_irq_desc(struct irq_desc *old_desc,
 	if (!desc) {
 		printk(KERN_ERR "irq %d: can not get new irq_desc "
 				"for migration.\n", irq);
-		/* still use old one */
+		
 		desc = old_desc;
 		goto out_unlock;
 	}
 	if (!init_copy_one_irq_desc(irq, old_desc, desc, node)) {
-		/* still use old one */
+		
 		kfree(desc);
 		desc = old_desc;
 		goto out_unlock;
@@ -93,7 +88,7 @@ static struct irq_desc *__real_move_irq_desc(struct irq_desc *old_desc,
 	irq_desc_ptrs[irq] = desc;
 	spin_unlock_irqrestore(&sparse_irq_lock, flags);
 
-	/* free the old one */
+	
 	free_one_irq_desc(old_desc, desc);
 	kfree(old_desc);
 
@@ -107,7 +102,7 @@ out_unlock:
 
 struct irq_desc *move_irq_desc(struct irq_desc *desc, int node)
 {
-	/* those static or target node is -1, do not move them */
+	
 	if (desc->irq < NR_IRQS_LEGACY || node == -1)
 		return desc;
 

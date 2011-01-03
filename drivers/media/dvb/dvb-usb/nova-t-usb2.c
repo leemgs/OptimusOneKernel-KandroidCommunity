@@ -1,14 +1,4 @@
-/* DVB USB framework compliant Linux driver for the Hauppauge WinTV-NOVA-T usb2
- * DVB-T receiver.
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "dibusb.h"
 
 static int debug;
@@ -20,7 +10,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 #define deb_rc(args...) dprintk(debug,0x01,args)
 #define deb_ee(args...) dprintk(debug,0x02,args)
 
-/* Hauppauge NOVA-T USB2 keys */
+
 static struct dvb_usb_rc_key haupp_rc_keys [] = {
 	{ 0x1e00, KEY_0 },
 	{ 0x1e01, KEY_1 },
@@ -36,7 +26,7 @@ static struct dvb_usb_rc_key haupp_rc_keys [] = {
 	{ 0x1e0b, KEY_RED },
 	{ 0x1e0c, KEY_RADIO },
 	{ 0x1e0d, KEY_MENU },
-	{ 0x1e0e, KEY_GRAVE }, /* # */
+	{ 0x1e0e, KEY_GRAVE }, 
 	{ 0x1e0f, KEY_MUTE },
 	{ 0x1e10, KEY_VOLUMEUP },
 	{ 0x1e11, KEY_VOLUMEDOWN },
@@ -54,7 +44,7 @@ static struct dvb_usb_rc_key haupp_rc_keys [] = {
 	{ 0x1e1f, KEY_BACK },
 	{ 0x1e20, KEY_CHANNELUP },
 	{ 0x1e21, KEY_CHANNELDOWN },
-	{ 0x1e24, KEY_LAST }, /* Skip backwards */
+	{ 0x1e24, KEY_LAST }, 
 	{ 0x1e25, KEY_OK },
 	{ 0x1e29, KEY_BLUE},
 	{ 0x1e2e, KEY_GREEN },
@@ -69,9 +59,7 @@ static struct dvb_usb_rc_key haupp_rc_keys [] = {
 	{ 0x1e3d, KEY_POWER },
 };
 
-/* Firmware bug? sometimes, when a new key is pressed, the previous pressed key
- * is delivered. No workaround yet, maybe a new firmware.
- */
+
 static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 {
 	u8 key[5],cmd[2] = { DIBUSB_REQ_POLL_REMOTE, 0x35 }, data,toggle,custom;
@@ -129,7 +117,7 @@ static int nova_t_read_mac_address (struct dvb_usb_device *d, u8 mac[6])
 	mac[1] = 0x0d;
 	mac[2] = 0xfe;
 
-	/* this is a complete guess, but works for my box */
+	
 	for (i = 136; i < 139; i++) {
 		dibusb_read_eeprom_byte(d,i, &b);
 
@@ -139,7 +127,7 @@ static int nova_t_read_mac_address (struct dvb_usb_device *d, u8 mac[6])
 	return 0;
 }
 
-/* USB Driver stuff */
+
 static struct dvb_usb_device_properties nova_t_properties;
 
 static int nova_t_probe(struct usb_interface *intf,
@@ -149,11 +137,11 @@ static int nova_t_probe(struct usb_interface *intf,
 				   THIS_MODULE, NULL, adapter_nr);
 }
 
-/* do not change the order of the ID table */
+
 static struct usb_device_id nova_t_table [] = {
-/* 00 */	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_COLD) },
-/* 01 */	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_WARM) },
-			{ }		/* Terminating entry */
+	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_COLD) },
+	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_WARM) },
+			{ }		
 };
 MODULE_DEVICE_TABLE(usb, nova_t_table);
 
@@ -175,7 +163,7 @@ static struct dvb_usb_device_properties nova_t_properties = {
 			.frontend_attach  = dibusb_dib3000mc_frontend_attach,
 			.tuner_attach     = dibusb_dib3000mc_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 					.stream = {
 						.type = USB_BULK,
 				.count = 7,
@@ -221,7 +209,7 @@ static struct usb_driver nova_t_driver = {
 	.id_table	= nova_t_table,
 };
 
-/* module stuff */
+
 static int __init nova_t_module_init(void)
 {
 	int result;
@@ -235,7 +223,7 @@ static int __init nova_t_module_init(void)
 
 static void __exit nova_t_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&nova_t_driver);
 }
 

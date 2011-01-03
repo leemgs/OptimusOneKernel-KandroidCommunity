@@ -1,35 +1,4 @@
-/*
- * DVB USB Linux driver for Anysee E30 DVB-C & DVB-T USB2.0 receiver
- *
- * Copyright (C) 2007 Antti Palosaari <crope@iki.fi>
- *
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * TODO:
- * - add smart card reader support for Conditional Access (CA)
- *
- * Card reader in Anysee is nothing more than ISO 7816 card reader.
- * There is no hardware CAM in any Anysee device sold.
- * In my understanding it should be implemented by making own module
- * for ISO 7816 card reader, like dvb_ca_en50221 is implemented. This
- * module registers serial interface that can be used to communicate
- * with any ISO 7816 smart card.
- *
- * Any help according to implement serial smart card reader support
- * is highly welcome!
- */
+
 
 #include "anysee.h"
 #include "tda1002x.h"
@@ -37,7 +6,7 @@
 #include "mt352_priv.h"
 #include "zl10353.h"
 
-/* debug */
+
 static int dvb_usb_anysee_debug;
 module_param_named(debug, dvb_usb_anysee_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level" DVB_USB_DEBUG_STATUS);
@@ -63,12 +32,11 @@ static int anysee_ctrl_msg(struct dvb_usb_device *d, u8 *sbuf, u8 slen,
 	if (mutex_lock_interruptible(&anysee_usb_mutex) < 0)
 		return -EAGAIN;
 
-	/* We need receive one message more after dvb_usb_generic_rw due
-	   to weird transaction flow, which is 1 x send + 2 x receive. */
+	
 	ret = dvb_usb_generic_rw(d, buf, sizeof(buf), buf, sizeof(buf), 0);
 
 	if (!ret) {
-		/* receive 2nd answer */
+		
 		ret = usb_bulk_msg(d->udev, usb_rcvbulkpipe(d->udev,
 			d->props.generic_bulk_ctrl_endpoint), buf, sizeof(buf),
 			&act_len, 2000);
@@ -80,7 +48,7 @@ static int anysee_ctrl_msg(struct dvb_usb_device *d, u8 *sbuf, u8 slen,
 		}
 	}
 
-	/* read request, copy returned data to return buf */
+	
 	if (!ret && rbuf && rlen)
 		memcpy(rbuf, buf, rlen);
 
@@ -135,12 +103,12 @@ static int anysee_ir_ctrl(struct dvb_usb_device *d, u8 onoff)
 static int anysee_init(struct dvb_usb_device *d)
 {
 	int ret;
-	/* LED light */
+	
 	ret = anysee_led_ctrl(d, 0x01, 0x03);
 	if (ret)
 		return ret;
 
-	/* enable IR */
+	
 	ret = anysee_ir_ctrl(d, 1);
 	if (ret)
 		return ret;
@@ -148,7 +116,7 @@ static int anysee_init(struct dvb_usb_device *d)
 	return 0;
 }
 
-/* I2C */
+
 static int anysee_master_xfer(struct i2c_adapter *adap, struct i2c_msg *msg,
 	int num)
 {
@@ -222,7 +190,7 @@ static int anysee_mt352_demod_init(struct dvb_frontend *fe)
 	return 0;
 }
 
-/* Callbacks for DVB USB */
+
 static struct tda10023_config anysee_tda10023_config = {
 	.demod_address = 0x1a,
 	.invert = 0,
@@ -249,10 +217,9 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
 	int ret;
 	struct anysee_state *state = adap->dev->priv;
 	u8 hw_info[3];
-	u8 io_d; /* IO port D */
+	u8 io_d; 
 
-	/* check which hardware we have
-	   We must do this call two times to get reliable values (hw bug). */
+	
 	ret = anysee_get_hw_info(adap->dev, hw_info);
 	if (ret)
 		return ret;
@@ -260,29 +227,20 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
 	if (ret)
 		return ret;
 
-	/* Meaning of these info bytes are guessed. */
+	
 	info("firmware version:%d.%d.%d hardware id:%d",
 		0, hw_info[1], hw_info[2], hw_info[0]);
 
-	ret = anysee_read_reg(adap->dev, 0xb0, &io_d); /* IO port D */
+	ret = anysee_read_reg(adap->dev, 0xb0, &io_d); 
 	if (ret)
 		return ret;
 	deb_info("%s: IO port D:%02x\n", __func__, io_d);
 
-	/* Select demod using trial and error method. */
+	
 
-	/* Try to attach demodulator in following order:
-	      model      demod     hw  firmware
-	   1. E30        MT352     02  0.2.1
-	   2. E30        ZL10353   02  0.2.1
-	   3. E30 Combo  ZL10353   0f  0.1.2    DVB-T/C combo
-	   4. E30 Plus   ZL10353   06  0.1.0
-	   5. E30C Plus  TDA10023  0a  0.1.0    rev 0.2
-	      E30C Plus  TDA10023  0f  0.1.2    rev 0.4
-	      E30 Combo  TDA10023  0f  0.1.2    DVB-T/C combo
-	*/
+	
 
-	/* Zarlink MT352 DVB-T demod inside of Samsung DNOS404ZH102A NIM */
+	
 	adap->fe = dvb_attach(mt352_attach, &anysee_mt352_config,
 			      &adap->dev->i2c_adap);
 	if (adap->fe != NULL) {
@@ -290,7 +248,7 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
 		return 0;
 	}
 
-	/* Zarlink ZL10353 DVB-T demod inside of Samsung DNOS404ZH103A NIM */
+	
 	adap->fe = dvb_attach(zl10353_attach, &anysee_zl10353_config,
 			      &adap->dev->i2c_adap);
 	if (adap->fe != NULL) {
@@ -298,13 +256,13 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
 		return 0;
 	}
 
-	/* for E30 Combo Plus DVB-T demodulator */
+	
 	if (dvb_usb_anysee_delsys) {
 		ret = anysee_write_reg(adap->dev, 0xb0, 0x01);
 		if (ret)
 			return ret;
 
-		/* Zarlink ZL10353 DVB-T demod */
+		
 		adap->fe = dvb_attach(zl10353_attach, &anysee_zl10353_config,
 				      &adap->dev->i2c_adap);
 		if (adap->fe != NULL) {
@@ -313,12 +271,12 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
 		}
 	}
 
-	/* connect demod on IO port D for TDA10023 & ZL10353 */
+	
 	ret = anysee_write_reg(adap->dev, 0xb0, 0x25);
 	if (ret)
 		return ret;
 
-	/* Zarlink ZL10353 DVB-T demod inside of Samsung DNOS404ZH103A NIM */
+	
 	adap->fe = dvb_attach(zl10353_attach, &anysee_zl10353_config,
 			      &adap->dev->i2c_adap);
 	if (adap->fe != NULL) {
@@ -326,12 +284,12 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
 		return 0;
 	}
 
-	/* IO port E - E30C rev 0.4 board requires this */
+	
 	ret = anysee_write_reg(adap->dev, 0xb1, 0xa7);
 	if (ret)
 		return ret;
 
-	/* Philips TDA10023 DVB-C demod */
+	
 	adap->fe = dvb_attach(tda10023_attach, &anysee_tda10023_config,
 			      &adap->dev->i2c_adap, 0x48);
 	if (adap->fe != NULL) {
@@ -339,7 +297,7 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
 		return 0;
 	}
 
-	/* return IO port D to init value for safe */
+	
 	ret = anysee_write_reg(adap->dev, 0xb0, io_d);
 	if (ret)
 		return ret;
@@ -358,14 +316,12 @@ static int anysee_tuner_attach(struct dvb_usb_adapter *adap)
 
 	switch (state->tuner) {
 	case DVB_PLL_THOMSON_DTT7579:
-		/* Thomson dtt7579 (not sure) PLL inside of:
-		   Samsung DNOS404ZH102A NIM
-		   Samsung DNOS404ZH103A NIM */
+		
 		dvb_attach(dvb_pll_attach, adap->fe, 0x61,
 			   NULL, DVB_PLL_THOMSON_DTT7579);
 		break;
 	case DVB_PLL_SAMSUNG_DTOS403IH102A:
-		/* Unknown PLL inside of Samsung DTOS403IH102A tuner module */
+		
 		dvb_attach(dvb_pll_attach, adap->fe, 0xc0,
 			   &adap->dev->i2c_adap, DVB_PLL_SAMSUNG_DTOS403IH102A);
 		break;
@@ -411,16 +367,16 @@ static struct dvb_usb_rc_key anysee_rc_keys[] = {
 	{ 0x0108, KEY_8 },
 	{ 0x0109, KEY_9 },
 	{ 0x010a, KEY_POWER },
-	{ 0x010b, KEY_DOCUMENTS },    /* * */
+	{ 0x010b, KEY_DOCUMENTS },    
 	{ 0x0119, KEY_FAVORITES },
 	{ 0x0120, KEY_SLEEP },
-	{ 0x0121, KEY_MODE },         /* 4:3 / 16:9 select */
+	{ 0x0121, KEY_MODE },         
 	{ 0x0122, KEY_ZOOM },
 	{ 0x0147, KEY_TEXT },
-	{ 0x0116, KEY_TV },           /* TV / radio select */
-	{ 0x011e, KEY_LANGUAGE },     /* Second Audio Program */
+	{ 0x0116, KEY_TV },           
+	{ 0x011e, KEY_LANGUAGE },     
 	{ 0x011a, KEY_SUBTITLE },
-	{ 0x011b, KEY_CAMERA },       /* screenshot */
+	{ 0x011b, KEY_CAMERA },       
 	{ 0x0142, KEY_MUTE },
 	{ 0x010e, KEY_MENU },
 	{ 0x010f, KEY_EPG },
@@ -435,18 +391,18 @@ static struct dvb_usb_rc_key anysee_rc_keys[] = {
 	{ 0x011f, KEY_GREEN },
 	{ 0x011c, KEY_YELLOW },
 	{ 0x0144, KEY_BLUE },
-	{ 0x010c, KEY_SHUFFLE },      /* snapshot */
+	{ 0x010c, KEY_SHUFFLE },      
 	{ 0x0148, KEY_STOP },
 	{ 0x0150, KEY_PLAY },
 	{ 0x0151, KEY_PAUSE },
 	{ 0x0149, KEY_RECORD },
-	{ 0x0118, KEY_PREVIOUS },     /* |<< */
-	{ 0x010d, KEY_NEXT },         /* >>| */
-	{ 0x0124, KEY_PROG1 },        /* F1 */
-	{ 0x0125, KEY_PROG2 },        /* F2 */
+	{ 0x0118, KEY_PREVIOUS },     
+	{ 0x010d, KEY_NEXT },         
+	{ 0x0124, KEY_PROG1 },        
+	{ 0x0125, KEY_PROG2 },        
 };
 
-/* DVB USB Driver stuff */
+
 static struct dvb_usb_device_properties anysee_properties;
 
 static int anysee_probe(struct usb_interface *intf,
@@ -456,10 +412,7 @@ static int anysee_probe(struct usb_interface *intf,
 	struct usb_host_interface *alt;
 	int ret;
 
-	/* There is one interface with two alternate settings.
-	   Alternate setting 0 is for bulk transfer.
-	   Alternate setting 1 is for isochronous transfer.
-	   We use bulk transfer (alternate setting 0). */
+	
 	if (intf->num_altsetting < 1)
 		return -ENODEV;
 
@@ -488,7 +441,7 @@ static int anysee_probe(struct usb_interface *intf,
 static struct usb_device_id anysee_table[] = {
 	{ USB_DEVICE(USB_VID_CYPRESS, USB_PID_ANYSEE) },
 	{ USB_DEVICE(USB_VID_AMT,     USB_PID_ANYSEE) },
-	{ }		/* Terminating entry */
+	{ }		
 };
 MODULE_DEVICE_TABLE(usb, anysee_table);
 
@@ -521,7 +474,7 @@ static struct dvb_usb_device_properties anysee_properties = {
 	.rc_key_map       = anysee_rc_keys,
 	.rc_key_map_size  = ARRAY_SIZE(anysee_rc_keys),
 	.rc_query         = anysee_rc_query,
-	.rc_interval      = 200,  /* windows driver uses 500ms */
+	.rc_interval      = 200,  
 
 	.i2c_algo         = &anysee_i2c_algo,
 
@@ -545,7 +498,7 @@ static struct usb_driver anysee_driver = {
 	.id_table   = anysee_table,
 };
 
-/* module stuff */
+
 static int __init anysee_module_init(void)
 {
 	int ret;
@@ -559,7 +512,7 @@ static int __init anysee_module_init(void)
 
 static void __exit anysee_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&anysee_driver);
 }
 

@@ -1,25 +1,4 @@
-/*
- * driver for Earthsoft PT1
- *
- * Copyright (C) 2009 HIRANO Takahito <hiranotaka@zng.info>
- *
- * based on pt1dvr - http://pt1dvr.sourceforge.jp/
- * 	by Tomoaki Ishikawa <tomy@users.sourceforge.jp>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -498,10 +477,10 @@ static int pt1_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
 	adap = container_of(fe->dvb, struct pt1_adapter, adap);
 
 	switch (voltage) {
-	case SEC_VOLTAGE_13: /* actually 11V */
+	case SEC_VOLTAGE_13: 
 		lnb = 2;
 		break;
-	case SEC_VOLTAGE_18: /* actually 15V */
+	case SEC_VOLTAGE_18: 
 		lnb = 3;
 		break;
 	case SEC_VOLTAGE_OFF:
@@ -657,7 +636,7 @@ static int pt1_init_adapters(struct pt1 *pt1)
 		fe[i] = va1j5jf8007s_attach(&config->va1j5jf8007s_config,
 					    i2c_adap);
 		if (!fe[i]) {
-			ret = -ENODEV; /* This does not sound nice... */
+			ret = -ENODEV; 
 			goto err;
 		}
 		i++;
@@ -792,7 +771,7 @@ static void pt1_i2c_begin(struct pt1 *pt1, int *addrp)
 	int addr;
 	addr = 0;
 
-	pt1_i2c_emit(pt1, addr,     0, 0, 1, 1, addr /* itself */);
+	pt1_i2c_emit(pt1, addr,     0, 0, 1, 1, addr );
 	addr = addr + 1;
 
 	if (!pt1->i2c_running) {

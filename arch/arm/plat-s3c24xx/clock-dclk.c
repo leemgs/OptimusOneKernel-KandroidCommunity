@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/clock-dclk.c
- *
- * Copyright (c) 2004,2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C24XX - definitions for DCLK and CLKOUT registers
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -22,7 +11,7 @@
 #include <plat/clock.h>
 #include <plat/cpu.h>
 
-/* clocks that could be registered by external code */
+
 
 static int s3c24xx_dclk_enable(struct clk *clk, int enable)
 {
@@ -127,7 +116,7 @@ static int s3c24xx_clkout_setparent(struct clk *clk, struct clk *parent)
 	unsigned long mask;
 	unsigned long source;
 
-	/* calculate the MISCCR setting for the clock */
+	
 
 	if (parent == &clk_mpll)
 		source = S3C2410_MISCCR_CLK0_MPLL;
@@ -159,7 +148,7 @@ static int s3c24xx_clkout_setparent(struct clk *clk, struct clk *parent)
 	return 0;
 }
 
-/* external clock definitions */
+
 
 struct clk s3c24xx_dclk0 = {
 	.name		= "dclk0",

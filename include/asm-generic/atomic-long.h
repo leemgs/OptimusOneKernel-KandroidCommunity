@@ -1,22 +1,10 @@
 #ifndef _ASM_GENERIC_ATOMIC_LONG_H
 #define _ASM_GENERIC_ATOMIC_LONG_H
-/*
- * Copyright (C) 2005 Silicon Graphics, Inc.
- *	Christoph Lameter
- *
- * Allows to provide arch independent atomic definitions without the need to
- * edit all arch specific atomic.h files.
- */
+
 
 #include <asm/types.h>
 
-/*
- * Suppport for atomic_long_t
- *
- * Casts for parameters are avoided for existing atomic functions in order to
- * avoid issues with cast-as-lval under gcc 4.x and other limitations that the
- * macros of a platform may have.
- */
+
 
 #if BITS_PER_LONG == 64
 
@@ -136,7 +124,7 @@ static inline long atomic_long_add_unless(atomic_long_t *l, long a, long u)
 #define atomic_long_xchg(v, new) \
 	(atomic64_xchg((atomic64_t *)(v), (new)))
 
-#else  /*  BITS_PER_LONG == 64  */
+#else  
 
 typedef atomic_t atomic_long_t;
 
@@ -253,6 +241,6 @@ static inline long atomic_long_add_unless(atomic_long_t *l, long a, long u)
 #define atomic_long_xchg(v, new) \
 	(atomic_xchg((atomic_t *)(v), (new)))
 
-#endif  /*  BITS_PER_LONG == 64  */
+#endif  
 
-#endif  /*  _ASM_GENERIC_ATOMIC_LONG_H  */
+#endif  

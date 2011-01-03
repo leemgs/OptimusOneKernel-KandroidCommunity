@@ -1,45 +1,13 @@
-/* arch/arm/mach-lh7a40x/ssp-cpld.c
- *
- *  Copyright (C) 2004,2005 Marc Singer
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- * SSP/SPI driver for the CardEngine CPLD.
- *
- */
 
-/* NOTES
-   -----
 
-   o *** This driver is cribbed from the 7952x implementation.
-	 Some comments may not apply.
 
-   o This driver contains sufficient logic to control either the
-     serial EEPROMs or the audio codec.  It is included in the kernel
-     to support the codec.  The EEPROMs are really the responsibility
-     of the boot loader and should probably be left alone.
-
-   o The code must be augmented to cope with multiple, simultaneous
-     clients.
-     o The audio codec writes to the codec chip whenever playback
-       starts.
-     o The touchscreen driver writes to the ads chip every time it
-       samples.
-     o The audio codec must write 16 bits, but the touch chip writes
-       are 8 bits long.
-     o We need to be able to keep these configurations separate while
-       simultaneously active.
-
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
-//#include <linux/sched.h>
+
 #include <linux/errno.h>
 #include <linux/interrupt.h>
-//#include <linux/ioport.h>
+
 #include <linux/init.h>
 #include <linux/delay.h>
 #include <linux/spinlock.h>
@@ -50,7 +18,7 @@
 
 #include <mach/ssp.h>
 
-//#define TALK
+
 
 #if defined (TALK)
 #define PRINTK(f...)		printk (f)
@@ -59,19 +27,19 @@
 #endif
 
 #if defined (CONFIG_ARCH_LH7A400)
-# define CPLD_SPID		__REGP16(CPLD06_VIRT) /* SPI data */
-# define CPLD_SPIC		__REGP16(CPLD08_VIRT) /* SPI control */
+# define CPLD_SPID		__REGP16(CPLD06_VIRT) 
+# define CPLD_SPIC		__REGP16(CPLD08_VIRT) 
 # define CPLD_SPIC_CS_CODEC	(1<<0)
 # define CPLD_SPIC_CS_TOUCH	(1<<1)
 # define CPLD_SPIC_WRITE	(0<<2)
 # define CPLD_SPIC_READ		(1<<2)
-# define CPLD_SPIC_DONE		(1<<3) /* r/o */
+# define CPLD_SPIC_DONE		(1<<3) 
 # define CPLD_SPIC_LOAD		(1<<4)
 # define CPLD_SPIC_START	(1<<4)
-# define CPLD_SPIC_LOADED	(1<<5) /* r/o */
+# define CPLD_SPIC_LOADED	(1<<5) 
 #endif
 
-#define CPLD_SPI		__REGP16(CPLD0A_VIRT) /* SPI operation */
+#define CPLD_SPI		__REGP16(CPLD0A_VIRT) 
 #define CPLD_SPI_CS_EEPROM	(1<<3)
 #define CPLD_SPI_SCLK		(1<<2)
 #define CPLD_SPI_TX_SHIFT	(1)
@@ -79,15 +47,14 @@
 #define CPLD_SPI_RX_SHIFT	(0)
 #define CPLD_SPI_RX		(1<<CPLD_SPI_RX_SHIFT)
 
-/* *** FIXME: these timing values are substantially larger than the
-   *** chip requires. We may implement an nsleep () function. */
-#define T_SKH	1		/* Clock time high (us) */
-#define T_SKL	1		/* Clock time low (us) */
-#define T_CS	1		/* Minimum chip select low time (us)  */
-#define T_CSS	1		/* Minimum chip select setup time (us)  */
-#define T_DIS	1		/* Data setup time (us) */
 
-	 /* EEPROM SPI bits */
+#define T_SKH	1		
+#define T_SKL	1		
+#define T_CS	1		
+#define T_CSS	1		
+#define T_DIS	1		
+
+	 
 #define P_START		(1<<9)
 #define P_WRITE		(1<<7)
 #define P_READ		(2<<7)
@@ -141,28 +108,14 @@ static void pulse_clock (void)
 }
 
 
-/* execute_spi_command
 
-   sends an spi command to a device.  It first sends cwrite bits from
-   v.  If cread is greater than zero it will read cread bits
-   (discarding the leading 0 bit) and return them.  If cread is less
-   than zero it will check for completetion status and return 0 on
-   success or -1 on timeout.  If cread is zero it does nothing other
-   than sending the command.
-
-   On the LPD7A400, we can only read or write multiples of 8 bits on
-   the codec and the touch screen device.  Here, we round up.
-
-*/
 
 static int execute_spi_command (int v, int cwrite, int cread)
 {
 	unsigned long l = 0;
 
 #if defined (CONFIG_MACH_LPD7A400)
-	/* The codec and touch devices cannot be bit-banged.  Instead,
-	 * the CPLD provides an eight-bit shift register and a crude
-	 * interface.  */
+	
 	if (   ssp_configuration.device == DEVICE_CODEC
 	    || ssp_configuration.device == DEVICE_TOUCH) {
 		int select = 0;
@@ -193,7 +146,7 @@ static int execute_spi_command (int v, int cwrite, int cread)
 			v = 0;
 		}
 		if (cread) {
-			mdelay (2);	/* *** FIXME: required by ads7843? */
+			mdelay (2);	
 			v = 0;
 			for (cread = (cread + 7)/8; cread-- > 0;) {
 				CPLD_SPID = 0;
@@ -216,7 +169,7 @@ static int execute_spi_command (int v, int cwrite, int cread)
 
 	enable_cs ();
 
-	v <<= CPLD_SPI_TX_SHIFT; /* Correction for position of SPI_TX bit */
+	v <<= CPLD_SPI_TX_SHIFT; 
 	while (cwrite--) {
 		CPLD_SPI
 			= (CPLD_SPI & ~CPLD_SPI_TX)
@@ -240,7 +193,7 @@ static int execute_spi_command (int v, int cwrite, int cread)
 		} while (udelay (1), --delay);
 	}
 	else
-	/* We pulse the clock before the data to skip the leading zero. */
+	
 		while (cread-- > 0) {
 			pulse_clock ();
 			l = (l<<1)
@@ -260,12 +213,7 @@ static int ssp_init (void)
 }
 
 
-/* ssp_chip_select
 
-   drops the chip select line for the CPLD shift-register controlled
-   devices.  It doesn't enable chip
-
-*/
 
 static void ssp_chip_select (int enable)
 {
@@ -293,7 +241,7 @@ static void ssp_acquire (void)
 
 static void ssp_release (void)
 {
-	ssp_chip_select (0);	/* just in case */
+	ssp_chip_select (0);	
 	spin_unlock (&ssp_lock);
 }
 

@@ -1,13 +1,4 @@
-/*
- * UIO SMX Cryptengine driver.
- *
- * (C) 2008 Nias Digital P/L <bn@niasdigital.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/device.h>
 #include <linux/module.h>
@@ -33,7 +24,7 @@ static irqreturn_t smx_handler(int irq, struct uio_info *dev_info)
 	if (!(status & SMX_DRDY))
 		return IRQ_NONE;
 
-	/* Disable interrupt */
+	
 	iowrite32(status & ~SMX_DRDY, csr);
 	return IRQ_HANDLED;
 }

@@ -1,10 +1,4 @@
-/*
- * Copyright (C) 2008-2009 Avionic Design GmbH
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/fs.h>
 #include <linux/io.h>
@@ -17,7 +11,7 @@
 
 #define WATCHDOG_NAME "adx-wdt"
 
-/* register offsets */
+
 #define	ADX_WDT_CONTROL		0x00
 #define	ADX_WDT_CONTROL_ENABLE	(1 << 0)
 #define	ADX_WDT_CONTROL_nRESET	(1 << 1)
@@ -166,7 +160,7 @@ static long adx_wdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 
 		adx_wdt_set_timeout(wdt, seconds);
 
-		/* fallthrough */
+		
 	case WDIOC_GETTIMEOUT:
 		adx_wdt_get_timeout(wdt, &seconds);
 		return put_user(seconds, p);
@@ -255,7 +249,7 @@ static int __devinit adx_wdt_probe(struct platform_device *pdev)
 		return -ENXIO;
 	}
 
-	/* disable watchdog and reboot on timeout */
+	
 	ctrl = readl(wdt->base + ADX_WDT_CONTROL);
 	ctrl &= ~ADX_WDT_CONTROL_ENABLE;
 	ctrl &= ~ADX_WDT_CONTROL_nRESET;

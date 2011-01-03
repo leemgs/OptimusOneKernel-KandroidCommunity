@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-at91/at91sam9263.c
- *
- *  Copyright (C) 2007 Atmel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/pm.h>
@@ -43,13 +33,9 @@ static struct map_desc at91sam9263_io_desc[] __initdata = {
 	},
 };
 
-/* --------------------------------------------------------------------
- *  Clocks
- * -------------------------------------------------------------------- */
 
-/*
- * The peripheral clocks.
- */
+
+
 static struct clk pioA_clk = {
 	.name		= "pioA_clk",
 	.pmc_mask	= 1 << AT91SAM9263_ID_PIOA,
@@ -196,13 +182,10 @@ static struct clk *periph_clocks[] __initdata = {
 	&lcdc_clk,
 	&dma_clk,
 	&ohci_clk,
-	// irq0 .. irq1
+	
 };
 
-/*
- * The four programmable clocks.
- * You must configure pin multiplexing to bring these signals out.
- */
+
 static struct clk pck0 = {
 	.name		= "pck0",
 	.pmc_mask	= AT91_PMC_PCK0,
@@ -241,9 +224,7 @@ static void __init at91sam9263_register_clocks(void)
 	clk_register(&pck3);
 }
 
-/* --------------------------------------------------------------------
- *  GPIO
- * -------------------------------------------------------------------- */
+
 
 static struct at91_gpio_bank at91sam9263_gpio[] = {
 	{
@@ -280,69 +261,63 @@ static void at91sam9263_poweroff(void)
 }
 
 
-/* --------------------------------------------------------------------
- *  AT91SAM9263 processor initialization
- * -------------------------------------------------------------------- */
+
 
 void __init at91sam9263_initialize(unsigned long main_clock)
 {
-	/* Map peripherals */
+	
 	iotable_init(at91sam9263_io_desc, ARRAY_SIZE(at91sam9263_io_desc));
 
 	at91_arch_reset = at91sam9263_reset;
 	pm_power_off = at91sam9263_poweroff;
 	at91_extern_irq = (1 << AT91SAM9263_ID_IRQ0) | (1 << AT91SAM9263_ID_IRQ1);
 
-	/* Init clock subsystem */
+	
 	at91_clock_init(main_clock);
 
-	/* Register the processor-specific clocks */
+	
 	at91sam9263_register_clocks();
 
-	/* Register GPIO subsystem */
+	
 	at91_gpio_init(at91sam9263_gpio, 5);
 }
 
-/* --------------------------------------------------------------------
- *  Interrupt initialization
- * -------------------------------------------------------------------- */
 
-/*
- * The default interrupt priority levels (0 = lowest, 7 = highest).
- */
+
+
 static unsigned int at91sam9263_default_irq_priority[NR_AIC_IRQS] __initdata = {
-	7,	/* Advanced Interrupt Controller (FIQ) */
-	7,	/* System Peripherals */
-	1,	/* Parallel IO Controller A */
-	1,	/* Parallel IO Controller B */
-	1,	/* Parallel IO Controller C, D and E */
+	7,	
+	7,	
+	1,	
+	1,	
+	1,	
 	0,
 	0,
-	5,	/* USART 0 */
-	5,	/* USART 1 */
-	5,	/* USART 2 */
-	0,	/* Multimedia Card Interface 0 */
-	0,	/* Multimedia Card Interface 1 */
-	3,	/* CAN */
-	6,	/* Two-Wire Interface */
-	5,	/* Serial Peripheral Interface 0 */
-	5,	/* Serial Peripheral Interface 1 */
-	4,	/* Serial Synchronous Controller 0 */
-	4,	/* Serial Synchronous Controller 1 */
-	5,	/* AC97 Controller */
-	0,	/* Timer Counter 0, 1 and 2 */
-	0,	/* Pulse Width Modulation Controller */
-	3,	/* Ethernet */
+	5,	
+	5,	
+	5,	
+	0,	
+	0,	
+	3,	
+	6,	
+	5,	
+	5,	
+	4,	
+	4,	
+	5,	
+	0,	
+	0,	
+	3,	
 	0,
-	0,	/* 2D Graphic Engine */
-	2,	/* USB Device Port */
-	0,	/* Image Sensor Interface */
-	3,	/* LDC Controller */
-	0,	/* DMA Controller */
+	0,	
+	2,	
+	0,	
+	3,	
+	0,	
 	0,
-	2,	/* USB Host port */
-	0,	/* Advanced Interrupt Controller (IRQ0) */
-	0,	/* Advanced Interrupt Controller (IRQ1) */
+	2,	
+	0,	
+	0,	
 };
 
 void __init at91sam9263_init_interrupts(unsigned int priority[NR_AIC_IRQS])
@@ -350,9 +325,9 @@ void __init at91sam9263_init_interrupts(unsigned int priority[NR_AIC_IRQS])
 	if (!priority)
 		priority = at91sam9263_default_irq_priority;
 
-	/* Initialize the AIC interrupt controller */
+	
 	at91_aic_init(priority);
 
-	/* Enable GPIO interrupts */
+	
 	at91_gpio_irq_setup();
 }

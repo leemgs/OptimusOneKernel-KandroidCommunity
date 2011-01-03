@@ -1,22 +1,4 @@
-/*
- * Char device for device raw access
- *
- * Copyright (C) 2005-2007  Kristian Hoegsberg <krh@bitplanet.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 #include <linux/compat.h>
 #include <linux/delay.h>
@@ -119,7 +101,7 @@ struct descriptor_resource {
 struct iso_resource {
 	struct client_resource resource;
 	struct client *client;
-	/* Schedule work and access todo only with client->lock held. */
+	
 	struct delayed_work work;
 	enum {ISO_RES_ALLOC, ISO_RES_REALLOC, ISO_RES_DEALLOC,
 	      ISO_RES_ALLOC_ONCE, ISO_RES_DEALLOC_ONCE,} todo;
@@ -133,10 +115,7 @@ struct iso_resource {
 static void schedule_iso_resource(struct iso_resource *);
 static void release_iso_resource(struct client *, struct client_resource *);
 
-/*
- * dequeue_event() just kfree()'s the event, so the event has to be
- * the first field in a struct XYZ_event.
- */
+
 struct event {
 	struct { void *data; size_t size; } v[2];
 	struct list_head link;
@@ -294,7 +273,7 @@ static void fill_bus_reset_event(struct fw_cdev_event_bus_reset *event,
 	event->generation    = client->device->generation;
 	event->node_id       = client->device->node_id;
 	event->local_node_id = card->local_node->node_id;
-	event->bm_node_id    = 0; /* FIXME: We don't track the BM. */
+	event->bm_node_id    = 0; 
 	event->irm_node_id   = card->irm_node->node_id;
 	event->root_node_id  = card->root_node->node_id;
 
@@ -477,20 +456,11 @@ static void complete_transaction(struct fw_card *card, int rcode,
 		memcpy(rsp->data, payload, rsp->length);
 
 	spin_lock_irqsave(&client->lock, flags);
-	/*
-	 * 1. If called while in shutdown, the idr tree must be left untouched.
-	 *    The idr handle will be removed and the client reference will be
-	 *    dropped later.
-	 * 2. If the call chain was release_client_resource ->
-	 *    release_transaction -> complete_transaction (instead of a normal
-	 *    conclusion of the transaction), i.e. if this resource was already
-	 *    unregistered from the idr, the client reference will be dropped
-	 *    by release_client_resource and we must not drop it here.
-	 */
+	
 	if (!client->in_shutdown &&
 	    idr_find(&client->resource_idr, e->r.resource.handle)) {
 		idr_remove(&client->resource_idr, e->r.resource.handle);
-		/* Drop the idr's reference */
+		
 		client_put(client);
 	}
 	spin_unlock_irqrestore(&client->lock, flags);
@@ -498,13 +468,7 @@ static void complete_transaction(struct fw_card *card, int rcode,
 	rsp->type = FW_CDEV_EVENT_RESPONSE;
 	rsp->rcode = rcode;
 
-	/*
-	 * In the case that sizeof(*rsp) doesn't align with the position of the
-	 * data, and the read is short, preserve an extra copy of the data
-	 * to stay compatible with a pre-2.6.27 bug.  Since the bug is harmless
-	 * for short reads and some apps depended on it, this is both safe
-	 * and prudent for compatibility.
-	 */
+	
 	if (rsp->length <= sizeof(*rsp) - offsetof(typeof(*rsp), data))
 		queue_event(client, &e->event, rsp, sizeof(*rsp),
 			    rsp->data, rsp->length);
@@ -512,7 +476,7 @@ static void complete_transaction(struct fw_card *card, int rcode,
 		queue_event(client, &e->event, rsp, sizeof(*rsp) + rsp->length,
 			    NULL, 0);
 
-	/* Drop the transaction callback's reference */
+	
 	client_put(client);
 }
 
@@ -547,7 +511,7 @@ static int init_request(struct client *client,
 	if (ret < 0)
 		goto failed;
 
-	/* Get a reference for the transaction callback */
+	
 	client_get(client);
 
 	fw_send_request(client->device->card, &e->r.transaction,
@@ -743,7 +707,7 @@ static int ioctl_add_descriptor(struct client *client, void *buffer)
 	struct descriptor_resource *r;
 	int ret;
 
-	/* Access policy: Allow this ioctl only on local nodes' device files. */
+	
 	if (!client->device->is_local)
 		return -ENOSYS;
 
@@ -816,7 +780,7 @@ static int ioctl_create_iso_context(struct client *client, void *buffer)
 	struct fw_cdev_create_iso_context *request = buffer;
 	struct fw_iso_context *context;
 
-	/* We only support one context at this time. */
+	
 	if (client->iso_context != NULL)
 		return -EBUSY;
 
@@ -852,13 +816,13 @@ static int ioctl_create_iso_context(struct client *client, void *buffer)
 	client->iso_closure = request->closure;
 	client->iso_context = context;
 
-	/* We only support one context at this time. */
+	
 	request->handle = 0;
 
 	return 0;
 }
 
-/* Macros for decoding the iso packet control header. */
+
 #define GET_PAYLOAD_LENGTH(v)	((v) & 0xffff)
 #define GET_INTERRUPT(v)	(((v) >> 16) & 0x01)
 #define GET_SKIP(v)		(((v) >> 17) & 0x01)
@@ -882,15 +846,7 @@ static int ioctl_queue_iso(struct client *client, void *buffer)
 	if (ctx == NULL || request->handle != 0)
 		return -EINVAL;
 
-	/*
-	 * If the user passes a non-NULL data pointer, has mmap()'ed
-	 * the iso buffer, and the pointer points inside the buffer,
-	 * we setup the payload pointers accordingly.  Otherwise we
-	 * set them both to 0, which will still let packets with
-	 * payload_length == 0 through.  In other words, if no packets
-	 * use the indirect payload, the iso buffer need not be mapped
-	 * and the request->data pointer is ignored.
-	 */
+	
 
 	payload = (unsigned long)request->data - client->vm_start;
 	buffer_end = client->buffer.page_count << PAGE_SHIFT;
@@ -920,10 +876,7 @@ static int ioctl_queue_iso(struct client *client, void *buffer)
 		if (ctx->type == FW_ISO_CONTEXT_TRANSMIT) {
 			header_length = u.packet.header_length;
 		} else {
-			/*
-			 * We require that header_length is a multiple of
-			 * the fixed header size, ctx->header_size.
-			 */
+			
 			if (ctx->header_size == 0) {
 				if (u.packet.header_length > 0)
 					return -EINVAL;
@@ -1025,14 +978,14 @@ static void iso_resource_work(struct work_struct *work)
 	spin_lock_irq(&client->lock);
 	generation = client->device->generation;
 	todo = r->todo;
-	/* Allow 1000ms grace period for other reallocations. */
+	
 	if (todo == ISO_RES_ALLOC &&
 	    time_is_after_jiffies(client->device->card->reset_jiffies + HZ)) {
 		if (schedule_delayed_work(&r->work, DIV_ROUND_UP(HZ, 3)))
 			client_get(client);
 		skip = true;
 	} else {
-		/* We could be called twice within the same generation. */
+		
 		skip = todo == ISO_RES_REALLOC &&
 		       r->generation == generation;
 	}
@@ -1053,11 +1006,7 @@ static void iso_resource_work(struct work_struct *work)
 			todo == ISO_RES_REALLOC ||
 			todo == ISO_RES_ALLOC_ONCE,
 			r->transaction_data);
-	/*
-	 * Is this generation outdated already?  As long as this resource sticks
-	 * in the idr, it will be scheduled again for a newer generation or at
-	 * shutdown.
-	 */
+	
 	if (channel == -EAGAIN &&
 	    (todo == ISO_RES_ALLOC || todo == ISO_RES_REALLOC))
 		goto out;
@@ -1065,16 +1014,10 @@ static void iso_resource_work(struct work_struct *work)
 	success = channel >= 0 || bandwidth > 0;
 
 	spin_lock_irq(&client->lock);
-	/*
-	 * Transit from allocation to reallocation, except if the client
-	 * requested deallocation in the meantime.
-	 */
+	
 	if (r->todo == ISO_RES_ALLOC)
 		r->todo = ISO_RES_REALLOC;
-	/*
-	 * Allocation or reallocation failure?  Pull this resource out of the
-	 * idr and prepare for deletion, unless the client is shutting down.
-	 */
+	
 	if (r->todo == ISO_RES_REALLOC && !success &&
 	    !client->in_shutdown &&
 	    idr_find(&client->resource_idr, r->resource.handle)) {
@@ -1217,11 +1160,7 @@ static int ioctl_deallocate_iso_resource_once(struct client *client, void *buffe
 	return init_iso_resource(client, request, ISO_RES_DEALLOC_ONCE);
 }
 
-/*
- * Returns a speed code:  Maximum speed to or from this device,
- * limited by the device's link speed, the local node's link speed,
- * and all PHY port speeds between the two links.
- */
+
 static int ioctl_get_speed(struct client *client, void *buffer)
 {
 	return client->device->max_speed;
@@ -1239,7 +1178,7 @@ static int ioctl_send_broadcast_request(struct client *client, void *buffer)
 		return -EINVAL;
 	}
 
-	/* Security policy: Only allow accesses to Units Space. */
+	
 	if (request->offset < CSR_REGISTER_BASE + CSR_CONFIG_ROM_END)
 		return -EACCES;
 
@@ -1355,7 +1294,7 @@ static int fw_device_op_mmap(struct file *file, struct vm_area_struct *vma)
 	if (fw_device_is_shutdown(client->device))
 		return -ENODEV;
 
-	/* FIXME: We could support multiple buffers, but we don't. */
+	
 	if (client->buffer.pages != NULL)
 		return -EBUSY;
 
@@ -1414,7 +1353,7 @@ static int fw_device_op_release(struct inode *inode, struct file *file)
 	if (client->buffer.pages)
 		fw_iso_buffer_destroy(&client->buffer, client->device->card);
 
-	/* Freeze client->resource_idr and client->event_list */
+	
 	spin_lock_irq(&client->lock);
 	client->in_shutdown = true;
 	spin_unlock_irq(&client->lock);

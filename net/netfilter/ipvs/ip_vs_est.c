@@ -1,16 +1,4 @@
-/*
- * ip_vs_est.c: simple rate estimator for IPVS
- *
- * Authors:     Wensong Zhang <wensong@linuxvirtualserver.org>
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Changes:
- *
- */
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -25,28 +13,7 @@
 
 #include <net/ip_vs.h>
 
-/*
-  This code is to estimate rate in a shorter interval (such as 8
-  seconds) for virtual services and real servers. For measure rate in a
-  long interval, it is easy to implement a user level daemon which
-  periodically reads those statistical counters and measure rate.
 
-  Currently, the measurement is activated by slow timer handler. Hope
-  this measurement will not introduce too much load.
-
-  We measure rate during the last 8 seconds every 2 seconds:
-
-    avgrate = avgrate*(1-W) + rate*W
-
-    where W = 2^(-2)
-
-  NOTES.
-
-  * The stored value for average bps is scaled by 2^5, so that maximal
-    rate is ~2.15Gbits/s, average pps and cps are scaled by 2^10.
-
-  * A lot code is taken from net/sched/estimator.c
- */
 
 
 static void estimation_timer(unsigned long arg);
@@ -75,7 +42,7 @@ static void estimation_timer(unsigned long arg)
 		n_inbytes = s->ustats.inbytes;
 		n_outbytes = s->ustats.outbytes;
 
-		/* scaled by 2^10, but divided 2 seconds */
+		
 		rate = (n_conns - e->last_conns)<<9;
 		e->last_conns = n_conns;
 		e->cps += ((long)rate - (long)e->cps)>>2;
@@ -145,7 +112,7 @@ void ip_vs_zero_estimator(struct ip_vs_stats *stats)
 {
 	struct ip_vs_estimator *est = &stats->est;
 
-	/* set counters zero, caller must hold the stats->lock lock */
+	
 	est->last_inbytes = 0;
 	est->last_outbytes = 0;
 	est->last_conns = 0;

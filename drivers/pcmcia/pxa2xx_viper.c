@@ -1,18 +1,4 @@
-/*
- * VIPER PCMCIA support
- *   Copyright 2004 Arcom Control Systems
- *
- * Maintained by Marc Zyngier <maz@misterjones.org>
- * 			      <marc.zyngier@altran.com>
- *
- * Based on:
- *   iPAQ h2200 PCMCIA support
- *   Copyright 2004 Koen Kooi <koen@vestingbar.nl>
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive for
- * more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -53,7 +39,7 @@ static int viper_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 
 	local_irq_save(flags);
 
-	/* GPIO 82 is the CF power enable line. initially off */
+	
 	if (gpio_direction_output(VIPER_CF_POWER_GPIO, 0) ||
 	    gpio_direction_input(VIPER_CF_CD_GPIO) ||
 	    gpio_direction_input(VIPER_CF_RDY_GPIO)) {
@@ -76,9 +62,7 @@ err_request_cd:
 	return -1;
 }
 
-/*
- * Release all resources.
- */
+
 static void viper_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_free_irqs(skt, irqs, ARRAY_SIZE(irqs));
@@ -95,17 +79,17 @@ static void viper_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 	state->bvd1   = 1;
 	state->bvd2   = 1;
 	state->wrprot = 0;
-	state->vs_3v  = 1; /* Can only apply 3.3V */
+	state->vs_3v  = 1; 
 	state->vs_Xv  = 0;
 }
 
 static int viper_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 					 const socket_state_t *state)
 {
-	/* Silently ignore Vpp, output enable, speaker enable. */
+	
 	viper_cf_rst(state->flags & SS_RESET);
 
-	/* Apply socket voltage */
+	
 	switch (state->Vcc) {
 	case 0:
 		gpio_set_value(VIPER_CF_POWER_GPIO, 0);

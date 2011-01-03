@@ -1,23 +1,4 @@
-/*
- * pnpacpi -- PnP ACPI driver
- *
- * Copyright (c) 2004 Matthieu Castet <castet.matthieu@free.fr>
- * Copyright (c) 2004 Li Shaohua <shaohua.li@intel.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/acpi.h>
 #include <linux/pnp.h>
@@ -29,18 +10,12 @@
 
 static int num = 0;
 
-/* We need only to blacklist devices that have already an acpi driver that
- * can't use pnp layer. We don't need to blacklist device that are directly
- * used by the kernel (PCI root, ...), as it is harmless and there were
- * already present in pnpbios. But there is an exception for devices that
- * have irqs (PIC, Timer) because we call acpi_register_gsi.
- * Finally, only devices that have a CRS method need to be in this list.
- */
+
 static struct acpi_device_id excluded_id_list[] __initdata = {
-	{"PNP0C09", 0},		/* EC */
-	{"PNP0C0F", 0},		/* Link device */
-	{"PNP0000", 0},		/* PIC */
-	{"PNP0100", 0},		/* Timer */
+	{"PNP0C09", 0},		
+	{"PNP0C0F", 0},		
+	{"PNP0000", 0},		
+	{"PNP0100", 0},		
 	{"", 0},
 };
 
@@ -49,9 +24,7 @@ static inline int __init is_exclusive_device(struct acpi_device *dev)
 	return (!acpi_match_device_ids(dev, excluded_id_list));
 }
 
-/*
- * Compatible Device IDs
- */
+
 #define TEST_HEX(c) \
 	if (!(('0' <= (c) && (c) <= '9') || ('A' <= (c) && (c) <= 'F'))) \
 		return 0
@@ -108,11 +81,11 @@ static int pnpacpi_disable_resources(struct pnp_dev *dev)
 
 	dev_dbg(&dev->dev, "disable resources\n");
 
-	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
+	
 	ret = 0;
 	if (acpi_bus_power_manageable(handle))
 		acpi_bus_set_power(handle, ACPI_STATE_D3);
-		/* continue even if acpi_bus_set_power() fails */
+		
 	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_DIS", NULL, NULL)))
 		ret = -ENODEV;
 	return ret;
@@ -155,10 +128,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
 	struct pnp_dev *dev;
 	struct acpi_hardware_id *id;
 
-	/*
-	 * If a PnPacpi device is not present , the device
-	 * driver should not be loaded.
-	 */
+	
 	status = acpi_get_handle(device->handle, "_CRS", &temp);
 	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
 	    is_exclusive_device(device) || (!device->status.present))
@@ -169,7 +139,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
 		return -ENOMEM;
 
 	dev->data = device->handle;
-	/* .enabled means the device can decode the resources */
+	
 	dev->active = device->status.enabled;
 	status = acpi_get_handle(device->handle, "_SRS", &temp);
 	if (ACPI_SUCCESS(status))
@@ -202,7 +172,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
 		pnp_add_id(dev, id->id);
 	}
 
-	/* clear out the damaged flags */
+	
 	if (!dev->active)
 		pnp_init_resources(dev);
 	pnp_add_device(dev);
@@ -229,7 +199,7 @@ static int __init acpi_pnp_match(struct device *dev, void *_pnp)
 	struct acpi_device *acpi = to_acpi_device(dev);
 	struct pnp_dev *pnp = _pnp;
 
-	/* true means it matched */
+	
 	return !acpi_get_physical_device(acpi->handle)
 	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
 }
@@ -250,9 +220,7 @@ static int __init acpi_pnp_find_device(struct device *dev, acpi_handle * handle)
 	return 0;
 }
 
-/* complete initialization of a PNPACPI device includes having
- * pnpdev->dev.archdata.acpi_handle point to its ACPI sibling.
- */
+
 static struct acpi_bus_type __initdata acpi_pnp_bus = {
 	.bus	     = &pnp_bus_type,
 	.find_device = acpi_pnp_find_device,

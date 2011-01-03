@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2006	Jiri Benc <jbenc@suse.cz>
- * Copyright 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -89,17 +82,17 @@ static const struct file_operations name##_ops = {			\
 		IEEE80211_IF_FMT_##format(name, field)			\
 		__IEEE80211_IF_FILE(name)
 
-/* common attributes */
+
 IEEE80211_IF_FILE(drop_unencrypted, drop_unencrypted, DEC);
 IEEE80211_IF_FILE(force_unicast_rateidx, force_unicast_rateidx, DEC);
 IEEE80211_IF_FILE(max_ratectrl_rateidx, max_ratectrl_rateidx, DEC);
 
-/* STA attributes */
+
 IEEE80211_IF_FILE(bssid, u.mgd.bssid, MAC);
 IEEE80211_IF_FILE(aid, u.mgd.aid, DEC);
 IEEE80211_IF_FILE(capab, u.mgd.capab, HEX);
 
-/* AP attributes */
+
 IEEE80211_IF_FILE(num_sta_ps, u.ap.num_sta_ps, ATOMIC);
 IEEE80211_IF_FILE(dtim_count, u.ap.dtim_count, DEC);
 
@@ -111,11 +104,11 @@ static ssize_t ieee80211_if_fmt_num_buffered_multicast(
 }
 __IEEE80211_IF_FILE(num_buffered_multicast);
 
-/* WDS attributes */
+
 IEEE80211_IF_FILE(peer, u.wds.remote_addr, MAC);
 
 #ifdef CONFIG_MAC80211_MESH
-/* Mesh stats attributes */
+
 IEEE80211_IF_FILE(fwded_mcast, u.mesh.mshstats.fwded_mcast, DEC);
 IEEE80211_IF_FILE(fwded_unicast, u.mesh.mshstats.fwded_unicast, DEC);
 IEEE80211_IF_FILE(fwded_frames, u.mesh.mshstats.fwded_frames, DEC);
@@ -124,7 +117,7 @@ IEEE80211_IF_FILE(dropped_frames_no_route,
 		u.mesh.mshstats.dropped_frames_no_route, DEC);
 IEEE80211_IF_FILE(estab_plinks, u.mesh.mshstats.estab_plinks, ATOMIC);
 
-/* Mesh parameters */
+
 IEEE80211_IF_FILE(dot11MeshMaxRetries,
 		u.mesh.mshcfg.dot11MeshMaxRetries, DEC);
 IEEE80211_IF_FILE(dot11MeshRetryTimeout,
@@ -255,7 +248,7 @@ static void add_files(struct ieee80211_sub_if_data *sdata)
 		add_sta_files(sdata);
 		break;
 	case NL80211_IFTYPE_ADHOC:
-		/* XXX */
+		
 		break;
 	case NL80211_IFTYPE_AP:
 		add_ap_files(sdata);
@@ -383,7 +376,7 @@ static void del_files(struct ieee80211_sub_if_data *sdata)
 		del_sta_files(sdata);
 		break;
 	case NL80211_IFTYPE_ADHOC:
-		/* XXX */
+		
 		break;
 	case NL80211_IFTYPE_AP:
 		del_ap_files(sdata);

@@ -1,26 +1,4 @@
-/*
- * Copyright (C) 2004-2005 Advanced Micro Devices, Inc.
- * Copyright (C)      2007 Bartlomiej Zolnierkiewicz
- *
- * History:
- * 09/20/2005 - Jaya Kumar <jayakumar.ide@gmail.com>
- * - Reworked tuneproc, set_drive, misc mods to prep for mainline
- * - Work was sponsored by CIS (M) Sdn Bhd.
- * Ported to Kernel 2.6.11 on June 26, 2005 by
- *   Wolfgang Zuleger <wolfgang.zuleger@gmx.de>
- *   Alexander Kiausch <alex.kiausch@t-online.de>
- * Originally developed by AMD for 2.4/2.6
- *
- * Development of this chipset driver was funded
- * by the nice folks at National Semiconductor/AMD.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * Documentation:
- *  CS5535 documentation available from AMD
- */
+
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -47,7 +25,7 @@
 #define ATAC_BM0_PRD		0x04
 #define CS5535_CABLE_DETECT	0x48
 
-/* Format I PIO settings. We separate out cmd and data for safer timings */
+
 
 static unsigned int cs5535_pio_cmd_timings[5] =
 { 0xF7F4, 0x53F3, 0x13F1, 0x5131, 0x1131 };
@@ -60,25 +38,18 @@ static unsigned int cs5535_mwdma_timings[3] =
 static unsigned int cs5535_udma_timings[5] =
 { 0x7F7436A1, 0x7F733481, 0x7F723261, 0x7F713161, 0x7F703061 };
 
-/* Macros to check if the register is the reset value -  reset value is an
-   invalid timing and indicates the register has not been set previously */
+
 
 #define CS5535_BAD_PIO(timings) ( (timings&~0x80000000UL) == 0x00009172 )
 #define CS5535_BAD_DMA(timings) ( (timings & 0x000FFFFF) == 0x00077771 )
 
-/****
- *	cs5535_set_speed         -     Configure the chipset to the new speed
- *	@drive: Drive to set up
- *	@speed: desired speed
- *
- *	cs5535_set_speed() configures the chipset to a new speed.
- */
+
 static void cs5535_set_speed(ide_drive_t *drive, const u8 speed)
 {
 	u32 reg = 0, dummy;
 	u8 unit = drive->dn & 1;
 
-	/* Set the PIO timings */
+	
 	if (speed < XFER_SW_DMA_0) {
 		ide_drive_t *pair = ide_get_pair_dev(drive);
 		u8 cmd, pioa;
@@ -92,12 +63,12 @@ static void cs5535_set_speed(ide_drive_t *drive, const u8 speed)
 				cmd = piob;
 		}
 
-		/* Write the speed of the current drive */
+		
 		reg = (cs5535_pio_cmd_timings[cmd] << 16) |
 			cs5535_pio_dta_timings[pioa];
 		wrmsr(unit ? ATAC_CH0D1_PIO : ATAC_CH0D0_PIO, reg, 0);
 
-		/* And if nessesary - change the speed of the other drive */
+		
 		rdmsr(unit ?  ATAC_CH0D0_PIO : ATAC_CH0D1_PIO, reg, dummy);
 
 		if (((reg >> 16) & cs5535_pio_cmd_timings[cmd]) !=
@@ -107,14 +78,14 @@ static void cs5535_set_speed(ide_drive_t *drive, const u8 speed)
 			wrmsr(unit ? ATAC_CH0D0_PIO : ATAC_CH0D1_PIO, reg, 0);
 		}
 
-		/* Set bit 31 of the DMA register for PIO format 1 timings */
+		
 		rdmsr(unit ?  ATAC_CH0D1_DMA : ATAC_CH0D0_DMA, reg, dummy);
 		wrmsr(unit ? ATAC_CH0D1_DMA : ATAC_CH0D0_DMA,
 					reg | 0x80000000UL, 0);
 	} else {
 		rdmsr(unit ? ATAC_CH0D1_DMA : ATAC_CH0D0_DMA, reg, dummy);
 
-		reg &= 0x80000000UL;  /* Preserve the PIO format bit */
+		reg &= 0x80000000UL;  
 
 		if (speed >= XFER_UDMA_0 && speed <= XFER_UDMA_4)
 			reg |= cs5535_udma_timings[speed - XFER_UDMA_0];
@@ -127,26 +98,14 @@ static void cs5535_set_speed(ide_drive_t *drive, const u8 speed)
 	}
 }
 
-/**
- *	cs5535_set_dma_mode	-	set host controller for DMA mode
- *	@drive: drive
- *	@speed: DMA mode
- *
- *	Programs the chipset for DMA mode.
- */
+
 
 static void cs5535_set_dma_mode(ide_drive_t *drive, const u8 speed)
 {
 	cs5535_set_speed(drive, speed);
 }
 
-/**
- *	cs5535_set_pio_mode	-	set host controller for PIO mode
- *	@drive: drive
- *	@pio: PIO mode number
- *
- *	A callback from the upper layers for PIO-only tuning.
- */
+
 
 static void cs5535_set_pio_mode(ide_drive_t *drive, const u8 pio)
 {
@@ -158,7 +117,7 @@ static u8 cs5535_cable_detect(ide_hwif_t *hwif)
 	struct pci_dev *dev = to_pci_dev(hwif->dev);
 	u8 bit;
 
-	/* if a 80 wire cable was detected */
+	
 	pci_read_config_byte(dev, CS5535_CABLE_DETECT, &bit);
 
 	return (bit & 1) ? ATA_CBL_PATA80 : ATA_CBL_PATA40;

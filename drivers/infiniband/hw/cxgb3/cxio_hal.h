@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #ifndef  __CXIO_HAL_H__
 #define  __CXIO_HAL_H__
 
@@ -55,7 +25,7 @@
 #define T3_MAX_CQ_DEPTH 8192
 #define T3_MAX_NUM_STAG (1<<15)
 #define T3_MAX_MR_SIZE 0x100000000ULL
-#define T3_PAGESIZE_MASK 0xffff000  /* 4KB-128MB */
+#define T3_PAGESIZE_MASK 0xffff000  
 
 #define T3_STAG_UNSET 0xffffffff
 
@@ -66,10 +36,10 @@
 struct cxio_hal_ctrl_qp {
 	u32 wptr;
 	u32 rptr;
-	struct mutex lock;	/* for the wtpr, can sleep */
-	wait_queue_head_t waitq;/* wait for RspQ/CQE msg */
-	union t3_wr *workq;	/* the work request queue */
-	dma_addr_t dma_addr;	/* pci bus address of the workq */
+	struct mutex lock;	
+	wait_queue_head_t waitq;
+	union t3_wr *workq;	
+	dma_addr_t dma_addr;	
 	DECLARE_PCI_UNMAP_ADDR(mapping)
 	void __iomem *doorbell;
 };
@@ -139,10 +109,10 @@ typedef void (*cxio_hal_ev_callback_func_t) (struct cxio_rdev * rdev_p,
 #define RSPQ_CREDIT_THRESH(rsp) ((be32_to_cpu(rsp->flags) >> 22) & 1)
 
 struct respQ_msg_t {
-	__be32 flags;		/* flit 0 */
+	__be32 flags;		
 	__be32 cq_ptrid;
-	__be64 rsvd;		/* flit 1 */
-	struct t3_cqe cqe;	/* flits 2-3 */
+	__be64 rsvd;		
+	struct t3_cqe cqe;	
 };
 
 enum t3_cq_opcode {

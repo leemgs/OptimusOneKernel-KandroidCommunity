@@ -1,11 +1,4 @@
-/* dvb-usb-urb.c is part of the DVB USB library.
- *
- * Copyright (C) 2004-6 Patrick Boettcher (patrick.boettcher@desy.de)
- * see dvb-usb-init.c for copyright information.
- *
- * This file keeps functions for initializing and handling the
- * USB and URB stuff.
- */
+
 #include "dvb-usb-common.h"
 
 int dvb_usb_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
@@ -36,7 +29,7 @@ int dvb_usb_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
 	else
 		ret = actlen != wlen ? -1 : 0;
 
-	/* an answer is expected, and no error before */
+	
 	if (!ret && rbuf && rlen) {
 		if (delay_ms)
 			msleep(delay_ms);

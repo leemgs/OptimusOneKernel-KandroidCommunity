@@ -1,25 +1,4 @@
-/* linux/arch/arm/mach-s3c2440/clock.c
- *
- * Copyright (c) 2004-2005 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2440 Clock support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -44,7 +23,7 @@
 #include <plat/clock.h>
 #include <plat/cpu.h>
 
-/* S3C2440 extended clock support */
+
 
 static unsigned long s3c2440_camif_upll_round(struct clk *clk,
 					      unsigned long rate)
@@ -55,7 +34,7 @@ static unsigned long s3c2440_camif_upll_round(struct clk *clk,
 	if (rate > parent_rate)
 		return parent_rate;
 
-	/* note, we remove the +/- 1 calculations for the divisor */
+	
 
 	div = (parent_rate / rate) / 2;
 
@@ -86,7 +65,7 @@ static int s3c2440_camif_upll_setrate(struct clk *clk, unsigned long rate)
 	return 0;
 }
 
-/* Extra S3C2440 clocks */
+
 
 static struct clk s3c2440_clk_cam = {
 	.name		= "camif",

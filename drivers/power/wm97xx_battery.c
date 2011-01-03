@@ -1,17 +1,4 @@
-/*
- * linux/drivers/power/wm97xx_battery.c
- *
- * Battery measurement code for WM97xx
- *
- * based on tosa_battery.c
- *
- * Copyright (C) 2008 Marek Vasut <marek.vasut@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -166,7 +153,7 @@ static struct dev_pm_ops wm97xx_bat_pm_ops = {
 static int __devinit wm97xx_bat_probe(struct platform_device *dev)
 {
 	int ret = 0;
-	int props = 1;	/* POWER_SUPPLY_PROP_PRESENT */
+	int props = 1;	
 	int i = 0;
 	struct wm97xx_pdata *wmdata = dev->dev.platform_data;
 	struct wm97xx_batt_pdata *pdata;
@@ -200,19 +187,19 @@ static int __devinit wm97xx_bat_probe(struct platform_device *dev)
 				"AC Detect", 0);
 		if (ret)
 			goto err2;
-		props++;	/* POWER_SUPPLY_PROP_STATUS */
+		props++;	
 	}
 
 	if (pdata->batt_tech >= 0)
-		props++;	/* POWER_SUPPLY_PROP_TECHNOLOGY */
+		props++;	
 	if (pdata->temp_aux >= 0)
-		props++;	/* POWER_SUPPLY_PROP_TEMP */
+		props++;	
 	if (pdata->batt_aux >= 0)
-		props++;	/* POWER_SUPPLY_PROP_VOLTAGE_NOW */
+		props++;	
 	if (pdata->max_voltage >= 0)
-		props++;	/* POWER_SUPPLY_PROP_VOLTAGE_MAX */
+		props++;	
 	if (pdata->min_voltage >= 0)
-		props++;	/* POWER_SUPPLY_PROP_VOLTAGE_MIN */
+		props++;	
 
 	prop = kzalloc(props * sizeof(*prop), GFP_KERNEL);
 	if (!prop)

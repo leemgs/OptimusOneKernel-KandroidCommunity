@@ -1,36 +1,9 @@
-/*
- * TerraTec Cinergy T2/qanu USB2 DVB-T adapter.
- *
- * Copyright (C) 2007 Tomi Orava (tomimo@ncircle.nullnet.fi)
- *
- * Based on the dvb-usb-framework code and the
- * original Terratec Cinergy T2 driver by:
- *
- * Copyright (C) 2004 Daniel Mack <daniel@qanu.de> and
- *		    Holger Waechtler <holger@qanu.de>
- *
- *  Protocol Spec published on http://qanu.de/specs/terratec_cinergyT2.pdf
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include "cinergyT2.h"
 
 
-/* debug */
+
 int dvb_usb_cinergyt2_debug;
 
 module_param_named(debug, dvb_usb_cinergyt2_debug, int, 0644);
@@ -43,7 +16,7 @@ struct cinergyt2_state {
 	u8 rc_counter;
 };
 
-/* We are missing a release hook with usb_device data */
+
 static struct dvb_usb_device *cinergyt2_usb_device;
 
 static struct dvb_usb_device_properties cinergyt2_properties;
@@ -78,7 +51,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
 			"state info\n");
 	}
 
-	/* Copy this pointer as we are gonna need it in the release phase */
+	
 	cinergyt2_usb_device = adap->dev;
 
 	return 0;
@@ -124,7 +97,7 @@ static struct dvb_usb_rc_key cinergyt2_rc_keys[] = {
 	{ 0x045c, KEY_NEXT }
 };
 
-/* Number of keypresses to ignore before detect repeating */
+
 #define RC_REPEAT_DELAY 3
 
 static int repeatable_keys[] = {
@@ -148,7 +121,7 @@ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 
 	dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
 	if (key[4] == 0xff) {
-		/* key repeat */
+		
 		st->rc_counter++;
 		if (st->rc_counter > RC_REPEAT_DELAY) {
 			for (i = 0; i < ARRAY_SIZE(repeatable_keys); i++) {
@@ -165,7 +138,7 @@ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 		return 0;
 	}
 
-	/* hack to pass checksum on the custom field */
+	
 	key[2] = ~key[1];
 	dvb_usb_nec_rc_key_to_event(d, key, event, state);
 	if (key[0] != 0) {
@@ -201,7 +174,7 @@ static struct dvb_usb_device_properties cinergyt2_properties = {
 			.streaming_ctrl   = cinergyt2_streaming_ctrl,
 			.frontend_attach  = cinergyt2_frontend_attach,
 
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 5,

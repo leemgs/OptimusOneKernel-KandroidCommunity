@@ -1,15 +1,4 @@
-/* linux/arch/arm/mach-s3c2440/mach-rx3715.c
- *
- * Copyright (c) 2003,2004 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * http://www.handhelds.org/projects/rx3715.html
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -51,7 +40,7 @@
 #include <plat/pm.h>
 
 static struct map_desc rx3715_iodesc[] __initdata = {
-	/* dump ISA space somewhere unused */
+	
 
 	{
 		.virtual	= (u32)S3C24XX_VA_ISA_WORD,
@@ -95,7 +84,7 @@ static struct s3c2410_uartcfg rx3715_uartcfgs[] = {
 		.clocks	     = rx3715_serial_clocks,
 		.clocks_size = ARRAY_SIZE(rx3715_serial_clocks),
 	},
-	/* IR port */
+	
 	[2] = {
 		.hwport	     = 2,
 		.uart_flags  = UPF_CONS_FLOW,
@@ -107,7 +96,7 @@ static struct s3c2410_uartcfg rx3715_uartcfgs[] = {
 	}
 };
 
-/* framebuffer lcd controller information */
+
 
 static struct s3c2410fb_display rx3715_lcdcfg __initdata = {
 	.lcdcon5 =	S3C2410_LCDCON5_INVVLINE |
@@ -210,7 +199,7 @@ static void __init rx3715_init_machine(void)
 }
 
 MACHINE_START(RX3715, "IPAQ-RX3715")
-	/* Maintainer: Ben Dooks <ben@fluff.org> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

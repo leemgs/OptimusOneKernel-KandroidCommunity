@@ -1,20 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/fpga.c
- *
- * Interrupt handler for OMAP-1510 Innovator FPGA
- *
- * Copyright (C) 2001 RidgeRun, Inc.
- * Author: Greg Lonnon <glonnon@ridgerun.com>
- *
- * Copyright (C) 2002 MontaVista Software, Inc.
- *
- * Separated FPGA interrupts from innovator1510.c and cleaned up for 2.6
- * Copyright (C) 2004 Nokia Corporation by Tony Lindrgen <tony@atomide.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -60,7 +44,7 @@ static inline u32 get_fpga_unmasked_irqs(void)
 
 static void fpga_ack_irq(unsigned int irq)
 {
-	/* Don't need to explicitly ACK FPGA interrupts */
+	
 }
 
 static void fpga_unmask_irq(unsigned int irq)
@@ -118,29 +102,7 @@ static struct irq_chip omap_fpga_irq = {
 	.unmask		= fpga_unmask_irq,
 };
 
-/*
- * All of the FPGA interrupt request inputs except for the touchscreen are
- * edge-sensitive; the touchscreen is level-sensitive.  The edge-sensitive
- * interrupts are acknowledged as a side-effect of reading the interrupt
- * status register from the FPGA.  The edge-sensitive interrupt inputs
- * cause a problem with level interrupt requests, such as Ethernet.  The
- * problem occurs when a level interrupt request is asserted while its
- * interrupt input is masked in the FPGA, which results in a missed
- * interrupt.
- *
- * In an attempt to workaround the problem with missed interrupts, the
- * mask_ack routine for all of the FPGA interrupts has been changed from
- * fpga_mask_ack_irq() to fpga_ack_irq() so that the specific FPGA interrupt
- * being serviced is left unmasked.  We can do this because the FPGA cascade
- * interrupt is installed with the IRQF_DISABLED flag, which leaves all
- * interrupts masked at the CPU while an FPGA interrupt handler executes.
- *
- * Limited testing indicates that this workaround appears to be effective
- * for the smc9194 Ethernet driver used on the Innovator.  It should work
- * on other FPGA interrupts as well, but any drivers that explicitly mask
- * interrupts at the interrupt controller via disable_irq/enable_irq
- * could pose a problem.
- */
+
 void omap1510_fpga_init_irq(void)
 {
 	int i;
@@ -152,17 +114,11 @@ void omap1510_fpga_init_irq(void)
 	for (i = OMAP_FPGA_IRQ_BASE; i < OMAP_FPGA_IRQ_END; i++) {
 
 		if (i == OMAP1510_INT_FPGA_TS) {
-			/*
-			 * The touchscreen interrupt is level-sensitive, so
-			 * we'll use the regular mask_ack routine for it.
-			 */
+			
 			set_irq_chip(i, &omap_fpga_irq_ack);
 		}
 		else {
-			/*
-			 * All FPGA interrupts except the touchscreen are
-			 * edge-sensitive, so we won't mask them.
-			 */
+			
 			set_irq_chip(i, &omap_fpga_irq);
 		}
 
@@ -170,13 +126,7 @@ void omap1510_fpga_init_irq(void)
 		set_irq_flags(i, IRQF_VALID);
 	}
 
-	/*
-	 * The FPGA interrupt line is connected to GPIO13. Claim this pin for
-	 * the ARM.
-	 *
-	 * NOTE: For general GPIO/MPUIO access and interrupts, please see
-	 * gpio.[ch]
-	 */
+	
 	gpio_request(13, "FPGA irq");
 	gpio_direction_input(13);
 	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);

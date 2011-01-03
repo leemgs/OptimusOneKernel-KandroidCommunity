@@ -1,13 +1,4 @@
-/*
- * Stateless NAT actions
- *
- * Copyright (c) 2007 Herbert Xu <herbert@gondor.apana.org.au>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
 
 #include <linux/errno.h>
 #include <linux/init.h>
@@ -151,7 +142,7 @@ static int tcf_nat(struct sk_buff *skb, struct tc_action *a,
 		new_addr &= mask;
 		new_addr |= addr & ~mask;
 
-		/* Rewrite IP header */
+		
 		iph = ip_hdr(skb);
 		if (egress)
 			iph->saddr = new_addr;
@@ -163,7 +154,7 @@ static int tcf_nat(struct sk_buff *skb, struct tc_action *a,
 
 	ihl = iph->ihl * 4;
 
-	/* It would be nice to share code with stateful NAT. */
+	
 	switch (iph->frag_off & htons(IP_OFFSET) ? 0 : iph->protocol) {
 	case IPPROTO_TCP:
 	{
@@ -233,7 +224,7 @@ static int tcf_nat(struct sk_buff *skb, struct tc_action *a,
 		new_addr &= mask;
 		new_addr |= addr & ~mask;
 
-		/* XXX Fix up the inner checksums. */
+		
 		if (egress)
 			iph->daddr = new_addr;
 		else
@@ -267,7 +258,7 @@ static int tcf_nat_dump(struct sk_buff *skb, struct tc_action *a,
 
 	s = sizeof(*opt);
 
-	/* netlink spinlocks held above us - must use ATOMIC */
+	
 	opt = kzalloc(s, GFP_ATOMIC);
 	if (unlikely(!opt))
 		return -ENOBUFS;

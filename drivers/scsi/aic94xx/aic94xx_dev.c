@@ -1,29 +1,4 @@
-/*
- * Aic94xx SAS/SATA DDB management
- *
- * Copyright (C) 2005 Adaptec, Inc.  All rights reserved.
- * Copyright (C) 2005 Luben Tuikov <luben_tuikov@adaptec.com>
- *
- * This file is licensed under GPLv2.
- *
- * This file is part of the aic94xx driver.
- *
- * The aic94xx driver is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 of the
- * License.
- *
- * The aic94xx driver is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with the aic94xx driver; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * $Id: //depot/aic94xx/aic94xx_dev.c#21 $
- */
+
 
 #include "aic94xx.h"
 #include "aic94xx_hwi.h"
@@ -123,7 +98,7 @@ static int asd_init_sata(struct domain_device *dev)
 		u16 w75 = le16_to_cpu(dev->sata_dev.identify_device[75]);
 		u16 w76 = le16_to_cpu(dev->sata_dev.identify_device[76]);
 
-		if (w76 & 0x100) /* NCQ? */
+		if (w76 & 0x100) 
 			qdepth = (w75 & 0x1F) + 1;
 		asd_ddbsite_write_dword(asd_ha, ddb, SATA_TAG_ALLOC_MASK,
 					(1ULL<<qdepth)-1);
@@ -243,14 +218,7 @@ static int asd_init_sata_pm_table_ddb(struct domain_device *dev)
 #define PM_PORT_FLAGS offsetof(struct asd_ddb_sata_pm_port, pm_port_flags)
 #define PARENT_DDB    offsetof(struct asd_ddb_sata_pm_port, parent_ddb)
 
-/**
- * asd_init_sata_pm_port_ddb -- SATA Port Multiplier Port
- * dev: pointer to domain device
- *
- * For SATA Port Multiplier Ports we need to allocate one SATA Port
- * Multiplier Port DDB and depending on whether the target on it
- * supports SATA II NCQ, one SATA Tag DDB.
- */
+
 static int asd_init_sata_pm_port_ddb(struct domain_device *dev)
 {
 	int ddb, i, parent_ddb, pmtable_ddb;
@@ -288,13 +256,7 @@ static int asd_init_initiator_ddb(struct domain_device *dev)
 	return -ENODEV;
 }
 
-/**
- * asd_init_sata_pm_ddb -- SATA Port Multiplier
- * dev: pointer to domain device
- *
- * For STP and direct-attached SATA Port Multipliers we need
- * one target port DDB entry and one SATA PM table DDB entry.
- */
+
 static int asd_init_sata_pm_ddb(struct domain_device *dev)
 {
 	int res = 0;

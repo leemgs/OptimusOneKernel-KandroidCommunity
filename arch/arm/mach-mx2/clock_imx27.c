@@ -1,22 +1,4 @@
-/*
- * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Juergen Beisert, kernel@pengutronix.de
- * Copyright 2008 Martin Fuzzey, mfuzzey@gmail.com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/clk.h>
 #include <linux/io.h>
@@ -29,7 +11,7 @@
 #include <mach/common.h>
 #include <mach/hardware.h>
 
-/* Register offsets */
+
 #define CCM_CSCR                (IO_ADDRESS(CCM_BASE_ADDR) + 0x0)
 #define CCM_MPCTL0              (IO_ADDRESS(CCM_BASE_ADDR) + 0x4)
 #define CCM_MPCTL1              (IO_ADDRESS(CCM_BASE_ADDR) + 0x8)
@@ -60,7 +42,7 @@
 #define CCM_CSCR_SPEN           (1 << 1)
 #define CCM_CSCR_MPEN           (1 << 0)
 
-/* i.MX27 TO 2+ */
+
 #define CCM_CSCR_ARM_SRC        (1 << 15)
 
 #define CCM_SPCTL1_LF           (1 << 15)
@@ -243,9 +225,9 @@ static unsigned long get_rate_ssix(struct clk *clk, unsigned long pdf)
 	parent_rate = clk_get_rate(clk->parent);
 
 	if (mx27_revision() >= CHIP_REV_2_0)
-		pdf += 4;  /* MX27 TO2+ */
+		pdf += 4;  
 	else
-		pdf = (pdf < 2) ? 124UL : pdf;  /* MX21 & MX27 TO1 */
+		pdf = (pdf < 2) ? 124UL : pdf;  
 
 	return 2UL * parent_rate / pdf;
 }
@@ -308,7 +290,7 @@ static int set_rate_parent(struct clk *clk, unsigned long rate)
 	return clk->parent->set_rate(clk->parent, rate);
 }
 
-/* in Hz */
+
 static unsigned long external_high_reference = 26000000;
 
 static unsigned long get_rate_high_reference(struct clk *clk)
@@ -316,7 +298,7 @@ static unsigned long get_rate_high_reference(struct clk *clk)
 	return external_high_reference;
 }
 
-/* in Hz */
+
 static unsigned long external_low_reference = 32768;
 
 static unsigned long get_rate_low_reference(struct clk *clk)
@@ -341,10 +323,7 @@ static unsigned long get_rate_mpll_main(struct clk *clk)
 
 	parent_rate = clk_get_rate(clk->parent);
 
-	/* i.MX27 TO2:
-	 * clk->id == 0: arm clock source path 1 which is from 2 * MPLL / 2
-	 * clk->id == 1: arm clock source path 2 which is from 2 * MPLL / 3
-	 */
+	
 	if (mx27_revision() >= CHIP_REV_2_0 && clk->id == 1)
 		return 2UL * parent_rate / 3UL;
 
@@ -360,9 +339,7 @@ static unsigned long get_rate_spll(struct clk *clk)
 
 	reg = __raw_readl(CCM_SPCTL0);
 
-	/* On TO2 we have to write the value back. Otherwise we
-	 * read 0 from this register the next time.
-	 */
+	
 	if (mx27_revision() >= CHIP_REV_2_0)
 		__raw_writel(reg, CCM_SPCTL0);
 
@@ -423,11 +400,7 @@ static unsigned long get_rate_per(struct clk *clk)
 	return parent_rate / (perclk_pdf + 1);
 }
 
-/*
- * the high frequency external clock reference
- * Default case is 26MHz. Could be changed at runtime
- * with a call to change_external_high_reference()
- */
+
 static struct clk ckih_clk = {
 	.get_rate	= get_rate_high_reference,
 };
@@ -437,18 +410,14 @@ static struct clk mpll_clk = {
 	.get_rate	= get_rate_mpll,
 };
 
-/* For i.MX27 TO2, it is the MPLL path 1 of ARM core
- * It provides the clock source whose rate is same as MPLL
- */
+
 static struct clk mpll_main1_clk = {
 	.id		= 0,
 	.parent		= &mpll_clk,
 	.get_rate	= get_rate_mpll_main,
 };
 
-/* For i.MX27 TO2, it is the MPLL path 2 of ARM core
- * It provides the clock source whose rate is same MPLL * 2 / 3
- */
+
 static struct clk mpll_main2_clk = {
 	.id		= 1,
 	.parent		= &mpll_clk,
@@ -480,15 +449,12 @@ static struct clk spll_clk = {
 	.disable = clk_spll_disable,
 };
 
-/*
- * the low frequency external clock reference
- * Default case is 32.768kHz.
- */
+
 static struct clk ckil_clk = {
 	.get_rate = get_rate_low_reference,
 };
 
-/* Output of frequency pre multiplier */
+
 static struct clk fpm_clk = {
 	.parent = &ckil_clk,
 	.get_rate = get_rate_fpm,
@@ -523,11 +489,11 @@ static struct clk fpm_clk = {
 		.parent		= p,				\
 	}
 
-/* Forward declaration to keep the following list in order */
+
 static struct clk slcdc_clk1, sahara2_clk1, rtic_clk1, fec_clk1, emma_clk1,
 		  dma_clk1, lcdc_clk2, vpu_clk1;
 
-/* All clocks we can gate through PCCRx in the order of PCCRx bits */
+
 DEFINE_CLOCK(ssi2_clk1,    1, PCCR0,  0, NULL, NULL, &ipg_clk);
 DEFINE_CLOCK(ssi1_clk1,    0, PCCR0,  1, NULL, NULL, &ipg_clk);
 DEFINE_CLOCK(slcdc_clk,    0, PCCR0,  2, NULL, &slcdc_clk1, &ahb_clk);
@@ -591,7 +557,7 @@ DEFINE_CLOCK(uart3_clk1,   0, PCCR1, 29, NULL, NULL, &ipg_clk);
 DEFINE_CLOCK(uart2_clk1,   0, PCCR1, 30, NULL, NULL, &ipg_clk);
 DEFINE_CLOCK(uart1_clk1,   0, PCCR1, 31, NULL, NULL, &ipg_clk);
 
-/* Clocks we cannot directly gate, but drivers need their rates */
+
 DEFINE_CLOCK(cspi1_clk,    0, 0,      0, NULL, &cspi1_clk1, &per2_clk);
 DEFINE_CLOCK(cspi2_clk,    1, 0,      0, NULL, &cspi2_clk1, &per2_clk);
 DEFINE_CLOCK(cspi3_clk,    2, 0,      0, NULL, &cspi13_clk1, &per2_clk);
@@ -676,7 +642,7 @@ static struct clk_lookup lookups[] = {
 	_REGISTER_CLOCK(NULL, "scc", scc_clk)
 };
 
-/* Adjust the clock path for TO2 and later */
+
 static void __init to2_adjust_clocks(void)
 {
 	unsigned long cscr = __raw_readl(CCM_CSCR);
@@ -712,10 +678,7 @@ static void __init to2_adjust_clocks(void)
 	}
 }
 
-/*
- * must be called very early to get information about the
- * available clock rate when the timer framework starts
- */
+
 int __init mx27_clocks_init(unsigned long fref)
 {
 	u32 cscr = __raw_readl(CCM_CSCR);
@@ -723,7 +686,7 @@ int __init mx27_clocks_init(unsigned long fref)
 
 	external_high_reference = fref;
 
-	/* detect clock reference for both system PLLs */
+	
 	if (cscr & CCM_CSCR_MCU)
 		mpll_clk.parent = &ckih_clk;
 	else
@@ -739,13 +702,13 @@ int __init mx27_clocks_init(unsigned long fref)
 	for (i = 0; i < ARRAY_SIZE(lookups); i++)
 		clkdev_add(&lookups[i]);
 
-	/* Turn off all clocks we do not need */
+	
 	__raw_writel(0, CCM_PCCR0);
 	__raw_writel((1 << 10) | (1 << 19), CCM_PCCR1);
 
 	spll_clk.disable(&spll_clk);
 
-	/* enable basic clocks */
+	
 	clk_enable(&per1_clk);
 	clk_enable(&gpio_clk);
 	clk_enable(&emi_clk);

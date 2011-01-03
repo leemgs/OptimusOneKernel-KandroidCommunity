@@ -1,22 +1,4 @@
-/***************************************************************************
- * Global parameters for the V4L2 driver for SN9C1xx PC Camera Controllers *
- *                                                                         *
- * Copyright (C) 2007 by Luca Risolia <luca.risolia@studio.unibo.it>       *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #ifndef _SN9C102_CONFIG_H_
 #define _SN9C102_CONFIG_H_
@@ -37,7 +19,7 @@
 #define SN9C102_CTRL_TIMEOUT      300
 #define SN9C102_FRAME_TIMEOUT     0
 
-/*****************************************************************************/
+
 
 static const u8 SN9C102_Y_QTABLE0[64] = {
 	 8,   5,   5,   8,  12,  20,  25,  30,
@@ -83,4 +65,4 @@ static const u8 SN9C102_UV_QTABLE1[64] = {
 	99,  99,  99,  99,  99,  99,  99,  99
 };
 
-#endif /* _SN9C102_CONFIG_H_ */
+#endif 

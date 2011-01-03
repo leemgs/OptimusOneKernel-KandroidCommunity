@@ -1,22 +1,4 @@
-/*
- * IPVS         An implementation of the IP virtual server support for the
- *              LINUX operating system.  IPVS is now implemented as a module
- *              over the NetFilter framework. IPVS can be used to build a
- *              high-performance and highly available server based on a
- *              cluster of servers.
- *
- * Authors:     Wensong Zhang <wensong@linuxvirtualserver.org>
- *              Peter Kese <peter.kese@ijs.si>
- *              Julian Anastasov <ja@ssi.bg>
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Changes:
- *
- */
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -50,33 +32,33 @@
 
 #include <net/ip_vs.h>
 
-/* semaphore for IPVS sockopts. And, [gs]etsockopt may sleep. */
+
 static DEFINE_MUTEX(__ip_vs_mutex);
 
-/* lock for service table */
+
 static DEFINE_RWLOCK(__ip_vs_svc_lock);
 
-/* lock for table with the real services */
+
 static DEFINE_RWLOCK(__ip_vs_rs_lock);
 
-/* lock for state and timeout tables */
+
 static DEFINE_RWLOCK(__ip_vs_securetcp_lock);
 
-/* lock for drop entry handling */
+
 static DEFINE_SPINLOCK(__ip_vs_dropentry_lock);
 
-/* lock for drop packet handling */
+
 static DEFINE_SPINLOCK(__ip_vs_droppacket_lock);
 
-/* 1/rate drop and drop-entry variables */
+
 int ip_vs_drop_rate = 0;
 int ip_vs_drop_counter = 0;
 static atomic_t ip_vs_dropentry = ATOMIC_INIT(0);
 
-/* number of virtual services */
+
 static int ip_vs_num_services = 0;
 
-/* sysctl variables */
+
 static int sysctl_ip_vs_drop_entry = 0;
 static int sysctl_ip_vs_drop_packet = 0;
 static int sysctl_ip_vs_secure_tcp = 0;
@@ -99,7 +81,7 @@ int ip_vs_get_debug_level(void)
 #endif
 
 #ifdef CONFIG_IP_VS_IPV6
-/* Taken from rt6_fill_node() in net/ipv6/route.c, is there a better way? */
+
 static int __ip_vs_addr_is_local_v6(const struct in6_addr *addr)
 {
 	struct rt6_info *rt;
@@ -118,10 +100,7 @@ static int __ip_vs_addr_is_local_v6(const struct in6_addr *addr)
 	return 0;
 }
 #endif
-/*
- *	update_defense_level is called from keventd and from sysctl,
- *	so it needs to protect itself from softirqs
- */
+
 static void update_defense_level(void)
 {
 	struct sysinfo i;
@@ -130,19 +109,18 @@ static void update_defense_level(void)
 	int nomem;
 	int to_change = -1;
 
-	/* we only count free and buffered memory (in pages) */
+	
 	si_meminfo(&i);
 	availmem = i.freeram + i.bufferram;
-	/* however in linux 2.5 the i.bufferram is total page cache size,
-	   we need adjust it */
-	/* si_swapinfo(&i); */
-	/* availmem = availmem - (i.totalswap - i.freeswap); */
+	
+	
+	
 
 	nomem = (availmem < sysctl_ip_vs_amemthresh);
 
 	local_bh_disable();
 
-	/* drop_entry */
+	
 	spin_lock(&__ip_vs_dropentry_lock);
 	switch (sysctl_ip_vs_drop_entry) {
 	case 0:
@@ -170,7 +148,7 @@ static void update_defense_level(void)
 	}
 	spin_unlock(&__ip_vs_dropentry_lock);
 
-	/* drop_packet */
+	
 	spin_lock(&__ip_vs_droppacket_lock);
 	switch (sysctl_ip_vs_drop_packet) {
 	case 0:
@@ -202,7 +180,7 @@ static void update_defense_level(void)
 	}
 	spin_unlock(&__ip_vs_droppacket_lock);
 
-	/* secure_tcp */
+	
 	write_lock(&__ip_vs_securetcp_lock);
 	switch (sysctl_ip_vs_secure_tcp) {
 	case 0:
@@ -243,9 +221,7 @@ static void update_defense_level(void)
 }
 
 
-/*
- *	Timer for checking the defense
- */
+
 #define DEFENSE_TIMER_PERIOD	1*HZ
 static void defense_work_handler(struct work_struct *work);
 static DECLARE_DELAYED_WORK(defense_work, defense_work_handler);
@@ -272,42 +248,32 @@ ip_vs_use_count_dec(void)
 }
 
 
-/*
- *	Hash table: for virtual service lookups
- */
+
 #define IP_VS_SVC_TAB_BITS 8
 #define IP_VS_SVC_TAB_SIZE (1 << IP_VS_SVC_TAB_BITS)
 #define IP_VS_SVC_TAB_MASK (IP_VS_SVC_TAB_SIZE - 1)
 
-/* the service table hashed by <protocol, addr, port> */
+
 static struct list_head ip_vs_svc_table[IP_VS_SVC_TAB_SIZE];
-/* the service table hashed by fwmark */
+
 static struct list_head ip_vs_svc_fwm_table[IP_VS_SVC_TAB_SIZE];
 
-/*
- *	Hash table: for real service lookups
- */
+
 #define IP_VS_RTAB_BITS 4
 #define IP_VS_RTAB_SIZE (1 << IP_VS_RTAB_BITS)
 #define IP_VS_RTAB_MASK (IP_VS_RTAB_SIZE - 1)
 
 static struct list_head ip_vs_rtable[IP_VS_RTAB_SIZE];
 
-/*
- *	Trash for destinations
- */
+
 static LIST_HEAD(ip_vs_dest_trash);
 
-/*
- *	FTP & NULL virtual service counters
- */
+
 static atomic_t ip_vs_ftpsvc_counter = ATOMIC_INIT(0);
 static atomic_t ip_vs_nullsvc_counter = ATOMIC_INIT(0);
 
 
-/*
- *	Returns hash value for virtual service
- */
+
 static __inline__ unsigned
 ip_vs_svc_hashkey(int af, unsigned proto, const union nf_inet_addr *addr,
 		  __be16 port)
@@ -325,19 +291,13 @@ ip_vs_svc_hashkey(int af, unsigned proto, const union nf_inet_addr *addr,
 		& IP_VS_SVC_TAB_MASK;
 }
 
-/*
- *	Returns hash value of fwmark for virtual service lookup
- */
+
 static __inline__ unsigned ip_vs_svc_fwm_hashkey(__u32 fwmark)
 {
 	return fwmark & IP_VS_SVC_TAB_MASK;
 }
 
-/*
- *	Hashes a service in the ip_vs_svc_table by <proto,addr,port>
- *	or in the ip_vs_svc_fwm_table by fwmark.
- *	Should be called with locked tables.
- */
+
 static int ip_vs_svc_hash(struct ip_vs_service *svc)
 {
 	unsigned hash;
@@ -349,31 +309,24 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
 	}
 
 	if (svc->fwmark == 0) {
-		/*
-		 *  Hash it by <protocol,addr,port> in ip_vs_svc_table
-		 */
+		
 		hash = ip_vs_svc_hashkey(svc->af, svc->protocol, &svc->addr,
 					 svc->port);
 		list_add(&svc->s_list, &ip_vs_svc_table[hash]);
 	} else {
-		/*
-		 *  Hash it by fwmark in ip_vs_svc_fwm_table
-		 */
+		
 		hash = ip_vs_svc_fwm_hashkey(svc->fwmark);
 		list_add(&svc->f_list, &ip_vs_svc_fwm_table[hash]);
 	}
 
 	svc->flags |= IP_VS_SVC_F_HASHED;
-	/* increase its refcnt because it is referenced by the svc table */
+	
 	atomic_inc(&svc->refcnt);
 	return 1;
 }
 
 
-/*
- *	Unhashes a service from ip_vs_svc_table/ip_vs_svc_fwm_table.
- *	Should be called with locked tables.
- */
+
 static int ip_vs_svc_unhash(struct ip_vs_service *svc)
 {
 	if (!(svc->flags & IP_VS_SVC_F_HASHED)) {
@@ -383,10 +336,10 @@ static int ip_vs_svc_unhash(struct ip_vs_service *svc)
 	}
 
 	if (svc->fwmark == 0) {
-		/* Remove it from the ip_vs_svc_table table */
+		
 		list_del(&svc->s_list);
 	} else {
-		/* Remove it from the ip_vs_svc_fwm_table table */
+		
 		list_del(&svc->f_list);
 	}
 
@@ -396,9 +349,7 @@ static int ip_vs_svc_unhash(struct ip_vs_service *svc)
 }
 
 
-/*
- *	Get service by {proto,addr,port} in the service table.
- */
+
 static inline struct ip_vs_service *
 __ip_vs_service_get(int af, __u16 protocol, const union nf_inet_addr *vaddr,
 		    __be16 vport)
@@ -406,7 +357,7 @@ __ip_vs_service_get(int af, __u16 protocol, const union nf_inet_addr *vaddr,
 	unsigned hash;
 	struct ip_vs_service *svc;
 
-	/* Check for "full" addressed entries */
+	
 	hash = ip_vs_svc_hashkey(af, protocol, vaddr, vport);
 
 	list_for_each_entry(svc, &ip_vs_svc_table[hash], s_list){
@@ -414,7 +365,7 @@ __ip_vs_service_get(int af, __u16 protocol, const union nf_inet_addr *vaddr,
 		    && ip_vs_addr_equal(af, &svc->addr, vaddr)
 		    && (svc->port == vport)
 		    && (svc->protocol == protocol)) {
-			/* HIT */
+			
 			atomic_inc(&svc->usecnt);
 			return svc;
 		}
@@ -424,21 +375,19 @@ __ip_vs_service_get(int af, __u16 protocol, const union nf_inet_addr *vaddr,
 }
 
 
-/*
- *	Get service by {fwmark} in the service table.
- */
+
 static inline struct ip_vs_service *
 __ip_vs_svc_fwm_get(int af, __u32 fwmark)
 {
 	unsigned hash;
 	struct ip_vs_service *svc;
 
-	/* Check for fwmark addressed entries */
+	
 	hash = ip_vs_svc_fwm_hashkey(fwmark);
 
 	list_for_each_entry(svc, &ip_vs_svc_fwm_table[hash], f_list) {
 		if (svc->fwmark == fwmark && svc->af == af) {
-			/* HIT */
+			
 			atomic_inc(&svc->usecnt);
 			return svc;
 		}
@@ -455,34 +404,24 @@ ip_vs_service_get(int af, __u32 fwmark, __u16 protocol,
 
 	read_lock(&__ip_vs_svc_lock);
 
-	/*
-	 *	Check the table hashed by fwmark first
-	 */
+	
 	if (fwmark && (svc = __ip_vs_svc_fwm_get(af, fwmark)))
 		goto out;
 
-	/*
-	 *	Check the table hashed by <protocol,addr,port>
-	 *	for "full" addressed entries
-	 */
+	
 	svc = __ip_vs_service_get(af, protocol, vaddr, vport);
 
 	if (svc == NULL
 	    && protocol == IPPROTO_TCP
 	    && atomic_read(&ip_vs_ftpsvc_counter)
 	    && (vport == FTPDATA || ntohs(vport) >= PROT_SOCK)) {
-		/*
-		 * Check if ftp service entry exists, the packet
-		 * might belong to FTP data connections.
-		 */
+		
 		svc = __ip_vs_service_get(af, protocol, vaddr, FTPPORT);
 	}
 
 	if (svc == NULL
 	    && atomic_read(&ip_vs_nullsvc_counter)) {
-		/*
-		 * Check if the catch-all port (port zero) exists
-		 */
+		
 		svc = __ip_vs_service_get(af, protocol, vaddr, 0);
 	}
 
@@ -516,9 +455,7 @@ __ip_vs_unbind_svc(struct ip_vs_dest *dest)
 }
 
 
-/*
- *	Returns hash value for real service
- */
+
 static inline unsigned ip_vs_rs_hashkey(int af,
 					    const union nf_inet_addr *addr,
 					    __be16 port)
@@ -536,10 +473,7 @@ static inline unsigned ip_vs_rs_hashkey(int af,
 		& IP_VS_RTAB_MASK;
 }
 
-/*
- *	Hashes ip_vs_dest in ip_vs_rtable by <proto,addr,port>.
- *	should be called with locked tables.
- */
+
 static int ip_vs_rs_hash(struct ip_vs_dest *dest)
 {
 	unsigned hash;
@@ -548,10 +482,7 @@ static int ip_vs_rs_hash(struct ip_vs_dest *dest)
 		return 0;
 	}
 
-	/*
-	 *	Hash by proto,addr,port,
-	 *	which are the parameters of the real service.
-	 */
+	
 	hash = ip_vs_rs_hashkey(dest->af, &dest->addr, dest->port);
 
 	list_add(&dest->d_list, &ip_vs_rtable[hash]);
@@ -559,15 +490,10 @@ static int ip_vs_rs_hash(struct ip_vs_dest *dest)
 	return 1;
 }
 
-/*
- *	UNhashes ip_vs_dest from ip_vs_rtable.
- *	should be called with locked tables.
- */
+
 static int ip_vs_rs_unhash(struct ip_vs_dest *dest)
 {
-	/*
-	 * Remove it from the ip_vs_rtable table.
-	 */
+	
 	if (!list_empty(&dest->d_list)) {
 		list_del(&dest->d_list);
 		INIT_LIST_HEAD(&dest->d_list);
@@ -576,9 +502,7 @@ static int ip_vs_rs_unhash(struct ip_vs_dest *dest)
 	return 1;
 }
 
-/*
- *	Lookup real service by <proto,addr,port> in the real service table.
- */
+
 struct ip_vs_dest *
 ip_vs_lookup_real_service(int af, __u16 protocol,
 			  const union nf_inet_addr *daddr,
@@ -587,10 +511,7 @@ ip_vs_lookup_real_service(int af, __u16 protocol,
 	unsigned hash;
 	struct ip_vs_dest *dest;
 
-	/*
-	 *	Check for "full" addressed entries
-	 *	Return the first found entry
-	 */
+	
 	hash = ip_vs_rs_hashkey(af, daddr, dport);
 
 	read_lock(&__ip_vs_rs_lock);
@@ -600,7 +521,7 @@ ip_vs_lookup_real_service(int af, __u16 protocol,
 		    && (dest->port == dport)
 		    && ((dest->protocol == protocol) ||
 			dest->vfwmark)) {
-			/* HIT */
+			
 			read_unlock(&__ip_vs_rs_lock);
 			return dest;
 		}
@@ -610,23 +531,19 @@ ip_vs_lookup_real_service(int af, __u16 protocol,
 	return NULL;
 }
 
-/*
- *	Lookup destination by {addr,port} in the given service
- */
+
 static struct ip_vs_dest *
 ip_vs_lookup_dest(struct ip_vs_service *svc, const union nf_inet_addr *daddr,
 		  __be16 dport)
 {
 	struct ip_vs_dest *dest;
 
-	/*
-	 * Find the destination for the given service
-	 */
+	
 	list_for_each_entry(dest, &svc->destinations, n_list) {
 		if ((dest->af == svc->af)
 		    && ip_vs_addr_equal(svc->af, &dest->addr, daddr)
 		    && (dest->port == dport)) {
-			/* HIT */
+			
 			return dest;
 		}
 	}
@@ -634,16 +551,7 @@ ip_vs_lookup_dest(struct ip_vs_service *svc, const union nf_inet_addr *daddr,
 	return NULL;
 }
 
-/*
- * Find destination by {daddr,dport,vaddr,protocol}
- * Cretaed to be used in ip_vs_process_message() in
- * the backup synchronization daemon. It finds the
- * destination to be bound to the received connection
- * on the backup.
- *
- * ip_vs_lookup_real_service() looked promissing, but
- * seems not working as expected.
- */
+
 struct ip_vs_dest *ip_vs_find_dest(int af, const union nf_inet_addr *daddr,
 				   __be16 dport,
 				   const union nf_inet_addr *vaddr,
@@ -662,25 +570,14 @@ struct ip_vs_dest *ip_vs_find_dest(int af, const union nf_inet_addr *daddr,
 	return dest;
 }
 
-/*
- *  Lookup dest by {svc,addr,port} in the destination trash.
- *  The destination trash is used to hold the destinations that are removed
- *  from the service table but are still referenced by some conn entries.
- *  The reason to add the destination trash is when the dest is temporary
- *  down (either by administrator or by monitor program), the dest can be
- *  picked back from the trash, the remaining connections to the dest can
- *  continue, and the counting information of the dest is also useful for
- *  scheduling.
- */
+
 static struct ip_vs_dest *
 ip_vs_trash_get_dest(struct ip_vs_service *svc, const union nf_inet_addr *daddr,
 		     __be16 dport)
 {
 	struct ip_vs_dest *dest, *nxt;
 
-	/*
-	 * Find the destination in trash
-	 */
+	
 	list_for_each_entry_safe(dest, nxt, &ip_vs_dest_trash, n_list) {
 		IP_VS_DBG_BUF(3, "Destination %u/%s:%u still in trash, "
 			      "dest->refcnt=%d\n",
@@ -696,13 +593,11 @@ ip_vs_trash_get_dest(struct ip_vs_service *svc, const union nf_inet_addr *daddr,
 		    (svc->fwmark ||
 		     (ip_vs_addr_equal(svc->af, &dest->vaddr, &svc->addr) &&
 		      dest->vport == svc->port))) {
-			/* HIT */
+			
 			return dest;
 		}
 
-		/*
-		 * Try to purge the destination from trash if not referenced
-		 */
+		
 		if (atomic_read(&dest->refcnt) == 1) {
 			IP_VS_DBG_BUF(3, "Removing destination %u/%s:%u "
 				      "from trash\n",
@@ -720,15 +615,7 @@ ip_vs_trash_get_dest(struct ip_vs_service *svc, const union nf_inet_addr *daddr,
 }
 
 
-/*
- *  Clean up all the destinations in the trash
- *  Called by the ip_vs_control_cleanup()
- *
- *  When the ip_vs_control_clearup is activated by ipvs module exit,
- *  the service tables must have been flushed and all the connections
- *  are expired, and the refcnt of each destination in the trash must
- *  be 1, so we simply release them here.
- */
+
 static void ip_vs_trash_cleanup(void)
 {
 	struct ip_vs_dest *dest, *nxt;
@@ -753,20 +640,18 @@ ip_vs_zero_stats(struct ip_vs_stats *stats)
 	spin_unlock_bh(&stats->lock);
 }
 
-/*
- *	Update a destination in the given service
- */
+
 static void
 __ip_vs_update_dest(struct ip_vs_service *svc,
 		    struct ip_vs_dest *dest, struct ip_vs_dest_user_kern *udest)
 {
 	int conn_flags;
 
-	/* set the weight and the flags */
+	
 	atomic_set(&dest->weight, udest->weight);
 	conn_flags = udest->conn_flags | IP_VS_CONN_F_INACTIVE;
 
-	/* check if local node and update the flags */
+	
 #ifdef CONFIG_IP_VS_IPV6
 	if (svc->af == AF_INET6) {
 		if (__ip_vs_addr_is_local_v6(&udest->addr.in6)) {
@@ -780,21 +665,18 @@ __ip_vs_update_dest(struct ip_vs_service *svc,
 				| IP_VS_CONN_F_LOCALNODE;
 		}
 
-	/* set the IP_VS_CONN_F_NOOUTPUT flag if not masquerading/NAT */
+	
 	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != 0) {
 		conn_flags |= IP_VS_CONN_F_NOOUTPUT;
 	} else {
-		/*
-		 *    Put the real service in ip_vs_rtable if not present.
-		 *    For now only for NAT!
-		 */
+		
 		write_lock_bh(&__ip_vs_rs_lock);
 		ip_vs_rs_hash(dest);
 		write_unlock_bh(&__ip_vs_rs_lock);
 	}
 	atomic_set(&dest->conn_flags, conn_flags);
 
-	/* bind the service */
+	
 	if (!dest->svc) {
 		__ip_vs_bind_svc(dest, svc);
 	} else {
@@ -805,7 +687,7 @@ __ip_vs_update_dest(struct ip_vs_service *svc,
 		}
 	}
 
-	/* set the dest status flags */
+	
 	dest->flags |= IP_VS_DEST_F_AVAILABLE;
 
 	if (udest->u_threshold == 0 || udest->u_threshold > dest->u_threshold)
@@ -815,9 +697,7 @@ __ip_vs_update_dest(struct ip_vs_service *svc,
 }
 
 
-/*
- *	Create a destination for the given service
- */
+
 static int
 ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
 	       struct ip_vs_dest **dest_p)
@@ -874,9 +754,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
 }
 
 
-/*
- *	Add a destination into an existing service
- */
+
 static int
 ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 {
@@ -900,9 +778,7 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 
 	ip_vs_addr_copy(svc->af, &daddr, &udest->addr);
 
-	/*
-	 * Check if the dest already exists in the list
-	 */
+	
 	dest = ip_vs_lookup_dest(svc, &daddr, dport);
 
 	if (dest != NULL) {
@@ -910,10 +786,7 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 		return -EEXIST;
 	}
 
-	/*
-	 * Check if the dest already exists in the trash and
-	 * is from the same service
-	 */
+	
 	dest = ip_vs_trash_get_dest(svc, &daddr, dport);
 
 	if (dest != NULL) {
@@ -927,24 +800,20 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 
 		__ip_vs_update_dest(svc, dest, udest);
 
-		/*
-		 * Get the destination from the trash
-		 */
+		
 		list_del(&dest->n_list);
 
 		ip_vs_new_estimator(&dest->stats);
 
 		write_lock_bh(&__ip_vs_svc_lock);
 
-		/*
-		 * Wait until all other svc users go away.
-		 */
+		
 		IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 1);
 
 		list_add(&dest->n_list, &svc->destinations);
 		svc->num_dests++;
 
-		/* call the update_service function of its scheduler */
+		
 		if (svc->scheduler->update_service)
 			svc->scheduler->update_service(svc);
 
@@ -952,30 +821,24 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 		return 0;
 	}
 
-	/*
-	 * Allocate and initialize the dest structure
-	 */
+	
 	ret = ip_vs_new_dest(svc, udest, &dest);
 	if (ret) {
 		return ret;
 	}
 
-	/*
-	 * Add the dest entry into the list
-	 */
+	
 	atomic_inc(&dest->refcnt);
 
 	write_lock_bh(&__ip_vs_svc_lock);
 
-	/*
-	 * Wait until all other svc users go away.
-	 */
+	
 	IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 1);
 
 	list_add(&dest->n_list, &svc->destinations);
 	svc->num_dests++;
 
-	/* call the update_service function of its scheduler */
+	
 	if (svc->scheduler->update_service)
 		svc->scheduler->update_service(svc);
 
@@ -987,9 +850,7 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 }
 
 
-/*
- *	Edit a destination in the given service
- */
+
 static int
 ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 {
@@ -1012,9 +873,7 @@ ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 
 	ip_vs_addr_copy(svc->af, &daddr, &udest->addr);
 
-	/*
-	 *  Lookup the destination list
-	 */
+	
 	dest = ip_vs_lookup_dest(svc, &daddr, dport);
 
 	if (dest == NULL) {
@@ -1026,10 +885,10 @@ ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 
 	write_lock_bh(&__ip_vs_svc_lock);
 
-	/* Wait until all other svc users go away */
+	
 	IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 1);
 
-	/* call the update_service, because server weight may be changed */
+	
 	if (svc->scheduler->update_service)
 		svc->scheduler->update_service(svc);
 
@@ -1041,32 +900,20 @@ ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 }
 
 
-/*
- *	Delete a destination (must be already unlinked from the service)
- */
+
 static void __ip_vs_del_dest(struct ip_vs_dest *dest)
 {
 	ip_vs_kill_estimator(&dest->stats);
 
-	/*
-	 *  Remove it from the d-linked list with the real services.
-	 */
+	
 	write_lock_bh(&__ip_vs_rs_lock);
 	ip_vs_rs_unhash(dest);
 	write_unlock_bh(&__ip_vs_rs_lock);
 
-	/*
-	 *  Decrease the refcnt of the dest, and free the dest
-	 *  if nobody refers to it (refcnt=0). Otherwise, throw
-	 *  the destination into the trash.
-	 */
+	
 	if (atomic_dec_and_test(&dest->refcnt)) {
 		ip_vs_dst_reset(dest);
-		/* simply decrease svc->refcnt here, let the caller check
-		   and release the service if nobody refers to it.
-		   Only user context can release destination and service,
-		   and only one user context can update virtual service at a
-		   time, so the operation here is OK */
+		
 		atomic_dec(&dest->svc->refcnt);
 		kfree(dest);
 	} else {
@@ -1081,32 +928,24 @@ static void __ip_vs_del_dest(struct ip_vs_dest *dest)
 }
 
 
-/*
- *	Unlink a destination from the given service
- */
+
 static void __ip_vs_unlink_dest(struct ip_vs_service *svc,
 				struct ip_vs_dest *dest,
 				int svcupd)
 {
 	dest->flags &= ~IP_VS_DEST_F_AVAILABLE;
 
-	/*
-	 *  Remove it from the d-linked destination list.
-	 */
+	
 	list_del(&dest->n_list);
 	svc->num_dests--;
 
-	/*
-	 *  Call the update_service function of its scheduler
-	 */
+	
 	if (svcupd && svc->scheduler->update_service)
 			svc->scheduler->update_service(svc);
 }
 
 
-/*
- *	Delete a destination server in the given service
- */
+
 static int
 ip_vs_del_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 {
@@ -1124,21 +963,15 @@ ip_vs_del_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 
 	write_lock_bh(&__ip_vs_svc_lock);
 
-	/*
-	 *	Wait until all other svc users go away.
-	 */
+	
 	IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 1);
 
-	/*
-	 *	Unlink dest from the service
-	 */
+	
 	__ip_vs_unlink_dest(svc, dest, 1);
 
 	write_unlock_bh(&__ip_vs_svc_lock);
 
-	/*
-	 *	Delete the destination
-	 */
+	
 	__ip_vs_del_dest(dest);
 
 	LeaveFunction(2);
@@ -1147,9 +980,7 @@ ip_vs_del_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 }
 
 
-/*
- *	Add a service into the service hash table
- */
+
 static int
 ip_vs_add_service(struct ip_vs_service_user_kern *u,
 		  struct ip_vs_service **svc_p)
@@ -1158,10 +989,10 @@ ip_vs_add_service(struct ip_vs_service_user_kern *u,
 	struct ip_vs_scheduler *sched = NULL;
 	struct ip_vs_service *svc = NULL;
 
-	/* increase the module use count */
+	
 	ip_vs_use_count_inc();
 
-	/* Lookup the scheduler by 'u->sched_name' */
+	
 	sched = ip_vs_scheduler_get(u->sched_name);
 	if (sched == NULL) {
 		pr_info("Scheduler module ip_vs_%s not found\n", u->sched_name);
@@ -1183,7 +1014,7 @@ ip_vs_add_service(struct ip_vs_service_user_kern *u,
 		goto out_err;
 	}
 
-	/* I'm the first user of the service */
+	
 	atomic_set(&svc->usecnt, 1);
 	atomic_set(&svc->refcnt, 0);
 
@@ -1200,13 +1031,13 @@ ip_vs_add_service(struct ip_vs_service_user_kern *u,
 	rwlock_init(&svc->sched_lock);
 	spin_lock_init(&svc->stats.lock);
 
-	/* Bind the scheduler */
+	
 	ret = ip_vs_bind_scheduler(svc, sched);
 	if (ret)
 		goto out_err;
 	sched = NULL;
 
-	/* Update the virtual service counters */
+	
 	if (svc->port == FTPPORT)
 		atomic_inc(&ip_vs_ftpsvc_counter);
 	else if (svc->port == 0)
@@ -1214,11 +1045,11 @@ ip_vs_add_service(struct ip_vs_service_user_kern *u,
 
 	ip_vs_new_estimator(&svc->stats);
 
-	/* Count only IPv4 services for old get/setsockopt interface */
+	
 	if (svc->af == AF_INET)
 		ip_vs_num_services++;
 
-	/* Hash the service into the service table */
+	
 	write_lock_bh(&__ip_vs_svc_lock);
 	ip_vs_svc_hash(svc);
 	write_unlock_bh(&__ip_vs_svc_lock);
@@ -1240,25 +1071,21 @@ ip_vs_add_service(struct ip_vs_service_user_kern *u,
 	ip_vs_scheduler_put(sched);
 
   out_mod_dec:
-	/* decrease the module use count */
+	
 	ip_vs_use_count_dec();
 
 	return ret;
 }
 
 
-/*
- *	Edit a service and bind it with a new scheduler
- */
+
 static int
 ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
 {
 	struct ip_vs_scheduler *sched, *old_sched;
 	int ret = 0;
 
-	/*
-	 * Lookup the scheduler, by 'u->sched_name'
-	 */
+	
 	sched = ip_vs_scheduler_get(u->sched_name);
 	if (sched == NULL) {
 		pr_info("Scheduler module ip_vs_%s not found\n", u->sched_name);
@@ -1275,42 +1102,25 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
 
 	write_lock_bh(&__ip_vs_svc_lock);
 
-	/*
-	 * Wait until all other svc users go away.
-	 */
+	
 	IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 1);
 
-	/*
-	 * Set the flags and timeout value
-	 */
+	
 	svc->flags = u->flags | IP_VS_SVC_F_HASHED;
 	svc->timeout = u->timeout * HZ;
 	svc->netmask = u->netmask;
 
 	old_sched = svc->scheduler;
 	if (sched != old_sched) {
-		/*
-		 * Unbind the old scheduler
-		 */
+		
 		if ((ret = ip_vs_unbind_scheduler(svc))) {
 			old_sched = sched;
 			goto out_unlock;
 		}
 
-		/*
-		 * Bind the new scheduler
-		 */
+		
 		if ((ret = ip_vs_bind_scheduler(svc, sched))) {
-			/*
-			 * If ip_vs_bind_scheduler fails, restore the old
-			 * scheduler.
-			 * The main reason of failure is out of memory.
-			 *
-			 * The question is if the old scheduler can be
-			 * restored all the time. TODO: if it cannot be
-			 * restored some time, we must delete the service,
-			 * otherwise the system may crash.
-			 */
+			
 			ip_vs_bind_scheduler(svc, old_sched);
 			old_sched = sched;
 			goto out_unlock;
@@ -1330,78 +1140,62 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
 }
 
 
-/*
- *	Delete a service from the service list
- *	- The service must be unlinked, unlocked and not referenced!
- *	- We are called under _bh lock
- */
+
 static void __ip_vs_del_service(struct ip_vs_service *svc)
 {
 	struct ip_vs_dest *dest, *nxt;
 	struct ip_vs_scheduler *old_sched;
 
-	/* Count only IPv4 services for old get/setsockopt interface */
+	
 	if (svc->af == AF_INET)
 		ip_vs_num_services--;
 
 	ip_vs_kill_estimator(&svc->stats);
 
-	/* Unbind scheduler */
+	
 	old_sched = svc->scheduler;
 	ip_vs_unbind_scheduler(svc);
 	if (old_sched)
 		ip_vs_scheduler_put(old_sched);
 
-	/* Unbind app inc */
+	
 	if (svc->inc) {
 		ip_vs_app_inc_put(svc->inc);
 		svc->inc = NULL;
 	}
 
-	/*
-	 *    Unlink the whole destination list
-	 */
+	
 	list_for_each_entry_safe(dest, nxt, &svc->destinations, n_list) {
 		__ip_vs_unlink_dest(svc, dest, 0);
 		__ip_vs_del_dest(dest);
 	}
 
-	/*
-	 *    Update the virtual service counters
-	 */
+	
 	if (svc->port == FTPPORT)
 		atomic_dec(&ip_vs_ftpsvc_counter);
 	else if (svc->port == 0)
 		atomic_dec(&ip_vs_nullsvc_counter);
 
-	/*
-	 *    Free the service if nobody refers to it
-	 */
+	
 	if (atomic_read(&svc->refcnt) == 0)
 		kfree(svc);
 
-	/* decrease the module use count */
+	
 	ip_vs_use_count_dec();
 }
 
-/*
- *	Delete a service from the service list
- */
+
 static int ip_vs_del_service(struct ip_vs_service *svc)
 {
 	if (svc == NULL)
 		return -EEXIST;
 
-	/*
-	 * Unhash it from the service table
-	 */
+	
 	write_lock_bh(&__ip_vs_svc_lock);
 
 	ip_vs_svc_unhash(svc);
 
-	/*
-	 * Wait until all the svc users go away.
-	 */
+	
 	IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 1);
 
 	__ip_vs_del_service(svc);
@@ -1412,41 +1206,31 @@ static int ip_vs_del_service(struct ip_vs_service *svc)
 }
 
 
-/*
- *	Flush all the virtual services
- */
+
 static int ip_vs_flush(void)
 {
 	int idx;
 	struct ip_vs_service *svc, *nxt;
 
-	/*
-	 * Flush the service table hashed by <protocol,addr,port>
-	 */
+	
 	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
 		list_for_each_entry_safe(svc, nxt, &ip_vs_svc_table[idx], s_list) {
 			write_lock_bh(&__ip_vs_svc_lock);
 			ip_vs_svc_unhash(svc);
-			/*
-			 * Wait until all the svc users go away.
-			 */
+			
 			IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 0);
 			__ip_vs_del_service(svc);
 			write_unlock_bh(&__ip_vs_svc_lock);
 		}
 	}
 
-	/*
-	 * Flush the service table hashed by fwmark
-	 */
+	
 	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
 		list_for_each_entry_safe(svc, nxt,
 					 &ip_vs_svc_fwm_table[idx], f_list) {
 			write_lock_bh(&__ip_vs_svc_lock);
 			ip_vs_svc_unhash(svc);
-			/*
-			 * Wait until all the svc users go away.
-			 */
+			
 			IP_VS_WAIT_WHILE(atomic_read(&svc->usecnt) > 0);
 			__ip_vs_del_service(svc);
 			write_unlock_bh(&__ip_vs_svc_lock);
@@ -1457,9 +1241,7 @@ static int ip_vs_flush(void)
 }
 
 
-/*
- *	Zero counters in a service or all services
- */
+
 static int ip_vs_zero_service(struct ip_vs_service *svc)
 {
 	struct ip_vs_dest *dest;
@@ -1506,7 +1288,7 @@ proc_do_defense_mode(ctl_table *table, int write,
 	rc = proc_dointvec(table, write, buffer, lenp, ppos);
 	if (write && (*valp != val)) {
 		if ((*valp < 0) || (*valp > 3)) {
-			/* Restore the correct value */
+			
 			*valp = val;
 		} else {
 			update_defense_level();
@@ -1524,21 +1306,19 @@ proc_do_sync_threshold(ctl_table *table, int write,
 	int val[2];
 	int rc;
 
-	/* backup the value first */
+	
 	memcpy(val, valp, sizeof(val));
 
 	rc = proc_dointvec(table, write, buffer, lenp, ppos);
 	if (write && (valp[0] < 0 || valp[1] < 0 || valp[0] >= valp[1])) {
-		/* Restore the correct value */
+		
 		memcpy(valp, val, sizeof(val));
 	}
 	return rc;
 }
 
 
-/*
- *	IPVS sysctl table (under the /proc/sys/net/ipv4/vs/)
- */
+
 
 static struct ctl_table vs_vars[] = {
 	{
@@ -1726,10 +1506,7 @@ struct ip_vs_iter {
 	int bucket;
 };
 
-/*
- *	Write the contents of the VS rule table to a PROCfs file.
- *	(It is kept just for backward compatibility)
- */
+
 static inline const char *ip_vs_fwd_name(unsigned flags)
 {
 	switch (flags & IP_VS_CONN_F_FWD_MASK) {
@@ -1745,14 +1522,14 @@ static inline const char *ip_vs_fwd_name(unsigned flags)
 }
 
 
-/* Get the Nth entry in the two lists */
+
 static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
 {
 	struct ip_vs_iter *iter = seq->private;
 	int idx;
 	struct ip_vs_service *svc;
 
-	/* look in hash by protocol */
+	
 	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
 		list_for_each_entry(svc, &ip_vs_svc_table[idx], s_list) {
 			if (pos-- == 0){
@@ -1763,7 +1540,7 @@ static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
 		}
 	}
 
-	/* keep looking in fwmark */
+	
 	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
 		list_for_each_entry(svc, &ip_vs_svc_fwm_table[idx], f_list) {
 			if (pos-- == 0) {
@@ -1800,7 +1577,7 @@ static void *ip_vs_info_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 	iter = seq->private;
 
 	if (iter->table == ip_vs_svc_table) {
-		/* next service in table hashed by protocol */
+		
 		if ((e = svc->s_list.next) != &ip_vs_svc_table[iter->bucket])
 			return list_entry(e, struct ip_vs_service, s_list);
 
@@ -1817,7 +1594,7 @@ static void *ip_vs_info_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 		goto scan_fwmark;
 	}
 
-	/* next service in hashed by fwmark */
+	
 	if ((e = svc->f_list.next) != &ip_vs_svc_fwm_table[iter->bucket])
 		return list_entry(e, struct ip_vs_service, f_list);
 
@@ -1940,7 +1717,7 @@ struct ip_vs_stats ip_vs_stats = {
 static int ip_vs_stats_show(struct seq_file *seq, void *v)
 {
 
-/*               01234567 01234567 01234567 0123456701234567 0123456701234567 */
+
 	seq_puts(seq,
 		 "   Total Incoming Outgoing         Incoming         Outgoing\n");
 	seq_printf(seq,
@@ -1952,7 +1729,7 @@ static int ip_vs_stats_show(struct seq_file *seq, void *v)
 		   (unsigned long long) ip_vs_stats.ustats.inbytes,
 		   (unsigned long long) ip_vs_stats.ustats.outbytes);
 
-/*                 01234567 01234567 01234567 0123456701234567 0123456701234567 */
+
 	seq_puts(seq,
 		   " Conns/s   Pkts/s   Pkts/s          Bytes/s          Bytes/s\n");
 	seq_printf(seq,"%8X %8X %8X %16X %16X\n",
@@ -1981,9 +1758,7 @@ static const struct file_operations ip_vs_stats_fops = {
 
 #endif
 
-/*
- *	Set timeout values for tcp tcpfin udp in the timeout_table.
- */
+
 static int ip_vs_set_timeout(struct ip_vs_timeout_user *u)
 {
 	IP_VS_DBG(2, "Setting timeout tcp:%d tcpfin:%d udp:%d\n",
@@ -2044,7 +1819,7 @@ static void ip_vs_copy_usvc_compat(struct ip_vs_service_user_kern *usvc,
 	usvc->port		= usvc_compat->port;
 	usvc->fwmark		= usvc_compat->fwmark;
 
-	/* Deep copy of sched_name is not needed here */
+	
 	usvc->sched_name	= usvc_compat->sched_name;
 
 	usvc->flags		= usvc_compat->flags;
@@ -2086,7 +1861,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
 	if (copy_from_user(arg, user, len) != 0)
 		return -EFAULT;
 
-	/* increase the module use count */
+	
 	ip_vs_use_count_inc();
 
 	if (mutex_lock_interruptible(&__ip_vs_mutex)) {
@@ -2095,11 +1870,11 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
 	}
 
 	if (cmd == IP_VS_SO_SET_FLUSH) {
-		/* Flush the virtual service */
+		
 		ret = ip_vs_flush();
 		goto out_unlock;
 	} else if (cmd == IP_VS_SO_SET_TIMEOUT) {
-		/* Set timeout values for (tcp tcpfin udp) */
+		
 		ret = ip_vs_set_timeout((struct ip_vs_timeout_user *)arg);
 		goto out_unlock;
 	} else if (cmd == IP_VS_SO_SET_STARTDAEMON) {
@@ -2115,20 +1890,19 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
 	usvc_compat = (struct ip_vs_service_user *)arg;
 	udest_compat = (struct ip_vs_dest_user *)(usvc_compat + 1);
 
-	/* We only use the new structs internally, so copy userspace compat
-	 * structs to extended internal versions */
+	
 	ip_vs_copy_usvc_compat(&usvc, usvc_compat);
 	ip_vs_copy_udest_compat(&udest, udest_compat);
 
 	if (cmd == IP_VS_SO_SET_ZERO) {
-		/* if no service address is set, zero counters in all */
+		
 		if (!usvc.fwmark && !usvc.addr.ip && !usvc.port) {
 			ret = ip_vs_zero_all();
 			goto out_unlock;
 		}
 	}
 
-	/* Check for valid protocol: TCP or UDP, even for fwmark!=0 */
+	
 	if (usvc.protocol != IPPROTO_TCP && usvc.protocol != IPPROTO_UDP) {
 		pr_err("set_ctl: invalid protocol: %d %pI4:%d %s\n",
 		       usvc.protocol, &usvc.addr.ip,
@@ -2137,7 +1911,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
 		goto out_unlock;
 	}
 
-	/* Lookup the exact service by <protocol, addr, port> or fwmark */
+	
 	if (usvc.fwmark == 0)
 		svc = __ip_vs_service_get(usvc.af, usvc.protocol,
 					  &usvc.addr, usvc.port);
@@ -2187,7 +1961,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
   out_unlock:
 	mutex_unlock(&__ip_vs_mutex);
   out_dec:
-	/* decrease the module use count */
+	
 	ip_vs_use_count_dec();
 
 	return ret;
@@ -2228,7 +2002,7 @@ __ip_vs_get_service_entries(const struct ip_vs_get_services *get,
 
 	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
 		list_for_each_entry(svc, &ip_vs_svc_table[idx], s_list) {
-			/* Only expose IPv4 entries to old interface */
+			
 			if (svc->af != AF_INET)
 				continue;
 
@@ -2247,7 +2021,7 @@ __ip_vs_get_service_entries(const struct ip_vs_get_services *get,
 
 	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
 		list_for_each_entry(svc, &ip_vs_svc_fwm_table[idx], f_list) {
-			/* Only expose IPv4 entries to old interface */
+			
 			if (svc->af != AF_INET)
 				continue;
 
@@ -2502,11 +2276,9 @@ static struct nf_sockopt_ops ip_vs_sockopts = {
 	.owner		= THIS_MODULE,
 };
 
-/*
- * Generic Netlink interface
- */
 
-/* IPVS genetlink family */
+
+
 static struct genl_family ip_vs_genl_family = {
 	.id		= GENL_ID_GENERATE,
 	.hdrsize	= 0,
@@ -2515,7 +2287,7 @@ static struct genl_family ip_vs_genl_family = {
 	.maxattr	= IPVS_CMD_MAX,
 };
 
-/* Policy used for first-level command attributes */
+
 static const struct nla_policy ip_vs_cmd_policy[IPVS_CMD_ATTR_MAX + 1] = {
 	[IPVS_CMD_ATTR_SERVICE]		= { .type = NLA_NESTED },
 	[IPVS_CMD_ATTR_DEST]		= { .type = NLA_NESTED },
@@ -2525,7 +2297,7 @@ static const struct nla_policy ip_vs_cmd_policy[IPVS_CMD_ATTR_MAX + 1] = {
 	[IPVS_CMD_ATTR_TIMEOUT_UDP]	= { .type = NLA_U32 },
 };
 
-/* Policy used for attributes in nested attribute IPVS_CMD_ATTR_DAEMON */
+
 static const struct nla_policy ip_vs_daemon_policy[IPVS_DAEMON_ATTR_MAX + 1] = {
 	[IPVS_DAEMON_ATTR_STATE]	= { .type = NLA_U32 },
 	[IPVS_DAEMON_ATTR_MCAST_IFN]	= { .type = NLA_NUL_STRING,
@@ -2533,7 +2305,7 @@ static const struct nla_policy ip_vs_daemon_policy[IPVS_DAEMON_ATTR_MAX + 1] = {
 	[IPVS_DAEMON_ATTR_SYNC_ID]	= { .type = NLA_U32 },
 };
 
-/* Policy used for attributes in nested attribute IPVS_CMD_ATTR_SERVICE */
+
 static const struct nla_policy ip_vs_svc_policy[IPVS_SVC_ATTR_MAX + 1] = {
 	[IPVS_SVC_ATTR_AF]		= { .type = NLA_U16 },
 	[IPVS_SVC_ATTR_PROTOCOL]	= { .type = NLA_U16 },
@@ -2550,7 +2322,7 @@ static const struct nla_policy ip_vs_svc_policy[IPVS_SVC_ATTR_MAX + 1] = {
 	[IPVS_SVC_ATTR_STATS]		= { .type = NLA_NESTED },
 };
 
-/* Policy used for attributes in nested attribute IPVS_CMD_ATTR_DEST */
+
 static const struct nla_policy ip_vs_dest_policy[IPVS_DEST_ATTR_MAX + 1] = {
 	[IPVS_DEST_ATTR_ADDR]		= { .type = NLA_BINARY,
 					    .len = sizeof(union nf_inet_addr) },
@@ -2700,7 +2472,7 @@ static int ip_vs_genl_parse_service(struct ip_vs_service_user_kern *usvc,
 	struct nlattr *attrs[IPVS_SVC_ATTR_MAX + 1];
 	struct nlattr *nla_af, *nla_port, *nla_fwmark, *nla_protocol, *nla_addr;
 
-	/* Parse mandatory identifying service fields first */
+	
 	if (nla == NULL ||
 	    nla_parse_nested(attrs, IPVS_SVC_ATTR_MAX, nla, ip_vs_svc_policy))
 		return -EINVAL;
@@ -2734,7 +2506,7 @@ static int ip_vs_genl_parse_service(struct ip_vs_service_user_kern *usvc,
 		usvc->fwmark = 0;
 	}
 
-	/* If a full entry was requested, check for the additional fields */
+	
 	if (full_entry) {
 		struct nlattr *nla_sched, *nla_flags, *nla_timeout,
 			      *nla_netmask;
@@ -2751,7 +2523,7 @@ static int ip_vs_genl_parse_service(struct ip_vs_service_user_kern *usvc,
 
 		nla_memcpy(&flags, nla_flags, sizeof(flags));
 
-		/* prefill flags from service if it already exists */
+		
 		if (usvc->fwmark)
 			svc = __ip_vs_svc_fwm_get(usvc->af, usvc->fwmark);
 		else
@@ -2763,7 +2535,7 @@ static int ip_vs_genl_parse_service(struct ip_vs_service_user_kern *usvc,
 		} else
 			usvc->flags = 0;
 
-		/* set new flags from userland */
+		
 		usvc->flags = (usvc->flags & ~flags.mask) |
 			      (flags.flags & flags.mask);
 		usvc->sched_name = nla_data(nla_sched);
@@ -2857,7 +2629,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
 
 	mutex_lock(&__ip_vs_mutex);
 
-	/* Try to find the service for which to dump destinations */
+	
 	if (nlmsg_parse(cb->nlh, GENL_HDRLEN, attrs,
 			IPVS_CMD_ATTR_MAX, ip_vs_cmd_policy))
 		goto out_err;
@@ -2866,7 +2638,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
 	if (IS_ERR(svc) || svc == NULL)
 		goto out_err;
 
-	/* Dump the destinations */
+	
 	list_for_each_entry(dest, &svc->destinations, n_list) {
 		if (++idx <= start)
 			continue;
@@ -2892,7 +2664,7 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
 	struct nlattr *attrs[IPVS_DEST_ATTR_MAX + 1];
 	struct nlattr *nla_addr, *nla_port;
 
-	/* Parse mandatory identifying destination fields first */
+	
 	if (nla == NULL ||
 	    nla_parse_nested(attrs, IPVS_DEST_ATTR_MAX, nla, ip_vs_dest_policy))
 		return -EINVAL;
@@ -2908,7 +2680,7 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
 	nla_memcpy(&udest->addr, nla_addr, sizeof(udest->addr));
 	udest->port = nla_get_u16(nla_port);
 
-	/* If a full entry was requested, check for the additional fields */
+	
 	if (full_entry) {
 		struct nlattr *nla_fwd, *nla_weight, *nla_u_thresh,
 			      *nla_l_thresh;
@@ -3083,9 +2855,7 @@ static int ip_vs_genl_set_cmd(struct sk_buff *skb, struct genl_info *info)
 		goto out;
 	}
 
-	/* All following commands require a service argument, so check if we
-	 * received a valid one. We need a full service specification when
-	 * adding / editing a service. Only identifying members otherwise. */
+	
 	if (cmd == IPVS_CMD_NEW_SERVICE || cmd == IPVS_CMD_SET_SERVICE)
 		need_full_svc = 1;
 
@@ -3095,22 +2865,20 @@ static int ip_vs_genl_set_cmd(struct sk_buff *skb, struct genl_info *info)
 	if (ret)
 		goto out;
 
-	/* Lookup the exact service by <protocol, addr, port> or fwmark */
+	
 	if (usvc.fwmark == 0)
 		svc = __ip_vs_service_get(usvc.af, usvc.protocol,
 					  &usvc.addr, usvc.port);
 	else
 		svc = __ip_vs_svc_fwm_get(usvc.af, usvc.fwmark);
 
-	/* Unless we're adding a new service, the service must already exist */
+	
 	if ((cmd != IPVS_CMD_NEW_SERVICE) && (svc == NULL)) {
 		ret = -ESRCH;
 		goto out;
 	}
 
-	/* Destination commands require a valid destination argument. For
-	 * adding / editing a destination, we need a full destination
-	 * specification. */
+	
 	if (cmd == IPVS_CMD_NEW_DEST || cmd == IPVS_CMD_SET_DEST ||
 	    cmd == IPVS_CMD_DEL_DEST) {
 		if (cmd != IPVS_CMD_DEL_DEST)
@@ -3359,7 +3127,7 @@ static void ip_vs_genl_unregister(void)
 	genl_unregister_family(&ip_vs_genl_family);
 }
 
-/* End of Generic Netlink interface definitions */
+
 
 
 int __init ip_vs_control_init(void)
@@ -3387,7 +3155,7 @@ int __init ip_vs_control_init(void)
 
 	sysctl_header = register_sysctl_paths(net_vs_ctl_path, vs_vars);
 
-	/* Initialize ip_vs_svc_table, ip_vs_svc_fwm_table, ip_vs_rtable */
+	
 	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++)  {
 		INIT_LIST_HEAD(&ip_vs_svc_table[idx]);
 		INIT_LIST_HEAD(&ip_vs_svc_fwm_table[idx]);
@@ -3398,7 +3166,7 @@ int __init ip_vs_control_init(void)
 
 	ip_vs_new_estimator(&ip_vs_stats);
 
-	/* Hook the defense timer */
+	
 	schedule_delayed_work(&defense_work, DEFENSE_TIMER_PERIOD);
 
 	LeaveFunction(2);

@@ -1,17 +1,4 @@
-/*
- * Ceiva flash memory driver.
- * Copyright (C) 2002 Rob Scott <rscott@mtrob.fdns.net>
- *
- * Note: this driver supports jedec compatible devices. Modification
- * for CFI compatible devices should be straight forward: change
- * jedec_probe to cfi_probe.
- *
- * Based on: sa1100-flash.c, which has the following copyright:
- * Flash memory access on SA11x0 based devices
- *
- * (C) 2000 Nicolas Pitre <nico@fluxnic.net>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -30,35 +17,20 @@
 #include <asm/io.h>
 #include <asm/sizes.h>
 
-/*
- * This isn't complete yet, so...
- */
+
 #define CONFIG_MTD_CEIVA_STATICMAP
 
 #ifdef CONFIG_MTD_CEIVA_STATICMAP
-/*
- * See include/linux/mtd/partitions.h for definition of the mtd_partition
- * structure.
- *
- * Please note:
- *  1. The flash size given should be the largest flash size that can
- *     be accomodated.
- *
- *  2. The bus width must defined in clps_setup_flash.
- *
- * The MTD layer will detect flash chip aliasing and reduce the size of
- * the map accordingly.
- *
- */
+
 
 #ifdef CONFIG_ARCH_CEIVA
-/* Flash / Partition sizing */
-/* For the 28F8003, we use the block mapping to calcuate the sizes */
+
+
 #define MAX_SIZE_KiB                  (16 + 8 + 8 + 96 + (7*128))
 #define BOOT_PARTITION_SIZE_KiB       (16)
 #define PARAMS_PARTITION_SIZE_KiB     (8)
 #define KERNEL_PARTITION_SIZE_KiB     (4*128)
-/* Use both remaing portion of first flash, and all of second flash */
+
 #define ROOT_PARTITION_SIZE_KiB       (3*128) + (8*128)
 
 static struct mtd_partition ceiva_partitions[] = {
@@ -118,15 +90,11 @@ static int __init clps_setup_mtd(struct clps_info *clps, int nr, struct mtd_info
 	struct map_info *maps;
 	int i, found = 0, ret = 0;
 
-	/*
-	 * Allocate the map_info structs in one go.
-	 */
+	
 	maps = kzalloc(sizeof(struct map_info) * nr, GFP_KERNEL);
 	if (!maps)
 		return -ENOMEM;
-	/*
-	 * Claim and then map the memory regions.
-	 */
+	
 	for (i = 0; i < nr; i++) {
 		if (clps[i].base == (unsigned long)-1)
 			break;
@@ -168,11 +136,7 @@ static int __init clps_setup_mtd(struct clps_info *clps, int nr, struct mtd_info
 		found += 1;
 	}
 
-	/*
-	 * ENXIO is special.  It means we didn't find a chip when
-	 * we probed.  We need to tear down the mapping, free the
-	 * resource and mark it as such.
-	 */
+	
 	if (ret == -ENXIO) {
 		iounmap(clps[i].vbase);
 		clps[i].vbase = NULL;
@@ -180,20 +144,13 @@ static int __init clps_setup_mtd(struct clps_info *clps, int nr, struct mtd_info
 		clps[i].res = NULL;
 	}
 
-	/*
-	 * If we found one device, don't bother with concat support.
-	 * If we found multiple devices, use concat if we have it
-	 * available, otherwise fail.
-	 */
+	
 	if (ret == 0 || ret == -ENXIO) {
 		if (found == 1) {
 			*rmtd = subdev[0];
 			ret = 0;
 		} else if (found > 1) {
-			/*
-			 * We detected multiple devices.  Concatenate
-			 * them together.
-			 */
+			
 #ifdef CONFIG_MTD_CONCAT
 			*rmtd = mtd_concat_create(subdev, found,
 						  "clps flash");
@@ -207,9 +164,7 @@ static int __init clps_setup_mtd(struct clps_info *clps, int nr, struct mtd_info
 		}
 	}
 
-	/*
-	 * If we failed, clean up.
-	 */
+	
 	if (ret) {
 		do {
 			if (clps[i].mtd)
@@ -246,10 +201,7 @@ static void __exit clps_destroy_mtd(struct clps_info *clps, struct mtd_info *mtd
 	kfree(clps[0].map);
 }
 
-/*
- * We define the memory space, size, and width for the flash memory
- * space here.
- */
+
 
 static int __init clps_setup_flash(void)
 {
@@ -277,9 +229,7 @@ static void __init clps_locate_partitions(struct mtd_info *mtd)
 	const char *part_type = NULL;
 	int nr_parts = 0;
 	do {
-		/*
-		 * Partition selection stuff.
-		 */
+		
 		nr_parts = parse_mtd_partitions(mtd, probes, &parsed_parts, 0);
 		if (nr_parts > 0) {
 			part_type = "command line";
@@ -305,7 +255,7 @@ static void __init clps_locate_partitions(struct mtd_info *mtd)
 		add_mtd_partitions(mtd, parsed_parts, nr_parts);
 	}
 
-	/* Always succeeds. */
+	
 }
 
 static void __exit clps_destroy_partitions(void)

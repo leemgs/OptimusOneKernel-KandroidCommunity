@@ -1,30 +1,6 @@
-/* DVB USB compliant Linux driver for the Afatech 9005
- * USB1.1 DVB-T receiver.
- *
- * Standard remote decode function
- *
- * Copyright (C) 2007 Luca Olivetti (luca@ventoso.org)
- *
- * Thanks to Afatech who kindly provided information.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * see Documentation/dvb/REDME.dvb-usb for more information
- */
+
 #include "af9005.h"
-/* debug */
+
 static int dvb_usb_af9005_remote_debug;
 module_param_named(debug, dvb_usb_af9005_remote_debug, int, 0644);
 MODULE_PARM_DESC(debug,
@@ -52,7 +28,7 @@ struct dvb_usb_rc_key af9005_rc_keys[] = {
 	{0x0107, KEY_9},
 	{0x01cf, KEY_ZOOM},
 	{0x014f, KEY_0},
-	{0x018f, KEY_GOTO},	/* marked jump on the remote */
+	{0x018f, KEY_GOTO},	
 
 	{0x00bd, KEY_POWER},
 	{0x007d, KEY_VOLUMEUP},
@@ -71,7 +47,7 @@ struct dvb_usb_rc_key af9005_rc_keys[] = {
 	{0x00f5, KEY_9},
 	{0x0095, KEY_ZOOM},
 	{0x0055, KEY_0},
-	{0x00d5, KEY_GOTO},	/* marked jump on the remote */
+	{0x00d5, KEY_GOTO},	
 };
 
 int af9005_rc_keys_size = ARRAY_SIZE(af9005_rc_keys);
@@ -106,7 +82,7 @@ int af9005_rc_decode(struct dvb_usb_device *d, u8 * data, int len, u32 * event,
 			}
 			deb_decode("repeated key ignored (non repeatable)\n");
 			return 0;
-		} else if (len >= 33 * 4) {	/*32 bits + start code */
+		} else if (len >= 33 * 4) {	
 			result = 0;
 			for (i = 4; i < 4 + 32 * 4; i += 4) {
 				result <<= 1;

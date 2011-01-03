@@ -1,31 +1,4 @@
-/*
- * Standard Hot Plug Controller Driver
- *
- * Copyright (C) 1995,2001 Compaq Computer Corporation
- * Copyright (C) 2001 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2001 IBM
- * Copyright (C) 2003-2004 Intel Corporation
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <greg@kroah.com>,<kristen.c.accardi@intel.com>
- *
- */
+
 #ifndef _SHPCHP_H
 #define _SHPCHP_H
 
@@ -33,7 +6,7 @@
 #include <linux/pci.h>
 #include <linux/pci_hotplug.h>
 #include <linux/delay.h>
-#include <linux/sched.h>	/* signal_pending(), struct timer_list */
+#include <linux/sched.h>	
 #include <linux/mutex.h>
 
 #if !defined(MODULE)
@@ -87,7 +60,7 @@ struct slot {
 	struct hpc_ops *hpc_ops;
 	struct hotplug_slot *hotplug_slot;
 	struct list_head	slot_list;
-	struct delayed_work work;	/* work for button event */
+	struct delayed_work work;	
 	struct mutex lock;
 	u8 hp_slot;
 };
@@ -99,17 +72,17 @@ struct event_info {
 };
 
 struct controller {
-	struct mutex crit_sect;		/* critical section mutex */
-	struct mutex cmd_lock;		/* command lock */
-	int num_slots;			/* Number of slots on ctlr */
-	int slot_num_inc;		/* 1 or -1 */
+	struct mutex crit_sect;		
+	struct mutex cmd_lock;		
+	int num_slots;			
+	int slot_num_inc;		
 	struct pci_dev *pci_dev;
 	struct list_head slot_list;
 	struct hpc_ops *hpc_ops;
-	wait_queue_head_t queue;	/* sleep & wake process */
+	wait_queue_head_t queue;	
 	u8 slot_device_offset;
-	u32 pcix_misc2_reg;	/* for amd pogo errata */
-	u32 first_slot;		/* First physical slot number */
+	u32 pcix_misc2_reg;	
+	u32 first_slot;		
 	u32 cap_offset;
 	unsigned long mmio_base;
 	unsigned long mmio_size;
@@ -117,26 +90,26 @@ struct controller {
 	struct timer_list poll_timer;
 };
 
-/* Define AMD SHPC ID  */
+
 #define PCI_DEVICE_ID_AMD_GOLAM_7450	0x7450
 #define PCI_DEVICE_ID_AMD_POGO_7458	0x7458
 
-/* AMD PCIX bridge registers */
+
 #define PCIX_MEM_BASE_LIMIT_OFFSET	0x1C
 #define PCIX_MISCII_OFFSET		0x48
 #define PCIX_MISC_BRIDGE_ERRORS_OFFSET	0x80
 
-/* AMD PCIX_MISCII masks and offsets */
+
 #define PERRNONFATALENABLE_MASK		0x00040000
 #define PERRFATALENABLE_MASK		0x00080000
 #define PERRFLOODENABLE_MASK		0x00100000
 #define SERRNONFATALENABLE_MASK		0x00200000
 #define SERRFATALENABLE_MASK		0x00400000
 
-/* AMD PCIX_MISC_BRIDGE_ERRORS masks and offsets */
+
 #define PERR_OBSERVED_MASK		0x00000001
 
-/* AMD PCIX_MEM_BASE_LIMIT masks */
+
 #define RSE_MASK			0x40000000
 
 #define INT_BUTTON_IGNORE		0
@@ -156,7 +129,7 @@ struct controller {
 #define POWERON_STATE			3
 #define POWEROFF_STATE			4
 
-/* Error messages */
+
 #define INTERLOCK_OPEN			0x00000002
 #define ADD_NOT_SUPPORTED		0x00000003
 #define CARD_FUNCTIONING		0x00000005
@@ -213,7 +186,7 @@ struct ctrl_reg {
 	volatile u32 slot1;
 } __attribute__ ((packed));
 
-/* offsets to the controller registers based on the above structure layout */
+
 enum ctrl_offsets {
 	BASE_OFFSET 	 = offsetof(struct ctrl_reg, base_offset),
 	SLOT_AVAIL1 	 = offsetof(struct ctrl_reg, slot_avail1),
@@ -252,12 +225,12 @@ static inline void amd_pogo_errata_save_misc_reg(struct slot *p_slot)
 {
 	u32 pcix_misc2_temp;
 
-	/* save MiscII register */
+	
 	pci_read_config_dword(p_slot->ctrl->pci_dev, PCIX_MISCII_OFFSET, &pcix_misc2_temp);
 
 	p_slot->ctrl->pcix_misc2_reg = pcix_misc2_temp;
 
-	/* clear SERR/PERR enable bits */
+	
 	pcix_misc2_temp &= ~SERRFATALENABLE_MASK;
 	pcix_misc2_temp &= ~SERRNONFATALENABLE_MASK;
 	pcix_misc2_temp &= ~PERRFLOODENABLE_MASK;
@@ -274,7 +247,7 @@ static inline void amd_pogo_errata_restore_misc_reg(struct slot *p_slot)
 	u8  perr_set;
 	u8  rse_set;
 
-	/* write-one-to-clear Bridge_Errors[ PERR_OBSERVED ] */
+	
 	pci_read_config_dword(p_slot->ctrl->pci_dev, PCIX_MISC_BRIDGE_ERRORS_OFFSET, &pcix_bridge_errors_reg);
 	perr_set = pcix_bridge_errors_reg & PERR_OBSERVED_MASK;
 	if (perr_set) {
@@ -285,7 +258,7 @@ static inline void amd_pogo_errata_restore_misc_reg(struct slot *p_slot)
 		pci_write_config_dword(p_slot->ctrl->pci_dev, PCIX_MISC_BRIDGE_ERRORS_OFFSET, perr_set);
 	}
 
-	/* write-one-to-clear Memory_Base_Limit[ RSE ] */
+	
 	pci_read_config_dword(p_slot->ctrl->pci_dev, PCIX_MEM_BASE_LIMIT_OFFSET, &pcix_mem_base_reg);
 	rse_set = pcix_mem_base_reg & RSE_MASK;
 	if (rse_set) {
@@ -293,7 +266,7 @@ static inline void amd_pogo_errata_restore_misc_reg(struct slot *p_slot)
 
 		pci_write_config_dword(p_slot->ctrl->pci_dev, PCIX_MEM_BASE_LIMIT_OFFSET, rse_set);
 	}
-	/* restore MiscII register */
+	
 	pci_read_config_dword( p_slot->ctrl->pci_dev, PCIX_MISCII_OFFSET, &pcix_misc2_temp );
 
 	if (p_slot->ctrl->pcix_misc2_reg & SERRFATALENABLE_MASK)
@@ -346,4 +319,4 @@ struct hpc_ops {
 	int (*check_cmd_status)(struct controller *ctrl);
 };
 
-#endif				/* _SHPCHP_H */
+#endif				

@@ -1,9 +1,7 @@
 #ifndef __NET_WEXT_H
 #define __NET_WEXT_H
 
-/*
- * wireless extensions interface to the core code
- */
+
 
 struct net;
 
@@ -36,4 +34,4 @@ static inline int compat_wext_handle_ioctl(struct net *net, unsigned int cmd,
 }
 #endif
 
-#endif /* __NET_WEXT_H */
+#endif 

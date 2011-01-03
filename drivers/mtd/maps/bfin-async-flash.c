@@ -1,18 +1,4 @@
-/*
- * drivers/mtd/maps/bfin-async-flash.c
- *
- * Handle the case where flash memory and ethernet mac/phy are
- * mapped onto the same async bank.  The BF533-STAMP does this
- * for example.  All board-specific configuration goes in your
- * board resources file.
- *
- * Copyright 2000 Nicolas Pitre <nico@fluxnic.net>
- * Copyright 2005-2008 Analog Devices Inc.
- *
- * Enter bugs at http://blackfin.uclinux.org/
- *
- * Licensed under the GPL-2 or later.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>

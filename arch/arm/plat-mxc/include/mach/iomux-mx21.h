@@ -1,20 +1,4 @@
-/*
-* Copyright (C) 2009 by Holger Schurig <hs4233@mail.mn-solutions.de>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-* MA 02110-1301, USA.
-*/
+
 
 #ifndef _MXC_IOMUX_MX21_H
 #define _MXC_IOMUX_MX21_H
@@ -24,7 +8,7 @@
 #endif
 
 
-/* Primary GPIO pin functions */
+
 
 #define PB22_PF_USBH1_BYP       (GPIO_PORTB | GPIO_PF | 22)
 #define PB25_PF_USBH1_ON        (GPIO_PORTB | GPIO_PF | 25)
@@ -56,7 +40,7 @@
 #define PF14_PF_NFIO7           (GPIO_PORTF | GPIO_PF | 14)
 #define PF16_PF_RES             (GPIO_PORTF | GPIO_PF | 16)
 
-/* Alternate GPIO pin functions */
+
 
 #define PA5_AF_BMI_CLK_CS       (GPIO_PORTA | GPIO_AF | 5)
 #define PA6_AF_BMI_D0           (GPIO_PORTA | GPIO_AF | 6)
@@ -80,7 +64,7 @@
 #define PA29_AF_BMI_RX_FULL     (GPIO_PORTA | GPIO_AF | 29)
 #define PA30_AF_BMI_READ        (GPIO_PORTA | GPIO_AF | 30)
 
-/* AIN GPIO pin functions */
+
 
 #define PC14_AIN_SYS_CLK        (GPIO_PORTC | GPIO_AIN | GPIO_OUT | 14)
 #define PD21_AIN_USBH2_FS       (GPIO_PORTD | GPIO_AIN | GPIO_OUT | 21)
@@ -95,16 +79,16 @@
 #define PF4_AIN_PC_OE           (GPIO_PORTF | GPIO_AIN | GPIO_OUT | 4)
 #define PF5_AIN_PC_RW           (GPIO_PORTF | GPIO_AIN | GPIO_OUT | 5)
 
-/* BIN GPIO pin functions */
+
 
 #define PC14_BIN_SYS_CLK        (GPIO_PORTC | GPIO_BIN | GPIO_OUT | 14)
 #define PD27_BIN_EXT_DMA_GRANT  (GPIO_PORTD | GPIO_BIN | GPIO_OUT | 27)
 
-/* CIN GPIO pin functions */
+
 
 #define PB26_CIN_USBH1_RXDAT    (GPIO_PORTB | GPIO_CIN | GPIO_OUT | 26)
 
-/* AOUT GPIO pin functions */
+
 
 #define PA29_AOUT_BMI_WAIT      (GPIO_PORTA | GPIO_AOUT | GPIO_IN | 29)
 #define PD19_AOUT_USBH2_RXDM    (GPIO_PORTD | GPIO_AOUT | GPIO_IN | 19)

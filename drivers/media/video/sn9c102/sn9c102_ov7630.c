@@ -1,23 +1,4 @@
-/***************************************************************************
- * Plug-in for OV7630 image sensor connected to the SN9C1xx PC Camera      *
- * Controllers                                                             *
- *                                                                         *
- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #include "sn9c102_sensor.h"
 #include "sn9c102_devtable.h"
@@ -596,11 +577,11 @@ int sn9c102_probe_ov7630(struct sn9c102_device* cam)
 		err = sn9c102_write_const_regs(cam, {0x01, 0x01}, {0x00, 0x01},
 					       {0x28, 0x17});
 		break;
-	case BRIDGE_SN9C103: /* do _not_ change anything! */
+	case BRIDGE_SN9C103: 
 		err = sn9c102_write_const_regs(cam, {0x09, 0x01}, {0x42, 0x01},
 					       {0x28, 0x17}, {0x44, 0x02});
 		pid = sn9c102_i2c_try_read(cam, &ov7630, 0x0a);
-		if (err || pid < 0) /* try a different initialization */
+		if (err || pid < 0) 
 			err += sn9c102_write_const_regs(cam, {0x01, 0x01},
 							{0x00, 0x01});
 		break;

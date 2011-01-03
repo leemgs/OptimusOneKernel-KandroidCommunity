@@ -1,23 +1,4 @@
-/*
- *  linux/arch/arm/mach-realview/realview_eb.c
- *
- *  Copyright (C) 2004 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -129,13 +110,9 @@ static struct pl061_platform_data gpio2_plat_data = {
 	.irq_base	= -1,
 };
 
-/*
- * RealView EB AMBA devices
- */
 
-/*
- * These devices are connected via the core APB bridge
- */
+
+
 #define GPIO2_IRQ	{ IRQ_EB_GPIO2, NO_IRQ }
 #define GPIO2_DMA	{ 0, 0 }
 #define GPIO3_IRQ	{ IRQ_EB_GPIO3, NO_IRQ }
@@ -150,9 +127,7 @@ static struct pl061_platform_data gpio2_plat_data = {
 #define KMI1_IRQ	{ IRQ_EB_KMI1, NO_IRQ }
 #define KMI1_DMA	{ 0, 0 }
 
-/*
- * These devices are connected directly to the multi-layer AHB switch
- */
+
 #define EB_SMC_IRQ	{ NO_IRQ, NO_IRQ }
 #define EB_SMC_DMA	{ 0, 0 }
 #define MPMC_IRQ	{ NO_IRQ, NO_IRQ }
@@ -162,9 +137,7 @@ static struct pl061_platform_data gpio2_plat_data = {
 #define DMAC_IRQ	{ IRQ_EB_DMA, NO_IRQ }
 #define DMAC_DMA	{ 0, 0 }
 
-/*
- * These devices are connected via the core APB bridge
- */
+
 #define SCTL_IRQ	{ NO_IRQ, NO_IRQ }
 #define SCTL_DMA	{ 0, 0 }
 #define EB_WATCHDOG_IRQ	{ IRQ_EB_WDOG, NO_IRQ }
@@ -176,9 +149,7 @@ static struct pl061_platform_data gpio2_plat_data = {
 #define EB_RTC_IRQ	{ IRQ_EB_RTC, NO_IRQ }
 #define EB_RTC_DMA	{ 0, 0 }
 
-/*
- * These devices are connected via the DMA APB bridge
- */
+
 #define SCI_IRQ		{ IRQ_EB_SCI, NO_IRQ }
 #define SCI_DMA		{ 7, 6 }
 #define EB_UART0_IRQ	{ IRQ_EB_UART0, NO_IRQ }
@@ -192,14 +163,14 @@ static struct pl061_platform_data gpio2_plat_data = {
 #define EB_SSP_IRQ	{ IRQ_EB_SSP, NO_IRQ }
 #define EB_SSP_DMA	{ 9, 8 }
 
-/* FPGA Primecells */
+
 AMBA_DEVICE(aaci,  "fpga:aaci",  AACI,     NULL);
 AMBA_DEVICE(mmc0,  "fpga:mmc0",  MMCI0,    &realview_mmc0_plat_data);
 AMBA_DEVICE(kmi0,  "fpga:kmi0",  KMI0,     NULL);
 AMBA_DEVICE(kmi1,  "fpga:kmi1",  KMI1,     NULL);
 AMBA_DEVICE(uart3, "fpga:uart3", EB_UART3, NULL);
 
-/* DevChip Primecells */
+
 AMBA_DEVICE(smc,   "dev:smc",   EB_SMC,   NULL);
 AMBA_DEVICE(clcd,  "dev:clcd",  EB_CLCD,  &clcd_plat_data);
 AMBA_DEVICE(dmac,  "dev:dmac",  DMAC,     NULL);
@@ -237,9 +208,7 @@ static struct amba_device *amba_devs[] __initdata = {
 	&kmi1_device,
 };
 
-/*
- * RealView EB platform devices
- */
+
 static struct resource realview_eb_flash_resource = {
 	.start			= REALVIEW_EB_FLASH_BASE,
 	.end			= REALVIEW_EB_FLASH_BASE + REALVIEW_EB_FLASH_SIZE - 1,
@@ -259,10 +228,7 @@ static struct resource realview_eb_eth_resources[] = {
 	},
 };
 
-/*
- * Detect and register the correct Ethernet device. RealView/EB rev D
- * platforms use the newer SMSC LAN9118 Ethernet chip
- */
+
 static int eth_device_register(void)
 {
 	void __iomem *eth_addr = ioremap(REALVIEW_EB_ETH_BASE, SZ_4K);
@@ -274,7 +240,7 @@ static int eth_device_register(void)
 
 	idrev = readl(eth_addr + 0x50);
 	if ((idrev & 0xFFFF0000) != 0x01180000)
-		/* SMSC LAN9118 not present, use LAN91C111 instead */
+		
 		name = "smc91x";
 
 	iounmap(eth_addr);
@@ -299,38 +265,36 @@ static void __init gic_init_irq(void)
 	if (core_tile_eb11mp() || core_tile_a9mp()) {
 		unsigned int pldctrl;
 
-		/* new irq mode */
+		
 		writel(0x0000a05f, __io_address(REALVIEW_SYS_LOCK));
 		pldctrl = readl(__io_address(REALVIEW_SYS_BASE)	+ REALVIEW_EB11MP_SYS_PLD_CTRL1);
 		pldctrl |= 0x00800000;
 		writel(pldctrl, __io_address(REALVIEW_SYS_BASE) + REALVIEW_EB11MP_SYS_PLD_CTRL1);
 		writel(0x00000000, __io_address(REALVIEW_SYS_LOCK));
 
-		/* core tile GIC, primary */
+		
 		gic_cpu_base_addr = __io_address(REALVIEW_EB11MP_GIC_CPU_BASE);
 		gic_dist_init(0, __io_address(REALVIEW_EB11MP_GIC_DIST_BASE), 29);
 		gic_cpu_init(0, gic_cpu_base_addr);
 
 #ifndef CONFIG_REALVIEW_EB_ARM11MP_REVB
-		/* board GIC, secondary */
+		
 		gic_dist_init(1, __io_address(REALVIEW_EB_GIC_DIST_BASE), 64);
 		gic_cpu_init(1, __io_address(REALVIEW_EB_GIC_CPU_BASE));
 		gic_cascade_irq(1, IRQ_EB11MP_EB_IRQ1);
 #endif
 	} else {
-		/* board GIC, primary */
+		
 		gic_cpu_base_addr = __io_address(REALVIEW_EB_GIC_CPU_BASE);
 		gic_dist_init(0, __io_address(REALVIEW_EB_GIC_DIST_BASE), 29);
 		gic_cpu_init(0, gic_cpu_base_addr);
 	}
 }
 
-/*
- * Fix up the IRQ numbers for the RealView EB/ARM11MPCore tile
- */
+
 static void realview_eb11mp_fixup(void)
 {
-	/* AMBA devices */
+	
 	dmac_device.irq[0]	= IRQ_EB11MP_DMA;
 	uart0_device.irq[0]	= IRQ_EB11MP_UART0;
 	uart1_device.irq[0]	= IRQ_EB11MP_UART1;
@@ -350,7 +314,7 @@ static void realview_eb11mp_fixup(void)
 	kmi0_device.irq[0]	= IRQ_EB11MP_KMI0;
 	kmi1_device.irq[0]	= IRQ_EB11MP_KMI1;
 
-	/* platform devices */
+	
 	realview_eb_eth_resources[1].start	= IRQ_EB11MP_ETH;
 	realview_eb_eth_resources[1].end	= IRQ_EB11MP_ETH;
 	realview_eb_isp1761_resources[1].start	= IRQ_EB11MP_USB;
@@ -389,8 +353,7 @@ static void __init realview_eb_init(void)
 		realview_eb11mp_fixup();
 
 #ifdef CONFIG_CACHE_L2X0
-		/* 1MB (128KB/way), 8-way associativity, evmon/parity/share enabled
-		 * Bits:  .... ...0 0111 1001 0000 .... .... .... */
+		
 		l2x0_init(__io_address(REALVIEW_EB11MP_L220_BASE), 0x00790000, 0xfe000fff);
 #endif
 	}
@@ -411,7 +374,7 @@ static void __init realview_eb_init(void)
 }
 
 MACHINE_START(REALVIEW_EB, "ARM-RealView EB")
-	/* Maintainer: ARM Ltd/Deep Blue Solutions Ltd */
+	
 	.phys_io	= REALVIEW_EB_UART0_BASE,
 	.io_pg_offst	= (IO_ADDRESS(REALVIEW_EB_UART0_BASE) >> 18) & 0xfffc,
 	.boot_params	= PHYS_OFFSET + 0x00000100,

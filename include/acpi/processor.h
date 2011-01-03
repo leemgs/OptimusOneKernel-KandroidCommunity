@@ -14,20 +14,17 @@
 #define ACPI_PROCESSOR_MAX_C3_LATENCY	1000
 
 #define ACPI_PROCESSOR_MAX_THROTTLING	16
-#define ACPI_PROCESSOR_MAX_THROTTLE	250	/* 25% */
+#define ACPI_PROCESSOR_MAX_THROTTLE	250	
 #define ACPI_PROCESSOR_MAX_DUTY_WIDTH	4
 
 #define ACPI_PDC_REVISION_ID		0x1
 
-#define ACPI_PSD_REV0_REVISION		0	/* Support for _PSD as in ACPI 3.0 */
+#define ACPI_PSD_REV0_REVISION		0	
 #define ACPI_PSD_REV0_ENTRIES		5
 
-#define ACPI_TSD_REV0_REVISION		0	/* Support for _PSD as in ACPI 3.0 */
+#define ACPI_TSD_REV0_REVISION		0	
 #define ACPI_TSD_REV0_ENTRIES		5
-/*
- * Types of coordination defined in ACPI 3.0. Same macros can be used across
- * P, C and T states
- */
+
 #define DOMAIN_COORD_TYPE_SW_ALL	0xfc
 #define DOMAIN_COORD_TYPE_SW_ANY	0xfd
 #define DOMAIN_COORD_TYPE_HW_ALL	0xfe
@@ -38,7 +35,7 @@
 
 #define ACPI_CX_DESC_LEN	32
 
-/* Power Management */
+
 
 struct acpi_processor_cx;
 
@@ -89,7 +86,7 @@ struct acpi_processor_power {
 	int timer_broadcast_on_state;
 };
 
-/* Performance Management */
+
 
 struct acpi_psd_package {
 	acpi_integer num_entries;
@@ -110,12 +107,12 @@ struct acpi_pct_register {
 } __attribute__ ((packed));
 
 struct acpi_processor_px {
-	acpi_integer core_frequency;	/* megahertz */
-	acpi_integer power;	/* milliWatts */
-	acpi_integer transition_latency;	/* microseconds */
-	acpi_integer bus_master_latency;	/* microseconds */
-	acpi_integer control;	/* control value */
-	acpi_integer status;	/* success indicator */
+	acpi_integer core_frequency;	
+	acpi_integer power;	
+	acpi_integer transition_latency;	
+	acpi_integer bus_master_latency;	
+	acpi_integer control;	
+	acpi_integer status;	
 };
 
 struct acpi_processor_performance {
@@ -130,7 +127,7 @@ struct acpi_processor_performance {
 	unsigned int shared_type;
 };
 
-/* Throttling Control */
+
 
 struct acpi_tsd_package {
 	acpi_integer num_entries;
@@ -151,11 +148,11 @@ struct acpi_ptc_register {
 } __attribute__ ((packed));
 
 struct acpi_processor_tx_tss {
-	acpi_integer freqpercentage;	/* */
-	acpi_integer power;	/* milliWatts */
-	acpi_integer transition_latency;	/* microseconds */
-	acpi_integer control;	/* control value */
-	acpi_integer status;	/* success indicator */
+	acpi_integer freqpercentage;	
+	acpi_integer power;	
+	acpi_integer transition_latency;	
+	acpi_integer control;	
+	acpi_integer status;	
 };
 struct acpi_processor_tx {
 	u16 power;
@@ -184,17 +181,17 @@ struct acpi_processor_throttling {
 	struct acpi_processor_tx states[ACPI_PROCESSOR_MAX_THROTTLING];
 };
 
-/* Limit Interface */
+
 
 struct acpi_processor_lx {
-	int px;			/* performance state */
-	int tx;			/* throttle level */
+	int px;			
+	int tx;			
 };
 
 struct acpi_processor_limit {
-	struct acpi_processor_lx state;	/* current limit */
-	struct acpi_processor_lx thermal;	/* thermal limit */
-	struct acpi_processor_lx user;	/* user limit */
+	struct acpi_processor_lx state;	
+	struct acpi_processor_lx thermal;	
+	struct acpi_processor_lx user;	
 };
 
 struct acpi_processor_flags {
@@ -216,7 +213,7 @@ struct acpi_processor {
 	u32 pblk;
 	int performance_platform_limit;
 	int throttling_platform_limit;
-	/* 0 - states 0..n-th state available */
+	
 
 	struct acpi_processor_flags flags;
 	struct acpi_processor_power power;
@@ -224,7 +221,7 @@ struct acpi_processor {
 	struct acpi_processor_throttling throttling;
 	struct acpi_processor_limit limit;
 	struct thermal_cooling_device *cdev;
-	/* the _PDC objects for this processor, if any */
+	
 	struct acpi_object_list *pdc;
 };
 
@@ -249,11 +246,10 @@ extern void acpi_processor_unregister_performance(struct
 						  *performance,
 						  unsigned int cpu);
 
-/* note: this locks both the calling module and the processor module
-         if a _PPC object exists, rmmod is disallowed then */
+
 int acpi_processor_notify_smm(struct module *calling_module);
 
-/* for communication between multiple parts of the processor kernel module */
+
 DECLARE_PER_CPU(struct acpi_processor *, processors);
 extern struct acpi_processor_errata errata;
 
@@ -289,7 +285,7 @@ static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
 }
 #endif
 
-/* in processor_perflib.c */
+
 
 #ifdef CONFIG_CPU_FREQ
 void acpi_processor_ppc_init(void);
@@ -316,16 +312,16 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
 	}
 	return 0;
 }
-#endif				/* CONFIG_CPU_FREQ */
+#endif				
 
-/* in processor_throttling.c */
+
 int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
 int acpi_processor_get_throttling_info(struct acpi_processor *pr);
 extern int acpi_processor_set_throttling(struct acpi_processor *pr,
 					 int state, bool force);
 extern const struct file_operations acpi_processor_throttling_fops;
 extern void acpi_processor_throttling_init(void);
-/* in processor_idle.c */
+
 int acpi_processor_power_init(struct acpi_processor *pr,
 			      struct acpi_device *device);
 int acpi_processor_cst_has_changed(struct acpi_processor *pr);
@@ -335,7 +331,7 @@ int acpi_processor_suspend(struct acpi_device * device, pm_message_t state);
 int acpi_processor_resume(struct acpi_device * device);
 extern struct cpuidle_driver acpi_idle_driver;
 
-/* in processor_thermal.c */
+
 int acpi_processor_get_limit_info(struct acpi_processor *pr);
 extern const struct file_operations acpi_processor_limit_fops;
 extern struct thermal_cooling_device_ops processor_cooling_ops;

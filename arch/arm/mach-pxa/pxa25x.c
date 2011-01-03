@@ -1,21 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/pxa25x.c
- *
- *  Author:	Nicolas Pitre
- *  Created:	Jun 15, 2001
- *  Copyright:	MontaVista Software Inc.
- *
- * Code specific to PXA21x/25x/26x variants.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Since this file should be linked before any other machine specific file,
- * the __initcall() here will be executed first.  This serves as default
- * initialization stuff for PXA machines which can be overridden later if
- * need be.
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -35,28 +18,22 @@
 #include "devices.h"
 #include "clock.h"
 
-/*
- * Various clock factors driven by the CCCR register.
- */
 
-/* Crystal Frequency to Memory Frequency Multiplier (L) */
+
+
 static unsigned char L_clk_mult[32] = { 0, 27, 32, 36, 40, 45, 0, };
 
-/* Memory Frequency to Run Mode Frequency Multiplier (M) */
+
 static unsigned char M_clk_mult[4] = { 0, 1, 2, 4 };
 
-/* Run Mode Frequency to Turbo Mode Frequency Multiplier (N) */
-/* Note: we store the value N * 2 here. */
+
+
 static unsigned char N2_clk_mult[8] = { 0, 0, 2, 3, 4, 0, 6, 0 };
 
-/* Crystal clock */
+
 #define BASE_CLK	3686400
 
-/*
- * Get the clock frequency as reflected by CCCR and the turbo flag.
- * We assume these values have been applied via a fcs.
- * If info is not 0 we also display the current settings.
- */
+
 unsigned int pxa25x_get_clk_frequency_khz(int info)
 {
 	unsigned long cccr, turbo;
@@ -90,9 +67,7 @@ unsigned int pxa25x_get_clk_frequency_khz(int info)
 	return (turbo & 1) ? (N/1000) : (M/1000);
 }
 
-/*
- * Return the current memory clock frequency in units of 10kHz
- */
+
 unsigned int pxa25x_get_memclk_frequency_10khz(void)
 {
 	return L_clk_mult[(CCCR >> 0) & 0x1f] * BASE_CLK / 10000;
@@ -155,19 +130,13 @@ static const struct clkops clk_pxa25x_gpio11_ops = {
 	.disable        = clk_gpio11_disable,
 };
 
-/*
- * 3.6864MHz -> OST, GPIO, SSP, PWM, PLLs (95.842MHz, 147.456MHz)
- * 95.842MHz -> MMC 19.169MHz, I2C 31.949MHz, FICP 47.923MHz, USB 47.923MHz
- * 147.456MHz -> UART 14.7456MHz, AC97 12.288MHz, I2S 5.672MHz (allegedly)
- */
+
 static DEFINE_CKEN(pxa25x_hwuart, HWUART, 14745600, 1);
 
 static struct clk_lookup pxa25x_hwuart_clkreg =
 	INIT_CLKREG(&clk_pxa25x_hwuart, "pxa2xx-uart.3", NULL);
 
-/*
- * PXA 2xx clock declarations.
- */
+
 static DEFINE_CK(pxa25x_lcd, LCD, &clk_pxa25x_lcd_ops);
 static DEFINE_CKEN(pxa25x_ffuart, FFUART, 14745600, 1);
 static DEFINE_CKEN(pxa25x_btuart, BTUART, 14745600, 1);
@@ -212,11 +181,7 @@ static struct clk_lookup pxa25x_clkregs[] = {
 #define SAVE(x)		sleep_save[SLEEP_SAVE_##x] = x
 #define RESTORE(x)	x = sleep_save[SLEEP_SAVE_##x]
 
-/*
- * List of global PXA peripheral registers to preserve.
- * More ones like CP and general purpose register values are preserved
- * with the stack pointer in sleep.S.
- */
+
 enum {
 	SLEEP_SAVE_PSTR,
 	SLEEP_SAVE_CKEN,
@@ -238,7 +203,7 @@ static void pxa25x_cpu_pm_restore(unsigned long *sleep_save)
 
 static void pxa25x_cpu_pm_enter(suspend_state_t state)
 {
-	/* Clear reset status */
+	
 	RCSR = RCSR_HWR | RCSR_WDR | RCSR_SMR | RCSR_GPR;
 
 	switch (state) {
@@ -250,14 +215,14 @@ static void pxa25x_cpu_pm_enter(suspend_state_t state)
 
 static int pxa25x_cpu_pm_prepare(void)
 {
-	/* set resume return address */
+	
 	PSPR = virt_to_phys(pxa_cpu_resume);
 	return 0;
 }
 
 static void pxa25x_cpu_pm_finish(void)
 {
-	/* ensure not to come back here if it wasn't intended */
+	
 	PSPR = 0;
 }
 
@@ -279,8 +244,7 @@ static void __init pxa25x_init_pm(void)
 static inline void pxa25x_init_pm(void) {}
 #endif
 
-/* PXA25x: supports wakeup from GPIO0..GPIO15 and RTC alarm
- */
+
 
 static int pxa25x_set_wake(unsigned int irq, unsigned int on)
 {
@@ -371,7 +335,7 @@ static int __init pxa25x_init(void)
 			return ret;
 	}
 
-	/* Only add HWUART for PXA255/26x; PXA210/250 do not have it. */
+	
 	if (cpu_is_pxa255()) {
 		clks_register(&pxa25x_hwuart_clkreg, 1);
 		ret = platform_device_register(&pxa_device_hwuart);

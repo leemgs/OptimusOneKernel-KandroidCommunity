@@ -1,10 +1,4 @@
-/*
- * linux/drivers/s390/cio/qdio.h
- *
- * Copyright 2000,2009 IBM Corp.
- * Author(s): Utz Bacher <utz.bacher@de.ibm.com>
- *	      Jan Glauber <jang@linux.vnet.ibm.com>
- */
+
 #ifndef _CIO_QDIO_H
 #define _CIO_QDIO_H
 
@@ -13,16 +7,11 @@
 #include <asm/debug.h>
 #include "chsc.h"
 
-#define QDIO_BUSY_BIT_PATIENCE		100	/* 100 microseconds */
-#define QDIO_INPUT_THRESHOLD		500	/* 500 microseconds */
+#define QDIO_BUSY_BIT_PATIENCE		100	
+#define QDIO_INPUT_THRESHOLD		500	
 
-/*
- * if an asynchronous HiperSockets queue runs full, the 10 seconds timer wait
- * till next initiative to give transmitted skbs back to the stack is too long.
- * Therefore polling is started in case of multicast queue is filled more
- * than 50 percent.
- */
-#define QDIO_IQDIO_POLL_LVL		65	/* HS multicast queue */
+
+#define QDIO_IQDIO_POLL_LVL		65	
 
 enum qdio_irq_states {
 	QDIO_IRQ_STATE_INACTIVE,
@@ -34,7 +23,7 @@ enum qdio_irq_states {
 	NR_QDIO_IRQ_STATES,
 };
 
-/* used as intparm in do_IO */
+
 #define QDIO_DOING_ESTABLISH	1
 #define QDIO_DOING_ACTIVATE	2
 #define QDIO_DOING_CLEANUP	3
@@ -50,46 +39,46 @@ enum qdio_irq_states {
 #define SLSB_OWNER_CU		0x40
 
 #define SLSB_P_INPUT_NOT_INIT	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_NOT_INIT)  /* 0x80 */
+	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_NOT_INIT)  
 #define SLSB_P_INPUT_ACK	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_EMPTY)	   /* 0x81 */
+	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_EMPTY)	   
 #define SLSB_CU_INPUT_EMPTY	\
-	(SLSB_OWNER_CU | SLSB_TYPE_INPUT | SLSB_STATE_EMPTY)	   /* 0x41 */
+	(SLSB_OWNER_CU | SLSB_TYPE_INPUT | SLSB_STATE_EMPTY)	   
 #define SLSB_P_INPUT_PRIMED	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_PRIMED)	   /* 0x82 */
+	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_PRIMED)	   
 #define SLSB_P_INPUT_HALTED	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_HALTED)	   /* 0x8e */
+	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_HALTED)	   
 #define SLSB_P_INPUT_ERROR	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_ERROR)	   /* 0x8f */
+	(SLSB_OWNER_PROG | SLSB_TYPE_INPUT | SLSB_STATE_ERROR)	   
 #define SLSB_P_OUTPUT_NOT_INIT	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_NOT_INIT) /* 0xa0 */
+	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_NOT_INIT) 
 #define SLSB_P_OUTPUT_EMPTY	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_EMPTY)	   /* 0xa1 */
+	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_EMPTY)	   
 #define SLSB_CU_OUTPUT_PRIMED	\
-	(SLSB_OWNER_CU | SLSB_TYPE_OUTPUT | SLSB_STATE_PRIMED)	   /* 0x62 */
+	(SLSB_OWNER_CU | SLSB_TYPE_OUTPUT | SLSB_STATE_PRIMED)	   
 #define SLSB_P_OUTPUT_HALTED	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_HALTED)   /* 0xae */
+	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_HALTED)   
 #define SLSB_P_OUTPUT_ERROR	\
-	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_ERROR)	   /* 0xaf */
+	(SLSB_OWNER_PROG | SLSB_TYPE_OUTPUT | SLSB_STATE_ERROR)	   
 
 #define SLSB_ERROR_DURING_LOOKUP  0xff
 
-/* additional CIWs returned by extended Sense-ID */
-#define CIW_TYPE_EQUEUE			0x3 /* establish QDIO queues */
-#define CIW_TYPE_AQUEUE			0x4 /* activate QDIO queues */
 
-/* flags for st qdio sch data */
+#define CIW_TYPE_EQUEUE			0x3 
+#define CIW_TYPE_AQUEUE			0x4 
+
+
 #define CHSC_FLAG_QDIO_CAPABILITY	0x80
 #define CHSC_FLAG_VALIDITY		0x40
 
-/* qdio adapter-characteristics-1 flag */
-#define AC1_SIGA_INPUT_NEEDED		0x40	/* process input queues */
-#define AC1_SIGA_OUTPUT_NEEDED		0x20	/* process output queues */
-#define AC1_SIGA_SYNC_NEEDED		0x10	/* ask hypervisor to sync */
-#define AC1_AUTOMATIC_SYNC_ON_THININT	0x08	/* set by hypervisor */
-#define AC1_AUTOMATIC_SYNC_ON_OUT_PCI	0x04	/* set by hypervisor */
-#define AC1_SC_QEBSM_AVAILABLE		0x02	/* available for subchannel */
-#define AC1_SC_QEBSM_ENABLED		0x01	/* enabled for subchannel */
+
+#define AC1_SIGA_INPUT_NEEDED		0x40	
+#define AC1_SIGA_OUTPUT_NEEDED		0x20	
+#define AC1_SIGA_SYNC_NEEDED		0x10	
+#define AC1_AUTOMATIC_SYNC_ON_THININT	0x08	
+#define AC1_AUTOMATIC_SYNC_ON_OUT_PCI	0x04	
+#define AC1_SC_QEBSM_AVAILABLE		0x02	
+#define AC1_SC_QEBSM_ENABLED		0x01	
 
 #ifdef CONFIG_64BIT
 static inline int do_sqbs(u64 token, unsigned char state, int queue,
@@ -134,7 +123,7 @@ static inline int do_sqbs(u64 token, unsigned char state, int queue,
 			  int *start, int *count) { return 0; }
 static inline int do_eqbs(u64 token, unsigned char *state, int queue,
 			  int *start, int *count, int ack) { return 0; }
-#endif /* CONFIG_64BIT */
+#endif 
 
 struct qdio_irq;
 
@@ -183,27 +172,27 @@ struct scssc_area {
 } __attribute__ ((packed));
 
 struct qdio_input_q {
-	/* input buffer acknowledgement flag */
+	
 	int polling;
 
-	/* first ACK'ed buffer */
+	
 	int ack_start;
 
-	/* how much sbals are acknowledged with qebsm */
+	
 	int ack_count;
 
-	/* last time of noticing incoming data */
+	
 	u64 timestamp;
 };
 
 struct qdio_output_q {
-	/* PCIs are enabled for the queue */
+	
 	int pci_out_enabled;
 
-	/* IQDIO: output multiple buffers (enhanced SIGA) */
+	
 	int use_enh_siga;
 
-	/* timer to check for more outbound work */
+	
 	struct timer_list timer;
 };
 
@@ -214,69 +203,60 @@ struct qdio_q {
 		struct qdio_output_q out;
 	} u;
 
-	/* queue number */
+	
 	int nr;
 
-	/* bitmask of queue number */
+	
 	int mask;
 
-	/* input or output queue */
+	
 	int is_input_q;
 
-	/* list of thinint input queues */
+	
 	struct list_head entry;
 
-	/* upper-layer program handler */
+	
 	qdio_handler_t (*handler);
 
-	/*
-	 * inbound: next buffer the program should check for
-	 * outbound: next buffer to check for having been processed
-	 * by the card
-	 */
+	
 	int first_to_check;
 
-	/* first_to_check of the last time */
+	
 	int last_move;
 
-	/* beginning position for calling the program */
+	
 	int first_to_kick;
 
-	/* number of buffers in use by the adapter */
+	
 	atomic_t nr_buf_used;
 
 	struct qdio_irq *irq_ptr;
 	struct dentry *debugfs_q;
 	struct tasklet_struct tasklet;
 
-	/* error condition during a data transfer */
+	
 	unsigned int qdio_error;
 
 	struct sl *sl;
 	struct qdio_buffer *sbal[QDIO_MAX_BUFFERS_PER_Q];
 
-	/*
-	 * Warning: Leave this member at the end so it won't be cleared in
-	 * qdio_fill_qs. A page is allocated under this pointer and used for
-	 * slib and sl. slib is 2048 bytes big and sl points to offset
-	 * PAGE_SIZE / 2.
-	 */
+	
 	struct slib *slib;
 } __attribute__ ((aligned(256)));
 
 struct qdio_irq {
 	struct qib qib;
-	u32 *dsci;		/* address of device state change indicator */
+	u32 *dsci;		
 	struct ccw_device *cdev;
 	struct dentry *debugfs_dev;
 
 	unsigned long int_parm;
 	struct subchannel_id schid;
-	unsigned long sch_token;	/* QEBSM facility */
+	unsigned long sch_token;	
 
 	enum qdio_irq_states state;
 
-	struct siga_flag siga_flag;	/* siga sync information from qdioac */
+	struct siga_flag siga_flag;	
 
 	int nr_input_qs;
 	int nr_output_qs;
@@ -289,10 +269,7 @@ struct qdio_irq {
 
 	void (*orig_handler) (struct ccw_device *, unsigned long, struct irb *);
 
-	/*
-	 * Warning: Leave these members together at the end so they won't be
-	 * cleared in qdio_setup_irq.
-	 */
+	
 	struct qdr *qdr;
 	unsigned long chsc_page;
 
@@ -303,7 +280,7 @@ struct qdio_irq {
 	struct mutex setup_mutex;
 };
 
-/* helper functions */
+
 #define queue_type(q)	q->irq_ptr->qib.qfmt
 #define SCH_NO(q)	(q->irq_ptr->schid.sch_no)
 
@@ -311,7 +288,7 @@ struct qdio_irq {
 	(irq->qib.qfmt == QDIO_IQDIO_QFMT || \
 	 css_general_characteristics.aif_osa)
 
-/* the highest iqdio queue is used for multicast */
+
 static inline int multicast_outbound(struct qdio_q *q)
 {
 	return (q->irq_ptr->nr_output_qs > 1) &&
@@ -352,7 +329,7 @@ static inline unsigned long long get_usecs(void)
 #define sub_buf(bufnr, dec) \
 	((bufnr - dec) & QDIO_MAX_BUFFERS_MASK)
 
-/* prototypes for thin interrupt */
+
 void qdio_setup_thinint(struct qdio_irq *irq_ptr);
 int qdio_establish_thinint(struct qdio_irq *irq_ptr);
 void qdio_shutdown_thinint(struct qdio_irq *irq_ptr);
@@ -364,7 +341,7 @@ void tiqdio_free_memory(void);
 int tiqdio_register_thinints(void);
 void tiqdio_unregister_thinints(void);
 
-/* prototypes for setup */
+
 void qdio_inbound_processing(unsigned long data);
 void qdio_outbound_processing(unsigned long data);
 void qdio_outbound_timer(unsigned long data);
@@ -387,4 +364,4 @@ void qdio_setup_exit(void);
 
 int debug_get_buf_state(struct qdio_q *q, unsigned int bufnr,
 			unsigned char *state);
-#endif /* _CIO_QDIO_H */
+#endif 

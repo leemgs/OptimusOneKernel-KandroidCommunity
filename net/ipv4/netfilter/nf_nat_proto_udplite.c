@@ -1,11 +1,4 @@
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- * (C) 2008 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -47,13 +40,13 @@ udplite_manip_pkt(struct sk_buff *skb,
 	hdr = (struct udphdr *)(skb->data + hdroff);
 
 	if (maniptype == IP_NAT_MANIP_SRC) {
-		/* Get rid of src ip and src pt */
+		
 		oldip = iph->saddr;
 		newip = tuple->src.u3.ip;
 		newport = tuple->src.u.udp.port;
 		portptr = &hdr->source;
 	} else {
-		/* Get rid of dst ip and dst pt */
+		
 		oldip = iph->daddr;
 		newip = tuple->dst.u3.ip;
 		newport = tuple->dst.u.udp.port;

@@ -1,12 +1,4 @@
-/*
- * This is a module which is used for setting the MSS option in TCP packets.
- *
- * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -34,7 +26,7 @@ MODULE_ALIAS("ip6t_TCPMSS");
 static inline unsigned int
 optlen(const u_int8_t *opt, unsigned int offset)
 {
-	/* Beware zero-length options: make finite progress */
+	
 	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
 		return 1;
 	else
@@ -60,11 +52,7 @@ tcpmss_mangle_packet(struct sk_buff *skb,
 	tcplen = skb->len - tcphoff;
 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
 
-	/* Since it passed flags test in tcp match, we know it is is
-	   not a fragment, and has data >= tcp header length.  SYN
-	   packets should not contain data: if they did, then we risk
-	   running over MTU, sending Frag Needed and breaking things
-	   badly. --RR */
+	
 	if (tcplen != tcph->doff*4) {
 		if (net_ratelimit())
 			printk(KERN_ERR "xt_TCPMSS: bad length (%u bytes)\n",
@@ -98,10 +86,7 @@ tcpmss_mangle_packet(struct sk_buff *skb,
 
 			oldmss = (opt[i+2] << 8) | opt[i+3];
 
-			/* Never increase MSS, even when setting it, as
-			 * doing so results in problems for hosts that rely
-			 * on MSS being set correctly.
-			 */
+			
 			if (oldmss <= newmss)
 				return 0;
 
@@ -115,9 +100,7 @@ tcpmss_mangle_packet(struct sk_buff *skb,
 		}
 	}
 
-	/*
-	 * MSS Option not found ?! add it..
-	 */
+	
 	if (skb_tailroom(skb) < TCPOLEN_MSS) {
 		if (pskb_expand_head(skb, 0,
 				     TCPOLEN_MSS - skb_tailroom(skb),
@@ -224,7 +207,7 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_target_param *par)
 
 #define TH_SYN 0x02
 
-/* Must specify -p tcp --syn */
+
 static inline bool find_syn_match(const struct xt_entry_match *m)
 {
 	const struct xt_tcp *tcpinfo = (const struct xt_tcp *)m->data;

@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <defs/bfa_defs_cee.h>
 #include <cs/bfa_trc.h>
@@ -106,43 +91,21 @@ bfa_cee_format_lldp_cfg(struct bfa_cee_lldp_cfg_s *lldp_cfg)
 		bfa_os_ntohs(lldp_cfg->enabled_system_cap);
 }
 
-/**
- * bfa_cee_attr_meminfo()
- *
- *
- * @param[in] void
- *
- * @return Size of DMA region
- */
+
 static          u32
 bfa_cee_attr_meminfo(void)
 {
 	return BFA_ROUNDUP(sizeof(struct bfa_cee_attr_s), BFA_DMA_ALIGN_SZ);
 }
 
-/**
- * bfa_cee_stats_meminfo()
- *
- *
- * @param[in] void
- *
- * @return Size of DMA region
- */
+
 static          u32
 bfa_cee_stats_meminfo(void)
 {
 	return BFA_ROUNDUP(sizeof(struct bfa_cee_stats_s), BFA_DMA_ALIGN_SZ);
 }
 
-/**
- * bfa_cee_get_attr_isr()
- *
- *
- * @param[in] cee - Pointer to the CEE module
- *            status - Return status from the f/w
- *
- * @return void
- */
+
 static void
 bfa_cee_get_attr_isr(struct bfa_cee_s *cee, bfa_status_t status)
 {
@@ -150,10 +113,7 @@ bfa_cee_get_attr_isr(struct bfa_cee_s *cee, bfa_status_t status)
 	bfa_trc(cee, 0);
 	if (status == BFA_STATUS_OK) {
 		bfa_trc(cee, 0);
-		/*
-		 * The requested data has been copied to the DMA area, *process
-		 * it.
-		 */
+		
 		memcpy(cee->attr, cee->attr_dma.kva,
 		       sizeof(struct bfa_cee_attr_s));
 		bfa_cee_format_cee_cfg(cee->attr);
@@ -166,15 +126,7 @@ bfa_cee_get_attr_isr(struct bfa_cee_s *cee, bfa_status_t status)
 	bfa_trc(cee, 0);
 }
 
-/**
- * bfa_cee_get_attr_isr()
- *
- *
- * @param[in] cee - Pointer to the CEE module
- *            status - Return status from the f/w
- *
- * @return void
- */
+
 static void
 bfa_cee_get_stats_isr(struct bfa_cee_s *cee, bfa_status_t status)
 {
@@ -182,10 +134,7 @@ bfa_cee_get_stats_isr(struct bfa_cee_s *cee, bfa_status_t status)
 	bfa_trc(cee, 0);
 	if (status == BFA_STATUS_OK) {
 		bfa_trc(cee, 0);
-		/*
-		 * The requested data has been copied to the DMA area, process
-		 * it.
-		 */
+		
 		memcpy(cee->stats, cee->stats_dma.kva,
 		       sizeof(struct bfa_cee_stats_s));
 		bfa_cee_format_cee_stats(cee->stats);
@@ -199,15 +148,7 @@ bfa_cee_get_stats_isr(struct bfa_cee_s *cee, bfa_status_t status)
 	bfa_trc(cee, 0);
 }
 
-/**
- * bfa_cee_get_attr_isr()
- *
- *
- * @param[in] cee - Pointer to the CEE module
- *            status - Return status from the f/w
- *
- * @return void
- */
+
 static void
 bfa_cee_reset_stats_isr(struct bfa_cee_s *cee, bfa_status_t status)
 {
@@ -217,30 +158,14 @@ bfa_cee_reset_stats_isr(struct bfa_cee_s *cee, bfa_status_t status)
 		cee->cbfn.reset_stats_cbfn(cee->cbfn.reset_stats_cbarg, status);
 }
 
-/**
- * bfa_cee_meminfo()
- *
- *
- * @param[in] void
- *
- * @return Size of DMA region
- */
+
 u32
 bfa_cee_meminfo(void)
 {
 	return (bfa_cee_attr_meminfo() + bfa_cee_stats_meminfo());
 }
 
-/**
- * bfa_cee_mem_claim()
- *
- *
- * @param[in] cee CEE module pointer
- * 	      dma_kva Kernel Virtual Address of CEE DMA Memory
- * 	      dma_pa  Physical Address of CEE DMA Memory
- *
- * @return void
- */
+
 void
 bfa_cee_mem_claim(struct bfa_cee_s *cee, u8 *dma_kva, u64 dma_pa)
 {
@@ -253,15 +178,7 @@ bfa_cee_mem_claim(struct bfa_cee_s *cee, u8 *dma_kva, u64 dma_pa)
 		(struct bfa_cee_stats_s *)(dma_kva + bfa_cee_attr_meminfo());
 }
 
-/**
- * bfa_cee_get_attr()
- *
- *   Send the request to the f/w to fetch CEE attributes.
- *
- * @param[in] Pointer to the CEE module data structure.
- *
- * @return Status
- */
+
 
 bfa_status_t
 bfa_cee_get_attr(struct bfa_cee_s *cee, struct bfa_cee_attr_s *attr,
@@ -293,15 +210,7 @@ bfa_cee_get_attr(struct bfa_cee_s *cee, struct bfa_cee_attr_s *attr,
 	return BFA_STATUS_OK;
 }
 
-/**
- * bfa_cee_get_stats()
- *
- *   Send the request to the f/w to fetch CEE statistics.
- *
- * @param[in] Pointer to the CEE module data structure.
- *
- * @return Status
- */
+
 
 bfa_status_t
 bfa_cee_get_stats(struct bfa_cee_s *cee, struct bfa_cee_stats_s *stats,
@@ -333,14 +242,7 @@ bfa_cee_get_stats(struct bfa_cee_s *cee, struct bfa_cee_stats_s *stats,
 	return BFA_STATUS_OK;
 }
 
-/**
- * bfa_cee_reset_stats()
- *
- *
- * @param[in] Pointer to the CEE module data structure.
- *
- * @return Status
- */
+
 
 bfa_status_t
 bfa_cee_reset_stats(struct bfa_cee_s *cee, bfa_cee_reset_stats_cbfn_t cbfn,
@@ -368,14 +270,7 @@ bfa_cee_reset_stats(struct bfa_cee_s *cee, bfa_cee_reset_stats_cbfn_t cbfn,
 	return BFA_STATUS_OK;
 }
 
-/**
- * bfa_cee_isrs()
- *
- *
- * @param[in] Pointer to the CEE module data structure.
- *
- * @return void
- */
+
 
 void
 bfa_cee_isr(void *cbarg, struct bfi_mbmsg_s *m)
@@ -402,14 +297,7 @@ bfa_cee_isr(void *cbarg, struct bfi_mbmsg_s *m)
 	}
 }
 
-/**
- * bfa_cee_hbfail()
- *
- *
- * @param[in] Pointer to the CEE module data structure.
- *
- * @return void
- */
+
 
 void
 bfa_cee_hbfail(void *arg)
@@ -443,20 +331,7 @@ bfa_cee_hbfail(void *arg)
 	}
 }
 
-/**
- * bfa_cee_attach()
- *
- *
- * @param[in] cee - Pointer to the CEE module data structure
- *            ioc - Pointer to the ioc module data structure
- *            dev - Pointer to the device driver module data structure
- *                  The device driver specific mbox ISR functions have
- *                  this pointer as one of the parameters.
- *            trcmod -
- *            logmod -
- *
- * @return void
- */
+
 void
 bfa_cee_attach(struct bfa_cee_s *cee, struct bfa_ioc_s *ioc, void *dev,
 	       struct bfa_trc_mod_s *trcmod, struct bfa_log_mod_s *logmod)
@@ -473,20 +348,10 @@ bfa_cee_attach(struct bfa_cee_s *cee, struct bfa_ioc_s *ioc, void *dev,
 	bfa_trc(cee, 0);
 }
 
-/**
- * bfa_cee_detach()
- *
- *
- * @param[in] cee - Pointer to the CEE module data structure
- *
- * @return void
- */
+
 void
 bfa_cee_detach(struct bfa_cee_s *cee)
 {
-	/*
-	 * For now, just check if there is some ioctl pending and mark that as
-	 * failed?
-	 */
-	/* bfa_cee_hbfail(cee); */
+	
+	
 }

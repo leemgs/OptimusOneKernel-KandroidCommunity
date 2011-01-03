@@ -1,50 +1,6 @@
-/*
 
- * l1oip_codec.c  generic codec using lookup table
- *  -> conversion from a-Law to u-Law
- *  -> conversion from u-Law to a-Law
- *  -> compression by reducing the number of sample resolution to 4
- *
- * NOTE: It is not compatible with any standard codec like ADPCM.
- *
- * Author	Andreas Eversberg (jolly@eversberg.eu)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- */
 
-/*
-
-How the codec works:
---------------------
-
-The volume is increased to increase the dynamic range of the audio signal.
-Each sample is converted to a-LAW with only 16 steps of level resolution.
-A pair of two samples are stored in one byte.
-
-The first byte is stored in the upper bits, the second byte is stored in the
-lower bits.
-
-To speed up compression and decompression, two lookup tables are formed:
-
-- 16 bits index for two samples (law encoded) with 8 bit compressed result.
-- 8 bits index for one compressed data with 16 bits decompressed result.
-
-NOTE: The bytes are handled as they are law-encoded.
-
-*/
 
 #include <linux/vmalloc.h>
 #include <linux/mISDNif.h>
@@ -52,13 +8,13 @@ NOTE: The bytes are handled as they are law-encoded.
 #include "core.h"
 #include "l1oip.h"
 
-/* definitions of codec. don't use calculations, code may run slower. */
+
 
 static u8 *table_com;
 static u16 *table_dec;
 
 
-/* alaw -> ulaw */
+
 static u8 alaw_to_ulaw[256] =
 {
 	0xab, 0x2b, 0xe3, 0x63, 0x8b, 0x0b, 0xc9, 0x49,
@@ -95,7 +51,7 @@ static u8 alaw_to_ulaw[256] =
 	0xb5, 0x35, 0xee, 0x6e, 0x96, 0x16, 0xd2, 0x52
 };
 
-/* ulaw -> alaw */
+
 static u8 ulaw_to_alaw[256] =
 {
 	0xab, 0x55, 0xd5, 0x15, 0x95, 0x75, 0xf5, 0x35,
@@ -132,7 +88,7 @@ static u8 ulaw_to_alaw[256] =
 	0x8a, 0x8a, 0x6a, 0x6a, 0xea, 0xea, 0x2a, 0x2a
 };
 
-/* alaw -> 4bit compression */
+
 static u8 alaw_to_4bit[256] = {
 	0x0e, 0x01, 0x0a, 0x05, 0x0f, 0x00, 0x0c, 0x03,
 	0x0d, 0x02, 0x08, 0x07, 0x0f, 0x00, 0x0b, 0x04,
@@ -168,13 +124,13 @@ static u8 alaw_to_4bit[256] = {
 	0x0d, 0x02, 0x09, 0x06, 0x0f, 0x00, 0x0b, 0x04,
 };
 
-/* 4bit -> alaw decompression */
+
 static u8 _4bit_to_alaw[16] = {
 	0x5d, 0x51, 0xd9, 0xd7, 0x5f, 0x53, 0xa3, 0x4b,
 	0x2a, 0x3a, 0x22, 0x2e, 0x26, 0x56, 0x20, 0x2c,
 };
 
-/* ulaw -> 4bit compression */
+
 static u8 ulaw_to_4bit[256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -210,18 +166,14 @@ static u8 ulaw_to_4bit[256] = {
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 };
 
-/* 4bit -> ulaw decompression */
+
 static u8 _4bit_to_ulaw[16] = {
 	0x11, 0x21, 0x31, 0x40, 0x4e, 0x5c, 0x68, 0x71,
 	0xfe, 0xef, 0xe7, 0xdb, 0xcd, 0xbf, 0xaf, 0x9f,
 };
 
 
-/*
- * Compresses data to the result buffer
- * The result size must be at least half of the input buffer.
- * The number of samples also must be even!
- */
+
 int
 l1oip_law_to_4bit(u8 *data, int len, u8 *result, u32 *state)
 {
@@ -230,7 +182,7 @@ l1oip_law_to_4bit(u8 *data, int len, u8 *result, u32 *state)
 	if (!len)
 		return 0;
 
-	/* send saved byte and first input byte */
+	
 	if (*state) {
 		*result++ = table_com[(((*state)<<8)&0xff00) | (*data++)];
 		len--;
@@ -246,7 +198,7 @@ l1oip_law_to_4bit(u8 *data, int len, u8 *result, u32 *state)
 		o++;
 	}
 
-	/* if len has an odd number, we save byte for next call */
+	
 	if (len & 1)
 		*state = 0x100 + *data;
 	else
@@ -255,10 +207,7 @@ l1oip_law_to_4bit(u8 *data, int len, u8 *result, u32 *state)
 	return o;
 }
 
-/* Decompress data to the result buffer
- * The result size must be the number of sample in packet. (2 * input data)
- * The number of samples in the result are even!
- */
+
 int
 l1oip_4bit_to_law(u8 *data, int len, u8 *result)
 {
@@ -276,9 +225,7 @@ l1oip_4bit_to_law(u8 *data, int len, u8 *result)
 }
 
 
-/*
- * law conversion
- */
+
 int
 l1oip_alaw_to_ulaw(u8 *data, int len, u8 *result)
 {
@@ -306,9 +253,7 @@ l1oip_ulaw_to_alaw(u8 *data, int len, u8 *result)
 }
 
 
-/*
- * generate/free compression and decompression table
- */
+
 void
 l1oip_4bit_free(void)
 {
@@ -325,11 +270,11 @@ l1oip_4bit_alloc(int ulaw)
 {
 	int i1, i2, c, sample;
 
-	/* in case, it is called again */
+	
 	if (table_dec)
 		return 0;
 
-	/* alloc conversion tables */
+	
 	table_com = vmalloc(65536);
 	table_dec = vmalloc(512);
 	if (!table_com || !table_dec) {
@@ -338,7 +283,7 @@ l1oip_4bit_alloc(int ulaw)
 	}
 	memset(table_com, 0, 65536);
 	memset(table_dec, 0, 512);
-	/* generate compression table */
+	
 	i1 = 0;
 	while (i1 < 256) {
 		if (ulaw)
@@ -354,7 +299,7 @@ l1oip_4bit_alloc(int ulaw)
 		i1++;
 	}
 
-	/* generate decompression table */
+	
 	i1 = 0;
 	while (i1 < 16) {
 		if (ulaw)

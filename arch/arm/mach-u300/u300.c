@@ -1,13 +1,4 @@
-/*
- *
- * arch/arm/mach-u300/u300.c
- *
- *
- * Copyright (C) 2006-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * Platform machine definition.
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/mm.h>
@@ -44,7 +35,7 @@ static void __init u300_init_machine(void)
 #endif
 
 MACHINE_START(U300, MACH_U300_STRING)
-	/* Maintainer: Linus Walleij <linus.walleij@stericsson.com> */
+	
 	.phys_io	= U300_AHB_PER_PHYS_BASE,
 	.io_pg_offst	= ((U300_AHB_PER_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= BOOT_PARAMS_OFFSET,

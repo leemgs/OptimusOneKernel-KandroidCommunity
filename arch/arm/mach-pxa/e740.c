@@ -1,14 +1,4 @@
-/*
- * Hardware definitions for the Toshiba eseries PDAs
- *
- * Copyright (c) 2003 Ian Molton <spyro@f2s.com>
- *
- * This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -36,7 +26,7 @@
 #include "clock.h"
 #include "devices.h"
 
-/* ------------------------ e740 video support --------------------------- */
+
 
 static struct w100_gen_regs e740_lcd_regs = {
 	.lcd_format =            0x00008023,
@@ -107,47 +97,47 @@ static struct platform_device e740_fb_device = {
 	.resource       = e740_fb_resources,
 };
 
-/* --------------------------- MFP Pin config -------------------------- */
+
 
 static unsigned long e740_pin_config[] __initdata = {
-	/* Chip selects */
-	GPIO15_nCS_1,   /* CS1 - Flash */
-	GPIO79_nCS_3,   /* CS3 - IMAGEON */
-	GPIO80_nCS_4,   /* CS4 - TMIO */
+	
+	GPIO15_nCS_1,   
+	GPIO79_nCS_3,   
+	GPIO80_nCS_4,   
 
-	/* Clocks */
+	
 	GPIO12_32KHz,
 
-	/* BTUART */
+	
 	GPIO42_BTUART_RXD,
 	GPIO43_BTUART_TXD,
 	GPIO44_BTUART_CTS,
 
-	/* TMIO controller */
-	GPIO19_GPIO, /* t7l66xb #PCLR */
-	GPIO45_GPIO, /* t7l66xb #SUSPEND (NOT BTUART!) */
+	
+	GPIO19_GPIO, 
+	GPIO45_GPIO, 
 
-	/* UDC */
+	
 	GPIO13_GPIO,
 	GPIO3_GPIO,
 
-	/* IrDA */
+	
 	GPIO38_GPIO | MFP_LPM_DRIVE_HIGH,
 
-	/* Audio power control */
-	GPIO16_GPIO,  /* AC97 codec AVDD2 supply (analogue power) */
-	GPIO40_GPIO,  /* Mic amp power */
-	GPIO41_GPIO,  /* Headphone amp power */
+	
+	GPIO16_GPIO,  
+	GPIO40_GPIO,  
+	GPIO41_GPIO,  
 
-	/* PC Card */
-	GPIO8_GPIO,   /* CD0 */
-	GPIO44_GPIO,  /* CD1 */
-	GPIO11_GPIO,  /* IRQ0 */
-	GPIO6_GPIO,   /* IRQ1 */
-	GPIO27_GPIO,  /* RST0 */
-	GPIO24_GPIO,  /* RST1 */
-	GPIO20_GPIO,  /* PWR0 */
-	GPIO23_GPIO,  /* PWR1 */
+	
+	GPIO8_GPIO,   
+	GPIO44_GPIO,  
+	GPIO11_GPIO,  
+	GPIO6_GPIO,   
+	GPIO27_GPIO,  
+	GPIO24_GPIO,  
+	GPIO20_GPIO,  
+	GPIO23_GPIO,  
 	GPIO48_nPOE,
 	GPIO49_nPWE,
 	GPIO50_nPIOR,
@@ -159,11 +149,11 @@ static unsigned long e740_pin_config[] __initdata = {
 	GPIO56_nPWAIT,
 	GPIO57_nIOIS16,
 
-	/* wakeup */
+	
 	GPIO0_GPIO | WAKEUP_ON_EDGE_RISE,
 };
 
-/* -------------------- e740 t7l66xb parameters -------------------- */
+
 
 static struct t7l66xb_platform_data e740_t7l66xb_info = {
 	.irq_base 		= IRQ_BOARD_START,
@@ -182,7 +172,7 @@ static struct platform_device e740_t7l66xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static struct platform_device *devices[] __initdata = {
 	&e740_fb_device,
@@ -203,7 +193,7 @@ static void __init e740_init(void)
 }
 
 MACHINE_START(E740, "Toshiba e740")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= 0xa0000100,

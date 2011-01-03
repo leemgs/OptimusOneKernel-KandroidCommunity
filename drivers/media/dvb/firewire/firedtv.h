@@ -1,14 +1,4 @@
-/*
- * FireDTV driver (formerly known as FireSAT)
- *
- * Copyright (C) 2004 Andreas Monitzer <andy@monitzer.com>
- * Copyright (C) 2008 Henrik Kurelid <henrik@kurelid.se>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation; either version 2 of
- *	the License, or (at your option) any later version.
- */
+
 
 #ifndef _FIREDTV_H
 #define _FIREDTV_H
@@ -117,7 +107,7 @@ struct firedtv {
 	u8			response[512];
 };
 
-/* firedtv-1394.c */
+
 #ifdef CONFIG_DVB_FIREDTV_IEEE1394
 int fdtv_1394_init(struct ieee1394_device_id id_table[]);
 void fdtv_1394_exit(void);
@@ -126,7 +116,7 @@ static inline int fdtv_1394_init(struct ieee1394_device_id it[]) { return 0; }
 static inline void fdtv_1394_exit(void) {}
 #endif
 
-/* firedtv-avc.c */
+
 int avc_recv(struct firedtv *fdtv, void *data, size_t length);
 int avc_tuner_status(struct firedtv *fdtv, struct firedtv_tuner_status *stat);
 struct dvb_frontend_parameters;
@@ -150,11 +140,11 @@ int avc_ca_get_mmi(struct firedtv *fdtv, char *mmi_object, unsigned int *len);
 int cmp_establish_pp_connection(struct firedtv *fdtv, int plug, int channel);
 void cmp_break_pp_connection(struct firedtv *fdtv, int plug, int channel);
 
-/* firedtv-ci.c */
+
 int fdtv_ca_register(struct firedtv *fdtv);
 void fdtv_ca_release(struct firedtv *fdtv);
 
-/* firedtv-dvb.c */
+
 int fdtv_start_feed(struct dvb_demux_feed *dvbdmxfeed);
 int fdtv_stop_feed(struct dvb_demux_feed *dvbdmxfeed);
 int fdtv_dvb_register(struct firedtv *fdtv);
@@ -164,10 +154,10 @@ struct firedtv *fdtv_alloc(struct device *dev,
 			   const char *name, size_t name_len);
 extern const char *fdtv_model_names[];
 
-/* firedtv-fe.c */
+
 void fdtv_frontend_init(struct firedtv *fdtv);
 
-/* firedtv-rc.c */
+
 #ifdef CONFIG_DVB_FIREDTV_INPUT
 int fdtv_register_rc(struct firedtv *fdtv, struct device *dev);
 void fdtv_unregister_rc(struct firedtv *fdtv);
@@ -179,4 +169,4 @@ static inline void fdtv_unregister_rc(struct firedtv *fdtv) {}
 static inline void fdtv_handle_rc(struct firedtv *fdtv, unsigned int code) {}
 #endif
 
-#endif /* _FIREDTV_H */
+#endif 

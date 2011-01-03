@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-at91/include/mach/gpio.h
- *
- *  Copyright (C) 2005 HP Labs
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 
 #ifndef __ASM_ARCH_AT91RM9200_GPIO_H
 #define __ASM_ARCH_AT91RM9200_GPIO_H
@@ -20,7 +10,7 @@
 
 #define MAX_GPIO_BANKS		5
 
-/* these pin numbers double as IRQ numbers, like AT91xxx_ID_* values */
+
 
 #define	AT91_PIN_PA0	(PIN_BASE + 0x00 + 0)
 #define	AT91_PIN_PA1	(PIN_BASE + 0x00 + 1)
@@ -188,7 +178,7 @@
 #define	AT91_PIN_PE31	(PIN_BASE + 0x80 + 31)
 
 #ifndef __ASSEMBLY__
-/* setup setup routines, called from board init or driver probe() */
+
 extern int __init_or_module at91_set_GPIO_periph(unsigned pin, int use_pullup);
 extern int __init_or_module at91_set_A_periph(unsigned pin, int use_pullup);
 extern int __init_or_module at91_set_B_periph(unsigned pin, int use_pullup);
@@ -197,23 +187,20 @@ extern int __init_or_module at91_set_gpio_output(unsigned pin, int value);
 extern int __init_or_module at91_set_deglitch(unsigned pin, int is_on);
 extern int __init_or_module at91_set_multi_drive(unsigned pin, int is_on);
 
-/* callable at any time */
+
 extern int at91_set_gpio_value(unsigned pin, int value);
 extern int at91_get_gpio_value(unsigned pin);
 
-/* callable only from core power-management code */
+
 extern void at91_gpio_suspend(void);
 extern void at91_gpio_resume(void);
 
-/*-------------------------------------------------------------------------*/
 
-/* wrappers for "new style" GPIO calls. the old AT91-specfic ones should
- * eventually be removed (along with this errno.h inclusion), and the
- * gpio request/free calls should probably be implemented.
- */
+
+
 
 #include <asm/errno.h>
-#include <asm-generic/gpio.h>		/* cansleep wrappers */
+#include <asm-generic/gpio.h>		
 
 #define gpio_get_value	__gpio_get_value
 #define gpio_set_value	__gpio_set_value
@@ -229,6 +216,6 @@ static inline int irq_to_gpio(unsigned irq)
 	return irq;
 }
 
-#endif	/* __ASSEMBLY__ */
+#endif	
 
 #endif

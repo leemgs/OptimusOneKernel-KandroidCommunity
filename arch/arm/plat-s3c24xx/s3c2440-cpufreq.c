@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/s3c2440-cpufreq.c
- *
- * Copyright (c) 2006,2008,2009 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *	Vincent Sanders <vince@simtec.co.uk>
- *
- * S3C2440/S3C2442 CPU Frequency scaling
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -39,7 +27,7 @@ static struct clk *fclk;
 static struct clk *hclk;
 static struct clk *armclk;
 
-/* HDIV: 1, 2, 3, 4, 6, 8 */
+
 
 static inline int within_khz(unsigned long a, unsigned long b)
 {
@@ -48,14 +36,7 @@ static inline int within_khz(unsigned long a, unsigned long b)
 	return (diff >= -1000 && diff <= 1000);
 }
 
-/**
- * s3c2440_cpufreq_calcdivs - calculate divider settings
- * @cfg: The cpu frequency settings.
- *
- * Calcualte the divider values for the given frequency settings
- * specified in @cfg. The values are stored in @cfg for later use
- * by the relevant set routine if the request settings can be reached.
- */
+
 int s3c2440_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 {
 	unsigned int hdiv, pdiv;
@@ -74,7 +55,7 @@ int s3c2440_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 		armclk = fclk;
 	}
 
-	/* if we are in DVS, we need HCLK to be <= ARMCLK */
+	
 	if (armclk < fclk && armclk < hclk_max)
 		hclk_max = armclk;
 
@@ -104,14 +85,12 @@ int s3c2440_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 
 	pdiv *= hdiv;
 
-	/* calculate a valid armclk */
+	
 
 	if (armclk < hclk)
 		armclk = hclk;
 
-	/* if we're running armclk lower than fclk, this really means
-	 * that the system should go into dvs mode, which means that
-	 * armclk is connected to hclk. */
+	
 	if (armclk < fclk) {
 		cfg->divs.dvs = 1;
 		armclk = hclk;
@@ -120,7 +99,7 @@ int s3c2440_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 
 	cfg->freq.armclk = armclk;
 
-	/* store the result, and then return */
+	
 
 	cfg->divs.h_divisor = hdiv;
 	cfg->divs.p_divisor = pdiv;
@@ -134,13 +113,7 @@ int s3c2440_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 #define CAMDIVN_HCLK_HALF (S3C2440_CAMDIVN_HCLK3_HALF | \
 			   S3C2440_CAMDIVN_HCLK4_HALF)
 
-/**
- * s3c2440_cpufreq_setdivs - set the cpu frequency divider settings
- * @cfg: The cpu frequency settings.
- *
- * Set the divisors from the settings in @cfg, which where generated
- * during the calculation phase by s3c2440_cpufreq_calcdivs().
- */
+
 static void s3c2440_cpufreq_setdivs(struct s3c_cpufreq_config *cfg)
 {
 	unsigned long clkdiv, camdiv;
@@ -176,18 +149,15 @@ static void s3c2440_cpufreq_setdivs(struct s3c_cpufreq_config *cfg)
 		break;
 
 	default:
-		BUG();	/* we don't expect to get here. */
+		BUG();	
 	}
 
 	if (cfg->divs.p_divisor != cfg->divs.h_divisor)
 		clkdiv |= S3C2440_CLKDIVN_PDIVN;
 
-	/* todo - set pclk. */
+	
 
-	/* Write the divisors first with hclk intentionally halved so that
-	 * when we write clkdiv we will under-frequency instead of over. We
-	 * then make a short delay and remove the hclk halving if necessary.
-	 */
+	
 
 	__raw_writel(camdiv | CAMDIVN_HCLK_HALF, S3C2440_CAMDIVN);
 	__raw_writel(clkdiv, S3C2410_CLKDIVN);
@@ -213,7 +183,7 @@ static int run_freq_for(unsigned long max_hclk, unsigned long fclk,
 		if (freq > max_hclk && div != 1)
 			continue;
 
-		freq /= 1000; /* table is in kHz */
+		freq /= 1000; 
 		index = s3c_cpufreq_addfreq(table, index, table_size, freq);
 		if (index < 0)
 			break;
@@ -295,7 +265,7 @@ static int s3c2440_cpufreq_init(void)
 				      &s3c2440_cpufreq_driver);
 }
 
-/* arch_initcall adds the clocks we need, so use subsys_initcall. */
+
 subsys_initcall(s3c2440_cpufreq_init);
 
 static struct sysdev_driver s3c2442_cpufreq_driver = {

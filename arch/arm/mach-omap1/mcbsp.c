@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/mcbsp.c
- *
- * Copyright (C) 2008 Instituto Nokia de Tecnologia
- * Contact: Eduardo Valentin <eduardo.valentin@indt.org.br>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Multichannel mode not supported.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/clk.h>
@@ -33,10 +22,7 @@ static struct clk *dsp_clk;
 
 static void omap1_mcbsp_request(unsigned int id)
 {
-	/*
-	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
-	 * are DSP public peripherals.
-	 */
+	
 	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3) {
 		if (dsp_use++ == 0) {
 			api_clk = clk_get(NULL, "api_ck");
@@ -46,10 +32,7 @@ static void omap1_mcbsp_request(unsigned int id)
 				clk_enable(dsp_clk);
 
 				omap_dsp_request_mem();
-				/*
-				 * DSP external peripheral reset
-				 * FIXME: This should be moved to dsp code
-				 */
+				
 				__raw_writew(__raw_readw(DSP_RSTCT2) | DPS_RSTCT2_PER_EN |
 						DSP_RSTCT2_WD_PER_EN, DSP_RSTCT2);
 			}

@@ -1,17 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/pxa300.c
- *
- * Code specific to PXA300/PXA310
- *
- * Copyright (C) 2007 Marvell Internation Ltd.
- *
- * 2007-08-21: eric miao <eric.miao@marvell.com>
- *             initial version
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -71,7 +58,7 @@ static struct mfp_addr_map pxa300_mfp_addr_map[] __initdata = {
 	MFP_ADDR_END,
 };
 
-/* override pxa300 MFP register addresses */
+
 static struct mfp_addr_map pxa310_mfp_addr_map[] __initdata = {
 	MFP_ADDR_X(GPIO30,  GPIO98,   0x0418),
 	MFP_ADDR_X(GPIO7_2, GPIO12_2, 0x052C),

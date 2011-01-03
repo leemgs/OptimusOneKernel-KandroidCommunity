@@ -5,164 +5,164 @@
 
 #include <mach/gpio.h>
 
-/* GPIO alternate function assignments */
 
-#define GPIO1_RST		1	/* reset */
-#define GPIO6_MMCCLK		6	/* MMC Clock */
-#define GPIO7_48MHz		7	/* 48 MHz clock output */
-#define GPIO8_MMCCS0		8	/* MMC Chip Select 0 */
-#define GPIO9_MMCCS1		9	/* MMC Chip Select 1 */
-#define GPIO10_RTCCLK		10	/* real time clock (1 Hz) */
-#define GPIO11_3_6MHz		11	/* 3.6 MHz oscillator out */
-#define GPIO12_32KHz		12	/* 32 kHz out */
-#define GPIO12_CIF_DD_7		12	/* Camera data pin 7 */
-#define GPIO13_MBGNT		13	/* memory controller grant */
-#define GPIO14_MBREQ		14	/* alternate bus master request */
-#define GPIO15_nCS_1		15	/* chip select 1 */
-#define GPIO16_PWM0		16	/* PWM0 output */
-#define GPIO17_PWM1		17	/* PWM1 output */
-#define GPIO17_CIF_DD_6		17	/* Camera data pin 6 */
-#define GPIO18_RDY		18	/* Ext. Bus Ready */
-#define GPIO19_DREQ1		19	/* External DMA Request */
-#define GPIO20_DREQ0		20	/* External DMA Request */
-#define GPIO23_SCLK		23	/* SSP clock */
-#define GPIO23_CIF_MCLK		23	/* Camera Master Clock */
-#define GPIO24_SFRM		24	/* SSP Frame */
-#define GPIO24_CIF_FV		24	/* Camera frame start signal */
-#define GPIO25_STXD		25	/* SSP transmit */
-#define GPIO25_CIF_LV		25	/* Camera line start signal */
-#define GPIO26_SRXD		26	/* SSP receive */
-#define GPIO26_CIF_PCLK		26	/* Camera Pixel Clock */
-#define GPIO27_SEXTCLK		27	/* SSP ext_clk */
-#define GPIO27_CIF_DD_0		27	/* Camera data pin 0 */
-#define GPIO28_BITCLK		28	/* AC97/I2S bit_clk */
-#define GPIO29_SDATA_IN		29	/* AC97 Sdata_in0 / I2S Sdata_in */
-#define GPIO30_SDATA_OUT	30	/* AC97/I2S Sdata_out */
-#define GPIO31_SYNC		31	/* AC97/I2S sync */
-#define GPIO32_SDATA_IN1	32	/* AC97 Sdata_in1 */
-#define GPIO32_SYSCLK		32	/* I2S System Clock */
-#define GPIO32_MMCCLK		32	/* MMC Clock (PXA270) */
-#define GPIO33_nCS_5		33	/* chip select 5 */
-#define GPIO34_FFRXD		34	/* FFUART receive */
-#define GPIO34_MMCCS0		34	/* MMC Chip Select 0 */
-#define GPIO35_FFCTS		35	/* FFUART Clear to send */
-#define GPIO36_FFDCD		36	/* FFUART Data carrier detect */
-#define GPIO37_FFDSR		37	/* FFUART data set ready */
-#define GPIO38_FFRI		38	/* FFUART Ring Indicator */
-#define GPIO39_MMCCS1		39	/* MMC Chip Select 1 */
-#define GPIO39_FFTXD		39	/* FFUART transmit data */
-#define GPIO40_FFDTR		40	/* FFUART data terminal Ready */
-#define GPIO41_FFRTS		41	/* FFUART request to send */
-#define GPIO42_BTRXD		42	/* BTUART receive data */
-#define GPIO42_HWRXD		42	/* HWUART receive data */
-#define GPIO42_CIF_MCLK		42	/* Camera Master Clock */
-#define GPIO43_BTTXD		43	/* BTUART transmit data */
-#define GPIO43_HWTXD		43	/* HWUART transmit data */
-#define GPIO43_CIF_FV		43	/* Camera frame start signal */
-#define GPIO44_BTCTS		44	/* BTUART clear to send */
-#define GPIO44_HWCTS		44	/* HWUART clear to send */
-#define GPIO44_CIF_LV		44	/* Camera line start signal */
-#define GPIO45_BTRTS		45	/* BTUART request to send */
-#define GPIO45_HWRTS		45	/* HWUART request to send */
-#define GPIO45_AC97_SYSCLK	45	/* AC97 System Clock */
-#define GPIO45_CIF_PCLK		45	/* Camera Pixel Clock */
-#define GPIO46_ICPRXD		46	/* ICP receive data */
-#define GPIO46_STRXD		46	/* STD_UART receive data */
-#define GPIO47_ICPTXD		47	/* ICP transmit data */
-#define GPIO47_STTXD		47	/* STD_UART transmit data */
-#define GPIO47_CIF_DD_0		47	/* Camera data pin 0 */
-#define GPIO48_nPOE		48	/* Output Enable for Card Space */
-#define GPIO48_CIF_DD_5		48	/* Camera data pin 5 */
-#define GPIO49_nPWE		49	/* Write Enable for Card Space */
-#define GPIO50_nPIOR		50	/* I/O Read for Card Space */
-#define GPIO50_CIF_DD_3		50	/* Camera data pin 3 */
-#define GPIO51_nPIOW		51	/* I/O Write for Card Space */
-#define GPIO51_CIF_DD_2		51	/* Camera data pin 2 */
-#define GPIO52_nPCE_1		52	/* Card Enable for Card Space */
-#define GPIO52_CIF_DD_4		52	/* Camera data pin 4 */
-#define GPIO53_nPCE_2		53	/* Card Enable for Card Space */
-#define GPIO53_MMCCLK		53	/* MMC Clock */
-#define GPIO53_CIF_MCLK		53	/* Camera Master Clock */
-#define GPIO54_MMCCLK		54	/* MMC Clock */
-#define GPIO54_pSKTSEL		54	/* Socket Select for Card Space */
-#define GPIO54_nPCE_2		54	/* Card Enable for Card Space (PXA27x) */
-#define GPIO54_CIF_PCLK		54	/* Camera Pixel Clock */
-#define GPIO55_nPREG		55	/* Card Address bit 26 */
-#define GPIO55_CIF_DD_1		55	/* Camera data pin 1 */
-#define GPIO56_nPWAIT		56	/* Wait signal for Card Space */
-#define GPIO57_nIOIS16		57	/* Bus Width select for I/O Card Space */
-#define GPIO58_LDD_0		58	/* LCD data pin 0 */
-#define GPIO59_LDD_1		59	/* LCD data pin 1 */
-#define GPIO60_LDD_2		60	/* LCD data pin 2 */
-#define GPIO61_LDD_3		61	/* LCD data pin 3 */
-#define GPIO62_LDD_4		62	/* LCD data pin 4 */
-#define GPIO63_LDD_5		63	/* LCD data pin 5 */
-#define GPIO64_LDD_6		64	/* LCD data pin 6 */
-#define GPIO65_LDD_7		65	/* LCD data pin 7 */
-#define GPIO66_LDD_8		66	/* LCD data pin 8 */
-#define GPIO66_MBREQ		66	/* alternate bus master req */
-#define GPIO67_LDD_9		67	/* LCD data pin 9 */
-#define GPIO67_MMCCS0		67	/* MMC Chip Select 0 */
-#define GPIO68_LDD_10		68	/* LCD data pin 10 */
-#define GPIO68_MMCCS1		68	/* MMC Chip Select 1 */
-#define GPIO69_LDD_11		69	/* LCD data pin 11 */
-#define GPIO69_MMCCLK		69	/* MMC_CLK */
-#define GPIO70_LDD_12		70	/* LCD data pin 12 */
-#define GPIO70_RTCCLK		70	/* Real Time clock (1 Hz) */
-#define GPIO71_LDD_13		71	/* LCD data pin 13 */
-#define GPIO71_3_6MHz		71	/* 3.6 MHz Oscillator clock */
-#define GPIO72_LDD_14		72	/* LCD data pin 14 */
-#define GPIO72_32kHz		72	/* 32 kHz clock */
-#define GPIO73_LDD_15		73	/* LCD data pin 15 */
-#define GPIO73_MBGNT		73	/* Memory controller grant */
-#define GPIO74_LCD_FCLK		74	/* LCD Frame clock */
-#define GPIO75_LCD_LCLK		75	/* LCD line clock */
-#define GPIO76_LCD_PCLK		76	/* LCD Pixel clock */
-#define GPIO77_LCD_ACBIAS	77	/* LCD AC Bias */
-#define GPIO78_nCS_2		78	/* chip select 2 */
-#define GPIO79_nCS_3		79	/* chip select 3 */
-#define GPIO80_nCS_4		80	/* chip select 4 */
-#define GPIO81_NSCLK		81	/* NSSP clock */
-#define GPIO81_CIF_DD_0		81	/* Camera data pin 0 */
-#define GPIO82_NSFRM		82	/* NSSP Frame */
-#define GPIO82_CIF_DD_5		82	/* Camera data pin 5 */
-#define GPIO83_NSTXD		83	/* NSSP transmit */
-#define GPIO83_CIF_DD_4		83	/* Camera data pin 4 */
-#define GPIO84_NSRXD		84	/* NSSP receive */
-#define GPIO84_CIF_FV		84	/* Camera frame start signal */
-#define GPIO85_nPCE_1		85	/* Card Enable for Card Space (PXA27x) */
-#define GPIO85_CIF_LV		85	/* Camera line start signal */
-#define GPIO90_CIF_DD_4		90	/* Camera data pin 4 */
-#define GPIO91_CIF_DD_5		91	/* Camera data pin 5 */
-#define GPIO92_MMCDAT0		92	/* MMC DAT0 (PXA27x) */
-#define GPIO93_CIF_DD_6		93	/* Camera data pin 6 */
-#define GPIO94_CIF_DD_5		94	/* Camera data pin 5 */
-#define GPIO95_CIF_DD_4		95	/* Camera data pin 4 */
-#define GPIO96_FFRXD		96	/* FFUART recieve */
-#define GPIO98_FFRTS		98	/* FFUART request to send */
-#define GPIO98_CIF_DD_0		98	/* Camera data pin 0 */
-#define GPIO99_FFTXD		99	/* FFUART transmit data */
-#define GPIO100_FFCTS		100	/* FFUART Clear to send */
-#define GPIO102_nPCE_1		102	/* PCMCIA (PXA27x) */
-#define GPIO103_CIF_DD_3	103	/* Camera data pin 3 */
-#define GPIO104_CIF_DD_2	104	/* Camera data pin 2 */
-#define GPIO105_CIF_DD_1	105	/* Camera data pin 1 */
-#define GPIO106_CIF_DD_9	106	/* Camera data pin 9 */
-#define GPIO107_CIF_DD_8	107	/* Camera data pin 8 */
-#define GPIO108_CIF_DD_7	108	/* Camera data pin 7 */
-#define GPIO109_MMCDAT1		109	/* MMC DAT1 (PXA27x) */
-#define GPIO110_MMCDAT2		110	/* MMC DAT2 (PXA27x) */
-#define GPIO110_MMCCS0		110	/* MMC Chip Select 0 (PXA27x) */
-#define GPIO111_MMCDAT3		111	/* MMC DAT3 (PXA27x) */
-#define GPIO111_MMCCS1		111	/* MMC Chip Select 1 (PXA27x) */
-#define GPIO112_MMCCMD		112	/* MMC CMD (PXA27x) */
-#define GPIO113_I2S_SYSCLK	113	/* I2S System Clock (PXA27x) */
-#define GPIO113_AC97_RESET_N	113	/* AC97 NRESET on (PXA27x) */
-#define GPIO114_CIF_DD_1	114	/* Camera data pin 1 */
-#define GPIO115_CIF_DD_3	115	/* Camera data pin 3 */
-#define GPIO116_CIF_DD_2	116	/* Camera data pin 2 */
 
-/* GPIO alternate function mode & direction */
+#define GPIO1_RST		1	
+#define GPIO6_MMCCLK		6	
+#define GPIO7_48MHz		7	
+#define GPIO8_MMCCS0		8	
+#define GPIO9_MMCCS1		9	
+#define GPIO10_RTCCLK		10	
+#define GPIO11_3_6MHz		11	
+#define GPIO12_32KHz		12	
+#define GPIO12_CIF_DD_7		12	
+#define GPIO13_MBGNT		13	
+#define GPIO14_MBREQ		14	
+#define GPIO15_nCS_1		15	
+#define GPIO16_PWM0		16	
+#define GPIO17_PWM1		17	
+#define GPIO17_CIF_DD_6		17	
+#define GPIO18_RDY		18	
+#define GPIO19_DREQ1		19	
+#define GPIO20_DREQ0		20	
+#define GPIO23_SCLK		23	
+#define GPIO23_CIF_MCLK		23	
+#define GPIO24_SFRM		24	
+#define GPIO24_CIF_FV		24	
+#define GPIO25_STXD		25	
+#define GPIO25_CIF_LV		25	
+#define GPIO26_SRXD		26	
+#define GPIO26_CIF_PCLK		26	
+#define GPIO27_SEXTCLK		27	
+#define GPIO27_CIF_DD_0		27	
+#define GPIO28_BITCLK		28	
+#define GPIO29_SDATA_IN		29	
+#define GPIO30_SDATA_OUT	30	
+#define GPIO31_SYNC		31	
+#define GPIO32_SDATA_IN1	32	
+#define GPIO32_SYSCLK		32	
+#define GPIO32_MMCCLK		32	
+#define GPIO33_nCS_5		33	
+#define GPIO34_FFRXD		34	
+#define GPIO34_MMCCS0		34	
+#define GPIO35_FFCTS		35	
+#define GPIO36_FFDCD		36	
+#define GPIO37_FFDSR		37	
+#define GPIO38_FFRI		38	
+#define GPIO39_MMCCS1		39	
+#define GPIO39_FFTXD		39	
+#define GPIO40_FFDTR		40	
+#define GPIO41_FFRTS		41	
+#define GPIO42_BTRXD		42	
+#define GPIO42_HWRXD		42	
+#define GPIO42_CIF_MCLK		42	
+#define GPIO43_BTTXD		43	
+#define GPIO43_HWTXD		43	
+#define GPIO43_CIF_FV		43	
+#define GPIO44_BTCTS		44	
+#define GPIO44_HWCTS		44	
+#define GPIO44_CIF_LV		44	
+#define GPIO45_BTRTS		45	
+#define GPIO45_HWRTS		45	
+#define GPIO45_AC97_SYSCLK	45	
+#define GPIO45_CIF_PCLK		45	
+#define GPIO46_ICPRXD		46	
+#define GPIO46_STRXD		46	
+#define GPIO47_ICPTXD		47	
+#define GPIO47_STTXD		47	
+#define GPIO47_CIF_DD_0		47	
+#define GPIO48_nPOE		48	
+#define GPIO48_CIF_DD_5		48	
+#define GPIO49_nPWE		49	
+#define GPIO50_nPIOR		50	
+#define GPIO50_CIF_DD_3		50	
+#define GPIO51_nPIOW		51	
+#define GPIO51_CIF_DD_2		51	
+#define GPIO52_nPCE_1		52	
+#define GPIO52_CIF_DD_4		52	
+#define GPIO53_nPCE_2		53	
+#define GPIO53_MMCCLK		53	
+#define GPIO53_CIF_MCLK		53	
+#define GPIO54_MMCCLK		54	
+#define GPIO54_pSKTSEL		54	
+#define GPIO54_nPCE_2		54	
+#define GPIO54_CIF_PCLK		54	
+#define GPIO55_nPREG		55	
+#define GPIO55_CIF_DD_1		55	
+#define GPIO56_nPWAIT		56	
+#define GPIO57_nIOIS16		57	
+#define GPIO58_LDD_0		58	
+#define GPIO59_LDD_1		59	
+#define GPIO60_LDD_2		60	
+#define GPIO61_LDD_3		61	
+#define GPIO62_LDD_4		62	
+#define GPIO63_LDD_5		63	
+#define GPIO64_LDD_6		64	
+#define GPIO65_LDD_7		65	
+#define GPIO66_LDD_8		66	
+#define GPIO66_MBREQ		66	
+#define GPIO67_LDD_9		67	
+#define GPIO67_MMCCS0		67	
+#define GPIO68_LDD_10		68	
+#define GPIO68_MMCCS1		68	
+#define GPIO69_LDD_11		69	
+#define GPIO69_MMCCLK		69	
+#define GPIO70_LDD_12		70	
+#define GPIO70_RTCCLK		70	
+#define GPIO71_LDD_13		71	
+#define GPIO71_3_6MHz		71	
+#define GPIO72_LDD_14		72	
+#define GPIO72_32kHz		72	
+#define GPIO73_LDD_15		73	
+#define GPIO73_MBGNT		73	
+#define GPIO74_LCD_FCLK		74	
+#define GPIO75_LCD_LCLK		75	
+#define GPIO76_LCD_PCLK		76	
+#define GPIO77_LCD_ACBIAS	77	
+#define GPIO78_nCS_2		78	
+#define GPIO79_nCS_3		79	
+#define GPIO80_nCS_4		80	
+#define GPIO81_NSCLK		81	
+#define GPIO81_CIF_DD_0		81	
+#define GPIO82_NSFRM		82	
+#define GPIO82_CIF_DD_5		82	
+#define GPIO83_NSTXD		83	
+#define GPIO83_CIF_DD_4		83	
+#define GPIO84_NSRXD		84	
+#define GPIO84_CIF_FV		84	
+#define GPIO85_nPCE_1		85	
+#define GPIO85_CIF_LV		85	
+#define GPIO90_CIF_DD_4		90	
+#define GPIO91_CIF_DD_5		91	
+#define GPIO92_MMCDAT0		92	
+#define GPIO93_CIF_DD_6		93	
+#define GPIO94_CIF_DD_5		94	
+#define GPIO95_CIF_DD_4		95	
+#define GPIO96_FFRXD		96	
+#define GPIO98_FFRTS		98	
+#define GPIO98_CIF_DD_0		98	
+#define GPIO99_FFTXD		99	
+#define GPIO100_FFCTS		100	
+#define GPIO102_nPCE_1		102	
+#define GPIO103_CIF_DD_3	103	
+#define GPIO104_CIF_DD_2	104	
+#define GPIO105_CIF_DD_1	105	
+#define GPIO106_CIF_DD_9	106	
+#define GPIO107_CIF_DD_8	107	
+#define GPIO108_CIF_DD_7	108	
+#define GPIO109_MMCDAT1		109	
+#define GPIO110_MMCDAT2		110	
+#define GPIO110_MMCCS0		110	
+#define GPIO111_MMCDAT3		111	
+#define GPIO111_MMCCS1		111	
+#define GPIO112_MMCCMD		112	
+#define GPIO113_I2S_SYSCLK	113	
+#define GPIO113_AC97_RESET_N	113	
+#define GPIO114_CIF_DD_1	114	
+#define GPIO115_CIF_DD_3	115	
+#define GPIO116_CIF_DD_2	116	
+
+
 
 #define GPIO_IN			0x000
 #define GPIO_OUT		0x080
@@ -367,9 +367,7 @@
 #define GPIO117_I2CSCL_MD	(117 | GPIO_ALT_FN_1_IN)
 #define GPIO118_I2CSDA_MD	(118 | GPIO_ALT_FN_1_IN)
 
-/*
- * Handy routine to set GPIO alternate functions
- */
+
 extern int pxa_gpio_mode( int gpio_mode );
 
-#endif /* __ASM_ARCH_PXA2XX_GPIO_H */
+#endif 

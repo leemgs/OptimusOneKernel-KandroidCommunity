@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-voiceblue.c
- *
- * Modified from board-generic.c
- *
- * Copyright (C) 2004 2N Telekomunikace, Ladislav Michl <michl@2n.cz>
- *
- * Code for OMAP5910 based VoiceBlue board (VoIP to GSM gateway).
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/delay.h>
 #include <linux/platform_device.h>
@@ -152,7 +140,7 @@ static void __init voiceblue_init_irq(void)
 
 static void __init voiceblue_init(void)
 {
-	/* mux pins for uarts */
+	
 	omap_cfg_reg(UART1_TX);
 	omap_cfg_reg(UART1_RTS);
 	omap_cfg_reg(UART2_TX);
@@ -160,20 +148,20 @@ static void __init voiceblue_init(void)
 	omap_cfg_reg(UART3_TX);
 	omap_cfg_reg(UART3_RX);
 
-	/* Watchdog */
+	
 	gpio_request(0, "Watchdog");
-	/* smc91x reset */
+	
 	gpio_request(7, "SMC91x reset");
 	gpio_direction_output(7, 1);
-	udelay(2);	/* wait at least 100ns */
+	udelay(2);	
 	gpio_set_value(7, 0);
-	mdelay(50);	/* 50ms until PHY ready */
-	/* smc91x interrupt pin */
+	mdelay(50);	
+	
 	gpio_request(8, "SMC91x irq");
-	/* 16C554 reset*/
+	
 	gpio_request(6, "16C554 reset");
 	gpio_direction_output(6, 0);
-	/* 16C554 interrupt pins */
+	
 	gpio_request(12, "16C554 irq");
 	gpio_request(13, "16C554 irq");
 	gpio_request(14, "16C554 irq");
@@ -190,10 +178,9 @@ static void __init voiceblue_init(void)
 	omap_usb_init(&voiceblue_usb_config);
 	omap_register_i2c_bus(1, 100, NULL, 0);
 
-	/* There is a good chance board is going up, so enable power LED
-	 * (it is connected through invertor) */
+	
 	omap_writeb(0x00, OMAP_LPG1_LCR);
-	omap_writeb(0x00, OMAP_LPG1_PMR);	/* Disable clock */
+	omap_writeb(0x00, OMAP_LPG1_PMR);	
 }
 
 static void __init voiceblue_map_io(void)
@@ -212,9 +199,9 @@ static int panic_event(struct notifier_block *this, unsigned long event,
 	if (test_and_set_bit(MACHINE_PANICED, &machine_state))
 		return NOTIFY_DONE;
 
-	/* Flash power LED */
+	
 	omap_writeb(0x78, OMAP_LPG1_LCR);
-	omap_writeb(0x01, OMAP_LPG1_PMR);	/* Enable clock */
+	omap_writeb(0x01, OMAP_LPG1_PMR);	
 
 	return NOTIFY_DONE;
 }
@@ -225,7 +212,7 @@ static struct notifier_block panic_block = {
 
 static int __init voiceblue_setup(void)
 {
-	/* Setup panic notifier */
+	
 	atomic_notifier_chain_register(&panic_notifier_list, &panic_block);
 
 	return 0;
@@ -271,7 +258,7 @@ EXPORT_SYMBOL(voiceblue_wdt_disable);
 EXPORT_SYMBOL(voiceblue_wdt_ping);
 
 MACHINE_START(VOICEBLUE, "VoiceBlue OMAP5910")
-	/* Maintainer: Ladislav Michl <michl@2n.cz> */
+	
 	.phys_io	= 0xfff00000,
 	.io_pg_offst	= ((0xfef00000) >> 18) & 0xfffc,
 	.boot_params	= 0x10000100,

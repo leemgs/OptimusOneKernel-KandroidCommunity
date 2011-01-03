@@ -1,24 +1,4 @@
-/*
- * Copyright (C) 2006-2007 PA Semi, Inc
- *
- * Author: Egor Martovetsky <egor@pasemi.com>
- * Maintained by: Olof Johansson <olof@lixom.net>
- *
- * Driver for the PWRficient onchip NAND flash interface
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 #undef DEBUG
 
@@ -79,7 +59,7 @@ static void pasemi_hwcontrol(struct mtd_info *mtd, int cmd,
 	else
 		out_8(chip->IO_ADDR_W + (1 << ALE_PIN_CTL), cmd);
 
-	/* Push out posted writes */
+	
 	eieio();
 	inl(lpcctl);
 }
@@ -103,13 +83,13 @@ static int __devinit pasemi_nand_probe(struct of_device *ofdev,
 	if (err)
 		return -EINVAL;
 
-	/* We only support one device at the moment */
+	
 	if (pasemi_nand_mtd)
 		return -ENODEV;
 
 	pr_debug("pasemi_nand at %llx-%llx\n", res.start, res.end);
 
-	/* Allocate memory for MTD device structure and private data */
+	
 	pasemi_nand_mtd = kzalloc(sizeof(struct mtd_info) +
 				  sizeof(struct nand_chip), GFP_KERNEL);
 	if (!pasemi_nand_mtd) {
@@ -119,10 +99,10 @@ static int __devinit pasemi_nand_probe(struct of_device *ofdev,
 		goto out;
 	}
 
-	/* Get pointer to private data */
+	
 	chip = (struct nand_chip *)&pasemi_nand_mtd[1];
 
-	/* Link the private data with the MTD structure */
+	
 	pasemi_nand_mtd->priv = chip;
 	pasemi_nand_mtd->owner = THIS_MODULE;
 
@@ -155,10 +135,10 @@ static int __devinit pasemi_nand_probe(struct of_device *ofdev,
 	chip->chip_delay = 0;
 	chip->ecc.mode = NAND_ECC_SOFT;
 
-	/* Enable the following for a flash based bad block table */
+	
 	chip->options = NAND_USE_FLASH_BBT | NAND_NO_AUTOINCR;
 
-	/* Scan to find existance of the device */
+	
 	if (nand_scan(pasemi_nand_mtd, 1)) {
 		err = -ENXIO;
 		goto out_lpc;
@@ -194,14 +174,14 @@ static int __devexit pasemi_nand_remove(struct of_device *ofdev)
 
 	chip = pasemi_nand_mtd->priv;
 
-	/* Release resources, unregister device */
+	
 	nand_release(pasemi_nand_mtd);
 
 	release_region(lpcctl, 4);
 
 	iounmap(chip->IO_ADDR_R);
 
-	/* Free the MTD device structure */
+	
 	kfree(pasemi_nand_mtd);
 
 	pasemi_nand_mtd = NULL;

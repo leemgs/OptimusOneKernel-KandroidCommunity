@@ -1,24 +1,4 @@
-/* linux/arch/arm/mach-s3c2443/clock.c
- *
- * Copyright (c) 2007 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C2443 Clock control support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -44,14 +24,7 @@
 #include <plat/clock.h>
 #include <plat/cpu.h>
 
-/* We currently have to assume that the system is running
- * from the XTPll input, and that all ***REFCLKs are being
- * fed from it, as we cannot read the state of OM[4] from
- * software.
- *
- * It would be possible for each board initialisation to
- * set the correct muxing at initialisation
-*/
+
 
 static int s3c2443_clkcon_enable_h(struct clk *clk, int enable)
 {
@@ -114,7 +87,7 @@ static unsigned long s3c2443_roundrate_clksrc(struct clk *clk,
 	if (rate > parent_rate)
 		return parent_rate;
 
-	/* note, we remove the +/- 1 calculations as they cancel out */
+	
 
 	div = (rate / parent_rate);
 
@@ -144,7 +117,7 @@ static unsigned long s3c2443_roundrate_clksrc256(struct clk *clk,
 	return s3c2443_roundrate_clksrc(clk, rate, 256);
 }
 
-/* clock selections */
+
 
 static struct clk clk_mpllref = {
 	.name		= "mpllref",
@@ -196,7 +169,7 @@ static unsigned long s3c2443_getrate_mdivclk(struct clk *clk)
 	unsigned long div = __raw_readl(S3C2443_CLKDIV0);
 
 	div  &= S3C2443_CLKDIV0_EXTDIV_MASK;
-	div >>= (S3C2443_CLKDIV0_EXTDIV_SHIFT-1);	/* x2 */
+	div >>= (S3C2443_CLKDIV0_EXTDIV_SHIFT-1);	
 
 	return parent_rate / (div + 1);
 }
@@ -235,11 +208,7 @@ static struct clk clk_msysclk = {
 	.set_parent	= s3c2443_setparent_msysclk,
 };
 
-/* armdiv
- *
- * this clock is sourced from msysclk and can have a number of
- * divider values applied to it to then be fed into armclk.
-*/
+
 
 static struct clk clk_armdiv = {
 	.name		= "armdiv",
@@ -247,11 +216,7 @@ static struct clk clk_armdiv = {
 	.parent		= &clk_msysclk,
 };
 
-/* armclk
- *
- * this is the clock fed into the ARM core itself, either from
- * armdiv or from hclk.
- */
+
 
 static int s3c2443_setparent_armclk(struct clk *clk, struct clk *parent)
 {
@@ -276,10 +241,7 @@ static struct clk clk_arm = {
 	.set_parent	= s3c2443_setparent_armclk,
 };
 
-/* esysclk
- *
- * this is sourced from either the EPLL or the EPLLref clock
-*/
+
 
 static int s3c2443_setparent_esysclk(struct clk *clk, struct clk *parent)
 {
@@ -305,10 +267,7 @@ static struct clk clk_esysclk = {
 	.set_parent	= s3c2443_setparent_esysclk,
 };
 
-/* uartclk
- *
- * UART baud-rate clock sourced from esysclk via a divisor
-*/
+
 
 static unsigned long s3c2443_getrate_uart(struct clk *clk)
 {
@@ -346,10 +305,7 @@ static struct clk clk_uart = {
 	.round_rate	= s3c2443_roundrate_clksrc16,
 };
 
-/* hsspi
- *
- * high-speed spi clock, sourced from esysclk
-*/
+
 
 static unsigned long s3c2443_getrate_hsspi(struct clk *clk)
 {
@@ -389,10 +345,7 @@ static struct clk clk_hsspi = {
 	.round_rate	= s3c2443_roundrate_clksrc4,
 };
 
-/* usbhost
- *
- * usb host bus-clock, usually 48MHz to provide USB bus clock timing
-*/
+
 
 static unsigned long s3c2443_getrate_usbhost(struct clk *clk)
 {
@@ -431,12 +384,7 @@ static struct clk clk_usb_bus_host = {
 	.round_rate	= s3c2443_roundrate_clksrc4,
 };
 
-/* clk_hsmcc_div
- *
- * this clock is sourced from epll, and is fed through a divider,
- * to a mux controlled by sclkcon where either it or a extclk can
- * be fed to the hsmmc block
-*/
+
 
 static unsigned long s3c2443_getrate_hsmmc_div(struct clk *clk)
 {
@@ -508,10 +456,7 @@ static struct clk clk_hsmmc = {
 	.set_parent	= s3c2443_setparent_hsmmc,
 };
 
-/* i2s_eplldiv
- *
- * this clock is the output from the i2s divisor of esysclk
-*/
+
 
 static unsigned long s3c2443_getrate_i2s_eplldiv(struct clk *clk)
 {
@@ -548,10 +493,7 @@ static struct clk clk_i2s_eplldiv = {
 	.round_rate	= s3c2443_roundrate_clksrc16,
 };
 
-/* i2s-ref
- *
- * i2s bus reference clock, selectable from external, esysclk or epllref
-*/
+
 
 static int s3c2443_setparent_i2s(struct clk *clk, struct clk *parent)
 {
@@ -581,10 +523,7 @@ static struct clk clk_i2s = {
 	.set_parent	= s3c2443_setparent_i2s,
 };
 
-/* cam-if
- *
- * camera interface bus-clock, divided down from esysclk
-*/
+
 
 static unsigned long s3c2443_getrate_cam(struct clk *clk)
 {
@@ -613,7 +552,7 @@ static int s3c2443_setrate_cam(struct clk *clk, unsigned long rate)
 }
 
 static struct clk clk_cam = {
-	.name		= "camif-upll",		/* same as 2440 name */
+	.name		= "camif-upll",		
 	.id		= -1,
 	.parent		= &clk_esysclk,
 	.ctrlbit	= S3C2443_SCLKCON_CAMCLK,
@@ -623,10 +562,7 @@ static struct clk clk_cam = {
 	.round_rate	= s3c2443_roundrate_clksrc16,
 };
 
-/* display-if
- *
- * display interface clock, divided from esysclk
-*/
+
 
 static unsigned long s3c2443_getrate_display(struct clk *clk)
 {
@@ -665,10 +601,7 @@ static struct clk clk_display = {
 	.round_rate	= s3c2443_roundrate_clksrc256,
 };
 
-/* prediv
- *
- * this divides the msysclk down to pass to h/p/etc.
- */
+
 
 static unsigned long s3c2443_prediv_getrate(struct clk *clk)
 {
@@ -688,7 +621,7 @@ static struct clk clk_prediv = {
 	.get_rate	= s3c2443_prediv_getrate,
 };
 
-/* standard clock definitions */
+
 
 static struct clk init_clocks_disable[] = {
 	{
@@ -866,12 +799,9 @@ static struct clk init_clocks[] = {
 	}
 };
 
-/* clocks to add where we need to check their parentage */
 
-/* s3c2443_clk_initparents
- *
- * Initialise the parents for the clocks that we get at start-time
-*/
+
+
 
 static int __init clk_init_set_parent(struct clk *clk, struct clk *parent)
 {
@@ -919,14 +849,14 @@ static void __init s3c2443_clk_initparents(void)
 
 	clk_init_set_parent(&clk_i2s, &clk_epllref);
 
-	/* esysclk source */
+	
 
 	parent = (clksrc & S3C2443_CLKSRC_ESYSCLK_EPLL) ?
 		&clk_epll : &clk_epllref;
 
 	clk_init_set_parent(&clk_esysclk, parent);
 
-	/* msysclk source */
+	
 
 	if (clksrc & S3C2443_CLKSRC_MSYSCLK_MPLL) {
 		parent = &clk_mpll;
@@ -937,7 +867,7 @@ static void __init s3c2443_clk_initparents(void)
 
 	clk_init_set_parent(&clk_msysclk, parent);
 
-	/* arm */
+	
 
 	if (__raw_readl(S3C2443_CLKDIV0) & S3C2443_CLKDIV0_DVS)
 		parent = &clk_h;
@@ -947,7 +877,7 @@ static void __init s3c2443_clk_initparents(void)
 	clk_init_set_parent(&clk_arm, parent);
 }
 
-/* armdiv divisor table */
+
 
 static unsigned int armdiv[16] = {
 	[S3C2443_CLKDIV0_ARMDIV_1 >> S3C2443_CLKDIV0_ARMDIV_SHIFT]	= 1,
@@ -974,7 +904,7 @@ static inline unsigned long s3c2443_get_hdiv(unsigned long clkcon0)
 	return clkcon0 + 1;
 }
 
-/* clocks to add straight away */
+
 
 static struct clk *clks[] __initdata = {
 	&clk_ext,
@@ -1038,7 +968,7 @@ void __init s3c2443_init_clocks(int xtal)
 	int ret;
 	int ptr;
 
-	/* s3c2443 parents h and p clocks from prediv */
+	
 	clk_h.parent = &clk_prediv;
 	clk_p.parent = &clk_prediv;
 
@@ -1060,7 +990,7 @@ void __init s3c2443_init_clocks(int xtal)
 	clk_epll.parent = &clk_epllref;
 	clk_usb_bus.parent = &clk_usb_bus_host;
 
-	/* ensure usb bus clock is within correct rate of 48MHz */
+	
 
 	if (clk_get_rate(&clk_usb_bus_host) != (48 * 1000 * 1000)) {
 		printk(KERN_INFO "Warning: USB host bus not at 48MHz\n");
@@ -1072,7 +1002,7 @@ void __init s3c2443_init_clocks(int xtal)
 	       print_mhz(clk_get_rate(&clk_epll)),
 	       print_mhz(clk_get_rate(&clk_usb_bus)));
 
-	/* register clocks from clock array */
+	
 
 	clkp = init_clocks;
 	for (ptr = 0; ptr < ARRAY_SIZE(init_clocks); ptr++, clkp++) {
@@ -1083,17 +1013,9 @@ void __init s3c2443_init_clocks(int xtal)
 		}
 	}
 
-	/* We must be careful disabling the clocks we are not intending to
-	 * be using at boot time, as subsystems such as the LCD which do
-	 * their own DMA requests to the bus can cause the system to lockup
-	 * if they where in the middle of requesting bus access.
-	 *
-	 * Disabling the LCD clock if the LCD is active is very dangerous,
-	 * and therefore the bootloader should be careful to not enable
-	 * the LCD clock if it is not needed.
-	*/
+	
 
-	/* install (and disable) the clocks we do not need immediately */
+	
 
 	clkp = init_clocks_disable;
 	for (ptr = 0; ptr < ARRAY_SIZE(init_clocks_disable); ptr++, clkp++) {

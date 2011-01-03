@@ -1,38 +1,4 @@
-/*
- * net/tipc/config.c: TIPC configuration management code
- *
- * Copyright (c) 2002-2006, Ericsson AB
- * Copyright (c) 2004-2007, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "core.h"
 #include "dbg.h"
@@ -65,14 +31,14 @@ static struct manager mng = { 0};
 
 static DEFINE_SPINLOCK(config_lock);
 
-static const void *req_tlv_area;	/* request message TLV area */
-static int req_tlv_space;		/* request message TLV area size */
-static int rep_headroom;		/* reply message headroom to use */
+static const void *req_tlv_area;	
+static int req_tlv_space;		
+static int rep_headroom;		
 
 
 void tipc_cfg_link_event(u32 addr, char *name, int up)
 {
-	/* TIPC DOESN'T HANDLE LINK EVENT SUBSCRIPTIONS AT THE MOMENT */
+	
 }
 
 
@@ -134,7 +100,7 @@ struct sk_buff *tipc_cfg_reply_string_type(u16 tlv_type, char *string)
 
 #if 0
 
-/* Now obsolete code for handling commands not yet implemented the new way */
+
 
 int tipc_cfg_cmd(const struct tipc_cmd_msg * msg,
 		 char *data,
@@ -294,15 +260,7 @@ static struct sk_buff *cfg_set_own_addr(void)
 		return tipc_cfg_reply_error_string(TIPC_CFG_NOT_SUPPORTED
 						   " (cannot change node address once assigned)");
 
-	/*
-	 * Must release all spinlocks before calling start_net() because
-	 * Linux version of TIPC calls eth_media_start() which calls
-	 * register_netdevice_notifier() which may block!
-	 *
-	 * Temporarily releasing the lock should be harmless for non-Linux TIPC,
-	 * but Linux version of eth_media_start() should really be reworked
-	 * so that it can be called with spinlocks held.
-	 */
+	
 
 	spin_unlock_bh(&config_lock);
 	tipc_core_start_net(addr);
@@ -461,16 +419,16 @@ struct sk_buff *tipc_cfg_do_cmd(u32 orig_node, u16 cmd, const void *request_area
 
 	spin_lock_bh(&config_lock);
 
-	/* Save request and reply details in a well-known location */
+	
 
 	req_tlv_area = request_area;
 	req_tlv_space = request_space;
 	rep_headroom = reply_headroom;
 
-	/* Check command authorization */
+	
 
 	if (likely(orig_node == tipc_own_addr)) {
-		/* command is permitted */
+		
 	} else if (cmd >= 0x8000) {
 		rep_tlv_buf = tipc_cfg_reply_error_string(TIPC_CFG_NOT_SUPPORTED
 							  " (cannot be done remotely)");
@@ -489,7 +447,7 @@ struct sk_buff *tipc_cfg_do_cmd(u32 orig_node, u16 cmd, const void *request_area
 		}
 	}
 
-	/* Call appropriate processing routine */
+	
 
 	switch (cmd) {
 	case TIPC_CMD_NOOP:
@@ -611,7 +569,7 @@ struct sk_buff *tipc_cfg_do_cmd(u32 orig_node, u16 cmd, const void *request_area
 		break;
 	}
 
-	/* Return reply buffer */
+	
 exit:
 	spin_unlock_bh(&config_lock);
 	return rep_tlv_buf;
@@ -630,7 +588,7 @@ static void cfg_named_msg_event(void *userdata,
 	struct tipc_cfg_msg_hdr *rep_hdr;
 	struct sk_buff *rep_buf;
 
-	/* Validate configuration message header (ignore invalid message) */
+	
 
 	req_hdr = (struct tipc_cfg_msg_hdr *)msg;
 	if ((size < sizeof(*req_hdr)) ||
@@ -640,7 +598,7 @@ static void cfg_named_msg_event(void *userdata,
 		return;
 	}
 
-	/* Generate reply for request (if can't, return request) */
+	
 
 	rep_buf = tipc_cfg_do_cmd(orig->node,
 				  ntohs(req_hdr->tcm_type),
@@ -658,7 +616,7 @@ static void cfg_named_msg_event(void *userdata,
 		*buf = NULL;
 	}
 
-	/* NEED TO ADD CODE TO HANDLE FAILED SEND (SUCH AS CONGESTION) */
+	
 	tipc_send_buf2port(port_ref, orig, rep_buf, rep_buf->len);
 }
 

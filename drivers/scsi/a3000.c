@@ -50,12 +50,7 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
     unsigned short cntr = CNTR_PDMD | CNTR_INTEN;
     unsigned long addr = virt_to_bus(cmd->SCp.ptr);
 
-    /*
-     * if the physical address has the wrong alignment, or if
-     * physical address is bad, or if it is a write and at the
-     * end of a physical memory chunk, then allocate a bounce
-     * buffer
-     */
+    
     if (addr & A3000_XFER_MASK)
     {
 	HDATA(a3000_host)->dma_bounce_len = (cmd->SCp.this_residual + 511)
@@ -63,14 +58,14 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 	HDATA(a3000_host)->dma_bounce_buffer =
 	    kmalloc (HDATA(a3000_host)->dma_bounce_len, GFP_KERNEL);
 	
-	/* can't allocate memory; use PIO */
+	
 	if (!HDATA(a3000_host)->dma_bounce_buffer) {
 	    HDATA(a3000_host)->dma_bounce_len = 0;
 	    return 1;
 	}
 
 	if (!dir_in) {
-	    /* copy to bounce buffer for a write */
+	    
 	    memcpy (HDATA(a3000_host)->dma_bounce_buffer,
 		cmd->SCp.ptr, cmd->SCp.this_residual);
 	}
@@ -78,70 +73,68 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 	addr = virt_to_bus(HDATA(a3000_host)->dma_bounce_buffer);
     }
 
-    /* setup dma direction */
+    
     if (!dir_in)
 	cntr |= CNTR_DDIR;
 
-    /* remember direction */
+    
     HDATA(a3000_host)->dma_dir = dir_in;
 
     DMA(a3000_host)->CNTR = cntr;
 
-    /* setup DMA *physical* address */
+    
     DMA(a3000_host)->ACR = addr;
 
     if (dir_in)
-  	/* invalidate any cache */
+  	
 	cache_clear (addr, cmd->SCp.this_residual);
     else
-	/* push any dirty cache */
+	
 	cache_push (addr, cmd->SCp.this_residual);
 
-    /* start DMA */
-    mb();			/* make sure setup is completed */
+    
+    mb();			
     DMA(a3000_host)->ST_DMA = 1;
-    mb();			/* make sure DMA has started before next IO */
+    mb();			
 
-    /* return success */
+    
     return 0;
 }
 
 static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
 		     int status)
 {
-    /* disable SCSI interrupts */
+    
     unsigned short cntr = CNTR_PDMD;
 
     if (!HDATA(instance)->dma_dir)
 	cntr |= CNTR_DDIR;
 
     DMA(instance)->CNTR = cntr;
-    mb();			/* make sure CNTR is updated before next IO */
+    mb();			
 
-    /* flush if we were reading */
+    
     if (HDATA(instance)->dma_dir) {
 	DMA(instance)->FLUSH = 1;
-	mb();			/* don't allow prefetch */
+	mb();			
 	while (!(DMA(instance)->ISTR & ISTR_FE_FLG))
 	    barrier();
-	mb();			/* no IO until FLUSH is done */
+	mb();			
     }
 
-    /* clear a possible interrupt */
-    /* I think that this CINT is only necessary if you are
-     * using the terminal count features.   HM 7 Mar 1994
-     */
+    
+    
     DMA(instance)->CINT = 1;
 
-    /* stop DMA */
+    
     DMA(instance)->SP_DMA = 1;
-    mb();			/* make sure DMA is stopped before next IO */
+    mb();			
 
-    /* restore the CONTROL bits (minus the direction flag) */
+    
     DMA(instance)->CNTR = CNTR_PDMD | CNTR_INTEN;
-    mb();			/* make sure CNTR is updated before next IO */
+    mb();			
 
-    /* copy from a bounce buffer, if necessary */
+    
     if (status && HDATA(instance)->dma_bounce_buffer) {
 	if (SCpnt) {
 	    if (HDATA(instance)->dma_dir && SCpnt)
@@ -201,10 +194,9 @@ fail_register:
 
 static int a3000_bus_reset(struct scsi_cmnd *cmd)
 {
-	/* FIXME perform bus-specific reset */
 	
-	/* FIXME 2: kill this entire function, which should
-	   cause mid-layer to call wd33c93_host_reset anyway? */
+	
+	
 
 	spin_lock_irq(cmd->device->host->host_lock);
 	wd33c93_host_reset(cmd);

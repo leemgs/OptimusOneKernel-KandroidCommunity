@@ -39,7 +39,7 @@ static int dibx000_i2c_gate_ctrl(struct dibx000_i2c_master *mst, u8 tx[4],
 
 
 	if (onoff)
-		val = addr << 8;	// bit 7 = use master or not, if 0, the gate is open
+		val = addr << 8;	
 	else
 		val = 1 << 7;
 
@@ -113,13 +113,13 @@ EXPORT_SYMBOL(dibx000_get_i2c_adapter);
 
 void dibx000_reset_i2c_master(struct dibx000_i2c_master *mst)
 {
-	/* initialize the i2c-master by closing the gate */
+	
 	u8 tx[4];
 	struct i2c_msg m = {.addr = mst->i2c_addr,.buf = tx,.len = 4 };
 
 	dibx000_i2c_gate_ctrl(mst, tx, 0, 0);
 	i2c_transfer(mst->i2c_adap, &m, 1);
-	mst->selected_interface = 0xff;	// the first time force a select of the I2C
+	mst->selected_interface = 0xff;	
 	dibx000_i2c_select_interface(mst, DIBX000_I2C_INTERFACE_TUNER);
 }
 
@@ -159,7 +159,7 @@ int dibx000_init_i2c_master(struct dibx000_i2c_master *mst, u16 device_rev,
 		printk(KERN_ERR
 		       "DiBX000: could not initialize the tuner i2c_adapter\n");
 
-	/* initialize the i2c-master by closing the gate */
+	
 	dibx000_i2c_gate_ctrl(mst, tx, 0, 0);
 
 	return i2c_transfer(i2c_adap, &m, 1) == 1;

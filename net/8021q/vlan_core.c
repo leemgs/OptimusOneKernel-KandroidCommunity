@@ -4,7 +4,7 @@
 #include <linux/netpoll.h>
 #include "vlan.h"
 
-/* VLAN rx hw acceleration helper.  This acts like netif_{rx,receive_skb}(). */
+
 int __vlan_hwaccel_rx(struct sk_buff *skb, struct vlan_group *grp,
 		      u16 vlan_tci, int polling)
 {
@@ -51,9 +51,7 @@ int vlan_hwaccel_do_receive(struct sk_buff *skb)
 		stats->multicast++;
 		break;
 	case PACKET_OTHERHOST:
-		/* Our lower layer thinks this is not local, let's make sure.
-		 * This allows the VLAN to have a different MAC than the
-		 * underlying device, and still route correctly. */
+		
 		if (!compare_ether_addr(eth_hdr(skb)->h_dest,
 					dev->dev_addr))
 			skb->pkt_type = PACKET_HOST;

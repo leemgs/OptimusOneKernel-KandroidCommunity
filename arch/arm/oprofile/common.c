@@ -1,11 +1,4 @@
-/**
- * @file common.c
- *
- * @remark Copyright 2004 Oprofile Authors
- * @remark Read the file COPYING
- *
- * @author Zwane Mwaikambo
- */
+
 
 #include <linux/init.h>
 #include <linux/oprofile.h>
@@ -124,7 +117,7 @@ static void  exit_driverfs(void)
 #else
 #define init_driverfs()	do { } while (0)
 #define exit_driverfs() do { } while (0)
-#endif /* CONFIG_PM */
+#endif 
 
 int __init oprofile_arch_init(struct oprofile_operations *ops)
 {

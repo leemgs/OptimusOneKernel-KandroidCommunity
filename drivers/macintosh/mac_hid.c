@@ -1,12 +1,4 @@
-/*
- * drivers/macintosh/mac_hid.c
- *
- * HID support stuff for Macintosh computers.
- *
- * Copyright (C) 2000 Franz Sirl.
- *
- * This file will soon be removed in favor of an uinput userspace tool.
- */
+
 
 #include <linux/init.h>
 #include <linux/proc_fs.h>
@@ -19,12 +11,12 @@
 static struct input_dev *emumousebtn;
 static int emumousebtn_input_register(void);
 static int mouse_emulate_buttons;
-static int mouse_button2_keycode = KEY_RIGHTCTRL;	/* right control key */
-static int mouse_button3_keycode = KEY_RIGHTALT;	/* right option key */
+static int mouse_button2_keycode = KEY_RIGHTCTRL;	
+static int mouse_button3_keycode = KEY_RIGHTALT;	
 static int mouse_last_keycode;
 
 #if defined(CONFIG_SYSCTL)
-/* file(s) in /proc/sys/dev/mac_hid */
+
 static ctl_table mac_hid_files[] = {
 	{
 		.ctl_name	= DEV_MAC_HID_MOUSE_BUTTON_EMULATION,
@@ -53,7 +45,7 @@ static ctl_table mac_hid_files[] = {
 	{ .ctl_name = 0 }
 };
 
-/* dir in /proc/sys/dev */
+
 static ctl_table mac_hid_dir[] = {
 	{
 		.ctl_name	= DEV_MAC_HID,
@@ -65,7 +57,7 @@ static ctl_table mac_hid_dir[] = {
 	{ .ctl_name = 0 }
 };
 
-/* /proc/sys/dev itself, in case that is not there yet */
+
 static ctl_table mac_hid_root_dir[] = {
 	{
 		.ctl_name	= CTL_DEV,
@@ -79,13 +71,13 @@ static ctl_table mac_hid_root_dir[] = {
 
 static struct ctl_table_header *mac_hid_sysctl_header;
 
-#endif /* endif CONFIG_SYSCTL */
+#endif 
 
 int mac_hid_mouse_emulate_buttons(int caller, unsigned int keycode, int down)
 {
 	switch (caller) {
 	case 1:
-		/* Called from keyboard.c */
+		
 		if (mouse_emulate_buttons
 		    && (keycode == mouse_button2_keycode
 			|| keycode == mouse_button3_keycode)) {
@@ -145,7 +137,7 @@ static int __init mac_hid_init(void)
 
 #if defined(CONFIG_SYSCTL)
 	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir);
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 	return 0;
 }

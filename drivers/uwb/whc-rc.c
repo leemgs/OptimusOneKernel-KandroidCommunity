@@ -1,44 +1,4 @@
-/*
- * Wireless Host Controller: Radio Control Interface (WHCI v0.95[2.3])
- * Radio Control command/event transport to the UWB stack
- *
- * Copyright (C) 2005-2006 Intel Corporation
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * Initialize and hook up the Radio Control interface.
- *
- * For each device probed, creates an 'struct whcrc' which contains
- * just the representation of the UWB Radio Controller, and the logic
- * for reading notifications and passing them to the UWB Core.
- *
- * So we initialize all of those, register the UWB Radio Controller
- * and setup the notification/event handle to pipe the notifications
- * to the UWB management Daemon.
- *
- * Once uwb_rc_add() is called, the UWB stack takes control, resets
- * the radio and readies the device to take commands the UWB
- * API/user-space.
- *
- * Note this driver is just a transport driver; the commands are
- * formed at the UWB stack and given to this driver who will deliver
- * them to the hw and transfer the replies/notifications back to the
- * UWB stack through the UWB daemon (UWBD).
- */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -52,16 +12,10 @@
 
 #include "uwb-internal.h"
 
-/**
- * Descriptor for an instance of the UWB Radio Control Driver that
- * attaches to the URC interface of the WHCI PCI card.
- *
- * Unless there is a lock specific to the 'data members', all access
- * is protected by uwb_rc->mutex.
- */
+
 struct whcrc {
 	struct umc_dev *umc_dev;
-	struct uwb_rc *uwb_rc;		/* UWB host controller */
+	struct uwb_rc *uwb_rc;		
 
 	unsigned long area;
 	void __iomem *rc_base;
@@ -74,20 +28,7 @@ struct whcrc {
 	struct work_struct event_work;
 };
 
-/**
- * Execute an UWB RC command on WHCI/RC
- *
- * @rc:       Instance of a Radio Controller that is a whcrc
- * @cmd:      Buffer containing the RCCB and payload to execute
- * @cmd_size: Size of the command buffer.
- *
- * We copy the command into whcrc->cmd_buf (as it is pretty and
- * aligned`and physically contiguous) and then press the right keys in
- * the controller's URCCMD register to get it to read it. We might
- * have to wait for the cmd_sem to be open to us.
- *
- * NOTE: rc's mutex has to be locked
- */
+
 static int whcrc_cmd(struct uwb_rc *uwb_rc,
 	      const struct uwb_rccb *cmd, size_t cmd_size)
 {
@@ -99,12 +40,7 @@ static int whcrc_cmd(struct uwb_rc *uwb_rc,
 	if (cmd_size >= 4096)
 		return -EINVAL;
 
-	/*
-	 * If the URC is halted, then the hardware has reset itself.
-	 * Attempt to recover by restarting the device and then return
-	 * an error as it's likely that the current command isn't
-	 * valid for a newly started RC.
-	 */
+	
 	if (le_readl(whcrc->rc_base + URCSTS) & URCSTS_HALTED) {
 		dev_err(dev, "requesting reset of halted radio controller\n");
 		uwb_rc_reset_all(uwb_rc);
@@ -138,20 +74,7 @@ static int whcrc_reset(struct uwb_rc *rc)
 	return umc_controller_reset(whcrc->umc_dev);
 }
 
-/**
- * Reset event reception mechanism and tell hw we are ready to get more
- *
- * We have read all the events in the event buffer, so we are ready to
- * reset it to the beginning.
- *
- * This is only called during initialization or after an event buffer
- * has been retired.  This means we can be sure that event processing
- * is disabled and it's safe to update the URCEVTADDR register.
- *
- * There's no need to wait for the event processing to start as the
- * URC will not clear URCCMD_ACTIVE until (internal) event buffer
- * space is available.
- */
+
 static
 void whcrc_enable_events(struct whcrc *whcrc)
 {
@@ -178,12 +101,7 @@ static void whcrc_event_work(struct work_struct *work)
 	whcrc_enable_events(whcrc);
 }
 
-/**
- * Catch interrupts?
- *
- * We ack inmediately (and expect the hw to do the right thing and
- * raise another IRQ if things have changed :)
- */
+
 static
 irqreturn_t whcrc_irq_cb(int irq, void *_whcrc)
 {
@@ -198,7 +116,7 @@ irqreturn_t whcrc_irq_cb(int irq, void *_whcrc)
 
 	if (urcsts & URCSTS_HSE) {
 		dev_err(dev, "host system error -- hardware halted\n");
-		/* FIXME: do something sensible here */
+		
 		goto out;
 	}
 	if (urcsts & URCSTS_ER)
@@ -210,9 +128,7 @@ out:
 }
 
 
-/**
- * Initialize a UMC RC interface: map regions, get (shared) IRQ
- */
+
 static
 int whcrc_setup_rc_umc(struct whcrc *whcrc)
 {
@@ -274,9 +190,7 @@ error_request_region:
 }
 
 
-/**
- * Release RC's UMC resources
- */
+
 static
 void whcrc_release_rc_umc(struct whcrc *whcrc)
 {
@@ -292,25 +206,19 @@ void whcrc_release_rc_umc(struct whcrc *whcrc)
 }
 
 
-/**
- * whcrc_start_rc - start a WHCI radio controller
- * @whcrc: the radio controller to start
- *
- * Reset the UMC device, start the radio controller, enable events and
- * finally enable interrupts.
- */
+
 static int whcrc_start_rc(struct uwb_rc *rc)
 {
 	struct whcrc *whcrc = rc->priv;
 	struct device *dev = &whcrc->umc_dev->dev;
 
-	/* Reset the thing */
+	
 	le_writel(URCCMD_RESET, whcrc->rc_base + URCCMD);
 	if (whci_wait_for(dev, whcrc->rc_base + URCCMD, URCCMD_RESET, 0,
 			  5000, "hardware reset") < 0)
 		return -EBUSY;
 
-	/* Set the event buffer, start the controller (enable IRQs later) */
+	
 	le_writel(0, whcrc->rc_base + URCINTR);
 	le_writel(URCCMD_RS, whcrc->rc_base + URCCMD);
 	if (whci_wait_for(dev, whcrc->rc_base + URCSTS, URCSTS_HALTED, 0,
@@ -322,13 +230,7 @@ static int whcrc_start_rc(struct uwb_rc *rc)
 }
 
 
-/**
- * whcrc_stop_rc - stop a WHCI radio controller
- * @whcrc: the radio controller to stop
- *
- * Disable interrupts and cancel any pending event processing work
- * before clearing the Run/Stop bit.
- */
+
 static
 void whcrc_stop_rc(struct uwb_rc *rc)
 {
@@ -350,14 +252,7 @@ static void whcrc_init(struct whcrc *whcrc)
 	INIT_WORK(&whcrc->event_work, whcrc_event_work);
 }
 
-/**
- * Initialize the radio controller.
- *
- * NOTE: we setup whcrc->uwb_rc before calling uwb_rc_add(); in the
- *       IRQ handler we use that to determine if the hw is ready to
- *       handle events. Looks like a race condition, but it really is
- *       not.
- */
+
 static
 int whcrc_probe(struct umc_dev *umc_dev)
 {
@@ -409,15 +304,7 @@ error_rc_alloc:
 	return result;
 }
 
-/**
- * Clean up the radio control resources
- *
- * When we up the command semaphore, everybody possibly held trying to
- * execute a command should be granted entry and then they'll see the
- * host is quiescing and up it (so it will chain to the next waiter).
- * This should not happen (in any case), as we can only remove when
- * there are no handles open...
- */
+
 static void whcrc_remove(struct umc_dev *umc_dev)
 {
 	struct whcrc *whcrc = umc_get_drvdata(umc_dev);
@@ -447,10 +334,10 @@ static int whcrc_post_reset(struct umc_dev *umc)
 	return uwb_rc_post_reset(uwb_rc);
 }
 
-/* PCI device ID's that we handle [so it gets loaded] */
+
 static struct pci_device_id whcrc_id_table[] = {
 	{ PCI_DEVICE_CLASS(PCI_CLASS_WIRELESS_WHCI, ~0) },
-	{ /* empty last entry */ }
+	{  }
 };
 MODULE_DEVICE_TABLE(pci, whcrc_id_table);
 

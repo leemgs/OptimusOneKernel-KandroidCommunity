@@ -1,8 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/leds-simpad.c
- *
- * Author: Juergen Messerer <juergen.messerer@siemens.ch>
- */
+
 #include <linux/init.h>
 
 #include <mach/hardware.h>

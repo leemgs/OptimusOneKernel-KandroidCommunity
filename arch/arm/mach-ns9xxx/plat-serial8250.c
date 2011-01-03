@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/plat-serial8250.c
- *
- * Copyright (C) 2008 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #include <linux/platform_device.h>
 #include <linux/serial_8250.h>
 

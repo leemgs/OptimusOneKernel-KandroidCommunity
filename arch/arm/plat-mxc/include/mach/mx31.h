@@ -1,7 +1,5 @@
-/*
- * IRAM
- */
-#define MX31_IRAM_BASE_ADDR		0x1FFC0000	/* internal ram */
+
+#define MX31_IRAM_BASE_ADDR		0x1FFC0000	
 #define MX31_IRAM_SIZE			SZ_16K
 
 #define MX31_OTG_BASE_ADDR	(AIPS1_BASE_ADDR + 0x00088000)

@@ -1,31 +1,6 @@
-/*
- * Force feedback support for DragonRise Inc. game controllers
- *
- * From what I have gathered, these devices are mass produced in China and are
- * distributed under several vendors. They often share the same design as
- * the original PlayStation DualShock controller.
- *
- * 0079:0006 "DragonRise Inc.   Generic   USB  Joystick  "
- *  - tested with a Tesun USB-703 game controller.
- *
- * Copyright (c) 2009 Richard Walmsley <richwalm@gmail.com>
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
+
 
 #include <linux/input.h>
 #include <linux/usb.h>
@@ -56,9 +31,7 @@ static int drff_play(struct input_dev *dev, void *data,
 		strong = strong * 0xff / 0xffff;
 		weak = weak * 0xff / 0xffff;
 
-		/* While reverse engineering this device, I found that when
-		   this value is set, it causes the strong rumble to function
-		   at a near maximum speed, so we'll bypass it. */
+		
 		if (weak == 0x0a)
 			weak = 0x0b;
 

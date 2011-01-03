@@ -12,9 +12,7 @@
 		cpunum &= 0x0F;				\
 	})
 
-/*
- * We use IRQ1 as the IPI
- */
+
 static inline void smp_cross_call(const struct cpumask *mask)
 {
 	gic_raise_softirq(mask, 1);

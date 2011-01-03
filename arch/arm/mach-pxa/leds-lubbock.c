@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/leds-lubbock.c
- *
- * Copyright (C) 2000 John Dorsey <john+@cs.cmu.edu>
- *
- * Copyright (c) 2001 Jeff Sutherland <jeffs@accelent.com>
- *
- * Original (leds-footbridge.c) by Russell King
- *
- * Major surgery on April 2004 by Nicolas Pitre for less global
- * namespace collision.  Mostly adapted the Mainstone version.
- */
+
 
 #include <linux/init.h>
 
@@ -21,12 +10,7 @@
 
 #include "leds.h"
 
-/*
- * 8 discrete leds available for general use:
- *
- * Note: bits [15-8] are used to enable/blank the 8 7 segment hex displays
- * so be sure to not monkey with them here.
- */
+
 
 #define D28			(1 << 0)
 #define D27			(1 << 1)

@@ -1,31 +1,4 @@
-/*
- * Copyright (c) 2001 Jean-Fredric Clere, Nikolas Zimmermann, Georg Acher
- *		      Mark Cave-Ayland, Carlo E Prelz, Dick Streefland
- * Copyright (c) 2002, 2003 Tuukka Toivonen
- * Copyright (c) 2008 Erik Andrén
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * P/N 861037:      Sensor HDCS1000        ASIC STV0600
- * P/N 861050-0010: Sensor HDCS1000        ASIC STV0600
- * P/N 861050-0020: Sensor Photobit PB100  ASIC STV0600-1 - QuickCam Express
- * P/N 861055:      Sensor ST VV6410       ASIC STV0610   - LEGO cam
- * P/N 861075-0040: Sensor HDCS1000        ASIC
- * P/N 961179-0700: Sensor ST VV6410       ASIC STV0602   - Dexxa WebCam USB
- * P/N 861040-0000: Sensor ST VV6410       ASIC STV0610   - QuickCam Web
- */
+
 
 #include "stv06xx_vv6410.h"
 
@@ -138,7 +111,7 @@ static int vv6410_init(struct sd *sd)
 	s32 *sensor_settings = sd->sensor_priv;
 
 	for (i = 0; i < ARRAY_SIZE(stv_bridge_init); i++) {
-		/* if NULL then len contains single value */
+		
 		if (stv_bridge_init[i].data == NULL) {
 			err = stv06xx_write_bridge(sd,
 				stv_bridge_init[i].start,
@@ -205,7 +178,7 @@ static int vv6410_start(struct sd *sd)
 		stv06xx_write_bridge(sd, STV_SCAN_RATE, 0x20);
 	}
 
-	/* Turn on LED */
+	
 	err = stv06xx_write_bridge(sd, STV_LED_CTRL, LED_ON);
 	if (err < 0)
 		return err;
@@ -223,7 +196,7 @@ static int vv6410_stop(struct sd *sd)
 {
 	int err;
 
-	/* Turn off LED */
+	
 	err = stv06xx_write_bridge(sd, STV_LED_CTRL, LED_OFF);
 	if (err < 0)
 		return err;

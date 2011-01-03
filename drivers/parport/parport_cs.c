@@ -1,38 +1,4 @@
-/*======================================================================
 
-    A driver for PCMCIA parallel port adapters
-
-    (specifically, for the Quatech SPP-100 EPP card: other cards will
-    probably require driver tweaks)
-    
-    parport_cs.c 1.29 2002/10/11 06:57:41
-
-    The contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is David A. Hinds
-    <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
-    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU General Public License version 2 (the "GPL"), in
-    which case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-    
-======================================================================*/
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -55,9 +21,9 @@
 #include <pcmcia/cisreg.h>
 #include <pcmcia/ciscode.h>
 
-/*====================================================================*/
 
-/* Module parameters */
+
+
 
 MODULE_AUTHOR("David Hinds <dahinds@users.sourceforge.net>");
 MODULE_DESCRIPTION("PCMCIA parallel port card driver");
@@ -76,7 +42,7 @@ static char *version =
 #define DEBUG(n, args...)
 #endif
 
-/*====================================================================*/
+
 
 #define FORCE_EPP_MODE	0x08
 
@@ -91,13 +57,7 @@ static void parport_detach(struct pcmcia_device *p_dev);
 static int parport_config(struct pcmcia_device *link);
 static void parport_cs_release(struct pcmcia_device *);
 
-/*======================================================================
 
-    parport_attach() creates an "instance" of the driver, allocating
-    local data structures for one device.  The device is registered
-    with Card Services.
-
-======================================================================*/
 
 static int parport_probe(struct pcmcia_device *link)
 {
@@ -105,7 +65,7 @@ static int parport_probe(struct pcmcia_device *link)
 
     DEBUG(0, "parport_attach()\n");
 
-    /* Create new parport device */
+    
     info = kzalloc(sizeof(*info), GFP_KERNEL);
     if (!info) return -ENOMEM;
     link->priv = info;
@@ -119,16 +79,9 @@ static int parport_probe(struct pcmcia_device *link)
     link->conf.IntType = INT_MEMORY_AND_IO;
 
     return parport_config(link);
-} /* parport_attach */
+} 
 
-/*======================================================================
 
-    This deletes a driver "instance".  The device is de-registered
-    with Card Services.  If it has been released, all local data
-    structures are freed.  Otherwise, the structures will be freed
-    when the device is released.
-
-======================================================================*/
 
 static void parport_detach(struct pcmcia_device *link)
 {
@@ -137,15 +90,9 @@ static void parport_detach(struct pcmcia_device *link)
     parport_cs_release(link);
 
     kfree(link->priv);
-} /* parport_detach */
+} 
 
-/*======================================================================
 
-    parport_config() is scheduled to run after a CARD_INSERTION event
-    is received, to configure the PCMCIA socket, and to make the
-    parport device available to the system.
-
-======================================================================*/
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -218,15 +165,9 @@ cs_failed:
 failed:
     parport_cs_release(link);
     return -ENODEV;
-} /* parport_config */
+} 
 
-/*======================================================================
 
-    After a card is removed, parport_cs_release() will unregister the
-    device, and release the PCMCIA configuration.  If the device is
-    still open, this will be postponed until it is closed.
-    
-======================================================================*/
 
 static void parport_cs_release(struct pcmcia_device *link)
 {
@@ -241,7 +182,7 @@ static void parport_cs_release(struct pcmcia_device *link)
 	info->ndev = 0;
 
 	pcmcia_disable_device(link);
-} /* parport_cs_release */
+} 
 
 
 static struct pcmcia_device_id parport_ids[] = {

@@ -1,25 +1,4 @@
-/*
- * Support for SATA devices on Serial Attached SCSI (SAS) controllers
- *
- * Copyright (C) 2006 IBM Corporation
- *
- * Written by: Darrick J. Wong <djwong@us.ibm.com>, IBM Corporation
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
- */
+
 
 #include <linux/scatterlist.h>
 
@@ -37,14 +16,14 @@
 
 static enum ata_completion_errors sas_to_ata_err(struct task_status_struct *ts)
 {
-	/* Cheesy attempt to translate SAS errors into ATA.  Hah! */
+	
 
-	/* transport error */
+	
 	if (ts->resp == SAS_TASK_UNDELIVERED)
 		return AC_ERR_ATA_BUS;
 
-	/* ts->resp == SAS_TASK_COMPLETE */
-	/* task delivered, what happened afterwards? */
+	
+	
 	switch (ts->stat) {
 		case SAS_DEV_NO_RESPONSE:
 			return AC_ERR_TIMEOUT;
@@ -56,12 +35,7 @@ static enum ata_completion_errors sas_to_ata_err(struct task_status_struct *ts)
 
 
 		case SAS_DATA_UNDERRUN:
-			/*
-			 * Some programs that use the taskfile interface
-			 * (smartctl in particular) can cause underrun
-			 * problems.  Ignore these errors, perhaps at our
-			 * peril.
-			 */
+			
 			return 0;
 
 		case SAS_DATA_OVERRUN:
@@ -81,8 +55,7 @@ static enum ata_completion_errors sas_to_ata_err(struct task_status_struct *ts)
 			return AC_ERR_DEV;
 
 		case SAS_PROTO_RESPONSE:
-			/* This means the ending_fis has the error
-			 * value; return 0 here to collect it */
+			
 			return 0;
 		default:
 			return 0;
@@ -117,9 +90,9 @@ static void sas_ata_task_done(struct sas_task *task)
 		if (ac) {
 			SAS_DPRINTK("%s: SAS error %x\n", __func__,
 				    stat->stat);
-			/* We saw a SAS error. Send a vague error. */
+			
 			qc->err_mask = ac;
-			dev->sata_dev.tf.feature = 0x04; /* status err */
+			dev->sata_dev.tf.feature = 0x04; 
 			dev->sata_dev.tf.command = ATA_ERR;
 		}
 	}
@@ -130,15 +103,7 @@ static void sas_ata_task_done(struct sas_task *task)
 	ata_qc_complete(qc);
 	spin_unlock_irqrestore(dev->sata_dev.ap->lock, flags);
 
-	/*
-	 * If the sas_task has an ata qc, a scsi_cmnd and the aborted
-	 * flag is set, then we must have come in via the libsas EH
-	 * functions.  When we exit this function, we need to put the
-	 * scsi_cmnd on the list of finished errors.  The ata_qc_complete
-	 * call cleans up the libata side of things but we're protected
-	 * from the scsi_cmnd going away because the scsi_cmnd is owned
-	 * by the EH, making libata's call to scsi_done a NOP.
-	 */
+	
 	spin_lock_irqsave(&task->task_state_lock, flags);
 	if (qc->scsicmd && task->task_state_flags & SAS_TASK_STATE_ABORTED)
 		scsi_eh_finish_cmd(qc->scsicmd, &sas_ha->eh_done_q);
@@ -170,7 +135,7 @@ static unsigned int sas_ata_qc_issue(struct ata_queued_cmd *qc)
 
 	if (qc->tf.command == ATA_CMD_FPDMA_WRITE ||
 	    qc->tf.command == ATA_CMD_FPDMA_READ) {
-		/* Need to zero out the tag libata assigned us */
+		
 		qc->tf.nsect = 0;
 	}
 
@@ -197,7 +162,7 @@ static unsigned int sas_ata_qc_issue(struct ata_queued_cmd *qc)
 	switch (qc->tf.protocol) {
 	case ATA_PROT_NCQ:
 		task->ata_task.use_ncq = 1;
-		/* fall through */
+		
 	case ATAPI_PROT_DMA:
 	case ATA_PROT_DMA:
 		task->ata_task.dma_xfer = 1;
@@ -212,7 +177,7 @@ static unsigned int sas_ata_qc_issue(struct ata_queued_cmd *qc)
 	else
 		res = sas_queue_up(task);
 
-	/* Examine */
+	
 	if (res) {
 		SAS_DPRINTK("lldd_execute_task returned: %d\n", res);
 
@@ -272,18 +237,13 @@ static void sas_ata_post_internal(struct ata_queued_cmd *qc)
 		qc->err_mask |= AC_ERR_OTHER;
 
 	if (qc->err_mask) {
-		/*
-		 * Find the sas_task and kill it.  By this point,
-		 * libata has decided to kill the qc, so we needn't
-		 * bother with sas_ata_task_done.  But we still
-		 * ought to abort the task.
-		 */
+		
 		struct sas_task *task = qc->lldd_task;
 		unsigned long flags;
 
 		qc->lldd_task = NULL;
 		if (task) {
-			/* Should this be a AT(API) device reset? */
+			
 			spin_lock_irqsave(&task->task_state_lock, flags);
 			task->task_state_flags |= SAS_TASK_NEED_DEV_RESET;
 			spin_unlock_irqrestore(&task->task_state_lock, flags);
@@ -358,8 +318,8 @@ static struct ata_port_operations sas_sata_ops = {
 static struct ata_port_info sata_port_info = {
 	.flags = ATA_FLAG_SATA | ATA_FLAG_NO_LEGACY | ATA_FLAG_SATA_RESET |
 		ATA_FLAG_MMIO | ATA_FLAG_PIO_DMA | ATA_FLAG_NCQ,
-	.pio_mask = 0x1f, /* PIO0-4 */
-	.mwdma_mask = 0x07, /* MWDMA0-2 */
+	.pio_mask = 0x1f, 
+	.mwdma_mask = 0x07, 
 	.udma_mask = ATA_UDMA6,
 	.port_ops = &sas_sata_ops
 };
@@ -396,14 +356,14 @@ void sas_ata_task_abort(struct sas_task *task)
 	struct ata_queued_cmd *qc = task->uldd_task;
 	struct completion *waiting;
 
-	/* Bounce SCSI-initiated commands to the SCSI EH */
+	
 	if (qc->scsicmd) {
 		blk_abort_request(qc->scsicmd->request);
 		scsi_schedule_eh(qc->scsicmd->device->host);
 		return;
 	}
 
-	/* Internal command, fake a timeout and complete. */
+	
 	qc->flags &= ~ATA_QCFLAG_ACTIVE;
 	qc->flags |= ATA_QCFLAG_FAILED;
 	qc->err_mask |= AC_ERR_TIMEOUT;
@@ -433,13 +393,7 @@ static void sas_disc_task_done(struct sas_task *task)
 
 #define SAS_DEV_TIMEOUT 10
 
-/**
- * sas_execute_task -- Basic task processing for discovery
- * @task: the task to be executed
- * @buffer: pointer to buffer to do I/O
- * @size: size of @buffer
- * @dma_dir: DMA direction.  DMA_xxx
- */
+
 static int sas_execute_task(struct sas_task *task, void *buffer, int size,
 			    enum dma_data_direction dma_dir)
 {
@@ -500,7 +454,7 @@ static int sas_execute_task(struct sas_task *task, void *buffer, int size,
 			SAS_DPRINTK("came back from abort task\n");
 			if (!(task->task_state_flags & SAS_TASK_STATE_DONE)) {
 				if (res2 == TMF_RESP_FUNC_COMPLETE)
-					continue; /* Retry the task */
+					continue; 
 				else
 					goto ex_err;
 			}
@@ -566,20 +520,20 @@ out:
 	return res;
 }
 
-/* ---------- SATA ---------- */
+
 
 static void sas_get_ata_command_set(struct domain_device *dev)
 {
 	struct dev_to_host_fis *fis =
 		(struct dev_to_host_fis *) dev->frame_rcvd;
 
-	if ((fis->sector_count == 1 && /* ATA */
+	if ((fis->sector_count == 1 && 
 	     fis->lbal         == 1 &&
 	     fis->lbam         == 0 &&
 	     fis->lbah         == 0 &&
 	     fis->device       == 0)
 	    ||
-	    (fis->sector_count == 0 && /* CE-ATA (mATA) */
+	    (fis->sector_count == 0 && 
 	     fis->lbal         == 0 &&
 	     fis->lbam         == 0xCE &&
 	     fis->lbah         == 0xAA &&
@@ -587,7 +541,7 @@ static void sas_get_ata_command_set(struct domain_device *dev)
 
 		dev->sata_dev.command_set = ATA_COMMAND_SET;
 
-	else if ((fis->interrupt_reason == 1 &&	/* ATAPI */
+	else if ((fis->interrupt_reason == 1 &&	
 		  fis->lbal             == 1 &&
 		  fis->byte_count_low   == 0x14 &&
 		  fis->byte_count_high  == 0xEB &&
@@ -595,31 +549,23 @@ static void sas_get_ata_command_set(struct domain_device *dev)
 
 		dev->sata_dev.command_set = ATAPI_COMMAND_SET;
 
-	else if ((fis->sector_count == 1 && /* SEMB */
+	else if ((fis->sector_count == 1 && 
 		  fis->lbal         == 1 &&
 		  fis->lbam         == 0x3C &&
 		  fis->lbah         == 0xC3 &&
 		  fis->device       == 0)
 		||
-		 (fis->interrupt_reason == 1 &&	/* SATA PM */
+		 (fis->interrupt_reason == 1 &&	
 		  fis->lbal             == 1 &&
 		  fis->byte_count_low   == 0x69 &&
 		  fis->byte_count_high  == 0x96 &&
 		  (fis->device & ~0x10) == 0))
 
-		/* Treat it as a superset? */
+		
 		dev->sata_dev.command_set = ATAPI_COMMAND_SET;
 }
 
-/**
- * sas_issue_ata_cmd -- Basic SATA command processing for discovery
- * @dev: the device to send the command to
- * @command: the command register
- * @features: the features register
- * @buffer: pointer to buffer to do I/O
- * @size: size of @buffer
- * @dma_dir: DMA direction.  DMA_xxx
- */
+
 static int sas_issue_ata_cmd(struct domain_device *dev, u8 command,
 			     u8 features, void *buffer, int size,
 			     enum dma_data_direction dma_dir)
@@ -654,15 +600,7 @@ out:
 #define ATA_SET_FEATURES         0xEF
 #define ATA_FEATURE_PUP_STBY_SPIN_UP 0x07
 
-/**
- * sas_discover_sata_dev -- discover a STP/SATA device (SATA_DEV)
- * @dev: STP/SATA device of interest (ATA/ATAPI)
- *
- * The LLDD has already been notified of this device, so that we can
- * send FISes to it.  Here we try to get IDENTIFY DEVICE or IDENTIFY
- * PACKET DEVICE, if ATAPI device, so that the LLDD can fine-tune its
- * performance for this device.
- */
+
 static int sas_discover_sata_dev(struct domain_device *dev)
 {
 	int     res;
@@ -686,9 +624,9 @@ static int sas_discover_sata_dev(struct domain_device *dev)
 	if (res)
 		goto out_err;
 
-	/* lives on the media? */
+	
 	if (le16_to_cpu(identify_x[0]) & 4) {
-		/* incomplete response */
+		
 		SAS_DPRINTK("sending SET FEATURE/PUP_STBY_SPIN_UP to "
 			    "dev %llx\n", SAS_ADDR(dev->sas_addr));
 		if (!(identify_x[83] & cpu_to_le16(1<<6)))
@@ -699,18 +637,14 @@ static int sas_discover_sata_dev(struct domain_device *dev)
 		if (res)
 			goto cont1;
 
-		schedule_timeout_interruptible(5*HZ); /* More time? */
+		schedule_timeout_interruptible(5*HZ); 
 		res = sas_issue_ata_cmd(dev, command, 0, identify_x, 512,
 					DMA_FROM_DEVICE);
 		if (res)
 			goto out_err;
 	}
 cont1:
-	/* XXX Hint: register this SATA device with SATL.
-	   When this returns, dev->sata_dev->lu is alive and
-	   present.
-	sas_satl_register_dev(dev);
-	*/
+	
 
 	sas_fill_in_rphy(dev, dev->rphy);
 
@@ -727,21 +661,7 @@ static int sas_discover_sata_pm(struct domain_device *dev)
 	return -ENODEV;
 }
 
-/**
- * sas_discover_sata -- discover an STP/SATA domain device
- * @dev: pointer to struct domain_device of interest
- *
- * First we notify the LLDD of this device, so we can send frames to
- * it.  Then depending on the type of device we call the appropriate
- * discover functions.  Once device discover is done, we notify the
- * LLDD so that it can fine-tune its parameters for the device, by
- * removing it and then adding it.  That is, the second time around,
- * the driver would have certain fields, that it is looking at, set.
- * Finally we initialize the kobj so that the device can be added to
- * the system at registration time.  Devices directly attached to a HA
- * port, have no parents.  All other devices do, and should have their
- * "parent" pointer set appropriately before calling this function.
- */
+
 int sas_discover_sata(struct domain_device *dev)
 {
 	int res;

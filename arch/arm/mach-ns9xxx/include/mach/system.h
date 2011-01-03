@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/include/mach/system.h
- *
- * Copyright (C) 2006,2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #ifndef __ASM_ARCH_SYSTEM_H
 #define __ASM_ARCH_SYSTEM_H
 
@@ -32,4 +23,4 @@ static inline void arch_reset(char mode, const char *cmd)
 	BUG();
 }
 
-#endif /* ifndef __ASM_ARCH_SYSTEM_H */
+#endif 

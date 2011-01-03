@@ -1,19 +1,4 @@
-/*
- * linux/arch/arm/common/it8152.c
- *
- * Copyright Compulab Ltd, 2002-2007
- * Mike Rapoport <mike@compulab.co.il>
- *
- * The DMA bouncing part is taken from arch/arm/mach-ixp4xx/common-pci.c
- * (see this file for respective copyrights)
- *
- * Thanks to Guennadi Liakhovetski <gl@dsa-ac.de> for IRQ enumberation
- * and demux code.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/sched.h>
 #include <linux/kernel.h>
@@ -97,19 +82,18 @@ void it8152_irq_demux(unsigned int irq, struct irq_desc *desc)
        int i;
 
        while (1) {
-	       /* Read all */
+	       
 	       bits_pd = __raw_readl(IT8152_INTC_PDCNIRR);
 	       bits_lp = __raw_readl(IT8152_INTC_LPCNIRR);
 	       bits_ld = __raw_readl(IT8152_INTC_LDCNIRR);
 
-	       /* Ack */
+	       
 	       __raw_writel((~bits_pd), IT8152_INTC_PDCNIRR);
 	       __raw_writel((~bits_lp), IT8152_INTC_LPCNIRR);
 	       __raw_writel((~bits_ld), IT8152_INTC_LDCNIRR);
 
 	       if (!(bits_ld | bits_lp | bits_pd)) {
-		       /* Re-read to guarantee, that there was a moment of
-			  time, when they all three were 0. */
+		       
 		       bits_pd = __raw_readl(IT8152_INTC_PDCNIRR);
 		       bits_lp = __raw_readl(IT8152_INTC_LPCNIRR);
 		       bits_ld = __raw_readl(IT8152_INTC_LDCNIRR);
@@ -140,7 +124,7 @@ void it8152_irq_demux(unsigned int irq, struct irq_desc *desc)
        }
 }
 
-/* mapping for on-chip devices */
+
 int __init it8152_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	if ((dev->vendor == PCI_VENDOR_ID_ITE) &&
@@ -235,16 +219,9 @@ static struct resource it8152_mem = {
 	.flags	= IORESOURCE_MEM,
 };
 
-/*
- * The following functions are needed for DMA bouncing.
- * ITE8152 chip can addrees up to 64MByte, so all the devices
- * connected to ITE8152 (PCI and USB) should have limited DMA window
- */
 
-/*
- * Setup DMA mask to 64MB on devices connected to ITE8152. Ignore all
- * other devices.
- */
+
+
 static int it8152_pci_platform_notify(struct device *dev)
 {
 	if (dev->bus == &pci_bus_type) {
@@ -272,14 +249,7 @@ int dma_needs_bounce(struct device *dev, dma_addr_t dma_addr, size_t size)
 		((dma_addr + size - PHYS_OFFSET) >= SZ_64M);
 }
 
-/*
- * We override these so we properly do dmabounce otherwise drivers
- * are able to set the dma_mask to 0xffffffff and we can no longer
- * trap bounces. :(
- *
- * We just return true on everyhing except for < 64MB in which case
- * we will fail miseralby and die since we can't handle that case.
- */
+
 int pci_set_dma_mask(struct pci_dev *dev, u64 mask)
 {
 	dev_dbg(&dev->dev, "%s: %llx\n", __func__, mask);
@@ -337,18 +307,14 @@ err0:
 	return -EBUSY;
 }
 
-/*
- * If we set up a device for bus mastering, we need to check the latency
- * timer as we don't have even crappy BIOSes to set it properly.
- * The implementation is from arch/i386/pci/i386.c
- */
+
 unsigned int pcibios_max_latency = 255;
 
 void pcibios_set_master(struct pci_dev *dev)
 {
 	u8 lat;
 
-	/* no need to update on-chip OHCI controller */
+	
 	if ((dev->vendor == PCI_VENDOR_ID_ITE) &&
 	    (dev->device == PCI_DEVICE_ID_ITE_8152) &&
 	    ((dev->class >> 8) == PCI_CLASS_SERIAL_USB))

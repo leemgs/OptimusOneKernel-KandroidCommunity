@@ -1,39 +1,4 @@
-/*
- * net/tipc/bcast.c: TIPC broadcast code
- *
- * Copyright (c) 2004-2006, Ericsson AB
- * Copyright (c) 2004, Intel Corporation.
- * Copyright (c) 2005, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "core.h"
 #include "msg.h"
@@ -49,47 +14,24 @@
 #include "name_table.h"
 #include "bcast.h"
 
-#define MAX_PKT_DEFAULT_MCAST 1500	/* bcast link max packet size (fixed) */
+#define MAX_PKT_DEFAULT_MCAST 1500	
 
-#define BCLINK_WIN_DEFAULT 20		/* bcast link window size (default) */
+#define BCLINK_WIN_DEFAULT 20		
 
 #define BCLINK_LOG_BUF_SIZE 0
 
-/*
- * Loss rate for incoming broadcast frames; used to test retransmission code.
- * Set to N to cause every N'th frame to be discarded; 0 => don't discard any.
- */
+
 
 #define TIPC_BCAST_LOSS_RATE 0
 
-/**
- * struct bcbearer_pair - a pair of bearers used by broadcast link
- * @primary: pointer to primary bearer
- * @secondary: pointer to secondary bearer
- *
- * Bearers must have same priority and same set of reachable destinations
- * to be paired.
- */
+
 
 struct bcbearer_pair {
 	struct bearer *primary;
 	struct bearer *secondary;
 };
 
-/**
- * struct bcbearer - bearer used by broadcast link
- * @bearer: (non-standard) broadcast bearer structure
- * @media: (non-standard) broadcast media structure
- * @bpairs: array of bearer pairs
- * @bpairs_temp: temporary array of bearer pairs used by tipc_bcbearer_sort()
- * @remains: temporary node map used by tipc_bcbearer_send()
- * @remains_new: temporary node map used tipc_bcbearer_send()
- *
- * Note: The fields labelled "temporary" are incorporated into the bearer
- * to avoid consuming potentially limited stack space through the use of
- * large local variables within multicast routines.  Concurrent access is
- * prevented through use of the spinlock "bc_lock".
- */
+
 
 struct bcbearer {
 	struct bearer bearer;
@@ -100,13 +42,7 @@ struct bcbearer {
 	struct tipc_node_map remains_new;
 };
 
-/**
- * struct bclink - link used for broadcast messages
- * @link: (non-standard) broadcast link structure
- * @node: (non-standard) node structure representing b'cast link's peer node
- *
- * Handles sequence numbering, fragmentation, bundling, etc.
- */
+
 
 struct bclink {
 	struct link link;
@@ -143,11 +79,7 @@ static void bcbuf_decr_acks(struct sk_buff *buf)
 }
 
 
-/**
- * bclink_set_gap - set gap according to contents of current deferred pkt queue
- *
- * Called with 'node' locked, bc_lock unlocked
- */
+
 
 static void bclink_set_gap(struct tipc_node *n_ptr)
 {
@@ -159,15 +91,7 @@ static void bclink_set_gap(struct tipc_node *n_ptr)
 		n_ptr->bclink.gap_to = mod(buf_seqno(buf) - 1);
 }
 
-/**
- * bclink_ack_allowed - test if ACK or NACK message can be sent at this moment
- *
- * This mechanism endeavours to prevent all nodes in network from trying
- * to ACK or NACK at the same time.
- *
- * Note: TIPC uses a different trigger to distribute ACKs than it does to
- *       distribute NACKs, but tries to use the same spacing (divide by 16).
- */
+
 
 static int bclink_ack_allowed(u32 n)
 {
@@ -175,13 +99,7 @@ static int bclink_ack_allowed(u32 n)
 }
 
 
-/**
- * bclink_retransmit_pkt - retransmit broadcast packets
- * @after: sequence number of last packet to *not* retransmit
- * @to: sequence number of last packet to retransmit
- *
- * Called with bc_lock locked
- */
+
 
 static void bclink_retransmit_pkt(u32 after, u32 to)
 {
@@ -194,13 +112,7 @@ static void bclink_retransmit_pkt(u32 after, u32 to)
 	tipc_link_retransmit(bcl, buf, mod(to - after));
 }
 
-/**
- * tipc_bclink_acknowledge - handle acknowledgement of broadcast packets
- * @n_ptr: node that sent acknowledgement info
- * @acked: broadcast sequence # that has been acknowledged
- *
- * Node is locked, bc_lock unlocked.
- */
+
 
 void tipc_bclink_acknowledge(struct tipc_node *n_ptr, u32 acked)
 {
@@ -213,14 +125,14 @@ void tipc_bclink_acknowledge(struct tipc_node *n_ptr, u32 acked)
 
 	spin_lock_bh(&bc_lock);
 
-	/* Skip over packets that node has previously acknowledged */
+	
 
 	crs = bcl->first_out;
 	while (crs && less_eq(buf_seqno(crs), n_ptr->bclink.acked)) {
 		crs = crs->next;
 	}
 
-	/* Update packets that node is now acknowledging */
+	
 
 	while (crs && less_eq(buf_seqno(crs), acked)) {
 		next = crs->next;
@@ -235,7 +147,7 @@ void tipc_bclink_acknowledge(struct tipc_node *n_ptr, u32 acked)
 	}
 	n_ptr->bclink.acked = acked;
 
-	/* Try resolving broadcast link congestion, if necessary */
+	
 
 	if (unlikely(bcl->next_out))
 		tipc_link_push_queue(bcl);
@@ -244,11 +156,7 @@ void tipc_bclink_acknowledge(struct tipc_node *n_ptr, u32 acked)
 	spin_unlock_bh(&bc_lock);
 }
 
-/**
- * bclink_send_ack - unicast an ACK msg
- *
- * tipc_net_lock and node lock set
- */
+
 
 static void bclink_send_ack(struct tipc_node *n_ptr)
 {
@@ -258,11 +166,7 @@ static void bclink_send_ack(struct tipc_node *n_ptr)
 		tipc_link_send_proto_msg(l_ptr, STATE_MSG, 0, 0, 0, 0, 0);
 }
 
-/**
- * bclink_send_nack- broadcast a NACK msg
- *
- * tipc_net_lock and node lock set
- */
+
 
 static void bclink_send_nack(struct tipc_node *n_ptr)
 {
@@ -292,21 +196,13 @@ static void bclink_send_nack(struct tipc_node *n_ptr)
 			bcl->stats.bearer_congs++;
 		}
 
-		/*
-		 * Ensure we doesn't send another NACK msg to the node
-		 * until 16 more deferred messages arrive from it
-		 * (i.e. helps prevent all nodes from NACK'ing at same time)
-		 */
+		
 
 		n_ptr->bclink.nack_sync = tipc_own_tag;
 	}
 }
 
-/**
- * tipc_bclink_check_gap - send a NACK if a sequence gap exists
- *
- * tipc_net_lock and node lock set
- */
+
 
 void tipc_bclink_check_gap(struct tipc_node *n_ptr, u32 last_sent)
 {
@@ -320,11 +216,7 @@ void tipc_bclink_check_gap(struct tipc_node *n_ptr, u32 last_sent)
 	bclink_send_nack(n_ptr);
 }
 
-/**
- * tipc_bclink_peek_nack - process a NACK msg meant for another node
- *
- * Only tipc_net_lock set.
- */
+
 
 static void tipc_bclink_peek_nack(u32 dest, u32 sender_tag, u32 gap_after, u32 gap_to)
 {
@@ -334,9 +226,7 @@ static void tipc_bclink_peek_nack(u32 dest, u32 sender_tag, u32 gap_after, u32 g
 	if (unlikely(!n_ptr || !tipc_node_is_up(n_ptr)))
 		return;
 	tipc_node_lock(n_ptr);
-	/*
-	 * Modify gap to suppress unnecessary NACKs from this node
-	 */
+	
 	my_after = n_ptr->bclink.gap_after;
 	my_to = n_ptr->bclink.gap_to;
 
@@ -349,9 +239,7 @@ static void tipc_bclink_peek_nack(u32 dest, u32 sender_tag, u32 gap_after, u32 g
 		if (less_eq(my_to, gap_to))
 			n_ptr->bclink.gap_to = gap_after;
 	} else {
-		/*
-		 * Expand gap if missing bufs not in deferred queue:
-		 */
+		
 		struct sk_buff *buf = n_ptr->bclink.deferred_head;
 		u32 prev = n_ptr->bclink.gap_to;
 
@@ -369,9 +257,7 @@ static void tipc_bclink_peek_nack(u32 dest, u32 sender_tag, u32 gap_after, u32 g
 		if (buf == NULL)
 			n_ptr->bclink.gap_to = gap_after;
 	}
-	/*
-	 * Some nodes may send a complementary NACK now:
-	 */
+	
 	if (bclink_ack_allowed(sender_tag + 1)) {
 		if (n_ptr->bclink.gap_to != n_ptr->bclink.gap_after) {
 			bclink_send_nack(n_ptr);
@@ -381,9 +267,7 @@ static void tipc_bclink_peek_nack(u32 dest, u32 sender_tag, u32 gap_after, u32 g
 	tipc_node_unlock(n_ptr);
 }
 
-/**
- * tipc_bclink_send_msg - broadcast a packet to all nodes in cluster
- */
+
 
 int tipc_bclink_send_msg(struct sk_buff *buf)
 {
@@ -406,11 +290,7 @@ int tipc_bclink_send_msg(struct sk_buff *buf)
 	return res;
 }
 
-/**
- * tipc_bclink_recv_pkt - receive a broadcast packet, and deliver upwards
- *
- * tipc_net_lock is read_locked, no other locks set
- */
+
 
 void tipc_bclink_recv_pkt(struct sk_buff *buf)
 {
@@ -439,7 +319,7 @@ void tipc_bclink_recv_pkt(struct sk_buff *buf)
 			tipc_node_unlock(node);
 			spin_lock_bh(&bc_lock);
 			bcl->stats.recv_nacks++;
-			bcl->owner->next = node;   /* remember requestor */
+			bcl->owner->next = node;   
 			bclink_retransmit_pkt(msg_bcgap_after(msg),
 					      msg_bcgap_to(msg));
 			bcl->owner->next = NULL;
@@ -545,14 +425,7 @@ u32 tipc_bclink_acks_missing(struct tipc_node *n_ptr)
 }
 
 
-/**
- * tipc_bcbearer_send - send a packet through the broadcast pseudo-bearer
- *
- * Send through as many bearers as necessary to reach all nodes
- * that support TIPC multicasting.
- *
- * Returns 0 if packet sent successfully, non-zero if not
- */
+
 
 static int tipc_bcbearer_send(struct sk_buff *buf,
 			      struct tipc_bearer *unused1,
@@ -563,7 +436,7 @@ static int tipc_bcbearer_send(struct sk_buff *buf,
 	int bp_index;
 	int swap_time;
 
-	/* Prepare buffer for broadcasting (if first time trying to send it) */
+	
 
 	if (likely(!msg_non_seq(buf_msg(buf)))) {
 		struct tipc_msg *msg;
@@ -575,12 +448,12 @@ static int tipc_bcbearer_send(struct sk_buff *buf,
 		msg_set_mc_netid(msg, tipc_net_id);
 	}
 
-	/* Determine if bearer pairs should be swapped following this attempt */
+	
 
 	if ((swap_time = (++send_count >= 10)))
 		send_count = 0;
 
-	/* Send buffer over bearers until all targets reached */
+	
 
 	bcbearer->remains = tipc_cltr_bcast_nodes;
 
@@ -589,11 +462,11 @@ static int tipc_bcbearer_send(struct sk_buff *buf,
 		struct bearer *s = bcbearer->bpairs[bp_index].secondary;
 
 		if (!p)
-			break;	/* no more bearers to try */
+			break;	
 
 		tipc_nmap_diff(&bcbearer->remains, &p->nodes, &bcbearer->remains_new);
 		if (bcbearer->remains_new.count == bcbearer->remains.count)
-			continue;	/* bearer pair doesn't add anything */
+			continue;	
 
 		if (!p->publ.blocked &&
 		    !p->media->send_msg(buf, &p->publ, &p->media->bcast_addr)) {
@@ -605,7 +478,7 @@ static int tipc_bcbearer_send(struct sk_buff *buf,
 
 		if (!s || s->publ.blocked ||
 		    s->media->send_msg(buf, &s->publ, &s->media->bcast_addr))
-			continue;	/* unable to send using bearer pair */
+			continue;	
 swap:
 		bcbearer->bpairs[bp_index].primary = s;
 		bcbearer->bpairs[bp_index].secondary = p;
@@ -616,16 +489,14 @@ update:
 		bcbearer->remains = bcbearer->remains_new;
 	}
 
-	/* Unable to reach all targets */
+	
 
 	bcbearer->bearer.publ.blocked = 1;
 	bcl->stats.bearer_congs++;
 	return 1;
 }
 
-/**
- * tipc_bcbearer_sort - create sets of bearer pairs used by broadcast bearer
- */
+
 
 void tipc_bcbearer_sort(void)
 {
@@ -636,7 +507,7 @@ void tipc_bcbearer_sort(void)
 
 	spin_lock_bh(&bc_lock);
 
-	/* Group bearers by priority (can assume max of two per priority) */
+	
 
 	memset(bp_temp, 0, sizeof(bcbearer->bpairs_temp));
 
@@ -652,7 +523,7 @@ void tipc_bcbearer_sort(void)
 			bp_temp[b->priority].secondary = b;
 	}
 
-	/* Create array of bearer pairs for broadcasting */
+	
 
 	bp_curr = bcbearer->bpairs;
 	memset(bcbearer->bpairs, 0, sizeof(bcbearer->bpairs));
@@ -680,13 +551,7 @@ void tipc_bcbearer_sort(void)
 	spin_unlock_bh(&bc_lock);
 }
 
-/**
- * tipc_bcbearer_push - resolve bearer congestion
- *
- * Forces bclink to push out any unsent packets, until all packets are gone
- * or congestion reoccurs.
- * No locks set when function called
- */
+
 
 void tipc_bcbearer_push(void)
 {

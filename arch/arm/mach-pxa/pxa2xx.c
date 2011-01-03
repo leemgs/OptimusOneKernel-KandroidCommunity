@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/pxa2xx.c
- *
- * code specific to pxa2xx
- *
- * Copyright (C) 2008 Dmitry Baryshkov
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -22,7 +12,7 @@
 
 void pxa2xx_clear_reset_status(unsigned int mask)
 {
-	/* RESET_STATUS_* has a 1:1 mapping with RCSR */
+	
 	RCSR = mask;
 }
 

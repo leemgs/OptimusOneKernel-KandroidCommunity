@@ -1,29 +1,4 @@
-/*
-   BNEP implementation for Linux Bluetooth stack (BlueZ).
-   Copyright (C) 2001-2002 Inventel Systemes
-   Written 2001-2002 by
-	Clément Moreau <clement.moreau@inventel.fr>
-	David Libault  <david.libault@inventel.fr>
 
-   Copyright (C) 2002 Maxim Krasnyansky <maxk@qualcomm.com>
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation;
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.
-   IN NO EVENT SHALL THE COPYRIGHT HOLDER(S) AND AUTHOR(S) BE LIABLE FOR ANY
-   CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-   ALL LIABILITY, INCLUDING LIABILITY FOR INFRINGEMENT OF ANY PATENTS,
-   COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS, RELATING TO USE OF THIS
-   SOFTWARE IS DISCLAIMED.
-*/
 
 #include <linux/module.h>
 
@@ -82,7 +57,7 @@ static void bnep_net_set_mc_list(struct net_device *dev)
 	if (dev->flags & (IFF_PROMISC | IFF_ALLMULTI)) {
 		u8 start[ETH_ALEN] = { 0x01 };
 
-		/* Request all addresses */
+		
 		memcpy(__skb_put(skb, ETH_ALEN), start, ETH_ALEN);
 		memcpy(__skb_put(skb, ETH_ALEN), dev->broadcast, ETH_ALEN);
 		r->len = htons(ETH_ALEN * 2);
@@ -95,7 +70,7 @@ static void bnep_net_set_mc_list(struct net_device *dev)
 			memcpy(__skb_put(skb, ETH_ALEN), dev->broadcast, ETH_ALEN);
 		}
 
-		/* FIXME: We should group addresses here. */
+		
 
 		for (i = 0; i < dev->mc_count && i < BNEP_MAX_MULTICAST_FILTERS; i++) {
 			memcpy(__skb_put(skb, ETH_ALEN), dmi->dmi_addr, ETH_ALEN);
@@ -134,7 +109,7 @@ static inline int bnep_net_mc_filter(struct sk_buff *skb, struct bnep_session *s
 #endif
 
 #ifdef CONFIG_BT_BNEP_PROTO_FILTER
-/* Determine ether protocol. Based on eth_type_trans. */
+
 static inline u16 bnep_net_eth_proto(struct sk_buff *skb)
 {
 	struct ethhdr *eh = (void *) skb->data;
@@ -187,11 +162,7 @@ static netdev_tx_t bnep_net_xmit(struct sk_buff *skb,
 	}
 #endif
 
-	/*
-	 * We cannot send L2CAP packets from here as we are potentially in a bh.
-	 * So we have to queue them and wake up session thread which is sleeping
-	 * on the sk->sk_sleep.
-	 */
+	
 	dev->trans_start = jiffies;
 	skb_queue_tail(&sk->sk_write_queue, skb);
 	wake_up_interruptible(sk->sk_sleep);
@@ -199,8 +170,7 @@ static netdev_tx_t bnep_net_xmit(struct sk_buff *skb,
 	if (skb_queue_len(&sk->sk_write_queue) >= BNEP_TX_QUEUE_LEN) {
 		BT_DBG("tx queue is full");
 
-		/* Stop queuing.
-		 * Session thread will do netif_wake_queue() */
+		
 		netif_stop_queue(dev);
 	}
 

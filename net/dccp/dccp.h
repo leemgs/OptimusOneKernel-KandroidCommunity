@@ -1,16 +1,6 @@
 #ifndef _DCCP_H
 #define _DCCP_H
-/*
- *  net/dccp/dccp.h
- *
- *  An implementation of the DCCP protocol
- *  Copyright (c) 2005 Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- *  Copyright (c) 2005-6 Ian McDonald <ian.mcdonald@jandi.co.nz>
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License version 2 as
- *	published by the Free Software Foundation.
- */
+
 
 #include <linux/dccp.h>
 #include <linux/ktime.h>
@@ -19,9 +9,7 @@
 #include <net/tcp.h>
 #include "ackvec.h"
 
-/*
- * 	DCCP - specific warning and debugging macros.
- */
+
 #define DCCP_WARN(fmt, a...) LIMIT_NETDEBUG(KERN_WARNING "%s: " fmt,       \
 							__func__, ##a)
 #define DCCP_CRIT(fmt, a...) printk(KERN_CRIT fmt " at %s:%d/%s()\n", ##a, \
@@ -55,60 +43,42 @@ extern struct percpu_counter dccp_orphan_count;
 
 extern void dccp_time_wait(struct sock *sk, int state, int timeo);
 
-/*
- *  Set safe upper bounds for header and option length. Since Data Offset is 8
- *  bits (RFC 4340, sec. 5.1), the total header length can never be more than
- *  4 * 255 = 1020 bytes. The largest possible header length is 28 bytes (X=1):
- *    - DCCP-Response with ACK Subheader and 4 bytes of Service code      OR
- *    - DCCP-Reset    with ACK Subheader and 4 bytes of Reset Code fields
- *  Hence a safe upper bound for the maximum option length is 1020-28 = 992
- */
+
 #define MAX_DCCP_SPECIFIC_HEADER (255 * sizeof(uint32_t))
 #define DCCP_MAX_PACKET_HDR 28
 #define DCCP_MAX_OPT_LEN (MAX_DCCP_SPECIFIC_HEADER - DCCP_MAX_PACKET_HDR)
 #define MAX_DCCP_HEADER (MAX_DCCP_SPECIFIC_HEADER + MAX_HEADER)
 
-/* Upper bound for initial feature-negotiation overhead (padded to 32 bits) */
+
 #define DCCP_FEATNEG_OVERHEAD	 (32 * sizeof(uint32_t))
 
-#define DCCP_TIMEWAIT_LEN (60 * HZ) /* how long to wait to destroy TIME-WAIT
-				     * state, about 60 seconds */
+#define DCCP_TIMEWAIT_LEN (60 * HZ) 
 
-/* RFC 1122, 4.2.3.1 initial RTO value */
+
 #define DCCP_TIMEOUT_INIT ((unsigned)(3 * HZ))
 
-/*
- * The maximum back-off value for retransmissions. This is needed for
- *  - retransmitting client-Requests (sec. 8.1.1),
- *  - retransmitting Close/CloseReq when closing (sec. 8.3),
- *  - feature-negotiation retransmission (sec. 6.6.3),
- *  - Acks in client-PARTOPEN state (sec. 8.1.5).
- */
+
 #define DCCP_RTO_MAX ((unsigned)(64 * HZ))
 
-/*
- * RTT sampling: sanity bounds and fallback RTT value from RFC 4340, section 3.4
- */
+
 #define DCCP_SANE_RTT_MIN	100
 #define DCCP_FALLBACK_RTT	(USEC_PER_SEC / 5)
 #define DCCP_SANE_RTT_MAX	(3 * USEC_PER_SEC)
 
-/* Maximal interval between probes for local resources.  */
+
 #define DCCP_RESOURCE_PROBE_INTERVAL ((unsigned)(HZ / 2U))
 
-/* sysctl variables for DCCP */
+
 extern int  sysctl_dccp_request_retries;
 extern int  sysctl_dccp_retries1;
 extern int  sysctl_dccp_retries2;
 extern int  sysctl_dccp_tx_qlen;
 extern int  sysctl_dccp_sync_ratelimit;
 
-/*
- *	48-bit sequence number arithmetic (signed and unsigned)
- */
-#define INT48_MIN	  0x800000000000LL		/* 2^47	    */
-#define UINT48_MAX	  0xFFFFFFFFFFFFLL		/* 2^48 - 1 */
-#define COMPLEMENT48(x)	 (0x1000000000000LL - (x))	/* 2^48 - x */
+
+#define INT48_MIN	  0x800000000000LL		
+#define UINT48_MAX	  0xFFFFFFFFFFFFLL		
+#define COMPLEMENT48(x)	 (0x1000000000000LL - (x))	
 #define TO_SIGNED48(x)	 (((x) < INT48_MIN)? (x) : -COMPLEMENT48( (x)))
 #define TO_UNSIGNED48(x) (((x) >= 0)?	     (x) :  COMPLEMENT48(-(x)))
 #define ADD48(a, b)	 (((a) + (b)) & UINT48_MAX)
@@ -124,7 +94,7 @@ static inline void dccp_inc_seqno(u64 *seqno)
 	*seqno = ADD48(*seqno, 1);
 }
 
-/* signed mod-2^48 distance: pos. if seqno1 < seqno2, neg. if seqno1 > seqno2 */
+
 static inline s64 dccp_delta_seqno(const u64 seqno1, const u64 seqno2)
 {
 	u64 delta = SUB48(seqno2, seqno1);
@@ -132,16 +102,16 @@ static inline s64 dccp_delta_seqno(const u64 seqno1, const u64 seqno2)
 	return TO_SIGNED48(delta);
 }
 
-/* is seq1 < seq2 ? */
+
 static inline int before48(const u64 seq1, const u64 seq2)
 {
 	return (s64)((seq2 << 16) - (seq1 << 16)) > 0;
 }
 
-/* is seq1 > seq2 ? */
+
 #define after48(seq1, seq2)	before48(seq2, seq1)
 
-/* is seq2 <= seq1 <= seq3 ? */
+
 static inline int between48(const u64 seq1, const u64 seq2, const u64 seq3)
 {
 	return (seq3 << 16) - (seq2 << 16) >= (seq1 << 16) - (seq2 << 16);
@@ -152,13 +122,7 @@ static inline u64 max48(const u64 seq1, const u64 seq2)
 	return after48(seq1, seq2) ? seq1 : seq2;
 }
 
-/**
- * dccp_loss_free  -  Evaluates condition for data loss from RFC 4340, 7.7.1
- * @s1:	 start sequence number
- * @s2:  end sequence number
- * @ndp: NDP count on packet with sequence number @s2
- * Returns true if the sequence range s1...s2 has no data loss.
- */
+
 static inline bool dccp_loss_free(const u64 s1, const u64 s2, const u64 ndp)
 {
 	s64 delta = dccp_delta_seqno(s1, s2);
@@ -169,10 +133,10 @@ static inline bool dccp_loss_free(const u64 s1, const u64 s2, const u64 ndp)
 
 enum {
 	DCCP_MIB_NUM = 0,
-	DCCP_MIB_ACTIVEOPENS,			/* ActiveOpens */
-	DCCP_MIB_ESTABRESETS,			/* EstabResets */
-	DCCP_MIB_CURRESTAB,			/* CurrEstab */
-	DCCP_MIB_OUTSEGS,			/* OutSegs */
+	DCCP_MIB_ACTIVEOPENS,			
+	DCCP_MIB_ESTABRESETS,			
+	DCCP_MIB_CURRESTAB,			
+	DCCP_MIB_OUTSEGS,			
 	DCCP_MIB_OUTRSTS,
 	DCCP_MIB_ABORTONTIMEOUT,
 	DCCP_MIB_TIMEOUTS,
@@ -201,9 +165,7 @@ DECLARE_SNMP_STAT(struct dccp_mib, dccp_statistics);
 #define DCCP_ADD_STATS_USER(field, val)	\
 			SNMP_ADD_STATS_USER(dccp_statistics, field, val)
 
-/*
- * 	Checksumming routines
- */
+
 static inline unsigned int dccp_csum_coverage(const struct sk_buff *skb)
 {
 	const struct dccp_hdr* dh = dccp_hdr(skb);
@@ -329,17 +291,7 @@ static inline int dccp_bad_service_code(const struct sock *sk,
 	return !dccp_list_has_service(dp->dccps_service_list, service);
 }
 
-/**
- * dccp_skb_cb  -  DCCP per-packet control information
- * @dccpd_type: one of %dccp_pkt_type (or unknown)
- * @dccpd_ccval: CCVal field (5.1), see e.g. RFC 4342, 8.1
- * @dccpd_reset_code: one of %dccp_reset_codes
- * @dccpd_reset_data: Data1..3 fields (depend on @dccpd_reset_code)
- * @dccpd_opt_len: total length of all options (5.8) in the packet
- * @dccpd_seq: sequence number
- * @dccpd_ack_seq: acknowledgment number subheader field value
- * This is used for transmission as well as for reception.
- */
+
 struct dccp_skb_cb {
 	union {
 		struct inet_skb_parm	h4;
@@ -358,7 +310,7 @@ struct dccp_skb_cb {
 
 #define DCCP_SKB_CB(__skb) ((struct dccp_skb_cb *)&((__skb)->cb[0]))
 
-/* RFC 4340, sec. 7.7 */
+
 static inline int dccp_non_data_packet(const struct sk_buff *skb)
 {
 	const __u8 type = DCCP_SKB_CB(skb)->dccpd_type;
@@ -371,7 +323,7 @@ static inline int dccp_non_data_packet(const struct sk_buff *skb)
 	       type == DCCP_PKT_SYNCACK;
 }
 
-/* RFC 4340, sec. 7.7 */
+
 static inline int dccp_data_packet(const struct sk_buff *skb)
 {
 	const __u8 type = DCCP_SKB_CB(skb)->dccpd_type;
@@ -413,7 +365,7 @@ static inline void dccp_update_gsr(struct sock *sk, u64 seq)
 	struct dccp_sock *dp = dccp_sk(sk);
 
 	dp->dccps_gsr = seq;
-	/* Sequence validity window depends on remote Sequence Window (7.5.1) */
+	
 	dp->dccps_swl = SUB48(ADD48(dp->dccps_gsr, 1), dp->dccps_r_seq_win / 4);
 	dp->dccps_swh = ADD48(dp->dccps_gsr, (3 * dp->dccps_r_seq_win) / 4);
 }
@@ -423,7 +375,7 @@ static inline void dccp_update_gss(struct sock *sk, u64 seq)
 	struct dccp_sock *dp = dccp_sk(sk);
 
 	dp->dccps_gss = seq;
-	/* Ack validity window depends on local Sequence Window value (7.5.1) */
+	
 	dp->dccps_awl = SUB48(ADD48(dp->dccps_gss, 1), dp->dccps_l_seq_win);
 	dp->dccps_awh = dp->dccps_gss;
 }
@@ -471,4 +423,4 @@ static inline void dccp_sysctl_exit(void)
 }
 #endif
 
-#endif /* _DCCP_H */
+#endif 

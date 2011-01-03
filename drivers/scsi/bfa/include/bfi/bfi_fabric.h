@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFI_FABRIC_H__
 #define __BFI_FABRIC_H__
@@ -37,38 +22,38 @@ enum bfi_fabric_i2h_msgs {
 };
 
 struct bfi_fabric_create_req_s {
-	bfi_mhdr_t	mh;		/*  common msg header		*/
-	u8         vf_en;		/*  virtual fabric enable	*/
+	bfi_mhdr_t	mh;		
+	u8         vf_en;		
 	u8         rsvd;
-	u16        vf_id;		/*  virtual fabric ID		*/
-	wwn_t		pwwn;		/*  port name			*/
-	wwn_t		nwwn;		/*  node name			*/
+	u16        vf_id;		
+	wwn_t		pwwn;		
+	wwn_t		nwwn;		
 };
 
 struct bfi_fabric_create_rsp_s {
-	bfi_mhdr_t	mh;		/*  common msg header		*/
-	u16        bfa_handle;	/*  host fabric handle		*/
-	u8         status;		/*  fabric create status	*/
+	bfi_mhdr_t	mh;		
+	u16        bfa_handle;	
+	u8         status;		
 	u8         rsvd;
 };
 
 struct bfi_fabric_delete_req_s {
-	bfi_mhdr_t	mh;		/*  common msg header		*/
-	u16        fw_handle;	/*  firmware fabric handle	*/
+	bfi_mhdr_t	mh;		
+	u16        fw_handle;	
 	u16        rsvd;
 };
 
 struct bfi_fabric_delete_rsp_s {
-	bfi_mhdr_t	mh;		/*  common msg header		*/
-	u16        bfa_handle;	/*  host fabric handle		*/
-	u8         status;		/*  fabric deletion status	*/
+	bfi_mhdr_t	mh;		
+	u16        bfa_handle;	
+	u8         status;		
 	u8         rsvd;
 };
 
 #define BFI_FABRIC_AUTHSECRET_LEN	64
 struct bfi_fabric_setauth_req_s {
-	bfi_mhdr_t	mh;		/*  common msg header		*/
-	u16        fw_handle;	/*  f/w handle of fabric	*/
+	bfi_mhdr_t	mh;		
+	u16        fw_handle;	
 	u8		algorithm;
 	u8		group;
 	u8		secret[BFI_FABRIC_AUTHSECRET_LEN];
@@ -88,5 +73,5 @@ union bfi_fabric_i2h_msg_u {
 
 #pragma pack()
 
-#endif /* __BFI_FABRIC_H__ */
+#endif 
 

@@ -1,24 +1,4 @@
-/*
- * Copyright © 2007 Eugene Konev <ejka@openwrt.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * TI AR7 flash partition table.
- * Based on ar7 map by Felix Fietkau <nbd@openwrt.org>
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/slab.h>
@@ -70,7 +50,7 @@ static int create_mtd_partitions(struct mtd_info *master,
 	ar7_parts[1].size = master->erasesize;
 	ar7_parts[1].mask_flags = 0;
 
-	do { /* Try 10 blocks starting from master->erasesize */
+	do { 
 		offset = pre_size;
 		master->read(master, offset,
 			     sizeof(header), &len, (uint8_t *)&header);

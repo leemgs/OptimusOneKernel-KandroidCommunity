@@ -1,13 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/devices.c
- *
- * OMAP2 platform device setup/initialization
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -187,7 +178,7 @@ static inline void omap_init_mbox(void)
 }
 #else
 static inline void omap_init_mbox(void) { }
-#endif /* CONFIG_OMAP_MBOX_FWK */
+#endif 
 
 #if defined(CONFIG_OMAP_STI)
 
@@ -443,7 +434,7 @@ static void omap_init_sha1_md5(void)
 static inline void omap_init_sha1_md5(void) { }
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
 
@@ -458,18 +449,7 @@ static struct platform_device dummy_pdev = {
 	},
 };
 
-/**
- * omap_hsmmc_reset() - Full reset of each HS-MMC controller
- *
- * Ensure that each MMC controller is fully reset.  Controllers
- * left in an unknown state (by bootloader) may prevent retention
- * or OFF-mode.  This is especially important in cases where the
- * MMC driver is not enabled, _or_ built as a module.
- *
- * In order for reset to work, interface, functional and debounce
- * clocks must be enabled.  The debounce clock comes from func_32k_clk
- * and is not under SW control, so we only enable i- and f-clocks.
- **/
+
 static void __init omap_hsmmc_reset(void)
 {
 	u32 i, nr_controllers = cpu_is_omap44xx() ? OMAP44XX_NR_MMC :
@@ -564,10 +544,7 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
 			omap_cfg_reg(E18_24XX_MMC_DAT_DIR3);
 		}
 
-		/*
-		 * Use internal loop-back in MMC/SDIO Module Input Clock
-		 * selection
-		 */
+		
 		if (mmc_controller->slots[0].internal_clock) {
 			u32 v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
 			v |= (1 << 24);
@@ -594,15 +571,12 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
 			}
 		}
 		if (controller_nr == 1) {
-			/* MMC2 */
+			
 			omap_cfg_reg(AE2_3430_MMC2_CLK);
 			omap_cfg_reg(AG5_3430_MMC2_CMD);
 			omap_cfg_reg(AH5_3430_MMC2_DAT0);
 
-			/*
-			 * For 8 wire configurations, Lines DAT4, 5, 6 and 7 need to be muxed
-			 * in the board-*.c files
-			 */
+			
 			if (mmc_controller->slots[0].wires == 4 ||
 				mmc_controller->slots[0].wires == 8) {
 				omap_cfg_reg(AH4_3430_MMC2_DAT1);
@@ -611,9 +585,7 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
 			}
 		}
 
-		/*
-		 * For MMC3 the pins need to be muxed in the board-*.c files
-		 */
+		
 	}
 }
 
@@ -683,7 +655,7 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
 
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 #if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
 #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
@@ -717,13 +689,11 @@ static inline void omap_hdq_init(void)
 static inline void omap_hdq_init(void) {}
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 
 static int __init omap2_init_devices(void)
 {
-	/* please keep these calls, and their implementations above,
-	 * in alphabetical order so they're easier to sort through.
-	 */
+	
 	omap_hsmmc_reset();
 	omap_init_camera();
 	omap_init_mbox();

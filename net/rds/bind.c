@@ -1,48 +1,11 @@
-/*
- * Copyright (c) 2006 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/kernel.h>
 #include <net/sock.h>
 #include <linux/in.h>
 #include <linux/if_arp.h>
 #include "rds.h"
 
-/*
- * XXX this probably still needs more work.. no INADDR_ANY, and rbtrees aren't
- * particularly zippy.
- *
- * This is now called for every incoming frame so we arguably care much more
- * about it than we used to.
- */
+
 static DEFINE_SPINLOCK(rds_bind_lock);
 static struct rb_root rds_bind_tree = RB_ROOT;
 
@@ -77,12 +40,7 @@ static struct rds_sock *rds_bind_tree_walk(__be32 addr, __be16 port,
 	return NULL;
 }
 
-/*
- * Return the rds_sock bound at the given local address.
- *
- * The rx path can race with rds_release.  We notice if rds_release() has
- * marked this socket and don't return a rs ref to the rx path.
- */
+
 struct rds_sock *rds_find_bound(__be32 addr, __be16 port)
 {
 	struct rds_sock *rs;
@@ -101,7 +59,7 @@ struct rds_sock *rds_find_bound(__be32 addr, __be16 port)
 	return rs;
 }
 
-/* returns -ve errno or +ve port */
+
 static int rds_add_bound(struct rds_sock *rs, __be32 addr, __be16 *port)
 {
 	unsigned long flags;

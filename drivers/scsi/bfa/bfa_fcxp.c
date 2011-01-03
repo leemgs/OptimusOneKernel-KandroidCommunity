@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <bfi/bfi_uf.h>
@@ -22,9 +7,7 @@
 BFA_TRC_FILE(HAL, FCXP);
 BFA_MODULE(fcxp);
 
-/**
- * forward declarations
- */
+
 static void     __bfa_fcxp_send_cbfn(void *cbarg, bfa_boolean_t complete);
 static void     hal_fcxp_rx_plog(struct bfa_s *bfa, struct bfa_fcxp_s *fcxp,
 				 struct bfi_fcxp_send_rsp_s *fcxp_rsp);
@@ -34,9 +17,7 @@ static void	bfa_fcxp_qresume(void *cbarg);
 static void	bfa_fcxp_queue(struct bfa_fcxp_s *fcxp,
 			       struct bfi_fcxp_send_req_s *send_req);
 
-/**
- *  fcxp_pvt BFA FCXP private functions
- */
+
 
 static void
 claim_fcxp_req_rsp_mem(struct bfa_fcxp_mod_s *mod, struct bfa_meminfo_s *mi)
@@ -50,18 +31,14 @@ claim_fcxp_req_rsp_mem(struct bfa_fcxp_mod_s *mod, struct bfa_meminfo_s *mi)
 
 	buf_pool_sz = mod->req_pld_sz * mod->num_fcxps;
 
-	/*
-	 * Initialize the fcxp req payload list
-	 */
+	
 	mod->req_pld_list_kva = dm_kva;
 	mod->req_pld_list_pa = dm_pa;
 	dm_kva += buf_pool_sz;
 	dm_pa += buf_pool_sz;
 	bfa_os_memset(mod->req_pld_list_kva, 0, buf_pool_sz);
 
-	/*
-	 * Initialize the fcxp rsp payload list
-	 */
+	
 	buf_pool_sz = mod->rsp_pld_sz * mod->num_fcxps;
 	mod->rsp_pld_list_kva = dm_kva;
 	mod->rsp_pld_list_pa = dm_pa;
@@ -110,18 +87,14 @@ bfa_fcxp_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *ndm_len,
 	if (num_fcxp_reqs == 0)
 		return;
 
-	/*
-	 * Account for req/rsp payload
-	 */
+	
 	*dm_len += BFA_FCXP_MAX_IBUF_SZ * num_fcxp_reqs;
 	if (cfg->drvcfg.min_cfg)
 		*dm_len += BFA_FCXP_MAX_IBUF_SZ * num_fcxp_reqs;
 	else
 		*dm_len += BFA_FCXP_MAX_LBUF_SZ * num_fcxp_reqs;
 
-	/*
-	 * Account for fcxp structs
-	 */
+	
 	*ndm_len += sizeof(struct bfa_fcxp_s) * num_fcxp_reqs;
 }
 
@@ -135,9 +108,7 @@ bfa_fcxp_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
 	mod->bfa = bfa;
 	mod->num_fcxps = cfg->fwcfg.num_fcxp_reqs;
 
-	/**
-	 * Initialize FCXP request and response payload sizes.
-	 */
+	
 	mod->req_pld_sz = mod->rsp_pld_sz = BFA_FCXP_MAX_IBUF_SZ;
 	if (!cfg->drvcfg.min_cfg)
 		mod->rsp_pld_sz = BFA_FCXP_MAX_LBUF_SZ;
@@ -225,7 +196,7 @@ bfa_fcxp_null_comp(void *bfad_fcxp, struct bfa_fcxp_s *fcxp, void *cbarg,
 		       bfa_status_t req_status, u32 rsp_len,
 		       u32 resid_len, struct fchs_s *rsp_fchs)
 {
-	/**discarded fcxp completion */
+	
 }
 
 static void
@@ -253,10 +224,7 @@ hal_fcxp_send_comp(struct bfa_s *bfa, struct bfi_fcxp_send_rsp_s *fcxp_rsp)
 
 	fcxp_rsp->rsp_len = bfa_os_ntohl(fcxp_rsp->rsp_len);
 
-	/**
-	 * @todo f/w should not set residue to non-0 when everything
-	 *       is received.
-	 */
+	
 	if (fcxp_rsp->req_status == BFA_STATUS_OK)
 		fcxp_rsp->residue_len = 0;
 	else
@@ -275,9 +243,7 @@ hal_fcxp_send_comp(struct bfa_s *bfa, struct bfi_fcxp_send_rsp_s *fcxp_rsp)
 			fcxp->send_cbfn(fcxp->caller, fcxp, fcxp->send_cbarg,
 					fcxp_rsp->req_status, fcxp_rsp->rsp_len,
 					fcxp_rsp->residue_len, &fcxp_rsp->fchs);
-			/*
-			 * fcxp automatically freed on return from the callback
-			 */
+			
 			bfa_fcxp_free(fcxp);
 		} else {
 			bfa_trc(mod->bfa, fcxp->fcxp_tag);
@@ -315,9 +281,7 @@ static void
 hal_fcxp_tx_plog(struct bfa_s *bfa, u32 reqlen, struct bfa_fcxp_s *fcxp,
 		 struct fchs_s *fchs)
 {
-	/*
-	 * TODO: TX ox_id
-	 */
+	
 	if (reqlen > 0) {
 		if (fcxp->use_ireqbuf) {
 			u32        pld_w0 =
@@ -362,9 +326,7 @@ hal_fcxp_rx_plog(struct bfa_s *bfa, struct bfa_fcxp_s *fcxp,
 	}
 }
 
-/**
- * Handler to resume sending fcxp when space in available in cpe queue.
- */
+
 static void
 bfa_fcxp_qresume(void *cbarg)
 {
@@ -377,9 +339,7 @@ bfa_fcxp_qresume(void *cbarg)
 	bfa_fcxp_queue(fcxp, send_req);
 }
 
-/**
- * Queue fcxp send request to foimrware.
- */
+
 static void
 bfa_fcxp_queue(struct bfa_fcxp_s *fcxp, struct bfi_fcxp_send_req_s *send_req)
 {
@@ -412,9 +372,7 @@ bfa_fcxp_queue(struct bfa_fcxp_s *fcxp, struct bfi_fcxp_send_req_s *send_req)
 	send_req->req_len = bfa_os_htonl(reqi->req_tot_len);
 	send_req->rsp_maxlen = bfa_os_htonl(rspi->rsp_maxlen);
 
-	/*
-	 * setup req sgles
-	 */
+	
 	if (fcxp->use_ireqbuf == 1) {
 		hal_fcxp_set_local_sges(send_req->req_sge, reqi->req_tot_len,
 					BFA_FCXP_REQ_PLD_PA(fcxp));
@@ -431,9 +389,7 @@ bfa_fcxp_queue(struct bfa_fcxp_s *fcxp, struct bfi_fcxp_send_req_s *send_req)
 		}
 	}
 
-	/*
-	 * setup rsp sgles
-	 */
+	
 	if (fcxp->use_irspbuf == 1) {
 		bfa_assert(rspi->rsp_maxlen <= BFA_FCXP_MAX_LBUF_SZ);
 
@@ -462,33 +418,9 @@ bfa_fcxp_queue(struct bfa_fcxp_s *fcxp, struct bfi_fcxp_send_req_s *send_req)
 }
 
 
-/**
- *  hal_fcxp_api BFA FCXP API
- */
 
-/**
- * Allocate an FCXP instance to send a response or to send a request
- * that has a response. Request/response buffers are allocated by caller.
- *
- * @param[in]	bfa		BFA bfa instance
- * @param[in]	nreq_sgles	Number of SG elements required for request
- * 				buffer. 0, if fcxp internal buffers are	used.
- * 				Use bfa_fcxp_get_reqbuf() to get the
- * 				internal req buffer.
- * @param[in]	req_sgles	SG elements describing request buffer. Will be
- * 				copied in by BFA and hence can be freed on
- * 				return from this function.
- * @param[in]	get_req_sga	function ptr to be called to get a request SG
- * 				Address (given the sge index).
- * @param[in]	get_req_sglen	function ptr to be called to get a request SG
- * 				len (given the sge index).
- * @param[in]	get_rsp_sga	function ptr to be called to get a response SG
- * 				Address (given the sge index).
- * @param[in]	get_rsp_sglen	function ptr to be called to get a response SG
- * 				len (given the sge index).
- *
- * @return FCXP instance. NULL on failure.
- */
+
+
 struct bfa_fcxp_s *
 bfa_fcxp_alloc(void *caller, struct bfa_s *bfa, int nreq_sgles,
 			int nrsp_sgles, bfa_fcxp_get_sgaddr_t req_sga_cbfn,
@@ -521,20 +453,15 @@ bfa_fcxp_alloc(void *caller, struct bfa_s *bfa, int nreq_sgles,
 
 		fcxp->nreq_sgles = nreq_sgles;
 
-		/*
-		 * alloc required sgpgs
-		 */
+		
 		if (nreq_sgles > BFI_SGE_INLINE) {
 			nreq_sgpg = BFA_SGPG_NPAGE(nreq_sgles);
 
 			if (bfa_sgpg_malloc
 			    (bfa, &fcxp->req_sgpg_q, nreq_sgpg)
 			    != BFA_STATUS_OK) {
-				/* bfa_sgpg_wait(bfa, &fcxp->req_sgpg_wqe,
-				nreq_sgpg); */
-				/*
-				 * TODO
-				 */
+				
+				
 			}
 		}
 	}
@@ -550,20 +477,15 @@ bfa_fcxp_alloc(void *caller, struct bfa_s *bfa, int nreq_sgles,
 		fcxp->rsp_sglen_cbfn = rsp_sglen_cbfn;
 
 		fcxp->nrsp_sgles = nrsp_sgles;
-		/*
-		 * alloc required sgpgs
-		 */
+		
 		if (nrsp_sgles > BFI_SGE_INLINE) {
 			nrsp_sgpg = BFA_SGPG_NPAGE(nreq_sgles);
 
 			if (bfa_sgpg_malloc
 			    (bfa, &fcxp->rsp_sgpg_q, nrsp_sgpg)
 			    != BFA_STATUS_OK) {
-				/* bfa_sgpg_wait(bfa, &fcxp->rsp_sgpg_wqe,
-				nrsp_sgpg); */
-				/*
-				 * TODO
-				 */
+				
+				
 			}
 		}
 	}
@@ -571,13 +493,7 @@ bfa_fcxp_alloc(void *caller, struct bfa_s *bfa, int nreq_sgles,
 	return (fcxp);
 }
 
-/**
- * Get the internal request buffer pointer
- *
- * @param[in]	fcxp	BFA fcxp pointer
- *
- * @return 		pointer to the internal request buffer
- */
+
 void *
 bfa_fcxp_get_reqbuf(struct bfa_fcxp_s *fcxp)
 {
@@ -598,13 +514,7 @@ bfa_fcxp_get_reqbufsz(struct bfa_fcxp_s *fcxp)
 	return mod->req_pld_sz;
 }
 
-/**
- * Get the internal response buffer pointer
- *
- * @param[in]	fcxp	BFA fcxp pointer
- *
- * @return		pointer to the internal request buffer
- */
+
 void *
 bfa_fcxp_get_rspbuf(struct bfa_fcxp_s *fcxp)
 {
@@ -618,13 +528,7 @@ bfa_fcxp_get_rspbuf(struct bfa_fcxp_s *fcxp)
 	return rspbuf;
 }
 
-/**
- * 		Free the BFA FCXP
- *
- * @param[in]	fcxp			BFA fcxp pointer
- *
- * @return 		void
- */
+
 void
 bfa_fcxp_free(struct bfa_fcxp_s *fcxp)
 {
@@ -635,27 +539,7 @@ bfa_fcxp_free(struct bfa_fcxp_s *fcxp)
 	bfa_fcxp_put(fcxp);
 }
 
-/**
- * Send a FCXP request
- *
- * @param[in]	fcxp	BFA fcxp pointer
- * @param[in]	rport	BFA rport pointer. Could be left NULL for WKA rports
- * @param[in]	vf_id	virtual Fabric ID
- * @param[in]	lp_tag  lport tag
- * @param[in]	cts	use Continous sequence
- * @param[in]	cos	fc Class of Service
- * @param[in]	reqlen	request length, does not include FCHS length
- * @param[in]	fchs	fc Header Pointer. The header content will be copied
- *			in by BFA.
- *
- * @param[in]	cbfn	call back function to be called on receiving
- * 								the response
- * @param[in]	cbarg	arg for cbfn
- * @param[in]	rsp_timeout
- *			response timeout
- *
- * @return		bfa_status_t
- */
+
 void
 bfa_fcxp_send(struct bfa_fcxp_s *fcxp, struct bfa_rport_s *rport,
 		u16 vf_id, u8 lp_tag, bfa_boolean_t cts, enum fc_cos cos,
@@ -669,9 +553,7 @@ bfa_fcxp_send(struct bfa_fcxp_s *fcxp, struct bfa_rport_s *rport,
 
 	bfa_trc(bfa, fcxp->fcxp_tag);
 
-	/**
-	 * setup request/response info
-	 */
+	
 	reqi->bfa_rport = rport;
 	reqi->vf_id = vf_id;
 	reqi->lp_tag = lp_tag;
@@ -684,9 +566,7 @@ bfa_fcxp_send(struct bfa_fcxp_s *fcxp, struct bfa_rport_s *rport,
 	fcxp->send_cbfn = cbfn ? cbfn : bfa_fcxp_null_comp;
 	fcxp->send_cbarg = cbarg;
 
-	/**
-	 * If no room in CPE queue, wait for
-	 */
+	
 	send_req = bfa_reqq_next(bfa, BFA_REQQ_FCXP);
 	if (!send_req) {
 		bfa_trc(bfa, fcxp->fcxp_tag);
@@ -698,13 +578,7 @@ bfa_fcxp_send(struct bfa_fcxp_s *fcxp, struct bfa_rport_s *rport,
 	bfa_fcxp_queue(fcxp, send_req);
 }
 
-/**
- * Abort a BFA FCXP
- *
- * @param[in]	fcxp	BFA fcxp pointer
- *
- * @return 		void
- */
+
 bfa_status_t
 bfa_fcxp_abort(struct bfa_fcxp_s *fcxp)
 {
@@ -737,10 +611,7 @@ bfa_fcxp_walloc_cancel(struct bfa_s *bfa, struct bfa_fcxp_wqe_s *wqe)
 void
 bfa_fcxp_discard(struct bfa_fcxp_s *fcxp)
 {
-	/**
-	 * If waiting for room in request queue, cancel reqq wait
-	 * and free fcxp.
-	 */
+	
 	if (fcxp->reqq_waiting) {
 		fcxp->reqq_waiting = BFA_FALSE;
 		bfa_reqq_wcancel(&fcxp->reqq_wqe);
@@ -753,9 +624,7 @@ bfa_fcxp_discard(struct bfa_fcxp_s *fcxp)
 
 
 
-/**
- *  hal_fcxp_public BFA FCXP public functions
- */
+
 
 void
 bfa_fcxp_isr(struct bfa_s *bfa, struct bfi_msg_s *msg)

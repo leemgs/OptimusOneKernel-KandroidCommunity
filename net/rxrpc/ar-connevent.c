@@ -1,13 +1,4 @@
-/* connection-level event handling
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/net.h>
@@ -22,9 +13,7 @@
 #include <net/ip.h>
 #include "ar-internal.h"
 
-/*
- * pass a connection-level abort onto all calls on that connection
- */
+
 static void rxrpc_abort_calls(struct rxrpc_connection *conn, int state,
 			      u32 abort_code)
 {
@@ -54,9 +43,7 @@ static void rxrpc_abort_calls(struct rxrpc_connection *conn, int state,
 	_leave("");
 }
 
-/*
- * generate a connection-level abort
- */
+
 static int rxrpc_abort_connection(struct rxrpc_connection *conn,
 				  u32 error, u32 abort_code)
 {
@@ -69,7 +56,7 @@ static int rxrpc_abort_connection(struct rxrpc_connection *conn,
 
 	_enter("%d,,%u,%u", conn->debug_id, error, abort_code);
 
-	/* generate a connection-level abort */
+	
 	spin_lock_bh(&conn->state_lock);
 	if (conn->state < RXRPC_CONN_REMOTELY_ABORTED) {
 		conn->state = RXRPC_CONN_LOCALLY_ABORTED;
@@ -122,10 +109,7 @@ static int rxrpc_abort_connection(struct rxrpc_connection *conn,
 	return 0;
 }
 
-/*
- * mark a call as being on a now-secured channel
- * - must be called with softirqs disabled
- */
+
 static void rxrpc_call_is_secure(struct rxrpc_call *call)
 {
 	_enter("%p", call);
@@ -138,9 +122,7 @@ static void rxrpc_call_is_secure(struct rxrpc_call *call)
 	}
 }
 
-/*
- * connection-level Rx packet processor
- */
+
 static int rxrpc_process_event(struct rxrpc_connection *conn,
 			       struct sk_buff *skb,
 			       u32 *_abort_code)
@@ -208,9 +190,7 @@ static int rxrpc_process_event(struct rxrpc_connection *conn,
 	}
 }
 
-/*
- * set up security and issue a challenge
- */
+
 static void rxrpc_secure_connection(struct rxrpc_connection *conn)
 {
 	u32 abort_code;
@@ -252,9 +232,7 @@ abort:
 	_leave(" [aborted]");
 }
 
-/*
- * connection-level event processor
- */
+
 void rxrpc_process_connection(struct work_struct *work)
 {
 	struct rxrpc_connection *conn =
@@ -273,8 +251,7 @@ void rxrpc_process_connection(struct work_struct *work)
 		rxrpc_put_connection(conn);
 	}
 
-	/* go through the conn-level event packets, releasing the ref on this
-	 * connection that each one has when we've finished with it */
+	
 	while ((skb = skb_dequeue(&conn->rx_queue))) {
 		sp = rxrpc_skb(skb);
 
@@ -312,9 +289,7 @@ protocol_error:
 	goto out;
 }
 
-/*
- * put a packet up for transport-level abort
- */
+
 void rxrpc_reject_packet(struct rxrpc_local *local, struct sk_buff *skb)
 {
 	CHECK_SLAB_OKAY(&local->usage);
@@ -328,9 +303,7 @@ void rxrpc_reject_packet(struct rxrpc_local *local, struct sk_buff *skb)
 	rxrpc_queue_work(&local->rejecter);
 }
 
-/*
- * reject packets through the local endpoint
- */
+
 void rxrpc_reject_packets(struct work_struct *work)
 {
 	union {

@@ -1,25 +1,4 @@
-/*
- * Copyright © 2007-2008 Intel Corporation
- *   Jesse Barnes <jesse.barnes@intel.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
 #ifndef __DRM_EDID_H__
 #define __DRM_EDID_H__
 
@@ -34,16 +13,16 @@ struct est_timings {
 	u8 mfg_rsvd;
 } __attribute__((packed));
 
-/* 00=16:10, 01=4:3, 10=5:4, 11=16:9 */
+
 #define EDID_TIMING_ASPECT_SHIFT 6
 #define EDID_TIMING_ASPECT_MASK  (0x3 << EDID_TIMING_ASPECT_SHIFT)
 
-/* need to add 60 */
+
 #define EDID_TIMING_VFREQ_SHIFT  0
 #define EDID_TIMING_VFREQ_MASK   (0x3f << EDID_TIMING_VFREQ_SHIFT)
 
 struct std_timing {
-	u8 hsize; /* need to multiply by 8 then add 248 */
+	u8 hsize; 
 	u8 vfreq_aspect;
 } __attribute__((packed));
 
@@ -53,7 +32,7 @@ struct std_timing {
 #define DRM_EDID_PT_STEREO         (1 << 5)
 #define DRM_EDID_PT_INTERLACED     (1 << 7)
 
-/* If detailed data is pixel timing */
+
 struct detailed_pixel_timing {
 	u8 hactive_lo;
 	u8 hblank_lo;
@@ -73,7 +52,7 @@ struct detailed_pixel_timing {
 	u8 misc;
 } __attribute__((packed));
 
-/* If it's not pixel timing, it'll be one of the below */
+
 struct detailed_data_string {
 	u8 str[13];
 } __attribute__((packed));
@@ -83,20 +62,20 @@ struct detailed_data_monitor_range {
 	u8 max_vfreq;
 	u8 min_hfreq_khz;
 	u8 max_hfreq_khz;
-	u8 pixel_clock_mhz; /* need to multiply by 10 */
-	__le16 sec_gtf_toggle; /* A000=use above, 20=use below */
-	u8 hfreq_start_khz; /* need to multiply by 2 */
-	u8 c; /* need to divide by 2 */
+	u8 pixel_clock_mhz; 
+	__le16 sec_gtf_toggle; 
+	u8 hfreq_start_khz; 
+	u8 c; 
 	__le16 m;
 	u8 k;
-	u8 j; /* need to divide by 2 */
+	u8 j; 
 } __attribute__((packed));
 
 struct detailed_data_wpindex {
-	u8 white_yx_lo; /* Lower 2 bits each */
+	u8 white_yx_lo; 
 	u8 white_x_hi;
 	u8 white_y_hi;
-	u8 gamma; /* need to divide by 100 then add 1 */
+	u8 gamma; 
 } __attribute__((packed));
 
 struct detailed_data_color_point {
@@ -108,9 +87,7 @@ struct detailed_data_color_point {
 
 struct detailed_non_pixel {
 	u8 pad1;
-	u8 type; /* ff=serial, fe=string, fd=monitor range, fc=monitor name
-		    fb=color point data, fa=standard timing data,
-		    f9=undefined, f8=mfg. reserved */
+	u8 type; 
 	u8 pad2;
 	union {
 		struct detailed_data_string str;
@@ -128,7 +105,7 @@ struct detailed_non_pixel {
 #define EDID_DETAIL_MONITOR_SERIAL 0xff
 
 struct detailed_timing {
-	__le16 pixel_clock; /* need to multiply by 10 KHz */
+	__le16 pixel_clock; 
 	union {
 		struct detailed_pixel_timing pixel_data;
 		struct detailed_non_pixel other_data;
@@ -141,34 +118,34 @@ struct detailed_timing {
 #define DRM_EDID_INPUT_SEPARATE_SYNCS  (1 << 3)
 #define DRM_EDID_INPUT_BLANK_TO_BLACK  (1 << 4)
 #define DRM_EDID_INPUT_VIDEO_LEVEL     (3 << 5)
-#define DRM_EDID_INPUT_DIGITAL         (1 << 7) /* bits below must be zero if set */
+#define DRM_EDID_INPUT_DIGITAL         (1 << 7) 
 
 #define DRM_EDID_FEATURE_DEFAULT_GTF      (1 << 0)
 #define DRM_EDID_FEATURE_PREFERRED_TIMING (1 << 1)
 #define DRM_EDID_FEATURE_STANDARD_COLOR   (1 << 2)
-#define DRM_EDID_FEATURE_DISPLAY_TYPE     (3 << 3) /* 00=mono, 01=rgb, 10=non-rgb, 11=unknown */
+#define DRM_EDID_FEATURE_DISPLAY_TYPE     (3 << 3) 
 #define DRM_EDID_FEATURE_PM_ACTIVE_OFF    (1 << 5)
 #define DRM_EDID_FEATURE_PM_SUSPEND       (1 << 6)
 #define DRM_EDID_FEATURE_PM_STANDBY       (1 << 7)
 
 struct edid {
 	u8 header[8];
-	/* Vendor & product info */
+	
 	u8 mfg_id[2];
 	u8 prod_code[2];
-	u32 serial; /* FIXME: byte order */
+	u32 serial; 
 	u8 mfg_week;
 	u8 mfg_year;
-	/* EDID version */
+	
 	u8 version;
 	u8 revision;
-	/* Display info: */
+	
 	u8 input;
 	u8 width_cm;
 	u8 height_cm;
 	u8 gamma;
 	u8 features;
-	/* Color characteristics */
+	
 	u8 red_green_lo;
 	u8 black_white_lo;
 	u8 red_x;
@@ -179,18 +156,18 @@ struct edid {
 	u8 blue_y;
 	u8 white_x;
 	u8 white_y;
-	/* Est. timings and mfg rsvd timings*/
+	
 	struct est_timings established_timings;
-	/* Standard timings 1-8*/
+	
 	struct std_timing standard_timings[8];
-	/* Detailing timings 1-4 */
+	
 	struct detailed_timing detailed_timings[4];
-	/* Number of 128 byte ext. blocks */
+	
 	u8 extensions;
-	/* Checksum */
+	
 	u8 checksum;
 } __attribute__((packed));
 
 #define EDID_PRODUCT_ID(e) ((e)->prod_code[0] | ((e)->prod_code[1] << 8))
 
-#endif /* __DRM_EDID_H__ */
+#endif 

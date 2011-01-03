@@ -1,12 +1,4 @@
-/*
- * linux/arch/arm/mach-mmp/include/mach/regs-apmu.h
- *
- *   Application Subsystem Power Management Unit
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_MACH_REGS_APMU_H
 #define __ASM_MACH_REGS_APMU_H
@@ -16,7 +8,7 @@
 #define APMU_VIRT_BASE	(AXI_VIRT_BASE + 0x82800)
 #define APMU_REG(x)	(APMU_VIRT_BASE + (x))
 
-/* Clock Reset Control */
+
 #define APMU_IRE	APMU_REG(0x048)
 #define APMU_LCD	APMU_REG(0x04c)
 #define APMU_CCIC	APMU_REG(0x050)
@@ -33,4 +25,4 @@
 #define APMU_FNRST_DIS	(1 << 1)
 #define APMU_AXIRST_DIS	(1 << 0)
 
-#endif /* __ASM_MACH_REGS_APMU_H */
+#endif 

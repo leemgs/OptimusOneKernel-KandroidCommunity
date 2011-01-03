@@ -1,19 +1,6 @@
-/* 
-        aten.c  (c) 1997-8  Grant R. Guenther <grant@torque.net>
-                            Under the terms of the GNU General Public License.
 
-	aten.c is a low-level protocol driver for the ATEN EH-100
-	parallel port adapter.  The EH-100 supports 4-bit and 8-bit
-        modes only.  There is also an EH-132 which supports EPP mode
-        transfers.  The EH-132 is not yet supported.
 
-*/
 
-/* Changes:
-
-	1.01	GRG 1998.05.05	init_proto, release_proto
-
-*/
 
 #define ATEN_VERSION      "1.01"
 
@@ -29,9 +16,7 @@
 
 #define j44(a,b)                ((((a>>4)&0x0f)|(b&0xf0))^0x88)
 
-/* cont = 0 - access the IDE register file 
-   cont = 1 - access the IDE command set 
-*/
+
 
 static int  cont_map[2] = { 0x08, 0x20 };
 

@@ -1,25 +1,4 @@
-/*
- *	Linux NET3:	Multicast List maintenance.
- *
- *	Authors:
- *		Tim Kordas <tjk@nostromo.eeap.cwru.edu>
- *		Richard Underwood <richard@wuzz.demon.co.uk>
- *
- *	Stir fried together from the IP multicast and CAP patches above
- *		Alan Cox <alan@lxorguk.ukuu.org.uk>
- *
- *	Fixes:
- *		Alan Cox	:	Update the device on a real delete
- *					rather than any time but...
- *		Alan Cox	:	IFF_ALLMULTI support.
- *		Alan Cox	: 	New format set_multicast_list() calls.
- *		Gleb Natapov    :       Remove dev_mc_lock.
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <asm/uaccess.h>
@@ -49,24 +28,9 @@
 #include <net/arp.h>
 
 
-/*
- *	Device multicast list maintenance.
- *
- *	This is used both by IP and by the user level maintenance functions.
- *	Unlike BSD we maintain a usage count on a given multicast address so
- *	that a casual user application can add/delete multicasts used by
- *	protocols without doing damage to the protocols when it deletes the
- *	entries. It also helps IP as it tracks overlapping maps.
- *
- *	Device mc lists are changed by bh at least if IPv6 is enabled,
- *	so that it must be bh protected.
- *
- *	We block accesses to device mc filters with netif_tx_lock.
- */
 
-/*
- *	Delete a device level multicast
- */
+
+
 
 int dev_mc_delete(struct net_device *dev, void *addr, int alen, int glbl)
 {
@@ -76,10 +40,7 @@ int dev_mc_delete(struct net_device *dev, void *addr, int alen, int glbl)
 	err = __dev_addr_delete(&dev->mc_list, &dev->mc_count,
 				addr, alen, glbl);
 	if (!err) {
-		/*
-		 *	We have altered the list, so the card
-		 *	loaded filter is now wrong. Fix it
-		 */
+		
 
 		__dev_set_rx_mode(dev);
 	}
@@ -87,9 +48,7 @@ int dev_mc_delete(struct net_device *dev, void *addr, int alen, int glbl)
 	return err;
 }
 
-/*
- *	Add a device level multicast
- */
+
 
 int dev_mc_add(struct net_device *dev, void *addr, int alen, int glbl)
 {
@@ -103,18 +62,7 @@ int dev_mc_add(struct net_device *dev, void *addr, int alen, int glbl)
 	return err;
 }
 
-/**
- *	dev_mc_sync	- Synchronize device's multicast list to another device
- *	@to: destination device
- *	@from: source device
- *
- * 	Add newly added addresses to the destination device and release
- * 	addresses that have no users left. The source device must be
- * 	locked by netif_tx_lock_bh.
- *
- *	This function is intended to be called from the dev->set_multicast_list
- *	or dev->set_rx_mode function of layered software devices.
- */
+
 int dev_mc_sync(struct net_device *to, struct net_device *from)
 {
 	int err = 0;
@@ -131,16 +79,7 @@ int dev_mc_sync(struct net_device *to, struct net_device *from)
 EXPORT_SYMBOL(dev_mc_sync);
 
 
-/**
- * 	dev_mc_unsync	- Remove synchronized addresses from the destination
- * 			  device
- *	@to: destination device
- *	@from: source device
- *
- * 	Remove all addresses that were added to the destination device by
- * 	dev_mc_sync(). This function is intended to be called from the
- * 	dev->stop function of layered software devices.
- */
+
 void dev_mc_unsync(struct net_device *to, struct net_device *from)
 {
 	netif_addr_lock_bh(from);

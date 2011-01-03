@@ -1,22 +1,4 @@
-/*
- * trace_events_filter - generic event filtering
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) 2009 Tom Zanussi <tzanussi@gmail.com>
- */
+
 
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
@@ -190,7 +172,7 @@ static int filter_pred_or(struct filter_pred *pred __attribute((unused)),
 	return val1 || val2;
 }
 
-/* Filter predicate for fixed sized arrays of characters */
+
 static int filter_pred_string(struct filter_pred *pred, void *event,
 			      int val1, int val2)
 {
@@ -204,7 +186,7 @@ static int filter_pred_string(struct filter_pred *pred, void *event,
 	return match;
 }
 
-/* Filter predicate for char * pointers */
+
 static int filter_pred_pchar(struct filter_pred *pred, void *event,
 			     int val1, int val2)
 {
@@ -218,16 +200,7 @@ static int filter_pred_pchar(struct filter_pred *pred, void *event,
 	return match;
 }
 
-/*
- * Filter predicate for dynamic sized arrays of characters.
- * These are implemented through a list of strings at the end
- * of the entry.
- * Also each of these strings have a field in the entry which
- * contains its offset from the beginning of the entry.
- * We have then first to get this field, dereference it
- * and add it to the address of the entry, and at last we have
- * the address of the string.
- */
+
 static int filter_pred_strloc(struct filter_pred *pred, void *event,
 			      int val1, int val2)
 {
@@ -250,7 +223,7 @@ static int filter_pred_none(struct filter_pred *pred, void *event,
 	return 0;
 }
 
-/* return 1 if event matches, 0 otherwise (discard) */
+
 int filter_match_preds(struct ftrace_event_call *call, void *rec)
 {
 	struct event_filter *filter = call->filter;
@@ -1237,7 +1210,7 @@ int apply_subsystem_event_filter(struct event_subsystem *system,
 
 	filter_free_subsystem_preds(system, FILTER_INIT_NO_RESET);
 
-	/* try to see the filter can be applied to which events */
+	
 	err = replace_preds(system, NULL, ps, filter_string, true);
 	if (err) {
 		append_filter_err(ps, system->filter);
@@ -1246,7 +1219,7 @@ int apply_subsystem_event_filter(struct event_subsystem *system,
 
 	filter_free_subsystem_preds(system, FILTER_SKIP_NO_RESET);
 
-	/* really apply the filter to the events */
+	
 	err = replace_preds(system, NULL, ps, filter_string, false);
 	if (err) {
 		append_filter_err(ps, system->filter);

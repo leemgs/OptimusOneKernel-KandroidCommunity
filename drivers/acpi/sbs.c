@@ -1,28 +1,4 @@
-/*
- *  sbs.c - ACPI Smart Battery System Driver ($Revision: 2.0 $)
- *
- *  Copyright (c) 2007 Alexey Starikovskiy <astarikovskiy@suse.de>
- *  Copyright (c) 2005-2007 Vladimir Lebedev <vladimir.p.lebedev@intel.com>
- *  Copyright (c) 2005 Rich Townsend <rhdt@bartol.udel.edu>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -254,7 +230,7 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
 				acpi_battery_scale(battery) * 1000;
 		break;
 	case POWER_SUPPLY_PROP_TEMP:
-		val->intval = battery->temp_now - 2730;	// dK -> dC
+		val->intval = battery->temp_now - 2730;	
 		break;
 	case POWER_SUPPLY_PROP_MODEL_NAME:
 		val->strval = battery->device_name;
@@ -310,14 +286,12 @@ static enum power_supply_property sbs_energy_battery_props[] = {
 
 #endif
 
-/* --------------------------------------------------------------------------
-                            Smart Battery System Management
-   -------------------------------------------------------------------------- */
+
 
 struct acpi_battery_reader {
-	u8 command;		/* command for battery */
-	u8 mode;		/* word or block? */
-	size_t offset;		/* offset inside struct acpi_sbs_battery */
+	u8 command;		
+	u8 mode;		
+	size_t offset;		
 };
 
 static struct acpi_battery_reader info_readers[] = {
@@ -476,12 +450,10 @@ static struct device_attribute alarm_attr = {
 };
 #endif
 
-/* --------------------------------------------------------------------------
-                              FS Interface (/proc/acpi)
-   -------------------------------------------------------------------------- */
+
 
 #ifdef CONFIG_ACPI_PROCFS_POWER
-/* Generic Routines */
+
 static int
 acpi_sbs_add_fs(struct proc_dir_entry **dir,
 		struct proc_dir_entry *parent_dir,
@@ -497,17 +469,17 @@ acpi_sbs_add_fs(struct proc_dir_entry **dir,
 		}
 	}
 
-	/* 'info' [R] */
+	
 	if (info_fops)
 		proc_create_data(ACPI_SBS_FILE_INFO, S_IRUGO, *dir,
 				 info_fops, data);
 
-	/* 'state' [R] */
+	
 	if (state_fops)
 		proc_create_data(ACPI_SBS_FILE_STATE, S_IRUGO, *dir,
 				 state_fops, data);
 
-	/* 'alarm' [R/W] */
+	
 	if (alarm_fops)
 		proc_create_data(ACPI_SBS_FILE_ALARM, S_IRUGO, *dir,
 				 alarm_fops, data);
@@ -527,7 +499,7 @@ acpi_sbs_remove_fs(struct proc_dir_entry **dir,
 	}
 }
 
-/* Smart Battery Interface */
+
 static struct proc_dir_entry *acpi_battery_dir = NULL;
 
 static inline char *acpi_battery_units(struct acpi_battery *battery)
@@ -708,7 +680,7 @@ static const struct file_operations acpi_battery_alarm_fops = {
 	.owner = THIS_MODULE,
 };
 
-/* Legacy AC Adapter Interface */
+
 
 static struct proc_dir_entry *acpi_ac_dir = NULL;
 
@@ -741,9 +713,7 @@ static const struct file_operations acpi_ac_state_fops = {
 
 #endif
 
-/* --------------------------------------------------------------------------
-                                 Driver Interface
-   -------------------------------------------------------------------------- */
+
 static int acpi_battery_read(struct acpi_battery *battery)
 {
 	int result = 0, saved_present = battery->present;
@@ -773,7 +743,7 @@ static int acpi_battery_read(struct acpi_battery *battery)
 	return result;
 }
 
-/* Smart Battery */
+
 static int acpi_battery_add(struct acpi_sbs *sbs, int id)
 {
 	struct acpi_battery *battery = &sbs->battery[id];

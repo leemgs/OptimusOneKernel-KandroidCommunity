@@ -1,27 +1,4 @@
-/*
- *  acpi_drivers.h  ($Revision: 31 $)
- *
- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or (at
- *  your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 
 #ifndef __ACPI_DRIVERS_H__
 #define __ACPI_DRIVERS_H__
@@ -31,10 +8,7 @@
 
 #define ACPI_MAX_STRING			80
 
-/*
- * Please update drivers/acpi/debug.c and Documentation/acpi/debug.txt
- * if you add to this list.
- */
+
 #define ACPI_BUS_COMPONENT		0x00010000
 #define ACPI_AC_COMPONENT		0x00020000
 #define ACPI_BATTERY_COMPONENT		0x00040000
@@ -50,11 +24,7 @@
 #define ACPI_VIDEO_COMPONENT		0x10000000
 #define ACPI_PROCESSOR_COMPONENT	0x20000000
 
-/*
- * _HID definitions
- * HIDs must conform to ACPI spec(6.1.4)
- * Linux specific HIDs do not apply to this and begin with LNX:
- */
+
 
 #define ACPI_POWER_HID			"LNXPOWER"
 #define ACPI_PROCESSOR_OBJECT_HID	"LNXCPU"
@@ -66,48 +36,37 @@
 #define ACPI_BAY_HID			"LNXIOBAY"
 #define ACPI_DOCK_HID			"LNXDOCK"
 
-/*
- * For fixed hardware buttons, we fabricate acpi_devices with HID
- * ACPI_BUTTON_HID_POWERF or ACPI_BUTTON_HID_SLEEPF.  Fixed hardware
- * signals only an event; it doesn't supply a notification value.
- * To allow drivers to treat notifications from fixed hardware the
- * same as those from real devices, we turn the events into this
- * notification value.
- */
+
 #define ACPI_FIXED_HARDWARE_EVENT	0x100
 
-/* --------------------------------------------------------------------------
-                                       PCI
-   -------------------------------------------------------------------------- */
 
 
-/* ACPI PCI Interrupt Link (pci_link.c) */
+
+
 
 int acpi_irq_penalty_init(void);
 int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
 			       int *polarity, char **name);
 int acpi_pci_link_free_irq(acpi_handle handle);
 
-/* ACPI PCI Interrupt Routing (pci_irq.c) */
+
 
 int acpi_pci_irq_add_prt(acpi_handle handle, struct pci_bus *bus);
 void acpi_pci_irq_del_prt(struct pci_bus *bus);
 
-/* ACPI PCI Device Binding (pci_bind.c) */
+
 
 struct pci_bus;
 
 struct pci_dev *acpi_get_pci_dev(acpi_handle);
 int acpi_pci_bind_root(struct acpi_device *device);
 
-/* Arch-defined function to add a bus to the system */
+
 
 struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
 				   int bus);
 
-/* --------------------------------------------------------------------------
-                                    Processor
-   -------------------------------------------------------------------------- */
+
 
 #define ACPI_PROCESSOR_LIMIT_NONE	0x00
 #define ACPI_PROCESSOR_LIMIT_INCREMENT	0x01
@@ -115,9 +74,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
 
 int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
 
-/*--------------------------------------------------------------------------
-                                  Dock Station
-  -------------------------------------------------------------------------- */
+
 struct acpi_dock_ops {
 	acpi_notify_handler handler;
 	acpi_notify_handler uevent;
@@ -154,4 +111,4 @@ static inline void unregister_hotplug_dock_device(acpi_handle handle)
 }
 #endif
 
-#endif /*__ACPI_DRIVERS_H__*/
+#endif 

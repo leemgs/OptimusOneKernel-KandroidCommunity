@@ -1,21 +1,4 @@
-/*
- * platform device definitions for the iop3xx dma/xor engines
- * Copyright © 2006, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
+
 #include <linux/platform_device.h>
 #include <asm/hardware/iop3xx.h>
 #include <linux/dma-mapping.h>
@@ -48,7 +31,7 @@
 #define IRQ_AA_EOC IRQ_IOP33X_AA_EOC
 #define IRQ_AA_ERR IRQ_IOP33X_AA_ERR
 #endif
-/* AAU and DMA Channels */
+
 static struct resource iop3xx_dma_0_resources[] = {
 	[0] = {
 		.start = IOP3XX_DMA_PHYS_BASE(0),
@@ -174,7 +157,7 @@ struct platform_device iop3xx_aau_channel = {
 
 static int __init iop3xx_adma_cap_init(void)
 {
-	#ifdef CONFIG_ARCH_IOP32X /* the 32x DMA does not perform CRC32C */
+	#ifdef CONFIG_ARCH_IOP32X 
 	dma_cap_set(DMA_MEMCPY, iop3xx_dma_0_data.cap_mask);
 	dma_cap_set(DMA_INTERRUPT, iop3xx_dma_0_data.cap_mask);
 	#else
@@ -182,7 +165,7 @@ static int __init iop3xx_adma_cap_init(void)
 	dma_cap_set(DMA_INTERRUPT, iop3xx_dma_0_data.cap_mask);
 	#endif
 
-	#ifdef CONFIG_ARCH_IOP32X /* the 32x DMA does not perform CRC32C */
+	#ifdef CONFIG_ARCH_IOP32X 
 	dma_cap_set(DMA_MEMCPY, iop3xx_dma_1_data.cap_mask);
 	dma_cap_set(DMA_INTERRUPT, iop3xx_dma_1_data.cap_mask);
 	#else
@@ -190,7 +173,7 @@ static int __init iop3xx_adma_cap_init(void)
 	dma_cap_set(DMA_INTERRUPT, iop3xx_dma_1_data.cap_mask);
 	#endif
 
-	#ifdef CONFIG_ARCH_IOP32X /* the 32x AAU does not perform zero sum */
+	#ifdef CONFIG_ARCH_IOP32X 
 	dma_cap_set(DMA_XOR, iop3xx_aau_data.cap_mask);
 	dma_cap_set(DMA_MEMSET, iop3xx_aau_data.cap_mask);
 	dma_cap_set(DMA_INTERRUPT, iop3xx_aau_data.cap_mask);

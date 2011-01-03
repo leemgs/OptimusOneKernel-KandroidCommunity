@@ -1,12 +1,4 @@
-/*
- * Copyright 2002-2005, Instant802 Networks, Inc.
- * Copyright 2005-2006, Devicescape Software, Inc.
- * Copyright 2006-2007	Jiri Benc <jbenc@suse.cz>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <net/mac80211.h>
 #include <net/ieee80211_radiotap.h>
@@ -37,10 +29,7 @@
 #include "debugfs.h"
 #include "debugfs_netdev.h"
 
-/*
- * For seeing transmitted packets on monitor interfaces
- * we have a radiotap header too.
- */
+
 struct ieee80211_tx_status_rtap_hdr {
 	struct ieee80211_radiotap_header hdr;
 	u8 rate;
@@ -86,7 +75,7 @@ void ieee80211_configure_filter(struct ieee80211_local *local)
 	mc = drv_prepare_multicast(local, local->mc_count, local->mc_list);
 	spin_unlock_bh(&local->filter_lock);
 
-	/* be a bit nasty */
+	
 	new_flags |= (1<<31);
 
 	drv_configure_filter(local, changed_flags, &new_flags, mc);
@@ -147,21 +136,8 @@ int ieee80211_hw_config(struct ieee80211_local *local, u32 changed)
 
 	if (changed && local->open_count) {
 		ret = drv_config(local, changed);
-		/*
-		 * Goal:
-		 * HW reconfiguration should never fail, the driver has told
-		 * us what it can support so it should live up to that promise.
-		 *
-		 * Current status:
-		 * rfkill is not integrated with mac80211 and a
-		 * configuration command can thus fail if hardware rfkill
-		 * is enabled
-		 *
-		 * FIXME: integrate rfkill with mac80211 and then add this
-		 * WARN_ON() back
-		 *
-		 */
-		/* WARN_ON(ret); */
+		
+		
 	}
 
 	return ret;
@@ -177,11 +153,7 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 		return;
 
 	if (sdata->vif.type == NL80211_IFTYPE_STATION) {
-		/*
-		 * While not associated, claim a BSSID of all-zeroes
-		 * so that drivers don't do any weird things with the
-		 * BSSID at that time.
-		 */
+		
 		if (sdata->vif.bss_conf.assoc)
 			sdata->vif.bss_conf.bssid = sdata->u.mgd.bssid;
 		else
@@ -203,7 +175,7 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 	case NL80211_IFTYPE_MESH_POINT:
 		break;
 	default:
-		/* do not warn to simplify caller in scan.c */
+		
 		changed &= ~BSS_CHANGED_BEACON_ENABLED;
 		if (WARN_ON(changed & BSS_CHANGED_BEACON))
 			return;
@@ -215,10 +187,7 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 		    test_bit(SCAN_SW_SCANNING, &local->scanning)) {
 			sdata->vif.bss_conf.enable_beacon = false;
 		} else {
-			/*
-			 * Beacon should be enabled, but AP mode must
-			 * check whether there is a beacon configured.
-			 */
+			
 			switch (sdata->vif.type) {
 			case NL80211_IFTYPE_AP:
 				sdata->vif.bss_conf.enable_beacon =
@@ -232,7 +201,7 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 				sdata->vif.bss_conf.enable_beacon = true;
 				break;
 			default:
-				/* not reached */
+				
 				WARN_ON(1);
 				break;
 			}
@@ -285,8 +254,7 @@ static void ieee80211_tasklet_handler(unsigned long data)
 	       (skb = skb_dequeue(&local->skb_queue_unreliable))) {
 		switch (skb->pkt_type) {
 		case IEEE80211_RX_MSG:
-			/* Clear skb->pkt_type in order to not confuse kernel
-			 * netstack. */
+			
 			skb->pkt_type = 0;
 			ieee80211_rx(local_to_hw(local), skb);
 			break;
@@ -321,70 +289,15 @@ static void ieee80211_handle_filtered_frame(struct ieee80211_local *local,
 {
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
 
-	/*
-	 * XXX: This is temporary!
-	 *
-	 *	The problem here is that when we get here, the driver will
-	 *	quite likely have pretty much overwritten info->control by
-	 *	using info->driver_data or info->rate_driver_data. Thus,
-	 *	when passing out the frame to the driver again, we would be
-	 *	passing completely bogus data since the driver would then
-	 *	expect a properly filled info->control. In mac80211 itself
-	 *	the same problem occurs, since we need info->control.vif
-	 *	internally.
-	 *
-	 *	To fix this, we should send the frame through TX processing
-	 *	again. However, it's not that simple, since the frame will
-	 *	have been software-encrypted (if applicable) already, and
-	 *	encrypting it again doesn't do much good. So to properly do
-	 *	that, we not only have to skip the actual 'raw' encryption
-	 *	(key selection etc. still has to be done!) but also the
-	 *	sequence number assignment since that impacts the crypto
-	 *	encapsulation, of course.
-	 *
-	 *	Hence, for now, fix the bug by just dropping the frame.
-	 */
+	
 	goto drop;
 
 	sta->tx_filtered_count++;
 
-	/*
-	 * Clear the TX filter mask for this STA when sending the next
-	 * packet. If the STA went to power save mode, this will happen
-	 * when it wakes up for the next time.
-	 */
+	
 	set_sta_flags(sta, WLAN_STA_CLEAR_PS_FILT);
 
-	/*
-	 * This code races in the following way:
-	 *
-	 *  (1) STA sends frame indicating it will go to sleep and does so
-	 *  (2) hardware/firmware adds STA to filter list, passes frame up
-	 *  (3) hardware/firmware processes TX fifo and suppresses a frame
-	 *  (4) we get TX status before having processed the frame and
-	 *	knowing that the STA has gone to sleep.
-	 *
-	 * This is actually quite unlikely even when both those events are
-	 * processed from interrupts coming in quickly after one another or
-	 * even at the same time because we queue both TX status events and
-	 * RX frames to be processed by a tasklet and process them in the
-	 * same order that they were received or TX status last. Hence, there
-	 * is no race as long as the frame RX is processed before the next TX
-	 * status, which drivers can ensure, see below.
-	 *
-	 * Note that this can only happen if the hardware or firmware can
-	 * actually add STAs to the filter list, if this is done by the
-	 * driver in response to set_tim() (which will only reduce the race
-	 * this whole filtering tries to solve, not completely solve it)
-	 * this situation cannot happen.
-	 *
-	 * To completely solve this race drivers need to make sure that they
-	 *  (a) don't mix the irq-safe/not irq-safe TX status/RX processing
-	 *	functions and
-	 *  (b) always process RX events before TX status events if ordering
-	 *      can be unknown, for example with different interrupt status
-	 *	bits.
-	 */
+	
 	if (test_sta_flags(sta, WLAN_STA_PS) &&
 	    skb_queue_len(&sta->tx_filtered) < STA_MAX_TX_BUFFER) {
 		skb_queue_tail(&sta->tx_filtered, skb);
@@ -393,7 +306,7 @@ static void ieee80211_handle_filtered_frame(struct ieee80211_local *local,
 
 	if (!test_sta_flags(sta, WLAN_STA_PS) &&
 	    !(info->flags & IEEE80211_TX_INTFL_RETRIED)) {
-		/* Software retry the packet once */
+		
 		info->flags |= IEEE80211_TX_INTFL_RETRIED;
 		ieee80211_add_pending_skb(local, skb);
 		return;
@@ -427,7 +340,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 	int retry_count = -1, i;
 
 	for (i = 0; i < IEEE80211_TX_MAX_RATES; i++) {
-		/* the HW cannot have attempted that rate */
+		
 		if (i >= hw->max_rates) {
 			info->status.rates[i].idx = -1;
 			info->status.rates[i].count = 0;
@@ -447,10 +360,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 	if (sta) {
 		if (!(info->flags & IEEE80211_TX_STAT_ACK) &&
 		    test_sta_flags(sta, WLAN_STA_PS)) {
-			/*
-			 * The STA is in power save mode, so assume
-			 * that this TX packet failed because of that.
-			 */
+			
 			ieee80211_handle_filtered_frame(local, sta, skb);
 			rcu_read_unlock();
 			return;
@@ -490,10 +400,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 
 	ieee80211_led_tx(local, 0);
 
-	/* SNMP counters
-	 * Fragments are passed to low-level drivers as separate skbs, so these
-	 * are actually fragments, not frames. Update frame counters only for
-	 * the first fragment of the frame. */
+	
 
 	frag = le16_to_cpu(hdr->seq_ctrl) & IEEE80211_SCTL_FRAG;
 	type = le16_to_cpu(hdr->frame_control) & IEEE80211_FCTL_FTYPE;
@@ -509,10 +416,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 				local->dot11MultipleRetryCount++;
 		}
 
-		/* This counter shall be incremented for an acknowledged MPDU
-		 * with an individual address in the address 1 field or an MPDU
-		 * with a multicast address in the address 1 field of type Data
-		 * or Management. */
+		
 		if (!is_multicast_ether_addr(hdr->addr1) ||
 		    type == IEEE80211_FTYPE_DATA ||
 		    type == IEEE80211_FTYPE_MGMT)
@@ -522,19 +426,16 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 			local->dot11FailedCount++;
 	}
 
-	/* this was a transmitted frame, but now we want to reuse it */
+	
 	skb_orphan(skb);
 
-	/*
-	 * This is a bit racy but we can avoid a lot of work
-	 * with this test...
-	 */
+	
 	if (!local->monitors && !local->cooked_mntrs) {
 		dev_kfree_skb(skb);
 		return;
 	}
 
-	/* send frame to monitor interfaces now */
+	
 
 	if (skb_headroom(skb) < sizeof(*rthdr)) {
 		printk(KERN_ERR "ieee80211_tx_status: headroom too small\n");
@@ -556,11 +457,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 	    !is_multicast_ether_addr(hdr->addr1))
 		rthdr->tx_flags |= cpu_to_le16(IEEE80211_RADIOTAP_F_TX_FAIL);
 
-	/*
-	 * XXX: Once radiotap gets the bitmap reset thing the vendor
-	 *	extensions proposal contains, we can actually report
-	 *	the whole set of tries we did.
-	 */
+	
 	if ((info->status.rates[0].flags & IEEE80211_TX_RC_USE_RTS_CTS) ||
 	    (info->status.rates[0].flags & IEEE80211_TX_RC_USE_CTS_PROTECT))
 		rthdr->tx_flags |= cpu_to_le16(IEEE80211_RADIOTAP_F_TX_CTS);
@@ -571,10 +468,10 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 		rthdr->rate = sband->bitrates[
 				info->status.rates[0].idx].bitrate / 5;
 
-	/* for now report the total retry_count */
+	
 	rthdr->data_retries = retry_count;
 
-	/* XXX: is this sufficient for BPF? */
+	
 	skb_set_mac_header(skb, 0);
 	skb->ip_summed = CHECKSUM_UNNECESSARY;
 	skb->pkt_type = PACKET_OTHERHOST;
@@ -622,7 +519,7 @@ void ieee80211_restart_hw(struct ieee80211_hw *hw)
 {
 	struct ieee80211_local *local = hw_to_local(hw);
 
-	/* use this reason, __ieee80211_resume will unblock it */
+	
 	ieee80211_stop_queues_by_reason(hw,
 		IEEE80211_QUEUE_STOP_REASON_SUSPEND);
 
@@ -637,21 +534,7 @@ struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 	int priv_size, i;
 	struct wiphy *wiphy;
 
-	/* Ensure 32-byte alignment of our private data and hw private data.
-	 * We use the wiphy priv data for both our ieee80211_local and for
-	 * the driver's private data
-	 *
-	 * In memory it'll be like this:
-	 *
-	 * +-------------------------+
-	 * | struct wiphy	    |
-	 * +-------------------------+
-	 * | struct ieee80211_local  |
-	 * +-------------------------+
-	 * | driver's private data   |
-	 * +-------------------------+
-	 *
-	 */
+	
 	priv_size = ALIGN(sizeof(*local), NETDEV_ALIGN) + priv_data_len;
 
 	wiphy = wiphy_new(&mac80211_config_ops, priv_size);
@@ -662,7 +545,7 @@ struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 	wiphy->netnsok = true;
 	wiphy->privid = mac80211_wiphy_privid;
 
-	/* Yes, putting cfg80211_bss into ieee80211_bss is a hack */
+	
 	wiphy->bss_priv_size = sizeof(struct ieee80211_bss) -
 			       sizeof(struct cfg80211_bss);
 
@@ -681,7 +564,7 @@ struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 	BUG_ON(!ops->configure_filter);
 	local->ops = ops;
 
-	/* set up some defaults */
+	
 	local->hw.queues = 1;
 	local->hw.max_rates = 1;
 	local->hw.conf.long_frame_max_tx_count = wiphy->retry_long;
@@ -742,15 +625,11 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 		WLAN_CIPHER_SUITE_TKIP,
 		WLAN_CIPHER_SUITE_CCMP,
 
-		/* keep last -- depends on hw flags! */
+		
 		WLAN_CIPHER_SUITE_AES_CMAC
 	};
 
-	/*
-	 * generic code guarantees at least one band,
-	 * set this very early because much code assumes
-	 * that hw.conf.channel is assigned
-	 */
+	
 	channels = 0;
 	max_bitrates = 0;
 	supp_ht = false;
@@ -761,7 +640,7 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 		if (!sband)
 			continue;
 		if (!local->oper_channel) {
-			/* init channel we're on */
+			
 			local->hw.conf.channel =
 			local->oper_channel = &sband->channels[0];
 			local->hw.conf.channel_type = NL80211_CHAN_NO_HT;
@@ -778,11 +657,11 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 	if (!local->int_scan_req)
 		return -ENOMEM;
 
-	/* if low-level driver supports AP, we also support VLAN */
+	
 	if (local->hw.wiphy->interface_modes & BIT(NL80211_IFTYPE_AP))
 		local->hw.wiphy->interface_modes |= BIT(NL80211_IFTYPE_AP_VLAN);
 
-	/* mac80211 always supports monitor */
+	
 	local->hw.wiphy->interface_modes |= BIT(NL80211_IFTYPE_MONITOR);
 
 	if (local->hw.flags & IEEE80211_HW_SIGNAL_DBM)
@@ -790,29 +669,18 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 	else if (local->hw.flags & IEEE80211_HW_SIGNAL_UNSPEC)
 		local->hw.wiphy->signal_type = CFG80211_SIGNAL_TYPE_UNSPEC;
 
-	/*
-	 * Calculate scan IE length -- we need this to alloc
-	 * memory and to subtract from the driver limit. It
-	 * includes the (extended) supported rates and HT
-	 * information -- SSID is the driver's responsibility.
-	 */
-	local->scan_ies_len = 4 + max_bitrates; /* (ext) supp rates */
+	
+	local->scan_ies_len = 4 + max_bitrates; 
 	if (supp_ht)
 		local->scan_ies_len += 2 + sizeof(struct ieee80211_ht_cap);
 
 	if (!local->ops->hw_scan) {
-		/* For hw_scan, driver needs to set these up. */
+		
 		local->hw.wiphy->max_scan_ssids = 4;
 		local->hw.wiphy->max_scan_ie_len = IEEE80211_MAX_DATA_LEN;
 	}
 
-	/*
-	 * If the driver supports any scan IEs, then assume the
-	 * limit includes the IEs mac80211 will add, otherwise
-	 * leave it at zero and let the driver sort it out; we
-	 * still pass our IEs to the driver but userspace will
-	 * not be allowed to in that case.
-	 */
+	
 	if (local->hw.wiphy->max_scan_ie_len)
 		local->hw.wiphy->max_scan_ie_len -= local->scan_ies_len;
 
@@ -825,10 +693,7 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 	if (result < 0)
 		goto fail_wiphy_register;
 
-	/*
-	 * We use the number of queues for feature tests (QoS, HT) internally
-	 * so restrict them appropriately.
-	 */
+	
 	if (hw->queues > IEEE80211_MAX_QUEUES)
 		hw->queues = IEEE80211_MAX_QUEUES;
 
@@ -839,11 +704,7 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 		goto fail_workqueue;
 	}
 
-	/*
-	 * The hardware needs headroom for sending the frame,
-	 * and we need some headroom for passing the frame to monitor
-	 * interfaces, but never both at the same time.
-	 */
+	
 	local->tx_headroom = max_t(unsigned int , local->hw.extra_tx_headroom,
 				   sizeof(struct ieee80211_tx_status_rtap_hdr));
 
@@ -875,7 +736,7 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 		goto fail_rate;
 	}
 
-	/* add one default STA interface if supported */
+	
 	if (local->hw.wiphy->interface_modes & BIT(NL80211_IFTYPE_STATION)) {
 		result = ieee80211_if_add(local, "wlan%d", NULL,
 					  NL80211_IFTYPE_STATION, NULL);
@@ -888,7 +749,7 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 
 	ieee80211_led_init(local);
 
-	/* alloc internal scan request */
+	
 	i = 0;
 	local->int_scan_req->ssids = &local->scan_ssid;
 	local->int_scan_req->n_ssids = 1;
@@ -945,11 +806,7 @@ void ieee80211_unregister_hw(struct ieee80211_hw *hw)
 
 	rtnl_lock();
 
-	/*
-	 * At this point, interface list manipulations are fine
-	 * because the driver cannot be handing us frames any
-	 * more and the tasklet is killed.
-	 */
+	
 	ieee80211_remove_interfaces(local);
 
 	rtnl_unlock();
@@ -1014,10 +871,7 @@ static void __exit ieee80211_exit(void)
 	rc80211_pid_exit();
 	rc80211_minstrel_exit();
 
-	/*
-	 * For key todo, it'll be empty by now but the work
-	 * might still be scheduled.
-	 */
+	
 	flush_scheduled_work();
 
 	if (mesh_allocated)

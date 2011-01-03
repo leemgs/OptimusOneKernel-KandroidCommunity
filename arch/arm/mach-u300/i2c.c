@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-u300/i2c.c
- *
- * Copyright (C) 2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- *
- * Register board i2c devices
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 #include <linux/kernel.h>
 #include <linux/i2c.h>
 #include <mach/irqs.h>

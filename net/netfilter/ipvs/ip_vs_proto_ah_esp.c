@@ -1,14 +1,4 @@
-/*
- * ip_vs_proto_ah_esp.c:	AH/ESP IPSec load balancing support for IPVS
- *
- * Authors:	Julian Anastasov <ja@ssi.bg>, February 2002
- *		Wensong Zhang <wensong@linuxvirtualserver.org>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		version 2 as published by the Free Software Foundation;
- *
- */
+
 
 #define KMSG_COMPONENT "IPVS"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -23,20 +13,7 @@
 #include <net/ip_vs.h>
 
 
-/* TODO:
 
-struct isakmp_hdr {
-	__u8		icookie[8];
-	__u8		rcookie[8];
-	__u8		np;
-	__u8		version;
-	__u8		xchgtype;
-	__u8		flags;
-	__u32		msgid;
-	__u32		length;
-};
-
-*/
 
 #define PORT_ISAKMP	500
 
@@ -63,10 +40,7 @@ ah_esp_conn_in_get(int af, const struct sk_buff *skb, struct ip_vs_protocol *pp,
 	}
 
 	if (!cp) {
-		/*
-		 * We are not sure if the packet is from our
-		 * service, so our conn_schedule hook should return NF_ACCEPT
-		 */
+		
 		IP_VS_DBG_BUF(12, "Unknown ISAKMP entry for outin packet "
 			      "%s%s %s->%s\n",
 			      inverse ? "ICMP+" : "",
@@ -119,9 +93,7 @@ static int
 ah_esp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
 		     int *verdict, struct ip_vs_conn **cpp)
 {
-	/*
-	 * AH/ESP is only related traffic. Pass the packet to IP stack.
-	 */
+	
 	*verdict = NF_ACCEPT;
 	return 0;
 }
@@ -178,13 +150,13 @@ ah_esp_debug_packet(struct ip_vs_protocol *pp, const struct sk_buff *skb,
 
 static void ah_esp_init(struct ip_vs_protocol *pp)
 {
-	/* nothing to do now */
+	
 }
 
 
 static void ah_esp_exit(struct ip_vs_protocol *pp)
 {
-	/* nothing to do now */
+	
 }
 
 
@@ -207,7 +179,7 @@ struct ip_vs_protocol ip_vs_protocol_ah = {
 	.unregister_app =	NULL,
 	.app_conn_bind =	NULL,
 	.debug_packet =		ah_esp_debug_packet,
-	.timeout_change =	NULL,		/* ISAKMP */
+	.timeout_change =	NULL,		
 	.set_state_timeout =	NULL,
 };
 #endif
@@ -231,6 +203,6 @@ struct ip_vs_protocol ip_vs_protocol_esp = {
 	.unregister_app =	NULL,
 	.app_conn_bind =	NULL,
 	.debug_packet =		ah_esp_debug_packet,
-	.timeout_change =	NULL,		/* ISAKMP */
+	.timeout_change =	NULL,		
 };
 #endif

@@ -1,17 +1,4 @@
-/*
- * xfrm_state.c
- *
- * Changes:
- *	Mitsuru KANDA @USAGI
- * 	Kazunori MIYAZAWA @USAGI
- * 	Kunihiro Ishiguro <kunihiro@ipinfusion.com>
- * 		IPv6 support
- * 	YOSHIFUJI Hideaki @USAGI
- * 		Split up af-specific functions
- *	Derek Atkins <derek@ihtfp.com>
- *		Add UDP Encapsulation
- *
- */
+
 
 #include <linux/workqueue.h>
 #include <net/xfrm.h>
@@ -24,12 +11,7 @@
 
 #include "xfrm_hash.h"
 
-/* Each xfrm_state may be linked to two tables:
 
-   1. Hash table by (spi,daddr,ah/esp) to find SA by SPI. (input,ctl)
-   2. Hash table by (daddr,family,reqid) to find what SAs exist for given
-      destination/tunnel endpoint. (output)
- */
 
 static DEFINE_SPINLOCK(xfrm_state_lock);
 
@@ -44,7 +26,7 @@ static void xfrm_audit_state_replay(struct xfrm_state *x,
 				    struct sk_buff *skb, __be32 net_seq);
 #else
 #define xfrm_audit_state_replay(x, s, sq)	do { ; } while (0)
-#endif /* CONFIG_AUDITSYSCALL */
+#endif 
 
 static inline unsigned int xfrm_dst_hash(struct net *net,
 					 xfrm_address_t *daddr,
@@ -539,10 +521,7 @@ int __xfrm_state_delete(struct xfrm_state *x)
 		net->xfrm.state_num--;
 		spin_unlock(&xfrm_state_lock);
 
-		/* All xfrm_state objects are created by xfrm_state_alloc.
-		 * The xfrm_state_alloc call gives a reference, and that
-		 * is what we are dropping here.
-		 */
+		
 		xfrm_state_put(x);
 		err = 0;
 	}
@@ -727,17 +706,7 @@ static void xfrm_state_look_at(struct xfrm_policy *pol, struct xfrm_state *x,
 			       struct xfrm_state **best, int *acq_in_progress,
 			       int *error)
 {
-	/* Resolution logic:
-	 * 1. There is a valid state with matching selector. Done.
-	 * 2. Valid state with inappropriate selector. Skip.
-	 *
-	 * Entering area of "sysdeps".
-	 *
-	 * 3. If state is not valid, selector is temporary, it selects
-	 *    only session which triggered previous resolution. Key
-	 *    manager will do something to install a state with proper
-	 *    selector.
-	 */
+	
 	if (x->km.state == XFRM_STATE_VALID) {
 		if ((x->sel.family &&
 		     !xfrm_selector_match(&x->sel, fl, x->sel.family)) ||
@@ -820,8 +789,7 @@ found:
 			error = -ENOMEM;
 			goto out;
 		}
-		/* Initialize temporary selector matching only
-		 * to current session. */
+		
 		xfrm_init_tempsel(x, fl, tmpl, daddr, saddr, family);
 
 		error = security_xfrm_state_alloc_acquire(x, pol->security, fl->secid);
@@ -932,7 +900,7 @@ static void __xfrm_state_insert(struct xfrm_state *x)
 	xfrm_hash_grow_check(net, x->bydst.next != NULL);
 }
 
-/* xfrm_state_lock is held */
+
 static void __xfrm_state_bump_genids(struct xfrm_state *xnew)
 {
 	struct net *net = xs_net(xnew);
@@ -961,7 +929,7 @@ void xfrm_state_insert(struct xfrm_state *x)
 }
 EXPORT_SYMBOL(xfrm_state_insert);
 
-/* xfrm_state_lock is held */
+
 static struct xfrm_state *__find_acq_core(struct net *net, unsigned short family, u8 mode, u32 reqid, u8 proto, xfrm_address_t *daddr, xfrm_address_t *saddr, int create)
 {
 	unsigned int h = xfrm_dst_hash(net, daddr, saddr, reqid, family);
@@ -1169,7 +1137,7 @@ static struct xfrm_state *xfrm_state_clone(struct xfrm_state *orig, int *errp)
 	return NULL;
 }
 
-/* xfrm_state_lock is held */
+
 struct xfrm_state * xfrm_migrate_state_find(struct xfrm_migrate *m)
 {
 	unsigned int h;
@@ -1227,10 +1195,9 @@ struct xfrm_state * xfrm_state_migrate(struct xfrm_state *x,
 	memcpy(&xc->id.daddr, &m->new_daddr, sizeof(xc->id.daddr));
 	memcpy(&xc->props.saddr, &m->new_saddr, sizeof(xc->props.saddr));
 
-	/* add state */
+	
 	if (!xfrm_addr_cmp(&x->id.daddr, &m->new_daddr, m->new_family)) {
-		/* a care is needed when the destination address of the
-		   state is to be updated as it is a part of triplet */
+		
 		xfrm_state_insert(xc);
 	} else {
 		if ((err = xfrm_state_add(xc)) < 0)
@@ -1419,7 +1386,7 @@ xfrm_state_sort(struct xfrm_state **dst, struct xfrm_state **src, int n,
 EXPORT_SYMBOL(xfrm_state_sort);
 #endif
 
-/* Silly enough, but I'm lazy to build resolution list */
+
 
 static struct xfrm_state *__xfrm_find_acq_byseq(struct net *net, u32 seq)
 {
@@ -1582,15 +1549,7 @@ EXPORT_SYMBOL(xfrm_state_walk_done);
 void xfrm_replay_notify(struct xfrm_state *x, int event)
 {
 	struct km_event c;
-	/* we send notify messages in case
-	 *  1. we updated on of the sequence numbers, and the seqno difference
-	 *     is at least x->replay_maxdiff, in this case we also update the
-	 *     timeout of our timer function
-	 *  2. if x->replay_maxage has elapsed since last update,
-	 *     and there were changes
-	 *
-	 *  The state structure must be locked!
-	 */
+	
 
 	switch (event) {
 	case XFRM_REPLAY_UPDATE:
@@ -1735,10 +1694,7 @@ void km_state_expired(struct xfrm_state *x, int hard, u32 pid)
 }
 
 EXPORT_SYMBOL(km_state_expired);
-/*
- * We send to all registered managers regardless of failure
- * We are happy with one success
-*/
+
 int km_query(struct xfrm_state *x, struct xfrm_tmpl *t, struct xfrm_policy *pol)
 {
 	int err = -EINVAL, acqret;
@@ -1941,7 +1897,7 @@ static void xfrm_state_put_afinfo(struct xfrm_state_afinfo *afinfo)
 	read_unlock(&xfrm_state_afinfo_lock);
 }
 
-/* Temporarily located here until net/xfrm/xfrm_tunnel.c is created */
+
 void xfrm_state_delete_tunnel(struct xfrm_state *x)
 {
 	if (x->tunnel) {
@@ -2197,8 +2153,7 @@ void xfrm_audit_state_replay_overflow(struct xfrm_state *x,
 	if (audit_buf == NULL)
 		return;
 	xfrm_audit_helper_pktinfo(skb, x->props.family, audit_buf);
-	/* don't record the sequence number because it's inherent in this kind
-	 * of audit message */
+	
 	spi = ntohl(x->id.spi);
 	audit_log_format(audit_buf, " spi=%u(0x%x)", spi, spi);
 	audit_log_end(audit_buf);
@@ -2269,4 +2224,4 @@ void xfrm_audit_state_icvfail(struct xfrm_state *x,
 	audit_log_end(audit_buf);
 }
 EXPORT_SYMBOL_GPL(xfrm_audit_state_icvfail);
-#endif /* CONFIG_AUDITSYSCALL */
+#endif 

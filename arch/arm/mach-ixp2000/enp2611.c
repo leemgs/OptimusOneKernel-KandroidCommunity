@@ -1,22 +1,4 @@
-/*
- * arch/arm/mach-ixp2000/enp2611.c
- *
- * Radisys ENP-2611 support.
- *
- * Created 2004 by Lennert Buytenhek from the ixdp2x01 code.  The
- * original version carries the following notices:
- *
- * Original Author: Andrzej Mialkowski <andrzej.mialkowski@intel.com>
- * Maintainer: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright (C) 2002-2003 Intel Corp.
- * Copyright (C) 2003-2004 MontaVista Software, Inc.
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -48,9 +30,7 @@
 #include <asm/mach/arch.h>
 #include <asm/mach/flash.h>
 
-/*************************************************************************
- * ENP-2611 timer tick configuration
- *************************************************************************/
+
 static void __init enp2611_timer_init(void)
 {
 	ixp2000_init_time(50 * 1000 * 1000);
@@ -62,9 +42,7 @@ static struct sys_timer enp2611_timer = {
 };
 
 
-/*************************************************************************
- * ENP-2611 I/O
- *************************************************************************/
+
 static struct map_desc enp2611_io_desc[] __initdata = {
 	{
 		.virtual	= ENP2611_CALEB_VIRT_BASE,
@@ -91,9 +69,7 @@ void __init enp2611_map_io(void)
 }
 
 
-/*************************************************************************
- * ENP-2611 PCI
- *************************************************************************/
+
 static int enp2611_pci_setup(int nr, struct pci_sys_data *sys)
 {
 	sys->mem_offset = 0xe0000000;
@@ -111,9 +87,7 @@ static void __init enp2611_pci_preinit(void)
 static inline int enp2611_pci_valid_device(struct pci_bus *bus,
 						unsigned int devfn)
 {
-	/* The 82559 ethernet controller appears at both PCI:1:0:0 and
-	 * PCI:1:2:0, so let's pretend the second one isn't there.
-	 */
+	
 	if (bus->number == 0x01 && devfn == 0x10)
 		return 0;
 
@@ -154,19 +128,19 @@ static int __init enp2611_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 	int irq;
 
 	if (dev->bus->number == 0 && PCI_SLOT(dev->devfn) == 0) {
-		/* IXP2400. */
+		
 		irq = IRQ_IXP2000_PCIA;
 	} else if (dev->bus->number == 0 && PCI_SLOT(dev->devfn) == 1) {
-		/* 21555 non-transparent bridge.  */
+		
 		irq = IRQ_IXP2000_PCIB;
 	} else if (dev->bus->number == 0 && PCI_SLOT(dev->devfn) == 4) {
-		/* PCI2050B transparent bridge.  */
+		
 		irq = -1;
 	} else if (dev->bus->number == 1 && PCI_SLOT(dev->devfn) == 0) {
-		/* 82559 ethernet.  */
+		
 		irq = IRQ_IXP2000_PCIA;
 	} else if (dev->bus->number == 1 && PCI_SLOT(dev->devfn) == 1) {
-		/* SPI-3 option board.  */
+		
 		irq = IRQ_IXP2000_PCIB;
 	} else {
 		printk(KERN_ERR "enp2611_pci_map_irq() called for unknown "
@@ -197,9 +171,7 @@ int __init enp2611_pci_init(void)
 subsys_initcall(enp2611_pci_init);
 
 
-/*************************************************************************
- * ENP-2611 Machine Initialization
- *************************************************************************/
+
 static struct flash_platform_data enp2611_flash_platform_data = {
 	.map_name	= "cfi_probe",
 	.width		= 1,
@@ -253,7 +225,7 @@ static void __init enp2611_init_machine(void)
 
 
 MACHINE_START(ENP2611, "Radisys ENP-2611 PCI network processor board")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+	
 	.phys_io	= IXP2000_UART_PHYS_BASE,
 	.io_pg_offst	= ((IXP2000_UART_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

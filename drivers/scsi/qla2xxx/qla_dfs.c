@@ -1,9 +1,4 @@
-/*
- * QLogic Fibre Channel HBA Driver
- * Copyright (c)  2003-2008 QLogic Corporation
- *
- * See LICENSE.qla2xxx for copyright and licensing details.
- */
+
 #include "qla_def.h"
 
 #include <linux/debugfs.h>
@@ -61,7 +56,7 @@ qla2x00_dfs_fce_open(struct inode *inode, struct file *file)
 
 	mutex_lock(&ha->fce_mutex);
 
-	/* Pause tracing to flush FCE buffers. */
+	
 	rval = qla2x00_disable_fce_trace(vha, &ha->fce_wr, &ha->fce_rd);
 	if (rval)
 		qla_printk(KERN_WARNING, ha,
@@ -86,7 +81,7 @@ qla2x00_dfs_fce_release(struct inode *inode, struct file *file)
 
 	mutex_lock(&ha->fce_mutex);
 
-	/* Re-enable FCE tracing. */
+	
 	ha->flags.fce_enabled = 1;
 	memset(ha->fce, 0, fce_calc_size(ha->fce_bufs));
 	rval = qla2x00_enable_fce_trace(vha, ha->fce_dma, ha->fce_bufs,

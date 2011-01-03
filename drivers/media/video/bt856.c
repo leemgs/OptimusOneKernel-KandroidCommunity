@@ -1,32 +1,4 @@
-/*
- * bt856 - BT856A Digital Video Encoder (Rockwell Part)
- *
- * Copyright (C) 1999 Mike Bernson <mike@mlb.org>
- * Copyright (C) 1998 Dave Perks <dperks@ibm.net>
- *
- * Modifications for LML33/DC10plus unified driver
- * Copyright (C) 2000 Serguei Miridonov <mirsev@cicese.mx>
- *
- * This code was modify/ported from the saa7111 driver written
- * by Dave Perks.
- *
- * Changes by Ronald Bultje <rbultje@ronald.bitfreak.net>
- *   - moved over to linux>=2.4.x i2c protocol (9/9/2002)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -48,7 +20,7 @@ module_param(debug, int, 0);
 MODULE_PARM_DESC(debug, "Debug level (0-1)");
 
 
-/* ----------------------------------------------------------------------- */
+
 
 #define BT856_REG_OFFSET	0xDA
 #define BT856_NR_REG		6
@@ -65,7 +37,7 @@ static inline struct bt856 *to_bt856(struct v4l2_subdev *sd)
 	return container_of(sd, struct bt856, sd);
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static inline int bt856_write(struct bt856 *encoder, u8 reg, u8 value)
 {
@@ -92,20 +64,20 @@ static void bt856_dump(struct bt856 *encoder)
 	printk(KERN_CONT "\n");
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static int bt856_init(struct v4l2_subdev *sd, u32 arg)
 {
 	struct bt856 *encoder = to_bt856(sd);
 
-	/* This is just for testing!!! */
+	
 	v4l2_dbg(1, debug, sd, "init\n");
 	bt856_write(encoder, 0xdc, 0x18);
 	bt856_write(encoder, 0xda, 0);
 	bt856_write(encoder, 0xde, 0);
 
 	bt856_setbit(encoder, 0xdc, 3, 1);
-	/*bt856_setbit(encoder, 0xdc, 6, 0);*/
+	
 	bt856_setbit(encoder, 0xdc, 4, 1);
 
 	if (encoder->norm & V4L2_STD_NTSC)
@@ -132,7 +104,7 @@ static int bt856_s_std_output(struct v4l2_subdev *sd, v4l2_std_id std)
 	} else if (std & V4L2_STD_PAL) {
 		bt856_setbit(encoder, 0xdc, 2, 1);
 		bt856_setbit(encoder, 0xda, 0, 0);
-		/*bt856_setbit(encoder, 0xda, 0, 1);*/
+		
 	} else {
 		return -EINVAL;
 	}
@@ -149,9 +121,7 @@ static int bt856_s_routing(struct v4l2_subdev *sd,
 
 	v4l2_dbg(1, debug, sd, "set input %d\n", input);
 
-	/* We only have video bus.
-	 * input= 0: input is from bt819
-	 * input= 1: input is from ZR36060 */
+	
 	switch (input) {
 	case 0:
 		bt856_setbit(encoder, 0xde, 4, 0);
@@ -165,7 +135,7 @@ static int bt856_s_routing(struct v4l2_subdev *sd,
 		bt856_setbit(encoder, 0xdc, 3, 1);
 		bt856_setbit(encoder, 0xdc, 6, 1);
 		break;
-	case 2:	/* Color bar */
+	case 2:	
 		bt856_setbit(encoder, 0xdc, 3, 0);
 		bt856_setbit(encoder, 0xde, 4, 1);
 		break;
@@ -185,7 +155,7 @@ static int bt856_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident
 	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_BT856, 0);
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct v4l2_subdev_core_ops bt856_core_ops = {
 	.g_chip_ident = bt856_g_chip_ident,
@@ -202,7 +172,7 @@ static const struct v4l2_subdev_ops bt856_ops = {
 	.video = &bt856_video_ops,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static int bt856_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
@@ -210,7 +180,7 @@ static int bt856_probe(struct i2c_client *client,
 	struct bt856 *encoder;
 	struct v4l2_subdev *sd;
 
-	/* Check if the adapter supports the needed features */
+	
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
@@ -229,7 +199,7 @@ static int bt856_probe(struct i2c_client *client,
 	bt856_write(encoder, 0xde, 0);
 
 	bt856_setbit(encoder, 0xdc, 3, 1);
-	/*bt856_setbit(encoder, 0xdc, 6, 0);*/
+	
 	bt856_setbit(encoder, 0xdc, 4, 1);
 
 	if (encoder->norm & V4L2_STD_NTSC)

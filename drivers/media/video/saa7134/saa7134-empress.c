@@ -1,21 +1,4 @@
-/*
- *
- * (c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/list.h>
@@ -32,7 +15,7 @@
 #include <media/v4l2-common.h>
 #include <media/v4l2-chip-ident.h>
 
-/* ------------------------------------------------------------------ */
+
 
 MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
 MODULE_LICENSE("GPL");
@@ -49,7 +32,7 @@ MODULE_PARM_DESC(debug,"enable debug messages");
 #define dprintk(fmt, arg...)	if (debug)			\
 	printk(KERN_DEBUG "%s/empress: " fmt, dev->name , ## arg)
 
-/* ------------------------------------------------------------------ */
+
 
 static void ts_reset_encoder(struct saa7134_dev* dev)
 {
@@ -67,8 +50,7 @@ static int ts_init_encoder(struct saa7134_dev* dev)
 {
 	u32 leading_null_bytes = 0;
 
-	/* If more cards start to need this, then this
-	   should probably be added to the card definitions. */
+	
 	switch (dev->board) {
 	case SAA7134_BOARD_BEHOLD_M6:
 	case SAA7134_BOARD_BEHOLD_M63:
@@ -82,7 +64,7 @@ static int ts_init_encoder(struct saa7134_dev* dev)
 	return 0;
 }
 
-/* ------------------------------------------------------------------ */
+
 
 static int ts_open(struct file *file)
 {
@@ -105,7 +87,7 @@ static int ts_open(struct file *file)
 	if (atomic_read(&dev->empress_users))
 		goto done_up;
 
-	/* Unmute audio */
+	
 	saa_writeb(SAA7134_AUDIO_MUTE_CTRL,
 		saa_readb(SAA7134_AUDIO_MUTE_CTRL) & ~(1 << 6));
 
@@ -127,10 +109,10 @@ static int ts_release(struct file *file)
 	videobuf_stop(&dev->empress_tsq);
 	videobuf_mmap_free(&dev->empress_tsq);
 
-	/* stop the encoder */
+	
 	ts_reset_encoder(dev);
 
-	/* Mute audio */
+	
 	saa_writeb(SAA7134_AUDIO_MUTE_CTRL,
 		saa_readb(SAA7134_AUDIO_MUTE_CTRL) | (1 << 6));
 
@@ -169,11 +151,7 @@ ts_mmap(struct file *file, struct vm_area_struct * vma)
 	return videobuf_mmap_mapper(&dev->empress_tsq, vma);
 }
 
-/*
- * This function is _not_ called directly, but from
- * video_generic_ioctl (and maybe others).  userspace
- * copying is done already, arg is a kernel pointer.
- */
+
 
 static int empress_querycap(struct file *file, void  *priv,
 					struct v4l2_capability *cap)
@@ -320,8 +298,7 @@ static int empress_s_ext_ctrls(struct file *file, void *priv,
 	struct saa7134_dev *dev = file->private_data;
 	int err;
 
-	/* count == 0 is abused in saa6752hs.c, so that special
-		case is handled here explicitly. */
+	
 	if (ctrls->count == 0)
 		return 0;
 
@@ -363,7 +340,7 @@ static int empress_s_ctrl(struct file *file, void *priv,
 static int empress_queryctrl(struct file *file, void *priv,
 					struct v4l2_queryctrl *c)
 {
-	/* Must be sorted from low to high control ID! */
+	
 	static const u32 user_ctrls[] = {
 		V4L2_CID_USER_CLASS,
 		V4L2_CID_BRIGHTNESS,
@@ -376,7 +353,7 @@ static int empress_queryctrl(struct file *file, void *priv,
 		0
 	};
 
-	/* Must be sorted from low to high control ID! */
+	
 	static const u32 mpeg_ctrls[] = {
 		V4L2_CID_MPEG_CLASS,
 		V4L2_CID_MPEG_STREAM_TYPE,
@@ -484,7 +461,7 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
 	.vidioc_g_std			= empress_g_std,
 };
 
-/* ----------------------------------------------------------- */
+
 
 static struct video_device saa7134_empress_template = {
 	.name          = "saa7134-empress",
@@ -586,9 +563,5 @@ static void __exit empress_unregister(void)
 module_init(empress_register);
 module_exit(empress_unregister);
 
-/* ----------------------------------------------------------- */
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+
+

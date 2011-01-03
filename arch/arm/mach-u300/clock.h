@@ -1,18 +1,4 @@
-/*
- * arch/arm/mach-u300/include/mach/clock.h
- *
- * Copyright (C) 2004 - 2005 Nokia corporation
- * Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
- * Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
- * Copyright (C) 2007-2009 ST-Ericsson AB
- * Adopted to ST-Ericsson U300 platforms by
- * Jonas Aaberg <jonas.aberg@stericsson.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #ifndef __MACH_CLOCK_H
 #define __MACH_CLOCK_H

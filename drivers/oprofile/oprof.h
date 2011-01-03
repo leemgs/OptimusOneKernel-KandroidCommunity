@@ -1,11 +1,4 @@
-/**
- * @file oprof.h
- *
- * @remark Copyright 2002 OProfile authors
- * @remark Read the file COPYING
- *
- * @author John Levon <levon@movementarian.org>
- */
+
 
 #ifndef OPROF_H
 #define OPROF_H
@@ -39,4 +32,4 @@ void oprofile_timer_init(struct oprofile_operations *ops);
 int oprofile_set_backtrace(unsigned long depth);
 int oprofile_set_timeout(unsigned long time);
 
-#endif /* OPROF_H */
+#endif 

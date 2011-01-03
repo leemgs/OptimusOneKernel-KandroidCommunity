@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-mv78xx0/common.c
- *
- * Core functions for Marvell MV78xx0 SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -28,16 +20,12 @@
 #include "common.h"
 
 
-/*****************************************************************************
- * Common bits
- ****************************************************************************/
+
 int mv78xx0_core_index(void)
 {
 	u32 extra;
 
-	/*
-	 * Read Extra Features register.
-	 */
+	
 	__asm__("mrc p15, 1, %0, c15, c1, 0" : "=r" (extra));
 
 	return !!(extra & 0x00004000);
@@ -47,9 +35,7 @@ static int get_hclk(void)
 {
 	int hclk;
 
-	/*
-	 * HCLK tick rate is configured by DEV_D[7:5] pins.
-	 */
+	
 	switch ((readl(SAMPLE_AT_RESET_LOW) >> 5) & 7) {
 	case 0:
 		hclk = 166666667;
@@ -78,26 +64,17 @@ static void get_pclk_l2clk(int hclk, int core_index, int *pclk, int *l2clk)
 {
 	u32 cfg;
 
-	/*
-	 * Core #0 PCLK/L2CLK is configured by bits [13:8], core #1
-	 * PCLK/L2CLK by bits [19:14].
-	 */
+	
 	if (core_index == 0) {
 		cfg = (readl(SAMPLE_AT_RESET_LOW) >> 8) & 0x3f;
 	} else {
 		cfg = (readl(SAMPLE_AT_RESET_LOW) >> 14) & 0x3f;
 	}
 
-	/*
-	 * Bits [11:8] ([17:14] for core #1) configure the PCLK:HCLK
-	 * ratio (1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6).
-	 */
+	
 	*pclk = ((u64)hclk * (2 + (cfg & 0xf))) >> 1;
 
-	/*
-	 * Bits [13:12] ([19:18] for core #1) configure the PCLK:L2CLK
-	 * ratio (1, 2, 3).
-	 */
+	
 	*l2clk = *pclk / (((cfg >> 4) & 3) + 1);
 }
 
@@ -105,9 +82,7 @@ static int get_tclk(void)
 {
 	int tclk;
 
-	/*
-	 * TCLK tick rate is configured by DEV_A[2:0] strap pins.
-	 */
+	
 	switch ((readl(SAMPLE_AT_RESET_HIGH) >> 6) & 7) {
 	case 1:
 		tclk = 166666667;
@@ -124,9 +99,7 @@ static int get_tclk(void)
 }
 
 
-/*****************************************************************************
- * I/O Address Mapping
- ****************************************************************************/
+
 static struct map_desc mv78xx0_io_desc[] __initdata = {
 	{
 		.virtual	= MV78XX0_CORE_REGS_VIRT_BASE,
@@ -150,10 +123,7 @@ void __init mv78xx0_map_io(void)
 {
 	unsigned long phys;
 
-	/*
-	 * Map the right set of per-core registers depending on
-	 * which core we are running on.
-	 */
+	
 	if (mv78xx0_core_index() == 0) {
 		phys = MV78XX0_CORE0_REGS_PHYS_BASE;
 	} else {
@@ -165,9 +135,7 @@ void __init mv78xx0_map_io(void)
 }
 
 
-/*****************************************************************************
- * EHCI
- ****************************************************************************/
+
 static struct orion_ehci_data mv78xx0_ehci_data = {
 	.dram		= &mv78xx0_mbus_dram_info,
 	.phy_version	= EHCI_PHY_NA,
@@ -176,9 +144,7 @@ static struct orion_ehci_data mv78xx0_ehci_data = {
 static u64 ehci_dmamask = 0xffffffffUL;
 
 
-/*****************************************************************************
- * EHCI0
- ****************************************************************************/
+
 static struct resource mv78xx0_ehci0_resources[] = {
 	{
 		.start	= USB0_PHYS_BASE,
@@ -209,9 +175,7 @@ void __init mv78xx0_ehci0_init(void)
 }
 
 
-/*****************************************************************************
- * EHCI1
- ****************************************************************************/
+
 static struct resource mv78xx0_ehci1_resources[] = {
 	{
 		.start	= USB1_PHYS_BASE,
@@ -242,9 +206,7 @@ void __init mv78xx0_ehci1_init(void)
 }
 
 
-/*****************************************************************************
- * EHCI2
- ****************************************************************************/
+
 static struct resource mv78xx0_ehci2_resources[] = {
 	{
 		.start	= USB2_PHYS_BASE,
@@ -275,9 +237,7 @@ void __init mv78xx0_ehci2_init(void)
 }
 
 
-/*****************************************************************************
- * GE00
- ****************************************************************************/
+
 struct mv643xx_eth_shared_platform_data mv78xx0_ge00_shared_data = {
 	.t_clk		= 0,
 	.dram		= &mv78xx0_mbus_dram_info,
@@ -336,9 +296,7 @@ void __init mv78xx0_ge00_init(struct mv643xx_eth_platform_data *eth_data)
 }
 
 
-/*****************************************************************************
- * GE01
- ****************************************************************************/
+
 struct mv643xx_eth_shared_platform_data mv78xx0_ge01_shared_data = {
 	.t_clk		= 0,
 	.dram		= &mv78xx0_mbus_dram_info,
@@ -393,9 +351,7 @@ void __init mv78xx0_ge01_init(struct mv643xx_eth_platform_data *eth_data)
 }
 
 
-/*****************************************************************************
- * GE10
- ****************************************************************************/
+
 struct mv643xx_eth_shared_platform_data mv78xx0_ge10_shared_data = {
 	.t_clk		= 0,
 	.dram		= &mv78xx0_mbus_dram_info,
@@ -447,10 +403,7 @@ void __init mv78xx0_ge10_init(struct mv643xx_eth_platform_data *eth_data)
 	eth_data->shared = &mv78xx0_ge10_shared;
 	mv78xx0_ge10.dev.platform_data = eth_data;
 
-	/*
-	 * On the Z0, ge10 and ge11 are internally connected back
-	 * to back, and not brought out.
-	 */
+	
 	mv78xx0_pcie_id(&dev, &rev);
 	if (dev == MV78X00_Z0_DEV_ID) {
 		eth_data->phy_addr = MV643XX_ETH_PHY_NONE;
@@ -463,9 +416,7 @@ void __init mv78xx0_ge10_init(struct mv643xx_eth_platform_data *eth_data)
 }
 
 
-/*****************************************************************************
- * GE11
- ****************************************************************************/
+
 struct mv643xx_eth_shared_platform_data mv78xx0_ge11_shared_data = {
 	.t_clk		= 0,
 	.dram		= &mv78xx0_mbus_dram_info,
@@ -517,10 +468,7 @@ void __init mv78xx0_ge11_init(struct mv643xx_eth_platform_data *eth_data)
 	eth_data->shared = &mv78xx0_ge11_shared;
 	mv78xx0_ge11.dev.platform_data = eth_data;
 
-	/*
-	 * On the Z0, ge10 and ge11 are internally connected back
-	 * to back, and not brought out.
-	 */
+	
 	mv78xx0_pcie_id(&dev, &rev);
 	if (dev == MV78X00_Z0_DEV_ID) {
 		eth_data->phy_addr = MV643XX_ETH_PHY_NONE;
@@ -532,14 +480,12 @@ void __init mv78xx0_ge11_init(struct mv643xx_eth_platform_data *eth_data)
 	platform_device_register(&mv78xx0_ge11);
 }
 
-/*****************************************************************************
- * I2C bus 0
- ****************************************************************************/
+
 
 static struct mv64xxx_i2c_pdata mv78xx0_i2c_0_pdata = {
-	.freq_m		= 8, /* assumes 166 MHz TCLK */
+	.freq_m		= 8, 
 	.freq_n		= 3,
-	.timeout	= 1000, /* Default timeout of 1 second */
+	.timeout	= 1000, 
 };
 
 static struct resource mv78xx0_i2c_0_resources[] = {
@@ -565,14 +511,12 @@ static struct platform_device mv78xx0_i2c_0 = {
 	},
 };
 
-/*****************************************************************************
- * I2C bus 1
- ****************************************************************************/
+
 
 static struct mv64xxx_i2c_pdata mv78xx0_i2c_1_pdata = {
-	.freq_m		= 8, /* assumes 166 MHz TCLK */
+	.freq_m		= 8, 
 	.freq_n		= 3,
-	.timeout	= 1000, /* Default timeout of 1 second */
+	.timeout	= 1000, 
 };
 
 static struct resource mv78xx0_i2c_1_resources[] = {
@@ -604,9 +548,7 @@ void __init mv78xx0_i2c_init(void)
 	platform_device_register(&mv78xx0_i2c_1);
 }
 
-/*****************************************************************************
- * SATA
- ****************************************************************************/
+
 static struct resource mv78xx0_sata_resources[] = {
 	{
 		.name	= "sata base",
@@ -639,9 +581,7 @@ void __init mv78xx0_sata_init(struct mv_sata_platform_data *sata_data)
 }
 
 
-/*****************************************************************************
- * UART0
- ****************************************************************************/
+
 static struct plat_serial8250_port mv78xx0_uart0_data[] = {
 	{
 		.mapbase	= UART0_PHYS_BASE,
@@ -683,9 +623,7 @@ void __init mv78xx0_uart0_init(void)
 }
 
 
-/*****************************************************************************
- * UART1
- ****************************************************************************/
+
 static struct plat_serial8250_port mv78xx0_uart1_data[] = {
 	{
 		.mapbase	= UART1_PHYS_BASE,
@@ -727,9 +665,7 @@ void __init mv78xx0_uart1_init(void)
 }
 
 
-/*****************************************************************************
- * UART2
- ****************************************************************************/
+
 static struct plat_serial8250_port mv78xx0_uart2_data[] = {
 	{
 		.mapbase	= UART2_PHYS_BASE,
@@ -771,9 +707,7 @@ void __init mv78xx0_uart2_init(void)
 }
 
 
-/*****************************************************************************
- * UART3
- ****************************************************************************/
+
 static struct plat_serial8250_port mv78xx0_uart3_data[] = {
 	{
 		.mapbase	= UART3_PHYS_BASE,
@@ -815,9 +749,7 @@ void __init mv78xx0_uart3_init(void)
 }
 
 
-/*****************************************************************************
- * Time handling
- ****************************************************************************/
+
 static void mv78xx0_timer_init(void)
 {
 	orion_time_init(IRQ_MV78XX0_TIMER_1, get_tclk());
@@ -828,9 +760,7 @@ struct sys_timer mv78xx0_timer = {
 };
 
 
-/*****************************************************************************
- * General
- ****************************************************************************/
+
 static char * __init mv78xx0_id(void)
 {
 	u32 dev, rev;

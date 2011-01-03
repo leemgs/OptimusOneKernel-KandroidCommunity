@@ -1,12 +1,4 @@
-/*
- * arch/arm/mach-orion5x/mpp.c
- *
- * MPP functions for Marvell Orion 5x SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -124,7 +116,7 @@ void __init orion5x_mpp_conf(struct orion5x_mpp_mode *mode)
 	u32 mpp_8_15_ctrl = readl(MPP_8_15_CTRL);
 	u32 mpp_16_19_ctrl = readl(MPP_16_19_CTRL);
 
-	/* Initialize gpiolib. */
+	
 	orion_gpio_init();
 
 	while (mode->mpp >= 0) {

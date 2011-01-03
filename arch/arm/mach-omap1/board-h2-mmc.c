@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-h2-mmc.c
- *
- * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
- * Author: Felipe Balbi <felipe.lima@indt.org.br>
- *
- * This code is based on linux/arch/arm/mach-omap2/board-n800-mmc.c, which is:
- * Copyright (C) 2006 Nokia Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/platform_device.h>
 
@@ -46,11 +34,7 @@ static void mmc_cleanup(struct device *dev)
 	gpio_free(H2_TPS_GPIO_MMC_PWR_EN);
 }
 
-/*
- * H2 could use the following functions tested:
- * - mmc_get_cover_state that uses OMAP_MPUIO(1)
- * - mmc_get_wp that uses OMAP_MPUIO(3)
- */
+
 static struct omap_mmc_platform_data mmc1_data = {
 	.nr_slots                       = 1,
 	.init				= mmc_late_init,

@@ -1,28 +1,11 @@
-/*
- * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Juergen Beisert, kernel@pengutronix.de
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #ifndef __ARCH_ARM_MACH_MX2_CRM_REGS_H__
 #define __ARCH_ARM_MACH_MX2_CRM_REGS_H__
 
 #include <mach/hardware.h>
 
-/* Register offsets */
+
 #define CCM_CSCR                (IO_ADDRESS(CCM_BASE_ADDR) + 0x0)
 #define CCM_MPCTL0              (IO_ADDRESS(CCM_BASE_ADDR) + 0x4)
 #define CCM_MPCTL1              (IO_ADDRESS(CCM_BASE_ADDR) + 0x8)
@@ -252,7 +235,7 @@
 #define CCM_CCSR_CLKOSEL_OFFSET 0
 #define CCM_CCSR_CLKOSEL_MASK   0x1f
 
-#define SYS_FMCR                0x14	/*  Functional Muxing Control Reg */
-#define SYS_CHIP_ID             0x00	/* The offset of CHIP ID register */
+#define SYS_FMCR                0x14	
+#define SYS_CHIP_ID             0x00	
 
-#endif /* __ARCH_ARM_MACH_MX2_CRM_REGS_H__ */
+#endif 

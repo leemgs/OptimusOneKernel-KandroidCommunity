@@ -1,14 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/leds-badge4.c
- *
- * Author: Christopher Hoover <ch@hpl.hp.com>
- * Copyright (C) 2002 Hewlett-Packard Company
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/init.h>
 
@@ -67,7 +57,7 @@ void badge4_leds_event(led_event_t evt)
 
 #ifdef CONFIG_LEDS_CPU
         case led_idle_start:
-		/* LED off when system is idle */
+		
                 if (!(led_state & LED_STATE_CLAIMED))
                         hw_led_state &= ~LED_IDLE;
                 break;

@@ -1,19 +1,4 @@
-/*
- * Hardware definitions for Palm Tungsten|E2
- *
- * Author:
- *	Carlos Eduardo Medaglia Dyonisio <cadu@nerdfeliz.com>
- *
- * Rewrite for mainline:
- *	Marek Vasut <marek.vasut@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * (find more info at www.hackndev.com)
- *
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/delay.h>
@@ -43,36 +28,34 @@
 #include "generic.h"
 #include "devices.h"
 
-/******************************************************************************
- * Pin configuration
- ******************************************************************************/
+
 static unsigned long palmte2_pin_config[] __initdata = {
-	/* MMC */
+	
 	GPIO6_MMC_CLK,
 	GPIO8_MMC_CS0,
-	GPIO10_GPIO,	/* SD detect */
-	GPIO55_GPIO,	/* SD power */
-	GPIO51_GPIO,	/* SD r/o switch */
+	GPIO10_GPIO,	
+	GPIO55_GPIO,	
+	GPIO51_GPIO,	
 
-	/* AC97 */
+	
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
 	GPIO30_AC97_SDATA_OUT,
 	GPIO31_AC97_SYNC,
 
-	/* PWM */
+	
 	GPIO16_PWM0_OUT,
 
-	/* USB */
-	GPIO15_GPIO,	/* usb detect */
-	GPIO53_GPIO,	/* usb power */
+	
+	GPIO15_GPIO,	
+	GPIO53_GPIO,	
 
-	/* IrDA */
-	GPIO48_GPIO,	/* ir disable */
+	
+	GPIO48_GPIO,	
 	GPIO46_FICP_RXD,
 	GPIO47_FICP_TXD,
 
-	/* LCD */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -94,29 +77,27 @@ static unsigned long palmte2_pin_config[] __initdata = {
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
 
-	/* GPIO KEYS */
-	GPIO5_GPIO,	/* notes */
-	GPIO7_GPIO,	/* tasks */
-	GPIO11_GPIO,	/* calendar */
-	GPIO13_GPIO,	/* contacts */
-	GPIO14_GPIO,	/* center */
-	GPIO19_GPIO,	/* left */
-	GPIO20_GPIO,	/* right */
-	GPIO21_GPIO,	/* down */
-	GPIO22_GPIO,	/* up */
+	
+	GPIO5_GPIO,	
+	GPIO7_GPIO,	
+	GPIO11_GPIO,	
+	GPIO13_GPIO,	
+	GPIO14_GPIO,	
+	GPIO19_GPIO,	
+	GPIO20_GPIO,	
+	GPIO21_GPIO,	
+	GPIO22_GPIO,	
 
-	/* MISC */
-	GPIO1_RST,	/* reset */
-	GPIO4_GPIO,	/* Hotsync button */
-	GPIO9_GPIO,	/* power detect */
-	GPIO15_GPIO,	/* earphone detect */
-	GPIO37_GPIO,	/* LCD power */
-	GPIO56_GPIO,	/* Backlight power */
+	
+	GPIO1_RST,	
+	GPIO4_GPIO,	
+	GPIO9_GPIO,	
+	GPIO15_GPIO,	
+	GPIO37_GPIO,	
+	GPIO56_GPIO,	
 };
 
-/******************************************************************************
- * SD/MMC card controller
- ******************************************************************************/
+
 static struct pxamci_platform_data palmte2_mci_platform_data = {
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO_NR_PALMTE2_SD_DETECT_N,
@@ -124,9 +105,7 @@ static struct pxamci_platform_data palmte2_mci_platform_data = {
 	.gpio_power		= GPIO_NR_PALMTE2_SD_POWER,
 };
 
-/******************************************************************************
- * GPIO keys
- ******************************************************************************/
+
 static struct gpio_keys_button palmte2_pxa_buttons[] = {
 	{KEY_F1,	GPIO_NR_PALMTE2_KEY_CONTACTS,	1, "Contacts" },
 	{KEY_F2,	GPIO_NR_PALMTE2_KEY_CALENDAR,	1, "Calendar" },
@@ -152,9 +131,7 @@ static struct platform_device palmte2_pxa_keys = {
 	},
 };
 
-/******************************************************************************
- * Backlight
- ******************************************************************************/
+
 static int palmte2_backlight_init(struct device *dev)
 {
 	int ret;
@@ -212,17 +189,13 @@ static struct platform_device palmte2_backlight = {
 	},
 };
 
-/******************************************************************************
- * IrDA
- ******************************************************************************/
+
 static struct pxaficp_platform_data palmte2_ficp_platform_data = {
 	.gpio_pwdown		= GPIO_NR_PALMTE2_IR_DISABLE,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
-/******************************************************************************
- * UDC
- ******************************************************************************/
+
 static struct gpio_vbus_mach_info palmte2_udc_info = {
 	.gpio_vbus		= GPIO_NR_PALMTE2_USB_DETECT_N,
 	.gpio_vbus_inverted	= 1,
@@ -237,9 +210,7 @@ static struct platform_device palmte2_gpio_vbus = {
 	},
 };
 
-/******************************************************************************
- * Power supply
- ******************************************************************************/
+
 static int power_supply_init(struct device *dev)
 {
 	int ret;
@@ -289,9 +260,7 @@ static struct platform_device power_supply = {
 	},
 };
 
-/******************************************************************************
- * WM97xx battery
- ******************************************************************************/
+
 static struct wm97xx_batt_info wm97xx_batt_pdata = {
 	.batt_aux	= WM97XX_AUX_ID3,
 	.temp_aux	= WM97XX_AUX_ID2,
@@ -306,9 +275,7 @@ static struct wm97xx_batt_info wm97xx_batt_pdata = {
 	.batt_name	= "main-batt",
 };
 
-/******************************************************************************
- * aSoC audio
- ******************************************************************************/
+
 static struct palm27x_asoc_info palmte2_asoc_pdata = {
 	.jack_gpio	= GPIO_NR_PALMTE2_EARPHONE_DETECT,
 };
@@ -321,9 +288,7 @@ static struct platform_device palmte2_asoc = {
 	},
 };
 
-/******************************************************************************
- * Framebuffer
- ******************************************************************************/
+
 static struct pxafb_mode_info palmte2_lcd_modes[] = {
 {
 	.pixclock	= 77757,
@@ -347,9 +312,7 @@ static struct pxafb_mach_info palmte2_lcd_screen = {
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
 
-/******************************************************************************
- * Machine init
- ******************************************************************************/
+
 static struct platform_device *devices[] __initdata = {
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
 	&palmte2_pxa_keys,
@@ -360,7 +323,7 @@ static struct platform_device *devices[] __initdata = {
 	&palmte2_gpio_vbus,
 };
 
-/* setup udc GPIOs initial state */
+
 static void __init palmte2_udc_init(void)
 {
 	if (!gpio_request(GPIO_NR_PALMTE2_USB_PULLUP, "UDC Vbus")) {

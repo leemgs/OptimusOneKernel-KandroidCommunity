@@ -1,16 +1,4 @@
-/* arch/arm/plat-s3c64xx/include/plat/s3c6410.h
- *
- * Copyright 2008 Openmoko,  Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * Header file for s3c6410 cpu support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifdef CONFIG_CPU_S3C6410
 

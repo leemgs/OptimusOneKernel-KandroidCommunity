@@ -1,38 +1,9 @@
-/*
- * arch/arm/plat-omap/include/mach/cpu.h
- *
- * OMAP cpu type detection
- *
- * Copyright (C) 2004, 2008 Nokia Corporation
- *
- * Copyright (C) 2009 Texas Instruments.
- *
- * Written by Tony Lindgren <tony.lindgren@nokia.com>
- *
- * Added OMAP4 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- */
+
 
 #ifndef __ASM_ARCH_OMAP_CPU_H
 #define __ASM_ARCH_OMAP_CPU_H
 
-/*
- * Omap device type i.e. EMU/HS/TST/GP/BAD
- */
+
 #define OMAP2_DEVICE_TYPE_TEST		0
 #define OMAP2_DEVICE_TYPE_EMU		1
 #define OMAP2_DEVICE_TYPE_SEC		2
@@ -48,17 +19,10 @@ struct omap_chip_id {
 
 #define OMAP_CHIP_INIT(x)	{ .oc = x }
 
-/*
- * omap_rev bits:
- * CPU id bits	(0730, 1510, 1710, 2422...)	[31:16]
- * CPU revision	(See _REV_ defined in cpu.h)	[15:08]
- * CPU class bits (15xx, 16xx, 24xx, 34xx...)	[07:00]
- */
+
 unsigned int omap_rev(void);
 
-/*
- * Test if multicore OMAP support is needed
- */
+
 #undef MULTI_OMAP1
 #undef MULTI_OMAP2
 #undef OMAP_NAME
@@ -125,17 +89,7 @@ unsigned int omap_rev(void);
 # endif
 #endif
 
-/*
- * Macros to group OMAP into cpu classes.
- * These can be used in most places.
- * cpu_is_omap7xx():	True for OMAP730, OMAP850
- * cpu_is_omap15xx():	True for OMAP1510, OMAP5910 and OMAP310
- * cpu_is_omap16xx():	True for OMAP1610, OMAP5912 and OMAP1710
- * cpu_is_omap24xx():	True for OMAP2420, OMAP2422, OMAP2423, OMAP2430
- * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
- * cpu_is_omap243x():	True for OMAP2430
- * cpu_is_omap343x():	True for OMAP3430
- */
+
 #define GET_OMAP_CLASS	(omap_rev() & 0xff)
 
 #define IS_OMAP_CLASS(class, id)			\
@@ -247,24 +201,7 @@ IS_OMAP_SUBCLASS(343x, 0x343)
 # endif
 #endif
 
-/*
- * Macros to detect individual cpu types.
- * These are only rarely needed.
- * cpu_is_omap330():	True for OMAP330
- * cpu_is_omap730():	True for OMAP730
- * cpu_is_omap850():	True for OMAP850
- * cpu_is_omap1510():	True for OMAP1510
- * cpu_is_omap1610():	True for OMAP1610
- * cpu_is_omap1611():	True for OMAP1611
- * cpu_is_omap5912():	True for OMAP5912
- * cpu_is_omap1621():	True for OMAP1621
- * cpu_is_omap1710():	True for OMAP1710
- * cpu_is_omap2420():	True for OMAP2420
- * cpu_is_omap2422():	True for OMAP2422
- * cpu_is_omap2423():	True for OMAP2423
- * cpu_is_omap2430():	True for OMAP2430
- * cpu_is_omap3430():	True for OMAP3430
- */
+
 #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
 
 #define IS_OMAP_TYPE(type, id)				\
@@ -303,10 +240,7 @@ IS_OMAP_TYPE(3430, 0x3430)
 #define cpu_is_omap2430()		0
 #define cpu_is_omap3430()		0
 
-/*
- * Whether we have MULTI_OMAP1 or not, we still need to distinguish
- * between 730 vs 850, 330 vs. 1510 and 1611B/5912 vs. 1710.
- */
+
 
 #if defined(CONFIG_ARCH_OMAP730)
 # undef  cpu_is_omap730
@@ -361,13 +295,13 @@ IS_OMAP_TYPE(3430, 0x3430)
 # define cpu_is_omap443x()		1
 # endif
 
-/* Macros to detect if we have OMAP1 or OMAP2 */
+
 #define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
 				cpu_is_omap16xx())
 #define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx() || \
 				cpu_is_omap44xx())
 
-/* Various silicon revisions for omap2 */
+
 #define OMAP242X_CLASS		0x24200024
 #define OMAP2420_REV_ES1_0	0x24200024
 #define OMAP2420_REV_ES2_0	0x24201024
@@ -384,20 +318,7 @@ IS_OMAP_TYPE(3430, 0x3430)
 
 #define OMAP443X_CLASS		0x44300034
 
-/*
- * omap_chip bits
- *
- * CHIP_IS_OMAP{2420,2430,3430} indicate that a particular structure is
- * valid on all chips of that type.  CHIP_IS_OMAP3430ES{1,2} indicates
- * something that is only valid on that particular ES revision.
- *
- * These bits may be ORed together to indicate structures that are
- * available on multiple chip types.
- *
- * To test whether a particular structure matches the current OMAP chip type,
- * use omap_chip_is().
- *
- */
+
 #define CHIP_IS_OMAP2420		(1 << 0)
 #define CHIP_IS_OMAP2430		(1 << 1)
 #define CHIP_IS_OMAP3430		(1 << 2)
@@ -408,12 +329,7 @@ IS_OMAP_TYPE(3430, 0x3430)
 
 #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
 
-/*
- * "GE" here represents "greater than or equal to" in terms of ES
- * levels.  So CHIP_GE_OMAP3430ES2 is intended to match all OMAP3430
- * chips at ES2 and beyond, but not, for example, any OMAP lines after
- * OMAP3.
- */
+
 #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
 					 CHIP_IS_OMAP3430ES3_0 | \
 					 CHIP_IS_OMAP3430ES3_1)

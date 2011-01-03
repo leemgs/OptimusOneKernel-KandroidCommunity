@@ -1,23 +1,4 @@
-/*
- * dm1105.c - driver for DVB cards based on SDMC DM1105 PCI chip
- *
- * Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/i2c.h>
 #include <linux/init.h>
@@ -52,10 +33,8 @@
 #define DM1105_BOARD_DVBWORLD_2004	2
 #define DM1105_BOARD_AXESS_DM05		3
 
-/* ----------------------------------------------- */
-/*
- * PCI ID's
- */
+
+
 #ifndef PCI_VENDOR_ID_TRIGEM
 #define PCI_VENDOR_ID_TRIGEM	0x109f
 #endif
@@ -74,28 +53,28 @@
 #ifndef PCI_DEVICE_ID_DM05
 #define PCI_DEVICE_ID_DM05	0x1105
 #endif
-/* ----------------------------------------------- */
-/* sdmc dm1105 registers */
 
-/* TS Control */
+
+
+
 #define DM1105_TSCTR				0x00
 #define DM1105_DTALENTH				0x04
 
-/* GPIO Interface */
+
 #define DM1105_GPIOVAL				0x08
 #define DM1105_GPIOCTR				0x0c
 
-/* PID serial number */
+
 #define DM1105_PIDN				0x10
 
-/* Odd-even secret key select */
+
 #define DM1105_CWSEL				0x14
 
-/* Host Command Interface */
+
 #define DM1105_HOST_CTR				0x18
 #define DM1105_HOST_AD				0x1c
 
-/* PCI Interface */
+
 #define DM1105_CR				0x30
 #define DM1105_RST				0x34
 #define DM1105_STADR				0x38
@@ -105,30 +84,30 @@
 #define DM1105_INTMAK				0x48
 #define DM1105_INTSTS				0x4c
 
-/* CW Value */
+
 #define DM1105_ODD				0x50
 #define DM1105_EVEN				0x58
 
-/* PID Value */
+
 #define DM1105_PID				0x60
 
-/* IR Control */
+
 #define DM1105_IRCTR				0x64
 #define DM1105_IRMODE				0x68
 #define DM1105_SYSTEMCODE			0x6c
 #define DM1105_IRCODE				0x70
 
-/* Unknown Values */
+
 #define DM1105_ENCRYPT				0x74
 #define DM1105_VER				0x7c
 
-/* I2C Interface */
+
 #define DM1105_I2CCTR				0x80
 #define DM1105_I2CSTS				0x81
 #define DM1105_I2CDAT				0x82
 #define DM1105_I2C_RA				0x83
-/* ----------------------------------------------- */
-/* Interrupt Mask Bits */
+
+
 
 #define INTMAK_TSIRQM				0x01
 #define INTMAK_HIRQM				0x04
@@ -138,19 +117,19 @@
 						INTMAK_IRM)
 #define INTMAK_NONEMASK				0x00
 
-/* Interrupt Status Bits */
+
 #define INTSTS_TSIRQ				0x01
 #define INTSTS_HIRQ				0x04
 #define INTSTS_IR				0x08
 
-/* IR Control Bits */
+
 #define DM1105_IR_EN				0x01
 #define DM1105_SYS_CHK				0x02
 #define DM1105_REP_FLG				0x08
 
-/* EEPROM addr */
+
 #define IIC_24C01_addr				0xa0
-/* Max board count */
+
 #define DM1105_MAX				0x04
 
 #define DRIVER_NAME				"dm1105"
@@ -159,15 +138,15 @@
 #define DM1105_DMA_PACKET_LENGTH		(128*4)
 #define DM1105_DMA_BYTES			(128 * 4 * DM1105_DMA_PACKETS)
 
-/* GPIO's for LNB power control */
+
 #define DM1105_LNB_MASK				0x00000000
 #define DM1105_LNB_OFF				0x00020000
 #define DM1105_LNB_13V				0x00010100
 #define DM1105_LNB_18V				0x00000100
 
-/* GPIO's for LNB power control for Axess DM05 */
+
 #define DM05_LNB_MASK				0x00000000
-#define DM05_LNB_OFF				0x00020000/* actually 13v */
+#define DM05_LNB_OFF				0x00020000
 #define DM05_LNB_13V				0x00020000
 #define DM05_LNB_18V				0x00030000
 
@@ -260,7 +239,7 @@ static void dm1105_card_list(struct pci_dev *pci)
 				i, dm1105_boards[i].name);
 }
 
-/* infrared remote control */
+
 struct infrared {
 	struct input_dev	*input_dev;
 	struct ir_input_state	ir;
@@ -270,14 +249,14 @@ struct infrared {
 };
 
 struct dm1105dvb {
-	/* pci */
+	
 	struct pci_dev *pdev;
 	u8 __iomem *io_mem;
 
-	/* ir */
+	
 	struct infrared ir;
 
-	/* dvb */
+	
 	struct dmx_frontend hw_frontend;
 	struct dmx_frontend mem_frontend;
 	struct dmxdev dmxdev;
@@ -289,15 +268,15 @@ struct dm1105dvb {
 	unsigned int boardnr;
 	int nr;
 
-	/* i2c */
+	
 	struct i2c_adapter i2c_adap;
 
-	/* irq */
+	
 	struct work_struct work;
 	struct workqueue_struct *wq;
 	char wqn[16];
 
-	/* dma */
+	
 	dma_addr_t dma_addr;
 	unsigned char *ts_buf;
 	u32 wrp;
@@ -322,7 +301,7 @@ static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
 	for (i = 0; i < num; i++) {
 		outb(0x00, dm_io_mem(DM1105_I2CCTR));
 		if (msgs[i].flags & I2C_M_RD) {
-			/* read bytes */
+			
 			addr  = msgs[i].addr << 1;
 			addr |= 1;
 			outb(addr, dm_io_mem(DM1105_I2CDAT));
@@ -347,8 +326,8 @@ static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
 			}
 		} else {
 			if ((msgs[i].buf[0] == 0xf7) && (msgs[i].addr == 0x55)) {
-				/* prepaired for cx24116 firmware */
-				/* Write in small blocks */
+				
+				
 				len = msgs[i].len - 1;
 				k = 1;
 				do {
@@ -373,7 +352,7 @@ static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
 					len -= 48;
 				} while (len > 0);
 			} else {
-				/* write bytes */
+				
 				outb(msgs[i].addr<<1, dm_io_mem(DM1105_I2CDAT));
 				for (byte = 0; byte < msgs[i].len; byte++) {
 					data = msgs[i].buf[byte];
@@ -498,7 +477,7 @@ static int dm1105dvb_stop_feed(struct dvb_demux_feed *f)
 	return 0;
 }
 
-/* ir work handler */
+
 static void dm1105_emit_key(struct work_struct *work)
 {
 	struct infrared *ir = container_of(work, struct infrared, work);
@@ -514,7 +493,7 @@ static void dm1105_emit_key(struct work_struct *work)
 	ir_input_nokey(ir->input_dev, &ir->ir);
 }
 
-/* work handler */
+
 static void dm1105_dmx_buffer(struct work_struct *work)
 {
 	struct dm1105dvb *dm1105dvb =
@@ -527,7 +506,7 @@ static void dm1105_dmx_buffer(struct work_struct *work)
 			(dm1105dvb->ts_buf[oldwrp + 188] == 0x47) &&
 			(dm1105dvb->ts_buf[oldwrp + 188 * 2] == 0x47))) {
 		dm1105dvb->PacketErrorCount++;
-		/* bad packet found */
+		
 		if ((dm1105dvb->PacketErrorCount >= 2) &&
 				(dm1105dvb->dmarst == 0)) {
 			outb(1, dm_io_mem(DM1105_RST));
@@ -554,7 +533,7 @@ static irqreturn_t dm1105dvb_irq(int irq, void *dev_id)
 {
 	struct dm1105dvb *dm1105dvb = dev_id;
 
-	/* Read-Write INSTS Ack's Interrupt for DM1105 chip 16.03.2008 */
+	
 	unsigned int intsts = inb(dm_io_mem(DM1105_INTSTS));
 	outb(intsts, dm_io_mem(DM1105_INTSTS));
 
@@ -627,19 +606,19 @@ static int __devinit dm1105dvb_hw_init(struct dm1105dvb *dm1105dvb)
 
 	outb(0, dm_io_mem(DM1105_HOST_CTR));
 
-	/*DATALEN 188,*/
+	
 	outb(188, dm_io_mem(DM1105_DTALENTH));
-	/*TS_STRT TS_VALP MSBFIRST TS_MODE ALPAS TSPES*/
+	
 	outw(0xc10a, dm_io_mem(DM1105_TSCTR));
 
-	/* map DMA and set address */
+	
 	dm1105dvb_dma_map(dm1105dvb);
 	dm1105dvb_set_dma_addr(dm1105dvb);
-	/* big buffer */
+	
 	outl(5*DM1105_DMA_BYTES, dm_io_mem(DM1105_RLEN));
 	outb(47, dm_io_mem(DM1105_INTCNT));
 
-	/* IR NEC mode enable */
+	
 	outb((DM1105_IR_EN | DM1105_SYS_CHK), dm_io_mem(DM1105_IRCTR));
 	outb(0, dm_io_mem(DM1105_IRMODE));
 	outw(0, dm_io_mem(DM1105_SYSTEMCODE));
@@ -651,7 +630,7 @@ static void dm1105dvb_hw_exit(struct dm1105dvb *dm1105dvb)
 {
 	dm1105dvb_disable_irqs(dm1105dvb);
 
-	/* IR disable */
+	
 	outb(0, dm_io_mem(DM1105_IRCTR));
 	outb(INTMAK_NONEMASK, dm_io_mem(DM1105_INTMAK));
 
@@ -784,7 +763,7 @@ static int __devinit dm1105_probe(struct pci_dev *pdev,
 	if (!dm1105dvb)
 		return -ENOMEM;
 
-	/* board config */
+	
 	dm1105dvb->nr = dm1105_devcount;
 	dm1105dvb->boardnr = UNSET;
 	if (card[dm1105dvb->nr] < ARRAY_SIZE(dm1105_boards))
@@ -835,7 +814,7 @@ static int __devinit dm1105_probe(struct pci_dev *pdev,
 	if (ret < 0)
 		goto err_pci_iounmap;
 
-	/* i2c */
+	
 	i2c_set_adapdata(&dm1105dvb->i2c_adap, dm1105dvb);
 	strcpy(dm1105dvb->i2c_adap.name, DRIVER_NAME);
 	dm1105dvb->i2c_adap.owner = THIS_MODULE;
@@ -848,7 +827,7 @@ static int __devinit dm1105_probe(struct pci_dev *pdev,
 	if (ret < 0)
 		goto err_dm1105dvb_hw_exit;
 
-	/* dvb */
+	
 	ret = dvb_register_adapter(&dm1105dvb->dvb_adapter, DRIVER_NAME,
 					THIS_MODULE, &pdev->dev, adapter_nr);
 	if (ret < 0)
@@ -991,7 +970,7 @@ static struct pci_device_id dm1105_id_table[] __devinitdata = {
 		.subvendor = PCI_ANY_ID,
 		.subdevice = PCI_ANY_ID,
 	}, {
-		/* empty */
+		
 	},
 };
 

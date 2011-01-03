@@ -1,26 +1,4 @@
-/***************************************************************************
- * Video4Linux2 driver for ZC0301[P] Image Processor and Control Chip      *
- *                                                                         *
- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * Informations about the chip internals needed to enable the I2C protocol *
- * have been taken from the documentation of the ZC030x Video4Linux1       *
- * driver written by Andrew Birkett <andy@nobugs.org>                      *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -44,7 +22,7 @@
 
 #include "zc0301.h"
 
-/*****************************************************************************/
+
 
 #define ZC0301_MODULE_NAME    "V4L2 driver for ZC0301[P] "                    \
 			      "Image Processor and Control Chip"
@@ -54,7 +32,7 @@
 #define ZC0301_MODULE_VERSION "1:1.10"
 #define ZC0301_MODULE_VERSION_CODE  KERNEL_VERSION(1, 1, 10)
 
-/*****************************************************************************/
+
 
 MODULE_DEVICE_TABLE(usb, zc0301_id_table);
 
@@ -115,7 +93,7 @@ MODULE_PARM_DESC(debug,
 		 "\n");
 #endif
 
-/*****************************************************************************/
+
 
 static u32
 zc0301_request_buffers(struct zc0301_device* cam, u32 count,
@@ -208,7 +186,7 @@ static void zc0301_queue_unusedframes(struct zc0301_device* cam)
 		}
 }
 
-/*****************************************************************************/
+
 
 int zc0301_write_reg(struct zc0301_device* cam, u16 index, u16 value)
 {
@@ -301,7 +279,7 @@ int zc0301_i2c_write(struct zc0301_device* cam, u16 address, u16 value)
 	return err ? -1 : 0;
 }
 
-/*****************************************************************************/
+
 
 static void zc0301_urb_complete(struct urb *urb)
 {
@@ -516,7 +494,7 @@ static int zc0301_stop_transfer(struct zc0301_device* cam)
 		kfree(cam->transfer_buffer[i]);
 	}
 
-	err = usb_set_interface(udev, 0, 0); /* 0 Mb/s */
+	err = usb_set_interface(udev, 0, 0); 
 	if (err)
 		DBG(3, "usb_set_interface() failed");
 
@@ -546,7 +524,7 @@ static int zc0301_stream_interrupt(struct zc0301_device* cam)
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static int
 zc0301_set_compression(struct zc0301_device* cam,
@@ -577,7 +555,7 @@ static int zc0301_init(struct zc0301_device* cam)
 		qctrl = s->qctrl;
 		rect = &(s->cropcap.defrect);
 		cam->compression.quality = ZC0301_COMPRESSION_QUALITY;
-	} else { /* use current values */
+	} else { 
 		qctrl = s->_qctrl;
 		rect = &(s->_rect);
 	}
@@ -634,7 +612,7 @@ static int zc0301_init(struct zc0301_device* cam)
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static void zc0301_release_resources(struct kref *kref)
 {
@@ -929,7 +907,7 @@ static void zc0301_vm_open(struct vm_area_struct* vma)
 
 static void zc0301_vm_close(struct vm_area_struct* vma)
 {
-	/* NOTE: buffers are not freed here */
+	
 	struct zc0301_frame_t* f = vma->vm_private_data;
 	f->vma_use_count--;
 }
@@ -989,7 +967,7 @@ static int zc0301_mmap(struct file* filp, struct vm_area_struct *vma)
 	vma->vm_flags |= VM_RESERVED;
 
 	pos = cam->frame[i].bufmem;
-	while (size > 0) { /* size is page-aligned */
+	while (size > 0) { 
 		if (vm_insert_page(vma, start, vmalloc_to_page(pos))) {
 			mutex_unlock(&cam->fileop_mutex);
 			return -EAGAIN;
@@ -1008,7 +986,7 @@ static int zc0301_mmap(struct file* filp, struct vm_area_struct *vma)
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static int
 zc0301_vidioc_querycap(struct zc0301_device* cam, void __user * arg)
@@ -1273,7 +1251,7 @@ zc0301_vidioc_s_crop(struct zc0301_device* cam, void __user * arg)
 	if (s->set_crop)
 		err += s->set_crop(cam, rect);
 
-	if (err) { /* atomic, no rollback in ioctl() */
+	if (err) { 
 		cam->state |= DEV_MISCONFIGURED;
 		DBG(1, "VIDIOC_S_CROP failed because of hardware problems. To "
 		       "use the camera, close and open /dev/video%d again.",
@@ -1468,7 +1446,7 @@ zc0301_vidioc_try_s_fmt(struct zc0301_device* cam, unsigned int cmd,
 	if (s->set_crop)
 		err += s->set_crop(cam, &rect);
 
-	if (err) { /* atomic, no rollback in ioctl() */
+	if (err) { 
 		cam->state |= DEV_MISCONFIGURED;
 		DBG(1, "VIDIOC_S_FMT failed because of hardware problems. To "
 		       "use the camera, close and open /dev/video%d again.",
@@ -1527,7 +1505,7 @@ zc0301_vidioc_s_jpegcomp(struct zc0301_device* cam, void __user * arg)
 			return err;
 
 	err += zc0301_set_compression(cam, &jc);
-	if (err) { /* atomic, no rollback in ioctl() */
+	if (err) { 
 		cam->state |= DEV_MISCONFIGURED;
 		DBG(1, "VIDIOC_S_JPEGCOMP failed because of hardware "
 		       "problems. To use the camera, close and open "
@@ -1932,7 +1910,7 @@ static const struct v4l2_file_operations zc0301_fops = {
 	.mmap =    zc0301_mmap,
 };
 
-/*****************************************************************************/
+
 
 static int
 zc0301_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
@@ -2066,7 +2044,7 @@ static struct usb_driver zc0301_usb_driver = {
 	.disconnect = zc0301_usb_disconnect,
 };
 
-/*****************************************************************************/
+
 
 static int __init zc0301_module_init(void)
 {

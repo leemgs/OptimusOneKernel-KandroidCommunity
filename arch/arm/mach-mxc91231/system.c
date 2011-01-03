@@ -1,8 +1,4 @@
-/*
- * Copyright 2009 Dmitriy Taychenachev <dimichxp@gmail.com>
- *
- * This file is released under the GPLv2 or later.
- */
+
 
 #include <linux/delay.h>
 #include <linux/io.h>
@@ -30,7 +26,7 @@ void mxc91231_arch_reset(char mode, const char *cmd)
 {
 	u32 amcr;
 
-	/* Reset the AP using CRM */
+	
 	amcr = __raw_readl(MXC_CRMAP_AMCR);
 	amcr &= ~MXC_CRMAP_AMCR_SW_AP;
 	__raw_writel(amcr, MXC_CRMAP_AMCR);
@@ -43,7 +39,7 @@ void mxc91231_prepare_idle(void)
 {
 	u32 crm_ctl;
 
-	/* Go to WAIT mode after WFI */
+	
 	crm_ctl = __raw_readl(MXC_DSM_CRM_CONTROL);
 	crm_ctl &= ~(MXC_DSM_CRM_CTRL_LPMD0 | MXC_DSM_CRM_CTRL_LPMD1);
 	crm_ctl |=  MXC_DSM_CRM_CTRL_LPMD_WAIT_MODE;

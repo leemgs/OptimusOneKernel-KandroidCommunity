@@ -1,27 +1,4 @@
-/*
- * linux/arch/arm/plat-omap/i2c.c
- *
- * Helper module for board specific I2C bus registration
- *
- * Copyright (C) 2007 Nokia Corporation.
- *
- * Contact: Jarkko Nikula <jhnikula@gmail.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -160,17 +137,7 @@ static int __init omap_i2c_add_bus(int bus_id)
 	return platform_device_register(pdev);
 }
 
-/**
- * omap_i2c_bus_setup - Process command line options for the I2C bus speed
- * @str: String of options
- *
- * This function allow to override the default I2C bus speed for given I2C
- * bus with a command line option.
- *
- * Format: i2c_bus=bus_id,clkrate (in kHz)
- *
- * Returns 1 on success, 0 otherwise.
- */
+
 static int __init omap_i2c_bus_setup(char *str)
 {
 	int ports;
@@ -187,10 +154,7 @@ static int __init omap_i2c_bus_setup(char *str)
 }
 __setup("i2c_bus=", omap_i2c_bus_setup);
 
-/*
- * Register busses defined in command line but that are not registered with
- * omap_register_i2c_bus from board initialization code.
- */
+
 static int __init omap_register_i2c_bus_cmdline(void)
 {
 	int i, err = 0;
@@ -208,15 +172,7 @@ out:
 }
 subsys_initcall(omap_register_i2c_bus_cmdline);
 
-/**
- * omap_register_i2c_bus - register I2C bus with device descriptors
- * @bus_id: bus id counting from number 1
- * @clkrate: clock rate of the bus in kHz
- * @info: pointer into I2C device descriptor table or NULL
- * @len: number of descriptors in the table
- *
- * Returns 0 on success or an error code.
- */
+
 int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
 			  struct i2c_board_info const *info,
 			  unsigned len)

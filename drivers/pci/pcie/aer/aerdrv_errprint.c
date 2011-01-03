@@ -1,17 +1,4 @@
-/*
- * drivers/pci/pcie/aer/aerdrv_errprint.c
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * Format error messages and print them to console.
- *
- * Copyright (C) 2006 Intel Corp.
- *	Tom Long Nguyen (tom.l.nguyen@intel.com)
- *	Zhang Yanmin (yanmin.zhang@intel.com)
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -62,9 +49,7 @@
 		KERN_WARNING : KERN_ERR, dev_driver_string(&pdev->dev),	\
 		dev_name(&pdev->dev), ## args)
 
-/*
- * AER error strings
- */
+
 static char *aer_error_severity_string[] = {
 	"Uncorrected (Non-Fatal)",
 	"Uncorrected (Fatal)",
@@ -77,20 +62,20 @@ static char *aer_error_layer[] = {
 	"Transaction Layer"
 };
 static char *aer_correctable_error_string[] = {
-	"Receiver Error        ",	/* Bit Position 0	*/
+	"Receiver Error        ",	
 	NULL,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
-	"Bad TLP               ",	/* Bit Position 6	*/
-	"Bad DLLP              ",	/* Bit Position 7	*/
-	"RELAY_NUM Rollover    ",	/* Bit Position 8	*/
+	"Bad TLP               ",	
+	"Bad DLLP              ",	
+	"RELAY_NUM Rollover    ",	
 	NULL,
 	NULL,
 	NULL,
-	"Replay Timer Timeout  ",	/* Bit Position 12	*/
-	"Advisory Non-Fatal    ",	/* Bit Position 13	*/
+	"Replay Timer Timeout  ",	
+	"Advisory Non-Fatal    ",	
 	NULL,
 	NULL,
 	NULL,
@@ -116,7 +101,7 @@ static char *aer_uncorrectable_error_string[] = {
 	NULL,
 	NULL,
 	NULL,
-	"Data Link Protocol    ",	/* Bit Position 4	*/
+	"Data Link Protocol    ",	
 	NULL,
 	NULL,
 	NULL,
@@ -124,15 +109,15 @@ static char *aer_uncorrectable_error_string[] = {
 	NULL,
 	NULL,
 	NULL,
-	"Poisoned TLP          ",	/* Bit Position 12	*/
-	"Flow Control Protocol ",	/* Bit Position 13	*/
-	"Completion Timeout    ",	/* Bit Position 14	*/
-	"Completer Abort       ",	/* Bit Position 15	*/
-	"Unexpected Completion ",	/* Bit Position 16	*/
-	"Receiver Overflow     ",	/* Bit Position 17	*/
-	"Malformed TLP         ",	/* Bit Position 18	*/
-	"ECRC                  ",	/* Bit Position 19	*/
-	"Unsupported Request   ",	/* Bit Position 20	*/
+	"Poisoned TLP          ",	
+	"Flow Control Protocol ",	
+	"Completion Timeout    ",	
+	"Completer Abort       ",	
+	"Unexpected Completion ",	
+	"Receiver Overflow     ",	
+	"Malformed TLP         ",	
+	"ECRC                  ",	
+	"Unsupported Request   ",	
 	NULL,
 	NULL,
 	NULL,

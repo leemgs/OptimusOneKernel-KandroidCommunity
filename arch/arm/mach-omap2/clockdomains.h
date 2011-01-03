@@ -1,27 +1,13 @@
-/*
- * OMAP2/3 clockdomains
- *
- * Copyright (C) 2008 Texas Instruments, Inc.
- * Copyright (C) 2008 Nokia Corporation
- *
- * Written by Paul Walmsley
- */
+
 
 #ifndef __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS_H
 #define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS_H
 
 #include <mach/clockdomain.h>
 
-/*
- * OMAP2/3-common clockdomains
- *
- * Even though the 2420 has a single PRCM module from the
- * interconnect's perspective, internally it does appear to have
- * separate PRM and CM clockdomains.  The usual test case is
- * sys_clkout/sys_clkout2.
- */
 
-/* This is an implicit clockdomain - it is never defined as such in TRM */
+
+
 static struct clockdomain wkup_clkdm = {
 	.name		= "wkup_clkdm",
 	.pwrdm		= { .name = "wkup_pwrdm" },
@@ -40,9 +26,7 @@ static struct clockdomain cm_clkdm = {
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
 };
 
-/*
- * 2420-only clockdomains
- */
+
 
 #if defined(CONFIG_ARCH_OMAP2420)
 
@@ -62,12 +46,10 @@ static struct clockdomain iva1_2420_clkdm = {
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 };
 
-#endif  /* CONFIG_ARCH_OMAP2420 */
+#endif  
 
 
-/*
- * 2430-only clockdomains
- */
+
 
 #if defined(CONFIG_ARCH_OMAP2430)
 
@@ -87,12 +69,10 @@ static struct clockdomain mdm_clkdm = {
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
 };
 
-#endif    /* CONFIG_ARCH_OMAP2430 */
+#endif    
 
 
-/*
- * 24XX-only clockdomains
- */
+
 
 #if defined(CONFIG_ARCH_OMAP24XX)
 
@@ -136,12 +116,10 @@ static struct clockdomain dss_24xx_clkdm = {
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
 };
 
-#endif   /* CONFIG_ARCH_OMAP24XX */
+#endif   
 
 
-/*
- * 34xx clockdomains
- */
+
 
 #if defined(CONFIG_ARCH_OMAP34XX)
 
@@ -185,13 +163,7 @@ static struct clockdomain sgx_clkdm = {
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
 };
 
-/*
- * The die-to-die clockdomain was documented in the 34xx ES1 TRM, but
- * then that information was removed from the 34xx ES2+ TRM.  It is
- * unclear whether the core is still there, but the clockdomain logic
- * is there, and must be programmed to an appropriate state if the
- * CORE clockdomain is to become inactive.
- */
+
 static struct clockdomain d2d_clkdm = {
 	.name		= "d2d_clkdm",
 	.pwrdm		= { .name = "core_pwrdm" },
@@ -248,14 +220,11 @@ static struct clockdomain per_clkdm = {
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
 };
 
-/*
- * Disable hw supervised mode for emu_clkdm, because emu_pwrdm is
- * switched of even if sdti is in use
- */
+
 static struct clockdomain emu_clkdm = {
 	.name		= "emu_clkdm",
 	.pwrdm		= { .name = "emu_pwrdm" },
-	.flags		= /* CLKDM_CAN_ENABLE_AUTO |  */CLKDM_CAN_SWSUP,
+	.flags		= CLKDM_CAN_SWSUP,
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_EMU_MASK,
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
 };
@@ -290,11 +259,9 @@ static struct clockdomain dpll5_clkdm = {
 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
 };
 
-#endif   /* CONFIG_ARCH_OMAP34XX */
+#endif   
 
-/*
- * Clockdomain-powerdomain hwsup dependencies (34XX only)
- */
+
 
 static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
 	{
@@ -310,9 +277,7 @@ static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
 	}
 };
 
-/*
- *
- */
+
 
 static struct clockdomain *clockdomains_omap[] = {
 

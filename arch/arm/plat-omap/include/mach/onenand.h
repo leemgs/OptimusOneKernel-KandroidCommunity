@@ -1,13 +1,4 @@
-/*
- * arch/arm/plat-omap/include/mach/onenand.h
- *
- * Copyright (C) 2006 Nokia Corporation
- * Author: Juha Yrjola
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>

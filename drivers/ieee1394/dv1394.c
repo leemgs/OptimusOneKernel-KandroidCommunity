@@ -1,87 +1,8 @@
-/*
- * dv1394.c - DV input/output over IEEE 1394 on OHCI chips
- *   Copyright (C)2001 Daniel Maas <dmaas@dcine.com>
- *     receive by Dan Dennedy <dan@dennedy.org>
- *
- * based on:
- *  video1394.c - video driver for OHCI 1394 boards
- *  Copyright (C)1999,2000 Sebastien Rougeaux <sebastien.rougeaux@anu.edu.au>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
-/*
-  OVERVIEW
 
-  I designed dv1394 as a "pipe" that you can use to shoot DV onto a
-  FireWire bus. In transmission mode, dv1394 does the following:
 
-   1. accepts contiguous frames of DV data from user-space, via write()
-      or mmap() (see dv1394.h for the complete API)
-   2. wraps IEC 61883 packets around the DV data, inserting
-      empty synchronization packets as necessary
-   3. assigns accurate SYT timestamps to the outgoing packets
-   4. shoots them out using the OHCI card's IT DMA engine
 
-   Thanks to Dan Dennedy, we now have a receive mode that does the following:
 
-   1. accepts raw IEC 61883 packets from the OHCI card
-   2. re-assembles the DV data payloads into contiguous frames,
-      discarding empty packets
-   3. sends the DV data to user-space via read() or mmap()
-*/
-
-/*
-  TODO:
-
-  - tunable frame-drop behavior: either loop last frame, or halt transmission
-
-  - use a scatter/gather buffer for DMA programs (f->descriptor_pool)
-    so that we don't rely on allocating 64KB of contiguous kernel memory
-    via pci_alloc_consistent()
-
-  DONE:
-  - during reception, better handling of dropped frames and continuity errors
-  - during reception, prevent DMA from bypassing the irq tasklets
-  - reduce irq rate during reception (1/250 packets).
-  - add many more internal buffers during reception with scatter/gather dma.
-  - add dbc (continuity) checking on receive, increment status.dropped_frames
-    if not continuous.
-  - restart IT DMA after a bus reset
-  - safely obtain and release ISO Tx channels in cooperation with OHCI driver
-  - map received DIF blocks to their proper location in DV frame (ensure
-    recovery if dropped packet)
-  - handle bus resets gracefully (OHCI card seems to take care of this itself(!))
-  - do not allow resizing the user_buf once allocated; eliminate nuke_buffer_mappings
-  - eliminated #ifdef DV1394_DEBUG_LEVEL by inventing macros debug_printk and irq_printk
-  - added wmb() and mb() to places where PCI read/write ordering needs to be enforced
-  - set video->id correctly
-  - store video_cards in an array indexed by OHCI card ID, rather than a list
-  - implement DMA context allocation to cooperate with other users of the OHCI
-  - fix all XXX showstoppers
-  - disable IR/IT DMA interrupts on shutdown
-  - flush pci writes to the card by issuing a read
-  - character device dispatching
-  - switch over to the new kernel DMA API (pci_map_*()) (* needs testing on platforms with IOMMU!)
-  - keep all video_cards in a list (for open() via chardev), set file->private_data = video
-  - dv1394_poll should indicate POLLIN when receiving buffers are available
-  - add proc fs interface to set cip_n, cip_d, syt_offset, and video signal
-  - expose xmit and recv as separate devices (not exclusive)
-  - expose NTSC and PAL as separate devices (can be overridden)
-
-*/
 
 #include <linux/kernel.h>
 #include <linux/list.h>
@@ -121,17 +42,12 @@
 #include "nodemgr.h"
 #include "ohci1394.h"
 
-/* DEBUG LEVELS:
-   0 - no debugging messages
-   1 - some debugging messages, but none during DMA frame transmission
-   2 - lots of messages, including during DMA frame transmission
-       (will cause undeflows if your machine is too slow!)
-*/
+
 
 #define DV1394_DEBUG_LEVEL 0
 
-/* for debugging use ONLY: allow more than one open() of the device */
-/* #define DV1394_ALLOW_MORE_THAN_ONE_OPEN 1 */
+
+
 
 #if DV1394_DEBUG_LEVEL >= 2
 #define irq_printk( args... ) printk( args )
@@ -145,8 +61,7 @@
 #define debug_printk( args... ) do {} while (0)
 #endif
 
-/* issue a dummy PCI read to force the preceding write
-   to be posted to the PCI bus immediately */
+
 
 static inline void flush_pci_write(struct ti_ohci *ohci)
 {
@@ -162,20 +77,20 @@ static long dv1394_compat_ioctl(struct file *file, unsigned int cmd,
 			       unsigned long arg);
 #endif
 
-/* GLOBAL DATA */
 
-/* list of all video_cards */
+
+
 static LIST_HEAD(dv1394_cards);
 static DEFINE_SPINLOCK(dv1394_cards_lock);
 
-/* translate from a struct file* to the corresponding struct video_card* */
+
 
 static inline struct video_card* file_to_video_card(struct file *file)
 {
 	return (struct video_card*) file->private_data;
 }
 
-/*** FRAME METHODS *********************************************************/
+
 
 static void frame_reset(struct frame *f)
 {
@@ -211,7 +126,7 @@ static struct frame* frame_new(unsigned int frame_num, struct video_card *video)
 		     (unsigned long) f->header_pool, (unsigned long) f->header_pool_dma, PAGE_SIZE);
 
 	f->descriptor_pool_size = MAX_PACKETS * sizeof(struct DMA_descriptor_block);
-	/* make it an even # of pages */
+	
 	f->descriptor_pool_size += PAGE_SIZE - (f->descriptor_pool_size%PAGE_SIZE);
 
 	f->descriptor_pool = pci_alloc_consistent(f->video->ohci->dev,
@@ -242,13 +157,7 @@ static void frame_delete(struct frame *f)
 
 
 
-/*
-   frame_prepare() - build the DMA program for transmitting
 
-   Frame_prepare() must be called OUTSIDE the video->spinlock.
-   However, frame_prepare() must still be serialized, so
-   it should be called WITH the video->mtx taken.
- */
 
 static void frame_prepare(struct video_card *video, unsigned int this_frame)
 {
@@ -262,7 +171,7 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 	unsigned int n_descriptors, full_packets, packets_per_frame, payload_size;
 
-	/* these flags denote packets that need special attention */
+	
 	int empty_packet, first_packet, last_packet, mid_packet;
 
 	__le32 *branch_address, *last_branch_address = NULL;
@@ -287,28 +196,25 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 		data_p = f->data + full_packets * 480;
 
-		/************************************************/
-		/* allocate a descriptor block and a CIP header */
-		/************************************************/
+		
+		
+		
 
-		/* note: these should NOT cross a page boundary (DMA restriction) */
+		
 
 		if (f->n_packets >= MAX_PACKETS) {
 			printk(KERN_ERR "dv1394: FATAL ERROR: max packet count exceeded\n");
 			return;
 		}
 
-		/* the block surely won't cross a page boundary,
-		   since an even number of descriptor_blocks fit on a page */
+		
 		block = &(f->descriptor_pool[f->n_packets]);
 
-		/* DMA address of the block = offset of block relative
-		    to the kernel base address of the descriptor pool
-		    + DMA base address of the descriptor pool */
+		
 		block_dma = ((unsigned long) block - (unsigned long) f->descriptor_pool) + f->descriptor_pool_dma;
 
 
-		/* the whole CIP pool fits on one page, so no worries about boundaries */
+		
 		if ( ((unsigned long) &(f->header_pool[f->n_packets]) - (unsigned long) f->header_pool)
 		    > PAGE_SIZE) {
 			printk(KERN_ERR "dv1394: FATAL ERROR: no room to allocate CIP header\n");
@@ -317,12 +223,10 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 		cip = &(f->header_pool[f->n_packets]);
 
-		/* DMA address of the CIP header = offset of cip
-		   relative to kernel base address of the header pool
-		   + DMA base address of the header pool */
+		
 		cip_dma = (unsigned long) cip % PAGE_SIZE + f->header_pool_dma;
 
-		/* is this an empty packet? */
+		
 
 		if (video->cip_accum > (video->cip_d - video->cip_n)) {
 			empty_packet = 1;
@@ -333,29 +237,7 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 			video->cip_accum += video->cip_n;
 		}
 
-		/* there are three important packets each frame:
-
-		   the first packet in the frame - we ask the card to record the timestamp when
-		                                   this packet is actually sent, so we can monitor
-						   how accurate our timestamps are. Also, the first
-						   packet serves as a semaphore to let us know that
-						   it's OK to free the *previous* frame's DMA buffer
-
-		   the last packet in the frame -  this packet is used to detect buffer underflows.
-		                                   if this is the last ready frame, the last DMA block
-						   will have a branch back to the beginning of the frame
-						   (so that the card will re-send the frame on underflow).
-						   if this branch gets taken, we know that at least one
-						   frame has been dropped. When the next frame is ready,
-						   the branch is pointed to its first packet, and the
-						   semaphore is disabled.
-
-		   a "mid" packet slightly before the end of the frame - this packet should trigger
-		                   an interrupt so we can go and assign a timestamp to the first packet
-				   in the next frame. We don't use the very last packet in the frame
-				   for this purpose, because that would leave very little time to set
-				   the timestamp before DMA starts on the next frame.
-		*/
+		
 
 		if (f->n_packets == 0) {
 			first_packet = 1;
@@ -366,56 +248,52 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 		}
 
 
-		/********************/
-		/* setup CIP header */
-		/********************/
+		
+		
+		
 
-		/* the timestamp will be written later from the
-		   mid-frame interrupt handler. For now we just
-		   store the address of the CIP header(s) that
-		   need a timestamp. */
+		
 
-		/* first packet in the frame needs a timestamp */
+		
 		if (first_packet) {
 			f->cip_syt1 = cip;
 			if (empty_packet)
 				first_packet_empty = 1;
 
 		} else if (first_packet_empty && (f->n_packets == 1) ) {
-			/* if the first packet was empty, the second
-			   packet's CIP header also needs a timestamp */
+			
 			f->cip_syt2 = cip;
 		}
 
 		fill_cip_header(cip,
-				/* the node ID number of the OHCI card */
+				
 				reg_read(video->ohci, OHCI1394_NodeID) & 0x3F,
 				video->continuity_counter,
 				video->pal_or_ntsc,
-				0xFFFF /* the timestamp is filled in later */);
+				0xFFFF );
 
-		/* advance counter, only for full packets */
+		
 		if ( ! empty_packet )
 			video->continuity_counter++;
 
-		/******************************/
-		/* setup DMA descriptor block */
-		/******************************/
+		
+		
+		
 
-		/* first descriptor - OUTPUT_MORE_IMMEDIATE, for the controller's IT header */
+		
 		fill_output_more_immediate( &(block->u.out.omi), 1, video->channel, 0, payload_size);
 
 		if (empty_packet) {
-			/* second descriptor - OUTPUT_LAST for CIP header */
+			
 			fill_output_last( &(block->u.out.u.empty.ol),
 
-					  /* want completion status on all interesting packets */
+					  
 					  (first_packet || mid_packet || last_packet) ? 1 : 0,
 
-					  /* want interrupts on all interesting packets */
+					  
 					  (first_packet || mid_packet || last_packet) ? 1 : 0,
 
-					  sizeof(struct CIP_header), /* data size */
+					  sizeof(struct CIP_header), 
 					  cip_dma);
 
 			if (first_packet)
@@ -432,43 +310,42 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 			if (first_packet)
 				f->first_n_descriptors = n_descriptors;
 
-		} else { /* full packet */
+		} else { 
 
-			/* second descriptor - OUTPUT_MORE for CIP header */
+			
 			fill_output_more( &(block->u.out.u.full.om),
-					  sizeof(struct CIP_header), /* data size */
+					  sizeof(struct CIP_header), 
 					  cip_dma);
 
 
-			/* third (and possibly fourth) descriptor - for DV data */
-			/* the 480-byte payload can cross a page boundary; if so,
-			   we need to split it into two DMA descriptors */
+			
+			
 
-			/* does the 480-byte data payload cross a page boundary? */
+			
 			if ( (PAGE_SIZE- ((unsigned long)data_p % PAGE_SIZE) ) < 480 ) {
 
-				/* page boundary crossed */
+				
 
 				fill_output_more( &(block->u.out.u.full.u.cross.om),
-						  /* data size - how much of data_p fits on the first page */
+						  
 						  PAGE_SIZE - (data_p % PAGE_SIZE),
 
-						  /* DMA address of data_p */
+						  
 						  dma_region_offset_to_bus(&video->dv_buf,
 									   data_p - (unsigned long) video->dv_buf.kvirt));
 
 				fill_output_last( &(block->u.out.u.full.u.cross.ol),
 
-						  /* want completion status on all interesting packets */
+						  
 						  (first_packet || mid_packet || last_packet) ? 1 : 0,
 
-						  /* want interrupt on all interesting packets */
+						  
 						  (first_packet || mid_packet || last_packet) ? 1 : 0,
 
-						  /* data size - remaining portion of data_p */
+						  
 						  480 - (PAGE_SIZE - (data_p % PAGE_SIZE)),
 
-						  /* DMA address of data_p + PAGE_SIZE - (data_p % PAGE_SIZE) */
+						  
 						  dma_region_offset_to_bus(&video->dv_buf,
 									   data_p + PAGE_SIZE - (data_p % PAGE_SIZE) - (unsigned long) video->dv_buf.kvirt));
 
@@ -490,20 +367,20 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 				full_packets++;
 
 			} else {
-				/* fits on one page */
+				
 
 				fill_output_last( &(block->u.out.u.full.u.nocross.ol),
 
-						  /* want completion status on all interesting packets */
+						  
 						  (first_packet || mid_packet || last_packet) ? 1 : 0,
 
-						  /* want interrupt on all interesting packets */
+						  
 						  (first_packet || mid_packet || last_packet) ? 1 : 0,
 
-						  480, /* data size (480 bytes of DV data) */
+						  480, 
 
 
-						  /* DMA address of data_p */
+						  
 						  dma_region_offset_to_bus(&video->dv_buf,
 									   data_p - (unsigned long) video->dv_buf.kvirt));
 
@@ -526,10 +403,9 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 			}
 		}
 
-		/* link this descriptor block into the DMA program by filling in
-		   the branch address of the previous block */
+		
 
-		/* note: we are not linked into the active DMA chain yet */
+		
 
 		if (last_branch_address) {
 			*(last_branch_address) = cpu_to_le32(block_dma | n_descriptors);
@@ -542,14 +418,13 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 	}
 
-	/* when we first assemble a new frame, set the final branch
-	   to loop back up to the top */
+	
 	*(f->frame_end_branch) = cpu_to_le32(f->descriptor_pool_dma | f->first_n_descriptors);
 
-	/* make the latest version of this frame visible to the PCI card */
+	
 	dma_region_sync_for_device(&video->dv_buf, f->data - (unsigned long) video->dv_buf.kvirt, video->frame_size);
 
-	/* lock against DMA interrupt */
+	
 	spin_lock_irqsave(&video->spinlock, irq_flags);
 
 	f->state = FRAME_READY;
@@ -573,32 +448,26 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 	if (video->active_frame != -1) {
 
-		/* if DMA is already active, we are almost done */
-		/* just link us onto the active DMA chain */
+		
+		
 		if (video->frames[last_frame]->frame_end_branch) {
 			u32 temp;
 
-			/* point the previous frame's tail to this frame's head */
+			
 			*(video->frames[last_frame]->frame_end_branch) = cpu_to_le32(f->descriptor_pool_dma | f->first_n_descriptors);
 
-			/* this write MUST precede the next one, or we could silently drop frames */
+			
 			wmb();
 
-			/* disable the want_status semaphore on the last packet */
+			
 			temp = le32_to_cpu(*(video->frames[last_frame]->frame_end_branch - 2));
 			temp &= 0xF7CFFFFF;
 			*(video->frames[last_frame]->frame_end_branch - 2) = cpu_to_le32(temp);
 
-			/* flush these writes to memory ASAP */
+			
 			flush_pci_write(video->ohci);
 
-			/* NOTE:
-			   ideally the writes should be "atomic": if
-			   the OHCI card reads the want_status flag in
-			   between them, we'll falsely report a
-			   dropped frame. Hopefully this window is too
-			   small to really matter, and the consequence
-			   is rather harmless. */
+			
 
 
 			irq_printk("     new frame %d linked onto DMA chain\n", this_frame);
@@ -612,17 +481,15 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 		u32 transmit_sec, transmit_cyc;
 		u32 ts_cyc, ts_off;
 
-		/* DMA is stopped, so this is the very first frame */
+		
 		video->active_frame = this_frame;
 
-	        /* set CommandPtr to address and size of first descriptor block */
+	        
 		reg_write(video->ohci, video->ohci_IsoXmitCommandPtr,
 			  video->frames[video->active_frame]->descriptor_pool_dma |
 			  f->first_n_descriptors);
 
-		/* assign a timestamp based on the current cycle time...
-		   We'll tell the card to begin DMA 100 cycles from now,
-		   and assign a timestamp 103 cycles from now */
+		
 
 		cycleTimer = reg_read(video->ohci, OHCI1394_IsochronousCycleTimer);
 
@@ -642,7 +509,7 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 		f->assigned_timestamp = (ts_cyc&0xF) << 12;
 
-		/* now actually write the timestamp into the appropriate CIP headers */
+		
 		if (f->cip_syt1) {
 			f->cip_syt1->b[6] = f->assigned_timestamp >> 8;
 			f->cip_syt1->b[7] = f->assigned_timestamp & 0xFF;
@@ -652,28 +519,18 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 			f->cip_syt2->b[7] = f->assigned_timestamp & 0xFF;
 		}
 
-		/* --- start DMA --- */
+		
 
-		/* clear all bits in ContextControl register */
+		
 
 		reg_write(video->ohci, video->ohci_IsoXmitContextControlClear, 0xFFFFFFFF);
 		wmb();
 
-		/* the OHCI card has the ability to start ISO transmission on a
-		   particular cycle (start-on-cycle). This way we can ensure that
-		   the first DV frame will have an accurate timestamp.
-
-		   However, start-on-cycle only appears to work if the OHCI card
-		   is cycle master! Since the consequences of messing up the first
-		   timestamp are minimal*, just disable start-on-cycle for now.
-
-		   * my DV deck drops the first few frames before it "locks in;"
-		     so the first frame having an incorrect timestamp is inconsequential.
-		*/
+		
 
 #if 0
 		reg_write(video->ohci, video->ohci_IsoXmitContextControlSet,
-			  (1 << 31) /* enable start-on-cycle */
+			  (1 << 31) 
 			  | ( (transmit_sec & 0x3) << 29)
 			  | (transmit_cyc << 16));
 		wmb();
@@ -681,11 +538,11 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 		video->dma_running = 1;
 
-		/* set the 'run' bit */
+		
 		reg_write(video->ohci, video->ohci_IsoXmitContextControlSet, 0x8000);
 		flush_pci_write(video->ohci);
 
-		/* --- DMA should be running now --- */
+		
 
 		debug_printk("    Cycle = %4u ContextControl = %08x CmdPtr = %08x\n",
 			     (reg_read(video->ohci, OHCI1394_IsochronousCycleTimer) >> 12) & 0x1FFF,
@@ -697,7 +554,7 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 #if DV1394_DEBUG_LEVEL >= 2
 		{
-			/* check if DMA is really running */
+			
 			int i = 0;
 			while (i < 20) {
 				mb();
@@ -730,47 +587,42 @@ static void frame_prepare(struct video_card *video, unsigned int this_frame)
 
 
 
-/*** RECEIVE FUNCTIONS *****************************************************/
 
-/*
-	frame method put_packet
 
-	map and copy the packet data to its location in the frame
-	based upon DIF section and sequence
-*/
+
 
 static void inline
 frame_put_packet (struct frame *f, struct packet *p)
 {
-	int section_type = p->data[0] >> 5;           /* section type is in bits 5 - 7 */
-	int dif_sequence = p->data[1] >> 4;           /* dif sequence number is in bits 4 - 7 */
+	int section_type = p->data[0] >> 5;           
+	int dif_sequence = p->data[1] >> 4;           
 	int dif_block = p->data[2];
 
-	/* sanity check */
+	
 	if (dif_sequence > 11 || dif_block > 149) return;
 
 	switch (section_type) {
-	case 0:           /* 1 Header block */
+	case 0:           
 	        memcpy( (void *) f->data + dif_sequence * 150 * 80, p->data, 480);
 	        break;
 
-	case 1:           /* 2 Subcode blocks */
+	case 1:           
 	        memcpy( (void *) f->data + dif_sequence * 150 * 80 + (1 + dif_block) * 80, p->data, 480);
 	        break;
 
-	case 2:           /* 3 VAUX blocks */
+	case 2:           
 	        memcpy( (void *) f->data + dif_sequence * 150 * 80 + (3 + dif_block) * 80, p->data, 480);
 	        break;
 
-	case 3:           /* 9 Audio blocks interleaved with video */
+	case 3:           
 	        memcpy( (void *) f->data + dif_sequence * 150 * 80 + (6 + dif_block * 16) * 80, p->data, 480);
 	        break;
 
-	case 4:           /* 135 Video blocks interleaved with audio */
+	case 4:           
 	        memcpy( (void *) f->data + dif_sequence * 150 * 80 + (7 + (dif_block / 15) + dif_block) * 80, p->data, 480);
 	        break;
 
-	default:           /* we can not handle any other data */
+	default:           
 	        break;
 	}
 }
@@ -781,30 +633,30 @@ static void start_dma_receive(struct video_card *video)
 	if (video->first_run == 1) {
 		video->first_run = 0;
 
-		/* start DMA once all of the frames are READY */
+		
 		video->n_clear_frames = 0;
 		video->first_clear_frame = -1;
 		video->current_packet = 0;
 		video->active_frame = 0;
 
-		/* reset iso recv control register */
+		
 		reg_write(video->ohci, video->ohci_IsoRcvContextControlClear, 0xFFFFFFFF);
 		wmb();
 
-		/* clear bufferFill, set isochHeader and speed (0=100) */
+		
 		reg_write(video->ohci, video->ohci_IsoRcvContextControlSet, 0x40000000);
 
-		/* match on all tags, listen on channel */
+		
 		reg_write(video->ohci, video->ohci_IsoRcvContextMatch, 0xf0000000 | video->channel);
 
-		/* address and first descriptor block + Z=1 */
+		
 		reg_write(video->ohci, video->ohci_IsoRcvCommandPtr,
-			  video->frames[0]->descriptor_pool_dma | 1); /* Z=1 */
+			  video->frames[0]->descriptor_pool_dma | 1); 
 		wmb();
 
 		video->dma_running = 1;
 
-		/* run */
+		
 		reg_write(video->ohci, video->ohci_IsoRcvContextControlSet, 0x8000);
 		flush_pci_write(video->ohci);
 
@@ -832,15 +684,13 @@ static void start_dma_receive(struct video_card *video)
 		debug_printk("DEAD, event = %x\n",
 			     reg_read(video->ohci, video->ohci_IsoRcvContextControlSet) & 0x1F);
 
-		/* wake */
+		
 		reg_write(video->ohci, video->ohci_IsoRcvContextControlSet, (1 << 12));
 	}
 }
 
 
-/*
-   receive_packets() - build the DMA program for receiving
-*/
+
 
 static void receive_packets(struct video_card *video)
 {
@@ -858,14 +708,14 @@ static void receive_packets(struct video_card *video)
 
 	for (j = 0; j < video->n_frames; j++) {
 
-		/* connect frames */
+		
 		if (j > 0 && f != NULL && f->frame_end_branch != NULL)
-			*(f->frame_end_branch) = cpu_to_le32(video->frames[j]->descriptor_pool_dma | 1); /* set Z=1 */
+			*(f->frame_end_branch) = cpu_to_le32(video->frames[j]->descriptor_pool_dma | 1); 
 
 		f = video->frames[j];
 
 		for (i = 0; i < MAX_PACKETS; i++) {
-			/* locate a descriptor block and packet from the buffer */
+			
 			block = &(f->descriptor_pool[i]);
 			block_dma = ((unsigned long) block - (unsigned long) f->descriptor_pool) + f->descriptor_pool_dma;
 
@@ -873,20 +723,20 @@ static void receive_packets(struct video_card *video)
 			data_dma = dma_region_offset_to_bus( &video->packet_buf,
 							     ((unsigned long) data - (unsigned long) video->packet_buf.kvirt) );
 
-			/* setup DMA descriptor block */
+			
 			want_interrupt = ((i % (MAX_PACKETS/2)) == 0 || i == (MAX_PACKETS-1));
 			fill_input_last( &(block->u.in.il), want_interrupt, 512, data_dma);
 
-			/* link descriptors */
+			
 			last_branch_address = f->frame_end_branch;
 
 			if (last_branch_address != NULL)
-				*(last_branch_address) = cpu_to_le32(block_dma | 1); /* set Z=1 */
+				*(last_branch_address) = cpu_to_le32(block_dma | 1); 
 
 			f->frame_end_branch = &(block->u.in.il.q[2]);
 		}
 
-	} /* next j */
+	} 
 
 	spin_unlock_irqrestore(&video->spinlock, irq_flags);
 
@@ -894,7 +744,7 @@ static void receive_packets(struct video_card *video)
 
 
 
-/*** MANAGEMENT FUNCTIONS **************************************************/
+
 
 static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 {
@@ -907,7 +757,7 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 	if (init->api_version != DV1394_API_VERSION)
 		return -EINVAL;
 
-	/* first sanitize all the parameters */
+	
 	if ( (init->n_frames < 2) || (init->n_frames > DV1394_MAX_FRAMES) )
 		return -EINVAL;
 
@@ -915,7 +765,7 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 		return -EINVAL;
 
 	if ( (init->syt_offset == 0) || (init->syt_offset > 50) )
-		/* default SYT offset is 3 cycles */
+		
 		init->syt_offset = 3;
 
 	if (init->channel > 63)
@@ -923,27 +773,27 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 
 	chan_mask = (u64)1 << init->channel;
 
-	/* calculate what size DMA buffer is needed */
+	
 	if (init->format == DV1394_NTSC)
 		new_buf_size = DV1394_NTSC_FRAME_SIZE * init->n_frames;
 	else
 		new_buf_size = DV1394_PAL_FRAME_SIZE * init->n_frames;
 
-	/* round up to PAGE_SIZE */
+	
 	if (new_buf_size % PAGE_SIZE) new_buf_size += PAGE_SIZE - (new_buf_size % PAGE_SIZE);
 
-	/* don't allow the user to allocate the DMA buffer more than once */
+	
 	if (video->dv_buf.kvirt && video->dv_buf_size != new_buf_size) {
 		printk("dv1394: re-sizing the DMA buffer is not allowed\n");
 		return -EINVAL;
 	}
 
-	/* shutdown the card if it's currently active */
-	/* (the card should not be reset if the parameters are screwy) */
+	
+	
 
 	do_dv1394_shutdown(video, 0);
 
-	/* try to claim the ISO channel */
+	
 	spin_lock_irqsave(&video->ohci->IR_channel_lock, flags);
 	if (video->ohci->ISO_channel_usage & chan_mask) {
 		spin_unlock_irqrestore(&video->ohci->IR_channel_lock, flags);
@@ -955,7 +805,7 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 
 	video->channel = init->channel;
 
-	/* initialize misc. fields of video */
+	
 	video->n_frames = init->n_frames;
 	video->pal_or_ntsc = init->format;
 
@@ -985,7 +835,7 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 
 	video->syt_offset = init->syt_offset;
 
-	/* find and claim DMA contexts on the OHCI card */
+	
 
 	if (video->ohci_it_ctx == -1) {
 		ohci1394_init_iso_tasklet(&video->it_tasklet, OHCI_ISO_TRANSMIT,
@@ -1014,7 +864,7 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 		debug_printk("dv1394: claimed IR DMA context %d\n", video->ohci_ir_ctx);
 	}
 
-	/* allocate struct frames */
+	
 	for (i = 0; i < init->n_frames; i++) {
 		video->frames[i] = frame_new(i, video);
 
@@ -1026,7 +876,7 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 	}
 
 	if (!video->dv_buf.kvirt) {
-		/* allocate the ringbuffer */
+		
 		retval = dma_region_alloc(&video->dv_buf, new_buf_size, video->ohci->dev, PCI_DMA_TODEVICE);
 		if (retval)
 			goto err;
@@ -1038,12 +888,12 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 			     video->dv_buf.n_dma_pages, video->dv_buf_size);
 	}
 
-	/* set up the frame->data pointers */
+	
 	for (i = 0; i < video->n_frames; i++)
 		video->frames[i]->data = (unsigned long) video->dv_buf.kvirt + i * video->frame_size;
 
 	if (!video->packet_buf.kvirt) {
-		/* allocate packet buffer */
+		
 		video->packet_buf_size = sizeof(struct packet) * video->n_frames * MAX_PACKETS;
 		if (video->packet_buf_size % PAGE_SIZE)
 			video->packet_buf_size += PAGE_SIZE - (video->packet_buf_size % PAGE_SIZE);
@@ -1058,24 +908,24 @@ static int do_dv1394_init(struct video_card *video, struct dv1394_init *init)
 				 video->packet_buf.n_dma_pages, video->packet_buf_size);
 	}
 
-	/* set up register offsets for IT context */
-	/* IT DMA context registers are spaced 16 bytes apart */
+	
+	
 	video->ohci_IsoXmitContextControlSet = OHCI1394_IsoXmitContextControlSet+16*video->ohci_it_ctx;
 	video->ohci_IsoXmitContextControlClear = OHCI1394_IsoXmitContextControlClear+16*video->ohci_it_ctx;
 	video->ohci_IsoXmitCommandPtr = OHCI1394_IsoXmitCommandPtr+16*video->ohci_it_ctx;
 
-	/* enable interrupts for IT context */
+	
 	reg_write(video->ohci, OHCI1394_IsoXmitIntMaskSet, (1 << video->ohci_it_ctx));
 	debug_printk("dv1394: interrupts enabled for IT context %d\n", video->ohci_it_ctx);
 
-	/* set up register offsets for IR context */
-	/* IR DMA context registers are spaced 32 bytes apart */
+	
+	
 	video->ohci_IsoRcvContextControlSet = OHCI1394_IsoRcvContextControlSet+32*video->ohci_ir_ctx;
 	video->ohci_IsoRcvContextControlClear = OHCI1394_IsoRcvContextControlClear+32*video->ohci_ir_ctx;
 	video->ohci_IsoRcvCommandPtr = OHCI1394_IsoRcvCommandPtr+32*video->ohci_ir_ctx;
 	video->ohci_IsoRcvContextMatch = OHCI1394_IsoRcvContextMatch+32*video->ohci_ir_ctx;
 
-	/* enable interrupts for IR context */
+	
 	reg_write(video->ohci, OHCI1394_IsoRecvIntMaskSet, (1 << video->ohci_ir_ctx) );
 	debug_printk("dv1394: interrupts enabled for IR context %d\n", video->ohci_ir_ctx);
 
@@ -1086,8 +936,7 @@ err:
 	return retval;
 }
 
-/* if the user doesn't bother to call ioctl(INIT) before starting
-   mmap() or read()/write(), just give him some default values */
+
 
 static int do_dv1394_init_default(struct video_card *video)
 {
@@ -1104,13 +953,13 @@ static int do_dv1394_init_default(struct video_card *video)
 	return do_dv1394_init(video, &init);
 }
 
-/* do NOT call from interrupt context */
+
 static void stop_dma(struct video_card *video)
 {
 	unsigned long flags;
 	int i;
 
-	/* no interrupts */
+	
 	spin_lock_irqsave(&video->spinlock, flags);
 
 	video->dma_running = 0;
@@ -1118,12 +967,12 @@ static void stop_dma(struct video_card *video)
 	if ( (video->ohci_it_ctx == -1) && (video->ohci_ir_ctx == -1) )
 		goto out;
 
-	/* stop DMA if in progress */
+	
 	if ( (video->active_frame != -1) ||
 	    (reg_read(video->ohci, video->ohci_IsoXmitContextControlClear) & (1 << 10)) ||
 	    (reg_read(video->ohci, video->ohci_IsoRcvContextControlClear) &  (1 << 10)) ) {
 
-		/* clear the .run bits */
+		
 		reg_write(video->ohci, video->ohci_IsoXmitContextControlClear, (1 << 15));
 		reg_write(video->ohci, video->ohci_IsoRcvContextControlClear, (1 << 15));
 		flush_pci_write(video->ohci);
@@ -1131,16 +980,16 @@ static void stop_dma(struct video_card *video)
 		video->active_frame = -1;
 		video->first_run = 1;
 
-		/* wait until DMA really stops */
+		
 		i = 0;
 		while (i < 1000) {
 
-			/* wait 0.1 millisecond */
+			
 			udelay(100);
 
 			if ( (reg_read(video->ohci, video->ohci_IsoXmitContextControlClear) & (1 << 10)) ||
 			    (reg_read(video->ohci, video->ohci_IsoRcvContextControlClear)  & (1 << 10)) ) {
-				/* still active */
+				
 				debug_printk("dv1394: stop_dma: DMA not stopped yet\n" );
 				mb();
 			} else {
@@ -1170,19 +1019,19 @@ static void do_dv1394_shutdown(struct video_card *video, int free_dv_buf)
 
 	debug_printk("dv1394: shutdown...\n");
 
-	/* stop DMA if in progress */
+	
 	stop_dma(video);
 
-	/* release the DMA contexts */
+	
 	if (video->ohci_it_ctx != -1) {
 		video->ohci_IsoXmitContextControlSet = 0;
 		video->ohci_IsoXmitContextControlClear = 0;
 		video->ohci_IsoXmitCommandPtr = 0;
 
-		/* disable interrupts for IT context */
+		
 		reg_write(video->ohci, OHCI1394_IsoXmitIntMaskClear, (1 << video->ohci_it_ctx));
 
-		/* remove tasklet */
+		
 		ohci1394_unregister_iso_tasklet(video->ohci, &video->it_tasklet);
 		debug_printk("dv1394: IT context %d released\n", video->ohci_it_ctx);
 		video->ohci_it_ctx = -1;
@@ -1194,16 +1043,16 @@ static void do_dv1394_shutdown(struct video_card *video, int free_dv_buf)
 		video->ohci_IsoRcvCommandPtr = 0;
 		video->ohci_IsoRcvContextMatch = 0;
 
-		/* disable interrupts for IR context */
+		
 		reg_write(video->ohci, OHCI1394_IsoRecvIntMaskClear, (1 << video->ohci_ir_ctx));
 
-		/* remove tasklet */
+		
 		ohci1394_unregister_iso_tasklet(video->ohci, &video->ir_tasklet);
 		debug_printk("dv1394: IR context %d released\n", video->ohci_ir_ctx);
 		video->ohci_ir_ctx = -1;
 	}
 
-	/* release the ISO channel */
+	
 	if (video->channel != -1) {
 		u64 chan_mask;
 		unsigned long flags;
@@ -1217,7 +1066,7 @@ static void do_dv1394_shutdown(struct video_card *video, int free_dv_buf)
 		video->channel = -1;
 	}
 
-	/* free the frame structs */
+	
 	for (i = 0; i < DV1394_MAX_FRAMES; i++) {
 		if (video->frames[i])
 			frame_delete(video->frames[i]);
@@ -1226,56 +1075,28 @@ static void do_dv1394_shutdown(struct video_card *video, int free_dv_buf)
 
 	video->n_frames = 0;
 
-	/* we can't free the DMA buffer unless it is guaranteed that
-	   no more user-space mappings exist */
+	
 
 	if (free_dv_buf) {
 		dma_region_free(&video->dv_buf);
 		video->dv_buf_size = 0;
 	}
 
-	/* free packet buffer */
+	
 	dma_region_free(&video->packet_buf);
 	video->packet_buf_size = 0;
 
 	debug_printk("dv1394: shutdown OK\n");
 }
 
-/*
-       **********************************
-       *** MMAP() THEORY OF OPERATION ***
-       **********************************
 
-        The ringbuffer cannot be re-allocated or freed while
-        a user program maintains a mapping of it. (note that a mapping
-	can persist even after the device fd is closed!)
-
-	So, only let the user process allocate the DMA buffer once.
-	To resize or deallocate it, you must close the device file
-	and open it again.
-
-	Previously Dan M. hacked out a scheme that allowed the DMA
-	buffer to change by forcefully unmapping it from the user's
-	address space. It was prone to error because it's very hard to
-	track all the places the buffer could have been mapped (we
-	would have had to walk the vma list of every process in the
-	system to be sure we found all the mappings!). Instead, we
-	force the user to choose one buffer size and stick with
-	it. This small sacrifice is worth the huge reduction in
-	error-prone code in dv1394.
-*/
 
 static int dv1394_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct video_card *video = file_to_video_card(file);
 	int retval = -EINVAL;
 
-	/*
-	 * We cannot use the blocking variant mutex_lock here because .mmap
-	 * is called with mmap_sem held, while .ioctl, .read, .write acquire
-	 * video->mtx and subsequently call copy_to/from_user which will
-	 * grab mmap_sem in case of a page fault.
-	 */
+	
 	if (!mutex_trylock(&video->mtx))
 		return -EAGAIN;
 
@@ -1291,9 +1112,9 @@ out:
 	return retval;
 }
 
-/*** DEVICE FILE INTERFACE *************************************************/
 
-/* no need to serialize, multiple threads OK */
+
+
 static unsigned int dv1394_poll(struct file *file, struct poll_table_struct *wait)
 {
 	struct video_card *video = file_to_video_card(file);
@@ -1306,10 +1127,10 @@ static unsigned int dv1394_poll(struct file *file, struct poll_table_struct *wai
 	if ( video->n_frames == 0 ) {
 
 	} else if ( video->active_frame == -1 ) {
-		/* nothing going on */
+		
 		mask |= POLLOUT;
 	} else {
-		/* any clear/ready buffers? */
+		
 		if (video->n_clear_frames >0)
 			mask |= POLLOUT | POLLIN;
 	}
@@ -1320,8 +1141,7 @@ static unsigned int dv1394_poll(struct file *file, struct poll_table_struct *wai
 
 static int dv1394_fasync(int fd, struct file *file, int on)
 {
-	/* I just copied this code verbatim from Alan Cox's mouse driver example
-	   (Documentation/DocBook/) */
+	
 
 	struct video_card *video = file_to_video_card(file);
 
@@ -1337,7 +1157,7 @@ static ssize_t dv1394_write(struct file *file, const char __user *buffer, size_t
 	unsigned long flags;
 	int target_frame;
 
-	/* serialize this to prevent multi-threaded mayhem */
+	
 	if (file->f_flags & O_NONBLOCK) {
 		if (!mutex_trylock(&video->mtx))
 			return -EAGAIN;
@@ -1359,9 +1179,7 @@ static ssize_t dv1394_write(struct file *file, const char __user *buffer, size_t
 
 	while (count > 0) {
 
-		/* must set TASK_INTERRUPTIBLE *before* checking for free
-		   buffers; otherwise we could miss a wakeup if the interrupt
-		   fires between the check and the schedule() */
+		
 
 		set_current_state(TASK_INTERRUPTIBLE);
 
@@ -1373,11 +1191,11 @@ static ssize_t dv1394_write(struct file *file, const char __user *buffer, size_t
 
 		if (video->frames[target_frame]->state == FRAME_CLEAR) {
 
-			/* how much room is left in the target frame buffer */
+			
 			cnt = video->frame_size - (video->write_off - target_frame * video->frame_size);
 
 		} else {
-			/* buffer is already used */
+			
 			cnt = 0;
 		}
 
@@ -1385,7 +1203,7 @@ static ssize_t dv1394_write(struct file *file, const char __user *buffer, size_t
 			cnt = count;
 
 		if (cnt <= 0) {
-			/* no room left, gotta wait */
+			
 			if (file->f_flags & O_NONBLOCK) {
 				if (!ret)
 					ret = -EAGAIN;
@@ -1399,7 +1217,7 @@ static ssize_t dv1394_write(struct file *file, const char __user *buffer, size_t
 
 			schedule();
 
-			continue; /* start over from 'while(count > 0)...' */
+			continue; 
 		}
 
 		if (copy_from_user(video->dv_buf.kvirt + video->write_off, buffer, cnt)) {
@@ -1434,7 +1252,7 @@ static ssize_t dv1394_read(struct file *file,  char __user *buffer, size_t count
 	unsigned long flags;
 	int target_frame;
 
-	/* serialize this to prevent multi-threaded mayhem */
+	
 	if (file->f_flags & O_NONBLOCK) {
 		if (!mutex_trylock(&video->mtx))
 			return -EAGAIN;
@@ -1461,9 +1279,7 @@ static ssize_t dv1394_read(struct file *file,  char __user *buffer, size_t count
 
 	while (count > 0) {
 
-		/* must set TASK_INTERRUPTIBLE *before* checking for free
-		   buffers; otherwise we could miss a wakeup if the interrupt
-		   fires between the check and the schedule() */
+		
 
 		set_current_state(TASK_INTERRUPTIBLE);
 
@@ -1477,11 +1293,11 @@ static ssize_t dv1394_read(struct file *file,  char __user *buffer, size_t count
 			video->n_clear_frames > 0 &&
 			video->frames[target_frame]->state == FRAME_CLEAR) {
 
-			/* how much room is left in the target frame buffer */
+			
 			cnt = video->frame_size - (video->write_off - target_frame * video->frame_size);
 
 		} else {
-			/* buffer is already used */
+			
 			cnt = 0;
 		}
 
@@ -1489,7 +1305,7 @@ static ssize_t dv1394_read(struct file *file,  char __user *buffer, size_t count
 			cnt = count;
 
 		if (cnt <= 0) {
-			/* no room left, gotta wait */
+			
 			if (file->f_flags & O_NONBLOCK) {
 				if (!ret)
 					ret = -EAGAIN;
@@ -1503,7 +1319,7 @@ static ssize_t dv1394_read(struct file *file,  char __user *buffer, size_t count
 
 			schedule();
 
-			continue; /* start over from 'while(count > 0)...' */
+			continue; 
 		}
 
 		if (copy_to_user(buffer, video->dv_buf.kvirt + video->write_off, cnt)) {
@@ -1533,7 +1349,7 @@ static ssize_t dv1394_read(struct file *file,  char __user *buffer, size_t count
 }
 
 
-/*** DEVICE IOCTL INTERFACE ************************************************/
+
 
 static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -1544,7 +1360,7 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 	DECLARE_WAITQUEUE(wait, current);
 
-	/* serialize this to prevent multi-threaded mayhem */
+	
 	if (file->f_flags & O_NONBLOCK) {
 		if (!mutex_trylock(&video->mtx))
 			return -EAGAIN;
@@ -1578,7 +1394,7 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 			spin_lock_irqsave(&video->spinlock, flags);
 
-			/* wait until video->first_clear_frame is really CLEAR */
+			
 			while (video->frames[video->first_clear_frame]->state != FRAME_CLEAR) {
 
 				spin_unlock_irqrestore(&video->spinlock, flags);
@@ -1619,9 +1435,7 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 		n_wait = (unsigned int) arg;
 
-		/* since we re-run the last frame on underflow, we will
-		   never actually have n_frames clear frames; at most only
-		   n_frames - 1 */
+		
 
 		if (n_wait > (video->n_frames-1) ) {
 			ret = -EINVAL;
@@ -1668,7 +1482,7 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 		n_recv = (unsigned int) arg;
 
-		/* at least one frame must be active */
+		
 		if (n_recv > (video->n_frames-1) ) {
 			ret = -EINVAL;
 			goto out;
@@ -1676,13 +1490,13 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 		spin_lock_irqsave(&video->spinlock, flags);
 
-		/* release the clear frames */
+		
 		video->n_clear_frames -= n_recv;
 
-		/* advance the clear frame cursor */
+		
 		video->first_clear_frame = (video->first_clear_frame + n_recv) % video->n_frames;
 
-		/* reset dropped_frames */
+		
 		video->dropped_frames = 0;
 
 		spin_unlock_irqrestore(&video->spinlock, flags);
@@ -1746,7 +1560,7 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 		status.first_clear_frame = video->first_clear_frame;
 
-		/* the rest of the fields need to be locked against the interrupt */
+		
 		spin_lock_irqsave(&video->spinlock, flags);
 
 		status.active_frame = video->active_frame;
@@ -1754,7 +1568,7 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 		status.dropped_frames = video->dropped_frames;
 
-		/* reset dropped_frames */
+		
 		video->dropped_frames = 0;
 
 		spin_unlock_irqrestore(&video->spinlock, flags);
@@ -1777,7 +1591,7 @@ static long dv1394_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	return ret;
 }
 
-/*** DEVICE FILE INTERFACE CONTINUED ***************************************/
+
 
 static int dv1394_open(struct inode *inode, struct file *file)
 {
@@ -1787,7 +1601,7 @@ static int dv1394_open(struct inode *inode, struct file *file)
 		video = (struct video_card*) file->private_data;
 
 	} else {
-		/* look up the card by ID */
+		
 		unsigned long flags;
 		int idx = ieee1394_file_to_instance(file);
 
@@ -1814,7 +1628,7 @@ static int dv1394_open(struct inode *inode, struct file *file)
 #ifndef DV1394_ALLOW_MORE_THAN_ONE_OPEN
 
 	if ( test_and_set_bit(0, &video->open) ) {
-		/* video is already open by someone else */
+		
 		return -EBUSY;
  	}
 
@@ -1832,17 +1646,17 @@ static int dv1394_release(struct inode *inode, struct file *file)
 {
 	struct video_card *video = file_to_video_card(file);
 
-	/* OK to free the DMA buffer, no more mappings can exist */
+	
 	do_dv1394_shutdown(video, 1);
 
-	/* give someone else a turn */
+	
 	clear_bit(0, &video->open);
 
 	return 0;
 }
 
 
-/*** DEVICE DRIVER HANDLERS ************************************************/
+
 
 static void it_tasklet_func(unsigned long data)
 {
@@ -1872,27 +1686,27 @@ static void it_tasklet_func(unsigned long data)
 		else
 			frame = video->active_frame;
 
-		/* check all the DMA-able frames */
+		
 		for (i = 0; i < video->n_frames; i++, frame = (frame+1) % video->n_frames) {
 
 			irq_printk("IRQ checking frame %d...", frame);
 			f = video->frames[frame];
 			if (f->state != FRAME_READY) {
 				irq_printk("clear, skipping\n");
-				/* we don't own this frame */
+				
 				continue;
 			}
 
 			irq_printk("DMA\n");
 
-			/* check the frame begin semaphore to see if we can free the previous frame */
+			
 			if ( *(f->frame_begin_timestamp) ) {
 				int prev_frame;
 				struct frame *prev_f;
 
 
 
-				/* don't reset, need this later *(f->frame_begin_timestamp) = 0; */
+				
 				irq_printk("  BEGIN\n");
 
 				prev_frame = frame - 1;
@@ -1900,8 +1714,7 @@ static void it_tasklet_func(unsigned long data)
 					prev_frame += video->n_frames;
 				prev_f = video->frames[prev_frame];
 
-				/* make sure we can actually garbage collect
-				   this frame */
+				
 				if ( (prev_f->state == FRAME_READY) &&
 				    prev_f->done && (!f->done) )
 				{
@@ -1919,7 +1732,7 @@ static void it_tasklet_func(unsigned long data)
 			}
 
 
-			/* see if we need to set the timestamp for the next frame */
+			
 			if ( *(f->mid_frame_timestamp) ) {
 				struct frame *next_frame;
 				u32 begin_ts, ts_cyc, ts_off;
@@ -1932,7 +1745,7 @@ static void it_tasklet_func(unsigned long data)
 					   begin_ts & 0x1FFF, begin_ts & 0xF,
 					   f->assigned_timestamp >> 12, f->assigned_timestamp & 0xFFF);
 
-				/* prepare next frame and assign timestamp */
+				
 				next_frame = video->frames[ (frame+1) % video->n_frames ];
 
 				if (next_frame->state == FRAME_READY) {
@@ -1942,10 +1755,9 @@ static void it_tasklet_func(unsigned long data)
 					next_frame = f;
 				}
 
-				/* set the timestamp to the timestamp of the last frame sent,
-				   plus the length of the last frame sent, plus the syt latency */
+				
 				ts_cyc = begin_ts & 0xF;
-				/* advance one frame, plus syt latency (typically 2-3) */
+				
 				ts_cyc += f->n_packets + video->syt_offset ;
 
 				ts_off = 0;
@@ -1965,7 +1777,7 @@ static void it_tasklet_func(unsigned long data)
 
 			}
 
-			/* see if the frame looped */
+			
 			if ( *(f->frame_end_timestamp) ) {
 
 				*(f->frame_end_timestamp) = 0;
@@ -1975,13 +1787,13 @@ static void it_tasklet_func(unsigned long data)
 				video->dropped_frames++;
 			}
 
-		} /* for (each frame) */
+		} 
 	}
 
 	if (wake) {
 		kill_fasync(&video->fasync, SIGIO, POLL_OUT);
 
-		/* wake readers/writers/ioctl'ers */
+		
 		wake_up_interruptible(&video->waitq);
 	}
 
@@ -2002,7 +1814,7 @@ static void ir_tasklet_func(unsigned long data)
 	if ( (video->ohci_ir_ctx != -1) &&
 	    (reg_read(video->ohci, video->ohci_IsoRcvContextControlSet) & (1 << 10)) ) {
 
-		int sof=0; /* start-of-frame flag */
+		int sof=0; 
 		struct frame *f;
 		u16 packet_length, packet_time;
 		int i, dbc=0;
@@ -2014,11 +1826,11 @@ static void ir_tasklet_func(unsigned long data)
 		dma_addr_t next_dma = 0;
 		struct DMA_descriptor_block *prev = NULL;
 
-		/* loop over all descriptors in all frames */
+		
 		for (i = 0; i < video->n_frames*MAX_PACKETS; i++) {
 			struct packet *p = dma_region_i(&video->packet_buf, struct packet, video->current_packet);
 
-			/* make sure we are seeing the latest changes to p */
+			
 			dma_region_sync_for_cpu(&video->packet_buf,
 						(unsigned long) p - (unsigned long) video->packet_buf.kvirt,
 						sizeof(struct packet));
@@ -2030,21 +1842,20 @@ static void ir_tasklet_func(unsigned long data)
 				   packet_time, packet_length,
 				   p->data[0], p->data[1]);
 
-			/* get the descriptor based on packet_buffer cursor */
+			
 			f = video->frames[video->current_packet / MAX_PACKETS];
 			block = &(f->descriptor_pool[video->current_packet % MAX_PACKETS]);
 			xferstatus = le32_to_cpu(block->u.in.il.q[3]) >> 16;
 			xferstatus &= 0x1F;
 			irq_printk("ir_tasklet_func: xferStatus/resCount [%d] = 0x%08x\n", i, le32_to_cpu(block->u.in.il.q[3]) );
 
-			/* get the current frame */
+			
 			f = video->frames[video->active_frame];
 
-			/* exclude empty packet */
+			
 			if (packet_length > 8 && xferstatus == 0x11) {
-				/* check for start of frame */
-				/* DRD> Changed to check section type ([0]>>5==0)
-				   and dif sequence ([1]>>4==0) */
+				
+				
 				sof = ( (p->data[0] >> 5) == 0 && (p->data[1] >> 4) == 0);
 
 				dbc = (int) (p->cip_h1 >> 24);
@@ -2064,8 +1875,8 @@ static void ir_tasklet_func(unsigned long data)
 					}
 
 				} else if (sof) {
-					/* close current frame */
-					frame_reset(f);  /* f->state = STATE_CLEAR */
+					
+					frame_reset(f);  
 					video->n_clear_frames++;
 					if (video->n_clear_frames > video->n_frames) {
 						video->dropped_frames++;
@@ -2076,7 +1887,7 @@ static void ir_tasklet_func(unsigned long data)
 					if (video->first_clear_frame == -1)
 						video->first_clear_frame = video->active_frame;
 
-					/* get the next frame */
+					
 					video->active_frame = (video->active_frame + 1) % video->n_frames;
 					f = video->frames[video->active_frame];
 					irq_printk("   frame received, active_frame = %d, n_clear_frames = %d, first_clear_frame = %d\n",
@@ -2084,64 +1895,64 @@ static void ir_tasklet_func(unsigned long data)
 				}
 				if (video->first_frame) {
 					if (sof) {
-						/* open next frame */
+						
 						f->state = FRAME_READY;
 					}
 
-					/* copy to buffer */
+					
 					if (f->n_packets > (video->frame_size / 480)) {
 						printk(KERN_ERR "frame buffer overflow during receive\n");
 					}
 
 					frame_put_packet(f, p);
 
-				} /* first_frame */
+				} 
 			}
 
-			/* stop, end of ready packets */
+			
 			else if (xferstatus == 0) {
 				break;
 			}
 
-			/* reset xferStatus & resCount */
+			
 			block->u.in.il.q[3] = cpu_to_le32(512);
 
-			/* terminate dma chain at this (next) packet */
+			
 			next_i = video->current_packet;
 			f = video->frames[next_i / MAX_PACKETS];
 			next = &(f->descriptor_pool[next_i % MAX_PACKETS]);
 			next_dma = ((unsigned long) block - (unsigned long) f->descriptor_pool) + f->descriptor_pool_dma;
-			next->u.in.il.q[0] |= cpu_to_le32(3 << 20); /* enable interrupt */
-			next->u.in.il.q[2] = cpu_to_le32(0); /* disable branch */
+			next->u.in.il.q[0] |= cpu_to_le32(3 << 20); 
+			next->u.in.il.q[2] = cpu_to_le32(0); 
 
-			/* link previous to next */
+			
 			prev_i = (next_i == 0) ? (MAX_PACKETS * video->n_frames - 1) : (next_i - 1);
 			f = video->frames[prev_i / MAX_PACKETS];
 			prev = &(f->descriptor_pool[prev_i % MAX_PACKETS]);
 			if (prev_i % (MAX_PACKETS/2)) {
-				prev->u.in.il.q[0] &= ~cpu_to_le32(3 << 20); /* no interrupt */
+				prev->u.in.il.q[0] &= ~cpu_to_le32(3 << 20); 
 			} else {
-				prev->u.in.il.q[0] |= cpu_to_le32(3 << 20); /* enable interrupt */
+				prev->u.in.il.q[0] |= cpu_to_le32(3 << 20); 
 			}
-			prev->u.in.il.q[2] = cpu_to_le32(next_dma | 1); /* set Z=1 */
+			prev->u.in.il.q[2] = cpu_to_le32(next_dma | 1); 
 			wmb();
 
-			/* wake up DMA in case it fell asleep */
+			
 			reg_write(video->ohci, video->ohci_IsoRcvContextControlSet, (1 << 12));
 
-			/* advance packet_buffer cursor */
+			
 			video->current_packet = (video->current_packet + 1) % (MAX_PACKETS * video->n_frames);
 
-		} /* for all packets */
+		} 
 
-		wake = 1; /* why the hell not? */
+		wake = 1; 
 
-	} /* receive interrupt */
+	} 
 
 	if (wake) {
 		kill_fasync(&video->fasync, SIGIO, POLL_IN);
 
-		/* wake readers/writers/ioctl'ers */
+		
 		wake_up_interruptible(&video->waitq);
 	}
 
@@ -2167,10 +1978,8 @@ static const struct file_operations dv1394_fops=
 };
 
 
-/*** HOTPLUG STUFF **********************************************************/
-/*
- * Export information about protocols/devices supported by this driver.
- */
+
+
 #ifdef MODULE
 static const struct ieee1394_device_id dv1394_id_table[] = {
 	{
@@ -2182,14 +1991,14 @@ static const struct ieee1394_device_id dv1394_id_table[] = {
 };
 
 MODULE_DEVICE_TABLE(ieee1394, dv1394_id_table);
-#endif /* MODULE */
+#endif 
 
 static struct hpsb_protocol_driver dv1394_driver = {
 	.name = "dv1394",
 };
 
 
-/*** IEEE1394 HPSB CALLBACKS ***********************************************/
+
 
 static int dv1394_init(struct ti_ohci *ohci, enum pal_or_ntsc format, enum modes mode)
 {
@@ -2204,8 +2013,7 @@ static int dv1394_init(struct ti_ohci *ohci, enum pal_or_ntsc format, enum modes
 	}
 
 	video->ohci = ohci;
-	/* lower 2 bits of id indicate which of four "plugs"
-	   per host */
+	
 	video->id = ohci->host->id << 2;
 	if (format == DV1394_NTSC)
 		video->id |= mode;
@@ -2224,13 +2032,13 @@ static int dv1394_init(struct ti_ohci *ohci, enum pal_or_ntsc format, enum modes
 	video->ohci_IsoRcvCommandPtr = 0;
 	video->ohci_IsoRcvContextMatch = 0;
 
-	video->n_frames = 0; /* flag that video is not initialized */
-	video->channel = 63; /* default to broadcast channel */
+	video->n_frames = 0; 
+	video->channel = 63; 
 	video->active_frame = -1;
 
-	/* initialize the following */
+	
 	video->pal_or_ntsc = format;
-	video->cip_n = 0; /* 0 = use builtin default */
+	video->cip_n = 0; 
 	video->cip_d = 0;
 	video->syt_offset = 0;
 	video->mode = mode;
@@ -2294,7 +2102,7 @@ static void dv1394_add_host(struct hpsb_host *host)
 	struct ti_ohci *ohci;
 	int id = host->id;
 
-	/* We only work with the OHCI-1394 driver */
+	
 	if (strcmp(host->driver->name, OHCI1394_DRIVER_NAME))
 		return;
 
@@ -2312,10 +2120,7 @@ static void dv1394_add_host(struct hpsb_host *host)
 }
 
 
-/* Bus reset handler. In the event of a bus reset, we may need to
-   re-start the DMA contexts - otherwise the user program would
-   end up waiting forever.
-*/
+
 
 static void dv1394_host_reset(struct hpsb_host *host)
 {
@@ -2323,14 +2128,14 @@ static void dv1394_host_reset(struct hpsb_host *host)
 	struct video_card *video = NULL, *tmp_vid;
 	unsigned long flags;
 
-	/* We only work with the OHCI-1394 driver */
+	
 	if (strcmp(host->driver->name, OHCI1394_DRIVER_NAME))
 		return;
 
 	ohci = (struct ti_ohci *)host->hostdata;
 
 
-	/* find the corresponding video_cards */
+	
 	spin_lock_irqsave(&dv1394_cards_lock, flags);
 	list_for_each_entry(tmp_vid, &dv1394_cards, list) {
 		if ((tmp_vid->id >> 2) == host->id) {
@@ -2349,33 +2154,32 @@ static void dv1394_host_reset(struct hpsb_host *host)
 	if (!video->dma_running)
 		goto out;
 
-	/* check IT context */
+	
 	if (video->ohci_it_ctx != -1) {
 		u32 ctx;
 
 		ctx = reg_read(video->ohci, video->ohci_IsoXmitContextControlSet);
 
-		/* if (RUN but not ACTIVE) */
+		
 		if ( (ctx & (1<<15)) &&
 		    !(ctx & (1<<10)) ) {
 
 			debug_printk("dv1394: IT context stopped due to bus reset; waking it up\n");
 
-			/* to be safe, assume a frame has been dropped. User-space programs
-			   should handle this condition like an underflow. */
+			
 			video->dropped_frames++;
 
-			/* for some reason you must clear, then re-set the RUN bit to restart DMA */
+			
 
-			/* clear RUN */
+			
 			reg_write(video->ohci, video->ohci_IsoXmitContextControlClear, (1 << 15));
 			flush_pci_write(video->ohci);
 
-			/* set RUN */
+			
 			reg_write(video->ohci, video->ohci_IsoXmitContextControlSet, (1 << 15));
 			flush_pci_write(video->ohci);
 
-			/* set the WAKE bit (just in case; this isn't strictly necessary) */
+			
 			reg_write(video->ohci, video->ohci_IsoXmitContextControlSet, (1 << 12));
 			flush_pci_write(video->ohci);
 
@@ -2385,34 +2189,33 @@ static void dv1394_host_reset(struct hpsb_host *host)
 		}
 	}
 
-	/* check IR context */
+	
 	if (video->ohci_ir_ctx != -1) {
 		u32 ctx;
 
 		ctx = reg_read(video->ohci, video->ohci_IsoRcvContextControlSet);
 
-		/* if (RUN but not ACTIVE) */
+		
 		if ( (ctx & (1<<15)) &&
 		    !(ctx & (1<<10)) ) {
 
 			debug_printk("dv1394: IR context stopped due to bus reset; waking it up\n");
 
-			/* to be safe, assume a frame has been dropped. User-space programs
-			   should handle this condition like an overflow. */
+			
 			video->dropped_frames++;
 
-			/* for some reason you must clear, then re-set the RUN bit to restart DMA */
-			/* XXX this doesn't work for me, I can't get IR DMA to restart :[ */
+			
+			
 
-			/* clear RUN */
+			
 			reg_write(video->ohci, video->ohci_IsoRcvContextControlClear, (1 << 15));
 			flush_pci_write(video->ohci);
 
-			/* set RUN */
+			
 			reg_write(video->ohci, video->ohci_IsoRcvContextControlSet, (1 << 15));
 			flush_pci_write(video->ohci);
 
-			/* set the WAKE bit (just in case; this isn't strictly necessary) */
+			
 			reg_write(video->ohci, video->ohci_IsoRcvContextControlSet, (1 << 12));
 			flush_pci_write(video->ohci);
 
@@ -2425,7 +2228,7 @@ static void dv1394_host_reset(struct hpsb_host *host)
 out:
 	spin_unlock_irqrestore(&video->spinlock, flags);
 
-	/* wake readers/writers/ioctl'ers */
+	
 	wake_up_interruptible(&video->waitq);
 }
 
@@ -2459,7 +2262,7 @@ struct dv1394_status32 {
 	u32 dropped_frames;
 };
 
-/* RED-PEN: this should use compat_alloc_userspace instead */
+
 
 static int handle_dv1394_init(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -2547,10 +2350,10 @@ static long dv1394_compat_ioctl(struct file *file, unsigned int cmd,
 	}
 }
 
-#endif /* CONFIG_COMPAT */
+#endif 
 
 
-/*** KERNEL MODULE HANDLERS ************************************************/
+
 
 MODULE_AUTHOR("Dan Maas <dmaas@dcine.com>, Dan Dennedy <dan@dennedy.org>");
 MODULE_DESCRIPTION("driver for DV input/output on OHCI board");

@@ -1,17 +1,4 @@
-/*
- * arch/arm/plat-omap/include/mach/control.h
- *
- * OMAP2/3/4 System Control Module definitions
- *
- * Copyright (C) 2007-2009 Texas Instruments, Inc.
- * Copyright (C) 2007-2008 Nokia Corporation
- *
- * Written by Paul Walmsley
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- */
+
 
 #ifndef __ASM_ARCH_CONTROL_H
 #define __ASM_ARCH_CONTROL_H
@@ -29,14 +16,11 @@
 #define OMAP242X_CTRL_REGADDR(reg)	OMAP2_IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
 #define OMAP243X_CTRL_REGADDR(reg)	OMAP2_IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
 #define OMAP343X_CTRL_REGADDR(reg)	OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
-#endif /* __ASSEMBLY__ */
+#endif 
 
-/*
- * As elsewhere, the "OMAP2_" prefix indicates that the macro is valid for
- * OMAP24XX and OMAP34XX.
- */
 
-/* Control submodule offsets */
+
+
 
 #define OMAP2_CONTROL_INTERFACE		0x000
 #define OMAP2_CONTROL_PADCONFS		0x030
@@ -45,11 +29,11 @@
 #define OMAP343X_CONTROL_PADCONFS_WKUP	0xa00
 #define OMAP343X_CONTROL_GENERAL_WKUP	0xa60
 
-/* Control register offsets - read/write with omap_ctrl_{read,write}{bwl}() */
+
 
 #define OMAP2_CONTROL_SYSCONFIG		(OMAP2_CONTROL_INTERFACE + 0x10)
 
-/* CONTROL_GENERAL register offsets common to OMAP2 & 3 */
+
 #define OMAP2_CONTROL_DEVCONF0		(OMAP2_CONTROL_GENERAL + 0x0004)
 #define OMAP2_CONTROL_MSUSPENDMUX_0	(OMAP2_CONTROL_GENERAL + 0x0020)
 #define OMAP2_CONTROL_MSUSPENDMUX_1	(OMAP2_CONTROL_GENERAL + 0x0024)
@@ -63,12 +47,12 @@
 #define OMAP2_CONTROL_RPUB_KEY_H_2	(OMAP2_CONTROL_GENERAL + 0x0098)
 #define OMAP2_CONTROL_RPUB_KEY_H_3	(OMAP2_CONTROL_GENERAL + 0x009c)
 
-/* 242x-only CONTROL_GENERAL register offsets */
-#define OMAP242X_CONTROL_DEVCONF	OMAP2_CONTROL_DEVCONF0 /* match TRM */
+
+#define OMAP242X_CONTROL_DEVCONF	OMAP2_CONTROL_DEVCONF0 
 #define OMAP242X_CONTROL_OCM_RAM_PERM	(OMAP2_CONTROL_GENERAL + 0x0068)
 
-/* 243x-only CONTROL_GENERAL register offsets */
-/* CONTROL_IVA2_BOOT{ADDR,MOD} are at the same place on 343x - noted below */
+
+
 #define OMAP243X_CONTROL_DEVCONF1	(OMAP2_CONTROL_GENERAL + 0x0078)
 #define OMAP243X_CONTROL_CSIRXFE	(OMAP2_CONTROL_GENERAL + 0x007c)
 #define OMAP243X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
@@ -76,7 +60,7 @@
 #define OMAP243X_CONTROL_IVA2_GEMCFG	(OMAP2_CONTROL_GENERAL + 0x0198)
 #define OMAP243X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x0230)
 
-/* 24xx-only CONTROL_GENERAL register offsets */
+
 #define OMAP24XX_CONTROL_DEBOBS		(OMAP2_CONTROL_GENERAL + 0x0000)
 #define OMAP24XX_CONTROL_EMU_SUPPORT	(OMAP2_CONTROL_GENERAL + 0x0008)
 #define OMAP24XX_CONTROL_SEC_TEST	(OMAP2_CONTROL_GENERAL + 0x0044)
@@ -109,7 +93,7 @@
 #define OMAP24XX_CONTROL_TEST_KEY_8	(OMAP2_CONTROL_GENERAL + 0x00e0)
 #define OMAP24XX_CONTROL_TEST_KEY_9	(OMAP2_CONTROL_GENERAL + 0x00e4)
 
-/* 34xx-only CONTROL_GENERAL register offsets */
+
 #define OMAP343X_CONTROL_PADCONF_OFF	(OMAP2_CONTROL_GENERAL + 0x0000)
 #define OMAP343X_CONTROL_MEM_DFTRW0	(OMAP2_CONTROL_GENERAL + 0x0008)
 #define OMAP343X_CONTROL_MEM_DFTRW1	(OMAP2_CONTROL_GENERAL + 0x000c)
@@ -144,35 +128,27 @@
 #define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02b0)
 #define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
 
-/* 34xx D2D idle-related pins, handled by PM core */
+
 #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
 #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
 
-/*
- * REVISIT: This list of registers is not comprehensive - there are more
- * that should be added.
- */
 
-/*
- * Control module register bit defines - these should eventually go into
- * their own regbits file.  Some of these will be complicated, depending
- * on the device type (general-purpose, emulator, test, secure, bad, other)
- * and the security mode (secure, non-secure, don't care)
- */
-/* CONTROL_DEVCONF0 bits */
-#define OMAP2_MMCSDIO1ADPCLKISEL	(1 << 24) /* MMC1 loop back clock */
+
+
+
+#define OMAP2_MMCSDIO1ADPCLKISEL	(1 << 24) 
 #define OMAP24XX_USBSTANDBYCTRL		(1 << 15)
 #define OMAP2_MCBSP2_CLKS_MASK		(1 << 6)
 #define OMAP2_MCBSP1_CLKS_MASK		(1 << 2)
 
-/* CONTROL_DEVCONF1 bits */
-#define OMAP243X_MMC1_ACTIVE_OVERWRITE	(1 << 31)
-#define OMAP2_MMCSDIO2ADPCLKISEL	(1 << 6) /* MMC2 loop back clock */
-#define OMAP2_MCBSP5_CLKS_MASK		(1 << 4) /* > 242x */
-#define OMAP2_MCBSP4_CLKS_MASK		(1 << 2) /* > 242x */
-#define OMAP2_MCBSP3_CLKS_MASK		(1 << 0) /* > 242x */
 
-/* CONTROL_STATUS bits */
+#define OMAP243X_MMC1_ACTIVE_OVERWRITE	(1 << 31)
+#define OMAP2_MMCSDIO2ADPCLKISEL	(1 << 6) 
+#define OMAP2_MCBSP5_CLKS_MASK		(1 << 4) 
+#define OMAP2_MCBSP4_CLKS_MASK		(1 << 2) 
+#define OMAP2_MCBSP3_CLKS_MASK		(1 << 0) 
+
+
 #define OMAP2_DEVICETYPE_MASK		(0x7 << 8)
 #define OMAP2_SYSBOOT_5_MASK		(1 << 5)
 #define OMAP2_SYSBOOT_4_MASK		(1 << 4)
@@ -181,7 +157,7 @@
 #define OMAP2_SYSBOOT_1_MASK		(1 << 1)
 #define OMAP2_SYSBOOT_0_MASK		(1 << 0)
 
-/* CONTROL_PBIAS_LITE bits */
+
 #define OMAP343X_PBIASLITESUPPLY_HIGH1	(1 << 15)
 #define OMAP343X_PBIASLITEVMODEERROR1	(1 << 11)
 #define OMAP343X_PBIASSPEEDCTRL1	(1 << 10)
@@ -193,12 +169,12 @@
 #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
 #define OMAP2_PBIASLITEVMODE0		(1 << 0)
 
-/* CONTROL_IVA2_BOOTMOD bits */
+
 #define OMAP3_IVA2_BOOTMOD_SHIFT	0
 #define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
 #define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
 
-/* CONTROL_PADCONF_X bits */
+
 #define OMAP3_PADCONF_WAKEUPEVENT0	(1 << 15)
 #define OMAP3_PADCONF_WAKEUPENABLE0	(1 << 14)
 
@@ -221,7 +197,7 @@ extern void omap_ctrl_writel(u32 val, u16 offset);
 #define omap_ctrl_writew(x, y)		WARN_ON(1)
 #define omap_ctrl_writel(x, y)		WARN_ON(1)
 #endif
-#endif	/* __ASSEMBLY__ */
+#endif	
 
-#endif /* __ASM_ARCH_CONTROL_H */
+#endif 
 

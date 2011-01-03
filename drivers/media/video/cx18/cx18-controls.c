@@ -1,25 +1,4 @@
-/*
- *  cx18 ioctl control functions
- *
- *  Derived from ivtv-controls.c
- *
- *  Copyright (C) 2007  Hans Verkuil <hverkuil@xs4all.nl>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- *  02111-1307  USA
- */
+
 #include <linux/kernel.h>
 
 #include "cx18-driver.h"
@@ -29,7 +8,7 @@
 #include "cx18-mailbox.h"
 #include "cx18-controls.h"
 
-/* Must be sorted from low to high control ID! */
+
 static const u32 user_ctrls[] = {
 	V4L2_CID_USER_CLASS,
 	V4L2_CID_BRIGHTNESS,
@@ -61,7 +40,7 @@ int cx18_queryctrl(struct file *file, void *fh, struct v4l2_queryctrl *qctrl)
 		return -EINVAL;
 
 	switch (qctrl->id) {
-	/* Standard V4L2 controls */
+	
 	case V4L2_CID_USER_CLASS:
 		return v4l2_ctrl_query_fill(qctrl, 0, 0, 0, 0);
 	case V4L2_CID_BRIGHTNESS:
@@ -122,7 +101,7 @@ static int cx18_try_ctrl(struct file *file, void *fh,
 static int cx18_s_ctrl(struct cx18 *cx, struct v4l2_control *vctrl)
 {
 	switch (vctrl->id) {
-		/* Standard V4L2 controls */
+		
 	case V4L2_CID_BRIGHTNESS:
 	case V4L2_CID_HUE:
 	case V4L2_CID_SATURATION:
@@ -147,7 +126,7 @@ static int cx18_s_ctrl(struct cx18 *cx, struct v4l2_control *vctrl)
 static int cx18_g_ctrl(struct cx18 *cx, struct v4l2_control *vctrl)
 {
 	switch (vctrl->id) {
-		/* Standard V4L2 controls */
+		
 	case V4L2_CID_BRIGHTNESS:
 	case V4L2_CID_HUE:
 	case V4L2_CID_SATURATION:
@@ -182,14 +161,14 @@ static int cx18_setup_vbi_fmt(struct cx18 *cx,
 	    !(type == V4L2_MPEG_STREAM_TYPE_MPEG2_PS ||
 	      type == V4L2_MPEG_STREAM_TYPE_MPEG2_DVD ||
 	      type == V4L2_MPEG_STREAM_TYPE_MPEG2_SVCD)) {
-		/* Only IVTV fmt VBI insertion & only MPEG-2 PS type streams */
+		
 		cx->vbi.insert_mpeg = V4L2_MPEG_STREAM_VBI_FMT_NONE;
 		CX18_DEBUG_INFO("disabled insertion of sliced VBI data into "
 				"the MPEG stream\n");
 		return 0;
 	}
 
-	/* Allocate sliced VBI buffers if needed. */
+	
 	if (cx->vbi.sliced_mpeg_data[0] == NULL) {
 		int i;
 
@@ -214,10 +193,7 @@ static int cx18_setup_vbi_fmt(struct cx18 *cx,
 	CX18_DEBUG_INFO("enabled insertion of sliced VBI data into the MPEG PS,"
 			"when sliced VBI is enabled\n");
 
-	/*
-	 * If our current settings have no lines set for capture, store a valid,
-	 * default set of service lines to capture, in our current settings.
-	 */
+	
 	if (cx18_get_service_set(cx->vbi.sliced_in) == 0) {
 		if (cx->is_60hz)
 			cx->vbi.sliced_in->service_set =
@@ -298,7 +274,7 @@ int cx18_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
 						V4L2_MPEG_VIDEO_ENCODING_MPEG_1;
 			struct v4l2_format fmt;
 
-			/* fix videodecoder resolution */
+			
 			fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			fmt.fmt.pix.width = cx->params.width
 						/ (is_mpeg1 ? 2 : 1);
@@ -316,8 +292,7 @@ int cx18_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
 		cx->params = p;
 		cx->dualwatch_stereo_mode = p.audio_properties & 0x0300;
 		idx = p.audio_properties & 0x03;
-		/* The audio clock of the digitizer must match the codec sample
-		   rate otherwise you get some very strange effects. */
+		
 		if (idx < ARRAY_SIZE(freqs))
 			cx18_call_all(cx, audio, s_clock_freq, freqs[idx]);
 		return err;

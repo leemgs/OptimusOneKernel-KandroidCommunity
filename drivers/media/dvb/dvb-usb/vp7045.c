@@ -1,20 +1,7 @@
-/* DVB USB compliant Linux driver for the
- *  - TwinhanDTV Alpha/MagicBoxII USB2.0 DVB-T receiver
- *  - DigitalNow TinyUSB2 DVB-t receiver
- *
- * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
- *
- * Thanks to Twinhan who kindly provided hardware and information.
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the Free
- *	Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 #include "vp7045.h"
 
-/* debug */
+
 static int dvb_usb_vp7045_debug;
 module_param_named(debug,dvb_usb_vp7045_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DVB_USB_DEBUG_STATUS);
@@ -95,10 +82,9 @@ static int vp7045_power_ctrl(struct dvb_usb_device *d, int onoff)
 	return vp7045_usb_op(d,SET_TUNER_POWER,&v,1,NULL,0,150);
 }
 
-/* remote control stuff */
 
-/* The keymapping struct. Somehow this should be loaded to the driver, but
- * currently it is hardcoded. */
+
+
 static struct dvb_usb_rc_key vp7045_rc_keys[] = {
 	{ 0x0016, KEY_POWER },
 	{ 0x0010, KEY_MUTE },
@@ -117,21 +103,21 @@ static struct dvb_usb_rc_key vp7045_rc_keys[] = {
 	{ 0x001e, KEY_VOLUMEUP },
 	{ 0x000a, KEY_VOLUMEDOWN },
 	{ 0x0011, KEY_RECORD },
-	{ 0x0017, KEY_FAVORITES }, /* Heart symbol - Channel list. */
+	{ 0x0017, KEY_FAVORITES }, 
 	{ 0x0014, KEY_PLAY },
 	{ 0x001a, KEY_STOP },
 	{ 0x0040, KEY_REWIND },
 	{ 0x0012, KEY_FASTFORWARD },
-	{ 0x000e, KEY_PREVIOUS }, /* Recall - Previous channel. */
+	{ 0x000e, KEY_PREVIOUS }, 
 	{ 0x004c, KEY_PAUSE },
-	{ 0x004d, KEY_SCREEN }, /* Full screen mode. */
-	{ 0x0054, KEY_AUDIO }, /* MTS - Switch to secondary audio. */
-	{ 0x000c, KEY_CANCEL }, /* Cancel */
-	{ 0x001c, KEY_EPG }, /* EPG */
-	{ 0x0000, KEY_TAB }, /* Tab */
-	{ 0x0048, KEY_INFO }, /* Preview */
-	{ 0x0004, KEY_LIST }, /* RecordList */
-	{ 0x000f, KEY_TEXT }, /* Teletext */
+	{ 0x004d, KEY_SCREEN }, 
+	{ 0x0054, KEY_AUDIO }, 
+	{ 0x000c, KEY_CANCEL }, 
+	{ 0x001c, KEY_EPG }, 
+	{ 0x0000, KEY_TAB }, 
+	{ 0x0048, KEY_INFO }, 
+	{ 0x0004, KEY_LIST }, 
+	{ 0x000f, KEY_TEXT }, 
 	{ 0x0041, KEY_PREVIOUSSONG },
 	{ 0x0042, KEY_NEXTSONG },
 	{ 0x004b, KEY_UP },
@@ -141,11 +127,11 @@ static struct dvb_usb_rc_key vp7045_rc_keys[] = {
 	{ 0x004f, KEY_ENTER },
 	{ 0x0013, KEY_CANCEL },
 	{ 0x004a, KEY_CLEAR },
-	{ 0x0054, KEY_PRINT }, /* Capture */
-	{ 0x0043, KEY_SUBTITLE }, /* Subtitle/CC */
-	{ 0x0008, KEY_VIDEO }, /* A/V */
-	{ 0x0007, KEY_SLEEP }, /* Hibernate */
-	{ 0x0045, KEY_ZOOM }, /* Zoom+ */
+	{ 0x0054, KEY_PRINT }, 
+	{ 0x0043, KEY_SUBTITLE }, 
+	{ 0x0008, KEY_VIDEO }, 
+	{ 0x0007, KEY_SLEEP }, 
+	{ 0x0045, KEY_ZOOM }, 
 	{ 0x0018, KEY_RED},
 	{ 0x0053, KEY_GREEN},
 	{ 0x005e, KEY_YELLOW},
@@ -209,8 +195,8 @@ static int vp7045_frontend_attach(struct dvb_usb_adapter *adap)
 	buf[10] = '\0';
 	deb_info("v%s\n",buf);
 
-/*	Dump the EEPROM */
-/*	vp7045_read_eeprom(d,buf, 255, FX2_ID_ADDR); */
+
+
 
 	adap->fe = vp7045_fe_attach(adap->dev);
 
@@ -243,7 +229,7 @@ static struct dvb_usb_device_properties vp7045_properties = {
 	.adapter = {
 		{
 			.frontend_attach  = vp7045_frontend_attach,
-			/* parameter for the MPEG2-data transfer */
+			
 			.stream = {
 				.type = USB_BULK,
 				.count = 7,
@@ -278,7 +264,7 @@ static struct dvb_usb_device_properties vp7045_properties = {
 	}
 };
 
-/* usb specific object needed to register this driver with the usb subsystem */
+
 static struct usb_driver vp7045_usb_driver = {
 	.name		= "dvb_usb_vp7045",
 	.probe		= vp7045_usb_probe,
@@ -286,7 +272,7 @@ static struct usb_driver vp7045_usb_driver = {
 	.id_table	= vp7045_usb_table,
 };
 
-/* module stuff */
+
 static int __init vp7045_usb_module_init(void)
 {
 	int result;
@@ -300,7 +286,7 @@ static int __init vp7045_usb_module_init(void)
 
 static void __exit vp7045_usb_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&vp7045_usb_driver);
 }
 

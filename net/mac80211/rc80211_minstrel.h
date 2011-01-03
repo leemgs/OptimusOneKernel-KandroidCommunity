@@ -1,10 +1,4 @@
-/*
- * Copyright (C) 2008 Felix Fietkau <nbd@openwrt.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __RC_MINSTREL_H
 #define __RC_MINSTREL_H
@@ -27,11 +21,11 @@ struct minstrel_rate {
 	u32 last_attempts;
 	u32 last_success;
 
-	/* parts per thousand */
+	
 	u32 cur_prob;
 	u32 probability;
 
-	/* per-rate throughput */
+	
 	u32 cur_tp;
 
 	u64 succ_hist;
@@ -59,7 +53,7 @@ struct minstrel_sta_info {
 	struct minstrel_rate *r;
 	bool prev_sample;
 
-	/* sampling table */
+	
 	u8 *sample_table;
 
 #ifdef CONFIG_MAC80211_DEBUGFS

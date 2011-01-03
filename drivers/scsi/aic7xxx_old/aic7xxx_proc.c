@@ -1,33 +1,4 @@
-/*+M*************************************************************************
- * Adaptec AIC7xxx device driver proc support for Linux.
- *
- * Copyright (c) 1995, 1996 Dean W. Gehnert
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, write to
- * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * ----------------------------------------------------------------
- *  o Modified from the EATA-DMA /proc support.
- *  o Additional support for device block statistics provided by
- *    Matthew Jacob.
- *  o Correction of overflow by Heinz Mauelshagen
- *  o Adittional corrections by Doug Ledford
- *
- *  Dean W. Gehnert, deang@teleport.com, 05/01/96
- *
- *  $Id: aic7xxx_proc.c,v 4.1 1997/06/97 08:23:42 deang Exp $
- *-M*************************************************************************/
+
 
 
 #define	BLS	(&aic7xxx_buffer[size])
@@ -48,36 +19,24 @@ proc_debug(const char *fmt, ...)
   printk(buf);
   va_end(ap);
 }
-#else /* PROC_DEBUG */
+#else 
 #  define proc_debug(fmt, args...)
-#endif /* PROC_DEBUG */
+#endif 
 
 static int aic7xxx_buffer_size = 0;
 static char *aic7xxx_buffer = NULL;
 
 
-/*+F*************************************************************************
- * Function:
- *   aic7xxx_set_info
- *
- * Description:
- *   Set parameters for the driver from the /proc filesystem.
- *-F*************************************************************************/
+
 static int
 aic7xxx_set_info(char *buffer, int length, struct Scsi_Host *HBAptr)
 {
   proc_debug("aic7xxx_set_info(): %s\n", buffer);
-  return (-ENOSYS);  /* Currently this is a no-op */
+  return (-ENOSYS);  
 }
 
 
-/*+F*************************************************************************
- * Function:
- *   aic7xxx_proc_info
- *
- * Description:
- *   Return information to handle /proc support for the driver.
- *-F*************************************************************************/
+
 int
 aic7xxx_proc_info ( struct Scsi_Host *HBAptr, char *buffer, char **start, off_t offset, int length, 
                     int inout)
@@ -105,24 +64,14 @@ aic7xxx_proc_info ( struct Scsi_Host *HBAptr, char *buffer, char **start, off_t 
     }
   }
 
-  if (inout == TRUE) /* Has data been written to the file? */ 
+  if (inout == TRUE)  
   {
     return (aic7xxx_set_info(buffer, length, HBAptr));
   }
 
   p = (struct aic7xxx_host *) HBAptr->hostdata;
 
-  /*
-   * It takes roughly 1K of space to hold all relevant card info, not
-   * counting any proc stats, so we start out with a 1.5k buffer size and
-   * if proc_stats is defined, then we sweep the stats structure to see
-   * how many drives we will be printing out for and add 384 bytes per
-   * device with active stats.
-   *
-   * Hmmmm...that 1.5k seems to keep growing as items get added so they
-   * can be easily viewed for debugging purposes.  So, we bumped that
-   * 1.5k to 4k so we can quit having to bump it all the time.
-   */
+  
 
   size = 4096;
   list_for_each_entry(aic_dev, &p->aic_devs, list)
@@ -353,21 +302,4 @@ aic7xxx_proc_info ( struct Scsi_Host *HBAptr, char *buffer, char **start, off_t 
   return (length);
 }
 
-/*
- * Overrides for Emacs so that we follow Linus's tabbing style.
- * Emacs will notice this stuff at the end of the file and automatically
- * adjust the settings for this buffer only.  This must remain at the end
- * of the file.
- * ---------------------------------------------------------------------------
- * Local variables:
- * c-indent-level: 2
- * c-brace-imaginary-offset: 0
- * c-brace-offset: -2
- * c-argdecl-indent: 2
- * c-label-offset: -2
- * c-continued-statement-offset: 2
- * c-continued-brace-offset: 0
- * indent-tabs-mode: nil
- * tab-width: 8
- * End:
- */
+

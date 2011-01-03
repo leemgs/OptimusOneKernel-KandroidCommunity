@@ -1,22 +1,4 @@
-/*
- * Copyright (C) 2009 Texas Instruments.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * common vpss driver for all video drivers.
- */
+
 #include <linux/kernel.h>
 #include <linux/sched.h>
 #include <linux/init.h>
@@ -32,32 +14,27 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("VPSS Driver");
 MODULE_AUTHOR("Texas Instruments");
 
-/* DM644x defines */
+
 #define DM644X_SBL_PCR_VPSS		(4)
 
-/* vpss BL register offsets */
+
 #define DM355_VPSSBL_CCDCMUX		0x1c
-/* vpss CLK register offsets */
+
 #define DM355_VPSSCLK_CLKCTRL		0x04
-/* masks and shifts */
+
 #define VPSS_HSSISEL_SHIFT		4
 
-/*
- * vpss operations. Depends on platform. Not all functions are available
- * on all platforms. The api, first check if a functio is available before
- * invoking it. In the probe, the function ptrs are intialized based on
- * vpss name. vpss name can be "dm355_vpss", "dm644x_vpss" etc.
- */
+
 struct vpss_hw_ops {
-	/* enable clock */
+	
 	int (*enable_clock)(enum vpss_clock_sel clock_sel, int en);
-	/* select input to ccdc */
+	
 	void (*select_ccdc_source)(enum vpss_ccdc_source_sel src_sel);
-	/* clear wbl overlflow bit */
+	
 	int (*clear_wbl_overflow)(enum vpss_wbl_sel wbl_sel);
 };
 
-/* vpss configuration */
+
 struct vpss_oper_config {
 	__iomem void *vpss_bl_regs_base;
 	__iomem void *vpss_regs_base;
@@ -72,7 +49,7 @@ struct vpss_oper_config {
 
 static struct vpss_oper_config oper_cfg;
 
-/* register access routines */
+
 static inline u32 bl_regr(u32 offset)
 {
 	return __raw_readl(oper_cfg.vpss_bl_regs_base + offset);
@@ -116,7 +93,7 @@ static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
 	    wbl_sel > VPSS_PCR_CCDC_WBL_O)
 		return -1;
 
-	/* writing a 0 clear the overflow */
+	
 	mask = ~(mask << wbl_sel);
 	val = bl_regr(DM644X_SBL_PCR_VPSS) & mask;
 	bl_regw(val, DM644X_SBL_PCR_VPSS);
@@ -132,13 +109,7 @@ int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
 }
 EXPORT_SYMBOL(vpss_clear_wbl_overflow);
 
-/*
- *  dm355_enable_clock - Enable VPSS Clock
- *  @clock_sel: CLock to be enabled/disabled
- *  @en: enable/disable flag
- *
- *  This is called to enable or disable a vpss clock
- */
+
 static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
 {
 	unsigned long flags;
@@ -146,7 +117,7 @@ static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
 
 	switch (clock_sel) {
 	case VPSS_VPBE_CLOCK:
-		/* nothing since lsb */
+		
 		break;
 	case VPSS_VENC_CLOCK_SEL:
 		shift = 2;

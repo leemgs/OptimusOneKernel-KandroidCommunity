@@ -1,24 +1,4 @@
-/*
- *	Watchdog driver for the mpcore watchdog timer
- *
- *	(c) Copyright 2004 ARM Limited
- *
- *	Based on the SoftDog driver:
- *	(c) Copyright 1996 Alan Cox <alan@lxorguk.ukuu.org.uk>,
- *						All Rights Reserved.
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- *	Neither Alan Cox nor CymruNet Ltd. admit liability nor provide
- *	warranty for any of this software. This material is provided
- *	"AS-IS" and at no charge.
- *
- *	(c) Copyright 1995    Alan Cox <alan@lxorguk.ukuu.org.uk>
- *
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/types.h>
@@ -65,40 +45,31 @@ MODULE_PARM_DESC(mpcore_noboot, "MPcore watchdog action, "
 	"set to 1 to ignore reboots, 0 to reboot (default="
 					__MODULE_STRING(ONLY_TESTING) ")");
 
-/*
- *	This is the interrupt handler.  Note that we only use this
- *	in testing mode, so don't actually do a reboot here.
- */
+
 static irqreturn_t mpcore_wdt_fire(int irq, void *arg)
 {
 	struct mpcore_wdt *wdt = arg;
 
-	/* Check it really was our interrupt */
+	
 	if (readl(wdt->base + TWD_WDOG_INTSTAT)) {
 		dev_printk(KERN_CRIT, wdt->dev,
 					"Triggered - Reboot ignored.\n");
-		/* Clear the interrupt on the watchdog */
+		
 		writel(1, wdt->base + TWD_WDOG_INTSTAT);
 		return IRQ_HANDLED;
 	}
 	return IRQ_NONE;
 }
 
-/*
- *	mpcore_wdt_keepalive - reload the timer
- *
- *	Note that the spec says a DIFFERENT value must be written to the reload
- *	register each time.  The "perturb" variable deals with this by adding 1
- *	to the count every other time the function is called.
- */
+
 static void mpcore_wdt_keepalive(struct mpcore_wdt *wdt)
 {
 	unsigned int count;
 
-	/* Assume prescale is set to 256 */
+	
 	count = (mpcore_timer_rate / 256) * mpcore_margin;
 
-	/* Reload the counter */
+	
 	spin_lock(&wdt_lock);
 	writel(count + wdt->perturb, wdt->base + TWD_WDOG_LOAD);
 	wdt->perturb = wdt->perturb ? 0 : 1;
@@ -119,14 +90,14 @@ static void mpcore_wdt_start(struct mpcore_wdt *wdt)
 	dev_printk(KERN_INFO, wdt->dev, "enabling watchdog.\n");
 
 	spin_lock(&wdt_lock);
-	/* This loads the count register but does NOT start the count yet */
+	
 	mpcore_wdt_keepalive(wdt);
 
 	if (mpcore_noboot) {
-		/* Enable watchdog - prescale=256, watchdog mode=0, enable=1 */
+		
 		writel(0x0000FF01, wdt->base + TWD_WDOG_CONTROL);
 	} else {
-		/* Enable watchdog - prescale=256, watchdog mode=1, enable=1 */
+		
 		writel(0x0000FF09, wdt->base + TWD_WDOG_CONTROL);
 	}
 	spin_unlock(&wdt_lock);
@@ -141,9 +112,7 @@ static int mpcore_wdt_set_heartbeat(int t)
 	return 0;
 }
 
-/*
- *	/dev/watchdog handling
- */
+
 static int mpcore_wdt_open(struct inode *inode, struct file *file)
 {
 	struct mpcore_wdt *wdt = platform_get_drvdata(mpcore_wdt_dev);
@@ -156,9 +125,7 @@ static int mpcore_wdt_open(struct inode *inode, struct file *file)
 
 	file->private_data = wdt;
 
-	/*
-	 *	Activate timer
-	 */
+	
 	mpcore_wdt_start(wdt);
 
 	return nonseekable_open(inode, file);
@@ -168,10 +135,7 @@ static int mpcore_wdt_release(struct inode *inode, struct file *file)
 {
 	struct mpcore_wdt *wdt = file->private_data;
 
-	/*
-	 *	Shut off the timer.
-	 * 	Lock it in if it's a module and we set nowayout
-	 */
+	
 	if (wdt->expect_close == 42)
 		mpcore_wdt_stop(wdt);
 	else {
@@ -189,14 +153,12 @@ static ssize_t mpcore_wdt_write(struct file *file, const char *data,
 {
 	struct mpcore_wdt *wdt = file->private_data;
 
-	/*
-	 *	Refresh the timer.
-	 */
+	
 	if (len) {
 		if (!nowayout) {
 			size_t i;
 
-			/* In case it was set long ago */
+			
 			wdt->expect_close = 0;
 
 			for (i = 0; i != len; i++) {
@@ -274,7 +236,7 @@ static long mpcore_wdt_ioctl(struct file *file, unsigned int cmd,
 			break;
 
 		mpcore_wdt_keepalive(wdt);
-		/* Fall */
+		
 	case WDIOC_GETTIMEOUT:
 		uarg.i = mpcore_margin;
 		ret = 0;
@@ -292,10 +254,7 @@ static long mpcore_wdt_ioctl(struct file *file, unsigned int cmd,
 	return ret;
 }
 
-/*
- *	System shutdown handler.  Turn off the watchdog if we're
- *	restarting or halting the system.
- */
+
 static void mpcore_wdt_shutdown(struct platform_device *dev)
 {
 	struct mpcore_wdt *wdt = platform_get_drvdata(dev);
@@ -304,9 +263,7 @@ static void mpcore_wdt_shutdown(struct platform_device *dev)
 		mpcore_wdt_stop(wdt);
 }
 
-/*
- *	Kernel Interfaces
- */
+
 static const struct file_operations mpcore_wdt_fops = {
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
@@ -328,7 +285,7 @@ static int __devinit mpcore_wdt_probe(struct platform_device *dev)
 	struct resource *res;
 	int ret;
 
-	/* We only accept one device, and it must have an id of -1 */
+	
 	if (dev->id != -1)
 		return -ENODEV;
 
@@ -405,7 +362,7 @@ static int __devexit mpcore_wdt_remove(struct platform_device *dev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:mpcore_wdt");
 
 static struct platform_driver mpcore_wdt_driver = {
@@ -423,10 +380,7 @@ static char banner[] __initdata = KERN_INFO "MPcore Watchdog Timer: 0.1. "
 
 static int __init mpcore_wdt_init(void)
 {
-	/*
-	 * Check that the margin value is within it's range;
-	 * if not reset to the default
-	 */
+	
 	if (mpcore_wdt_set_heartbeat(mpcore_margin)) {
 		mpcore_wdt_set_heartbeat(TIMER_MARGIN);
 		printk(KERN_INFO "mpcore_margin value must be 0 < mpcore_margin < 65536, using %d\n",

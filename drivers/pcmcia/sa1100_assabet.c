@@ -1,9 +1,4 @@
-/*
- * drivers/pcmcia/sa1100_assabet.c
- *
- * PCMCIA implementation routines for Assabet
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -32,9 +27,7 @@ static int assabet_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	return soc_pcmcia_request_irqs(skt, irqs, ARRAY_SIZE(irqs));
 }
 
-/*
- * Release all resources.
- */
+
 static void assabet_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_free_irqs(skt, irqs, ARRAY_SIZE(irqs));
@@ -49,8 +42,8 @@ assabet_pcmcia_socket_state(struct soc_pcmcia_socket *skt, struct pcmcia_state *
 	state->ready  = (levels & ASSABET_GPIO_CF_IRQ) ? 1 : 0;
 	state->bvd1   = (levels & ASSABET_GPIO_CF_BVD1) ? 1 : 0;
 	state->bvd2   = (levels & ASSABET_GPIO_CF_BVD2) ? 1 : 0;
-	state->wrprot = 0; /* Not available on Assabet. */
-	state->vs_3v  = 1; /* Can only apply 3.3V on Assabet. */
+	state->wrprot = 0; 
+	state->vs_3v  = 1; 
 	state->vs_Xv  = 0;
 }
 
@@ -68,7 +61,7 @@ assabet_pcmcia_configure_socket(struct soc_pcmcia_socket *skt, const socket_stat
 		printk(KERN_WARNING "%s(): CS asked for 5V, applying 3.3V...\n",
 			__func__);
 
-	case 33:  /* Can only apply 3.3V to the CF slot. */
+	case 33:  
 		mask = ASSABET_BCR_CF_PWR;
 		break;
 
@@ -78,7 +71,7 @@ assabet_pcmcia_configure_socket(struct soc_pcmcia_socket *skt, const socket_stat
 		return -1;
 	}
 
-	/* Silently ignore Vpp, output enable, speaker enable. */
+	
 
 	if (state->flags & SS_RESET)
 		mask |= ASSABET_BCR_CF_RST;
@@ -88,32 +81,21 @@ assabet_pcmcia_configure_socket(struct soc_pcmcia_socket *skt, const socket_stat
 	return 0;
 }
 
-/*
- * Enable card status IRQs on (re-)initialisation.  This can
- * be called at initialisation, power management event, or
- * pcmcia event.
- */
+
 static void assabet_pcmcia_socket_init(struct soc_pcmcia_socket *skt)
 {
-	/*
-	 * Enable CF bus
-	 */
+	
 	ASSABET_BCR_clear(ASSABET_BCR_CF_BUS_OFF);
 
 	soc_pcmcia_enable_irqs(skt, irqs, ARRAY_SIZE(irqs));
 }
 
-/*
- * Disable card status IRQs on suspend.
- */
+
 static void assabet_pcmcia_socket_suspend(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_disable_irqs(skt, irqs, ARRAY_SIZE(irqs));
 
-	/*
-	 * Tristate the CF bus signals.  Also assert CF
-	 * reset as per user guide page 4-11.
-	 */
+	
 	ASSABET_BCR_set(ASSABET_BCR_CF_BUS_OFF | ASSABET_BCR_CF_RST);
 }
 

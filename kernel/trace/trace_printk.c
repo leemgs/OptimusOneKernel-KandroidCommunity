@@ -1,9 +1,4 @@
-/*
- * trace binary printk
- *
- * Copyright (C) 2008 Lai Jiangshan <laijs@cn.fujitsu.com>
- *
- */
+
 #include <linux/seq_file.h>
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
@@ -21,13 +16,10 @@
 
 #ifdef CONFIG_MODULES
 
-/*
- * modules trace_printk()'s formats are autosaved in struct trace_bprintk_fmt
- * which are queued on trace_bprintk_fmt_list.
- */
+
 static LIST_HEAD(trace_bprintk_fmt_list);
 
-/* serialize accesses to trace_bprintk_fmt_list */
+
 static DEFINE_MUTEX(btrace_mutex);
 
 struct trace_bprintk_fmt {
@@ -84,14 +76,14 @@ static int module_trace_bprintk_format_notify(struct notifier_block *self,
 	return 0;
 }
 
-#else /* !CONFIG_MODULES */
+#else 
 __init static int
 module_trace_bprintk_format_notify(struct notifier_block *self,
 		unsigned long val, void *data)
 {
 	return 0;
 }
-#endif /* CONFIG_MODULES */
+#endif 
 
 
 __initdata_or_module static
@@ -177,9 +169,7 @@ static int t_show(struct seq_file *m, void *v)
 
 	seq_printf(m, "0x%lx : \"", *(unsigned long *)fmt);
 
-	/*
-	 * Tabs and new lines need to be converted.
-	 */
+	
 	for (i = 0; str[i]; i++) {
 		switch (str[i]) {
 		case '\n':

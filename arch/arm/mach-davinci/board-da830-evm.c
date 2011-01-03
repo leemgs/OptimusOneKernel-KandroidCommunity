@@ -1,14 +1,4 @@
-/*
- * TI DA830/OMAP L137 EVM board
- *
- * Author: Mark A. Greer <mgreer@mvista.com>
- * Derived from: arch/arm/mach-davinci/board-dm644x-evm.c
- *
- * 2007, 2009 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -26,7 +16,7 @@
 #include <mach/asp.h>
 
 #define DA830_EVM_PHY_MASK		0x0
-#define DA830_EVM_MDIO_FREQUENCY	2200000	/* PHY bus frequency */
+#define DA830_EVM_MDIO_FREQUENCY	2200000	
 
 static struct at24_platform_data da830_evm_i2c_eeprom_info = {
 	.byte_len	= SZ_256K / 8,
@@ -47,8 +37,8 @@ static struct i2c_board_info __initdata da830_evm_i2c_devices[] = {
 };
 
 static struct davinci_i2c_platform_data da830_evm_i2c_0_pdata = {
-	.bus_freq	= 100,	/* kHz */
-	.bus_delay	= 0,	/* usec */
+	.bus_freq	= 100,	
+	.bus_delay	= 0,	
 };
 
 static struct davinci_uart_config da830_evm_uart_config __initdata = {

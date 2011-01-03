@@ -1,19 +1,4 @@
-/*
- * IP6 tables REJECT target module
- * Linux INET6 implementation
- *
- * Copyright (C)2003 USAGI/WIDE Project
- *
- * Authors:
- *	Yasuyuki Kozakai	<yasuyuki.kozakai@toshiba.co.jp>
- *
- * Based on net/ipv4/netfilter/ipt_REJECT.c
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/skbuff.h>
@@ -34,7 +19,7 @@ MODULE_AUTHOR("Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>");
 MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv6");
 MODULE_LICENSE("GPL");
 
-/* Send RST reply */
+
 static void send_reset(struct net *net, struct sk_buff *oldskb)
 {
 	struct sk_buff *nskb;
@@ -63,7 +48,7 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
 
 	otcplen = oldskb->len - tcphoff;
 
-	/* IP header checks: fragment, too short. */
+	
 	if (proto != IPPROTO_TCP || otcplen < sizeof(struct tcphdr)) {
 		pr_debug("ip6t_REJECT: proto(%d) != IPPROTO_TCP, "
 			 "or too short. otcplen = %d\n",
@@ -74,13 +59,13 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
 	if (skb_copy_bits(oldskb, tcphoff, &otcph, sizeof(struct tcphdr)))
 		BUG();
 
-	/* No RST for RST. */
+	
 	if (otcph.rst) {
 		pr_debug("ip6t_REJECT: RST is set\n");
 		return;
 	}
 
-	/* Check checksum. */
+	
 	if (csum_ipv6_magic(&oip6h->saddr, &oip6h->daddr, otcplen, IPPROTO_TCP,
 			    skb_checksum(oldskb, tcphoff, otcplen, 0))) {
 		pr_debug("ip6t_REJECT: TCP checksum is invalid\n");
@@ -126,7 +111,7 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
 	ipv6_addr_copy(&ip6h->daddr, &oip6h->saddr);
 
 	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
-	/* Truncate to length (no data) */
+	
 	tcph->doff = sizeof(struct tcphdr)/4;
 	tcph->source = otcph.dest;
 	tcph->dest = otcph.source;
@@ -142,7 +127,7 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
 		tcph->seq = 0;
 	}
 
-	/* Reset flags */
+	
 	((u_int8_t *)tcph)[13] = 0;
 	tcph->rst = 1;
 	tcph->ack = needs_ack;
@@ -150,7 +135,7 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
 	tcph->urg_ptr = 0;
 	tcph->check = 0;
 
-	/* Adjust TCP checksum */
+	
 	tcph->check = csum_ipv6_magic(&ipv6_hdr(nskb)->saddr,
 				      &ipv6_hdr(nskb)->daddr,
 				      sizeof(struct tcphdr), IPPROTO_TCP,
@@ -179,9 +164,7 @@ reject_tg6(struct sk_buff *skb, const struct xt_target_param *par)
 	struct net *net = dev_net((par->in != NULL) ? par->in : par->out);
 
 	pr_debug("%s: medium point\n", __func__);
-	/* WARNING: This code causes reentry within ip6tables.
-	   This means that the ip6tables jump stack is now crap.  We
-	   must return an absolute verdict. --RR */
+	
 	switch (reject->with) {
 	case IP6T_ICMP6_NO_ROUTE:
 		send_unreach(net, skb, ICMPV6_NOROUTE, par->hooknum);
@@ -199,7 +182,7 @@ reject_tg6(struct sk_buff *skb, const struct xt_target_param *par)
 		send_unreach(net, skb, ICMPV6_PORT_UNREACH, par->hooknum);
 		break;
 	case IP6T_ICMP6_ECHOREPLY:
-		/* Do nothing */
+		
 		break;
 	case IP6T_TCP_RESET:
 		send_reset(net, skb);
@@ -222,7 +205,7 @@ static bool reject_tg6_check(const struct xt_tgchk_param *par)
 		printk("ip6t_REJECT: ECHOREPLY is not supported.\n");
 		return false;
 	} else if (rejinfo->with == IP6T_TCP_RESET) {
-		/* Must specify that it's a TCP packet */
+		
 		if (e->ipv6.proto != IPPROTO_TCP
 		    || (e->ipv6.invflags & XT_INV_PROTO)) {
 			printk("ip6t_REJECT: TCP_RESET illegal for non-tcp\n");

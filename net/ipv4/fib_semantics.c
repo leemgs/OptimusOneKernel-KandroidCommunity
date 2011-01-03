@@ -1,17 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		IPv4 Forwarding Information Base: semantics.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 
 #include <asm/uaccess.h>
 #include <asm/system.h>
@@ -65,9 +52,9 @@ for (nhsel=0, nh = (fi)->fib_nh; nhsel < (fi)->fib_nhs; nh++, nhsel++)
 #define change_nexthops(fi) { int nhsel; struct fib_nh * nh; \
 for (nhsel=0, nh = (struct fib_nh *)((fi)->fib_nh); nhsel < (fi)->fib_nhs; nh++, nhsel++)
 
-#else /* CONFIG_IP_ROUTE_MULTIPATH */
+#else 
 
-/* Hope, that gcc will optimize it to get rid of dummy loop */
+
 
 #define for_nexthops(fi) { int nhsel = 0; const struct fib_nh * nh = (fi)->fib_nh; \
 for (nhsel=0; nhsel < 1; nhsel++)
@@ -75,7 +62,7 @@ for (nhsel=0; nhsel < 1; nhsel++)
 #define change_nexthops(fi) { int nhsel = 0; struct fib_nh * nh = (struct fib_nh *)((fi)->fib_nh); \
 for (nhsel=0; nhsel < 1; nhsel++)
 
-#endif /* CONFIG_IP_ROUTE_MULTIPATH */
+#endif 
 
 #define endfor_nexthops(fi) }
 
@@ -88,55 +75,55 @@ static const struct
 	{
 		.error	= 0,
 		.scope	= RT_SCOPE_NOWHERE,
-	},	/* RTN_UNSPEC */
+	},	
 	{
 		.error	= 0,
 		.scope	= RT_SCOPE_UNIVERSE,
-	},	/* RTN_UNICAST */
+	},	
 	{
 		.error	= 0,
 		.scope	= RT_SCOPE_HOST,
-	},	/* RTN_LOCAL */
+	},	
 	{
 		.error	= 0,
 		.scope	= RT_SCOPE_LINK,
-	},	/* RTN_BROADCAST */
+	},	
 	{
 		.error	= 0,
 		.scope	= RT_SCOPE_LINK,
-	},	/* RTN_ANYCAST */
+	},	
 	{
 		.error	= 0,
 		.scope	= RT_SCOPE_UNIVERSE,
-	},	/* RTN_MULTICAST */
+	},	
 	{
 		.error	= -EINVAL,
 		.scope	= RT_SCOPE_UNIVERSE,
-	},	/* RTN_BLACKHOLE */
+	},	
 	{
 		.error	= -EHOSTUNREACH,
 		.scope	= RT_SCOPE_UNIVERSE,
-	},	/* RTN_UNREACHABLE */
+	},	
 	{
 		.error	= -EACCES,
 		.scope	= RT_SCOPE_UNIVERSE,
-	},	/* RTN_PROHIBIT */
+	},	
 	{
 		.error	= -EAGAIN,
 		.scope	= RT_SCOPE_UNIVERSE,
-	},	/* RTN_THROW */
+	},	
 	{
 		.error	= -EINVAL,
 		.scope	= RT_SCOPE_NOWHERE,
-	},	/* RTN_NAT */
+	},	
 	{
 		.error	= -EINVAL,
 		.scope	= RT_SCOPE_NOWHERE,
-	},	/* RTN_XRESOLVE */
+	},	
 };
 
 
-/* Release a nexthop info record */
+
 
 void free_fib_info(struct fib_info *fi)
 {
@@ -245,9 +232,7 @@ static struct fib_info *fib_find_info(const struct fib_info *nfi)
 	return NULL;
 }
 
-/* Check, that the gateway is already configured.
-   Used only by redirect accept routine.
- */
+
 
 int ip_fib_check_default(__be32 gw, struct net_device *dev)
 {
@@ -277,24 +262,24 @@ int ip_fib_check_default(__be32 gw, struct net_device *dev)
 static inline size_t fib_nlmsg_size(struct fib_info *fi)
 {
 	size_t payload = NLMSG_ALIGN(sizeof(struct rtmsg))
-			 + nla_total_size(4) /* RTA_TABLE */
-			 + nla_total_size(4) /* RTA_DST */
-			 + nla_total_size(4) /* RTA_PRIORITY */
-			 + nla_total_size(4); /* RTA_PREFSRC */
+			 + nla_total_size(4) 
+			 + nla_total_size(4) 
+			 + nla_total_size(4) 
+			 + nla_total_size(4); 
 
-	/* space for nested metrics */
+	
 	payload += nla_total_size((RTAX_MAX * nla_total_size(4)));
 
 	if (fi->fib_nhs) {
-		/* Also handles the special case fib_nhs == 1 */
+		
 
-		/* each nexthop is packed in an attribute */
+		
 		size_t nhsize = nla_total_size(sizeof(struct rtnexthop));
 
-		/* may contain flow and gateway attribute */
+		
 		nhsize += 2 * nla_total_size(4);
 
-		/* all nexthops are packed in a nested attribute */
+		
 		payload += nla_total_size(fi->fib_nhs * nhsize);
 	}
 
@@ -317,7 +302,7 @@ void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
 			    fa->fa_type, fa->fa_scope, key, dst_len,
 			    fa->fa_tos, fa->fa_info, nlm_flags);
 	if (err < 0) {
-		/* -EMSGSIZE implies BUG in fib_nlmsg_size() */
+		
 		WARN_ON(err == -EMSGSIZE);
 		kfree_skb(skb);
 		goto errout;
@@ -330,9 +315,7 @@ errout:
 		rtnl_set_sk_err(info->nl_net, RTNLGRP_IPV4_ROUTE, err);
 }
 
-/* Return the first fib alias matching TOS with
- * priority less than or equal to PRIO.
- */
+
 struct fib_alias *fib_find_alias(struct list_head *fah, u8 tos, u32 prio)
 {
 	if (fah) {
@@ -382,7 +365,7 @@ static int fib_count_nexthops(struct rtnexthop *rtnh, int remaining)
 		rtnh = rtnh_next(rtnh, &remaining);
 	}
 
-	/* leftover implies invalid nexthop configuration, discard it */
+	
 	return remaining > 0 ? 0 : nhs;
 }
 
@@ -473,49 +456,7 @@ int fib_nh_match(struct fib_config *cfg, struct fib_info *fi)
 }
 
 
-/*
-   Picture
-   -------
 
-   Semantics of nexthop is very messy by historical reasons.
-   We have to take into account, that:
-   a) gateway can be actually local interface address,
-      so that gatewayed route is direct.
-   b) gateway must be on-link address, possibly
-      described not by an ifaddr, but also by a direct route.
-   c) If both gateway and interface are specified, they should not
-      contradict.
-   d) If we use tunnel routes, gateway could be not on-link.
-
-   Attempt to reconcile all of these (alas, self-contradictory) conditions
-   results in pretty ugly and hairy code with obscure logic.
-
-   I chose to generalized it instead, so that the size
-   of code does not increase practically, but it becomes
-   much more general.
-   Every prefix is assigned a "scope" value: "host" is local address,
-   "link" is direct route,
-   [ ... "site" ... "interior" ... ]
-   and "universe" is true gateway route with global meaning.
-
-   Every prefix refers to a set of "nexthop"s (gw, oif),
-   where gw must have narrower scope. This recursion stops
-   when gw has LOCAL scope or if "nexthop" is declared ONLINK,
-   which means that gw is forced to be on link.
-
-   Code is still hairy, but now it is apparently logically
-   consistent and very flexible. F.e. as by-product it allows
-   to co-exists in peace independent exterior and interior
-   routing processes.
-
-   Normally it looks as following.
-
-   {universe prefix}  -> (gw, oif) [scope link]
-			  |
-			  |-> {link prefix} -> (gw, oif) [scope local]
-						|
-						|-> {local prefix} (terminal node)
- */
 
 static int fib_check_nh(struct fib_config *cfg, struct fib_info *fi,
 			struct fib_nh *nh)
@@ -558,7 +499,7 @@ static int fib_check_nh(struct fib_config *cfg, struct fib_info *fi,
 				.oif = nh->nh_oif,
 			};
 
-			/* It is not necessary, but requires a bit of thinking */
+			
 			if (fl.fl4_scope < RT_SCOPE_LINK)
 				fl.fl4_scope = RT_SCOPE_LINK;
 			if ((err = fib_lookup(net, &fl, &res)) != 0)
@@ -691,7 +632,7 @@ struct fib_info *fib_create_info(struct fib_config *cfg)
 	int nhs = 1;
 	struct net *net = cfg->fc_nlinfo.nl_net;
 
-	/* Fast check to catch the most weird cases */
+	
 	if (fib_props[cfg->fc_type].scope > cfg->fc_scope)
 		goto err_inval;
 
@@ -798,7 +739,7 @@ struct fib_info *fib_create_info(struct fib_config *cfg)
 	if (cfg->fc_scope == RT_SCOPE_HOST) {
 		struct fib_nh *nh = fi->fib_nh;
 
-		/* Local address is added. */
+		
 		if (nhs != 1 || nh->nh_gw)
 			goto err_inval;
 		nh->nh_scope = RT_SCOPE_NOWHERE;
@@ -864,7 +805,7 @@ failure:
 	return ERR_PTR(err);
 }
 
-/* Note! fib_semantic_match intentionally uses  RCU list functions. */
+
 int fib_semantic_match(struct list_head *head, const struct flowi *flp,
 		       struct fib_result *res, int prefixlen)
 {
@@ -935,7 +876,7 @@ out_fill_res:
 	return 0;
 }
 
-/* Find appropriate source address to this destination */
+
 
 __be32 __fib_res_prefsrc(struct fib_result *res)
 {
@@ -1015,7 +956,7 @@ int fib_dump_info(struct sk_buff *skb, u32 pid, u32 seq, int event,
 			if (nh->nh_tclassid)
 				NLA_PUT_U32(skb, RTA_FLOW, nh->nh_tclassid);
 #endif
-			/* length of rtnetlink header + attributes */
+			
 			rtnh->rtnh_len = nlmsg_get_pos(skb) - (void *) rtnh;
 		} endfor_nexthops(fi);
 
@@ -1029,12 +970,7 @@ nla_put_failure:
 	return -EMSGSIZE;
 }
 
-/*
-   Update FIB if:
-   - local address disappeared -> we must delete all the entries
-     referring to it.
-   - device went down -> we must shutdown all nexthops going via it.
- */
+
 int fib_sync_down_addr(struct net *net, __be32 local)
 {
 	int ret = 0;
@@ -1111,10 +1047,7 @@ int fib_sync_down_dev(struct net_device *dev, int force)
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 
-/*
-   Dead device goes up. We wake up dead nexthops.
-   It takes sense only on multipath routes.
- */
+
 
 int fib_sync_up(struct net_device *dev)
 {
@@ -1168,10 +1101,7 @@ int fib_sync_up(struct net_device *dev)
 	return ret;
 }
 
-/*
-   The algorithm is suboptimal, but it provides really
-   fair weighted route distribution.
- */
+
 
 void fib_select_multipath(const struct flowi *flp, struct fib_result *res)
 {
@@ -1190,16 +1120,14 @@ void fib_select_multipath(const struct flowi *flp, struct fib_result *res)
 		fi->fib_power = power;
 		if (power <= 0) {
 			spin_unlock_bh(&fib_multipath_lock);
-			/* Race condition: route has just become dead. */
+			
 			res->nh_sel = 0;
 			return;
 		}
 	}
 
 
-	/* w should be random number [0..fi->fib_power-1],
-	   it is pretty bad approximation.
-	 */
+	
 
 	w = jiffies % fi->fib_power;
 
@@ -1215,7 +1143,7 @@ void fib_select_multipath(const struct flowi *flp, struct fib_result *res)
 		}
 	} endfor_nexthops(fi);
 
-	/* Race condition: route has just become dead. */
+	
 	res->nh_sel = 0;
 	spin_unlock_bh(&fib_multipath_lock);
 }

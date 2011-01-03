@@ -1,32 +1,13 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 
 BFA_TRC_FILE(HAL, SGPG);
 BFA_MODULE(sgpg);
 
-/**
- *  bfa_sgpg_mod BFA SGPG Mode module
- */
 
-/**
- * Compute and return memory needed by FCP(im) module.
- */
+
+
 static void
 bfa_sgpg_meminfo(struct bfa_iocfc_cfg_s *cfg, u32 *km_len,
 		u32 *dm_len)
@@ -120,9 +101,7 @@ bfa_sgpg_iocdisable(struct bfa_s *bfa)
 
 
 
-/**
- *  bfa_sgpg_public BFA SGPG public functions
- */
+
 
 bfa_status_t
 bfa_sgpg_malloc(struct bfa_s *bfa, struct list_head *sgpg_q, int nsgpgs)
@@ -162,9 +141,7 @@ bfa_sgpg_mfree(struct bfa_s *bfa, struct list_head *sgpg_q, int nsgpg)
 	if (list_empty(&mod->sgpg_wait_q))
 		return;
 
-	/**
-	 * satisfy as many waiting requests as possible
-	 */
+	
 	do {
 		wqe = bfa_q_first(&mod->sgpg_wait_q);
 		if (mod->free_sgpgs < wqe->nsgpg)
@@ -190,13 +167,9 @@ bfa_sgpg_wait(struct bfa_s *bfa, struct bfa_sgpg_wqe_s *wqe, int nsgpg)
 
 	wqe->nsgpg_total = wqe->nsgpg = nsgpg;
 
-	/**
-	 * allocate any left to this one first
-	 */
+	
 	if (mod->free_sgpgs) {
-		/**
-		 * no one else is waiting for SGPG
-		 */
+		
 		bfa_assert(list_empty(&mod->sgpg_wait_q));
 		list_splice_tail_init(&mod->sgpg_q, &wqe->sgpg_q);
 		wqe->nsgpg -= mod->free_sgpgs;

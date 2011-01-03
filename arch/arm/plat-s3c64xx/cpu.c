@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c64xx/cpu.c
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C64XX CPU Support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -36,7 +24,7 @@
 #include <plat/s3c6400.h>
 #include <plat/s3c6410.h>
 
-/* table of supported CPUs */
+
 
 static const char name_s3c6400[] = "S3C6400";
 static const char name_s3c6410[] = "S3C6410";
@@ -61,9 +49,9 @@ static struct cpu_table cpu_ids[] __initdata = {
 	},
 };
 
-/* minimal IO mapping */
 
-/* see notes on uart map in arch/arm/mach-s3c6400/include/mach/debug-macro.S */
+
+
 #define UART_OFFS (S3C_PA_UART & 0xfffff)
 
 static struct map_desc s3c_iodesc[] __initdata = {
@@ -120,20 +108,19 @@ static struct sys_device s3c64xx_sysdev = {
 };
 
 
-/* read cpu identification code */
+
 
 void __init s3c64xx_init_io(struct map_desc *mach_desc, int size)
 {
 	unsigned long idcode;
 
-	/* initialise the io descriptors we need for initialisation */
+	
 	iotable_init(s3c_iodesc, ARRAY_SIZE(s3c_iodesc));
 	iotable_init(mach_desc, size);
 
 	idcode = __raw_readl(S3C_VA_SYS + 0x118);
 	if (!idcode) {
-		/* S3C6400 has the ID register in a different place,
-		 * and needs a write before it can be read. */
+		
 
 		__raw_writel(0x0, S3C_VA_SYS + 0xA1C);
 		idcode = __raw_readl(S3C_VA_SYS + 0xA1C);

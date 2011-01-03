@@ -1,33 +1,13 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  hal_trcmod.h BFA trace modules
- */
+
+
 
 #ifndef __BFA_TRCMOD_PRIV_H__
 #define __BFA_TRCMOD_PRIV_H__
 
 #include <cs/bfa_trc.h>
 
-/*
- * !!! Only append to the enums defined here to avoid any versioning
- * !!! needed between trace utility and driver version
- */
+
 enum {
 	BFA_TRC_HAL_IOC		= 1,
 	BFA_TRC_HAL_INTR	= 2,
@@ -63,4 +43,4 @@ enum {
 	BFA_TRC_HAL_IOCFC_Q	= 32,
 };
 
-#endif /* __BFA_TRCMOD_PRIV_H__ */
+#endif 

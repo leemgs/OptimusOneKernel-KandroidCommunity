@@ -1,16 +1,4 @@
-/* arch/arm/plat-s5pc1xx/irq.c
- *
- * Copyright 2009 Samsung Electronics Co.
- *      Byungho Min <bhmin@samsung.com>
- *
- * S5PC1XX - Interrupt handling
- *
- * Based on plat-s3c64xx/irq.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -23,7 +11,7 @@
 #include <plat/regs-timer.h>
 #include <plat/cpu.h>
 
-/* Timer interrupt handling */
+
 
 static void s3c_irq_demux_timer(unsigned int base_irq, unsigned int sub_irq)
 {
@@ -55,13 +43,13 @@ static void s3c_irq_demux_timer4(unsigned int irq, struct irq_desc *desc)
 	s3c_irq_demux_timer(irq, IRQ_TIMER4);
 }
 
-/* We assume the IRQ_TIMER0..IRQ_TIMER4 range is continuous. */
+
 
 static void s3c_irq_timer_mask(unsigned int irq)
 {
 	u32 reg = __raw_readl(S3C64XX_TINT_CSTAT);
 
-	reg &= 0x1f;  /* mask out pending interrupts */
+	reg &= 0x1f;  
 	reg &= ~(1 << (irq - IRQ_TIMER0));
 	__raw_writel(reg, S3C64XX_TINT_CSTAT);
 }
@@ -70,7 +58,7 @@ static void s3c_irq_timer_unmask(unsigned int irq)
 {
 	u32 reg = __raw_readl(S3C64XX_TINT_CSTAT);
 
-	reg &= 0x1f;  /* mask out pending interrupts */
+	reg &= 0x1f;  
 	reg |= 1 << (irq - IRQ_TIMER0);
 	__raw_writel(reg, S3C64XX_TINT_CSTAT);
 }
@@ -97,9 +85,7 @@ struct uart_irq {
 	unsigned int	 parent_irq;
 };
 
-/* Note, we make use of the fact that the parent IRQs, IRQ_UART[0..3]
- * are consecutive when looking up the interrupt in the demux routines.
- */
+
 static struct uart_irq uart_irqs[] = {
 	[0] = {
 		.regs		= (void *)S3C_VA_UART0,
@@ -134,7 +120,7 @@ static inline unsigned int s3c_irq_uart_bit(unsigned int irq)
 	return irq & 3;
 }
 
-/* UART interrupt registers, not worth adding to seperate include header */
+
 #define S3C64XX_UINTP	0x30
 #define S3C64XX_UINTSP	0x34
 #define S3C64XX_UINTM	0x38
@@ -211,7 +197,7 @@ static void __init s5pc1xx_uart_irq(struct uart_irq *uirq)
 	unsigned int irq;
 	int offs;
 
-	/* mask all interrupts at the start. */
+	
 	__raw_writel(0xf, reg_base + S3C64XX_UINTM);
 
 	for (offs = 0; offs < 3; offs++) {
@@ -233,12 +219,12 @@ void __init s5pc1xx_init_irq(u32 *vic_valid, int num)
 
 	printk(KERN_DEBUG "%s: initialising interrupts\n", __func__);
 
-	/* initialise the pair of VICs */
+	
 	for (i = 0; i < num; i++)
 		vic_init((void *)S5PC1XX_VA_VIC(i), S3C_IRQ(i * S3C_IRQ_OFFSET),
 				vic_valid[i], 0);
 
-	/* add the timer sub-irqs */
+	
 
 	set_irq_chained_handler(IRQ_TIMER0, s3c_irq_demux_timer0);
 	set_irq_chained_handler(IRQ_TIMER1, s3c_irq_demux_timer1);

@@ -1,22 +1,4 @@
-/***************************************************************************
- * V4L2 driver for SN9C1xx PC Camera Controllers                           *
- *                                                                         *
- * Copyright (C) 2004-2006 by Luca Risolia <luca.risolia@studio.unibo.it>  *
- *                                                                         *
- * This program is free software; you can redistribute it and/or modify    *
- * it under the terms of the GNU General Public License as published by    *
- * the Free Software Foundation; either version 2 of the License, or       *
- * (at your option) any later version.                                     *
- *                                                                         *
- * This program is distributed in the hope that it will be useful,         *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
- * GNU General Public License for more details.                            *
- *                                                                         *
- * You should have received a copy of the GNU General Public License       *
- * along with this program; if not, write to the Free Software             *
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
- ***************************************************************************/
+
 
 #ifndef _SN9C102_H_
 #define _SN9C102_H_
@@ -134,7 +116,7 @@ struct sn9c102_device {
 	wait_queue_head_t wait_open, wait_frame, wait_stream;
 };
 
-/*****************************************************************************/
+
 
 struct sn9c102_device*
 sn9c102_match_id(struct sn9c102_device* cam, const struct usb_device_id *id)
@@ -163,7 +145,7 @@ struct sn9c102_sensor* sn9c102_get_sensor(struct sn9c102_device* cam)
 	return &cam->sensor;
 }
 
-/*****************************************************************************/
+
 
 #undef DBG
 #undef KDBG
@@ -207,6 +189,6 @@ dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n", __FILE__, __func__,   \
 	 __LINE__ , ## args)
 
 #undef PDBGG
-#define PDBGG(fmt, args...) do {;} while(0) /* placeholder */
+#define PDBGG(fmt, args...) do {;} while(0) 
 
-#endif /* _SN9C102_H_ */
+#endif 

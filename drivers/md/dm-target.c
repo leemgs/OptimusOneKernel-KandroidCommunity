@@ -1,8 +1,4 @@
-/*
- * Copyright (C) 2001 Sistina Software (UK) Limited
- *
- * This file is released under the GPL.
- */
+
 
 #include "dm.h"
 
@@ -108,10 +104,7 @@ void dm_unregister_target(struct target_type *tt)
 	up_write(&_lock);
 }
 
-/*
- * io-err: always fails an io, useful for bringing
- * up LVs that have holes in them.
- */
+
 static int io_err_ctr(struct dm_target *tt, unsigned int argc, char **args)
 {
 	return 0;
@@ -119,7 +112,7 @@ static int io_err_ctr(struct dm_target *tt, unsigned int argc, char **args)
 
 static void io_err_dtr(struct dm_target *tt)
 {
-	/* empty */
+	
 }
 
 static int io_err_map(struct dm_target *tt, struct bio *bio,

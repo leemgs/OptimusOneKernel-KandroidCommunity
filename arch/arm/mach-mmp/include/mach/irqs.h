@@ -1,9 +1,7 @@
 #ifndef __ASM_MACH_IRQS_H
 #define __ASM_MACH_IRQS_H
 
-/*
- * Interrupt numbers for PXA168
- */
+
 #define IRQ_PXA168_NONE			(-1)
 #define IRQ_PXA168_SSP3			0
 #define IRQ_PXA168_SSP2			1
@@ -49,9 +47,7 @@
 #define IRQ_PXA168_PMU			60
 #define IRQ_PXA168_SM_INT		63
 
-/*
- * Interrupt numbers for PXA910
- */
+
 #define IRQ_PXA910_NONE			(-1)
 #define IRQ_PXA910_AIRQ			0
 #define IRQ_PXA910_SSP3			1
@@ -107,9 +103,9 @@
 #define IRQ_PXA910_USB2			51
 #define IRQ_PXA910_TWSI1		54
 #define IRQ_PXA910_CP_GPIO		55
-#define IRQ_PXA910_UART1		59	/* Slow UART */
+#define IRQ_PXA910_UART1		59	
 #define IRQ_PXA910_AP_PMU		60
-#define IRQ_PXA910_SM_INT		63	/* from PinMux */
+#define IRQ_PXA910_SM_INT		63	
 
 #define IRQ_GPIO_START			64
 #define IRQ_GPIO_NUM			128
@@ -117,4 +113,4 @@
 
 #define NR_IRQS		(IRQ_GPIO_START + IRQ_GPIO_NUM)
 
-#endif /* __ASM_MACH_IRQS_H */
+#endif 

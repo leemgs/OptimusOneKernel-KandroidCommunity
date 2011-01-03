@@ -1,16 +1,4 @@
-/*
- * arch/arm/mach-iop33x/iq80331.c
- *
- * Board support code for the Intel IQ80331 platform.
- *
- * Author: Dave Jiang <dave.jiang@intel.com>
- * Copyright (C) 2003 Intel Corp.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/mm.h>
 #include <linux/init.h>
@@ -34,12 +22,10 @@
 #include <asm/pgtable.h>
 #include <mach/time.h>
 
-/*
- * IQ80331 timer tick configuration.
- */
+
 static void __init iq80331_timer_init(void)
 {
-	/* D-Step parts run at a higher internal bus frequency */
+	
 	if (*IOP3XX_ATURID >= 0xa)
 		iop_init_time(333000000);
 	else
@@ -52,28 +38,26 @@ static struct sys_timer iq80331_timer = {
 };
 
 
-/*
- * IQ80331 PCI.
- */
+
 static int __init
 iq80331_pci_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
 	if (slot == 1 && pin == 1) {
-		/* PCI-X Slot INTA */
+		
 		irq = IRQ_IOP33X_XINT1;
 	} else if (slot == 1 && pin == 2) {
-		/* PCI-X Slot INTB */
+		
 		irq = IRQ_IOP33X_XINT2;
 	} else if (slot == 1 && pin == 3) {
-		/* PCI-X Slot INTC */
+		
 		irq = IRQ_IOP33X_XINT3;
 	} else if (slot == 1 && pin == 4) {
-		/* PCI-X Slot INTD */
+		
 		irq = IRQ_IOP33X_XINT0;
 	} else if (slot == 2) {
-		/* GigE */
+		
 		irq = IRQ_IOP33X_XINT2;
 	} else {
 		printk(KERN_ERR "iq80331_pci_map_irq() called for unknown "
@@ -106,9 +90,7 @@ static int __init iq80331_pci_init(void)
 subsys_initcall(iq80331_pci_init);
 
 
-/*
- * IQ80331 machine initialisation.
- */
+
 static struct physmap_flash_data iq80331_flash_data = {
 	.width		= 1,
 };
@@ -142,7 +124,7 @@ static void __init iq80331_init_machine(void)
 }
 
 MACHINE_START(IQ80331, "Intel IQ80331")
-	/* Maintainer: Intel Corp. */
+	
 	.phys_io	= 0xfefff000,
 	.io_pg_offst	= ((0xfffff000) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

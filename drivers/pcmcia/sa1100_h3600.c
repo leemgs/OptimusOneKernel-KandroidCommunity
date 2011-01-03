@@ -1,9 +1,4 @@
-/*
- * drivers/pcmcia/sa1100_h3600.c
- *
- * PCMCIA implementation routines for H3600
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -36,7 +31,7 @@ static void h3600_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_free_irqs(skt, irqs, ARRAY_SIZE(irqs));
   
-	/* Disable CF bus: */
+	
 	assign_h3600_egpio(IPAQ_EGPIO_OPT_NVRAM_ON, 0);
 	assign_h3600_egpio(IPAQ_EGPIO_OPT_ON, 0);
 	assign_h3600_egpio(IPAQ_EGPIO_OPT_RESET, 1);
@@ -53,7 +48,7 @@ h3600_pcmcia_socket_state(struct soc_pcmcia_socket *skt, struct pcmcia_state *st
 		state->ready = levels & GPIO_H3600_PCMCIA_IRQ0 ? 1 : 0;
 		state->bvd1 = 0;
 		state->bvd2 = 0;
-		state->wrprot = 0; /* Not available on H3600. */
+		state->wrprot = 0; 
 		state->vs_3v = 0;
 		state->vs_Xv = 0;
 		break;
@@ -63,7 +58,7 @@ h3600_pcmcia_socket_state(struct soc_pcmcia_socket *skt, struct pcmcia_state *st
 		state->ready = levels & GPIO_H3600_PCMCIA_IRQ1 ? 1 : 0;
 		state->bvd1 = 0;
 		state->bvd2 = 0;
-		state->wrprot = 0; /* Not available on H3600. */
+		state->wrprot = 0; 
 		state->vs_3v = 0;
 		state->vs_Xv = 0;
 		break;
@@ -81,14 +76,14 @@ h3600_pcmcia_configure_socket(struct soc_pcmcia_socket *skt, const socket_state_
 
 	assign_h3600_egpio(IPAQ_EGPIO_CARD_RESET, !!(state->flags & SS_RESET));
 
-	/* Silently ignore Vpp, output enable, speaker enable. */
+	
 
 	return 0;
 }
 
 static void h3600_pcmcia_socket_init(struct soc_pcmcia_socket *skt)
 {
-	/* Enable CF bus: */
+	
 	assign_h3600_egpio(IPAQ_EGPIO_OPT_NVRAM_ON, 1);
 	assign_h3600_egpio(IPAQ_EGPIO_OPT_ON, 1);
 	assign_h3600_egpio(IPAQ_EGPIO_OPT_RESET, 0);
@@ -102,16 +97,11 @@ static void h3600_pcmcia_socket_suspend(struct soc_pcmcia_socket *skt)
 {
 	soc_pcmcia_disable_irqs(skt, irqs, ARRAY_SIZE(irqs));
 
-	/*
-	 * FIXME:  This doesn't fit well.  We don't have the mechanism in
-	 * the generic PCMCIA layer to deal with the idea of two sockets
-	 * on one bus.  We rely on the cs.c behaviour shutting down
-	 * socket 0 then socket 1.
-	 */
+	
 	if (skt->nr == 1) {
 		assign_h3600_egpio(IPAQ_EGPIO_OPT_ON, 0);
 		assign_h3600_egpio(IPAQ_EGPIO_OPT_NVRAM_ON, 0);
-		/* hmm, does this suck power? */
+		
 		assign_h3600_egpio(IPAQ_EGPIO_OPT_RESET, 1);
 	}
 }

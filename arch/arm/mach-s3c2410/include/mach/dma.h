@@ -1,14 +1,4 @@
-/* arch/arm/mach-s3c2410/include/mach/dma.h
- *
- * Copyright (C) 2003,2004,2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Samsung S3C24XX DMA support
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __ASM_ARCH_DMA_H
 #define __ASM_ARCH_DMA_H __FILE__
@@ -16,13 +6,9 @@
 #include <plat/dma.h>
 #include <linux/sysdev.h>
 
-#define MAX_DMA_TRANSFER_SIZE   0x100000 /* Data Unit is half word  */
+#define MAX_DMA_TRANSFER_SIZE   0x100000 
 
-/* We use `virtual` dma channels to hide the fact we have only a limited
- * number of DMA channels, and not of all of them (dependant on the device)
- * can be attached to any DMA source. We therefore let the DMA core handle
- * the allocation of hardware channels to clients.
-*/
+
 
 enum dma_ch {
 	DMACH_XD0,
@@ -43,24 +29,24 @@ enum dma_ch {
 	DMACH_USB_EP2,
 	DMACH_USB_EP3,
 	DMACH_USB_EP4,
-	DMACH_UART0_SRC2,	/* s3c2412 second uart sources */
+	DMACH_UART0_SRC2,	
 	DMACH_UART1_SRC2,
 	DMACH_UART2_SRC2,
-	DMACH_UART3,		/* s3c2443 has extra uart */
+	DMACH_UART3,		
 	DMACH_UART3_SRC2,
-	DMACH_MAX,		/* the end entry */
+	DMACH_MAX,		
 };
 
-#define DMACH_LOW_LEVEL	(1<<28)	/* use this to specifiy hardware ch no */
+#define DMACH_LOW_LEVEL	(1<<28)	
 
-/* we have 4 dma channels */
+
 #ifndef CONFIG_CPU_S3C2443
 #define S3C_DMA_CHANNELS		(4)
 #else
 #define S3C_DMA_CHANNELS		(6)
 #endif
 
-/* types */
+
 
 enum s3c2410_dma_state {
 	S3C2410_DMA_IDLE,
@@ -68,33 +54,7 @@ enum s3c2410_dma_state {
 	S3C2410_DMA_PAUSED
 };
 
-/* enum s3c2410_dma_loadst
- *
- * This represents the state of the DMA engine, wrt to the loaded / running
- * transfers. Since we don't have any way of knowing exactly the state of
- * the DMA transfers, we need to know the state to make decisions on wether
- * we can
- *
- * S3C2410_DMA_NONE
- *
- * There are no buffers loaded (the channel should be inactive)
- *
- * S3C2410_DMA_1LOADED
- *
- * There is one buffer loaded, however it has not been confirmed to be
- * loaded by the DMA engine. This may be because the channel is not
- * yet running, or the DMA driver decided that it was too costly to
- * sit and wait for it to happen.
- *
- * S3C2410_DMA_1RUNNING
- *
- * The buffer has been confirmed running, and not finisged
- *
- * S3C2410_DMA_1LOADED_1RUNNING
- *
- * There is a buffer waiting to be loaded by the DMA engine, and one
- * currently running.
-*/
+
 
 enum s3c2410_dma_loadst {
 	S3C2410_DMALOAD_NONE,
@@ -104,34 +64,29 @@ enum s3c2410_dma_loadst {
 };
 
 
-/* flags */
 
-#define S3C2410_DMAF_SLOW         (1<<0)   /* slow, so don't worry about
-					    * waiting for reloads */
-#define S3C2410_DMAF_AUTOSTART    (1<<1)   /* auto-start if buffer queued */
 
-#define S3C2410_DMAF_CIRCULAR	(1 << 2)	/* no circular dma support */
+#define S3C2410_DMAF_SLOW         (1<<0)   
+#define S3C2410_DMAF_AUTOSTART    (1<<1)   
 
-/* dma buffer */
+#define S3C2410_DMAF_CIRCULAR	(1 << 2)	
+
+
 
 struct s3c2410_dma_buf;
 
-/* s3c2410_dma_buf
- *
- * internally used buffer structure to describe a queued or running
- * buffer.
-*/
+
 
 struct s3c2410_dma_buf {
 	struct s3c2410_dma_buf	*next;
-	int			 magic;		/* magic */
-	int			 size;		/* buffer size in bytes */
-	dma_addr_t		 data;		/* start of DMA data */
-	dma_addr_t		 ptr;		/* where the DMA got to [1] */
-	void			*id;		/* client's id */
+	int			 magic;		
+	int			 size;		
+	dma_addr_t		 data;		
+	dma_addr_t		 ptr;		
+	void			*id;		
 };
 
-/* [1] is this updated for both recv/send modes? */
+
 
 struct s3c2410_dma_stats {
 	unsigned long		loads;
@@ -143,54 +98,51 @@ struct s3c2410_dma_stats {
 
 struct s3c2410_dma_map;
 
-/* struct s3c2410_dma_chan
- *
- * full state information for each DMA channel
-*/
+
 
 struct s3c2410_dma_chan {
-	/* channel state flags and information */
-	unsigned char		 number;      /* number of this dma channel */
-	unsigned char		 in_use;      /* channel allocated */
-	unsigned char		 irq_claimed; /* irq claimed for channel */
-	unsigned char		 irq_enabled; /* irq enabled for channel */
-	unsigned char		 xfer_unit;   /* size of an transfer */
+	
+	unsigned char		 number;      
+	unsigned char		 in_use;      
+	unsigned char		 irq_claimed; 
+	unsigned char		 irq_enabled; 
+	unsigned char		 xfer_unit;   
 
-	/* channel state */
+	
 
 	enum s3c2410_dma_state	 state;
 	enum s3c2410_dma_loadst	 load_state;
 	struct s3c2410_dma_client *client;
 
-	/* channel configuration */
+	
 	enum s3c2410_dmasrc	 source;
 	enum dma_ch		 req_ch;
 	unsigned long		 dev_addr;
 	unsigned long		 load_timeout;
-	unsigned int		 flags;		/* channel flags */
+	unsigned int		 flags;		
 
-	struct s3c24xx_dma_map	*map;		/* channel hw maps */
+	struct s3c24xx_dma_map	*map;		
 
-	/* channel's hardware position and configuration */
-	void __iomem		*regs;		/* channels registers */
-	void __iomem		*addr_reg;	/* data address register */
-	unsigned int		 irq;		/* channel irq */
-	unsigned long		 dcon;		/* default value of DCON */
+	
+	void __iomem		*regs;		
+	void __iomem		*addr_reg;	
+	unsigned int		 irq;		
+	unsigned long		 dcon;		
 
-	/* driver handles */
-	s3c2410_dma_cbfn_t	 callback_fn;	/* buffer done callback */
-	s3c2410_dma_opfn_t	 op_fn;		/* channel op callback */
+	
+	s3c2410_dma_cbfn_t	 callback_fn;	
+	s3c2410_dma_opfn_t	 op_fn;		
 
-	/* stats gathering */
+	
 	struct s3c2410_dma_stats *stats;
 	struct s3c2410_dma_stats  stats_store;
 
-	/* buffer list and information */
-	struct s3c2410_dma_buf	*curr;		/* current dma buffer */
-	struct s3c2410_dma_buf	*next;		/* next buffer to load */
-	struct s3c2410_dma_buf	*end;		/* end of queue */
+	
+	struct s3c2410_dma_buf	*curr;		
+	struct s3c2410_dma_buf	*next;		
+	struct s3c2410_dma_buf	*end;		
 
-	/* system device */
+	
 	struct sys_device	dev;
 };
 
@@ -201,4 +153,4 @@ static inline bool s3c_dma_has_circular(void)
 	return false;
 }
 
-#endif /* __ASM_ARCH_DMA_H */
+#endif 

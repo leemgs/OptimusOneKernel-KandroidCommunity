@@ -1,33 +1,4 @@
-/*
- * Driver for Logitech Quickcam Messenger usb video camera
- * Copyright (C) Jaya Kumar
- *
- * This work was sponsored by CIS(M) Sdn Bhd.
- * History:
- * 05/08/2006 - Jaya Kumar
- * I wrote this based on the konicawc by Simon Evans.
- * -
- * Full credit for reverse engineering and creating an initial
- * working linux driver for the VV6422 goes to the qce-ga project by
- * Tuukka Toivonen, Jochen Hoenicke, Peter McConnell,
- * Cristiano De Michele, Georg Acher, Jean-Frederic Clere as well as
- * others.
- * ---
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -38,9 +9,7 @@
 #include "usbvideo.h"
 #include "quickcam_messenger.h"
 
-/*
- * Version Information
- */
+
 
 #ifdef CONFIG_USB_DEBUG
 static int debug;
@@ -198,13 +167,13 @@ static void qcm_free_int(struct qcm *cam)
 {
 	usb_free_urb(cam->button_urb);
 }
-#endif /* CONFIG_INPUT */
+#endif 
 
 static int qcm_stv_setb(struct usb_device *dev, u16 reg, u8 val)
 {
 	int ret;
 
-	/* we'll wait up to 3 slices but no more */
+	
 	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
 		0x04, USB_TYPE_VENDOR | USB_DIR_OUT | USB_RECIP_DEVICE,
 		reg, 0, &val, 1, 3*HZ);
@@ -215,7 +184,7 @@ static int qcm_stv_setw(struct usb_device *dev, u16 reg, __le16 val)
 {
 	int ret;
 
-	/* we'll wait up to 3 slices but no more */
+	
 	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
 		0x04, USB_TYPE_VENDOR | USB_DIR_OUT | USB_RECIP_DEVICE,
 		reg, 0, &val, 2, 3*HZ);
@@ -227,7 +196,7 @@ static int qcm_stv_getw(struct usb_device *dev, unsigned short reg,
 {
 	int ret;
 
-	/* we'll wait up to 3 slices but no more */
+	
 	ret = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
 		0x04, USB_TYPE_VENDOR | USB_DIR_IN | USB_RECIP_DEVICE,
 		reg, 0, val, 2, 3*HZ);
@@ -252,71 +221,49 @@ static void qcm_hsv2rgb(u16 hue, u16 sat, u16 val, u16 *r, u16 *g, u16 *b)
 {
 	unsigned int segment, valsat;
 	signed int   h = (signed int) hue;
-	unsigned int s = (sat - 32768) * 2;	/* rescale */
+	unsigned int s = (sat - 32768) * 2;	
 	unsigned int v = val;
 	unsigned int p;
 
-	/*
-	the registers controlling gain are 8 bit of which
-	we affect only the last 4 bits with our gain.
-	we know that if saturation is 0, (unsaturated) then
-	we're grayscale (center axis of the colour cone) so
-	we set rgb=value. we use a formula obtained from
-	wikipedia to map the cone to the RGB plane. it's
-	as follows for the human value case of h=0..360,
-	s=0..1, v=0..1
-	h_i = h/60 % 6 , f = h/60 - h_i , p = v(1-s)
-	q = v(1 - f*s) , t = v(1 - (1-f)s)
-	h_i==0 => r=v , g=t, b=p
-	h_i==1 => r=q , g=v, b=p
-	h_i==2 => r=p , g=v, b=t
-	h_i==3 => r=p , g=q, b=v
-	h_i==4 => r=t , g=p, b=v
-	h_i==5 => r=v , g=p, b=q
-	the bottom side (the point) and the stuff just up
-	of that is black so we simplify those two cases.
-	*/
+	
 	if (sat < 32768) {
-		/* anything less than this is unsaturated */
+		
 		*r = val;
 		*g = val;
 		*b = val;
 		return;
 	}
 	if (val <= (0xFFFF/8)) {
-		/* anything less than this is black */
+		
 		*r = 0;
 		*g = 0;
 		*b = 0;
 		return;
 	}
 
-	/* the rest of this code is copying tukkat's
-	implementation of the hsv2rgb conversion as taken
-	from qc-usb-messenger code. the 10923 is 0xFFFF/6
-	to divide the cone into 6 sectors.  */
+	
 
 	segment = (h + 10923) & 0xFFFF;
-	segment = segment*3 >> 16;		/* 0..2: 0=R, 1=G, 2=B */
-	hue -= segment * 21845;			/* -10923..10923 */
+	segment = segment*3 >> 16;		
+	hue -= segment * 21845;			
 	h = hue;
 	h *= 3;
-	valsat = v*s >> 16;			/* 0..65534 */
+	valsat = v*s >> 16;			
 	p = v - valsat;
 	if (h >= 0) {
 		unsigned int t = v - (valsat * (32769 - h) >> 15);
 		switch (segment) {
-		case 0:	/* R-> */
+		case 0:	
 			*r = v;
 			*g = t;
 			*b = p;
 			break;
-		case 1:	/* G-> */
+		case 1:	
 			*r = p;
 			*g = v;
 			*b = t;
 			break;
-		case 2:	/* B-> */
+		case 2:	
 			*r = t;
 			*g = p;
 			*b = v;
@@ -325,17 +272,17 @@ static void qcm_hsv2rgb(u16 hue, u16 sat, u16 val, u16 *r, u16 *g, u16 *b)
 	} else {
 		unsigned int q = v - (valsat * (32769 + h) >> 15);
 		switch (segment) {
-		case 0:	/* ->R */
+		case 0:	
 			*r = v;
 			*g = p;
 			*b = q;
 			break;
-		case 1:	/* ->G */
+		case 1:	
 			*r = q;
 			*g = v;
 			*b = p;
 			break;
-		case 2:	/* ->B */
+		case 2:	
 			*r = p;
 			*g = q;
 			*b = v;
@@ -350,14 +297,14 @@ static int qcm_sensor_set_gains(struct uvd *uvd, u16 hue,
 	int ret;
 	u16 r=0,g=0,b=0;
 
-	/* this code is based on qc-usb-messenger */
+	
 	qcm_hsv2rgb(hue, saturation, value, &r, &g, &b);
 
 	r >>= 12;
 	g >>= 12;
 	b >>= 12;
 
-	/* min val is 8 */
+	
 	r = max((u16) 8, r);
 	g = max((u16) 8, g);
 	b = max((u16) 8, b);
@@ -366,12 +313,12 @@ static int qcm_sensor_set_gains(struct uvd *uvd, u16 hue,
 	g |= 0x30;
 	b |= 0x30;
 
-	/* set the r,g,b gain registers */
+	
 	CHECK_RET(ret, qcm_stv_setb(uvd->dev, 0x0509, r));
 	CHECK_RET(ret, qcm_stv_setb(uvd->dev, 0x050A, g));
 	CHECK_RET(ret, qcm_stv_setb(uvd->dev, 0x050B, b));
 
-	/* doing as qc-usb did */
+	
 	CHECK_RET(ret, qcm_stv_setb(uvd->dev, 0x050C, 0x2A));
 	CHECK_RET(ret, qcm_stv_setb(uvd->dev, 0x050D, 0x01));
 	CHECK_RET(ret, qcm_stv_setb(uvd->dev, 0x143F, 0x01));
@@ -384,10 +331,10 @@ static int qcm_sensor_set_exposure(struct uvd *uvd, int exposure)
 	int ret;
 	int formedval;
 
-	/* calculation was from qc-usb-messenger driver */
+	
 	formedval = ( exposure >> 12 );
 
-	/* max value for formedval is 14 */
+	
 	formedval = min(formedval, 14);
 
 	CHECK_RET(ret, qcm_stv_setb(uvd->dev,
@@ -400,7 +347,7 @@ static int qcm_sensor_setlevels(struct uvd *uvd, int brightness, int contrast,
 					int hue, int colour)
 {
 	int ret;
-	/* brightness is exposure, contrast is gain, colour is saturation */
+	
 	CHECK_RET(ret,
 		qcm_sensor_set_exposure(uvd, brightness));
 	CHECK_RET(ret, qcm_sensor_set_gains(uvd, hue, colour, contrast));
@@ -419,7 +366,7 @@ static int qcm_sensor_setsize(struct uvd *uvd, u8 size)
 static int qcm_sensor_set_shutter(struct uvd *uvd, int whiteness)
 {
 	int ret;
-	/* some rescaling as done by the qc-usb-messenger code */
+	
 	if (whiteness > 0xC000)
 		whiteness = 0xC000 + (whiteness & 0x3FFF)*8;
 
@@ -499,9 +446,7 @@ static void qcm_adjust_picture(struct uvd *uvd)
 		return;
 	}
 
-	/* if there's been a change in contrast, hue, or
-	colour then we need to recalculate hsv in order
-	to update gains */
+	
 	if ((cam->contrast != uvd->vpic.contrast) ||
 		(cam->hue != uvd->vpic.hue) ||
 		(cam->colour != uvd->vpic.colour)) {
@@ -705,14 +650,14 @@ static void qcm_stop_data(struct uvd *uvd)
 
 	uvd->streaming = 0;
 
-	/* Unschedule all of the iso td's */
+	
 	for (i=0; i < USBVIDEO_NUMSBUF; i++)
 		usb_kill_urb(uvd->sbuf[i].urb);
 
 	qcm_stop_int_data(cam);
 
 	if (!uvd->remove_pending) {
-		/* Set packet size to 0 */
+		
 		j = usb_set_interface(uvd->dev, uvd->iface,
 					uvd->ifaceAltInactive);
 		if (j < 0) {
@@ -754,11 +699,7 @@ static void qcm_process_isoc(struct uvd *uvd, struct usbvideo_frame *frame)
 				frame->scanstate = ScanState_Lines;
 				frame->frameState = FrameState_Grabbing;
 				RING_QUEUE_DEQUEUE_BYTES(&uvd->dp, 4);
-			/*
-			* if we're starting, we need to discard the first
-			* 4 lines of y bayer data
-			* and the first 2 gr elements of x bayer data
-			*/
+			
 				RING_QUEUE_DEQUEUE_BYTES(&uvd->dp,
 							(hor*verdel + hordel));
 				break;
@@ -770,22 +711,17 @@ static void qcm_process_isoc(struct uvd *uvd, struct usbvideo_frame *frame)
 	if (frame->scanstate == ScanState_Scanning)
 		return;
 
-	/* now we can start processing bayer data so long as we have at least
-	* 2 lines worth of data. this is the simplest demosaicing method that
-	* I could think of. I use each 2x2 bayer element without interpolation
-	* to generate 4 rgb pixels.
-	*/
+	
 	while ( frame->curline < cam->height &&
 		(RingQueue_GetLength(&uvd->dp) >= hor*2)) {
-		/* get 2 lines of bayer for demosaicing
-		 * into 2 lines of RGB */
+		
 		RingQueue_Dequeue(&uvd->dp, cam->scratch, hor*2);
 		bayL0 = (struct bayL0 *) cam->scratch;
 		bayL1 = (struct bayL1 *) (cam->scratch + hor);
-		/* frame->curline is the rgb y line */
+		
 		rgbL0 = (struct rgb *)
 				( frame->data + (cam->width*3*frame->curline));
-		/* w/2 because we're already doing 2 pixels */
+		
 		rgbL1 = rgbL0 + (cam->width/2);
 
 		for (x=0; x < cam->width; x+=2) {
@@ -815,7 +751,7 @@ static void qcm_process_isoc(struct uvd *uvd, struct usbvideo_frame *frame)
 		frame->seqRead_Length += cam->width*3*2;
 		frame->curline += 2;
 	}
-	/* See if we filled the frame */
+	
 	if (frame->curline == cam->height) {
 		frame->frameState = FrameState_Done_Hold;
 		frame->curline = 0;
@@ -824,7 +760,7 @@ static void qcm_process_isoc(struct uvd *uvd, struct usbvideo_frame *frame)
 	}
 }
 
-/* taken from konicawc */
+
 static int qcm_set_video_mode(struct uvd *uvd, struct video_window *vw)
 {
 	int ret;
@@ -862,13 +798,13 @@ static int qcm_set_video_mode(struct uvd *uvd, struct video_window *vw)
 		ret = qcm_set_camera_size(uvd);
 		if (ret) {
 			err("Couldn't set camera size, err=%d",ret);
-			/* restore the original size */
+			
 			cam->size = oldsize;
 			return ret;
 		}
 	}
 
-	/* Flush the input queue and clear any current frame in progress */
+	
 
 	RingQueue_Flush(&uvd->dp);
 	if (uvd->curframe != -1) {
@@ -932,64 +868,54 @@ static int qcm_probe(struct usb_interface *intf,
 	unsigned int ifacenum, ifacenum_inact=0;
 	__le16 sensor_id;
 
-	/* we don't support multiconfig cams */
+	
 	if (dev->descriptor.bNumConfigurations != 1)
 		return -ENODEV;
 
-	/* first check for the video interface and not
-	* the audio interface */
+	
 	interface = &intf->cur_altsetting[0];
 	if ((interface->desc.bInterfaceClass != USB_CLASS_VENDOR_SPEC)
 		|| (interface->desc.bInterfaceSubClass !=
 			USB_CLASS_VENDOR_SPEC))
 		return -ENODEV;
 
-	/*
-	walk through each endpoint in each setting in the interface
-	stop when we find the one that's an isochronous IN endpoint.
-	*/
+	
 	for (i=0; i < intf->num_altsetting; i++) {
 		interface = &intf->cur_altsetting[i];
 		ifacenum = interface->desc.bAlternateSetting;
-		/* walk the end points */
+		
 		for (j=0; j < interface->desc.bNumEndpoints; j++) {
 			endpoint = &interface->endpoint[j].desc;
 
 			if (usb_endpoint_dir_out(endpoint))
-				continue; /* not input then not good */
+				continue; 
 
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
 			if (!buffer_size) {
 				ifacenum_inact = ifacenum;
-				continue; /* 0 pkt size is not what we want */
+				continue; 
 			}
 
 			if (usb_endpoint_xfer_isoc(endpoint)) {
 				video_ep = endpoint->bEndpointAddress;
-				/* break out of the search */
+				
 				goto good_videoep;
 			}
 		}
 	}
-	/* failed out since nothing useful was found */
+	
 	err("No suitable endpoint was found\n");
 	return -ENODEV;
 
 good_videoep:
-	/* disable isochronous stream before doing anything else */
+	
 	err = qcm_stv_setb(dev, STV_ISO_ENABLE, 0);
 	if (err < 0) {
 		err("Failed to disable sensor stream");
 		return -EIO;
 	}
 
-	/*
-	Check that this is the same unknown sensor that is known to work. This
-	sensor is suspected to be the ST VV6422C001. I'll check the same value
-	that the qc-usb driver checks. This value is probably not even the
-	sensor ID since it matches the USB dev ID. Oh well. If it doesn't
-	match, it's probably a diff sensor so exit and apologize.
-	*/
+	
 	err = qcm_stv_getw(dev, CMOS_SENSOR_IDREV, &sensor_id);
 	if (err < 0) {
 		err("Couldn't read sensor values. Err %d\n",err);
@@ -1007,20 +933,18 @@ good_videoep:
 
 	cam = (struct qcm *) uvd->user_data;
 
-	/* buf for doing demosaicing */
+	
 	cam->scratch = kmalloc(324*2, GFP_KERNEL);
-	if (!cam->scratch) /* uvd freed in dereg */
+	if (!cam->scratch) 
 		return -ENOMEM;
 
-	/* yes, if we fail after here, cam->scratch gets freed
-	by qcm_free_uvd */
+	
 
 	err = qcm_alloc_int_urb(cam);
 	if (err < 0)
 		return err;
 
-	/* yes, if we fail after here, int urb gets freed
-	by qcm_free_uvd */
+	
 
 	RESTRICT_TO_RANGE(size, SIZE_160X120, SIZE_320X240);
 	cam->width = camera_sizes[size].width;
@@ -1046,7 +970,7 @@ good_videoep:
 	}
 
 	err = usbvideo_RegisterVideoDevice(uvd);
-	if (err) { /* the uvd gets freed in Deregister */
+	if (err) { 
 		err("usbvideo_RegisterVideoDevice() failed.");
 		return err;
 	}

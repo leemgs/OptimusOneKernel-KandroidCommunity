@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2004, 2005, 2006 Voltaire, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *	- Redistributions of source code must retain the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer.
- *
- *	- Redistributions in binary form must reproduce the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer in the documentation and/or other materials
- *	  provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/mm.h>
@@ -39,12 +9,11 @@
 
 #include "iscsi_iser.h"
 
-/* Constant PDU lengths calculations */
+
 #define ISER_TOTAL_HEADERS_LEN  (sizeof (struct iser_hdr) + \
 				 sizeof (struct iscsi_hdr))
 
-/* iser_dto_add_regd_buff - increments the reference count for *
- * the registered buffer & adds it to the DTO object           */
+
 static void iser_dto_add_regd_buff(struct iser_dto *dto,
 				   struct iser_regd_buf *regd_buf,
 				   unsigned long use_offset,
@@ -62,10 +31,7 @@ static void iser_dto_add_regd_buff(struct iser_dto *dto,
 	dto->regd_vector_len++;
 }
 
-/* Register user buffer memory and initialize passive rdma
- *  dto descriptor. Total data size is stored in
- *  iser_task->data[ISER_DIR_IN].data_len
- */
+
 static int iser_prepare_read_cmd(struct iscsi_task *task,
 				 unsigned int edtl)
 
@@ -109,10 +75,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task,
 	return 0;
 }
 
-/* Register user buffer memory and initialize passive rdma
- *  dto descriptor. Total data size is stored in
- *  task->data[ISER_DIR_OUT].data_len
- */
+
 static int
 iser_prepare_write_cmd(struct iscsi_task *task,
 		       unsigned int imm_sz,
@@ -172,9 +135,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
 	return 0;
 }
 
-/**
- * iser_post_receive_control - allocates, initializes and posts receive DTO.
- */
+
 static int iser_post_receive_control(struct iscsi_conn *conn)
 {
 	struct iscsi_iser_conn *iser_conn = conn->dd_data;
@@ -186,22 +147,16 @@ static int iser_post_receive_control(struct iscsi_conn *conn)
 	int rx_data_size, err;
 	int posts, outstanding_unexp_pdus;
 
-	/* for the login sequence we must support rx of upto 8K; login is done
-	 * after conn create/bind (connect) and conn stop/bind (reconnect),
-	 * what's common for both schemes is that the connection is not started
-	 */
+	
 	if (conn->c_stage != ISCSI_CONN_STARTED)
 		rx_data_size = ISCSI_DEF_MAX_RECV_SEG_LEN;
-	else /* FIXME till user space sets conn->max_recv_dlength correctly */
+	else 
 		rx_data_size = 128;
 
 	outstanding_unexp_pdus =
 		atomic_xchg(&iser_conn->ib_conn->unexpected_pdu_count, 0);
 
-	/*
-	 * in addition to the response buffer, replace those consumed by
-	 * unexpected pdus.
-	 */
+	
 	for (posts = 0; posts < 1 + outstanding_unexp_pdus; posts++) {
 		rx_desc = kmem_cache_alloc(ig.desc_cache, GFP_NOIO);
 		if (rx_desc == NULL) {
@@ -226,7 +181,7 @@ static int iser_post_receive_control(struct iscsi_conn *conn)
 		regd_hdr = &rx_desc->hdr_regd_buf;
 		memset(regd_hdr, 0, sizeof(struct iser_regd_buf));
 		regd_hdr->device  = device;
-		regd_hdr->virt_addr  = rx_desc; /* == &rx_desc->iser_header */
+		regd_hdr->virt_addr  = rx_desc; 
 		regd_hdr->data_size  = ISER_TOTAL_HEADERS_LEN;
 
 		iser_reg_single(device, regd_hdr, DMA_FROM_DEVICE);
@@ -249,7 +204,7 @@ static int iser_post_receive_control(struct iscsi_conn *conn)
 			goto post_rx_post_recv_failure;
 		}
 	}
-	/* all posts successful */
+	
 	return 0;
 
 post_rx_post_recv_failure:
@@ -259,10 +214,7 @@ post_rx_kmalloc_failure:
 	kmem_cache_free(ig.desc_cache, rx_desc);
 post_rx_cache_alloc_failure:
 	if (posts > 0) {
-		/*
-		 * response buffer posted, but did not replace all unexpected
-		 * pdu recv bufs. Ignore error, retry occurs next send
-		 */
+		
 		outstanding_unexp_pdus -= (posts - 1);
 		err = 0;
 	}
@@ -272,7 +224,7 @@ post_rx_cache_alloc_failure:
 	return err;
 }
 
-/* creates a new tx descriptor and adds header regd buffer */
+
 static void iser_create_send_desc(struct iscsi_iser_conn *iser_conn,
 				  struct iser_desc       *tx_desc)
 {
@@ -281,7 +233,7 @@ static void iser_create_send_desc(struct iscsi_iser_conn *iser_conn,
 
 	memset(regd_hdr, 0, sizeof(struct iser_regd_buf));
 	regd_hdr->device  = iser_conn->ib_conn->device;
-	regd_hdr->virt_addr  = tx_desc; /* == &tx_desc->iser_header */
+	regd_hdr->virt_addr  = tx_desc; 
 	regd_hdr->data_size  = ISER_TOTAL_HEADERS_LEN;
 
 	send_dto->ib_conn         = iser_conn->ib_conn;
@@ -294,28 +246,23 @@ static void iser_create_send_desc(struct iscsi_iser_conn *iser_conn,
 	iser_dto_add_regd_buff(send_dto, regd_hdr, 0, 0);
 }
 
-/**
- *  iser_conn_set_full_featured_mode - (iSER API)
- */
+
 int iser_conn_set_full_featured_mode(struct iscsi_conn *conn)
 {
 	struct iscsi_iser_conn *iser_conn = conn->dd_data;
 
 	int i;
-	/*
-	 * FIXME this value should be declared to the target during login with
-	 * the MaxOutstandingUnexpectedPDUs key when supported
-	 */
+	
 	int initial_post_recv_bufs_num = ISER_MAX_RX_MISC_PDUS;
 
 	iser_dbg("Initially post: %d\n", initial_post_recv_bufs_num);
 
-	/* Check that there is no posted recv or send buffers left - */
-	/* they must be consumed during the login phase */
+	
+	
 	BUG_ON(atomic_read(&iser_conn->ib_conn->post_recv_buf_count) != 0);
 	BUG_ON(atomic_read(&iser_conn->ib_conn->post_send_buf_count) != 0);
 
-	/* Initial post receive buffers */
+	
 	for (i = 0; i < initial_post_recv_bufs_num; i++) {
 		if (iser_post_receive_control(conn) != 0) {
 			iser_err("Failed to post recv bufs at:%d conn:0x%p\n",
@@ -341,9 +288,7 @@ iser_check_xmit(struct iscsi_conn *conn, void *task)
 }
 
 
-/**
- * iser_send_command - send command PDU
- */
+
 int iser_send_command(struct iscsi_conn *conn,
 		      struct iscsi_task *task)
 {
@@ -365,7 +310,7 @@ int iser_send_command(struct iscsi_conn *conn,
 
 	edtl = ntohl(hdr->data_length);
 
-	/* build the tx desc regd header and add it to the tx desc dto */
+	
 	iser_task->desc.type = ISCSI_TX_SCSI_COMMAND;
 	send_dto = &iser_task->desc.dto;
 	send_dto->task = iser_task;
@@ -376,7 +321,7 @@ int iser_send_command(struct iscsi_conn *conn,
 	else
 		data_buf = &iser_task->data[ISER_DIR_OUT];
 
-	if (scsi_sg_count(sc)) { /* using a scatter list */
+	if (scsi_sg_count(sc)) { 
 		data_buf->buf  = scsi_sglist(sc);
 		data_buf->size = scsi_sg_count(sc);
 	}
@@ -419,9 +364,7 @@ send_command_error:
 	return err;
 }
 
-/**
- * iser_send_data_out - send data out PDU
- */
+
 int iser_send_data_out(struct iscsi_conn *conn,
 		       struct iscsi_task *task,
 		       struct iscsi_data *hdr)
@@ -459,7 +402,7 @@ int iser_send_data_out(struct iscsi_conn *conn,
 	tx_desc->type = ISCSI_TX_DATAOUT;
 	memcpy(&tx_desc->iscsi_header, hdr, sizeof(struct iscsi_hdr));
 
-	/* build the tx desc regd header and add it to the tx desc dto */
+	
 	send_dto = &tx_desc->dto;
 	send_dto->task = iser_task;
 	iser_create_send_desc(iser_conn, tx_desc);
@@ -467,7 +410,7 @@ int iser_send_data_out(struct iscsi_conn *conn,
 	iser_reg_single(iser_conn->ib_conn->device,
 			send_dto->regd[0], DMA_TO_DEVICE);
 
-	/* all data was registered for RDMA, we can use the lkey */
+	
 	iser_dto_add_regd_buff(send_dto,
 			       &iser_task->rdma_regd[ISER_DIR_OUT],
 			       buf_offset,
@@ -517,7 +460,7 @@ int iser_send_control(struct iscsi_conn *conn,
 	if (iser_check_xmit(conn, task))
 		return -ENOBUFS;
 
-	/* build the tx desc regd header and add it to the tx desc dto */
+	
 	mdesc->type = ISCSI_TX_CONTROL;
 	send_dto = &mdesc->dto;
 	send_dto->task = NULL;
@@ -544,7 +487,7 @@ int iser_send_control(struct iscsi_conn *conn,
 
 	opcode = task->hdr->opcode & ISCSI_OPCODE_MASK;
 
-	/* post recv buffer for response if one is expected */
+	
 	if (!(opcode == ISCSI_OP_NOOP_OUT && task->hdr->itt == RESERVED_ITT)) {
 		if (iser_post_receive_control(conn) != 0) {
 			iser_err("post_rcv_buff failed!\n");
@@ -563,9 +506,7 @@ send_control_error:
 	return err;
 }
 
-/**
- * iser_rcv_dto_completion - recv DTO completion
- */
+
 void iser_rcv_completion(struct iser_desc *rx_desc,
 			 unsigned long dto_xfer_len)
 {
@@ -582,7 +523,7 @@ void iser_rcv_completion(struct iser_desc *rx_desc,
 
 	iser_dbg("op 0x%x itt 0x%x\n", hdr->opcode,hdr->itt);
 
-	if (dto_xfer_len > ISER_TOTAL_HEADERS_LEN) { /* we have data */
+	if (dto_xfer_len > ISER_TOTAL_HEADERS_LEN) { 
 		rx_data_len = dto_xfer_len - ISER_TOTAL_HEADERS_LEN;
 		rx_data     = dto->regd[1]->virt_addr;
 		rx_data    += dto->offset[1];
@@ -616,25 +557,19 @@ void iser_rcv_completion(struct iser_desc *rx_desc,
 	kfree(rx_desc->data);
 	kmem_cache_free(ig.desc_cache, rx_desc);
 
-	/* decrementing conn->post_recv_buf_count only --after-- freeing the   *
-	 * task eliminates the need to worry on tasks which are completed in   *
-	 * parallel to the execution of iser_conn_term. So the code that waits *
-	 * for the posted rx bufs refcount to become zero handles everything   */
+	
 	atomic_dec(&conn->ib_conn->post_recv_buf_count);
 
-	/*
-	 * if an unexpected PDU was received then the recv wr consumed must
-	 * be replaced, this is done in the next send of a control-type PDU
-	 */
+	
 	if (opcode == ISCSI_OP_NOOP_IN && hdr->itt == RESERVED_ITT) {
-		/* nop-in with itt = 0xffffffff */
+		
 		atomic_inc(&conn->ib_conn->unexpected_pdu_count);
 	}
 	else if (opcode == ISCSI_OP_ASYNC_EVENT) {
-		/* asyncronous message */
+		
 		atomic_inc(&conn->ib_conn->unexpected_pdu_count);
 	}
-	/* a reject PDU consumes the recv buf posted for the response */
+	
 }
 
 void iser_snd_completion(struct iser_desc *tx_desc)
@@ -665,7 +600,7 @@ void iser_snd_completion(struct iser_desc *tx_desc)
 	}
 
 	if (tx_desc->type == ISCSI_TX_CONTROL) {
-		/* this arithmetic is legal by libiscsi dd_data allocation */
+		
 		task = (void *) ((long)(void *)tx_desc -
 				  sizeof(struct iscsi_task));
 		if (task->hdr->itt == RESERVED_ITT)
@@ -696,9 +631,7 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
 	int is_rdma_aligned = 1;
 	struct iser_regd_buf *regd;
 
-	/* if we were reading, copy back to unaligned sglist,
-	 * anyway dma_unmap and free the copy
-	 */
+	
 	if (iser_task->data_copy[ISER_DIR_IN].copy_buf != NULL) {
 		is_rdma_aligned = 0;
 		iser_finalize_rdma_unaligned_sg(iser_task, ISER_DIR_IN);
@@ -726,7 +659,7 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
 		}
 	}
 
-       /* if the data was unaligned, it was already unmapped and then copied */
+       
        if (is_rdma_aligned)
 		iser_dma_unmap_task_data(iser_task);
 }

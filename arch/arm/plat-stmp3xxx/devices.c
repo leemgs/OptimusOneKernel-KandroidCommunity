@@ -1,20 +1,6 @@
-/*
-* Freescale STMP37XX/STMP378X platform devices
-*
-* Embedded Alley Solutions, Inc <source@embeddedalley.com>
-*
-* Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
-* Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
-*/
 
-/*
-* The code contained herein is licensed under the GNU General Public
-* License. You may obtain a copy of the GNU General Public License
-* Version 2 or later at the following locations:
-*
-* http://www.opensource.org/licenses/gpl-license.html
-* http://www.gnu.org/copyleft/gpl.html
-*/
+
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/device.h>
@@ -51,12 +37,12 @@ static struct resource appuart_resources[] = {
 		.end = REGS_UARTAPP1_PHYS + REGS_UARTAPP_SIZE,
 		.flags = IORESOURCE_MEM,
 	}, {
-		/* Rx DMA channel */
+		
 		.start = STMP3XXX_DMA(6, STMP3XXX_BUS_APBX),
 		.end = STMP3XXX_DMA(6, STMP3XXX_BUS_APBX),
 		.flags = IORESOURCE_DMA,
 	}, {
-		/* Tx DMA channel */
+		
 		.start = STMP3XXX_DMA(7, STMP3XXX_BUS_APBX),
 		.end = STMP3XXX_DMA(7, STMP3XXX_BUS_APBX),
 		.flags = IORESOURCE_DMA,
@@ -98,9 +84,7 @@ struct platform_device stmp3xxx_touchscreen = {
 	.num_resources	= ARRAY_SIZE(ts_resource),
 };
 
-/*
-* Keypad device
-*/
+
 struct platform_device stmp3xxx_keyboard = {
 	.name		= "stmp3xxx-keyboard",
 	.id		= -1,

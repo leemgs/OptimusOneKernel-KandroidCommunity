@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s5pc1xx/dev-uart.c
- *
- * Copyright 2009 Samsung Electronics Co.
- *	Byungho Min <bhmin@samsung.com>
- *
- * Based on plat-s3c64xx/dev-uart.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -24,9 +13,9 @@
 
 #include <plat/devs.h>
 
-/* Serial port registrations */
 
-/* 64xx uarts are closer together */
+
+
 
 static struct resource s5pc1xx_uart0_resource[] = {
 	[0] = {
@@ -144,7 +133,7 @@ struct s3c24xx_uart_resources s5pc1xx_uart_resources[] __initdata = {
 	},
 };
 
-/* uart devices */
+
 
 static struct platform_device s3c24xx_uart_device0 = {
 	.id		= 0,

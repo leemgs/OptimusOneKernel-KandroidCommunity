@@ -1,26 +1,10 @@
-/* arch/arm/mach-s3c2410/include/mach/regs-gpioj.h
- *
- * Copyright (c) 2004 Simtec Electronics <linux@simtec.co.uk>
- *		      http://www.simtec.co.uk/products/SWLINUX/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C2440 GPIO J register definitions
-*/
+
 
 
 #ifndef __ASM_ARCH_REGS_GPIOJ_H
 #define __ASM_ARCH_REGS_GPIOJ_H "gpioj"
 
-/* Port J consists of 13 GPIO/Camera pins
- *
- * GPJCON has 2 bits for each of the input pins on port F
- *   00 = 0 input, 1 output, 2 Camera
- *
- * pull up works like all other ports.
-*/
+
 
 #define S3C2440_GPIO_BANKJ  (416)
 
@@ -102,5 +86,5 @@
 #define S3C2443_GPJ14		S3C2410_GPIONO(S3C2440_GPIO_BANKJ, 14)
 #define S3C2443_GPJ15		S3C2410_GPIONO(S3C2440_GPIO_BANKJ, 15)
 
-#endif	/* __ASM_ARCH_REGS_GPIOJ_H */
+#endif	
 

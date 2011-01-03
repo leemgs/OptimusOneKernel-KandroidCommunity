@@ -1,28 +1,11 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <bfa_cb_ioim_macros.h>
 
 BFA_TRC_FILE(HAL, TSKIM);
 
-/**
- * task management completion handling
- */
+
 #define bfa_tskim_qcomp(__tskim, __cbfn) do {			     \
 	bfa_cb_queue((__tskim)->bfa, &(__tskim)->hcb_qe, __cbfn, (__tskim)); \
 	bfa_tskim_notify_comp(__tskim);      \
@@ -33,9 +16,7 @@ BFA_TRC_FILE(HAL, TSKIM);
 		bfa_itnim_tskdone((__tskim)->itnim);      \
 } while (0)
 
-/*
- * forward declarations
- */
+
 static void     __bfa_cb_tskim_done(void *cbarg, bfa_boolean_t complete);
 static void     __bfa_cb_tskim_failed(void *cbarg, bfa_boolean_t complete);
 static bfa_boolean_t bfa_tskim_match_scope(struct bfa_tskim_s *tskim,
@@ -47,19 +28,17 @@ static bfa_boolean_t bfa_tskim_send(struct bfa_tskim_s *tskim);
 static bfa_boolean_t bfa_tskim_send_abort(struct bfa_tskim_s *tskim);
 static void     bfa_tskim_iocdisable_ios(struct bfa_tskim_s *tskim);
 
-/**
- *  bfa_tskim_sm
- */
+
 
 enum bfa_tskim_event {
-	BFA_TSKIM_SM_START        = 1,  /*  TM command start            */
-	BFA_TSKIM_SM_DONE         = 2,  /*  TM completion               */
-	BFA_TSKIM_SM_QRESUME      = 3,  /*  resume after qfull          */
-	BFA_TSKIM_SM_HWFAIL       = 5,  /*  IOC h/w failure event       */
-	BFA_TSKIM_SM_HCB          = 6,  /*  BFA callback completion     */
-	BFA_TSKIM_SM_IOS_DONE     = 7,  /*  IO and sub TM completions   */
-	BFA_TSKIM_SM_CLEANUP      = 8,  /*  TM cleanup on ITN offline   */
-	BFA_TSKIM_SM_CLEANUP_DONE = 9,  /*  TM abort completion         */
+	BFA_TSKIM_SM_START        = 1,  
+	BFA_TSKIM_SM_DONE         = 2,  
+	BFA_TSKIM_SM_QRESUME      = 3,  
+	BFA_TSKIM_SM_HWFAIL       = 5,  
+	BFA_TSKIM_SM_HCB          = 6,  
+	BFA_TSKIM_SM_IOS_DONE     = 7,  
+	BFA_TSKIM_SM_CLEANUP      = 8,  
+	BFA_TSKIM_SM_CLEANUP_DONE = 9,  
 };
 
 static void     bfa_tskim_sm_uninit(struct bfa_tskim_s *tskim,
@@ -77,9 +56,7 @@ static void     bfa_tskim_sm_cleanup_qfull(struct bfa_tskim_s *tskim,
 static void     bfa_tskim_sm_hcb(struct bfa_tskim_s *tskim,
 				     enum bfa_tskim_event event);
 
-/**
- *      Task management command beginning state.
- */
+
 static void
 bfa_tskim_sm_uninit(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 {
@@ -90,10 +67,7 @@ bfa_tskim_sm_uninit(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 		bfa_sm_set_state(tskim, bfa_tskim_sm_active);
 		bfa_tskim_gather_ios(tskim);
 
-		/**
-		 * If device is offline, do not send TM on wire. Just cleanup
-		 * any pending IO requests and complete TM request.
-		 */
+		
 		if (!bfa_itnim_is_online(tskim->itnim)) {
 			bfa_sm_set_state(tskim, bfa_tskim_sm_iocleanup);
 			tskim->tsk_status = BFI_TSKIM_STS_OK;
@@ -113,11 +87,7 @@ bfa_tskim_sm_uninit(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 	}
 }
 
-/**
- * brief
- *	TM command is active, awaiting completion from firmware to
- *	cleanup IO requests in TM scope.
- */
+
 static void
 bfa_tskim_sm_active(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 {
@@ -149,10 +119,7 @@ bfa_tskim_sm_active(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 	}
 }
 
-/**
- *	An active TM is being cleaned up since ITN is offline. Awaiting cleanup
- *	completion event from firmware.
- */
+
 static void
 bfa_tskim_sm_cleanup(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 {
@@ -160,9 +127,7 @@ bfa_tskim_sm_cleanup(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 
 	switch (event) {
 	case BFA_TSKIM_SM_DONE:
-		/**
-		 * Ignore and wait for ABORT completion from firmware.
-		 */
+		
 		break;
 
 	case BFA_TSKIM_SM_CLEANUP_DONE:
@@ -193,10 +158,7 @@ bfa_tskim_sm_iocleanup(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 		break;
 
 	case BFA_TSKIM_SM_CLEANUP:
-		/**
-		 * Ignore, TM command completed on wire.
-		 * Notify TM conmpletion on IO cleanup completion.
-		 */
+		
 		break;
 
 	case BFA_TSKIM_SM_HWFAIL:
@@ -210,9 +172,7 @@ bfa_tskim_sm_iocleanup(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 	}
 }
 
-/**
- *      Task management command is waiting for room in request CQ
- */
+
 static void
 bfa_tskim_sm_qfull(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 {
@@ -225,9 +185,7 @@ bfa_tskim_sm_qfull(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 		break;
 
 	case BFA_TSKIM_SM_CLEANUP:
-		/**
-		 * No need to send TM on wire since ITN is offline.
-		 */
+		
 		bfa_sm_set_state(tskim, bfa_tskim_sm_iocleanup);
 		bfa_reqq_wcancel(&tskim->reqq_wait);
 		bfa_tskim_cleanup_ios(tskim);
@@ -245,10 +203,7 @@ bfa_tskim_sm_qfull(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 	}
 }
 
-/**
- *      Task management command is active, awaiting for room in request CQ
- *	to send clean up request.
- */
+
 static void
 bfa_tskim_sm_cleanup_qfull(struct bfa_tskim_s *tskim,
 		enum bfa_tskim_event event)
@@ -258,10 +213,7 @@ bfa_tskim_sm_cleanup_qfull(struct bfa_tskim_s *tskim,
 	switch (event) {
 	case BFA_TSKIM_SM_DONE:
 		bfa_reqq_wcancel(&tskim->reqq_wait);
-		/**
-		 *
-		 * Fall through !!!
-		 */
+		
 
 	case BFA_TSKIM_SM_QRESUME:
 		bfa_sm_set_state(tskim, bfa_tskim_sm_cleanup);
@@ -280,9 +232,7 @@ bfa_tskim_sm_cleanup_qfull(struct bfa_tskim_s *tskim,
 	}
 }
 
-/**
- *      BFA callback is pending
- */
+
 static void
 bfa_tskim_sm_hcb(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 {
@@ -308,9 +258,7 @@ bfa_tskim_sm_hcb(struct bfa_tskim_s *tskim, enum bfa_tskim_event event)
 
 
 
-/**
- *  bfa_tskim_private
- */
+
 
 static void
 __bfa_cb_tskim_done(void *cbarg, bfa_boolean_t complete)
@@ -361,9 +309,7 @@ bfa_tskim_match_scope(struct bfa_tskim_s *tskim, lun_t lun)
 	return BFA_FALSE;
 }
 
-/**
- *      Gather affected IO requests and task management commands.
- */
+
 static void
 bfa_tskim_gather_ios(struct bfa_tskim_s *tskim)
 {
@@ -373,9 +319,7 @@ bfa_tskim_gather_ios(struct bfa_tskim_s *tskim)
 
 	INIT_LIST_HEAD(&tskim->io_q);
 
-	/**
-	 * Gather any active IO requests first.
-	 */
+	
 	list_for_each_safe(qe, qen, &itnim->io_q) {
 		ioim = (struct bfa_ioim_s *) qe;
 		if (bfa_tskim_match_scope
@@ -385,9 +329,7 @@ bfa_tskim_gather_ios(struct bfa_tskim_s *tskim)
 		}
 	}
 
-	/**
-	 * Failback any pending IO requests immediately.
-	 */
+	
 	list_for_each_safe(qe, qen, &itnim->pending_q) {
 		ioim = (struct bfa_ioim_s *) qe;
 		if (bfa_tskim_match_scope
@@ -399,9 +341,7 @@ bfa_tskim_gather_ios(struct bfa_tskim_s *tskim)
 	}
 }
 
-/**
- * 		IO cleanup completion
- */
+
 static void
 bfa_tskim_cleanp_comp(void *tskim_cbarg)
 {
@@ -411,9 +351,7 @@ bfa_tskim_cleanp_comp(void *tskim_cbarg)
 	bfa_sm_send_event(tskim, BFA_TSKIM_SM_IOS_DONE);
 }
 
-/**
- *      Gather affected IO requests and task management commands.
- */
+
 static void
 bfa_tskim_cleanup_ios(struct bfa_tskim_s *tskim)
 {
@@ -431,25 +369,19 @@ bfa_tskim_cleanup_ios(struct bfa_tskim_s *tskim)
 	bfa_wc_wait(&tskim->wc);
 }
 
-/**
- *      Send task management request to firmware.
- */
+
 static bfa_boolean_t
 bfa_tskim_send(struct bfa_tskim_s *tskim)
 {
 	struct bfa_itnim_s *itnim = tskim->itnim;
 	struct bfi_tskim_req_s *m;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(tskim->bfa, itnim->reqq);
 	if (!m)
 		return BFA_FALSE;
 
-	/**
-	 * build i/o request message next
-	 */
+	
 	bfi_h2i_set(m->mh, BFI_MC_TSKIM, BFI_TSKIM_H2I_TM_REQ,
 			bfa_lpuid(tskim->bfa));
 
@@ -459,47 +391,35 @@ bfa_tskim_send(struct bfa_tskim_s *tskim)
 	m->lun = tskim->lun;
 	m->tm_flags = tskim->tm_cmnd;
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(tskim->bfa, itnim->reqq);
 	return BFA_TRUE;
 }
 
-/**
- *      Send abort request to cleanup an active TM to firmware.
- */
+
 static bfa_boolean_t
 bfa_tskim_send_abort(struct bfa_tskim_s *tskim)
 {
 	struct bfa_itnim_s             *itnim = tskim->itnim;
 	struct bfi_tskim_abortreq_s    *m;
 
-	/**
-	 * check for room in queue to send request now
-	 */
+	
 	m = bfa_reqq_next(tskim->bfa, itnim->reqq);
 	if (!m)
 		return BFA_FALSE;
 
-	/**
-	 * build i/o request message next
-	 */
+	
 	bfi_h2i_set(m->mh, BFI_MC_TSKIM, BFI_TSKIM_H2I_ABORT_REQ,
 			bfa_lpuid(tskim->bfa));
 
 	m->tsk_tag  = bfa_os_htons(tskim->tsk_tag);
 
-	/**
-	 * queue I/O message to firmware
-	 */
+	
 	bfa_reqq_produce(tskim->bfa, itnim->reqq);
 	return BFA_TRUE;
 }
 
-/**
- *      Call to resume task management cmnd waiting for room in request queue.
- */
+
 static void
 bfa_tskim_qresume(void *cbarg)
 {
@@ -510,9 +430,7 @@ bfa_tskim_qresume(void *cbarg)
 	bfa_sm_send_event(tskim, BFA_TSKIM_SM_QRESUME);
 }
 
-/**
- * Cleanup IOs associated with a task mangement command on IOC failures.
- */
+
 static void
 bfa_tskim_iocdisable_ios(struct bfa_tskim_s *tskim)
 {
@@ -527,22 +445,16 @@ bfa_tskim_iocdisable_ios(struct bfa_tskim_s *tskim)
 
 
 
-/**
- *  bfa_tskim_friend
- */
 
-/**
- * Notification on completions from related ioim.
- */
+
+
 void
 bfa_tskim_iodone(struct bfa_tskim_s *tskim)
 {
 	bfa_wc_down(&tskim->wc);
 }
 
-/**
- * Handle IOC h/w failure notification from itnim.
- */
+
 void
 bfa_tskim_iocdisable(struct bfa_tskim_s *tskim)
 {
@@ -551,9 +463,7 @@ bfa_tskim_iocdisable(struct bfa_tskim_s *tskim)
 	bfa_sm_send_event(tskim, BFA_TSKIM_SM_HWFAIL);
 }
 
-/**
- * Cleanup TM command and associated IOs as part of ITNIM offline.
- */
+
 void
 bfa_tskim_cleanup(struct bfa_tskim_s *tskim)
 {
@@ -562,9 +472,7 @@ bfa_tskim_cleanup(struct bfa_tskim_s *tskim)
 	bfa_sm_send_event(tskim, BFA_TSKIM_SM_CLEANUP);
 }
 
-/**
- *      Memory allocation and initialization.
- */
+
 void
 bfa_tskim_attach(struct bfa_fcpim_mod_s *fcpim, struct bfa_meminfo_s *minfo)
 {
@@ -577,9 +485,7 @@ bfa_tskim_attach(struct bfa_fcpim_mod_s *fcpim, struct bfa_meminfo_s *minfo)
 	fcpim->tskim_arr = tskim;
 
 	for (i = 0; i < fcpim->num_tskim_reqs; i++, tskim++) {
-		/*
-		 * initialize TSKIM
-		 */
+		
 		bfa_os_memset(tskim, 0, sizeof(struct bfa_tskim_s));
 		tskim->tsk_tag = i;
 		tskim->bfa     = fcpim->bfa;
@@ -598,9 +504,7 @@ bfa_tskim_attach(struct bfa_fcpim_mod_s *fcpim, struct bfa_meminfo_s *minfo)
 void
 bfa_tskim_detach(struct bfa_fcpim_mod_s *fcpim)
 {
-    /**
-     * @todo
-     */
+    
 }
 
 void
@@ -616,10 +520,7 @@ bfa_tskim_isr(struct bfa_s *bfa, struct bfi_msg_s *m)
 
 	tskim->tsk_status = rsp->tsk_status;
 
-	/**
-	 * Firmware sends BFI_TSKIM_STS_ABORTED status for abort
-	 * requests. All other statuses are for normal completions.
-	 */
+	
 	if (rsp->tsk_status == BFI_TSKIM_STS_ABORTED) {
 		bfa_stats(tskim->itnim, tm_cleanup_comps);
 		bfa_sm_send_event(tskim, BFA_TSKIM_SM_CLEANUP_DONE);
@@ -631,9 +532,7 @@ bfa_tskim_isr(struct bfa_s *bfa, struct bfi_msg_s *m)
 
 
 
-/**
- *  bfa_tskim_api
- */
+
 
 
 struct bfa_tskim_s *
@@ -660,17 +559,7 @@ bfa_tskim_free(struct bfa_tskim_s *tskim)
 	list_add_tail(&tskim->qe, &tskim->fcpim->tskim_free_q);
 }
 
-/**
- *      Start a task management command.
- *
- * @param[in]       tskim       BFA task management command instance
- * @param[in]       itnim       i-t nexus for the task management command
- * @param[in]       lun         lun, if applicable
- * @param[in]       tm_cmnd     Task management command code.
- * @param[in]       t_secs      Timeout in seconds
- *
- * @return None.
- */
+
 void
 bfa_tskim_start(struct bfa_tskim_s *tskim, struct bfa_itnim_s *itnim, lun_t lun,
 		    enum fcp_tm_cmnd tm_cmnd, u8 tsecs)

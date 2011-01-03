@@ -1,21 +1,9 @@
-/*
- * arch/arm/mach-orion5x/include/mach/irqs.h
- *
- * IRQ definitions for Orion SoC
- *
- *  Maintainer: Tzachi Perelstein <tzachi@marvell.com>
- *
- *  This file is licensed under the terms of the GNU General Public
- *  License version 2. This program is licensed "as is" without any
- *  warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ASM_ARCH_IRQS_H
 #define __ASM_ARCH_IRQS_H
 
-/*
- * Orion Main Interrupt Controller
- */
+
 #define IRQ_ORION5X_BRIDGE		0
 #define IRQ_ORION5X_DOORBELL_H2C	1
 #define IRQ_ORION5X_DOORBELL_C2H	2
@@ -48,9 +36,7 @@
 #define IRQ_ORION5X_XOR0		30
 #define IRQ_ORION5X_XOR1		31
 
-/*
- * Orion General Purpose Pins
- */
+
 #define IRQ_ORION5X_GPIO_START	32
 #define NR_GPIO_IRQS		32
 

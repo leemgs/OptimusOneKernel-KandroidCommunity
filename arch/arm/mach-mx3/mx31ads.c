@@ -1,22 +1,4 @@
-/*
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *  Copyright (C) 2002 Shane Nay (shane@minirl.com)
- *  Copyright 2005-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -45,18 +27,10 @@
 
 #include "devices.h"
 
-/*!
- * @file mx31ads.c
- *
- * @brief This file contains the board-specific initialization routines.
- *
- * @ingroup System
- */
+
 
 #if defined(CONFIG_SERIAL_8250) || defined(CONFIG_SERIAL_8250_MODULE)
-/*!
- * The serial port definition structure.
- */
+
 static struct plat_serial8250_port serial_platform_data[] = {
 	{
 		.membase  = (void *)(PBC_BASE_ADDRESS + PBC_SC16C652_UARTA),
@@ -114,11 +88,11 @@ static inline void mxc_init_imx_uart(void)
 	mxc_iomux_setup_multiple_pins(uart_pins, ARRAY_SIZE(uart_pins), "uart-0");
 	mxc_register_device(&mxc_uart_device0, &uart_pdata);
 }
-#else /* !SERIAL_IMX */
+#else 
 static inline void mxc_init_imx_uart(void)
 {
 }
-#endif /* !SERIAL_IMX */
+#endif 
 
 static void mx31ads_expio_irq_handler(u32 irq, struct irq_desc *desc)
 {
@@ -138,37 +112,28 @@ static void mx31ads_expio_irq_handler(u32 irq, struct irq_desc *desc)
 	}
 }
 
-/*
- * Disable an expio pin's interrupt by setting the bit in the imr.
- * @param irq           an expio virtual irq number
- */
+
 static void expio_mask_irq(u32 irq)
 {
 	u32 expio = MXC_IRQ_TO_EXPIO(irq);
-	/* mask the interrupt */
+	
 	__raw_writew(1 << expio, PBC_INTMASK_CLEAR_REG);
 	__raw_readw(PBC_INTMASK_CLEAR_REG);
 }
 
-/*
- * Acknowledge an expanded io pin's interrupt by clearing the bit in the isr.
- * @param irq           an expanded io virtual irq number
- */
+
 static void expio_ack_irq(u32 irq)
 {
 	u32 expio = MXC_IRQ_TO_EXPIO(irq);
-	/* clear the interrupt status */
+	
 	__raw_writew(1 << expio, PBC_INTSTATUS_REG);
 }
 
-/*
- * Enable a expio pin's interrupt by clearing the bit in the imr.
- * @param irq           a expio virtual irq number
- */
+
 static void expio_unmask_irq(u32 irq)
 {
 	u32 expio = MXC_IRQ_TO_EXPIO(irq);
-	/* unmask the interrupt */
+	
 	__raw_writew(1 << expio, PBC_INTMASK_SET_REG);
 }
 
@@ -184,12 +149,10 @@ static void __init mx31ads_init_expio(void)
 
 	printk(KERN_INFO "MX31ADS EXPIO(CPLD) hardware\n");
 
-	/*
-	 * Configure INT line as GPIO input
-	 */
+	
 	mxc_iomux_alloc_pin(IOMUX_MODE(MX31_PIN_GPIO1_4, IOMUX_CONFIG_GPIO), "expio");
 
-	/* disable the interrupt and clear the status */
+	
 	__raw_writew(0xFFFF, PBC_INTMASK_CLEAR_REG);
 	__raw_writew(0xFFFF, PBC_INTSTATUS_REG);
 	for (i = MXC_EXP_IO_BASE; i < (MXC_EXP_IO_BASE + MXC_MAX_EXP_IO_LINES);
@@ -203,15 +166,9 @@ static void __init mx31ads_init_expio(void)
 }
 
 #ifdef CONFIG_MACH_MX31ADS_WM1133_EV1
-/* This section defines setup for the Wolfson Microelectronics
- * 1133-EV1 PMU/audio board.  When other PMU boards are supported the
- * regulator definitions may be shared with them, but for now they can
- * only be used with this board so would generate warnings about
- * unused statics and some of the configuration is specific to this
- * module.
- */
 
-/* CPU */
+
+
 static struct regulator_consumer_supply sw1a_consumers[] = {
 	{
 		.supply = "cpu_vcc",
@@ -240,7 +197,7 @@ static struct regulator_init_data sw1a_data = {
 	.consumer_supplies = sw1a_consumers,
 };
 
-/* System IO - High */
+
 static struct regulator_init_data viohi_data = {
 	.constraints = {
 		.name = "VIOHO",
@@ -257,7 +214,7 @@ static struct regulator_init_data viohi_data = {
 	},
 };
 
-/* System IO - Low */
+
 static struct regulator_init_data violo_data = {
 	.constraints = {
 		.name = "VIOLO",
@@ -274,7 +231,7 @@ static struct regulator_init_data violo_data = {
 	},
 };
 
-/* DDR RAM */
+
 static struct regulator_init_data sw2a_data = {
 	.constraints = {
 		.name = "SW2A",
@@ -315,7 +272,7 @@ static struct regulator_consumer_supply ldo2_consumers[] = {
 	},
 };
 
-/* CODEC and SIM */
+
 static struct regulator_init_data ldo2_data = {
 	.constraints = {
 		.name = "VESIM/VSIM/AVDD",
@@ -328,7 +285,7 @@ static struct regulator_init_data ldo2_data = {
 	.consumer_supplies = ldo2_consumers,
 };
 
-/* General */
+
 static struct regulator_init_data vdig_data = {
 	.constraints = {
 		.name = "VDIG",
@@ -341,7 +298,7 @@ static struct regulator_init_data vdig_data = {
 	},
 };
 
-/* Tranceivers */
+
 static struct regulator_init_data ldo4_data = {
 	.constraints = {
 		.name = "VRF1/CVDD_2.775",
@@ -419,7 +376,7 @@ static int mx31_wm8350_init(struct wm8350 *wm8350)
 			   WM8350_GPIO_PULL_NONE, WM8350_GPIO_INVERT_OFF,
 			   WM8350_GPIO_DEBOUNCE_OFF);
 
-	/* Fix up for our own supplies. */
+	
 	for (i = 0; i < ARRAY_SIZE(ldo2_consumers); i++)
 		ldo2_consumers[i].dev = wm8350->dev;
 
@@ -432,7 +389,7 @@ static int mx31_wm8350_init(struct wm8350 *wm8350)
 	wm8350_register_regulator(wm8350, WM8350_LDO_3, &vdig_data);
 	wm8350_register_regulator(wm8350, WM8350_LDO_4, &ldo4_data);
 
-	/* LEDs */
+	
 	wm8350_dcdc_set_slot(wm8350, WM8350_DCDC_5, 1, 1,
 			     WM8350_DC5_ERRACT_SHUTDOWN_CONV);
 	wm8350_isink_set_flash(wm8350, WM8350_ISINK_A,
@@ -489,9 +446,7 @@ static void mxc_init_i2c(void)
 }
 #endif
 
-/*!
- * This structure defines static mappings for the i.MX31ADS board.
- */
+
 static struct map_desc mx31ads_io_desc[] __initdata = {
 	{
 		.virtual	= SPBA0_BASE_ADDR_VIRT,
@@ -506,9 +461,7 @@ static struct map_desc mx31ads_io_desc[] __initdata = {
 	},
 };
 
-/*!
- * Set up static virtual mappings.
- */
+
 static void __init mx31ads_map_io(void)
 {
 	mx31_map_io();
@@ -521,9 +474,7 @@ static void __init mx31ads_init_irq(void)
 	mx31ads_init_expio();
 }
 
-/*!
- * Board specific initialization.
- */
+
 static void __init mxc_board_init(void)
 {
 	mxc_init_extuart();
@@ -540,12 +491,9 @@ static struct sys_timer mx31ads_timer = {
 	.init	= mx31ads_timer_init,
 };
 
-/*
- * The following uses standard kernel macros defined in arch.h in order to
- * initialize __mach_desc_MX31ADS data structure.
- */
+
 MACHINE_START(MX31ADS, "Freescale MX31ADS")
-	/* Maintainer: Freescale Semiconductor, Inc. */
+	
 	.phys_io	= AIPS1_BASE_ADDR,
 	.io_pg_offst	= ((AIPS1_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params    = PHYS_OFFSET + 0x100,

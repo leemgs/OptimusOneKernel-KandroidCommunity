@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #ifndef __IWCH_PROVIDER_H__
 #define __IWCH_PROVIDER_H__
 
@@ -120,9 +90,9 @@ enum IWCH_QP_FLAGS {
 struct iwch_mpa_attributes {
 	u8 initiator;
 	u8 recv_marker_enabled;
-	u8 xmit_marker_enabled;	/* iWARP: enable inbound Read Resp. */
+	u8 xmit_marker_enabled;	
 	u8 crc_enabled;
-	u8 version;	/* 0 or 1 */
+	u8 version;	
 };
 
 struct iwch_qp_attributes {
@@ -135,24 +105,21 @@ struct iwch_qp_attributes {
 	u32 rq_max_sges;
 	u32 state;
 	u8 enable_rdma_read;
-	u8 enable_rdma_write;	/* enable inbound Read Resp. */
+	u8 enable_rdma_write;	
 	u8 enable_bind;
-	u8 enable_mmid0_fastreg;	/* Enable STAG0 + Fast-register */
-	/*
-	 * Next QP state. If specify the current state, only the
-	 * QP attributes will be modified.
-	 */
+	u8 enable_mmid0_fastreg;	
+	
 	u32 max_ord;
 	u32 max_ird;
-	u32 pd;	/* IN */
+	u32 pd;	
 	u32 next_state;
 	char terminate_buffer[52];
 	u32 terminate_msg_len;
 	u8 is_terminate_local;
-	struct iwch_mpa_attributes mpa_attr;	/* IN-OUT */
+	struct iwch_mpa_attributes mpa_attr;	
 	struct iwch_ep *llp_stream_handle;
-	char *stream_msg_buf;	/* Last stream msg. before Idle -> RTS */
-	u32 stream_msg_buf_len;	/* Only on Idle -> RTS */
+	char *stream_msg_buf;	
+	u32 stream_msg_buf_len;	
 };
 
 struct iwch_qp {
@@ -309,17 +276,14 @@ enum iwch_mmid_state {
 };
 
 enum iwch_qp_query_flags {
-	IWCH_QP_QUERY_CONTEXT_NONE = 0x0,	/* No ctx; Only attrs */
-	IWCH_QP_QUERY_CONTEXT_GET = 0x1,	/* Get ctx + attrs */
-	IWCH_QP_QUERY_CONTEXT_SUSPEND = 0x2,	/* Not Supported */
+	IWCH_QP_QUERY_CONTEXT_NONE = 0x0,	
+	IWCH_QP_QUERY_CONTEXT_GET = 0x1,	
+	IWCH_QP_QUERY_CONTEXT_SUSPEND = 0x2,	
 
-	/*
-	 * Quiesce QP context; Consumer
-	 * will NOT replay outstanding WR
-	 */
+	
 	IWCH_QP_QUERY_CONTEXT_QUIESCE = 0x4,
 	IWCH_QP_QUERY_CONTEXT_REMOVE = 0x8,
-	IWCH_QP_QUERY_TEST_USERWRITE = 0x32	/* Test special */
+	IWCH_QP_QUERY_TEST_USERWRITE = 0x32	
 };
 
 u16 iwch_rqes_posted(struct iwch_qp *qhp);

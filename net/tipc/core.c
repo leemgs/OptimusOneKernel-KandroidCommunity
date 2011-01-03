@@ -1,38 +1,4 @@
-/*
- * net/tipc/core.c: TIPC module code
- *
- * Copyright (c) 2003-2006, Ericsson AB
- * Copyright (c) 2005-2006, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -75,7 +41,7 @@
 #define CONFIG_TIPC_LOG 0
 #endif
 
-/* global variables used by multiple sub-systems within TIPC */
+
 
 int tipc_mode = TIPC_NOT_RUNNING;
 int tipc_random;
@@ -84,7 +50,7 @@ atomic_t tipc_user_count = ATOMIC_INIT(0);
 const char tipc_alphabet[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.";
 
-/* configurable TIPC parameters */
+
 
 u32 tipc_own_addr;
 int tipc_max_zones;
@@ -103,9 +69,7 @@ int tipc_get_mode(void)
 	return tipc_mode;
 }
 
-/**
- * tipc_core_stop_net - shut down TIPC networking sub-systems
- */
+
 
 void tipc_core_stop_net(void)
 {
@@ -113,9 +77,7 @@ void tipc_core_stop_net(void)
 	tipc_net_stop();
 }
 
-/**
- * start_net - start TIPC networking sub-systems
- */
+
 
 int tipc_core_start_net(unsigned long addr)
 {
@@ -128,9 +90,7 @@ int tipc_core_start_net(unsigned long addr)
 	return res;
 }
 
-/**
- * tipc_core_stop - switch TIPC from SINGLE NODE to NOT RUNNING mode
- */
+
 
 void tipc_core_stop(void)
 {
@@ -149,9 +109,7 @@ void tipc_core_stop(void)
 	tipc_socket_stop();
 }
 
-/**
- * tipc_core_start - switch TIPC from NOT RUNNING to SINGLE NODE mode
- */
+
 
 int tipc_core_start(void)
 {
@@ -218,7 +176,7 @@ MODULE_DESCRIPTION("TIPC: Transparent Inter Process Communication");
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_VERSION(TIPC_MOD_VER);
 
-/* Native TIPC API for kernel-space applications (see tipc.h) */
+
 
 EXPORT_SYMBOL(tipc_attach);
 EXPORT_SYMBOL(tipc_detach);
@@ -252,11 +210,11 @@ EXPORT_SYMBOL(tipc_forward2port);
 EXPORT_SYMBOL(tipc_send_buf2port);
 EXPORT_SYMBOL(tipc_forward_buf2port);
 EXPORT_SYMBOL(tipc_multicast);
-/* EXPORT_SYMBOL(tipc_multicast_buf); not available yet */
+
 EXPORT_SYMBOL(tipc_ispublished);
 EXPORT_SYMBOL(tipc_available_nodes);
 
-/* TIPC API for external bearers (see tipc_bearer.h) */
+
 
 EXPORT_SYMBOL(tipc_block_bearer);
 EXPORT_SYMBOL(tipc_continue);
@@ -265,7 +223,7 @@ EXPORT_SYMBOL(tipc_enable_bearer);
 EXPORT_SYMBOL(tipc_recv_msg);
 EXPORT_SYMBOL(tipc_register_media);
 
-/* TIPC API for external APIs (see tipc_port.h) */
+
 
 EXPORT_SYMBOL(tipc_createport_raw);
 EXPORT_SYMBOL(tipc_reject_msg);

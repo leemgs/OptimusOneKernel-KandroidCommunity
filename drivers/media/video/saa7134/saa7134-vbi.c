@@ -1,24 +1,4 @@
-/*
- *
- * device driver for philips saa7134 based TV cards
- * video4linux video interface
- *
- * (c) 2001,02 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/list.h>
@@ -29,7 +9,7 @@
 #include "saa7134-reg.h"
 #include "saa7134.h"
 
-/* ------------------------------------------------------------------ */
+
 
 static unsigned int vbi_debug;
 module_param(vbi_debug, int, 0644);
@@ -42,7 +22,7 @@ MODULE_PARM_DESC(vbibufs,"number of vbi buffers, range 2-32");
 #define dprintk(fmt, arg...)	if (vbi_debug) \
 	printk(KERN_DEBUG "%s/vbi: " fmt, dev->name , ## arg)
 
-/* ------------------------------------------------------------------ */
+
 
 #define VBI_LINE_COUNT     16
 #define VBI_LINE_LENGTH  2048
@@ -53,7 +33,7 @@ static void task_init(struct saa7134_dev *dev, struct saa7134_buf *buf,
 {
 	struct saa7134_tvnorm *norm = dev->tvnorm;
 
-	/* setup video scaler */
+	
 	saa_writeb(SAA7134_VBI_H_START1(task), norm->h_start     &  0xff);
 	saa_writeb(SAA7134_VBI_H_START2(task), norm->h_start     >> 8);
 	saa_writeb(SAA7134_VBI_H_STOP1(task),  norm->h_stop      &  0xff);
@@ -76,7 +56,7 @@ static void task_init(struct saa7134_dev *dev, struct saa7134_buf *buf,
 	saa_andorb(SAA7134_DATA_PATH(task), 0xc0, 0x00);
 }
 
-/* ------------------------------------------------------------------ */
+
 
 static int buffer_activate(struct saa7134_dev *dev,
 			   struct saa7134_buf *buf,
@@ -93,7 +73,7 @@ static int buffer_activate(struct saa7134_dev *dev,
 	saa_writeb(SAA7134_OFMT_DATA_A, 0x06);
 	saa_writeb(SAA7134_OFMT_DATA_B, 0x06);
 
-	/* DMA: setup channel 2+3 (= VBI Task A+B) */
+	
 	base    = saa7134_buffer_base(buf);
 	control = SAA7134_RS_CONTROL_BURST_16 |
 		SAA7134_RS_CONTROL_ME |
@@ -107,7 +87,7 @@ static int buffer_activate(struct saa7134_dev *dev,
 	saa_writel(SAA7134_RS_PITCH(3),buf->vb.width);
 	saa_writel(SAA7134_RS_CONTROL(3),control);
 
-	/* start DMA */
+	
 	saa7134_set_dmabits(dev);
 	mod_timer(&dev->vbi_q.timeout, jiffies+BUFFER_TIMEOUT);
 
@@ -203,7 +183,7 @@ struct videobuf_queue_ops saa7134_vbi_qops = {
 	.buf_release  = buffer_release,
 };
 
-/* ------------------------------------------------------------------ */
+
 
 int saa7134_vbi_init1(struct saa7134_dev *dev)
 {
@@ -222,7 +202,7 @@ int saa7134_vbi_init1(struct saa7134_dev *dev)
 
 int saa7134_vbi_fini(struct saa7134_dev *dev)
 {
-	/* nothing */
+	
 	return 0;
 }
 
@@ -231,7 +211,7 @@ void saa7134_irq_vbi_done(struct saa7134_dev *dev, unsigned long status)
 	spin_lock(&dev->slock);
 	if (dev->vbi_q.curr) {
 		dev->vbi_fieldcount++;
-		/* make sure we have seen both fields */
+		
 		if ((status & 0x10) == 0x00) {
 			dev->vbi_q.curr->top_seen = 1;
 			goto done;
@@ -248,9 +228,5 @@ void saa7134_irq_vbi_done(struct saa7134_dev *dev, unsigned long status)
 	spin_unlock(&dev->slock);
 }
 
-/* ----------------------------------------------------------- */
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+
+

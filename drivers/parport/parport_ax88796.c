@@ -1,13 +1,4 @@
-/* linux/drivers/parport/parport_ax88796.c
- *
- * (c) 2005,2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -331,11 +322,11 @@ static int parport_ax88796_probe(struct platform_device *pdev)
 	dd->spp_spr  = dd->base + (spacing * 1);
 	dd->spp_cpr  = dd->base + (spacing * 2);
 
-	/* initialise the port controls */
+	
 	writeb(AX_CPR_STRB, dd->spp_cpr);
 
 	if (irq >= 0) {
-		/* request irq */
+		
 		ret = request_irq(irq, parport_irq_handler,
 				  IRQF_TRIGGER_FALLING, pdev->name, pp);
 

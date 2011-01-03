@@ -1,11 +1,4 @@
-/*
- * mac80211 debugfs for wireless PHYs
- *
- * Copyright 2007	Johannes Berg <johannes@sipsolutions.net>
- *
- * GPLv2
- *
- */
+
 
 #include <linux/debugfs.h>
 #include <linux/rtnetlink.h>
@@ -186,7 +179,7 @@ static const struct file_operations queues_ops = {
 	.open = mac80211_open_file_generic
 };
 
-/* statistics stuff */
+
 
 #define DEBUGFS_STATS_FILE(name, buflen, fmt, value...)			\
 	DEBUGFS_READONLY_FILE(stats_ ##name, buflen, fmt, ##value)
@@ -328,7 +321,7 @@ void debugfs_hw_add(struct ieee80211_local *local)
 	statsd = debugfs_create_dir("statistics", phyd);
 	local->debugfs.statistics = statsd;
 
-	/* if the dir failed, don't put all the other things into the root! */
+	
 	if (!statsd)
 		return;
 

@@ -1,16 +1,12 @@
-/*
- * IRAM
- */
-#define MX35_IRAM_BASE_ADDR		0x10000000	/* internal ram */
+
+#define MX35_IRAM_BASE_ADDR		0x10000000	
 #define MX35_IRAM_SIZE		SZ_128K
 
 #define MXC_FEC_BASE_ADDR	0x50038000
 #define MX35_OTG_BASE_ADDR	0x53ff4000
 #define MX35_NFC_BASE_ADDR	0xBB000000
 
-/*
- * Interrupt numbers
- */
+
 #define MXC_INT_OWIRE		2
 #define MX35_INT_MMC_SDHC1	7
 #define MXC_INT_MMC_SDHC2	8

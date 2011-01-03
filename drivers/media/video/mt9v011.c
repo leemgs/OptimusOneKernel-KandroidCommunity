@@ -1,9 +1,4 @@
-/*
- * mt9v011 -Micron 1/4-Inch VGA Digital Image Sensor
- *
- * Copyright (c) 2009 Mauro Carvalho Chehab (mchehab@redhat.com)
- * This code is placed under the terms of the GNU General Public License v2
- */
+
 
 #include <linux/i2c.h>
 #include <linux/videodev2.h>
@@ -23,7 +18,7 @@ static int debug;
 module_param(debug, int, 0);
 MODULE_PARM_DESC(debug, "Debug level (0-2)");
 
-/* supported controls */
+
 static struct v4l2_queryctrl mt9v011_qctrl[] = {
 	{
 		.id = V4L2_CID_GAIN,
@@ -139,10 +134,7 @@ struct i2c_reg_value {
 	u16           value;
 };
 
-/*
- * Values used at the original driver
- * Some values are marked as Reserved at the datasheet
- */
+
 static const struct i2c_reg_value mt9v011_init_default[] = {
 		{ R0D_MT9V011_RESET, 0x0001 },
 		{ R0D_MT9V011_RESET, 0x0000 },
@@ -153,7 +145,7 @@ static const struct i2c_reg_value mt9v011_init_default[] = {
 		{ R0A_MT9V011_CLK_SPEED, 0x0000 },
 		{ R1E_MT9V011_DIGITAL_ZOOM,  0x0000 },
 
-		{ R07_MT9V011_OUT_CTRL, 0x0002 },	/* chip enable */
+		{ R07_MT9V011_OUT_CTRL, 0x0002 },	
 };
 
 static void set_balance(struct v4l2_subdev *sd)
@@ -213,7 +205,7 @@ static u16 calc_speed(struct v4l2_subdev *sd, u32 numerator, u32 denominator)
 	unsigned row_time, line_time;
 	u64 t_time, speed;
 
-	/* Avoid bogus calculus */
+	
 	if (!numerator || !denominator)
 		return 0;
 
@@ -226,20 +218,20 @@ static u16 calc_speed(struct v4l2_subdev *sd, u32 numerator, u32 denominator)
 	line_time = height + vblank + 1;
 
 	t_time = core->xtal * ((u64)numerator);
-	/* round to the closest value */
+	
 	t_time += denominator / 2;
 	do_div(t_time, denominator);
 
 	speed = t_time;
 	do_div(speed, row_time * line_time);
 
-	/* Avoid having a negative value for speed */
+	
 	if (speed < 2)
 		speed = 0;
 	else
 		speed -= 2;
 
-	/* Avoid speed overflow */
+	
 	if (speed > 15)
 		return 15;
 
@@ -251,16 +243,7 @@ static void set_res(struct v4l2_subdev *sd)
 	struct mt9v011 *core = to_mt9v011(sd);
 	unsigned vstart, hstart;
 
-	/*
-	 * The mt9v011 doesn't have scaling. So, in order to select the desired
-	 * resolution, we're cropping at the middle of the sensor.
-	 * hblank and vblank should be adjusted, in order to warrant that
-	 * we'll preserve the line timings for 30 fps, no matter what resolution
-	 * is selected.
-	 * NOTE: datasheet says that width (and height) should be filled with
-	 * width-1. However, this doesn't work, since one pixel per line will
-	 * be missing.
-	 */
+	
 
 	hstart = 14 + (640 - core->width) / 2;
 	mt9v011_write(sd, R02_MT9V011_COLSTART, hstart);
@@ -448,7 +431,7 @@ static int mt9v011_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
 	mt9v011_write(sd, R0A_MT9V011_CLK_SPEED, speed);
 	v4l2_dbg(1, debug, sd, "Setting speed to %d\n", speed);
 
-	/* Recalculate and update fps info */
+	
 	calc_fps(sd, &tpf->numerator, &tpf->denominator);
 
 	return 0;
@@ -561,9 +544,7 @@ static const struct v4l2_subdev_ops mt9v011_ops = {
 };
 
 
-/****************************************************************************
-			I2C Client & Driver
- ****************************************************************************/
+
 
 static int mt9v011_probe(struct i2c_client *c,
 			 const struct i2c_device_id *id)
@@ -572,7 +553,7 @@ static int mt9v011_probe(struct i2c_client *c,
 	struct mt9v011 *core;
 	struct v4l2_subdev *sd;
 
-	/* Check if the adapter supports the needed features */
+	
 	if (!i2c_check_functionality(c->adapter,
 	     I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
 		return -EIO;
@@ -584,7 +565,7 @@ static int mt9v011_probe(struct i2c_client *c,
 	sd = &core->sd;
 	v4l2_i2c_subdev_init(sd, c, &mt9v011_ops);
 
-	/* Check if the sensor is really a MT9V011 */
+	
 	version = mt9v011_read(sd, R00_MT9V011_CHIP_VERSION);
 	if ((version != MT9V011_VERSION) &&
 	    (version != MT9V011_REV_B_VERSION)) {
@@ -597,7 +578,7 @@ static int mt9v011_probe(struct i2c_client *c,
 	core->global_gain = 0x0024;
 	core->width  = 640;
 	core->height = 480;
-	core->xtal = 27000000;	/* Hz */
+	core->xtal = 27000000;	
 
 	v4l_info(c, "chip found @ 0x%02x (%s - chip version 0x%04x)\n",
 		 c->addr << 1, c->adapter->name, version);
@@ -618,7 +599,7 @@ static int mt9v011_remove(struct i2c_client *c)
 	return 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct i2c_device_id mt9v011_id[] = {
 	{ "mt9v011", 0 },

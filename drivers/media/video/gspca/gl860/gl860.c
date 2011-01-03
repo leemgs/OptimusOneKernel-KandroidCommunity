@@ -1,25 +1,4 @@
-/* @file gl860.c
- * @date 2009-08-27
- *
- * Genesys Logic webcam with gl860 subdrivers
- *
- * Driver by Olivier Lorin <o.lorin@laposte.net>
- * GSPCA by Jean-Francois Moine <http://moinejf.free.fr>
- * Thanks BUGabundo and Malmostoso for your amazing help!
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 #include "gspca.h"
 #include "gl860.h"
 
@@ -27,7 +6,7 @@ MODULE_AUTHOR("Olivier Lorin <lorin@laposte.net>");
 MODULE_DESCRIPTION("GSPCA/Genesys Logic GL860 USB Camera Driver");
 MODULE_LICENSE("GPL");
 
-/*======================== static function declarations ====================*/
+
 
 static void (*dev_init_settings)(struct gspca_dev *gspca_dev);
 
@@ -44,7 +23,7 @@ static void sd_callback(struct gspca_dev *gspca_dev);
 static int gl860_guess_sensor(struct gspca_dev *gspca_dev,
 				s32 vendor_id, s32 product_id);
 
-/*============================ driver options ==============================*/
+
 
 static s32 AC50Hz = 0xff;
 module_param(AC50Hz, int, 0644);
@@ -55,9 +34,9 @@ module_param_string(sensor, sensor, sizeof(sensor), 0644);
 MODULE_PARM_DESC(sensor,
 		" Driver sensor ('MI1320'/'MI2020'/'OV9655'/'OV2640'/'')");
 
-/*============================ webcam controls =============================*/
 
-/* Functions to get and set a control value */
+
+
 #define SD_SETGET(thename) \
 static int sd_set_##thename(struct gspca_dev *gspca_dev, s32 val)\
 {\
@@ -90,7 +69,7 @@ SD_SETGET(contrast)
 
 #define GL860_NCTRLS 11
 
-/* control table */
+
 static struct ctrl sd_ctrls_mi1320[GL860_NCTRLS];
 static struct ctrl sd_ctrls_mi2020[GL860_NCTRLS];
 static struct ctrl sd_ctrls_mi2020b[GL860_NCTRLS];
@@ -161,7 +140,7 @@ static int gl860_build_control_table(struct gspca_dev *gspca_dev)
 	return nCtrls;
 }
 
-/*==================== sud-driver structure initialisation =================*/
+
 
 static struct sd_desc sd_desc_mi1320 = {
 	.name        = MODULE_NAME,
@@ -228,7 +207,7 @@ static struct sd_desc sd_desc_ov9655 = {
 	.dq_callback = sd_callback,
 };
 
-/*=========================== sub-driver image sizes =======================*/
+
 
 static struct v4l2_pix_format mi2020_mode[] = {
 	{ 640,  480, V4L2_PIX_FMT_SGBRG8, V4L2_FIELD_NONE,
@@ -320,9 +299,9 @@ static struct v4l2_pix_format ov9655_mode[] = {
 	},
 };
 
-/*========================= sud-driver functions ===========================*/
 
-/* This function is called at probe time */
+
+
 static int sd_config(struct gspca_dev *gspca_dev,
 			const struct usb_device_id *id)
 {
@@ -330,7 +309,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	struct cam *cam;
 	s32 vendor_id, product_id;
 
-	/* Get USB VendorID and ProductID */
+	
 	vendor_id  = le16_to_cpu(id->idVendor);
 	product_id = le16_to_cpu(id->idProduct);
 
@@ -349,7 +328,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	else if (strcmp(sensor, "MI2020b") == 0)
 		sd->sensor = ID_MI2020b;
 
-	/* Get sensor and set the suitable init/start/../stop functions */
+	
 	if (gl860_guess_sensor(gspca_dev, vendor_id, product_id) == -1)
 		return -1;
 
@@ -401,7 +380,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	return 0;
 }
 
-/* This function is called at probe time after sd_config */
+
 static int sd_init(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -409,7 +388,7 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	return sd->dev_init_at_startup(gspca_dev);
 }
 
-/* This function is called before to choose the alt setting */
+
 static int sd_isoc_init(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -417,7 +396,7 @@ static int sd_isoc_init(struct gspca_dev *gspca_dev)
 	return sd->dev_configure_alt(gspca_dev);
 }
 
-/* This function is called to start the webcam */
+
 static int sd_start(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -425,7 +404,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	return sd->dev_init_pre_alt(gspca_dev);
 }
 
-/* This function is called to stop the webcam */
+
 static void sd_stop0(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -433,7 +412,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
 	return sd->dev_post_unset_alt(gspca_dev);
 }
 
-/* This function is called when an image is being received */
+
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 			struct gspca_frame *frame, u8 *data, s32 len)
 {
@@ -444,9 +423,9 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	s32 nToSkip =
 		sd->swapRB * (gspca_dev->cam.cam_mode[mode].bytesperline + 1);
 
-	/* Test only against 0202h, so endianess does not matter */
+	
 	switch (*(s16 *) data) {
-	case 0x0202:		/* End of frame, start a new one */
+	case 0x0202:		
 		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
 		nSkipped = 0;
 		if (sd->nbIm >= 0 && sd->nbIm < 10)
@@ -472,8 +451,8 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	}
 }
 
-/* This function is called when an image has been read */
-/* This function is used to monitor webcam orientation */
+
+
 static void sd_callback(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -482,11 +461,11 @@ static void sd_callback(struct gspca_dev *gspca_dev)
 		u8 state;
 		u8 upsideDown;
 
-		/* Probe sensor orientation */
+		
 		ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, (void *)&state);
 
-		/* C8/40 means upside-down (looking backwards) */
-		/* D8/50 means right-up (looking onwards) */
+		
+		
 		upsideDown = (state == 0xc8 || state == 0x40);
 
 		if (upsideDown && sd->nbRightUp > -4) {
@@ -513,7 +492,7 @@ static void sd_callback(struct gspca_dev *gspca_dev)
 		sd->dev_camera_settings(gspca_dev);
 }
 
-/*=================== USB driver structure initialisation ==================*/
+
 
 static const __devinitdata struct usb_device_id device_table[] = {
 	{USB_DEVICE(0x05e3, 0x0503)},
@@ -559,7 +538,7 @@ static struct usb_driver sd_driver = {
 #endif
 };
 
-/*====================== Init and Exit module functions ====================*/
+
 
 static int __init sd_mod_init(void)
 {
@@ -581,7 +560,7 @@ static void __exit sd_mod_exit(void)
 module_init(sd_mod_init);
 module_exit(sd_mod_exit);
 
-/*==========================================================================*/
+
 
 int gl860_RTx(struct gspca_dev *gspca_dev,
 		unsigned char pref, u32 req, u16 val, u16 index,
@@ -590,7 +569,7 @@ int gl860_RTx(struct gspca_dev *gspca_dev,
 	struct usb_device *udev = gspca_dev->dev;
 	s32 r = 0;
 
-	if (pref == 0x40) { /* Send */
+	if (pref == 0x40) { 
 		if (len > 0) {
 			memcpy(gspca_dev->usb_buf, pdata, len);
 			r = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
@@ -601,7 +580,7 @@ int gl860_RTx(struct gspca_dev *gspca_dev,
 			r = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
 					req, pref, val, index, NULL, len, 400);
 		}
-	} else { /* Receive */
+	} else { 
 		if (len > 0) {
 			r = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
 					req, pref, val, index,
@@ -728,7 +707,7 @@ static int gl860_guess_sensor(struct gspca_dev *gspca_dev,
 				ctrl_out(gspca_dev, 0x40, 1, 0x6000, 0x800a,
 						0, NULL);
 				msleep(10);
-				/* Wait for 26(OV2640) or 96(OV9655) */
+				
 				ctrl_in(gspca_dev, 0xc0, 2, 0x6000, 0x800a,
 						1, &probe);
 
@@ -760,7 +739,7 @@ static int gl860_guess_sensor(struct gspca_dev *gspca_dev,
 					"sensor=\"OV2640\" or \"OV9655\"");
 				return -1;
 			}
-		} else { /* probe = 0 */
+		} else { 
 			PDEBUG(D_PROBE, "No 0xff -> sensor MI2020");
 			sd->sensor = ID_MI2020;
 		}

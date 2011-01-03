@@ -1,10 +1,4 @@
-/*
- * cdrom.c IOCTLs handling for ide-cd driver.
- *
- * Copyright (C) 1994-1996  Scott Snyder <snyder@fnald0.fnal.gov>
- * Copyright (C) 1996-1998  Erik Andersen <andersee@debian.org>
- * Copyright (C) 1998-2000  Jens Axboe <axboe@suse.de>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/cdrom.h>
@@ -13,17 +7,13 @@
 
 #include "ide-cd.h"
 
-/****************************************************************************
- * Other driver requests (open, close, check media change).
- */
+
 int ide_cdrom_open_real(struct cdrom_device_info *cdi, int purpose)
 {
 	return 0;
 }
 
-/*
- * Close down the device.  Invalidate all cached blocks.
- */
+
 void ide_cdrom_release_real(struct cdrom_device_info *cdi)
 {
 	ide_drive_t *drive = cdi->handle;
@@ -32,11 +22,7 @@ void ide_cdrom_release_real(struct cdrom_device_info *cdi)
 		drive->atapi_flags &= ~IDE_AFLAG_TOC_VALID;
 }
 
-/*
- * add logic to try GET_EVENT command first to check for media and tray
- * status. this should be supported by newer cd-r/w and all DVD etc
- * drives
- */
+
 int ide_cdrom_drive_status(struct cdrom_device_info *cdi, int slot_nr)
 {
 	ide_drive_t *drive = cdi->handle;
@@ -64,11 +50,7 @@ int ide_cdrom_drive_status(struct cdrom_device_info *cdi, int slot_nr)
 			&& sense.ascq == 0x04)
 		return CDS_DISC_OK;
 
-	/*
-	 * If not using Mt Fuji extended media tray reports,
-	 * just return TRAY_OPEN since ATAPI doesn't provide
-	 * any other way to detect this...
-	 */
+	
 	if (sense.sense_key == NOT_READY) {
 		if (sense.asc == 0x3a && sense.ascq == 1)
 			return CDS_NO_DISC;
@@ -94,8 +76,7 @@ int ide_cdrom_check_media_change_real(struct cdrom_device_info *cdi,
 	}
 }
 
-/* Eject the disk if EJECTFLAG is 0.
-   If EJECTFLAG is 1, try to reload the disk. */
+
 static
 int cdrom_eject(ide_drive_t *drive, int ejectflag,
 		struct request_sense *sense)
@@ -108,11 +89,11 @@ int cdrom_eject(ide_drive_t *drive, int ejectflag,
 	if ((drive->atapi_flags & IDE_AFLAG_NO_EJECT) && !ejectflag)
 		return -EDRIVE_CANT_DO_THIS;
 
-	/* reload fails on some drives, if the tray is locked */
+	
 	if ((drive->atapi_flags & IDE_AFLAG_DOOR_LOCKED) && ejectflag)
 		return 0;
 
-	/* only tell drive to close tray if open, if it can do that */
+	
 	if (ejectflag && (cdi->mask & CDC_CLOSE_TRAY))
 		loej = 0;
 
@@ -124,7 +105,7 @@ int cdrom_eject(ide_drive_t *drive, int ejectflag,
 	return ide_cd_queue_pc(drive, cmd, 0, NULL, NULL, sense, 0, 0);
 }
 
-/* Lock the door if LOCKFLAG is nonzero; unlock it otherwise. */
+
 static
 int ide_cd_lockdoor(ide_drive_t *drive, int lockflag,
 		    struct request_sense *sense)
@@ -135,7 +116,7 @@ int ide_cd_lockdoor(ide_drive_t *drive, int lockflag,
 	if (sense == NULL)
 		sense = &my_sense;
 
-	/* If the drive cannot lock the door, just pretend. */
+	
 	if ((drive->dev_flags & IDE_DFLAG_DOORLOCKING) == 0) {
 		stat = 0;
 	} else {
@@ -150,8 +131,7 @@ int ide_cd_lockdoor(ide_drive_t *drive, int lockflag,
 				       sense, 0, 0);
 	}
 
-	/* If we got an illegal field error, the drive
-	   probably cannot lock the door. */
+	
 	if (stat != 0 &&
 	    sense->sense_key == ILLEGAL_REQUEST &&
 	    (sense->asc == 0x24 || sense->asc == 0x20)) {
@@ -161,7 +141,7 @@ int ide_cd_lockdoor(ide_drive_t *drive, int lockflag,
 		stat = 0;
 	}
 
-	/* no medium, that's alright. */
+	
 	if (stat != 0 && sense->sense_key == NOT_READY && sense->asc == 0x3a)
 		stat = 0;
 
@@ -197,10 +177,7 @@ int ide_cdrom_lock_door(struct cdrom_device_info *cdi, int lock)
 	return ide_cd_lockdoor(drive, lock, NULL);
 }
 
-/*
- * ATAPI devices are free to select the speed you request or any slower
- * rate. :-(  Requesting too fast a speed will _not_ produce an error.
- */
+
 int ide_cdrom_select_speed(struct cdrom_device_info *cdi, int speed)
 {
 	ide_drive_t *drive = cdi->handle;
@@ -211,19 +188,19 @@ int ide_cdrom_select_speed(struct cdrom_device_info *cdi, int speed)
 	unsigned char cmd[BLK_MAX_CDB];
 
 	if (speed == 0)
-		speed = 0xffff; /* set to max */
+		speed = 0xffff; 
 	else
-		speed *= 177;   /* Nx to kbytes/s */
+		speed *= 177;   
 
 	memset(cmd, 0, BLK_MAX_CDB);
 
 	cmd[0] = GPCMD_SET_SPEED;
-	/* Read Drive speed in kbytes/second MSB/LSB */
+	
 	cmd[2] = (speed >> 8) & 0xff;
 	cmd[3] = speed & 0xff;
 	if ((cdi->mask & (CDC_CD_R | CDC_CD_RW | CDC_DVD_R)) !=
 	    (CDC_CD_R | CDC_CD_RW | CDC_DVD_R)) {
-		/* Write Drive speed in kbytes/second MSB/LSB */
+		
 		cmd[4] = (speed >> 8) & 0xff;
 		cmd[5] = speed & 0xff;
 	}
@@ -272,9 +249,9 @@ int ide_cdrom_get_mcn(struct cdrom_device_info *cdi,
 	memset(cmd, 0, BLK_MAX_CDB);
 
 	cmd[0] = GPCMD_READ_SUBCHANNEL;
-	cmd[1] = 2;		/* MSF addressing */
-	cmd[2] = 0x40;	/* request subQ data */
-	cmd[3] = 2;		/* format */
+	cmd[1] = 2;		
+	cmd[2] = 0x40;	
+	cmd[3] = 2;		
 	cmd[8] = len;
 
 	stat = ide_cd_queue_pc(drive, cmd, 0, buf, &len, NULL, 0, 0);
@@ -301,10 +278,7 @@ int ide_cdrom_reset(struct cdrom_device_info *cdi)
 	rq->cmd_flags = REQ_QUIET;
 	ret = blk_execute_rq(drive->queue, cd->disk, rq, 0);
 	blk_put_request(rq);
-	/*
-	 * A reset will unlock the door. If it was previously locked,
-	 * lock it again.
-	 */
+	
 	if (drive->atapi_flags & IDE_AFLAG_DOOR_LOCKED)
 		(void)ide_cd_lockdoor(drive, 1, &sense);
 
@@ -318,13 +292,11 @@ static int ide_cd_get_toc_entry(ide_drive_t *drive, int track,
 	struct atapi_toc *toc = info->toc;
 	int ntracks;
 
-	/*
-	 * don't serve cached data, if the toc isn't valid
-	 */
+	
 	if ((drive->atapi_flags & IDE_AFLAG_TOC_VALID) == 0)
 		return -EINVAL;
 
-	/* Check validity of requested track number. */
+	
 	ntracks = toc->hdr.last_track - toc->hdr.first_track + 1;
 
 	if (toc->hdr.first_track == CDROM_LEADOUT)
@@ -381,7 +353,7 @@ static int ide_cd_read_tochdr(ide_drive_t *drive, void *arg)
 	struct atapi_toc *toc;
 	int stat;
 
-	/* Make sure our saved TOC is valid. */
+	
 	stat = ide_cd_read_toc(drive, NULL);
 	if (stat)
 		return stat;
@@ -422,10 +394,7 @@ int ide_cdrom_audio_ioctl(struct cdrom_device_info *cdi,
 	ide_drive_t *drive = cdi->handle;
 
 	switch (cmd) {
-	/*
-	 * emulate PLAY_AUDIO_TI command with PLAY_AUDIO_10, since
-	 * atapi doesn't support it
-	 */
+	
 	case CDROMPLAYTRKIND:
 		return ide_cd_fake_play_trkind(drive, arg);
 	case CDROMREADTOCHDR:
@@ -437,7 +406,7 @@ int ide_cdrom_audio_ioctl(struct cdrom_device_info *cdi,
 	}
 }
 
-/* the generic packet interface to cdrom.c */
+
 int ide_cdrom_packet(struct cdrom_device_info *cdi,
 			    struct packet_command *cgc)
 {
@@ -448,9 +417,7 @@ int ide_cdrom_packet(struct cdrom_device_info *cdi,
 	if (cgc->timeout <= 0)
 		cgc->timeout = ATAPI_WAIT_PC;
 
-	/* here we queue the commands from the uniform CD-ROM
-	   layer. the packet must be complete, as we do not
-	   touch it at all. */
+	
 
 	if (cgc->data_direction == CGC_DATA_WRITE)
 		flags |= REQ_RW;

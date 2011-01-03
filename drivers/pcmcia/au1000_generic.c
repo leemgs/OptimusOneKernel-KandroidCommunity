@@ -1,34 +1,4 @@
-/*
- *
- * Alchemy Semi Au1000 pcmcia driver
- *
- * Copyright 2001-2003 MontaVista Software Inc.
- * Author: MontaVista Software, Inc.
- *         	ppopov@embeddedalley.com or source@mvista.com
- *
- * Copyright 2004 Pete Popov, Embedded Alley Solutions, Inc.
- * Updated the driver to 2.6. Followed the sa11xx API and largely
- * copied many of the hardware independent functions.
- *
- * ########################################################################
- *
- *  This program is free software; you can distribute it and/or modify it
- *  under the terms of the GNU General Public License (Version 2) as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- *  for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
- *
- * ########################################################################
- *
- * 
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -66,9 +36,7 @@ extern struct au1000_pcmcia_socket au1000_pcmcia_socket[];
 #define PCMCIA_SOCKET(x)	(au1000_pcmcia_socket + (x))
 #define to_au1000_socket(x)	container_of(x, struct au1000_pcmcia_socket, socket)
 
-/* Some boards like to support CF cards as IDE root devices, so they
- * grab pcmcia sockets directly.
- */
+
 u32 *pcmcia_base_vaddrs[2];
 extern const unsigned long mips_io_port_base;
 
@@ -106,11 +74,7 @@ au1x00_pcmcia_skt_state(struct au1000_pcmcia_socket *skt)
 	return stat;
 }
 
-/*
- * au100_pcmcia_config_skt
- *
- * Convert PCMCIA socket state to our socket configure structure.
- */
+
 static int
 au1x00_pcmcia_config_skt(struct au1000_pcmcia_socket *skt, socket_state_t *state)
 {
@@ -127,14 +91,7 @@ au1x00_pcmcia_config_skt(struct au1000_pcmcia_socket *skt, socket_state_t *state
 	return ret;
 }
 
-/* au1x00_pcmcia_sock_init()
- *
- * (Re-)Initialise the socket, turning on status interrupts
- * and PCMCIA bus.  This must wait for power to stabilise
- * so that the card status signals report correctly.
- *
- * Returns: 0
- */
+
 static int au1x00_pcmcia_sock_init(struct pcmcia_socket *sock)
 {
 	struct au1000_pcmcia_socket *skt = to_au1000_socket(sock);
@@ -145,14 +102,7 @@ static int au1x00_pcmcia_sock_init(struct pcmcia_socket *sock)
 	return 0;
 }
 
-/*
- * au1x00_pcmcia_suspend()
- *
- * Remove power on the socket, disable IRQs from the card.
- * Turn off status interrupts, and disable the PCMCIA bus.
- *
- * Returns: 0
- */
+
 static int au1x00_pcmcia_suspend(struct pcmcia_socket *sock)
 {
 	struct au1000_pcmcia_socket *skt = to_au1000_socket(sock);
@@ -166,9 +116,7 @@ static int au1x00_pcmcia_suspend(struct pcmcia_socket *sock)
 
 static DEFINE_SPINLOCK(status_lock);
 
-/*
- * au1x00_check_status()
- */
+
 static void au1x00_check_status(struct au1000_pcmcia_socket *skt)
 {
 	unsigned int events;
@@ -199,10 +147,7 @@ static void au1x00_check_status(struct au1000_pcmcia_socket *skt)
 	} while (events);
 }
 
-/* 
- * au1x00_pcmcia_poll_event()
- * Let's poll for events in addition to IRQs since IRQ only is unreliable...
- */
+
 static void au1x00_pcmcia_poll_event(unsigned long dummy)
 {
 	struct au1000_pcmcia_socket *skt = (struct au1000_pcmcia_socket *)dummy;
@@ -213,23 +158,7 @@ static void au1x00_pcmcia_poll_event(unsigned long dummy)
 	au1x00_check_status(skt);
 }
 
-/* au1x00_pcmcia_get_status()
- *
- * From the sa11xx_core.c:
- * Implements the get_status() operation for the in-kernel PCMCIA
- * service (formerly SS_GetStatus in Card Services). Essentially just
- * fills in bits in `status' according to internal driver state or
- * the value of the voltage detect chipselect register.
- *
- * As a debugging note, during card startup, the PCMCIA core issues
- * three set_socket() commands in a row the first with RESET deasserted,
- * the second with RESET asserted, and the last with RESET deasserted
- * again. Following the third set_socket(), a get_status() command will
- * be issued. The kernel is looking for the SS_READY flag (see
- * setup_socket(), reset_socket(), and unreset_socket() in cs.c).
- *
- * Returns: 0
- */
+
 static int
 au1x00_pcmcia_get_status(struct pcmcia_socket *sock, unsigned int *status)
 {
@@ -241,15 +170,7 @@ au1x00_pcmcia_get_status(struct pcmcia_socket *sock, unsigned int *status)
 	return 0;
 }
 
-/* au1x00_pcmcia_set_socket()
- * Implements the set_socket() operation for the in-kernel PCMCIA
- * service (formerly SS_SetSocket in Card Services). We more or
- * less punt all of this work and let the kernel handle the details
- * of power configuration, reset, &c. We also record the value of
- * `state' in order to regurgitate it to the PCMCIA core later.
- *
- * Returns: 0
- */
+
 static int
 au1x00_pcmcia_set_socket(struct pcmcia_socket *sock, socket_state_t *state)
 {
@@ -296,7 +217,7 @@ au1x00_pcmcia_set_io_map(struct pcmcia_socket *sock, struct pccard_io_map *map)
 	map->stop=map->start+MAP_SIZE;
 	return 0;
 
-}  /* au1x00_pcmcia_set_io_map() */
+}  
 
 
 static int 
@@ -329,7 +250,7 @@ au1x00_pcmcia_set_mem_map(struct pcmcia_socket *sock, struct pccard_mem_map *map
 			map->map, map->static_start, map->card_start);
 	return 0;
 
-}  /* au1x00_pcmcia_set_mem_map() */
+}  
 
 static struct pccard_operations au1x00_pcmcia_operations = {
 	.init			= au1x00_pcmcia_sock_init,
@@ -363,9 +284,7 @@ int au1x00_pcmcia_socket_probe(struct device *dev, struct pcmcia_low_level *ops,
 
 	sinfo->nskt = nr;
 
-	/*
-	 * Initialise the per-socket structure.
-	 */
+	
 	for (i = 0; i < nr; i++) {
 		skt = PCMCIA_SOCKET(i);
 		memset(skt, 0, sizeof(*skt));
@@ -393,14 +312,7 @@ int au1x00_pcmcia_socket_probe(struct device *dev, struct pcmcia_low_level *ops,
 		skt->res_attr.name	= "attribute";
 		skt->res_attr.flags	= IORESOURCE_MEM;
 
-		/*
-		 * PCMCIA client drivers use the inb/outb macros to access the
-		 * IO registers. Since mips_io_port_base is added to the
-		 * access address of the mips implementation of inb/outb,
-		 * we need to subtract it here because we want to access the
-		 * I/O or MEM address directly, without going through this
-		 * "mips_io_port_base" mechanism.
-		 */
+		
 		if (i == 0) {
 			skt->virt_io = (void *)
 				(ioremap((phys_t)AU1X_SOCK0_IO, 0x1000) -
@@ -494,9 +406,7 @@ int au1x00_drv_pcmcia_remove(struct platform_device *dev)
 }
 
 
-/*
- * PCMCIA "Driver" API
- */
+
 
 static int au1x00_drv_pcmcia_probe(struct platform_device *dev)
 {
@@ -535,13 +445,7 @@ static struct platform_driver au1x00_pcmcia_driver = {
 };
 
 
-/* au1x00_pcmcia_init()
- *
- * This routine performs low-level PCMCIA initialization and then
- * registers this socket driver with Card Services.
- *
- * Returns: 0 on success, -ve error code on failure
- */
+
 static int __init au1x00_pcmcia_init(void)
 {
 	int error = 0;
@@ -549,10 +453,7 @@ static int __init au1x00_pcmcia_init(void)
 	return error;
 }
 
-/* au1x00_pcmcia_exit()
- * Invokes the low-level kernel service to free IRQs associated with this
- * socket controller and reset GPIO edge detection.
- */
+
 static void __exit au1x00_pcmcia_exit(void)
 {
 	platform_driver_unregister(&au1x00_pcmcia_driver);

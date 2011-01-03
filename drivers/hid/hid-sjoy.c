@@ -1,30 +1,8 @@
-/*
- *  Force feedback support for SmartJoy PLUS PS2->USB adapter
- *
- *  Copyright (c) 2009 Jussi Kivilinna <jussi.kivilinna@mbnet.fi>
- *
- *  Based of hid-pl.c and hid-gaff.c
- *   Copyright (c) 2007, 2009 Anssi Hannula <anssi.hannula@gmail.com>
- *   Copyright (c) 2008 Lukasz Lubojanski <lukasz@lubojanski.info>
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
 
-/* #define DEBUG */
+
+
+
 
 #include <linux/input.h>
 #include <linux/usb.h>
@@ -50,7 +28,7 @@ static int hid_sjoyff_play(struct input_dev *dev, void *data,
 	dev_dbg(&dev->dev, "called with 0x%08x 0x%08x\n", left, right);
 
 	left = left * 0xff / 0xffff;
-	right = (right != 0); /* on/off only */
+	right = (right != 0); 
 
 	sjoyff->report->field[0]->value[1] = right;
 	sjoyff->report->field[0]->value[2] = left;

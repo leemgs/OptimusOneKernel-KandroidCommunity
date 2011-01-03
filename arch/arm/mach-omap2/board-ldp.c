@@ -1,15 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-ldp.c
- *
- * Copyright (C) 2008 Texas Instruments Inc.
- * Nishant Kamat <nskamat@ti.com>
- *
- * Modified from mach-omap2/board-3430sdp.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -195,11 +184,7 @@ static struct platform_device ldp_gpio_keys_device = {
 
 static int ts_gpio;
 
-/**
- * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
- *
- * @return - void. If request gpio fails then Flag KERN_ERR.
- */
+
 static void ads7846_dev_init(void)
 {
 	if (gpio_request(ts_gpio, "ads7846 irq") < 0) {
@@ -224,15 +209,12 @@ static struct ads7846_platform_data tsc2046_config __initdata = {
 
 static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
 	.turbo_mode	= 0,
-	.single_channel	= 1,	/* 0: slave, 1: master */
+	.single_channel	= 1,	
 };
 
 static struct spi_board_info ldp_spi_board_info[] __initdata = {
 	[0] = {
-		/*
-		 * TSC2046 operates at a max freqency of 2MHz, so
-		 * operate slightly below at 1.5MHz
-		 */
+		
 		.modalias		= "ads7846",
 		.bus_num		= 1,
 		.chip_select		= 0,
@@ -313,7 +295,7 @@ static struct regulator_consumer_supply ldp_vmmc1_supply = {
 	.supply			= "vmmc",
 };
 
-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+
 static struct regulator_init_data ldp_vmmc1 = {
 	.constraints = {
 		.min_uV			= 1850000,
@@ -332,7 +314,7 @@ static struct twl4030_platform_data ldp_twldata = {
 	.irq_base	= TWL4030_IRQ_BASE,
 	.irq_end	= TWL4030_IRQ_END,
 
-	/* platform_data for children goes here */
+	
 	.madc		= &ldp_madc_data,
 	.usb		= &ldp_usb_data,
 	.vmmc1		= &ldp_vmmc1,
@@ -365,7 +347,7 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
 		.gpio_cd	= -EINVAL,
 		.gpio_wp	= -EINVAL,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct platform_device *ldp_devices[] __initdata = {
@@ -387,7 +369,7 @@ static void __init omap_ldp_init(void)
 	usb_musb_init();
 
 	twl4030_mmc_init(mmc);
-	/* link regulators to MMC adapters */
+	
 	ldp_vmmc1_supply.dev = mmc[0].dev;
 }
 

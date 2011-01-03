@@ -1,16 +1,4 @@
-/*
- * linux/arch/arm/mach-pxa/himalaya.c
- *
- * Hardware definitions for the HTC Himalaya
- *
- * Based on 2.6.21-hh20's himalaya.c and himalaya_lcd.c
- *
- * Copyright (c) 2008 Zbynek Michl <Zbynek.Michl@seznam.cz>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -29,7 +17,7 @@
 
 #include "generic.h"
 
-/* ---------------------- Himalaya LCD definitions -------------------- */
+
 
 static struct w100_gen_regs himalaya_lcd_regs = {
 	.lcd_format =        0x00000003,
@@ -87,12 +75,12 @@ static struct w100_mode himalaya6_lcd_mode = {
 };
 
 static struct w100_gpio_regs himalaya_w100_gpio_info = {
-	.init_data1 = 0xffff0000,	/* GPIO_DATA  */
-	.gpio_dir1  = 0x00000000,	/* GPIO_CNTL1 */
-	.gpio_oe1   = 0x003c0000,	/* GPIO_CNTL2 */
-	.init_data2 = 0x00000000,	/* GPIO_DATA2 */
-	.gpio_dir2  = 0x00000000,	/* GPIO_CNTL3 */
-	.gpio_oe2   = 0x00000000,	/* GPIO_CNTL4 */
+	.init_data1 = 0xffff0000,	
+	.gpio_dir1  = 0x00000000,	
+	.gpio_oe1   = 0x003c0000,	
+	.init_data2 = 0x00000000,	
+	.gpio_dir2  = 0x00000000,	
+	.gpio_oe2   = 0x00000000,	
 };
 
 static struct w100fb_mach_info himalaya_fb_info = {
@@ -120,7 +108,7 @@ static struct platform_device himalaya_fb_device = {
 	.resource       = himalaya_fb_resources,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 static struct platform_device *devices[] __initdata = {
 	&himalaya_fb_device,
@@ -130,7 +118,7 @@ static void __init himalaya_lcd_init(void)
 {
 	int himalaya_boardid;
 
-	himalaya_boardid = 0x4; /* hardcoded (detection needs ASIC3 functions) */
+	himalaya_boardid = 0x4; 
 	printk(KERN_INFO "himalaya LCD Driver init. boardid=%d\n",
 		himalaya_boardid);
 

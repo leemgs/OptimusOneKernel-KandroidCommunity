@@ -1,18 +1,7 @@
 #ifndef __ARCH_ASM_MACH_OMAP2_CM_H
 #define __ARCH_ASM_MACH_OMAP2_CM_H
 
-/*
- * OMAP2/3 Clock Management (CM) register definitions
- *
- * Copyright (C) 2007-2008 Texas Instruments, Inc.
- * Copyright (C) 2007-2008 Nokia Corporation
- *
- * Written by Paul Walmsley
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include "prcm-common.h"
 
@@ -23,11 +12,7 @@
 #define OMAP34XX_CM_REGADDR(module, reg)				\
 			OMAP2_IO_ADDRESS(OMAP3430_CM_BASE + (module) + (reg))
 
-/*
- * Architecture-specific global CM registers
- * Use cm_{read,write}_reg() with these registers.
- * These registers appear once per CM module.
- */
+
 
 #define OMAP3430_CM_REVISION		OMAP34XX_CM_REGADDR(OCP_MOD, 0x0000)
 #define OMAP3430_CM_SYSCONFIG		OMAP34XX_CM_REGADDR(OCP_MOD, 0x0010)
@@ -36,13 +21,9 @@
 #define OMAP3_CM_CLKOUT_CTRL_OFFSET	0x0070
 #define OMAP3430_CM_CLKOUT_CTRL		OMAP_CM_REGADDR(OMAP3430_CCR_MOD, 0x0070)
 
-/*
- * Module specific CM registers from CM_BASE + domain offset
- * Use cm_{read,write}_mod_reg() with these registers.
- * These register offsets generally appear in more than one PRCM submodule.
- */
 
-/* Common between 24xx and 34xx */
+
+
 
 #define CM_FCLKEN					0x0000
 #define CM_FCLKEN1					CM_FCLKEN
@@ -64,7 +45,7 @@
 #define CM_CLKSTCTRL					0x0048
 
 
-/* Architecture-specific registers */
+
 
 #define OMAP24XX_CM_FCLKEN2				0x0004
 #define OMAP24XX_CM_ICLKEN4				0x001c
@@ -90,7 +71,7 @@
 #define OMAP3430_CM_CLKSEL3_EMU				0x0054
 
 
-/* Clock management domain register get/set */
+
 
 #ifndef __ASSEMBLER__
 
@@ -114,17 +95,17 @@ static inline u32 cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
 
 #endif
 
-/* CM register bits shared between 24XX and 3430 */
 
-/* CM_CLKSEL_GFX */
+
+
 #define OMAP_CLKSEL_GFX_SHIFT				0
 #define OMAP_CLKSEL_GFX_MASK				(0x7 << 0)
 
-/* CM_ICLKEN_GFX */
+
 #define OMAP_EN_GFX_SHIFT				0
 #define OMAP_EN_GFX					(1 << 0)
 
-/* CM_IDLEST_GFX */
+
 #define OMAP_ST_GFX					(1 << 0)
 
 

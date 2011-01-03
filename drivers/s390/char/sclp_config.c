@@ -1,9 +1,4 @@
-/*
- *  drivers/s390/char/sclp_config.c
- *
- *    Copyright IBM Corp. 2007
- *    Author(s): Heiko Carstens <heiko.carstens@de.ibm.com>
- */
+
 
 #define KMSG_COMPONENT "sclp_config"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt

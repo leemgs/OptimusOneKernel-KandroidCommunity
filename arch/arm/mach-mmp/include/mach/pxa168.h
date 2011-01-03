@@ -64,4 +64,4 @@ static inline int pxa168_add_pwm(int id)
 
 	return pxa_register_device(d, NULL, 0);
 }
-#endif /* __ASM_MACH_PXA168_H */
+#endif 

@@ -1,11 +1,4 @@
-/*
- *  drivers/s390/net/qeth_core_mpc.h
- *
- *    Copyright IBM Corp. 2007
- *    Author(s): Frank Pavlic <fpavlic@de.ibm.com>,
- *		 Thomas Spatzier <tspat@de.ibm.com>,
- *		 Frank Blaschka <frank.blaschka@de.ibm.com>
- */
+
 
 #ifndef __QETH_CORE_MPC_H__
 #define __QETH_CORE_MPC_H__
@@ -37,9 +30,9 @@ extern unsigned char IPA_PDU_HEADER[];
 #define QETH_HALT_CHANNEL_PARM	-11
 #define QETH_RCD_PARM -12
 
-/*****************************************************************************/
-/* IP Assist related definitions                                             */
-/*****************************************************************************/
+
+
+
 #define IPA_CMD_INITIATOR_HOST  0x00
 #define IPA_CMD_INITIATOR_OSA   0x01
 #define IPA_CMD_INITIATOR_HOST_REPLY  0x80
@@ -54,7 +47,7 @@ enum qeth_card_types {
 };
 
 #define QETH_MPC_DIFINFO_LEN_INDICATES_LINK_TYPE 0x18
-/* only the first two bytes are looked at in qeth_get_cardname_short */
+
 enum qeth_link_types {
 	QETH_LINK_TYPE_FAST_ETH     = 0x01,
 	QETH_LINK_TYPE_HSTR         = 0x02,
@@ -78,20 +71,18 @@ enum qeth_tr_broadcast_modes {
 	QETH_TR_BROADCAST_LOCAL    = 1,
 };
 
-/* these values match CHECKSUM_* in include/linux/skbuff.h */
+
 enum qeth_checksum_types {
-	SW_CHECKSUMMING = 0, /* TODO: set to bit flag used in IPA Command */
+	SW_CHECKSUMMING = 0, 
 	HW_CHECKSUMMING = 1,
 	NO_CHECKSUMMING = 2,
 };
 #define QETH_CHECKSUM_DEFAULT SW_CHECKSUMMING
 
-/*
- * Routing stuff
- */
-#define RESET_ROUTING_FLAG 0x10 /* indicate that routing type shall be set */
+
+#define RESET_ROUTING_FLAG 0x10 
 enum qeth_routing_types {
-	/* TODO: set to bit flag used in IPA Command */
+	
 	NO_ROUTER		= 0,
 	PRIMARY_ROUTER		= 1,
 	SECONDARY_ROUTER	= 2,
@@ -100,7 +91,7 @@ enum qeth_routing_types {
 	SECONDARY_CONNECTOR	= 5,
 };
 
-/* IPA Commands */
+
 enum qeth_ipa_cmds {
 	IPA_CMD_STARTLAN		= 0x01,
 	IPA_CMD_STOPLAN			= 0x02,
@@ -147,8 +138,7 @@ enum qeth_arp_process_subcmds {
 };
 
 
-/* Return Codes for IPA Commands
- * according to OSA card Specs */
+
 
 enum qeth_ipa_return_codes {
 	IPA_RC_SUCCESS			= 0x0000,
@@ -197,7 +187,7 @@ enum qeth_ipa_return_codes {
 	IPA_RC_FFFF			= 0xffff
 };
 
-/* IPA function flags; each flag marks availability of respective function */
+
 enum qeth_ipa_funcs {
 	IPA_ARP_PROCESSING      = 0x00000001L,
 	IPA_INBOUND_CHECKSUM    = 0x00000002L,
@@ -222,17 +212,17 @@ enum qeth_ipa_funcs {
 	IPA_OUTBOUND_TSO        = 0x00100000L,
 };
 
-/* SETIP/DELIP IPA Command: ***************************************************/
+
 enum qeth_ipa_setdelip_flags {
-	QETH_IPA_SETDELIP_DEFAULT          = 0x00L, /* default */
-	QETH_IPA_SETIP_VIPA_FLAG           = 0x01L, /* no grat. ARP */
-	QETH_IPA_SETIP_TAKEOVER_FLAG       = 0x02L, /* nofail on grat. ARP */
+	QETH_IPA_SETDELIP_DEFAULT          = 0x00L, 
+	QETH_IPA_SETIP_VIPA_FLAG           = 0x01L, 
+	QETH_IPA_SETIP_TAKEOVER_FLAG       = 0x02L, 
 	QETH_IPA_DELIP_ADDR_2_B_TAKEN_OVER = 0x20L,
 	QETH_IPA_DELIP_VIPA_FLAG           = 0x40L,
 	QETH_IPA_DELIP_ADDR_NEEDS_SETIP    = 0x80L,
 };
 
-/* SETADAPTER IPA Command: ****************************************************/
+
 enum qeth_ipa_setadp_cmd {
 	IPA_SETADP_QUERY_COMMANDS_SUPPORTED	= 0x0001,
 	IPA_SETADP_ALTER_MAC_ADDRESS		= 0x0002,
@@ -265,7 +255,7 @@ enum qeth_ipa_promisc_modes {
 	SET_PROMISC_MODE_ON		= 1,
 };
 
-/* (SET)DELIP(M) IPA stuff ***************************************************/
+
 struct qeth_ipacmd_setdelip4 {
 	__u8   ip_addr[4];
 	__u8   mask[4];
@@ -311,7 +301,7 @@ struct qeth_arp_query_data {
 	char data;
 } __attribute__((packed));
 
-/* used as parameter for arp_query reply */
+
 struct qeth_arp_query_info {
 	__u32 udata_len;
 	__u16 mask_bits;
@@ -320,7 +310,7 @@ struct qeth_arp_query_info {
 	char *udata;
 };
 
-/* SETASSPARMS IPA Command: */
+
 struct qeth_ipacmd_setassparms {
 	struct qeth_ipacmd_setassparms_hdr hdr;
 	union {
@@ -332,12 +322,12 @@ struct qeth_ipacmd_setassparms {
 } __attribute__ ((packed));
 
 
-/* SETRTG IPA Command:    ****************************************************/
+
 struct qeth_set_routing {
 	__u8 type;
 };
 
-/* SETADAPTERPARMS IPA Command:    *******************************************/
+
 struct qeth_query_cmds_supp {
 	__u32 no_lantypes_supp;
 	__u8 lan_type;
@@ -398,12 +388,12 @@ struct qeth_ipacmd_setadpparms {
 	} data;
 } __attribute__ ((packed));
 
-/* CREATE_ADDR IPA Command:    ***********************************************/
+
 struct qeth_create_destroy_address {
 	__u8 unique_id[8];
 } __attribute__ ((packed));
 
-/* Header for each IPA command */
+
 struct qeth_ipacmd_hdr {
 	__u8   command;
 	__u8   initiator;
@@ -418,7 +408,7 @@ struct qeth_ipacmd_hdr {
 	__u32  ipa_enabled;
 } __attribute__ ((packed));
 
-/* The IPA command itself */
+
 struct qeth_ipa_cmd {
 	struct qeth_ipacmd_hdr hdr;
 	union {
@@ -434,11 +424,7 @@ struct qeth_ipa_cmd {
 	} data;
 } __attribute__ ((packed));
 
-/*
- * special command for ARP processing.
- * this is not included in setassparms command before, because we get
- * problem with the size of struct qeth_ipacmd_setassparms otherwise
- */
+
 enum qeth_ipa_arp_return_codes {
 	QETH_IPA_ARP_RC_SUCCESS      = 0x0000,
 	QETH_IPA_ARP_RC_FAILED       = 0x0001,
@@ -462,13 +448,13 @@ extern char *qeth_get_ipa_cmd_name(enum qeth_ipa_cmds cmd);
 
 #define QETH_ARP_DATA_SIZE 3968
 #define QETH_ARP_CMD_LEN (QETH_ARP_DATA_SIZE + 8)
-/* Helper functions */
+
 #define IS_IPA_REPLY(cmd) ((cmd->hdr.initiator == IPA_CMD_INITIATOR_HOST) || \
 			   (cmd->hdr.initiator == IPA_CMD_INITIATOR_OSA_REPLY))
 
-/*****************************************************************************/
-/* END OF   IP Assist related definitions                                    */
-/*****************************************************************************/
+
+
+
 
 
 extern unsigned char WRITE_CCW[];
@@ -507,7 +493,7 @@ extern unsigned char ULP_ENABLE[];
 		(PDU_ENCAPSULATION(buffer) + 0x17)
 #define QETH_ULP_ENABLE_RESP_LINK_TYPE(buffer) \
 		(PDU_ENCAPSULATION(buffer) + 0x2b)
-/* Layer 2 defintions */
+
 #define QETH_PROT_LAYER2 0x08
 #define QETH_PROT_TCPIP  0x03
 #define QETH_PROT_OSN2   0x0a

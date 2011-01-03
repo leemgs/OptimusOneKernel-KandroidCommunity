@@ -1,37 +1,4 @@
-/*
- *  linux/net/sunrpc/gss_spkm3_seal.c
- *
- *  Copyright (c) 2003 The Regents of the University of Michigan.
- *  All rights reserved.
- *
- *  Andy Adamson <andros@umich.edu>
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *  3. Neither the name of the University nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- *  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- *  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- *  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/slab.h>
@@ -50,11 +17,7 @@
 const struct xdr_netobj hmac_md5_oid = { 8, "\x2B\x06\x01\x05\x05\x08\x01\x01"};
 const struct xdr_netobj cast5_cbc_oid = {9, "\x2A\x86\x48\x86\xF6\x7D\x07\x42\x0A"};
 
-/*
- * spkm3_make_token()
- *
- * Only SPKM_MIC_TOK with md5 intg-alg is supported
- */
+
 
 u32
 spkm3_make_token(struct spkm3_ctx *ctx,
@@ -94,7 +57,7 @@ spkm3_make_token(struct spkm3_ctx *ctx,
 	}
 
 	if (toktype == SPKM_MIC_TOK) {
-		/* Calculate checksum over the mic-header */
+		
 		asn1_bitstring_len(&ctx->ctx_id, &ctxelen, &ctxzbit);
 		spkm3_mic_header(&mic_hdr.data, &mic_hdr.len, ctx->ctx_id.data,
 				ctxelen, ctxzbit);
@@ -106,20 +69,20 @@ spkm3_make_token(struct spkm3_ctx *ctx,
 		asn1_bitstring_len(&md5cksum, &md5elen, &md5zbit);
 		tokenlen = 10 + ctxelen + 1 + md5elen + 1;
 
-		/* Create token header using generic routines */
+		
 		token->len = g_token_size(&ctx->mech_used, tokenlen + 2);
 
 		ptr = token->data;
 		g_make_token_header(&ctx->mech_used, tokenlen + 2, &ptr);
 
 		spkm3_make_mic_token(&ptr, tokenlen, &mic_hdr, &md5cksum, md5elen, md5zbit);
-	} else if (toktype == SPKM_WRAP_TOK) { /* Not Supported */
+	} else if (toktype == SPKM_WRAP_TOK) { 
 		dprintk("RPC:       gss_spkm3_seal: SPKM_WRAP_TOK "
 				"not supported\n");
 		goto out_err;
 	}
 
-	/* XXX need to implement sequence numbers, and ctx->expired */
+	
 
 	return  GSS_S_COMPLETE;
 out_err:
@@ -136,14 +99,14 @@ spkm3_checksummer(struct scatterlist *sg, void *data)
 	return crypto_hash_update(desc, sg, sg->length);
 }
 
-/* checksum the plaintext data and hdrlen bytes of the token header */
+
 s32
 make_spkm3_checksum(s32 cksumtype, struct xdr_netobj *key, char *header,
 		    unsigned int hdrlen, struct xdr_buf *body,
 		    unsigned int body_offset, struct xdr_netobj *cksum)
 {
 	char				*cksumname;
-	struct hash_desc		desc; /* XXX add to ctx? */
+	struct hash_desc		desc; 
 	struct scatterlist		sg[1];
 	int err;
 

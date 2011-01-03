@@ -1,39 +1,4 @@
-/*
- * USB ViCam WebCam driver
- * Copyright (c) 2002 Joe Burks (jburks@wavicle.org),
- *                    Christopher L Cheney (ccheney@cheney.cx),
- *                    Pavel Machek (pavel@suse.cz),
- *                    John Tyner (jtyner@cs.ucr.edu),
- *                    Monroe Williams (monroe@pobox.com)
- *
- * Supports 3COM HomeConnect PC Digital WebCam
- * Supports Compro PS39U WebCam
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * This source code is based heavily on the CPiA webcam driver which was
- * written by Peter Pregler, Scott J. Bertin and Johannes Erdfelt
- *
- * Portions of this code were also copied from usbvideo.c
- *
- * Special thanks to the whole team at Sourceforge for help making
- * this driver become a reality.  Notably:
- * Andy Armstrong who reverse engineered the color encoding and
- * Pavel Machek and Chris Cheney who worked on reverse engineering the
- *    camera controls and wrote the first generation driver.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -49,7 +14,7 @@
 #include <linux/ihex.h>
 #include "usbvideo.h"
 
-// #define VICAM_DEBUG
+
 
 #ifdef VICAM_DEBUG
 #define ADBG(lineno,fmt,args...) printk(fmt, jiffies, __func__, lineno, ##args)
@@ -61,7 +26,7 @@
 #define DRIVER_AUTHOR           "Joe Burks, jburks@wavicle.org"
 #define DRIVER_DESC             "ViCam WebCam Driver"
 
-/* Define these values to match your device */
+
 #define USB_VICAM_VENDOR_ID	0x04c1
 #define USB_VICAM_PRODUCT_ID	0x009d
 #define USB_COMPRO_VENDOR_ID	0x0602
@@ -74,13 +39,7 @@
 
 #define VICAM_HEADER_SIZE       64
 
-/* rvmalloc / rvfree copied from usbvideo.c
- *
- * Not sure why these are not yet non-statics which I can reference through
- * usbvideo.h the same as it is in 2.4.20.  I bet this will get fixed sometime
- * in the future.
- *
-*/
+
 static void *rvmalloc(unsigned long size)
 {
 	void *mem;
@@ -91,7 +50,7 @@ static void *rvmalloc(unsigned long size)
 	if (!mem)
 		return NULL;
 
-	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
+	memset(mem, 0, size); 
 	adr = (unsigned long) mem;
 	while (size > 0) {
 		SetPageReserved(vmalloc_to_page((void *)adr));
@@ -119,17 +78,17 @@ static void rvfree(void *mem, unsigned long size)
 }
 
 struct vicam_camera {
-	u16 shutter_speed;	// capture shutter speed
-	u16 gain;		// capture gain
+	u16 shutter_speed;	
+	u16 gain;		
 
-	u8 *raw_image;		// raw data captured from the camera
-	u8 *framebuf;		// processed data in RGB24 format
-	u8 *cntrlbuf;		// area used to send control msgs
+	u8 *raw_image;		
+	u8 *framebuf;		
+	u8 *cntrlbuf;		
 
-	struct video_device vdev;	// v4l video device
-	struct usb_device *udev;	// usb device
+	struct video_device vdev;	
+	struct usb_device *udev;	
 
-	/* guard against simultaneous accesses to the camera */
+	
 	struct mutex cam_lock;
 
 	int is_initialized;
@@ -152,7 +111,7 @@ static int __send_control_msg(struct vicam_camera *cam,
 {
 	int status;
 
-	/* cp must be memory that has been allocated by kmalloc */
+	
 
 	status = usb_control_msg(cam->udev,
 				 usb_sndctrlpipe(cam->udev, 0),
@@ -241,7 +200,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 		return -ENODEV;
 
 	switch (ioctlnr) {
-		/* query capabilities */
+		
 	case VIDIOCGCAP:
 		{
 			struct video_capability b;
@@ -252,9 +211,9 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 			b.type = VID_TYPE_CAPTURE;
 			b.channels = 1;
 			b.audios = 0;
-			b.maxwidth = 320;	/* VIDEOSIZE_CIF */
+			b.maxwidth = 320;	
 			b.maxheight = 240;
-			b.minwidth = 320;	/* VIDEOSIZE_48_48 */
+			b.minwidth = 320;	
 			b.minheight = 240;
 
 			if (copy_to_user(user_arg, &b, sizeof(b)))
@@ -262,7 +221,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 
 			break;
 		}
-		/* get/set video source - we are a camera and nothing else */
+		
 	case VIDIOCGCHAN:
 		{
 			struct video_channel v;
@@ -303,7 +262,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 			break;
 		}
 
-		/* image properties */
+		
 	case VIDIOCGPICT:
 		{
 			struct video_picture vp;
@@ -338,7 +297,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 			break;
 		}
 
-		/* get/set capture window */
+		
 	case VIDIOCGWIN:
 		{
 			struct video_window vw;
@@ -356,8 +315,8 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 			if (copy_to_user(user_arg, (void *)&vw, sizeof(vw)))
 				retval = -EFAULT;
 
-			// I'm not sure what the deal with a capture window is, it is very poorly described
-			// in the doc.  So I won't support it now.
+			
+			
 			break;
 		}
 
@@ -379,7 +338,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 			break;
 		}
 
-		/* mmap interface */
+		
 	case VIDIOCGMBUF:
 		{
 			struct video_mbuf vm;
@@ -402,7 +361,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 	case VIDIOCMCAPTURE:
 		{
 			struct video_mmap vm;
-			// int video_size;
+			
 
 			if (copy_from_user((void *)&vm, user_arg, sizeof(vm))) {
 				retval = -EFAULT;
@@ -414,11 +373,11 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 			if ( vm.frame >= VICAM_FRAMES || vm.format != VIDEO_PALETTE_RGB24 )
 				retval = -EINVAL;
 
-			// in theory right here we'd start the image capturing
-			// (fill in a bulk urb and submit it asynchronously)
-			//
-			// Instead we're going to do a total hack job for now and
-			// retrieve the frame in VIDIOCSYNC
+			
+			
+			
+			
+			
 
 			break;
 		}
@@ -441,7 +400,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 			break;
 		}
 
-		/* pointless to implement overlay with this camera */
+		
 	case VIDIOCCAPTURE:
 	case VIDIOCGFBUF:
 	case VIDIOCSFBUF:
@@ -449,7 +408,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 		retval = -EINVAL;
 		break;
 
-		/* tuner interface - we have none */
+		
 	case VIDIOCGTUNER:
 	case VIDIOCSTUNER:
 	case VIDIOCGFREQ:
@@ -457,7 +416,7 @@ vicam_ioctl(struct file *file, unsigned int ioctlnr, unsigned long arg)
 		retval = -EINVAL;
 		break;
 
-		/* audio interface - we have none */
+		
 	case VIDIOCGAUDIO:
 	case VIDIOCSAUDIO:
 		retval = -EINVAL;
@@ -483,10 +442,7 @@ vicam_open(struct file *file)
 		return -EINVAL;
 	}
 
-	/* the videodev_lock held above us protects us from
-	 * simultaneous opens...for now. we probably shouldn't
-	 * rely on this fact forever.
-	 */
+	
 
 	lock_kernel();
 	if (cam->open_count > 0) {
@@ -517,7 +473,7 @@ vicam_open(struct file *file)
 		return -ENOMEM;
 	}
 
-	// First upload firmware, then turn the camera on
+	
 
 	if (!cam->is_initialized) {
 		initialize_camera(cam);
@@ -545,9 +501,7 @@ vicam_close(struct file *file)
 
 	DBG("close\n");
 
-	/* it's not the end of the world if
-	 * we fail to turn the camera off.
-	 */
+	
 
 	set_camera_power(cam, 0);
 
@@ -572,9 +526,7 @@ vicam_close(struct file *file)
 
 static void vicam_decode_color(const u8 *data, u8 *rgb)
 {
-	/* vicam_decode_color - Convert from Vicam Y-Cr-Cb to RGB
-	 * Copyright (C) 2002 Monroe Williams (monroe@pobox.com)
-	 */
+	
 
 	int i, prevY, nextY;
 
@@ -656,15 +608,15 @@ read_frame(struct vicam_camera *cam, int framenum)
 	}
 
 	memset(request, 0, 16);
-	request[0] = cam->gain;	// 0 = 0% gain, FF = 100% gain
+	request[0] = cam->gain;	
 
-	request[1] = 0;	// 512x242 capture
+	request[1] = 0;	
 
-	request[2] = 0x90;	// the function of these two bytes
-	request[3] = 0x07;	// is not yet understood
+	request[2] = 0x90;	
+	request[3] = 0x07;	
 
 	if (cam->shutter_speed > 60) {
-		// Short exposure
+		
 		realShutter =
 		    ((-15631900 / cam->shutter_speed) + 260533) / 1000;
 		request[4] = realShutter & 0xFF;
@@ -672,7 +624,7 @@ read_frame(struct vicam_camera *cam, int framenum)
 		request[6] = 0x03;
 		request[7] = 0x01;
 	} else {
-		// Long exposure
+		
 		realShutter = 15600 / cam->shutter_speed - 1;
 		request[4] = 0;
 		request[5] = 0;
@@ -680,9 +632,9 @@ read_frame(struct vicam_camera *cam, int framenum)
 		request[7] = realShutter >> 8;
 	}
 
-	// Per John Markus Bjørndalen, byte at index 8 causes problems if it isn't 0
+	
 	request[8] = 0;
-	// bytes 9-15 do not seem to affect exposure or image quality
+	
 
 	mutex_lock(&cam->cam_lock);
 
@@ -750,7 +702,7 @@ vicam_read( struct file *file, char __user *buf, size_t count, loff_t *ppos )
 static int
 vicam_mmap(struct file *file, struct vm_area_struct *vma)
 {
-	// TODO: allocate the raw frame buffer if necessary
+	
 	unsigned long page, pos;
 	unsigned long start = vma->vm_start;
 	unsigned long size  = vma->vm_end-vma->vm_start;
@@ -761,11 +713,7 @@ vicam_mmap(struct file *file, struct vm_area_struct *vma)
 
 	DBG("vicam_mmap: %ld\n", size);
 
-	/* We let mmap allocate as much as it wants because Linux was adding 2048 bytes
-	 * to the size the application requested for mmap and it was screwing apps up.
-	 if (size > VICAM_FRAMES*VICAM_MAX_FRAME_SIZE)
-	 return -EINVAL;
-	 */
+	
 
 	pos = (unsigned long)cam->framebuf;
 	while (size > 0) {
@@ -800,11 +748,11 @@ static struct video_device vicam_template = {
 	.release 	= video_device_release_empty,
 };
 
-/* table of devices that work with this driver */
+
 static struct usb_device_id vicam_table[] = {
 	{USB_DEVICE(USB_VICAM_VENDOR_ID, USB_VICAM_PRODUCT_ID)},
 	{USB_DEVICE(USB_COMPRO_VENDOR_ID, USB_COMPRO_PRODUCT_ID)},
-	{}			/* Terminating entry */
+	{}			
 };
 
 MODULE_DEVICE_TABLE(usb, vicam_table);
@@ -816,14 +764,7 @@ static struct usb_driver vicam_driver = {
 	.id_table	= vicam_table
 };
 
-/**
- *	vicam_probe
- *	@intf: the interface
- *	@id: the device id
- *
- *	Called by the usb core when a new device is connected that it thinks
- *	this driver might be interested in.
- */
+
 static int
 vicam_probe( struct usb_interface *intf, const struct usb_device_id *id)
 {
@@ -842,7 +783,7 @@ vicam_probe( struct usb_interface *intf, const struct usb_device_id *id)
 	endpoint = &interface->endpoint[0].desc;
 
 	if (usb_endpoint_is_bulk_in(endpoint)) {
-		/* we found a bulk in endpoint */
+		
 		bulkEndpoint = endpoint->bEndpointAddress;
 	} else {
 		printk(KERN_ERR
@@ -888,29 +829,19 @@ vicam_disconnect(struct usb_interface *intf)
 	struct vicam_camera *cam = usb_get_intfdata (intf);
 	usb_set_intfdata (intf, NULL);
 
-	/* we must unregister the device before taking its
-	 * cam_lock. This is because the video open call
-	 * holds the same lock as video unregister. if we
-	 * unregister inside of the cam_lock and open also
-	 * uses the cam_lock, we get deadlock.
-	 */
+	
 
 	video_unregister_device(&cam->vdev);
 
-	/* stop the camera from being used */
+	
 
 	mutex_lock(&cam->cam_lock);
 
-	/* mark the camera as gone */
+	
 
 	cam->udev = NULL;
 
-	/* the only thing left to do is synchronize with
-	 * our close/release function on who should release
-	 * the camera memory. if there are any users using the
-	 * camera, it's their job. if there are no users,
-	 * it's ours.
-	 */
+	
 
 	open_count = cam->open_count;
 
@@ -923,8 +854,7 @@ vicam_disconnect(struct usb_interface *intf)
 	printk(KERN_DEBUG "ViCam-based WebCam disconnected\n");
 }
 
-/*
- */
+
 static int __init
 usb_vicam_init(void)
 {

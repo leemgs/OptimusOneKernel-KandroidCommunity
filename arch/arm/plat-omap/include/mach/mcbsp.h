@@ -1,26 +1,4 @@
-/*
- * arch/arm/plat-omap/include/mach/mcbsp.h
- *
- * Defines for Multi-Channel Buffered Serial Port
- *
- * Copyright (C) 2002 RidgeRun, Inc.
- * Author: Steve Johnson
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- */
+
 #ifndef __ASM_ARCH_OMAP_MCBSP_H
 #define __ASM_ARCH_OMAP_MCBSP_H
 
@@ -92,7 +70,7 @@
 #define OMAP_MCBSP_REG_XCERG	0x3A
 #define OMAP_MCBSP_REG_XCERH	0x3C
 
-/* Dummy defines, these are not available on omap1 */
+
 #define OMAP_MCBSP_REG_XCCR	0x00
 #define OMAP_MCBSP_REG_RCCR	0x00
 
@@ -157,31 +135,31 @@
 
 #endif
 
-/************************** McBSP SPCR1 bit definitions ***********************/
+
 #define RRST			0x0001
 #define RRDY			0x0002
 #define RFULL			0x0004
 #define RSYNC_ERR		0x0008
-#define RINTM(value)		((value)<<4)	/* bits 4:5 */
+#define RINTM(value)		((value)<<4)	
 #define ABIS			0x0040
 #define DXENA			0x0080
-#define CLKSTP(value)		((value)<<11)	/* bits 11:12 */
-#define RJUST(value)		((value)<<13)	/* bits 13:14 */
+#define CLKSTP(value)		((value)<<11)	
+#define RJUST(value)		((value)<<13)	
 #define ALB			0x8000
 #define DLB			0x8000
 
-/************************** McBSP SPCR2 bit definitions ***********************/
+
 #define XRST		0x0001
 #define XRDY		0x0002
 #define XEMPTY		0x0004
 #define XSYNC_ERR	0x0008
-#define XINTM(value)	((value)<<4)		/* bits 4:5 */
+#define XINTM(value)	((value)<<4)		
 #define GRST		0x0040
 #define FRST		0x0080
 #define SOFT		0x0100
 #define FREE		0x0200
 
-/************************** McBSP PCR bit definitions *************************/
+
 #define CLKRP		0x0001
 #define CLKXP		0x0002
 #define FSRP		0x0004
@@ -198,79 +176,79 @@
 #define XIOEN		0x2000
 #define IDLE_EN		0x4000
 
-/************************** McBSP RCR1 bit definitions ************************/
-#define RWDLEN1(value)		((value)<<5)	/* Bits 5:7 */
-#define RFRLEN1(value)		((value)<<8)	/* Bits 8:14 */
 
-/************************** McBSP XCR1 bit definitions ************************/
-#define XWDLEN1(value)		((value)<<5)	/* Bits 5:7 */
-#define XFRLEN1(value)		((value)<<8)	/* Bits 8:14 */
+#define RWDLEN1(value)		((value)<<5)	
+#define RFRLEN1(value)		((value)<<8)	
 
-/*************************** McBSP RCR2 bit definitions ***********************/
-#define RDATDLY(value)		(value)		/* Bits 0:1 */
+
+#define XWDLEN1(value)		((value)<<5)	
+#define XFRLEN1(value)		((value)<<8)	
+
+
+#define RDATDLY(value)		(value)		
 #define RFIG			0x0004
-#define RCOMPAND(value)		((value)<<3)	/* Bits 3:4 */
-#define RWDLEN2(value)		((value)<<5)	/* Bits 5:7 */
-#define RFRLEN2(value)		((value)<<8)	/* Bits 8:14 */
+#define RCOMPAND(value)		((value)<<3)	
+#define RWDLEN2(value)		((value)<<5)	
+#define RFRLEN2(value)		((value)<<8)	
 #define RPHASE			0x8000
 
-/*************************** McBSP XCR2 bit definitions ***********************/
-#define XDATDLY(value)		(value)		/* Bits 0:1 */
+
+#define XDATDLY(value)		(value)		
 #define XFIG			0x0004
-#define XCOMPAND(value)		((value)<<3)	/* Bits 3:4 */
-#define XWDLEN2(value)		((value)<<5)	/* Bits 5:7 */
-#define XFRLEN2(value)		((value)<<8)	/* Bits 8:14 */
+#define XCOMPAND(value)		((value)<<3)	
+#define XWDLEN2(value)		((value)<<5)	
+#define XFRLEN2(value)		((value)<<8)	
 #define XPHASE			0x8000
 
-/************************* McBSP SRGR1 bit definitions ************************/
-#define CLKGDV(value)		(value)		/* Bits 0:7 */
-#define FWID(value)		((value)<<8)	/* Bits 8:15 */
 
-/************************* McBSP SRGR2 bit definitions ************************/
-#define FPER(value)		(value)		/* Bits 0:11 */
+#define CLKGDV(value)		(value)		
+#define FWID(value)		((value)<<8)	
+
+
+#define FPER(value)		(value)		
 #define FSGM			0x1000
 #define CLKSM			0x2000
 #define CLKSP			0x4000
 #define GSYNC			0x8000
 
-/************************* McBSP MCR1 bit definitions *************************/
+
 #define RMCM			0x0001
-#define RCBLK(value)		((value)<<2)	/* Bits 2:4 */
-#define RPABLK(value)		((value)<<5)	/* Bits 5:6 */
-#define RPBBLK(value)		((value)<<7)	/* Bits 7:8 */
+#define RCBLK(value)		((value)<<2)	
+#define RPABLK(value)		((value)<<5)	
+#define RPBBLK(value)		((value)<<7)	
 
-/************************* McBSP MCR2 bit definitions *************************/
-#define XMCM(value)		(value)		/* Bits 0:1 */
-#define XCBLK(value)		((value)<<2)	/* Bits 2:4 */
-#define XPABLK(value)		((value)<<5)	/* Bits 5:6 */
-#define XPBBLK(value)		((value)<<7)	/* Bits 7:8 */
 
-/*********************** McBSP XCCR bit definitions *************************/
+#define XMCM(value)		(value)		
+#define XCBLK(value)		((value)<<2)	
+#define XPABLK(value)		((value)<<5)	
+#define XPBBLK(value)		((value)<<7)	
+
+
 #define EXTCLKGATE		0x8000
 #define PPCONNECT		0x4000
-#define DXENDLY(value)		((value)<<12)	/* Bits 12:13 */
+#define DXENDLY(value)		((value)<<12)	
 #define XFULL_CYCLE		0x0800
 #define DILB			0x0020
 #define XDMAEN			0x0008
 #define XDISABLE		0x0001
 
-/********************** McBSP RCCR bit definitions *************************/
+
 #define RFULL_CYCLE		0x0800
 #define RDMAEN			0x0008
 #define RDISABLE		0x0001
 
-/********************** McBSP SYSCONFIG bit definitions ********************/
+
 #define CLOCKACTIVITY(value)	((value)<<8)
 #define SIDLEMODE(value)	((value)<<3)
 #define ENAWAKEUP		0x0004
 #define SOFTRST			0x0002
 
-/********************** McBSP DMA operating modes **************************/
+
 #define MCBSP_DMA_MODE_ELEMENT		0
 #define MCBSP_DMA_MODE_THRESHOLD	1
 #define MCBSP_DMA_MODE_FRAME		2
 
-/********************** McBSP WAKEUPEN bit definitions *********************/
+
 #define XEMPTYEOFEN		0x4000
 #define XRDYEN			0x0400
 #define XEOFEN			0x0200
@@ -281,7 +259,7 @@
 #define RFSREN			0x0002
 #define RSYNCERREN		0x0001
 
-/* we don't do multichannel for now */
+
 struct omap_mcbsp_reg_cfg {
 	u16 spcr2;
 	u16 spcr1;
@@ -347,7 +325,7 @@ typedef enum {
 } omap_mcbsp_clk_stp_mode;
 
 
-/******* SPI specific mode **********/
+
 typedef enum {
 	OMAP_MCBSP_SPI_MASTER = 0,
 	OMAP_MCBSP_SPI_SLAVE,
@@ -363,7 +341,7 @@ struct omap_mcbsp_spi_cfg {
 	omap_mcbsp_word_length		word_length;
 };
 
-/* Platform specific configuration */
+
 struct omap_mcbsp_ops {
 	void (*request)(unsigned int);
 	void (*free)(unsigned int);
@@ -388,24 +366,24 @@ struct omap_mcbsp {
 	omap_mcbsp_word_length rx_word_length;
 	omap_mcbsp_word_length tx_word_length;
 
-	omap_mcbsp_io_type_t io_type; /* IRQ or poll */
-	/* IRQ based TX/RX */
+	omap_mcbsp_io_type_t io_type; 
+	
 	int rx_irq;
 	int tx_irq;
 
-	/* DMA stuff */
+	
 	u8 dma_rx_sync;
 	short dma_rx_lch;
 	u8 dma_tx_sync;
 	short dma_tx_lch;
 
-	/* Completion queues */
+	
 	struct completion tx_irq_completion;
 	struct completion rx_irq_completion;
 	struct completion tx_dma_completion;
 	struct completion rx_dma_completion;
 
-	/* Protect the field .free, while checking if the mcbsp is in use */
+	
 	spinlock_t lock;
 	struct omap_mcbsp_platform_data *pdata;
 	struct clk *iclk;
@@ -451,10 +429,10 @@ int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word);
 int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 * word);
 
 
-/* SPI specific API */
+
 void omap_mcbsp_set_spi_mode(unsigned int id, const struct omap_mcbsp_spi_cfg * spi_cfg);
 
-/* Polled read/write functions */
+
 int omap_mcbsp_pollread(unsigned int id, u16 * buf);
 int omap_mcbsp_pollwrite(unsigned int id, u16 buf);
 int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type);

@@ -1,22 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- *  bfa_defs_cee.h Interface declarations between host based
- *	BFAL and DCBX/LLDP module in Firmware
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #ifndef __BFA_DEFS_CEE_H__
 #define __BFA_DEFS_CEE_H__
 
@@ -29,9 +11,7 @@
 #define BFA_CEE_LLDP_MAX_STRING_LEN (128)
 
 
-/* FIXME: this is coming from the protocol spec. Can the host & apps share the
-   protocol .h files ?
- */
+
 #define BFA_CEE_LLDP_SYS_CAP_OTHER       0x0001
 #define BFA_CEE_LLDP_SYS_CAP_REPEATER    0x0002
 #define BFA_CEE_LLDP_SYS_CAP_MAC_BRIDGE  0x0004
@@ -45,7 +25,7 @@
 #define BFA_CEE_LLDP_SYS_CAP_TPMR		 0x0400
 
 
-/* LLDP string type */
+
 struct bfa_cee_lldp_str_s {
 	u8 sub_type;
 	u8 len;
@@ -54,7 +34,7 @@ struct bfa_cee_lldp_str_s {
 };
 
 
-/* LLDP paramters */
+
 struct bfa_cee_lldp_cfg_s {
 	struct bfa_cee_lldp_str_s chassis_id;
 	struct bfa_cee_lldp_str_s port_id;
@@ -72,34 +52,32 @@ enum bfa_cee_dcbx_version_e {
 };
 
 enum bfa_cee_lls_e {
-	CEE_LLS_DOWN_NO_TLV = 0, /* LLS is down because the TLV not sent by
-				  * the peer */
-	CEE_LLS_DOWN        = 1, /* LLS is down as advertised by the peer */
+	CEE_LLS_DOWN_NO_TLV = 0, 
+	CEE_LLS_DOWN        = 1, 
 	CEE_LLS_UP          = 2,
 };
 
-/* CEE/DCBX parameters */
+
 struct bfa_cee_dcbx_cfg_s {
 	u8 pgid[8];
 	u8 pg_percentage[8];
-	u8 pfc_enabled;          /* bitmap of priorties with PFC enabled */
-	u8 fcoe_user_priority;   /* bitmap of priorities used for FcoE
-				       * traffic */
-	u8 dcbx_version;	/* operating version:CEE or preCEE */
-	u8 lls_fcoe;	/* FCoE Logical Link Status */
-	u8 lls_lan;	/* LAN Logical Link Status */
+	u8 pfc_enabled;          
+	u8 fcoe_user_priority;   
+	u8 dcbx_version;	
+	u8 lls_fcoe;	
+	u8 lls_lan;	
 	u8 rsvd[3];
 };
 
-/* CEE status */
-/* Making this to tri-state for the benefit of port list command */
+
+
 enum bfa_cee_status_e {
     CEE_PHY_DOWN = 0,
     CEE_PHY_UP = 1,
     CEE_UP = 2,
 };
 
-/* CEE Query */
+
 struct bfa_cee_attr_s {
 	u8                   cee_status;
 	u8                   error_reason;
@@ -113,7 +91,7 @@ struct bfa_cee_attr_s {
 
 
 
-/* LLDP/DCBX/CEE Statistics */
+
 
 struct bfa_cee_lldp_stats_s {
 	u32 frames_transmitted;
@@ -154,6 +132,6 @@ struct bfa_cee_stats_s {
 #pragma pack()
 
 
-#endif	/* __BFA_DEFS_CEE_H__ */
+#endif	
 
 

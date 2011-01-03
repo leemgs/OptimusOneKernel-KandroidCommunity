@@ -1,26 +1,4 @@
-/*
- * IBM eServer i/pSeries Virtual SCSI Target Driver
- * Copyright (C) 2003-2005 Dave Boutcher (boutcher@us.ibm.com) IBM Corp.
- *			   Santiago Leon (santil@us.ibm.com) IBM Corp.
- *			   Linda Xie (lxie@us.ibm.com) IBM Corp.
- *
- * Copyright (C) 2005-2006 FUJITA Tomonori <tomof@acm.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
- */
+
 #include <linux/interrupt.h>
 #include <linux/module.h>
 #include <scsi/scsi.h>
@@ -40,9 +18,7 @@
 
 #define	TGT_NAME	"ibmvstgt"
 
-/*
- * Hypervisor calls.
- */
+
 #define h_copy_rdma(l, sa, sb, da, db) \
 			plpar_hcall_norets(H_COPY_RDMA, l, sa, sb, da, db)
 #define h_send_crq(ua, l, h) \
@@ -52,12 +28,12 @@
 #define h_free_crq(ua) \
 			plpar_hcall_norets(H_FREE_CRQ, ua);
 
-/* tmp - will replace with SCSI logging stuff */
+
 #define eprintk(fmt, args...)					\
 do {								\
 	printk("%s(%d) " fmt, __func__, __LINE__, ##args);	\
 } while (0)
-/* #define dprintk eprintk */
+
 #define dprintk(fmt, args...)
 
 struct vio_port {
@@ -76,10 +52,7 @@ struct vio_port {
 static struct workqueue_struct *vtgtd;
 static struct scsi_transport_template *ibmvstgt_transport_template;
 
-/*
- * These are fixed for the system and come from the Open Firmware device tree.
- * We just store them here to save getting them every time.
- */
+
 static char system_id[64] = "";
 static char partition_name[97] = "UNKNOWN";
 static unsigned int partition_number = -1;
@@ -104,7 +77,7 @@ static int send_iu(struct iu_entry *iue, uint64_t length, uint8_t format)
 		uint64_t raw[2];
 	} crq;
 
-	/* First copy the SRP */
+	
 	rc = h_copy_rdma(length, vport->liobn, iue->sbuf->dma,
 			 vport->riobn, iue->remote_token);
 
@@ -119,7 +92,7 @@ static int send_iu(struct iu_entry *iue, uint64_t length, uint8_t format)
 	crq.cooked.IU_data_ptr = vio_iu(iue)->srp.rsp.tag;
 
 	if (rc == 0)
-		crq.cooked.status = 0x99;	/* Just needs to be non-zero */
+		crq.cooked.status = 0x99;	
 	else
 		crq.cooked.status = 0x00;
 
@@ -141,7 +114,7 @@ static int send_rsp(struct iu_entry *iue, struct scsi_cmnd *sc,
 	union viosrp_iu *iu = vio_iu(iue);
 	uint64_t tag = iu->srp.rsp.tag;
 
-	/* If the linked bit is on and status is good */
+	
 	if (test_bit(V_LINKED, &iue->flags) && (status == NO_SENSE))
 		status = 0x10;
 
@@ -172,13 +145,13 @@ static int send_rsp(struct iu_entry *iue, struct scsi_cmnd *sc,
 			iu->srp.rsp.flags |= SRP_RSP_FLAG_SNSVALID;
 			iu->srp.rsp.sense_data_len = SRP_RSP_SENSE_DATA_LEN;
 
-			/* Valid bit and 'current errors' */
+			
 			sense[0] = (0x1 << 7 | 0x70);
-			/* Sense key */
+			
 			sense[2] = status;
-			/* Additional sense length */
-			sense[7] = 0xa;	/* 10 bytes */
-			/* Additional sense code */
+			
+			sense[7] = 0xa;	
+			
 			sense[12] = asc;
 		}
 	}
@@ -328,7 +301,7 @@ int send_adapter_info(struct iu_entry *iue,
 		return 1;
 	}
 
-	/* Get remote info */
+	
 	err = h_copy_rdma(sizeof(*info), vport->riobn, remote_buffer,
 			  vport->liobn, data_token);
 	if (err == H_SUCCESS) {
@@ -346,7 +319,7 @@ int send_adapter_info(struct iu_entry *iue,
 	info->os_type = 2;
 	info->port_max_txu[0] = shost->hostt->max_sectors << 9;
 
-	/* Send our info to remote */
+	
 	err = h_copy_rdma(sizeof(*info), vport->liobn, data_token,
 			  vport->riobn, remote_buffer);
 
@@ -376,16 +349,14 @@ static void process_login(struct iu_entry *iue)
 	if (!vport->rport)
 		vport->rport = srp_rport_add(shost, &ids);
 
-	/* TODO handle case that requested size is wrong and
-	 * buffer format is wrong
-	 */
+	
 	memset(iu, 0, sizeof(struct srp_login_rsp));
 	rsp->opcode = SRP_LOGIN_RSP;
 	rsp->req_lim_delta = INITIAL_SRP_LIMIT;
 	rsp->tag = tag;
 	rsp->max_it_iu_len = sizeof(union srp_iu);
 	rsp->max_ti_iu_len = sizeof(union srp_iu);
-	/* direct and indirect */
+	
 	rsp->buf_fmt = SRP_BUF_FORMAT_DIRECT | SRP_BUF_FORMAT_INDIRECT;
 
 	send_iu(iue, sizeof(*rsp), VIOSRP_SRP_FORMAT);
@@ -570,9 +541,7 @@ static int crq_queue_create(struct crq_queue *queue, struct srp_target *target)
 	err = h_reg_crq(vport->dma_dev->unit_address, queue->msg_token,
 			PAGE_SIZE);
 
-	/* If the adapter was left active for some reason (like kexec)
-	 * try freeing and re-registering
-	 */
+	
 	if (err == H_RESOURCE) {
 	    do {
 		err = h_free_crq(vport->dma_dev->unit_address);
@@ -640,7 +609,7 @@ static void process_crq(struct viosrp_crq *crq,	struct srp_target *target)
 
 	switch (crq->valid) {
 	case 0xC0:
-		/* initialization */
+		
 		switch (crq->format) {
 		case 0x01:
 			h_send_crq(vport->dma_dev->unit_address,
@@ -653,10 +622,10 @@ static void process_crq(struct viosrp_crq *crq,	struct srp_target *target)
 		}
 		break;
 	case 0xFF:
-		/* transport event */
+		
 		break;
 	case 0x80:
-		/* real payload */
+		
 		switch (crq->format) {
 		case VIOSRP_SRP_FORMAT:
 		case VIOSRP_MAD_FORMAT:

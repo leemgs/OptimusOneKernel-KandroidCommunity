@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/devs.c
- *
- * Copyright (c) 2004 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Base S3C24XX platform device definitions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -37,7 +26,7 @@
 #include <plat/cpu.h>
 #include <plat/regs-spi.h>
 
-/* Serial port registrations */
+
 
 static struct resource s3c2410_uart0_resource[] = {
 	[0] = {
@@ -110,7 +99,7 @@ struct s3c24xx_uart_resources s3c2410_uart_resources[] __initdata = {
 	},
 };
 
-/* yart devices */
+
 
 static struct platform_device s3c24xx_uart_device0 = {
 	.id		= 0,
@@ -138,7 +127,7 @@ struct platform_device *s3c24xx_uart_src[4] = {
 struct platform_device *s3c24xx_uart_devs[4] = {
 };
 
-/* LCD Controller */
+
 
 static struct resource s3c_lcd_resource[] = {
 	[0] = {
@@ -182,7 +171,7 @@ void __init s3c24xx_fb_set_platdata(struct s3c2410fb_mach_info *pd)
 	}
 }
 
-/* USB Device (Gadget)*/
+
 
 static struct resource s3c_usbgadget_resource[] = {
 	[0] = {
@@ -221,7 +210,7 @@ void __init s3c24xx_udc_set_platdata(struct s3c2410_udc_mach_info *pd)
 }
 
 
-/* Watchdog */
+
 
 static struct resource s3c_wdt_resource[] = {
 	[0] = {
@@ -246,7 +235,7 @@ struct platform_device s3c_device_wdt = {
 
 EXPORT_SYMBOL(s3c_device_wdt);
 
-/* IIS */
+
 
 static struct resource s3c_iis_resource[] = {
 	[0] = {
@@ -271,7 +260,7 @@ struct platform_device s3c_device_iis = {
 
 EXPORT_SYMBOL(s3c_device_iis);
 
-/* RTC */
+
 
 static struct resource s3c_rtc_resource[] = {
 	[0] = {
@@ -300,7 +289,7 @@ struct platform_device s3c_device_rtc = {
 
 EXPORT_SYMBOL(s3c_device_rtc);
 
-/* ADC */
+
 
 static struct resource s3c_adc_resource[] = {
 	[0] = {
@@ -328,7 +317,7 @@ struct platform_device s3c_device_adc = {
 	.resource	  = s3c_adc_resource,
 };
 
-/* HWMON */
+
 
 struct platform_device s3c_device_hwmon = {
 	.name		= "s3c-hwmon",
@@ -336,7 +325,7 @@ struct platform_device s3c_device_hwmon = {
 	.dev.parent	= &s3c_device_adc.dev,
 };
 
-/* SDI */
+
 
 static struct resource s3c_sdi_resource[] = {
 	[0] = {
@@ -361,7 +350,7 @@ struct platform_device s3c_device_sdi = {
 
 EXPORT_SYMBOL(s3c_device_sdi);
 
-/* SPI (0) */
+
 
 static struct resource s3c_spi0_resource[] = {
 	[0] = {
@@ -392,7 +381,7 @@ struct platform_device s3c_device_spi0 = {
 
 EXPORT_SYMBOL(s3c_device_spi0);
 
-/* SPI (1) */
+
 
 static struct resource s3c_spi1_resource[] = {
 	[0] = {
@@ -425,7 +414,7 @@ EXPORT_SYMBOL(s3c_device_spi1);
 
 #ifdef CONFIG_CPU_S3C2440
 
-/* Camif Controller */
+
 
 static struct resource s3c_camif_resource[] = {
 	[0] = {
@@ -456,7 +445,7 @@ struct platform_device s3c_device_camif = {
 
 EXPORT_SYMBOL(s3c_device_camif);
 
-/* AC97 */
+
 
 static struct resource s3c_ac97_resource[] = {
 	[0] = {
@@ -504,4 +493,4 @@ struct platform_device s3c_device_ac97 = {
 
 EXPORT_SYMBOL(s3c_device_ac97);
 
-#endif // CONFIG_CPU_S32440
+#endif 

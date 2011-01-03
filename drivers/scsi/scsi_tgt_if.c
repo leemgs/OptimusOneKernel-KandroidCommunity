@@ -1,24 +1,4 @@
-/*
- * SCSI target kernel/user interface functions
- *
- * Copyright (C) 2005 FUJITA Tomonori <tomof@acm.org>
- * Copyright (C) 2005 Mike Christie <michaelc@cs.wisc.edu>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 #include <linux/miscdevice.h>
 #include <linux/file.h>
 #include <linux/smp_lock.h>
@@ -48,7 +28,7 @@ struct tgt_ring {
 	spinlock_t tr_lock;
 };
 
-/* tx_ring : kernel->user, rx_ring : user->kernel */
+
 static struct tgt_ring tx_ring, rx_ring;
 static DECLARE_WAIT_QUEUE_HEAD(tgt_poll_wait);
 
@@ -243,7 +223,7 @@ static ssize_t tgt_write(struct file *file, const char __user * buffer,
 
 	while (1) {
 		ev = tgt_head_event(ring, ring->tr_idx);
-		/* do we need this? */
+		
 		flush_dcache_page(virt_to_page(ev));
 
 		if (!ev->hdr.status)

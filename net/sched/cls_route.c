@@ -1,13 +1,4 @@
-/*
- * net/sched/cls_route.c	ROUTE4 classifier.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -21,13 +12,7 @@
 #include <net/act_api.h>
 #include <net/pkt_cls.h>
 
-/*
-   1. For now we assume that route tags < 256.
-      It allows to use direct table lookups, instead of hash tables.
-   2. For now we assume that "from TAG" and "fromdev DEV" statements
-      are mutually  exclusive.
-   3. "to TAG from ANY" has higher priority, than "to ANY from XXX"
- */
+
 
 struct route4_fastmap
 {
@@ -44,7 +29,7 @@ struct route4_head
 
 struct route4_bucket
 {
-	/* 16 FROM buckets + 16 IIF buckets + 1 wildcard bucket */
+	
 	struct route4_filter	*ht[16+16+1];
 };
 
@@ -307,13 +292,13 @@ static int route4_delete(struct tcf_proto *tp, unsigned long arg)
 			route4_reset_fastmap(tp->q, head, f->id);
 			route4_delete_filter(tp, f);
 
-			/* Strip tree */
+			
 
 			for (i=0; i<=32; i++)
 				if (b->ht[i])
 					return 0;
 
-			/* OK, session has no flows */
+			
 			tcf_tree_lock(tp);
 			head->table[to_hash(h)] = NULL;
 			tcf_tree_unlock(tp);

@@ -12,7 +12,7 @@ struct gnet_dump
 	struct sk_buff *  skb;
 	struct nlattr *   tail;
 
-	/* Backward compatability */
+	
 	int               compat_tc_stats;
 	int               compat_xstats;
 	void *            xstats;

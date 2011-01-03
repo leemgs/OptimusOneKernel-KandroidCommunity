@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ks8695/include/mach/irqs.h
- *
- * Copyright (C) 2006 Simtec Electronics
- *   Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_ARCH_IRQS_H
 #define __ASM_ARCH_IRQS_H
@@ -15,9 +6,7 @@
 
 #define NR_IRQS				32
 
-/*
- * IRQ definitions
- */
+
 #define KS8695_IRQ_COMM_RX		0
 #define KS8695_IRQ_COMM_TX		1
 #define KS8695_IRQ_EXTERN0		2

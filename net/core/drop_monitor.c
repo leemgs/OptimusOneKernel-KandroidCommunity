@@ -1,8 +1,4 @@
-/*
- * Monitoring code for network dropped packet alerts
- *
- * Copyright (C) 2009 Neil Horman <nhorman@tuxdriver.com>
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/etherdevice.h>
@@ -35,11 +31,7 @@
 static void send_dm_alert(struct work_struct *unused);
 
 
-/*
- * Globals, our netlink socket pointer
- * and the work handle that will send up
- * netlink alerts
- */
+
 static int trace_state = TRACE_OFF;
 static spinlock_t trace_state_lock = SPIN_LOCK_UNLOCKED;
 
@@ -97,29 +89,18 @@ static void send_dm_alert(struct work_struct *unused)
 	struct sk_buff *skb;
 	struct per_cpu_dm_data *data = &__get_cpu_var(dm_cpu_data);
 
-	/*
-	 * Grab the skb we're about to send
-	 */
+	
 	skb = data->skb;
 
-	/*
-	 * Replace it with a new one
-	 */
+	
 	reset_per_cpu_data(data);
 
-	/*
-	 * Ship it!
-	 */
+	
 	genlmsg_multicast(skb, 0, NET_DM_GRP_ALERT, GFP_KERNEL);
 
 }
 
-/*
- * This is the timer function to delay the sending of an alert
- * in the event that more drops will arrive during the
- * hysteresis period.  Note that it operates under the timer interrupt
- * so we don't need to disable preemption here
- */
+
 static void sched_send_work(unsigned long unused)
 {
 	struct per_cpu_dm_data *data =  &__get_cpu_var(dm_cpu_data);
@@ -137,9 +118,7 @@ static void trace_drop_common(struct sk_buff *skb, void *location)
 
 
 	if (!atomic_add_unless(&data->dm_hit_count, -1, 0)) {
-		/*
-		 * we're already at zero, discard this hit
-		 */
+		
 		goto out;
 	}
 
@@ -153,9 +132,7 @@ static void trace_drop_common(struct sk_buff *skb, void *location)
 		}
 	}
 
-	/*
-	 * We need to create a new entry
-	 */
+	
 	__nla_reserve_nohdr(data->skb, sizeof(struct net_dm_drop_point));
 	nla->nla_len += NLA_ALIGN(sizeof(struct net_dm_drop_point));
 	memcpy(msg->points[msg->entries].pc, &location, sizeof(void *));
@@ -180,20 +157,13 @@ static void trace_napi_poll_hit(struct napi_struct *napi)
 {
 	struct dm_hw_stat_delta *new_stat;
 
-	/*
-	 * Don't check napi structures with no associated device
-	 */
+	
 	if (!napi->dev)
 		return;
 
 	rcu_read_lock();
 	list_for_each_entry_rcu(new_stat, &hw_stats_list, list) {
-		/*
-		 * only add a note to our monitor buffer if:
-		 * 1) this is the dev we received on
-		 * 2) its after the last_rx delta
-		 * 3) our rx_dropped count has gone up
-		 */
+		
 		if ((new_stat->dev == napi->dev)  &&
 		    (time_after(jiffies, new_stat->last_rx + dm_hw_check_delta)) &&
 		    (napi->dev->stats.rx_dropped != new_stat->last_drop_val)) {
@@ -233,9 +203,7 @@ static int set_all_monitor_traces(int state)
 
 		tracepoint_synchronize_unregister();
 
-		/*
-		 * Clean the device list
-		 */
+		
 		list_for_each_entry_safe(new_stat, temp, &hw_stats_list, list) {
 			if (new_stat->dev == NULL) {
 				list_del_rcu(&new_stat->list);

@@ -1,18 +1,4 @@
-/*
- *  drivers/mtd/nand/ams-delta.c
- *
- *  Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
- *
- *  Derived from drivers/mtd/toto.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Overview:
- *   This is a device driver for the NAND flash device found on the
- *   Amstrad E3 (Delta).
- */
+
 
 #include <linux/slab.h>
 #include <linux/init.h>
@@ -27,16 +13,12 @@
 #include <mach/gpio.h>
 #include <mach/board-ams-delta.h>
 
-/*
- * MTD structure for E3 (Delta)
- */
+
 static struct mtd_info *ams_delta_mtd = NULL;
 
 #define NAND_MASK (AMS_DELTA_LATCH2_NAND_NRE | AMS_DELTA_LATCH2_NAND_NWE | AMS_DELTA_LATCH2_NAND_CLE | AMS_DELTA_LATCH2_NAND_ALE | AMS_DELTA_LATCH2_NAND_NCE | AMS_DELTA_LATCH2_NAND_NWP)
 
-/*
- * Define partitions for flash devices
- */
+
 
 static struct mtd_partition partition_info[] = {
 	{ .name		= "Kernel",
@@ -115,14 +97,7 @@ static int ams_delta_verify_buf(struct mtd_info *mtd, const u_char *buf,
 	return 0;
 }
 
-/*
- * Command control function
- *
- * ctrl:
- * NAND_NCE: bit 0 -> bit 2
- * NAND_CLE: bit 1 -> bit 7
- * NAND_ALE: bit 2 -> bit 6
- */
+
 static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
 				unsigned int ctrl)
 {
@@ -148,15 +123,13 @@ static int ams_delta_nand_ready(struct mtd_info *mtd)
 	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
 }
 
-/*
- * Main initialization routine
- */
+
 static int __init ams_delta_init(void)
 {
 	struct nand_chip *this;
 	int err = 0;
 
-	/* Allocate memory for MTD device structure and private data */
+	
 	ams_delta_mtd = kmalloc(sizeof(struct mtd_info) +
 				sizeof(struct nand_chip), GFP_KERNEL);
 	if (!ams_delta_mtd) {
@@ -167,17 +140,17 @@ static int __init ams_delta_init(void)
 
 	ams_delta_mtd->owner = THIS_MODULE;
 
-	/* Get pointer to private data */
+	
 	this = (struct nand_chip *) (&ams_delta_mtd[1]);
 
-	/* Initialize structures */
+	
 	memset(ams_delta_mtd, 0, sizeof(struct mtd_info));
 	memset(this, 0, sizeof(struct nand_chip));
 
-	/* Link the private data with the MTD structure */
+	
 	ams_delta_mtd->priv = this;
 
-	/* Set address of NAND IO lines */
+	
 	this->IO_ADDR_R = (OMAP1_MPUIO_BASE + OMAP_MPUIO_INPUT_LATCH);
 	this->IO_ADDR_W = (OMAP1_MPUIO_BASE + OMAP_MPUIO_OUTPUT);
 	this->read_byte = ams_delta_read_byte;
@@ -191,23 +164,23 @@ static int __init ams_delta_init(void)
 		this->dev_ready = NULL;
 		printk(KERN_NOTICE "Couldn't request gpio for Delta NAND ready.\n");
 	}
-	/* 25 us command delay time */
+	
 	this->chip_delay = 30;
 	this->ecc.mode = NAND_ECC_SOFT;
 
-	/* Set chip enabled, but  */
+	
 	ams_delta_latch2_write(NAND_MASK, AMS_DELTA_LATCH2_NAND_NRE |
 					  AMS_DELTA_LATCH2_NAND_NWE |
 					  AMS_DELTA_LATCH2_NAND_NCE |
 					  AMS_DELTA_LATCH2_NAND_NWP);
 
-	/* Scan to find existance of the device */
+	
 	if (nand_scan(ams_delta_mtd, 1)) {
 		err = -ENXIO;
 		goto out_mtd;
 	}
 
-	/* Register the partitions */
+	
 	add_mtd_partitions(ams_delta_mtd, partition_info,
 			   ARRAY_SIZE(partition_info));
 
@@ -221,15 +194,13 @@ static int __init ams_delta_init(void)
 
 module_init(ams_delta_init);
 
-/*
- * Clean up routine
- */
+
 static void __exit ams_delta_cleanup(void)
 {
-	/* Release resources, unregister device */
+	
 	nand_release(ams_delta_mtd);
 
-	/* Free the MTD device structure */
+	
 	kfree(ams_delta_mtd);
 }
 module_exit(ams_delta_cleanup);

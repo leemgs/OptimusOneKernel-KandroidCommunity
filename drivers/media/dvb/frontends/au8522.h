@@ -1,23 +1,4 @@
-/*
-    Auvitek AU8522 QAM/8VSB demodulator driver
 
-    Copyright (C) 2008 Steven Toth <stoth@linuxtv.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #ifndef __AU8522_H__
 #define __AU8522_H__
@@ -36,7 +17,7 @@ struct au8522_led_config {
 	u16 qam256_strong;
 
 	u16 gpio_output;
-	/* unset hi bits, set low bits */
+	
 	u16 gpio_output_enable;
 	u16 gpio_output_disable;
 
@@ -46,10 +27,10 @@ struct au8522_led_config {
 };
 
 struct au8522_config {
-	/* the demodulator's i2c address */
+	
 	u8 demod_address;
 
-	/* Return lock status based on tuner lock, or demod lock */
+	
 #define AU8522_TUNERLOCKING 0
 #define AU8522_DEMODLOCKING 1
 	u8 status_mode;
@@ -72,9 +53,9 @@ struct dvb_frontend *au8522_attach(const struct au8522_config *config,
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }
-#endif /* CONFIG_DVB_AU8522 */
+#endif 
 
-/* Other modes may need to be added later */
+
 enum au8522_video_input {
 	AU8522_COMPOSITE_CH1 = 1,
 	AU8522_COMPOSITE_CH2,
@@ -90,9 +71,6 @@ enum au8522_audio_input {
 	AU8522_AUDIO_SIF,
 };
 
-#endif /* __AU8522_H__ */
+#endif 
 
-/*
- * Local variables:
- * c-basic-offset: 8
- */
+

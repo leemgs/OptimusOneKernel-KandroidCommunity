@@ -1,18 +1,4 @@
-/*
- * arch/arm/mach-ixp2000/include/mach/ixdp2x01.h
- *
- * Platform definitions for IXDP2X01 && IXDP2801 systems
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright 2004 (c) MontaVista Software, Inc. 
- *
- * Based on original code Copyright (c) 2002-2003 Intel Corporation
- * 
- * This file is licensed under  the terms of the GNU General Public 
- * License version 2. This program is licensed "as is" without any 
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __IXDP2X01_H__
 #define __IXDP2X01_H__
@@ -54,4 +40,4 @@
 #define	IXDP2X01_GPIO_SCL		0x07
 #define	IXDP2X01_GPIO_SDA		0x06
 
-#endif /* __IXDP2x01_H__ */
+#endif 

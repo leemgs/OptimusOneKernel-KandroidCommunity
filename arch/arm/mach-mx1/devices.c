@@ -1,23 +1,4 @@
-/*
- * Copyright 2006-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Sascha Hauer, kernel@pengutronix.de
- * Copyright (c) 2008 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- * Copyright (c) 2008 Darius Augulis <darius.augulis@teltonika.lt>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA  02110-1301, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -44,7 +25,7 @@ static u64 imx_csi_dmamask = 0xffffffffUL;
 
 struct platform_device imx_csi_device = {
 	.name           = "mx1-camera",
-	.id             = 0, /* This is used to put cameras on this interface */
+	.id             = 0, 
 	.dev		= {
 		.dma_mask = &imx_csi_dmamask,
 		.coherent_dma_mask = 0xffffffff,
@@ -211,7 +192,7 @@ struct platform_device imx_usb_device = {
 	.resource	= imx_usb_resources,
 };
 
-/* GPIO port description */
+
 static struct mxc_gpio_port imx_gpio_ports[] = {
 	{
 		.chip.label = "gpio-0",

@@ -1,13 +1,4 @@
-/* DVB USB compliant linux driver for MSI Mega Sky 580 DVB-T USB2.0 receiver
- *
- * Copyright (C) 2006 Aapo Tahkola (aet@rasterburn.org)
- *
- *	This program is free software; you can redistribute it and/or modify it
- *	under the terms of the GNU General Public License as published by the
- *	Free Software Foundation, version 2.
- *
- * see Documentation/dvb/README.dvb-usb for more information
- */
+
 
 #include "m920x.h"
 
@@ -18,7 +9,7 @@
 #include "tda827x.h"
 #include <asm/unaligned.h>
 
-/* debug */
+
 static int dvb_usb_m920x_debug;
 module_param_named(debug,dvb_usb_m920x_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
@@ -65,7 +56,7 @@ static int m920x_init(struct dvb_usb_device *d, struct m920x_inits *rc_seq)
 	int ret = 0, i, epi, flags = 0;
 	int adap_enabled[M9206_MAX_ADAPTERS] = { 0 };
 
-	/* Remote controller init. */
+	
 	if (d->props.rc_query) {
 		deb("Initialising remote control\n");
 		while (rc_seq->address) {
@@ -85,7 +76,7 @@ static int m920x_init(struct dvb_usb_device *d, struct m920x_inits *rc_seq)
 	for (i = 0; i < d->props.num_adapters; i++)
 		flags |= d->adapter[i].props.caps;
 
-	/* Some devices(Dposh) might crash if we attempt touch at all. */
+	
 	if (flags & DVB_USB_ADAP_HAS_PID_FILTER) {
 		for (i = 0; i < d->props.num_adapters; i++) {
 			epi = d->adapter[i].props.stream.endpoint - 0x81;
@@ -148,7 +139,7 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 				*state = REMOTE_NO_KEY_PRESSED;
 				goto unlock;
 
-			case 0x88: /* framing error or "invalid code" */
+			case 0x88: 
 			case 0x99:
 			case 0xc0:
 			case 0xd8:
@@ -163,7 +154,7 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 				goto unlock;
 
 			case 0x91:
-				/* prevent immediate auto-repeat */
+				
 				if (++m->rep_count > 2)
 					*state = REMOTE_KEY_REPEAT;
 				else
@@ -187,7 +178,7 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 	return ret;
 }
 
-/* I2C */
+
 static int m920x_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int num)
 {
 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
@@ -202,26 +193,21 @@ static int m920x_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int nu
 
 	for (i = 0; i < num; i++) {
 		if (msg[i].flags & (I2C_M_NO_RD_ACK | I2C_M_IGNORE_NAK | I2C_M_TEN) || msg[i].len == 0) {
-			/* For a 0 byte message, I think sending the address
-			 * to index 0x80|0x40 would be the correct thing to
-			 * do.  However, zero byte messages are only used for
-			 * probing, and since we don't know how to get the
-			 * slave's ack, we can't probe. */
+			
 			ret = -ENOTSUPP;
 			goto unlock;
 		}
-		/* Send START & address/RW bit */
+		
 		if (!(msg[i].flags & I2C_M_NOSTART)) {
 			if ((ret = m920x_write(d->udev, M9206_I2C,
 					(msg[i].addr << 1) |
 					(msg[i].flags & I2C_M_RD ? 0x01 : 0), 0x80)) != 0)
 				goto unlock;
-			/* Should check for ack here, if we knew how. */
+			
 		}
 		if (msg[i].flags & I2C_M_RD) {
 			for (j = 0; j < msg[i].len; j++) {
-				/* Last byte of transaction?
-				 * Send STOP, otherwise send ACK. */
+				
 				int stop = (i+1 == num && j+1 == msg[i].len) ? 0x40 : 0x01;
 
 				if ((ret = m920x_read(d->udev, M9206_I2C, 0x0,
@@ -231,12 +217,12 @@ static int m920x_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int nu
 			}
 		} else {
 			for (j = 0; j < msg[i].len; j++) {
-				/* Last byte of transaction? Then send STOP. */
+				
 				int stop = (i+1 == num && j+1 == msg[i].len) ? 0x40 : 0x00;
 
 				if ((ret = m920x_write(d->udev, M9206_I2C, msg[i].buf[j], stop)) != 0)
 					goto unlock;
-				/* Should check for ack here too. */
+				
 			}
 		}
 	}
@@ -258,7 +244,7 @@ static struct i2c_algorithm m920x_i2c_algo = {
 	.functionality = m920x_i2c_func,
 };
 
-/* pid filter */
+
 static int m920x_set_filter(struct dvb_usb_device *d, int type, int idx, int pid)
 {
 	int ret = 0;
@@ -288,7 +274,7 @@ static int m920x_update_filters(struct dvb_usb_adapter *adap)
 		if (m->filters[adap->id][i] == 8192)
 			enabled = 0;
 
-	/* Disable all filters */
+	
 	if ((ret = m920x_set_filter(adap->dev, ep, 1, enabled)) != 0)
 		return ret;
 
@@ -296,7 +282,7 @@ static int m920x_update_filters(struct dvb_usb_adapter *adap)
 		if ((ret = m920x_set_filter(adap->dev, ep, i + 2, 0)) != 0)
 			return ret;
 
-	/* Set */
+	
 	if (enabled) {
 		for (i = 0; i < M9206_MAX_FILTERS; i++) {
 			if (m->filters[adap->id][i] == 0)
@@ -360,7 +346,7 @@ static int m920x_firmware_download(struct usb_device *udev, const struct firmwar
 			i += sizeof(u16);
 
 			if (pass == 1) {
-				/* Will stall if using fw->data ... */
+				
 				memcpy(buff, fw->data + i, size);
 
 				ret = usb_control_msg(udev, usb_sndctrlpipe(udev,0),
@@ -385,7 +371,7 @@ static int m920x_firmware_download(struct usb_device *udev, const struct firmwar
 
 	msleep(36);
 
-	/* m920x will disconnect itself from the bus after this. */
+	
 	(void) m920x_write(udev, M9206_CORE, 0x01, M9206_FW_GO);
 	deb("firmware uploaded!\n");
 
@@ -395,7 +381,7 @@ static int m920x_firmware_download(struct usb_device *udev, const struct firmwar
 	return ret;
 }
 
-/* Callbacks for DVB USB */
+
 static int m920x_identify_state(struct usb_device *udev,
 				struct dvb_usb_device_properties *props,
 				struct dvb_usb_device_description **desc,
@@ -409,7 +395,7 @@ static int m920x_identify_state(struct usb_device *udev,
 	return 0;
 }
 
-/* demod configurations */
+
 static int m920x_mt352_demod_init(struct dvb_frontend *fe)
 {
 	int ret;
@@ -471,15 +457,15 @@ static struct tda1004x_config m920x_tda10046_0b_config = {
 	.if_freq = TDA10046_FREQ_045,
 	.agc_config = TDA10046_AGC_TDA827X,
 	.gpio_config = TDA10046_GPTRI,
-	.request_firmware = NULL, /* uses firmware EEPROM */
+	.request_firmware = NULL, 
 };
 
-/* tuner configurations */
+
 static struct qt1010_config m920x_qt1010_config = {
 	.i2c_address = 0x62
 };
 
-/* Callbacks for DVB USB */
+
 static int m920x_mt352_frontend_attach(struct dvb_usb_adapter *adap)
 {
 	deb("%s\n",__func__);
@@ -546,11 +532,11 @@ static int m920x_tda8275_61_tuner_attach(struct dvb_usb_adapter *adap)
 	return 0;
 }
 
-/* device-specific initialization */
+
 static struct m920x_inits megasky_rc_init [] = {
 	{ M9206_RC_INIT2, 0xa8 },
 	{ M9206_RC_INIT1, 0x51 },
-	{ } /* terminating entry */
+	{ } 
 };
 
 static struct m920x_inits tvwalkertwin_rc_init [] = {
@@ -559,50 +545,50 @@ static struct m920x_inits tvwalkertwin_rc_init [] = {
 	{ 0xff28,         0x00 },
 	{ 0xff23,         0x00 },
 	{ 0xff21,         0x30 },
-	{ } /* terminating entry */
+	{ } 
 };
 
-/* ir keymaps */
+
 static struct dvb_usb_rc_key megasky_rc_keys [] = {
 	{ 0x0012, KEY_POWER },
-	{ 0x001e, KEY_CYCLEWINDOWS }, /* min/max */
+	{ 0x001e, KEY_CYCLEWINDOWS }, 
 	{ 0x0002, KEY_CHANNELUP },
 	{ 0x0005, KEY_CHANNELDOWN },
 	{ 0x0003, KEY_VOLUMEUP },
 	{ 0x0006, KEY_VOLUMEDOWN },
 	{ 0x0004, KEY_MUTE },
-	{ 0x0007, KEY_OK }, /* TS */
+	{ 0x0007, KEY_OK }, 
 	{ 0x0008, KEY_STOP },
-	{ 0x0009, KEY_MENU }, /* swap */
+	{ 0x0009, KEY_MENU }, 
 	{ 0x000a, KEY_REWIND },
 	{ 0x001b, KEY_PAUSE },
 	{ 0x001f, KEY_FASTFORWARD },
 	{ 0x000c, KEY_RECORD },
-	{ 0x000d, KEY_CAMERA }, /* screenshot */
-	{ 0x000e, KEY_COFFEE }, /* "MTS" */
+	{ 0x000d, KEY_CAMERA }, 
+	{ 0x000e, KEY_COFFEE }, 
 };
 
 static struct dvb_usb_rc_key tvwalkertwin_rc_keys [] = {
-	{ 0x0001, KEY_ZOOM }, /* Full Screen */
-	{ 0x0002, KEY_CAMERA }, /* snapshot */
+	{ 0x0001, KEY_ZOOM }, 
+	{ 0x0002, KEY_CAMERA }, 
 	{ 0x0003, KEY_MUTE },
 	{ 0x0004, KEY_REWIND },
-	{ 0x0005, KEY_PLAYPAUSE }, /* Play/Pause */
+	{ 0x0005, KEY_PLAYPAUSE }, 
 	{ 0x0006, KEY_FASTFORWARD },
 	{ 0x0007, KEY_RECORD },
 	{ 0x0008, KEY_STOP },
-	{ 0x0009, KEY_TIME }, /* Timeshift */
-	{ 0x000c, KEY_COFFEE }, /* Recall */
+	{ 0x0009, KEY_TIME }, 
+	{ 0x000c, KEY_COFFEE }, 
 	{ 0x000e, KEY_CHANNELUP },
 	{ 0x0012, KEY_POWER },
-	{ 0x0015, KEY_MENU }, /* source */
-	{ 0x0018, KEY_CYCLEWINDOWS }, /* TWIN PIP */
+	{ 0x0015, KEY_MENU }, 
+	{ 0x0018, KEY_CYCLEWINDOWS }, 
 	{ 0x001a, KEY_CHANNELDOWN },
 	{ 0x001b, KEY_VOLUMEDOWN },
 	{ 0x001e, KEY_VOLUMEUP },
 };
 
-/* DVB USB Driver stuff */
+
 static struct dvb_usb_device_properties megasky_properties;
 static struct dvb_usb_device_properties digivox_mini_ii_properties;
 static struct dvb_usb_device_properties tvwalkertwin_properties;
@@ -619,9 +605,7 @@ static int m920x_probe(struct usb_interface *intf,
 	deb("Probing for m920x device at interface %d\n", bInterfaceNumber);
 
 	if (bInterfaceNumber == 0) {
-		/* Single-tuner device, or first interface on
-		 * multi-tuner device
-		 */
+		
 
 		ret = dvb_usb_device_init(intf, &megasky_properties,
 					  THIS_MODULE, &d, adapter_nr);
@@ -633,11 +617,11 @@ static int m920x_probe(struct usb_interface *intf,
 		ret = dvb_usb_device_init(intf, &digivox_mini_ii_properties,
 					  THIS_MODULE, &d, adapter_nr);
 		if (ret == 0) {
-			/* No remote control, so no rc_init_seq */
+			
 			goto found;
 		}
 
-		/* This configures both tuners on the TV Walker Twin */
+		
 		ret = dvb_usb_device_init(intf, &tvwalkertwin_properties,
 					  THIS_MODULE, &d, adapter_nr);
 		if (ret == 0) {
@@ -648,18 +632,15 @@ static int m920x_probe(struct usb_interface *intf,
 		ret = dvb_usb_device_init(intf, &dposh_properties,
 					  THIS_MODULE, &d, adapter_nr);
 		if (ret == 0) {
-			/* Remote controller not supported yet. */
+			
 			goto found;
 		}
 
 		return ret;
 	} else {
-		/* Another interface on a multi-tuner device */
+		
 
-		/* The LifeView TV Walker Twin gets here, but struct
-		 * tvwalkertwin_properties already configured both
-		 * tuners, so there is nothing for us to do here
-		 */
+		
 	}
 
  found:
@@ -682,7 +663,7 @@ static struct usb_device_id m920x_table [] = {
 			     USB_PID_LIFEVIEW_TV_WALKER_TWIN_WARM) },
 		{ USB_DEVICE(USB_VID_DPOSH, USB_PID_DPOSH_M9206_COLD) },
 		{ USB_DEVICE(USB_VID_DPOSH, USB_PID_DPOSH_M9206_WARM) },
-		{ }		/* Terminating entry */
+		{ }		
 };
 MODULE_DEVICE_TABLE (usb, m920x_table);
 
@@ -779,14 +760,7 @@ static struct dvb_usb_device_properties digivox_mini_ii_properties = {
 	}
 };
 
-/* LifeView TV Walker Twin support by Nick Andrew <nick@nick-andrew.net>
- *
- * LifeView TV Walker Twin has 1 x M9206, 2 x TDA10046, 2 x TDA8275A
- * TDA10046 #0 is located at i2c address 0x08
- * TDA10046 #1 is located at i2c address 0x0b
- * TDA8275A #0 is located at i2c address 0x60
- * TDA8275A #1 is located at i2c address 0x61
- */
+
 static struct dvb_usb_device_properties tvwalkertwin_properties = {
 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
 
@@ -868,7 +842,7 @@ static struct dvb_usb_device_properties dposh_properties = {
 	.identify_state   = m920x_identify_state,
 	.num_adapters = 1,
 	.adapter = {{
-		/* Hardware pid filters don't work with this device/firmware */
+		
 
 		.frontend_attach  = m920x_mt352_frontend_attach,
 		.tuner_attach     = m920x_qt1010_tuner_attach,
@@ -902,7 +876,7 @@ static struct usb_driver m920x_driver = {
 	.id_table	= m920x_table,
 };
 
-/* module stuff */
+
 static int __init m920x_module_init(void)
 {
 	int ret;
@@ -917,7 +891,7 @@ static int __init m920x_module_init(void)
 
 static void __exit m920x_module_exit(void)
 {
-	/* deregister this driver from the USB subsystem */
+	
 	usb_deregister(&m920x_driver);
 }
 
@@ -929,7 +903,4 @@ MODULE_DESCRIPTION("DVB Driver for ULI M920x");
 MODULE_VERSION("0.1");
 MODULE_LICENSE("GPL");
 
-/*
- * Local variables:
- * c-basic-offset: 8
- */
+

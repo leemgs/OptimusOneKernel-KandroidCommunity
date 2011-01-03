@@ -1,34 +1,4 @@
-/*********************************************************************
- *                
- * Filename:      irlap_frame.h
- * Version:       0.9
- * Description:   IrLAP frame declarations
- * Status:        Experimental.
- * Author:        Dag Brattli <dagb@cs.uit.no>
- * Created at:    Tue Aug 19 10:27:26 1997
- * Modified at:   Sat Dec 25 21:07:26 1999
- * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
- *     Copyright (c) 1997-1999 Dag Brattli <dagb@cs.uit.no>,
- *     All Rights Reserved.
- *     Copyright (c) 2000-2002 Jean Tourrilhes <jt@hpl.hp.com>
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
- *     the License, or (at your option) any later version.
- * 
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License 
- *     along with this program; if not, write to the Free Software 
- *     Foundation, Inc., 59 Temple Place, Suite 330, Boston, 
- *     MA 02111-1307 USA
- *     
- ********************************************************************/
+
 
 #ifndef IRLAP_FRAME_H
 #define IRLAP_FRAME_H
@@ -37,93 +7,90 @@
 
 #include <net/irda/irda.h>
 
-/* A few forward declarations (to make compiler happy) */
+
 struct irlap_cb;
 struct discovery_t;
 
-/* Frame types and templates */
+
 #define INVALID   0xff
 
-/* Unnumbered (U) commands */
-#define SNRM_CMD  0x83 /* Set Normal Response Mode */
-#define DISC_CMD  0x43 /* Disconnect */
-#define XID_CMD   0x2f /* Exchange Station Identification */
-#define TEST_CMD  0xe3 /* Test */
 
-/* Unnumbered responses */
-#define RNRM_RSP  0x83 /* Request Normal Response Mode */
-#define UA_RSP    0x63 /* Unnumbered Acknowledgement */
-#define FRMR_RSP  0x87 /* Frame Reject */
-#define DM_RSP    0x0f /* Disconnect Mode */
-#define RD_RSP    0x43 /* Request Disconnection */
-#define XID_RSP   0xaf /* Exchange Station Identification */
-#define TEST_RSP  0xe3 /* Test frame */
+#define SNRM_CMD  0x83 
+#define DISC_CMD  0x43 
+#define XID_CMD   0x2f 
+#define TEST_CMD  0xe3 
 
-/* Supervisory (S) */
-#define RR        0x01 /* Receive Ready */
-#define REJ       0x09 /* Reject */
-#define RNR       0x05 /* Receive Not Ready */
-#define SREJ      0x0d /* Selective Reject */
 
-/* Information (I) */
-#define I_FRAME   0x00 /* Information Format */
-#define UI_FRAME  0x03 /* Unnumbered Information */
+#define RNRM_RSP  0x83 
+#define UA_RSP    0x63 
+#define FRMR_RSP  0x87 
+#define DM_RSP    0x0f 
+#define RD_RSP    0x43 
+#define XID_RSP   0xaf 
+#define TEST_RSP  0xe3 
+
+
+#define RR        0x01 
+#define REJ       0x09 
+#define RNR       0x05 
+#define SREJ      0x0d 
+
+
+#define I_FRAME   0x00 
+#define UI_FRAME  0x03 
 
 #define CMD_FRAME 0x01
 #define RSP_FRAME 0x00
 
-#define PF_BIT    0x10 /* Poll/final bit */
+#define PF_BIT    0x10 
 
-/* Some IrLAP field lengths */
-/*
- * Only baud rate triplet is 4 bytes (PV can be 2 bytes).
- * All others params (7) are 3 bytes, so that's 7*3 + 1*4 bytes.
- */
+
+
 #define IRLAP_NEGOCIATION_PARAMS_LEN 25
 #define IRLAP_DISCOVERY_INFO_LEN     32
 
 struct disc_frame {
-	__u8 caddr;          /* Connection address */
+	__u8 caddr;          
 	__u8 control;
 } IRDA_PACK;
 
 struct xid_frame {
-	__u8  caddr; /* Connection address */
+	__u8  caddr; 
 	__u8  control;
-	__u8  ident; /* Should always be XID_FORMAT */ 
-	__le32 saddr; /* Source device address */
-	__le32 daddr; /* Destination device address */
-	__u8  flags; /* Discovery flags */
+	__u8  ident;  
+	__le32 saddr; 
+	__le32 daddr; 
+	__u8  flags; 
 	__u8  slotnr;
 	__u8  version;
 } IRDA_PACK;
 
 struct test_frame {
-	__u8 caddr;          /* Connection address */
+	__u8 caddr;          
 	__u8 control;
-	__le32 saddr;         /* Source device address */
-	__le32 daddr;         /* Destination device address */
+	__le32 saddr;         
+	__le32 daddr;         
 } IRDA_PACK;
 
 struct ua_frame {
 	__u8 caddr;
 	__u8 control;
-	__le32 saddr; /* Source device address */
-	__le32 daddr; /* Dest device address */
+	__le32 saddr; 
+	__le32 daddr; 
 } IRDA_PACK;
 
 struct dm_frame {
-	__u8 caddr;          /* Connection address */
+	__u8 caddr;          
 	__u8 control;
 } IRDA_PACK;
 
 struct rd_frame {
-	__u8 caddr;          /* Connection address */
+	__u8 caddr;          
 	__u8 control;
 } IRDA_PACK;
 
 struct rr_frame {
-	__u8 caddr;          /* Connection address */
+	__u8 caddr;          
 	__u8 control;
 } IRDA_PACK;
 

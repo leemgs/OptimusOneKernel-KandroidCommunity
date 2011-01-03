@@ -1,59 +1,11 @@
-/*
- * net/tipc/user_reg.c: TIPC user registry code
- *
- * Copyright (c) 2000-2006, Ericsson AB
- * Copyright (c) 2004-2005, Wind River Systems
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the names of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 
 #include "core.h"
 #include "user_reg.h"
 
-/*
- * TIPC user registry keeps track of users of the tipc_port interface.
- *
- * The registry utilizes an array of "TIPC user" entries;
- * a user's ID is the index of their associated array entry.
- * Array entry 0 is not used, so userid 0 is not valid;
- * TIPC sometimes uses this value to denote an anonymous user.
- * The list of free entries is initially chained from last entry to entry 1.
- */
 
-/**
- * struct tipc_user - registered TIPC user info
- * @next: index of next free registry entry (or -1 for an allocated entry)
- * @callback: ptr to routine to call when TIPC mode changes (NULL if none)
- * @usr_handle: user-defined value passed to callback routine
- * @ports: list of user ports owned by the user
- */
+
+
 
 struct tipc_user {
 	int next;
@@ -69,12 +21,7 @@ static struct tipc_user *users = NULL;
 static u32 next_free_user = MAX_USERID + 1;
 static DEFINE_SPINLOCK(reg_lock);
 
-/**
- * reg_init - create TIPC user registry (but don't activate it)
- *
- * If registry has been pre-initialized it is left "as is".
- * NOTE: This routine may be called when TIPC is inactive.
- */
+
 
 static int reg_init(void)
 {
@@ -94,9 +41,7 @@ static int reg_init(void)
 	return users ? 0 : -ENOMEM;
 }
 
-/**
- * reg_callback - inform TIPC user about current operating mode
- */
+
 
 static void reg_callback(struct tipc_user *user_ptr)
 {
@@ -112,9 +57,7 @@ static void reg_callback(struct tipc_user *user_ptr)
 		cb(arg, tipc_mode, tipc_own_addr);
 }
 
-/**
- * tipc_reg_start - activate TIPC user registry
- */
+
 
 int tipc_reg_start(void)
 {
@@ -132,9 +75,7 @@ int tipc_reg_start(void)
 	return 0;
 }
 
-/**
- * tipc_reg_stop - shut down & delete TIPC user registry
- */
+
 
 void tipc_reg_stop(void)
 {
@@ -151,11 +92,7 @@ void tipc_reg_stop(void)
 	users = NULL;
 }
 
-/**
- * tipc_attach - register a TIPC user
- *
- * NOTE: This routine may be called when TIPC is inactive.
- */
+
 
 int tipc_attach(u32 *userid, tipc_mode_event cb, void *usr_handle)
 {
@@ -187,9 +124,7 @@ int tipc_attach(u32 *userid, tipc_mode_event cb, void *usr_handle)
 	return 0;
 }
 
-/**
- * tipc_detach - deregister a TIPC user
- */
+
 
 void tipc_detach(u32 userid)
 {
@@ -221,9 +156,7 @@ void tipc_detach(u32 userid)
 	}
 }
 
-/**
- * tipc_reg_add_port - register a user's driver port
- */
+
 
 int tipc_reg_add_port(struct user_port *up_ptr)
 {
@@ -243,9 +176,7 @@ int tipc_reg_add_port(struct user_port *up_ptr)
 	return 0;
 }
 
-/**
- * tipc_reg_remove_port - deregister a user's driver port
- */
+
 
 int tipc_reg_remove_port(struct user_port *up_ptr)
 {

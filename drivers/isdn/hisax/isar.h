@@ -1,14 +1,4 @@
-/* $Id: isar.h,v 1.11.2.2 2004/01/12 22:52:27 keil Exp $
- *
- * ISAR (Siemens PSB 7110) specific defines
- *
- * Author       Karsten Keil
- * Copyright    by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
  
 #define ISAR_IRQMSK	0x04
 #define ISAR_IRQSTA	0x04
@@ -90,7 +80,7 @@
 #define PV32P2_V21	0x02
 #define PV32P2_BEL	0x01
 
-// LSB MSB in ISAR doc wrong !!! Arghhh
+
 #define PV32P3_AMOD	0x80
 #define PV32P3_V32B	0x02
 #define PV32P3_V23B	0x01
@@ -204,7 +194,7 @@
 #define BSTEV_TBO	0x1f
 #define BSTEV_RBO	0x2f
 
-/* FAX State Machine */
+
 #define STFAX_NULL	0
 #define STFAX_READY	1
 #define STFAX_LINE	2

@@ -1,9 +1,4 @@
-/*
- * Copyright (C) 2001-2002 Sistina Software (UK) Limited.
- * Copyright (C) 2006-2008 Red Hat GmbH
- *
- * This file is released under the GPL.
- */
+
 
 #include "dm-exception-store.h"
 
@@ -15,9 +10,7 @@
 
 #define DM_MSG_PREFIX "transient snapshot"
 
-/*-----------------------------------------------------------------
- * Implementation of the store for non-persistent snapshots.
- *---------------------------------------------------------------*/
+
 struct transient_c {
 	sector_t next_free;
 };
@@ -55,7 +48,7 @@ static void transient_commit_exception(struct dm_exception_store *store,
 				       void (*callback) (void *, int success),
 				       void *callback_context)
 {
-	/* Just succeed */
+	
 	callback(callback_context, 1);
 }
 

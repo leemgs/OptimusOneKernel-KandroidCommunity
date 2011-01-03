@@ -1,36 +1,15 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- *  bfa_attr.c Linux driver configuration interface module.
- */
+
+
 
 #include "bfad_drv.h"
 #include "bfad_im.h"
 #include "bfad_trcmod.h"
 #include "bfad_attr.h"
 
-/**
- *  FC_transport_template FC transport template
- */
 
-/**
- * FC transport template entry, get SCSI target port ID.
- */
+
+
 void
 bfad_im_get_starget_port_id(struct scsi_target *starget)
 {
@@ -54,9 +33,7 @@ bfad_im_get_starget_port_id(struct scsi_target *starget)
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 }
 
-/**
- * FC transport template entry, get SCSI target nwwn.
- */
+
 void
 bfad_im_get_starget_node_name(struct scsi_target *starget)
 {
@@ -80,9 +57,7 @@ bfad_im_get_starget_node_name(struct scsi_target *starget)
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 }
 
-/**
- * FC transport template entry, get SCSI target pwwn.
- */
+
 void
 bfad_im_get_starget_port_name(struct scsi_target *starget)
 {
@@ -106,9 +81,7 @@ bfad_im_get_starget_port_name(struct scsi_target *starget)
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 }
 
-/**
- * FC transport template entry, get SCSI host port ID.
- */
+
 void
 bfad_im_get_host_port_id(struct Scsi_Host *shost)
 {
@@ -130,9 +103,7 @@ bfad_os_starget_to_shost(struct scsi_target *starget)
 	return dev_to_shost(starget->dev.parent);
 }
 
-/**
- * FC transport template entry, get SCSI host port type.
- */
+
 static void
 bfad_im_get_host_port_type(struct Scsi_Host *shost)
 {
@@ -162,9 +133,7 @@ bfad_im_get_host_port_type(struct Scsi_Host *shost)
 	}
 }
 
-/**
- * FC transport template entry, get SCSI host port state.
- */
+
 static void
 bfad_im_get_host_port_state(struct Scsi_Host *shost)
 {
@@ -196,9 +165,7 @@ bfad_im_get_host_port_state(struct Scsi_Host *shost)
 	}
 }
 
-/**
- * FC transport template entry, get SCSI host active fc4s.
- */
+
 static void
 bfad_im_get_host_active_fc4s(struct Scsi_Host *shost)
 {
@@ -219,9 +186,7 @@ bfad_im_get_host_active_fc4s(struct Scsi_Host *shost)
 	fc_host_active_fc4s(shost)[7] = 1;
 }
 
-/**
- * FC transport template entry, get SCSI host link speed.
- */
+
 static void
 bfad_im_get_host_speed(struct Scsi_Host *shost)
 {
@@ -250,9 +215,7 @@ bfad_im_get_host_speed(struct Scsi_Host *shost)
 	}
 }
 
-/**
- * FC transport template entry, get SCSI host port type.
- */
+
 static void
 bfad_im_get_host_fabric_name(struct Scsi_Host *shost)
 {
@@ -267,9 +230,7 @@ bfad_im_get_host_fabric_name(struct Scsi_Host *shost)
 
 }
 
-/**
- * FC transport template entry, get BFAD statistics.
- */
+
 static struct fc_host_statistics *
 bfad_im_get_stats(struct Scsi_Host *shost)
 {
@@ -297,9 +258,7 @@ bfad_im_get_stats(struct Scsi_Host *shost)
 	return hstats;
 }
 
-/**
- * FC transport template entry, reset BFAD statistics.
- */
+
 static void
 bfad_im_reset_stats(struct Scsi_Host *shost)
 {
@@ -323,9 +282,7 @@ bfad_im_reset_stats(struct Scsi_Host *shost)
 	return;
 }
 
-/**
- * FC transport template entry, get rport loss timeout.
- */
+
 static void
 bfad_im_get_rport_loss_tmo(struct fc_rport *rport)
 {
@@ -339,9 +296,7 @@ bfad_im_get_rport_loss_tmo(struct fc_rport *rport)
 	spin_unlock_irqrestore(&bfad->bfad_lock, flags);
 }
 
-/**
- * FC transport template entry, set rport loss timeout.
- */
+
 static void
 bfad_im_set_rport_loss_tmo(struct fc_rport *rport, u32 timeout)
 {
@@ -361,7 +316,7 @@ bfad_im_set_rport_loss_tmo(struct fc_rport *rport, u32 timeout)
 
 struct fc_function_template bfad_im_fc_function_template = {
 
-	/* Target dynamic attributes */
+	
 	.get_starget_port_id = bfad_im_get_starget_port_id,
 	.show_starget_port_id = 1,
 	.get_starget_node_name = bfad_im_get_starget_node_name,
@@ -369,11 +324,11 @@ struct fc_function_template bfad_im_fc_function_template = {
 	.get_starget_port_name = bfad_im_get_starget_port_name,
 	.show_starget_port_name = 1,
 
-	/* Host dynamic attribute */
+	
 	.get_host_port_id = bfad_im_get_host_port_id,
 	.show_host_port_id = 1,
 
-	/* Host fixed attributes */
+	
 	.show_host_node_name = 1,
 	.show_host_port_name = 1,
 	.show_host_supported_classes = 1,
@@ -381,7 +336,7 @@ struct fc_function_template bfad_im_fc_function_template = {
 	.show_host_supported_speeds = 1,
 	.show_host_maxframe_size = 1,
 
-	/* More host dynamic attributes */
+	
 	.show_host_port_type = 1,
 	.get_host_port_type = bfad_im_get_host_port_type,
 	.show_host_port_state = 1,
@@ -395,14 +350,14 @@ struct fc_function_template bfad_im_fc_function_template = {
 
 	.show_host_symbolic_name = 1,
 
-	/* Statistics */
+	
 	.get_fc_host_stats = bfad_im_get_stats,
 	.reset_fc_host_stats = bfad_im_reset_stats,
 
-	/* Allocation length for host specific data */
+	
 	.dd_fcrport_size = sizeof(struct bfad_itnim_data_s *),
 
-	/* Remote port fixed attributes */
+	
 	.show_rport_maxframe_size = 1,
 	.show_rport_supported_classes = 1,
 	.show_rport_dev_loss_tmo = 1,
@@ -410,9 +365,7 @@ struct fc_function_template bfad_im_fc_function_template = {
 	.set_rport_dev_loss_tmo = bfad_im_set_rport_loss_tmo,
 };
 
-/**
- *  Scsi_Host_attrs SCSI host attributes
- */
+
 static ssize_t
 bfad_im_serial_num_show(struct device *dev, struct device_attribute *attr,
 			 char *buf)

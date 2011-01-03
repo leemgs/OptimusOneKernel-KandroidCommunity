@@ -1,16 +1,4 @@
-/* linux/arch/arm/mach-s3c2440/mach-nexcoder.c
- *
- * Copyright (c) 2004 Nex Vision
- *   Guillaume GOURAT <guillaume.gourat@nexvision.tv>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Modifications:
- *     15-10-2004 GG  Created initial version
- *     12-03-2005 BJD Updated for release
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -35,7 +23,7 @@
 #include <asm/irq.h>
 #include <asm/mach-types.h>
 
-//#include <asm/debug-ll.h>
+
 #include <mach/regs-gpio.h>
 #include <plat/regs-serial.h>
 #include <plat/iic.h>
@@ -47,7 +35,7 @@
 #include <plat/cpu.h>
 
 static struct map_desc nexcoder_iodesc[] __initdata = {
-	/* nothing here yet */
+	
 };
 
 #define UCON S3C2410_UCON_DEFAULT
@@ -78,7 +66,7 @@ static struct s3c2410_uartcfg nexcoder_uartcfgs[] __initdata = {
 	}
 };
 
-/* NOR Flash on NexVision NexCoder 2440 board */
+
 
 static struct resource nexcoder_nor_resource[] = {
 	[0] = {
@@ -103,7 +91,7 @@ static struct platform_device nexcoder_device_nor = {
 	}
 };
 
-/* Standard Nexcoder devices */
+
 
 static struct platform_device *nexcoder_devices[] __initdata = {
 	&s3c_device_usb,
@@ -120,17 +108,17 @@ static struct platform_device *nexcoder_devices[] __initdata = {
 
 static void __init nexcoder_sensorboard_init(void)
 {
-	// Initialize SCCB bus
-	s3c2410_gpio_setpin(S3C2410_GPE(14), 1); // IICSCL
+	
+	s3c2410_gpio_setpin(S3C2410_GPE(14), 1); 
 	s3c2410_gpio_cfgpin(S3C2410_GPE(14), S3C2410_GPIO_OUTPUT);
-	s3c2410_gpio_setpin(S3C2410_GPE(15), 1); // IICSDA
+	s3c2410_gpio_setpin(S3C2410_GPE(15), 1); 
 	s3c2410_gpio_cfgpin(S3C2410_GPE(15), S3C2410_GPIO_OUTPUT);
 
-	// Power up the sensor board
+	
 	s3c2410_gpio_setpin(S3C2410_GPF(1), 1);
-	s3c2410_gpio_cfgpin(S3C2410_GPF(1), S3C2410_GPIO_OUTPUT); // CAM_GPIO7 => nLDO_PWRDN
+	s3c2410_gpio_cfgpin(S3C2410_GPF(1), S3C2410_GPIO_OUTPUT); 
 	s3c2410_gpio_setpin(S3C2410_GPF(2), 0);
-	s3c2410_gpio_cfgpin(S3C2410_GPF(2), S3C2410_GPIO_OUTPUT); // CAM_GPIO6 => CAM_PWRDN
+	s3c2410_gpio_cfgpin(S3C2410_GPF(2), S3C2410_GPIO_OUTPUT); 
 }
 
 static void __init nexcoder_map_io(void)
@@ -149,7 +137,7 @@ static void __init nexcoder_init(void)
 };
 
 MACHINE_START(NEXCODER_2440, "NexVision - Nexcoder 2440")
-	/* Maintainer: Guillaume GOURAT <guillaume.gourat@nexvision.tv> */
+	
 	.phys_io	= S3C2410_PA_UART,
 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S3C2410_SDRAM_PA + 0x100,

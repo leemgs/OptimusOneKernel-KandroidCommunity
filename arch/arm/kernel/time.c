@@ -1,21 +1,4 @@
-/*
- *  linux/arch/arm/kernel/time.c
- *
- *  Copyright (C) 1991, 1992, 1995  Linus Torvalds
- *  Modifications for ARM (C) 1994-2001 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  This file contains the ARM-specific time handling details:
- *  reading the RTC at bootup, etc...
- *
- *  1994-07-02  Alan Modra
- *              fixed set_rtc_mmss, fixed time.year for >= 2000, new mktime
- *  1998-12-20  Updated NTP code according to technical memorandum Jan '96
- *              "A Kernel Model for Precision Timekeeping" by Dave Mills
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -37,21 +20,19 @@
 #include <asm/stacktrace.h>
 #include <asm/mach/time.h>
 
-/*
- * Our system timer.
- */
+
 struct sys_timer *system_timer;
 
 #if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE)
-/* this needs a better home */
+
 DEFINE_SPINLOCK(rtc_lock);
 
 #ifdef CONFIG_RTC_DRV_CMOS_MODULE
 EXPORT_SYMBOL(rtc_lock);
 #endif
-#endif	/* pc-style 'CMOS' RTC support */
+#endif	
 
-/* change this if you have some constant time drift */
+
 #define USECS_PER_JIFFY	(1000000/HZ)
 
 #ifdef CONFIG_SMP
@@ -77,9 +58,7 @@ unsigned long profile_pc(struct pt_regs *regs)
 EXPORT_SYMBOL(profile_pc);
 #endif
 
-/*
- * hook for setting the RTC's idea of the current time.
- */
+
 int (*set_rtc)(void);
 
 #ifndef CONFIG_GENERIC_TIME
@@ -91,12 +70,7 @@ static unsigned long dummy_gettimeoffset(void)
 
 static unsigned long next_rtc_update;
 
-/*
- * If we have an externally synchronized linux clock, then update
- * CMOS clock accordingly every ~11 minutes.  set_rtc() has to be
- * called as close as possible to 500 ms before the new second
- * starts.
- */
+
 static inline void do_set_rtc(void)
 {
 	if (!ntp_synced() || set_rtc == NULL)
@@ -111,9 +85,7 @@ static inline void do_set_rtc(void)
 		return;
 
 	if (set_rtc())
-		/*
-		 * rtc update failed.  Try again in 60s
-		 */
+		
 		next_rtc_update = xtime.tv_sec + 60;
 	else
 		next_rtc_update = xtime.tv_sec + 660;
@@ -251,7 +223,7 @@ void do_gettimeofday(struct timeval *tv)
 		usec += xtime.tv_nsec / 1000;
 	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
 
-	/* usec may have gone up a lot: be safe */
+	
 	while (usec >= 1000000) {
 		usec -= 1000000;
 		sec++;
@@ -272,12 +244,7 @@ int do_settimeofday(struct timespec *tv)
 		return -EINVAL;
 
 	write_seqlock_irq(&xtime_lock);
-	/*
-	 * This is revolting. We need to set "xtime" correctly. However, the
-	 * value in this location is the value at the most recent update of
-	 * wall time.  Discover what correction gettimeofday() would have
-	 * done, and then undo it!
-	 */
+	
 	nsec -= system_timer->offset() * NSEC_PER_USEC;
 
 	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
@@ -293,16 +260,9 @@ int do_settimeofday(struct timespec *tv)
 }
 
 EXPORT_SYMBOL(do_settimeofday);
-#endif /* !CONFIG_GENERIC_TIME */
+#endif 
 
-/**
- * save_time_delta - Save the offset between system time and RTC time
- * @delta: pointer to timespec to store delta
- * @rtc: pointer to timespec for current RTC time
- *
- * Return a delta between the system time and the RTC time, such
- * that system time can be restored later with restore_time_delta()
- */
+
 void save_time_delta(struct timespec *delta, struct timespec *rtc)
 {
 	set_normalized_timespec(delta,
@@ -311,11 +271,7 @@ void save_time_delta(struct timespec *delta, struct timespec *rtc)
 }
 EXPORT_SYMBOL(save_time_delta);
 
-/**
- * restore_time_delta - Restore the current system time
- * @delta: delta returned by save_time_delta()
- * @rtc: pointer to timespec for current RTC time
- */
+
 void restore_time_delta(struct timespec *delta, struct timespec *rtc)
 {
 	struct timespec ts;
@@ -329,9 +285,7 @@ void restore_time_delta(struct timespec *delta, struct timespec *rtc)
 EXPORT_SYMBOL(restore_time_delta);
 
 #ifndef CONFIG_GENERIC_CLOCKEVENTS
-/*
- * Kernel system timer support.
- */
+
 void timer_tick(void)
 {
 	profile_tick(CPU_PROFILING);

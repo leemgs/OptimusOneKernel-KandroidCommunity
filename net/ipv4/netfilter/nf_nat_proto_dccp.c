@@ -1,13 +1,4 @@
-/*
- * DCCP NAT protocol helper
- *
- * Copyright (c) 2005, 2006. 2008 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -43,7 +34,7 @@ dccp_manip_pkt(struct sk_buff *skb,
 	unsigned int hdroff = iphdroff + iph->ihl * 4;
 	__be32 oldip, newip;
 	__be16 *portptr, oldport, newport;
-	int hdrsize = 8; /* DCCP connection tracking guarantees this much */
+	int hdrsize = 8; 
 
 	if (skb->len >= hdroff + sizeof(struct dccp_hdr))
 		hdrsize = sizeof(struct dccp_hdr);

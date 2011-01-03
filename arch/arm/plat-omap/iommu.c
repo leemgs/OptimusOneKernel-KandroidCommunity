@@ -1,15 +1,4 @@
-/*
- * omap iommu: tlb and pagetable primitives
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
- *		Paul Mundt and Toshihiro Kobayashi
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/err.h>
 #include <linux/module.h>
@@ -24,19 +13,13 @@
 
 #include "iopgtable.h"
 
-/* accommodate the difference between omap1 and omap2/3 */
+
 static const struct iommu_functions *arch_iommu;
 
 static struct platform_driver omap_iommu_driver;
 static struct kmem_cache *iopte_cachep;
 
-/**
- * install_iommu_arch - Install archtecure specific iommu functions
- * @ops:	a pointer to architecture specific iommu functions
- *
- * There are several kind of iommu algorithm(tlb, pagetable) among
- * omap series. This interface installs such an iommu algorighm.
- **/
+
 int install_iommu_arch(const struct iommu_functions *ops)
 {
 	if (arch_iommu)
@@ -47,12 +30,7 @@ int install_iommu_arch(const struct iommu_functions *ops)
 }
 EXPORT_SYMBOL_GPL(install_iommu_arch);
 
-/**
- * uninstall_iommu_arch - Uninstall archtecure specific iommu functions
- * @ops:	a pointer to architecture specific iommu functions
- *
- * This interface uninstalls the iommu algorighm installed previously.
- **/
+
 void uninstall_iommu_arch(const struct iommu_functions *ops)
 {
 	if (arch_iommu != ops)
@@ -62,29 +40,21 @@ void uninstall_iommu_arch(const struct iommu_functions *ops)
 }
 EXPORT_SYMBOL_GPL(uninstall_iommu_arch);
 
-/**
- * iommu_save_ctx - Save registers for pm off-mode support
- * @obj:	target iommu
- **/
+
 void iommu_save_ctx(struct iommu *obj)
 {
 	arch_iommu->save_ctx(obj);
 }
 EXPORT_SYMBOL_GPL(iommu_save_ctx);
 
-/**
- * iommu_restore_ctx - Restore registers for pm off-mode support
- * @obj:	target iommu
- **/
+
 void iommu_restore_ctx(struct iommu *obj)
 {
 	arch_iommu->restore_ctx(obj);
 }
 EXPORT_SYMBOL_GPL(iommu_restore_ctx);
 
-/**
- * iommu_arch_version - Return running iommu arch version
- **/
+
 u32 iommu_arch_version(void)
 {
 	return arch_iommu->version;
@@ -118,9 +88,7 @@ static void iommu_disable(struct iommu *obj)
 	clk_disable(obj->clk);
 }
 
-/*
- *	TLB operations
- */
+
 void iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e)
 {
 	BUG_ON(!cr || !e);
@@ -171,14 +139,14 @@ static void iotlb_lock_get(struct iommu *obj, struct iotlb_lock *l)
 	l->base = MMU_LOCK_BASE(val);
 	l->vict = MMU_LOCK_VICT(val);
 
-	BUG_ON(l->base != 0); /* Currently no preservation is used */
+	BUG_ON(l->base != 0); 
 }
 
 static void iotlb_lock_set(struct iommu *obj, struct iotlb_lock *l)
 {
 	u32 val;
 
-	BUG_ON(l->base != 0); /* Currently no preservation is used */
+	BUG_ON(l->base != 0); 
 
 	val = (l->base << MMU_LOCK_BASE_SHIFT);
 	val |= (l->vict << MMU_LOCK_VICT_SHIFT);
@@ -199,12 +167,7 @@ static void iotlb_load_cr(struct iommu *obj, struct cr_regs *cr)
 	iommu_write_reg(obj, 1, MMU_LD_TLB);
 }
 
-/**
- * iotlb_dump_cr - Dump an iommu tlb entry into buf
- * @obj:	target iommu
- * @cr:		contents of cam and ram register
- * @buf:	output buffer
- **/
+
 static inline ssize_t iotlb_dump_cr(struct iommu *obj, struct cr_regs *cr,
 				    char *buf)
 {
@@ -213,11 +176,7 @@ static inline ssize_t iotlb_dump_cr(struct iommu *obj, struct cr_regs *cr,
 	return arch_iommu->dump_cr(obj, cr, buf);
 }
 
-/**
- * load_iotlb_entry - Set an iommu tlb entry
- * @obj:	target iommu
- * @e:		an iommu tlb entry info
- **/
+
 int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
 {
 	int i;
@@ -256,7 +215,7 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
 	iotlb_load_cr(obj, cr);
 	kfree(cr);
 
-	/* increment victim for next tlb load */
+	
 	if (++l.vict == obj->nr_tlb_entries)
 		l.vict = 0;
 	iotlb_lock_set(obj, &l);
@@ -266,13 +225,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(load_iotlb_entry);
 
-/**
- * flush_iotlb_page - Clear an iommu tlb entry
- * @obj:	target iommu
- * @da:		iommu device virtual address
- *
- * Clear an iommu tlb entry which includes 'da' address.
- **/
+
 void flush_iotlb_page(struct iommu *obj, u32 da)
 {
 	struct iotlb_lock l;
@@ -309,30 +262,20 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
 }
 EXPORT_SYMBOL_GPL(flush_iotlb_page);
 
-/**
- * flush_iotlb_range - Clear an iommu tlb entries
- * @obj:	target iommu
- * @start:	iommu device virtual address(start)
- * @end:	iommu device virtual address(end)
- *
- * Clear an iommu tlb entry which includes 'da' address.
- **/
+
 void flush_iotlb_range(struct iommu *obj, u32 start, u32 end)
 {
 	u32 da = start;
 
 	while (da < end) {
 		flush_iotlb_page(obj, da);
-		/* FIXME: Optimize for multiple page size */
+		
 		da += IOPTE_SIZE;
 	}
 }
 EXPORT_SYMBOL_GPL(flush_iotlb_range);
 
-/**
- * flush_iotlb_all - Clear all iommu tlb entries
- * @obj:	target iommu
- **/
+
 void flush_iotlb_all(struct iommu *obj)
 {
 	struct iotlb_lock l;
@@ -395,11 +338,7 @@ static int __dump_tlb_entries(struct iommu *obj, struct cr_regs *crs, int num)
 	return  p - crs;
 }
 
-/**
- * dump_tlb_entries - dump cr arrays to given buffer
- * @obj:	target iommu
- * @buf:	output buffer
- **/
+
 size_t dump_tlb_entries(struct iommu *obj, char *buf, ssize_t bytes)
 {
 	int i, num;
@@ -429,14 +368,12 @@ int foreach_iommu_device(void *data, int (*fn)(struct device *, void *))
 }
 EXPORT_SYMBOL_GPL(foreach_iommu_device);
 
-#endif /* CONFIG_OMAP_IOMMU_DEBUG_MODULE */
+#endif 
 
-/*
- *	H/W pagetable operations
- */
+
 static void flush_iopgd_range(u32 *first, u32 *last)
 {
-	/* FIXME: L2 cache should be taken care of if it exists */
+	
 	do {
 		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
 		    : : "r" (first));
@@ -446,7 +383,7 @@ static void flush_iopgd_range(u32 *first, u32 *last)
 
 static void flush_iopte_range(u32 *first, u32 *last)
 {
-	/* FIXME: L2 cache should be taken care of if it exists */
+	
 	do {
 		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
 		    : : "r" (first));
@@ -456,7 +393,7 @@ static void flush_iopte_range(u32 *first, u32 *last)
 
 static void iopte_free(u32 *iopte)
 {
-	/* Note: freed iopte's must be clean ready for re-use */
+	
 	kmem_cache_free(iopte_cachep, iopte);
 }
 
@@ -464,13 +401,11 @@ static u32 *iopte_alloc(struct iommu *obj, u32 *iopgd, u32 da)
 {
 	u32 *iopte;
 
-	/* a table has already existed */
+	
 	if (*iopgd)
 		goto pte_ready;
 
-	/*
-	 * do the allocation outside the page table lock
-	 */
+	
 	spin_unlock(&obj->page_table_lock);
 	iopte = kmem_cache_zalloc(iopte_cachep, GFP_KERNEL);
 	spin_lock(&obj->page_table_lock);
@@ -484,7 +419,7 @@ static u32 *iopte_alloc(struct iommu *obj, u32 *iopgd, u32 da)
 
 		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
 	} else {
-		/* We raced, free the reduniovant table */
+		
 		iopte_free(iopte);
 	}
 
@@ -587,11 +522,7 @@ static int iopgtable_store_entry_core(struct iommu *obj, struct iotlb_entry *e)
 	return err;
 }
 
-/**
- * iopgtable_store_entry - Make an iommu pte entry
- * @obj:	target iommu
- * @e:		an iommu tlb entry info
- **/
+
 int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e)
 {
 	int err;
@@ -606,13 +537,7 @@ int iopgtable_store_entry(struct iommu *obj, struct iotlb_entry *e)
 }
 EXPORT_SYMBOL_GPL(iopgtable_store_entry);
 
-/**
- * iopgtable_lookup_entry - Lookup an iommu pte entry
- * @obj:	target iommu
- * @da:		iommu device virtual address
- * @ppgd:	iommu pgd entry pointer to be returned
- * @ppte:	iommu pte entry pointer to be returned
- **/
+
 void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd, u32 **ppte)
 {
 	u32 *iopgd, *iopte = NULL;
@@ -645,28 +570,26 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
 		bytes = IOPTE_SIZE;
 		if (*iopte & IOPTE_LARGE) {
 			nent *= 16;
-			/* rewind to the 1st entry */
+			
 			iopte = (u32 *)((u32)iopte & IOLARGE_MASK);
 		}
 		bytes *= nent;
 		memset(iopte, 0, nent * sizeof(*iopte));
 		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
 
-		/*
-		 * do table walk to check if this table is necessary or not
-		 */
+		
 		iopte = iopte_offset(iopgd, 0);
 		for (i = 0; i < PTRS_PER_IOPTE; i++)
 			if (iopte[i])
 				goto out;
 
 		iopte_free(iopte);
-		nent = 1; /* for the next L1 entry */
+		nent = 1; 
 	} else {
 		bytes = IOPGD_SIZE;
 		if ((*iopgd & IOPGD_SUPER) == IOPGD_SUPER) {
 			nent *= 16;
-			/* rewind to the 1st entry */
+			
 			iopgd = (u32 *)((u32)iopgd & IOSUPER_MASK);
 		}
 		bytes *= nent;
@@ -677,11 +600,7 @@ out:
 	return bytes;
 }
 
-/**
- * iopgtable_clear_entry - Remove an iommu pte entry
- * @obj:	target iommu
- * @da:		iommu device virtual address
- **/
+
 size_t iopgtable_clear_entry(struct iommu *obj, u32 da)
 {
 	size_t bytes;
@@ -725,9 +644,7 @@ static void iopgtable_clear_entry_all(struct iommu *obj)
 	spin_unlock(&obj->page_table_lock);
 }
 
-/*
- *	Device IOMMU generic operations
- */
+
 static irqreturn_t iommu_fault_handler(int irq, void *data)
 {
 	u32 stat, da;
@@ -738,7 +655,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
 	if (!obj->refcount)
 		return IRQ_NONE;
 
-	/* Dynamic loading TLB or PTE */
+	
 	if (obj->isr)
 		err = obj->isr(obj);
 
@@ -777,10 +694,7 @@ static int device_match_by_alias(struct device *dev, void *data)
 	return strcmp(obj->name, name) == 0;
 }
 
-/**
- * iommu_get - Get iommu handler
- * @name:	target iommu name
- **/
+
 struct iommu *iommu_get(const char *name)
 {
 	int err = -ENOMEM;
@@ -821,10 +735,7 @@ err_enable:
 }
 EXPORT_SYMBOL_GPL(iommu_get);
 
-/**
- * iommu_put - Put back iommu handler
- * @obj:	target iommu
- **/
+
 void iommu_put(struct iommu *obj)
 {
 	if (!obj && IS_ERR(obj))
@@ -843,9 +754,7 @@ void iommu_put(struct iommu *obj)
 }
 EXPORT_SYMBOL_GPL(iommu_put);
 
-/*
- *	OMAP Device MMU(IOMMU) detection
- */
+
 static int __devinit omap_iommu_probe(struct platform_device *pdev)
 {
 	int err = -ENODEV;
@@ -971,7 +880,7 @@ static int __init omap_iommu_init(void)
 {
 	struct kmem_cache *p;
 	const unsigned long flags = SLAB_HWCACHE_ALIGN;
-	size_t align = 1 << 10; /* L2 pagetable alignement */
+	size_t align = 1 << 10; 
 
 	p = kmem_cache_create("iopte_cache", IOPTE_TABLE_SIZE, align, flags,
 			      iopte_cachep_ctor);

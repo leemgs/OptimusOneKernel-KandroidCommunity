@@ -1,23 +1,4 @@
-/*
- * SCSI RDAM Protocol lib functions
- *
- * Copyright (C) 2006 FUJITA Tomonori <tomof@acm.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- */
+
 #include <linux/err.h>
 #include <linux/kfifo.h>
 #include <linux/scatterlist.h>
@@ -36,12 +17,12 @@ enum srp_task_attributes {
 	SRP_ACA_TASK = 4
 };
 
-/* tmp - will replace with SCSI logging stuff */
+
 #define eprintk(fmt, args...)					\
 do {								\
 	printk("%s(%d) " fmt, __func__, __LINE__, ##args);	\
 } while (0)
-/* #define dprintk eprintk */
+
 #define dprintk(fmt, args...)
 
 static int srp_iu_pool_alloc(struct srp_queue *q, size_t max,
@@ -314,10 +295,7 @@ static int data_out_desc_size(struct srp_cmd *cmd)
 	return size;
 }
 
-/*
- * TODO: this can be called multiple times for a single command if it
- * has very long data.
- */
+
 int srp_transfer_data(struct scsi_cmnd *sc, struct srp_cmd *cmd,
 		      srp_rdma_t rdma_io, int dma_map, int ext_desc)
 {

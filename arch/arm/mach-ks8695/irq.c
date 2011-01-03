@@ -1,23 +1,4 @@
-/*
- * arch/arm/mach-ks8695/irq.c
- *
- * Copyright (C) 2006 Ben Dooks <ben@simtec.co.uk>
- * Copyright (C) 2006 Simtec Electronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -145,13 +126,13 @@ void __init ks8695_init_irq(void)
 {
 	unsigned int irq;
 
-	/* Disable all interrupts initially */
+	
 	__raw_writel(0, KS8695_IRQ_VA + KS8695_INTMC);
 	__raw_writel(0, KS8695_IRQ_VA + KS8695_INTEN);
 
 	for (irq = 0; irq < NR_IRQS; irq++) {
 		switch (irq) {
-			/* Level-triggered interrupts */
+			
 			case KS8695_IRQ_BUS_ERROR:
 			case KS8695_IRQ_UART_MODEM_STATUS:
 			case KS8695_IRQ_UART_LINE_STATUS:
@@ -162,9 +143,9 @@ void __init ks8695_init_irq(void)
 				set_irq_handler(irq, handle_level_irq);
 				break;
 
-			/* Edge-triggered interrupts */
+			
 			default:
-				ks8695_irq_ack(irq);	/* clear pending bit */
+				ks8695_irq_ack(irq);	
 				set_irq_chip(irq, &ks8695_irq_edge_chip);
 				set_irq_handler(irq, handle_edge_irq);
 		}

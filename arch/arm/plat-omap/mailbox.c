@@ -1,25 +1,4 @@
-/*
- * OMAP mailbox driver
- *
- * Copyright (C) 2006-2009 Nokia Corporation. All rights reserved.
- *
- * Contact: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/interrupt.h>
@@ -35,19 +14,15 @@ MODULE_PARM_DESC(enable_seq_bit, "Enable sequence bit checking.");
 static struct omap_mbox *mboxes;
 static DEFINE_RWLOCK(mboxes_lock);
 
-/*
- * Mailbox sequence bit API
- */
 
-/* seq_rcv should be initialized with any value other than
- * 0 and 1 << 31, to allow either value for the first
- * message.  */
+
+
 static inline void mbox_seq_init(struct omap_mbox *mbox)
 {
 	if (!enable_seq_bit)
 		return;
 
-	/* any value other than 0 and 1 << 31 */
+	
 	mbox->seq_rcv = 0xffffffff;
 }
 
@@ -56,9 +31,9 @@ static inline void mbox_seq_toggle(struct omap_mbox *mbox, mbox_msg_t * msg)
 	if (!enable_seq_bit)
 		return;
 
-	/* add seq_snd to msg */
+	
 	*msg = (*msg & 0x7fffffff) | mbox->seq_snd;
-	/* flip seq_snd */
+	
 	mbox->seq_snd ^= 1 << 31;
 }
 
@@ -76,7 +51,7 @@ static inline int mbox_seq_test(struct omap_mbox *mbox, mbox_msg_t msg)
 	return 0;
 }
 
-/* Mailbox FIFO handle functions */
+
 static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
 {
 	return mbox->ops->fifo_read(mbox);
@@ -94,7 +69,7 @@ static inline int mbox_fifo_full(struct omap_mbox *mbox)
 	return mbox->ops->fifo_full(mbox);
 }
 
-/* Mailbox IRQ handle functions */
+
 static inline void enable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
 {
 	mbox->ops->enable_irq(mbox, irq);
@@ -113,16 +88,14 @@ static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
 	return mbox->ops->is_irq(mbox, irq);
 }
 
-/* Mailbox Sequence Bit function */
+
 void omap_mbox_init_seq(struct omap_mbox *mbox)
 {
 	mbox_seq_init(mbox);
 }
 EXPORT_SYMBOL(omap_mbox_init_seq);
 
-/*
- * message sender
- */
+
 static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg, void *arg)
 {
 	int ret = 0, i = 1000;
@@ -220,9 +193,7 @@ static void mbox_tx_work(struct work_struct *work)
 	}
 }
 
-/*
- * Message receiver(workqueue)
- */
+
 static void mbox_rx_work(struct work_struct *work)
 {
 	struct omap_mbox_queue *mq =
@@ -251,9 +222,7 @@ static void mbox_rx_work(struct work_struct *work)
 	}
 }
 
-/*
- * Mailbox interrupt handler
- */
+
 static void mbox_txq_fn(struct request_queue * q)
 {
 }
@@ -295,7 +264,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
 			break;
 	}
 
-	/* no more messages in the fifo. clear IRQ source. */
+	
 	ack_mbox_irq(mbox, IRQ_RX);
 	enable_mbox_irq(mbox, IRQ_RX);
 nomem:
@@ -315,9 +284,7 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
 	return IRQ_HANDLED;
 }
 
-/*
- * sysfs files
- */
+
 static ssize_t
 omap_mbox_write(struct device *dev, struct device_attribute *attr,
 		const char * buf, size_t count)

@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/spi-bus0-gpg5_6_7.c
- *
- * Copyright (c) 2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C24XX SPI - gpio configuration for bus 1 on gpg5,6,7
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/gpio.h>

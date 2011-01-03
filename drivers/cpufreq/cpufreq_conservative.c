@@ -1,15 +1,4 @@
-/*
- *  drivers/cpufreq/cpufreq_conservative.c
- *
- *  Copyright (C)  2001 Russell King
- *            (C)  2003 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>.
- *                      Jun Nakajima <jun.nakajima@intel.com>
- *            (C)  2009 Alexander Clouter <alex@digriz.org.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -24,24 +13,12 @@
 #include <linux/ktime.h>
 #include <linux/sched.h>
 
-/*
- * dbs is used in this file as a shortform for demandbased switching
- * It helps to keep variable names smaller, simpler
- */
+
 
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
 #define DEF_FREQUENCY_DOWN_THRESHOLD		(20)
 
-/*
- * The polling frequency of this governor depends on the capability of
- * the processor. Default polling frequency is 1000 times the transition
- * latency of the processor. The governor will work on any processor with
- * transition latency <= 10mS, using appropriate sampling
- * rate.
- * For CPUs with transition latency > 10mS (mostly drivers with CPUFREQ_ETERNAL)
- * this governor will not work.
- * All times here are in uS.
- */
+
 #define MIN_SAMPLING_RATE_RATIO			(2)
 
 static unsigned int min_sampling_rate;
@@ -64,21 +41,14 @@ struct cpu_dbs_info_s {
 	unsigned int requested_freq;
 	int cpu;
 	unsigned int enable:1;
-	/*
-	 * percpu mutex that serializes governor limit change with
-	 * do_dbs_timer invocation. We do not want do_dbs_timer to run
-	 * when user is changing the governor or limits.
-	 */
+	
 	struct mutex timer_mutex;
 };
 static DEFINE_PER_CPU(struct cpu_dbs_info_s, cs_cpu_dbs_info);
 
-static unsigned int dbs_enable;	/* number of CPUs using this policy */
+static unsigned int dbs_enable;	
 
-/*
- * dbs_mutex protects data in dbs_tuners_ins from concurrent changes on
- * different CPUs. It protects dbs_enable in governor start/stop.
- */
+
 static DEFINE_MUTEX(dbs_mutex);
 
 static struct workqueue_struct	*kconservative_wq;
@@ -131,7 +101,7 @@ static inline cputime64_t get_cpu_idle_time(unsigned int cpu, cputime64_t *wall)
 	return idle_time;
 }
 
-/* keep track of frequency transitions */
+
 static int
 dbs_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
 		     void *data)
@@ -147,11 +117,7 @@ dbs_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
 
 	policy = this_dbs_info->cur_policy;
 
-	/*
-	 * we only care if our internally tracked freq moves outside
-	 * the 'valid' ranges of freqency available to us otherwise
-	 * we do not change it
-	*/
+	
 	if (this_dbs_info->requested_freq > policy->max
 			|| this_dbs_info->requested_freq < policy->min)
 		this_dbs_info->requested_freq = freq->new;
@@ -163,7 +129,7 @@ static struct notifier_block dbs_cpufreq_notifier_block = {
 	.notifier_call = dbs_cpufreq_notifier
 };
 
-/************************** sysfs interface ************************/
+
 static ssize_t show_sampling_rate_max(struct cpufreq_policy *policy, char *buf)
 {
 	printk_once(KERN_INFO "CPUFREQ: conservative sampling_rate_max "
@@ -183,7 +149,7 @@ __ATTR(_name, 0444, show_##_name, NULL)
 define_one_ro(sampling_rate_max);
 define_one_ro(sampling_rate_min);
 
-/* cpufreq_conservative Governor Tunables */
+
 #define show_one(file_name, object)					\
 static ssize_t show_##file_name						\
 (struct cpufreq_policy *unused, char *buf)				\
@@ -259,7 +225,7 @@ static ssize_t store_down_threshold(struct cpufreq_policy *unused,
 	ret = sscanf(buf, "%u", &input);
 
 	mutex_lock(&dbs_mutex);
-	/* cannot be lower than 11 otherwise freq will not fall */
+	
 	if (ret != 1 || input < 11 || input > 100 ||
 			input >= dbs_tuners_ins.up_threshold) {
 		mutex_unlock(&dbs_mutex);
@@ -288,13 +254,13 @@ static ssize_t store_ignore_nice_load(struct cpufreq_policy *policy,
 		input = 1;
 
 	mutex_lock(&dbs_mutex);
-	if (input == dbs_tuners_ins.ignore_nice) { /* nothing to do */
+	if (input == dbs_tuners_ins.ignore_nice) { 
 		mutex_unlock(&dbs_mutex);
 		return count;
 	}
 	dbs_tuners_ins.ignore_nice = input;
 
-	/* we need to re-evaluate prev_cpu_idle */
+	
 	for_each_online_cpu(j) {
 		struct cpu_dbs_info_s *dbs_info;
 		dbs_info = &per_cpu(cs_cpu_dbs_info, j);
@@ -321,8 +287,7 @@ static ssize_t store_freq_step(struct cpufreq_policy *policy,
 	if (input > 100)
 		input = 100;
 
-	/* no need to test here if freq_step is zero as the user might actually
-	 * want this, they would be crazy though :) */
+	
 	mutex_lock(&dbs_mutex);
 	dbs_tuners_ins.freq_step = input;
 	mutex_unlock(&dbs_mutex);
@@ -358,7 +323,7 @@ static struct attribute_group dbs_attr_group = {
 	.name = "conservative",
 };
 
-/************************** sysfs end ************************/
+
 
 static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 {
@@ -370,18 +335,9 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 
 	policy = this_dbs_info->cur_policy;
 
-	/*
-	 * Every sampling_rate, we check, if current idle time is less
-	 * than 20% (default), then we try to increase frequency
-	 * Every sampling_rate*sampling_down_factor, we check, if current
-	 * idle time is more than 80%, then we try to decrease frequency
-	 *
-	 * Any frequency increase takes it to the maximum frequency.
-	 * Frequency reduction happens at minimum steps of
-	 * 5% (default) of maximum frequency
-	 */
+	
 
-	/* Get Absolute Load */
+	
 	for_each_cpu(j, policy->cpus) {
 		struct cpu_dbs_info_s *j_dbs_info;
 		cputime64_t cur_wall_time, cur_idle_time;
@@ -405,10 +361,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 
 			cur_nice = cputime64_sub(kstat_cpu(j).cpustat.nice,
 					 j_dbs_info->prev_cpu_nice);
-			/*
-			 * Assumption: nice time between sampling periods will
-			 * be less than 2^32 jiffies for 32 bit sys
-			 */
+			
 			cur_nice_jiffies = (unsigned long)
 					cputime64_to_jiffies64(cur_nice);
 
@@ -422,24 +375,21 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 		load = 100 * (wall_time - idle_time) / wall_time;
 	}
 
-	/*
-	 * break out if we 'cannot' reduce the speed as the user might
-	 * want freq_step to be zero
-	 */
+	
 	if (dbs_tuners_ins.freq_step == 0)
 		return;
 
-	/* Check for frequency increase */
+	
 	if (load > dbs_tuners_ins.up_threshold) {
 		this_dbs_info->down_skip = 0;
 
-		/* if we are already at full speed then break out early */
+		
 		if (this_dbs_info->requested_freq == policy->max)
 			return;
 
 		freq_target = (dbs_tuners_ins.freq_step * policy->max) / 100;
 
-		/* max freq cannot be less than 100. But who knows.... */
+		
 		if (unlikely(freq_target == 0))
 			freq_target = 5;
 
@@ -452,11 +402,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 		return;
 	}
 
-	/*
-	 * The optimal frequency is the frequency that is the lowest that
-	 * can support the current CPU usage without triggering the up
-	 * policy. To be safe, we focus 10 points under the threshold.
-	 */
+	
 	if (load < (dbs_tuners_ins.down_threshold - 10)) {
 		freq_target = (dbs_tuners_ins.freq_step * policy->max) / 100;
 
@@ -464,9 +410,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 		if (this_dbs_info->requested_freq < policy->min)
 			this_dbs_info->requested_freq = policy->min;
 
-		/*
-		 * if we cannot reduce the frequency anymore, break out early
-		 */
+		
 		if (policy->cur == policy->min)
 			return;
 
@@ -482,7 +426,7 @@ static void do_dbs_timer(struct work_struct *work)
 		container_of(work, struct cpu_dbs_info_s, work.work);
 	unsigned int cpu = dbs_info->cpu;
 
-	/* We want all CPUs to do sampling nearly on same jiffy */
+	
 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
 
 	delay -= jiffies % delay;
@@ -497,7 +441,7 @@ static void do_dbs_timer(struct work_struct *work)
 
 static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info)
 {
-	/* We want all CPUs to do sampling nearly on same jiffy */
+	
 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
 	delay -= jiffies % delay;
 
@@ -553,24 +497,18 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 
 		mutex_init(&this_dbs_info->timer_mutex);
 		dbs_enable++;
-		/*
-		 * Start the timerschedule work, when this governor
-		 * is used for first time
-		 */
+		
 		if (dbs_enable == 1) {
 			unsigned int latency;
-			/* policy latency is in nS. Convert it to uS first */
+			
 			latency = policy->cpuinfo.transition_latency / 1000;
 			if (latency == 0)
 				latency = 1;
 
-			/*
-			 * conservative does not implement micro like ondemand
-			 * governor, thus we are bound to jiffes/HZ
-			 */
+			
 			min_sampling_rate =
 				MIN_SAMPLING_RATE_RATIO * jiffies_to_usecs(10);
-			/* Bring kernel and HW constraints together */
+			
 			min_sampling_rate = max(min_sampling_rate,
 					MIN_LATENCY_MULTIPLIER * latency);
 			dbs_tuners_ins.sampling_rate =
@@ -595,10 +533,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		dbs_enable--;
 		mutex_destroy(&this_dbs_info->timer_mutex);
 
-		/*
-		 * Stop the timerschedule work, when this governor
-		 * is used for first time
-		 */
+		
 		if (dbs_enable == 0)
 			cpufreq_unregister_notifier(
 					&dbs_cpufreq_notifier_block,

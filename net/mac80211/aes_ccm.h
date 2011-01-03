@@ -1,11 +1,4 @@
-/*
- * Copyright 2003-2004, Instant802 Networks, Inc.
- * Copyright 2006, Devicescape Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef AES_CCM_H
 #define AES_CCM_H
@@ -23,4 +16,4 @@ int ieee80211_aes_ccm_decrypt(struct crypto_cipher *tfm, u8 *scratch,
 			      u8 *mic, u8 *data);
 void ieee80211_aes_key_free(struct crypto_cipher *tfm);
 
-#endif /* AES_CCM_H */
+#endif 

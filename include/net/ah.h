@@ -4,7 +4,7 @@
 #include <linux/crypto.h>
 #include <net/xfrm.h>
 
-/* This is the maximum truncated ICV length that we know of. */
+
 #define MAX_AH_AUTH_LEN	12
 
 struct ah_data

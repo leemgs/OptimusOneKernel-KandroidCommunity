@@ -1,38 +1,14 @@
-/*
- * sbp2.h - Defines and prototypes for sbp2.c
- *
- * Copyright (C) 2000 James Goodwin, Filanet Corporation (www.filanet.com)
- * jamesg@filanet.com
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 #ifndef SBP2_H
 #define SBP2_H
 
 #define SBP2_DEVICE_NAME		"sbp2"
 
-/*
- * There is no transport protocol limit to the CDB length,  but we implement
- * a fixed length only.  16 bytes is enough for disks larger than 2 TB.
- */
+
 #define SBP2_MAX_CDB_SIZE		16
 
-/*
- * SBP-2 specific definitions
- */
+
 
 #define ORB_DIRECTION_WRITE_TO_MEDIA	0x0
 #define ORB_DIRECTION_READ_FROM_MEDIA	0x1
@@ -179,7 +155,7 @@ struct sbp2_unrestricted_page_table {
 #define STATUS_GET_SBP_STATUS(v)		(((v) >> 16) & 0xff)
 #define STATUS_GET_ORB_OFFSET_HI(v)		((v) & 0x0000ffff)
 #define STATUS_TEST_DEAD(v)			((v) & 0x08000000)
-/* test 'resp' | 'dead' | 'sbp2_status' */
+
 #define STATUS_TEST_RDS(v)			((v) & 0x38ff0000)
 
 struct sbp2_status_block {
@@ -189,9 +165,7 @@ struct sbp2_status_block {
 } __attribute__((packed));
 
 
-/*
- * SBP2 related configuration ROM definitions
- */
+
 
 #define SBP2_UNIT_DIRECTORY_OFFSET_KEY		0xd1
 #define SBP2_CSR_OFFSET_KEY			0x54
@@ -211,7 +185,7 @@ struct sbp2_status_block {
 #define SBP2_UNSOLICITED_STATUS_VALUE		0xf
 
 #define SBP2_BUSY_TIMEOUT_ADDRESS		0xfffff0000210ULL
-/* biggest possible value for Single Phase Retry count is 0xf */
+
 #define SBP2_BUSY_TIMEOUT_VALUE			0xf
 
 #define SBP2_AGENT_RESET_DATA			0xf
@@ -219,18 +193,10 @@ struct sbp2_status_block {
 #define SBP2_UNIT_SPEC_ID_ENTRY			0x0000609e
 #define SBP2_SW_VERSION_ENTRY			0x00010483
 
-/*
- * The default maximum s/g segment size of a FireWire controller is
- * usually 0x10000, but SBP-2 only allows 0xffff. Since buffers have to
- * be quadlet-aligned, we set the length limit to 0xffff & ~3.
- */
+
 #define SBP2_MAX_SEG_SIZE			0xfffc
 
-/*
- * There is no real limitation of the queue depth (i.e. length of the linked
- * list of command ORBs) at the target. The chosen depth is merely an
- * implementation detail of the sbp2 driver.
- */
+
 #define SBP2_MAX_CMDS				8
 
 #define SBP2_SCSI_STATUS_GOOD			0x0
@@ -242,11 +208,9 @@ struct sbp2_status_block {
 #define SBP2_SCSI_STATUS_SELECTION_TIMEOUT	0xff
 
 
-/*
- * Representations of commands and devices
- */
 
-/* Per SCSI command */
+
+
 struct sbp2_command_info {
 	struct list_head list;
 	struct sbp2_command_orb command_orb;
@@ -254,21 +218,21 @@ struct sbp2_command_info {
 	struct scsi_cmnd *Current_SCpnt;
 	void (*Current_done)(struct scsi_cmnd *);
 
-	/* Also need s/g structure for each sbp2 command */
+	
 	struct sbp2_unrestricted_page_table
 		scatter_gather_element[SG_ALL] __attribute__((aligned(8)));
 	dma_addr_t sge_dma;
 };
 
-/* Per FireWire host */
+
 struct sbp2_fwhost_info {
 	struct hpsb_host *host;
 	struct list_head logical_units;
 };
 
-/* Per logical unit */
+
 struct sbp2_lu {
-	/* Operation request blocks */
+	
 	struct sbp2_command_orb *last_orb;
 	dma_addr_t last_orb_dma;
 	struct sbp2_login_orb *login_orb;
@@ -285,55 +249,54 @@ struct sbp2_lu {
 	dma_addr_t logout_orb_dma;
 	struct sbp2_status_block status_block;
 
-	/* How to talk to the unit */
+	
 	u64 management_agent_addr;
 	u64 command_block_agent_addr;
 	u32 speed_code;
 	u32 max_payload_size;
 	u16 lun;
 
-	/* Address for the unit to write status blocks to */
+	
 	u64 status_fifo_addr;
 
-	/* Waitqueue flag for logins, reconnects, logouts, query logins */
+	
 	unsigned int access_complete:1;
 
-	/* Pool of command ORBs for this logical unit */
+	
 	spinlock_t cmd_orb_lock;
 	struct list_head cmd_orb_inuse;
 	struct list_head cmd_orb_completed;
 
-	/* Backlink to FireWire host; list of units attached to the host */
+	
 	struct sbp2_fwhost_info *hi;
 	struct list_head lu_list;
 
-	/* IEEE 1394 core's device representations */
+	
 	struct node_entry *ne;
 	struct unit_directory *ud;
 
-	/* SCSI core's device representations */
+	
 	struct scsi_device *sdev;
 	struct Scsi_Host *shost;
 
-	/* Device specific workarounds/brokeness */
+	
 	unsigned workarounds;
 
-	/* Connection state */
+	
 	atomic_t state;
 
-	/* For deferred requests to the fetch agent */
+	
 	struct work_struct protocol_work;
 };
 
-/* For use in sbp2_lu.state */
+
 enum sbp2lu_state_types {
-	SBP2LU_STATE_RUNNING,		/* all normal */
-	SBP2LU_STATE_IN_RESET,		/* between bus reset and reconnect */
-	SBP2LU_STATE_IN_SHUTDOWN	/* when sbp2_remove was called */
+	SBP2LU_STATE_RUNNING,		
+	SBP2LU_STATE_IN_RESET,		
+	SBP2LU_STATE_IN_SHUTDOWN	
 };
 
-/* For use in sbp2_lu.workarounds and in the corresponding
- * module load parameter */
+
 #define SBP2_WORKAROUND_128K_MAX_TRANS	0x1
 #define SBP2_WORKAROUND_INQUIRY_36	0x2
 #define SBP2_WORKAROUND_MODE_SENSE_8	0x4
@@ -343,4 +306,4 @@ enum sbp2lu_state_types {
 #define SBP2_WORKAROUND_POWER_CONDITION	0x20
 #define SBP2_WORKAROUND_OVERRIDE	0x100
 
-#endif /* SBP2_H */
+#endif 

@@ -1,12 +1,4 @@
-/*
- * Battery driver for One Laptop Per Child board.
- *
- *	Copyright © 2006  David Woodhouse <dwmw2@infradead.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -20,16 +12,16 @@
 #include <asm/olpc.h>
 
 
-#define EC_BAT_VOLTAGE	0x10	/* uint16_t,	*9.76/32,    mV   */
-#define EC_BAT_CURRENT	0x11	/* int16_t,	*15.625/120, mA   */
-#define EC_BAT_ACR	0x12	/* int16_t,	*6250/15,    µAh  */
-#define EC_BAT_TEMP	0x13	/* uint16_t,	*100/256,   °C  */
-#define EC_AMB_TEMP	0x14	/* uint16_t,	*100/256,   °C  */
-#define EC_BAT_STATUS	0x15	/* uint8_t,	bitmask */
-#define EC_BAT_SOC	0x16	/* uint8_t,	percentage */
-#define EC_BAT_SERIAL	0x17	/* uint8_t[6] */
-#define EC_BAT_EEPROM	0x18	/* uint8_t adr as input, uint8_t output */
-#define EC_BAT_ERRCODE	0x1f	/* uint8_t,	bitmask */
+#define EC_BAT_VOLTAGE	0x10	
+#define EC_BAT_CURRENT	0x11	
+#define EC_BAT_ACR	0x12	
+#define EC_BAT_TEMP	0x13	
+#define EC_AMB_TEMP	0x14	
+#define EC_BAT_STATUS	0x15	
+#define EC_BAT_SOC	0x16	
+#define EC_BAT_SERIAL	0x17	
+#define EC_BAT_EEPROM	0x18	
+#define EC_BAT_ERRCODE	0x1f	
 
 #define BAT_STAT_PRESENT	0x01
 #define BAT_STAT_FULL		0x02
@@ -50,9 +42,7 @@
 
 #define BAT_ADDR_MFR_TYPE	0x5F
 
-/*********************************************************************
- *		Power
- *********************************************************************/
+
 
 static int olpc_ac_get_prop(struct power_supply *psy,
 			    enum power_supply_property psp,
@@ -88,7 +78,7 @@ static struct power_supply olpc_ac = {
 	.get_property = olpc_ac_get_prop,
 };
 
-static char bat_serial[17]; /* Ick */
+static char bat_serial[17]; 
 
 static int olpc_bat_get_status(union power_supply_propval *val, uint8_t ec_byte)
 {
@@ -99,15 +89,15 @@ static int olpc_bat_get_status(union power_supply_propval *val, uint8_t ec_byte)
 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
 		else if (ec_byte & BAT_STAT_FULL)
 			val->intval = POWER_SUPPLY_STATUS_FULL;
-		else /* er,... */
+		else 
 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
 	} else {
-		/* Older EC didn't report charge/discharge bits */
-		if (!(ec_byte & BAT_STAT_AC)) /* No AC means discharging */
+		
+		if (!(ec_byte & BAT_STAT_AC)) 
 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
 		else if (ec_byte & BAT_STAT_FULL)
 			val->intval = POWER_SUPPLY_STATUS_FULL;
-		else /* Not _necessarily_ true but EC doesn't tell all yet */
+		else 
 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
 	}
 
@@ -144,7 +134,7 @@ static int olpc_bat_get_health(union power_supply_propval *val)
 		break;
 
 	default:
-		/* Eep. We don't know this failure code */
+		
 		ret = -EIO;
 	}
 
@@ -201,9 +191,7 @@ static int olpc_bat_get_tech(union power_supply_propval *val)
 	return ret;
 }
 
-/*********************************************************************
- *		Battery properties
- *********************************************************************/
+
 static int olpc_bat_get_property(struct power_supply *psy,
 				 enum power_supply_property psp,
 				 union power_supply_propval *val)
@@ -217,12 +205,7 @@ static int olpc_bat_get_property(struct power_supply *psy,
 	if (ret)
 		return ret;
 
-	/* Theoretically there's a race here -- the battery could be
-	   removed immediately after we check whether it's present, and
-	   then we query for some other property of the now-absent battery.
-	   It doesn't matter though -- the EC will return the last-known
-	   information, and it's as if we just ran that _little_ bit faster
-	   and managed to read it out before the battery went away. */
+	
 	if (!(ec_byte & (BAT_STAT_PRESENT | BAT_STAT_TRICKLE)) &&
 			psp != POWER_SUPPLY_PROP_PRESENT)
 		return -ENODEV;
@@ -348,7 +331,7 @@ static enum power_supply_property olpc_bat_props[] = {
 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
 };
 
-/* EEPROM reading goes completely around the power_supply API, sadly */
+
 
 #define EEPROM_START	0x20
 #define EEPROM_END	0x80
@@ -390,7 +373,7 @@ static struct bin_attribute olpc_bat_eeprom = {
 	.read = olpc_bat_eeprom_read,
 };
 
-/* Allow userspace to see the specific error value pulled from the EC */
+
 
 static ssize_t olpc_bat_error_read(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -413,9 +396,7 @@ static struct device_attribute olpc_bat_error = {
 	.show = olpc_bat_error_read,
 };
 
-/*********************************************************************
- *		Initialisation
- *********************************************************************/
+
 
 static struct platform_device *bat_pdev;
 
@@ -442,10 +423,7 @@ static int __init olpc_bat_init(void)
 	if (!olpc_platform_info.ecver)
 		return -ENXIO;
 
-	/*
-	 * We've seen a number of EC protocol changes; this driver requires
-	 * the latest EC protocol, supported by 0x44 and above.
-	 */
+	
 	if (olpc_platform_info.ecver < 0x44) {
 		printk(KERN_NOTICE "OLPC EC version 0x%02x too old for "
 			"battery driver.\n", olpc_platform_info.ecver);
@@ -456,7 +434,7 @@ static int __init olpc_bat_init(void)
 	if (ret)
 		return ret;
 
-	/* Ignore the status. It doesn't actually matter */
+	
 
 	bat_pdev = platform_device_register_simple("olpc-battery", 0, NULL, 0);
 	if (IS_ERR(bat_pdev))

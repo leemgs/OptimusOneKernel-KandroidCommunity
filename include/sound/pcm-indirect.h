@@ -1,23 +1,4 @@
-/*
- * Helper functions for indirect PCM data transfer
- *
- *  Copyright (c) by Takashi Iwai <tiwai@suse.de>
- *                   Jaroslav Kysela <perex@perex.cz>
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef __SOUND_PCM_INDIRECT_H
 #define __SOUND_PCM_INDIRECT_H
@@ -25,24 +6,22 @@
 #include <sound/pcm.h>
 
 struct snd_pcm_indirect {
-	unsigned int hw_buffer_size;	/* Byte size of hardware buffer */
-	unsigned int hw_queue_size;	/* Max queue size of hw buffer (0 = buffer size) */
-	unsigned int hw_data;	/* Offset to next dst (or src) in hw ring buffer */
-	unsigned int hw_io;	/* Ring buffer hw pointer */
-	int hw_ready;		/* Bytes ready for play (or captured) in hw ring buffer */
-	unsigned int sw_buffer_size;	/* Byte size of software buffer */
-	unsigned int sw_data;	/* Offset to next dst (or src) in sw ring buffer */
-	unsigned int sw_io;	/* Current software pointer in bytes */
-	int sw_ready;		/* Bytes ready to be transferred to/from hw */
-	snd_pcm_uframes_t appl_ptr;	/* Last seen appl_ptr */
+	unsigned int hw_buffer_size;	
+	unsigned int hw_queue_size;	
+	unsigned int hw_data;	
+	unsigned int hw_io;	
+	int hw_ready;		
+	unsigned int sw_buffer_size;	
+	unsigned int sw_data;	
+	unsigned int sw_io;	
+	int sw_ready;		
+	snd_pcm_uframes_t appl_ptr;	
 };
 
 typedef void (*snd_pcm_indirect_copy_t)(struct snd_pcm_substream *substream,
 					struct snd_pcm_indirect *rec, size_t bytes);
 
-/*
- * helper function for playback ack callback
- */
+
 static inline void
 snd_pcm_indirect_playback_transfer(struct snd_pcm_substream *substream,
 				   struct snd_pcm_indirect *rec,
@@ -84,10 +63,7 @@ snd_pcm_indirect_playback_transfer(struct snd_pcm_substream *substream,
 	}
 }
 
-/*
- * helper function for playback pointer callback
- * ptr = current byte pointer
- */
+
 static inline snd_pcm_uframes_t
 snd_pcm_indirect_playback_pointer(struct snd_pcm_substream *substream,
 				  struct snd_pcm_indirect *rec, unsigned int ptr)
@@ -106,9 +82,7 @@ snd_pcm_indirect_playback_pointer(struct snd_pcm_substream *substream,
 }
 
 
-/*
- * helper function for capture ack callback
- */
+
 static inline void
 snd_pcm_indirect_capture_transfer(struct snd_pcm_substream *substream,
 				  struct snd_pcm_indirect *rec,
@@ -149,10 +123,7 @@ snd_pcm_indirect_capture_transfer(struct snd_pcm_substream *substream,
 	}
 }
 
-/*
- * helper function for capture pointer callback,
- * ptr = current byte pointer
- */
+
 static inline snd_pcm_uframes_t
 snd_pcm_indirect_capture_pointer(struct snd_pcm_substream *substream,
 				 struct snd_pcm_indirect *rec, unsigned int ptr)
@@ -174,4 +145,4 @@ snd_pcm_indirect_capture_pointer(struct snd_pcm_substream *substream,
 	return bytes_to_frames(substream->runtime, rec->sw_io);
 }
 
-#endif /* __SOUND_PCM_INDIRECT_H */
+#endif 

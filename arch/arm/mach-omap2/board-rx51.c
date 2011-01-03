@@ -1,12 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-rx51.c
- *
- * Copyright (C) 2007, 2008 Nokia
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -70,7 +62,7 @@ static void __init rx51_init(void)
 	usb_musb_init();
 	rx51_peripherals_init();
 
-	/* Ensure SDRC pins are mux'd for self-refresh */
+	
 	omap_cfg_reg(H16_34XX_SDRC_CKE0);
 	omap_cfg_reg(H17_34XX_SDRC_CKE1);
 }
@@ -82,7 +74,7 @@ static void __init rx51_map_io(void)
 }
 
 MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
-	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
+	
 	.phys_io	= 0x48000000,
 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 	.boot_params	= 0x80000100,

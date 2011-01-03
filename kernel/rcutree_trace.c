@@ -1,28 +1,4 @@
-/*
- * Read-Copy Update tracing for classic implementation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright IBM Corporation, 2008
- *
- * Papers:  http://www.rdrop.com/users/paulmck/RCU
- *
- * For detailed explanation of Read-Copy Update mechanism see -
- *		Documentation/RCU
- *
- */
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -62,7 +38,7 @@ static void print_one_rcu_data(struct seq_file *m, struct rcu_data *rdp)
 		   rdp->dynticks->dynticks_nesting,
 		   rdp->dynticks->dynticks_nmi,
 		   rdp->dynticks_fqs);
-#endif /* #ifdef CONFIG_NO_HZ */
+#endif 
 	seq_printf(m, " of=%lu ri=%lu", rdp->offline_fqs, rdp->resched_ipi);
 	seq_printf(m, " ql=%ld b=%ld\n", rdp->qlen, rdp->blimit);
 }
@@ -80,7 +56,7 @@ static int show_rcudata(struct seq_file *m, void *unused)
 #ifdef CONFIG_TREE_PREEMPT_RCU
 	seq_puts(m, "rcu_preempt:\n");
 	PRINT_RCU_DATA(rcu_preempt_data, print_one_rcu_data, m);
-#endif /* #ifdef CONFIG_TREE_PREEMPT_RCU */
+#endif 
 	seq_puts(m, "rcu_sched:\n");
 	PRINT_RCU_DATA(rcu_sched_data, print_one_rcu_data, m);
 	seq_puts(m, "rcu_bh:\n");
@@ -117,7 +93,7 @@ static void print_one_rcu_data_csv(struct seq_file *m, struct rcu_data *rdp)
 		   rdp->dynticks->dynticks_nesting,
 		   rdp->dynticks->dynticks_nmi,
 		   rdp->dynticks_fqs);
-#endif /* #ifdef CONFIG_NO_HZ */
+#endif 
 	seq_printf(m, ",%lu,%lu", rdp->offline_fqs, rdp->resched_ipi);
 	seq_printf(m, ",%ld,%ld\n", rdp->qlen, rdp->blimit);
 }
@@ -127,12 +103,12 @@ static int show_rcudata_csv(struct seq_file *m, void *unused)
 	seq_puts(m, "\"CPU\",\"Online?\",\"c\",\"g\",\"pq\",\"pqc\",\"pq\",");
 #ifdef CONFIG_NO_HZ
 	seq_puts(m, "\"dt\",\"dt nesting\",\"dn\",\"df\",");
-#endif /* #ifdef CONFIG_NO_HZ */
+#endif 
 	seq_puts(m, "\"of\",\"ri\",\"ql\",\"b\"\n");
 #ifdef CONFIG_TREE_PREEMPT_RCU
 	seq_puts(m, "\"rcu_preempt:\"\n");
 	PRINT_RCU_DATA(rcu_preempt_data, print_one_rcu_data_csv, m);
-#endif /* #ifdef CONFIG_TREE_PREEMPT_RCU */
+#endif 
 	seq_puts(m, "\"rcu_sched:\"\n");
 	PRINT_RCU_DATA(rcu_sched_data, print_one_rcu_data_csv, m);
 	seq_puts(m, "\"rcu_bh:\"\n");
@@ -183,7 +159,7 @@ static int show_rcuhier(struct seq_file *m, void *unused)
 #ifdef CONFIG_TREE_PREEMPT_RCU
 	seq_puts(m, "rcu_preempt:\n");
 	print_one_rcu_state(m, &rcu_preempt_state);
-#endif /* #ifdef CONFIG_TREE_PREEMPT_RCU */
+#endif 
 	seq_puts(m, "rcu_sched:\n");
 	print_one_rcu_state(m, &rcu_sched_state);
 	seq_puts(m, "rcu_bh:\n");
@@ -209,7 +185,7 @@ static int show_rcugp(struct seq_file *m, void *unused)
 #ifdef CONFIG_TREE_PREEMPT_RCU
 	seq_printf(m, "rcu_preempt: completed=%ld  gpnum=%ld\n",
 		   rcu_preempt_state.completed, rcu_preempt_state.gpnum);
-#endif /* #ifdef CONFIG_TREE_PREEMPT_RCU */
+#endif 
 	seq_printf(m, "rcu_sched: completed=%ld  gpnum=%ld\n",
 		   rcu_sched_state.completed, rcu_sched_state.gpnum);
 	seq_printf(m, "rcu_bh: completed=%ld  gpnum=%ld\n",
@@ -263,7 +239,7 @@ static int show_rcu_pending(struct seq_file *m, void *unused)
 #ifdef CONFIG_TREE_PREEMPT_RCU
 	seq_puts(m, "rcu_preempt:\n");
 	print_rcu_pendings(m, &rcu_preempt_state);
-#endif /* #ifdef CONFIG_TREE_PREEMPT_RCU */
+#endif 
 	seq_puts(m, "rcu_sched:\n");
 	print_rcu_pendings(m, &rcu_sched_state);
 	seq_puts(m, "rcu_bh:\n");

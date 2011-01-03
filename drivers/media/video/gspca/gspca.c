@@ -1,22 +1,4 @@
-/*
- * Main USB camera driver
- *
- * Copyright (C) 2008-2009 Jean-Francois Moine (http://moinejf.free.fr)
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #define MODULE_NAME "gspca"
 
@@ -37,8 +19,8 @@
 
 #include "gspca.h"
 
-/* global values */
-#define DEF_NURBS 3		/* default number of URBs */
+
+#define DEF_NURBS 3		
 #if DEF_NURBS > MAX_NURBS
 #error "DEF_NURBS too big"
 #endif
@@ -74,15 +56,13 @@ static void PDEBUG_MODE(char *txt, __u32 pixfmt, int w, int h)
 #define PDEBUG_MODE(txt, pixfmt, w, h)
 #endif
 
-/* specific memory types - !! should different from V4L2_MEMORY_xxx */
-#define GSPCA_MEMORY_NO 0	/* V4L2_MEMORY_xxx starts from 1 */
+
+#define GSPCA_MEMORY_NO 0	
 #define GSPCA_MEMORY_READ 7
 
 #define BUF_ALL_FLAGS (V4L2_BUF_FLAG_QUEUED | V4L2_BUF_FLAG_DONE)
 
-/*
- * VMA operations.
- */
+
 static void gspca_vm_open(struct vm_area_struct *vma)
 {
 	struct gspca_frame *frame = vma->vm_private_data;
@@ -104,7 +84,7 @@ static const struct vm_operations_struct gspca_vm_ops = {
 	.close		= gspca_vm_close,
 };
 
-/* get the current input frame buffer */
+
 struct gspca_frame *gspca_get_i_frame(struct gspca_dev *gspca_dev)
 {
 	struct gspca_frame *frame;
@@ -120,20 +100,18 @@ struct gspca_frame *gspca_get_i_frame(struct gspca_dev *gspca_dev)
 }
 EXPORT_SYMBOL(gspca_get_i_frame);
 
-/*
- * fill a video frame from an URB and resubmit
- */
+
 static void fill_frame(struct gspca_dev *gspca_dev,
 			struct urb *urb)
 {
 	struct gspca_frame *frame;
-	u8 *data;		/* address of data in the iso message */
+	u8 *data;		
 	int i, len, st;
 	cam_pkt_op pkt_scan;
 
 	if (urb->status != 0) {
 		if (urb->status == -ESHUTDOWN)
-			return;		/* disconnection */
+			return;		
 #ifdef CONFIG_PM
 		if (!gspca_dev->frozen)
 #endif
@@ -143,14 +121,14 @@ static void fill_frame(struct gspca_dev *gspca_dev,
 	pkt_scan = gspca_dev->sd_desc->pkt_scan;
 	for (i = 0; i < urb->number_of_packets; i++) {
 
-		/* check the availability of the frame buffer */
+		
 		frame = gspca_get_i_frame(gspca_dev);
 		if (!frame) {
 			gspca_dev->last_packet_type = DISCARD_PACKET;
 			break;
 		}
 
-		/* check the packet status and length */
+		
 		len = urb->iso_frame_desc[i].actual_length;
 		if (len == 0) {
 			if (gspca_dev->empty_packet == 0)
@@ -166,7 +144,7 @@ static void fill_frame(struct gspca_dev *gspca_dev,
 			continue;
 		}
 
-		/* let the packet be analyzed by the subdriver */
+		
 		PDEBUG(D_PACK, "packet [%d] o:%d l:%d",
 			i, urb->iso_frame_desc[i].offset, len);
 		data = (u8 *) urb->transfer_buffer
@@ -174,17 +152,13 @@ static void fill_frame(struct gspca_dev *gspca_dev,
 		pkt_scan(gspca_dev, frame, data, len);
 	}
 
-	/* resubmit the URB */
+	
 	st = usb_submit_urb(urb, GFP_ATOMIC);
 	if (st < 0)
 		PDEBUG(D_ERR|D_PACK, "usb_submit_urb() ret %d", st);
 }
 
-/*
- * ISOC message interrupt from the USB device
- *
- * Analyse each packet and call the subdriver for copy to the frame buffer.
- */
+
 static void isoc_irq(struct urb *urb)
 {
 	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
@@ -195,9 +169,7 @@ static void isoc_irq(struct urb *urb)
 	fill_frame(gspca_dev, urb);
 }
 
-/*
- * bulk message interrupt from the USB device
- */
+
 static void bulk_irq(struct urb *urb)
 {
 	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
@@ -211,7 +183,7 @@ static void bulk_irq(struct urb *urb)
 	case 0:
 		break;
 	case -ESHUTDOWN:
-		return;		/* disconnection */
+		return;		
 	case -ECONNRESET:
 		urb->status = 0;
 		break;
@@ -223,7 +195,7 @@ static void bulk_irq(struct urb *urb)
 		return;
 	}
 
-	/* check the availability of the frame buffer */
+	
 	frame = gspca_get_i_frame(gspca_dev);
 	if (!frame) {
 		gspca_dev->last_packet_type = DISCARD_PACKET;
@@ -235,7 +207,7 @@ static void bulk_irq(struct urb *urb)
 					urb->actual_length);
 	}
 
-	/* resubmit the URB */
+	
 	if (gspca_dev->cam.bulk_nurbs != 0) {
 		st = usb_submit_urb(urb, GFP_ATOMIC);
 		if (st < 0)
@@ -243,18 +215,7 @@ static void bulk_irq(struct urb *urb)
 	}
 }
 
-/*
- * add data to the current frame
- *
- * This function is called by the subdrivers at interrupt level.
- *
- * To build a frame, these ones must add
- *	- one FIRST_PACKET
- *	- 0 or many INTER_PACKETs
- *	- one LAST_PACKET
- * DISCARD_PACKET invalidates the whole frame.
- * On LAST_PACKET, a new frame is returned.
- */
+
 struct gspca_frame *gspca_frame_add(struct gspca_dev *gspca_dev,
 				    enum gspca_packet_type packet_type,
 				    struct gspca_frame *frame,
@@ -265,8 +226,7 @@ struct gspca_frame *gspca_frame_add(struct gspca_dev *gspca_dev,
 
 	PDEBUG(D_PACK, "add t:%d l:%d",	packet_type, len);
 
-	/* when start of a new frame, if the current frame buffer
-	 * is not queued, discard the whole frame */
+	
 	if (packet_type == FIRST_PACKET) {
 		if ((frame->v4l2_buf.flags & BUF_ALL_FLAGS)
 						!= V4L2_BUF_FLAG_QUEUED) {
@@ -283,7 +243,7 @@ struct gspca_frame *gspca_frame_add(struct gspca_dev *gspca_dev,
 		return frame;
 	}
 
-	/* append the packet to the frame buffer */
+	
 	if (len > 0) {
 		if (frame->data_end - frame->data + len
 						 > frame->v4l2_buf.length) {
@@ -298,12 +258,12 @@ struct gspca_frame *gspca_frame_add(struct gspca_dev *gspca_dev,
 	}
 	gspca_dev->last_packet_type = packet_type;
 
-	/* if last packet, wake up the application and advance in the queue */
+	
 	if (packet_type == LAST_PACKET) {
 		frame->v4l2_buf.bytesused = frame->data_end - frame->data;
 		frame->v4l2_buf.flags &= ~V4L2_BUF_FLAG_QUEUED;
 		frame->v4l2_buf.flags |= V4L2_BUF_FLAG_DONE;
-		wake_up_interruptible(&gspca_dev->wq);	/* event = new frame */
+		wake_up_interruptible(&gspca_dev->wq);	
 		i = (gspca_dev->fr_i + 1) % gspca_dev->nframes;
 		gspca_dev->fr_i = i;
 		PDEBUG(D_FRAM, "frame complete len:%d q:%d i:%d o:%d",
@@ -437,9 +397,7 @@ static void destroy_urbs(struct gspca_dev *gspca_dev)
 	}
 }
 
-/*
- * look for an input transfer endpoint in an alternate setting
- */
+
 static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
 					  int xfer)
 {
@@ -456,14 +414,7 @@ static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
 	return NULL;
 }
 
-/*
- * look for an input (isoc or bulk) endpoint
- *
- * The endpoint is defined by the subdriver.
- * Use only the first isoc (some Zoran - 0x0572:0x0001 - have two such ep).
- * This routine may be called many times when the bandwidth is too small
- * (the bandwidth is checked on urb submit).
- */
+
 static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
 {
 	struct usb_interface *intf;
@@ -474,7 +425,7 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
 	ep = NULL;
 	xfer = gspca_dev->cam.bulk ? USB_ENDPOINT_XFER_BULK
 				   : USB_ENDPOINT_XFER_ISOC;
-	i = gspca_dev->alt;			/* previous alt setting */
+	i = gspca_dev->alt;			
 	while (--i >= 0) {
 		ep = alt_xfer(&intf->altsetting[i], xfer);
 		if (ep)
@@ -486,7 +437,7 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
 	}
 	PDEBUG(D_STREAM, "use alt %d ep 0x%02x",
 			i, ep->desc.bEndpointAddress);
-	gspca_dev->alt = i;		/* memorize the current alt setting */
+	gspca_dev->alt = i;		
 	if (gspca_dev->nbalt > 1) {
 		ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, i);
 		if (ret < 0) {
@@ -497,34 +448,32 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
 	return ep;
 }
 
-/*
- * create the URBs for image transfer
- */
+
 static int create_urbs(struct gspca_dev *gspca_dev,
 			struct usb_host_endpoint *ep)
 {
 	struct urb *urb;
 	int n, nurbs, i, psize, npkt, bsize;
 
-	/* calculate the packet size and the number of packets */
+	
 	psize = le16_to_cpu(ep->desc.wMaxPacketSize);
 
-	if (!gspca_dev->cam.bulk) {		/* isoc */
+	if (!gspca_dev->cam.bulk) {		
 
-		/* See paragraph 5.9 / table 5-11 of the usb 2.0 spec. */
+		
 		if (gspca_dev->pkt_size == 0)
 			psize = (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
 		else
 			psize = gspca_dev->pkt_size;
 		npkt = gspca_dev->cam.npkt;
 		if (npkt == 0)
-			npkt = 32;		/* default value */
+			npkt = 32;		
 		bsize = psize * npkt;
 		PDEBUG(D_STREAM,
 			"isoc %d pkts size %d = bsize:%d",
 			npkt, psize, bsize);
 		nurbs = DEF_NURBS;
-	} else {				/* bulk */
+	} else {				
 		npkt = 0;
 		bsize = gspca_dev->cam.bulk_size;
 		if (bsize == 0)
@@ -559,7 +508,7 @@ static int create_urbs(struct gspca_dev *gspca_dev,
 		urb->dev = gspca_dev->dev;
 		urb->context = gspca_dev;
 		urb->transfer_buffer_length = bsize;
-		if (npkt != 0) {		/* ISOC */
+		if (npkt != 0) {		
 			urb->pipe = usb_rcvisocpipe(gspca_dev->dev,
 						    ep->desc.bEndpointAddress);
 			urb->transfer_flags = URB_ISO_ASAP
@@ -571,7 +520,7 @@ static int create_urbs(struct gspca_dev *gspca_dev,
 				urb->iso_frame_desc[i].length = psize;
 				urb->iso_frame_desc[i].offset = psize * i;
 			}
-		} else {		/* bulk */
+		} else {		
 			urb->pipe = usb_rcvbulkpipe(gspca_dev->dev,
 						ep->desc.bEndpointAddress),
 			urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
@@ -581,9 +530,7 @@ static int create_urbs(struct gspca_dev *gspca_dev,
 	return 0;
 }
 
-/*
- * start the USB transfer
- */
+
 static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 {
 	struct usb_host_endpoint *ep;
@@ -597,8 +544,7 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 		goto out;
 	}
 
-	/* set the higher alternate setting and
-	 * loop until urb submit succeeds */
+	
 	gspca_dev->alt = gspca_dev->nbalt;
 	if (gspca_dev->sd_desc->isoc_init) {
 		ret = gspca_dev->sd_desc->isoc_init(gspca_dev);
@@ -616,12 +562,12 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 		if (ret < 0)
 			goto out;
 
-		/* clear the bulk endpoint */
+		
 		if (gspca_dev->cam.bulk)
 			usb_clear_halt(gspca_dev->dev,
 					gspca_dev->urb[0]->pipe);
 
-		/* start the cam */
+		
 		ret = gspca_dev->sd_desc->start(gspca_dev);
 		if (ret < 0) {
 			destroy_urbs(gspca_dev);
@@ -629,11 +575,11 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 		}
 		gspca_dev->streaming = 1;
 
-		/* some bulk transfers are started by the subdriver */
+		
 		if (gspca_dev->cam.bulk && gspca_dev->cam.bulk_nurbs == 0)
 			break;
 
-		/* submit the URBs */
+		
 		for (n = 0; n < gspca_dev->nurbs; n++) {
 			ret = usb_submit_urb(gspca_dev->urb[n], GFP_KERNEL);
 			if (ret < 0)
@@ -648,9 +594,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 		if (ret != -ENOSPC)
 			goto out;
 
-		/* the bandwidth is not wide enough
-		 * negociate or try a lower alternate setting */
-		msleep(20);	/* wait for kill complete */
+		
+		msleep(20);	
 		if (gspca_dev->sd_desc->isoc_nego) {
 			ret = gspca_dev->sd_desc->isoc_nego(gspca_dev);
 			if (ret < 0)
@@ -680,7 +625,7 @@ static int gspca_set_alt0(struct gspca_dev *gspca_dev)
 	return ret;
 }
 
-/* Note: both the queue and the usb locks should be held when calling this */
+
 static void gspca_stream_off(struct gspca_dev *gspca_dev)
 {
 	gspca_dev->streaming = 0;
@@ -691,7 +636,7 @@ static void gspca_stream_off(struct gspca_dev *gspca_dev)
 		gspca_set_alt0(gspca_dev);
 	}
 
-	/* always call stop0 to free the subdriver's resources */
+	
 	if (gspca_dev->sd_desc->stop0)
 		gspca_dev->sd_desc->stop0(gspca_dev);
 	PDEBUG(D_STREAM, "stream off OK");
@@ -701,7 +646,7 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
 {
 	int i;
 
-	i = gspca_dev->cam.nmodes - 1;	/* take the highest mode */
+	i = gspca_dev->cam.nmodes - 1;	
 	gspca_dev->curr_mode = i;
 	gspca_dev->width = gspca_dev->cam.cam_mode[i].width;
 	gspca_dev->height = gspca_dev->cam.cam_mode[i].height;
@@ -721,9 +666,7 @@ static int wxh_to_mode(struct gspca_dev *gspca_dev,
 	return i;
 }
 
-/*
- * search a mode with the right pixel format
- */
+
 static int gspca_get_mode(struct gspca_dev *gspca_dev,
 			int mode,
 			int pixfmt)
@@ -821,7 +764,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
 	int i, j, index;
 	__u32 fmt_tb[8];
 
-	/* give an index to each format */
+	
 	index = 0;
 	j = 0;
 	for (i = gspca_dev->cam.nmodes; --i >= 0; ) {
@@ -834,14 +777,14 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
 		}
 		if (j == index) {
 			if (fmtdesc->index == index)
-				break;		/* new format */
+				break;		
 			index++;
 			if (index >= ARRAY_SIZE(fmt_tb))
 				return -EINVAL;
 		}
 	}
 	if (i < 0)
-		return -EINVAL;		/* no more format */
+		return -EINVAL;		
 
 	fmtdesc->pixelformat = fmt_tb[index];
 	if (gspca_is_compressed(fmt_tb[index]))
@@ -878,24 +821,23 @@ static int try_fmt_vid_cap(struct gspca_dev *gspca_dev,
 	if (gspca_debug & D_CONF)
 		PDEBUG_MODE("try fmt cap", fmt->fmt.pix.pixelformat, w, h);
 #endif
-	/* search the closest mode for width and height */
+	
 	mode = wxh_to_mode(gspca_dev, w, h);
 
-	/* OK if right palette */
+	
 	if (gspca_dev->cam.cam_mode[mode].pixelformat
 						!= fmt->fmt.pix.pixelformat) {
 
-		/* else, search the closest mode with the same pixel format */
+		
 		mode2 = gspca_get_mode(gspca_dev, mode,
 					fmt->fmt.pix.pixelformat);
 		if (mode2 >= 0)
 			mode = mode2;
-/*		else
-			;		 * no chance, return this mode */
+
 	}
 	memcpy(&fmt->fmt.pix, &gspca_dev->cam.cam_mode[mode],
 		sizeof fmt->fmt.pix);
-	return mode;			/* used when s_fmt */
+	return mode;			
 }
 
 static int vidioc_try_fmt_vid_cap(struct file *file,
@@ -932,7 +874,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 
 	if (ret == gspca_dev->curr_mode) {
 		ret = 0;
-		goto out;			/* same mode */
+		goto out;			
 	}
 
 	if (gspca_dev->streaming) {
@@ -1000,12 +942,12 @@ static int dev_open(struct file *file)
 		goto out;
 	}
 
-	if (gspca_dev->users > 4) {	/* (arbitrary value) */
+	if (gspca_dev->users > 4) {	
 		ret = -EBUSY;
 		goto out;
 	}
 
-	/* protect the subdriver against rmmod */
+	
 	if (!try_module_get(gspca_dev->module)) {
 		ret = -ENODEV;
 		goto out;
@@ -1015,7 +957,7 @@ static int dev_open(struct file *file)
 
 	file->private_data = gspca_dev;
 #ifdef GSPCA_DEBUG
-	/* activate the v4l2 debug */
+	
 	if (gspca_debug & D_V4L2)
 		gspca_dev->vdev.debug |= V4L2_DEBUG_IOCTL
 					| V4L2_DEBUG_IOCTL_ARG;
@@ -1042,7 +984,7 @@ static int dev_close(struct file *file)
 		return -ERESTARTSYS;
 	gspca_dev->users--;
 
-	/* if the file did the capture, free the streaming resources */
+	
 	if (gspca_dev->capt_file == file) {
 		if (gspca_dev->streaming) {
 			mutex_lock(&gspca_dev->usb_lock);
@@ -1068,7 +1010,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
 	struct gspca_dev *gspca_dev = priv;
 	int ret;
 
-	/* protect the access to the usb device */
+	
 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
 		return -ERESTARTSYS;
 	if (!gspca_dev->present) {
@@ -1191,7 +1133,7 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
 	return ret;
 }
 
-/*fixme: have an audio flag in gspca_dev?*/
+
 static int vidioc_s_audio(struct file *file, void *priv,
 			 struct v4l2_audio *audio)
 {
@@ -1263,7 +1205,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
 	int i, ret = 0;
 
 	switch (rb->memory) {
-	case GSPCA_MEMORY_READ:			/* (internal call) */
+	case GSPCA_MEMORY_READ:			
 	case V4L2_MEMORY_MMAP:
 	case V4L2_MEMORY_USERPTR:
 		break;
@@ -1279,14 +1221,14 @@ static int vidioc_reqbufs(struct file *file, void *priv,
 		goto out;
 	}
 
-	/* only one file may do the capture */
+	
 	if (gspca_dev->capt_file != NULL
 	    && gspca_dev->capt_file != file) {
 		ret = -EBUSY;
 		goto out;
 	}
 
-	/* if allocated, the buffers must not be mapped */
+	
 	for (i = 0; i < gspca_dev->nframes; i++) {
 		if (gspca_dev->frame[i].vma_use_count) {
 			ret = -EBUSY;
@@ -1294,19 +1236,19 @@ static int vidioc_reqbufs(struct file *file, void *priv,
 		}
 	}
 
-	/* stop streaming */
+	
 	if (gspca_dev->streaming) {
 		mutex_lock(&gspca_dev->usb_lock);
 		gspca_stream_off(gspca_dev);
 		mutex_unlock(&gspca_dev->usb_lock);
 	}
 
-	/* free the previous allocated buffers, if any */
+	
 	if (gspca_dev->nframes != 0) {
 		frame_free(gspca_dev);
 		gspca_dev->capt_file = NULL;
 	}
-	if (rb->count == 0)			/* unrequest */
+	if (rb->count == 0)			
 		goto out;
 	gspca_dev->memory = rb->memory;
 	ret = frame_alloc(gspca_dev, rb->count);
@@ -1383,7 +1325,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
 	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
 		return -ERESTARTSYS;
 
-	/* stop streaming */
+	
 	if (mutex_lock_interruptible(&gspca_dev->usb_lock)) {
 		ret = -ERESTARTSYS;
 		goto out;
@@ -1391,7 +1333,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
 	gspca_stream_off(gspca_dev);
 	mutex_unlock(&gspca_dev->usb_lock);
 
-	/* empty the application queues */
+	
 	for (i = 0; i < gspca_dev->nframes; i++)
 		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
 	gspca_dev->fr_i = gspca_dev->fr_o = gspca_dev->fr_q = 0;
@@ -1507,7 +1449,7 @@ static int vidiocgmbuf(struct file *file, void *priv,
 			struct v4l2_format fmt;
 
 			fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			i = gspca_dev->cam.nmodes - 1;	/* highest mode */
+			i = gspca_dev->cam.nmodes - 1;	
 			fmt.fmt.pix.width = gspca_dev->cam.cam_mode[i].width;
 			fmt.fmt.pix.height = gspca_dev->cam.cam_mode[i].height;
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
@@ -1576,7 +1518,7 @@ static int dev_mmap(struct file *file, struct vm_area_struct *vma)
 		goto out;
 	}
 #ifdef CONFIG_VIDEO_V4L1_COMPAT
-	/* v4l1 maps all the buffers */
+	
 	if (i != 0
 	    || size != frame->v4l2_buf.length * gspca_dev->nframes)
 #endif
@@ -1586,10 +1528,7 @@ static int dev_mmap(struct file *file, struct vm_area_struct *vma)
 		goto out;
 	}
 
-	/*
-	 * - VM_IO marks the area as being a mmaped region for I/O to a
-	 *   device. It also prevents the region from being core dumped.
-	 */
+	
 	vma->vm_flags |= VM_IO;
 
 	addr = (unsigned long) frame->data;
@@ -1612,18 +1551,14 @@ out:
 	return ret;
 }
 
-/*
- * wait for a video frame
- *
- * If a frame is ready, its index is returned.
- */
+
 static int frame_wait(struct gspca_dev *gspca_dev,
 			int nonblock_ing)
 {
 	struct gspca_frame *frame;
 	int i, j, ret;
 
-	/* check if a frame is ready */
+	
 	i = gspca_dev->fr_o;
 	j = gspca_dev->fr_queue[i];
 	frame = &gspca_dev->frame[j];
@@ -1632,7 +1567,7 @@ static int frame_wait(struct gspca_dev *gspca_dev,
 		if (nonblock_ing)
 			return -EAGAIN;
 
-		/* wait till a frame is ready */
+		
 		ret = wait_event_interruptible_timeout(gspca_dev->wq,
 			(frame->v4l2_buf.flags & V4L2_BUF_FLAG_DONE) ||
 			!gspca_dev->streaming || !gspca_dev->present,
@@ -1658,11 +1593,7 @@ static int frame_wait(struct gspca_dev *gspca_dev,
 	return j;
 }
 
-/*
- * dequeue a video buffer
- *
- * If nonblock_ing is false, block until a buffer is available.
- */
+
 static int vidioc_dqbuf(struct file *file, void *priv,
 			struct v4l2_buffer *v4l2_buf)
 {
@@ -1677,23 +1608,23 @@ static int vidioc_dqbuf(struct file *file, void *priv,
 	if (!gspca_dev->present)
 		return -ENODEV;
 
-	/* if not streaming, be sure the application will not loop forever */
+	
 	if (!(file->f_flags & O_NONBLOCK)
 	    && !gspca_dev->streaming && gspca_dev->users == 1)
 		return -EINVAL;
 
-	/* only the capturing file may dequeue */
+	
 	if (gspca_dev->capt_file != file)
 		return -EINVAL;
 
-	/* only one dequeue / read at a time */
+	
 	if (mutex_lock_interruptible(&gspca_dev->read_lock))
 		return -ERESTARTSYS;
 
 	ret = frame_wait(gspca_dev, file->f_flags & O_NONBLOCK);
 	if (ret < 0)
 		goto out;
-	i = ret;				/* frame index */
+	i = ret;				
 	frame = &gspca_dev->frame[i];
 	if (gspca_dev->memory == V4L2_MEMORY_USERPTR) {
 		if (copy_to_user((__u8 __user *) frame->v4l2_buf.m.userptr,
@@ -1714,12 +1645,7 @@ out:
 	return ret;
 }
 
-/*
- * queue a video buffer
- *
- * Attempting to queue a buffer that has already been
- * queued will return -EINVAL.
- */
+
 static int vidioc_qbuf(struct file *file, void *priv,
 			struct v4l2_buffer *v4l2_buf)
 {
@@ -1759,7 +1685,7 @@ static int vidioc_qbuf(struct file *file, void *priv,
 		frame->v4l2_buf.length = v4l2_buf->length;
 	}
 
-	/* put the buffer in the 'queued' queue */
+	
 	i = gspca_dev->fr_q;
 	gspca_dev->fr_queue[i] = index;
 	gspca_dev->fr_q = (i + 1) % gspca_dev->nframes;
@@ -1776,9 +1702,7 @@ out:
 	return ret;
 }
 
-/*
- * allocate the resources for read()
- */
+
 static int read_alloc(struct gspca_dev *gspca_dev,
 			struct file *file)
 {
@@ -1812,7 +1736,7 @@ static int read_alloc(struct gspca_dev *gspca_dev,
 		gspca_dev->memory = GSPCA_MEMORY_READ;
 	}
 
-	/* start streaming */
+	
 	ret = vidioc_streamon(file, gspca_dev, V4L2_BUF_TYPE_VIDEO_CAPTURE);
 	if (ret != 0)
 		PDEBUG(D_STREAM, "read streamon err %d", ret);
@@ -1828,10 +1752,10 @@ static unsigned int dev_poll(struct file *file, poll_table *wait)
 
 	poll_wait(file, &gspca_dev->wq, wait);
 
-	/* if reqbufs is not done, the user would use read() */
+	
 	if (gspca_dev->nframes == 0) {
 		if (gspca_dev->memory != GSPCA_MEMORY_NO)
-			return POLLERR;		/* not the 1st time */
+			return POLLERR;		
 		ret = read_alloc(gspca_dev, file);
 		if (ret != 0)
 			return POLLERR;
@@ -1840,11 +1764,11 @@ static unsigned int dev_poll(struct file *file, poll_table *wait)
 	if (mutex_lock_interruptible(&gspca_dev->queue_lock) != 0)
 		return POLLERR;
 
-	/* check the next incoming buffer */
+	
 	i = gspca_dev->fr_o;
 	i = gspca_dev->fr_queue[i];
 	if (gspca_dev->frame[i].v4l2_buf.flags & V4L2_BUF_FLAG_DONE)
-		ret = POLLIN | POLLRDNORM;	/* something to read */
+		ret = POLLIN | POLLRDNORM;	
 	else
 		ret = 0;
 	mutex_unlock(&gspca_dev->queue_lock);
@@ -1866,7 +1790,7 @@ static ssize_t dev_read(struct file *file, char __user *data,
 	if (!gspca_dev->present)
 		return -ENODEV;
 	switch (gspca_dev->memory) {
-	case GSPCA_MEMORY_NO:			/* first time */
+	case GSPCA_MEMORY_NO:			
 		ret = read_alloc(gspca_dev, file);
 		if (ret != 0)
 			return ret;
@@ -1874,12 +1798,12 @@ static ssize_t dev_read(struct file *file, char __user *data,
 	case GSPCA_MEMORY_READ:
 		if (gspca_dev->capt_file == file)
 			break;
-		/* fall thru */
+		
 	default:
 		return -EINVAL;
 	}
 
-	/* get a frame */
+	
 	jiffies_to_timeval(get_jiffies_64(), &timestamp);
 	timestamp.tv_sec--;
 	n = 2;
@@ -1893,11 +1817,10 @@ static ssize_t dev_read(struct file *file, char __user *data,
 			return ret;
 		}
 
-		/* if the process slept for more than 1 second,
-		 * get a newer frame */
+		
 		frame = &gspca_dev->frame[v4l2_buf.index];
 		if (--n < 0)
-			break;			/* avoid infinite loop */
+			break;			
 		if (frame->v4l2_buf.timestamp.tv_sec >= timestamp.tv_sec)
 			break;
 		ret = vidioc_qbuf(file, gspca_dev, &v4l2_buf);
@@ -1907,7 +1830,7 @@ static ssize_t dev_read(struct file *file, char __user *data,
 		}
 	}
 
-	/* copy the frame */
+	
 	if (count > frame->v4l2_buf.bytesused)
 		count = frame->v4l2_buf.bytesused;
 	ret = copy_to_user(data, frame->data, count);
@@ -1919,7 +1842,7 @@ static ssize_t dev_read(struct file *file, char __user *data,
 	}
 	ret = count;
 out:
-	/* in each case, requeue the buffer */
+	
 	ret2 = vidioc_qbuf(file, gspca_dev, &v4l2_buf);
 	if (ret2 != 0)
 		return ret2;
@@ -1981,12 +1904,7 @@ static struct video_device gspca_template = {
 	.minor = -1,
 };
 
-/*
- * probe and create a new gspca device
- *
- * This function must be called by the sub-driver when it is
- * called for probing a new device.
- */
+
 int gspca_dev_probe(struct usb_interface *intf,
 		const struct usb_device_id *id,
 		const struct sd_desc *sd_desc,
@@ -2000,14 +1918,14 @@ int gspca_dev_probe(struct usb_interface *intf,
 
 	PDEBUG(D_PROBE, "probing %04x:%04x", id->idVendor, id->idProduct);
 
-	/* we don't handle multi-config cameras */
+	
 	if (dev->descriptor.bNumConfigurations != 1)
 		return -ENODEV;
 	interface = &intf->cur_altsetting->desc;
 	if (interface->bInterfaceNumber > 0)
 		return -ENODEV;
 
-	/* create the device */
+	
 	if (dev_size < sizeof *gspca_dev)
 		dev_size = sizeof *gspca_dev;
 	gspca_dev = kzalloc(dev_size, GFP_KERNEL);
@@ -2026,9 +1944,9 @@ int gspca_dev_probe(struct usb_interface *intf,
 	gspca_dev->nbalt = intf->num_altsetting;
 	gspca_dev->sd_desc = sd_desc;
 	gspca_dev->nbufread = 2;
-	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
+	gspca_dev->empty_packet = -1;	
 
-	/* configure the subdriver and initialize the USB device */
+	
 	ret = sd_desc->config(gspca_dev, id);
 	if (ret < 0)
 		goto out;
@@ -2045,7 +1963,7 @@ int gspca_dev_probe(struct usb_interface *intf,
 	mutex_init(&gspca_dev->queue_lock);
 	init_waitqueue_head(&gspca_dev->wq);
 
-	/* init video stuff */
+	
 	memcpy(&gspca_dev->vdev, &gspca_template, sizeof gspca_template);
 	gspca_dev->vdev.parent = &intf->dev;
 	gspca_dev->module = module;
@@ -2068,12 +1986,7 @@ out:
 }
 EXPORT_SYMBOL(gspca_dev_probe);
 
-/*
- * USB disconnection
- *
- * This function must be called by the sub-driver
- * when the device disconnects, after the specific resources are freed.
- */
+
 void gspca_disconnect(struct usb_interface *intf)
 {
 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
@@ -2086,14 +1999,14 @@ void gspca_disconnect(struct usb_interface *intf)
 		wake_up_interruptible(&gspca_dev->wq);
 	}
 
-	/* the device is freed at exit of this function */
+	
 	gspca_dev->dev = NULL;
 	mutex_unlock(&gspca_dev->usb_lock);
 
 	usb_set_intfdata(intf, NULL);
 
-	/* release the device */
-	/* (this will call gspca_release() immediatly or on last close) */
+	
+	
 	video_unregister_device(&gspca_dev->vdev);
 
 	PDEBUG(D_PROBE, "disconnect complete");
@@ -2107,7 +2020,7 @@ int gspca_suspend(struct usb_interface *intf, pm_message_t message)
 
 	if (!gspca_dev->streaming)
 		return 0;
-	gspca_dev->frozen = 1;		/* avoid urb error messages */
+	gspca_dev->frozen = 1;		
 	if (gspca_dev->sd_desc->stopN)
 		gspca_dev->sd_desc->stopN(gspca_dev);
 	destroy_urbs(gspca_dev);
@@ -2130,13 +2043,9 @@ int gspca_resume(struct usb_interface *intf)
 }
 EXPORT_SYMBOL(gspca_resume);
 #endif
-/* -- cam driver utility functions -- */
 
-/* auto gain and exposure algorithm based on the knee algorithm described here:
-   http://ytse.tricolour.net/docs/LowLightOptimization.html
 
-   Returns 0 if no changes were made, 1 if the gain and or exposure settings
-   where changed. */
+
 int gspca_auto_gain_n_exposure(struct gspca_dev *gspca_dev, int avg_lum,
 	int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee)
 {
@@ -2168,8 +2077,7 @@ int gspca_auto_gain_n_exposure(struct gspca_dev *gspca_dev, int avg_lum,
 	orig_gain = gain;
 	orig_exposure = exposure;
 
-	/* If we are of a multiple of deadzone, do multiple steps to reach the
-	   desired lumination fast (with the risc of a slight overshoot) */
+	
 	steps = abs(desired_avg_lum - avg_lum) / deadzone;
 
 	PDEBUG(D_FRAM, "autogain: lum: %d, desired: %d, steps: %d",
@@ -2218,7 +2126,7 @@ int gspca_auto_gain_n_exposure(struct gspca_dev *gspca_dev, int avg_lum,
 }
 EXPORT_SYMBOL(gspca_auto_gain_n_exposure);
 
-/* -- module insert / remove -- */
+
 static int __init gspca_init(void)
 {
 	info("main v%d.%d.%d registered",

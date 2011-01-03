@@ -1,15 +1,4 @@
-/*
- * net/sched/ipt.c	iptables target interface
- *
- *TODO: Add other tables. For now we only support the ipv4 table targets
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Copyright:	Jamal Hadi Salim (2002-4)
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -211,9 +200,7 @@ static int tcf_ipt(struct sk_buff *skb, struct tc_action *a,
 	ipt->tcf_bstats.bytes += qdisc_pkt_len(skb);
 	ipt->tcf_bstats.packets++;
 
-	/* yes, we have to worry about both in and out dev
-	 worry later - danger - this API seems to have changed
-	 from earlier kernels */
+	
 	par.in       = skb->dev;
 	par.out      = NULL;
 	par.hooknum  = ipt->tcfi_hook;
@@ -251,10 +238,7 @@ static int tcf_ipt_dump(struct sk_buff *skb, struct tc_action *a, int bind, int 
 	struct tcf_t tm;
 	struct tc_cnt c;
 
-	/* for simple targets kernel size == user size
-	** user name = target name
-	** for foolproof you need to not assume this
-	*/
+	
 
 	t = kmemdup(ipt->tcfi_t, ipt->tcfi_t->u.user.target_size, GFP_ATOMIC);
 	if (unlikely(!t))

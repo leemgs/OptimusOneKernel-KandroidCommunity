@@ -1,14 +1,4 @@
-/* DVB USB framework compliant Linux driver for the Opera1 DVB-S Card
-*
-* Copyright (C) 2006 Mario Hlawitschka (dh1pa@amsat.org)
-* Copyright (C) 2006 Marco Gittler (g.marco@freenet.de)
-*
-*	This program is free software; you can redistribute it and/or modify it
-*	under the terms of the GNU General Public License as published by the Free
-*	Software Foundation, version 2.
-*
-* see Documentation/dvb/README.dvb-usb for more information
-*/
+
 
 #define DVB_USB_LOG_PREFIX "opera"
 
@@ -77,7 +67,7 @@ static int opera1_xilinx_rw(struct usb_device *dev, u8 request, u16 value,
 	return ret;
 }
 
-/* I2C */
+
 
 static int opera1_usb_i2c_msgxfer(struct dvb_usb_device *dev, u16 addr,
 				  u8 * buf, u16 len)
@@ -342,22 +332,22 @@ static struct dvb_usb_rc_key opera1_rc_keys[] = {
 	{0x49b6, KEY_8},
 	{0x05fa, KEY_9},
 	{0x45ba, KEY_0},
-	{0x09f6, KEY_UP},	/*chanup */
-	{0x1be5, KEY_DOWN},	/*chandown */
-	{0x5da3, KEY_LEFT},	/*voldown */
-	{0x5fa1, KEY_RIGHT},	/*volup */
-	{0x07f8, KEY_SPACE},	/*tab */
-	{0x1fe1, KEY_ENTER},	/*play ok */
-	{0x1be4, KEY_Z},	/*zoom */
-	{0x59a6, KEY_M},	/*mute */
-	{0x5ba5, KEY_F},	/*tv/f */
-	{0x19e7, KEY_R},	/*rec */
-	{0x01fe, KEY_S},	/*Stop */
-	{0x03fd, KEY_P},	/*pause */
-	{0x03fc, KEY_W},	/*<- -> */
-	{0x07f9, KEY_C},	/*capture */
-	{0x47b9, KEY_Q},	/*exit */
-	{0x43bc, KEY_O},	/*power */
+	{0x09f6, KEY_UP},	
+	{0x1be5, KEY_DOWN},	
+	{0x5da3, KEY_LEFT},	
+	{0x5fa1, KEY_RIGHT},	
+	{0x07f8, KEY_SPACE},	
+	{0x1fe1, KEY_ENTER},	
+	{0x1be4, KEY_Z},	
+	{0x59a6, KEY_M},	
+	{0x5ba5, KEY_F},	
+	{0x19e7, KEY_R},	
+	{0x01fe, KEY_S},	
+	{0x03fd, KEY_P},	
+	{0x03fc, KEY_W},	
+	{0x07f9, KEY_C},	
+	{0x47b9, KEY_Q},	
+	{0x43bc, KEY_O},	
 
 };
 
@@ -455,7 +445,7 @@ static int opera1_xilinx_load_firmware(struct usb_device *dev,
 
 			u8 reset = 0, fpga_command = 0;
 			memcpy(p, fw->data, fw->size);
-			/* clear fpga ? */
+			
 			opera1_xilinx_rw(dev, 0xbc, 0xaa, &fpga_command, 1,
 					 OPERA_WRITE_MSG);
 			for (i = 0; i < fw->size;) {
@@ -473,7 +463,7 @@ static int opera1_xilinx_load_firmware(struct usb_device *dev,
 				}
 				i = i + fpgasize;
 			}
-			/* restart the CPU */
+			
 			if (ret || opera1_xilinx_rw
 					(dev, 0xa0, 0xe600, &reset, 1,
 					OPERA_WRITE_MSG) != 1) {
@@ -504,7 +494,7 @@ static struct dvb_usb_device_properties opera1_properties = {
 	.rc_query = opera1_rc_query,
 	.read_mac_address = opera1_read_mac_address,
 	.generic_bulk_ctrl_endpoint = 0x00,
-	/* parameter for the MPEG2-data transfer */
+	
 	.num_adapters = 1,
 	.adapter = {
 		{

@@ -1,16 +1,6 @@
-/*
- *  HID driver for Kye/Genius devices not fully compliant with HID standard
- *
- *  Copyright (c) 2009 Jiri Kosina
- *  Copyright (c) 2009 Tomas Hanak
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/hid.h>
@@ -18,11 +8,7 @@
 
 #include "hid-ids.h"
 
-/* the fixups that need to be done:
- *   - change led usage page to button for extra buttons
- *   - report size 8 count 1 must be size 1 count 8 for button bitfield
- *   - change the button usage range to 4-7 for the extra buttons
- */
+
 static void kye_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 		unsigned int rsize)
 {

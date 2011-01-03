@@ -1,58 +1,15 @@
-/******************************************************************************
- *
- * Name: acrestyp.h - Defines, types, and structures for resource descriptors
- *
- *****************************************************************************/
 
-/*
- * Copyright (C) 2000 - 2008, Intel Corp.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer,
- *    without modification.
- * 2. Redistributions in binary form must reproduce at minimum a disclaimer
- *    substantially similar to the "NO WARRANTY" disclaimer below
- *    ("Disclaimer") and any redistribution must be conditioned upon
- *    including a substantially similar Disclaimer requirement for further
- *    binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
- *
- * NO WARRANTY
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- */
+
+
 
 #ifndef __ACRESTYP_H__
 #define __ACRESTYP_H__
 
-/*
- * Definitions for Resource Attributes
- */
-typedef u16 acpi_rs_length;	/* Resource Length field is fixed at 16 bits */
-typedef u32 acpi_rsdesc_size;	/* Max Resource Descriptor size is (Length+3) = (64_k-1)+3 */
 
-/*
- * Memory Attributes
- */
+typedef u16 acpi_rs_length;	
+typedef u32 acpi_rsdesc_size;	
+
+
 #define ACPI_READ_ONLY_MEMORY           (u8) 0x00
 #define ACPI_READ_WRITE_MEMORY          (u8) 0x01
 
@@ -61,28 +18,20 @@ typedef u32 acpi_rsdesc_size;	/* Max Resource Descriptor size is (Length+3) = (6
 #define ACPI_WRITE_COMBINING_MEMORY     (u8) 0x02
 #define ACPI_PREFETCHABLE_MEMORY        (u8) 0x03
 
-/*
- * IO Attributes
- * The ISA IO ranges are:     n000-n0_fFh, n400-n4_fFh, n800-n8_fFh, n_c00-n_cFFh.
- * The non-ISA IO ranges are: n100-n3_fFh, n500-n7_fFh, n900-n_bFFh, n_cd0-n_fFFh.
- */
+
 #define ACPI_NON_ISA_ONLY_RANGES        (u8) 0x01
 #define ACPI_ISA_ONLY_RANGES            (u8) 0x02
 #define ACPI_ENTIRE_RANGE               (ACPI_NON_ISA_ONLY_RANGES | ACPI_ISA_ONLY_RANGES)
 
-/* Type of translation - 1=Sparse, 0=Dense */
+
 
 #define ACPI_SPARSE_TRANSLATION         (u8) 0x01
 
-/*
- * IO Port Descriptor Decode
- */
-#define ACPI_DECODE_10                  (u8) 0x00	/* 10-bit IO address decode */
-#define ACPI_DECODE_16                  (u8) 0x01	/* 16-bit IO address decode */
 
-/*
- * IRQ Attributes
- */
+#define ACPI_DECODE_10                  (u8) 0x00	
+#define ACPI_DECODE_16                  (u8) 0x01	
+
+
 #define ACPI_LEVEL_SENSITIVE            (u8) 0x00
 #define ACPI_EDGE_SENSITIVE             (u8) 0x01
 
@@ -92,9 +41,7 @@ typedef u32 acpi_rsdesc_size;	/* Max Resource Descriptor size is (Length+3) = (6
 #define ACPI_EXCLUSIVE                  (u8) 0x00
 #define ACPI_SHARED                     (u8) 0x01
 
-/*
- * DMA Attributes
- */
+
 #define ACPI_COMPATIBILITY              (u8) 0x00
 #define ACPI_TYPE_A                     (u8) 0x01
 #define ACPI_TYPE_B                     (u8) 0x02
@@ -107,16 +54,12 @@ typedef u32 acpi_rsdesc_size;	/* Max Resource Descriptor size is (Length+3) = (6
 #define ACPI_TRANSFER_8_16              (u8) 0x01
 #define ACPI_TRANSFER_16                (u8) 0x02
 
-/*
- * Start Dependent Functions Priority definitions
- */
+
 #define ACPI_GOOD_CONFIGURATION         (u8) 0x00
 #define ACPI_ACCEPTABLE_CONFIGURATION   (u8) 0x01
 #define ACPI_SUB_OPTIMAL_CONFIGURATION  (u8) 0x02
 
-/*
- * 16, 32 and 64-bit Address Descriptor resource types
- */
+
 #define ACPI_MEMORY_RANGE               (u8) 0x00
 #define ACPI_IO_RANGE                   (u8) 0x01
 #define ACPI_BUS_NUMBER_RANGE           (u8) 0x02
@@ -130,14 +73,12 @@ typedef u32 acpi_rsdesc_size;	/* Max Resource Descriptor size is (Length+3) = (6
 #define ACPI_PRODUCER                   (u8) 0x00
 #define ACPI_CONSUMER                   (u8) 0x01
 
-/*
- * If possible, pack the following structures to byte alignment
- */
+
 #ifndef ACPI_MISALIGNMENT_NOT_SUPPORTED
 #pragma pack(1)
 #endif
 
-/* UUID data structures for use in vendor-defined resource descriptors */
+
 
 struct acpi_uuid {
 	u8 data[ACPI_UUID_LENGTH];
@@ -148,9 +89,7 @@ struct acpi_vendor_uuid {
 	u8 data[ACPI_UUID_LENGTH];
 };
 
-/*
- * Structures used to describe device resources
- */
+
 struct acpi_resource_irq {
 	u8 descriptor_length;
 	u8 triggering;
@@ -174,10 +113,7 @@ struct acpi_resource_start_dependent {
 	u8 performance_robustness;
 };
 
-/*
- * The END_DEPENDENT_FUNCTIONS_RESOURCE struct is not
- * needed because it has no fields
- */
+
 
 struct acpi_resource_io {
 	u8 io_decode;
@@ -197,7 +133,7 @@ struct acpi_resource_vendor {
 	u8 byte_data[1];
 };
 
-/* Vendor resource with UUID info (introduced in ACPI 3.0) */
+
 
 struct acpi_resource_vendor_typed {
 	u16 byte_length;
@@ -250,7 +186,7 @@ union acpi_resource_attribute {
 	struct acpi_memory_attribute mem;
 	struct acpi_io_attribute io;
 
-	/* Used for the *word_space macros */
+	
 
 	u8 type_specific;
 };
@@ -261,7 +197,7 @@ struct acpi_resource_source {
 	char *string_ptr;
 };
 
-/* Fields common to all address descriptors, 16/32/64 bit */
+
 
 #define ACPI_RESOURCE_ADDRESS_COMMON \
 	u8                                      resource_type; \
@@ -329,7 +265,7 @@ struct acpi_resource_generic_register {
 	u64 address;
 };
 
-/* ACPI_RESOURCE_TYPEs */
+
 
 #define ACPI_RESOURCE_TYPE_IRQ                  0
 #define ACPI_RESOURCE_TYPE_DMA                  1
@@ -345,12 +281,12 @@ struct acpi_resource_generic_register {
 #define ACPI_RESOURCE_TYPE_ADDRESS16            11
 #define ACPI_RESOURCE_TYPE_ADDRESS32            12
 #define ACPI_RESOURCE_TYPE_ADDRESS64            13
-#define ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64   14	/* ACPI 3.0 */
+#define ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64   14	
 #define ACPI_RESOURCE_TYPE_EXTENDED_IRQ         15
 #define ACPI_RESOURCE_TYPE_GENERIC_REGISTER     16
 #define ACPI_RESOURCE_TYPE_MAX                  16
 
-/* Master union for resource descriptors */
+
 
 union acpi_resource_data {
 	struct acpi_resource_irq irq;
@@ -371,12 +307,12 @@ union acpi_resource_data {
 	struct acpi_resource_extended_irq extended_irq;
 	struct acpi_resource_generic_register generic_reg;
 
-	/* Common fields */
+	
 
-	struct acpi_resource_address address;	/* Common 16/32/64 address fields */
+	struct acpi_resource_address address;	
 };
 
-/* Common resource header */
+
 
 struct acpi_resource {
 	u32 type;
@@ -384,11 +320,11 @@ struct acpi_resource {
 	union acpi_resource_data data;
 };
 
-/* restore default alignment */
+
 
 #pragma pack()
 
-#define ACPI_RS_SIZE_NO_DATA                8	/* Id + Length fields */
+#define ACPI_RS_SIZE_NO_DATA                8	
 #define ACPI_RS_SIZE_MIN                    (u32) ACPI_ROUND_UP_TO_NATIVE_WORD (12)
 #define ACPI_RS_SIZE(type)                  (u32) (ACPI_RS_SIZE_NO_DATA + sizeof (type))
 
@@ -397,9 +333,9 @@ struct acpi_resource {
 struct acpi_pci_routing_table {
 	u32 length;
 	u32 pin;
-	acpi_integer address;	/* here for 64-bit alignment */
+	acpi_integer address;	
 	u32 source_index;
-	char source[4];		/* pad to 64 bits so sizeof() works in all cases */
+	char source[4];		
 };
 
-#endif				/* __ACRESTYP_H__ */
+#endif				

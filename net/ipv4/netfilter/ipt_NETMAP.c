@@ -1,14 +1,6 @@
-/* NETMAP - static NAT mapping of IP network addresses (1:1).
- * The mapping can be applied to source (POSTROUTING),
- * destination (PREROUTING), or both (with separate rules).
- */
 
-/* (C) 2000-2001 Svenning Soerensen <svenning@post5.tele.dk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/ip.h>
 #include <linux/module.h>
@@ -65,7 +57,7 @@ netmap_tg(struct sk_buff *skb, const struct xt_target_param *par)
 		  new_ip, new_ip,
 		  mr->range[0].min, mr->range[0].max });
 
-	/* Hand modified range to generic setup. */
+	
 	return nf_nat_setup_info(ct, &newrange, HOOK2MANIP(par->hooknum));
 }
 

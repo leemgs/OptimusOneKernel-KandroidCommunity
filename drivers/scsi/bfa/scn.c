@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <bfa.h>
 #include <bfa_svc.h>
@@ -30,9 +15,7 @@ BFA_TRC_FILE(FCS, SCN);
 #define FC_QOS_RSCN_EVENT		0x0c
 #define FC_FABRIC_NAME_RSCN_EVENT	0x0d
 
-/*
- * forward declarations
- */
+
 static void     bfa_fcs_port_scn_send_scr(void *scn_cbarg,
 					  struct bfa_fcxp_s *fcxp_alloced);
 static void     bfa_fcs_port_scn_scr_response(void *fcsarg,
@@ -46,13 +29,9 @@ static void     bfa_fcs_port_scn_send_ls_acc(struct bfa_fcs_port_s *port,
 					     struct fchs_s *rx_fchs);
 static void     bfa_fcs_port_scn_timeout(void *arg);
 
-/**
- *  fcs_scm_sm FCS SCN state machine
- */
 
-/**
- * VPort SCN State Machine events
- */
+
+
 enum port_scn_event {
 	SCNSM_EVENT_PORT_ONLINE = 1,
 	SCNSM_EVENT_PORT_OFFLINE = 2,
@@ -73,9 +52,7 @@ static void     bfa_fcs_port_scn_sm_scr_retry(struct bfa_fcs_port_scn_s *scn,
 static void     bfa_fcs_port_scn_sm_online(struct bfa_fcs_port_scn_s *scn,
 					   enum port_scn_event event);
 
-/**
- * 		Starting state - awaiting link up.
- */
+
 static void
 bfa_fcs_port_scn_sm_offline(struct bfa_fcs_port_scn_s *scn,
 			    enum port_scn_event event)
@@ -177,13 +154,9 @@ bfa_fcs_port_scn_sm_online(struct bfa_fcs_port_scn_s *scn,
 
 
 
-/**
- *  fcs_scn_private FCS SCN private functions
- */
 
-/**
- * This routine will be called to send a SCR command.
- */
+
+
 static void
 bfa_fcs_port_scn_send_scr(void *scn_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -204,9 +177,7 @@ bfa_fcs_port_scn_send_scr(void *scn_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 	}
 	scn->fcxp = fcxp;
 
-	/*
-	 * Handle VU registrations for Base port only
-	 */
+	
 	if ((!port->vport) && bfa_ioc_get_fcmode(&port->fcs->bfa->ioc)) {
 		len = fc_scr_build(&fchs, bfa_fcxp_get_reqbuf(fcxp),
 				   bfa_lps_is_brcd_fabric(port->fabric->lps),
@@ -236,9 +207,7 @@ bfa_fcs_port_scn_scr_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		bfa_sm_send_event(scn, SCNSM_EVENT_RSP_ERROR);
@@ -268,9 +237,7 @@ bfa_fcs_port_scn_scr_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	}
 }
 
-/*
- * Send a LS Accept
- */
+
 static void
 bfa_fcs_port_scn_send_ls_acc(struct bfa_fcs_port_s *port,
 			struct fchs_s *rx_fchs)
@@ -294,19 +261,7 @@ bfa_fcs_port_scn_send_ls_acc(struct bfa_fcs_port_s *port,
 		      FC_MAX_PDUSZ, 0);
 }
 
-/**
- *     This routine will be called by bfa_timer on timer timeouts.
- *
- * 	param[in] 	vport 			- pointer to bfa_fcs_port_t.
- * 	param[out]	vport_status 	- pointer to return vport status in
- *
- * 	return
- * 		void
- *
-*  	Special Considerations:
- *
- * 	note
- */
+
 static void
 bfa_fcs_port_scn_timeout(void *arg)
 {
@@ -317,13 +272,9 @@ bfa_fcs_port_scn_timeout(void *arg)
 
 
 
-/**
- *  fcs_scn_public FCS state change notification public interfaces
- */
 
-/*
- * Functions called by port/fab
- */
+
+
 void
 bfa_fcs_port_scn_init(struct bfa_fcs_port_s *port)
 {
@@ -358,16 +309,10 @@ bfa_fcs_port_scn_portid_rscn(struct bfa_fcs_port_s *port, u32 rpid)
 
 	bfa_trc(port->fcs, rpid);
 
-	/**
-	 * If this is an unknown device, then it just came online.
-	 * Otherwise let rport handle the RSCN event.
-	 */
+	
 	rport = bfa_fcs_port_get_rport_by_pid(port, rpid);
 	if (rport == NULL) {
-		/*
-		 * If min cfg mode is enabled, we donot need to
-		 * discover any new rports.
-		 */
+		
 		if (!__fcs_min_cfg(port->fcs))
 			rport = bfa_fcs_rport_create(port, rpid);
 	} else {
@@ -375,9 +320,7 @@ bfa_fcs_port_scn_portid_rscn(struct bfa_fcs_port_s *port, u32 rpid)
 	}
 }
 
-/**
- * rscn format based PID comparison
- */
+
 #define __fc_pid_match(__c0, __c1, __fmt)		\
 	(((__fmt) == FC_RSCN_FORMAT_FABRIC) ||		\
 	 (((__fmt) == FC_RSCN_FORMAT_DOMAIN) &&		\
@@ -436,10 +379,7 @@ bfa_fcs_port_scn_process_rscn(struct bfa_fcs_port_s *port, struct fchs_s *fchs,
 		switch (rscn->event[i].format) {
 		case FC_RSCN_FORMAT_PORTID:
 			if (rscn->event[i].qualifier == FC_QOS_RSCN_EVENT) {
-				/*
-				 * Ignore this event. f/w would have processed
-				 * it
-				 */
+				
 				bfa_trc(port->fcs, rscn_pid);
 			} else {
 				port->stats.num_portid_rscn++;
@@ -453,9 +393,7 @@ bfa_fcs_port_scn_process_rscn(struct bfa_fcs_port_s *port, struct fchs_s *fchs,
 				bfa_fcs_port_ms_fabric_rscn(port);
 				break;
 			}
-			/*
-			 * !!!!!!!!! Fall Through !!!!!!!!!!!!!
-			 */
+			
 
 		case FC_RSCN_FORMAT_AREA:
 		case FC_RSCN_FORMAT_DOMAIN:
@@ -471,10 +409,7 @@ bfa_fcs_port_scn_process_rscn(struct bfa_fcs_port_s *port, struct fchs_s *fchs,
 		}
 	}
 
-	/**
-	 * If any of area, domain or fabric RSCN is received, do a fresh discovery
-	 * to find new devices.
-	 */
+	
 	if (nsquery)
 		bfa_fcs_port_ns_query(port);
 }

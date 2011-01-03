@@ -1,23 +1,6 @@
-/*
- * Driver for Micronas drx397xD demodulator
- *
- * Copyright (C) 2007 Henk Vergonet <Henk.Vergonet@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; If not, see <http://www.gnu.org/licenses/>.
- */
 
-#define DEBUG			/* uncomment if you want debugging output */
+
+#define DEBUG			
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -33,7 +16,7 @@
 
 static const char mod_name[] = "drx397xD";
 
-#define MAX_CLOCK_DRIFT		200	/* maximal 200 PPM allowed */
+#define MAX_CLOCK_DRIFT		200	
 
 #define F_SET_0D0h	1
 #define F_SET_0D4h	2
@@ -43,18 +26,18 @@ enum fw_ix {
 #include "drx397xD_fw.h"
 };
 
-/* chip specifics */
+
 struct drx397xD_state {
 	struct i2c_adapter *i2c;
 	struct dvb_frontend frontend;
 	struct drx397xD_config config;
 	enum fw_ix chip_rev;
 	int flags;
-	u32 bandwidth_parm;	/* internal bandwidth conversions */
-	u32 f_osc;		/* w90: actual osc frequency [Hz] */
+	u32 bandwidth_parm;	
+	u32 f_osc;		
 };
 
-/* Firmware */
+
 static const char *blob_name[] = {
 #define _BLOB_ENTRY(a, b)		a
 #include "drx397xD_fw.h"
@@ -81,7 +64,7 @@ static struct {
 #include "drx397xD_fw.h"
 };
 
-/* use only with writer lock aquired */
+
 static void _drx_release_fw(struct drx397xD_state *s, enum fw_ix ix)
 {
 	memset(&fw[ix].data[0], 0, sizeof(fw[0].data));
@@ -136,20 +119,20 @@ static int drx_load_fw(struct drx397xD_state *s, enum fw_ix ix)
 	data = fw[ix].file->data;
 	size = fw[ix].file->size;
 
-	if (data[i++] != 2)	/* check firmware version */
+	if (data[i++] != 2)	
 		goto exit_corrupt;
 
 	do {
 		switch (data[i++]) {
-		case 0x00:	/* bytecode */
+		case 0x00:	
 			if (i >= size)
 				break;
 			i += data[i];
-		case 0x01:	/* reset */
-		case 0x02:	/* sleep */
+		case 0x01:	
+		case 0x02:	
 			i++;
 			break;
-		case 0xfe:	/* name */
+		case 0xfe:	
 			len = strnlen(&data[i], size - i);
 			if (i + len + 1 >= size)
 				goto exit_corrupt;
@@ -163,7 +146,7 @@ static int drx_load_fw(struct drx397xD_state *s, enum fw_ix ix)
 			}
 			i += len + 1;
 			break;
-		case 0xff:	/* file terminator */
+		case 0xff:	
 			if (i == size) {
 				rc = 0;
 				goto exit_ok;
@@ -185,7 +168,7 @@ exit_ok:
 	return rc;
 }
 
-/* i2c bus IO */
+
 static int write_fw(struct drx397xD_state *s, enum blob_ix ix)
 {
 	const u8 *data;
@@ -210,7 +193,7 @@ static int write_fw(struct drx397xD_state *s, enum blob_ix ix)
 
 	for (;;) {
 		switch (data[i++]) {
-		case 0:	/* bytecode */
+		case 0:	
 			len = data[i++];
 			msg.len = len;
 			msg.buf = (__u8 *) &data[i];
@@ -220,8 +203,8 @@ static int write_fw(struct drx397xD_state *s, enum blob_ix ix)
 			}
 			i += len;
 			break;
-		case 1:	/* reset */
-		case 2:	/* sleep */
+		case 1:	
+		case 2:	
 			i++;
 			break;
 		default:
@@ -234,7 +217,7 @@ exit_rc:
 	return 0;
 }
 
-/* Function is not endian safe, use the RD16 wrapper below */
+
 static int _read16(struct drx397xD_state *s, __le32 i2c_adr)
 {
 	int rc;
@@ -263,7 +246,7 @@ static int _read16(struct drx397xD_state *s, __le32 i2c_adr)
 	return le16_to_cpu(v);
 }
 
-/* Function is not endian safe, use the WR16.. wrappers below */
+
 static int _write16(struct drx397xD_state *s, __le32 i2c_adr, __le16 val)
 {
 	u8 a[6];
@@ -296,7 +279,7 @@ static int _write16(struct drx397xD_state *s, __le32 i2c_adr, __le16 val)
 	if ((rc = (cmd)) < 0)	\
 		goto exit_rc
 
-/* Tuner callback */
+
 static int PLL_Set(struct drx397xD_state *s,
 		   struct dvb_frontend_parameters *fep, int *df_tuner)
 {
@@ -330,7 +313,7 @@ static int PLL_Set(struct drx397xD_state *s,
 	return 0;
 }
 
-/* Demodulator helper functions */
+
 static int SC_WaitForReady(struct drx397xD_state *s)
 {
 	int cnt = 1000;
@@ -391,11 +374,11 @@ static int HI_CfgCommand(struct drx397xD_state *s)
 	pr_debug("%s\n", __func__);
 
 	WR16(s, 0x420033, 0x3973);
-	WR16(s, 0x420034, s->config.w50);	/* code 4, log 4 */
-	WR16(s, 0x420035, s->config.w52);	/* code 15,  log 9 */
+	WR16(s, 0x420034, s->config.w50);	
+	WR16(s, 0x420035, s->config.w52);	
 	WR16(s, 0x420036, s->config.demod_address << 1);
-	WR16(s, 0x420037, s->config.w56);	/* code (set_i2c ??  initX 1 ), log 1 */
-	/* WR16(s, 0x420033, 0x3973); */
+	WR16(s, 0x420037, s->config.w56);	
+	
 	if ((s->config.w56 & 8) == 0)
 		return HI_Command(s, 3);
 
@@ -498,7 +481,7 @@ static int SetCfgRfAgc(struct drx397xD_state *s, struct drx397xD_CfgRfAgc *agc)
 		rc &= ~2;
 		break;
 	case 0:
-		/* loc_8000659 */
+		
 		s->config.w9C &= ~2;
 		EXIT_RC(WR16(s, 0x0c20015, s->config.w9C));
 		EXIT_RC(RD16(s, 0x0c20010));
@@ -593,7 +576,7 @@ static int CorrectSysClockDeviation(struct drx397xD_state *s)
 	if (!s->bandwidth_parm)
 		return -EINVAL;
 
-	/* round & convert to Hz */
+	
 	clk = ((u64) (clk + 0x800000) * s->bandwidth_parm + (1 << 20)) >> 21;
 	clk_limit = s->config.f_osc * MAX_CLOCK_DRIFT / 1000;
 
@@ -837,16 +820,16 @@ set_tuner:
 		rc = WR16(s, 0x2010012, 0);
 		if (rc < 0)
 			goto exit_rc;
-				/* QPSK    QAM16  QAM64	*/
-		ebx = 0x19f;	/*                 62	*/
-		ebp = 0x1fb;	/*                 15	*/
-		v20 = 0x16a;	/*  62			*/
-		v1E = 0x195;	/*         62		*/
-		v16 = 0x1bb;	/*  15			*/
-		v14 = 0x1ef;	/*         15		*/
-		v12 = 5;	/*  16			*/
-		v10 = 5;	/*         16		*/
-		v0E = 5;	/*                 16	*/
+				
+		ebx = 0x19f;	
+		ebp = 0x1fb;	
+		v20 = 0x16a;	
+		v1E = 0x195;	
+		v16 = 0x1bb;	
+		v14 = 0x1ef;	
+		v12 = 5;	
+		v10 = 5;	
+		v0E = 5;	
 	}
 
 	switch (fep->u.ofdm.constellation) {
@@ -976,13 +959,13 @@ set_tuner:
 			break;
 		rc = WR16(s, 0x2090011, 2);
 		break;
-	case FEC_5_6:		/* 5 */
+	case FEC_5_6:		
 		edi |= 0x600;
 		if (s->chip_rev == DRXD_FW_B1)
 			break;
 		rc = WR16(s, 0x2090011, 3);
 		break;
-	case FEC_7_8:		/* 7 */
+	case FEC_7_8:		
 		edi |= 0x800;
 		if (s->chip_rev == DRXD_FW_B1)
 			break;
@@ -996,7 +979,7 @@ set_tuner:
 	default:
 		rc = -EINVAL;
 		goto exit_rc;
-	case BANDWIDTH_8_MHZ:	/* 0 */
+	case BANDWIDTH_8_MHZ:	
 	case BANDWIDTH_AUTO:
 		rc = WR16(s, 0x0c2003f, 0x32);
 		s->bandwidth_parm = ebx = 0x8b8249;
@@ -1027,13 +1010,13 @@ set_tuner:
 	rc = WR16(s, 0x0820050, rc);
 
 	{
-		/* Configure bandwidth specific factor */
+		
 		ebx = div64_u64(((u64) (s->f_osc) << 21) + (ebx >> 1),
 				     (u64)ebx) - 0x800000;
 		EXIT_RC(WR16(s, 0x0c50010, ebx & 0xffff));
 		EXIT_RC(WR16(s, 0x0c50011, ebx >> 16));
 
-		/* drx397xD oscillator calibration */
+		
 		ebx = div64_u64(((u64) (s->config.f_if + df_tuner) << 28) +
 				     (s->f_osc >> 1), (u64)s->f_osc);
 	}
@@ -1074,9 +1057,7 @@ exit_rc:
 	return rc;
 }
 
-/*******************************************************************************
- * DVB interface
- ******************************************************************************/
+
 
 static int drx397x_init(struct dvb_frontend *fe)
 {
@@ -1085,39 +1066,39 @@ static int drx397x_init(struct dvb_frontend *fe)
 
 	pr_debug("%s\n", __func__);
 
-	s->config.rfagc.d00 = 2;	/* 0x7c */
+	s->config.rfagc.d00 = 2;	
 	s->config.rfagc.w04 = 0;
 	s->config.rfagc.w06 = 0x3ff;
 
-	s->config.ifagc.d00 = 0;	/* 0x68 */
+	s->config.ifagc.d00 = 0;	
 	s->config.ifagc.w04 = 0;
 	s->config.ifagc.w06 = 140;
 	s->config.ifagc.w08 = 0;
 	s->config.ifagc.w0A = 0x3ff;
 	s->config.ifagc.w0C = 0x388;
 
-	/* for signal strenght calculations */
+	
 	s->config.ss76 = 820;
 	s->config.ss78 = 2200;
 	s->config.ss7A = 150;
 
-	/* HI_CfgCommand */
+	
 	s->config.w50 = 4;
 	s->config.w52 = 9;
 
-	s->config.f_if = 42800000;	/* d14: intermediate frequency [Hz] */
-	s->config.f_osc = 48000;	/* s66 : oscillator frequency [kHz] */
+	s->config.f_if = 42800000;	
+	s->config.f_osc = 48000;	
 	s->config.w92 = 12000;
 
 	s->config.w9C = 0x000e;
 	s->config.w9E = 0x0000;
 
-	/* ConfigureMPEGOutput params */
+	
 	s->config.wA0 = 4;
 	s->config.w98 = 1;
 	s->config.w9A = 1;
 
-	/* get chip revision */
+	
 	rc = RD16(s, 0x2410019);
 	if (rc < 0)
 		return -ENODEV;
@@ -1191,7 +1172,7 @@ static int drx397x_init(struct dvb_frontend *fe)
 	if (rc < 0)
 		goto error;
 
-	s->f_osc = s->config.f_osc * 1000;	/* initial estimator */
+	s->f_osc = s->config.f_osc * 1000;	
 
 	s->config.w56 = 1;
 
@@ -1392,16 +1373,7 @@ static int drx397x_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
 		return 0;
 	}
 	rc &= 0x3ff;
-	/* Signal strength is calculated using the following formula:
-	 *
-	 * a = 2200 * 150 / (2200 + 150);
-	 * a = a * 3300 /  (a + 820);
-	 * b = 2200 * 3300 / (2200 + 820);
-	 * c = (((b-a) * rc) >> 10  + a) << 4;
-	 * strength = ~c & 0xffff;
-	 *
-	 * The following does the same but with less rounding errors:
-	 */
+	
 	*strength = ~(7720 + (rc * 30744 >> 10));
 
 	return 0;
@@ -1440,22 +1412,22 @@ static struct dvb_frontend_ops drx397x_ops = {
 		 .frequency_max		= 855250000,
 		 .frequency_stepsize	= 166667,
 		 .frequency_tolerance	= 0,
-		 .caps =				  /* 0x0C01B2EAE */
-			 FE_CAN_FEC_1_2			| /* = 0x2, */
-			 FE_CAN_FEC_2_3			| /* = 0x4, */
-			 FE_CAN_FEC_3_4			| /* = 0x8, */
-			 FE_CAN_FEC_5_6			| /* = 0x20, */
-			 FE_CAN_FEC_7_8			| /* = 0x80, */
-			 FE_CAN_FEC_AUTO		| /* = 0x200, */
-			 FE_CAN_QPSK			| /* = 0x400, */
-			 FE_CAN_QAM_16			| /* = 0x800, */
-			 FE_CAN_QAM_64			| /* = 0x2000, */
-			 FE_CAN_QAM_AUTO		| /* = 0x10000, */
-			 FE_CAN_TRANSMISSION_MODE_AUTO	| /* = 0x20000, */
-			 FE_CAN_GUARD_INTERVAL_AUTO	| /* = 0x80000, */
-			 FE_CAN_HIERARCHY_AUTO		| /* = 0x100000, */
-			 FE_CAN_RECOVER			| /* = 0x40000000, */
-			 FE_CAN_MUTE_TS			  /* = 0x80000000 */
+		 .caps =				  
+			 FE_CAN_FEC_1_2			| 
+			 FE_CAN_FEC_2_3			| 
+			 FE_CAN_FEC_3_4			| 
+			 FE_CAN_FEC_5_6			| 
+			 FE_CAN_FEC_7_8			| 
+			 FE_CAN_FEC_AUTO		| 
+			 FE_CAN_QPSK			| 
+			 FE_CAN_QAM_16			| 
+			 FE_CAN_QAM_64			| 
+			 FE_CAN_QAM_AUTO		| 
+			 FE_CAN_TRANSMISSION_MODE_AUTO	| 
+			 FE_CAN_GUARD_INTERVAL_AUTO	| 
+			 FE_CAN_HIERARCHY_AUTO		| 
+			 FE_CAN_RECOVER			| 
+			 FE_CAN_MUTE_TS			  
 	 },
 
 	.release = drx397x_release,
@@ -1478,20 +1450,20 @@ struct dvb_frontend *drx397xD_attach(const struct drx397xD_config *config,
 {
 	struct drx397xD_state *state;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct drx397xD_state), GFP_KERNEL);
 	if (!state)
 		goto error;
 
-	/* setup the state */
+	
 	state->i2c = i2c;
 	memcpy(&state->config, config, sizeof(struct drx397xD_config));
 
-	/* check if the demod is there */
+	
 	if (RD16(state, 0x2410019) < 0)
 		goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &drx397x_ops,
 			sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;

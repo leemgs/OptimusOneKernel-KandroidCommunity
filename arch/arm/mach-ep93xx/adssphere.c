@@ -1,14 +1,4 @@
-/*
- * arch/arm/mach-ep93xx/adssphere.c
- * ADS Sphere support.
- *
- * Copyright (C) 2006 Lennert Buytenhek <buytenh@wantstofly.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -54,7 +44,7 @@ static void __init adssphere_init_machine(void)
 }
 
 MACHINE_START(ADSSPHERE, "ADS Sphere board")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+	
 	.phys_io	= EP93XX_APB_PHYS_BASE,
 	.io_pg_offst	= ((EP93XX_APB_VIRT_BASE) >> 18) & 0xfffc,
 	.boot_params	= EP93XX_SDCE3_PHYS_BASE_SYNC + 0x100,

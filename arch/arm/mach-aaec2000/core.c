@@ -1,14 +1,4 @@
-/*
- *  linux/arch/arm/mach-aaec2000/core.c
- *
- *  Code common to all AAEC-2000 machines
- *
- *  Copyright (c) 2005 Nicolas Bellido Y Ortega
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -32,19 +22,7 @@
 
 #include "core.h"
 
-/*
- * Common I/O mapping:
- *
- * Static virtual address mappings are as follow:
- *
- * 0xf8000000-0xf8001ffff: Devices connected to APB bus
- * 0xf8002000-0xf8003ffff: Devices connected to AHB bus
- *
- * Below 0xe8000000 is reserved for vm allocation.
- *
- * The machine specific code must provide the extra mapping beside the
- * default mapping provided here.
- */
+
 static struct map_desc standard_io_desc[] __initdata = {
 	{
 		.virtual	= VIO_APB_BASE,
@@ -64,9 +42,7 @@ void __init aaec2000_map_io(void)
 	iotable_init(standard_io_desc, ARRAY_SIZE(standard_io_desc));
 }
 
-/*
- * Interrupt handling routines
- */
+
 static void aaec2000_int_ack(unsigned int irq)
 {
 	IRQ_INTSR = 1 << irq;
@@ -98,38 +74,36 @@ void __init aaec2000_init_irq(void)
 		set_irq_flags(i, IRQF_VALID);
 	}
 
-	/* Disable all interrupts */
+	
 	IRQ_INTENC = 0xffffffff;
 
-	/* Clear any pending interrupts */
+	
 	IRQ_INTSR = IRQ_INTSR;
 }
 
-/*
- * Time keeping
- */
-/* IRQs are disabled before entering here from do_gettimeofday() */
+
+
 static unsigned long aaec2000_gettimeoffset(void)
 {
 	unsigned long ticks_to_match, elapsed, usec;
 
-	/* Get ticks before next timer match */
+	
 	ticks_to_match = TIMER1_LOAD - TIMER1_VAL;
 
-	/* We need elapsed ticks since last match */
+	
 	elapsed = LATCH - ticks_to_match;
 
-	/* Now, convert them to usec */
+	
 	usec = (unsigned long)(elapsed * (tick_nsec / 1000))/LATCH;
 
 	return usec;
 }
 
-/* We enter here with IRQs enabled */
+
 static irqreturn_t
 aaec2000_timer_interrupt(int irq, void *dev_id)
 {
-	/* TODO: Check timer accuracy */
+	
 	timer_tick();
 	TIMER1_CLEAR = 1;
 
@@ -144,14 +118,12 @@ static struct irqaction aaec2000_timer_irq = {
 
 static void __init aaec2000_timer_init(void)
 {
-	/* Disable timer 1 */
+	
 	TIMER1_CTRL = 0;
 
-	/* We have somehow to generate a 100Hz clock.
-	 * We then use the 508KHz timer in periodic mode.
-	 */
+	
 	TIMER1_LOAD = LATCH;
-	TIMER1_CLEAR = 1; /* Clear interrupt */
+	TIMER1_CLEAR = 1; 
 
 	setup_irq(INT_TMR1_OFL, &aaec2000_timer_irq);
 

@@ -1,20 +1,6 @@
-/*
- *  HID driver for some gyration "special" devices
- *
- *  Copyright (c) 1999 Andreas Gal
- *  Copyright (c) 2000-2005 Vojtech Pavlik <vojtech@suse.cz>
- *  Copyright (c) 2005 Michael Haboustak <mike-@cinci.rr.com> for Concept2, Inc
- *  Copyright (c) 2007 Paul Walmsley
- *  Copyright (c) 2008 Jiri Slaby
- *  Copyright (c) 2006-2008 Jiri Kosina
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/input.h>
@@ -34,7 +20,7 @@ static int gyration_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 
 	set_bit(EV_REP, hi->input->evbit);
 	switch (usage->hid & HID_USAGE) {
-	/* Reported on Gyration MCE Remote */
+	
 	case 0x00d: gy_map_key_clear(KEY_HOME);		break;
 	case 0x024: gy_map_key_clear(KEY_DVD);		break;
 	case 0x025: gy_map_key_clear(KEY_PVR);		break;

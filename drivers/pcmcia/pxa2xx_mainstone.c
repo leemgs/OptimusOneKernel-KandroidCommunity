@@ -1,16 +1,4 @@
-/*
- * linux/drivers/pcmcia/pxa2xx_mainstone.c
- *
- * Mainstone PCMCIA specific routines.
- *
- * Created:	May 12, 2004
- * Author:	Nicolas Pitre
- * Copyright:	MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -39,10 +27,7 @@ static struct pcmcia_irqs irqs[] = {
 
 static int mst_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 {
-	/*
-	 * Setup default state of GPIO outputs
-	 * before we enable them as outputs.
-	 */
+	
 
 	skt->irq = (skt->nr == 0) ? MAINSTONE_S0_IRQ : MAINSTONE_S1_IRQ;
 	return soc_pcmcia_request_irqs(skt, irqs, ARRAY_SIZE(irqs));
@@ -63,11 +48,7 @@ static void mst_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 	status = (skt->nr == 0) ? MST_PCMCIA0 : MST_PCMCIA1;
 	flip = (status ^ mst_pcmcia_status[skt->nr]) & MST_PCMCIA_nSTSCHG_BVD1;
 
-	/*
-	 * Workaround for STSCHG which can't be deasserted:
-	 * We therefore disable/enable corresponding IRQs
-	 * as needed to avoid IRQ locks.
-	 */
+	
 	if (flip) {
 		mst_pcmcia_status[skt->nr] = status;
 		if (status & MST_PCMCIA_nSTSCHG_BVD1)
@@ -84,7 +65,7 @@ static void mst_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 	state->bvd2   = (status & MST_PCMCIA_nSPKR_BVD2) ? 1 : 0;
 	state->vs_3v  = (status & MST_PCMCIA_nVS1) ? 0 : 1;
 	state->vs_Xv  = (status & MST_PCMCIA_nVS2) ? 0 : 1;
-	state->wrprot = 0;  /* not available */
+	state->wrprot = 0;  
 }
 
 static int mst_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,

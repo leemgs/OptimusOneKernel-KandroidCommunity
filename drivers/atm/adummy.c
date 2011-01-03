@@ -1,6 +1,4 @@
-/*
- * adummy.c: a dummy ATM driver
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -21,7 +19,7 @@
 #include <linux/atm.h>
 #include <linux/sonet.h>
 
-/* version definition */
+
 
 #define DRV_VERSION "1.0"
 
@@ -35,7 +33,7 @@ struct adummy_dev {
 	struct list_head entry;
 };
 
-/* globals */
+
 
 static LIST_HEAD(adummy_devs);
 

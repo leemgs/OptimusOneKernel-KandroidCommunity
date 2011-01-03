@@ -1,33 +1,4 @@
-/* arch/arm/mach-s3c2410/include/mach/regs-serial.h
- *
- *  From linux/include/asm-arm/hardware/serial_s3c2410.h
- *
- *  Internal header file for Samsung S3C2410 serial ports (UART0-2)
- *
- *  Copyright (C) 2002 Shane Nay (shane@minirl.com)
- *
- *  Additional defines, (c) 2003 Simtec Electronics (linux@simtec.co.uk)
- *
- *  Adapted from:
- *
- *  Internal header file for MX1ADS serial ports (UART1 & 2)
- *
- *  Copyright (C) 2002 Shane Nay (shane@minirl.com)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #ifndef __ASM_ARM_REGS_SERIAL_H
 #define __ASM_ARM_REGS_SERIAL_H
@@ -117,7 +88,7 @@
 #define S3C2410_UFCON_RXTRIG8	  (1<<4)
 #define S3C2410_UFCON_RXTRIG12	  (2<<4)
 
-/* S3C2440 FIFO trigger levels */
+
 #define S3C2440_UFCON_RXTRIG1	  (0<<4)
 #define S3C2440_UFCON_RXTRIG8	  (1<<4)
 #define S3C2440_UFCON_RXTRIG16	  (2<<4)
@@ -139,7 +110,7 @@
 #define	S3C2410_UMCOM_AFC	  (1<<4)
 #define	S3C2410_UMCOM_RTS_LOW	  (1<<0)
 
-#define S3C2412_UMCON_AFC_63	(0<<5)		/* same as s3c2443 */
+#define S3C2412_UMCON_AFC_63	(0<<5)		
 #define S3C2412_UMCON_AFC_56	(1<<5)
 #define S3C2412_UMCON_AFC_48	(2<<5)
 #define S3C2412_UMCON_AFC_40	(3<<5)
@@ -155,7 +126,7 @@
 #define S3C2410_UFSTAT_RXMASK	  (15<<0)
 #define S3C2410_UFSTAT_RXSHIFT	  (0)
 
-/* UFSTAT S3C24A0 */
+
 #define S3C24A0_UFSTAT_TXFULL	  (1 << 14)
 #define S3C24A0_UFSTAT_RXFULL	  (1 << 6)
 #define S3C24A0_UFSTAT_TXMASK	  (63 << 8)
@@ -163,7 +134,7 @@
 #define S3C24A0_UFSTAT_RXMASK	  (63)
 #define S3C24A0_UFSTAT_RXSHIFT	  (0)
 
-/* UFSTAT S3C2443 same as S3C2440 */
+
 #define S3C2440_UFSTAT_TXFULL	  (1<<14)
 #define S3C2440_UFSTAT_RXFULL	  (1<<6)
 #define S3C2440_UFSTAT_TXSHIFT	  (8)
@@ -189,25 +160,14 @@
 
 #define S3C2443_DIVSLOT		  (0x2C)
 
-/* S3C64XX interrupt registers. */
+
 #define S3C64XX_UINTP		0x30
 #define S3C64XX_UINTSP		0x34
 #define S3C64XX_UINTM		0x38
 
 #ifndef __ASSEMBLY__
 
-/* struct s3c24xx_uart_clksrc
- *
- * this structure defines a named clock source that can be used for the
- * uart, so that the best clock can be selected for the requested baud
- * rate.
- *
- * min_baud and max_baud define the range of baud-rates this clock is
- * acceptable for, if they are both zero, it is assumed any baud rate that
- * can be generated from this clock will be used.
- *
- * divisor gives the divisor from the clock to the one seen by the uart
-*/
+
 
 struct s3c24xx_uart_clksrc {
 	const char	*name;
@@ -216,36 +176,27 @@ struct s3c24xx_uart_clksrc {
 	unsigned int	 max_baud;
 };
 
-/* configuration structure for per-machine configurations for the
- * serial port
- *
- * the pointer is setup by the machine specific initialisation from the
- * arch/arm/mach-s3c2410/ directory.
-*/
+
 
 struct s3c2410_uartcfg {
-	unsigned char	   hwport;	 /* hardware port number */
+	unsigned char	   hwport;	 
 	unsigned char	   unused;
 	unsigned short	   flags;
-	upf_t		   uart_flags;	 /* default uart flags */
+	upf_t		   uart_flags;	 
 
-	unsigned long	   ucon;	 /* value of ucon for port */
-	unsigned long	   ulcon;	 /* value of ulcon for port */
-	unsigned long	   ufcon;	 /* value of ufcon for port */
+	unsigned long	   ucon;	 
+	unsigned long	   ulcon;	 
+	unsigned long	   ufcon;	 
 
 	struct s3c24xx_uart_clksrc *clocks;
 	unsigned int		    clocks_size;
 };
 
-/* s3c24xx_uart_devs
- *
- * this is exported from the core as we cannot use driver_register(),
- * or platform_add_device() before the console_initcall()
-*/
+
 
 extern struct platform_device *s3c24xx_uart_devs[4];
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
-#endif /* __ASM_ARM_REGS_SERIAL_H */
+#endif 
 

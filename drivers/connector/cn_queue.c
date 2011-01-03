@@ -1,24 +1,4 @@
-/*
- * 	cn_queue.c
- *
- * 2004+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -32,14 +12,7 @@
 #include <linux/delay.h>
 
 
-/*
- * This job is sent to the kevent workqueue.
- * While no event is once sent to any callback, the connector workqueue
- * is not created to avoid a useless waiting kernel task.
- * Once the first event is received, we create this dedicated workqueue which
- * is necessary because the flow of data can be high and we don't want
- * to encumber keventd with that.
- */
+
 static void cn_queue_create(struct work_struct *work)
 {
 	struct cn_queue_dev *dev;
@@ -47,16 +20,11 @@ static void cn_queue_create(struct work_struct *work)
 	dev = container_of(work, struct cn_queue_dev, wq_creation);
 
 	dev->cn_queue = create_singlethread_workqueue(dev->name);
-	/* If we fail, we will use keventd for all following connector jobs */
+	
 	WARN_ON(!dev->cn_queue);
 }
 
-/*
- * Queue a data sent to a callback.
- * If the connector workqueue is already created, we queue the job on it.
- * Otherwise, we queue the job to kevent and queue the connector workqueue
- * creation too.
- */
+
 int queue_cn_work(struct cn_callback_entry *cbq, struct work_struct *work)
 {
 	struct cn_queue_dev *pdev = cbq->pdev;
@@ -64,7 +32,7 @@ int queue_cn_work(struct cn_callback_entry *cbq, struct work_struct *work)
 	if (likely(pdev->cn_queue))
 		return queue_work(pdev->cn_queue, work);
 
-	/* Don't create the connector workqueue twice */
+	
 	if (atomic_inc_return(&pdev->wq_requested) == 1)
 		schedule_work(&pdev->wq_creation);
 	else
@@ -111,7 +79,7 @@ cn_queue_alloc_callback_entry(char *name, struct cb_id *id,
 
 static void cn_queue_free_callback(struct cn_callback_entry *cbq)
 {
-	/* The first jobs have been sent to kevent, flush them too */
+	
 	flush_scheduled_work();
 	if (cbq->pdev->cn_queue)
 		flush_workqueue(cbq->pdev->cn_queue);
@@ -208,10 +176,10 @@ void cn_queue_free_dev(struct cn_queue_dev *dev)
 	long timeout;
 	DEFINE_WAIT(wait);
 
-	/* Flush the first pending jobs queued on kevent */
+	
 	flush_scheduled_work();
 
-	/* If the connector workqueue creation is still pending, wait for it */
+	
 	prepare_to_wait(&dev->wq_created, &wait, TASK_UNINTERRUPTIBLE);
 	if (atomic_read(&dev->wq_requested) && !dev->cn_queue) {
 		timeout = schedule_timeout(HZ * 2);

@@ -1,16 +1,4 @@
-/*
- *  linux/arch/arm/mach-pxa/trizeps4.c
- *
- *  Support for the Keith und Koep Trizeps4 Module Platform.
- *
- *  Author:	Jürgen Schindele
- *  Created:	20 02, 2006
- *  Copyright:	Jürgen Schindele
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -52,27 +40,23 @@
 #include "generic.h"
 #include "devices.h"
 
-/*	comment out the following line if you want to use the
- *	Standard UART from PXA for serial / irda transmission
- *	and acivate it if you have status leds connected */
+
 #define STATUS_LEDS_ON_STUART_PINS 1
 
-/*****************************************************************************
- * MultiFunctionPins of CPU
- *****************************************************************************/
+
 static unsigned long trizeps4_pin_config[] __initdata = {
-	/* Chip Selects */
-	GPIO15_nCS_1,		/* DiskOnChip CS */
-	GPIO93_GPIO,		/* TRIZEPS4_DOC_IRQ */
-	GPIO94_GPIO,		/* DOC lock */
+	
+	GPIO15_nCS_1,		
+	GPIO93_GPIO,		
+	GPIO94_GPIO,		
 
-	GPIO78_nCS_2,		/* DM9000 CS */
-	GPIO101_GPIO,		/* TRIZEPS4_ETH_IRQ */
+	GPIO78_nCS_2,		
+	GPIO101_GPIO,		
 
-	GPIO79_nCS_3,		/* Logic CS */
-	GPIO0_GPIO | WAKEUP_ON_EDGE_RISE,	/* Logic irq */
+	GPIO79_nCS_3,		
+	GPIO0_GPIO | WAKEUP_ON_EDGE_RISE,	
 
-	/* LCD - 16bpp Active TFT */
+	
 	GPIO58_LCD_LDD_0,
 	GPIO59_LCD_LDD_1,
 	GPIO60_LCD_LDD_2,
@@ -94,7 +78,7 @@ static unsigned long trizeps4_pin_config[] __initdata = {
 	GPIO76_LCD_PCLK,
 	GPIO77_LCD_BIAS,
 
-	/* UART */
+	
 	GPIO9_FFUART_CTS,
 	GPIO10_FFUART_DCD,
 	GPIO16_FFUART_TXD,
@@ -115,9 +99,9 @@ static unsigned long trizeps4_pin_config[] __initdata = {
 	GPIO46_STUART_RXD,
 	GPIO47_STUART_TXD,
 #endif
-	/* PCMCIA */
-	GPIO11_GPIO,			/* TRIZEPS4_CD_IRQ */
-	GPIO13_GPIO,			/* TRIZEPS4_READY_NINT */
+	
+	GPIO11_GPIO,			
+	GPIO13_GPIO,			
 	GPIO48_nPOE,
 	GPIO49_nPWE,
 	GPIO50_nPIOR,
@@ -129,42 +113,40 @@ static unsigned long trizeps4_pin_config[] __initdata = {
 	GPIO102_nPCE_1,
 	GPIO104_PSKTSEL,
 
-	/* MultiMediaCard */
+	
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
 	GPIO109_MMC_DAT_1,
 	GPIO110_MMC_DAT_2,
 	GPIO111_MMC_DAT_3,
 	GPIO112_MMC_CMD,
-	GPIO12_GPIO,			/* TRIZEPS4_MMC_IRQ */
+	GPIO12_GPIO,			
 
-	/* USB OHCI */
-	GPIO88_USBH1_PWR,		/* USBHPWR1 */
-	GPIO89_USBH1_PEN,		/* USBHPEN1 */
+	
+	GPIO88_USBH1_PWR,		
+	GPIO89_USBH1_PEN,		
 
-	/* I2C */
+	
 	GPIO117_I2C_SCL,
 	GPIO118_I2C_SDA,
 };
 
 static unsigned long trizeps4wl_pin_config[] __initdata = {
-	/* SSP 2 */
+	
 	GPIO14_SSP2_SFRM,
 	GPIO19_SSP2_SCLK,
-	GPIO53_GPIO,			/* TRIZEPS4_SPI_IRQ */
+	GPIO53_GPIO,			
 	GPIO86_SSP2_RXD,
 	GPIO87_SSP2_TXD,
 };
 
-/****************************************************************************
- * ONBOARD FLASH
- ****************************************************************************/
+
 static struct mtd_partition trizeps4_partitions[] = {
 	{
 		.name =		"Bootloader",
 		.offset =	0x00000000,
 		.size =		0x00040000,
-		.mask_flags =	MTD_WRITEABLE  /* force read-only */
+		.mask_flags =	MTD_WRITEABLE  
 	}, {
 		.name =		"Backup",
 		.offset =	0x00040000,
@@ -186,7 +168,7 @@ static struct mtd_partition trizeps4_partitions[] = {
 
 static struct physmap_flash_data trizeps4_flash_data[] = {
 	{
-		.width		= 4,			/* bankwidth in bytes */
+		.width		= 4,			
 		.parts		= trizeps4_partitions,
 		.nr_parts	= ARRAY_SIZE(trizeps4_partitions)
 	}
@@ -208,9 +190,7 @@ static struct platform_device flash_device = {
 	.num_resources = 1,
 };
 
-/****************************************************************************
- * DAVICOM DM9000 Ethernet
- ****************************************************************************/
+
 static struct resource dm9000_resources[] = {
 	[0] = {
 		.start	= TRIZEPS4_ETH_PHYS+0x300,
@@ -243,19 +223,17 @@ static struct platform_device dm9000_device = {
 	}
 };
 
-/****************************************************************************
- * LED's on GPIO pins of PXA
- ****************************************************************************/
+
 static struct gpio_led trizeps4_led[] = {
 #ifdef STATUS_LEDS_ON_STUART_PINS
 	{
-		.name = "led0:orange:heartbeat",	/* */
+		.name = "led0:orange:heartbeat",	
 		.default_trigger = "heartbeat",
 		.gpio = GPIO_HEARTBEAT_LED,
 		.active_low = 1,
 	},
 	{
-		.name = "led1:yellow:cpubusy",		/* */
+		.name = "led1:yellow:cpubusy",		
 		.default_trigger = "cpu-busy",
 		.gpio = GPIO_SYS_BUSY_LED,
 		.active_low = 1,
@@ -289,27 +267,27 @@ static struct platform_device *trizeps4wl_devices[] __initdata = {
 
 static short trizeps_conxs_bcr;
 
-/* PCCARD power switching supports only 3,3V */
+
 void board_pcmcia_power(int power)
 {
 	if (power) {
-		/* switch power on, put in reset and enable buffers */
+		
 		trizeps_conxs_bcr |= power;
 		trizeps_conxs_bcr |= ConXS_BCR_CF_RESET;
 		trizeps_conxs_bcr &= ~ConXS_BCR_CF_BUF_EN;
 		BCR_writew(trizeps_conxs_bcr);
-		/* wait a little */
+		
 		udelay(2000);
-		/* take reset away */
+		
 		trizeps_conxs_bcr &= ~ConXS_BCR_CF_RESET;
 		BCR_writew(trizeps_conxs_bcr);
 		udelay(2000);
 	} else {
-		/* put in reset */
+		
 		trizeps_conxs_bcr |= ConXS_BCR_CF_RESET;
 		BCR_writew(trizeps_conxs_bcr);
 		udelay(1000);
-		/* switch power off */
+		
 		trizeps_conxs_bcr &= ~0xf;
 		BCR_writew(trizeps_conxs_bcr);
 	}
@@ -318,7 +296,7 @@ void board_pcmcia_power(int power)
 }
 EXPORT_SYMBOL(board_pcmcia_power);
 
-/* backlight power switching for LCD panel */
+
 static void board_backlight_power(int on)
 {
 	if (on)
@@ -331,14 +309,12 @@ static void board_backlight_power(int on)
 	BCR_writew(trizeps_conxs_bcr);
 }
 
-/* a I2C based RTC is known on CONXS board */
+
 static struct i2c_board_info trizeps4_i2c_devices[] __initdata = {
 	{ I2C_BOARD_INFO("rtc-pcf8593", 0x51) }
 };
 
-/****************************************************************************
- * MMC card slot external to module
- ****************************************************************************/
+
 static int trizeps4_mci_init(struct device *dev, irq_handler_t mci_detect_int,
 		void *data)
 {
@@ -365,16 +341,14 @@ static struct pxamci_platform_data trizeps4_mci_platform_data = {
 	.detect_delay	= 1,
 	.init 		= trizeps4_mci_init,
 	.exit		= trizeps4_mci_exit,
-	.get_ro		= NULL,	/* write-protection not supported */
-	.setpower 	= NULL,	/* power-switching not supported */
+	.get_ro		= NULL,	
+	.setpower 	= NULL,	
 	.gpio_card_detect = -1,
 	.gpio_card_ro	= -1,
 	.gpio_power	= -1,
 };
 
-/****************************************************************************
- * IRDA mode switching on stuart
- ****************************************************************************/
+
 #ifndef STATUS_LEDS_ON_STUART_PINS
 static short trizeps_conxs_ircr;
 
@@ -396,13 +370,13 @@ static void trizeps4_irda_transceiver_mode(struct device *dev, int mode)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	/* Switch mode */
+	
 	if (mode & IR_SIRMODE)
-		trizeps_conxs_ircr &= ~ConXS_IRCR_MODE;	/* Slow mode */
+		trizeps_conxs_ircr &= ~ConXS_IRCR_MODE;	
 	else if (mode & IR_FIRMODE)
-		trizeps_conxs_ircr |= ConXS_IRCR_MODE;	/* Fast mode */
+		trizeps_conxs_ircr |= ConXS_IRCR_MODE;	
 
-	/* Switch power */
+	
 	if (mode & IR_OFF)
 		trizeps_conxs_ircr |= ConXS_IRCR_SD;
 	else
@@ -423,40 +397,38 @@ static struct pxaficp_platform_data trizeps4_ficp_platform_data = {
 };
 #endif
 
-/****************************************************************************
- * OHCI USB port
- ****************************************************************************/
+
 static struct pxaohci_platform_data trizeps4_ohci_platform_data = {
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT_ALL | POWER_CONTROL_LOW | POWER_SENSE_LOW,
 };
 
 static struct map_desc trizeps4_io_desc[] __initdata = {
-	{ 	/* ConXS CFSR */
+	{ 	
 		.virtual	= TRIZEPS4_CFSR_VIRT,
 		.pfn		= __phys_to_pfn(TRIZEPS4_CFSR_PHYS),
 		.length		= 0x00001000,
 		.type		= MT_DEVICE
 	},
-	{	/* ConXS BCR */
+	{	
 		.virtual	= TRIZEPS4_BOCR_VIRT,
 		.pfn		= __phys_to_pfn(TRIZEPS4_BOCR_PHYS),
 		.length		= 0x00001000,
 		.type		= MT_DEVICE
 	},
-	{ 	/* ConXS IRCR */
+	{ 	
 		.virtual	= TRIZEPS4_IRCR_VIRT,
 		.pfn		= __phys_to_pfn(TRIZEPS4_IRCR_PHYS),
 		.length		= 0x00001000,
 		.type		= MT_DEVICE
 	},
-	{	/* ConXS DCR */
+	{	
 		.virtual	= TRIZEPS4_DICR_VIRT,
 		.pfn		= __phys_to_pfn(TRIZEPS4_DICR_PHYS),
 		.length		= 0x00001000,
 		.type		= MT_DEVICE
 	},
-	{	/* ConXS UPSR */
+	{	
 		.virtual	= TRIZEPS4_UPSR_VIRT,
 		.pfn		= __phys_to_pfn(TRIZEPS4_UPSR_PHYS),
 		.length		= 0x00001000,
@@ -524,7 +496,7 @@ static void __init trizeps4_init(void)
 					ARRAY_SIZE(trizeps4_devices));
 	}
 
-	if (0)	/* dont know how to determine LCD */
+	if (0)	
 		set_pxa_fb_info(&sharp_lcd);
 	else
 		set_pxa_fb_info(&toshiba_lcd);
@@ -540,10 +512,10 @@ static void __init trizeps4_init(void)
 					ARRAY_SIZE(trizeps4_i2c_devices));
 
 #ifdef CONFIG_IDE_PXA_CF
-	/* if boot direct from compact flash dont disable power */
+	
 	trizeps_conxs_bcr = 0x0009;
 #else
-	/* this is the reset value */
+	
 	trizeps_conxs_bcr = 0x00A0;
 #endif
 	BCR_writew(trizeps_conxs_bcr);
@@ -556,18 +528,18 @@ static void __init trizeps4_map_io(void)
 	iotable_init(trizeps4_io_desc, ARRAY_SIZE(trizeps4_io_desc));
 
 	if ((MSC0 & 0x8) && (BOOT_DEF & 0x1)) {
-		/* if flash is 16 bit wide its a Trizeps4 WL */
+		
 		__machine_arch_type = MACH_TYPE_TRIZEPS4WL;
 		trizeps4_flash_data[0].width = 2;
 	} else {
-		/* if flash is 32 bit wide its a Trizeps4 */
+		
 		__machine_arch_type = MACH_TYPE_TRIZEPS4;
 		trizeps4_flash_data[0].width = 4;
 	}
 }
 
 MACHINE_START(TRIZEPS4, "Keith und Koep Trizeps IV module")
-	/* MAINTAINER("Jürgen Schindele") */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= TRIZEPS4_SDRAM_BASE + 0x100,
@@ -578,7 +550,7 @@ MACHINE_START(TRIZEPS4, "Keith und Koep Trizeps IV module")
 MACHINE_END
 
 MACHINE_START(TRIZEPS4WL, "Keith und Koep Trizeps IV-WL module")
-	/* MAINTAINER("Jürgen Schindele") */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= TRIZEPS4_SDRAM_BASE + 0x100,

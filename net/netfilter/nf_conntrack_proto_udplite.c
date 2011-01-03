@@ -1,11 +1,4 @@
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
- * (C) 2007 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 #include <linux/timer.h>
@@ -51,7 +44,7 @@ static bool udplite_invert_tuple(struct nf_conntrack_tuple *tuple,
 	return true;
 }
 
-/* Print out the per-protocol part of the tuple. */
+
 static int udplite_print_tuple(struct seq_file *s,
 			       const struct nf_conntrack_tuple *tuple)
 {
@@ -60,7 +53,7 @@ static int udplite_print_tuple(struct seq_file *s,
 			  ntohs(tuple->dst.u.udp.port));
 }
 
-/* Returns verdict for packet, and may modify conntracktype */
+
 static int udplite_packet(struct nf_conn *ct,
 			  const struct sk_buff *skb,
 			  unsigned int dataoff,
@@ -68,12 +61,11 @@ static int udplite_packet(struct nf_conn *ct,
 			  u_int8_t pf,
 			  unsigned int hooknum)
 {
-	/* If we've seen traffic both ways, this is some kind of UDP
-	   stream.  Extend timeout. */
+	
 	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
 		nf_ct_refresh_acct(ct, ctinfo, skb,
 				   nf_ct_udplite_timeout_stream);
-		/* Also, more likely to be important, and not a probe */
+		
 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
 			nf_conntrack_event_cache(IPCT_STATUS, ct);
 	} else
@@ -82,7 +74,7 @@ static int udplite_packet(struct nf_conn *ct,
 	return NF_ACCEPT;
 }
 
-/* Called when a new connection for this protocol found. */
+
 static bool udplite_new(struct nf_conn *ct, const struct sk_buff *skb,
 			unsigned int dataoff)
 {
@@ -101,7 +93,7 @@ static int udplite_error(struct net *net,
 	struct udphdr _hdr;
 	unsigned int cscov;
 
-	/* Header is too small? */
+	
 	hdr = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
 	if (hdr == NULL) {
 		if (LOG_INVALID(net, IPPROTO_UDPLITE))
@@ -120,7 +112,7 @@ static int udplite_error(struct net *net,
 		return -NF_ACCEPT;
 	}
 
-	/* UDPLITE mandates checksums */
+	
 	if (!hdr->check) {
 		if (LOG_INVALID(net, IPPROTO_UDPLITE))
 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
@@ -128,7 +120,7 @@ static int udplite_error(struct net *net,
 		return -NF_ACCEPT;
 	}
 
-	/* Checksum invalid? Ignore. */
+	
 	if (net->ct.sysctl_checksum && hooknum == NF_INET_PRE_ROUTING &&
 	    nf_checksum_partial(skb, hooknum, dataoff, cscov, IPPROTO_UDP,
 	    			pf)) {
@@ -165,7 +157,7 @@ static struct ctl_table udplite_sysctl_table[] = {
 		.ctl_name	= 0
 	}
 };
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
 {

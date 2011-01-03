@@ -1,26 +1,4 @@
-/*
- * Marvell 88SE64xx hardware specific
- *
- * Copyright 2007 Red Hat, Inc.
- * Copyright 2008 Marvell. <kewei@marvell.com>
- *
- * This file is licensed under GPLv2.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; version 2 of the
- * License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
-*/
+
 
 #include "mv_sas.h"
 #include "mv_64xx.h"
@@ -32,7 +10,7 @@ static void mvs_64xx_detect_porttype(struct mvs_info *mvi, int i)
 	u32 reg;
 	struct mvs_phy *phy = &mvi->phy[i];
 
-	/* TODO check & save device type */
+	
 	reg = mr32(MVS_GBL_PORT_TYPE);
 	phy->phy_type &= ~(PORT_TYPE_SAS | PORT_TYPE_SATA);
 	if (reg & MODE_SAS_SATA & (1 << i))
@@ -61,7 +39,7 @@ static void __devinit mvs_64xx_phy_hacks(struct mvs_info *mvi)
 	mvs_phy_hacks(mvi);
 
 	if (!(mvi->flags & MVF_FLAG_SOC)) {
-		/* TEST - for phy decoding error, adjust voltage levels */
+		
 		mw32(MVS_P0_VSR_ADDR + 0, 0x8);
 		mw32(MVS_P0_VSR_DATA + 0, 0x2F0);
 
@@ -75,7 +53,7 @@ static void __devinit mvs_64xx_phy_hacks(struct mvs_info *mvi)
 		mw32(MVS_P0_VSR_DATA + 24, 0x2F0);
 	} else {
 		int i;
-		/* disable auto port detection */
+		
 		mw32(MVS_GBL_PORT_TYPE, 0);
 		for (i = 0; i < mvi->chip->n_phy; i++) {
 			mvs_write_port_vsr_addr(mvi, i, VSR_PHY_MODE7);
@@ -150,11 +128,11 @@ static int __devinit mvs_64xx_chip_reset(struct mvs_info *mvi)
 	u32 tmp;
 	int i;
 
-	/* make sure interrupts are masked immediately (paranoia) */
+	
 	mw32(MVS_GBL_CTL, 0);
 	tmp = mr32(MVS_GBL_CTL);
 
-	/* Reset Controller */
+	
 	if (!(tmp & HBA_RST)) {
 		if (mvi->flags & MVF_PHY_PWR_FIX) {
 			pci_read_config_dword(mvi->pdev, PCR_PHY_CTL, &tmp);
@@ -169,17 +147,17 @@ static int __devinit mvs_64xx_chip_reset(struct mvs_info *mvi)
 		}
 	}
 
-	/* make sure interrupts are masked immediately (paranoia) */
+	
 	mw32(MVS_GBL_CTL, 0);
 	tmp = mr32(MVS_GBL_CTL);
 
-	/* Reset Controller */
+	
 	if (!(tmp & HBA_RST)) {
-		/* global reset, incl. COMRESET/H_RESET_N (self-clearing) */
+		
 		mw32_f(MVS_GBL_CTL, HBA_RST);
 	}
 
-	/* wait for reset to finish; timeout is just a guess */
+	
 	i = 1000;
 	while (i-- > 0) {
 		msleep(10);
@@ -258,8 +236,8 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 		mw32(MVS_PHY_CTL, tmp);
 	}
 
-	/* Init Chip */
-	/* make sure RST is set; HBA_RST /should/ have done that for us */
+	
+	
 	cctl = mr32(MVS_CTL) & 0xFFFF;
 	if (cctl & CCTL_RST)
 		cctl &= ~CCTL_RST;
@@ -267,7 +245,7 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 		mw32_f(MVS_CTL, cctl | CCTL_RST);
 
 	if (!(mvi->flags & MVF_FLAG_SOC)) {
-		/* write to device control _AND_ device status register */
+		
 		pci_read_config_dword(mvi->pdev, PCR_DEV_CTRL, &tmp);
 		tmp &= ~PRD_REQ_MASK;
 		tmp |= PRD_REQ_SIZE;
@@ -295,12 +273,12 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 		msleep(100);
 	}
 
-	/* reset control */
-	mw32(MVS_PCS, 0);		/* MVS_PCS */
-	/* init phys */
+	
+	mw32(MVS_PCS, 0);		
+	
 	mvs_64xx_phy_hacks(mvi);
 
-	/* enable auto port detection */
+	
 	mw32(MVS_GBL_PORT_TYPE, MODE_AUTO_DET_EN);
 
 	mw32(MVS_CMD_LIST_LO, mvi->slot_dma);
@@ -318,8 +296,8 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 	mw32(MVS_RX_HI, (mvi->rx_dma >> 16) >> 16);
 
 	for (i = 0; i < mvi->chip->n_phy; i++) {
-		/* set phy local SAS address */
-		/* should set little endian SAS address to 64xx chip */
+		
+		
 		mvs_set_sas_addr(mvi, i, PHYR_ADDR_LO, PHYR_ADDR_HI,
 				cpu_to_be64(mvi->phy[i].dev_sas_addr));
 
@@ -330,7 +308,7 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 		mvs_64xx_detect_porttype(mvi, i);
 	}
 	if (mvi->flags & MVF_FLAG_SOC) {
-		/* set select registers */
+		
 		writel(0x0E008000, regs + 0x000);
 		writel(0x59000008, regs + 0x004);
 		writel(0x20, regs + 0x008);
@@ -341,12 +319,12 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 		writel(0x20, regs + 0x01c);
 	}
 	for (i = 0; i < mvi->chip->n_phy; i++) {
-		/* clear phy int status */
+		
 		tmp = mvs_read_port_irq_stat(mvi, i);
 		tmp &= ~PHYEV_SIG_FIS;
 		mvs_write_port_irq_stat(mvi, i, tmp);
 
-		/* set phy int mask */
+		
 		tmp = PHYEV_RDY_CH | PHYEV_BROAD_CH | PHYEV_UNASSOC_FIS |
 			PHYEV_ID_DONE | PHYEV_DCDR_ERR | PHYEV_CRC_ERR |
 			PHYEV_DEC_ERR;
@@ -356,13 +334,10 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 		mvs_update_phyinfo(mvi, i, 1);
 	}
 
-	/* FIXME: update wide port bitmaps */
+	
 
-	/* little endian for open address and command table, etc. */
-	/*
-	 * it seems that ( from the spec ) turning on big-endian won't
-	 * do us any good on big-endian machines, need further confirmation
-	 */
+	
+	
 	cctl = mr32(MVS_CTL);
 	cctl |= CCTL_ENDIAN_CMD;
 	cctl |= CCTL_ENDIAN_DATA;
@@ -370,35 +345,32 @@ static int __devinit mvs_64xx_init(struct mvs_info *mvi)
 	cctl |= CCTL_ENDIAN_RSP;
 	mw32_f(MVS_CTL, cctl);
 
-	/* reset CMD queue */
+	
 	tmp = mr32(MVS_PCS);
 	tmp |= PCS_CMD_RST;
 	mw32(MVS_PCS, tmp);
-	/* interrupt coalescing may cause missing HW interrput in some case,
-	 * and the max count is 0x1ff, while our max slot is 0x200,
-	 * it will make count 0.
-	 */
+	
 	tmp = 0;
 	mw32(MVS_INT_COAL, tmp);
 
 	tmp = 0x100;
 	mw32(MVS_INT_COAL_TMOUT, tmp);
 
-	/* ladies and gentlemen, start your engines */
+	
 	mw32(MVS_TX_CFG, 0);
 	mw32(MVS_TX_CFG, MVS_CHIP_SLOT_SZ | TX_EN);
 	mw32(MVS_RX_CFG, MVS_RX_RING_SZ | RX_EN);
-	/* enable CMD/CMPL_Q/RESP mode */
+	
 	mw32(MVS_PCS, PCS_SATA_RETRY | PCS_FIS_RX_EN |
 		PCS_CMD_EN | PCS_CMD_STOP_ERR);
 
-	/* enable completion queue interrupt */
+	
 	tmp = (CINT_PORT_MASK | CINT_DONE | CINT_MEM | CINT_SRS | CINT_CI_STOP |
 		CINT_DMA_PCIE);
 
 	mw32(MVS_INT_MASK, tmp);
 
-	/* Enable SRS interrupt */
+	
 	mw32(MVS_INT_MASK_SRS_0, 0xFFFF);
 
 	return 0;
@@ -454,7 +426,7 @@ static irqreturn_t mvs_64xx_isr(struct mvs_info *mvi, int irq, u32 stat)
 {
 	void __iomem *regs = mvi->regs;
 
-	/* clear CMD_CMPLT ASAP */
+	
 	mw32_f(MVS_INT_STAT, CINT_DONE);
 #ifndef MVS_USE_TASKLET
 	spin_lock(&mvi->lock);
@@ -609,7 +581,7 @@ static void mvs_64xx_phy_work_around(struct mvs_info *mvi, int i)
 {
 	u32 tmp;
 	struct mvs_phy *phy = &mvi->phy[i];
-	/* workaround for HW phy decoding error on 1.5g disk drive */
+	
 	mvs_write_port_vsr_addr(mvi, i, VSR_PHY_MODE6);
 	tmp = mvs_read_port_vsr_data(mvi, i);
 	if (((phy->phy_status & PHY_NEG_SPP_PHYS_LINK_RATE_MASK) >>

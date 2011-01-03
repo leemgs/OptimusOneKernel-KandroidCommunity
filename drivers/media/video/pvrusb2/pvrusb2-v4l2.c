@@ -1,23 +1,4 @@
-/*
- *
- *
- *  Copyright (C) 2005 Mike Isely <isely@pobox.com>
- *  Copyright (C) 2004 Aurelien Alleaume <slts@free.fr>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/version.h>
@@ -37,13 +18,13 @@ struct pvr2_v4l2_fh;
 struct pvr2_v4l2;
 
 struct pvr2_v4l2_dev {
-	struct video_device devbase; /* MUST be first! */
+	struct video_device devbase; 
 	struct pvr2_v4l2 *v4lp;
 	struct pvr2_context_stream *stream;
-	/* Information about this device: */
-	enum pvr2_config config; /* Expected stream format */
-	int v4l_type; /* V4L defined type for this device node */
-	enum pvr2_v4l_type minor_type; /* pvr2-understood minor device type */
+	
+	enum pvr2_config config; 
+	int v4l_type; 
+	enum pvr2_v4l_type minor_type; 
 };
 
 struct pvr2_v4l2_fh {
@@ -57,7 +38,7 @@ struct pvr2_v4l2_fh {
 	struct pvr2_v4l2_fh *vprev;
 	wait_queue_head_t wait_data;
 	int fw_mode_flag;
-	/* Map contiguous ordinal value to input id */
+	
 	unsigned char *input_map;
 	unsigned int input_cnt;
 };
@@ -69,9 +50,7 @@ struct pvr2_v4l2 {
 
 	struct v4l2_prio_state prio;
 
-	/* streams - Note that these must be separately, individually,
-	 * allocated pointers.  This is because the v4l core is going to
-	 * manage their deletion - separately, individually...  */
+	
 	struct pvr2_v4l2_dev *dev_video;
 	struct pvr2_v4l2_dev *dev_radio;
 };
@@ -103,9 +82,9 @@ static struct v4l2_fmtdesc pvr_fmtdesc [] = {
 		.type           = V4L2_BUF_TYPE_VIDEO_CAPTURE,
 		.flags          = V4L2_FMT_FLAG_COMPRESSED,
 		.description    = "MPEG1/2",
-		// This should really be V4L2_PIX_FMT_MPEG, but xawtv
-		// breaks when I do that.
-		.pixelformat    = 0, // V4L2_PIX_FMT_MPEG,
+		
+		
+		.pixelformat    = 0, 
 		.reserved       = { 0, 0, 0, 0 }
 	}
 };
@@ -120,15 +99,15 @@ static struct v4l2_format pvr_format [] = {
 			.pix        = {
 				.width          = 720,
 				.height             = 576,
-				// This should really be V4L2_PIX_FMT_MPEG,
-				// but xawtv breaks when I do that.
-				.pixelformat    = 0, // V4L2_PIX_FMT_MPEG,
+				
+				
+				.pixelformat    = 0, 
 				.field          = V4L2_FIELD_INTERLACED,
-				.bytesperline   = 0,  // doesn't make sense
-						      // here
-				//FIXME : Don't know what to put here...
+				.bytesperline   = 0,  
+						      
+				
 				.sizeimage          = (32*1024),
-				.colorspace     = 0, // doesn't make sense here
+				.colorspace     = 0, 
 				.priv           = 0
 			}
 		}
@@ -162,12 +141,7 @@ static const char *get_v4l_name(int v4l_type)
 }
 
 
-/*
- * pvr_ioctl()
- *
- * This is part of Video 4 Linux API. The procedure handles ioctl() calls.
- *
- */
+
 static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 {
 	struct pvr2_v4l2_fh *fh = file->private_data;
@@ -186,7 +160,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		return -EFAULT;
 	}
 
-	/* check priority */
+	
 	switch (cmd) {
 	case VIDIOC_S_CTRL:
 	case VIDIOC_S_STD:
@@ -293,15 +267,9 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 				      tmp.name,sizeof(tmp.name)-1,&cnt);
 		tmp.name[cnt] = 0;
 
-		/* Don't bother with audioset, since this driver currently
-		   always switches the audio whenever the video is
-		   switched. */
+		
 
-		/* Handling std is a tougher problem.  It doesn't make
-		   sense in cases where a device might be multi-standard.
-		   We could just copy out the current value for the
-		   standard, but it can change over time.  For now just
-		   leave it zero. */
+		
 
 		memcpy(vi, &tmp, sizeof(tmp));
 
@@ -343,20 +311,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 
 	case VIDIOC_ENUMAUDIO:
 	{
-		/* pkt: FIXME: We are returning one "fake" input here
-		   which could very well be called "whatever_we_like".
-		   This is for apps that want to see an audio input
-		   just to feel comfortable, as well as to test if
-		   it can do stereo or sth. There is actually no guarantee
-		   that the actual audio input cannot change behind the app's
-		   back, but most applications should not mind that either.
-
-		   Hopefully, mplayer people will work with us on this (this
-		   whole mess is to support mplayer pvr://), or Hans will come
-		   up with a more standard way to say "we have inputs but we
-		   don 't want you to change them independent of video" which
-		   will sort this mess.
-		 */
+		
 		struct v4l2_audio *vin = arg;
 		ret = -EINVAL;
 		if (vin->index > 0) break;
@@ -369,7 +324,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 
 	case VIDIOC_G_AUDIO:
 	{
-		/* pkt: FIXME: see above comment (VIDIOC_ENUMAUDIO) */
+		
 		struct v4l2_audio *vin = arg;
 		memset(vin,0,sizeof(*vin));
 		vin->index = 0;
@@ -388,7 +343,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	{
 		struct v4l2_tuner *vt = (struct v4l2_tuner *)arg;
 
-		if (vt->index != 0) break; /* Only answer for the 1st tuner */
+		if (vt->index != 0) break; 
 
 		pvr2_hdw_execute_tuner_poll(hdw);
 		ret = pvr2_hdw_get_tuner_status(hdw,vt);
@@ -475,7 +430,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	{
 		struct v4l2_fmtdesc *fd = (struct v4l2_fmtdesc *)arg;
 
-		/* Only one format is supported : mpeg.*/
+		
 		if (fd->index != 0)
 			break;
 
@@ -505,7 +460,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 			ret = 0;
 			break;
 		case V4L2_BUF_TYPE_VBI_CAPTURE:
-			// ????? Still need to figure out to do VBI correctly
+			
 			ret = -EINVAL;
 			break;
 		default:
@@ -562,7 +517,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 			}
 		} break;
 		case V4L2_BUF_TYPE_VBI_CAPTURE:
-			// ????? Still need to figure out to do VBI correctly
+			
 			ret = -EINVAL;
 			break;
 		default:
@@ -575,9 +530,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	case VIDIOC_STREAMON:
 	{
 		if (!fh->dev_info->stream) {
-			/* No stream defined for this node.  This means
-			   that we're not currently allowed to stream from
-			   this node. */
+			
 			ret = -EPERM;
 			break;
 		}
@@ -590,9 +543,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	case VIDIOC_STREAMOFF:
 	{
 		if (!fh->dev_info->stream) {
-			/* No stream defined for this node.  This means
-			   that we're not currently allowed to stream from
-			   this node. */
+			
 			ret = -EPERM;
 			break;
 		}
@@ -704,8 +655,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 				ctls->error_idx = idx;
 				break;
 			}
-			/* Ensure that if read as a 64 bit value, the user
-			   will still get a hopefully sane value */
+			
 			ctrl->value64 = 0;
 			ctrl->value = val;
 		}
@@ -739,8 +689,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 		struct v4l2_ext_control *ctrl;
 		struct pvr2_ctrl *pctl;
 		unsigned int idx;
-		/* For the moment just validate that the requested control
-		   actually exists. */
+		
 		ret = 0;
 		for (idx = 0; idx < ctls->count; idx++) {
 			ctrl = ctls->controls + idx;
@@ -762,7 +711,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 			break;
 		}
 		ret = pvr2_hdw_get_cropcap(hdw, cap);
-		cap->type = V4L2_BUF_TYPE_VIDEO_CAPTURE; /* paranoia */
+		cap->type = V4L2_BUF_TYPE_VIDEO_CAPTURE; 
 		break;
 	}
 	case VIDIOC_G_CROP:
@@ -898,12 +847,11 @@ static void pvr2_v4l2_dev_destroy(struct pvr2_v4l2_dev *dip)
 
 	pvr2_hdw_v4l_store_minor_number(hdw,dip->minor_type,-1);
 
-	/* Paranoia */
+	
 	dip->v4lp = NULL;
 	dip->stream = NULL;
 
-	/* Actual deallocation happens later when all internal references
-	   are gone. */
+	
 	video_unregister_device(&dip->devbase);
 
 	printk(KERN_INFO "pvrusb2: unregistered device %s%u [%s]\n",
@@ -1006,7 +954,7 @@ static int pvr2_v4l2_release(struct file *file)
 
 static int pvr2_v4l2_open(struct file *file)
 {
-	struct pvr2_v4l2_dev *dip; /* Our own context pointer */
+	struct pvr2_v4l2_dev *dip; 
 	struct pvr2_v4l2_fh *fhp;
 	struct pvr2_v4l2 *vp;
 	struct pvr2_hdw *hdw;
@@ -1039,12 +987,10 @@ static int pvr2_v4l2_open(struct file *file)
 	pvr2_channel_init(&fhp->channel,vp->channel.mc_head);
 
 	if (dip->v4l_type == VFL_TYPE_RADIO) {
-		/* Opening device as a radio, legal input selection subset
-		   is just the radio. */
+		
 		input_mask = (1 << PVR2_CVAL_INPUT_RADIO);
 	} else {
-		/* Opening the main V4L device, legal input selection
-		   subset includes all analog inputs. */
+		
 		input_mask = ((1 << PVR2_CVAL_INPUT_RADIO) |
 			      (1 << PVR2_CVAL_INPUT_TV) |
 			      (1 << PVR2_CVAL_INPUT_COMPOSITE) |
@@ -1115,16 +1061,14 @@ static int pvr2_v4l2_iosetup(struct pvr2_v4l2_fh *fh)
 	if (fh->rhp) return 0;
 
 	if (!fh->dev_info->stream) {
-		/* No stream defined for this node.  This means that we're
-		   not currently allowed to stream from this node. */
+		
 		return -EPERM;
 	}
 
-	/* First read() attempt.  Try to claim the stream and start
-	   it... */
+	
 	if ((ret = pvr2_channel_claim_stream(&fh->channel,
 					     fh->dev_info->stream)) != 0) {
-		/* Someone else must already have it */
+		
 		return ret;
 	}
 
@@ -1194,7 +1138,7 @@ static ssize_t pvr2_v4l2_read(struct file *file,
 		if (ret >= 0) break;
 		if (ret != -EAGAIN) break;
 		if (file->f_flags & O_NONBLOCK) break;
-		/* Doing blocking I/O.  Wait here. */
+		
 		ret = wait_event_interruptible(
 			fh->wait_data,
 			pvr2_ioread_avail(fh->rhp) >= 0);
@@ -1282,7 +1226,7 @@ static void pvr2_v4l2_dev_init(struct pvr2_v4l2_dev *dip,
 		nr_ptr = radio_nr;
 		break;
 	default:
-		/* Bail out (this should be impossible) */
+		
 		pr_err(KBUILD_MODNAME ": Failed to set up pvrusb2 v4l dev"
 		    " due to unrecognized config\n");
 		return;
@@ -1324,7 +1268,7 @@ struct pvr2_v4l2 *pvr2_v4l2_create(struct pvr2_context *mnp)
 
 	vp->channel.check_func = pvr2_v4l2_internal_check;
 
-	/* register streams */
+	
 	vp->dev_video = kzalloc(sizeof(*vp->dev_video),GFP_KERNEL);
 	if (!vp->dev_video) goto fail;
 	pvr2_v4l2_dev_init(vp->dev_video,vp,VFL_TYPE_GRABBER);
@@ -1342,12 +1286,4 @@ struct pvr2_v4l2 *pvr2_v4l2_create(struct pvr2_context *mnp)
 	return NULL;
 }
 
-/*
-  Stuff for Emacs to see, in order to encourage consistent editing style:
-  *** Local Variables: ***
-  *** mode: c ***
-  *** fill-column: 75 ***
-  *** tab-width: 8 ***
-  *** c-basic-offset: 8 ***
-  *** End: ***
-  */
+

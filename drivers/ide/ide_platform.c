@@ -1,15 +1,4 @@
-/*
- * Platform IDE driver
- *
- * Copyright (C) 2007 MontaVista Software
- *
- * Maintainer: Kumar Gala <galak@kernel.crashing.org>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -59,7 +48,7 @@ static int __devinit plat_ide_probe(struct platform_device *pdev)
 
 	pdata = pdev->dev.platform_data;
 
-	/* get a pointer to the register memory */
+	
 	res_base = platform_get_resource(pdev, IORESOURCE_IO, 0);
 	res_alt = platform_get_resource(pdev, IORESOURCE_IO, 1);
 

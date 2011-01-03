@@ -1,12 +1,4 @@
-/*
- *  linux/arch/arm/mach-integrator/integrator_cp.c
- *
- *  Copyright (C) 2003 Deep Blue Solutions Ltd
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- */
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -61,18 +53,7 @@
 #define CINTEGRATOR_FLASHPROG_FLVPPEN	(1 << 0)
 #define CINTEGRATOR_FLASHPROG_FLWREN	(1 << 1)
 
-/*
- * Logical      Physical
- * f1000000	10000000	Core module registers
- * f1100000	11000000	System controller registers
- * f1200000	12000000	EBI registers
- * f1300000	13000000	Counter/Timer
- * f1400000	14000000	Interrupt controller
- * f1600000	16000000	UART 0
- * f1700000	17000000	UART 1
- * f1a00000	1a000000	Debug LEDs
- * f1b00000	1b000000	GPIO
- */
+
 
 static struct map_desc intcp_io_desc[] __initdata = {
 	{
@@ -226,9 +207,7 @@ static void __init intcp_init_irq(void)
 {
 	unsigned int i;
 
-	/*
-	 * Disable all interrupt sources
-	 */
+	
 	pic_writel(0xffffffff, INTCP_VA_PIC_BASE + IRQ_ENABLE_CLEAR);
 	pic_writel(0xffffffff, INTCP_VA_PIC_BASE + FIQ_ENABLE_CLEAR);
 
@@ -263,9 +242,7 @@ static void __init intcp_init_irq(void)
 	set_irq_chained_handler(IRQ_CP_CPPLDINT, sic_handle_irq);
 }
 
-/*
- * Clock handling
- */
+
 #define CM_LOCK (IO_ADDRESS(INTEGRATOR_HDR_BASE)+INTEGRATOR_HDR_LOCK_OFFSET)
 #define CM_AUXOSC (IO_ADDRESS(INTEGRATOR_HDR_BASE)+0x1c)
 
@@ -296,15 +273,13 @@ static struct clk cp_auxclk = {
 };
 
 static struct clk_lookup cp_lookups[] = {
-	{	/* CLCD */
+	{	
 		.dev_id		= "mb:c0",
 		.clk		= &cp_auxclk,
 	},
 };
 
-/*
- * Flash handling.
- */
+
 static int intcp_flash_init(void)
 {
 	u32 val;
@@ -386,12 +361,7 @@ static struct platform_device *intcp_devs[] __initdata = {
 	&smc91x_device,
 };
 
-/*
- * It seems that the card insertion interrupt remains active after
- * we've acknowledged it.  We therefore ignore the interrupt, and
- * rely on reading it from the SIC.  This also means that we must
- * clear the latched interrupt.
- */
+
 static unsigned int mmc_status(struct device *dev)
 {
 	unsigned int status = readl(IO_ADDRESS(0xca000000) + 4);
@@ -435,9 +405,7 @@ static struct amba_device aaci_device = {
 };
 
 
-/*
- * CLCD support
- */
+
 static struct clcd_panel vga = {
 	.mode		= {
 		.name		= "VGA",
@@ -462,9 +430,7 @@ static struct clcd_panel vga = {
 	.grayscale	= 0,
 };
 
-/*
- * Ensure VGA is selected.
- */
+
 static void cp_clcd_enable(struct clcd_fb *fb)
 {
 	u32 val;
@@ -476,7 +442,7 @@ static void cp_clcd_enable(struct clcd_fb *fb)
 			| CM_CTRL_LCDEN0 | CM_CTRL_LCDEN1
 			| CM_CTRL_STATIC1 | CM_CTRL_STATIC2;
 	else
-		val = 0; /* no idea for this, don't trust the docs */
+		val = 0; 
 
 	cm_control(CM_CTRL_LCDMUXSEL_MASK|
 		   CM_CTRL_LCDEN0|
@@ -569,7 +535,7 @@ static void __init intcp_init(void)
 	}
 }
 
-#define TIMER_CTRL_IE	(1 << 5)			/* Interrupt Enable */
+#define TIMER_CTRL_IE	(1 << 5)			
 
 static void __init intcp_timer_init(void)
 {
@@ -582,7 +548,7 @@ static struct sys_timer cp_timer = {
 };
 
 MACHINE_START(CINTEGRATOR, "ARM-IntegratorCP")
-	/* Maintainer: ARM Ltd/Deep Blue Solutions Ltd */
+	
 	.phys_io	= 0x16000000,
 	.io_pg_offst	= ((0xf1600000) >> 18) & 0xfffc,
 	.boot_params	= 0x00000100,

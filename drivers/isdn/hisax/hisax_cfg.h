@@ -1,11 +1,4 @@
-/* $Id: hisax_cfg.h,v 1.1.2.1 2004/01/24 20:47:23 keil Exp $
- * define of the basic HiSax configuration structures
- * and pcmcia interface
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #define ISDN_CTYPE_16_0			1
 #define ISDN_CTYPE_8_0			2
@@ -55,7 +48,7 @@ typedef struct IsdnCard		IsdnCard_t;
 
 struct IsdnCard {
 	int		typ;
-	int 		protocol;	/* EDSS1, 1TR6 or NI1 */
+	int 		protocol;	
 	unsigned long	para[4];
 	IsdnCardState_t	*cs;
 };

@@ -1,14 +1,4 @@
-/*
- * drivers/watchdog/orion_wdt.c
- *
- * Watchdog driver for Orion/Kirkwood processors
- *
- * Author: Sylver Bruneau <sylver.bruneau@googlemail.com>
- *
- * This file is licensed under  the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -25,9 +15,7 @@
 #include <mach/bridge-regs.h>
 #include <plat/orion_wdt.h>
 
-/*
- * Watchdog timer block registers.
- */
+
 #define TIMER_CTRL		(TIMER_VIRT_BASE + 0x0000)
 #define  WDT_EN			0x0010
 #define WDT_VAL			(TIMER_VIRT_BASE + 0x0024)
@@ -37,8 +25,8 @@
 #define WDT_OK_TO_CLOSE		1
 
 static int nowayout = WATCHDOG_NOWAYOUT;
-static int heartbeat = -1;		/* module parameter (seconds) */
-static unsigned int wdt_max_duration;	/* (seconds) */
+static int heartbeat = -1;		
+static unsigned int wdt_max_duration;	
 static unsigned int wdt_tclk;
 static unsigned long wdt_status;
 static spinlock_t wdt_lock;
@@ -47,7 +35,7 @@ static void orion_wdt_ping(void)
 {
 	spin_lock(&wdt_lock);
 
-	/* Reload watchdog duration */
+	
 	writel(wdt_tclk * heartbeat, WDT_VAL);
 
 	spin_unlock(&wdt_lock);
@@ -59,20 +47,20 @@ static void orion_wdt_enable(void)
 
 	spin_lock(&wdt_lock);
 
-	/* Set watchdog duration */
+	
 	writel(wdt_tclk * heartbeat, WDT_VAL);
 
-	/* Clear watchdog timer interrupt */
+	
 	reg = readl(BRIDGE_CAUSE);
 	reg &= ~WDT_INT_REQ;
 	writel(reg, BRIDGE_CAUSE);
 
-	/* Enable watchdog timer */
+	
 	reg = readl(TIMER_CTRL);
 	reg |= WDT_EN;
 	writel(reg, TIMER_CTRL);
 
-	/* Enable reset on watchdog */
+	
 	reg = readl(RSTOUTn_MASK);
 	reg |= WDT_RESET_OUT_EN;
 	writel(reg, RSTOUTn_MASK);
@@ -86,12 +74,12 @@ static void orion_wdt_disable(void)
 
 	spin_lock(&wdt_lock);
 
-	/* Disable reset on watchdog */
+	
 	reg = readl(RSTOUTn_MASK);
 	reg &= ~WDT_RESET_OUT_EN;
 	writel(reg, RSTOUTn_MASK);
 
-	/* Disable watchdog timer */
+	
 	reg = readl(TIMER_CTRL);
 	reg &= ~WDT_EN;
 	writel(reg, TIMER_CTRL);
@@ -143,8 +131,7 @@ static int orion_wdt_settimeout(int new_time)
 	if ((new_time <= 0) || (new_time > wdt_max_duration))
 		return -EINVAL;
 
-	/* Set new watchdog time to be used when
-	 * orion_wdt_enable() or orion_wdt_ping() is called. */
+	
 	heartbeat = new_time;
 	return 0;
 }
@@ -187,7 +174,7 @@ static long orion_wdt_ioctl(struct file *file, unsigned int cmd,
 			break;
 		}
 		orion_wdt_ping();
-		/* Fall through */
+		
 
 	case WDIOC_GETTIMEOUT:
 		ret = put_user(heartbeat, (int *)arg);

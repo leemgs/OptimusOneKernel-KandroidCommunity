@@ -1,12 +1,4 @@
-/*
- *  linux/arch/arm/mach-mmp/tavorevb.c
- *
- *  Support for the Marvell PXA910-based TavorEVB Development Platform.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  publishhed by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -23,11 +15,11 @@
 #include "common.h"
 
 static unsigned long tavorevb_pin_config[] __initdata = {
-	/* UART2 */
+	
 	GPIO47_UART2_RXD,
 	GPIO48_UART2_TXD,
 
-	/* SMC */
+	
 	SM_nCS0_nCS0,
 	SM_ADV_SM_ADV,
 	SM_SCLK_SM_SCLK,
@@ -35,7 +27,7 @@ static unsigned long tavorevb_pin_config[] __initdata = {
 	SM_BE0_SM_BE0,
 	SM_BE1_SM_BE1,
 
-	/* DFI */
+	
 	DF_IO0_ND_IO0,
 	DF_IO1_ND_IO1,
 	DF_IO2_ND_IO2,
@@ -91,10 +83,10 @@ static void __init tavorevb_init(void)
 {
 	mfp_config(ARRAY_AND_SIZE(tavorevb_pin_config));
 
-	/* on-chip devices */
+	
 	pxa910_add_uart(1);
 
-	/* off-chip devices */
+	
 	platform_device_register(&smc91x_device);
 }
 

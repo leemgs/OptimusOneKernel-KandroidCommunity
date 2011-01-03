@@ -1,28 +1,6 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
 
-/**
- * @page ns_sm_info VPORT NS State Machine
- *
- * @section ns_sm_interactions VPORT NS State Machine Interactions
- *
- * @section ns_sm VPORT NS State Machine
- * 	img ns_sm.jpg
- */
+
+
 #include <bfa.h>
 #include <bfa_svc.h>
 #include <bfa_iocfc.h>
@@ -35,9 +13,7 @@
 
 BFA_TRC_FILE(FCS, NS);
 
-/*
- * forward declarations
- */
+
 static void     bfa_fcs_port_ns_send_plogi(void *ns_cbarg,
 					   struct bfa_fcxp_s *fcxp_alloced);
 static void     bfa_fcs_port_ns_send_rspn_id(void *ns_cbarg,
@@ -89,13 +65,9 @@ static void     bfa_fcs_port_ns_process_gidft_pids(struct bfa_fcs_port_s *port,
 						   u32 n_pids);
 
 static void     bfa_fcs_port_ns_boot_target_disc(struct bfa_fcs_port_s *port);
-/**
- *  fcs_ns_sm FCS nameserver interface state machine
- */
 
-/**
- * VPort NS State Machine events
- */
+
+
 enum vport_ns_event {
 	NSSM_EVENT_PORT_ONLINE = 1,
 	NSSM_EVENT_PORT_OFFLINE = 2,
@@ -144,9 +116,7 @@ static void     bfa_fcs_port_ns_sm_gid_ft_retry(struct bfa_fcs_port_ns_s *ns,
 						enum vport_ns_event event);
 static void     bfa_fcs_port_ns_sm_online(struct bfa_fcs_port_ns_s *ns,
 					  enum vport_ns_event event);
-/**
- * 		Start in offline state - awaiting linkup
- */
+
 static void
 bfa_fcs_port_ns_sm_offline(struct bfa_fcs_port_ns_s *ns,
 			   enum vport_ns_event event)
@@ -200,9 +170,7 @@ bfa_fcs_port_ns_sm_plogi(struct bfa_fcs_port_ns_s *ns,
 
 	switch (event) {
 	case NSSM_EVENT_RSP_ERROR:
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_plogi_retry);
 		ns->port->stats.ns_retries++;
 		bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ns->port), &ns->timer,
@@ -234,9 +202,7 @@ bfa_fcs_port_ns_sm_plogi_retry(struct bfa_fcs_port_ns_s *ns,
 
 	switch (event) {
 	case NSSM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_plogi_sending);
 		bfa_fcs_port_ns_send_plogi(ns, NULL);
 		break;
@@ -283,9 +249,7 @@ bfa_fcs_port_ns_sm_rspn_id(struct bfa_fcs_port_ns_s *ns,
 
 	switch (event) {
 	case NSSM_EVENT_RSP_ERROR:
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_rspn_id_retry);
 		ns->port->stats.ns_retries++;
 		bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ns->port), &ns->timer,
@@ -317,9 +281,7 @@ bfa_fcs_port_ns_sm_rspn_id_retry(struct bfa_fcs_port_ns_s *ns,
 
 	switch (event) {
 	case NSSM_EVENT_TIMEOUT:
-		/*
-		 * Retry Timer Expired. Re-send
-		 */
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_sending_rspn_id);
 		bfa_fcs_port_ns_send_rspn_id(ns, NULL);
 		break;
@@ -366,17 +328,13 @@ bfa_fcs_port_ns_sm_rft_id(struct bfa_fcs_port_ns_s *ns,
 
 	switch (event) {
 	case NSSM_EVENT_RSP_OK:
-		/*
-		 * Now move to register FC4 Features
-		 */
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_sending_rff_id);
 		bfa_fcs_port_ns_send_rff_id(ns, NULL);
 		break;
 
 	case NSSM_EVENT_RSP_ERROR:
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_rft_id_retry);
 		ns->port->stats.ns_retries++;
 		bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ns->port), &ns->timer,
@@ -450,37 +408,26 @@ bfa_fcs_port_ns_sm_rff_id(struct bfa_fcs_port_ns_s *ns,
 	switch (event) {
 	case NSSM_EVENT_RSP_OK:
 
-		/*
-		 * If min cfg mode is enabled, we donot initiate rport
-		 * discovery with the fabric. Instead, we will retrieve the
-		 * boot targets from HAL/FW.
-		 */
+		
 		if (__fcs_min_cfg(ns->port->fcs)) {
 			bfa_fcs_port_ns_boot_target_disc(ns->port);
 			bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_online);
 			return;
 		}
 
-		/*
-		 * If the port role is Initiator Mode issue NS query.
-		 * If it is Target Mode, skip this and go to online.
-		 */
+		
 		if (BFA_FCS_VPORT_IS_INITIATOR_MODE(ns->port)) {
 			bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_sending_gid_ft);
 			bfa_fcs_port_ns_send_gid_ft(ns, NULL);
 		} else if (BFA_FCS_VPORT_IS_TARGET_MODE(ns->port)) {
 			bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_online);
 		}
-		/*
-		 * kick off mgmt srvr state machine
-		 */
+		
 		bfa_fcs_port_ms_online(ns->port);
 		break;
 
 	case NSSM_EVENT_RSP_ERROR:
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_rff_id_retry);
 		ns->port->stats.ns_retries++;
 		bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ns->port), &ns->timer,
@@ -556,12 +503,8 @@ bfa_fcs_port_ns_sm_gid_ft(struct bfa_fcs_port_ns_s *ns,
 		break;
 
 	case NSSM_EVENT_RSP_ERROR:
-		/*
-		 * TBD: for certain reject codes, we don't need to retry
-		 */
-		/*
-		 * Start timer for a delayed retry
-		 */
+		
+		
 		bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_gid_ft_retry);
 		ns->port->stats.ns_retries++;
 		bfa_timer_start(BFA_FCS_GET_HAL_FROM_PORT(ns->port), &ns->timer,
@@ -615,10 +558,7 @@ bfa_fcs_port_ns_sm_online(struct bfa_fcs_port_ns_s *ns,
 		break;
 
 	case NSSM_EVENT_NS_QUERY:
-		/*
-		 * If the port role is Initiator Mode issue NS query.
-		 * If it is Target Mode, skip this and go to online.
-		 */
+		
 		if (BFA_FCS_VPORT_IS_INITIATOR_MODE(ns->port)) {
 			bfa_sm_set_state(ns, bfa_fcs_port_ns_sm_sending_gid_ft);
 			bfa_fcs_port_ns_send_gid_ft(ns, NULL);
@@ -632,9 +572,7 @@ bfa_fcs_port_ns_sm_online(struct bfa_fcs_port_ns_s *ns,
 
 
 
-/**
- *  ns_pvt Nameserver local functions
- */
+
 
 static void
 bfa_fcs_port_ns_send_plogi(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
@@ -678,16 +616,14 @@ bfa_fcs_port_ns_plogi_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 {
 	struct bfa_fcs_port_ns_s *ns = (struct bfa_fcs_port_ns_s *)cbarg;
 	struct bfa_fcs_port_s *port = ns->port;
-	/* struct fc_logi_s *plogi_resp; */
+	
 	struct fc_els_cmd_s   *els_cmd;
 	struct fc_ls_rjt_s    *ls_rjt;
 
 	bfa_trc(port->fcs, req_status);
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		port->stats.ns_plogi_rsp_err++;
@@ -728,9 +664,7 @@ bfa_fcs_port_ns_plogi_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	}
 }
 
-/**
- * Register the symbolic port name.
- */
+
 static void
 bfa_fcs_port_ns_send_rspn_id(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -755,13 +689,9 @@ bfa_fcs_port_ns_send_rspn_id(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 	}
 	ns->fcxp = fcxp;
 
-	/*
-	 * for V-Port, form a Port Symbolic Name
-	 */
+	
 	if (port->vport) {
-		/**For Vports,
-		 *  we append the vport's port symbolic name to that of the base port.
-		 */
+		
 
 		strncpy((char *)psymbl,
 			(char *)
@@ -771,9 +701,7 @@ bfa_fcs_port_ns_send_rspn_id(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 			       &bfa_fcs_port_get_psym_name(bfa_fcs_get_base_port
 							   (port->fcs))));
 
-		/*
-		 * Ensure we have a null terminating string.
-		 */
+		
 		((char *)
 		 psymbl)[strlen((char *)
 				&bfa_fcs_port_get_psym_name
@@ -810,9 +738,7 @@ bfa_fcs_port_ns_rspn_id_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		port->stats.ns_rspnid_rsp_err++;
@@ -835,10 +761,7 @@ bfa_fcs_port_ns_rspn_id_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	bfa_sm_send_event(ns, NSSM_EVENT_RSP_ERROR);
 }
 
-/**
- * Register FC4-Types
- * TBD, Need to retrieve this from the OS driver, in case IPFC is enabled ?
- */
+
 static void
 bfa_fcs_port_ns_send_rft_id(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -883,9 +806,7 @@ bfa_fcs_port_ns_rft_id_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		port->stats.ns_rftid_rsp_err++;
@@ -908,9 +829,7 @@ bfa_fcs_port_ns_rft_id_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	bfa_sm_send_event(ns, NSSM_EVENT_RSP_ERROR);
 }
 
-/**
-* Register FC4-Features : Should be done after RFT_ID
- */
+
 static void
 bfa_fcs_port_ns_send_rff_id(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -962,9 +881,7 @@ bfa_fcs_port_ns_rff_id_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		port->stats.ns_rffid_rsp_err++;
@@ -986,21 +903,14 @@ bfa_fcs_port_ns_rff_id_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	bfa_trc(port->fcs, cthdr->exp_code);
 
 	if (cthdr->reason_code == CT_RSN_NOT_SUPP) {
-		/*
-		 * if this command is not supported, we don't retry
-		 */
+		
 		bfa_sm_send_event(ns, NSSM_EVENT_RSP_OK);
 	} else {
 		bfa_sm_send_event(ns, NSSM_EVENT_RSP_ERROR);
 	}
 }
 
-/**
- * Query Fabric for FC4-Types Devices.
- *
-*  TBD : Need to use a local (FCS private) response buffer, since the response
- * can be larger than 2K.
- */
+
 static void
 bfa_fcs_port_ns_send_gid_ft(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 {
@@ -1021,9 +931,7 @@ bfa_fcs_port_ns_send_gid_ft(void *ns_cbarg, struct bfa_fcxp_s *fcxp_alloced)
 	}
 	ns->fcxp = fcxp;
 
-	/*
-	 * This query is only initiated for FCP initiator mode.
-	 */
+	
 	len = fc_gid_ft_build(&fchs, bfa_fcxp_get_reqbuf(fcxp), ns->port->pid,
 			      FC_TYPE_FCP);
 
@@ -1050,9 +958,7 @@ bfa_fcs_port_ns_gid_ft_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	bfa_trc(port->fcs, port->port_cfg.pwwn);
 
-	/*
-	 * Sanity Checks
-	 */
+	
 	if (req_status != BFA_STATUS_OK) {
 		bfa_trc(port->fcs, req_status);
 		port->stats.ns_gidft_rsp_err++;
@@ -1061,10 +967,7 @@ bfa_fcs_port_ns_gid_ft_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	}
 
 	if (resid_len != 0) {
-		/*
-		 * TBD : we will need to allocate a larger buffer & retry the
-		 * command
-		 */
+		
 		bfa_trc(port->fcs, rsp_len);
 		bfa_trc(port->fcs, resid_len);
 		return;
@@ -1088,10 +991,7 @@ bfa_fcs_port_ns_gid_ft_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 	case CT_RSP_REJECT:
 
-		/*
-		 * Check the reason code  & explanation.
-		 * There may not have been any FC4 devices in the fabric
-		 */
+		
 		port->stats.ns_gidft_rejects++;
 		bfa_trc(port->fcs, cthdr->reason_code);
 		bfa_trc(port->fcs, cthdr->exp_code);
@@ -1101,9 +1001,7 @@ bfa_fcs_port_ns_gid_ft_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 
 			bfa_sm_send_event(ns, NSSM_EVENT_RSP_OK);
 		} else {
-			/*
-			 * for all other errors, retry
-			 */
+			
 			bfa_sm_send_event(ns, NSSM_EVENT_RSP_ERROR);
 		}
 		break;
@@ -1115,18 +1013,7 @@ bfa_fcs_port_ns_gid_ft_response(void *fcsarg, struct bfa_fcxp_s *fcxp,
 	}
 }
 
-/**
- *     This routine will be called by bfa_timer on timer timeouts.
- *
- * 	param[in] 	port 	- pointer to bfa_fcs_port_t.
- *
- * 	return
- * 		void
- *
-* 	Special Considerations:
- *
- * 	note
- */
+
 static void
 bfa_fcs_port_ns_timeout(void *arg)
 {
@@ -1136,9 +1023,7 @@ bfa_fcs_port_ns_timeout(void *arg)
 	bfa_sm_send_event(ns, NSSM_EVENT_TIMEOUT);
 }
 
-/*
- * Process the PID list in GID_FT response
- */
+
 static void
 bfa_fcs_port_ns_process_gidft_pids(struct bfa_fcs_port_s *port,
 				   u32 *pid_buf, u32 n_pids)
@@ -1153,40 +1038,27 @@ bfa_fcs_port_ns_process_gidft_pids(struct bfa_fcs_port_s *port,
 		if (gidft_entry->pid == port->pid)
 			continue;
 
-		/*
-		 * Check if this rport already exists
-		 */
+		
 		rport = bfa_fcs_port_get_rport_by_pid(port, gidft_entry->pid);
 		if (rport == NULL) {
-			/*
-			 * this is a new device. create rport
-			 */
+			
 			rport = bfa_fcs_rport_create(port, gidft_entry->pid);
 		} else {
-			/*
-			 * this rport already exists
-			 */
+			
 			bfa_fcs_rport_scn(rport);
 		}
 
 		bfa_trc(port->fcs, gidft_entry->pid);
 
-		/*
-		 * if the last entry bit is set, bail out.
-		 */
+		
 		if (gidft_entry->last)
 			return;
 	}
 }
 
-/**
- *  fcs_ns_public FCS nameserver public interfaces
- */
 
-/*
- * Functions called by port/fab.
- * These will send relevant Events to the ns state machine.
- */
+
+
 void
 bfa_fcs_port_ns_init(struct bfa_fcs_port_s *port)
 {

@@ -1,26 +1,4 @@
-/*
 
-    cx88-vp3054-i2c.c  --  support for the secondary I2C bus of the
-			   DNTV Live! DVB-T Pro (VP-3054), wired as:
-			   GPIO[0] -> SCL, GPIO[1] -> SDA
-
-    (c) 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -34,7 +12,7 @@ MODULE_DESCRIPTION("driver for cx2388x VP3054 design");
 MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
 MODULE_LICENSE("GPL");
 
-/* ----------------------------------------------------------------------- */
+
 
 static void vp3054_bit_setscl(void *data, int state)
 {
@@ -43,11 +21,11 @@ static void vp3054_bit_setscl(void *data, int state)
 	struct vp3054_i2c_state *vp3054_i2c = dev->vp3054;
 
 	if (state) {
-		vp3054_i2c->state |=  0x0001;	/* SCL high */
-		vp3054_i2c->state &= ~0x0100;	/* external pullup */
+		vp3054_i2c->state |=  0x0001;	
+		vp3054_i2c->state &= ~0x0100;	
 	} else {
-		vp3054_i2c->state &= ~0x0001;	/* SCL low */
-		vp3054_i2c->state |=  0x0100;	/* drive pin */
+		vp3054_i2c->state &= ~0x0001;	
+		vp3054_i2c->state |=  0x0100;	
 	}
 	cx_write(MO_GP0_IO, 0x010000 | vp3054_i2c->state);
 	cx_read(MO_GP0_IO);
@@ -60,11 +38,11 @@ static void vp3054_bit_setsda(void *data, int state)
 	struct vp3054_i2c_state *vp3054_i2c = dev->vp3054;
 
 	if (state) {
-		vp3054_i2c->state |=  0x0002;	/* SDA high */
-		vp3054_i2c->state &= ~0x0200;	/* tristate pin */
+		vp3054_i2c->state |=  0x0002;	
+		vp3054_i2c->state &= ~0x0200;	
 	} else {
-		vp3054_i2c->state &= ~0x0002;	/* SDA low */
-		vp3054_i2c->state |=  0x0200;	/* drive pin */
+		vp3054_i2c->state &= ~0x0002;	
+		vp3054_i2c->state |=  0x0200;	
 	}
 	cx_write(MO_GP0_IO, 0x020000 | vp3054_i2c->state);
 	cx_read(MO_GP0_IO);
@@ -90,7 +68,7 @@ static int vp3054_bit_getsda(void *data)
 	return (state & 0x02) ? 1 : 0;
 }
 
-/* ----------------------------------------------------------------------- */
+
 
 static const struct i2c_algo_bit_data vp3054_i2c_algo_template = {
 	.setsda  = vp3054_bit_setsda,
@@ -101,7 +79,7 @@ static const struct i2c_algo_bit_data vp3054_i2c_algo_template = {
 	.timeout = 200,
 };
 
-/* ----------------------------------------------------------------------- */
+
 
 int vp3054_i2c_probe(struct cx8802_dev *dev)
 {

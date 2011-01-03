@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFA_IOC_H__
 #define __BFA_IOC_H__
@@ -24,9 +9,7 @@
 #include <bfi/bfi_boot.h>
 #include <bfa_timer.h>
 
-/**
- * PCI device information required by IOC
- */
+
 struct bfa_pcidev_s {
 	int             pci_slot;
 	u8         pci_func;
@@ -34,13 +17,10 @@ struct bfa_pcidev_s {
 	bfa_os_addr_t   pci_bar_kva;
 };
 
-/**
- * Structure used to remember the DMA-able memory block's KVA and Physical
- * Address
- */
+
 struct bfa_dma_s {
-	void		*kva;	/*! Kernel virtual address	*/
-	u64	pa;	/*! Physical address		*/
+	void		*kva;	
+	u64	pa;	
 };
 
 #define BFA_DMA_ALIGN_SZ	256
@@ -94,30 +74,24 @@ struct bfa_ioc_regs_s {
 #define bfa_mem_read(_raddr, _off)	bfa_os_mem_read(_raddr, _off)
 #define bfa_mem_write(_raddr, _off, _val)	\
 					bfa_os_mem_write(_raddr, _off, _val)
-/**
- * IOC Mailbox structures
- */
+
 struct bfa_mbox_cmd_s {
 	struct list_head		qe;
 	u32	msg[BFI_IOC_MSGSZ];
 };
 
-/**
- * IOC mailbox module
- */
+
 typedef void (*bfa_ioc_mbox_mcfunc_t)(void *cbarg, struct bfi_mbmsg_s *m);
 struct bfa_ioc_mbox_mod_s {
-	struct list_head	cmd_q;		/*  pending mbox queue	*/
-	int		nmclass;	/*  number of handlers */
+	struct list_head	cmd_q;		
+	int		nmclass;	
 	struct {
-		bfa_ioc_mbox_mcfunc_t	cbfn;	/*  message handlers	*/
+		bfa_ioc_mbox_mcfunc_t	cbfn;	
 		void			*cbarg;
 	} mbhdlr[BFI_MC_MAX];
 };
 
-/**
- * IOC callback function interfaces
- */
+
 typedef void (*bfa_ioc_enable_cbfn_t)(void *bfa, enum bfa_status status);
 typedef void (*bfa_ioc_disable_cbfn_t)(void *bfa);
 typedef void (*bfa_ioc_hbfail_cbfn_t)(void *bfa);
@@ -129,18 +103,14 @@ struct bfa_ioc_cbfn_s {
 	bfa_ioc_reset_cbfn_t	reset_cbfn;
 };
 
-/**
- * Heartbeat failure notification queue element.
- */
+
 struct bfa_ioc_hbfail_notify_s {
 	struct list_head		qe;
 	bfa_ioc_hbfail_cbfn_t	cbfn;
 	void			*cbarg;
 };
 
-/**
- * Initialize a heartbeat failure notification structure
- */
+
 #define bfa_ioc_hbfail_init(__notify, __cbfn, __cbarg) do {	\
 	(__notify)->cbfn = (__cbfn);      \
 	(__notify)->cbarg = (__cbarg);      \
@@ -192,9 +162,7 @@ struct bfa_ioc_s {
 #define bfa_ioc_speed_sup(__ioc)	\
 	BFI_ADAPTER_GETP(SPEED, (__ioc)->attr->adapter_prop)
 
-/**
- * IOC mailbox interface
- */
+
 void bfa_ioc_mbox_queue(struct bfa_ioc_s *ioc, struct bfa_mbox_cmd_s *cmd);
 void bfa_ioc_mbox_register(struct bfa_ioc_s *ioc,
 		bfa_ioc_mbox_mcfunc_t *mcfuncs);
@@ -204,9 +172,7 @@ void bfa_ioc_msgget(struct bfa_ioc_s *ioc, void *mbmsg);
 void bfa_ioc_mbox_regisr(struct bfa_ioc_s *ioc, enum bfi_mclass mc,
 		bfa_ioc_mbox_mcfunc_t cbfn, void *cbarg);
 
-/**
- * IOC interfaces
- */
+
 void bfa_ioc_attach(struct bfa_ioc_s *ioc, void *bfa,
 		struct bfa_ioc_cbfn_s *cbfn, struct bfa_timer_mod_s *timer_mod,
 		struct bfa_trc_mod_s *trcmod,
@@ -246,14 +212,12 @@ bfa_boolean_t bfa_ioc_get_fcmode(struct bfa_ioc_s *ioc);
 void bfa_ioc_hbfail_register(struct bfa_ioc_s *ioc,
 	struct bfa_ioc_hbfail_notify_s *notify);
 
-/*
- * bfa mfg wwn API functions
- */
+
 wwn_t bfa_ioc_get_pwwn(struct bfa_ioc_s *ioc);
 wwn_t bfa_ioc_get_nwwn(struct bfa_ioc_s *ioc);
 wwn_t bfa_ioc_get_wwn_naa5(struct bfa_ioc_s *ioc, u16 inst);
 mac_t bfa_ioc_get_mac(struct bfa_ioc_s *ioc);
 u64 bfa_ioc_get_adid(struct bfa_ioc_s *ioc);
 
-#endif /* __BFA_IOC_H__ */
+#endif 
 

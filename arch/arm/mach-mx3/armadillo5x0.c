@@ -1,27 +1,4 @@
-/*
- * armadillo5x0.c
- *
- * Copyright 2009 Alberto Panizzo <maramaopercheseimorto@gmail.com>
- * updates in http://alberdroid.blogspot.com/
- *
- * Based on Atmark Techno, Inc. armadillo 500 BSP 2008
- * Based on mx31ads.c and pcm037.c Great Work!
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/types.h>
 #include <linux/init.h>
@@ -54,26 +31,26 @@
 #include "crm_regs.h"
 
 static int armadillo5x0_pins[] = {
-	/* UART1 */
+	
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
 	MX31_PIN_TXD1__TXD1,
 	MX31_PIN_RXD1__RXD1,
-	/* UART2 */
+	
 	MX31_PIN_CTS2__CTS2,
 	MX31_PIN_RTS2__RTS2,
 	MX31_PIN_TXD2__TXD2,
 	MX31_PIN_RXD2__RXD2,
-	/* LAN9118_IRQ */
+	
 	IOMUX_MODE(MX31_PIN_GPIO1_0, IOMUX_CONFIG_GPIO),
-	/* SDHC1 */
+	
 	MX31_PIN_SD1_DATA3__SD1_DATA3,
 	MX31_PIN_SD1_DATA2__SD1_DATA2,
 	MX31_PIN_SD1_DATA1__SD1_DATA1,
 	MX31_PIN_SD1_DATA0__SD1_DATA0,
 	MX31_PIN_SD1_CLK__SD1_CLK,
 	MX31_PIN_SD1_CMD__SD1_CMD,
-	/* Framebuffer */
+	
 	MX31_PIN_LD0__LD0,
 	MX31_PIN_LD1__LD1,
 	MX31_PIN_LD2__LD2,
@@ -96,20 +73,16 @@ static int armadillo5x0_pins[] = {
 	MX31_PIN_HSYNC__HSYNC,
 	MX31_PIN_FPSHIFT__FPSHIFT,
 	MX31_PIN_DRDY0__DRDY0,
-	IOMUX_MODE(MX31_PIN_LCS1, IOMUX_CONFIG_GPIO), /*ADV7125_PSAVE*/
+	IOMUX_MODE(MX31_PIN_LCS1, IOMUX_CONFIG_GPIO), 
 };
 
-/*
- * NAND Flash
- */
+
 static struct mxc_nand_platform_data armadillo5x0_nand_flash_pdata = {
 	.width		= 1,
 	.hw_ecc		= 1,
 };
 
-/*
- * MTD NOR Flash
- */
+
 static struct mtd_partition armadillo5x0_nor_flash_partitions[] = {
 	{
 		.name		= "nor.bootloader",
@@ -149,11 +122,9 @@ static struct platform_device armadillo5x0_nor_flash = {
 	.resource		= &armadillo5x0_nor_flash_resource,
 };
 
-/*
- * FB support
- */
+
 static const struct fb_videomode fb_modedb[] = {
-	{	/* 640x480 @ 60 Hz */
+	{	
 		.name		= "CRT-VGA",
 		.refresh	= 60,
 		.xres		= 640,
@@ -168,7 +139,7 @@ static const struct fb_videomode fb_modedb[] = {
 		.sync		= FB_SYNC_OE_ACT_HIGH,
 		.vmode		= FB_VMODE_NONINTERLACED,
 		.flag		= 0,
-	}, {/* 800x600 @ 56 Hz */
+	}, {
 		.name		= "CRT-SVGA",
 		.refresh	= 56,
 		.xres		= 800,
@@ -198,10 +169,7 @@ static struct mx3fb_platform_data mx3fb_pdata = {
 	.num_modes	= ARRAY_SIZE(fb_modedb),
 };
 
-/*
- * SDHC 1
- * MMC support
- */
+
 static int armadillo5x0_sdhc1_get_ro(struct device *dev)
 {
 	return gpio_get_value(IOMUX_TO_GPIO(MX31_PIN_ATA_RESET_B));
@@ -228,7 +196,7 @@ static int armadillo5x0_sdhc1_init(struct device *dev,
 
 	gpio_direction_input(gpio_wp);
 
-	/* When supported the trigger type have to be BOTH */
+	
 	ret = request_irq(IOMUX_TO_IRQ(MX31_PIN_ATA_DMACK), detect_irq,
 			  IRQF_DISABLED | IRQF_TRIGGER_FALLING,
 			  "sdhc-detect", data);
@@ -261,10 +229,7 @@ static struct imxmmc_platform_data sdhc_pdata = {
 	.exit = armadillo5x0_sdhc1_exit,
 };
 
-/*
- * SMSC 9118
- * Network support
- */
+
 static struct resource armadillo5x0_smc911x_resources[] = {
 	{
 		.start	= CS3_BASE_ADDR,
@@ -293,7 +258,7 @@ static struct platform_device armadillo5x0_smc911x_device = {
 	},
 };
 
-/* UART device data */
+
 static struct imxuart_platform_data uart_pdata = {
 	.flags = IMXUART_HAVE_RTSCTS,
 };
@@ -302,9 +267,7 @@ static struct platform_device *devices[] __initdata = {
 	&armadillo5x0_smc911x_device,
 };
 
-/*
- * Perform board specific initializations
- */
+
 static void __init armadillo5x0_init(void)
 {
 	mxc_iomux_setup_multiple_pins(armadillo5x0_pins,
@@ -312,28 +275,28 @@ static void __init armadillo5x0_init(void)
 
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 
-	/* Register UART */
+	
 	mxc_register_device(&mxc_uart_device0, &uart_pdata);
 	mxc_register_device(&mxc_uart_device1, &uart_pdata);
 
-	/* SMSC9118 IRQ pin */
+	
 	gpio_direction_input(MX31_PIN_GPIO1_0);
 
-	/* Register SDHC */
+	
 	mxc_register_device(&mxcsdhc_device0, &sdhc_pdata);
 
-	/* Register FB */
+	
 	mxc_register_device(&mx3_ipu, &mx3_ipu_data);
 	mxc_register_device(&mx3_fb, &mx3fb_pdata);
 
-	/* Register NOR Flash */
+	
 	mxc_register_device(&armadillo5x0_nor_flash,
 			    &armadillo5x0_nor_flash_pdata);
 
-	/* Register NAND Flash */
+	
 	mxc_register_device(&mxc_nand_device, &armadillo5x0_nand_flash_pdata);
 
-	/* set NAND page size to 2k if not configured via boot mode pins */
+	
 	__raw_writel(__raw_readl(MXC_CCM_RCSR) | (1 << 30), MXC_CCM_RCSR);
 }
 
@@ -347,7 +310,7 @@ static struct sys_timer armadillo5x0_timer = {
 };
 
 MACHINE_START(ARMADILLO5X0, "Armadillo-500")
-	/* Maintainer: Alberto Panizzo  */
+	
 	.phys_io	= AIPS1_BASE_ADDR,
 	.io_pg_offst	= ((AIPS1_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params	= PHYS_OFFSET + 0x00000100,

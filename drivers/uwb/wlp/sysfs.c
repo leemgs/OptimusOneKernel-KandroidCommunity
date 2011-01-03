@@ -1,28 +1,4 @@
-/*
- * WiMedia Logical Link Control Protocol (WLP)
- * sysfs functions
- *
- * Copyright (C) 2007 Intel Corporation
- * Reinette Chatre <reinette.chatre@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * FIXME: Docs
- *
- */
+
 #include <linux/wlp.h>
 
 #include "wlp-internal.h"
@@ -48,21 +24,7 @@ size_t wlp_wss_wssid_e_print(char *buf, size_t bufsize,
 	return used;
 }
 
-/**
- * Print out information learned from neighbor discovery
- *
- * Some fields being printed may not be included in the device discovery
- * information (it is not mandatory). We are thus careful how the
- * information is printed to ensure it is clear to the user what field is
- * being referenced.
- * The information being printed is for one time use - temporary storage is
- * cleaned after it is printed.
- *
- * Ideally sysfs output should be on one line. The information printed here
- * contain a few strings so it will be hard to parse if they are all
- * printed on the same line - without agreeing on a standard field
- * separator.
- */
+
 static
 ssize_t wlp_wss_neighborhood_print_remove(struct wlp *wlp, char *buf,
 				   size_t bufsize)
@@ -126,12 +88,7 @@ out:
 }
 
 
-/**
- * Show properties of all WSS in neighborhood.
- *
- * Will trigger a complete discovery of WSS activated by this device and
- * its neighbors.
- */
+
 ssize_t wlp_neighborhood_show(struct wlp *wlp, char *buf)
 {
 	wlp_discover(wlp);
@@ -166,9 +123,7 @@ ssize_t __wlp_wss_properties_show(struct wlp_wss *wss, char *buf,
 	return result;
 }
 
-/**
- * Show which WSS is activated.
- */
+
 ssize_t wlp_wss_activate_show(struct wlp_wss *wss, char *buf)
 {
 	int result = 0;
@@ -200,18 +155,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(wlp_wss_activate_show);
 
-/**
- * Create/activate a new WSS or enroll/activate in neighboring WSS
- *
- * The user can provide the WSSID of a WSS in which it wants to enroll.
- * Only the WSSID is necessary if the WSS have been discovered before. If
- * the WSS has not been discovered before, or the user wants to use a
- * particular neighbor as its registrar, then the user can also provide a
- * device address or the neighbor that will be used as registrar.
- *
- * A new WSS is created when the user provides a WSSID, secure status, and
- * WSS name.
- */
+
 ssize_t wlp_wss_activate_store(struct wlp_wss *wss,
 			       const char *buf, size_t size)
 {
@@ -256,8 +200,7 @@ ssize_t wlp_wss_activate_store(struct wlp_wss *wss,
 		else if (result == 19) {
 			sec_status = sec_status == 0 ? 0 : 1;
 			accept = accept == 0 ? 0 : 1;
-			/* We read name using %c, so the newline needs to be
-			 * removed */
+			
 			if (strlen(name) != sizeof(name) - 1)
 				name[strlen(name) - 1] = '\0';
 			result = wlp_wss_create_activate(wss, &wssid, name,
@@ -272,9 +215,7 @@ ssize_t wlp_wss_activate_store(struct wlp_wss *wss,
 }
 EXPORT_SYMBOL_GPL(wlp_wss_activate_store);
 
-/**
- * Show the UUID of this host
- */
+
 ssize_t wlp_uuid_show(struct wlp *wlp, char *buf)
 {
 	ssize_t result = 0;
@@ -287,15 +228,7 @@ ssize_t wlp_uuid_show(struct wlp *wlp, char *buf)
 }
 EXPORT_SYMBOL_GPL(wlp_uuid_show);
 
-/**
- * Store a new UUID for this host
- *
- * According to the spec this should be encoded as an octet string in the
- * order the octets are shown in string representation in RFC 4122 (WLP
- * 0.99 [Table 6])
- *
- * We do not check value provided by user.
- */
+
 ssize_t wlp_uuid_store(struct wlp *wlp, const char *buf, size_t size)
 {
 	ssize_t result;
@@ -325,9 +258,7 @@ error:
 }
 EXPORT_SYMBOL_GPL(wlp_uuid_store);
 
-/**
- * Show contents of members of device information structure
- */
+
 #define wlp_dev_info_show(type)						\
 ssize_t wlp_dev_##type##_show(struct wlp *wlp, char *buf)		\
 {									\
@@ -351,9 +282,7 @@ wlp_dev_info_show(model_nr)
 wlp_dev_info_show(manufacturer)
 wlp_dev_info_show(serial)
 
-/**
- * Store contents of members of device information structure
- */
+
 #define wlp_dev_info_store(type, len)					\
 ssize_t wlp_dev_##type##_store(struct wlp *wlp, const char *buf, size_t size)\
 {									\
@@ -568,22 +497,13 @@ out:
 }
 EXPORT_SYMBOL_GPL(wlp_dev_prim_subcat_store);
 
-/**
- * Subsystem implementation for interaction with individual WSS via sysfs
- *
- * Followed instructions for subsystem in Documentation/filesystems/sysfs.txt
- */
+
 
 #define kobj_to_wlp_wss(obj) container_of(obj, struct wlp_wss, kobj)
 #define attr_to_wlp_wss_attr(_attr) \
 	container_of(_attr, struct wlp_wss_attribute, attr)
 
-/**
- * Sysfs subsystem: forward read calls
- *
- * Sysfs operation for forwarding read call to the show method of the
- * attribute owner
- */
+
 static
 ssize_t wlp_wss_attr_show(struct kobject *kobj, struct attribute *attr,
 			  char *buf)
@@ -596,12 +516,7 @@ ssize_t wlp_wss_attr_show(struct kobject *kobj, struct attribute *attr,
 		ret = wss_attr->show(wss, buf);
 	return ret;
 }
-/**
- * Sysfs subsystem: forward write calls
- *
- * Sysfs operation for forwarding write call to the store method of the
- * attribute owner
- */
+
 static
 ssize_t wlp_wss_attr_store(struct kobject *kobj, struct attribute *attr,
 			   const char *buf, size_t count)
@@ -627,16 +542,9 @@ struct kobj_type wss_ktype = {
 };
 
 
-/**
- * Sysfs files for individual WSS
- */
 
-/**
- * Print static properties of this WSS
- *
- * The name of a WSS may not be null teminated. It's max size is 64 bytes
- * so we copy it to a larger array just to make sure we print sane data.
- */
+
+
 static ssize_t wlp_wss_properties_show(struct wlp_wss *wss, char *buf)
 {
 	int result = 0;
@@ -650,10 +558,7 @@ out:
 }
 WSS_ATTR(properties, S_IRUGO, wlp_wss_properties_show, NULL);
 
-/**
- * Print all connected members of this WSS
- * The EDA cache contains all members of WSS neighborhood.
- */
+
 static ssize_t wlp_wss_members_show(struct wlp_wss *wss, char *buf)
 {
 	struct wlp *wlp = container_of(wss, struct wlp, wss);
@@ -677,9 +582,7 @@ static const char *wlp_wss_strstate(unsigned state)
 	return __wlp_strstate[state];
 }
 
-/*
- * Print current state of this WSS
- */
+
 static ssize_t wlp_wss_state_show(struct wlp_wss *wss, char *buf)
 {
 	int result = 0;
@@ -704,6 +607,6 @@ struct attribute *wss_attrs[] = {
 };
 
 struct attribute_group wss_attr_group = {
-	.name = NULL,	/* we want them in the same directory */
+	.name = NULL,	
 	.attrs = wss_attrs,
 };

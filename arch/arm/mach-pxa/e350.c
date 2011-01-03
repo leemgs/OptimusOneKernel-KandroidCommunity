@@ -1,14 +1,4 @@
-/*
- * Hardware definitions for the Toshiba e350 PDAs
- *
- * Copyright (c) 2003 Ian Molton <spyro@f2s.com>
- *
- * This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -29,7 +19,7 @@
 #include "eseries.h"
 #include "clock.h"
 
-/* -------------------- e350 t7l66xb parameters -------------------- */
+
 
 static struct t7l66xb_platform_data e350_t7l66xb_info = {
 	.irq_base               = IRQ_BOARD_START,
@@ -48,7 +38,7 @@ static struct platform_device e350_t7l66xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-/* ---------------------------------------------------------- */
+
 
 static struct platform_device *devices[] __initdata = {
 	&e350_t7l66xb_device,
@@ -63,7 +53,7 @@ static void __init e350_init(void)
 }
 
 MACHINE_START(E350, "Toshiba e350")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
+	
 	.phys_io	= 0x40000000,
 	.io_pg_offst	= (io_p2v(0x40000000) >> 18) & 0xfffc,
 	.boot_params	= 0xa0000100,

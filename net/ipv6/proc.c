@@ -1,20 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		This file implements the various access functions for the
- *		PROC file system.  This is very similar to the IPv4 version,
- *		except it reports the sockets in the INET6 address family.
- *
- * Authors:	David S. Miller (davem@caip.rutgers.edu)
- * 		YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #include <linux/socket.h>
 #include <linux/net.h>
 #include <linux/ipv6.h>
@@ -60,7 +44,7 @@ static const struct file_operations sockstat6_seq_fops = {
 };
 
 static struct snmp_mib snmp6_ipstats_list[] = {
-/* ipv6 mib according to RFC 2465 */
+
 	SNMP_MIB_ITEM("Ip6InReceives", IPSTATS_MIB_INPKTS),
 	SNMP_MIB_ITEM("Ip6InHdrErrors", IPSTATS_MIB_INHDRERRORS),
 	SNMP_MIB_ITEM("Ip6InTooBigErrors", IPSTATS_MIB_INTOOBIGERRORS),
@@ -93,14 +77,14 @@ static struct snmp_mib snmp6_ipstats_list[] = {
 };
 
 static struct snmp_mib snmp6_icmp6_list[] = {
-/* icmpv6 mib according to RFC 2466 */
+
 	SNMP_MIB_ITEM("Icmp6InMsgs", ICMP6_MIB_INMSGS),
 	SNMP_MIB_ITEM("Icmp6InErrors", ICMP6_MIB_INERRORS),
 	SNMP_MIB_ITEM("Icmp6OutMsgs", ICMP6_MIB_OUTMSGS),
 	SNMP_MIB_SENTINEL
 };
 
-/* RFC 4293 v6 ICMPMsgStatsTable; named items for RFC 2466 compatibility */
+
 static const char *const icmp6type2name[256] = {
 	[ICMPV6_DEST_UNREACH] = "DestUnreachs",
 	[ICMPV6_PKT_TOOBIG] = "PktTooBigs",
@@ -141,14 +125,14 @@ static void snmp6_seq_show_icmpv6msg(struct seq_file *seq, void **mib)
 	char name[32];
 	int i;
 
-	/* print by name -- deprecated items */
+	
 	for (i = 0; i < ICMP6MSG_MIB_MAX; i++) {
 		int icmptype;
 		const char *p;
 
 		icmptype = i & 0xff;
 		p = icmp6type2name[icmptype];
-		if (!p)	/* don't print un-named types here */
+		if (!p)	
 			continue;
 		snprintf(name, sizeof(name), "Icmp6%s%s",
 			i & 0x100 ? "Out" : "In", p);
@@ -156,7 +140,7 @@ static void snmp6_seq_show_icmpv6msg(struct seq_file *seq, void **mib)
 			snmp_fold_field(mib, i));
 	}
 
-	/* print by number (nonzero only) - ICMPMsgStat format */
+	
 	for (i = 0; i < ICMP6MSG_MIB_MAX; i++) {
 		unsigned long val;
 

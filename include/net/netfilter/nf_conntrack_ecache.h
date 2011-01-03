@@ -1,6 +1,4 @@
-/*
- * connection tracking event cache.
- */
+
 
 #ifndef _NF_CONNTRACK_ECACHE_H
 #define _NF_CONNTRACK_ECACHE_H
@@ -12,28 +10,28 @@
 #include <linux/netfilter/nf_conntrack_tuple_common.h>
 #include <net/netfilter/nf_conntrack_extend.h>
 
-/* Connection tracking event types */
+
 enum ip_conntrack_events
 {
-	IPCT_NEW		= 0,	/* new conntrack */
-	IPCT_RELATED		= 1,	/* related conntrack */
-	IPCT_DESTROY		= 2,	/* destroyed conntrack */
-	IPCT_STATUS		= 3,	/* status has changed */
-	IPCT_PROTOINFO		= 4,	/* protocol information has changed */
-	IPCT_HELPER		= 5,	/* new helper has been set */
-	IPCT_MARK		= 6,	/* new mark has been set */
-	IPCT_NATSEQADJ		= 7,	/* NAT is doing sequence adjustment */
-	IPCT_SECMARK		= 8,	/* new security mark has been set */
+	IPCT_NEW		= 0,	
+	IPCT_RELATED		= 1,	
+	IPCT_DESTROY		= 2,	
+	IPCT_STATUS		= 3,	
+	IPCT_PROTOINFO		= 4,	
+	IPCT_HELPER		= 5,	
+	IPCT_MARK		= 6,	
+	IPCT_NATSEQADJ		= 7,	
+	IPCT_SECMARK		= 8,	
 };
 
 enum ip_conntrack_expect_events {
-	IPEXP_NEW		= 0,	/* new expectation */
+	IPEXP_NEW		= 0,	
 };
 
 struct nf_conntrack_ecache {
-	unsigned long cache;		/* bitops want long */
-	unsigned long missed;		/* missed events */
-	u32 pid;			/* netlink pid of destroyer */
+	unsigned long cache;		
+	unsigned long missed;		
+	u32 pid;			
 };
 
 static inline struct nf_conntrack_ecache *
@@ -54,7 +52,7 @@ nf_ct_ecache_ext_add(struct nf_conn *ct, gfp_t gfp)
 };
 
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
-/* This structure is passed to event handler */
+
 struct nf_ct_event {
 	struct nf_conn *ct;
 	u32 pid;
@@ -115,16 +113,14 @@ nf_conntrack_eventmask_report(unsigned int eventmask,
 			.pid	= e->pid ? e->pid : pid,
 			.report = report
 		};
-		/* This is a resent of a destroy event? If so, skip missed */
+		
 		unsigned long missed = e->pid ? 0 : e->missed;
 
 		ret = notify->fcn(eventmask | missed, &item);
 		if (unlikely(ret < 0 || missed)) {
 			spin_lock_bh(&ct->lock);
 			if (ret < 0) {
-				/* This is a destroy event that has been
-				 * triggered by a process, we store the PID
-				 * to include it in the retransmission. */
+				
 				if (eventmask & (1 << IPCT_DESTROY) &&
 				    e->pid == 0 && pid != 0)
 					e->pid = pid;
@@ -206,7 +202,7 @@ nf_ct_expect_event(enum ip_conntrack_expect_events event,
 extern int nf_conntrack_ecache_init(struct net *net);
 extern void nf_conntrack_ecache_fini(struct net *net);
 
-#else /* CONFIG_NF_CONNTRACK_EVENTS */
+#else 
 
 static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
 					    struct nf_conn *ct) {}
@@ -236,7 +232,7 @@ static inline int nf_conntrack_ecache_init(struct net *net)
 static inline void nf_conntrack_ecache_fini(struct net *net)
 {
 }
-#endif /* CONFIG_NF_CONNTRACK_EVENTS */
+#endif 
 
-#endif /*_NF_CONNTRACK_ECACHE_H*/
+#endif 
 

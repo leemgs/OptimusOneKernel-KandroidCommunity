@@ -1,23 +1,4 @@
-/*
- * Copyright (C) 2006, 2007 Eugene Konev <ejka@openwrt.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * Parts of the VLYNQ specification can be found here:
- * http://www.ti.com/litv/pdf/sprue36a
- */
+
 
 #include <linux/init.h>
 #include <linux/types.h>
@@ -103,7 +84,7 @@ static void vlynq_dump_mem(u32 *base, int count)
 }
 #endif
 
-/* Check the VLYNQ link status with a given device */
+
 static int vlynq_linked(struct vlynq_device *dev)
 {
 	int i;
@@ -122,14 +103,14 @@ static void vlynq_reset(struct vlynq_device *dev)
 	writel(readl(&dev->local->control) | VLYNQ_CTRL_RESET,
 			&dev->local->control);
 
-	/* Wait for the devices to finish resetting */
+	
 	msleep(5);
 
-	/* Remove reset bit */
+	
 	writel(readl(&dev->local->control) & ~VLYNQ_CTRL_RESET,
 			&dev->local->control);
 
-	/* Give some time for the devices to settle */
+	
 	msleep(5);
 }
 
@@ -267,11 +248,11 @@ static int vlynq_setup_irq(struct vlynq_device *dev)
 		return -EINVAL;
 	}
 
-	/* Clear local and remote error bits */
+	
 	writel(readl(&dev->local->status), &dev->local->status);
 	writel(readl(&dev->remote->status), &dev->remote->status);
 
-	/* Now setup interrupts */
+	
 	val = VLYNQ_CTRL_INT_VECTOR(dev->local_irq);
 	val |= VLYNQ_CTRL_INT_ENABLE | VLYNQ_CTRL_INT_LOCAL |
 		VLYNQ_CTRL_INT2CFG;
@@ -379,14 +360,7 @@ void vlynq_unregister_driver(struct vlynq_driver *driver)
 }
 EXPORT_SYMBOL(vlynq_unregister_driver);
 
-/*
- * A VLYNQ remote device can clock the VLYNQ bus master
- * using a dedicated clock line. In that case, both the
- * remove device and the bus master should have the same
- * serial clock dividers configured. Iterate through the
- * 8 possible dividers until we actually link with the
- * device.
- */
+
 static int __vlynq_try_remote(struct vlynq_device *dev)
 {
 	int i;
@@ -424,13 +398,7 @@ static int __vlynq_try_remote(struct vlynq_device *dev)
 	return -ENODEV;
 }
 
-/*
- * A VLYNQ remote device can be clocked by the VLYNQ bus
- * master using a dedicated clock line. In that case, only
- * the bus master configures the serial clock divider.
- * Iterate through the 8 possible dividers until we
- * actually get a link with the device.
- */
+
 static int __vlynq_try_local(struct vlynq_device *dev)
 {
 	int i;
@@ -461,12 +429,7 @@ static int __vlynq_try_local(struct vlynq_device *dev)
 	return -ENODEV;
 }
 
-/*
- * When using external clocking method, serial clock
- * is supplied by an external oscillator, therefore we
- * should mask the local clock bit in the clock control
- * register for both the bus master and the remote device.
- */
+
 static int __vlynq_try_external(struct vlynq_device *dev)
 {
 	vlynq_reset(dev);
@@ -503,10 +466,7 @@ static int __vlynq_enable_device(struct vlynq_device *dev)
 	switch (dev->divisor) {
 	case vlynq_div_external:
 	case vlynq_div_auto:
-		/* When the device is brought from reset it should have clock
-		 * generation negotiated by hardware.
-		 * Check which device is generating clocks and perform setup
-		 * accordingly */
+		
 		if (vlynq_linked(dev) && readl(&dev->remote->control) &
 		   VLYNQ_CTRL_CLOCK_INT) {
 			if (!__vlynq_try_remote(dev) ||

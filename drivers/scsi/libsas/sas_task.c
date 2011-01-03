@@ -2,7 +2,7 @@
 #include <scsi/sas.h>
 #include <scsi/libsas.h>
 
-/* fill task_status_struct based on SSP response frame */
+
 void sas_ssp_task_response(struct device *dev, struct sas_task *task,
 			   struct ssp_response_iu *iu)
 {
@@ -29,7 +29,7 @@ void sas_ssp_task_response(struct device *dev, struct sas_task *task,
 				   iu->status);
 	}
 	else
-		/* when datapres contains corrupt/unknown value... */
+		
 		tstat->stat = SAM_CHECK_COND;
 }
 EXPORT_SYMBOL_GPL(sas_ssp_task_response);

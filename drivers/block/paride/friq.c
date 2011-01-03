@@ -1,29 +1,6 @@
-/* 
-	friq.c	(c) 1998    Grant R. Guenther <grant@torque.net>
-		            Under the terms of the GNU General Public License
 
-	friq.c is a low-level protocol driver for the Freecom "IQ"
-	parallel port IDE adapter.   Early versions of this adapter
-	use the 'frpw' protocol.
-	
-	Freecom uses this adapter in a battery powered external 
-	CD-ROM drive.  It is also used in LS-120 drives by
-	Maxell and Panasonic, and other devices.
 
-	The battery powered drive requires software support to
-	control the power to the drive.  This module enables the
-	drive power when the high level driver (pcd) is loaded
-	and disables it when the module is unloaded.  Note, if
-	the friq module is built in to the kernel, the power
-	will never be switched off, so other means should be
-	used to conserve battery power.
 
-*/
-
-/* Changes:
-
-	1.01	GRG 1998.12.20	 Added support for soft power switch
-*/
 
 #define	FRIQ_VERSION	"1.01" 
 
@@ -42,9 +19,7 @@
 
 #define j44(l,h)	(((l>>4)&0x0f)|(h&0xf0))
 
-/* cont = 0 - access the IDE register file 
-   cont = 1 - access the IDE command set 
-*/
+
 
 static int  cont_map[2] = { 0x08, 0x10 };
 
@@ -186,7 +161,7 @@ static int friq_test_proto( PIA *pi, char * scratch, int verbose )
 	int	e[2] = {0,0};
 
 	pi->saved_r0 = r0();	
-	w0(0xff); udelay(20); CMD(0x3d); /* turn the power on */
+	w0(0xff); udelay(20); CMD(0x3d); 
 	udelay(500);
 	w0(pi->saved_r0);
 
@@ -228,14 +203,14 @@ static void friq_log_adapter( PIA *pi, char * scratch, int verbose )
 
 	pi->private = 1;
 	friq_connect(pi);
-	CMD(0x9e);  		/* disable sleep timer */
+	CMD(0x9e);  		
 	friq_disconnect(pi);
 
 }
 
 static void friq_release_proto( PIA *pi)
 {
-	if (pi->private) {		/* turn off the power */
+	if (pi->private) {		
 		friq_connect(pi);
 		CMD(0x1d); CMD(0x1e);
 		friq_disconnect(pi);

@@ -1,16 +1,4 @@
-/*
- * Support for Sharp SL-C7xx PDAs
- * Models: SL-C700 (Corgi), SL-C750 (Shepherd), SL-C760 (Husky)
- *
- * Copyright (c) 2004-2005 Richard Purdie
- *
- * Based on Sharp's 2.4 kernel patches/lubbock.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -60,28 +48,28 @@
 #include "sharpsl.h"
 
 static unsigned long corgi_pin_config[] __initdata = {
-	/* Static Memory I/O */
-	GPIO78_nCS_2,	/* w100fb */
-	GPIO80_nCS_4,	/* scoop */
+	
+	GPIO78_nCS_2,	
+	GPIO80_nCS_4,	
 
-	/* SSP1 */
+	
 	GPIO23_SSP1_SCLK,
 	GPIO25_SSP1_TXD,
 	GPIO26_SSP1_RXD,
-	GPIO24_GPIO,	/* CORGI_GPIO_ADS7846_CS - SFRM as chip select */
+	GPIO24_GPIO,	
 
-	/* I2S */
+	
 	GPIO28_I2S_BITCLK_OUT,
 	GPIO29_I2S_SDATA_IN,
 	GPIO30_I2S_SDATA_OUT,
 	GPIO31_I2S_SYNC,
 	GPIO32_I2S_SYSCLK,
 
-	/* Infra-Red */
+	
 	GPIO47_FICP_TXD,
 	GPIO46_FICP_RXD,
 
-	/* FFUART */
+	
 	GPIO40_FFUART_DTR,
 	GPIO41_FFUART_RTS,
 	GPIO39_FFUART_TXD,
@@ -89,7 +77,7 @@ static unsigned long corgi_pin_config[] __initdata = {
 	GPIO34_FFUART_RXD,
 	GPIO35_FFUART_CTS,
 
-	/* PC Card */
+	
 	GPIO48_nPOE,
 	GPIO49_nPWE,
 	GPIO50_nPIOR,
@@ -101,45 +89,43 @@ static unsigned long corgi_pin_config[] __initdata = {
 	GPIO56_nPWAIT,
 	GPIO57_nIOIS16,
 
-	/* MMC */
+	
 	GPIO6_MMC_CLK,
 	GPIO8_MMC_CS0,
 
-	/* GPIO Matrix Keypad */
-	GPIO66_GPIO,	/* column 0 */
-	GPIO67_GPIO,	/* column 1 */
-	GPIO68_GPIO,	/* column 2 */
-	GPIO69_GPIO,	/* column 3 */
-	GPIO70_GPIO,	/* column 4 */
-	GPIO71_GPIO,	/* column 5 */
-	GPIO72_GPIO,	/* column 6 */
-	GPIO73_GPIO,	/* column 7 */
-	GPIO74_GPIO,	/* column 8 */
-	GPIO75_GPIO,	/* column 9 */
-	GPIO76_GPIO,	/* column 10 */
-	GPIO77_GPIO,	/* column 11 */
-	GPIO58_GPIO,	/* row 0 */
-	GPIO59_GPIO,	/* row 1 */
-	GPIO60_GPIO,	/* row 2 */
-	GPIO61_GPIO,	/* row 3 */
-	GPIO62_GPIO,	/* row 4 */
-	GPIO63_GPIO,	/* row 5 */
-	GPIO64_GPIO,	/* row 6 */
-	GPIO65_GPIO,	/* row 7 */
+	
+	GPIO66_GPIO,	
+	GPIO67_GPIO,	
+	GPIO68_GPIO,	
+	GPIO69_GPIO,	
+	GPIO70_GPIO,	
+	GPIO71_GPIO,	
+	GPIO72_GPIO,	
+	GPIO73_GPIO,	
+	GPIO74_GPIO,	
+	GPIO75_GPIO,	
+	GPIO76_GPIO,	
+	GPIO77_GPIO,	
+	GPIO58_GPIO,	
+	GPIO59_GPIO,	
+	GPIO60_GPIO,	
+	GPIO61_GPIO,	
+	GPIO62_GPIO,	
+	GPIO63_GPIO,	
+	GPIO64_GPIO,	
+	GPIO65_GPIO,	
 
-	/* GPIO */
-	GPIO9_GPIO,	/* CORGI_GPIO_nSD_DETECT */
-	GPIO7_GPIO,	/* CORGI_GPIO_nSD_WP */
-	GPIO33_GPIO,	/* CORGI_GPIO_SD_PWR */
-	GPIO22_GPIO,	/* CORGI_GPIO_IR_ON */
-	GPIO44_GPIO,	/* CORGI_GPIO_HSYNC */
+	
+	GPIO9_GPIO,	
+	GPIO7_GPIO,	
+	GPIO33_GPIO,	
+	GPIO22_GPIO,	
+	GPIO44_GPIO,	
 
 	GPIO1_GPIO | WAKEUP_ON_EDGE_RISE,
 };
 
-/*
- * Corgi SCOOP Device
- */
+
 static struct resource corgi_scoop_resources[] = {
 	[0] = {
 		.start		= 0x10800000,
@@ -287,9 +273,7 @@ static struct platform_device corgifb_device = {
 
 };
 
-/*
- * Corgi Keyboard Device
- */
+
 #define CORGI_KEY_CALENDER	KEY_F1
 #define CORGI_KEY_ADDRESS	KEY_F2
 #define CORGI_KEY_FN		KEY_F3
@@ -401,9 +385,7 @@ static struct platform_device corgikbd_device = {
 	},
 };
 
-/*
- * Corgi LEDs
- */
+
 static struct gpio_led corgi_gpio_leds[] = {
 	{
 		.name			= "corgi:amber:charge",
@@ -430,12 +412,7 @@ static struct platform_device corgiled_device = {
 	},
 };
 
-/*
- * MMC/SD Device
- *
- * The card detect interrupt isn't debounced so we delay it by 250ms
- * to give the card a chance to fully insert/eject.
- */
+
 static struct pxamci_platform_data corgi_mci_platform_data = {
 	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
 	.gpio_card_detect	= -1,
@@ -444,20 +421,16 @@ static struct pxamci_platform_data corgi_mci_platform_data = {
 };
 
 
-/*
- * Irda
- */
+
 static struct pxaficp_platform_data corgi_ficp_platform_data = {
 	.gpio_pwdown		= CORGI_GPIO_IR_ON,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
 
-/*
- * USB Device Controller
- */
+
 static struct pxa2xx_udc_mach_info udc_info __initdata = {
-	/* no connect GPIO; corgi can't tell connection status */
+	
 	.gpio_pullup		= CORGI_GPIO_USB_PULLUP,
 };
 
@@ -646,7 +619,7 @@ static struct i2c_board_info __initdata corgi_i2c_devices[] = {
 static void corgi_poweroff(void)
 {
 	if (!machine_is_corgi())
-		/* Green LED off tells the bootloader to halt */
+		
 		gpio_set_value(CORGI_GPIO_LED_GREEN, 0);
 
 	arm_machine_restart('h', NULL);
@@ -655,7 +628,7 @@ static void corgi_poweroff(void)
 static void corgi_restart(char mode, const char *cmd)
 {
 	if (!machine_is_corgi())
-		/* Green LED on tells the bootloader to reboot */
+		
 		gpio_set_value(CORGI_GPIO_LED_GREEN, 1);
 
 	arm_machine_restart('h', cmd);
@@ -666,7 +639,7 @@ static void __init corgi_init(void)
 	pm_power_off = corgi_poweroff;
 	arm_pm_restart = corgi_restart;
 
-	/* Stop 3.6MHz and drive HIGH to PCMCIA and CS */
+	
 	PCFR |= PCFR_OPDE;
 
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(corgi_pin_config));

@@ -1,23 +1,4 @@
-/*
- *	matrox_w1.c
- *
- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <asm/types.h>
 #include <asm/atomic.h>
@@ -58,9 +39,7 @@ static struct pci_driver matrox_w1_pci_driver = {
 	.remove = __devexit_p(matrox_w1_remove),
 };
 
-/*
- * Matrox G400 DDC registers.
- */
+
 
 #define MATROX_G400_DDC_CLK		(1<<4)
 #define MATROX_G400_DDC_DATA		(1<<1)
@@ -92,17 +71,7 @@ struct matrox_device
 static u8 matrox_w1_read_ddc_bit(void *);
 static void matrox_w1_write_ddc_bit(void *, u8);
 
-/*
- * These functions read and write DDC Data bit.
- *
- * Using tristate pins, since i can't find any open-drain pin in whole motherboard.
- * Unfortunately we can't connect to Intel's 82801xx IO controller
- * since we don't know motherboard schema, which has pretty unused(may be not) GPIO.
- *
- * I've heard that PIIX also has open drain pin.
- *
- * Port mapping.
- */
+
 static __inline__ u8 matrox_w1_read_reg(struct matrox_device *dev, u8 reg)
 {
 	u8 ret;
@@ -175,9 +144,7 @@ static int __devinit matrox_w1_probe(struct pci_dev *pdev, const struct pci_devi
 
 	dev->bus_master = (struct w1_bus_master *)(dev + 1);
 
-	/*
-	 * True for G400, for some other we need resource 0, see drivers/video/matrox/matroxfb_base.c
-	 */
+	
 
 	dev->phys_addr = pci_resource_start(pdev, 1);
 

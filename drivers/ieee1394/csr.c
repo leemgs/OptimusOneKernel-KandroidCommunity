@@ -1,21 +1,4 @@
-/*
- * IEEE 1394 for Linux
- *
- * CSR implementation, iso/bus manager implementation.
- *
- * Copyright (C) 1999 Andreas E. Bombe
- *               2002 Manfred Weihs <weihs@ict.tuwien.ac.at>
- *
- * This code is licensed under the GPL.  See the file COPYING in the root
- * directory of the kernel sources for details.
- *
- *
- * Contributions:
- *
- * Manfred Weihs <weihs@ict.tuwien.ac.at>
- *        configuration ROM manipulation
- *
- */
+
 
 #include <linux/jiffies.h>
 #include <linux/kernel.h>
@@ -32,8 +15,8 @@
 #include "highlevel.h"
 #include "ieee1394_core.h"
 
-/* Module Parameters */
-/* this module parameter can be used to disable mapping of the FCP registers */
+
+
 
 static int fcp = 1;
 module_param(fcp, int, 0444);
@@ -116,7 +99,7 @@ static void host_reset(struct hpsb_host *host)
 
         host->csr.bus_manager_id = 0x3f;
         host->csr.bandwidth_available = 4915;
-	host->csr.channels_available_hi = 0xfffffffe;	/* pre-alloc ch 31 per 1394a-2000 */
+	host->csr.channels_available_hi = 0xfffffffe;	
         host->csr.channels_available_lo = ~0;
 	host->csr.broadcast_channel = 0x80000000 | 31;
 
@@ -129,7 +112,7 @@ static void host_reset(struct hpsb_host *host)
         host->csr.node_ids = host->node_id << 16;
 
         if (!host->is_root) {
-                /* clear cmstr bit */
+                
                 host->csr.state &= ~0x100;
         }
 
@@ -147,13 +130,7 @@ static void host_reset(struct hpsb_host *host)
                                                          0x3f1));
 }
 
-/*
- * HI == seconds (bits 0:2)
- * LO == fractions of a second in units of 125usec (bits 19:31)
- *
- * Convert SPLIT_TIMEOUT to jiffies.
- * The default and minimum as per 1394a-2000 clause 8.3.2.2.6 is 100ms.
- */
+
 static inline void calculate_expire(struct csr_control *csr)
 {
 	unsigned int usecs = (csr->split_timeout_hi & 7) * 1000000 +
@@ -198,7 +175,7 @@ static void add_host(struct hpsb_host *host)
         host->csr.bus_time              = 0;
         host->csr.bus_manager_id        = 0x3f;
         host->csr.bandwidth_available   = 4915;
-	host->csr.channels_available_hi = 0xfffffffe;	/* pre-alloc ch 31 per 1394a-2000 */
+	host->csr.channels_available_hi = 0xfffffffe;	
         host->csr.channels_available_lo = ~0;
 	host->csr.broadcast_channel = 0x80000000 | 31;
 
@@ -232,8 +209,7 @@ static void add_host(struct hpsb_host *host)
 	bus_info[3] = cpu_to_be32(host->csr.guid_hi);
 	bus_info[4] = cpu_to_be32(host->csr.guid_lo);
 
-	/* The hardware copy of the bus info block will be set later when a
-	 * bus reset is issued. */
+	
 
 	csr1212_init_local_csr(host->csr.rom, bus_info, host->csr.max_rom);
 
@@ -286,15 +262,13 @@ int hpsb_update_config_rom(struct hpsb_host *host, const quadlet_t *new_rom,
 	else if (buffersize > host->csr.rom->cache_head->size)
 		ret = -2;
         else {
-		/* Just overwrite the generated ConfigROM image with new data,
-		 * it can be regenerated later. */
+		
 		memcpy(host->csr.rom->cache_head->data, new_rom, buffersize);
 		host->csr.rom->cache_head->len = buffersize;
 
 		if (host->driver->set_hw_config_rom)
 			host->driver->set_hw_config_rom(host, host->csr.rom->bus_info_data);
-		/* Increment the generation number to keep some sort of sync
-		 * with the newer ConfigROM manipulation method. */
+		
 		host->csr.generation++;
 		if (host->csr.generation > 0xf || host->csr.generation < 2)
 			host->csr.generation = 2;
@@ -305,7 +279,7 @@ int hpsb_update_config_rom(struct hpsb_host *host, const quadlet_t *new_rom,
 }
 
 
-/* Read topology / speed maps and configuration ROM */
+
 static int read_maps(struct hpsb_host *host, int nodeid, quadlet_t *buffer,
                      u64 addr, size_t length, u16 fl)
 {
@@ -356,7 +330,7 @@ static int read_regs(struct hpsb_host *host, int nodeid, quadlet_t *buf,
         case CSR_RESET_START:
                 return RCODE_TYPE_ERROR;
 
-                /* address gap - handled by default below */
+                
 
         case CSR_SPLIT_TIMEOUT_HI:
                 *(buf++) = cpu_to_be32(host->csr.split_timeout_hi);
@@ -365,7 +339,7 @@ static int read_regs(struct hpsb_host *host, int nodeid, quadlet_t *buf,
                 *(buf++) = cpu_to_be32(host->csr.split_timeout_lo);
                 out;
 
-                /* address gap */
+                
                 return RCODE_ADDRESS_ERROR;
 
         case CSR_CYCLE_TIME:
@@ -374,7 +348,7 @@ static int read_regs(struct hpsb_host *host, int nodeid, quadlet_t *buf,
                         host->driver->devctl(host, GET_CYCLE_COUNTER, 0);
 
                 if (oldcycle > host->csr.cycle_time) {
-                        /* cycle time wrapped around */
+                        
                         host->csr.bus_time += 1 << 7;
                 }
                 *(buf++) = cpu_to_be32(host->csr.cycle_time);
@@ -385,18 +359,18 @@ static int read_regs(struct hpsb_host *host, int nodeid, quadlet_t *buf,
                         host->driver->devctl(host, GET_CYCLE_COUNTER, 0);
 
                 if (oldcycle > host->csr.cycle_time) {
-                        /* cycle time wrapped around */
+                        
                         host->csr.bus_time += (1 << 7);
                 }
                 *(buf++) = cpu_to_be32(host->csr.bus_time
                                        | (host->csr.cycle_time >> 25));
                 out;
 
-                /* address gap */
+                
                 return RCODE_ADDRESS_ERROR;
 
         case CSR_BUSY_TIMEOUT:
-                /* not yet implemented */
+                
                 return RCODE_ADDRESS_ERROR;
 
         case CSR_BUS_MANAGER_ID:
@@ -436,7 +410,7 @@ static int read_regs(struct hpsb_host *host, int nodeid, quadlet_t *buf,
 		*(buf++) = cpu_to_be32(host->csr.broadcast_channel);
 		out;
 
-                /* address gap to end - fall through to default */
+                
         default:
                 return RCODE_ADDRESS_ERROR;
         }
@@ -456,7 +430,7 @@ static int write_regs(struct hpsb_host *host, int nodeid, int destid,
 
         switch (csraddr) {
         case CSR_STATE_CLEAR:
-                /* FIXME FIXME FIXME */
+                
                 printk("doh, someone wants to mess with state clear\n");
                 out;
         case CSR_STATE_SET:
@@ -471,10 +445,10 @@ static int write_regs(struct hpsb_host *host, int nodeid, int destid,
                 out;
 
         case CSR_RESET_START:
-                /* FIXME - perform command reset */
+                
                 out;
 
-                /* address gap */
+                
                 return RCODE_ADDRESS_ERROR;
 
         case CSR_SPLIT_TIMEOUT_HI:
@@ -488,11 +462,11 @@ static int write_regs(struct hpsb_host *host, int nodeid, int destid,
 		calculate_expire(&host->csr);
                 out;
 
-                /* address gap */
+                
                 return RCODE_ADDRESS_ERROR;
 
         case CSR_CYCLE_TIME:
-                /* should only be set by cycle start packet, automatically */
+                
                 host->csr.cycle_time = be32_to_cpu(*data);
                 host->driver->devctl(host, SET_CYCLE_COUNTER,
                                        be32_to_cpu(*(data++)));
@@ -501,27 +475,27 @@ static int write_regs(struct hpsb_host *host, int nodeid, int destid,
                 host->csr.bus_time = be32_to_cpu(*(data++)) & 0xffffff80;
                 out;
 
-                /* address gap */
+                
                 return RCODE_ADDRESS_ERROR;
 
         case CSR_BUSY_TIMEOUT:
-                /* not yet implemented */
+                
                 return RCODE_ADDRESS_ERROR;
 
         case CSR_BUS_MANAGER_ID:
         case CSR_BANDWIDTH_AVAILABLE:
         case CSR_CHANNELS_AVAILABLE_HI:
         case CSR_CHANNELS_AVAILABLE_LO:
-                /* these are not writable, only lockable */
+                
                 return RCODE_TYPE_ERROR;
 
 	case CSR_BROADCAST_CHANNEL:
-		/* only the valid bit can be written */
+		
 		host->csr.broadcast_channel = (host->csr.broadcast_channel & ~0x40000000)
                         | (be32_to_cpu(*data) & 0x40000000);
 		out;
 
-                /* address gap to end - fall through */
+                
         default:
                 return RCODE_ADDRESS_ERROR;
         }
@@ -549,16 +523,14 @@ static int lock_regs(struct hpsb_host *host, int nodeid, quadlet_t *store,
         data = be32_to_cpu(data);
         arg = be32_to_cpu(arg);
 
-	/* Is somebody releasing the broadcast_channel on us? */
+	
 	if (csraddr == CSR_CHANNELS_AVAILABLE_HI && (data & 0x1)) {
-		/* Note: this is may not be the right way to handle
-		 * the problem, so we should look into the proper way
-		 * eventually. */
+		
 		HPSB_WARN("Node [" NODE_BUS_FMT "] wants to release "
 			  "broadcast channel 31.  Ignoring.",
 			  NODE_BUS_ARGS(host, nodeid));
 
-		data &= ~0x1;	/* keep broadcast channel allocated */
+		data &= ~0x1;	
 	}
 
         if (host->driver->hw_csr_reg) {
@@ -591,14 +563,14 @@ static int lock_regs(struct hpsb_host *host, int nodeid, quadlet_t *store,
                 regptr = &host->csr.bandwidth_available;
                 old = *regptr;
 
-                /* bandwidth available algorithm adapted from IEEE 1394a-2000 spec */
+                
                 if (arg > 0x1fff) {
-                        *store = cpu_to_be32(old);	/* change nothing */
+                        *store = cpu_to_be32(old);	
 			break;
                 }
                 data &= 0x1fff;
                 if (arg >= data) {
-                        /* allocate bandwidth */
+                        
                         bandwidth = arg - data;
                         if (old >= bandwidth) {
                                 new = old - bandwidth;
@@ -608,7 +580,7 @@ static int lock_regs(struct hpsb_host *host, int nodeid, quadlet_t *store,
                                 *store = cpu_to_be32(old);
                         }
                 } else {
-                        /* deallocate bandwidth */
+                        
                         bandwidth = data - arg;
                         if (old + bandwidth < 0x2000) {
                                 new = old + bandwidth;
@@ -623,7 +595,7 @@ static int lock_regs(struct hpsb_host *host, int nodeid, quadlet_t *store,
 
         case CSR_CHANNELS_AVAILABLE_HI:
         {
-                /* Lock algorithm for CHANNELS_AVAILABLE as recommended by 1394a-2000 */
+                
                 quadlet_t affected_channels = arg ^ data;
 
                 regptr = &host->csr.channels_available_hi;
@@ -640,7 +612,7 @@ static int lock_regs(struct hpsb_host *host, int nodeid, quadlet_t *store,
 
         case CSR_CHANNELS_AVAILABLE_LO:
         {
-                /* Lock algorithm for CHANNELS_AVAILABLE as recommended by 1394a-2000 */
+                
                 quadlet_t affected_channels = arg ^ data;
 
                 regptr = &host->csr.channels_available_lo;
@@ -673,7 +645,7 @@ static int lock_regs(struct hpsb_host *host, int nodeid, quadlet_t *store,
                 return RCODE_TYPE_ERROR;
 
         case CSR_BUSY_TIMEOUT:
-                /* not yet implemented - fall through */
+                
         default:
                 return RCODE_ADDRESS_ERROR;
         }
@@ -695,16 +667,14 @@ static int lock64_regs(struct hpsb_host *host, int nodeid, octlet_t * store,
 	    || extcode != EXTCODE_COMPARE_SWAP)
 		goto unsupported_lock64req;
 
-	/* Is somebody releasing the broadcast_channel on us? */
+	
 	if (csraddr == CSR_CHANNELS_AVAILABLE_HI && (data & 0x100000000ULL)) {
-		/* Note: this is may not be the right way to handle
-		 * the problem, so we should look into the proper way
-                 * eventually. */
+		
 		HPSB_WARN("Node [" NODE_BUS_FMT "] wants to release "
 			  "broadcast channel 31.  Ignoring.",
 			  NODE_BUS_ARGS(host, nodeid));
 
-		data &= ~0x100000000ULL;	/* keep broadcast channel allocated */
+		data &= ~0x100000000ULL;	
 	}
 
 	if (host->driver->hw_csr_reg) {
@@ -743,7 +713,7 @@ static int lock64_regs(struct hpsb_host *host, int nodeid, octlet_t * store,
 		spin_unlock_irqrestore(&host->csr.lock, flags);
 	}
 
-	/* Is somebody erroneously releasing the broadcast_channel on us? */
+	
 	if (host->csr.channels_available_hi & 0x1)
 		host->csr.channels_available_hi &= ~0x1;
 

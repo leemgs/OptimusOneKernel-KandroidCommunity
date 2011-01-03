@@ -1,31 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/timer-gp.c
- *
- * OMAP2 GP timer support.
- *
- * Copyright (C) 2009 Nokia Corporation
- *
- * Update to use new clocksource/clockevent layers
- * Author: Kevin Hilman, MontaVista Software, Inc. <source@mvista.com>
- * Copyright (C) 2007 MontaVista Software, Inc.
- *
- * Original driver:
- * Copyright (C) 2005 Nokia Corporation
- * Author: Paul Mundt <paul.mundt@nokia.com>
- *         Juha Yrjölä <juha.yrjola@nokia.com>
- * OMAP Dual-mode timer framework support by Timo Teras
- *
- * Some parts based off of TI's 24xx code:
- *
- * Copyright (C) 2004-2009 Texas Instruments, Inc.
- *
- * Roughly modelled after the OMAP1 MPU timer code.
- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License. See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 #include <linux/init.h>
 #include <linux/time.h>
 #include <linux/interrupt.h>
@@ -40,7 +13,7 @@
 #include <mach/dmtimer.h>
 #include <asm/localtimer.h>
 
-/* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+
 #define MAX_GPTIMER_ID		12
 
 static struct omap_dm_timer *gptimer;
@@ -85,7 +58,7 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
 		period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
 		period -= 1;
 		if (cpu_is_omap44xx())
-			period = 0xff;	/* FIXME: */
+			period = 0xff;	
 		omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - period);
 		break;
 	case CLOCK_EVT_MODE_ONESHOT:
@@ -105,14 +78,7 @@ static struct clock_event_device clockevent_gpt = {
 	.set_mode	= omap2_gp_timer_set_mode,
 };
 
-/**
- * omap2_gp_clockevent_set_gptimer - set which GPTIMER is used for clockevents
- * @id: GPTIMER to use (1..MAX_GPTIMER_ID)
- *
- * Define the GPTIMER that the system should use for the tick timer.
- * Meant to be called from board-*.c files in the event that GPTIMER1, the
- * default, is unsuitable.  Returns -EINVAL on error or 0 on success.
- */
+
 int __init omap2_gp_clockevent_set_gptimer(u8 id)
 {
 	if (id < 1 || id > MAX_GPTIMER_ID)
@@ -149,8 +115,8 @@ static void __init omap2_gp_clockevent_init(void)
 
 	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer));
 	if (cpu_is_omap44xx())
-		/* Assuming 32kHz clk is driving GPT1 */
-		tick_rate = 32768;	/* FIXME: */
+		
+		tick_rate = 32768;	
 
 	pr_info("OMAP clockevent source: GPTIMER%d at %u Hz\n",
 		gptimer_id, tick_rate);
@@ -165,26 +131,20 @@ static void __init omap2_gp_clockevent_init(void)
 		clockevent_delta2ns(0xffffffff, &clockevent_gpt);
 	clockevent_gpt.min_delta_ns =
 		clockevent_delta2ns(3, &clockevent_gpt);
-		/* Timer internal resynch latency. */
+		
 
 	clockevent_gpt.cpumask = cpumask_of(0);
 	clockevents_register_device(&clockevent_gpt);
 }
 
-/* Clocksource code */
+
 
 #ifdef CONFIG_OMAP_32K_TIMER
-/* 
- * When 32k-timer is enabled, don't use GPTimer for clocksource
- * instead, just leave default clocksource which uses the 32k
- * sync counter.  See clocksource setup in see plat-omap/common.c. 
- */
+
 
 static inline void __init omap2_gp_clocksource_init(void) {}
 #else
-/*
- * clocksource
- */
+
 static struct omap_dm_timer *gpt_clocksource;
 static cycle_t clocksource_read_cycles(struct clocksource *cs)
 {
@@ -200,7 +160,7 @@ static struct clocksource clocksource_gpt = {
 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
 };
 
-/* Setup free-running counter for clocksource */
+
 static void __init omap2_gp_clocksource_init(void)
 {
 	static struct omap_dm_timer *gpt;

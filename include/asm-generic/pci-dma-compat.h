@@ -1,13 +1,11 @@
-/* include this file if the platform implements the dma_ DMA Mapping API
- * and wants to provide the pci_ DMA Mapping API in terms of it */
+
 
 #ifndef _ASM_GENERIC_PCI_DMA_COMPAT_H
 #define _ASM_GENERIC_PCI_DMA_COMPAT_H
 
 #include <linux/dma-mapping.h>
 
-/* note pci_set_dma_mask isn't here, since it's a public function
- * exported from drivers/pci, use dma_supported instead */
+
 
 static inline int
 pci_dma_supported(struct pci_dev *hwdev, u64 mask)

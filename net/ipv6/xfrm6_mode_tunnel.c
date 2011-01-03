@@ -1,9 +1,4 @@
-/*
- * xfrm6_mode_tunnel.c - Tunnel mode encapsulation for IPv6.
- *
- * Copyright (C) 2002 USAGI/WIDE Project
- * Copyright (c) 2004-2006 Herbert Xu <herbert@gondor.apana.org.au>
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -25,10 +20,7 @@ static inline void ipip6_ecn_decapsulate(struct sk_buff *skb)
 		IP6_ECN_set_ce(inner_iph);
 }
 
-/* Add encapsulation header.
- *
- * The top IP header will be constructed per RFC 2401.
- */
+
 static int xfrm6_mode_tunnel_output(struct xfrm_state *x, struct sk_buff *skb)
 {
 	struct dst_entry *dst = skb_dst(skb);

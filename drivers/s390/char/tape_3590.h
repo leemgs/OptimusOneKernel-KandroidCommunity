@@ -1,12 +1,4 @@
-/*
- *  drivers/s390/char/tape_3590.h
- *    tape device discipline for 3590 tapes.
- *
- *    Copyright IBM Corp. 2001,2006
- *    Author(s): Stefan Bader <shbader@de.ibm.com>
- *		 Michael Holzheu <holzheu@de.ibm.com>
- *		 Martin Schwidefsky <schwidefsky@de.ibm.com>
- */
+
 
 #ifndef _TAPE_3590_H
 #define _TAPE_3590_H
@@ -42,7 +34,7 @@
 
 #define TAPE_3590_MAX_MSG	 0xb0
 
-/* Datatypes */
+
 
 struct tape_3590_disc_data {
 	struct tape390_crypt_info crypt_info;
@@ -133,7 +125,7 @@ struct tape_3590_rdc_data {
 	char data[64];
 } __attribute__ ((packed));
 
-/* Datastructures for 3592 encryption support */
+
 
 struct tape3592_kekl {
 	__u8 flags;
@@ -172,4 +164,4 @@ struct tape3592_kekl_set_order {
 	char reserved2[120];
 } __attribute__ ((packed));
 
-#endif /* _TAPE_3590_H */
+#endif 

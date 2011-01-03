@@ -1,19 +1,4 @@
-/*
- *    pata_qdi.c - QDI VLB ATA controllers
- *	(C) 2006 Red Hat
- *
- * This driver mostly exists as a proof of concept for non PCI devices under
- * libata. While the QDI6580 was 'neat' in 1993 it is no longer terribly
- * useful.
- *
- * Tuning code written from the documentation at
- * http://www.ryston.cz/petr/vlb/qd6500.html
- * http://www.ryston.cz/petr/vlb/qd6580.html
- *
- * Probe code based on drivers/ide/legacy/qd65xx.c
- * Rewritten from the work of Colten Edwards <pje120@cs.usask.ca> by
- * Samuel Thibault <samuel.thibault@ens-lyon.org>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -28,7 +13,7 @@
 #define DRV_NAME "pata_qdi"
 #define DRV_VERSION "0.3.1"
 
-#define NR_HOST 4	/* Two 6580s */
+#define NR_HOST 4	
 
 struct qdi_data {
 	unsigned long timing;
@@ -56,7 +41,7 @@ static void qdi6500_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	int active, recovery;
 	u8 timing;
 
-	/* Get the timing data in cycles */
+	
 	ata_timing_compute(adev, adev->pio_mode, &t, 30303, 1000);
 
 	if (qdi->fast) {
@@ -80,7 +65,7 @@ static void qdi6580_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	int active, recovery;
 	u8 timing;
 
-	/* Get the timing data in cycles */
+	
 	ata_timing_compute(adev, adev->pio_mode, &t, 30303, 1000);
 
 	if (qdi->fast) {
@@ -96,18 +81,12 @@ static void qdi6580_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	outb(timing, qdi->timing);
 
-	/* Clear the FIFO */
+	
 	if (adev->class != ATA_DEV_ATA)
 		outb(0x5F, (qdi->timing & 0xFFF0) + 3);
 }
 
-/**
- *	qdi_qc_issue		-	command issue
- *	@qc: command pending
- *
- *	Called when the libata layer is about to issue a command. We wrap
- *	this interface so that we can load the correct ATA timings.
- */
+
 
 static unsigned int qdi_qc_issue(struct ata_queued_cmd *qc)
 {
@@ -170,16 +149,7 @@ static struct ata_port_operations qdi6580_port_ops = {
 	.set_piomode	= qdi6580_set_piomode,
 };
 
-/**
- *	qdi_init_one		-	attach a qdi interface
- *	@type: Type to display
- *	@io: I/O port start
- *	@irq: interrupt line
- *	@fast: True if on a > 33Mhz VLB
- *
- *	Register an ISA bus IDE interface. Such interfaces are PIO and we
- *	assume do not support IRQ sharing.
- */
+
 
 static __init int qdi_init_one(unsigned long port, int type, unsigned long io, int irq, int fast)
 {
@@ -190,9 +160,7 @@ static __init int qdi_init_one(unsigned long port, int type, unsigned long io, i
 	void __iomem *io_addr, *ctl_addr;
 	int ret;
 
-	/*
-	 *	Fill in a probe structure first of all
-	 */
+	
 
 	pdev = platform_device_register_simple(DRV_NAME, nr_qdi_host, NULL, 0);
 	if (IS_ERR(pdev))
@@ -216,7 +184,7 @@ static __init int qdi_init_one(unsigned long port, int type, unsigned long io, i
 		ap->flags |= ATA_FLAG_SLAVE_POSS;
 	} else {
 		ap->ops = &qdi6500_port_ops;
-		ap->pio_mask = ATA_PIO2; /* Actually PIO3 !IORDY is possible */
+		ap->pio_mask = ATA_PIO2; 
 		ap->flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_NO_IORDY;
 	}
 
@@ -227,9 +195,7 @@ static __init int qdi_init_one(unsigned long port, int type, unsigned long io, i
 
 	ata_port_desc(ap, "cmd %lx ctl %lx", io, ctl);
 
-	/*
-	 *	Hook in a private data structure per channel
-	 */
+	
 	ap->private_data = &qdi_data[nr_qdi_host];
 
 	qdi_data[nr_qdi_host].timing = port;
@@ -238,7 +204,7 @@ static __init int qdi_init_one(unsigned long port, int type, unsigned long io, i
 
 	printk(KERN_INFO DRV_NAME": qd%d at 0x%lx.\n", type, io);
 
-	/* activate */
+	
 	ret = ata_host_activate(host, irq, ata_sff_interrupt, 0, &qdi_sht);
 	if (ret)
 		goto fail;
@@ -251,11 +217,7 @@ static __init int qdi_init_one(unsigned long port, int type, unsigned long io, i
 	return ret;
 }
 
-/**
- *	qdi_init		-	attach qdi interfaces
- *
- *	Attach qdi IDE interfaces by scanning the ports it may occupy.
- */
+
 
 static __init int qdi_init(void)
 {
@@ -270,9 +232,7 @@ static __init int qdi_init(void)
 	if (probe_qdi == 0)
 		return -ENODEV;
 
-	/*
- 	 *	Check each possible QD65xx base address
-	 */
+	
 
 	for (i = 0; i < 2; i++) {
 		unsigned long port = qd_port[i];
@@ -280,7 +240,7 @@ static __init int qdi_init(void)
 
 
 		if (request_region(port, 2, "pata_qdi")) {
-			/* Check for a card */
+			
 			local_irq_save(flags);
 			r = inb_p(port);
 			outb_p(0x19, port);
@@ -288,25 +248,25 @@ static __init int qdi_init(void)
 			outb_p(r, port);
 			local_irq_restore(flags);
 
-			/* Fail */
+			
 			if (res == 0x19)
 			{
 				release_region(port, 2);
 				continue;
 			}
 
-			/* Passes the presence test */
-			r = inb_p(port + 1);	/* Check port agrees with port set */
+			
+			r = inb_p(port + 1);	
 			if ((r & 2) >> 1 != i) {
 				release_region(port, 2);
 				continue;
 			}
 
-			/* Check card type */
+			
 			if ((r & 0xF0) == 0xC0) {
-				/* QD6500: single channel */
+				
 				if (r & 8) {
-					/* Disabled ? */
+					
 					release_region(port, 2);
 					continue;
 				}
@@ -314,7 +274,7 @@ static __init int qdi_init(void)
 					ct++;
 			}
 			if (((r & 0xF0) == 0xA0) || (r & 0xF0) == 0x50) {
-				/* QD6580: dual channel */
+				
 				if (!request_region(port + 2 , 2, "pata_qdi"))
 				{
 					release_region(port, 2);
@@ -322,11 +282,11 @@ static __init int qdi_init(void)
 				}
 				res = inb(port + 3);
 				if (res & 1) {
-					/* Single channel mode */
+					
 					if (qdi_init_one(port, 6580, ide_port[r & 0x01], ide_irq[r & 0x01], r & 0x04) == 0)
 						ct++;
 				} else {
-					/* Dual channel mode */
+					
 					if (qdi_init_one(port, 6580, 0x1F0, 14, r & 0x04) == 0)
 						ct++;
 					if (qdi_init_one(port + 2, 6580, 0x170, 15, r & 0x04) == 0)
@@ -346,9 +306,7 @@ static __exit void qdi_exit(void)
 
 	for (i = 0; i < nr_qdi_host; i++) {
 		ata_host_detach(qdi_host[i]);
-		/* Free the control resource. The 6580 dual channel has the resources
-		 * claimed as a pair of 2 byte resources so we need no special cases...
-		 */
+		
 		release_region(qdi_data[i].timing, 2);
 		platform_device_unregister(qdi_data[i].platform_dev);
 	}

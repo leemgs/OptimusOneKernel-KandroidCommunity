@@ -1,31 +1,4 @@
-/*
- * linux/fs/9p/error.c
- *
- * Error string handling
- *
- * Plan 9 uses error strings, Unix uses error numbers.  These functions
- * try to help manage that and provide for dynamically adding error
- * mappings.
- *
- *  Copyright (C) 2004 by Eric Van Hensbergen <ericvh@gmail.com>
- *  Copyright (C) 2002 by Ron Minnich <rminnich@lanl.gov>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2
- *  as published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to:
- *  Free Software Foundation
- *  51 Franklin Street, Fifth Floor
- *  Boston, MA  02111-1301  USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/list.h>
@@ -33,13 +6,7 @@
 #include <linux/errno.h>
 #include <net/9p/9p.h>
 
-/**
- * struct errormap - map string errors from Plan 9 to Linux numeric ids
- * @name: string sent over 9P
- * @val: numeric id most closely representing @name
- * @namelen: length of string
- * @list: hash-table list for string lookup
- */
+
 struct errormap {
 	char *name;
 	int val;
@@ -51,7 +18,7 @@ struct errormap {
 #define ERRHASHSZ		32
 static struct hlist_head hash_errmap[ERRHASHSZ];
 
-/* FixMe - reduce to a reasonable size */
+
 static struct errormap errmap[] = {
 	{"Operation not permitted", EPERM},
 	{"wstat prohibited", EPERM},
@@ -130,7 +97,7 @@ static struct errormap errmap[] = {
 	{"Is a named type file", EISNAM},
 	{"Remote I/O error", EREMOTEIO},
 	{"Disk quota exceeded", EDQUOT},
-/* errors from fossil, vacfs, and u9fs */
+
 	{"fid unknown or out of range", EBADF},
 	{"permission denied", EACCES},
 	{"file does not exist", ENOENT},
@@ -177,27 +144,24 @@ static struct errormap errmap[] = {
 	{"cannot remove root", EPERM},
 	{"file too big", EFBIG},
 	{"venti i/o error", EIO},
-	/* these are not errors */
+	
 	{"u9fs rhostsauth: no authentication required", 0},
 	{"u9fs authnone: no authentication required", 0},
 	{NULL, -1}
 };
 
-/**
- * p9_error_init - preload mappings into hash list
- *
- */
+
 
 int p9_error_init(void)
 {
 	struct errormap *c;
 	int bucket;
 
-	/* initialize hash table */
+	
 	for (bucket = 0; bucket < ERRHASHSZ; bucket++)
 		INIT_HLIST_HEAD(&hash_errmap[bucket]);
 
-	/* load initial error map into hash table */
+	
 	for (c = errmap; c->name != NULL; c++) {
 		c->namelen = strlen(c->name);
 		bucket = jhash(c->name, c->namelen, 0) % ERRHASHSZ;
@@ -209,12 +173,7 @@ int p9_error_init(void)
 }
 EXPORT_SYMBOL(p9_error_init);
 
-/**
- * errstr2errno - convert error string to error number
- * @errstr: error string
- * @len: length of error string
- *
- */
+
 
 int p9_errstr2errno(char *errstr, int len)
 {
@@ -235,7 +194,7 @@ int p9_errstr2errno(char *errstr, int len)
 	}
 
 	if (errno == 0) {
-		/* TODO: if error isn't found, add it dynamically */
+		
 		errstr[len] = 0;
 		printk(KERN_ERR "%s: server reported unknown error %s\n",
 			__func__, errstr);

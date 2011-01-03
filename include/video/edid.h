@@ -9,8 +9,8 @@ struct edid_info {
 
 #ifdef __KERNEL__
 extern struct edid_info edid_info;
-#endif /* __KERNEL__ */
+#endif 
 
 #endif
 
-#endif /* __linux_video_edid_h__ */
+#endif 

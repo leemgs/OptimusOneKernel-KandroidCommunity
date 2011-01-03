@@ -1,16 +1,4 @@
-/* linux/arch/arm/plat-s3c64xx/include/plat/gpio-bank-q.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- * 	Ben Dooks <ben@simtec.co.uk>
- * 	http://armlinux.simtec.co.uk/
- *
- * GPIO Bank Q register and configuration definitions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #define S3C64XX_GPQCON			(S3C64XX_GPQ_BASE + 0x00)
 #define S3C64XX_GPQDAT			(S3C64XX_GPQ_BASE + 0x04)

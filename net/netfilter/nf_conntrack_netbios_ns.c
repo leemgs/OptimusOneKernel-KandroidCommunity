@@ -1,20 +1,5 @@
-/*
- *      NetBIOS name service broadcast connection tracking helper
- *
- *      (c) 2005 Patrick McHardy <kaber@trash.net>
- *
- *      This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
-/*
- *      This helper tracks locally originating NetBIOS name service
- *      requests by issuing permanent expectations (valid until
- *      timing out) matching all reply connections from the
- *      destination network. The only NetBIOS specific thing is
- *      actually the port number.
- */
+
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -52,7 +37,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
 	struct in_device *in_dev;
 	__be32 mask = 0;
 
-	/* we're only interested in locally generated packets */
+	
 	if (skb->sk == NULL)
 		goto out;
 	if (rt == NULL || !(rt->rt_flags & RTCF_BROADCAST))

@@ -1,29 +1,4 @@
-/*
- * sched_clock for unstable cpu clocks
- *
- *  Copyright (C) 2008 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
- *
- *  Updates and enhancements:
- *    Copyright (C) 2008 Red Hat, Inc. Steven Rostedt <srostedt@redhat.com>
- *
- * Based on code by:
- *   Ingo Molnar <mingo@redhat.com>
- *   Guillaume Chazarain <guichaz@gmail.com>
- *
- * Create a semi stable clock from a mixture of other events, including:
- *  - gtod
- *  - sched_clock()
- *  - explicit idle events
- *
- * We use gtod as base and the unstable clock deltas. The deltas are filtered,
- * making it monotonic and keeping it within an expected window.
- *
- * Furthermore, explicit sleep and wakeup hooks allow us to account for time
- * that is otherwise invisible (TSC gets stopped).
- *
- * The clock: sched_clock_cpu() is monotonic per cpu, and should be somewhat
- * consistent between cpus (never more than 2 jiffies difference).
- */
+
 #include <linux/spinlock.h>
 #include <linux/hardirq.h>
 #include <linux/module.h>
@@ -31,11 +6,7 @@
 #include <linux/ktime.h>
 #include <linux/sched.h>
 
-/*
- * Scheduler clock - returns current time in nanosec units.
- * This is default implementation.
- * Architectures and sub-architectures can override this.
- */
+
 unsigned long long __attribute__((weak)) sched_clock(void)
 {
 	return (unsigned long long)(jiffies - INITIAL_JIFFIES)
@@ -81,9 +52,7 @@ void sched_clock_init(void)
 	sched_clock_running = 1;
 }
 
-/*
- * min, max except they take wrapping into account
- */
+
 
 static inline u64 wrap_min(u64 x, u64 y)
 {
@@ -95,12 +64,7 @@ static inline u64 wrap_max(u64 x, u64 y)
 	return (s64)(x - y) > 0 ? x : y;
 }
 
-/*
- * update the percpu scd from the raw @now value
- *
- *  - filter out backward motion
- *  - use the GTOD tick value to create a window to filter crazy TSC values
- */
+
 static u64 sched_clock_local(struct sched_clock_data *scd)
 {
 	u64 now, clock, old_clock, min_clock, max_clock;
@@ -114,11 +78,7 @@ again:
 
 	old_clock = scd->clock;
 
-	/*
-	 * scd->clock = clamp(scd->tick_gtod + delta,
-	 *		      max(scd->tick_gtod, scd->clock),
-	 *		      scd->tick_gtod + TICK_NSEC);
-	 */
+	
 
 	clock = scd->tick_gtod + delta;
 	min_clock = wrap_max(scd->tick_gtod, old_clock);
@@ -144,20 +104,13 @@ again:
 	this_clock = my_scd->clock;
 	remote_clock = scd->clock;
 
-	/*
-	 * Use the opportunity that we have both locks
-	 * taken to couple the two clocks: we take the
-	 * larger time as the latest time for both
-	 * runqueues. (this creates monotonic movement)
-	 */
+	
 	if (likely((s64)(remote_clock - this_clock) < 0)) {
 		ptr = &scd->clock;
 		old_val = remote_clock;
 		val = this_clock;
 	} else {
-		/*
-		 * Should be rare, but possible:
-		 */
+		
 		ptr = &my_scd->clock;
 		old_val = this_clock;
 		val = remote_clock;
@@ -214,18 +167,14 @@ void sched_clock_tick(void)
 	sched_clock_local(scd);
 }
 
-/*
- * We are going deep-idle (irqs are disabled):
- */
+
 void sched_clock_idle_sleep_event(void)
 {
 	sched_clock_cpu(smp_processor_id());
 }
 EXPORT_SYMBOL_GPL(sched_clock_idle_sleep_event);
 
-/*
- * We just idled delta nanoseconds (called with irqs disabled):
- */
+
 void sched_clock_idle_wakeup_event(u64 delta_ns)
 {
 	if (timekeeping_suspended)
@@ -248,7 +197,7 @@ unsigned long long cpu_clock(int cpu)
 	return clock;
 }
 
-#else /* CONFIG_HAVE_UNSTABLE_SCHED_CLOCK */
+#else 
 
 void sched_clock_init(void)
 {
@@ -269,6 +218,6 @@ unsigned long long cpu_clock(int cpu)
 	return sched_clock_cpu(cpu);
 }
 
-#endif /* CONFIG_HAVE_UNSTABLE_SCHED_CLOCK */
+#endif 
 
 EXPORT_SYMBOL_GPL(cpu_clock);

@@ -1,67 +1,4 @@
-/*
- *  Copyright 2007 Red Hat, Inc.
- *  by Peter Jones <pjones@redhat.com>
- *  Copyright 2008 IBM, Inc.
- *  by Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *  Copyright 2008
- *  by Konrad Rzeszutek <ketuzsezr@darnok.org>
- *
- * This code exposes the iSCSI Boot Format Table to userland via sysfs.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License v2.0 as published by
- * the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * Changelog:
- *
- *  14 Mar 2008 - Konrad Rzeszutek <ketuzsezr@darnok.org>
- *    Updated comments and copyrights. (v0.4.9)
- *
- *  11 Feb 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *    Converted to using ibft_addr. (v0.4.8)
- *
- *   8 Feb 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *    Combined two functions in one: reserve_ibft_region. (v0.4.7)
- *
- *  30 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Added logic to handle IPv6 addresses. (v0.4.6)
- *
- *  25 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Added logic to handle badly not-to-spec iBFT. (v0.4.5)
- *
- *   4 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Added __init to function declarations. (v0.4.4)
- *
- *  21 Dec 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Updated kobject registration, combined unregister functions in one
- *   and code and style cleanup. (v0.4.3)
- *
- *   5 Dec 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Added end-markers to enums and re-organized kobject registration. (v0.4.2)
- *
- *   4 Dec 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Created 'device' sysfs link to the NIC and style cleanup. (v0.4.1)
- *
- *  28 Nov 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Added sysfs-ibft documentation, moved 'find_ibft' function to
- *   in its own file and added text attributes for every struct field.  (v0.4)
- *
- *  21 Nov 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Added text attributes emulating OpenFirmware /proc/device-tree naming.
- *   Removed binary /sysfs interface (v0.3)
- *
- *  29 Aug 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   Added functionality in setup.c to reserve iBFT region. (v0.2)
- *
- *  27 Aug 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
- *   First version exposing iBFT data via a binary /sysfs. (v0.1)
- *
- */
+
 
 
 #include <linux/blkdev.h>
@@ -151,30 +88,22 @@ struct ibft_tgt {
 	u16 rev_chap_secret_off;
 } __attribute__((__packed__));
 
-/*
- * The kobject different types and its names.
- *
-*/
+
 enum ibft_id {
-	id_reserved = 0, /* We don't support. */
-	id_control = 1, /* Should show up only once and is not exported. */
+	id_reserved = 0, 
+	id_control = 1, 
 	id_initiator = 2,
 	id_nic = 3,
 	id_target = 4,
-	id_extensions = 5, /* We don't support. */
+	id_extensions = 5, 
 	id_end_marker,
 };
 
-/*
- * We do not support the other types, hence the usage of NULL.
- * This maps to the enum ibft_id.
- */
+
 static const char *ibft_id_names[] =
 	{NULL, NULL, "initiator", "ethernet%d", "target%d", NULL, NULL};
 
-/*
- * The text attributes names for each of the kobjects.
-*/
+
 enum ibft_eth_properties_enum {
 	ibft_eth_index,
 	ibft_eth_flags,
@@ -187,7 +116,7 @@ enum ibft_eth_properties_enum {
 	ibft_eth_dhcp,
 	ibft_eth_vlan,
 	ibft_eth_mac,
-	/* ibft_eth_pci_bdf - this is replaced by link to the device itself. */
+	
 	ibft_eth_hostname,
 	ibft_eth_end_marker,
 };
@@ -233,9 +162,7 @@ static const char *ibft_initiator_properties[] =
 	{"index", "flags", "isns-server", "slp-server", "pri-radius-server",
 	"sec-radius-server", "initiator-name", NULL};
 
-/*
- * The kobject and attribute structures.
- */
+
 
 struct ibft_kobject {
 	struct ibft_table_header *header;
@@ -260,9 +187,7 @@ struct ibft_attribute {
 		struct ibft_hdr *hdr;
 	};
 	struct kobject *kobj;
-	int type; /* The enum of the type. This can be any value of:
-		ibft_eth_properties_enum, ibft_tgt_properties_enum,
-		or ibft_initiator_properties_enum. */
+	int type; 
 	struct list_head node;
 };
 
@@ -271,9 +196,7 @@ static LIST_HEAD(ibft_kobject_list);
 
 static const char nulls[16];
 
-/*
- * Helper functions to parse data properly.
- */
+
 static ssize_t sprintf_ipaddr(char *buf, u8 *ip)
 {
 	char *str = buf;
@@ -281,14 +204,10 @@ static ssize_t sprintf_ipaddr(char *buf, u8 *ip)
 	if (ip[0] == 0 && ip[1] == 0 && ip[2] == 0 && ip[3] == 0 &&
 	    ip[4] == 0 && ip[5] == 0 && ip[6] == 0 && ip[7] == 0 &&
 	    ip[8] == 0 && ip[9] == 0 && ip[10] == 0xff && ip[11] == 0xff) {
-		/*
-		 * IPV4
-		 */
+		
 		str += sprintf(buf, "%pI4", ip + 12);
 	} else {
-		/*
-		 * IPv6
-		 */
+		
 		str += sprintf(str, "%pI6", ip);
 	}
 	str += sprintf(str, "\n");
@@ -300,9 +219,7 @@ static ssize_t sprintf_string(char *str, int len, char *buf)
 	return sprintf(str, "%.*s\n", len, buf);
 }
 
-/*
- * Helper function to verify the IBFT header.
- */
+
 static int ibft_verify_hdr(char *t, struct ibft_hdr *hdr, int id, int length)
 {
 	if (hdr->id != id) {
@@ -328,9 +245,7 @@ static void ibft_release(struct kobject *kobj)
 	kfree(ibft);
 }
 
-/*
- *  Routines for parsing the iBFT data to be human readable.
- */
+
 static ssize_t ibft_attr_show_initiator(struct ibft_kobject *entry,
 					struct ibft_attribute *attr,
 					char *buf)
@@ -502,9 +417,7 @@ static ssize_t ibft_attr_show_target(struct ibft_kobject *entry,
 	return str - buf;
 }
 
-/*
- * The routine called for all sysfs attributes.
- */
+
 static ssize_t ibft_show_attribute(struct kobject *kobj,
 				    struct attribute *attr,
 				    char *buf)
@@ -544,7 +457,7 @@ static int __init ibft_check_device(void)
 
 	len = ibft_addr->length;
 
-	/* Sanity checking of iBFT. */
+	
 	if (ibft_addr->revision != 1) {
 		printk(KERN_ERR "iBFT module supports only revision 1, " \
 				"while this is %d.\n", ibft_addr->revision);
@@ -561,9 +474,7 @@ static int __init ibft_check_device(void)
 	return 0;
 }
 
-/*
- * Helper function for ibft_register_kobjects.
- */
+
 static int __init ibft_create_kobject(struct ibft_table_header *header,
 				       struct ibft_hdr *hdr,
 				       struct list_head *list)
@@ -596,7 +507,7 @@ static int __init ibft_create_kobject(struct ibft_table_header *header,
 	case id_reserved:
 	case id_control:
 	case id_extensions:
-		/* Fields which we don't support. Ignore them */
+		
 		rc = 1;
 		break;
 	default:
@@ -608,7 +519,7 @@ static int __init ibft_create_kobject(struct ibft_table_header *header,
 	}
 
 	if (rc) {
-		/* Skip adding this kobject, but exit with non-fatal error. */
+		
 		kfree(ibft_kobj);
 		goto out_invalid_struct;
 	}
@@ -626,12 +537,7 @@ static int __init ibft_create_kobject(struct ibft_table_header *header,
 	kobject_uevent(&ibft_kobj->kobj, KOBJ_ADD);
 
 	if (hdr->id == id_nic) {
-		/*
-		* We don't search for the device in other domains than
-		* zero. This is because on x86 platforms the BIOS
-		* executes only devices which are in domain 0. Furthermore, the
-		* iBFT spec doesn't have a domain id field :-(
-		*/
+		
 		pci_dev = pci_get_bus_and_slot((nic->pci_bdf & 0xff00) >> 8,
 					       (nic->pci_bdf & 0xff));
 		if (pci_dev) {
@@ -641,20 +547,16 @@ static int __init ibft_create_kobject(struct ibft_table_header *header,
 		}
 	}
 
-	/* Nothing broke so lets add it to the list. */
+	
 	list_add_tail(&ibft_kobj->node, list);
 out:
 	return rc;
 out_invalid_struct:
-	/* Unsupported structs are skipped. */
+	
 	return 0;
 }
 
-/*
- * Scan the IBFT table structure for the NIC and Target fields. When
- * found add them on the passed-in list. We do not support the other
- * fields at this point, so they are skipped.
- */
+
 static int __init ibft_register_kobjects(struct ibft_table_header *header,
 					  struct list_head *list)
 {
@@ -670,7 +572,7 @@ static int __init ibft_register_kobjects(struct ibft_table_header *header,
 	rc = ibft_verify_hdr("control", (struct ibft_hdr *)control, id_control,
 			     sizeof(*control));
 
-	/* iBFT table safety checking */
+	
 	rc |= ((control->hdr.index) ? -ENODEV : 0);
 	if (rc) {
 		printk(KERN_ERR "iBFT error: Control header is invalid!\n");
@@ -740,10 +642,7 @@ static int __init ibft_create_attribute(struct ibft_kobject *kobj_data,
 	return 0;
 }
 
-/*
- * Helper routiners to check to determine if the entry is valid
- * in the proper iBFT structure.
- */
+
 static int __init ibft_check_nic_for(struct ibft_nic *nic, int entry)
 {
 	int rc = 0;
@@ -872,9 +771,7 @@ static int __init ibft_check_initiator_for(struct ibft_initiator *init,
 	return rc;
 }
 
-/*
- *  Register the attributes for all of the kobjects.
- */
+
 static int __init ibft_register_attributes(struct list_head *kobject_list,
 					    struct list_head *attr_list)
 {
@@ -926,9 +823,7 @@ static int __init ibft_register_attributes(struct list_head *kobject_list,
 	return rc;
 }
 
-/*
- * ibft_init() - creates sysfs tree entries for the iBFT data.
- */
+
 static int __init ibft_init(void)
 {
 	int rc = 0;
@@ -945,12 +840,12 @@ static int __init ibft_init(void)
 		if (rc)
 			goto out_firmware_unregister;
 
-		/* Scan the IBFT for data and register the kobjects. */
+		
 		rc = ibft_register_kobjects(ibft_addr, &ibft_kobject_list);
 		if (rc)
 			goto out_free;
 
-		/* Register the attributes */
+		
 		rc = ibft_register_attributes(&ibft_kobject_list,
 					      &ibft_attr_list);
 		if (rc)

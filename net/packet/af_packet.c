@@ -1,52 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		PACKET - implements raw packet sockets.
- *
- * Authors:	Ross Biro
- *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
- *		Alan Cox, <gw4pts@gw4pts.ampr.org>
- *
- * Fixes:
- *		Alan Cox	:	verify_area() now used correctly
- *		Alan Cox	:	new skbuff lists, look ma no backlogs!
- *		Alan Cox	:	tidied skbuff lists.
- *		Alan Cox	:	Now uses generic datagram routines I
- *					added. Also fixed the peek/read crash
- *					from all old Linux datagram code.
- *		Alan Cox	:	Uses the improved datagram code.
- *		Alan Cox	:	Added NULL's for socket options.
- *		Alan Cox	:	Re-commented the code.
- *		Alan Cox	:	Use new kernel side addressing
- *		Rob Janssen	:	Correct MTU usage.
- *		Dave Platt	:	Counter leaks caused by incorrect
- *					interrupt locking and some slightly
- *					dubious gcc output. Can you read
- *					compiler: it said _VOLATILE_
- *	Richard Kooijman	:	Timestamp fixes.
- *		Alan Cox	:	New buffers. Use sk->mac.raw.
- *		Alan Cox	:	sendmsg/recvmsg support.
- *		Alan Cox	:	Protocol setting support
- *	Alexey Kuznetsov	:	Untied from IPv4 stack.
- *	Cyrus Durgin		:	Fixed kerneld for kmod.
- *	Michal Ostrowski        :       Module initialization cleanup.
- *         Ulises Alonso        :       Frame number limit removal and
- *                                      packet_set_ring memory leak.
- *		Eric Biederman	:	Allow for > 8 byte hardware addresses.
- *					The convention is that longer addresses
- *					will simply extend the hardware address
- *					byte arrays at the end of sockaddr_ll
- *					and packet_mreq.
- *		Johann Baudy	:	Added TX RING.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/mm.h>
@@ -84,58 +36,9 @@
 #include <net/inet_common.h>
 #endif
 
-/*
-   Assumptions:
-   - if device has no dev->hard_header routine, it adds and removes ll header
-     inside itself. In this case ll header is invisible outside of device,
-     but higher levels still should reserve dev->hard_header_len.
-     Some devices are enough clever to reallocate skb, when header
-     will not fit to reserved space (tunnel), another ones are silly
-     (PPP).
-   - packet socket receives packets with pulled ll header,
-     so that SOCK_RAW should push it back.
-
-On receive:
------------
-
-Incoming, dev->hard_header!=NULL
-   mac_header -> ll header
-   data       -> data
-
-Outgoing, dev->hard_header!=NULL
-   mac_header -> ll header
-   data       -> ll header
-
-Incoming, dev->hard_header==NULL
-   mac_header -> UNKNOWN position. It is very likely, that it points to ll
-		 header.  PPP makes it, that is wrong, because introduce
-		 assymetry between rx and tx paths.
-   data       -> data
-
-Outgoing, dev->hard_header==NULL
-   mac_header -> data. ll header is still not built!
-   data       -> data
-
-Resume
-  If dev->hard_header==NULL we are unlikely to restore sensible ll header.
 
 
-On transmit:
-------------
 
-dev->hard_header != NULL
-   mac_header -> ll header
-   data       -> ll header
-
-dev->hard_header == NULL (ll header is added by device, we cannot control it)
-   mac_header -> data
-   data       -> data
-
-   We should set nh.raw on output to correct posistion,
-   packet classifier depends on it.
- */
-
-/* Private packet socket structures. */
 
 struct packet_mclist {
 	struct packet_mclist	*next;
@@ -145,9 +48,7 @@ struct packet_mclist {
 	unsigned short		alen;
 	unsigned char		addr[MAX_ADDR_LEN];
 };
-/* identical to struct packet_mreq except it has
- * a longer address field.
- */
+
 struct packet_mreq_max {
 	int		mr_ifindex;
 	unsigned short	mr_type;
@@ -180,7 +81,7 @@ static int tpacket_snd(struct packet_sock *po, struct msghdr *msg);
 static void packet_flush_mclist(struct sock *sk);
 
 struct packet_sock {
-	/* struct sock has to be the first member of packet_sock */
+	
 	struct sock		sk;
 	struct tpacket_stats	stats;
 #ifdef CONFIG_PACKET_MMAP
@@ -191,10 +92,10 @@ struct packet_sock {
 	struct packet_type	prot_hook;
 	spinlock_t		bind_lock;
 	struct mutex		pg_vec_lock;
-	unsigned int		running:1,	/* prot_hook is attached*/
+	unsigned int		running:1,	
 				auxdata:1,
 				origdev:1;
-	int			ifindex;	/* bound device		*/
+	int			ifindex;	
 	__be16			num;
 	struct packet_mclist	*mclist;
 #ifdef CONFIG_PACKET_MMAP
@@ -343,23 +244,11 @@ static int packet_rcv_spkt(struct sk_buff *skb, struct net_device *dev,
 	struct sock *sk;
 	struct sockaddr_pkt *spkt;
 
-	/*
-	 *	When we registered the protocol we saved the socket in the data
-	 *	field for just this event.
-	 */
+	
 
 	sk = pt->af_packet_priv;
 
-	/*
-	 *	Yank back the headers [hope the device set this
-	 *	right or kerboom...]
-	 *
-	 *	Incoming packets have ll header pulled,
-	 *	push it back.
-	 *
-	 *	For outgoing ones skb->data == skb_mac_header(skb)
-	 *	so that this procedure is noop.
-	 */
+	
 
 	if (skb->pkt_type == PACKET_LOOPBACK)
 		goto out;
@@ -371,28 +260,23 @@ static int packet_rcv_spkt(struct sk_buff *skb, struct net_device *dev,
 	if (skb == NULL)
 		goto oom;
 
-	/* drop any routing info */
+	
 	skb_dst_drop(skb);
 
-	/* drop conntrack reference */
+	
 	nf_reset(skb);
 
 	spkt = &PACKET_SKB_CB(skb)->sa.pkt;
 
 	skb_push(skb, skb->data - skb_mac_header(skb));
 
-	/*
-	 *	The SOCK_PACKET socket receives _all_ frames.
-	 */
+	
 
 	spkt->spkt_family = dev->type;
 	strlcpy(spkt->spkt_device, dev->name, sizeof(spkt->spkt_device));
 	spkt->spkt_protocol = skb->protocol;
 
-	/*
-	 *	Charge the memory to the socket. This is done specifically
-	 *	to prevent sockets using all the memory up.
-	 */
+	
 
 	if (sock_queue_rcv_skb(sk, skb) == 0)
 		return 0;
@@ -404,10 +288,7 @@ oom:
 }
 
 
-/*
- *	Output a raw packet to a device layer. This bypasses all the other
- *	protocol layers and you must therefore supply it with a complete frame
- */
+
 
 static int packet_sendmsg_spkt(struct kiocb *iocb, struct socket *sock,
 			       struct msghdr *msg, size_t len)
@@ -419,9 +300,7 @@ static int packet_sendmsg_spkt(struct kiocb *iocb, struct socket *sock,
 	__be16 proto = 0;
 	int err;
 
-	/*
-	 *	Get and verify the address.
-	 */
+	
 
 	if (saddr) {
 		if (msg->msg_namelen < sizeof(struct sockaddr))
@@ -429,11 +308,9 @@ static int packet_sendmsg_spkt(struct kiocb *iocb, struct socket *sock,
 		if (msg->msg_namelen == sizeof(struct sockaddr_pkt))
 			proto = saddr->spkt_protocol;
 	} else
-		return -ENOTCONN;	/* SOCK_PACKET must be sent giving an address */
+		return -ENOTCONN;	
 
-	/*
-	 *	Find the device first to size check it
-	 */
+	
 
 	saddr->spkt_device[13] = 0;
 	dev = dev_get_by_name(sock_net(sk), saddr->spkt_device);
@@ -445,10 +322,7 @@ static int packet_sendmsg_spkt(struct kiocb *iocb, struct socket *sock,
 	if (!(dev->flags & IFF_UP))
 		goto out_unlock;
 
-	/*
-	 * You may not queue a frame bigger than the mtu. This is the lowest level
-	 * raw protocol and you must do your own fragmentation at this level.
-	 */
+	
 
 	err = -EMSGSIZE;
 	if (len > dev->mtu + dev->hard_header_len)
@@ -457,27 +331,18 @@ static int packet_sendmsg_spkt(struct kiocb *iocb, struct socket *sock,
 	err = -ENOBUFS;
 	skb = sock_wmalloc(sk, len + LL_RESERVED_SPACE(dev), 0, GFP_KERNEL);
 
-	/*
-	 * If the write buffer is full, then tough. At this level the user
-	 * gets to deal with the problem - do your own algorithmic backoffs.
-	 * That's far more flexible.
-	 */
+	
 
 	if (skb == NULL)
 		goto out_unlock;
 
-	/*
-	 *	Fill it in
-	 */
+	
 
-	/* FIXME: Save some space for broken drivers that write a
-	 * hard header at transmission time by themselves. PPP is the
-	 * notable one here. This should really be fixed at the driver level.
-	 */
+	
 	skb_reserve(skb, LL_RESERVED_SPACE(dev));
 	skb_reset_network_header(skb);
 
-	/* Try to align data part correctly */
+	
 	if (dev->header_ops) {
 		skb->data -= dev->hard_header_len;
 		skb->tail -= dev->hard_header_len;
@@ -485,7 +350,7 @@ static int packet_sendmsg_spkt(struct kiocb *iocb, struct socket *sock,
 			skb_reset_network_header(skb);
 	}
 
-	/* Returns -EFAULT on error */
+	
 	err = memcpy_fromiovec(skb_put(skb, len), msg->msg_iov, len);
 	skb->protocol = proto;
 	skb->dev = dev;
@@ -493,9 +358,7 @@ static int packet_sendmsg_spkt(struct kiocb *iocb, struct socket *sock,
 	if (err)
 		goto out_free;
 
-	/*
-	 *	Now send it
-	 */
+	
 
 	dev_queue_xmit(skb);
 	dev_put(dev);
@@ -523,17 +386,7 @@ static inline unsigned int run_filter(struct sk_buff *skb, struct sock *sk,
 	return res;
 }
 
-/*
-   This function makes lazy skb cloning in hope that most of packets
-   are discarded by BPF.
 
-   Note tricky part: we DO mangle shared skb! skb->data, skb->len
-   and skb->cb are mangled. It works because (and until) packets
-   falling here are owned by current CPU. Output packets are cloned
-   by dev_queue_xmit_nit(), input packets are processed by net_bh
-   sequencially, so that if we return skb to original state on exit,
-   we will not harm anyone.
- */
 
 static int packet_rcv(struct sk_buff *skb, struct net_device *dev,
 		      struct packet_type *pt, struct net_device *orig_dev)
@@ -557,17 +410,11 @@ static int packet_rcv(struct sk_buff *skb, struct net_device *dev,
 	skb->dev = dev;
 
 	if (dev->header_ops) {
-		/* The device has an explicit notion of ll header,
-		   exported to higher levels.
-
-		   Otherwise, the device hides datails of it frame
-		   structure, so that corresponding packet head
-		   never delivered to user.
-		 */
+		
 		if (sk->sk_type != SOCK_DGRAM)
 			skb_push(skb, skb->data - skb_mac_header(skb));
 		else if (skb->pkt_type == PACKET_OUTGOING) {
-			/* Special case: outgoing packets have ll header at head */
+			
 			skb_pull(skb, skb_network_offset(skb));
 		}
 	}
@@ -621,7 +468,7 @@ static int packet_rcv(struct sk_buff *skb, struct net_device *dev,
 	skb->dev = NULL;
 	skb_dst_drop(skb);
 
-	/* drop conntrack reference */
+	
 	nf_reset(skb);
 
 	spin_lock(&sk->sk_receive_queue.lock);
@@ -680,7 +527,7 @@ static int tpacket_rcv(struct sk_buff *skb, struct net_device *dev,
 		if (sk->sk_type != SOCK_DGRAM)
 			skb_push(skb, skb->data - skb_mac_header(skb));
 		else if (skb->pkt_type == PACKET_OUTGOING) {
-			/* Special case: outgoing packets have ll header at head */
+			
 			skb_pull(skb, skb_network_offset(skb));
 		}
 	}
@@ -883,7 +730,7 @@ static int tpacket_fill_skb(struct packet_sock *po, struct sk_buff *skb,
 		if (unlikely(err < 0))
 			return -EINVAL;
 	} else if (dev->hard_header_len) {
-		/* net device doesn't like empty head */
+		
 		if (unlikely(tp_len <= dev->hard_header_len)) {
 			pr_err("packet size is too short (%d < %d)\n",
 			       tp_len, dev->hard_header_len);
@@ -1032,14 +879,11 @@ static int tpacket_snd(struct packet_sock *po, struct msghdr *msg)
 			err = net_xmit_errno(err);
 			if (err && __packet_get_status(po, ph) ==
 				   TP_STATUS_AVAILABLE) {
-				/* skb was destructed already */
+				
 				skb = NULL;
 				goto out_status;
 			}
-			/*
-			 * skb was dropped but not destructed yet;
-			 * let's treat it like congestion or err < 0
-			 */
+			
 			err = 0;
 		}
 		packet_increment_head(&po->tx_ring);
@@ -1073,9 +917,7 @@ static int packet_snd(struct socket *sock,
 	unsigned char *addr;
 	int ifindex, err, reserve = 0;
 
-	/*
-	 *	Get and verify the address.
-	 */
+	
 
 	if (saddr == NULL) {
 		struct packet_sock *po = pkt_sk(sk);
@@ -1123,7 +965,7 @@ static int packet_snd(struct socket *sock,
 	    dev_hard_header(skb, dev, ntohs(proto), addr, NULL, len) < 0)
 		goto out_free;
 
-	/* Returns -EFAULT on error */
+	
 	err = memcpy_fromiovec(skb_put(skb, len), msg->msg_iov, len);
 	if (err)
 		goto out_free;
@@ -1132,9 +974,7 @@ static int packet_snd(struct socket *sock,
 	skb->dev = dev;
 	skb->priority = sk->sk_priority;
 
-	/*
-	 *	Now send it
-	 */
+	
 
 	err = dev_queue_xmit(skb);
 	if (err > 0 && (err = net_xmit_errno(err)) != 0)
@@ -1166,10 +1006,7 @@ static int packet_sendmsg(struct kiocb *iocb, struct socket *sock,
 		return packet_snd(sock, msg, len);
 }
 
-/*
- *	Close a PACKET socket. This is fairly simple. We immediately go
- *	to 'closed' state and remove our protocol entry in the device list.
- */
+
 
 static int packet_release(struct socket *sock)
 {
@@ -1191,14 +1028,10 @@ static int packet_release(struct socket *sock)
 	sock_prot_inuse_add(net, sk->sk_prot, -1);
 	write_unlock_bh(&net->packet.sklist_lock);
 
-	/*
-	 *	Unhook packet receive handler.
-	 */
+	
 
 	if (po->running) {
-		/*
-		 *	Remove the protocol hook
-		 */
+		
 		dev_remove_pack(&po->prot_hook);
 		po->running = 0;
 		po->num = 0;
@@ -1217,14 +1050,12 @@ static int packet_release(struct socket *sock)
 		packet_set_ring(sk, &req, 1, 1);
 #endif
 
-	/*
-	 *	Now the socket is dead. No more input will appear.
-	 */
+	
 
 	sock_orphan(sk);
 	sock->sk = NULL;
 
-	/* Purge queues */
+	
 
 	skb_queue_purge(&sk->sk_receive_queue);
 	sk_refcnt_debug_release(sk);
@@ -1233,16 +1064,12 @@ static int packet_release(struct socket *sock)
 	return 0;
 }
 
-/*
- *	Attach a packet hook.
- */
+
 
 static int packet_do_bind(struct sock *sk, struct net_device *dev, __be16 protocol)
 {
 	struct packet_sock *po = pkt_sk(sk);
-	/*
-	 *	Detach an existing hook if present.
-	 */
+	
 
 	lock_sock(sk);
 
@@ -1281,9 +1108,7 @@ out_unlock:
 	return 0;
 }
 
-/*
- *	Bind a packet socket to a device
- */
+
 
 static int packet_bind_spkt(struct socket *sock, struct sockaddr *uaddr,
 			    int addr_len)
@@ -1293,9 +1118,7 @@ static int packet_bind_spkt(struct socket *sock, struct sockaddr *uaddr,
 	struct net_device *dev;
 	int err = -ENODEV;
 
-	/*
-	 *	Check legality
-	 */
+	
 
 	if (addr_len != sizeof(struct sockaddr))
 		return -EINVAL;
@@ -1317,9 +1140,7 @@ static int packet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len
 	int err;
 
 
-	/*
-	 *	Check legality
-	 */
+	
 
 	if (addr_len < sizeof(struct sockaddr_ll))
 		return -EINVAL;
@@ -1346,15 +1167,13 @@ static struct proto packet_proto = {
 	.obj_size = sizeof(struct packet_sock),
 };
 
-/*
- *	Create a packet of type SOCK_PACKET.
- */
+
 
 static int packet_create(struct net *net, struct socket *sock, int protocol)
 {
 	struct sock *sk;
 	struct packet_sock *po;
-	__be16 proto = (__force __be16)protocol; /* weird, but documented */
+	__be16 proto = (__force __be16)protocol; 
 	int err;
 
 	if (!capable(CAP_NET_RAW))
@@ -1383,9 +1202,7 @@ static int packet_create(struct net *net, struct socket *sock, int protocol)
 	sk->sk_destruct = packet_sock_destruct;
 	sk_refcnt_debug_inc(sk);
 
-	/*
-	 *	Attach a protocol block
-	 */
+	
 
 	spin_lock_init(&po->bind_lock);
 	mutex_init(&po->pg_vec_lock);
@@ -1412,10 +1229,7 @@ out:
 	return err;
 }
 
-/*
- *	Pull a packet from our receive queue and hand it to the user.
- *	If necessary we block.
- */
+
 
 static int packet_recvmsg(struct kiocb *iocb, struct socket *sock,
 			  struct msghdr *msg, size_t len, int flags)
@@ -1430,35 +1244,21 @@ static int packet_recvmsg(struct kiocb *iocb, struct socket *sock,
 		goto out;
 
 #if 0
-	/* What error should we return now? EUNATTACH? */
+	
 	if (pkt_sk(sk)->ifindex < 0)
 		return -ENODEV;
 #endif
 
-	/*
-	 *	Call the generic datagram receiver. This handles all sorts
-	 *	of horrible races and re-entrancy so we can forget about it
-	 *	in the protocol layers.
-	 *
-	 *	Now it will return ENETDOWN, if device have just gone down,
-	 *	but then it will block.
-	 */
+	
 
 	skb = skb_recv_datagram(sk, flags, flags & MSG_DONTWAIT, &err);
 
-	/*
-	 *	An error occurred so return it. Because skb_recv_datagram()
-	 *	handles the blocking we don't see and worry about blocking
-	 *	retries.
-	 */
+	
 
 	if (skb == NULL)
 		goto out;
 
-	/*
-	 *	If the address length field is there to be filled in, we fill
-	 *	it in now.
-	 */
+	
 
 	sll = &PACKET_SKB_CB(skb)->sa.ll;
 	if (sock->type == SOCK_PACKET)
@@ -1466,10 +1266,7 @@ static int packet_recvmsg(struct kiocb *iocb, struct socket *sock,
 	else
 		msg->msg_namelen = sll->sll_halen + offsetof(struct sockaddr_ll, sll_addr);
 
-	/*
-	 *	You lose any data beyond the buffer you gave. If it worries a
-	 *	user program they can ask the device for its MTU anyway.
-	 */
+	
 
 	copied = skb->len;
 	if (copied > len) {
@@ -1502,10 +1299,7 @@ static int packet_recvmsg(struct kiocb *iocb, struct socket *sock,
 		put_cmsg(msg, SOL_PACKET, PACKET_AUXDATA, sizeof(aux), &aux);
 	}
 
-	/*
-	 *	Free or return the buffer as appropriate. Again this
-	 *	hides all the races and re-entrancy issues from us.
-	 */
+	
 	err = (flags&MSG_TRUNC) ? skb->len : copied;
 
 out_free:
@@ -1556,7 +1350,7 @@ static int packet_getname(struct socket *sock, struct sockaddr *uaddr,
 		memcpy(sll->sll_addr, dev->dev_addr, dev->addr_len);
 		dev_put(dev);
 	} else {
-		sll->sll_hatype = 0;	/* Bad: we have no ARPHRD_UNSPEC */
+		sll->sll_hatype = 0;	
 		sll->sll_halen = 0;
 	}
 	*uaddr_len = offsetof(struct sockaddr_ll, sll_addr) + sll->sll_halen;
@@ -1630,7 +1424,7 @@ static int packet_mc_add(struct sock *sk, struct packet_mreq_max *mreq)
 		    ml->alen == mreq->mr_alen &&
 		    memcmp(ml->addr, mreq->mr_address, ml->alen) == 0) {
 			ml->count++;
-			/* Free the new element ... */
+			
 			kfree(i);
 			goto done;
 		}
@@ -1946,7 +1740,7 @@ static int packet_notifier(struct notifier_block *this, unsigned long msg, void 
 		case NETDEV_UNREGISTER:
 			if (po->mclist)
 				packet_dev_mclist(dev, po->mclist, -1);
-			/* fallthrough */
+			
 
 		case NETDEV_DOWN:
 			if (dev->ifindex == po->ifindex) {
@@ -2066,9 +1860,7 @@ static unsigned int packet_poll(struct file *file, struct socket *sock,
 }
 
 
-/* Dirty? Well, I still did not learn better way to account
- * for user mmaps.
- */
+
 
 static void packet_mm_open(struct vm_area_struct *vma)
 {
@@ -2161,7 +1953,7 @@ static int packet_set_ring(struct sock *sk, struct tpacket_req *req,
 	}
 
 	if (req->tp_block_nr) {
-		/* Sanity tests and some calculations */
+		
 		err = -EBUSY;
 		if (unlikely(rb->pg_vec))
 			goto out;
@@ -2199,7 +1991,7 @@ static int packet_set_ring(struct sock *sk, struct tpacket_req *req,
 		if (unlikely(!pg_vec))
 			goto out;
 	}
-	/* Done */
+	
 	else {
 		err = -EINVAL;
 		if (unlikely(req->tp_frame_nr))
@@ -2208,7 +2000,7 @@ static int packet_set_ring(struct sock *sk, struct tpacket_req *req,
 
 	lock_sock(sk);
 
-	/* Detach socket from network */
+	
 	spin_lock(&po->bind_lock);
 	was_running = po->running;
 	num = po->num;

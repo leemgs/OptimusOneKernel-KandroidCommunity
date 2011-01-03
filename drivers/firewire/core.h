@@ -21,9 +21,9 @@ struct fw_node;
 struct fw_packet;
 
 
-/* -card */
 
-/* bitfields within the PHY registers */
+
+
 #define PHY_LINK_ACTIVE		0x80
 #define PHY_CONTENDER		0x40
 #define PHY_BUS_RESET		0x40
@@ -34,38 +34,22 @@ struct fw_packet;
 #define BROADCAST_CHANNEL_VALID		(1 << 30)
 
 struct fw_card_driver {
-	/*
-	 * Enable the given card with the given initial config rom.
-	 * This function is expected to activate the card, and either
-	 * enable the PHY or set the link_on bit and initiate a bus
-	 * reset.
-	 */
+	
 	int (*enable)(struct fw_card *card, u32 *config_rom, size_t length);
 
 	int (*update_phy_reg)(struct fw_card *card, int address,
 			      int clear_bits, int set_bits);
 
-	/*
-	 * Update the config rom for an enabled card.  This function
-	 * should change the config rom that is presented on the bus
-	 * an initiate a bus reset.
-	 */
+	
 	int (*set_config_rom)(struct fw_card *card,
 			      u32 *config_rom, size_t length);
 
 	void (*send_request)(struct fw_card *card, struct fw_packet *packet);
 	void (*send_response)(struct fw_card *card, struct fw_packet *packet);
-	/* Calling cancel is valid once a packet has been submitted. */
+	
 	int (*cancel_packet)(struct fw_card *card, struct fw_packet *packet);
 
-	/*
-	 * Allow the specified node ID to do direct DMA out and in of
-	 * host memory.  The card will disable this for all node when
-	 * a bus reset happens, so driver need to reenable this after
-	 * bus reset.  Returns 0 on success, -ENODEV if the card
-	 * doesn't support this, -ESTALE if the generation doesn't
-	 * match.
-	 */
+	
 	int (*enable_phys_dma)(struct fw_card *card,
 			       int node_id, int generation);
 
@@ -111,7 +95,7 @@ static inline void fw_card_put(struct fw_card *card)
 }
 
 
-/* -cdev */
+
 
 extern const struct file_operations fw_device_ops;
 
@@ -119,7 +103,7 @@ void fw_device_cdev_update(struct fw_device *device);
 void fw_device_cdev_remove(struct fw_device *device);
 
 
-/* -device */
+
 
 extern struct rw_semaphore fw_device_rwsem;
 extern struct idr fw_device_idr;
@@ -130,7 +114,7 @@ int fw_device_set_broadcast_channel(struct device *dev, void *gen);
 void fw_node_event(struct fw_card *card, struct fw_node *node, int event);
 
 
-/* -iso */
+
 
 int fw_iso_buffer_map(struct fw_iso_buffer *buffer, struct vm_area_struct *vma);
 void fw_iso_resource_manage(struct fw_card *card, int generation,
@@ -138,7 +122,7 @@ void fw_iso_resource_manage(struct fw_card *card, int generation,
 			    bool allocate, __be32 buffer[2]);
 
 
-/* -topology */
+
 
 enum {
 	FW_NODE_CREATED,
@@ -156,17 +140,16 @@ struct fw_node {
 	u8 link_on:1;
 	u8 initiated_reset:1;
 	u8 b_path:1;
-	u8 phy_speed:2;	/* As in the self ID packet. */
-	u8 max_speed:2;	/* Minimum of all phy-speeds on the path from the
-			 * local node to this node. */
-	u8 max_depth:4;	/* Maximum depth to any leaf node */
-	u8 max_hops:4;	/* Max hops in this sub tree */
+	u8 phy_speed:2;	
+	u8 max_speed:2;	
+	u8 max_depth:4;	
+	u8 max_hops:4;	
 	atomic_t ref_count;
 
-	/* For serializing node topology into a list. */
+	
 	struct list_head link;
 
-	/* Upper layer specific data. */
+	
 	void *data;
 
 	struct fw_node *ports[0];
@@ -189,17 +172,14 @@ void fw_core_handle_bus_reset(struct fw_card *card, int node_id,
 			      int generation, int self_id_count, u32 *self_ids);
 void fw_destroy_nodes(struct fw_card *card);
 
-/*
- * Check whether new_generation is the immediate successor of old_generation.
- * Take counter roll-over at 255 (as per OHCI) into account.
- */
+
 static inline bool is_next_generation(int new_generation, int old_generation)
 {
 	return (new_generation & 0xff) == ((old_generation + 1) & 0xff);
 }
 
 
-/* -transaction */
+
 
 #define TCODE_IS_READ_REQUEST(tcode)	(((tcode) & ~1) == 4)
 #define TCODE_IS_BLOCK_PACKET(tcode)	(((tcode) &  1) != 0)
@@ -218,4 +198,4 @@ void fw_flush_transactions(struct fw_card *card);
 void fw_send_phy_config(struct fw_card *card,
 			int node_id, int generation, int gap_count);
 
-#endif /* _FIREWIRE_CORE_H */
+#endif 

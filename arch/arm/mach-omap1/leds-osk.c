@@ -1,8 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/leds-osk.c
- *
- * LED driver for OSK with optional Mistral QVGA board
- */
+
 #include <linux/init.h>
 
 #include <mach/hardware.h>
@@ -18,17 +14,14 @@
 #define LED_STATE_CLAIMED	(1 << 1)
 static u8 led_state;
 
-#define	TIMER_LED		(1 << 3)	/* Mistral board */
-#define	IDLE_LED		(1 << 4)	/* Mistral board */
+#define	TIMER_LED		(1 << 3)	
+#define	IDLE_LED		(1 << 4)	
 static u8 hw_led_state;
 
 
 #ifdef	CONFIG_OMAP_OSK_MISTRAL
 
-/* For now, all system indicators require the Mistral board, since that
- * LED can be manipulated without a task context.  This LED is either red,
- * or green, but not both; it can't give the full "disco led" effect.
- */
+
 
 #define GPIO_LED_RED		3
 #define GPIO_LED_GREEN		OMAP_MPUIO(4)
@@ -42,7 +35,7 @@ static void mistral_setled(void)
 		red = 1;
 	else if (hw_led_state & IDLE_LED)
 		green = 1;
-	/* else both sides are disabled */
+	
 
 	gpio_set_value(GPIO_LED_GREEN, green);
 	gpio_set_value(GPIO_LED_RED, red);
@@ -92,7 +85,7 @@ void osk_leds_event(led_event_t evt)
 		mistral_setled();
 		break;
 
-	case led_idle_start:	/* idle == off */
+	case led_idle_start:	
 		hw_led_state &= ~IDLE_LED;
 		mistral_setled();
 		break;
@@ -102,7 +95,7 @@ void osk_leds_event(led_event_t evt)
 		mistral_setled();
 		break;
 
-#endif	/* CONFIG_OMAP_OSK_MISTRAL */
+#endif	
 
 	default:
 		break;

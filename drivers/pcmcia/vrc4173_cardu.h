@@ -1,32 +1,4 @@
-/*
- * FILE NAME
- *	drivers/pcmcia/vrc4173_cardu.h
- *
- * BRIEF MODULE DESCRIPTION
- *	Include file for NEC VRC4173 CARDU.
- *
- * Copyright 2002 Yoichi Yuasa <yuasa@linux-mips.org>
- *
- *  This program is free software; you can redistribute it and/or modify it
- *  under the terms of the GNU General Public License as published by the
- *  Free Software Foundation; either version 2 of the License, or (at your
- *  option) any later version.
- *
- *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- *  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- *  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
- *  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- *  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 #ifndef _VRC4173_CARDU_H
 #define _VRC4173_CARDU_H
 
@@ -38,9 +10,7 @@
 #define CARDU1			0
 #define CARDU2			1
 
-/*
- * PCI Configuration Registers
- */
+
 #define BRGCNT			0x3e
  #define POST_WR_EN		0x0400
  #define MEM1_PREF_EN		0x0200
@@ -78,9 +48,7 @@
  #define SERR_DIS_TAB		0x08
  #define SERR_DIS_DT_PERR	0x04
 
-/*
- * ExCA Registers
- */
+
 #define EXCA_REGS_BASE		0x800
 #define EXCA_REGS_SIZE		0x800
 
@@ -94,11 +62,11 @@
  #define CARD_DETECT2		0x08
  #define CARD_DETECT1		0x04
  #define BV_DETECT_MASK		0x03
- #define BV_DETECT_GOOD		0x03	/* Memory card */
+ #define BV_DETECT_GOOD		0x03	
  #define BV_DETECT_WARN		0x02
  #define BV_DETECT_BAD1		0x01
  #define BV_DETECT_BAD0		0x00
- #define STSCHG			0x02	/* I/O card */
+ #define STSCHG			0x02	
  #define SPKR			0x01
 
 #define PWR_CNT			0x002
@@ -181,9 +149,7 @@
 #define MEM_WIN_PWEN		0x091
  #define POSTWEN		0x01
 
-/*
- * CardBus Socket Registers
- */
+
 #define CARDBUS_SOCKET_REGS_BASE	0x000
 #define CARDBUS_SOCKET_REGS_SIZE	0x800
 
@@ -244,4 +210,4 @@ typedef struct vrc4173_socket {
 	char name[20];
 } vrc4173_socket_t;
 
-#endif /* _VRC4173_CARDU_H */
+#endif 

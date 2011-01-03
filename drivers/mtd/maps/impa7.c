@@ -1,12 +1,4 @@
-/*
- * Handle mapping of the NOR flash on implementa A7 boards
- *
- * Copyright 2002 SYSGO Real-Time Solutions GmbH
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -20,18 +12,18 @@
 #include <linux/mtd/partitions.h>
 #endif
 
-#define WINDOW_ADDR0 0x00000000      /* physical properties of flash */
+#define WINDOW_ADDR0 0x00000000      
 #define WINDOW_SIZE0 0x00800000
-#define WINDOW_ADDR1 0x10000000      /* physical properties of flash */
+#define WINDOW_ADDR1 0x10000000      
 #define WINDOW_SIZE1 0x00800000
 #define NUM_FLASHBANKS 2
 #define BUSWIDTH     4
 
-/* can be { "cfi_probe", "jedec_probe", "map_rom", NULL } */
+
 #define PROBETYPES { "jedec_probe", NULL }
 
-#define MSG_PREFIX "impA7:"   /* prefix for our printk()'s */
-#define MTDID      "impa7-%d"  /* for mtdparts= partitioning */
+#define MSG_PREFIX "impA7:"   
+#define MTDID      "impa7-%d"  
 
 static struct mtd_info *impa7_mtd[NUM_FLASHBANKS];
 
@@ -51,9 +43,7 @@ static struct map_info impa7_map[NUM_FLASHBANKS] = {
 
 #ifdef CONFIG_MTD_PARTITIONS
 
-/*
- * MTD partitioning stuff
- */
+
 static struct mtd_partition static_partitions[] =
 {
 	{

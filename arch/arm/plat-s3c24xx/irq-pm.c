@@ -1,15 +1,4 @@
-/* linux/arch/arm/plat-s3c24xx/irq-om.c
- *
- * Copyright (c) 2003,2004 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * S3C24XX - IRQ PM code
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -20,12 +9,9 @@
 #include <plat/pm.h>
 #include <plat/irq.h>
 
-/* state for IRQs over sleep */
 
-/* default is to allow for EINT0..EINT15, and IRQ_RTC as wakeup sources
- *
- * set bit to 1 in allow bitfield to enable the wakeup settings on it
-*/
+
+
 
 unsigned long s3c_irqwake_intallow	= 1L << (IRQ_RTC - IRQ_EINT0) | 0xfL;
 unsigned long s3c_irqwake_eintallow	= 0x0000fff0L;
@@ -53,10 +39,7 @@ static struct sleep_save irq_save[] = {
 	SAVE_ITEM(S3C2410_INTSUBMSK),
 };
 
-/* the extint values move between the s3c2410/s3c2440 and the s3c2412
- * so we use an array to hold them, and to calculate the address of
- * the register at run-time
-*/
+
 
 static unsigned long save_extint[3];
 static unsigned long save_eintflt[4];

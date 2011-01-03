@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 #ifndef __BFA_PORTLOG_H__
 #define __BFA_PORTLOG_H__
 
@@ -23,8 +8,8 @@
 #define BFA_PL_NLOG_ENTS 256
 #define BFA_PL_LOG_REC_INCR(_x) ((_x)++, (_x) %= BFA_PL_NLOG_ENTS)
 
-#define BFA_PL_STRING_LOG_SZ   32   /* number of chars in string log */
-#define BFA_PL_INT_LOG_SZ      8    /* number of integers in the integer log */
+#define BFA_PL_STRING_LOG_SZ   32   
+#define BFA_PL_INT_LOG_SZ      8    
 
 enum bfa_plog_log_type {
 	BFA_PL_LOG_TYPE_INVALID = 0,
@@ -32,30 +17,17 @@ enum bfa_plog_log_type {
 	BFA_PL_LOG_TYPE_STRING 	= 2,
 };
 
-/*
- * the (fixed size) record format for each entry in the portlog
- */
+
 struct bfa_plog_rec_s {
-	u32        tv;	/* Filled by the portlog driver when the *
-				 * entry is added to the circular log.   */
-	u8         port;	/* Source port that logged this entry. CM
-				 * entities will use 0xFF */
-	u8         mid;	/* Integer value to be used by all entities *
-				 * while logging. The module id to string   *
-				 * conversion will be done by BFAL. See
-				 * enum bfa_plog_mid */
-	u8         eid;	/* indicates Rx, Tx, IOCTL, etc. See
-				 * enum bfa_plog_eid */
-	u8         log_type; /* indicates string log or integer log.
-				   * see bfa_plog_log_type_t */
+	u32        tv;	
+	u8         port;	
+	u8         mid;	
+	u8         eid;	
+	u8         log_type; 
 	u8         log_num_ints;
-	/*
-	 * interpreted only if log_type is INT_LOG. indicates number of
-	 * integers in the int_log[] (0-PL_INT_LOG_SZ).
-	 */
+	
 	u8         rsvd;
-	u16        misc;	/* can be used to indicate fc frame length,
-				 *etc.. */
+	u16        misc;	
 	union {
 		char            string_log[BFA_PL_STRING_LOG_SZ];
 		u32        int_log[BFA_PL_INT_LOG_SZ];
@@ -63,15 +35,7 @@ struct bfa_plog_rec_s {
 
 };
 
-/*
- * the following #defines will be used by the logging entities to indicate
- * their module id. BFAL will convert the integer value to string format
- *
-* process to be used while changing the following #defines:
- *  - Always add new entries at the end
- *  - define corresponding string in BFAL
- *  - Do not remove any entry or rearrange the order.
- */
+
 enum bfa_plog_mid {
 	BFA_PL_MID_INVALID 	= 0,
 	BFA_PL_MID_DEBUG 	= 1,
@@ -88,15 +52,7 @@ struct bfa_plog_mid_strings_s {
 	char            m_str[BFA_PL_MID_STRLEN];
 };
 
-/*
- * the following #defines will be used by the logging entities to indicate
- * their event type. BFAL will convert the integer value to string format
- *
-* process to be used while changing the following #defines:
- *  - Always add new entries at the end
- *  - define corresponding string in BFAL
- *  - Do not remove any entry or rearrange the order.
- */
+
 enum bfa_plog_eid {
 	BFA_PL_EID_INVALID 		= 0,
 	BFA_PL_EID_IOC_DISABLE 		= 1,
@@ -129,11 +85,9 @@ struct bfa_plog_eid_strings_s {
 #define BFA_PL_SIG_LEN	8
 #define BFA_PL_SIG_STR  "12pl123"
 
-/*
- * per port circular log buffer
- */
+
 struct bfa_plog_s {
-	char            plog_sig[BFA_PL_SIG_LEN];	/* Start signature */
+	char            plog_sig[BFA_PL_SIG_LEN];	
 	u8         plog_enabled;
 	u8         rsvd[7];
 	u32        ticks;
@@ -159,4 +113,4 @@ void bfa_plog_enable(struct bfa_plog_s *plog);
 void bfa_plog_disable(struct bfa_plog_s *plog);
 bfa_boolean_t	bfa_plog_get_setting(struct bfa_plog_s *plog);
 
-#endif /* __BFA_PORTLOG_H__ */
+#endif 

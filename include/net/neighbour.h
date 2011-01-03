@@ -3,18 +3,7 @@
 
 #include <linux/neighbour.h>
 
-/*
- *	Generic neighbour manipulation
- *
- *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>
- *	Alexey Kuznetsov	<kuznet@ms2.inr.ac.ru>
- *
- * 	Changes:
- *
- *	Harald Welte:		<laforge@gnumonks.org>
- *		- Add neighbour cache statistics like rtstat
- */
+
 
 #include <asm/atomic.h>
 #include <linux/netdevice.h>
@@ -27,9 +16,7 @@
 #include <linux/workqueue.h>
 #include <net/rtnetlink.h>
 
-/*
- * NUD stands for "neighbor unreachability detection"
- */
+
 
 #define NUD_IN_TIMER	(NUD_INCOMPLETE|NUD_REACHABLE|NUD_DELAY|NUD_PROBE)
 #define NUD_VALID	(NUD_PERMANENT|NUD_NOARP|NUD_REACHABLE|NUD_PROBE|NUD_STALE|NUD_DELAY)
@@ -72,22 +59,22 @@ struct neigh_parms
 
 struct neigh_statistics
 {
-	unsigned long allocs;		/* number of allocated neighs */
-	unsigned long destroys;		/* number of destroyed neighs */
-	unsigned long hash_grows;	/* number of hash resizes */
+	unsigned long allocs;		
+	unsigned long destroys;		
+	unsigned long hash_grows;	
 
-	unsigned long res_failed;	/* number of failed resolutions */
+	unsigned long res_failed;	
 
-	unsigned long lookups;		/* number of lookups */
-	unsigned long hits;		/* number of hits (among lookups) */
+	unsigned long lookups;		
+	unsigned long hits;		
 
-	unsigned long rcv_probes_mcast;	/* number of received mcast ipv6 */
-	unsigned long rcv_probes_ucast; /* number of received ucast ipv6 */
+	unsigned long rcv_probes_mcast;	
+	unsigned long rcv_probes_ucast; 
 
-	unsigned long periodic_gc_runs;	/* number of periodic GC runs */
-	unsigned long forced_gc_runs;	/* number of forced GC runs */
+	unsigned long periodic_gc_runs;	
+	unsigned long forced_gc_runs;	
 
-	unsigned long unres_discards;	/* number of unresolved drops */
+	unsigned long unres_discards;	
 };
 
 #define NEIGH_CACHE_STAT_INC(tbl, field)				\
@@ -144,9 +131,7 @@ struct pneigh_entry
 	u8			key[0];
 };
 
-/*
- *	neighbour table manipulation
- */
+
 
 
 struct neigh_table
@@ -162,7 +147,7 @@ struct neigh_table
 	void			(*proxy_redo)(struct sk_buff *skb);
 	char			*id;
 	struct neigh_parms	parms;
-	/* HACK. gc_* shoul follow parms without a gap! */
+	
 	int			gc_interval;
 	int			gc_thresh1;
 	int			gc_thresh2;
@@ -182,7 +167,7 @@ struct neigh_table
 	struct pneigh_entry	**phash_buckets;
 };
 
-/* flags for neigh_update() */
+
 #define NEIGH_UPDATE_F_OVERRIDE			0x00000001
 #define NEIGH_UPDATE_F_WEAK_OVERRIDE		0x00000002
 #define NEIGH_UPDATE_F_OVERRIDE_ISROUTER	0x00000004
@@ -279,9 +264,7 @@ static inline struct neigh_parms *neigh_parms_clone(struct neigh_parms *parms)
 	return parms;
 }
 
-/*
- *	Neighbour references
- */
+
 
 static inline void neigh_release(struct neighbour *neigh)
 {

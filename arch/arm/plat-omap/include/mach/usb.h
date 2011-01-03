@@ -1,11 +1,11 @@
-// include/asm-arm/mach-omap/usb.h
+
 
 #ifndef	__ASM_ARCH_OMAP_USB_H
 #define	__ASM_ARCH_OMAP_USB_H
 
 #include <mach/board.h>
 
-/*-------------------------------------------------------------------------*/
+
 
 #define OMAP1_OTG_BASE			0xfffb0400
 #define OMAP1_UDC_BASE			0xfffb4000
@@ -33,11 +33,9 @@ extern void usb_musb_init(void);
 
 void omap_usb_init(struct omap_usb_config *pdata);
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * OTG and transceiver registers, for OMAPs starting with ARM926
- */
+
+
 #define OTG_REV				(OTG_BASE + 0x00)
 #define OTG_SYSCON_1			(OTG_BASE + 0x04)
 #	define	 USB2_TRX_MODE(w)	(((w)>>24)&0x07)
@@ -93,7 +91,7 @@ void omap_usb_init(struct omap_usb_config *pdata);
 #	define	 OTG_PD_VBUS		(1 << 2)
 #	define	 OTG_PU_VBUS		(1 << 1)
 #	define	 OTG_PU_ID		(1 << 0)
-#define OTG_IRQ_EN			(OTG_BASE + 0x10)	/* 16-bit */
+#define OTG_IRQ_EN			(OTG_BASE + 0x10)	
 #	define	 DRIVER_SWITCH		(1 << 15)
 #	define	 A_VBUS_ERR		(1 << 13)
 #	define	 A_REQ_TMROUT		(1 << 12)
@@ -103,9 +101,9 @@ void omap_usb_init(struct omap_usb_config *pdata);
 #	define	 B_SRP_DONE		(1 << 8)
 #	define	 B_SRP_STARTED		(1 << 7)
 #	define	 OPRT_CHG		(1 << 0)
-#define OTG_IRQ_SRC			(OTG_BASE + 0x14)	/* 16-bit */
-	// same bits as in IRQ_EN
-#define OTG_OUTCTRL			(OTG_BASE + 0x18)	/* 16-bit */
+#define OTG_IRQ_SRC			(OTG_BASE + 0x14)	
+	
+#define OTG_OUTCTRL			(OTG_BASE + 0x18)	
 #	define	 OTGVPD			(1 << 14)
 #	define	 OTGVPU			(1 << 13)
 #	define	 OTGPUID		(1 << 12)
@@ -118,12 +116,12 @@ void omap_usb_init(struct omap_usb_config *pdata);
 #	define	 USB0VDR		(1 << 2)
 #	define	 USB0PDEN		(1 << 1)
 #	define	 USB0PUEN		(1 << 0)
-#define OTG_TEST			(OTG_BASE + 0x20)	/* 16-bit */
-#define OTG_VENDOR_CODE			(OTG_BASE + 0xfc)	/* 16-bit */
+#define OTG_TEST			(OTG_BASE + 0x20)	
+#define OTG_VENDOR_CODE			(OTG_BASE + 0xfc)	
 
-/*-------------------------------------------------------------------------*/
 
-/* OMAP1 */
+
+
 #define	USB_TRANSCEIVER_CTRL		(0xfffe1000 + 0x0064)
 #	define	CONF_USB2_UNI_R		(1 << 8)
 #	define	CONF_USB1_UNI_R		(1 << 7)
@@ -132,7 +130,7 @@ void omap_usb_init(struct omap_usb_config *pdata);
 #	define	CONF_USB_PWRDN_DM_R	(1 << 2)
 #	define	CONF_USB_PWRDN_DP_R	(1 << 1)
 
-/* OMAP2 */
+
 #	define	USB_UNIDIR			0x0
 #	define	USB_UNIDIR_TLL			0x1
 #	define	USB_BIDIR			0x2
@@ -142,4 +140,4 @@ void omap_usb_init(struct omap_usb_config *pdata);
 #	define	USB0PUENACTLOI		(1 << 16)
 #	define	USBSTANDBYCTRL		(1 << 15)
 
-#endif	/* __ASM_ARCH_OMAP_USB_H */
+#endif	

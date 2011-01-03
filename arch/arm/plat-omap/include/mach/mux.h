@@ -1,40 +1,10 @@
-/*
- * arch/arm/plat-omap/include/mach/mux.h
- *
- * Table of the Omap register configurations for the FUNC_MUX and
- * PULL_DWN combinations.
- *
- * Copyright (C) 2004 - 2008 Texas Instruments Inc.
- * Copyright (C) 2003 - 2008 Nokia Corporation
- *
- * Written by Tony Lindgren
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * NOTE: Please use the following naming style for new pin entries.
- *	 For example, W8_1610_MMC2_DAT0, where:
- *	 - W8	     = ball
- *	 - 1610	     = 1510 or 1610, none if common for both 1510 and 1610
- *	 - MMC2_DAT0 = function
- */
+
 
 #ifndef __ASM_ARCH_MUX_H
 #define __ASM_ARCH_MUX_H
 
-#define PU_PD_SEL_NA		0	/* No pu_pd reg available */
-#define PULL_DWN_CTRL_NA	0	/* No pull-down control needed */
+#define PU_PD_SEL_NA		0	
+#define PULL_DWN_CTRL_NA	0	
 
 #ifdef	CONFIG_OMAP_MUX_DEBUG
 #define MUX_REG(reg, mode_offset, mode) .mux_reg_name = "FUNC_MUX_CTRL_"#reg, \
@@ -102,7 +72,7 @@
 					.pull_bit = bit, \
 					.pull_val = status,
 
-#endif /* CONFIG_OMAP_MUX_DEBUG */
+#endif 
 
 #define MUX_CFG(desc, mux_reg, mode_offset, mode,	\
 		pull_reg, pull_bit, pull_status,	\
@@ -116,13 +86,7 @@
 },
 
 
-/*
- * OMAP730/850 has a slightly different config for the pin mux.
- * - config regs are the OMAP730_IO_CONF_x regs (see omap730.h) regs and
- *   not the FUNC_MUX_CTRL_x regs from hardware.h
- * - for pull-up/down, only has one enable bit which is is in the same register
- *   as mux config
- */
+
 #define MUX_CFG_730(desc, mux_reg, mode_offset, mode,	\
 		   pull_bit, pull_status, debug_status)\
 {							\
@@ -155,12 +119,12 @@
 	.pu_pd_val	= pull_mode,				\
 },
 
-/* 24xx/34xx mux bit defines */
+
 #define OMAP2_PULL_ENA		(1 << 3)
 #define OMAP2_PULL_UP		(1 << 4)
 #define OMAP2_ALTELECTRICALSEL	(1 << 5)
 
-/* 34xx specific mux bit defines */
+
 #define OMAP3_INPUT_EN		(1 << 8)
 #define OMAP3_OFF_EN		(1 << 9)
 #define OMAP3_OFFOUT_EN		(1 << 10)
@@ -169,7 +133,7 @@
 #define OMAP3_OFF_PULL_UP	(1 << 13)
 #define OMAP3_WAKEUP_EN		(1 << 14)
 
-/* 34xx mux mode options for each pin. See TRM for options */
+
 #define	OMAP34XX_MUX_MODE0	0
 #define	OMAP34XX_MUX_MODE1	1
 #define	OMAP34XX_MUX_MODE2	2
@@ -179,14 +143,14 @@
 #define	OMAP34XX_MUX_MODE6	6
 #define	OMAP34XX_MUX_MODE7	7
 
-/* 34xx active pin states */
+
 #define OMAP34XX_PIN_OUTPUT		0
 #define OMAP34XX_PIN_INPUT		OMAP3_INPUT_EN
 #define OMAP34XX_PIN_INPUT_PULLUP	(OMAP2_PULL_ENA | OMAP3_INPUT_EN \
 						| OMAP2_PULL_UP)
 #define OMAP34XX_PIN_INPUT_PULLDOWN	(OMAP2_PULL_ENA | OMAP3_INPUT_EN)
 
-/* 34xx off mode states */
+
 #define OMAP34XX_PIN_OFF_NONE           0
 #define OMAP34XX_PIN_OFF_OUTPUT_HIGH	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN \
 						| OMAP3_OFFOUT_VAL)
@@ -209,7 +173,7 @@ struct pin_config {
 	unsigned char		debug;
 
 #if	defined(CONFIG_ARCH_OMAP34XX)
-	u16			mux_val; /* Wake-up, off mode, pull, mux mode */
+	u16			mux_val; 
 #endif
 
 #if	defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP24XX)
@@ -233,7 +197,7 @@ struct pin_config {
 };
 
 enum omap730_index {
-	/* OMAP 730 keyboard */
+	
 	E2_730_KBR0,
 	J7_730_KBR1,
 	E1_730_KBR2,
@@ -245,14 +209,14 @@ enum omap730_index {
 	F4_730_KBC3,
 	E3_730_KBC4,
 
-	/* USB */
+	
 	AA17_730_USB_DM,
 	W16_730_USB_PU_EN,
 	W17_730_USB_VBUSI,
 };
 
 enum omap850_index {
-	/* OMAP 850 keyboard */
+	
 	E2_850_KBR0,
 	J7_850_KBR1,
 	E1_850_KBR2,
@@ -264,7 +228,7 @@ enum omap850_index {
 	F4_850_KBC3,
 	E3_850_KBC4,
 
-	/* USB */
+	
 	AA17_850_USB_DM,
 	W16_850_USB_PU_EN,
 	W17_850_USB_VBUSI,
@@ -272,30 +236,30 @@ enum omap850_index {
 
 
 enum omap1xxx_index {
-	/* UART1 (BT_UART_GATING)*/
+	
 	UART1_TX = 0,
 	UART1_RTS,
 
-	/* UART2 (COM_UART_GATING)*/
+	
 	UART2_TX,
 	UART2_RX,
 	UART2_CTS,
 	UART2_RTS,
 
-	/* UART3 (GIGA_UART_GATING) */
+	
 	UART3_TX,
 	UART3_RX,
 	UART3_CTS,
 	UART3_RTS,
 	UART3_CLKREQ,
-	UART3_BCLK,	/* 12MHz clock out */
+	UART3_BCLK,	
 	Y15_1610_UART3_RTS,
 
-	/* PWT & PWL */
+	
 	PWT,
 	PWL,
 
-	/* USB master generic */
+	
 	R18_USB_VBUS,
 	R18_1510_USB_GPIO0,
 	W4_USB_PUEN,
@@ -303,7 +267,7 @@ enum omap1xxx_index {
 	W4_USB_HIGHZ,
 	W4_GPIO58,
 
-	/* USB1 master */
+	
 	USB1_SUSP,
 	USB1_SEO,
 	W13_1610_USB1_SE0,
@@ -316,7 +280,7 @@ enum omap1xxx_index {
 	R13_1610_USB1_SPEED,
 	R13_1710_USB1_SE0,
 
-	/* USB2 master */
+	
 	USB2_SUSP,
 	USB2_VP,
 	USB2_TXEN,
@@ -325,22 +289,22 @@ enum omap1xxx_index {
 	USB2_SEO,
 	USB2_TXD,
 
-	/* OMAP-1510 GPIO */
+	
 	R18_1510_GPIO0,
 	R19_1510_GPIO1,
 	M14_1510_GPIO2,
 
-	/* OMAP1610 GPIO */
+	
 	P18_1610_GPIO3,
 	Y15_1610_GPIO17,
 
-	/* OMAP-1710 GPIO */
+	
 	R18_1710_GPIO0,
 	V2_1710_GPIO10,
 	N21_1710_GPIO14,
 	W15_1710_GPIO40,
 
-	/* MPUIO */
+	
 	MPUIO2,
 	N15_1610_MPUIO2,
 	MPUIO4,
@@ -355,7 +319,7 @@ enum omap1xxx_index {
 	U20_1610_MPUIO14,
 	E19_1610_MPUIO15,
 
-	/* MCBSP2 */
+	
 	MCBSP2_CLKR,
 	MCBSP2_CLKX,
 	MCBSP2_DR,
@@ -363,14 +327,14 @@ enum omap1xxx_index {
 	MCBSP2_FSR,
 	MCBSP2_FSX,
 
-	/* MCBSP3 */
+	
 	MCBSP3_CLKX,
 
-	/* Misc ballouts */
+	
 	BALLOUT_V8_ARMIO3,
 	N20_HDQ,
 
-	/* OMAP-1610 MMC2 */
+	
 	W8_1610_MMC2_DAT0,
 	V8_1610_MMC2_DAT1,
 	W15_1610_MMC2_DAT2,
@@ -382,7 +346,7 @@ enum omap1xxx_index {
 	W19_1610_MMC2_DATDIR1,
 	R18_1610_MMC2_CLKIN,
 
-	/* OMAP-1610 External Trace Interface */
+	
 	M19_1610_ETM_PSTAT0,
 	L15_1610_ETM_PSTAT1,
 	L18_1610_ETM_PSTAT2,
@@ -390,7 +354,7 @@ enum omap1xxx_index {
 	J19_1610_ETM_D6,
 	J18_1610_ETM_D7,
 
-	/* OMAP16XX GPIO */
+	
 	P20_1610_GPIO4,
 	V9_1610_GPIO7,
 	W8_1610_GPIO9,
@@ -405,7 +369,7 @@ enum omap1xxx_index {
 	R9_16XX_GPIO18,
 	L14_16XX_GPIO49,
 
-	/* OMAP-1610 uWire */
+	
 	V19_1610_UWIRE_SCLK,
 	U18_1610_UWIRE_SDI,
 	W21_1610_UWIRE_SDO,
@@ -413,7 +377,7 @@ enum omap1xxx_index {
 	P15_1610_UWIRE_CS3,
 	N15_1610_UWIRE_CS1,
 
-	/* OMAP-1610 SPI */
+	
 	U19_1610_SPIF_SCK,
 	U18_1610_SPIF_DIN,
 	P20_1610_SPIF_DIN,
@@ -424,11 +388,11 @@ enum omap1xxx_index {
 	T19_1610_SPIF_CS2,
 	P15_1610_SPIF_CS3,
 
-	/* OMAP-1610 Flash */
+	
 	L3_1610_FLASH_CS2B_OE,
 	M8_1610_FLASH_CS2B_WE,
 
-	/* First MMC */
+	
 	MMC_CMD,
 	MMC_DAT1,
 	MMC_DAT2,
@@ -436,12 +400,12 @@ enum omap1xxx_index {
 	MMC_CLK,
 	MMC_DAT3,
 
-	/* OMAP-1710 MMC CMDDIR and DATDIR0 */
+	
 	M15_1710_MMC_CLKI,
 	P19_1710_MMC_CMDDIR,
 	P20_1710_MMC_DATDIR0,
 
-	/* OMAP-1610 USB0 alternate pin configuration */
+	
 	W9_USB0_TXEN,
 	AA9_USB0_VP,
 	Y5_USB0_RCV,
@@ -451,7 +415,7 @@ enum omap1xxx_index {
 	V9_USB0_SPEED,
 	V9_USB0_SUSP,
 
-	/* USB2 */
+	
 	W9_USB2_TXEN,
 	AA9_USB2_VP,
 	Y5_USB2_RCV,
@@ -459,7 +423,7 @@ enum omap1xxx_index {
 	V6_USB2_TXD,
 	W5_USB2_SE0,
 
-	/* 16XX UART */
+	
 	R13_1610_UART1_TX,
 	V14_16XX_UART1_RX,
 	R14_1610_UART1_CTS,
@@ -467,11 +431,11 @@ enum omap1xxx_index {
 	R9_16XX_UART2_RX,
 	L14_16XX_UART3_RX,
 
-	/* I2C OMAP-1610 */
+	
 	I2C_SCL,
 	I2C_SDA,
 
-	/* Keypad */
+	
 	F18_1610_KBC0,
 	D20_1610_KBC1,
 	D19_1610_KBC2,
@@ -484,23 +448,23 @@ enum omap1xxx_index {
 	E19_1610_KBR4,
 	N19_1610_KBR5,
 
-	/* Power management */
+	
 	T20_1610_LOW_PWR,
 
-	/* MCLK Settings */
+	
 	V5_1710_MCLK_ON,
 	V5_1710_MCLK_OFF,
 	R10_1610_MCLK_ON,
 	R10_1610_MCLK_OFF,
 
-	/* CompactFlash controller */
+	
 	P11_1610_CF_CD2,
 	R11_1610_CF_IOIS16,
 	V10_1610_CF_IREQ,
 	W10_1610_CF_RESET,
 	W11_1610_CF_CD1,
 
-	/* parallel camera */
+	
 	J15_1610_CAM_LCLK,
 	J18_1610_CAM_D7,
 	J19_1610_CAM_D6,
@@ -515,7 +479,7 @@ enum omap1xxx_index {
 	M19_1610_CAM_RSTZ,
 	Y15_1610_CAM_OUTCLK,
 
-	/* serial camera */
+	
 	H19_1610_CAM_EXCLK,
 	Y12_1610_CCP_CLKP,
 	W13_1610_CCP_CLKM,
@@ -525,19 +489,19 @@ enum omap1xxx_index {
 };
 
 enum omap24xx_index {
-	/* 24xx I2C */
+	
 	M19_24XX_I2C1_SCL,
 	L15_24XX_I2C1_SDA,
 	J15_24XX_I2C2_SCL,
 	H19_24XX_I2C2_SDA,
 
-	/* 24xx Menelaus interrupt */
+	
 	W19_24XX_SYS_NIRQ,
 
-	/* 24xx clock */
+	
 	W14_24XX_SYS_CLKOUT,
 
-	/* 24xx GPMC chipselects, wait pin monitoring */
+	
 	E2_GPMC_NCS2,
 	L2_GPMC_NCS7,
 	L3_GPMC_WAIT0,
@@ -545,13 +509,13 @@ enum omap24xx_index {
 	M1_GPMC_WAIT2,
 	P1_GPMC_WAIT3,
 
-	/* 242X McBSP */
+	
 	Y15_24XX_MCBSP2_CLKX,
 	R14_24XX_MCBSP2_FSX,
 	W15_24XX_MCBSP2_DR,
 	V15_24XX_MCBSP2_DX,
 
-	/* 24xx GPIO */
+	
 	M21_242X_GPIO11,
 	P21_242X_GPIO12,
 	AA10_242X_GPIO13,
@@ -572,7 +536,7 @@ enum omap24xx_index {
 	V14_24XX_GPIO117,
 	P14_24XX_GPIO125,
 
-	/* 242x DBG GPIO */
+	
 	V4_242X_GPIO49,
 	W2_242X_GPIO50,
 	U4_242X_GPIO51,
@@ -584,7 +548,7 @@ enum omap24xx_index {
 	T3_242X_GPIO55,
 	U2_242X_GPIO56,
 
-	/* 24xx external DMA requests */
+	
 	AA10_242X_DMAREQ0,
 	AA6_242X_DMAREQ1,
 	E4_242X_DMAREQ2,
@@ -592,11 +556,11 @@ enum omap24xx_index {
 	D3_242X_DMAREQ4,
 	E3_242X_DMAREQ5,
 
-	/* UART3 */
+	
 	K15_24XX_UART3_TX,
 	K14_24XX_UART3_RX,
 
-	/* MMC/SDIO */
+	
 	G19_24XX_MMC_CLKO,
 	H18_24XX_MMC_CMD,
 	F20_24XX_MMC_DAT0,
@@ -610,7 +574,7 @@ enum omap24xx_index {
 	G18_24XX_MMC_CMD_DIR,
 	H15_24XX_MMC_CLKI,
 
-	/* Full speed USB */
+	
 	J20_24XX_USB0_PUEN,
 	J19_24XX_USB0_VP,
 	K20_24XX_USB0_VM,
@@ -634,7 +598,7 @@ enum omap24xx_index {
 	AA6_24XX_USB2_RCV,
 	AA4_24XX_USB2_TLLSE0,
 
-	/* Keypad GPIO*/
+	
 	T19_24XX_KBR0,
 	R19_24XX_KBR1,
 	V18_24XX_KBR2,
@@ -649,12 +613,12 @@ enum omap24xx_index {
 	L14_24XX_KBC5,
 	N19_24XX_KBC6,
 
-	/* 24xx Menelaus Keypad GPIO */
+	
 	B3__24XX_KBR5,
 	AA4_24XX_KBC2,
 	B13_24XX_KBC6,
 
-	/* 2430 USB */
+	
 	AD9_2430_USB0_PUEN,
 	Y11_2430_USB0_VP,
 	AD7_2430_USB0_VM,
@@ -667,7 +631,7 @@ enum omap24xx_index {
 	Y25_2430_USB1_TXEN,
 	AA26_2430_USB1_DAT,
 
-	/* 2430 HS-USB */
+	
 	AD9_2430_USB0HS_DATA3,
 	Y11_2430_USB0HS_DATA4,
 	AD7_2430_USB0HS_DATA5,
@@ -681,7 +645,7 @@ enum omap24xx_index {
 	AE9_2430_USB0HS_NXT,
 	AC7_2430_USB0HS_DATA7,
 
-	/* 2430 McBSP */
+	
 	AD6_2430_MCBSP_CLKS,
 
 	AB2_2430_MCBSP1_CLKR,
@@ -715,19 +679,19 @@ enum omap24xx_index {
 	K7_2430_MCBSP5_DX,
 	M1_2430_MCBSP5_DR,
 
-	/* 2430 McSPI*/
+	
 	Y18_2430_MCSPI1_CLK,
 	AD15_2430_MCSPI1_SIMO,
 	AE17_2430_MCSPI1_SOMI,
 	U1_2430_MCSPI1_CS0,
 
-	/* Touchscreen GPIO */
+	
 	AF19_2430_GPIO_85,
 
 };
 
 enum omap34xx_index {
-	/* 34xx I2C */
+	
 	K21_34XX_I2C1_SCL,
 	J21_34XX_I2C1_SDA,
 	AF15_34XX_I2C2_SCL,
@@ -737,7 +701,7 @@ enum omap34xx_index {
 	AD26_34XX_I2C4_SCL,
 	AE26_34XX_I2C4_SDA,
 
-	/* PHY - HSUSB: 12-pin ULPI PHY: Port 1*/
+	
 	Y8_3430_USB1HS_PHY_CLK,
 	Y9_3430_USB1HS_PHY_STP,
 	AA14_3430_USB1HS_PHY_DIR,
@@ -751,7 +715,7 @@ enum omap34xx_index {
 	W8_3430_USB1HS_PHY_DATA6,
 	Y13_3430_USB1HS_PHY_DATA7,
 
-	/* PHY - HSUSB: 12-pin ULPI PHY: Port 2*/
+	
 	AA8_3430_USB2HS_PHY_CLK,
 	AA10_3430_USB2HS_PHY_STP,
 	AA9_3430_USB2HS_PHY_DIR,
@@ -766,7 +730,7 @@ enum omap34xx_index {
 	T2_3430_USB2HS_PHY_DATA7,
 
 
-	/* TLL - HSUSB: 12-pin TLL Port 1*/
+	
 	Y8_3430_USB1HS_TLL_CLK,
 	Y9_3430_USB1HS_TLL_STP,
 	AA14_3430_USB1HS_TLL_DIR,
@@ -780,7 +744,7 @@ enum omap34xx_index {
 	W8_3430_USB1HS_TLL_DATA6,
 	Y13_3430_USB1HS_TLL_DATA7,
 
-	/* TLL - HSUSB: 12-pin TLL Port 2*/
+	
 	AA8_3430_USB2HS_TLL_CLK,
 	AA10_3430_USB2HS_TLL_STP,
 	AA9_3430_USB2HS_TLL_DIR,
@@ -794,7 +758,7 @@ enum omap34xx_index {
 	R4_3430_USB2HS_TLL_DATA6,
 	T2_3430_USB2HS_TLL_DATA7,
 
-	/* TLL - HSUSB: 12-pin TLL Port 3*/
+	
 	AA6_3430_USB3HS_TLL_CLK,
 	AB3_3430_USB3HS_TLL_STP,
 	AA3_3430_USB3HS_TLL_DIR,
@@ -808,7 +772,7 @@ enum omap34xx_index {
 	AA13_3430_USB3HS_TLL_DATA6,
 	AA12_3430_USB3HS_TLL_DATA7,
 
-	/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
+	
 	AF10_3430_USB1FS_PHY_MM1_RXDP,
 	AG9_3430_USB1FS_PHY_MM1_RXDM,
 	W13_3430_USB1FS_PHY_MM1_RXRCV,
@@ -816,7 +780,7 @@ enum omap34xx_index {
 	W11_3430_USB1FS_PHY_MM1_TXDAT,
 	Y11_3430_USB1FS_PHY_MM1_TXEN_N,
 
-	/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
+	
 	AF7_3430_USB2FS_PHY_MM2_RXDP,
 	AH7_3430_USB2FS_PHY_MM2_RXDM,
 	AB10_3430_USB2FS_PHY_MM2_RXRCV,
@@ -824,7 +788,7 @@ enum omap34xx_index {
 	W3_3430_USB2FS_PHY_MM2_TXDAT,
 	T4_3430_USB2FS_PHY_MM2_TXEN_N,
 
-	/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
+	
 	AH3_3430_USB3FS_PHY_MM3_RXDP,
 	AE3_3430_USB3FS_PHY_MM3_RXDM,
 	AD1_3430_USB3FS_PHY_MM3_RXRCV,
@@ -832,12 +796,7 @@ enum omap34xx_index {
 	AD2_3430_USB3FS_PHY_MM3_TXDAT,
 	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
 
-	/* 34xx GPIO
-	 *  - normally these are bidirectional, no internal pullup/pulldown
-	 *  - "_UP" suffix (GPIO3_UP) if internal pullup is configured
-	 *  - "_DOWN" suffix (GPIO3_DOWN) with internal pulldown
-	 *  - "_OUT" suffix (GPIO3_OUT) for output-only pins (unlike 24xx)
-	 */
+	
 	AF26_34XX_GPIO0,
 	AF22_34XX_GPIO9,
 	AG9_34XX_GPIO23,
@@ -856,11 +815,11 @@ enum omap34xx_index {
 	H19_34XX_GPIO164_OUT,
 	J25_34XX_GPIO170,
 
-	/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
+	
 	H16_34XX_SDRC_CKE0,
 	H17_34XX_SDRC_CKE1,
 
-	/* MMC1 */
+	
 	N28_3430_MMC1_CLK,
 	M27_3430_MMC1_CMD,
 	N27_3430_MMC1_DAT0,
@@ -872,7 +831,7 @@ enum omap34xx_index {
 	R27_3430_MMC1_DAT6,
 	R25_3430_MMC1_DAT7,
 
-	/* MMC2 */
+	
 	AE2_3430_MMC2_CLK,
 	AG5_3430_MMC2_CMD,
 	AH5_3430_MMC2_DAT0,
@@ -880,7 +839,7 @@ enum omap34xx_index {
 	AG4_3430_MMC2_DAT2,
 	AF4_3430_MMC2_DAT3,
 
-	/* MMC3 */
+	
 	AF10_3430_MMC3_CLK,
 	AC3_3430_MMC3_CMD,
 	AE11_3430_MMC3_DAT0,
@@ -888,7 +847,7 @@ enum omap34xx_index {
 	AF13_3430_MMC3_DAT2,
 	AF13_3430_MMC3_DAT3,
 
-	/* SYS_NIRQ T2 INT1 */
+	
 	AF26_34XX_SYS_NIRQ,
 };
 
@@ -899,13 +858,13 @@ struct omap_mux_cfg {
 };
 
 #ifdef	CONFIG_OMAP_MUX
-/* setup pin muxing in Linux */
+
 extern int omap1_mux_init(void);
 extern int omap2_mux_init(void);
 extern int omap_mux_register(struct omap_mux_cfg *);
 extern int omap_cfg_reg(unsigned long reg_cfg);
 #else
-/* boot loader does it all (no warnings from CONFIG_OMAP_MUX_WARNINGS) */
+
 static inline int omap1_mux_init(void) { return 0; }
 static inline int omap2_mux_init(void) { return 0; }
 static inline int omap_cfg_reg(unsigned long reg_cfg) { return 0; }

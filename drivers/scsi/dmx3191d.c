@@ -1,24 +1,4 @@
-/*
-    dmx3191d.c - driver for the Domex DMX3191D SCSI card.
-    Copyright (C) 2000 by Massimo Piccioni <dafastidio@libero.it>
-    Portions Copyright (C) 2004 by Christoph Hellwig <hch@lst.de>
 
-    Based on the generic NCR5380 driver by Drew Eckhardt et al.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/init.h>
 #include <linux/ioport.h>
@@ -30,9 +10,7 @@
 
 #include <scsi/scsi_host.h>
 
-/*
- * Defintions for the generic 5380 driver.
- */
+
 #define AUTOSENSE
 
 #define NCR5380_read(reg)		inb(port + reg)
@@ -42,9 +20,7 @@
 #define NCR5380_local_declare()		NCR5380_implementation_fields
 #define NCR5380_setup(instance)		port = instance->io_port
 
-/*
- * Includes needed for NCR5380.[ch] (XXX: Move them to NCR5380.h)
- */
+
 #include <linux/delay.h>
 #include "scsi.h"
 
@@ -96,9 +72,7 @@ static int __devinit dmx3191d_probe_one(struct pci_dev *pdev,
 
 	if (request_irq(pdev->irq, NCR5380_intr, IRQF_SHARED,
 				DMX3191D_DRIVER_NAME, shost)) {
-		/*
-		 * Steam powered scsi controllers run without an IRQ anyway
-		 */
+		
 		printk(KERN_WARNING "dmx3191: IRQ %d not available - "
 				    "switching to polled mode.\n", pdev->irq);
 		shost->irq = SCSI_IRQ_NONE;

@@ -1,23 +1,11 @@
-/* linux/arch/arm/mach-s3c6400/include/mach/map.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * S3C64XX - Memory map definitions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #ifndef __ASM_ARCH_MAP_H
 #define __ASM_ARCH_MAP_H __FILE__
 
 #include <plat/map-base.h>
 
-/* HSMMC units */
+
 #define S3C64XX_PA_HSMMC(x)	(0x7C200000 + ((x) * 0x100000))
 #define S3C64XX_PA_HSMMC0	S3C64XX_PA_HSMMC(0)
 #define S3C64XX_PA_HSMMC1	S3C64XX_PA_HSMMC(1)
@@ -30,7 +18,7 @@
 #define S3C_PA_UART3		(S3C_PA_UART + 0xC00)
 #define S3C_UART_OFFSET		(0x400)
 
-/* See notes on UART VA mapping in debug-macro.S */
+
 #define S3C_VA_UARTx(x)	(S3C_VA_UART + (S3C_PA_UART & 0xfffff) + ((x) * S3C_UART_OFFSET))
 
 #define S3C_VA_UART0		S3C_VA_UARTx(0)
@@ -64,11 +52,11 @@
 
 #define S3C64XX_PA_USBHOST	(0x74300000)
 
-/* place VICs close together */
+
 #define S3C_VA_VIC0		(S3C_VA_IRQ + 0x00)
 #define S3C_VA_VIC1		(S3C_VA_IRQ + 0x10000)
 
-/* compatibiltiy defines. */
+
 #define S3C_PA_TIMER		S3C64XX_PA_TIMER
 #define S3C_PA_HSMMC0		S3C64XX_PA_HSMMC0
 #define S3C_PA_HSMMC1		S3C64XX_PA_HSMMC1
@@ -80,4 +68,4 @@
 #define S3C_PA_USBHOST		S3C64XX_PA_USBHOST
 #define S3C_PA_USB_HSOTG	S3C64XX_PA_USB_HSOTG
 
-#endif /* __ASM_ARCH_6400_MAP_H */
+#endif 

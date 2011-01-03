@@ -1,14 +1,4 @@
-/* $Id: hycapi.c,v 1.8.6.4 2001/09/23 22:24:54 kai Exp $
- *
- * Linux driver for HYSDN cards, CAPI2.0-Interface.
- *
- * Author    Ulrich Albrecht <u.albrecht@hypercope.de> for Hypercope GmbH
- * Copyright 2000 by Hypercope GmbH
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/signal.h>
@@ -54,9 +44,7 @@ static inline int _hycapi_appCheck(int app_id, int ctrl_no)
 	return ((hycapi_applications[app_id-1].ctrl_mask & (1 << (ctrl_no-1))) != 0);
 }
 
-/******************************
-Kernel-Capi callback reset_ctr
-******************************/     
+     
 
 static void
 hycapi_reset_ctr(struct capi_ctr *ctrl)
@@ -70,9 +58,7 @@ hycapi_reset_ctr(struct capi_ctr *ctrl)
 	capi_ctr_down(ctrl);
 }
 
-/******************************
-Kernel-Capi callback remove_ctr
-******************************/     
+     
 
 static void
 hycapi_remove_ctr(struct capi_ctr *ctrl)
@@ -104,11 +90,7 @@ hycapi_remove_ctr(struct capi_ctr *ctrl)
 	card->hyctrlinfo = NULL;
 }
 
-/***********************************************************
 
-Queue a CAPI-message to the controller.
-
-***********************************************************/
 
 static void
 hycapi_sendmsg_internal(struct capi_ctr *ctrl, struct sk_buff *skb)
@@ -120,12 +102,12 @@ hycapi_sendmsg_internal(struct capi_ctr *ctrl, struct sk_buff *skb)
 #ifdef HYCAPI_PRINTFNAMES
 	printk(KERN_NOTICE "hycapi_send_message\n");    
 #endif
-	cinfo->skbs[cinfo->in_idx++] = skb;	/* add to buffer list */
+	cinfo->skbs[cinfo->in_idx++] = skb;	
 	if (cinfo->in_idx >= HYSDN_MAX_CAPI_SKB)
-		cinfo->in_idx = 0;	/* wrap around */
-	cinfo->sk_count++;		/* adjust counter */
+		cinfo->in_idx = 0;	
+	cinfo->sk_count++;		
 	if (cinfo->sk_count >= HYSDN_MAX_CAPI_SKB) {
-		/* inform upper layers we're full */
+		
 		printk(KERN_ERR "HYSDN Card%d: CAPI-buffer overrun!\n",
 		       card->myid);	
 		capi_ctr_suspend_output(ctrl);
@@ -135,14 +117,7 @@ hycapi_sendmsg_internal(struct capi_ctr *ctrl, struct sk_buff *skb)
 	schedule_work(&card->irq_queue);
 }
 
-/***********************************************************
-hycapi_register_internal
 
-Send down the CAPI_REGISTER-Command to the controller.
-This functions will also be used if the adapter has been rebooted to
-re-register any applications in the private list.
-
-************************************************************/
 
 static void 
 hycapi_register_internal(struct capi_ctr *ctrl, __u16 appl,
@@ -182,13 +157,7 @@ hycapi_register_internal(struct capi_ctr *ctrl, __u16 appl,
 	hycapi_send_message(ctrl, skb);    
 }
 
-/************************************************************
-hycapi_restart_internal
 
-After an adapter has been rebootet, re-register all applications and
-send a LISTEN_REQ (if there has been such a thing )
-
-*************************************************************/
 
 static void hycapi_restart_internal(struct capi_ctr *ctrl)
 {
@@ -209,12 +178,7 @@ static void hycapi_restart_internal(struct capi_ctr *ctrl)
 	}
 }
 
-/*************************************************************
-Register an application.
-Error-checking is done for CAPI-compliance.
 
-The application is recorded in the internal list.
-*************************************************************/
 
 static void
 hycapi_register_appl(struct capi_ctr *ctrl, __u16 appl, 
@@ -249,12 +213,7 @@ hycapi_register_appl(struct capi_ctr *ctrl, __u16 appl,
 	       rp, sizeof(capi_register_params));
 }
 
-/*********************************************************************
 
-hycapi_release_internal
-
-Send down a CAPI_RELEASE to the controller.
-*********************************************************************/
 
 static void hycapi_release_internal(struct capi_ctr *ctrl, __u16 appl)
 {
@@ -285,12 +244,7 @@ static void hycapi_release_internal(struct capi_ctr *ctrl, __u16 appl)
 	hycapi_applications[appl-1].ctrl_mask &= ~(1 << (ctrl->cnr-1));    
 }
 
-/******************************************************************
-hycapi_release_appl
 
-Release the application from the internal list an remove it's 
-registration at controller-level
-******************************************************************/
 
 static void
 hycapi_release_appl(struct capi_ctr *ctrl, __u16 appl)
@@ -313,9 +267,7 @@ hycapi_release_appl(struct capi_ctr *ctrl, __u16 appl)
 }
 
 
-/**************************************************************
-Kill a single controller.
-**************************************************************/
+
 
 int hycapi_capi_release(hysdn_card *card)
 {
@@ -331,11 +283,7 @@ int hycapi_capi_release(hysdn_card *card)
 	return 0;
 }
 
-/**************************************************************
-hycapi_capi_stop
 
-Stop CAPI-Output on a card. (e.g. during reboot)
-***************************************************************/
 
 int hycapi_capi_stop(hysdn_card *card)
 {
@@ -346,24 +294,13 @@ int hycapi_capi_stop(hysdn_card *card)
 #endif
 	if(cinfo) {
 		ctrl = &cinfo->capi_ctrl;
-/*		ctrl->suspend_output(ctrl); */
+
 		capi_ctr_down(ctrl);
 	}
 	return 0;
 }
 
-/***************************************************************
-hycapi_send_message
 
-Send a message to the controller.
-
-Messages are parsed for their Command/Subcommand-type, and appropriate
-action's are performed.
-
-Note that we have to muck around with a 64Bit-DATA_REQ as there are
-firmware-releases that do not check the MsgLen-Indication!
-
-***************************************************************/
 
 static u16 hycapi_send_message(struct capi_ctr *ctrl, struct sk_buff *skb)
 {
@@ -377,7 +314,7 @@ static u16 hycapi_send_message(struct capi_ctr *ctrl, struct sk_buff *skb)
 	switch(_hycapi_appCheck(appl_id, ctrl->cnr))
 	{
 		case 0:
-/*			printk(KERN_INFO "Need to register\n"); */
+
 			hycapi_register_internal(ctrl, 
 						 appl_id,
 						 &(hycapi_applications[appl_id-1].rp));
@@ -432,12 +369,7 @@ static u16 hycapi_send_message(struct capi_ctr *ctrl, struct sk_buff *skb)
 	return retval;
 }
 
-/*********************************************************************
-hycapi_read_proc
 
-Informations provided in the /proc/capi-entries.
-
-*********************************************************************/
 
 static int hycapi_read_proc(char *page, char **start, off_t off,
 			    int count, int *eof, struct capi_ctr *ctrl)
@@ -479,13 +411,7 @@ static int hycapi_read_proc(char *page, char **start, off_t off,
 	return ((count < len-off) ? count : len-off);
 }
 
-/**************************************************************
-hycapi_load_firmware
 
-This does NOT load any firmware, but the callback somehow is needed
-on capi-interface registration.
-
-**************************************************************/
 
 static int hycapi_load_firmware(struct capi_ctr *ctrl, capiloaddata *data)
 {
@@ -514,14 +440,7 @@ static char *hycapi_procinfo(struct capi_ctr *ctrl)
 	return cinfo->infobuf;
 }
 
-/******************************************************************
-hycapi_rx_capipkt
 
-Receive a capi-message.
-
-All B3_DATA_IND are converted to 64K-extension compatible format.
-New nccis are created if necessary.
-*******************************************************************/
 
 void
 hycapi_rx_capipkt(hysdn_card * card, unsigned char *buf, unsigned short len)
@@ -572,7 +491,7 @@ hycapi_rx_capipkt(hysdn_card * card, unsigned char *buf, unsigned short len)
 	switch(CAPIMSG_CMD(skb->data)) 
 	{
 		case CAPI_CONNECT_B3_CONF:
-/* Check info-field for error-indication: */
+
 			info = CAPIMSG_U16(skb->data, 12);
 			switch(info)
 			{
@@ -621,13 +540,7 @@ hycapi_rx_capipkt(hysdn_card * card, unsigned char *buf, unsigned short len)
 	capi_ctr_handle_message(ctrl, ApplId, skb);
 }
 
-/******************************************************************
-hycapi_tx_capiack
 
-Internally acknowledge a msg sent. This will remove the msg from the
-internal queue.
-
-*******************************************************************/
 
 void hycapi_tx_capiack(hysdn_card * card)
 {
@@ -639,22 +552,17 @@ void hycapi_tx_capiack(hysdn_card * card)
 		return;
 	}
 	spin_lock_irq(&cinfo->lock);
-	kfree_skb(cinfo->skbs[cinfo->out_idx]);		/* free skb */
+	kfree_skb(cinfo->skbs[cinfo->out_idx]);		
 	cinfo->skbs[cinfo->out_idx++] = NULL;
 	if (cinfo->out_idx >= HYSDN_MAX_CAPI_SKB)
-		cinfo->out_idx = 0;	/* wrap around */
+		cinfo->out_idx = 0;	
 
-	if (cinfo->sk_count-- == HYSDN_MAX_CAPI_SKB)	/* dec usage count */
+	if (cinfo->sk_count-- == HYSDN_MAX_CAPI_SKB)	
 		capi_ctr_resume_output(&cinfo->capi_ctrl);
 	spin_unlock_irq(&cinfo->lock);
 }
 
-/***************************************************************
-hycapi_tx_capiget(hysdn_card *card)
 
-This is called when polling for messages to SEND.
-
-****************************************************************/
 
 struct sk_buff *
 hycapi_tx_capiget(hysdn_card *card)
@@ -664,18 +572,13 @@ hycapi_tx_capiget(hysdn_card *card)
 		return (struct sk_buff *)NULL;
 	}
 	if (!cinfo->sk_count)
-		return (struct sk_buff *)NULL;	/* nothing available */
+		return (struct sk_buff *)NULL;	
 
-	return (cinfo->skbs[cinfo->out_idx]);		/* next packet to send */
+	return (cinfo->skbs[cinfo->out_idx]);		
 }
 
 
-/**********************************************************
-int hycapi_init()
 
-attach the capi-driver to the kernel-capi.
-
-***********************************************************/
 
 int hycapi_init(void)
 {
@@ -686,23 +589,14 @@ int hycapi_init(void)
 	return(0);
 }
 
-/**************************************************************
-hycapi_cleanup(void)
 
-detach the capi-driver to the kernel-capi. Actually this should
-free some more ressources. Do that later.
-**************************************************************/
 
 void 
 hycapi_cleanup(void)
 {
 }
 
-/********************************************************************
-hycapi_capi_create(hysdn_card *card)
 
-Attach the card with its capi-ctrl.
-*********************************************************************/
 
 static void hycapi_fill_profile(hysdn_card *card)
 {
@@ -783,16 +677,16 @@ hycapi_capi_create(hysdn_card *card)
 			printk(KERN_ERR "hycapi: attach controller failed.\n");
 			return -EBUSY;
 		}
-		/* fill in the blanks: */
+		
 		hycapi_fill_profile(card);
 		capi_ctr_ready(ctrl);
 	} else {
-		/* resume output on stopped ctrl */
+		
 		ctrl = &card->hyctrlinfo->capi_ctrl;
 		hycapi_fill_profile(card);
 		capi_ctr_ready(ctrl);
 		hycapi_restart_internal(ctrl); 
-/*		ctrl->resume_output(ctrl); */
+
 	}
 	return 0;
 }

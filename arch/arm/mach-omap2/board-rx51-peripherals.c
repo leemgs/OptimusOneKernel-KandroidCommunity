@@ -1,12 +1,4 @@
-/*
- * linux/arch/arm/mach-omap2/board-rx51-peripherals.c
- *
- * Copyright (C) 2008-2009 Nokia
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -118,7 +110,7 @@ static struct twl4030_hsmmc_info mmc[] = {
 		.nonremovable	= true,
 		.power_saving	= true,
 	},
-	{}	/* Terminator */
+	{}	
 };
 
 static struct regulator_consumer_supply rx51_vmmc1_supply = {
@@ -157,7 +149,7 @@ static struct regulator_init_data rx51_vaux2 = {
 	},
 };
 
-/* VAUX3 - adds more power to VIO_18 rail */
+
 static struct regulator_init_data rx51_vaux3_cam = {
 	.constraints = {
 		.name			= "VCAM_DIG_18",
@@ -259,13 +251,13 @@ static struct regulator_init_data rx51_vdac = {
 
 static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
 {
-	/* FIXME this gpio setup is just a placeholder for now */
+	
 	gpio_request(gpio + 6, "backlight_pwm");
 	gpio_direction_output(gpio + 6, 0);
 	gpio_request(gpio + 7, "speaker_en");
 	gpio_direction_output(gpio + 7, 1);
 
-	/* set up MMC adapters, linking their regulators to them */
+	
 	twl4030_mmc_init(mmc);
 	rx51_vmmc1_supply.dev = mmc[0].dev;
 	rx51_vmmc2_supply.dev = mmc[1].dev;
@@ -291,14 +283,10 @@ static struct twl4030_usb_data rx51_usb_data = {
 };
 
 static struct twl4030_ins sleep_on_seq[] __initdata = {
-/*
- * Turn off VDD1 and VDD2.
- */
+
 	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
 	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-/*
- * And also turn off the OMAP3 PLLs and the sysclk output.
- */
+
 	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
 	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_OFF), 3},
 };
@@ -310,11 +298,7 @@ static struct twl4030_script sleep_on_script __initdata = {
 };
 
 static struct twl4030_ins wakeup_seq[] __initdata = {
-/*
- * Reenable the OMAP3 PLLs.
- * Wakeup VDD1 and VDD2.
- * Reenable sysclk output.
- */
+
 	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
 	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
 	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
@@ -328,10 +312,7 @@ static struct twl4030_script wakeup_script __initdata = {
 };
 
 static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-/*
- * Wakeup VDD1 (dummy to be able to insert a delay)
- * Enable CLKEN
- */
+
 	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_ACTIVE), 3},
 };
 
@@ -342,14 +323,7 @@ static struct twl4030_script wakeup_p3_script __initdata = {
 };
 
 static struct twl4030_ins wrst_seq[] __initdata = {
-/*
- * Reset twl4030.
- * Reset VDD1 regulator.
- * Reset VDD2 regulator.
- * Reset VPLL1 regulator.
- * Enable sysclk output.
- * Reenable twl4030.
- */
+
 	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
 	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
 		0x13},
@@ -369,10 +343,7 @@ static struct twl4030_script wrst_script __initdata = {
 };
 
 static struct twl4030_script *twl4030_scripts[] __initdata = {
-	/* wakeup12 script should be loaded before sleep script, otherwise a
-	   board might hit retention before loading of wakeup script is
-	   completed. This can cause boot failures depending on timing issues.
-	*/
+	
 	&wakeup_script,
 	&sleep_on_script,
 	&wakeup_p3_script,
@@ -411,7 +382,7 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
 	.irq_base		= TWL4030_IRQ_BASE,
 	.irq_end		= TWL4030_IRQ_END,
 
-	/* platform_data for children goes here */
+	
 	.gpio			= &rx51_gpio_data,
 	.keypad			= &rx51_kp_data,
 	.madc			= &rx51_madc_data,
@@ -459,7 +430,7 @@ static struct mtd_partition onenand_partitions[] = {
 		.name           = "bootloader",
 		.offset         = 0,
 		.size           = 0x20000,
-		.mask_flags     = MTD_WRITEABLE,	/* Force read-only */
+		.mask_flags     = MTD_WRITEABLE,	
 	},
 	{
 		.name           = "config",

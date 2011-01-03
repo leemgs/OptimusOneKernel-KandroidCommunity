@@ -1,10 +1,4 @@
-/*
- * File:	portdrv_bus.c
- * Purpose:	PCI Express Port Bus Driver's Bus Overloading Functions
- *
- * Copyright (C) 2004 Intel
- * Copyright (C) Tom Long Nguyen (tom.l.nguyen@intel.com)
- */
+
 
 #include <linux/module.h>
 #include <linux/pci.h>

@@ -1,30 +1,4 @@
-/*
- * linux/arch/arm/mach-omap1/board-osk.c
- *
- * Board specific init for OMAP5912 OSK
- *
- * Written by Dirk Behme <dirk.behme@de.bosch.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You should have received a copy of the  GNU General Public License along
- * with this program; if not, write  to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -52,13 +26,11 @@
 #include <mach/tc.h>
 #include <mach/common.h>
 
-/* At OMAP5912 OSK the Ethernet is directly connected to CS1 */
+
 #define OMAP_OSK_ETHR_START		0x04800300
 
-/* TPS65010 has four GPIOs.  nPG and LED2 can be treated like GPIOs with
- * alternate pin configurations for hardware-controlled blinking.
- */
-#define OSK_TPS_GPIO_BASE		(OMAP_MAX_GPIO_LINES + 16 /* MPUIO */)
+
+#define OSK_TPS_GPIO_BASE		(OMAP_MAX_GPIO_LINES + 16 )
 #	define OSK_TPS_GPIO_USB_PWR_EN	(OSK_TPS_GPIO_BASE + 0)
 #	define OSK_TPS_GPIO_LED_D3	(OSK_TPS_GPIO_BASE + 1)
 #	define OSK_TPS_GPIO_LAN_RESET	(OSK_TPS_GPIO_BASE + 2)
@@ -67,14 +39,14 @@
 #	define OSK_TPS_GPIO_LED_D2	(OSK_TPS_GPIO_BASE + 5)
 
 static struct mtd_partition osk_partitions[] = {
-	/* bootloader (U-Boot, etc) in first sector */
+	
 	{
 	      .name		= "bootloader",
 	      .offset		= 0,
 	      .size		= SZ_128K,
-	      .mask_flags	= MTD_WRITEABLE, /* force read-only */
+	      .mask_flags	= MTD_WRITEABLE, 
 	},
-	/* bootloader params in the next sector */
+	
 	{
 	      .name		= "params",
 	      .offset		= MTDPART_OFS_APPEND,
@@ -101,7 +73,7 @@ static struct flash_platform_data osk_flash_data = {
 };
 
 static struct resource osk_flash_resource = {
-	/* this is on CS3, wherever it's mapped */
+	
 	.flags		= IORESOURCE_MEM,
 };
 
@@ -117,7 +89,7 @@ static struct platform_device osk5912_flash_device = {
 
 static struct resource osk5912_smc91x_resources[] = {
 	[0] = {
-		.start	= OMAP_OSK_ETHR_START,		/* Physical */
+		.start	= OMAP_OSK_ETHR_START,		
 		.end	= OMAP_OSK_ETHR_START + 0xf,
 		.flags	= IORESOURCE_MEM,
 	},
@@ -147,7 +119,7 @@ static struct platform_device osk5912_cf_device = {
 	.name		= "omap_cf",
 	.id		= -1,
 	.dev = {
-		.platform_data	= (void *) 2 /* CS2 */,
+		.platform_data	= (void *) 2 ,
 	},
 	.num_resources	= ARRAY_SIZE(osk5912_cf_resources),
 	.resource	= osk5912_cf_resources,
@@ -160,9 +132,7 @@ static struct platform_device *osk5912_devices[] __initdata = {
 };
 
 static struct gpio_led tps_leds[] = {
-	/* NOTE:  D9 and D2 have hardware blink support.
-	 * Also, D9 requires non-battery power.
-	 */
+	
 	{ .gpio = OSK_TPS_GPIO_LED_D9, .name = "d9",
 			.default_trigger = "ide-disk", },
 	{ .gpio = OSK_TPS_GPIO_LED_D2, .name = "d2", },
@@ -183,38 +153,36 @@ static struct platform_device osk5912_tps_leds = {
 
 static int osk_tps_setup(struct i2c_client *client, void *context)
 {
-	/* Set GPIO 1 HIGH to disable VBUS power supply;
-	 * OHCI driver powers it up/down as needed.
-	 */
+	
 	gpio_request(OSK_TPS_GPIO_USB_PWR_EN, "n_vbus_en");
 	gpio_direction_output(OSK_TPS_GPIO_USB_PWR_EN, 1);
 
-	/* Set GPIO 2 high so LED D3 is off by default */
+	
 	tps65010_set_gpio_out_value(GPIO2, HIGH);
 
-	/* Set GPIO 3 low to take ethernet out of reset */
+	
 	gpio_request(OSK_TPS_GPIO_LAN_RESET, "smc_reset");
 	gpio_direction_output(OSK_TPS_GPIO_LAN_RESET, 0);
 
-	/* GPIO4 is VDD_DSP */
+	
 	gpio_request(OSK_TPS_GPIO_DSP_PWR_EN, "dsp_power");
 	gpio_direction_output(OSK_TPS_GPIO_DSP_PWR_EN, 1);
-	/* REVISIT if DSP support isn't configured, power it off ... */
+	
 
-	/* Let LED1 (D9) blink; leds-gpio may override it */
+	
 	tps65010_set_led(LED1, BLINK);
 
-	/* Set LED2 off by default */
+	
 	tps65010_set_led(LED2, OFF);
 
-	/* Enable LOW_PWR handshake */
+	
 	tps65010_set_low_pwr(ON);
 
-	/* Switch VLDO2 to 3.0V for AIC23 */
+	
 	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V
 			| TPS_LDO1_ENABLE);
 
-	/* register these three LEDs */
+	
 	osk5912_tps_leds.dev.parent = &client->dev;
 	platform_device_register(&osk5912_tps_leds);
 
@@ -237,9 +205,7 @@ static struct i2c_board_info __initdata osk_i2c_board_info[] = {
 	{
 		I2C_BOARD_INFO("tlv320aic23", 0x1B),
 	},
-	/* TODO when driver support is ready:
-	 *  - optionally on Mistral, ov9640 camera sensor at 0x30
-	 */
+	
 };
 
 static void __init osk_init_smc91x(void)
@@ -251,7 +217,7 @@ static void __init osk_init_smc91x(void)
 		return;
 	}
 
-	/* Check EMIFS wait states to fix errors with SMC_GET_PKT_HDR */
+	
 	l = omap_readl(EMIFS_CCS(1));
 	l |= 0x3;
 	omap_writel(l, EMIFS_CCS(1));
@@ -264,7 +230,7 @@ static void __init osk_init_cf(void)
 		printk("Error requesting gpio 62 for CF irq\n");
 		return;
 	}
-	/* the CF I/O IRQ is really active-low */
+	
 	set_irq_type(gpio_to_irq(62), IRQ_TYPE_EDGE_FALLING);
 }
 
@@ -278,10 +244,7 @@ static void __init osk_init_irq(void)
 }
 
 static struct omap_usb_config osk_usb_config __initdata = {
-	/* has usb host connector (A) ... for development it can also
-	 * be used, with a NONSTANDARD gender-bending cable/dongle, as
-	 * a peripheral.
-	 */
+	
 #ifdef	CONFIG_USB_GADGET_OMAP
 	.register_dev	= 1,
 	.hmc_mode	= 0,
@@ -321,26 +284,24 @@ static struct at24_platform_data at24c04 = {
 
 static struct i2c_board_info __initdata mistral_i2c_board_info[] = {
 	{
-		/* NOTE:  powered from LCD supply */
+		
 		I2C_BOARD_INFO("24c04", 0x50),
 		.platform_data	= &at24c04,
 	},
-	/* TODO when driver support is ready:
-	 *  - optionally ov9640 camera sensor at 0x30
-	 */
+	
 };
 
 static const int osk_keymap[] = {
-	/* KEY(col, row, code) */
-	KEY(0, 0, KEY_F1),		/* SW4 */
-	KEY(0, 3, KEY_UP),		/* (sw2/up) */
-	KEY(1, 1, KEY_LEFTCTRL),	/* SW5 */
-	KEY(1, 2, KEY_LEFT),		/* (sw2/left) */
-	KEY(2, 0, KEY_SPACE),		/* SW3 */
-	KEY(2, 1, KEY_ESC),		/* SW6 */
-	KEY(2, 2, KEY_DOWN),		/* (sw2/down) */
-	KEY(3, 2, KEY_ENTER),		/* (sw2/select) */
-	KEY(3, 3, KEY_RIGHT),		/* (sw2/right) */
+	
+	KEY(0, 0, KEY_F1),		
+	KEY(0, 3, KEY_UP),		
+	KEY(1, 1, KEY_LEFTCTRL),	
+	KEY(1, 2, KEY_LEFT),		
+	KEY(2, 0, KEY_SPACE),		
+	KEY(2, 1, KEY_ESC),		
+	KEY(2, 2, KEY_DOWN),		
+	KEY(3, 2, KEY_ENTER),		
+	KEY(3, 3, KEY_RIGHT),		
 	0
 };
 
@@ -400,19 +361,19 @@ static int mistral_get_pendown_state(void)
 
 static const struct ads7846_platform_data mistral_ts_info = {
 	.model			= 7846,
-	.vref_delay_usecs	= 100,	/* internal, no capacitor */
+	.vref_delay_usecs	= 100,	
 	.x_plate_ohms		= 419,
 	.y_plate_ohms		= 486,
 	.get_pendown_state	= mistral_get_pendown_state,
 };
 
 static struct spi_board_info __initdata mistral_boardinfo[] = { {
-	/* MicroWire (bus 2) CS0 has an ads7846e */
+	
 	.modalias		= "ads7846",
 	.platform_data		= &mistral_ts_info,
 	.irq			= OMAP_GPIO_IRQ(4),
-	.max_speed_hz		= 120000 /* max sample rate at 3V */
-					* 26 /* command + data + overhead */,
+	.max_speed_hz		= 120000 
+					* 26 ,
 	.bus_num		= 2,
 	.chip_select		= 0,
 } };
@@ -427,13 +388,9 @@ osk_mistral_wake_interrupt(int irq, void *ignored)
 
 static void __init osk_mistral_init(void)
 {
-	/* NOTE:  we could actually tell if there's a Mistral board
-	 * attached, e.g. by trying to read something from the ads7846.
-	 * But this arch_init() code is too early for that, since we
-	 * can't talk to the ads or even the i2c eeprom.
-	 */
+	
 
-	/* parallel camera interface */
+	
 	omap_cfg_reg(J15_1610_CAM_LCLK);
 	omap_cfg_reg(J18_1610_CAM_D7);
 	omap_cfg_reg(J19_1610_CAM_D6);
@@ -448,15 +405,15 @@ static void __init osk_mistral_init(void)
 	omap_cfg_reg(M19_1610_CAM_RSTZ);
 	omap_cfg_reg(Y15_1610_CAM_OUTCLK);
 
-	/* serial camera interface */
+	
 	omap_cfg_reg(H19_1610_CAM_EXCLK);
 	omap_cfg_reg(W13_1610_CCP_CLKM);
 	omap_cfg_reg(Y12_1610_CCP_CLKP);
-	/* CCP_DATAM CONFLICTS WITH UART1.TX (and serial console) */
-	/* omap_cfg_reg(Y14_1610_CCP_DATAM); */
+	
+	
 	omap_cfg_reg(W14_1610_CCP_DATAP);
 
-	/* CAM_PWDN */
+	
 	if (gpio_request(11, "cam_pwdn") == 0) {
 		omap_cfg_reg(N20_1610_GPIO11);
 		gpio_direction_output(11, 0);
@@ -464,11 +421,11 @@ static void __init osk_mistral_init(void)
 		pr_debug("OSK+Mistral: CAM_PWDN is awol\n");
 
 
-	/* omap_cfg_reg(P19_1610_GPIO6); */	/* BUSY */
+		
 	gpio_request(6, "ts_busy");
 	gpio_direction_input(6);
 
-	omap_cfg_reg(P20_1610_GPIO4);	/* PENIRQ */
+	omap_cfg_reg(P20_1610_GPIO4);	
 	gpio_request(4, "ts_int");
 	gpio_direction_input(4);
 	set_irq_type(gpio_to_irq(4), IRQ_TYPE_EDGE_FALLING);
@@ -476,13 +433,7 @@ static void __init osk_mistral_init(void)
 	spi_register_board_info(mistral_boardinfo,
 			ARRAY_SIZE(mistral_boardinfo));
 
-	/* the sideways button (SW1) is for use as a "wakeup" button
-	 *
-	 * NOTE:  The Mistral board has the wakeup button (SW1) wired
-	 * to the LCD 3.3V rail, which is powered down during suspend.
-	 * To allow this button to wake up the omap, work around this
-	 * HW bug by rewiring SW1 to use the main 3.3V rail.
-	 */
+	
 	omap_cfg_reg(N15_1610_MPUIO2);
 	if (gpio_request(OMAP_MPUIO(2), "wakeup") == 0) {
 		int ret = 0;
@@ -491,9 +442,7 @@ static void __init osk_mistral_init(void)
 		gpio_direction_input(OMAP_MPUIO(2));
 		set_irq_type(irq, IRQ_TYPE_EDGE_RISING);
 #ifdef	CONFIG_PM
-		/* share the IRQ in case someone wants to use the
-		 * button for more than wakeup from system sleep.
-		 */
+		
 		ret = request_irq(irq,
 				&osk_mistral_wake_interrupt,
 				IRQF_SHARED, "mistral_wakeup",
@@ -508,9 +457,7 @@ static void __init osk_mistral_init(void)
 	} else
 		printk(KERN_ERR "OSK+Mistral: wakeup button is awol\n");
 
-	/* LCD:  backlight, and power; power controls other devices on the
-	 * board, like the touchscreen, EEPROM, and wakeup (!) switch.
-	 */
+	
 	omap_cfg_reg(PWL);
 	if (gpio_request(2, "lcd_pwr") == 0)
 		gpio_direction_output(2, 1);
@@ -530,11 +477,7 @@ static void __init osk_init(void)
 {
 	u32 l;
 
-	/* Workaround for wrong CS3 (NOR flash) timing
-	 * There are some U-Boot versions out there which configure
-	 * wrong CS3 memory timings. This mainly leads to CRC
-	 * or similar errors if you use NOR flash (e.g. with JFFS2)
-	 */
+	
 	l = omap_readl(EMIFS_CCS(3));
 	if (l != EMIFS_CS3_VAL)
 		omap_writel(EMIFS_CS3_VAL, EMIFS_CCS(3));
@@ -551,8 +494,8 @@ static void __init osk_init(void)
 
 	omap_usb_init(&osk_usb_config);
 
-	/* irq for tps65010 chip */
-	/* bootloader effectively does:  omap_cfg_reg(U19_1610_MPUIO1); */
+	
+	
 	if (gpio_request(OMAP_MPUIO(1), "tps65010") == 0)
 		gpio_direction_input(OMAP_MPUIO(1));
 
@@ -568,7 +511,7 @@ static void __init osk_map_io(void)
 }
 
 MACHINE_START(OMAP_OSK, "TI-OSK")
-	/* Maintainer: Dirk Behme <dirk.behme@de.bosch.com> */
+	
 	.phys_io	= 0xfff00000,
 	.io_pg_offst	= ((0xfef00000) >> 18) & 0xfffc,
 	.boot_params	= 0x10000100,

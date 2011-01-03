@@ -1,29 +1,12 @@
-/*
- * Copyright(c) 2008 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Maintained at www.Open-FCoE.org
- */
+
 
 #ifndef _FC_ENCODE_H_
 #define _FC_ENCODE_H_
 #include <asm/unaligned.h>
 
 struct fc_ns_rft {
-	struct fc_ns_fid fid;	/* port ID object */
-	struct fc_ns_fts fts;	/* FC4-types object */
+	struct fc_ns_fid fid;	
+	struct fc_ns_fts fts;	
 };
 
 struct fc_ct_req {
@@ -36,9 +19,7 @@ struct fc_ct_req {
 	} payload;
 };
 
-/**
- * fill FC header fields in specified fc_frame
- */
+
 static inline void fc_fill_fc_hdr(struct fc_frame *fp, enum fc_rctl r_ctl,
 				  u32 did, u32 sid, enum fc_fh_type type,
 				  u32 f_ctl, u32 parm_offset)
@@ -57,11 +38,7 @@ static inline void fc_fill_fc_hdr(struct fc_frame *fp, enum fc_rctl r_ctl,
 	fh->fh_parm_offset = htonl(parm_offset);
 }
 
-/**
- * fc_adisc_fill() - Fill in adisc request frame
- * @lport: local port.
- * @fp: fc frame where payload will be placed.
- */
+
 static inline void fc_adisc_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
 	struct fc_els_adisc *adisc;
@@ -74,10 +51,7 @@ static inline void fc_adisc_fill(struct fc_lport *lport, struct fc_frame *fp)
 	hton24(adisc->adisc_port_id, fc_host_port_id(lport->host));
 }
 
-/**
- * fc_ct_hdr_fill- fills ct header and reset ct payload
- * returns pointer to ct request.
- */
+
 static inline struct fc_ct_req *fc_ct_hdr_fill(const struct fc_frame *fp,
 					       unsigned int op, size_t req_size)
 {
@@ -94,15 +68,7 @@ static inline struct fc_ct_req *fc_ct_hdr_fill(const struct fc_frame *fp,
 	return ct;
 }
 
-/**
- * fc_ct_fill() - Fill in a name service request frame
- * @lport: local port.
- * @fc_id: FC_ID of non-destination rport for GPN_ID and similar inquiries.
- * @fp: frame to contain payload.
- * @op: CT opcode.
- * @r_ctl: pointer to FC header R_CTL.
- * @fh_type: pointer to FC-4 type.
- */
+
 static inline int fc_ct_fill(struct fc_lport *lport,
 		      u32 fc_id, struct fc_frame *fp,
 		      unsigned int op, enum fc_rctl *r_ctl,
@@ -144,9 +110,7 @@ static inline int fc_ct_fill(struct fc_lport *lport,
 	return 0;
 }
 
-/**
- * fc_plogi_fill - Fill in plogi request frame
- */
+
 static inline void fc_plogi_fill(struct fc_lport *lport, struct fc_frame *fp,
 				 unsigned int op)
 {
@@ -163,12 +127,12 @@ static inline void fc_plogi_fill(struct fc_lport *lport, struct fc_frame *fp,
 	csp = &plogi->fl_csp;
 	csp->sp_hi_ver = 0x20;
 	csp->sp_lo_ver = 0x20;
-	csp->sp_bb_cred = htons(10);	/* this gets set by gateway */
+	csp->sp_bb_cred = htons(10);	
 	csp->sp_bb_data = htons((u16) lport->mfs);
-	cp = &plogi->fl_cssp[3 - 1];	/* class 3 parameters */
+	cp = &plogi->fl_cssp[3 - 1];	
 	cp->cp_class = htons(FC_CPC_VALID | FC_CPC_SEQ);
 	csp->sp_features = htons(FC_SP_FT_CIRO);
-	csp->sp_tot_seq = htons(255);	/* seq. we accept */
+	csp->sp_tot_seq = htons(255);	
 	csp->sp_rel_off = htons(0x1f);
 	csp->sp_e_d_tov = htonl(lport->e_d_tov);
 
@@ -177,9 +141,7 @@ static inline void fc_plogi_fill(struct fc_lport *lport, struct fc_frame *fp,
 	cp->cp_open_seq = 1;
 }
 
-/**
- * fc_flogi_fill - Fill in a flogi request frame.
- */
+
 static inline void fc_flogi_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
 	struct fc_els_csp *sp;
@@ -194,15 +156,13 @@ static inline void fc_flogi_fill(struct fc_lport *lport, struct fc_frame *fp)
 	sp = &flogi->fl_csp;
 	sp->sp_hi_ver = 0x20;
 	sp->sp_lo_ver = 0x20;
-	sp->sp_bb_cred = htons(10);	/* this gets set by gateway */
+	sp->sp_bb_cred = htons(10);	
 	sp->sp_bb_data = htons((u16) lport->mfs);
-	cp = &flogi->fl_cssp[3 - 1];	/* class 3 parameters */
+	cp = &flogi->fl_cssp[3 - 1];	
 	cp->cp_class = htons(FC_CPC_VALID | FC_CPC_SEQ);
 }
 
-/**
- * fc_logo_fill - Fill in a logo request frame.
- */
+
 static inline void fc_logo_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
 	struct fc_els_logo *logo;
@@ -214,9 +174,7 @@ static inline void fc_logo_fill(struct fc_lport *lport, struct fc_frame *fp)
 	logo->fl_n_port_wwn = htonll(lport->wwpn);
 }
 
-/**
- * fc_rtv_fill - Fill in RTV (read timeout value) request frame.
- */
+
 static inline void fc_rtv_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
 	struct fc_els_rtv *rtv;
@@ -226,9 +184,7 @@ static inline void fc_rtv_fill(struct fc_lport *lport, struct fc_frame *fp)
 	rtv->rtv_cmd = ELS_RTV;
 }
 
-/**
- * fc_rec_fill - Fill in rec request frame
- */
+
 static inline void fc_rec_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
 	struct fc_els_rec *rec;
@@ -242,9 +198,7 @@ static inline void fc_rec_fill(struct fc_lport *lport, struct fc_frame *fp)
 	rec->rec_rx_id = htons(ep->rxid);
 }
 
-/**
- * fc_prli_fill - Fill in prli request frame
- */
+
 static inline void fc_prli_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
 	struct {
@@ -262,9 +216,7 @@ static inline void fc_prli_fill(struct fc_lport *lport, struct fc_frame *fp)
 	pp->spp.spp_params = htonl(lport->service_params);
 }
 
-/**
- * fc_scr_fill - Fill in a scr request frame.
- */
+
 static inline void fc_scr_fill(struct fc_lport *lport, struct fc_frame *fp)
 {
 	struct fc_els_scr *scr;
@@ -275,9 +227,7 @@ static inline void fc_scr_fill(struct fc_lport *lport, struct fc_frame *fp)
 	scr->scr_reg_func = ELS_SCRF_FULL;
 }
 
-/**
- * fc_els_fill - Fill in an ELS  request frame
- */
+
 static inline int fc_els_fill(struct fc_lport *lport,
 		       u32 did,
 		       struct fc_frame *fp, unsigned int op,
@@ -324,4 +274,4 @@ static inline int fc_els_fill(struct fc_lport *lport,
 	*fh_type = FC_TYPE_ELS;
 	return 0;
 }
-#endif /* _FC_ENCODE_H_ */
+#endif 

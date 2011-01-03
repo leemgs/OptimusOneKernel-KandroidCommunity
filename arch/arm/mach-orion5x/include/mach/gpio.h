@@ -1,17 +1,11 @@
-/*
- * arch/arm/mach-orion5x/include/mach/gpio.h
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ASM_ARCH_GPIO_H
 #define __ASM_ARCH_GPIO_H
 
 #include <mach/irqs.h>
 #include <plat/gpio.h>
-#include <asm-generic/gpio.h>		/* cansleep wrappers */
+#include <asm-generic/gpio.h>		
 
 #define GPIO_MAX		32
 #define GPIO_OUT(pin)		ORION5X_DEV_BUS_REG(0x100)

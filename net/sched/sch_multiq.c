@@ -1,21 +1,4 @@
-/*
- * Copyright (c) 2008, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Author: Alexander Duyck <alexander.h.duyck@intel.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -100,14 +83,12 @@ static struct sk_buff *multiq_dequeue(struct Qdisc *sch)
 	int band;
 
 	for (band = 0; band < q->bands; band++) {
-		/* cycle through bands to ensure fairness */
+		
 		q->curband++;
 		if (q->curband >= q->bands)
 			q->curband = 0;
 
-		/* Check that target subqueue is available before
-		 * pulling an skb to avoid head-of-line blocking.
-		 */
+		
 		if (!__netif_subqueue_stopped(qdisc_dev(sch), q->curband)) {
 			qdisc = q->queues[q->curband];
 			skb = qdisc->dequeue(qdisc);
@@ -130,14 +111,12 @@ static struct sk_buff *multiq_peek(struct Qdisc *sch)
 	int band;
 
 	for (band = 0; band < q->bands; band++) {
-		/* cycle through bands to ensure fairness */
+		
 		curband++;
 		if (curband >= q->bands)
 			curband = 0;
 
-		/* Check that target subqueue is available before
-		 * pulling an skb to avoid head-of-line blocking.
-		 */
+		
 		if (!__netif_subqueue_stopped(qdisc_dev(sch), curband)) {
 			qdisc = q->queues[curband];
 			skb = qdisc->ops->peek(qdisc);

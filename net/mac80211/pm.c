@@ -19,30 +19,27 @@ int __ieee80211_suspend(struct ieee80211_hw *hw)
 	ieee80211_stop_queues_by_reason(hw,
 			IEEE80211_QUEUE_STOP_REASON_SUSPEND);
 
-	/* flush out all packets */
+	
 	synchronize_net();
 
 	local->quiescing = true;
-	/* make quiescing visible to timers everywhere */
+	
 	mb();
 
 	flush_workqueue(local->workqueue);
 
-	/* Don't try to run timers while suspended. */
+	
 	del_timer_sync(&local->sta_cleanup);
 
-	 /*
-	 * Note that this particular timer doesn't need to be
-	 * restarted at resume.
-	 */
+	 
 	cancel_work_sync(&local->dynamic_ps_enable_work);
 	del_timer_sync(&local->dynamic_ps_timer);
 
-	/* disable keys */
+	
 	list_for_each_entry(sdata, &local->interfaces, list)
 		ieee80211_disable_keys(sdata);
 
-	/* Tear down aggregation sessions */
+	
 
 	rcu_read_lock();
 
@@ -55,7 +52,7 @@ int __ieee80211_suspend(struct ieee80211_hw *hw)
 
 	rcu_read_unlock();
 
-	/* remove STAs */
+	
 	spin_lock_irqsave(&local->sta_lock, flags);
 	list_for_each_entry(sta, &local->sta_list, list) {
 		if (local->ops->sta_notify) {
@@ -73,7 +70,7 @@ int __ieee80211_suspend(struct ieee80211_hw *hw)
 	}
 	spin_unlock_irqrestore(&local->sta_lock, flags);
 
-	/* remove all interfaces */
+	
 	list_for_each_entry(sdata, &local->interfaces, list) {
 		switch(sdata->vif.type) {
 		case NL80211_IFTYPE_STATION:
@@ -87,7 +84,7 @@ int __ieee80211_suspend(struct ieee80211_hw *hw)
 			break;
 		case NL80211_IFTYPE_AP_VLAN:
 		case NL80211_IFTYPE_MONITOR:
-			/* don't tell driver about this */
+			
 			continue;
 		default:
 			break;
@@ -96,7 +93,7 @@ int __ieee80211_suspend(struct ieee80211_hw *hw)
 		if (!netif_running(sdata->dev))
 			continue;
 
-		/* disable beaconing */
+		
 		ieee80211_bss_info_change_notify(sdata,
 			BSS_CHANGED_BEACON_ENABLED);
 
@@ -106,20 +103,16 @@ int __ieee80211_suspend(struct ieee80211_hw *hw)
 		drv_remove_interface(local, &conf);
 	}
 
-	/* stop hardware - this must stop RX */
+	
 	if (local->open_count)
 		ieee80211_stop_device(local);
 
 	local->suspended = true;
-	/* need suspended to be visible before quiescing is false */
+	
 	barrier();
 	local->quiescing = false;
 
 	return 0;
 }
 
-/*
- * __ieee80211_resume() is a static inline which just calls
- * ieee80211_reconfig(), which is also needed for hardware
- * hang/firmware failure/etc. recovery.
- */
+

@@ -1,20 +1,4 @@
-/*
- * Copyright (C) 2009 by Sascha Hauer, Pengutronix
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -79,7 +63,7 @@ static void calc_dividers(u32 div, u32 *pre, u32 *post, u32 maxpost)
 	*post = (div + *pre - 1) / *pre;
 }
 
-/* get the best values for a 3-bit divider combined with a 6-bit divider */
+
 static void calc_dividers_3_6(u32 div, u32 *pre, u32 *post)
 {
 	if (div >= 512) {
@@ -96,7 +80,7 @@ static void calc_dividers_3_6(u32 div, u32 *pre, u32 *post)
 	}
 }
 
-/* get the best values for two cascaded 3-bit dividers */
+
 static void calc_dividers_3_3(u32 div, u32 *pre, u32 *post)
 {
 	if (div >= 64) {
@@ -463,9 +447,7 @@ int __init mx35_clocks_init()
 	for (i = 0; i < ARRAY_SIZE(lookups); i++)
 		clkdev_add(&lookups[i]);
 
-	/* Turn off all clocks except the ones we need to survive, namely:
-	 * EMI, GPIO1/2/3, GPT, IOMUX, MAX and eventually uart
-	 */
+	
 	__raw_writel((3 << 18), CCM_BASE + CCM_CGR0);
 	__raw_writel((3 << 2) | (3 << 4) | (3 << 6) | (3 << 8) | (3 << 16),
 			CCM_BASE + CCM_CGR1);

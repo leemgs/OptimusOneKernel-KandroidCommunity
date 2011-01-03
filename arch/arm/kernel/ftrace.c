@@ -1,15 +1,4 @@
-/*
- * Dynamic function tracing support.
- *
- * Copyright (C) 2008 Abhishek Sagar <sagar.abhishek@gmail.com>
- *
- * For licencing details, see COPYING.
- *
- * Defines low-level handling of mcount calls when the kernel
- * is compiled with the -pg flag. When using dynamic ftrace, the
- * mcount call-sites get patched lazily with NOP till they are
- * enabled. All code mutation routines here take effect atomically.
- */
+
 
 #include <linux/ftrace.h>
 
@@ -21,23 +10,21 @@
 #define BL_OFFSET_MASK 0x00ffffff
 
 static unsigned long bl_insn;
-static const unsigned long NOP = 0xe1a00000; /* mov r0, r0 */
+static const unsigned long NOP = 0xe1a00000; 
 
 unsigned char *ftrace_nop_replace(void)
 {
 	return (char *)&NOP;
 }
 
-/* construct a branch (BL) instruction to addr */
+
 unsigned char *ftrace_call_replace(unsigned long pc, unsigned long addr)
 {
 	long offset;
 
 	offset = (long)addr - (long)(pc + PC_OFFSET);
 	if (unlikely(offset < -33554432 || offset > 33554428)) {
-		/* Can't generate branches that far (from ARM ARM). Ftrace
-		 * doesn't generate branches outside of kernel text.
-		 */
+		
 		WARN_ON_ONCE(1);
 		return NULL;
 	}
@@ -95,7 +82,7 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
 	return ret;
 }
 
-/* run from ftrace_init with irqs disabled */
+
 int __init ftrace_dyn_arch_init(void *data)
 {
 	ftrace_mcount_set(data);

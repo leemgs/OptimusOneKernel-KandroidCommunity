@@ -1,25 +1,4 @@
-/*
-  handle cx231xx IR remotes via linux kernel input layer.
 
-  Copyright (C) 2008 <srinivasa.deevi at conexant dot com>
-		Based on em28xx driver
-
-		< This is a place holder for IR now.>
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -44,9 +23,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
 		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
 	}
 
-/**********************************************************
- Polling structure used by cx231xx IR's
- **********************************************************/
+
 
 struct cx231xx_ir_poll_result {
 	unsigned int toggle_bit:1;
@@ -62,7 +39,7 @@ struct cx231xx_IR {
 	char name[32];
 	char phys[32];
 
-	/* poll external decoder */
+	
 	int polling;
 	struct work_struct work;
 	struct timer_list timer;
@@ -73,9 +50,7 @@ struct cx231xx_IR {
 	int (*get_key) (struct cx231xx_IR *, struct cx231xx_ir_poll_result *);
 };
 
-/**********************************************************
- Polling code for cx231xx
- **********************************************************/
+
 
 static void cx231xx_ir_handle_key(struct cx231xx_IR *ir)
 {
@@ -83,7 +58,7 @@ static void cx231xx_ir_handle_key(struct cx231xx_IR *ir)
 	int do_sendkey = 0;
 	struct cx231xx_ir_poll_result poll_result;
 
-	/* read the registers containing the IR status */
+	
 	result = ir->get_key(ir, &poll_result);
 	if (result < 0) {
 		dprintk("ir->get_key() failed %d\n", result);
@@ -95,18 +70,14 @@ static void cx231xx_ir_handle_key(struct cx231xx_IR *ir)
 		ir->last_readcount, poll_result.rc_data[0]);
 
 	if (ir->dev->chip_id == CHIP_ID_EM2874) {
-		/* The em2874 clears the readcount field every time the
-		   register is read.  The em2860/2880 datasheet says that it
-		   is supposed to clear the readcount, but it doesn't.  So with
-		   the em2874, we are looking for a non-zero read count as
-		   opposed to a readcount that is incrementing */
+		
 		ir->last_readcount = 0;
 	}
 
 	if (poll_result.read_count == 0) {
-		/* The button has not been pressed since the last read */
+		
 	} else if (ir->last_toggle != poll_result.toggle_bit) {
-		/* A button has been pressed */
+		
 		dprintk("button has been pressed\n");
 		ir->last_toggle = poll_result.toggle_bit;
 		ir->repeat_interval = 0;
@@ -114,12 +85,12 @@ static void cx231xx_ir_handle_key(struct cx231xx_IR *ir)
 	} else if (poll_result.toggle_bit == ir->last_toggle &&
 		   poll_result.read_count > 0 &&
 		   poll_result.read_count != ir->last_readcount) {
-		/* The button is still being held down */
+		
 		dprintk("button being held down\n");
 
-		/* Debouncer for first keypress */
+		
 		if (ir->repeat_interval++ > 9) {
-			/* Start repeating after 1 second */
+			
 			do_sendkey = 1;
 		}
 	}
@@ -171,7 +142,7 @@ int cx231xx_ir_init(struct cx231xx *dev)
 	int err = -ENOMEM;
 
 	if (dev->board.ir_codes == NULL) {
-		/* No remote control support */
+		
 		return 0;
 	}
 
@@ -182,17 +153,17 @@ int cx231xx_ir_init(struct cx231xx *dev)
 
 	ir->input = input_dev;
 
-	/* Setup the proper handler based on the chip */
+	
 	switch (dev->chip_id) {
 	default:
 		printk("Unrecognized cx231xx chip id: IR not supported\n");
 		goto err_out_free;
 	}
 
-	/* This is how often we ask the chip for IR information */
-	ir->polling = 100;	/* ms */
+	
+	ir->polling = 100;	
 
-	/* init input device */
+	
 	snprintf(ir->name, sizeof(ir->name), "cx231xx IR (%s)", dev->name);
 
 	usb_make_path(dev->udev, ir->phys, sizeof(ir->phys));
@@ -207,13 +178,13 @@ int cx231xx_ir_init(struct cx231xx *dev)
 	input_dev->id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
 
 	input_dev->dev.parent = &dev->udev->dev;
-	/* record handles to ourself */
+	
 	ir->dev = dev;
 	dev->ir = ir;
 
 	cx231xx_ir_start(ir);
 
-	/* all done */
+	
 	err = input_register_device(ir->input);
 	if (err)
 		goto err_out_stop;
@@ -232,7 +203,7 @@ int cx231xx_ir_fini(struct cx231xx *dev)
 {
 	struct cx231xx_IR *ir = dev->ir;
 
-	/* skip detach on non attached boards */
+	
 	if (!ir)
 		return 0;
 
@@ -240,7 +211,7 @@ int cx231xx_ir_fini(struct cx231xx *dev)
 	input_unregister_device(ir->input);
 	kfree(ir);
 
-	/* done */
+	
 	dev->ir = NULL;
 	return 0;
 }

@@ -1,13 +1,4 @@
-/*
- *  IUCV protocol stack for Linux on zSeries
- *
- *  Copyright IBM Corp. 2006, 2009
- *
- *  Author(s):	Jennifer Hunt <jenhunt@us.ibm.com>
- *		Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
- *  PM functions:
- *		Ursula Braun <ursula.braun@de.ibm.com>
- */
+
 
 #define KMSG_COMPONENT "af_iucv"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -42,16 +33,16 @@ static struct proto iucv_proto = {
 	.obj_size	= sizeof(struct iucv_sock),
 };
 
-/* special AF_IUCV IPRM messages */
+
 static const u8 iprm_shutdown[8] =
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
 
 #define TRGCLS_SIZE	(sizeof(((struct iucv_message *)0)->class))
 
-/* macros to set/get socket control buffer at correct offset */
-#define CB_TAG(skb)	((skb)->cb)		/* iucv message tag */
+
+#define CB_TAG(skb)	((skb)->cb)		
 #define CB_TAG_LEN	(sizeof(((struct iucv_message *) 0)->tag))
-#define CB_TRGCLS(skb)	((skb)->cb + CB_TAG_LEN) /* iucv msg target class */
+#define CB_TRGCLS(skb)	((skb)->cb + CB_TAG_LEN) 
 #define CB_TRGCLS_LEN	(TRGCLS_SIZE)
 
 #define __iucv_sock_wait(sk, condition, timeo, ret)			\
@@ -90,7 +81,7 @@ do {									\
 static void iucv_sock_kill(struct sock *sk);
 static void iucv_sock_close(struct sock *sk);
 
-/* Call Back functions */
+
 static void iucv_callback_rx(struct iucv_path *, struct iucv_message *);
 static void iucv_callback_txdone(struct iucv_path *, struct iucv_message *);
 static void iucv_callback_connack(struct iucv_path *, u8 ipuser[16]);
@@ -139,12 +130,7 @@ static void afiucv_pm_complete(struct device *dev)
 	return;
 }
 
-/**
- * afiucv_pm_freeze() - Freeze PM callback
- * @dev:	AFIUCV dummy device
- *
- * Sever all established IUCV communication pathes
- */
+
 static int afiucv_pm_freeze(struct device *dev)
 {
 	struct iucv_sock *iucv;
@@ -183,12 +169,7 @@ static int afiucv_pm_freeze(struct device *dev)
 	return err;
 }
 
-/**
- * afiucv_pm_restore_thaw() - Thaw and restore PM callback
- * @dev:	AFIUCV dummy device
- *
- * socket clean up after freeze
- */
+
 static int afiucv_pm_restore_thaw(struct device *dev)
 {
 	struct iucv_sock *iucv;
@@ -236,29 +217,10 @@ static struct device_driver af_iucv_driver = {
 	.pm   = &afiucv_pm_ops,
 };
 
-/* dummy device used as trigger for PM functions */
+
 static struct device *af_iucv_dev;
 
-/**
- * iucv_msg_length() - Returns the length of an iucv message.
- * @msg:	Pointer to struct iucv_message, MUST NOT be NULL
- *
- * The function returns the length of the specified iucv message @msg of data
- * stored in a buffer and of data stored in the parameter list (PRMDATA).
- *
- * For IUCV_IPRMDATA, AF_IUCV uses the following convention to transport socket
- * data:
- *	PRMDATA[0..6]	socket data (max 7 bytes);
- *	PRMDATA[7]	socket data length value (len is 0xff - PRMDATA[7])
- *
- * The socket data length is computed by substracting the socket data length
- * value from 0xFF.
- * If the socket data len is greater 7, then PRMDATA can be used for special
- * notifications (see iucv_sock_shutdown); and further,
- * if the socket data len is > 7, the function returns 8.
- *
- * Use this function to allocate socket buffers to store iucv message data.
- */
+
 static inline size_t iucv_msg_length(struct iucv_message *msg)
 {
 	size_t datalen;
@@ -270,27 +232,13 @@ static inline size_t iucv_msg_length(struct iucv_message *msg)
 	return msg->length;
 }
 
-/**
- * iucv_sock_in_state() - check for specific states
- * @sk:		sock structure
- * @state:	first iucv sk state
- * @state:	second iucv sk state
- *
- * Returns true if the socket in either in the first or second state.
- */
+
 static int iucv_sock_in_state(struct sock *sk, int state, int state2)
 {
 	return (sk->sk_state == state || sk->sk_state == state2);
 }
 
-/**
- * iucv_below_msglim() - function to check if messages can be sent
- * @sk:		sock structure
- *
- * Returns true if the send queue length is lower than the message limit.
- * Always returns true if the socket is not connected (no iucv path for
- * checking the message limit).
- */
+
 static inline int iucv_below_msglim(struct sock *sk)
 {
 	struct iucv_sock *iucv = iucv_sk(sk);
@@ -300,9 +248,7 @@ static inline int iucv_below_msglim(struct sock *sk)
 	return (skb_queue_len(&iucv->send_skb_q) < iucv->path->msglim);
 }
 
-/**
- * iucv_sock_wake_msglim() - Wake up thread waiting on msg limit
- */
+
 static void iucv_sock_wake_msglim(struct sock *sk)
 {
 	read_lock(&sk->sk_callback_lock);
@@ -312,7 +258,7 @@ static void iucv_sock_wake_msglim(struct sock *sk)
 	read_unlock(&sk->sk_callback_lock);
 }
 
-/* Timers */
+
 static void iucv_sock_timeout(unsigned long arg)
 {
 	struct sock *sk = (struct sock *)arg;
@@ -349,12 +295,12 @@ static void iucv_sock_destruct(struct sock *sk)
 	skb_queue_purge(&sk->sk_write_queue);
 }
 
-/* Cleanup Listen */
+
 static void iucv_sock_cleanup_listen(struct sock *parent)
 {
 	struct sock *sk;
 
-	/* Close non-accepted connections */
+	
 	while ((sk = iucv_accept_dequeue(parent, NULL))) {
 		iucv_sock_close(sk);
 		iucv_sock_kill(sk);
@@ -363,7 +309,7 @@ static void iucv_sock_cleanup_listen(struct sock *parent)
 	parent->sk_state = IUCV_CLOSED;
 }
 
-/* Kill socket (only if zapped and orphaned) */
+
 static void iucv_sock_kill(struct sock *sk)
 {
 	if (!sock_flag(sk, SOCK_ZAPPED) || sk->sk_socket)
@@ -374,7 +320,7 @@ static void iucv_sock_kill(struct sock *sk)
 	sock_put(sk);
 }
 
-/* Close an IUCV socket */
+
 static void iucv_sock_close(struct sock *sk)
 {
 	unsigned char user_data[16];
@@ -407,7 +353,7 @@ static void iucv_sock_close(struct sock *sk)
 					timeo);
 		}
 
-	case IUCV_CLOSING:   /* fall through */
+	case IUCV_CLOSING:   
 		sk->sk_state = IUCV_CLOSED;
 		sk->sk_state_change(sk);
 
@@ -429,11 +375,11 @@ static void iucv_sock_close(struct sock *sk)
 
 	default:
 		sock_set_flag(sk, SOCK_ZAPPED);
-		/* nothing to do here */
+		
 		break;
 	}
 
-	/* mark socket for deletion by iucv_sock_kill() */
+	
 	sock_set_flag(sk, SOCK_ZAPPED);
 
 	release_sock(sk);
@@ -481,7 +427,7 @@ static struct sock *iucv_sock_alloc(struct socket *sock, int proto, gfp_t prio)
 	return sk;
 }
 
-/* Create an IUCV socket */
+
 static int iucv_sock_create(struct net *net, struct socket *sock, int protocol)
 {
 	struct sock *sk;
@@ -496,7 +442,7 @@ static int iucv_sock_create(struct net *net, struct socket *sock, int protocol)
 		sock->ops = &iucv_sock_ops;
 		break;
 	case SOCK_SEQPACKET:
-		/* currently, proto ops can handle both sk types */
+		
 		sock->ops = &iucv_sock_ops;
 		break;
 	default:
@@ -569,7 +515,7 @@ struct sock *iucv_accept_dequeue(struct sock *parent, struct socket *newsock)
 
 		if (sk->sk_state == IUCV_CONNECTED ||
 		    sk->sk_state == IUCV_SEVERED ||
-		    sk->sk_state == IUCV_DISCONN ||	/* due to PM restore */
+		    sk->sk_state == IUCV_DISCONN ||	
 		    !newsock) {
 			iucv_accept_unlink(sk);
 			if (newsock)
@@ -587,7 +533,7 @@ struct sock *iucv_accept_dequeue(struct sock *parent, struct socket *newsock)
 	return NULL;
 }
 
-/* Bind an unbound socket */
+
 static int iucv_sock_bind(struct socket *sock, struct sockaddr *addr,
 			  int addr_len)
 {
@@ -596,7 +542,7 @@ static int iucv_sock_bind(struct socket *sock, struct sockaddr *addr,
 	struct iucv_sock *iucv;
 	int err;
 
-	/* Verify the input sockaddr */
+	
 	if (!addr || addr->sa_family != AF_IUCV)
 		return -EINVAL;
 
@@ -618,23 +564,23 @@ static int iucv_sock_bind(struct socket *sock, struct sockaddr *addr,
 		goto done_unlock;
 	}
 
-	/* Bind the socket */
+	
 	memcpy(iucv->src_name, sa->siucv_name, 8);
 
-	/* Copy the user id */
+	
 	memcpy(iucv->src_user_id, iucv_userid, 8);
 	sk->sk_state = IUCV_BOUND;
 	err = 0;
 
 done_unlock:
-	/* Release the socket list lock */
+	
 	write_unlock_bh(&iucv_sk_list.lock);
 done:
 	release_sock(sk);
 	return err;
 }
 
-/* Automatically bind an unbound socket */
+
 static int iucv_sock_autobind(struct sock *sk)
 {
 	struct iucv_sock *iucv = iucv_sk(sk);
@@ -642,7 +588,7 @@ static int iucv_sock_autobind(struct sock *sk)
 	char name[12];
 	int err = 0;
 
-	/* Set the userid and name */
+	
 	cpcmd("QUERY USERID", query_buffer, sizeof(query_buffer), &err);
 	if (unlikely(err))
 		return -EPROTO;
@@ -664,7 +610,7 @@ static int iucv_sock_autobind(struct sock *sk)
 	return err;
 }
 
-/* Connect an unconnected socket */
+
 static int iucv_sock_connect(struct socket *sock, struct sockaddr *addr,
 			     int alen, int flags)
 {
@@ -691,7 +637,7 @@ static int iucv_sock_connect(struct socket *sock, struct sockaddr *addr,
 
 	lock_sock(sk);
 
-	/* Set the destination information */
+	
 	memcpy(iucv_sk(sk)->dst_user_id, sa->siucv_user_id, 8);
 	memcpy(iucv_sk(sk)->dst_name, sa->siucv_name, 8);
 
@@ -700,7 +646,7 @@ static int iucv_sock_connect(struct socket *sock, struct sockaddr *addr,
 	ASCEBC(user_data, sizeof(user_data));
 
 	iucv = iucv_sk(sk);
-	/* Create path. */
+	
 	iucv->path = iucv_path_alloc(iucv->msglimit,
 				     IUCV_IPRMDATA, GFP_KERNEL);
 	if (!iucv->path) {
@@ -713,14 +659,14 @@ static int iucv_sock_connect(struct socket *sock, struct sockaddr *addr,
 		iucv_path_free(iucv->path);
 		iucv->path = NULL;
 		switch (err) {
-		case 0x0b:	/* Target communicator is not logged on */
+		case 0x0b:	
 			err = -ENETUNREACH;
 			break;
-		case 0x0d:	/* Max connections for this guest exceeded */
-		case 0x0e:	/* Max connections for target guest exceeded */
+		case 0x0d:	
+		case 0x0e:	
 			err = -EAGAIN;
 			break;
-		case 0x0f:	/* Missing IUCV authorization */
+		case 0x0f:	
 			err = -EACCES;
 			break;
 		default:
@@ -751,7 +697,7 @@ done:
 	return err;
 }
 
-/* Move a socket into listening state. */
+
 static int iucv_sock_listen(struct socket *sock, int backlog)
 {
 	struct sock *sk = sock->sk;
@@ -776,7 +722,7 @@ done:
 	return err;
 }
 
-/* Accept a pending connection */
+
 static int iucv_sock_accept(struct socket *sock, struct socket *newsock,
 			    int flags)
 {
@@ -794,7 +740,7 @@ static int iucv_sock_accept(struct socket *sock, struct socket *newsock,
 
 	timeo = sock_rcvtimeo(sk, flags & O_NONBLOCK);
 
-	/* Wait for an incoming connection */
+	
 	add_wait_queue_exclusive(sk->sk_sleep, &wait);
 	while (!(nsk = iucv_accept_dequeue(sk, newsock))) {
 		set_current_state(TASK_INTERRUPTIBLE);
@@ -854,19 +800,7 @@ static int iucv_sock_getname(struct socket *sock, struct sockaddr *addr,
 	return 0;
 }
 
-/**
- * iucv_send_iprm() - Send socket data in parameter list of an iucv message.
- * @path:	IUCV path
- * @msg:	Pointer to a struct iucv_message
- * @skb:	The socket data to send, skb->len MUST BE <= 7
- *
- * Send the socket data in the parameter list in the iucv message
- * (IUCV_IPRMDATA). The socket data is stored at index 0 to 6 in the parameter
- * list and the socket data len at index 7 (last byte).
- * See also iucv_msg_length().
- *
- * Returns the error code from the iucv_message_send() call.
- */
+
 static int iucv_send_iprm(struct iucv_path *path, struct iucv_message *msg,
 			  struct sk_buff *skb)
 {
@@ -900,7 +834,7 @@ static int iucv_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 	if (msg->msg_flags & MSG_OOB)
 		return -EOPNOTSUPP;
 
-	/* SOCK_SEQPACKET: we do not support segmented records */
+	
 	if (sk->sk_type == SOCK_SEQPACKET && !(msg->msg_flags & MSG_EOR))
 		return -EOPNOTSUPP;
 
@@ -911,17 +845,17 @@ static int iucv_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 		goto out;
 	}
 
-	/* Return if the socket is not in connected state */
+	
 	if (sk->sk_state != IUCV_CONNECTED) {
 		err = -ENOTCONN;
 		goto out;
 	}
 
-	/* initialize defaults */
-	cmsg_done   = 0;	/* check for duplicate headers */
+	
+	cmsg_done   = 0;	
 	txmsg.class = 0;
 
-	/* iterate over control messages */
+	
 	for (cmsg = CMSG_FIRSTHDR(msg); cmsg;
 		cmsg = CMSG_NXTHDR(msg, cmsg)) {
 
@@ -946,7 +880,7 @@ static int iucv_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 				goto out;
 			}
 
-			/* set iucv message target class */
+			
 			memcpy(&txmsg.class,
 				(void *) CMSG_DATA(cmsg), TRGCLS_SIZE);
 
@@ -959,10 +893,7 @@ static int iucv_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 		}
 	}
 
-	/* allocate one skb for each iucv message:
-	 * this is fine for SOCK_SEQPACKET (unless we want to support
-	 * segmented records using the MSG_EOR flag), but
-	 * for SOCK_STREAM we might want to improve it in future */
+	
 	skb = sock_alloc_send_skb(sk, len, noblock, &err);
 	if (!skb)
 		goto out;
@@ -971,19 +902,19 @@ static int iucv_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 		goto fail;
 	}
 
-	/* wait if outstanding messages for iucv path has reached */
+	
 	timeo = sock_sndtimeo(sk, noblock);
 	err = iucv_sock_wait(sk, iucv_below_msglim(sk), timeo);
 	if (err)
 		goto fail;
 
-	/* return -ECONNRESET if the socket is no longer connected */
+	
 	if (sk->sk_state != IUCV_CONNECTED) {
 		err = -ECONNRESET;
 		goto fail;
 	}
 
-	/* increment and save iucv message tag for msg_completion cbk */
+	
 	txmsg.tag = iucv->send_tag++;
 	memcpy(CB_TAG(skb), &txmsg.tag, CB_TAG_LEN);
 	skb_queue_tail(&iucv->send_skb_q, skb);
@@ -992,15 +923,13 @@ static int iucv_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 	      && skb->len <= 7) {
 		err = iucv_send_iprm(iucv->path, &txmsg, skb);
 
-		/* on success: there is no message_complete callback
-		 * for an IPRMDATA msg; remove skb from send queue */
+		
 		if (err == 0) {
 			skb_unlink(skb, &iucv->send_skb_q);
 			kfree_skb(skb);
 		}
 
-		/* this error should never happen since the
-		 * IUCV_IPRMDATA path flag is set... sever path */
+		
 		if (err == 0x15) {
 			iucv_path_sever(iucv->path, NULL);
 			skb_unlink(skb, &iucv->send_skb_q);
@@ -1036,10 +965,7 @@ out:
 	return err;
 }
 
-/* iucv_fragment_skb() - Fragment a single IUCV message into multiple skb's
- *
- * Locking: must be called with message_q.lock held
- */
+
 static int iucv_fragment_skb(struct sock *sk, struct sk_buff *skb, int len)
 {
 	int dataleft, size, copied = 0;
@@ -1056,10 +982,10 @@ static int iucv_fragment_skb(struct sock *sk, struct sk_buff *skb, int len)
 		if (!nskb)
 			return -ENOMEM;
 
-		/* copy target class to control buffer of new skb */
+		
 		memcpy(CB_TRGCLS(nskb), CB_TRGCLS(skb), CB_TRGCLS_LEN);
 
-		/* copy data fragment */
+		
 		memcpy(nskb->data, skb->data + copied, size);
 		copied += size;
 		dataleft -= size;
@@ -1074,10 +1000,7 @@ static int iucv_fragment_skb(struct sock *sk, struct sk_buff *skb, int len)
 	return 0;
 }
 
-/* iucv_process_message() - Receive a single outstanding IUCV message
- *
- * Locking: must be called with message_q.lock held
- */
+
 static void iucv_process_message(struct sock *sk, struct sk_buff *skb,
 				 struct iucv_path *path,
 				 struct iucv_message *msg)
@@ -1087,11 +1010,11 @@ static void iucv_process_message(struct sock *sk, struct sk_buff *skb,
 
 	len = iucv_msg_length(msg);
 
-	/* store msg target class in the second 4 bytes of skb ctrl buffer */
-	/* Note: the first 4 bytes are reserved for msg tag */
+	
+	
 	memcpy(CB_TRGCLS(skb), &msg->class, CB_TRGCLS_LEN);
 
-	/* check for special IPRM messages (e.g. iucv_sock_shutdown) */
+	
 	if ((msg->flags & IUCV_IPRMDATA) && len > 7) {
 		if (memcmp(msg->rmmsg, iprm_shutdown, 8) == 0) {
 			skb->data = NULL;
@@ -1104,9 +1027,7 @@ static void iucv_process_message(struct sock *sk, struct sk_buff *skb,
 			kfree_skb(skb);
 			return;
 		}
-		/* we need to fragment iucv messages for SOCK_STREAM only;
-		 * for SOCK_SEQPACKET, it is only relevant if we support
-		 * record segmentation using MSG_EOR (see also recvmsg()) */
+		
 		if (sk->sk_type == SOCK_STREAM &&
 		    skb->truesize >= sk->sk_rcvbuf / 4) {
 			rc = iucv_fragment_skb(sk, skb, len);
@@ -1128,10 +1049,7 @@ static void iucv_process_message(struct sock *sk, struct sk_buff *skb,
 		skb_queue_head(&iucv_sk(sk)->backlog_skb_q, skb);
 }
 
-/* iucv_process_message_q() - Process outstanding IUCV messages
- *
- * Locking: must be called with message_q.lock held
- */
+
 static void iucv_process_message_q(struct sock *sk)
 {
 	struct iucv_sock *iucv = iucv_sk(sk);
@@ -1169,8 +1087,7 @@ static int iucv_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 	if (flags & (MSG_OOB))
 		return -EOPNOTSUPP;
 
-	/* receive/dequeue next skb:
-	 * the function understands MSG_PEEK and, thus, does not dequeue skb */
+	
 	skb = skb_recv_datagram(sk, flags, noblock, &err);
 	if (!skb) {
 		if (sk->sk_shutdown & RCV_SHUTDOWN)
@@ -1178,7 +1095,7 @@ static int iucv_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 		return err;
 	}
 
-	rlen   = skb->len;		/* real length of skb */
+	rlen   = skb->len;		
 	copied = min_t(unsigned int, rlen, len);
 
 	cskb = skb;
@@ -1188,17 +1105,15 @@ static int iucv_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 		return -EFAULT;
 	}
 
-	/* SOCK_SEQPACKET: set MSG_TRUNC if recv buf size is too small */
+	
 	if (sk->sk_type == SOCK_SEQPACKET) {
 		if (copied < rlen)
 			msg->msg_flags |= MSG_TRUNC;
-		/* each iucv message contains a complete record */
+		
 		msg->msg_flags |= MSG_EOR;
 	}
 
-	/* create control message to store iucv msg target class:
-	 * get the trgcls from the control buffer of the skb due to
-	 * fragmentation of original iucv message. */
+	
 	err = put_cmsg(msg, SOL_IUCV, SCM_IUCV_TRGCLS,
 			CB_TRGCLS_LEN, CB_TRGCLS(skb));
 	if (err) {
@@ -1207,10 +1122,10 @@ static int iucv_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 		return err;
 	}
 
-	/* Mark read part of skb as used */
+	
 	if (!(flags & MSG_PEEK)) {
 
-		/* SOCK_STREAM: re-queue skb if it contains unreceived data */
+		
 		if (sk->sk_type == SOCK_STREAM) {
 			skb_pull(skb, copied);
 			if (skb->len) {
@@ -1221,7 +1136,7 @@ static int iucv_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 
 		kfree_skb(skb);
 
-		/* Queue backlog skbs */
+		
 		spin_lock_bh(&iucv->message_q.lock);
 		rskb = skb_dequeue(&iucv->backlog_skb_q);
 		while (rskb) {
@@ -1241,7 +1156,7 @@ static int iucv_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 	}
 
 done:
-	/* SOCK_SEQPACKET: return real length if MSG_TRUNC is set */
+	
 	if (sk->sk_type == SOCK_SEQPACKET && (flags & MSG_TRUNC))
 		copied = rlen;
 
@@ -1355,7 +1270,7 @@ static int iucv_sock_shutdown(struct socket *sock, int how)
 		skb_queue_purge(&sk->sk_receive_queue);
 	}
 
-	/* Wake up anyone sleeping in poll */
+	
 	sk->sk_state_change(sk);
 
 fail:
@@ -1373,7 +1288,7 @@ static int iucv_sock_release(struct socket *sock)
 
 	iucv_sock_close(sk);
 
-	/* Unregister with IUCV base support */
+	
 	if (iucv_sk(sk)->path) {
 		iucv_path_sever(iucv_sk(sk)->path, NULL);
 		iucv_path_free(iucv_sk(sk)->path);
@@ -1385,7 +1300,7 @@ static int iucv_sock_release(struct socket *sock)
 	return err;
 }
 
-/* getsockopt and setsockopt */
+
 static int iucv_sock_setsockopt(struct socket *sock, int level, int optname,
 				char __user *optval, unsigned int optlen)
 {
@@ -1460,8 +1375,8 @@ static int iucv_sock_getsockopt(struct socket *sock, int level, int optname,
 		break;
 	case SO_MSGLIMIT:
 		lock_sock(sk);
-		val = (iucv->path != NULL) ? iucv->path->msglim	/* connected */
-					   : iucv->msglimit;	/* default */
+		val = (iucv->path != NULL) ? iucv->path->msglim	
+					   : iucv->msglimit;	
 		release_sock(sk);
 		break;
 	default:
@@ -1477,7 +1392,7 @@ static int iucv_sock_getsockopt(struct socket *sock, int level, int optname,
 }
 
 
-/* Callback wrappers - called from iucv base support */
+
 static int iucv_callback_connreq(struct iucv_path *path,
 				 u8 ipvmid[8], u8 ipuser[16])
 {
@@ -1491,28 +1406,25 @@ static int iucv_callback_connreq(struct iucv_path *path,
 
 	memcpy(src_name, ipuser, 8);
 	EBCASC(src_name, 8);
-	/* Find out if this path belongs to af_iucv. */
+	
 	read_lock(&iucv_sk_list.lock);
 	iucv = NULL;
 	sk = NULL;
 	sk_for_each(sk, node, &iucv_sk_list.head)
 		if (sk->sk_state == IUCV_LISTEN &&
 		    !memcmp(&iucv_sk(sk)->src_name, src_name, 8)) {
-			/*
-			 * Found a listening socket with
-			 * src_name == ipuser[0-7].
-			 */
+			
 			iucv = iucv_sk(sk);
 			break;
 		}
 	read_unlock(&iucv_sk_list.lock);
 	if (!iucv)
-		/* No socket found, not one of our paths. */
+		
 		return -EINVAL;
 
 	bh_lock_sock(sk);
 
-	/* Check if parent socket is listening */
+	
 	low_nmcpy(user_data, iucv->src_name);
 	high_nmcpy(user_data, iucv->dst_name);
 	ASCEBC(user_data, sizeof(user_data));
@@ -1522,14 +1434,14 @@ static int iucv_callback_connreq(struct iucv_path *path,
 		goto fail;
 	}
 
-	/* Check for backlog size */
+	
 	if (sk_acceptq_is_full(sk)) {
 		err = iucv_path_sever(path, user_data);
 		iucv_path_free(path);
 		goto fail;
 	}
 
-	/* Create the new socket */
+	
 	nsk = iucv_sock_alloc(NULL, sk->sk_type, GFP_ATOMIC);
 	if (!nsk) {
 		err = iucv_path_sever(path, user_data);
@@ -1540,7 +1452,7 @@ static int iucv_callback_connreq(struct iucv_path *path,
 	niucv = iucv_sk(nsk);
 	iucv_sock_init(nsk, sk);
 
-	/* Set the new iucv_sock */
+	
 	memcpy(niucv->dst_name, ipuser + 8, 8);
 	EBCASC(niucv->dst_name, 8);
 	memcpy(niucv->dst_user_id, ipvmid, 8);
@@ -1548,12 +1460,12 @@ static int iucv_callback_connreq(struct iucv_path *path,
 	memcpy(niucv->src_user_id, iucv->src_user_id, 8);
 	niucv->path = path;
 
-	/* Call iucv_accept */
+	
 	high_nmcpy(nuser_data, ipuser + 8);
 	memcpy(nuser_data + 8, niucv->src_name, 8);
 	ASCEBC(nuser_data + 8, 8);
 
-	/* set message limit for path based on msglimit of accepting socket */
+	
 	niucv->msglimit = iucv->msglimit;
 	path->msglim = iucv->msglimit;
 	err = iucv_path_accept(path, &af_iucv_handler, nuser_data, nsk);
@@ -1566,7 +1478,7 @@ static int iucv_callback_connreq(struct iucv_path *path,
 
 	iucv_accept_enqueue(sk, nsk);
 
-	/* Wake up accept */
+	
 	nsk->sk_state = IUCV_CONNECTED;
 	sk->sk_data_ready(sk, 1);
 	err = 0;
@@ -1653,7 +1565,7 @@ static void iucv_callback_txdone(struct iucv_path *path,
 
 		if (this) {
 			kfree_skb(this);
-			/* wake up any process waiting for sending */
+			
 			iucv_sock_wake_msglim(sk);
 		}
 	}
@@ -1680,9 +1592,7 @@ static void iucv_callback_connrej(struct iucv_path *path, u8 ipuser[16])
 	sk->sk_state_change(sk);
 }
 
-/* called if the other communication side shuts down its RECV direction;
- * in turn, the callback sets SEND_SHUTDOWN to disable sending of data.
- */
+
 static void iucv_callback_shutdown(struct iucv_path *path, u8 ipuser[16])
 {
 	struct sock *sk = path->private;
@@ -1747,7 +1657,7 @@ static int __init afiucv_init(void)
 	err = sock_register(&iucv_sock_family_ops);
 	if (err)
 		goto out_proto;
-	/* establish dummy device */
+	
 	err = driver_register(&af_iucv_driver);
 	if (err)
 		goto out_sock;

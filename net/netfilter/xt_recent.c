@@ -1,17 +1,4 @@
-/*
- * Copyright (c) 2006 Patrick McHardy <kaber@trash.net>
- * Copyright © CC Computer Consultants GmbH, 2007 - 2008
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This is a replacement of the old ipt_recent module, which carried the
- * following copyright notice:
- *
- * Author: Stephen Frost <sfrost@snowman.net>
- * Copyright 2002-2003, Stephen Frost, 2.5.x port by laforge@netfilter.org
- */
+
 #include <linux/init.h>
 #include <linux/ip.h>
 #include <linux/ipv6.h>
@@ -230,7 +217,7 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 		ttl = iph->hop_limit;
 	}
 
-	/* use TTL as seen before forwarding */
+	
 	if (par->out != NULL && skb->sk == NULL)
 		ttl++;
 
@@ -552,19 +539,19 @@ recent_mt_proc_write(struct file *file, const char __user *input,
 	if (copy_from_user(buf, input, size) != 0)
 		return -EFAULT;
 
-	/* Strict protocol! */
+	
 	if (*loff != 0)
 		return -ESPIPE;
 	switch (*c) {
-	case '/': /* flush table */
+	case '/': 
 		spin_lock_bh(&recent_lock);
 		recent_table_flush(t);
 		spin_unlock_bh(&recent_lock);
 		return size;
-	case '-': /* remove address */
+	case '-': 
 		add = false;
 		break;
-	case '+': /* add address */
+	case '+': 
 		add = true;
 		break;
 	default:
@@ -600,7 +587,7 @@ recent_mt_proc_write(struct file *file, const char __user *input,
 			recent_entry_remove(t, e);
 	}
 	spin_unlock_bh(&recent_lock);
-	/* Note we removed one above */
+	
 	*loff += size + 1;
 	return size + 1;
 }
@@ -612,7 +599,7 @@ static const struct file_operations recent_mt_fops = {
 	.release = seq_release_private,
 	.owner   = THIS_MODULE,
 };
-#endif /* CONFIG_PROC_FS */
+#endif 
 
 static struct xt_match recent_mt_reg[] __read_mostly = {
 	{

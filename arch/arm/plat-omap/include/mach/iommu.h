@@ -1,14 +1,4 @@
-/*
- * omap iommu: main structures
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __MACH_IOMMU_H
 #define __MACH_IOMMU_H
@@ -33,23 +23,20 @@ struct iommu {
 	struct device	*dev;
 
 	unsigned int	refcount;
-	struct mutex	iommu_lock;	/* global for this whole object */
+	struct mutex	iommu_lock;	
 
-	/*
-	 * We don't change iopgd for a situation like pgd for a task,
-	 * but share it globally for each iommu.
-	 */
+	
 	u32		*iopgd;
-	spinlock_t	page_table_lock; /* protect iopgd */
+	spinlock_t	page_table_lock; 
 
 	int		nr_tlb_entries;
 
 	struct list_head	mmap;
-	struct mutex		mmap_lock; /* protect mmap */
+	struct mutex		mmap_lock; 
 
 	int (*isr)(struct iommu *obj);
 
-	void *ctx; /* iommu context: registres saved area */
+	void *ctx; 
 };
 
 struct cr_regs {
@@ -74,7 +61,7 @@ struct iotlb_lock {
 	short vict;
 };
 
-/* architecture specific functions */
+
 struct iommu_functions {
 	unsigned long	version;
 
@@ -110,9 +97,7 @@ struct iommu_platform_data {
 #include <mach/iommu2.h>
 #endif
 
-/*
- * utilities for super page(16MB, 1MB, 64KB and 4KB)
- */
+
 
 #define iopgsz_max(bytes)			\
 	(((bytes) >= SZ_16M) ? SZ_16M :		\
@@ -134,9 +119,7 @@ struct iommu_platform_data {
 
 #define iopgsz_ok(bytes) (bytes_to_iopgsz(bytes) >= 0)
 
-/*
- * global functions
- */
+
 extern u32 iommu_arch_version(void);
 
 extern void iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
@@ -165,4 +148,4 @@ extern int foreach_iommu_device(void *data,
 extern ssize_t iommu_dump_ctx(struct iommu *obj, char *buf, ssize_t len);
 extern size_t dump_tlb_entries(struct iommu *obj, char *buf, ssize_t len);
 
-#endif /* __MACH_IOMMU_H */
+#endif 

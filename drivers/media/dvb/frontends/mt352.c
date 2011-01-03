@@ -1,34 +1,4 @@
-/*
- *  Driver for Zarlink DVB-T MT352 demodulator
- *
- *  Written by Holger Waechtler <holger@qanu.de>
- *	 and Daniel Mack <daniel@qanu.de>
- *
- *  AVerMedia AVerTV DVB-T 771 support by
- *       Wolfram Joost <dbox2@frokaschwei.de>
- *
- *  Support for Samsung TDTC9251DH01C(M) tuner
- *  Copyright (C) 2004 Antonio Mancuso <antonio.mancuso@digitaltelevision.it>
- *                     Amauri  Celani  <acelani@essegi.net>
- *
- *  DVICO FusionHDTV DVB-T1 and DVICO FusionHDTV DVB-T Lite support by
- *       Christopher Pascoe <c.pascoe@itee.uq.edu.au>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -45,7 +15,7 @@ struct mt352_state {
 	struct i2c_adapter* i2c;
 	struct dvb_frontend frontend;
 
-	/* configuration settings */
+	
 	struct mt352_config config;
 };
 
@@ -114,7 +84,7 @@ static void mt352_calc_nominal_rate(struct mt352_state* state,
 				    enum fe_bandwidth bandwidth,
 				    unsigned char *buf)
 {
-	u32 adc_clock = 20480; /* 20.340 MHz */
+	u32 adc_clock = 20480; 
 	u32 bw,value;
 
 	switch (bandwidth) {
@@ -143,8 +113,8 @@ static void mt352_calc_nominal_rate(struct mt352_state* state,
 static void mt352_calc_input_freq(struct mt352_state* state,
 				  unsigned char *buf)
 {
-	int adc_clock = 20480; /* 20.480000 MHz */
-	int if2       = 36167; /* 36.166667 MHz */
+	int adc_clock = 20480; 
+	int if2       = 36167; 
 	int ife,value;
 
 	if (state->config.adc_clock)
@@ -280,13 +250,13 @@ static int mt352_set_parameters(struct dvb_frontend* fe,
 	}
 
 
-	buf[0] = TPS_GIVEN_1; /* TPS_GIVEN_1 and following registers */
+	buf[0] = TPS_GIVEN_1; 
 
-	buf[1] = msb(tps);      /* TPS_GIVEN_(1|0) */
+	buf[1] = msb(tps);      
 	buf[2] = lsb(tps);
 
-	buf[3] = 0x50;  // old
-//	buf[3] = 0xf4;  // pinnacle
+	buf[3] = 0x50;  
+
 
 	mt352_calc_nominal_rate(state, op->bandwidth, buf+4);
 	mt352_calc_input_freq(state, buf+6);
@@ -335,9 +305,7 @@ static int mt352_get_parameters(struct dvb_frontend* fe,
 	if ( (mt352_read_register(state,0x00) & 0xC0) != 0xC0 )
 		return -EINVAL;
 
-	/* Use TPS_RECEIVED-registers, not the TPS_CURRENT-registers because
-	 * the mt352 sometimes works with the wrong parameters
-	 */
+	
 	tps = (mt352_read_register(state, TPS_RECEIVED_1) << 8) | mt352_read_register(state, TPS_RECEIVED_0);
 	div = (mt352_read_register(state, CHAN_START_1) << 8) | mt352_read_register(state, CHAN_START_0);
 	trl = mt352_read_register(state, TRL_NOMINAL_RATE_1);
@@ -424,17 +392,7 @@ static int mt352_read_status(struct dvb_frontend* fe, fe_status_t* status)
 	struct mt352_state* state = fe->demodulator_priv;
 	int s0, s1, s3;
 
-	/* FIXME:
-	 *
-	 * The MT352 design manual from Zarlink states (page 46-47):
-	 *
-	 * Notes about the TUNER_GO register:
-	 *
-	 * If the Read_Tuner_Byte (bit-1) is activated, then the tuner status
-	 * byte is copied from the tuner to the STATUS_3 register and
-	 * completion of the read operation is indicated by bit-5 of the
-	 * INTERRUPT_3 register.
-	 */
+	
 
 	if ((s0 = mt352_read_register(state, STATUS_0)) < 0)
 		return -EREMOTEIO;
@@ -477,11 +435,11 @@ static int mt352_read_signal_strength(struct dvb_frontend* fe, u16* strength)
 {
 	struct mt352_state* state = fe->demodulator_priv;
 
-	/* align the 12 bit AGC gain with the most significant bits */
+	
 	u16 signal = ((mt352_read_register(state, AGC_GAIN_1) & 0x0f) << 12) |
 		(mt352_read_register(state, AGC_GAIN_0) << 4);
 
-	/* inverse of gain is signal strength */
+	
 	*strength = ~signal;
 	return 0;
 }
@@ -526,7 +484,7 @@ static int mt352_init(struct dvb_frontend* fe)
 	if ((mt352_read_register(state, CLOCK_CTL) & 0x10) == 0 ||
 	    (mt352_read_register(state, CONFIG) & 0x20) == 0) {
 
-		/* Do a "hard" reset */
+		
 		_mt352_write(fe, mt352_reset_attach, sizeof(mt352_reset_attach));
 		return state->config.demod_init(fe);
 	}
@@ -547,18 +505,18 @@ struct dvb_frontend* mt352_attach(const struct mt352_config* config,
 {
 	struct mt352_state* state = NULL;
 
-	/* allocate memory for the internal state */
+	
 	state = kzalloc(sizeof(struct mt352_state), GFP_KERNEL);
 	if (state == NULL) goto error;
 
-	/* setup the state */
+	
 	state->i2c = i2c;
 	memcpy(&state->config,config,sizeof(struct mt352_config));
 
-	/* check if the demod is there */
+	
 	if (mt352_read_register(state, CHIP_ID) != ID_MT352) goto error;
 
-	/* create dvb_frontend */
+	
 	memcpy(&state->frontend.ops, &mt352_ops, sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;

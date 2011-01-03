@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2005-2009 Brocade Communications Systems, Inc.
- * All rights reserved
- * www.brocade.com
- *
- * Linux driver for Brocade Fibre Channel Host Bus Adapter.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License (GPL) Version 2 as
- * published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #ifndef __BFA_DEFS_ETHPORT_H__
 #define __BFA_DEFS_ETHPORT_H__
@@ -73,26 +58,17 @@ struct bfa_ethport_stats_s {
 	struct bnad_drv_stats drv_stats;
 };
 
-/**
- * Ethernet port events
- * Arguments below are in BFAL context from Mgmt
- * BFA_PORT_AEN_ETH_LINKUP:    [in]: mac [out]: mac
- * BFA_PORT_AEN_ETH_LINKDOWN:  [in]: mac [out]: mac
- * BFA_PORT_AEN_ETH_ENABLE:  [in]: mac [out]: mac
- * BFA_PORT_AEN_ETH_DISABLE:  [in]: mac [out]: mac
- *
- */
+
 enum bfa_ethport_aen_event {
-	BFA_ETHPORT_AEN_LINKUP = 1, /*  Base Port Ethernet link up event */
-	BFA_ETHPORT_AEN_LINKDOWN = 2, /*  Base Port Ethernet link down event */
-	BFA_ETHPORT_AEN_ENABLE = 3, /*  Base Port Ethernet link enable event */
-	BFA_ETHPORT_AEN_DISABLE = 4, /*  Base Port Ethernet link disable
-				      * event */
+	BFA_ETHPORT_AEN_LINKUP = 1, 
+	BFA_ETHPORT_AEN_LINKDOWN = 2, 
+	BFA_ETHPORT_AEN_ENABLE = 3, 
+	BFA_ETHPORT_AEN_DISABLE = 4, 
 };
 
 struct bfa_ethport_aen_data_s {
-	mac_t mac;	/*  MAC address of the physical port */
+	mac_t mac;	
 };
 
 
-#endif /* __BFA_DEFS_ETHPORT_H__ */
+#endif 

@@ -1,22 +1,4 @@
-/*
- * Device probing and sysfs code.
- *
- * Copyright (C) 2005-2006  Kristian Hoegsberg <krh@bitplanet.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+
 
 #include <linux/ctype.h>
 #include <linux/delay.h>
@@ -89,7 +71,7 @@ static int fw_unit_match(struct device *dev, struct device_driver *drv)
 	struct fw_device *device;
 	const struct ieee1394_device_id *id;
 
-	/* We only allow binding to fw_units. */
+	
 	if (!is_fw_unit(dev))
 		return 0;
 
@@ -100,7 +82,7 @@ static int fw_unit_match(struct device *dev, struct device_driver *drv)
 		if (match_unit_directory(unit->directory, id->match_flags, id))
 			return 1;
 
-		/* Also check vendor ID in the root directory. */
+		
 		if ((id->match_flags & IEEE1394_MATCH_VENDOR_ID) &&
 		    match_unit_directory(&device->config_rom[5],
 				IEEE1394_MATCH_VENDOR_ID, id) &&
@@ -175,7 +157,7 @@ int fw_device_enable_phys_dma(struct fw_device *device)
 {
 	int generation = device->generation;
 
-	/* device->node_id, accessed below, must not be older than generation */
+	
 	smp_rmb();
 
 	return device->card->driver->enable_phys_dma(device->card,
@@ -254,7 +236,7 @@ static ssize_t show_text_leaf(struct device *dev,
 		goto out;
 
 	if (block[1] != 0 || block[2] != 0)
-		/* Unknown encoding. */
+		
 		goto out;
 
 	if (buf == NULL) {
@@ -267,7 +249,7 @@ static ssize_t show_text_leaf(struct device *dev,
 	for (p = &block[3]; p < end; p++, b += 4)
 		* (u32 *) b = (__force u32) __cpu_to_be32(*p);
 
-	/* Strip trailing whitespace and add newline. */
+	
 	while (b--, (isspace(*b) || *b == '\0') && b > buf);
 	strcpy(b + 1, "\n");
 	ret = b + 2 - buf;
@@ -429,7 +411,7 @@ static int read_rom(struct fw_device *device,
 {
 	int rcode;
 
-	/* device->node_id, accessed below, must not be older than generation */
+	
 	smp_rmb();
 
 	rcode = fw_run_transaction(device->card, TCODE_READ_QUADLET_REQUEST,
@@ -444,13 +426,7 @@ static int read_rom(struct fw_device *device,
 #define READ_BIB_ROM_SIZE	256
 #define READ_BIB_STACK_SIZE	16
 
-/*
- * Read the bus info block, perform a speed probe, and read all of the rest of
- * the config ROM.  We do all this with a cached bus generation.  If the bus
- * generation changes under us, read_bus_info_block will fail and get retried.
- * It's better to start all over in this case because the node from which we
- * are reading the ROM may have changed the ROM during the reset.
- */
+
 static int read_bus_info_block(struct fw_device *device, int generation)
 {
 	u32 *rom, *stack, *old_rom, *new_rom;
@@ -466,39 +442,24 @@ static int read_bus_info_block(struct fw_device *device, int generation)
 
 	device->max_speed = SCODE_100;
 
-	/* First read the bus info block. */
+	
 	for (i = 0; i < 5; i++) {
 		if (read_rom(device, generation, i, &rom[i]) != RCODE_COMPLETE)
 			goto out;
-		/*
-		 * As per IEEE1212 7.2, during power-up, devices can
-		 * reply with a 0 for the first quadlet of the config
-		 * rom to indicate that they are booting (for example,
-		 * if the firmware is on the disk of a external
-		 * harddisk).  In that case we just fail, and the
-		 * retry mechanism will try again later.
-		 */
+		
 		if (i == 0 && rom[i] == 0)
 			goto out;
 	}
 
 	device->max_speed = device->node->max_speed;
 
-	/*
-	 * Determine the speed of
-	 *   - devices with link speed less than PHY speed,
-	 *   - devices with 1394b PHY (unless only connected to 1394a PHYs),
-	 *   - all devices if there are 1394b repeaters.
-	 * Note, we cannot use the bus info block's link_spd as starting point
-	 * because some buggy firmwares set it lower than necessary and because
-	 * 1394-1995 nodes do not have the field.
-	 */
+	
 	if ((rom[2] & 0x7) < device->max_speed ||
 	    device->max_speed == SCODE_BETA ||
 	    device->card->beta_repeaters_present) {
 		u32 dummy;
 
-		/* for S1600 and S3200 */
+		
 		if (device->max_speed == SCODE_BETA)
 			device->max_speed = device->card->link_speed;
 
@@ -510,51 +471,28 @@ static int read_bus_info_block(struct fw_device *device, int generation)
 		}
 	}
 
-	/*
-	 * Now parse the config rom.  The config rom is a recursive
-	 * directory structure so we parse it using a stack of
-	 * references to the blocks that make up the structure.  We
-	 * push a reference to the root directory on the stack to
-	 * start things off.
-	 */
+	
 	length = i;
 	sp = 0;
 	stack[sp++] = 0xc0000005;
 	while (sp > 0) {
-		/*
-		 * Pop the next block reference of the stack.  The
-		 * lower 24 bits is the offset into the config rom,
-		 * the upper 8 bits are the type of the reference the
-		 * block.
-		 */
+		
 		key = stack[--sp];
 		i = key & 0xffffff;
 		if (i >= READ_BIB_ROM_SIZE)
-			/*
-			 * The reference points outside the standard
-			 * config rom area, something's fishy.
-			 */
+			
 			goto out;
 
-		/* Read header quadlet for the block to get the length. */
+		
 		if (read_rom(device, generation, i, &rom[i]) != RCODE_COMPLETE)
 			goto out;
 		end = i + (rom[i] >> 16) + 1;
 		i++;
 		if (end > READ_BIB_ROM_SIZE)
-			/*
-			 * This block extends outside standard config
-			 * area (and the array we're reading it
-			 * into).  That's broken, so ignore this
-			 * device.
-			 */
+			
 			goto out;
 
-		/*
-		 * Now read in the block.  If this is a directory
-		 * block, check the entries as we read them to see if
-		 * it references another block, and push it in that case.
-		 */
+		
 		while (i < end) {
 			if (read_rom(device, generation, i, &rom[i]) !=
 			    RCODE_COMPLETE)
@@ -618,10 +556,7 @@ static void create_units(struct fw_device *device)
 		if (key != (CSR_UNIT | CSR_DIRECTORY))
 			continue;
 
-		/*
-		 * Get the address of the unit directory and try to
-		 * match the drivers id_tables against it.
-		 */
+		
 		unit = kzalloc(sizeof(*unit), GFP_KERNEL);
 		if (unit == NULL) {
 			fw_error("failed to allocate memory for unit\n");
@@ -658,12 +593,7 @@ static int shutdown_unit(struct device *device, void *data)
 	return 0;
 }
 
-/*
- * fw_device_rwsem acts as dual purpose mutex:
- *   - serializes accesses to fw_device_idr,
- *   - serializes accesses to fw_device.config_rom/.config_rom_length and
- *     fw_unit.directory, unless those accesses happen at safe occasions
- */
+
 DECLARE_RWSEM(fw_device_rwsem);
 
 DEFINE_IDR(fw_device_idr);
@@ -682,16 +612,7 @@ struct fw_device *fw_device_get_by_devt(dev_t devt)
 	return device;
 }
 
-/*
- * These defines control the retry behavior for reading the config
- * rom.  It shouldn't be necessary to tweak these; if the device
- * doesn't respond to a config rom read within 10 seconds, it's not
- * going to respond at all.  As for the initial delay, a lot of
- * devices will be able to respond within half a second after bus
- * reset.  On the other hand, it's not really worth being more
- * aggressive than that, since it scales pretty well; if 10 devices
- * are plugged in, they're all getting read within one second.
- */
+
 
 #define MAX_RETRIES	10
 #define RETRY_DELAY	(3 * HZ)
@@ -732,11 +653,7 @@ static void fw_device_release(struct device *dev)
 	struct fw_card *card = device->card;
 	unsigned long flags;
 
-	/*
-	 * Take the card lock so we don't set this to NULL while a
-	 * FW_NODE_UPDATED callback is being handled or while the
-	 * bus manager work looks at this node.
-	 */
+	
 	spin_lock_irqsave(&card->lock, flags);
 	device->node->data = NULL;
 	spin_unlock_irqrestore(&card->lock, flags);
@@ -779,12 +696,7 @@ static void fw_device_update(struct work_struct *work)
 	device_for_each_child(&device->device, NULL, update_unit);
 }
 
-/*
- * If a device was pending for deletion because its node went away but its
- * bus info block and root directory header matches that of a newly discovered
- * device, revive the existing fw_device.
- * The newly allocated fw_device becomes obsolete instead.
- */
+
 static int lookup_existing_device(struct device *dev, void *data)
 {
 	struct fw_device *old = fw_device(dev);
@@ -795,8 +707,8 @@ static int lookup_existing_device(struct device *dev, void *data)
 	if (!is_fw_device(dev))
 		return 0;
 
-	down_read(&fw_device_rwsem); /* serialize config_rom access */
-	spin_lock_irq(&card->lock);  /* serialize node access */
+	down_read(&fw_device_rwsem); 
+	spin_lock_irq(&card->lock);  
 
 	if (memcmp(old->config_rom, new->config_rom, 6 * 4) == 0 &&
 	    atomic_cmpxchg(&old->state,
@@ -812,7 +724,7 @@ static int lookup_existing_device(struct device *dev, void *data)
 
 		old->max_speed = new->max_speed;
 		old->node_id = current_node->node_id;
-		smp_wmb();  /* update node_id before generation */
+		smp_wmb();  
 		old->generation = card->generation;
 		old->config_rom_retries = 0;
 		fw_notify("rediscovered device %s\n", dev_name(dev));
@@ -843,20 +755,11 @@ static void set_broadcast_channel(struct fw_device *device, int generation)
 	if (!card->broadcast_channel_allocated)
 		return;
 
-	/*
-	 * The Broadcast_Channel Valid bit is required by nodes which want to
-	 * transmit on this channel.  Such transmissions are practically
-	 * exclusive to IP over 1394 (RFC 2734).  IP capable nodes are required
-	 * to be IRM capable and have a max_rec of 8 or more.  We use this fact
-	 * to narrow down to which nodes we send Broadcast_Channel updates.
-	 */
+	
 	if (!device->irmc || device->max_rec < 8)
 		return;
 
-	/*
-	 * Some 1394-1995 nodes crash if this 1394a-2000 register is written.
-	 * Perform a read test first.
-	 */
+	
 	if (device->bc_implemented == BC_UNKNOWN) {
 		rcode = fw_run_transaction(card, TCODE_READ_QUADLET_REQUEST,
 				device->node_id, generation, device->max_speed,
@@ -868,7 +771,7 @@ static void set_broadcast_channel(struct fw_device *device, int generation)
 				device->bc_implemented = BC_IMPLEMENTED;
 				break;
 			}
-			/* else fall through to case address error */
+			
 		case RCODE_ADDRESS_ERROR:
 			device->bc_implemented = BC_UNIMPLEMENTED;
 		}
@@ -899,11 +802,7 @@ static void fw_device_init(struct work_struct *work)
 	struct device *revived_dev;
 	int minor, ret;
 
-	/*
-	 * All failure paths here set node->data to NULL, so that we
-	 * don't try to do device_for_each_child() on a kfree()'d
-	 * device.
-	 */
+	
 
 	if (read_bus_info_block(device, device->generation) < 0) {
 		if (device->config_rom_retries < MAX_RETRIES &&
@@ -961,15 +860,7 @@ static void fw_device_init(struct work_struct *work)
 
 	create_units(device);
 
-	/*
-	 * Transition the device to running state.  If it got pulled
-	 * out from under us while we did the intialization work, we
-	 * have to shut down the device again here.  Normally, though,
-	 * fw_node_event will be responsible for shutting it down when
-	 * necessary.  We have to use the atomic cmpxchg here to avoid
-	 * racing with the FW_NODE_DESTROYED case in
-	 * fw_node_event().
-	 */
+	
 	if (atomic_cmpxchg(&device->state,
 			   FW_DEVICE_INITIALIZING,
 			   FW_DEVICE_RUNNING) == FW_DEVICE_GONE) {
@@ -993,12 +884,7 @@ static void fw_device_init(struct work_struct *work)
 		set_broadcast_channel(device, device->generation);
 	}
 
-	/*
-	 * Reschedule the IRM work if we just finished reading the
-	 * root node config rom.  If this races with a bus reset we
-	 * just end up running the IRM work a couple of extra times -
-	 * pretty harmless.
-	 */
+	
 	if (device->node == device->card->root_node)
 		fw_schedule_bm_work(device->card, 0);
 
@@ -1009,9 +895,9 @@ static void fw_device_init(struct work_struct *work)
 	idr_remove(&fw_device_idr, minor);
 	up_write(&fw_device_rwsem);
  error:
-	fw_device_put(device);		/* fw_device_idr's reference */
+	fw_device_put(device);		
 
-	put_device(&device->device);	/* our reference */
+	put_device(&device->device);	
 }
 
 enum {
@@ -1021,7 +907,7 @@ enum {
 	REREAD_BIB_CHANGED,
 };
 
-/* Reread and compare bus info block and header of root directory */
+
 static int reread_bus_info_block(struct fw_device *device, int generation)
 {
 	u32 q;
@@ -1076,10 +962,7 @@ static void fw_device_refresh(struct work_struct *work)
 		break;
 	}
 
-	/*
-	 * Something changed.  We keep things simple and don't investigate
-	 * further.  We just destroy all previous units and create new ones.
-	 */
+	
 	device_for_each_child(&device->device, NULL, shutdown_unit);
 
 	if (read_bus_info_block(device, device->generation) < 0) {
@@ -1095,7 +978,7 @@ static void fw_device_refresh(struct work_struct *work)
 
 	create_units(device);
 
-	/* Userspace may want to re-read attributes. */
+	
 	kobject_uevent(&device->device.kobj, KOBJ_CHANGE);
 
 	if (atomic_cmpxchg(&device->state,
@@ -1132,16 +1015,7 @@ void fw_node_event(struct fw_card *card, struct fw_node *node, int event)
 		if (device == NULL)
 			break;
 
-		/*
-		 * Do minimal intialization of the device here, the
-		 * rest will happen in fw_device_init().
-		 *
-		 * Attention:  A lot of things, even fw_device_get(),
-		 * cannot be done before fw_device_init() finished!
-		 * You can basically just check device->state and
-		 * schedule work until then, but only while holding
-		 * card->lock.
-		 */
+		
 		atomic_set(&device->state, FW_DEVICE_INITIALIZING);
 		device->card = fw_card_get(card);
 		device->node = fw_node_get(node);
@@ -1151,19 +1025,10 @@ void fw_node_event(struct fw_card *card, struct fw_node *node, int event)
 		mutex_init(&device->client_list_mutex);
 		INIT_LIST_HEAD(&device->client_list);
 
-		/*
-		 * Set the node data to point back to this device so
-		 * FW_NODE_UPDATED callbacks can update the node_id
-		 * and generation for the device.
-		 */
+		
 		node->data = device;
 
-		/*
-		 * Many devices are slow to respond after bus resets,
-		 * especially if they are bus powered and go through
-		 * power-up after getting plugged in.  We schedule the
-		 * first config rom scan half a second after bus reset.
-		 */
+		
 		INIT_DELAYED_WORK(&device->work, fw_device_init);
 		schedule_delayed_work(&device->work, INITIAL_DELAY);
 		break;
@@ -1174,7 +1039,7 @@ void fw_node_event(struct fw_card *card, struct fw_node *node, int event)
 			goto create;
 
 		device->node_id = node->node_id;
-		smp_wmb();  /* update node_id before generation */
+		smp_wmb();  
 		device->generation = card->generation;
 		if (atomic_cmpxchg(&device->state,
 			    FW_DEVICE_RUNNING,
@@ -1191,7 +1056,7 @@ void fw_node_event(struct fw_card *card, struct fw_node *node, int event)
 
 		device = node->data;
 		device->node_id = node->node_id;
-		smp_wmb();  /* update node_id before generation */
+		smp_wmb();  
 		device->generation = card->generation;
 		if (atomic_read(&device->state) == FW_DEVICE_RUNNING) {
 			PREPARE_DELAYED_WORK(&device->work, fw_device_update);
@@ -1204,18 +1069,7 @@ void fw_node_event(struct fw_card *card, struct fw_node *node, int event)
 		if (!node->data)
 			break;
 
-		/*
-		 * Destroy the device associated with the node.  There
-		 * are two cases here: either the device is fully
-		 * initialized (FW_DEVICE_RUNNING) or we're in the
-		 * process of reading its config rom
-		 * (FW_DEVICE_INITIALIZING).  If it is fully
-		 * initialized we can reuse device->work to schedule a
-		 * full fw_device_shutdown().  If not, there's work
-		 * scheduled to read it's config rom, and we just put
-		 * the device in shutdown state to have that code fail
-		 * to create the device.
-		 */
+		
 		device = node->data;
 		if (atomic_xchg(&device->state,
 				FW_DEVICE_GONE) == FW_DEVICE_RUNNING) {

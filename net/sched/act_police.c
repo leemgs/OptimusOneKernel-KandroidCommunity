@@ -1,14 +1,4 @@
-/*
- * net/sched/police.c	Input police filter.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
- * 		J Hadi Salim (action changes)
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -35,7 +25,7 @@ static struct tcf_hashinfo police_hash_info = {
 	.lock	=	&police_lock,
 };
 
-/* old policer structure from before tc actions */
+
 struct tc_police_compat
 {
 	u32			index;
@@ -47,7 +37,7 @@ struct tc_police_compat
 	struct tc_ratespec	peakrate;
 };
 
-/* Each policer is serialized by its individual spinlock */
+
 
 static int tcf_act_police_walker(struct sk_buff *skb, struct netlink_callback *cb,
 			      int type, struct tc_action *a)
@@ -206,7 +196,7 @@ override:
 		goto failure_unlock;
 	}
 
-	/* No failure allowed after this point */
+	
 	if (R_tab != NULL) {
 		qdisc_put_rtab(police->tcfp_R_tab);
 		police->tcfp_R_tab = R_tab;

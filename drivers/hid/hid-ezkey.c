@@ -1,20 +1,6 @@
-/*
- *  HID driver for some ezkey "special" devices
- *
- *  Copyright (c) 1999 Andreas Gal
- *  Copyright (c) 2000-2005 Vojtech Pavlik <vojtech@suse.cz>
- *  Copyright (c) 2005 Michael Haboustak <mike-@cinci.rr.com> for Concept2, Inc
- *  Copyright (c) 2006-2007 Jiri Kosina
- *  Copyright (c) 2007 Paul Walmsley
- *  Copyright (c) 2008 Jiri Slaby
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
+
+
 
 #include <linux/device.h>
 #include <linux/input.h>
@@ -36,11 +22,7 @@ static int ez_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 	switch (usage->hid & HID_USAGE) {
 	case 0x230: ez_map_key(BTN_MOUSE);	break;
 	case 0x231: ez_map_rel(REL_WHEEL);	break;
-	/*
-	 * this keyboard has a scrollwheel implemented in
-	 * totally broken way. We map this usage temporarily
-	 * to HWHEEL and handle it in the event quirk handler
-	 */
+	
 	case 0x232: ez_map_rel(REL_HWHEEL);	break;
 	default:
 		return 0;
@@ -55,7 +37,7 @@ static int ez_event(struct hid_device *hdev, struct hid_field *field,
 			!usage->type)
 		return 0;
 
-	/* handle the temporary quirky mapping to HWHEEL */
+	
 	if (usage->type == EV_REL && usage->code == REL_HWHEEL) {
 		struct input_dev *input = field->hidinput->input;
 		input_event(input, usage->type, REL_WHEEL, -value);

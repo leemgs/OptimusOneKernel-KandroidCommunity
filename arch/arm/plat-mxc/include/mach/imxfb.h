@@ -1,6 +1,4 @@
-/*
- * This structure describes the machine which we are running on.
- */
+
 
 #include <linux/fb.h>
 

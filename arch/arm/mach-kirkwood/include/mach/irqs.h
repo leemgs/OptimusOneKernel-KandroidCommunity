@@ -1,19 +1,9 @@
-/*
- * arch/arm/mach-kirkwood/include/mach/irqs.h
- *
- * IRQ definitions for Marvell Kirkwood SoCs
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #ifndef __ASM_ARCH_IRQS_H
 #define __ASM_ARCH_IRQS_H
 
-/*
- * Low Interrupt Controller
- */
+
 #define IRQ_KIRKWOOD_HIGH_SUM	0
 #define IRQ_KIRKWOOD_BRIDGE	1
 #define IRQ_KIRKWOOD_HOST2CPU	2
@@ -36,9 +26,7 @@
 #define IRQ_KIRKWOOD_AVB	30
 #define IRQ_KIRKWOOD_TDMI	31
 
-/*
- * High Interrupt Controller
- */
+
 #define IRQ_KIRKWOOD_UART_0	33
 #define IRQ_KIRKWOOD_UART_1	34
 #define IRQ_KIRKWOOD_GPIO_LOW_0_7	35
@@ -51,9 +39,7 @@
 #define IRQ_KIRKWOOD_GE00_ERR	46
 #define IRQ_KIRKWOOD_GE01_ERR	47
 
-/*
- * KIRKWOOD General Purpose Pins
- */
+
 #define IRQ_KIRKWOOD_GPIO_START	64
 #define NR_GPIO_IRQS		50
 

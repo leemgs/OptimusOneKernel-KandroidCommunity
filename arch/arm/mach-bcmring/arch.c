@@ -1,16 +1,4 @@
-/*****************************************************************************
-* Copyright 2003 - 2008 Broadcom Corporation.  All rights reserved.
-*
-* Unless you and Broadcom execute a separate written software license
-* agreement governing use of this software, this software is licensed to you
-* under the terms of the GNU General Public License version 2, available at
-* http://www.broadcom.com/licenses/GPLv2.php (the "GPL").
-*
-* Notwithstanding the above, under no circumstances may you combine this
-* software in any way with any other Broadcom software provided under a
-* license other than the GPL, without Broadcom's express prior written
-* consent.
-*****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -47,12 +35,12 @@ HW_DECLARE_SPINLOCK(gpio)
     EXPORT_SYMBOL(bcmring_gpio_reg_lock);
 #endif
 
-/* FIXME: temporary solution */
+
 #define BCM_SYSCTL_REBOOT_WARM               1
 #define CTL_BCM_REBOOT                 112
 
-/* sysctl */
-int bcmring_arch_warm_reboot;	/* do a warm reboot on hard reset */
+
+int bcmring_arch_warm_reboot;	
 
 static struct ctl_table_header *bcmring_sysctl_header;
 
@@ -85,21 +73,13 @@ static struct platform_device *devices[] __initdata = {
 	&nand_device,
 };
 
-/****************************************************************************
-*
-*   Called from the customize_machine function in arch/arm/kernel/setup.c
-*
-*   The customize_machine function is tagged as an arch_initcall
-*   (see include/linux/init.h for the order that the various init sections
-*   are called in.
-*
-*****************************************************************************/
+
 static void __init bcmring_init_machine(void)
 {
 
 	bcmring_sysctl_header = register_sysctl_table(bcmring_sysctl_reboot);
 
-	/* Enable spread spectrum */
+	
 	chipcHw_enableSpreadSpectrum();
 
 	platform_add_devices(devices, ARRAY_SIZE(devices));
@@ -109,12 +89,7 @@ static void __init bcmring_init_machine(void)
 	dma_init();
 }
 
-/****************************************************************************
-*
-*   Called from setup_arch (in arch/arm/kernel/setup.c) to fixup any tags
-*   passed in by the boot loader.
-*
-*****************************************************************************/
+
 
 static void __init bcmring_fixup(struct machine_desc *desc,
      struct tag *t, char **cmdline, struct meminfo *mi) {
@@ -139,14 +114,10 @@ static void __init bcmring_fixup(struct machine_desc *desc,
 #endif
 }
 
-/****************************************************************************
-*
-*   Machine Description
-*
-*****************************************************************************/
+
 
 MACHINE_START(BCMRING, "BCMRING")
-	/* Maintainer: Broadcom Corporation */
+	
 	.phys_io = MM_IO_START,
 	.io_pg_offst = (MM_IO_BASE >> 18) & 0xfffc,
 	.fixup = bcmring_fixup,

@@ -1,21 +1,4 @@
-/*
- * Copyright 2005-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright (C) 2008 by Sascha Hauer <kernel@pengutronix.de>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/spinlock.h>
@@ -34,7 +17,7 @@
 
 #include "crm_regs.h"
 
-#define PRE_DIV_MIN_FREQ    10000000 /* Minimum Frequency after Predivider */
+#define PRE_DIV_MIN_FREQ    10000000 
 
 static void __calc_pre_post_dividers(u32 div, u32 *pre, u32 *post)
 {
@@ -97,7 +80,7 @@ static void cgr_disable(struct clk *clk)
 	reg = __raw_readl(clk->enable_reg);
 	reg &= ~(3 << clk->enable_shift);
 
-	/* special case for EMI clock */
+	
 	if (clk->enable_reg == MXC_CCM_CGR2 && clk->enable_shift == 8)
 		reg |= (1 << clk->enable_shift);
 
@@ -157,7 +140,7 @@ static int usb_pll_enable(struct clk *clk)
 	reg |= MXC_CCM_CCMR_UPE;
 	__raw_writel(reg, MXC_CCM_CCMR);
 
-	/* No lock bit on MX31, so using max time from spec */
+	
 	udelay(80);
 
 	return 0;
@@ -180,7 +163,7 @@ static int serial_pll_enable(struct clk *clk)
 	reg |= MXC_CCM_CCMR_SPE;
 	__raw_writel(reg, MXC_CCM_CCMR);
 
-	/* No lock bit on MX31, so using max time from spec */
+	
 	udelay(80);
 
 	return 0;
@@ -294,7 +277,7 @@ static int csi_set_rate(struct clk *clk, unsigned long rate)
 
 	__calc_pre_post_dividers(div, &pre, &post);
 
-	/* Set CSI clock divider */
+	
 	reg = __raw_readl(MXC_CCM_PDR0) &
 	    ~(MXC_CCM_PDR0_CSI_PODF_MASK | MXC_CCM_PDR0_CSI_PRDF_MASK);
 	reg |= (post - 1) << MXC_CCM_PDR0_CSI_PODF_OFFSET;
@@ -363,7 +346,7 @@ static int firi_set_rate(struct clk *clk, unsigned long rate)
 
 	__calc_pre_post_dividers(div, &pre, &post);
 
-	/* Set FIRI clock divider */
+	
 	reg = __raw_readl(MXC_CCM_PDR1) &
 	    ~(MXC_CCM_PDR1_FIRI_PODF_MASK | MXC_CCM_PDR1_FIRI_PRE_PODF_MASK);
 	reg |= (pre - 1) << MXC_CCM_PDR1_FIRI_PRE_PODF_OFFSET;
@@ -585,25 +568,21 @@ int __init mx31_clocks_init(unsigned long fref)
 	for (i = 0; i < ARRAY_SIZE(lookups); i++)
 		clkdev_add(&lookups[i]);
 
-	/* change the csi_clk parent if necessary */
+	
 	reg = __raw_readl(MXC_CCM_CCMR);
 	if (!(reg & MXC_CCM_CCMR_CSCS))
 		if (clk_set_parent(&csi_clk, &usb_pll_clk))
 			pr_err("%s: error changing csi_clk parent\n", __func__);
 
 
-	/* Turn off all possible clocks */
+	
 	__raw_writel((3 << 4), MXC_CCM_CGR0);
 	__raw_writel(0, MXC_CCM_CGR1);
 	__raw_writel((3 << 8) | (3 << 14) | (3 << 16)|
-		     1 << 27 | 1 << 28, /* Bit 27 and 28 are not defined for
-					   MX32, but still required to be set */
+		     1 << 27 | 1 << 28, 
 		     MXC_CCM_CGR2);
 
-	/*
-	 * Before turning off usb_pll make sure ipg_per_clk is generated
-	 * by ipg_clk and not usb_pll.
-	 */
+	
 	__raw_writel(__raw_readl(MXC_CCM_CCMR) | (1 << 24), MXC_CCM_CCMR);
 
 	usb_pll_disable(&usb_pll_clk);
@@ -618,7 +597,7 @@ int __init mx31_clocks_init(unsigned long fref)
 
 	if (mx31_revision() >= CHIP_REV_2_0) {
 		reg = __raw_readl(MXC_CCM_PMCR1);
-		/* No PLL restart on DVFS switch; enable auto EMI handshake */
+		
 		reg |= MXC_CCM_PMCR1_PLLRDIS | MXC_CCM_PMCR1_EMIRQ_EN;
 		__raw_writel(reg, MXC_CCM_PMCR1);
 	}

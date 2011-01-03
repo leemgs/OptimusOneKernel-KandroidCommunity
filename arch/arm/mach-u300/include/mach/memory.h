@@ -1,14 +1,4 @@
-/*
- *
- * arch/arm/mach-u300/include/mach/memory.h
- *
- *
- * Copyright (C) 2007-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * Memory virtual/physical mapping constants.
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- * Author: Jonas Aaberg <jonas.aberg@stericsson.com>
- */
+
 
 #ifndef __MACH_MEMORY_H
 #define __MACH_MEMORY_H
@@ -34,17 +24,13 @@
 	    (CONFIG_MACH_U300_ACCESS_MEM_SIZE & 1))*1024*1024 + 0x100)
 #endif
 
-/*
- * TCM memory whereabouts
- */
+
 #define ITCM_OFFSET	0xffff2000
 #define ITCM_END	0xffff3fff
 #define DTCM_OFFSET	0xffff4000
 #define DTCM_END	0xffff5fff
 
-/*
- * We enable a real big DMA buffer if need be.
- */
+
 #define CONSISTENT_DMA_SIZE SZ_4M
 
 #endif

@@ -1,22 +1,11 @@
-/*
- * Copyright (C) 1997,1998 Russell King
- * Copyright (C) 1999 ARM Limited
- * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright (c) 2008 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef __ASM_ARCH_MXC_MX1_H__
 #define __ASM_ARCH_MXC_MX1_H__
 
 #include <mach/vmalloc.h>
 
-/*
- * Memory map
- */
+
 #define IMX_IO_PHYS	0x00200000
 #define IMX_IO_SIZE	0x00100000
 #define IMX_IO_BASE	VMALLOC_END
@@ -39,9 +28,7 @@
 #define IMX_CS5_PHYS	0x16000000
 #define IMX_CS5_SIZE	0x01000000
 
-/*
- *  Register BASEs, based on OFFSETs
- */
+
 #define AIPI1_BASE_ADDR		(0x00000 + IMX_IO_PHYS)
 #define WDT_BASE_ADDR		(0x01000 + IMX_IO_PHYS)
 #define TIM1_BASE_ADDR		(0x02000 + IMX_IO_PHYS)
@@ -72,13 +59,13 @@
 #define AVIC_BASE_ADDR		(0x23000 + IMX_IO_PHYS)
 #define CSI_BASE_ADDR		(0x24000 + IMX_IO_PHYS)
 
-/* macro to get at IO space when running virtually */
+
 #define IO_ADDRESS(x)	((x) - IMX_IO_PHYS + IMX_IO_BASE)
 
-/* define macros needed for entry-macro.S */
+
 #define AVIC_IO_ADDRESS(x)	IO_ADDRESS(x)
 
-/* fixed interrput numbers */
+
 #define INT_SOFTINT		0
 #define CSI_INT			6
 #define DSPA_MAC_INT		7
@@ -134,7 +121,7 @@
 #define GPIO_INT_PORTD		62
 #define WDT_INT			63
 
-/* DMA */
+
 #define DMA_REQ_UART3_T		2
 #define DMA_REQ_UART3_R		3
 #define DMA_REQ_SSI2_T		4
@@ -161,4 +148,4 @@
 #define DMA_REQ_UART1_T		30
 #define DMA_REQ_UART1_R		31
 
-#endif /*  __ASM_ARCH_MXC_MX1_H__ */
+#endif 

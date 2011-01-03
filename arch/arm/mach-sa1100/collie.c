@@ -1,21 +1,4 @@
-/*
- * linux/arch/arm/mach-sa1100/collie.c
- *
- * May be copied or modified under the terms of the GNU General Public
- * License.  See linux/COPYING for more information.
- *
- * This file contains all Collie-specific tweaks.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * ChangeLog:
- *  2006 Pavel Machek <pavel@suse.cz>
- *  03-06-2004 John Lenz <lenz@cs.wisc.edu>
- *  06-04-2002 Chris Larson <kergoth@digitalnemesis.net>
- *  04-16-2001 Lineo Japan,Inc. ...
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -88,9 +71,7 @@ static struct mcp_plat_data collie_mcp_data = {
 };
 
 #ifdef CONFIG_SHARP_LOCOMO
-/*
- * low-level UART features.
- */
+
 struct platform_device collie_locomo_device;
 
 static void collie_uart_set_mctrl(struct uart_port *port, u_int mctrl)
@@ -241,7 +222,7 @@ static void __init collie_init(void)
 {
 	int ret = 0;
 
-	/* cpu initialize */
+	
 	GAFR = GPIO_SSP_TXD | GPIO_SSP_SCLK | GPIO_SSP_SFRM | GPIO_SSP_CLK |
 		GPIO_MCP_CLK | GPIO_32_768kHz;
 
@@ -280,12 +261,12 @@ static void __init collie_init(void)
 }
 
 static struct map_desc collie_io_desc[] __initdata = {
-	{	/* 32M main flash (cs0) */
+	{	
 		.virtual	= 0xe8000000,
 		.pfn		= __phys_to_pfn(0x00000000),
 		.length		= 0x02000000,
 		.type		= MT_DEVICE
-	}, {	/* 32M boot flash (cs1) */
+	}, {	
 		.virtual	= 0xea000000,
 		.pfn		= __phys_to_pfn(0x08000000),
 		.length		= 0x02000000,

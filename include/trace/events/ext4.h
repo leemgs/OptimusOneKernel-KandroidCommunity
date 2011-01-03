@@ -907,7 +907,7 @@ TRACE_EVENT(ext4_mballoc_free,
 		  __entry->result_len, __entry->result_logical)
 );
 
-#endif /* _TRACE_EXT4_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>

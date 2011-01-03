@@ -1,20 +1,6 @@
-/*
- * OMAP3 clock framework
- *
- * Copyright (C) 2007-2008 Texas Instruments, Inc.
- * Copyright (C) 2007-2008 Nokia Corporation
- *
- * Written by Paul Walmsley
- * With many device clock fixes by Kevin Hilman and Jouni Högander
- * DPLL bypass clock support added by Roman Tereshonkov
- *
- */
 
-/*
- * Virtual clocks are introduced as convenient tools.
- * They are sources for other clocks and not supposed
- * to be requested from drivers directly.
- */
+
+
 
 #ifndef __ARCH_ARM_MACH_OMAP2_CLOCK34XX_H
 #define __ARCH_ARM_MACH_OMAP2_CLOCK34XX_H
@@ -38,30 +24,24 @@ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
 static int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate);
 static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate);
 
-/* Maximum DPLL multiplier, divider values for OMAP3 */
+
 #define OMAP3_MAX_DPLL_MULT		2048
 #define OMAP3_MAX_DPLL_DIV		128
 
-/*
- * DPLL1 supplies clock to the MPU.
- * DPLL2 supplies clock to the IVA2.
- * DPLL3 supplies CORE domain clocks.
- * DPLL4 supplies peripheral clocks.
- * DPLL5 supplies other peripheral clocks (USBHOST, USIM).
- */
 
-/* Forward declarations for DPLL bypass clocks */
+
+
 static struct clk dpll1_fck;
 static struct clk dpll2_fck;
 
-/* CM_CLKEN_PLL*.EN* bit values - not all are available for every DPLL */
+
 #define DPLL_LOW_POWER_STOP		0x1
 #define DPLL_LOW_POWER_BYPASS		0x5
 #define DPLL_LOCKED			0x7
 
-/* PRM CLOCKS */
 
-/* According to timer32k.c, this is a 32768Hz clock, not a 32000Hz clock. */
+
+
 static struct clk omap_32k_fck = {
 	.name		= "omap_32k_fck",
 	.ops		= &clkops_null,
@@ -76,7 +56,7 @@ static struct clk secure_32k_fck = {
 	.flags		= RATE_FIXED,
 };
 
-/* Virtual source clocks for osc_sys_ck */
+
 static struct clk virt_12m_ck = {
 	.name		= "virt_12m_ck",
 	.ops		= &clkops_null,
@@ -159,8 +139,8 @@ static const struct clksel osc_sys_clksel[] = {
 	{ .parent = NULL },
 };
 
-/* Oscillator clock */
-/* 12, 13, 16.8, 19.2, 26, or 38.4 MHz */
+
+
 static struct clk osc_sys_ck = {
 	.name		= "osc_sys_ck",
 	.ops		= &clkops_null,
@@ -168,7 +148,7 @@ static struct clk osc_sys_ck = {
 	.clksel_reg	= OMAP3430_PRM_CLKSEL,
 	.clksel_mask	= OMAP3430_SYS_CLKIN_SEL_MASK,
 	.clksel		= osc_sys_clksel,
-	/* REVISIT: deal with autoextclkmode? */
+	
 	.flags		= RATE_FIXED,
 	.recalc		= &omap2_clksel_recalc,
 };
@@ -184,8 +164,8 @@ static const struct clksel sys_clksel[] = {
 	{ .parent = NULL }
 };
 
-/* Latency: this clock is only enabled after PRM_CLKSETUP.SETUP_TIME */
-/* Feeds DPLLs - divided first by PRM_CLKSRC_CTRL.SYSCLKDIV? */
+
+
 static struct clk sys_ck = {
 	.name		= "sys_ck",
 	.ops		= &clkops_null,
@@ -202,13 +182,13 @@ static struct clk sys_altclk = {
 	.ops		= &clkops_null,
 };
 
-/* Optional external clock input for some McBSPs */
+
 static struct clk mcbsp_clks = {
 	.name		= "mcbsp_clks",
 	.ops		= &clkops_null,
 };
 
-/* PRM EXTERNAL CLOCK OUTPUT */
+
 
 static struct clk sys_clkout1 = {
 	.name		= "sys_clkout1",
@@ -219,9 +199,9 @@ static struct clk sys_clkout1 = {
 	.recalc		= &followparent_recalc,
 };
 
-/* DPLLS */
 
-/* CM CLOCKS */
+
+
 
 static const struct clksel_rate div16_dpll_rates[] = {
 	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
@@ -243,9 +223,9 @@ static const struct clksel_rate div16_dpll_rates[] = {
 	{ .div = 0 }
 };
 
-/* DPLL1 */
-/* MPU clock source */
-/* Type: DPLL */
+
+
+
 static struct dpll_data dpll1_dd = {
 	.mult_div1_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
 	.mult_mask	= OMAP3430_MPU_DPLL_MULT_MASK,
@@ -280,10 +260,7 @@ static struct clk dpll1_ck = {
 	.recalc		= &omap3_dpll_recalc,
 };
 
-/*
- * This virtual clock provides the CLKOUTX2 output from the DPLL if the
- * DPLL isn't bypassed.
- */
+
 static struct clk dpll1_x2_ck = {
 	.name		= "dpll1_x2_ck",
 	.ops		= &clkops_null,
@@ -292,16 +269,13 @@ static struct clk dpll1_x2_ck = {
 	.recalc		= &omap3_clkoutx2_recalc,
 };
 
-/* On DPLL1, unlike other DPLLs, the divider is downstream from CLKOUTX2 */
+
 static const struct clksel div16_dpll1_x2m2_clksel[] = {
 	{ .parent = &dpll1_x2_ck, .rates = div16_dpll_rates },
 	{ .parent = NULL }
 };
 
-/*
- * Does not exist in the TRM - needed to separate the M2 divider from
- * bypass selection in mpu_ck
- */
+
 static struct clk dpll1_x2m2_ck = {
 	.name		= "dpll1_x2m2_ck",
 	.ops		= &clkops_null,
@@ -314,9 +288,9 @@ static struct clk dpll1_x2m2_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* DPLL2 */
-/* IVA2 clock source */
-/* Type: DPLL */
+
+
+
 
 static struct dpll_data dpll2_dd = {
 	.mult_div1_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
@@ -358,10 +332,7 @@ static const struct clksel div16_dpll2_m2x2_clksel[] = {
 	{ .parent = NULL }
 };
 
-/*
- * The TRM is conflicted on whether IVA2 clock comes from DPLL2 CLKOUT
- * or CLKOUTX2. CLKOUT seems most plausible.
- */
+
 static struct clk dpll2_m2_ck = {
 	.name		= "dpll2_m2_ck",
 	.ops		= &clkops_null,
@@ -375,11 +346,7 @@ static struct clk dpll2_m2_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/*
- * DPLL3
- * Source clock for all interfaces and for some device fclks
- * REVISIT: Also supports fast relock bypass - not included below
- */
+
 static struct dpll_data dpll3_dd = {
 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
 	.mult_mask	= OMAP3430_CORE_DPLL_MULT_MASK,
@@ -412,10 +379,7 @@ static struct clk dpll3_ck = {
 	.recalc		= &omap3_dpll_recalc,
 };
 
-/*
- * This virtual clock provides the CLKOUTX2 output from the DPLL if the
- * DPLL isn't bypassed
- */
+
 static struct clk dpll3_x2_ck = {
 	.name		= "dpll3_x2_ck",
 	.ops		= &clkops_null,
@@ -464,7 +428,7 @@ static const struct clksel div31_dpll3m2_clksel[] = {
 	{ .parent = NULL }
 };
 
-/* DPLL3 output M2 - primary control point for CORE speed */
+
 static struct clk dpll3_m2_ck = {
 	.name		= "dpll3_m2_ck",
 	.ops		= &clkops_null,
@@ -494,13 +458,13 @@ static struct clk dpll3_m2x2_ck = {
 	.recalc		= &omap3_clkoutx2_recalc,
 };
 
-/* The PWRDN bit is apparently only available on 3430ES2 and above */
+
 static const struct clksel div16_dpll3_clksel[] = {
 	{ .parent = &dpll3_ck, .rates = div16_dpll_rates },
 	{ .parent = NULL }
 };
 
-/* This virtual clock is the source for dpll3_m3x2_ck */
+
 static struct clk dpll3_m3_ck = {
 	.name		= "dpll3_m3_ck",
 	.ops		= &clkops_null,
@@ -513,7 +477,7 @@ static struct clk dpll3_m3_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* The PWRDN bit is apparently only available on 3430ES2 and above */
+
 static struct clk dpll3_m3x2_ck = {
 	.name		= "dpll3_m3x2_ck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -533,9 +497,9 @@ static struct clk emu_core_alwon_ck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* DPLL4 */
-/* Supplies 96MHz, 54Mhz TV DAC, DSS fclk, CAM sensor clock, emul trace clk */
-/* Type: DPLL */
+
+
+
 static struct dpll_data dpll4_dd = {
 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2),
 	.mult_mask	= OMAP3430_PERIPH_DPLL_MULT_MASK,
@@ -570,11 +534,7 @@ static struct clk dpll4_ck = {
 	.recalc		= &omap3_dpll_recalc,
 };
 
-/*
- * This virtual clock provides the CLKOUTX2 output from the DPLL if the
- * DPLL isn't bypassed --
- * XXX does this serve any downstream clocks?
- */
+
 static struct clk dpll4_x2_ck = {
 	.name		= "dpll4_x2_ck",
 	.ops		= &clkops_null,
@@ -588,7 +548,7 @@ static const struct clksel div16_dpll4_clksel[] = {
 	{ .parent = NULL }
 };
 
-/* This virtual clock is the source for dpll4_m2x2_ck */
+
 static struct clk dpll4_m2_ck = {
 	.name		= "dpll4_m2_ck",
 	.ops		= &clkops_null,
@@ -601,7 +561,7 @@ static struct clk dpll4_m2_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* The PWRDN bit is apparently only available on 3430ES2 and above */
+
 static struct clk dpll4_m2x2_ck = {
 	.name		= "dpll4_m2x2_ck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -613,12 +573,7 @@ static struct clk dpll4_m2x2_ck = {
 	.recalc		= &omap3_clkoutx2_recalc,
 };
 
-/*
- * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
- * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
- * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
- * CM_96K_(F)CLK.
- */
+
 static struct clk omap_96m_alwon_fck = {
 	.name		= "omap_96m_alwon_fck",
 	.ops		= &clkops_null,
@@ -660,7 +615,7 @@ static struct clk omap_96m_fck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* This virtual clock is the source for dpll4_m3x2_ck */
+
 static struct clk dpll4_m3_ck = {
 	.name		= "dpll4_m3_ck",
 	.ops		= &clkops_null,
@@ -673,7 +628,7 @@ static struct clk dpll4_m3_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* The PWRDN bit is apparently only available on 3430ES2 and above */
+
 static struct clk dpll4_m3x2_ck = {
 	.name		= "dpll4_m3x2_ck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -746,7 +701,7 @@ static struct clk omap_12m_fck = {
 	.recalc		= &omap2_fixed_divisor_recalc,
 };
 
-/* This virstual clock is the source for dpll4_m4x2_ck */
+
 static struct clk dpll4_m4_ck = {
 	.name		= "dpll4_m4_ck",
 	.ops		= &clkops_null,
@@ -761,7 +716,7 @@ static struct clk dpll4_m4_ck = {
 	.round_rate	= &omap2_clksel_round_rate,
 };
 
-/* The PWRDN bit is apparently only available on 3430ES2 and above */
+
 static struct clk dpll4_m4x2_ck = {
 	.name		= "dpll4_m4x2_ck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -773,7 +728,7 @@ static struct clk dpll4_m4x2_ck = {
 	.recalc		= &omap3_clkoutx2_recalc,
 };
 
-/* This virtual clock is the source for dpll4_m5x2_ck */
+
 static struct clk dpll4_m5_ck = {
 	.name		= "dpll4_m5_ck",
 	.ops		= &clkops_null,
@@ -786,7 +741,7 @@ static struct clk dpll4_m5_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* The PWRDN bit is apparently only available on 3430ES2 and above */
+
 static struct clk dpll4_m5x2_ck = {
 	.name		= "dpll4_m5x2_ck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -798,7 +753,7 @@ static struct clk dpll4_m5x2_ck = {
 	.recalc		= &omap3_clkoutx2_recalc,
 };
 
-/* This virtual clock is the source for dpll4_m6x2_ck */
+
 static struct clk dpll4_m6_ck = {
 	.name		= "dpll4_m6_ck",
 	.ops		= &clkops_null,
@@ -811,7 +766,7 @@ static struct clk dpll4_m6_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* The PWRDN bit is apparently only available on 3430ES2 and above */
+
 static struct clk dpll4_m6x2_ck = {
 	.name		= "dpll4_m6x2_ck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -832,10 +787,10 @@ static struct clk emu_per_alwon_ck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* DPLL5 */
-/* Supplies 120MHz clock, USIM source clock */
-/* Type: DPLL */
-/* 3430ES2 only */
+
+
+
+
 static struct dpll_data dpll5_dd = {
 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKSEL4),
 	.mult_mask	= OMAP3430ES2_PERIPH2_DPLL_MULT_MASK,
@@ -887,7 +842,7 @@ static struct clk dpll5_m2_ck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* CM EXTERNAL CLOCK OUTPUTS */
+
 
 static const struct clksel_rate clkout2_src_core_rates[] = {
 	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
@@ -954,7 +909,7 @@ static struct clk sys_clkout2 = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* CM OUTPUT CLOCKS */
+
 
 static struct clk corex2_fck = {
 	.name		= "corex2_fck",
@@ -963,7 +918,7 @@ static struct clk corex2_fck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* DPLL power domain clock controls */
+
 
 static const struct clksel_rate div4_rates[] = {
 	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
@@ -977,10 +932,7 @@ static const struct clksel div4_core_clksel[] = {
 	{ .parent = NULL }
 };
 
-/*
- * REVISIT: Are these in DPLL power domain or CM power domain? docs
- * may be inconsistent here?
- */
+
 static struct clk dpll1_fck = {
 	.name		= "dpll1_fck",
 	.ops		= &clkops_null,
@@ -1000,7 +952,7 @@ static struct clk mpu_ck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* arm_fck is divided by two when DPLL1 locked; otherwise, passthrough mpu_ck */
+
 static const struct clksel_rate arm_fck_rates[] = {
 	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
 	{ .div = 2, .val = 1, .flags = RATE_IN_343X },
@@ -1024,12 +976,9 @@ static struct clk arm_fck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* XXX What about neon_clkdm ? */
 
-/*
- * REVISIT: This clock is never specifically defined in the 3430 TRM,
- * although it is referenced - so this is a guess
- */
+
+
 static struct clk emu_mpu_alwon_ck = {
 	.name		= "emu_mpu_alwon_ck",
 	.ops		= &clkops_null,
@@ -1059,7 +1008,7 @@ static struct clk iva2_ck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* Common interface clocks */
+
 
 static const struct clksel div2_core_clksel[] = {
 	{ .parent = &core_ck, .rates = div2_rates },
@@ -1112,16 +1061,16 @@ static struct clk rm_ick = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* GFX power domain */
 
-/* GFX clocks are in 3430ES1 only. 3430ES2 and later uses the SGX instead */
+
+
 
 static const struct clksel gfx_l3_clksel[] = {
 	{ .parent = &l3_ick, .rates = gfx_l3_rates },
 	{ .parent = NULL }
 };
 
-/* Virtual parent clock for gfx_l3_ick and gfx_l3_fck */
+
 static struct clk gfx_l3_ck = {
 	.name		= "gfx_l3_ck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -1155,7 +1104,7 @@ static struct clk gfx_l3_ick = {
 static struct clk gfx_cg1_ck = {
 	.name		= "gfx_cg1_ck",
 	.ops		= &clkops_omap2_dflt_wait,
-	.parent		= &gfx_l3_fck, /* REVISIT: correct? */
+	.parent		= &gfx_l3_fck, 
 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, CM_FCLKEN),
 	.enable_bit	= OMAP3430ES1_EN_2D_SHIFT,
 	.clkdm_name	= "gfx_3430es1_clkdm",
@@ -1165,14 +1114,14 @@ static struct clk gfx_cg1_ck = {
 static struct clk gfx_cg2_ck = {
 	.name		= "gfx_cg2_ck",
 	.ops		= &clkops_omap2_dflt_wait,
-	.parent		= &gfx_l3_fck, /* REVISIT: correct? */
+	.parent		= &gfx_l3_fck, 
 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, CM_FCLKEN),
 	.enable_bit	= OMAP3430ES1_EN_3D_SHIFT,
 	.clkdm_name	= "gfx_3430es1_clkdm",
 	.recalc		= &followparent_recalc,
 };
 
-/* SGX power domain - 3430ES2 only */
+
 
 static const struct clksel_rate sgx_core_rates[] = {
 	{ .div = 3, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
@@ -1215,7 +1164,7 @@ static struct clk sgx_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* CORE power domain */
+
 
 static struct clk d2d_26m_fck = {
 	.name		= "d2d_26m_fck",
@@ -1318,7 +1267,7 @@ static struct clk usbtll_fck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* CORE 96M FCLK-derived clocks */
+
 
 static struct clk core_96m_fck = {
 	.name		= "core_96m_fck",
@@ -1403,10 +1352,7 @@ static struct clk i2c1_fck = {
 	.recalc		= &followparent_recalc,
 };
 
-/*
- * MCBSP 1 & 5 get their 96MHz clock from core_96m_fck;
- * MCBSP 2, 3, 4 get their 96MHz clock from per_96m_fck.
- */
+
 static const struct clksel_rate common_mcbsp_96m_rates[] = {
 	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
 	{ .div = 0 }
@@ -1451,7 +1397,7 @@ static struct clk mcbsp1_fck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* CORE_48M_FCK-derived clocks */
+
 
 static struct clk core_48m_fck = {
 	.name		= "core_48m_fck",
@@ -1528,7 +1474,7 @@ static struct clk fshostusb_fck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* CORE_12M_FCK based clocks */
+
 
 static struct clk core_12m_fck = {
 	.name		= "core_12m_fck",
@@ -1547,7 +1493,7 @@ static struct clk hdq_fck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* DPLL3-derived clock */
+
 
 static const struct clksel_rate ssi_ssr_corex2_rates[] = {
 	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
@@ -1608,12 +1554,9 @@ static struct clk ssi_sst_fck_3430es2 = {
 
 
 
-/* CORE_L3_ICK based clocks */
 
-/*
- * XXX must add clk_enable/clk_disable for these if standard code won't
- * handle it
- */
+
+
 static struct clk core_l3_ick = {
 	.name		= "core_l3_ick",
 	.ops		= &clkops_null,
@@ -1657,12 +1600,12 @@ static struct clk gpmc_fck = {
 	.name		= "gpmc_fck",
 	.ops		= &clkops_null,
 	.parent		= &core_l3_ick,
-	.flags		= ENABLE_ON_INIT, /* huh? */
+	.flags		= ENABLE_ON_INIT, 
 	.clkdm_name	= "core_l3_clkdm",
 	.recalc		= &followparent_recalc,
 };
 
-/* SECURITY_L3_ICK based clocks */
+
 
 static struct clk security_l3_ick = {
 	.name		= "security_l3_ick",
@@ -1680,7 +1623,7 @@ static struct clk pka_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* CORE_L4_ICK based clocks */
+
 
 static struct clk core_l4_ick = {
 	.name		= "core_l4_ick",
@@ -1711,7 +1654,7 @@ static struct clk mmchs3_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* Intersystem Communication Registers - chassis mode only */
+
 static struct clk icr_ick = {
 	.name		= "icr_ick",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -1962,7 +1905,7 @@ static struct clk omapctrl_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* SSI_L4_ICK based clocks */
+
 
 static struct clk ssi_l4_ick = {
 	.name		= "ssi_l4_ick",
@@ -1992,8 +1935,7 @@ static struct clk ssi_ick_3430es2 = {
 	.recalc		= &followparent_recalc,
 };
 
-/* REVISIT: Technically the TRM claims that this is CORE_CLK based,
- * but l4_ick makes more sense to me */
+
 
 static const struct clksel usb_l4_clksel[] = {
 	{ .parent = &l4_ick, .rates = div2_rates },
@@ -2013,7 +1955,7 @@ static struct clk usb_l4_ick = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* SECURITY_L4_ICK2 based clocks */
+
 
 static struct clk security_l4_ick2 = {
 	.name		= "security_l4_ick2",
@@ -2058,7 +2000,7 @@ static struct clk des1_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* DSS */
+
 static struct clk dss1_alwon_fck_3430es1 = {
 	.name		= "dss1_alwon_fck",
 	.ops		= &clkops_omap2_dflt,
@@ -2110,7 +2052,7 @@ static struct clk dss2_alwon_fck = {
 };
 
 static struct clk dss_ick_3430es1 = {
-	/* Handles both L3 and L4 clocks */
+	
 	.name		= "dss_ick",
 	.ops		= &clkops_omap2_dflt,
 	.parent		= &l4_ick,
@@ -2121,7 +2063,7 @@ static struct clk dss_ick_3430es1 = {
 };
 
 static struct clk dss_ick_3430es2 = {
-	/* Handles both L3 and L4 clocks */
+	
 	.name		= "dss_ick",
 	.ops		= &clkops_omap3430es2_dss_usbhost_wait,
 	.parent		= &l4_ick,
@@ -2131,7 +2073,7 @@ static struct clk dss_ick_3430es2 = {
 	.recalc		= &followparent_recalc,
 };
 
-/* CAM */
+
 
 static struct clk cam_mclk = {
 	.name		= "cam_mclk",
@@ -2144,7 +2086,7 @@ static struct clk cam_mclk = {
 };
 
 static struct clk cam_ick = {
-	/* Handles both L3 and L4 clocks */
+	
 	.name		= "cam_ick",
 	.ops		= &clkops_omap2_dflt,
 	.parent		= &l4_ick,
@@ -2164,7 +2106,7 @@ static struct clk csi2_96m_fck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* USBHOST - 3430ES2 only */
+
 
 static struct clk usbhost_120m_fck = {
 	.name		= "usbhost_120m_fck",
@@ -2187,7 +2129,7 @@ static struct clk usbhost_48m_fck = {
 };
 
 static struct clk usbhost_ick = {
-	/* Handles both L3 and L4 clocks */
+	
 	.name		= "usbhost_ick",
 	.ops		= &clkops_omap3430es2_dss_usbhost_wait,
 	.parent		= &l4_ick,
@@ -2197,7 +2139,7 @@ static struct clk usbhost_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* WKUP */
+
 
 static const struct clksel_rate usim_96m_rates[] = {
 	{ .div = 2,  .val = 3, .flags = RATE_IN_343X | DEFAULT_RATE },
@@ -2222,7 +2164,7 @@ static const struct clksel usim_clksel[] = {
 	{ .parent = NULL },
 };
 
-/* 3430ES2 only */
+
 static struct clk usim_fck = {
 	.name		= "usim_fck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -2235,7 +2177,7 @@ static struct clk usim_fck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* XXX should gpt1's clksel have wkup_32k_fck as the 32k opt? */
+
 static struct clk gpt1_fck = {
 	.name		= "gpt1_fck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -2285,8 +2227,8 @@ static struct clk wkup_l4_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* 3430ES2 only */
-/* Never specifically named in the TRM, so we have to infer a likely name */
+
+
 static struct clk usim_ick = {
 	.name		= "usim_ick",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -2337,7 +2279,7 @@ static struct clk omap_32ksync_ick = {
 	.recalc		= &followparent_recalc,
 };
 
-/* XXX This clock no longer exists in 3430 TRM rev F */
+
 static struct clk gpt12_ick = {
 	.name		= "gpt12_ick",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -2360,7 +2302,7 @@ static struct clk gpt1_ick = {
 
 
 
-/* PER clock domain */
+
 
 static struct clk per_96m_fck = {
 	.name		= "per_96m_fck",
@@ -2799,9 +2741,9 @@ static struct clk mcbsp4_fck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* EMU clocks */
 
-/* More information: ARM Cortex-A8 Technical Reference Manual, sect 10.1 */
+
+
 
 static const struct clksel_rate emu_src_sys_rates[] = {
 	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
@@ -2831,11 +2773,7 @@ static const struct clksel emu_src_clksel[] = {
 	{ .parent = NULL },
 };
 
-/*
- * Like the clkout_src clocks, emu_src_clk is a virtual clock, existing only
- * to switch the source of some of the EMU clocks.
- * XXX Are there CLKEN bits for these EMU clks?
- */
+
 static struct clk emu_src_ck = {
 	.name		= "emu_src_ck",
 	.ops		= &clkops_null,
@@ -2944,9 +2882,9 @@ static struct clk traceclk_fck = {
 	.recalc		= &omap2_clksel_recalc,
 };
 
-/* SR clocks */
 
-/* SmartReflex fclk (VDD1) */
+
+
 static struct clk sr1_fck = {
 	.name		= "sr1_fck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -2956,7 +2894,7 @@ static struct clk sr1_fck = {
 	.recalc		= &followparent_recalc,
 };
 
-/* SmartReflex fclk (VDD2) */
+
 static struct clk sr2_fck = {
 	.name		= "sr2_fck",
 	.ops		= &clkops_omap2_dflt_wait,
@@ -2968,13 +2906,13 @@ static struct clk sr2_fck = {
 
 static struct clk sr_l4_ick = {
 	.name		= "sr_l4_ick",
-	.ops		= &clkops_null, /* RMK: missing? */
+	.ops		= &clkops_null, 
 	.parent		= &l4_ick,
 	.clkdm_name	= "core_l4_clkdm",
 	.recalc		= &followparent_recalc,
 };
 
-/* SECURE_32K_FCK clocks */
+
 
 static struct clk gpt12_fck = {
 	.name		= "gpt12_fck",

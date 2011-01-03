@@ -1,22 +1,4 @@
-/*
- *  PS3 virtual uart
- *
- *  Copyright (C) 2006 Sony Computer Entertainment Inc.
- *  Copyright 2006 Sony Corp.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; version 2 of the License.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #if !defined(_PS3_VUART_H)
 #define _PS3_VUART_H
@@ -34,12 +16,10 @@ struct ps3_vuart_stats {
 struct ps3_vuart_work {
 	struct work_struct work;
 	unsigned long trigger;
-	struct ps3_system_bus_device *dev; /* to convert work to device */
+	struct ps3_system_bus_device *dev; 
 };
 
-/**
- * struct ps3_vuart_port_driver - a driver for a device on a vuart port
- */
+
 
 struct ps3_vuart_port_driver {
 	struct ps3_system_bus_driver core;
@@ -47,11 +27,11 @@ struct ps3_vuart_port_driver {
 	int (*remove)(struct ps3_system_bus_device *);
 	void (*shutdown)(struct ps3_system_bus_device *);
 	void (*work)(struct ps3_system_bus_device *);
-	/* int (*tx_event)(struct ps3_system_bus_device *dev); */
-	/* int (*rx_event)(struct ps3_system_bus_device *dev); */
-	/* int (*disconnect_event)(struct ps3_system_bus_device *dev); */
-	/* int (*suspend)(struct ps3_system_bus_device *, pm_message_t); */
-	/* int (*resume)(struct ps3_system_bus_device *); */
+	
+	
+	
+	
+	
 };
 
 int ps3_vuart_port_driver_register(struct ps3_vuart_port_driver *drv);

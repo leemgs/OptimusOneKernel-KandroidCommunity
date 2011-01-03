@@ -1,21 +1,4 @@
-/*
- * Copyright(c) 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Maintained at www.Open-FCoE.org
- */
+
 
 #ifndef _FCOE_H_
 #define _FCOE_H_
@@ -37,15 +20,15 @@
 
 #define FCOE_MAX_OUTSTANDING_COMMANDS	1024
 
-#define FCOE_MIN_XID		0x0000	/* the min xid supported by fcoe_sw */
-#define FCOE_MAX_XID		0x0FFF	/* the max xid supported by fcoe_sw */
+#define FCOE_MIN_XID		0x0000	
+#define FCOE_MAX_XID		0x0FFF	
 
 unsigned int fcoe_debug_logging;
 module_param_named(debug_logging, fcoe_debug_logging, int, S_IRUGO|S_IWUSR);
 MODULE_PARM_DESC(debug_logging, "a bit mask of logging levels");
 
-#define FCOE_LOGGING        0x01 /* General logging, not categorized */
-#define FCOE_NETDEV_LOGGING 0x02 /* Netdevice logging */
+#define FCOE_LOGGING        0x01 
+#define FCOE_NETDEV_LOGGING 0x02 
 
 #define FCOE_CHECK_LOGGING(LEVEL, CMD)					\
 do {                                                            	\
@@ -64,9 +47,7 @@ do {                                                            	\
 			   printk(KERN_INFO "fcoe: %s: " fmt,	\
 				  netdev->name, ##args);)
 
-/*
- * this percpu struct for fcoe
- */
+
 struct fcoe_percpu_s {
 	struct task_struct *thread;
 	struct sk_buff_head fcoe_rx_list;
@@ -74,30 +55,25 @@ struct fcoe_percpu_s {
 	int crc_eof_offset;
 };
 
-/*
- * an FCoE interface, 1:1 with netdev
- */
+
 struct fcoe_interface {
 	struct list_head list;
 	struct net_device *netdev;
 	struct packet_type  fcoe_packet_type;
 	struct packet_type  fip_packet_type;
 	struct fcoe_ctlr ctlr;
-	struct fc_exch_mgr *oem;		/* offload exchange manager */
+	struct fc_exch_mgr *oem;		
 	struct kref kref;
 };
 
-/*
- * the FCoE private structure that's allocated along with the
- * Scsi_Host and libfc fc_lport structures
- */
+
 struct fcoe_port {
 	struct fcoe_interface *fcoe;
 	struct fc_lport *lport;
 	struct sk_buff_head fcoe_pending_queue;
 	u8	fcoe_pending_queue_active;
-	struct timer_list timer;		/* queue timer */
-	struct work_struct destroy_work;	/* to prevent rtnl deadlocks */
+	struct timer_list timer;		
+	struct work_struct destroy_work;	
 };
 
 #define fcoe_from_ctlr(fip) container_of(fip, struct fcoe_interface, ctlr)
@@ -107,4 +83,4 @@ static inline struct net_device *fcoe_netdev(const struct fc_lport *lp)
 	return ((struct fcoe_port *)lport_priv(lp))->fcoe->netdev;
 }
 
-#endif /* _FCOE_H_ */
+#endif 

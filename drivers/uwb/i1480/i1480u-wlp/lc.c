@@ -1,60 +1,4 @@
-/*
- * WUSB Wire Adapter: WLP interface
- * Driver for the Linux Network stack.
- *
- * Copyright (C) 2005-2006 Intel Corporation
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * FIXME: docs
- *
- * This implements a very simple network driver for the WLP USB
- * device that is associated to a UWB (Ultra Wide Band) host.
- *
- * This is seen as an interface of a composite device. Once the UWB
- * host has an association to another WLP capable device, the
- * networking interface (aka WLP) can start to send packets back and
- * forth.
- *
- * Limitations:
- *
- *  - Hand cranked; can't ifup the interface until there is an association
- *
- *  - BW allocation very simplistic [see i1480u_mas_set() and callees].
- *
- *
- * ROADMAP:
- *
- *   ENTRY POINTS (driver model):
- *
- *     i1480u_driver_{exit,init}(): initialization of the driver.
- *
- *     i1480u_probe(): called by the driver code when a device
- *                     matching 'i1480u_id_table' is connected.
- *
- *                     This allocs a netdev instance, inits with
- *                     i1480u_add(), then registers_netdev().
- *         i1480u_init()
- *         i1480u_add()
- *
- *     i1480u_disconnect(): device has been disconnected/module
- *                          is being removed.
- *         i1480u_rm()
- */
+
 #include <linux/if_arp.h>
 #include <linux/etherdevice.h>
 
@@ -65,7 +9,7 @@
 static inline
 void i1480u_init(struct i1480u *i1480u)
 {
-	/* nothing so far... doesn't it suck? */
+	
 	spin_lock_init(&i1480u->lock);
 	INIT_LIST_HEAD(&i1480u->tx_list);
 	spin_lock_init(&i1480u->tx_list_lock);
@@ -80,23 +24,13 @@ void i1480u_init(struct i1480u *i1480u)
 	wlp_init(&i1480u->wlp);
 }
 
-/**
- * Fill WLP device information structure
- *
- * The structure will contain a few character arrays, each ending with a
- * null terminated string. Each string has to fit (excluding terminating
- * character) into a specified range obtained from the WLP substack.
- *
- * It is still not clear exactly how this device information should be
- * obtained. Until we find out we use the USB device descriptor as backup, some
- * information elements have intuitive mappings, other not.
- */
+
 static
 void i1480u_fill_device_info(struct wlp *wlp, struct wlp_device_info *dev_info)
 {
 	struct i1480u *i1480u = container_of(wlp, struct i1480u, wlp);
 	struct usb_device *usb_dev = i1480u->usb_dev;
-	/* Treat device name and model name the same */
+	
 	if (usb_dev->descriptor.iProduct) {
 		usb_string(usb_dev, usb_dev->descriptor.iProduct,
 			   dev_info->name, sizeof(dev_info->name));
@@ -112,18 +46,13 @@ void i1480u_fill_device_info(struct wlp *wlp, struct wlp_device_info *dev_info)
 	if (usb_dev->descriptor.iSerialNumber)
 		usb_string(usb_dev, usb_dev->descriptor.iSerialNumber,
 			   dev_info->serial, sizeof(dev_info->serial));
-	/* FIXME: where should we obtain category? */
+	
 	dev_info->prim_dev_type.category = cpu_to_le16(WLP_DEV_CAT_OTHER);
-	/* FIXME: Complete OUI and OUIsubdiv attributes */
+	
 }
 
 #ifdef i1480u_FLOW_CONTROL
-/**
- * Callback for the notification endpoint
- *
- * This mostly controls the xon/xoff protocol. In case of hard error,
- * we stop the queue. If not, we always retry.
- */
+
 static
 void i1480u_notif_cb(struct urb *urb, struct pt_regs *regs)
 {
@@ -133,7 +62,7 @@ void i1480u_notif_cb(struct urb *urb, struct pt_regs *regs)
 	int result;
 
 	switch (urb->status) {
-	case 0:				/* Got valid data, do xon/xoff */
+	case 0:				
 		switch (i1480u->notif_buffer[0]) {
 		case 'N':
 			dev_err(dev, "XOFF STOPPING queue at %lu\n", jiffies);
@@ -148,14 +77,14 @@ void i1480u_notif_cb(struct urb *urb, struct pt_regs *regs)
 				i1480u->notif_buffer[0]);
 		}
 		break;
-	case -ECONNRESET:		/* Controlled situation ... */
-	case -ENOENT:			/* we killed the URB... */
+	case -ECONNRESET:		
+	case -ENOENT:			
 		dev_err(dev, "NEP: URB reset/noent %d\n", urb->status);
 		goto error;
-	case -ESHUTDOWN:		/* going away! */
+	case -ESHUTDOWN:		
 		dev_err(dev, "NEP: URB down %d\n", urb->status);
 		goto error;
-	default:			/* Retry unless it gets ugly */
+	default:			
 		if (edc_inc(&i1480u->notif_edc, EDC_MAX_ERRORS,
 			    EDC_ERROR_TIMEFRAME)) {
 			dev_err(dev, "NEP: URB max acceptable errors "
@@ -221,9 +150,9 @@ int i1480u_add(struct i1480u *i1480u, struct usb_interface *iface)
 		goto error_wlp_setup;
 	}
 	result = 0;
-	ether_setup(net_dev);			/* make it an etherdevice */
+	ether_setup(net_dev);			
 	uwb_dev = &rc->uwb_dev;
-	/* FIXME: hookup address change notifications? */
+	
 
 	memcpy(net_dev->dev_addr, uwb_dev->mac_addr.data,
 	       sizeof(net_dev->dev_addr));
@@ -233,21 +162,21 @@ int i1480u_add(struct i1480u *i1480u, struct usb_interface *iface)
 		+ WLP_DATA_HLEN
 		+ ETH_HLEN;
 	net_dev->mtu = 3500;
-	net_dev->tx_queue_len = 20;		/* FIXME: maybe use 1000? */
+	net_dev->tx_queue_len = 20;		
 
-/*	net_dev->flags &= ~IFF_BROADCAST;	FIXME: BUG in firmware */
-	/* FIXME: multicast disabled */
+
+	
 	net_dev->flags &= ~IFF_MULTICAST;
 	net_dev->features &= ~NETIF_F_SG;
 	net_dev->features &= ~NETIF_F_FRAGLIST;
-	/* All NETIF_F_*_CSUM disabled */
+	
 	net_dev->features |= NETIF_F_HIGHDMA;
-	net_dev->watchdog_timeo = 5*HZ;		/* FIXME: a better default? */
+	net_dev->watchdog_timeo = 5*HZ;		
 
 	net_dev->netdev_ops = &i1480u_netdev_ops;
 
 #ifdef i1480u_FLOW_CONTROL
-	/* Notification endpoint setup (submitted when we open the device) */
+	
 	i1480u->notif_urb = usb_alloc_urb(0, GFP_KERNEL);
 	if (i1480u->notif_urb == NULL) {
 		dev_err(&iface->dev, "Unable to allocate notification URB\n");
@@ -292,26 +221,16 @@ static void i1480u_rm(struct i1480u *i1480u)
 	usb_put_dev(i1480u->usb_dev);
 }
 
-/** Just setup @net_dev's i1480u private data */
+
 static void i1480u_netdev_setup(struct net_device *net_dev)
 {
 	struct i1480u *i1480u = netdev_priv(net_dev);
-	/* Initialize @i1480u */
+	
 	memset(i1480u, 0, sizeof(*i1480u));
 	i1480u_init(i1480u);
 }
 
-/**
- * Probe a i1480u interface and register it
- *
- * @iface:   USB interface to link to
- * @id:      USB class/subclass/protocol id
- * @returns: 0 if ok, < 0 errno code on error.
- *
- * Does basic housekeeping stuff and then allocs a netdev with space
- * for the i1480u  data. Initializes, registers in i1480u, registers in
- * netdev, ready to go.
- */
+
 static int i1480u_probe(struct usb_interface *iface,
 			const struct usb_device_id *id)
 {
@@ -320,7 +239,7 @@ static int i1480u_probe(struct usb_interface *iface,
 	struct device *dev = &iface->dev;
 	struct i1480u *i1480u;
 
-	/* Allocate instance [calls i1480u_netdev_setup() on it] */
+	
 	result = -ENOMEM;
 	net_dev = alloc_netdev(sizeof(*i1480u), "wlp%d", i1480u_netdev_setup);
 	if (net_dev == NULL) {
@@ -330,12 +249,12 @@ static int i1480u_probe(struct usb_interface *iface,
 	SET_NETDEV_DEV(net_dev, dev);
 	i1480u = netdev_priv(net_dev);
 	i1480u->net_dev = net_dev;
-	result = i1480u_add(i1480u, iface);	/* Now setup all the wlp stuff */
+	result = i1480u_add(i1480u, iface);	
 	if (result < 0) {
 		dev_err(dev, "cannot add i1480u device: %d\n", result);
 		goto error_i1480u_add;
 	}
-	result = register_netdev(net_dev);	/* Okey dokey, bring it up */
+	result = register_netdev(net_dev);	
 	if (result < 0) {
 		dev_err(dev, "cannot register network device: %d\n", result);
 		goto error_register_netdev;
@@ -356,13 +275,7 @@ error_alloc_netdev:
 }
 
 
-/**
- * Disconect a i1480u from the system.
- *
- * i1480u_stop() has been called before, so al the rx and tx contexts
- * have been taken down already. Make sure the queue is stopped,
- * unregister netdev and i1480u, free and kill.
- */
+
 static void i1480u_disconnect(struct usb_interface *iface)
 {
 	struct i1480u *i1480u;

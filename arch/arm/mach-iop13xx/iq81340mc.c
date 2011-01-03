@@ -1,21 +1,4 @@
-/*
- * iq81340mc board support
- * Copyright (c) 2005-2006, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- */
+
 #include <linux/pci.h>
 
 #include <mach/hardware.h>
@@ -27,7 +10,7 @@
 #include <asm/mach/time.h>
 #include <mach/time.h>
 
-extern int init_atu; /* Flag to select which ATU(s) to initialize / disable */
+extern int init_atu; 
 
 static int __init
 iq81340mc_pcix_map_irq(struct pci_dev *dev, u8 idsel, u8 pin)
@@ -91,7 +74,7 @@ static struct sys_timer iq81340mc_timer = {
 };
 
 MACHINE_START(IQ81340MC, "Intel IQ81340MC")
-	/* Maintainer: Dan Williams <dan.j.williams@intel.com> */
+	
 	.phys_io        = IOP13XX_PMMR_PHYS_MEM_BASE,
 	.io_pg_offst    = (IOP13XX_PMMR_VIRT_MEM_BASE >> 18) & 0xfffc,
 	.boot_params    = 0x00000100,

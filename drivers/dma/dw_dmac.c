@@ -1,13 +1,4 @@
-/*
- * Driver for the Synopsys DesignWare DMA Controller (aka DMACA on
- * AVR32 systems.)
- *
- * Copyright (C) 2007-2008 Atmel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/dmaengine.h>
@@ -22,19 +13,9 @@
 
 #include "dw_dmac_regs.h"
 
-/*
- * This supports the Synopsys "DesignWare AHB Central DMA Controller",
- * (DW_ahb_dmac) which is used with various AMBA 2.0 systems (not all
- * of which use ARM any more).  See the "Databook" from Synopsys for
- * information beyond what licensees probably provide.
- *
- * The driver has currently been tested only with the Atmel AT32AP7000,
- * which does not support descriptor writeback.
- */
 
-/* NOTE:  DMS+SMS is system-specific. We should get this information
- * from the platform code somehow.
- */
+
+
 #define DWC_DEFAULT_CTLLO	(DWC_CTLL_DST_MSIZE(0)		\
 				| DWC_CTLL_SRC_MSIZE(0)		\
 				| DWC_CTLL_DMS(0)		\
@@ -42,33 +23,15 @@
 				| DWC_CTLL_LLP_D_EN		\
 				| DWC_CTLL_LLP_S_EN)
 
-/*
- * This is configuration-dependent and usually a funny size like 4095.
- * Let's round it down to the nearest power of two.
- *
- * Note that this is a transfer count, i.e. if we transfer 32-bit
- * words, we can do 8192 bytes per descriptor.
- *
- * This parameter is also system-specific.
- */
+
 #define DWC_MAX_COUNT	2048U
 
-/*
- * Number of descriptors to allocate for each channel. This should be
- * made configurable somehow; preferably, the clients (at least the
- * ones using slave transfers) should be able to give us a hint.
- */
+
 #define NR_DESCS_PER_CHANNEL	64
 
-/*----------------------------------------------------------------------*/
 
-/*
- * Because we're not relying on writeback from the controller (it may not
- * even be configured into the core!) we don't need to use dma_pool.  These
- * descriptors -- and associated data -- are cacheable.  We do need to make
- * sure their dcache entries are written back before handing them off to
- * the controller, though.
- */
+
+
 
 static struct device *chan2dev(struct dma_chan *chan)
 {
@@ -125,10 +88,7 @@ static void dwc_sync_desc_for_cpu(struct dw_dma_chan *dwc, struct dw_desc *desc)
 			DMA_TO_DEVICE);
 }
 
-/*
- * Move a descriptor, including any children, to the free list.
- * `desc' must not be on any lists.
- */
+
 static void dwc_desc_put(struct dw_dma_chan *dwc, struct dw_desc *desc)
 {
 	if (desc) {
@@ -148,7 +108,7 @@ static void dwc_desc_put(struct dw_dma_chan *dwc, struct dw_desc *desc)
 	}
 }
 
-/* Called with dwc->lock held and bh disabled */
+
 static dma_cookie_t
 dwc_assign_cookie(struct dw_dma_chan *dwc, struct dw_desc *desc)
 {
@@ -163,14 +123,14 @@ dwc_assign_cookie(struct dw_dma_chan *dwc, struct dw_desc *desc)
 	return cookie;
 }
 
-/*----------------------------------------------------------------------*/
 
-/* Called with dwc->lock held and bh disabled */
+
+
 static void dwc_dostart(struct dw_dma_chan *dwc, struct dw_desc *first)
 {
 	struct dw_dma	*dw = to_dw_dma(dwc->chan.device);
 
-	/* ASSERT:  channel is idle */
+	
 	if (dma_readl(dw, CH_EN) & dwc->mask) {
 		dev_err(chan2dev(&dwc->chan),
 			"BUG: Attempted to start non-idle channel\n");
@@ -182,7 +142,7 @@ static void dwc_dostart(struct dw_dma_chan *dwc, struct dw_desc *first)
 			channel_readl(dwc, CTL_HI),
 			channel_readl(dwc, CTL_LO));
 
-		/* The tasklet will hopefully advance the queue... */
+		
 		return;
 	}
 
@@ -193,7 +153,7 @@ static void dwc_dostart(struct dw_dma_chan *dwc, struct dw_desc *first)
 	channel_set_bit(dw, CH_EN, dwc->mask);
 }
 
-/*----------------------------------------------------------------------*/
+
 
 static void
 dwc_descriptor_complete(struct dw_dma_chan *dwc, struct dw_desc *desc)
@@ -232,10 +192,7 @@ dwc_descriptor_complete(struct dw_dma_chan *dwc, struct dw_desc *desc)
 		}
 	}
 
-	/*
-	 * The API requires that no submissions are done from a
-	 * callback, so we don't need to drop the lock here
-	 */
+	
 	if (callback)
 		callback(param);
 }
@@ -249,16 +206,13 @@ static void dwc_complete_all(struct dw_dma *dw, struct dw_dma_chan *dwc)
 		dev_err(chan2dev(&dwc->chan),
 			"BUG: XFER bit set, but channel not idle!\n");
 
-		/* Try to continue after resetting the channel... */
+		
 		channel_clear_bit(dw, CH_EN, dwc->mask);
 		while (dma_readl(dw, CH_EN) & dwc->mask)
 			cpu_relax();
 	}
 
-	/*
-	 * Submit queued descriptors ASAP, i.e. before we go through
-	 * the completed ones.
-	 */
+	
 	if (!list_empty(&dwc->queue))
 		dwc_dostart(dwc, dwc_first_queued(dwc));
 	list_splice_init(&dwc->active_list, &list);
@@ -275,17 +229,13 @@ static void dwc_scan_descriptors(struct dw_dma *dw, struct dw_dma_chan *dwc)
 	struct dw_desc *child;
 	u32 status_xfer;
 
-	/*
-	 * Clear block interrupt flag before scanning so that we don't
-	 * miss any, and read LLP before RAW_XFER to ensure it is
-	 * valid if we decide to scan the list.
-	 */
+	
 	dma_writel(dw, CLEAR.BLOCK, dwc->mask);
 	llp = channel_readl(dwc, LLP);
 	status_xfer = dma_readl(dw, RAW.XFER);
 
 	if (status_xfer & dwc->mask) {
-		/* Everything we've submitted is done */
+		
 		dma_writel(dw, CLEAR.XFER, dwc->mask);
 		dwc_complete_all(dw, dwc);
 		return;
@@ -295,25 +245,22 @@ static void dwc_scan_descriptors(struct dw_dma *dw, struct dw_dma_chan *dwc)
 
 	list_for_each_entry_safe(desc, _desc, &dwc->active_list, desc_node) {
 		if (desc->lli.llp == llp)
-			/* This one is currently in progress */
+			
 			return;
 
 		list_for_each_entry(child, &desc->tx_list, desc_node)
 			if (child->lli.llp == llp)
-				/* Currently in progress */
+				
 				return;
 
-		/*
-		 * No descriptors so far seem to be in progress, i.e.
-		 * this one must be done.
-		 */
+		
 		dwc_descriptor_complete(dwc, desc);
 	}
 
 	dev_err(chan2dev(&dwc->chan),
 		"BUG: All descriptors done, but channel not idle!\n");
 
-	/* Try to continue after resetting the channel... */
+	
 	channel_clear_bit(dw, CH_EN, dwc->mask);
 	while (dma_readl(dw, CH_EN) & dwc->mask)
 		cpu_relax();
@@ -339,27 +286,17 @@ static void dwc_handle_error(struct dw_dma *dw, struct dw_dma_chan *dwc)
 
 	dwc_scan_descriptors(dw, dwc);
 
-	/*
-	 * The descriptor currently at the head of the active list is
-	 * borked. Since we don't have any way to report errors, we'll
-	 * just have to scream loudly and try to carry on.
-	 */
+	
 	bad_desc = dwc_first_active(dwc);
 	list_del_init(&bad_desc->desc_node);
 	list_splice_init(&dwc->queue, dwc->active_list.prev);
 
-	/* Clear the error flag and try to restart the controller */
+	
 	dma_writel(dw, CLEAR.ERROR, dwc->mask);
 	if (!list_empty(&dwc->active_list))
 		dwc_dostart(dwc, dwc_first_active(dwc));
 
-	/*
-	 * KERN_CRITICAL may seem harsh, but since this only happens
-	 * when someone submits a bad physical address in a
-	 * descriptor, we should consider ourselves lucky that the
-	 * controller flagged an error instead of scribbling over
-	 * random memory locations.
-	 */
+	
 	dev_printk(KERN_CRIT, chan2dev(&dwc->chan),
 			"Bad descriptor submitted for DMA!\n");
 	dev_printk(KERN_CRIT, chan2dev(&dwc->chan),
@@ -368,11 +305,11 @@ static void dwc_handle_error(struct dw_dma *dw, struct dw_dma_chan *dwc)
 	list_for_each_entry(child, &bad_desc->tx_list, desc_node)
 		dwc_dump_lli(dwc, &child->lli);
 
-	/* Pretend the descriptor completed successfully */
+	
 	dwc_descriptor_complete(dwc, bad_desc);
 }
 
-/* --------------------- Cyclic DMA API extensions -------------------- */
+
 
 inline dma_addr_t dw_dma_get_src_addr(struct dma_chan *chan)
 {
@@ -388,7 +325,7 @@ inline dma_addr_t dw_dma_get_dst_addr(struct dma_chan *chan)
 }
 EXPORT_SYMBOL(dw_dma_get_dst_addr);
 
-/* called with dwc->lock held and all DMAC interrupts disabled */
+
 static void dwc_handle_cyclic(struct dw_dma *dw, struct dw_dma_chan *dwc,
 		u32 status_block, u32 status_err, u32 status_xfer)
 {
@@ -409,10 +346,7 @@ static void dwc_handle_cyclic(struct dw_dma *dw, struct dw_dma_chan *dwc,
 		}
 	}
 
-	/*
-	 * Error and transfer complete are highly unlikely, and will most
-	 * likely be due to a configuration error by the user.
-	 */
+	
 	if (unlikely(status_err & dwc->mask) ||
 			unlikely(status_xfer & dwc->mask)) {
 		int i;
@@ -432,7 +366,7 @@ static void dwc_handle_cyclic(struct dw_dma *dw, struct dw_dma_chan *dwc,
 		while (dma_readl(dw, CH_EN) & dwc->mask)
 			cpu_relax();
 
-		/* make sure DMA does not restart by loading a new list */
+		
 		channel_writel(dwc, LLP, 0);
 		channel_writel(dwc, CTL_LO, 0);
 		channel_writel(dwc, CTL_HI, 0);
@@ -446,7 +380,7 @@ static void dwc_handle_cyclic(struct dw_dma *dw, struct dw_dma_chan *dwc,
 	}
 }
 
-/* ------------------------------------------------------------------------- */
+
 
 static void dw_dma_tasklet(unsigned long data)
 {
@@ -477,11 +411,7 @@ static void dw_dma_tasklet(unsigned long data)
 		spin_unlock(&dwc->lock);
 	}
 
-	/*
-	 * Re-enable interrupts. Block Complete interrupts are only
-	 * enabled if the INT_EN bit in the descriptor is set. This
-	 * will trigger a scan before the whole list is done.
-	 */
+	
 	channel_set_bit(dw, MASK.XFER, dw->all_chan_mask);
 	channel_set_bit(dw, MASK.BLOCK, dw->all_chan_mask);
 	channel_set_bit(dw, MASK.ERROR, dw->all_chan_mask);
@@ -495,10 +425,7 @@ static irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
 	dev_vdbg(dw->dma.dev, "interrupt: status=0x%x\n",
 			dma_readl(dw, STATUS_INT));
 
-	/*
-	 * Just disable the interrupts. We'll turn them back on in the
-	 * softirq handler.
-	 */
+	
 	channel_clear_bit(dw, MASK.XFER, dw->all_chan_mask);
 	channel_clear_bit(dw, MASK.BLOCK, dw->all_chan_mask);
 	channel_clear_bit(dw, MASK.ERROR, dw->all_chan_mask);
@@ -509,7 +436,7 @@ static irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
 			"BUG: Unexpected interrupts pending: 0x%x\n",
 			status);
 
-		/* Try to recover */
+		
 		channel_clear_bit(dw, MASK.XFER, (1 << 8) - 1);
 		channel_clear_bit(dw, MASK.BLOCK, (1 << 8) - 1);
 		channel_clear_bit(dw, MASK.SRC_TRAN, (1 << 8) - 1);
@@ -522,7 +449,7 @@ static irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*----------------------------------------------------------------------*/
+
 
 static dma_cookie_t dwc_tx_submit(struct dma_async_tx_descriptor *tx)
 {
@@ -533,11 +460,7 @@ static dma_cookie_t dwc_tx_submit(struct dma_async_tx_descriptor *tx)
 	spin_lock_bh(&dwc->lock);
 	cookie = dwc_assign_cookie(dwc, desc);
 
-	/*
-	 * REVISIT: We should attempt to chain as many descriptors as
-	 * possible, perhaps even appending to those already submitted
-	 * for DMA. But this is hard to do in a race-free manner.
-	 */
+	
 	if (list_empty(&dwc->active_list)) {
 		dev_vdbg(chan2dev(tx->chan), "tx_submit: started %u\n",
 				desc->txd.cookie);
@@ -577,10 +500,7 @@ dwc_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
 		return NULL;
 	}
 
-	/*
-	 * We can be a lot more clever here, but this should take care
-	 * of the most common optimization.
-	 */
+	
 	if (!((src | dest  | len) & 3))
 		src_width = dst_width = 2;
 	else if (!((src | dest | len) & 1))
@@ -624,7 +544,7 @@ dwc_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
 
 
 	if (flags & DMA_PREP_INTERRUPT)
-		/* Trigger interrupt after last block */
+		
 		prev->lli.ctllo |= DWC_CTLL_INT_EN;
 
 	prev->lli.llp = 0;
@@ -764,7 +684,7 @@ dwc_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
 	}
 
 	if (flags & DMA_PREP_INTERRUPT)
-		/* Trigger interrupt after last block */
+		
 		prev->lli.ctllo |= DWC_CTLL_INT_EN;
 
 	prev->lli.llp = 0;
@@ -788,12 +708,7 @@ static void dwc_terminate_all(struct dma_chan *chan)
 	struct dw_desc		*desc, *_desc;
 	LIST_HEAD(list);
 
-	/*
-	 * This is only called when something went wrong elsewhere, so
-	 * we don't really care about the data. Just disable the
-	 * channel. We still have to poll the channel enable bit due
-	 * to AHB/HSB limitations.
-	 */
+	
 	spin_lock_bh(&dwc->lock);
 
 	channel_clear_bit(dw, CH_EN, dwc->mask);
@@ -801,13 +716,13 @@ static void dwc_terminate_all(struct dma_chan *chan)
 	while (dma_readl(dw, CH_EN) & dwc->mask)
 		cpu_relax();
 
-	/* active_list entries will end up before queued entries */
+	
 	list_splice_init(&dwc->queue, &list);
 	list_splice_init(&dwc->active_list, &list);
 
 	spin_unlock_bh(&dwc->lock);
 
-	/* Flush all pending and queued descriptors */
+	
 	list_for_each_entry_safe(desc, _desc, &list, desc_node)
 		dwc_descriptor_complete(dwc, desc);
 }
@@ -865,7 +780,7 @@ static int dwc_alloc_chan_resources(struct dma_chan *chan)
 
 	dev_vdbg(chan2dev(chan), "alloc_chan_resources\n");
 
-	/* ASSERT:  channel is idle */
+	
 	if (dma_readl(dw, CH_EN) & dwc->mask) {
 		dev_dbg(chan2dev(chan), "DMA channel not idle?\n");
 		return -EIO;
@@ -878,10 +793,7 @@ static int dwc_alloc_chan_resources(struct dma_chan *chan)
 
 	dws = chan->private;
 	if (dws) {
-		/*
-		 * We need controller-specific data to set up slave
-		 * transfers.
-		 */
+		
 		BUG_ON(!dws->dma_dev || dws->dma_dev != dw->dma.dev);
 
 		cfghi = dws->cfg_hi;
@@ -890,11 +802,7 @@ static int dwc_alloc_chan_resources(struct dma_chan *chan)
 	channel_writel(dwc, CFG_LO, cfglo);
 	channel_writel(dwc, CFG_HI, cfghi);
 
-	/*
-	 * NOTE: some controllers may have additional features that we
-	 * need to initialize here, like "scatter-gather" (which
-	 * doesn't mean what you think it means), and status writeback.
-	 */
+	
 
 	spin_lock_bh(&dwc->lock);
 	i = dwc->descs_allocated;
@@ -921,7 +829,7 @@ static int dwc_alloc_chan_resources(struct dma_chan *chan)
 		i = ++dwc->descs_allocated;
 	}
 
-	/* Enable interrupts */
+	
 	channel_set_bit(dw, MASK.XFER, dwc->mask);
 	channel_set_bit(dw, MASK.BLOCK, dwc->mask);
 	channel_set_bit(dw, MASK.ERROR, dwc->mask);
@@ -944,7 +852,7 @@ static void dwc_free_chan_resources(struct dma_chan *chan)
 	dev_dbg(chan2dev(chan), "free_chan_resources (descs allocated=%u)\n",
 			dwc->descs_allocated);
 
-	/* ASSERT:  channel is idle */
+	
 	BUG_ON(!list_empty(&dwc->active_list));
 	BUG_ON(!list_empty(&dwc->queue));
 	BUG_ON(dma_readl(to_dw_dma(chan->device), CH_EN) & dwc->mask);
@@ -953,7 +861,7 @@ static void dwc_free_chan_resources(struct dma_chan *chan)
 	list_splice_init(&dwc->free_list, &list);
 	dwc->descs_allocated = 0;
 
-	/* Disable interrupts */
+	
 	channel_clear_bit(dw, MASK.XFER, dwc->mask);
 	channel_clear_bit(dw, MASK.BLOCK, dwc->mask);
 	channel_clear_bit(dw, MASK.ERROR, dwc->mask);
@@ -970,15 +878,9 @@ static void dwc_free_chan_resources(struct dma_chan *chan)
 	dev_vdbg(chan2dev(chan), "free_chan_resources done\n");
 }
 
-/* --------------------- Cyclic DMA API extensions -------------------- */
 
-/**
- * dw_dma_cyclic_start - start the cyclic DMA transfer
- * @chan: the DMA channel to start
- *
- * Must be called with soft interrupts disabled. Returns zero on success or
- * -errno on failure.
- */
+
+
 int dw_dma_cyclic_start(struct dma_chan *chan)
 {
 	struct dw_dma_chan	*dwc = to_dw_dma_chan(chan);
@@ -991,7 +893,7 @@ int dw_dma_cyclic_start(struct dma_chan *chan)
 
 	spin_lock(&dwc->lock);
 
-	/* assert channel is idle */
+	
 	if (dma_readl(dw, CH_EN) & dwc->mask) {
 		dev_err(chan2dev(&dwc->chan),
 			"BUG: Attempted to start non-idle channel\n");
@@ -1010,7 +912,7 @@ int dw_dma_cyclic_start(struct dma_chan *chan)
 	dma_writel(dw, CLEAR.ERROR, dwc->mask);
 	dma_writel(dw, CLEAR.XFER, dwc->mask);
 
-	/* setup DMAC channel registers */
+	
 	channel_writel(dwc, LLP, dwc->cdesc->desc[0]->txd.phys);
 	channel_writel(dwc, CTL_LO, DWC_CTLL_LLP_D_EN | DWC_CTLL_LLP_S_EN);
 	channel_writel(dwc, CTL_HI, 0);
@@ -1023,12 +925,7 @@ int dw_dma_cyclic_start(struct dma_chan *chan)
 }
 EXPORT_SYMBOL(dw_dma_cyclic_start);
 
-/**
- * dw_dma_cyclic_stop - stop the cyclic DMA transfer
- * @chan: the DMA channel to stop
- *
- * Must be called with soft interrupts disabled.
- */
+
 void dw_dma_cyclic_stop(struct dma_chan *chan)
 {
 	struct dw_dma_chan	*dwc = to_dw_dma_chan(chan);
@@ -1044,17 +941,7 @@ void dw_dma_cyclic_stop(struct dma_chan *chan)
 }
 EXPORT_SYMBOL(dw_dma_cyclic_stop);
 
-/**
- * dw_dma_cyclic_prep - prepare the cyclic DMA transfer
- * @chan: the DMA channel to prepare
- * @buf_addr: physical DMA address where the buffer starts
- * @buf_len: total number of bytes for the entire buffer
- * @period_len: number of bytes for each period
- * @direction: transfer direction, to or from device
- *
- * Must be called before trying to start the transfer. Returns a valid struct
- * dw_cyclic_desc if successful or an ERR_PTR(-errno) if not successful.
- */
+
 struct dw_cyclic_desc *dw_dma_cyclic_prep(struct dma_chan *chan,
 		dma_addr_t buf_addr, size_t buf_len, size_t period_len,
 		enum dma_data_direction direction)
@@ -1090,7 +977,7 @@ struct dw_cyclic_desc *dw_dma_cyclic_prep(struct dma_chan *chan,
 	reg_width = dws->reg_width;
 	periods = buf_len / period_len;
 
-	/* Check for too big/unaligned periods and unaligned DMA buffer. */
+	
 	if (period_len > (DWC_MAX_COUNT << reg_width))
 		goto out_err;
 	if (unlikely(period_len & ((1 << reg_width) - 1)))
@@ -1158,7 +1045,7 @@ struct dw_cyclic_desc *dw_dma_cyclic_prep(struct dma_chan *chan,
 		last = desc;
 	}
 
-	/* lets make a cyclic list */
+	
 	last->lli.llp = cdesc->desc[0]->txd.phys;
 	dma_sync_single_for_device(chan2parent(chan), last->txd.phys,
 			sizeof(last->lli), DMA_TO_DEVICE);
@@ -1183,10 +1070,7 @@ out_err:
 }
 EXPORT_SYMBOL(dw_dma_cyclic_prep);
 
-/**
- * dw_dma_cyclic_free - free a prepared cyclic DMA transfer
- * @chan: the DMA channel to free
- */
+
 void dw_dma_cyclic_free(struct dma_chan *chan)
 {
 	struct dw_dma_chan	*dwc = to_dw_dma_chan(chan);
@@ -1221,7 +1105,7 @@ void dw_dma_cyclic_free(struct dma_chan *chan)
 }
 EXPORT_SYMBOL(dw_dma_cyclic_free);
 
-/*----------------------------------------------------------------------*/
+
 
 static void dw_dma_off(struct dw_dma *dw)
 {
@@ -1285,7 +1169,7 @@ static int __init dw_probe(struct platform_device *pdev)
 	}
 	clk_enable(dw->clk);
 
-	/* force dma off, just in case */
+	
 	dw_dma_off(dw);
 
 	err = request_irq(irq, dw_dma_interrupt, 0, "dw_dmac", dw);
@@ -1318,7 +1202,7 @@ static int __init dw_probe(struct platform_device *pdev)
 		channel_clear_bit(dw, CH_EN, dwc->mask);
 	}
 
-	/* Clear/disable all interrupts on all channels. */
+	
 	dma_writel(dw, CLEAR.XFER, dw->all_chan_mask);
 	dma_writel(dw, CLEAR.BLOCK, dw->all_chan_mask);
 	dma_writel(dw, CLEAR.SRC_TRAN, dw->all_chan_mask);

@@ -1,30 +1,4 @@
-/*
- * sim710.c - Copyright (C) 1999 Richard Hirst <richard@sleepie.demon.co.uk>
- *
- *----------------------------------------------------------------------------
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by 
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *----------------------------------------------------------------------------
- *
- * MCA card detection code by Trent McNair.
- * Fixes to not explicitly nul bss data from Xavier Bestel.
- * Some multiboard fixes from Rolf Eike Beer.
- * Auto probing of EISA config space from Trevor Hemsley.
- *
- * Rewritten to use 53c700.c by James.Bottomley@SteelEye.com
- *
- */
+
 
 #include <linux/module.h>
 
@@ -42,11 +16,11 @@
 #include "53c700.h"
 
 
-/* Must be enough for both EISA and MCA */
+
 #define MAX_SLOTS 8
 static __u8 __initdata id_array[MAX_SLOTS] = { [0 ... MAX_SLOTS-1] = 7 };
 
-static char *sim710;		/* command line passed by insmod */
+static char *sim710;		
 
 MODULE_AUTHOR("Richard Hirst");
 MODULE_DESCRIPTION("Simple NCR53C710 driver");
@@ -117,14 +91,14 @@ sim710_probe_common(struct device *dev, unsigned long base_addr,
 		goto out_free;
 	}
 
-	/* Fill in the three required pieces of hostdata */
+	
 	hostdata->base = ioport_map(base_addr, 64);
 	hostdata->differential = differential;
 	hostdata->clock = clock;
 	hostdata->chip710 = 1;
 	hostdata->burst_length = 8;
 
-	/* and register the chip */
+	
 	if((host = NCR_700_detect(&sim710_driver_template, hostdata, dev))
 	   == NULL) {
 		printk(KERN_ERR "sim710: No host detected; card configuration problem?\n");
@@ -170,7 +144,7 @@ sim710_device_remove(struct device *dev)
 
 #ifdef CONFIG_MCA
 
-/* CARD ID 01BB and 01BA use the same pos values */
+
 #define MCA_01BB_IO_PORTS { 0x0000, 0x0000, 0x0800, 0x0C00, 0x1000, 0x1400, \
 			    0x1800, 0x1C00, 0x2000, 0x2400, 0x2800, \
 			    0x2C00, 0x3000, 0x3400, 0x3800, 0x3C00, \
@@ -178,7 +152,7 @@ sim710_device_remove(struct device *dev)
 
 #define MCA_01BB_IRQS { 3, 5, 11, 14 }
 
-/* CARD ID 004f */
+
 #define MCA_004F_IO_PORTS { 0x0000, 0x0200, 0x0300, 0x0400, 0x0500,  0x0600 }
 #define MCA_004F_IRQS { 5, 9, 14 }
 
@@ -204,37 +178,7 @@ sim710_mca_probe(struct device *dev)
 	pos[1] = mca_device_read_stored_pos(mca_dev, 3);
 	pos[2] = mca_device_read_stored_pos(mca_dev, 4);
 
-	/*
-	 * 01BB & 01BA port base by bits 7,6,5,4,3,2 in pos[2]
-	 *
-	 *    000000  <disabled>   001010  0x2800
-	 *    000001  <invalid>    001011  0x2C00
-	 *    000010  0x0800       001100  0x3000
-	 *    000011  0x0C00       001101  0x3400
-	 *    000100  0x1000       001110  0x3800
-	 *    000101  0x1400       001111  0x3C00
-	 *    000110  0x1800       010000  0x4000
-	 *    000111  0x1C00       010001  0x4400
-	 *    001000  0x2000       010010  0x4800
-	 *    001001  0x2400       010011  0x4C00
-	 *                         010100  0x5000
-	 *
-	 * 00F4 port base by bits 3,2,1 in pos[0]
-	 *
-	 *    000  <disabled>      001    0x200
-	 *    010  0x300           011    0x400
-	 *    100  0x500           101    0x600
-	 *
-	 * 01BB & 01BA IRQ is specified in pos[0] bits 7 and 6:
-	 *
-	 *    00   3               10   11
-	 *    01   5               11   14
-	 *
-	 * 00F4 IRQ specified by bits 6,5,4 in pos[0]
-	 *
-	 *    100   5              101    9
-	 *    110   14
-	 */
+	
 
 	if (id == 0x01bb || id == 0x01ba) {
 		base = io_01bb_by_pos[(pos[2] & 0xFC) >> 2];
@@ -274,7 +218,7 @@ static struct mca_driver sim710_mca_driver = {
 	},
 };
 
-#endif /* CONFIG_MCA */
+#endif 
 
 #ifdef CONFIG_EISA
 static struct eisa_device_id sim710_eisa_ids[] = {
@@ -332,7 +276,7 @@ static struct eisa_driver sim710_eisa_driver = {
 		.remove		= __devexit_p(sim710_device_remove),
 	},
 };
-#endif /* CONFIG_EISA */
+#endif 
 
 static int __init sim710_init(void)
 {
@@ -350,10 +294,7 @@ static int __init sim710_init(void)
 #ifdef CONFIG_EISA
 	err = eisa_driver_register(&sim710_eisa_driver);
 #endif
-	/* FIXME: what we'd really like to return here is -ENODEV if
-	 * no devices have actually been found.  Instead, the err
-	 * above actually only reports problems with kobject_register,
-	 * so for the moment return success */
+	
 
 	return 0;
 }

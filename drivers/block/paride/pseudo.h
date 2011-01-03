@@ -1,34 +1,6 @@
-/* 
-        pseudo.h    (c) 1997-8  Grant R. Guenther <grant@torque.net>
-                                Under the terms of the GNU General Public License.
 
-	This is the "pseudo-interrupt" logic for parallel port drivers.
 
-        This module is #included into each driver.  It makes one
-        function available:
 
-		ps_set_intr( void (*continuation)(void),
-			     int  (*ready)(void),
-			     int timeout,
-			     int nice )
-
-	Which will arrange for ready() to be evaluated frequently and
-	when either it returns true, or timeout jiffies have passed,
-	continuation() will be invoked.
-
-	If nice is 1, the test will done approximately once a
-	jiffy.  If nice is 0, the test will also be done whenever
-	the scheduler runs (by adding it to a task queue).  If
-	nice is greater than 1, the test will be done once every
-	(nice-1) jiffies. 
-
-*/
-
-/* Changes:
-
-	1.01	1998.05.03	Switched from cli()/sti() to spinlocks
-	1.02    1998.12.14      Added support for nice > 1
-*/
 	
 #define PS_VERSION	"1.02"
 
@@ -98,5 +70,5 @@ static void ps_tq_int(struct work_struct *work)
 	spin_unlock_irqrestore(&ps_spinlock,flags);
 }
 
-/* end of pseudo.h */
+
 

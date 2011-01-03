@@ -1,12 +1,4 @@
-/*
- *	IEEE 802.1D Generic Attribute Registration Protocol (GARP)
- *
- *	Copyright (c) 2008 Patrick McHardy <kaber@trash.net>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	version 2 as published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/timer.h>
 #include <linux/skbuff.h>
@@ -323,15 +315,13 @@ static void garp_attr_event(struct garp_applicant *app,
 	case GARP_ACTION_NONE:
 		break;
 	case GARP_ACTION_S_JOIN_IN:
-		/* When appending the attribute fails, don't update state in
-		 * order to retry on next TRANSMIT_PDU event. */
+		
 		if (garp_pdu_append_attr(app, attr, GARP_JOIN_IN) < 0)
 			return;
 		break;
 	case GARP_ACTION_S_LEAVE_EMPTY:
 		garp_pdu_append_attr(app, attr, GARP_LEAVE_EMPTY);
-		/* As a pure applicant, sending a leave message implies that
-		 * the attribute was unregistered and can be destroyed. */
+		
 		garp_attr_destroy(app, attr);
 		return;
 	default:
@@ -608,8 +598,7 @@ void garp_uninit_applicant(struct net_device *dev, struct garp_application *appl
 	rcu_assign_pointer(port->applicants[appl->type], NULL);
 	synchronize_rcu();
 
-	/* Delete timer and generate a final TRANSMIT_PDU event to flush out
-	 * all pending messages before the applicant is gone. */
+	
 	del_timer_sync(&app->join_timer);
 	garp_gid_event(app, GARP_EVENT_TRANSMIT_PDU);
 	garp_pdu_queue(app);

@@ -5,9 +5,7 @@
 
 #define EXT_GPIO(x)		(128 + (x))
 
-/* the following variables are processor specific and initialized
- * by the corresponding zylonite_pxa3xx_init()
- */
+
 struct platform_mmc_slot {
 	int gpio_cd;
 	int gpio_wp;
@@ -44,4 +42,4 @@ static inline void zylonite_pxa320_init(void)
 }
 #endif
 
-#endif /* __ASM_ARCH_ZYLONITE_H */
+#endif 

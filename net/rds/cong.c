@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Oracle.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 #include <linux/types.h>
 #include <linux/rbtree.h>
 
@@ -37,66 +6,16 @@
 
 #include "rds.h"
 
-/*
- * This file implements the receive side of the unconventional congestion
- * management in RDS.
- *
- * Messages waiting in the receive queue on the receiving socket are accounted
- * against the sockets SO_RCVBUF option value.  Only the payload bytes in the
- * message are accounted for.  If the number of bytes queued equals or exceeds
- * rcvbuf then the socket is congested.  All sends attempted to this socket's
- * address should return block or return -EWOULDBLOCK.
- *
- * Applications are expected to be reasonably tuned such that this situation
- * very rarely occurs.  An application encountering this "back-pressure" is
- * considered a bug.
- *
- * This is implemented by having each node maintain bitmaps which indicate
- * which ports on bound addresses are congested.  As the bitmap changes it is
- * sent through all the connections which terminate in the local address of the
- * bitmap which changed.
- *
- * The bitmaps are allocated as connections are brought up.  This avoids
- * allocation in the interrupt handling path which queues messages on sockets.
- * The dense bitmaps let transports send the entire bitmap on any bitmap change
- * reasonably efficiently.  This is much easier to implement than some
- * finer-grained communication of per-port congestion.  The sender does a very
- * inexpensive bit test to test if the port it's about to send to is congested
- * or not.
- */
 
-/*
- * Interaction with poll is a tad tricky. We want all processes stuck in
- * poll to wake up and check whether a congested destination became uncongested.
- * The really sad thing is we have no idea which destinations the application
- * wants to send to - we don't even know which rds_connections are involved.
- * So until we implement a more flexible rds poll interface, we have to make
- * do with this:
- * We maintain a global counter that is incremented each time a congestion map
- * update is received. Each rds socket tracks this value, and if rds_poll
- * finds that the saved generation number is smaller than the global generation
- * number, it wakes up the process.
- */
+
+
 static atomic_t		rds_cong_generation = ATOMIC_INIT(0);
 
-/*
- * Congestion monitoring
- */
+
 static LIST_HEAD(rds_cong_monitor);
 static DEFINE_RWLOCK(rds_cong_monitor_lock);
 
-/*
- * Yes, a global lock.  It's used so infrequently that it's worth keeping it
- * global to simplify the locking.  It's only used in the following
- * circumstances:
- *
- *  - on connection buildup to associate a conn with its maps
- *  - on map changes to inform conns of a new map to send
- *
- *  It's sadly ordered under the socket callback lock and the connection lock.
- *  Receive paths can mark ports congested from interrupt context so the
- *  lock masks interrupts.
- */
+
 static DEFINE_SPINLOCK(rds_cong_lock);
 static struct rb_root rds_cong_tree = RB_ROOT;
 
@@ -126,11 +45,7 @@ static struct rds_cong_map *rds_cong_tree_walk(__be32 addr,
 	return NULL;
 }
 
-/*
- * There is only ever one bitmap for any address.  Connections try and allocate
- * these bitmaps in the process getting pointers to them.  The bitmaps are only
- * ever freed as the module is removed after all connections have been freed.
- */
+
 static struct rds_cong_map *rds_cong_from_addr(__be32 addr)
 {
 	struct rds_cong_map *map;
@@ -175,10 +90,7 @@ out:
 	return ret;
 }
 
-/*
- * Put the conn on its local map's list.  This is called when the conn is
- * really added to the hash.  It's nested under the rds_conn_lock, sadly.
- */
+
 void rds_cong_add_conn(struct rds_connection *conn)
 {
 	unsigned long flags;
@@ -266,13 +178,7 @@ int rds_cong_updated_since(unsigned long *recent)
 	return 1;
 }
 
-/*
- * We're called under the locking that protects the sockets receive buffer
- * consumption.  This makes it a lot easier for the caller to only call us
- * when it knows that an existing set bit needs to be cleared, and vice versa.
- * We can't block and we need to deal with concurrent sockets working against
- * the same per-address map.
- */
+
 void rds_cong_set_bit(struct rds_cong_map *map, __be16 port)
 {
 	unsigned long i;
@@ -331,7 +237,7 @@ void rds_cong_remove_socket(struct rds_sock *rs)
 	list_del_init(&rs->rs_cong_list);
 	write_unlock_irqrestore(&rds_cong_monitor_lock, flags);
 
-	/* update congestion map for now-closed port */
+	
 	spin_lock_irqsave(&rds_cong_lock, flags);
 	map = rds_cong_tree_walk(rs->rs_bound_addr, NULL);
 	spin_unlock_irqrestore(&rds_cong_lock, flags);
@@ -351,14 +257,12 @@ int rds_cong_wait(struct rds_cong_map *map, __be16 port, int nonblock,
 		if (rs && rs->rs_cong_monitor) {
 			unsigned long flags;
 
-			/* It would have been nice to have an atomic set_bit on
-			 * a uint64_t. */
+			
 			spin_lock_irqsave(&rs->rs_lock, flags);
 			rs->rs_cong_mask |= RDS_CONG_MONITOR_MASK(ntohs(port));
 			spin_unlock_irqrestore(&rs->rs_lock, flags);
 
-			/* Test again - a congestion update may have arrived in
-			 * the meantime. */
+			
 			if (!rds_cong_test_bit(map, port))
 				return 0;
 		}
@@ -389,9 +293,7 @@ void rds_cong_exit(void)
 	}
 }
 
-/*
- * Allocate a RDS message containing a congestion update.
- */
+
 struct rds_message *rds_cong_update_alloc(struct rds_connection *conn)
 {
 	struct rds_cong_map *map = conn->c_lcong;

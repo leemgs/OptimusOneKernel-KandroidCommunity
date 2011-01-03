@@ -1,13 +1,4 @@
-/*
- * Minimalist driver for a generic PCI-to-EISA bridge.
- *
- * (C) 2003 Marc Zyngier <maz@wild-wind.fr.eu.org>
- *
- * This code is released under the GPL version 2.
- *
- * Ivan Kokshaysky <ink@jurassic.park.msu.ru> :
- * Generalisation from i82375 to PCI_CLASS_BRIDGE_EISA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -16,7 +7,7 @@
 #include <linux/module.h>
 #include <linux/init.h>
 
-/* There is only *one* pci_eisa device per machine, right ? */
+
 static struct eisa_root_device pci_eisa_root;
 
 static int __init pci_eisa_init(struct pci_dev *pdev,

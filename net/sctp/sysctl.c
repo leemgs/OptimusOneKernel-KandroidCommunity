@@ -1,45 +1,4 @@
-/* SCTP kernel implementation
- * (C) Copyright IBM Corp. 2002, 2004
- * Copyright (c) 2002 Intel Corp.
- *
- * This file is part of the SCTP kernel implementation
- *
- * Sysctl related interfaces for SCTP.
- *
- * This SCTP implementation is free software;
- * you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This SCTP implementation is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied
- *                 ************************
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU CC; see the file COPYING.  If not, write to
- * the Free Software Foundation, 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
- *
- * Please send any bug reports or fixes you make to the
- * email address(es):
- *    lksctp developers <lksctp-developers@lists.sourceforge.net>
- *
- * Or submit a bug report through the following website:
- *    http://www.sf.net/projects/lksctp
- *
- * Written or modified by:
- *    Mingqin Liu           <liuming@us.ibm.com>
- *    Jon Grimm             <jgrimm@us.ibm.com>
- *    Ardelle Fan           <ardelle.fan@intel.com>
- *    Ryan Layer            <rmlayer@us.ibm.com>
- *    Sridhar Samudrala     <sri@us.ibm.com>
- *
- * Any bugs reported given to us we will try to fix... any fixes shared will
- * be incorporated into the next SCTP release.
- */
+
 
 #include <net/sctp/structs.h>
 #include <net/sctp/sctp.h>
@@ -47,11 +6,11 @@
 
 static int zero = 0;
 static int one = 1;
-static int timer_max = 86400000; /* ms in one day */
+static int timer_max = 86400000; 
 static int int_max = INT_MAX;
 static int sack_timer_min = 1;
 static int sack_timer_max = 500;
-static int addr_scope_max = 3; /* check sctp_scope_policy_t in include/net/sctp/constants.h for max entries */
+static int addr_scope_max = 3; 
 
 extern int sysctl_sctp_mem[3];
 extern int sysctl_sctp_rmem[3];
@@ -295,13 +254,13 @@ static struct ctl_path sctp_path[] = {
 
 static struct ctl_table_header * sctp_sysctl_header;
 
-/* Sysctl registration.  */
+
 void sctp_sysctl_register(void)
 {
 	sctp_sysctl_header = register_sysctl_paths(sctp_path, sctp_table);
 }
 
-/* Sysctl deregistration.  */
+
 void sctp_sysctl_unregister(void)
 {
 	unregister_sysctl_table(sctp_sysctl_header);

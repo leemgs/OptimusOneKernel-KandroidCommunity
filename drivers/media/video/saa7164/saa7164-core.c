@@ -1,23 +1,4 @@
-/*
- *  Driver for the NXP SAA7164 PCIe bridge
- *
- *  Copyright (c) 2009 Steven Toth <stoth@kernellabs.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/list.h>
@@ -36,14 +17,7 @@ MODULE_DESCRIPTION("Driver for NXP SAA7164 based TV cards");
 MODULE_AUTHOR("Steven Toth <stoth@kernellabs.com>");
 MODULE_LICENSE("GPL");
 
-/*
-  1 Basic
-  2
-  4 i2c
-  8 api
- 16 cmd
- 32 bus
- */
+
 
 unsigned int saa_debug;
 module_param_named(debug, saa_debug, int, 0644);
@@ -68,7 +42,7 @@ static void saa7164_work_cmdhandler(struct work_struct *w)
 {
 	struct saa7164_dev *dev = container_of(w, struct saa7164_dev, workcmd);
 
-	/* Wake up any complete commands */
+	
 	saa7164_irq_dequeue(dev);
 }
 
@@ -76,7 +50,7 @@ static void saa7164_buffer_deliver(struct saa7164_buffer *buf)
 {
 	struct saa7164_tsport *port = buf->port;
 
-	/* Feed the transport payload into the kernel demux */
+	
 	dvb_dmx_swfilter_packets(&port->dvb.demux, (u8 *)buf->cpu,
 		SAA7164_TS_NUMBER_OF_LINES);
 
@@ -89,26 +63,26 @@ static irqreturn_t saa7164_irq_ts(struct saa7164_tsport *port)
 	struct list_head *c, *n;
 	int wp, i = 0, rp;
 
-	/* Find the current write point from the hardware */
+	
 	wp = saa7164_readl(port->bufcounter);
 	if (wp > (port->hwcfg.buffercount - 1))
 		BUG();
 
-	/* Find the previous buffer to the current write point */
+	
 	if (wp == 0)
 		rp = 7;
 	else
 		rp = wp - 1;
 
-	/* Lookup the WP in the buffer list */
-	/* TODO: turn this into a worker thread */
+	
+	
 	list_for_each_safe(c, n, &port->dmaqueue.list) {
 		buf = list_entry(c, struct saa7164_buffer, list);
 		if (i++ > port->hwcfg.buffercount)
 			BUG();
 
 		if (buf->nr == rp) {
-			/* Found the buffer, deal with it */
+			
 			dprintk(DBGLVL_IRQ, "%s() wp: %d processing: %d\n",
 				__func__, wp, rp);
 			saa7164_buffer_deliver(buf);
@@ -119,7 +93,7 @@ static irqreturn_t saa7164_irq_ts(struct saa7164_tsport *port)
 	return 0;
 }
 
-/* Primary IRQ handler and dispatch mechanism */
+
 static irqreturn_t saa7164_irq(int irq, void *dev_id)
 {
 	struct saa7164_dev *dev = dev_id;
@@ -132,15 +106,11 @@ static irqreturn_t saa7164_irq(int irq, void *dev_id)
 		goto out;
 	}
 
-	/* Check that the hardware is accessable. If the status bytes are
-	 * 0xFF then the device is not accessable, the the IRQ belongs
-	 * to another driver.
-	 * 4 x u32 interrupt registers.
-	 */
+	
 	for (i = 0; i < INT_SIZE/4; i++) {
 
-		/* TODO: Convert into saa7164_readl() */
-		/* Read the 4 hardware interrupt registers */
+		
+		
 		intstat[i] = saa7164_readl(dev->int_status + (i * 4));
 
 		if (intstat[i])
@@ -149,39 +119,36 @@ static irqreturn_t saa7164_irq(int irq, void *dev_id)
 	if (handled == 0)
 		goto out;
 
-	/* For each of the HW interrupt registers */
+	
 	for (i = 0; i < INT_SIZE/4; i++) {
 
 		if (intstat[i]) {
-			/* Each function of the board has it's own interruptid.
-			 * Find the function that triggered then call
-			 * it's handler.
-			 */
+			
 			for (bit = 0; bit < 32; bit++) {
 
 				if (((intstat[i] >> bit) & 0x00000001) == 0)
 					continue;
 
-				/* Calculate the interrupt id (0x00 to 0x7f) */
+				
 
 				intid = (i * 32) + bit;
 				if (intid == dev->intfdesc.bInterruptId) {
-					/* A response to an cmd/api call */
+					
 					schedule_work(&dev->workcmd);
 				} else if (intid ==
 					dev->ts1.hwcfg.interruptid) {
 
-					/* Transport path 1 */
+					
 					saa7164_irq_ts(&dev->ts1);
 
 				} else if (intid ==
 					dev->ts2.hwcfg.interruptid) {
 
-					/* Transport path 2 */
+					
 					saa7164_irq_ts(&dev->ts2);
 
 				} else {
-					/* Find the function */
+					
 					dprintk(DBGLVL_IRQ,
 						"%s() unhandled interrupt "
 						"reg 0x%x bit 0x%x "
@@ -190,7 +157,7 @@ static irqreturn_t saa7164_irq(int irq, void *dev_id)
 				}
 			}
 
-			/* Ack it */
+			
 			saa7164_writel(dev->int_ack + (i * 4), intstat[i]);
 
 		}
@@ -235,7 +202,7 @@ u32 saa7164_getcurrentfirmwareversion(struct saa7164_dev *dev)
 	return reg;
 }
 
-/* TODO: Debugging func, remove */
+
 void saa7164_dumphex16(struct saa7164_dev *dev, u8 *buf, int len)
 {
 	int i;
@@ -253,7 +220,7 @@ void saa7164_dumphex16(struct saa7164_dev *dev, u8 *buf, int len)
 		*(buf+i+12), *(buf+i+13), *(buf+i+14), *(buf+i+15));
 }
 
-/* TODO: Debugging func, remove */
+
 void saa7164_dumpregs(struct saa7164_dev *dev, u32 addr)
 {
 	int i;
@@ -349,11 +316,7 @@ static void saa7164_dump_busdesc(struct saa7164_dev *dev)
 	dprintk(1, " .ResponseRead  = 0x%x\n", dev->busdesc.ResponseRead);
 }
 
-/* Much of the hardware configuration and PCI registers are configured
- * dynamically depending on firmware. We have to cache some initial
- * structures then use these to locate other important structures
- * from PCI space.
- */
+
 static void saa7164_get_descriptors(struct saa7164_dev *dev)
 {
 	memcpy(&dev->hwdesc, dev->bmmio, sizeof(tmComResHWDescr_t));
@@ -416,7 +379,7 @@ static int saa7164_dev_setup(struct saa7164_dev *dev)
 	list_add_tail(&dev->devlist, &saa7164_devlist);
 	mutex_unlock(&devlist);
 
-	/* board config */
+	
 	dev->board = UNSET;
 	if (card[dev->nr] < saa7164_bcount)
 		dev->board = card[dev->nr];
@@ -435,7 +398,7 @@ static int saa7164_dev_setup(struct saa7164_dev *dev)
 	dev->pci_bus  = dev->pci->bus->number;
 	dev->pci_slot = PCI_SLOT(dev->pci->devfn);
 
-	/* I2C Defaults / setup */
+	
 	dev->i2c_bus[0].dev = dev;
 	dev->i2c_bus[0].nr = 0;
 	dev->i2c_bus[1].dev = dev;
@@ -443,7 +406,7 @@ static int saa7164_dev_setup(struct saa7164_dev *dev)
 	dev->i2c_bus[2].dev = dev;
 	dev->i2c_bus[2].nr = 2;
 
-	/* Transport port A Defaults / setup */
+	
 	dev->ts1.dev = dev;
 	dev->ts1.nr = 0;
 	mutex_init(&dev->ts1.dvb.lock);
@@ -452,7 +415,7 @@ static int saa7164_dev_setup(struct saa7164_dev *dev)
 	mutex_init(&dev->ts1.dmaqueue_lock);
 	mutex_init(&dev->ts1.dummy_dmaqueue_lock);
 
-	/* Transport port B Defaults / setup */
+	
 	dev->ts2.dev = dev;
 	dev->ts2.nr = 1;
 	mutex_init(&dev->ts2.dvb.lock);
@@ -471,7 +434,7 @@ static int saa7164_dev_setup(struct saa7164_dev *dev)
 		return -ENODEV;
 	}
 
-	/* PCI/e allocations */
+	
 	dev->lmmio = ioremap(pci_resource_start(dev->pci, 0),
 			     pci_resource_len(dev->pci, 0));
 
@@ -481,7 +444,7 @@ static int saa7164_dev_setup(struct saa7164_dev *dev)
 	dev->bmmio = (u8 __iomem *)dev->lmmio;
 	dev->bmmio2 = (u8 __iomem *)dev->lmmio2;
 
-	/* Inerrupt and ack register locations offset of bmmio */
+	
 	dev->int_status = 0x183000 + 0xf80;
 	dev->int_ack = 0x183000 + 0xf90;
 
@@ -527,7 +490,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 	if (NULL == dev)
 		return -ENOMEM;
 
-	/* pci init */
+	
 	dev->pci = pci_dev;
 	if (pci_enable_device(pci_dev)) {
 		err = -EIO;
@@ -539,7 +502,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 		goto fail_free;
 	}
 
-	/* print pci info */
+	
 	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &dev->pci_rev);
 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
 	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
@@ -549,7 +512,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 		(unsigned long long)pci_resource_start(pci_dev, 0));
 
 	pci_set_master(pci_dev);
-	/* TODO */
+	
 	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
 		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
 		err = -EIO;
@@ -567,7 +530,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 
 	pci_set_drvdata(pci_dev, dev);
 
-	/* Init the internal command list */
+	
 	for (i = 0; i < SAA_CMD_MAX_MSG_UNITS; i++) {
 		dev->cmds[i].seqno = i;
 		dev->cmds[i].inuse = 0;
@@ -575,10 +538,10 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 		init_waitqueue_head(&dev->cmds[i].wait);
 	}
 
-	/* We need a deferred interrupt handler for cmd handling */
+	
 	INIT_WORK(&dev->workcmd, saa7164_work_cmdhandler);
 
-	/* Only load the firmware if we know the board */
+	
 	if (dev->board != SAA7164_BOARD_UNKNOWN) {
 
 		err = saa7164_downloadfirmware(dev);
@@ -599,9 +562,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 				"Failed to setup the bus, will continue\n");
 		saa7164_bus_dump(dev);
 
-		/* Ping the running firmware via the command bus and get the
-		 * firmware version, this checks the bus is running OK.
-		 */
+		
 		version = 0;
 		if (saa7164_api_get_fw_version(dev, &version) == SAA_OK)
 			dprintk(1, "Bus is operating correctly using "
@@ -615,7 +576,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 			printk(KERN_ERR
 				"Failed to communicate with the firmware\n");
 
-		/* Bring up the I2C buses */
+		
 		saa7164_i2c_register(&dev->i2c_bus[0]);
 		saa7164_i2c_register(&dev->i2c_bus[1]);
 		saa7164_i2c_register(&dev->i2c_bus[2]);
@@ -623,15 +584,10 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 		saa7164_card_setup(dev);
 
 
-		/* Parse the dynamic device configuration, find various
-		 * media endpoints (MPEG, WMV, PS, TS) and cache their
-		 * configuration details into the driver, so we can
-		 * reference them later during simething_register() func,
-		 * interrupt handlers, deferred work handlers etc.
-		 */
+		
 		saa7164_api_enum_subdevs(dev);
 
-		/* Begin to create the video sub-systems and register funcs */
+		
 		if (saa7164_boards[dev->board].porta == SAA7164_MPEG_DVB) {
 			if (saa7164_dvb_register(&dev->ts1) < 0) {
 				printk(KERN_ERR "%s() Failed to register "
@@ -648,7 +604,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
 			}
 		}
 
-	} /* != BOARD_UNKNOWN */
+	} 
 	else
 		printk(KERN_ERR "%s() Unsupported board detected, "
 			"registering without firmware\n", __func__);
@@ -689,7 +645,7 @@ static void __devexit saa7164_finidev(struct pci_dev *pci_dev)
 
 	pci_disable_device(pci_dev);
 
-	/* unregister stuff */
+	
 	free_irq(pci_dev->irq, dev);
 	pci_set_drvdata(pci_dev, NULL);
 
@@ -703,13 +659,13 @@ static void __devexit saa7164_finidev(struct pci_dev *pci_dev)
 
 static struct pci_device_id saa7164_pci_tbl[] = {
 	{
-		/* SAA7164 */
+		
 		.vendor       = 0x1131,
 		.device       = 0x7164,
 		.subvendor    = PCI_ANY_ID,
 		.subdevice    = PCI_ANY_ID,
 	}, {
-		/* --- end of list --- */
+		
 	}
 };
 MODULE_DEVICE_TABLE(pci, saa7164_pci_tbl);
@@ -719,7 +675,7 @@ static struct pci_driver saa7164_pci_driver = {
 	.id_table = saa7164_pci_tbl,
 	.probe    = saa7164_initdev,
 	.remove   = __devexit_p(saa7164_finidev),
-	/* TODO */
+	
 	.suspend  = NULL,
 	.resume   = NULL,
 };

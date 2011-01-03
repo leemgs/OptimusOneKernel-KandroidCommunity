@@ -1,15 +1,4 @@
-/*
- *	Device handling code
- *	Linux ethernet bridge
- *
- *	Authors:
- *	Lennert Buytenhek		<buytenh@gnu.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/netdevice.h>
@@ -19,7 +8,7 @@
 #include <asm/uaccess.h>
 #include "br_private.h"
 
-/* net device transmit always called with no BH (preempt_disabled) */
+
 netdev_tx_t br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	struct net_bridge *br = netdev_priv(dev);
@@ -75,14 +64,14 @@ static int br_change_mtu(struct net_device *dev, int new_mtu)
 	dev->mtu = new_mtu;
 
 #ifdef CONFIG_BRIDGE_NETFILTER
-	/* remember the MTU in the rtable for PMTU */
+	
 	br->fake_rtable.u.dst.metrics[RTAX_MTU - 1] = new_mtu;
 #endif
 
 	return 0;
 }
 
-/* Allow setting mac address to any valid ethernet address. */
+
 static int br_set_mac_address(struct net_device *dev, void *p)
 {
 	struct net_bridge *br = netdev_priv(dev);

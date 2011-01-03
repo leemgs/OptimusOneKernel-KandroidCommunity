@@ -1,14 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Copyright (C) Alan Cox GW4PTS (alan@lxorguk.ukuu.org.uk)
- * Copyright (C) Jonathan Naylor G4KLX (g4klx@g4klx.demon.co.uk)
- * Copyright (C) Joerg Reuter DL1BKE (jreuter@yaina.de)
- * Copyright (C) Frederic Rible F1OAT (frible@teaser.fr)
- */
+
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/socket.h>
@@ -39,8 +29,7 @@ void ax25_std_heartbeat_expiry(ax25_cb *ax25)
 
 	switch (ax25->state) {
 	case AX25_STATE_0:
-		/* Magic here: If we listen() and a new link dies before it
-		   is accepted() it isn't 'dead' so doesn't get removed. */
+		
 		if (!sk || sock_flag(sk, SOCK_DESTROY) ||
 		    (sk->sk_state == TCP_LISTEN &&
 		     sock_flag(sk, SOCK_DEAD))) {
@@ -57,9 +46,7 @@ void ax25_std_heartbeat_expiry(ax25_cb *ax25)
 
 	case AX25_STATE_3:
 	case AX25_STATE_4:
-		/*
-		 * Check the state of the receive buffer.
-		 */
+		
 		if (sk != NULL) {
 			if (atomic_read(&sk->sk_rmem_alloc) <
 			    (sk->sk_rcvbuf >> 1) &&

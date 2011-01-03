@@ -1,11 +1,5 @@
-/* Redirect.  Simple mapping which alters dst to a local IP address. */
-/* (C) 1999-2001 Paul `Rusty' Russell
- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
+
 
 #include <linux/types.h>
 #include <linux/ip.h>
@@ -25,7 +19,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
 MODULE_DESCRIPTION("Xtables: Connection redirection to localhost");
 
-/* FIXME: Take multiple ranges --RR */
+
 static bool redirect_tg_check(const struct xt_tgchk_param *par)
 {
 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
@@ -56,7 +50,7 @@ redirect_tg(struct sk_buff *skb, const struct xt_target_param *par)
 	ct = nf_ct_get(skb, &ctinfo);
 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
 
-	/* Local packets: make them go to loopback */
+	
 	if (par->hooknum == NF_INET_LOCAL_OUT)
 		newdst = htonl(0x7F000001);
 	else {
@@ -75,13 +69,13 @@ redirect_tg(struct sk_buff *skb, const struct xt_target_param *par)
 			return NF_DROP;
 	}
 
-	/* Transfer from original range. */
+	
 	newrange = ((struct nf_nat_range)
 		{ mr->range[0].flags | IP_NAT_RANGE_MAP_IPS,
 		  newdst, newdst,
 		  mr->range[0].min, mr->range[0].max });
 
-	/* Hand modified range to generic setup. */
+	
 	return nf_nat_setup_info(ct, &newrange, IP_NAT_MANIP_DST);
 }
 

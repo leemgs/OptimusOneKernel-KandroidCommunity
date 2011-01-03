@@ -1,17 +1,4 @@
-/*
- *  linux/arch/arm/plat-omap/cpu-omap.c
- *
- *  CPU frequency scaling for OMAP
- *
- *  Copyright (C) 2005 Nokia Corporation
- *  Written by Tony Lindgren <tony@atomide.com>
- *
- *  Based on cpu-sa1110.c, Copyright (C) 2001 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -38,7 +25,7 @@ static struct cpufreq_frequency_table *freq_table;
 
 static struct clk *mpu_clk;
 
-/* TODO: Add support for SDRAM timing changes */
+
 
 int omap_verify_speed(struct cpufreq_policy *policy)
 {
@@ -76,8 +63,7 @@ static int omap_target(struct cpufreq_policy *policy,
 	struct cpufreq_freqs freqs;
 	int ret = 0;
 
-	/* Ensure desired rate is within allowed range.  Some govenors
-	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+	
 	if (target_freq < policy->min)
 		target_freq = policy->min;
 	if (target_freq > policy->max)
@@ -126,7 +112,7 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
 							VERY_HI_RATE) / 1000;
 	}
 
-	/* FIXME: what's the actual transition time? */
+	
 	policy->cpuinfo.transition_latency = 300 * 1000;
 
 	return 0;
@@ -161,10 +147,5 @@ static int __init omap_cpufreq_init(void)
 
 arch_initcall(omap_cpufreq_init);
 
-/*
- * if ever we want to remove this, upon cleanup call:
- *
- * cpufreq_unregister_driver()
- * cpufreq_frequency_table_put_attr()
- */
+
 

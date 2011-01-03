@@ -1,22 +1,4 @@
-/*
- *  Copyright (C) 2000 Deep Blue Solutions Ltd
- *  Copyright (C) 2002 Shane Nay (shane@minirl.com)
- *  Copyright 2006-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/mtd/mtd.h>
@@ -39,26 +21,26 @@
 
 static unsigned int mx21ads_pins[] = {
 
-	/* CS8900A */
+	
 	(GPIO_PORTE | GPIO_GPIO | GPIO_IN | 11),
 
-	/* UART1 */
+	
 	PE12_PF_UART1_TXD,
 	PE13_PF_UART1_RXD,
 	PE14_PF_UART1_CTS,
 	PE15_PF_UART1_RTS,
 
-	/* UART3 (IrDA) - only TXD and RXD */
+	
 	PE8_PF_UART3_TXD,
 	PE9_PF_UART3_RXD,
 
-	/* UART4 */
+	
 	PB26_AF_UART4_RTS,
 	PB28_AF_UART4_TXD,
 	PB29_AF_UART4_CTS,
 	PB31_AF_UART4_RXD,
 
-	/* LCDC */
+	
 	PA5_PF_LSCLK,
 	PA6_PF_LD0,
 	PA7_PF_LD1,
@@ -77,16 +59,16 @@ static unsigned int mx21ads_pins[] = {
 	PA20_PF_LD14,
 	PA21_PF_LD15,
 	PA22_PF_LD16,
-	PA24_PF_REV,     /* Sharp panel dedicated signal */
-	PA25_PF_CLS,     /* Sharp panel dedicated signal */
-	PA26_PF_PS,      /* Sharp panel dedicated signal */
-	PA27_PF_SPL_SPR, /* Sharp panel dedicated signal */
+	PA24_PF_REV,     
+	PA25_PF_CLS,     
+	PA26_PF_PS,      
+	PA27_PF_SPL_SPR, 
 	PA28_PF_HSYNC,
 	PA29_PF_VSYNC,
 	PA30_PF_CONTRAST,
 	PA31_PF_OE_ACD,
 
-	/* MMC/SDHC */
+	
 	PE18_PF_SD1_D0,
 	PE19_PF_SD1_D1,
 	PE20_PF_SD1_D2,
@@ -94,7 +76,7 @@ static unsigned int mx21ads_pins[] = {
 	PE22_PF_SD1_CMD,
 	PE23_PF_SD1_CLK,
 
-	/* NFC */
+	
 	PF0_PF_NRFB,
 	PF1_PF_NFCE,
 	PF2_PF_NFWP,
@@ -112,7 +94,7 @@ static unsigned int mx21ads_pins[] = {
 	PF14_PF_NFIO7,
 };
 
-/* ADS's NOR flash: 2x AM29BDS128HE9VKI on 32-bit bus */
+
 static struct physmap_flash_data mx21ads_flash_data = {
 	.width = 4,
 };
@@ -160,10 +142,7 @@ static void mx21ads_fb_exit(struct platform_device *pdev)
 	__raw_writew(tmp, MX21ADS_IO_REG);
 }
 
-/*
- * Connected is a portrait Sharp-QVGA display
- * of type: LQ035Q7DB02
- */
+
 static struct imx_fb_videomode mx21ads_modes[] = {
 	{
 		.mode = {
@@ -171,7 +150,7 @@ static struct imx_fb_videomode mx21ads_modes[] = {
 			.refresh	= 60,
 			.xres		= 240,
 			.yres		= 320,
-			.pixclock	= 188679, /* in ps (5.3MHz) */
+			.pixclock	= 188679, 
 			.hsync_len	= 2,
 			.left_margin	= 6,
 			.right_margin	= 16,
@@ -221,7 +200,7 @@ static void mx21ads_sdhc_exit(struct device *dev, void *data)
 }
 
 static struct imxmmc_platform_data mx21ads_sdhc_pdata = {
-	.ocr_avail = MMC_VDD_29_30 | MMC_VDD_30_31, /* 3.0V */
+	.ocr_avail = MMC_VDD_29_30 | MMC_VDD_30_31, 
 	.get_ro = mx21ads_sdhc_get_ro,
 	.init = mx21ads_sdhc_init,
 	.exit = mx21ads_sdhc_exit,
@@ -233,13 +212,7 @@ static struct mxc_nand_platform_data mx21ads_nand_board_info = {
 };
 
 static struct map_desc mx21ads_io_desc[] __initdata = {
-	/*
-	 * Memory-mapped I/O on MX21ADS Base board:
-	 *   - CS8900A Ethernet controller
-	 *   - ST16C2552CJ UART
-	 *   - CPU and Base board version
-	 *   - Base board I/O register
-	 */
+	
 	{
 		.virtual = MX21ADS_MMIO_BASE_ADDR,
 		.pfn = __phys_to_pfn(CS1_BASE_ADDR),
@@ -283,7 +256,7 @@ static struct sys_timer mx21ads_timer = {
 };
 
 MACHINE_START(MX21ADS, "Freescale i.MX21ADS")
-	/* maintainer: Freescale Semiconductor, Inc. */
+	
 	.phys_io        = AIPI_BASE_ADDR,
 	.io_pg_offst    = ((AIPI_BASE_ADDR_VIRT) >> 18) & 0xfffc,
 	.boot_params    = PHYS_OFFSET + 0x100,

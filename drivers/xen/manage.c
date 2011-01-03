@@ -1,6 +1,4 @@
-/*
- * Handle extern requests for shutdown, reboot and sysrq
- */
+
 #include <linux/kernel.h>
 #include <linux/err.h>
 #include <linux/reboot.h>
@@ -21,14 +19,11 @@ enum shutdown_state {
 	SHUTDOWN_INVALID = -1,
 	SHUTDOWN_POWEROFF = 0,
 	SHUTDOWN_SUSPEND = 2,
-	/* Code 3 is SHUTDOWN_CRASH, which we don't use because the domain can only
-	   report a crash, not be instructed to crash!
-	   HALT is the same as POWEROFF, as far as we're concerned.  The tools use
-	   the distinction when we return the reason code to them.  */
+	
 	 SHUTDOWN_HALT = 4,
 };
 
-/* Ignore multiple shutdown requests. */
+
 static enum shutdown_state shutting_down = SHUTDOWN_INVALID;
 
 #ifdef CONFIG_PM_SLEEP
@@ -50,11 +45,7 @@ static int xen_suspend(void *data)
 	gnttab_suspend();
 	xen_pre_suspend();
 
-	/*
-	 * This hypercall returns 1 if suspend was cancelled
-	 * or the domain was merely checkpointed, and 0 if it
-	 * is resuming in a new domain.
-	 */
+	
 	*cancelled = HYPERVISOR_suspend(virt_to_mfn(xen_start_info));
 
 	xen_post_suspend(*cancelled);
@@ -86,9 +77,7 @@ static void do_suspend(void)
 	}
 
 #ifdef CONFIG_PREEMPT
-	/* If the kernel is preemptible, we need to freeze all the processes
-	   to prevent them from being in the middle of a pagetable update
-	   during suspend. */
+	
 	err = freeze_processes();
 	if (err) {
 		printk(KERN_ERR "xen suspend: freeze failed %d\n", err);
@@ -129,7 +118,7 @@ out_resume:
 
 	dpm_resume_end(PMSG_RESUME);
 
-	/* Make sure timer events get retriggered on all CPUs */
+	
 	clock_was_set();
 
 out_thaw:
@@ -143,7 +132,7 @@ out_destroy_sm:
 out:
 	shutting_down = SHUTDOWN_INVALID;
 }
-#endif	/* CONFIG_PM_SLEEP */
+#endif	
 
 static void shutdown_handler(struct xenbus_watch *watch,
 			     const char **vec, unsigned int len)
@@ -161,7 +150,7 @@ static void shutdown_handler(struct xenbus_watch *watch,
 		return;
 
 	str = (char *)xenbus_read(xbt, "control", "shutdown", NULL);
-	/* Ignore read errors and empty reads. */
+	
 	if (XENBUS_IS_ERR_READ(str)) {
 		xenbus_transaction_end(xbt, 1);
 		return;
@@ -180,7 +169,7 @@ static void shutdown_handler(struct xenbus_watch *watch,
 		shutting_down = SHUTDOWN_POWEROFF;
 		orderly_poweroff(false);
 	} else if (strcmp(str, "reboot") == 0) {
-		shutting_down = SHUTDOWN_POWEROFF; /* ? */
+		shutting_down = SHUTDOWN_POWEROFF; 
 		ctrl_alt_del();
 #ifdef CONFIG_PM_SLEEP
 	} else if (strcmp(str, "suspend") == 0) {

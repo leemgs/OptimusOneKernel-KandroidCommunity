@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 #include <linux/slab.h>
 #include <linux/mman.h>
 #include <net/sock.h>
@@ -124,10 +94,7 @@ void iwch_ev_dispatch(struct cxio_rdev *rdev_p, struct sk_buff *skb)
 	atomic_inc(&chp->refcnt);
 	spin_unlock(&rnicp->lock);
 
-	/*
-	 * 1) completion of our sending a TERMINATE.
-	 * 2) incoming TERMINATE message.
-	 */
+	
 	if ((CQE_OPCODE(rsp_msg->cqe) == T3_TERMINATE) &&
 	    (CQE_STATUS(rsp_msg->cqe) == 0)) {
 		if (SQ_TYPE(rsp_msg->cqe)) {
@@ -144,14 +111,14 @@ void iwch_ev_dispatch(struct cxio_rdev *rdev_p, struct sk_buff *skb)
 		goto done;
 	}
 
-	/* Bad incoming Read request */
+	
 	if (SQ_TYPE(rsp_msg->cqe) &&
 	    (CQE_OPCODE(rsp_msg->cqe) == T3_READ_RESP)) {
 		post_qp_event(rnicp, chp, rsp_msg, IB_EVENT_QP_REQ_ERR, 1);
 		goto done;
 	}
 
-	/* Bad incoming write */
+	
 	if (RQ_TYPE(rsp_msg->cqe) &&
 	    (CQE_OPCODE(rsp_msg->cqe) == T3_RDMA_WRITE)) {
 		post_qp_event(rnicp, chp, rsp_msg, IB_EVENT_QP_REQ_ERR, 1);
@@ -160,12 +127,10 @@ void iwch_ev_dispatch(struct cxio_rdev *rdev_p, struct sk_buff *skb)
 
 	switch (CQE_STATUS(rsp_msg->cqe)) {
 
-	/* Completion Events */
+	
 	case TPT_ERR_SUCCESS:
 
-		/*
-		 * Confirm the destination entry if this is a RECV completion.
-		 */
+		
 		if (qhp->ep && SQ_TYPE(rsp_msg->cqe))
 			dst_confirm(qhp->ep->dst);
 		(*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
@@ -183,14 +148,14 @@ void iwch_ev_dispatch(struct cxio_rdev *rdev_p, struct sk_buff *skb)
 		post_qp_event(rnicp, chp, rsp_msg, IB_EVENT_QP_ACCESS_ERR, 1);
 		break;
 
-	/* Device Fatal Errors */
+	
 	case TPT_ERR_ECC:
 	case TPT_ERR_ECC_PSTAG:
 	case TPT_ERR_INTERNAL_ERR:
 		post_qp_event(rnicp, chp, rsp_msg, IB_EVENT_DEVICE_FATAL, 1);
 		break;
 
-	/* QP Fatal Errors */
+	
 	case TPT_ERR_OUT_OF_RQE:
 	case TPT_ERR_PBL_ADDR_BOUND:
 	case TPT_ERR_CRC:

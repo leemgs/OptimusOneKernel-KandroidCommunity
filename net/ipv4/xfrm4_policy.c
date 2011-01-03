@@ -1,12 +1,4 @@
-/*
- * xfrm4_policy.c
- *
- * Changes:
- *	Kazunori MIYAZAWA @USAGI
- * 	YOSHIFUJI Hideaki @USAGI
- *		Split up af-specific portion
- *
- */
+
 
 #include <linux/err.h>
 #include <linux/kernel.h>
@@ -68,7 +60,7 @@ __xfrm4_find_bundle(struct flowi *fl, struct xfrm_policy *policy)
 	read_lock_bh(&policy->lock);
 	for (dst = policy->bundles; dst; dst = dst->next) {
 		struct xfrm_dst *xdst = (struct xfrm_dst *)dst;
-		if (xdst->u.rt.fl.oif == fl->oif &&	/*XXX*/
+		if (xdst->u.rt.fl.oif == fl->oif &&	
 		    xdst->u.rt.fl.fl4_dst == fl->fl4_dst &&
 		    xdst->u.rt.fl.fl4_src == fl->fl4_src &&
 		    xdst->u.rt.fl.fl4_tos == fl->fl4_tos &&
@@ -109,8 +101,7 @@ static int xfrm4_fill_dst(struct xfrm_dst *xdst, struct net_device *dev)
 	if (rt->peer)
 		atomic_inc(&rt->peer->refcnt);
 
-	/* Sheit... I remember I did this right. Apparently,
-	 * it was magically lost, so this code needs audit */
+	
 	xdst->u.rt.rt_flags = rt->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST |
 					      RTCF_LOCAL);
 	xdst->u.rt.rt_type = rt->rt_type;
@@ -298,16 +289,7 @@ void __init xfrm4_init(int rt_max_size)
 {
 	xfrm4_state_init();
 	xfrm4_policy_init();
-	/*
-	 * Select a default value for the gc_thresh based on the main route
-	 * table hash size.  It seems to me the worst case scenario is when
-	 * we have ipsec operating in transport mode, in which we create a
-	 * dst_entry per socket.  The xfrm gc algorithm starts trying to remove
-	 * entries at gc_thresh, and prevents new allocations as 2*gc_thresh
-	 * so lets set an initial xfrm gc_thresh value at the rt_max_size/2.
-	 * That will let us store an ipsec connection per route table entry,
-	 * and start cleaning when were 1/2 full
-	 */
+	
 	xfrm4_dst_ops.gc_thresh = rt_max_size/2;
 #ifdef CONFIG_SYSCTL
 	sysctl_hdr = register_net_sysctl_table(&init_net, net_ipv4_ctl_path,

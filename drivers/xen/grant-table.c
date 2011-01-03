@@ -1,35 +1,4 @@
-/******************************************************************************
- * grant_table.c
- *
- * Granting foreign access to our memory reservation.
- *
- * Copyright (c) 2005-2006, Christopher Clark
- * Copyright (c) 2004-2005, K A Fraser
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -46,7 +15,7 @@
 #include <asm/sync_bitops.h>
 
 
-/* External tools reserve first few grant table entries. */
+
 #define NR_RESERVED_ENTRIES 8
 #define GNTTAB_LIST_END 0xffffffff
 #define GREFS_PER_GRANT_FRAME (PAGE_SIZE / sizeof(struct grant_entry))
@@ -70,7 +39,7 @@ static inline grant_ref_t *__gnttab_entry(grant_ref_t entry)
 {
 	return &gnttab_list[(entry) / RPP][(entry) % RPP];
 }
-/* This can be used as an l-value */
+
 #define gnttab_entry(entry) (*__gnttab_entry(entry))
 
 static int get_free_entries(unsigned count)
@@ -139,25 +108,14 @@ static void put_free_entry(grant_ref_t ref)
 static void update_grant_entry(grant_ref_t ref, domid_t domid,
 			       unsigned long frame, unsigned flags)
 {
-	/*
-	 * Introducing a valid entry into the grant table:
-	 *  1. Write ent->domid.
-	 *  2. Write ent->frame:
-	 *      GTF_permit_access:   Frame to which access is permitted.
-	 *      GTF_accept_transfer: Pseudo-phys frame slot being filled by new
-	 *                           frame, or zero if none.
-	 *  3. Write memory barrier (WMB).
-	 *  4. Write ent->flags, inc. valid type.
-	 */
+	
 	shared[ref].frame = frame;
 	shared[ref].domid = domid;
 	wmb();
 	shared[ref].flags = flags;
 }
 
-/*
- * Public grant-issuing interface functions
- */
+
 void gnttab_grant_foreign_access_ref(grant_ref_t ref, domid_t domid,
 				     unsigned long frame, int readonly)
 {
@@ -216,8 +174,7 @@ void gnttab_end_foreign_access(grant_ref_t ref, int readonly,
 		if (page != 0)
 			free_page(page);
 	} else {
-		/* XXX This needs to be fixed so that the ref and page are
-		   placed on a list to be freed up later. */
+		
 		printk(KERN_WARNING
 		       "WARNING: leaking g.e. and page still in use!\n");
 	}
@@ -249,23 +206,20 @@ unsigned long gnttab_end_foreign_transfer_ref(grant_ref_t ref)
 	unsigned long frame;
 	u16           flags;
 
-	/*
-	 * If a transfer is not even yet started, try to reclaim the grant
-	 * reference and return failure (== 0).
-	 */
+	
 	while (!((flags = shared[ref].flags) & GTF_transfer_committed)) {
 		if (sync_cmpxchg(&shared[ref].flags, flags, 0) == flags)
 			return 0;
 		cpu_relax();
 	}
 
-	/* If a transfer is in progress then wait until it is completed. */
+	
 	while (!(flags & GTF_transfer_completed)) {
 		flags = shared[ref].flags;
 		cpu_relax();
 	}
 
-	rmb();	/* Read the frame number /after/ reading completion status. */
+	rmb();	
 	frame = shared[ref].frame;
 	BUG_ON(frame == 0);
 
@@ -426,7 +380,7 @@ static unsigned int __max_nr_grant_frames(void)
 
 	rc = HYPERVISOR_grant_table_op(GNTTABOP_query_size, &query, 1);
 	if ((rc < 0) || (query.status != GNTST_okay))
-		return 4; /* Legacy max supported number of frames */
+		return 4; 
 
 	return query.max_nr_frames;
 }
@@ -515,9 +469,7 @@ static int __devinit gnttab_init(void)
 	nr_grant_frames = 1;
 	boot_max_nr_grant_frames = __max_nr_grant_frames();
 
-	/* Determine the maximum number of frames required for the
-	 * grant reference free list on the current hypervisor.
-	 */
+	
 	max_nr_glist_frames = (boot_max_nr_grant_frames *
 			       GREFS_PER_GRANT_FRAME / RPP);
 

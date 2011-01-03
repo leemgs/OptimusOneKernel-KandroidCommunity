@@ -17,4 +17,4 @@
 #define ext2_find_next_bit(addr, size, off) \
 	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
 
-#endif /* _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_ */
+#endif 

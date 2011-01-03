@@ -1,21 +1,4 @@
-/* $Id: ix1_micro.c,v 2.12.2.4 2004/01/13 23:48:39 keil Exp $
- *
- * low level stuff for ITK ix1-micro Rev.2 isdn cards
- * derived from the original file teles3.c from Karsten Keil
- *
- * Author       Klaus-Peter Nischke
- * Copyright    by Klaus-Peter Nischke, ITK AG
- *                                   <klaus@nischke.do.eunet.de>
- *              by Karsten Keil      <keil@isdn4linux.de>
- * 
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- * Klaus-Peter Nischke
- * Deusener Str. 287
- * 44369 Dortmund
- * Germany
- */
+
 
 #include <linux/init.h>
 #include <linux/isapnp.h>
@@ -70,7 +53,7 @@ writefifo(unsigned int ale, unsigned int adr, u_char off, u_char * data, int siz
 	outsb(adr, data, size);
 }
 
-/* Interface functions */
+
 
 static u_char
 ReadISAC(struct IsdnCardState *cs, u_char offset)
@@ -173,11 +156,11 @@ ix1_reset(struct IsdnCardState *cs)
 {
 	int cnt;
 
-	/* reset isac */
+	
 	cnt = 3 * (HZ / 10) + 1;
 	while (cnt--) {
 		byteout(cs->hw.ix1.cfg_reg + SPECIAL_PORT_OFFSET, 1);
-		HZDELAY(1);	/* wait >=10 ms */
+		HZDELAY(1);	
 	}
 	byteout(cs->hw.ix1.cfg_reg + SPECIAL_PORT_OFFSET, 0);
 }
@@ -277,7 +260,7 @@ setup_ix1micro(struct IsdnCard *card)
 		}
 	}
 #endif
-	/* IO-Ports */
+	
 	cs->hw.ix1.isac_ale = card->para[1] + ISAC_COMMAND_OFFSET;
 	cs->hw.ix1.hscx_ale = card->para[1] + HSCX_COMMAND_OFFSET;
 	cs->hw.ix1.isac = card->para[1] + ISAC_DATA_OFFSET;

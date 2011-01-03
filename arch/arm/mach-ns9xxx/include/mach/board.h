@@ -1,13 +1,4 @@
-/*
- * arch/arm/mach-ns9xxx/include/mach/board.h
- *
- * Copyright (C) 2006,2007 by Digi International Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 #ifndef __ASM_ARCH_BOARD_H
 #define __ASM_ARCH_BOARD_H
 
@@ -39,4 +30,4 @@
 		|| machine_is_cc7ucamry()		\
 		)
 
-#endif /* ifndef __ASM_ARCH_BOARD_H */
+#endif 
