@@ -1,21 +1,5 @@
-/*
- * RTC client/driver for the Maxim/Dallas DS1374 Real-Time Clock over I2C
- *
- * Based on code by Randy Vinson <rvinson@mvista.com>,
- * which was based on the m41t00.c by Mark Greer <mgreer@mvista.com>.
- *
- * Copyright (C) 2006-2007 Freescale Semiconductor
- *
- * 2005 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
-/*
- * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
- * recommened in .../Documentation/i2c/writing-clients section
- * "Sending and receiving", using SMBus level communication is preferred.
- */
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -25,21 +9,21 @@
 #include <linux/bcd.h>
 #include <linux/workqueue.h>
 
-#define DS1374_REG_TOD0		0x00 /* Time of Day */
+#define DS1374_REG_TOD0		0x00 
 #define DS1374_REG_TOD1		0x01
 #define DS1374_REG_TOD2		0x02
 #define DS1374_REG_TOD3		0x03
-#define DS1374_REG_WDALM0	0x04 /* Watchdog/Alarm */
+#define DS1374_REG_WDALM0	0x04 
 #define DS1374_REG_WDALM1	0x05
 #define DS1374_REG_WDALM2	0x06
-#define DS1374_REG_CR		0x07 /* Control */
-#define DS1374_REG_CR_AIE	0x01 /* Alarm Int. Enable */
-#define DS1374_REG_CR_WDALM	0x20 /* 1=Watchdog, 0=Alarm */
-#define DS1374_REG_CR_WACE	0x40 /* WD/Alarm counter enable */
-#define DS1374_REG_SR		0x08 /* Status */
-#define DS1374_REG_SR_OSF	0x80 /* Oscillator Stop Flag */
-#define DS1374_REG_SR_AF	0x01 /* Alarm Flag */
-#define DS1374_REG_TCR		0x09 /* Trickle Charge */
+#define DS1374_REG_CR		0x07 
+#define DS1374_REG_CR_AIE	0x01 
+#define DS1374_REG_CR_WDALM	0x20 
+#define DS1374_REG_CR_WACE	0x40 
+#define DS1374_REG_SR		0x08 
+#define DS1374_REG_SR_OSF	0x80 
+#define DS1374_REG_SR_AF	0x01 
+#define DS1374_REG_TCR		0x09 
 
 static const struct i2c_device_id ds1374_id[] = {
 	{ "ds1374", 0 },
@@ -52,10 +36,7 @@ struct ds1374 {
 	struct rtc_device *rtc;
 	struct work_struct work;
 
-	/* The mutex protects alarm operations, and prevents a race
-	 * between the enable_irq() in the workqueue and the free_irq()
-	 * in the remove function.
-	 */
+	
 	struct mutex mutex;
 	int exiting;
 };
@@ -126,10 +107,7 @@ static int ds1374_check_rtc_status(struct i2c_client *client)
 	if (ret < 0)
 		return ret;
 
-	/* If the alarm is pending, clear it before requesting
-	 * the interrupt, so an interrupt event isn't reported
-	 * before everything is initialized.
-	 */
+	
 
 	control = i2c_smbus_read_byte_data(client, DS1374_REG_CR);
 	if (control < 0)
@@ -161,10 +139,7 @@ static int ds1374_set_time(struct device *dev, struct rtc_time *time)
 	return ds1374_write_rtc(client, itime, DS1374_REG_TOD0, 4);
 }
 
-/* The ds1374 has a decrementer for an alarm, rather than a comparator.
- * If the time of day is changed, then the alarm will need to be
- * reset.
- */
+
 static int ds1374_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 {
 	struct i2c_client *client = to_i2c_client(dev);
@@ -222,12 +197,7 @@ static int ds1374_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	rtc_tm_to_time(&alarm->time, &new_alarm);
 	rtc_tm_to_time(&now, &itime);
 
-	/* This can happen due to races, in addition to dates that are
-	 * truly in the past.  To avoid requiring the caller to check for
-	 * races, dates in the past are assumed to be in the recent past
-	 * (i.e. not something that we'd rather the caller know about via
-	 * an error), and the alarm is set to go off as soon as possible.
-	 */
+	
 	if (time_before_eq(new_alarm, itime))
 		new_alarm = 1;
 	else
@@ -239,8 +209,7 @@ static int ds1374_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	if (ret < 0)
 		goto out;
 
-	/* Disable any existing alarm before setting the new one
-	 * (or lack thereof). */
+	
 	cr &= ~DS1374_REG_CR_WACE;
 
 	ret = i2c_smbus_write_byte_data(client, DS1374_REG_CR, cr);

@@ -1,12 +1,4 @@
-/*
- * An RTC test device/driver
- * Copyright (C) 2005 Tower Technologies
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/err.h>
@@ -53,9 +45,7 @@ static int test_rtc_proc(struct device *dev, struct seq_file *seq)
 static int test_rtc_ioctl(struct device *dev, unsigned int cmd,
 	unsigned long arg)
 {
-	/* We do support interrupts, they're generated
-	 * using the sysfs interface.
-	 */
+	
 	switch (cmd) {
 	case RTC_PIE_ON:
 	case RTC_PIE_OFF:

@@ -1,21 +1,6 @@
-/*
- * Freescale STMP37XX/STMP378X Real Time Clock driver
- *
- * Copyright (c) 2007 Sigmatel, Inc.
- * Peter Hartley, <peter.hartley@sigmatel.com>
- *
- * Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright 2008 Embedded Alley Solutions, Inc All Rights Reserved.
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -36,17 +21,13 @@ struct stmp3xxx_rtc_data {
 
 static void stmp3xxx_wait_time(struct stmp3xxx_rtc_data *rtc_data)
 {
-	/*
-	 * The datasheet doesn't say which way round the
-	 * NEW_REGS/STALE_REGS bitfields go. In fact it's 0x1=P0,
-	 * 0x2=P1, .., 0x20=P5, 0x40=ALARM, 0x80=SECONDS
-	 */
+	
 	while (__raw_readl(rtc_data->io + HW_RTC_STAT) &
 			BF(0x80, RTC_STAT_STALE_REGS))
 		cpu_relax();
 }
 
-/* Time read/write */
+
 static int stmp3xxx_rtc_gettime(struct device *dev, struct rtc_time *rtc_tm)
 {
 	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
@@ -65,7 +46,7 @@ static int stmp3xxx_rtc_set_mmss(struct device *dev, unsigned long t)
 	return 0;
 }
 
-/* interrupt(s) handler */
+
 static irqreturn_t stmp3xxx_rtc_interrupt(int irq, void *dev_id)
 {
 	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev_id);

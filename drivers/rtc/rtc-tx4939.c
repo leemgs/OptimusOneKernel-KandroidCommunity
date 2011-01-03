@@ -1,13 +1,4 @@
-/*
- * TX4939 internal RTC driver
- * Based on RBTX49xx patch from CELF patch archive.
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * (C) Copyright TOSHIBA CORPORATION 2005-2007
- */
+
 #include <linux/rtc.h>
 #include <linux/platform_device.h>
 #include <linux/interrupt.h>
@@ -29,9 +20,9 @@ static int tx4939_rtc_cmd(struct tx4939_rtc_reg __iomem *rtcreg, int cmd)
 	int i = 0;
 
 	__raw_writel(cmd, &rtcreg->ctl);
-	/* This might take 30us (next 32.768KHz clock) */
+	
 	while (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_BUSY) {
-		/* timeout on approx. 100us (@ GBUS200MHz) */
+		
 		if (i++ > 200 * 100)
 			return -EBUSY;
 		cpu_relax();

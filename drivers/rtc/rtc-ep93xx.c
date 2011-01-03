@@ -1,13 +1,4 @@
-/*
- * A driver for the RTC embedded in the Cirrus Logic EP93XX processors
- * Copyright (c) 2006 Tower Technologies
- *
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/rtc.h>
@@ -29,10 +20,7 @@
 
 #define DRV_VERSION "0.3"
 
-/*
- * struct device dev.platform_data is used to store our private data
- * because struct rtc_device does not have a variable to hold it.
- */
+
 struct ep93xx_rtc {
 	void __iomem	*mmio_base;
 };
@@ -184,7 +172,7 @@ static int __exit ep93xx_rtc_remove(struct platform_device *pdev)
 	struct ep93xx_rtc *ep93xx_rtc = pdev->dev.platform_data;
 	struct resource *res;
 
-	/* cleanup sysfs */
+	
 	device_remove_file(&pdev->dev, &dev_attr_comp_delete);
 	device_remove_file(&pdev->dev, &dev_attr_comp_preload);
 
@@ -201,7 +189,7 @@ static int __exit ep93xx_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:ep93xx-rtc");
 
 static struct platform_driver ep93xx_rtc_driver = {

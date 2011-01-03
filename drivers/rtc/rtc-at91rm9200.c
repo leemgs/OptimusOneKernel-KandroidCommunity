@@ -1,22 +1,4 @@
-/*
- *	Real Time Clock interface for Linux on Atmel AT91RM9200
- *
- *	Copyright (C) 2002 Rick Bronson
- *
- *	Converted to RTC class model by Andrew Victor
- *
- *	Ported to Linux 2.6 by Steven Scholz
- *	Based on s3c2410-rtc.c Simtec Electronics
- *
- *	Based on sa1100-rtc.c by Nils Faerber
- *	Based on rtc.c by Paul Gortmaker
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -33,20 +15,18 @@
 #include <mach/at91_rtc.h>
 
 
-#define AT91_RTC_EPOCH		1900UL	/* just like arch/arm/common/rtctime.c */
+#define AT91_RTC_EPOCH		1900UL	
 
 static DECLARE_COMPLETION(at91_rtc_updated);
 static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
 
-/*
- * Decode time/date into rtc_time structure
- */
+
 static void at91_rtc_decodetime(unsigned int timereg, unsigned int calreg,
 				struct rtc_time *tm)
 {
 	unsigned int time, date;
 
-	/* must read twice in case it changes */
+	
 	do {
 		time = at91_sys_read(timereg);
 		date = at91_sys_read(calreg);
@@ -57,22 +37,16 @@ static void at91_rtc_decodetime(unsigned int timereg, unsigned int calreg,
 	tm->tm_min  = bcd2bin((time & AT91_RTC_MIN) >> 8);
 	tm->tm_hour = bcd2bin((time & AT91_RTC_HOUR) >> 16);
 
-	/*
-	 * The Calendar Alarm register does not have a field for
-	 * the year - so these will return an invalid value.  When an
-	 * alarm is set, at91_alarm_year wille store the current year.
-	 */
-	tm->tm_year  = bcd2bin(date & AT91_RTC_CENT) * 100;	/* century */
-	tm->tm_year += bcd2bin((date & AT91_RTC_YEAR) >> 8);	/* year */
+	
+	tm->tm_year  = bcd2bin(date & AT91_RTC_CENT) * 100;	
+	tm->tm_year += bcd2bin((date & AT91_RTC_YEAR) >> 8);	
 
-	tm->tm_wday = bcd2bin((date & AT91_RTC_DAY) >> 21) - 1;	/* day of the week [0-6], Sunday=0 */
+	tm->tm_wday = bcd2bin((date & AT91_RTC_DAY) >> 21) - 1;	
 	tm->tm_mon  = bcd2bin((date & AT91_RTC_MONTH) >> 16) - 1;
 	tm->tm_mday = bcd2bin((date & AT91_RTC_DATE) >> 24);
 }
 
-/*
- * Read current time and date in RTC
- */
+
 static int at91_rtc_readtime(struct device *dev, struct rtc_time *tm)
 {
 	at91_rtc_decodetime(AT91_RTC_TIMR, AT91_RTC_CALR, tm);
@@ -86,9 +60,7 @@ static int at91_rtc_readtime(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-/*
- * Set current time and date in RTC
- */
+
 static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 {
 	unsigned long cr;
@@ -97,12 +69,12 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-	/* Stop Time/Calendar from counting */
+	
 	cr = at91_sys_read(AT91_RTC_CR);
 	at91_sys_write(AT91_RTC_CR, cr | AT91_RTC_UPDCAL | AT91_RTC_UPDTIM);
 
 	at91_sys_write(AT91_RTC_IER, AT91_RTC_ACKUPD);
-	wait_for_completion(&at91_rtc_updated);	/* wait for ACKUPD interrupt */
+	wait_for_completion(&at91_rtc_updated);	
 	at91_sys_write(AT91_RTC_IDR, AT91_RTC_ACKUPD);
 
 	at91_sys_write(AT91_RTC_TIMR,
@@ -111,22 +83,20 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 			| bin2bcd(tm->tm_hour) << 16);
 
 	at91_sys_write(AT91_RTC_CALR,
-			  bin2bcd((tm->tm_year + 1900) / 100)	/* century */
-			| bin2bcd(tm->tm_year % 100) << 8	/* year */
-			| bin2bcd(tm->tm_mon + 1) << 16		/* tm_mon starts at zero */
-			| bin2bcd(tm->tm_wday + 1) << 21	/* day of the week [0-6], Sunday=0 */
+			  bin2bcd((tm->tm_year + 1900) / 100)	
+			| bin2bcd(tm->tm_year % 100) << 8	
+			| bin2bcd(tm->tm_mon + 1) << 16		
+			| bin2bcd(tm->tm_wday + 1) << 21	
 			| bin2bcd(tm->tm_mday) << 24);
 
-	/* Restart Time/Calendar */
+	
 	cr = at91_sys_read(AT91_RTC_CR);
 	at91_sys_write(AT91_RTC_CR, cr & ~(AT91_RTC_UPDCAL | AT91_RTC_UPDTIM));
 
 	return 0;
 }
 
-/*
- * Read alarm time and date in RTC
- */
+
 static int at91_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
 {
 	struct rtc_time *tm = &alrm->time;
@@ -145,9 +115,7 @@ static int at91_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	return 0;
 }
 
-/*
- * Set alarm time and date in RTC
- */
+
 static int at91_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 {
 	struct rtc_time tm;
@@ -167,7 +135,7 @@ static int at91_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 		| bin2bcd(tm.tm_hour) << 16
 		| AT91_RTC_HOUREN | AT91_RTC_MINEN | AT91_RTC_SECEN);
 	at91_sys_write(AT91_RTC_CALALR,
-		  bin2bcd(tm.tm_mon + 1) << 16		/* tm_mon starts at zero */
+		  bin2bcd(tm.tm_mon + 1) << 16		
 		| bin2bcd(tm.tm_mday) << 24
 		| AT91_RTC_DATEEN | AT91_RTC_MTHEN);
 
@@ -183,9 +151,7 @@ static int at91_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	return 0;
 }
 
-/*
- * Handle commands from user-space
- */
+
 static int at91_rtc_ioctl(struct device *dev, unsigned int cmd,
 			unsigned long arg)
 {
@@ -193,19 +159,19 @@ static int at91_rtc_ioctl(struct device *dev, unsigned int cmd,
 
 	pr_debug("%s(): cmd=%08x, arg=%08lx.\n", __func__, cmd, arg);
 
-	/* important:  scrub old status before enabling IRQs */
+	
 	switch (cmd) {
-	case RTC_AIE_OFF:	/* alarm off */
+	case RTC_AIE_OFF:	
 		at91_sys_write(AT91_RTC_IDR, AT91_RTC_ALARM);
 		break;
-	case RTC_AIE_ON:	/* alarm on */
+	case RTC_AIE_ON:	
 		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
 		at91_sys_write(AT91_RTC_IER, AT91_RTC_ALARM);
 		break;
-	case RTC_UIE_OFF:	/* update off */
+	case RTC_UIE_OFF:	
 		at91_sys_write(AT91_RTC_IDR, AT91_RTC_SECEV);
 		break;
-	case RTC_UIE_ON:	/* update on */
+	case RTC_UIE_ON:	
 		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_SECEV);
 		at91_sys_write(AT91_RTC_IER, AT91_RTC_SECEV);
 		break;
@@ -217,9 +183,7 @@ static int at91_rtc_ioctl(struct device *dev, unsigned int cmd,
 	return ret;
 }
 
-/*
- * Provide additional RTC information in /proc/driver/rtc
- */
+
 static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
 {
 	unsigned long imr = at91_sys_read(AT91_RTC_IMR);
@@ -232,9 +196,7 @@ static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
 	return 0;
 }
 
-/*
- * IRQ handler for the RTC
- */
+
 static irqreturn_t at91_rtc_interrupt(int irq, void *dev_id)
 {
 	struct platform_device *pdev = dev_id;
@@ -243,7 +205,7 @@ static irqreturn_t at91_rtc_interrupt(int irq, void *dev_id)
 	unsigned long events = 0;
 
 	rtsr = at91_sys_read(AT91_RTC_SR) & at91_sys_read(AT91_RTC_IMR);
-	if (rtsr) {		/* this interrupt is shared!  Is it ours? */
+	if (rtsr) {		
 		if (rtsr & AT91_RTC_ALARM)
 			events |= (RTC_AF | RTC_IRQF);
 		if (rtsr & AT91_RTC_SECEV)
@@ -251,7 +213,7 @@ static irqreturn_t at91_rtc_interrupt(int irq, void *dev_id)
 		if (rtsr & AT91_RTC_ACKUPD)
 			complete(&at91_rtc_updated);
 
-		at91_sys_write(AT91_RTC_SCCR, rtsr);	/* clear status reg */
+		at91_sys_write(AT91_RTC_SCCR, rtsr);	
 
 		rtc_update_irq(rtc, 1, events);
 
@@ -260,7 +222,7 @@ static irqreturn_t at91_rtc_interrupt(int irq, void *dev_id)
 
 		return IRQ_HANDLED;
 	}
-	return IRQ_NONE;		/* not handled */
+	return IRQ_NONE;		
 }
 
 static const struct rtc_class_ops at91_rtc_ops = {
@@ -272,18 +234,16 @@ static const struct rtc_class_ops at91_rtc_ops = {
 	.proc		= at91_rtc_proc,
 };
 
-/*
- * Initialize and install RTC driver
- */
+
 static int __init at91_rtc_probe(struct platform_device *pdev)
 {
 	struct rtc_device *rtc;
 	int ret;
 
 	at91_sys_write(AT91_RTC_CR, 0);
-	at91_sys_write(AT91_RTC_MR, 0);		/* 24 hour mode */
+	at91_sys_write(AT91_RTC_MR, 0);		
 
-	/* Disable all interrupts */
+	
 	at91_sys_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
 					AT91_RTC_CALEV);
@@ -297,9 +257,7 @@ static int __init at91_rtc_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	/* cpu init code should really have flagged this device as
-	 * being wake-capable; if it didn't, do that here.
-	 */
+	
 	if (!device_can_wakeup(&pdev->dev))
 		device_init_wakeup(&pdev->dev, 1);
 
@@ -315,14 +273,12 @@ static int __init at91_rtc_probe(struct platform_device *pdev)
 	return 0;
 }
 
-/*
- * Disable and remove the RTC driver
- */
+
 static int __exit at91_rtc_remove(struct platform_device *pdev)
 {
 	struct rtc_device *rtc = platform_get_drvdata(pdev);
 
-	/* Disable all interrupts */
+	
 	at91_sys_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
 					AT91_RTC_CALEV);
@@ -336,15 +292,13 @@ static int __exit at91_rtc_remove(struct platform_device *pdev)
 
 #ifdef CONFIG_PM
 
-/* AT91RM9200 RTC Power management control */
+
 
 static u32 at91_rtc_imr;
 
 static int at91_rtc_suspend(struct device *dev)
 {
-	/* this IRQ is shared with DBGU and other hardware which isn't
-	 * necessarily doing PM like we are...
-	 */
+	
 	at91_rtc_imr = at91_sys_read(AT91_RTC_IMR)
 			& (AT91_RTC_ALARM|AT91_RTC_SECEV);
 	if (at91_rtc_imr) {

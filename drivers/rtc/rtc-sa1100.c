@@ -1,25 +1,4 @@
-/*
- * Real Time Clock interface for StrongARM SA1x00 and XScale PXA2xx
- *
- * Copyright (c) 2000 Nils Faerber
- *
- * Based on rtc.c by Paul Gortmaker
- *
- * Original Driver by Nils Faerber <nils@kernelconcepts.de>
- *
- * Modifications from:
- *   CIH <cih@coventive.com>
- *   Nicolas Pitre <nico@fluxnic.net>
- *   Andrew Christian <andrew.christian@hp.com>
- *
- * Converted to the RTC subsystem and Driver Model
- *   by Richard Purdie <rpurdie@rpsys.net>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/module.h>
@@ -57,10 +36,7 @@ static inline int rtc_periodic_alarm(struct rtc_time *tm)
 		((unsigned)tm->tm_sec > 59);
 }
 
-/*
- * Calculate the next alarm time given the requested alarm time mask
- * and the current time.
- */
+
 static void rtc_next_alarm_time(struct rtc_time *next, struct rtc_time *now, struct rtc_time *alrm)
 {
 	unsigned long next_time;
@@ -77,7 +53,7 @@ static void rtc_next_alarm_time(struct rtc_time *next, struct rtc_time *now, str
 	rtc_tm_to_time(next, &next_time);
 
 	if (next_time < now_time) {
-		/* Advance one day */
+		
 		next_time += 60 * 60 * 24;
 		rtc_time_to_tm(next_time, next);
 	}
@@ -114,16 +90,16 @@ static irqreturn_t sa1100_rtc_interrupt(int irq, void *dev_id)
 	spin_lock(&sa1100_rtc_lock);
 
 	rtsr = RTSR;
-	/* clear interrupt sources */
+	
 	RTSR = 0;
 	RTSR = (RTSR_AL | RTSR_HZ) & (rtsr >> 2);
 
-	/* clear alarm interrupt if it has occurred */
+	
 	if (rtsr & RTSR_AL)
 		rtsr &= ~RTSR_ALE;
 	RTSR = rtsr & (RTSR_ALE | RTSR_HZE);
 
-	/* update irq data & counter */
+	
 	if (rtsr & RTSR_AL)
 		events |= RTC_AF | RTC_IRQF;
 	if (rtsr & RTSR_HZ)
@@ -146,14 +122,8 @@ static irqreturn_t timer1_interrupt(int irq, void *dev_id)
 	struct platform_device *pdev = to_platform_device(dev_id);
 	struct rtc_device *rtc = platform_get_drvdata(pdev);
 
-	/*
-	 * If we match for the first time, rtc_timer1_count will be 1.
-	 * Otherwise, we wrapped around (very unlikely but
-	 * still possible) so compute the amount of missed periods.
-	 * The match reg is updated only when the data is actually retrieved
-	 * to avoid unnecessary interrupts.
-	 */
-	OSSR = OSSR_M1;	/* clear match on timer1 */
+	
+	OSSR = OSSR_M1;	
 
 	rtc_update_irq(rtc, rtc_timer1_count, RTC_PF | RTC_IRQF);
 
@@ -166,21 +136,18 @@ static irqreturn_t timer1_interrupt(int irq, void *dev_id)
 static int sa1100_rtc_read_callback(struct device *dev, int data)
 {
 	if (data & RTC_PF) {
-		/* interpolate missed periods and set match for the next */
+		
 		unsigned long period = timer_freq / rtc_freq;
 		unsigned long oscr = OSCR;
 		unsigned long osmr1 = OSMR1;
 		unsigned long missed = (oscr - osmr1)/period;
 		data += missed << 8;
-		OSSR = OSSR_M1;	/* clear match on timer 1 */
+		OSSR = OSSR_M1;	
 		OSMR1 = osmr1 + (missed + 1)*period;
-		/* Ensure we didn't miss another match in the mean time.
-		 * Here we compare (match - OSCR) 8 instead of 0 --
-		 * see comment in pxa_timer_interrupt() for explanation.
-		 */
+		
 		while( (signed long)((osmr1 = OSMR1) - OSCR) <= 8 ) {
 			data += 0x100;
-			OSSR = OSSR_M1;	/* clear match on timer 1 */
+			OSSR = OSSR_M1;	
 			OSMR1 = osmr1 + period;
 		}
 	}
@@ -355,17 +322,11 @@ static int sa1100_rtc_probe(struct platform_device *pdev)
 
 	timer_freq = get_clock_tick_rate();
 
-	/*
-	 * According to the manual we should be able to let RTTR be zero
-	 * and then a default diviser for a 32.768KHz clock is used.
-	 * Apparently this doesn't work, at least for my SA1110 rev 5.
-	 * If the clock divider is uninitialized then reset it to the
-	 * default value to get the 1Hz clock.
-	 */
+	
 	if (RTTR == 0) {
 		RTTR = RTC_DEF_DIVIDER + (RTC_DEF_TRIM << 16);
 		dev_warn(&pdev->dev, "warning: initializing default clock divider/trim value\n");
-		/* The current RTC value probably doesn't make sense either */
+		
 		RCNR = 0;
 	}
 

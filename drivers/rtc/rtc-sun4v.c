@@ -1,7 +1,4 @@
-/* rtc-sun4v.c: Hypervisor based RTC for SUN4V systems.
- *
- * Copyright (C) 2008 David S. Miller <davem@davemloft.net>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>

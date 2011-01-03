@@ -1,12 +1,4 @@
-/*
- * An RTC driver for the AVR32 AT32AP700x processor series.
- *
- * Copyright (C) 2007 Atmel Corporation
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -14,15 +6,7 @@
 #include <linux/rtc.h>
 #include <linux/io.h>
 
-/*
- * This is a bare-bones RTC. It runs during most system sleep states, but has
- * no battery backup and gets reset during system restart.  It must be
- * initialized from an external clock (network, I2C, etc) before it can be of
- * much use.
- *
- * The alarm functionality is limited by the hardware, not supporting
- * periodic interrupts.
- */
+
 
 #define RTC_CTRL		0x00
 #define RTC_CTRL_EN		   0
@@ -62,7 +46,7 @@ struct rtc_at32ap700x {
 	void __iomem		*regs;
 	unsigned long		alarm_time;
 	unsigned long		irq;
-	/* Protect against concurrent register access. */
+	
 	spinlock_t		lock;
 };
 
@@ -237,12 +221,7 @@ static int __init at32_rtc_probe(struct platform_device *pdev)
 	}
 	spin_lock_init(&rtc->lock);
 
-	/*
-	 * Maybe init RTC: count from zero at 1 Hz, disable wrap irq.
-	 *
-	 * Do not reset VAL register, as it can hold an old time
-	 * from last JTAG reset.
-	 */
+	
 	if (!(rtc_readl(rtc, CTRL) & RTC_BIT(CTRL_EN))) {
 		rtc_writel(rtc, CTRL, RTC_BIT(CTRL_PCLR));
 		rtc_writel(rtc, IDR, RTC_BIT(IDR_TOPI));

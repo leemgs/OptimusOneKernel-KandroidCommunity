@@ -1,15 +1,4 @@
-/*
- * A RTC driver for the Simtek STK17TA8
- *
- * By Thomas Hommel <thomas.hommel@gefanuc.com>
- *
- * Based on the DS1553 driver from
- * Atsushi Nemoto <anemo@mba.ocn.ne.jp>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/bcd.h>
 #include <linux/init.h>
@@ -47,16 +36,16 @@
 #define RTC_DAY_MASK		0x07
 #define RTC_CAL_MASK		0x3f
 
-/* Bits in the Calibration register */
+
 #define RTC_STOP		0x80
 
-/* Bits in the Flags register */
+
 #define RTC_FLAGS_AF		0x40
 #define RTC_FLAGS_PF		0x20
 #define RTC_WRITE		0x02
 #define RTC_READ		0x01
 
-/* Bits in the Interrupts register */
+
 #define RTC_INTS_AIE		0x40
 
 struct rtc_plat_data {
@@ -104,7 +93,7 @@ static int stk17ta8_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	unsigned int century;
 	u8 flags;
 
-	/* give enough time to update RTC in case of continuous read */
+	
 	if (pdata->last_jiffies == jiffies)
 		msleep(1);
 	pdata->last_jiffies = jiffies;
@@ -126,7 +115,7 @@ static int stk17ta8_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_mday = bcd2bin(day);
 	tm->tm_wday = bcd2bin(week);
 	tm->tm_mon = bcd2bin(month) - 1;
-	/* year is 1900 + tm->tm_year */
+	
 	tm->tm_year = bcd2bin(year) + bcd2bin(century) * 100 - 1900;
 
 	if (rtc_valid_tm(tm) < 0) {
@@ -160,7 +149,7 @@ static void stk17ta8_rtc_update_alarm(struct rtc_plat_data *pdata)
 	       0x80 : bin2bcd(pdata->alrm_sec),
 	       ioaddr + RTC_SECONDS_ALARM);
 	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
-	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
+	readb(ioaddr + RTC_FLAGS);	
 	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
 	spin_unlock_irqrestore(&pdata->rtc->irq_lock, irqflags);
 }
@@ -204,7 +193,7 @@ static irqreturn_t stk17ta8_rtc_interrupt(int irq, void *dev_id)
 	void __iomem *ioaddr = pdata->ioaddr;
 	unsigned long events = RTC_IRQF;
 
-	/* read and clear interrupt */
+	
 	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
 		return IRQ_NONE;
 	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
@@ -222,7 +211,7 @@ static int stk17ta8_rtc_ioctl(struct device *dev, unsigned int cmd,
 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
 
 	if (pdata->irq <= 0)
-		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
+		return -ENOIOCTLCMD; 
 	switch (cmd) {
 	case RTC_AIE_OFF:
 		pdata->irqen &= ~RTC_AF;
@@ -316,7 +305,7 @@ static int __init stk17ta8_rtc_probe(struct platform_device *pdev)
 	pdata->ioaddr = ioaddr;
 	pdata->irq = platform_get_irq(pdev, 0);
 
-	/* turn RTC on if it was not on */
+	
 	cal = readb(ioaddr + RTC_CALIBRATION);
 	if (cal & RTC_STOP) {
 		cal &= RTC_CAL_MASK;
@@ -380,7 +369,7 @@ static int __devexit stk17ta8_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:stk17ta8");
 
 static struct platform_driver stk17ta8_rtc_driver = {

@@ -1,16 +1,4 @@
-/*
- * DS1286 Real Time Clock interface for Linux
- *
- * Copyright (C) 1998, 1999, 2000 Ralf Baechle
- * Copyright (C) 2008 Thomas Bogendoerfer
- *
- * Based on code written by Paul Gortmaker.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/rtc.h>
@@ -49,7 +37,7 @@ static int ds1286_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
 
 	switch (cmd) {
 	case RTC_AIE_OFF:
-		/* Mask alarm int. enab. bit	*/
+		
 		spin_lock_irqsave(&priv->lock, flags);
 		val = ds1286_rtc_read(priv, RTC_CMD);
 		val |=  RTC_TDM;
@@ -57,7 +45,7 @@ static int ds1286_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
 		spin_unlock_irqrestore(&priv->lock, flags);
 		break;
 	case RTC_AIE_ON:
-		/* Allow alarm interrupts.	*/
+		
 		spin_lock_irqsave(&priv->lock, flags);
 		val = ds1286_rtc_read(priv, RTC_CMD);
 		val &=  ~RTC_TDM;
@@ -65,7 +53,7 @@ static int ds1286_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
 		spin_unlock_irqrestore(&priv->lock, flags);
 		break;
 	case RTC_WIE_OFF:
-		/* Mask watchdog int. enab. bit	*/
+		
 		spin_lock_irqsave(&priv->lock, flags);
 		val = ds1286_rtc_read(priv, RTC_CMD);
 		val |= RTC_WAM;
@@ -73,7 +61,7 @@ static int ds1286_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
 		spin_unlock_irqrestore(&priv->lock, flags);
 		break;
 	case RTC_WIE_ON:
-		/* Allow watchdog interrupts.	*/
+		
 		spin_lock_irqsave(&priv->lock, flags);
 		val = ds1286_rtc_read(priv, RTC_CMD);
 		val &= ~RTC_WAM;
@@ -157,26 +145,13 @@ static int ds1286_read_time(struct device *dev, struct rtc_time *tm)
 	unsigned long flags;
 	unsigned long uip_watchdog = jiffies;
 
-	/*
-	 * read RTC once any update in progress is done. The update
-	 * can take just over 2ms. We wait 10 to 20ms. There is no need to
-	 * to poll-wait (up to 1s - eeccch) for the falling edge of RTC_UIP.
-	 * If you need to know *exactly* when a second has started, enable
-	 * periodic update complete interrupts, (via ioctl) and then
-	 * immediately read /dev/rtc which will block until you get the IRQ.
-	 * Once the read clears, read the RTC time (again via ioctl). Easy.
-	 */
+	
 
 	if (ds1286_rtc_read(priv, RTC_CMD) & RTC_TE)
 		while (time_before(jiffies, uip_watchdog + 2*HZ/100))
 			barrier();
 
-	/*
-	 * Only the values that we read from the RTC are set. We leave
-	 * tm_wday, tm_yday and tm_isdst untouched. Even though the
-	 * RTC has RTC_DAY_OF_WEEK, we ignore it, as it is only updated
-	 * by the RTC when initially set to a non-zero value.
-	 */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 	save_control = ds1286_rtc_read(priv, RTC_CMD);
 	ds1286_rtc_write(priv, (save_control|RTC_TE), RTC_CMD);
@@ -198,10 +173,7 @@ static int ds1286_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_mon = bcd2bin(tm->tm_mon);
 	tm->tm_year = bcd2bin(tm->tm_year);
 
-	/*
-	 * Account for differences between how the RTC uses the values
-	 * and how they are defined in a struct rtc_time;
-	 */
+	
 	if (tm->tm_year < 45)
 		tm->tm_year += 30;
 	tm->tm_year += 40;
@@ -222,7 +194,7 @@ static int ds1286_set_time(struct device *dev, struct rtc_time *tm)
 	unsigned long flags;
 
 	yrs = tm->tm_year + 1900;
-	mon = tm->tm_mon + 1;   /* tm_mon starts at zero */
+	mon = tm->tm_mon + 1;   
 	day = tm->tm_mday;
 	hrs = tm->tm_hour;
 	min = tm->tm_min;
@@ -232,7 +204,7 @@ static int ds1286_set_time(struct device *dev, struct rtc_time *tm)
 		return -EINVAL;
 
 	yrs -= 1940;
-	if (yrs > 255)    /* They are unsigned */
+	if (yrs > 255)    
 		return -EINVAL;
 
 	if (yrs >= 100)
@@ -268,10 +240,7 @@ static int ds1286_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	unsigned char cmd;
 	unsigned long flags;
 
-	/*
-	 * Only the values that we read from the RTC are set. That
-	 * means only tm_wday, tm_hour, tm_min.
-	 */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 	alm->time.tm_min = ds1286_rtc_read(priv, RTC_MINUTES_ALARM) & 0x7f;
 	alm->time.tm_hour = ds1286_rtc_read(priv, RTC_HOURS_ALARM)  & 0x1f;

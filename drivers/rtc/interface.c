@@ -1,15 +1,4 @@
-/*
- * RTC subsystem, interface functions
- *
- * Copyright (C) 2005 Tower Technologies
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- * based on arch/arm/common/rtctime.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/rtc.h>
 #include <linux/sched.h>
@@ -85,12 +74,7 @@ int rtc_set_mmss(struct rtc_device *rtc, unsigned long secs)
 		if (err == 0) {
 			rtc_time_to_tm(secs, &new);
 
-			/*
-			 * avoid writing when we're going to change the day of
-			 * the month. We will retry in the next minute. This
-			 * basically means that if the RTC must not drift
-			 * by more than 1 minute in 11 minutes.
-			 */
+			
 			if (!((old.tm_hour == 23 && old.tm_min == 59) ||
 				(new.tm_hour == 23 && new.tm_min == 59)))
 				err = rtc->ops->set_time(rtc->dev.parent,
@@ -136,48 +120,9 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	enum { none, day, month, year } missing = none;
 	unsigned days;
 
-	/* The lower level RTC driver may return -1 in some fields,
-	 * creating invalid alarm->time values, for reasons like:
-	 *
-	 *   - The hardware may not be capable of filling them in;
-	 *     many alarms match only on time-of-day fields, not
-	 *     day/month/year calendar data.
-	 *
-	 *   - Some hardware uses illegal values as "wildcard" match
-	 *     values, which non-Linux firmware (like a BIOS) may try
-	 *     to set up as e.g. "alarm 15 minutes after each hour".
-	 *     Linux uses only oneshot alarms.
-	 *
-	 * When we see that here, we deal with it by using values from
-	 * a current RTC timestamp for any missing (-1) values.  The
-	 * RTC driver prevents "periodic alarm" modes.
-	 *
-	 * But this can be racey, because some fields of the RTC timestamp
-	 * may have wrapped in the interval since we read the RTC alarm,
-	 * which would lead to us inserting inconsistent values in place
-	 * of the -1 fields.
-	 *
-	 * Reading the alarm and timestamp in the reverse sequence
-	 * would have the same race condition, and not solve the issue.
-	 *
-	 * So, we must first read the RTC timestamp,
-	 * then read the RTC alarm value,
-	 * and then read a second RTC timestamp.
-	 *
-	 * If any fields of the second timestamp have changed
-	 * when compared with the first timestamp, then we know
-	 * our timestamp may be inconsistent with that used by
-	 * the low-level rtc_read_alarm_internal() function.
-	 *
-	 * So, when the two timestamps disagree, we just loop and do
-	 * the process again to get a fully consistent set of values.
-	 *
-	 * This could all instead be done in the lower level driver,
-	 * but since more than one lower level RTC implementation needs it,
-	 * then it's probably best best to do it here instead of there..
-	 */
+	
 
-	/* Get the "before" timestamp */
+	
 	err = rtc_read_time(rtc, &before);
 	if (err < 0)
 		return err;
@@ -186,31 +131,29 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 			memcpy(&before, &now, sizeof(struct rtc_time));
 		first_time = 0;
 
-		/* get the RTC alarm values, which may be incomplete */
+		
 		err = rtc_read_alarm_internal(rtc, alarm);
 		if (err)
 			return err;
 		if (!alarm->enabled)
 			return 0;
 
-		/* full-function RTCs won't have such missing fields */
+		
 		if (rtc_valid_tm(&alarm->time) == 0)
 			return 0;
 
-		/* get the "after" timestamp, to detect wrapped fields */
+		
 		err = rtc_read_time(rtc, &now);
 		if (err < 0)
 			return err;
 
-		/* note that tm_sec is a "don't care" value here: */
+		
 	} while (   before.tm_min   != now.tm_min
 		 || before.tm_hour  != now.tm_hour
 		 || before.tm_mon   != now.tm_mon
 		 || before.tm_year  != now.tm_year);
 
-	/* Fill in the missing alarm fields using the timestamp; we
-	 * know there's at least one since alarm->time is invalid.
-	 */
+	
 	if (alarm->time.tm_sec == -1)
 		alarm->time.tm_sec = now.tm_sec;
 	if (alarm->time.tm_min == -1)
@@ -218,7 +161,7 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	if (alarm->time.tm_hour == -1)
 		alarm->time.tm_hour = now.tm_hour;
 
-	/* For simplicity, only support date rollover for now */
+	
 	if (alarm->time.tm_mday == -1) {
 		alarm->time.tm_mday = now.tm_mday;
 		missing = day;
@@ -234,7 +177,7 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 			missing = year;
 	}
 
-	/* with luck, no rollover is needed */
+	
 	rtc_tm_to_time(&now, &t_now);
 	rtc_tm_to_time(&alarm->time, &t_alm);
 	if (t_now < t_alm)
@@ -242,22 +185,14 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 
 	switch (missing) {
 
-	/* 24 hour rollover ... if it's now 10am Monday, an alarm that
-	 * that will trigger at 5am will do so at 5am Tuesday, which
-	 * could also be in the next month or year.  This is a common
-	 * case, especially for PCs.
-	 */
+	
 	case day:
 		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "day");
 		t_alm += 24 * 60 * 60;
 		rtc_time_to_tm(t_alm, &alarm->time);
 		break;
 
-	/* Month rollover ... if it's the 31th, an alarm on the 3rd will
-	 * be next month.  An alarm matching on the 30th, 29th, or 28th
-	 * may end up in the month after that!  Many newer PCs support
-	 * this type of alarm.
-	 */
+	
 	case month:
 		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "month");
 		do {
@@ -272,7 +207,7 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 		} while (days < alarm->time.tm_mday);
 		break;
 
-	/* Year rollover ... easy except for leap years! */
+	
 	case year:
 		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "year");
 		do {
@@ -354,12 +289,7 @@ int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled)
 	mutex_unlock(&rtc->ops_lock);
 
 #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
-	/*
-	 * Enable emulation if the driver did not provide
-	 * the update_irq_enable function pointer or if returned
-	 * -EINVAL to signal that it has been configured without
-	 * interrupts or that are not available at the moment.
-	 */
+	
 	if (err == -EINVAL)
 		err = rtc_dev_update_irq_enable_emul(rtc, enabled);
 #endif
@@ -367,13 +297,7 @@ int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled)
 }
 EXPORT_SYMBOL_GPL(rtc_update_irq_enable);
 
-/**
- * rtc_update_irq - report RTC periodic, alarm, and/or update irqs
- * @rtc: the rtc device
- * @num: how many irqs are being reported (usually one)
- * @events: mask of RTC_IRQF with one or more of RTC_PF, RTC_AF, RTC_UF
- * Context: any
- */
+
 void rtc_update_irq(struct rtc_device *rtc,
 		unsigned long num, unsigned long events)
 {
@@ -436,7 +360,7 @@ int rtc_irq_register(struct rtc_device *rtc, struct rtc_task *task)
 	if (task == NULL || task->func == NULL)
 		return -EINVAL;
 
-	/* Cannot register while the char dev is in use */
+	
 	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags))
 		return -EBUSY;
 
@@ -462,16 +386,7 @@ void rtc_irq_unregister(struct rtc_device *rtc, struct rtc_task *task)
 }
 EXPORT_SYMBOL_GPL(rtc_irq_unregister);
 
-/**
- * rtc_irq_set_state - enable/disable 2^N Hz periodic IRQs
- * @rtc: the rtc device
- * @task: currently registered with rtc_irq_register()
- * @enabled: true to enable periodic IRQs
- * Context: any
- *
- * Note that rtc_irq_set_freq() should previously have been used to
- * specify the desired frequency of periodic IRQ task->func() callbacks.
- */
+
 int rtc_irq_set_state(struct rtc_device *rtc, struct rtc_task *task, int enabled)
 {
 	int err = 0;
@@ -494,16 +409,7 @@ int rtc_irq_set_state(struct rtc_device *rtc, struct rtc_task *task, int enabled
 }
 EXPORT_SYMBOL_GPL(rtc_irq_set_state);
 
-/**
- * rtc_irq_set_freq - set 2^N Hz periodic IRQ frequency for IRQ
- * @rtc: the rtc device
- * @task: currently registered with rtc_irq_register()
- * @freq: positive frequency with which task->func() will be called
- * Context: any
- *
- * Note that rtc_irq_set_state() is used to enable or disable the
- * periodic IRQs.
- */
+
 int rtc_irq_set_freq(struct rtc_device *rtc, struct rtc_task *task, int freq)
 {
 	int err = 0;

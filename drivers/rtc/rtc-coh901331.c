@@ -1,11 +1,4 @@
-/*
- * Copyright (C) 2007-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * Real Time Clock interface for ST-Ericsson AB COH 901 331 RTC.
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- * Based on rtc-pl031.c by Deepak Saxena <dsaxena@plexity.net>
- * Copyright 2006 (c) MontaVista Software, Inc.
- */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/rtc.h>
@@ -15,30 +8,23 @@
 #include <linux/platform_device.h>
 #include <linux/io.h>
 
-/*
- * Registers in the COH 901 331
- */
-/* Alarm value 32bit (R/W) */
+
+
 #define COH901331_ALARM		0x00U
-/* Used to set current time 32bit (R/W) */
+
 #define COH901331_SET_TIME	0x04U
-/* Indication if current time is valid 32bit (R/-) */
+
 #define COH901331_VALID		0x08U
-/* Read the current time 32bit (R/-) */
+
 #define COH901331_CUR_TIME	0x0cU
-/* Event register for the "alarm" interrupt */
+
 #define COH901331_IRQ_EVENT	0x10U
-/* Mask register for the "alarm" interrupt */
+
 #define COH901331_IRQ_MASK	0x14U
-/* Force register for the "alarm" interrupt */
+
 #define COH901331_IRQ_FORCE	0x18U
 
-/*
- * Reference to RTC block clock
- * Notice that the frequent clk_enable()/clk_disable() on this
- * clock is mainly to be able to turn on/off other clocks in the
- * hierarchy as needed, the RTC clock is always on anyway.
- */
+
 struct coh901331_port {
 	struct rtc_device *rtc;
 	struct clk *clk;
@@ -56,19 +42,13 @@ static irqreturn_t coh901331_interrupt(int irq, void *data)
 	struct coh901331_port *rtap = data;
 
 	clk_enable(rtap->clk);
-	/* Ack IRQ */
+	
 	writel(1, rtap->virtbase + COH901331_IRQ_EVENT);
-	/*
-	 * Disable the interrupt. This is necessary because
-	 * the RTC lives on a lower-clocked line and will
-	 * not release the IRQ line until after a few (slower)
-	 * clock cycles. The interrupt will be re-enabled when
-	 * a new alarm is set anyway.
-	 */
+	
 	writel(0, rtap->virtbase + COH901331_IRQ_MASK);
 	clk_disable(rtap->clk);
 
-	/* Set alarm flag */
+	
 	rtc_update_irq(rtap->rtc, 1, RTC_AF);
 
 	return IRQ_HANDLED;
@@ -79,7 +59,7 @@ static int coh901331_read_time(struct device *dev, struct rtc_time *tm)
 	struct coh901331_port *rtap = dev_get_drvdata(dev);
 
 	clk_enable(rtap->clk);
-	/* Check if the time is valid */
+	
 	if (readl(rtap->virtbase + COH901331_VALID)) {
 		rtc_time_to_tm(readl(rtap->virtbase + COH901331_CUR_TIME), tm);
 		clk_disable(rtap->clk);
@@ -211,7 +191,7 @@ static int __init coh901331_probe(struct platform_device *pdev)
 		goto out_no_clk;
 	}
 
-	/* We enable/disable the clock only to assure it works */
+	
 	ret = clk_enable(rtap->clk);
 	if (ret) {
 		dev_err(&pdev->dev, "could not enable clock\n");
@@ -251,11 +231,7 @@ static int coh901331_suspend(struct platform_device *pdev, pm_message_t state)
 {
 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
 
-	/*
-	 * If this RTC alarm will be used for waking the system up,
-	 * don't disable it of course. Else we just disable the alarm
-	 * and await suspension.
-	 */
+	
 	if (device_may_wakeup(&pdev->dev)) {
 		enable_irq_wake(rtap->irq);
 	} else {

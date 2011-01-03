@@ -1,9 +1,4 @@
-/*
- * Copyright (C) 2007-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * RTC clock driver for the AB3100 Analog Baseband Chip
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -11,28 +6,19 @@
 #include <linux/rtc.h>
 #include <linux/mfd/ab3100.h>
 
-/* Clock rate in Hz */
+
 #define AB3100_RTC_CLOCK_RATE	32768
 
-/*
- * The AB3100 RTC registers. These are the same for
- * AB3000 and AB3100.
- * Control register:
- * Bit 0: RTC Monitor cleared=0, active=1, if you set it
- *        to 1 it remains active until RTC power is lost.
- * Bit 1: 32 kHz Oscillator, 0 = on, 1 = bypass
- * Bit 2: Alarm on, 0 = off, 1 = on
- * Bit 3: 32 kHz buffer disabling, 0 = enabled, 1 = disabled
- */
+
 #define AB3100_RTC		0x53
-/* default setting, buffer disabled, alarm on */
+
 #define RTC_SETTING		0x30
-/* Alarm when AL0-AL3 == TI0-TI3  */
+
 #define AB3100_AL0		0x56
 #define AB3100_AL1		0x57
 #define AB3100_AL2		0x58
 #define AB3100_AL3		0x59
-/* This 48-bit register that counts up at 32768 Hz */
+
 #define AB3100_TI0		0x5a
 #define AB3100_TI1		0x5b
 #define AB3100_TI2		0x5c
@@ -40,9 +26,7 @@
 #define AB3100_TI4		0x5e
 #define AB3100_TI5		0x5f
 
-/*
- * RTC clock functions and device struct declaration
- */
+
 static int ab3100_rtc_set_mmss(struct device *dev, unsigned long secs)
 {
 	struct ab3100 *ab3100_data = dev_get_drvdata(dev);
@@ -67,7 +51,7 @@ static int ab3100_rtc_set_mmss(struct device *dev, unsigned long secs)
 			return err;
 	}
 
-	/* Set the flag to mark that the clock is now set */
+	
 	return ab3100_mask_and_set_register_interruptible(ab3100_data,
 							  AB3100_RTC,
 							  0xFE, 0x01);
@@ -93,7 +77,7 @@ static int ab3100_rtc_read_time(struct device *dev, struct rtc_time *tm)
 		u64 fat_time;
 		u8 buf[6];
 
-		/* Read out time registers */
+		
 		err = ab3100_get_register_page_interruptible(ab3100_data,
 							     AB3100_TI0,
 							     buf, 6);
@@ -121,7 +105,7 @@ static int ab3100_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	u8 rtcval;
 	int err;
 
-	/* Figure out if alarm is enabled or not */
+	
 	err = ab3100_get_register_interruptible(ab3100_data,
 						AB3100_RTC, &rtcval);
 	if (err)
@@ -130,9 +114,9 @@ static int ab3100_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 		alarm->enabled = 1;
 	else
 		alarm->enabled = 0;
-	/* No idea how this could be represented */
+	
 	alarm->pending = 0;
-	/* Read out alarm registers, only 4 bytes */
+	
 	err = ab3100_get_register_page_interruptible(ab3100_data,
 						     AB3100_AL0, buf, 4);
 	if (err)
@@ -163,14 +147,14 @@ static int ab3100_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	buf[2] = (fat_time >> 32) & 0xFF;
 	buf[3] = (fat_time >> 40) & 0xFF;
 
-	/* Set the alarm */
+	
 	for (i = 0; i < 4; i++) {
 		err = ab3100_set_register_interruptible(ab3100_data,
 							regs[i], buf[i]);
 		if (err)
 			return err;
 	}
-	/* Then enable the alarm */
+	
 	return ab3100_mask_and_set_register_interruptible(ab3100_data,
 							  AB3100_RTC, ~(1 << 2),
 							  alarm->enabled << 2);
@@ -180,13 +164,7 @@ static int ab3100_rtc_irq_enable(struct device *dev, unsigned int enabled)
 {
 	struct ab3100 *ab3100_data = dev_get_drvdata(dev);
 
-	/*
-	 * It's not possible to enable/disable the alarm IRQ for this RTC.
-	 * It does not actually trigger any IRQ: instead its only function is
-	 * to power up the system, if it wasn't on. This will manifest as
-	 * a "power up cause" in the AB3100 power driver (battery charging etc)
-	 * and need to be handled there instead.
-	 */
+	
 	if (enabled)
 		return ab3100_mask_and_set_register_interruptible(ab3100_data,
 						    AB3100_RTC, ~(1 << 2),
@@ -212,7 +190,7 @@ static int __init ab3100_rtc_probe(struct platform_device *pdev)
 	struct rtc_device *rtc;
 	struct ab3100 *ab3100_data = platform_get_drvdata(pdev);
 
-	/* The first RTC register needs special treatment */
+	
 	err = ab3100_get_register_interruptible(ab3100_data,
 						AB3100_RTC, &regval);
 	if (err) {
@@ -226,14 +204,11 @@ static int __init ab3100_rtc_probe(struct platform_device *pdev)
 	}
 
 	if ((regval & 1) == 0) {
-		/*
-		 * Set bit to detect power loss.
-		 * This bit remains until RTC power is lost.
-		 */
+		
 		regval = 1 | RTC_SETTING;
 		err = ab3100_set_register_interruptible(ab3100_data,
 							AB3100_RTC, regval);
-		/* Ignore any error on this write */
+		
 	}
 
 	rtc = rtc_device_register("ab3100-rtc", &pdev->dev, &ab3100_rtc_ops,

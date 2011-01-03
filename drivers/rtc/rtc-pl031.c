@@ -1,17 +1,4 @@
-/*
- * drivers/rtc/rtc-pl031.c
- *
- * Real Time Clock interface for ARM AMBA PrimeCell 031 RTC
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * Copyright 2006 (c) MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 #include <linux/module.h>
 #include <linux/rtc.h>
 #include <linux/init.h>
@@ -19,17 +6,15 @@
 #include <linux/amba/bus.h>
 #include <linux/io.h>
 
-/*
- * Register definitions
- */
-#define	RTC_DR		0x00	/* Data read register */
-#define	RTC_MR		0x04	/* Match register */
-#define	RTC_LR		0x08	/* Data load register */
-#define	RTC_CR		0x0c	/* Control register */
-#define	RTC_IMSC	0x10	/* Interrupt mask and set register */
-#define	RTC_RIS		0x14	/* Raw interrupt status register */
-#define	RTC_MIS		0x18	/* Masked interrupt status register */
-#define	RTC_ICR		0x1c	/* Interrupt clear register */
+
+#define	RTC_DR		0x00	
+#define	RTC_MR		0x04	
+#define	RTC_LR		0x08	
+#define	RTC_CR		0x0c	
+#define	RTC_IMSC	0x10	
+#define	RTC_RIS		0x14	
+#define	RTC_MIS		0x18	
+#define	RTC_ICR		0x1c	
 
 struct pl031_local {
 	struct rtc_device *rtc;

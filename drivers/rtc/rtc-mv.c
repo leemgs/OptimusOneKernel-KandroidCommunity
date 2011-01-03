@@ -1,10 +1,4 @@
-/*
- * Driver for the RTC in Marvell SoCs.
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -20,7 +14,7 @@
 #define RTC_MINUTES_OFFS	8
 #define RTC_HOURS_OFFS		16
 #define RTC_WDAY_OFFS		24
-#define RTC_HOURS_12H_MODE		(1 << 22) /* 12 hours mode */
+#define RTC_HOURS_12H_MODE		(1 << 22) 
 
 #define RTC_DATE_REG_OFFS	4
 #define RTC_MDAY_OFFS		0
@@ -65,7 +59,7 @@ static int mv_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 	second = rtc_time & 0x7f;
 	minute = (rtc_time >> RTC_MINUTES_OFFS) & 0x7f;
-	hour = (rtc_time >> RTC_HOURS_OFFS) & 0x3f; /* assume 24 hours mode */
+	hour = (rtc_time >> RTC_HOURS_OFFS) & 0x3f; 
 	wday = (rtc_time >> RTC_WDAY_OFFS) & 0x7;
 
 	day = rtc_date & 0x3f;
@@ -78,7 +72,7 @@ static int mv_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_mday = bcd2bin(day);
 	tm->tm_wday = bcd2bin(wday);
 	tm->tm_mon = bcd2bin(month) - 1;
-	/* hw counts from year 2000, but tm_year is relative to 1900 */
+	
 	tm->tm_year = bcd2bin(year) + 100;
 
 	return rtc_valid_tm(tm);
@@ -113,14 +107,14 @@ static int __init mv_rtc_probe(struct platform_device *pdev)
 	if (!pdata->ioaddr)
 		return -ENOMEM;
 
-	/* make sure the 24 hours mode is enabled */
+	
 	rtc_time = readl(pdata->ioaddr + RTC_TIME_REG_OFFS);
 	if (rtc_time & RTC_HOURS_12H_MODE) {
 		dev_err(&pdev->dev, "24 Hours mode not supported.\n");
 		return -EINVAL;
 	}
 
-	/* make sure it is actually functional */
+	
 	if (rtc_time == 0x01000000) {
 		ssleep(1);
 		rtc_time = readl(pdata->ioaddr + RTC_TIME_REG_OFFS);

@@ -1,15 +1,4 @@
-/*
- * RTC subsystem, base class
- *
- * Copyright (C) 2005 Tower Technologies
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- * class skeleton from drivers/hwmon/hwmon.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/module.h>
 #include <linux/rtc.h>
@@ -34,31 +23,35 @@ static void rtc_device_release(struct device *dev)
 
 #if defined(CONFIG_PM) && defined(CONFIG_RTC_HCTOSYS_DEVICE)
 
-/*
- * On suspend(), measure the delta between one RTC and the
- * system's wall clock; restore it on resume().
- */
+
 
 static struct timespec	delta;
+static struct timespec	delta_delta;
 static time_t		oldtime;
 
 static int rtc_suspend(struct device *dev, pm_message_t mesg)
 {
 	struct rtc_device	*rtc = to_rtc_device(dev);
 	struct rtc_time		tm;
-	struct timespec		ts = current_kernel_time();
+	struct timespec		ts;
+	struct timespec		new_delta;
 
 	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) != 0)
 		return 0;
 
+	getnstimeofday(&ts);
 	rtc_read_time(rtc, &tm);
 	rtc_tm_to_time(&tm, &oldtime);
 
-	/* RTC precision is 1 second; adjust delta for avg 1/2 sec err */
-	set_normalized_timespec(&delta,
+	
+	set_normalized_timespec(&new_delta,
 				ts.tv_sec - oldtime,
 				ts.tv_nsec - (NSEC_PER_SEC >> 1));
 
+	
+	delta_delta = timespec_sub(new_delta, delta);
+	if (delta_delta.tv_sec < -2 || delta_delta.tv_sec >= 2)
+		delta = new_delta;
 	return 0;
 }
 
@@ -78,15 +71,15 @@ static int rtc_resume(struct device *dev)
 		return 0;
 	}
 	rtc_tm_to_time(&tm, &newtime);
+	if (delta_delta.tv_sec < -1)
+		newtime++;
 	if (newtime <= oldtime) {
 		if (newtime < oldtime)
 			pr_debug("%s:  time travel!\n", dev_name(&rtc->dev));
 		return 0;
 	}
 
-	/* restore wall clock using delta against this RTC;
-	 * adjust again for avg 1/2 second RTC sampling error
-	 */
+	
 	set_normalized_timespec(&time,
 				newtime + delta.tv_sec,
 				(NSEC_PER_SEC >> 1) + delta.tv_nsec);
@@ -101,15 +94,7 @@ static int rtc_resume(struct device *dev)
 #endif
 
 
-/**
- * rtc_device_register - register w/ RTC class
- * @dev: the device to register
- *
- * rtc_device_unregister() must be called when the class device is no
- * longer needed.
- *
- * Returns the pointer to the new struct class device.
- */
+
 struct rtc_device *rtc_device_register(const char *name, struct device *dev,
 					const struct rtc_class_ops *ops,
 					struct module *owner)
@@ -185,18 +170,12 @@ exit:
 EXPORT_SYMBOL_GPL(rtc_device_register);
 
 
-/**
- * rtc_device_unregister - removes the previously registered RTC class device
- *
- * @rtc: the RTC class device to destroy
- */
+
 void rtc_device_unregister(struct rtc_device *rtc)
 {
 	if (get_device(&rtc->dev) != NULL) {
 		mutex_lock(&rtc->ops_lock);
-		/* remove innards of this RTC, then disable it, before
-		 * letting any rtc_class_open() users access it again
-		 */
+		
 		rtc_sysfs_del_device(rtc);
 		rtc_dev_del_device(rtc);
 		rtc_proc_del_device(rtc);

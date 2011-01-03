@@ -1,12 +1,4 @@
-/*
- *  linux/drivers/rtc/rtc-pl030.c
- *
- *  Copyright (C) 2000-2001 Deep Blue Solutions Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/rtc.h>
 #include <linux/init.h>
@@ -53,9 +45,7 @@ static int pl030_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	unsigned long time;
 	int ret;
 
-	/*
-	 * At the moment, we can only deal with non-wildcarded alarm times.
-	 */
+	
 	ret = rtc_valid_tm(&alrm->time);
 	if (ret == 0)
 		ret = rtc_tm_to_time(&alrm->time, &time);
@@ -73,14 +63,7 @@ static int pl030_read_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-/*
- * Set the RTC time.  Unfortunately, we can't accurately set
- * the point at which the counter updates.
- *
- * Also, since RTC_LR is transferred to RTC_CR on next rising
- * edge of the 1Hz clock, we must write the time one second
- * in advance.
- */
+
 static int pl030_set_time(struct device *dev, struct rtc_time *tm)
 {
 	struct pl030_rtc *rtc = dev_get_drvdata(dev);

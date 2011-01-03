@@ -1,7 +1,4 @@
-/* rtc-starfire.c: Starfire platform RTC driver.
- *
- * Copyright (C) 2008 David S. Miller <davem@davemloft.net>
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>

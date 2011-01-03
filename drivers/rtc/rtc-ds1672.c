@@ -1,20 +1,11 @@
-/*
- * An rtc/i2c driver for the Dallas DS1672
- * Copyright 2005-06 Tower Technologies
- *
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/i2c.h>
 #include <linux/rtc.h>
 
 #define DRV_VERSION "0.4"
 
-/* Registers */
+
 
 #define DS1672_REG_CNT_BASE	0
 #define DS1672_REG_CONTROL	4
@@ -24,11 +15,7 @@
 
 static struct i2c_driver ds1672_driver;
 
-/*
- * In the routines that deal directly with the ds1672 hardware, we use
- * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch
- * Epoch is initialized as 2000. Time is set to UTC.
- */
+
 static int ds1672_get_datetime(struct i2c_client *client, struct rtc_time *tm)
 {
 	unsigned long time;
@@ -36,11 +23,11 @@ static int ds1672_get_datetime(struct i2c_client *client, struct rtc_time *tm)
 	unsigned char buf[4];
 
 	struct i2c_msg msgs[] = {
-		{client->addr, 0, 1, &addr},	/* setup read ptr */
-		{client->addr, I2C_M_RD, 4, buf},	/* read date */
+		{client->addr, 0, 1, &addr},	
+		{client->addr, I2C_M_RD, 4, buf},	
 	};
 
-	/* read date registers */
+	
 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
 		dev_err(&client->dev, "%s: read error\n", __func__);
 		return -EIO;
@@ -72,7 +59,7 @@ static int ds1672_set_mmss(struct i2c_client *client, unsigned long secs)
 	buf[2] = (secs & 0x0000FF00) >> 8;
 	buf[3] = (secs & 0x00FF0000) >> 16;
 	buf[4] = (secs & 0xFF000000) >> 24;
-	buf[5] = 0;		/* set control reg to enable counting */
+	buf[5] = 0;		
 
 	xfer = i2c_master_send(client, buf, 6);
 	if (xfer != 6) {
@@ -98,11 +85,11 @@ static int ds1672_get_control(struct i2c_client *client, u8 *status)
 	unsigned char addr = DS1672_REG_CONTROL;
 
 	struct i2c_msg msgs[] = {
-		{client->addr, 0, 1, &addr},	/* setup read ptr */
-		{client->addr, I2C_M_RD, 1, status},	/* read control */
+		{client->addr, 0, 1, &addr},	
+		{client->addr, I2C_M_RD, 1, status},	
 	};
 
-	/* read control register */
+	
 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
 		dev_err(&client->dev, "%s: read error\n", __func__);
 		return -EIO;
@@ -111,7 +98,7 @@ static int ds1672_get_control(struct i2c_client *client, u8 *status)
 	return 0;
 }
 
-/* following are the sysfs callback functions */
+
 static ssize_t show_control(struct device *dev, struct device_attribute *attr,
 			    char *buf)
 {
@@ -166,7 +153,7 @@ static int ds1672_probe(struct i2c_client *client,
 
 	i2c_set_clientdata(client, rtc);
 
-	/* read control register */
+	
 	err = ds1672_get_control(client, &control);
 	if (err)
 		goto exit_devreg;
@@ -175,7 +162,7 @@ static int ds1672_probe(struct i2c_client *client,
 		dev_warn(&client->dev, "Oscillator not enabled. "
 			 "Set time to enable.\n");
 
-	/* Register sysfs hooks */
+	
 	err = device_create_file(&client->dev, &dev_attr_control);
 	if (err)
 		goto exit_devreg;

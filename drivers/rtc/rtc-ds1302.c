@@ -1,13 +1,4 @@
-/*
- * Dallas DS1302 RTC Support
- *
- *  Copyright (C) 2002 David McCullough
- *  Copyright (C) 2003 - 2007 Paul Mundt
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License version 2. See the file "COPYING" in the main directory of
- * this archive for more details.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -21,18 +12,18 @@
 #define DRV_NAME	"rtc-ds1302"
 #define DRV_VERSION	"0.1.1"
 
-#define	RTC_CMD_READ	0x81		/* Read command */
-#define	RTC_CMD_WRITE	0x80		/* Write command */
+#define	RTC_CMD_READ	0x81		
+#define	RTC_CMD_WRITE	0x80		
 
-#define RTC_ADDR_RAM0	0x20		/* Address of RAM0 */
-#define RTC_ADDR_TCR	0x08		/* Address of trickle charge register */
-#define	RTC_ADDR_YEAR	0x06		/* Address of year register */
-#define	RTC_ADDR_DAY	0x05		/* Address of day of week register */
-#define	RTC_ADDR_MON	0x04		/* Address of month register */
-#define	RTC_ADDR_DATE	0x03		/* Address of day of month register */
-#define	RTC_ADDR_HOUR	0x02		/* Address of hour register */
-#define	RTC_ADDR_MIN	0x01		/* Address of minute register */
-#define	RTC_ADDR_SEC	0x00		/* Address of second register */
+#define RTC_ADDR_RAM0	0x20		
+#define RTC_ADDR_TCR	0x08		
+#define	RTC_ADDR_YEAR	0x06		
+#define	RTC_ADDR_DAY	0x05		
+#define	RTC_ADDR_MON	0x04		
+#define	RTC_ADDR_DATE	0x03		
+#define	RTC_ADDR_HOUR	0x02		
+#define	RTC_ADDR_MIN	0x01		
+#define	RTC_ADDR_SEC	0x00		
 
 #define	RTC_RESET	0x1000
 #define	RTC_IODATA	0x0800
@@ -53,8 +44,8 @@ static void ds1302_sendbits(unsigned int val)
 	for (i = 8; (i); i--, val >>= 1) {
 		set_dp((get_dp() & ~RTC_IODATA) | ((val & 0x1) ?
 			RTC_IODATA : 0));
-		set_dp(get_dp() | RTC_SCLK);	/* clock high */
-		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
+		set_dp(get_dp() | RTC_SCLK);	
+		set_dp(get_dp() & ~RTC_SCLK);	
 	}
 }
 
@@ -65,8 +56,8 @@ static unsigned int ds1302_recvbits(void)
 
 	for (i = 0, val = 0; (i < 8); i++) {
 		val |= (((get_dp() & RTC_IODATA) ? 1 : 0) << i);
-		set_dp(get_dp() | RTC_SCLK);	/* clock high */
-		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
+		set_dp(get_dp() | RTC_SCLK);	
+		set_dp(get_dp() & ~RTC_SCLK);	
 	}
 
 	return val;
@@ -119,7 +110,7 @@ static int ds1302_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *tm)
 {
-	/* Stop RTC */
+	
 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) | 0x80);
 
 	ds1302_writebyte(RTC_ADDR_SEC, bin2bcd(tm->tm_sec));
@@ -130,7 +121,7 @@ static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	ds1302_writebyte(RTC_ADDR_MON, bin2bcd(tm->tm_mon + 1));
 	ds1302_writebyte(RTC_ADDR_YEAR, bin2bcd(tm->tm_year % 100));
 
-	/* Start RTC */
+	
 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) & ~0x80);
 
 	return 0;
@@ -168,10 +159,10 @@ static int __init ds1302_rtc_probe(struct platform_device *pdev)
 {
 	struct rtc_device *rtc;
 
-	/* Reset */
+	
 	set_dp(get_dp() & ~(RTC_RESET | RTC_IODATA | RTC_SCLK));
 
-	/* Write a magic value to the DS1302 RAM, and see if it sticks. */
+	
 	ds1302_writebyte(RTC_ADDR_RAM0, 0x42);
 	if (ds1302_readbyte(RTC_ADDR_RAM0) != 0x42)
 		return -ENODEV;

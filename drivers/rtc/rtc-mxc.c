@@ -1,13 +1,4 @@
-/*
- * Copyright 2004-2008 Freescale Semiconductor, Inc. All Rights Reserved.
- *
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- */
+
 
 #include <linux/io.h>
 #include <linux/rtc.h>
@@ -54,28 +45,28 @@ static const u32 PIE_BIT_DEF[MAX_PIE_NUM][2] = {
 	{ MAX_PIE_FREQ,	RTC_SAM7_BIT },
 };
 
-/* Those are the bits from a classic RTC we want to mimic */
-#define RTC_IRQF	0x80	/* any of the following 3 is active */
-#define RTC_PF		0x40	/* Periodic interrupt */
-#define RTC_AF		0x20	/* Alarm interrupt */
-#define RTC_UF		0x10	/* Update interrupt for 1Hz RTC */
+
+#define RTC_IRQF	0x80	
+#define RTC_PF		0x40	
+#define RTC_AF		0x20	
+#define RTC_UF		0x10	
 
 #define MXC_RTC_TIME	0
 #define MXC_RTC_ALARM	1
 
-#define RTC_HOURMIN	0x00	/*  32bit rtc hour/min counter reg */
-#define RTC_SECOND	0x04	/*  32bit rtc seconds counter reg */
-#define RTC_ALRM_HM	0x08	/*  32bit rtc alarm hour/min reg */
-#define RTC_ALRM_SEC	0x0C	/*  32bit rtc alarm seconds reg */
-#define RTC_RTCCTL	0x10	/*  32bit rtc control reg */
-#define RTC_RTCISR	0x14	/*  32bit rtc interrupt status reg */
-#define RTC_RTCIENR	0x18	/*  32bit rtc interrupt enable reg */
-#define RTC_STPWCH	0x1C	/*  32bit rtc stopwatch min reg */
-#define RTC_DAYR	0x20	/*  32bit rtc days counter reg */
-#define RTC_DAYALARM	0x24	/*  32bit rtc day alarm reg */
-#define RTC_TEST1	0x28	/*  32bit rtc test reg 1 */
-#define RTC_TEST2	0x2C	/*  32bit rtc test reg 2 */
-#define RTC_TEST3	0x30	/*  32bit rtc test reg 3 */
+#define RTC_HOURMIN	0x00	
+#define RTC_SECOND	0x04	
+#define RTC_ALRM_HM	0x08	
+#define RTC_ALRM_SEC	0x0C	
+#define RTC_RTCCTL	0x10	
+#define RTC_RTCISR	0x14	
+#define RTC_RTCIENR	0x18	
+#define RTC_STPWCH	0x1C	
+#define RTC_DAYR	0x20	
+#define RTC_DAYALARM	0x24	
+#define RTC_TEST1	0x28	
+#define RTC_TEST2	0x2C	
+#define RTC_TEST3	0x30	
 
 struct rtc_plat_data {
 	struct rtc_device *rtc;
@@ -91,10 +82,7 @@ struct rtc_plat_data {
 	struct rtc_time g_rtc_alarm;
 };
 
-/*
- * This function is used to obtain the RTC time or the alarm value in
- * second.
- */
+
 static u32 get_alarm_or_time(struct device *dev, int time_alarm)
 {
 	struct platform_device *pdev = to_platform_device(dev);
@@ -121,9 +109,7 @@ static u32 get_alarm_or_time(struct device *dev, int time_alarm)
 	return (((day * 24 + hr) * 60) + min) * 60 + sec;
 }
 
-/*
- * This function sets the RTC alarm value or the time value.
- */
+
 static void set_alarm_or_time(struct device *dev, int time_alarm, u32 time)
 {
 	u32 day, hr, min, sec, temp;
@@ -134,11 +120,11 @@ static void set_alarm_or_time(struct device *dev, int time_alarm, u32 time)
 	day = time / 86400;
 	time -= day * 86400;
 
-	/* time is within a day now */
+	
 	hr = time / 3600;
 	time -= hr * 3600;
 
-	/* time is within an hour now */
+	
 	min = time / 60;
 	sec = time - min * 60;
 
@@ -158,10 +144,7 @@ static void set_alarm_or_time(struct device *dev, int time_alarm, u32 time)
 	}
 }
 
-/*
- * This function updates the RTC alarm registers and then clears all the
- * interrupt status bits.
- */
+
 static int rtc_update_alarm(struct device *dev, struct rtc_time *alrm)
 {
 	struct rtc_time alarm_tm, now_tm;
@@ -189,14 +172,14 @@ static int rtc_update_alarm(struct device *dev, struct rtc_time *alrm)
 
 	ret = rtc_tm_to_time(&alarm_tm, &time);
 
-	/* clear all the interrupt status bits */
+	
 	writew(readw(ioaddr + RTC_RTCISR), ioaddr + RTC_RTCISR);
 	set_alarm_or_time(dev, MXC_RTC_ALARM, time);
 
 	return ret;
 }
 
-/* This function is the RTC interrupt service routine. */
+
 static irqreturn_t mxc_rtc_interrupt(int irq, void *dev_id)
 {
 	struct platform_device *pdev = dev_id;
@@ -207,14 +190,14 @@ static irqreturn_t mxc_rtc_interrupt(int irq, void *dev_id)
 
 	spin_lock_irq(&pdata->rtc->irq_lock);
 	status = readw(ioaddr + RTC_RTCISR) & readw(ioaddr + RTC_RTCIENR);
-	/* clear interrupt sources */
+	
 	writew(status, ioaddr + RTC_RTCISR);
 
-	/* clear alarm interrupt if it has occurred */
+	
 	if (status & RTC_ALM_BIT)
 		status &= ~RTC_ALM_BIT;
 
-	/* update irq data & counter */
+	
 	if (status & RTC_ALM_BIT)
 		events |= (RTC_AF | RTC_IRQF);
 
@@ -233,9 +216,7 @@ static irqreturn_t mxc_rtc_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * Clear all interrupts and release the IRQ
- */
+
 static void mxc_rtc_release(struct device *dev)
 {
 	struct platform_device *pdev = to_platform_device(dev);
@@ -244,10 +225,10 @@ static void mxc_rtc_release(struct device *dev)
 
 	spin_lock_irq(&pdata->rtc->irq_lock);
 
-	/* Disable all rtc interrupts */
+	
 	writew(0, ioaddr + RTC_RTCIENR);
 
-	/* Clear all interrupt status */
+	
 	writew(0xffffffff, ioaddr + RTC_RTCISR);
 
 	spin_unlock_irq(&pdata->rtc->irq_lock);
@@ -285,14 +266,12 @@ static int mxc_rtc_update_irq_enable(struct device *dev, unsigned int enabled)
 	return 0;
 }
 
-/*
- * This function reads the current RTC time into tm in Gregorian date.
- */
+
 static int mxc_rtc_read_time(struct device *dev, struct rtc_time *tm)
 {
 	u32 val;
 
-	/* Avoid roll-over from reading the different registers */
+	
 	do {
 		val = get_alarm_or_time(dev, MXC_RTC_TIME);
 	} while (val != get_alarm_or_time(dev, MXC_RTC_TIME));
@@ -302,12 +281,10 @@ static int mxc_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-/*
- * This function sets the internal RTC time based on tm in Gregorian date.
- */
+
 static int mxc_rtc_set_mmss(struct device *dev, unsigned long time)
 {
-	/* Avoid roll-over from reading the different registers */
+	
 	do {
 		set_alarm_or_time(dev, MXC_RTC_TIME, time);
 	} while (time != get_alarm_or_time(dev, MXC_RTC_TIME));
@@ -315,11 +292,7 @@ static int mxc_rtc_set_mmss(struct device *dev, unsigned long time)
 	return 0;
 }
 
-/*
- * This function reads the current alarm value into the passed in 'alrm'
- * argument. It updates the alrm's pending field value based on the whether
- * an alarm interrupt occurs or not.
- */
+
 static int mxc_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 {
 	struct platform_device *pdev = to_platform_device(dev);
@@ -332,9 +305,7 @@ static int mxc_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	return 0;
 }
 
-/*
- * This function sets the RTC alarm based on passed in alrm.
- */
+
 static int mxc_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 {
 	struct platform_device *pdev = to_platform_device(dev);
@@ -365,7 +336,7 @@ static int mxc_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	return 0;
 }
 
-/* RTC layer */
+
 static struct rtc_class_ops mxc_rtc_ops = {
 	.release		= mxc_rtc_release,
 	.read_time		= mxc_rtc_read_time,
@@ -442,7 +413,7 @@ static int __init mxc_rtc_probe(struct platform_device *pdev)
 	pdata->rtc = rtc;
 	platform_set_drvdata(pdev, pdata);
 
-	/* Configure and enable the RTC */
+	
 	pdata->irq = platform_get_irq(pdev, 0);
 
 	if (pdata->irq >= 0 &&

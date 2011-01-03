@@ -1,15 +1,4 @@
-/* drivers/rtc/rtc-s3c.c
- *
- * Copyright (c) 2004,2006 Simtec Electronics
- *	Ben Dooks, <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * S3C2410/S3C2440/S3C24XX Internal RTC Driver
-*/
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -28,8 +17,7 @@
 #include <asm/irq.h>
 #include <plat/regs-rtc.h>
 
-/* I have yet to find an S3C implementation with more than one
- * of these rtc blocks in */
+
 
 static struct resource *s3c_rtc_mem;
 
@@ -39,7 +27,7 @@ static int s3c_rtc_tickno  = NO_IRQ;
 
 static DEFINE_SPINLOCK(s3c_rtc_pie_lock);
 
-/* IRQ Handlers */
+
 
 static irqreturn_t s3c_rtc_alarmirq(int irq, void *id)
 {
@@ -57,7 +45,7 @@ static irqreturn_t s3c_rtc_tickirq(int irq, void *id)
 	return IRQ_HANDLED;
 }
 
-/* Update control registers */
+
 static void s3c_rtc_setaie(int to)
 {
 	unsigned int tmp;
@@ -108,7 +96,7 @@ static int s3c_rtc_setfreq(struct device *dev, int freq)
 	return 0;
 }
 
-/* Time read/write */
+
 
 static int s3c_rtc_gettime(struct device *dev, struct rtc_time *rtc_tm)
 {
@@ -123,10 +111,7 @@ static int s3c_rtc_gettime(struct device *dev, struct rtc_time *rtc_tm)
 	rtc_tm->tm_year = readb(base + S3C2410_RTCYEAR);
 	rtc_tm->tm_sec  = readb(base + S3C2410_RTCSEC);
 
-	/* the only way to work out wether the system was mid-update
-	 * when we read it is to check the second counter, and if it
-	 * is zero, then we re-try the entire read
-	 */
+	
 
 	if (rtc_tm->tm_sec == 0 && !have_retried) {
 		have_retried = 1;
@@ -159,7 +144,7 @@ static int s3c_rtc_settime(struct device *dev, struct rtc_time *tm)
 		 tm->tm_year, tm->tm_mon, tm->tm_mday,
 		 tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-	/* we get around y2k by simply not supporting it */
+	
 
 	if (year < 0 || year >= 100) {
 		dev_err(dev, "rtc only supports 100 years\n");
@@ -199,7 +184,7 @@ static int s3c_rtc_getalarm(struct device *dev, struct rtc_wkalrm *alrm)
 		 alm_tm->tm_hour, alm_tm->tm_min, alm_tm->tm_sec);
 
 
-	/* decode the alarm enable field */
+	
 
 	if (alm_en & S3C2410_RTCALM_SECEN)
 		alm_tm->tm_sec = bcd2bin(alm_tm->tm_sec);
@@ -323,7 +308,7 @@ static void s3c_rtc_release(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct rtc_device *rtc_dev = platform_get_drvdata(pdev);
 
-	/* do not clear AIE here, it may be needed for wake */
+	
 
 	s3c_rtc_setpie(dev, 0);
 	free_irq(s3c_rtc_alarmno, rtc_dev);
@@ -357,7 +342,7 @@ static void s3c_rtc_enable(struct platform_device *pdev, int en)
 		tmp = readb(base + S3C2410_TICNT);
 		writeb(tmp & ~S3C2410_TICNT_ENABLE, base + S3C2410_TICNT);
 	} else {
-		/* re-enable the device, and check it is ok */
+		
 
 		if ((readb(base+S3C2410_RTCCON) & S3C2410_RTCCON_RTCEN) == 0){
 			dev_info(&pdev->dev, "rtc disabled, re-enabling\n");
@@ -407,7 +392,7 @@ static int __devinit s3c_rtc_probe(struct platform_device *pdev)
 
 	pr_debug("%s: probe=%p\n", __func__, pdev);
 
-	/* find the IRQs */
+	
 
 	s3c_rtc_tickno = platform_get_irq(pdev, 1);
 	if (s3c_rtc_tickno < 0) {
@@ -424,7 +409,7 @@ static int __devinit s3c_rtc_probe(struct platform_device *pdev)
 	pr_debug("s3c2410_rtc: tick irq %d, alarm irq %d\n",
 		 s3c_rtc_tickno, s3c_rtc_alarmno);
 
-	/* get the memory region */
+	
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (res == NULL) {
@@ -449,7 +434,7 @@ static int __devinit s3c_rtc_probe(struct platform_device *pdev)
 		goto err_nomap;
 	}
 
-	/* check to see if everything is setup correctly */
+	
 
 	s3c_rtc_enable(pdev, 1);
 
@@ -460,7 +445,7 @@ static int __devinit s3c_rtc_probe(struct platform_device *pdev)
 
 	device_init_wakeup(&pdev->dev, 1);
 
-	/* register RTC and exit */
+	
 
 	rtc = rtc_device_register("s3c", &pdev->dev, &s3c_rtcops,
 				  THIS_MODULE);
@@ -489,13 +474,13 @@ static int __devinit s3c_rtc_probe(struct platform_device *pdev)
 
 #ifdef CONFIG_PM
 
-/* RTC Power management control */
+
 
 static int ticnt_save;
 
 static int s3c_rtc_suspend(struct platform_device *pdev, pm_message_t state)
 {
-	/* save TICNT for anyone using periodic interrupts */
+	
 	ticnt_save = readb(s3c_rtc_base + S3C2410_TICNT);
 	s3c_rtc_enable(pdev, 0);
 	return 0;
