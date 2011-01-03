@@ -1,16 +1,4 @@
-/*
- * Regulator driver for National Semiconductors LP3971 PMIC chip
- *
- *  Copyright (C) 2009 Samsung Electronics
- *  Author: Marek Szyprowski <m.szyprowski@samsung.com>
- *
- * Based on wm8350.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/bug.h>
 #include <linux/err.h>
@@ -32,19 +20,14 @@ static int lp3971_set_bits(struct lp3971 *lp3971, u8 reg, u16 mask, u16 val);
 
 #define LP3971_SYS_CONTROL1_REG 0x07
 
-/* System control register 1 initial value,
-   bits 4 and 5 are EPROM programmable */
+
 #define SYS_CONTROL1_INIT_VAL 0x40
 #define SYS_CONTROL1_INIT_MASK 0xCF
 
 #define LP3971_BUCK_VOL_ENABLE_REG 0x10
 #define LP3971_BUCK_VOL_CHANGE_REG 0x20
 
-/*	Voltage control registers shift:
-	LP3971_BUCK1 -> 0
-	LP3971_BUCK2 -> 4
-	LP3971_BUCK3 -> 6
-*/
+
 #define BUCK_VOL_CHANGE_SHIFT(x) (((1 << x) & ~0x01) << 1)
 #define BUCK_VOL_CHANGE_FLAG_GO 0x01
 #define BUCK_VOL_CHANGE_FLAG_TARGET 0x02
@@ -79,20 +62,10 @@ const static int buck_voltage_map[] = {
 #define LP3971_LDO_ENABLE_REG 0x12
 #define LP3971_LDO_VOL_CONTR_BASE 0x39
 
-/*	Voltage control registers:
-	LP3971_LDO1 -> LP3971_LDO_VOL_CONTR_BASE + 0
-	LP3971_LDO2 -> LP3971_LDO_VOL_CONTR_BASE + 0
-	LP3971_LDO3 -> LP3971_LDO_VOL_CONTR_BASE + 1
-	LP3971_LDO4 -> LP3971_LDO_VOL_CONTR_BASE + 1
-	LP3971_LDO5 -> LP3971_LDO_VOL_CONTR_BASE + 2
-*/
+
 #define LP3971_LDO_VOL_CONTR_REG(x)	(LP3971_LDO_VOL_CONTR_BASE + (x >> 1))
 
-/*	Voltage control registers shift:
-	LP3971_LDO1 -> 0, LP3971_LDO2 -> 4
-	LP3971_LDO3 -> 0, LP3971_LDO4 -> 4
-	LP3971_LDO5 -> 0
-*/
+
 #define LDO_VOL_CONTR_SHIFT(x) ((x & 1) << 2)
 #define LDO_VOL_CONTR_MASK 0x0f
 
@@ -107,11 +80,11 @@ const static int ldo123_voltage_map[] = {
 };
 
 const static int *ldo_voltage_map[] = {
-	ldo123_voltage_map, /* LDO1 */
-	ldo123_voltage_map, /* LDO2 */
-	ldo123_voltage_map, /* LDO3 */
-	ldo45_voltage_map, /* LDO4 */
-	ldo45_voltage_map, /* LDO5 */
+	ldo123_voltage_map, 
+	ldo123_voltage_map, 
+	ldo123_voltage_map, 
+	ldo45_voltage_map, 
+	ldo45_voltage_map, 
 };
 
 #define LDO_VOL_VALUE_MAP(x) (ldo_voltage_map[(x - LP3971_LDO1)])
@@ -440,7 +413,7 @@ static int setup_regulators(struct lp3971 *lp3971,
 	lp3971->rdev = kzalloc(sizeof(struct regulator_dev *) * num_regulators,
 		GFP_KERNEL);
 
-	/* Instantiate the regulators */
+	
 	for (i = 0; i < num_regulators; i++) {
 		int id = pdata->regulators[i].id;
 		lp3971->rdev[i] = regulator_register(&regulators[id],
@@ -484,7 +457,7 @@ static int __devinit lp3971_i2c_probe(struct i2c_client *i2c,
 
 	mutex_init(&lp3971->io_lock);
 
-	/* Detect LP3971 */
+	
 	ret = lp3971_i2c_read(i2c, LP3971_SYS_CONTROL1_REG, 1, &val);
 	if (ret == 0 && (val & SYS_CONTROL1_INIT_MASK) != SYS_CONTROL1_INIT_VAL)
 		ret = -ENODEV;

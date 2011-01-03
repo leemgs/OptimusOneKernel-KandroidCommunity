@@ -1,22 +1,4 @@
-/*
- * max1586.c  --  Voltage and current regulation for the Maxim 1586
- *
- * Copyright (C) 2008 Robert Jarzmik
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/module.h>
 #include <linux/err.h>
 #include <linux/i2c.h>
@@ -39,21 +21,14 @@
 struct max1586_data {
 	struct i2c_client *client;
 
-	/* min/max V3 voltage */
+	
 	unsigned int min_uV;
 	unsigned int max_uV;
 
 	struct regulator_dev *rdev[0];
 };
 
-/*
- * V3 voltage
- * On I2C bus, sending a "x" byte to the max1586 means :
- *   set V3 to 0.700V + (x & 0x1f) * 0.025V
- * This voltage can be increased by external resistors
- * R24 and R25=100kOhm as described in the data sheet.
- * The gain is approximately: 1 + R24/R25 + R24/185.5kOhm
- */
+
 static int max1586_v3_calc_voltage(struct max1586_data *max1586,
 	unsigned selector)
 {
@@ -96,12 +71,7 @@ static int max1586_v3_list(struct regulator_dev *rdev, unsigned selector)
 	return max1586_v3_calc_voltage(max1586, selector);
 }
 
-/*
- * V6 voltage
- * On I2C bus, sending a "x" byte to the max1586 means :
- *   set V6 to either 0V, 1.8V, 2.5V, 3V depending on (x & 0x3)
- * As regulator framework doesn't accept voltages to be 0V, we use 1uV.
- */
+
 static int max1586_v6_calc_voltage(unsigned selector)
 {
 	static int voltages_uv[] = { 1, 1800000, 2500000, 3000000 };
@@ -146,10 +116,7 @@ static int max1586_v6_list(struct regulator_dev *rdev, unsigned selector)
 	return max1586_v6_calc_voltage(selector);
 }
 
-/*
- * The Maxim 1586 controls V3 and V6 voltages, but offers no way of reading back
- * the set up value.
- */
+
 static struct regulator_ops max1586_v3_ops = {
 	.set_voltage = max1586_v3_set,
 	.list_voltage = max1586_v3_list,
@@ -276,7 +243,7 @@ static void __exit max1586_pmic_exit(void)
 }
 module_exit(max1586_pmic_exit);
 
-/* Module information */
+
 MODULE_DESCRIPTION("MAXIM 1586 voltage regulator driver");
 MODULE_AUTHOR("Robert Jarzmik");
 MODULE_LICENSE("GPL");

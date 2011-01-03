@@ -1,15 +1,4 @@
-/*
- * wm831x-ldo.c  --  LDO driver for the WM831x series
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -41,9 +30,7 @@ struct wm831x_ldo {
 	struct regulator_dev *regulator;
 };
 
-/*
- * Shared
- */
+
 
 static int wm831x_ldo_is_enabled(struct regulator_dev *rdev)
 {
@@ -91,9 +78,7 @@ static irqreturn_t wm831x_ldo_uv_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-/*
- * General purpose LDOs
- */
+
 
 #define WM831X_GP_LDO_SELECTOR_LOW 0xe
 #define WM831X_GP_LDO_MAX_SELECTOR 0x1f
@@ -101,10 +86,10 @@ static irqreturn_t wm831x_ldo_uv_irq(int irq, void *data)
 static int wm831x_gp_ldo_list_voltage(struct regulator_dev *rdev,
 				      unsigned int selector)
 {
-	/* 0.9-1.6V in 50mV steps */
+	
 	if (selector <= WM831X_GP_LDO_SELECTOR_LOW)
 		return 900000 + (selector * 50000);
-	/* 1.7-3.3V in 50mV steps */
+	
 	if (selector <= WM831X_GP_LDO_MAX_SELECTOR)
 		return 1600000 + ((selector - WM831X_GP_LDO_SELECTOR_LOW)
 				  * 100000);
@@ -252,14 +237,14 @@ static int wm831x_gp_ldo_get_status(struct regulator_dev *rdev)
 	int mask = 1 << rdev_get_id(rdev);
 	int ret;
 
-	/* Is the regulator on? */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_LDO_STATUS);
 	if (ret < 0)
 		return ret;
 	if (!(ret & mask))
 		return REGULATOR_STATUS_OFF;
 
-	/* Is it reporting under voltage? */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_LDO_UV_STATUS);
 	if (ret & mask)
 		return REGULATOR_STATUS_ERROR;
@@ -386,9 +371,7 @@ static struct platform_driver wm831x_gp_ldo_driver = {
 	},
 };
 
-/*
- * Analogue LDOs
- */
+
 
 
 #define WM831X_ALDO_SELECTOR_LOW 0xc
@@ -397,10 +380,10 @@ static struct platform_driver wm831x_gp_ldo_driver = {
 static int wm831x_aldo_list_voltage(struct regulator_dev *rdev,
 				      unsigned int selector)
 {
-	/* 1-1.6V in 50mV steps */
+	
 	if (selector <= WM831X_ALDO_SELECTOR_LOW)
 		return 1000000 + (selector * 50000);
-	/* 1.7-3.5V in 50mV steps */
+	
 	if (selector <= WM831X_ALDO_MAX_SELECTOR)
 		return 1600000 + ((selector - WM831X_ALDO_SELECTOR_LOW)
 				  * 100000);
@@ -522,14 +505,14 @@ static int wm831x_aldo_get_status(struct regulator_dev *rdev)
 	int mask = 1 << rdev_get_id(rdev);
 	int ret;
 
-	/* Is the regulator on? */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_LDO_STATUS);
 	if (ret < 0)
 		return ret;
 	if (!(ret & mask))
 		return REGULATOR_STATUS_OFF;
 
-	/* Is it reporting under voltage? */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_LDO_UV_STATUS);
 	if (ret & mask)
 		return REGULATOR_STATUS_ERROR;
@@ -643,16 +626,14 @@ static struct platform_driver wm831x_aldo_driver = {
 	},
 };
 
-/*
- * Alive LDO
- */
+
 
 #define WM831X_ALIVE_LDO_MAX_SELECTOR 0xf
 
 static int wm831x_alive_ldo_list_voltage(struct regulator_dev *rdev,
 				      unsigned int selector)
 {
-	/* 0.8-1.55V in 50mV steps */
+	
 	if (selector <= WM831X_ALIVE_LDO_MAX_SELECTOR)
 		return 800000 + (selector * 50000);
 	return -EINVAL;
@@ -718,7 +699,7 @@ static int wm831x_alive_ldo_get_status(struct regulator_dev *rdev)
 	int mask = 1 << rdev_get_id(rdev);
 	int ret;
 
-	/* Is the regulator on? */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_LDO_STATUS);
 	if (ret < 0)
 		return ret;
@@ -843,7 +824,7 @@ static void __exit wm831x_ldo_exit(void)
 }
 module_exit(wm831x_ldo_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
 MODULE_DESCRIPTION("WM831x LDO driver");
 MODULE_LICENSE("GPL");

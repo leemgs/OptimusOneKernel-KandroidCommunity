@@ -1,14 +1,4 @@
-/*
- * Support for TI bq24022 (bqTINY-II) Dual Input (USB/AC Adpater)
- * 1-Cell Li-Ion Charger connected via GPIOs.
- *
- * Copyright (c) 2008 Philipp Zabel
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -27,7 +17,7 @@ static int bq24022_set_current_limit(struct regulator_dev *rdev,
 	dev_dbg(rdev_get_dev(rdev), "setting current limit to %s mA\n",
 		max_uA >= 500000 ? "500" : "100");
 
-	/* REVISIT: maybe return error if min_uA != 0 ? */
+	
 	gpio_set_value(pdata->gpio_iset2, max_uA >= 500000);
 	return 0;
 }

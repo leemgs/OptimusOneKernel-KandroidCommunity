@@ -1,20 +1,4 @@
-/*
- * userspace-consumer.c
- *
- * Copyright 2009 CompuLab, Ltd.
- *
- * Author: Mike Rapoport <mike@compulab.co.il>
- *
- * Based of virtual consumer driver:
- *   Copyright 2008 Wolfson Microelectronics PLC.
- *   Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- */
+
 
 #include <linux/err.h>
 #include <linux/mutex.h>
@@ -58,10 +42,7 @@ static ssize_t reg_set_state(struct device *dev, struct device_attribute *attr,
 	bool enabled;
 	int ret;
 
-	/*
-	 * sysfs_streq() doesn't need the \n's, but we add them so the strings
-	 * will be shared with show_state(), above.
-	 */
+	
 	if (sysfs_streq(buf, "enabled\n") || sysfs_streq(buf, "1"))
 		enabled = true;
 	else if (sysfs_streq(buf, "disabled\n") || sysfs_streq(buf, "0"))

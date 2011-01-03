@@ -1,19 +1,4 @@
-/*
- * tps6507x-regulator.c
- *
- * Regulator driver for TPS65073 PMIC
- *
- * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.com/
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation version 2.
- *
- * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
- * whether express or implied; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -25,7 +10,7 @@
 #include <linux/i2c.h>
 #include <linux/delay.h>
 
-/* Register definitions */
+
 #define	TPS6507X_REG_PPATH1				0X01
 #define	TPS6507X_REG_INT				0X02
 #define	TPS6507X_REG_CHGCONFIG0				0X03
@@ -52,56 +37,56 @@
 #define	TPS6507X_REG_WLED_CTRL1				0X18
 #define	TPS6507X_REG_WLED_CTRL2				0X19
 
-/* CON_CTRL1 bitfields */
+
 #define	TPS6507X_CON_CTRL1_DCDC1_ENABLE		BIT(4)
 #define	TPS6507X_CON_CTRL1_DCDC2_ENABLE		BIT(3)
 #define	TPS6507X_CON_CTRL1_DCDC3_ENABLE		BIT(2)
 #define	TPS6507X_CON_CTRL1_LDO1_ENABLE		BIT(1)
 #define	TPS6507X_CON_CTRL1_LDO2_ENABLE		BIT(0)
 
-/* DEFDCDC1 bitfields */
+
 #define TPS6507X_DEFDCDC1_DCDC1_EXT_ADJ_EN	BIT(7)
 #define TPS6507X_DEFDCDC1_DCDC1_MASK		0X3F
 
-/* DEFDCDC2_LOW bitfields */
+
 #define TPS6507X_DEFDCDC2_LOW_DCDC2_MASK	0X3F
 
-/* DEFDCDC2_HIGH bitfields */
+
 #define TPS6507X_DEFDCDC2_HIGH_DCDC2_MASK	0X3F
 
-/* DEFDCDC3_LOW bitfields */
+
 #define TPS6507X_DEFDCDC3_LOW_DCDC3_MASK	0X3F
 
-/* DEFDCDC3_HIGH bitfields */
+
 #define TPS6507X_DEFDCDC3_HIGH_DCDC3_MASK	0X3F
 
-/* TPS6507X_REG_LDO_CTRL1 bitfields */
+
 #define TPS6507X_REG_LDO_CTRL1_LDO1_MASK	0X0F
 
-/* TPS6507X_REG_DEFLDO2 bitfields */
+
 #define TPS6507X_REG_DEFLDO2_LDO2_MASK		0X3F
 
-/* VDCDC MASK */
+
 #define TPS6507X_DEFDCDCX_DCDC_MASK		0X3F
 
-/* DCDC's */
+
 #define TPS6507X_DCDC_1				0
 #define TPS6507X_DCDC_2				1
 #define TPS6507X_DCDC_3				2
-/* LDOs */
+
 #define TPS6507X_LDO_1				3
 #define TPS6507X_LDO_2				4
 
 #define TPS6507X_MAX_REG_ID			TPS6507X_LDO_2
 
-/* Number of step-down converters available */
+
 #define TPS6507X_NUM_DCDC			3
-/* Number of LDO voltage regulators  available */
+
 #define TPS6507X_NUM_LDO			2
-/* Number of total regulators available */
+
 #define TPS6507X_NUM_REGULATOR		(TPS6507X_NUM_DCDC + TPS6507X_NUM_LDO)
 
-/* Supported voltage values for regulators (in milliVolts) */
+
 static const u16 VDCDCx_VSEL_table[] = {
 	725, 750, 775, 800,
 	825, 850, 875, 900,
@@ -401,12 +386,12 @@ static int tps6507x_dcdc_set_voltage(struct regulator_dev *dev,
 		int mV = tps->info[dcdc]->table[vsel];
 		int uV = mV * 1000;
 
-		/* Break at the first in-range value */
+		
 		if (min_uV <= uV && uV <= max_uV)
 			break;
 	}
 
-	/* write to the register in case we found a match */
+	
 	if (vsel == tps->info[dcdc]->table_len)
 		return -EINVAL;
 
@@ -470,7 +455,7 @@ static int tps6507x_ldo_set_voltage(struct regulator_dev *dev,
 		int mV = tps->info[ldo]->table[vsel];
 		int uV = mV * 1000;
 
-		/* Break at the first in-range value */
+		
 		if (min_uV <= uV && uV <= max_uV)
 			break;
 	}
@@ -518,7 +503,7 @@ static int tps6507x_ldo_list_voltage(struct regulator_dev *dev,
 		return tps->info[ldo]->table[selector] * 1000;
 }
 
-/* Operations permitted on VDCDCx */
+
 static struct regulator_ops tps6507x_dcdc_ops = {
 	.is_enabled = tps6507x_dcdc_is_enabled,
 	.enable = tps6507x_dcdc_enable,
@@ -528,7 +513,7 @@ static struct regulator_ops tps6507x_dcdc_ops = {
 	.list_voltage = tps6507x_dcdc_list_voltage,
 };
 
-/* Operations permitted on LDOx */
+
 static struct regulator_ops tps6507x_ldo_ops = {
 	.is_enabled = tps6507x_ldo_is_enabled,
 	.enable = tps6507x_ldo_enable,
@@ -552,10 +537,7 @@ int tps_6507x_probe(struct i2c_client *client, const struct i2c_device_id *id)
 				I2C_FUNC_SMBUS_BYTE_DATA))
 		return -EIO;
 
-	/**
-	 * init_data points to array of regulator_init structures
-	 * coming from the board-evm file.
-	 */
+	
 	init_data = client->dev.platform_data;
 
 	if (!init_data)
@@ -567,11 +549,11 @@ int tps_6507x_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 	mutex_init(&tps->io_lock);
 
-	/* common for all regulators */
+	
 	tps->client = client;
 
 	for (i = 0; i < TPS6507X_NUM_REGULATOR; i++, info++, init_data++) {
-		/* Register the regulators */
+		
 		tps->info[i] = info;
 		tps->desc[i].name = info->name;
 		tps->desc[i].id = desc_id++;
@@ -587,20 +569,20 @@ int tps_6507x_probe(struct i2c_client *client, const struct i2c_device_id *id)
 			dev_err(&client->dev, "failed to register %s\n",
 				id->name);
 
-			/* Unregister */
+			
 			while (i)
 				regulator_unregister(tps->rdev[--i]);
 
 			tps->client = NULL;
 
-			/* clear the client data in i2c */
+			
 			i2c_set_clientdata(client, NULL);
 
 			kfree(tps);
 			return PTR_ERR(rdev);
 		}
 
-		/* Save regulator for cleanup */
+		
 		tps->rdev[i] = rdev;
 	}
 
@@ -609,12 +591,7 @@ int tps_6507x_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	return 0;
 }
 
-/**
- * tps_6507x_remove - TPS6507x driver i2c remove handler
- * @client: i2c driver client device structure
- *
- * Unregister TPS driver as an i2c client device driver
- */
+
 static int __devexit tps_6507x_remove(struct i2c_client *client)
 {
 	struct tps_pmic *tps = i2c_get_clientdata(client);
@@ -625,7 +602,7 @@ static int __devexit tps_6507x_remove(struct i2c_client *client)
 
 	tps->client = NULL;
 
-	/* clear the client data in i2c */
+	
 	i2c_set_clientdata(client, NULL);
 	kfree(tps);
 
@@ -687,22 +664,14 @@ static struct i2c_driver tps_6507x_i2c_driver = {
 	.id_table = tps_6507x_id,
 };
 
-/**
- * tps_6507x_init
- *
- * Module init function
- */
+
 static int __init tps_6507x_init(void)
 {
 	return i2c_add_driver(&tps_6507x_i2c_driver);
 }
 subsys_initcall(tps_6507x_init);
 
-/**
- * tps_6507x_cleanup
- *
- * Module exit function
- */
+
 static void __exit tps_6507x_cleanup(void)
 {
 	i2c_del_driver(&tps_6507x_i2c_driver);

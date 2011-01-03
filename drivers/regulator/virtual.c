@@ -1,15 +1,4 @@
-/*
- * reg-virtual-consumer.c
- *
- * Copyright 2008 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- */
+
 
 #include <linux/err.h>
 #include <linux/mutex.h>
@@ -236,10 +225,7 @@ static ssize_t set_mode(struct device *dev, struct device_attribute *attr,
 	unsigned int mode;
 	int ret;
 
-	/*
-	 * sysfs_streq() doesn't need the \n's, but we add them so the strings
-	 * will be shared with show_mode(), above.
-	 */
+	
 	if (sysfs_streq(buf, "fast\n"))
 		mode = REGULATOR_MODE_FAST;
 	else if (sysfs_streq(buf, "normal\n"))

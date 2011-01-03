@@ -1,15 +1,4 @@
-/*
- * wm831x-dcdc.c  --  DC-DC buck convertor driver for the WM831x series
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -34,15 +23,13 @@
 
 #define WM831X_DCDC_MAX_NAME 6
 
-/* Register offsets in control block */
+
 #define WM831X_DCDC_CONTROL_1     0
 #define WM831X_DCDC_CONTROL_2     1
 #define WM831X_DCDC_ON_CONFIG     2
 #define WM831X_DCDC_SLEEP_CONTROL 3
 
-/*
- * Shared
- */
+
 
 struct wm831x_dcdc {
 	char name[WM831X_DCDC_MAX_NAME];
@@ -166,7 +153,7 @@ static int wm831x_dcdc_get_status(struct regulator_dev *rdev)
 	struct wm831x *wm831x = dcdc->wm831x;
 	int ret;
 
-	/* First, check for errors */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_DCDC_UV_STATUS);
 	if (ret < 0)
 		return ret;
@@ -177,7 +164,7 @@ static int wm831x_dcdc_get_status(struct regulator_dev *rdev)
 		return REGULATOR_STATUS_ERROR;
 	}
 
-	/* DCDC1 and DCDC2 can additionally detect high voltage/current */
+	
 	if (rdev_get_id(rdev) < 2) {
 		if (ret & (WM831X_DC1_OV_STS << rdev_get_id(rdev))) {
 			dev_dbg(wm831x->dev, "DCDC%d over voltage\n",
@@ -192,15 +179,14 @@ static int wm831x_dcdc_get_status(struct regulator_dev *rdev)
 		}
 	}
 
-	/* Is the regulator on? */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_DCDC_STATUS);
 	if (ret < 0)
 		return ret;
 	if (!(ret & (1 << rdev_get_id(rdev))))
 		return REGULATOR_STATUS_OFF;
 
-	/* TODO: When we handle hardware control modes so we can report the
-	 * current mode. */
+	
 	return REGULATOR_STATUS_ON;
 }
 
@@ -226,9 +212,7 @@ static irqreturn_t wm831x_dcdc_oc_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-/*
- * BUCKV specifics
- */
+
 
 static int wm831x_buckv_list_voltage(struct regulator_dev *rdev,
 				      unsigned selector)
@@ -292,7 +276,7 @@ static int wm831x_buckv_get_voltage(struct regulator_dev *rdev)
 	return wm831x_buckv_list_voltage(rdev, val & WM831X_DC1_ON_VSEL_MASK);
 }
 
-/* Current limit options */
+
 static u16 wm831x_dcdc_ilim[] = {
 	125, 250, 375, 500, 625, 750, 875, 1000
 };
@@ -447,9 +431,7 @@ static struct platform_driver wm831x_buckv_driver = {
 	},
 };
 
-/*
- * BUCKP specifics
- */
+
 
 static int wm831x_buckp_list_voltage(struct regulator_dev *rdev,
 				      unsigned selector)
@@ -613,9 +595,7 @@ static struct platform_driver wm831x_buckp_driver = {
 	},
 };
 
-/*
- * DCDC boost convertors
- */
+
 
 static int wm831x_boostp_get_status(struct regulator_dev *rdev)
 {
@@ -623,7 +603,7 @@ static int wm831x_boostp_get_status(struct regulator_dev *rdev)
 	struct wm831x *wm831x = dcdc->wm831x;
 	int ret;
 
-	/* First, check for errors */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_DCDC_UV_STATUS);
 	if (ret < 0)
 		return ret;
@@ -634,7 +614,7 @@ static int wm831x_boostp_get_status(struct regulator_dev *rdev)
 		return REGULATOR_STATUS_ERROR;
 	}
 
-	/* Is the regulator on? */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_DCDC_STATUS);
 	if (ret < 0)
 		return ret;
@@ -739,12 +719,7 @@ static struct platform_driver wm831x_boostp_driver = {
 	},
 };
 
-/*
- * External Power Enable
- *
- * These aren't actually DCDCs but look like them in hardware so share
- * code.
- */
+
 
 #define WM831X_EPE_BASE 6
 
@@ -776,12 +751,10 @@ static __devinit int wm831x_epe_probe(struct platform_device *pdev)
 
 	dcdc->wm831x = wm831x;
 
-	/* For current parts this is correct; probably need to revisit
-	 * in future.
-	 */
+	
 	snprintf(dcdc->name, sizeof(dcdc->name), "EPE%d", id + 1);
 	dcdc->desc.name = dcdc->name;
-	dcdc->desc.id = id + WM831X_EPE_BASE; /* Offset in DCDC registers */
+	dcdc->desc.id = id + WM831X_EPE_BASE; 
 	dcdc->desc.ops = &wm831x_epe_ops;
 	dcdc->desc.type = REGULATOR_VOLTAGE;
 	dcdc->desc.owner = THIS_MODULE;
@@ -854,7 +827,7 @@ static void __exit wm831x_dcdc_exit(void)
 }
 module_exit(wm831x_dcdc_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Mark Brown");
 MODULE_DESCRIPTION("WM831x DC-DC convertor driver");
 MODULE_LICENSE("GPL");

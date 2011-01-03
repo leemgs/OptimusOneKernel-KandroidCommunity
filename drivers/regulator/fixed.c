@@ -1,22 +1,4 @@
-/*
- * fixed.c
- *
- * Copyright 2008 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * Copyright (c) 2009 Nokia Corporation
- * Roger Quadros <ext-roger.quadros@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This is useful for systems with mixed controllable and
- * non-controllable regulators, as well as for allowing testing on
- * systems with no controllable regulators.
- */
+
 
 #include <linux/err.h>
 #include <linux/mutex.h>
@@ -121,17 +103,7 @@ static int regulator_fixed_voltage_probe(struct platform_device *pdev)
 	if (gpio_is_valid(config->gpio)) {
 		drvdata->enable_high = config->enable_high;
 
-		/* FIXME: Remove below print warning
-		 *
-		 * config->gpio must be set to -EINVAL by platform code if
-		 * GPIO control is not required. However, early adopters
-		 * not requiring GPIO control may forget to initialize
-		 * config->gpio to -EINVAL. This will cause GPIO 0 to be used
-		 * for GPIO control.
-		 *
-		 * This warning will be removed once there are a couple of users
-		 * for this driver.
-		 */
+		
 		if (!config->gpio)
 			dev_warn(&pdev->dev,
 				"using GPIO 0 for regulator enable control\n");
@@ -144,9 +116,7 @@ static int regulator_fixed_voltage_probe(struct platform_device *pdev)
 			goto err_name;
 		}
 
-		/* set output direction without changing state
-		 * to prevent glitch
-		 */
+		
 		drvdata->is_enabled = config->enabled_at_boot;
 		ret = drvdata->is_enabled ?
 				config->enable_high : !config->enable_high;
@@ -160,9 +130,7 @@ static int regulator_fixed_voltage_probe(struct platform_device *pdev)
 		}
 
 	} else {
-		/* Regulator without GPIO control is considered
-		 * always enabled
-		 */
+		
 		drvdata->is_enabled = 1;
 	}
 

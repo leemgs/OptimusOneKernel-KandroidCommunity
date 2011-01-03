@@ -1,13 +1,4 @@
-/*
- * twl4030-regulator.c -- support regulators in twl4030 family chips
- *
- * Copyright (C) 2008 David Brownell
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -18,44 +9,32 @@
 #include <linux/i2c/twl4030.h>
 
 
-/*
- * The TWL4030/TW5030/TPS659x0 family chips include power management, a
- * USB OTG transceiver, an RTC, ADC, PWM, and lots more.  Some versions
- * include an audio codec, battery charger, and more voltage regulators.
- * These chips are often used in OMAP-based systems.
- *
- * This driver implements software-based resource control for various
- * voltage regulators.  This is usually augmented with state machine
- * based control.
- */
+
 
 struct twlreg_info {
-	/* start of regulator's PM_RECEIVER control register bank */
+	
 	u8			base;
 
-	/* twl4030 resource ID, for resource control state machine */
+	
 	u8			id;
 
-	/* voltage in mV = table[VSEL]; table_len must be a power-of-two */
+	
 	u8			table_len;
 	const u16		*table;
 
-	/* chip constraints on regulator behavior */
+	
 	u16			min_mV;
 
-	/* used by regulator core */
+	
 	struct regulator_desc	desc;
 };
 
 
-/* LDO control registers ... offset is from the base of its register bank.
- * The first three registers of all power resource banks help hardware to
- * manage the various resource groups.
- */
+
 #define VREG_GRP		0
 #define VREG_TYPE		1
 #define VREG_REMAP		2
-#define VREG_DEDICATED		3	/* LDO control */
+#define VREG_DEDICATED		3	
 
 
 static inline int
@@ -76,23 +55,20 @@ twl4030reg_write(struct twlreg_info *info, unsigned offset, u8 value)
 			value, info->base + offset);
 }
 
-/*----------------------------------------------------------------------*/
 
-/* generic power resource operations, which work on all regulators */
+
+
 
 static int twl4030reg_grp(struct regulator_dev *rdev)
 {
 	return twl4030reg_read(rdev_get_drvdata(rdev), VREG_GRP);
 }
 
-/*
- * Enable/disable regulators by joining/leaving the P1 (processor) group.
- * We assume nobody else is updating the DEV_GRP registers.
- */
 
-#define P3_GRP		BIT(7)		/* "peripherals" */
-#define P2_GRP		BIT(6)		/* secondary processor, modem, etc */
-#define P1_GRP		BIT(5)		/* CPU/Linux */
+
+#define P3_GRP		BIT(7)		
+#define P2_GRP		BIT(6)		
+#define P1_GRP		BIT(5)		
 
 static int twl4030reg_is_enabled(struct regulator_dev *rdev)
 {
@@ -138,7 +114,7 @@ static int twl4030reg_get_status(struct regulator_dev *rdev)
 		return state;
 	state &= 0x0f;
 
-	/* assume state != WARM_RESET; we'd not be running...  */
+	
 	if (!state)
 		return REGULATOR_STATUS_OFF;
 	return (state & BIT(3))
@@ -152,7 +128,7 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
 	unsigned		message;
 	int			status;
 
-	/* We can only set the mode through state machine commands... */
+	
 	switch (mode) {
 	case REGULATOR_MODE_NORMAL:
 		message = MSG_SINGULAR(DEV_GRP_P1, info->id, RES_STATE_ACTIVE);
@@ -164,7 +140,7 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
 		return -EINVAL;
 	}
 
-	/* Ensure the resource is associated with some group */
+	
 	status = twl4030reg_grp(rdev);
 	if (status < 0)
 		return status;
@@ -172,31 +148,17 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
 		return -EACCES;
 
 	status = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER,
-			message >> 8, 0x15 /* PB_WORD_MSB */ );
+			message >> 8, 0x15  );
 	if (status >= 0)
 		return status;
 
 	return twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER,
-			message, 0x16 /* PB_WORD_LSB */ );
+			message, 0x16  );
 }
 
-/*----------------------------------------------------------------------*/
 
-/*
- * Support for adjustable-voltage LDOs uses a four bit (or less) voltage
- * select field in its control register.   We use tables indexed by VSEL
- * to record voltages in milliVolts.  (Accuracy is about three percent.)
- *
- * Note that VSEL values for VAUX2 changed in twl5030 and newer silicon;
- * currently handled by listing two slightly different VAUX2 regulators,
- * only one of which will be configured.
- *
- * VSEL values documented as "TI cannot support these values" are flagged
- * in these tables as UNSUP() values; we normally won't assign them.
- *
- * VAUX3 at 3V is incorrectly listed in some TI manuals as unsupported.
- * TI are revising the twl5030/tps659x0 specs to support that 3.0V setting.
- */
+
+
 #ifdef CONFIG_TWL4030_ALLOW_UNSUPPORTED
 #define UNSUP_MASK	0x0000
 #else
@@ -284,9 +246,9 @@ twl4030ldo_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV)
 			continue;
 		uV = LDO_MV(mV) * 1000;
 
-		/* REVISIT for VAUX2, first match may not be best/lowest */
+		
 
-		/* use the first in-range value */
+		
 		if (min_uV <= uV && uV <= max_uV)
 			return twl4030reg_write(info, VREG_DEDICATED, vsel);
 	}
@@ -321,11 +283,9 @@ static struct regulator_ops twl4030ldo_ops = {
 	.get_status	= twl4030reg_get_status,
 };
 
-/*----------------------------------------------------------------------*/
 
-/*
- * Fixed voltage LDOs don't have a VSEL field to update.
- */
+
+
 static int twl4030fixed_list_voltage(struct regulator_dev *rdev, unsigned index)
 {
 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
@@ -354,7 +314,7 @@ static struct regulator_ops twl4030fixed_ops = {
 	.get_status	= twl4030reg_get_status,
 };
 
-/*----------------------------------------------------------------------*/
+
 
 #define TWL_ADJUSTABLE_LDO(label, offset, num) { \
 	.base = offset, \
@@ -385,10 +345,7 @@ static struct regulator_ops twl4030fixed_ops = {
 		}, \
 	}
 
-/*
- * We list regulators here if systems need some level of
- * software control over them after boot.
- */
+
 static struct twlreg_info twl4030_regs[] = {
 	TWL_ADJUSTABLE_LDO(VAUX1, 0x17, 1),
 	TWL_ADJUSTABLE_LDO(VAUX2_4030, 0x1b, 2),
@@ -397,24 +354,15 @@ static struct twlreg_info twl4030_regs[] = {
 	TWL_ADJUSTABLE_LDO(VAUX4, 0x23, 4),
 	TWL_ADJUSTABLE_LDO(VMMC1, 0x27, 5),
 	TWL_ADJUSTABLE_LDO(VMMC2, 0x2b, 6),
-	/*
-	TWL_ADJUSTABLE_LDO(VPLL1, 0x2f, 7),
-	*/
+	
 	TWL_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
 	TWL_ADJUSTABLE_LDO(VSIM, 0x37, 9),
 	TWL_ADJUSTABLE_LDO(VDAC, 0x3b, 10),
-	/*
-	TWL_ADJUSTABLE_LDO(VINTANA1, 0x3f, 11),
-	TWL_ADJUSTABLE_LDO(VINTANA2, 0x43, 12),
-	TWL_ADJUSTABLE_LDO(VINTDIG, 0x47, 13),
-	TWL_SMPS(VIO, 0x4b, 14),
-	TWL_SMPS(VDD1, 0x55, 15),
-	TWL_SMPS(VDD2, 0x63, 16),
-	 */
+	
 	TWL_FIXED_LDO(VUSB1V5, 0x71, 1500, 17),
 	TWL_FIXED_LDO(VUSB1V8, 0x74, 1800, 18),
 	TWL_FIXED_LDO(VUSB3V1, 0x77, 3100, 19),
-	/* VUSBCP is managed *only* by the USB subchip */
+	
 };
 
 static int twl4030reg_probe(struct platform_device *pdev)
@@ -438,9 +386,7 @@ static int twl4030reg_probe(struct platform_device *pdev)
 	if (!initdata)
 		return -EINVAL;
 
-	/* Constrain board-specific capabilities according to what
-	 * this driver and the chip itself can actually do.
-	 */
+	
 	c = &initdata->constraints;
 	c->valid_modes_mask &= REGULATOR_MODE_NORMAL | REGULATOR_MODE_STANDBY;
 	c->valid_ops_mask &= REGULATOR_CHANGE_VOLTAGE
@@ -455,13 +401,7 @@ static int twl4030reg_probe(struct platform_device *pdev)
 	}
 	platform_set_drvdata(pdev, rdev);
 
-	/* NOTE:  many regulators support short-circuit IRQs (presentable
-	 * as REGULATOR_OVER_CURRENT notifications?) configured via:
-	 *  - SC_CONFIG
-	 *  - SC_DETECT1 (vintana2, vmmc1/2, vaux1/2/3/4)
-	 *  - SC_DETECT2 (vusb, vdac, vio, vdd1/2, vpll2)
-	 *  - IT_CONFIG
-	 */
+	
 
 	return 0;
 }
@@ -477,9 +417,7 @@ MODULE_ALIAS("platform:twl4030_reg");
 static struct platform_driver twl4030reg_driver = {
 	.probe		= twl4030reg_probe,
 	.remove		= __devexit_p(twl4030reg_remove),
-	/* NOTE: short name, to work around driver model truncation of
-	 * "twl4030_regulator.12" (and friends) to "twl4030_regulator.1".
-	 */
+	
 	.driver.name	= "twl4030_reg",
 	.driver.owner	= THIS_MODULE,
 };
