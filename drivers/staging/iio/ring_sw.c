@@ -1,11 +1,4 @@
-/* The industrial I/O simple minimally locked ring buffer.
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -54,11 +47,10 @@ void iio_unmark_sw_rb_in_use(struct iio_ring_buffer *r)
 EXPORT_SYMBOL(iio_unmark_sw_rb_in_use);
 
 
-/* Ring buffer related functionality */
-/* Store to ring is typically called in the bh of a data ready interrupt handler
- * in the device driver */
-/* Lock always held if their is a chance this may be called */
-/* Only one of these per ring may run concurrently - enforced by drivers */
+
+
+
+
 int iio_store_to_sw_ring(struct iio_sw_ring_buffer *ring,
 			 unsigned char *data,
 			 s64 timestamp)
@@ -67,46 +59,30 @@ int iio_store_to_sw_ring(struct iio_sw_ring_buffer *ring,
 	int code;
 	unsigned char *temp_ptr, *change_test_ptr;
 
-	/* initial store */
+	
 	if (unlikely(ring->write_p == 0)) {
 		ring->write_p = ring->data;
-		/* Doesn't actually matter if this is out of the set
-		 * as long as the read pointer is valid before this
-		 * passes it - guaranteed as set later in this function.
-		 */
+		
 		ring->half_p = ring->data - ring->buf.length*ring->buf.bpd/2;
 	}
-	/* Copy data to where ever the current write pointer says */
+	
 	memcpy(ring->write_p, data, ring->buf.bpd);
 	barrier();
-	/* Update the pointer used to get most recent value.
-	 * Always valid as either points to latest or second latest value.
-	 * Before this runs it is null and read attempts fail with -EAGAIN.
-	 */
+	
 	ring->last_written_p = ring->write_p;
 	barrier();
-	/* temp_ptr used to ensure we never have an invalid pointer
-	 * it may be slightly lagging, but never invalid
-	 */
+	
 	temp_ptr = ring->write_p + ring->buf.bpd;
-	/* End of ring, back to the beginning */
+	
 	if (temp_ptr == ring->data + ring->buf.length*ring->buf.bpd)
 		temp_ptr = ring->data;
-	/* Update the write pointer
-	 * always valid as long as this is the only function able to write.
-	 * Care needed with smp systems to ensure more than one ring fill
-	 * is never scheduled.
-	 */
+	
 	ring->write_p = temp_ptr;
 
 	if (ring->read_p == 0)
 		ring->read_p = ring->data;
-	/* Buffer full - move the read pointer and create / escalate
-	 * ring event */
-	/* Tricky case - if the read pointer moves before we adjust it.
-	 * Handle by not pushing if it has moved - may result in occasional
-	 * unnecessary buffer full events when it wasn't quite true.
-	 */
+	
+	
 	else if (ring->write_p == ring->read_p) {
 		change_test_ptr = ring->read_p;
 		temp_ptr = change_test_ptr + ring->buf.bpd;
@@ -114,9 +90,7 @@ int iio_store_to_sw_ring(struct iio_sw_ring_buffer *ring,
 		    == ring->data + ring->buf.length*ring->buf.bpd) {
 			temp_ptr = ring->data;
 		}
-		/* We are moving pointer on one because the ring is full.  Any
-		 * change to the read pointer will be this or greater.
-		 */
+		
 		if (change_test_ptr == ring->read_p)
 			ring->read_p = temp_ptr;
 
@@ -129,10 +103,9 @@ int iio_store_to_sw_ring(struct iio_sw_ring_buffer *ring,
 		if (ret)
 			goto error_ret;
 	}
-	/* investigate if our event barrier has been passed */
-	/* There are definite 'issues' with this and chances of
-	 * simultaneous read */
-	/* Also need to use loop count to ensure this only happens once */
+	
+	
+	
 	ring->half_p += ring->buf.bpd;
 	if (ring->half_p == ring->data + ring->buf.length*ring->buf.bpd)
 		ring->half_p = ring->data;
@@ -158,10 +131,7 @@ int iio_rip_sw_rb(struct iio_ring_buffer *r,
 	int ret, max_copied;
 	int bytes_to_rip;
 
-	/* A userspace program has probably made an error if it tries to
-	 *  read something that is not a whole number of bpds.
-	 * Return an error.
-	 */
+	
 	if (count % ring->buf.bpd) {
 		ret = -EINVAL;
 		printk(KERN_INFO "Ring buffer read request not whole number of"
@@ -169,7 +139,7 @@ int iio_rip_sw_rb(struct iio_ring_buffer *r,
 		       count, ring->buf.bpd);
 		goto error_ret;
 	}
-	/* Limit size to whole of ring buffer */
+	
 	bytes_to_rip = min((size_t)(ring->buf.bpd*ring->buf.length), count);
 
 	*data = kmalloc(bytes_to_rip, GFP_KERNEL);
@@ -178,61 +148,60 @@ int iio_rip_sw_rb(struct iio_ring_buffer *r,
 		goto error_ret;
 	}
 
-	/* build local copy */
+	
 	initial_read_p = ring->read_p;
-	if (unlikely(initial_read_p == 0)) { /* No data here as yet */
+	if (unlikely(initial_read_p == 0)) { 
 		ret = 0;
 		goto error_free_data_cpy;
 	}
 
 	initial_write_p = ring->write_p;
 
-	/* Need a consistent pair */
+	
 	while ((initial_read_p != ring->read_p)
 	       || (initial_write_p != ring->write_p)) {
 		initial_read_p = ring->read_p;
 		initial_write_p = ring->write_p;
 	}
 	if (initial_write_p == initial_read_p) {
-		/* No new data available.*/
+		
 		ret = 0;
 		goto error_free_data_cpy;
 	}
 
 	if (initial_write_p >= initial_read_p + bytes_to_rip) {
-		/* write_p is greater than necessary, all is easy */
+		
 		max_copied = bytes_to_rip;
 		memcpy(*data, initial_read_p, max_copied);
 		end_read_p = initial_read_p + max_copied;
 	} else if (initial_write_p > initial_read_p) {
-		/*not enough data to cpy */
+		
 		max_copied = initial_write_p - initial_read_p;
 		memcpy(*data, initial_read_p, max_copied);
 		end_read_p = initial_write_p;
 	} else {
-		/* going through 'end' of ring buffer */
+		
 		max_copied = ring->data
 			+ ring->buf.length*ring->buf.bpd - initial_read_p;
 		memcpy(*data, initial_read_p, max_copied);
-		/* possible we are done if we align precisely with end */
+		
 		if (max_copied == bytes_to_rip)
 			end_read_p = ring->data;
 		else if (initial_write_p
 			 > ring->data + bytes_to_rip - max_copied) {
-			/* enough data to finish */
+			
 			memcpy(*data + max_copied, ring->data,
 			       bytes_to_rip - max_copied);
 			max_copied = bytes_to_rip;
 			end_read_p = ring->data + (bytes_to_rip - max_copied);
-		} else {  /* not enough data */
+		} else {  
 			memcpy(*data + max_copied, ring->data,
 			       initial_write_p - ring->data);
 			max_copied += initial_write_p - ring->data;
 			end_read_p = initial_write_p;
 		}
 	}
-	/* Now to verify which section was cleanly copied - i.e. how far
-	 * read pointer has been pushed */
+	
 	current_read_p = ring->read_p;
 
 	if (initial_read_p <= current_read_p)
@@ -241,23 +210,16 @@ int iio_rip_sw_rb(struct iio_ring_buffer *r,
 		*dead_offset = ring->buf.length*ring->buf.bpd
 			- (initial_read_p - current_read_p);
 
-	/* possible issue if the initial write has been lapped or indeed
-	 * the point we were reading to has been passed */
-	/* No valid data read.
-	 * In this case the read pointer is already correct having been
-	 * pushed further than we would look. */
+	
+	
 	if (max_copied - *dead_offset < 0) {
 		ret = 0;
 		goto error_free_data_cpy;
 	}
 
-	/* setup the next read position */
-	/* Beware, this may fail due to concurrency fun and games.
-	 *  Possible that sufficient fill commands have run to push the read
-	 * pointer past where we would be after the rip. If this occurs, leave
-	 * it be.
-	 */
-	/* Tricky - deal with loops */
+	
+	
+	
 
 	while (ring->read_p != end_read_p)
 		ring->read_p = end_read_p;
@@ -287,8 +249,8 @@ int iio_read_last_from_sw_ring(struct iio_sw_ring_buffer *ring,
 again:
 	barrier();
 	last_written_p_copy = ring->last_written_p;
-	barrier(); /*unnessecary? */
-	/* Check there is anything here */
+	barrier(); 
+	
 	if (last_written_p_copy == 0)
 		return -EAGAIN;
 	memcpy(data, last_written_p_copy, ring->buf.bpd);
@@ -380,7 +342,7 @@ static IIO_RING_ENABLE_ATTR;
 static IIO_RING_BPS_ATTR;
 static IIO_RING_LENGTH_ATTR;
 
-/* Standard set of ring buffer attributes */
+
 static struct attribute *iio_ring_attributes[] = {
 	&dev_attr_length.attr,
 	&dev_attr_bps.attr,

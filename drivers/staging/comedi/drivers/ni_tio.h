@@ -1,31 +1,11 @@
-/*
-    drivers/ni_tio.h
-    Header file for NI general purpose counter support code (ni_tio.c)
 
-    COMEDI - Linux Control and Measurement Device Interface
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #ifndef _COMEDI_NI_TIO_H
 #define _COMEDI_NI_TIO_H
 
 #include "../comedidev.h"
 
-/* forward declarations */
+
 struct mite_struct;
 struct ni_gpct_device;
 
@@ -113,7 +93,7 @@ struct ni_gpct {
 	struct ni_gpct_device *counter_dev;
 	unsigned counter_index;
 	unsigned chip_index;
-	uint64_t clock_period_ps;	/* clock period in picoseconds */
+	uint64_t clock_period_ps;	
 	struct mite_channel *mite_chan;
 	spinlock_t lock;
 };
@@ -171,4 +151,4 @@ static inline struct ni_gpct *subdev_to_counter(struct comedi_subdevice *s)
 	return s->private;
 }
 
-#endif /* _COMEDI_NI_TIO_H */
+#endif 

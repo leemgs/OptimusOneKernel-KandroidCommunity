@@ -1,27 +1,6 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
 
-/**
-  *  The power saving manager is to save the power as much as possible.
-  *  Generally speaking, it controls:
-  *
-  *         - when to sleep
-  *         -
-  *
-  */
+
+
 #include "cprecomp.h"
 
 void zfPowerSavingMgrInit(zdev_t* dev)
@@ -56,7 +35,7 @@ zm_debug_msg0("zfPowerSavingMgrHandlePsNone: Wake up now\n");
             if ( zfStaIsConnected(dev) )
             {
                 zm_debug_msg0("zfPowerSavingMgrOnHandleT1 send Null data\n");
-                //zfSendNullData(dev, 0);
+                
                 ret = 1;
             }
 
@@ -73,8 +52,8 @@ static void zfPowerSavingMgrHandlePs(zdev_t* dev)
     switch(wd->sta.psMgr.state)
     {
         case ZM_PS_MSG_STATE_ACTIVE:
-            //zm_debug_msg0("zfPowerSavingMgrHandlePs: Prepare to sleep...\n");
-            //wd->sta.psMgr.state = ZM_PS_MSG_STATE_T1;
+            
+            
             break;
 
         case ZM_PS_MSG_STATE_T1:
@@ -128,7 +107,7 @@ void zfPowerSavingMgrSetMode(zdev_t* dev, u8_t mode)
             if ( mode != ZM_STA_PS_NONE )
             {
 zm_debug_msg0("zfPowerSavingMgrSetMode: switch from ZM_PS_MSG_STATE_ACTIVE to ZM_PS_MSG_STATE_T1\n");
-                // Stall the TX & start to wait the pending TX to be completed
+                
                 wd->sta.psMgr.state = ZM_PS_MSG_STATE_T1;
             }
             break;
@@ -201,7 +180,7 @@ static void zfPowerSavingMgrOnHandleT1(zdev_t* dev)
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
-    // If the tx Q is not empty...return
+    
     if ( zfIsVtxqEmpty(dev) == FALSE )
     {
         return;
@@ -209,7 +188,7 @@ static void zfPowerSavingMgrOnHandleT1(zdev_t* dev)
 
 zm_debug_msg0("VtxQ is empty now...Check if HAL TXQ is empty\n");
 
-    // The the HAL TX Q is not empty...return
+    
     if ( zfHpGetFreeTxdCount(dev) != zfHpGetMaxTxdCount(dev) )
     {
         return;
@@ -242,15 +221,15 @@ zm_debug_msg0("HAL TXQ is empty now...Could go to sleep...\n");
 
     zmw_leave_critical_section(dev);
 
-    // Send the Null pkt to AP to notify that I'm going to sleep
+    
     if ( zfStaIsConnected(dev) )
     {
 zm_debug_msg0("zfPowerSavingMgrOnHandleT1 send Null data\n");
         zfPowerSavingMgrNotifyPSToAP(dev);
     }
 
-    // Stall the TX now
-    // zfTxEngineStop(dev);
+    
+    
 }
 
 static void zfPowerSavingMgrOnHandleT2(zdev_t* dev)
@@ -258,7 +237,7 @@ static void zfPowerSavingMgrOnHandleT2(zdev_t* dev)
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
-    // Wait until the Null pkt is transmitted
+    
     if ( zfHpGetFreeTxdCount(dev) != zfHpGetMaxTxdCount(dev) )
     {
         return;
@@ -271,7 +250,7 @@ static void zfPowerSavingMgrOnHandleT2(zdev_t* dev)
     wd->sta.psMgr.lastTxMulticastFrm = wd->commTally.txMulticastFrm;
     zmw_leave_critical_section(dev);
 
-    // Let CHIP sleep now
+    
 zm_debug_msg0("zfPowerSavingMgrOnHandleT2 zzzz....\n");
     zfHpPowerSaveSetState(dev, 1);
     wd->sta.psMgr.tempWakeUp = 0;
@@ -433,15 +412,15 @@ void zfPowerSavingMgrAtimWinExpired(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
 
-//printk("zfPowerSavingMgrAtimWinExpired #1\n");
+
     if ( wd->sta.powerSaveMode == ZM_STA_PS_NONE )
     {
         return;
     }
 
-//printk("zfPowerSavingMgrAtimWinExpired #2\n");
-    // if we received any ATIM window from the others to indicate we have buffered data
-    // at the other station, we can't go to sleep
+
+    
+    
     if ( wd->sta.recvAtim )
     {
         wd->sta.recvAtim = 0;
@@ -449,31 +428,31 @@ void zfPowerSavingMgrAtimWinExpired(zdev_t* dev)
         return;
     }
 
-    // if we are the one to tx beacon during last beacon interval. we can't go to sleep
-    // since we need to be alive to respond the probe request!
+    
+    
     if ( wd->sta.txBeaconInd )
     {
         zm_debug_msg0("Can't sleep due to just transmit a beacon!");
         return;
     }
 
-    // If we buffer any data for the other stations. we could not go to sleep
+    
     if ( wd->sta.ibssPrevPSDataCount != 0 )
     {
         zm_debug_msg0("Can't sleep due to buffering data for the others!");
         return;
     }
 
-    // before sleeping, we still need to notify the others by transmitting null
-    // pkt with power mgmt bit turned on.
+    
+    
     zfPowerSavingMgrOnHandleT1(dev);
 }
 
 static void zfPowerSavingMgrIBSSMain(zdev_t* dev)
 {
-    // wait for the end of
-    // if need to wait to know if we are the one to transmit the beacon
-    // during the beacon interval. If it's me, we can't go to sleep.
+    
+    
+    
 
     zmw_get_wlan_dev(dev);
 
@@ -562,9 +541,9 @@ void zfPowerSavingMgrWakeup(zdev_t* dev)
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
-//zm_debug_msg0("zfPowerSavingMgrWakeup");
 
-    //if ( wd->sta.psMgr.state != ZM_PS_MSG_STATE_ACTIVE && ( zfPowerSavingMgrIsIdle(dev) == 0 ))
+
+    
     if ( wd->sta.psMgr.state != ZM_PS_MSG_STATE_ACTIVE )
     {
         zmw_enter_critical_section(dev);
@@ -577,7 +556,7 @@ void zfPowerSavingMgrWakeup(zdev_t* dev)
 
         zmw_leave_critical_section(dev);
 
-        // Wake up the CHIP now!!
+        
         zfHpPowerSaveSetState(dev, 0);
     }
 }
@@ -597,7 +576,7 @@ void zfPowerSavingMgrProcessBeacon(zdev_t* dev, zbuf_t* buf)
     zmw_declare_for_critical_section();
 
     if ( wd->sta.powerSaveMode == ZM_STA_PS_NONE  )
-    //if ( wd->sta.psMgr.state != ZM_PS_MSG_STATE_SLEEP )
+    
     {
         return;
     }
@@ -621,19 +600,19 @@ void zfPowerSavingMgrProcessBeacon(zdev_t* dev, zbuf_t* buf)
 
                 if ( (bitmap >> r) &  ZM_BIT_0 )
                 {
-                    //if ( wd->sta.powerSaveMode == ZM_STA_PS_FAST )
+                    
                     if ( 0 )
                     {
                         wd->sta.psMgr.state = ZM_PS_MSG_STATE_S1;
-                        //zfSendPSPoll(dev);
+                        
                         zfSendNullData(dev, 0);
                     }
                     else
                     {
                         if ((wd->sta.qosInfo&0xf) != 0xf)
                         {
-                            /* send ps-poll */
-                            //printk("zfSendPSPoll #1\n");
+                            
+                            
 
                             wd->sta.psMgr.isSleepAllowed = 0;
 
@@ -641,7 +620,7 @@ void zfPowerSavingMgrProcessBeacon(zdev_t* dev, zbuf_t* buf)
                             {
                             case ZM_STA_PS_MAX:
                             case ZM_STA_PS_FAST:
-                                //zm_debug_msg0("wake up and send PS-Poll\n");
+                                
                                 zfSendPSPoll(dev);
                                 break;
                             case ZM_STA_PS_LIGHT:
@@ -668,7 +647,7 @@ void zfPowerSavingMgrProcessBeacon(zdev_t* dev, zbuf_t* buf)
         zfTxSendEth(dev, psBuf, 0, ZM_EXTERNAL_ALLOC_BUF, 0);
     }
 
-    //printk("zfPowerSavingMgrProcessBeacon #1\n");
+    
     zfPowerSavingMgrMain(dev);
 }
 
@@ -702,7 +681,7 @@ void zfPowerSavingMgrPreTBTTInterrupt(zdev_t *dev)
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
-    /* disable TBTT interrupt when change from connection to disconnect */
+    
     if (zfStaIsDisconnect(dev)) {
         zfHpPowerSaveSetMode(dev, 0, 0, 0);
         zfPowerSavingMgrWakeup(dev);
@@ -727,5 +706,5 @@ void zfPowerSavingMgrPreTBTTInterrupt(zdev_t *dev)
     zfPowerSavingMgrWakeup(dev);
 }
 
-/* Leave an empty line below to remove warning message on some compiler */
+
 

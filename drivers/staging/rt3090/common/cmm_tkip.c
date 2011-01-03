@@ -1,44 +1,9 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-	Module Name:
-	cmm_tkip.c
-
-	Abstract:
-
-	Revision History:
-	Who			When			What
-	--------	----------		----------------------------------------------
-	Paul Wu		02-25-02		Initial
-*/
 
 #include "../rt_config.h"
 
 
-// Rotation functions on 32 bit values
+
 #define ROL32( A, n ) \
 	( ((A) << (n)) | ( ((A)>>(32-(n))) & ( (1UL << (n)) - 1 ) ) )
 #define ROR32( A, n ) ROL32( (A), 32-(n) )
@@ -115,9 +80,9 @@ UINT Tkip_Sbox_Upper[256] =
 	0x82,0x29,0x5A,0x1E,0x7B,0xA8,0x6D,0x2C
 };
 
-//
-// Expanded IV for TKIP function.
-//
+
+
+
 typedef	struct	PACKED _IV_CONTROL_
 {
 	union PACKED
@@ -153,22 +118,7 @@ typedef	struct	PACKED _IV_CONTROL_
 }	TKIP_IV, *PTKIP_IV;
 
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Convert from UCHAR[] to ULONG in a portable way
-
-	Arguments:
-      pMICKey		pointer to MIC Key
-
-	Return Value:
-		None
-
-	Note:
-
-	========================================================================
-*/
 ULONG	RTMPTkipGetUInt32(
 	IN	PUCHAR	pMICKey)
 {
@@ -183,25 +133,7 @@ ULONG	RTMPTkipGetUInt32(
 	return res;
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Convert from ULONG to UCHAR[] in a portable way
-
-	Arguments:
-      pDst			pointer to destination for convert ULONG to UCHAR[]
-      val			the value for convert
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPTkipPutUInt32(
 	IN OUT	PUCHAR		pDst,
 	IN		ULONG		val)
@@ -215,66 +147,30 @@ VOID	RTMPTkipPutUInt32(
 	}
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Set the MIC Key.
-
-	Arguments:
-      pAd		Pointer to our adapter
-      pMICKey		pointer to MIC Key
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID RTMPTkipSetMICKey(
 	IN	PTKIP_KEY_INFO	pTkip,
 	IN	PUCHAR			pMICKey)
 {
-	// Set the key
+	
 	pTkip->K0 = RTMPTkipGetUInt32(pMICKey);
 	pTkip->K1 = RTMPTkipGetUInt32(pMICKey + 4);
-	// and reset the message
+	
 	pTkip->L = pTkip->K0;
 	pTkip->R = pTkip->K1;
 	pTkip->nBytesInM = 0;
 	pTkip->M = 0;
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Calculate the MIC Value.
-
-	Arguments:
-      pAd		Pointer to our adapter
-      uChar			Append this uChar
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPTkipAppendByte(
 	IN	PTKIP_KEY_INFO	pTkip,
 	IN	UCHAR			uChar)
 {
-	// Append the byte to our word-sized buffer
+	
 	pTkip->M |= (uChar << (8* pTkip->nBytesInM));
 	pTkip->nBytesInM++;
-	// Process the word if it is full.
+	
 	if( pTkip->nBytesInM >= 4 )
 	{
 		pTkip->L ^= pTkip->M;
@@ -286,38 +182,19 @@ VOID	RTMPTkipAppendByte(
 		pTkip->L += pTkip->R;
 		pTkip->R ^= ROR32( pTkip->L, 2 );
 		pTkip->L += pTkip->R;
-		// Clear the buffer
+		
 		pTkip->M = 0;
 		pTkip->nBytesInM = 0;
 	}
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Calculate the MIC Value.
-
-	Arguments:
-      pAd		Pointer to our adapter
-      pSrc			Pointer to source data for Calculate MIC Value
-      Len			Indicate the length of the source data
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPTkipAppend(
 	IN	PTKIP_KEY_INFO	pTkip,
 	IN	PUCHAR			pSrc,
 	IN	UINT			nBytes)
 {
-	// This is simple
+	
 	while(nBytes > 0)
 	{
 		RTMPTkipAppendByte(pTkip, *pSrc++);
@@ -325,65 +202,27 @@ VOID	RTMPTkipAppend(
 	}
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Get the MIC Value.
-
-	Arguments:
-      pAd		Pointer to our adapter
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-		the MIC Value is store in pAd->PrivateInfo.MIC
-	========================================================================
-*/
 VOID	RTMPTkipGetMIC(
 	IN	PTKIP_KEY_INFO	pTkip)
 {
-	// Append the minimum padding
+	
 	RTMPTkipAppendByte(pTkip, 0x5a );
 	RTMPTkipAppendByte(pTkip, 0 );
 	RTMPTkipAppendByte(pTkip, 0 );
 	RTMPTkipAppendByte(pTkip, 0 );
 	RTMPTkipAppendByte(pTkip, 0 );
-	// and then zeroes until the length is a multiple of 4
+	
 	while( pTkip->nBytesInM != 0 )
 	{
 		RTMPTkipAppendByte(pTkip, 0 );
 	}
-	// The appendByte function has already computed the result.
+	
 	RTMPTkipPutUInt32(pTkip->MIC, pTkip->L);
 	RTMPTkipPutUInt32(pTkip->MIC + 4, pTkip->R);
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Init Tkip function.
-
-	Arguments:
-      pAd		Pointer to our adapter
-		pTKey       Pointer to the Temporal Key (TK), TK shall be 128bits.
-		KeyId		TK Key ID
-		pTA			Pointer to transmitter address
-		pMICKey		pointer to MIC Key
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPInitTkipEngine(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pKey,
@@ -396,41 +235,21 @@ VOID	RTMPInitTkipEngine(
 {
 	TKIP_IV	tkipIv;
 
-	// Prepare 8 bytes TKIP encapsulation for MPDU
+	
 	NdisZeroMemory(&tkipIv, sizeof(TKIP_IV));
 	tkipIv.IV16.field.rc0 = *(pTSC + 1);
 	tkipIv.IV16.field.rc1 = (tkipIv.IV16.field.rc0 | 0x20) & 0x7f;
 	tkipIv.IV16.field.rc2 = *pTSC;
-	tkipIv.IV16.field.CONTROL.field.ExtIV = 1;  // 0: non-extended IV, 1: an extended IV
+	tkipIv.IV16.field.CONTROL.field.ExtIV = 1;  
 	tkipIv.IV16.field.CONTROL.field.KeyID = KeyId;
-//	tkipIv.IV32 = *(PULONG)(pTSC + 2);
-	NdisMoveMemory(&tkipIv.IV32, (pTSC + 2), 4);   // Copy IV
+
+	NdisMoveMemory(&tkipIv.IV32, (pTSC + 2), 4);   
 
 	*pIV16 = tkipIv.IV16.word;
 	*pIV32 = tkipIv.IV32;
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Init MIC Value calculation function which include set MIC key &
-		calculate first 16 bytes (DA + SA + priority +  0)
-
-	Arguments:
-      pAd		Pointer to our adapter
-		pTKey       Pointer to the Temporal Key (TK), TK shall be 128bits.
-		pDA			Pointer to DA address
-		pSA			Pointer to SA address
-		pMICKey		pointer to MIC Key
-
-	Return Value:
-		None
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPInitMICEngine(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pKey,
@@ -441,40 +260,17 @@ VOID	RTMPInitMICEngine(
 {
 	ULONG Priority = UserPriority;
 
-	// Init MIC value calculation
+	
 	RTMPTkipSetMICKey(&pAd->PrivateInfo.Tx, pMICKey);
-	// DA
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Tx, pDA, MAC_ADDR_LEN);
-	// SA
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Tx, pSA, MAC_ADDR_LEN);
-	// Priority + 3 bytes of 0
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Tx, (PUCHAR)&Priority, 4);
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Compare MIC value of received MSDU
-
-	Arguments:
-		pAd	Pointer to our adapter
-		pSrc        Pointer to the received Plain text data
-		pDA			Pointer to DA address
-		pSA			Pointer to SA address
-		pMICKey		pointer to MIC Key
-		Len         the length of the received plain text data exclude MIC value
-
-	Return Value:
-		TRUE        MIC value matched
-		FALSE       MIC value mismatched
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 BOOLEAN	RTMPTkipCompareMICValue(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pSrc,
@@ -487,29 +283,29 @@ BOOLEAN	RTMPTkipCompareMICValue(
 	UCHAR	OldMic[8];
 	ULONG	Priority = UserPriority;
 
-	// Init MIC value calculation
+	
 	RTMPTkipSetMICKey(&pAd->PrivateInfo.Rx, pMICKey);
-	// DA
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, pDA, MAC_ADDR_LEN);
-	// SA
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, pSA, MAC_ADDR_LEN);
-	// Priority + 3 bytes of 0
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, (PUCHAR)&Priority, 4);
 
-	// Calculate MIC value from plain text data
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, pSrc, Len);
 
-	// Get MIC valude from received frame
+	
 	NdisMoveMemory(OldMic, pSrc + Len, 8);
 
-	// Get MIC value from decrypted plain data
+	
 	RTMPTkipGetMIC(&pAd->PrivateInfo.Rx);
 
-	// Move MIC value from MSDU, this steps should move to data path.
-	// Since the MIC value might cross MPDUs.
+	
+	
 	if(!NdisEqualMemory(pAd->PrivateInfo.Rx.MIC, OldMic, 8))
 	{
-		DBGPRINT_RAW(RT_DEBUG_ERROR, ("RTMPTkipCompareMICValue(): TKIP MIC Error !\n"));  //MIC error.
+		DBGPRINT_RAW(RT_DEBUG_ERROR, ("RTMPTkipCompareMICValue(): TKIP MIC Error !\n"));  
 
 
 		return (FALSE);
@@ -517,31 +313,7 @@ BOOLEAN	RTMPTkipCompareMICValue(
 	return (TRUE);
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Compare MIC value of received MSDU
-
-	Arguments:
-		pAd	Pointer to our adapter
-		pLLC		LLC header
-		pSrc        Pointer to the received Plain text data
-		pDA			Pointer to DA address
-		pSA			Pointer to SA address
-		pMICKey		pointer to MIC Key
-		Len         the length of the received plain text data exclude MIC value
-
-	Return Value:
-		TRUE        MIC value matched
-		FALSE       MIC value mismatched
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 BOOLEAN	RTMPTkipCompareMICValueWithLLC(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pLLC,
@@ -554,60 +326,39 @@ BOOLEAN	RTMPTkipCompareMICValueWithLLC(
 	UCHAR	OldMic[8];
 	ULONG	Priority = 0;
 
-	// Init MIC value calculation
+	
 	RTMPTkipSetMICKey(&pAd->PrivateInfo.Rx, pMICKey);
-	// DA
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, pDA, MAC_ADDR_LEN);
-	// SA
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, pSA, MAC_ADDR_LEN);
-	// Priority + 3 bytes of 0
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, (PUCHAR)&Priority, 4);
 
-	// Start with LLC header
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, pLLC, 8);
 
-	// Calculate MIC value from plain text data
+	
 	RTMPTkipAppend(&pAd->PrivateInfo.Rx, pSrc, Len);
 
-	// Get MIC valude from received frame
+	
 	NdisMoveMemory(OldMic, pSrc + Len, 8);
 
-	// Get MIC value from decrypted plain data
+	
 	RTMPTkipGetMIC(&pAd->PrivateInfo.Rx);
 
-	// Move MIC value from MSDU, this steps should move to data path.
-	// Since the MIC value might cross MPDUs.
+	
+	
 	if(!NdisEqualMemory(pAd->PrivateInfo.Rx.MIC, OldMic, 8))
 	{
-		DBGPRINT_RAW(RT_DEBUG_ERROR, ("RTMPTkipCompareMICValueWithLLC(): TKIP MIC Error !\n"));  //MIC error.
+		DBGPRINT_RAW(RT_DEBUG_ERROR, ("RTMPTkipCompareMICValueWithLLC(): TKIP MIC Error !\n"));  
 
 
 		return (FALSE);
 	}
 	return (TRUE);
 }
-/*
-	========================================================================
 
-	Routine	Description:
-		Copy frame from waiting queue into relative ring buffer and set
-	appropriate ASIC register to kick hardware transmit function
-
-	Arguments:
-		pAd		Pointer	to our adapter
-		PNDIS_PACKET	Pointer to Ndis Packet for MIC calculation
-		pEncap			Pointer to LLC encap data
-		LenEncap		Total encap length, might be 0 which indicates no encap
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPCalculateMICValue(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PNDIS_PACKET	pPacket,
@@ -627,12 +378,12 @@ VOID	RTMPCalculateMICValue(
 	UserPriority = RTMP_GET_PACKET_UP(pPacket);
 	pSrc = pSrcBufVA;
 
-	// determine if this is a vlan packet
+	
 	if (((*(pSrc + 12) << 8) + *(pSrc + 13)) == 0x8100)
 		vlan_offset = 4;
 
 #ifdef CONFIG_STA_SUPPORT
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 	{
 		RTMPInitMICEngine(
 			pAd,
@@ -646,9 +397,9 @@ VOID	RTMPCalculateMICValue(
 
 	if (pEncap != NULL)
 	{
-		// LLC encapsulation
+		
 		RTMPTkipAppend(&pAd->PrivateInfo.Tx, pEncap, 6);
-		// Protocol Type
+		
 		RTMPTkipAppend(&pAd->PrivateInfo.Tx, pSrc + 12 + vlan_offset, 2);
 	}
 	SrcBufLen -= (14 + vlan_offset);
@@ -660,20 +411,20 @@ VOID	RTMPCalculateMICValue(
 			RTMPTkipAppend(&pAd->PrivateInfo.Tx, pSrc, SrcBufLen);
 		}
 
-		break;	// No need handle next packet
+		break;	
 
-	}	while (TRUE);		// End of copying payload
+	}	while (TRUE);		
 
-	// Compute the final MIC Value
+	
 	RTMPTkipGetMIC(&pAd->PrivateInfo.Tx);
 }
 
 
-/************************************************************/
-/* tkip_sbox()																*/
-/* Returns a 16 bit value from a 64K entry table. The Table */
-/* is synthesized from two 256 entry byte wide tables.		*/
-/************************************************************/
+
+
+
+
+
 
 UINT tkip_sbox(UINT index)
 {
@@ -709,8 +460,8 @@ UINT rotr1(UINT a)
 VOID RTMPTkipMixKey(
 	UCHAR *key,
 	UCHAR *ta,
-	ULONG pnl, /* Least significant 16 bits of PN */
-	ULONG pnh, /* Most significant 32 bits of PN */
+	ULONG pnl, 
+	ULONG pnh, 
 	UCHAR *rc4key,
 	UINT *p1k)
 {
@@ -729,18 +480,18 @@ VOID RTMPTkipMixKey(
 	INT i;
 	INT j;
 
-	tsc0 = (unsigned int)((pnh >> 16) % 65536); /* msb */
+	tsc0 = (unsigned int)((pnh >> 16) % 65536); 
 	tsc1 = (unsigned int)(pnh % 65536);
-	tsc2 = (unsigned int)(pnl % 65536); /* lsb */
+	tsc2 = (unsigned int)(pnl % 65536); 
 
-	/* Phase 1, step 1 */
+	
 	p1k[0] = tsc1;
 	p1k[1] = tsc0;
 	p1k[2] = (UINT)(ta[0] + (ta[1]*256));
 	p1k[3] = (UINT)(ta[2] + (ta[3]*256));
 	p1k[4] = (UINT)(ta[4] + (ta[5]*256));
 
-	/* Phase 1, step 2 */
+	
 	for (i=0; i<8; i++)
 	{
 		j = 2*(i & 1);
@@ -752,7 +503,7 @@ VOID RTMPTkipMixKey(
 		p1k[4] = (p1k[4] + i) % 65536;
 	}
 
-	/* Phase 2, Step 1 */
+	
 	ppk0 = p1k[0];
 	ppk1 = p1k[1];
 	ppk2 = p1k[2];
@@ -760,7 +511,7 @@ VOID RTMPTkipMixKey(
 	ppk4 = p1k[4];
 	ppk5 = (p1k[4] + tsc2) % 65536;
 
-	/* Phase2, Step 2 */
+	
 	ppk0 = ppk0 + tkip_sbox( (ppk5 ^ ((256*key[1]) + key[0])) % 65536);
 	ppk1 = ppk1 + tkip_sbox( (ppk0 ^ ((256*key[3]) + key[2])) % 65536);
 	ppk2 = ppk2 + tkip_sbox( (ppk1 ^ ((256*key[5]) + key[4])) % 65536);
@@ -775,12 +526,12 @@ VOID RTMPTkipMixKey(
 	ppk4 = ppk4 + rotr1(ppk3);
 	ppk5 = ppk5 + rotr1(ppk4);
 
-	/* Phase 2, Step 3 */
-    /* Phase 2, Step 3 */
+	
+    
 
-	tsc0 = (unsigned int)((pnh >> 16) % 65536); /* msb */
+	tsc0 = (unsigned int)((pnh >> 16) % 65536); 
 	tsc1 = (unsigned int)(pnh % 65536);
-	tsc2 = (unsigned int)(pnl % 65536); /* lsb */
+	tsc2 = (unsigned int)(pnl % 65536); 
 
 	rc4key[0] = (tsc2 >> 8) % 256;
 	rc4key[1] = (((tsc2 >> 8) % 256) | 0x20) & 0x7f;
@@ -807,10 +558,10 @@ VOID RTMPTkipMixKey(
 }
 
 
-//
-// TRUE: Success!
-// FALSE: Decrypt Error!
-//
+
+
+
+
 BOOLEAN RTMPSoftDecryptTKIP(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR	pData,
@@ -836,9 +587,9 @@ BOOLEAN RTMPSoftDecryptTKIP(
 	UCHAR			DA[MAC_ADDR_LEN];
 	UCHAR			SA[MAC_ADDR_LEN];
 	UCHAR			RC4Key[16];
-	UINT			p1k[5]; //for mix_key;
-	ULONG			pnl;/* Least significant 16 bits of PN */
-	ULONG			pnh;/* Most significant 32 bits of PN */
+	UINT			p1k[5]; 
+	ULONG			pnl;
+	ULONG			pnh;
 	UINT			num_blocks;
 	UINT			payload_remainder;
 	ARCFOURCONTEXT	ArcFourContext;
@@ -863,8 +614,8 @@ BOOLEAN RTMPSoftDecryptTKIP(
     to_ds = (fc1 & 0x1);
 
     a4_exists = (from_ds & to_ds);
-    qc_exists = ((frame_subtype == 0x08) ||    /* Assumed QoS subtypes */
-                  (frame_subtype == 0x09) ||   /* Likely to change.    */
+    qc_exists = ((frame_subtype == 0x08) ||    
+                  (frame_subtype == 0x09) ||   
                   (frame_subtype == 0x0a) ||
                   (frame_subtype == 0x0b)
                  );
@@ -902,7 +653,7 @@ BOOLEAN RTMPSoftDecryptTKIP(
 	{
 		NdisMoveMemory(DA, pData+4, MAC_ADDR_LEN);
 		NdisMoveMemory(SA, pData+16, MAC_ADDR_LEN);
-		NdisMoveMemory(TA, pData+10, MAC_ADDR_LEN);  //BSSID
+		NdisMoveMemory(TA, pData+10, MAC_ADDR_LEN);  
 	}
 	else if (to_ds == 0 && from_ds == 0 )
 	{
@@ -935,12 +686,12 @@ BOOLEAN RTMPSoftDecryptTKIP(
 
 	ARCFOUR_DECRYPT(&ArcFourContext, pData + HeaderLen, pData + HeaderLen + 8, DataByteCnt - HeaderLen - 8);
 	NdisMoveMemory(&trailfcs, pData + DataByteCnt - 8 - 4, 4);
-	crc32 = RTMP_CALC_FCS32(PPPINITFCS32, pData + HeaderLen, DataByteCnt - HeaderLen - 8 - 4);  //Skip IV+EIV 8 bytes & Skip last 4 bytes(FCS).
-	crc32 ^= 0xffffffff;             /* complement */
+	crc32 = RTMP_CALC_FCS32(PPPINITFCS32, pData + HeaderLen, DataByteCnt - HeaderLen - 8 - 4);  
+	crc32 ^= 0xffffffff;             
 
     if(crc32 != cpu2le32(trailfcs))
 	{
-		DBGPRINT(RT_DEBUG_TRACE, ("RTMPSoftDecryptTKIP, WEP Data ICV Error !\n"));	 //ICV error.
+		DBGPRINT(RT_DEBUG_TRACE, ("RTMPSoftDecryptTKIP, WEP Data ICV Error !\n"));	 
 
 		return (FALSE);
 	}
@@ -953,14 +704,14 @@ BOOLEAN RTMPSoftDecryptTKIP(
 
 	if (!NdisEqualMemory(MIC, TrailMIC, 8))
 	{
-		DBGPRINT(RT_DEBUG_ERROR, ("RTMPSoftDecryptTKIP, WEP Data MIC Error !\n"));	 //MIC error.
-		//RTMPReportMicError(pAd, &pWpaKey[KeyID]);	// marked by AlbertY @ 20060630
+		DBGPRINT(RT_DEBUG_ERROR, ("RTMPSoftDecryptTKIP, WEP Data MIC Error !\n"));	 
+		
 		return (FALSE);
 	}
 
 #ifdef RT_BIG_ENDIAN
 	RTMPFrameEndianChange(pAd, (PUCHAR)pData, DIR_READ, FALSE);
 #endif
-	//DBGPRINT(RT_DEBUG_TRACE, "RTMPSoftDecryptTKIP Decript done!!\n");
+	
 	return TRUE;
 }

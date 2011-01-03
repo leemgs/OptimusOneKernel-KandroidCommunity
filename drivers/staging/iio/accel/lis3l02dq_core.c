@@ -1,16 +1,4 @@
-/*
- * lis3l02dq.c	support STMicroelectronics LISD02DQ
- *		3d 2g Linear Accelerometers via SPI
- *
- * Copyright (c) 2007 Jonathan Cameron <jic23@cam.ac.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Settings:
- * 16 bit left justified mode used.
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/irq.h>
@@ -30,17 +18,9 @@
 
 #include "lis3l02dq.h"
 
-/* At the moment the spi framework doesn't allow global setting of cs_change.
- * It's in the likely to be added comment at the top of spi.h.
- * This means that use cannot be made of spi_write etc.
- */
 
-/**
- * lis3l02dq_spi_read_reg_8() - read single byte from a single register
- * @dev: device asosciated with child of actual device (iio_dev or iio_trig)
- * @reg_address: the address of the register to be read
- * @val: pass back the resulting value
- **/
+
+
 int lis3l02dq_spi_read_reg_8(struct device *dev, u8 reg_address, u8 *val)
 {
 	int ret;
@@ -68,12 +48,7 @@ int lis3l02dq_spi_read_reg_8(struct device *dev, u8 reg_address, u8 *val)
 	return ret;
 }
 
-/**
- * lis3l02dq_spi_write_reg_8() - write single byte to a register
- * @dev: device associated with child of actual device (iio_dev or iio_trig)
- * @reg_address: the address of the register to be writen
- * @val: the value to write
- **/
+
 int lis3l02dq_spi_write_reg_8(struct device *dev,
 			      u8 reg_address,
 			      u8 *val)
@@ -101,13 +76,7 @@ int lis3l02dq_spi_write_reg_8(struct device *dev,
 	return ret;
 }
 
-/**
- * lisl302dq_spi_write_reg_s16() - write 2 bytes to a pair of registers
- * @dev: device associated with child of actual device (iio_dev or iio_trig)
- * @reg_address: the address of the lower of the two registers. Second register
- *               is assumed to have address one greater.
- * @val: value to be written
- **/
+
 static int lis3l02dq_spi_write_reg_s16(struct device *dev,
 				       u8 lower_reg_address,
 				       s16 value)
@@ -144,13 +113,7 @@ static int lis3l02dq_spi_write_reg_s16(struct device *dev,
 	return ret;
 }
 
-/**
- * lisl302dq_spi_read_reg_s16() - write 2 bytes to a pair of registers
- * @dev: device associated with child of actual device (iio_dev or iio_trig)
- * @reg_address: the address of the lower of the two registers. Second register
- *               is assumed to have address one greater.
- * @val: somewhere to pass back the value read
- **/
+
 static int lis3l02dq_spi_read_reg_s16(struct device *dev,
 				      u8 lower_reg_address,
 				      s16 *val)
@@ -196,12 +159,7 @@ error_ret:
 	return ret;
 }
 
-/**
- * lis3l02dq_read_signed() - attribute function used for 8 bit signed values
- * @dev: the child device associated with the iio_dev or iio_trigger
- * @attr: the attribute being processed
- * @buf: buffer into which put the output string
- **/
+
 static ssize_t lis3l02dq_read_signed(struct device *dev,
 				     struct device_attribute *attr,
 				     char *buf)
@@ -291,7 +249,7 @@ static ssize_t lis3l02dq_read_accel(struct device *dev,
 	struct iio_dev *indio_dev = dev_get_drvdata(dev);
 	ssize_t ret;
 
-	/* Take the iio_dev status lock */
+	
 	mutex_lock(&indio_dev->mlock);
 	if (indio_dev->currentmode == INDIO_RING_TRIGGERED)
 		ret = lis3l02dq_read_accel_from_ring(dev, attr, buf);
@@ -369,7 +327,7 @@ static ssize_t lis3l02dq_write_frequency(struct device *dev,
 				       &t);
 	if (ret)
 		goto error_ret_mutex;
-	/* Wipe the bits clean */
+	
 	t &= ~LIS3L02DQ_DEC_MASK;
 	switch (val) {
 	case 280:
@@ -409,7 +367,7 @@ static int lis3l02dq_initial_setup(struct lis3l02dq_state *st)
 	spi_setup(st->us);
 
 	val = LIS3L02DQ_DEFAULT_CTRL1;
-	/* Write suitable defaults to ctrl1 */
+	
 	ret = lis3l02dq_spi_write_reg_8(&st->indio_dev->dev,
 					LIS3L02DQ_REG_CTRL_1_ADDR,
 					&val);
@@ -417,7 +375,7 @@ static int lis3l02dq_initial_setup(struct lis3l02dq_state *st)
 		dev_err(&st->us->dev, "problem with setup control register 1");
 		goto err_ret;
 	}
-	/* Repeat as sometimes doesn't work first time?*/
+	
 	ret = lis3l02dq_spi_write_reg_8(&st->indio_dev->dev,
 					LIS3L02DQ_REG_CTRL_1_ADDR,
 					&val);
@@ -426,8 +384,7 @@ static int lis3l02dq_initial_setup(struct lis3l02dq_state *st)
 		goto err_ret;
 	}
 
-	/* Read back to check this has worked acts as loose test of correct
-	 * chip */
+	
 	ret = lis3l02dq_spi_read_reg_8(&st->indio_dev->dev,
 				       LIS3L02DQ_REG_CTRL_1_ADDR,
 				       &valtest);
@@ -492,11 +449,7 @@ static IIO_DEV_ATTR_ACCEL_THRESH(S_IWUSR | S_IRUGO,
 				 lis3l02dq_write_16bit_signed,
 				 LIS3L02DQ_REG_THS_L_ADDR);
 
-/* RFC The reading method for these will change depending on whether
- * ring buffer capture is in use. Is it worth making these take two
- * functions and let the core handle which to call, or leave as in this
- * driver where it is the drivers problem to manage this?
- */
+
 
 static IIO_DEV_ATTR_ACCEL_X(lis3l02dq_read_accel,
 			    LIS3L02DQ_REG_OUT_X_L_ADDR);
@@ -543,14 +496,14 @@ static ssize_t lis3l02dq_write_interrupt_config(struct device *dev,
 	val = !(buf[0] == '0');
 
 	mutex_lock(&indio_dev->mlock);
-	/* read current value */
+	
 	ret = lis3l02dq_spi_read_reg_8(dev,
 				       LIS3L02DQ_REG_WAKE_UP_CFG_ADDR,
 				       &valold);
 	if (ret)
 		goto error_mutex_unlock;
 
-	/* read current control */
+	
 	ret = lis3l02dq_spi_read_reg_8(dev,
 				       LIS3L02DQ_REG_CTRL_2_ADDR,
 				       &controlold);
@@ -576,10 +529,7 @@ static ssize_t lis3l02dq_write_interrupt_config(struct device *dev,
 						&valold);
 		if (ret)
 			goto error_mutex_unlock;
-		/* This always enables the interrupt, even if we've remove the
-		 * last thing using it. For this device we can use the reference
-		 * count on the handler to tell us if anyone wants the interrupt
-		 */
+		
 		controlold = this_attr->listel->refcount ?
 			(controlold | LIS3L02DQ_REG_CTRL_2_ENABLE_INTERRUPT) :
 			(controlold & ~LIS3L02DQ_REG_CTRL_2_ENABLE_INTERRUPT);
@@ -603,7 +553,7 @@ static int lis3l02dq_thresh_handler_th(struct iio_dev *dev_info,
 {
 	struct lis3l02dq_state *st = dev_info->dev_data;
 
-	/* Stash the timestamp somewhere convenient for the bh */
+	
 	st->last_timestamp = timestamp;
 	schedule_work(&st->work_cont_thresh.ws);
 
@@ -611,9 +561,7 @@ static int lis3l02dq_thresh_handler_th(struct iio_dev *dev_info,
 }
 
 
-/* Unforunately it appears the interrupt won't clear unless you read from the
- * src register.
- */
+
 static void lis3l02dq_thresh_handler_bh_no_check(struct work_struct *work_s)
 {
 	struct iio_work_cont *wc
@@ -654,9 +602,9 @@ static void lis3l02dq_thresh_handler_bh_no_check(struct work_struct *work_s)
 		iio_push_event(st->indio_dev, 0,
 			       IIO_EVENT_CODE_ACCEL_X_LOW,
 			       st->last_timestamp);
-	/* reenable the irq */
+	
 	enable_irq(st->us->irq);
-	/* Ack and allow for new interrupts */
+	
 	lis3l02dq_spi_read_reg_8(&st->indio_dev->dev,
 				 LIS3L02DQ_REG_WAKE_UP_ACK_ADDR,
 				 &t);
@@ -664,7 +612,7 @@ static void lis3l02dq_thresh_handler_bh_no_check(struct work_struct *work_s)
 	return;
 }
 
-/* A shared handler for a number of threshold types */
+
 IIO_EVENT_SH(threshold, &lis3l02dq_thresh_handler_th);
 
 IIO_EVENT_ATTR_ACCEL_X_HIGH_SH(iio_event_threshold,
@@ -742,10 +690,10 @@ static int __devinit lis3l02dq_probe(struct spi_device *spi)
 		ret =  -ENOMEM;
 		goto error_ret;
 	}
-	/* this is only used tor removal purposes */
+	
 	spi_set_drvdata(spi, st);
 
-	/* Allocate the comms buffers */
+	
 	st->rx = kzalloc(sizeof(*st->rx)*LIS3L02DQ_MAX_RX, GFP_KERNEL);
 	if (st->rx == NULL) {
 		ret = -ENOMEM;
@@ -758,7 +706,7 @@ static int __devinit lis3l02dq_probe(struct spi_device *spi)
 	}
 	st->us = spi;
 	mutex_init(&st->buf_lock);
-	/* setup the industrialio driver allocated elements */
+	
 	st->indio_dev = iio_allocate_device();
 	if (st->indio_dev == NULL) {
 		ret = -ENOMEM;
@@ -789,10 +737,7 @@ static int __devinit lis3l02dq_probe(struct spi_device *spi)
 	}
 
 	if (spi->irq && gpio_is_valid(irq_to_gpio(spi->irq)) > 0) {
-		/* This is a little unusual, in that the device seems
-		   to need a full read of the interrupt source reg before
-		   the interrupt will reset.
-		   Hence the two handlers are the same */
+		
 		iio_init_work_cont(&st->work_cont_thresh,
 				   lis3l02dq_thresh_handler_bh_no_check,
 				   lis3l02dq_thresh_handler_bh_no_check,
@@ -813,7 +758,7 @@ static int __devinit lis3l02dq_probe(struct spi_device *spi)
 			goto error_unregister_line;
 	}
 
-	/* Get the device into a sane initial state */
+	
 	ret = lis3l02dq_initial_setup(st);
 	if (ret)
 		goto error_remove_trigger;
@@ -844,7 +789,7 @@ error_ret:
 	return ret;
 }
 
-/* Power down the device */
+
 static int lis3l02dq_stop_device(struct iio_dev *indio_dev)
 {
 	int ret;
@@ -870,7 +815,7 @@ err_ret:
 	return ret;
 }
 
-/* fixme, confirm ordering in this function */
+
 static int lis3l02dq_remove(struct spi_device *spi)
 {
 	int ret;

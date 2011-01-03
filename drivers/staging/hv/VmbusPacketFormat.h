@@ -1,25 +1,4 @@
-/*
- *
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- *
- */
+
 
 #ifndef _VMBUSPACKETFORMAT_H_
 
@@ -63,23 +42,14 @@ struct vmadd_remove_transfer_page_set {
 	u16 Reserved;
 } __attribute__((packed));
 
-/*
- * This structure defines a range in guest physical space that can be made to
- * look virtually contiguous.
- */
+
 struct gpa_range {
 	u32 ByteCount;
 	u32 ByteOffset;
 	u64 PfnArray[0];
 };
 
-/*
- * This is the format for an Establish Gpadl packet, which contains a handle by
- * which this GPADL will be known and a set of GPA ranges associated with it.
- * This can be converted to a MDL by the guest OS.  If there are multiple GPA
- * ranges, then the resulting MDL will be "chained," representing multiple VA
- * ranges.
- */
+
 struct vmestablish_gpadl {
 	struct vmpacket_descriptor d;
 	u32 Gpadl;
@@ -87,20 +57,14 @@ struct vmestablish_gpadl {
 	struct gpa_range Range[1];
 } __attribute__((packed));
 
-/*
- * This is the format for a Teardown Gpadl packet, which indicates that the
- * GPADL handle in the Establish Gpadl packet will never be referenced again.
- */
+
 struct vmteardown_gpadl {
 	struct vmpacket_descriptor d;
 	u32 Gpadl;
-	u32 Reserved;	/* for alignment to a 8-byte boundary */
+	u32 Reserved;	
 } __attribute__((packed));
 
-/*
- * This is the format for a GPA-Direct packet, which contains a set of GPA
- * ranges, in addition to commands and/or data.
- */
+
 struct vmdata_gpa_direct {
 	struct vmpacket_descriptor d;
 	u32 Reserved;
@@ -108,7 +72,7 @@ struct vmdata_gpa_direct {
 	struct gpa_range Range[1];
 } __attribute__((packed));
 
-/* This is the format for a Additional Data Packet. */
+
 struct vmadditional_data {
 	struct vmpacket_descriptor d;
 	u64 TotalBytes;

@@ -1,30 +1,4 @@
-/*
- *  tsl2561.c - Linux kernel modules for light to digital convertor
- *
- *  Copyright (C) 2008-2009 Jonathan Cameron <jic23@cam.ac.uk>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  Some portions based upon the tsl2550 driver.
- *
- *  This driver could probably be adapted easily to talk to the tsl2560 (smbus)
- *
- *  Needs some work to support the events this can generate.
- *  Todo: Implement interrupt handling.  Currently a hardware bug means
- *  this isn't available on my test board.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -51,17 +25,11 @@
 #define TSL2561_DATA_0_LOW 0x0C
 #define TSL2561_DATA_1_LOW 0x0E
 
-/* Control Register Values */
+
 #define TSL2561_CONT_REG_PWR_ON 0x03
 #define TSL2561_CONT_REG_PWR_OFF 0x00
 
-/**
- * struct tsl2561_state - device specific state
- * @indio_dev:		the industrialio I/O info structure
- * @client:		i2c client
- * @command_buf:	single command buffer used for all operations
- * @command_buf_lock:	ensure unique access to command_buf
- */
+
 struct tsl2561_state {
 	struct iio_dev		*indio_dev;
 	struct i2c_client	*client;
@@ -69,14 +37,7 @@ struct tsl2561_state {
 	struct mutex		command_buf_lock;
 };
 
-/**
- * struct tsl2561_command - command byte for smbus
- * @address:	register address
- * @block:	is this a block r/w
- * @word:	is this a word r/w
- * @clear:	set to 1 to clear pending interrupt
- * @cmd:	select the command register - always 1.
- */
+
 struct tsl2561_command {
 	unsigned int address:4;
 	unsigned int block:1;
@@ -208,7 +169,7 @@ static int __devinit tsl2561_probe(struct i2c_client *client,
 	if (ret)
 		goto error_free_iiodev;
 	regdone = 1;
-	/* Intialize the chip */
+	
 	ret = tsl2561_initialize(st);
 	if (ret)
 		goto error_unregister_iiodev;

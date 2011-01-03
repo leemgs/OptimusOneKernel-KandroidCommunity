@@ -1,19 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/snd.c
- *
- * interface to "snd" service on the baseband cpu
- *
- * Copyright (C) 2008 HTC Corporation
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -40,10 +25,10 @@ static struct snd_ctxt the_snd;
 #define RPC_SND_PROG    0x30000002
 #define RPC_SND_CB_PROG 0x31000002
 #if CONFIG_MSM_AMSS_VERSION == 6210
-#define RPC_SND_VERS	0x94756085 /* 2490720389 */
+#define RPC_SND_VERS	0x94756085 
 #elif (CONFIG_MSM_AMSS_VERSION == 6220) || \
       (CONFIG_MSM_AMSS_VERSION == 6225)
-#define RPC_SND_VERS	0xaa2b1a44 /* 2854951492 */
+#define RPC_SND_VERS	0xaa2b1a44 
 #elif CONFIG_MSM_AMSS_VERSION == 6350
 #define RPC_SND_VERS 	MSM_RPC_VERS(1,0)
 #endif

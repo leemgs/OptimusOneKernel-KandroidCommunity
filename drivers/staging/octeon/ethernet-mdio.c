@@ -1,29 +1,4 @@
-/**********************************************************************
- * Author: Cavium Networks
- *
- * Contact: support@caviumnetworks.com
- * This file is part of the OCTEON SDK
- *
- * Copyright (c) 2003-2007 Cavium Networks
- *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, Version 2, as
- * published by the Free Software Foundation.
- *
- * This file is distributed in the hope that it will be useful, but
- * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
- * NONINFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this file; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- * or visit http://www.gnu.org/licenses/.
- *
- * This file may also be available under a different license from Cavium.
- * Contact Cavium Networks for more information
-**********************************************************************/
+
 #include <linux/kernel.h>
 #include <linux/ethtool.h>
 #include <linux/mii.h>
@@ -41,14 +16,7 @@
 
 DECLARE_MUTEX(mdio_sem);
 
-/**
- * Perform an MII read. Called by the generic MII routines
- *
- * @dev:      Device to perform read for
- * @phy_id:   The MII phy id
- * @location: Register location to read
- * Returns Result from the read or zero on failure
- */
+
 static int cvm_oct_mdio_read(struct net_device *dev, int phy_id, int location)
 {
 	union cvmx_smix_cmd smi_cmd;
@@ -78,14 +46,7 @@ static int cvm_oct_mdio_dummy_read(struct net_device *dev, int phy_id,
 	return 0xffff;
 }
 
-/**
- * Perform an MII write. Called by the generic MII routines
- *
- * @dev:      Device to perform write for
- * @phy_id:   The MII phy id
- * @location: Register location to write
- * @val:      Value to write
- */
+
 static void cvm_oct_mdio_write(struct net_device *dev, int phy_id, int location,
 			       int val)
 {
@@ -180,14 +141,7 @@ const struct ethtool_ops cvm_oct_ethtool_ops = {
 	.get_tx_csum = ethtool_op_get_tx_csum,
 };
 
-/**
- * IOCTL support for PHY control
- *
- * @dev:    Device to change
- * @rq:     the request
- * @cmd:    the command
- * Returns Zero on success
- */
+
 int cvm_oct_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
 	struct octeon_ethernet *priv = netdev_priv(dev);
@@ -202,13 +156,7 @@ int cvm_oct_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	return ret;
 }
 
-/**
- * Setup the MDIO device structures
- *
- * @dev:    Device to setup
- *
- * Returns Zero on success, negative on failure
- */
+
 int cvm_oct_mdio_setup_device(struct net_device *dev)
 {
 	struct octeon_ethernet *priv = netdev_priv(dev);
@@ -222,8 +170,7 @@ int cvm_oct_mdio_setup_device(struct net_device *dev)
 		priv->mii_info.mdio_read = cvm_oct_mdio_read;
 		priv->mii_info.mdio_write = cvm_oct_mdio_write;
 	} else {
-		/* Supply dummy MDIO routines so the kernel won't crash
-		   if the user tries to read them */
+		
 		priv->mii_info.mdio_read = cvm_oct_mdio_dummy_read;
 		priv->mii_info.mdio_write = cvm_oct_mdio_dummy_write;
 	}

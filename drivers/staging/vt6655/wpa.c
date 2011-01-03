@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: wpa.c
- *
- * Purpose: Handles the Basic Service Set & Node Database functions
- *
- * Functions:
- *      WPA_ParseRSN - Parse RSN IE.
- *
- * Revision History:
- *
- * Author: Kyle Hsu
- *
- * Date: July 14, 2003
- *
- */
+
 
 #include "ttype.h"
 #include "tmacro.h"
@@ -42,7 +10,7 @@
 #include "wpa.h"
 #include "80211mgr.h"
 
-/*---------------------  Static Variables  --------------------------*/
+
 static int          msglevel                =MSG_LEVEL_INFO;
 
 const BYTE abyOUI00[4] = { 0x00, 0x50, 0xf2, 0x00 };
@@ -53,20 +21,7 @@ const BYTE abyOUI04[4] = { 0x00, 0x50, 0xf2, 0x04 };
 const BYTE abyOUI05[4] = { 0x00, 0x50, 0xf2, 0x05 };
 
 
-/*+
- *
- * Description:
- *    Clear RSN information in BSSList.
- *
- * Parameters:
- *  In:
- *      pBSSList - BSS list.
- *  Out:
- *      none
- *
- * Return Value: none.
- *
--*/
+
 
 VOID
 WPA_ClearRSN (
@@ -89,21 +44,7 @@ WPA_ClearRSN (
 }
 
 
-/*+
- *
- * Description:
- *    Parse RSN IE.
- *
- * Parameters:
- *  In:
- *      pBSSList - BSS list.
- *      pRSN - Pointer to the RSN IE.
- *  Out:
- *      none
- *
- * Return Value: none.
- *
--*/
+
 VOID
 WPA_ParseRSN (
     IN PKnownBSS        pBSSList,
@@ -118,14 +59,14 @@ WPA_ParseRSN (
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"WPA_ParseRSN: [%d]\n", pRSN->len);
 
-    // information element header makes sense
-    if ((pRSN->len >= 6) // oui1(4)+ver(2)
+    
+    if ((pRSN->len >= 6) 
          && (pRSN->byElementID == WLAN_EID_RSN_WPA) &&  !memcmp(pRSN->abyOUI, abyOUI01, 4)
          && (pRSN->wVersion == 1)) {
 
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Legal RSN\n");
-        // update each variable if pRSN is long enough to contain the variable
-        if (pRSN->len >= 10) //oui1(4)+ver(2)+GKSuite(4)
+        
+        if (pRSN->len >= 10) 
         {
             if ( !memcmp(pRSN->abyMulticast, abyOUI01, 4))
                 pBSSList->byGKType = WPA_WEP40;
@@ -138,18 +79,18 @@ WPA_ParseRSN (
             else if ( !memcmp(pRSN->abyMulticast, abyOUI05, 4))
                 pBSSList->byGKType = WPA_WEP104;
             else
-                // any vendor checks here
+                
                 pBSSList->byGKType = WPA_NONE;
 
             DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"byGKType: %x\n", pBSSList->byGKType);
         }
 
-        if (pRSN->len >= 12) //oui1(4)+ver(2)+GKS(4)+PKSCnt(2)
+        if (pRSN->len >= 12) 
         {
             j = 0;
             DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"wPKCount: %d, sizeof(pBSSList->abyPKType): %ld\n", pRSN->wPKCount, sizeof(pBSSList->abyPKType));
             for(i = 0; (i < pRSN->wPKCount) && (j < sizeof(pBSSList->abyPKType)/sizeof(BYTE)); i++) {
-                if(pRSN->len >= 12+i*4+4) { //oui1(4)+ver(2)+GKS(4)+PKSCnt(2)+PKS(4*i)
+                if(pRSN->len >= 12+i*4+4) { 
                     if ( !memcmp(pRSN->PKSList[i].abyOUI, abyOUI00, 4))
                         pBSSList->abyPKType[j++] = WPA_NONE;
                     else if ( !memcmp(pRSN->PKSList[i].abyOUI, abyOUI02, 4))
@@ -159,13 +100,13 @@ WPA_ParseRSN (
                     else if ( !memcmp(pRSN->PKSList[i].abyOUI, abyOUI04, 4))
                         pBSSList->abyPKType[j++] = WPA_AESCCMP;
                     else
-                        // any vendor checks here
+                        
                         ;
                 }
                 else
                     break;
-                //DBG_PRN_GRP14(("abyPKType[%d]: %X\n", j-1, pBSSList->abyPKType[j-1]));
-            } //for
+                
+            } 
             pBSSList->wPKCount = (WORD)j;
             DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"wPKCount: %d\n", pBSSList->wPKCount);
         }
@@ -174,25 +115,25 @@ WPA_ParseRSN (
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"m: %d\n", m);
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"14+m*4: %d\n", 14+m*4);
 
-        if (pRSN->len >= 14+m*4) { //oui1(4)+ver(2)+GKS(4)+PKSCnt(2)+PKS(4*m)+AKC(2)
-            // overlay IE_RSN_Auth structure into correct place
+        if (pRSN->len >= 14+m*4) { 
+            
             pIE_RSN_Auth = (PWLAN_IE_RSN_AUTH) pRSN->PKSList[m].abyOUI;
             j = 0;
             DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"wAuthCount: %d, sizeof(pBSSList->abyAuthType): %ld\n",
                           pIE_RSN_Auth->wAuthCount, sizeof(pBSSList->abyAuthType));
             for(i = 0; (i < pIE_RSN_Auth->wAuthCount) && (j < sizeof(pBSSList->abyAuthType)/sizeof(BYTE)); i++) {
-                if(pRSN->len >= 14+4+(m+i)*4) { //oui1(4)+ver(2)+GKS(4)+PKSCnt(2)+PKS(4*m)+AKC(2)+AKS(4*i)
+                if(pRSN->len >= 14+4+(m+i)*4) { 
                     if ( !memcmp(pIE_RSN_Auth->AuthKSList[i].abyOUI, abyOUI01, 4))
                         pBSSList->abyAuthType[j++] = WPA_AUTH_IEEE802_1X;
                     else if ( !memcmp(pIE_RSN_Auth->AuthKSList[i].abyOUI, abyOUI02, 4))
                         pBSSList->abyAuthType[j++] = WPA_AUTH_PSK;
                     else
-                    // any vendor checks here
+                    
                     ;
                 }
                 else
                     break;
-                //DBG_PRN_GRP14(("abyAuthType[%d]: %X\n", j-1, pBSSList->abyAuthType[j-1]));
+                
             }
             if(j > 0)
                 pBSSList->wAuthCount = (WORD)j;
@@ -206,37 +147,22 @@ WPA_ParseRSN (
             DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"n: %d\n", n);
             DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"14+4+(m+n)*4: %d\n", 14+4+(m+n)*4);
 
-            if(pRSN->len+2 >= 14+4+(m+n)*4) { //oui1(4)+ver(2)+GKS(4)+PKSCnt(2)+PKS(4*m)+AKC(2)+AKS(4*n)+Cap(2)
+            if(pRSN->len+2 >= 14+4+(m+n)*4) { 
                 pbyCaps = (PBYTE)pIE_RSN_Auth->AuthKSList[n].abyOUI;
                 pBSSList->byDefaultK_as_PK = (*pbyCaps) & WPA_GROUPFLAG;
                 pBSSList->byReplayIdx = 2 << ((*pbyCaps >> WPA_REPLAYBITSSHIFT) & WPA_REPLAYBITS);
                 pBSSList->sRSNCapObj.bRSNCapExist = TRUE;
                 pBSSList->sRSNCapObj.wRSNCap = *(PWORD)pbyCaps;
-                //DBG_PRN_GRP14(("pbyCaps: %X\n", *pbyCaps));
-                //DBG_PRN_GRP14(("byDefaultK_as_PK: %X\n", pBSSList->byDefaultK_as_PK));
-                //DBG_PRN_GRP14(("byReplayIdx: %X\n", pBSSList->byReplayIdx));
+                
+                
+                
             }
         }
         pBSSList->bWPAValid = TRUE;
     }
 }
 
-/*+
- *
- * Description:
- *    Search RSN information in BSSList.
- *
- * Parameters:
- *  In:
- *      byCmd    - Search type
- *      byEncrypt- Encrcypt Type
- *      pBSSList - BSS list
- *  Out:
- *      none
- *
- * Return Value: none.
- *
--*/
+
 BOOL
 WPA_SearchRSN (
     BYTE                byCmd,
@@ -271,10 +197,10 @@ WPA_SearchRSN (
                 return FALSE;
         }
         return TRUE;
-//        if (pBSSList->wAuthCount > 0)
-//            for (ii=0; ii < pBSSList->wAuthCount; ii ++)
-//                if (byAuth == pBSSList->abyAuthType[ii])
-//                    break;
+
+
+
+
         break;
 
     default:
@@ -283,20 +209,7 @@ WPA_SearchRSN (
     return FALSE;
 }
 
-/*+
- *
- * Description:
- *    Check if RSN IE makes sense.
- *
- * Parameters:
- *  In:
- *      pRSN - Pointer to the RSN IE.
- *  Out:
- *      none
- *
- * Return Value: none.
- *
--*/
+
 BOOL
 WPAb_Is_RSN (
     IN PWLAN_IE_RSN_EXT pRSN
@@ -305,7 +218,7 @@ WPAb_Is_RSN (
     if (pRSN == NULL)
         return FALSE;
 
-    if ((pRSN->len >= 6) && // oui1(4)+ver(2)
+    if ((pRSN->len >= 6) && 
         (pRSN->byElementID == WLAN_EID_RSN_WPA) &&  !memcmp(pRSN->abyOUI, abyOUI01, 4) &&
         (pRSN->wVersion == 1)) {
         return TRUE;

@@ -1,39 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-	cmm_cfg.c
-
-    Abstract:
-    Ralink WiFi Driver configuration related subroutines
-
-    Revision History:
-    Who          When          What
-    ---------    ----------    ----------------------------------------------
-*/
 
 #include "../rt_config.h"
 
@@ -54,7 +19,7 @@ char* GetPhyMode(
 
 		case MODE_HTGREENFIELD:
 			return "GREEN";
-#endif // DOT11_N_SUPPORT //
+#endif 
 		default:
 			return "N/A";
 	}
@@ -74,23 +39,14 @@ char* GetBW(
 #ifdef DOT11_N_SUPPORT
 		case BW_40:
 			return "40M";
-#endif // DOT11_N_SUPPORT //
+#endif 
 		default:
 			return "N/A";
 	}
 }
 
 
-/*
-    ==========================================================================
-    Description:
-        Set Country Region to pAd->CommonCfg.CountryRegion.
-        This command will not work, if the field of CountryRegion in eeprom is programmed.
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
 INT RT_CfgSetCountryRegion(
 	IN PRTMP_ADAPTER	pAd,
 	IN PSTRING			arg,
@@ -112,8 +68,8 @@ INT RT_CfgSetCountryRegion(
 		regionMax = REGION_MAXIMUM_A_BAND;
 	}
 
-	// TODO: Is it neccesay for following check???
-	// Country can be set only when EEPROM not programmed
+	
+	
 	if (*pCountryRegion & 0x80)
 	{
 		DBGPRINT(RT_DEBUG_ERROR, ("CfgSetCountryRegion():CountryRegion in eeprom was programmed\n"));
@@ -139,14 +95,7 @@ INT RT_CfgSetCountryRegion(
 }
 
 
-/*
-    ==========================================================================
-    Description:
-        Set Wireless Mode
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT RT_CfgSetWirelessMode(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -156,7 +105,7 @@ INT RT_CfgSetWirelessMode(
 
 #ifdef DOT11_N_SUPPORT
 	MaxPhyMode = PHY_11N_5G;
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 	WirelessMode = simple_strtol(arg, 0, 10);
 	if (WirelessMode <= MaxPhyMode)
@@ -184,20 +133,13 @@ INT RT_CfgSetShortSlot(
 	else if (ShortSlot == 0)
 		pAd->CommonCfg.bUseShortSlotTime = FALSE;
 	else
-		return FALSE;  //Invalid argument
+		return FALSE;  
 
 	return TRUE;
 }
 
 
-/*
-    ==========================================================================
-    Description:
-        Set WEP KEY base on KeyIdx
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	RT_CfgSetWepKey(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			keyString,
@@ -209,31 +151,31 @@ INT	RT_CfgSetWepKey(
 	UCHAR			CipherAlg = CIPHER_NONE;
 	BOOLEAN			bKeyIsHex = FALSE;
 
-	// TODO: Shall we do memset for the original key info??
+	
 	memset(pSharedKey, 0, sizeof(CIPHER_KEY));
 	KeyLen = strlen(keyString);
 	switch (KeyLen)
 	{
-		case 5: //wep 40 Ascii type
-		case 13: //wep 104 Ascii type
+		case 5: 
+		case 13: 
 			bKeyIsHex = FALSE;
 			pSharedKey->KeyLen = KeyLen;
 			NdisMoveMemory(pSharedKey->Key, keyString, KeyLen);
 			break;
 
-		case 10: //wep 40 Hex type
-		case 26: //wep 104 Hex type
+		case 10: 
+		case 26: 
 			for(i=0; i < KeyLen; i++)
 			{
 				if( !isxdigit(*(keyString+i)) )
-					return FALSE;  //Not Hex value;
+					return FALSE;  
 			}
 			bKeyIsHex = TRUE;
 			pSharedKey->KeyLen = KeyLen/2 ;
 			AtoH(keyString, pSharedKey->Key, pSharedKey->KeyLen);
 			break;
 
-		default: //Invalid argument
+		default: 
 			DBGPRINT(RT_DEBUG_TRACE, ("RT_CfgSetWepKey(keyIdx=%d):Invalid argument (arg=%s)\n", keyIdx, keyString));
 			return FALSE;
 	}
@@ -246,22 +188,7 @@ INT	RT_CfgSetWepKey(
 }
 
 
-/*
-    ==========================================================================
-    Description:
-        Set WPA PSK key
 
-    Arguments:
-        pAdapter	Pointer to our adapter
-        keyString	WPA pre-shared key string
-        pHashStr	String used for password hash function
-        hashStrLen	Lenght of the hash string
-        pPMKBuf		Output buffer of WPAPSK key
-
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
 INT RT_CfgSetWPAPSKKey(
 	IN RTMP_ADAPTER	*pAd,
 	IN PSTRING		keyString,

@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "cprecomp.h"
 
@@ -20,13 +6,13 @@ u8_t zfQueryOppositeRate(zdev_t* dev, u8_t dst_mac[6], u8_t frameType)
 {
     zmw_get_wlan_dev(dev);
 
-    /* For AP's rate adaption */
+    
     if ( wd->wlanMode == ZM_MODE_AP )
     {
         return 0;
     }
 
-    /* For STA's rate adaption */
+    
     if ( (frameType & 0x0c) == ZM_WLAN_DATA_FRAME )
     {
         if ( ZM_IS_MULTICAST(dst_mac) )
@@ -166,7 +152,7 @@ void zfCollectHWTally(zdev_t*dev, u32_t* rsp, u8_t id)
         wd->commTally.Hw_CRC32Cnt += rsp[3];
         wd->commTally.Hw_CRC16Cnt += rsp[4];
         #ifdef ZM_ENABLE_NATIVE_WIFI
-        /* These code are here to satisfy Vista DTM */
+        
         wd->commTally.Hw_DecrypErr_UNI += ((rsp[5]>50) && (rsp[5]<60))?50:rsp[5];
         #else
         wd->commTally.Hw_DecrypErr_UNI += rsp[5];
@@ -234,7 +220,7 @@ void zfCollectHWTally(zdev_t*dev, u32_t* rsp, u8_t id)
 
 }
 
-/* Timer related functions */
+
 void zfTimerInit(zdev_t* dev)
 {
     u8_t   i;
@@ -275,8 +261,8 @@ u16_t zfTimerSchedule(zdev_t* dev, u16_t event, u32_t tick)
         return 1;
     }
 
-    //zm_debug_msg2("event = ", event);
-    //zm_debug_msg1("target tick = ", wd->tick + tick);
+    
+    
 
     count = ZM_MAX_TIMER_COUNT - wd->timerList.freeCount;
 
@@ -285,7 +271,7 @@ u16_t zfTimerSchedule(zdev_t* dev, u16_t event, u32_t tick)
         wd->timerList.freeCount--;
         wd->timerList.head->event = event;
         wd->timerList.head->timer = wd->tick + tick;
-        //zm_debug_msg1("free timer count = ", wd->timerList.freeCount);
+        
 
         return 0;
     }
@@ -298,7 +284,7 @@ u16_t zfTimerSchedule(zdev_t* dev, u16_t event, u32_t tick)
 
     for( i=0; i<count; i++ )
     {
-        // prevent from the case of tick overflow
+        
         if ( ( pEntry->timer > pFreeEntry->timer )&&
              ((pEntry->timer - pFreeEntry->timer) < 1000000000) )
         {
@@ -334,7 +320,7 @@ u16_t zfTimerSchedule(zdev_t* dev, u16_t event, u32_t tick)
     }
 
     wd->timerList.freeCount--;
-    //zm_debug_msg1("free timer count = ", wd->timerList.freeCount);
+    
 
     return 0;
 }
@@ -346,8 +332,8 @@ u16_t zfTimerCancel(zdev_t* dev, u16_t event)
 
     zmw_get_wlan_dev(dev);
 
-    //zm_debug_msg2("event = ", event);
-    //zm_debug_msg1("free timer count(b) = ", wd->timerList.freeCount);
+    
+    
 
     pEntry = wd->timerList.head;
     count = ZM_MAX_TIMER_COUNT - wd->timerList.freeCount;
@@ -357,7 +343,7 @@ u16_t zfTimerCancel(zdev_t* dev, u16_t event)
         if ( pEntry->event == event )
         {
             if ( pEntry == wd->timerList.head )
-            {   /* remove head entry */
+            {   
                 wd->timerList.head = pEntry->next;
                 wd->timerList.tail->next = pEntry;
                 pEntry->pre = wd->timerList.tail;
@@ -365,7 +351,7 @@ u16_t zfTimerCancel(zdev_t* dev, u16_t event)
                 pEntry = wd->timerList.head;
             }
             else
-            {   /* remove non-head entry */
+            {   
                 pEntry->pre->next = pEntry->next;
                 pEntry->next->pre = pEntry->pre;
                 wd->timerList.tail->next = pEntry;
@@ -382,7 +368,7 @@ u16_t zfTimerCancel(zdev_t* dev, u16_t event)
         }
     }
 
-    //zm_debug_msg1("free timer count(a) = ", wd->timerList.freeCount);
+    
 
     return 0;
 }
@@ -417,7 +403,7 @@ u16_t zfTimerCheckAndHandle(zdev_t* dev)
 
     for( i=0; i<count; i++ )
     {
-        // prevent from the case of tick overflow
+        
         if ( ( pEntry->timer > wd->tick )&&
              ((pEntry->timer - wd->tick) < 1000000000) )
         {
@@ -436,7 +422,7 @@ u16_t zfTimerCheckAndHandle(zdev_t* dev)
         wd->timerList.head = pEntry;
         wd->timerList.tail = pTheLastEntry;
         wd->timerList.freeCount += j;
-        //zm_debug_msg1("free timer count = ", wd->timerList.freeCount);
+        
     }
 
     zmw_leave_critical_section(dev);
@@ -504,7 +490,7 @@ void zfCoreMacAddressNotify(zdev_t* dev, u8_t* addr)
     wd->macAddr[2] = addr[4] | ((u16_t)addr[5]<<8);
 
 
-    //zfHpSetMacAddress(dev, wd->macAddr, 0);
+    
     if (wd->zfcbMacAddressNotify != NULL)
     {
         wd->zfcbMacAddressNotify(dev, addr);
@@ -606,17 +592,17 @@ void zfProcessEvent(zdev_t* dev, u16_t* eventArray, u8_t eventCount)
                     zfChangeAdapterState(dev, ZM_STA_STATE_DISCONNECT);
 
                     zmw_enter_critical_section(dev);
-                    //zfTimerSchedule(dev, ZM_EVENT_CM_BLOCK_TIMER,
-                    //                ZM_TICK_CM_BLOCK_TIMEOUT);
+                    
+                    
 
-                    /* Timer Resolution on WinXP is 15/16 ms  */
-                    /* Decrease Time offset for <XP> Counter Measure */
+                    
+                    
                     zfTimerSchedule(dev, ZM_EVENT_CM_BLOCK_TIMER,
                                          ZM_TICK_CM_BLOCK_TIMEOUT - ZM_TICK_CM_BLOCK_TIMEOUT_OFFSET);
 
                     zmw_leave_critical_section(dev);
                     wd->sta.cmMicFailureCount = 0;
-                    //zfiWlanDisable(dev);
+                    
                     zfHpResetKeyCache(dev);
                     if (wd->zfcbConnectNotify != NULL)
                     {
@@ -630,7 +616,7 @@ void zfProcessEvent(zdev_t* dev, u16_t* eventArray, u8_t eventCount)
                 {
                     zm_msg0_mm(ZM_LV_0, "ZM_EVENT_CM_BLOCK_TIMER");
 
-                    //zmw_enter_critical_section(dev);
+                    
                     wd->sta.cmDisallowSsidLength = 0;
                     if ( wd->sta.bAutoReconnect )
                     {
@@ -638,7 +624,7 @@ void zfProcessEvent(zdev_t* dev, u16_t* eventArray, u8_t eventCount)
                         zfScanMgrScanStop(dev, ZM_SCAN_MGR_SCAN_INTERNAL);
                         zfScanMgrScanStart(dev, ZM_SCAN_MGR_SCAN_INTERNAL);
                     }
-                    //zmw_leave_critical_section(dev);
+                    
                 }
                 break;
 
@@ -665,7 +651,7 @@ void zfProcessEvent(zdev_t* dev, u16_t* eventArray, u8_t eventCount)
                 break;
             #endif
             case ZM_EVENT_SKIP_COUNTERMEASURE:
-				//enable the Countermeasure
+				
 				{
 					zm_debug_msg0("Countermeasure : Enable MIC Check ");
 					wd->TKIP_Group_KeyChanging = 0x0;
@@ -697,7 +683,7 @@ void zfBssInfoCreate(zdev_t* dev)
 
     for( i=0; i< ZM_MAX_BSS; i++ )
     {
-        //wd->sta.bssInfoArray[i] = &(wd->sta.bssInfoPool[i]);
+        
         wd->sta.bssInfoArray[i] = zfwMemAllocate(dev, sizeof(struct zsBssInfo));
 
     }
@@ -784,12 +770,12 @@ void zfBssInfoReorderList(zdev_t* dev)
             i = 0;
             while (1)
             {
-//                if (pBssInfo->signalStrength >= pInsBssInfo->signalStrength)
+
                 if( pBssInfo->sortValue >= pInsBssInfo->sortValue)
                 {
                     if (i==0)
                     {
-                        //Insert BssInfo to head
+                        
                         wd->sta.bssList.head = pBssInfo;
                         pNextBssInfo = pBssInfo->next;
                         pBssInfo->next = pInsBssInfo;
@@ -797,7 +783,7 @@ void zfBssInfoReorderList(zdev_t* dev)
                     }
                     else
                     {
-                        //Insert BssInfo to neither head nor tail
+                        
                         pPreBssInfo->next = pBssInfo;
                         pNextBssInfo = pBssInfo->next;
                         pBssInfo->next = pInsBssInfo;
@@ -808,13 +794,13 @@ void zfBssInfoReorderList(zdev_t* dev)
                 {
                     if (pInsBssInfo->next != NULL)
                     {
-                        //Signal strength smaller than current BssInfo, check next
+                        
                         pPreBssInfo = pInsBssInfo;
                         pInsBssInfo = pInsBssInfo->next;
                     }
                     else
                     {
-                        //Insert BssInfo to tail
+                        
                         pInsBssInfo->next = pBssInfo;
                         pNextBssInfo = pBssInfo->next;
                         wd->sta.bssList.tail = pBssInfo;
@@ -827,7 +813,7 @@ void zfBssInfoReorderList(zdev_t* dev)
             pBssInfo = pNextBssInfo;
             pInsBssInfo = wd->sta.bssList.head;
         }
-    } //if (wd->sta.bssList.bssCount > 1)
+    } 
 
     zmw_leave_critical_section(dev);
 }
@@ -838,7 +824,7 @@ void zfBssInfoInsertToList(zdev_t* dev, struct zsBssInfo* pBssInfo)
 
     zm_assert(pBssInfo);
 
-    //zm_debug_msg2("pBssInfo = ", pBssInfo);
+    
 
     if ( wd->sta.bssList.bssCount == 0 )
     {
@@ -854,7 +840,7 @@ void zfBssInfoInsertToList(zdev_t* dev, struct zsBssInfo* pBssInfo)
     pBssInfo->next = NULL;
     wd->sta.bssList.bssCount++;
 
-    //zm_debug_msg2("bss count = ", wd->sta.bssList.bssCount);
+    
 }
 
 void zfBssInfoRemoveFromList(zdev_t* dev, struct zsBssInfo* pBssInfo)
@@ -868,7 +854,7 @@ void zfBssInfoRemoveFromList(zdev_t* dev, struct zsBssInfo* pBssInfo)
     zm_assert(pBssInfo);
     zm_assert(wd->sta.bssList.bssCount);
 
-    //zm_debug_msg2("pBssInfo = ", pBssInfo);
+    
 
     pNowBssInfo = wd->sta.bssList.head;
 
@@ -877,7 +863,7 @@ void zfBssInfoRemoveFromList(zdev_t* dev, struct zsBssInfo* pBssInfo)
         if ( pNowBssInfo == pBssInfo )
         {
             if ( i == 0 )
-            {   /* remove head */
+            {   
                 wd->sta.bssList.head = pBssInfo->next;
             }
             else
@@ -886,7 +872,7 @@ void zfBssInfoRemoveFromList(zdev_t* dev, struct zsBssInfo* pBssInfo)
             }
 
             if ( i == (wd->sta.bssList.bssCount - 1) )
-            {   /* remove tail */
+            {   
                 wd->sta.bssList.tail = pPreBssInfo;
             }
 
@@ -900,7 +886,7 @@ void zfBssInfoRemoveFromList(zdev_t* dev, struct zsBssInfo* pBssInfo)
     zm_assert(i != wd->sta.bssList.bssCount);
     wd->sta.bssList.bssCount--;
 
-    //zm_debug_msg2("bss count = ", wd->sta.bssList.bssCount);
+    
 }
 
 void zfBssInfoRefresh(zdev_t* dev, u16_t mode)
@@ -926,7 +912,7 @@ void zfBssInfoRefresh(zdev_t* dev, u16_t mode)
         else
         {
             if ( pBssInfo->flag & ZM_BSS_INFO_VALID_BIT )
-            {   /* this one must be kept */
+            {   
                 pBssInfo->flag &= ~ZM_BSS_INFO_VALID_BIT;
                 pBssInfo = pBssInfo->next;
             }
@@ -946,7 +932,7 @@ void zfBssInfoRefresh(zdev_t* dev, u16_t mode)
                 }
             }
         }
-    } //for( i=0; i<bssCount; i++ )
+    } 
     return;
 }
 
@@ -962,8 +948,8 @@ void zfDumpSSID(u8_t length, u8_t *value)
 
     zfMemoryCopy(buf, value, tmpLength);
     buf[tmpLength] = '\0';
-    //printk("SSID: %s\n", buf);
-    //zm_debug_msg_s("ssid = ", value);
+    
+    
 }
 
 void zfCoreReinit(zdev_t* dev)
@@ -976,34 +962,34 @@ void zfCoreReinit(zdev_t* dev)
 
 void zfGenerateRandomBSSID(zdev_t* dev, u8_t *MACAddr, u8_t *BSSID)
 {
-    //ULONGLONG   time;
+    
     u32_t time;
 
     zmw_get_wlan_dev(dev);
 
     time = wd->tick;
 
-    //
-    // Initialize the random BSSID to be the same as MAC address.
-    //
+    
+    
+    
 
-    // RtlCopyMemory(BSSID, MACAddr, sizeof(DOT11_MAC_ADDRESS));
+    
     zfMemoryCopy(BSSID, MACAddr, 6);
 
-    //
-    // Get the system time in 10 millisecond.
-    //
+    
+    
+    
 
-    // NdisGetCurrentSystemTime((PLARGE_INTEGER)&time);
-    // time /= 100000;
+    
+    
 
-    //
-    // Randomize the first 4 bytes of BSSID.
-    //
+    
+    
+    
 
     BSSID[0] ^= (u8_t)(time & 0xff);
-    BSSID[0] &= ~0x01;              // Turn off multicast bit
-    BSSID[0] |= 0x02;               // Turn on local bit
+    BSSID[0] &= ~0x01;              
+    BSSID[0] |= 0x02;               
 
     time >>= 8;
     BSSID[1] ^= (u8_t)(time & 0xff);
@@ -1022,21 +1008,21 @@ u8_t zfiWlanGetDestAddrFromBuf(zdev_t *dev, zbuf_t *buf, u16_t *macAddr)
 
     if ( wd->wlanMode == ZM_MODE_INFRASTRUCTURE )
     {
-        /* DA */
+        
         macAddr[0] = zmw_tx_buf_readh(dev, buf, 16);
         macAddr[1] = zmw_tx_buf_readh(dev, buf, 18);
         macAddr[2] = zmw_tx_buf_readh(dev, buf, 20);
     }
     else if ( wd->wlanMode == ZM_MODE_IBSS )
     {
-        /* DA */
+        
         macAddr[0] = zmw_tx_buf_readh(dev, buf, 4);
         macAddr[1] = zmw_tx_buf_readh(dev, buf, 6);
         macAddr[2] = zmw_tx_buf_readh(dev, buf, 8);
     }
     else if ( wd->wlanMode == ZM_MODE_AP )
     {
-        /* DA */
+        
         macAddr[0] = zmw_tx_buf_readh(dev, buf, 4);
         macAddr[1] = zmw_tx_buf_readh(dev, buf, 6);
         macAddr[2] = zmw_tx_buf_readh(dev, buf, 8);
@@ -1046,7 +1032,7 @@ u8_t zfiWlanGetDestAddrFromBuf(zdev_t *dev, zbuf_t *buf, u16_t *macAddr)
         return 1;
     }
 #else
-    /* DA */
+    
     macAddr[0] = zmw_tx_buf_readh(dev, buf, 0);
     macAddr[1] = zmw_tx_buf_readh(dev, buf, 2);
     macAddr[2] = zmw_tx_buf_readh(dev, buf, 4);
@@ -1055,7 +1041,7 @@ u8_t zfiWlanGetDestAddrFromBuf(zdev_t *dev, zbuf_t *buf, u16_t *macAddr)
     return 0;
 }
 
-/* Leave an empty line below to remove warning message on some compiler */
+
 
 u16_t zfFindCleanFrequency(zdev_t* dev, u32_t adhocMode)
 {
@@ -1087,18 +1073,18 @@ u16_t zfFindCleanFrequency(zdev_t* dev, u32_t adhocMode)
         return returnChannel;
     }
 
-    /* #1 Get Allowed Channel following Country Code ! */
+    
     zmw_declare_for_critical_section();
     zmw_enter_critical_section(dev);
     for (i = 0; i < wd->regulationTable.allowChannelCnt; i++)
     {
         if (wd->regulationTable.allowChannel[i].channel < 3000)
-        { // 2.4GHz
+        { 
             Array_24G[count_24G] = wd->regulationTable.allowChannel[i].channel;
             count_24G++;
         }
         else
-        { // 5GHz
+        { 
             count_5G++;
             Array_5G[i] = wd->regulationTable.allowChannel[i].channel;
         }
@@ -1107,26 +1093,26 @@ u16_t zfFindCleanFrequency(zdev_t* dev, u32_t adhocMode)
 
     while( pBssInfo != NULL )
     {
-        /* #2_1 Count BSS number in some specificed frequency in 2.4GHz band ! */
+        
         if( adhocMode == ZM_ADHOCBAND_B || adhocMode == ZM_ADHOCBAND_G ||
             adhocMode == ZM_ADHOCBAND_BG || adhocMode == ZM_ADHOCBAND_ABG )
         {
             for( i=0; i<=(count_24G+3); i++ )
             {
                 if( pBssInfo->frequency == Array_24G[i] )
-                { // Array_24G[0] correspond to BssNumberIn24G[2]
+                { 
                     BssNumberIn24G[pBssInfo->channel+1]++;
                 }
             }
         }
 
-        /* #2_2 Count BSS number in some specificed frequency in 5GHz band ! */
+        
         if( adhocMode == ZM_ADHOCBAND_A || adhocMode == ZM_ADHOCBAND_ABG )
         {
             for( i=0; i<count_5G; i++ )
-            { // 5GHz channel is not equal to array index
+            { 
                 if( pBssInfo->frequency == Array_5G[i] )
-                { // Array_5G[0] correspond to BssNumberIn5G[0]
+                { 
                     BssNumberIn5G[i]++;
                 }
             }
@@ -1150,21 +1136,21 @@ u16_t zfFindCleanFrequency(zdev_t* dev, u32_t adhocMode)
     if( adhocMode == ZM_ADHOCBAND_B || adhocMode == ZM_ADHOCBAND_G ||
         adhocMode == ZM_ADHOCBAND_BG || adhocMode == ZM_ADHOCBAND_ABG )
     {
-        /* #3_1 Count BSS number that influence the specificed frequency in 2.4GHz ! */
+        
         for( j=0; j<count_24G; j++ )
         {
             CombinationBssNumberIn24G[j] = BssNumberIn24G[j]   + BssNumberIn24G[j+1] +
                                            BssNumberIn24G[j+2] + BssNumberIn24G[j+3] +
                                            BssNumberIn24G[j+4];
-            //printk("After combine, the number of BSS network channel %d is %d",
-            //                                   j , CombinationBssNumberIn24G[j]);
+            
+            
         }
 
-        /* #4_1 Find the less utilized frequency in 2.4GHz band ! */
+        
         min24GIndex = zfFindMinimumUtilizationChannelIndex(dev, CombinationBssNumberIn24G, count_24G);
     }
 
-    /* #4_2 Find the less utilized frequency in 5GHz band ! */
+    
     if( adhocMode == ZM_ADHOCBAND_A || adhocMode == ZM_ADHOCBAND_ABG )
     {
         min5GIndex = zfFindMinimumUtilizationChannelIndex(dev, BssNumberIn5G, count_5G);

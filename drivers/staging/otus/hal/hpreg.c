@@ -1,35 +1,20 @@
-/*
- * Copyright (c) 2000-2005 ZyDAS Technology Corporation
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : hpreg.c                                               */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains Regulatory Table and related function.     */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "../80211core/cprecomp.h"
 #include "hpani.h"
 #include "hpreg.h"
 #include "hpusb.h"
 
-/* used throughout this file... */
+
 #define	N(a)	(sizeof (a) / sizeof (a[0]))
 
 #define HAL_MODE_11A_TURBO	HAL_MODE_108A
@@ -37,13 +22,13 @@
 
 #if 0
 enum {
-    /* test groups */
+    
 	FCC	       = 0x10,
 	MKK	       = 0x40,
 	ETSI	   = 0x30,
     SD_NO_CTL  = 0xe0,
 	NO_CTL	   = 0xff,
-    /* test modes */
+    
     CTL_MODE_M = 0x0f,
     CTL_11A    = 0,
 	CTL_11B	   = 1,
@@ -57,12 +42,7 @@ enum {
 };
 #endif
 
-/*
- * The following are flags for different requirements per reg domain.
- * These requirements are either inhereted from the reg domain pair or
- * from the unitary reg domain if the reg domain pair flags value is
- * 0
- */
+
 
 enum {
 	NO_REQ			= 0x00000000,
@@ -70,30 +50,26 @@ enum {
 	DISALLOW_ADHOC_11A_TURB	= 0x00000002,
 	NEED_NFC		= 0x00000004,
 
-	ADHOC_PER_11D		= 0x00000008,  /* Start Ad-Hoc mode */
+	ADHOC_PER_11D		= 0x00000008,  
 	ADHOC_NO_11A		= 0x00000010,
 
-	PUBLIC_SAFETY_DOMAIN	= 0x00000020, 	/* public safety domain */
-	LIMIT_FRAME_4MS 	= 0x00000040, 	/* 4msec limit on the frame length */
+	PUBLIC_SAFETY_DOMAIN	= 0x00000020, 	
+	LIMIT_FRAME_4MS 	= 0x00000040, 	
 };
 
 #define MKK5GHZ_FLAG1 (DISALLOW_ADHOC_11A_TURB | NEED_NFC | LIMIT_FRAME_4MS)
 #define MKK5GHZ_FLAG2 (DISALLOW_ADHOC_11A | DISALLOW_ADHOC_11A_TURB | NEED_NFC| LIMIT_FRAME_4MS)
 
 typedef enum {
-	DFS_UNINIT_DOMAIN	= 0,	/* Uninitialized dfs domain */
-	DFS_FCC_DOMAIN		= 1,	/* FCC3 dfs domain */
-	DFS_ETSI_DOMAIN		= 2,	/* ETSI dfs domain */
+	DFS_UNINIT_DOMAIN	= 0,	
+	DFS_FCC_DOMAIN		= 1,	
+	DFS_ETSI_DOMAIN		= 2,	
 } HAL_DFS_DOMAIN;
 
-/*
- * Used to set the RegDomain bitmask which chooses which frequency
- * band specs are used.
- */
 
-#define BMLEN 2		/* Use 2 64 bit uint for channel bitmask
-			   NB: Must agree with macro below (BM) */
-#define BMZERO {(u64_t) 0, (u64_t) 0}	/* BMLEN zeros */
+
+#define BMLEN 2		
+#define BMZERO {(u64_t) 0, (u64_t) 0}	
 
 #if 0
 
@@ -153,16 +129,12 @@ typedef enum {
 
 #endif
 
-/* Mask to check whether a domain is a multidomain or a single
-   domain */
+
 
 #define MULTI_DOMAIN_MASK 0xFF00
 
 
-/*
- * The following describe the bit masks for different passive scan
- * capability/requirements per regdomain.
- */
+
 #define	NO_PSCAN	0x0ULL
 #define	PSCAN_FCC	0x0000000000000001ULL
 #define	PSCAN_FCC_T	0x0000000000000002ULL
@@ -183,28 +155,16 @@ typedef enum {
 #define	PSCAN_DEFER	0x7FFFFFFFFFFFFFFFULL
 #define	IS_ECM_CHAN	0x8000000000000000ULL
 
-/*
- * THE following table is the mapping of regdomain pairs specified by
- * an 8 bit regdomain value to the individual unitary reg domains
- */
+
 
 typedef struct reg_dmn_pair_mapping {
-	u16_t regDmnEnum;	/* 16 bit reg domain pair */
-	u16_t regDmn5GHz;	/* 5GHz reg domain */
-	u16_t regDmn2GHz;	/* 2GHz reg domain */
-	u32_t flags5GHz;		/* Requirements flags (AdHoc
-					   disallow, noise floor cal needed,
-					   etc) */
-	u32_t flags2GHz;		/* Requirements flags (AdHoc
-					   disallow, noise floor cal needed,
-					   etc) */
-	u64_t pscanMask;		/* Passive Scan flags which
-					   can override unitary domain
-					   passive scan flags.  This
-					   value is used as a mask on
-					   the unitary flags*/
-	u16_t singleCC;		/* Country code of single country if
-					   a one-on-one mapping exists */
+	u16_t regDmnEnum;	
+	u16_t regDmn5GHz;	
+	u16_t regDmn2GHz;	
+	u32_t flags5GHz;		
+	u32_t flags2GHz;		
+	u64_t pscanMask;		
+	u16_t singleCC;		
 }  REG_DMN_PAIR_MAPPING;
 
 static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
@@ -258,10 +218,10 @@ static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
 	{MKK1_MKKA2,    MKK1,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN5 },
 	{MKK1_MKKC,     MKK1,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1, CTRY_JAPAN6 },
 
-	/* MKK2 */
+	
 	{MKK2_MKKA,     MKK2,		MKKA,		MKK5GHZ_FLAG2, NEED_NFC, PSCAN_MKK2 | PSCAN_MKKA | PSCAN_MKKA_G, CTRY_JAPAN3 },
 
-	/* MKK3 */
+	
 	{MKK3_MKKA,     MKK3,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN25 },
 	{MKK3_MKKB,     MKK3,		MKKA,		MKK5GHZ_FLAG2, NEED_NFC, PSCAN_MKKA | PSCAN_MKKA_G, CTRY_JAPAN7 },
 	{MKK3_MKKA1,    MKK3,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN26 },
@@ -269,7 +229,7 @@ static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
 	{MKK3_MKKC,     MKK3,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN9 },
 	{MKK3_FCCA,     MKK3,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN27 },
 
-	/* MKK4 */
+	
 	{MKK4_MKKB,     MKK4,		MKKA,		MKK5GHZ_FLAG2, NEED_NFC, PSCAN_MKK3 | PSCAN_MKKA | PSCAN_MKKA_G, CTRY_JAPAN10 },
 	{MKK4_MKKA1,    MKK4,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK3 | PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN28 },
 	{MKK4_MKKA2,    MKK4,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK3 |PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN11 },
@@ -277,52 +237,52 @@ static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
 	{MKK4_FCCA,     MKK4,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN29 },
 	{MKK4_MKKA,     MKK4,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK3 | PSCAN_MKKA, CTRY_JAPAN36 },
 
-	/* MKK5 */
+	
 	{MKK5_MKKB,     MKK5,		MKKA,		MKK5GHZ_FLAG2, NEED_NFC, PSCAN_MKK3 | PSCAN_MKKA | PSCAN_MKKA_G, CTRY_JAPAN13 },
 	{MKK5_MKKA2,    MKK5,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK3 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN14 },
 	{MKK5_MKKC,     MKK5,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK3, CTRY_JAPAN15 },
 
-	/* MKK6 */
+	
 	{MKK6_MKKB,     MKK6,		MKKA,		MKK5GHZ_FLAG2, NEED_NFC, PSCAN_MKK1 | PSCAN_MKKA | PSCAN_MKKA_G, CTRY_JAPAN16 },
 	{MKK6_MKKA2,    MKK6,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN17 },
 	{MKK6_MKKC,     MKK6,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1, CTRY_JAPAN18 },
 	{MKK6_MKKA1,    MKK6,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN30 },
 	{MKK6_FCCA,     MKK6,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN31 },
 
-	/* MKK7 */
+	
 	{MKK7_MKKB,     MKK7,		MKKA,		MKK5GHZ_FLAG2, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA | PSCAN_MKKA_G, CTRY_JAPAN19 },
 	{MKK7_MKKA,     MKK7,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN20 },
 	{MKK7_MKKC,     MKK7,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3, CTRY_JAPAN21 },
 	{MKK7_MKKA1,    MKK7,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN32 },
 	{MKK7_FCCA,     MKK7,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN33 },
 
-	/* MKK8 */
+	
 	{MKK8_MKKB,     MKK8,		MKKA,		MKK5GHZ_FLAG2, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA | PSCAN_MKKA_G, CTRY_JAPAN22 },
 	{MKK8_MKKA2,    MKK8,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN23 },
 	{MKK8_MKKC,     MKK8,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 , CTRY_JAPAN24 },
 
-   	/* MKK9 */
+   	
 	{MKK9_MKKA,     MKK9,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN34 },
 	{MKK9_FCCA,     MKK9,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN37 },
 	{MKK9_MKKA1,    MKK9,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN38 },
 	{MKK9_MKKC,     MKK9,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN39 },
 	{MKK9_MKKA2,	MKK9,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN40 },
 
-	/* MKK10 */
+	
 	{MKK10_MKKA,	MKK10,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN35 },
 	{MKK10_FCCA,	MKK10,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN41 },
 	{MKK10_MKKA1,	MKK10,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN42 },
 	{MKK10_MKKC,	MKK10,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN43 },
 	{MKK10_MKKA2,	MKK10,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN44 },
 
-	/* MKK11 */
+	
 	{MKK11_MKKA,	MKK11,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN45 },
 	{MKK11_FCCA,	MKK11,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN46 },
 	{MKK11_MKKA1,	MKK11,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN47 },
 	{MKK11_MKKC,	MKK11,		MKKC,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN48 },
 	{MKK11_MKKA2,	MKK11,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN49 },
 
-	/* MKK12 */
+	
 	{MKK12_MKKA,	MKK12,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN50 },
 	{MKK12_FCCA,	MKK12,		FCCA,		MKK5GHZ_FLAG1, NEED_NFC, NO_PSCAN, CTRY_JAPAN51 },
 	{MKK12_MKKA1,	MKK12,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKKA1 | PSCAN_MKKA1_G, CTRY_JAPAN52 },
@@ -330,7 +290,7 @@ static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
 	{MKK12_MKKA2,	MKK12,		MKKA,		MKK5GHZ_FLAG1, NEED_NFC, PSCAN_MKK1 | PSCAN_MKK3 | PSCAN_MKKA2 | PSCAN_MKKA2_G, CTRY_JAPAN54 },
 
 
-	/* These are super domains */
+	
 	{WOR0_WORLD,	WOR0_WORLD,	WOR0_WORLD,	NO_REQ, NO_REQ, PSCAN_DEFER, 0 },
 	{WOR1_WORLD,	WOR1_WORLD,	WOR1_WORLD,	DISALLOW_ADHOC_11A | DISALLOW_ADHOC_11A_TURB, NO_REQ, PSCAN_DEFER, 0 },
 	{WOR2_WORLD,	WOR2_WORLD,	WOR2_WORLD,	DISALLOW_ADHOC_11A_TURB, NO_REQ, PSCAN_DEFER, 0 },
@@ -344,11 +304,7 @@ static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
 	{WORA_WORLD,	WORA_WORLD,	WORA_WORLD,	DISALLOW_ADHOC_11A | DISALLOW_ADHOC_11A_TURB, NO_REQ, PSCAN_DEFER, 0 },
 };
 
-/*
- * The following table is the master list for all different freqeuncy
- * bands with the complete matrix of all possible flags and settings
- * for each band if it is used in ANY reg domain.
- */
+
 
 #define DEF_REGDMN		FCC1_FCCA
 #define	DEF_DMN_5		FCC1
@@ -358,7 +314,7 @@ static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
 #define	SUPER_DOMAIN_MASK	0x0fff
 #define	COUNTRY_CODE_MASK	0x03ff
 #define CF_INTERFERENCE		(CHANNEL_CW_INT | CHANNEL_RADAR_INT)
-#define CHANNEL_14		(2484)	/* 802.11g operation is not permitted on channel 14 */
+#define CHANNEL_14		(2484)	
 #define IS_11G_CH14(_ch,_cf) \
 	(((_ch) == CHANNEL_14) && ((_cf) == CHANNEL_G))
 
@@ -366,8 +322,8 @@ static REG_DMN_PAIR_MAPPING regDomainPairs[] = {
 #define	NO	FALSE
 
 enum {
-	CTRY_DEBUG	= 0x1ff,		/* debug country code */
-	CTRY_DEFAULT	= 0			/* default country code */
+	CTRY_DEBUG	= 0x1ff,		
+	CTRY_DEFAULT	= 0			
 };
 
 typedef struct {
@@ -378,8 +334,8 @@ typedef struct {
 	HAL_BOOL		allow11g;
 	HAL_BOOL		allow11aTurbo;
 	HAL_BOOL		allow11gTurbo;
-    HAL_BOOL        allow11na;      /* HT-40 allowed in 5GHz? */
-    HAL_BOOL        allow11ng;      /* HT-40 allowed in 2GHz? */
+    HAL_BOOL        allow11na;      
+    HAL_BOOL        allow11ng;      
 	u16_t		outdoorChanStart;
 } COUNTRY_CODE_TO_ENUM_RD;
 
@@ -553,23 +509,19 @@ static COUNTRY_CODE_TO_ENUM_RD allCountries[] = {
 };
 
 typedef struct RegDmnFreqBand {
-	u16_t	lowChannel;	/* Low channel center in MHz */
-	u16_t	highChannel;	/* High Channel center in MHz */
-	u8_t	powerDfs;	/* Max power (dBm) for channel
-					   range when using DFS */
-	u8_t	antennaMax;	/* Max allowed antenna gain */
-	u8_t	channelBW;	/* Bandwidth of the channel */
-	u8_t	channelSep;	/* Channel separation within
-					   the band */
-	u64_t	useDfs;		/* Use DFS in the RegDomain
-					   if corresponding bit is set */
-	u64_t	usePassScan;	/* Use Passive Scan in the RegDomain
-					   if corresponding bit is set */
-	u8_t	regClassId;	/* Regulatory class id */
-	u8_t	useExtChanDfs;	/* Regulatory class id */
+	u16_t	lowChannel;	
+	u16_t	highChannel;	
+	u8_t	powerDfs;	
+	u8_t	antennaMax;	
+	u8_t	channelBW;	
+	u8_t	channelSep;	
+	u64_t	useDfs;		
+	u64_t	usePassScan;	
+	u8_t	regClassId;	
+	u8_t	useExtChanDfs;	
 } REG_DMN_FREQ_BAND;
 
-/* Bit masks for DFS per regdomain */
+
 
 enum {
 	NO_DFS   = 0x0000000000000000ULL,
@@ -578,15 +530,9 @@ enum {
 	DFS_MKK4 = 0x0000000000000004ULL,
 };
 
-/* The table of frequency bands is indexed by a bitmask.  The ordering
- * must be consistent with the enum below.  When adding a new
- * frequency band, be sure to match the location in the enum with the
- * comments
- */
 
-/*
- * 5GHz 11A channel tags
- */
+
+
 
 enum {
 	F1_4915_4925,
@@ -665,91 +611,85 @@ enum {
 };
 
 static REG_DMN_FREQ_BAND regDmn5GhzFreq[] = {
-	{ 4915, 4925, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 16, 0 },		/* F1_4915_4925 */
-	{ 4935, 4945, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 16, 0 },		/* F1_4935_4945 */
-	{ 4920, 4980, 23, 0, 20, 20, NO_DFS, PSCAN_MKK2, 7, 0 },		/* F1_4920_4980 */
-	{ 4942, 4987, 27, 6, 5,  5, DFS_FCC3, PSCAN_FCC, 0, 0 },		/* F1_4942_4987 */
-	{ 4945, 4985, 30, 6, 10, 5, DFS_FCC3, PSCAN_FCC, 0, 0 },		/* F1_4945_4985 */
-	{ 4950, 4980, 33, 6, 20, 5, DFS_FCC3, PSCAN_FCC, 0, 0 },		/* F1_4950_4980 */
-	{ 5035, 5040, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 12, 0 },		/* F1_5035_5040 */
-	{ 5040, 5080, 23, 0, 20, 20, NO_DFS, PSCAN_MKK2, 2, 0 },		/* F1_5040_5080 */
-	{ 5055, 5055, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 12, 0 },		/* F1_5055_5055 */
+	{ 4915, 4925, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 16, 0 },		
+	{ 4935, 4945, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 16, 0 },		
+	{ 4920, 4980, 23, 0, 20, 20, NO_DFS, PSCAN_MKK2, 7, 0 },		
+	{ 4942, 4987, 27, 6, 5,  5, DFS_FCC3, PSCAN_FCC, 0, 0 },		
+	{ 4945, 4985, 30, 6, 10, 5, DFS_FCC3, PSCAN_FCC, 0, 0 },		
+	{ 4950, 4980, 33, 6, 20, 5, DFS_FCC3, PSCAN_FCC, 0, 0 },		
+	{ 5035, 5040, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 12, 0 },		
+	{ 5040, 5080, 23, 0, 20, 20, NO_DFS, PSCAN_MKK2, 2, 0 },		
+	{ 5055, 5055, 23, 0, 10, 5, NO_DFS, PSCAN_MKK2, 12, 0 },		
 
-	{ 5120, 5240, 5,  6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },			/* F1_5120_5240 */
+	{ 5120, 5240, 5,  6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },			
 
-	{ 5170, 5230, 23, 0, 20, 20, NO_DFS, PSCAN_MKK1 | PSCAN_MKK2, 1, 0 },	/* F1_5170_5230 */
-	{ 5170, 5230, 20, 0, 20, 20, NO_DFS, PSCAN_MKK1 | PSCAN_MKK2, 1, 0 },	/* F2_5170_5230 */
+	{ 5170, 5230, 23, 0, 20, 20, NO_DFS, PSCAN_MKK1 | PSCAN_MKK2, 1, 0 },	
+	{ 5170, 5230, 20, 0, 20, 20, NO_DFS, PSCAN_MKK1 | PSCAN_MKK2, 1, 0 },	
 
-	{ 5180, 5240, 15, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F1_5180_5240 */
-	{ 5180, 5240, 17, 6, 20, 20, NO_DFS, PSCAN_FCC, 1, 0 },				/* F2_5180_5240 */
-	{ 5180, 5240, 18, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F3_5180_5240 */
-	{ 5180, 5240, 20, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F4_5180_5240 */
-	{ 5180, 5240, 23, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F5_5180_5240 */
-	{ 5180, 5240, 23, 6, 20, 20, NO_DFS, PSCAN_FCC, 0, 0 },				/* F6_5180_5240 */
-  { 5180, 5240, 23, 6, 20, 20, NO_DFS, NO_PSCAN, 0 },           /* F7_5180_5240 */
+	{ 5180, 5240, 15, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
+	{ 5180, 5240, 17, 6, 20, 20, NO_DFS, PSCAN_FCC, 1, 0 },				
+	{ 5180, 5240, 18, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
+	{ 5180, 5240, 20, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
+	{ 5180, 5240, 23, 0, 20, 20, NO_DFS, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
+	{ 5180, 5240, 23, 6, 20, 20, NO_DFS, PSCAN_FCC, 0, 0 },				
+  { 5180, 5240, 23, 6, 20, 20, NO_DFS, NO_PSCAN, 0 },           
 
-	{ 5180, 5320, 20, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },			/* F1_5180_5320 */
+	{ 5180, 5320, 20, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },			
 
-	{ 5240, 5280, 23, 0, 20, 20, DFS_FCC3, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F1_5240_5280 */
+	{ 5240, 5280, 23, 0, 20, 20, DFS_FCC3, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
 
-	{ 5260, 5280, 23, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F1_5260_5280 */
+	{ 5260, 5280, 23, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
 
-	{ 5260, 5320, 18, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F1_5260_5320 */
+	{ 5260, 5320, 18, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
 
 	{ 5260, 5320, 20, 0, 20, 20, DFS_FCC3 | DFS_ETSI | DFS_MKK4, PSCAN_FCC | PSCAN_ETSI | PSCAN_MKK3 , 0, 0 },
-											/* F2_5260_5320 */
+											
 
-	{ 5260, 5320, 20, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 2, 0 },	/* F3_5260_5320 */
-	{ 5260, 5320, 23, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 2, 0 },	/* F4_5260_5320 */
-	{ 5260, 5320, 23, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 0, 0 },	/* F5_5260_5320 */
-	{ 5260, 5320, 30, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				/* F6_5260_5320 */
-	{ 5260, 5320, 17, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },				/* F7_5260_5320 */
+	{ 5260, 5320, 20, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 2, 0 },	
+	{ 5260, 5320, 23, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 2, 0 },	
+	{ 5260, 5320, 23, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 0, 0 },	
+	{ 5260, 5320, 30, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				
+	{ 5260, 5320, 17, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },				
 
-	{ 5260, 5700, 5,  6, 20, 20, DFS_FCC3 | DFS_ETSI, NO_PSCAN, 0, 0 },		/* F1_5260_5700 */
+	{ 5260, 5700, 5,  6, 20, 20, DFS_FCC3 | DFS_ETSI, NO_PSCAN, 0, 0 },		
 
-	{ 5280, 5320, 17, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 0, 0 },	/* F1_5280_5320 */
+	{ 5280, 5320, 17, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 0, 0 },	
 
-    { 5500, 5580, 23, 6, 20, 20, DFS_FCC3, PSCAN_FCC, 0},                           /* F1_5500_5580 */
+    { 5500, 5580, 23, 6, 20, 20, DFS_FCC3, PSCAN_FCC, 0},                           
 
-	{ 5500, 5620, 30, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },				/* F1_5500_5620 */
+	{ 5500, 5620, 30, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },				
 
-	{ 5500, 5700, 20, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 4, 0 },		/* F1_5500_5700 */
-	{ 5500, 5700, 27, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F2_5500_5700 */
-	{ 5500, 5700, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	/* F3_5500_5700 */
+	{ 5500, 5700, 20, 6, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC, 4, 0 },		
+	{ 5500, 5700, 27, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
+	{ 5500, 5700, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_FCC | PSCAN_ETSI, 0, 0 },	
 	{ 5500, 5700, 20, 0, 20, 20, DFS_FCC3 | DFS_ETSI | DFS_MKK4, PSCAN_MKK3 | PSCAN_FCC, 0, 0 },
-											/* F4_5500_5700 */
+											
 
-    { 5660, 5700, 23, 6, 20, 20, DFS_FCC3, PSCAN_FCC, 0},                           /* F1_5660_5700 */
+    { 5660, 5700, 23, 6, 20, 20, DFS_FCC3, PSCAN_FCC, 0},                           
 
-	{ 5745, 5805, 23, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				/* F1_5745_5805 */
-	{ 5745, 5805, 30, 6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				/* F2_5745_5805 */
-	{ 5745, 5805, 30, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },				/* F3_5745_5805 */
-	{ 5745, 5825, 5,  6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				/* F1_5745_5825 */
-	{ 5745, 5825, 17, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				/* F2_5745_5825 */
-	{ 5745, 5825, 20, 0, 20, 20, DFS_ETSI, NO_PSCAN, 0, 0 },				/* F3_5745_5825 */
-	{ 5745, 5825, 30, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				/* F4_5745_5825 */
-	{ 5745, 5825, 30, 6, 20, 20, NO_DFS, NO_PSCAN, 3, 0 },			/* F5_5745_5825 */
-	{ 5745, 5825, 30, 6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				/* F6_5745_5825 */
+	{ 5745, 5805, 23, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				
+	{ 5745, 5805, 30, 6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				
+	{ 5745, 5805, 30, 6, 20, 20, DFS_ETSI, PSCAN_ETSI, 0, 0 },				
+	{ 5745, 5825, 5,  6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				
+	{ 5745, 5825, 17, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				
+	{ 5745, 5825, 20, 0, 20, 20, DFS_ETSI, NO_PSCAN, 0, 0 },				
+	{ 5745, 5825, 30, 0, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				
+	{ 5745, 5825, 30, 6, 20, 20, NO_DFS, NO_PSCAN, 3, 0 },			
+	{ 5745, 5825, 30, 6, 20, 20, NO_DFS, NO_PSCAN, 0, 0 },				
 
-	/*
-	 * Below are the world roaming channels
-	 * All WWR domains have no power limit, instead use the card's CTL
-	 * or max power settings.
-	 */
-	{ 4920, 4980, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0, 0 },				/* W1_4920_4980 */
-	{ 5040, 5080, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0 },				/* W1_5040_5080 */
-	{ 5170, 5230, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		/* W1_5170_5230 */
-	{ 5180, 5240, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		/* W1_5180_5240 */
-	{ 5260, 5320, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		/* W1_5260_5320 */
-	{ 5745, 5825, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0, 0 },				/* W1_5745_5825 */
-	{ 5500, 5700, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		/* W1_5500_5700 */
-	{ 5260, 5320, 30, 0, 20, 20, NO_DFS, NO_PSCAN,  0, 0 },				/* W2_5260_5320 */
-	{ 5180, 5240, 30, 0, 20, 20, NO_DFS, NO_PSCAN,  0, 0 },				/* W2_5180_5240 */
-	{ 5825, 5825, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0, 0 },				/* W2_5825_5825 */
+	
+	{ 4920, 4980, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0, 0 },				
+	{ 5040, 5080, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0 },				
+	{ 5170, 5230, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		
+	{ 5180, 5240, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		
+	{ 5260, 5320, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		
+	{ 5745, 5825, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0, 0 },				
+	{ 5500, 5700, 30, 0, 20, 20, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0 },		
+	{ 5260, 5320, 30, 0, 20, 20, NO_DFS, NO_PSCAN,  0, 0 },				
+	{ 5180, 5240, 30, 0, 20, 20, NO_DFS, NO_PSCAN,  0, 0 },				
+	{ 5825, 5825, 30, 0, 20, 20, NO_DFS, PSCAN_WWR, 0, 0 },				
 };
-/*
- * 5GHz Turbo (dynamic & static) tags
- */
+
 
 enum {
 	T1_5130_5210,
@@ -787,47 +727,43 @@ enum {
 };
 
 static REG_DMN_FREQ_BAND regDmn5GhzTurboFreq[] = {
-	{ 5130, 5210, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5130_5210 */
-	{ 5250, 5330, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	/* T1_5250_5330 */
-	{ 5370, 5490, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5370_5490 */
-	{ 5530, 5650, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	/* T1_5530_5650 */
+	{ 5130, 5210, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5250, 5330, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	
+	{ 5370, 5490, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5530, 5650, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	
 
-	{ 5150, 5190, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5150_5190 */
-	{ 5230, 5310, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	/* T1_5230_5310 */
-	{ 5350, 5470, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5350_5470 */
-	{ 5510, 5670, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	/* T1_5510_5670 */
+	{ 5150, 5190, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5230, 5310, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	
+	{ 5350, 5470, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5510, 5670, 5,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 0},	
 
-	{ 5200, 5240, 17, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5200_5240 */
-	{ 5200, 5240, 23, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T2_5200_5240 */
-	{ 5210, 5210, 17, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5210_5210 */
-	{ 5210, 5210, 23, 0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T2_5210_5210 */
+	{ 5200, 5240, 17, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5200, 5240, 23, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5210, 5210, 17, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5210, 5210, 23, 0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 5280, 5280, 23, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	/* T1_5280_5280 */
-	{ 5280, 5280, 20, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	/* T2_5280_5280 */
-	{ 5250, 5250, 17, 0, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	/* T1_5250_5250 */
-	{ 5290, 5290, 20, 0, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	/* T1_5290_5290 */
-	{ 5250, 5290, 20, 0, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	/* T1_5250_5290 */
-	{ 5250, 5290, 23, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	/* T2_5250_5290 */
+	{ 5280, 5280, 23, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	
+	{ 5280, 5280, 20, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	
+	{ 5250, 5250, 17, 0, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	
+	{ 5290, 5290, 20, 0, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	
+	{ 5250, 5290, 20, 0, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	
+	{ 5250, 5290, 23, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	
 
-	{ 5540, 5660, 20, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	/* T1_5540_5660 */
-	{ 5760, 5800, 20, 0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5760_5800 */
-	{ 5760, 5800, 30, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T2_5760_5800 */
+	{ 5540, 5660, 20, 6, 40, 40, DFS_FCC3, PSCAN_FCC_T, 0, 0},	
+	{ 5760, 5800, 20, 0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5760, 5800, 30, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 5765, 5805, 30, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* T1_5765_5805 */
+	{ 5765, 5805, 30, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
 
-	/*
-	 * Below are the WWR frequencies
-	 */
+	
 
-	{ 5210, 5250, 15, 0, 40, 40, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0}, /* WT1_5210_5250 */
-	{ 5290, 5290, 18, 0, 40, 40, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0}, /* WT1_5290_5290 */
-	{ 5540, 5660, 20, 0, 40, 40, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0}, /* WT1_5540_5660 */
-	{ 5760, 5800, 20, 0, 40, 40, NO_DFS, PSCAN_WWR, 0, 0},	/* WT1_5760_5800 */
+	{ 5210, 5250, 15, 0, 40, 40, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0}, 
+	{ 5290, 5290, 18, 0, 40, 40, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0}, 
+	{ 5540, 5660, 20, 0, 40, 40, DFS_FCC3 | DFS_ETSI, PSCAN_WWR, 0, 0}, 
+	{ 5760, 5800, 20, 0, 40, 40, NO_DFS, PSCAN_WWR, 0, 0},	
 };
 
-/*
- * 2GHz 11b channel tags
- */
+
 enum {
 	F1_2312_2372,
 	F2_2312_2372,
@@ -865,48 +801,44 @@ enum {
 };
 
 static REG_DMN_FREQ_BAND regDmn2GhzFreq[] = {
-	{ 2312, 2372, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F1_2312_2372 */
-	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F2_2312_2372 */
+	{ 2312, 2372, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2412, 2472, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F1_2412_2472 */
-	{ 2412, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA, 0, 0},	/* F2_2412_2472 */
-	{ 2412, 2472, 30, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F3_2412_2472 */
+	{ 2412, 2472, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2412, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA, 0, 0},	
+	{ 2412, 2472, 30, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2412, 2462, 27, 6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F1_2412_2462 */
-	{ 2412, 2462, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA, 0, 0},	/* F2_2412_2462 */
-	{ 2432, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F1_2432_2442 */
+	{ 2412, 2462, 27, 6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2412, 2462, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA, 0, 0},	
+	{ 2432, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2457, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F1_2457_2472 */
+	{ 2457, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2467, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA2 | PSCAN_MKKA, 0, 0}, /* F1_2467_2472 */
+	{ 2467, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA2 | PSCAN_MKKA, 0, 0}, 
 
-	{ 2484, 2484, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F1_2484_2484 */
-	{ 2484, 2484, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA | PSCAN_MKKA1 | PSCAN_MKKA2, 0, 0},	/* F2_2484_2484 */
+	{ 2484, 2484, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2484, 2484, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA | PSCAN_MKKA1 | PSCAN_MKKA2, 0, 0},	
 
-	{ 2512, 2732, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* F1_2512_2732 */
+	{ 2512, 2732, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	/*
-	 * WWR have powers opened up to 20dBm.  Limits should often come from CTL/Max powers
-	 */
+	
 
-	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* W1_2312_2372 */
-	{ 2412, 2412, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* W1_2412_2412 */
-	{ 2417, 2432, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* W1_2417_2432 */
-	{ 2437, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* W1_2437_2442 */
-	{ 2447, 2457, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* W1_2447_2457 */
-	{ 2462, 2462, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* W1_2462_2462 */
-	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, /* W1_2467_2467 */
-	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	/* W2_2467_2467 */
-	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, /* W1_2472_2472 */
-	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	/* W2_2472_2472 */
-	{ 2484, 2484, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, /* W1_2484_2484 */
-	{ 2484, 2484, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	/* W2_2484_2484 */
+	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2412, 2412, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2417, 2432, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2437, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2447, 2457, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2462, 2462, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, 
+	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	
+	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, 
+	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	
+	{ 2484, 2484, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, 
+	{ 2484, 2484, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	
 };
 
 
-/*
- * 2GHz 11g channel tags
- */
+
 
 enum {
 	G1_2312_2372,
@@ -940,41 +872,37 @@ enum {
 
 };
 static REG_DMN_FREQ_BAND regDmn2Ghz11gFreq[] = {
-	{ 2312, 2372, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G1_2312_2372 */
-	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G2_2312_2372 */
+	{ 2312, 2372, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2412, 2472, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G1_2412_2472 */
-	{ 2412, 2472, 20, 0, 20, 5,  NO_DFS, PSCAN_MKKA_G, 0, 0},	/* G2_2412_2472 */
-	{ 2412, 2472, 30, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G3_2412_2472 */
+	{ 2412, 2472, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2412, 2472, 20, 0, 20, 5,  NO_DFS, PSCAN_MKKA_G, 0, 0},	
+	{ 2412, 2472, 30, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2412, 2462, 27, 6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G1_2412_2462 */
-	{ 2412, 2462, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA_G, 0, 0},	/* G2_2412_2462 */
-	{ 2432, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G1_2432_2442 */
+	{ 2412, 2462, 27, 6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2412, 2462, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA_G, 0, 0},	
+	{ 2432, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2457, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G1_2457_2472 */
+	{ 2457, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2512, 2732, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* G1_2512_2732 */
+	{ 2512, 2732, 5,  6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
 
-	{ 2467, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA2 | PSCAN_MKKA, 0, 0 }, /* G1_2467_2472 */
+	{ 2467, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_MKKA2 | PSCAN_MKKA, 0, 0 }, 
 
-	/*
-	 * WWR open up the power to 20dBm
-	 */
+	
 
-	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* WG1_2312_2372 */
-	{ 2412, 2412, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* WG1_2412_2412 */
-	{ 2417, 2432, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* WG1_2417_2432 */
-	{ 2437, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* WG1_2437_2442 */
-	{ 2447, 2457, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* WG1_2447_2457 */
-	{ 2462, 2462, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	/* WG1_2462_2462 */
-	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, /* WG1_2467_2467 */
-	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	/* WG2_2467_2467 */
-	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, /* WG1_2472_2472 */
-	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	/* WG2_2472_2472 */
+	{ 2312, 2372, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2412, 2412, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2417, 2432, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2437, 2442, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2447, 2457, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2462, 2462, 20, 0, 20, 5, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, 
+	{ 2467, 2467, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	
+	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, PSCAN_WWR | IS_ECM_CHAN, 0, 0}, 
+	{ 2472, 2472, 20, 0, 20, 5, NO_DFS, NO_PSCAN | IS_ECM_CHAN, 0, 0},	
 };
-/*
- * 2GHz Dynamic turbo tags
- */
+
 
 enum {
 	T1_2312_2372,
@@ -985,18 +913,16 @@ enum {
 };
 
 static REG_DMN_FREQ_BAND regDmn2Ghz11gTurboFreq[] = {
-	{ 2312, 2372, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  /* T1_2312_2372 */
-	{ 2437, 2437, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  /* T1_2437_2437 */
-	{ 2437, 2437, 20, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  /* T2_2437_2437 */
-	{ 2437, 2437, 18, 6, 40, 40, NO_DFS, PSCAN_WWR, 0, 0}, /* T3_2437_2437 */
-	{ 2512, 2732, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  /* T1_2512_2732 */
+	{ 2312, 2372, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  
+	{ 2437, 2437, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  
+	{ 2437, 2437, 20, 6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  
+	{ 2437, 2437, 18, 6, 40, 40, NO_DFS, PSCAN_WWR, 0, 0}, 
+	{ 2512, 2732, 5,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},  
 };
 
 
 
-/*
- * 2GHz 11n frequency tags
- */
+
 enum {
     NG1_2422_2452,
     NG2_2422_2452,
@@ -1006,17 +932,15 @@ enum {
 };
 
 static REG_DMN_FREQ_BAND regDmn2Ghz11ngFreq[] = {
-    { 2422, 2452, 20, 0, 40, 5, NO_DFS, NO_PSCAN, 0, 0},    /* NG1_2422_2452 */
-    { 2422, 2452, 27, 0, 40, 5, NO_DFS, NO_PSCAN, 0, 0},    /* NG2_2422_2452 */
-    { 2422, 2452, 30, 0, 40, 5, NO_DFS, NO_PSCAN, 0, 0},    /* NG3_2422_2452 */
+    { 2422, 2452, 20, 0, 40, 5, NO_DFS, NO_PSCAN, 0, 0},    
+    { 2422, 2452, 27, 0, 40, 5, NO_DFS, NO_PSCAN, 0, 0},    
+    { 2422, 2452, 30, 0, 40, 5, NO_DFS, NO_PSCAN, 0, 0},    
 
-	{ 2312, 2732, 27, 6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},    /* NG_DEMO_ALL_CHANNELS */
+	{ 2312, 2732, 27, 6, 20, 5, NO_DFS, NO_PSCAN, 0, 0},    
 };
 
 
-/*
- * 5GHz 11n frequency tags
- */
+
 enum {
     NA1_5190_5230,
     NA2_5190_5230,
@@ -1051,62 +975,53 @@ enum {
 };
 
 static REG_DMN_FREQ_BAND regDmn5Ghz11naFreq[] = {
-    /*
-     * ToDo: This table needs to be completely populated with 5GHz 11n properties
-     */
-	{ 5190, 5230, 15,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    /* NA1_5190_5230 */
-	{ 5190, 5230, 17,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* NA2_5190_5230 */
-	{ 5190, 5230, 18,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    /* NA3_5190_5230 */
-	{ 5190, 5230, 20,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* NA4_5190_5230 */
-	{ 5190, 5230, 23,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    /* NA5_5190_5230 */
+    
+	{ 5190, 5230, 15,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    
+	{ 5190, 5230, 17,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5190, 5230, 18,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    
+	{ 5190, 5230, 20,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5190, 5230, 23,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    
 
-	{ 5270, 5270, 23,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  /* NA1_5270_5270 */
+	{ 5270, 5270, 23,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  
 
-	{ 5270, 5310, 18,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  /* NA1_5270_5310 */
-	{ 5270, 5310, 20,  0, 40, 40, DFS_FCC3|DFS_ETSI|DFS_MKK4, NO_PSCAN, 0, 1},  /* NA2_5270_5310 */
-	{ 5270, 5310, 23,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  /* NA3_5270_5310 */
-	{ 5270, 5310, 30,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  /* NA4_5270_5310 */
+	{ 5270, 5310, 18,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  
+	{ 5270, 5310, 20,  0, 40, 40, DFS_FCC3|DFS_ETSI|DFS_MKK4, NO_PSCAN, 0, 1},  
+	{ 5270, 5310, 23,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  
+	{ 5270, 5310, 30,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  
 
-	{ 5310, 5310, 17,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  /* NA1_5310_5310 */
+	{ 5310, 5310, 17,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  
 
-	{ 5510, 5630, 30,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  /* NA1_5510_5630 */
+	{ 5510, 5630, 30,  6, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  
 
-	{ 5510, 5670, 20,  6, 40, 40, DFS_FCC3|DFS_ETSI|DFS_MKK4, NO_PSCAN, 0, 1},  /* NA1_5510_5670 */
-	{ 5510, 5670, 27,  0, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  /* NA2_5510_5670 */
-	{ 5510, 5670, 30,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 1},   /* NA3_5510_5670 */
+	{ 5510, 5670, 20,  6, 40, 40, DFS_FCC3|DFS_ETSI|DFS_MKK4, NO_PSCAN, 0, 1},  
+	{ 5510, 5670, 27,  0, 40, 40, DFS_FCC3|DFS_ETSI, NO_PSCAN, 0, 1},  
+	{ 5510, 5670, 30,  6, 40, 40, DFS_FCC3, NO_PSCAN, 0, 1},   
 
-	{ 5755, 5795, 17,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    /* NA1_5755_5795 */
-	{ 5755, 5795, 20,  6, 40, 40, DFS_ETSI, NO_PSCAN, 0, 0},	    /* NA2_5755_5795 */
-	{ 5755, 5795, 23,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    /* NA3_5755_5795 */
-	{ 5755, 5795, 30,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* NA4_5755_5795 */
-	{ 5755, 5795, 30,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    /* NA5_5755_5795 */
+	{ 5755, 5795, 17,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    
+	{ 5755, 5795, 20,  6, 40, 40, DFS_ETSI, NO_PSCAN, 0, 0},	    
+	{ 5755, 5795, 23,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    
+	{ 5755, 5795, 30,  0, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
+	{ 5755, 5795, 30,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    
 
-	{ 5795, 5795, 30,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    /* NA1_5795_5795 */
+	{ 5795, 5795, 30,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	    
 
-    { 4920, 6100, 30,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	/* NA_DEMO_ALL_CHANNELS */
+    { 4920, 6100, 30,  6, 40, 40, NO_DFS, NO_PSCAN, 0, 0},	
 };
 
 typedef struct regDomain {
-	u16_t regDmnEnum;	/* value from EnumRd table */
+	u16_t regDmnEnum;	
 	u8_t conformanceTestLimit;
-	u64_t dfsMask;	/* DFS bitmask for 5Ghz tables */
-	u64_t pscan;	/* Bitmask for passive scan */
-	u32_t flags;	/* Requirement flags (AdHoc disallow, noise
-				   floor cal needed, etc) */
-	u64_t chan11a[BMLEN];/* 128 bit bitmask for channel/band
-				   selection */
-	u64_t chan11a_turbo[BMLEN];/* 128 bit bitmask for channel/band
-				   selection */
-	u64_t chan11a_dyn_turbo[BMLEN]; /* 128 bit bitmask for channel/band
-					       selection */
-	u64_t chan11b[BMLEN];/* 128 bit bitmask for channel/band
-				   selection */
-	u64_t chan11g[BMLEN];/* 128 bit bitmask for channel/band
-				   selection */
-	u64_t chan11g_turbo[BMLEN];/* 128 bit bitmask for channel/band
-					  selection */
-	u64_t chan11ng[BMLEN];/* 128 bit bitmask for 11n in 2GHz */
-	u64_t chan11na[BMLEN];/* 128 bit bitmask for 11n in 5GHz */
+	u64_t dfsMask;	
+	u64_t pscan;	
+	u32_t flags;	
+	u64_t chan11a[BMLEN];
+	u64_t chan11a_turbo[BMLEN];
+	u64_t chan11a_dyn_turbo[BMLEN]; 
+	u64_t chan11b[BMLEN];
+	u64_t chan11g[BMLEN];
+	u64_t chan11g_turbo[BMLEN];
+	u64_t chan11ng[BMLEN];
+	u64_t chan11na[BMLEN];
 } REG_DOMAIN;
 
 static REG_DOMAIN regDomains[] = {
@@ -1350,7 +1265,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BMZERO},
 
-	/* UNI-1 even */
+	
 	{MKK3, MKK, NO_DFS, PSCAN_MKK3, DISALLOW_ADHOC_11A_TURB,
 	 BM(F4_5180_5240, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
 	 BMZERO,
@@ -1361,7 +1276,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BM(NA4_5190_5230, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)},
 
-	/* UNI-1 even + UNI-2 */
+	
 	{MKK4, MKK, DFS_MKK4, PSCAN_MKK3, DISALLOW_ADHOC_11A_TURB,
 	 BM(F4_5180_5240, F2_5260_5320, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
 	 BMZERO,
@@ -1372,7 +1287,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BM(NA4_5190_5230, NA2_5270_5310, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)},
 
-	/* UNI-1 even + UNI-2 + mid-band */
+	
 	{MKK5, MKK, DFS_MKK4, PSCAN_MKK3, DISALLOW_ADHOC_11A_TURB,
 	 BM(F4_5180_5240, F2_5260_5320, F4_5500_5700, -1, -1, -1, -1, -1, -1, -1, -1, -1),
 	 BMZERO,
@@ -1383,7 +1298,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BM(NA4_5190_5230, NA2_5270_5310, NA1_5510_5670, -1, -1, -1, -1, -1, -1, -1, -1, -1)},
 
-	/* UNI-1 odd + even */
+	
 	{MKK6, MKK, DFS_MKK4, PSCAN_MKK1, DISALLOW_ADHOC_11A_TURB,
 	 BM(F2_5170_5230, F4_5180_5240, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
 	 BMZERO,
@@ -1394,7 +1309,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BM(NA4_5190_5230, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)},
 
-	/* UNI-1 odd + UNI-1 even + UNI-2 */
+	
 	{MKK7, MKK, DFS_MKK4, PSCAN_MKK1 | PSCAN_MKK3 , DISALLOW_ADHOC_11A_TURB,
 	 BM(F2_5170_5230, F4_5180_5240, F2_5260_5320, -1, -1, -1, -1, -1, -1, -1, -1, -1),
 	 BMZERO,
@@ -1405,7 +1320,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BM(NA4_5190_5230, NA2_5270_5310, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)},
 
-	/* UNI-1 odd + UNI-1 even + UNI-2 + mid-band */
+	
 	{MKK8, MKK, DFS_MKK4, PSCAN_MKK1 | PSCAN_MKK3 , DISALLOW_ADHOC_11A_TURB,
 	 BM(F2_5170_5230, F4_5180_5240, F2_5260_5320, F4_5500_5700, -1, -1, -1, -1, -1, -1, -1, -1),
 	 BMZERO,
@@ -1416,7 +1331,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BM(NA4_5190_5230, NA2_5270_5310, NA1_5510_5670, -1, -1, -1, -1, -1, -1, -1, -1, -1)},
 
-    /* UNI-1 even + 4.9 GHZ */
+    
     {MKK9, MKK, NO_DFS, NO_PSCAN, DISALLOW_ADHOC_11A_TURB,
      BM(F1_4915_4925, F1_4935_4945, F1_4920_4980, F1_5035_5040, F1_5055_5055, F1_5040_5080, F4_5180_5240, -1, -1, -1, -1, -1),
 	 BMZERO,
@@ -1427,7 +1342,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BMZERO},
 
-    /* UNI-1 even + UNI-2 + 4.9 GHZ */
+    
 	{MKK10, MKK, DFS_MKK4, PSCAN_MKK3, DISALLOW_ADHOC_11A_TURB,
 	 BM(F1_4915_4925, F1_4935_4945, F1_4920_4980, F1_5035_5040, F1_5055_5055, F1_5040_5080, F4_5180_5240, F2_5260_5320, -1, -1, -1, -1),
 	 BMZERO,
@@ -1438,7 +1353,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BMZERO},
 
-	/* UNI-1 even + UNI-2 + 4.9 GHZ + mid-band */
+	
 	{MKK11, MKK, DFS_MKK4, PSCAN_MKK3, DISALLOW_ADHOC_11A_TURB,
 	 BM(F1_4915_4925, F1_4935_4945, F1_4920_4980, F1_5035_5040, F1_5055_5055, F1_5040_5080, F4_5180_5240, F2_5260_5320, F4_5500_5700, -1, -1, -1),
 	 BMZERO,
@@ -1449,7 +1364,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BMZERO},
 
-	/* UNI-1 even + UNI-1 odd + UNI-2 + 4.9 GHZ + mid-band */
+	
 	{MKK12, MKK, DFS_MKK4, PSCAN_MKK3, DISALLOW_ADHOC_11A_TURB,
 	 BM(F1_4915_4925, F1_4935_4945, F1_4920_4980, F1_5035_5040, F1_5055_5055, F1_5040_5080, F1_5170_5230, F4_5180_5240, F2_5260_5320, F4_5500_5700, -1, -1),
 	 BMZERO,
@@ -1460,7 +1375,7 @@ static REG_DOMAIN regDomains[] = {
 	 BMZERO,
 	 BMZERO},
 
-	/* Defined here to use when 2G channels are authorised for country K2 */
+	
 	{APLD, NO_CTL, NO_DFS, NO_PSCAN, NO_REQ,
 	 BMZERO,
 	 BMZERO,
@@ -1668,7 +1583,7 @@ struct cmode {
 };
 
 static const struct cmode modes[] = {
-	{ HAL_MODE_TURBO,	CHANNEL_ST},	/* TURBO means 11a Static Turbo */
+	{ HAL_MODE_TURBO,	CHANNEL_ST},	
 	{ HAL_MODE_11A,		CHANNEL_A},
 	{ HAL_MODE_11B,		CHANNEL_B},
 	{ HAL_MODE_11G,		CHANNEL_G},
@@ -1680,10 +1595,7 @@ static const struct cmode modes[] = {
 	{ HAL_MODE_11NG,	CHANNEL_G_HT20},
 };
 
-/*
- * Return the Wireless Mode Regulatory Domain based
- * on the country code and the wireless mode.
- */
+
 u8_t GetWmRD(u16_t regionCode, u16_t channelFlag, REG_DOMAIN *rd)
 {
 	s16_t i, found, regDmn;
@@ -1715,10 +1627,7 @@ u8_t GetWmRD(u16_t regionCode, u16_t channelFlag, REG_DOMAIN *rd)
 		flags = regPair->flags5GHz;
 	}
 
-	/*
-	 * We either started with a unitary reg domain or we've found the
-	 * unitary reg domain of the pair
-	 */
+	
 
 	for (i=0;i<N(regDomains); i++)
 	{
@@ -1736,9 +1645,7 @@ u8_t GetWmRD(u16_t regionCode, u16_t channelFlag, REG_DOMAIN *rd)
 	return TRUE;
 }
 
-/*
- * Test to see if the bitmask array is all zeros
- */
+
 u8_t isChanBitMaskZero(u64_t *bitmask)
 {
 	u16_t i;
@@ -1811,13 +1718,13 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
 		switch (cm->mode)
 		{
 		case HAL_MODE_TURBO:
-		    //we don't have turbo mode so we disable it
-            //zm_debug_msg0("CWY - HAL_MODE_TURBO");
+		    
+            
             channelBM = NULL;
-			//rd = &rd5GHz;
-			//channelBM = rd->chan11a_turbo;
-			//freqs = &regDmn5GhzTurboFreq[0];
-			//ctl = rd->conformanceTestLimit | CTL_TURBO;
+			
+			
+			
+			
 			break;
 		case HAL_MODE_11A:
 		    if ((hpPriv->OpFlags & 0x1) != 0)
@@ -1825,26 +1732,26 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
     			rd = &rd5GHz;
     			channelBM = rd->chan11a;
     			freqs = &regDmn5GhzFreq[0];
-    			c_lo = 4920; //from channel 184
-    			c_hi = 5825; //to   channel 165
-    			//ctl = rd->conformanceTestLimit;
-                //zm_debug_msg2("CWY - HAL_MODE_11A, channelBM = 0x", *channelBM);
+    			c_lo = 4920; 
+    			c_hi = 5825; 
+    			
+                
             }
-            //else
+            
             {
-                //channelBM = NULL;
+                
             }
 			break;
 		case HAL_MODE_11B:
-		    //Disable 11B mode because it only has difference with 11G in PowerDFS Data,
-		    //and we don't use this now.
-			//zm_debug_msg0("CWY - HAL_MODE_11B");
+		    
+		    
+			
 			channelBM = NULL;
-			//rd = &rd2GHz;
-			//channelBM = rd->chan11b;
-			//freqs = &regDmn2GhzFreq[0];
-			//ctl = rd->conformanceTestLimit | CTL_11B;
-            //zm_debug_msg2("CWY - HAL_MODE_11B, channelBM = 0x", *channelBM);
+			
+			
+			
+			
+            
 			break;
 		case HAL_MODE_11G:
 		    if ((hpPriv->OpFlags & 0x2) != 0)
@@ -1852,34 +1759,34 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
     			rd = &rd2GHz;
     			channelBM = rd->chan11g;
     			freqs = &regDmn2Ghz11gFreq[0];
-    			c_lo = 2412; //from channel  1
-    			//c_hi = 2462; //to   channel 11
-                c_hi = 2472; //to   channel 13
-    			//ctl = rd->conformanceTestLimit | CTL_11G;
-                //zm_debug_msg2("CWY - HAL_MODE_11G, channelBM = 0x", *channelBM);
+    			c_lo = 2412; 
+    			
+                c_hi = 2472; 
+    			
+                
             }
-            //else
+            
             {
-                //channelBM = NULL;
+                
             }
 			break;
 		case HAL_MODE_11G_TURBO:
-		    //we don't have turbo mode so we disable it
-            //zm_debug_msg0("CWY - HAL_MODE_11G_TURBO");
+		    
+            
             channelBM = NULL;
-			//rd = &rd2GHz;
-			//channelBM = rd->chan11g_turbo;
-			//freqs = &regDmn2Ghz11gTurboFreq[0];
-			//ctl = rd->conformanceTestLimit | CTL_108G;
+			
+			
+			
+			
 			break;
 		case HAL_MODE_11A_TURBO:
-		    //we don't have turbo mode so we disable it
-            //zm_debug_msg0("CWY - HAL_MODE_11A_TURBO");
+		    
+            
             channelBM = NULL;
-			//rd = &rd5GHz;
-			//channelBM = rd->chan11a_dyn_turbo;
-			//freqs = &regDmn5GhzTurboFreq[0];
-			//ctl = rd->conformanceTestLimit | CTL_108G;
+			
+			
+			
+			
 			break;
 		default:
             zm_debug_msg1("Unkonwn HAL mode ", cm->mode);
@@ -1887,16 +1794,16 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
 		}
 		if (channelBM == NULL)
 		{
-		    //zm_debug_msg0("CWY - channelBM is NULL");
+		    
 		    continue;
         }
         if (isChanBitMaskZero(channelBM))
         {
-	        //zm_debug_msg0("CWY - BitMask is Zero");
+	        
 	        continue;
         }
 
-        // RAY:Is it ok??
+        
         if (freqs == NULL )
         {
             continue;
@@ -1908,25 +1815,25 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
 			{
 				fband = &freqs[b];
 
-				//zm_debug_msg1("CWY - lowChannel = ", fband->lowChannel);
-				//zm_debug_msg1("CWY - highChannel = ", fband->highChannel);
-				//zm_debug_msg1("CWY - channelSep = ", fband->channelSep);
+				
+				
+				
 				for (c=fband->lowChannel; c <= fband->highChannel;
 				     c += fband->channelSep)
 				{
 					ZM_HAL_CHANNEL icv;
 
-                    //Disable all DFS channel
+                    
                     if ((hpPriv->disableDfsCh==0) || (!(fband->useDfs & rd->dfsMask)))
                     {
                         if( fband->channelBW < 20 )
                         {
-                        	/**************************************************************/
-                            /*                                                            */
-                            /*   Temporary discard channel that BW < 20MHz (5 or 10MHz)   */
-                            /*   Our architecture does not implemnt it !!!                */
-                            /*                                                            */
-                            /**************************************************************/
+                        	
+                            
+                            
+                            
+                            
+                            
                             continue;
                         }
 					if ((c >= c_lo) && (c <= c_hi))
@@ -1943,7 +1850,7 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
 					    else
 					    	icv.privFlags = 0;
 
-					    /* For now disable radar for FCC3 */
+					    
 					    if (fband->useDfs & rd->dfsMask & DFS_FCC3)
 					    {
 					    	icv.privFlags &= ~ZM_REG_FLAG_CHANNEL_DFS;
@@ -1969,7 +1876,7 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
 
     #if 0
     {
-        /* debug print */
+        
         u32_t i;
         DbgPrint("\n-------------------------------------------\n");
         DbgPrint("zfHpGetRegulationTable print all channel info regincode = 0x%x\n", wd->regulationTable.regionCode);
@@ -1993,7 +1900,7 @@ void zfHpGetRegulationTable(zdev_t* dev, u16_t regionCode, u16_t c_lo, u16_t c_h
 
 void zfHpGetRegulationTablefromRegionCode(zdev_t* dev, u16_t regionCode)
 {
-    u16_t c_lo = 2000, c_hi = 6000; //default channel is all enable
+    u16_t c_lo = 2000, c_hi = 6000; 
     u8_t isoName[3] = {'N', 'A', 0};
 
     zfCoreSetIsoName(dev, isoName);
@@ -2004,7 +1911,7 @@ void zfHpGetRegulationTablefromRegionCode(zdev_t* dev, u16_t regionCode)
 void zfHpGetRegulationTablefromCountry(zdev_t* dev, u16_t CountryCode)
 {
     u16_t i;
-    u16_t c_lo = 2000, c_hi = 6000; //default channel is all enable
+    u16_t c_lo = 2000, c_hi = 6000; 
     u16_t RegDomain;
 
     zmw_get_wlan_dev(dev);
@@ -2017,14 +1924,14 @@ void zfHpGetRegulationTablefromCountry(zdev_t* dev, u16_t CountryCode)
         {
             RegDomain = allCountries[i].regDmnEnum;
 
-            // read the ACU country code from EEPROM
+            
             zfCoreSetIsoName(dev, (u8_t*)allCountries[i].isoName);
 
-            //zm_debug_msg_s("CWY - Country Name = ", allCountries[i].name);
+            
 
             if (wd->regulationTable.regionCode != RegDomain)
             {
-                //zm_debug_msg0("CWY - Change regulatory table");
+                
 
                 zfHpGetRegulationTable(dev, RegDomain, c_lo, c_hi);
             }
@@ -2038,25 +1945,25 @@ u8_t zfHpGetRegulationTablefromISO(zdev_t* dev, u8_t *countryInfo, u8_t length)
 {
     u16_t i;
     u16_t RegDomain;
-    u16_t c_lo = 2000, c_hi = 6000; //default channel is all enable
-    //u8_t strLen = 2;
+    u16_t c_lo = 2000, c_hi = 6000; 
+    
 
     zmw_get_wlan_dev(dev);
 
     zmw_declare_for_critical_section();
 
     if (countryInfo[4] != 0x20)
-    { // with (I)ndoor/(O)utdoor info
-        //strLen = 3;
+    { 
+        
     }
-    //zm_debug_msg_s("Desired iso name = ", isoName);
+    
     for (i = 0; i < N(allCountries); i++)
     {
-        //zm_debug_msg_s("Current iso name = ", allCountries[i].isoName);
+        
         if (zfMemoryIsEqual((u8_t *)allCountries[i].isoName, (u8_t *)&countryInfo[2], length-1))
         {
-            //DbgPrint("Set current iso name = %s\n", allCountries[i].isoName);
-            //zm_debug_msg0("iso name hit!!");
+            
+            
 
             RegDomain = allCountries[i].regDmnEnum;
 
@@ -2065,48 +1972,48 @@ u8_t zfHpGetRegulationTablefromISO(zdev_t* dev, u8_t *countryInfo, u8_t length)
                 zfHpGetRegulationTable(dev, RegDomain, c_lo, c_hi);
             }
 
-            //while (index < (countryInfo[1]+2))
-            //{
-            //  if (countryInfo[index] <= 14)
-            //  {
-            //        /* calculate 2.4GHz low boundary channel frequency */
-            //        ch = countryInfo[index];
-            //        if ( ch == 14 )
-            //            c_lo = ZM_CH_G_14;
-            //        else
-            //            c_lo = ZM_CH_G_1 + (ch - 1) * 5;
-            //        /* calculate 2.4GHz high boundary channel frequency */
-            //        ch = countryInfo[index] + countryInfo[index + 1] - 1;
-            //        if ( ch == 14 )
-            //            c_hi = ZM_CH_G_14;
-            //        else
-            //            c_hi = ZM_CH_G_1 + (ch - 1) * 5;
-            //  }
-            //  else
-            //  {
-            //        /* calculate 5GHz low boundary channel frequency */
-            //        ch = countryInfo[index];
-            //        if ( (ch >= 184)&&(ch <= 196) )
-            //            c_lo = 4000 + ch*5;
-            //        else
-            //            c_lo = 5000 + ch*5;
-            //        /* calculate 5GHz high boundary channel frequency */
-            //        ch = countryInfo[index] + countryInfo[index + 1] - 1;
-            //        if ( (ch >= 184)&&(ch <= 196) )
-            //            c_hi = 4000 + ch*5;
-            //        else
-            //            c_hi = 5000 + ch*5;
-            //  }
-            //
-            //  zfHpGetRegulationTable(dev, RegDomain, c_lo, c_hi);
-            //
-            //  index+=3;
-            //}
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
 
             return 0;
         }
     }
-    //zm_debug_msg_s("Invalid iso name = ", &countryInfo[2]);
+    
     return 1;
 }
 
@@ -2121,7 +2028,7 @@ const char* zfHpGetisoNamefromregionCode(zdev_t* dev, u16_t regionCode)
             return allCountries[i].isoName;
         }
     }
-    /* no matching item, return default */
+    
     return allCountries[0].isoName;
 }
 
@@ -2130,7 +2037,7 @@ u16_t zfHpGetRegionCodeFromIsoName(zdev_t* dev, u8_t *countryIsoName)
     u16_t i;
     u16_t regionCode;
 
-    /* if no matching item, return default */
+    
     regionCode = DEF_REGDMN;
 
     for (i = 0; i < N(allCountries); i++)
@@ -2145,30 +2052,30 @@ u16_t zfHpGetRegionCodeFromIsoName(zdev_t* dev, u8_t *countryIsoName)
     return regionCode;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfHpDeleteAllowChannel      */
-/*      Delete Allow Channel.                                           */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev  : device pointer                                           */
-/*      freq : frequency                                                */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      0 : success                                                     */
-/*      other : fail                                                    */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Chao-Wen Yang         ZyDAS Technology Corporation    2007.3    */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfHpDeleteAllowChannel(zdev_t* dev, u16_t freq)
 {
     u16_t i, bandIndex = 0;
     u16_t dfs5GBand[][2] = {{5150, 5240}, {5260, 5350}, {5450, 5700}, {5725, 5825}};
 
     zmw_get_wlan_dev(dev);
-    /* Find which band does this frequency belong */
+    
     for (i = 0; i < 4; i++)
     {
         if ((freq >= dfs5GBand[i][0]) && (freq <= dfs5GBand[i][1]))
@@ -2177,20 +2084,20 @@ u16_t zfHpDeleteAllowChannel(zdev_t* dev, u16_t freq)
 
     if (bandIndex == 0)
     {
-        /* 2.4G, don't care */
+        
         return 0;
     }
     else
     {
         bandIndex--;
     }
-    /* Set all channels in this band to passive scan */
+    
     for (i = 0; i < wd->regulationTable.allowChannelCnt; i++)
     {
         if ((wd->regulationTable.allowChannel[i].channel >= dfs5GBand[bandIndex][0]) &&
             (wd->regulationTable.allowChannel[i].channel <= dfs5GBand[bandIndex][1]))
         {
-            /* if channel is not passive, set it to be passive and mark it */
+            
             if ((wd->regulationTable.allowChannel[i].channelFlags &
                     ZM_REG_FLAG_CHANNEL_PASSIVE) == 0)
             {
@@ -2223,8 +2130,8 @@ u16_t zfHpAddAllowChannel(zdev_t* dev, u16_t freq)
                 break;
         }
 
-        //zm_debug_msg1("CWY - add frequency = ", freq);
-        //zm_debug_msg1("CWY - channel array index = ", j);
+        
+        
 
         arrayIndex = j;
 
@@ -2249,7 +2156,7 @@ u16_t zfHpIsDfsChannelNCS(zdev_t* dev, u16_t freq)
 
     for (i = 0; i < wd->regulationTable.allowChannelCnt; i++)
     {
-        //DbgPrint("DFS:freq=%d, chan=%d", freq, wd->regulationTable.allowChannel[i].channel);
+        
         if (wd->regulationTable.allowChannel[i].channel == freq)
         {
             flag = wd->regulationTable.allowChannel[i].privFlags;
@@ -2272,7 +2179,7 @@ u16_t zfHpIsDfsChannel(zdev_t* dev, u16_t freq)
 
     for (i = 0; i < wd->regulationTable.allowChannelCnt; i++)
     {
-        //DbgPrint("DFS:freq=%d, chan=%d", freq, wd->regulationTable.allowChannel[i].channel);
+        
         if (wd->regulationTable.allowChannel[i].channel == freq)
         {
             flag = wd->regulationTable.allowChannel[i].privFlags;
@@ -2340,8 +2247,8 @@ u16_t zfHpFindFirstNonDfsChannel(zdev_t* dev, u16_t aBand)
 }
 
 
-/* porting from ACU */
-/* save RegulatoryDomain in hpriv */
+
+
 u8_t zfHpGetRegulatoryDomain(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
@@ -2365,11 +2272,11 @@ u8_t zfHpGetRegulatoryDomain(zdev_t* dev)
         case FCC4:
         case FCC5:
         case FCCA:
-            return 0x10;//WG_AMERICAS DOT11_REG_DOMAIN_FCC  United States
+            return 0x10;
             break;
 
         case FCC2_FCCA:
-            return 0x20;//DOT11_REG_DOMAIN_DOC  Canada
+            return 0x20;
             break;
 
         case ETSI1_WORLD:
@@ -2390,7 +2297,7 @@ u8_t zfHpGetRegulatoryDomain(zdev_t* dev)
         case ETSIA:
         case ETSIB:
         case ETSIC:
-            return 0x30;//WG_EMEA DOT11_REG_DOMAIN_ETSI  Most of Europe
+            return 0x30;
             break;
 
         case MKK1_MKKA:
@@ -2462,13 +2369,13 @@ u8_t zfHpGetRegulatoryDomain(zdev_t* dev)
         case MKK12:
         case MKKA:
         case MKKC:
-            return 0x40;//WG_JAPAN DOT11_REG_DOMAIN_MKK  Japan
+            return 0x40;
             break;
 
         default:
             break;
     }
-    return 0xFF;// Didn't input RegDmn by mean to distinguish by customer
+    return 0xFF;
 
 }
 

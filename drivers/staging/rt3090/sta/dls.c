@@ -1,65 +1,9 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    dls.c
-
-    Abstract:
-    Handle WMM-DLS state machine
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-    Rory Chen   02-14-2006
-	Arvin Tai	06-03-2008	  Modified for RT28xx
- */
 
 #include "../rt_config.h"
 
 
-/*
-    ==========================================================================
-    Description:
-        dls state machine init, including state transition and timer init
-    Parameters:
-        Sm - pointer to the dls state machine
-    Note:
-        The state machine looks like this
 
-                            DLS_IDLE
-    MT2_MLME_DLS_REQUEST   MlmeDlsReqAction
-    MT2_PEER_DLS_REQUEST   PeerDlsReqAction
-    MT2_PEER_DLS_RESPONSE  PeerDlsRspAction
-    MT2_MLME_DLS_TEARDOWN  MlmeTearDownAction
-    MT2_PEER_DLS_TEARDOWN  PeerTearDownAction
-
-	IRQL = PASSIVE_LEVEL
-
-    ==========================================================================
- */
 void DlsStateMachineInit(
     IN PRTMP_ADAPTER pAd,
     IN STATE_MACHINE *Sm,
@@ -69,7 +13,7 @@ void DlsStateMachineInit(
 
     StateMachineInit(Sm, (STATE_MACHINE_FUNC*)Trans, MAX_DLS_STATE, MAX_DLS_MSG, (STATE_MACHINE_FUNC)Drop, DLS_IDLE, DLS_MACHINE_BASE);
 
-    // the first column
+    
     StateMachineSetAction(Sm, DLS_IDLE, MT2_MLME_DLS_REQ, (STATE_MACHINE_FUNC)MlmeDlsReqAction);
     StateMachineSetAction(Sm, DLS_IDLE, MT2_PEER_DLS_REQ, (STATE_MACHINE_FUNC)PeerDlsReqAction);
     StateMachineSetAction(Sm, DLS_IDLE, MT2_PEER_DLS_RSP, (STATE_MACHINE_FUNC)PeerDlsRspAction);
@@ -83,14 +27,7 @@ void DlsStateMachineInit(
 	}
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID MlmeDlsReqAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -112,7 +49,7 @@ VOID MlmeDlsReqAction(
 
 	DBGPRINT(RT_DEBUG_TRACE,("DLS - MlmeDlsReqAction() \n"));
 
-	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 	if (NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_ERROR,("DLS - MlmeDlsReqAction() allocate memory failed \n"));
@@ -121,7 +58,7 @@ VOID MlmeDlsReqAction(
 
 	ActHeaderInit(pAd, &DlsReqHdr, pAd->CommonCfg.Bssid, pAd->CurrentAddress, pAd->CommonCfg.Bssid);
 
-	// Build basic frame first
+	
 	MakeOutgoingFrame(pOutBuffer,				&FrameLen,
 					sizeof(HEADER_802_11),		&DlsReqHdr,
 					1,							&Category,
@@ -154,7 +91,7 @@ VOID MlmeDlsReqAction(
 		HT_CAPABILITY_IE HtCapabilityTmp;
 #endif
 
-		// add HT Capability IE
+		
 		HtLen = sizeof(HT_CAPABILITY_IE);
 #ifndef RT_BIG_ENDIAN
 		MakeOutgoingFrame(pOutBuffer + FrameLen,	&tmp,
@@ -175,7 +112,7 @@ VOID MlmeDlsReqAction(
 #endif
 		FrameLen = FrameLen + tmp;
 	}
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 	RTMPCancelTimer(&pDLS->Timer, &TimerCancelled);
 	Timeout = DLS_TIMEOUT;
@@ -185,14 +122,7 @@ VOID MlmeDlsReqAction(
 	MlmeFreeMemory(pAd, pOutBuffer);
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID PeerDlsReqAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -222,7 +152,7 @@ VOID PeerDlsReqAction(
 							&SupportedRatesLen, &SupportedRates[0], &HtCapabilityLen, &HtCapability))
 		return;
 
-    // supported rates array may not be sorted. sort it and find the maximum rate
+    
     for (i = 0; i < SupportedRatesLen; i++)
     {
         if (MaxSupportedRateIn500Kbps < (SupportedRates[i] & 0x7f))
@@ -231,7 +161,7 @@ VOID PeerDlsReqAction(
 
 	DBGPRINT(RT_DEBUG_TRACE,("DLS - PeerDlsReqAction() from %02x:%02x:%02x:%02x:%02x:%02x\n", SA[0], SA[1], SA[2], SA[3], SA[4], SA[5]));
 
-	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 	if (NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_ERROR,("DLS - PeerDlsReqAction() allocate memory failed \n"));
@@ -252,7 +182,7 @@ VOID PeerDlsReqAction(
 	}
 	else
 	{
-		// find table to update parameters
+		
 		for (i = (MAX_NUM_OF_DLS_ENTRY-1); i >= 0; i--)
 		{
 			if (pAd->StaCfg.DLSEntry[i].Valid && MAC_ADDR_EQUAL(SA, pAd->StaCfg.DLSEntry[i].MacAddr))
@@ -277,7 +207,7 @@ VOID PeerDlsReqAction(
 			}
 		}
 
-		// can not find in table, create a new one
+		
 		if (i < 0)
 		{
 			DBGPRINT(RT_DEBUG_TRACE,("DLS - PeerDlsReqAction() can not find same entry \n"));
@@ -355,10 +285,10 @@ VOID PeerDlsReqAction(
 					pEntry->HTCapability.MCSSet[0] = 0;
 					pEntry->HTCapability.MCSSet[1] = 0;
 
-					// If this Entry supports 802.11n, upgrade to HT rate.
+					
 					if ((HtCapabilityLen != 0) && (pAd->CommonCfg.PhyMode >= PHY_11ABGN_MIXED))
 					{
-						UCHAR	j, bitmask; //k,bitmask;
+						UCHAR	j, bitmask; 
 						CHAR    ii;
 
 						DBGPRINT(RT_DEBUG_TRACE, ("DLS - PeerDlsReqAction() Receive Peer HT Capable STA from %02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -387,7 +317,7 @@ VOID PeerDlsReqAction(
 							pAd->MacTab.fAnyStation20Only = TRUE;
 						}
 
-						// find max fixed rate
+						
 						for (ii=15; ii>=0; ii--)
 						{
 							j = ii/8;
@@ -409,7 +339,7 @@ VOID PeerDlsReqAction(
 										pAd->StaCfg.DesiredTransmitSetting.field.MCS));
 							if (pAd->StaCfg.DesiredTransmitSetting.field.MCS == 32)
 							{
-								// Fix MCS as HT Duplicated Mode
+								
 								pEntry->MaxHTPhyMode.field.BW = 1;
 								pEntry->MaxHTPhyMode.field.MODE = MODE_HTMIX;
 								pEntry->MaxHTPhyMode.field.STBC = 0;
@@ -418,7 +348,7 @@ VOID PeerDlsReqAction(
 							}
 							else if (pEntry->MaxHTPhyMode.field.MCS > pAd->StaCfg.HTPhyMode.field.MCS)
 							{
-								// STA supports fixed MCS
+								
 								pEntry->MaxHTPhyMode.field.MCS = pAd->StaCfg.HTPhyMode.field.MCS;
 							}
 						}
@@ -447,7 +377,7 @@ VOID PeerDlsReqAction(
 
 						NdisMoveMemory(&pEntry->HTCapability, &HtCapability, sizeof(HT_CAPABILITY_IE));
 					}
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 					pEntry->HTPhyMode.word = pEntry->MaxHTPhyMode.word;
 					pEntry->CurrTxRate = pEntry->MaxSupportedRate;
@@ -477,7 +407,7 @@ VOID PeerDlsReqAction(
 		}
 		StatusCode = MLME_SUCCESS;
 
-		// can not find in table, create a new one
+		
 		if (i < 0)
 		{
 			StatusCode = MLME_QOS_UNSPECIFY;
@@ -492,7 +422,7 @@ VOID PeerDlsReqAction(
 
 	ActHeaderInit(pAd, &DlsRspHdr, pAd->CommonCfg.Bssid, pAd->CurrentAddress, pAd->CommonCfg.Bssid);
 
-	// Build basic frame first
+	
 	if (StatusCode == MLME_SUCCESS)
 	{
 		MakeOutgoingFrame(pOutBuffer,				&FrameLen,
@@ -527,7 +457,7 @@ VOID PeerDlsReqAction(
 			HT_CAPABILITY_IE HtCapabilityTmp;
 #endif
 
-			// add HT Capability IE
+			
 			HtLen = sizeof(HT_CAPABILITY_IE);
 #ifndef RT_BIG_ENDIAN
 			MakeOutgoingFrame(pOutBuffer + FrameLen,	&tmp,
@@ -548,7 +478,7 @@ VOID PeerDlsReqAction(
 #endif
 			FrameLen = FrameLen + tmp;
 		}
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 		if (pDLS && (pDLS->Status != DLS_FINISH))
 		{
@@ -573,14 +503,7 @@ VOID PeerDlsReqAction(
 	MlmeFreeMemory(pAd, pOutBuffer);
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID PeerDlsRspAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -606,7 +529,7 @@ VOID PeerDlsRspAction(
 							&SupportedRatesLen, &SupportedRates[0], &HtCapabilityLen, &HtCapability))
 		return;
 
-    // supported rates array may not be sorted. sort it and find the maximum rate
+    
     for (i=0; i<SupportedRatesLen; i++)
     {
         if (MaxSupportedRateIn500Kbps < (SupportedRates[i] & 0x7f))
@@ -672,10 +595,10 @@ VOID PeerDlsRspAction(
 				pEntry->HTCapability.MCSSet[0] = 0;
 				pEntry->HTCapability.MCSSet[1] = 0;
 
-				// If this Entry supports 802.11n, upgrade to HT rate.
+				
 				if ((HtCapabilityLen != 0) && (pAd->CommonCfg.PhyMode >= PHY_11ABGN_MIXED))
 				{
-					UCHAR	j, bitmask; //k,bitmask;
+					UCHAR	j, bitmask; 
 					CHAR    ii;
 
 					DBGPRINT(RT_DEBUG_OFF, ("DLS - PeerDlsRspAction Receive Peer HT Capable STA from %02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -704,7 +627,7 @@ VOID PeerDlsRspAction(
 						pAd->MacTab.fAnyStation20Only = TRUE;
 					}
 
-					// find max fixed rate
+					
 					for (ii=15; ii>=0; ii--)
 					{
 						j = ii/8;
@@ -722,7 +645,7 @@ VOID PeerDlsRspAction(
 					{
 						if (pAd->StaCfg.DesiredTransmitSetting.field.MCS == 32)
 						{
-							// Fix MCS as HT Duplicated Mode
+							
 							pEntry->MaxHTPhyMode.field.BW = 1;
 							pEntry->MaxHTPhyMode.field.MODE = MODE_HTMIX;
 							pEntry->MaxHTPhyMode.field.STBC = 0;
@@ -731,7 +654,7 @@ VOID PeerDlsRspAction(
 						}
 						else if (pEntry->MaxHTPhyMode.field.MCS > pAd->StaCfg.HTPhyMode.field.MCS)
 						{
-							// STA supports fixed MCS
+							
 							pEntry->MaxHTPhyMode.field.MCS = pAd->StaCfg.HTPhyMode.field.MCS;
 						}
 					}
@@ -760,7 +683,7 @@ VOID PeerDlsRspAction(
 
 					NdisMoveMemory(&pEntry->HTCapability, &HtCapability, sizeof(HT_CAPABILITY_IE));
 				}
-#endif // DOT11_N_SUPPORT //
+#endif 
 				pEntry->HTPhyMode.word = pEntry->MaxHTPhyMode.word;
 				pEntry->CurrTxRate = pEntry->MaxSupportedRate;
 				CLIENT_STATUS_SET_FLAG(pEntry, fCLIENT_STATUS_WMM_CAPABLE);
@@ -785,8 +708,8 @@ VOID PeerDlsRspAction(
 
 				if (pAd->StaCfg.AuthMode >= Ndis802_11AuthModeWPA)
 				{
-					// If support WPA or WPA2, start STAKey hand shake,
-					// If failed hand shake, just tear down peer DLS
+					
+					
 					if (RTMPSendSTAKeyRequest(pAd, pAd->StaCfg.DLSEntry[i].MacAddr) != NDIS_STATUS_SUCCESS)
 					{
 						MLME_DLS_REQ_STRUCT	MlmeDlsReq;
@@ -811,7 +734,7 @@ VOID PeerDlsRspAction(
 					DBGPRINT(RT_DEBUG_TRACE,("DLS - PeerDlsRspAction() from %02x:%02x:%02x:%02x:%02x:%02x Succeed with WEP or no security\n", SA[0], SA[1], SA[2], SA[3], SA[4], SA[5]));
 				}
 
-				//initialize seq no for DLS frames.
+				
 				pAd->StaCfg.DLSEntry[i].Sequence = 0;
 				if (HtCapabilityLen != 0)
 					pAd->StaCfg.DLSEntry[i].bHTCap = TRUE;
@@ -820,7 +743,7 @@ VOID PeerDlsRspAction(
 			}
 			else
 			{
-				// DLS setup procedure failed.
+				
 				pAd->StaCfg.DLSEntry[i].Status = DLS_NONE;
 				pAd->StaCfg.DLSEntry[i].Valid	= FALSE;
 				RTMPCancelTimer(&pAd->StaCfg.DLSEntry[i].Timer, &TimerCancelled);
@@ -888,10 +811,10 @@ VOID PeerDlsRspAction(
 					pEntry->HTCapability.MCSSet[0] = 0;
 					pEntry->HTCapability.MCSSet[1] = 0;
 
-					// If this Entry supports 802.11n, upgrade to HT rate.
+					
 					if ((HtCapabilityLen != 0) && (pAd->CommonCfg.PhyMode >= PHY_11ABGN_MIXED))
 					{
-						UCHAR	j, bitmask; //k,bitmask;
+						UCHAR	j, bitmask; 
 						CHAR    ii;
 
 						DBGPRINT(RT_DEBUG_TRACE, ("DLS - PeerDlsRspAction Receive Peer HT Capable STA from %02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -920,7 +843,7 @@ VOID PeerDlsRspAction(
 							pAd->MacTab.fAnyStation20Only = TRUE;
 						}
 
-						// find max fixed rate
+						
 						for (ii=15; ii>=0; ii--)
 						{
 							j = ii/8;
@@ -940,7 +863,7 @@ VOID PeerDlsRspAction(
 													pAd->StaCfg.DesiredTransmitSetting.field.MCS));
 							if (pAd->StaCfg.DesiredTransmitSetting.field.MCS == 32)
 							{
-								// Fix MCS as HT Duplicated Mode
+								
 								pEntry->MaxHTPhyMode.field.BW = 1;
 								pEntry->MaxHTPhyMode.field.MODE = MODE_HTMIX;
 								pEntry->MaxHTPhyMode.field.STBC = 0;
@@ -949,7 +872,7 @@ VOID PeerDlsRspAction(
 							}
 							else if (pEntry->MaxHTPhyMode.field.MCS > pAd->StaCfg.HTPhyMode.field.MCS)
 							{
-								// STA supports fixed MCS
+								
 								pEntry->MaxHTPhyMode.field.MCS = pAd->StaCfg.HTPhyMode.field.MCS;
 							}
 						}
@@ -978,7 +901,7 @@ VOID PeerDlsRspAction(
 
 						NdisMoveMemory(&pEntry->HTCapability, &HtCapability, sizeof(HT_CAPABILITY_IE));
 					}
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 					pEntry->HTPhyMode.word = pEntry->MaxHTPhyMode.word;
 					pEntry->CurrTxRate = pEntry->MaxSupportedRate;
@@ -1004,8 +927,8 @@ VOID PeerDlsRspAction(
 
 					if (pAd->StaCfg.AuthMode >= Ndis802_11AuthModeWPA)
 					{
-						// If support WPA or WPA2, start STAKey hand shake,
-						// If failed hand shake, just tear down peer DLS
+						
+						
 						if (RTMPSendSTAKeyRequest(pAd, pAd->StaCfg.DLSEntry[i].MacAddr) != NDIS_STATUS_SUCCESS)
 						{
 							MLME_DLS_REQ_STRUCT	MlmeDlsReq;
@@ -1037,7 +960,7 @@ VOID PeerDlsRspAction(
 				}
 				else
 				{
-					// DLS setup procedure failed.
+					
 					pAd->StaCfg.DLSEntry[i].Status = DLS_NONE;
 					pAd->StaCfg.DLSEntry[i].Valid	= FALSE;
 					RTMPCancelTimer(&pAd->StaCfg.DLSEntry[i].Timer, &TimerCancelled);
@@ -1048,14 +971,7 @@ VOID PeerDlsRspAction(
 	}
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID MlmeDlsTearDownAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -1076,7 +992,7 @@ VOID MlmeDlsTearDownAction(
 
 	DBGPRINT(RT_DEBUG_TRACE,("DLS - MlmeDlsTearDownAction() with ReasonCode=%d \n", ReasonCode));
 
-	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 	if (NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_ERROR,("DLS - MlmeDlsTearDownAction() allocate memory failed \n"));
@@ -1085,7 +1001,7 @@ VOID MlmeDlsTearDownAction(
 
 	ActHeaderInit(pAd, &DlsTearDownHdr, pAd->CommonCfg.Bssid, pAd->CurrentAddress, pAd->CommonCfg.Bssid);
 
-	// Build basic frame first
+	
 	MakeOutgoingFrame(pOutBuffer,				&FrameLen,
 					sizeof(HEADER_802_11),		&DlsTearDownHdr,
 					1,							&Category,
@@ -1099,7 +1015,7 @@ VOID MlmeDlsTearDownAction(
 	MlmeFreeMemory(pAd, pOutBuffer);
 	RTMPCancelTimer(&pDLS->Timer, &TimerCancelled);
 
-	// Remove key in local dls table entry
+	
 	for (i = 0; i < MAX_NUM_OF_INIT_DLS_ENTRY; i++)
 	{
 		if (MAC_ADDR_EQUAL(pDLS->MacAddr, pAd->StaCfg.DLSEntry[i].MacAddr))
@@ -1108,7 +1024,7 @@ VOID MlmeDlsTearDownAction(
 		}
 	}
 
-	// clear peer dls table entry
+	
 	for (i = MAX_NUM_OF_INIT_DLS_ENTRY; i < MAX_NUM_OF_DLS_ENTRY; i++)
 	{
 		if (MAC_ADDR_EQUAL(pDLS->MacAddr, pAd->StaCfg.DLSEntry[i].MacAddr))
@@ -1121,14 +1037,7 @@ VOID MlmeDlsTearDownAction(
 	}
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID PeerDlsTearDownAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -1149,7 +1058,7 @@ VOID PeerDlsTearDownAction(
 
 	DBGPRINT(RT_DEBUG_TRACE,("DLS - PeerDlsTearDownAction() from %02x:%02x:%02x:%02x:%02x:%02x with ReasonCode=%d\n", SA[0], SA[1], SA[2], SA[3], SA[4], SA[5], ReasonCode));
 
-	// clear local dls table entry
+	
 	for (i=0; i<MAX_NUM_OF_INIT_DLS_ENTRY; i++)
 	{
 		if (pAd->StaCfg.DLSEntry[i].Valid && MAC_ADDR_EQUAL(SA, pAd->StaCfg.DLSEntry[i].MacAddr))
@@ -1157,13 +1066,13 @@ VOID PeerDlsTearDownAction(
 			pAd->StaCfg.DLSEntry[i].Status	= DLS_NONE;
 			pAd->StaCfg.DLSEntry[i].Valid	= FALSE;
 			RTMPCancelTimer(&pAd->StaCfg.DLSEntry[i].Timer, &TimerCancelled);
-			//AsicDelWcidTab(pAd, pAd->StaCfg.DLSEntry[i].MacTabMatchWCID);
-			//AsicRemovePairwiseKeyEntry(pAd, BSS0, pAd->StaCfg.DLSEntry[i].MacTabMatchWCID);
+			
+			
 			MacTableDeleteDlsEntry(pAd, pAd->StaCfg.DLSEntry[i].MacTabMatchWCID, pAd->StaCfg.DLSEntry[i].MacAddr);
 		}
 	}
 
-	// clear peer dls table entry
+	
 	for (i=MAX_NUM_OF_INIT_DLS_ENTRY; i<MAX_NUM_OF_DLS_ENTRY; i++)
 	{
 		if (pAd->StaCfg.DLSEntry[i].Valid && MAC_ADDR_EQUAL(SA, pAd->StaCfg.DLSEntry[i].MacAddr))
@@ -1171,21 +1080,14 @@ VOID PeerDlsTearDownAction(
 			pAd->StaCfg.DLSEntry[i].Status	= DLS_NONE;
 			pAd->StaCfg.DLSEntry[i].Valid	= FALSE;
 			RTMPCancelTimer(&pAd->StaCfg.DLSEntry[i].Timer, &TimerCancelled);
-			//AsicDelWcidTab(pAd, pAd->StaCfg.DLSEntry[i].MacTabMatchWCID);
-			//AsicRemovePairwiseKeyEntry(pAd, BSS0, pAd->StaCfg.DLSEntry[i].MacTabMatchWCID);
+			
+			
 			MacTableDeleteDlsEntry(pAd, pAd->StaCfg.DLSEntry[i].MacTabMatchWCID, pAd->StaCfg.DLSEntry[i].MacAddr);
 		}
 	}
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID RTMPCheckDLSTimeOut(
 	IN PRTMP_ADAPTER	pAd)
 {
@@ -1199,9 +1101,9 @@ VOID RTMPCheckDLSTimeOut(
 	if (! INFRA_ON(pAd))
 		return;
 
-	// If timeout value is equaled to zero, it means always not be timeout.
+	
 
-	// update local dls table entry
+	
 	for (i=0; i<MAX_NUM_OF_INIT_DLS_ENTRY; i++)
 	{
 		if ((pAd->StaCfg.DLSEntry[i].Valid) && (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH)
@@ -1220,7 +1122,7 @@ VOID RTMPCheckDLSTimeOut(
 		}
 	}
 
-	// update peer dls table entry
+	
 	for (i=MAX_NUM_OF_INIT_DLS_ENTRY; i<MAX_NUM_OF_DLS_ENTRY; i++)
 	{
 		if ((pAd->StaCfg.DLSEntry[i].Valid) && (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH)
@@ -1240,14 +1142,7 @@ VOID RTMPCheckDLSTimeOut(
 	}
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 BOOLEAN RTMPRcvFrameDLSCheck(
 	IN PRTMP_ADAPTER	pAd,
 	IN PHEADER_802_11	pHeader,
@@ -1275,27 +1170,27 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 	if (! INFRA_ON(pAd))
 		return bSTAKeyFrame;
 
-	if (Len < LENGTH_802_11 + 6 + 2) /* LENGTH_802_11 + LLC + EAPOL protocol type */
+	if (Len < LENGTH_802_11 + 6 + 2) 
 		return bSTAKeyFrame;
 
 	pProto	= (PUCHAR)pHeader + LENGTH_802_11;
 
 	if ((pHeader->FC.SubType & 0x08))
-		pProto	+= 2;	/* QOS Control field */
+		pProto	+= 2;	
 
-     /* Skip 4-bytes for HTC */
+     
      if (pHeader->FC.Order && (!OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_AGGREGATION_INUSED)))
      {
           pProto += 4;
      }
 
-	/* L2PAD bit on will pad 2 bytes at LLC */
+	
 	if (pRxD->L2PAD)
 	{
 		pProto += 2;
 	}
 
-	pProto	+= 6;	/* 0xAA 0xAA 0xAA 0x00 0x00 0x00 */
+	pProto	+= 6;	
 
 	if ((!(pHeader->FC.SubType & 0x08)) && (!RTMPEqualMemory(EAPOL, pProto, 2)))
 		return bSTAKeyFrame;
@@ -1320,27 +1215,27 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 			&& pEap->KeyDesc.KeyInfo.Install && pEap->KeyDesc.KeyInfo.KeyAck && pEap->KeyDesc.KeyInfo.Secure
 			&& pEap->KeyDesc.KeyInfo.EKD_DL && !pEap->KeyDesc.KeyInfo.Error && !pEap->KeyDesc.KeyInfo.Request)
 		{
-			// First validate replay counter, only accept message with larger replay counter
-			// Let equal pass, some AP start with all zero replay counter
+			
+			
 			NdisZeroMemory(ZeroReplay, LEN_KEY_DESC_REPLAY);
 			if ((RTMPCompareMemory(pEap->KeyDesc.ReplayCounter, pAd->StaCfg.ReplayCounter, LEN_KEY_DESC_REPLAY) != 1) &&
 				(RTMPCompareMemory(pEap->KeyDesc.ReplayCounter, ZeroReplay, LEN_KEY_DESC_REPLAY) != 0))
 				return bSTAKeyFrame;
 
-			//RTMPMoveMemory(pAd->StaCfg.ReplayCounter, pEap->KeyDesc.ReplayCounter, LEN_KEY_DESC_REPLAY);
+			
 			RTMPMoveMemory(pAd->StaCfg.DlsReplayCounter, pEap->KeyDesc.ReplayCounter, LEN_KEY_DESC_REPLAY);
 			DBGPRINT(RT_DEBUG_TRACE,("DLS - Sniff replay counter (%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x) Len=%ld, KeyDataLen=%d\n",
 				pAd->StaCfg.ReplayCounter[0], pAd->StaCfg.ReplayCounter[1], pAd->StaCfg.ReplayCounter[2],
 				pAd->StaCfg.ReplayCounter[3], pAd->StaCfg.ReplayCounter[4],	pAd->StaCfg.ReplayCounter[5],
 				pAd->StaCfg.ReplayCounter[6], pAd->StaCfg.ReplayCounter[7], Len, pEap->KeyDesc.KeyData[1]));
 
-			// put these code segment to get the replay counter
+			
 			if (pAd->StaCfg.PortSecured == WPA_802_1X_PORT_NOT_SECURED)
 				return bSTAKeyFrame;
 
-			// Check MIC value
-			// Save the MIC and replace with zero
-			// use proprietary PTK
+			
+			
+			
 			NdisZeroMemory(temp, 64);
 			NdisMoveMemory(temp, "IEEE802.11 WIRELESS ACCESS POINT", 32);
 			WpaDerivePTK(pAd, temp, temp, pAd->CommonCfg.Bssid, temp, pAd->CurrentAddress, DlsPTK, LEN_PTK);
@@ -1349,7 +1244,7 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 			NdisZeroMemory(pEap->KeyDesc.KeyMic, LEN_KEY_DESC_MIC);
 			if (pAd->StaCfg.WepStatus == Ndis802_11Encryption3Enabled)
 			{
-				// AES
+				
 				HMAC_SHA1(DlsPTK, LEN_EAP_MICK, (PUCHAR) pEap, pEap->Body_Len[1] + 4, digest, SHA1_DIGEST_SIZE);
 				NdisMoveMemory(Mic,	digest,	LEN_KEY_DESC_MIC);
 			}
@@ -1368,8 +1263,8 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 			if ((pEap->KeyDesc.KeyData[0] == 0xDD) && (pEap->KeyDesc.KeyData[2] == 0x00) && (pEap->KeyDesc.KeyData[3] == 0x0C)
 				&& (pEap->KeyDesc.KeyData[4] == 0x43) && (pEap->KeyDesc.KeyData[5] == 0x02))
 			{
-				pAddr			= pEap->KeyDesc.KeyData + 8;		// Tpe(1), Len(1), OUI(3), DataType(1), Reserved(2)
-				pSTAKey			= pEap->KeyDesc.KeyData + 14;	// Tpe(1), Len(1), OUI(3), DataType(1), Reserved(2), STAKey_Mac_Addr(6)
+				pAddr			= pEap->KeyDesc.KeyData + 8;		
+				pSTAKey			= pEap->KeyDesc.KeyData + 14;	
 
 				DBGPRINT(RT_DEBUG_TRACE,("DLS - Receive STAKey Message-1 from %02x:%02x:%02x:%02x:%02x:%02x Len=%ld, KeyDataLen=%d\n",
 					pAddr[0], pAddr[1], pAddr[2], pAddr[3], pAddr[4], pAddr[5], Len, pEap->KeyDesc.KeyData[1]));
@@ -1388,8 +1283,8 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 		}
 	}
 
-	// If timeout value is equaled to zero, it means always not be timeout.
-	// update local dls table entry
+	
+	
 	for (i= 0; i < MAX_NUM_OF_INIT_DLS_ENTRY; i++)
 	{
 		if (pAd->StaCfg.DLSEntry[i].Valid && MAC_ADDR_EQUAL(pAddr, pAd->StaCfg.DLSEntry[i].MacAddr))
@@ -1398,7 +1293,7 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 			{
 				PMAC_TABLE_ENTRY pEntry;
 
-				// STAKey frame, add pairwise key table
+				
 				pAd->StaCfg.DLSEntry[i].Status = DLS_FINISH;
 				RTMPCancelTimer(&pAd->StaCfg.DLSEntry[i].Timer, &TimerCancelled);
 
@@ -1407,16 +1302,16 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 				NdisMoveMemory(PairwiseKey.TxMic, &pSTAKey[16], LEN_TKIP_RXMICK);
 				NdisMoveMemory(PairwiseKey.RxMic, &pSTAKey[24], LEN_TKIP_TXMICK);
 
-				//PairwiseKey.CipherAlg = pAd->SharedKey[BSS0][pAd->StaCfg.DefaultKeyId].CipherAlg;
+				
 				if (pAd->StaCfg.PairCipher == Ndis802_11Encryption2Enabled)
 					PairwiseKey.CipherAlg = CIPHER_TKIP;
 				else if (pAd->StaCfg.PairCipher == Ndis802_11Encryption3Enabled)
 					PairwiseKey.CipherAlg = CIPHER_AES;
 
 				pEntry = DlsEntryTableLookup(pAd, pAd->StaCfg.DLSEntry[i].MacAddr, TRUE);
-				//AsicAddKeyEntry(pAd, (USHORT)(i + 2), BSS0, 0, &PairwiseKey, TRUE, TRUE);	// reserve 0 for multicast, 1 for unicast
-				//AsicUpdateRxWCIDTable(pAd, (USHORT)(i + 2), pAddr);
-				// Add Pair-wise key to Asic
+				
+				
+				
 #ifdef RTMP_MAC_PCI
 				AsicAddPairwiseKeyEntry(pAd,
 										pAd->StaCfg.DLSEntry[i].MacAddr,
@@ -1429,7 +1324,7 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 										  PairwiseKey.CipherAlg,
 										  pEntry);
 
-#endif // RTMP_MAC_PCI //
+#endif 
 				NdisMoveMemory(&pEntry->PairwiseKey, &PairwiseKey, sizeof(CIPHER_KEY));
 				DBGPRINT(RT_DEBUG_TRACE,("DLS - Receive STAKey Message-1 (Peer STA MAC Address STAKey) \n"));
 
@@ -1439,11 +1334,11 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 			}
 			else
 			{
-				// Data frame, update timeout value
+				
 				if (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH)
 				{
 					pAd->StaCfg.DLSEntry[i].CountDownTimer = pAd->StaCfg.DLSEntry[i].TimeOut;
-					//AsicUpdateRxWCIDTable(pAd, (USHORT)(i + 2), pAddr);
+					
 				}
 			}
 
@@ -1451,7 +1346,7 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 		}
 	}
 
-	// update peer dls table entry
+	
 	for (i=MAX_NUM_OF_INIT_DLS_ENTRY; i<MAX_NUM_OF_DLS_ENTRY; i++)
 	{
 		if (pAd->StaCfg.DLSEntry[i].Valid && MAC_ADDR_EQUAL(pAddr, pAd->StaCfg.DLSEntry[i].MacAddr))
@@ -1460,7 +1355,7 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 			{
 				PMAC_TABLE_ENTRY pEntry = NULL;
 
-				// STAKey frame, add pairwise key table, and send STAkey Msg-2
+				
 				pAd->StaCfg.DLSEntry[i].Status = DLS_FINISH;
 				RTMPCancelTimer(&pAd->StaCfg.DLSEntry[i].Timer, &TimerCancelled);
 
@@ -1469,16 +1364,16 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 				NdisMoveMemory(PairwiseKey.TxMic, &pSTAKey[16], LEN_TKIP_RXMICK);
 				NdisMoveMemory(PairwiseKey.RxMic, &pSTAKey[24], LEN_TKIP_TXMICK);
 
-				//PairwiseKey.CipherAlg = pAd->SharedKey[BSS0][pAd->StaCfg.DefaultKeyId].CipherAlg;
+				
 				if (pAd->StaCfg.PairCipher == Ndis802_11Encryption2Enabled)
 					PairwiseKey.CipherAlg = CIPHER_TKIP;
 				else if (pAd->StaCfg.PairCipher == Ndis802_11Encryption3Enabled)
 					PairwiseKey.CipherAlg = CIPHER_AES;
 
 				pEntry = DlsEntryTableLookup(pAd, pAd->StaCfg.DLSEntry[i].MacAddr, TRUE);
-				//AsicAddKeyEntry(pAd, (USHORT)(i + 2), BSS0, 0, &PairwiseKey, TRUE, TRUE);	// reserve 0 for multicast, 1 for unicast
-				//AsicUpdateRxWCIDTable(pAd, (USHORT)(i + 2), pAddr);
-				// Add Pair-wise key to Asic
+				
+				
+				
 #ifdef RTMP_MAC_PCI
 		AsicAddPairwiseKeyEntry(pAd,
 										pAd->StaCfg.DLSEntry[i].MacAddr,
@@ -1490,12 +1385,12 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 										  0,
 										  PairwiseKey.CipherAlg,
 										  pEntry);
-#endif // RTMP_MAC_PCI //
+#endif 
 				NdisMoveMemory(&pEntry->PairwiseKey, &PairwiseKey, sizeof(CIPHER_KEY));
 				DBGPRINT(RT_DEBUG_TRACE,("DLS - Receive STAKey Message-1 (Initiator STA MAC Address STAKey)\n"));
 
-				// If support WPA or WPA2, start STAKey hand shake,
-				// If failed hand shake, just tear down peer DLS
+				
+				
 				if (RTMPSendSTAKeyHandShake(pAd, pAddr) != NDIS_STATUS_SUCCESS)
 				{
 					MLME_DLS_REQ_STRUCT	MlmeDlsReq;
@@ -1513,7 +1408,7 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 			}
 			else
 			{
-				// Data frame, update timeout value
+				
 				if (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH)
 				{
 					pAd->StaCfg.DLSEntry[i].CountDownTimer = pAd->StaCfg.DLSEntry[i].TimeOut;
@@ -1528,22 +1423,7 @@ BOOLEAN RTMPRcvFrameDLSCheck(
 	return bSTAKeyFrame;
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Check if the frame can be sent through DLS direct link interface
-
-	Arguments:
-		pAd		Pointer	to adapter
-
-	Return Value:
-		DLS entry index
-
-	Note:
-
-	========================================================================
-*/
 INT	RTMPCheckDLSFrame(
 	IN	PRTMP_ADAPTER	pAd,
 	IN  PUCHAR          pDA)
@@ -1558,7 +1438,7 @@ INT	RTMPCheckDLSFrame(
 		return rval;
 
 	do{
-		// check local dls table entry
+		
 		for (i=0; i<MAX_NUM_OF_INIT_DLS_ENTRY; i++)
 		{
 			if (pAd->StaCfg.DLSEntry[i].Valid && (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH) &&
@@ -1569,7 +1449,7 @@ INT	RTMPCheckDLSFrame(
 			}
 		}
 
-		// check peer dls table entry
+		
 		for (i=MAX_NUM_OF_INIT_DLS_ENTRY; i<MAX_NUM_OF_DLS_ENTRY; i++)
 		{
 			if (pAd->StaCfg.DLSEntry[i].Valid && (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH) &&
@@ -1584,14 +1464,7 @@ INT	RTMPCheckDLSFrame(
 	return rval;
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID RTMPSendDLSTearDownFrame(
 	IN	PRTMP_ADAPTER	pAd,
 	IN  PUCHAR          pDA)
@@ -1611,7 +1484,7 @@ VOID RTMPSendDLSTearDownFrame(
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Send DLS TearDown Frame \n"));
 
-	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 	if (NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_ERROR,("ASSOC - RTMPSendDLSTearDownFrame() allocate memory failed \n"));
@@ -1631,7 +1504,7 @@ VOID RTMPSendDLSTearDownFrame(
 	MiniportMMRequest(pAd, 0, pOutBuffer, FrameLen);
 	MlmeFreeMemory(pAd, pOutBuffer);
 
-	// Remove key in local dls table entry
+	
 	for (i = 0; i < MAX_NUM_OF_INIT_DLS_ENTRY; i++)
 	{
 		if (pAd->StaCfg.DLSEntry[i].Valid && (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH)
@@ -1641,7 +1514,7 @@ VOID RTMPSendDLSTearDownFrame(
 		}
 	}
 
-	// Remove key in peer dls table entry
+	
 	for (i=MAX_NUM_OF_INIT_DLS_ENTRY; i<MAX_NUM_OF_DLS_ENTRY; i++)
 	{
 		if (pAd->StaCfg.DLSEntry[i].Valid && (pAd->StaCfg.DLSEntry[i].Status == DLS_FINISH)
@@ -1654,14 +1527,7 @@ VOID RTMPSendDLSTearDownFrame(
 	DBGPRINT(RT_DEBUG_TRACE, ("Send DLS TearDown Frame and remove key in (i=%d) \n", i));
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 NDIS_STATUS RTMPSendSTAKeyRequest(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pDA)
@@ -1682,13 +1548,13 @@ NDIS_STATUS RTMPSendSTAKeyRequest(
 	pAd->Sequence ++;
 	MAKE_802_3_HEADER(Header802_3, pAd->CommonCfg.Bssid, pAd->CurrentAddress, EAPOL);
 
-	// Zero message body
+	
 	NdisZeroMemory(&Packet, sizeof(Packet));
 	Packet.ProVer = EAPOL_VER;
 	Packet.ProType    = EAPOLKey;
-	Packet.Body_Len[1]  = sizeof(KEY_DESCRIPTER) - MAX_LEN_OF_RSNIE + 6 + MAC_ADDR_LEN;		// data field contain KDE andPeer MAC address
+	Packet.Body_Len[1]  = sizeof(KEY_DESCRIPTER) - MAX_LEN_OF_RSNIE + 6 + MAC_ADDR_LEN;		
 
-	// STAKey Message is as EAPOL-Key(1,1,0,0,G/0,0,0, MIC, 0,Peer MAC KDE)
+	
 	if ((pAd->StaCfg.AuthMode == Ndis802_11AuthModeWPA) || (pAd->StaCfg.AuthMode == Ndis802_11AuthModeWPAPSK))
     {
         Packet.KeyDesc.Type = WPA1_KEY_DESC;
@@ -1698,7 +1564,7 @@ NDIS_STATUS RTMPSendSTAKeyRequest(
         Packet.KeyDesc.Type = WPA2_KEY_DESC;
     }
 
-	// Key descriptor version
+	
 	Packet.KeyDesc.KeyInfo.KeyDescVer =
 		(((pAd->StaCfg.PairCipher == Ndis802_11Encryption3Enabled) || (pAd->StaCfg.GroupCipher == Ndis802_11Encryption3Enabled)) ? (DESC_TYPE_AES) : (DESC_TYPE_TKIP));
 
@@ -1708,7 +1574,7 @@ NDIS_STATUS RTMPSendSTAKeyRequest(
 
 	Packet.KeyDesc.KeyDataLen[1]	= 12;
 
-	// use our own OUI to distinguish proprietary with standard.
+	
 	Packet.KeyDesc.KeyData[0]		= 0xDD;
 	Packet.KeyDesc.KeyData[1]		= 0x0A;
 	Packet.KeyDesc.KeyData[2]		= 0x00;
@@ -1719,26 +1585,26 @@ NDIS_STATUS RTMPSendSTAKeyRequest(
 
 	NdisMoveMemory(Packet.KeyDesc.ReplayCounter, pAd->StaCfg.DlsReplayCounter, LEN_KEY_DESC_REPLAY);
 
-	// Allocate buffer for transmitting message
+	
 	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);
 	if (NStatus	!= NDIS_STATUS_SUCCESS)
 		return NStatus;
 
-	// Prepare EAPOL frame for MIC calculation
-	// Be careful, only EAPOL frame is counted for MIC calculation
+	
+	
 	MakeOutgoingFrame(pOutBuffer,           &FrameLen,
 		              Packet.Body_Len[1] + 4,    &Packet,
 		              END_OF_ARGS);
 
-	// use proprietary PTK
+	
 	NdisZeroMemory(temp, 64);
 	NdisMoveMemory(temp, "IEEE802.11 WIRELESS ACCESS POINT", 32);
 	WpaDerivePTK(pAd, temp, temp, pAd->CommonCfg.Bssid, temp, pAd->CurrentAddress, DlsPTK, LEN_PTK);
 
-	// calculate MIC
+	
 	if (pAd->StaCfg.WepStatus == Ndis802_11Encryption3Enabled)
 	{
-		// AES
+		
 		NdisZeroMemory(digest,	sizeof(digest));
 		HMAC_SHA1(DlsPTK, LEN_EAP_MICK, pOutBuffer, FrameLen, digest, SHA1_DIGEST_SIZE);
 		NdisMoveMemory(Packet.KeyDesc.KeyMic, digest, LEN_KEY_DESC_MIC);
@@ -1770,14 +1636,7 @@ NDIS_STATUS RTMPSendSTAKeyRequest(
 	return NStatus;
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 NDIS_STATUS RTMPSendSTAKeyHandShake(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pDA)
@@ -1791,20 +1650,20 @@ NDIS_STATUS RTMPSendSTAKeyHandShake(
 	PUCHAR				pOutBuffer = NULL;
 	PNDIS_PACKET		pNdisPacket;
 	UCHAR				temp[64];
-	UCHAR				DlsPTK[80];			// Due to dirver can not get PTK, use proprietary PTK
+	UCHAR				DlsPTK[80];			
 
 	DBGPRINT(RT_DEBUG_TRACE,("DLS - RTMPSendSTAKeyHandShake() to %02x:%02x:%02x:%02x:%02x:%02x\n", pDA[0], pDA[1], pDA[2], pDA[3], pDA[4], pDA[5]));
 
 	pAd->Sequence ++;
 	MAKE_802_3_HEADER(Header802_3, pAd->CommonCfg.Bssid, pAd->CurrentAddress, EAPOL);
 
-	// Zero message body
+	
 	NdisZeroMemory(&Packet, sizeof(Packet));
 	Packet.ProVer = EAPOL_VER;
 	Packet.ProType    = EAPOLKey;
-	Packet.Body_Len[1]  = sizeof(KEY_DESCRIPTER) - MAX_LEN_OF_RSNIE + 6 + MAC_ADDR_LEN;		// data field contain KDE and Peer MAC address
+	Packet.Body_Len[1]  = sizeof(KEY_DESCRIPTER) - MAX_LEN_OF_RSNIE + 6 + MAC_ADDR_LEN;		
 
-	// STAKey Message is as EAPOL-Key(1,1,0,0,G/0,0,0, MIC, 0,Peer MAC KDE)
+	
 	if ((pAd->StaCfg.AuthMode == Ndis802_11AuthModeWPA) || (pAd->StaCfg.AuthMode == Ndis802_11AuthModeWPAPSK))
     {
         Packet.KeyDesc.Type = WPA1_KEY_DESC;
@@ -1814,7 +1673,7 @@ NDIS_STATUS RTMPSendSTAKeyHandShake(
         Packet.KeyDesc.Type = WPA2_KEY_DESC;
     }
 
-	// Key descriptor version
+	
 	Packet.KeyDesc.KeyInfo.KeyDescVer =
 		(((pAd->StaCfg.PairCipher == Ndis802_11Encryption3Enabled) || (pAd->StaCfg.GroupCipher == Ndis802_11Encryption3Enabled)) ? (DESC_TYPE_AES) : (DESC_TYPE_TKIP));
 
@@ -1823,7 +1682,7 @@ NDIS_STATUS RTMPSendSTAKeyHandShake(
 
 	Packet.KeyDesc.KeyDataLen[1]	= 12;
 
-	// use our own OUI to distinguish proprietary with standard.
+	
 	Packet.KeyDesc.KeyData[0]		= 0xDD;
 	Packet.KeyDesc.KeyData[1]		= 0x0A;
 	Packet.KeyDesc.KeyData[2]		= 0x00;
@@ -1834,26 +1693,26 @@ NDIS_STATUS RTMPSendSTAKeyHandShake(
 
 	NdisMoveMemory(Packet.KeyDesc.ReplayCounter, pAd->StaCfg.DlsReplayCounter, LEN_KEY_DESC_REPLAY);
 
-	// Allocate buffer for transmitting message
+	
 	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);
 	if (NStatus	!= NDIS_STATUS_SUCCESS)
 		return NStatus;
 
-	// Prepare EAPOL frame for MIC calculation
-	// Be careful, only EAPOL frame is counted for MIC calculation
+	
+	
 	MakeOutgoingFrame(pOutBuffer,           &FrameLen,
 		              Packet.Body_Len[1] + 4,    &Packet,
 		              END_OF_ARGS);
 
-	// use proprietary PTK
+	
 	NdisZeroMemory(temp, 64);
 	NdisMoveMemory(temp, "IEEE802.11 WIRELESS ACCESS POINT", 32);
 	WpaDerivePTK(pAd, temp, temp, pAd->CommonCfg.Bssid, temp, pAd->CurrentAddress, DlsPTK, LEN_PTK);
 
-	// calculate MIC
+	
 	if (pAd->StaCfg.WepStatus == Ndis802_11Encryption3Enabled)
 	{
-		// AES
+		
 		NdisZeroMemory(digest,	sizeof(digest));
 		HMAC_SHA1(DlsPTK, LEN_EAP_MICK, pOutBuffer, FrameLen, digest, SHA1_DIGEST_SIZE);
 		NdisMoveMemory(Packet.KeyDesc.KeyMic, digest, LEN_KEY_DESC_MIC);
@@ -1910,15 +1769,7 @@ VOID DlsTimeoutAction(
 	}
 }
 
-/*
-================================================================
-Description : because DLS and CLI share the same WCID table in ASIC.
-Mesh entry also insert to pAd->MacTab.content[].  Such is marked as ValidAsDls = TRUE.
-Also fills the pairwise key.
-Because front MAX_AID_BA entries have direct mapping to BAEntry, which is only used as CLI. So we insert Dls
-from index MAX_AID_BA.
-================================================================
-*/
+
 MAC_TABLE_ENTRY *MacTableInsertDlsEntry(
 	IN  PRTMP_ADAPTER   pAd,
 	IN  PUCHAR	pAddr,
@@ -1927,7 +1778,7 @@ MAC_TABLE_ENTRY *MacTableInsertDlsEntry(
 	PMAC_TABLE_ENTRY pEntry = NULL;
 
 	DBGPRINT(RT_DEBUG_TRACE, ("====> MacTableInsertDlsEntry\n"));
-	// if FULL, return
+	
 	if (pAd->MacTab.Size >= MAX_LEN_OF_MAC_TABLE)
 		return NULL;
 
@@ -1936,7 +1787,7 @@ MAC_TABLE_ENTRY *MacTableInsertDlsEntry(
 		if((pEntry = DlsEntryTableLookup(pAd, pAddr, TRUE)) != NULL)
 			break;
 
-		// allocate one MAC entry
+		
 		pEntry = MacTableInsertEntry(pAd, pAddr, DlsEntryIdx + MIN_NET_DEVICE_FOR_DLS, TRUE);
 		if (pEntry)
 		{
@@ -1948,7 +1799,7 @@ MAC_TABLE_ENTRY *MacTableInsertDlsEntry(
 
 			DBGPRINT(RT_DEBUG_TRACE, ("MacTableInsertDlsEntry - allocate entry #%d, Total= %d\n",pEntry->Aid, pAd->MacTab.Size));
 
-			// If legacy WEP is used, set pair-wise cipherAlg into WCID attribute table for this entry
+			
 			if ((pEntry->ValidAsDls) && (pAd->StaCfg.WepStatus == Ndis802_11WEPEnabled))
 			{
 				UCHAR KeyIdx = 0;
@@ -1975,12 +1826,7 @@ MAC_TABLE_ENTRY *MacTableInsertDlsEntry(
 }
 
 
-/*
-	==========================================================================
-	Description:
-		Delete all Mesh Entry in pAd->MacTab
-	==========================================================================
- */
+
 BOOLEAN MacTableDeleteDlsEntry(
 	IN PRTMP_ADAPTER pAd,
 	IN USHORT wcid,
@@ -2091,7 +1937,7 @@ INT Set_DlsEntryInfo_Display_Proc(
 			DBGPRINT(RT_DEBUG_OFF, ("\n%-19s%-4s%-4s%-4s%-4s%-7s%-7s%-7s","MAC", "AID", "BSS", "PSM", "WMM", "RSSI0", "RSSI1", "RSSI2"));
 #ifdef DOT11_N_SUPPORT
 			DBGPRINT(RT_DEBUG_OFF, ("%-8s%-10s%-6s%-6s%-6s%-6s", "MIMOPS", "PhMd", "BW", "MCS", "SGI", "STBC"));
-#endif // DOT11_N_SUPPORT //
+#endif 
 			DBGPRINT(RT_DEBUG_OFF, ("\n%02X:%02X:%02X:%02X:%02X:%02X  ",
 				pEntry->Addr[0], pEntry->Addr[1], pEntry->Addr[2],
 				pEntry->Addr[3], pEntry->Addr[4], pEntry->Addr[5]));
@@ -2109,7 +1955,7 @@ INT Set_DlsEntryInfo_Display_Proc(
 			DBGPRINT(RT_DEBUG_OFF, ("%-6d", pEntry->HTPhyMode.field.MCS));
 			DBGPRINT(RT_DEBUG_OFF, ("%-6d", pEntry->HTPhyMode.field.ShortGI));
 			DBGPRINT(RT_DEBUG_OFF, ("%-6d", pEntry->HTPhyMode.field.STBC));
-#endif // DOT11_N_SUPPORT //
+#endif 
 			DBGPRINT(RT_DEBUG_OFF, ("%-10d, %d, %d%%\n", pEntry->DebugFIFOCount, pEntry->DebugTxCount,
 						(pEntry->DebugTxCount) ? ((pEntry->DebugTxCount-pEntry->DebugFIFOCount)*100/pEntry->DebugTxCount) : 0));
 			DBGPRINT(RT_DEBUG_OFF, ("\n"));
@@ -2131,7 +1977,7 @@ INT	Set_DlsAddEntry_Proc(
 	INT i;
     RT_802_11_DLS	Dls;
 
-    if(strlen(arg) < 19)  //Mac address acceptable format 01:02:03:04:05:06 length 17 plus the "-" and timeout value in decimal format.
+    if(strlen(arg) < 19)  
 		return FALSE;
 
 	token = strchr(arg, DASH);
@@ -2179,13 +2025,13 @@ INT	Set_DlsTearDownEntry_Proc(
 	INT				i;
 	RT_802_11_DLS	Dls;
 
-	if(strlen(arg) != 17)  //Mac address acceptable format 01:02:03:04:05:06 length 17
+	if(strlen(arg) != 17)  
 		return FALSE;
 
 	for (i=0, value = rstrtok(arg,":"); value; value = rstrtok(NULL,":"))
 	{
 		if((strlen(value) != 2) || (!isxdigit(*value)) || (!isxdigit(*(value+1))) )
-			return FALSE;  //Invalid
+			return FALSE;  
 
 		AtoH(value, &macAddr[i++], 2);
 	}

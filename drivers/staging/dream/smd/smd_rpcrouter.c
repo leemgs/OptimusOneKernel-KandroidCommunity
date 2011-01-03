@@ -1,24 +1,9 @@
-/* arch/arm/mach-msm/smd_rpcrouter.c
- *
- * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2007-2009 QUALCOMM Incorporated.
- * Author: San Mehat <san@android.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- */
 
-/* TODO: handle cases where smd_write() will tempfail due to full fifo */
-/* TODO: thread priority? schedule a work to bump it? */
-/* TODO: maybe make server_list_lock a mutex */
-/* TODO: pool fragments to avoid kmalloc/kfree churn */
+
+
+
+
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -118,8 +103,8 @@ static DECLARE_WORK(work_create_rpcrouter_pdev, do_create_rpcrouter_pdev);
 struct rr_context {
 	struct rr_packet *pkt;
 	uint8_t *ptr;
-	uint32_t state; /* current assembly state */
-	uint32_t count; /* bytes needed in this state */
+	uint32_t state; 
+	uint32_t count; 
 };
 
 static struct rr_context the_rr_context;
@@ -151,7 +136,7 @@ static int rpcrouter_send_control_msg(union rr_control_msg *msg)
 	hdr.dst_pid = 0;
 	hdr.dst_cid = RPCROUTER_ROUTER_ADDRESS;
 
-	/* TODO: what if channel is full? */
+	
 
 	need = sizeof(hdr) + hdr.size;
 	spin_lock_irqsave(&smd_lock, flags);
@@ -257,7 +242,7 @@ struct msm_rpc_endpoint *msm_rpcrouter_create_local_endpoint(dev_t dev)
 		return NULL;
 	memset(ept, 0, sizeof(struct msm_rpc_endpoint));
 
-	/* mark no reply outstanding */
+	
 	ept->reply_pid = 0xffffffff;
 
 	ept->cid = (uint32_t) ept;
@@ -266,13 +251,9 @@ struct msm_rpc_endpoint *msm_rpcrouter_create_local_endpoint(dev_t dev)
 
 	if ((dev != msm_rpcrouter_devno) && (dev != MKDEV(0, 0))) {
 		struct rr_server *srv;
-		/*
-		 * This is a userspace client which opened
-		 * a program/ver devicenode. Bind the client
-		 * to that destination
-		 */
+		
 		srv = rpcrouter_lookup_server_by_dev(dev);
-		/* TODO: bug? really? */
+		
 		BUG_ON(!srv);
 
 		ept->dst_pid = srv->pid;
@@ -282,7 +263,7 @@ struct msm_rpc_endpoint *msm_rpcrouter_create_local_endpoint(dev_t dev)
 
 		D("Creating local ept %p @ %08x:%08x\n", ept, srv->prog, srv->vers);
 	} else {
-		/* mark not connected */
+		
 		ept->dst_pid = 0xffffffff;
 		D("Creating a master local ept %p\n", ept);
 	}
@@ -397,10 +378,10 @@ static int process_control_msg(union rr_control_msg *msg, int len)
 
 		initialized = 1;
 
-		/* Send list of servers one at a time */
+		
 		ctl.cmd = RPCROUTER_CTRL_CMD_NEW_SERVER;
 
-		/* TODO: long time to hold a spinlock... */
+		
 		spin_lock_irqsave(&server_list_lock, flags);
 		list_for_each_entry(server, &server_list, list) {
 			ctl.srv.pid = server->pid;
@@ -446,11 +427,7 @@ static int process_control_msg(union rr_control_msg *msg, int len)
 				msg->srv.prog, msg->srv.vers);
 			if (!server)
 				return -ENOMEM;
-			/*
-			 * XXX: Verify that its okay to add the
-			 * client to our remote client list
-			 * if we get a NEW_SERVER notification
-			 */
+			
 			if (!rpcrouter_lookup_remote_endpoint(msg->srv.cid)) {
 				rc = rpcrouter_create_remote_endpoint(
 					msg->srv.cid);
@@ -496,7 +473,7 @@ static int process_control_msg(union rr_control_msg *msg, int len)
 			kfree(r_ept);
 		}
 
-		/* Notify local clients of this event */
+		
 		printk(KERN_ERR "rpcrouter: LOCAL NOTIFICATION NOT IMP\n");
 		rc = -ENOSYS;
 
@@ -519,7 +496,7 @@ static void do_create_pdevs(struct work_struct *work)
 	unsigned long flags;
 	struct rr_server *server;
 
-	/* TODO: race if destroyed while being registered */
+	
 	spin_lock_irqsave(&server_list_lock, flags);
 	list_for_each_entry(server, &server_list, list) {
 		if (server->pid == RPCROUTER_PID_REMOTE) {
@@ -559,12 +536,12 @@ static void *rr_malloc(unsigned sz)
 	return ptr;
 }
 
-/* TODO: deal with channel teardown / restore */
+
 static int rr_read(void *data, int len)
 {
 	int rc;
 	unsigned long flags;
-//	printk("rr_read() %d\n", len);
+
 	for(;;) {
 		spin_lock_irqsave(&smd_lock, flags);
 		if (smd_read_avail(smd_channel) >= len) {
@@ -579,7 +556,7 @@ static int rr_read(void *data, int len)
 		wake_unlock(&rpcrouter_wake_lock);
 		spin_unlock_irqrestore(&smd_lock, flags);
 
-//		printk("rr_read: waiting (%d)\n", len);
+
 		wait_event(smd_wait, smd_read_avail(smd_channel) >= len);
 	}
 	return 0;
@@ -643,9 +620,7 @@ static void do_read_data(struct work_struct *work)
 		goto done;
 	}
 
-	/* See if there is already a partial packet that matches our mid
-	 * and if so, append this fragment to that packet.
-	 */
+	
 	mid = PACMARK_MID(pm);
 	list_for_each_entry(pkt, &ept->incomplete, list) {
 		if (pkt->mid == mid) {
@@ -659,10 +634,7 @@ static void do_read_data(struct work_struct *work)
 			goto done;
 		}
 	}
-	/* This mid is new -- create a packet for it, and put it on
-	 * the incomplete list if this fragment is not a last fragment,
-	 * otherwise put it on the read queue.
-	 */
+	
 	pkt = rr_malloc(sizeof(struct rr_packet));
 	pkt->first = frag;
 	pkt->last = frag;
@@ -740,20 +712,20 @@ int msm_rpc_write(struct msm_rpc_endpoint *ept, void *buffer, int count)
 	int needed;
 	DEFINE_WAIT(__wait);
 
-	/* TODO: fragmentation for large outbound packets */
+	
 	if (count > (RPCROUTER_MSGSIZE_MAX - sizeof(uint32_t)) || !count)
 		return -EINVAL;
 
-	/* snoop the RPC packet and enforce permissions */
+	
 
-	/* has to have at least the xid and type fields */
+	
 	if (count < (sizeof(uint32_t) * 2)) {
 		printk(KERN_ERR "rr_write: rejecting runt packet\n");
 		return -EINVAL;
 	}
 
 	if (rq->type == 0) {
-		/* RPC CALL */
+		
 		if (count < (sizeof(uint32_t) * 6)) {
 			printk(KERN_ERR
 			       "rr_write: rejecting runt call packet\n");
@@ -788,8 +760,8 @@ int msm_rpc_write(struct msm_rpc_endpoint *ept, void *buffer, int count)
 		   ept->dst_pid, ept->dst_cid, count,
 		   be32_to_cpu(rq->xid), be32_to_cpu(rq->procedure));
 	} else {
-		/* RPC REPLY */
-		/* TODO: locking */
+		
+		
 		if (ept->reply_pid == 0xffffffff) {
 			printk(KERN_ERR
 			       "rr_write: rejecting unexpected reply\n");
@@ -804,7 +776,7 @@ int msm_rpc_write(struct msm_rpc_endpoint *ept, void *buffer, int count)
 		hdr.dst_pid = ept->reply_pid;
 		hdr.dst_cid = ept->reply_cid;
 
-		/* consume this reply */
+		
 		ept->reply_pid = 0xffffffff;
 
 		IO("REPLY on ept %p to xid=%d @ %d:%08x (%d bytes)\n",
@@ -821,7 +793,7 @@ int msm_rpc_write(struct msm_rpc_endpoint *ept, void *buffer, int count)
 		return -EHOSTUNREACH;
 	}
 
-	/* Create routing header */
+	
 	hdr.type = RPCROUTER_CTRL_CMD_DATA;
 	hdr.version = RPCROUTER_VERSION;
 	hdr.src_pid = ept->pid;
@@ -852,9 +824,7 @@ int msm_rpc_write(struct msm_rpc_endpoint *ept, void *buffer, int count)
 	if (r_ept->tx_quota_cntr == RPCROUTER_DEFAULT_RX_QUOTA)
 		hdr.confirm_rx = 1;
 
-	/* bump pacmark while interrupts disabled to avoid race
-	 * probably should be atomic op instead
-	 */
+	
 	pacmark = PACMARK(count, ++next_pacmarkid, 0, 1);
 
 	spin_unlock_irqrestore(&r_ept->quota_lock, flags);
@@ -868,7 +838,7 @@ int msm_rpc_write(struct msm_rpc_endpoint *ept, void *buffer, int count)
 		spin_lock_irqsave(&smd_lock, flags);
 	}
 
-	/* TODO: deal with full fifo */
+	
 	smd_write(smd_channel, &hdr, sizeof(hdr));
 	smd_write(smd_channel, &pacmark, sizeof(pacmark));
 	smd_write(smd_channel, buffer, count);
@@ -879,9 +849,7 @@ int msm_rpc_write(struct msm_rpc_endpoint *ept, void *buffer, int count)
 }
 EXPORT_SYMBOL(msm_rpc_write);
 
-/*
- * NOTE: It is the responsibility of the caller to kfree buffer
- */
+
 int msm_rpc_read(struct msm_rpc_endpoint *ept, void **buffer,
 		 unsigned user_len, long timeout)
 {
@@ -893,17 +861,13 @@ int msm_rpc_read(struct msm_rpc_endpoint *ept, void **buffer,
 	if (rc <= 0)
 		return rc;
 
-	/* single-fragment messages conveniently can be
-	 * returned as-is (the buffer is at the front)
-	 */
+	
 	if (frag->next == 0) {
 		*buffer = (void*) frag;
 		return rc;
 	}
 
-	/* multi-fragment messages, we have to do it the
-	 * hard way, which is rather disgusting right now
-	 */
+	
 	buf = rr_malloc(rc);
 	*buffer = buf;
 
@@ -943,9 +907,7 @@ int msm_rpc_call_reply(struct msm_rpc_endpoint *ept, uint32_t proc,
 	if (ept->dst_pid == 0xffffffff)
 		return -ENOTCONN;
 
-	/* We can't use msm_rpc_setup_req() here, because dst_prog and
-	 * dst_vers here are already in BE.
-	 */
+	
 	memset(req, 0, sizeof(*req));
 	req->xid = cpu_to_be32(atomic_add_return(1, &next_xid));
 	req->rpc_vers = cpu_to_be32(2);
@@ -965,15 +927,12 @@ int msm_rpc_call_reply(struct msm_rpc_endpoint *ept, uint32_t proc,
 			rc = -EIO;
 			break;
 		}
-		/* we should not get CALL packets -- ignore them */
+		
 		if (reply->type == 0) {
 			kfree(reply);
 			continue;
 		}
-		/* If an earlier call timed out, we could get the (no
-		 * longer wanted) reply for it.  Ignore replies that
-		 * we don't expect.
-		 */
+		
 		if (reply->xid != req->xid) {
 			kfree(reply);
 			continue;
@@ -1074,12 +1033,12 @@ int __msm_rpc_read(struct msm_rpc_endpoint *ept,
 			ept, be32_to_cpu(rq->prog), be32_to_cpu(rq->vers),
 			be32_to_cpu(rq->procedure),
 			be32_to_cpu(rq->xid));
-		/* RPC CALL */
+		
 		if (ept->reply_pid != 0xffffffff) {
 			printk(KERN_WARNING
 			       "rr_read: lost previous reply xid...\n");
 		}
-		/* TODO: locking? */
+		
 		ept->reply_pid = pkt->hdr.src_pid;
 		ept->reply_cid = pkt->hdr.src_cid;
 		ept->reply_xid = rq->xid;
@@ -1177,7 +1136,7 @@ uint32_t msm_rpc_get_vers(struct msm_rpc_endpoint *ept)
 }
 EXPORT_SYMBOL(msm_rpc_get_vers);
 
-/* TODO: permission check? */
+
 int msm_rpc_register_server(struct msm_rpc_endpoint *ept,
 			    uint32_t prog, uint32_t vers)
 {
@@ -1206,7 +1165,7 @@ int msm_rpc_register_server(struct msm_rpc_endpoint *ept,
 	return 0;
 }
 
-/* TODO: permission check -- disallow unreg of somebody else's server */
+
 int msm_rpc_unregister_server(struct msm_rpc_endpoint *ept,
 			      uint32_t prog, uint32_t vers)
 {
@@ -1223,7 +1182,7 @@ static int msm_rpcrouter_probe(struct platform_device *pdev)
 {
 	int rc;
 
-	/* Initialize what we need to start processing */
+	
 	INIT_LIST_HEAD(&local_endpoints);
 	INIT_LIST_HEAD(&remote_endpoints);
 
@@ -1239,7 +1198,7 @@ static int msm_rpcrouter_probe(struct platform_device *pdev)
 	if (rc < 0)
 		goto fail_destroy_workqueue;
 
-	/* Open up SMD channel 2 */
+	
 	initialized = 0;
 	rc = smd_open("SMD_RPCCALL", &smd_channel, NULL, rpcrouter_smdnotify);
 	if (rc < 0)

@@ -1,30 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: mib.h
- *
- * Purpose: Implement MIB Data Structure
- *
- * Author: Tevin Chen
- *
- * Date: May 21, 1996
- *
- */
+
 
 #ifndef __MIB_H__
 #define __MIB_H__
@@ -33,12 +7,12 @@
 #include "tether.h"
 #include "desc.h"
 
-/*---------------------  Export Definitions -------------------------*/
 
 
-//
-// USB counter
-//
+
+
+
+
 typedef struct tagSUSBCounter {
     DWORD dwCrc;
 
@@ -46,13 +20,13 @@ typedef struct tagSUSBCounter {
 
 
 
-//
-// 802.11 counter
-//
+
+
+
 
 
 typedef struct tagSDot11Counters {
-//    ULONG       Length;             // Length of structure
+
     ULONGLONG   TransmittedFragmentCount;
     ULONGLONG   MulticastTransmittedFrameCount;
     ULONGLONG   FailedCount;
@@ -74,20 +48,20 @@ typedef struct tagSDot11Counters {
     ULONGLONG   CCMPReplays;
     ULONGLONG   CCMPDecryptErrors;
     ULONGLONG   FourWayHandshakeFailures;
-//    ULONGLONG   WEPUndecryptableCount;
-//    ULONGLONG   WEPICVErrorCount;
-//    ULONGLONG   DecryptSuccessCount;
-//    ULONGLONG   DecryptFailureCount;
+
+
+
+
 } SDot11Counters, *PSDot11Counters;
 
 
-//
-// MIB2 counter
-//
+
+
+
 typedef struct tagSMib2Counter {
     LONG    ifIndex;
-    char    ifDescr[256];               // max size 255 plus zero ending
-                                        // e.g. "interface 1"
+    char    ifDescr[256];               
+                                        
     LONG    ifType;
     LONG    ifMtu;
     DWORD   ifSpeed;
@@ -110,19 +84,19 @@ typedef struct tagSMib2Counter {
     DWORD   ifSpecific;
 } SMib2Counter, *PSMib2Counter;
 
-// Value in the ifType entry
-//#define ETHERNETCSMACD      6           //
-#define WIRELESSLANIEEE80211b      6           //
-
-// Value in the ifAdminStatus/ifOperStatus entry
-#define UP                  1           //
-#define DOWN                2           //
-#define TESTING             3           //
 
 
-//
-// RMON counter
-//
+#define WIRELESSLANIEEE80211b      6           
+
+
+#define UP                  1           
+#define DOWN                2           
+#define TESTING             3           
+
+
+
+
+
 typedef struct tagSRmonCounter {
     LONG    etherStatsIndex;
     DWORD   etherStatsDataSource;
@@ -147,9 +121,9 @@ typedef struct tagSRmonCounter {
     DWORD   etherStatsStatus;
 } SRmonCounter, *PSRmonCounter;
 
-//
-// Custom counter
-//
+
+
+
 typedef struct tagSCustomCounters {
     ULONG       Length;
 
@@ -186,9 +160,9 @@ typedef struct tagSCustomCounters {
 } SCustomCounters, *PSCustomCounters;
 
 
-//
-// Custom counter
-//
+
+
+
 typedef struct tagSISRCounters {
     ULONG   Length;
 
@@ -204,7 +178,7 @@ typedef struct tagSISRCounters {
     DWORD   dwIsrMIBNearfull;
     DWORD   dwIsrRxNoBuf;
 
-    DWORD   dwIsrUnknown;               // unknown interrupt count
+    DWORD   dwIsrUnknown;               
 
     DWORD   dwIsrRx1OK;
     DWORD   dwIsrATIMTxOK;
@@ -213,20 +187,20 @@ typedef struct tagSISRCounters {
     DWORD   dwIsrATIMEnd;
     DWORD   dwIsrSYNCFlushOK;
     DWORD   dwIsrSTIMER1Int;
-    /////////////////////////////////////
+    
 } SISRCounters, *PSISRCounters;
 
 
-// Value in the etherStatsStatus entry
-#define VALID               1           //
-#define CREATE_REQUEST      2           //
-#define UNDER_CREATION      3           //
-#define INVALID             4           //
+
+#define VALID               1           
+#define CREATE_REQUEST      2           
+#define UNDER_CREATION      3           
+#define INVALID             4           
 
 
-//
-// Tx packet information
-//
+
+
+
 typedef struct tagSTxPktInfo {
     BYTE    byBroadMultiUni;
     WORD    wLength;
@@ -236,18 +210,18 @@ typedef struct tagSTxPktInfo {
 
 
 #define MAX_RATE            12
-//
-// statistic counter
-//
+
+
+
 typedef struct tagSStatCounter {
-    //
-    // ISR status count
-    //
+    
+    
+    
 
     SISRCounters ISRStat;
 
-    // RSR status count
-    //
+    
+    
     DWORD   dwRsrFrmAlgnErr;
     DWORD   dwRsrErr;
     DWORD   dwRsrCRCErr;
@@ -276,10 +250,10 @@ typedef struct tagSStatCounter {
     DWORD   dwRsrBroadcast;
     DWORD   dwRsrMulticast;
     DWORD   dwRsrDirected;
-    // 64-bit OID
+    
     ULONGLONG   ullRsrOK;
 
-    // for some optional OIDs (64 bits) and DMI support
+    
     ULONGLONG   ullRxBroadcastBytes;
     ULONGLONG   ullRxMulticastBytes;
     ULONGLONG   ullRxDirectedBytes;
@@ -295,13 +269,13 @@ typedef struct tagSStatCounter {
     DWORD   dwRsrRxFrmLen512_1023;
     DWORD   dwRsrRxFrmLen1024_1518;
 
-    // TSR status count
-    //
-    DWORD   dwTsrTotalRetry;        // total collision retry count
-    DWORD   dwTsrOnceRetry;         // this packet only occur one collision
-    DWORD   dwTsrMoreThanOnceRetry; // this packet occur more than one collision
-    DWORD   dwTsrRetry;             // this packet has ever occur collision,
-                                         // that is (dwTsrOnceCollision0 + dwTsrMoreThanOnceCollision0)
+    
+    
+    DWORD   dwTsrTotalRetry;        
+    DWORD   dwTsrOnceRetry;         
+    DWORD   dwTsrMoreThanOnceRetry; 
+    DWORD   dwTsrRetry;             
+                                         
     DWORD   dwTsrACKData;
     DWORD   dwTsrErr;
     DWORD   dwAllTsrOK;
@@ -314,7 +288,7 @@ typedef struct tagSStatCounter {
     DWORD   dwTsrMulticast;
     DWORD   dwTsrDirected;
 
-    // RD/TD count
+    
     DWORD   dwCntRxFrmLength;
     DWORD   dwCntTxBufLength;
 
@@ -323,16 +297,16 @@ typedef struct tagSStatCounter {
 
 
 
-    // Software check....
-    DWORD   dwCntRxDataErr;             // rx buffer data software compare CRC err count
-    DWORD   dwCntDecryptErr;            // rx buffer data software compare CRC err count
-    DWORD   dwCntRxICVErr;              // rx buffer data software compare CRC err count
+    
+    DWORD   dwCntRxDataErr;             
+    DWORD   dwCntDecryptErr;            
+    DWORD   dwCntRxICVErr;              
 
 
-    // 64-bit OID
+    
     ULONGLONG   ullTsrOK;
 
-    // for some optional OIDs (64 bits) and DMI support
+    
     ULONGLONG   ullTxBroadcastFrames;
     ULONGLONG   ullTxMulticastFrames;
     ULONGLONG   ullTxDirectedFrames;
@@ -340,7 +314,7 @@ typedef struct tagSStatCounter {
     ULONGLONG   ullTxMulticastBytes;
     ULONGLONG   ullTxDirectedBytes;
 
-    // for autorate
+    
     DWORD   dwTxOk[MAX_RATE+1];
     DWORD   dwTxFail[MAX_RATE+1];
     DWORD   dwTxRetryCount[8];
@@ -355,14 +329,14 @@ typedef struct tagSStatCounter {
     SCustomCounters CustomStat;
 
    #ifdef Calcu_LinkQual
-       //Tx count:
-    ULONG TxNoRetryOkCount;         //success tx no retry !
-    ULONG TxRetryOkCount;              //sucess tx but retry !
-    ULONG TxFailCount;                      //fail tx ?
-      //Rx count:
-    ULONG RxOkCnt;                          //sucess rx !
-    ULONG RxFcsErrCnt;                    //fail rx ?
-      //statistic
+       
+    ULONG TxNoRetryOkCount;         
+    ULONG TxRetryOkCount;              
+    ULONG TxFailCount;                      
+      
+    ULONG RxOkCnt;                          
+    ULONG RxFcsErrCnt;                    
+      
     ULONG SignalStren;
     ULONG LinkQuality;
    #endif
@@ -371,11 +345,11 @@ typedef struct tagSStatCounter {
 
 #define NTSTATUS        int
 
-/*---------------------  Export Classes  ----------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
+
+
+
 
 void STAvClearAllCounter(PSStatCounter pStatistic);
 
@@ -417,7 +391,7 @@ STAvUpdateUSBCounter(
     NTSTATUS        ntStatus
     );
 
-#endif // __MIB_H__
+#endif 
 
 
 

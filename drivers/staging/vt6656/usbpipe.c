@@ -1,42 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: usbpipe.c
- *
- * Purpose: Handle USB control endpoint
- *
- * Author: Warren Hsu
- *
- * Date: Mar. 29, 2005
- *
- * Functions:
- *      CONTROLnsRequestOut - Write variable length bytes to MEM/BB/MAC/EEPROM
- *      CONTROLnsRequestIn - Read variable length bytes from MEM/BB/MAC/EEPROM
- *      ControlvWriteByte - Write one byte to MEM/BB/MAC/EEPROM
- *      ControlvReadByte - Read one byte from MEM/BB/MAC/EEPROM
- *      ControlvMaskByte - Read one byte from MEM/BB/MAC/EEPROM and clear/set some bits in the same address
- *
- * Revision History:
- *      04-05-2004 Jerry Chen:  Initial release
- *      11-24-2004 Warren Hsu: Add ControlvWriteByte,ControlvReadByte,ControlvMaskByte
- *
- */
+
 
 #include "int.h"
 #include "rxtx.h"
@@ -45,31 +7,31 @@
 #include "desc.h"
 #include "device.h"
 
-/*---------------------  Static Definitions -------------------------*/
-//endpoint def
-//endpoint 0: control
-//endpoint 1: interrupt
-//endpoint 2: read bulk
-//endpoint 3: write bulk
 
-//RequestType:
-//#define REQUEST_OUT       (USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE) // 0x40
-//#define REQUEST_IN        (USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE )  //0xc0
-//static int          msglevel                =MSG_LEVEL_DEBUG;
+
+
+
+
+
+
+
+
+
+
 static int          msglevel                =MSG_LEVEL_INFO;
 
 
-#define USB_CTL_WAIT   500 //ms
+#define USB_CTL_WAIT   500 
 
 #ifndef URB_ASYNC_UNLINK
 #define URB_ASYNC_UNLINK    0
 #endif
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
 
-/*---------------------  Static Functions  --------------------------*/
+
+
+
 static
 VOID
 s_nsInterruptUsbIoCompleteRead(
@@ -103,9 +65,9 @@ s_nsControlInUsbIoCompleteWrite(
     IN struct urb *urb
     );
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
+
+
 
 
 
@@ -139,7 +101,7 @@ PIPEnsControlOutAsyn(
                             pDevice->usb,
                             usb_sndctrlpipe(pDevice->usb , 0),
                             byRequest,
-                            0x40, // RequestType
+                            0x40, 
                             wValue,
                             wIndex,
                             (PVOID) pbyBuffer,
@@ -188,7 +150,7 @@ PIPEnsControlOut(
 	pDevice->sUsbCtlRequest.wLength = cpu_to_le16p(&wLength);
 	pDevice->pControlURB->transfer_flags |= URB_ASYNC_UNLINK;
     pDevice->pControlURB->actual_length = 0;
-    // Notice, pbyBuffer limited point to variable buffer, can't be constant.
+    
   	usb_fill_control_urb(pDevice->pControlURB, pDevice->usb,
 			 usb_sndctrlpipe(pDevice->usb , 0), (char *) &pDevice->sUsbCtlRequest,
 			 pbyBuffer, wLength, s_nsControlInUsbIoCompleteWrite, pDevice);
@@ -303,20 +265,7 @@ s_nsControlInUsbIoCompleteWrite(
 
 
 
-/*
- * Description:
- *      Complete function of usb Control callback
- *
- * Parameters:
- *  In:
- *      pDevice     - Pointer to the adapter
- *
- *  Out:
- *      none
- *
- * Return Value: STATUS_INSUFFICIENT_RESOURCES or result of IoCallDriver
- *
- */
+
 static
 VOID
 s_nsControlInUsbIoCompleteRead(
@@ -345,19 +294,7 @@ s_nsControlInUsbIoCompleteRead(
 
 
 
-/*
- * Description:
- *      Allocates an usb interrupt in irp and calls USBD.
- *
- * Parameters:
- *  In:
- *      pDevice     - Pointer to the adapter
- *  Out:
- *      none
- *
- * Return Value: STATUS_INSUFFICIENT_RESOURCES or result of IoCallDriver
- *
- */
+
 NTSTATUS
 PIPEnsInterruptRead(
     IN PSDevice pDevice
@@ -372,14 +309,14 @@ PIPEnsInterruptRead(
         return (STATUS_FAILURE);
     }
     pDevice->intBuf.bInUse = TRUE;
-//    pDevice->bEventAvailable = FALSE;
+
     pDevice->ulIntInPosted++;
 
-    //
-    // Now that we have created the urb, we will send a
-    // request to the USB device object.
-    //
-#if 0            //reserve int URB submit
+    
+    
+    
+    
+#if 0            
 	usb_fill_int_urb(pDevice->pInterruptURB,
 	                 pDevice->usb,
 	                 usb_rcvintpipe(pDevice->usb, 1),
@@ -389,7 +326,7 @@ PIPEnsInterruptRead(
 	                 pDevice,
 	                 pDevice->int_interval
 	                 );
-#else            //replace int URB submit by bulk transfer
+#else            
 #ifndef Safe_Close
 	usb_fill_int_urb(pDevice->pInterruptURB,
 	                 pDevice->usb,
@@ -423,20 +360,7 @@ usb_fill_bulk_urb(pDevice->pInterruptURB,
 }
 
 
-/*
- * Description:
- *      Complete function of usb interrupt in irp.
- *
- * Parameters:
- *  In:
- *      pDevice     - Pointer to the adapter
- *
- *  Out:
- *      none
- *
- * Return Value: STATUS_INSUFFICIENT_RESOURCES or result of IoCallDriver
- *
- */
+
 static
 VOID
 s_nsInterruptUsbIoCompleteRead(
@@ -449,37 +373,37 @@ s_nsInterruptUsbIoCompleteRead(
 
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"---->s_nsInterruptUsbIoCompleteRead\n");
-    //
-    // The context given to IoSetCompletionRoutine is the receive buffer object
-    //
+    
+    
+    
     pDevice = (PSDevice)urb->context;
 
-    //
-    // We have a number of cases:
-    //      1) The USB read timed out and we received no data.
-    //      2) The USB read timed out and we received some data.
-    //      3) The USB read was successful and fully filled our irp buffer.
-    //      4) The irp was cancelled.
-    //      5) Some other failure from the USB device object.
-    //
+    
+    
+    
+    
+    
+    
+    
+    
     ntStatus = urb->status;
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"s_nsInterruptUsbIoCompleteRead Status %d\n", ntStatus);
 
-    // if we were not successful, we need to free the int buffer for future use right here
-    // otherwise interrupt data handler will free int buffer after it handle it.
+    
+    
     if (( ntStatus != STATUS_SUCCESS )) {
         pDevice->ulBulkInError++;
         pDevice->intBuf.bInUse = FALSE;
 
-//        if (ntStatus == USBD_STATUS_CRC) {
-//            pDevice->ulIntInContCRCError++;
-//        }
 
-//        if (ntStatus == STATUS_NOT_CONNECTED )
-//        {
+
+
+
+
+
             pDevice->fKillEventPollingThread = TRUE;
-//        }
+
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"IntUSBIoCompleteControl STATUS = %d\n", ntStatus );
     }
     else {
@@ -493,11 +417,11 @@ s_nsInterruptUsbIoCompleteRead(
 
 
     if (pDevice->fKillEventPollingThread != TRUE) {
-   #if 0               //reserve int URB submit
+   #if 0               
 	if ((ntStatus = usb_submit_urb(urb, GFP_ATOMIC)) != 0) {
 	    DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Re-Submit int URB failed %d\n", ntStatus);
     }
-   #else                                                                                     //replace int URB submit by bulk transfer
+   #else                                                                                     
     #ifdef Safe_Close
        usb_fill_bulk_urb(pDevice->pInterruptURB,
 		      pDevice->usb,
@@ -516,26 +440,14 @@ s_nsInterruptUsbIoCompleteRead(
     #endif
 #endif
     }
-    //
-    // We return STATUS_MORE_PROCESSING_REQUIRED so that the completion
-    // routine (IofCompleteRequest) will stop working on the irp.
-    //
+    
+    
+    
+    
     return ;
 }
 
-/*
- * Description:
- *      Allocates an usb BulkIn  irp and calls USBD.
- *
- * Parameters:
- *  In:
- *      pDevice     - Pointer to the adapter
- *  Out:
- *      none
- *
- * Return Value: STATUS_INSUFFICIENT_RESOURCES or result of IoCallDriver
- *
- */
+
 NTSTATUS
 PIPEnsBulkInUsbRead(
     IN PSDevice pDevice,
@@ -555,10 +467,10 @@ PIPEnsBulkInUsbRead(
 
 
 	pUrb = pRCB->pUrb;
-    //
-    // Now that we have created the urb, we will send a
-    // request to the USB device object.
-    //
+    
+    
+    
+    
     if (pRCB->skb == NULL) {
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"pRCB->skb is null \n");
         return ntStatus;
@@ -585,20 +497,7 @@ PIPEnsBulkInUsbRead(
 
 
 
-/*
- * Description:
- *      Complete function of usb BulkIn irp.
- *
- * Parameters:
- *  In:
- *      pDevice     - Pointer to the adapter
- *
- *  Out:
- *      none
- *
- * Return Value: STATUS_INSUFFICIENT_RESOURCES or result of IoCallDriver
- *
- */
+
 static
 VOID
 s_nsBulkInUsbIoCompleteRead(
@@ -626,14 +525,14 @@ s_nsBulkInUsbIoCompleteRead(
      	#ifdef Calcu_LinkQual
            pDevice->scStatistic.RxFcsErrCnt ++;
 	#endif
-//todo...xxxxxx
-//        if (status == USBD_STATUS_CRC) {
-//            pDevice->ulBulkInContCRCError++;
-//        }
-//        if (status == STATUS_DEVICE_NOT_CONNECTED )
-//        {
-//            MP_SET_FLAG(pDevice, fMP_DISCONNECTED);
-//        }
+
+
+
+
+
+
+
+
     } else {
         bIndicateReceive = TRUE;
         pDevice->ulBulkInContCRCError = 0;
@@ -666,19 +565,7 @@ s_nsBulkInUsbIoCompleteRead(
     return;
 }
 
-/*
- * Description:
- *      Allocates an usb BulkOut  irp and calls USBD.
- *
- * Parameters:
- *  In:
- *      pDevice     - Pointer to the adapter
- *  Out:
- *      none
- *
- * Return Value: STATUS_INSUFFICIENT_RESOURCES or result of IoCallDriver
- *
- */
+
 NDIS_STATUS
 PIPEnsSendBulkOut(
     IN  PSDevice pDevice,
@@ -692,15 +579,7 @@ PIPEnsSendBulkOut(
 
     pDevice->bPWBitOn = FALSE;
 
-/*
-    if (pDevice->pPendingBulkOutContext != NULL) {
-        pDevice->NumContextsQueued++;
-        EnqueueContext(pDevice->FirstTxContextQueue, pDevice->LastTxContextQueue, pContext);
-        status = STATUS_PENDING;
-        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Send pending!\n");
-        return status;
-    }
-*/
+
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"s_nsSendBulkOut\n");
 
@@ -708,7 +587,7 @@ PIPEnsSendBulkOut(
 
         pUrb = pContext->pUrb;
         pDevice->ulBulkOutPosted++;
-//        pDevice->pPendingBulkOutContext = pContext;
+
         usb_fill_bulk_urb(
         	    pUrb,
         		pDevice->usb,
@@ -731,33 +610,7 @@ PIPEnsSendBulkOut(
     }
 }
 
-/*
- * Description: s_nsBulkOutIoCompleteWrite
- *     1a) Indicate to the protocol the status of the write.
- *     1b) Return ownership of the packet to the protocol.
- *
- *     2)  If any more packets are queue for sending, send another packet
- *         to USBD.
- *         If the attempt to send the packet to the driver fails,
- *         return ownership of the packet to the protocol and
- *         try another packet (until one succeeds).
- *
- * Parameters:
- *  In:
- *      pdoUsbDevObj  - pointer to the USB device object which
- *                      completed the irp
- *      pIrp          - the irp which was completed by the
- *                      device object
- *      pContext      - the context given to IoSetCompletionRoutine
- *                      before calling IoCallDriver on the irp
- *                      The pContext is a pointer to the USB device object.
- *  Out:
- *      none
- *
- * Return Value: STATUS_MORE_PROCESSING_REQUIRED - allows the completion routine
- *               (IofCompleteRequest) to stop working on the irp.
- *
- */
+
 static
 VOID
 s_nsBulkOutIoCompleteWrite(
@@ -772,9 +625,9 @@ s_nsBulkOutIoCompleteWrite(
 
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"---->s_nsBulkOutIoCompleteWrite\n");
-    //
-    // The context given to IoSetCompletionRoutine is an USB_CONTEXT struct
-    //
+    
+    
+    
     pContext = (PUSB_SEND_CONTEXT) urb->context;
     ASSERT( NULL != pContext );
 
@@ -785,19 +638,19 @@ s_nsBulkOutIoCompleteWrite(
     if (!netif_device_present(pDevice->dev))
 	    return;
 
-   //
-    // Perform various IRP, URB, and buffer 'sanity checks'
-    //
+   
+    
+    
 
     status = urb->status;
-    //we should have failed, succeeded, or cancelled, but NOT be pending
+    
     STAvUpdateUSBCounter(&pDevice->scStatistic.USB_BulkOutStat, status);
 
     if(status == STATUS_SUCCESS) {
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Write %d bytes\n",(int)ulBufLen);
         pDevice->ulBulkOutBytesWrite += ulBufLen;
         pDevice->ulBulkOutContCRCError = 0;
-	//2007-0115-06<Add>by MikeLiu
+	
            #ifdef TxInSleep
              pDevice->nTxDataTimeCout = 0;
            #endif
@@ -807,12 +660,12 @@ s_nsBulkOutIoCompleteWrite(
         pDevice->ulBulkOutError++;
     }
 
-//    pDevice->ulCheckForHangCount = 0;
-//    pDevice->pPendingBulkOutContext = NULL;
+
+
 
     if ( CONTEXT_DATA_PACKET == ContextType ) {
-        // Indicate to the protocol the status of the sent packet and return
-        // ownership of the packet.
+        
+        
 	    if (pContext->pPacket != NULL) {
 	        dev_kfree_skb_irq(pContext->pPacket);
 	        pContext->pPacket = NULL;

@@ -1,40 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-	action.c
-
-    Abstract:
-    Handle association related requests either from WSTA or from local MLME
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-	Jan Lee		2006	  	created for rt2860
- */
 
 #include "../rt_config.h"
 #include "action.h"
@@ -44,23 +8,7 @@ static VOID ReservedAction(
 	IN PRTMP_ADAPTER pAd,
 	IN MLME_QUEUE_ELEM *Elem);
 
-/*
-    ==========================================================================
-    Description:
-        association state machine init, including state transition and timer init
-    Parameters:
-        S - pointer to the association state machine
-    Note:
-        The state machine looks like the following
 
-                                    ASSOC_IDLE
-        MT2_MLME_DISASSOC_REQ    mlme_disassoc_req_action
-        MT2_PEER_DISASSOC_REQ    peer_disassoc_action
-        MT2_PEER_ASSOC_REQ       drop
-        MT2_PEER_REASSOC_REQ     drop
-        MT2_CLS3ERR              cls3err_action
-    ==========================================================================
- */
 VOID ActionStateMachineInit(
     IN	PRTMP_ADAPTER	pAd,
     IN  STATE_MACHINE *S,
@@ -106,13 +54,13 @@ VOID MlmeADDBAAction(
 
 	if(MlmeAddBAReqSanity(pAd, Elem->Msg, Elem->MsgLen, Addr))
 	{
-		NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+		NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 		if(NStatus != NDIS_STATUS_SUCCESS)
 		{
 			DBGPRINT(RT_DEBUG_TRACE,("BA - MlmeADDBAAction() allocate memory failed \n"));
 			return;
 		}
-		// 1. find entry
+		
 		Idx = pAd->MacTab.Content[pInfo->Wcid].BAOriWcidArray[pInfo->TID];
 		if (Idx == 0)
 		{
@@ -157,17 +105,7 @@ VOID MlmeADDBAAction(
     }
 }
 
-/*
-    ==========================================================================
-    Description:
-        send DELBA and delete BaEntry if any
-    Parametrs:
-        Elem - MLME message MLME_DELBA_REQ_STRUCT
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID MlmeDELBAAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -182,20 +120,20 @@ VOID MlmeDELBAAction(
 	FRAME_BAR	FrameBar;
 
 	pInfo = (MLME_DELBA_REQ_STRUCT *)Elem->Msg;
-	// must send back DELBA
+	
 	NdisZeroMemory(&Frame, sizeof(FRAME_DELBA_REQ));
 	DBGPRINT(RT_DEBUG_TRACE, ("==> MlmeDELBAAction(), Initiator(%d) \n", pInfo->Initiator));
 
 	if(MlmeDelBAReqSanity(pAd, Elem->Msg, Elem->MsgLen))
 	{
-		NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+		NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 		if(NStatus != NDIS_STATUS_SUCCESS)
 		{
 			DBGPRINT(RT_DEBUG_ERROR,("BA - MlmeDELBAAction() allocate memory failed 1. \n"));
 			return;
 		}
 
-		NStatus = MlmeAllocateMemory(pAd, &pOutBuffer2);  //Get an unused nonpaged memory
+		NStatus = MlmeAllocateMemory(pAd, &pOutBuffer2);  
 		if(NStatus != NDIS_STATUS_SUCCESS)
 		{
 			MlmeFreeMemory(pAd, pOutBuffer);
@@ -203,17 +141,17 @@ VOID MlmeDELBAAction(
 			return;
 		}
 
-		// SEND BAR (Send BAR to refresh peer reordering buffer.)
+		
 		Idx = pAd->MacTab.Content[pInfo->Wcid].BAOriWcidArray[pInfo->TID];
 
 		BarHeaderInit(pAd, &FrameBar, pAd->MacTab.Content[pInfo->Wcid].Addr, pAd->CurrentAddress);
 
-		FrameBar.StartingSeq.field.FragNum = 0; // make sure sequence not clear in DEL funciton.
-		FrameBar.StartingSeq.field.StartSeq = pAd->MacTab.Content[pInfo->Wcid].TxSeq[pInfo->TID]; // make sure sequence not clear in DEL funciton.
-		FrameBar.BarControl.TID = pInfo->TID; // make sure sequence not clear in DEL funciton.
-		FrameBar.BarControl.ACKPolicy = IMMED_BA; // make sure sequence not clear in DEL funciton.
-		FrameBar.BarControl.Compressed = 1; // make sure sequence not clear in DEL funciton.
-		FrameBar.BarControl.MTID = 0; // make sure sequence not clear in DEL funciton.
+		FrameBar.StartingSeq.field.FragNum = 0; 
+		FrameBar.StartingSeq.field.StartSeq = pAd->MacTab.Content[pInfo->Wcid].TxSeq[pInfo->TID]; 
+		FrameBar.BarControl.TID = pInfo->TID; 
+		FrameBar.BarControl.ACKPolicy = IMMED_BA; 
+		FrameBar.BarControl.Compressed = 1; 
+		FrameBar.BarControl.MTID = 0; 
 
 		MakeOutgoingFrame(pOutBuffer2,				&FrameLen,
 					  sizeof(FRAME_BAR),	  &FrameBar,
@@ -222,7 +160,7 @@ VOID MlmeDELBAAction(
 		MlmeFreeMemory(pAd, pOutBuffer2);
 		DBGPRINT(RT_DEBUG_TRACE,("BA - MlmeDELBAAction() . Send BAR to refresh peer reordering buffer \n"));
 
-		// SEND DELBA FRAME
+		
 		FrameLen = 0;
 
 		{
@@ -236,7 +174,7 @@ VOID MlmeDELBAAction(
 		Frame.Action = DELBA;
 		Frame.DelbaParm.Initiator = pInfo->Initiator;
 		Frame.DelbaParm.TID = pInfo->TID;
-		Frame.ReasonCode = 39; // Time Out
+		Frame.ReasonCode = 39; 
 		*(USHORT *)(&Frame.DelbaParm) = cpu2le16(*(USHORT *)(&Frame.DelbaParm));
 		Frame.ReasonCode = cpu2le16(Frame.ReasonCode);
 
@@ -265,8 +203,8 @@ VOID MlmeInvalidAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
 {
-	//PUCHAR		   pOutBuffer = NULL;
-	//Return the receiving frame except the MSB of category filed set to 1.  7.3.1.11
+	
+	
 }
 
 VOID PeerQOSAction(
@@ -339,8 +277,8 @@ static VOID respond_ht_information_exchange_action(
 	UCHAR   		*pAddr;
 
 
-	// 2. Always send back ADDBA Response
-	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);	 //Get an unused nonpaged memory
+	
+	NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);	 
 
 	if (NStatus != NDIS_STATUS_SUCCESS)
 	{
@@ -348,12 +286,12 @@ static VOID respond_ht_information_exchange_action(
 		return;
 	}
 
-	// get RA
+	
 	pFrame = (FRAME_HT_INFO *) &Elem->Msg[0];
 	pAddr = pFrame->Hdr.Addr2;
 
 	NdisZeroMemory(&HTINFOframe, sizeof(FRAME_HT_INFO));
-	// 2-1. Prepare ADDBA Response frame.
+	
 	{
 		if (ADHOC_ON(pAd))
 			ActHeaderInit(pAd, &HTINFOframe.Hdr, pAddr, pAd->CurrentAddress, pAd->CommonCfg.Bssid);
@@ -391,20 +329,20 @@ VOID PeerHTAction(
 
 			if(pAd->StaActive.SupportedPhyInfo.bHtEnable == FALSE)
 			{
-				// Note, this is to patch DIR-1353 AP. When the AP set to Wep, it will use legacy mode. But AP still keeps
-				// sending BW_Notify Action frame, and cause us to linkup and linkdown.
-				// In legacy mode, don't need to parse HT action frame.
+				
+				
+				
 				DBGPRINT(RT_DEBUG_TRACE,("ACTION -Ignore HT Notify Channel BW when link as legacy mode. BW = %d---> \n",
 								Elem->Msg[LENGTH_802_11+2] ));
 				break;
 			}
 
-			if (Elem->Msg[LENGTH_802_11+2] == 0)	// 7.4.8.2. if value is 1, keep the same as supported channel bandwidth.
+			if (Elem->Msg[LENGTH_802_11+2] == 0)	
 				pAd->MacTab.Content[Elem->Wcid].HTPhyMode.field.BW = 0;
 
 			break;
 		case SMPS_ACTION:
-			// 7.3.1.25
+			
  			DBGPRINT(RT_DEBUG_TRACE,("ACTION - SMPS action----> \n"));
 			if (((Elem->Msg[LENGTH_802_11+2]&0x1) == 0))
 			{
@@ -420,7 +358,7 @@ VOID PeerHTAction(
 			}
 
 			DBGPRINT(RT_DEBUG_TRACE,("Aid(%d) MIMO PS = %d\n", Elem->Wcid, pAd->MacTab.Content[Elem->Wcid].MmpsMode));
-			// rt2860c : add something for smps change.
+			
 			break;
 
 		case SETPCO_ACTION:
@@ -432,7 +370,7 @@ VOID PeerHTAction(
 				HT_INFORMATION_OCTET	*pHT_info;
 
 				pHT_info = (HT_INFORMATION_OCTET *) &Elem->Msg[LENGTH_802_11+2];
-    				// 7.4.8.10
+    				
     				DBGPRINT(RT_DEBUG_TRACE,("ACTION - HT Information Exchange action----> \n"));
     				if (pHT_info->Request)
     				{
@@ -444,20 +382,7 @@ VOID PeerHTAction(
 }
 
 
-/*
-	==========================================================================
-	Description:
-		Retry sending ADDBA Reqest.
 
-	IRQL = DISPATCH_LEVEL
-
-	Parametrs:
-	p8023Header: if this is already 802.3 format, p8023Header is NULL
-
-	Return	: TRUE if put into rx reordering buffer, shouldn't indicaterxhere.
-				FALSE , then continue indicaterx at this moment.
-	==========================================================================
- */
 VOID ORIBATimerTimeout(
 	IN	PRTMP_ADAPTER	pAd)
 {
@@ -509,7 +434,7 @@ VOID SendRefreshBAR(
 
 			ASSERT(pBAEntry->Wcid < MAX_LEN_OF_MAC_TABLE);
 
-			NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+			NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 			if(NStatus != NDIS_STATUS_SUCCESS)
 			{
 				DBGPRINT(RT_DEBUG_ERROR,("BA - MlmeADDBAAction() allocate memory failed \n"));
@@ -520,9 +445,9 @@ VOID SendRefreshBAR(
 
 			BarHeaderInit(pAd, &FrameBar, pEntry->Addr, pAd->CurrentAddress);
 
-			FrameBar.StartingSeq.field.FragNum = 0; // make sure sequence not clear in DEL function.
-			FrameBar.StartingSeq.field.StartSeq = Sequence; // make sure sequence not clear in DEL funciton.
-			FrameBar.BarControl.TID = TID; // make sure sequence not clear in DEL funciton.
+			FrameBar.StartingSeq.field.FragNum = 0; 
+			FrameBar.StartingSeq.field.StartSeq = Sequence; 
+			FrameBar.BarControl.TID = TID; 
 
 			MakeOutgoingFrame(pOutBuffer,				&FrameLen,
 							  sizeof(FRAME_BAR),	  &FrameBar,
@@ -572,20 +497,7 @@ VOID BarHeaderInit(
 }
 
 
-/*
-	==========================================================================
-	Description:
-		Insert Category and action code into the action frame.
 
-	Parametrs:
-		1. frame buffer pointer.
-		2. frame length.
-		3. category code of the frame.
-		4. action code of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID InsertActField(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,

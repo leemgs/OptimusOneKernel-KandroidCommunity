@@ -1,38 +1,5 @@
-/*
-    comedi/drivers/mpc8260.c
-    driver for digital I/O pins on the MPC 8260 CPM module
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 2000,2001 David A. Schleef <ds@schleef.org>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
-/*
-Driver: mpc8260cpm
-Description: MPC8260 CPM module generic digital I/O lines
-Devices: [Motorola] MPC8260 CPM (mpc8260cpm)
-Author: ds
-Status: experimental
-Updated: Sat, 16 Mar 2002 17:34:48 -0800
-
-This driver is specific to the Motorola MPC8260 processor, allowing
-you to access the processor's generic digital I/O lines.
-
-It is apparently missing some code.
-*/
 
 #include "../comedidev.h"
 

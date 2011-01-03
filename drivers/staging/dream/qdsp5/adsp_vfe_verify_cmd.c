@@ -1,20 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/adsp_vfe_verify_cmd.c
- *
- * Verification code for aDSP VFE packets from userspace.
- *
- * Copyright (c) 2008 QUALCOMM Incorporated
- * Copyright (C) 2008 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <mach/qdsp5/qdsp5vfecmdi.h>
 #include "adsp.h"
@@ -134,7 +118,7 @@ static int verify_vfe_command_scale(struct msm_adsp_module *module,
 				    void *cmd_data, size_t cmd_size)
 {
 	uint32_t cmd_id = ((uint32_t *)cmd_data)[0];
-	// FIXME: check the size
+	
 	if (cmd_id > 1) {
 		printk(KERN_ERR "adsp: module %s: invalid VFE SCALE command id %d\n", module->name, cmd_id);
 		return -1;
@@ -198,11 +182,7 @@ static int verify_vfe_command_table(struct msm_adsp_module *module,
 			addr1_cbcr = (void **)(&cmd->op1_buf1_addr[2*i+1]);
 			addr2_y = (void **)(&cmd->op2_buf1_addr[2*i]);
 			addr2_cbcr = (void **)(&cmd->op2_buf1_addr[2*i+1]);
-/*
-			printk("module %s: [%d] %p %p %p %p\n",
-				module->name, i,
-				*addr1_y, *addr1_cbcr, *addr2_y, *addr2_cbcr);
-*/
+
 			if ((*addr1_y && adsp_pmem_fixup(module, addr1_y, size1_y)) ||
 			    (*addr1_cbcr && adsp_pmem_fixup(module, addr1_cbcr, size1_cbcr)) ||
 			    (*addr2_y && adsp_pmem_fixup(module, addr2_y, size2_y)) ||

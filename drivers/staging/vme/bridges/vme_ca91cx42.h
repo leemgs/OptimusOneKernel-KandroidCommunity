@@ -1,22 +1,4 @@
-/*
- * ca91c042.h
- *
- * Support for the Tundra Universe 1 and Universe II VME bridge chips
- *
- * Author: Tom Armistead
- * Updated by Ajit Prem
- * Copyright 2004 Motorola Inc.
- *
- * Further updated by Martyn Welch <martyn.welch@gefanuc.com>
- * Copyright 2009 GE Fanuc Intelligent Platforms Embedded Systems, Inc.
- *
- * Derived from ca91c042.h by Michael Wyrick
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #ifndef _CA91CX42_H
 #define _CA91CX42_H
@@ -29,24 +11,22 @@
 #define	PCI_DEVICE_ID_TUNDRA_CA91C142 0x0000
 #endif
 
-/*
- *  Define the number of each that the CA91C142 supports.
- */
-#define CA91C142_MAX_MASTER		8	/* Max Master Windows */
-#define CA91C142_MAX_SLAVE		8	/* Max Slave Windows */
-#define CA91C142_MAX_DMA		1	/* Max DMA Controllers */
-#define CA91C142_MAX_MAILBOX		4	/* Max Mail Box registers */
 
-/* See Page 2-77 in the Universe User Manual */
+#define CA91C142_MAX_MASTER		8	
+#define CA91C142_MAX_SLAVE		8	
+#define CA91C142_MAX_DMA		1	
+#define CA91C142_MAX_MAILBOX		4	
+
+
 struct ca91cx42_dma_descriptor {
-	unsigned int dctl;      /* DMA Control */
-	unsigned int dtbc;      /* Transfer Byte Count */
-	unsigned int dlv;       /* PCI Address */
-	unsigned int res1;      /* Reserved */
-	unsigned int dva;       /* Vme Address */
-	unsigned int res2;      /* Reserved */
-	unsigned int dcpp;      /* Pointer to Numed Cmd Packet with rPN */
-	unsigned int res3;      /* Reserved */
+	unsigned int dctl;      
+	unsigned int dtbc;      
+	unsigned int dlv;       
+	unsigned int res1;      
+	unsigned int dva;       
+	unsigned int res2;      
+	unsigned int dcpp;      
+	unsigned int res3;      
 };
 
 struct ca91cx42_dma_entry {
@@ -54,8 +34,8 @@ struct ca91cx42_dma_entry {
 	struct list_head list;
 };
 
-/* Universe Register Offsets */
-/* general PCI configuration registers */
+
+
 #define CA91CX42_PCI_ID		0x000
 #define CA91CX42_PCI_CSR	0x004
 #define CA91CX42_PCI_CLASS	0x008
@@ -237,36 +217,33 @@ static const int CA91CX42_VSI_TO[] = { VSI0_TO, VSI1_TO, VSI2_TO, VSI3_TO,
 #define VCSR_SET		0x0FF8
 #define VCSR_BS			0x0FFC
 
-// DMA General Control/Status Register DGCS (0x220)
-// 32-24 ||  GO   | STOPR | HALTR |   0   || CHAIN |   0   |   0   |   0   ||
-// 23-16 ||              VON              ||             VOFF              ||
-// 15-08 ||  ACT  | STOP  | HALT  |   0   || DONE  | LERR  | VERR  | P_ERR ||
-// 07-00 ||   0   | INT_S | INT_H |   0   || I_DNE | I_LER | I_VER | I_PER ||
 
-// VON - Length Per DMA VMEBus Transfer
-//  0000 = None
-//  0001 = 256 Bytes
-//  0010 = 512
-//  0011 = 1024
-//  0100 = 2048
-//  0101 = 4096
-//  0110 = 8192
-//  0111 = 16384
 
-// VOFF - wait between DMA tenures
-//  0000 = 0    us
-//  0001 = 16
-//  0010 = 32
-//  0011 = 64
-//  0100 = 128
-//  0101 = 256
-//  0110 = 512
-//  0111 = 1024
 
-/*
- * PCI Class Register
- * offset 008
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #define CA91CX42_BM_PCI_CLASS_BASE          0xFF000000
 #define CA91CX42_OF_PCI_CLASS_BASE          24
 #define CA91CX42_BM_PCI_CLASS_SUB           0x00FF0000
@@ -279,10 +256,7 @@ static const int CA91CX42_VSI_TO[] = { VSI0_TO, VSI1_TO, VSI2_TO, VSI3_TO,
 #define CA91CX42_OF_PCI_CLASS_RID_UNIVERSE_I 0
 #define CA91CX42_OF_PCI_CLASS_RID_UNIVERSE_II 1
 
-/*
- * PCI Misc Register
- * offset 00C
- */
+
 #define CA91CX42_BM_PCI_MISC0_BISTC         0x80000000
 #define CA91CX42_BM_PCI_MISC0_SBIST         0x60000000
 #define CA91CX42_BM_PCI_MISC0_CCODE         0x0F000000
@@ -292,10 +266,7 @@ static const int CA91CX42_VSI_TO[] = { VSI0_TO, VSI1_TO, VSI2_TO, VSI3_TO,
 #define CA91CX42_OF_PCI_MISC0_LTIMER        8
 
 
-/*
- * LSI Control Register
- * offset  100
- */
+
 #define CA91CX42_LSI_CTL_EN		(1<<31)
 #define CA91CX42_LSI_CTL_PWEN		(1<<30)
 
@@ -327,19 +298,13 @@ static const int CA91CX42_VSI_TO[] = { VSI0_TO, VSI1_TO, VSI2_TO, VSI3_TO,
 #define CA91CX42_LSI_CTL_LAS		(1<<0)
 
 
-/*
- * LMISC Register
- * offset  184
- */
+
 #define CA91CX42_BM_LMISC_CRT               0xF0000000
 #define CA91CX42_OF_LMISC_CRT               28
 #define CA91CX42_BM_LMISC_CWT               0x0F000000
 #define CA91CX42_OF_LMISC_CWT               24
 
-/*
- * SLSI Register
- * offset  188
- */
+
 #define CA91CX42_BM_SLSI_EN                 0x80000000
 #define CA91CX42_BM_SLSI_PWEN               0x40000000
 #define CA91CX42_BM_SLSI_VDW                0x00F00000
@@ -354,10 +319,7 @@ static const int CA91CX42_VSI_TO[] = { VSI0_TO, VSI1_TO, VSI2_TO, VSI3_TO,
 #define CA91CX42_OF_SLSI_LAS                0
 #define CA91CX42_BM_SLSI_RESERVED           0x3F0F0000
 
-/*
- * PCI Interrupt Enable Register
- * offset  300
- */
+
 #define CA91CX42_LINT_LM3		0x00800000
 #define CA91CX42_LINT_LM2		0x00400000
 #define CA91CX42_LINT_LM1		0x00200000
@@ -393,10 +355,7 @@ static const int CA91CX42_LINT_VIRQ[] = { 0, CA91CX42_LINT_VIRQ1,
 static const int CA91CX42_LINT_LM[] = { CA91CX42_LINT_LM0, CA91CX42_LINT_LM1,
 					CA91CX42_LINT_LM2, CA91CX42_LINT_LM3 };
 
-/*
- * MAST_CTL Register
- * offset  400
- */
+
 #define CA91CX42_BM_MAST_CTL_MAXRTRY        0xF0000000
 #define CA91CX42_OF_MAST_CTL_MAXRTRY        28
 #define CA91CX42_BM_MAST_CTL_PWON           0x0F000000
@@ -411,10 +370,7 @@ static const int CA91CX42_LINT_LM[] = { CA91CX42_LINT_LM0, CA91CX42_LINT_LM1,
 #define CA91CX42_BM_MAST_CTL_BUS_NO         0x0000000F
 #define CA91CX42_OF_MAST_CTL_BUS_NO         0
 
-/*
- * MISC_CTL Register
- * offset  404
- */
+
 #define CA91CX42_MISC_CTL_VBTO           0xF0000000
 #define CA91CX42_MISC_CTL_VARB           0x04000000
 #define CA91CX42_MISC_CTL_VARBTO         0x03000000
@@ -430,10 +386,7 @@ static const int CA91CX42_LINT_LM[] = { CA91CX42_LINT_LM0, CA91CX42_LINT_LM1,
 #define CA91CX42_OF_MISC_CTL_VARBTO         24
 #define CA91CX42_OF_MISC_CTL_VBTO           28
 
-/*
- * MISC_STAT Register
- * offset  408
- */
+
 #define CA91CX42_BM_MISC_STAT_ENDIAN        0x80000000
 #define CA91CX42_BM_MISC_STAT_LCLSIZE       0x40000000
 #define CA91CX42_BM_MISC_STAT_DY4AUTO       0x08000000
@@ -444,10 +397,7 @@ static const int CA91CX42_LINT_LM[] = { CA91CX42_LINT_LM0, CA91CX42_LINT_LM1,
 #define CA91CX42_BM_MISC_STAT_DY4AUTOID     0x0000FF00
 #define CA91CX42_OF_MISC_STAT_DY4AUTOID     8
 
-/*
- * VSI Control Register
- * offset  F00
- */
+
 #define CA91CX42_VSI_CTL_EN		(1<<31)
 #define CA91CX42_VSI_CTL_PWEN		(1<<30)
 #define CA91CX42_VSI_CTL_PREN		(1<<29)
@@ -475,10 +425,7 @@ static const int CA91CX42_LINT_LM[] = { CA91CX42_LINT_LM0, CA91CX42_LINT_LM1,
 #define CA91CX42_VSI_CTL_LAS_PCI_IO	(1<<0)
 #define CA91CX42_VSI_CTL_LAS_PCI_CONF	(1<<1)
 
-/*
- * VRAI_CTL Register
- * offset  F70
- */
+
 #define CA91CX42_BM_VRAI_CTL_EN             0x80000000
 #define CA91CX42_BM_VRAI_CTL_PGM            0x00C00000
 #define CA91CX42_OF_VRAI_CTL_PGM            22
@@ -487,9 +434,7 @@ static const int CA91CX42_LINT_LM[] = { CA91CX42_LINT_LM0, CA91CX42_LINT_LM1,
 #define CA91CX42_BM_VRAI_CTL_VAS            0x00030000
 #define CA91CX42_OF_VRAI_CTL_VAS            16
 
-/* VCSR_CTL Register
- * offset F80
- */
+
 #define CA91CX42_VCSR_CTL_EN		(1<<31)
 
 #define CA91CX42_VCSR_CTL_LAS_M		(3<<0)
@@ -497,9 +442,7 @@ static const int CA91CX42_LINT_LM[] = { CA91CX42_LINT_LM0, CA91CX42_LINT_LM1,
 #define CA91CX42_VCSR_CTL_LAS_PCI_IO	(1<<0)
 #define CA91CX42_VCSR_CTL_LAS_PCI_CONF	(1<<1)
 
-/* VCSR_BS Register
- * offset FFC
- */
+
 #define CA91CX42_VCSR_BS_SLOT_M		(0x1F<<27)
 
-#endif /* _CA91CX42_H */
+#endif 

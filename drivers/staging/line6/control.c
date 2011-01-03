@@ -1,13 +1,4 @@
-/*
- * Line6 Linux USB driver - 0.8.0
- *
- * Copyright (C) 2004-2009 Markus Grabner (grabner@icg.tugraz.at)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include "driver.h"
 
@@ -73,14 +64,7 @@ static ssize_t variax_get_param_int(struct device *dev, char *buf, int param)
 
 static ssize_t variax_get_param_float(struct device *dev, char *buf, int param)
 {
-	/*
-		We do our own floating point handling here since floats in the
-		kernel are problematic for at least two reasons: - many distros
-		are still shipped with binary kernels optimized for the ancient
-		80386 without FPU
-		- there isn't a printf("%f")
-		  (see http://www.kernelthread.com/publications/faq/335.html)
-	*/
+	
 
 	static const int BIAS = 0x7f;
 	static const int OFFSET = 0xf;

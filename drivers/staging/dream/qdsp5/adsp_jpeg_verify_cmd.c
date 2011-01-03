@@ -1,20 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/adsp_jpeg_verify_cmd.c
- *
- * Verification code for aDSP JPEG packets from userspace.
- *
- * Copyright (c) 2008 QUALCOMM Incorporated
- * Copyright (C) 2008 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <mach/qdsp5/qdsp5jpegcmdi.h>
 #include "adsp.h"

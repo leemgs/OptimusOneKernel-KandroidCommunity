@@ -1,64 +1,29 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-	Module Name:
-	cmm_sync.c
-
-	Abstract:
-
-	Revision History:
-	Who			When			What
-	--------	----------		----------------------------------------------
-	John Chang	2004-09-01      modified for rt2561/2661
-*/
 
 #include "../rt_config.h"
 
 
-// 2.4 Ghz channel plan index in the TxPower arrays.
-#define	BG_BAND_REGION_0_START	0			// 1,2,3,4,5,6,7,8,9,10,11
+
+#define	BG_BAND_REGION_0_START	0			
 #define	BG_BAND_REGION_0_SIZE	11
-#define	BG_BAND_REGION_1_START	0			// 1,2,3,4,5,6,7,8,9,10,11,12,13
+#define	BG_BAND_REGION_1_START	0			
 #define	BG_BAND_REGION_1_SIZE	13
-#define	BG_BAND_REGION_2_START	9			// 10,11
+#define	BG_BAND_REGION_2_START	9			
 #define	BG_BAND_REGION_2_SIZE	2
-#define	BG_BAND_REGION_3_START	9			// 10,11,12,13
+#define	BG_BAND_REGION_3_START	9			
 #define	BG_BAND_REGION_3_SIZE	4
-#define	BG_BAND_REGION_4_START	13			// 14
+#define	BG_BAND_REGION_4_START	13			
 #define	BG_BAND_REGION_4_SIZE	1
-#define	BG_BAND_REGION_5_START	0			// 1,2,3,4,5,6,7,8,9,10,11,12,13,14
+#define	BG_BAND_REGION_5_START	0			
 #define	BG_BAND_REGION_5_SIZE	14
-#define	BG_BAND_REGION_6_START	2			// 3,4,5,6,7,8,9
+#define	BG_BAND_REGION_6_START	2			
 #define	BG_BAND_REGION_6_SIZE	7
-#define	BG_BAND_REGION_7_START	4			// 5,6,7,8,9,10,11,12,13
+#define	BG_BAND_REGION_7_START	4			
 #define	BG_BAND_REGION_7_SIZE	9
-#define	BG_BAND_REGION_31_START	0			// 1,2,3,4,5,6,7,8,9,10,11,12,13,14
+#define	BG_BAND_REGION_31_START	0			
 #define	BG_BAND_REGION_31_SIZE	14
 
-// 5 Ghz channel plan index in the TxPower arrays.
+
 UCHAR A_BAND_REGION_0_CHANNEL_LIST[]={36, 40, 44, 48, 52, 56, 60, 64, 149, 153, 157, 161, 165};
 UCHAR A_BAND_REGION_1_CHANNEL_LIST[]={36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140};
 UCHAR A_BAND_REGION_2_CHANNEL_LIST[]={36, 40, 44, 48, 52, 56, 60, 64};
@@ -77,21 +42,10 @@ UCHAR A_BAND_REGION_14_CHANNEL_LIST[]={36, 40, 44, 48, 52, 56, 60, 64, 100, 104,
 UCHAR A_BAND_REGION_15_CHANNEL_LIST[]={149, 153, 157, 161, 165, 169, 173};
 
 
-//BaSizeArray follows the 802.11n definition as MaxRxFactor.  2^(13+factor) bytes. When factor =0, it's about Ba buffer size =8.
+
 UCHAR BaSizeArray[4] = {8,16,32,64};
 
-/*
-	==========================================================================
-	Description:
-		Update StaCfg->ChannelList[] according to 1) Country Region 2) RF IC type,
-		and 3) PHY-mode user selected.
-		The outcome is used by driver when doing site survey.
 
-	IRQL = PASSIVE_LEVEL
-	IRQL = DISPATCH_LEVEL
-
-	==========================================================================
- */
 VOID BuildChannelList(
 	IN PRTMP_ADAPTER pAd)
 {
@@ -100,52 +54,52 @@ VOID BuildChannelList(
 
 	NdisZeroMemory(pAd->ChannelList, MAX_NUM_OF_CHANNELS * sizeof(CHANNEL_TX_POWER));
 
-	// if not 11a-only mode, channel list starts from 2.4Ghz band
+	
 	if ((pAd->CommonCfg.PhyMode != PHY_11A)
 #ifdef DOT11_N_SUPPORT
 		&& (pAd->CommonCfg.PhyMode != PHY_11AN_MIXED) && (pAd->CommonCfg.PhyMode != PHY_11N_5G)
-#endif // DOT11_N_SUPPORT //
+#endif 
 	)
 	{
 		switch (pAd->CommonCfg.CountryRegion  & 0x7f)
 		{
-			case REGION_0_BG_BAND:	// 1 -11
+			case REGION_0_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_0_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_0_SIZE);
 				index += BG_BAND_REGION_0_SIZE;
 				break;
-			case REGION_1_BG_BAND:	// 1 - 13
+			case REGION_1_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_1_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_1_SIZE);
 				index += BG_BAND_REGION_1_SIZE;
 				break;
-			case REGION_2_BG_BAND:	// 10 - 11
+			case REGION_2_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_2_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_2_SIZE);
 				index += BG_BAND_REGION_2_SIZE;
 				break;
-			case REGION_3_BG_BAND:	// 10 - 13
+			case REGION_3_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_3_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_3_SIZE);
 				index += BG_BAND_REGION_3_SIZE;
 				break;
-			case REGION_4_BG_BAND:	// 14
+			case REGION_4_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_4_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_4_SIZE);
 				index += BG_BAND_REGION_4_SIZE;
 				break;
-			case REGION_5_BG_BAND:	// 1 - 14
+			case REGION_5_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_5_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_5_SIZE);
 				index += BG_BAND_REGION_5_SIZE;
 				break;
-			case REGION_6_BG_BAND:	// 3 - 9
+			case REGION_6_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_6_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_6_SIZE);
 				index += BG_BAND_REGION_6_SIZE;
 				break;
-			case REGION_7_BG_BAND:  // 5 - 13
+			case REGION_7_BG_BAND:  
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_7_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_7_SIZE);
 				index += BG_BAND_REGION_7_SIZE;
 				break;
-			case REGION_31_BG_BAND:	// 1 - 14
+			case REGION_31_BG_BAND:	
 				NdisMoveMemory(&pAd->ChannelList[index], &pAd->TxPower[BG_BAND_REGION_31_START], sizeof(CHANNEL_TX_POWER) * BG_BAND_REGION_31_SIZE);
 				index += BG_BAND_REGION_31_SIZE;
 				break;
-			default:            // Error. should never happen
+			default:            
 				break;
 		}
 		for (i=0; i<index; i++)
@@ -156,7 +110,7 @@ VOID BuildChannelList(
 #ifdef DOT11_N_SUPPORT
 		|| (pAd->CommonCfg.PhyMode == PHY_11ABGN_MIXED) || (pAd->CommonCfg.PhyMode == PHY_11AN_MIXED)
 		|| (pAd->CommonCfg.PhyMode == PHY_11AGN_MIXED) || (pAd->CommonCfg.PhyMode == PHY_11N_5G)
-#endif // DOT11_N_SUPPORT //
+#endif 
 	)
 	{
 		switch (pAd->CommonCfg.CountryRegionForABand & 0x7f)
@@ -225,7 +179,7 @@ VOID BuildChannelList(
 				num = sizeof(A_BAND_REGION_15_CHANNEL_LIST)/sizeof(UCHAR);
 				pChannelList = A_BAND_REGION_15_CHANNEL_LIST;
 				break;
-			default:            // Error. should never happen
+			default:            
 				DBGPRINT(RT_DEBUG_WARN,("countryregion=%d not support", pAd->CommonCfg.CountryRegionForABand));
 				break;
 		}
@@ -262,36 +216,14 @@ VOID BuildChannelList(
 #endif
 }
 
-/*
-	==========================================================================
-	Description:
-		This routine return the first channel number according to the country
-		code selection and RF IC selection (signal band or dual band). It is called
-		whenever driver need to start a site survey of all supported channels.
-	Return:
-		ch - the first channel number of current country code setting
 
-	IRQL = PASSIVE_LEVEL
-
-	==========================================================================
- */
 UCHAR FirstChannel(
 	IN PRTMP_ADAPTER pAd)
 {
 	return pAd->ChannelList[0].Channel;
 }
 
-/*
-	==========================================================================
-	Description:
-		This routine returns the next channel number. This routine is called
-		during driver need to start a site survey of all supported channels.
-	Return:
-		next_channel - the next channel number valid in current country code setting.
-	Note:
-		return 0 if no more next channel
-	==========================================================================
- */
+
 UCHAR NextChannel(
 	IN PRTMP_ADAPTER pAd,
 	IN UCHAR channel)
@@ -308,36 +240,17 @@ UCHAR NextChannel(
 	return next_channel;
 }
 
-/*
-	==========================================================================
-	Description:
-		This routine is for Cisco Compatible Extensions 2.X
-		Spec31. AP Control of Client Transmit Power
-	Return:
-		None
-	Note:
-	   Required by Aironet dBm(mW)
-		   0dBm(1mW),   1dBm(5mW), 13dBm(20mW), 15dBm(30mW),
-		  17dBm(50mw), 20dBm(100mW)
 
-	   We supported
-		   3dBm(Lowest), 6dBm(10%), 9dBm(25%), 12dBm(50%),
-		  14dBm(75%),   15dBm(100%)
-
-		The client station's actual transmit power shall be within +/- 5dB of
-		the minimum value or next lower value.
-	==========================================================================
- */
 VOID ChangeToCellPowerLimit(
 	IN PRTMP_ADAPTER pAd,
 	IN UCHAR         AironetCellPowerLimit)
 {
-	//valud 0xFF means that hasn't found power limit information
-	//from the AP's Beacon/Probe response.
+	
+	
 	if (AironetCellPowerLimit == 0xFF)
 		return;
 
-	if (AironetCellPowerLimit < 6) //Used Lowest Power Percentage.
+	if (AironetCellPowerLimit < 6) 
 		pAd->CommonCfg.TxPowerPercentage = 6;
 	else if (AironetCellPowerLimit < 9)
 		pAd->CommonCfg.TxPowerPercentage = 10;
@@ -348,7 +261,7 @@ VOID ChangeToCellPowerLimit(
 	else if (AironetCellPowerLimit < 15)
 		pAd->CommonCfg.TxPowerPercentage = 75;
 	else
-		pAd->CommonCfg.TxPowerPercentage = 100; //else used maximum
+		pAd->CommonCfg.TxPowerPercentage = 100; 
 
 	if (pAd->CommonCfg.TxPowerPercentage > pAd->CommonCfg.TxPowerDefault)
 		pAd->CommonCfg.TxPowerPercentage = pAd->CommonCfg.TxPowerDefault;
@@ -362,7 +275,7 @@ CHAR	ConvertToRssi(
 {
 	UCHAR	RssiOffset, LNAGain;
 
-	// Rssi equals to zero should be an invalid value
+	
 	if (Rssi == 0)
 		return -99;
 
@@ -389,12 +302,7 @@ CHAR	ConvertToRssi(
     return (-12 - RssiOffset - LNAGain - Rssi);
 }
 
-/*
-	==========================================================================
-	Description:
-		Scan next channel
-	==========================================================================
- */
+
 VOID ScanNextChannel(
 	IN PRTMP_ADAPTER pAd)
 {
@@ -406,7 +314,7 @@ VOID ScanNextChannel(
 #ifdef CONFIG_STA_SUPPORT
 	USHORT          Status;
 	PHEADER_802_11  pHdr80211;
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 	UINT			ScanTimeIn5gChannel = SHORT_CHANNEL_TIME;
 
 #ifdef CONFIG_STA_SUPPORT
@@ -415,13 +323,13 @@ VOID ScanNextChannel(
 		if (MONITOR_ON(pAd))
 			return;
 	}
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 #ifdef RALINK_ATE
-	// Nothing to do in ATE mode.
+	
 	if (ATE_ON(pAd))
 		return;
-#endif // RALINK_ATE //
+#endif 
 
 	if (pAd->MlmeAux.Channel == 0)
 	{
@@ -429,7 +337,7 @@ VOID ScanNextChannel(
 #ifdef CONFIG_STA_SUPPORT
 			&& (INFRA_ON(pAd)
 				|| (pAd->OpMode == OPMODE_AP))
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 			)
 		{
 			AsicSwitchChannel(pAd, pAd->CommonCfg.CentralChannel, FALSE);
@@ -450,11 +358,11 @@ VOID ScanNextChannel(
 #ifdef CONFIG_STA_SUPPORT
 		IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
 		{
-			//
-			// To prevent data lost.
-			// Send an NULL data with turned PSM bit on to current associated AP before SCAN progress.
-			// Now, we need to send an NULL data with turned PSM bit off to AP, when scan progress done
-			//
+			
+			
+			
+			
+			
 			if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_MEDIA_STATE_CONNECTED) && (INFRA_ON(pAd)))
 			{
 				NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);
@@ -466,7 +374,7 @@ VOID ScanNextChannel(
 					pHdr80211->FC.Type = BTYPE_DATA;
 					pHdr80211->FC.PwrMgmt = (pAd->StaCfg.Psm == PWR_SAVE);
 
-					// Send using priority queue
+					
 					MiniportMMRequest(pAd, 0, pOutBuffer, sizeof(HEADER_802_11));
 					DBGPRINT(RT_DEBUG_TRACE, ("MlmeScanReqAction -- Send PSM Data frame\n"));
 					MlmeFreeMemory(pAd, pOutBuffer);
@@ -478,7 +386,7 @@ VOID ScanNextChannel(
 			Status = MLME_SUCCESS;
 			MlmeEnqueue(pAd, MLME_CNTL_STATE_MACHINE, MT2_SCAN_CONF, 2, &Status);
 		}
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
 		RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_BSS_SCAN_IN_PROGRESS);
@@ -488,15 +396,15 @@ VOID ScanNextChannel(
 #ifdef CONFIG_STA_SUPPORT
 		IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
 		{
-		// BBP and RF are not accessible in PS mode, we has to wake them up first
+		
 		if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_DOZE))
 			AsicForceWakeup(pAd, TRUE);
 
-			// leave PSM during scanning. otherwise we may lost ProbeRsp & BEACON
+			
 			if (pAd->StaCfg.Psm == PWR_SAVE)
 				RTMP_SET_PSM_BIT(pAd, PWR_ACTIVE);
 		}
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 		AsicSwitchChannel(pAd, pAd->MlmeAux.Channel, TRUE);
 		AsicLockChannel(pAd, pAd->MlmeAux.Channel);
@@ -513,34 +421,34 @@ VOID ScanNextChannel(
 				}
 			}
 
-#ifdef CARRIER_DETECTION_SUPPORT // Roger sync Carrier
-			// carrier detection
+#ifdef CARRIER_DETECTION_SUPPORT 
+			
 			if (pAd->CommonCfg.CarrierDetect.Enable == TRUE)
 			{
 				ScanType = SCAN_PASSIVE;
 				ScanTimeIn5gChannel = MIN_CHANNEL_TIME;
 			}
-#endif // CARRIER_DETECTION_SUPPORT //
+#endif 
 		}
 
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
-		//Global country domain(ch1-11:active scan, ch12-14 passive scan)
+		
 		if ((pAd->MlmeAux.Channel <= 14) && (pAd->MlmeAux.Channel >= 12) && ((pAd->CommonCfg.CountryRegion & 0x7f) == REGION_31_BG_BAND))
 		{
 			ScanType = SCAN_PASSIVE;
 		}
 
-		// We need to shorten active scan time in order for WZC connect issue
-		// Chnage the channel scan time for CISCO stuff based on its IAPP announcement
+		
+		
 		if (ScanType == FAST_SCAN_ACTIVE)
 			RTMPSetTimer(&pAd->MlmeAux.ScanTimer, FAST_ACTIVE_SCAN_TIME);
-		else // must be SCAN_PASSIVE or SCAN_ACTIVE
+		else 
 		{
 			if ((pAd->CommonCfg.PhyMode == PHY_11ABG_MIXED)
 #ifdef DOT11_N_SUPPORT
 				|| (pAd->CommonCfg.PhyMode == PHY_11ABGN_MIXED) || (pAd->CommonCfg.PhyMode == PHY_11AGN_MIXED)
-#endif // DOT11_N_SUPPORT //
+#endif 
 			)
 			{
 				if (pAd->MlmeAux.Channel > 14)
@@ -556,7 +464,7 @@ VOID ScanNextChannel(
 			|| (ScanType == FAST_SCAN_ACTIVE)
 			)
 		{
-			NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+			NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
 			if (NStatus != NDIS_STATUS_SUCCESS)
 			{
 				DBGPRINT(RT_DEBUG_TRACE, ("SYNC - ScanNextChannel() allocate memory fail\n"));
@@ -567,12 +475,12 @@ VOID ScanNextChannel(
 					Status = MLME_FAIL_NO_RESOURCE;
 					MlmeEnqueue(pAd, MLME_CNTL_STATE_MACHINE, MT2_SCAN_CONF, 2, &Status);
 				}
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 				return;
 			}
 
-			// There is no need to send broadcast probe request if active scan is in effect.
+			
 			if ((ScanType == SCAN_ACTIVE) || (ScanType == FAST_SCAN_ACTIVE)
 				)
 				SsidLen = pAd->MlmeAux.SsidLen;
@@ -582,7 +490,7 @@ VOID ScanNextChannel(
 #ifdef CONFIG_STA_SUPPORT
 			IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
 				MgtMacHeaderInit(pAd, &Hdr80211, SUBTYPE_PROBE_REQ, 0, BROADCAST_ADDR, BROADCAST_ADDR);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
 			MakeOutgoingFrame(pOutBuffer,               &FrameLen,
@@ -631,7 +539,7 @@ VOID ScanNextChannel(
 					}
 #else
 					*(USHORT *)(&HtCapabilityTmp.ExtHtCapInfo) = cpu2le16(*(USHORT *)(&HtCapabilityTmp.ExtHtCapInfo));
-#endif // UNALIGNMENT_SUPPORT //
+#endif 
 
 					MakeOutgoingFrame(pOutBuffer + FrameLen,          &Tmp,
 									1,                                &WpaIe,
@@ -646,7 +554,7 @@ VOID ScanNextChannel(
 									4,                                &BROADCOM[0],
 									pAd->MlmeAux.HtCapabilityLen,     &pAd->MlmeAux.HtCapability,
 									END_OF_ARGS);
-#endif // RT_BIG_ENDIAN //
+#endif 
 				}
 				else
 				{
@@ -664,7 +572,7 @@ VOID ScanNextChannel(
 					}
 #else
 					*(USHORT *)(&HtCapabilityTmp.ExtHtCapInfo) = cpu2le16(*(USHORT *)(&HtCapabilityTmp.ExtHtCapInfo));
-#endif // UNALIGNMENT_SUPPORT //
+#endif 
 
 					MakeOutgoingFrame(pOutBuffer + FrameLen,          &Tmp,
 									1,                                &HtCapIe,
@@ -677,7 +585,7 @@ VOID ScanNextChannel(
 									1,                                &HtLen,
 									HtLen,                            &pAd->CommonCfg.HtCapability,
 									END_OF_ARGS);
-#endif // RT_BIG_ENDIAN //
+#endif 
 				}
 				FrameLen += Tmp;
 
@@ -694,21 +602,21 @@ VOID ScanNextChannel(
 
 					FrameLen += Tmp;
 				}
-#endif // DOT11N_DRAFT3 //
+#endif 
 			}
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 
 			MiniportMMRequest(pAd, 0, pOutBuffer, FrameLen);
 			MlmeFreeMemory(pAd, pOutBuffer);
 		}
 
-		// For SCAN_CISCO_PASSIVE, do nothing and silently wait for beacon or other probe reponse
+		
 
 #ifdef CONFIG_STA_SUPPORT
 		IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
 			pAd->Mlme.SyncMachine.CurrState = SCAN_LISTEN;
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 	}
 }

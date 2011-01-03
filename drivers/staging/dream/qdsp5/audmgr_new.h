@@ -1,18 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/audmgr.h
- *
- * Copyright 2008 (c) QUALCOMM Incorporated.
- * Copyright (C) 2008 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #ifndef _ARCH_ARM_MACH_MSM_AUDMGR_NEW_H
 #define _ARCH_ARM_MACH_MSM_AUDMGR_NEW_H
@@ -151,13 +137,10 @@ struct rpc_audmgr_enable_client_args {
 
 struct rpc_audmgr_cb_func_ptr {
 	uint32_t cb_id;
-	uint32_t status; /* Audmgr status */
-	uint32_t set_to_one;  /* Pointer status (1 = valid, 0  = invalid) */
+	uint32_t status; 
+	uint32_t set_to_one;  
 	uint32_t disc;
-	/* disc = AUDMGR_STATUS_READY => data=handle
-	   disc = AUDMGR_STATUS_CODEC_CONFIG => data = handle
-	   disc = AUDMGR_STATUS_DISABLED => data =status_disabled
-	   disc = AUDMGR_STATUS_VOLUME_CHANGE => data = volume-change */
+	
 	union {
 		uint32_t handle;
 		uint32_t volume;

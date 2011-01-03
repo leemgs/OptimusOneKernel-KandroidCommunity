@@ -1,26 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/audio_qcelp.c
- *
- * qcelp 13k audio decoder device
- *
- * Copyright (c) 2008 QUALCOMM USA, INC.
- *
- * This code is based in part on audio_mp3.c, which is
- * Copyright (C) 2008 Google, Inc.
- * Copyright (C) 2008 HTC Corporation
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
- * See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you can find it at http://www.fsf.org.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -39,7 +17,7 @@
 #include <mach/qdsp5/qdsp5audplaymsg.h>
 
 #include "audmgr.h"
-/* for queue ids - should be relative to module number*/
+
 #include "adsp.h"
 
 #ifdef DEBUG
@@ -49,18 +27,18 @@ printk(KERN_DEBUG format, ## arg)
 #define dprintk(format, arg...) do {} while (0)
 #endif
 
-#define BUFSZ 1080 /* QCELP 13K Hold 600ms packet data = 36 * 30 */
+#define BUFSZ 1080 
 #define BUF_COUNT 2
 #define DMASZ (BUFSZ * BUF_COUNT)
 
-#define PCM_BUFSZ_MIN 1600 /* 100ms worth of data */
+#define PCM_BUFSZ_MIN 1600 
 #define PCM_BUF_MAX_COUNT 5
 
 #define AUDDEC_DEC_QCELP 9
 
 #define	ROUTING_MODE_FTRT	1
 #define	ROUTING_MODE_RT		2
-/* Decoder status received from AUDPPTASK */
+
 #define	AUDPP_DEC_STATUS_SLEEP	0
 #define	AUDPP_DEC_STATUS_INIT	1
 #define	AUDPP_DEC_STATUS_CFG	2
@@ -69,7 +47,7 @@ printk(KERN_DEBUG format, ## arg)
 struct buffer {
 	void *data;
 	unsigned size;
-	unsigned used;		/* Input usage actual DSP produced PCM size  */
+	unsigned used;		
 	unsigned addr;
 };
 
@@ -80,36 +58,36 @@ struct audio {
 
 	uint8_t out_head;
 	uint8_t out_tail;
-	uint8_t out_needed;	/* number of buffers the dsp is waiting for */
+	uint8_t out_needed;	
 
 	struct mutex lock;
 	struct mutex write_lock;
 	wait_queue_head_t write_wait;
 
-	/* Host PCM section - START */
+	
 	struct buffer in[PCM_BUF_MAX_COUNT];
 	struct mutex read_lock;
-	wait_queue_head_t read_wait;    /* Wait queue for read */
-	char *read_data;        /* pointer to reader buffer */
-	dma_addr_t read_phys;   /* physical address of reader buffer */
-	uint8_t read_next;      /* index to input buffers to be read next */
-	uint8_t fill_next;      /* index to buffer that DSP should be filling */
-	uint8_t pcm_buf_count;  /* number of pcm buffer allocated */
-	/* Host PCM section - END */
+	wait_queue_head_t read_wait;    
+	char *read_data;        
+	dma_addr_t read_phys;   
+	uint8_t read_next;      
+	uint8_t fill_next;      
+	uint8_t pcm_buf_count;  
+	
 
 	struct msm_adsp_module *audplay;
 
 	struct audmgr audmgr;
 
-	/* data allocated for various buffers */
+	
 	char *data;
 	dma_addr_t phys;
 
 	uint8_t opened:1;
 	uint8_t enabled:1;
 	uint8_t running:1;
-	uint8_t stopped:1;	/* set when stopped, cleared on flush */
-	uint8_t pcm_feedback:1; /* set when non-tunnel mode */
+	uint8_t stopped:1;	
+	uint8_t pcm_feedback:1; 
 	uint8_t buf_refresh:1;
 
 	unsigned volume;
@@ -127,7 +105,7 @@ static void audqcelp_config_hostpcm(struct audio *audio);
 static void audqcelp_buffer_refresh(struct audio *audio);
 static void audqcelp_dsp_event(void *private, unsigned id, uint16_t *msg);
 
-/* must be called with audio->lock held */
+
 static int audqcelp_enable(struct audio *audio)
 {
 	struct audmgr_config cfg;
@@ -167,7 +145,7 @@ static int audqcelp_enable(struct audio *audio)
 	return 0;
 }
 
-/* must be called with audio->lock held */
+
 static int audqcelp_disable(struct audio *audio)
 {
 	dprintk("audqcelp_disable()\n");
@@ -184,7 +162,7 @@ static int audqcelp_disable(struct audio *audio)
 	return 0;
 }
 
-/* ------------------- dsp --------------------- */
+
 static void audqcelp_update_pcm_buf_entry(struct audio *audio,
 	uint32_t *payload)
 {
@@ -407,12 +385,7 @@ static void audqcelp_send_data(struct audio *audio, unsigned needed)
 		goto done;
 
 	if (needed) {
-		/* We were called from the callback because the DSP
-		 * requested more data.  Note that the DSP does want
-		 * more data, and if a buffer was in-flight, mark it
-		 * as available (since the DSP must now be done with
-		 * it).
-		 */
+		
 		audio->out_needed = 1;
 		frame = audio->out + audio->out_tail;
 		if (frame->used == 0xffffffff) {
@@ -424,12 +397,7 @@ static void audqcelp_send_data(struct audio *audio, unsigned needed)
 	}
 
 	if (audio->out_needed) {
-		/* If the DSP currently wants data and we have a
-		 * buffer available, we will send it and reset
-		 * the needed flag.  We'll mark the buffer as in-flight
-		 * so that it won't be recycled until the next buffer
-		 * is requested
-		 */
+		
 
 		frame = audio->out + audio->out_tail;
 		if (frame->used) {
@@ -445,7 +413,7 @@ static void audqcelp_send_data(struct audio *audio, unsigned needed)
 	spin_unlock_irqrestore(&audio->dsp_lock, flags);
 }
 
-/* ------------------- device --------------------- */
+
 
 static void audqcelp_flush(struct audio *audio)
 {
@@ -503,11 +471,7 @@ static long audqcelp_ioctl(struct file *file, unsigned int cmd,
 		break;
 	case AUDIO_FLUSH:
 		if (audio->stopped) {
-			/* Make sure we're stopped and we wake any threads
-			 * that might be blocked holding the write_lock.
-			 * While audio->stopped write threads will always
-			 * exit immediately.
-			 */
+			
 			wake_up(&audio->write_wait);
 			mutex_lock(&audio->write_lock);
 			audqcelp_flush(audio);
@@ -568,7 +532,7 @@ static long audqcelp_ioctl(struct file *file, unsigned int cmd,
 			if (config.buffer_size < PCM_BUFSZ_MIN)
 				config.buffer_size = PCM_BUFSZ_MIN;
 
-			/* Check if pcm feedback is required */
+			
 			if ((config.pcm_feedback) && (!audio->read_data)) {
 				dprintk(
 				"audqcelp_ioctl: allocate PCM buf %d\n",
@@ -629,7 +593,7 @@ static ssize_t audqcelp_read(struct file *file, char __user *buf, size_t count,
 	int rc = 0;
 
 	if (!audio->pcm_feedback)
-		return 0; /* PCM feedback is not enabled. Nothing to read */
+		return 0; 
 
 	mutex_lock(&audio->read_lock);
 	dprintk("audqcelp_read() %d \n", count);
@@ -646,9 +610,7 @@ static ssize_t audqcelp_read(struct file *file, char __user *buf, size_t count,
 		}
 
 		if (count < audio->in[audio->read_next].used) {
-			/* Read must happen in frame boundary. Since driver does
-			not know frame size, read count must be greater or equal
-			to size of PCM samples */
+			
 			dprintk("audqcelp_read:read stop - partial frame\n");
 			break;
 		} else {
@@ -800,7 +762,7 @@ static int audqcelp_open(struct inode *inode, struct file *file)
 	audio->out[1].addr = audio->phys + BUFSZ;
 	audio->out[1].size = BUFSZ;
 
-	audio->volume = 0x2000;	/* Q13 1.0 */
+	audio->volume = 0x2000;	
 
 	audqcelp_flush(audio);
 

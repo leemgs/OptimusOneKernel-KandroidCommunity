@@ -1,46 +1,32 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : iod.c                                                 */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains OID functions.                             */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 #include "../hal/hpreg.h"
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfiWlanQueryMacAddress      */
-/*      Query OWN MAC address.                                          */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      addr : for return MAC address                                   */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      None                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfiWlanQueryMacAddress(zdev_t* dev, u8_t* addr)
 {
     u16_t vapId = 0;
@@ -58,9 +44,9 @@ void zfiWlanQueryMacAddress(zdev_t* dev, u8_t* addr)
     else
     {
 #ifdef ZM_VAPMODE_MULTILE_SSID
-        addr[5] = (u8_t)(wd->macAddr[2] >> 8); // Multiple SSID
+        addr[5] = (u8_t)(wd->macAddr[2] >> 8); 
 #else
-        addr[5] = vapId + 1 + (u8_t)(wd->macAddr[2] >> 8); //VAP
+        addr[5] = vapId + 1 + (u8_t)(wd->macAddr[2] >> 8); 
 #endif
     }
 
@@ -114,11 +100,11 @@ void zfiWlanQueryBssList(zdev_t* dev, struct zsBssList* pBssList)
 void zfiWlanQueryBssListV1(zdev_t* dev, struct zsBssListV1* bssListV1)
 {
     struct zsBssInfo*   pBssInfo;
-    //struct zsBssInfo*   pDstBssInfo;
+    
     u8_t   i, j, bdrop = 0, k = 0, Same_Count = 0;
     u8_t   bssid[6];
-    //u8_t*  pMemList;
-    //u8_t*  pMemInfo;
+    
+    
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
@@ -150,11 +136,11 @@ void zfiWlanQueryBssListV1(zdev_t* dev, struct zsBssListV1* bssListV1)
 					pBssInfo->ssid[1] = wd->sta.ssidLen;
 
 				if(Same_Count == 0)
-				{//First meet
+				{
 					Same_Count++;
 				}
 				else
-				{//same one
+				{
 					bdrop = 1;
 					bssListV1->bssCount--;
 				}
@@ -227,27 +213,27 @@ u32_t zfiWlanQueryTransmitPower(zdev_t* dev)
     return ret;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfiWlanFlushBssList         */
-/*      Flush BSSID List.                                               */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2006.12     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfiWlanFlushBssList(zdev_t* dev)
 {
     zmw_declare_for_critical_section();
 
     zmw_enter_critical_section(dev);
-    /* Call zfBssInfoRefresh() twice to remove all entry */
+    
     zfBssInfoRefresh(dev, 1);
     zmw_leave_critical_section(dev);
 }
@@ -325,12 +311,12 @@ void zfiWlanSetFragThreshold(zdev_t* dev, u16_t fragThreshold)
     zmw_enter_critical_section(dev);
 
     if (fragThreshold == 0)
-    {   /* fragmentation is disabled */
+    {   
         wd->fragThreshold = 32767;
     }
     else if (fragThreshold < 256)
     {
-        /* Minimum fragment threshold */
+        
         wd->fragThreshold = 256;
     }
     else if (fragThreshold > 2346)
@@ -373,7 +359,7 @@ void zfiWlanSetFrequency(zdev_t* dev, u32_t frequency, u8_t bImmediate)
     {
         zmw_enter_critical_section(dev);
         if( frequency == 0 )
-        { // Auto select clean channel depend on wireless environment !
+        { 
             wd->ws.autoSetFrequency = 0;
         }
         wd->ws.frequency = (u16_t) (frequency/1000);
@@ -412,7 +398,7 @@ void zfiWlanSetBeaconInterval(zdev_t* dev,
         wd->beaconInterval = beaconInterval;
         zmw_leave_critical_section(dev);
 
-        /* update beacon interval here */
+        
     }
     else
     {
@@ -450,7 +436,7 @@ void zfiWlanSetAtimWindow(zdev_t* dev, u16_t atimWindow, u8_t bImmediate)
         wd->sta.atimWindow = atimWindow;
         zmw_leave_critical_section(dev);
 
-        /* atim window here */
+        
     }
     else
     {
@@ -470,7 +456,7 @@ void zfiWlanSetEncryMode(zdev_t* dev, u8_t encryMode)
     zmw_enter_critical_section(dev);
     if (wd->wlanMode == ZM_MODE_AP)
     {
-        /* Hostapd Issue */
+        
         if ((wd->ws.encryMode != ZM_AES) && (wd->ws.encryMode != ZM_TKIP))
             wd->ws.encryMode = encryMode;
     }
@@ -491,7 +477,7 @@ u8_t zfiWlanQueryIsPKInstalled(zdev_t *dev, u8_t *staMacAddr)
     u8_t isInstalled = 0;
 
 #if 1
-//#ifdef ZM_ENABLE_IBSS_WPA2PSK
+
     u8_t   res, peerIdx;
 
     zmw_get_wlan_dev(dev);
@@ -505,7 +491,7 @@ u8_t zfiWlanQueryIsPKInstalled(zdev_t *dev, u8_t *staMacAddr)
         isInstalled = wd->sta.oppositeInfo[peerIdx].pkInstalled;
     }
     zmw_leave_critical_section(dev);
-//#endif
+
 #endif
 
     return isInstalled;
@@ -525,9 +511,9 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
     u8_t   userIdx=0;
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
-    /* Determine opposite exist or not */
+    
     u8_t   res, peerIdx;
-//    u8_t   userIdx=0;
+
 
     zmw_get_wlan_dev(dev);
 
@@ -548,14 +534,14 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 #endif
 
     if ( keyInfo.flag & ZM_KEY_FLAG_AUTHENTICATOR )
-    {   /* set key by authenticator */
-        /* set pairwise key */
+    {   
+        
         if (keyInfo.flag & ZM_KEY_FLAG_PK)
         {
-            /* Find STA's information */
+            
             if ((id = zfApFindSta(dev, keyInfo.macAddr)) == 0xffff)
             {
-                /* Can't STA in the staTable */
+                
                 return ZM_STATUS_FAILURE;
             }
 
@@ -563,14 +549,14 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
             wd->ap.staTable[id].iv32 = 0;
 
             if (keyInfo.keyLength == 32)
-            {   /* TKIP */
-                //u8_t KeyRsc[6] = {0, 0, 0, 0, 0, 0};
+            {   
+                
 
-                /* In the current AP mode, we set KeyRsc to zero */
-                //zfTkipInit(keyInfo.key, (u8_t*) wd->macAddr,
-                //           &(wd->ap.staTable[id].txSeed), KeyRsc);
-                //zfTkipInit(keyInfo.key, (u8_t*) keyInfo.macAddr,
-                //           &(wd->ap.staTable[id].rxSeed), KeyRsc);
+                
+                
+                
+                
+                
 #ifdef ZM_ENABLE_CENC
                 if (keyInfo.flag & ZM_KEY_FLAG_CENC)
                 {
@@ -578,7 +564,7 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 
                     wd->ap.staTable[id].encryMode = ZM_CENC;
 
-                    /* Reset txiv and rxiv */
+                    
                     wd->ap.staTable[id].txiv[0] = 0x5c365c37;
                     wd->ap.staTable[id].txiv[1] = 0x5c365c36;
                     wd->ap.staTable[id].txiv[2] = 0x5c365c36;
@@ -589,36 +575,36 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                     wd->ap.staTable[id].rxiv[2] = 0x5c365c36;
                     wd->ap.staTable[id].rxiv[3] = 0x5c365c36;
 
-                    /* Set Key Index */
+                    
                     wd->ap.staTable[id].cencKeyIdx = keyInfo.keyIndex;
 
-                    //zfCoreSetKey(dev, id+1, 1, ZM_CENC, (u16_t *)keyInfo.macAddr,
-                    //          (u32_t*) &keyInfo.key[16]);
+                    
+                    
                 }
                 else
-#endif //ZM_ENABLE_CENC
+#endif 
                 {
                     wd->ap.staTable[id].encryMode = ZM_TKIP;
 
                     zfMemoryCopy(micKey, &keyInfo.key[16], 8);
                     zfMemoryCopy(&micKey[8], &keyInfo.key[24], 8);
 
-                    //zfCoreSetKey(dev, id+1, 1, ZM_TKIP, (u16_t *)keyInfo.macAddr,
-                    //           (u32_t*) micKey);
+                    
+                    
 
-                    /* For fragmentation, we use software MIC */
+                    
                     zfMemoryCopy((u8_t *)&(wd->ap.staTable[id].txMicKey), &(keyInfo.key[16]), 8);
                     zfMemoryCopy((u8_t *)&(wd->ap.staTable[id].rxMicKey), &(keyInfo.key[24]), 8);
 
                 }
             }
             else if (keyInfo.keyLength == 16)
-            {   /* AES */
+            {   
                 wd->ap.staTable[id].encryMode = ZM_AES;
             }
             else if (keyInfo.keyLength == 0)
             {
-                /* Clear Key Info */
+                
                 zfApClearStaKey(dev, (u16_t *)keyInfo.macAddr);
 
                 return ZM_STATUS_SUCCESS;
@@ -628,8 +614,8 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 return ZM_STATUS_FAILURE;
             }
 
-            //zfCoreSetKey(dev, id+1, 0, wd->ap.staTable[id].encryMode,
-            //      (u16_t *)keyInfo.macAddr, (u32_t*) keyInfo.key);
+            
+            
             zfHpSetApPairwiseKey(dev, (u16_t *)keyInfo.macAddr,
                     wd->ap.staTable[id].encryMode, (u32_t*) keyInfo.key,
                     (u32_t*) &keyInfo.key[16], id+1);
@@ -643,61 +629,61 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
             wd->ap.iv32[vapId] = 0;
 
             if (keyInfo.keyLength == 32)
-            {   /* TKIP */
-                //u8_t KeyRsc[6] = {0, 0, 0, 0, 0, 0};
+            {   
+                
 
-                //zfTkipInit(keyInfo.key, (u8_t*) wd->macAddr,
-                //           &(wd->ap.bcSeed), KeyRsc);
+                
+                
 #ifdef ZM_ENABLE_CENC
                 if (keyInfo.flag & ZM_KEY_FLAG_CENC)
                 {
                     encryMode = ZM_CENC;
                     zm_debug_msg0("Set CENC group Key");
 
-                    /* Reset txiv and rxiv */
+                    
                     wd->ap.txiv[vapId][0] = 0x5c365c36;
                     wd->ap.txiv[vapId][1] = 0x5c365c36;
                     wd->ap.txiv[vapId][2] = 0x5c365c36;
                     wd->ap.txiv[vapId][3] = 0x5c365c36;
 
-                    //zfCoreSetKey(dev, 0, 1, ZM_CENC, keyInfo.vapAddr,
-                    //          (u32_t*) &keyInfo.key[16]);
+                    
+                    
                     key = (u32_t*) keyInfo.key;
                 }
                 else
-#endif //ZM_ENABLE_CENC
+#endif 
                 {
                     encryMode = ZM_TKIP;
                     key = (u32_t *)keyInfo.key;
 
-                    /* set MIC key to HMAC */
-                    //zfCoreSetKey(dev, 0, 1, ZM_TKIP, broadcast,
-                    //         (u32_t*) (&keyInfo.key[16]));
-                    //zfCoreSetKey(dev, 0, 1, ZM_TKIP, keyInfo.vapAddr,
-                    //           (u32_t*) (&keyInfo.key[16]));
+                    
+                    
+                    
+                    
+                    
 
                     zfMicSetKey(&(keyInfo.key[16]), &(wd->ap.bcMicKey[0]));
                     key = (u32_t*) keyInfo.key;
                 }
             }
             else if (keyInfo.keyLength == 16)
-            {   /* AES */
+            {   
                 encryMode = ZM_AES;
                 key = (u32_t *)keyInfo.key;
                 zm_debug_msg0("CWY - Set AES Group Key");
             }
             else if (keyInfo.keyLength == 0)
             {
-                /* Clear Key Info */
+                
                 zfApClearStaKey(dev, broadcast);
 
-                /* Turn off WEP bit in the capability field */
+                
                 wd->ap.capab[vapId] &= 0xffef;
 
                 return ZM_STATUS_SUCCESS;
             }
             else
-            {   /* WEP */
+            {   
                 if (keyInfo.keyLength == 5)
                 {
                     encryMode = ZM_WEP64;
@@ -714,42 +700,42 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 key = (u32_t*) keyInfo.key;
             }
 
-            // Modification for CAM not support VAP search
-            //zfCoreSetKey(dev, 0, 0, encryMode, broadcast, key);
-            //zfCoreSetKey(dev, 0, 0, encryMode, wd->macAddr, key);
-            //zfCoreSetKey(dev, 0, 0, encryMode, keyInfo.vapAddr, key);
+            
+            
+            
+            
             zfHpSetApGroupKey(dev, wd->macAddr, encryMode,
                     key, (u32_t*) &keyInfo.key[16], vapId);
 
-            //zfiWlanSetEncryMode(dev, encryMode);
+            
             wd->ws.encryMode = encryMode;
 
-            /* set the multicast address encryption type */
+            
             wd->ap.encryMode[vapId] = encryMode;
 
-            /* set the multicast key index */
+            
             wd->ap.bcKeyIndex[vapId] = keyInfo.keyIndex;
             wd->ap.bcHalKeyIdx[vapId] = vapId + 60;
 
-            /* Turn on WEP bit in the capability field */
+            
             wd->ap.capab[vapId] |= 0x10;
         }
     }
     else
-    {   /* set by supplicant */
+    {   
 
         if ( keyInfo.flag & ZM_KEY_FLAG_PK )
-        {   /* set pairwise key */
+        {   
 
-            //zfTkipInit(keyInfo.key, (u8_t*) wd->macAddr,
-            //           &wd->sta.txSeed, keyInfo.initIv);
-            //zfTkipInit(keyInfo.key, (u8_t*) wd->sta.bssid,
-            //           &wd->sta.rxSeed[keyInfo.keyIndex], keyInfo.initIv);
+            
+            
+            
+            
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
             if ( wd->sta.ibssWpa2Psk == 1 )
             {
-                /* unicast -- > pairwise key */
+                
                 wd->sta.oppositeInfo[userIdx].iv16 = 0;
                 wd->sta.oppositeInfo[userIdx].iv32 = 0;
             }
@@ -768,7 +754,7 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 #endif
 
             if ( keyInfo.keyLength == 32 )
-            {   /* TKIP */
+            {   
                 zfTkipInit(keyInfo.key, (u8_t*) wd->macAddr,
                         &wd->sta.txSeed, keyInfo.initIv);
                 zfTkipInit(keyInfo.key, (u8_t*) wd->sta.bssid,
@@ -781,7 +767,7 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 
                     wd->sta.encryMode = ZM_CENC;
 
-                    /* Reset txiv and rxiv */
+                    
                     wd->sta.txiv[0] = 0x5c365c36;
                     wd->sta.txiv[1] = 0x5c365c36;
                     wd->sta.txiv[2] = 0x5c365c36;
@@ -792,19 +778,19 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                     wd->sta.rxiv[2] = 0x5c365c36;
                     wd->sta.rxiv[3] = 0x5c365c36;
 
-                    /* Set Key Index */
+                    
                     wd->sta.cencKeyId = keyInfo.keyIndex;
 
-                    //zfCoreSetKey(dev, id+1, 1, ZM_CENC, (u16_t *)keyInfo.macAddr,
-                    //         (u32_t*) &keyInfo.key[16]);
+                    
+                    
                 }
                 else
-#endif //ZM_ENABLE_CENC
+#endif 
                 {
                     wd->sta.encryMode = ZM_TKIP;
 
-                    //zfCoreSetKey(dev, 0, 1, ZM_TKIP, wd->sta.bssid,
-                    //         (u32_t*) &keyInfo.key[16]);
+                    
+                    
 
                     zfMicSetKey(&keyInfo.key[16], &wd->sta.txMicKey);
                     zfMicSetKey(&keyInfo.key[24],
@@ -812,7 +798,7 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 }
             }
             else if ( keyInfo.keyLength == 16 )
-            {   /* AES */
+            {   
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
                 if ( wd->sta.ibssWpa2Psk == 1 )
                 {
@@ -833,52 +819,52 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 return ZM_STATUS_FAILURE;
             }
 
-            /* user 0 */
-            //zfCoreSetKey(dev, 0, 0, wd->sta.encryMode,
-            //         wd->sta.bssid, (u32_t*) keyInfo.key);
-            //zfHpSetStaPairwiseKey(dev, wd->sta.bssid, wd->sta.encryMode,
-            //    (u32_t*) keyInfo.key, (u32_t*) &keyInfo.key[16]);
+            
+            
+            
+            
+            
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
             if ( (keyInfo.keyLength==16) && (wd->sta.ibssWpa2Psk==1) )
-            { /* If not AES-CCMP and ibss network , use traditional */
+            { 
                 zfHpSetPerUserKey(dev,
                                 userIdx,
-                                keyInfo.keyIndex,  // key id == 0 ( Pairwise key = 0 )
-                                (u8_t*)keyInfo.macAddr,   // RX need Source Address ( Address 2 )
+                                keyInfo.keyIndex,  
+                                (u8_t*)keyInfo.macAddr,   
                                 encryType,
-//                              wd->sta.encryMode,
+
                                 (u32_t*) keyInfo.key, (u32_t*) &keyInfo.key[16]);
 
                 wd->sta.oppositeInfo[userIdx].wpaState = ZM_STA_WPA_STATE_PK_OK ;
             }
             else
-            {/* Big Endian and Little Endian Compatibility */
+            {
                 for (i = 0; i < 3; i++)
                 {
                     addr[2 * i] = wd->sta.bssid[i] & 0xff;
                     addr[2 * i + 1] = wd->sta.bssid[i] >> 8;
                 }
                 zfHpSetPerUserKey(dev,
-                                    ZM_USER_KEY_PK,   // user id
-                                    0,                // key id
-                                    addr,//(u8_t *)wd->sta.bssid,
+                                    ZM_USER_KEY_PK,   
+                                    0,                
+                                    addr,
                               wd->sta.encryMode,
                               (u32_t*) keyInfo.key, (u32_t*) &keyInfo.key[16]);
 
                 wd->sta.keyId = 4;
             }
 #else
-            /* Big Endian and Little Endian Compatibility */
+            
             for (i = 0; i < 3; i++)
             {
                 addr[2 * i] = wd->sta.bssid[i] & 0xff;
                 addr[2 * i + 1] = wd->sta.bssid[i] >> 8;
             }
             zfHpSetPerUserKey(dev,
-                              ZM_USER_KEY_PK,   // user id
-                              0,                // key id
-                              addr,//(u8_t *)wd->sta.bssid,
+                              ZM_USER_KEY_PK,   
+                              0,                
+                              addr,
                               wd->sta.encryMode,
                               (u32_t*) keyInfo.key, (u32_t*) &keyInfo.key[16]);
 
@@ -888,31 +874,31 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
             wd->sta.wpaState = ZM_STA_WPA_STATE_PK_OK;
         }
         else if ( keyInfo.flag & ZM_KEY_FLAG_GK )
-        {   /* set group key */
+        {   
 
             zfTkipInit(keyInfo.key, (u8_t*) wd->sta.bssid,
                        &wd->sta.rxSeed[keyInfo.keyIndex], keyInfo.initIv);
 
             if ( keyInfo.keyLength == 32 )
-            {   /* TKIP */
+            {   
 #ifdef ZM_ENABLE_CENC
                 if (keyInfo.flag & ZM_KEY_FLAG_CENC)
                 {
                     encryMode = ZM_CENC;
                     zm_debug_msg0("Set CENC group Key");
 
-                    /* Reset txiv and rxiv */
+                    
                     wd->sta.rxivGK[0] = 0x5c365c36;
                     wd->sta.rxivGK[1] = 0x5c365c36;
                     wd->sta.rxivGK[2] = 0x5c365c36;
                     wd->sta.rxivGK[3] = 0x5c365c36;
 
-                    //zfCoreSetKey(dev, 0, 1, ZM_CENC, keyInfo.vapAddr,
-                    //         (u32_t*) &keyInfo.key[16]);
+                    
+                    
                     key = (u32_t*) keyInfo.key;
                 }
                 else
-#endif //ZM_ENABLE_CENC
+#endif 
                 {
                     encryMode = ZM_TKIP;
                     key = (u32_t*) wd->sta.rxSeed[keyInfo.keyIndex].tk;
@@ -923,21 +909,21 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                         wd->sta.rxSeed[keyInfo.keyIndex].iv32 = 0;
                     }
 
-                    /* set MIC key to HMAC */
-                    //zfCoreSetKey(dev, 8, 1, ZM_TKIP, broadcast,
-                    //         (u32_t*) (&keyInfo.key[16]));
+                    
+                    
+                    
 
                     zfMicSetKey(&keyInfo.key[24],
                                 &wd->sta.rxMicKey[keyInfo.keyIndex]);
                 }
             }
             else if ( keyInfo.keyLength == 16 )
-            {   /* AES */
+            {   
                 encryMode = ZM_AES;
-                //key = (u32_t*) wd->sta.rxSeed[keyInfo.keyIndex].tk;
+                
             }
             else
-            {   /* WEP */
+            {   
                 if ( keyInfo.keyLength == 5 )
                 {
                     encryMode = ZM_WEP64;
@@ -954,27 +940,27 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 key = (u32_t*) keyInfo.key;
             }
 
-            /* user 8 */
-            //zfCoreSetKey(dev, 8, 0, encryMode, broadcast, key);
-            //zfHpSetStaGroupKey(dev, broadcast, encryMode,
-            //        (u32_t*) keyInfo.key, (u32_t*) (&keyInfo.key[16]));
+            
+            
+            
+            
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
             if ( (keyInfo.keyLength==16) && (wd->sta.ibssWpa2Psk==1) )
-            {/* If not AES-CCMP and ibss network , use traditional */
+            {
                 zfHpSetPerUserKey(dev,
                               userIdx,
-                              keyInfo.keyIndex,                // key id
-                              // (u8_t *)broadcast,                  // for only 2 stations IBSS netwrl ( A2 )
-                              (u8_t*)keyInfo.macAddr,   // for multiple ( > 2 ) stations IBSS network ( A2 )
+                              keyInfo.keyIndex,                
+                              
+                              (u8_t*)keyInfo.macAddr,   
                               encryMode,
                               (u32_t*) keyInfo.key, (u32_t*) &keyInfo.key[16]);
             }
             else
             {
                 zfHpSetPerUserKey(dev,
-                                ZM_USER_KEY_GK,   // user id
-                                0,                // key id
+                                ZM_USER_KEY_GK,   
+                                0,                
                                 (u8_t *)broadcast,
                                 encryMode,
                                 (u32_t*) keyInfo.key, (u32_t*) &keyInfo.key[16]);
@@ -983,8 +969,8 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
             }
 #else
             zfHpSetPerUserKey(dev,
-                              ZM_USER_KEY_GK,   // user id
-                              0,                // key id
+                              ZM_USER_KEY_GK,   
+                              0,                
                               (u8_t *)broadcast,
                               encryMode,
                               (u32_t*) keyInfo.key, (u32_t*) &keyInfo.key[16]);
@@ -993,7 +979,7 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 #endif
         }
         else
-        {   /* legacy WEP */
+        {   
             zm_debug_msg0("legacy WEP");
 
             if ( keyInfo.keyIndex >= 4 )
@@ -1015,9 +1001,9 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
             }
             else if ( keyInfo.keyLength == 32 )
             {
-                /* TKIP */
+                
                 #if 0
-                // Don't reset the IV since some AP would fail in IV check and drop our connection
+                
                 if ( wd->sta.wpaState != ZM_STA_WPA_STATE_PK_OK )
                 {
                     wd->sta.iv16 = 0;
@@ -1034,13 +1020,13 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
             }
             else if ( keyInfo.keyLength == 16 )
             {
-                /* AES */
+                
                 #if 0
-                // Don't reset the IV since some AP would fail in IV check and drop our connection
+                
                 if ( wd->sta.wpaState != ZM_STA_WPA_STATE_PK_OK )
                 {
-                    /* broadcast -- > group key */
-                    /* Only initialize when set our default key ! */
+                    
+                    
                     wd->sta.iv16 = 0;
                     wd->sta.iv32 = 0;
                 }
@@ -1053,8 +1039,8 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 zm_debug_msg0("WEP 256");
 
                 encryMode = ZM_WEP256;
-                //zfCoreSetKey(dev, 64, 1, wd->sta.encryMode,
-                //         wd->sta.bssid, (u32_t*) (&keyInfo.key[16]));
+                
+                
             }
             else
             {
@@ -1073,7 +1059,7 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 
             if ( keyInfo.flag & ZM_KEY_FLAG_DEFAULT_KEY )
             {
-                //for WEP default key 1~3 and ATOM platform--CWYang(+)
+                
                 vapId = 0;
                 wd->ap.bcHalKeyIdx[vapId] = keyInfo.keyIndex;
                 wd->ap.bcKeyIndex[vapId] = keyInfo.keyIndex;
@@ -1098,11 +1084,11 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 
 
 
-			//------------------------------------------------------------------------
+			
 
-            /* use default key */
-            //zfCoreSetKey(dev, ZM_USER_KEY_DEFAULT+keyInfo.keyIndex, 0,
-            //         wd->sta.encryMode, wd->sta.bssid, (u32_t*) keyInfo.key);
+            
+            
+            
 
             if ( encryMode == ZM_TKIP ||
                  encryMode == ZM_AES )
@@ -1112,7 +1098,7 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
             if ( (keyInfo.keyLength==16) && (wd->sta.ibssWpa2Psk==1) )
-            {/* If not AES-CCMP and ibss network , use traditional */
+            {
                 wd->sta.wpaState = ZM_STA_WPA_STATE_PK_OK;
             }
             else
@@ -1142,11 +1128,11 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 zfHpSetDefaultKey(dev, keyInfo.keyIndex, encryMode,
                                (u32_t*) keyInfo.key, NULL);
 
-                /* Save key for software WEP */
+                
                 zfMemoryCopy(wd->sta.wepKey[keyInfo.keyIndex], keyInfo.key,
                         keyInfo.keyLength);
 
-                /* TODO: Check whether we need to save the SWEncryMode */
+                
                 wd->sta.SWEncryMode[keyInfo.keyIndex] = encryMode;
 
                 wd->sta.encryMode = encryMode;
@@ -1155,15 +1141,15 @@ u8_t zfiWlanSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
         }
     }
 
-//    wd->sta.flagKeyChanging = 1;
+
     return ZM_STATUS_SUCCESS;
 }
 
-/* PSEUDO test */
+
 u8_t zfiWlanPSEUDOSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
 {
-    //u16_t  broadcast[3] = {0xffff, 0xffff, 0xffff};
-    //u32_t* key;
+    
+    
     u8_t   micKey[16];
 
     zmw_get_wlan_dev(dev);
@@ -1172,26 +1158,26 @@ u8_t zfiWlanPSEUDOSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
     {
         case 5:
             wd->sta.encryMode = ZM_WEP64;
-            /* use default key */
+            
             zfCoreSetKey(dev, 64, 0, ZM_WEP64, (u16_t *)keyInfo.macAddr, (u32_t*) keyInfo.key);
 		          break;
 
        	case 13:
             wd->sta.encryMode = ZM_WEP128;
-            /* use default key */
+            
             zfCoreSetKey(dev, 64, 0, ZM_WEP128, (u16_t *)keyInfo.macAddr, (u32_t*) keyInfo.key);
           		break;
 
        	case 29:
             wd->sta.encryMode = ZM_WEP256;
-            /* use default key */
+            
             zfCoreSetKey(dev, 64, 1, ZM_WEP256,  (u16_t *)keyInfo.macAddr, (u32_t*) (&keyInfo.key[16]));
             zfCoreSetKey(dev, 64, 0, ZM_WEP256, (u16_t *)keyInfo.macAddr, (u32_t*) keyInfo.key);
 		          break;
 
        	case 16:
             wd->sta.encryMode = ZM_AES;
-            //zfCoreSetKey(dev, 0, 0, ZM_AES, (u16_t *)keyInfo.macAddr, (u32_t*) keyInfo.key);
+            
             zfCoreSetKey(dev, 64, 0, ZM_AES, (u16_t *)keyInfo.macAddr, (u32_t*) keyInfo.key);
             break;
 
@@ -1202,7 +1188,7 @@ u8_t zfiWlanPSEUDOSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 u16_t boardcastAddr[3] = {0xffff, 0xffff, 0xffff};
                 u16_t Addr_a[] = { 0x0000, 0x0080, 0x0901};
                 u16_t Addr_b[] = { 0x0000, 0x0080, 0x0902};
-                /* CENC test: user0,1 and user2 for boardcast */
+                
                 wd->sta.encryMode = ZM_CENC;
                 zfCoreSetKey(dev, 0, 1, ZM_CENC, (u16_t *)Addr_a, (u32_t*) (&keyInfo.key[16]));
                 zfCoreSetKey(dev, 0, 0, ZM_CENC, (u16_t *)Addr_a, (u32_t*) keyInfo.key);
@@ -1213,14 +1199,14 @@ u8_t zfiWlanPSEUDOSetKey(zdev_t* dev, struct zsKeyInfo keyInfo)
                 zfCoreSetKey(dev, 2, 1, ZM_CENC, (u16_t *)boardcastAddr, (u32_t*) (&keyInfo.key[16]));
                 zfCoreSetKey(dev, 2, 0, ZM_CENC, (u16_t *)boardcastAddr, (u32_t*) keyInfo.key);
 
-                /* Initialize PN sequence */
+                
                 wd->sta.txiv[0] = 0x5c365c36;
                 wd->sta.txiv[1] = 0x5c365c36;
                 wd->sta.txiv[2] = 0x5c365c36;
                 wd->sta.txiv[3] = 0x5c365c36;
             }
             else
-#endif //ZM_ENABLE_CENC
+#endif 
             {
                 wd->sta.encryMode = ZM_TKIP;
                 zfCoreSetKey(dev, 64, 1, ZM_TKIP, (u16_t *)keyInfo.macAddr, (u32_t*) micKey);
@@ -1241,7 +1227,7 @@ void zfiWlanSetPowerSaveMode(zdev_t* dev, u8_t mode)
 
     wd->sta.powerSaveMode = mode;
 
-    /* send null data with PwrBit to inform AP */
+    
     if ( mode > ZM_STA_PS_NONE )
     {
         if ( wd->wlanMode == ZM_MODE_INFRASTRUCTURE )
@@ -1249,7 +1235,7 @@ void zfiWlanSetPowerSaveMode(zdev_t* dev, u8_t mode)
             zfSendNullData(dev, 1);
         }
 
-        /* device into PS mode */
+        
         zfPSDeviceSleep(dev);
     }
 #endif
@@ -1294,7 +1280,7 @@ u8_t zfiWlanQueryAuthenticationMode(zdev_t* dev, u8_t bWrapper)
     }
     else
     {
-        //authMode = wd->sta.authMode;
+        
         authMode = wd->sta.currentAuthMode;
     }
 
@@ -1367,17 +1353,7 @@ u32_t zfiWlanQueryFrequency(zdev_t* dev)
     return (wd->frequency*1000);
 }
 
-/***********************************************************
- * Function: zfiWlanQueryCurrentFrequency
- * Return value:
- *   -   0 : no validate current frequency
- *   - (>0): current frequency depend on "qmode"
- * Input:
- *   - qmode:
- *      0: return value depend on the support mode, this
-           qmode is use to solve the bug #31223
- *      1: return the actually current frequency
- ***********************************************************/
+
 u32_t zfiWlanQueryCurrentFrequency(zdev_t* dev, u8_t qmode)
 {
     u32_t frequency;
@@ -1449,8 +1425,8 @@ u32_t zfiWlanQueryFrequencyAttribute(zdev_t* dev, u32_t freq)
     return ret;
 }
 
-/* BandWidth  0=>20  1=>40 */
-/* ExtOffset  0=>20  1=>high control 40   3=>low control 40 */
+
+
 void zfiWlanQueryFrequencyHT(zdev_t* dev, u32_t *bandWidth, u32_t *extOffset)
 {
     zmw_get_wlan_dev(dev);
@@ -1638,14 +1614,14 @@ u8_t zfiWlanQueryMulticastCipherAlgo(zdev_t *dev)
 u8_t zfiWlanQueryHTMode(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
-    // 0:Legancy, 1:N
+    
     return wd->sta.EnableHT;
 }
 
 u8_t zfiWlanQueryBandWidth40(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
-    // 0:20M, 1:40M
+    
     return wd->BandWidth40;
 }
 
@@ -1660,7 +1636,7 @@ void zfiWlanSetWpaIe(zdev_t* dev, u8_t* ie, u8_t Length)
     u16_t vapId = 0;
     zmw_get_wlan_dev(dev);
 
-    if (wd->wlanMode == ZM_MODE_AP) // AP Mode
+    if (wd->wlanMode == ZM_MODE_AP) 
     {
         vapId = zfwGetVapId(dev);
 
@@ -1682,8 +1658,8 @@ void zfiWlanSetWpaIe(zdev_t* dev, u8_t* ie, u8_t Length)
         wd->sta.wpaLen = Length;
         zfMemoryCopy(wd->sta.wpaIe, ie, wd->sta.wpaLen);
     }
-    //zfiWlanSetWpaSupport(dev, 1);
-    if (wd->wlanMode == ZM_MODE_AP) // AP Mode
+    
+    if (wd->wlanMode == ZM_MODE_AP) 
     {
         wd->ap.wpaSupport[vapId] = 1;
     }
@@ -1699,7 +1675,7 @@ void zfiWlanSetWpaSupport(zdev_t* dev, u8_t WpaSupport)
     u16_t vapId = 0;
     zmw_get_wlan_dev(dev);
 
-    if (wd->wlanMode == ZM_MODE_AP) // AP Mode
+    if (wd->wlanMode == ZM_MODE_AP) 
     {
         vapId = zfwGetVapId(dev);
 
@@ -1783,14 +1759,14 @@ u8_t zfiWlanSetPmkidInfo(zdev_t* dev, u16_t* bssid, u8_t* pmkid)
         if ( zfMemoryIsEqual((u8_t*) wd->sta.pmkidInfo.bssidInfo[i].bssid,
                              (u8_t*) bssid, 6) )
         {
-            /* matched */
+            
             break;
         }
     }
 
     if ( i < wd->sta.pmkidInfo.bssidCount )
     {
-        /* overwrite the original one */
+        
         zfMemoryCopy(wd->sta.pmkidInfo.bssidInfo[i].pmkid, pmkid, 16);
     }
     else
@@ -1811,7 +1787,7 @@ u8_t zfiWlanSetPmkidInfo(zdev_t* dev, u16_t* bssid, u8_t* pmkid)
 
 u32_t zfiWlanQueryPmkidInfo(zdev_t* dev, u8_t* buf, u32_t len)
 {
-    //struct zsPmkidInfo* pPmkidInfo = ( struct zsPmkidInfo* ) buf;
+    
     u32_t  size;
 
     zmw_get_wlan_dev(dev);
@@ -1834,7 +1810,7 @@ void zfiWlanSetMulticastList(zdev_t* dev, u8_t size, u8_t* pList)
     struct zsMulticastAddr* pMacList = (struct zsMulticastAddr*) pList;
     u8_t   i;
     u8_t   bAllMulticast = 0;
-    //u32_t  value;
+    
 
     zmw_get_wlan_dev(dev);
 
@@ -1860,7 +1836,7 @@ void zfiWlanRemoveKey(zdev_t* dev, u8_t keyType, u8_t keyId)
 
     if ( keyType == 0 )
     {
-        /* remove WEP key */
+        
         zm_debug_msg0("remove WEP key");
         zfCoreSetKey(dev, ZM_USER_KEY_DEFAULT+keyId, 0,
                  ZM_NO_WEP, fakeMacAddr, fakeKey);
@@ -1868,14 +1844,14 @@ void zfiWlanRemoveKey(zdev_t* dev, u8_t keyType, u8_t keyId)
     }
     else if ( keyType == 1 )
     {
-        /* remove pairwise key */
+        
         zm_debug_msg0("remove pairwise key");
         zfHpRemoveKey(dev, ZM_USER_KEY_PK);
         wd->sta.encryMode = ZM_NO_WEP;
     }
     else
     {
-        /* remove group key */
+        
         zm_debug_msg0("remove group key");
         zfHpRemoveKey(dev, ZM_USER_KEY_GK);
     }
@@ -1890,7 +1866,7 @@ void zfiWlanQueryRegulationTable(zdev_t* dev, struct zsRegulationTable* pEntry)
                  sizeof(struct zsRegulationTable));
 }
 
-/* parameter "time" is specified in ms */
+
 void zfiWlanSetScanTimerPerChannel(zdev_t* dev, u16_t time)
 {
     zmw_get_wlan_dev(dev);
@@ -1905,7 +1881,7 @@ void zfiWlanSetAutoReconnect(zdev_t* dev, u8_t enable)
     zmw_get_wlan_dev(dev);
 
     wd->sta.bAutoReconnect = enable;
-    //wd->sta.bAutoReconnectEnabled = enable;
+    
 }
 
 void zfiWlanSetStaWme(zdev_t* dev, u8_t enable, u8_t uapsdInfo)
@@ -1985,26 +1961,26 @@ void zfiWlanSetIBSSJoinOnly(zdev_t* dev, u8_t joinOnly)
     wd->ws.ibssJoinOnly = joinOnly;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfiConfigWdsPort            */
-/*      Configure WDS port.                                             */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      wdsPortId : WDS port ID, start from 0                           */
-/*      flag : 0=>disable WDS port, 1=>enable WDS port                  */
-/*      wdsAddr : WDS neighbor MAC address                              */
-/*      encType : encryption type for WDS port                          */
-/*      wdsKey : encryption key for WDS port                            */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      Error code                                                      */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2006.6      */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfiConfigWdsPort(zdev_t* dev, u8_t wdsPortId, u16_t flag, u16_t* wdsAddr,
         u16_t encType, u32_t* wdsKey)
 {
@@ -2020,7 +1996,7 @@ u16_t zfiConfigWdsPort(zdev_t* dev, u8_t wdsPortId, u16_t flag, u16_t* wdsAddr,
 
     if (flag == 1)
     {
-        /* Enable WDS port */
+        
         wd->ap.wds.macAddr[wdsPortId][0] = wdsAddr[0];
         wd->ap.wds.macAddr[wdsPortId][1] = wdsAddr[1];
         wd->ap.wds.macAddr[wdsPortId][2] = wdsAddr[2];
@@ -2032,7 +2008,7 @@ u16_t zfiConfigWdsPort(zdev_t* dev, u8_t wdsPortId, u16_t flag, u16_t* wdsAddr,
     }
     else
     {
-        /* Disable WDS port */
+        
         addr[0] = addr[1] = addr[2] = 0;
         key[0] = key[1] = key[2] = key[3] = 0;
         wd->ap.wds.wdsBitmap &= (~(1 << wdsPortId));
@@ -2042,14 +2018,14 @@ u16_t zfiConfigWdsPort(zdev_t* dev, u8_t wdsPortId, u16_t flag, u16_t* wdsAddr,
     return ZM_SUCCESS;
 }
 #ifdef ZM_ENABLE_CENC
-/* CENC */
+
 void zfiWlanQueryGSN(zdev_t* dev, u8_t *gsn, u16_t vapId)
 {
-    //struct zsWlanDev* wd = (struct zsWlanDev*) zmw_wlan_dev(dev);
+    
     u32_t txiv[4];
     zmw_get_wlan_dev(dev);
 
-    /* convert little endian to big endian for 32 bits */
+    
     txiv[3] = wd->ap.txiv[vapId][0];
     txiv[2] = wd->ap.txiv[vapId][1];
     txiv[1] = wd->ap.txiv[vapId][2];
@@ -2057,35 +2033,35 @@ void zfiWlanQueryGSN(zdev_t* dev, u8_t *gsn, u16_t vapId)
 
     zfMemoryCopy(gsn, (u8_t*)txiv, 16);
 }
-#endif //ZM_ENABLE_CENC
-//CWYang(+)
+#endif 
+
 void zfiWlanQuerySignalInfo(zdev_t* dev, u8_t *buffer)
 {
     zmw_get_wlan_dev(dev);
 
-    /*Change Signal Strength/Quality Value to Human Sense Here*/
+    
 
     buffer[0] = wd->SignalStrength;
     buffer[1] = wd->SignalQuality;
 }
 
-/* OS-XP */
+
 u16_t zfiStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
 {
     return  zfStaAddIeWpaRsn(dev, buf, offset, frameType);
 }
 
-/* zfiDebugCmd                                                                        */
-/*     cmd       value-description                                                  */
-/*         0       schedule timer                                                     */
-/*         1       cancel timer                                                         */
-/*         2       clear timer                                                           */
-/*         3       test timer                                                            */
-/*         4                                                                                 */
-/*         5                                                                                 */
-/*         6       checksum test     0/1                                           */
-/*         7       enableProtectionMode                                          */
-/*         8       rx packet content dump    0/1                               */
+
+
+
+
+
+
+
+
+
+
+
 
 u32_t zfiDebugCmd(zdev_t* dev, u32_t cmd, u32_t value)
 {
@@ -2099,22 +2075,22 @@ u32_t zfiDebugCmd(zdev_t* dev, u32_t cmd, u32_t value)
     zmw_enter_critical_section(dev);
 
     if ( cmd == 0 )
-    {   /* schedule timer */
+    {   
         event = (u16_t) ((value >> 16) & 0xffff);
         tick = value & 0xffff;
         zfTimerSchedule(dev, event, tick);
     }
     else if ( cmd == 1 )
-    {   /* cancel timer */
+    {   
         event = (u16_t) (value & 0xffff);
         zfTimerCancel(dev, event);
     }
     else if ( cmd == 2 )
-    {   /* clear timer */
+    {   
         zfTimerClear(dev);
     }
     else if ( cmd == 3 )
-    {   /* test timer */
+    {   
         zfTimerSchedule(dev, 1,  500);
         zfTimerSchedule(dev, 2, 1000);
         zfTimerSchedule(dev, 3, 1000);
@@ -2146,7 +2122,7 @@ u32_t zfiDebugCmd(zdev_t* dev, u32_t cmd, u32_t value)
     }
 	else if ( cmd == 6 )
 	{
-	    /* 0: normal    1: always set TCP/UDP checksum zero */
+	    
         wd->checksumTest = value;
 	}
 	else if ( cmd == 7 )
@@ -2156,7 +2132,7 @@ u32_t zfiDebugCmd(zdev_t* dev, u32_t cmd, u32_t value)
 	}
 	else if ( cmd == 8 )
 	{
-        /* rx packet content dump */
+        
         if (value)
         {
             wd->rxPacketDump = 1;
@@ -2198,16 +2174,16 @@ u8_t zfiWlanSetCencPairwiseKey(zdev_t* dev, u8_t keyid, u32_t *txiv, u32_t *rxiv
 
     zfiWlanSetKey(dev, keyInfo);
 
-    /* Reset txiv and rxiv */
-    //wd->sta.txiv[0] = txiv[0];
-    //wd->sta.txiv[1] = txiv[1];
-    //wd->sta.txiv[2] = txiv[2];
-    //wd->sta.txiv[3] = txiv[3];
-    //
-    //wd->sta.rxiv[0] = rxiv[0];
-    //wd->sta.rxiv[1] = rxiv[1];
-    //wd->sta.rxiv[2] = rxiv[2];
-    //wd->sta.rxiv[3] = rxiv[3];
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     return 0;
 }
@@ -2237,7 +2213,7 @@ u8_t zfiWlanSetCencGroupKey(zdev_t* dev, u8_t keyid, u32_t *rxiv,
 
     zfiWlanSetKey(dev, keyInfo);
 
-    /* Reset txiv and rxiv */
+    
     wd->sta.rxivGK[0] = ((rxiv[3] >> 24) & 0xFF)
                       + (((rxiv[3] >> 16) & 0xFF) << 8)
                       + (((rxiv[3] >> 8) & 0xFF) << 16)
@@ -2260,7 +2236,7 @@ u8_t zfiWlanSetCencGroupKey(zdev_t* dev, u8_t keyid, u32_t *rxiv,
 
     return 0;
 }
-#endif //ZM_ENABLE_CENC
+#endif 
 
 u8_t zfiWlanSetDot11DMode(zdev_t* dev, u8_t mode)
 {
@@ -2269,13 +2245,13 @@ u8_t zfiWlanSetDot11DMode(zdev_t* dev, u8_t mode)
     zmw_get_wlan_dev(dev);
 
     wd->sta.b802_11D = mode;
-    if (mode) //Enable 802.11d
+    if (mode) 
     {
         wd->regulationTable.regionCode = NO_ENUMRD;
         for (i = 0; i < wd->regulationTable.allowChannelCnt; i++)
             wd->regulationTable.allowChannel[i].channelFlags |= ZM_REG_FLAG_CHANNEL_PASSIVE;
     }
-    else //Disable
+    else 
     {
         for (i = 0; i < wd->regulationTable.allowChannelCnt; i++)
             wd->regulationTable.allowChannel[i].channelFlags &= ~ZM_REG_FLAG_CHANNEL_PASSIVE;
@@ -2288,20 +2264,20 @@ u8_t zfiWlanSetDot11HDFSMode(zdev_t* dev, u8_t mode)
 {
     zmw_get_wlan_dev(dev);
 
-    //zm_debug_msg0("CWY - Enable 802.11h DFS");
+    
 
-    // TODO : DFS Enable in 5250 to 5350 MHz and 5470 to 5725 MHz .
-    //if ( Adapter->ZD80211HSupport &&
-    //   Adapter->CardSetting.NetworkTypeInUse == Ndis802_11OFDM5 &&
-    //   ((ChannelNo >=52 && ChannelNo <= 64)	||				//5250~5350 MHZ
-    //    (ChannelNo >=100 && ChannelNo <= 140))) 			//5470~5725 MHZ
-    //{
-    //   Adapter->ZD80211HSetting.DFSEnable=TRUE;
-    //}
-    //else
-    //{
-    //   Adapter->ZD80211HSetting.DFSEnable=FALSE;
-    //}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     wd->sta.DFSEnable = mode;
     if (mode)
@@ -2316,19 +2292,19 @@ u8_t zfiWlanSetDot11HTPCMode(zdev_t* dev, u8_t mode)
 {
     zmw_get_wlan_dev(dev);
 
-    // TODO : TPC Enable in 5150~5350 MHz and 5470~5725MHz.
-    //if ( Adapter->ZD80211HSupport &&
-    //   Adapter->CardSetting.NetworkTypeInUse == Ndis802_11OFDM5 &&
-    //   ((ChannelNo == 36 || ChannelNo == 40 || ChannelNo == 44 || ChannelNo == 48) ||	//5150~5250 MHZ , Not Japan
-    //    (ChannelNo >=52 && ChannelNo <= 64) ||				//5250~5350 MHZ
-    //    (ChannelNo >=100 && ChannelNo <= 140))) 			//5470~5725 MHZ
-    //{
-    //   Adapter->ZD80211HSetting.TPCEnable=TRUE;
-    //}
-    //else
-    //{
-    //   Adapter->ZD80211HSetting.TPCEnable=FALSE;
-    //}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     wd->sta.TPCEnable = mode;
     if (mode)
@@ -2505,12 +2481,12 @@ void zfiWlanSetRegulatory(zdev_t* dev, u8_t CCS, u16_t Code, u8_t bfirstChannel)
 
     if (CCS)
     {
-        /* Reset Regulation Table by Country Code */
+        
         zfHpGetRegulationTablefromCountry(dev, Code);
     }
     else
     {
-        /* Reset Regulation Table by Region Code */
+        
         zfHpGetRegulationTablefromRegionCode(dev, Code);
     }
 

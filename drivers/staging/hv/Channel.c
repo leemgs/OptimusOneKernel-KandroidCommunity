@@ -1,33 +1,14 @@
-/*
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- */
+
 #include <linux/kernel.h>
 #include <linux/mm.h>
 #include "osd.h"
 #include "logging.h"
 #include "VmbusPrivate.h"
 
-/* Internal routines */
+
 static int VmbusChannelCreateGpadlHeader(
-	void *Kbuffer,	/* must be phys and virt contiguous */
-	u32 Size,	/* page-size multiple */
+	void *Kbuffer,	
+	u32 Size,	
 	struct vmbus_channel_msginfo **msgInfo,
 	u32 *MessageCount);
 static void DumpVmbusChannel(struct vmbus_channel *channel);
@@ -64,9 +45,7 @@ static void DumpMonitorPage(struct hv_monitor_page *MonitorPage)
 }
 #endif
 
-/**
- * VmbusChannelSetEvent - Trigger an event notification on the specified channel.
- */
+
 static void VmbusChannelSetEvent(struct vmbus_channel *Channel)
 {
 	struct hv_monitor_page *monitorPage;
@@ -74,13 +53,13 @@ static void VmbusChannelSetEvent(struct vmbus_channel *Channel)
 	DPRINT_ENTER(VMBUS);
 
 	if (Channel->OfferMsg.MonitorAllocated) {
-		/* Each u32 represents 32 channels */
+		
 		set_bit(Channel->OfferMsg.ChildRelId & 31,
 			(unsigned long *) gVmbusConnection.SendInterruptPage +
 			(Channel->OfferMsg.ChildRelId >> 5));
 
 		monitorPage = gVmbusConnection.MonitorPages;
-		monitorPage++; /* Get the child to parent monitor page */
+		monitorPage++; 
 
 		set_bit(Channel->MonitorBit,
 			(unsigned long *)&monitorPage->TriggerGroup
@@ -101,14 +80,14 @@ static void VmbusChannelClearEvent(struct vmbus_channel *channel)
 	DPRINT_ENTER(VMBUS);
 
 	if (Channel->OfferMsg.MonitorAllocated) {
-		/* Each u32 represents 32 channels */
+		
 		clear_bit(Channel->OfferMsg.ChildRelId & 31,
 			  (unsigned long *)gVmbusConnection.SendInterruptPage +
 			  (Channel->OfferMsg.ChildRelId >> 5));
 
 		monitorPage =
 			(struct hv_monitor_page *)gVmbusConnection.MonitorPages;
-		monitorPage++; /* Get the child to parent monitor page */
+		monitorPage++; 
 
 		clear_bit(Channel->MonitorBit,
 			  (unsigned long *)&monitorPage->TriggerGroup
@@ -119,16 +98,14 @@ static void VmbusChannelClearEvent(struct vmbus_channel *channel)
 }
 
 #endif
-/**
- * VmbusChannelGetDebugInfo -Retrieve various channel debug info
- */
+
 void VmbusChannelGetDebugInfo(struct vmbus_channel *Channel,
 			      struct vmbus_channel_debug_info *DebugInfo)
 {
 	struct hv_monitor_page *monitorPage;
 	u8 monitorGroup = (u8)Channel->OfferMsg.MonitorId / 32;
 	u8 monitorOffset = (u8)Channel->OfferMsg.MonitorId % 32;
-	/* u32 monitorBit	= 1 << monitorOffset; */
+	
 
 	DebugInfo->RelId = Channel->OfferMsg.ChildRelId;
 	DebugInfo->State = Channel->State;
@@ -164,9 +141,7 @@ void VmbusChannelGetDebugInfo(struct vmbus_channel *Channel,
 	RingBufferGetDebugInfo(&Channel->Outbound, &DebugInfo->Outbound);
 }
 
-/**
- * VmbusChannelOpen - Open the specified channel.
- */
+
 int VmbusChannelOpen(struct vmbus_channel *NewChannel, u32 SendRingBufferSize,
 		     u32 RecvRingBufferSize, void *UserData, u32 UserDataLen,
 		     void (*OnChannelCallback)(void *context), void *Context)
@@ -179,14 +154,14 @@ int VmbusChannelOpen(struct vmbus_channel *NewChannel, u32 SendRingBufferSize,
 
 	DPRINT_ENTER(VMBUS);
 
-	/* Aligned to page size */
+	
 	ASSERT(!(SendRingBufferSize & (PAGE_SIZE - 1)));
 	ASSERT(!(RecvRingBufferSize & (PAGE_SIZE - 1)));
 
 	NewChannel->OnChannelCallback = OnChannelCallback;
 	NewChannel->ChannelCallbackContext = Context;
 
-	/* Allocate the ring buffer */
+	
 	out = osd_PageAlloc((SendRingBufferSize + RecvRingBufferSize)
 			     >> PAGE_SHIFT);
 	ASSERT(out);
@@ -202,7 +177,7 @@ int VmbusChannelOpen(struct vmbus_channel *NewChannel, u32 SendRingBufferSize,
 
 	RingBufferInit(&NewChannel->Inbound, in, RecvRingBufferSize);
 
-	/* Establish the gpadl for the ring buffer */
+	
 	DPRINT_DBG(VMBUS, "Establishing ring buffer's gpadl for channel %p...",
 		   NewChannel);
 
@@ -224,7 +199,7 @@ int VmbusChannelOpen(struct vmbus_channel *NewChannel, u32 SendRingBufferSize,
 		   NewChannel->Inbound.RingSize,
 		   SendRingBufferSize);
 
-	/* Create and init the channel open message */
+	
 	openInfo = kmalloc(sizeof(*openInfo) +
 			   sizeof(struct vmbus_channel_open_channel),
 			   GFP_KERNEL);
@@ -234,13 +209,13 @@ int VmbusChannelOpen(struct vmbus_channel *NewChannel, u32 SendRingBufferSize,
 
 	openMsg = (struct vmbus_channel_open_channel *)openInfo->Msg;
 	openMsg->Header.MessageType = ChannelMessageOpenChannel;
-	openMsg->OpenId = NewChannel->OfferMsg.ChildRelId; /* FIXME */
+	openMsg->OpenId = NewChannel->OfferMsg.ChildRelId; 
 	openMsg->ChildRelId = NewChannel->OfferMsg.ChildRelId;
 	openMsg->RingBufferGpadlHandle = NewChannel->RingBufferGpadlHandle;
 	ASSERT(openMsg->RingBufferGpadlHandle);
 	openMsg->DownstreamRingBufferPageOffset = SendRingBufferSize >>
 						  PAGE_SHIFT;
-	openMsg->ServerContextAreaGpadlHandle = 0; /* TODO */
+	openMsg->ServerContextAreaGpadlHandle = 0; 
 
 	ASSERT(UserDataLen <= MAX_USER_DEFINED_BYTES);
 	if (UserDataLen)
@@ -260,7 +235,7 @@ int VmbusChannelOpen(struct vmbus_channel *NewChannel, u32 SendRingBufferSize,
 		goto Cleanup;
 	}
 
-	/* FIXME: Need to time-out here */
+	
 	osd_WaitEventWait(openInfo->WaitEvent);
 
 	if (openInfo->Response.OpenResult.Status == 0)
@@ -282,9 +257,7 @@ Cleanup:
 	return 0;
 }
 
-/**
- * DumpGpadlBody - Dump the gpadl body message to the console for debugging purposes.
- */
+
 static void DumpGpadlBody(struct vmbus_channel_gpadl_body *Gpadl, u32 Len)
 {
 	int i;
@@ -299,9 +272,7 @@ static void DumpGpadlBody(struct vmbus_channel_gpadl_body *Gpadl, u32 Len)
 			   i, Gpadl->Pfn[i]);
 }
 
-/**
- * DumpGpadlHeader - Dump the gpadl header message to the console for debugging purposes.
- */
+
 static void DumpGpadlHeader(struct vmbus_channel_gpadl_header *Gpadl)
 {
 	int i, j;
@@ -324,9 +295,7 @@ static void DumpGpadlHeader(struct vmbus_channel_gpadl_header *Gpadl)
 	}
 }
 
-/**
- * VmbusChannelCreateGpadlHeader - Creates a gpadl for the specified buffer
- */
+
 static int VmbusChannelCreateGpadlHeader(void *Kbuffer, u32 Size,
 					 struct vmbus_channel_msginfo **MsgInfo,
 					 u32 *MessageCount)
@@ -342,21 +311,21 @@ static int VmbusChannelCreateGpadlHeader(void *Kbuffer, u32 Size,
 
 	int pfnSum, pfnCount, pfnLeft, pfnCurr, pfnSize;
 
-	/* ASSERT((kbuffer & (PAGE_SIZE-1)) == 0); */
+	
 	ASSERT((Size & (PAGE_SIZE-1)) == 0);
 
 	pageCount = Size >> PAGE_SHIFT;
 	pfn = virt_to_phys(Kbuffer) >> PAGE_SHIFT;
 
-	/* do we need a gpadl body msg */
+	
 	pfnSize = MAX_SIZE_CHANNEL_MESSAGE -
 		  sizeof(struct vmbus_channel_gpadl_header) -
 		  sizeof(struct gpa_range);
 	pfnCount = pfnSize / sizeof(u64);
 
 	if (pageCount > pfnCount) {
-		/* we need a gpadl body */
-		/* fill in the header */
+		
+		
 		msgSize = sizeof(struct vmbus_channel_msginfo) +
 			  sizeof(struct vmbus_channel_gpadl_header) +
 			  sizeof(struct gpa_range) + pfnCount * sizeof(u64);
@@ -379,12 +348,12 @@ static int VmbusChannelCreateGpadlHeader(void *Kbuffer, u32 Size,
 		pfnSum = pfnCount;
 		pfnLeft = pageCount - pfnCount;
 
-		/* how many pfns can we fit */
+		
 		pfnSize = MAX_SIZE_CHANNEL_MESSAGE -
 			  sizeof(struct vmbus_channel_gpadl_body);
 		pfnCount = pfnSize / sizeof(u64);
 
-		/* fill in the body */
+		
 		while (pfnLeft) {
 			if (pfnLeft > pfnCount)
 				pfnCurr = pfnCount;
@@ -401,23 +370,19 @@ static int VmbusChannelCreateGpadlHeader(void *Kbuffer, u32 Size,
 			gpadlBody =
 				(struct vmbus_channel_gpadl_body *)msgBody->Msg;
 
-			/*
-			 * FIXME:
-			 * Gpadl is u32 and we are using a pointer which could
-			 * be 64-bit
-			 */
-			/* gpadlBody->Gpadl = kbuffer; */
+			
+			
 			for (i = 0; i < pfnCurr; i++)
 				gpadlBody->Pfn[i] = pfn + pfnSum + i;
 
-			/* add to msg header */
+			
 			list_add_tail(&msgBody->MsgListEntry,
 				      &msgHeader->SubMsgList);
 			pfnSum += pfnCurr;
 			pfnLeft -= pfnCurr;
 		}
 	} else {
-		/* everything fits in a header */
+		
 		msgSize = sizeof(struct vmbus_channel_msginfo) +
 			  sizeof(struct vmbus_channel_gpadl_header) +
 			  sizeof(struct gpa_range) + pageCount * sizeof(u64);
@@ -440,20 +405,13 @@ static int VmbusChannelCreateGpadlHeader(void *Kbuffer, u32 Size,
 	return 0;
 }
 
-/**
- * VmbusChannelEstablishGpadl - Estabish a GPADL for the specified buffer
- *
- * @Channel: a channel
- * @Kbuffer: from kmalloc
- * @Size: page-size multiple
- * @GpadlHandle: some funky thing
- */
+
 int VmbusChannelEstablishGpadl(struct vmbus_channel *Channel, void *Kbuffer,
 			       u32 Size, u32 *GpadlHandle)
 {
 	struct vmbus_channel_gpadl_header *gpadlMsg;
 	struct vmbus_channel_gpadl_body *gpadlBody;
-	/* struct vmbus_channel_gpadl_created *gpadlCreated; */
+	
 	struct vmbus_channel_msginfo *msgInfo;
 	struct vmbus_channel_msginfo *subMsgInfo;
 	u32 msgCount;
@@ -500,7 +458,7 @@ int VmbusChannelEstablishGpadl(struct vmbus_channel *Channel, void *Kbuffer,
 	if (msgCount > 1) {
 		list_for_each(curr, &msgInfo->SubMsgList) {
 
-			/* FIXME: should this use list_entry() instead ? */
+			
 			subMsgInfo = (struct vmbus_channel_msginfo *)curr;
 			gpadlBody =
 			     (struct vmbus_channel_gpadl_body *)subMsgInfo->Msg;
@@ -522,7 +480,7 @@ int VmbusChannelEstablishGpadl(struct vmbus_channel *Channel, void *Kbuffer,
 	}
 	osd_WaitEventWait(msgInfo->WaitEvent);
 
-	/* At this point, we received the gpadl created msg */
+	
 	DPRINT_DBG(VMBUS, "Received GPADL created "
 		   "(relid %d, status %d handle %x)",
 		   Channel->OfferMsg.ChildRelId,
@@ -544,9 +502,7 @@ Cleanup:
 	return ret;
 }
 
-/**
- * VmbusChannelTeardownGpadl -Teardown the specified GPADL handle
- */
+
 int VmbusChannelTeardownGpadl(struct vmbus_channel *Channel, u32 GpadlHandle)
 {
 	struct vmbus_channel_gpadl_teardown *msg;
@@ -578,13 +534,13 @@ int VmbusChannelTeardownGpadl(struct vmbus_channel *Channel, u32 GpadlHandle)
 	ret = VmbusPostMessage(msg,
 			       sizeof(struct vmbus_channel_gpadl_teardown));
 	if (ret != 0) {
-		/* TODO: */
-		/* something... */
+		
+		
 	}
 
 	osd_WaitEventWait(info->WaitEvent);
 
-	/* Received a torndown response */
+	
 	spin_lock_irqsave(&gVmbusConnection.channelmsg_lock, flags);
 	list_del(&info->MsgListEntry);
 	spin_unlock_irqrestore(&gVmbusConnection.channelmsg_lock, flags);
@@ -597,9 +553,7 @@ int VmbusChannelTeardownGpadl(struct vmbus_channel *Channel, u32 GpadlHandle)
 	return ret;
 }
 
-/**
- * VmbusChannelClose - Close the specified channel
- */
+
 void VmbusChannelClose(struct vmbus_channel *Channel)
 {
 	struct vmbus_channel_close_channel *msg;
@@ -609,16 +563,16 @@ void VmbusChannelClose(struct vmbus_channel *Channel)
 
 	DPRINT_ENTER(VMBUS);
 
-	/* Stop callback and cancel the timer asap */
+	
 	Channel->OnChannelCallback = NULL;
 	del_timer_sync(&Channel->poll_timer);
 
-	/* Send a closing message */
+	
 	info = kmalloc(sizeof(*info) +
 		       sizeof(struct vmbus_channel_close_channel), GFP_KERNEL);
 	ASSERT(info != NULL);
 
-	/* info->waitEvent = osd_WaitEventCreate(); */
+	
 
 	msg = (struct vmbus_channel_close_channel *)info->Msg;
 	msg->Header.MessageType = ChannelMessageCloseChannel;
@@ -626,18 +580,18 @@ void VmbusChannelClose(struct vmbus_channel *Channel)
 
 	ret = VmbusPostMessage(msg, sizeof(struct vmbus_channel_close_channel));
 	if (ret != 0) {
-		/* TODO: */
-		/* something... */
+		
+		
 	}
 
-	/* Tear down the gpadl for the channel's ring buffer */
+	
 	if (Channel->RingBufferGpadlHandle)
 		VmbusChannelTeardownGpadl(Channel,
 					  Channel->RingBufferGpadlHandle);
 
-	/* TODO: Send a msg to release the childRelId */
+	
 
-	/* Cleanup the ring buffers for this channel */
+	
 	RingBufferCleanup(&Channel->Outbound);
 	RingBufferCleanup(&Channel->Inbound);
 
@@ -645,11 +599,7 @@ void VmbusChannelClose(struct vmbus_channel *Channel)
 
 	kfree(info);
 
-	/*
-	 * If we are closing the channel during an error path in
-	 * opening the channel, don't free the channel since the
-	 * caller will free the channel
-	 */
+	
 
 	if (Channel->State == CHANNEL_OPEN_STATE) {
 		spin_lock_irqsave(&gVmbusConnection.channel_lock, flags);
@@ -662,9 +612,7 @@ void VmbusChannelClose(struct vmbus_channel *Channel)
 	DPRINT_EXIT(VMBUS);
 }
 
-/**
- * VmbusChannelSendPacket - Send the specified buffer on the given channel
- */
+
 int VmbusChannelSendPacket(struct vmbus_channel *Channel, const void *Buffer,
 			   u32 BufferLen, u64 RequestId,
 			   enum vmbus_packet_type Type, u32 Flags)
@@ -684,10 +632,10 @@ int VmbusChannelSendPacket(struct vmbus_channel *Channel, const void *Buffer,
 
 	ASSERT((packetLenAligned - packetLen) < sizeof(u64));
 
-	/* Setup the descriptor */
-	desc.Type = Type; /* VmbusPacketTypeDataInBand; */
-	desc.Flags = Flags; /* VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED; */
-	/* in 8-bytes granularity */
+	
+	desc.Type = Type; 
+	desc.Flags = Flags; 
+	
 	desc.DataOffset8 = sizeof(struct vmpacket_descriptor) >> 3;
 	desc.Length8 = (u16)(packetLenAligned >> 3);
 	desc.TransactionId = RequestId;
@@ -699,7 +647,7 @@ int VmbusChannelSendPacket(struct vmbus_channel *Channel, const void *Buffer,
 
 	ret = RingBufferWrite(&Channel->Outbound, bufferList, 3);
 
-	/* TODO: We should determine if this is optional */
+	
 	if (ret == 0 && !GetRingBufferInterruptMask(&Channel->Outbound))
 		VmbusChannelSetEvent(Channel);
 
@@ -708,9 +656,7 @@ int VmbusChannelSendPacket(struct vmbus_channel *Channel, const void *Buffer,
 	return ret;
 }
 
-/**
- * VmbusChannelSendPacketPageBuffer - Send a range of single-page buffer packets using a GPADL Direct packet type.
- */
+
 int VmbusChannelSendPacketPageBuffer(struct vmbus_channel *Channel,
 				     struct hv_page_buffer PageBuffers[],
 				     u32 PageCount, void *Buffer, u32 BufferLen,
@@ -731,10 +677,7 @@ int VmbusChannelSendPacketPageBuffer(struct vmbus_channel *Channel,
 
 	DumpVmbusChannel(Channel);
 
-	/*
-	 * Adjust the size down since VMBUS_CHANNEL_PACKET_PAGE_BUFFER is the
-	 * largest size we support
-	 */
+	
 	descSize = sizeof(struct VMBUS_CHANNEL_PACKET_PAGE_BUFFER) -
 			  ((MAX_PAGE_BUFFER_COUNT - PageCount) *
 			  sizeof(struct hv_page_buffer));
@@ -743,10 +686,10 @@ int VmbusChannelSendPacketPageBuffer(struct vmbus_channel *Channel,
 
 	ASSERT((packetLenAligned - packetLen) < sizeof(u64));
 
-	/* Setup the descriptor */
+	
 	desc.Type = VmbusPacketTypeDataUsingGpaDirect;
 	desc.Flags = VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED;
-	desc.DataOffset8 = descSize >> 3; /* in 8-bytes grandularity */
+	desc.DataOffset8 = descSize >> 3; 
 	desc.Length8 = (u16)(packetLenAligned >> 3);
 	desc.TransactionId = RequestId;
 	desc.RangeCount = PageCount;
@@ -764,7 +707,7 @@ int VmbusChannelSendPacketPageBuffer(struct vmbus_channel *Channel,
 
 	ret = RingBufferWrite(&Channel->Outbound, bufferList, 3);
 
-	/* TODO: We should determine if this is optional */
+	
 	if (ret == 0 && !GetRingBufferInterruptMask(&Channel->Outbound))
 		VmbusChannelSetEvent(Channel);
 
@@ -773,9 +716,7 @@ int VmbusChannelSendPacketPageBuffer(struct vmbus_channel *Channel,
 	return ret;
 }
 
-/**
- * VmbusChannelSendPacketMultiPageBuffer - Send a multi-page buffer packet using a GPADL Direct packet type.
- */
+
 int VmbusChannelSendPacketMultiPageBuffer(struct vmbus_channel *Channel,
 				struct hv_multipage_buffer *MultiPageBuffer,
 				void *Buffer, u32 BufferLen, u64 RequestId)
@@ -800,10 +741,7 @@ int VmbusChannelSendPacketMultiPageBuffer(struct vmbus_channel *Channel,
 	ASSERT(PfnCount > 0);
 	ASSERT(PfnCount <= MAX_MULTIPAGE_BUFFER_COUNT);
 
-	/*
-	 * Adjust the size down since VMBUS_CHANNEL_PACKET_MULITPAGE_BUFFER is
-	 * the largest size we support
-	 */
+	
 	descSize = sizeof(struct VMBUS_CHANNEL_PACKET_MULITPAGE_BUFFER) -
 			  ((MAX_MULTIPAGE_BUFFER_COUNT - PfnCount) *
 			  sizeof(u64));
@@ -812,10 +750,10 @@ int VmbusChannelSendPacketMultiPageBuffer(struct vmbus_channel *Channel,
 
 	ASSERT((packetLenAligned - packetLen) < sizeof(u64));
 
-	/* Setup the descriptor */
+	
 	desc.Type = VmbusPacketTypeDataUsingGpaDirect;
 	desc.Flags = VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED;
-	desc.DataOffset8 = descSize >> 3; /* in 8-bytes grandularity */
+	desc.DataOffset8 = descSize >> 3; 
 	desc.Length8 = (u16)(packetLenAligned >> 3);
 	desc.TransactionId = RequestId;
 	desc.RangeCount = 1;
@@ -833,7 +771,7 @@ int VmbusChannelSendPacketMultiPageBuffer(struct vmbus_channel *Channel,
 
 	ret = RingBufferWrite(&Channel->Outbound, bufferList, 3);
 
-	/* TODO: We should determine if this is optional */
+	
 	if (ret == 0 && !GetRingBufferInterruptMask(&Channel->Outbound))
 		VmbusChannelSetEvent(Channel);
 
@@ -842,10 +780,8 @@ int VmbusChannelSendPacketMultiPageBuffer(struct vmbus_channel *Channel,
 	return ret;
 }
 
-/**
- * VmbusChannelRecvPacket - Retrieve the user packet on the specified channel
- */
-/* TODO: Do we ever receive a gpa direct packet other than the ones we send ? */
+
+
 int VmbusChannelRecvPacket(struct vmbus_channel *Channel, void *Buffer,
 			   u32 BufferLen, u32 *BufferActualLen, u64 *RequestId)
 {
@@ -867,16 +803,16 @@ int VmbusChannelRecvPacket(struct vmbus_channel *Channel, void *Buffer,
 	if (ret != 0) {
 		spin_unlock_irqrestore(&Channel->inbound_lock, flags);
 
-		/* DPRINT_DBG(VMBUS, "nothing to read!!"); */
+		
 		DPRINT_EXIT(VMBUS);
 		return 0;
 	}
 
-	/* VmbusChannelClearEvent(Channel); */
+	
 
 	packetLen = desc.Length8 << 3;
 	userLen = packetLen - (desc.DataOffset8 << 3);
-	/* ASSERT(userLen > 0); */
+	
 
 	DPRINT_DBG(VMBUS, "packet received on channel %p relid %d <type %d "
 		   "flag %d tid %llx pktlen %d datalen %d> ",
@@ -897,7 +833,7 @@ int VmbusChannelRecvPacket(struct vmbus_channel *Channel, void *Buffer,
 
 	*RequestId = desc.TransactionId;
 
-	/* Copy over the packet to the user buffer */
+	
 	ret = RingBufferRead(&Channel->Inbound, Buffer, userLen,
 			     (desc.DataOffset8 << 3));
 
@@ -908,9 +844,7 @@ int VmbusChannelRecvPacket(struct vmbus_channel *Channel, void *Buffer,
 	return 0;
 }
 
-/**
- * VmbusChannelRecvPacketRaw - Retrieve the raw packet on the specified channel
- */
+
 int VmbusChannelRecvPacketRaw(struct vmbus_channel *Channel, void *Buffer,
 			      u32 BufferLen, u32 *BufferActualLen,
 			      u64 *RequestId)
@@ -933,12 +867,12 @@ int VmbusChannelRecvPacketRaw(struct vmbus_channel *Channel, void *Buffer,
 	if (ret != 0) {
 		spin_unlock_irqrestore(&Channel->inbound_lock, flags);
 
-		/* DPRINT_DBG(VMBUS, "nothing to read!!"); */
+		
 		DPRINT_EXIT(VMBUS);
 		return 0;
 	}
 
-	/* VmbusChannelClearEvent(Channel); */
+	
 
 	packetLen = desc.Length8 << 3;
 	userLen = packetLen - (desc.DataOffset8 << 3);
@@ -961,7 +895,7 @@ int VmbusChannelRecvPacketRaw(struct vmbus_channel *Channel, void *Buffer,
 
 	*RequestId = desc.TransactionId;
 
-	/* Copy over the entire packet to the user buffer */
+	
 	ret = RingBufferRead(&Channel->Inbound, Buffer, packetLen, 0);
 
 	spin_unlock_irqrestore(&Channel->inbound_lock, flags);
@@ -971,9 +905,7 @@ int VmbusChannelRecvPacketRaw(struct vmbus_channel *Channel, void *Buffer,
 	return 0;
 }
 
-/**
- * VmbusChannelOnChannelEvent - Channel event callback
- */
+
 void VmbusChannelOnChannelEvent(struct vmbus_channel *Channel)
 {
 	DumpVmbusChannel(Channel);
@@ -984,9 +916,7 @@ void VmbusChannelOnChannelEvent(struct vmbus_channel *Channel)
 	mod_timer(&Channel->poll_timer, jiffies + usecs_to_jiffies(100));
 }
 
-/**
- * VmbusChannelOnTimer - Timer event callback
- */
+
 void VmbusChannelOnTimer(unsigned long data)
 {
 	struct vmbus_channel *channel = (struct vmbus_channel *)data;
@@ -996,9 +926,7 @@ void VmbusChannelOnTimer(unsigned long data)
 	}
 }
 
-/**
- * DumpVmbusChannel - Dump vmbus channel info to the console
- */
+
 static void DumpVmbusChannel(struct vmbus_channel *Channel)
 {
 	DPRINT_DBG(VMBUS, "Channel (%d)", Channel->OfferMsg.ChildRelId);

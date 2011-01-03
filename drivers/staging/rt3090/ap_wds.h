@@ -1,40 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    ap_cfg.h
-
-    Abstract:
-    Miniport generic portion header file
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-    Fonchi    02-13-2007      created
-*/
 
 #ifndef _AP_WDS_H_
 #define _AP_WDS_H_
@@ -50,8 +14,8 @@ static inline BOOLEAN WDS_IF_UP_CHECK(
 		(ifidx >= MAX_WDS_ENTRY))
 		return FALSE;
 
-//	if (pAd->WdsTab.WdsEntry[ifidx].dev->flags & IFF_UP)
-// Patch for wds ,when dirver call apmlmeperiod => APMlmeDynamicTxRateSwitching check if wds device ready
+
+
 if ((pAd->WdsTab.WdsEntry[ifidx].dev != NULL) && (pAd->WdsTab.WdsEntry[ifidx].dev->flags & IFF_UP))
 		return TRUE;
 
@@ -163,12 +127,7 @@ INT WdsVirtualIF_ioctl(
 	IN OUT struct ifreq *rq,
 	IN INT cmd);
 
-/*
-	==========================================================================
-	Description:
-		Check the WDS Entry is valid or not.
-	==========================================================================
- */
+
 static inline BOOLEAN ValidWdsEntry(
 	IN PRTMP_ADAPTER pAd,
 	IN UCHAR WdsIndex)
@@ -209,4 +168,4 @@ static inline BOOLEAN ValidWdsEntry(
 
 	return result;
 }
-#endif // _AP_WDS_H_ //
+#endif 

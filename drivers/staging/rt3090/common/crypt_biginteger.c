@@ -1,38 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-	cmm_profile.c
-
-    Abstract:
-
-    Revision History:
-    Who          When          What
-    ---------    ----------    ----------------------------------------------
- */
 
 #include "crypt_biginteger.h"
 
@@ -40,7 +6,7 @@
 #define DEBUGPRINT(fmt, args...) printk(KERN_ERR fmt, ## args)
 #else
 #define DEBUGPRINT(fmt, args...) printf(fmt, ## args)
-#endif /* __KERNEL__ */
+#endif 
 
 #define UINT32_HBITS(value)	(((value) >> 0x10) & 0xffff)
 #define UINT32_LBITS(value)	((value) & 0xffff)
@@ -181,9 +147,9 @@ VOID BigInteger_Print (
         DEBUGPRINT("%08x, ", pBI->pIntegerArray[i]);
         if ((j%8) == 7)
             DEBUGPRINT("\n");
-    } /* End od for */
+    } 
     DEBUGPRINT("\n\n");
-} /* End of BigInteger_Print */
+} 
 
 
 VOID BigInteger_Init (
@@ -195,12 +161,12 @@ VOID BigInteger_Init (
     if ((*pBI = (PBIG_INTEGER) kmalloc(sizeof(BIG_INTEGER), GFP_ATOMIC)) == NULL) {
         DEBUGPRINT("BigInteger_Init: allocate %d bytes memory failure.\n", (sizeof(BIG_INTEGER)));
         return;
-    } /* End of if */
+    } 
 
     NdisZeroMemory(*pBI, sizeof(BIG_INTEGER));
     (*pBI)->pIntegerArray = NULL;
     (*pBI)->Signed = 1;
-} /* End of BigInteger_Init */
+} 
 
 
 VOID BigInteger_Free_AllocSize (
@@ -211,8 +177,8 @@ VOID BigInteger_Free_AllocSize (
         NdisZeroMemory(*pBI, sizeof(BIG_INTEGER));
         (*pBI)->pIntegerArray = NULL;
         (*pBI)->Signed = 1;
-    } /* End of if */
-} /* End of BigInteger_Free_AllocSize */
+    } 
+} 
 
 
 VOID BigInteger_Free (
@@ -221,10 +187,10 @@ VOID BigInteger_Free (
     if (*pBI != NULL) {
         BigInteger_Free_AllocSize(pBI);
         kfree(*pBI);
-    } /* End of if */
+    } 
 
     *pBI = NULL;
-} /* End of BigInteger_Free */
+} 
 
 
 VOID BigInteger_AllocSize (
@@ -239,7 +205,7 @@ VOID BigInteger_AllocSize (
     if (*pBI == NULL)
         BigInteger_Init(pBI);
 
-    /* Caculate array size */
+    
     ArrayLength = Length >> 0x2;
     if ((Length & 0x3) != 0)
         ArrayLength++;
@@ -251,14 +217,14 @@ VOID BigInteger_AllocSize (
         if (((*pBI)->pIntegerArray = (UINT32 *) kmalloc(sizeof(UINT32)*ArrayLength, GFP_ATOMIC)) == NULL) {
             DEBUGPRINT("BigInteger_AllocSize: allocate %d bytes memory failure.\n", (sizeof(UINT32)*ArrayLength));
             return;
-        } /* End of if */
+        } 
         (*pBI)->AllocSize = sizeof(UINT32)*ArrayLength;
-    } /* End of if */
+    } 
 
     NdisZeroMemory((*pBI)->pIntegerArray, (*pBI)->AllocSize);
     (*pBI)->ArrayLength = ArrayLength;
     (*pBI)->IntegerLength = Length;
-} /* End of BigInteger_AllocSize */
+} 
 
 
 VOID BigInteger_ClearHighBits (
@@ -280,8 +246,8 @@ VOID BigInteger_ClearHighBits (
         while (value == 0) {
             ShiftIndex--;
             value = UINT32_GETBYTE(pBI->pIntegerArray[BIArrayIndex], ShiftIndex);
-	} /* End of while */
-    } /* End of if */
+	} 
+    } 
 
     if ((BIArrayIndex == -1) && (ShiftIndex == -1)) {
         pBI->IntegerLength = 1;
@@ -290,8 +256,8 @@ VOID BigInteger_ClearHighBits (
     } else {
         pBI->IntegerLength = (BIArrayIndex*4) + ShiftIndex + 1;
         pBI->ArrayLength = BIArrayIndex + 1;
-    } /* End of if */
-} /* End of BigInteger_ClearHighBits */
+    } 
+} 
 
 
 VOID BigInteger_BI2Bin (
@@ -306,18 +272,18 @@ VOID BigInteger_BI2Bin (
         DEBUGPRINT("BigInteger_BI2Bin: pBI is NUll\n");
         *Length = 0;
         return;
-    } /* End of if */
+    } 
 
     if (*Length < (sizeof(UINT8) * pBI->IntegerLength)) {
         DEBUGPRINT("BigInteger_BI2Bin: length(%d) is not enough.\n", *Length);
         *Length = 0;
         return;
-    } /* End of if */
+    } 
 
     if (pBI->pIntegerArray == NULL) {
         *Length = 0;
         return;
-    } /* End of if */
+    } 
 
     BigInteger_ClearHighBits(pBI);
     if ((ShiftIndex = pBI->IntegerLength & 0x3) == 0)
@@ -333,10 +299,10 @@ VOID BigInteger_BI2Bin (
             ShiftIndex = 4;
             BIArrayIndex--;
             Number = pBI->pIntegerArray[BIArrayIndex];
-        } /* End of if */
-    } /* End of while */
+        } 
+    } 
     *Length = pBI->IntegerLength;
-} /* End of BigInteger_BI2Bin */
+} 
 
 
 VOID BigInteger_Bin2BI (
@@ -363,13 +329,13 @@ VOID BigInteger_Bin2BI (
                 ShiftIndex = 4;
                 BIArrayIndex--;
                 Number = 0;
-            } /* End of if */
-        } /* End of while */
-    } /* End of if */
-} /* End of BigInteger_Bin2BI */
+            } 
+        } 
+    } 
+} 
 
 
-/* Calculate the bits of BigInteger, the highest bit is 1 */
+
 VOID BigInteger_BitsOfBI (
     IN PBIG_INTEGER pBI,
     OUT UINT *Bits_Of_P)
@@ -381,9 +347,9 @@ VOID BigInteger_BitsOfBI (
     while ((!(Number & 0x80000000)) && (Index < 32)) {
         Number <<= 1;
         Index++;
-    } /* End of while */
+    } 
     *Bits_Of_P = (pBI->ArrayLength*sizeof(UINT32)) - Index;
-} /* End of BigInteger_BitsOfBN */
+} 
 
 
 INT BigInteger_GetBitValue (
@@ -401,7 +367,7 @@ INT BigInteger_GetBitValue (
         return 0;
 
     return ((pBI->pIntegerArray[Array] >> Shift) & 0x1);
-} /* End of BigInteger_GetBitValue */
+} 
 
 
 UINT8 BigInteger_GetByteValue (
@@ -420,7 +386,7 @@ UINT8 BigInteger_GetByteValue (
 
 
     return (UINT8) UINT32_GETBYTE(pBI->pIntegerArray[Array], Shift - 1);
-} /* End of BigInteger_GetByteValue */
+} 
 
 
 VOID BigInteger_Copy (
@@ -432,7 +398,7 @@ VOID BigInteger_Copy (
     (*pBI_Result)->ArrayLength = pBI_Copied->ArrayLength;
     (*pBI_Result)->IntegerLength = pBI_Copied->IntegerLength;
     (*pBI_Result)->Signed = pBI_Copied->Signed;
-} /* End of BigInteger_Copy */
+} 
 
 
 INT BigInteger_UnsignedCompare (
@@ -454,11 +420,11 @@ INT BigInteger_UnsignedCompare (
                 return 1;
             else if (pFirstOperand->pIntegerArray[BIArrayIndex] < pSecondOperand->pIntegerArray[BIArrayIndex])
                 return -1;
-        } /* End of for */
-    } /* End of if */
+        } 
+    } 
 
     return 0;
-} /* End of BigInteger_Compare */
+} 
 
 
 VOID BigInteger_Add (
@@ -475,7 +441,7 @@ VOID BigInteger_Add (
       || (pSecondOperand == NULL) || (pSecondOperand->pIntegerArray == NULL)) {
         DEBUGPRINT("BigInteger_Add: first or second operand is NULL.\n");
         return;
-    } /* End of if */
+    } 
 
     if (*pBI_Result == NULL)
         BigInteger_Init(pBI_Result);
@@ -484,23 +450,15 @@ VOID BigInteger_Add (
     if ((CompareResult == 0) & ((pFirstOperand->Signed * pSecondOperand->Signed) < 0)) {
         BigInteger_AllocSize(pBI_Result, 1);
         return ;
-    } /* End of if */
+    } 
 
-    /*
-     *  Singed table
-     *  A + B || A > B || A < B
-     *  ------------------------
-     *  +   + ||   +   ||   +
-     *  +   - ||   +   ||   -
-     *  -   + ||   -   ||   +
-     *  -   - ||   -   ||   -
-     */
+    
     if ((pFirstOperand->Signed * pSecondOperand->Signed) > 0) {
         if (pFirstOperand->IntegerLength > pSecondOperand->IntegerLength) {
                 BigInteger_AllocSize(pBI_Result, pFirstOperand->IntegerLength + 1);
         } else {
                 BigInteger_AllocSize(pBI_Result, pSecondOperand->IntegerLength + 1);
-        } /* End of if */
+        } 
 
         Carry = 0;
         for (BIArrayIndex=0; BIArrayIndex < (*pBI_Result)->ArrayLength; BIArrayIndex++)
@@ -516,7 +474,7 @@ VOID BigInteger_Add (
             Sum += Carry;
             Carry = Sum  >> 32;
             (*pBI_Result)->pIntegerArray[BIArrayIndex] = (UINT32) (Sum & 0xffffffffUL);
-        } /* End of for */
+        } 
         (*pBI_Result)->Signed = pFirstOperand->Signed;
         BigInteger_ClearHighBits(*pBI_Result);
     } else {
@@ -528,11 +486,11 @@ VOID BigInteger_Add (
             BigInteger_Copy(pFirstOperand, &pTempBI);
             pTempBI->Signed = 1;
             BigInteger_Sub(pSecondOperand, pTempBI, pBI_Result);
-        } /* End of if */
-    } /* End of if */
+        } 
+    } 
 
     BigInteger_Free(&pTempBI);
-} /* End of BigInteger_Add */
+} 
 
 
 VOID BigInteger_Sub (
@@ -548,7 +506,7 @@ VOID BigInteger_Sub (
       || (pSecondOperand == NULL) || (pSecondOperand->pIntegerArray == NULL)) {
         DEBUGPRINT("BigInteger_Sub: first or second operand is NULL.\n");
         return;
-    } /* End of if */
+    } 
 
     if (*pBI_Result == NULL)
         BigInteger_Init(pBI_Result);
@@ -557,20 +515,12 @@ VOID BigInteger_Sub (
     if ((CompareResult == 0) & ((pFirstOperand->Signed * pSecondOperand->Signed) > 0)) {
         BigInteger_AllocSize(pBI_Result, 1);
         return ;
-    } /* End of if */
+    } 
 
     BigInteger_Init(&pTempBI);
     BigInteger_Init(&pTempBI2);
 
-    /*
-     *  Singed table
-     *  A - B || A > B || A < B
-     *  ------------------------
-     *  +   + ||   +   ||   -
-     *  +   - ||   +   ||   +
-     *  -   + ||   -   ||   -
-     *  -   - ||   -   ||   +
-     */
+    
     if ((pFirstOperand->Signed * pSecondOperand->Signed) > 0) {
         if (CompareResult == 1) {
             BigInteger_Copy(pFirstOperand, &pTempBI);
@@ -578,7 +528,7 @@ VOID BigInteger_Sub (
         } else if (CompareResult == -1) {
             BigInteger_Copy(pSecondOperand, &pTempBI);
             BigInteger_Copy(pFirstOperand, &pTempBI2);
-        } /* End of if */
+        } 
 
         BigInteger_Copy(pTempBI, pBI_Result);
         Carry = 0;
@@ -591,7 +541,7 @@ VOID BigInteger_Sub (
                 } else {
                     (*pBI_Result)->pIntegerArray[BIArrayIndex] = 0xffffffffUL - pTempBI2->pIntegerArray[BIArrayIndex] - Carry + (*pBI_Result)->pIntegerArray[BIArrayIndex] + 1;
                     Carry = 1;
-                } /* End of if */
+                } 
             } else {
                 if ((*pBI_Result)->pIntegerArray[BIArrayIndex] >= Carry) {
                     (*pBI_Result)->pIntegerArray[BIArrayIndex] -= Carry;
@@ -599,9 +549,9 @@ VOID BigInteger_Sub (
                 } else {
                     (*pBI_Result)->pIntegerArray[BIArrayIndex] = 0xffffffffUL - Carry;
                     Carry = 1;
-                } /* End of if */
-            } /* End of if */
-        } /* End of for */
+                } 
+            } 
+        } 
 
         if  (((pFirstOperand->Signed == 1) & (pSecondOperand->Signed == 1) & (CompareResult == -1))
           || ((pFirstOperand->Signed == -1) & (pSecondOperand->Signed == -1) & (CompareResult == 1)))
@@ -618,12 +568,12 @@ VOID BigInteger_Sub (
             pTempBI->Signed = 1;
             BigInteger_Add(pTempBI, pSecondOperand, pBI_Result);
             (*pBI_Result)->Signed = -1;
-        } /* End of if */
-    } /* End of if */
+        } 
+    } 
 
     BigInteger_Free(&pTempBI);
     BigInteger_Free(&pTempBI2);
-} /* End of BigInteger_Sub */
+} 
 
 
 VOID BigInteger_Mul (
@@ -639,24 +589,24 @@ VOID BigInteger_Mul (
       || (pSecondOperand == NULL) || (pSecondOperand->pIntegerArray == NULL)) {
         DEBUGPRINT("BigInteger_Mul: first or second operand is NULL.\n");
         return;
-    } /* End of if */
+    } 
 
-    /* The first or second operand is zero */
+    
     if  (((pFirstOperand->IntegerLength  == 1) && (pFirstOperand->pIntegerArray[0]  == 0))
        ||((pSecondOperand->IntegerLength == 1) && (pSecondOperand->pIntegerArray[0] == 0))) {
         BigInteger_AllocSize(pBI_Result, 1);
         goto output;
-    } /* End of if */
+    } 
 
-    /* The first or second operand is one */
+    
     if  ((pFirstOperand->IntegerLength  == 1) && (pFirstOperand->pIntegerArray[0]  == 1)) {
         BigInteger_Copy(pSecondOperand, pBI_Result);
         goto output;
-    } /* End of if */
+    } 
     if  ((pSecondOperand->IntegerLength  == 1) && (pSecondOperand->pIntegerArray[0]  == 1)) {
         BigInteger_Copy(pFirstOperand, pBI_Result);
         goto output;
-    } /* End of if */
+    } 
 
     BigInteger_AllocSize(pBI_Result, pFirstOperand->IntegerLength + pSecondOperand->IntegerLength);
 
@@ -673,7 +623,7 @@ VOID BigInteger_Mul (
                 Sum = (UINT64) ((*pBI_Result)->pIntegerArray[BIFirstIndex + BISecondIndex] + SecondValue + Carry);
                 Carry = Sum >> 32;
                 (*pBI_Result)->pIntegerArray[BIFirstIndex + BISecondIndex] = (UINT32) (Sum & 0xffffffffUL);
-            } /* End of for */
+            } 
             while (Carry != 0) {
                 Sum = (UINT64) (*pBI_Result)->pIntegerArray[BIFirstIndex + BISecondIndex];
                 Sum += Carry;
@@ -681,14 +631,14 @@ VOID BigInteger_Mul (
                 Carry = Sum >> 32;
                 (*pBI_Result)->pIntegerArray[BIFirstIndex + BISecondIndex] = (UINT32) (Sum & 0xffffffffUL);
                 BISecondIndex++;
-            } /* End of while */
-        } /* End of if */
-    } /* End of for */
+            } 
+        } 
+    } 
 
 output:
     (*pBI_Result)->Signed = pFirstOperand->Signed * pSecondOperand->Signed;
     BigInteger_ClearHighBits(*pBI_Result);
-} /* End of BigInteger_Mul */
+} 
 
 
 VOID BigInteger_Square (
@@ -703,22 +653,19 @@ VOID BigInteger_Square (
     if ((pBI == NULL) || (pBI->pIntegerArray == NULL)) {
         DEBUGPRINT("\tBigInteger_Square: the operand is NULL.\n");
         return;
-    } /* End of if */
+    } 
 
-    /* The operand is zero */
+    
     if  ((pBI->IntegerLength  == 1) && (pBI->pIntegerArray[0]  ==  0)) {
         BigInteger_AllocSize(pBI_Result, 1);
         goto output;
-    } /* End of if */
+    } 
 
     BigInteger_AllocSize(pBI_Result, (pBI->IntegerLength*2) + 20);
     BigInteger_AllocSize(&pBI_S, (pBI->IntegerLength*2) + 20);
     BigInteger_AllocSize(&pBI_O, (pBI->IntegerLength*2) + 20);
 
-    /*
-     * Input: pBI = {a_0, a_1, a_2, a_3, ..., a_n}
-     * Step1. calculate a_0^2, a_1^2, a_2^2, a_3^2 ... a_n^2
-     */
+    
 	Point_Of_S = pBI_S->pIntegerArray;
     for (BIFirstIndex=0; BIFirstIndex < pBI->ArrayLength; BIFirstIndex++)
     {
@@ -732,11 +679,9 @@ VOID BigInteger_Square (
 			Point_Of_S[1] += 1;
 
 		Point_Of_S += 2;
-    } /* End of for */
+    } 
 
-    /*
-     * Step2. calculate a_0*{a_1, a_2, a_3, a_4, ..., a_n}
-     */
+    
     Point_Of_BI = pBI->pIntegerArray;
     Point_Of_Result = (*pBI_Result)->pIntegerArray;
     Point_Of_Result[0] = 0;
@@ -750,19 +695,11 @@ VOID BigInteger_Square (
         Carry64 = (Result64_1 >> 32);
         Point_Of_Result[0] = (UINT32) (Result64_1 & 0xffffffffUL);
         Point_Of_Result++;
-    } /* End of for */
+    } 
     if (Carry64 > 0)
         Point_Of_Result[0] = (UINT32) (Carry64 & 0xffffffffUL);
 
-    /*
-     * Step3. calculate
-     *           a_1*{a_2, a_3, a_4, ..., a_n}
-     *           a_2*{a_3, a_4, a_5, ..., a_n}
-     *           a_3*{a_4, a_5, a_6, ..., a_n}
-     *           a_4*{a_5, a_6, a_7, ..., a_n}
-     *           ...
-     *           a_n-1*{a_n}
-     */
+    
     Point_Of_BI = pBI->pIntegerArray;
     for (BIFirstIndex=1; BIFirstIndex < (pBI->ArrayLength - 1); BIFirstIndex++)
     {
@@ -780,10 +717,10 @@ VOID BigInteger_Square (
             Carry64 += (Result64_1 >> 32);
             Point_Of_Result[0] = (UINT32) (Result64_1 & 0xffffffffUL);
             Point_Of_Result++;
-        } /* End of for */
+        } 
         if (Carry64 > 0)
             Point_Of_Result[0] += (UINT32) (Carry64 & 0xffffffffUL);
-    } /* End of for */
+    } 
 
     BigInteger_ClearHighBits(*pBI_Result);
     BigInteger_Copy(*pBI_Result, &pBI_O);
@@ -795,7 +732,7 @@ VOID BigInteger_Square (
             Carry32 = 1;
         else
             Carry32 = 0;
-    } /* End of for */
+    } 
     pBI_O->pIntegerArray[BIFirstIndex] = Carry32;
     pBI_O->IntegerLength++;
     pBI_O->ArrayLength++;
@@ -805,7 +742,7 @@ VOID BigInteger_Square (
 output:
     (*pBI_Result)->Signed = 1;
     BigInteger_ClearHighBits(*pBI_Result);
-} /* End of BigInteger_Square */
+} 
 
 
 VOID BigInteger_Div (
@@ -825,25 +762,25 @@ VOID BigInteger_Div (
       || (pSecondOperand == NULL) || (pSecondOperand->pIntegerArray == NULL)) {
         DEBUGPRINT("BigInteger_Div: first or second operand is NULL.\n");
         return;
-    } /* End of if */
+    } 
 
-    /* The second operand is zero */
+    
     if ((pSecondOperand->IntegerLength == 1) && (pSecondOperand->pIntegerArray[0] == 0)) {
         DEBUGPRINT("BigInteger_Div: second operand is zero.\n");
         return;
-    } /* End of if */
+    } 
 
     if (*pBI_Result == NULL)
         BigInteger_Init(pBI_Result);
     if (*pBI_Remainder == NULL)
         BigInteger_Init(pBI_Remainder);
 
-    /* The second operand is one */
+    
     if  ((pSecondOperand->IntegerLength  == 1) && (pSecondOperand->pIntegerArray[0]  == 1)) {
         BigInteger_Copy(pFirstOperand, pBI_Result);
         BigInteger_Bin2BI(Value_0, 1, pBI_Remainder);
         goto output;
-    } /* End of if */
+    } 
 
     CompareResult = BigInteger_UnsignedCompare(pFirstOperand, pSecondOperand);
     if (CompareResult == 0) {
@@ -854,7 +791,7 @@ VOID BigInteger_Div (
         BigInteger_Bin2BI(Value_0, 1, pBI_Result);
         BigInteger_Copy(pFirstOperand, pBI_Remainder);
         goto output;
-    } /* End of if */
+    } 
     BigInteger_AllocSize(pBI_Result, pFirstOperand->IntegerLength - pSecondOperand->IntegerLength + 1);
     BigInteger_AllocSize(pBI_Remainder, pSecondOperand->IntegerLength);
 
@@ -890,7 +827,7 @@ VOID BigInteger_Div (
             if (MulStart > 0xFF)
                 MulStart = 0x100;
 
-            for (MulIndex = (INT) MulStart;MulIndex <= 0x101;MulIndex++) { /* 0xFFFF / 0xFF = 0x101 */
+            for (MulIndex = (INT) MulStart;MulIndex <= 0x101;MulIndex++) { 
                 if ((MulIndex > 0xFF) && (ShiftIndex == 3))
                         pMulBI->pIntegerArray[ArrayIndex + 1] = 0x01;
                 pMulBI->pIntegerArray[ArrayIndex] = ((UINT) MulIndex << (8*ShiftIndex));
@@ -902,23 +839,23 @@ VOID BigInteger_Div (
                             if ((MulIndex == 0x100) && (ShiftIndex == 3))
                                    pMulBI->pIntegerArray[ArrayIndex + 1] = 0;
                             pMulBI->pIntegerArray[ArrayIndex] = ((UINT) (MulIndex - 1) << (8*ShiftIndex));
-                        } /* End of if */
+                        } 
 
                         BigInteger_Mul(pSecondOperand, pMulBI, &pTempBI);
                         BigInteger_Sub(*pBI_Remainder, pTempBI, &pTempBI2);
                         BigInteger_Copy(pTempBI2, pBI_Remainder);
                         BigInteger_Add(*pBI_Result, pMulBI, &pTempBI2);
                         BigInteger_Copy(pTempBI2, pBI_Result);
-                    } /* End of if */
+                    } 
                     break;
-                } /* End of if */
+                } 
 
                 if ((MulIndex >= 0x100) && (ShiftIndex == 3))
                    pMulBI->pIntegerArray[ArrayIndex++] = 0;
                 pMulBI->pIntegerArray[ArrayIndex] = 0;
-            } /* End of for */
-        } /* End of if */
-    } /* End of for */
+            } 
+        } 
+    } 
 
     BigInteger_Free(&pTempBI);
     BigInteger_Free(&pTempBI2);
@@ -928,7 +865,7 @@ output:
     (*pBI_Remainder)->Signed = pFirstOperand->Signed * pSecondOperand->Signed;
     BigInteger_ClearHighBits(*pBI_Result);
     BigInteger_ClearHighBits(*pBI_Remainder);
-} /* End of BigInteger_Div */
+} 
 
 
 VOID BigInteger_Montgomery_Reduction (
@@ -960,19 +897,19 @@ VOID BigInteger_Montgomery_Reduction (
             Result64_1 = Result64_1 + Result64_2;
             Carry64 += (Result64_1 >> 32);
             Point_Result[SecondLoop] = (UINT32) (Result64_1 & 0xffffffffUL);
-        } /* End of for */
+        } 
         while (Carry64 != 0) {
           Result64_1 = ((UINT64) Point_Result[SecondLoop]) + Carry64;
           Carry64 = Result64_1 >> 32;
           Point_Result[SecondLoop] = (UINT32) (Result64_1 & 0xffffffffUL);
           SecondLoop++;
-        } /* End of while */
+        } 
         Point_Result++;
-    } /* End of for */
+    } 
 
     for (FirstLoop = 0;FirstLoop <= LoopCount;FirstLoop++) {
         (*pBI_Result)->pIntegerArray[FirstLoop] = (*pBI_Result)->pIntegerArray[FirstLoop + LoopCount];
-    } /* End of for */
+    } 
     if ((*pBI_Result)->pIntegerArray[LoopCount] != 0)
         (*pBI_Result)->ArrayLength = LoopCount + 1;
     else
@@ -984,9 +921,9 @@ VOID BigInteger_Montgomery_Reduction (
     if (BigInteger_UnsignedCompare(*pBI_Result, pBI_P) >= 0) {
         BigInteger_Sub(*pBI_Result, pBI_P, &pBI_U);
         BigInteger_Copy(pBI_U, pBI_Result);
-    } /* End of if */
+    } 
     BigInteger_ClearHighBits(*pBI_Result);
-} /* End of BigInteger_Montgomery_Reduction */
+} 
 
 
 VOID BigInteger_Montgomery_ExpMod (
@@ -1007,35 +944,33 @@ VOID BigInteger_Montgomery_ExpMod (
     BigInteger_AllocSize(&pBI_Temp1, AllocLength);
     BigInteger_AllocSize(&pBI_Temp2, AllocLength);
 
-    /* Calculate the bits of P and E, the highest bit is 1 */
+    
     BigInteger_BitsOfBI(pBI_P, &Bits_Of_P);
 
     if ((pBI_E->IntegerLength == 1) && (pBI_E->pIntegerArray[0] == 1)) {
         BigInteger_Div(pBI_G, pBI_P, &pBI_Temp1, pBI_Result);
         goto memory_free;
-    } /* End of if */
+    } 
 
     if ((pBI_E->IntegerLength == 1) && (pBI_E->pIntegerArray[0] == 2)) {
         BigInteger_Mul(pBI_G, pBI_G, &pBI_Temp1);
         BigInteger_Div(pBI_Temp1, pBI_P, &pBI_Temp2, pBI_Result);
         goto memory_free;
-    } /* End of if */
+    } 
 
-    /*
-     * Main algorithm
-     */
+    
     BigInteger_Init(&pBI_R);
     BigInteger_Init(&pBI_RR);
     BigInteger_Bin2BI(Value_1, 1, &pBI_1);
     BigInteger_AllocSize(&pBI_X, AllocLength);
-    BigInteger_AllocSize(&pBI_U, AllocLength); // for BigInteger_Montgomery_Reduction
-    BigInteger_AllocSize(&pBI_S, AllocLength); // for BigInteger_Square
-    BigInteger_AllocSize(&pBI_O, AllocLength); // for BigInteger_Square
+    BigInteger_AllocSize(&pBI_U, AllocLength); 
+    BigInteger_AllocSize(&pBI_S, AllocLength); 
+    BigInteger_AllocSize(&pBI_O, AllocLength); 
 
     for (Index = 0; Index < SLIDING_WINDOW; Index++) {
         pBI_A[Index] = NULL;
 		BigInteger_AllocSize(&pBI_A[Index], 193);
-    } /* End of for */
+    } 
     BigInteger_Bin2BI(WPS_DH_P_VALUE, 192, &pBI_Temp1);
     if (NdisCmpMemory(pBI_P->pIntegerArray, pBI_Temp1->pIntegerArray, pBI_P->IntegerLength) == 0) {
         BigInteger_Bin2BI(WPS_DH_X_VALUE, 184, &pBI_X);
@@ -1047,7 +982,7 @@ VOID BigInteger_Montgomery_ExpMod (
             AllocLength = pBI_P->IntegerLength + 1;
         } else {
             AllocLength = pBI_P->IntegerLength;
-        } /* End of if */
+        } 
         pRValue = (UINT8 *) kmalloc(sizeof(UINT8)*AllocLength, GFP_ATOMIC);
 	if (pRValue == NULL)
 	{
@@ -1061,42 +996,42 @@ VOID BigInteger_Montgomery_ExpMod (
         BigInteger_Mul(pBI_R, pBI_R, &pBI_Temp1);
         BigInteger_Div(pBI_Temp1, pBI_P, &pBI_A[1], &pBI_RR);
 
-        /* X = 1*R (mod P) */
+        
         BigInteger_Div(pBI_R, pBI_P, &pBI_Temp2, &pBI_X);
-    } /* End of if */
+    } 
 
-    /* A = G*R (mod P) => A = MonMod(G, R^2 mod P) */
+    
     BigInteger_Mul(pBI_G, pBI_RR, &pBI_Temp1);
     BigInteger_Montgomery_Reduction(pBI_Temp1, pBI_P , pBI_R, &pBI_A[1]);
     for (Index = 2; Index < SLIDING_WINDOW; Index++) {
         BigInteger_Mul(pBI_A[Index - 1], pBI_A[1], &pBI_Temp1);
 	    BigInteger_Montgomery_Reduction(pBI_Temp1, pBI_P, pBI_R, &pBI_A[Index]);
-    } /* End of for */
+    } 
 
     for (Index = pBI_E->IntegerLength ; Index > 0 ; Index--) {
         for (Index2 = 0; Index2 < 4 ; Index2++) {
             BigInteger_Square(pBI_X, &pBI_Temp1);
 			BigInteger_Montgomery_Reduction(pBI_Temp1, pBI_P, pBI_R, &pBI_X);
-	    } /* End of for */
+	    } 
 
 		Sliding_Value = BigInteger_GetByteValue(pBI_E, Index);
 		Sliding_HighValue = (Sliding_Value >> 4);
 		if (Sliding_HighValue != 0) {
             BigInteger_Mul(pBI_A[Sliding_HighValue], pBI_X, &pBI_Temp1);
 			BigInteger_Montgomery_Reduction(pBI_Temp1, pBI_P, pBI_R, &pBI_X);
-		} /* End of if */
+		} 
 
         for (Index2 = 0; Index2 < 4 ; Index2++) {
             BigInteger_Square(pBI_X, &pBI_Temp1);
 			BigInteger_Montgomery_Reduction(pBI_Temp1, pBI_P, pBI_R, &pBI_X);
-	    } /* End of for */
+	    } 
 
 		Sliding_LowValue = Sliding_Value & 0x0f;
 		if (Sliding_LowValue != 0) {
             BigInteger_Mul(pBI_A[Sliding_LowValue], pBI_X, &pBI_Temp1);
 			BigInteger_Montgomery_Reduction(pBI_Temp1, pBI_P, pBI_R, &pBI_X);
-		} /* End of if */
-    } /* End of for */
+		} 
+    } 
     BigInteger_Montgomery_Reduction(pBI_X, pBI_P , pBI_R, pBI_Result);
 
     BigInteger_Free(&pBI_X);
@@ -1114,6 +1049,6 @@ VOID BigInteger_Montgomery_ExpMod (
 memory_free:
     BigInteger_Free(&pBI_Temp1);
     BigInteger_Free(&pBI_Temp2);
-} /* End of BigInteger_Montgomery_ExpMod */
+} 
 
-/* End of crypt_biginteger.c */
+

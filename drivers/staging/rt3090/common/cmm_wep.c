@@ -1,39 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-	Module Name:
-	rtmp_wep.c
-
-	Abstract:
-
-	Revision History:
-	Who			When			What
-	--------	----------		----------------------------------------------
-	Paul Wu		10-28-02		Initial
-*/
 
 #include "../rt_config.h"
 
@@ -106,37 +71,9 @@ UINT FCSTAB_32[256] =
 	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-/*
-UCHAR   WEPKEY[] = {
-		//IV
-		0x00, 0x11, 0x22,
-		//WEP KEY
-		0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC
-	};
- */
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Init WEP function.
 
-	Arguments:
-      pAd		Pointer to our adapter
-		pKey        Pointer to the WEP KEY
-		KeyId		   WEP Key ID
-		KeyLen      the length of WEP KEY
-		pDest       Pointer to the destination which Encryption data will store in.
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPInitWepEngine(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pKey,
@@ -146,48 +83,28 @@ VOID	RTMPInitWepEngine(
 {
 	UINT i;
 	UCHAR   WEPKEY[] = {
-		//IV
+		
 		0x00, 0x11, 0x22,
-		//WEP KEY
+		
 		0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC
 	};
 
-	pAd->PrivateInfo.FCSCRC32 = PPPINITFCS32;   //Init crc32.
+	pAd->PrivateInfo.FCSCRC32 = PPPINITFCS32;   
 
     {
 		NdisMoveMemory(WEPKEY + 3, pKey, KeyLen);
 
         for(i = 0; i < 3; i++)
-			WEPKEY[i] = RandomByte(pAd);   //Call mlme RandomByte() function.
-		ARCFOUR_INIT(&pAd->PrivateInfo.WEPCONTEXT, WEPKEY, KeyLen + 3);  //INIT SBOX, KEYLEN+3(IV)
+			WEPKEY[i] = RandomByte(pAd);   
+		ARCFOUR_INIT(&pAd->PrivateInfo.WEPCONTEXT, WEPKEY, KeyLen + 3);  
 
-		NdisMoveMemory(pDest, WEPKEY, 3);  //Append Init Vector
+		NdisMoveMemory(pDest, WEPKEY, 3);  
     }
-	*(pDest+3) = (KeyId << 6);       //Append KEYID
+	*(pDest+3) = (KeyId << 6);       
 
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Encrypt transimitted data
-
-	Arguments:
-      pAd		Pointer to our adapter
-      pSrc        Pointer to the transimitted source data that will be encrypt
-      pDest       Pointer to the destination where entryption data will be store in.
-      Len			Indicate the length of the source data
-
-	Return Value:
-      None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPEncryptData(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			pSrc,
@@ -199,25 +116,7 @@ VOID	RTMPEncryptData(
 }
 
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Decrypt received WEP data
-
-	Arguments:
-		pAdapter		Pointer to our adapter
-		pSrc        Pointer to the received data
-		Len         the length of the received data
-
-	Return Value:
-		TRUE        Decrypt WEP data success
-		FALSE       Decrypt WEP data failed
-
-	Note:
-
-	========================================================================
-*/
 BOOLEAN	RTMPSoftDecryptWEP(
 	IN PRTMP_ADAPTER	pAd,
 	IN PUCHAR			pData,
@@ -228,15 +127,15 @@ BOOLEAN	RTMPSoftDecryptWEP(
 	UINT    crc32;
 	UCHAR	KeyIdx;
 	UCHAR   WEPKEY[] = {
-		//IV
+		
 		0x00, 0x11, 0x22,
-		//WEP KEY
+		
 		0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC
 	};
 	UCHAR	*pPayload = (UCHAR *)pData + LENGTH_802_11;
 	ULONG	payload_len = DataByteCnt - LENGTH_802_11;
 
-	NdisMoveMemory(WEPKEY, pPayload, 3);    //Get WEP IV
+	NdisMoveMemory(WEPKEY, pPayload, 3);    
 
 	KeyIdx = (*(pPayload + 3) & 0xc0) >> 6;
 	if (pGroupKey[KeyIdx].KeyLen == 0)
@@ -246,37 +145,18 @@ BOOLEAN	RTMPSoftDecryptWEP(
 	ARCFOUR_INIT(&pAd->PrivateInfo.WEPCONTEXT, WEPKEY, pGroupKey[KeyIdx].KeyLen + 3);
 	ARCFOUR_DECRYPT(&pAd->PrivateInfo.WEPCONTEXT, pPayload, pPayload + 4, payload_len - 4);
 	NdisMoveMemory(&trailfcs, pPayload + payload_len - 8, 4);
-	crc32 = RTMP_CALC_FCS32(PPPINITFCS32, pPayload, payload_len - 8);  //Skip last 4 bytes(FCS).
-	crc32 ^= 0xffffffff;             /* complement */
+	crc32 = RTMP_CALC_FCS32(PPPINITFCS32, pPayload, payload_len - 8);  
+	crc32 ^= 0xffffffff;             
 
     if(crc32 != cpu2le32(trailfcs))
     {
-		DBGPRINT(RT_DEBUG_TRACE, ("! WEP Data CRC Error !\n"));	 //CRC error.
+		DBGPRINT(RT_DEBUG_TRACE, ("! WEP Data CRC Error !\n"));	 
 		return (FALSE);
 	}
 	return (TRUE);
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		The Stream Cipher Encryption Algorithm "ARCFOUR" initialize
-
-	Arguments:
-	   Ctx         Pointer to ARCFOUR CONTEXT (SBOX)
-		pKey        Pointer to the WEP KEY
-		KeyLen      Indicate the length fo the WEP KEY
-
-	Return Value:
-	   None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	ARCFOUR_INIT(
 	IN	PARCFOURCONTEXT	Ctx,
 	IN	PUCHAR			pKey,
@@ -307,22 +187,7 @@ VOID	ARCFOUR_INIT(
 	}
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Get bytes from ARCFOUR CONTEXT (S-BOX)
-
-	Arguments:
-	   Ctx         Pointer to ARCFOUR CONTEXT (SBOX)
-
-	Return Value:
-	   UCHAR  - the value of the ARCFOUR CONTEXT (S-BOX)
-
-	Note:
-
-	========================================================================
-*/
 UCHAR	ARCFOUR_BYTE(
 	IN	PARCFOURCONTEXT		Ctx)
 {
@@ -345,25 +210,7 @@ UCHAR	ARCFOUR_BYTE(
 
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		The Stream Cipher Decryption Algorithm
-
-	Arguments:
-		Ctx         Pointer to ARCFOUR CONTEXT (SBOX)
-		pDest			Pointer to the Destination
-		pSrc        Pointer to the Source data
-		Len         Indicate the length of the Source data
-
-	Return Value:
-		None
-
-	Note:
-
-	========================================================================
-*/
 VOID	ARCFOUR_DECRYPT(
 	IN	PARCFOURCONTEXT	Ctx,
 	IN	PUCHAR			pDest,
@@ -376,27 +223,7 @@ VOID	ARCFOUR_DECRYPT(
 		pDest[i] = pSrc[i] ^ ARCFOUR_BYTE(Ctx);
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		The Stream Cipher Encryption Algorithm
-
-	Arguments:
-		Ctx         Pointer to ARCFOUR CONTEXT (SBOX)
-		pDest			Pointer to the Destination
-		pSrc        Pointer to the Source data
-		Len         Indicate the length of the Source dta
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	ARCFOUR_ENCRYPT(
 	IN	PARCFOURCONTEXT	Ctx,
 	IN	PUCHAR			pDest,
@@ -409,21 +236,7 @@ VOID	ARCFOUR_ENCRYPT(
 		pDest[i] = pSrc[i] ^ ARCFOUR_BYTE(Ctx);
 }
 
-/*
-	========================================================================
 
-	Routine	Description:
-		The Stream Cipher Encryption Algorithm which conform to the special requirement to encrypt  GTK.
-
-	Arguments:
-		Ctx         Pointer to ARCFOUR CONTEXT (SBOX)
-		pDest			Pointer to the Destination
-		pSrc        Pointer to the Source data
-		Len         Indicate the length of the Source dta
-
-
-	========================================================================
-*/
 
 VOID	WPAARCFOUR_ENCRYPT(
 	IN	PARCFOURCONTEXT	Ctx,
@@ -432,7 +245,7 @@ VOID	WPAARCFOUR_ENCRYPT(
 	IN	UINT			Len)
 {
 	UINT i;
-        //discard first 256 bytes
+        
 	for (i = 0; i < 256; i++)
             ARCFOUR_BYTE(Ctx);
 
@@ -441,26 +254,7 @@ VOID	WPAARCFOUR_ENCRYPT(
 }
 
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Calculate a new FCS given the current FCS and the new data.
-
-	Arguments:
-		Fcs	      the original FCS value
-		Cp          pointer to the data which will be calculate the FCS
-		Len         the length of the data
-
-	Return Value:
-		UINT - FCS 32 bits
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 UINT	RTMP_CALC_FCS32(
 	IN	UINT	Fcs,
 	IN	PUCHAR	Cp,
@@ -473,27 +267,12 @@ UINT	RTMP_CALC_FCS32(
 }
 
 
-/*
-	========================================================================
 
-	Routine	Description:
-		Get last FCS and encrypt it to the destination
-
-	Arguments:
-		pDest			Pointer to the Destination
-
-	Return Value:
-		None
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPSetICV(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR	pDest)
 {
-	pAd->PrivateInfo.FCSCRC32 ^= 0xffffffff;             /* complement */
+	pAd->PrivateInfo.FCSCRC32 ^= 0xffffffff;             
 	pAd->PrivateInfo.FCSCRC32 = cpu2le32(pAd->PrivateInfo.FCSCRC32);
 
 	ARCFOUR_ENCRYPT(&pAd->PrivateInfo.WEPCONTEXT, pDest, (PUCHAR) &pAd->PrivateInfo.FCSCRC32, 4);

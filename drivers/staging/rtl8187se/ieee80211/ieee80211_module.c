@@ -1,37 +1,7 @@
-/*******************************************************************************
 
-  Copyright(c) 2004 Intel Corporation. All rights reserved.
-
-  Portions of this file are based on the WEP enablement code provided by the
-  Host AP project hostap-drivers v0.1.3
-  Copyright (c) 2001-2002, SSH Communications Security Corp and Jouni Malinen
-  <jkmaline@cc.hut.fi>
-  Copyright (c) 2002-2003, Jouni Malinen <jkmaline@cc.hut.fi>
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms of version 2 of the GNU General Public License as
-  published by the Free Software Foundation.
-
-  This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc., 59
-  Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-  The full GNU General Public License is included in this distribution in the
-  file called LICENSE.
-
-  Contact Information:
-  James P. Ketrenos <ipw2100-admin@linux.intel.com>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 #include <linux/compiler.h>
-//#include <linux/config.h>
+
 #include <linux/errno.h>
 #include <linux/if_arp.h>
 #include <linux/in6.h>
@@ -125,15 +95,15 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
 	}
 	ieee80211_networks_initialize(ieee);
 
-	/* Default fragmentation threshold is maximum payload size */
+	
 	ieee->fts = DEFAULT_FTS;
 	ieee->scan_age = DEFAULT_MAX_SCAN_AGE;
 	ieee->open_wep = 1;
 
-	/* Default to enabling full open WEP with host based encrypt/decrypt */
+	
 	ieee->host_encrypt = 1;
 	ieee->host_decrypt = 1;
-	ieee->ieee802_1x = 1; /* Default to supporting 802.1x */
+	ieee->ieee802_1x = 1; 
 
 	INIT_LIST_HEAD(&ieee->crypt_deinit_list);
 	init_timer(&ieee->crypt_deinit_timer);
@@ -161,7 +131,7 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
 	  ieee->last_rxfrag_num[i] = -1;
 	  ieee->last_packet_time[i] = 0;
 	}
-//These function were added to load crypte module autoly
+
 	ieee80211_tkip_null();
 	ieee80211_wep_null();
 	ieee80211_ccmp_null();

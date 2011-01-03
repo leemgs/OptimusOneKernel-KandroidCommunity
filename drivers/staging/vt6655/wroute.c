@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: wroute.c
- *
- * Purpose: handle WMAC frame relay & filterring
- *
- * Author: Lyndon Chen
- *
- * Date: May 20, 2003
- *
- * Functions:
- *      ROUTEbRelay - Relay packet
- *
- * Revision History:
- *
- */
+
 
 #include "mac.h"
 #include "tcrc.h"
@@ -38,33 +7,20 @@
 #include "card.h"
 #include "baseband.h"
 
-/*---------------------  Static Definitions -------------------------*/
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
+
+
+
 static int          msglevel                =MSG_LEVEL_INFO;
-//static int          msglevel                =MSG_LEVEL_DEBUG;
-/*---------------------  Static Functions  --------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
 
 
 
-/*
- * Description:
- *      Relay packet.  Return TRUE if packet is copy to DMA1
- *
- * Parameters:
- *  In:
- *      pDevice             -
- *      pbySkbData          - rx packet skb data
- *  Out:
- *      TURE, FALSE
- *
- * Return Value: TRUE if packet duplicate; otherwise FALSE
- *
- */
+
+
+
+
+
 BOOL ROUTEbRelay (PSDevice pDevice, PBYTE pbySkbData, UINT uDataLen, UINT uNodeIndex)
 {
     PSMgmtObject    pMgmt = pDevice->pMgmt;
@@ -102,7 +58,7 @@ BOOL ROUTEbRelay (PSDevice pDevice, PBYTE pbySkbData, UINT uDataLen, UINT uNodeI
     if (pDevice->bEncryptionEnable == TRUE) {
         bNeedEncryption = TRUE;
 
-        // get group key
+        
         pbyBSSID = pDevice->abyBroadcastAddr;
         if(KeybGetTransmitKey(&(pDevice->sKey), pbyBSSID, GROUP_KEY, &pTransmitKey) == FALSE) {
             pTransmitKey = NULL;
@@ -168,7 +124,7 @@ BOOL ROUTEbRelay (PSDevice pDevice, PBYTE pbySkbData, UINT uDataLen, UINT uNodeI
                         );
 
     if (MACbIsRegBitsOn(pDevice->PortOffset, MAC_REG_PSCTL, PSCTL_PS)) {
-        // Disable PS
+        
         MACbPSWakeup(pDevice->PortOffset);
     }
 
@@ -176,7 +132,7 @@ BOOL ROUTEbRelay (PSDevice pDevice, PBYTE pbySkbData, UINT uDataLen, UINT uNodeI
 
     pLastTD = pHeadTD;
     for (ii = 0; ii < uMACfragNum; ii++) {
-        // Poll Transmit the adapter
+        
         wmb();
         pHeadTD->m_td0TD0.f1Owner=OWNED_BY_NIC;
         wmb();

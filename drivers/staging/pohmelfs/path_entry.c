@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -27,11 +14,7 @@
 
 #define UNHASHED_OBSCURE_STRING_SIZE		sizeof(" (deleted)")
 
-/*
- * Create path from root for given inode.
- * Path is formed as set of stuctures, containing name of the object
- * and its inode data (mode, permissions and so on).
- */
+
 int pohmelfs_construct_path_string(struct pohmelfs_inode *pi, void *data, int len)
 {
 	struct path path;
@@ -84,7 +67,7 @@ out:
 int pohmelfs_path_length(struct pohmelfs_inode *pi)
 {
 	struct dentry *d, *root, *first;
-	int len = 1; /* Root slash */
+	int len = 1; 
 
 	first = d = d_find_alias(&pi->vfs_inode);
 	if (!d) {
@@ -99,10 +82,10 @@ int pohmelfs_path_length(struct pohmelfs_inode *pi)
 	spin_lock(&dcache_lock);
 
 	if (!IS_ROOT(d) && d_unhashed(d))
-		len += UNHASHED_OBSCURE_STRING_SIZE; /* Obscure " (deleted)" string */
+		len += UNHASHED_OBSCURE_STRING_SIZE; 
 
 	while (d && d != root && !IS_ROOT(d)) {
-		len += d->d_name.len + 1; /* Plus slash */
+		len += d->d_name.len + 1; 
 		d = d->d_parent;
 	}
 	spin_unlock(&dcache_lock);
@@ -110,5 +93,5 @@ int pohmelfs_path_length(struct pohmelfs_inode *pi)
 	dput(root);
 	dput(first);
 
-	return len + 1; /* Including zero-byte */
+	return len + 1; 
 }

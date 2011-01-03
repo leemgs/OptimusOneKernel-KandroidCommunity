@@ -1,34 +1,4 @@
-/******************************************************************************
 
-  Copyright(c) 2004 Intel Corporation. All rights reserved.
-
-  Portions of this file are based on the WEP enablement code provided by the
-  Host AP project hostap-drivers v0.1.3
-  Copyright (c) 2001-2002, SSH Communications Security Corp and Jouni Malinen
-  <jkmaline@cc.hut.fi>
-  Copyright (c) 2002-2003, Jouni Malinen <jkmaline@cc.hut.fi>
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms of version 2 of the GNU General Public License as
-  published by the Free Software Foundation.
-
-  This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc., 59
-  Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-  The full GNU General Public License is included in this distribution in the
-  file called LICENSE.
-
-  Contact Information:
-  James P. Ketrenos <ipw2100-admin@linux.intel.com>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-******************************************************************************/
 #include <linux/wireless.h>
 #include <linux/version.h>
 #include <linux/kmod.h>
@@ -55,15 +25,15 @@ struct modes_unit ieee80211_modes[] = {
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,4,20)) && (LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0))
 static inline char *
-iwe_stream_add_event_rsl(char *     stream,         /* Stream of events */
-                     char *     ends,           /* End of stream */
-                     struct iw_event *iwe,      /* Payload */
-                     int        event_len)      /* Real size of payload */
+iwe_stream_add_event_rsl(char *     stream,         
+                     char *     ends,           
+                     struct iw_event *iwe,      
+                     int        event_len)      
 {
-        /* Check if it's possible */
+        
         if((stream + event_len) < ends) {
                 iwe->len = event_len;
-		ndelay(1);   //new
+		ndelay(1);   
                 memcpy(stream, (char *) iwe, event_len);
                 stream += event_len;
         }
@@ -88,7 +58,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 	u16 max_rate, rate;
 	static u8	EWC11NHTCap[] = {0x00, 0x90, 0x4c, 0x33};
 
-	/* First entry *MUST* be the AP MAC address */
+	
 	iwe.cmd = SIOCGIWAP;
 	iwe.u.ap_addr.sa_family = ARPHRD_ETHER;
 	memcpy(iwe.u.ap_addr.sa_data, network->bssid, ETH_ALEN);
@@ -97,12 +67,12 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #else
 	start = iwe_stream_add_event_rsl(start, stop, &iwe, IW_EV_ADDR_LEN);
 #endif
-	/* Remaining entries will be displayed in the order we provide them */
+	
 
-	/* Add the ESSID */
+	
 	iwe.cmd = SIOCGIWESSID;
 	iwe.u.data.flags = 1;
-//	if (network->flags & NETWORK_EMPTY_ESSID) {
+
 	if (network->ssid_len == 0) {
 		iwe.u.data.length = sizeof("<hidden>");
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,27)
@@ -118,7 +88,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
                 start = iwe_stream_add_point(start, stop, &iwe, network->ssid);
 #endif
         }
-	/* Add the protocol name */
+	
 	iwe.cmd = SIOCGIWNAME;
 	for(i=0; i<(sizeof(ieee80211_modes)/sizeof(ieee80211_modes[0])); i++) {
 		if(network->mode&(1<<i)) {
@@ -133,7 +103,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #else
         start = iwe_stream_add_event_rsl(start, stop, &iwe, IW_EV_CHAR_LEN);
 #endif
-        /* Add mode */
+        
         iwe.cmd = SIOCGIWMODE;
         if (network->capability &
 	    (WLAN_CAPABILITY_BSS | WLAN_CAPABILITY_IBSS)) {
@@ -148,10 +118,9 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #endif
         }
 
-        /* Add frequency/channel */
+        
 	iwe.cmd = SIOCGIWFREQ;
-/*	iwe.u.freq.m = ieee80211_frequency(network->channel, network->mode);
-	iwe.u.freq.e = 3; */
+
 	iwe.u.freq.m = network->channel;
 	iwe.u.freq.e = 0;
 	iwe.u.freq.i = 0;
@@ -160,7 +129,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #else
         start = iwe_stream_add_event_rsl(start, stop, &iwe, IW_EV_FREQ_LEN);
 #endif
-	/* Add encryption capability */
+	
 	iwe.cmd = SIOCGIWENCODE;
 	if (network->capability & WLAN_CAPABILITY_PRIVACY)
 		iwe.u.data.flags = IW_ENCODE_ENABLED | IW_ENCODE_NOKEY;
@@ -172,7 +141,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #else
         start = iwe_stream_add_point(start, stop, &iwe, network->ssid);
 #endif
-	/* Add basic and extended rates */
+	
 	max_rate = 0;
 	p = custom;
 	p += snprintf(p, MAX_CUSTOM_LEN - (p - custom), " Rates (Mb/s): ");
@@ -196,7 +165,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 			max_rate = rate;
 	}
 
-	if (network->mode >= IEEE_N_24G)//add N rate here;
+	if (network->mode >= IEEE_N_24G)
 	{
 		PHT_CAPABILITY_ELE ht_cap = NULL;
 		bool is40M = false, isShortGI = false;
@@ -242,8 +211,8 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #else
         start = iwe_stream_add_point(start, stop, &iwe, custom);
 #endif
-	/* Add quality statistics */
-	/* TODO: Fix these values... */
+	
+	
 	iwe.cmd = IWEVQUAL;
 	iwe.u.qual.qual = network->stats.signal;
 	iwe.u.qual.level = network->stats.rssi;
@@ -274,7 +243,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #if (WIRELESS_EXT < 18)
 	if (ieee->wpa_enabled && network->wpa_ie_len){
 		char buf[MAX_WPA_IE_LEN * 2 + 30];
-	//	printk("WPA IE\n");
+	
 		u8 *p = buf;
 		p += sprintf(p, "wpa_ie=");
 		for (i = 0; i < network->wpa_ie_len; i++) {
@@ -339,8 +308,7 @@ static inline char *rtl819x_translate_scan(struct ieee80211_device *ieee,
 #endif
 
 
-	/* Add EXTRA: Age to display seconds since last beacon/probe response
-	 * for given network. */
+	
 	iwe.cmd = IWEVCUSTOM;
 	p = custom;
 	p += snprintf(p, MAX_CUSTOM_LEN - (p - custom),
@@ -364,9 +332,9 @@ int ieee80211_wx_get_scan(struct ieee80211_device *ieee,
 	unsigned long flags;
 
 	char *ev = extra;
-//	char *stop = ev + IW_SCAN_MAX_DATA;
-	char *stop = ev + wrqu->data.length;//IW_SCAN_MAX_DATA;
-	//char *stop = ev + IW_SCAN_MAX_DATA;
+
+	char *stop = ev + wrqu->data.length;
+	
 	int i = 0;
 	int err = 0;
 	IEEE80211_DEBUG_WX("Getting scan\n");
@@ -440,8 +408,7 @@ int ieee80211_wx_set_encode(struct ieee80211_device *ieee,
 		} else
 			IEEE80211_DEBUG_WX("Disabling encryption.\n");
 
-		/* Check all the keys to see if any are still configured,
-		 * and if no key index was provided, de-init them all */
+		
 		for (i = 0; i < WEP_KEYS; i++) {
 			if (ieee->crypt[i] != NULL) {
 				if (key_provided)
@@ -467,15 +434,14 @@ int ieee80211_wx_set_encode(struct ieee80211_device *ieee,
 
 	if (*crypt != NULL && (*crypt)->ops != NULL &&
 	    strcmp((*crypt)->ops->name, "WEP") != 0) {
-		/* changing to use WEP; deinit previously used algorithm
-		 * on this key */
+		
 		ieee80211_crypt_delayed_deinit(ieee, crypt);
 	}
 
 	if (*crypt == NULL) {
 		struct ieee80211_crypt_data *new_crypt;
 
-		/* take WEP into use */
+		
 		new_crypt = kmalloc(sizeof(struct ieee80211_crypt_data),
 				    GFP_KERNEL);
 		if (new_crypt == NULL)
@@ -499,7 +465,7 @@ int ieee80211_wx_set_encode(struct ieee80211_device *ieee,
 		*crypt = new_crypt;
 	}
 
-	/* If a new key was provided, set it up */
+	
 	if (erq->length > 0) {
 		len = erq->length <= 5 ? 5 : 13;
 		memcpy(sec.keys[key], keybuf, erq->length);
@@ -513,8 +479,7 @@ int ieee80211_wx_set_encode(struct ieee80211_device *ieee,
  		(*crypt)->ops->set_key(sec.keys[key], len, NULL,
 				       (*crypt)->priv);
 		sec.flags |= (1 << key);
-		/* This ensures a key will be activated if no key is
-		 * explicitely set */
+		
 		if (key == sec.active_key)
 			sec.flags |= SEC_ACTIVE_KEY;
 		ieee->tx_keyidx = key;
@@ -523,7 +488,7 @@ int ieee80211_wx_set_encode(struct ieee80211_device *ieee,
 		len = (*crypt)->ops->get_key(sec.keys[key], WEP_KEY_LEN,
 					     NULL, (*crypt)->priv);
 		if (len == 0) {
-			/* Set a default key of all 0 */
+			
 			printk("Setting key %d to all zero.\n",
 					   key);
 
@@ -536,7 +501,7 @@ int ieee80211_wx_set_encode(struct ieee80211_device *ieee,
 			sec.flags |= (1 << key);
 		}
 
-		/* No key data - just set the default TX key index */
+		
 		if (key_provided) {
 			IEEE80211_DEBUG_WX(
 				"Setting key %d to default Tx key.\n", key);
@@ -554,19 +519,14 @@ int ieee80211_wx_set_encode(struct ieee80211_device *ieee,
 	IEEE80211_DEBUG_WX("Auth: %s\n", sec.auth_mode == WLAN_AUTH_OPEN ?
 			   "OPEN" : "SHARED KEY");
 
-	/* For now we just support WEP, so only set that security level...
-	 * TODO: When WPA is added this is one place that needs to change */
+	
 	sec.flags |= SEC_LEVEL;
-	sec.level = SEC_LEVEL_1; /* 40 and 104 bit WEP */
+	sec.level = SEC_LEVEL_1; 
 
 	if (ieee->set_security)
 		ieee->set_security(dev, &sec);
 
-	/* Do not reset port if card is in Managed mode since resetting will
-	 * generate new IEEE 802.11 authentication which may end up in looping
-	 * with IEEE 802.1X.  If your hardware requires a reset after WEP
-	 * configuration (for example... Prism2), implement the reset_port in
-	 * the callbacks structures used to initialize the 802.11 stack. */
+	
 	if (ieee->reset_on_keychange &&
 	    ieee->iw_mode != IW_MODE_INFRA &&
 	    ieee->reset_port && ieee->reset_port(dev)) {
@@ -607,8 +567,7 @@ int ieee80211_wx_get_encode(struct ieee80211_device *ieee,
 	}
 #if 0
 	if (strcmp(crypt->ops->name, "WEP") != 0) {
-		/* only WEP is supported with wireless extensions, so just
-		 * report that encryption is used */
+		
 		erq->length = 0;
 		erq->flags |= IW_ENCODE_ENABLED;
 		return 0;
@@ -645,7 +604,7 @@ int ieee80211_wx_set_encode_ext(struct ieee80211_device *ieee,
         struct ieee80211_security sec = {
                 .flags = 0,
         };
-	//printk("======>encoding flag:%x,ext flag:%x, ext alg:%d\n", encoding->flags,ext->ext_flags, ext->alg);
+	
         idx = encoding->flags & IW_ENCODE_INDEX;
         if (idx) {
                 if (idx < 1 || idx > WEP_KEYS)
@@ -660,8 +619,8 @@ int ieee80211_wx_set_encode_ext(struct ieee80211_device *ieee,
 
                 group_key = 1;
         } else {
-                /* some Cisco APs use idx>0 for unicast in dynamic WEP */
-		//printk("not group key, flags:%x, ext->alg:%d\n", ext->ext_flags, ext->alg);
+                
+		
                 if (idx != 0 && ext->alg != IW_ENCODE_ALG_WEP)
                         return -EINVAL;
                 if (ieee->iw_mode == IW_MODE_INFRA)
@@ -672,7 +631,7 @@ int ieee80211_wx_set_encode_ext(struct ieee80211_device *ieee,
                         return -EINVAL;
         }
 
-        sec.flags |= SEC_ENABLED;// | SEC_ENCRYPT;
+        sec.flags |= SEC_ENABLED;
         if ((encoding->flags & IW_ENCODE_DISABLED) ||
             ext->alg == IW_ENCODE_ALG_NONE) {
                 if (*crypt)
@@ -686,16 +645,16 @@ int ieee80211_wx_set_encode_ext(struct ieee80211_device *ieee,
 
                 if (i == WEP_KEYS) {
                         sec.enabled = 0;
-                      //  sec.encrypt = 0;
+                      
                         sec.level = SEC_LEVEL_0;
                         sec.flags |= SEC_LEVEL;
                 }
-		//printk("disabled: flag:%x\n", encoding->flags);
+		
                 goto done;
         }
 
 	sec.enabled = 1;
-    //    sec.encrypt = 1;
+    
 #if 0
         if (group_key ? !ieee->host_mc_decrypt :
             !(ieee->host_encrypt || ieee->host_decrypt ||
@@ -767,8 +726,8 @@ int ieee80211_wx_set_encode_ext(struct ieee80211_device *ieee,
                 goto done;
         }
 #if 1
- //skip_host_crypt:
-	//printk("skip_host_crypt:ext_flags:%x\n", ext->ext_flags);
+ 
+	
         if (ext->ext_flags & IW_ENCODE_EXT_SET_TX_KEY) {
                 ieee->tx_keyidx = idx;
                 sec.active_key = idx;
@@ -776,23 +735,23 @@ int ieee80211_wx_set_encode_ext(struct ieee80211_device *ieee,
         }
 
         if (ext->alg != IW_ENCODE_ALG_NONE) {
-                //memcpy(sec.keys[idx], ext->key, ext->key_len);
+                
                 sec.key_sizes[idx] = ext->key_len;
                 sec.flags |= (1 << idx);
                 if (ext->alg == IW_ENCODE_ALG_WEP) {
-                      //  sec.encode_alg[idx] = SEC_ALG_WEP;
+                      
                         sec.flags |= SEC_LEVEL;
                         sec.level = SEC_LEVEL_1;
                 } else if (ext->alg == IW_ENCODE_ALG_TKIP) {
-                      //  sec.encode_alg[idx] = SEC_ALG_TKIP;
+                      
                         sec.flags |= SEC_LEVEL;
                         sec.level = SEC_LEVEL_2;
                 } else if (ext->alg == IW_ENCODE_ALG_CCMP) {
-                       // sec.encode_alg[idx] = SEC_ALG_CCMP;
+                       
                         sec.flags |= SEC_LEVEL;
                         sec.level = SEC_LEVEL_3;
                 }
-                /* Don't set sec level for group keys. */
+                
                 if (group_key)
                         sec.flags &= ~SEC_LEVEL;
         }
@@ -891,16 +850,13 @@ int ieee80211_wx_set_auth(struct ieee80211_device *ieee,
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0)
 	switch (data->flags & IW_AUTH_INDEX) {
         case IW_AUTH_WPA_VERSION:
-	     /*need to support wpa2 here*/
-		//printk("wpa version:%x\n", data->value);
+	     
+		
 		break;
         case IW_AUTH_CIPHER_PAIRWISE:
         case IW_AUTH_CIPHER_GROUP:
         case IW_AUTH_KEY_MGMT:
-                /*
- *                  * Host AP driver does not use these parameters and allows
- *                                   * wpa_supplicant to control them internally.
- *                                                    */
+                
                 break;
         case IW_AUTH_TKIP_COUNTERMEASURES:
                 ieee->tkip_countermeasures = data->value;
@@ -910,8 +866,8 @@ int ieee80211_wx_set_auth(struct ieee80211_device *ieee,
 		break;
 
 	case IW_AUTH_80211_AUTH_ALG:
-		//printk("======>%s():data->value is %d\n",__FUNCTION__,data->value);
-	//	ieee->open_wep = (data->value&IW_AUTH_ALG_OPEN_SYSTEM)?1:0;
+		
+	
 		if(data->value & IW_AUTH_ALG_SHARED_KEY){
 			ieee->open_wep = 0;
 			ieee->auth_mode = 1;
@@ -923,17 +879,17 @@ int ieee80211_wx_set_auth(struct ieee80211_device *ieee,
 		else if(data->value & IW_AUTH_ALG_LEAP){
 			ieee->open_wep = 1;
 			ieee->auth_mode = 2;
-			//printk("hahahaa:LEAP\n");
+			
 		}
 		else
 			return -EINVAL;
-		//printk("open_wep:%d\n", ieee->open_wep);
+		
 		break;
 
 #if 1
 	case IW_AUTH_WPA_ENABLED:
 		ieee->wpa_enabled = (data->value)?1:0;
-		//printk("enalbe wpa:%d\n", ieee->wpa_enabled);
+		
 		break;
 
 #endif
@@ -967,7 +923,7 @@ int ieee80211_wx_set_gen_ie(struct ieee80211_device *ieee, u8 *ie, size_t len)
 
 	if (len>MAX_WPA_IE_LEN || (len && ie == NULL))
 	{
-	//	printk("return error out, len:%d\n", len);
+	
 	return -EINVAL;
 	}
 
@@ -1000,22 +956,22 @@ int ieee80211_wx_set_gen_ie(struct ieee80211_device *ieee, u8 *ie, size_t len)
 #endif
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-//EXPORT_SYMBOL(ieee80211_wx_set_gen_ie);
+
 #if (WIRELESS_EXT >= 18)
-//EXPORT_SYMBOL(ieee80211_wx_set_mlme);
-//EXPORT_SYMBOL(ieee80211_wx_set_auth);
-//EXPORT_SYMBOL(ieee80211_wx_set_encode_ext);
-//EXPORT_SYMBOL(ieee80211_wx_get_encode_ext);
+
+
+
+
 #endif
-//EXPORT_SYMBOL(ieee80211_wx_get_scan);
-//EXPORT_SYMBOL(ieee80211_wx_set_encode);
-//EXPORT_SYMBOL(ieee80211_wx_get_encode);
+
+
+
 #else
-//EXPORT_SYMBOL_NOVERS(ieee80211_wx_set_gen_ie);
-//EXPORT_SYMBOL_NOVERS(ieee80211_wx_set_mlme);
-//EXPORT_SYMBOL_NOVERS(ieee80211_wx_set_auth);
-//EXPORT_SYMBOL_NOVERS(ieee80211_wx_set_encode_ext);
-//EXPORT_SYMBOL_NOVERS(ieee80211_wx_get_scan);
-//EXPORT_SYMBOL_NOVERS(ieee80211_wx_set_encode);
-//EXPORT_SYMBOL_NOVERS(ieee80211_wx_get_encode);
+
+
+
+
+
+
+
 #endif

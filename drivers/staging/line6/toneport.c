@@ -1,14 +1,4 @@
-/*
- * Line6 Linux USB driver - 0.8.0
- *
- * Copyright (C) 2004-2009 Markus Grabner (grabner@icg.tugraz.at)
- *                         Emil Myhrman (emil.myhrman@gmail.com)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include "driver.h"
 
@@ -73,12 +63,7 @@ static struct line6_pcm_properties toneport_pcm_properties = {
 	.bytes_per_frame = 4
 };
 
-/*
-	For the led on Guitarport.
-	Brightness goes from 0x00 to 0x26. Set a value above this to have led
-	blink.
-	(void cmd_0x02(byte red, byte green)
-*/
+
 static int led_red = 0x00;
 static int led_green = 0x26;
 
@@ -137,9 +122,7 @@ static int toneport_send_cmd(struct usb_device *usbdev, int cmd1, int cmd2)
 	return 0;
 }
 
-/*
-	Toneport destructor.
-*/
+
 static void toneport_destruct(struct usb_interface *interface)
 {
 	struct usb_line6_toneport *toneport = usb_get_intfdata(interface);
@@ -153,9 +136,7 @@ static void toneport_destruct(struct usb_interface *interface)
 	line6_cleanup_audio(line6);
 }
 
-/*
-	 Init Toneport device.
-*/
+
 int toneport_init(struct usb_interface *interface,
 		  struct usb_line6_toneport *toneport)
 {
@@ -166,21 +147,21 @@ int toneport_init(struct usb_interface *interface,
 	if ((interface == NULL) || (toneport == NULL))
 		return -ENODEV;
 
-	/* initialize audio system: */
+	
 	err = line6_init_audio(line6);
 	if (err < 0) {
 		toneport_destruct(interface);
 		return err;
 	}
 
-	/* initialize PCM subsystem: */
+	
 	err = line6_init_pcm(line6, &toneport_pcm_properties);
 	if (err < 0) {
 		toneport_destruct(interface);
 		return err;
 	}
 
-	/* register audio system: */
+	
 	err = line6_register_audio(line6);
 	if (err < 0) {
 		toneport_destruct(interface);
@@ -191,16 +172,14 @@ int toneport_init(struct usb_interface *interface,
 	line6_read_serial_number(line6, &toneport->serial_number);
 	line6_read_data(line6, 0x80c2, &toneport->firmware_version, 1);
 
-	/* sync time on device with host: */
+	
 	ticks = (int)get_seconds();
 	line6_write_data(line6, 0x80c6, &ticks, 4);
 
-	/*
-	seems to work without the first two...
-	*/
-	/* toneport_send_cmd(usbdev, 0x0201, 0x0002); */
-	/* toneport_send_cmd(usbdev, 0x0801, 0x0000); */
-	/* only one that works for me; on GP, TP might be different? */
+	
+	
+	
+	
 	toneport_send_cmd(usbdev, 0x0301, 0x0000);
 
 	if (usbdev->descriptor.idProduct != LINE6_DEVID_GUITARPORT) {
@@ -212,9 +191,7 @@ int toneport_init(struct usb_interface *interface,
 	return 0;
 }
 
-/*
-	Toneport device disconnected.
-*/
+
 void toneport_disconnect(struct usb_interface *interface)
 {
 	struct usb_line6_toneport *toneport;

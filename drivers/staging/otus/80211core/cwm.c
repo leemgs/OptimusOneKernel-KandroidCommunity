@@ -1,35 +1,21 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : cwm.c                                                 */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains channel width related functions.           */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 
 #include "cprecomp.h"
 
 
 
 void zfCwmInit(zdev_t* dev) {
-    //u16_t i;
+    
     zmw_get_wlan_dev(dev);
 
     switch (wd->wlanMode) {
@@ -99,10 +85,10 @@ void zfCoreCwmBusy(zdev_t* dev, u16_t busy)
 
 u16_t zfCwmIsExtChanBusy(u32_t ctlBusy, u32_t extBusy)
 {
-    u32_t busy; /* percentage */
+    u32_t busy; 
     u32_t cycleTime, ctlClear;
 
-    cycleTime = 1280000; //1.28 seconds
+    cycleTime = 1280000; 
 
     if (cycleTime > ctlBusy) {
         ctlClear = cycleTime - ctlBusy;
@@ -112,12 +98,7 @@ u16_t zfCwmIsExtChanBusy(u32_t ctlBusy, u32_t extBusy)
         ctlClear = 0;
     }
 
-    /* Compute ratio of extension channel busy to control channel clear
-     * as an approximation to extension channel cleanliness.
-     *
-     * According to the hardware folks, ext rxclear is undefined
-     * if the ctrl rxclear is de-asserted (i.e. busy)
-     */
+    
     if (ctlClear) {
         busy = (extBusy * 100) / ctlClear;
     } else {

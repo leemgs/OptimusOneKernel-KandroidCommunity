@@ -1,56 +1,7 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    md5.c
-
-	Abstract:
-
-	Revision History:
-	Who			When			What
-	--------	----------		----------------------------------------------
-	Name		Date			Modification logs
-	jan			10-28-03		Initial
-	Rita    	11-23-04		Modify MD5 and SHA-1
-	Rita		10-14-05		Modify SHA-1 in big-endian platform
- */
 #include "../rt_config.h"
 
-/**
- * md5_mac:
- * @key: pointer to	the	key	used for MAC generation
- * @key_len: length	of the key in bytes
- * @data: pointer to the data area for which the MAC is	generated
- * @data_len: length of	the	data in	bytes
- * @mac: pointer to	the	buffer holding space for the MAC; the buffer should
- * have	space for 128-bit (16 bytes) MD5 hash value
- *
- * md5_mac() determines	the	message	authentication code	by using secure	hash
- * MD5(key | data |	key).
- */
+
 void md5_mac(u8 *key, size_t key_len, u8 *data, size_t data_len, u8 *mac)
 {
 	MD5_CTX	context;
@@ -62,79 +13,61 @@ void md5_mac(u8 *key, size_t key_len, u8 *data, size_t data_len, u8 *mac)
 	MD5Final(mac, &context);
 }
 
-/**
- * hmac_md5:
- * @key: pointer to	the	key	used for MAC generation
- * @key_len: length	of the key in bytes
- * @data: pointer to the data area for which the MAC is	generated
- * @data_len: length of	the	data in	bytes
- * @mac: pointer to	the	buffer holding space for the MAC; the buffer should
- * have	space for 128-bit (16 bytes) MD5 hash value
- *
- * hmac_md5() determines the message authentication	code using HMAC-MD5.
- * This	implementation is based	on the sample code presented in	RFC	2104.
- */
+
 void hmac_md5(u8 *key, size_t key_len, u8 *data, size_t data_len, u8 *mac)
 {
 	MD5_CTX	context;
-    u8 k_ipad[65]; /* inner padding - key XORd with ipad */
-    u8 k_opad[65]; /* outer padding - key XORd with opad */
+    u8 k_ipad[65]; 
+    u8 k_opad[65]; 
     u8 tk[16];
 	int	i;
 
-	//assert(key != NULL && data != NULL && mac != NULL);
+	
 
-	/* if key is longer	than 64	bytes reset	it to key =	MD5(key) */
+	
 	if (key_len	> 64) {
 		MD5_CTX	ttcontext;
 
 		MD5Init(&ttcontext);
 		MD5Update(&ttcontext, key, key_len);
 		MD5Final(tk, &ttcontext);
-		//key=(PUCHAR)ttcontext.buf;
+		
 		key	= tk;
 		key_len	= 16;
 	}
 
-	/* the HMAC_MD5	transform looks	like:
-	 *
-	 * MD5(K XOR opad, MD5(K XOR ipad, text))
-	 *
-	 * where K is an n byte	key
-	 * ipad	is the byte	0x36 repeated 64 times
-	 * opad	is the byte	0x5c repeated 64 times
-	 * and text	is the data	being protected	*/
+	
 
-	/* start out by	storing	key	in pads	*/
+	
 	NdisZeroMemory(k_ipad, sizeof(k_ipad));
 	NdisZeroMemory(k_opad,	sizeof(k_opad));
-	//assert(key_len < sizeof(k_ipad));
+	
 	NdisMoveMemory(k_ipad, key,	key_len);
 	NdisMoveMemory(k_opad, key,	key_len);
 
-	/* XOR key with	ipad and opad values */
+	
 	for	(i = 0;	i <	64;	i++) {
 		k_ipad[i] ^= 0x36;
 		k_opad[i] ^= 0x5c;
 	}
 
-	/* perform inner MD5 */
-	MD5Init(&context);					 /*	init context for 1st pass */
-	MD5Update(&context,	k_ipad,	64);	 /*	start with inner pad */
-	MD5Update(&context,	data, data_len); /*	then text of datagram */
-	MD5Final(mac, &context);			 /*	finish up 1st pass */
+	
+	MD5Init(&context);					 
+	MD5Update(&context,	k_ipad,	64);	 
+	MD5Update(&context,	data, data_len); 
+	MD5Final(mac, &context);			 
 
-	/* perform outer MD5 */
-	MD5Init(&context);					 /*	init context for 2nd pass */
-	MD5Update(&context,	k_opad,	64);	 /*	start with outer pad */
-	MD5Update(&context,	mac, 16);		 /*	then results of	1st	hash */
-	MD5Final(mac, &context);			 /*	finish up 2nd pass */
+	
+	MD5Init(&context);					 
+	MD5Update(&context,	k_opad,	64);	 
+	MD5Update(&context,	mac, 16);		 
+	MD5Final(mac, &context);			 
 }
 
-#define byteReverse(buf, len)   /* Nothing */
+#define byteReverse(buf, len)   
 
-/* ==========================  MD5 implementation =========================== */
-// four base functions for MD5
+
+
 #define MD5_F1(x, y, z) (((x) & (y)) | ((~x) & (z)))
 #define MD5_F2(x, y, z) (((x) & (z)) | ((y) & (~z)))
 #define MD5_F3(x, y, z) ((x) ^ (y) ^ (z))
@@ -145,16 +78,7 @@ void hmac_md5(u8 *key, size_t key_len, u8 *data, size_t data_len, u8 *mac)
 	( w	+= f(x,	y, z) +	data + t,  w = (CYCLIC_LEFT_SHIFT(w, s)) & 0xffffffff, w +=	x )
 
 
-/*
- *  Function Description:
- *      Initiate MD5 Context satisfied in RFC 1321
- *
- *  Arguments:
- *      pCtx        Pointer	to MD5 context
- *
- *  Return Value:
- *      None
- */
+
 VOID MD5Init(MD5_CTX *pCtx)
 {
     pCtx->Buf[0]=0x67452301;
@@ -167,22 +91,7 @@ VOID MD5Init(MD5_CTX *pCtx)
 }
 
 
-/*
- *  Function Description:
- *      Update MD5 Context, allow of an arrary of octets as the next portion
- *      of the message
- *
- *  Arguments:
- *      pCtx		Pointer	to MD5 context
- * 	    pData       Pointer to input data
- *      LenInBytes  The length of input data (unit: byte)
- *
- *  Return Value:
- *      None
- *
- *  Note:
- *      Called after MD5Init or MD5Update(itself)
- */
+
 VOID MD5Update(MD5_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
 {
 
@@ -195,14 +104,14 @@ VOID MD5Update(MD5_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
     pCtx->LenInBitCount[0] = (UINT32) (pCtx->LenInBitCount[0] + (LenInBytes << 3));
 
     if (pCtx->LenInBitCount[0] < temp)
-        pCtx->LenInBitCount[1]++;   //carry in
+        pCtx->LenInBitCount[1]++;   
 
     pCtx->LenInBitCount[1] += LenInBytes >> 29;
 
-    // mod 64 bytes
+    
     temp = (temp >> 3) & 0x3f;
 
-    // process lacks of 64-byte data
+    
     if (temp)
     {
         UCHAR *pAds = (UCHAR *) pCtx->Input + temp;
@@ -219,7 +128,7 @@ VOID MD5Update(MD5_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
 
         pData += 64-temp;
         LenInBytes -= 64-temp;
-    } // end of if (temp)
+    } 
 
 
     TfTimes = (LenInBytes >> 6);
@@ -231,30 +140,16 @@ VOID MD5Update(MD5_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
         MD5Transform(pCtx->Buf, (UINT32 *)pCtx->Input);
         pData += 64;
         LenInBytes -= 64;
-    } // end of for
+    } 
 
-    // buffering lacks of 64-byte data
+    
     if(LenInBytes)
         NdisMoveMemory(pCtx->Input, (UCHAR *)pData, LenInBytes);
 
 }
 
 
-/*
- *  Function Description:
- *      Append padding bits and length of original message in the tail
- *      The message digest has to be completed in the end
- *
- *  Arguments:
- *      Digest		Output of Digest-Message for MD5
- *  	pCtx        Pointer	to MD5 context
- *
- *  Return Value:
- *      None
- *
- *  Note:
- *      Called after MD5Update
- */
+
 VOID MD5Final(UCHAR Digest[16], MD5_CTX *pCtx)
 {
     UCHAR Remainder;
@@ -268,7 +163,7 @@ VOID MD5Final(UCHAR Digest[16], MD5_CTX *pCtx)
 
     pAppend = (UCHAR *)pCtx->Input + Remainder;
 
-    // padding bits without crossing block(64-byte based) boundary
+    
     if (Remainder < 56)
     {
         *pAppend = 0x80;
@@ -276,7 +171,7 @@ VOID MD5Final(UCHAR Digest[16], MD5_CTX *pCtx)
 
         NdisZeroMemory((UCHAR *)pCtx->Input + Remainder+1, PadLenInBytes);
 
-		// add data-length field, from low to high
+		
        	for (i=0; i<4; i++)
         {
         	pCtx->Input[56+i] = (UCHAR)((pCtx->LenInBitCount[0] >> (i << 3)) & 0xff);
@@ -285,12 +180,12 @@ VOID MD5Final(UCHAR Digest[16], MD5_CTX *pCtx)
 
         byteReverse(pCtx->Input, 16);
         MD5Transform(pCtx->Buf, (UINT32 *)pCtx->Input);
-    } // end of if
+    } 
 
-    // padding bits with crossing block(64-byte based) boundary
+    
     else
     {
-        // the first block ===
+        
         *pAppend = 0x80;
         PadLenInBytes --;
 
@@ -301,10 +196,10 @@ VOID MD5Final(UCHAR Digest[16], MD5_CTX *pCtx)
         MD5Transform(pCtx->Buf, (UINT32 *)pCtx->Input);
 
 
-        // the second block ===
+        
         NdisZeroMemory((UCHAR *)pCtx->Input, PadLenInBytes);
 
-        // add data-length field
+        
         for (i=0; i<4; i++)
         {
         	pCtx->Input[56+i] = (UCHAR)((pCtx->LenInBitCount[0] >> (i << 3)) & 0xff);
@@ -313,30 +208,16 @@ VOID MD5Final(UCHAR Digest[16], MD5_CTX *pCtx)
 
         byteReverse(pCtx->Input, 16);
         MD5Transform(pCtx->Buf, (UINT32 *)pCtx->Input);
-    } // end of else
+    } 
 
 
-    NdisMoveMemory((UCHAR *)Digest, (UINT32 *)pCtx->Buf, 16); // output
+    NdisMoveMemory((UCHAR *)Digest, (UINT32 *)pCtx->Buf, 16); 
     byteReverse((UCHAR *)Digest, 4);
-    NdisZeroMemory(pCtx, sizeof(pCtx)); // memory free
+    NdisZeroMemory(pCtx, sizeof(pCtx)); 
 }
 
 
-/*
- *  Function Description:
- *      The central algorithm of MD5, consists of four rounds and sixteen
- *  	steps per round
- *
- *  Arguments:
- *      Buf     Buffers of four states (output: 16 bytes)
- * 	    Mes     Input data (input: 64 bytes)
- *
- *  Return Value:
- *      None
- *
- *  Note:
- *      Called by MD5Update or MD5Final
- */
+
 VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
 {
     UINT32 Reg[4], Temp;
@@ -351,7 +232,7 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
  	};
 
 
-	// [equal to 4294967296*abs(sin(index))]
+	
     static UINT32 MD5Table[64] =
 	{
 		0xd76aa478,	0xe8c7b756,	0x242070db,	0xc1bdceee,
@@ -380,13 +261,13 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
         Reg[i]=Buf[i];
 
 
-    // 64 steps in MD5 algorithm
+    
     for (i=0; i<16; i++)
     {
         MD5Step(MD5_F1, Reg[0], Reg[1], Reg[2], Reg[3], Mes[i],
                 MD5Table[i], LShiftVal[i & 0x3]);
 
-        // one-word right shift
+        
         Temp   = Reg[3];
         Reg[3] = Reg[2];
         Reg[2] = Reg[1];
@@ -398,7 +279,7 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
         MD5Step(MD5_F2, Reg[0], Reg[1], Reg[2], Reg[3], Mes[(5*(i & 0xf)+1) & 0xf],
                 MD5Table[i], LShiftVal[(0x1 << 2)+(i & 0x3)]);
 
-        // one-word right shift
+        
         Temp   = Reg[3];
         Reg[3] = Reg[2];
         Reg[2] = Reg[1];
@@ -410,7 +291,7 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
         MD5Step(MD5_F3, Reg[0], Reg[1], Reg[2], Reg[3], Mes[(3*(i & 0xf)+5) & 0xf],
                 MD5Table[i], LShiftVal[(0x1 << 3)+(i & 0x3)]);
 
-        // one-word right shift
+        
         Temp   = Reg[3];
         Reg[3] = Reg[2];
         Reg[2] = Reg[1];
@@ -422,7 +303,7 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
         MD5Step(MD5_F4, Reg[0], Reg[1], Reg[2], Reg[3], Mes[(7*(i & 0xf)) & 0xf],
                 MD5Table[i], LShiftVal[(0x3 << 2)+(i & 0x3)]);
 
-        // one-word right shift
+        
         Temp   = Reg[3];
         Reg[3] = Reg[2];
         Reg[2] = Reg[1];
@@ -431,7 +312,7 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
     }
 
 
-    // (temporary)output
+    
     for (i=0; i<4; i++)
         Buf[i] += Reg[i];
 
@@ -439,8 +320,8 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
 
 
 
-/* =========================  SHA-1 implementation ========================== */
-// four base functions for SHA-1
+
+
 #define SHA1_F1(b, c, d)    (((b) & (c)) | ((~b) & (d)))
 #define SHA1_F2(b, c, d)    ((b) ^ (c) ^ (d))
 #define SHA1_F3(b, c, d)    (((b) & (c)) | ((b) & (d)) | ((c) & (d)))
@@ -450,7 +331,7 @@ VOID MD5Transform(UINT32 Buf[4], UINT32 Mes[16])
     ( e	+= ( f(b, c, d) + w + k + CYCLIC_LEFT_SHIFT(a, 5)) & 0xffffffff, \
       b = CYCLIC_LEFT_SHIFT(b, 30) )
 
-//Initiate SHA-1 Context satisfied in RFC 3174
+
 VOID SHAInit(SHA_CTX *pCtx)
 {
     pCtx->Buf[0]=0x67452301;
@@ -463,22 +344,7 @@ VOID SHAInit(SHA_CTX *pCtx)
     pCtx->LenInBitCount[1]=0;
 }
 
-/*
- *  Function Description:
- *      Update SHA-1 Context, allow of an arrary of octets as the next
- *      portion of the message
- *
- *  Arguments:
- *      pCtx		Pointer	to SHA-1 context
- * 	    pData       Pointer to input data
- *      LenInBytes  The length of input data (unit: byte)
- *
- *  Return Value:
- *      error       indicate more than pow(2,64) bits of data
- *
- *  Note:
- *      Called after SHAInit or SHAUpdate(itself)
- */
+
 UCHAR SHAUpdate(SHA_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
 {
     UINT32 TfTimes;
@@ -491,18 +357,18 @@ UCHAR SHAUpdate(SHA_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
 
     pCtx->LenInBitCount[0] = (UINT32) (pCtx->LenInBitCount[0] + (LenInBytes << 3));
     if (pCtx->LenInBitCount[0] < temp1)
-        pCtx->LenInBitCount[1]++;   //carry in
+        pCtx->LenInBitCount[1]++;   
 
 
     pCtx->LenInBitCount[1] = (UINT32) (pCtx->LenInBitCount[1] +(LenInBytes >> 29));
     if (pCtx->LenInBitCount[1] < temp2)
-        return (err);   //check total length of original data
+        return (err);   
 
 
-    // mod 64 bytes
+    
     temp1 = (temp1 >> 3) & 0x3f;
 
-    // process lacks of 64-byte data
+    
     if (temp1)
     {
         UCHAR *pAds = (UCHAR *) pCtx->Input + temp1;
@@ -521,7 +387,7 @@ UCHAR SHAUpdate(SHA_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
 
         pData += 64-temp1;
         LenInBytes -= 64-temp1;
-    } // end of if (temp1)
+    } 
 
 
     TfTimes = (LenInBytes >> 6);
@@ -535,9 +401,9 @@ UCHAR SHAUpdate(SHA_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
         SHATransform(pCtx->Buf, (UINT32 *)pCtx->Input);
         pData += 64;
         LenInBytes -= 64;
-    } // end of for
+    } 
 
-    // buffering lacks of 64-byte data
+    
     if(LenInBytes)
         NdisMoveMemory(pCtx->Input, (UCHAR *)pData, LenInBytes);
 
@@ -545,8 +411,8 @@ UCHAR SHAUpdate(SHA_CTX *pCtx, UCHAR *pData, UINT32 LenInBytes)
 
 }
 
-// Append padding bits and length of original message in the tail
-// The message digest has to be completed in the end
+
+
 VOID SHAFinal(SHA_CTX *pCtx, UCHAR Digest[20])
 {
     UCHAR Remainder;
@@ -560,7 +426,7 @@ VOID SHAFinal(SHA_CTX *pCtx, UCHAR Digest[20])
 
     PadLenInBytes = (Remainder < 56) ? (56-Remainder) : (120-Remainder);
 
-    // padding bits without crossing block(64-byte based) boundary
+    
     if (Remainder < 56)
     {
         *pAppend = 0x80;
@@ -568,7 +434,7 @@ VOID SHAFinal(SHA_CTX *pCtx, UCHAR Digest[20])
 
         NdisZeroMemory((UCHAR *)pCtx->Input + Remainder+1, PadLenInBytes);
 
-		// add data-length field, from high to low
+		
         for (i=0; i<4; i++)
         {
         	pCtx->Input[56+i] = (UCHAR)((pCtx->LenInBitCount[1] >> ((3-i) << 3)) & 0xff);
@@ -578,12 +444,12 @@ VOID SHAFinal(SHA_CTX *pCtx, UCHAR Digest[20])
         byteReverse((UCHAR *)pCtx->Input, 16);
         NdisZeroMemory((UCHAR *)pCtx->Input + 64, 14);
         SHATransform(pCtx->Buf, (UINT32 *)pCtx->Input);
-    } // end of if
+    } 
 
-    // padding bits with crossing block(64-byte based) boundary
+    
     else
     {
-        // the first block ===
+        
         *pAppend = 0x80;
         PadLenInBytes --;
 
@@ -595,10 +461,10 @@ VOID SHAFinal(SHA_CTX *pCtx, UCHAR Digest[20])
         SHATransform(pCtx->Buf, (UINT32 *)pCtx->Input);
 
 
-        // the second block ===
+        
         NdisZeroMemory((UCHAR *)pCtx->Input, PadLenInBytes);
 
-		// add data-length field
+		
 		for (i=0; i<4; i++)
         {
         	pCtx->Input[56+i] = (UCHAR)((pCtx->LenInBitCount[1] >> ((3-i) << 3)) & 0xff);
@@ -608,21 +474,21 @@ VOID SHAFinal(SHA_CTX *pCtx, UCHAR Digest[20])
         byteReverse((UCHAR *)pCtx->Input, 16);
         NdisZeroMemory((UCHAR *)pCtx->Input + 64, 16);
         SHATransform(pCtx->Buf, (UINT32 *)pCtx->Input);
-    } // end of else
+    } 
 
 
-    //Output, bytereverse
+    
     for (i=0; i<20; i++)
     {
         Digest [i] = (UCHAR)(pCtx->Buf[i>>2] >> 8*(3-(i & 0x3)));
     }
 
-    NdisZeroMemory(pCtx, sizeof(pCtx)); // memory free
+    NdisZeroMemory(pCtx, sizeof(pCtx)); 
 }
 
 
-// The central algorithm of SHA-1, consists of four rounds and
-// twenty steps per round
+
+
 VOID SHATransform(UINT32 Buf[5], UINT32 Mes[20])
 {
     UINT32 Reg[5],Temp;
@@ -638,7 +504,7 @@ VOID SHATransform(UINT32 Buf[5], UINT32 Mes[20])
 	Reg[3]=Buf[3];
 	Reg[4]=Buf[4];
 
-    //the first octet of a word is stored in the 0th element, bytereverse
+    
 	for(i = 0; i < 16; i++)
     {
     	W[i]  = (Mes[i] >> 24) & 0xff;
@@ -652,7 +518,7 @@ VOID SHATransform(UINT32 Buf[5], UINT32 Mes[20])
 	    W[16+i] = CYCLIC_LEFT_SHIFT(W[i] ^ W[2+i] ^ W[8+i] ^ W[13+i], 1);
 
 
-    // 80 steps in SHA-1 algorithm
+    
     for (i=0; i<80; i++)
     {
         if (i<20)
@@ -672,7 +538,7 @@ VOID SHATransform(UINT32 Buf[5], UINT32 Mes[20])
                      W[i], SHA1Table[3]);
 
 
-       // one-word right shift
+       
 		Temp   = Reg[4];
         Reg[4] = Reg[3];
         Reg[3] = Reg[2];
@@ -680,19 +546,19 @@ VOID SHATransform(UINT32 Buf[5], UINT32 Mes[20])
         Reg[1] = Reg[0];
         Reg[0] = Temp;
 
-    } // end of for-loop
+    } 
 
 
-    // (temporary)output
+    
     for (i=0; i<5; i++)
         Buf[i] += Reg[i];
 
 }
 
 
-/* =========================  AES En/Decryption ========================== */
 
-/* forward S-box */
+
+
 static uint32 FSb[256] =
 {
 	0x63, 0x7C,	0x77, 0x7B,	0xF2, 0x6B,	0x6F, 0xC5,
@@ -729,7 +595,7 @@ static uint32 FSb[256] =
 	0x41, 0x99,	0x2D, 0x0F,	0xB0, 0x54,	0xBB, 0x16
 };
 
-/* forward table */
+
 #define	FT \
 \
 	V(C6,63,63,A5),	V(F8,7C,7C,84),	V(EE,77,77,99),	V(F6,7B,7B,8D),	\
@@ -815,7 +681,7 @@ static uint32 FT3[256] = { FT };
 
 #undef FT
 
-/* reverse S-box */
+
 
 static uint32 RSb[256] =
 {
@@ -853,7 +719,7 @@ static uint32 RSb[256] =
 	0xE1, 0x69,	0x14, 0x63,	0x55, 0x21,	0x0C, 0x7D
 };
 
-/* reverse table */
+
 
 #define	RT \
 \
@@ -940,7 +806,7 @@ static uint32 RT3[256] = { RT };
 
 #undef RT
 
-/* round constants */
+
 
 static uint32 RCON[10] =
 {
@@ -949,7 +815,7 @@ static uint32 RCON[10] =
 	0x1B000000,	0x36000000
 };
 
-/* key schedule	tables */
+
 
 static int KT_init = 1;
 
@@ -958,7 +824,7 @@ static uint32 KT1[256];
 static uint32 KT2[256];
 static uint32 KT3[256];
 
-/* platform-independant	32-bit integer manipulation	macros */
+
 
 #define	GET_UINT32(n,b,i)						\
 {												\
@@ -976,7 +842,7 @@ static uint32 KT3[256];
 	(b)[(i)	+ 3] = (uint8) ( (n)	   );		\
 }
 
-/* AES key scheduling routine */
+
 
 int	rtmp_aes_set_key( aes_context *ctx, uint8 *key, int nbits )
 {
@@ -998,7 +864,7 @@ int	rtmp_aes_set_key( aes_context *ctx, uint8 *key, int nbits )
 		GET_UINT32(	RK[i], key,	i *	4 );
 	}
 
-	/* setup encryption	round keys */
+	
 
 	switch(	nbits )
 	{
@@ -1063,7 +929,7 @@ int	rtmp_aes_set_key( aes_context *ctx, uint8 *key, int nbits )
 		break;
 	}
 
-	/* setup decryption	round keys */
+	
 
 	if(	KT_init	)
 	{
@@ -1120,7 +986,7 @@ int	rtmp_aes_set_key( aes_context *ctx, uint8 *key, int nbits )
 	return(	0 );
 }
 
-/* AES 128-bit block encryption	routine	*/
+
 
 void rtmp_aes_encrypt(aes_context *ctx, uint8 input[16],	uint8 output[16] )
 {
@@ -1157,29 +1023,29 @@ void rtmp_aes_encrypt(aes_context *ctx, uint8 input[16],	uint8 output[16] )
 				 FT3[ (uint8) (	Y2		 ) ];	\
 }
 
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 1 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 2 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 3 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 4 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 5 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 6 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 7 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 8 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 9 */
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
 
 	if(	ctx->nr	> 10 )
 	{
-		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 10	*/
-		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 11	*/
+		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
 	if(	ctx->nr	> 12 )
 	{
-		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 12	*/
-		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 13	*/
+		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
-	/* last	round */
+	
 
 	RK += 4;
 
@@ -1209,7 +1075,7 @@ void rtmp_aes_encrypt(aes_context *ctx, uint8 input[16],	uint8 output[16] )
 	PUT_UINT32(	X3,	output,	12 );
 }
 
-/* AES 128-bit block decryption	routine	*/
+
 
 void rtmp_aes_decrypt( aes_context *ctx,	uint8 input[16], uint8 output[16] )
 {
@@ -1247,29 +1113,29 @@ void rtmp_aes_decrypt( aes_context *ctx,	uint8 input[16], uint8 output[16] )
 				 RT3[ (uint8) (	Y0		 ) ];	\
 }
 
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 1 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 2 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 3 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 4 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 5 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 6 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 7 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 8 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 9 */
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
 
 	if(	ctx->nr	> 10 )
 	{
-		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 10	*/
-		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 11	*/
+		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
 	if(	ctx->nr	> 12 )
 	{
-		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 12	*/
-		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 13	*/
+		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
-	/* last	round */
+	
 
 	RK += 4;
 
@@ -1299,20 +1165,7 @@ void rtmp_aes_decrypt( aes_context *ctx,	uint8 input[16], uint8 output[16] )
 	PUT_UINT32(	X3,	output,	12 );
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-		SHA1 function
-
-	Arguments:
-
-	Return Value:
-
-	Note:
-
-	========================================================================
-*/
 VOID	HMAC_SHA1(
 	IN	UCHAR	*text,
 	IN	UINT	text_len,
@@ -1321,11 +1174,11 @@ VOID	HMAC_SHA1(
 	IN	UCHAR	*digest)
 {
 	SHA_CTX	context;
-	UCHAR	k_ipad[65]; /* inner padding - key XORd with ipad	*/
-	UCHAR	k_opad[65]; /* outer padding - key XORd with opad	*/
+	UCHAR	k_ipad[65]; 
+	UCHAR	k_opad[65]; 
 	INT		i;
 
-	// if key is longer	than 64	bytes reset	it to key=SHA1(key)
+	
 	if (key_len	> 64)
 	{
 		SHA_CTX		 tctx;
@@ -1339,69 +1192,59 @@ VOID	HMAC_SHA1(
 	NdisMoveMemory(k_ipad, key,	key_len);
 	NdisMoveMemory(k_opad, key,	key_len);
 
-	// XOR key with	ipad and opad values
+	
 	for	(i = 0;	i <	64;	i++)
 	{
 		k_ipad[i] ^= 0x36;
 		k_opad[i] ^= 0x5c;
 	}
 
-	// perform inner SHA1
-	SHAInit(&context); 						/* init context for 1st pass */
-	SHAUpdate(&context,	k_ipad,	64);		/*	start with inner pad */
-	SHAUpdate(&context,	text, text_len);	/*	then text of datagram */
-	SHAFinal(&context, digest);				/* finish up 1st pass */
+	
+	SHAInit(&context); 						
+	SHAUpdate(&context,	k_ipad,	64);		
+	SHAUpdate(&context,	text, text_len);	
+	SHAFinal(&context, digest);				
 
-	//perform outer	SHA1
-	SHAInit(&context);					/* init context for 2nd pass */
-	SHAUpdate(&context,	k_opad,	64);	/*	start with outer pad */
-	SHAUpdate(&context,	digest,	20);	/*	then results of	1st	hash */
-	SHAFinal(&context, digest);			/* finish up 2nd pass */
+	
+	SHAInit(&context);					
+	SHAUpdate(&context,	k_opad,	64);	
+	SHAUpdate(&context,	digest,	20);	
+	SHAFinal(&context, digest);			
 
 }
 
-/*
-* F(P, S, c, i) = U1 xor U2 xor ... Uc
-* U1 = PRF(P, S || Int(i))
-* U2 = PRF(P, U1)
-* Uc = PRF(P, Uc-1)
-*/
+
 
 void F(char *password, unsigned char *ssid, int ssidlength, int iterations, int count, unsigned char *output)
 {
     unsigned char digest[36], digest1[SHA_DIGEST_LEN];
     int i, j;
 
-    /* U1 = PRF(P, S || int(i)) */
+    
     memcpy(digest, ssid, ssidlength);
     digest[ssidlength] = (unsigned char)((count>>24) & 0xff);
     digest[ssidlength+1] = (unsigned char)((count>>16) & 0xff);
     digest[ssidlength+2] = (unsigned char)((count>>8) & 0xff);
     digest[ssidlength+3] = (unsigned char)(count & 0xff);
-    HMAC_SHA1(digest, ssidlength+4, (unsigned char*) password, (int) strlen(password), digest1); // for WPA update
+    HMAC_SHA1(digest, ssidlength+4, (unsigned char*) password, (int) strlen(password), digest1); 
 
-    /* output = U1 */
+    
     memcpy(output, digest1, SHA_DIGEST_LEN);
 
     for (i = 1; i < iterations; i++)
     {
-        /* Un = PRF(P, Un-1) */
-        HMAC_SHA1(digest1, SHA_DIGEST_LEN, (unsigned char*) password, (int) strlen(password), digest); // for WPA update
+        
+        HMAC_SHA1(digest1, SHA_DIGEST_LEN, (unsigned char*) password, (int) strlen(password), digest); 
         memcpy(digest1, digest, SHA_DIGEST_LEN);
 
-        /* output = output xor Un */
+        
         for (j = 0; j < SHA_DIGEST_LEN; j++)
         {
             output[j] ^= digest[j];
         }
     }
 }
-/*
-* password - ascii string up to 63 characters in length
-* ssid - octet string up to 32 octets
-* ssidlength - length of ssid in octets
-* output must be 40 octets in length and outputs 256 bits of key
-*/
+
 int PasswordHash(char *password, unsigned char *ssid, int ssidlength, unsigned char *output)
 {
     if ((strlen(password) > 63) || (ssidlength > 32))

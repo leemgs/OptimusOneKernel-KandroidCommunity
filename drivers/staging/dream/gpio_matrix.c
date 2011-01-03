@@ -1,17 +1,4 @@
-/* drivers/input/misc/gpio_matrix.c
- *
- * Copyright (C) 2007 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/gpio.h>
@@ -190,7 +177,7 @@ static enum hrtimer_restart gpio_keypad_timer_func(struct hrtimer *timer)
 		return HRTIMER_NORESTART;
 	}
 
-	/* No keys are pressed, reenable interrupt */
+	
 	for (out = 0; out < mi->noutputs; out++) {
 		if (gpio_keypad_flags & GPIOKPF_DRIVE_INACTIVE)
 			gpio_set_value(mi->output_gpios[out], polarity);
@@ -210,7 +197,7 @@ static irqreturn_t gpio_keypad_irq_handler(int irq_in, void *dev_id)
 	struct gpio_event_matrix_info *mi = kp->keypad_info;
 	unsigned gpio_keypad_flags = mi->flags;
 
-	if (!kp->use_irq) /* ignore interrupt while registering the handler */
+	if (!kp->use_irq) 
 		return IRQ_HANDLED;
 
 	for (i = 0; i < mi->ninputs; i++)
@@ -290,7 +277,7 @@ int gpio_event_matrix_func(struct input_dev *input_dev,
 
 	mi = container_of(info, struct gpio_event_matrix_info, info);
 	if (func == GPIO_EVENT_FUNC_SUSPEND || func == GPIO_EVENT_FUNC_RESUME) {
-		/* TODO: disable scanning */
+		
 		return 0;
 	}
 

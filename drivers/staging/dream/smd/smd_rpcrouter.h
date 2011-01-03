@@ -1,19 +1,4 @@
-/** arch/arm/mach-msm/smd_rpcrouter.h
- *
- * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2007-2008 QUALCOMM Incorporated.
- * Author: San Mehat <san@android.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- */
+
 
 #ifndef _ARCH_ARM_MACH_MSM_SMD_RPCROUTER_H
 #define _ARCH_ARM_MACH_MSM_SMD_RPCROUTER_H
@@ -27,7 +12,7 @@
 #include <mach/msm_smd.h>
 #include <mach/msm_rpcrouter.h>
 
-/* definitions for the R2R wire protcol */
+
 
 #define RPCROUTER_VERSION			1
 #define RPCROUTER_PROCESSORS_MAX		4
@@ -77,7 +62,7 @@ struct rr_header {
 	uint32_t dst_cid;
 };
 
-/* internals */
+
 
 #define RPCROUTER_MAX_REMOTE_SERVERS		100
 
@@ -138,44 +123,37 @@ struct rr_remote_endpoint {
 struct msm_rpc_endpoint {
 	struct list_head list;
 
-	/* incomplete packets waiting for assembly */
+	
 	struct list_head incomplete;
 
-	/* complete packets waiting to be read */
+	
 	struct list_head read_q;
 	spinlock_t read_q_lock;
 	struct wake_lock read_q_wake_lock;
 	wait_queue_head_t wait_q;
 	unsigned flags;
 
-	/* endpoint address */
+	
 	uint32_t pid;
 	uint32_t cid;
 
-	/* bound remote address
-	 * if not connected (dst_pid == 0xffffffff) RPC_CALL writes fail
-	 * RPC_CALLs must be to the prog/vers below or they will fail
-	 */
+	
 	uint32_t dst_pid;
 	uint32_t dst_cid;
-	uint32_t dst_prog; /* be32 */
-	uint32_t dst_vers; /* be32 */
+	uint32_t dst_prog; 
+	uint32_t dst_vers; 
 
-	/* reply remote address
-	 * if reply_pid == 0xffffffff, none available
-	 * RPC_REPLY writes may only go to the pid/cid/xid of the
-	 * last RPC_CALL we received.
-	 */
+	
 	uint32_t reply_pid;
 	uint32_t reply_cid;
-	uint32_t reply_xid; /* be32 */
-	uint32_t next_pm;   /* Pacmark sequence */
+	uint32_t reply_xid; 
+	uint32_t next_pm;   
 
-	/* device node if this endpoint is accessed via userspace */
+	
 	dev_t dev;
 };
 
-/* shared between smd_rpcrouter*.c */
+
 
 int __msm_rpc_read(struct msm_rpc_endpoint *ept,
 		   struct rr_fragment **frag,

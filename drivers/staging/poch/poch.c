@@ -1,10 +1,4 @@
-/*
- * User-space DMA and UIO based Redrapids Pocket Change CardBus driver
- *
- * Copyright 2008 Vijay Kumar <vijaykumar@bravegnu.org>
- *
- * Licensed under GPL version 2 only.
- */
+
 
 #include <linux/device.h>
 #include <linux/module.h>
@@ -42,9 +36,7 @@
 #define DRV_NAME "poch"
 #define PFX      DRV_NAME ": "
 
-/*
- * BAR0 Bridge Register Definitions
- */
+
 
 #define BRIDGE_REV_REG			0x0
 #define BRIDGE_INT_MASK_REG		0x4
@@ -73,9 +65,7 @@
 #define BRIDGE_CIS_STRUCT_REG		0x100
 #define BRIDGE_BOARDREV_REG		0x124
 
-/*
- * BAR1 FPGA Register Definitions
- */
+
 
 #define FPGA_IFACE_REV_REG		0x0
 #define FPGA_RX_BLOCK_SIZE_REG		0x8
@@ -157,9 +147,7 @@
 #define FPGA_CAP_FIFO_REG		0x300
 #define FPGA_TX_SNAPSHOT_REG		0x8000
 
-/*
- * Channel Index Definitions
- */
+
 
 enum {
 	CHNO_RX_CHANNEL,
@@ -192,16 +180,16 @@ struct channel_info {
 	unsigned long group_size;
 	unsigned long group_count;
 
-	/* Contains the DMA address and VM offset of each group. */
+	
 	struct poch_group_info *groups;
 
-	/* Contains the header and circular buffer exported to userspace. */
+	
 	spinlock_t group_offsets_lock;
 	struct poch_cbuf_header *header;
 	struct page *header_pg;
 	unsigned long header_size;
 
-	/* Last group indicated as 'complete' to user space. */
+	
 	unsigned int transfer;
 
 	wait_queue_head_t wq;
@@ -218,7 +206,7 @@ struct channel_info {
 	atomic_t free;
 	atomic_t inited;
 
-	/* Error counters */
+	
 	struct poch_counters counters;
 	spinlock_t counters_lock;
 
@@ -232,10 +220,7 @@ struct poch_dev {
 	struct channel_info channels[POCH_NCHANNELS];
 	struct cdev cdev;
 
-	/* Counts the no. of channels that have been opened. On first
-	 * open, the card is powered on. On last channel close, the
-	 * card is powered off.
-	 */
+	
 	atomic_t usage;
 
 	void __iomem *bridge_iomem;
@@ -370,12 +355,7 @@ static int poch_channel_alloc_groups(struct channel_info *channel)
 		group = &channel->groups[i];
 		order = get_order(channel->group_size);
 
-		/*
-		 * __GFP_COMP is required here since we are going to
-		 * perform non-linear mapping to userspace. For more
-		 * information read the vm_insert_page() function
-		 * comments.
-		 */
+		
 
 		gfp_mask = GFP_KERNEL | GFP_DMA32 | __GFP_ZERO;
 		group->pg = alloc_pages(gfp_mask, order);
@@ -384,11 +364,7 @@ static int poch_channel_alloc_groups(struct channel_info *channel)
 			return -ENOMEM;
 		}
 
-		/* FIXME: This is the physical address not the bus
-		 * address!  This won't work in architectures that
-		 * have an IOMMU. Can we use pci_map_single() for
-		 * this?
-		 */
+		
 		group->dma_addr = page_to_pfn(group->pg) * PAGE_SIZE;
 		group->user_offset =
 			(header_pages + (i * group_pages)) * PAGE_SIZE;
@@ -434,9 +410,7 @@ static int channel_latch_attr(struct channel_info *channel)
 	return 0;
 }
 
-/*
- * Configure DMA group registers
- */
+
 static void channel_dma_init(struct channel_info *channel)
 {
 	void __iomem *fpga = channel->fpga_iomem;
@@ -468,24 +442,18 @@ static void channel_dma_init(struct channel_info *channel)
 	}
 
 	printk(KERN_WARNING "block_size, group_size, group_count\n");
-	/*
-	 * Block size is represented in no. of 64 bit transfers.
-	 */
+	
 	iowrite32(channel->block_size / 8, fpga + block_size_reg);
 	iowrite32(channel->group_size / channel->block_size,
 		  fpga + block_count_reg);
 	iowrite32(channel->group_count, fpga + group_count_reg);
-	/* FIXME: Hardcoded groups per int. Get it from sysfs? */
+	
 	iowrite32(1, fpga + groups_per_int_reg);
 
-	/* Unlock PCI address? Not defined in the data sheet, but used
-	 * in the reference code by Redrapids.
-	 */
+	
 	iowrite32(0x1, fpga + curr_pci_reg);
 
-	/* The DMA address page register is shared between the RX and
-	 * TX channels, so acquire lock.
-	 */
+	
 	for (i = 0; i < channel->group_count; i++) {
 		page = i / 32;
 		group_in_page = i % 32;
@@ -519,7 +487,7 @@ static int poch_channel_alloc_header(struct channel_info *channel)
 	unsigned long group_offset_size;
 	unsigned long tot_group_offsets_size;
 
-	/* Allocate memory to hold header exported userspace */
+	
 	group_offset_size = sizeof(header->group_offsets[0]);
 	tot_group_offsets_size = group_offset_size * channel->group_count;
 	channel->header_size = sizeof(*header) + tot_group_offsets_size;
@@ -586,7 +554,7 @@ static int poch_channel_init(struct channel_info *channel,
 
 	channel->transfer = 0;
 
-	/* Allocate memory to hold group information. */
+	
 	alloc_size = channel->group_count * sizeof(struct poch_group_info);
 	channel->groups = kzalloc(alloc_size, GFP_KERNEL);
 	if (!channel->groups) {
@@ -635,8 +603,8 @@ static int poch_wait_fpga_prog(void __iomem *bridge)
 {
 	unsigned long total_wait;
 	const unsigned long wait_period = 100;
-	/* FIXME: Get the actual timeout */
-	const unsigned long prog_timeo = 10000; /* 10 Seconds */
+	
+	const unsigned long prog_timeo = 10000; 
 	u32 card_power;
 
 	printk(KERN_WARNING "poch_wait_fpg_prog\n");
@@ -680,7 +648,7 @@ enum clk_src {
 
 static void poch_card_clock_on(void __iomem *fpga)
 {
-	/* FIXME: Get this data through sysfs? */
+	
 	enum clk_src clk_src = CLK_SRC_ON_BOARD;
 
 	if (clk_src == CLK_SRC_ON_BOARD) {
@@ -706,11 +674,11 @@ static int poch_card_power_on(struct poch_dev *poch_dev)
 
 	poch_card_clock_on(fpga);
 
-	/* Sync to new clock, reset state machines, set DMA mode. */
+	
 	iowrite32(FPGA_DOM_DCM_RESET | FPGA_DOM_SOFT_RESET
 		  | FPGA_DOM_DUAL_M_SG_DMA, fpga + FPGA_DOM_REG);
 
-	/* FIXME: The time required for sync. needs to be tuned. */
+	
 	msleep(1000);
 
 	return 0;
@@ -794,7 +762,7 @@ static int poch_open(struct inode *inode, struct file *filp)
 	if (usage == 1) {
 		printk(KERN_WARNING "setting up DMA\n");
 
-		/* Initialize DMA Controller. */
+		
 		iowrite32(FPGA_CAP_FIFO_REG, bridge + BRIDGE_STAT_2_REG);
 		iowrite32(FPGA_DMA_DESC_1_REG, bridge + BRIDGE_STAT_3_REG);
 
@@ -802,12 +770,7 @@ static int poch_open(struct inode *inode, struct file *filp)
 		ioread32(fpga + FPGA_INT_STAT_REG);
 		ioread32(bridge + BRIDGE_INT_STAT_REG);
 
-		/* Initialize Interrupts. FIXME: Enable temperature
-		 * handling We are enabling both Tx and Rx channel
-		 * interrupts here. Do we need to enable interrupts
-		 * only for the current channel? Anyways we won't get
-		 * the interrupt unless the DMA is activated.
-		 */
+		
 		iowrite32(BRIDGE_INT_FPGA, bridge + BRIDGE_INT_MASK_REG);
 		iowrite32(FPGA_INT_DMA_CORE
 			  | FPGA_INT_PLL_UNLOCKED
@@ -821,12 +784,12 @@ static int poch_open(struct inode *inode, struct file *filp)
 	}
 
 	if (channel->dir == CHANNEL_DIR_TX) {
-		/* Flush TX FIFO and output data from cardbus. */
+		
 		iowrite32(FPGA_TX_CTL_FIFO_FLUSH
 			  | FPGA_TX_CTL_OUTPUT_CARDBUS,
 			  fpga + FPGA_TX_CTL_REG);
 	} else {
-		/* Flush RX FIFO and output data to cardbus. */
+		
 		iowrite32(FPGA_RX_CTL_CONT_CAP
 			  | FPGA_RX_CTL_FIFO_FLUSH,
 			  fpga + FPGA_RX_CTL_REG);
@@ -869,9 +832,7 @@ static int poch_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-/*
- * Map the header and the group buffers, to user space.
- */
+
 static int poch_mmap(struct file *filp, struct vm_area_struct *vma)
 {
 	struct channel_info *channel = filp->private_data;
@@ -908,7 +869,7 @@ static int poch_mmap(struct file *filp, struct vm_area_struct *vma)
 
 	start = vma->vm_start;
 
-	/* FIXME: Cleanup required on failure? */
+	
 	pg = channel->header_pg;
 	for (pg_num = 0; pg_num < header_pages; pg_num++, pg++) {
 		printk(KERN_DEBUG PFX "page_count: %d\n", page_count(pg));
@@ -939,12 +900,7 @@ static int poch_mmap(struct file *filp, struct vm_area_struct *vma)
 	return 0;
 }
 
-/*
- * Check whether there is some group that the user space has not
- * consumed yet. When the user space consumes a group, it sets it to
- * -1. Cosuming could be reading data in case of RX and filling a
- * buffer in case of TX.
- */
+
 static int poch_channel_available(struct channel_info *channel)
 {
 	int i;
@@ -999,9 +955,7 @@ static int poch_ioctl(struct inode *inode, struct file *filp,
 			iowrite32(0x1, fpga + FPGA_TX_TRIGGER_REG);
 			iowrite32(0x1, fpga + FPGA_TX_ENABLE_REG);
 
-			/* FIXME: Does it make sense to do a DMA GO
-			 * twice, once in Tx and once in Rx.
-			 */
+			
 			iowrite32(0x1, bridge + BRIDGE_DMA_GO_REG);
 			break;
 		case CHNO_RX_CHANNEL:
@@ -1045,10 +999,10 @@ static int poch_ioctl(struct inode *inode, struct file *filp,
 	case POCH_IOC_SYNC_GROUP_FOR_DEVICE:
 		vms = find_vma(current->mm, arg);
 		if (!vms)
-			/* Address not mapped. */
+			
 			return -EINVAL;
 		if (vms->vm_file != filp)
-			/* Address mapped from different device/file. */
+			
 			return -EINVAL;
 
 		flush_cache_range(vms, arg, arg + channel->group_size);
@@ -1089,7 +1043,7 @@ static void poch_irq_dma(struct channel_info *channel)
 	curr_transfer = ioread32(channel->fpga_iomem + curr_group_reg);
 
 	groups_done = curr_transfer - prev_transfer;
-	/* Check wrap over, and handle it. */
+	
 	if (groups_done <= 0)
 		groups_done += channel->group_count;
 
@@ -1151,12 +1105,9 @@ static irqreturn_t poch_irq_handler(int irq, void *p)
 		if (fpga_stat & FPGA_INT_RX_FF_OVRFLW)
 			channel_rx->counters.fifo_overflow++;
 
-		/*
-		 * FIXME: These errors should be notified through the
-		 * poll interface as POLLERR.
-		 */
+		
 
-		/* Re-enable interrupts. */
+		
 		iowrite32(BRIDGE_INT_FPGA, bridge + BRIDGE_INT_MASK_REG);
 
 		return IRQ_HANDLED;
@@ -1379,9 +1330,7 @@ static int __devinit poch_pci_probe(struct pci_dev *pdev,
 	return ret;
 }
 
-/*
- * FIXME: We are yet to handle the hot unplug case.
- */
+
 static void poch_pci_remove(struct pci_dev *pdev)
 {
 	struct poch_dev *poch_dev = pci_get_drvdata(pdev);
@@ -1404,7 +1353,7 @@ static void poch_pci_remove(struct pci_dev *pdev)
 	kfree(poch_dev);
 }
 
-static const struct pci_device_id poch_pci_ids[] /* __devinitconst */ = {
+static const struct pci_device_id poch_pci_ids[]  = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_RRAPIDS,
 		     PCI_DEVICE_ID_RRAPIDS_POCKET_CHANGE) },
 	{ 0, }

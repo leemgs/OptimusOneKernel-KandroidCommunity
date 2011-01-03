@@ -1,28 +1,6 @@
-/* arch/arm/mach-msm/qdsp5/adsp.c
- *
- * Register/Interrupt access for userspace aDSP library.
- *
- * Copyright (c) 2008 QUALCOMM Incorporated
- * Copyright (C) 2008 Google, Inc.
- * Author: Iliyan Malchev <ibm@android.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
 
-/* TODO:
- * - move shareable rpc code outside of adsp.c
- * - general solution for virt->phys patchup
- * - queue IDs should be relative to modules
- * - disallow access to non-associated queues
- */
+
+
 
 #include <linux/clk.h>
 #include <linux/delay.h>
@@ -56,7 +34,7 @@ static struct msm_adsp_module *adsp_modules;
 static int adsp_open_count;
 static DEFINE_MUTEX(adsp_open_lock);
 
-/* protect interactions with the ADSP command/message queue */
+
 static spinlock_t adsp_cmd_lock;
 
 static uint32_t current_image = -1;
@@ -66,11 +44,7 @@ void adsp_set_image(struct adsp_info *info, uint32_t image)
 	current_image = image;
 }
 
-/*
- * Checks whether the module_id is available in the
- * module_entries table.If module_id is available returns `0`.
- * If module_id is not available returns `-ENXIO`.
- */
+
 #if CONFIG_MSM_AMSS_VERSION >= 6350
 static int32_t adsp_validate_module(uint32_t module_id)
 {
@@ -190,7 +164,7 @@ static struct msm_adsp_module *find_adsp_module_by_name(
 
 static int adsp_rpc_init(struct msm_adsp_module *adsp_module)
 {
-	/* remove the original connect once compatible support is complete */
+	
 	adsp_module->rpc_client = msm_rpc_connect(
 			RPC_ADSP_RTOS_ATOM_PROG,
 			RPC_ADSP_RTOS_ATOM_VERS,
@@ -207,10 +181,7 @@ static int adsp_rpc_init(struct msm_adsp_module *adsp_module)
 }
 
 #if CONFIG_MSM_AMSS_VERSION >= 6350
-/*
- * Send RPC_ADSP_RTOS_CMD_GET_INIT_INFO cmd to ARM9 and get
- * queue offsets and module entries (init info) as part of the event.
- */
+
 static void  msm_get_init_info(void)
 {
 	int rc;
@@ -332,9 +303,7 @@ void msm_adsp_put(struct msm_adsp_module *module)
 	if (module->ops) {
 		pr_info("adsp: closing module %s\n", module->name);
 
-		/* lock to ensure a dsp event cannot be delivered
-		 * during or after removal of the ops and driver_data
-		 */
+		
 		spin_lock_irqsave(&adsp_cmd_lock, flags);
 		module->ops = NULL;
 		module->driver_data = NULL;
@@ -359,7 +328,7 @@ void msm_adsp_put(struct msm_adsp_module *module)
 }
 EXPORT_SYMBOL(msm_adsp_put);
 
-/* this should be common code with rpc_servers.c */
+
 static int rpc_send_accepted_void_reply(struct msm_rpc_endpoint *client,
 					uint32_t xid, uint32_t accept_status)
 {
@@ -368,7 +337,7 @@ static int rpc_send_accepted_void_reply(struct msm_rpc_endpoint *client,
 	struct rpc_reply_hdr *reply = (struct rpc_reply_hdr *)reply_buf;
 
 	reply->xid = cpu_to_be32(xid);
-	reply->type = cpu_to_be32(1); /* reply */
+	reply->type = cpu_to_be32(1); 
 	reply->reply_stat = cpu_to_be32(RPCMSG_REPLYSTAT_ACCEPTED);
 
 	reply->data.acc_hdr.accept_stat = cpu_to_be32(accept_status);
@@ -410,11 +379,7 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 	dsp_q_addr = adsp_get_queue_offset(info, dsp_queue_addr);
 	dsp_q_addr &= ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M;
 
-	/* Poll until the ADSP is ready to accept a command.
-	 * Wait for 100us, return error if it's not responding.
-	 * If this returns an error, we need to disable ALL modules and
-	 * then retry.
-	 */
+	
 	while (((ctrl_word = readl(info->write_ctrl)) &
 		ADSP_RTOS_WRITE_CTRL_WORD_READY_M) !=
 		ADSP_RTOS_WRITE_CTRL_WORD_READY_V) {
@@ -428,29 +393,23 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		cnt++;
 	}
 
-	/* Set the mutex bits */
+	
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_M);
 	ctrl_word |=  ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_NAVAIL_V;
 
-	/* Clear the command bits */
+	
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_CMD_M);
 
-	/* Set the queue address bits */
+	
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M);
 	ctrl_word |= dsp_q_addr;
 
 	writel(ctrl_word, info->write_ctrl);
 
-	/* Generate an interrupt to the DSP.  This notifies the DSP that
-	 * we are about to send a command on this particular queue.  The
-	 * DSP will in response change its state.
-	 */
+	
 	writel(1, info->send_irq);
 
-	/* Poll until the adsp responds to the interrupt; this does not
-	 * generate an interrupt from the adsp.  This should happen within
-	 * 5ms.
-	 */
+	
 	cnt = 0;
 	while ((readl(info->write_ctrl) &
 		ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_M) ==
@@ -464,7 +423,7 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		cnt++;
 	}
 
-	/* Read the ctrl word */
+	
 	ctrl_word = readl(info->write_ctrl);
 
 	if ((ctrl_word & ADSP_RTOS_WRITE_CTRL_WORD_STATUS_M) !=
@@ -473,9 +432,9 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		goto fail;
 	}
 
-	/* Ctrl word status bits were 00, no error in the ctrl word */
+	
 
-	/* Get the DSP buffer address */
+	
 	dsp_addr = (ctrl_word & ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M) +
 		   (uint32_t)MSM_AD5_BASE;
 
@@ -484,10 +443,10 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		uint16_t *dsp_addr16 = (uint16_t *)dsp_addr;
 		cmd_size /= sizeof(uint16_t);
 
-		/* Save the command ID */
+		
 		cmd_id = (uint32_t) buf_ptr[0];
 
-		/* Copy the command to DSP memory */
+		
 		cmd_size++;
 		while (--cmd_size)
 			*dsp_addr16++ = *buf_ptr++;
@@ -496,7 +455,7 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		uint32_t *dsp_addr32 = (uint32_t *)dsp_addr;
 		cmd_size /= sizeof(uint32_t);
 
-		/* Save the command ID */
+		
 		cmd_id = buf_ptr[0];
 
 		cmd_size++;
@@ -504,25 +463,21 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 			*dsp_addr32++ = *buf_ptr++;
 	}
 
-	/* Set the mutex bits */
+	
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_M);
 	ctrl_word |=  ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_NAVAIL_V;
 
-	/* Set the command bits to write done */
+	
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_CMD_M);
 	ctrl_word |= ADSP_RTOS_WRITE_CTRL_WORD_CMD_WRITE_DONE_V;
 
-	/* Set the queue address bits */
+	
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M);
 	ctrl_word |= dsp_q_addr;
 
 	writel(ctrl_word, info->write_ctrl);
 
-	/* Generate an interrupt to the DSP.  It does not respond with
-	 * an interrupt, and we do not need to wait for it to
-	 * acknowledge, because it will hold the mutex lock until it's
-	 * ready to receive more commands again.
-	 */
+	
 	writel(1, info->send_irq);
 
 	module->num_commands++;
@@ -574,8 +529,8 @@ static void read_modem_event(void *buf, size_t len)
 	dptr[1] = be32_to_cpu(sptr->module);
 	dptr[2] = be32_to_cpu(sptr->image);
 }
-#endif /* CONFIG_MSM_AMSS_VERSION >= 6350 */
-#endif /* CONFIG_MSM_ADSP_REPORT_EVENTS */
+#endif 
+#endif 
 
 static void handle_adsp_rtos_mtoa_app(struct rpc_request_hdr *req)
 {
@@ -736,7 +691,7 @@ static int handle_adsp_rtos_mtoa(struct rpc_request_hdr *req)
 	return 0;
 }
 
-/* this should be common code with rpc_servers.c */
+
 static int adsp_rpc_thread(void *data)
 {
 	void *buffer;
@@ -868,18 +823,7 @@ static int adsp_get_event(struct adsp_info *info)
 
 	spin_lock_irqsave(&adsp_cmd_lock, flags);
 
-	/* Whenever the DSP has a message, it updates this control word
-	 * and generates an interrupt.  When we receive the interrupt, we
-	 * read this register to find out what ADSP task the command is
-	 * comming from.
-	 *
-	 * The ADSP should *always* be ready on the first call, but the
-	 * irq handler calls us in a loop (to handle back-to-back command
-	 * processing), so we give the DSP some time to return to the
-	 * ready state.  The DSP will not issue another IRQ for events
-	 * pending between the first IRQ and the event queue being drained,
-	 * unfortunately.
-	 */
+	
 
 	for (cnt = 0; cnt < 10; cnt++) {
 		ctrl_word = readl(info->read_ctrl);
@@ -895,10 +839,7 @@ static int adsp_get_event(struct adsp_info *info)
 	goto done;
 
 ready:
-	/* Here we check to see if there are pending messages. If there are
-	 * none, we siply return -EAGAIN to indicate that there are no more
-	 * messages pending.
-	 */
+	
 	ready = ctrl_word & ADSP_RTOS_READ_CTRL_WORD_READY_M;
 	if ((ready != ADSP_RTOS_READ_CTRL_WORD_READY_V) &&
 	    (ready != ADSP_RTOS_READ_CTRL_WORD_CONT_V)) {
@@ -906,17 +847,17 @@ ready:
 		goto done;
 	}
 
-	/* DSP says that there are messages waiting for the host to read */
+	
 
-	/* Get the Command Type */
+	
 	cmd_type = ctrl_word & ADSP_RTOS_READ_CTRL_WORD_CMD_TYPE_M;
 
-	/* Get the DSP buffer address */
+	
 	dsp_addr = (void *)((ctrl_word &
 			     ADSP_RTOS_READ_CTRL_WORD_DSP_ADDR_M) +
 			    (uint32_t)MSM_AD5_BASE);
 
-	/* We can only handle Task-to-Host messages */
+	
 	if (cmd_type != ADSP_RTOS_READ_CTRL_WORD_CMD_TASK_TO_H_V) {
 		pr_err("adsp: unknown dsp cmd_type %d\n", cmd_type);
 		rc = -EIO;
@@ -928,10 +869,10 @@ ready:
 	ctrl_word = readl(info->read_ctrl);
 	ctrl_word &= ~ADSP_RTOS_READ_CTRL_WORD_READY_M;
 
-	/* Write ctrl word to the DSP */
+	
 	writel(ctrl_word, info->read_ctrl);
 
-	/* Generate an interrupt to the DSP */
+	
 	writel(1, info->send_irq);
 
 done:
@@ -1100,7 +1041,7 @@ static int msm_adsp_probe(struct platform_device *pdev)
 		goto fail_rpc_register;
 	}
 
-	/* start the kernel thread to process the callbacks */
+	
 	kthread_run(adsp_rpc_thread, NULL, "kadspd");
 
 	for (i = 0; i < count; i++) {

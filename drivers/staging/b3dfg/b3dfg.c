@@ -1,25 +1,4 @@
- /*
- * Brontes PCI frame grabber driver
- *
- * Copyright (C) 2008 3M Company
- * Contact: Justin Bronder <jsbronder@brontes3d.com>
- * Original Authors: Daniel Drake <ddrake@brontes3d.com>
- *                   Duane Griffin <duaneg@dghda.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+ 
 
 #include <linux/device.h>
 #include <linux/fs.h>
@@ -55,7 +34,7 @@ MODULE_LICENSE("GPL");
 #define B3DFG_BAR_REGS	0
 #define B3DFG_REGS_LENGTH 0x10000
 
-#define B3DFG_IOC_MAGIC		0xb3 /* dfg :-) */
+#define B3DFG_IOC_MAGIC		0xb3 
 #define B3DFG_IOCGFRMSZ		_IOR(B3DFG_IOC_MAGIC, 1, int)
 #define B3DFG_IOCTNUMBUFS	_IO(B3DFG_IOC_MAGIC, 2)
 #define B3DFG_IOCTTRANS		_IO(B3DFG_IOC_MAGIC, 3)
@@ -65,35 +44,25 @@ MODULE_LICENSE("GPL");
 #define B3DFG_IOCGWANDSTAT	_IOR(B3DFG_IOC_MAGIC, 7, int)
 
 enum {
-	/* number of 4kb pages per frame */
+	
 	B3D_REG_FRM_SIZE = 0x0,
 
-	/* bit 0: set to enable interrupts
-	 * bit 1: set to enable cable status change interrupts */
+	
 	B3D_REG_HW_CTRL = 0x4,
 
-	/* bit 0-1 - 1-based ID of next pending frame transfer (0 = none)
-	 * bit 2 indicates the previous DMA transfer has completed
-	 * bit 3 indicates wand cable status change
-	 * bit 8:15 - counter of number of discarded triplets */
+	
 	B3D_REG_DMA_STS = 0x8,
 
-	/* bit 0: wand status (1 = present, 0 = disconnected) */
+	
 	B3D_REG_WAND_STS = 0xc,
 
-	/* bus address for DMA transfers. lower 2 bits must be zero because DMA
-	 * works with 32 bit word size. */
+	
 	B3D_REG_EC220_DMA_ADDR = 0x8000,
 
-	/* bit 20:0 - number of 32 bit words to be transferred
-	 * bit 21:31 - reserved */
+	
 	B3D_REG_EC220_TRF_SIZE = 0x8004,
 
-	/* bit 0 - error bit
-	 * bit 1 - interrupt bit (set to generate interrupt at end of transfer)
-	 * bit 2 - start bit (set to start transfer)
-	 * bit 3 - direction (0 = DMA_TO_DEVICE, 1 = DMA_FROM_DEVICE
-	 * bit 4:31 - reserved */
+	
 	B3D_REG_EC220_DMA_STS = 0x8008,
 };
 
@@ -111,38 +80,29 @@ struct b3dfg_buffer {
 
 struct b3dfg_dev {
 
-	/* no protection needed: all finalized at initialization time */
+	
 	struct pci_dev *pdev;
 	struct cdev chardev;
 	struct device *dev;
 	void __iomem *regs;
 	unsigned int frame_size;
 
-	/*
-	 * Protects buffer state, including buffer_queue, triplet_ready,
-	 * cur_dma_frame_idx & cur_dma_frame_addr.
-	 */
+	
 	spinlock_t buffer_lock;
 	struct b3dfg_buffer *buffers;
 	struct list_head buffer_queue;
 
-	/* Last frame in triplet transferred (-1 if none). */
+	
 	int cur_dma_frame_idx;
 
-	/* Current frame's address for DMA. */
+	
 	dma_addr_t cur_dma_frame_addr;
 
-	/*
-	 * Protects cstate_tstamp.
-	 * Nests inside buffer_lock.
-	 */
+	
 	spinlock_t cstate_lock;
 	unsigned long cstate_tstamp;
 
-	/*
-	 * Protects triplets_dropped.
-	 * Nests inside buffers_lock.
-	 */
+	
 	spinlock_t triplets_dropped_lock;
 	unsigned int triplets_dropped;
 
@@ -164,7 +124,7 @@ static const struct pci_device_id b3dfg_ids[] __devinitdata = {
 
 MODULE_DEVICE_TABLE(pci, b3dfg_ids);
 
-/***** user-visible types *****/
+
 
 struct b3dfg_poll {
 	int buffer_idx;
@@ -177,7 +137,7 @@ struct b3dfg_wait {
 	unsigned int triplets_dropped;
 };
 
-/**** register I/O ****/
+
 
 static u32 b3dfg_read32(struct b3dfg_dev *fgdev, u16 reg)
 {
@@ -189,12 +149,9 @@ static void b3dfg_write32(struct b3dfg_dev *fgdev, u16 reg, u32 value)
 	iowrite32(value, fgdev->regs + reg);
 }
 
-/**** buffer management ****/
 
-/*
- * Program EC220 for transfer of a specific frame.
- * Called with buffer_lock held.
- */
+
+
 static int setup_frame_transfer(struct b3dfg_dev *fgdev,
 	struct b3dfg_buffer *buf, int frame)
 {
@@ -220,7 +177,7 @@ static int setup_frame_transfer(struct b3dfg_dev *fgdev,
 	return 0;
 }
 
-/* Caller should hold buffer lock */
+
 static void dequeue_all_buffers(struct b3dfg_dev *fgdev)
 {
 	int i;
@@ -231,7 +188,7 @@ static void dequeue_all_buffers(struct b3dfg_dev *fgdev)
 	}
 }
 
-/* queue a buffer to receive data */
+
 static int queue_buffer(struct b3dfg_dev *fgdev, int bufidx)
 {
 	struct device *dev = &fgdev->pdev->dev;
@@ -269,8 +226,7 @@ out:
 	return r;
 }
 
-/* non-blocking buffer poll. returns 1 if data is present in the buffer,
- * 0 otherwise */
+
 static int poll_buffer(struct b3dfg_dev *fgdev, void __user *arg)
 {
 	struct device *dev = &fgdev->pdev->dev;
@@ -299,7 +255,7 @@ static int poll_buffer(struct b3dfg_dev *fgdev, void __user *arg)
 		arg_out = 1;
 		buf->state = B3DFG_BUFFER_POLLED;
 
-		/* IRQs already disabled by spin_lock_irqsave above. */
+		
 		spin_lock(&fgdev->triplets_dropped_lock);
 		p.triplets_dropped = fgdev->triplets_dropped;
 		fgdev->triplets_dropped = 0;
@@ -343,7 +299,7 @@ static int is_event_ready(struct b3dfg_dev *fgdev, struct b3dfg_buffer *buf,
 	return result;
 }
 
-/* sleep until a specific buffer becomes populated */
+
 static int wait_buffer(struct b3dfg_dev *fgdev, void __user *arg)
 {
 	struct device *dev = &fgdev->pdev->dev;
@@ -394,7 +350,7 @@ static int wait_buffer(struct b3dfg_dev *fgdev, void __user *arg)
 		}
 	}
 
-	/* TODO: Inform the user via field(s) in w? */
+	
 	if (!fgdev->transmission_enabled || when != get_cstate_change(fgdev)) {
 		r = -EINVAL;
 		goto out;
@@ -411,7 +367,7 @@ static int wait_buffer(struct b3dfg_dev *fgdev, void __user *arg)
 
 out_triplets_dropped:
 
-	/* IRQs already disabled by spin_lock_irqsave above. */
+	
 	spin_lock(&fgdev->triplets_dropped_lock);
 	w.triplets_dropped = fgdev->triplets_dropped;
 	fgdev->triplets_dropped = 0;
@@ -425,7 +381,7 @@ out:
 	return r;
 }
 
-/* mmap page fault handler */
+
 static int b3dfg_vma_fault(struct vm_area_struct *vma,
 	struct vm_fault *vmf)
 {
@@ -435,14 +391,14 @@ static int b3dfg_vma_fault(struct vm_area_struct *vma,
 	unsigned int buf_size = frame_size * B3DFG_FRAMES_PER_BUFFER;
 	unsigned char *addr;
 
-	/* determine which buffer the offset lies within */
+	
 	unsigned int buf_idx = off / buf_size;
-	/* and the offset into the buffer */
+	
 	unsigned int buf_off = off % buf_size;
 
-	/* determine which frame inside the buffer the offset lies in */
+	
 	unsigned int frm_idx = buf_off / frame_size;
-	/* and the offset into the frame */
+	
 	unsigned int frm_off = buf_off % frame_size;
 
 	if (unlikely(buf_idx >= b3dfg_nbuf))
@@ -474,16 +430,13 @@ static int enable_transmission(struct b3dfg_dev *fgdev)
 
 	dev_dbg(dev, "enable transmission\n");
 
-	/* check the cable is plugged in. */
+	
 	if (!b3dfg_read32(fgdev, B3D_REG_WAND_STS)) {
 		dev_dbg(dev, "cannot start transmission without wand\n");
 		return -EINVAL;
 	}
 
-	/*
-	 * Check we're a bus master.
-	 * TODO: I think we can remove this having added the pci_set_master call
-	 */
+	
 	pci_read_config_word(fgdev->pdev, PCI_COMMAND, &command);
 	if (!(command & PCI_COMMAND_MASTER)) {
 		dev_err(dev, "not a bus master, force-enabling\n");
@@ -493,7 +446,7 @@ static int enable_transmission(struct b3dfg_dev *fgdev)
 
 	spin_lock_irqsave(&fgdev->buffer_lock, flags);
 
-	/* Handle racing enable_transmission calls. */
+	
 	if (fgdev->transmission_enabled) {
 		spin_unlock_irqrestore(&fgdev->buffer_lock, flags);
 		goto out;
@@ -509,7 +462,7 @@ static int enable_transmission(struct b3dfg_dev *fgdev)
 
 	spin_unlock_irqrestore(&fgdev->buffer_lock, flags);
 
-	/* Enable DMA and cable status interrupts. */
+	
 	b3dfg_write32(fgdev, B3D_REG_HW_CTRL, 0x03);
 
 out:
@@ -524,15 +477,13 @@ static void disable_transmission(struct b3dfg_dev *fgdev)
 
 	dev_dbg(dev, "disable transmission\n");
 
-	/* guarantee that no more interrupts will be serviced */
+	
 	spin_lock_irqsave(&fgdev->buffer_lock, flags);
 	fgdev->transmission_enabled = 0;
 
 	b3dfg_write32(fgdev, B3D_REG_HW_CTRL, 0);
 
-	/* FIXME: temporary debugging only. if the board stops transmitting,
-	 * hitting ctrl+c and seeing this message is useful for determining
-	 * the state of the board. */
+	
 	tmp = b3dfg_read32(fgdev, B3D_REG_DMA_STS);
 	dev_dbg(dev, "DMA_STS reads %x after TX stopped\n", tmp);
 
@@ -554,13 +505,13 @@ static int set_transmission(struct b3dfg_dev *fgdev, int enabled)
 	return res;
 }
 
-/* Called in interrupt context. */
+
 static void handle_cstate_unplug(struct b3dfg_dev *fgdev)
 {
-	/* Disable all interrupts. */
+	
 	b3dfg_write32(fgdev, B3D_REG_HW_CTRL, 0);
 
-	/* Stop transmission. */
+	
 	spin_lock(&fgdev->buffer_lock);
 	fgdev->transmission_enabled = 0;
 
@@ -575,7 +526,7 @@ static void handle_cstate_unplug(struct b3dfg_dev *fgdev)
 	spin_unlock(&fgdev->buffer_lock);
 }
 
-/* Called in interrupt context. */
+
 static void handle_cstate_change(struct b3dfg_dev *fgdev)
 {
 	u32 cstate = b3dfg_read32(fgdev, B3D_REG_WAND_STS);
@@ -584,35 +535,14 @@ static void handle_cstate_change(struct b3dfg_dev *fgdev)
 
 	dev_dbg(dev, "cable state change: %u\n", cstate);
 
-	/*
-	 * When the wand is unplugged we reset our state. The hardware will
-	 * have done the same internally.
-	 *
-	 * Note we should never see a cable *plugged* event, as interrupts
-	 * should only be enabled when transmitting, which requires the cable
-	 * to be plugged. If we do see one it probably means the cable has been
-	 * unplugged and re-plugged very rapidly. Possibly because it has a
-	 * broken wire and is momentarily losing contact.
-	 *
-	 * TODO: At the moment if you plug in the cable then enable transmission
-	 * the hardware will raise a couple of spurious interrupts, so
-	 * just ignore them for now.
-	 *
-	 * Once the hardware is fixed we should complain and treat it as an
-	 * unplug. Or at least track how frequently it is happening and do
-	 * so if too many come in.
-	 */
+	
 	if (cstate) {
 		dev_warn(dev, "ignoring unexpected plug event\n");
 		return;
 	}
 	handle_cstate_unplug(fgdev);
 
-	/*
-	 * Record cable state change timestamp & wake anyone waiting
-	 * on a cable state change. Be paranoid about ensuring events
-	 * are not missed if we somehow get two interrupts in a jiffy.
-	 */
+	
 	spin_lock(&fgdev->cstate_lock);
 	when = jiffies_64;
 	if (when <= fgdev->cstate_tstamp)
@@ -622,7 +552,7 @@ static void handle_cstate_change(struct b3dfg_dev *fgdev)
 	spin_unlock(&fgdev->cstate_lock);
 }
 
-/* Called with buffer_lock held. */
+
 static void transfer_complete(struct b3dfg_dev *fgdev)
 {
 	struct b3dfg_buffer *buf;
@@ -637,7 +567,7 @@ static void transfer_complete(struct b3dfg_dev *fgdev)
 	dev_dbg(dev, "handle frame completion\n");
 	if (fgdev->cur_dma_frame_idx == B3DFG_FRAMES_PER_BUFFER - 1) {
 
-		/* last frame of that triplet completed */
+		
 		dev_dbg(dev, "triplet completed\n");
 		buf->state = B3DFG_BUFFER_POPULATED;
 		list_del_init(&buf->list);
@@ -645,13 +575,7 @@ static void transfer_complete(struct b3dfg_dev *fgdev)
 	}
 }
 
-/*
- * Called with buffer_lock held.
- *
- * Note that idx is the (1-based) *next* frame to be transferred, while
- * cur_dma_frame_idx is the (0-based) *last* frame to have been transferred (or
- * -1 if none). Thus there should be a difference of 2 between them.
- */
+
 static bool setup_next_frame_transfer(struct b3dfg_dev *fgdev, int idx)
 {
 	struct b3dfg_buffer *buf;
@@ -669,7 +593,7 @@ static bool setup_next_frame_transfer(struct b3dfg_dev *fgdev, int idx)
 		dev_err(dev, "frame mismatch, got %d, expected %d\n",
 			idx, fgdev->cur_dma_frame_idx + 2);
 
-		/* FIXME: handle dropped triplets here */
+		
 	}
 
 	return need_ack;
@@ -697,7 +621,7 @@ static irqreturn_t b3dfg_intr(int irq, void *dev_id)
 		goto out;
 	}
 
-	/* Handle dropped frames, as reported by the hardware. */
+	
 	dropped = (sts >> 8) & 0xff;
 	dev_dbg(dev, "intr: DMA_STS=%08x (drop=%d comp=%d next=%d)\n",
 		sts, dropped, !!(sts & 0x4), sts & 0x3);
@@ -707,7 +631,7 @@ static irqreturn_t b3dfg_intr(int irq, void *dev_id)
 		spin_unlock(&fgdev->triplets_dropped_lock);
 	}
 
-	/* Handle a cable state change (i.e. the wand being unplugged). */
+	
 	if (sts & 0x08) {
 		handle_cstate_change(fgdev);
 		goto out;
@@ -716,36 +640,36 @@ static irqreturn_t b3dfg_intr(int irq, void *dev_id)
 	spin_lock(&fgdev->buffer_lock);
 	if (unlikely(list_empty(&fgdev->buffer_queue))) {
 
-		/* FIXME need more sanity checking here */
+		
 		dev_info(dev, "buffer not ready for next transfer\n");
 		fgdev->triplet_ready = 1;
 		goto out_unlock;
 	}
 
-	/* Has a frame transfer been completed? */
+	
 	if (sts & 0x4) {
 		u32 dma_status = b3dfg_read32(fgdev, B3D_REG_EC220_DMA_STS);
 
-		/* Check for DMA errors reported by the hardware. */
+		
 		if (unlikely(dma_status & 0x1)) {
 			dev_err(dev, "EC220 error: %08x\n", dma_status);
 
-			/* FIXME flesh out error handling */
+			
 			goto out_unlock;
 		}
 
-		/* Sanity check, we should have a frame index at this point. */
+		
 		if (unlikely(fgdev->cur_dma_frame_idx == -1)) {
 			dev_err(dev, "completed but no last idx?\n");
 
-			/* FIXME flesh out error handling */
+			
 			goto out_unlock;
 		}
 
 		transfer_complete(fgdev);
 	}
 
-	/* Is there another frame transfer pending? */
+	
 	if (sts & 0x3)
 		need_ack = setup_next_frame_transfer(fgdev, sts & 0x3);
 	else
@@ -821,7 +745,7 @@ static unsigned int b3dfg_poll(struct file *filp, poll_table *poll_table)
 	}
 	spin_unlock_irqrestore(&fgdev->buffer_lock, flags);
 
-	/* TODO: Confirm this is how we want to communicate the change. */
+	
 	if (!fgdev->transmission_enabled || when != get_cstate_change(fgdev))
 		r = POLLERR;
 
@@ -866,21 +790,13 @@ static void free_all_frame_buffers(struct b3dfg_dev *fgdev)
 	kfree(fgdev->buffers);
 }
 
-/* initialize device and any data structures. called before any interrupts
- * are enabled. */
+
 static int b3dfg_init_dev(struct b3dfg_dev *fgdev)
 {
 	int i, j;
 	u32 frm_size = b3dfg_read32(fgdev, B3D_REG_FRM_SIZE);
 
-	/* Disable interrupts. In abnormal circumstances (e.g. after a crash)
-	 * the board may still be transmitting from the previous session. If we
-	 * ensure that interrupts are disabled before we later enable them, we
-	 * are sure to capture a triplet from the start, rather than starting
-	 * from frame 2 or 3. Disabling interrupts causes the FG to throw away
-	 * all buffered data and stop buffering more until interrupts are
-	 * enabled again.
-	 */
+	
 	b3dfg_write32(fgdev, B3D_REG_HW_CTRL, 0);
 
 	fgdev->frame_size = frm_size * 4096;
@@ -911,7 +827,7 @@ err_no_buf:
 	return -ENOMEM;
 }
 
-/* find next free minor number, returns -1 if none are availabile */
+
 static int get_free_minor(void)
 {
 	int i;

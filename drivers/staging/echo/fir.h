@@ -1,63 +1,11 @@
-/*
- * SpanDSP - a series of DSP components for telephony
- *
- * fir.h - General telephony FIR routines
- *
- * Written by Steve Underwood <steveu@coppice.org>
- *
- * Copyright (C) 2002 Steve Underwood
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2, as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #if !defined(_FIR_H_)
 #define _FIR_H_
 
-/*
-   Blackfin NOTES & IDEAS:
 
-   A simple dot product function is used to implement the filter.  This performs
-   just one MAC/cycle which is inefficient but was easy to implement as a first
-   pass.  The current Blackfin code also uses an unrolled form of the filter
-   history to avoid 0 length hardware loop issues.  This is wasteful of
-   memory.
 
-   Ideas for improvement:
 
-   1/ Rewrite filter for dual MAC inner loop.  The issue here is handling
-   history sample offsets that are 16 bit aligned - the dual MAC needs
-   32 bit aligmnent.  There are some good examples in libbfdsp.
-
-   2/ Use the hardware circular buffer facility tohalve memory usage.
-
-   3/ Consider using internal memory.
-
-   Using less memory might also improve speed as cache misses will be
-   reduced. A drop in MIPs and memory approaching 50% should be
-   possible.
-
-   The foreground and background filters currenlty use a total of
-   about 10 MIPs/ch as measured with speedtest.c on a 256 TAP echo
-   can.
-*/
-
-/*
- * 16 bit integer FIR descriptor. This defines the working state for a single
- * instance of an FIR filter using 16 bit integer coefficients.
- */
 struct fir16_state_t {
 	int taps;
 	int curr_pos;
@@ -65,11 +13,7 @@ struct fir16_state_t {
 	int16_t *history;
 };
 
-/*
- * 32 bit integer FIR descriptor. This defines the working state for a single
- * instance of an FIR filter using 32 bit integer coefficients, and filtering
- * 16 bit integer data.
- */
+
 struct fir32_state_t {
 	int taps;
 	int curr_pos;
@@ -77,10 +21,7 @@ struct fir32_state_t {
 	int16_t *history;
 };
 
-/*
- * Floating point FIR descriptor. This defines the working state for a single
- * instance of an FIR filter using floating point coefficients and data.
- */
+
 struct fir_float_state_t {
 	int taps;
 	int curr_pos;

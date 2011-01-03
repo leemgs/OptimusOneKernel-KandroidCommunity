@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : init.c                                                */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains init functions.                            */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 #include "../hal/hpreg.h"
 
@@ -43,24 +29,24 @@ u32_t zcIndextoRateN40S[16] = {15000, 30000, 45000, 60000, 90000, 120000, 135000
                               150000, 30000, 60000, 90000, 120000, 180000, 240000,
                               270000, 300000};
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfTxGenWlanHeader           */
-/*      Generate WLAN MAC header and LLC header.                        */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer pointer                                            */
-/*      id : Index of TxD                                               */
-/*      port : WLAN port                                                */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      length of removed Ethernet header                               */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen             ZyDAS Technology Corporation    2005.5      */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                         u8_t flag, u16_t plusLen, u16_t minusLen, u16_t port,
                         u16_t* da, u16_t* sa, u8_t up, u16_t *micLen,
@@ -92,50 +78,50 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
     zmw_get_wlan_dev(dev);
 
-   /* Generate WLAN header */
-    /* Frame control */
+   
+    
     header[4] = 0x0008 | (flag<<8);
-    /* Duration */
+    
     header[5] = 0x0000;
 
     if (wd->wlanMode == ZM_MODE_INFRASTRUCTURE)
     {
-        /* ToDS bit */
+        
         header[4] |= 0x0100;
 
-        /*Sometimes we wake up to tx/rx but AP still think we are sleeping, so still need to set this bit*/
+        
         if ( zfPowerSavingMgrIsSleeping(dev) || wd->sta.psMgr.tempWakeUp == 1 )
         {
             header[4] |= 0x1000;
         }
 
-        /* Address 1 = BSSID */
+        
         header[6] = wd->sta.bssid[0];
         header[7] = wd->sta.bssid[1];
         header[8] = wd->sta.bssid[2];
-        /* Address 3 = DA */
+        
         header[12] = da[0];
         header[13] = da[1];
         header[14] = da[2];
     }
     else if (wd->wlanMode == ZM_MODE_PSEUDO)
     {
-        /* Address 1 = DA */
+        
         header[6] = da[0];
         header[7] = da[1];
         header[8] = da[2];
-        /* Address 3 = 00:00:00:00:00:00 */
+        
         header[12] = 0;
         header[13] = 0;
         header[14] = 0;
 
-        /* PSEUDO test : WDS */
+        
         if (wd->enableWDS)
         {
-            /* ToDS and FromDS bit */
+            
             header[4] |= 0x0300;
 
-            /* Address 4 = SA */
+            
             header[16] = 0;
             header[17] = 0;
             header[18] = 0;
@@ -145,11 +131,11 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
     }
     else if (wd->wlanMode == ZM_MODE_IBSS)
     {
-        /* Address 1 = DA */
+        
         header[6] = da[0];
         header[7] = da[1];
         header[8] = da[2];
-        /* Address 3 = BSSID */
+        
         header[12] = wd->sta.bssid[0];
         header[13] = wd->sta.bssid[1];
         header[14] = wd->sta.bssid[2];
@@ -157,7 +143,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
         zmw_enter_critical_section(dev);
         res = zfStaFindOppositeByMACAddr(dev, da, &peerIdx);
-        if(res == 0) // Find opposite in our OppositeInfo Structure !
+        if(res == 0) 
         {
             userIdx = peerIdx;
         }
@@ -167,16 +153,16 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
     else if (wd->wlanMode == ZM_MODE_AP)
     {
         if (port < 0x20)
-        /* AP mode */
+        
         {
-            /* FromDS bit */
+            
             header[4] |= 0x0200;
 
-            /* Address 1 = DA */
+            
             header[6] = da[0];
             header[7] = da[1];
             header[8] = da[2];
-            /* Address 3 = SA */
+            
             header[12] = sa[0];
             header[13] = sa[1];
             header[14] = sa[2];
@@ -188,37 +174,37 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
             }
         }
         else
-        /* WDS port */
+        
         {
-            /* ToDS and FromDS bit */
+            
             header[4] |= 0x0300;
 
             wdsPortId = port - 0x20;
 
-            /* Address 1 = RA */
+            
             header[6] = wd->ap.wds.macAddr[wdsPortId][0];
             header[7] = wd->ap.wds.macAddr[wdsPortId][1];
             header[8] = wd->ap.wds.macAddr[wdsPortId][2];
-            /* Address 3 = DA */
+            
             header[12] = da[0];
             header[13] = da[1];
             header[14] = da[2];
-            /* Address 4 = SA */
+            
             header[16] = sa[0];
             header[17] = sa[1];
             header[18] = sa[2];
 
             hlen = 19;
         }
-    } /* else if (wd->wlanMode == ZM_MODE_AP) */
+    } 
 
-    /* Address 2 = TA */
+    
     header[9] = wd->macAddr[0];
     header[10] = wd->macAddr[1];
 #ifdef ZM_VAPMODE_MULTILE_SSID
-    header[11] = wd->macAddr[2]; //Multiple SSID
+    header[11] = wd->macAddr[2]; 
 #else
-    header[11] = wd->macAddr[2] + (vap<<8); //VAP
+    header[11] = wd->macAddr[2] + (vap<<8); 
 #endif
 
     if ( (wd->wlanMode == ZM_MODE_IBSS) && (wd->XLinkMode) )
@@ -228,7 +214,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         header[11] = sa[2];
     }
 
-    /* Sequence Control */
+    
     header[15] = seq;
 
 
@@ -238,15 +224,15 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         mt = (u16_t)(phyCtrl & 0x3);
         mcs = (u16_t)((phyCtrl >> 16) & 0x3f);
 #if 1
-        //zfApGetStaQosType(dev, da, &qosType);
+        
 
-        /* if DA == WME STA */
+        
         if (qosType == 1)
         {
-            /* QoS data */
+            
             header[4] |= 0x0080;
 
-            /* QoS Control */
+            
             header[hlen] = up;
             hlen += 1;
         }
@@ -254,23 +240,23 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
     }
 
 #if 0
-    //AGG Test Code
+    
     if (header[6] == 0x8000)
     {
-        /* QoS data */
+        
         header[4] |= 0x0080;
 
-        /* QoS Control */
+        
         header[hlen] = 0;
         hlen += 1;
     }
 #endif
 
     if (wd->wlanMode == ZM_MODE_AP) {
-        /* Todo: rate control here for qos field */
+        
     }
     else {
-        /* Rate control */
+        
         zfStaGetTxRate(dev, da, &phyCtrl, &rateProbingFlag);
         mt = (u16_t)(phyCtrl & 0x3);
         mcs = (u16_t)((phyCtrl >> 16) & 0x3f);
@@ -278,7 +264,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
     if (wd->txMCS != 0xff)
     {
-        /* fixed rate */
+        
 	    phyCtrl = ((u32_t)wd->txMCS<<16) + wd->txMT;
         mcs = wd->txMCS;
         mt = wd->txMT;
@@ -286,37 +272,31 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
     if (wd->enableAggregation)
     {
-        /* force enable aggregation */
+        
         if (wd->enableAggregation==2 && !(header[6]&0x1))
         {
-            /* QoS data */
+            
             header[4] |= 0x0080;
 
-            /* QoS Control */
+            
             header[hlen] = 0;
             hlen += 1;
         }
-        /* if wd->enableAggregation=1 => force disable */
-        /* if wd->enableAggregation=0 => auto */
+        
+        
     }
 
 #ifdef ZM_ENABLE_AGGREGATION
-    /*
-     * aggregation control
-     */
+    
 
-    /*
-     * QoS data
-     */
+    
     if (wd->wlanMode == ZM_MODE_AP) {
         if (aggControl && mt == 2) {
             if (wd->enableAggregation==0 && !(header[6]&0x1))
             {
                 header[4] |= 0x0080;
 
-                /*
-                 * QoS Control
-                 */
+                
                 header[hlen] = 0;
                 hlen += 1;
             }
@@ -324,33 +304,33 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
     }
 #endif
 
-    // MSDU Length
+    
     len = zfwBufGetSize(dev, buf);
 
-    /* Generate control setting */
-    /* Backoff, Non-Burst and hardware duration */
+    
+    
     macCtrl = 0x208;
 
-    /* ACK */
+    
     if ((header[6] & 0x1) == 0x1)
     {
-        /* multicast frame : Set NO-ACK bit */
+        
         macCtrl |= 0x4;
     }
     else
     {
-        /* unicast frame */
+        
     #if 0
-        // Enable RTS according to MPDU Lengths ( not MSDU Lengths )
+        
         if (len >= wd->rtsThreshold)
         {
-            /* Enable RTS */
+            
             macCtrl |= 1;
         }
     #endif
     }
-    /* VAP test code */
-    //macCtrl |= 0x4;
+    
+    
 
     if (wd->wlanMode == ZM_MODE_AP)
     {
@@ -358,10 +338,10 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         u16_t iv16;
         u32_t iv32;
 
-        /* Check whether this is a multicast frame */
+        
         if ((header[6] & 0x1) == 0x1)
         {
-            /* multicast frame */
+            
             if (wd->ap.encryMode[vap] == ZM_TKIP)
             {
                 wd->ap.iv16[vap]++;
@@ -380,11 +360,11 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+2] = (u16_t) wd->ap.iv32[vap];
                 header[hlen+3] = (u16_t) (wd->ap.iv32[vap] >> 16);
 
-                //macCtrl |= 0x80;
+                
                 macCtrl |= 0x40;
                 icvLen = 4;
 
-                /* set hardware MIC */
+                
                 if ( (!(seq & 0xf))&&(!(flag & 0x4)) )
                 {
                     macCtrl |= 0x100;
@@ -412,7 +392,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+3] = (u16_t) (wd->ap.iv32[vap] >> 16);
 
                 macCtrl |= 0xc0;
-                icvLen = 8;  /* MIC */
+                icvLen = 8;  
 
                 header[4] |= 0x4000;
                 hlen += 4;
@@ -420,7 +400,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
             #ifdef ZM_ENABLE_CENC
             else if (wd->ap.encryMode[vap] == ZM_CENC)
             {
-                //u32_t txiv[4];
+                
 
                 wd->ap.txiv[vap][0]++;
 
@@ -446,7 +426,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     wd->ap.txiv[vap][2] = 0;
                 }
 
-                header[hlen] = (wd->ap.bcKeyIndex[vap] & 0x0001);    /* For Key Id and reserved field */
+                header[hlen] = (wd->ap.bcKeyIndex[vap] & 0x0001);    
                 header[hlen+1] = (u16_t)wd->ap.txiv[vap][0];
                 header[hlen+2] = (u16_t)(wd->ap.txiv[vap][0] >> 16);
                 header[hlen+3] = (u16_t)wd->ap.txiv[vap][1];
@@ -457,21 +437,21 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+8] = (u16_t)(wd->ap.txiv[vap][3] >> 16);
 
                 macCtrl |= 0x80;
-                icvLen = 16;  /* MIC */
+                icvLen = 16;  
 
                 header[4] |= 0x4000;
                 hlen += 9;
             }
-            #endif //ZM_ENABLE_CENC
+            #endif 
         }
         else
         {
-            /* Get STA's encryption type */
+            
             zfApGetStaEncryType(dev, da, &encryType);
 
             if (encryType == ZM_TKIP)
             {
-                /* Get iv16 and iv32 */
+                
                 zfApGetStaWpaIv(dev, da, &iv16, &iv32);
 
                 iv16++;
@@ -489,11 +469,11 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+2] = (u16_t) iv32;
                 header[hlen+3] = (u16_t) (iv32 >> 16);
 
-                //macCtrl |= 0x80;
+                
                 macCtrl |= 0x40;
                 icvLen = 4;
 
-                /* set hardware MIC */
+                
                 if ( (!(seq & 0xf))&&(!(flag & 0x4)) )
                 {
                     macCtrl |= 0x100;
@@ -504,12 +484,12 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[4] |= 0x4000;
                 hlen += 4;
 
-                /* Set iv16 and iv32 */
+                
                 zfApSetStaWpaIv(dev, da, iv16, iv32);
             }
             else if (encryType == ZM_AES)
             {
-                /* Get iv16 and iv32 */
+                
                 zfApGetStaWpaIv(dev, da, &iv16, &iv32);
 
                 iv16++;
@@ -526,12 +506,12 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+3] = (u16_t) (iv32 >> 16);
 
                 macCtrl |= 0xc0;
-                icvLen = 8;  /* MIC */
+                icvLen = 8;  
 
                 header[4] |= 0x4000;
                 hlen += 4;
 
-                /* Set iv16 and iv32 */
+                
                 zfApSetStaWpaIv(dev, da, iv16, iv32);
             }
             #ifdef ZM_ENABLE_CENC
@@ -540,7 +520,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 u32_t txiv[4];
                 u8_t keyIdx;
 
-                /* Get CENC TxIV */
+                
                 zfApGetStaCencIvAndKeyIdx(dev, da, txiv, &keyIdx);
 
                 txiv[0] += 2;
@@ -567,7 +547,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     txiv[2] = 0;
                 }
 
-                header[hlen] = (keyIdx & 0x0001);    /* For Key Id and reserved field */
+                header[hlen] = (keyIdx & 0x0001);    
                 header[hlen+1] = (u16_t)txiv[0];
                 header[hlen+2] = (u16_t)(txiv[0] >> 16);
                 header[hlen+3] = (u16_t)txiv[1];
@@ -578,37 +558,37 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+8] = (u16_t)(txiv[3] >> 16);
 
                 macCtrl |= 0x80;
-                icvLen = 16;  /* MIC */
+                icvLen = 16;  
 
                 header[4] |= 0x4000;
                 hlen += 9;
 
-                /* Set CENC IV */
+                
                 zfApSetStaCencIv(dev, da, txiv);
             }
-            #endif //ZM_ENABLE_CENC
+            #endif 
         }
 
-        /* protection mode */
+        
         if (wd->ap.protectionMode == 1)
         {
-            /* Enable Self-CTS */
+            
             macCtrl &= 0xFFFC;
             macCtrl |= 2;
         }
 
-        /* Rate Control */
+        
         if (port < 0x20)
         {
-            /* AP */
-            /* IV */
+            
+            
             if ((wd->ap.encryMode[vap] == ZM_WEP64) ||
                     (wd->ap.encryMode[vap] == ZM_WEP128) ||
                     (wd->ap.encryMode[vap] == ZM_WEP256))
             {
                 header[4] |= 0x4000;
-                header[hlen] = 0x0;   //IV
-                header[hlen+1] = wd->ap.bcKeyIndex[vap] << 14; //IV with Keyid--CWYang(m)
+                header[hlen] = 0x0;   
+                header[hlen+1] = wd->ap.bcKeyIndex[vap] << 14; 
                 hlen += 2;
                 icvLen = 4;
                 macCtrl |= 0x40;
@@ -616,27 +596,27 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         }
         else
         {
-            /* WDS */
+            
 
-            /* TODO : Fixed rate to 54M */
-            phyCtrl = 0xc0001;   //PHY control L
+            
+            phyCtrl = 0xc0001;   
 
-            /* WDS port checking */
+            
             if ((wdsPort = (port - 0x20)) >= ZM_MAX_WDS_SUPPORT)
             {
                 wdsPort = 0;
             }
 
             #if 1
-            /* IV */
+            
             switch (wd->ap.wds.encryMode[wdsPort])
             {
             case ZM_WEP64:
             case ZM_WEP128:
             case ZM_WEP256:
                     header[4] |= 0x4000;
-                    header[hlen] = 0x0;   //IV
-                    header[hlen+1] = wd->ap.bcKeyIndex[vap] << 14; //IV with Keyid
+                    header[hlen] = 0x0;   
+                    header[hlen+1] = wd->ap.bcKeyIndex[vap] << 14; 
                     hlen += 2;
                     icvLen = 4;
                     macCtrl |= 0x40;
@@ -659,11 +639,11 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     header[hlen+2] = (u16_t) wd->sta.iv32;
                     header[hlen+3] = (u16_t) (wd->sta.iv32 >> 16);
 
-                    //macCtrl |= 0x80;
+                    
                     macCtrl |= 0x40;
                     icvLen = 4;
 
-                    /* set hardware MIC */
+                    
                     if ( (!(seq & 0xf))&&(!(flag & 0x4)) )
                     {
                         macCtrl |= 0x100;
@@ -689,30 +669,30 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     header[hlen+2] = (u16_t) (wd->sta.iv32);
                     header[hlen+3] = (u16_t) (wd->sta.iv32 >> 16);
 
-                    macCtrl |= 0xc0; /* Set to AES in control setting */
-                    icvLen = 8;  /* MIC */
+                    macCtrl |= 0xc0; 
+                    icvLen = 8;  
 
-                    header[4] |= 0x4000; /* Set WEP bit in wlan header */
-                    hlen += 4; /* plus IV length */
+                    header[4] |= 0x4000; 
+                    hlen += 4; 
                     break;
-            }/* end of switch */
+            }
             #endif
         }
     }
-    else   /* wd->wlanMode != ZM_MODE_AP */
+    else   
     {
         encExemptionActionType = zfwGetPktEncExemptionActionType(dev, buf);
 
         if ( wd->wlanMode == ZM_MODE_INFRASTRUCTURE )
         {
             #if 1
-            /* if WME AP */
+            
             if (wd->sta.wmeConnected != 0)
             {
-                /* QoS data */
+                
                 header[4] |= 0x0080;
 
-                /* QoS Control */
+                
                 header[hlen] = up;
                 hlen += 1;
             }
@@ -721,7 +701,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
             if ( encExemptionActionType == ZM_ENCRYPTION_EXEMPT_NO_EXEMPTION )
             {
                 if ( wd->sta.authMode < ZM_AUTH_MODE_WPA )
-                {   /* non-WPA */
+                {   
                     if ( wd->sta.wepStatus == ZM_ENCRYPTION_WEP_ENABLED )
                     {
                         if ( (wd->sta.encryMode == ZM_WEP64)||
@@ -729,13 +709,13 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                              (wd->sta.encryMode == ZM_WEP256) )
                         {
                             header[4] |= 0x4000;
-                            header[hlen] = 0x0;   //IV
-                            header[hlen+1] = 0x0; //IV
+                            header[hlen] = 0x0;   
+                            header[hlen+1] = 0x0; 
                             header[hlen+1] |= (((u16_t) wd->sta.keyId) << 14);
                             hlen += 2;
                             icvLen = 4;
 
-                            /* For Software WEP */
+                            
                             if ((wd->sta.SWEncryptEnable & ZM_SW_WEP_ENCRY_EN) != 0)
                             {
                                 u8_t keyLen = 5;
@@ -769,7 +749,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     }
                 }
                 else
-                {   /* WPA */
+                {   
                     if ( wd->sta.wpaState >= ZM_STA_WPA_STATE_PK_OK )
                     {
                         wd->sta.iv16++;
@@ -778,7 +758,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                             wd->sta.iv32++;
                         }
 
-                        /* set encryption mode */
+                        
                         if ( wd->sta.encryMode == ZM_TKIP )
                         {
                             b1 = (u8_t) (wd->sta.iv16 >> 8);
@@ -787,21 +767,21 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                             b1 = (u8_t) wd->sta.iv16;
                             b2 = 0x20;
 
-                            // header[hlen+1] = (((u16_t) wd->sta.keyId) << 14) | (((u16_t)b2 << 8) + b1);
-                            // STA in infrastructure mode should use keyId = 0 to transmit unicast !
+                            
+                            
                             header[hlen+1] = (((u16_t)b2 << 8) + b1);
                             header[hlen+2] = (u16_t) wd->sta.iv32;
                             header[hlen+3] = (u16_t) (wd->sta.iv32 >> 16);
 
-                            /* If software encryption enable */
+                            
                             if ((wd->sta.SWEncryptEnable & ZM_SW_TKIP_ENCRY_EN) == 0)
                             {
-                                //macCtrl |= 0x80;
-                                /* TKIP same to WEP */
+                                
+                                
                                 macCtrl |= 0x40;
                                 icvLen = 4;
 
-                                /* set hardware MIC */
+                                
                                 if ( (!(seq & 0xf))&&(!(flag & 0x4)) )
                                 {
                                     macCtrl |= 0x100;
@@ -816,26 +796,26 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                                 u32_t icv;
                                 u8_t RC4Key[16];
 
-                                /* TODO: Remove the criticial section here. */
+                                
                                 zmw_declare_for_critical_section();
 
                                 zmw_enter_critical_section(dev);
-                                /* Calculate MIC */
+                                
                                 zfCalTxMic(dev, buf, (u8_t *)snap, snapLen, minusLen, da, sa, up, mic);
 
                                 offset = zfwBufGetSize(dev, buf);
 
-                                /* Append MIC to the buffer */
+                                
                                 zfCopyToIntTxBuffer(dev, buf, mic, offset, 8);
                                 zfwBufSetSize(dev, buf, offset+8);
                                 zmw_leave_critical_section(dev);
 
-                                /* TKIP Key Mixing */
+                                
                                 zfTkipPhase1KeyMix(wd->sta.iv32, &wd->sta.txSeed);
                                 zfTkipPhase2KeyMix(wd->sta.iv16, &wd->sta.txSeed);
                                 zfTkipGetseeds(wd->sta.iv16, RC4Key, &wd->sta.txSeed);
 
-                                /* Encrypt Data */
+                                
                                 zfTKIPEncrypt(dev, buf, (u8_t *)snap, snapLen, minusLen, 16, RC4Key, &icv);
 
                                 icvLen = 4;
@@ -850,14 +830,14 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                             b1 = (u8_t) wd->sta.iv16;
                             b2 = (u8_t) (wd->sta.iv16 >> 8);
                             header[hlen] = ((u16_t)b2 << 8) + b1;
-                            // header[hlen+1] = (((u16_t) wd->sta.keyId) << 14) | (0x2000);
-                            // STA in infrastructure mode should use keyId = 0 to transmit unicast !
+                            
+                            
                             header[hlen+1] = 0x2000;
                             header[hlen+2] = (u16_t) (wd->sta.iv32);
                             header[hlen+3] = (u16_t) (wd->sta.iv32 >> 16);
 
                             macCtrl |= 0xc0;
-                            icvLen = 8;  /* MIC */
+                            icvLen = 8;  
 
                             header[4] |= 0x4000;
                             hlen += 4;
@@ -865,7 +845,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                         #ifdef ZM_ENABLE_CENC
                         else if ( wd->sta.encryMode == ZM_CENC )
                         {
-                            /* Accumlate the PN sequence */
+                            
                             wd->sta.txiv[0] += 2;
 
                             if (wd->sta.txiv[0] == 0 || wd->sta.txiv[0] == 1)
@@ -890,7 +870,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                                 wd->sta.txiv[2] = 0;
                             }
 
-                            header[hlen] = (wd->sta.cencKeyId & 0x0001);    /* For Key Id and reserved field */
+                            header[hlen] = (wd->sta.cencKeyId & 0x0001);    
                             header[hlen+1] = (u16_t) wd->sta.txiv[0];
                             header[hlen+2] = (u16_t) (wd->sta.txiv[0] >> 16);
                             header[hlen+3] = (u16_t) wd->sta.txiv[1];
@@ -901,16 +881,16 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                             header[hlen+8] = (u16_t) (wd->sta.txiv[3] >> 16);
 
                             macCtrl |= 0x80;
-                            icvLen = 16;  /* MIC */
+                            icvLen = 16;  
 
                             header[4] |= 0x4000;
                             hlen += 9;
                         }
-                        #endif //ZM_ENABLE_CENC
+                        #endif 
                     }
                 }
-            } // if ( encExemptionActionType == ZM_ENCRYPTION_EXEMPT_NO_EXEMPTION )
-        } /* if ( wd->wlanMode != ZM_MODE_INFRASTRUCTURE ) */
+            } 
+        } 
 
         if ( wd->wlanMode == ZM_MODE_IBSS )
         {
@@ -923,11 +903,11 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
                     if((da[0]& 0x1))
                     {
-                        isUnicast = 0 ; // Not unicast , is broadcast
+                        isUnicast = 0 ; 
                     }
 
                     if( wd->sta.ibssWpa2Psk == 1 )
-                    { /* The IV order is not the same between unicast and broadcast ! */
+                    { 
                         if ( isUnicast )
                         {
                             iv16 = &wd->sta.oppositeInfo[userIdx].iv16;
@@ -953,7 +933,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
                     if ( wd->sta.oppositeInfo[userIdx].encryMode == ZM_AES || wd->sta.encryMode == ZM_AES)
                     {
-                        //printk("Station encryption mode is AES-CCMP\n") ;
+                        
                         b1 = (u8_t) (*iv16);
                         b2 = (u8_t) ((*iv16) >> 8);
                         header[hlen] = ((u16_t)b2 << 8) + b1;
@@ -970,7 +950,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                         header[hlen+2] = (u16_t) (*iv32);
                         header[hlen+3] = (u16_t) ((*iv32) >> 16);
                         macCtrl |= 0xc0;
-                        icvLen = 8;  /* MIC */
+                        icvLen = 8;  
                     }
 
                     header[4] |= 0x4000;
@@ -983,8 +963,8 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                         (wd->sta.encryMode == ZM_WEP256) )
                     {
                         header[4] |= 0x4000;
-                        header[hlen] = 0x0;   //IV
-                        header[hlen+1] = 0x0; //IV
+                        header[hlen] = 0x0;   
+                        header[hlen+1] = 0x0; 
                         header[hlen+1] |= (((u16_t) wd->sta.keyId) << 14);
                         hlen += 2;
                         icvLen = 4;
@@ -992,14 +972,14 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     }
                 }
 #else
-                /* ----- 20070405 add by Mxzeng ----- */
+                
                 if( wd->sta.wpaState >= ZM_STA_WPA_STATE_PK_OK )
                 {
                     int isUnicast = 1 ;
 
                     if((da[0]& 0x1))
                     {
-                        isUnicast = 0 ; // Not unicast , is broadcast
+                        isUnicast = 0 ; 
                     }
 
                     wd->sta.iv16++;
@@ -1010,7 +990,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
                     if ( wd->sta.encryMode == ZM_AES )
                     {
-                        //printk("Station encryption mode is AES-CCMP\n") ;
+                        
                         b1 = (u8_t) wd->sta.iv16;
                         b2 = (u8_t) (wd->sta.iv16 >> 8);
                         header[hlen] = ((u16_t)b2 << 8) + b1;
@@ -1027,7 +1007,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                             header[hlen+2] = (u16_t) (wd->sta.iv32);
                             header[hlen+3] = (u16_t) (wd->sta.iv32 >> 16);
                             macCtrl |= 0xc0;
-                            icvLen = 8;  /* MIC */
+                            icvLen = 8;  
                     }
 
                     header[4] |= 0x4000;
@@ -1040,8 +1020,8 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                          (wd->sta.encryMode == ZM_WEP256) )
                     {
                         header[4] |= 0x4000;
-                        header[hlen] = 0x0;   //IV
-                        header[hlen+1] = 0x0; //IV
+                        header[hlen] = 0x0;   
+                        header[hlen+1] = 0x0; 
                         header[hlen+1] |= (((u16_t) wd->sta.keyId) << 14);
                         hlen += 2;
                         icvLen = 4;
@@ -1049,8 +1029,8 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     }
                 }
 #endif
-            }   // End if ( encExemptionActionType == ZM_ENCRYPTION_EXEMPT_NO_EXEMPTION )
-        }   // End if ( wd->wlanMode == ZM_MODE_IBSS )
+            }   
+        }   
         else if ( wd->wlanMode == ZM_MODE_PSEUDO )
         {
             switch (wd->sta.encryMode)
@@ -1059,8 +1039,8 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
             case ZM_WEP128:
             case ZM_WEP256:
                 header[4] |= 0x4000;
-                header[hlen] = 0x0;   //IV
-                header[hlen+1] = 0x0; //IV
+                header[hlen] = 0x0;   
+                header[hlen+1] = 0x0; 
                 hlen += 2;
                 icvLen = 4;
                 macCtrl |= 0x40;
@@ -1083,11 +1063,11 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+2] = (u16_t) wd->sta.iv32;
                 header[hlen+3] = (u16_t) (wd->sta.iv32 >> 16);
 
-                //macCtrl |= 0x80;
+                
                 macCtrl |= 0x40;
                 icvLen = 4;
 
-                /* set hardware MIC */
+                
                 if ( (!(seq & 0xf))&&(!(flag & 0x4)) )
                 {
                     macCtrl |= 0x100;
@@ -1097,7 +1077,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
                 header[4] |= 0x4000;
                 hlen += 4;
-            }/* end of PSEUDO TKIP */
+            }
                 break;
 
             case ZM_AES:
@@ -1115,15 +1095,15 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                 header[hlen+2] = (u16_t) (wd->sta.iv32);
                 header[hlen+3] = (u16_t) (wd->sta.iv32 >> 16);
                 macCtrl |= 0xc0;
-                icvLen = 8;  /* MIC */
+                icvLen = 8;  
                 header[4] |= 0x4000;
                 hlen += 4;
-            }/* end of PSEUDO AES */
+            }
                     break;
 
               #ifdef ZM_ENABLE_CENC
               case ZM_CENC:
-                    /* Accumlate the PN sequence */
+                    
                     wd->sta.txiv[0] += 2;
 
                     if (wd->sta.txiv[0] == 0 || wd->sta.txiv[0] == 1)
@@ -1159,36 +1139,36 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                     header[hlen+8] = (u16_t) (wd->sta.txiv[3] >> 16);
 
                     macCtrl |= 0x80;
-                    icvLen = 16;  /* MIC */
+                    icvLen = 16;  
 
                     header[4] |= 0x4000;
                     hlen += 9;
 				break;
-		    #endif //ZM_ENABLE_CENC
-			}/* end of switch */
+		    #endif 
+			}
 		}
 
-        /* Generate control setting */
+        
 
-        /* protection mode */
+        
         if (wd->enableProtectionMode)
         {
             if (wd->enableProtectionMode==2)
             {
-                /* Force enable protection: self cts  */
+                
                 macCtrl &= 0xFFFC;
                 macCtrl |= 2;
             }
-            /* if wd->enableProtectionMode=1 => force disable */
-            /* if wd->enableProtectionMode=0 => auto */
+            
+            
         }
         else
         {
 
-            /* protection mode */
+            
             if (wd->sta.bProtectionMode == TRUE)
             {
-                /* Enable Self-CTS */
+                
                 macCtrl &= 0xFFFC;
                 macCtrl |= 2;
             }
@@ -1198,7 +1178,7 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 
     if (wd->txMCS != 0xff)
     {
-        /* fixed rate */
+        
 	    phyCtrl = ((u32_t)wd->txMCS<<16) + wd->txMT;
         mcs = wd->txMCS;
         mt = wd->txMT;
@@ -1207,59 +1187,59 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
     if (mt == 2)
     {
 #if 0
-        /* HT PT: 0 Mixed mode    1 Green field */
+        
 	    if (wd->sta.preambleTypeHT == ZM_PREAMBLE_TYPE_GREEN_FIELD)
 	    {
-            phyCtrl |= 0x4;     /* Bit 2 */
+            phyCtrl |= 0x4;     
         }
 #endif
-        /* Bandwidth */
+        
         if (wd->sta.htCtrlBandwidth == ZM_BANDWIDTH_40MHZ)
         {
-            phyCtrl |= (0x80<<16);  /* BIT 23 */
+            phyCtrl |= (0x80<<16);  
         }
 #if 0
-        /* STBC */
+        
         if (wd->sta.htCtrlSTBC<=0x3)
         {
-            phyCtrl |= (wd->sta.htCtrlSTBC<<28);   /* BIT 23 */
+            phyCtrl |= (wd->sta.htCtrlSTBC<<28);   
         }
 #endif
-        /* Short GI */
+        
         if(wd->sta.htCtrlSG)
         {
-            phyCtrl |= (0x8000<<16);         /* BIT 31 */
+            phyCtrl |= (0x8000<<16);         
         }
 
-        /* TA */
+        
         if ( ((mcs >=0x8) && (mcs<=0xf))  || (wd->sta.htCtrlSTBC) )
         {
-       	    phyCtrl |= 0x1800;               /* BIT 11 12 */
+       	    phyCtrl |= 0x1800;               
     	}
     }
     else if(mt == 1)
     {
         #if 0
-        //bug that cause OFDM rate become duplicate legacy rate
-        /* Bandwidth */
+        
+        
         if (wd->sta.htCtrlBandwidth == ZM_BANDWIDTH_40MHZ)
         {
-            phyCtrl |= (0x80<<16);  /* BIT 23 */
-            mt = 3;                 /* duplicate legacy */
+            phyCtrl |= (0x80<<16);  
+            mt = 3;                 
             phyCtrl |= mt;
         }
         #endif
     }
     else if(mt == 0)
     {
-	/* CCK PT: Legcy Preamble: 1 long preamble    2 short preamble */
+	
         if (wd->preambleTypeInUsed == ZM_PREAMBLE_TYPE_SHORT)
         {
-    	       //phyCtrl |= 0x4;    /* BIT 2 */
+    	       
     	}
     }
 
-    /* TA */
+    
     if (wd->sta.defaultTA)
     {
         phyCtrl |= 0x1000;
@@ -1269,8 +1249,8 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         phyCtrl |= 0x0800;
     }
 
-    //Get CurrentTxRate -- CWYang(+)
-    if ((mt == 0) || (mt == 1)) //B,G Rate
+    
+    if ((mt == 0) || (mt == 1)) 
     {
         if (mcs < 16)
         {
@@ -1285,12 +1265,12 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
             {
                 if((phyCtrl & 0x80000000) != 0)
                 {
-                    /* Short GI 40 MHz MIMO Rate */
+                    
                     wd->CurrentTxRateKbps = zcIndextoRateN40S[mcs];
                 }
                 else
                 {
-                    /* Long GI 40 MHz MIMO Rate */
+                    
                     wd->CurrentTxRateKbps = zcIndextoRateN40L[mcs];
                 }
             }
@@ -1298,33 +1278,33 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
             {
                 if((phyCtrl & 0x80000000) != 0)
                 {
-                    /* Short GI 20 MHz MIMO Rate */
+                    
                     wd->CurrentTxRateKbps = zcIndextoRateN20S[mcs];
                 }
                 else
                 {
-                    /* Long GI 20 MHz MIMO Rate */
+                    
                     wd->CurrentTxRateKbps = zcIndextoRateN20L[mcs];
                 }
             }
         }
     }
 
-    //802.11 header(include IV) = (hlen<<1)-8
-    //ethernet frame = len
-    //snap + mic = plusLen
-    //ethernet header = minusLen
-    //icv = icvLen
-    //crc32 = 4
-    //length=802.11 header+snap+(ethernet frame-ethernet header)+mic+icv+crc32
-    header[0] = ((hlen<<1)-8)+plusLen+(len-minusLen)+icvLen+4;  //Length
+    
+    
+    
+    
+    
+    
+    
+    header[0] = ((hlen<<1)-8)+plusLen+(len-minusLen)+icvLen+4;  
 
-    // header[0] : MPDU Lengths
-    if ((header[6] & 0x1) != 0x1) // Unicast Frame
+    
+    if ((header[6] & 0x1) != 0x1) 
     {
         if (header[0] >= wd->rtsThreshold)
         {
-            /* Enable RTS */
+            
             macCtrl |= 1;
         }
     }
@@ -1333,42 +1313,42 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         tkipFrameOffset = 8;
 
     if( wd->sta.EnableHT != 1 )
-    { // Aggregation should not be fragmented !
+    { 
         if ( header[0] > ( wd->fragThreshold + tkipFrameOffset ) )
         {
-            return 0; // Need to be fragmented ! !
+            return 0; 
         }
     }
 
-    //if ( wd->sta.encryMode == ZM_TKIP )
-    //{
-    //    zm_debug_msg1("ctrl length = ", header[0]);
-    //}
+    
+    
+    
+    
 
-    //MAC control
+    
     if (rateProbingFlag != 0)
     {
         macCtrl |= 0x8000;
     }
     header[1] = macCtrl;
-    //PHY control L
+    
     header[2] = (u16_t) ((phyCtrl&0xffff) | 0x700 | (zcUpToAc[up&0x7]<<13));
-    //PHY control H
+    
     header[3] = (u16_t) ((phyCtrl>>16) | 0x700);
 
     if (wd->enableAggregation)
     {
-        /* force enable aggregation */
+        
         if (wd->enableAggregation==2 && !(header[6]&0x1))
         {
             if (((header[2] & 0x3) == 2))
             {
-                /* Enable aggregation */
+                
                 header[1] |= 0x20;
             }
         }
-        /* if wd->enableAggregation=1 => force disable */
-        /* if wd->enableAggregation=0 => auto */
+        
+        
     }
 
 #ifdef ZM_ENABLE_AGGREGATION
@@ -1378,41 +1358,39 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         {
             if (((header[2] & 0x3) == 2))
             {
-                /* Unicast frame with HT rate => Enable aggregation */
-                /* We only support software encryption in single packet mode */
+                
+                
                 if ((wd->sta.SWEncryptEnable & ZM_SW_TKIP_ENCRY_EN) == 0 &&
                     (wd->sta.SWEncryptEnable & ZM_SW_WEP_ENCRY_EN) == 0)
                 {
-                    /* Set aggregation group bits per AC */
+                    
                     header[1] |= (0x20 | (zcUpToAc[up&0x7]<<10));
 
-                    //if (wd->sta.currentFrequency < 3000)
+                    
                     {
-                        /* issue: -PB42 Enable RTS/CTS to prevent OWL Tx hang up */
-                        /* If this is Owl Ap, enable RTS/CTS protect */
+                        
+                        
                         if ( (wd->sta.athOwlAp == 1) || (wd->sta.RTSInAGGMode == TRUE) )
                         {
                             header[1] &= 0xfffc;
                             header[1] |= 0x1;
                         }
 
-                        /* Enable RIFS : workaround 854T RTS/CTS */
-                        /* Bit13 : TI enable RIFS */
-                        //header[1] |= 0x2000;
+                        
+                        
+                        
                     }
                 }
             }
         }
         #else
-        /*
-         * aggregation ampduIndication control
-         */
+        
         if (aggControl && aggControl->aggEnabled) {
             if (wd->enableAggregation==0 && !(header[6]&0x1))
             {
                 if (((header[2] & 0x3) == 2))
                 {
-                    /* Enable aggregation */
+                    
                     header[1] |= 0x20;
                     if (ZM_AGG_LAST_MPDU == aggControl->ampduIndication)
                         header[1] |= 0x4000;
@@ -1435,13 +1413,13 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
         {
             if (((header[2] & 0x3) == 2))
             {
-                /* Unicast frame with HT rate => Enable aggregation */
-                /* Set aggregation group bits per AC */
+                
+                
                 header[1] |= (0x20 | (zcUpToAc[up&0x7]<<10));
 
-                //if (wd->sta.currentFrequency < 3000)
+                
                 {
-                    /* Enable RTS/CTS to prevent OWL Tx hang up */
+                    
                     header[1] &= 0xfffc;
                     header[1] |= 0x1;
                 }
@@ -1458,59 +1436,59 @@ u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
 u16_t zfTxGenMmHeader(zdev_t* dev, u8_t frameType, u16_t* dst,
         u16_t* header, u16_t len, zbuf_t* buf, u16_t vap, u8_t encrypt)
 {
-    //u16_t bodyLen;
-    u8_t  hlen = 32;        // MAC ctrl + PHY ctrl + 802.11 MM header
+    
+    u8_t  hlen = 32;        
 
     zmw_get_wlan_dev(dev);
 
     zmw_declare_for_critical_section();
 
-    /* Generate control setting */
-    //bodyLen = zfwBufGetSize(dev, buf);
-    header[0] = 24+len+4;   //Length
-    if ((dst[0] & 0x1) != 0) //Broadcast, multicast frames
+    
+    
+    header[0] = 24+len+4;   
+    if ((dst[0] & 0x1) != 0) 
     {
-        header[1] = 0xc;            //MAC control, backoff + noack
+        header[1] = 0xc;            
     }
     else
     {
-        header[1] = 0x8;            //MAC control, backoff + (ack)
+        header[1] = 0x8;            
     }
-    /* Dualband Management frame tx Rate */
+    
     if (wd->wlanMode == ZM_MODE_AP)
     {
         if (wd->frequency < 3000)
         {
-            /* CCK 1M */
-            header[2] = 0x0f00;          //PHY control L
-            header[3] = 0x0000;          //PHY control H
+            
+            header[2] = 0x0f00;          
+            header[3] = 0x0000;          
         }
         else
         {
-            /* CCK 6M */
-            header[2] = 0x0f01;          //PHY control L
-            header[3] = 0x000B;          //PHY control H
+            
+            header[2] = 0x0f01;          
+            header[3] = 0x000B;          
         }
     }
     else
     {
         if (wd->sta.currentFrequency < 3000)
         {
-            /* CCK 2M */
-            header[2] = 0x0f00;          //PHY control L
-            header[3] = 0x0001;          //PHY control H
+            
+            header[2] = 0x0f00;          
+            header[3] = 0x0001;          
         }
         else
         {
-            /* CCK 6M */
-            header[2] = 0x0f01;          //PHY control L
-            header[3] = 0x000B;          //PHY control H
+            
+            header[2] = 0x0f01;          
+            header[3] = 0x000B;          
         }
     }
-    /* Generate WLAN header */
-    /* Frame control */
+    
+    
     header[4+0] = frameType;
-    /* Duration */
+    
     header[4+1] = 0;
 
     if (wd->wlanMode == ZM_MODE_INFRASTRUCTURE)
@@ -1522,7 +1500,7 @@ u16_t zfTxGenMmHeader(zdev_t* dev, u8_t frameType, u16_t* dst,
             header[4+10] = 0xFFFF;
         }
         else if ( frameType == ZM_WLAN_FRAME_TYPE_BA ) {
-            /* do nothing */
+            
         }
         else
         {
@@ -1533,7 +1511,7 @@ u16_t zfTxGenMmHeader(zdev_t* dev, u8_t frameType, u16_t* dst,
     }
     else if (wd->wlanMode == ZM_MODE_PSEUDO)
     {
-        /* Address 3 = 00:00:00:00:00:00 */
+        
         header[4+8] = 0;
         header[4+9] = 0;
         header[4+10] = 0;
@@ -1546,25 +1524,25 @@ u16_t zfTxGenMmHeader(zdev_t* dev, u8_t frameType, u16_t* dst,
 
         if ( frameType == ZM_WLAN_FRAME_TYPE_ATIM )
         {
-            /* put ATIM to queue 5th */
-            //header[2] |= (ZM_BIT_13|ZM_BIT_14);
+            
+            
             header[2] |= ZM_BIT_15;
         }
     }
     else if (wd->wlanMode == ZM_MODE_AP)
     {
-        /* Address 3 = BSSID */
+        
         header[4+8] = wd->macAddr[0];
         header[4+9] = wd->macAddr[1];
 #ifdef ZM_VAPMODE_MULTILE_SSID
-        header[4+10] = wd->macAddr[2]; //Multiple SSID
+        header[4+10] = wd->macAddr[2]; 
 #else
-        header[4+10] = wd->macAddr[2] + (vap<<8); //VAP
+        header[4+10] = wd->macAddr[2] + (vap<<8); 
 #endif
-        //if in scan, must set address 3 to broadcast because of some ap would care this
-        //if ((wd->heartBeatNotification & ZM_BSSID_LIST_SCAN)
-        //        == ZM_BSSID_LIST_SCAN)
-        //if FrameType is Probe Request, Address3 should be boradcast
+        
+        
+        
+        
         if (frameType == ZM_WLAN_FRAME_TYPE_PROBEREQ)
         {
             header[4+8] = 0xFFFF;
@@ -1573,20 +1551,20 @@ u16_t zfTxGenMmHeader(zdev_t* dev, u8_t frameType, u16_t* dst,
         }
     }
 
-    /* Address 1 = DA */
+    
     header[4+2] = dst[0];
     header[4+3] = dst[1];
     header[4+4] = dst[2];
 
-    /* Address 2 = SA */
+    
     header[4+5] = wd->macAddr[0];
     header[4+6] = wd->macAddr[1];
     if (wd->wlanMode == ZM_MODE_AP)
     {
 #ifdef ZM_VAPMODE_MULTILE_SSID
-        header[4+7] = wd->macAddr[2]; //Multiple SSID
+        header[4+7] = wd->macAddr[2]; 
 #else
-        header[4+7] = wd->macAddr[2] + (vap<<8); //VAP
+        header[4+7] = wd->macAddr[2] + (vap<<8); 
 #endif
     }
     else
@@ -1594,14 +1572,14 @@ u16_t zfTxGenMmHeader(zdev_t* dev, u8_t frameType, u16_t* dst,
         header[4+7] = wd->macAddr[2];
     }
 
-    /* Sequence Control */
+    
     zmw_enter_critical_section(dev);
     header[4+11] = ((wd->mmseq++)<<4);
     zmw_leave_critical_section(dev);
 
     if( frameType == ZM_WLAN_FRAME_TYPE_QOS_NULL )
     {
-        /*Qos Control*/
+        
         header[4+12] = 0x0;
         hlen+=2;
         header[0]+=2;
@@ -1616,18 +1594,18 @@ u16_t zfTxGenMmHeader(zdev_t* dev, u8_t frameType, u16_t* dst,
                  (wd->sta.encryMode == ZM_WEP256) )
             {
                 header[4] |= 0x4000;
-                header[16] = 0x0;   //IV
-                header[17] = 0x0; //IV
+                header[16] = 0x0;   
+                header[17] = 0x0; 
                 header[17] |= (((u16_t) wd->sta.keyId) << 14);
                 hlen += 4;
 
-                header[0] += 8;         // icvLen = 4;
-                header[1] |= 0x40;      // enable encryption on macCtrl
+                header[0] += 8;         
+                header[1] |= 0x40;      
              }
         }
     }
 
-    // Enable HW duration
+    
     if ( frameType != ZM_WLAN_FRAME_TYPE_PSPOLL )
     {
         header[1] |= 0x200;
@@ -1644,11 +1622,11 @@ void zfInitMacApMode(zdev_t* dev)
 
     zfHpEnableBeacon(dev, ZM_MODE_AP, (wd->beaconInterval/wd->ap.vapNumber), 1, 0);
 
-    /* AP mode */
+    
     zfHpSetApStaMode(dev, ZM_HAL_80211_MODE_AP);
 
-    /* VAP test code */
-    /* AP + VAP mode */
+    
+    
     if (wd->ap.vapNumber >= 2)
     {
         for (i=1; i<ZM_MAX_AP_SUPPORT; i++)
@@ -1659,9 +1637,9 @@ void zfInitMacApMode(zdev_t* dev)
                 mac[0] = wd->macAddr[0];
                 mac[1] = wd->macAddr[1];
 #ifdef ZM_VAPMODE_MULTILE_SSID
-                mac[2] = wd->macAddr[2]; //Multiple SSID
+                mac[2] = wd->macAddr[2]; 
 #else
-                mac[2] = wd->macAddr[2] + (i<<8); //VAP
+                mac[2] = wd->macAddr[2] + (i<<8); 
 #endif
                 zfHpSetMacAddress(dev, mac, i);
 
@@ -1669,10 +1647,10 @@ void zfInitMacApMode(zdev_t* dev)
         }
     }
 
-    /* basic rate setting */
+    
     zfHpSetBasicRateSet(dev, wd->bRateBasic, wd->gRateBasic);
 
-    /* Set TxQs CWMIN, CWMAX, AIFS and TXO to WME AP default. */
+    
     zfUpdateDefaultQosParameter(dev, 1);
 
     return;
@@ -1685,7 +1663,7 @@ u16_t zfChGetNextChannel(zdev_t* dev, u16_t frequency, u8_t* pbPassive)
 
     zmw_get_wlan_dev(dev);
 
-    /* Avoid NULL value */
+    
     if ( pbPassive == NULL )
     {
         pbPassive = &bPassive;
@@ -1727,7 +1705,7 @@ u16_t zfChGetFirstChannel(zdev_t* dev, u8_t* pbPassive)
 
     zmw_get_wlan_dev(dev);
 
-    /* Avoid NULL value */
+    
     if ( pbPassive == NULL )
     {
         pbPassive = &bPassive;
@@ -1755,12 +1733,12 @@ u16_t zfChGetFirst2GhzChannel(zdev_t* dev)
     {
         if ( wd->regulationTable.allowChannel[i].channel < 3000 )
         {
-            /* find the first 2Ghz channel */
+            
             return wd->regulationTable.allowChannel[i].channel;
         }
     }
 
-    /* Can not find any 2Ghz channel */
+    
     return 0;
 }
 
@@ -1774,12 +1752,12 @@ u16_t zfChGetFirst5GhzChannel(zdev_t* dev)
     {
         if ( wd->regulationTable.allowChannel[i].channel > 3000 )
         {
-            /* find the first 5Ghz channel */
+            
             return wd->regulationTable.allowChannel[i].channel;
         }
     }
 
-    /* Can not find any 5Ghz channel */
+    
     return 0;
 }
 
@@ -1792,7 +1770,7 @@ u16_t zfChGetLastChannel(zdev_t* dev, u8_t* pbPassive)
 
     ChannelIndex = wd->regulationTable.allowChannelCnt-1;
 
-    /* Avoid NULL value */
+    
     if ( pbPassive == NULL )
     {
         pbPassive = &bPassive;
@@ -1830,9 +1808,9 @@ u16_t zfChGetLast5GhzChannel(zdev_t* dev)
     return last5Ghzfrequency;
 }
 
-/* freqBand = 0 => auto check   */
-/*          = 1 => 2.4 GHz band */
-/*          = 2 => 5 GHz band   */
+
+
+
 u16_t zfChNumToFreq(zdev_t* dev, u8_t ch, u8_t freqBand)
 {
     u16_t freq = 0xffff;
@@ -1840,7 +1818,7 @@ u16_t zfChNumToFreq(zdev_t* dev, u8_t ch, u8_t freqBand)
     if ( freqBand == 0 )
     {
         if (ch > 14)
-        {   /* adapter is at 5 GHz band */
+        {   
             freqBand = 2;
         }
         else
@@ -1850,7 +1828,7 @@ u16_t zfChNumToFreq(zdev_t* dev, u8_t ch, u8_t freqBand)
     }
 
     if ( freqBand == 2 )
-    {   /* the channel belongs to 5 GHz band */
+    {   
         if ( (ch >= 184)&&(ch <= 196) )
         {
             freq = 4000 + ch*5;
@@ -1861,7 +1839,7 @@ u16_t zfChNumToFreq(zdev_t* dev, u8_t ch, u8_t freqBand)
         }
     }
     else
-    {   /* the channel belongs to 2.4 GHz band */
+    {   
         if ( ch == 14 )
         {
             freq = ZM_CH_G_14;
@@ -1880,7 +1858,7 @@ u8_t zfChFreqToNum(u16_t freq, u8_t* pbIs5GBand)
     u8_t   ch;
     u8_t   Is5GBand;
 
-    /* to avoid NULL value */
+    
     if ( pbIs5GBand == NULL )
     {
         pbIs5GBand = &Is5GBand;

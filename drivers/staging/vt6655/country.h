@@ -1,42 +1,12 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: country.h
- *
- * Purpose: Country Code information
- *
- * Author: Lucas Lin
- *
- * Date: Dec 23, 2004
- *
- */
+
 
 #ifndef __COUNTRY_H__
 #define __COUNTRY_H__
 
 #include "ttype.h"
 
-/*---------------------  Export Definitions -------------------------*/
-/************************************************************************
- * The definition here should be complied with the INF country order
- * Please check with VNWL.inf/VNWL64.inf/VNWL*.inf
- ************************************************************************/
+
+
 typedef enum _COUNTRY_CODE {
     CCODE_FCC = 0,
     CCODE_TELEC,
@@ -161,17 +131,17 @@ typedef enum _COUNTRY_CODE {
 
 typedef struct tagSCountryTable
 {
-    BYTE    byChannelCountryCode;             /* The country code         */
+    BYTE    byChannelCountryCode;             
     CHAR    chCountryCode[2];
-    BYTE    bChannelIdxList[CB_MAX_CHANNEL];  /* Available channels Index */
+    BYTE    bChannelIdxList[CB_MAX_CHANNEL];  
     BYTE    byPower[CB_MAX_CHANNEL];
 }   SCountryTable, *PSCountryTable;
 
-/*---------------------  Export Classes  ----------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
+
+
 extern SCountryTable ChannelRuleTab[CCODE_MAX+1];
 
-/*---------------------  Export Functions  --------------------------*/
 
-#endif  /* __COUNTRY_H__ */
+
+#endif  

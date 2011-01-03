@@ -1,29 +1,4 @@
-/**********************************************************************
- * Author: Cavium Networks
- *
- * Contact: support@caviumnetworks.com
- * This file is part of the OCTEON SDK
- *
- * Copyright (c) 2003-2007 Cavium Networks
- *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, Version 2, as
- * published by the Free Software Foundation.
- *
- * This file is distributed in the hope that it will be useful, but
- * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
- * NONINFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this file; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- * or visit http://www.gnu.org/licenses/.
- *
- * This file may also be available under a different license from Cavium.
- * Contact Cavium Networks for more information
-**********************************************************************/
+
 #include <linux/kernel.h>
 #include <linux/netdevice.h>
 #include <linux/mii.h>
@@ -35,13 +10,7 @@
 
 #include "cvmx-fpa.h"
 
-/**
- * Fill the supplied hardware pool with skbuffs
- *
- * @pool:     Pool to allocate an skbuff for
- * @size:     Size of the buffer needed for the pool
- * @elements: Number of buffers to allocate
- */
+
 static int cvm_oct_fill_hw_skbuff(int pool, int size, int elements)
 {
 	int freed = elements;
@@ -63,13 +32,7 @@ static int cvm_oct_fill_hw_skbuff(int pool, int size, int elements)
 	return elements - freed;
 }
 
-/**
- * Free the supplied hardware pool of skbuffs
- *
- * @pool:     Pool to allocate an skbuff for
- * @size:     Size of the buffer needed for the pool
- * @elements: Number of buffers to allocate
- */
+
 static void cvm_oct_free_hw_skbuff(int pool, int size, int elements)
 {
 	char *memory;
@@ -92,16 +55,7 @@ static void cvm_oct_free_hw_skbuff(int pool, int size, int elements)
 		       pool, elements);
 }
 
-/**
- * This function fills a hardware pool with memory. Depending
- * on the config defines, this memory might come from the
- * kernel or global 32bit memory allocated with
- * cvmx_bootmem_alloc.
- *
- * @pool:     Pool to populate
- * @size:     Size of each buffer in the pool
- * @elements: Number of buffers to allocate
- */
+
 static int cvm_oct_fill_hw_memory(int pool, int size, int elements)
 {
 	char *memory;
@@ -131,7 +85,7 @@ static int cvm_oct_fill_hw_memory(int pool, int size, int elements)
 		}
 	} else {
 		while (freed) {
-			/* We need to force alignment to 128 bytes here */
+			
 			memory = kmalloc(size + 127, GFP_ATOMIC);
 			if (unlikely(memory == NULL)) {
 				pr_warning("Unable to allocate %u bytes for "
@@ -147,13 +101,7 @@ static int cvm_oct_fill_hw_memory(int pool, int size, int elements)
 	return elements - freed;
 }
 
-/**
- * Free memory previously allocated with cvm_oct_fill_hw_memory
- *
- * @pool:     FPA pool to free
- * @size:     Size of each buffer in the pool
- * @elements: Number of buffers that should be in the pool
- */
+
 static void cvm_oct_free_hw_memory(int pool, int size, int elements)
 {
 	if (USE_32BIT_SHARED) {

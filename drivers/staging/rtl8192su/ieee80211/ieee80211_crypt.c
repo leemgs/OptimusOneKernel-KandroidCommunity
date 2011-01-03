@@ -1,17 +1,6 @@
-/*
- * Host AP crypto routines
- *
- * Copyright (c) 2002-2003, Jouni Malinen <jkmaline@cc.hut.fi>
- * Portions Copyright (C) 2004, Intel Corporation <jketreno@linux.intel.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation. See README and COPYING for
- * more details.
- *
- */
 
-//#include <linux/config.h>
+
+
 #include <linux/version.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -88,9 +77,7 @@ void ieee80211_crypt_delayed_deinit(struct ieee80211_device *ieee,
 	tmp = *crypt;
 	*crypt = NULL;
 
-	/* must not run ops->deinit() while there may be pending encrypt or
-	 * decrypt operations. Use a list of delayed deinits to avoid needing
-	 * locking. */
+	
 
 	spin_lock_irqsave(&ieee->lock, flags);
 	list_add(&tmp->list, &ieee->crypt_deinit_list);

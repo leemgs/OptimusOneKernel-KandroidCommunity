@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : apdbg.c                                               */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      Debug tools                                                     */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +35,7 @@
 #define ZM_IOCTL_DMA_TEST           0x10
 #define ZM_IOCTL_REG_TEST           0x11
 #define ZM_IOCTL_TEST               0x80
-#define ZM_IOCTL_TALLY              0x81 //CWYang(+)
+#define ZM_IOCTL_TALLY              0x81 
 #define ZM_IOCTL_RTS                0xA0
 #define ZM_IOCTL_MIX_MODE           0xA1
 #define ZM_IOCTL_FRAG               0xA2
@@ -62,19 +48,19 @@
 #define ZM_IOCTL_DURATION_MODE      0xA9
 #define ZM_IOCTL_SET_AES_KEY        0xAA
 #define ZM_IOCTL_SET_AES_MODE       0xAB
-#define ZM_IOCTL_SIGNAL_STRENGTH    0xAC //CWYang(+)
-#define ZM_IOCTL_SIGNAL_QUALITY     0xAD //CWYang(+)
+#define ZM_IOCTL_SIGNAL_STRENGTH    0xAC 
+#define ZM_IOCTL_SIGNAL_QUALITY     0xAD 
 #define ZM_IOCTL_SET_PIBSS_MODE     0xAE
 #define	ZDAPIOCTL                   SIOCDEVPRIVATE
 
 struct zdap_ioctl {
-	unsigned short cmd;                /* Command to run */
-	unsigned int   addr;                /* Length of the data buffer */
-	unsigned int   value;               /* Pointer to the data buffer */
+	unsigned short cmd;                
+	unsigned int   addr;                
+	unsigned int   value;               
 	unsigned char data[0x100];
 };
 
-/* Declaration of macro and function for handling WEP Keys */
+
 
 #if 0
 
@@ -114,8 +100,8 @@ int read_reg(int sock, struct ifreq *req)
     if (!set_ioctl(sock, req))
         return -1;
 
-    //zdreq = (struct zdap_ioctl *)req->ifr_data;
-    //printf( "reg = %4x, value = %4x\n", zdreq->addr, zdreq->value);
+    
+    
 
     return 0;
 }
@@ -129,16 +115,7 @@ int read_mem(int sock, struct ifreq *req)
     if (!set_ioctl(sock, req))
         return -1;
 
-    /*zdreq = (struct zdap_ioctl *)req->ifr_data;
-    printf( "dump mem from %x, length = %x\n", zdreq->addr, zdreq->value);
-
-    for (i=0; i<zdreq->value; i++) {
-        printf("%02x", zdreq->data[i]);
-        printf(" ");
-
-        if ((i>0) && ((i+1)%16 == 0))
-            printf("\n");
-    }*/
+    
 
     return 0;
 }
@@ -183,7 +160,7 @@ int main(int argc, char **argv)
     zdreq.addr = 0;
     zdreq.value = 0;
 
-    /* a silly raw socket just for ioctl()ling it */
+    
     sock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
     if (sock < 0) {
         fprintf(stderr, "%s: socket(): %s\n", argv[0], strerror(errno));

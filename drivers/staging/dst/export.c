@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/blkdev.h>
 #include <linux/bio.h>
@@ -24,9 +11,7 @@
 
 #include <net/sock.h>
 
-/*
- * Export bioset is used for server block IO requests.
- */
+
 static struct bio_set *dst_bio_set;
 
 int __init dst_export_init(void)
@@ -48,11 +33,7 @@ void dst_export_exit(void)
 	bioset_free(dst_bio_set);
 }
 
-/*
- * When client connects and autonegotiates with the server node,
- * its permissions are checked in a security attributes and sent
- * back.
- */
+
 static unsigned int dst_check_permissions(struct dst_state *main, struct dst_state *st)
 {
 	struct dst_node *n = main->node;
@@ -71,12 +52,7 @@ static unsigned int dst_check_permissions(struct dst_state *main, struct dst_sta
 		if (s->addr.sa_data_len != sa->sa_data_len)
 			continue;
 
-		/*
-		 * This '2' below is a port field. This may be very wrong to do
-		 * in atalk for example though. If there will be any need to extent
-		 * protocol to something else, I can create per-family helpers and
-		 * use them instead of this memcmp.
-		 */
+		
 		if (memcmp(s->addr.sa_data + 2, sa->sa_data + 2,
 					sa->sa_data_len - 2))
 			continue;
@@ -88,9 +64,7 @@ static unsigned int dst_check_permissions(struct dst_state *main, struct dst_sta
 	return perm;
 }
 
-/*
- * Accept new client: allocate appropriate network state and check permissions.
- */
+
 static struct dst_state *dst_accept_client(struct dst_state *st)
 {
 	unsigned int revents = 0;
@@ -121,13 +95,7 @@ static struct dst_state *dst_accept_client(struct dst_state *st)
 				if (signal_pending(current))
 					break;
 
-				/*
-				 * Magic HZ? Polling check above is not safe in
-				 * all cases (like socket reset in BH context),
-				 * so it is simpler just to postpone it to the
-				 * process context instead of implementing special
-				 * locking there.
-				 */
+				
 				schedule_timeout(HZ);
 			}
 			finish_wait(&st->thread_wait, &wait);
@@ -196,14 +164,7 @@ err_out_exit:
 	return ERR_PTR(err);
 }
 
-/*
- * Each server's block request sometime finishes.
- * Usually it happens in hard irq context of the appropriate controller,
- * so to play good with all cases we just queue BIO into the queue
- * and wake up processing thread, which gets completed request and
- * send (encrypting if needed) it back to the client (if it was a read
- * request), or sends back reply that writing succesfully completed.
- */
+
 static int dst_export_process_request_queue(struct dst_state *st)
 {
 	unsigned long flags;
@@ -237,19 +198,13 @@ static int dst_export_process_request_queue(struct dst_state *st)
 	return err;
 }
 
-/*
- * Cleanup export state.
- * It has to wait until all requests are finished,
- * and then free them all.
- */
+
 static void dst_state_cleanup_export(struct dst_state *st)
 {
 	struct dst_export_priv *p;
 	unsigned long flags;
 
-	/*
-	 * This loop waits for all pending bios to be completed and freed.
-	 */
+	
 	while (atomic_read(&st->refcnt) > 1) {
 		dprintk("%s: st: %p, refcnt: %d, list_empty: %d.\n",
 				__func__, st, atomic_read(&st->refcnt),
@@ -281,11 +236,7 @@ static void dst_state_cleanup_export(struct dst_state *st)
 	dst_state_put(st);
 }
 
-/*
- * Client accepting thread.
- * Not only accepts new connection, but also schedules receiving thread
- * and performs request completion described above.
- */
+
 static int dst_accept(void *init_data, void *schedule_data)
 {
 	struct dst_state *main_st = schedule_data;
@@ -348,9 +299,7 @@ int dst_start_export(struct dst_node *n)
 	return dst_node_trans_init(n, sizeof(struct dst_export_priv));
 }
 
-/*
- * Initialize listening state and schedule accepting thread.
- */
+
 int dst_node_init_listened(struct dst_node *n, struct dst_export_ctl *le)
 {
 	struct dst_state *st;
@@ -406,11 +355,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Free bio and related private data.
- * Also drop a reference counter for appropriate state,
- * which waits when there are no more block IOs in-flight.
- */
+
 static void dst_bio_destructor(struct bio *bio)
 {
 	struct bio_vec *bv;
@@ -429,10 +374,7 @@ static void dst_bio_destructor(struct bio *bio)
 	bio_free(bio, dst_bio_set);
 }
 
-/*
- * Block IO completion. Queue request to be sent back to
- * the client (or just confirmation).
- */
+
 static void dst_bio_end_io(struct bio *bio, int err)
 {
 	struct dst_export_priv *p = bio->bi_private;
@@ -446,9 +388,7 @@ static void dst_bio_end_io(struct bio *bio, int err)
 	wake_up(&st->thread_wait);
 }
 
-/*
- * Allocate read request for the server.
- */
+
 static int dst_export_read_request(struct bio *bio, unsigned int total_size)
 {
 	unsigned int size;
@@ -481,10 +421,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Allocate write request for the server.
- * Should not only get pages, but also read data from the network.
- */
+
 static int dst_export_write_request(struct dst_state *st,
 		struct bio *bio, unsigned int total_size)
 {
@@ -528,11 +465,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Groovy, we've gotten an IO request from the client.
- * Allocate BIO from the bioset, private data from the mempool
- * and lots of pages for IO.
- */
+
 int dst_process_io(struct dst_state *st)
 {
 	struct dst_node *n = st->node;
@@ -562,10 +495,7 @@ int dst_process_io(struct dst_state *st)
 	bio->bi_destructor = dst_bio_destructor;
 	bio->bi_bdev = n->bdev;
 
-	/*
-	 * Server side is only interested in two low bits:
-	 * uptodate (set by itself actually) and rw block
-	 */
+	
 	bio->bi_flags |= cmd->flags & 3;
 
 	bio->bi_rw = cmd->rw;
@@ -609,9 +539,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Ok, block IO is ready, let's send it back to the client...
- */
+
 int dst_export_send_bio(struct bio *bio)
 {
 	struct dst_export_priv *p = bio->bi_private;
@@ -632,7 +560,7 @@ int dst_export_send_bio(struct bio *bio)
 	}
 
 	if (bio_data_dir(bio) == WRITE) {
-		/* ... or just confirmation that writing has completed. */
+		
 		cmd->size = cmd->csize = 0;
 		err = dst_data_send_header(st->socket, cmd,
 				sizeof(struct dst_cmd), 0);

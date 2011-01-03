@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 1996, 2005 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: IEEE11h.c
- *
- * Purpose:
- *
- * Functions:
- *
- * Revision History:
- *
- * Author: Yiching Chen
- *
- * Date: Mar. 31, 2005
- *
- */
+
 
 #include "ttype.h"
 #include "tmacro.h"
@@ -39,7 +8,7 @@
 #include "wmgr.h"
 #include "rxtx.h"
 
-/*---------------------  Static Definitions -------------------------*/
+
 static int          msglevel                =MSG_LEVEL_INFO;
 
 #pragma pack(1)
@@ -85,18 +54,18 @@ typedef struct _WLAN_FRAME_TPCREP {
 
 #pragma pack()
 
-// action field reference ieee 802.11h Table 20e
+
 #define ACTION_MSRREQ       0
 #define ACTION_MSRREP       1
 #define ACTION_TPCREQ       2
 #define ACTION_TPCREP       3
 #define ACTION_CHSW         4
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
 
-/*---------------------  Static Functions  --------------------------*/
+
+
+
 static BOOL s_bRxMSRReq(PSMgmtObject pMgmt, PWLAN_FRAME_MSRREQ pMSRReq, UINT uLength)
 {
     size_t    uNumOfEIDs = 0;
@@ -176,31 +145,17 @@ static BOOL s_bRxTPCReq(PSMgmtObject pMgmt, PWLAN_FRAME_TPCREQ pTPCReq, BYTE byR
     if (csMgmt_xmit(pMgmt->pAdapter, pTxPacket) != CMD_STATUS_PENDING)
         return (FALSE);
     return (TRUE);
-//    return (CARDbSendPacket(pMgmt->pAdapter, pFrame, PKT_TYPE_802_11_MNG, sizeof(WLAN_FRAME_TPCREP)));
+
 
 }
 
 
-/*---------------------  Export Variables  --------------------------*/
-
-/*---------------------  Export Functions  --------------------------*/
 
 
-/*+
- *
- * Description:
- *      Handles action management frames.
- *
- * Parameters:
- *  In:
- *      pMgmt           - Management Object structure
- *      pRxPacket       - Received packet
- *  Out:
- *      none
- *
- * Return Value: None.
- *
--*/
+
+
+
+
 BOOL
 IEEE11hbMgrRxAction (
     IN PVOID pMgmtHandle,
@@ -213,7 +168,7 @@ IEEE11hbMgrRxAction (
     PWLAN_IE_CH_SW          pChannelSwitch = NULL;
 
 
-    // decode the frame
+    
     uLength = ((PSRxMgmtPacket)pRxPacket)->cbMPDULen;
     if (uLength > WLAN_A3FR_MAXLEN) {
         return (FALSE);
@@ -241,7 +196,7 @@ IEEE11hbMgrRxAction (
                 pChannelSwitch = (PWLAN_IE_CH_SW) (pAction->abyVars);
                 if ((pChannelSwitch->byElementID == WLAN_EID_CH_SWITCH) &&
                     (pChannelSwitch->len == 3)) {
-                    // valid element id
+                    
                     CARDbChannelSwitch( pMgmt->pAdapter,
                                         pChannelSwitch->byMode,
                                         CARDbyGetChannelMapping(pMgmt->pAdapter, pChannelSwitch->byChannel, pMgmt->eCurrentPHYMode),
@@ -257,7 +212,7 @@ IEEE11hbMgrRxAction (
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Unknown Category = %d\n", pAction->byCategory);
         pAction->byCategory |= 0x80;
 
-       //return (CARDbSendPacket(pMgmt->pAdapter, pAction, PKT_TYPE_802_11_MNG, uLength));
+       
         return (TRUE);
     }
     return (TRUE);
@@ -297,7 +252,7 @@ BOOL IEEE11hbMSRRepTx (
     if (csMgmt_xmit(pMgmt->pAdapter, pTxPacket) != CMD_STATUS_PENDING)
         return (FALSE);
     return (TRUE);
-//    return (CARDbSendPacket(pMgmt->pAdapter, pMSRRep, PKT_TYPE_802_11_MNG, uLength));
+
 
 }
 

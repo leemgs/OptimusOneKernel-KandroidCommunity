@@ -1,30 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: upc.h
- *
- * Purpose: Macros to access device
- *
- * Author: Tevin Chen
- *
- * Date: Mar 17, 1997
- *
- */
+
 
 #ifndef __UPC_H__
 #define __UPC_H__
@@ -32,12 +6,12 @@
 #include "device.h"
 #include "ttype.h"
 
-/*---------------------  Export Definitions -------------------------*/
 
 
-//
-//  For IO mapped
-//
+
+
+
+
 
 #ifdef IO_MAP
 
@@ -70,9 +44,9 @@
 
 #else
 
-//
-//  For memory mapped IO
-//
+
+
+
 
 
 #define VNSvInPortB(dwIOAddress, pbyData) {                     \
@@ -111,9 +85,9 @@
 #endif
 
 
-//
-// ALWAYS IO-Mapped IO when in 16-bit/32-bit environment
-//
+
+
+
 #define PCBvInPortB(dwIOAddress, pbyData) {     \
 	    *(pbyData) = inb(dwIOAddress);          \
 }
@@ -153,14 +127,14 @@
 }
 
 
-/*---------------------  Export Classes  ----------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
-
-/*---------------------  Export Functions  --------------------------*/
 
 
 
 
-#endif // __UPC_H__
+
+
+
+
+
+#endif 
 

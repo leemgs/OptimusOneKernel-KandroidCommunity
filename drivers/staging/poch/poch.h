@@ -1,12 +1,4 @@
-/*
- * User-space DMA and UIO based Redrapids Pocket Change CardBus driver
- *
- * Copyright 2008 Vijay Kumar <vijaykumar@bravegnu.org>
- *
- * Part of userspace API. Should be moved to a header file in
- * include/linux for final version.
- *
- */
+
 struct poch_cbuf_header {
 	__s32 group_size_bytes;
 	__s32 group_count;

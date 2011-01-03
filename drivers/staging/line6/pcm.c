@@ -1,13 +1,4 @@
-/*
- * Line6 Linux USB driver - 0.8.0
- *
- * Copyright (C) 2004-2009 Markus Grabner (grabner@icg.tugraz.at)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include "driver.h"
 
@@ -22,7 +13,7 @@
 #include "pod.h"
 
 
-/* trigger callback */
+
 int snd_line6_trigger(struct snd_pcm_substream *substream, int cmd)
 {
 	struct snd_line6_pcm *line6pcm = snd_pcm_substream_chip(substream);
@@ -67,7 +58,7 @@ int snd_line6_trigger(struct snd_pcm_substream *substream, int cmd)
 	return 0;
 }
 
-/* control info callback */
+
 static int snd_line6_control_info(struct snd_kcontrol *kcontrol,
 				  struct snd_ctl_elem_info *uinfo)
 {
@@ -78,7 +69,7 @@ static int snd_line6_control_info(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-/* control get callback */
+
 static int snd_line6_control_get(struct snd_kcontrol *kcontrol,
 				 struct snd_ctl_elem_value *ucontrol)
 {
@@ -91,7 +82,7 @@ static int snd_line6_control_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-/* control put callback */
+
 static int snd_line6_control_put(struct snd_kcontrol *kcontrol,
 				 struct snd_ctl_elem_value *ucontrol)
 {
@@ -107,7 +98,7 @@ static int snd_line6_control_put(struct snd_kcontrol *kcontrol,
 	return changed;
 }
 
-/* control definition */
+
 static struct snd_kcontrol_new line6_control = {
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "PCM Playback Volume",
@@ -118,9 +109,7 @@ static struct snd_kcontrol_new line6_control = {
 	.put = snd_line6_control_put
 };
 
-/*
-	Cleanup the PCM device.
-*/
+
 static void line6_cleanup_pcm(struct snd_pcm *pcm)
 {
 	int i;
@@ -138,7 +127,7 @@ static void line6_cleanup_pcm(struct snd_pcm *pcm)
 	}
 }
 
-/* create a PCM device */
+
 static int snd_line6_new_pcm(struct snd_line6_pcm *line6pcm)
 {
 	struct snd_pcm *pcm;
@@ -155,11 +144,11 @@ static int snd_line6_new_pcm(struct snd_line6_pcm *line6pcm)
 	line6pcm->pcm = pcm;
 	strcpy(pcm->name, line6pcm->line6->properties->name);
 
-	/* set operators */
+	
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_line6_playback_ops);
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_line6_capture_ops);
 
-	/* pre-allocation of buffers */
+	
 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_CONTINUOUS,
 					snd_dma_continuous_data(GFP_KERNEL),
 					64 * 1024, 128 * 1024);
@@ -167,16 +156,13 @@ static int snd_line6_new_pcm(struct snd_line6_pcm *line6pcm)
 	return 0;
 }
 
-/* PCM device destructor */
+
 static int snd_line6_pcm_free(struct snd_device *device)
 {
 	return 0;
 }
 
-/*
-	Create and register the PCM device and mixer entries.
-	Create URBs for playback and capture.
-*/
+
 int line6_init_pcm(struct usb_line6 *line6,
 		   struct line6_pcm_properties *properties)
 {
@@ -189,9 +175,9 @@ int line6_init_pcm(struct usb_line6 *line6,
 	struct snd_line6_pcm *line6pcm;
 
 	if (!(line6->properties->capabilities & LINE6_BIT_PCM))
-		return 0;  /* skip PCM initialization and report success */
+		return 0;  
 
-	/* initialize PCM subsystem based on product id: */
+	
 	switch (line6->product) {
 	case LINE6_DEVID_BASSPODXT:
 	case LINE6_DEVID_BASSPODXTLIVE:
@@ -250,7 +236,7 @@ int line6_init_pcm(struct usb_line6 *line6,
 	line6pcm->properties = properties;
 	line6->line6pcm = line6pcm;
 
-	/* PCM device: */
+	
 	err = snd_device_new(line6->card, SNDRV_DEV_PCM, line6, &pcm_ops);
 	if (err < 0)
 		return err;
@@ -273,7 +259,7 @@ int line6_init_pcm(struct usb_line6 *line6,
 	if (err < 0)
 		return err;
 
-	/* mixer: */
+	
 	err = snd_ctl_add(line6->card, snd_ctl_new1(&line6_control, line6pcm));
 	if (err < 0)
 		return err;
@@ -281,7 +267,7 @@ int line6_init_pcm(struct usb_line6 *line6,
 	return 0;
 }
 
-/* prepare pcm callback */
+
 int snd_line6_prepare(struct snd_pcm_substream *substream)
 {
 	struct snd_line6_pcm *line6pcm = snd_pcm_substream_chip(substream);

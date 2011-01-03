@@ -1,32 +1,15 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/bio.h>
 #include <linux/dst.h>
 #include <linux/slab.h>
 #include <linux/mempool.h>
 
-/*
- * Transaction memory pool size.
- */
+
 static int dst_mempool_num = 32;
 module_param(dst_mempool_num, int, 0644);
 
-/*
- * Transaction tree management.
- */
+
 static inline int dst_trans_cmp(dst_gen_t gen, dst_gen_t new)
 {
 	if (gen < new)
@@ -131,10 +114,7 @@ int dst_trans_remove(struct dst_trans *t)
 	return ret;
 }
 
-/*
- * When transaction is completed and there are no more users,
- * we complete appriate block IO request with given error status.
- */
+
 void dst_trans_put(struct dst_trans *t)
 {
 	if (atomic_dec_and_test(&t->refcnt)) {
@@ -151,10 +131,7 @@ void dst_trans_put(struct dst_trans *t)
 	}
 }
 
-/*
- * Process given block IO request: allocate transaction, insert it into the tree
- * and send/schedule crypto processing.
- */
+
 int dst_process_bio(struct dst_node *n, struct bio *bio)
 {
 	struct dst_trans *t;
@@ -200,10 +177,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Scan for timeout/stale transactions.
- * Each transaction is being resent multiple times before error completion.
- */
+
 static void dst_trans_scan(struct work_struct *work)
 {
 	struct dst_node *n = container_of(work, struct dst_node, trans_work.work);
@@ -245,10 +219,7 @@ static void dst_trans_scan(struct work_struct *work)
 
 	mutex_unlock(&n->trans_lock);
 
-	/*
-	 * If no timeout specified then system is in the middle of exiting process,
-	 * so no need to reschedule scanning process again.
-	 */
+	
 	if (timeout) {
 		if (!num)
 			timeout = HZ;
@@ -256,10 +227,7 @@ static void dst_trans_scan(struct work_struct *work)
 	}
 }
 
-/*
- * Flush all transactions and mark them as timed out.
- * Destroy transaction pools.
- */
+
 void dst_node_trans_exit(struct dst_node *n)
 {
 	struct dst_trans *t;
@@ -290,20 +258,10 @@ void dst_node_trans_exit(struct dst_node *n)
 	kmem_cache_destroy(n->trans_cache);
 }
 
-/*
- * Initialize transaction storage for given node.
- * Transaction stores not only control information,
- * but also network command and crypto data (if needed)
- * to reduce number of allocations. Thus transaction size
- * differs from node to node.
- */
+
 int dst_node_trans_init(struct dst_node *n, unsigned int size)
 {
-	/*
-	 * We need this, since node with given name can be dropped from the
-	 * hash table, but be still alive, so subsequent creation of the node
-	 * with the same name may collide with existing cache name.
-	 */
+	
 
 	snprintf(n->cache_name, sizeof(n->cache_name), "%s-%p", n->name, n);
 

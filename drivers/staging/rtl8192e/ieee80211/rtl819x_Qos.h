@@ -36,33 +36,33 @@
 
 #define	MAX_WMMELE_LENGTH	64
 
-//
-// QoS mode.
-// enum 0, 1, 2, 4: since we can use the OR(|) operation.
-//
-// QOS_MODE is redefined for enum can't be ++, | under C++ compiler, 2006.05.17, by rcnjko.
-//typedef	enum _QOS_MODE{
-//	QOS_DISABLE		= 0,
-//	QOS_WMM			= 1,
-//	QOS_EDCA			= 2,
-//	QOS_HCCA			= 4,
-//}QOS_MODE,*PQOS_MODE;
-//
+
+
+
+
+
+
+
+
+
+
+
+
 typedef u32 QOS_MODE, *PQOS_MODE;
 #define QOS_DISABLE		0
 #define QOS_WMM			1
 #define QOS_WMMSA		2
 #define QOS_EDCA		4
 #define QOS_HCCA		8
-#define QOS_WMM_UAPSD		16   //WMM Power Save, 2006-06-14 Isaiah
+#define QOS_WMM_UAPSD		16   
 
 #define AC_PARAM_SIZE	4
 #define WMM_PARAM_ELE_BODY_LEN	18
 
-//
-// QoS ACK Policy Field Values
-// Ref: WMM spec 2.1.6: QoS Control Field, p.10.
-//
+
+
+
+
 typedef	enum _ACK_POLICY{
 	eAckPlc0_ACK		= 0x00,
 	eAckPlc1_NoACK		= 0x01,
@@ -73,7 +73,7 @@ typedef	enum _ACK_POLICY{
 #define GET_QOS_CTRL(_pStart)	ReadEF2Byte((u8 *)(_pStart) + 24)
 #define SET_QOS_CTRL(_pStart, _value)	WriteEF2Byte((u8 *)(_pStart) + 24, _value)
 
-// WMM control field.
+
 #define GET_QOS_CTRL_WMM_UP(_pStart)	((u8)LE_BITS_TO_2BYTE((u8 *)(_pStart)+24, 0, 3))
 #define SET_QOS_CTRL_WMM_UP(_pStart, _value)	SET_BITS_TO_LE_2BYTE((u8 *)(_pStart)+24, 0, 3, (u8)(_value))
 
@@ -83,7 +83,7 @@ typedef	enum _ACK_POLICY{
 #define GET_QOS_CTRL_WMM_ACK_POLICY(_pStart)	((u8)LE_BITS_TO_2BYTE((u8 *)(_pStart)+24, 5, 2))
 #define SET_QOS_CTRL_WMM_ACK_POLICY(_pStart, _value)	SET_BITS_TO_LE_2BYTE((u8 *)(_pStart)+24, 5, 2, (u8)(_value))
 
-// 802.11e control field (by STA, data)
+
 #define GET_QOS_CTRL_STA_DATA_TID(_pStart)	((u8)LE_BITS_TO_2BYTE((u8 *)(_pStart)+24, 0, 4))
 #define SET_QOS_CTRL_STA_DATA_TID(_pStart, _value)	SET_BITS_TO_LE_2BYTE((u8 *)(_pStart)+24, 0, 4, (u8)(_value))
 
@@ -99,7 +99,7 @@ typedef	enum _ACK_POLICY{
 #define GET_QOS_CTRL_STA_DATA_QSIZE(_pStart)	GET_QOS_CTRL_STA_DATA_TXOP(_pStart)
 #define SET_QOS_CTRL_STA_DATA_QSIZE(_pStart, _value)	SET_QOS_CTRL_STA_DATA_TXOP(_pStart)
 
-// 802.11e control field (by HC, data)
+
 #define GET_QOS_CTRL_HC_DATA_TID(_pStart)	((u8)LE_BITS_TO_2BYTE((u8 *)(_pStart)+24, 0, 4))
 #define SET_QOS_CTRL_HC_DATA_TID(_pStart, _value)	SET_BITS_TO_LE_2BYTE((u8 *)(_pStart)+24, 0, 4, (u8)(_value))
 
@@ -112,7 +112,7 @@ typedef	enum _ACK_POLICY{
 #define GET_QOS_CTRL_HC_DATA_PS_BUFSTATE(_pStart)	((u8)LE_BITS_TO_2BYTE((u8 *)(_pStart)+24, 8, 8))
 #define SET_QOS_CTRL_HC_DATA_PS_BUFSTATE(_pStart, _value)	SET_BITS_TO_LE_2BYTE((u8 *)(_pStart)+24, 8, 8, (u8)(_value))
 
-// 802.11e control field (by HC, CFP)
+
 #define GET_QOS_CTRL_HC_CFP_TID(_pStart)	((u8)LE_BITS_TO_2BYTE((u8 *)(_pStart)+24, 0, 4))
 #define SET_QOS_CTRL_HC_CFP_TID(_pStart, _value)	SET_BITS_TO_LE_2BYTE((u8 *)(_pStart)+24, 0, 4, (u8)(_value))
 
@@ -211,17 +211,17 @@ typedef	enum _ACK_POLICY{
 #define SET_WMM_PARAM_ELE_AC_PARAM(_pStart, _pVal) PlatformMoveMemory((_pStart)+8, _pVal, 16)
 #endif
 
-//
-// QoS Control Field
-// Ref:
-//	1. WMM spec 2.1.6: QoS Control Field, p.9.
-//	2. 802.11e/D13.0 7.1.3.5, p.26.
-//
+
+
+
+
+
+
 typedef	union _QOS_CTRL_FIELD{
 	u8	charData[2];
 	u16	shortData;
 
-	// WMM spec
+	
 	struct
 	{
 		u8		UP:3;
@@ -232,45 +232,45 @@ typedef	union _QOS_CTRL_FIELD{
 		u8		ucRsvdByte;
 	}WMM;
 
-	// 802.11e: QoS data type frame sent by non-AP QSTAs.
+	
 	struct
 	{
 		u8		TID:4;
-		u8		bIsQsize:1;// 0: BIT[8:15] is TXOP Duration Requested, 1: BIT[8:15] is Queue Size.
+		u8		bIsQsize:1;
 		u8		AckPolicy:2;
 		u8		usRsvd:1;
-		u8		TxopOrQsize;	// (BIT4=0)TXOP Duration Requested or (BIT4=1)Queue Size.
+		u8		TxopOrQsize;	
 	}BySta;
 
-	// 802.11e: QoS data, QoS Null, and QoS Data+CF-Ack frames sent by HC.
+	
 	struct
 	{
 		u8		TID:4;
 		u8		EOSP:1;
 		u8		AckPolicy:2;
 		u8		usRsvd:1;
-		u8		PSBufState;		// QAP PS Buffer State.
+		u8		PSBufState;		
 	}ByHc_Data;
 
-	// 802.11e: QoS (+) CF-Poll frames sent by HC.
+	
 	struct
 	{
 		u8		TID:4;
 		u8		EOSP:1;
 		u8		AckPolicy:2;
 		u8		usRsvd:1;
-		u8		TxopLimit;		// TXOP Limit.
+		u8		TxopLimit;		
 	}ByHc_CFP;
 
 }QOS_CTRL_FIELD, *PQOS_CTRL_FIELD;
 
 
-//
-// QoS Info Field
-// Ref:
-//	1. WMM spec 2.2.1: WME Information Element, p.11.
-//	2. 8185 QoS code: QOS_INFO [def. in QoS_mp.h]
-//
+
+
+
+
+
+
 typedef	union _QOS_INFO_FIELD{
 	u8	charData;
 
@@ -282,7 +282,7 @@ typedef	union _QOS_INFO_FIELD{
 
 	struct
 	{
-		//Ref WMM_Specification_1-1.pdf, 2006-06-13 Isaiah
+		
 		u8		ucAC_VO_UAPSD:1;
 		u8		ucAC_VI_UAPSD:1;
 		u8		ucAC_BE_UAPSD:1;
@@ -295,7 +295,7 @@ typedef	union _QOS_INFO_FIELD{
 
 	struct
 	{
-		//Ref WMM_Specification_1-1.pdf, 2006-06-13 Isaiah
+		
 		u8		ucParameterSetCount:4;
 		u8		ucReserved:3;
 		u8		ucApUapsd:1;
@@ -361,13 +361,13 @@ typedef	union _QOS_INFO_FIELD{
 }QOS_INFO_FIELD, *PQOS_INFO_FIELD;
 
 #if 0
-//
-// WMM Information Element
-// Ref: WMM spec 2.2.1: WME Information Element, p.10.
-//
+
+
+
+
 typedef struct _WMM_INFO_ELEMENT{
-//	u8			ElementID;
-//	u8			Length;
+
+
 	u8			OUI[3];
 	u8			OUI_Type;
 	u8			OUI_SubType;
@@ -376,30 +376,30 @@ typedef struct _WMM_INFO_ELEMENT{
 }WMM_INFO_ELEMENT, *PWMM_INFO_ELEMENT;
 #endif
 
-//
-// ACI to AC coding.
-// Ref: WMM spec 2.2.2: WME Parameter Element, p.13.
-//
-// AC_CODING is redefined for enum can't be ++, | under C++ compiler, 2006.05.17, by rcnjko.
-//typedef	enum _AC_CODING{
-//	AC0_BE	= 0,		// ACI: 0x00	// Best Effort
-//	AC1_BK	= 1,		// ACI: 0x01	// Background
-//	AC2_VI	= 2,		// ACI: 0x10	// Video
-//	AC3_VO	= 3,		// ACI: 0x11	// Voice
-//	AC_MAX = 4,		// Max: define total number; Should not to be used as a real enum.
-//}AC_CODING,*PAC_CODING;
-//
-typedef u32 AC_CODING;
-#define AC0_BE	0		// ACI: 0x00	// Best Effort
-#define AC1_BK	1		// ACI: 0x01	// Background
-#define AC2_VI	2		// ACI: 0x10	// Video
-#define AC3_VO	3		// ACI: 0x11	// Voice
-#define AC_MAX	4		// Max: define total number; Should not to be used as a real enum.
 
-//
-// ACI/AIFSN Field.
-// Ref: WMM spec 2.2.2: WME Parameter Element, p.12.
-//
+
+
+
+
+
+
+
+
+
+
+
+
+typedef u32 AC_CODING;
+#define AC0_BE	0		
+#define AC1_BK	1		
+#define AC2_VI	2		
+#define AC3_VO	3		
+#define AC_MAX	4		
+
+
+
+
+
 typedef	union _ACI_AIFSN{
 	u8	charData;
 
@@ -409,26 +409,26 @@ typedef	union _ACI_AIFSN{
 		u8	ACM:1;
 		u8	ACI:2;
 		u8	Reserved:1;
-	}f;	// Field
+	}f;	
 }ACI_AIFSN, *PACI_AIFSN;
 
-//
-// ECWmin/ECWmax field.
-// Ref: WMM spec 2.2.2: WME Parameter Element, p.13.
-//
+
+
+
+
 typedef	union _ECW{
 	u8	charData;
 	struct
 	{
 		u8	ECWmin:4;
 		u8	ECWmax:4;
-	}f;	// Field
+	}f;	
 }ECW, *PECW;
 
-//
-// AC Parameters Record Format.
-// Ref: WMM spec 2.2.2: WME Parameter Element, p.12.
-//
+
+
+
+
 typedef	union _AC_PARAM{
 	u32	longData;
 	u8	charData[4];
@@ -438,64 +438,64 @@ typedef	union _AC_PARAM{
 		ACI_AIFSN	AciAifsn;
 		ECW		Ecw;
 		u16		TXOPLimit;
-	}f;	// Field
+	}f;	
 }AC_PARAM, *PAC_PARAM;
 
 
 
-//
-// QoS element subtype
-//
+
+
+
 typedef	enum _QOS_ELE_SUBTYPE{
-	QOSELE_TYPE_INFO	= 0x00,		// 0x00: Information element
-	QOSELE_TYPE_PARAM	= 0x01,		// 0x01: parameter element
+	QOSELE_TYPE_INFO	= 0x00,		
+	QOSELE_TYPE_PARAM	= 0x01,		
 }QOS_ELE_SUBTYPE,*PQOS_ELE_SUBTYPE;
 
 
-//
-// Direction Field Values.
-// Ref: WMM spec 2.2.11: WME TSPEC Element, p.18.
-//
+
+
+
+
 typedef	enum _DIRECTION_VALUE{
-	DIR_UP			= 0,		// 0x00	// UpLink
-	DIR_DOWN		= 1,		// 0x01	// DownLink
-	DIR_DIRECT		= 2,		// 0x10	// DirectLink
-	DIR_BI_DIR		= 3,		// 0x11	// Bi-Direction
+	DIR_UP			= 0,		
+	DIR_DOWN		= 1,		
+	DIR_DIRECT		= 2,		
+	DIR_BI_DIR		= 3,		
 }DIRECTION_VALUE,*PDIRECTION_VALUE;
 
 
-//
-// TS Info field in WMM TSPEC Element.
-// Ref:
-//	1. WMM spec 2.2.11: WME TSPEC Element, p.18.
-//	2. 8185 QoS code: QOS_TSINFO [def. in QoS_mp.h]
-//
+
+
+
+
+
+
 typedef union _QOS_TSINFO{
 	u8		charData[3];
 	struct {
-		u8		ucTrafficType:1;			//WMM is reserved
+		u8		ucTrafficType:1;			
 		u8		ucTSID:4;
 		u8		ucDirection:2;
-		u8		ucAccessPolicy:2;	//WMM: bit8=0, bit7=1
-		u8		ucAggregation:1;		//WMM is reserved
-		u8		ucPSB:1;				//WMMSA is APSD
+		u8		ucAccessPolicy:2;	
+		u8		ucAggregation:1;		
+		u8		ucPSB:1;				
 		u8		ucUP:3;
-		u8		ucTSInfoAckPolicy:2;		//WMM is reserved
-		u8		ucSchedule:1;			//WMM is reserved
+		u8		ucTSInfoAckPolicy:2;		
+		u8		ucSchedule:1;			
 		u8		ucReserved:7;
 	}field;
 }QOS_TSINFO, *PQOS_TSINFO;
 
-//
-// WMM TSPEC Body.
-// Ref: WMM spec 2.2.11: WME TSPEC Element, p.16.
-//
+
+
+
+
 typedef union _TSPEC_BODY{
 	u8		charData[55];
 
 	struct
 	{
-		QOS_TSINFO	TSInfo;	//u8	TSInfo[3];
+		QOS_TSINFO	TSInfo;	
 		u16	NominalMSDUsize;
 		u16	MaxMSDUsize;
 		u32	MinServiceItv;
@@ -511,14 +511,14 @@ typedef union _TSPEC_BODY{
 		u32	MinPhyRate;
 		u16	SurplusBandwidthAllowance;
 		u16	MediumTime;
-	} f;	// Field
+	} f;	
 }TSPEC_BODY, *PTSPEC_BODY;
 
 
-//
-// WMM TSPEC Element.
-// Ref: WMM spec 2.2.11: WME TSPEC Element, p.16.
-//
+
+
+
+
 typedef struct _WMM_TSPEC{
 	u8		ID;
 	u8		Length;
@@ -529,22 +529,22 @@ typedef struct _WMM_TSPEC{
 	TSPEC_BODY	Body;
 } WMM_TSPEC, *PWMM_TSPEC;
 
-//
-// ACM implementation method.
-// Annie, 2005-12-13.
-//
+
+
+
+
 typedef	enum _ACM_METHOD{
-	eAcmWay0_SwAndHw		= 0,		// By SW and HW.
-	eAcmWay1_HW			= 1,		// By HW.
-	eAcmWay2_SW			= 2,		// By SW.
+	eAcmWay0_SwAndHw		= 0,		
+	eAcmWay1_HW			= 1,		
+	eAcmWay2_SW			= 2,		
 }ACM_METHOD,*PACM_METHOD;
 
 
 typedef struct _ACM{
-//	u8		RegEnableACM;
+
 	u64		UsedTime;
 	u64		MediumTime;
-	u8		HwAcmCtl;	// TRUE: UsedTime exceed => Do NOT USE this AC. It wll be written to ACM_CONTROL(0xBF BIT 0/1/2 in 8185B).
+	u8		HwAcmCtl;	
 }ACM, *PACM;
 
 typedef	u8		AC_UAPSD, *PAC_UAPSD;
@@ -562,9 +562,9 @@ typedef	u8		AC_UAPSD, *PAC_UAPSD;
 #define	SET_BE_UAPSD(_apsd) ((_apsd) |= BIT3)
 
 
-//typedef struct _TCLASS{
-// TODO
-//} TCLASS, *PTCLASS;
+
+
+
 typedef union _QOS_TCLAS{
 
 	struct _TYPE_GENERAL{
@@ -616,35 +616,35 @@ typedef union _QOS_TCLAS{
 	} TYPE2_8021Q;
 } QOS_TCLAS, *PQOS_TCLAS;
 
-//typedef struct _WMM_TSTREAM{
-//
-//- TSPEC
-//- AC (which to mapping)
-//} WMM_TSTREAM, *PWMM_TSTREAM;
+
+
+
+
+
 typedef struct _QOS_TSTREAM{
 	u8			AC;
 	WMM_TSPEC		TSpec;
 	QOS_TCLAS		TClass;
 } QOS_TSTREAM, *PQOS_TSTREAM;
 
-//typedef struct _U_APSD{
-//- TriggerEnable [4]
-//- MaxSPLength
-//- HighestAcBuffered
-//} U_APSD, *PU_APSD;
 
-//joseph TODO:
-//	UAPSD function should be implemented by 2 data structure
-//	"Qos control field" and "Qos info field"
-//typedef struct _QOS_UAPSD{
-//	u8			bTriggerEnable[4];
-//	u8 			MaxSPLength;
-//	u8			HighestBufAC;
-//} QOS_UAPSD, *PQOS_APSD;
 
-//----------------------------------------------------------------------------
-//      802.11 Management frame Status Code field
-//----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 typedef struct _OCTET_STRING{
         u8        	*Octet;
         u16             Length;
@@ -659,63 +659,63 @@ typedef struct _OCTET_STRING{
         (_osWMMElem).Octet += WMM_ELEM_HDR_LEN;      \
         (_osWMMElem).Length -= WMM_ELEM_HDR_LEN;
 #endif
-//
-// STA QoS data.
-// Ref: DOT11_QOS in 8185 code. [def. in QoS_mp.h]
-//
+
+
+
+
 typedef struct _STA_QOS{
-	//DECLARE_RT_OBJECT(STA_QOS);
+	
 	u8				WMMIEBuf[MAX_WMMELE_LENGTH];
 	u8*				WMMIE;
 
-	// Part 1. Self QoS Mode.
-	QOS_MODE			QosCapability; //QoS Capability, 2006-06-14 Isaiah
+	
+	QOS_MODE			QosCapability; 
 	QOS_MODE			CurrentQosMode;
 
-	// For WMM Power Save Mode :
-	// ACs are trigger/delivery enabled or legacy power save enabled. 2006-06-13 Isaiah
-	AC_UAPSD			b4ac_Uapsd;  //VoUapsd(bit0), ViUapsd(bit1),  BkUapsd(bit2), BeUapsd(bit3),
+	
+	
+	AC_UAPSD			b4ac_Uapsd;  
 	AC_UAPSD			Curr4acUapsd;
 	u8				bInServicePeriod;
 	u8				MaxSPLength;
 	int 				NumBcnBeforeTrigger;
 
-	// Part 2. EDCA Parameter (perAC)
+	
 	u8 *				pWMMInfoEle;
 	u8				WMMParamEle[WMM_PARAM_ELEMENT_SIZE];
 	u8				WMMPELength;
 
-	// <Bruce_Note>
-	//2 ToDo: remove the Qos Info Field and replace it by the above WMM Info element.
-	// By Bruce, 2008-01-30.
-	// Part 2. EDCA Parameter (perAC)
-	QOS_INFO_FIELD			QosInfoField_STA; 	// Maintained by STA
-	QOS_INFO_FIELD			QosInfoField_AP;	// Retrieved from AP
+	
+	
+	
+	
+	QOS_INFO_FIELD			QosInfoField_STA; 	
+	QOS_INFO_FIELD			QosInfoField_AP;	
 
 	AC_PARAM			CurAcParameters[4];
 
-	// Part 3. ACM
+	
 	ACM				acm[4];
 	ACM_METHOD			AcmMethod;
 
-	// Part 4. Per TID (Part 5: TCLASS will be described by TStream)
+	
 	QOS_TSTREAM			TStream[16];
 	WMM_TSPEC			TSpec;
 
 	u32				QBssWirelessMode;
 
-	// No Ack Setting
+	
 	u8				bNoAck;
 
-	// Enable/Disable Rx immediate BA capability.
+	
 	u8				bEnableRxImmBA;
 
 }STA_QOS, *PSTA_QOS;
 
-//
-// BSS QOS data.
-// Ref: BssDscr in 8185 code. [def. in BssDscr.h]
-//
+
+
+
+
 typedef struct _BSS_QOS{
 	QOS_MODE		bdQoSMode;
 
@@ -732,17 +732,17 @@ typedef struct _BSS_QOS{
 }BSS_QOS, *PBSS_QOS;
 
 
-//
-// Ref: sQoSCtlLng and QoSCtl definition in 8185 QoS code.
-//#define QoSCtl   ((	(Adapter->bRegQoS) && (Adapter->dot11QoS.QoSMode &(QOS_EDCA|QOS_HCCA))	  )  ?sQoSCtlLng:0)
-//
+
+
+
+
 #define sQoSCtlLng			2
 #define	QOS_CTRL_LEN(_QosMode)		((_QosMode > QOS_DISABLE)? sQoSCtlLng : 0)
 
 
-//Added by joseph
-//UP Mapping to AC, using in MgntQuery_SequenceNumber() and maybe for DSCP
-//#define UP2AC(up)			((up<3)?((up==0)?1:0):(up>>1))
+
+
+
 #define IsACValid(ac)			((ac<=7 )?true:false )
 
-#endif // #ifndef __INC_QOS_TYPE_H
+#endif 

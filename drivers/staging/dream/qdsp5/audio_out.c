@@ -1,20 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/audio_out.c
- *
- * pcm audio output device
- *
- * Copyright (C) 2008 Google, Inc.
- * Copyright (C) 2008 HTC Corporation
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -157,7 +141,7 @@ struct audio {
 
 	uint8_t out_head;
 	uint8_t out_tail;
-	uint8_t out_needed; /* number of buffers the dsp is waiting for */
+	uint8_t out_needed; 
 
 	atomic_t out_bytes;
 
@@ -165,7 +149,7 @@ struct audio {
 	struct mutex write_lock;
 	wait_queue_head_t wait;
 
-	/* configuration to use on next enable */
+	
 	uint32_t out_sample_rate;
 	uint32_t out_channel_mode;
 	uint32_t out_weight;
@@ -173,14 +157,14 @@ struct audio {
 
 	struct audmgr audmgr;
 
-	/* data allocated for various buffers */
+	
 	char *data;
 	dma_addr_t phys;
 
 	int opened;
 	int enabled;
 	int running;
-	int stopped; /* set when stopped, cleared on flush */
+	int stopped; 
 	unsigned volume;
 
 	struct wake_lock wakelock;
@@ -218,7 +202,7 @@ static int audio_dsp_set_rx_iir(struct audio *audio);
 
 static void audio_dsp_event(void *private, unsigned id, uint16_t *msg);
 
-/* must be called with audio->lock held */
+
 static int audio_enable(struct audio *audio)
 {
 	struct audmgr_config cfg;
@@ -229,13 +213,11 @@ static int audio_enable(struct audio *audio)
 	if (audio->enabled)
 		return 0;
 
-	/* refuse to start if we're not ready */
+	
 	if (!audio->out[0].used || !audio->out[1].used)
 		return -EIO;
 
-	/* we start buffers 0 and 1, so buffer 0 will be the
-	 * next one the dsp will want
-	 */
+	
 	audio->out_tail = 0;
 	audio->out_needed = 0;
 
@@ -264,7 +246,7 @@ static int audio_enable(struct audio *audio)
 	return 0;
 }
 
-/* must be called with audio->lock held */
+
 static int audio_disable(struct audio *audio)
 {
 	pr_info("audio_disable()\n");
@@ -282,7 +264,7 @@ static int audio_disable(struct audio *audio)
 	return 0;
 }
 
-/* ------------------- dsp --------------------- */
+
 static void audio_dsp_event(void *private, unsigned id, uint16_t *msg)
 {
 	struct audio *audio = private;
@@ -295,7 +277,7 @@ static void audio_dsp_event(void *private, unsigned id, uint16_t *msg)
 		unsigned id = msg[2];
 		unsigned idx = msg[3] - 1;
 
-		/* pr_info("audio_dsp_event: HOST_PCM id %d idx %d\n", id, idx); */
+		
 		if (id != AUDPP_MSG_HOSTPCM_ID_ARM_RX) {
 			pr_err("bogus id\n");
 			break;
@@ -457,7 +439,7 @@ static int audio_dsp_set_rx_iir(struct audio *audio)
 	return audpp_send_queue3(&cmd, sizeof(cmd));
 }
 
-/* ------------------- device --------------------- */
+
 
 static int audio_enable_adrc(struct audio *audio, int enable)
 {
@@ -531,11 +513,7 @@ static long audio_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 	case AUDIO_FLUSH:
 		if (audio->stopped) {
-			/* Make sure we're stopped and we wake any threads
-			 * that might be blocked holding the write_lock.
-			 * While audio->stopped write threads will always
-			 * exit immediately.
-			 */
+			
 			wake_up(&audio->wait);
 			mutex_lock(&audio->write_lock);
 			audio_flush(audio);
@@ -621,7 +599,7 @@ static ssize_t audio_write(struct file *file, const char __user *buf,
 
 	LOG(EV_WRITE, count | (audio->running << 28) | (audio->stopped << 24));
 
-	/* just for this write, set us real-time */
+	
 	if (!task_has_rt_policy(current)) {
 		struct cred *new = prepare_creds();
 		cap_raise(new->cap_effective, CAP_SYS_NICE);
@@ -667,7 +645,7 @@ static ssize_t audio_write(struct file *file, const char __user *buf,
 
 	mutex_unlock(&audio->write_lock);
 
-	/* restore scheduling policy and priority */
+	
 	if (!rt_policy(old_policy)) {
 		struct sched_param v = { .sched_priority = old_prio };
 		sched_setscheduler(current, old_policy, &v);

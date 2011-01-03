@@ -1,8 +1,4 @@
-/*
- *
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- *
- */
+
 
 #include <linux/workqueue.h>
 #include <linux/delay.h>
@@ -16,7 +12,7 @@
 #include <media/msm_camera.h>
 #include <mach/camera.h>
 #include <media/v4l2-ioctl.h>
-/*#include <linux/platform_device.h>*/
+
 
 #define MSM_V4L2_START_SNAPSHOT _IOWR('V', BASE_VIDIOC_PRIVATE+1, \
       struct v4l2_buffer)
@@ -31,7 +27,7 @@
 #define MSM_V4L2_DEVNUM_MPEG2       0
 #define MSM_V4L2_DEVNUM_YUV         20
 
-/* HVGA-P (portrait) and HVGA-L (landscape) */
+
 #define MSM_V4L2_WIDTH              480
 #define MSM_V4L2_HEIGHT             320
 
@@ -247,9 +243,9 @@ static int msm_v4l2_querybuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 	__u32 y_size = 0;
 	__u32 y_pad = 0;
 
-	/* FIXME: g_pmsm_v4l2_dev->current_pix_format.fmt.pix.width; */
+	
 	width = 640;
-	/* FIXME: g_pmsm_v4l2_dev->current_pix_format.fmt.pix.height; */
+	
 	height = 480;
 
 	D("%s: width = %d, height = %d\n", __func__, width, height);
@@ -260,14 +256,14 @@ static int msm_v4l2_querybuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 
     __u32 y_pad = pb->bytesused % 4;
 
-	/* V4L2 videodev will do the copy_from_user. */
+	
 
 	memset(&pmem_buf, 0, sizeof(struct msm_pmem_info));
 	pmem_buf.type = MSM_PMEM_OUTPUT2;
 	pmem_buf.vaddr = (void *)pb->m.userptr;
 	pmem_buf.y_off = 0;
 	pmem_buf.fd = (int)pb->reserved;
-	/* pmem_buf.cbcr_off = (y_size + y_pad); */
+	
     pmem_buf.cbcr_off = (pb->bytesused + y_pad);
 
 	g_pmsm_v4l2_dev->drv->reg_pmem(g_pmsm_v4l2_dev->drv->sync, &pmem_buf);
@@ -277,12 +273,7 @@ static int msm_v4l2_querybuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 
 static int msm_v4l2_qbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 {
-    /*
-	__u32 y_size = 0;
-	__u32 y_pad = 0;
-	__u32 width = 0;
-	__u32 height = 0;
-    */
+    
 
 	__u32 y_pad = 0;
 
@@ -291,12 +282,12 @@ static int msm_v4l2_qbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 	static int cnt;
 
 	if ((pb->flags >> 16) & 0x0001) {
-		/* this is for previwe */
+		
 #if 0
 		width = 640;
 		height = 480;
 
-		/* V4L2 videodev will do the copy_from_user. */
+		
 		D("%s: width = %d, height = %d\n", __func__, width, height);
 		y_size = width * height;
 		y_pad = y_size % 4;
@@ -305,11 +296,11 @@ static int msm_v4l2_qbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 		y_pad = pb->bytesused % 4;
 
 		if (pb->type == V4L2_BUF_TYPE_PRIVATE) {
-			/* this qbuf is actually for releasing */
+			
 
 			frame.buffer           = pb->m.userptr;
 			frame.y_off            = 0;
-			/* frame.cbcr_off = (y_size + y_pad); */
+			
 			frame.cbcr_off         = (pb->bytesused + y_pad);
 			frame.fd               = pb->reserved;
 
@@ -330,7 +321,7 @@ static int msm_v4l2_qbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 		meminfo.fd               = (int)pb->reserved;
 		meminfo.vaddr            = (void *)pb->m.userptr;
 		meminfo.y_off            = 0;
-		/* meminfo.cbcr_off = (y_size + y_pad); */
+		
 		meminfo.cbcr_off         = (pb->bytesused + y_pad);
 		if (cnt == PREVIEW_FRAMES_NUM - 1)
 			meminfo.active = 0;
@@ -340,7 +331,7 @@ static int msm_v4l2_qbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 		g_pmsm_v4l2_dev->drv->reg_pmem(g_pmsm_v4l2_dev->drv->sync,
 				&meminfo);
 	} else if ((pb->flags) & 0x0001) {
-		/* this is for snapshot */
+		
 
 	__u32 y_size = 0;
 
@@ -361,7 +352,7 @@ static int msm_v4l2_qbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 	meminfo.fd         = (int)pb->reserved;
 	meminfo.vaddr      = (void *)pb->m.userptr;
 	meminfo.y_off      = 0;
-	/* meminfo.cbcr_off = (y_size + y_pad); */
+	
 	meminfo.cbcr_off   = (y_size + y_pad);
 	meminfo.active 	   = 1;
 	g_pmsm_v4l2_dev->drv->reg_pmem(g_pmsm_v4l2_dev->drv->sync,
@@ -376,7 +367,7 @@ static int msm_v4l2_dqbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 	struct msm_frame frame;
 	D("%s\n", __func__);
 
-	/* V4L2 videodev will do the copy_to_user. */
+	
 	if (pb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
 
 		D("%s, %d\n", __func__, __LINE__);
@@ -386,9 +377,9 @@ static int msm_v4l2_dqbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 			&frame);
 
 		pb->type       = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		pb->m.userptr  = (unsigned long)frame.buffer;  /* FIXME */
+		pb->m.userptr  = (unsigned long)frame.buffer;  
 		pb->reserved   = (int)frame.fd;
-		/* pb->length     = (int)frame.cbcr_off; */
+		
 
 		pb->bytesused  = frame.cbcr_off;
 
@@ -397,7 +388,7 @@ static int msm_v4l2_dqbuf(struct file *f, void *pctx, struct v4l2_buffer *pb)
 
 		frame.buffer   = pb->m.userptr;
 		frame.y_off    = 0;
-		/* frame.cbcr_off = (y_size + y_pad); */
+		
 		frame.cbcr_off = (pb->bytesused + y_pad);
 		frame.fd       = pb->reserved;
 
@@ -527,14 +518,14 @@ static int msm_v4l2_s_fmt_cap(struct file *f,
 	}
 
 #if 0
-	/* FIXEME */
+	
 	if (pfmt->fmt.pix.pixelformat != V4L2_PIX_FMT_YVU420) {
 		kfree(ctrlcmd);
 		return -EINVAL;
 	}
 #endif
 
-	/* Ok, but check other params, too. */
+	
 
 #if 0
 	memcpy(&g_pmsm_v4l2_dev->current_pix_format.fmt.pix, pfmt,
@@ -656,23 +647,18 @@ static void msm_v4l2_dev_init(struct msm_v4l2_device *pmsm_v4l2_dev)
 static int msm_v4l2_try_fmt_cap(struct file *file,
 				 void *fh, struct v4l2_format *f)
 {
-	/* FIXME */
+	
 	return 0;
 }
 
 static int mm_v4l2_try_fmt_type_private(struct file *file,
 					 void *fh, struct v4l2_format *f)
 {
-	/* FIXME */
+	
 	return 0;
 }
 
-/*
- * should the following structure be used instead of the code in the function?
- * static const struct v4l2_ioctl_ops msm_v4l2_ioctl_ops = {
- *     .vidioc_querycap = ....
- * }
- */
+
 static const struct v4l2_ioctl_ops msm_ioctl_ops = {
 	.vidioc_querycap = msm_v4l2_querycap,
 	.vidioc_s_std = msm_v4l2_s_std,

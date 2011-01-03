@@ -1,25 +1,4 @@
-/*
-    kcomedilib/kcomedilib.c
-    a comedlib interface for kernel modules
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 1997-2000 David A. Schleef <ds@schleef.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #define __NO_VERSION__
 #include <linux/module.h>
@@ -117,7 +96,7 @@ int comedi_fileno(void *d)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
 
-	/* return something random */
+	
 	return dev->minor;
 }
 
@@ -175,10 +154,7 @@ int comedi_command_test(void *d, struct comedi_cmd *cmd)
 	return s->do_cmdtest(dev, s, cmd);
 }
 
-/*
- *	COMEDI_INSN
- *	perform an instruction
- */
+
 int comedi_do_insn(void *d, struct comedi_insn *insn)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
@@ -199,7 +175,7 @@ int comedi_do_insn(void *d, struct comedi_insn *insn)
 				break;
 			}
 		case INSN_WAIT:
-			/* XXX isn't the value supposed to be nanosecs? */
+			
 			if (insn->n != 1 || insn->data[0] >= 100) {
 				ret = -EINVAL;
 				break;
@@ -237,7 +213,7 @@ int comedi_do_insn(void *d, struct comedi_insn *insn)
 			ret = -EINVAL;
 		}
 	} else {
-		/* a subdevice instruction */
+		
 		if (insn->subdev >= dev->n_subdevices) {
 			ret = -EINVAL;
 			goto error;
@@ -250,7 +226,7 @@ int comedi_do_insn(void *d, struct comedi_insn *insn)
 			goto error;
 		}
 
-		/* XXX check lock */
+		
 
 		ret = check_chanlist(s, 1, &insn->chanspec);
 		if (ret < 0) {
@@ -276,7 +252,7 @@ int comedi_do_insn(void *d, struct comedi_insn *insn)
 			ret = s->insn_bits(dev, s, insn, insn->data);
 			break;
 		case INSN_CONFIG:
-			/* XXX should check instruction length */
+			
 			ret = s->insn_config(dev, s, insn, insn->data);
 			break;
 		default:
@@ -289,7 +265,7 @@ int comedi_do_insn(void *d, struct comedi_insn *insn)
 	if (ret < 0)
 		goto error;
 #if 0
-	/* XXX do we want this? -- abbotti #if'ed it out for now. */
+	
 	if (ret != insn->n) {
 		printk("BUG: result of insn != insn.n\n");
 		ret = -EINVAL;
@@ -301,25 +277,7 @@ error:
 	return ret;
 }
 
-/*
-	COMEDI_LOCK
-	lock subdevice
 
-	arg:
-		subdevice number
-
-	reads:
-		none
-
-	writes:
-		none
-
-	necessary locking:
-	- ioctl/rt lock  (this type)
-	- lock while subdevice busy
-	- lock while subdevice being programmed
-
-*/
 int comedi_lock(void *d, unsigned int subdevice)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
@@ -349,20 +307,7 @@ int comedi_lock(void *d, unsigned int subdevice)
 	return ret;
 }
 
-/*
-	COMEDI_UNLOCK
-	unlock subdevice
 
-	arg:
-		subdevice number
-
-	reads:
-		none
-
-	writes:
-		none
-
-*/
 int comedi_unlock(void *d, unsigned int subdevice)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
@@ -401,20 +346,7 @@ int comedi_unlock(void *d, unsigned int subdevice)
 	return ret;
 }
 
-/*
-	COMEDI_CANCEL
-	cancel acquisition ioctl
 
-	arg:
-		subdevice number
-
-	reads:
-		nothing
-
-	writes:
-		nothing
-
-*/
 int comedi_cancel(void *d, unsigned int subdevice)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
@@ -452,9 +384,7 @@ int comedi_cancel(void *d, unsigned int subdevice)
 	return 0;
 }
 
-/*
-   registration of callback functions
- */
+
 int comedi_register_callback(void *d, unsigned int subdevice,
 			     unsigned int mask, int (*cb) (unsigned int,
 							   void *), void *arg)
@@ -472,11 +402,11 @@ int comedi_register_callback(void *d, unsigned int subdevice,
 	if (s->type == COMEDI_SUBD_UNUSED || !async)
 		return -EIO;
 
-	/* are we locked? (ioctl lock) */
+	
 	if (s->lock && s->lock != d)
 		return -EACCES;
 
-	/* are we busy? */
+	
 	if (s->busy)
 		return -EBUSY;
 
@@ -508,18 +438,18 @@ int comedi_poll(void *d, unsigned int subdevice)
 	if (s->type == COMEDI_SUBD_UNUSED || !async)
 		return -EIO;
 
-	/* are we locked? (ioctl lock) */
+	
 	if (s->lock && s->lock != d)
 		return -EACCES;
 
-	/* are we running? XXX wrong? */
+	
 	if (!s->busy)
 		return -EIO;
 
 	return s->poll(dev, s);
 }
 
-/* WARNING: not portable */
+
 int comedi_map(void *d, unsigned int subdevice, void *ptr)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
@@ -536,12 +466,12 @@ int comedi_map(void *d, unsigned int subdevice, void *ptr)
 	if (ptr)
 		*((void **)ptr) = s->async->prealloc_buf;
 
-	/* XXX no reference counting */
+	
 
 	return 0;
 }
 
-/* WARNING: not portable */
+
 int comedi_unmap(void *d, unsigned int subdevice)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
@@ -555,7 +485,7 @@ int comedi_unmap(void *d, unsigned int subdevice)
 	if (!s->async)
 		return -EINVAL;
 
-	/* XXX no reference counting */
+	
 
 	return 0;
 }

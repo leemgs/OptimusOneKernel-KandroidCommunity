@@ -1,40 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    chlist.h
-
-    Abstract:
-    Miniport generic portion header file
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-	Fonchi Wu   2007-12-19    created
-*/
 
 #ifndef __CHLIST_H__
 #define __CHLIST_H__
@@ -54,14 +18,14 @@
 typedef struct _CH_DESP {
 	UCHAR FirstChannel;
 	UCHAR NumOfCh;
-	CHAR MaxTxPwr;			// dBm
-	UCHAR Geography;			// 0:out door, 1:in door, 2:both
-	BOOLEAN DfsReq;			// Dfs require, 0: No, 1: yes.
+	CHAR MaxTxPwr;			
+	UCHAR Geography;			
+	BOOLEAN DfsReq;			
 } CH_DESP, *PCH_DESP;
 
 typedef struct _CH_REGION {
 	UCHAR CountReg[3];
-	UCHAR DfsType;			// 0: CE, 1: FCC, 2: JAP, 3:JAP_W53, JAP_W56
+	UCHAR DfsType;			
 	CH_DESP ChDesp[10];
 } CH_REGION, *PCH_REGION;
 
@@ -121,10 +85,10 @@ VOID N_ChannelCheck(
 
 VOID N_SetCenCh(
 	IN PRTMP_ADAPTER pAd);
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 UINT8 GetCuntryMaxTxPwr(
 	IN PRTMP_ADAPTER pAd,
 	IN UINT8 channel);
 
-#endif // __CHLIST_H__
+#endif 

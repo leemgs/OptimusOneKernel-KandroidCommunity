@@ -1,50 +1,15 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: aes_ccmp.c
- *
- * Purpose: AES_CCMP decryption
- *
- * Author: Warren Hsu
- *
- * Date: Feb 15, 2005
- *
- * Functions:
- *      AESbGenCCMP - Parsing RX-packet
- *
- *
- * Revision History:
- *
- */
+
 
 #include "device.h"
 #include "80211hdr.h"
 
-/*---------------------  Static Definitions -------------------------*/
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
 
-/*
- * SBOX Table
- */
+
+
+
+
 
 BYTE sbox_table[256] =
 {
@@ -104,11 +69,11 @@ BYTE dot3_table[256] = {
 0x0b, 0x08, 0x0d, 0x0e, 0x07, 0x04, 0x01, 0x02, 0x13, 0x10, 0x15, 0x16, 0x1f, 0x1c, 0x19, 0x1a
 };
 
-/*---------------------  Static Functions  --------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
+
+
+
 
 void xor_128(BYTE *a, BYTE *b, BYTE *out)
 {
@@ -214,7 +179,7 @@ BYTE abyRoundKey[16];
             ShiftRows(TmpdataA, TmpdataB);
             xor_128(TmpdataB, abyRoundKey, ciphertext);
         }
-        else // round 1 ~ 9
+        else 
         {
             SubBytes(ciphertext, TmpdataA);
             ShiftRows(TmpdataA, TmpdataB);
@@ -229,20 +194,7 @@ BYTE abyRoundKey[16];
 
 }
 
-/*
- * Description: AES decryption
- *
- * Parameters:
- *  In:
- *      pbyRxKey            - The key used to decrypt
- *      pbyFrame            - Starting address of packet header
- *      wFrameSize          - Total packet size including CRC
- *  Out:
- *      none
- *
- * Return Value: MIC compare result
- *
- */
+
 BOOL AESbGenCCMP(PBYTE pbyRxKey, PBYTE pbyFrame, WORD wFrameSize)
 {
 BYTE            abyNonce[13];
@@ -259,7 +211,7 @@ PS802_11Header  pMACHeader = (PS802_11Header) pbyFrame;
 PBYTE           pbyIV;
 PBYTE           pbyPayload;
 WORD            wHLen = 22;
-WORD            wPayloadSize = wFrameSize - 8 - 8 - 4 - WLAN_HDR_ADDR3_LEN;//8 is IV, 8 is MIC, 4 is CRC
+WORD            wPayloadSize = wFrameSize - 8 - 8 - 4 - WLAN_HDR_ADDR3_LEN;
 BOOL            bA4 = FALSE;
 BYTE            byTmp;
 WORD            wCnt;
@@ -270,13 +222,13 @@ int             ii,jj,kk;
     if ( WLAN_GET_FC_TODS(*(PWORD)pbyFrame) &&
          WLAN_GET_FC_FROMDS(*(PWORD)pbyFrame) ) {
          bA4 = TRUE;
-         pbyIV += 6;             // 6 is 802.11 address4
+         pbyIV += 6;             
          wHLen += 6;
          wPayloadSize -= 6;
     }
-    pbyPayload = pbyIV + 8; //IV-length
+    pbyPayload = pbyIV + 8; 
 
-    abyNonce[0]  = 0x00; //now is 0, if Qos here will be priority
+    abyNonce[0]  = 0x00; 
     memcpy(&(abyNonce[1]), pMACHeader->abyAddr2, U_ETHER_ADDR_LEN);
     abyNonce[7]  = pbyIV[7];
     abyNonce[8]  = pbyIV[6];
@@ -285,13 +237,13 @@ int             ii,jj,kk;
     abyNonce[11] = pbyIV[1];
     abyNonce[12] = pbyIV[0];
 
-    //MIC_IV
+    
     MIC_IV[0] = 0x59;
     memcpy(&(MIC_IV[1]), &(abyNonce[0]), 13);
     MIC_IV[14] = (BYTE)(wPayloadSize >> 8);
     MIC_IV[15] = (BYTE)(wPayloadSize & 0xff);
 
-    //MIC_HDR1
+    
     MIC_HDR1[0] = (BYTE)(wHLen >> 8);
     MIC_HDR1[1] = (BYTE)(wHLen & 0xff);
     byTmp = (BYTE)(pMACHeader->wFrameCtl & 0xff);
@@ -302,7 +254,7 @@ int             ii,jj,kk;
     memcpy(&(MIC_HDR1[4]), pMACHeader->abyAddr1, U_ETHER_ADDR_LEN);
     memcpy(&(MIC_HDR1[10]), pMACHeader->abyAddr2, U_ETHER_ADDR_LEN);
 
-    //MIC_HDR2
+    
     memcpy(&(MIC_HDR2[0]), pMACHeader->abyAddr3, U_ETHER_ADDR_LEN);
     byTmp = (BYTE)(pMACHeader->wSeqCtl & 0xff);
     MIC_HDR2[6] = byTmp & 0x0f;
@@ -320,7 +272,7 @@ int             ii,jj,kk;
     MIC_HDR2[14] = 0x00;
     MIC_HDR2[15] = 0x00;
 
-    //CCMP
+    
     AESv128(pbyRxKey,MIC_IV,abyMIC);
     for ( kk=0; kk<16; kk++ ) {
         abyTmp[kk] = MIC_HDR1[kk] ^ abyMIC[kk];
@@ -353,9 +305,9 @@ int             ii,jj,kk;
         memcpy(pbyPayload, abyPlainText, 16);
         wCnt++;
         pbyPayload += 16;
-    } //for wPayloadSize
+    } 
 
-    //last payload
+    
     memcpy(&(abyLastCipher[0]), pbyPayload, jj);
     for ( ii=jj; ii<16; ii++ ) {
         abyLastCipher[ii] = 0x00;
@@ -371,7 +323,7 @@ int             ii,jj,kk;
     memcpy(pbyPayload, abyPlainText, jj);
     pbyPayload += jj;
 
-    //for MIC calculation
+    
     for ( ii=jj; ii<16; ii++ ) {
         abyPlainText[ii] = 0x00;
     }
@@ -380,8 +332,8 @@ int             ii,jj,kk;
     }
     AESv128(pbyRxKey,abyTmp,abyMIC);
 
-    //=>above is the calculate MIC
-    //--------------------------------------------
+    
+    
 
     wCnt = 0;
     abyCTRPLD[14] = (BYTE) (wCnt >> 8);
@@ -390,8 +342,8 @@ int             ii,jj,kk;
     for ( kk=0; kk<8; kk++ ) {
         abyTmp[kk] = abyTmp[kk] ^ pbyPayload[kk];
     }
-    //=>above is the dec-MIC from packet
-    //--------------------------------------------
+    
+    
 
     if (  !memcmp(abyMIC,abyTmp,8) ) {
         return TRUE;

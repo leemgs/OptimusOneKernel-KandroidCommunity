@@ -1,48 +1,10 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    rtmp_timer.c
-
-    Abstract:
-    task for timer handling
-
-    Revision History:
-    Who         When            What
-    --------    ----------      ----------------------------------------------
-    Name          Date            Modification logs
-    Shiang Tu	08-28-2008   init version
-
-*/
 
 #include "../rt_config.h"
 
 
 BUILD_TIMER_FUNCTION(MlmePeriodicExec);
-//BUILD_TIMER_FUNCTION(MlmeRssiReportExec);
+
 BUILD_TIMER_FUNCTION(AsicRxAntEvalTimeout);
 BUILD_TIMER_FUNCTION(APSDPeriodicExec);
 BUILD_TIMER_FUNCTION(AsicRfTuningExec);
@@ -61,13 +23,13 @@ BUILD_TIMER_FUNCTION(WpaDisassocApAndBlockAssoc);
 #ifdef RTMP_MAC_PCI
 BUILD_TIMER_FUNCTION(PsPollWakeExec);
 BUILD_TIMER_FUNCTION(RadioOnExec);
-#endif // RTMP_MAC_PCI //
+#endif 
 #ifdef QOS_DLS_SUPPORT
 BUILD_TIMER_FUNCTION(DlsTimeoutAction);
-#endif // QOS_DLS_SUPPORT //
+#endif 
 
 
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
 
@@ -107,7 +69,7 @@ static void RtmpTimerQHandle(RTMP_ADAPTER *pAd)
 		if (pAd->TimerQ.status == RTMP_TASK_STAT_STOPED)
 			break;
 
-		// event happened.
+		
 		while(pAd->TimerQ.pQHead)
 		{
 			RTMP_INT_LOCK(&pAd->TimerQLock, irqFlag);
@@ -116,12 +78,12 @@ static void RtmpTimerQHandle(RTMP_ADAPTER *pAd)
 			{
 				pTimer = pEntry->pRaTimer;
 
-				// update pQHead
+				
 				pAd->TimerQ.pQHead = pEntry->pNext;
 				if (pEntry == pAd->TimerQ.pQTail)
 					pAd->TimerQ.pQTail = NULL;
 
-				// return this queue entry to timerQFreeList.
+				
 				pEntry->pNext = pAd->TimerQ.pQPollFreeList;
 				pAd->TimerQ.pQPollFreeList = pEntry;
 			}
@@ -166,20 +128,7 @@ INT RtmpTimerQThread(
 #ifndef KTHREAD_SUPPORT
 	pTask->taskPID = THREAD_PID_INIT_VALUE;
 #endif
-	/* notify the exit routine that we're actually exiting now
-	 *
-	 * complete()/wait_for_completion() is similar to up()/down(),
-	 * except that complete() is safe in the case where the structure
-	 * is getting deleted in a parallel mode of execution (i.e. just
-	 * after the down() -- that's necessary for the thread-shutdown
-	 * case.
-	 *
-	 * complete_and_exit() goes even further than this -- it is safe in
-	 * the case that the thread of the caller is going away (not just
-	 * the structure) -- this is necessary for the module-remove case.
-	 * This is important in preemption kernels, which transfer the flow
-	 * of execution immediately upon a complete().
-	 */
+	
 	RtmpOSTaskNotifyToExit(pTask);
 
 	return 0;
@@ -248,7 +197,7 @@ BOOLEAN RtmpTimerQRemove(
 			pNode = pNode->pNext;
 		}
 
-		// Now move it to freeList queue.
+		
 		if (pNode)
 		{
 			if (pNode == pAd->TimerQ.pQHead)
@@ -258,7 +207,7 @@ BOOLEAN RtmpTimerQRemove(
 			if (pPrev != NULL)
 				pPrev->pNext = pNode->pNext;
 
-			// return this queue entry to timerQFreeList.
+			
 			pNode->pNext = pAd->TimerQ.pQPollFreeList;
 			pAd->TimerQ.pQPollFreeList = pNode;
 		}
@@ -279,7 +228,7 @@ void RtmpTimerQExit(RTMP_ADAPTER *pAd)
 	{
 		pTimerQ = pAd->TimerQ.pQHead;
 		pAd->TimerQ.pQHead = pTimerQ->pNext;
-		// remove the timeQ
+		
 	}
 	pAd->TimerQ.pQPollFreeList = NULL;
 	os_free_mem(pAd, pAd->TimerQ.pTimerQPoll);
@@ -324,4 +273,4 @@ void RtmpTimerQInit(RTMP_ADAPTER *pAd)
 		RTMP_INT_UNLOCK(&pAd->TimerQLock, irqFlags);
 	}
 }
-#endif // RTMP_TIMER_TASK_SUPPORT //
+#endif 

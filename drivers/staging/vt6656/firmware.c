@@ -1,55 +1,22 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: baseband.c
- *
- * Purpose: Implement functions to access baseband
- *
- * Author: Yiching Chen
- *
- * Date: May 20, 2004
- *
- * Functions:
- *
- * Revision History:
- *
- */
+
 
 #include "firmware.h"
 #include "control.h"
 #include "rndis.h"
 
-/*---------------------  Static Definitions -------------------------*/
+
 
 static int          msglevel                =MSG_LEVEL_INFO;
-//static int          msglevel                =MSG_LEVEL_DEBUG;
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
 
-/*---------------------  Static Functions  --------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*
- *  This is firmware version 1.51
- */
+
+
+
+
+
+
 #define FIRMWARE_VERSION        0x133
 
 const BYTE abyFirmware[] = {
@@ -765,7 +732,7 @@ const BYTE abyFirmware[] = {
 0x7E, 0x43, 0xA8, 0x02, 0x22, 0x44, 0x43, 0x1A, 0x04, 0x03, 0x09, 0x04, 0x00,
 };
 
-/*---------------------  Export Functions  --------------------------*/
+
 
 
 BOOL
@@ -868,7 +835,7 @@ FIRMWAREbCheckVersion(
     }
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Firmware Version [%04x]\n", pDevice->wFirmwareVersion);
     if (pDevice->wFirmwareVersion != FIRMWARE_VERSION) {
-        // branch to loader for download new firmware
+        
         FIRMWAREbBrach2Sram(pDevice);
         return FALSE;
     }

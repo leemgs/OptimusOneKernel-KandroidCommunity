@@ -1,24 +1,10 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "cprecomp.h"
 #include "ratectrl.h"
 #include "../hal/hpreg.h"
 
-/* TODO : change global variable to constant */
+
 u8_t   zgWpaRadiusOui[] = { 0x00, 0x50, 0xf2, 0x01 };
 u8_t   zgWpaAesOui[] = { 0x00, 0x50, 0xf2, 0x04 };
 u8_t   zgWpa2RadiusOui[] = { 0x00, 0x0f, 0xac, 0x01 };
@@ -29,23 +15,23 @@ const u16_t zcCwTlb[16] = {   0,    1,    3,    7,   15,   31,   63,  127,
 
 void zfStaStartConnectCb(zdev_t* dev);
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaPutApIntoBlockingList  */
-/*      Put AP into blocking AP list.                                   */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      bssid : AP's BSSID                                              */
-/*      weight : weight of AP                                           */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2006.12     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfStaPutApIntoBlockingList(zdev_t* dev, u8_t* bssid, u8_t weight)
 {
     u16_t i, j;
@@ -55,7 +41,7 @@ void zfStaPutApIntoBlockingList(zdev_t* dev, u8_t* bssid, u8_t weight)
     if (weight > 0)
     {
         zmw_enter_critical_section(dev);
-        /*Find same bssid entry first*/
+        
         for (i=0; i<ZM_MAX_BLOCKING_AP_LIST_SIZE; i++)
         {
             for (j=0; j<6; j++)
@@ -71,7 +57,7 @@ void zfStaPutApIntoBlockingList(zdev_t* dev, u8_t* bssid, u8_t weight)
                 break;
             }
         }
-        /*This bssid doesn't have old record.Find an empty entry*/
+        
         if (i == ZM_MAX_BLOCKING_AP_LIST_SIZE)
         {
             for (i=0; i<ZM_MAX_BLOCKING_AP_LIST_SIZE; i++)
@@ -83,13 +69,13 @@ void zfStaPutApIntoBlockingList(zdev_t* dev, u8_t* bssid, u8_t weight)
             }
         }
 
-        /* If the list is full, pick one entry for replacement */
+        
         if (i == ZM_MAX_BLOCKING_AP_LIST_SIZE)
         {
             i = bssid[5] & (ZM_MAX_BLOCKING_AP_LIST_SIZE-1);
         }
 
-        /* Update AP address and weight */
+        
         for (j=0; j<6; j++)
         {
             wd->sta.blockingApList[i].addr[j] = bssid[j];
@@ -103,30 +89,30 @@ void zfStaPutApIntoBlockingList(zdev_t* dev, u8_t* bssid, u8_t weight)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaIsApInBlockingList     */
-/*      Is AP in blocking list.                                         */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      bssid : AP's BSSID                                              */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      TRUE : AP in blocking list                                      */
-/*      FALSE : AP not in blocking list                                 */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2006.12     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfStaIsApInBlockingList(zdev_t* dev, u8_t* bssid)
 {
     u16_t i, j;
     zmw_get_wlan_dev(dev);
-    //zmw_declare_for_critical_section();
+    
 
-    //zmw_enter_critical_section(dev);
+    
     for (i=0; i<ZM_MAX_BLOCKING_AP_LIST_SIZE; i++)
     {
         if (wd->sta.blockingApList[i].weight != 0)
@@ -140,32 +126,32 @@ u16_t zfStaIsApInBlockingList(zdev_t* dev, u8_t* bssid)
             }
             if (j == 6)
             {
-                //zmw_leave_critical_section(dev);
+                
                 return TRUE;
             }
         }
     }
-    //zmw_leave_critical_section(dev);
+    
     return FALSE;
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaRefreshBlockList       */
-/*      Is AP in blocking list.                                         */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      flushFlag : flush whole blocking list                           */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2006.12     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfStaRefreshBlockList(zdev_t* dev, u16_t flushFlag)
 {
     u16_t i;
@@ -192,43 +178,43 @@ void zfStaRefreshBlockList(zdev_t* dev, u16_t flushFlag)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaConnectFail            */
-/*      Handle Connect failure.                                         */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      bssid : BSSID                                                   */
-/*      reason : reason of failure                                      */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2006.12     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfStaConnectFail(zdev_t* dev, u16_t reason, u16_t* bssid, u8_t weight)
 {
     zmw_get_wlan_dev(dev);
 
-    /* Change internal state */
+    
     zfChangeAdapterState(dev, ZM_STA_STATE_DISCONNECT);
 
-    /* Improve WEP/TKIP performace with HT AP, detail information please look bug#32495 */
-    //zfHpSetTTSIFSTime(dev, 0x8);
+    
+    
 
-    /* Notify wrapper of connection status changes */
+    
     if (wd->zfcbConnectNotify != NULL)
     {
         wd->zfcbConnectNotify(dev, reason, bssid);
     }
 
-    /* Put AP into internal blocking list */
+    
     zfStaPutApIntoBlockingList(dev, (u8_t *)bssid, weight);
 
-    /* Issue another SCAN */
+    
     if ( wd->sta.bAutoReconnect )
     {
         zm_debug_msg0("Start internal scan...");
@@ -309,21 +295,21 @@ s8_t zfStaFindFreeOpposite(zdev_t* dev, u16_t *sa, int *pFoundIdx)
         oppositeCount--;
         if ( zfMemoryIsEqual((u8_t*) sa, wd->sta.oppositeInfo[i].macAddr, 6) )
         {
-            //wd->sta.oppositeInfo[i].aliveCounter++;
+            
             wd->sta.oppositeInfo[i].aliveCounter = ZM_IBSS_PEER_ALIVE_COUNTER;
 
-            /* it is already stored */
+            
             return 1;
         }
     }
 
-    // Check if there's still space for new comer
+    
     if ( wd->sta.oppositeCount == ZM_MAX_OPPOSITE_COUNT )
     {
         return -1;
     }
 
-    // Find an unused slot for new peer station
+    
     for(i=0; i < ZM_MAX_OPPOSITE_COUNT; i++)
     {
         if ( wd->sta.oppositeInfo[i].valid == 0 )
@@ -374,16 +360,16 @@ static void zfStaInitCommonOppositeInfo(zdev_t* dev, int i)
 {
     zmw_get_wlan_dev(dev);
 
-    /* set the default rate to the highest rate */
+    
     wd->sta.oppositeInfo[i].valid = 1;
     wd->sta.oppositeInfo[i].aliveCounter = ZM_IBSS_PEER_ALIVE_COUNTER;
     wd->sta.oppositeCount++;
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
-    /* Set parameters for new opposite peer station !!! */
-    wd->sta.oppositeInfo[i].camIdx = 0xff;  // Not set key in this location
+    
+    wd->sta.oppositeInfo[i].camIdx = 0xff;  
     wd->sta.oppositeInfo[i].pkInstalled = 0;
-    wd->sta.oppositeInfo[i].wpaState = ZM_STA_WPA_STATE_INIT ;  // No encryption
+    wd->sta.oppositeInfo[i].wpaState = ZM_STA_WPA_STATE_INIT ;  
 #endif
 }
 
@@ -412,10 +398,10 @@ int zfStaSetOppositeInfoFromBSSInfo(zdev_t* dev, struct zsBssInfo* pBssInfo)
 
     if (pBssInfo->extSupportedRates[1] != 0)
     {
-        /* TODO : Handle 11n */
+        
         if (pBssInfo->frequency < 3000)
         {
-            /* 2.4GHz */
+            
             if (pBssInfo->EnableHT == 1)
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 1, pBssInfo->SG40);
             else
@@ -423,7 +409,7 @@ int zfStaSetOppositeInfoFromBSSInfo(zdev_t* dev, struct zsBssInfo* pBssInfo)
         }
         else
         {
-            /* 5GHz */
+            
             if (pBssInfo->EnableHT == 1)
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 0, pBssInfo->SG40);
             else
@@ -432,10 +418,10 @@ int zfStaSetOppositeInfoFromBSSInfo(zdev_t* dev, struct zsBssInfo* pBssInfo)
     }
     else
     {
-        /* TODO : Handle 11n */
+        
         if (pBssInfo->frequency < 3000)
         {
-            /* 2.4GHz */
+            
             if (pBssInfo->EnableHT == 1)
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 1, pBssInfo->SG40);
             else
@@ -443,7 +429,7 @@ int zfStaSetOppositeInfoFromBSSInfo(zdev_t* dev, struct zsBssInfo* pBssInfo)
         }
         else
         {
-            /* 5GHz */
+            
             if (pBssInfo->EnableHT == 1)
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 0, pBssInfo->SG40);
             else
@@ -465,7 +451,7 @@ int zfStaSetOppositeInfoFromRxBuf(zdev_t* dev, zbuf_t* buf)
     int res = 0;
     u16_t  offset;
     u8_t   bSupportExtRate;
-    u32_t rtsctsRate = 0xffffffff; /* CTS:OFDM 6M, RTS:OFDM 6M */
+    u32_t rtsctsRate = 0xffffffff; 
     u32_t oneTxStreamCap;
 
     zmw_get_wlan_dev(dev);
@@ -507,72 +493,72 @@ int zfStaSetOppositeInfoFromRxBuf(zdev_t* dev, zbuf_t* buf)
     if ( ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_RATE)) != 0xffff)
          && (bSupportExtRate == 1) )
     {
-        /* TODO : Handle 11n */
+        
         if (wd->sta.currentFrequency < 3000)
         {
-            /* 2.4GHz */
+            
             if (wd->sta.EnableHT == 1)
             {
-                //11ng
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 1, wd->sta.SG40);
             }
             else
             {
-                //11g
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, 1, 1, wd->sta.SG40);
             }
-            rtsctsRate = 0x00001bb; /* CTS:CCK 1M, RTS:OFDM 6M */
+            rtsctsRate = 0x00001bb; 
         }
         else
         {
-            /* 5GHz */
+            
             if (wd->sta.EnableHT == 1)
             {
-                //11na
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 0, wd->sta.SG40);
             }
             else
             {
-                //11a
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, 1, 0, wd->sta.SG40);
             }
-            rtsctsRate = 0x10b01bb; /* CTS:OFDM 6M, RTS:OFDM 6M */
+            rtsctsRate = 0x10b01bb; 
         }
     }
     else
     {
-        /* TODO : Handle 11n */
+        
         if (wd->sta.currentFrequency < 3000)
         {
-            /* 2.4GHz */
+            
             if (wd->sta.EnableHT == 1)
             {
-                //11ng
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 1, wd->sta.SG40);
-                rtsctsRate = 0x00001bb; /* CTS:CCK 1M, RTS:OFDM 6M */
+                rtsctsRate = 0x00001bb; 
             }
             else
             {
-                //11b
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, 0, 1, wd->sta.SG40);
-                rtsctsRate = 0x0; /* CTS:CCK 1M, RTS:CCK 1M */
+                rtsctsRate = 0x0; 
                 wd->sta.connection_11b = 1;
             }
         }
         else
         {
-            /* 5GHz */
+            
             if (wd->sta.EnableHT == 1)
             {
-                //11na
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, (oneTxStreamCap!=0)?3:2, 0, wd->sta.SG40);
             }
             else
             {
-                //11a
+                
                 zfRateCtrlInitCell(dev, &wd->sta.oppositeInfo[i].rcCell, 1, 0, wd->sta.SG40);
             }
-            rtsctsRate = 0x10b01bb; /* CTS:OFDM 6M, RTS:OFDM 6M */
+            rtsctsRate = 0x10b01bb; 
         }
     }
 
@@ -608,7 +594,7 @@ void zfStaProtErpMonitor(zdev_t* dev, zbuf_t* buf)
 
                 if ( erp & ZM_BIT_1 )
                 {
-                    //zm_debug_msg0("protection mode on");
+                    
                     if (wd->sta.bProtectionMode == FALSE)
                     {
                         wd->sta.bProtectionMode = TRUE;
@@ -617,7 +603,7 @@ void zfStaProtErpMonitor(zdev_t* dev, zbuf_t* buf)
                 }
                 else
                 {
-                    //zm_debug_msg0("protection mode off");
+                    
                     if (wd->sta.bProtectionMode == TRUE)
                     {
                         wd->sta.bProtectionMode = FALSE;
@@ -626,8 +612,8 @@ void zfStaProtErpMonitor(zdev_t* dev, zbuf_t* buf)
                 }
             }
         }
-		//Check the existence of Non-N AP
-		//Follow the check the "pBssInfo->EnableHT"
+		
+		
 			if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_HT_CAPABILITY)) != 0xffff)
 			{}
 			else if ((offset = zfFindElement(dev, buf, ZM_WLAN_PREN2_EID_HTCAPABILITY)) != 0xffff)
@@ -653,11 +639,11 @@ void zfStaUpdateWmeParameter(zdev_t* dev, zbuf_t* buf)
 
     zmw_get_wlan_dev(dev);
 
-    /* Update if WME parameter set count is changed */
-    /* If connect to WME AP */
+    
+    
     if (wd->sta.wmeConnected != 0)
     {
-        /* Find WME parameter element */
+        
         if ((offset = zfFindWifiElement(dev, buf, 2, 1)) != 0xffff)
         {
             if ((len = zmw_rx_buf_readb(dev, buf, offset+1)) >= 7)
@@ -667,7 +653,7 @@ void zfStaUpdateWmeParameter(zdev_t* dev, zbuf_t* buf)
                 {
                     zm_msg0_mm(ZM_LV_0, "wmeParameterSetCount changed!");
                     wd->sta.wmeParameterSetCount = rxWmeParameterSetCount;
-                    /* retrieve WME parameter and update TxQ parameters */
+                    
                     acm = 0xf;
                     for (i=0; i<4; i++)
                     {
@@ -681,7 +667,7 @@ void zfStaUpdateWmeParameter(zdev_t* dev, zbuf_t* buf)
                             }
                             aifs[ac] = ((tmp & 0xf) * 9) + 10;
                             tmp=zmw_rx_buf_readb(dev, buf, offset+11+i*4);
-                            /* Convert to 2^n */
+                            
                             cwmin[ac] = zcCwTlb[(tmp & 0xf)];
                             cwmax[ac] = zcCwTlb[(tmp >> 4)];
                             txop[ac]=zmw_rx_buf_readh(dev, buf,
@@ -719,102 +705,93 @@ void zfStaUpdateWmeParameter(zdev_t* dev, zbuf_t* buf)
                 }
             }
         }
-    } //if (wd->sta.wmeConnected != 0)
+    } 
 }
-/* process 802.11h Dynamic Frequency Selection */
+
 void zfStaUpdateDot11HDFS(zdev_t* dev, zbuf_t* buf)
 {
-    //u8_t    length, channel, is5G;
+    
     u16_t   offset;
 
     zmw_get_wlan_dev(dev);
 
-    /*
-    Channel Switch Announcement Element Format
-    +------+----------+------+-------------------+------------------+--------------------+
-    |Format|Element ID|Length|Channel Switch Mode|New Channel Number|Channel Switch Count|
-    +------+----------+------+-------------------+------------------+--------------------+
-    |Bytes |   1      |  1   |	     1           |       1          |          1         |
-    +------+----------+------+-------------------+------------------+--------------------+
-    |Value |   37     |  3   |       0 or 1      |unsigned integer  |unsigned integer    |
-    +------+----------+------+-------------------+------------------+--------------------+
-    */
+    
 
-    /* get EID(Channel Switch Announcement) */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_CHANNEL_SWITCH_ANNOUNCE)) == 0xffff )
     {
-        //zm_debug_msg0("EID(Channel Switch Announcement) not found");
+        
         return;
     }
     else if ( zmw_rx_buf_readb(dev, buf, offset+1) == 0x3 )
     {
         zm_debug_msg0("EID(Channel Switch Announcement) found");
 
-        //length = zmw_rx_buf_readb(dev, buf, offset+1);
-        //zfCopyFromRxBuffer(dev, buf, pBssInfo->supportedRates, offset, length+2);
+        
+        
 
-        //Chanell Switch Mode set to 1, driver should disable transmit immediate
-        //we do this by poll CCA high
+        
+        
         if (zmw_rx_buf_readb(dev, buf, offset+2) == 0x1 )
         {
-        	//use ZM_OID_INTERNAL_WRITE,ZM_CMD_RESET to notice firmware flush quene and stop dma,
-        	//then restart rx dma but not tx dma
+        	
+        	
         	if (wd->sta.DFSDisableTx != TRUE)
         	{
-                /* TODO : zfHpResetTxRx would cause Rx hang */
-                //zfHpResetTxRx(dev);
+                
+                
                 wd->sta.DFSDisableTx = TRUE;
-                /* Trgger Rx DMA */
+                
                 zfHpStartRecv(dev);
             }
-        	//Adapter->ZD80211HSetting.DisableTxBy80211H=TRUE;
-        	//AcquireCtrOfPhyReg(Adapter);
-        	//ZD1205_WRITE_REGISTER(Adapter,CR24, 0x0);
-        	//ReleaseDoNotSleep(Adapter);
+        	
+        	
+        	
+        	
         }
 
         if (zmw_rx_buf_readb(dev, buf, offset+4) <= 0x2 )
         {
-        	//Channel Switch
-        	//if Channel Switch Count = 0 , STA should change channel immediately.
-        	//if Channel Switch Count > 0 , STA should change channel after TBTT*count
-        	//But it won't be accurate to let driver calculate TBTT*count, and the value of
-        	//Channel Switch Count will decrease by one each when continue receving beacon
-        	//So we change channel here when we receive count <=2.
+        	
+        	
+        	
+        	
+        	
+        	
 
             zfHpDeleteAllowChannel(dev, wd->sta.currentFrequency);
         	wd->frequency = zfChNumToFreq(dev, zmw_rx_buf_readb(dev, buf, offset+3), 0);
-        	//zfHpAddAllowChannel(dev, wd->frequency);
+        	
         	zm_debug_msg1("CWY - jump to frequency = ", wd->frequency);
         	zfCoreSetFrequency(dev, wd->frequency);
         	wd->sta.DFSDisableTx = FALSE;
-            /* Increase rxBeaconCount to prevent beacon lost */
+            
             if (zfStaIsConnected(dev))
             {
-                wd->sta.rxBeaconCount = 1 << 6; // 2 times of check would pass
+                wd->sta.rxBeaconCount = 1 << 6; 
             }
-        	//start tx dma to transmit packet
+        	
 
-        	//if (zmw_rx_buf_readb(dev, buf, offset+3) != wd->frequency)
-        	//{
-        	//	//ZDDbgPrint(("Radar Detect by AP\n"));
-        	//	zfCoreSetFrequency();
-        	//	ProcessRadarDetectEvent(Adapter);
-        	//	Set_RF_Channel(Adapter, SwRfd->Rfd->RxBuffer[index+3], (UCHAR)Adapter->RF_Mode, 1);
-        	//	Adapter->CardSetting.Channel = SwRfd->Rfd->RxBuffer[index+3];
-        	//	Adapter->SaveChannel = Adapter->CardSetting.Channel;
-        	//	Adapter->UtilityChannel = Adapter->CardSetting.Channel;
-        	//}
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
         }
     }
 
 }
-/* TODO : process 802.11h Transmission Power Control */
+
 void zfStaUpdateDot11HTPC(zdev_t* dev, zbuf_t* buf)
 {
 }
 
-/* IBSS power-saving mode */
+
 void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
 {
     u8_t   i, frameCtrl;
@@ -831,7 +808,7 @@ void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
         return ;
     }
 
-    /* check BSSID */
+    
     if ( !zfRxBufferEqualToStr(dev, buf, (u8_t*) wd->sta.bssid,
                                ZM_WLAN_HEADER_A3_OFFSET, 6) )
     {
@@ -840,7 +817,7 @@ void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
 
     frameCtrl = zmw_rx_buf_readb(dev, buf, 1);
 
-    /* check power management bit */
+    
     if ( frameCtrl & ZM_BIT_4 )
     {
         for(i=1; i<ZM_MAX_PS_STA; i++)
@@ -850,7 +827,7 @@ void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
                 continue;
             }
 
-            /* check source address */
+            
             if ( zfRxBufferEqualToStr(dev, buf,
                                       wd->sta.staPSList.entity[i].macAddr,
                                       ZM_WLAN_HEADER_A2_OFFSET, 6) )
@@ -871,7 +848,7 @@ void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
 
         if ( i == ZM_MAX_PS_STA )
         {
-            /* STA list is full */
+            
             return;
         }
 
@@ -880,8 +857,8 @@ void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
 
         if ( wd->sta.staPSList.count == 0 )
         {
-            // enable ATIM window
-            //zfEnableAtimWindow(dev);
+            
+            
         }
 
         wd->sta.staPSList.count++;
@@ -901,7 +878,7 @@ void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
 
                     if ( wd->sta.staPSList.entity[i].bDataQueued )
                     {
-                        /* send queued data */
+                        
                     }
                 }
             }
@@ -909,14 +886,14 @@ void zfStaIbssPSCheckState(zdev_t* dev, zbuf_t* buf)
 
         if ( wd->sta.staPSList.count == 0 )
         {
-            /* disable ATIM window */
-            //zfDisableAtimWindow(dev);
+            
+            
         }
 
     }
 }
 
-/* IBSS power-saving mode */
+
 u8_t zfStaIbssPSQueueData(zdev_t* dev, zbuf_t* buf)
 {
     u8_t   i;
@@ -939,7 +916,7 @@ u8_t zfStaIbssPSQueueData(zdev_t* dev, zbuf_t* buf)
         return 0;
     }
 
-    /* DA */
+    
 #ifdef ZM_ENABLE_NATIVE_WIFI
     da[0] = zmw_tx_buf_readh(dev, buf, ZM_WLAN_HEADER_A1_OFFSET);
     da[1] = zmw_tx_buf_readh(dev, buf, ZM_WLAN_HEADER_A1_OFFSET + 2);
@@ -957,7 +934,7 @@ u8_t zfStaIbssPSQueueData(zdev_t* dev, zbuf_t* buf)
         return 1;
     }
 
-    // Unicast packet...
+    
 
     for(i=1; i<ZM_MAX_PS_STA; i++)
     {
@@ -983,7 +960,7 @@ u8_t zfStaIbssPSQueueData(zdev_t* dev, zbuf_t* buf)
     return 0;
 }
 
-/* IBSS power-saving mode */
+
 void zfStaIbssPSSend(zdev_t* dev)
 {
     u8_t   i;
@@ -1013,7 +990,7 @@ void zfStaIbssPSSend(zdev_t* dev)
             }
             else if ( wd->sta.staPSList.entity[i].bUsed )
             {
-                // Send ATIM to prevent the peer to go to sleep
+                
                 zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_ATIM,
                               (u16_t*) wd->sta.staPSList.entity[i].macAddr,
                               0, 0, 0);
@@ -1055,18 +1032,18 @@ void zfStaReconnect(zdev_t* dev)
         return;
     }
 
-    /* Recover zero SSID length  */
+    
     if ( (wd->wlanMode == ZM_MODE_INFRASTRUCTURE) && (wd->ws.ssidLen == 0))
     {
         zm_debug_msg0("zfStaReconnect: NOT Support!! Set SSID to any BSS");
-        /* ANY BSS */
+        
         zmw_enter_critical_section(dev);
         wd->sta.ssid[0] = 0;
         wd->sta.ssidLen = 0;
         zmw_leave_critical_section(dev);
     }
 
-    // RAY: To ensure no TX pending before re-connecting
+    
     zfFlushVtxq(dev);
     zfWlanEnable(dev);
     zfScanMgrScanAck(dev);
@@ -1079,7 +1056,7 @@ void zfStaTimer100ms(zdev_t* dev)
     if ( (wd->tick % 10) == 0 )
     {
         zfPushVtxq(dev);
-//        zfPowerSavingMgrMain(dev);
+
     }
 }
 
@@ -1096,21 +1073,21 @@ void zfStaCheckRxBeacon(zdev_t* dev)
         }
         if ( (wd->tick % ((wd->beaconInterval * 10) / ZM_MS_PER_TICK)) == 0 )
         {
-            /* Check rxBeaconCount */
+            
             if (wd->sta.rxBeaconCount == 0)
             {
                 if (wd->sta.beaconMissState == 1)
                 {
-            	/*notify AP that we left*/
+            	
             	zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_DEAUTH, wd->sta.bssid, 3, 0, 0);
-                /* Beacon Lost */
+                
                 zfStaConnectFail(dev, ZM_STATUS_MEDIA_DISCONNECT_BEACON_MISS,
                         wd->sta.bssid, 0);
                 }
                 else
                 {
                     wd->sta.beaconMissState = 1;
-                    /* Reset channel */
+                    
                     zfCoreSetFrequencyExV2(dev, wd->frequency, wd->BandWidth40,
                             wd->ExtOffset, NULL, 1);
                 }
@@ -1160,7 +1137,7 @@ void zfStaCheckConnectTimeout(zdev_t* dev)
 
             wd->sta.connectState = ZM_STA_CONN_STATE_NONE;
             zm_debug_msg1("connect timeout, state = ", wd->sta.connectState);
-            //zfiWlanDisable(dev);
+            
             goto failed;
         }
     }
@@ -1171,7 +1148,7 @@ void zfStaCheckConnectTimeout(zdev_t* dev)
 failed:
     zmw_leave_critical_section(dev);
     if(wd->sta.authMode == ZM_AUTH_MODE_AUTO)
-	{ // Fix some AP not send authentication failed message to sta and lead to connect timeout !
+	{ 
             wd->sta.connectTimeoutCount++;
 	}
     zfStaConnectFail(dev, ZM_STATUS_MEDIA_DISCONNECT_TIMEOUT, wd->sta.bssid, 2);
@@ -1182,7 +1159,7 @@ void zfMmStaTimeTick(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
 
-    /* airopeek */
+    
     if (wd->wlanMode != ZM_MODE_AP && !wd->swSniffer)
     {
         if ( wd->tick & 1 )
@@ -1197,9 +1174,7 @@ void zfMmStaTimeTick(zdev_t* dev)
     }
 
 #ifdef ZM_ENABLE_AGGREGATION
-    /*
-     * add by honda
-     */
+    
     zfAggScanAndClear(dev, wd->tick);
 #endif
 }
@@ -1213,9 +1188,9 @@ void zfStaSendBeacon(zdev_t* dev)
 
     zmw_declare_for_critical_section();
 
-    //zm_debug_msg0("\n");
+    
 
-    /* TBD : Maximum size of beacon */
+    
     if ((buf = zfwBufAllocate(dev, 1024)) == NULL)
     {
         zm_debug_msg0("Allocate beacon buffer failed");
@@ -1223,28 +1198,28 @@ void zfStaSendBeacon(zdev_t* dev)
     }
 
     offset = 0;
-    /* wlan header */
-    /* Frame control */
+    
+    
     zmw_tx_buf_writeh(dev, buf, offset, 0x0080);
     offset+=2;
-    /* Duration */
+    
     zmw_tx_buf_writeh(dev, buf, offset, 0x0000);
     offset+=2;
-    /* Address 1 */
+    
     zmw_tx_buf_writeh(dev, buf, offset, 0xffff);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, 0xffff);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, 0xffff);
     offset+=2;
-    /* Address 2 */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[0]);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[1]);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[2]);
     offset+=2;
-    /* Address 3 */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->sta.bssid[0]);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, wd->sta.bssid[1]);
@@ -1252,76 +1227,76 @@ void zfStaSendBeacon(zdev_t* dev)
     zmw_tx_buf_writeh(dev, buf, offset, wd->sta.bssid[2]);
     offset+=2;
 
-    /* Sequence number */
+    
     zmw_enter_critical_section(dev);
     seq = ((wd->mmseq++)<<4);
     zmw_leave_critical_section(dev);
     zmw_tx_buf_writeh(dev, buf, offset, seq);
     offset+=2;
 
-    /* 24-31 Time Stamp : hardware will fill this field */
+    
     offset+=8;
 
-    /* Beacon Interval */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->beaconInterval);
     offset+=2;
 
-    /* Capability */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, wd->sta.capability[0]);
     zmw_tx_buf_writeb(dev, buf, offset++, wd->sta.capability[1]);
 
-    /* SSID */
+    
     offset = zfStaAddIeSsid(dev, buf, offset);
 
-    if(wd->frequency <= ZM_CH_G_14)  // 2.4 GHz  b+g
+    if(wd->frequency <= ZM_CH_G_14)  
     {
 
-    	/* Support Rate */
+    	
     	offset = zfMmAddIeSupportRate(dev, buf, offset,
                                   		ZM_WLAN_EID_SUPPORT_RATE, ZM_RATE_SET_CCK);
 
-    	/* DS parameter set */
+    	
     	offset = zfMmAddIeDs(dev, buf, offset);
 
     	offset = zfStaAddIeIbss(dev, buf, offset);
 
         if( wd->wfc.bIbssGMode
-            && (wd->supportMode & (ZM_WIRELESS_MODE_24_54|ZM_WIRELESS_MODE_24_N)) )    // Only accompany with enabling a mode .
+            && (wd->supportMode & (ZM_WIRELESS_MODE_24_54|ZM_WIRELESS_MODE_24_N)) )    
         {
-      	    /* ERP Information */
+      	    
        	    wd->erpElement = 0;
        	    offset = zfMmAddIeErp(dev, buf, offset);
        	}
 
-       	/* TODO : country information */
-        /* RSN */
+       	
+        
         if ( wd->sta.authMode == ZM_AUTH_MODE_WPA2PSK )
         {
             offset = zfwStaAddIeWpaRsn(dev, buf, offset, ZM_WLAN_FRAME_TYPE_AUTH);
         }
 
         if( wd->wfc.bIbssGMode
-            && (wd->supportMode & (ZM_WIRELESS_MODE_24_54|ZM_WIRELESS_MODE_24_N)) )    // Only accompany with enabling a mode .
+            && (wd->supportMode & (ZM_WIRELESS_MODE_24_54|ZM_WIRELESS_MODE_24_N)) )    
         {
-            /* Enable G Mode */
-            /* Extended Supported Rates */
+            
+            
        	    offset = zfMmAddIeSupportRate(dev, buf, offset,
                                    		    ZM_WLAN_EID_EXTENDED_RATE, ZM_RATE_SET_OFDM);
 	    }
     }
-    else    // 5GHz a
+    else    
     {
-        /* Support Rate a Mode */
+        
     	offset = zfMmAddIeSupportRate(dev, buf, offset,
         	                            ZM_WLAN_EID_SUPPORT_RATE, ZM_RATE_SET_OFDM);
 
-        /* DS parameter set */
+        
     	offset = zfMmAddIeDs(dev, buf, offset);
 
     	offset = zfStaAddIeIbss(dev, buf, offset);
 
-        /* TODO : country information */
-        /* RSN */
+        
+        
         if ( wd->sta.authMode == ZM_AUTH_MODE_WPA2PSK )
         {
             offset = zfwStaAddIeWpaRsn(dev, buf, offset, ZM_WLAN_FRAME_TYPE_AUTH);
@@ -1330,30 +1305,30 @@ void zfStaSendBeacon(zdev_t* dev)
 
     if ( wd->wlanMode != ZM_MODE_IBSS )
     {
-        /* TODO : Need to check if it is ok */
-        /* HT Capabilities Info */
+        
+        
         offset = zfMmAddHTCapability(dev, buf, offset);
 
-        /* Extended HT Capabilities Info */
+        
         offset = zfMmAddExtendedHTCapability(dev, buf, offset);
     }
 
     if ( wd->sta.ibssAdditionalIESize )
         offset = zfStaAddIbssAdditionalIE(dev, buf, offset);
 
-    /* 1212 : write to beacon fifo */
-    /* 1221 : write to share memory */
+    
+    
     zfHpSendBeacon(dev, buf, offset);
 
-    /* Free beacon buffer */
-    //zfwBufFree(dev, buf, 0);
+    
+    
 }
 
-void zfStaSignalStatistic(zdev_t* dev, u8_t SignalStrength, u8_t SignalQuality) //CWYang(+)
+void zfStaSignalStatistic(zdev_t* dev, u8_t SignalStrength, u8_t SignalQuality) 
 {
     zmw_get_wlan_dev(dev);
 
-    /* Add Your Code to Do Works Like Moving Average Here */
+    
     wd->SignalStrength = (wd->SignalStrength * 7 + SignalStrength * 3)/10;
     wd->SignalQuality = (wd->SignalQuality * 7 + SignalQuality * 3)/10;
 
@@ -1377,9 +1352,9 @@ struct zsBssInfo* zfStaFindBssInfo(zdev_t* dev, zbuf_t* buf, struct zsWlanProbeR
 
     for( i=0; i<wd->sta.bssList.bssCount; i++ )
     {
-        //zm_debug_msg2("check pBssInfo = ", pBssInfo);
+        
 
-        /* Check BSSID */
+        
         for( j=0; j<6; j++ )
         {
             if ( pBssInfo->bssid[j] != pProbeRspHeader->bssid[j] )
@@ -1388,12 +1363,12 @@ struct zsBssInfo* zfStaFindBssInfo(zdev_t* dev, zbuf_t* buf, struct zsWlanProbeR
             }
         }
 
-		/* Check SSID */
+		
         if (j == 6)
         {
             if (pProbeRspHeader->ssid[1] <= 32)
             {
-                /* compare length and ssid */
+                
                 isMatched = 1;
 				if((pProbeRspHeader->ssid[1] != 0) && (pBssInfo->ssid[1] != 0))
 				{
@@ -1417,8 +1392,8 @@ struct zsBssInfo* zfStaFindBssInfo(zdev_t* dev, zbuf_t* buf, struct zsWlanProbeR
             isMatched = 0;
         }
 
-        /* Check channel */
-        /* Add check channel to solve the bug #31222 */
+        
+        
         if (isMatched) {
             if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_DS)) != 0xffff) {
                 if ((length = zmw_rx_buf_readb(dev, buf, offset+1)) == 1) {
@@ -1438,7 +1413,7 @@ struct zsBssInfo* zfStaFindBssInfo(zdev_t* dev, zbuf_t* buf, struct zsWlanProbeR
             if (frequency != 0) {
                 if ( ((frequency > 3000) && (pBssInfo->frequency > 3000))
                      || ((frequency < 3000) && (pBssInfo->frequency < 3000)) ) {
-                    /* redundant */
+                    
                     break;
                 }
             }
@@ -1472,7 +1447,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         goto zlUpdateRssi;
     }
 
-    /* get SSID */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_SSID)) == 0xffff )
     {
         zm_debug_msg0("EID(SSID) not found");
@@ -1505,7 +1480,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
 	}
     zfCopyFromRxBuffer(dev, buf, pBssInfo->ssid, offset, length+2);
 
-    /* get DS parameter */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_DS)) != 0xffff )
     {
         length = zmw_rx_buf_readb(dev, buf, offset+1);
@@ -1521,49 +1496,49 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
             goto zlError2;
         }
 
-        pBssInfo->frequency = zfChNumToFreq(dev, channel, 0); // auto check
+        pBssInfo->frequency = zfChNumToFreq(dev, channel, 0); 
         pBssInfo->channel = channel;
 
 
     }
     else
     {
-        /* DS parameter not found */
+        
         pBssInfo->frequency = wd->sta.currentFrequency;
         pBssInfo->channel = zfChFreqToNum(wd->sta.currentFrequency, &is5G);
     }
 
-    /* initialize security type */
+    
     pBssInfo->securityType = ZM_SECURITY_TYPE_NONE;
 
-    /* get macaddr */
+    
     for( i=0; i<6; i++ )
     {
         pBssInfo->macaddr[i] = pProbeRspHeader->sa[i];
     }
 
-    /* get bssid */
+    
     for( i=0; i<6; i++ )
     {
         pBssInfo->bssid[i] = pProbeRspHeader->bssid[i];
     }
 
-    /* get timestamp */
+    
     for( i=0; i<8; i++ )
     {
         pBssInfo->timeStamp[i] = pProbeRspHeader->timeStamp[i];
     }
 
-    /* get beacon interval */
+    
     pBssInfo->beaconInterval[0] = pProbeRspHeader->beaconInterval[0];
     pBssInfo->beaconInterval[1] = pProbeRspHeader->beaconInterval[1];
 
-    /* get capability */
+    
     pBssInfo->capability[0] = pProbeRspHeader->capability[0];
     pBssInfo->capability[1] = pProbeRspHeader->capability[1];
 
-    /* Copy frame body */
-    offset = 36;            // Copy from the start of variable IE
+    
+    offset = 36;            
     pBssInfo->frameBodysize = zfwBufGetSize(dev, buf)-offset;
     if (pBssInfo->frameBodysize > (ZM_MAX_PROBE_FRAME_BODY_SIZE-1))
     {
@@ -1572,7 +1547,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
     accumulateLen = 0;
     do
     {
-        eachIElength = zmw_rx_buf_readb(dev, buf, offset + accumulateLen+1) + 2;  //Len+(EID+Data)
+        eachIElength = zmw_rx_buf_readb(dev, buf, offset + accumulateLen+1) + 2;  
 
         if ( (eachIElength >= 2)
              && ((accumulateLen + eachIElength) <= pBssInfo->frameBodysize) )
@@ -1589,7 +1564,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
     while(accumulateLen < pBssInfo->frameBodysize);
     pBssInfo->frameBodysize = accumulateLen;
 
-    /* get supported rates */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_SUPPORT_RATE)) == 0xffff )
     {
         zm_debug_msg0("EID(supported rates) not found");
@@ -1606,7 +1581,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
 
 
 
-    /* get Country information */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_COUNTRY)) != 0xffff )
     {
         length = zmw_rx_buf_readb(dev, buf, offset+1);
@@ -1615,22 +1590,22 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
             length = ZM_MAX_COUNTRY_INFO_SIZE;
         }
         zfCopyFromRxBuffer(dev, buf, pBssInfo->countryInfo, offset, length+2);
-        /* check 802.11d support data */
+        
         if (wd->sta.b802_11D)
         {
             zfHpGetRegulationTablefromISO(dev, (u8_t *)&pBssInfo->countryInfo, 3);
-            /* only set regulatory one time */
+            
             wd->sta.b802_11D = 0;
         }
     }
 
-    /* get ERP information */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_ERP)) != 0xffff )
     {
         pBssInfo->erp = zmw_rx_buf_readb(dev, buf, offset+2);
     }
 
-    /* get extended supported rates */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_RATE)) != 0xffff )
     {
         length = zmw_rx_buf_readb(dev, buf, offset+1);
@@ -1647,7 +1622,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         pBssInfo->extSupportedRates[1] = 0;
     }
 
-    /* get WPA IE */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_WPA_IE)) != 0xffff )
     {
         length = zmw_rx_buf_readb(dev, buf, offset+1);
@@ -1663,7 +1638,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         pBssInfo->wpaIe[1] = 0;
     }
 
-    /* get WPS IE */
+    
     if ((offset = zfFindWifiElement(dev, buf, 4, 0xff)) != 0xffff)
     {
         length = zmw_rx_buf_readb(dev, buf, offset+1);
@@ -1678,19 +1653,19 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         pBssInfo->wscIe[1] = 0;
     }
 
-    /* get SuperG IE */
+    
     if ((offset = zfFindSuperGElement(dev, buf, ZM_WLAN_EID_VENDOR_PRIVATE)) != 0xffff)
     {
         pBssInfo->apCap |= ZM_SuperG_AP;
     }
 
-    /* get XR IE */
+    
     if ((offset = zfFindXRElement(dev, buf, ZM_WLAN_EID_VENDOR_PRIVATE)) != 0xffff)
     {
         pBssInfo->apCap |= ZM_XR_AP;
     }
 
-    /* get RSN IE */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_RSN_IE)) != 0xffff )
     {
         length = zmw_rx_buf_readb(dev, buf, offset+1);
@@ -1706,7 +1681,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         pBssInfo->rsnIe[1] = 0;
     }
 #ifdef ZM_ENABLE_CENC
-    /* get CENC IE */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_CENC_IE)) != 0xffff )
     {
         length = zmw_rx_buf_readb(dev, buf, offset+1);
@@ -1722,9 +1697,9 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
     {
         pBssInfo->cencIe[1] = 0;
     }
-#endif //ZM_ENABLE_CENC
-    /* get WME Parameter IE, probe rsp may contain WME parameter element */
-    //if ( wd->bQoSEnable )
+#endif 
+    
+    
     {
         if ((offset = zfFindWifiElement(dev, buf, 2, 1)) != 0xffff)
         {
@@ -1741,10 +1716,10 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
             pBssInfo->wmeSupport = 0;
         }
     }
-    //CWYang(+)
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_HT_CAPABILITY)) != 0xffff)
     {
-        /* 11n AP */
+        
         pBssInfo->EnableHT = 1;
         if (zmw_rx_buf_readb(dev, buf, offset+1) & 0x02)
         {
@@ -1766,7 +1741,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
     }
     else if ((offset = zfFindElement(dev, buf, ZM_WLAN_PREN2_EID_HTCAPABILITY)) != 0xffff)
     {
-        /* 11n AP */
+        
         pBssInfo->EnableHT = 1;
         pBssInfo->apCap |= ZM_All11N_AP;
         if (zmw_rx_buf_readb(dev, buf, offset+2) & 0x02)
@@ -1791,15 +1766,15 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
     {
         pBssInfo->EnableHT = 0;
     }
-    /* HT information */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_HT_CAPABILITY)) != 0xffff)
     {
-        /* atheros pre n */
+        
         pBssInfo->extChOffset = zmw_rx_buf_readb(dev, buf, offset+2) & 0x03;
     }
     else if ((offset = zfFindElement(dev, buf, ZM_WLAN_PREN2_EID_HTINFORMATION)) != 0xffff)
     {
-        /* pre n 2.0 standard */
+        
         pBssInfo->extChOffset = zmw_rx_buf_readb(dev, buf, offset+3) & 0x03;
     }
     else
@@ -1817,14 +1792,14 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
     {
         if (zfHpIsAllowedChannel(dev, pBssInfo->frequency+((pBssInfo->extChOffset==1)?20:-20)) == 0)
         {
-            /* if extension channel is not an allowed channel, treat AP as non-HT mode */
+            
             pBssInfo->EnableHT = 0;
             pBssInfo->enableHT40 = 0;
             pBssInfo->extChOffset = 0;
         }
     }
 
-    /* get ATH Extended Capability */
+    
     if ( ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_HT_CAPABILITY)) != 0xffff)&&
         ((offset = zfFindBrdcmMrvlRlnkExtCap(dev, buf)) == 0xffff))
 
@@ -1836,8 +1811,8 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         pBssInfo->athOwlAp = 0;
     }
 
-    /* get Broadcom Extended Capability */
-    if ( (pBssInfo->EnableHT == 1) //((offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_HT_CAPABILITY)) != 0xffff)
+    
+    if ( (pBssInfo->EnableHT == 1) 
          && ((offset = zfFindBroadcomExtCap(dev, buf)) != 0xffff) )
     {
         pBssInfo->broadcomHTAp = 1;
@@ -1847,7 +1822,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         pBssInfo->broadcomHTAp = 0;
     }
 
-    /* get Marvel Extended Capability */
+    
     if ((offset = zfFindMarvelExtCap(dev, buf)) != 0xffff)
     {
         pBssInfo->marvelAp = 1;
@@ -1857,22 +1832,22 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
         pBssInfo->marvelAp = 0;
     }
 
-    /* get ATIM window */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_IBSS)) != 0xffff )
     {
         pBssInfo->atimWindow = zmw_rx_buf_readh(dev, buf,offset+2);
     }
 
-    /* Fit for support mode */
+    
     if (pBssInfo->frequency > 3000) {
         if (wd->supportMode & ZM_WIRELESS_MODE_5_N) {
 #if 0
             if (wd->supportMode & ZM_WIRELESS_MODE_5_54) {
-                /* support mode: a, n */
-                /* do nothing */
+                
+                
             } else {
-                /* support mode: n */
-                /* reject non-n bss info */
+                
+                
                 if (!pBssInfo->EnableHT) {
                     goto zlError2;
                 }
@@ -1880,8 +1855,8 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
 #endif
         } else {
             if (wd->supportMode & ZM_WIRELESS_MODE_5_54) {
-                /* support mode: a */
-                /* delete n mode information */
+                
+                
                 pBssInfo->EnableHT = 0;
                 pBssInfo->enableHT40 = 0;
                 pBssInfo->apCap &= (~ZM_All11N_AP);
@@ -1895,7 +1870,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
                 pBssInfo->frameBodysize = zfRemoveElement(dev, pBssInfo->frameBody,
                             pBssInfo->frameBodysize, ZM_WLAN_PREN2_EID_HTINFORMATION);
             } else {
-                /* support mode: none */
+                
                 goto zlError2;
             }
         }
@@ -1904,11 +1879,11 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
 #if 0
             if (wd->supportMode & ZM_WIRELESS_MODE_24_54) {
                 if (wd->supportMode & ZM_WIRELESS_MODE_24_11) {
-                    /* support mode: b, g, n */
-                    /* do nothing */
+                    
+                    
                 } else {
-                    /* support mode: g, n */
-                    /* reject b-only bss info */
+                    
+                    
                     if ( (!pBssInfo->EnableHT)
                          && (pBssInfo->extSupportedRates[1] == 0) ) {
                          goto zlError2;
@@ -1916,10 +1891,8 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
                 }
             } else {
                 if (wd->supportMode & ZM_WIRELESS_MODE_24_11) {
-                    /* support mode: b, n */
-                    /* 1. reject g-only bss info
-                     * 2. if non g-only, delete g mode information
-                     */
+                    
+                    
                     if ( !pBssInfo->EnableHT ) {
                         if ( zfIsGOnlyMode(dev, pBssInfo->frequency, pBssInfo->supportedRates)
                              || zfIsGOnlyMode(dev, pBssInfo->frequency, pBssInfo->extSupportedRates) ) {
@@ -1942,8 +1915,8 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
                         }
                     }
                 } else {
-                    /* support mode: n */
-                    /* reject non-n bss info */
+                    
+                    
                     if (!pBssInfo->EnableHT) {
                         goto zlError2;
                     }
@@ -1951,7 +1924,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
             }
 #endif
         } else {
-            /* delete n mode information */
+            
             pBssInfo->EnableHT = 0;
             pBssInfo->enableHT40 = 0;
             pBssInfo->apCap &= (~ZM_All11N_AP);
@@ -1968,12 +1941,12 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
             if (wd->supportMode & ZM_WIRELESS_MODE_24_54) {
 #if 0
                 if (wd->supportMode & ZM_WIRELESS_MODE_24_11) {
-                    /* support mode: b, g */
-                    /* delete n mode information */
+                    
+                    
                 } else {
-                    /* support mode: g */
-                    /* delete n mode information */
-                    /* reject b-only bss info */
+                    
+                    
+                    
                     if (pBssInfo->extSupportedRates[1] == 0) {
                          goto zlError2;
                     }
@@ -1981,8 +1954,8 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
 #endif
             } else {
                 if (wd->supportMode & ZM_WIRELESS_MODE_24_11) {
-                    /* support mode: b */
-                    /* delete n mode information */
+                    
+                    
                     if ( zfIsGOnlyMode(dev, pBssInfo->frequency, pBssInfo->supportedRates)
                          || zfIsGOnlyMode(dev, pBssInfo->frequency, pBssInfo->extSupportedRates) ) {
                         goto zlError2;
@@ -2003,7 +1976,7 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
                             pBssInfo->supportedRates);
                     }
                 } else {
-                    /* support mode: none */
+                    
                     goto zlError2;
                 }
             }
@@ -2013,10 +1986,10 @@ u8_t zfStaInitBssInfo(zdev_t* dev, zbuf_t* buf,
     pBssInfo->flag |= ZM_BSS_INFO_VALID_BIT;
 
 zlUpdateRssi:
-    /* Update Timer information */
+    
     pBssInfo->tick = wd->tick;
 
-    /* Update ERP information */
+    
     if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_ERP)) != 0xffff )
     {
         pBssInfo->erp = zmw_rx_buf_readb(dev, buf, offset+2);
@@ -2024,12 +1997,12 @@ zlUpdateRssi:
 
     if( (s8_t)pBssInfo->signalStrength < (s8_t)AddInfo->Tail.Data.SignalStrength1 )
     {
-        /* Update signal strength */
+        
         pBssInfo->signalStrength = (u8_t)AddInfo->Tail.Data.SignalStrength1;
-        /* Update signal quality */
+        
         pBssInfo->signalQuality = (u8_t)(AddInfo->Tail.Data.SignalStrength1 * 2);
 
-        /* Update the sorting value  */
+        
         pBssInfo->sortValue = zfComputeBssInfoWeightValue(dev,
                                                (pBssInfo->supportedRates[6] + pBssInfo->extSupportedRates[0]),
                                                pBssInfo->EnableHT,
@@ -2048,9 +2021,9 @@ zlError2:
     return 2;
 }
 
-void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo) //CWYang(m)
+void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo) 
 {
-    /* Parse TIM and send PS-POLL in power saving mode */
+    
     struct zsWlanBeaconFrameHeader*  pBeaconHeader;
     struct zsBssInfo* pBssInfo;
     u8_t   pBuf[sizeof(struct zsWlanBeaconFrameHeader)];
@@ -2061,8 +2034,8 @@ void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo
 
     zmw_declare_for_critical_section();
 
-    /* sta routine jobs */
-    zfStaProtErpMonitor(dev, buf);  /* check protection mode */
+    
+    zfStaProtErpMonitor(dev, buf);  
 
     if (zfStaIsConnected(dev))
     {
@@ -2078,9 +2051,9 @@ void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo
                     zfStaUpdateDot11HDFS(dev, buf);
                 if (wd->sta.TPCEnable)
                     zfStaUpdateDot11HTPC(dev, buf);
-                /* update signal strength and signal quality */
+                
                 zfStaSignalStatistic(dev, AddInfo->Tail.Data.SignalStrength1,
-                        AddInfo->Tail.Data.SignalQuality); //CWYang(+)
+                        AddInfo->Tail.Data.SignalQuality); 
                 wd->sta.rxBeaconCount++;
             }
         }
@@ -2099,23 +2072,23 @@ void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo
                 res = zfStaSetOppositeInfoFromRxBuf(dev, buf);
                 if ( res == 0 )
                 {
-                    // New peer station found. Notify the wrapper now
+                    
                     zfInitPartnerNotifyEvent(dev, buf, &event);
                     if (wd->zfcbIbssPartnerNotify != NULL)
                     {
                         wd->zfcbIbssPartnerNotify(dev, 1, &event);
                     }
                 }
-                /* update signal strength and signal quality */
+                
                 zfStaSignalStatistic(dev, AddInfo->Tail.Data.SignalStrength1,
-                        AddInfo->Tail.Data.SignalQuality); //CWYang(+)
+                        AddInfo->Tail.Data.SignalQuality); 
             }
-            //else if ( wd->sta.ibssPartnerStatus == ZM_IBSS_PARTNER_LOST )
-            // Why does this happen in IBSS?? The impact of Vista since
-            // we need to tell it the BSSID
+            
+            
+            
 #if 0
             else if ( wd->sta.oppositeCount == 0 )
-            {   /* IBSS merge if SSID matched */
+            {   
                 if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_SSID)) != 0xffff )
                 {
                     if ( (wd->sta.ssidLen == zmw_buf_readb(dev, buf, offset+1))&&
@@ -2142,7 +2115,7 @@ void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo
         }
     }
 
-    /* return if not channel scan */
+    
     if ( !wd->sta.bChannelScan )
     {
         goto zlReturn;
@@ -2153,18 +2126,18 @@ void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo
 
     zmw_enter_critical_section(dev);
 
-    //zm_debug_msg1("bss count = ", wd->sta.bssList.bssCount);
+    
 
     pBssInfo = zfStaFindBssInfo(dev, buf, pBeaconHeader);
 
     if ( pBssInfo == NULL )
     {
-        /* Allocate a new entry if BSS not in the scan list */
+        
         pBssInfo = zfBssInfoAllocate(dev);
         if (pBssInfo != NULL)
         {
             res = zfStaInitBssInfo(dev, buf, pBeaconHeader, pBssInfo, AddInfo, 0);
-            //zfDumpSSID(pBssInfo->ssid[1], &(pBssInfo->ssid[2]));
+            
             if ( res != 0 )
             {
                 zfBssInfoFree(dev, pBssInfo);
@@ -2187,7 +2160,7 @@ void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo
         {
             int idx;
 
-            // It would reset the alive counter if the peer station is found!
+            
             zfStaFindFreeOpposite(dev, (u16_t *)pBssInfo->macaddr, &idx);
         }
     }
@@ -2218,26 +2191,26 @@ void zfAuthFreqCompleteCb(zdev_t* dev)
     return;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfProcessAuth               */
-/*      Process authenticate management frame.                          */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : auth frame buffer                                         */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
-/* Note : AP allows one authenticating STA at a time, does not          */
-/*        support multiple authentication process. Make sure            */
-/*        authentication state machine will not be blocked due          */
-/*        to incompleted authentication handshake.                      */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfStaProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 {
     struct zsWlanAuthFrameHeader* pAuthFrame;
@@ -2268,12 +2241,12 @@ void zfStaProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
             wd->sta.connectState = ZM_STA_CONN_STATE_AUTH_COMPLETED;
             zmw_leave_critical_section(dev);
 
-            //Set channel according to AP's configuration
-            //Move to here because of Cisco 11n AP feature
+            
+            
             zfCoreSetFrequencyEx(dev, wd->frequency, wd->BandWidth40,
                     wd->ExtOffset, zfAuthFreqCompleteCb);
 
-            /* send association frame */
+            
             if ( wd->sta.connectByReasso )
             {
                 zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_REASOCREQ,
@@ -2309,12 +2282,12 @@ void zfStaProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
         if ( (zmw_le16_to_cpu(pAuthFrame->algo) == 1) &&
              (zmw_le16_to_cpu(pAuthFrame->seq) == 2) &&
              (zmw_le16_to_cpu(pAuthFrame->status) == 0))
-              //&& (pAuthFrame->challengeText[1] <= 255) )
+              
         {
             zfMemoryCopy(wd->sta.challengeText, pAuthFrame->challengeText,
                          pAuthFrame->challengeText[1]+2);
 
-            /* send the 3rd authentication frame */
+            
             p1 = 0x30001;
             p2 = 0;
             zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_AUTH,
@@ -2342,12 +2315,12 @@ void zfStaProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
              (zmw_le16_to_cpu(pAuthFrame->seq) == 4)&&
              (zmw_le16_to_cpu(pAuthFrame->status) == 0) )
         {
-            //Set channel according to AP's configuration
-            //Move to here because of Cisco 11n AP feature
+            
+            
             zfCoreSetFrequencyEx(dev, wd->frequency, wd->BandWidth40,
                     wd->ExtOffset, NULL);
 
-            /* send association frame */
+            
             zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_ASOCREQ,
                           wd->sta.bssid, 0, 0, 0);
 
@@ -2407,9 +2380,9 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
             {
                 wd->sta.wmeConnected = 1;
             }
-            if ((wd->sta.wmeEnabled & ZM_STA_WME_ENABLE_BIT) != 0) //WME enabled
+            if ((wd->sta.wmeEnabled & ZM_STA_WME_ENABLE_BIT) != 0) 
             {
-                /* Asoc rsp may contain WME parameter element */
+                
                 if ((offset = zfFindWifiElement(dev, buf, 2, 1)) != 0xffff)
                 {
                     zm_debug_msg0("WME enable");
@@ -2428,7 +2401,7 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
             }
 
 
-            //Store asoc response frame body, for VISTA only
+            
             wd->sta.asocRspFrameBodySize = zfwBufGetSize(dev, buf)-24;
             if (wd->sta.asocRspFrameBodySize > ZM_CACHED_FRAMEBODY_SIZE)
             {
@@ -2451,9 +2424,9 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
                 wd->sta.htCtrlBandwidth = 0;
             }
 
-            //Set channel according to AP's configuration
-            //zfCoreSetFrequencyEx(dev, wd->frequency, wd->BandWidth40,
-            //        wd->ExtOffset, NULL);
+            
+            
+            
 
             if (wd->sta.EnableHT == 1)
             {
@@ -2468,15 +2441,15 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
                 }
             }
 
-            /* set RIFS support */
+            
             if(wd->sta.ie.HtInfo.ChannelInfo & ExtHtCap_RIFSMode)
             {
                 wd->sta.HT2040 = 1;
-//                zfHpSetRifs(dev, wd->sta.EnableHT, 1, (wd->sta.currentFrequency < 3000)? 1:0);
+
             }
 
             wd->sta.aid = pAssoFrame->aid & 0x3fff;
-            wd->sta.oppositeCount = 0;    /* reset opposite count */
+            wd->sta.oppositeCount = 0;    
             zfStaSetOppositeInfoFromRxBuf(dev, buf);
 
             wd->sta.rxBeaconCount = 16;
@@ -2485,12 +2458,12 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
             wd->sta.connPowerInHalfDbm = zfHpGetTransmitPower(dev);
             if (wd->zfcbConnectNotify != NULL)
             {
-                if (wd->sta.EnableHT != 0) /* 11n */
+                if (wd->sta.EnableHT != 0) 
             	{
     		        oneTxStreamCap = (zfHpCapability(dev) & ZM_HP_CAP_11N_ONE_TX_STREAM);
-    		        if (wd->sta.htCtrlBandwidth == 1) /* HT40*/
+    		        if (wd->sta.htCtrlBandwidth == 1) 
     		        {
-    					if(oneTxStreamCap) /* one Tx stream */
+    					if(oneTxStreamCap) 
     				    {
     				        if (wd->sta.SG40)
     				        {
@@ -2503,7 +2476,7 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
     						    wd->CurrentRxRateKbps = 270000;
     				        }
     				    }
-    				    else /* Two Tx streams */
+    				    else 
     				    {
     				        if (wd->sta.SG40)
     				        {
@@ -2517,21 +2490,21 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
     				        }
     				    }
     		        }
-    		        else /* HT20 */
+    		        else 
     		        {
-    		            if(oneTxStreamCap) /* one Tx stream */
+    		            if(oneTxStreamCap) 
     				    {
     				        wd->CurrentTxRateKbps = 650000;
     						wd->CurrentRxRateKbps = 130000;
     				    }
-    				    else /* Two Tx streams */
+    				    else 
     				    {
     				        wd->CurrentTxRateKbps = 130000;
     					    wd->CurrentRxRateKbps = 130000;
     				    }
     		        }
                 }
-                else /* 11abg */
+                else 
                 {
                     if (wd->sta.connection_11b != 0)
                     {
@@ -2553,13 +2526,13 @@ void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf)
 
             zfPowerSavingMgrConnectNotify(dev);
 
-            /* Disable here because fixed rate is only for test, TBD. */
-            //if (wd->sta.EnableHT)
-            //{
-            //    wd->txMCS = 7; //Rate = 65Mbps
-            //    wd->txMT = 2; // Ht rate
-            //    wd->enableAggregation = 2; // Enable Aggregation
-            //}
+            
+            
+            
+            
+            
+            
+            
         }
         else
         {
@@ -2590,11 +2563,11 @@ void zfStaStoreAsocRspIe(zdev_t* dev, zbuf_t* buf)
         wd->sta.asocRspFrameBody[i] = zmw_rx_buf_readb(dev, buf, i+24);
     }
 
-    /* HT capabilities: 28 octets */
+    
     if (    ((wd->sta.currentFrequency > 3000) && !(wd->supportMode & ZM_WIRELESS_MODE_5_N))
          || ((wd->sta.currentFrequency < 3000) && !(wd->supportMode & ZM_WIRELESS_MODE_24_N)) )
     {
-        /* not 11n AP */
+        
         htcap = (u8_t *)&wd->sta.ie.HtCap;
         for (i=0; i<28; i++)
         {
@@ -2607,7 +2580,7 @@ void zfStaStoreAsocRspIe(zdev_t* dev, zbuf_t* buf)
 
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_HT_CAPABILITY)) != 0xffff)
     {
-        /* atheros pre n */
+        
         zm_debug_msg0("atheros pre n");
         htcap = (u8_t *)&wd->sta.ie.HtCap;
         htcap[0] = zmw_rx_buf_readb(dev, buf, offset);
@@ -2620,7 +2593,7 @@ void zfStaStoreAsocRspIe(zdev_t* dev, zbuf_t* buf)
     }
     else if ((offset = zfFindElement(dev, buf, ZM_WLAN_PREN2_EID_HTCAPABILITY)) != 0xffff)
     {
-        /* pre n 2.0 standard */
+        
         zm_debug_msg0("pre n 2.0 standard");
         htcap = (u8_t *)&wd->sta.ie.HtCap;
         for (i=0; i<28; i++)
@@ -2631,7 +2604,7 @@ void zfStaStoreAsocRspIe(zdev_t* dev, zbuf_t* buf)
     }
     else
     {
-        /* not 11n AP */
+        
         htcap = (u8_t *)&wd->sta.ie.HtCap;
         for (i=0; i<28; i++)
         {
@@ -2644,10 +2617,10 @@ void zfStaStoreAsocRspIe(zdev_t* dev, zbuf_t* buf)
 
     asocBw40 = (u8_t)((wd->sta.ie.HtCap.HtCapInfo & HTCAP_SupChannelWidthSet) >> 1);
 
-    /* HT information */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_HT_CAPABILITY)) != 0xffff)
     {
-        /* atheros pre n */
+        
         zm_debug_msg0("atheros pre n HTINFO");
         length = 22;
         htcap = (u8_t *)&wd->sta.ie.HtInfo;
@@ -2661,7 +2634,7 @@ void zfStaStoreAsocRspIe(zdev_t* dev, zbuf_t* buf)
     }
     else if ((offset = zfFindElement(dev, buf, ZM_WLAN_PREN2_EID_HTINFORMATION)) != 0xffff)
     {
-        /* pre n 2.0 standard */
+        
         zm_debug_msg0("pre n 2.0 standard HTINFO");
         length = zmw_rx_buf_readb(dev, buf, offset + 1);
         htcap = (u8_t *)&wd->sta.ie.HtInfo;
@@ -2703,7 +2676,7 @@ void zfStaProcessDeauth(zdev_t* dev, zbuf_t* buf)
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
-    /* STA : if SA=connected AP then disconnect with AP */
+    
     if ( wd->wlanMode == ZM_MODE_INFRASTRUCTURE )
     {
         apMacAddr[0] = zmw_rx_buf_readh(dev, buf, ZM_WLAN_HEADER_A3_OFFSET);
@@ -2711,7 +2684,7 @@ void zfStaProcessDeauth(zdev_t* dev, zbuf_t* buf)
         apMacAddr[2] = zmw_rx_buf_readh(dev, buf, ZM_WLAN_HEADER_A3_OFFSET+4);
   	if ((apMacAddr[0] == wd->sta.bssid[0]) && (apMacAddr[1] == wd->sta.bssid[1]) && (apMacAddr[2] == wd->sta.bssid[2]))
         {
-            if (zfwBufGetSize(dev, buf) >= 24+2) //not a malformed frame
+            if (zfwBufGetSize(dev, buf) >= 24+2) 
             {
                 if ( zfStaIsConnected(dev) )
                 {
@@ -2756,7 +2729,7 @@ void zfStaProcessDisasoc(zdev_t* dev, zbuf_t* buf)
 
     zmw_get_wlan_dev(dev);
 
-    /* STA : if SA=connected AP then disconnect with AP */
+    
     if ( wd->wlanMode == ZM_MODE_INFRASTRUCTURE )
     {
         apMacAddr[0] = zmw_rx_buf_readh(dev, buf, ZM_WLAN_HEADER_A3_OFFSET);
@@ -2765,7 +2738,7 @@ void zfStaProcessDisasoc(zdev_t* dev, zbuf_t* buf)
 
         if ((apMacAddr[0] == wd->sta.bssid[0]) && (apMacAddr[1] == wd->sta.bssid[1]) && (apMacAddr[2] == wd->sta.bssid[2]))
         {
-            if (zfwBufGetSize(dev, buf) >= 24+2) //not a malformed frame
+            if (zfwBufGetSize(dev, buf) >= 24+2) 
             {
                 if ( zfStaIsConnected(dev) )
                 {
@@ -2782,22 +2755,22 @@ void zfStaProcessDisasoc(zdev_t* dev, zbuf_t* buf)
 
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfProcessProbeReq           */
-/*      Process probe request management frame.                         */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : auth frame buffer                                         */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfStaProcessProbeReq(zdev_t* dev, zbuf_t* buf, u16_t* src)
 {
     u16_t offset;
@@ -2807,14 +2780,14 @@ void zfStaProcessProbeReq(zdev_t* dev, zbuf_t* buf, u16_t* src)
 
     zmw_get_wlan_dev(dev);
 
-    /* check mode : AP/IBSS */
+    
     if ((wd->wlanMode != ZM_MODE_AP) || (wd->wlanMode != ZM_MODE_IBSS))
     {
         zm_msg0_mm(ZM_LV_3, "Ignore probe req");
         return;
     }
 
-    /* check SSID */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_SSID)) == 0xffff)
     {
         zm_msg0_mm(ZM_LV_3, "probe req SSID not found");
@@ -2828,12 +2801,12 @@ void zfStaProcessProbeReq(zdev_t* dev, zbuf_t* buf, u16_t* src)
         if ((wd->ap.apBitmap & (i<<i)) != 0)
         {
             sendFlag = 0;
-            /* boardcast SSID */
+            
             if ((len == 0) && (wd->ap.hideSsid[i] == 0))
             {
                 sendFlag = 1;
             }
-            /* Not broadcast SSID */
+            
             else if (wd->ap.ssidLen[i] == len)
             {
                 for (j=0; j<len; j++)
@@ -2851,7 +2824,7 @@ void zfStaProcessProbeReq(zdev_t* dev, zbuf_t* buf, u16_t* src)
             }
             if (sendFlag == 1)
             {
-                /* Send probe response */
+                
                 zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_PROBERSP, src, i, 0, 0);
             }
         }
@@ -2860,10 +2833,10 @@ void zfStaProcessProbeReq(zdev_t* dev, zbuf_t* buf, u16_t* src)
 
 void zfStaProcessProbeRsp(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo)
 {
-    /* return if not channel scan */
-    // Probe response is sent with unicast. Is this required?
-    // IBSS would send probe request and the code below would prevent
-    // the probe response from handling.
+    
+    
+    
+    
     #if 0
     zmw_get_wlan_dev(dev);
 
@@ -2907,9 +2880,9 @@ void zfIBSSSetupBssDesc(zdev_t *dev)
                  wd->sta.ssidLen + 2);
     offset += wd->sta.ssidLen + 2;
 
-    /* support rate */
+    
 
-    /* DS parameter set */
+    
     pBssInfo->channel = zfChFreqToNum(wd->frequency, NULL);
     pBssInfo->frequency = wd->frequency;
     pBssInfo->atimWindow = wd->sta.atimWindow;
@@ -2919,42 +2892,42 @@ void zfIBSSSetupBssDesc(zdev_t *dev)
     {
         u8_t rsn[64]=
         {
-                    /* Element ID */
+                    
                     0x30,
-                    /* Length */
+                    
                     0x14,
-                    /* Version */
+                    
                     0x01, 0x00,
-                    /* Group Cipher Suite, default=TKIP */
+                    
                     0x00, 0x0f, 0xac, 0x04,
-                    /* Pairwise Cipher Suite Count */
+                    
                     0x01, 0x00,
-                    /* Pairwise Cipher Suite, default=TKIP */
+                    
                     0x00, 0x0f, 0xac, 0x02,
-                    /* Authentication and Key Management Suite Count */
+                    
                     0x01, 0x00,
-                    /* Authentication type, default=PSK */
+                    
                     0x00, 0x0f, 0xac, 0x02,
-                    /* RSN capability */
+                    
                     0x00, 0x00
         };
 
-        /* Overwrite Group Cipher Suite by AP's setting */
+        
         zfMemoryCopy(rsn+4, zgWpa2AesOui, 4);
 
         if ( wd->sta.wepStatus == ZM_ENCRYPTION_AES )
         {
-            /* Overwrite Pairwise Cipher Suite by AES */
+            
             zfMemoryCopy(rsn+10, zgWpa2AesOui, 4);
         }
 
-        // RSN element id
+        
         pBssInfo->frameBody[offset++] = ZM_WLAN_EID_RSN_IE ;
 
-        // RSN length
+        
         pBssInfo->frameBody[offset++] = rsn[1] ;
 
-        // RSN information
+        
         for(i=0; i<rsn[1]; i++)
         {
             pBssInfo->frameBody[offset++] = rsn[i+2] ;
@@ -2980,21 +2953,21 @@ void zfIbssConnectNetwork(zdev_t* dev)
 
     zmw_declare_for_critical_section();
 
-    /* change state to CONNECTING and stop the channel scanning */
+    
     zfChangeAdapterState(dev, ZM_STA_STATE_CONNECTING);
     zfPowerSavingMgrWakeup(dev);
 
-    /* Set TxQs CWMIN, CWMAX, AIFS and TXO to WME STA default. */
+    
     zfUpdateDefaultQosParameter(dev, 0);
 
     wd->sta.bProtectionMode = FALSE;
     zfHpSetSlotTime(dev, 1);
 
-    /* ESS bit off */
+    
     wd->sta.capability[0] &= ~ZM_BIT_0;
-    /* IBSS bit on */
+    
     wd->sta.capability[0] |= ZM_BIT_1;
-    /* not not use short slot time */
+    
     wd->sta.capability[1] &= ~ZM_BIT_2;
 
     wd->sta.wmeConnected = 0;
@@ -3006,7 +2979,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
 
     if ( wd->sta.bssList.bssCount )
     {
-        //Reorder BssList by RSSI--CWYang(+)
+        
         zfBssInfoReorderList(dev);
 
         zmw_enter_critical_section(dev);
@@ -3015,34 +2988,34 @@ void zfIbssConnectNetwork(zdev_t* dev)
 
         for(i=0; i<wd->sta.bssList.bssCount; i++)
         {
-            // 20070806 #1 Privacy bit
+            
             if ( pBssInfo->capability[0] & ZM_BIT_4 )
-            { // Privacy Ibss network
-//                zm_debug_msg0("Privacy bit on");
+            { 
+
                 oppositeWepStatus = ZM_ENCRYPTION_WEP_ENABLED;
 
                 if ( pBssInfo->rsnIe[1] != 0 )
                 {
                     if ( (pBssInfo->rsnIe[7] == 0x01) || (pBssInfo->rsnIe[7] == 0x05) )
-                    { // WEP-40 & WEP-104
-//                        zm_debug_msg0("WEP40 or WEP104");
+                    { 
+
                         oppositeWepStatus = ZM_ENCRYPTION_WEP_ENABLED;
                     }
                     else if ( pBssInfo->rsnIe[7] == 0x02 )
-                    { // TKIP
-//                        zm_debug_msg0("TKIP");
+                    { 
+
                         oppositeWepStatus = ZM_ENCRYPTION_TKIP;
                     }
                     else if ( pBssInfo->rsnIe[7] == 0x04 )
-                    { // AES
-//                        zm_debug_msg0("CCMP-AES");
+                    { 
+
                         oppositeWepStatus = ZM_ENCRYPTION_AES;
                     }
                 }
             }
             else
             {
-//                zm_debug_msg0("Privacy bit off");
+
                 oppositeWepStatus = ZM_ENCRYPTION_WEP_DISABLED;
             }
 
@@ -3051,10 +3024,10 @@ void zfIbssConnectNetwork(zdev_t* dev)
                  (wd->sta.ssidLen == pBssInfo->ssid[1])&&
                  (oppositeWepStatus == wd->sta.wepStatus) )
             {
-                /* Check support mode */
+                
                 if (pBssInfo->frequency > 3000) {
                     if (   (pBssInfo->EnableHT == 1)
-                        || (pBssInfo->apCap & ZM_All11N_AP) ) //11n AP
+                        || (pBssInfo->apCap & ZM_All11N_AP) ) 
                     {
                         channelFlags = CHANNEL_A_HT;
                         if (pBssInfo->enableHT40 == 1) {
@@ -3065,7 +3038,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
                     }
                 } else {
                     if (   (pBssInfo->EnableHT == 1)
-                        || (pBssInfo->apCap & ZM_All11N_AP) ) //11n AP
+                        || (pBssInfo->apCap & ZM_All11N_AP) ) 
                     {
                         channelFlags = CHANNEL_G_HT;
                         if(pBssInfo->enableHT40 == 1) {
@@ -3089,17 +3062,17 @@ void zfIbssConnectNetwork(zdev_t* dev)
                     continue;
                 }
 
-                /* Bypass DFS channel */
+                
                 if (zfHpIsDfsChannelNCS(dev, pBssInfo->frequency))
                 {
                     zm_debug_msg0("Bypass DFS channel");
                     continue;
                 }
 
-                /* check IBSS bit */
+                
                 if ( pBssInfo->capability[0] & ZM_BIT_1 )
                 {
-                    /* may check timestamp here */
+                    
                     j = i;
                     break;
                 }
@@ -3120,14 +3093,14 @@ void zfIbssConnectNetwork(zdev_t* dev)
 
         zmw_leave_critical_section(dev);
 
-        //if ( j < wd->sta.bssList.bssCount )
+        
         if (pBssInfo != NULL)
         {
             int res;
 
             zm_debug_msg0("IBSS found");
 
-            /* Found IBSS, reset bssNotFoundCount */
+            
             zmw_enter_critical_section(dev);
             wd->sta.bssNotFoundCount = 0;
             zmw_leave_critical_section(dev);
@@ -3135,7 +3108,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
             bssNotFound = FALSE;
             wd->sta.atimWindow = pBssInfo->atimWindow;
             wd->frequency = pBssInfo->frequency;
-            //wd->sta.flagFreqChanging = 1;
+            
             zfCoreSetFrequency(dev, wd->frequency);
             zfUpdateBssid(dev, pBssInfo->bssid);
             zfResetSupportRate(dev, ZM_DEFAULT_SUPPORT_RATE_ZERO);
@@ -3149,14 +3122,14 @@ void zfIbssConnectNetwork(zdev_t* dev)
                 wd->beaconInterval = 100;
             }
 
-            /* rsn information element */
+            
             if ( pBssInfo->rsnIe[1] != 0 )
             {
                 zfMemoryCopy(wd->sta.rsnIe, pBssInfo->rsnIe,
                              pBssInfo->rsnIe[1]+2);
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
-                /* If not use RSNA , run traditional */
+                
                 zmw_enter_critical_section(dev);
                 wd->sta.ibssWpa2Psk = 1;
                 zmw_leave_critical_section(dev);
@@ -3167,7 +3140,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
                 wd->sta.rsnIe[1] = 0;
             }
 
-            /* privacy bit */
+            
             if ( pBssInfo->capability[0] & ZM_BIT_4 )
             {
                 wd->sta.capability[0] |= ZM_BIT_4;
@@ -3177,7 +3150,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
                 wd->sta.capability[0] &= ~ZM_BIT_4;
             }
 
-            /* preamble type */
+            
             wd->preambleTypeInUsed = wd->preambleType;
             if ( wd->preambleTypeInUsed == ZM_PREAMBLE_TYPE_AUTO )
             {
@@ -3215,7 +3188,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
             wd->sta.beaconFrameBody[9] = pBssInfo->beaconInterval[1];
             wd->sta.beaconFrameBody[10] = pBssInfo->capability[0];
             wd->sta.beaconFrameBody[11] = pBssInfo->capability[1];
-            //for (k=12; k<wd->sta.beaconFrameBodySize; k++)
+            
             for (k=0; k<pBssInfo->frameBodysize; k++)
             {
                 wd->sta.beaconFrameBody[k+12] = pBssInfo->frameBody[k];
@@ -3230,12 +3203,12 @@ void zfIbssConnectNetwork(zdev_t* dev)
             }
             zmw_leave_critical_section(dev);
 
-            //zfwIbssPartnerNotify(dev, 1, &event);
+            
             goto connect_done;
         }
     }
 
-    /* IBSS not found */
+    
     if ( bssNotFound )
     {
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
@@ -3258,7 +3231,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
         else
         {
             zmw_enter_critical_section(dev);
-            /* Fail IBSS found, TODO create IBSS */
+            
             wd->sta.bssNotFoundCount = 0;
             zmw_leave_critical_section(dev);
         }
@@ -3270,7 +3243,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
         }
 
         if( wd->ws.autoSetFrequency == 0 )
-        { /* Auto set frequency */
+        { 
             zm_debug_msg1("Create Ad Hoc Network Band ", wd->ws.adhocMode);
             wd->frequency = zfFindCleanFrequency(dev, wd->ws.adhocMode);
             wd->ws.autoSetFrequency = 0xff;
@@ -3279,7 +3252,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
 
         wd->sta.ibssBssIsCreator = 1;
 
-        //wd->sta.flagFreqChanging = 1;
+        
         zfCoreSetFrequency(dev, wd->frequency);
         if (wd->sta.bDesiredBssid == TRUE)
         {
@@ -3309,10 +3282,10 @@ void zfIbssConnectNetwork(zdev_t* dev)
         }
 
         zfUpdateBssid(dev, bssid);
-        //wd->sta.atimWindow = 0x0a;
+        
 
-        /* rate information */
-        if(wd->frequency <= ZM_CH_G_14)  // 2.4 GHz  b+g
+        
+        if(wd->frequency <= ZM_CH_G_14)  
         {
             if ( wd->wfc.bIbssGMode
                  && (wd->supportMode & (ZM_WIRELESS_MODE_24_54|ZM_WIRELESS_MODE_24_N)) )
@@ -3351,32 +3324,32 @@ void zfIbssConnectNetwork(zdev_t* dev)
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
 
-        // 20070411 Add WPA2PSK information to its IBSS network !!!
+        
         offset = 0 ;
 
-        /* timestamp */
+        
         offset += 8 ;
 
-        /* beacon interval */
+        
         wd->sta.beaconFrameBody[offset++] = (u8_t)(wd->beaconInterval) ;
         wd->sta.beaconFrameBody[offset++] = (u8_t)((wd->beaconInterval) >> 8) ;
 
-        /* capability information */
+        
         wd->sta.beaconFrameBody[offset++] = wd->sta.capability[0] ;
         wd->sta.beaconFrameBody[offset++] = wd->sta.capability[1] ;
         #if 0
-        /* ssid */
-        // ssid element id
+        
+        
         wd->sta.beaconFrameBody[offset++] = ZM_WLAN_EID_SSID ;
-        // ssid length
+        
         wd->sta.beaconFrameBody[offset++] = wd->sta.ssidLen ;
-        // ssid information
+        
         for(i=0; i<wd->sta.ssidLen; i++)
         {
             wd->sta.beaconFrameBody[offset++] = wd->sta.ssid[i] ;
         }
 
-        /* support rate */
+        
         rateSet = ZM_RATE_SET_CCK ;
         if ( (rateSet == ZM_RATE_SET_OFDM)&&((wd->gRate & 0xff) == 0) )
         {
@@ -3384,13 +3357,13 @@ void zfIbssConnectNetwork(zdev_t* dev)
         }
         else
         {
-            // support rate element id
+            
             wd->sta.beaconFrameBody[offset++] = ZM_WLAN_EID_SUPPORT_RATE ;
 
-            // support rate length
+            
             lenOffset = offset++;
 
-            // support rate information
+            
             for (i=0; i<4; i++)
             {
                 if ((wd->bRate & (0x1<<i)) == (0x1<<i))
@@ -3401,48 +3374,48 @@ void zfIbssConnectNetwork(zdev_t* dev)
                 }
             }
 
-            // support rate length
+            
             wd->sta.beaconFrameBody[lenOffset] = len ;
         }
 
-        /* DS parameter set */
-        // DS parameter set elemet id
+        
+        
         wd->sta.beaconFrameBody[offset++] = ZM_WLAN_EID_DS ;
 
-        // DS parameter set length
+        
         wd->sta.beaconFrameBody[offset++] = 1 ;
 
-        // DS parameter set information
+        
         wd->sta.beaconFrameBody[offset++] =
          	zfChFreqToNum(wd->frequency, NULL) ;
 
-        /* IBSS parameter set */
-        // IBSS parameter set element id
+        
+        
         wd->sta.beaconFrameBody[offset++] = ZM_WLAN_EID_IBSS ;
 
-        // IBSS parameter set length
+        
         wd->sta.beaconFrameBody[offset++] = 2 ;
 
-        // IBSS parameter set information
+        
         wd->sta.beaconFrameBody[offset] = wd->sta.atimWindow ;
         offset += 2 ;
 
-        /* ERP Information and Extended Supported Rates */
+        
         if ( wd->wfc.bIbssGMode
              && (wd->supportMode & (ZM_WIRELESS_MODE_24_54|ZM_WIRELESS_MODE_24_N)) )
         {
-            /* ERP Information */
+            
             wd->erpElement = 0;
-            // ERP element id
+            
             wd->sta.beaconFrameBody[offset++] = ZM_WLAN_EID_ERP ;
 
-            // ERP length
+            
             wd->sta.beaconFrameBody[offset++] = 1 ;
 
-            // ERP information
+            
             wd->sta.beaconFrameBody[offset++] = wd->erpElement ;
 
-            /* Extended Supported Rates */
+            
             if ( (rateSet == ZM_RATE_SET_OFDM)&&((wd->gRate & 0xff) == 0) )
             {
                 offset += 0 ;
@@ -3451,13 +3424,13 @@ void zfIbssConnectNetwork(zdev_t* dev)
             {
                 len = 0 ;
 
-                // Extended Supported Rates element id
+                
                 wd->sta.beaconFrameBody[offset++] = ZM_WLAN_EID_EXTENDED_RATE ;
 
-                // Extended Supported Rates length
+                
                 lenOffset = offset++ ;
 
-                // Extended Supported Rates information
+                
                 for (i=0; i<8; i++)
                 {
                     if ((wd->gRate & (0x1<<i)) == (0x1<<i))
@@ -3468,61 +3441,61 @@ void zfIbssConnectNetwork(zdev_t* dev)
                     }
                 }
 
-                // extended support rate length
+                
             	  wd->sta.beaconFrameBody[lenOffset] = len ;
             }
         }
         #endif
 
-        /* RSN : important information influence the result of creating an IBSS network */
+        
         if ( wd->sta.authMode == ZM_AUTH_MODE_WPA2PSK )
         {
             u8_t frameType = ZM_WLAN_FRAME_TYPE_AUTH ;
             u8_t    rsn[64]=
             {
-                        /* Element ID */
+                        
                         0x30,
-                        /* Length */
+                        
                         0x14,
-                        /* Version */
+                        
                         0x01, 0x00,
-                        /* Group Cipher Suite, default=TKIP */
+                        
                         0x00, 0x0f, 0xac, 0x04,
-                        /* Pairwise Cipher Suite Count */
+                        
                         0x01, 0x00,
-                        /* Pairwise Cipher Suite, default=TKIP */
+                        
                         0x00, 0x0f, 0xac, 0x02,
-                        /* Authentication and Key Management Suite Count */
+                        
                         0x01, 0x00,
-                        /* Authentication type, default=PSK */
+                        
                         0x00, 0x0f, 0xac, 0x02,
-                        /* RSN capability */
+                        
                         0x00, 0x00
             };
 
-            /* Overwrite Group Cipher Suite by AP's setting */
+            
             zfMemoryCopy(rsn+4, zgWpa2AesOui, 4);
 
             if ( wd->sta.wepStatus == ZM_ENCRYPTION_AES )
             {
-                /* Overwrite Pairwise Cipher Suite by AES */
+                
                 zfMemoryCopy(rsn+10, zgWpa2AesOui, 4);
             }
 
-            // RSN element id
+            
             wd->sta.beaconFrameBody[offset++] = ZM_WLAN_EID_RSN_IE ;
 
-            // RSN length
+            
             wd->sta.beaconFrameBody[offset++] = rsn[1] ;
 
-            // RSN information
+            
             for(i=0; i<rsn[1]; i++)
                 wd->sta.beaconFrameBody[offset++] = rsn[i+2] ;
 
             zfMemoryCopy(wd->sta.rsnIe, rsn, rsn[1]+2);
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
-            /* If not use RSNA , run traditional */
+            
             zmw_enter_critical_section(dev);
             wd->sta.ibssWpa2Psk = 1;
             zmw_leave_critical_section(dev);
@@ -3530,7 +3503,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
         }
 
         #if 0
-        /* HT Capabilities Info */
+        
         {
             u8_t OUI[3] = { 0x0 , 0x90 , 0x4C } ;
 
@@ -3551,7 +3524,7 @@ void zfIbssConnectNetwork(zdev_t* dev)
             }
         }
 
-        /* Extended HT Capabilities Info */
+        
         {
             u8_t OUI[3] = { 0x0 , 0x90 , 0x4C } ;
 
@@ -3580,8 +3553,8 @@ void zfIbssConnectNetwork(zdev_t* dev)
             wd->sta.beaconFrameBodySize = ZM_CACHED_FRAMEBODY_SIZE;
         }
 
-        // 20070416 Let Create IBSS network could enter the zfwIbssPartnerNotify function
-        // bssNotFound = FALSE ;
+        
+        
 
         printk("The capability info 1 = %02x\n", wd->sta.capability[0]) ;
         printk("The capability info 2 = %02x\n", wd->sta.capability[1]) ;
@@ -3597,9 +3570,9 @@ void zfIbssConnectNetwork(zdev_t* dev)
         #endif
 #endif
 
-        //zmw_enter_critical_section(dev);
-        //wd->sta.ibssPartnerStatus = ZM_IBSS_PARTNER_LOST;
-        //zmw_leave_critical_section(dev);
+        
+        
+        
     }
     else
     {
@@ -3608,10 +3581,10 @@ void zfIbssConnectNetwork(zdev_t* dev)
 
 connect_done:
     zfHpEnableBeacon(dev, ZM_MODE_IBSS, wd->beaconInterval, wd->dtim, (u8_t)wd->sta.atimWindow);
-    zfStaSendBeacon(dev); // Refresh Beacon content for ZD1211B HalPlus
+    zfStaSendBeacon(dev); 
     zfHpSetAtimWindow(dev, wd->sta.atimWindow);
 
-    // Start the IBSS timer to monitor for new stations
+    
     zmw_enter_critical_section(dev);
     zfTimerSchedule(dev, ZM_EVENT_IBSS_MONITOR, ZM_TICK_IBSS_MONITOR);
     zmw_leave_critical_section(dev);
@@ -3689,7 +3662,7 @@ static struct zsBssInfo* zfInfraFindAPToConnect(zdev_t* dev,
                                wd->sta.ssidLen))&&
               (wd->sta.ssidLen == pBssInfo->ssid[1]))||
              ((wd->sta.ssidLen == 0)&&
-               /* connect to any BSS: AP's ans STA's WEP status must match */
+               
               (wd->sta.wepStatus == apWepStatus )&&
               (pBssInfo->securityType != ZM_SECURITY_TYPE_WPA) ))
         {
@@ -3708,14 +3681,14 @@ static struct zsBssInfo* zfInfraFindAPToConnect(zdev_t* dev,
                 continue;
             }
 
-            /* for WPA negative test */
+            
             if ( !zfCheckAuthentication(dev, pBssInfo) )
             {
                 pBssInfo = pBssInfo->next;
                 continue;
             }
 
-            /* Check bssid */
+            
             if (wd->sta.bDesiredBssid == TRUE)
             {
                 for (k=0; k<6; k++)
@@ -3735,10 +3708,10 @@ static struct zsBssInfo* zfInfraFindAPToConnect(zdev_t* dev,
                 }
             }
 
-            /* Check support mode */
+            
             if (pBssInfo->frequency > 3000) {
                 if (   (pBssInfo->EnableHT == 1)
-                    || (pBssInfo->apCap & ZM_All11N_AP) ) //11n AP
+                    || (pBssInfo->apCap & ZM_All11N_AP) ) 
                 {
                     channelFlags = CHANNEL_A_HT;
                     if (pBssInfo->enableHT40 == 1) {
@@ -3749,7 +3722,7 @@ static struct zsBssInfo* zfInfraFindAPToConnect(zdev_t* dev,
                 }
             } else {
                 if (   (pBssInfo->EnableHT == 1)
-                    || (pBssInfo->apCap & ZM_All11N_AP) ) //11n AP
+                    || (pBssInfo->apCap & ZM_All11N_AP) ) 
                 {
                     channelFlags = CHANNEL_G_HT;
                     if(pBssInfo->enableHT40 == 1) {
@@ -3773,7 +3746,7 @@ static struct zsBssInfo* zfInfraFindAPToConnect(zdev_t* dev,
                 continue;
             }
 
-            /* Skip if AP in blocking list */
+            
             if ((ret = zfStaIsApInBlockingList(dev, pBssInfo->bssid)) == TRUE)
             {
                 zm_msg0_mm(ZM_LV_0, "Candidate AP in blocking List, skip if there's stilla choice!");
@@ -3782,7 +3755,7 @@ static struct zsBssInfo* zfInfraFindAPToConnect(zdev_t* dev,
                 continue;
             }
 
-            if ( pBssInfo->capability[0] & ZM_BIT_0 )  // check if infra-BSS
+            if ( pBssInfo->capability[0] & ZM_BIT_0 )  
             {
                     pNowBssInfo = pBssInfo;
                     wd->sta.apWmeCapability = pBssInfo->wmeSupport;
@@ -3813,8 +3786,8 @@ void zfInfraConnectNetwork(zdev_t* dev)
     struct zsBssInfo* pBssInfo;
     struct zsBssInfo* pNowBssInfo=NULL;
     struct zsBssInfo candidateBss;
-    //u16_t i, j=100, quality=10000;
-    //u8_t ret=FALSE, apWepStatus;
+    
+    
     u8_t ret=FALSE;
     u16_t k;
     u8_t density = ZM_MPDU_DENSITY_NONE;
@@ -3822,18 +3795,18 @@ void zfInfraConnectNetwork(zdev_t* dev)
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
-    /* Reset bssNotFoundCount for Ad-Hoc:IBSS */
-    /* Need review : IbssConn -> InfraConn -> IbssConn etc, flag/counter reset? */
+    
+    
     zmw_enter_critical_section(dev);
     wd->sta.bssNotFoundCount = 0;
     zmw_leave_critical_section(dev);
 
-    /* Set TxQs CWMIN, CWMAX, AIFS and TXO to WME STA default. */
+    
     zfUpdateDefaultQosParameter(dev, 0);
 
     zfStaRefreshBlockList(dev, 0);
 
-    /* change state to CONNECTING and stop the channel scanning */
+    
     zfChangeAdapterState(dev, ZM_STA_STATE_CONNECTING);
     zfPowerSavingMgrWakeup(dev);
 
@@ -3844,7 +3817,7 @@ void zfInfraConnectNetwork(zdev_t* dev)
 
     wd->sta.connectState = ZM_STA_CONN_STATE_NONE;
 
-    //Reorder BssList by RSSI--CWYang(+)
+    
     zfBssInfoReorderList(dev);
 
     pNowBssInfo = zfInfraFindAPToConnect(dev, &candidateBss);
@@ -3853,20 +3826,20 @@ void zfInfraConnectNetwork(zdev_t* dev)
 	{
 	    if (wd->sta.bSafeMode == 0)
 	    {
-		    zfStaDisableSWEncryption(dev);//Quickly reboot
+		    zfStaDisableSWEncryption(dev);
 	    }
 	}
     if ( pNowBssInfo != NULL )
     {
-        //zm_assert(pNowBssInfo != NULL);
+        
 
         pBssInfo = pNowBssInfo;
         wd->sta.ssidLen = pBssInfo->ssid[1];
         zfMemoryCopy(wd->sta.ssid, &(pBssInfo->ssid[2]), pBssInfo->ssid[1]);
         wd->frequency = pBssInfo->frequency;
-        //wd->sta.flagFreqChanging = 1;
+        
 
-        //zfCoreSetFrequency(dev, wd->frequency);
+        
         zfUpdateBssid(dev, pBssInfo->bssid);
         zfResetSupportRate(dev, ZM_DEFAULT_SUPPORT_RATE_ZERO);
         zfUpdateSupportRate(dev, pBssInfo->supportedRates);
@@ -3879,26 +3852,26 @@ void zfInfraConnectNetwork(zdev_t* dev)
             wd->beaconInterval = 100;
         }
 
-        /* ESS bit on */
+        
         wd->sta.capability[0] |= ZM_BIT_0;
-        /* IBSS bit off */
+        
         wd->sta.capability[0] &= ~ZM_BIT_1;
 
-        /* 11n AP flag */
+        
         wd->sta.EnableHT = pBssInfo->EnableHT;
         wd->sta.SG40 = pBssInfo->SG40;
 #ifdef ZM_ENABLE_CENC
         if ( pBssInfo->securityType == ZM_SECURITY_TYPE_CENC )
         {
-            wd->sta.wmeEnabled = 0; //Disable WMM in CENC
+            wd->sta.wmeEnabled = 0; 
             cencInit(dev);
             cencSetCENCMode(dev, NdisCENC_PSK);
             wd->sta.wpaState = ZM_STA_WPA_STATE_INIT;
-            /* CENC */
+            
             if ( pBssInfo->cencIe[1] != 0 )
             {
-                //wd->sta.wepStatus = ZM_ENCRYPTION_CENC;
-                //wd->sta.encryMode = ZM_CENC;
+                
+                
                 zfwCencHandleBeaconProbrespon(dev, (u8_t *)&pBssInfo->cencIe,
                         (u8_t *)&pBssInfo->ssid, (u8_t *)&pBssInfo->macaddr);
                 zfMemoryCopy(wd->sta.cencIe, pBssInfo->cencIe,
@@ -3909,7 +3882,7 @@ void zfInfraConnectNetwork(zdev_t* dev)
                 wd->sta.cencIe[1] = 0;
             }
         }
-#endif //ZM_ENABLE_CENC
+#endif 
         if ( pBssInfo->securityType == ZM_SECURITY_TYPE_WPA )
         {
             wd->sta.wpaState = ZM_STA_WPA_STATE_INIT;
@@ -3918,24 +3891,24 @@ void zfInfraConnectNetwork(zdev_t* dev)
             {
                 wd->sta.encryMode = ZM_TKIP;
 
-                /* Turn on software encryption/decryption for TKIP */
+                
                 if (wd->sta.EnableHT == 1)
                 {
                     zfStaEnableSWEncryption(dev, (ZM_SW_TKIP_ENCRY_EN|ZM_SW_TKIP_DECRY_EN));
                 }
 
-                /* Do not support TKIP in 11n mode */
-                //wd->sta.EnableHT = 0;
-                //pBssInfo->enableHT40 = 0;
+                
+                
+                
             }
             else if ( wd->sta.wepStatus == ZM_ENCRYPTION_AES )
             {
                 wd->sta.encryMode = ZM_AES;
 
-                /* If AP supports HT mode */
+                
                 if (wd->sta.EnableHT)
                 {
-                    /* Set MPDU density to 8 us*/
+                    
                     density = ZM_MPDU_DENSITY_8US;
                 }
             }
@@ -3963,7 +3936,7 @@ void zfInfraConnectNetwork(zdev_t* dev)
 
 
 
-        /* check preamble bit */
+        
         wd->preambleTypeInUsed = wd->preambleType;
         if ( wd->preambleTypeInUsed == ZM_PREAMBLE_TYPE_AUTO )
         {
@@ -3986,7 +3959,7 @@ void zfInfraConnectNetwork(zdev_t* dev)
             wd->sta.capability[0] |= ZM_BIT_5;
         }
 
-        /* check 802.11n 40MHz Setting */
+        
         if ((pBssInfo->enableHT40 == 1) &&
             ((pBssInfo->extChOffset == 1) || (pBssInfo->extChOffset == 3)))
         {
@@ -3999,33 +3972,29 @@ void zfInfraConnectNetwork(zdev_t* dev)
             wd->ExtOffset = 0;
         }
 
-        /* check 802.11H support bit */
+        
 
-        /* check Owl Ap */
+        
         if ( pBssInfo->athOwlAp & ZM_BIT_0 )
         {
-            /* In this function, FW retry will be enable, ZM_MAC_REG_RETRY_MAX
-               will be set to 0.
-             */
+            
             zfHpDisableHwRetry(dev);
             wd->sta.athOwlAp = 1;
-            /* Set MPDU density to 8 us*/
+            
             density = ZM_MPDU_DENSITY_8US;
         }
         else
         {
-            /* In this function, FW retry will be disable, ZM_MAC_REG_RETRY_MAX
-               will be set to 3.
-             */
+            
             zfHpEnableHwRetry(dev);
             wd->sta.athOwlAp = 0;
         }
         wd->reorder = 1;
 
-        /* Set MPDU density */
+        
         zfHpSetMPDUDensity(dev, density);
 
-        /* check short slot time bit */
+        
         if ( pBssInfo->capability[1] & ZM_BIT_2 )
         {
             wd->sta.capability[1] |= ZM_BIT_2;
@@ -4033,13 +4002,13 @@ void zfInfraConnectNetwork(zdev_t* dev)
 
         if ( pBssInfo->erp & ZM_BIT_1 )
         {
-            //zm_debug_msg0("protection mode on");
+            
             wd->sta.bProtectionMode = TRUE;
             zfHpSetSlotTime(dev, 0);
         }
         else
         {
-            //zm_debug_msg0("protection mode off");
+            
             wd->sta.bProtectionMode = FALSE;
             zfHpSetSlotTime(dev, 1);
         }
@@ -4047,25 +4016,18 @@ void zfInfraConnectNetwork(zdev_t* dev)
         if (pBssInfo->marvelAp == 1)
         {
             wd->sta.enableDrvBA = 0;
-            /*
-             * 8701 : NetGear 3500 (MARVELL)
-             * Downlink issue : set slottime to 20.
-             */
+            
             zfHpSetSlotTimeRegister(dev, 0);
         }
         else
         {
             wd->sta.enableDrvBA = 1;
 
-            /*
-             * This is not good for here do reset slot time.
-             * I think it should reset when leave MARVELL ap
-             * or enter disconnect state etc.
-             */
+            
             zfHpSetSlotTimeRegister(dev, 1);
         }
 
-        //Store probe response frame body, for VISTA only
+        
         wd->sta.beaconFrameBodySize = pBssInfo->frameBodysize + 12;
         if (wd->sta.beaconFrameBodySize > ZM_CACHED_FRAMEBODY_SIZE)
         {
@@ -4088,7 +4050,7 @@ void zfInfraConnectNetwork(zdev_t* dev)
              (( wd->sta.authMode == ZM_AUTH_MODE_OPEN )||
               ( wd->sta.authMode == ZM_AUTH_MODE_SHARED_KEY)||
               (wd->sta.authMode == ZM_AUTH_MODE_AUTO)) )
-        {   /* privacy enabled */
+        {   
 
             if ( wd->sta.wepStatus == ZM_ENCRYPTION_WEP_DISABLED )
             {
@@ -4096,37 +4058,37 @@ void zfInfraConnectNetwork(zdev_t* dev)
                 ret = FALSE;
             }
 
-            /* Do not support WEP in 11n mode */
+            
             if ( wd->sta.wepStatus == ZM_ENCRYPTION_WEP_ENABLED )
             {
-                /* Turn on software encryption/decryption for WEP */
+                
                 if (wd->sta.EnableHT == 1)
                 {
                     zfStaEnableSWEncryption(dev, (ZM_SW_WEP_ENCRY_EN|ZM_SW_WEP_DECRY_EN));
                 }
 
-                //wd->sta.EnableHT = 0;
-                //wd->BandWidth40 = 0;
-                //wd->ExtOffset = 0;
+                
+                
+                
             }
 
             wd->sta.capability[0] |= ZM_BIT_4;
 
             if ( wd->sta.authMode == ZM_AUTH_MODE_AUTO )
-            { /* Try to use open and shared-key authehtication alternatively */
+            { 
                 if ( (wd->sta.connectTimeoutCount % 2) == 0 )
                     wd->sta.bIsSharedKey = 0;
                 else
                     wd->sta.bIsSharedKey = 1;
             }
             else if ( wd->sta.authMode != ZM_AUTH_MODE_SHARED_KEY )
-            {   /* open  or auto */
-                //zfStaStartConnect(dev, 0);
+            {   
+                
                 wd->sta.bIsSharedKey = 0;
             }
             else if ( wd->sta.authMode != ZM_AUTH_MODE_OPEN )
-            {   /* shared key */
-                //zfStaStartConnect(dev, 1) ;
+            {   
+                
                 wd->sta.bIsSharedKey = 1;
             }
         }
@@ -4136,30 +4098,20 @@ void zfInfraConnectNetwork(zdev_t* dev)
                  (pBssInfo->capability[0] & ZM_BIT_4) )
             {
                 wd->sta.capability[0] |= ZM_BIT_4;
-                /* initialize WPA related parameters */
+                
             }
             else
             {
                 wd->sta.capability[0] &= (~ZM_BIT_4);
             }
 
-            /* authentication with open system */
-            //zfStaStartConnect(dev, 0);
+            
+            
             wd->sta.bIsSharedKey = 0;
         }
 
-        /* Improve WEP/TKIP performace with HT AP, detail information please look bug#32495 */
-        /*
-        if ( (pBssInfo->broadcomHTAp == 1)
-             && (wd->sta.SWEncryptEnable != 0) )
-        {
-            zfHpSetTTSIFSTime(dev, 0xa);
-        }
-        else
-        {
-            zfHpSetTTSIFSTime(dev, 0x8);
-        }
-        */
+        
+        
     }
     else
     {
@@ -4251,7 +4203,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
 
     zmw_get_wlan_dev(dev);
 
-    /* Connecting to ANY has been checked */
+    
     if ( wd->sta.ssidLen == 0 )
     {
         return ret;
@@ -4259,7 +4211,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
 
 
 	switch(wd->sta.authMode)
-	//switch(wd->ws.authMode)//Quickly reboot
+	
     {
         case ZM_AUTH_MODE_WPA_AUTO:
         case ZM_AUTH_MODE_WPAPSK_AUTO:
@@ -4269,11 +4221,11 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                 UnicastCipherNum = (pBssInfo->rsnIe[8]) +
                                    (pBssInfo->rsnIe[9] << 8);
 
-                /* If there is only one unicast cipher */
+                
                 if (UnicastCipherNum == 1)
                 {
                     encAlgoType = pBssInfo->rsnIe[13];
-                    //encAlgoType = pBssInfo->rsnIe[7];
+                    
                 }
                 else
                 {
@@ -4281,7 +4233,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                     u16_t desiredCipher = 0;
                     u16_t IEOffSet = 13;
 
-                    /* Enumerate all the supported unicast cipher */
+                    
                     for (ii = 0; ii < UnicastCipherNum; ii++)
                     {
                         if (pBssInfo->rsnIe[IEOffSet+ii*4] > desiredCipher)
@@ -4301,7 +4253,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPA2;
                     }
-                    else //ZM_AUTH_MODE_WPAPSK_AUTO
+                    else 
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPA2PSK;
                     }
@@ -4314,7 +4266,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPA2;
                     }
-                    else //ZM_AUTH_MODE_WPAPSK_AUTO
+                    else 
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPA2PSK;
                     }
@@ -4329,11 +4281,11 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                 UnicastCipherNum = (pBssInfo->wpaIe[12]) +
                                    (pBssInfo->wpaIe[13] << 8);
 
-                /* If there is only one unicast cipher */
+                
                 if (UnicastCipherNum == 1)
                 {
                     encAlgoType = pBssInfo->wpaIe[17];
-                    //encAlgoType = pBssInfo->wpaIe[11];
+                    
                 }
                 else
                 {
@@ -4341,7 +4293,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                     u16_t desiredCipher = 0;
                     u16_t IEOffSet = 17;
 
-                    /* Enumerate all the supported unicast cipher */
+                    
                     for (ii = 0; ii < UnicastCipherNum; ii++)
                     {
                         if (pBssInfo->wpaIe[IEOffSet+ii*4] > desiredCipher)
@@ -4361,7 +4313,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPA;
                     }
-                    else //ZM_AUTH_MODE_WPAPSK_AUTO
+                    else 
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPAPSK;
                     }
@@ -4374,7 +4326,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPA;
                     }
-                    else //ZM_AUTH_MODE_WPAPSK_AUTO
+                    else 
                     {
                         wd->sta.currentAuthMode = ZM_AUTH_MODE_WPAPSK;
                     }
@@ -4414,7 +4366,7 @@ u8_t zfCheckAuthentication(zdev_t* dev, struct zsBssInfo* pBssInfo)
             {
                 if ( pBssInfo->wscIe[1] )
                 {
-                    // If the AP is a Jumpstart AP, it's ok!! Ray
+                    
                     break;
                 }
                 else if ( pBssInfo->securityType == ZM_SECURITY_TYPE_WPA )
@@ -4475,10 +4427,10 @@ u8_t zfChangeAdapterState(zdev_t* dev, u8_t newState)
 
     zmw_declare_for_critical_section();
 
-    //if ( newState == wd->sta.adapterState )
-    //{
-    //    return FALSE;
-    //}
+    
+    
+    
+    
 
     switch(newState)
     {
@@ -4490,7 +4442,7 @@ u8_t zfChangeAdapterState(zdev_t* dev, u8_t newState)
         #else
             if ( wd->sta.bChannelScan )
             {
-                /* stop the action of channel scanning */
+                
                 wd->sta.bChannelScan = FALSE;
                 ret =  TRUE;
                 break;
@@ -4504,7 +4456,7 @@ u8_t zfChangeAdapterState(zdev_t* dev, u8_t newState)
         #else
             if ( wd->sta.bChannelScan )
             {
-                /* stop the action of channel scanning */
+                
                 wd->sta.bChannelScan = FALSE;
                 ret =  TRUE;
                 break;
@@ -4518,48 +4470,48 @@ u8_t zfChangeAdapterState(zdev_t* dev, u8_t newState)
         break;
     }
 
-    //if ( ret )
-    //{
+    
+    
         zmw_enter_critical_section(dev);
         wd->sta.adapterState = newState;
         zmw_leave_critical_section(dev);
 
         zm_debug_msg1("change adapter state = ", newState);
-    //}
+    
 
     return ret;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaMmAddIeSsid            */
-/*      Add information element SSID to buffer.                         */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Ji-Huang Lee        ZyDAS Technology Corporation    2005.11     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfStaAddIeSsid(zdev_t* dev, zbuf_t* buf, u16_t offset)
 {
     u16_t i;
 
     zmw_get_wlan_dev(dev);
 
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_SSID);
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, wd->sta.ssidLen);
 
-    /* Information : SSID */
+    
     for (i=0; i<wd->sta.ssidLen; i++)
     {
         zmw_tx_buf_writeb(dev, buf, offset++, wd->sta.ssid[i]);
@@ -4568,67 +4520,67 @@ u16_t zfStaAddIeSsid(zdev_t* dev, zbuf_t* buf, u16_t offset)
     return offset;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaMmAddIeWpa             */
-/*      Add information element SSID to buffer.                         */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Ji-Huang Lee        ZyDAS Technology Corporation    2006.01     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
 {
     u32_t  i;
     u8_t    ssn[64]={
-                        /* Element ID */
+                        
                         0xdd,
-                        /* Length */
+                        
                         0x18,
-                        /* OUI type */
+                        
                         0x00, 0x50, 0xf2, 0x01,
-                        /* Version */
+                        
                         0x01, 0x00,
-                        /* Group Cipher Suite, default=TKIP */
+                        
                         0x00, 0x50, 0xf2, 0x02,
-                        /* Pairwise Cipher Suite Count */
+                        
                         0x01, 0x00,
-                        /* Pairwise Cipher Suite, default=TKIP */
+                        
                         0x00, 0x50, 0xf2, 0x02,
-                        /* Authentication and Key Management Suite Count */
+                        
                         0x01, 0x00,
-                        /* Authentication type, default=PSK */
+                        
                         0x00, 0x50, 0xf2, 0x02,
-                        /* WPA capability */
+                        
                         0x00, 0x00
                     };
 
     u8_t    rsn[64]={
-                        /* Element ID */
+                        
                         0x30,
-                        /* Length */
+                        
                         0x14,
-                        /* Version */
+                        
                         0x01, 0x00,
-                        /* Group Cipher Suite, default=TKIP */
+                        
                         0x00, 0x0f, 0xac, 0x02,
-                        /* Pairwise Cipher Suite Count */
+                        
                         0x01, 0x00,
-                        /* Pairwise Cipher Suite, default=TKIP */
+                        
                         0x00, 0x0f, 0xac, 0x02,
-                        /* Authentication and Key Management Suite Count */
+                        
                         0x01, 0x00,
-                        /* Authentication type, default=PSK */
+                        
                         0x00, 0x0f, 0xac, 0x02,
-                        /* RSN capability */
+                        
                         0x00, 0x00
                     };
 
@@ -4636,12 +4588,12 @@ u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
 
     if ( wd->sta.currentAuthMode == ZM_AUTH_MODE_WPAPSK )
     {
-        /* Overwrite Group Cipher Suite by AP's setting */
+        
         zfMemoryCopy(ssn+8, wd->sta.wpaIe+8, 4);
 
         if ( wd->sta.wepStatus == ZM_ENCRYPTION_AES )
         {
-            /* Overwrite Pairwise Cipher Suite by AES */
+            
             zfMemoryCopy(ssn+14, zgWpaAesOui, 4);
         }
 
@@ -4651,14 +4603,14 @@ u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
     }
     else if ( wd->sta.currentAuthMode == ZM_AUTH_MODE_WPA )
     {
-        /* Overwrite Group Cipher Suite by AP's setting */
+        
         zfMemoryCopy(ssn+8, wd->sta.wpaIe+8, 4);
-        /* Overwrite Key Management Suite by WPA-Radius */
+        
         zfMemoryCopy(ssn+20, zgWpaRadiusOui, 4);
 
         if ( wd->sta.wepStatus == ZM_ENCRYPTION_AES )
         {
-            /* Overwrite Pairwise Cipher Suite by AES */
+            
             zfMemoryCopy(ssn+14, zgWpaAesOui, 4);
         }
 
@@ -4668,12 +4620,12 @@ u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
     }
     else if ( wd->sta.currentAuthMode == ZM_AUTH_MODE_WPA2PSK )
     {
-        /* Overwrite Group Cipher Suite by AP's setting */
+        
         zfMemoryCopy(rsn+4, wd->sta.rsnIe+4, 4);
 
         if ( wd->sta.wepStatus == ZM_ENCRYPTION_AES )
         {
-            /* Overwrite Pairwise Cipher Suite by AES */
+            
             zfMemoryCopy(rsn+10, zgWpa2AesOui, 4);
         }
 
@@ -4684,17 +4636,17 @@ u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
                 if ( zfMemoryIsEqual((u8_t*) wd->sta.pmkidInfo.bssidInfo[i].bssid,
                                      (u8_t*) wd->sta.bssid, 6) )
                 {
-                    /* matched */
+                    
                     break;
                 }
 
                 if ( i < wd->sta.pmkidInfo.bssidCount )
                 {
-                    // Fill PMKID Count in RSN information element
+                    
                     rsn[22] = 0x01;
                     rsn[23] = 0x00;
 
-                    // Fill PMKID in RSN information element
+                    
                     zfMemoryCopy(rsn+24,
                                  wd->sta.pmkidInfo.bssidInfo[i].pmkid, 16);
 			                 rsn[1] += 18;
@@ -4708,14 +4660,14 @@ u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
     }
     else if ( wd->sta.currentAuthMode == ZM_AUTH_MODE_WPA2 )
     {
-        /* Overwrite Group Cipher Suite by AP's setting */
+        
         zfMemoryCopy(rsn+4, wd->sta.rsnIe+4, 4);
-        /* Overwrite Key Management Suite by WPA2-Radius */
+        
         zfMemoryCopy(rsn+16, zgWpa2RadiusOui, 4);
 
         if ( wd->sta.wepStatus == ZM_ENCRYPTION_AES )
         {
-            /* Overwrite Pairwise Cipher Suite by AES */
+            
             zfMemoryCopy(rsn+10, zgWpa2AesOui, 4);
         }
 
@@ -4723,13 +4675,10 @@ u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
         {
 
             if (wd->sta.pmkidInfo.bssidCount != 0) {
-                // Fill PMKID Count in RSN information element
+                
                 rsn[22] = 1;
                 rsn[23] = 0;
-                /*
-                 *  The caller is respnsible to give us the relevant PMKID.
-                 *  We'll only accept 1 PMKID for now.
-                 */
+                
                 for(i=0; i<wd->sta.pmkidInfo.bssidCount; i++)
                 {
                     if ( zfMemoryIsEqual((u8_t*) wd->sta.pmkidInfo.bssidInfo[i].bssid, (u8_t*) wd->sta.bssid, 6) )
@@ -4751,34 +4700,34 @@ u16_t zfStaAddIeWpaRsn(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t frameType)
     return offset;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaAddIeIbss              */
-/*      Add information element IBSS parameter to buffer.               */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Ji-Huang Lee        ZyDAS Technology Corporation    2005.12     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfStaAddIeIbss(zdev_t* dev, zbuf_t* buf, u16_t offset)
 {
     zmw_get_wlan_dev(dev);
 
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_IBSS);
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 2);
 
-    /* ATIM window */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->sta.atimWindow);
     offset += 2;
 
@@ -4787,32 +4736,32 @@ u16_t zfStaAddIeIbss(zdev_t* dev, zbuf_t* buf, u16_t offset)
 
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaAddIeWmeInfo           */
-/*      Add WME Information Element to buffer.                          */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2006.6      */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfStaAddIeWmeInfo(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t qosInfo)
 {
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_WIFI_IE);
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 7);
 
-    /* OUI */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x50);
     zmw_tx_buf_writeb(dev, buf, offset++, 0xF2);
@@ -4820,29 +4769,29 @@ u16_t zfStaAddIeWmeInfo(zdev_t* dev, zbuf_t* buf, u16_t offset, u8_t qosInfo)
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x01);
 
-    /* QoS Info */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, qosInfo);
 
     return offset;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaAddIePowerCap          */
-/*      Add information element Power capability to buffer.             */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Sharon                                            2007.12       */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfStaAddIePowerCap(zdev_t* dev, zbuf_t* buf, u16_t offset)
 {
     u8_t MaxTxPower;
@@ -4850,40 +4799,40 @@ u16_t zfStaAddIePowerCap(zdev_t* dev, zbuf_t* buf, u16_t offset)
 
     zmw_get_wlan_dev(dev);
 
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_POWER_CAPABILITY);
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 2);
 
     MinTxPower = (u8_t)(zfHpGetMinTxPower(dev)/2);
     MaxTxPower = (u8_t)(zfHpGetMaxTxPower(dev)/2);
 
-    /* Min Transmit Power Cap */
+    
     zmw_tx_buf_writeh(dev, buf, offset++, MinTxPower);
 
-    /* Max Transmit Power Cap */
+    
     zmw_tx_buf_writeh(dev, buf, offset++, MaxTxPower);
 
     return offset;
 }
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfStaAddIeSupportCh              */
-/*      Add information element supported channels to buffer.               */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Sharon            2007.12     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfStaAddIeSupportCh(zdev_t* dev, zbuf_t* buf, u16_t offset)
 {
 
@@ -4901,45 +4850,45 @@ u16_t zfStaAddIeSupportCh(zdev_t* dev, zbuf_t* buf, u16_t offset)
     for (i = 0; i < wd->regulationTable.allowChannelCnt; i++)
     {
         if (wd->regulationTable.allowChannel[i].channel < 3000)
-        { // 2.4Hz
+        { 
             count_24G++;
         }
         else
-        { // 5GHz
+        { 
             count_5G++;
         }
     }
 
-    length = (u8_t)(count_5G * 2 + 2); //5G fill by pair, 2,4G (continuous channels) fill 2 bytes
+    length = (u8_t)(count_5G * 2 + 2); 
 
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_SUPPORTED_CHANNELS );
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, length);
 
-    // 2.4GHz (continuous channels)
-    /* First channel number */
-    zmw_tx_buf_writeh(dev, buf, offset++, 1); //Start from channle 1
-    /* Number of channels */
+    
+    
+    zmw_tx_buf_writeh(dev, buf, offset++, 1); 
+    
     zmw_tx_buf_writeh(dev, buf, offset++, count_24G);
 
     for (i = 0; i < wd->regulationTable.allowChannelCnt ; i++)
     {
         if (wd->regulationTable.allowChannel[i].channel > 4000 && wd->regulationTable.allowChannel[i].channel < 5000)
-        { // 5GHz 4000 -5000Mhz
+        { 
             channelNum = (wd->regulationTable.allowChannel[i].channel-4000)/5;
-            /* First channel number */
+            
             zmw_tx_buf_writeh(dev, buf, offset++, channelNum);
-            /* Number of channels */
+            
             zmw_tx_buf_writeh(dev, buf, offset++, 1);
         }
         else if (wd->regulationTable.allowChannel[i].channel >= 5000)
-        { // 5GHz >5000Mhz
+        { 
             channelNum = (wd->regulationTable.allowChannel[i].channel-5000)/5;
-            /* First channel number */
+            
             zmw_tx_buf_writeh(dev, buf, offset++, channelNum);
-            /* Number of channels */
+            
             zmw_tx_buf_writeh(dev, buf, offset++, 1);
         }
     }
@@ -4963,17 +4912,17 @@ void zfStaStartConnect(zdev_t* dev, u8_t bIsSharedKey)
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
 
-    /* p1_low = algorithm number, p1_high = transaction sequence number */
+    
     if ( bIsSharedKey )
     {
-        //wd->sta.connectState = ZM_STA_CONN_STATE_AUTH_SHARE_1;
+        
         newConnState = ZM_STA_CONN_STATE_AUTH_SHARE_1;
         zm_debug_msg0("ZM_STA_CONN_STATE_AUTH_SHARE_1");
         p1 = ZM_AUTH_ALGO_SHARED_KEY;
     }
     else
     {
-        //wd->sta.connectState = ZM_STA_CONN_STATE_AUTH_OPEN;
+        
         newConnState = ZM_STA_CONN_STATE_AUTH_OPEN;
         zm_debug_msg0("ZM_STA_CONN_STATE_AUTH_OPEN");
         if( wd->sta.leapEnabled )
@@ -4982,7 +4931,7 @@ void zfStaStartConnect(zdev_t* dev, u8_t bIsSharedKey)
             p1 = ZM_AUTH_ALGO_OPEN_SYSTEM;
     }
 
-    /* status code */
+    
     p2 = 0x0;
 
     zmw_enter_critical_section(dev);
@@ -4990,7 +4939,7 @@ void zfStaStartConnect(zdev_t* dev, u8_t bIsSharedKey)
     wd->sta.connectState = newConnState;
     zmw_leave_critical_section(dev);
 
-    /* send the 1st authentication frame */
+    
     zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_AUTH, wd->sta.bssid, p1, p2, 0);
 
     return;
@@ -4999,8 +4948,8 @@ void zfStaStartConnect(zdev_t* dev, u8_t bIsSharedKey)
 void zfSendNullData(zdev_t* dev, u8_t type)
 {
     zbuf_t* buf;
-    //u16_t addrTblSize;
-    //struct zsAddrTbl addrTbl;
+    
+    
     u16_t err;
     u16_t hlen;
     u16_t header[(34+8+1)/2];
@@ -5017,7 +4966,7 @@ void zfSendNullData(zdev_t* dev, u8_t type)
 
     zfwBufSetSize(dev, buf, 0);
 
-    //zm_msg2_mm(ZM_LV_2, "buf->len=", buf->len);
+    
 
     if ( wd->wlanMode == ZM_MODE_IBSS)
     {
@@ -5030,7 +4979,7 @@ void zfSendNullData(zdev_t* dev, u8_t type)
 
     if (wd->sta.wmeConnected != 0)
     {
-        /* If connect to a WMM AP, Send QoS Null data */
+        
         hlen = zfTxGenMmHeader(dev, ZM_WLAN_FRAME_TYPE_QOS_NULL, dstAddr, header, 0, buf, 0, 0);
     }
     else
@@ -5040,7 +4989,7 @@ void zfSendNullData(zdev_t* dev, u8_t type)
 
     if (wd->wlanMode == ZM_MODE_INFRASTRUCTURE)
     {
-        header[4] |= 0x0100; //TODS bit
+        header[4] |= 0x0100; 
     }
 
     if ( type == 1 )
@@ -5048,14 +4997,14 @@ void zfSendNullData(zdev_t* dev, u8_t type)
         header[4] |= 0x1000;
     }
 
-    /* Get buffer DMA address */
-    //if ((addrTblSize = zfwBufMapDma(dev, buf, &addrTbl)) == 0)
-    //if ((addrTblSize = zfwMapTxDma(dev, buf, &addrTbl)) == 0)
-    //{
-    //    goto zlError;
-    //}
+    
+    
+    
+    
+    
+    
 
-    /*increase unicast frame counter*/
+    
     wd->commTally.txUnicastFrm++;
 
     if ((err = zfHpSend(dev, header, hlen, NULL, 0, NULL, 0, buf, 0,
@@ -5077,8 +5026,8 @@ zlError:
 void zfSendPSPoll(zdev_t* dev)
 {
     zbuf_t* buf;
-    //u16_t addrTblSize;
-    //struct zsAddrTbl addrTbl;
+    
+    
     u16_t err;
     u16_t hlen;
     u16_t header[(8+24+1)/2];
@@ -5093,21 +5042,21 @@ void zfSendPSPoll(zdev_t* dev)
 
     zfwBufSetSize(dev, buf, 0);
 
-    //zm_msg2_mm(ZM_LV_2, "buf->len=", buf->len);
+    
 
     zfTxGenMmHeader(dev, ZM_WLAN_FRAME_TYPE_PSPOLL, wd->sta.bssid, header, 0, buf, 0, 0);
 
     header[0] = 20;
     header[4] |= 0x1000;
-    header[5] = wd->sta.aid | 0xc000; //Both bit-14 and bit-15 are 1
+    header[5] = wd->sta.aid | 0xc000; 
     hlen = 16 + 8;
 
-    /* Get buffer DMA address */
-    //if ((addrTblSize = zfwBufMapDma(dev, buf, &addrTbl)) == 0)
-    //if ((addrTblSize = zfwMapTxDma(dev, buf, &addrTbl)) == 0)
-    //{
-    //    goto zlError;
-    //}
+    
+    
+    
+    
+    
+    
 
     if ((err = zfHpSend(dev, header, hlen, NULL, 0, NULL, 0, buf, 0,
             ZM_INTERNAL_ALLOC_BUF, 0, 0xff)) != ZM_SUCCESS)
@@ -5127,8 +5076,8 @@ zlError:
 void zfSendBA(zdev_t* dev, u16_t start_seq, u8_t *bitmap)
 {
     zbuf_t* buf;
-    //u16_t addrTblSize;
-    //struct zsAddrTbl addrTbl;
+    
+    
     u16_t err;
     u16_t hlen;
     u16_t header[(8+24+1)/2];
@@ -5142,23 +5091,23 @@ void zfSendBA(zdev_t* dev, u16_t start_seq, u8_t *bitmap)
         return;
     }
 
-    zfwBufSetSize(dev, buf, 12); // 28 = FC 2 + DU 2 + RA 6 + TA 6 + BAC 2 + SEQ 2 + BitMap 8
-                                 // 12 = BAC 2 + SEQ 2 + BitMap 8
+    zfwBufSetSize(dev, buf, 12); 
+                                 
 
-    //zm_msg2_mm(ZM_LV_2, "buf->len=", buf->len);
+    
 
     zfTxGenMmHeader(dev, ZM_WLAN_FRAME_TYPE_BA, wd->sta.bssid, header, 0, buf, 0, 0);
 
-    header[0] = 32; /* MAC header 16 + BA control 2 + BA info 10 + FCS 4*/
-    header[1] = 0x4;  /* No ACK */
+    header[0] = 32; 
+    header[1] = 0x4;  
 
-    /* send by OFDM 6M */
+    
     header[2] = (u16_t)(zcRateToPhyCtrl[4] & 0xffff);
     header[3] = (u16_t)(zcRateToPhyCtrl[4]>>16) & 0xffff;
 
-    hlen = 16 + 8;  /* MAC header 16 + control 8*/
+    hlen = 16 + 8;  
     offset = 0;
-    zmw_tx_buf_writeh(dev, buf, offset, 0x05); /*compressed bitmap on*/
+    zmw_tx_buf_writeh(dev, buf, offset, 0x05); 
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, start_seq);
     offset+=2;
@@ -5198,9 +5147,9 @@ void zfStaGetTxRate(zdev_t* dev, u16_t* macAddr, u32_t* phyCtrl,
     {
         zmw_enter_critical_section(dev);
         rate = (u8_t)zfRateCtrlGetTxRate(dev, &wd->sta.oppositeInfo[0].rcCell, rcProbingFlag);
-//#ifdef ZM_FB50
-        //rate = 27;
-//#endif
+
+        
+
         *phyCtrl = zcRateToPhyCtrl[rate];
         zmw_leave_critical_section(dev);
     }
@@ -5209,10 +5158,10 @@ void zfStaGetTxRate(zdev_t* dev, u16_t* macAddr, u32_t* phyCtrl,
         zmw_enter_critical_section(dev);
         for(i=0; i<wd->sta.oppositeCount; i++)
         {
-            if ( addr[0] && 0x01 == 1 ) // The default beacon transmitted rate is CCK and 1 Mbps , but the a mode should use
-                                        // OFDM modulation and 6Mbps to transmit beacon.
+            if ( addr[0] && 0x01 == 1 ) 
+                                        
             {
-                //rate = (u8_t)zfRateCtrlGetTxRate(dev, &wd->sta.oppositeInfo[i].rcCell, rcProbingFlag);
+                
                 rate = wd->sta.oppositeInfo[i].rcCell.operationRateSet[0];
                 *phyCtrl = zcRateToPhyCtrl[rate];
                 break;
@@ -5237,7 +5186,7 @@ struct zsMicVar* zfStaGetRxMicKey(zdev_t* dev, zbuf_t* buf)
 
     zmw_get_wlan_dev(dev);
 
-    /* if need not check MIC, return NULL */
+    
     if ( ((wd->sta.encryMode != ZM_TKIP)&&(wd->sta.encryMode != ZM_AES))||
          (wd->sta.wpaState < ZM_STA_WPA_STATE_PK_OK) )
     {
@@ -5247,9 +5196,9 @@ struct zsMicVar* zfStaGetRxMicKey(zdev_t* dev, zbuf_t* buf)
     da0 = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_A1_OFFSET);
 
     if ((zmw_rx_buf_readb(dev, buf, 0) & 0x80) == 0x80)
-        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+5); /* Qos Packet*/
+        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+5); 
     else
-        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+3); /* normal Packet*/
+        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+3); 
     keyIndex = (keyIndex & 0xc0) >> 6;
 
     return (&wd->sta.rxMicKey[keyIndex]);
@@ -5259,9 +5208,9 @@ struct zsMicVar* zfStaGetTxMicKey(zdev_t* dev, zbuf_t* buf)
 {
     zmw_get_wlan_dev(dev);
 
-    /* if need not check MIC, return NULL */
-    //if ( ((wd->sta.encryMode != ZM_TKIP)&&(wd->sta.encryMode != ZM_AES))||
-    //     (wd->sta.wpaState < ZM_STA_WPA_STATE_PK_OK) )
+    
+    
+    
     if ( (wd->sta.encryMode != ZM_TKIP) || (wd->sta.wpaState < ZM_STA_WPA_STATE_PK_OK) )
     {
         return NULL;
@@ -5274,16 +5223,16 @@ u16_t zfStaRxValidateFrame(zdev_t* dev, zbuf_t* buf)
 {
     u8_t   frameType, frameCtrl;
     u8_t   da0;
-    //u16_t  sa[3];
+    
     u16_t  ret;
     u16_t  i;
-    //u8_t    sa0;
+    
 
     zmw_get_wlan_dev(dev);
 
     frameType = zmw_rx_buf_readb(dev, buf, 0);
     da0 = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_A1_OFFSET);
-    //sa0 = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_A2_OFFSET);
+    
 
     if ( (!zfStaIsConnected(dev))&&((frameType & 0xf) == ZM_WLAN_DATA_FRAME) )
     {
@@ -5293,10 +5242,10 @@ u16_t zfStaRxValidateFrame(zdev_t* dev, zbuf_t* buf)
 
     if ( (zfStaIsConnected(dev))&&((frameType & 0xf) == ZM_WLAN_DATA_FRAME) )
     {
-        /* check BSSID */
+        
         if ( wd->wlanMode == ZM_MODE_INFRASTRUCTURE )
         {
-            /* Big Endian and Little Endian Compatibility */
+            
             u16_t mac[3];
             mac[0] = zmw_cpu_to_le16(wd->sta.bssid[0]);
             mac[1] = zmw_cpu_to_le16(wd->sta.bssid[1]);
@@ -5304,17 +5253,17 @@ u16_t zfStaRxValidateFrame(zdev_t* dev, zbuf_t* buf)
             if ( !zfRxBufferEqualToStr(dev, buf, (u8_t *)mac,
                                        ZM_WLAN_HEADER_A2_OFFSET, 6) )
             {
-/*We will get lots of garbage data, especially in AES mode.*/
-/*To avoid sending too many deauthentication frames in STA mode, mark it.*/
+
+
 #if 0
-                /* If unicast frame, send deauth to the transmitter */
+                
                 if (( da0 & 0x01 ) == 0)
                 {
                     for (i=0; i<3; i++)
                     {
                         sa[i] = zmw_rx_buf_readh(dev, buf, ZM_WLAN_HEADER_A2_OFFSET+(i*2));
                     }
-					/* If mutilcast address, don't send deauthentication*/
+					
 					if (( sa0 & 0x01 ) == 0)
 	                  	zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_DEAUTH, sa, 7, 0, 0);
                 }
@@ -5324,7 +5273,7 @@ u16_t zfStaRxValidateFrame(zdev_t* dev, zbuf_t* buf)
         }
         else if ( wd->wlanMode == ZM_MODE_IBSS )
         {
-            /* Big Endian and Little Endian Compatibility */
+            
             u16_t mac[3];
             mac[0] = zmw_cpu_to_le16(wd->sta.bssid[0]);
             mac[1] = zmw_cpu_to_le16(wd->sta.bssid[1]);
@@ -5338,11 +5287,11 @@ u16_t zfStaRxValidateFrame(zdev_t* dev, zbuf_t* buf)
 
         frameCtrl = zmw_rx_buf_readb(dev, buf, 1);
 
-        /* check security bit */
+        
         if ( wd->sta.dropUnencryptedPkts &&
              (wd->sta.wepStatus != ZM_ENCRYPTION_WEP_DISABLED )&&
              ( !(frameCtrl & ZM_BIT_6) ) )
-        {   /* security on, but got data without encryption */
+        {   
 
             #if 1
             ret = ZM_ERR_DATA_NOT_ENCRYPTED;
@@ -5393,24 +5342,24 @@ void zfStaMicFailureHandling(zdev_t* dev, zbuf_t* buf)
     if ( wd->sta.cmMicFailureCount == 1 )
     {
         zm_debug_msg0("get the first MIC failure");
-        //zfTimerSchedule(dev, ZM_EVENT_CM_TIMER, ZM_TICK_CM_TIMEOUT);
+        
 
-        /* Timer Resolution on WinXP is 15/16 ms  */
-        /* Decrease Time offset for <XP> Counter Measure */
+        
+        
         zfTimerSchedule(dev, ZM_EVENT_CM_TIMER, ZM_TICK_CM_TIMEOUT - ZM_TICK_CM_TIMEOUT_OFFSET);
     }
     else if ( wd->sta.cmMicFailureCount == 2 )
     {
         zm_debug_msg0("get the second MIC failure");
-        /* reserve 2 second for OS to send MIC failure report to AP */
+        
         wd->sta.cmDisallowSsidLength = wd->sta.ssidLen;
         zfMemoryCopy(wd->sta.cmDisallowSsid, wd->sta.ssid, wd->sta.ssidLen);
-        //wd->sta.cmMicFailureCount = 0;
+        
         zfTimerCancel(dev, ZM_EVENT_CM_TIMER);
-        //zfTimerSchedule(dev, ZM_EVENT_CM_DISCONNECT, ZM_TICK_CM_DISCONNECT);
+        
 
-        /* Timer Resolution on WinXP is 15/16 ms  */
-        /* Decrease Time offset for <XP> Counter Measure */
+        
+        
         zfTimerSchedule(dev, ZM_EVENT_CM_DISCONNECT, ZM_TICK_CM_DISCONNECT - ZM_TICK_CM_DISCONNECT_OFFSET);
     }
     else
@@ -5466,11 +5415,11 @@ void zfStaResetStatus(zdev_t* dev, u8_t bInit)
     wd->dtim = 1;
     wd->sta.capability[0] = 0x01;
     wd->sta.capability[1] = 0x00;
-    /* 802.11h */
+    
     if (wd->sta.DFSEnable || wd->sta.TPCEnable)
         wd->sta.capability[1] |= ZM_BIT_0;
 
-    /* release queued packets */
+    
     for(i=0; i<wd->sta.ibssPSDataCount; i++)
     {
         zfwBufFree(dev, wd->sta.ibssPSDataQueue[i], 0);
@@ -5504,7 +5453,7 @@ void zfStaIbssMonitoring(zdev_t* dev, u8_t reset)
 
     zmw_declare_for_critical_section();
 
-    //zm_debug_msg1("zfStaIbssMonitoring %d", wd->sta.oppositeCount);
+    
 
     zmw_enter_critical_section(dev);
 
@@ -5618,7 +5567,7 @@ u16_t zfStaAddIeCenc(zdev_t* dev, zbuf_t* buf, u16_t offset)
     }
     return offset;
 }
-#endif //ZM_ENABLE_CENC
+#endif 
 u16_t zfStaProcessAction(zdev_t* dev, zbuf_t* buf)
 {
     u8_t category, actionDetails;
@@ -5628,23 +5577,23 @@ u16_t zfStaProcessAction(zdev_t* dev, zbuf_t* buf)
     actionDetails = zmw_rx_buf_readb(dev, buf, 25);
     switch (category)
     {
-        case 0:		//Spectrum Management
+        case 0:		
 	        switch(actionDetails)
 	        {
-	        	case 0:			//Measurement Request
+	        	case 0:			
 	        		break;
-	        	case 1:			//Measurement Report
-	        		//ProcessActionSpectrumFrame_MeasurementReport(Adapter,pActionBody+3);
+	        	case 1:			
+	        		
 	        		break;
-	        	case 2:			//TPC request
-                    //if (wd->sta.TPCEnable)
-                    //    zfStaUpdateDot11HTPC(dev, buf);
+	        	case 2:			
+                    
+                    
 	        		break;
-	        	case 3:			//TPC report
-                    //if (wd->sta.TPCEnable)
-                    //    zfStaUpdateDot11HTPC(dev, buf);
+	        	case 3:			
+                    
+                    
 	        		break;
-	        	case 4:			//Channel Switch Announcement
+	        	case 4:			
                     if (wd->sta.DFSEnable)
                         zfStaUpdateDot11HDFS(dev, buf);
 	        		break;
@@ -5656,15 +5605,14 @@ u16_t zfStaProcessAction(zdev_t* dev, zbuf_t* buf)
         case ZM_WLAN_BLOCK_ACK_ACTION_FRAME:
             zfAggBlockAckActionFrame(dev, buf);
             break;
-        case 17:	//Qos Management
+        case 17:	
         	break;
     }
 
     return 0;
 }
 
-/* Determine the time not send beacon , if more than some value ,
-   re-write the beacon start address */
+
 void zfReWriteBeaconStartAddress(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
@@ -5672,12 +5620,12 @@ void zfReWriteBeaconStartAddress(zdev_t* dev)
     zmw_declare_for_critical_section();
 
     zmw_enter_critical_section(dev);
-    wd->tickIbssSendBeacon++;    // Increase 1 per 10ms .
+    wd->tickIbssSendBeacon++;    
     zmw_leave_critical_section(dev);
 
     if ( wd->tickIbssSendBeacon == 40 )
     {
-//        DbgPrint("20070727");
+
         zfHpEnableBeacon(dev, ZM_MODE_IBSS, wd->beaconInterval, wd->dtim, (u8_t)wd->sta.atimWindow);
         zmw_enter_critical_section(dev);
         wd->tickIbssSendBeacon = 0;
@@ -5692,7 +5640,7 @@ struct zsTkipSeed* zfStaGetRxSeed(zdev_t* dev, zbuf_t* buf)
 
     zmw_get_wlan_dev(dev);
 
-    /* if need not check MIC, return NULL */
+    
     if ( ((wd->sta.encryMode != ZM_TKIP)&&(wd->sta.encryMode != ZM_AES))||
          (wd->sta.wpaState < ZM_STA_WPA_STATE_PK_OK) )
     {
@@ -5702,9 +5650,9 @@ struct zsTkipSeed* zfStaGetRxSeed(zdev_t* dev, zbuf_t* buf)
     da0 = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_A1_OFFSET);
 
     if ((zmw_rx_buf_readb(dev, buf, 0) & 0x80) == 0x80)
-        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+5); /* Qos Packet*/
+        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+5); 
     else
-        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+3); /* normal Packet*/
+        keyIndex = zmw_rx_buf_readb(dev, buf, ZM_WLAN_HEADER_IV_OFFSET+3); 
     keyIndex = (keyIndex & 0xc0) >> 6;
 
     return (&wd->sta.rxSeed[keyIndex]);
@@ -5741,26 +5689,26 @@ u16_t zfComputeBssInfoWeightValue(zdev_t *dev, u8_t isBMode, u8_t isHT, u8_t isH
     zmw_get_wlan_dev(dev);
 
     if( isBMode == 0 )
-        return (signalStrength + weightOfB);    // pure b mode , do not add the weight value for this AP !
+        return (signalStrength + weightOfB);    
     else
     {
         if( isHT == 0 && isHT40 == 0 )
-        { // a , g , b/g mode ! add the weight value 15 for this AP if it's signal strength is more than some value !
-            if( signalStrength < 18 ) // -77 dBm
+        { 
+            if( signalStrength < 18 ) 
 				return signalStrength + weightOfAGBelowThr;
 			else
 				return (signalStrength + weightOfAGUpThr);
         }
         else if( isHT == 1 && isHT40 == 0 )
-        { // 80211n mode use 20MHz
-            if( signalStrength < 23 ) // -72 dBm
+        { 
+            if( signalStrength < 23 ) 
                 return (signalStrength + weightOfN20BelowThr);
             else
                 return (signalStrength + weightOfN20UpThr);
         }
-        else // isHT == 1 && isHT40 == 1
-        { // 80211n mode use 40MHz
-            if( signalStrength < 16 ) // -79 dBm
+        else 
+        { 
+            if( signalStrength < 16 ) 
                 return (signalStrength + weightOfN40BelowThr);
             else
                 return (signalStrength + weightOfN40UpThr);

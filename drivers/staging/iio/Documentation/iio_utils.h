@@ -1,11 +1,4 @@
-/* IIO - useful set of util functionality
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #define IIO_EVENT_CODE_RING_50_FULL 200
 #define IIO_EVENT_CODE_RING_75_FULL 201
@@ -66,12 +59,12 @@ char *find_type_by_name(const char *name, const char *type)
 	}
 	while (ent = readdir(dp), ent != NULL) {
 		cnt++;
-		/*reject . and .. */
+		
 		if (strcmp(ent->d_name, ".") != 0 &&
 		    strcmp(ent->d_name, "..") != 0)  {
-			/*make sure it isn't a trigger!*/
+			
 			if (strncmp(ent->d_name, type, strlen(type)) == 0) {
-				/* build full path to new file */
+				
 				pos2 = pos + sprintf(temp + pos, "%s/", ent->d_name);
 				sprintf(temp + pos2, "name");
 				printf("search location %s\n", temp);
@@ -112,12 +105,7 @@ int write_sysfs_int(char *filename, char *basedir, int val)
 	return 0;
 }
 
-/**
- * write_sysfs_string_and_verify() - string write, readback and verify
- * @filename: name of file to write to
- * @basedir: the sysfs directory in which the file is to be found
- * @val: the string to write
- **/
+
 int write_sysfs_string_and_verify(char *filename, char *basedir, char *val)
 {
 	int ret;

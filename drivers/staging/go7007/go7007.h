@@ -1,28 +1,9 @@
-/*
- * Copyright (C) 2005-2006 Micronas USA Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and the associated README documentation file (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
 
-/* DEPRECATED -- use V4L2_PIX_FMT_MPEG and then call GO7007IOC_S_MPEG_PARAMS
- * to select between MPEG1, MPEG2, and MPEG4 */
-#define V4L2_PIX_FMT_MPEG4     v4l2_fourcc('M', 'P', 'G', '4') /* MPEG4 */
 
-/* These will be replaced with a better interface
- * soon, so don't get too attached to them */
+
+#define V4L2_PIX_FMT_MPEG4     v4l2_fourcc('M', 'P', 'G', '4') 
+
+
 #define	GO7007IOC_S_BITRATE	_IOW('V', BASE_VIDIOC_PRIVATE + 0, int)
 #define	GO7007IOC_G_BITRATE	_IOR('V', BASE_VIDIOC_PRIVATE + 1, int)
 
@@ -34,7 +15,7 @@ enum go7007_aspect_ratio {
 	GO7007_ASPECT_RATIO_16_9_PAL = 4,
 };
 
-/* Used to set generic compression parameters */
+
 struct go7007_comp_params {
 	__u32 gop_size;
 	__u32 max_b_frames;
@@ -52,7 +33,7 @@ enum go7007_mpeg_video_standard {
 	GO7007_MPEG_VIDEO_MPEG4 = 2,
 };
 
-/* Used to set parameters for V4L2_PIX_FMT_MPEG format */
+
 struct go7007_mpeg_params {
 	enum go7007_mpeg_video_standard mpeg_video_standard;
 	__u32 flags;

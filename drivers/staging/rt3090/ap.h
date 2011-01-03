@@ -1,51 +1,13 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    ap.h
-
-    Abstract:
-    Miniport generic portion header file
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-    Paul Lin    08-01-2002    created
-    James Tan   09-06-2002    modified (Revise NTCRegTable)
-    John Chang  12-22-2004    modified for RT2561/2661. merge with STA driver
-*/
 #ifndef __AP_H__
 #define __AP_H__
 
 
-// =============================================================
-//      Function Prototypes
-// =============================================================
 
-// ap_data.c
+
+
+
+
 
 BOOLEAN APBridgeToWirelessSta(
     IN  PRTMP_ADAPTER   pAd,
@@ -103,7 +65,7 @@ VOID    RTMPFrameEndianChange(
     IN  ULONG           Dir,
     IN  BOOLEAN         FromRxDoneInt);
 
-// ap_assoc.c
+
 
 VOID APAssocStateMachineInit(
     IN  PRTMP_ADAPTER   pAd,
@@ -154,24 +116,14 @@ USHORT APBuildAssociation(
     IN ULONG  RalinkIe,
 #ifdef DOT11N_DRAFT3
     IN EXT_CAP_INFO_ELEMENT ExtCapInfo,
-#endif // DOT11N_DRAFT3 //
+#endif 
 	IN HT_CAPABILITY_IE		*pHtCapability,
 	IN UCHAR		 HtCapabilityLen,
     OUT USHORT *pAid);
 
-/*
-VOID	RTMPAddClientSec(
-	IN	PRTMP_ADAPTER	pAd,
-	IN	UCHAR	BssIdx,
-	IN UCHAR		 KeyIdx,
-	IN UCHAR		 CipherAlg,
-	IN PUCHAR		 pKey,
-	IN PUCHAR		 pTxMic,
-	IN PUCHAR		 pRxMic,
-	IN MAC_TABLE_ENTRY *pEntry);
-*/
 
-// ap_auth.c
+
+
 
 void APAuthStateMachineInit(
     IN PRTMP_ADAPTER pAd,
@@ -183,7 +135,7 @@ VOID APCls2errAction(
 	IN	ULONG Wcid,
     IN	PHEADER_802_11	pHeader);
 
-// ap_connect.c
+
 
 
 VOID APMakeBssBeacon(
@@ -201,7 +153,7 @@ VOID  APUpdateAllBeaconFrame(
     IN  PRTMP_ADAPTER   pAd);
 
 
-// ap_sync.c
+
 
 VOID APSyncStateMachineInit(
     IN PRTMP_ADAPTER pAd,
@@ -263,15 +215,15 @@ BOOLEAN ApScanRunning(
 #ifdef DOT11N_DRAFT3
 VOID APOverlappingBSSScan(
 	IN RTMP_ADAPTER *pAd);
-#endif // DOT11N_DRAFT3 //
+#endif 
 
-// ap_wpa.c
+
 VOID WpaStateMachineInit(
     IN  PRTMP_ADAPTER   pAd,
     IN  STATE_MACHINE *Sm,
     OUT STATE_MACHINE_FUNC Trans[]);
 
-// ap_mlme.c
+
 VOID APMlmePeriodicExec(
     IN  PRTMP_ADAPTER   pAd);
 
@@ -319,7 +271,7 @@ VOID APAsicEvaluateRxAnt(
 VOID APAsicRxAntEvalTimeout(
 	IN PRTMP_ADAPTER	pAd);
 
-// ap.c
+
 
 VOID APSwitchChannel(
 	IN PRTMP_ADAPTER pAd,
@@ -387,7 +339,7 @@ VOID ApLogEvent(
 #ifdef DOT11_N_SUPPORT
 VOID APUpdateOperationMode(
     IN PRTMP_ADAPTER pAd);
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 VOID APUpdateCapabilityAndErpIe(
 	IN PRTMP_ADAPTER pAd);
@@ -424,7 +376,7 @@ VOID ApEnqueueAckFrame(
     IN UCHAR         TxRate,
 	IN UCHAR         apidx);
 
-// ap_sanity.c
+
 
 
 BOOLEAN PeerAssocReqCmmSanity(
@@ -446,7 +398,7 @@ BOOLEAN PeerAssocReqCmmSanity(
     OUT ULONG  *pRalinkIe,
 #ifdef DOT11N_DRAFT3
     OUT EXT_CAP_INFO_ELEMENT	*pExtCapInfo,
-#endif // DOT11N_DRAFT3 //
+#endif 
     OUT UCHAR		 *pHtCapabilityLen,
     OUT HT_CAPABILITY_IE *pHtCapability);
 
@@ -509,4 +461,4 @@ VOID EnableAPMIMOPS(
 VOID DisableAPMIMOPS(
     IN PRTMP_ADAPTER pAd);
 #endif
-#endif  // __AP_H__
+#endif  

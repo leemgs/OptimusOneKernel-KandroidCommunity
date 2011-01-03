@@ -1,23 +1,4 @@
-/*
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- */
+
 #include <linux/kernel.h>
 #include <linux/highmem.h>
 #include <linux/io.h>
@@ -26,9 +7,9 @@
 #include "NetVscApi.h"
 #include "RndisFilter.h"
 
-/* Data types */
+
 struct rndis_filter_driver_object {
-	/* The original driver */
+	
 	struct netvsc_driver InnerDriver;
 };
 
@@ -56,17 +37,13 @@ struct rndis_request {
 	struct list_head ListEntry;
 	struct osd_waitevent *WaitEvent;
 
-	/*
-	 * FIXME: We assumed a fixed size response here. If we do ever need to
-	 * handle a bigger response, we can either define a max response
-	 * message or add a response buffer variable above this field
-	 */
+	
 	struct rndis_message ResponseMessage;
 
-	/* Simplify allocation by having a netvsc packet inline */
+	
 	struct hv_netvsc_packet	Packet;
 	struct hv_page_buffer Buffer;
-	/* FIXME: We assumed a fixed size request here. */
+	
 	struct rndis_message RequestMessage;
 };
 
@@ -97,7 +74,7 @@ static void RndisFilterOnSendCompletion(void *Context);
 static void RndisFilterOnSendRequestCompletion(void *Context);
 
 
-/* The one and only */
+
 static struct rndis_filter_driver_object gRndisFilter;
 
 static struct rndis_device *GetRndisDevice(void)
@@ -140,15 +117,11 @@ static struct rndis_request *GetRndisRequest(struct rndis_device *Device,
 	rndisMessage->NdisMessageType = MessageType;
 	rndisMessage->MessageLength = MessageLength;
 
-	/*
-	 * Set the request id. This field is always after the rndis header for
-	 * request/response packet types so we just used the SetRequest as a
-	 * template
-	 */
+	
 	set = &rndisMessage->Message.SetRequest;
 	set->RequestId = atomic_inc_return(&Device->NewRequestId);
 
-	/* Add to the request list */
+	
 	spin_lock_irqsave(&Device->request_lock, flags);
 	list_add_tail(&request->ListEntry, &Device->RequestList);
 	spin_unlock_irqrestore(&Device->request_lock, flags);
@@ -247,7 +220,7 @@ static int RndisFilterSendRequest(struct rndis_device *Device,
 
 	DPRINT_ENTER(NETVSC);
 
-	/* Setup the packet to send it */
+	
 	packet = &Request->Packet;
 
 	packet->IsDataPacket = false;
@@ -260,7 +233,7 @@ static int RndisFilterSendRequest(struct rndis_device *Device,
 	packet->PageBuffers[0].Offset =
 		(unsigned long)&Request->RequestMessage & (PAGE_SIZE - 1);
 
-	packet->Completion.Send.SendCompletionContext = Request;/* packet; */
+	packet->Completion.Send.SendCompletionContext = Request;
 	packet->Completion.Send.OnSendCompletion =
 		RndisFilterOnSendRequestCompletion;
 	packet->Completion.Send.SendCompletionTid = (unsigned long)Device;
@@ -281,10 +254,7 @@ static void RndisFilterReceiveResponse(struct rndis_device *Device,
 
 	spin_lock_irqsave(&Device->request_lock, flags);
 	list_for_each_entry(request, &Device->RequestList, ListEntry) {
-		/*
-		 * All request/response message contains RequestId as the 1st
-		 * field
-		 */
+		
 		if (request->RequestMessage.Message.InitializeRequest.RequestId
 		    == Response->Message.InitializeComplete.RequestId) {
 			DPRINT_DBG(NETVSC, "found rndis request for "
@@ -312,7 +282,7 @@ static void RndisFilterReceiveResponse(struct rndis_device *Device,
 
 			if (Response->NdisMessageType ==
 			    REMOTE_NDIS_RESET_CMPLT) {
-				/* does not have a request id field */
+				
 				request->ResponseMessage.Message.ResetComplete.Status = STATUS_BUFFER_OVERFLOW;
 			} else {
 				request->ResponseMessage.Message.InitializeComplete.Status = STATUS_BUFFER_OVERFLOW;
@@ -341,9 +311,7 @@ static void RndisFilterReceiveIndicateStatus(struct rndis_device *Device,
 	} else if (indicate->Status == RNDIS_STATUS_MEDIA_DISCONNECT) {
 		gRndisFilter.InnerDriver.OnLinkStatusChanged(Device->NetDevice->Device, 0);
 	} else {
-		/*
-		 * TODO:
-		 */
+		
 	}
 }
 
@@ -356,18 +324,15 @@ static void RndisFilterReceiveData(struct rndis_device *Device,
 
 	DPRINT_ENTER(NETVSC);
 
-	/* empty ethernet frame ?? */
+	
 	ASSERT(Packet->PageBuffers[0].Length >
 		RNDIS_MESSAGE_SIZE(struct rndis_packet));
 
 	rndisPacket = &Message->Message.Packet;
 
-	/*
-	 * FIXME: Handle multiple rndis pkt msgs that maybe enclosed in this
-	 * netvsc packet (ie TotalDataBufferLength != MessageLength)
-	 */
+	
 
-	/* Remove the rndis header and pass it back up the stack */
+	
 	dataOffset = RNDIS_HEADER_SIZE + rndisPacket->DataOffset;
 
 	Packet->TotalDataBufferLength -= dataOffset;
@@ -393,7 +358,7 @@ static int RndisFilterOnReceive(struct hv_device *Device,
 	DPRINT_ENTER(NETVSC);
 
 	ASSERT(netDevice);
-	/* Make sure the rndis device state is initialized */
+	
 	if (!netDevice->Extension) {
 		DPRINT_ERR(NETVSC, "got rndis message but no rndis device..."
 			  "dropping this message!");
@@ -415,12 +380,8 @@ static int RndisFilterOnReceive(struct hv_device *Device,
 	rndisHeader = (void *)((unsigned long)rndisHeader +
 			Packet->PageBuffers[0].Offset);
 
-	/* Make sure we got a valid rndis message */
-	/*
-	 * FIXME: There seems to be a bug in set completion msg where its
-	 * MessageLength is 16 bytes but the ByteCount field in the xfer page
-	 * range shows 52 bytes
-	 * */
+	
+	
 #if 0
 	if (Packet->TotalDataBufferLength != rndisHeader->MessageLength) {
 		kunmap_atomic(rndisHeader - Packet->PageBuffers[0].Offset,
@@ -454,21 +415,21 @@ static int RndisFilterOnReceive(struct hv_device *Device,
 
 	switch (rndisMessage.NdisMessageType) {
 	case REMOTE_NDIS_PACKET_MSG:
-		/* data msg */
+		
 		RndisFilterReceiveData(rndisDevice, &rndisMessage, Packet);
 		break;
 
 	case REMOTE_NDIS_INITIALIZE_CMPLT:
 	case REMOTE_NDIS_QUERY_CMPLT:
 	case REMOTE_NDIS_SET_CMPLT:
-	/* case REMOTE_NDIS_RESET_CMPLT: */
-	/* case REMOTE_NDIS_KEEPALIVE_CMPLT: */
-		/* completion msgs */
+	
+	
+		
 		RndisFilterReceiveResponse(rndisDevice, &rndisMessage);
 		break;
 
 	case REMOTE_NDIS_INDICATE_STATUS_MSG:
-		/* notification msgs */
+		
 		RndisFilterReceiveIndicateStatus(rndisDevice, &rndisMessage);
 		break;
 	default:
@@ -503,7 +464,7 @@ static int RndisFilterQueryDevice(struct rndis_device *Device, u32 Oid,
 		goto Cleanup;
 	}
 
-	/* Setup the rndis query */
+	
 	query = &request->RequestMessage.Message.QueryRequest;
 	query->Oid = Oid;
 	query->InformationBufferOffset = sizeof(struct rndis_query_request);
@@ -516,7 +477,7 @@ static int RndisFilterQueryDevice(struct rndis_device *Device, u32 Oid,
 
 	osd_WaitEventWait(request->WaitEvent);
 
-	/* Copy the response back */
+	
 	queryComplete = &request->ResponseMessage.Message.QueryComplete;
 
 	if (queryComplete->InformationBufferLength > inresultSize) {
@@ -579,7 +540,7 @@ static int RndisFilterSetPacketFilter(struct rndis_device *Device,
 		goto Cleanup;
 	}
 
-	/* Setup the rndis set */
+	
 	set = &request->RequestMessage.Message.SetRequest;
 	set->Oid = RNDIS_OID_GEN_CURRENT_PACKET_FILTER;
 	set->InformationBufferLength = sizeof(u32);
@@ -592,14 +553,11 @@ static int RndisFilterSetPacketFilter(struct rndis_device *Device,
 	if (ret != 0)
 		goto Cleanup;
 
-	ret = osd_WaitEventWaitEx(request->WaitEvent, 2000/*2sec*/);
+	ret = osd_WaitEventWaitEx(request->WaitEvent, 2000);
 	if (!ret) {
 		ret = -1;
 		DPRINT_ERR(NETVSC, "timeout before we got a set response...");
-		/*
-		 * We cant deallocate the request since we may still receive a
-		 * send completion for it.
-		 */
+		
 		goto Exit;
 	} else {
 		if (ret > 0)
@@ -625,18 +583,15 @@ int RndisFilterInit(struct netvsc_driver *Driver)
 		   sizeof(struct rndis_filter_packet));
 
 	Driver->RequestExtSize = sizeof(struct rndis_filter_packet);
-	Driver->AdditionalRequestPageBufferCount = 1; /* For rndis header */
+	Driver->AdditionalRequestPageBufferCount = 1; 
 
-	/* Driver->Context = rndisDriver; */
+	
 
 	memset(&gRndisFilter, 0, sizeof(struct rndis_filter_driver_object));
 
-	/*rndisDriver->Driver = Driver;
+	
 
-	ASSERT(Driver->OnLinkStatusChanged);
-	rndisDriver->OnLinkStatusChanged = Driver->OnLinkStatusChanged;*/
-
-	/* Save the original dispatch handlers before we override it */
+	
 	gRndisFilter.InnerDriver.Base.OnDeviceAdd = Driver->Base.OnDeviceAdd;
 	gRndisFilter.InnerDriver.Base.OnDeviceRemove =
 					Driver->Base.OnDeviceRemove;
@@ -649,14 +604,14 @@ int RndisFilterInit(struct netvsc_driver *Driver)
 	gRndisFilter.InnerDriver.OnLinkStatusChanged =
 					Driver->OnLinkStatusChanged;
 
-	/* Override */
+	
 	Driver->Base.OnDeviceAdd = RndisFilterOnDeviceAdd;
 	Driver->Base.OnDeviceRemove = RndisFilterOnDeviceRemove;
 	Driver->Base.OnCleanup = RndisFilterOnCleanup;
 	Driver->OnSend = RndisFilterOnSend;
 	Driver->OnOpen = RndisFilterOnOpen;
 	Driver->OnClose = RndisFilterOnClose;
-	/* Driver->QueryLinkStatus = RndisFilterQueryDeviceLinkStatus; */
+	
 	Driver->OnReceiveCallback = RndisFilterOnReceive;
 
 	DPRINT_EXIT(NETVSC);
@@ -681,11 +636,11 @@ static int RndisFilterInitDevice(struct rndis_device *Device)
 		goto Cleanup;
 	}
 
-	/* Setup the rndis set */
+	
 	init = &request->RequestMessage.Message.InitializeRequest;
 	init->MajorVersion = RNDIS_MAJOR_VERSION;
 	init->MinorVersion = RNDIS_MINOR_VERSION;
-	/* FIXME: Use 1536 - rounded ethernet frame size */
+	
 	init->MaxTransferSize = 2048;
 
 	Device->State = RNDIS_DEV_INITIALIZING;
@@ -723,17 +678,17 @@ static void RndisFilterHaltDevice(struct rndis_device *Device)
 
 	DPRINT_ENTER(NETVSC);
 
-	/* Attempt to do a rndis device halt */
+	
 	request = GetRndisRequest(Device, REMOTE_NDIS_HALT_MSG,
 				RNDIS_MESSAGE_SIZE(struct rndis_halt_request));
 	if (!request)
 		goto Cleanup;
 
-	/* Setup the rndis set */
+	
 	halt = &request->RequestMessage.Message.HaltRequest;
 	halt->RequestId = atomic_inc_return(&Device->NewRequestId);
 
-	/* Ignore return since this msg is optional. */
+	
 	RndisFilterSendRequest(Device, request);
 
 	Device->State = RNDIS_DEV_UNINITIALIZED;
@@ -800,11 +755,7 @@ static int RndisFilterOnDeviceAdd(struct hv_device *Device,
 
 	DPRINT_DBG(NETVSC, "rndis device object allocated - %p", rndisDevice);
 
-	/*
-	 * Let the inner driver handle this first to create the netvsc channel
-	 * NOTE! Once the channel is created, we may get a receive callback
-	 * (RndisFilterOnReceive()) before this call is completed
-	 */
+	
 	ret = gRndisFilter.InnerDriver.Base.OnDeviceAdd(Device, AdditionalInfo);
 	if (ret != 0) {
 		kfree(rndisDevice);
@@ -813,7 +764,7 @@ static int RndisFilterOnDeviceAdd(struct hv_device *Device,
 	}
 
 
-	/* Initialize the rndis device */
+	
 	netDevice = Device->Extension;
 	ASSERT(netDevice);
 	ASSERT(netDevice->Device);
@@ -821,21 +772,16 @@ static int RndisFilterOnDeviceAdd(struct hv_device *Device,
 	netDevice->Extension = rndisDevice;
 	rndisDevice->NetDevice = netDevice;
 
-	/* Send the rndis initialization message */
+	
 	ret = RndisFilterInitDevice(rndisDevice);
 	if (ret != 0) {
-		/*
-		 * TODO: If rndis init failed, we will need to shut down the
-		 * channel
-		 */
+		
 	}
 
-	/* Get the mac address */
+	
 	ret = RndisFilterQueryDeviceMac(rndisDevice);
 	if (ret != 0) {
-		/*
-		 * TODO: shutdown rndis device and the channel
-		 */
+		
 	}
 
 	DPRINT_INFO(NETVSC, "Device 0x%p mac addr %02x%02x%02x%02x%02x%02x",
@@ -867,13 +813,13 @@ static int RndisFilterOnDeviceRemove(struct hv_device *Device)
 
 	DPRINT_ENTER(NETVSC);
 
-	/* Halt and release the rndis device */
+	
 	RndisFilterHaltDevice(rndisDevice);
 
 	kfree(rndisDevice);
 	netDevice->Extension = NULL;
 
-	/* Pass control to inner driver to remove the device */
+	
 	gRndisFilter.InnerDriver.Base.OnDeviceRemove(Device);
 
 	DPRINT_EXIT(NETVSC);
@@ -929,7 +875,7 @@ static int RndisFilterOnSend(struct hv_device *Device,
 
 	DPRINT_ENTER(NETVSC);
 
-	/* Add the rndis header */
+	
 	filterPacket = (struct rndis_filter_packet *)Packet->Extension;
 	ASSERT(filterPacket);
 
@@ -952,21 +898,18 @@ static int RndisFilterOnSend(struct hv_device *Device,
 			(unsigned long)rndisMessage & (PAGE_SIZE-1);
 	Packet->PageBuffers[0].Length = rndisMessageSize;
 
-	/* Save the packet send completion and context */
+	
 	filterPacket->OnCompletion = Packet->Completion.Send.OnSendCompletion;
 	filterPacket->CompletionContext =
 				Packet->Completion.Send.SendCompletionContext;
 
-	/* Use ours */
+	
 	Packet->Completion.Send.OnSendCompletion = RndisFilterOnSendCompletion;
 	Packet->Completion.Send.SendCompletionContext = filterPacket;
 
 	ret = gRndisFilter.InnerDriver.OnSend(Device, Packet);
 	if (ret != 0) {
-		/*
-		 * Reset the completion to originals to allow retries from
-		 * above
-		 */
+		
 		Packet->Completion.Send.OnSendCompletion =
 				filterPacket->OnCompletion;
 		Packet->Completion.Send.SendCompletionContext =
@@ -984,7 +927,7 @@ static void RndisFilterOnSendCompletion(void *Context)
 
 	DPRINT_ENTER(NETVSC);
 
-	/* Pass it back to the original handler */
+	
 	filterPacket->OnCompletion(filterPacket->CompletionContext);
 
 	DPRINT_EXIT(NETVSC);
@@ -995,6 +938,6 @@ static void RndisFilterOnSendRequestCompletion(void *Context)
 {
 	DPRINT_ENTER(NETVSC);
 
-	/* Noop */
+	
 	DPRINT_EXIT(NETVSC);
 }

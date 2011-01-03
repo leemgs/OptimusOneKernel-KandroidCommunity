@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/fs.h>
@@ -69,9 +56,7 @@ static void __pohmelfs_name_del(struct pohmelfs_inode *parent, struct pohmelfs_n
 	rb_erase(&node->hash_node, &parent->hash_root);
 }
 
-/*
- * Remove name cache entry from its caches and free it.
- */
+
 static void pohmelfs_name_free(struct pohmelfs_inode *parent, struct pohmelfs_name *node)
 {
 	__pohmelfs_name_del(parent, node);
@@ -118,9 +103,7 @@ static struct pohmelfs_name *pohmelfs_insert_hash(struct pohmelfs_inode *pi,
 	return NULL;
 }
 
-/*
- * Free name cache for given inode.
- */
+
 void pohmelfs_free_names(struct pohmelfs_inode *parent)
 {
 	struct rb_node *rb_node;
@@ -139,18 +122,14 @@ static void pohmelfs_fix_offset(struct pohmelfs_inode *parent, struct pohmelfs_n
 	parent->total_len -= node->len;
 }
 
-/*
- * Free name cache entry helper.
- */
+
 void pohmelfs_name_del(struct pohmelfs_inode *parent, struct pohmelfs_name *node)
 {
 	pohmelfs_fix_offset(parent, node);
 	pohmelfs_name_free(parent, node);
 }
 
-/*
- * Insert new name cache entry into all hash cache.
- */
+
 static int pohmelfs_insert_name(struct pohmelfs_inode *parent, struct pohmelfs_name *n)
 {
 	struct pohmelfs_name *name;
@@ -165,9 +144,7 @@ static int pohmelfs_insert_name(struct pohmelfs_inode *parent, struct pohmelfs_n
 	return 0;
 }
 
-/*
- * Allocate new name cache entry.
- */
+
 static struct pohmelfs_name *pohmelfs_name_alloc(unsigned int len)
 {
 	struct pohmelfs_name *n;
@@ -183,9 +160,7 @@ static struct pohmelfs_name *pohmelfs_name_alloc(unsigned int len)
 	return n;
 }
 
-/*
- * Add new name entry into directory's cache.
- */
+
 static int pohmelfs_add_dir(struct pohmelfs_sb *psb, struct pohmelfs_inode *parent,
 		struct pohmelfs_inode *npi, struct qstr *str, unsigned int mode, int link)
 {
@@ -220,10 +195,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Create new inode for given parameters (name, inode info, parent).
- * This does not create object on the server, it will be synced there during writeback.
- */
+
 struct pohmelfs_inode *pohmelfs_new_inode(struct pohmelfs_sb *psb,
 		struct pohmelfs_inode *parent, struct qstr *str,
 		struct netfs_inode_info *info, int link)
@@ -319,11 +291,7 @@ static int pohmelfs_remote_sync_complete(struct page **pages, unsigned int page_
 	return err;
 }
 
-/*
- * Receive directory content from the server.
- * This should be only done for objects, which were not created locally,
- * and which were not synced previously.
- */
+
 static int pohmelfs_sync_remote_dir(struct pohmelfs_inode *pi)
 {
 	struct inode *inode = &pi->vfs_inode;
@@ -375,10 +343,7 @@ static int pohmelfs_dir_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
- * VFS readdir callback. Syncs directory content from server if needed,
- * and provides direntry info to the userspace.
- */
+
 static int pohmelfs_readdir(struct file *file, void *dirent, filldir_t filldir)
 {
 	struct inode *inode = file->f_path.dentry->d_inode;
@@ -455,9 +420,7 @@ const struct file_operations pohmelfs_dir_fops = {
 	.readdir = pohmelfs_readdir,
 };
 
-/*
- * Lookup single object on server.
- */
+
 static int pohmelfs_lookup_single(struct pohmelfs_inode *parent,
 		struct qstr *str, u64 ino)
 {
@@ -494,14 +457,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * VFS lookup callback.
- * We first try to get inode number from local name cache, if we have one,
- * then inode can be found in inode cache. If there is no inode or no object in
- * local cache, try to lookup it on server. This only should be done for directories,
- * which were not created locally, otherwise remote server does not know about dir at all,
- * so no need to try to know that.
- */
+
 struct dentry *pohmelfs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
 {
 	struct pohmelfs_inode *parent = POHMELFS_I(dir);
@@ -573,7 +529,7 @@ struct dentry *pohmelfs_lookup(struct inode *dir, struct dentry *dentry, struct 
 		if (!inode) {
 			dprintk("%s: No inode for ino: %lu, name: '%s', hash: %x.\n",
 				__func__, ino, str.name, str.hash);
-			/* return NULL; */
+			
 			return ERR_PTR(-EACCES);
 		}
 	} else {
@@ -584,10 +540,7 @@ out:
 	return d_splice_alias(inode, dentry);
 }
 
-/*
- * Create new object in local cache. Object will be synced to server
- * during writeback for given inode.
- */
+
 struct pohmelfs_inode *pohmelfs_create_entry_local(struct pohmelfs_sb *psb,
 	struct pohmelfs_inode *parent, struct qstr *str, u64 start, int mode)
 {
@@ -626,9 +579,7 @@ err_out_unlock:
 	return ERR_PTR(err);
 }
 
-/*
- * Create local object and bind it to dentry.
- */
+
 static int pohmelfs_create_entry(struct inode *dir, struct dentry *dentry, u64 start, int mode)
 {
 	struct pohmelfs_sb *psb = POHMELFS_SB(dir->i_sb);
@@ -657,9 +608,7 @@ static int pohmelfs_create_entry(struct inode *dir, struct dentry *dentry, u64 s
 	return 0;
 }
 
-/*
- * VFS create and mkdir callbacks.
- */
+
 static int pohmelfs_create(struct inode *dir, struct dentry *dentry, int mode,
 		struct nameidata *nd)
 {
@@ -728,9 +677,7 @@ static int pohmelfs_remove_entry(struct inode *dir, struct dentry *dentry)
 	return err;
 }
 
-/*
- * Unlink and rmdir VFS callbacks.
- */
+
 static int pohmelfs_unlink(struct inode *dir, struct dentry *dentry)
 {
 	return pohmelfs_remove_entry(dir, dentry);
@@ -754,11 +701,7 @@ static int pohmelfs_rmdir(struct inode *dir, struct dentry *dentry)
 	return err;
 }
 
-/*
- * Link creation is synchronous.
- * I'm lazy.
- * Earth is somewhat round.
- */
+
 static int pohmelfs_create_link(struct pohmelfs_inode *parent, struct qstr *obj,
 		struct pohmelfs_inode *target, struct qstr *tstr)
 {
@@ -812,7 +755,7 @@ static int pohmelfs_create_link(struct pohmelfs_inode *parent, struct qstr *obj,
 
 	err = pohmelfs_construct_path_string(parent, data, parent_len);
 	if (err > 0) {
-		/* Do not place null-byte before the slash */
+		
 		path_size = err - 1;
 		cur_len -= path_size;
 
@@ -821,7 +764,7 @@ static int pohmelfs_create_link(struct pohmelfs_inode *parent, struct qstr *obj,
 		path_size += err;
 		cur_len -= err;
 
-		cmd->ext = path_size - 1; /* No | symbol */
+		cmd->ext = path_size - 1; 
 
 		if (target) {
 			err = pohmelfs_construct_path_string(target, data + path_size, target_len);
@@ -843,7 +786,7 @@ static int pohmelfs_create_link(struct pohmelfs_inode *parent, struct qstr *obj,
 			goto err_out_free;
 		}
 
-		err = snprintf(data + path_size, cur_len, "%s", tstr->name) + 1; /* 0-byte */
+		err = snprintf(data + path_size, cur_len, "%s", tstr->name) + 1; 
 		path_size += err;
 		cur_len -= err;
 		cmd->start = 1;
@@ -874,9 +817,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- *  VFS hard and soft link callbacks.
- */
+
 static int pohmelfs_link(struct dentry *old_dentry, struct inode *dir,
 	struct dentry *dentry)
 {
@@ -975,9 +916,7 @@ static int pohmelfs_send_rename(struct pohmelfs_inode *pi, struct pohmelfs_inode
 	if (err < 0)
 		goto err_out_unlock;
 
-	/*
-	 * Do not place a null-byte before the final slash and the name.
-	 */
+	
 	err--;
 	path += err;
 	total_len += err;
@@ -985,7 +924,7 @@ static int pohmelfs_send_rename(struct pohmelfs_inode *pi, struct pohmelfs_inode
 
 	err = snprintf(path, path_len - 1, "/%s", str->name);
 
-	total_len += err + 1; /* 0 symbol */
+	total_len += err + 1; 
 	path_len -= err + 1;
 
 	cmd->cmd = NETFS_RENAME;
@@ -1087,9 +1026,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * POHMELFS directory inode operations.
- */
+
 const struct inode_operations pohmelfs_dir_inode_ops = {
 	.link		= pohmelfs_link,
 	.symlink	= pohmelfs_symlink,

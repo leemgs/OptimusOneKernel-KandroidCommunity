@@ -1,6 +1,4 @@
-/*
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- */
+
 
 #include <linux/delay.h>
 #include <linux/types.h>
@@ -15,7 +13,7 @@
 #define S5K3E2FX_REG_MODEL_ID   0x0000
 #define S5K3E2FX_MODEL_ID   		0x3E2F
 
-/* PLL Registers */
+
 #define REG_PRE_PLL_CLK_DIV       		0x0305
 #define REG_PLL_MULTIPLIER_MSB    		0x0306
 #define REG_PLL_MULTIPLIER_LSB    		0x0307
@@ -24,40 +22,40 @@
 #define REG_OP_PIX_CLK_DIV        		0x0309
 #define REG_OP_SYS_CLK_DIV        		0x030B
 
-/* Data Format Registers */
+
 #define REG_CCP_DATA_FORMAT_MSB   		0x0112
 #define REG_CCP_DATA_FORMAT_LSB   		0x0113
 
-/* Output Size */
+
 #define REG_X_OUTPUT_SIZE_MSB     		0x034C
 #define REG_X_OUTPUT_SIZE_LSB     		0x034D
 #define REG_Y_OUTPUT_SIZE_MSB     		0x034E
 #define REG_Y_OUTPUT_SIZE_LSB     		0x034F
 
-/* Binning */
+
 #define REG_X_EVEN_INC            		0x0381
 #define REG_X_ODD_INC             		0x0383
 #define REG_Y_EVEN_INC            		0x0385
 #define REG_Y_ODD_INC             		0x0387
-/*Reserved register */
+
 #define REG_BINNING_ENABLE        		0x3014
 
-/* Frame Fotmat */
+
 #define REG_FRAME_LENGTH_LINES_MSB		0x0340
 #define REG_FRAME_LENGTH_LINES_LSB		0x0341
 #define REG_LINE_LENGTH_PCK_MSB   		0x0342
 #define REG_LINE_LENGTH_PCK_LSB   		0x0343
 
-/* MSR setting */
-/* Reserved registers */
+
+
 #define REG_SHADE_CLK_ENABLE      		0x30AC
 #define REG_SEL_CCP               		0x30C4
 #define REG_VPIX                  		0x3024
 #define REG_CLAMP_ON              		0x3015
 #define REG_OFFSET                		0x307E
 
-/* CDS timing settings */
-/* Reserved registers */
+
+
 #define REG_LD_START              		0x3000
 #define REG_LD_END                		0x3001
 #define REG_SL_START              		0x3002
@@ -89,67 +87,67 @@
 #define REG_COARSE_INTEGRATION_TIME   		0x0202
 #define REG_COARSE_INTEGRATION_TIME_LSB   0x0203
 
-/* Mode select register */
+
 #define S5K3E2FX_REG_MODE_SELECT  		0x0100
-#define S5K3E2FX_MODE_SELECT_STREAM 		0x01   /* start streaming */
-#define S5K3E2FX_MODE_SELECT_SW_STANDBY 0x00   /* software standby */
+#define S5K3E2FX_MODE_SELECT_STREAM 		0x01   
+#define S5K3E2FX_MODE_SELECT_SW_STANDBY 0x00   
 #define S5K3E2FX_REG_SOFTWARE_RESET   0x0103
 #define S5K3E2FX_SOFTWARE_RESET     		0x01
 #define REG_TEST_PATTERN_MODE     		0x0601
 
 struct reg_struct {
-	uint8_t pre_pll_clk_div;               /* 0x0305 */
-	uint8_t pll_multiplier_msb;            /* 0x0306 */
-	uint8_t pll_multiplier_lsb;            /* 0x0307 */
-	uint8_t vt_pix_clk_div;                /* 0x0301 */
-	uint8_t vt_sys_clk_div;                /* 0x0303 */
-	uint8_t op_pix_clk_div;                /* 0x0309 */
-	uint8_t op_sys_clk_div;                /* 0x030B */
-	uint8_t ccp_data_format_msb;           /* 0x0112 */
-	uint8_t ccp_data_format_lsb;           /* 0x0113 */
-	uint8_t x_output_size_msb;             /* 0x034C */
-	uint8_t x_output_size_lsb;             /* 0x034D */
-	uint8_t y_output_size_msb;             /* 0x034E */
-	uint8_t y_output_size_lsb;             /* 0x034F */
-	uint8_t x_even_inc;                    /* 0x0381 */
-	uint8_t x_odd_inc;                     /* 0x0383 */
-	uint8_t y_even_inc;                    /* 0x0385 */
-	uint8_t y_odd_inc;                     /* 0x0387 */
-	uint8_t binning_enable;                /* 0x3014 */
-	uint8_t frame_length_lines_msb;        /* 0x0340 */
-	uint8_t frame_length_lines_lsb;        /* 0x0341 */
-	uint8_t line_length_pck_msb;           /* 0x0342 */
-	uint8_t line_length_pck_lsb;           /* 0x0343 */
-	uint8_t shade_clk_enable ;             /* 0x30AC */
-	uint8_t sel_ccp;                       /* 0x30C4 */
-	uint8_t vpix;                          /* 0x3024 */
-	uint8_t clamp_on;                      /* 0x3015 */
-	uint8_t offset;                        /* 0x307E */
-	uint8_t ld_start;                      /* 0x3000 */
-	uint8_t ld_end;                        /* 0x3001 */
-	uint8_t sl_start;                      /* 0x3002 */
-	uint8_t sl_end;                        /* 0x3003 */
-	uint8_t rx_start;                      /* 0x3004 */
-	uint8_t s1_start;                      /* 0x3005 */
-	uint8_t s1_end;                        /* 0x3006 */
-	uint8_t s1s_start;                     /* 0x3007 */
-	uint8_t s1s_end;                       /* 0x3008 */
-	uint8_t s3_start;                      /* 0x3009 */
-	uint8_t s3_end;                        /* 0x300A */
-	uint8_t cmp_en_start;                  /* 0x300B */
-	uint8_t clp_sl_start;                  /* 0x300C */
-	uint8_t clp_sl_end;                    /* 0x300D */
-	uint8_t off_start;                     /* 0x300E */
-	uint8_t rmp_en_start;                  /* 0x300F */
-	uint8_t tx_start;                      /* 0x3010 */
-	uint8_t tx_end;                        /* 0x3011 */
-	uint8_t stx_width;                     /* 0x3012 */
-	uint8_t reg_3152_reserved;             /* 0x3152 */
-	uint8_t reg_315A_reserved;             /* 0x315A */
-	uint8_t analogue_gain_code_global_msb; /* 0x0204 */
-	uint8_t analogue_gain_code_global_lsb; /* 0x0205 */
-	uint8_t fine_integration_time;         /* 0x0200 */
-	uint8_t coarse_integration_time;       /* 0x0202 */
+	uint8_t pre_pll_clk_div;               
+	uint8_t pll_multiplier_msb;            
+	uint8_t pll_multiplier_lsb;            
+	uint8_t vt_pix_clk_div;                
+	uint8_t vt_sys_clk_div;                
+	uint8_t op_pix_clk_div;                
+	uint8_t op_sys_clk_div;                
+	uint8_t ccp_data_format_msb;           
+	uint8_t ccp_data_format_lsb;           
+	uint8_t x_output_size_msb;             
+	uint8_t x_output_size_lsb;             
+	uint8_t y_output_size_msb;             
+	uint8_t y_output_size_lsb;             
+	uint8_t x_even_inc;                    
+	uint8_t x_odd_inc;                     
+	uint8_t y_even_inc;                    
+	uint8_t y_odd_inc;                     
+	uint8_t binning_enable;                
+	uint8_t frame_length_lines_msb;        
+	uint8_t frame_length_lines_lsb;        
+	uint8_t line_length_pck_msb;           
+	uint8_t line_length_pck_lsb;           
+	uint8_t shade_clk_enable ;             
+	uint8_t sel_ccp;                       
+	uint8_t vpix;                          
+	uint8_t clamp_on;                      
+	uint8_t offset;                        
+	uint8_t ld_start;                      
+	uint8_t ld_end;                        
+	uint8_t sl_start;                      
+	uint8_t sl_end;                        
+	uint8_t rx_start;                      
+	uint8_t s1_start;                      
+	uint8_t s1_end;                        
+	uint8_t s1s_start;                     
+	uint8_t s1s_end;                       
+	uint8_t s3_start;                      
+	uint8_t s3_end;                        
+	uint8_t cmp_en_start;                  
+	uint8_t clp_sl_start;                  
+	uint8_t clp_sl_end;                    
+	uint8_t off_start;                     
+	uint8_t rmp_en_start;                  
+	uint8_t tx_start;                      
+	uint8_t tx_end;                        
+	uint8_t stx_width;                     
+	uint8_t reg_3152_reserved;             
+	uint8_t reg_315A_reserved;             
+	uint8_t analogue_gain_code_global_msb; 
+	uint8_t analogue_gain_code_global_lsb; 
+	uint8_t fine_integration_time;         
+	uint8_t coarse_integration_time;       
 	uint32_t size_h;
 	uint32_t blk_l;
 	uint32_t size_w;
@@ -157,123 +155,123 @@ struct reg_struct {
 };
 
 struct reg_struct s5k3e2fx_reg_pat[2] = {
-	{ /* Preview */
-		0x06,  /* pre_pll_clk_div       REG=0x0305 */
-		0x00,  /* pll_multiplier_msb    REG=0x0306 */
-		0x88,  /* pll_multiplier_lsb    REG=0x0307 */
-		0x0a,  /* vt_pix_clk_div        REG=0x0301 */
-		0x01,  /* vt_sys_clk_div        REG=0x0303 */
-		0x0a,  /* op_pix_clk_div        REG=0x0309 */
-		0x01,  /* op_sys_clk_div        REG=0x030B */
-		0x0a,  /* ccp_data_format_msb   REG=0x0112 */
-		0x0a,  /* ccp_data_format_lsb   REG=0x0113 */
-		0x05,  /* x_output_size_msb     REG=0x034C */
-		0x10,  /* x_output_size_lsb     REG=0x034D */
-		0x03,  /* y_output_size_msb     REG=0x034E */
-		0xcc,  /* y_output_size_lsb     REG=0x034F */
+	{ 
+		0x06,  
+		0x00,  
+		0x88,  
+		0x0a,  
+		0x01,  
+		0x0a,  
+		0x01,  
+		0x0a,  
+		0x0a,  
+		0x05,  
+		0x10,  
+		0x03,  
+		0xcc,  
 
-	/* enable binning for preview */
-		0x01,  /* x_even_inc             REG=0x0381 */
-		0x01,  /* x_odd_inc              REG=0x0383 */
-		0x01,  /* y_even_inc             REG=0x0385 */
-		0x03,  /* y_odd_inc              REG=0x0387 */
-		0x06,  /* binning_enable         REG=0x3014 */
+	
+		0x01,  
+		0x01,  
+		0x01,  
+		0x03,  
+		0x06,  
 
-		0x03,  /* frame_length_lines_msb        REG=0x0340 */
-		0xde,  /* frame_length_lines_lsb        REG=0x0341 */
-		0x0a,  /* line_length_pck_msb           REG=0x0342 */
-		0xac,  /* line_length_pck_lsb           REG=0x0343 */
-		0x81,  /* shade_clk_enable              REG=0x30AC */
-		0x01,  /* sel_ccp                       REG=0x30C4 */
-		0x04,  /* vpix                          REG=0x3024 */
-		0x00,  /* clamp_on                      REG=0x3015 */
-		0x02,  /* offset                        REG=0x307E */
-		0x03,  /* ld_start                      REG=0x3000 */
-		0x9c,  /* ld_end                        REG=0x3001 */
-		0x02,  /* sl_start                      REG=0x3002 */
-		0x9e,  /* sl_end                        REG=0x3003 */
-		0x05,  /* rx_start                      REG=0x3004 */
-		0x0f,  /* s1_start                      REG=0x3005 */
-		0x24,  /* s1_end                        REG=0x3006 */
-		0x7c,  /* s1s_start                     REG=0x3007 */
-		0x9a,  /* s1s_end                       REG=0x3008 */
-		0x10,  /* s3_start                      REG=0x3009 */
-		0x14,  /* s3_end                        REG=0x300A */
-		0x10,  /* cmp_en_start                  REG=0x300B */
-		0x04,  /* clp_sl_start                  REG=0x300C */
-		0x26,  /* clp_sl_end                    REG=0x300D */
-		0x02,  /* off_start                     REG=0x300E */
-		0x0e,  /* rmp_en_start                  REG=0x300F */
-		0x30,  /* tx_start                      REG=0x3010 */
-		0x4e,  /* tx_end                        REG=0x3011 */
-		0x1E,  /* stx_width                     REG=0x3012 */
-		0x08,  /* reg_3152_reserved             REG=0x3152 */
-		0x10,  /* reg_315A_reserved             REG=0x315A */
-		0x00,  /* analogue_gain_code_global_msb REG=0x0204 */
-		0x80,  /* analogue_gain_code_global_lsb REG=0x0205 */
-		0x02,  /* fine_integration_time         REG=0x0200 */
-		0x03,  /* coarse_integration_time       REG=0x0202 */
+		0x03,  
+		0xde,  
+		0x0a,  
+		0xac,  
+		0x81,  
+		0x01,  
+		0x04,  
+		0x00,  
+		0x02,  
+		0x03,  
+		0x9c,  
+		0x02,  
+		0x9e,  
+		0x05,  
+		0x0f,  
+		0x24,  
+		0x7c,  
+		0x9a,  
+		0x10,  
+		0x14,  
+		0x10,  
+		0x04,  
+		0x26,  
+		0x02,  
+		0x0e,  
+		0x30,  
+		0x4e,  
+		0x1E,  
+		0x08,  
+		0x10,  
+		0x00,  
+		0x80,  
+		0x02,  
+		0x03,  
 		972,
 		18,
 		1296,
 		1436
 	},
-	{ /* Snapshot */
-		0x06,  /* pre_pll_clk_div               REG=0x0305 */
-		0x00,  /* pll_multiplier_msb            REG=0x0306 */
-		0x88,  /* pll_multiplier_lsb            REG=0x0307 */
-		0x0a,  /* vt_pix_clk_div                REG=0x0301 */
-		0x01,  /* vt_sys_clk_div                REG=0x0303 */
-		0x0a,  /* op_pix_clk_div                REG=0x0309 */
-		0x01,  /* op_sys_clk_div                REG=0x030B */
-		0x0a,  /* ccp_data_format_msb           REG=0x0112 */
-		0x0a,  /* ccp_data_format_lsb           REG=0x0113 */
-		0x0a,  /* x_output_size_msb             REG=0x034C */
-		0x30,  /* x_output_size_lsb             REG=0x034D */
-		0x07,  /* y_output_size_msb             REG=0x034E */
-		0xa8,  /* y_output_size_lsb             REG=0x034F */
+	{ 
+		0x06,  
+		0x00,  
+		0x88,  
+		0x0a,  
+		0x01,  
+		0x0a,  
+		0x01,  
+		0x0a,  
+		0x0a,  
+		0x0a,  
+		0x30,  
+		0x07,  
+		0xa8,  
 
-	/* disable binning for snapshot */
-		0x01,  /* x_even_inc                    REG=0x0381 */
-		0x01,  /* x_odd_inc                     REG=0x0383 */
-		0x01,  /* y_even_inc                    REG=0x0385 */
-		0x01,  /* y_odd_inc                     REG=0x0387 */
-		0x00,  /* binning_enable                REG=0x3014 */
+	
+		0x01,  
+		0x01,  
+		0x01,  
+		0x01,  
+		0x00,  
 
-		0x07,  /* frame_length_lines_msb        REG=0x0340 */
-		0xb6,  /* frame_length_lines_lsb        REG=0x0341 */
-		0x0a,  /* line_length_pck_msb           REG=0x0342 */
-		0xac,  /* line_length_pck_lsb           REG=0x0343 */
-		0x81,  /* shade_clk_enable              REG=0x30AC */
-		0x01,  /* sel_ccp                       REG=0x30C4 */
-		0x04,  /* vpix                          REG=0x3024 */
-		0x00,  /* clamp_on                      REG=0x3015 */
-		0x02,  /* offset                        REG=0x307E */
-		0x03,  /* ld_start                      REG=0x3000 */
-		0x9c,  /* ld_end                        REG=0x3001 */
-		0x02,  /* sl_start                      REG=0x3002 */
-		0x9e,  /* sl_end                        REG=0x3003 */
-		0x05,  /* rx_start                      REG=0x3004 */
-		0x0f,  /* s1_start                      REG=0x3005 */
-		0x24,  /* s1_end                        REG=0x3006 */
-		0x7c,  /* s1s_start                     REG=0x3007 */
-		0x9a,  /* s1s_end                       REG=0x3008 */
-		0x10,  /* s3_start                      REG=0x3009 */
-		0x14,  /* s3_end                        REG=0x300A */
-		0x10,  /* cmp_en_start                  REG=0x300B */
-		0x04,  /* clp_sl_start                  REG=0x300C */
-		0x26,  /* clp_sl_end                    REG=0x300D */
-		0x02,  /* off_start                     REG=0x300E */
-		0x0e,  /* rmp_en_start                  REG=0x300F */
-		0x30,  /* tx_start                      REG=0x3010 */
-		0x4e,  /* tx_end                        REG=0x3011 */
-		0x1E,  /* stx_width                     REG=0x3012 */
-		0x08,  /* reg_3152_reserved             REG=0x3152 */
-		0x10,  /* reg_315A_reserved             REG=0x315A */
-		0x00,  /* analogue_gain_code_global_msb REG=0x0204 */
-		0x80,  /* analogue_gain_code_global_lsb REG=0x0205 */
-		0x02,  /* fine_integration_time         REG=0x0200 */
-		0x03,  /* coarse_integration_time       REG=0x0202 */
+		0x07,  
+		0xb6,  
+		0x0a,  
+		0xac,  
+		0x81,  
+		0x01,  
+		0x04,  
+		0x00,  
+		0x02,  
+		0x03,  
+		0x9c,  
+		0x02,  
+		0x9e,  
+		0x05,  
+		0x0f,  
+		0x24,  
+		0x7c,  
+		0x9a,  
+		0x10,  
+		0x14,  
+		0x10,  
+		0x04,  
+		0x26,  
+		0x02,  
+		0x0e,  
+		0x30,  
+		0x4e,  
+		0x1E,  
+		0x08,  
+		0x10,  
+		0x00,  
+		0x80,  
+		0x02,  
+		0x03,  
 		1960,
 		14,
 		2608,
@@ -291,8 +289,8 @@ struct s5k3e2fx_ctrl {
 	const struct msm_camera_sensor_info *sensordata;
 
 	int sensormode;
-	uint32_t fps_divider; /* init to 1 * 0x00000400 */
-	uint32_t pict_fps_divider; /* init to 1 * 0x00000400 */
+	uint32_t fps_divider; 
+	uint32_t pict_fps_divider; 
 
 	uint16_t curr_lens_pos;
 	uint16_t init_curr_lens_pos;
@@ -463,7 +461,7 @@ init_probe_done:
 
 static int s5k3e2fx_init_client(struct i2c_client *client)
 {
-	/* Initialize the MSM_CAMI2C Chip */
+	
 	init_waitqueue_head(&s5k3e2fx_wait_queue);
 	return 0;
 }
@@ -614,7 +612,7 @@ static int32_t s5k3e2fx_setting(enum msm_s_reg_update rupdate,
 		if (rc < 0)
 			return rc;
 	}
-	break; /* UPDATE_PERIODIC */
+	break; 
 
 	case S_REG_INIT:
 	if (rt == S_RES_PREVIEW || rt == S_RES_CAPTURE) {
@@ -622,7 +620,7 @@ static int32_t s5k3e2fx_setting(enum msm_s_reg_update rupdate,
 		struct s5k3e2fx_i2c_reg_conf tbl_3[] = {
 			{S5K3E2FX_REG_SOFTWARE_RESET, S5K3E2FX_SOFTWARE_RESET},
 			{S5K3E2FX_REG_MODE_SELECT, S5K3E2FX_MODE_SELECT_SW_STANDBY},
-			/* PLL setting */
+			
 			{REG_PRE_PLL_CLK_DIV, s5k3e2fx_reg_pat[rt].pre_pll_clk_div},
 			{REG_PLL_MULTIPLIER_MSB, s5k3e2fx_reg_pat[rt].pll_multiplier_msb},
 			{REG_PLL_MULTIPLIER_LSB, s5k3e2fx_reg_pat[rt].pll_multiplier_lsb},
@@ -630,32 +628,32 @@ static int32_t s5k3e2fx_setting(enum msm_s_reg_update rupdate,
 			{REG_VT_SYS_CLK_DIV, s5k3e2fx_reg_pat[rt].vt_sys_clk_div},
 			{REG_OP_PIX_CLK_DIV, s5k3e2fx_reg_pat[rt].op_pix_clk_div},
 			{REG_OP_SYS_CLK_DIV, s5k3e2fx_reg_pat[rt].op_sys_clk_div},
-			/*Data Format */
+			
 			{REG_CCP_DATA_FORMAT_MSB, s5k3e2fx_reg_pat[rt].ccp_data_format_msb},
 			{REG_CCP_DATA_FORMAT_LSB, s5k3e2fx_reg_pat[rt].ccp_data_format_lsb},
-			/*Output Size */
+			
 			{REG_X_OUTPUT_SIZE_MSB, s5k3e2fx_reg_pat[rt].x_output_size_msb},
 			{REG_X_OUTPUT_SIZE_LSB, s5k3e2fx_reg_pat[rt].x_output_size_lsb},
 			{REG_Y_OUTPUT_SIZE_MSB, s5k3e2fx_reg_pat[rt].y_output_size_msb},
 			{REG_Y_OUTPUT_SIZE_LSB, s5k3e2fx_reg_pat[rt].y_output_size_lsb},
-			/* Binning */
+			
 			{REG_X_EVEN_INC, s5k3e2fx_reg_pat[rt].x_even_inc},
 			{REG_X_ODD_INC, s5k3e2fx_reg_pat[rt].x_odd_inc },
 			{REG_Y_EVEN_INC, s5k3e2fx_reg_pat[rt].y_even_inc},
 			{REG_Y_ODD_INC, s5k3e2fx_reg_pat[rt].y_odd_inc},
 			{REG_BINNING_ENABLE, s5k3e2fx_reg_pat[rt].binning_enable},
-			/* Frame format */
+			
 			{REG_FRAME_LENGTH_LINES_MSB, s5k3e2fx_reg_pat[rt].frame_length_lines_msb},
 			{REG_FRAME_LENGTH_LINES_LSB, s5k3e2fx_reg_pat[rt].frame_length_lines_lsb},
 			{REG_LINE_LENGTH_PCK_MSB, s5k3e2fx_reg_pat[rt].line_length_pck_msb},
 			{REG_LINE_LENGTH_PCK_LSB, s5k3e2fx_reg_pat[rt].line_length_pck_lsb},
-			/* MSR setting */
+			
 			{REG_SHADE_CLK_ENABLE, s5k3e2fx_reg_pat[rt].shade_clk_enable},
 			{REG_SEL_CCP, s5k3e2fx_reg_pat[rt].sel_ccp},
 			{REG_VPIX, s5k3e2fx_reg_pat[rt].vpix},
 			{REG_CLAMP_ON, s5k3e2fx_reg_pat[rt].clamp_on},
 			{REG_OFFSET, s5k3e2fx_reg_pat[rt].offset},
-			/* CDS timing setting */
+			
 			{REG_LD_START, s5k3e2fx_reg_pat[rt].ld_start},
 			{REG_LD_END, s5k3e2fx_reg_pat[rt].ld_end},
 			{REG_SL_START, s5k3e2fx_reg_pat[rt].sl_start},
@@ -684,19 +682,19 @@ static int32_t s5k3e2fx_setting(enum msm_s_reg_update rupdate,
 			{S5K3E2FX_REG_MODE_SELECT, S5K3E2FX_MODE_SELECT_STREAM},
 		};
 
-		/* reset fps_divider */
+		
 		s5k3e2fx_ctrl->fps_divider = 1 * 0x0400;
 		rc = s5k3e2fx_i2c_write_table(&tbl_3[0],
 			ARRAY_SIZE(tbl_3));
 		if (rc < 0)
 			return rc;
 	}
-	break; /* case REG_INIT: */
+	break; 
 
 	default:
 		rc = -EINVAL;
 		break;
-	} /* switch (rupdate) */
+	} 
 
 	return rc;
 }
@@ -721,7 +719,7 @@ static int s5k3e2fx_sensor_open_init(const struct msm_camera_sensor_info *data)
 	if (data)
 		s5k3e2fx_ctrl->sensordata = data;
 
-	/* enable mclk first */
+	
 	msm_camio_clk_rate_set(24000000);
 	mdelay(20);
 
@@ -742,7 +740,7 @@ static int s5k3e2fx_sensor_open_init(const struct msm_camera_sensor_info *data)
 		goto init_fail1;
 	}
 
-	/* initialize AF */
+	
 	if ((rc = s5k3e2fx_i2c_write_b(s5k3e2fx_client->addr,
 			0x3146, 0x3A)) < 0)
 		goto init_fail1;
@@ -789,8 +787,8 @@ static int s5k3e2fx_sensor_release(void)
 
 static void s5k3e2fx_get_pict_fps(uint16_t fps, uint16_t *pfps)
 {
-	/* input fps is preview fps in Q8 format */
-	uint32_t divider;   /* Q10 */
+	
+	uint32_t divider;   
 
 	divider = (uint32_t)
 		((s5k3e2fx_reg_pat[S_RES_PREVIEW].size_h +
@@ -802,7 +800,7 @@ static void s5k3e2fx_get_pict_fps(uint16_t fps, uint16_t *pfps)
 		 (s5k3e2fx_reg_pat[S_RES_CAPTURE].size_w +
 			s5k3e2fx_reg_pat[S_RES_CAPTURE].blk_p));
 
-	/* Verify PCLK settings and frame sizes. */
+	
 	*pfps = (uint16_t)(fps * divider / 0x00000400);
 }
 
@@ -846,7 +844,7 @@ static uint32_t s5k3e2fx_get_pict_max_exp_lc(void)
 
 static int32_t s5k3e2fx_set_fps(struct fps_cfg *fps)
 {
-	/* input is new fps in Q10 format */
+	
 	int32_t rc = 0;
 
 	s5k3e2fx_ctrl->fps_divider = fps->fps_div;
@@ -874,7 +872,7 @@ static int32_t s5k3e2fx_write_exp_gain(uint16_t gain, uint32_t line)
 	int32_t rc = 0;
 
 	uint16_t max_legal_gain = 0x0200;
-	uint32_t ll_ratio; /* Q10 */
+	uint32_t ll_ratio; 
 	uint16_t ll_pck, fl_lines;
 	uint16_t offset = 4;
 	uint8_t  gain_msb, gain_lsb;
@@ -908,7 +906,7 @@ static int32_t s5k3e2fx_write_exp_gain(uint16_t gain, uint32_t line)
 	if (gain > max_legal_gain)
 		gain = max_legal_gain;
 
-	/* in Q10 */
+	
 	line = (line * s5k3e2fx_ctrl->fps_divider);
 
 	if (fl_lines < (line / 0x400))
@@ -916,7 +914,7 @@ static int32_t s5k3e2fx_write_exp_gain(uint16_t gain, uint32_t line)
 	else
 		ll_ratio = 0x400;
 
-	/* update gain registers */
+	
 	gain_msb = (gain & 0xFF00) >> 8;
 	gain_lsb = gain & 0x00FF;
 	tbl[0].waddr = REG_ANALOGUE_GAIN_CODE_GLOBAL_MSB;
@@ -985,7 +983,7 @@ static int32_t s5k3e2fx_video_config(int mode, int res)
 
 	default:
 		return 0;
-	} /* switch */
+	} 
 
 	s5k3e2fx_ctrl->prev_res = res;
 	s5k3e2fx_ctrl->curr_res = res;
@@ -1080,7 +1078,7 @@ static int32_t s5k3e2fx_move_focus(int direction, int32_t num_steps)
 	int16_t init_code = 50;
 	uint8_t next_pos_msb, next_pos_lsb;
 	int16_t s_move[5];
-	uint32_t gain; /* Q10 format */
+	uint32_t gain; 
 
 	if (direction == MOVE_NEAR)
 		step_direction = 20;
@@ -1102,7 +1100,7 @@ static int32_t s5k3e2fx_move_focus(int direction, int32_t num_steps)
 			s_move[i] = ((((i+1)*gain-0x200) - (i*gain-0x200))/0x400);
 	}
 
-	/* Ring Damping Code */
+	
 	for (i = 0; i <= 4; i++) {
 		next_pos = (int16_t)(pos_offset + s_move[i]);
 
@@ -1112,7 +1110,7 @@ static int32_t s5k3e2fx_move_focus(int direction, int32_t num_steps)
 			next_pos = 0;
 
 		CDBG("next_position in damping mode = %d\n", next_pos);
-		/* Writing the Values to the actuator */
+		
 		if (next_pos == init_code)
 			next_pos = 0x00;
 

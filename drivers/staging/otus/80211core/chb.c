@@ -1,31 +1,17 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : hb.c                                                  */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains house keeping and timer functions.         */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 
-/* Called by wrapper every 10 msec */
+
 void zfiHeartBeat(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
@@ -33,22 +19,22 @@ void zfiHeartBeat(zdev_t* dev)
     wd->tick++;
 
 #if 0
-    /* => every 1.28 seconds */
+    
     if (wd->cwm.cw_enable && ((wd->tick & 0x7f) == 0x3f))
     {
         zfHpCwmUpdate(dev);
     }
 #endif
-    /* => every 2.56 seconds */
+    
     if ((wd->tick & 0xff) == 0)
     {
         zfAgingDefragList(dev, 1);
     }
 
-    /* Watch Dog */
-    //zfWatchDog();
+    
+    
 
-    /* LED Control (per 100ms) */
+    
     if ((wd->tick % 10) == 9)
     {
         zfLed100msCtrl(dev);
@@ -74,7 +60,7 @@ void zfiHeartBeat(zdev_t* dev)
     {
         if ( zfStaIsConnected(dev) )
         {
-            wd->tickIbssReceiveBeacon++;  // add 10ms
+            wd->tickIbssReceiveBeacon++;  
 
             if ( (wd->sta.ibssSiteSurveyStatus == 2) &&
                  (wd->tickIbssReceiveBeacon == 300) &&
@@ -89,7 +75,7 @@ void zfiHeartBeat(zdev_t* dev)
     if(wd->sta.ReceivedPacketRateCounter <= 0)
     {
         wd->sta.ReceivedPktRatePerSecond = wd->sta.TotalNumberOfReceivePackets;
-	//zm_debug_msg1("Receive Packet Per Second  = ", wd->sta.ReceivedPktRatePerSecond);
+	
 	    if (wd->sta.TotalNumberOfReceivePackets != 0)
 	    {
 	        wd->sta.avgSizeOfReceivePackets = wd->sta.TotalNumberOfReceiveBytes/wd->sta.TotalNumberOfReceivePackets;
@@ -100,14 +86,14 @@ void zfiHeartBeat(zdev_t* dev)
 	    }
         wd->sta.TotalNumberOfReceivePackets = 0;
         wd->sta.TotalNumberOfReceiveBytes = 0;
-        wd->sta.ReceivedPacketRateCounter = 100; /*for another 1s*/
+        wd->sta.ReceivedPacketRateCounter = 100; 
     }
     else
     {
         wd->sta.ReceivedPacketRateCounter--;
     }
 
-	/* => every 1.28 seconds */
+	
 	if((wd->tick & 0x7f) == 0x3f)
 	{
 		if( wd->sta.NonNAPcount > 0)
@@ -123,13 +109,13 @@ void zfiHeartBeat(zdev_t* dev)
 
 
 
-    /* Maintain management time tick */
+    
     zfMmApTimeTick(dev);
     zfMmStaTimeTick(dev);
 
-    //zfPhyCrTuning(dev);
+    
 
-    //zfTxPowerControl(dev);
+    
     zfHpHeartBeat(dev);
 
 }

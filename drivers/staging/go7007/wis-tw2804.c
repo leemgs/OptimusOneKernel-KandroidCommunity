@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2005-2006 Micronas USA Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License (Version 2) as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -41,7 +26,7 @@ static u8 global_registers[] =
 	0x3d, 0x80,
 	0x3e, 0x82,
 	0x3f, 0x82,
-	0xff, 0xff, /* Terminator (reg 0xff does not exist) */
+	0xff, 0xff, 
 };
 
 static u8 channel_registers[] =
@@ -101,7 +86,7 @@ static u8 channel_registers[] =
 	0x35, 0x00,
 	0x36, 0x00,
 	0x37, 0x00,
-	0xff, 0xff, /* Terminator (reg 0xff does not exist) */
+	0xff, 0xff, 
 };
 
 static int write_reg(struct i2c_client *client, u8 reg, u8 value, int channel)

@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/connector.h>
@@ -23,13 +10,7 @@
 
 #include "netfs.h"
 
-/*
- * Global configuration list.
- * Each client can be asked to get one of them.
- *
- * Allows to provide remote server address (ipv4/v6/whatever), port
- * and so on via kernel connector.
- */
+
 
 static struct cb_id pohmelfs_cn_id = {.idx = POHMELFS_CN_IDX, .val = POHMELFS_CN_VAL};
 static LIST_HEAD(pohmelfs_config_list);
@@ -113,13 +94,7 @@ static int pohmelfs_move_config_entry(struct pohmelfs_sb *psb,
 	return 0;
 }
 
-/*
- * pohmelfs_copy_config() is used to copy new state configs from the
- * config group (controlled by the netlink messages) into the superblock.
- * This happens either at startup time where no transactions can access
- * the list of the configs (and thus list of the network states), or at
- * run-time, where it is protected by the psb->state_lock.
- */
+
 int pohmelfs_copy_config(struct pohmelfs_sb *psb)
 {
 	struct pohmelfs_config_group *g;
@@ -132,11 +107,7 @@ int pohmelfs_copy_config(struct pohmelfs_sb *psb)
 	if (!g)
 		goto out_unlock;
 
-	/*
-	 * Run over all entries in given config group and try to crate and
-	 * initialize those, which do not exist in superblock list.
-	 * Skip all existing entries.
-	 */
+	
 
 	list_for_each_entry(c, &g->config_list, config_entry) {
 		err = 0;
@@ -587,7 +558,7 @@ int pohmelfs_config_check(struct pohmelfs_config *config, int idx)
 
 int __init pohmelfs_config_init(void)
 {
-	/* XXX remove (void *) cast when vanilla connector got synced */
+	
 	return cn_add_callback(&pohmelfs_cn_id, "pohmelfs", (void *)pohmelfs_cn_callback);
 }
 

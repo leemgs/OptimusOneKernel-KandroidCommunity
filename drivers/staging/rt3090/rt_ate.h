@@ -1,29 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
- */
+
 
 #ifndef __ATE_H__
 #define __ATE_H__
@@ -36,9 +11,9 @@
 #define EEPROM_SIZE								0x200
 #ifdef CONFIG_STA_SUPPORT
 #define EEPROM_BIN_FILE_NAME  "/etc/Wireless/RT2860STA/e2p.bin"
-#endif // CONFIG_STA_SUPPORT //
-#endif // RTMP_MAC_PCI //
-#endif // LINUX //
+#endif 
+#endif 
+#endif 
 
 
 #define ATE_ON(_p)              (((_p)->ate.Mode) != ATE_STOP)
@@ -105,13 +80,13 @@
         ATEDBGPRINT(RT_DEBUG_ERROR, ("BBP write R%d fail\n", _I));     \
     }                                                   \
 }
-#endif // RTMP_MAC_PCI //
+#endif 
 
 
 #ifdef RT30xx
 #define ATE_RF_IO_READ8_BY_REG_ID(_A, _I, _pV)     RTMP_RF_IO_READ8_BY_REG_ID(_A, _I, _pV)
 #define ATE_RF_IO_WRITE8_BY_REG_ID(_A, _I, _V)     RTMP_RF_IO_WRITE8_BY_REG_ID(_A, _I, _V)
-#endif // RT30xx //
+#endif 
 
 
 VOID rt_ee_read_all(
@@ -281,8 +256,8 @@ INT Set_BBPWrite_Proc(
 INT Set_RFWrite_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg);
-#endif // DBG //
-#endif // RALINK_28xx_QA //
+#endif 
+#endif 
 
 
 VOID ATEAsicSwitchChannel(
@@ -310,5 +285,5 @@ VOID RTMPStationStop(
 
 VOID RTMPStationStart(
     IN  PRTMP_ADAPTER   pAd);
-#endif // CONFIG_STA_SUPPORT //
-#endif // __ATE_H__ //
+#endif 
+#endif 

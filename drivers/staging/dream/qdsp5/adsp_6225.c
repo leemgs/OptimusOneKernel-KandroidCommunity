@@ -1,21 +1,8 @@
-/* arch/arm/mach-msm/qdsp5/adsp_6225.h
- *
- * Copyright (c) 2008 QUALCOMM Incorporated.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include "adsp.h"
 
-/* Firmware modules */
+
 typedef enum {
 	QDSP_MODULE_KERNEL,
 	QDSP_MODULE_AFETASK,
@@ -65,7 +52,7 @@ typedef enum {
 
 #define QDSP_RTOS_MAX_TASK_ID  30U
 
-/* Table of modules indexed by task ID for the GAUDIO image */
+
 static qdsp_module_type qdsp_gaudio_task_to_module_table[] = {
 	QDSP_MODULE_KERNEL,
 	QDSP_MODULE_AFETASK,
@@ -101,39 +88,39 @@ static qdsp_module_type qdsp_gaudio_task_to_module_table[] = {
 	QDSP_MODULE_MAX,
 };
 
-/* Queue offset table indexed by queue ID for the GAUDIO image */
+
 static uint32_t qdsp_gaudio_queue_offset_table[] = {
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_lpmCommandQueue              */
-	0x3f0,               /* QDSP_mpuAfeQueue                  */
-	0x420,               /* QDSP_mpuGraphicsCmdQueue          */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuModmathCmdQueue           */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuVDecCmdQueue              */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuVDecPktQueue              */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuVEncCmdQueue              */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_rxMpuDecCmdQueue             */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_rxMpuDecPktQueue             */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_txMpuEncQueue                */
-	0x3f4,               /* QDSP_uPAudPPCmd1Queue             */
-	0x3f8,               /* QDSP_uPAudPPCmd2Queue             */
-	0x3fc,               /* QDSP_uPAudPPCmd3Queue             */
-	0x40c,               /* QDSP_uPAudPlay0BitStreamCtrlQueue */
-	0x410,               /* QDSP_uPAudPlay1BitStreamCtrlQueue */
-	0x414,               /* QDSP_uPAudPlay2BitStreamCtrlQueue */
-	0x418,               /* QDSP_uPAudPlay3BitStreamCtrlQueue */
-	0x41c,               /* QDSP_uPAudPlay4BitStreamCtrlQueue */
-	0x400,               /* QDSP_uPAudPreProcCmdQueue         */
-	0x408,               /* QDSP_uPAudRecBitStreamQueue       */
-	0x404,               /* QDSP_uPAudRecCmdQueue             */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPJpegActionCmdQueue         */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPJpegCfgCmdQueue            */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPVocProcQueue               */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_vfeCommandQueue              */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_vfeCommandScaleQueue         */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_vfeCommandTableQueue         */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPDiagQueue                  */
+	QDSP_RTOS_NO_QUEUE,  
+	0x3f0,               
+	0x420,               
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	0x3f4,               
+	0x3f8,               
+	0x3fc,               
+	0x40c,               
+	0x410,               
+	0x414,               
+	0x418,               
+	0x41c,               
+	0x400,               
+	0x408,               
+	0x404,               
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
 };
 
-/* Table of modules indexed by task ID for the COMBO image */
+
 static qdsp_module_type qdsp_combo_task_to_module_table[] = {
 	QDSP_MODULE_KERNEL,
 	QDSP_MODULE_AFETASK,
@@ -169,39 +156,39 @@ static qdsp_module_type qdsp_combo_task_to_module_table[] = {
 	QDSP_MODULE_MAX,
 };
 
-/* Queue offset table indexed by queue ID for the COMBO image */
+
 static uint32_t qdsp_combo_queue_offset_table[] = {
-	0x714,               /* QDSP_lpmCommandQueue              */
-	0x6bc,               /* QDSP_mpuAfeQueue                  */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuGraphicsCmdQueue          */
-	0x6d0,               /* QDSP_mpuModmathCmdQueue           */
-	0x6e8,               /* QDSP_mpuVDecCmdQueue              */
-	0x6ec,               /* QDSP_mpuVDecPktQueue              */
-	0x6e4,               /* QDSP_mpuVEncCmdQueue              */
-	0x6c4,               /* QDSP_rxMpuDecCmdQueue             */
-	0x6c8,               /* QDSP_rxMpuDecPktQueue             */
-	0x6cc,               /* QDSP_txMpuEncQueue                */
-	0x6f0,               /* QDSP_uPAudPPCmd1Queue             */
-	0x6f4,               /* QDSP_uPAudPPCmd2Queue             */
-	0x6f8,               /* QDSP_uPAudPPCmd3Queue             */
-	0x708,               /* QDSP_uPAudPlay0BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay1BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay2BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay3BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay4BitStreamCtrlQueue */
-	0x6fc,               /* QDSP_uPAudPreProcCmdQueue         */
-	0x704,               /* QDSP_uPAudRecBitStreamQueue       */
-	0x700,               /* QDSP_uPAudRecCmdQueue             */
-	0x710,               /* QDSP_uPJpegActionCmdQueue         */
-	0x70c,               /* QDSP_uPJpegCfgCmdQueue            */
-	0x6c0,               /* QDSP_uPVocProcQueue               */
-	0x6d8,               /* QDSP_vfeCommandQueue              */
-	0x6e0,               /* QDSP_vfeCommandScaleQueue         */
-	0x6dc,               /* QDSP_vfeCommandTableQueue         */
-	0x6d4,               /* QDSP_uPDiagQueue                  */
+	0x714,               
+	0x6bc,               
+	QDSP_RTOS_NO_QUEUE,  
+	0x6d0,               
+	0x6e8,               
+	0x6ec,               
+	0x6e4,               
+	0x6c4,               
+	0x6c8,               
+	0x6cc,               
+	0x6f0,               
+	0x6f4,               
+	0x6f8,               
+	0x708,               
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	0x6fc,               
+	0x704,               
+	0x700,               
+	0x710,               
+	0x70c,               
+	0x6c0,               
+	0x6d8,               
+	0x6e0,               
+	0x6dc,               
+	0x6d4,               
 };
 
-/* Table of modules indexed by task ID for the QTV_LP image */
+
 static qdsp_module_type qdsp_qtv_lp_task_to_module_table[] = {
 	QDSP_MODULE_KERNEL,
 	QDSP_MODULE_AFETASK,
@@ -237,46 +224,46 @@ static qdsp_module_type qdsp_qtv_lp_task_to_module_table[] = {
 	QDSP_MODULE_MAX,
 };
 
-/* Queue offset table indexed by queue ID for the QTV_LP image */
+
 static uint32_t qdsp_qtv_lp_queue_offset_table[] = {
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_lpmCommandQueue              */
-	0x3fe,               /* QDSP_mpuAfeQueue                  */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuGraphicsCmdQueue          */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuModmathCmdQueue           */
-	0x402,               /* QDSP_mpuVDecCmdQueue              */
-	0x406,               /* QDSP_mpuVDecPktQueue              */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_mpuVEncCmdQueue              */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_rxMpuDecCmdQueue             */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_rxMpuDecPktQueue             */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_txMpuEncQueue                */
-	0x40e,               /* QDSP_uPAudPPCmd1Queue             */
-	0x412,               /* QDSP_uPAudPPCmd2Queue             */
-	0x416,               /* QDSP_uPAudPPCmd3Queue             */
-	0x422,               /* QDSP_uPAudPlay0BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay1BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay2BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay3BitStreamCtrlQueue */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPAudPlay4BitStreamCtrlQueue */
-	0x40a,               /* QDSP_uPAudPreProcCmdQueue         */
-	0x41e,               /* QDSP_uPAudRecBitStreamQueue       */
-	0x41a,               /* QDSP_uPAudRecCmdQueue             */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPJpegActionCmdQueue         */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPJpegCfgCmdQueue            */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPVocProcQueue               */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_vfeCommandQueue              */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_vfeCommandScaleQueue         */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_vfeCommandTableQueue         */
-	QDSP_RTOS_NO_QUEUE,  /* QDSP_uPDiagQueue                  */
+	QDSP_RTOS_NO_QUEUE,  
+	0x3fe,               
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	0x402,               
+	0x406,               
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	0x40e,               
+	0x412,               
+	0x416,               
+	0x422,               
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	0x40a,               
+	0x41e,               
+	0x41a,               
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
+	QDSP_RTOS_NO_QUEUE,  
 };
 
-/* Tables to convert tasks to modules */
+
 static qdsp_module_type *qdsp_task_to_module[] = {
 	qdsp_combo_task_to_module_table,
 	qdsp_gaudio_task_to_module_table,
 	qdsp_qtv_lp_task_to_module_table,
 };
 
-/* Tables to retrieve queue offsets */
+
 static uint32_t *qdsp_queue_offset_table[] = {
 	qdsp_combo_queue_offset_table,
 	qdsp_gaudio_queue_offset_table,

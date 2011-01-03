@@ -1,41 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-
-    Module Name:
-	action.c
-
-    Abstract:
-    Handle association related requests either from WSTA or from local MLME
-
-    Revision History:
-    Who          When          What
-    ---------    ----------    ----------------------------------------------
-	Fonchi Wu    2008	  	   created for 802.11h
- */
 
 #include "../rt_config.h"
 #include "action.h"
@@ -134,7 +97,7 @@ static PMEASURE_REQ_ENTRY MeasureReqInsert(
 				ULONG HashIdx = MQ_DIALOGTOKEN_HASH_INDEX(pEntry->DialogToken);
 				PMEASURE_REQ_ENTRY pProbeEntry = pTab->Hash[HashIdx];
 
-				// update Hash list
+				
 				do
 				{
 					if (pProbeEntry == pEntry)
@@ -178,7 +141,7 @@ static PMEASURE_REQ_ENTRY MeasureReqInsert(
 			DBGPRINT(RT_DEBUG_ERROR, ("%s: pMeasureReqTab tab full.\n", __func__));
 		}
 
-		// add this Neighbor entry into HASH table
+		
 		if (pEntry)
 		{
 			HashIdx = MQ_DIALOGTOKEN_HASH_INDEX(DialogToken);
@@ -214,7 +177,7 @@ static VOID MeasureReqDelete(
 		return;
 	}
 
-	// if empty, return
+	
 	if (pTab->Size == 0)
 	{
 		DBGPRINT(RT_DEBUG_ERROR, ("pMeasureReqTab empty.\n"));
@@ -229,7 +192,7 @@ static VOID MeasureReqDelete(
 		PMEASURE_REQ_ENTRY pProbeEntry = pTab->Hash[HashIdx];
 
 		RTMP_SEM_LOCK(&pAd->CommonCfg.MeasureReqTabLock);
-		// update Hash list
+		
 		do
 		{
 			if (pProbeEntry == pEntry)
@@ -353,7 +316,7 @@ static PTPC_REQ_ENTRY TpcReqInsert(
 				ULONG HashIdx = TPC_DIALOGTOKEN_HASH_INDEX(pEntry->DialogToken);
 				PTPC_REQ_ENTRY pProbeEntry = pTab->Hash[HashIdx];
 
-				// update Hash list
+				
 				do
 				{
 					if (pProbeEntry == pEntry)
@@ -397,7 +360,7 @@ static PTPC_REQ_ENTRY TpcReqInsert(
 			DBGPRINT(RT_DEBUG_ERROR, ("%s: pTpcReqTab tab full.\n", __func__));
 		}
 
-		// add this Neighbor entry into HASH table
+		
 		if (pEntry)
 		{
 			HashIdx = TPC_DIALOGTOKEN_HASH_INDEX(DialogToken);
@@ -433,7 +396,7 @@ static VOID TpcReqDelete(
 		return;
 	}
 
-	// if empty, return
+	
 	if (pTab->Size == 0)
 	{
 		DBGPRINT(RT_DEBUG_ERROR, ("pTpcReqTab empty.\n"));
@@ -448,7 +411,7 @@ static VOID TpcReqDelete(
 		PTPC_REQ_ENTRY pProbeEntry = pTab->Hash[HashIdx];
 
 		RTMP_SEM_LOCK(&pAd->CommonCfg.TpcReqTabLock);
-		// update Hash list
+		
 		do
 		{
 			if (pProbeEntry == pEntry)
@@ -477,53 +440,23 @@ static VOID TpcReqDelete(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Get Current TimeS tamp.
 
-	Parametrs:
-
-	Return	: Current Time Stamp.
-	==========================================================================
- */
 static UINT64 GetCurrentTimeStamp(
 	IN PRTMP_ADAPTER pAd)
 {
-	// get current time stamp.
+	
 	return 0;
 }
 
-/*
-	==========================================================================
-	Description:
-		Get Current Transmit Power.
 
-	Parametrs:
-
-	Return	: Current Time Stamp.
-	==========================================================================
- */
 static UINT8 GetCurTxPwr(
 	IN PRTMP_ADAPTER pAd,
 	IN UINT8 Wcid)
 {
-	return 16; /* 16 dBm */
+	return 16; 
 }
 
-/*
-	==========================================================================
-	Description:
-		Insert Dialog Token into frame.
 
-	Parametrs:
-		1. frame buffer pointer.
-		2. frame length.
-		3. Dialog token.
-
-	Return	: None.
-	==========================================================================
- */
 static VOID InsertDialogToken(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,
@@ -540,18 +473,7 @@ static VOID InsertDialogToken(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Insert TPC Request IE into frame.
 
-	Parametrs:
-		1. frame buffer pointer.
-		2. frame length.
-
-	Return	: None.
-	==========================================================================
- */
  static VOID InsertTpcReqIE(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,
@@ -571,20 +493,7 @@ static VOID InsertDialogToken(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Insert TPC Report IE into frame.
 
-	Parametrs:
-		1. frame buffer pointer.
-		2. frame length.
-		3. Transmit Power.
-		4. Link Margin.
-
-	Return	: None.
-	==========================================================================
- */
  static VOID InsertTpcReportIE(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,
@@ -612,21 +521,7 @@ static VOID InsertDialogToken(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Insert Channel Switch Announcement IE into frame.
 
-	Parametrs:
-		1. frame buffer pointer.
-		2. frame length.
-		3. channel switch announcement mode.
-		4. new selected channel.
-		5. channel switch announcement count.
-
-	Return	: None.
-	==========================================================================
- */
 static VOID InsertChSwAnnIE(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,
@@ -656,25 +551,7 @@ static VOID InsertChSwAnnIE(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Insert Measure Request IE into frame.
 
-	Parametrs:
-		1. frame buffer pointer.
-		2. frame length.
-		3. Measure Token.
-		4. Measure Request Mode.
-		5. Measure Request Type.
-		6. Measure Channel.
-		7. Measure Start time.
-		8. Measure Duration.
-
-
-	Return	: None.
-	==========================================================================
- */
 static VOID InsertMeasureReqIE(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,
@@ -696,23 +573,7 @@ static VOID InsertMeasureReqIE(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Insert Measure Report IE into frame.
 
-	Parametrs:
-		1. frame buffer pointer.
-		2. frame length.
-		3. Measure Token.
-		4. Measure Request Mode.
-		5. Measure Request Type.
-		6. Length of Report Infomation
-		7. Pointer of Report Infomation Buffer.
-
-	Return	: None.
-	==========================================================================
- */
 static VOID InsertMeasureReportIE(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,
@@ -746,18 +607,7 @@ static VOID InsertMeasureReportIE(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Prepare Measurement request action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueMeasurementReq(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -775,11 +625,11 @@ VOID EnqueueMeasurementReq(
 	UINT8 RmReqDailogToken = RandomByte(pAd);
 	UINT64 MeasureStartTime = GetCurrentTimeStamp(pAd);
 
-	// build action frame header.
+	
 	MgtMacHeaderInit(pAd, &ActHdr, SUBTYPE_ACTION, 0, pDA,
 						pAd->CurrentAddress);
 
-	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  
 	if(NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_TRACE, ("%s() allocate memory failed \n", __func__));
@@ -790,10 +640,10 @@ VOID EnqueueMeasurementReq(
 
 	InsertActField(pAd, (pOutBuffer + FrameLen), &FrameLen, CATEGORY_SPECTRUM, SPEC_MRQ);
 
-	// fill Dialog Token
+	
 	InsertDialogToken(pAd, (pOutBuffer + FrameLen), &FrameLen, MeasureToken);
 
-	// prepare Measurement IE.
+	
 	NdisZeroMemory(&MeasureReqIE, sizeof(MEASURE_REQ_INFO));
 	MeasureReqIE.Token = RmReqDailogToken;
 	MeasureReqIE.ReqMode.word = MeasureReqMode;
@@ -809,18 +659,7 @@ VOID EnqueueMeasurementReq(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Prepare Measurement report action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueMeasurementRep(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -837,11 +676,11 @@ VOID EnqueueMeasurementRep(
 	HEADER_802_11 ActHdr;
 	MEASURE_REPORT_INFO MeasureRepIE;
 
-	// build action frame header.
+	
 	MgtMacHeaderInit(pAd, &ActHdr, SUBTYPE_ACTION, 0, pDA,
 						pAd->CurrentAddress);
 
-	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  
 	if(NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_TRACE, ("%s() allocate memory failed \n", __func__));
@@ -852,10 +691,10 @@ VOID EnqueueMeasurementRep(
 
 	InsertActField(pAd, (pOutBuffer + FrameLen), &FrameLen, CATEGORY_SPECTRUM, SPEC_MRP);
 
-	// fill Dialog Token
+	
 	InsertDialogToken(pAd, (pOutBuffer + FrameLen), &FrameLen, DialogToken);
 
-	// prepare Measurement IE.
+	
 	NdisZeroMemory(&MeasureRepIE, sizeof(MEASURE_REPORT_INFO));
 	MeasureRepIE.Token = MeasureToken;
 	MeasureRepIE.ReportMode.word = MeasureReqMode;
@@ -868,18 +707,7 @@ VOID EnqueueMeasurementRep(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Prepare TPC Request action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueTPCReq(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -891,11 +719,11 @@ VOID EnqueueTPCReq(
 
 	HEADER_802_11 ActHdr;
 
-	// build action frame header.
+	
 	MgtMacHeaderInit(pAd, &ActHdr, SUBTYPE_ACTION, 0, pDA,
 						pAd->CurrentAddress);
 
-	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  
 	if(NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_TRACE, ("%s() allocate memory failed \n", __func__));
@@ -906,10 +734,10 @@ VOID EnqueueTPCReq(
 
 	InsertActField(pAd, (pOutBuffer + FrameLen), &FrameLen, CATEGORY_SPECTRUM, SPEC_TPCRQ);
 
-	// fill Dialog Token
+	
 	InsertDialogToken(pAd, (pOutBuffer + FrameLen), &FrameLen, DialogToken);
 
-	// Insert TPC Request IE.
+	
 	InsertTpcReqIE(pAd, (pOutBuffer + FrameLen), &FrameLen);
 
 	MiniportMMRequest(pAd, QID_AC_BE, pOutBuffer, FrameLen);
@@ -918,18 +746,7 @@ VOID EnqueueTPCReq(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Prepare TPC Report action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueTPCRep(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -943,11 +760,11 @@ VOID EnqueueTPCRep(
 
 	HEADER_802_11 ActHdr;
 
-	// build action frame header.
+	
 	MgtMacHeaderInit(pAd, &ActHdr, SUBTYPE_ACTION, 0, pDA,
 						pAd->CurrentAddress);
 
-	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  
 	if(NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_TRACE, ("%s() allocate memory failed \n", __func__));
@@ -958,10 +775,10 @@ VOID EnqueueTPCRep(
 
 	InsertActField(pAd, (pOutBuffer + FrameLen), &FrameLen, CATEGORY_SPECTRUM, SPEC_TPCRP);
 
-	// fill Dialog Token
+	
 	InsertDialogToken(pAd, (pOutBuffer + FrameLen), &FrameLen, DialogToken);
 
-	// Insert TPC Request IE.
+	
 	InsertTpcReportIE(pAd, (pOutBuffer + FrameLen), &FrameLen, TxPwr, LinkMargin);
 
 	MiniportMMRequest(pAd, QID_AC_BE, pOutBuffer, FrameLen);
@@ -970,20 +787,7 @@ VOID EnqueueTPCRep(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Prepare Channel Switch Announcement action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-		2. Channel switch announcement mode.
-		2. a New selected channel.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueChSwAnn(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -996,11 +800,11 @@ VOID EnqueueChSwAnn(
 
 	HEADER_802_11 ActHdr;
 
-	// build action frame header.
+	
 	MgtMacHeaderInit(pAd, &ActHdr, SUBTYPE_ACTION, 0, pDA,
 						pAd->CurrentAddress);
 
-	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  //Get an unused nonpaged memory
+	NStatus = MlmeAllocateMemory(pAd, (PVOID)&pOutBuffer);  
 	if(NStatus != NDIS_STATUS_SUCCESS)
 	{
 		DBGPRINT(RT_DEBUG_TRACE, ("%s() allocate memory failed \n", __func__));
@@ -1028,22 +832,22 @@ static BOOLEAN DfsRequirementCheck(
 
 	do
 	{
-		// check DFS procedure is running.
-		// make sure DFS procedure won't start twice.
+		
+		
 		if (pAd->CommonCfg.RadarDetect.RDMode != RD_NORMAL_MODE)
 		{
 			Result = FALSE;
 			break;
 		}
 
-		// check the new channel carried from Channel Switch Announcemnet is valid.
+		
 		for (i=0; i<pAd->ChannelListNum; i++)
 		{
 			if ((Channel == pAd->ChannelList[i].Channel)
 				&&(pAd->ChannelList[i].RemainingTimeForUse == 0))
 			{
-				// found radar signal in the channel. the channel can't use at least for 30 minutes.
-				pAd->ChannelList[i].RemainingTimeForUse = 1800;//30 min = 1800 sec
+				
+				pAd->ChannelList[i].RemainingTimeForUse = 1800;
 				Result = TRUE;
 				break;
 			}
@@ -1067,7 +871,7 @@ static VOID StartDFSProcedure(
 	IN UCHAR Channel,
 	IN UINT8 ChSwMode)
 {
-	// start DFS procedure
+	
 	pAd->CommonCfg.Channel = Channel;
 
 	N_ChannelCheck(pAd);
@@ -1076,28 +880,9 @@ static VOID StartDFSProcedure(
 	pAd->CommonCfg.RadarDetect.CSCount = 0;
 }
 
-/*
-	==========================================================================
-	Description:
-		Channel Switch Announcement action frame sanity check.
-
-	Parametrs:
-		1. MLME message containing the received frame
-		2. message length.
-		3. Channel switch announcement infomation buffer.
 
 
-	Return	: None.
-	==========================================================================
- */
 
-/*
-  Channel Switch Announcement IE.
-  +----+-----+-----------+------------+-----------+
-  | ID | Len |Ch Sw Mode | New Ch Num | Ch Sw Cnt |
-  +----+-----+-----------+------------+-----------+
-    1    1        1           1            1
-*/
 static BOOLEAN PeerChSwAnnSanity(
 	IN PRTMP_ADAPTER pAd,
 	IN VOID *pMsg,
@@ -1109,10 +894,10 @@ static BOOLEAN PeerChSwAnnSanity(
 	BOOLEAN result = FALSE;
 	PEID_STRUCT eid_ptr;
 
-	// skip 802.11 header.
+	
 	MsgLen -= sizeof(HEADER_802_11);
 
-	// skip category and action code.
+	
 	pFramePtr += 2;
 	MsgLen -= 2;
 
@@ -1141,19 +926,7 @@ static BOOLEAN PeerChSwAnnSanity(
 	return result;
 }
 
-/*
-	==========================================================================
-	Description:
-		Measurement request action frame sanity check.
 
-	Parametrs:
-		1. MLME message containing the received frame
-		2. message length.
-		3. Measurement request infomation buffer.
-
-	Return	: None.
-	==========================================================================
- */
 static BOOLEAN PeerMeasureReqSanity(
 	IN PRTMP_ADAPTER pAd,
 	IN VOID *pMsg,
@@ -1169,10 +942,10 @@ static BOOLEAN PeerMeasureReqSanity(
 	UINT64 MeasureStartTime;
 	UINT16 MeasureDuration;
 
-	// skip 802.11 header.
+	
 	MsgLen -= sizeof(HEADER_802_11);
 
-	// skip category and action code.
+	
 	pFramePtr += 2;
 	MsgLen -= 2;
 
@@ -1211,40 +984,9 @@ static BOOLEAN PeerMeasureReqSanity(
 	return result;
 }
 
-/*
-	==========================================================================
-	Description:
-		Measurement report action frame sanity check.
 
-	Parametrs:
-		1. MLME message containing the received frame
-		2. message length.
-		3. Measurement report infomation buffer.
-		4. basic report infomation buffer.
 
-	Return	: None.
-	==========================================================================
- */
 
-/*
-  Measurement Report IE.
-  +----+-----+-------+-------------+--------------+----------------+
-  | ID | Len | Token | Report Mode | Measure Type | Measure Report |
-  +----+-----+-------+-------------+--------------+----------------+
-    1     1      1          1             1            variable
-
-  Basic Report.
-  +--------+------------+----------+-----+
-  | Ch Num | Start Time | Duration | Map |
-  +--------+------------+----------+-----+
-      1          8           2        1
-
-  Map Field Bit Format.
-  +-----+---------------+---------------------+-------+------------+----------+
-  | Bss | OFDM Preamble | Unidentified signal | Radar | Unmeasured | Reserved |
-  +-----+---------------+---------------------+-------+------------+----------+
-     0          1                  2              3         4          5-7
-*/
 static BOOLEAN PeerMeasureReportSanity(
 	IN PRTMP_ADAPTER pAd,
 	IN VOID *pMsg,
@@ -1259,10 +1001,10 @@ static BOOLEAN PeerMeasureReportSanity(
 	PEID_STRUCT eid_ptr;
 	PUCHAR ptr;
 
-	// skip 802.11 header.
+	
 	MsgLen -= sizeof(HEADER_802_11);
 
-	// skip category and action code.
+	
 	pFramePtr += 2;
 	MsgLen -= 2;
 
@@ -1323,19 +1065,7 @@ static BOOLEAN PeerMeasureReportSanity(
 	return result;
 }
 
-/*
-	==========================================================================
-	Description:
-		TPC Request action frame sanity check.
 
-	Parametrs:
-		1. MLME message containing the received frame
-		2. message length.
-		3. Dialog Token.
-
-	Return	: None.
-	==========================================================================
- */
 static BOOLEAN PeerTpcReqSanity(
 	IN PRTMP_ADAPTER pAd,
 	IN VOID *pMsg,
@@ -1349,7 +1079,7 @@ static BOOLEAN PeerTpcReqSanity(
 
 	MsgLen -= sizeof(HEADER_802_11);
 
-	// skip category and action code.
+	
 	pFramePtr += 2;
 	MsgLen -= 2;
 
@@ -1378,20 +1108,7 @@ static BOOLEAN PeerTpcReqSanity(
 	return result;
 }
 
-/*
-	==========================================================================
-	Description:
-		TPC Report action frame sanity check.
 
-	Parametrs:
-		1. MLME message containing the received frame
-		2. message length.
-		3. Dialog Token.
-		4. TPC Report IE.
-
-	Return	: None.
-	==========================================================================
- */
 static BOOLEAN PeerTpcRepSanity(
 	IN PRTMP_ADAPTER pAd,
 	IN VOID *pMsg,
@@ -1406,7 +1123,7 @@ static BOOLEAN PeerTpcRepSanity(
 
 	MsgLen -= sizeof(HEADER_802_11);
 
-	// skip category and action code.
+	
 	pFramePtr += 2;
 	MsgLen -= 2;
 
@@ -1437,17 +1154,7 @@ static BOOLEAN PeerTpcRepSanity(
 	return result;
 }
 
-/*
-	==========================================================================
-	Description:
-		Channel Switch Announcement action frame handler.
 
-	Parametrs:
-		Elme - MLME message containing the received frame
-
-	Return	: None.
-	==========================================================================
- */
 static VOID PeerChSwAnnAction(
 	IN PRTMP_ADAPTER pAd,
 	IN MLME_QUEUE_ELEM *Elem)
@@ -1481,16 +1188,16 @@ static VOID PeerChSwAnnAction(
 
 		if ((pAd->CommonCfg.bIEEE80211H == 1) && (NewChannel != 0) && (Channel != NewChannel))
 		{
-			// Switching to channel 1 can prevent from rescanning the current channel immediately (by auto reconnection).
-			// In addition, clear the MLME queue and the scan table to discard the RX packets and previous scanning results.
+			
+			
 			AsicSwitchChannel(pAd, 1, FALSE);
 			AsicLockChannel(pAd, 1);
 		    LinkDown(pAd, FALSE);
 			MlmeQueueInit(&pAd->Mlme.Queue);
 			BssTableInit(&pAd->ScanTab);
-		    RTMPusecDelay(1000000);		// use delay to prevent STA do reassoc
+		    RTMPusecDelay(1000000);		
 
-			// channel sanity check
+			
 			for (index = 0 ; index < pAd->ChannelListNum; index++)
 			{
 				if (pAd->ChannelList[index].Channel == NewChannel)
@@ -1515,17 +1222,7 @@ static VOID PeerChSwAnnAction(
 }
 
 
-/*
-	==========================================================================
-	Description:
-		Measurement Request action frame handler.
 
-	Parametrs:
-		Elme - MLME message containing the received frame
-
-	Return	: None.
-	==========================================================================
- */
 static VOID PeerMeasureReqAction(
 	IN PRTMP_ADAPTER pAd,
 	IN MLME_QUEUE_ELEM *Elem)
@@ -1545,17 +1242,7 @@ static VOID PeerMeasureReqAction(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Measurement Report action frame handler.
 
-	Parametrs:
-		Elme - MLME message containing the received frame
-
-	Return	: None.
-	==========================================================================
- */
 static VOID PeerMeasureReportAction(
 	IN PRTMP_ADAPTER pAd,
 	IN MLME_QUEUE_ELEM *Elem)
@@ -1565,8 +1252,8 @@ static VOID PeerMeasureReportAction(
 	UINT8 DialogToken;
 	PUINT8 pMeasureReportInfo;
 
-//	if (pAd->CommonCfg.bIEEE80211H != TRUE)
-//		return;
+
+
 
 	if ((pMeasureReportInfo = kmalloc(sizeof(MEASURE_RPI_REPORT), GFP_ATOMIC)) == NULL)
 	{
@@ -1581,8 +1268,8 @@ static VOID PeerMeasureReportAction(
 		do {
 			PMEASURE_REQ_ENTRY pEntry = NULL;
 
-			// Not a autonomous measure report.
-			// check the dialog token field. drop it if the dialog token doesn't match.
+			
+			
 			if ((DialogToken != 0)
 				&& ((pEntry = MeasureReqLookUp(pAd, DialogToken)) == NULL))
 				break;
@@ -1610,17 +1297,7 @@ static VOID PeerMeasureReportAction(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		TPC Request action frame handler.
 
-	Parametrs:
-		Elme - MLME message containing the received frame
-
-	Return	: None.
-	==========================================================================
- */
 static VOID PeerTpcReqAction(
 	IN PRTMP_ADAPTER pAd,
 	IN MLME_QUEUE_ELEM *Elem)
@@ -1632,18 +1309,18 @@ static VOID PeerTpcReqAction(
 	UINT8 LinkMargin = 0;
 	CHAR RealRssi;
 
-	// link margin: Ratio of the received signal power to the minimum desired by the station (STA). The
-	//				STA may incorporate rate information and channel conditions, including interference, into its computation
-	//				of link margin.
+	
+	
+	
 
 	RealRssi = RTMPMaxRssi(pAd, ConvertToRssi(pAd, Elem->Rssi0, RSSI_0),
 								ConvertToRssi(pAd, Elem->Rssi1, RSSI_1),
 								ConvertToRssi(pAd, Elem->Rssi2, RSSI_2));
 
-	// skip Category and action code.
+	
 	pFramePtr += 2;
 
-	// Dialog token.
+	
 	NdisMoveMemory(&DialogToken, pFramePtr, 1);
 
 	LinkMargin = (RealRssi / MIN_RCV_PWR);
@@ -1653,17 +1330,7 @@ static VOID PeerTpcReqAction(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		TPC Report action frame handler.
 
-	Parametrs:
-		Elme - MLME message containing the received frame
-
-	Return	: None.
-	==========================================================================
- */
 static VOID PeerTpcRepAction(
 	IN PRTMP_ADAPTER pAd,
 	IN MLME_QUEUE_ELEM *Elem)
@@ -1686,18 +1353,7 @@ static VOID PeerTpcRepAction(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
-		Spectrun action frames Handler such as channel switch annoucement,
-		measurement report, measurement request actions frames.
 
-	Parametrs:
-		Elme - MLME message containing the received frame
-
-	Return	: None.
-	==========================================================================
- */
 VOID PeerSpectrumAction(
 	IN PRTMP_ADAPTER pAd,
 	IN MLME_QUEUE_ELEM *Elem)
@@ -1711,8 +1367,8 @@ VOID PeerSpectrumAction(
 	switch(Action)
 	{
 		case SPEC_MRQ:
-			// current rt2860 unable do such measure specified in Measurement Request.
-			// reject all measurement request.
+			
+			
 			PeerMeasureReqAction(pAd, Elem);
 			break;
 
@@ -1738,15 +1394,7 @@ VOID PeerSpectrumAction(
 	return;
 }
 
-/*
-	==========================================================================
-	Description:
 
-	Parametrs:
-
-	Return	: None.
-	==========================================================================
- */
 INT Set_MeasureReq_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -1765,11 +1413,11 @@ INT Set_MeasureReq_Proc(
 	{
 		switch(ArgIdx)
 		{
-			case 1:	// Aid.
+			case 1:	
 				Aid = simple_strtol(thisChar, 0, 16);
 				break;
 
-			case 2: // Measurement Request Type.
+			case 2: 
 				MeasureReqType = simple_strtol(thisChar, 0, 16);
 				if (MeasureReqType > 3)
 				{
@@ -1778,7 +1426,7 @@ INT Set_MeasureReq_Proc(
 				}
 				break;
 
-			case 3: // Measurement channel.
+			case 3: 
 				MeasureCh = simple_strtol(thisChar, 0, 16);
 				break;
 		}

@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: ioctl.c
- *
- * Purpose:  private ioctl functions
- *
- * Author: Lyndon Chen
- *
- * Date: Auguest 20, 2003
- *
- * Functions:
- *
- * Revision History:
- *
- */
+
 
 #include "ioctl.h"
 #include "iocmd.h"
@@ -40,21 +10,21 @@
 #include "rndis.h"
 #include "rf.h"
 
-/*---------------------  Static Definitions -------------------------*/
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
-//static int          msglevel                =MSG_LEVEL_DEBUG;
+
+
+
+
 static int          msglevel                =MSG_LEVEL_INFO;
 
 #ifdef WPA_SM_Transtatus
     SWPAResult wpa_Result;
 #endif
 
-/*---------------------  Static Functions  --------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
+
+
 
 int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
 
@@ -114,7 +84,7 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
         break;
 
     case WLAN_CMD_ZONETYPE_SET:
-	//mike add :cann't support.
+	
            result=-EOPNOTSUPP;
 	  break;
 
@@ -124,35 +94,35 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
 		};
 
           if(sZoneTypeCmd.bWrite==TRUE) {
-	  //////write zonetype
+	  
                 if(sZoneTypeCmd.ZoneType == ZoneType_USA) {
-                  //set to USA
+                  
                    printk("set_ZoneType:USA\n");
 		}
                 else if(sZoneTypeCmd.ZoneType == ZoneType_Japan) {
-                  //set to Japan
+                  
                   printk("set_ZoneType:Japan\n");
 		}
 	       else if(sZoneTypeCmd.ZoneType == ZoneType_Europe) {
-                  //set to Europe
+                  
                   printk("set_ZoneType:Europe\n");
 		}
             }
 	else {
-          ///////read zonetype
+          
 	  BYTE                       zonetype=0;
 
 
-           if(zonetype == 0x00)  { //USA
+           if(zonetype == 0x00)  { 
              sZoneTypeCmd.ZoneType = ZoneType_USA;
            }
-	 else if(zonetype == 0x01) { //Japan
+	 else if(zonetype == 0x01) { 
              sZoneTypeCmd.ZoneType = ZoneType_Japan;
 	  }
-	 else if(zonetype == 0x02) { //Europe
+	 else if(zonetype == 0x02) { 
              sZoneTypeCmd.ZoneType = ZoneType_Europe;
 	 }
-	 else { //Unknow ZoneType
+	 else { 
 	        printk("Error:ZoneType[%x] Unknown ???\n",zonetype);
 	         result = -EFAULT;
 		break;
@@ -185,7 +155,7 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
 	    }
 	    if (sJoinCmd.bPSEnable == TRUE) {
             pDevice->ePSMode = WMAC_POWER_FAST;
-//            pDevice->ePSMode = WMAC_POWER_MAX;
+
             pMgmt->wListenInterval = 2;
             DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "Power Saving On\n");
         }
@@ -235,8 +205,8 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
         for (ii = 0; ii < WLAN_WEP_NKEYS; ii ++) {
             if (sWEPCmd.bWepKeyAvailable[ii]) {
                 if (ii == sWEPCmd.byKeyIndex)
-//2006-1207-01<Modify>by Einsn Liu
-//		    dwKeyIndex|= (1 << 31);
+
+
                     dwKeyIndex=ii|(1 << 31);
                 else
                     dwKeyIndex = ii;
@@ -331,7 +301,7 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
     		    pList->sBSSIDList[ii].wCapInfo = pBSS->wCapInfo;
     		    RFvRSSITodBm(pDevice, (BYTE)(pBSS->uRSSI), &ldBm);
     		    pList->sBSSIDList[ii].uRSSI = (UINT)ldBm;
-//    		    pList->sBSSIDList[ii].uRSSI = pBSS->uRSSI;
+
     		    memcpy(pList->sBSSIDList[ii].abyBSSID, pBSS->abyBSSID, WLAN_BSSID_LEN);
     		    pItemSSID = (PWLAN_IE_SSID)pBSS->abySSID;
     		    memset(pList->sBSSIDList[ii].abySSID, 0, WLAN_SSID_MAXLEN + 1);
@@ -378,7 +348,7 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
     case WLAN_CMD_STOP_MAC:
 
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "WLAN_CMD_STOP_MAC\n");
-        // Todo xxxxxx
+        
         netif_stop_queue(pDevice->dev);
         spin_lock_irq(&pDevice->lock);
         if (pDevice->bRadioOff == FALSE) {
@@ -388,8 +358,8 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
         ControlvMaskByte(pDevice,MESSAGE_REQUEST_MACREG,MAC_REG_PAPEDELAY,LEDSTS_STS,LEDSTS_SLOW);
         memset(pMgmt->abyCurrBSSID, 0, 6);
         pMgmt->eCurrState = WMAC_STATE_IDLE;
-//        del_timer(&pDevice->sTimerCommand);
-//        del_timer(&pMgmt->sTimerSecondCallback);
+
+
         pDevice->bCmdRunning = FALSE;
         spin_unlock_irq(&pDevice->lock);
 
@@ -398,7 +368,7 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
     case WLAN_CMD_START_MAC:
 
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "WLAN_CMD_START_MAC\n");
-        // Todo xxxxxxx
+        
         if (pDevice->bRadioOff == TRUE)
             CARDbRadioPowerOn(pDevice);
         break;
@@ -560,7 +530,7 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
         }else if (sStartAPCmd.byBasicRate & BIT1) {
              pMgmt->abyIBSSSuppRates[2] |= BIT7;
         }else {
-            //default 1,2M
+            
              pMgmt->abyIBSSSuppRates[2] |= BIT7;
              pMgmt->abyIBSSSuppRates[3] |= BIT7;
         }
@@ -659,12 +629,12 @@ int private_ioctl(PSDevice pDevice, struct ifreq *rq) {
             result = -EFAULT;
 			break;
 		}
-//DavidWang  for some AP maybe good authenticate
+
    if(wpa_Result.key_mgmt==0x20)
       pMgmt->Cisco_cckm =1;
     else
     pMgmt->Cisco_cckm =0;
-//DavidWang
+
 
 if(wpa_Result.authenticated==TRUE) {
    #ifdef SndEvt_ToAPI
@@ -679,15 +649,15 @@ if(wpa_Result.authenticated==TRUE) {
      wireless_send_event(pDevice->dev, IWEVCUSTOM, &wrqu, pItemSSID->abySSID);
    }
    #endif
-         pDevice->fWPA_Authened = TRUE;           //is sucessful peer to wpa_Result.authenticated?
+         pDevice->fWPA_Authened = TRUE;           
 }
 
-        //printk("get private wpa_supplicant announce WPA SM\n");
-	//printk("wpa-->ifname=%s\n",wpa_Result.ifname);
-	//printk("wpa-->proto=%d\n",wpa_Result.proto);
-	//printk("wpa-->key-mgmt=%d\n",wpa_Result.key_mgmt);
-	//printk("wpa-->eap_type=%d\n",wpa_Result.eap_type);
-	//printk("wpa-->authenticated is %s\n",(wpa_Result.authenticated==TRUE)?"TRUE":"FALSE");
+        
+	
+	
+	
+	
+	
 
 	pReq->wResult = 0;
         break;

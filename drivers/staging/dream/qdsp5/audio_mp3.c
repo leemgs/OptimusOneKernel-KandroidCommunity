@@ -1,20 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/audio_mp3.c
- *
- * mp3 audio output device
- *
- * Copyright (C) 2008 Google, Inc.
- * Copyright (C) 2008 HTC Corporation
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -39,7 +23,7 @@
 #include <mach/qdsp5/qdsp5audplaycmdi.h>
 #include <mach/qdsp5/qdsp5audplaymsg.h>
 
-/* for queue ids - should be relative to module number*/
+
 #include "adsp.h"
 
 #ifdef DEBUG
@@ -49,7 +33,7 @@ printk(KERN_DEBUG format, ## arg)
 #define dprintk(format, arg...) do {} while (0)
 #endif
 
-/* Size must be power of 2 */
+
 #define BUFSZ_MAX 32768
 #define BUFSZ_MIN 4096
 #define DMASZ_MAX (BUFSZ_MAX * 2)
@@ -58,12 +42,11 @@ printk(KERN_DEBUG format, ## arg)
 #define AUDPLAY_INVALID_READ_PTR_OFFSET	0xFFFF
 #define AUDDEC_DEC_MP3 2
 
-#define PCM_BUFSZ_MIN 4800	/* Hold one stereo MP3 frame */
-#define PCM_BUF_MAX_COUNT 5	/* DSP only accepts 5 buffers at most
-				   but support 2 buffers currently */
+#define PCM_BUFSZ_MIN 4800	
+#define PCM_BUF_MAX_COUNT 5	
 #define ROUTING_MODE_FTRT 1
 #define ROUTING_MODE_RT 2
-/* Decoder status received from AUDPPTASK */
+
 #define  AUDPP_DEC_STATUS_SLEEP	0
 #define	 AUDPP_DEC_STATUS_INIT  1
 #define  AUDPP_DEC_STATUS_CFG   2
@@ -72,7 +55,7 @@ printk(KERN_DEBUG format, ## arg)
 struct buffer {
 	void *data;
 	unsigned size;
-	unsigned used;		/* Input usage actual DSP produced PCM size  */
+	unsigned used;		
 	unsigned addr;
 };
 
@@ -83,7 +66,7 @@ struct audio {
 
 	uint8_t out_head;
 	uint8_t out_tail;
-	uint8_t out_needed; /* number of buffers the dsp is waiting for */
+	uint8_t out_needed; 
 	unsigned out_dma_sz;
 
 	atomic_t out_bytes;
@@ -92,40 +75,40 @@ struct audio {
 	struct mutex write_lock;
 	wait_queue_head_t write_wait;
 
-	/* Host PCM section */
+	
 	struct buffer in[PCM_BUF_MAX_COUNT];
 	struct mutex read_lock;
-	wait_queue_head_t read_wait;	/* Wait queue for read */
-	char *read_data;	/* pointer to reader buffer */
-	dma_addr_t read_phys;	/* physical address of reader buffer */
-	uint8_t read_next;	/* index to input buffers to be read next */
-	uint8_t fill_next;	/* index to buffer that DSP should be filling */
-	uint8_t pcm_buf_count;	/* number of pcm buffer allocated */
-	/* ---- End of Host PCM section */
+	wait_queue_head_t read_wait;	
+	char *read_data;	
+	dma_addr_t read_phys;	
+	uint8_t read_next;	
+	uint8_t fill_next;	
+	uint8_t pcm_buf_count;	
+	
 
 	struct msm_adsp_module *audplay;
 
-	/* configuration to use on next enable */
+	
 	uint32_t out_sample_rate;
 	uint32_t out_channel_mode;
 
 	struct audmgr audmgr;
 
-	/* data allocated for various buffers */
+	
 	char *data;
 	dma_addr_t phys;
 
-	int rflush; /* Read  flush */
-	int wflush; /* Write flush */
+	int rflush; 
+	int wflush; 
 	int opened;
 	int enabled;
 	int running;
-	int stopped; /* set when stopped, cleared on flush */
+	int stopped; 
 	int pcm_feedback;
 	int buf_refresh;
 
-	int reserved; /* A byte is being reserved */
-	char rsv_byte; /* Handle odd length user data */
+	int reserved; 
+	char rsv_byte; 
 
 	unsigned volume;
 
@@ -141,7 +124,7 @@ static void audplay_config_hostpcm(struct audio *audio);
 static void audplay_buffer_refresh(struct audio *audio);
 static void audio_dsp_event(void *private, unsigned id, uint16_t *msg);
 
-/* must be called with audio->lock held */
+
 static int audio_enable(struct audio *audio)
 {
 	struct audmgr_config cfg;
@@ -182,7 +165,7 @@ static int audio_enable(struct audio *audio)
 	return 0;
 }
 
-/* must be called with audio->lock held */
+
 static int audio_disable(struct audio *audio)
 {
 	pr_info("audio_disable()\n");
@@ -199,7 +182,7 @@ static int audio_disable(struct audio *audio)
 	return 0;
 }
 
-/* ------------------- dsp --------------------- */
+
 static void audio_update_pcm_buf_entry(struct audio *audio, uint32_t *payload)
 {
 	uint8_t index;
@@ -409,7 +392,7 @@ static void audplay_buffer_refresh(struct audio *audio)
 	refresh_cmd.num_buffers = 1;
 	refresh_cmd.buf0_address = audio->in[audio->fill_next].addr;
 	refresh_cmd.buf0_length = audio->in[audio->fill_next].size -
-	  (audio->in[audio->fill_next].size % 576);	/* Mp3 frame size */
+	  (audio->in[audio->fill_next].size % 576);	
 	refresh_cmd.buf_read_count = 0;
 	pr_info("audplay_buffer_fresh: buf0_addr=%x buf0_len=%d\n",
 		refresh_cmd.buf0_address, refresh_cmd.buf0_length);
@@ -446,12 +429,7 @@ static void audplay_send_data(struct audio *audio, unsigned needed)
 	}
 
 	if (needed && !audio->wflush) {
-		/* We were called from the callback because the DSP
-		 * requested more data.  Note that the DSP does want
-		 * more data, and if a buffer was in-flight, mark it
-		 * as available (since the DSP must now be done with
-		 * it).
-		 */
+		
 		audio->out_needed = 1;
 		frame = audio->out + audio->out_tail;
 		if (frame->used == 0xffffffff) {
@@ -463,12 +441,7 @@ static void audplay_send_data(struct audio *audio, unsigned needed)
 	}
 
 	if (audio->out_needed) {
-		/* If the DSP currently wants data and we have a
-		 * buffer available, we will send it and reset
-		 * the needed flag.  We'll mark the buffer as in-flight
-		 * so that it won't be recycled until the next buffer
-		 * is requested
-		 */
+		
 
 		frame = audio->out + audio->out_tail;
 		if (frame->used) {
@@ -484,7 +457,7 @@ done:
 	spin_unlock_irqrestore(&audio->dsp_lock, flags);
 }
 
-/* ------------------- device --------------------- */
+
 
 static void audio_flush(struct audio *audio)
 {
@@ -509,10 +482,7 @@ static void audio_flush_pcm_buf(struct audio *audio)
 
 static void audio_ioport_reset(struct audio *audio)
 {
-	/* Make sure read/write thread are free from
-	 * sleep and knowing that system is not able
-	 * to process io request at the moment
-	 */
+	
 	wake_up(&audio->write_wait);
 	mutex_lock(&audio->write_lock);
 	audio_flush(audio);
@@ -638,7 +608,7 @@ static long audio_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			if (config.buffer_size < PCM_BUFSZ_MIN)
 				config.buffer_size = PCM_BUFSZ_MIN;
 
-			/* Check if pcm feedback is required */
+			
 			if ((config.pcm_feedback) && (!audio->read_data)) {
 				pr_info("ioctl: allocate PCM buffer %d\n",
 					config.buffer_count *
@@ -701,7 +671,7 @@ static ssize_t audio_read(struct file *file, char __user *buf, size_t count,
 	int rc = 0;
 
 	if (!audio->pcm_feedback)
-		return 0; /* PCM feedback disabled. Nothing to read */
+		return 0; 
 
 	mutex_lock(&audio->read_lock);
 	pr_info("audio_read() %d \n", count);
@@ -720,11 +690,7 @@ static ssize_t audio_read(struct file *file, char __user *buf, size_t count,
 		}
 
 		if (count < audio->in[audio->read_next].used) {
-			/* Read must happen in frame boundary. Since
-			 * driver does not know frame size, read count
-			 * must be greater or equal
-			 * to size of PCM samples
-			 */
+			
 			pr_info("audio_read: no partial frame done reading\n");
 			break;
 		} else {
@@ -744,17 +710,11 @@ static ssize_t audio_read(struct file *file, char __user *buf, size_t count,
 			if ((++audio->read_next) == audio->pcm_buf_count)
 				audio->read_next = 0;
 			if (audio->in[audio->read_next].used == 0)
-				break; /* No data ready at this moment
-					* Exit while loop to prevent
-					* output thread sleep too long
-					*/
+				break; 
 		}
 	}
 
-	/* don't feed output buffer to HW decoder during flushing
-	 * buffer refresh command will be sent once flush completes
-	 * send buf refresh command here can confuse HW decoder
-	 */
+	
 	if (audio->buf_refresh && !audio->rflush) {
 		audio->buf_refresh = 0;
 		pr_info("audio_read: kick start pcm feedback again\n");
@@ -915,7 +875,7 @@ static int audio_open(struct inode *inode, struct file *file)
 	}
 
 	audio->out_dma_sz = pmem_sz;
-	pmem_sz >>= 1; /* Shift by 1 to get size of ping pong buffer */
+	pmem_sz >>= 1; 
 
 	audio->out_sample_rate = 44100;
 	audio->out_channel_mode = AUDPP_CMD_PCM_INTF_STEREO_V;
@@ -929,7 +889,7 @@ static int audio_open(struct inode *inode, struct file *file)
 	audio->out[1].addr = audio->phys + pmem_sz;
 	audio->out[1].size = pmem_sz;
 
-	audio->volume = 0x2000;	/* equal to Q13 number 1.0 Unit Gain */
+	audio->volume = 0x2000;	
 
 	audio_flush(audio);
 

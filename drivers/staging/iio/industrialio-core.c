@@ -1,13 +1,4 @@
-/* The industrial I/O core
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * Based on elements of hwmon and input subsystems.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -27,14 +18,14 @@
 #define IIO_ID_PREFIX "device"
 #define IIO_ID_FORMAT IIO_ID_PREFIX "%d"
 
-/* IDR to assign each registered device a unique id*/
+
 static DEFINE_IDR(iio_idr);
 
-/* IDR for general event identifiers */
+
 static DEFINE_IDR(iio_event_idr);
-/* IDR to allocate character device minor numbers */
+
 static DEFINE_IDR(iio_chrdev_idr);
-/* Lock used to protect both of the above */
+
 static DEFINE_SPINLOCK(iio_idr_lock);
 
 dev_t iio_devt;
@@ -61,12 +52,9 @@ void __iio_change_event(struct iio_detected_event_list *ev,
 }
 EXPORT_SYMBOL(__iio_change_event);
 
-/* Used both in the interrupt line put events and the ring buffer ones */
 
-/* Note that in it's current form someone has to be listening before events
- * are queued. Hence a client MUST open the chrdev before the ring buffer is
- * switched on.
- */
+
+
  int __iio_push_event(struct iio_event_interface *ev_int,
 		     int ev_code,
 		     s64 timestamp,
@@ -76,7 +64,7 @@ EXPORT_SYMBOL(__iio_change_event);
 	struct iio_detected_event_list *ev;
 	int ret = 0;
 
-	/* Does anyone care? */
+	
 	mutex_lock(&ev_int->event_list_lock);
 	if (test_bit(IIO_BUSY_BIT_POS, &ev_int->handler.flags)) {
 		if (ev_int->current_events == ev_int->max_events)
@@ -114,7 +102,7 @@ int iio_push_event(struct iio_dev *dev_info,
 }
 EXPORT_SYMBOL(iio_push_event);
 
-/* Generic interrupt line interrupt handler */
+
 irqreturn_t iio_interrupt_handler(int irq, void *_int_info)
 {
 	struct iio_interrupt *int_info = _int_info;
@@ -130,13 +118,13 @@ irqreturn_t iio_interrupt_handler(int irq, void *_int_info)
 	}
 
 	time_ns = iio_get_time_ns();
-	/* detect single element list*/
+	
 	if (list_is_singular(&int_info->ev_list)) {
 		disable_irq_nosync(irq);
 		p = list_first_entry(&int_info->ev_list,
 				     struct iio_event_handler_list,
 				     list);
-		/* single event handler - maybe shared */
+		
 		p->handler(dev_info, 1, time_ns, !(p->refcount > 1));
 	} else
 		list_for_each_entry(p, &int_info->ev_list, list) {
@@ -158,7 +146,7 @@ static struct iio_interrupt *iio_allocate_interrupt(void)
 	return i;
 }
 
-/* Confirming the validity of supplied irq is left to drivers.*/
+
 int iio_register_interrupt_line(unsigned int irq,
 				struct iio_dev *dev_info,
 				int line_number,
@@ -176,10 +164,7 @@ int iio_register_interrupt_line(unsigned int irq,
 	dev_info->interrupts[line_number]->irq = irq;
 	dev_info->interrupts[line_number]->dev_info = dev_info;
 
-	/* Possibly only request on demand?
-	 * Can see this may complicate the handling of interrupts.
-	 * However, with this approach we might end up handling lots of
-	 * events no-one cares about.*/
+	
 	ret = request_irq(irq,
 			  &iio_interrupt_handler,
 			  type,
@@ -191,7 +176,7 @@ error_ret:
 }
 EXPORT_SYMBOL(iio_register_interrupt_line);
 
-/* This turns up an awful lot */
+
 ssize_t iio_read_const_attr(struct device *dev,
 			    struct device_attribute *attr,
 			    char *buf)
@@ -200,10 +185,10 @@ ssize_t iio_read_const_attr(struct device *dev,
 }
 EXPORT_SYMBOL(iio_read_const_attr);
 
-/* Before this runs the interrupt generator must have been disabled */
+
 void iio_unregister_interrupt_line(struct iio_dev *dev_info, int line_number)
 {
-	/* make sure the interrupt handlers are all done */
+	
 	flush_scheduled_work();
 	free_irq(dev_info->interrupts[line_number]->irq,
 		 dev_info->interrupts[line_number]);
@@ -211,17 +196,17 @@ void iio_unregister_interrupt_line(struct iio_dev *dev_info, int line_number)
 }
 EXPORT_SYMBOL(iio_unregister_interrupt_line);
 
-/* Reference counted add and remove */
+
 void iio_add_event_to_list(struct iio_event_handler_list *el,
 			  struct list_head *head)
 {
 	unsigned long flags;
 	struct iio_interrupt *inter = to_iio_interrupt(head);
 
-	/* take mutex to protect this element */
+	
 	mutex_lock(&el->exist_lock);
 	if (el->refcount == 0) {
-		/* Take the event list spin lock */
+		
 		spin_lock_irqsave(&inter->ev_list_lock, flags);
 		list_add(&el->list, head);
 		spin_unlock_irqrestore(&inter->ev_list_lock, flags);
@@ -240,7 +225,7 @@ void iio_remove_event_from_list(struct iio_event_handler_list *el,
 	mutex_lock(&el->exist_lock);
 	el->refcount--;
 	if (el->refcount == 0) {
-		/* Take the event list spin lock */
+		
 		spin_lock_irqsave(&inter->ev_list_lock, flags);
 		list_del_init(&el->list);
 		spin_unlock_irqrestore(&inter->ev_list_lock, flags);
@@ -266,13 +251,13 @@ ssize_t iio_event_chrdev_read(struct file *filep,
 			goto error_mutex_unlock;
 		}
 		mutex_unlock(&ev_int->event_list_lock);
-		/* Blocking on device; waiting for something to be there */
+		
 		ret = wait_event_interruptible(ev_int->wait,
 					       !list_empty(&ev_int
 							   ->det_events.list));
 		if (ret)
 			goto error_ret;
-		/* Single access device so noone else can get the data */
+		
 		mutex_lock(&ev_int->event_list_lock);
 	}
 
@@ -287,13 +272,7 @@ ssize_t iio_event_chrdev_read(struct file *filep,
 	list_del(&el->list);
 	ev_int->current_events--;
 	mutex_unlock(&ev_int->event_list_lock);
-	/*
-	 * Possible concurency issue if an update of this event is on its way
-	 * through. May lead to new even being removed whilst the reported event
-	 * was the unescalated event. In typical use case this is not a problem
-	 * as userspace will say read half the buffer due to a 50% full event
-	 * which would make the correct 100% full incorrect anyway.
-	 */
+	
 	spin_lock(&el->shared_pointer->lock);
 	if (el->shared_pointer)
 		(el->shared_pointer->ev_p) = NULL;
@@ -318,11 +297,7 @@ int iio_event_chrdev_release(struct inode *inode, struct file *filep)
 
 	mutex_lock(&ev_int->event_list_lock);
 	clear_bit(IIO_BUSY_BIT_POS, &ev_int->handler.flags);
-	/*
-	 * In order to maintain a clean state for reopening,
-	 * clear out any awaiting events. The mask will prevent
-	 * any new __iio_push_event calls running.
-	 */
+	
 	list_for_each_entry_safe(el, t, &ev_int->det_events.list, list) {
 		list_del(&el->list);
 		kfree(el);
@@ -422,7 +397,7 @@ int iio_setup_ev_int(struct iio_event_interface *ev_int,
 	ev_int->handler.chrdev.owner = owner;
 
 	mutex_init(&ev_int->event_list_lock);
-	/* discussion point - make this variable? */
+	
 	ev_int->max_events = 10;
 	ev_int->current_events = 0;
 	INIT_LIST_HEAD(&ev_int->det_events.list);
@@ -474,7 +449,7 @@ static int __init iio_init(void)
 {
 	int ret;
 
-	/* Create sysfs class */
+	
 	ret  = class_register(&iio_class);
 	if (ret < 0) {
 		printk(KERN_ERR
@@ -580,7 +555,7 @@ static void iio_device_unregister_id(struct iio_dev *dev_info)
 static inline int __iio_add_event_config_attrs(struct iio_dev *dev_info, int i)
 {
 	int ret;
-	/*p for adding, q for removing */
+	
 	struct attribute **attrp, **attrq;
 
 	if (dev_info->event_conf_attrs && dev_info->event_conf_attrs[i].attrs) {

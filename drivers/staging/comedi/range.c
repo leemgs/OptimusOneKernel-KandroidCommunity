@@ -1,25 +1,4 @@
-/*
-    module/range.c
-    comedi routines for voltage ranges
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 1997-8 David A. Schleef <ds@schleef.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include "comedidev.h"
 #include <asm/uaccess.h>
@@ -31,19 +10,7 @@ const struct comedi_lrange range_unipolar10 = { 1, {UNI_RANGE(10)} };
 const struct comedi_lrange range_unipolar5 = { 1, {UNI_RANGE(5)} };
 const struct comedi_lrange range_unknown = { 1, {{0, 1000000, UNIT_none}} };
 
-/*
-	COMEDI_RANGEINFO
-	range information ioctl
 
-	arg:
-		pointer to rangeinfo structure
-
-	reads:
-		range info structure
-
-	writes:
-		n struct comedi_krange structures to rangeinfo->range_ptr
-*/
 int do_rangeinfo_ioctl(struct comedi_device *dev, struct comedi_rangeinfo *arg)
 {
 	struct comedi_rangeinfo it;
@@ -88,7 +55,7 @@ static int aref_invalid(struct comedi_subdevice *s, unsigned int chanspec)
 {
 	unsigned int aref;
 
-	/*  disable reporting invalid arefs... maybe someday */
+	
 	return 0;
 
 	aref = CR_AREF(chanspec);
@@ -116,10 +83,7 @@ static int aref_invalid(struct comedi_subdevice *s, unsigned int chanspec)
 	return 1;
 }
 
-/*
-   This function checks each element in a channel/gain list to make
-   make sure it is valid.
-*/
+
 int check_chanlist(struct comedi_subdevice *s, int n, unsigned int *chanlist)
 {
 	int i;

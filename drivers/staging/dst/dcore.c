@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -45,14 +32,7 @@ static char dst_name[] = "Dementianting goldfish";
 static DEFINE_IDR(dst_index_idr);
 static struct cb_id cn_dst_id = { CN_DST_IDX, CN_DST_VAL };
 
-/*
- * DST sysfs tree for device called 'storage':
- *
- * /sys/bus/dst/devices/storage/
- * /sys/bus/dst/devices/storage/type : 192.168.4.80:1025
- * /sys/bus/dst/devices/storage/size : 800
- * /sys/bus/dst/devices/storage/name : storage
- */
+
 
 static int dst_dev_match(struct device *dev, struct device_driver *drv)
 {
@@ -76,9 +56,7 @@ static struct device dst_node_dev = {
 	.release 	= &dst_node_release
 };
 
-/*
- * Setting size of the node after it was changed.
- */
+
 static void dst_node_set_size(struct dst_node *n)
 {
 	struct block_device *bdev;
@@ -94,29 +72,15 @@ static void dst_node_set_size(struct dst_node *n)
 	}
 }
 
-/*
- * Distributed storage request processing function.
- */
+
 static int dst_request(struct request_queue *q, struct bio *bio)
 {
 	struct dst_node *n = q->queuedata;
 	int err = -EIO;
 
 	if (bio_empty_barrier(bio) && !blk_queue_discard(q)) {
-		/*
-		 * This is a dirty^Wnice hack, but if we complete this
-		 * operation with -EOPNOTSUPP like intended, XFS
-		 * will stuck and freeze the machine. This may be
-		 * not particulary XFS problem though, but it is the
-		 * only FS which sends empty barrier at umount time
-		 * I worked with.
-		 *
-		 * Empty barriers are not allowed anyway, see 51fd77bd9f512
-		 * for example, although later it was changed to
-		 * bio_rw_flagged(bio, BIO_RW_DISCARD) only, which does not
-		 * work in this case.
-		 */
-		//err = -EOPNOTSUPP;
+		
+		
 		err = 0;
 		goto end_io;
 	}
@@ -130,9 +94,7 @@ end_io:
 	return err;
 }
 
-/*
- * Open/close callbacks for appropriate block device.
- */
+
 static int dst_bdev_open(struct block_device *bdev, fmode_t mode)
 {
 	struct dst_node *n = bdev->bd_disk->private_data;
@@ -155,10 +117,7 @@ static struct block_device_operations dst_blk_ops = {
 	.owner		= THIS_MODULE,
 };
 
-/*
- * Block layer binding - disk is created when array is fully configured
- * by userspace request.
- */
+
 static int dst_node_create_disk(struct dst_node *n)
 {
 	int err = -ENOMEM;
@@ -209,9 +168,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Sysfs machinery: show device's size.
- */
+
 static ssize_t dst_show_size(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -220,9 +177,7 @@ static ssize_t dst_show_size(struct device *dev,
 	return sprintf(buf, "%llu\n", info->size);
 }
 
-/*
- * Show local exported device.
- */
+
 static ssize_t dst_show_local(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -231,10 +186,7 @@ static ssize_t dst_show_local(struct device *dev,
 	return sprintf(buf, "%s\n", info->local);
 }
 
-/*
- * Shows type of the remote node - device major/minor number
- * for local nodes and address (af_inet ipv4/ipv6 only) for remote nodes.
- */
+
 static ssize_t dst_show_type(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -251,7 +203,7 @@ static ssize_t dst_show_type(struct device *dev,
 			"%pi6:%d\n",
 			&sin->sin6_addr, ntohs(sin->sin6_port));
 	} else {
-		int i, sz = PAGE_SIZE - 2; /* 0 symbol and '\n' below */
+		int i, sz = PAGE_SIZE - 2; 
 		int size, addrlen = info->net.addr.sa_data_len;
 		unsigned char *a = (unsigned char *)&info->net.addr.sa_data;
 		char *buf_orig = buf;
@@ -311,10 +263,7 @@ static void dst_remove_node_attributes(struct dst_node *n)
 				&dst_node_attrs[i]);
 }
 
-/*
- * Sysfs cleanup and initialization.
- * Shows number of useful parameters.
- */
+
 static void dst_node_sysfs_exit(struct dst_node *n)
 {
 	if (n->info) {
@@ -353,9 +302,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * DST node hash tables machinery.
- */
+
 static inline unsigned int dst_hash(char *str, unsigned int size)
 {
 	return (jhash(str, size, 0) % dst_hashtable_size);
@@ -377,11 +324,7 @@ static void dst_node_add(struct dst_node *n)
 	mutex_unlock(&dst_hash_lock);
 }
 
-/*
- * Cleaning node when it is about to be freed.
- * There are still users of the socket though,
- * so connection cleanup should be protected.
- */
+
 static void dst_node_cleanup(struct dst_node *n)
 {
 	struct dst_state *st = n->state;
@@ -415,9 +358,7 @@ static void dst_node_cleanup(struct dst_node *n)
 	n->state = NULL;
 }
 
-/*
- * Free security attributes attached to given node.
- */
+
 static void dst_security_exit(struct dst_node *n)
 {
 	struct dst_secure *s, *tmp;
@@ -428,13 +369,7 @@ static void dst_security_exit(struct dst_node *n)
 	}
 }
 
-/*
- * Free node when there are no more users.
- * Actually node has to be freed on behalf od userspace process,
- * since there are number of threads, which are embedded in the
- * node, so they can not exit and free node from there, that is
- * why there is a wakeup if reference counter is not equal to zero.
- */
+
 void dst_node_put(struct dst_node *n)
 {
 	if (unlikely(!n))
@@ -461,9 +396,7 @@ void dst_node_put(struct dst_node *n)
 	}
 }
 
-/*
- * This function finds devices major/minor numbers for given pathname.
- */
+
 static int dst_lookup_device(const char *path, dev_t *dev)
 {
 	int err;
@@ -492,16 +425,12 @@ out:
 	return err;
 }
 
-/*
- * Setting up export device: lookup by the name, get its size
- * and setup listening socket, which will accept clients, which
- * will submit IO for given storage.
- */
+
 static int dst_setup_export(struct dst_node *n, struct dst_ctl *ctl,
 		struct dst_export_ctl *le)
 {
 	int err;
-	dev_t dev = 0; /* gcc likes to scream here */
+	dev_t dev = 0; 
 
 	snprintf(n->info->local, sizeof(n->info->local), "%s", le->device);
 
@@ -532,7 +461,7 @@ err_out_cleanup:
 	return err;
 }
 
-/* Empty thread pool callbacks for the network processing threads. */
+
 static inline void *dst_thread_network_init(void *data)
 {
 	dprintk("%s: data: %p.\n", __func__, data);
@@ -544,9 +473,7 @@ static inline void dst_thread_network_cleanup(void *data)
 	dprintk("%s: data: %p.\n", __func__, data);
 }
 
-/*
- * Allocate DST node and initialize some of its parameters.
- */
+
 static struct dst_node *dst_alloc_node(struct dst_ctl *ctl,
 		int (*start)(struct dst_node *),
 		int num)
@@ -573,10 +500,7 @@ static struct dst_node *dst_alloc_node(struct dst_ctl *ctl,
 	if (!n->trans_max_retries)
 		n->trans_max_retries = 10;
 
-	/*
-	 * Pretty much arbitrary default numbers.
-	 * 32 matches maximum number of pages in bio originated from ext3 (31).
-	 */
+	
 	n->max_pages = ctl->max_pages;
 	if (!n->max_pages)
 		n->max_pages = 32;
@@ -613,19 +537,7 @@ err_out_free:
 	return NULL;
 }
 
-/*
- * Starting a node, connected to the remote server:
- * register block device and initialize transaction mechanism.
- * In revers order though.
- *
- * It will autonegotiate some parameters with the remote node
- * and update local if needed.
- *
- * Transaction initialization should be the last thing before
- * starting the node, since transaction should include not only
- * block IO, but also crypto related data (if any), which are
- * initialized separately.
- */
+
 static int dst_start_remote(struct dst_node *n)
 {
 	int err;
@@ -646,9 +558,7 @@ static int dst_start_remote(struct dst_node *n)
 	return 0;
 }
 
-/*
- * Adding remote node and initialize connection.
- */
+
 static int dst_add_remote(struct dst_node *n, struct dst_ctl *ctl,
 		void *data, unsigned int size)
 {
@@ -679,9 +589,7 @@ err_out_free:
 	return err;
 }
 
-/*
- * Adding export node: initializing block device and listening socket.
- */
+
 static int dst_add_export(struct dst_node *n, struct dst_ctl *ctl,
 		void *data, unsigned int size)
 {
@@ -722,24 +630,7 @@ static int dst_node_remove_unload(struct dst_node *n)
 	dst_node_remove(n);
 	dst_node_sysfs_exit(n);
 
-	/*
-	 * This is not a hack. Really.
-	 * Node's reference counter allows to implement fine grained
-	 * node freeing, but since all transactions (which hold node's
-	 * reference counter) are processed in the dedicated thread,
-	 * it is possible that reference will hit zero in that thread,
-	 * so we will not be able to exit thread and cleanup the node.
-	 *
-	 * So, we remove disk, so no new activity is possible, and
-	 * wait until all pending transaction are completed (either
-	 * in receiving thread or by timeout in workqueue), in this
-	 * case reference counter will be less or equal to 2 (once set in
-	 * dst_alloc_node() and then in connector message parser;
-	 * or when we force module unloading, and connector message
-	 * parser does not hold a reference, in this case reference
-	 * counter will be equal to 1),
-	 * and subsequent dst_node_put() calls will free the node.
-	 */
+	
 	dprintk("%s: going to sleep with %d refcnt.\n", __func__, atomic_read(&n->refcnt));
 	wait_event(n->wait, atomic_read(&n->refcnt) <= 2);
 
@@ -747,9 +638,7 @@ static int dst_node_remove_unload(struct dst_node *n)
 	return 0;
 }
 
-/*
- * Remove node from the hash table.
- */
+
 static int dst_del_node(struct dst_node *n, struct dst_ctl *ctl,
 		void *data, unsigned int size)
 {
@@ -759,9 +648,7 @@ static int dst_del_node(struct dst_node *n, struct dst_ctl *ctl,
 	return dst_node_remove_unload(n);
 }
 
-/*
- * Initialize crypto processing for given node.
- */
+
 static int dst_crypto_init(struct dst_node *n, struct dst_ctl *ctl,
 		void *data, unsigned int size)
 {
@@ -780,9 +667,7 @@ static int dst_crypto_init(struct dst_node *n, struct dst_ctl *ctl,
 	return dst_node_crypto_init(n, crypto);
 }
 
-/*
- * Security attributes for given node.
- */
+
 static int dst_security_init(struct dst_node *n, struct dst_ctl *ctl,
 		void *data, unsigned int size)
 {
@@ -807,9 +692,7 @@ static int dst_security_init(struct dst_node *n, struct dst_ctl *ctl,
 	return 0;
 }
 
-/*
- * Kill'em all!
- */
+
 static int dst_start_node(struct dst_node *n, struct dst_ctl *ctl,
 		void *data, unsigned int size)
 {
@@ -832,9 +715,7 @@ static int dst_start_node(struct dst_node *n, struct dst_ctl *ctl,
 typedef int (*dst_command_func)(struct dst_node *n, struct dst_ctl *ctl,
 		void *data, unsigned int size);
 
-/*
- * List of userspace commands.
- */
+
 static dst_command_func dst_commands[] = {
 	[DST_ADD_REMOTE] = &dst_add_remote,
 	[DST_ADD_EXPORT] = &dst_add_export,
@@ -844,9 +725,7 @@ static dst_command_func dst_commands[] = {
 	[DST_START] = &dst_start_node,
 };
 
-/*
- * Configuration parser.
- */
+
 static void cn_dst_callback(struct cn_msg *msg, struct netlink_skb_parms *nsp)
 {
 	struct dst_ctl *ctl;
@@ -898,10 +777,7 @@ out:
 	cn_netlink_send(&ack.msg, 0, GFP_KERNEL);
 }
 
-/*
- * Global initialization: sysfs, hash table, block device registration,
- * connector and various caches.
- */
+
 static int __init dst_sysfs_init(void)
 {
 	return bus_register(&dst_dev_bus_type);

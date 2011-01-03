@@ -1,13 +1,4 @@
-/* Industrialio test ring buffer with a lis3l02dq acceleromter
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * Assumes suitable udev rules are used to create the dev nodes as named here.
- */
+
 
 #include <dirent.h>
 #include <fcntl.h>
@@ -30,10 +21,7 @@ static int NumVals = 3;
 static int scan_ts = 1;
 static int RingLength = 128;
 
-/*
- * Could get this from ring bps, but only after starting the ring
- * which is a bit late for it to be useful
- */
+
 int size_from_scanmode(int numVals, int timestamp)
 {
 	if (numVals && timestamp)
@@ -81,14 +69,14 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	/* Setup ring buffer parameters */
+	
 	if (write_sysfs_int("length", RingBufferDirectoryName,
 			    RingLength) < 0) {
 		printf("Failed to open the ring buffer length file \n");
 		return -1;
 	}
 
-	/* Enable the ring buffer */
+	
 	if (write_sysfs_int("ring_enable", RingBufferDirectoryName, 1) < 0) {
 		printf("Failed to open the ring buffer control file \n");
 		return -1;
@@ -100,20 +88,20 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	/* Attempt to open non blocking the access dev */
+	
 	fp = open(ring_access, O_RDONLY | O_NONBLOCK);
-	if (fp == -1) { /*If it isn't there make the node */
+	if (fp == -1) { 
 		printf("Failed to open %s\n", ring_access);
 		return -1;
 	}
-	/* Attempt to open the event access dev (blocking this time) */
+	
 	fp_ev = fopen(ring_event, "rb");
 	if (fp_ev == NULL) {
 		printf("Failed to open %s\n", ring_event);
 		return -1;
 	}
 
-	/* Wait for events 10 times */
+	
 	for (j = 0; j < 10; j++) {
 		read_size = fread(&dat, 1, sizeof(struct iio_event_data),
 				  fp_ev);
@@ -153,13 +141,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* Stop the ring buffer */
+	
 	if (write_sysfs_int("ring_enable", RingBufferDirectoryName, 0) < 0) {
 		printf("Failed to open the ring buffer control file \n");
 		return -1;
 	};
 
-	/* Disconnect from the trigger - writing something that doesn't exist.*/
+	
 	write_sysfs_string_and_verify("trigger/current_trigger",
 				      BaseDirectoryName, "NULL");
 	free(BaseDirectoryName);

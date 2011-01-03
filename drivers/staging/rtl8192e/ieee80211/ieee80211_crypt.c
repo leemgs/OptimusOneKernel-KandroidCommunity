@@ -1,17 +1,6 @@
-/*
- * Host AP crypto routines
- *
- * Copyright (c) 2002-2003, Jouni Malinen <jkmaline@cc.hut.fi>
- * Portions Copyright (C) 2004, Intel Corporation <jketreno@linux.intel.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation. See README and COPYING for
- * more details.
- *
- */
 
-//#include <linux/config.h>
+
+
 #include <linux/version.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -21,9 +10,9 @@
 
 #include "ieee80211.h"
 
-//MODULE_AUTHOR("Jouni Malinen");
-//MODULE_DESCRIPTION("HostAP crypto");
-//MODULE_LICENSE("GPL");
+
+
+
 
 struct ieee80211_crypto_alg {
 	struct list_head list;
@@ -88,9 +77,7 @@ void ieee80211_crypt_delayed_deinit(struct ieee80211_device *ieee,
 	tmp = *crypt;
 	*crypt = NULL;
 
-	/* must not run ops->deinit() while there may be pending encrypt or
-	 * decrypt operations. Use a list of delayed deinits to avoid needing
-	 * locking. */
+	
 
 	spin_lock_irqsave(&ieee->lock, flags);
 	list_add(&tmp->list, &ieee->crypt_deinit_list);
@@ -246,13 +233,13 @@ void __exit ieee80211_crypto_deinit(void)
 }
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-//EXPORT_SYMBOL(ieee80211_crypt_deinit_entries);
-//EXPORT_SYMBOL(ieee80211_crypt_deinit_handler);
-//EXPORT_SYMBOL(ieee80211_crypt_delayed_deinit);
 
-//EXPORT_SYMBOL(ieee80211_register_crypto_ops);
-//EXPORT_SYMBOL(ieee80211_unregister_crypto_ops);
-//EXPORT_SYMBOL(ieee80211_get_crypto_ops);
+
+
+
+
+
+
 #else
 EXPORT_SYMBOL_NOVERS(ieee80211_crypt_deinit_entries);
 EXPORT_SYMBOL_NOVERS(ieee80211_crypt_deinit_handler);
@@ -263,5 +250,5 @@ EXPORT_SYMBOL_NOVERS(ieee80211_unregister_crypto_ops);
 EXPORT_SYMBOL_NOVERS(ieee80211_get_crypto_ops);
 #endif
 
-//module_init(ieee80211_crypto_init);
-//module_exit(ieee80211_crypto_deinit);
+
+

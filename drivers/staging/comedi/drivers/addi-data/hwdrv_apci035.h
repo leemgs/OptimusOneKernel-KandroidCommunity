@@ -1,21 +1,6 @@
-/*
- * Copyright (C) 2004,2005  ADDI-DATA GmbH for the source code of this module.
- *
- *	ADDI-DATA GmbH
- *	Dieselstrasse 3
- *	D-77833 Ottersweier
- *	Tel: +19(0)7223/9493-0
- *	Fax: +49(0)7223/9493-92
- *	http://www.addi-data-com
- *	info@addi-data.com
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- */
 
-/* Card Specific information */
+
+
 #define APCI035_BOARD_VENDOR_ID		0x15B8
 #define APCI035_ADDRESS_RANGE		255
 
@@ -33,7 +18,7 @@ struct {
 	int i_ModuleSelection;
 } Config_Parameters_Main;
 
-/* ANALOG INPUT RANGE */
+
 struct comedi_lrange range_apci035_ai = { 8, {
 				       BIP_RANGE(10),
 				       BIP_RANGE(5),
@@ -46,7 +31,7 @@ struct comedi_lrange range_apci035_ai = { 8, {
 				       }
 };
 
-/* Timer / Watchdog Related Defines */
+
 #define APCI035_TCW_SYNC_ENABLEDISABLE	0
 #define APCI035_TCW_RELOAD_VALUE	4
 #define APCI035_TCW_TIMEBASE		8
@@ -57,7 +42,7 @@ struct comedi_lrange range_apci035_ai = { 8, {
 #define APCI035_TCW_WARN_TIMEBASE	28
 
 #define ADDIDATA_TIMER			0
-/* #define ADDIDATA_WATCHDOG		1 */
+
 
 #define APCI035_TW1                               0
 #define APCI035_TW2                               32
@@ -93,14 +78,14 @@ struct comedi_lrange range_apci035_ai = { 8, {
 #define ADDIDATA_UNIPOLAR                        1
 #define ADDIDATA_BIPOLAR                         2
 
-/* ADDIDATA Enable Disable */
+
 #define ADDIDATA_ENABLE				1
 #define ADDIDATA_DISABLE			0
 
-/* Hardware Layer functions for Apci035 */
 
-/* TIMER */
-/* timer value is passed as u seconds */
+
+
+
 int i_APCI035_ConfigTimerWatchdog(struct comedi_device *dev, struct comedi_subdevice *s,
 				  struct comedi_insn *insn, unsigned int *data);
 int i_APCI035_StartStopWriteTimerWatchdog(struct comedi_device *dev,
@@ -109,15 +94,15 @@ int i_APCI035_StartStopWriteTimerWatchdog(struct comedi_device *dev,
 int i_APCI035_ReadTimerWatchdog(struct comedi_device *dev, struct comedi_subdevice *s,
 				struct comedi_insn *insn, unsigned int *data);
 
-/* Temperature Related Defines (Analog Input Subdevice) */
+
 
 int i_APCI035_ConfigAnalogInput(struct comedi_device *dev, struct comedi_subdevice *s,
 				struct comedi_insn *insn, unsigned int *data);
 int i_APCI035_ReadAnalogInput(struct comedi_device *dev, struct comedi_subdevice *s,
 			      struct comedi_insn *insn, unsigned int *data);
 
-/* Interrupt */
+
 static void v_APCI035_Interrupt(int irq, void *d);
 
-/* Reset functions */
+
 int i_APCI035_Reset(struct comedi_device *dev);

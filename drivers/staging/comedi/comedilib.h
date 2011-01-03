@@ -1,54 +1,31 @@
-/*
-    linux/include/comedilib.h
-    header file for kcomedilib
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 1998-2001 David A. Schleef <ds@schleef.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #ifndef _LINUX_COMEDILIB_H
 #define _LINUX_COMEDILIB_H
 
 #include "comedi.h"
 
-/* Kernel internal stuff.  Needed by real-time modules and such. */
+
 
 #ifndef __KERNEL__
 #error linux/comedilib.h should not be included by non-kernel-space code
 #endif
 
-/* exported functions */
+
 
 #ifndef KCOMEDILIB_DEPRECATED
 
-/* these functions may not be called at real-time priority */
+
 
 void *comedi_open(const char *path);
 int comedi_close(void *dev);
 
-/* these functions may be called at any priority, but may fail at
-   real-time priority */
+
 
 int comedi_lock(void *dev, unsigned int subdev);
 int comedi_unlock(void *dev, unsigned int subdev);
 
-/* these functions may be called at any priority, but you must hold
-   the lock for the subdevice */
+
 
 int comedi_loglevel(int loglevel);
 void comedi_perror(const char *s);
@@ -96,10 +73,10 @@ int comedi_get_n_ranges(void *dev, unsigned int subdevice, unsigned int chan);
 int comedi_do_insn(void *dev, struct comedi_insn *insn);
 int comedi_poll(void *dev, unsigned int subdev);
 
-/* DEPRECATED functions */
+
 int comedi_get_rangetype(void *dev, unsigned int subdevice, unsigned int chan);
 
-/* ALPHA functions */
+
 unsigned int comedi_get_subdevice_flags(void *dev, unsigned int subdevice);
 int comedi_get_len_chanlist(void *dev, unsigned int subdevice);
 int comedi_get_krange(void *dev, unsigned int subdevice, unsigned int
@@ -119,19 +96,17 @@ int comedi_get_buffer_offset(void *dev, unsigned int subdevice);
 
 #else
 
-/* these functions may not be called at real-time priority */
+
 
 int comedi_open(unsigned int minor);
 void comedi_close(unsigned int minor);
 
-/* these functions may be called at any priority, but may fail at
-   real-time priority */
+
 
 int comedi_lock(unsigned int minor, unsigned int subdev);
 int comedi_unlock(unsigned int minor, unsigned int subdev);
 
-/* these functions may be called at any priority, but you must hold
-   the lock for the subdevice */
+
 
 int comedi_cancel(unsigned int minor, unsigned int subdev);
 int comedi_register_callback(unsigned int minor, unsigned int subdev,
@@ -171,11 +146,11 @@ int comedi_get_n_ranges(unsigned int minor, unsigned int subdevice, unsigned int
 int comedi_do_insn(unsigned int minor, struct comedi_insn *insn);
 int comedi_poll(unsigned int minor, unsigned int subdev);
 
-/* DEPRECATED functions */
+
 int comedi_get_rangetype(unsigned int minor, unsigned int subdevice,
 			 unsigned int chan);
 
-/* ALPHA functions */
+
 unsigned int comedi_get_subdevice_flags(unsigned int minor, unsigned int
 					subdevice);
 int comedi_get_len_chanlist(unsigned int minor, unsigned int subdevice);

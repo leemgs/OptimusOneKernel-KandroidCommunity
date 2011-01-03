@@ -1,25 +1,4 @@
-/*
- *  Driver for the Conexant CX25821 PCIe bridge
- *
- *  Copyright (C) 2009 Conexant Systems Inc.
- *  Authors  <shu.lin@conexant.com>, <hiep.huynh@conexant.com>
- *  Based on Steven Toth <stoth@linuxtv.org> cx23885 driver
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef CX25821_H_
 #define CX25821_H_
@@ -61,13 +40,13 @@
 #define FALSE   0
 #define LINE_SIZE_D1    1440
 
-// Number of decoders and encoders
+
 #define MAX_DECODERS            8
 #define MAX_ENCODERS            2
 #define QUAD_DECODERS           4
 #define MAX_CAMERAS             16
 
-/* Max number of inputs by card */
+
 #define MAX_CX25821_INPUT 8
 #define INPUT(nr) (&cx25821_boards[dev->board].input[nr])
 #define RESOURCE_VIDEO0       1
@@ -84,12 +63,12 @@
 #define RESOURCE_VIDEO11      2048
 #define RESOURCE_VIDEO_IOCTL  4096
 
-#define BUFFER_TIMEOUT     (HZ)	/* 0.5 seconds */
+#define BUFFER_TIMEOUT     (HZ)	
 
 #define UNKNOWN_BOARD       0
 #define CX25821_BOARD        1
 
-/* Currently supported by the driver */
+
 #define CX25821_NORMS (\
     V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP | V4L2_STD_NTSC_M_KR | \
     V4L2_STD_PAL_BG |  V4L2_STD_PAL_DK    |  V4L2_STD_PAL_I    | \
@@ -102,7 +81,7 @@
 
 struct cx25821_fmt {
 	char *name;
-	u32 fourcc;		/* v4l2 format id */
+	u32 fourcc;		
 	int depth;
 	int flags;
 	u32 cxformat;
@@ -131,20 +110,20 @@ struct cx25821_fh {
 
 	enum v4l2_priority prio;
 
-	/* video overlay */
+	
 	struct v4l2_window win;
 	struct v4l2_clip *clips;
 	unsigned int nclips;
 
-	/* video capture */
+	
 	struct cx25821_fmt *fmt;
 	unsigned int width, height;
 
-	/* vbi capture */
+	
 	struct videobuf_queue vidq;
 	struct videobuf_queue vbiq;
 
-	/* H264 Encoder specifics ONLY */
+	
 	struct videobuf_queue mpegq;
 	atomic_t v4l_reading;
 };
@@ -161,12 +140,12 @@ enum cx25821_src_sel_type {
 	CX25821_SRC_SEL_PARALLEL_MPEG_VIDEO
 };
 
-/* buffer for one video frame */
+
 struct cx25821_buffer {
-	/* common v4l buffer stuff -- must be first */
+	
 	struct videobuf_buffer vb;
 
-	/* cx25821 specific */
+	
 	unsigned int bpl;
 	struct btcx_riscmem risc;
 	struct cx25821_fmt *fmt;
@@ -208,13 +187,13 @@ struct cx25821_i2c {
 
 	int nr;
 
-	/* i2c i/o */
+	
 	struct i2c_adapter i2c_adap;
 	struct i2c_algo_bit_data i2c_algo;
 	struct i2c_client i2c_client;
 	u32 i2c_rc;
 
-	/* cx25821 registers used for raw addess */
+	
 	u32 i2c_period;
 	u32 reg_ctrl;
 	u32 reg_stat;
@@ -243,7 +222,7 @@ struct cx25821_dev {
 
 	struct v4l2_prio_state prio;
 
-	/* pci stuff */
+	
 	struct pci_dev *pci;
 	unsigned char pci_rev, pci_lat;
 	int pci_bus, pci_slot;
@@ -255,20 +234,20 @@ struct cx25821_dev {
 
 	u32 clk_freq;
 
-	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
+	
 	struct cx25821_i2c i2c_bus[3];
 
 	int nr;
 	struct mutex lock;
 
-	/* board details */
+	
 	unsigned int board;
 	char name[32];
 
-	/* sram configuration */
+	
 	struct sram_channel *sram_channels;
 
-	/* Analog video */
+	
 	u32 resources;
 	unsigned int input;
 	u32 tvaudio;
@@ -289,7 +268,7 @@ struct cx25821_dev {
 
 	struct cx25821_data timeout_data[MAX_VID_CHANNEL_NUM];
 
-	/* Analog Audio Upstream */
+	
 	int _audio_is_running;
 	int _audiopixel_format;
 	int _is_first_audio_frame;
@@ -297,7 +276,7 @@ struct cx25821_dev {
 	int _audio_lines_count;
 	int _audioframe_count;
 	int _audio_upstream_channel_select;
-	int _last_index_irq;	//The last interrupt index processed.
+	int _last_index_irq;	
 
 	__le32 *_risc_audio_jmp_addr;
 	__le32 *_risc_virt_start_addr;
@@ -311,7 +290,7 @@ struct cx25821_dev {
 	dma_addr_t _audiodata_buf_phys_addr;
 	char *_audiofilename;
 
-	/* V4l */
+	
 	u32 freq;
 	struct video_device *video_dev[MAX_VID_CHANNEL_NUM];
 	struct video_device *vbi_dev;
@@ -321,7 +300,7 @@ struct cx25821_dev {
 	struct cx25821_dmaqueue vidq[MAX_VID_CHANNEL_NUM];
 	spinlock_t slock;
 
-	/* Video Upstream */
+	
 	int _line_size;
 	int _prog_cnt;
 	int _pixel_format;
@@ -366,7 +345,7 @@ struct cx25821_dev {
 	char *_filename_ch2;
 	char *_defaultname_ch2;
 
-	/* MPEG Encoder ONLY settings */
+	
 	u32 cx23417_mailbox;
 	struct cx2341x_mpeg_params mpeg_params;
 	struct video_device *v4l_device;
@@ -440,19 +419,19 @@ extern struct list_head cx25821_devlist;
 extern struct cx25821_board cx25821_boards[];
 extern struct cx25821_subid cx25821_subids[];
 
-#define SRAM_CH00  0		/* Video A */
-#define SRAM_CH01  1		/* Video B */
-#define SRAM_CH02  2		/* Video C */
-#define SRAM_CH03  3		/* Video D */
-#define SRAM_CH04  4		/* Video E */
-#define SRAM_CH05  5		/* Video F */
-#define SRAM_CH06  6		/* Video G */
-#define SRAM_CH07  7		/* Video H */
+#define SRAM_CH00  0		
+#define SRAM_CH01  1		
+#define SRAM_CH02  2		
+#define SRAM_CH03  3		
+#define SRAM_CH04  4		
+#define SRAM_CH05  5		
+#define SRAM_CH06  6		
+#define SRAM_CH07  7		
 
-#define SRAM_CH08  8		/* Audio A */
-#define SRAM_CH09  9		/* Video Upstream I */
-#define SRAM_CH10  10		/* Video Upstream J */
-#define SRAM_CH11  11		/* Audio Upstream AUD_CHANNEL_B */
+#define SRAM_CH08  8		
+#define SRAM_CH09  9		
+#define SRAM_CH10  10		
+#define SRAM_CH11  11		
 
 #define VID_UPSTREAM_SRAM_CHANNEL_I     SRAM_CH09
 #define VID_UPSTREAM_SRAM_CHANNEL_J     SRAM_CH10
@@ -482,7 +461,7 @@ struct sram_channel {
 	u32 fld_aud_fifo_en;
 	u32 fld_aud_risc_en;
 
-	//For Upstream Video
+	
 	u32 vid_fmt_ctl;
 	u32 vid_active_ctl1;
 	u32 vid_active_ctl2;

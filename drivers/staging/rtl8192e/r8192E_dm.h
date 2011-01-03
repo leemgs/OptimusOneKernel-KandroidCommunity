@@ -1,27 +1,10 @@
-/*****************************************************************************
- *	Copyright(c) 2007,  RealTEK Technology Inc. All Right Reserved.
- *
- * Module:		Hal819xUsbDM.h	(RTL8192  Header H File)
- *
- *
- * Note:		For dynamic control definition constant structure.
- *
- *
- * Export:
- *
- * Abbrev:
- *
- * History:
- *	Data		Who		Remark
- *	10/04/2007  MHC    	Create initial version.
- *
- *****************************************************************************/
- /* Check to see if the file has been included already.  */
+
+ 
 #ifndef	__R8192UDM_H__
 #define __R8192UDM_H__
 
 
-/*--------------------------Define Parameters-------------------------------*/
+
 #define 		OFDM_Table_Length	19
 #define		CCK_Table_length	12
 
@@ -51,31 +34,31 @@
 #define		VeryLowRSSI					15
 #define		CTSToSelfTHVal					35
 
-//defined by vivi, for tx power track
+
 #define		E_FOR_TX_POWER_TRACK               300
-//Dynamic Tx Power Control Threshold
+
 #define		TX_POWER_NEAR_FIELD_THRESH_HIGH		68
 #define		TX_POWER_NEAR_FIELD_THRESH_LOW		62
-//added by amy for atheros AP
+
 #define         TX_POWER_ATHEROAP_THRESH_HIGH           78
 #define 	TX_POWER_ATHEROAP_THRESH_LOW		72
 
-//defined by vivi, for showing on UI. Newer firmware has changed to 0x1e0
-#define 		Current_Tx_Rate_Reg         0x1e0//0x1b8
-#define 		Initial_Tx_Rate_Reg         0x1e1 //0x1b9
+
+#define 		Current_Tx_Rate_Reg         0x1e0
+#define 		Initial_Tx_Rate_Reg         0x1e1 
 #define 		Tx_Retry_Count_Reg         0x1ac
 #define		RegC38_TH				 20
 #if 0
-//----------------------------------------------------------------------------
-//       8190 Rate Adaptive Table Register	(offset 0x320, 4 byte)
-//----------------------------------------------------------------------------
 
-//CCK
+
+
+
+
 #define	RATR_1M					0x00000001
 #define	RATR_2M					0x00000002
 #define	RATR_55M					0x00000004
 #define	RATR_11M					0x00000008
-//OFDM
+
 #define	RATR_6M					0x00000010
 #define	RATR_9M					0x00000020
 #define	RATR_12M					0x00000040
@@ -84,7 +67,7 @@
 #define	RATR_36M					0x00000200
 #define	RATR_48M					0x00000400
 #define	RATR_54M					0x00000800
-//MCS 1 Spatial Stream
+
 #define	RATR_MCS0					0x00001000
 #define	RATR_MCS1					0x00002000
 #define	RATR_MCS2					0x00004000
@@ -93,7 +76,7 @@
 #define	RATR_MCS5					0x00020000
 #define	RATR_MCS6					0x00040000
 #define	RATR_MCS7					0x00080000
-//MCS 2 Spatial Stream
+
 #define	RATR_MCS8					0x00100000
 #define	RATR_MCS9					0x00200000
 #define	RATR_MCS10					0x00400000
@@ -102,18 +85,18 @@
 #define	RATR_MCS13					0x02000000
 #define	RATR_MCS14					0x04000000
 #define	RATR_MCS15					0x08000000
-// ALL CCK Rate
+
 #define RATE_ALL_CCK				RATR_1M|RATR_2M|RATR_55M|RATR_11M
 #define RATE_ALL_OFDM_AG			RATR_6M|RATR_9M|RATR_12M|RATR_18M|RATR_24M\
 									|RATR_36M|RATR_48M|RATR_54M
 #define RATE_ALL_OFDM_2SS			RATR_MCS8|RATR_MCS9	|RATR_MCS10|RATR_MCS11| \
 									RATR_MCS12|RATR_MCS13|RATR_MCS14|RATR_MCS15
 #endif
-/*--------------------------Define Parameters-------------------------------*/
 
 
-/*------------------------------Define structure----------------------------*/
-/* 2007/10/04 MH Define upper and lower threshold of DIG enable or disable. */
+
+
+
 typedef struct _dynamic_initial_gain_threshold_
 {
 	u8		dig_enable_flag;
@@ -156,7 +139,7 @@ typedef enum tag_dynamic_init_gain_state_definition
 }dm_dig_sta_e;
 
 
-/* 2007/10/08 MH Define RATR state. */
+
 typedef enum tag_dynamic_ratr_state_definition
 {
 	DM_RATR_STA_HIGH = 0,
@@ -165,7 +148,7 @@ typedef enum tag_dynamic_ratr_state_definition
 	DM_RATR_STA_MAX
 }dm_ratr_sta_e;
 
-/* 2007/10/11 MH Define DIG operation type. */
+
 typedef enum tag_dynamic_init_gain_operation_type_definition
 {
 	DIG_TYPE_THRESH_HIGH	= 0,
@@ -252,27 +235,27 @@ typedef enum tag_DM_DbgMode_Definition
 
 typedef struct tag_Tx_Config_Cmd_Format
 {
-	u32	Op;										/* Command packet type. */
-	u32	Length;									/* Command packet length. */
+	u32	Op;										
+	u32	Length;									
 	u32	Value;
 }DCMD_TXCMD_T, *PDCMD_TXCMD_T;
-/*------------------------------Define structure----------------------------*/
 
 
-/*------------------------Export global variable----------------------------*/
+
+
 extern	dig_t	dm_digtable;
 extern	u8		dm_shadow[16][256];
 extern DRxPathSel      DM_RxPathSelTable;
-/*------------------------Export global variable----------------------------*/
 
 
-/*------------------------Export Marco Definition---------------------------*/
-
-/*------------------------Export Marco Definition---------------------------*/
 
 
-/*--------------------------Exported Function prototype---------------------*/
-/*--------------------------Exported Function prototype---------------------*/
+
+
+
+
+
+
 extern  void    init_hal_dm(struct net_device *dev);
 extern  void deinit_hal_dm(struct net_device *dev);
 
@@ -306,7 +289,7 @@ extern  void    dm_shadow_init(struct net_device *dev);
 extern  void dm_initialize_txpower_tracking(struct net_device *dev);
 
 
-#endif	/*__R8192UDM_H__ */
+#endif	
 
 
-/* End of r8192U_dm.h */
+

@@ -3,9 +3,9 @@
 
 #include "wbhal_s.h"
 
-//====================================
-// Interface function declare
-//====================================
+
+
+
 unsigned char Wb35Reg_initial(  struct hw_data * pHwData );
 void Uxx_power_on_procedure(  struct hw_data * pHwData );
 void Uxx_power_off_procedure(  struct hw_data * pHwData );
@@ -13,11 +13,11 @@ void Uxx_ReadEthernetAddress(  struct hw_data * pHwData );
 void Dxx_initial(  struct hw_data * pHwData );
 void Mxx_initial(  struct hw_data * pHwData );
 void RFSynthesizer_initial(  struct hw_data * pHwData );
-//void RFSynthesizer_SwitchingChannel(  struct hw_data * pHwData,  s8 Channel );
+
 void RFSynthesizer_SwitchingChannel(  struct hw_data * pHwData,  ChanInfo Channel );
 void BBProcessor_initial(  struct hw_data * pHwData );
-void BBProcessor_RateChanging(  struct hw_data * pHwData,  u8 rate ); // 20060613.1
-//void RF_RateChanging(  struct hw_data * pHwData,  u8 rate ); // 20060626.5.c Add
+void BBProcessor_RateChanging(  struct hw_data * pHwData,  u8 rate ); 
+
 u8 RFSynthesizer_SetPowerIndex(  struct hw_data * pHwData,  u8 PowerIndex );
 u8 RFSynthesizer_SetMaxim2828_24Power(  struct hw_data *,  u8 index );
 u8 RFSynthesizer_SetMaxim2828_50Power(  struct hw_data *,  u8 index );
@@ -28,7 +28,7 @@ u8 RFSynthesizer_SetAiroha2230Power(  struct hw_data *,  u8 index );
 u8 RFSynthesizer_SetAiroha7230Power(  struct hw_data *,  u8 index );
 u8 RFSynthesizer_SetWinbond242Power(  struct hw_data *,  u8 index );
 void GetTxVgaFromEEPROM(  struct hw_data * pHwData );
-void EEPROMTxVgaAdjust(  struct hw_data * pHwData ); // 20060619.5 Add
+void EEPROMTxVgaAdjust(  struct hw_data * pHwData ); 
 
 #define RFWriteControlData( _A, _V ) Wb35Reg_Write( _A, 0x0864, _V )
 

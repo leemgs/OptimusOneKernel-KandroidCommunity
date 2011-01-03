@@ -1,37 +1,10 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: rndis.h
- *
- * Purpose: Interface between firmware and driver
- *
- * Author: Warren Hsu
- *
- * Date: Nov 24, 2004
- *
- */
+
 
 
 #ifndef __RNDIS_H__
 #define __RNDIS_H__
 
-/*---------------------  Export Definitions -------------------------*/
+
 #define MESSAGE_TYPE_READ               0x01
 #define MESSAGE_TYPE_WRITE              0x00
 #define MESSAGE_TYPE_LOCK_OR            0x02
@@ -51,7 +24,7 @@
 #define MESSAGE_TYPE_DISABLE_PS         0x10
 #define MESSAGE_TYPE_WRITE_IFRF         0x11
 
-//used for read/write(index)
+
 #define MESSAGE_REQUEST_MEM             0x01
 #define MESSAGE_REQUEST_BBREG           0x02
 #define MESSAGE_REQUEST_MACREG          0x03
@@ -70,7 +43,7 @@
 #define VIAUSB20_PACKET_HEADER          0x04
 
 
-/*---------------------  Export Classes  ----------------------------*/
+
 
 typedef struct _CMD_MESSAGE
 {
@@ -115,7 +88,7 @@ typedef struct _CMD_CLRKEY_ENTRY
 
 typedef struct _CMD_WRITE_MISCFF
 {
-    DWORD       adwMiscFFData[22][4];  //a key entry has only 22 dwords
+    DWORD       adwMiscFFData[22][4];  
 } CMD_WRITE_MISCFF, *PCMD_WRITE_MISCFF;
 
 typedef struct _CMD_SET_TSFTBTT
@@ -141,7 +114,7 @@ typedef struct _CMD_CHANGE_BBTYPE
     BYTE        bySlotTime;
     BYTE        byCwMax_Min;
     BYTE        byBBCR10;
-    BYTE        byBB_BBType;    //CR88
+    BYTE        byBB_BBType;    
     BYTE        byMAC_BBType;
     DWORD       dwRSPINF_b_1;
     DWORD       dwRSPINF_b_2;
@@ -150,13 +123,13 @@ typedef struct _CMD_CHANGE_BBTYPE
     WORD        wRSPINF_a[9];
 } CMD_CHANGE_BBTYPE, *PCMD_CHANGE_BBTYPE;
 
-/*---------------------  Export Macros -------------------------*/
+
 
 #define EXCH_WORD(w)        ( (WORD)((WORD)(w)<<8) | (WORD)((WORD)(w)>>8) )
 
-/*---------------------  Export Variables  --------------------------*/
-
-/*---------------------  Export Functions  --------------------------*/
 
 
-#endif // _RNDIS_H_
+
+
+
+#endif 

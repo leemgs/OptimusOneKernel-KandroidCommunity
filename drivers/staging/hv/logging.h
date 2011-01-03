@@ -1,32 +1,11 @@
-/*
- *
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- *
- */
+
 
 
 #ifndef _LOGGING_H_
 #define _LOGGING_H_
 
-/* #include <linux/init.h> */
-/* #include <linux/module.h> */
+
+
 
 
 #define VMBUS				0x0001
@@ -51,7 +30,7 @@
 							INPUTVSC_DRV|\
 							BLKVSC_DRV)
 
-/* Logging Level */
+
 #define ERROR_LVL				3
 #define WARNING_LVL				4
 #define INFO_LVL				6
@@ -116,4 +95,4 @@ extern unsigned int vmbus_loglevel;
 #define DPRINT_EXIT(mod)
 #endif
 
-#endif /* _LOGGING_H_ */
+#endif 

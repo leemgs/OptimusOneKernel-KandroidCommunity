@@ -1,78 +1,8 @@
-/*
 
-   comedi/drivers/adl_pci9111.c
 
-   Hardware driver for PCI9111 ADLink cards:
 
-     PCI-9111HR
 
-   Copyright (C) 2002-2005 Emmanuel Pacaud <emmanuel.pacaud@univ-poitiers.fr>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
-
-/*
-Driver: adl_pci9111
-Description: Adlink PCI-9111HR
-Author: Emmanuel Pacaud <emmanuel.pacaud@univ-poitiers.fr>
-Devices: [ADLink] PCI-9111HR (adl_pci9111)
-Status: experimental
-
-Supports:
-
-  - ai_insn read
-  - ao_insn read/write
-  - di_insn read
-  - do_insn read/write
-  - ai_do_cmd mode with the following sources:
-
-    - start_src 		TRIG_NOW
-    - scan_begin_src 		TRIG_FOLLOW	TRIG_TIMER	TRIG_EXT
-    - convert_src				TRIG_TIMER	TRIG_EXT
-    - scan_end_src		TRIG_COUNT
-    - stop_src			TRIG_COUNT	TRIG_NONE
-
-    The scanned channels must be consecutive and start from 0. They must
-    all have the same range and aref.
-
-Configuration options:
-
-    [0] - PCI bus number (optional)
-    [1] - PCI slot number (optional)
-
-    If bus/slot is not specified, the first available PCI
-    device will be used.
-
-*/
-
-/*
-CHANGELOG:
-
-  2005/02/17 Extend AI streaming capabilities. Now, scan_begin_arg can be
-  a multiple of chanlist_len*convert_arg.
-  2002/02/19 Fixed the two's complement conversion in pci9111_(hr_)ai_get_data.
-  2002/02/18 Added external trigger support for analog input.
-
-TODO:
-
-  - Really test implemented functionality.
-  - Add support for the PCI-9111DG with a probe routine to identify the card type
-    (perhaps with the help of the channel number readback of the A/D Data register).
-  - Add external multiplexer support.
-
-*/
 
 #include "../comedidev.h"
 
@@ -86,7 +16,7 @@ TODO:
 #define PCI9111_DRIVER_NAME 	"adl_pci9111"
 #define PCI9111_HR_DEVICE_ID 	0x9111
 
-/*  TODO: Add other pci9111 board id */
+
 
 #define PCI9111_IO_RANGE 	0x0100
 
@@ -132,13 +62,13 @@ TODO:
 #define PCI9111_8254_BINARY_COUNTER		0x00
 #define PCI9111_8254_BCD_COUNTER		0x01
 
-/* IO address map */
 
-#define PCI9111_REGISTER_AD_FIFO_VALUE 			0x00	/*  AD Data stored in FIFO */
+
+#define PCI9111_REGISTER_AD_FIFO_VALUE 			0x00	
 #define PCI9111_REGISTER_DA_OUTPUT 			0x00
 #define PCI9111_REGISTER_DIGITAL_IO 			0x02
 #define PCI9111_REGISTER_EXTENDED_IO_PORTS 		0x04
-#define PCI9111_REGISTER_AD_CHANNEL_CONTROL 		0x06	/*  Channel selection */
+#define PCI9111_REGISTER_AD_CHANNEL_CONTROL 		0x06	
 #define PCI9111_REGISTER_AD_CHANNEL_READBACK 		0x06
 #define PCI9111_REGISTER_INPUT_SIGNAL_RANGE 		0x08
 #define PCI9111_REGISTER_RANGE_STATUS_READBACK 		0x08
@@ -179,9 +109,7 @@ TODO:
 
 #define PCI9111_IO_BASE dev->iobase
 
-/*
- * Define inlined function
- */
+
 
 #define pci9111_trigger_and_autoscan_get() \
   (inb(PCI9111_IO_BASE+PCI9111_REGISTER_AD_MODE_INTERRUPT_READBACK)&0x0F)
@@ -262,7 +190,7 @@ TODO:
   outb(data & 0xFF, PCI9111_IO_BASE+PCI9111_REGISTER_8254_COUNTER_2); \
   outb((data >> 8) & 0xFF, PCI9111_IO_BASE+PCI9111_REGISTER_8254_COUNTER_2)
 
-/*  Function prototypes */
+
 
 static int pci9111_attach(struct comedi_device *dev,
 			  struct comedi_devconfig *it);
@@ -287,28 +215,28 @@ static DEFINE_PCI_DEVICE_TABLE(pci9111_pci_table) = {
 	{
 	PCI_VENDOR_ID_ADLINK, PCI9111_HR_DEVICE_ID, PCI_ANY_ID,
 		    PCI_ANY_ID, 0, 0, 0},
-	    /* { PCI_VENDOR_ID_ADLINK, PCI9111_HG_DEVICE_ID, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 }, */
+	    
 	{
 	0}
 };
 
 MODULE_DEVICE_TABLE(pci, pci9111_pci_table);
 
-/*  */
-/*  Board specification structure */
-/*  */
+
+
+
 
 struct pci9111_board {
-	const char *name;	/*  driver name */
+	const char *name;	
 	int device_id;
-	int ai_channel_nbr;	/*  num of A/D chans */
-	int ao_channel_nbr;	/*  num of D/A chans */
-	int ai_resolution;	/*  resolution of A/D */
+	int ai_channel_nbr;	
+	int ao_channel_nbr;	
+	int ai_resolution;	
 	int ai_resolution_mask;
-	int ao_resolution;	/*  resolution of D/A */
+	int ao_resolution;	
 	int ao_resolution_mask;
-	const struct comedi_lrange *ai_range_list;	/*  rangelist for A/D */
-	const struct comedi_lrange *ao_range_list;	/*  rangelist for D/A */
+	const struct comedi_lrange *ai_range_list;	
+	const struct comedi_lrange *ao_range_list;	
 	unsigned int ai_acquisition_period_min_ns;
 };
 
@@ -339,13 +267,13 @@ static struct comedi_driver pci9111_driver = {
 
 COMEDI_PCI_INITCLEANUP(pci9111_driver, pci9111_pci_table);
 
-/*  Private data structure */
+
 
 struct pci9111_private_data {
 	struct pci_dev *pci_device;
-	unsigned long io_range;	/*  PCI6503 io range */
+	unsigned long io_range;	
 
-	unsigned long lcr_io_base;	/*  Local configuration register base address */
+	unsigned long lcr_io_base;	
 	unsigned long lcr_io_range;
 
 	int stop_counter;
@@ -356,21 +284,21 @@ struct pci9111_private_data {
 	unsigned int chunk_counter;
 	unsigned int chunk_num_samples;
 
-	int ao_readback;	/*  Last written analog output data */
+	int ao_readback;	
 
-	int timer_divisor_1;	/*  Divisor values for the 8254 timer pacer */
+	int timer_divisor_1;	
 	int timer_divisor_2;
 
-	int is_valid;		/*  Is device valid */
+	int is_valid;		
 
 	short ai_bounce_buffer[2 * PCI9111_FIFO_HALF_SIZE];
 };
 
 #define dev_private 	((struct pci9111_private_data *)dev->private)
 
-/*  ------------------------------------------------------------------ */
-/*  PLX9050 SECTION */
-/*  ------------------------------------------------------------------ */
+
+
+
 
 #define PLX9050_REGISTER_INTERRUPT_CONTROL 0x4c
 
@@ -407,11 +335,11 @@ static void plx9050_interrupt_control(unsigned long io_base,
 	outb(flags, io_base + PLX9050_REGISTER_INTERRUPT_CONTROL);
 }
 
-/*  ------------------------------------------------------------------ */
-/*  MISCELLANEOUS SECTION */
-/*  ------------------------------------------------------------------ */
 
-/*  8254 timer */
+
+
+
+
 
 static void pci9111_timer_set(struct comedi_device *dev)
 {
@@ -517,18 +445,18 @@ static void pci9111_interrupt_source_set(struct comedi_device *dev,
 	pci9111_interrupt_and_fifo_set(flags);
 }
 
-/*  ------------------------------------------------------------------ */
-/*  HARDWARE TRIGGERED ANALOG INPUT SECTION */
-/*  ------------------------------------------------------------------ */
 
-/*  Cancel analog input autoscan */
+
+
+
+
 
 #undef AI_DO_CMD_DEBUG
 
 static int pci9111_ai_cancel(struct comedi_device *dev,
 			     struct comedi_subdevice *s)
 {
-	/*  Disable interrupts */
+	
 
 	plx9050_interrupt_control(dev_private->lcr_io_base, true, true, true,
 				  true, false);
@@ -546,7 +474,7 @@ static int pci9111_ai_cancel(struct comedi_device *dev,
 	return 0;
 }
 
-/*  Test analog input command */
+
 
 #define pci9111_check_trigger_src(src, flags) \
   tmp = src; \
@@ -563,7 +491,7 @@ pci9111_ai_do_cmd_test(struct comedi_device *dev,
 	int i;
 	struct pci9111_board *board = (struct pci9111_board *)dev->board_ptr;
 
-	/*  Step 1 : check if trigger are trivialy valid */
+	
 
 	pci9111_check_trigger_src(cmd->start_src, TRIG_NOW);
 	pci9111_check_trigger_src(cmd->scan_begin_src,
@@ -575,7 +503,7 @@ pci9111_ai_do_cmd_test(struct comedi_device *dev,
 	if (error)
 		return 1;
 
-	/*  step 2 : make sure trigger sources are unique and mutually compatible */
+	
 
 	if (cmd->start_src != TRIG_NOW)
 		error++;
@@ -607,7 +535,7 @@ pci9111_ai_do_cmd_test(struct comedi_device *dev,
 	if (error)
 		return 2;
 
-	/*  Step 3 : make sure arguments are trivialy compatible */
+	
 
 	if (cmd->chanlist_len < 1) {
 		cmd->chanlist_len = 1;
@@ -666,7 +594,7 @@ pci9111_ai_do_cmd_test(struct comedi_device *dev,
 	if (error)
 		return 3;
 
-	/*  Step 4 : fix up any arguments */
+	
 
 	if (cmd->convert_src == TRIG_TIMER) {
 		tmp = cmd->convert_arg;
@@ -678,8 +606,8 @@ pci9111_ai_do_cmd_test(struct comedi_device *dev,
 		if (tmp != cmd->convert_arg)
 			error++;
 	}
-	/*  There's only one timer on this card, so the scan_begin timer must */
-	/*  be a multiple of chanlist_len*convert_arg */
+	
+	
 
 	if (cmd->scan_begin_src == TRIG_TIMER) {
 
@@ -708,7 +636,7 @@ pci9111_ai_do_cmd_test(struct comedi_device *dev,
 	if (error)
 		return 4;
 
-	/*  Step 5 : check channel list */
+	
 
 	if (cmd->chanlist) {
 
@@ -752,7 +680,7 @@ pci9111_ai_do_cmd_test(struct comedi_device *dev,
 
 }
 
-/*  Analog input command */
+
 
 static int pci9111_ai_do_cmd(struct comedi_device *dev,
 			     struct comedi_subdevice *subdevice)
@@ -764,9 +692,9 @@ static int pci9111_ai_do_cmd(struct comedi_device *dev,
 			     "no irq assigned for PCI9111, cannot do hardware conversion");
 		return -1;
 	}
-	/*  Set channel scan limit */
-	/*  PCI9111 allows only scanning from channel 0 to channel n */
-	/*  TODO: handle the case of an external multiplexer */
+	
+	
+	
 
 	if (async_cmd->chanlist_len > 1) {
 		pci9111_ai_channel_set((async_cmd->chanlist_len) - 1);
@@ -776,12 +704,12 @@ static int pci9111_ai_do_cmd(struct comedi_device *dev,
 		pci9111_autoscan_set(dev, false);
 	}
 
-	/*  Set gain */
-	/*  This is the same gain on every channel */
+	
+	
 
 	pci9111_ai_range_set(CR_RANGE(async_cmd->chanlist[0]));
 
-	/* Set counter */
+	
 
 	switch (async_cmd->stop_src) {
 	case TRIG_COUNT:
@@ -800,7 +728,7 @@ static int pci9111_ai_do_cmd(struct comedi_device *dev,
 		return -1;
 	}
 
-	/*  Set timer pacer */
+	
 
 	dev_private->scan_delay = 0;
 	switch (async_cmd->convert_src) {
@@ -896,9 +824,9 @@ static void pci9111_ai_munge(struct comedi_device *dev,
 	}
 }
 
-/*  ------------------------------------------------------------------ */
-/*  INTERRUPT SECTION */
-/*  ------------------------------------------------------------------ */
+
+
+
 
 #undef INTERRUPT_DEBUG
 
@@ -911,8 +839,8 @@ static irqreturn_t pci9111_interrupt(int irq, void *p_device)
 	unsigned char intcsr;
 
 	if (!dev->attached) {
-		/*  Ignore interrupt before device fully attached. */
-		/*  Might not even have allocated subdevices yet! */
+		
+		
 		return IRQ_NONE;
 	}
 
@@ -920,7 +848,7 @@ static irqreturn_t pci9111_interrupt(int irq, void *p_device)
 
 	spin_lock_irqsave(&dev->spinlock, irq_flags);
 
-	/*  Check if we are source of interrupt */
+	
 	intcsr = inb(dev_private->lcr_io_base +
 		     PLX9050_REGISTER_INTERRUPT_CONTROL);
 	if (!(((intcsr & PLX9050_PCI_INTERRUPT_ENABLE) != 0)
@@ -928,15 +856,15 @@ static irqreturn_t pci9111_interrupt(int irq, void *p_device)
 		   == (PLX9050_LINTI1_ENABLE | PLX9050_LINTI1_STATUS))
 		  || ((intcsr & (PLX9050_LINTI2_ENABLE | PLX9050_LINTI2_STATUS))
 		      == (PLX9050_LINTI2_ENABLE | PLX9050_LINTI2_STATUS))))) {
-		/*  Not the source of the interrupt. */
-		/*  (N.B. not using PLX9050_SOFTWARE_INTERRUPT) */
+		
+		
 		spin_unlock_irqrestore(&dev->spinlock, irq_flags);
 		return IRQ_NONE;
 	}
 
 	if ((intcsr & (PLX9050_LINTI1_ENABLE | PLX9050_LINTI1_STATUS)) ==
 	    (PLX9050_LINTI1_ENABLE | PLX9050_LINTI1_STATUS)) {
-		/*  Interrupt comes from fifo_half-full signal */
+		
 
 		if (pci9111_is_fifo_full()) {
 			spin_unlock_irqrestore(&dev->spinlock, irq_flags);
@@ -1030,8 +958,7 @@ static irqreturn_t pci9111_interrupt(int irq, void *p_device)
 		pci9111_ai_cancel(dev, subdevice);
 	}
 
-	/* Very important, otherwise another interrupt request will be inserted
-	 * and will cause driver hangs on processing interrupt event. */
+	
 
 	pci9111_interrupt_clear();
 
@@ -1042,11 +969,11 @@ static irqreturn_t pci9111_interrupt(int irq, void *p_device)
 	return IRQ_HANDLED;
 }
 
-/*  ------------------------------------------------------------------ */
-/*  INSTANT ANALOG INPUT OUTPUT SECTION */
-/*  ------------------------------------------------------------------ */
 
-/*  analog instant input */
+
+
+
+
 
 #undef AI_INSN_DEBUG
 
@@ -1106,7 +1033,7 @@ conversion_done:
 	return i;
 }
 
-/*  Analog instant output */
+
 
 static int
 pci9111_ao_insn_write(struct comedi_device *dev,
@@ -1123,7 +1050,7 @@ pci9111_ao_insn_write(struct comedi_device *dev,
 	return i;
 }
 
-/*  Analog output readback */
+
 
 static int pci9111_ao_insn_read(struct comedi_device *dev,
 				struct comedi_subdevice *s,
@@ -1138,11 +1065,11 @@ static int pci9111_ao_insn_read(struct comedi_device *dev,
 	return i;
 }
 
-/*  ------------------------------------------------------------------ */
-/*  DIGITAL INPUT OUTPUT SECTION */
-/*  ------------------------------------------------------------------ */
 
-/*  Digital inputs */
+
+
+
+
 
 static int pci9111_di_insn_bits(struct comedi_device *dev,
 				struct comedi_subdevice *subdevice,
@@ -1156,7 +1083,7 @@ static int pci9111_di_insn_bits(struct comedi_device *dev,
 	return 2;
 }
 
-/*  Digital outputs */
+
 
 static int pci9111_do_insn_bits(struct comedi_device *dev,
 				struct comedi_subdevice *subdevice,
@@ -1164,9 +1091,9 @@ static int pci9111_do_insn_bits(struct comedi_device *dev,
 {
 	unsigned int bits;
 
-	/*  Only set bits that have been masked */
-	/*  data[0] = mask */
-	/*  data[1] = bit state */
+	
+	
+	
 
 	data[0] &= PCI9111_DO_MASK;
 
@@ -1182,15 +1109,15 @@ static int pci9111_do_insn_bits(struct comedi_device *dev,
 	return 2;
 }
 
-/*  ------------------------------------------------------------------ */
-/*  INITIALISATION SECTION */
-/*  ------------------------------------------------------------------ */
 
-/*  Reset device */
+
+
+
+
 
 static int pci9111_reset(struct comedi_device *dev)
 {
-	/*  Set trigger source to software */
+	
 
 	plx9050_interrupt_control(dev_private->lcr_io_base, true, true, true,
 				  true, false);
@@ -1199,7 +1126,7 @@ static int pci9111_reset(struct comedi_device *dev)
 	pci9111_pretrigger_set(dev, false);
 	pci9111_autoscan_set(dev, false);
 
-	/*  Reset 8254 chip */
+	
 
 	dev_private->timer_divisor_1 = 0;
 	dev_private->timer_divisor_2 = 0;
@@ -1209,9 +1136,9 @@ static int pci9111_reset(struct comedi_device *dev)
 	return 0;
 }
 
-/*  Attach */
-/*       - Register PCI device */
-/*       - Declare device driver capability */
+
+
+
 
 static int pci9111_attach(struct comedi_device *dev,
 			  struct comedi_devconfig *it)
@@ -1225,7 +1152,7 @@ static int pci9111_attach(struct comedi_device *dev,
 	if (alloc_private(dev, sizeof(struct pci9111_private_data)) < 0) {
 		return -ENOMEM;
 	}
-	/*  Probe the device to determine what device in the series it is. */
+	
 
 	printk("comedi%d: " PCI9111_DRIVER_NAME " driver\n", dev->minor);
 
@@ -1236,10 +1163,10 @@ static int pci9111_attach(struct comedi_device *dev,
 			for (i = 0; i < pci9111_board_nbr; i++) {
 				if (pci9111_boards[i].device_id ==
 				    pci_device->device) {
-					/*  was a particular bus/slot requested? */
+					
 					if ((it->options[0] != 0)
 					    || (it->options[1] != 0)) {
-						/*  are we on the wrong bus/slot? */
+						
 						if (pci_device->bus->number !=
 						    it->options[0]
 						    ||
@@ -1273,12 +1200,12 @@ found:
 	       PCI_SLOT(pci_device->devfn),
 	       PCI_FUNC(pci_device->devfn), pci_device->irq);
 
-	/*  TODO: Warn about non-tested boards. */
+	
 
 	switch (board->device_id) {
 	};
 
-	/*  Read local configuration register base address [PCI_BASE_ADDRESS #1]. */
+	
 
 	lcr_io_base = pci_resource_start(pci_device, 1);
 	lcr_io_range = pci_resource_len(pci_device, 1);
@@ -1287,14 +1214,14 @@ found:
 	    ("comedi%d: local configuration registers at address 0x%4lx [0x%4lx]\n",
 	     dev->minor, lcr_io_base, lcr_io_range);
 
-	/*  Enable PCI device and request regions */
+	
 	if (comedi_pci_enable(pci_device, PCI9111_DRIVER_NAME) < 0) {
 		printk
 		    ("comedi%d: Failed to enable PCI device and request regions\n",
 		     dev->minor);
 		return -EIO;
 	}
-	/*  Read PCI6308 register base address [PCI_BASE_ADDRESS #2]. */
+	
 
 	io_base = pci_resource_start(pci_device, 2);
 	io_range = pci_resource_len(pci_device, 2);
@@ -1311,7 +1238,7 @@ found:
 
 	pci9111_reset(dev);
 
-	/*  Irq setup */
+	
 
 	dev->irq = 0;
 	if (pci_device->irq > 0) {
@@ -1324,7 +1251,7 @@ found:
 	}
 	dev->irq = pci_device->irq;
 
-	/*  TODO: Add external multiplexer setup (according to option[2]). */
+	
 
 	error = alloc_subdevices(dev, 4);
 	if (error < 0)
@@ -1336,9 +1263,9 @@ found:
 	subdevice->type = COMEDI_SUBD_AI;
 	subdevice->subdev_flags = SDF_READABLE | SDF_COMMON | SDF_CMD_READ;
 
-	/*  TODO: Add external multiplexer data */
-	/*     if (devpriv->usemux) { subdevice->n_chan = devpriv->usemux; } */
-	/*     else { subdevice->n_chan = this_board->n_aichan; } */
+	
+	
+	
 
 	subdevice->n_chan = board->ai_channel_nbr;
 	subdevice->maxdata = board->ai_resolution_mask;
@@ -1381,18 +1308,18 @@ found:
 	return 0;
 }
 
-/*  Detach */
+
 
 static int pci9111_detach(struct comedi_device *dev)
 {
-	/*  Reset device */
+	
 
 	if (dev->private != 0) {
 		if (dev_private->is_valid)
 			pci9111_reset(dev);
 
 	}
-	/*  Release previously allocated irq */
+	
 
 	if (dev->irq != 0) {
 		free_irq(dev->irq, dev);

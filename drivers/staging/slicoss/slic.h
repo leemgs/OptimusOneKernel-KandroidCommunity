@@ -1,47 +1,10 @@
-/**************************************************************************
- *
- * Copyright (c) 2000-2002 Alacritech, Inc.  All rights reserved.
- *
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above
- *    copyright notice, this list of conditions and the following
- *    disclaimer in the documentation and/or other materials provided
- *    with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY ALACRITECH, INC. ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ALACRITECH, INC. OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The views and conclusions contained in the software and documentation
- * are those of the authors and should not be interpreted as representing
- * official policies, either expressed or implied, of Alacritech, Inc.
- *
- **************************************************************************/
 
-/*
- * FILENAME: slic.h
- *
- * This is the base set of header definitions for the SLICOSS driver.
- */
+
+
 #ifndef __SLIC_DRIVER_H__
 #define __SLIC_DRIVER_H__
 
-/* firmware stuff */
+
 #define OASIS_UCODE_VERS_STRING	"1.2"
 #define OASIS_UCODE_VERS_DATE  	"2006/03/27 15:10:37"
 #define OASIS_UCODE_HOSTIF_ID  	3
@@ -97,25 +60,21 @@ struct slic_rcvbuf_info {
     u32     lasttime;
     u32     lastid;
 };
-/*
- SLIC Handle structure.  Used to restrict handle values to
- 32 bits by using an index rather than an address.
- Simplifies ucode in 64-bit systems
-*/
+
 struct slic_handle_word {
 	union {
 		struct {
 			ushort      index;
-			ushort      bottombits; /* to denote num bufs to card */
+			ushort      bottombits; 
 		}  parts;
 		u32         whole;
 	}  handle;
 };
 
 struct slic_handle {
-    struct slic_handle_word  token;  /* token passed between host and card*/
+    struct slic_handle_word  token;  
     ushort                      type;
-    void *address;    /* actual address of the object*/
+    void *address;    
     ushort                      offset;
     struct slic_handle       *other_handle;
     struct slic_handle       *next;
@@ -142,7 +101,7 @@ struct slic_hostcmd {
     u32                    busy;
     u32                    cmdsize;
     ushort                     numbufs;
-    struct slic_handle    *pslic_handle;/* handle associated with command */
+    struct slic_handle    *pslic_handle;
     struct slic_hostcmd    *next;
     struct slic_hostcmd    *next_all;
 };
@@ -180,7 +139,7 @@ struct slic_cmdqueue {
 #define STATUS_BUFFER_TOO_SHORT    -4
 
 #define SLIC_MAX_CARDS              32
-#define SLIC_MAX_PORTS              4        /* Max # of ports per card   */
+#define SLIC_MAX_PORTS              4        
 
 
 struct mcast_address {
@@ -239,9 +198,7 @@ struct mcast_address {
 #define SLIC_CARD_STATE(x)    ((x == CARD_UP) ? "UP" : "Down")
 
 struct slic_iface_stats {
-    /*
-     * Stats
-     */
+    
     u64        xmt_bytes;
     u64        xmt_ucast;
     u64        xmt_mcast;
@@ -352,10 +309,7 @@ struct physcard {
     struct physcard *next;
     uint                adapters_allocd;
 
- /*  the following is not currently needed
-    u32               bridge_busnum;
-    u32               bridge_cfg[NUM_CFG_SPACES][NUM_CFG_REG_ULONGS];
- */
+ 
 };
 
 struct base_driver {
@@ -472,12 +426,10 @@ struct adapter {
     struct slic_cmdqueue     cmdq_done;
     struct slic_cmdqueue     cmdq_all;
     struct slic_cmdqmem      cmdqmem;
-    /*
-     *  SLIC Handles
-    */
-    struct slic_handle slic_handles[SLIC_CMDQ_MAXCMDS+1]; /* Object handles*/
-    struct slic_handle *pfree_slic_handles;          /* Free object handles*/
-    struct slic_spinlock     handle_lock;           /* Object handle list lock*/
+    
+    struct slic_handle slic_handles[SLIC_CMDQ_MAXCMDS+1]; 
+    struct slic_handle *pfree_slic_handles;          
+    struct slic_spinlock     handle_lock;           
     ushort              slic_handle_ix;
 
     u32             xmitq_full;
@@ -553,4 +505,4 @@ struct adapter {
 #define SIOCSLICSETINTAGG        (SIOCDEVPRIVATE+10)
 #define SIOCSLICTRACEDUMP        (SIOCDEVPRIVATE+11)
 
-#endif /*  __SLIC_DRIVER_H__ */
+#endif 

@@ -1,49 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: main_usb.c
- *
- * Purpose: driver entry for initial, open, close, tx and rx.
- *
- * Author: Lyndon Chen
- *
- * Date: Dec 8, 2005
- *
- * Functions:
- *
- *   vntwusb_found1 - module initial (insmod) driver entry
- *   device_remove1 - module remove entry
- *   device_open - allocate dma/descripter resource & initial mac/bbp function
- *   device_xmit - asynchrous data tx function
- *   device_set_multi - set mac filter
- *   device_ioctl - ioctl entry
- *   device_close - shutdown mac/bbp & free dma/descripter resource
- *   device_alloc_frag_buf - rx fragement pre-allocated function
- *   device_free_tx_bufs - free tx buffer function
- *   device_dma0_tx_80211- tx 802.11 frame via dma0
- *   device_dma0_xmit- tx PS bufferred frame via dma0
- *   device_init_registers- initial MAC & BBP & RF internal registers.
- *   device_init_rings- initial tx/rx ring buffer
- *   device_init_defrag_cb- initial & allocate de-fragement buffer.
- *   device_tx_srv- tx interrupt service function
- *
- * Revision History:
- */
+
 #undef __NO_VERSION__
 
 #include "device.h"
@@ -75,15 +30,15 @@
 #include "int.h"
 #include "iowpa.h"
 
-/*---------------------  Static Definitions -------------------------*/
-//static int          msglevel                =MSG_LEVEL_DEBUG;
+
+
 static int          msglevel                =MSG_LEVEL_INFO;
 
-//
-// Define module options
-//
 
-// Version Information
+
+
+
+
 #define DRIVER_AUTHOR "VIA Networking Technologies, Inc., <lyndonchen@vntek.com.tw>"
 MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_LICENSE("GPL");
@@ -113,10 +68,7 @@ DEVICE_PARAM(TxDescriptors0,"Number of transmit usb desc buffer");
 DEVICE_PARAM(Channel, "Channel number");
 
 
-/* PreambleType[] is the preamble length used for transmit.
-   0: indicate allows long preamble type
-   1: indicate allows short preamble type
-*/
+
 
 #define PREAMBLE_TYPE_DEF     1
 
@@ -140,22 +92,7 @@ DEVICE_PARAM(FragThreshold, "Fragmentation threshold");
 #define DATA_RATE_MIN     0
 #define DATA_RATE_MAX     13
 #define DATA_RATE_DEF     13
-/* datarate[] index
-   0: indicate 1 Mbps   0x02
-   1: indicate 2 Mbps   0x04
-   2: indicate 5.5 Mbps 0x0B
-   3: indicate 11 Mbps  0x16
-   4: indicate 6 Mbps   0x0c
-   5: indicate 9 Mbps   0x12
-   6: indicate 12 Mbps  0x18
-   7: indicate 18 Mbps  0x24
-   8: indicate 24 Mbps  0x30
-   9: indicate 36 Mbps  0x48
-  10: indicate 48 Mbps  0x60
-  11: indicate 54 Mbps  0x6c
-  12: indicate 72 Mbps  0x90
-  13: indicate auto rate
-*/
+
 
 DEVICE_PARAM(ConnectionRate, "Connection data rate");
 
@@ -165,17 +102,10 @@ DEVICE_PARAM(ConnectionRate, "Connection data rate");
 
 DEVICE_PARAM(OPMode, "Infrastruct, adhoc, AP mode ");
 
-/* OpMode[] is used for transmit.
-   0: indicate infrastruct mode used
-   1: indicate adhoc mode used
-   2: indicate AP mode used
-*/
 
 
-/* PSMode[]
-   0: indicate disable power saving mode
-   1: indicate enable power saving mode
-*/
+
+
 
 #define PS_MODE_DEF     0
 
@@ -197,11 +127,7 @@ DEVICE_PARAM(ShortRetryLimit, "Short frame retry limits");
 DEVICE_PARAM(LongRetryLimit, "long frame retry limits");
 
 
-/* BasebandType[] baseband type selected
-   0: indicate 802.11a type
-   1: indicate 802.11b type
-   2: indicate 802.11g type
-*/
+
 #define BBP_TYPE_MIN     0
 #define BBP_TYPE_MAX     2
 #define BBP_TYPE_DEF     2
@@ -210,19 +136,16 @@ DEVICE_PARAM(BasebandType, "baseband type");
 
 
 
-/* 80211hEnable[]
-   0: indicate disable 802.11h
-   1: indicate enable 802.11h
-*/
+
 
 #define X80211h_MODE_DEF     0
 
 DEVICE_PARAM(b80211hEnable, "802.11h mode");
 
 
-//
-// Static vars definitions
-//
+
+
+
 
 
 
@@ -233,31 +156,15 @@ static struct usb_device_id vntwusb_table[] = {
 
 
 
-// Frequency list (map channels to frequencies)
-/*
-static const long frequency_list[] = {
-    2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472, 2484,
-    4915, 4920, 4925, 4935, 4940, 4945, 4960, 4980,
-    5035, 5040, 5045, 5055, 5060, 5080, 5170, 5180, 5190, 5200, 5210, 5220, 5230, 5240,
-    5260, 5280, 5300, 5320, 5500, 5520, 5540, 5560, 5580, 5600, 5620, 5640, 5660, 5680,
-    5700, 5745, 5765, 5785, 5805, 5825
-	};
-
-
-#ifndef IW_ENCODE_NOKEY
-#define IW_ENCODE_NOKEY         0x0800
-#define IW_ENCODE_MODE  (IW_ENCODE_DISABLED | IW_ENCODE_RESTRICTED | IW_ENCODE_OPEN)
-#endif
-
-static const struct iw_handler_def	iwctl_handler_def;
-*/
 
 
 
-/*---------------------  Static Functions  --------------------------*/
+
+
+
 static int vntwusb_found1(struct usb_interface *intf, const struct usb_device_id *id);
 static void vntwusb_disconnect(struct usb_interface *intf);
-#ifdef CONFIG_PM	/* Minimal support for suspend and resume */
+#ifdef CONFIG_PM	
 static int vntwusb_suspend(struct usb_interface *intf, pm_message_t message);
 static int vntwusb_resume(struct usb_interface *intf);
 #endif
@@ -284,16 +191,16 @@ static int Read_config_file(PSDevice pDevice);
 static UCHAR *Config_FileOperation(PSDevice pDevice);
 static int Config_FileGetParameter(UCHAR *string, UCHAR *dest,UCHAR *source);
 
-//2008-0714<Add>by Mike Liu
+
 static BOOL device_release_WPADEV(PSDevice pDevice);
 
 static void usb_device_reset(PSDevice pDevice);
 
 
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
+
+
 
 
 static void
@@ -331,7 +238,7 @@ device_set_options(PSDevice pDevice) {
     pDevice->wCTSDuration = 0;
     pDevice->byPreambleType = 0;
     pDevice->bExistSWNetAddr = FALSE;
-//    pDevice->bDiversityRegCtlON = TRUE;
+
     pDevice->bDiversityRegCtlON = FALSE;
 }
 
@@ -357,9 +264,9 @@ static VOID device_init_diversity_timer(PSDevice pDevice) {
 }
 
 
-//
-// Initialiation of MAC & BBP registers
-//
+
+
+
 
 static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
 {
@@ -413,7 +320,7 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
     sInitCmd.byShortRetryLimit = pDevice->byShortRetryLimit;
     sInitCmd.byLongRetryLimit = pDevice->byLongRetryLimit;
 
-    //issue Card_init command to device
+    
     ntStatus = CONTROLnsRequestOut(pDevice,
                                     MESSAGE_TYPE_CARDINIT,
                                     0,
@@ -436,7 +343,7 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
             return FALSE;
         }
 
-        //Local ID for AES functions
+        
         ntStatus = CONTROLnsRequestIn(pDevice,
                                     MESSAGE_TYPE_READ,
                                     MAC_REG_LOCALID,
@@ -449,10 +356,10 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
             return FALSE;
         }
 
-        // Do MACbSoftwareReset in MACvInitialize
-        // force CCK
+        
+        
         pDevice->bCCK = TRUE;
-        pDevice->bProtectMode = FALSE;          //Only used in 11g type, sync with ERP IE
+        pDevice->bProtectMode = FALSE;          
         pDevice->bNonERPPresent = FALSE;
         pDevice->bBarkerPreambleMd = FALSE;
         if ( pDevice->bFixRate ) {
@@ -468,12 +375,12 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
 
         pDevice->byTopOFDMBasicRate = RATE_24M;
         pDevice->byTopCCKBasicRate = RATE_1M;
-        pDevice->byRevId = 0;                   //Target to IF pin while programming to RF chip.
+        pDevice->byRevId = 0;                   
         pDevice->byCurPwr = 0xFF;
 
         pDevice->byCCKPwr = pDevice->abyEEPROM[EEP_OFS_PWR_CCK];
         pDevice->byOFDMPwrG = pDevice->abyEEPROM[EEP_OFS_PWR_OFDMG];
-        // Load power Table
+        
         for (ii=0;ii<14;ii++) {
             pDevice->abyCCKPwrTbl[ii] = pDevice->abyEEPROM[ii + EEP_OFS_CCK_PWR_TBL];
             if (pDevice->abyCCKPwrTbl[ii] == 0)
@@ -483,8 +390,8 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
                 pDevice->abyOFDMPwrTbl[ii] = pDevice->byOFDMPwrG;
         }
 
-	  //original zonetype is USA,but customize zonetype is europe,
-	  // then need recover 12,13 ,14 channel  with 11 channel
+	  
+	  
           if(((pDevice->abyEEPROM[EEP_OFS_ZONETYPE] == ZoneType_Japan) ||
 	        (pDevice->abyEEPROM[EEP_OFS_ZONETYPE] == ZoneType_Europe))&&
 	     (pDevice->byOriginalZonetype == ZoneType_USA)) {
@@ -494,15 +401,15 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
 	    }
 	  }
 
-        //{{ RobertYu: 20041124
-        pDevice->byOFDMPwrA = 0x34; // same as RFbMA2829SelectChannel
-        // Load OFDM A Power Table
-        for (ii=0;ii<CB_MAX_CHANNEL_5G;ii++) { //RobertYu:20041224, bug using CB_MAX_CHANNEL
+        
+        pDevice->byOFDMPwrA = 0x34; 
+        
+        for (ii=0;ii<CB_MAX_CHANNEL_5G;ii++) { 
             pDevice->abyOFDMAPwrTbl[ii] = pDevice->abyEEPROM[ii + EEP_OFS_OFDMA_PWR_TBL];
             if (pDevice->abyOFDMAPwrTbl[ii] == 0)
                 pDevice->abyOFDMAPwrTbl[ii] = pDevice->byOFDMPwrA;
         }
-        //}} RobertYu
+        
 
         byAntenna = pDevice->abyEEPROM[EEP_OFS_ANTENNA];
         if (byAntenna & EEP_ANTINV)
@@ -512,7 +419,7 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
 
         byAntenna &= (EEP_ANTENNA_AUX | EEP_ANTENNA_MAIN);
 
-        if (byAntenna == 0) // if not set default is All
+        if (byAntenna == 0) 
             byAntenna = (EEP_ANTENNA_AUX | EEP_ANTENNA_MAIN);
 
         if (byAntenna == (EEP_ANTENNA_AUX | EEP_ANTENNA_MAIN)) {
@@ -554,35 +461,35 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
         pDevice->byTMax2 = 4;
         pDevice->ulSQ3TH = 0;
         pDevice->byTMax3 = 64;
-        // -----------------------------------------------------------------
+        
 
-        //Get Auto Fall Back Type
+        
         pDevice->byAutoFBCtrl = AUTO_FB_0;
 
-        // Set SCAN Time
+        
         pDevice->uScanTime = WLAN_SCAN_MINITIME;
 
-        // default Auto Mode
-        //pDevice->NetworkType = Ndis802_11Automode;
+        
+        
         pDevice->eConfigPHYMode = PHY_TYPE_AUTO;
         pDevice->byBBType = BB_TYPE_11G;
 
-        // initialize BBP registers
+        
         pDevice->ulTxPower = 25;
 
-        // Get Channel range
+        
         pDevice->byMinChannel = 1;
         pDevice->byMaxChannel = CB_MAX_CHANNEL;
 
-        // Get RFType
+        
         pDevice->byRFType = sInitRsp.byRFType;
 
         if ((pDevice->byRFType & RF_EMU) != 0) {
-            // force change RevID for VT3253 emu
+            
             pDevice->byRevId = 0x80;
         }
 
-        // Load EEPROM calibrated vt3266 parameters
+        
         if (pDevice->byRFType == RF_VT3226D0) {
             if((pDevice->abyEEPROM[EEP_OFS_MAJOR_VER] == 0x1) &&
                 (pDevice->abyEEPROM[EEP_OFS_MINOR_VER] >= 0x4)) {
@@ -590,13 +497,13 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
                 byCalibTXDC = pDevice->abyEEPROM[EEP_OFS_CALIB_TX_DC];
                 byCalibRXIQ = pDevice->abyEEPROM[EEP_OFS_CALIB_RX_IQ];
                 if( (byCalibTXIQ || byCalibTXDC || byCalibRXIQ) ) {
-                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFF, 0x03); // CR255, Set BB to support TX/RX IQ and DC compensation Mode
-                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFB, byCalibTXIQ); // CR251, TX I/Q Imbalance Calibration
-                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFC, byCalibTXDC); // CR252, TX DC-Offset Calibration
-                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFD, byCalibRXIQ); // CR253, RX I/Q Imbalance Calibration
+                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFF, 0x03); 
+                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFB, byCalibTXIQ); 
+                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFC, byCalibTXDC); 
+                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFD, byCalibRXIQ); 
                 } else {
-                // turn off BB Calibration compensation
-                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFF, 0x0); // CR255
+                
+                    ControlvWriteByte(pDevice, MESSAGE_REQUEST_BBREG, 0xFF, 0x0); 
                 }
             }
         }
@@ -605,11 +512,11 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
         pMgmt->uIBSSChannel = pDevice->uChannel;
         CARDbSetMediaChannel(pDevice, pMgmt->uCurrChannel);
 
-        // get Permanent network address
+        
         memcpy(pDevice->abyPermanentNetAddr,&(sInitRsp.byNetAddr[0]),6);
         memcpy(pDevice->abyCurrentNetAddr, pDevice->abyPermanentNetAddr, U_ETHER_ADDR_LEN);
 
-        // if exist SW network address, use SW network address.
+        
 
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Network address = %02x-%02x-%02x=%02x-%02x-%02x\n",
             pDevice->abyCurrentNetAddr[0],
@@ -622,8 +529,8 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
 
 
 
-    // Set BB and packet type at the same time.
-    // Set Short Slot Time, xIFS, and RSPINF.
+    
+    
     if (pDevice->byBBType == BB_TYPE_11A) {
         CARDbAddBasicRate(pDevice, RATE_6M);
         pDevice->bShortSlotTime = TRUE;
@@ -662,7 +569,7 @@ static BOOL device_init_registers(PSDevice pDevice, DEVICE_INIT_TYPE InitType)
             pDevice->bHWRadioOff = FALSE;
         }
 
-    } //EEP_RADIOCTL_ENABLE
+    } 
 
     ControlvMaskByte(pDevice,MESSAGE_REQUEST_MACREG,MAC_REG_PAPEDELAY,LEDSTS_TMLEN,0x38);
     ControlvMaskByte(pDevice,MESSAGE_REQUEST_MACREG,MAC_REG_PAPEDELAY,LEDSTS_STS,LEDSTS_SLOW);
@@ -683,8 +590,8 @@ static BOOL device_release_WPADEV(PSDevice pDevice)
 {
   viawget_wpa_header *wpahdr;
   int ii=0;
- // wait_queue_head_t	Set_wait;
-  //send device close to wpa_supplicnat layer
+ 
+  
     if (pDevice->bWPADEVUp==TRUE) {
                  wpahdr = (viawget_wpa_header *)pDevice->skb->data;
                  wpahdr->type = VIAWGET_DEVICECLOSE_MSG;
@@ -699,12 +606,12 @@ static BOOL device_release_WPADEV(PSDevice pDevice)
                  netif_rx(pDevice->skb);
                  pDevice->skb = dev_alloc_skb((int)pDevice->rx_buf_sz);
 
- //wait release WPADEV
-              //    init_waitqueue_head(&Set_wait);
-              //    wait_event_timeout(Set_wait, ((pDevice->wpadev==NULL)&&(pDevice->skb == NULL)),5*HZ);    //1s wait
+ 
+              
+              
               while(pDevice->bWPADEVUp==TRUE) {
 	        set_current_state(TASK_UNINTERRUPTIBLE);
-                 schedule_timeout (HZ/20);          //wait 50ms
+                 schedule_timeout (HZ/20);          
                  ii++;
 	        if(ii>20)
 		  break;
@@ -713,7 +620,7 @@ static BOOL device_release_WPADEV(PSDevice pDevice)
     return TRUE;
 }
 
-#ifdef CONFIG_PM	/* Minimal support for suspend and resume */
+#ifdef CONFIG_PM	
 static int vntwusb_suspend(struct usb_interface *intf, pm_message_t message)
 {
  PSDevice  pDevice = usb_get_intfdata(intf);
@@ -760,7 +667,7 @@ static const struct net_device_ops device_netdev_ops = {
 static int
 vntwusb_found1(struct usb_interface *intf, const struct usb_device_id *id)
 {
-   BYTE            fake_mac[U_ETHER_ADDR_LEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x01};//fake MAC address
+   BYTE            fake_mac[U_ETHER_ADDR_LEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
 	struct usb_device *udev = interface_to_usbdev(intf);
     int         rc = 0;
     struct net_device *netdev = NULL;
@@ -786,7 +693,7 @@ vntwusb_found1(struct usb_interface *intf, const struct usb_device_id *id)
     pDevice->dev = netdev;
     pDevice->usb = udev;
 
-    // Set initial settings
+    
     device_set_options(pDevice);
     spin_lock_init(&pDevice->lock);
 
@@ -797,11 +704,11 @@ vntwusb_found1(struct usb_interface *intf, const struct usb_device_id *id)
 
 	netdev->wireless_handlers = (struct iw_handler_def *)&iwctl_handler_def;
 
-   //2008-0623-01<Remark>by MikeLiu
-  //2007-0821-01<Add>by MikeLiu
+   
+  
          usb_set_intfdata(intf, pDevice);
 	SET_NETDEV_DEV(netdev, &intf->dev);
-    memcpy(pDevice->dev->dev_addr, fake_mac, U_ETHER_ADDR_LEN); //use fake mac address
+    memcpy(pDevice->dev->dev_addr, fake_mac, U_ETHER_ADDR_LEN); 
     rc = register_netdev(netdev);
     if (rc != 0) {
         printk(KERN_ERR DEVICE_NAME " Failed to register netdev\n");
@@ -809,15 +716,15 @@ vntwusb_found1(struct usb_interface *intf, const struct usb_device_id *id)
         kfree(pDevice);
         return -ENODEV;
     }
-	//2008-0623-02<Remark>by MikeLiu
-        //2007-0821-01<Add>by MikeLiu
-       //#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,21)
-  	//usb_set_intfdata(intf, pDevice);
-	//SET_NETDEV_DEV(netdev, &intf->dev);
-       //#endif
+	
+        
+       
+  	
+	
+       
 
-//2008-07-21-01<Add>by MikeLiu
-//register wpadev
+
+
 #if 0
    if(wpa_set_wpadev(pDevice, 1)!=0) {
      printk("Fail to Register WPADEV?\n");
@@ -842,7 +749,7 @@ vntwusb_found1(struct usb_interface *intf, const struct usb_device_id *id)
 
 
 err_nomem:
- //2008-0922-01<Add>by MikeLiu, decrease usb counter.
+ 
     usb_put_dev(udev);
 
     return -ENOMEM;
@@ -856,7 +763,7 @@ static VOID device_free_tx_bufs(PSDevice pDevice) {
     for (ii = 0; ii < pDevice->cbTD; ii++) {
 
         pTxContext = pDevice->apTD[ii];
-        //de-allocate URBs
+        
         if (pTxContext->pUrb) {
             usb_kill_urb(pTxContext->pUrb);
             usb_free_urb(pTxContext->pUrb);
@@ -875,12 +782,12 @@ static VOID device_free_rx_bufs(PSDevice pDevice) {
     for (ii = 0; ii < pDevice->cbRD; ii++) {
 
         pRCB = pDevice->apRCB[ii];
-        //de-allocate URBs
+        
         if (pRCB->pUrb) {
             usb_kill_urb(pRCB->pUrb);
             usb_free_urb(pRCB->pUrb);
         }
-        //de-allocate skb
+        
         if (pRCB->skb)
             dev_kfree_skb(pRCB->skb);
     }
@@ -890,7 +797,7 @@ static VOID device_free_rx_bufs(PSDevice pDevice) {
     return;
 }
 
-//2007-1107-02<Add>by MikeLiu
+
 static void usb_device_reset(PSDevice pDevice)
 {
  int status;
@@ -924,7 +831,7 @@ static BOOL device_alloc_bufs(PSDevice pDevice) {
         }
         pDevice->apTD[ii] = pTxContext;
         pTxContext->pDevice = (PVOID) pDevice;
-        //allocate URBs
+        
         pTxContext->pUrb = usb_alloc_urb(0, GFP_ATOMIC);
         if (pTxContext->pUrb == NULL) {
             DBG_PRT(MSG_LEVEL_ERR,KERN_ERR "alloc tx urb failed\n");
@@ -933,7 +840,7 @@ static BOOL device_alloc_bufs(PSDevice pDevice) {
         pTxContext->bBoolInUse = FALSE;
     }
 
-    // allocate rcb mem
+    
     pDevice->pRCBMem = kmalloc((sizeof(RCB) * pDevice->cbRD), GFP_KERNEL);
     if (pDevice->pRCBMem == NULL) {
         DBG_PRT(MSG_LEVEL_ERR,KERN_ERR "%s : alloc rx usb context failed\n", pDevice->dev->name);
@@ -953,7 +860,7 @@ static BOOL device_alloc_bufs(PSDevice pDevice) {
 
         pDevice->apRCB[ii] = pRCB;
         pRCB->pDevice = (PVOID) pDevice;
-        //allocate URBs
+        
         pRCB->pUrb = usb_alloc_urb(0, GFP_ATOMIC);
 
         if (pRCB->pUrb == NULL) {
@@ -1015,7 +922,7 @@ static BOOL device_init_defrag_cb(PSDevice pDevice) {
     int i;
     PSDeFragControlBlock pDeF;
 
-    /* Init the fragment ctl entries */
+    
     for (i = 0; i < CB_MAX_RX_FRAG; i++) {
         pDeF = &(pDevice->sRxDFCB[i]);
         if (!device_alloc_frag_buf(pDevice, pDeF)) {
@@ -1062,7 +969,7 @@ BOOL device_alloc_frag_buf(PSDevice pDevice, PSDeFragControlBlock pDeF) {
 }
 
 
-/*-----------------------------------------------------------------*/
+
 
 static int  device_open(struct net_device *dev) {
     PSDevice    pDevice=(PSDevice) netdev_priv(dev);
@@ -1098,7 +1005,7 @@ static int  device_open(struct net_device *dev) {
     MP_SET_FLAG(pDevice, fMP_POST_READS);
     MP_SET_FLAG(pDevice, fMP_POST_WRITES);
 
-   //read config file
+   
     Read_config_file(pDevice);
 
     if (device_init_registers(pDevice, DEVICE_INIT_COLD) == FALSE) {
@@ -1107,15 +1014,15 @@ static int  device_open(struct net_device *dev) {
     }
 
     device_set_multi(pDevice->dev);
-    // Init for Key Management
+    
 
     KeyvInitTable(pDevice,&pDevice->sKey);
     memcpy(pDevice->sMgmtObj.abyMACAddr, pDevice->abyCurrentNetAddr, U_ETHER_ADDR_LEN);
     memcpy(pDevice->dev->dev_addr, pDevice->abyCurrentNetAddr, U_ETHER_ADDR_LEN);
     pDevice->bStopTx0Pkt = FALSE;
     pDevice->bStopDataPkt = FALSE;
-    pDevice->bRoaming = FALSE;  //DavidWang
-    pDevice->bIsRoaming = FALSE;//DavidWang
+    pDevice->bRoaming = FALSE;  
+    pDevice->bIsRoaming = FALSE;
     pDevice->bEnableRoaming = FALSE;
     if (pDevice->bDiversityRegCtlON) {
         device_init_diversity_timer(pDevice);
@@ -1126,7 +1033,7 @@ static int  device_open(struct net_device *dev) {
     tasklet_init(&pDevice->ReadWorkItem, (void *)RXvWorkItem, (unsigned long)pDevice);
     tasklet_init(&pDevice->EventWorkItem, (void *)INTvWorkItem, (unsigned long)pDevice);
     add_timer(&(pDevice->sMgmtObj.sTimerSecondCallback));
-    pDevice->int_interval = 100;  //Max 100 microframes.
+    pDevice->int_interval = 100;  
     pDevice->eEncryptionStatus = Ndis802_11EncryptionDisabled;
 
     pDevice->bIsRxWorkItemQueued = TRUE;
@@ -1146,7 +1053,7 @@ static int  device_open(struct net_device *dev) {
     RXvWorkItem(pDevice);
     INTvWorkItem(pDevice);
 
-    // Patch: if WEP key already set by iwconfig but device not yet open
+    
     if ((pDevice->bEncryptionEnable == TRUE) && (pDevice->bTransmitKey == TRUE)) {
          spin_lock_irq(&pDevice->lock);
          KeybSetDefaultKey( pDevice,
@@ -1165,9 +1072,9 @@ static int  device_open(struct net_device *dev) {
         bScheduleCommand((HANDLE)pDevice, WLAN_CMD_RUN_AP, NULL);
 	}
 	else {
-	//mike:mark@2008-11-10
+	
             bScheduleCommand((HANDLE)pDevice, WLAN_CMD_BSSID_SCAN, NULL);
-        //bScheduleCommand((HANDLE)pDevice, WLAN_CMD_SSID, NULL);
+        
     }
 
 
@@ -1222,14 +1129,14 @@ static int  device_close(struct net_device *dev) {
 }
 #endif
 
-//2007-1121-02<Add>by EinsnLiu
+
     if (pDevice->bLinkPass) {
 	bScheduleCommand((HANDLE)pDevice, WLAN_CMD_DISASSOCIATE, NULL);
         mdelay(30);
     }
-//End Add
 
-//2008-0714-01<Add>by MikeLiu
+
+
 device_release_WPADEV(pDevice);
 
         memset(pMgmt->abyDesireSSID, 0, WLAN_IEHDR_LEN + WLAN_SSID_MAXLEN + 1);
@@ -1252,7 +1159,7 @@ device_release_WPADEV(pDevice);
     del_timer(&pDevice->sTimerCommand);
     del_timer(&pMgmt->sTimerSecondCallback);
 
-//2007-0115-02<Add>by MikeLiu
+
 #ifdef TxInSleep
     del_timer(&pDevice->sTimerTxData);
 #endif
@@ -1266,8 +1173,8 @@ device_release_WPADEV(pDevice);
     tasklet_kill(&pDevice->ReadWorkItem);
     tasklet_kill(&pDevice->EventWorkItem);
 
-   pDevice->bRoaming = FALSE;  //DavidWang
-   pDevice->bIsRoaming = FALSE;//DavidWang
+   pDevice->bRoaming = FALSE;  
+   pDevice->bIsRoaming = FALSE;
    pDevice->bEnableRoaming = FALSE;
     pDevice->bCmdRunning = FALSE;
     pDevice->bLinkPass = FALSE;
@@ -1312,11 +1219,11 @@ static void vntwusb_disconnect(struct usb_interface *intf)
 }
 #endif
 
-//2008-0714-01<Add>by MikeLiu
+
 device_release_WPADEV(pDevice);
 
 	usb_set_intfdata(intf, NULL);
-//2008-0922-01<Add>by MikeLiu, decrease usb counter.
+
      usb_put_dev(interface_to_usbdev(intf));
 
     pDevice->flags |= DEVICE_FLAGS_UNPLUG;
@@ -1324,8 +1231,8 @@ device_release_WPADEV(pDevice);
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "unregister_netdev..\n");
         unregister_netdev(pDevice->dev);
 
-//2008-07-21-01<Add>by MikeLiu
-//unregister wpadev
+
+
    if(wpa_set_wpadev(pDevice, 0)!=0)
      printk("unregister wpadev fail?\n");
 
@@ -1387,7 +1294,7 @@ static int  device_xmit(struct sk_buff *skb, struct net_device *dev) {
         return 0;
     }
 
-    if(nsDMA_tx_packet(pDevice, TYPE_AC0DMA, skb) !=0) {  //mike add:xmit fail!
+    if(nsDMA_tx_packet(pDevice, TYPE_AC0DMA, skb) !=0) {  
          if (netif_queue_stopped(pDevice->dev))
               netif_wake_queue(pDevice->dev);
     }
@@ -1415,7 +1322,7 @@ static inline u32 ether_crc(int length, unsigned char *data)
     return crc;
 }
 
-//find out  the start  position of str2 from str1
+
 static UCHAR *kstrstr(const UCHAR *str1,const UCHAR *str2) {
   int str1_len=strlen(str1);
   int str2_len=strlen(str2);
@@ -1441,11 +1348,11 @@ static int Config_FileGetParameter(UCHAR *string, UCHAR *dest,UCHAR *source)
     strcat(buf1, "=");
     source+=strlen(buf1);
 
-//find target string start point
+
     if((start_p = kstrstr(source,buf1))==NULL)
 	return FALSE;
 
-//check if current config line is marked by "#" ??
+
 for(ii=1;;ii++) {
   if(memcmp(start_p-ii,"\n",1)==0)
       break;
@@ -1453,22 +1360,22 @@ for(ii=1;;ii++) {
       return FALSE;
 }
 
-//find target string end point
-     if((end_p = kstrstr(start_p,"\n"))==NULL) {       //cann't find "\n",but don't care
-          end_p=start_p+strlen(start_p);   //no include "\n"
+
+     if((end_p = kstrstr(start_p,"\n"))==NULL) {       
+          end_p=start_p+strlen(start_p);   
        }
 
    memset(buf2,0,100);
-   memcpy(buf2,start_p,end_p-start_p);    //get the tartget line
+   memcpy(buf2,start_p,end_p-start_p);    
    buf2[end_p-start_p]='\0';
 
-   //find value
+   
    if((start_p = kstrstr(buf2,"="))==NULL)
       return FALSE;
    memset(buf1,0,100);
    strcpy(buf1,start_p+1);
 
-  //except space
+  
   tmp_p = buf1;
   while(*tmp_p != 0x00) {
   	if(*tmp_p==' ')
@@ -1481,25 +1388,19 @@ for(ii=1;;ii++) {
  return TRUE;
 }
 
-//if read fail,return NULL,or return data pointer;
+
 static UCHAR *Config_FileOperation(PSDevice pDevice) {
     UCHAR    *config_path=CONFIG_PATH;
     UCHAR    *buffer=NULL;
     struct file   *filp=NULL;
     mm_segment_t old_fs = get_fs();
-    //int oldfsuid=0,oldfsgid=0;
+    
     int result=0;
 
     set_fs (KERNEL_DS);
-    /* Can't do this anymore, so we rely on correct filesystem permissions:
-    //Make sure a caller can read or write power as root
-    oldfsuid=current->fsuid;
-    oldfsgid=current->fsgid;
-    current->fsuid = 0;
-    current->fsgid = 0;
-    */
+    
 
-    //open file
+    
       filp = filp_open(config_path, O_RDWR, 0);
         if (IS_ERR(filp)) {
 	     printk("Config_FileOperation file Not exist\n");
@@ -1532,10 +1433,7 @@ error1:
 error2:
   set_fs (old_fs);
 
-  /*
-  current->fsuid=oldfsuid;
-  current->fsgid=oldfsgid;
-  */
+  
 
 if(result!=0) {
     if(buffer)
@@ -1545,13 +1443,13 @@ if(result!=0) {
   return buffer;
 }
 
-//return --->-1:fail;  >=0:sucessful
+
 static int Read_config_file(PSDevice pDevice) {
   int result=0;
   UCHAR      tmpbuffer[100];
   UCHAR *buffer=NULL;
 
-  //init config setting
+  
  pDevice->config_file.ZoneType = -1;
  pDevice->config_file.eAuthenMode = -1;
  pDevice->config_file.eEncryptionStatus = -1;
@@ -1561,7 +1459,7 @@ static int Read_config_file(PSDevice pDevice) {
      return result;
   }
 
-//get zonetype
+
 {
     memset(tmpbuffer,0,sizeof(tmpbuffer));
     if(Config_FileGetParameter("ZONETYPE",tmpbuffer,buffer) ==TRUE) {
@@ -1581,7 +1479,7 @@ static int Read_config_file(PSDevice pDevice) {
 }
 
 #if 1
-//get other parameter
+
   {
 	memset(tmpbuffer,0,sizeof(tmpbuffer));
        if(Config_FileGetParameter("AUTHENMODE",tmpbuffer,buffer)==TRUE) {
@@ -1622,9 +1520,9 @@ static void device_set_multi(struct net_device *dev) {
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "pDevice->byRxMode in= %x\n", pDevice->byRxMode);
 
-    if (dev->flags & IFF_PROMISC) {         // Set promiscuous.
+    if (dev->flags & IFF_PROMISC) {         
         DBG_PRT(MSG_LEVEL_ERR,KERN_NOTICE "%s: Promiscuous mode enabled.\n", dev->name);
-        // Unconditionally log net taps.
+        
         pDevice->byRxMode |= (RCR_MULTICAST|RCR_BROADCAST|RCR_UNICAST);
     }
     else if ((dev->mc_count > pDevice->multicast_limit) || (dev->flags & IFF_ALLMULTI)) {
@@ -1653,7 +1551,7 @@ static void device_set_multi(struct net_device *dev) {
     }
 
     if (pMgmt->eConfigMode == WMAC_CONFIG_AP) {
-        // If AP mode, don't enable RCR_UNICAST. Since hw only compare addr1 with local mac.
+        
         pDevice->byRxMode |= (RCR_MULTICAST|RCR_BROADCAST);
         pDevice->byRxMode &= ~(RCR_UNICAST);
     }
@@ -1675,7 +1573,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 	PSDevice	        pDevice = (PSDevice)netdev_priv(dev);
     PSMgmtObject        pMgmt = &(pDevice->sMgmtObj);
     PSCmdRequest        pReq;
-    //BOOL                bCommit = FALSE;
+    
 	struct iwreq *wrq = (struct iwreq *) rq;
 	int                 rc =0;
 
@@ -1694,7 +1592,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
         rc = -EOPNOTSUPP;
 		break;
 
-	case SIOCGIWNWID:     //0x8b03  support
+	case SIOCGIWNWID:     
 	#ifdef  WPA_SUPPLICANT_DRIVER_WEXT_SUPPORT
           rc = iwctl_giwnwid(dev, NULL, &(wrq->u.nwid), NULL);
 	#else
@@ -1702,17 +1600,17 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 	#endif
 		break;
 
-		// Set frequency/channel
+		
 	case SIOCSIWFREQ:
 	    rc = iwctl_siwfreq(dev, NULL, &(wrq->u.freq), NULL);
 		break;
 
-		// Get frequency/channel
+		
 	case SIOCGIWFREQ:
 		rc = iwctl_giwfreq(dev, NULL, &(wrq->u.freq), NULL);
 		break;
 
-		// Set desired network name (ESSID)
+		
 	case SIOCSIWESSID:
 
 		{
@@ -1732,7 +1630,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 		break;
 
 
-		// Get current network name (ESSID)
+		
 	case SIOCGIWESSID:
 
 		{
@@ -1753,70 +1651,70 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 		break;
 
 
-		// Get current Access Point (BSSID)
+		
 	case SIOCGIWAP:
 		rc = iwctl_giwap(dev, NULL, &(wrq->u.ap_addr), NULL);
 		break;
 
 
-		// Set desired station name
+		
 	case SIOCSIWNICKN:
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWNICKN \n");
         rc = -EOPNOTSUPP;
 		break;
 
-		// Get current station name
+		
 	case SIOCGIWNICKN:
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWNICKN \n");
         rc = -EOPNOTSUPP;
 		break;
 
-		// Set the desired bit-rate
+		
 	case SIOCSIWRATE:
 		rc = iwctl_siwrate(dev, NULL, &(wrq->u.bitrate), NULL);
 		break;
 
-	// Get the current bit-rate
+	
 	case SIOCGIWRATE:
 
 		rc = iwctl_giwrate(dev, NULL, &(wrq->u.bitrate), NULL);
 		break;
 
-	// Set the desired RTS threshold
+	
 	case SIOCSIWRTS:
 
 		rc = iwctl_siwrts(dev, NULL, &(wrq->u.rts), NULL);
 		break;
 
-	// Get the current RTS threshold
+	
 	case SIOCGIWRTS:
 
 		rc = iwctl_giwrts(dev, NULL, &(wrq->u.rts), NULL);
 		break;
 
-		// Set the desired fragmentation threshold
+		
 	case SIOCSIWFRAG:
 
 		rc = iwctl_siwfrag(dev, NULL, &(wrq->u.frag), NULL);
 	    break;
 
-	// Get the current fragmentation threshold
+	
 	case SIOCGIWFRAG:
 
 		rc = iwctl_giwfrag(dev, NULL, &(wrq->u.frag), NULL);
 		break;
 
-		// Set mode of operation
+		
 	case SIOCSIWMODE:
     	rc = iwctl_siwmode(dev, NULL, &(wrq->u.mode), NULL);
 		break;
 
-		// Get mode of operation
+		
 	case SIOCGIWMODE:
 		rc = iwctl_giwmode(dev, NULL, &(wrq->u.mode), NULL);
 		break;
 
-		// Set WEP keys and mode
+		
 	case SIOCSIWENCODE:
 		{
             char abyKey[WLAN_WEP232_KEYLEN];
@@ -1843,7 +1741,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 		}
 		break;
 
-		// Get the WEP keys and mode
+		
 	case SIOCGIWENCODE:
 
 		if (!capable(CAP_NET_ADMIN)) {
@@ -1864,7 +1762,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 		}
 		break;
 
-		// Get the current Tx-Power
+		
 	case SIOCGIWTXPOW:
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWTXPOW \n");
         rc = -EOPNOTSUPP;
@@ -1885,7 +1783,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 		rc = iwctl_giwretry(dev, NULL, &(wrq->u.retry), NULL);
 		break;
 
-		// Get range of parameters
+		
 	case SIOCGIWRANGE:
 
 		{
@@ -1939,39 +1837,30 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 
 
 #ifdef WIRELESS_SPY
-		// Set the spy list
+		
 	case SIOCSIWSPY:
 
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWSPY \n");
 		rc = -EOPNOTSUPP;
 		break;
 
-		// Get the spy list
+		
 	case SIOCGIWSPY:
 
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWSPY \n");
 		rc = -EOPNOTSUPP;
 		break;
 
-#endif // WIRELESS_SPY
+#endif 
 
 	case SIOCGIWPRIV:
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWPRIV \n");
 		rc = -EOPNOTSUPP;
-/*
-		if(wrq->u.data.pointer) {
-			wrq->u.data.length = sizeof(iwctl_private_args) / sizeof( iwctl_private_args[0]);
 
-			if(copy_to_user(wrq->u.data.pointer,
-					(u_char *) iwctl_private_args,
-					sizeof(iwctl_private_args)))
-				rc = -EFAULT;
-		}
-*/
 		break;
 
 
-//2008-0409-07, <Add> by Einsn Liu
+
 #ifdef  WPA_SUPPLICANT_DRIVER_WEXT_SUPPORT
 	case SIOCSIWAUTH:
 		DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWAUTH \n");
@@ -2025,8 +1914,8 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 		rc = iwctl_siwmlme(dev, NULL, &(wrq->u.data), wrq->u.data.pointer);
 		break;
 
-#endif // #ifdef WPA_SUPPLICANT_DRIVER_WEXT_SUPPORT
-//End Add -- //2008-0409-07, <Add> by Einsn Liu
+#endif 
+
 
     case IOCTL_CMD_TEST:
 
@@ -2038,12 +1927,12 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 		}
         pReq = (PSCmdRequest)rq;
 
-   //20080130-01,<Remark> by Mike Liu
-      // if(pDevice->bLinkPass==TRUE)
-          pReq->wResult = MAGIC_CODE;         //Linking status:0x3142
-   //20080130-02,<Remark> by Mike Liu
-      //  else
-      //	 pReq->wResult = MAGIC_CODE+1;    //disconnect status:0x3143
+   
+      
+          pReq->wResult = MAGIC_CODE;         
+   
+      
+      
         break;
 
     case IOCTL_CMD_SET:
@@ -2089,7 +1978,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 
 	case SIOCETHTOOL:
         return ethtool_ioctl(dev, (void *) rq->ifr_data);
-	// All other calls are currently unsupported
+	
 
 	default:
 		rc = -EOPNOTSUPP;
@@ -2108,7 +1997,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
        else {
            DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO "Commit the settings\n");
            spin_lock_irq(&pDevice->lock);
-//2007-1121-01<Modify>by EinsnLiu
+
 	    if (pDevice->bLinkPass&&
 		  memcmp(pMgmt->abyCurrSSID,pMgmt->abyDesireSSID,WLAN_IEHDR_LEN + WLAN_SSID_MAXLEN)) {
       		  bScheduleCommand((HANDLE)pDevice, WLAN_CMD_DISASSOCIATE, NULL);
@@ -2118,7 +2007,7 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd) {
 	   memset(pMgmt->abyCurrBSSID, 0, 6);
 		 }
            ControlvMaskByte(pDevice,MESSAGE_REQUEST_MACREG,MAC_REG_PAPEDELAY,LEDSTS_STS,LEDSTS_SLOW);
-//End Modify
+
            netif_stop_queue(pDevice->dev);
 #ifdef  WPA_SUPPLICANT_DRIVER_WEXT_SUPPORT
            pMgmt->eScanType = WMAC_SCAN_ACTIVE;
@@ -2159,7 +2048,7 @@ static int ethtool_ioctl(struct net_device *dev, void *useraddr)
 }
 
 
-/*------------------------------------------------------------------*/
+
 
 
 MODULE_DEVICE_TABLE(usb, vntwusb_table);
@@ -2171,8 +2060,8 @@ static struct usb_driver vntwusb_driver = {
 	    .disconnect =	vntwusb_disconnect,
 	    .id_table =	vntwusb_table,
 
-//2008-0920-01<Add>by MikeLiu
-//for supporting S3 & S4 function
+
+
 #ifdef CONFIG_PM
 	   .suspend = vntwusb_suspend,
 	   .resume = vntwusb_resume,

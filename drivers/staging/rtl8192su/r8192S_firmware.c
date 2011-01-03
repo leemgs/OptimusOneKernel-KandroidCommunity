@@ -1,16 +1,4 @@
-/**************************************************************************************************
- * Procedure:    Init boot code/firmware code/data session
- *
- * Description: This routine will intialize firmware. If any error occurs during the initialization
- * 		process, the routine shall terminate immediately and return fail.
- *		NIC driver should call NdisOpenFile only from MiniportInitialize.
- *
- * Arguments:   The pointer of the adapter
 
- * Returns:
- *        NDIS_STATUS_FAILURE - the following initialization process should be terminated
- *        NDIS_STATUS_SUCCESS - if firmware initialization process success
-**************************************************************************************************/
 #include "r8192U.h"
 #include "r8192S_firmware.h"
 #include <linux/unistd.h>
@@ -22,20 +10,20 @@
 
 #define   byte(x,n)  ( (x >> (8 * n)) & 0xff  )
 
-//
-// Description:   This routine will intialize firmware. If any error occurs during the initialization
-//				process, the routine shall terminate immediately and return fail.
-//
-// Arguments:   The pointer of the adapter
-//			   Code address (Virtual address, should fill descriptor with physical address)
-//			   Code size
-// Created by Roger, 2008.04.10.
-//
+
+
+
+
+
+
+
+
+
 bool FirmwareDownloadCode(struct net_device *dev, u8 *	code_virtual_address,u32 buffer_len)
 {
 	struct r8192_priv   *priv = ieee80211_priv(dev);
 	bool 		    rt_status = true;
-	u16		    frag_threshold = MAX_FIRMWARE_CODE_SIZE; //Fragmentation might be required in 90/92 but not in 92S
+	u16		    frag_threshold = MAX_FIRMWARE_CODE_SIZE; 
 	u16		    frag_length, frag_offset = 0;
 	struct sk_buff	    *skb;
 	unsigned char	    *seg_ptr;
@@ -46,7 +34,7 @@ bool FirmwareDownloadCode(struct net_device *dev, u8 *	code_virtual_address,u32 
 
 	RT_TRACE(COMP_FIRMWARE, "--->FirmwareDownloadCode()\n" );
 
-	//MAX_TRANSMIT_BUFFER_SIZE
+	
 	if(buffer_len >= MAX_FIRMWARE_CODE_SIZE-USB_HWDESC_HEADER_LEN)
 	{
 		RT_TRACE(COMP_ERR, "Size over MAX_FIRMWARE_CODE_SIZE! \n");
@@ -66,7 +54,7 @@ bool FirmwareDownloadCode(struct net_device *dev, u8 *	code_virtual_address,u32 
 		bLastIniPkt = 1;
 		}
 
-		/* Allocate skb buffer to contain firmware info and tx descriptor info. */
+		
 		skb  = dev_alloc_skb(frag_length);
 		memcpy((unsigned char *)(skb->cb),&dev,sizeof(dev));
 
@@ -118,14 +106,14 @@ FirmwareEnableCPU(struct net_device *dev)
 	u32		iCheckTime = 200;
 
 	RT_TRACE(COMP_FIRMWARE, "-->FirmwareEnableCPU()\n" );
-	// Enable CPU.
+	
 	tmpU1b = read_nic_byte(dev, SYS_CLKR);
-	write_nic_byte(dev,  SYS_CLKR, (tmpU1b|SYS_CPU_CLKSEL)); //AFE source
+	write_nic_byte(dev,  SYS_CLKR, (tmpU1b|SYS_CPU_CLKSEL)); 
 
 	tmpU2b = read_nic_word(dev, SYS_FUNC_EN);
 	write_nic_word(dev, SYS_FUNC_EN, (tmpU2b|FEN_CPUEN));
 
-	//Polling IMEM Ready after CPU has refilled.
+	
 	do
 	{
 		CPUStatus = read_nic_byte(dev, TCR);
@@ -135,7 +123,7 @@ FirmwareEnableCPU(struct net_device *dev)
 			break;
 		}
 
-		//usleep(100);
+		
 		udelay(100);
 	}while(iCheckTime--);
 
@@ -183,10 +171,10 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 	RT_STATUS	rtStatus = RT_STATUS_SUCCESS;
 	rt_firmware	*pFirmware = priv->pFirmware;
 	int			PollingCnt = 1000;
-	//u8	 	tmpU1b, CPUStatus = 0;
+	
 	u8	 	CPUStatus = 0;
 	u32		tmpU4b;
-	//bool		bOrgIMREnable;
+	
 
 	RT_TRACE(COMP_FIRMWARE, "--->FirmwareCheckReady(): LoadStaus(%d),", LoadFWStatus);
 
@@ -194,7 +182,7 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 	if( LoadFWStatus == FW_STATUS_LOAD_IMEM)
 	{
 		do
-		{//Polling IMEM code done.
+		{
 			CPUStatus = read_nic_byte(dev, TCR);
 			if(CPUStatus& IMEM_CODE_DONE)
 				break;
@@ -208,9 +196,9 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 		}
 	}
 	else if( LoadFWStatus == FW_STATUS_LOAD_EMEM)
-	{//Check Put Code OK and Turn On CPU
+	{
 		do
-		{//Polling EMEM code done.
+		{
 			CPUStatus = read_nic_byte(dev, TCR);
 			if(CPUStatus& EMEM_CODE_DONE)
 				break;
@@ -223,7 +211,7 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 			return false;
 		}
 
-		// Turn On CPU
+		
 		rtStatus = FirmwareEnableCPU(dev);
 		if(rtStatus != RT_STATUS_SUCCESS)
 		{
@@ -234,7 +222,7 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 	else if( LoadFWStatus == FW_STATUS_LOAD_DMEM)
 	{
 		do
-		{//Polling DMEM code done
+		{
 			CPUStatus = read_nic_byte(dev, TCR);
 			if(CPUStatus& DMEM_CODE_DONE)
 				break;
@@ -250,11 +238,11 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 
 		RT_TRACE(COMP_FIRMWARE, "DMEM code download success, CPUStatus(%#x)\n", CPUStatus);
 
-//              PollingCnt = 100; // Set polling cycle to 10ms.
-              PollingCnt = 10000; // Set polling cycle to 10ms.
+
+              PollingCnt = 10000; 
 
 		do
-		{//Polling Load Firmware ready
+		{
 			CPUStatus = read_nic_byte(dev, TCR);
 			if(CPUStatus & FWRDY)
 				break;
@@ -264,23 +252,23 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 
 		RT_TRACE(COMP_FIRMWARE, "Polling Load Firmware ready, CPUStatus(%x)\n", CPUStatus);
 
-		//if(!(CPUStatus & LOAD_FW_READY))
-		//if((CPUStatus & LOAD_FW_READY) != 0xff)
+		
+		
 		if((CPUStatus & LOAD_FW_READY) != LOAD_FW_READY)
 		{
 			RT_TRACE(COMP_ERR, "Polling Load Firmware ready fail ! CPUStatus(%x)\n", CPUStatus);
 			return false;
 		}
 
-	       //
-              // <Roger_Notes> USB interface will update reserved followings parameters later!!
-              // 2008.08.28.
-              //
+	       
+              
+              
+              
 
-	       //
-              // <Roger_Notes> If right here, we can set TCR/RCR to desired value
-              // and config MAC lookback mode to normal mode. 2008.08.28.
-              //
+	       
+              
+              
+              
               tmpU4b = read_nic_dword(dev,TCR);
 		write_nic_dword(dev, TCR, (tmpU4b&(~TCR_ICV)));
 
@@ -291,7 +279,7 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 		RT_TRACE(COMP_FIRMWARE, "FirmwareCheckReady(): Current RCR settings(%#x)\n", tmpU4b);
 
 
-		// Set to normal mode.
+		
 		write_nic_byte(dev, LBKMD_SEL, LBK_NORMAL);
 
 	}
@@ -300,11 +288,11 @@ FirmwareCheckReady(struct net_device *dev,	u8 LoadFWStatus)
 	return (rtStatus == RT_STATUS_SUCCESS) ? true:false;
 }
 
-//
-// Description:   This routine is to update the RF types in FW header partially.
-//
-// Created by Roger, 2008.12.24.
-//
+
+
+
+
+
 u8 FirmwareHeaderMapRfType(struct net_device *dev)
 {
 	struct r8192_priv 	*priv = ieee80211_priv(dev);
@@ -322,19 +310,19 @@ u8 FirmwareHeaderMapRfType(struct net_device *dev)
 }
 
 
-//
-// Description:   This routine is to update the private parts in FW header partially.
-//
-// Created by Roger, 2008.12.18.
-//
+
+
+
+
+
 void FirmwareHeaderPriveUpdate(struct net_device *dev, PRT_8192S_FIRMWARE_PRIV 	pFwPriv)
 {
 	struct r8192_priv 	*priv = ieee80211_priv(dev);
-	// Update USB endpoint number for RQPN settings.
-	pFwPriv->usb_ep_num = priv->EEPROMUsbEndPointNumber; // endpoint number: 4, 6 and 11.
+	
+	pFwPriv->usb_ep_num = priv->EEPROMUsbEndPointNumber; 
 	RT_TRACE(COMP_INIT, "FirmwarePriveUpdate(): usb_ep_num(%#x)\n", pFwPriv->usb_ep_num);
 
-	// Update RF types for RATR settings.
+	
 	pFwPriv->rf_config = FirmwareHeaderMapRfType(dev);
 }
 
@@ -360,11 +348,11 @@ bool FirmwareDownload92S(struct net_device *dev)
 
 	RT_TRACE(COMP_FIRMWARE, " --->FirmwareDownload92S()\n");
 
-	//3//
-	//3 //<1> Open Image file, and map file to contineous memory if open file success.
-	//3  //        or read image file from array. Default load from BIN file
-	//3//
-	priv->firmware_source = FW_SOURCE_IMG_FILE;// We should decided by Reg.
+	
+	
+	
+	
+	priv->firmware_source = FW_SOURCE_IMG_FILE;
 
 	switch( priv->firmware_source )
 	{
@@ -372,7 +360,7 @@ bool FirmwareDownload92S(struct net_device *dev)
 			if(pFirmware->szFwTmpBufferLen == 0)
 			{
 
-				rc = request_firmware(&fw_entry, pFwImageFileName[ulInitStep],&priv->udev->dev);//===>1
+				rc = request_firmware(&fw_entry, pFwImageFileName[ulInitStep],&priv->udev->dev);
 				if(rc < 0 ) {
 					RT_TRACE(COMP_ERR, "request firmware fail!\n");
 					goto DownloadFirmware_Fail;
@@ -392,7 +380,7 @@ bool FirmwareDownload92S(struct net_device *dev)
 				pucMappedFile = pFirmware->szFwTmpBuffer;
 				file_length = pFirmware->szFwTmpBufferLen;
 
-				//Retrieve FW header.
+				
 				pFirmware->pFwHeader = (PRT_8192S_FIRMWARE_HDR) pucMappedFile;
 				pFwHdr = pFirmware->pFwHeader;
 				RT_TRACE(COMP_FIRMWARE,"signature:%x, version:%x, size:%x, imemsize:%x, sram size:%x\n", \
@@ -407,7 +395,7 @@ bool FirmwareDownload92S(struct net_device *dev)
 				} else {
 					pucMappedFile+=FwHdrSize;
 
-					//Retrieve IMEM image.
+					
 					memcpy(pFirmware->FwIMEM, pucMappedFile, pFwHdr->IMG_IMEM_SIZE);
 					pFirmware->FwIMEMLen = pFwHdr->IMG_IMEM_SIZE;
 				}
@@ -420,8 +408,8 @@ bool FirmwareDownload92S(struct net_device *dev)
 				} else {
 					pucMappedFile += pFirmware->FwIMEMLen;
 
-					/* Retriecve EMEM image */
-					memcpy(pFirmware->FwEMEM, pucMappedFile, pFwHdr->IMG_SRAM_SIZE);//===>6
+					
+					memcpy(pFirmware->FwEMEM, pucMappedFile, pFwHdr->IMG_SRAM_SIZE);
 					pFirmware->FwEMEMLen = pFwHdr->IMG_SRAM_SIZE;
 				}
 
@@ -432,12 +420,12 @@ bool FirmwareDownload92S(struct net_device *dev)
 		case FW_SOURCE_HEADER_FILE:
 #if 1
 #define Rtl819XFwImageArray Rtl8192SUFwImgArray
-			//2008.11.10 Add by tynli.
+			
 			pucMappedFile = Rtl819XFwImageArray;
 			ulFileLength = ImgArrayLength;
 
 			RT_TRACE(COMP_INIT,"Fw download from header.\n");
-			/* Retrieve FW header*/
+			
 			pFirmware->pFwHeader = (PRT_8192S_FIRMWARE_HDR) pucMappedFile;
 			pFwHdr = pFirmware->pFwHeader;
 			RT_TRACE(COMP_FIRMWARE,"signature:%x, version:%x, size:%x, imemsize:%x, sram size:%x\n", \
@@ -451,7 +439,7 @@ bool FirmwareDownload92S(struct net_device *dev)
 				goto DownloadFirmware_Fail;
 			} else {
 				pucMappedFile+=FwHdrSize;
-				//Retrieve IMEM image.
+				
 				memcpy(pFirmware->FwIMEM, pucMappedFile, pFwHdr->IMG_IMEM_SIZE);
 				pFirmware->FwIMEMLen = pFwHdr->IMG_IMEM_SIZE;
 			}
@@ -463,7 +451,7 @@ bool FirmwareDownload92S(struct net_device *dev)
 			} else {
 				pucMappedFile+= pFirmware->FwIMEMLen;
 
-				//Retriecve EMEM image.
+				
 				memcpy(pFirmware->FwEMEM, pucMappedFile, pFwHdr->IMG_SRAM_SIZE);
 				pFirmware->FwEMEMLen = pFwHdr->IMG_SRAM_SIZE;
 			}
@@ -476,7 +464,7 @@ bool FirmwareDownload92S(struct net_device *dev)
 	FwStatus = FirmwareGetNextStatus(pFirmware->FWStatus);
 	while(FwStatus!= FW_STATUS_READY)
 	{
-		// Image buffer redirection.
+		
 		switch(FwStatus)
 		{
 			case FW_STATUS_LOAD_IMEM:
@@ -490,7 +478,7 @@ bool FirmwareDownload92S(struct net_device *dev)
 				break;
 
 			case FW_STATUS_LOAD_DMEM:
-				/* <Roger_Notes> Partial update the content of header private. 2008.12.18 */
+				
                                 pFwHdr = pFirmware->pFwHeader;
                                 pFwPriv = (PRT_8192S_FIRMWARE_PRIV)&pFwHdr->FWPriv;
 				FirmwareHeaderPriveUpdate(dev, pFwPriv);
@@ -504,9 +492,9 @@ bool FirmwareDownload92S(struct net_device *dev)
 				break;
 		}
 
-		//3//
-		//3// <2> Download image file
-	//3	//
+		
+		
+	
 		rtStatus = FirmwareDownloadCode(dev, pucMappedFile, ulFileLength);
 
 		if(rtStatus != true)
@@ -515,9 +503,9 @@ bool FirmwareDownload92S(struct net_device *dev)
 			goto DownloadFirmware_Fail;
 		}
 
-		//3//
-		//3// <3> Check whether load FW process is ready
-	//3	//
+		
+		
+	
 		rtStatus = FirmwareCheckReady(dev, FwStatus);
 
 		if(rtStatus != true)

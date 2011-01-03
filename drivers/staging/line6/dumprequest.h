@@ -1,13 +1,4 @@
-/*
- * Line6 Linux USB driver - 0.8.0
- *
- * Copyright (C) 2004-2009 Markus Grabner (grabner@icg.tugraz.at)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #ifndef DUMPREQUEST_H
 #define DUMPREQUEST_H
@@ -26,48 +17,28 @@ enum {
 
 
 struct line6_dump_reqbuf {
-	/**
-		 Buffer for dump requests.
-	*/
+	
 	unsigned char *buffer;
 
-	/**
-		 Size of dump request.
-	*/
+	
 	size_t length;
 };
 
-/**
-	 Provides the functionality to request channel/model/... dump data from a
-	 Line6 device.
-*/
+
 struct line6_dump_request {
-	/**
-		 Wait queue for access to program dump data.
-	*/
+	
 	wait_queue_head_t wait;
 
-	/**
-		 Indicates an unfinished program dump request.
-		 0: no dump
-		 1: dump current settings
-		 Other device-specific values are also allowed.
-	*/
+	
 	int in_progress;
 
-	/**
-		 Timer for delayed dump request.
-	*/
+	
 	struct timer_list timer;
 
-	/**
-		 Flag if initial dump request has been successful.
-	*/
+	
 	char ok;
 
-	/**
-		 Dump request buffers
-	*/
+	
 	struct line6_dump_reqbuf reqbufs[1];
 };
 

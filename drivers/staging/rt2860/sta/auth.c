@@ -1,59 +1,7 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-	Module Name:
-	auth.c
-
-	Abstract:
-
-	Revision History:
-	Who			When			What
-	--------	----------		----------------------------------------------
-	John		2004-9-3		porting from RT2500
-*/
 #include "../rt_config.h"
 
-/*
-    ==========================================================================
-    Description:
-        authenticate state machine init, including state transition and timer init
-    Parameters:
-        Sm - pointer to the auth state machine
-    Note:
-        The state machine looks like this
 
-                        AUTH_REQ_IDLE           AUTH_WAIT_SEQ2                   AUTH_WAIT_SEQ4
-    MT2_MLME_AUTH_REQ   mlme_auth_req_action    invalid_state_when_auth          invalid_state_when_auth
-    MT2_PEER_AUTH_EVEN  drop                    peer_auth_even_at_seq2_action    peer_auth_even_at_seq4_action
-    MT2_AUTH_TIMEOUT    Drop                    auth_timeout_action              auth_timeout_action
-
-	IRQL = PASSIVE_LEVEL
-
-    ==========================================================================
- */
 
 void AuthStateMachineInit(
     IN PRTMP_ADAPTER pAd,
@@ -62,15 +10,15 @@ void AuthStateMachineInit(
 {
     StateMachineInit(Sm, Trans, MAX_AUTH_STATE, MAX_AUTH_MSG, (STATE_MACHINE_FUNC)Drop, AUTH_REQ_IDLE, AUTH_MACHINE_BASE);
 
-    // the first column
+    
     StateMachineSetAction(Sm, AUTH_REQ_IDLE, MT2_MLME_AUTH_REQ, (STATE_MACHINE_FUNC)MlmeAuthReqAction);
 
-    // the second column
+    
     StateMachineSetAction(Sm, AUTH_WAIT_SEQ2, MT2_MLME_AUTH_REQ, (STATE_MACHINE_FUNC)InvalidStateWhenAuth);
     StateMachineSetAction(Sm, AUTH_WAIT_SEQ2, MT2_PEER_AUTH_EVEN, (STATE_MACHINE_FUNC)PeerAuthRspAtSeq2Action);
     StateMachineSetAction(Sm, AUTH_WAIT_SEQ2, MT2_AUTH_TIMEOUT, (STATE_MACHINE_FUNC)AuthTimeoutAction);
 
-    // the third column
+    
     StateMachineSetAction(Sm, AUTH_WAIT_SEQ4, MT2_MLME_AUTH_REQ, (STATE_MACHINE_FUNC)InvalidStateWhenAuth);
     StateMachineSetAction(Sm, AUTH_WAIT_SEQ4, MT2_PEER_AUTH_EVEN, (STATE_MACHINE_FUNC)PeerAuthRspAtSeq4Action);
     StateMachineSetAction(Sm, AUTH_WAIT_SEQ4, MT2_AUTH_TIMEOUT, (STATE_MACHINE_FUNC)AuthTimeoutAction);
@@ -78,15 +26,7 @@ void AuthStateMachineInit(
 	RTMPInitTimer(pAd, &pAd->MlmeAux.AuthTimer, GET_TIMER_FUNCTION(AuthTimeout), pAd, FALSE);
 }
 
-/*
-    ==========================================================================
-    Description:
-        function to be executed at timer thread when auth timer expires
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID AuthTimeout(
     IN PVOID SystemSpecific1,
     IN PVOID FunctionContext,
@@ -97,12 +37,12 @@ VOID AuthTimeout(
 
     DBGPRINT(RT_DEBUG_TRACE,("AUTH - AuthTimeout\n"));
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
-	// send a de-auth to reset AP's state machine (Patch AP-Dir635)
+	
 	if (pAd->Mlme.AuthMachine.CurrState == AUTH_WAIT_SEQ2)
 		Cls2errAction(pAd, pAd->MlmeAux.Bssid);
 
@@ -112,14 +52,7 @@ VOID AuthTimeout(
 }
 
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID MlmeAuthReqAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -133,7 +66,7 @@ VOID MlmeAuthReqAction(
     PUCHAR             pOutBuffer = NULL;
     ULONG              FrameLen = 0;
 
-	// Block all authentication request durning WPA block period
+	
 	if (pAd->StaCfg.bBlockAssoc == TRUE)
 	{
         DBGPRINT(RT_DEBUG_TRACE, ("AUTH - Block Auth request durning WPA block period!\n"));
@@ -143,14 +76,14 @@ VOID MlmeAuthReqAction(
 	}
     else if(MlmeAuthReqSanity(pAd, Elem->Msg, Elem->MsgLen, Addr, &Timeout, &Alg))
     {
-        // reset timer
+        
         RTMPCancelTimer(&pAd->MlmeAux.AuthTimer, &TimerCancelled);
         COPY_MAC_ADDR(pAd->MlmeAux.Bssid, Addr);
         pAd->MlmeAux.Alg  = Alg;
         Seq = 1;
         Status = MLME_SUCCESS;
 
-        NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+        NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
         if(NStatus != NDIS_STATUS_SUCCESS)
         {
             DBGPRINT(RT_DEBUG_TRACE, ("AUTH - MlmeAuthReqAction(Alg:%d) allocate memory failed\n", Alg));
@@ -183,14 +116,7 @@ VOID MlmeAuthReqAction(
     }
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID PeerAuthRspAtSeq2Action(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -216,7 +142,7 @@ VOID PeerAuthRspAtSeq2Action(
 
             if (Status == MLME_SUCCESS)
             {
-                // Authentication Mode "LEAP" has allow for CCX 1.X
+                
                 if ((pAd->MlmeAux.Alg == Ndis802_11AuthModeOpen)
 				)
                 {
@@ -225,11 +151,11 @@ VOID PeerAuthRspAtSeq2Action(
                 }
                 else
                 {
-                    // 2. shared key, need to be challenged
+                    
                     Seq++;
                     RemoteStatus = MLME_SUCCESS;
 
-					// Get an unused nonpaged memory
+					
                     NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);
                     if(NStatus != NDIS_STATUS_SUCCESS)
                     {
@@ -243,7 +169,7 @@ VOID PeerAuthRspAtSeq2Action(
                     DBGPRINT(RT_DEBUG_TRACE, ("AUTH - Send AUTH request seq#3...\n"));
                     MgtMacHeaderInit(pAd, &AuthHdr, SUBTYPE_AUTH, 0, Addr2, pAd->MlmeAux.Bssid);
                     AuthHdr.FC.Wep = 1;
-                    // Encrypt challenge text & auth information
+                    
                     RTMPInitWepEngine(
                     	pAd,
                     	pAd->SharedKey[BSS0][pAd->StaCfg.DefaultKeyId].Key,
@@ -289,14 +215,7 @@ VOID PeerAuthRspAtSeq2Action(
     }
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID PeerAuthRspAtSeq4Action(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -329,14 +248,7 @@ VOID PeerAuthRspAtSeq4Action(
     }
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID MlmeDeauthReqAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -350,7 +262,7 @@ VOID MlmeDeauthReqAction(
 
     pInfo = (MLME_DEAUTH_REQ_STRUCT *)Elem->Msg;
 
-    NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+    NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
     if (NStatus != NDIS_STATUS_SUCCESS)
     {
         DBGPRINT(RT_DEBUG_TRACE, ("AUTH - MlmeDeauthReqAction() allocate memory fail\n"));
@@ -375,19 +287,12 @@ VOID MlmeDeauthReqAction(
     Status = MLME_SUCCESS;
     MlmeEnqueue(pAd, MLME_CNTL_STATE_MACHINE, MT2_DEAUTH_CONF, 2, &Status);
 
-	// send wireless event - for deauthentication
+	
 	if (pAd->CommonCfg.bWirelessEvent)
 		RTMPSendWirelessEvent(pAd, IW_DEAUTH_EVENT_FLAG, pAd->MacTab.Content[BSSID_WCID].Addr, BSS0, 0);
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID AuthTimeoutAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -399,14 +304,7 @@ VOID AuthTimeoutAction(
     MlmeEnqueue(pAd, MLME_CNTL_STATE_MACHINE, MT2_AUTH_CONF, 2, &Status);
 }
 
-/*
-    ==========================================================================
-    Description:
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID InvalidStateWhenAuth(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem)
@@ -418,18 +316,7 @@ VOID InvalidStateWhenAuth(
     MlmeEnqueue(pAd, MLME_CNTL_STATE_MACHINE, MT2_AUTH_CONF, 2, &Status);
 }
 
-/*
-    ==========================================================================
-    Description:
-        Some STA/AP
-    Note:
-        This action should never trigger AUTH state transition, therefore we
-        separate it from AUTH state machine, and make it as a standalone service
 
-	IRQL = DISPATCH_LEVEL
-
-    ==========================================================================
- */
 VOID Cls2errAction(
     IN PRTMP_ADAPTER pAd,
     IN PUCHAR pAddr)
@@ -440,7 +327,7 @@ VOID Cls2errAction(
     ULONG         FrameLen = 0;
     USHORT        Reason = REASON_CLS2ERR;
 
-    NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  //Get an unused nonpaged memory
+    NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);  
     if (NStatus != NDIS_STATUS_SUCCESS)
         return;
 

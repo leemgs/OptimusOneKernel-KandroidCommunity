@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "cprecomp.h"
 
@@ -25,7 +11,7 @@ void zfScanMgrInit(zdev_t* dev)
 
     wd->sta.scanMgr.currScanType = ZM_SCAN_MGR_SCAN_NONE;
     wd->sta.scanMgr.scanStartDelay = 3;
-    //wd->sta.scanMgr.scanStartDelay = 0;
+    
 }
 
 u8_t zfScanMgrScanStart(zdev_t* dev, u8_t scanType)
@@ -63,9 +49,9 @@ u8_t zfScanMgrScanStart(zdev_t* dev, u8_t scanType)
     wd->sta.scanMgr.scanReqs[i] = 1;
     zm_debug_msg1("scan scheduled: ", scanType);
 
-    // If there's no scan pending, we do the scan right away.
-    // If there's an internal scan and the new scan request is external one,
-    // we will restart the scan.
+    
+    
+    
     if ( wd->sta.scanMgr.currScanType == ZM_SCAN_MGR_SCAN_NONE )
     {
         goto schedule_scan;
@@ -73,11 +59,10 @@ u8_t zfScanMgrScanStart(zdev_t* dev, u8_t scanType)
     else if ( wd->sta.scanMgr.currScanType == ZM_SCAN_MGR_SCAN_INTERNAL &&
               scanType == ZM_SCAN_MGR_SCAN_EXTERNAL )
     {
-        // Stop the internal scan & schedule external scan first
+        
         zfTimerCancel(dev, ZM_EVENT_SCAN);
 
-        /* Fix for WHQL sendrecv => we do not apply delay time in which the device
-           stop transmitting packet when we already connect to some AP  */
+        
         wd->sta.bScheduleScan = FALSE;
 
         zfTimerCancel(dev, ZM_EVENT_TIMEOUT_SCAN);
@@ -104,7 +89,7 @@ schedule_scan:
 
     zfTimerSchedule(dev, ZM_EVENT_SCAN, wd->sta.scanMgr.scanStartDelay);
     wd->sta.scanMgr.scanStartDelay = 3;
-    //wd->sta.scanMgr.scanStartDelay = 0;
+    
     wd->sta.scanMgr.currScanType = scanType;
     zmw_leave_critical_section(dev);
 
@@ -155,8 +140,7 @@ void zfScanMgrScanStop(zdev_t* dev, u8_t scanType)
 
     zfTimerCancel(dev, ZM_EVENT_SCAN);
 
-    /* Fix for WHQL sendrecv => we do not apply delay time in which the device
-       stop transmitting packet when we already connect to some AP  */
+    
     wd->sta.bScheduleScan = FALSE;
 
     zfTimerCancel(dev, ZM_EVENT_TIMEOUT_SCAN);
@@ -169,7 +153,7 @@ void zfScanMgrScanStop(zdev_t* dev, u8_t scanType)
     {
         wd->sta.scanMgr.currScanType = theOtherScan;
 
-        // Schedule the other scan after 1 second later
+        
         zfTimerSchedule(dev, ZM_EVENT_SCAN, 100);
     }
     else
@@ -182,7 +166,7 @@ stop_done:
 
     zmw_leave_critical_section(dev);
 
-    /* avoid lose receive packet when site survey */
+    
     if ((zfStaIsConnected(dev)) && (!zfPowerSavingMgrIsSleeping(dev)))
     {
         zfSendNullData(dev, 0);
@@ -213,7 +197,7 @@ void zfScanMgrScanAck(zdev_t* dev)
     zmw_enter_critical_section(dev);
 
     wd->sta.scanMgr.scanStartDelay = 3;
-    //wd->sta.scanMgr.scanStartDelay = 0;
+    
 
     zmw_leave_critical_section(dev);
     return;
@@ -228,7 +212,7 @@ static void zfScanSendProbeRequest(zdev_t* dev)
 
     zmw_get_wlan_dev(dev);
 
-    /* Increase rxBeaconCount to prevent beacon lost */
+    
     if (zfStaIsConnected(dev))
     {
         wd->sta.rxBeaconCount++;
@@ -238,7 +222,7 @@ static void zfScanSendProbeRequest(zdev_t* dev)
     {
         return;
     }
-    /* enable 802.l11h and in DFS Band , disable sending probe request */
+    
     if (wd->sta.DFSEnable)
     {
         if (zfHpIsDfsChannel(dev, wd->sta.scanFrequency))
@@ -269,7 +253,7 @@ static void zfScanMgrEventSetFreqCompleteCb(zdev_t* dev)
 
     zmw_declare_for_critical_section();
 
-//printk("zfScanMgrEventSetFreqCompleteCb #1\n");
+
 
     zmw_enter_critical_section(dev);
     zfTimerSchedule(dev, ZM_EVENT_IN_SCAN, ZM_TICK_IN_SCAN);
@@ -345,13 +329,13 @@ u8_t zfScanMgrScanEventTimeout(zdev_t* dev)
         u8_t isExternalScan = 0;
         u8_t isInternalScan = 0;
 
-        //zm_debug_msg1("end scan = ", KeQueryInterruptTime());
+        
         wd->sta.scanFrequency = 0;
 
         zm_debug_msg1("scan 1 type: ", wd->sta.scanMgr.currScanType);
         zm_debug_msg1("scan channel count = ", wd->regulationTable.allowChannelCnt);
 
-        //zfBssInfoRefresh(dev);
+        
         zfTimerCancel(dev, ZM_EVENT_TIMEOUT_SCAN);
 
         if ( wd->sta.bChannelScan == FALSE )
@@ -381,8 +365,8 @@ u8_t zfScanMgrScanEventTimeout(zdev_t* dev)
 
                 if ( wd->sta.scanMgr.scanReqs[ZM_SCAN_MGR_SCAN_EXTERNAL - 1] )
                 {
-                    // Because the external scan should pre-empts internal scan.
-                    // So this shall not be happened!!
+                    
+                    
                     zm_assert(0);
                 }
 
@@ -398,7 +382,7 @@ u8_t zfScanMgrScanEventTimeout(zdev_t* dev)
         wd->sta.scanMgr.currScanType = ZM_SCAN_MGR_SCAN_NONE;
         zmw_leave_critical_section(dev);
 
-        //Set channel according to AP's configuration
+        
         zfCoreSetFrequencyEx(dev, wd->frequency, wd->BandWidth40,
                 wd->ExtOffset, zfScanMgrEventScanCompleteCb);
 
@@ -406,7 +390,7 @@ u8_t zfScanMgrScanEventTimeout(zdev_t* dev)
 
         #if 1
         if (zfStaIsConnected(dev))
-        { // Finish site survey, reset the variable to detect using wrong frequency !
+        { 
             zfHpFinishSiteSurvey(dev, 1);
             zmw_enter_critical_section(dev);
             wd->sta.ibssSiteSurveyStatus = 2;
@@ -414,8 +398,8 @@ u8_t zfScanMgrScanEventTimeout(zdev_t* dev)
             wd->sta.ibssReceiveBeaconCount = 0;
             zmw_leave_critical_section(dev);
 
-            /* #5 Re-enable RIFS function after the site survey ! */
-            /* This is because switch band will reset the BB register to initial value */
+            
+            
             if( wd->sta.rifsState == ZM_RIFS_STATE_DETECTED )
             {
                 zfHpEnableRifs(dev, ((wd->sta.currentFrequency<3000)?1:0), wd->sta.EnableHT, wd->sta.HT2040);
@@ -431,13 +415,13 @@ u8_t zfScanMgrScanEventTimeout(zdev_t* dev)
         #endif
 
 report_scan_result:
-        /* avoid lose receive packet when site survey */
-        //if ((zfStaIsConnected(dev)) && (!zfPowerSavingMgrIsSleeping(dev)))
-        //{
-        //    zfSendNullData(dev, 0);
-        //}
+        
+        
+        
+        
+        
 
-        if ( isExternalScan )//Quickly reboot
+        if ( isExternalScan )
         {
             if (wd->zfcbScanNotify != NULL)
             {
@@ -447,7 +431,7 @@ report_scan_result:
 
         if ( isInternalScan )
         {
-            //wd->sta.InternalScanReq = 0;
+            
             zfStaReconnect(dev);
         }
 
@@ -457,7 +441,7 @@ report_scan_result:
     {
         wd->sta.scanFrequency = nextScanFrequency;
 
-        //zmw_enter_critical_section(dev);
+        
         zfTimerCancel(dev, ZM_EVENT_IN_SCAN);
         zmw_leave_critical_section(dev);
 
@@ -488,28 +472,28 @@ void zfScanMgrScanEventStart(zdev_t* dev)
         goto no_scan;
     }
 
-    //zfBssInfoRefresh(dev);
+    
     zfBssInfoRefresh(dev, 0);
     wd->sta.bChannelScan = TRUE;
     wd->sta.bScheduleScan = FALSE;
     zfTimerCancel(dev, ZM_EVENT_IN_SCAN);
     zfTimerCancel(dev, ZM_EVENT_TIMEOUT_SCAN);
 
-    //zm_debug_msg1("start scan = ", KeQueryInterruptTime());
+    
     wd->sta.scanFrequency = zfChGetFirstChannel(dev, &wd->sta.bPassiveScan);
     zmw_leave_critical_section(dev);
 
-    /* avoid lose receive packet when site survey */
-    //if ((zfStaIsConnected(dev)) && (!zfPowerSavingMgrIsSleeping(dev)))
-    //{
-    //    zfSendNullData(dev, 1);
-    //}
-//    zm_debug_msg0("scan 0");
-//    zfCoreSetFrequencyV2(dev, wd->sta.scanFrequency, zfScanMgrEventSetFreqCompleteCb);
+    
+    
+    
+    
+    
+
+
 
     #if 1
     if (zfStaIsConnected(dev))
-    {// If doing site survey !
+    {
         zfHpBeginSiteSurvey(dev, 1);
         zmw_enter_critical_section(dev);
         wd->sta.ibssSiteSurveyStatus = 1;

@@ -1,6 +1,4 @@
-/*
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- */
+
 
 #ifndef __MSM_VFE8X_REG_H__
 #define __MSM_VFE8X_REG_H__
@@ -9,77 +7,61 @@
 #include <mach/camera.h>
 #include "msm_vfe8x.h"
 
-/* at start of camif,  bit 1:0 = 0x01:enable
- * image data capture at frame boundary. */
+
 #define CAMIF_COMMAND_START  0x00000005
 
-/* bit 2= 0x1:clear the CAMIF_STATUS register
- * value. */
+
 #define CAMIF_COMMAND_CLEAR  0x00000004
 
-/* at stop of vfe pipeline, for now it is assumed
- * that camif will stop at any time. Bit 1:0 = 0x10:
- * disable image data capture immediately. */
+
 #define CAMIF_COMMAND_STOP_IMMEDIATELY  0x00000002
 
-/* at stop of vfe pipeline, for now it is assumed
- * that camif will stop at any time. Bit 1:0 = 0x00:
- * disable image data capture at frame boundary */
+
 #define CAMIF_COMMAND_STOP_AT_FRAME_BOUNDARY  0x00000000
 
-/* to halt axi bridge */
+
 #define AXI_HALT  0x00000001
 
-/* clear the halt bit. */
+
 #define AXI_HALT_CLEAR  0x00000000
 
-/* reset the pipeline when stop command is issued.
- * (without reset the register.) bit 26-31 = 0,
- * domain reset, bit 0-9 = 1 for module reset, except
- * register module. */
+
 #define VFE_RESET_UPON_STOP_CMD  0x000003ef
 
-/* reset the pipeline when reset command.
- * bit 26-31 = 0, domain reset, bit 0-9 = 1 for module reset. */
+
 #define VFE_RESET_UPON_RESET_CMD  0x000003ff
 
-/* bit 5 is for axi status idle or busy.
- * 1 =  halted,  0 = busy */
+
 #define AXI_STATUS_BUSY_MASK 0x00000020
 
-/* bit 0 & bit 1 = 1, both y and cbcr irqs need to be present
- * for frame done interrupt */
+
 #define VFE_COMP_IRQ_BOTH_Y_CBCR 3
 
-/* bit 1 = 1, only cbcr irq triggers frame done interrupt */
+
 #define VFE_COMP_IRQ_CBCR_ONLY 2
 
-/* bit 0 = 1, only y irq triggers frame done interrupt */
+
 #define VFE_COMP_IRQ_Y_ONLY 1
 
-/* bit 0 = 1, PM go;   bit1 = 1, PM stop */
+
 #define VFE_PERFORMANCE_MONITOR_GO   0x00000001
 #define VFE_PERFORMANCE_MONITOR_STOP 0x00000002
 
-/* bit 0 = 1, test gen go;   bit1 = 1, test gen stop */
+
 #define VFE_TEST_GEN_GO   0x00000001
 #define VFE_TEST_GEN_STOP 0x00000002
 
-/* the chroma is assumed to be interpolated between
- * the luma samples.  JPEG 4:2:2 */
+
 #define VFE_CHROMA_UPSAMPLE_INTERPOLATED 0
 
-/* constants for irq registers */
+
 #define VFE_DISABLE_ALL_IRQS 0
-/* bit =1 is to clear the corresponding bit in VFE_IRQ_STATUS.  */
+
 #define VFE_CLEAR_ALL_IRQS   0xffffffff
-/* imask for while waiting for stop ack,  driver has already
- * requested stop, waiting for reset irq,
- * bit 29,28,27,26 for async timer, bit 9 for reset */
+
 #define VFE_IMASK_WHILE_STOPPING  0x3c000200
 
-/* when normal case, don't want to block error status.
- * bit 0,6,20,21,22,30,31 */
+
 #define VFE_IMASK_ERROR_ONLY             0xC0700041
 #define VFE_REG_UPDATE_TRIGGER           1
 #define VFE_PM_BUF_MAX_CNT_MASK          0xFF
@@ -88,7 +70,7 @@
 #define VFE_AF_PINGPONG_STATUS_BIT       0x100
 #define VFE_AWB_PINGPONG_STATUS_BIT      0x200
 
-/* VFE I/O registers */
+
 enum {
 	VFE_HW_VERSION                    = 0x00000000,
 	VFE_GLOBAL_RESET_CMD              = 0x00000004,
@@ -349,7 +331,7 @@ struct vfe_irq_composite_mask_config {
 	uint8_t ceDoneSel;
 };
 
-/* define a structure for each output path.*/
+
 struct vfe_output_path {
 	uint32_t addressBuffer[8];
 	uint16_t fragIndex;
@@ -521,29 +503,29 @@ struct vfe_hw_ver {
 	uint32_t minorVersion:8;
 	uint32_t majorVersion:8;
 	uint32_t coreVersion:4;
-	uint32_t /* reserved */ : 12;
+	uint32_t  : 12;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_cfg {
 	uint32_t pixelPattern:3;
-	uint32_t /* reserved */ : 13;
+	uint32_t  : 13;
 	uint32_t inputSource:2;
-	uint32_t /* reserved */ : 14;
+	uint32_t  : 14;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_buscmd {
 	uint32_t  stripeReload:1;
-	uint32_t  /* reserved */ : 3;
+	uint32_t   : 3;
 	uint32_t  busPingpongReload:1;
 	uint32_t  statsPingpongReload:1;
-	uint32_t  /* reserved */ : 26;
+	uint32_t   : 26;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_Irq_Composite_MaskType {
 	uint32_t  encIrqComMaskBits:2;
 	uint32_t  viewIrqComMaskBits:2;
 	uint32_t  ceDoneSelBits:5;
-	uint32_t  /* reserved */ : 23;
+	uint32_t   : 23;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_mod_enable {
@@ -567,7 +549,7 @@ struct vfe_mod_enable {
 	uint32_t chromaSubsampleEnable:1;
 	uint32_t scaler2YEnable:1;
 	uint32_t scaler2CbcrEnable:1;
-	uint32_t /* reserved */ : 14;
+	uint32_t  : 14;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_irqenable {
@@ -607,153 +589,153 @@ struct vfe_irqenable {
 
 struct vfe_upsample_cfg {
 	uint32_t chromaCositingForYCbCrInputs:1;
-	uint32_t /* reserved */ : 31;
+	uint32_t  : 31;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_CAMIFConfigType {
-	/* CAMIF Config */
-	uint32_t  /* reserved */ : 1;
+	
+	uint32_t   : 1;
 	uint32_t  VSyncEdge:1;
 	uint32_t  HSyncEdge:1;
 	uint32_t  syncMode:2;
 	uint32_t  vfeSubsampleEnable:1;
-	uint32_t  /* reserved */ : 1;
+	uint32_t   : 1;
 	uint32_t  busSubsampleEnable:1;
 	uint32_t  camif2vfeEnable:1;
-	uint32_t  /* reserved */ : 1;
+	uint32_t   : 1;
 	uint32_t  camif2busEnable:1;
 	uint32_t  irqSubsampleEnable:1;
 	uint32_t  binningEnable:1;
-	uint32_t  /* reserved */ : 18;
+	uint32_t   : 18;
 	uint32_t  misrEnable:1;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_camifcfg {
-	/* EFS_Config */
+	
 	uint32_t efsEndOfLine:8;
 	uint32_t efsStartOfLine:8;
 	uint32_t efsEndOfFrame:8;
 	uint32_t efsStartOfFrame:8;
-	/* Frame Config */
+	
 	uint32_t frameConfigPixelsPerLine:14;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t frameConfigLinesPerFrame:14;
-	uint32_t /* reserved */ : 2;
-	/* Window Width Config */
+	uint32_t  : 2;
+	
 	uint32_t windowWidthCfgLastPixel:14;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t windowWidthCfgFirstPixel:14;
-	uint32_t /* reserved */ : 2;
-	/* Window Height Config */
+	uint32_t  : 2;
+	
 	uint32_t windowHeightCfglastLine:14;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t windowHeightCfgfirstLine:14;
-	uint32_t /* reserved */ : 2;
-	/* Subsample 1 Config */
+	uint32_t  : 2;
+	
 	uint32_t subsample1CfgPixelSkip:16;
 	uint32_t subsample1CfgLineSkip:16;
-	/* Subsample 2 Config */
+	
 	uint32_t subsample2CfgFrameSkip:4;
 	uint32_t subsample2CfgFrameSkipMode:1;
 	uint32_t subsample2CfgPixelSkipWrap:1;
-	uint32_t /* reserved */ : 26;
-	/* Epoch Interrupt */
+	uint32_t  : 26;
+	
 	uint32_t epoch1Line:14;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t epoch2Line:14;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_camifframe_update {
 	uint32_t pixelsPerLine:14;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t linesPerFrame:14;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_axi_bus_cfg {
 	uint32_t  stripeRdPathEn:1;
-	uint32_t  /* reserved */ : 3;
+	uint32_t   : 3;
 	uint32_t  encYWrPathEn:1;
 	uint32_t  encCbcrWrPathEn:1;
 	uint32_t  viewYWrPathEn:1;
 	uint32_t  viewCbcrWrPathEn:1;
 	uint32_t  rawPixelDataSize:2;
 	uint32_t  rawWritePathSelect:2;
-	uint32_t  /* reserved */ : 20;
+	uint32_t   : 20;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_axi_out_cfg {
 	uint32_t  out2YPingAddr:32;
 	uint32_t  out2YPongAddr:32;
 	uint32_t  out2YImageHeight:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  out2YImageWidthin64bit:10;
-	uint32_t  /* reserved */ : 6;
+	uint32_t   : 6;
 	uint32_t  out2YBurstLength:2;
-	uint32_t  /* reserved */ : 2;
+	uint32_t   : 2;
 	uint32_t  out2YNumRows:12;
 	uint32_t  out2YRowIncrementIn64bit:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  out2CbcrPingAddr:32;
 	uint32_t  out2CbcrPongAddr:32;
 	uint32_t  out2CbcrImageHeight:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  out2CbcrImageWidthIn64bit:10;
-	uint32_t  /* reserved */ : 6;
+	uint32_t   : 6;
 	uint32_t  out2CbcrBurstLength:2;
-	uint32_t  /* reserved */ : 2;
+	uint32_t   : 2;
 	uint32_t  out2CbcrNumRows:12;
 	uint32_t  out2CbcrRowIncrementIn64bit:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  out1YPingAddr:32;
 	uint32_t  out1YPongAddr:32;
 	uint32_t  out1YImageHeight:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  out1YImageWidthin64bit:10;
-	uint32_t  /* reserved */ : 6;
+	uint32_t   : 6;
 	uint32_t  out1YBurstLength:2;
-	uint32_t  /* reserved */ : 2;
+	uint32_t   : 2;
 	uint32_t  out1YNumRows:12;
 	uint32_t  out1YRowIncrementIn64bit:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  out1CbcrPingAddr:32;
 	uint32_t  out1CbcrPongAddr:32;
 	uint32_t  out1CbcrImageHeight:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  out1CbcrImageWidthIn64bit:10;
-	uint32_t  /* reserved */ : 6;
+	uint32_t   : 6;
 	uint32_t  out1CbcrBurstLength:2;
-	uint32_t  /* reserved */ : 2;
+	uint32_t   : 2;
 	uint32_t  out1CbcrNumRows:12;
 	uint32_t  out1CbcrRowIncrementIn64bit:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_output_clamp_cfg {
-	/* Output Clamp Maximums */
+	
 	uint32_t yChanMax:8;
 	uint32_t cbChanMax:8;
 	uint32_t crChanMax:8;
-	uint32_t /* reserved */ : 8;
-	/* Output Clamp Minimums */
+	uint32_t  : 8;
+	
 	uint32_t yChanMin:8;
 	uint32_t cbChanMin:8;
 	uint32_t crChanMin:8;
-	uint32_t /* reserved */ : 8;
+	uint32_t  : 8;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_fov_crop_cfg {
 	uint32_t lastPixel:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t firstPixel:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 
-	/* FOV Corp, Part 2 */
+	
 	uint32_t lastLine:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t firstLine:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_FRAME_SKIP_UpdateCmdType {
@@ -762,187 +744,187 @@ struct VFE_FRAME_SKIP_UpdateCmdType {
 } __attribute__((packed, aligned(4)));
 
 struct vfe_frame_skip_cfg {
-	/* Frame Drop Enc (output2) */
+	
 	uint32_t output2YPeriod:5;
-	uint32_t /* reserved */	: 27;
+	uint32_t 	: 27;
 	uint32_t output2CbCrPeriod:5;
-	uint32_t /* reserved */ : 27;
+	uint32_t  : 27;
 	uint32_t output2YPattern:32;
 	uint32_t output2CbCrPattern:32;
-	/* Frame Drop View (output1) */
+	
 	uint32_t output1YPeriod:5;
-	uint32_t /* reserved */ : 27;
+	uint32_t  : 27;
 	uint32_t output1CbCrPeriod:5;
-	uint32_t /* reserved */ : 27;
+	uint32_t  : 27;
 	uint32_t output1YPattern:32;
 	uint32_t output1CbCrPattern:32;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_main_scaler_cfg {
-	/* Scaler Enable Config */
+	
 	uint32_t hEnable:1;
 	uint32_t vEnable:1;
-	uint32_t /* reserved */ : 30;
-	/* Scale H Image Size Config */
+	uint32_t  : 30;
+	
 	uint32_t inWidth:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t outWidth:12;
-	uint32_t /* reserved */ : 4;
-	/* Scale H Phase Config */
+	uint32_t  : 4;
+	
 	uint32_t horizPhaseMult:18;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t horizInterResolution:2;
-	uint32_t /* reserved */ : 10;
-	/* Scale H Stripe Config */
+	uint32_t  : 10;
+	
 	uint32_t horizMNInit:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t horizPhaseInit:15;
-	uint32_t /* reserved */ : 1;
-	/* Scale V Image Size Config */
+	uint32_t  : 1;
+	
 	uint32_t inHeight:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t outHeight:12;
-	uint32_t /* reserved */ : 4;
-	/* Scale V Phase Config */
+	uint32_t  : 4;
+	
 	uint32_t vertPhaseMult:18;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t vertInterResolution:2;
-	uint32_t /* reserved */ : 10;
-	/* Scale V Stripe Config */
+	uint32_t  : 10;
+	
 	uint32_t vertMNInit:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t vertPhaseInit:15;
-	uint32_t /* reserved */ : 1;
+	uint32_t  : 1;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_scaler2_cfg {
-	/* Scaler   Enable Config */
+	
 	uint32_t  hEnable:1;
 	uint32_t  vEnable:1;
-	uint32_t  /* reserved */ : 30;
-	/* Scaler   H Image Size Config */
+	uint32_t   : 30;
+	
 	uint32_t  inWidth:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  outWidth:12;
-	uint32_t  /* reserved */ : 4;
-	/* Scaler   H Phase Config */
+	uint32_t   : 4;
+	
 	uint32_t  horizPhaseMult:18;
-	uint32_t  /* reserved */ : 2;
+	uint32_t   : 2;
 	uint32_t  horizInterResolution:2;
-	uint32_t  /* reserved */ : 10;
-	/* Scaler   V Image Size Config */
+	uint32_t   : 10;
+	
 	uint32_t  inHeight:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  outHeight:12;
-	uint32_t  /* reserved */ : 4;
-	/* Scaler   V Phase Config */
+	uint32_t   : 4;
+	
 	uint32_t  vertPhaseMult:18;
-	uint32_t  /* reserved */ : 2;
+	uint32_t   : 2;
 	uint32_t  vertInterResolution:2;
-	uint32_t  /* reserved */ : 10;
+	uint32_t   : 10;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_rolloff_cfg {
-	/* Rolloff 0 Config */
+	
 	uint32_t  gridWidth:9;
 	uint32_t  gridHeight:9;
 	uint32_t  yDelta:9;
-	uint32_t  /* reserved */ : 5;
-	/* Rolloff 1 Config*/
+	uint32_t   : 5;
+	
 	uint32_t  gridX:4;
 	uint32_t  gridY:4;
 	uint32_t  pixelX:9;
-	uint32_t  /* reserved */ : 3;
+	uint32_t   : 3;
 	uint32_t  pixelY:9;
-	uint32_t  /* reserved */ : 3;
-	/* Rolloff 2 Config */
+	uint32_t   : 3;
+	
 	uint32_t  yDeltaAccum:12;
-	uint32_t  /* reserved */ : 20;
+	uint32_t   : 20;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_asf_update {
-	/* ASF Config Command */
+	
 	uint32_t smoothEnable:1;
 	uint32_t sharpMode:2;
-	uint32_t /* reserved */ : 1;
+	uint32_t  : 1;
 	uint32_t smoothCoeff1:4;
 	uint32_t smoothCoeff0:8;
 	uint32_t pipeFlushCount:12;
 	uint32_t pipeFlushOvd:1;
 	uint32_t flushHaltOvd:1;
 	uint32_t cropEnable:1;
-	uint32_t /* reserved */ : 1;
-	/* Sharpening Config 0 */
+	uint32_t  : 1;
+	
 	uint32_t sharpThresholdE1:7;
-	uint32_t /* reserved */ : 1;
+	uint32_t  : 1;
 	uint32_t sharpDegreeK1:5;
-	uint32_t /* reserved */ : 3;
+	uint32_t  : 3;
 	uint32_t sharpDegreeK2:5;
-	uint32_t /* reserved */ : 3;
+	uint32_t  : 3;
 	uint32_t normalizeFactor:7;
-	uint32_t /* reserved */ : 1;
-	/* Sharpening Config 1 */
+	uint32_t  : 1;
+	
 	uint32_t sharpThresholdE2:8;
 	uint32_t sharpThresholdE3:8;
 	uint32_t sharpThresholdE4:8;
 	uint32_t sharpThresholdE5:8;
-	/* Sharpening Coefficients 0 */
+	
 	uint32_t F1Coeff0:6;
 	uint32_t F1Coeff1:6;
 	uint32_t F1Coeff2:6;
 	uint32_t F1Coeff3:6;
 	uint32_t F1Coeff4:6;
-	uint32_t /* reserved */ : 2;
-	/* Sharpening Coefficients 1 */
+	uint32_t  : 2;
+	
 	uint32_t F1Coeff5:6;
 	uint32_t F1Coeff6:6;
 	uint32_t F1Coeff7:6;
 	uint32_t F1Coeff8:7;
-	uint32_t /* reserved */ : 7;
-	/* Sharpening Coefficients 2 */
+	uint32_t  : 7;
+	
 	uint32_t F2Coeff0:6;
 	uint32_t F2Coeff1:6;
 	uint32_t F2Coeff2:6;
 	uint32_t F2Coeff3:6;
 	uint32_t F2Coeff4:6;
-	uint32_t /* reserved */ : 2;
-	/* Sharpening Coefficients 3 */
+	uint32_t  : 2;
+	
 	uint32_t F2Coeff5:6;
 	uint32_t F2Coeff6:6;
 	uint32_t F2Coeff7:6;
 	uint32_t F2Coeff8:7;
-	uint32_t /* reserved */ : 7;
+	uint32_t  : 7;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_asfcrop_cfg {
-	/* ASF Crop Width Config */
+	
 	uint32_t lastPixel:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t firstPixel:12;
-	uint32_t /* reserved */ : 4;
-	/* ASP Crop Height Config */
+	uint32_t  : 4;
+	
 	uint32_t lastLine:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t firstLine:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_chroma_suppress_cfg {
-	/* Chroma Suppress 0 Config */
+	
 	uint32_t m1:8;
 	uint32_t m3:8;
 	uint32_t n1:3;
-	uint32_t /* reserved */ : 1;
+	uint32_t  : 1;
 	uint32_t n3:3;
-	uint32_t /* reserved */ : 9;
-	/* Chroma Suppress 1 Config */
+	uint32_t  : 9;
+	
 	uint32_t mm1:8;
 	uint32_t nn1:3;
-	uint32_t /* reserved */ : 21;
+	uint32_t  : 21;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_chromasubsample_cfg {
-	/* Chroma Subsample Selection */
+	
 	uint32_t  hCositedPhase:1;
 	uint32_t  vCositedPhase:1;
 	uint32_t  hCosited:1;
@@ -950,329 +932,329 @@ struct vfe_chromasubsample_cfg {
 	uint32_t  hsubSampleEnable:1;
 	uint32_t  vsubSampleEnable:1;
 	uint32_t  cropEnable:1;
-	uint32_t  /* reserved */ : 25;
+	uint32_t   : 25;
 	uint32_t  cropWidthLastPixel:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  cropWidthFirstPixel:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  cropHeightLastLine:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  cropHeightFirstLine:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_blacklevel_cfg {
-	/* Black Even-Even Value Config */
+	
 	uint32_t    evenEvenAdjustment:9;
-	uint32_t   /* reserved */ : 23;
-	/* Black Even-Odd Value Config */
+	uint32_t    : 23;
+	
 	uint32_t    evenOddAdjustment:9;
-	uint32_t   /* reserved */ : 23;
-	/* Black Odd-Even Value Config */
+	uint32_t    : 23;
+	
 	uint32_t    oddEvenAdjustment:9;
-	uint32_t   /* reserved */ : 23;
-	/* Black Odd-Odd Value Config */
+	uint32_t    : 23;
+	
 	uint32_t    oddOddAdjustment:9;
-	uint32_t   /* reserved */ : 23;
+	uint32_t    : 23;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_demux_cfg {
-	/* Demux Gain 0 Config */
+	
 	uint32_t  ch0EvenGain:10;
-	uint32_t  /* reserved */ : 6;
+	uint32_t   : 6;
 	uint32_t  ch0OddGain:10;
-	uint32_t  /* reserved */ : 6;
-	/* Demux Gain 1 Config */
+	uint32_t   : 6;
+	
 	uint32_t  ch1Gain:10;
-	uint32_t  /* reserved */ : 6;
+	uint32_t   : 6;
 	uint32_t  ch2Gain:10;
-	uint32_t  /* reserved */ : 6;
+	uint32_t   : 6;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_bps_info {
   uint32_t greenBadPixelCount:8;
-  uint32_t /* reserved */ : 8;
+  uint32_t  : 8;
   uint32_t RedBlueBadPixelCount:8;
-  uint32_t /* reserved */ : 8;
+  uint32_t  : 8;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_demosaic_cfg {
-	/* Demosaic Config */
+	
 	uint32_t abfEnable:1;
 	uint32_t badPixelCorrEnable:1;
 	uint32_t forceAbfOn:1;
-	uint32_t /* reserved */ : 1;
+	uint32_t  : 1;
 	uint32_t abfShift:4;
 	uint32_t fminThreshold:7;
-	uint32_t /* reserved */ : 1;
+	uint32_t  : 1;
 	uint32_t fmaxThreshold:7;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 	uint32_t slopeShift:3;
-	uint32_t /* reserved */ : 1;
+	uint32_t  : 1;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_demosaic_bpc_cfg {
-	/* Demosaic BPC Config 0 */
+	
 	uint32_t blueDiffThreshold:12;
 	uint32_t redDiffThreshold:12;
-	uint32_t /* reserved */ : 8;
-	/* Demosaic BPC Config 1 */
+	uint32_t  : 8;
+	
 	uint32_t greenDiffThreshold:12;
-	uint32_t /* reserved */ : 20;
+	uint32_t  : 20;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_demosaic_abf_cfg {
-	/* Demosaic ABF Config 0 */
+	
 	uint32_t lpThreshold:10;
-	uint32_t /* reserved */ : 22;
-	/* Demosaic ABF Config 1 */
+	uint32_t  : 22;
+	
 	uint32_t ratio:4;
 	uint32_t minValue:10;
-	uint32_t /* reserved */ : 2;
+	uint32_t  : 2;
 	uint32_t maxValue:10;
-	uint32_t /* reserved */ : 6;
+	uint32_t  : 6;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_color_correction_cfg {
-	/* Color Corr. Coefficient 0 Config */
+	
 	uint32_t   c0:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 1 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c1:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 2 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c2:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 3 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c3:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 4 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c4:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 5 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c5:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 6 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c6:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 7 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c7:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Coefficient 8 Config */
+	uint32_t    : 20;
+	
 	uint32_t   c8:12;
-	uint32_t   /* reserved */ : 20;
-	/* Color Corr. Offset 0 Config */
+	uint32_t    : 20;
+	
 	uint32_t   k0:11;
-	uint32_t   /* reserved */ : 21;
-	/* Color Corr. Offset 1 Config */
+	uint32_t    : 21;
+	
 	uint32_t   k1:11;
-	uint32_t   /* reserved */ : 21;
-	/* Color Corr. Offset 2 Config */
+	uint32_t    : 21;
+	
 	uint32_t   k2:11;
-	uint32_t   /* reserved */ : 21;
-	/* Color Corr. Coefficient Q Config */
+	uint32_t    : 21;
+	
 	uint32_t   coefQFactor:2;
-	uint32_t   /* reserved */ : 30;
+	uint32_t    : 30;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_LumaAdaptation_ConfigCmdType {
-	/* LA Config */
+	
 	uint32_t   lutBankSelect:1;
-	uint32_t   /* reserved */ : 31;
+	uint32_t    : 31;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_wb_cfg {
-	/* WB Config */
+	
 	uint32_t ch0Gain:9;
 	uint32_t ch1Gain:9;
 	uint32_t ch2Gain:9;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_GammaLutSelect_ConfigCmdType {
-	/* LUT Bank Select Config */
+	
 	uint32_t   ch0BankSelect:1;
 	uint32_t   ch1BankSelect:1;
 	uint32_t   ch2BankSelect:1;
-	uint32_t   /* reserved */ : 29;
+	uint32_t    : 29;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_chroma_enhance_cfg {
-	/* Chroma Enhance A Config */
+	
 	uint32_t ap:11;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 	uint32_t am:11;
-	uint32_t /* reserved */ : 5;
-	/* Chroma Enhance B Config */
+	uint32_t  : 5;
+	
 	uint32_t bp:11;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 	uint32_t bm:11;
-	uint32_t /* reserved */ : 5;
-	/* Chroma Enhance C Config */
+	uint32_t  : 5;
+	
 	uint32_t cp:11;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 	uint32_t cm:11;
-	uint32_t /* reserved */ : 5;
-	/* Chroma Enhance D Config */
+	uint32_t  : 5;
+	
 	uint32_t dp:11;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 	uint32_t dm:11;
-	uint32_t /* reserved */ : 5;
-	/* Chroma Enhance K Config */
+	uint32_t  : 5;
+	
 	uint32_t kcb:11;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 	uint32_t kcr:11;
-	uint32_t /* reserved */ : 5;
+	uint32_t  : 5;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_color_convert_cfg {
-	/* Conversion Coefficient 0 */
+	
 	uint32_t v0:12;
-	uint32_t /* reserved */ : 20;
-	/* Conversion Coefficient 1 */
+	uint32_t  : 20;
+	
 	uint32_t v1:12;
-	uint32_t /* reserved */ : 20;
-	/* Conversion Coefficient 2 */
+	uint32_t  : 20;
+	
 	uint32_t v2:12;
-	uint32_t /* reserved */ : 20;
-	/* Conversion Offset */
+	uint32_t  : 20;
+	
 	uint32_t ConvertOffset:8;
-	uint32_t /* reserved */ : 24;
+	uint32_t  : 24;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_SyncTimer_ConfigCmdType {
-	/* Timer Line Start Config */
+	
 	uint32_t       timerLineStart:12;
-	uint32_t       /* reserved */ : 20;
-	/* Timer Pixel Start Config */
+	uint32_t        : 20;
+	
 	uint32_t       timerPixelStart:18;
-	uint32_t       /* reserved */ : 14;
-	/* Timer Pixel Duration Config */
+	uint32_t        : 14;
+	
 	uint32_t       timerPixelDuration:28;
-	uint32_t       /* reserved */ : 4;
-	/* Sync Timer Polarity Config */
+	uint32_t        : 4;
+	
 	uint32_t       timer0Polarity:1;
 	uint32_t       timer1Polarity:1;
 	uint32_t       timer2Polarity:1;
-	uint32_t       /* reserved */ : 29;
+	uint32_t        : 29;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_AsyncTimer_ConfigCmdType {
-	/* Async Timer Config 0 */
+	
 	uint32_t     inactiveLength:20;
 	uint32_t     numRepetition:10;
-	uint32_t     /* reserved */ : 1;
+	uint32_t      : 1;
 	uint32_t     polarity:1;
-	/* Async Timer Config 1 */
+	
 	uint32_t     activeLength:20;
-	uint32_t     /* reserved */ : 12;
+	uint32_t      : 12;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_AWBAEStatistics_ConfigCmdType {
-	/* AWB autoexposure Config */
+	
 	uint32_t    aeRegionConfig:1;
 	uint32_t    aeSubregionConfig:1;
-	uint32_t    /* reserved */ : 14;
+	uint32_t     : 14;
 	uint32_t    awbYMin:8;
 	uint32_t    awbYMax:8;
-	/* AXW Header */
+	
 	uint32_t    axwHeader:8;
-	uint32_t    /* reserved */ : 24;
-	/* AWB Mconfig */
+	uint32_t     : 24;
+	
 	uint32_t    m4:8;
 	uint32_t    m3:8;
 	uint32_t    m2:8;
 	uint32_t    m1:8;
-	/* AWB Cconfig */
+	
 	uint32_t    c2:12;
-	uint32_t    /* reserved */ : 4;
+	uint32_t     : 4;
 	uint32_t    c1:12;
-	uint32_t    /* reserved */ : 4;
-	/* AWB Cconfig 2 */
+	uint32_t     : 4;
+	
 	uint32_t    c4:12;
-	uint32_t    /* reserved */ : 4;
+	uint32_t     : 4;
 	uint32_t    c3:12;
-	uint32_t    /* reserved */ : 4;
+	uint32_t     : 4;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_TestGen_ConfigCmdType {
-	/* HW Test Gen Config */
+	
 	uint32_t   numFrame:10;
-	uint32_t   /* reserved */ : 2;
+	uint32_t    : 2;
 	uint32_t   pixelDataSelect:1;
 	uint32_t   systematicDataSelect:1;
-	uint32_t   /* reserved */ : 2;
+	uint32_t    : 2;
 	uint32_t   pixelDataSize:2;
 	uint32_t   hsyncEdge:1;
 	uint32_t   vsyncEdge:1;
-	uint32_t   /* reserved */ : 12;
-	/* HW Test Gen Image Config */
+	uint32_t    : 12;
+	
 	uint32_t   imageWidth:14;
-	uint32_t   /* reserved */ : 2;
+	uint32_t    : 2;
 	uint32_t   imageHeight:14;
-	uint32_t   /* reserved */ : 2;
-	/* SOF Offset Config */
+	uint32_t    : 2;
+	
 	uint32_t   sofOffset:24;
-	uint32_t   /* reserved */ : 8;
-	/* EOF NOffset Config */
+	uint32_t    : 8;
+	
 	uint32_t   eofNOffset:24;
-	uint32_t   /* reserved */ : 8;
-	/* SOL Offset Config */
+	uint32_t    : 8;
+	
 	uint32_t   solOffset:9;
-	uint32_t   /* reserved */ : 23;
-	/* EOL NOffset Config */
+	uint32_t    : 23;
+	
 	uint32_t   eolNOffset:9;
-	uint32_t   /* reserved */ : 23;
-	/* HBI Config */
+	uint32_t    : 23;
+	
 	uint32_t   hBlankInterval:14;
-	uint32_t   /* reserved */ : 18;
-	/* VBL Config */
+	uint32_t    : 18;
+	
 	uint32_t   vBlankInterval:14;
-	uint32_t   /* reserved */ : 2;
+	uint32_t    : 2;
 	uint32_t   vBlankIntervalEnable:1;
-	uint32_t   /* reserved */ : 15;
-	/* SOF Dummy Line Config */
+	uint32_t    : 15;
+	
 	uint32_t   sofDummy:8;
-	uint32_t   /* reserved */ : 24;
-	/* EOF Dummy Line Config */
+	uint32_t    : 24;
+	
 	uint32_t   eofDummy:8;
-	uint32_t   /* reserved */ : 24;
-	/* Color Bars Config */
+	uint32_t    : 24;
+	
 	uint32_t   unicolorBarSelect:3;
-	uint32_t   /* reserved */ : 1;
+	uint32_t    : 1;
 	uint32_t   unicolorBarEnable:1;
 	uint32_t   splitEnable:1;
 	uint32_t   pixelPattern:2;
 	uint32_t   rotatePeriod:6;
-	uint32_t   /* reserved */ : 18;
-	/* Random Config */
+	uint32_t    : 18;
+	
 	uint32_t   randomSeed:16;
-	uint32_t   /* reserved */ : 16;
+	uint32_t    : 16;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_Bus_Pm_ConfigCmdType {
-	/* VFE Bus Performance Monitor Config */
+	
 	uint32_t  output2YWrPmEnable:1;
 	uint32_t  output2CbcrWrPmEnable:1;
 	uint32_t  output1YWrPmEnable:1;
 	uint32_t  output1CbcrWrPmEnable:1;
-	uint32_t  /* reserved */ : 28;
+	uint32_t   : 28;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_asf_info {
-	/* asf max edge  */
+	
 	uint32_t maxEdge:13;
-	uint32_t /* reserved */ : 3;
-	/* HBi count  */
+	uint32_t  : 3;
+	
 	uint32_t HBICount:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_camif_stats {
   uint32_t  pixelCount:14;
-  uint32_t  /* reserved */ : 2;
+  uint32_t   : 2;
   uint32_t  lineCount:14;
-  uint32_t  /* reserved */ : 1;
+  uint32_t   : 1;
   uint32_t  camifHalt:1;
 } __attribute__((packed, aligned(4)));
 
@@ -1283,15 +1265,15 @@ struct VFE_StatsCmdType {
 	uint32_t  clearHistEnable:1;
 	uint32_t  histAutoClearEnable:1;
 	uint32_t  colorConversionEnable:1;
-	uint32_t  /* reserved */ : 26;
+	uint32_t   : 26;
 } __attribute__((packed, aligned(4)));
 
 
 struct vfe_statsframe {
 	uint32_t lastPixel:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t lastLine:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_busstats_wrprio {
@@ -1301,120 +1283,120 @@ struct vfe_busstats_wrprio {
 	uint32_t afBusPriorityEn:1;
 	uint32_t awbBusPriorityEn:1;
 	uint32_t histBusPriorityEn:1;
-	uint32_t /* reserved */ : 17;
+	uint32_t  : 17;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_statsaf_update {
-	/* VFE_STATS_AF_CFG */
+	
 	uint32_t windowVOffset:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t windowHOffset:12;
-	uint32_t /* reserved */ : 3;
+	uint32_t  : 3;
 	uint32_t windowMode:1;
 
-	/* VFE_STATS_AF_DIM */
+	
 	uint32_t windowHeight:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 	uint32_t windowWidth:12;
-	uint32_t /* reserved */ : 4;
+	uint32_t  : 4;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_statsaf_cfg {
-	/* VFE_STATS_AF_GRID_0 */
+	
 	uint32_t  entry00:8;
 	uint32_t  entry01:8;
 	uint32_t  entry02:8;
 	uint32_t  entry03:8;
 
-	/* VFE_STATS_AF_GRID_1 */
+	
 	uint32_t  entry10:8;
 	uint32_t  entry11:8;
 	uint32_t  entry12:8;
 	uint32_t  entry13:8;
 
-	/* VFE_STATS_AF_GRID_2 */
+	
 	uint32_t  entry20:8;
 	uint32_t  entry21:8;
 	uint32_t  entry22:8;
 	uint32_t  entry23:8;
 
-	/* VFE_STATS_AF_GRID_3 */
+	
 	uint32_t  entry30:8;
 	uint32_t  entry31:8;
 	uint32_t  entry32:8;
 	uint32_t  entry33:8;
 
-	/* VFE_STATS_AF_HEADER */
+	
 	uint32_t  afHeader:8;
-	uint32_t  /* reserved */ : 24;
-	/*  VFE_STATS_AF_COEF0 */
+	uint32_t   : 24;
+	
 	uint32_t  a00:5;
 	uint32_t  a04:5;
 	uint32_t  fvMax:11;
 	uint32_t  fvMetric:1;
-	uint32_t  /* reserved */ : 10;
+	uint32_t   : 10;
 
-	/* VFE_STATS_AF_COEF1 */
+	
 	uint32_t  a20:5;
 	uint32_t  a21:5;
 	uint32_t  a22:5;
 	uint32_t  a23:5;
 	uint32_t  a24:5;
-	uint32_t  /* reserved */ : 7;
+	uint32_t   : 7;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_statsawbae_update {
 	uint32_t  aeRegionCfg:1;
 	uint32_t  aeSubregionCfg:1;
-	uint32_t  /* reserved */ : 14;
+	uint32_t   : 14;
 	uint32_t  awbYMin:8;
 	uint32_t  awbYMax:8;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_statsaxw_hdr_cfg {
-	/* Stats AXW Header Config */
+	
 	uint32_t axwHeader:8;
-	uint32_t /* reserved */ : 24;
+	uint32_t  : 24;
 } __attribute__((packed, aligned(4)));
 
 struct vfe_statsawb_update {
-	/* AWB MConfig */
+	
 	uint32_t  m4:8;
 	uint32_t  m3:8;
 	uint32_t  m2:8;
 	uint32_t  m1:8;
 
-	/* AWB CConfig1 */
+	
 	uint32_t  c2:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  c1:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 
-	/* AWB CConfig2 */
+	
 	uint32_t  c4:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 	uint32_t  c3:12;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_SyncTimerCmdType {
 	uint32_t  hsyncCount:12;
-	uint32_t  /* reserved */ : 20;
+	uint32_t   : 20;
 	uint32_t  pclkCount:18;
-	uint32_t  /* reserved */ : 14;
+	uint32_t   : 14;
 	uint32_t  outputDuration:28;
-	uint32_t  /* reserved */ : 4;
+	uint32_t   : 4;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_AsyncTimerCmdType {
-	/*  config 0 */
+	
 	uint32_t    inactiveCount:20;
 	uint32_t    repeatCount:10;
-	uint32_t    /* reserved */ : 1;
+	uint32_t     : 1;
 	uint32_t    polarity:1;
-	/*  config 1 */
+	
 	uint32_t    activeCount:20;
-	uint32_t    /* reserved */ : 12;
+	uint32_t     : 12;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_AxiInputCmdType {
@@ -1425,41 +1407,41 @@ struct VFE_AxiInputCmdType {
 
 	uint32_t   ySize:12;
 	uint32_t   yOffsetDelta:12;
-	uint32_t   /* reserved */ : 8;
+	uint32_t    : 8;
 
-	/* bus_stripe_rd_hSize */
-	uint32_t   /* reserved */ : 16;
+	
+	uint32_t    : 16;
 	uint32_t   xSizeWord:10;
-	uint32_t   /* reserved */ : 6;
+	uint32_t    : 6;
 
-	/* bus_stripe_rd_buffer_cfg */
+	
 	uint32_t   burstLength:2;
-	uint32_t   /* reserved */ : 2;
+	uint32_t    : 2;
 	uint32_t   NumOfRows:12;
 	uint32_t   RowIncrement:12;
-	uint32_t   /* reserved */ : 4;
+	uint32_t    : 4;
 
-	/* bus_stripe_rd_unpack_cfg */
+	
 	uint32_t   mainUnpackHeight:12;
 	uint32_t   mainUnpackWidth:13;
 	uint32_t   mainUnpackHbiSel:3;
 	uint32_t   mainUnpackPhase:3;
-	uint32_t   /* reserved */ : 1;
+	uint32_t    : 1;
 
-	/* bus_stripe_rd_unpack */
+	
 	uint32_t   unpackPattern:32;
 
-	/* bus_stripe_rd_pad_size */
+	
 	uint32_t   padLeft:7;
-	uint32_t   /* reserved */ : 1;
+	uint32_t    : 1;
 	uint32_t   padRight:7;
-	uint32_t   /* reserved */ : 1;
+	uint32_t    : 1;
 	uint32_t   padTop:7;
-	uint32_t   /* reserved */ : 1;
+	uint32_t    : 1;
 	uint32_t   padBottom:7;
-	uint32_t   /* reserved */ : 1;
+	uint32_t    : 1;
 
-	/* bus_stripe_rd_pad_L_unpack */
+	
 	uint32_t   leftUnpackPattern0:4;
 	uint32_t   leftUnpackPattern1:4;
 	uint32_t   leftUnpackPattern2:4;
@@ -1468,9 +1450,9 @@ struct VFE_AxiInputCmdType {
 	uint32_t   leftUnpackStop1:1;
 	uint32_t   leftUnpackStop2:1;
 	uint32_t   leftUnpackStop3:1;
-	uint32_t   /* reserved */ : 12;
+	uint32_t    : 12;
 
-	/* bus_stripe_rd_pad_R_unpack */
+	
 	uint32_t   rightUnpackPattern0:4;
 	uint32_t   rightUnpackPattern1:4;
 	uint32_t   rightUnpackPattern2:4;
@@ -1479,13 +1461,13 @@ struct VFE_AxiInputCmdType {
 	uint32_t   rightUnpackStop1:1;
 	uint32_t   rightUnpackStop2:1;
 	uint32_t   rightUnpackStop3:1;
-	uint32_t   /* reserved */ : 12;
+	uint32_t    : 12;
 
-	/* bus_stripe_rd_pad_tb_unpack */
+	
 	uint32_t   topUnapckPattern:4;
-	uint32_t   /* reserved */ : 12;
+	uint32_t    : 12;
 	uint32_t   bottomUnapckPattern:4;
-	uint32_t   /* reserved */ : 12;
+	uint32_t    : 12;
 } __attribute__((packed, aligned(4)));
 
 struct VFE_AxiRdFragIrqEnable {
@@ -1493,7 +1475,7 @@ struct VFE_AxiRdFragIrqEnable {
 	uint32_t stripeRdFragirq1Enable:1;
 	uint32_t stripeRdFragirq2Enable:1;
 	uint32_t stripeRdFragirq3Enable:1;
-	uint32_t   /* reserved */ : 28;
+	uint32_t    : 28;
 } __attribute__((packed, aligned(4)));
 
 int vfe_cmd_init(struct msm_vfe_callback *, struct platform_device *, void *);
@@ -1546,4 +1528,4 @@ void vfe_reset(void);
 void vfe_cmd_release(struct platform_device *);
 void vfe_output1_ack(struct vfe_cmd_output_ack *);
 void vfe_output2_ack(struct vfe_cmd_output_ack *);
-#endif /* __MSM_VFE8X_REG_H__ */
+#endif 

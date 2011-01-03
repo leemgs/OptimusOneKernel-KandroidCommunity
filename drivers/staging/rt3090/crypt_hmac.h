@@ -1,40 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    crypt_hmac.h
-
-    Abstract:
-    Miniport generic portion header file
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-    Eddy        2008/11/24      Create HMAC-SHA1, HMAC-SHA256
-*/
 
 #ifndef __CRYPT_HMAC_H__
 #define __CRYPT_HMAC_H__
@@ -43,7 +7,7 @@
 #include "crypt_testplan.h"
 #else
 #include "rt_config.h"
-#endif /* CRYPT_TESTPLAN */
+#endif 
 
 #ifdef SHA1_SUPPORT
 #define HMAC_SHA1_SUPPORT
@@ -54,7 +18,7 @@ VOID HMAC_SHA1 (
     IN  UINT MessageLen,
     OUT UINT8 MAC[],
     IN  UINT MACLen);
-#endif /* SHA1_SUPPORT */
+#endif 
 
 #ifdef SHA256_SUPPORT
 #define HMAC_SHA256_SUPPORT
@@ -65,7 +29,7 @@ VOID HMAC_SHA256 (
     IN  UINT MessageLen,
     OUT UINT8 MAC[],
     IN  UINT MACLen);
-#endif /* SHA256_SUPPORT */
+#endif 
 
 #ifdef MD5_SUPPORT
 #define HMAC_MD5_SUPPORT
@@ -76,6 +40,6 @@ VOID HMAC_MD5 (
     IN  UINT MessageLen,
     OUT UINT8 MAC[],
     IN  UINT MACLen);
-#endif /* MD5_SUPPORT */
+#endif 
 
-#endif /* __CRYPT_HMAC_H__ */
+#endif 

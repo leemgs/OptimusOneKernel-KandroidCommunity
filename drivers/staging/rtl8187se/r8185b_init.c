@@ -1,42 +1,24 @@
-/*++
-Copyright (c) Realtek Semiconductor Corp. All rights reserved.
-
-Module Name:
- 	r8185b_init.c
-
-Abstract:
- 	Hardware Initialization and Hardware IO for RTL8185B
-
-Major Change History:
-	When        Who      What
-	----------    ---------------   -------------------------------
-	2006-11-15    Xiong		Created
-
-Notes:
-	This file is ported from RTL8185B Windows driver.
 
 
---*/
 
-/*--------------------------Include File------------------------------------*/
 #include <linux/spinlock.h>
 #include "r8180_hw.h"
 #include "r8180.h"
-#include "r8180_rtl8225.h" /* RTL8225 Radio frontend */
-#include "r8180_93cx6.h"   /* Card EEPROM */
+#include "r8180_rtl8225.h" 
+#include "r8180_93cx6.h"   
 #include "r8180_wx.h"
 
 #include "ieee80211/dot11d.h"
 
 
-//#define CONFIG_RTL8180_IO_MAP
+
 
 #define TC_3W_POLL_MAX_TRY_CNT 5
 static u8 MAC_REG_TABLE[][2]={
-                        //PAGA 0:
-                        // 0x34(BRSR), 0xBE(RATE_FALLBACK_CTL), 0x1E0(ARFR) would set in HwConfigureRTL8185()
-                        // 0x272(RFSW_CTRL), 0x1CE(AESMSK_QC) set in InitializeAdapter8185().
-                        // 0x1F0~0x1F8  set in MacConfig_85BASIC()
+                        
+                        
+                        
+                        
                         {0x08, 0xae}, {0x0a, 0x72}, {0x5b, 0x42},
                         {0x84, 0x88}, {0x85, 0x24}, {0x88, 0x54}, {0x8b, 0xb8}, {0x8c, 0x03},
                         {0x8d, 0x40}, {0x8e, 0x00}, {0x8f, 0x00}, {0x5b, 0x18}, {0x91, 0x03},
@@ -47,19 +29,19 @@ static u8 MAC_REG_TABLE[][2]={
                         {0xfa, 0x00}, {0xfb, 0x00}, {0xfc, 0x96}, {0xfd, 0xa4}, {0xfe, 0x00},
                         {0xff, 0x00},
 
-                        //PAGE 1:
-                        // For Flextronics system Logo PCIHCT failure:
-			// 0x1C4~0x1CD set no-zero value to avoid PCI configuration space 0x45[7]=1
+                        
+                        
+			
                         {0x5e, 0x01},
                         {0x58, 0x00}, {0x59, 0x00}, {0x5a, 0x04}, {0x5b, 0x00}, {0x60, 0x24},
                         {0x61, 0x97}, {0x62, 0xF0}, {0x63, 0x09}, {0x80, 0x0F}, {0x81, 0xFF},
                         {0x82, 0xFF}, {0x83, 0x03},
-                        {0xC4, 0x22}, {0xC5, 0x22}, {0xC6, 0x22}, {0xC7, 0x22}, {0xC8, 0x22}, //lzm add 080826
-			{0xC9, 0x22}, {0xCA, 0x22}, {0xCB, 0x22}, {0xCC, 0x22}, {0xCD, 0x22},//lzm add 080826
+                        {0xC4, 0x22}, {0xC5, 0x22}, {0xC6, 0x22}, {0xC7, 0x22}, {0xC8, 0x22}, 
+			{0xC9, 0x22}, {0xCA, 0x22}, {0xCB, 0x22}, {0xCC, 0x22}, {0xCD, 0x22},
                         {0xe2, 0x00},
 
 
-                        //PAGE 2:
+                        
                         {0x5e, 0x02},
                         {0x0c, 0x04}, {0x4c, 0x30}, {0x4d, 0x08}, {0x50, 0x05}, {0x51, 0xf5},
                         {0x52, 0x04}, {0x53, 0xa0}, {0x54, 0xff}, {0x55, 0xff}, {0x56, 0xff},
@@ -69,7 +51,7 @@ static u8 MAC_REG_TABLE[][2]={
                         {0x8f, 0x3f}, {0xc4, 0xff}, {0xc5, 0xff}, {0xc6, 0xff}, {0xc7, 0xff},
                         {0xc8, 0x00}, {0xc9, 0x00}, {0xca, 0x80}, {0xcb, 0x00},
 
-                        //PAGA 0:
+                        
                         {0x5e, 0x00},{0x9f, 0x03}
                 };
 
@@ -95,28 +77,25 @@ static u32 ZEBRA_RF_RX_GAIN_TABLE[]={
 	};
 
 static u8 OFDM_CONFIG[]={
-			// OFDM reg0x06[7:0]=0xFF: Enable power saving mode in RX
-			// OFDM reg0x3C[4]=1'b1: Enable RX power saving mode
-			// ofdm 0x3a = 0x7b ,(original : 0xfb) For ECS shielding room TP test
+			
+			
+			
 
-			// 0x00
+			
 			0x10, 0x0F, 0x0A, 0x0C, 0x14, 0xFA, 0xFF, 0x50,
 			0x00, 0x50, 0x00, 0x00, 0x00, 0x5C, 0x00, 0x00,
-			// 0x10
+			
 			0x40, 0x00, 0x40, 0x00, 0x00, 0x00, 0xA8, 0x26,
 			0x32, 0x33, 0x06, 0xA5, 0x6F, 0x55, 0xC8, 0xBB,
-			// 0x20
+			
 			0x0A, 0xE1, 0x2C, 0x4A, 0x86, 0x83, 0x34, 0x00,
 			0x4F, 0x24, 0x6F, 0xC2, 0x03, 0x40, 0x80, 0x00,
-			// 0x30
+			
 			0xC0, 0xC1, 0x58, 0xF1, 0x00, 0xC4, 0x90, 0x3e,
 			0xD8, 0x3C, 0x7B, 0x10, 0x10
 		};
 
-/*---------------------------------------------------------------
-  * Hardware IO
-  * the code is ported from Windows source code
-  ----------------------------------------------------------------*/
+
 
 void
 PlatformIOWrite1Byte(
@@ -126,7 +105,7 @@ PlatformIOWrite1Byte(
 	)
 {
 	write_nic_byte(dev, offset, data);
-	read_nic_byte(dev, offset); // To make sure write operation is completed, 2005.11.09, by rcnjko.
+	read_nic_byte(dev, offset); 
 
 }
 
@@ -138,7 +117,7 @@ PlatformIOWrite2Byte(
 	)
 {
 	write_nic_word(dev, offset, data);
-	read_nic_word(dev, offset); // To make sure write operation is completed, 2005.11.09, by rcnjko.
+	read_nic_word(dev, offset); 
 
 
 }
@@ -151,9 +130,9 @@ PlatformIOWrite4Byte(
 	u32		data
 	)
 {
-//{by amy 080312
+
 if (offset == PhyAddr)
-	{//For Base Band configuration.
+	{
 		unsigned char	cmdByte;
 		unsigned long	dataBytes;
 		unsigned char	idx;
@@ -162,18 +141,18 @@ if (offset == PhyAddr)
 		cmdByte = (u8)(data & 0x000000ff);
 		dataBytes = data>>8;
 
-		//
-		// 071010, rcnjko:
-		// The critical section is only BB read/write race condition.
-		// Assumption:
-		// 1. We assume NO one will access BB at DIRQL, otherwise, system will crash for
-		// acquiring the spinlock in such context.
-		// 2. PlatformIOWrite4Byte() MUST NOT be recursive.
-		//
-//		NdisAcquireSpinLock( &(pDevice->IoSpinLock) );
+		
+		
+		
+		
+		
+		
+		
+		
+
 
 		for(idx = 0; idx < 30; idx++)
-		{ // Make sure command bit is clear before access it.
+		{ 
 			u1bTmp = PlatformIORead1Byte(dev, PhyAddr);
 			if((u1bTmp & BIT7) == 0)
 				break;
@@ -187,12 +166,12 @@ if (offset == PhyAddr)
 		}
 		write_nic_byte(dev, offset, cmdByte);
 
-//		NdisReleaseSpinLock( &(pDevice->IoSpinLock) );
+
 	}
-//by amy 080312}
+
 	else{
 		write_nic_dword(dev, offset, data);
-		read_nic_dword(dev, offset); // To make sure write operation is completed, 2005.11.09, by rcnjko.
+		read_nic_dword(dev, offset); 
 	}
 }
 
@@ -251,7 +230,7 @@ SetOutputEnableOfRfPins(
 	case RF_ZEBRA2:
 	case RF_ZEBRA4:
 		write_nic_word(dev, RFPinsEnable, 0x1bff);
-		//write_nic_word(dev, RFPinsEnable, 0x1fff);
+		
 		break;
 	}
 }
@@ -271,31 +250,31 @@ ZEBRA_RFSerialWrite(
 	u16				UshortBuffer;
 
 	u8			u1bTmp;
-	// RTL8187S HSSI Read/Write Function
+	
 	u1bTmp = read_nic_byte(dev, RF_SW_CONFIG);
-	u1bTmp |=   RF_SW_CFG_SI;   //reg08[1]=1 Serial Interface(SI)
+	u1bTmp |=   RF_SW_CFG_SI;   
 	write_nic_byte(dev, RF_SW_CONFIG, u1bTmp);
 	UshortBuffer = read_nic_word(dev, RFPinsOutput);
-	oval = UshortBuffer & 0xfff8; // We shall clear bit0, 1, 2 first, 2005.10.28, by rcnjko.
+	oval = UshortBuffer & 0xfff8; 
 
 	oval2 = read_nic_word(dev, RFPinsEnable);
 	oval3 = read_nic_word(dev, RFPinsSelect);
 
-	// <RJ_NOTE> 3-wire should be controled by HW when we finish SW 3-wire programming. 2005.08.10, by rcnjko.
+	
 	oval3 &= 0xfff8;
 
-	write_nic_word(dev, RFPinsEnable, (oval2|0x0007)); // Set To Output Enable
-	write_nic_word(dev, RFPinsSelect, (oval3|0x0007)); // Set To SW Switch
+	write_nic_word(dev, RFPinsEnable, (oval2|0x0007)); 
+	write_nic_word(dev, RFPinsSelect, (oval3|0x0007)); 
 	udelay(10);
 
-	// Add this to avoid hardware and software 3-wire conflict.
-	// 2005.03.01, by rcnjko.
+	
+	
 	twreg.longData = 0;
 	twreg.struc.enableB = 1;
-	write_nic_word(dev, RFPinsOutput, (twreg.longData|oval)); // Set SI_EN (RFLE)
+	write_nic_word(dev, RFPinsOutput, (twreg.longData|oval)); 
 	udelay(2);
 	twreg.struc.enableB = 0;
-	write_nic_word(dev, RFPinsOutput, (twreg.longData|oval)); // Clear SI_EN (RFLE)
+	write_nic_word(dev, RFPinsOutput, (twreg.longData|oval)); 
 	udelay(10);
 
 	mask = (low2high)?0x01:((u32)0x01<<(totalLength-1));
@@ -328,7 +307,7 @@ ZEBRA_RFSerialWrite(
 
 	SetOutputEnableOfRfPins(dev);
 }
-//by amy
+
 
 
 int
@@ -346,7 +325,7 @@ HwHSSIThreeWire(
 
 	do
 	{
-		// Check if WE and RE are cleared.
+		
 		for(TryCnt = 0; TryCnt < TC_3W_POLL_MAX_TRY_CNT; TryCnt++)
 		{
 			u1bTmp = read_nic_byte(dev, SW_3W_CMD1);
@@ -359,27 +338,27 @@ HwHSSIThreeWire(
 		if (TryCnt == TC_3W_POLL_MAX_TRY_CNT)
 			panic("HwThreeWire(): CmdReg: %#X RE|WE bits are not clear!!\n", u1bTmp);
 
-		// RTL8187S HSSI Read/Write Function
+		
 		u1bTmp = read_nic_byte(dev, RF_SW_CONFIG);
 
 		if(bSI)
 		{
-			u1bTmp |=   RF_SW_CFG_SI;   //reg08[1]=1 Serial Interface(SI)
+			u1bTmp |=   RF_SW_CFG_SI;   
 		}else
 		{
-			u1bTmp &= ~RF_SW_CFG_SI;  //reg08[1]=0 Parallel Interface(PI)
+			u1bTmp &= ~RF_SW_CFG_SI;  
 		}
 
 		write_nic_byte(dev, RF_SW_CONFIG, u1bTmp);
 
 		if(bSI)
 		{
-			// jong: HW SI read must set reg84[3]=0.
+			
 			u1bTmp = read_nic_byte(dev, RFPinsSelect);
 			u1bTmp &= ~BIT3;
 			write_nic_byte(dev, RFPinsSelect, u1bTmp );
 		}
-	 	// Fill up data buffer for write operation.
+	 	
 
 		if(bWrite)
 		{
@@ -387,7 +366,7 @@ HwHSSIThreeWire(
 			{
 				write_nic_word(dev, SW_3W_DB0, *((u16*)pDataBuf));
 			}
-			else if(nDataBufBitCnt == 64)  // RTL8187S shouldn't enter this case
+			else if(nDataBufBitCnt == 64)  
 			{
 				write_nic_dword(dev, SW_3W_DB0, *((u32*)pDataBuf));
 				write_nic_dword(dev, SW_3W_DB1, *((u32*)(pDataBuf + 4)));
@@ -396,7 +375,7 @@ HwHSSIThreeWire(
 			{
 				int idx;
 				int ByteCnt = nDataBufBitCnt / 8;
-                                //printk("%d\n",nDataBufBitCnt);
+                                
 				if ((nDataBufBitCnt % 8) != 0)
 				panic("HwThreeWire(): nDataBufBitCnt(%d) should be multiple of 8!!!\n",
 				nDataBufBitCnt);
@@ -411,21 +390,21 @@ HwHSSIThreeWire(
 				}
 			}
 		}
-		else		//read
+		else		
 		{
 			if(bSI)
 			{
-				// SI - reg274[3:0] : RF register's Address
+				
 				write_nic_word(dev, SW_3W_DB0, *((u16*)pDataBuf) );
 			}
 			else
 			{
-				// PI - reg274[15:12] : RF register's Address
+				
 				write_nic_word(dev, SW_3W_DB0, (*((u16*)pDataBuf)) << 12);
 			}
 		}
 
-		// Set up command: WE or RE.
+		
 		if(bWrite)
 		{
 			write_nic_byte(dev, SW_3W_CMD1, SW_3W_CMD1_WE);
@@ -435,7 +414,7 @@ HwHSSIThreeWire(
 			write_nic_byte(dev, SW_3W_CMD1, SW_3W_CMD1_RE);
 		}
 
-		// Check if DONE is set.
+		
 		for(TryCnt = 0; TryCnt < TC_3W_POLL_MAX_TRY_CNT; TryCnt++)
 		{
 			u1bTmp = read_nic_byte(dev, SW_3W_CMD1);
@@ -448,17 +427,17 @@ HwHSSIThreeWire(
 
 		write_nic_byte(dev, SW_3W_CMD1, 0);
 
-		// Read back data for read operation.
+		
 		if(bWrite == 0)
 		{
 			if(bSI)
 			{
-				//Serial Interface : reg363_362[11:0]
+				
 				*((u16*)pDataBuf) = read_nic_word(dev, SI_DATA_READ) ;
 			}
 			else
 			{
-				//Parallel Interface : reg361_360[11:0]
+				
 				*((u16*)pDataBuf) = read_nic_word(dev, PI_DATA_READ);
 			}
 
@@ -469,7 +448,7 @@ HwHSSIThreeWire(
 
 	return bResult;
 }
-//by amy
+
 
 int
 HwThreeWire(
@@ -486,7 +465,7 @@ HwThreeWire(
 
 	do
 	{
-		// Check if WE and RE are cleared.
+		
 		for(TryCnt = 0; TryCnt < TC_3W_POLL_MAX_TRY_CNT; TryCnt++)
 		{
 			u1bTmp = read_nic_byte(dev, SW_3W_CMD1);
@@ -499,7 +478,7 @@ HwThreeWire(
 		if (TryCnt == TC_3W_POLL_MAX_TRY_CNT)
 			panic("HwThreeWire(): CmdReg: %#X RE|WE bits are not clear!!\n", u1bTmp);
 
-		// Fill up data buffer for write operation.
+		
 		if(nDataBufBitCnt == 16)
 		{
 			write_nic_word(dev, SW_3W_DB0, *((u16 *)pDataBuf));
@@ -528,13 +507,13 @@ HwThreeWire(
 			}
 		}
 
-		// Fill up length field.
-		u1bTmp = (u8)(nDataBufBitCnt - 1); // Number of bits - 1.
+		
+		u1bTmp = (u8)(nDataBufBitCnt - 1); 
 		if(bHold)
 			u1bTmp |= SW_3W_CMD0_HOLD;
 		write_nic_byte(dev, SW_3W_CMD0, u1bTmp);
 
-		// Set up command: WE or RE.
+		
 		if(bWrite)
 		{
 			write_nic_byte(dev, SW_3W_CMD1, SW_3W_CMD1_WE);
@@ -544,7 +523,7 @@ HwThreeWire(
 			write_nic_byte(dev, SW_3W_CMD1, SW_3W_CMD1_RE);
 		}
 
-		// Check if WE and RE are cleared and DONE is set.
+		
 		for(TryCnt = 0; TryCnt < TC_3W_POLL_MAX_TRY_CNT; TryCnt++)
 		{
 			u1bTmp = read_nic_byte(dev, SW_3W_CMD1);
@@ -557,14 +536,14 @@ HwThreeWire(
 		}
 		if(TryCnt == TC_3W_POLL_MAX_TRY_CNT)
 		{
-			//RT_ASSERT(TryCnt != TC_3W_POLL_MAX_TRY_CNT,
-			//	("HwThreeWire(): CmdReg: %#X RE|WE bits are not clear or DONE is not set!!\n", u1bTmp));
-			// Workaround suggested by wcchu: clear WE here. 2006.07.07, by rcnjko.
+			
+			
+			
 			write_nic_byte(dev, SW_3W_CMD1, 0);
 		}
 
-		// Read back data for read operation.
-		// <RJ_TODO> I am not sure if this is correct output format of a read operation.
+		
+		
 		if(bWrite == 0)
 		{
 			if(nDataBufBitCnt == 16)
@@ -609,23 +588,23 @@ RF_WriteReg(
 	u32		data
 	)
 {
-	//RFReg			reg;
+	
 	u32			data2Write;
 	u8			len;
 	u8			low2high;
-	//u32			RF_Read = 0;
+	
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 
 
 	switch(priv->rf_chip)
 	{
 	case RFCHIPID_RTL8225:
-	case RF_ZEBRA2:		// Annie 2006-05-12.
-	case RF_ZEBRA4:        //by amy
+	case RF_ZEBRA2:		
+	case RF_ZEBRA4:        
 		switch(priv->RegThreeWireMode)
 		{
 		case SW_THREE_WIRE:
-			{ // Perform SW 3-wire programming by driver.
+			{ 
 				data2Write = (data << 4) | (u32)(offset & 0x0f);
 				len = 16;
 				low2high = 0;
@@ -634,48 +613,48 @@ RF_WriteReg(
 			break;
 
  		case HW_THREE_WIRE:
-			{ // Pure HW 3-wire.
+			{ 
 				data2Write = (data << 4) | (u32)(offset & 0x0f);
 				len = 16;
 				HwThreeWire(
 					dev,
-					(u8 *)(&data2Write),	// pDataBuf,
-					len,				// nDataBufBitCnt,
-					0,					// bHold,
-					1);					// bWrite
+					(u8 *)(&data2Write),	
+					len,				
+					0,					
+					1);					
          		}
 			break;
-			case HW_THREE_WIRE_PI: //Parallel Interface
-			{ // Pure HW 3-wire.
+			case HW_THREE_WIRE_PI: 
+			{ 
 				data2Write = (data << 4) | (u32)(offset & 0x0f);
 				len = 16;
 					HwHSSIThreeWire(
 						dev,
-						(u8*)(&data2Write),	// pDataBuf,
-						len,						// nDataBufBitCnt,
-						0, 					// bSI
-						1); 					// bWrite
+						(u8*)(&data2Write),	
+						len,						
+						0, 					
+						1); 					
 
-                                //printk("33333\n");
+                                
 			}
 			break;
 
-			case HW_THREE_WIRE_SI: //Serial Interface
-			{ // Pure HW 3-wire.
+			case HW_THREE_WIRE_SI: 
+			{ 
 				data2Write = (data << 4) | (u32)(offset & 0x0f);
 				len = 16;
-//                                printk(" enter  ZEBRA_RFSerialWrite\n ");
-//                                low2high = 0;
-//                                ZEBRA_RFSerialWrite(dev, data2Write, len, low2high);
+
+
+
 
 				HwHSSIThreeWire(
 					dev,
-					(u8*)(&data2Write),	// pDataBuf,
-					len,						// nDataBufBitCnt,
-					1, 					// bSI
-					1); 					// bWrite
+					(u8*)(&data2Write),	
+					len,						
+					1, 					
+					1); 					
 
-//                                 printk(" exit ZEBRA_RFSerialWrite\n ");
+
 			}
 			break;
 
@@ -709,10 +688,10 @@ ZEBRA_RFSerialRead(
 	u32			mask;
 	u8			u1bTmp;
 	ThreeWireReg	tdata;
-	//PHAL_DATA_8187	pHalData = GetHalData8187(pAdapter);
-	{ // RTL8187S HSSI Read/Write Function
+	
+	{ 
 		u1bTmp = read_nic_byte(dev, RF_SW_CONFIG);
-		u1bTmp |=   RF_SW_CFG_SI;   //reg08[1]=1 Serial Interface(SI)
+		u1bTmp |=   RF_SW_CFG_SI;   
 		write_nic_byte(dev, RF_SW_CONFIG, u1bTmp);
 	}
 
@@ -725,12 +704,12 @@ ZEBRA_RFSerialRead(
 
 	*data2Read = 0;
 
-	// We must clear BIT0-3 here, otherwise,
-	// SW_Enalbe will be true when we first call ZEBRA_RFSerialRead() after 8187MPVC open,
-	// which will cause the value read become 0. 2005.04.11, by rcnjko.
+	
+	
+	
 	oval &= ~0xf;
 
-	// Avoid collision with hardware three-wire.
+	
 	twreg.longData = 0;
 	twreg.struc.enableB = 1;
 	write_nic_word(dev, RFPinsOutput, twreg.longData|oval); udelay(4);
@@ -754,9 +733,9 @@ ZEBRA_RFSerialRead(
 
 		if(i == 2)
 		{
-			// Commented out by Jackie, 2004.08.26. <RJ_NOTE> We must comment out the following two lines for we cannot pull down VCOPDN during RF Serail Read.
-			//PlatformEFIOWrite2Byte(pAdapter, RFPinsEnable, 0xe);     // turn off data enable
-			//PlatformEFIOWrite2Byte(pAdapter, RFPinsSelect, 0xe);
+			
+			
+			
 
 			twreg.struc.read_write=1;
 			write_nic_word(dev, RFPinsOutput, twreg.longData|oval); udelay(2);
@@ -779,11 +758,11 @@ ZEBRA_RFSerialRead(
 	write_nic_word(dev, RFPinsOutput, twreg.longData|oval); udelay(2);
 	mask = (low2high) ? 0x01 : ((u32)0x01 << (12-1));
 
-	//
-	// 061016, by rcnjko:
-	// We must set data pin to HW controled, otherwise RF can't driver it and
-	// value RF register won't be able to read back properly.
-	//
+	
+	
+	
+	
+	
 	write_nic_word(dev, RFPinsEnable, ( ((oval2|0x0E) & (~0x01))) );
 
 	for(i = 0; i < rLength; i++)
@@ -808,13 +787,13 @@ ZEBRA_RFSerialRead(
 	twreg.struc.read_write = 1;
 	write_nic_word(dev, RFPinsOutput, twreg.longData|oval); udelay(2);
 
-	//PlatformEFIOWrite2Byte(pAdapter, RFPinsEnable, oval2|0x8);   // Set To Output Enable
-	write_nic_word(dev, RFPinsEnable, oval2);   // Set To Output Enable, <RJ_NOTE> We cannot enable BIT3 here, otherwise, we will failed to switch channel. 2005.04.12.
-	//PlatformEFIOWrite2Byte(pAdapter, RFPinsEnable, 0x1bff);
-	write_nic_word(dev, RFPinsSelect, oval3);   // Set To SW Switch
-	//PlatformEFIOWrite2Byte(pAdapter, RFPinsSelect, 0x0488);
+	
+	write_nic_word(dev, RFPinsEnable, oval2);   
+	
+	write_nic_word(dev, RFPinsSelect, oval3);   
+	
 	write_nic_word(dev, RFPinsOutput, 0x3a0);
-	//PlatformEFIOWrite2Byte(pAdapter, RFPinsOutput, 0x0480);
+	
 }
 
 
@@ -838,39 +817,39 @@ RF_ReadReg(
 	case RF_ZEBRA4:
 		switch(priv->RegThreeWireMode)
 		{
-			case HW_THREE_WIRE_PI: // For 87S  Parallel Interface.
+			case HW_THREE_WIRE_PI: 
 			{
 				data2Write = ((u32)(offset&0x0f));
 				wlen=16;
 				HwHSSIThreeWire(
 					dev,
-					(u8*)(&data2Write),	// pDataBuf,
-					wlen,					// nDataBufBitCnt,
-					0, 					// bSI
-					0); 					// bWrite
+					(u8*)(&data2Write),	
+					wlen,					
+					0, 					
+					0); 					
 				dataRead= data2Write;
 			}
 			break;
 
-			case HW_THREE_WIRE_SI: // For 87S Serial Interface.
+			case HW_THREE_WIRE_SI: 
 			{
 				data2Write = ((u32)(offset&0x0f)) ;
 				wlen=16;
 				HwHSSIThreeWire(
 					dev,
-					(u8*)(&data2Write),	// pDataBuf,
-					wlen,					// nDataBufBitCnt,
-					1, 					// bSI
-					0					// bWrite
+					(u8*)(&data2Write),	
+					wlen,					
+					1, 					
+					0					
 					);
 				dataRead= data2Write;
 			}
 			break;
 
-			// Perform SW 3-wire programming by driver.
+			
 			default:
 			{
-				data2Write = ((u32)(offset&0x1f)) << 27; // For Zebra E-cut. 2005.04.11, by rcnjko.
+				data2Write = ((u32)(offset&0x1f)) << 27; 
 				wlen = 6;
 				rlen = 12;
 				low2high = 0;
@@ -888,25 +867,25 @@ RF_ReadReg(
 }
 
 
-// by Owen on 04/07/14 for writing BB register successfully
+
 void
 WriteBBPortUchar(
 	struct net_device *dev,
 	u32		Data
 	)
 {
-	//u8	TimeoutCounter;
+	
 	u8	RegisterContent;
 	u8	UCharData;
 
 	UCharData = (u8)((Data & 0x0000ff00) >> 8);
 	PlatformIOWrite4Byte(dev, PhyAddr, Data);
-	//for(TimeoutCounter = 10; TimeoutCounter > 0; TimeoutCounter--)
+	
 	{
 		PlatformIOWrite4Byte(dev, PhyAddr, Data & 0xffffff7f);
 		RegisterContent = PlatformIORead1Byte(dev, PhyDataR);
-		//if(UCharData == RegisterContent)
-		//	break;
+		
+		
 	}
 }
 
@@ -916,7 +895,7 @@ ReadBBPortUchar(
 	u32		addr
 	)
 {
-	//u8	TimeoutCounter;
+	
 	u8	RegisterContent;
 
 	PlatformIOWrite4Byte(dev, PhyAddr, addr & 0xffffff7f);
@@ -924,93 +903,90 @@ ReadBBPortUchar(
 
 	return RegisterContent;
 }
-//{by amy 080312
-//
-//	Description:
-//		Perform Antenna settings with antenna diversity on 87SE.
-//    Created by Roger, 2008.01.25.
-//
+
+
+
+
+
+
 bool
 SetAntennaConfig87SE(
 	struct net_device *dev,
-	u8			DefaultAnt,		// 0: Main, 1: Aux.
-	bool		bAntDiversity 	// 1:Enable, 0: Disable.
+	u8			DefaultAnt,		
+	bool		bAntDiversity 	
 )
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 	bool   bAntennaSwitched = true;
 
-	//printk("SetAntennaConfig87SE(): DefaultAnt(%d), bAntDiversity(%d)\n", DefaultAnt, bAntDiversity);
+	
 
-	// Threshold for antenna diversity.
-	write_phy_cck(dev, 0x0c, 0x09); // Reg0c : 09
+	
+	write_phy_cck(dev, 0x0c, 0x09); 
 
-	if( bAntDiversity )  //  Enable Antenna Diversity.
+	if( bAntDiversity )  
 	{
-		if( DefaultAnt == 1 )  // aux antenna
+		if( DefaultAnt == 1 )  
 		{
-			// Mac register, aux antenna
+			
 			write_nic_byte(dev, ANTSEL, 0x00);
 
-			// Config CCK RX antenna.
-			write_phy_cck(dev, 0x11, 0xbb); // Reg11 : bb
-			write_phy_cck(dev, 0x01, 0xc7); // Reg01 : c7
+			
+			write_phy_cck(dev, 0x11, 0xbb); 
+			write_phy_cck(dev, 0x01, 0xc7); 
 
-			// Config OFDM RX antenna.
-			write_phy_ofdm(dev, 0x0D, 0x54);   // Reg0d : 54
-			write_phy_ofdm(dev, 0x18, 0xb2);  // Reg18 : b2
+			
+			write_phy_ofdm(dev, 0x0D, 0x54);   
+			write_phy_ofdm(dev, 0x18, 0xb2);  
 		}
-		else //  use main antenna
+		else 
 		{
-			// Mac register, main antenna
+			
 			write_nic_byte(dev, ANTSEL, 0x03);
-			//base band
-			// Config CCK RX antenna.
-			write_phy_cck(dev, 0x11, 0x9b); // Reg11 : 9b
-			write_phy_cck(dev, 0x01, 0xc7); // Reg01 : c7
+			
+			
+			write_phy_cck(dev, 0x11, 0x9b); 
+			write_phy_cck(dev, 0x01, 0xc7); 
 
-			// Config OFDM RX antenna.
-			write_phy_ofdm(dev, 0x0d, 0x5c);   // Reg0d : 5c
-			write_phy_ofdm(dev, 0x18, 0xb2);  // Reg18 : b2
+			
+			write_phy_ofdm(dev, 0x0d, 0x5c);   
+			write_phy_ofdm(dev, 0x18, 0xb2);  
 		}
 	}
-	else   // Disable Antenna Diversity.
+	else   
 	{
-		if( DefaultAnt == 1 ) // aux Antenna
+		if( DefaultAnt == 1 ) 
 		{
-			// Mac register, aux antenna
+			
 			write_nic_byte(dev, ANTSEL, 0x00);
 
-			// Config CCK RX antenna.
-			write_phy_cck(dev, 0x11, 0xbb); // Reg11 : bb
-			write_phy_cck(dev, 0x01, 0x47); // Reg01 : 47
+			
+			write_phy_cck(dev, 0x11, 0xbb); 
+			write_phy_cck(dev, 0x01, 0x47); 
 
-			// Config OFDM RX antenna.
-			write_phy_ofdm(dev, 0x0D, 0x54);   // Reg0d : 54
-			write_phy_ofdm(dev, 0x18, 0x32);  // Reg18 : 32
+			
+			write_phy_ofdm(dev, 0x0D, 0x54);   
+			write_phy_ofdm(dev, 0x18, 0x32);  
 		}
-		else // main Antenna
+		else 
 		{
-			// Mac register, main antenna
+			
 			write_nic_byte(dev, ANTSEL, 0x03);
 
-			// Config CCK RX antenna.
-			write_phy_cck(dev, 0x11, 0x9b); // Reg11 : 9b
-			write_phy_cck(dev, 0x01, 0x47); // Reg01 : 47
+			
+			write_phy_cck(dev, 0x11, 0x9b); 
+			write_phy_cck(dev, 0x01, 0x47); 
 
-			// Config OFDM RX antenna.
-			write_phy_ofdm(dev, 0x0D, 0x5c);   // Reg0d : 5c
-			write_phy_ofdm(dev, 0x18, 0x32);  // Reg18 : 32
+			
+			write_phy_ofdm(dev, 0x0D, 0x5c);   
+			write_phy_ofdm(dev, 0x18, 0x32);  
 		}
 	}
-	priv->CurrAntennaIndex = DefaultAnt; // Update default settings.
+	priv->CurrAntennaIndex = DefaultAnt; 
 	return	bAntennaSwitched;
 }
-//by amy 080312
-/*---------------------------------------------------------------
-  * Hardware Initialization.
-  * the code is ported from Windows source code
-  ----------------------------------------------------------------*/
+
+
 
 void
 ZEBRA_Config_85BASIC_HardCode(
@@ -1025,31 +1001,31 @@ ZEBRA_Config_85BASIC_HardCode(
        u8			u1b24E;
 
 
-	//=============================================================================
-	// 87S_PCIE :: RADIOCFG.TXT
-	//=============================================================================
+	
+	
+	
 
 
-	// Page1 : reg16-reg30
-	RF_WriteReg(dev, 0x00, 0x013f);			mdelay(1); // switch to page1
+	
+	RF_WriteReg(dev, 0x00, 0x013f);			mdelay(1); 
 	u4bRF23= RF_ReadReg(dev, 0x08);			mdelay(1);
 	u4bRF24= RF_ReadReg(dev, 0x09);			mdelay(1);
 
 	if (u4bRF23==0x818 && u4bRF24==0x70C && priv->card_8185 == VERSION_8187S_C)
 		priv->card_8185 = VERSION_8187S_D;
 
-	// Page0 : reg0-reg15
+	
 
-//	RF_WriteReg(dev, 0x00, 0x003f);			mdelay(1);//1
-	RF_WriteReg(dev, 0x00, 0x009f);      	mdelay(1);// 1
+
+	RF_WriteReg(dev, 0x00, 0x009f);      	mdelay(1);
 
 	RF_WriteReg(dev, 0x01, 0x06e0);			mdelay(1);
 
-//	RF_WriteReg(dev, 0x02, 0x004c);			mdelay(1);//2
-	RF_WriteReg(dev, 0x02, 0x004d);			mdelay(1);// 2
 
-//	RF_WriteReg(dev, 0x03, 0x0000);			mdelay(1);//3
-	RF_WriteReg(dev, 0x03, 0x07f1);			mdelay(1);// 3
+	RF_WriteReg(dev, 0x02, 0x004d);			mdelay(1);
+
+
+	RF_WriteReg(dev, 0x03, 0x07f1);			mdelay(1);
 
 	RF_WriteReg(dev, 0x04, 0x0975);			mdelay(1);
 	RF_WriteReg(dev, 0x05, 0x0c72);			mdelay(1);
@@ -1065,7 +1041,7 @@ ZEBRA_Config_85BASIC_HardCode(
 	RF_WriteReg(dev, 0x0f, 0x0990);			mdelay(1);
 
 
-	// Page1 : reg16-reg30
+	
 	RF_WriteReg(dev, 0x00, 0x013f);			mdelay(1);
 
 	RF_WriteReg(dev, 0x03, 0x0806);			mdelay(1);
@@ -1085,9 +1061,9 @@ ZEBRA_Config_85BASIC_HardCode(
 
 
 	RF_WriteReg(dev, 0x07, 0x01A0);			mdelay(1);
-// Don't write RF23/RF24 to make a difference between 87S C cut and D cut. asked by SD3 stevenl.
-//	RF_WriteReg(dev, 0x08, 0x0597);			mdelay(1);
-//	RF_WriteReg(dev, 0x09, 0x050a);			mdelay(1);
+
+
+
 	RF_WriteReg(dev, 0x0a, 0x0001);			mdelay(1);
 	RF_WriteReg(dev, 0x0b, 0x0418);			mdelay(1);
 
@@ -1095,19 +1071,19 @@ ZEBRA_Config_85BASIC_HardCode(
 	{
 		RF_WriteReg(dev, 0x0c, 0x0fbe);			mdelay(1);
 		RF_WriteReg(dev, 0x0d, 0x0008);			mdelay(1);
-		RF_WriteReg(dev, 0x0e, 0x0807);			mdelay(1); // RX LO buffer
+		RF_WriteReg(dev, 0x0e, 0x0807);			mdelay(1); 
 	}
 	else
 	{
 		RF_WriteReg(dev, 0x0c, 0x0fbe);			mdelay(1);
 		RF_WriteReg(dev, 0x0d, 0x0008);			mdelay(1);
-		RF_WriteReg(dev, 0x0e, 0x0806);			mdelay(1); // RX LO buffer
+		RF_WriteReg(dev, 0x0e, 0x0806);			mdelay(1); 
 	}
 
 	RF_WriteReg(dev, 0x0f, 0x0acc);			mdelay(1);
 
-//	RF_WriteReg(dev, 0x00, 0x017f);			mdelay(1);//6
-	RF_WriteReg(dev, 0x00, 0x01d7);			mdelay(1);// 6
+
+	RF_WriteReg(dev, 0x00, 0x01d7);			mdelay(1);
 
 	RF_WriteReg(dev, 0x03, 0x0e00);			mdelay(1);
 	RF_WriteReg(dev, 0x04, 0x0e50);			mdelay(1);
@@ -1115,98 +1091,92 @@ ZEBRA_Config_85BASIC_HardCode(
 	{
 		RF_WriteReg(dev, 0x01, i);                     mdelay(1);
 		RF_WriteReg(dev, 0x02, ZEBRA_RF_RX_GAIN_TABLE[i]); mdelay(1);
-		//DbgPrint("RF - 0x%x = 0x%x", i, ZEBRA_RF_RX_GAIN_TABLE[i]);
+		
 	}
 
-	RF_WriteReg(dev, 0x05, 0x0203);			mdelay(1); 	/// 203, 343
-	//RF_WriteReg(dev, 0x06, 0x0300);			mdelay(1);	// 400
-	RF_WriteReg(dev, 0x06, 0x0200);			mdelay(1);	// 400
+	RF_WriteReg(dev, 0x05, 0x0203);			mdelay(1); 	
+	
+	RF_WriteReg(dev, 0x06, 0x0200);			mdelay(1);	
 
-	RF_WriteReg(dev, 0x00, 0x0137);			mdelay(1);	// switch to reg16-reg30, and HSSI disable 137
-	mdelay(10); 	// Deay 10 ms. //0xfd
+	RF_WriteReg(dev, 0x00, 0x0137);			mdelay(1);	
+	mdelay(10); 	
 
-//	RF_WriteReg(dev, 0x0c, 0x09be);			mdelay(1);	// 7
-	//RF_WriteReg(dev, 0x0c, 0x07be);			mdelay(1);
-	//mdelay(10); 	// Deay 10 ms. //0xfd
 
-	RF_WriteReg(dev, 0x0d, 0x0008);			mdelay(1);	// Z4 synthesizer loop filter setting, 392
-	mdelay(10); 	// Deay 10 ms. //0xfd
+	
+	
 
-	RF_WriteReg(dev, 0x00, 0x0037);			mdelay(1);	// switch to reg0-reg15, and HSSI disable
-	mdelay(10); 	// Deay 10 ms. //0xfd
+	RF_WriteReg(dev, 0x0d, 0x0008);			mdelay(1);	
+	mdelay(10); 	
 
-	RF_WriteReg(dev, 0x04, 0x0160);			mdelay(1); 	// CBC on, Tx Rx disable, High gain
-	mdelay(10); 	// Deay 10 ms. //0xfd
+	RF_WriteReg(dev, 0x00, 0x0037);			mdelay(1);	
+	mdelay(10); 	
 
-	RF_WriteReg(dev, 0x07, 0x0080);			mdelay(1);	// Z4 setted channel 1
-	mdelay(10); 	// Deay 10 ms. //0xfd
+	RF_WriteReg(dev, 0x04, 0x0160);			mdelay(1); 	
+	mdelay(10); 	
 
-	RF_WriteReg(dev, 0x02, 0x088D);			mdelay(1);	// LC calibration
-	mdelay(200); 	// Deay 200 ms. //0xfd
-	mdelay(10); 	// Deay 10 ms. //0xfd
-	mdelay(10); 	// Deay 10 ms. //0xfd
+	RF_WriteReg(dev, 0x07, 0x0080);			mdelay(1);	
+	mdelay(10); 	
 
-	RF_WriteReg(dev, 0x00, 0x0137);			mdelay(1);	// switch to reg16-reg30 137, and HSSI disable 137
-	mdelay(10); 	// Deay 10 ms. //0xfd
+	RF_WriteReg(dev, 0x02, 0x088D);			mdelay(1);	
+	mdelay(200); 	
+	mdelay(10); 	
+	mdelay(10); 	
+
+	RF_WriteReg(dev, 0x00, 0x0137);			mdelay(1);	
+	mdelay(10); 	
 
 	RF_WriteReg(dev, 0x07, 0x0000);			mdelay(1);
 	RF_WriteReg(dev, 0x07, 0x0180);			mdelay(1);
 	RF_WriteReg(dev, 0x07, 0x0220);			mdelay(1);
 	RF_WriteReg(dev, 0x07, 0x03E0);			mdelay(1);
 
-	// DAC calibration off 20070702
+	
 	RF_WriteReg(dev, 0x06, 0x00c1);			mdelay(1);
 	RF_WriteReg(dev, 0x0a, 0x0001);			mdelay(1);
-//{by amy 080312
-	// For crystal calibration, added by Roger, 2007.12.11.
-	if( priv->bXtalCalibration ) // reg 30.
-	{ // enable crystal calibration.
-		// RF Reg[30], (1)Xin:[12:9], Xout:[8:5],  addr[4:0].
-		// (2)PA Pwr delay timer[15:14], default: 2.4us, set BIT15=0
-		// (3)RF signal on/off when calibration[13], default: on, set BIT13=0.
-		// So we should minus 4 BITs offset.
+
+	
+	if( priv->bXtalCalibration ) 
+	{ 
+		
+		
+		
+		
 		RF_WriteReg(dev, 0x0f, (priv->XtalCal_Xin<<5)|(priv->XtalCal_Xout<<1)|BIT11|BIT9);			mdelay(1);
 		printk("ZEBRA_Config_85BASIC_HardCode(): (%02x)\n",
 				(priv->XtalCal_Xin<<5) | (priv->XtalCal_Xout<<1) | BIT11| BIT9);
 	}
 	else
-	{ // using default value. Xin=6, Xout=6.
+	{ 
 		RF_WriteReg(dev, 0x0f, 0x0acc);			mdelay(1);
 	}
-//by amy 080312
-//	RF_WriteReg(dev, 0x0f, 0x0acc);			mdelay(1);  //-by amy 080312
 
-	RF_WriteReg(dev, 0x00, 0x00bf);			mdelay(1); // switch to reg0-reg15, and HSSI enable
-//	RF_WriteReg(dev, 0x0d, 0x009f);			mdelay(1); // Rx BB start calibration, 00c//-edward
-	RF_WriteReg(dev, 0x0d, 0x08df);			mdelay(1); // Rx BB start calibration, 00c//+edward
-	RF_WriteReg(dev, 0x02, 0x004d);			mdelay(1); // temperature meter off
-	RF_WriteReg(dev, 0x04, 0x0975);			mdelay(1); // Rx mode
-	mdelay(10);	// Deay 10 ms. //0xfe
-	mdelay(10);	// Deay 10 ms. //0xfe
-	mdelay(10);	// Deay 10 ms. //0xfe
-	RF_WriteReg(dev, 0x00, 0x0197);			mdelay(1); // Rx mode//+edward
-	RF_WriteReg(dev, 0x05, 0x05ab);			mdelay(1); // Rx mode//+edward
-	RF_WriteReg(dev, 0x00, 0x009f);			mdelay(1); // Rx mode//+edward
 
-	RF_WriteReg(dev, 0x01, 0x0000);			mdelay(1); // Rx mode//+edward
-	RF_WriteReg(dev, 0x02, 0x0000);			mdelay(1); // Rx mode//+edward
-	//power save parameters.
+
+	RF_WriteReg(dev, 0x00, 0x00bf);			mdelay(1); 
+
+	RF_WriteReg(dev, 0x0d, 0x08df);			mdelay(1); 
+	RF_WriteReg(dev, 0x02, 0x004d);			mdelay(1); 
+	RF_WriteReg(dev, 0x04, 0x0975);			mdelay(1); 
+	mdelay(10);	
+	mdelay(10);	
+	mdelay(10);	
+	RF_WriteReg(dev, 0x00, 0x0197);			mdelay(1); 
+	RF_WriteReg(dev, 0x05, 0x05ab);			mdelay(1); 
+	RF_WriteReg(dev, 0x00, 0x009f);			mdelay(1); 
+
+	RF_WriteReg(dev, 0x01, 0x0000);			mdelay(1); 
+	RF_WriteReg(dev, 0x02, 0x0000);			mdelay(1); 
+	
 	u1b24E = read_nic_byte(dev, 0x24E);
 	write_nic_byte(dev, 0x24E, (u1b24E & (~(BIT5|BIT6))));
 
-	//=============================================================================
+	
 
-	//=============================================================================
-	// CCKCONF.TXT
-	//=============================================================================
+	
+	
+	
 
-	/*	[POWER SAVE] Power Saving Parameters by jong. 2007-11-27
-	   	CCK reg0x00[7]=1'b1 :power saving for TX (default)
-		CCK reg0x00[6]=1'b1: power saving for RX (default)
-		CCK reg0x06[4]=1'b1: turn off channel estimation related circuits if not doing channel estimation.
-		CCK reg0x06[3]=1'b1: turn off unused circuits before cca = 1
-		CCK reg0x06[2]=1'b1: turn off cck's circuit if macrst =0
-	*/
+	
 
 	write_phy_cck(dev,0x00,0xc8);
 	write_phy_cck(dev,0x06,0x1c);
@@ -1215,30 +1185,30 @@ ZEBRA_Config_85BASIC_HardCode(
 	write_phy_cck(dev,0x2f,0x06);
 	write_phy_cck(dev,0x01,0x46);
 
-	// power control
+	
 	write_nic_byte(dev, CCK_TXAGC, 0x10);
 	write_nic_byte(dev, OFDM_TXAGC, 0x1B);
 	write_nic_byte(dev, ANTSEL, 0x03);
 
 
 
-	//=============================================================================
-	// AGC.txt
-	//=============================================================================
+	
+	
+	
 
-//	PlatformIOWrite4Byte( dev, PhyAddr, 0x00001280);	// Annie, 2006-05-05
+
 	write_phy_ofdm(dev, 0x00, 0x12);
-	//WriteBBPortUchar(dev, 0x00001280);
+	
 
 	for (i=0; i<128; i++)
 	{
-		//DbgPrint("AGC - [%x+1] = 0x%x\n", i, ZEBRA_AGC[i+1]);
+		
 
 		data = ZEBRA_AGC[i+1];
 		data = data << 8;
 		data = data | 0x0000008F;
 
-		addr = i + 0x80; //enable writing AGC table
+		addr = i + 0x80; 
 		addr = addr << 8;
 		addr = addr | 0x0000008E;
 
@@ -1247,21 +1217,21 @@ ZEBRA_Config_85BASIC_HardCode(
 		WriteBBPortUchar(dev, 0x0000008E);
 	}
 
-	PlatformIOWrite4Byte( dev, PhyAddr, 0x00001080);	// Annie, 2006-05-05
-	//WriteBBPortUchar(dev, 0x00001080);
+	PlatformIOWrite4Byte( dev, PhyAddr, 0x00001080);	
+	
 
-	//=============================================================================
+	
 
-	//=============================================================================
-	// OFDMCONF.TXT
-	//=============================================================================
+	
+	
+	
 
 	for(i=0; i<60; i++)
 	{
 		u4bRegOffset=i;
 		u4bRegValue=OFDM_CONFIG[i];
 
-		//DbgPrint("OFDM - 0x%x = 0x%x\n", u4bRegOffset, u4bRegValue);
+		
 
 		WriteBBPortUchar(dev,
 						(0x00000080 |
@@ -1269,14 +1239,14 @@ ZEBRA_Config_85BASIC_HardCode(
 						((u4bRegValue & 0xff) << 8)));
 	}
 
-	//=============================================================================
-//by amy for antenna
-	//=============================================================================
-//{by amy 080312
-	// Config Sw/Hw  Combinational Antenna Diversity. Added by Roger, 2008.02.26.
+	
+
+	
+
+	
 	SetAntennaConfig87SE(dev, priv->bDefaultAntenna1, priv->bSwAntennaDiverity);
-//by amy 080312}
-//by amy for antenna
+
+
 }
 
 
@@ -1286,16 +1256,16 @@ UpdateInitialGain(
 	)
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
-	//unsigned char* IGTable;
-	//u8			DIG_CurrentInitialGain = 4;
-	//unsigned char u1Tmp;
+	
+	
+	
 
-	//lzm add 080826
+	
 	if(priv->eRFPowerState != eRfOn)
 	{
-		//Don't access BB/RF under disable PLL situation.
-		//RT_TRACE(COMP_DIG, DBG_LOUD, ("UpdateInitialGain - pHalData->eRFPowerState!=eRfOn\n"));
-		// Back to the original state
+		
+		
+		
 		priv->InitialGain= priv->InitialGainBackUp;
 		return;
 	}
@@ -1303,68 +1273,68 @@ UpdateInitialGain(
 	switch(priv->rf_chip)
 	{
 	case RF_ZEBRA4:
-		// Dynamic set initial gain, follow 87B
+		
 		switch(priv->InitialGain)
 		{
-			case 1: //m861dBm
-				//DMESG("RTL8187 + 8225 Initial Gain State 1: -82 dBm \n");
+			case 1: 
+				
 				write_phy_ofdm(dev, 0x17, 0x26);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0x86);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfa);	mdelay(1);
 				break;
 
-			case 2: //m862dBm
-				//DMESG("RTL8187 + 8225 Initial Gain State 2: -82 dBm \n");
+			case 2: 
+				
 				write_phy_ofdm(dev, 0x17, 0x36);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0x86);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfa);	mdelay(1);
 				break;
 
-			case 3: //m863dBm
-				//DMESG("RTL8187 + 8225 Initial Gain State 3: -82 dBm \n");
+			case 3: 
+				
 				write_phy_ofdm(dev, 0x17, 0x36);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0x86);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfb);	mdelay(1);
 				break;
 
-			case 4: //m864dBm
-				//DMESG("RTL8187 + 8225 Initial Gain State 4: -78 dBm \n");
+			case 4: 
+				
 				write_phy_ofdm(dev, 0x17, 0x46);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0x86);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfb);	mdelay(1);
 				break;
 
-			case 5: //m82dBm
-				//DMESG("RTL8187 + 8225 Initial Gain State 5: -74 dBm \n");
+			case 5: 
+				
 				write_phy_ofdm(dev, 0x17, 0x46);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0x96);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfb);	mdelay(1);
 				break;
 
-			case 6: //m78dBm
-				//DMESG ("RTL8187 + 8225 Initial Gain State 6: -70 dBm \n");
+			case 6: 
+				
 				write_phy_ofdm(dev, 0x17, 0x56);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0x96);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfc);	mdelay(1);
 				break;
 
-			case 7: //m74dBm
-				//DMESG("RTL8187 + 8225 Initial Gain State 7: -66 dBm \n");
+			case 7: 
+				
 				write_phy_ofdm(dev, 0x17, 0x56);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0xa6);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfc);	mdelay(1);
 				break;
 
 			case 8:
-				//DMESG("RTL8187 + 8225 Initial Gain State 8:\n");
+				
 				write_phy_ofdm(dev, 0x17, 0x66);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0xb6);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfc);	mdelay(1);
 				break;
 
 
-			default:	//MP
-				//DMESG("RTL8187 + 8225 Initial Gain State 1: -82 dBm (default)\n");
+			default:	
+				
 				write_phy_ofdm(dev, 0x17, 0x26);	mdelay(1);
 				write_phy_ofdm(dev, 0x24, 0x86);	mdelay(1);
 				write_phy_ofdm(dev, 0x05, 0xfa);	mdelay(1);
@@ -1378,23 +1348,23 @@ UpdateInitialGain(
 		break;
 	}
 }
-//
-//	Description:
-//		Tx Power tracking mechanism routine on 87SE.
-// 	Created by Roger, 2007.12.11.
-//
+
+
+
+
+
 void
 InitTxPwrTracking87SE(
 	struct net_device *dev
 )
 {
-	//struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
+	
 	u32	u4bRfReg;
 
 	u4bRfReg = RF_ReadReg(dev, 0x02);
 
-	// Enable Thermal meter indication.
-	//printk("InitTxPwrTracking87SE(): Enable thermal meter indication, Write RF[0x02] = %#x", u4bRfReg|PWR_METER_EN);
+	
+	
 	RF_WriteReg(dev, 0x02, u4bRfReg|PWR_METER_EN);			mdelay(1);
 }
 
@@ -1406,7 +1376,7 @@ PhyConfig8185(
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
        write_nic_dword(dev, RCR, priv->ReceiveConfig);
 	   priv->RFProgType = read_nic_byte(dev, CONFIG4) & 0x03;
-     	// RF config
+     	
 	switch(priv->rf_chip)
 	{
 	case RF_ZEBRA2:
@@ -1414,24 +1384,24 @@ PhyConfig8185(
 		ZEBRA_Config_85BASIC_HardCode( dev);
 		break;
 	}
-//{by amy 080312
-	// Set default initial gain state to 4, approved by SD3 DZ, by Bruce, 2007-06-06.
+
+	
 	if(priv->bDigMechanism)
 	{
 		if(priv->InitialGain == 0)
 			priv->InitialGain = 4;
-		//printk("PhyConfig8185(): DIG is enabled, set default initial gain index to %d\n", priv->InitialGain);
+		
 	}
 
-	//
-	// Enable thermal meter indication to implement TxPower tracking on 87SE.
-	// We initialize thermal meter here to avoid unsuccessful configuration.
-	// Added by Roger, 2007.12.11.
-	//
+	
+	
+	
+	
+	
 	if(priv->bTxPowerTrack)
 		InitTxPwrTracking87SE(dev);
 
-//by amy 080312}
+
 	priv->InitialGainBackUp= priv->InitialGain;
 	UpdateInitialGain(dev);
 
@@ -1446,28 +1416,28 @@ HwConfigureRTL8185(
 		struct net_device *dev
 		)
 {
-	//RTL8185_TODO: Determine Retrylimit, TxAGC, AutoRateFallback control.
-//	u8		bUNIVERSAL_CONTROL_RL = 1;
+	
+
         u8              bUNIVERSAL_CONTROL_RL = 0;
 
 	u8		bUNIVERSAL_CONTROL_AGC = 1;
 	u8		bUNIVERSAL_CONTROL_ANT = 1;
 	u8		bAUTO_RATE_FALLBACK_CTL = 1;
 	u8		val8;
-	//struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
-	//struct ieee80211_device *ieee = priv->ieee80211;
-      	//if(IS_WIRELESS_MODE_A(dev) || IS_WIRELESS_MODE_G(dev))
-//{by amy 080312	if((ieee->mode == IEEE_G)||(ieee->mode == IEEE_A))
-//	{
-//		write_nic_word(dev, BRSR, 0xffff);
-//	}
-//	else
-//	{
-//		write_nic_word(dev, BRSR, 0x000f);
-//	}
-//by amy 080312}
+	
+	
+      	
+
+
+
+
+
+
+
+
+
         write_nic_word(dev, BRSR, 0x0fff);
-	// Retry limit
+	
 	val8 = read_nic_byte(dev, CW_CONF);
 
 	if(bUNIVERSAL_CONTROL_RL)
@@ -1477,7 +1447,7 @@ HwConfigureRTL8185(
 
 	write_nic_byte(dev, CW_CONF, val8);
 
-	// Tx AGC
+	
 	val8 = read_nic_byte(dev, TXAGC_CTL);
 	if(bUNIVERSAL_CONTROL_AGC)
 	{
@@ -1493,7 +1463,7 @@ HwConfigureRTL8185(
 
 	write_nic_byte(dev, TXAGC_CTL, val8);
 
-	// Tx Antenna including Feedback control
+	
 	val8 = read_nic_byte(dev, TXAGC_CTL );
 
 	if(bUNIVERSAL_CONTROL_ANT)
@@ -1503,24 +1473,24 @@ HwConfigureRTL8185(
 	}
 	else
 	{
-		val8 = val8 & (val8|0x02); //xiong-2006-11-15
+		val8 = val8 & (val8|0x02); 
 	}
 
 	write_nic_byte(dev, TXAGC_CTL, val8);
 
-	// Auto Rate fallback control
+	
 	val8 = read_nic_byte(dev, RATE_FALLBACK);
 	val8 &= 0x7c;
 	if( bAUTO_RATE_FALLBACK_CTL )
 	{
 		val8 |= RATE_FALLBACK_CTL_ENABLE | RATE_FALLBACK_CTL_AUTO_STEP1;
 
-		// <RJ_TODO_8185B> We shall set up the ARFR according to user's setting.
-		//write_nic_word(dev, ARFR, 0x0fff); // set 1M ~ 54M
-//by amy
-	        // Aadded by Roger, 2007.11.15.
-	        PlatformIOWrite2Byte(dev, ARFR, 0x0fff); //set 1M ~ 54Mbps.
-//by amy
+		
+		
+
+	        
+	        PlatformIOWrite2Byte(dev, ARFR, 0x0fff); 
+
 	}
 	else
 	{
@@ -1534,9 +1504,9 @@ static void
 MacConfig_85BASIC_HardCode(
 	struct net_device *dev)
 {
-	//============================================================================
-	// MACREG.TXT
-	//============================================================================
+	
+	
+	
 	int			nLinesRead = 0;
 
 	u32	u4bRegOffset, u4bRegValue,u4bPageIndex = 0;
@@ -1544,7 +1514,7 @@ MacConfig_85BASIC_HardCode(
 
 	nLinesRead=sizeof(MAC_REG_TABLE)/2;
 
-	for(i = 0; i < nLinesRead; i++)  //nLinesRead=101
+	for(i = 0; i < nLinesRead; i++)  
 	{
 		u4bRegOffset=MAC_REG_TABLE[i][0];
 		u4bRegValue=MAC_REG_TABLE[i][1];
@@ -1557,10 +1527,10 @@ MacConfig_85BASIC_HardCode(
                 {
                     u4bRegOffset |= (u4bPageIndex << 8);
                 }
-                //DbgPrint("MAC - 0x%x = 0x%x\n", u4bRegOffset, u4bRegValue);
+                
 		write_nic_byte(dev, u4bRegOffset, (u8)u4bRegValue);
 	}
-	//============================================================================
+	
 }
 
 
@@ -1573,33 +1543,33 @@ MacConfig_85BASIC(
        u8			u1DA;
 	MacConfig_85BASIC_HardCode(dev);
 
-	//============================================================================
+	
 
-	// Follow TID_AC_MAP of WMac.
+	
 	write_nic_word(dev, TID_AC_MAP, 0xfa50);
 
-	// Interrupt Migration, Jong suggested we use set 0x0000 first, 2005.12.14, by rcnjko.
+	
 	write_nic_word(dev, IntMig, 0x0000);
 
-	// Prevent TPC to cause CRC error. Added by Annie, 2006-06-10.
+	
 	PlatformIOWrite4Byte(dev, 0x1F0, 0x00000000);
 	PlatformIOWrite4Byte(dev, 0x1F4, 0x00000000);
 	PlatformIOWrite1Byte(dev, 0x1F8, 0x00);
 
-	// Asked for by SD3 CM Lin, 2006.06.27, by rcnjko.
-	//PlatformIOWrite4Byte(dev, RFTiming, 0x00004001);
-//by amy
-	// power save parameter based on "87SE power save parameters 20071127.doc", as follow.
+	
+	
 
-	//Enable DA10 TX power saving
+	
+
+	
 	u1DA = read_nic_byte(dev, PHYPR);
 	write_nic_byte(dev, PHYPR, (u1DA | BIT2) );
 
-	//POWER:
+	
 	write_nic_word(dev, 0x360, 0x1000);
 	write_nic_word(dev, 0x362, 0x1000);
 
-	// AFE.
+	
 	write_nic_word(dev, 0x370, 0x0560);
 	write_nic_word(dev, 0x372, 0x0560);
 	write_nic_word(dev, 0x374, 0x0DA4);
@@ -1607,10 +1577,10 @@ MacConfig_85BASIC(
 	write_nic_word(dev, 0x378, 0x0560);
 	write_nic_word(dev, 0x37A, 0x0560);
 	write_nic_word(dev, 0x37C, 0x00EC);
-//	write_nic_word(dev, 0x37E, 0x00FE);//-edward
-	write_nic_word(dev, 0x37E, 0x00EC);//+edward
+
+	write_nic_word(dev, 0x37E, 0x00EC);
        write_nic_byte(dev, 0x24E,0x01);
-//by amy
+
 
 }
 
@@ -1650,49 +1620,49 @@ ActUpdateChannelAccessSetting(
 	struct ieee80211_device *ieee = priv->ieee80211;
 	AC_CODING	eACI;
 	AC_PARAM	AcParam;
-	//PSTA_QOS	pStaQos = Adapter->MgntInfo.pStaQos;
+	
 	u8	bFollowLegacySetting = 0;
 	u8   u1bAIFS;
 
-	//
-	// <RJ_TODO_8185B>
-	// TODO: We still don't know how to set up these registers, just follow WMAC to
-	// verify 8185B FPAG.
-	//
-	// <RJ_TODO_8185B>
-	// Jong said CWmin/CWmax register are not functional in 8185B,
-	// so we shall fill channel access realted register into AC parameter registers,
-	// even in nQBss.
-	//
-	ChnlAccessSetting->SIFS_Timer = 0x22; // Suggested by Jong, 2005.12.08.
-	ChnlAccessSetting->DIFS_Timer = 0x1C; // 2006.06.02, by rcnjko.
-	ChnlAccessSetting->SlotTimeTimer = 9; // 2006.06.02, by rcnjko.
-	ChnlAccessSetting->EIFS_Timer = 0x5B; // Suggested by wcchu, it is the default value of EIFS register, 2005.12.08.
-	ChnlAccessSetting->CWminIndex = 3; // 2006.06.02, by rcnjko.
-	ChnlAccessSetting->CWmaxIndex = 7; // 2006.06.02, by rcnjko.
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	ChnlAccessSetting->SIFS_Timer = 0x22; 
+	ChnlAccessSetting->DIFS_Timer = 0x1C; 
+	ChnlAccessSetting->SlotTimeTimer = 9; 
+	ChnlAccessSetting->EIFS_Timer = 0x5B; 
+	ChnlAccessSetting->CWminIndex = 3; 
+	ChnlAccessSetting->CWmaxIndex = 7; 
 
 	write_nic_byte(dev, SIFS, ChnlAccessSetting->SIFS_Timer);
-	//Adapter->HalFunc.SetHwRegHandler( Adapter, HW_VAR_SLOT_TIME, &ChnlAccessSetting->SlotTimeTimer );	// Rewrited from directly use PlatformEFIOWrite1Byte(), by Annie, 2006-03-29.
-	write_nic_byte(dev, SLOT, ChnlAccessSetting->SlotTimeTimer);	// Rewrited from directly use PlatformEFIOWrite1Byte(), by Annie, 2006-03-29.
+	
+	write_nic_byte(dev, SLOT, ChnlAccessSetting->SlotTimeTimer);	
 
 	u1bAIFS = aSifsTime + (2 * ChnlAccessSetting->SlotTimeTimer );
 
-	//write_nic_byte(dev, AC_VO_PARAM, u1bAIFS);
-	//write_nic_byte(dev, AC_VI_PARAM, u1bAIFS);
-	//write_nic_byte(dev, AC_BE_PARAM, u1bAIFS);
-	//write_nic_byte(dev, AC_BK_PARAM, u1bAIFS);
+	
+	
+	
+	
 
 	write_nic_byte(dev, EIFS, ChnlAccessSetting->EIFS_Timer);
 
-	write_nic_byte(dev, AckTimeOutReg, 0x5B); // <RJ_EXPR_QOS> Suggested by wcchu, it is the default value of EIFS register, 2005.12.08.
+	write_nic_byte(dev, AckTimeOutReg, 0x5B); 
 
 #ifdef TODO
-	// <RJ_TODO_NOW_8185B> Update ECWmin/ECWmax, AIFS, TXOP Limit of each AC to the value defined by SPEC.
+	
 	if( pStaQos->CurrentQosMode > QOS_DISABLE )
-	{ // QoS mode.
+	{ 
 		if(pStaQos->QBssWirelessMode == WirelessMode)
 		{
-			// Follow AC Parameters of the QBSS.
+			
 			for(eACI = 0; eACI < AC_MAX; eACI++)
 			{
 				Adapter->HalFunc.SetHwRegHandler(Adapter, HW_VAR_AC_PARAM, (pu1Byte)(&(pStaQos->WMMParamEle.AcParam[eACI])) );
@@ -1700,39 +1670,39 @@ ActUpdateChannelAccessSetting(
 		}
 		else
 		{
-			// Follow Default WMM AC Parameters.
+			
 			bFollowLegacySetting = 1;
 		}
 	}
 	else
 #endif
-	{ // Legacy 802.11.
+	{ 
 		bFollowLegacySetting = 1;
 
 	}
 
-	// this setting is copied from rtl8187B.  xiong-2006-11-13
+	
 	if(bFollowLegacySetting)
 	{
 
 
-		//
-		// Follow 802.11 seeting to AC parameter, all AC shall use the same parameter.
-		// 2005.12.01, by rcnjko.
-		//
+		
+		
+		
+		
 		AcParam.longData = 0;
-		AcParam.f.AciAifsn.f.AIFSN = 2; // Follow 802.11 DIFS.
+		AcParam.f.AciAifsn.f.AIFSN = 2; 
 		AcParam.f.AciAifsn.f.ACM = 0;
-		AcParam.f.Ecw.f.ECWmin = ChnlAccessSetting->CWminIndex; // Follow 802.11 CWmin.
-		AcParam.f.Ecw.f.ECWmax = ChnlAccessSetting->CWmaxIndex; // Follow 802.11 CWmax.
+		AcParam.f.Ecw.f.ECWmin = ChnlAccessSetting->CWminIndex; 
+		AcParam.f.Ecw.f.ECWmax = ChnlAccessSetting->CWmaxIndex; 
 		AcParam.f.TXOPLimit = 0;
 
-		//lzm reserved 080826
+		
 #if 1
-		// For turbo mode setting. port from 87B by Isaiah 2008-08-01
+		
 		if( ieee->current_network.Turbo_Enable == 1 )
 			AcParam.f.TXOPLimit = 0x01FF;
-		// For 87SE with Intel 4965  Ad-Hoc mode have poor throughput (19MB)
+		
 		if (ieee->iw_mode == IW_MODE_ADHOC)
 			AcParam.f.TXOPLimit = 0x0020;
 #endif
@@ -1746,7 +1716,7 @@ ActUpdateChannelAccessSetting(
 				u8		u1bAIFS;
 				u32		u4bAcParam;
 
-				// Retrive paramters to udpate.
+				
 				eACI = pAcParam->f.AciAifsn.f.ACI;
 				u1bAIFS = pAcParam->f.AciAifsn.f.AIFSN * ChnlAccessSetting->SlotTimeTimer + aSifsTime;
 				u4bAcParam = (	(((u32)(pAcParam->f.TXOPLimit)) << AC_PARAM_TXOP_LIMIT_OFFSET)	|
@@ -1757,19 +1727,19 @@ ActUpdateChannelAccessSetting(
 				switch(eACI)
 				{
 					case AC1_BK:
-						//write_nic_dword(dev, AC_BK_PARAM, u4bAcParam);
+						
 						break;
 
 					case AC0_BE:
-						//write_nic_dword(dev, AC_BE_PARAM, u4bAcParam);
+						
 						break;
 
 					case AC2_VI:
-						//write_nic_dword(dev, AC_VI_PARAM, u4bAcParam);
+						
 						break;
 
 					case AC3_VO:
-						//write_nic_dword(dev, AC_VO_PARAM, u4bAcParam);
+						
 						break;
 
 					default:
@@ -1777,34 +1747,34 @@ ActUpdateChannelAccessSetting(
 						break;
 				}
 
-				// Cehck ACM bit.
-				// If it is set, immediately set ACM control bit to downgrading AC for passing WMM testplan. Annie, 2005-12-13.
-				//write_nic_byte(dev, ACM_CONTROL, pAcParam->f.AciAifsn);
+				
+				
+				
 				{
 					PACI_AIFSN	pAciAifsn = (PACI_AIFSN)(&pAcParam->f.AciAifsn);
 					AC_CODING	eACI = pAciAifsn->f.ACI;
 
-					//modified Joseph
-					//for 8187B AsynIORead issue
+					
+					
 #ifdef TODO
 					u8	AcmCtrl = pHalData->AcmControl;
 #else
 					u8	AcmCtrl = 0;
 #endif
 					if( pAciAifsn->f.ACM )
-					{ // ACM bit is 1.
+					{ 
 						switch(eACI)
 						{
 							case AC0_BE:
-								AcmCtrl |= (BEQ_ACM_EN|BEQ_ACM_CTL|ACM_HW_EN);	// or 0x21
+								AcmCtrl |= (BEQ_ACM_EN|BEQ_ACM_CTL|ACM_HW_EN);	
 								break;
 
 							case AC2_VI:
-								AcmCtrl |= (VIQ_ACM_EN|VIQ_ACM_CTL|ACM_HW_EN);	// or 0x42
+								AcmCtrl |= (VIQ_ACM_EN|VIQ_ACM_CTL|ACM_HW_EN);	
 								break;
 
 							case AC3_VO:
-								AcmCtrl |= (VOQ_ACM_EN|VOQ_ACM_CTL|ACM_HW_EN);	// or 0x84
+								AcmCtrl |= (VOQ_ACM_EN|VOQ_ACM_CTL|ACM_HW_EN);	
 								break;
 
 							default:
@@ -1813,19 +1783,19 @@ ActUpdateChannelAccessSetting(
 						}
 					}
 					else
-					{ // ACM bit is 0.
+					{ 
 						switch(eACI)
 						{
 							case AC0_BE:
-								AcmCtrl &= ( (~BEQ_ACM_EN) & (~BEQ_ACM_CTL) & (~ACM_HW_EN) );	// and 0xDE
+								AcmCtrl &= ( (~BEQ_ACM_EN) & (~BEQ_ACM_CTL) & (~ACM_HW_EN) );	
 								break;
 
 							case AC2_VI:
-								AcmCtrl &= ( (~VIQ_ACM_EN) & (~VIQ_ACM_CTL) & (~ACM_HW_EN) );	// and 0xBD
+								AcmCtrl &= ( (~VIQ_ACM_EN) & (~VIQ_ACM_CTL) & (~ACM_HW_EN) );	
 								break;
 
 							case AC3_VO:
-								AcmCtrl &= ( (~VOQ_ACM_EN) & (~VOQ_ACM_CTL) & (~ACM_HW_EN) );	// and 0x7B
+								AcmCtrl &= ( (~VOQ_ACM_EN) & (~VOQ_ACM_CTL) & (~ACM_HW_EN) );	
 								break;
 
 							default:
@@ -1833,12 +1803,12 @@ ActUpdateChannelAccessSetting(
 						}
 					}
 
-					//printk(KERN_WARNING "SetHwReg8185(): [HW_VAR_ACM_CTRL] Write 0x%X\n", AcmCtrl);
+					
 
 #ifdef TO_DO
 					pHalData->AcmControl = AcmCtrl;
 #endif
-					//write_nic_byte(dev, ACM_CONTROL, AcmCtrl);
+					
 					write_nic_byte(dev, ACM_CONTROL, 0);
 				}
 			}
@@ -1856,17 +1826,17 @@ ActSetWirelessMode8185(
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 	struct ieee80211_device *ieee = priv->ieee80211;
-	//PMGNT_INFO		pMgntInfo = &(Adapter->MgntInfo);
+	
 	u8	btSupportedWirelessMode = GetSupportedWirelessMode8185(dev);
 
 	if( (btWirelessMode & btSupportedWirelessMode) == 0 )
-	{ // Don't switch to unsupported wireless mode, 2006.02.15, by rcnjko.
+	{ 
 		DMESGW("ActSetWirelessMode8185(): WirelessMode(%d) is not supported (%d)!\n",
 			btWirelessMode, btSupportedWirelessMode);
 		return;
 	}
 
-	// 1. Assign wireless mode to swtich if necessary.
+	
 	if (btWirelessMode == WIRELESS_MODE_AUTO)
 	{
 		if((btSupportedWirelessMode & WIRELESS_MODE_A))
@@ -1890,15 +1860,15 @@ ActSetWirelessMode8185(
 	}
 
 
-	// 2. Swtich band: RF or BB specific actions,
-	// for example, refresh tables in omc8255, or change initial gain if necessary.
+	
+	
 	switch(priv->rf_chip)
 	{
 	case RF_ZEBRA2:
 	case RF_ZEBRA4:
 		{
-			// Nothing to do for Zebra to switch band.
-			// Update current wireless mode if we swtich to specified band successfully.
+			
+			
 			ieee->mode = (WIRELESS_MODE)btWirelessMode;
 		}
 		break;
@@ -1908,7 +1878,7 @@ ActSetWirelessMode8185(
 		break;
 	}
 
-	// 3. Change related setting.
+	
 	if( ieee->mode == WIRELESS_MODE_A ){
 		DMESG("WIRELESS_MODE_A\n");
 	}
@@ -1929,18 +1899,18 @@ void rtl8185b_irq_enable(struct net_device *dev)
 	priv->irq_enabled = 1;
 	write_nic_dword(dev, IMR, priv->IntrMask);
 }
-//by amy for power save
+
 void
 DrvIFIndicateDisassociation(
 	struct net_device *dev,
 	u16			reason
 	)
 {
-	//printk("==> DrvIFIndicateDisassociation()\n");
+	
 
-	// nothing is needed after disassociation request.
+	
 
-	//printk("<== DrvIFIndicateDisassociation()\n");
+	
 }
 void
 MgntDisconnectIBSS(
@@ -1950,31 +1920,31 @@ MgntDisconnectIBSS(
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 	u8			i;
 
-	//printk("XXXXXXXXXX MgntDisconnect IBSS\n");
+	
 
 	DrvIFIndicateDisassociation(dev, unspec_reason);
 
-//	PlatformZeroMemory( pMgntInfo->Bssid, 6 );
+
 	for(i=0;i<6;i++)  priv->ieee80211->current_network.bssid[i] = 0x55;
 
 	priv->ieee80211->state = IEEE80211_NOLINK;
 
-	//Stop Beacon.
+	
 
-	// Vista add a Adhoc profile, HW radio off untill OID_DOT11_RESET_REQUEST
-	// Driver would set MSR=NO_LINK, then HW Radio ON, MgntQueue Stuck.
-	// Because Bcn DMA isn't complete, mgnt queue would stuck until Bcn packet send.
+	
+	
+	
 
-	// Disable Beacon Queue Own bit, suggested by jong
-//	Adapter->HalFunc.SetTxDescOWNHandler(Adapter, BEACON_QUEUE, 0, 0);
+	
+
 	ieee80211_stop_send_beacons(priv->ieee80211);
 
 	priv->ieee80211->link_change(dev);
 	notify_wx_assoc_event(priv->ieee80211);
 
-	// Stop SW Beacon.Use hw beacon so do not need to do so.by amy
+	
 
-//		MgntIndicateMediaStatus( Adapter, RT_MEDIA_DISCONNECT, GENERAL_INDICATE );
+
 
 }
 void
@@ -1990,15 +1960,15 @@ MlmeDisassociateRequest(
 	SendDisassociation(priv->ieee80211, asSta, asRsn );
 
 	if( memcmp(priv->ieee80211->current_network.bssid, asSta, 6 ) == 0 ){
-		//ShuChen TODO: change media status.
-		//ShuChen TODO: What to do when disassociate.
+		
+		
 		DrvIFIndicateDisassociation(dev, unspec_reason);
 
 
-	//	pMgntInfo->AsocTimestamp = 0;
+	
 		for(i=0;i<6;i++)  priv->ieee80211->current_network.bssid[i] = 0x22;
-//		pMgntInfo->mBrates.Length = 0;
-//		Adapter->HalFunc.SetHwRegHandler( Adapter, HW_VAR_BASIC_RATE, (pu1Byte)(&pMgntInfo->mBrates) );
+
+
 
 		ieee80211_disassociate(priv->ieee80211);
 
@@ -2015,28 +1985,28 @@ MgntDisconnectAP(
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 
-//
-// Commented out by rcnjko, 2005.01.27:
-// I move SecClearAllKeys() to MgntActSet_802_11_DISASSOCIATE().
-//
-//	//2004/09/15, kcwu, the key should be cleared, or the new handshaking will not success
-//	SecClearAllKeys(Adapter);
 
-	// In WPA WPA2 need to Clear all key ... because new key will set after new handshaking.
+
+
+
+
+
+
+	
 #ifdef TODO
 	if(   pMgntInfo->SecurityInfo.AuthMode > RT_802_11AuthModeAutoSwitch ||
-		(pMgntInfo->bAPSuportCCKM && pMgntInfo->bCCX8021xenable) )  // In CCKM mode will Clear key
+		(pMgntInfo->bAPSuportCCKM && pMgntInfo->bCCX8021xenable) )  
 	{
 		SecClearAllKeys(Adapter);
 		RT_TRACE(COMP_SEC, DBG_LOUD,("======>CCKM clear key..."))
 	}
 #endif
-	// 2004.10.11, by rcnjko.
-	//MlmeDisassociateRequest( Adapter, pMgntInfo->Bssid, disas_lv_ss );
+	
+	
 	MlmeDisassociateRequest( dev, priv->ieee80211->current_network.bssid, asRsn );
 
 	priv->ieee80211->state = IEEE80211_NOLINK;
-//	pMgntInfo->AsocTimestamp = 0;
+
 }
 bool
 MgntDisconnect(
@@ -2045,62 +2015,62 @@ MgntDisconnect(
 )
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
-	//
-	// Schedule an workitem to wake up for ps mode, 070109, by rcnjko.
-	//
+	
+	
+	
 #ifdef TODO
 	if(pMgntInfo->mPss != eAwake)
 	{
-		//
-		// Using AwkaeTimer to prevent mismatch ps state.
-		// In the timer the state will be changed according to the RF is being awoke or not. By Bruce, 2007-10-31.
-		//
-		// PlatformScheduleWorkItem( &(pMgntInfo->AwakeWorkItem) );
+		
+		
+		
+		
+		
 		PlatformSetTimer( Adapter, &(pMgntInfo->AwakeTimer), 0 );
 	}
 #endif
 
-	// Indication of disassociation event.
-	//DrvIFIndicateDisassociation(Adapter, asRsn);
+	
+	
 	if(IS_DOT11D_ENABLE(priv->ieee80211))
 		Dot11d_Reset(priv->ieee80211);
-	// In adhoc mode, update beacon frame.
+	
 	if( priv->ieee80211->state == IEEE80211_LINKED )
 	{
 		if( priv->ieee80211->iw_mode == IW_MODE_ADHOC )
 		{
-//			RT_TRACE(COMP_MLME, DBG_LOUD, ("MgntDisconnect() ===> MgntDisconnectIBSS\n"));
-			//printk("MgntDisconnect() ===> MgntDisconnectIBSS\n");
+
+			
 			MgntDisconnectIBSS(dev);
 		}
 		if( priv->ieee80211->iw_mode == IW_MODE_INFRA )
 		{
-			// We clear key here instead of MgntDisconnectAP() because that
-			// MgntActSet_802_11_DISASSOCIATE() is an interface called by OS,
-			// e.g. OID_802_11_DISASSOCIATE in Windows while as MgntDisconnectAP() is
-			// used to handle disassociation related things to AP, e.g. send Disassoc
-			// frame to AP.  2005.01.27, by rcnjko.
-//			SecClearAllKeys(Adapter);
+			
+			
+			
+			
+			
 
-//			RT_TRACE(COMP_MLME, DBG_LOUD, ("MgntDisconnect() ===> MgntDisconnectAP\n"));
-			//printk("MgntDisconnect() ===> MgntDisconnectAP\n");
+
+
+			
 			MgntDisconnectAP(dev, asRsn);
 		}
 
-		// Inidicate Disconnect, 2005.02.23, by rcnjko.
-//		MgntIndicateMediaStatus( Adapter, RT_MEDIA_DISCONNECT, GENERAL_INDICATE);
+		
+
 	}
 
 	return true;
 }
-//
-//	Description:
-//		Chang RF Power State.
-//		Note that, only MgntActSet_RF_State() is allowed to set HW_VAR_RF_STATE.
-//
-//	Assumption:
-//		PASSIVE LEVEL.
-//
+
+
+
+
+
+
+
+
 bool
 SetRFPowerState(
 	struct net_device *dev,
@@ -2110,10 +2080,10 @@ SetRFPowerState(
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 	bool			bResult = false;
 
-//	printk("---------> SetRFPowerState(): eRFPowerState(%d)\n", eRFPowerState);
+
 	if(eRFPowerState == priv->eRFPowerState)
 	{
-//		printk("<--------- SetRFPowerState(): discard the request for eRFPowerState(%d) is the same.\n", eRFPowerState);
+
 		return bResult;
 	}
 
@@ -2128,7 +2098,7 @@ SetRFPowerState(
 			printk("SetRFPowerState8185(): unknown RFChipID: 0x%X!!!\n", priv->rf_chip);
 			break;;
 }
-//	printk("<--------- SetRFPowerState(): bResult(%d)\n", bResult);
+
 
 	return bResult;
 }
@@ -2158,44 +2128,44 @@ MgntActSet_RF_State(
 	RT_RF_POWER_STATE 	rtState;
 	u16				RFWaitCounter = 0;
 	unsigned long flag;
-//	 printk("===>MgntActSet_RF_State(): StateToSet(%d), ChangeSource(0x%x)\n",StateToSet, ChangeSource);
-	//
-	// Prevent the race condition of RF state change. By Bruce, 2007-11-28.
-	// Only one thread can change the RF state at one time, and others should wait to be executed.
-	//
+
+	
+	
+	
+	
 #if 1
 	while(true)
 	{
-//		down(&priv->rf_state);
+
 		spin_lock_irqsave(&priv->rf_ps_lock,flag);
 		if(priv->RFChangeInProgress)
 		{
-//			printk("====================>haha111111111\n");
-//			up(&priv->rf_state);
-//			RT_TRACE(COMP_RF, DBG_LOUD, ("MgntActSet_RF_State(): RF Change in progress! Wait to set..StateToSet(%d).\n", StateToSet));
+
+
+
 			spin_unlock_irqrestore(&priv->rf_ps_lock,flag);
-			// Set RF after the previous action is done.
+			
 			while(priv->RFChangeInProgress)
 			{
 				RFWaitCounter ++;
-//				RT_TRACE(COMP_RF, DBG_LOUD, ("MgntActSet_RF_State(): Wait 1 ms (%d times)...\n", RFWaitCounter));
-				udelay(1000); // 1 ms
 
-				// Wait too long, return FALSE to avoid to be stuck here.
-				if(RFWaitCounter > 1000) // 1sec
+				udelay(1000); 
+
+				
+				if(RFWaitCounter > 1000) 
 				{
-//					RT_ASSERT(FALSE, ("MgntActSet_RF_State(): Wait too logn to set RF\n"));
+
 					printk("MgntActSet_RF_State(): Wait too long to set RF\n");
-					// TODO: Reset RF state?
+					
 					return false;
 				}
 			}
 		}
 		else
 		{
-//			printk("========================>haha2\n");
+
 			priv->RFChangeInProgress = true;
-//			up(&priv->rf_state);
+
 			spin_unlock_irqrestore(&priv->rf_ps_lock,flag);
 			break;
 		}
@@ -2207,10 +2177,10 @@ MgntActSet_RF_State(
 	switch(StateToSet)
 	{
 	case eRfOn:
-		//
-		// Turn On RF no matter the IPS setting because we need to update the RF state to Ndis under Vista, or
-		// the Windows does not allow the driver to perform site survey any more. By Bruce, 2007-10-02.
-		//
+		
+		
+		
+		
 		priv->RfOffReason &= (~ChangeSource);
 
 		if(! priv->RfOffReason)
@@ -2224,33 +2194,33 @@ MgntActSet_RF_State(
 			}
 		}
 		else
-//			RT_TRACE(COMP_RF, DBG_LOUD, ("MgntActSet_RF_State - eRfon reject pMgntInfo->RfOffReason= 0x%x, ChangeSource=0x%X\n", pMgntInfo->RfOffReason, ChangeSource));
+
 			;
 		break;
 
 	case eRfOff:
-		 // 070125, rcnjko: we always keep connected in AP mode.
+		 
 
 			if (priv->RfOffReason > RF_CHANGE_BY_IPS)
 			{
-				//
-				// 060808, Annie:
-				// Disconnect to current BSS when radio off. Asked by QuanTa.
-				//
+				
+				
+				
+				
 
-				//
-				// Calling MgntDisconnect() instead of MgntActSet_802_11_DISASSOCIATE(),
-				// because we do NOT need to set ssid to dummy ones.
-				// Revised by Roger, 2007.12.04.
-				//
+				
+				
+				
+				
+				
 				MgntDisconnect( dev, disas_lv_ss );
 
-				// Clear content of bssDesc[] and bssDesc4Query[] to avoid reporting old bss to UI.
-				// 2007.05.28, by shien chang.
-//				PlatformZeroMemory( pMgntInfo->bssDesc, sizeof(RT_WLAN_BSS)*MAX_BSS_DESC );
-//				pMgntInfo->NumBssDesc = 0;
-//				PlatformZeroMemory( pMgntInfo->bssDesc4Query, sizeof(RT_WLAN_BSS)*MAX_BSS_DESC );
-//				pMgntInfo->NumBssDesc4Query = 0;
+				
+				
+
+
+
+
 			}
 
 
@@ -2270,22 +2240,22 @@ MgntActSet_RF_State(
 
 	if(bActionAllowed)
 	{
-//		RT_TRACE(COMP_RF, DBG_LOUD, ("MgntActSet_RF_State(): Action is allowed.... StateToSet(%d), RfOffReason(%#X)\n", StateToSet, pMgntInfo->RfOffReason));
-                // Config HW to the specified mode.
-//		printk("MgntActSet_RF_State(): Action is allowed.... StateToSet(%d), RfOffReason(%#X)\n", StateToSet, priv->RfOffReason);
+
+                
+
 		SetRFPowerState(dev, StateToSet);
 
-		// Turn on RF.
+		
 		if(StateToSet == eRfOn)
 		{
 			HalEnableRx8185Dummy(dev);
 			if(bConnectBySSID)
 			{
-			// by amy not supported
-//				MgntActSet_802_11_SSID(Adapter, Adapter->MgntInfo.Ssid.Octet, Adapter->MgntInfo.Ssid.Length, TRUE );
+			
+
 			}
 		}
-		// Turn off RF.
+		
 		else if(StateToSet == eRfOff)
 		{
 			HalDisableRx8185Dummy(dev);
@@ -2293,16 +2263,16 @@ MgntActSet_RF_State(
 	}
 	else
 	{
-	//	printk("MgntActSet_RF_State(): Action is rejected.... StateToSet(%d), ChangeSource(%#X), RfOffReason(%#X)\n", StateToSet, ChangeSource, priv->RfOffReason);
+	
 	}
 
-	// Release RF spinlock
-//	down(&priv->rf_state);
+	
+
 	spin_lock_irqsave(&priv->rf_ps_lock,flag);
 	priv->RFChangeInProgress = false;
-//	up(&priv->rf_state);
+
 	spin_unlock_irqrestore(&priv->rf_ps_lock,flag);
-//	printk("<===MgntActSet_RF_State()\n");
+
 	return bActionAllowed;
 }
 void
@@ -2311,32 +2281,32 @@ InactivePowerSave(
 	)
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
-	//u8 index = 0;
+	
 
-	//
-	// This flag "bSwRfProcessing", indicates the status of IPS procedure, should be set if the IPS workitem
-	// is really scheduled.
-	// The old code, sets this flag before scheduling the IPS workitem and however, at the same time the
-	// previous IPS workitem did not end yet, fails to schedule the current workitem. Thus, bSwRfProcessing
-	// blocks the IPS procedure of switching RF.
-	// By Bruce, 2007-12-25.
-	//
+	
+	
+	
+	
+	
+	
+	
+	
 	priv->bSwRfProcessing = true;
 
 	MgntActSet_RF_State(dev, priv->eInactivePowerState, RF_CHANGE_BY_IPS);
 
-	//
-	// To solve CAM values miss in RF OFF, rewrite CAM values after RF ON. By Bruce, 2007-09-20.
-	//
+	
+	
+	
 
 	priv->bSwRfProcessing = false;
 }
 
-//
-//	Description:
-//		Enter the inactive power save mode. RF will be off
-//	2007.08.17, by shien chang.
-//
+
+
+
+
+
 void
 IPSEnter(
 	struct net_device *dev
@@ -2344,29 +2314,29 @@ IPSEnter(
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 	RT_RF_POWER_STATE rtState;
-	//printk("==============================>enter IPS\n");
+	
 	if (priv->bInactivePs)
 	{
 		rtState = priv->eRFPowerState;
 
-		//
-		// Added by Bruce, 2007-12-25.
-		// Do not enter IPS in the following conditions:
-		// (1) RF is already OFF or Sleep
-		// (2) bSwRfProcessing (indicates the IPS is still under going)
-		// (3) Connectted (only disconnected can trigger IPS)
-		// (4) IBSS (send Beacon)
-		// (5) AP mode (send Beacon)
-		//
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		if (rtState == eRfOn && !priv->bSwRfProcessing
 			&& (priv->ieee80211->state != IEEE80211_LINKED ))
 		{
-	//		printk("IPSEnter(): Turn off RF.\n");
+	
 			priv->eInactivePowerState = eRfOff;
 			InactivePowerSave(dev);
 		}
 	}
-//	printk("priv->eRFPowerState is %d\n",priv->eRFPowerState);
+
 }
 void
 IPSLeave(
@@ -2375,20 +2345,20 @@ IPSLeave(
 {
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 	RT_RF_POWER_STATE rtState;
-	//printk("===================================>leave IPS\n");
+	
 	if (priv->bInactivePs)
 	{
 		rtState = priv->eRFPowerState;
 		if ((rtState == eRfOff || rtState == eRfSleep) && (!priv->bSwRfProcessing) && priv->RfOffReason <= RF_CHANGE_BY_IPS)
 		{
-//			printk("IPSLeave(): Turn on RF.\n");
+
 			priv->eInactivePowerState = eRfOn;
 			InactivePowerSave(dev);
 		}
 	}
-//	printk("priv->eRFPowerState is %d\n",priv->eRFPowerState);
+
 }
-//by amy for power save
+
 void rtl8185b_adapter_start(struct net_device *dev)
 {
       struct r8180_priv *priv = ieee80211_priv(dev);
@@ -2397,115 +2367,115 @@ void rtl8185b_adapter_start(struct net_device *dev)
 	u8 SupportedWirelessMode;
 	u8			InitWirelessMode;
 	u8			bInvalidWirelessMode = 0;
-	//int i;
+	
 	u8 tmpu8;
-    	//u8 u1tmp,u2tmp;
+    	
 	u8 btCR9346;
 	u8 TmpU1b;
 	u8 btPSR;
 
-	//rtl8180_rtx_disable(dev);
-//{by amy 080312
+	
+
 	write_nic_byte(dev,0x24e, (BIT5|BIT6|BIT0));
-//by amy 080312}
+
 	rtl8180_reset(dev);
 
 	priv->dma_poll_mask = 0;
 	priv->dma_poll_stop_mask = 0;
 
-	//rtl8180_beacon_tx_disable(dev);
+	
 
 	HwConfigureRTL8185(dev);
 
 	write_nic_dword(dev, MAC0, ((u32*)dev->dev_addr)[0]);
 	write_nic_word(dev, MAC4, ((u32*)dev->dev_addr)[1] & 0xffff );
 
-	write_nic_byte(dev, MSR, read_nic_byte(dev, MSR) & 0xf3);	// default network type to 'No	Link'
+	write_nic_byte(dev, MSR, read_nic_byte(dev, MSR) & 0xf3);	
 
-	//write_nic_byte(dev, BRSR, 0x0);		// Set BRSR= 1M
+	
 
 	write_nic_word(dev, BcnItv, 100);
 	write_nic_word(dev, AtimWnd, 2);
 
-	//PlatformEFIOWrite2Byte(dev, FEMR, 0xFFFF);
+	
 	PlatformIOWrite2Byte(dev, FEMR, 0xFFFF);
 
 	write_nic_byte(dev, WPA_CONFIG, 0);
 
 	MacConfig_85BASIC(dev);
 
-	// Override the RFSW_CTRL (MAC offset 0x272-0x273), 2006.06.07, by rcnjko.
-	// BT_DEMO_BOARD type
+	
+	
 	PlatformIOWrite2Byte(dev, RFSW_CTRL, 0x569a);
-//by amy
-//#ifdef CONFIG_RTL818X_S
-		// for jong required
-//	PlatformIOWrite2Byte(dev, RFSW_CTRL, 0x9a56);
-//#endif
-//by amy
-	//BT_QA_BOARD
-	//PlatformIOWrite2Byte(dev, RFSW_CTRL, 0x9a56);
 
-	//-----------------------------------------------------------------------------
-	// Set up PHY related.
-	//-----------------------------------------------------------------------------
-	// Enable Config3.PARAM_En to revise AnaaParm.
-	write_nic_byte(dev, CR9346, 0xc0);	// enable config register write
-//by amy
+
+		
+
+
+
+	
+	
+
+	
+	
+	
+	
+	write_nic_byte(dev, CR9346, 0xc0);	
+
 	tmpu8 = read_nic_byte(dev, CONFIG3);
 	write_nic_byte(dev, CONFIG3, (tmpu8 |CONFIG3_PARM_En) );
-//by amy
-	// Turn on Analog power.
-	// Asked for by William, otherwise, MAC 3-wire can't work, 2006.06.27, by rcnjko.
+
+	
+	
 	write_nic_dword(dev, ANAPARAM2, ANAPARM2_ASIC_ON);
 	write_nic_dword(dev, ANAPARAM, ANAPARM_ASIC_ON);
-//by amy
+
 	write_nic_word(dev, ANAPARAM3, 0x0010);
-//by amy
+
 
 	write_nic_byte(dev, CONFIG3, tmpu8);
 	write_nic_byte(dev, CR9346, 0x00);
-//{by amy 080312 for led
-	// enable EEM0 and EEM1 in 9346CR
+
+	
 	btCR9346 = read_nic_byte(dev, CR9346);
 	write_nic_byte(dev, CR9346, (btCR9346|0xC0) );
 
-	// B cut use LED1 to control HW RF on/off
+	
 	TmpU1b = read_nic_byte(dev, CONFIG5);
 	TmpU1b = TmpU1b & ~BIT3;
 	write_nic_byte(dev,CONFIG5, TmpU1b);
 
-	// disable EEM0 and EEM1 in 9346CR
+	
 	btCR9346 &= ~(0xC0);
 	write_nic_byte(dev, CR9346, btCR9346);
 
-	//Enable Led (suggested by Jong)
-	// B-cut RF Radio on/off  5e[3]=0
+	
+	
 	btPSR = read_nic_byte(dev, PSR);
 	write_nic_byte(dev, PSR, (btPSR | BIT3));
-//by amy 080312 for led}
-	// setup initial timing for RFE.
+
+	
 	write_nic_word(dev, RFPinsOutput, 0x0480);
 	SetOutputEnableOfRfPins(dev);
 	write_nic_word(dev, RFPinsSelect, 0x2488);
 
-	// PHY config.
+	
 	PhyConfig8185(dev);
 
-	// We assume RegWirelessMode has already been initialized before,
-	// however, we has to validate the wireless mode here and provide a reasonble
-	// initialized value if necessary. 2005.01.13, by rcnjko.
+	
+	
+	
 	SupportedWirelessMode = GetSupportedWirelessMode8185(dev);
 	if(	(ieee->mode != WIRELESS_MODE_B) &&
 		(ieee->mode != WIRELESS_MODE_G) &&
 		(ieee->mode != WIRELESS_MODE_A) &&
 		(ieee->mode != WIRELESS_MODE_AUTO))
-	{ // It should be one of B, G, A, or AUTO.
+	{ 
 		bInvalidWirelessMode = 1;
 	}
 	else
-	{ // One of B, G, A, or AUTO.
-		// Check if the wireless mode is supported by RF.
+	{ 
+		
 		if( (ieee->mode != WIRELESS_MODE_AUTO) &&
 			(ieee->mode & SupportedWirelessMode) == 0 )
 		{
@@ -2514,8 +2484,8 @@ void rtl8185b_adapter_start(struct net_device *dev)
 	}
 
 	if(bInvalidWirelessMode || ieee->mode==WIRELESS_MODE_AUTO)
-	{ // Auto or other invalid value.
-		// Assigne a wireless mode to initialize.
+	{ 
+		
 		if((SupportedWirelessMode & WIRELESS_MODE_A))
 		{
 			InitWirelessMode = WIRELESS_MODE_A;
@@ -2535,47 +2505,47 @@ void rtl8185b_adapter_start(struct net_device *dev)
 			InitWirelessMode = WIRELESS_MODE_B;
 		}
 
-		// Initialize RegWirelessMode if it is not a valid one.
+		
 		if(bInvalidWirelessMode)
 		{
 			ieee->mode = (WIRELESS_MODE)InitWirelessMode;
 		}
 	}
 	else
-	{ // One of B, G, A.
+	{ 
 		InitWirelessMode = ieee->mode;
 	}
-//by amy for power save
-//	printk("initialize ENABLE_IPS\n");
+
+
 	priv->eRFPowerState = eRfOff;
 	priv->RfOffReason = 0;
 	{
-	//	u32 tmp2;
-	//	u32 tmp = jiffies;
+	
+	
 		MgntActSet_RF_State(dev, eRfOn, 0);
-	//	tmp2 = jiffies;
-	//	printk("rf on cost jiffies:%lx\n", (tmp2-tmp)*1000/HZ);
+	
+	
 	}
-//	DrvIFIndicateCurrentPhyStatus(priv);
-		//
-		// If inactive power mode is enabled, disable rf while in disconnected state.
-		// 2007.07.16, by shien chang.
-		//
+
+		
+		
+		
+		
 	if (priv->bInactivePs)
 	{
-	//	u32 tmp2;
-	//	u32 tmp = jiffies;
+	
+	
 		MgntActSet_RF_State(dev,eRfOff, RF_CHANGE_BY_IPS);
-	//	tmp2 = jiffies;
-	//	printk("rf off cost jiffies:%lx\n", (tmp2-tmp)*1000/HZ);
+	
+	
 
 	}
-//	IPSEnter(dev);
-//by amy for power save
+
+
 #ifdef TODO
-	// Turn off RF if necessary. 2005.08.23, by rcnjko.
-	// We shall turn off RF after setting CMDR, otherwise,
-	// RF will be turnned on after we enable MAC Tx/Rx.
+	
+	
+	
 	if(Adapter->MgntInfo.RegRfOff == TRUE)
 	{
 		SetRFPowerState8185(Adapter, RF_OFF);
@@ -2586,19 +2556,11 @@ void rtl8185b_adapter_start(struct net_device *dev)
 	}
 #endif
 
-/*   //these is equal with above TODO.
-	write_nic_byte(dev, CR9346, 0xc0);	// enable config register write
-	write_nic_byte(dev, CONFIG3, read_nic_byte(dev, CONFIG3) | CONFIG3_PARM_En);
-	RF_WriteReg(dev, 0x4, 0x9FF);
-	write_nic_dword(dev, ANAPARAM2, ANAPARM2_ASIC_ON);
-	write_nic_dword(dev, ANAPARAM, ANAPARM_ASIC_ON);
-	write_nic_byte(dev, CONFIG3, (read_nic_byte(dev, CONFIG3)&(~CONFIG3_PARM_En)));
-	write_nic_byte(dev, CR9346, 0x00);
-*/
+
 
 	ActSetWirelessMode8185(dev, (u8)(InitWirelessMode));
 
-	//-----------------------------------------------------------------------------
+	
 
 	rtl8185b_irq_enable(dev);
 
@@ -2610,8 +2572,8 @@ void rtl8185b_adapter_start(struct net_device *dev)
 void rtl8185b_rx_enable(struct net_device *dev)
 {
 	u8 cmd;
-	//u32 rxconf;
-	/* for now we accept data, management & ctl frame*/
+	
+	
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 
 	if (dev->flags & IFF_PROMISC) DMESG ("NIC in promisc mode");
@@ -2622,10 +2584,7 @@ void rtl8185b_rx_enable(struct net_device *dev)
 		priv->ReceiveConfig = priv->ReceiveConfig | RCR_AAP;
 	}
 
-	/*if(priv->ieee80211->iw_mode == IW_MODE_MASTER){
-		rxconf = rxconf | (1<<ACCEPT_ALLMAC_FRAME_SHIFT);
-		rxconf = rxconf | (1<<RX_CHECK_BSSID_SHIFT);
-	}*/
+	
 
 	if(priv->ieee80211->iw_mode == IW_MODE_MONITOR){
 		priv->ReceiveConfig = priv->ReceiveConfig | RCR_ACF | RCR_APWRMGT | RCR_AICV;
@@ -2649,9 +2608,9 @@ void rtl8185b_rx_enable(struct net_device *dev)
 void rtl8185b_tx_enable(struct net_device *dev)
 {
 	u8 cmd;
-	//u8 tx_agc_ctl;
+	
 	u8 byte;
-	//u32 txconf;
+	
 	struct r8180_priv *priv = (struct r8180_priv *)ieee80211_priv(dev);
 
 	write_nic_dword(dev, TCR, priv->TransmitConfig);
@@ -2668,14 +2627,10 @@ void rtl8185b_tx_enable(struct net_device *dev)
 	cmd=read_nic_byte(dev,CMD);
 	write_nic_byte(dev,CMD,cmd | (1<<CMD_TX_ENABLE_SHIFT));
 
-	//write_nic_dword(dev,TX_CONF,txconf);
+	
 
 
-/*
-	rtl8180_set_mode(dev,EPROM_CMD_CONFIG);
-	write_nic_byte(dev, TX_DMA_POLLING, priv->dma_poll_mask);
-	rtl8180_set_mode(dev,EPROM_CMD_NORMAL);
-	*/
+
 }
 
 

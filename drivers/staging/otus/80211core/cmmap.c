@@ -1,29 +1,15 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : mm.c                                                  */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains common functions for handle AP             */
-/*      management frame.                                               */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 #include "ratectrl.h"
 
@@ -34,11 +20,11 @@ void zfMmApTimeTick(zdev_t* dev)
     u32_t now;
     zmw_get_wlan_dev(dev);
 
-    //zm_debug_msg1("wd->wlanMode : ", wd->wlanMode);
+    
     if (wd->wlanMode == ZM_MODE_AP)
     {
-        /* => every 1.28 seconds */
-        /* AP : aging STA that does not active for wd->ap.staAgingTime    */
+        
+        
         now = wd->tick & 0x7f;
         if (now == 0x0)
         {
@@ -48,30 +34,30 @@ void zfMmApTimeTick(zdev_t* dev)
         {
             zfQueueAge(dev, wd->ap.uapsdQ, wd->tick, 10000);
         }
-        /* AP : check (wd->ap.protectedObss) and (wd->ap.bStaAssociated)  */
-        /*      to enable NonErp and Protection mode                      */
+        
+        
         else if (now == 0x3f)
         {
-            //zfApProtctionMonitor(dev);
+            
         }
     }
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApInitStaTbl              */
-/*      Init AP's station table.                                        */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      None                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfApInitStaTbl(zdev_t* dev)
 {
     u16_t i;
@@ -93,23 +79,23 @@ void zfApInitStaTbl(zdev_t* dev)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApFindSta                 */
-/*      Find a STA in station table.                                    */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      addr : Target STA address                                       */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      0xffff : fail                                                   */
-/*      other : STA table index                                         */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfApFindSta(zdev_t* dev, u16_t* addr)
 {
     u16_t i;
@@ -193,7 +179,7 @@ void zfApGetStaTxRateAndQosType(zdev_t* dev, u16_t* addr, u32_t* phyCtrl,
     {
         rate = (u8_t)zfRateCtrlGetTxRate(dev, &wd->ap.staTable[id].rcCell, rcProbingFlag);
 #ifdef ZM_AP_DEBUG
-        //rate = 15;
+        
 #endif
         *phyCtrl = zcRateToPhyCtrl[rate];
         *qosType = wd->ap.staTable[id].qosType;
@@ -202,16 +188,16 @@ void zfApGetStaTxRateAndQosType(zdev_t* dev, u16_t* addr, u32_t* phyCtrl,
     {
         if (wd->frequency < 3000)
         {
-            /* CCK 1M */
-            //header[2] = 0x0f00;          //PHY control L
-            //header[3] = 0x0000;          //PHY control H
+            
+            
+            
             *phyCtrl = 0x00000F00;
         }
         else
         {
-            /* CCK 6M */
-            //header[2] = 0x0f01;          //PHY control L
-            //header[3] = 0x000B;          //PHY control H
+            
+            
+            
             *phyCtrl = 0x000B0F01;
         }
         *qosType = 0;
@@ -225,7 +211,7 @@ void zfApGetStaTxRateAndQosType(zdev_t* dev, u16_t* addr, u32_t* phyCtrl,
 
 void zfApGetStaEncryType(zdev_t* dev, u16_t* addr, u8_t* encryType)
 {
-    //struct zsWlanDev* wd = (struct zsWlanDev*) zmw_wlan_dev(dev);
+    
     u16_t id;
 
     zmw_get_wlan_dev(dev);
@@ -251,7 +237,7 @@ void zfApGetStaEncryType(zdev_t* dev, u16_t* addr, u8_t* encryType)
 
 void zfApGetStaWpaIv(zdev_t* dev, u16_t* addr, u16_t* iv16, u32_t* iv32)
 {
-    //struct zsWlanDev* wd = (struct zsWlanDev*) zmw_wlan_dev(dev);
+    
     u16_t id;
 
     zmw_get_wlan_dev(dev);
@@ -280,7 +266,7 @@ void zfApGetStaWpaIv(zdev_t* dev, u16_t* addr, u16_t* iv16, u32_t* iv32)
 
 void zfApSetStaWpaIv(zdev_t* dev, u16_t* addr, u16_t iv16, u32_t iv32)
 {
-    //struct zsWlanDev* wd = (struct zsWlanDev*) zmw_wlan_dev(dev);
+    
     u16_t id;
 
     zmw_get_wlan_dev(dev);
@@ -304,7 +290,7 @@ void zfApSetStaWpaIv(zdev_t* dev, u16_t* addr, u16_t iv16, u32_t iv32)
 
 void zfApClearStaKey(zdev_t* dev, u16_t* addr)
 {
-    //struct zsWlanDev* wd = (struct zsWlanDev*) zmw_wlan_dev(dev);
+    
     u16_t bcAddr[3] = { 0xffff, 0xffff, 0xffff };
     u16_t id;
 
@@ -312,8 +298,8 @@ void zfApClearStaKey(zdev_t* dev, u16_t* addr)
 
     if (zfMemoryIsEqual((u8_t*)bcAddr, (u8_t*)addr, sizeof(bcAddr)) == TRUE)
     {
-        /* Turn off group key information */
-    //    zfClearKey(dev, 0);
+        
+    
     }
     else
     {
@@ -323,10 +309,10 @@ void zfApClearStaKey(zdev_t* dev, u16_t* addr)
 
         if ((id = zfApFindSta(dev, addr)) != 0xffff)
         {
-            /* Turn off STA's key information */
+            
             zfHpRemoveKey(dev, id+1);
 
-            /* Update STA's Encryption Type */
+            
             wd->ap.staTable[id].encryMode = ZM_NO_WEP;
         }
         else
@@ -340,7 +326,7 @@ void zfApClearStaKey(zdev_t* dev, u16_t* addr)
 #ifdef ZM_ENABLE_CENC
 void zfApGetStaCencIvAndKeyIdx(zdev_t* dev, u16_t* addr, u32_t *iv, u8_t *keyIdx)
 {
-    //struct zsWlanDev* wd = (struct zsWlanDev*) zmw_wlan_dev(dev);
+    
     u16_t id;
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
@@ -371,7 +357,7 @@ void zfApGetStaCencIvAndKeyIdx(zdev_t* dev, u16_t* addr, u32_t *iv, u8_t *keyIdx
 
 void zfApSetStaCencIv(zdev_t* dev, u16_t* addr, u32_t *iv)
 {
-    //struct zsWlanDev* wd = (struct zsWlanDev*) zmw_wlan_dev(dev);
+    
     u16_t id;
     zmw_get_wlan_dev(dev);
     zmw_declare_for_critical_section();
@@ -391,24 +377,24 @@ void zfApSetStaCencIv(zdev_t* dev, u16_t* addr, u32_t *iv)
 
     return;
 }
-#endif //ZM_ENABLE_CENC
+#endif 
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApFlushBufferedPsFrame    */
-/*      Free buffered PS frames.                                        */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      None                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2007.1      */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfApFlushBufferedPsFrame(zdev_t* dev)
 {
     u16_t emptyFlag;
@@ -512,7 +498,7 @@ u16_t zfApBufferPsFrame(zdev_t* dev, zbuf_t* buf, u16_t port)
         {
             zmw_enter_critical_section(dev);
 
-            /* Buffer this BC or MC frame */
+            
             if (((wd->ap.bcmcTail[vap]+1)&(ZM_BCMC_ARRAY_SIZE-1))
                     != wd->ap.bcmcHead[vap])
             {
@@ -524,12 +510,12 @@ u16_t zfApBufferPsFrame(zdev_t* dev, zbuf_t* buf, u16_t port)
             }
             else
             {
-                /* bcmcArray full */
+                
                 zmw_leave_critical_section(dev);
 
                 zm_msg0_tx(ZM_LV_0, "BCMC buffer full");
 
-                /* free buffer according to buffer type */
+                
                 zfwBufFree(dev, buf, ZM_ERR_BCMC_PS_BUFFER_UNAVAILABLE);
             }
             return 1;
@@ -559,7 +545,7 @@ u16_t zfApBufferPsFrame(zdev_t* dev, zbuf_t* buf, u16_t port)
                 }
                 else
                 {
-                /* Buffer this unicast frame */
+                
                 if (((wd->ap.uniTail+1)&(ZM_UNI_ARRAY_SIZE-1))
                         != wd->ap.uniHead)
                 {
@@ -571,16 +557,16 @@ u16_t zfApBufferPsFrame(zdev_t* dev, zbuf_t* buf, u16_t port)
                 }
                 else
                 {
-                    /* uniArray full */
+                    
                     zmw_leave_critical_section(dev);
                     zm_msg0_tx(ZM_LV_0, "UNI buffer full");
-                    /* free buffer according to buffer type */
+                    
                     zfwBufFree(dev, buf, ZM_ERR_UNI_PS_BUFFER_UNAVAILABLE);
                 }
                 }
                 return 1;
-            } /* if (wd->ap.staTable[id++].psMode == 1) */
-        } /* if ((id = zfApFindSta(dev, addr)) != 0xffff) */
+            } 
+        } 
         zmw_leave_critical_section(dev);
     }
 
@@ -600,7 +586,7 @@ u16_t zfApGetSTAInfoAndUpdatePs(zdev_t* dev, u16_t* addr, u16_t* state,
     zmw_enter_critical_section(dev);
 
 #ifdef ZM_AP_DEBUG
-    //psMode=0;
+    
 #endif
 
     if ((id = zfApFindSta(dev, addr)) != 0xffff)
@@ -662,22 +648,22 @@ u16_t zfApGetSTAInfoAndUpdatePs(zdev_t* dev, u16_t* addr, u16_t* state,
     return id;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApGetNewSta               */
-/*      Get a new STA from station table.                               */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      0xffff : fail                                                   */
-/*      other : STA table index                                         */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfApGetNewSta(zdev_t* dev)
 {
     u16_t i;
@@ -696,26 +682,26 @@ u16_t zfApGetNewSta(zdev_t* dev)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApAddSta                  */
-/*      Add a STA to station table.                                     */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      addr : STA MAC address                                          */
-/*      state : STA state                                               */
-/*      apId : Virtual AP ID                                            */
-/*      type : 0=>11b, 1=>11g                                           */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      0xffff : fail                                                   */
-/*      Other : index                                                   */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfApAddSta(zdev_t* dev, u16_t* addr, u16_t state, u16_t apId, u8_t type,
                  u8_t qosType, u8_t qosInfo)
 {
@@ -733,7 +719,7 @@ u16_t zfApAddSta(zdev_t* dev, u16_t* addr, u16_t state, u16_t apId, u8_t type,
     if ((index = zfApFindSta(dev, addr)) != 0xffff)
     {
         zm_msg0_mm(ZM_LV_2, "found");
-        /* Update STA state */
+        
         if ((state == ZM_STATE_AUTH) || (state == ZM_STATE_PREAUTH))
         {
             wd->ap.staTable[index].state = state;
@@ -743,7 +729,7 @@ u16_t zfApAddSta(zdev_t* dev, u16_t* addr, u16_t state, u16_t apId, u8_t type,
         else if (state == ZM_STATE_ASOC)
         {
             if ((wd->ap.staTable[index].state == ZM_STATE_AUTH))
-                    //&& (wd->ap.staTable[index].vap == apId))
+                    
             {
                 wd->ap.staTable[index].state = state;
                 wd->ap.staTable[index].time = wd->tick;
@@ -754,12 +740,12 @@ u16_t zfApAddSta(zdev_t* dev, u16_t* addr, u16_t state, u16_t apId, u8_t type,
 
                 if (wd->frequency < 3000)
                 {
-                    /* Init 11b/g */
+                    
                     zfRateCtrlInitCell(dev, &wd->ap.staTable[index].rcCell, type, 1, 1);
                 }
                 else
                 {
-                    /* Init 11a */
+                    
                     zfRateCtrlInitCell(dev, &wd->ap.staTable[index].rcCell, type, 0, 1);
                 }
 
@@ -779,7 +765,7 @@ u16_t zfApAddSta(zdev_t* dev, u16_t* addr, u16_t state, u16_t apId, u8_t type,
         zm_msg0_mm(ZM_LV_2, "Not found");
         if ((state == ZM_STATE_AUTH) || (state == ZM_STATE_PREAUTH))
         {
-            /* Get a new STA and update state */
+            
             index = zfApGetNewSta(dev);
             zm_msg2_mm(ZM_LV_1, "new STA index=", index);
 
@@ -804,21 +790,21 @@ u16_t zfApAddSta(zdev_t* dev, u16_t* addr, u16_t state, u16_t apId, u8_t type,
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApAgingSta                */
-/*      Aging STA in station table.                                     */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      number of 11b STA in STA table                                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfApAgingSta(zdev_t* dev)
 {
     u16_t i;
@@ -842,30 +828,30 @@ void zfApAgingSta(zdev_t* dev)
             addr[0] = wd->ap.staTable[i].addr[0];
             addr[1] = wd->ap.staTable[i].addr[1];
             addr[2] = wd->ap.staTable[i].addr[2];
-            /* millisecond */
+            
             deltaMs = (u32_t)((u32_t)wd->tick-(u32_t)wd->ap.staTable[i].time)
                       * ZM_MS_PER_TICK;
 
-            /* preauth */
+            
             if ((wd->ap.staTable[i].state == ZM_STATE_PREAUTH)
                     && (deltaMs > ZM_PREAUTH_TIMEOUT_MS))
             {
-                /* Aging STA */
+                
                 wd->ap.staTable[i].valid = 0;
                 wd->ap.authSharing = 0;
                 txFlag = 1;
             }
 
-            /* auth */
+            
             if ((wd->ap.staTable[i].state == ZM_STATE_AUTH)
                     && (deltaMs > ZM_AUTH_TIMEOUT_MS))
             {
-                /* Aging STA */
+                
                 wd->ap.staTable[i].valid = 0;
                 txFlag = 1;
             }
 
-            /* asoc */
+            
             if (wd->ap.staTable[i].state == ZM_STATE_ASOC)
             {
                 if (wd->ap.staTable[i].psMode != 0)
@@ -875,7 +861,7 @@ void zfApAgingSta(zdev_t* dev)
 
                 if (deltaMs > ((u32_t)wd->ap.staAgingTimeSec<<10))
                 {
-                    /* Aging STA */
+                    
                     zm_msg1_mm(ZM_LV_0, "Age STA index=", i);
                     wd->ap.staTable[i].valid = 0;
                     txFlag = 1;
@@ -884,7 +870,7 @@ void zfApAgingSta(zdev_t* dev)
                 {
                     if (wd->ap.staTable[i].psMode == 0)
                     {
-                        /* Probing non-PS STA */
+                        
                         zm_msg1_mm(ZM_LV_0, "Probing STA index=", i);
                         wd->ap.staTable[i].time +=
                                 (wd->ap.staProbingTimeSec * ZM_TICK_PER_SECOND);
@@ -899,7 +885,7 @@ void zfApAgingSta(zdev_t* dev)
 
         if (txFlag == 1)
         {
-            /* Send deauthentication management frame */
+            
             zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_DEAUTH, addr, 4, 0, 0);
         }
         else if (txFlag == 2)
@@ -918,35 +904,35 @@ void zfApProtctionMonitor(zdev_t* dev)
 {
     zmw_get_wlan_dev(dev);
 
-    /* 11b STA associated => nonErp, Protect */
+    
     if (wd->ap.bStaAssociated > 0)
     {
-        /* Enable NonErp bit in information element */
+        
         wd->erpElement = ZM_WLAN_NON_ERP_PRESENT_BIT
                          | ZM_WLAN_USE_PROTECTION_BIT;
 
-        /* Enable protection mode */
+        
         zfApSetProtectionMode(dev, 1);
 
     }
-    /* 11b STA not associated, protection OBSS present => Protect */
-    else if (wd->ap.protectedObss > 2) //Threshold
+    
+    else if (wd->ap.protectedObss > 2) 
     {
         if (wd->disableSelfCts == 0)
         {
-            /* Disable NonErp bit in information element */
+            
             wd->erpElement = ZM_WLAN_USE_PROTECTION_BIT;
 
-            /* Enable protection mode */
+            
             zfApSetProtectionMode(dev, 1);
         }
     }
     else
     {
-        /* Disable NonErp bit in information element */
+        
         wd->erpElement = 0;
 
-        /* Disable protection mode */
+        
         zfApSetProtectionMode(dev, 0);
     }
     wd->ap.protectedObss = 0;
@@ -962,10 +948,10 @@ void zfApProcessBeacon(zdev_t* dev, zbuf_t* buf)
 
     zm_msg0_mm(ZM_LV_3, "Rx beacon");
 
-    /* update Non-ERP flag(wd->ap.nonErpObss) */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_ERP)) == 0xffff)
     {
-        /* 11b OBSS */
+        
         wd->ap.protectedObss++;
         return;
     }
@@ -973,7 +959,7 @@ void zfApProcessBeacon(zdev_t* dev, zbuf_t* buf)
     ch = zmw_rx_buf_readb(dev, buf, offset+2);
     if ((ch & ZM_WLAN_USE_PROTECTION_BIT) == ZM_WLAN_USE_PROTECTION_BIT)
     {
-        /* Protected OBSS */
+        
         wd->ap.protectedObss = 1;
     }
 
@@ -981,26 +967,26 @@ void zfApProcessBeacon(zdev_t* dev, zbuf_t* buf)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfProcessAuth               */
-/*      Process authenticate management frame.                          */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : auth frame buffer                                         */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.10     */
-/*                                                                      */
-/************************************************************************/
-/* Note : AP allows one authenticating STA at a time, does not          */
-/*        support multiple authentication process. Make sure            */
-/*        authentication state machine will not be blocked due          */
-/*        to incompleted authentication handshake.                      */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 {
     u16_t algo, seq, status;
@@ -1016,8 +1002,8 @@ void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 
 
     frameCtrl = zmw_rx_buf_readb(dev, buf, 1);
-    /* AP : Auth share 3 */
-    /* shift for WEP IV */
+    
+    
     if ((frameCtrl & 0x40) != 0)
     {
         algo = zmw_rx_buf_readh(dev, buf, 28);
@@ -1033,11 +1019,11 @@ void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 
     zm_msg2_mm(ZM_LV_0, "Rx Auth, seq=", seq);
 
-    /* Set default to authentication algorithm not support */
+    
     retAlgoSeq = 0x20000 | algo;
-    retStatus = 13; /* authentication algorithm not support */
+    retStatus = 13; 
 
-    /* AP : Auth open 1 */
+    
     if (algo == 0)
     {
         if (wd->ap.authAlgo[apId] == 0)
@@ -1045,30 +1031,30 @@ void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
             retAlgoSeq = 0x20000;
             if (seq == 1)
             {
-                /* AP : update STA to auth */
+                
                 if ((ret = zfApAddSta(dev, src, ZM_STATE_AUTH, apId, 0, 0, 0)) != 0xffff)
                 {
-                    /* AP : call zfwAuthNotify() for host to judge */
-                    //zfwAuthNotify(dev, src);
+                    
+                    
 
-                    /* AP : response Auth seq=2, success */
+                    
                     retStatus = 0;
 
                 }
                 else
                 {
-                    /* AP : response Auth seq=2, unspecific error */
+                    
                     retStatus = 1;
                 }
             }
             else
             {
-                /* AP : response Auth seq=2, sequence number out of expected */
+                
                 retStatus = 14;
             }
         }
     }
-    /* AP : Auth share 1 */
+    
     else if (algo == 1)
     {
         if (wd->ap.authAlgo[apId] == 1)
@@ -1077,7 +1063,7 @@ void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
             {
                 retAlgoSeq = 0x20001;
 
-                /* critical section */
+                
                 zmw_enter_critical_section(dev);
                 if (wd->ap.authSharing == 1)
                 {
@@ -1088,23 +1074,23 @@ void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
                     authSharing = 0;
                     wd->ap.authSharing = 1;
                 }
-                /* end of critical section */
+                
                 zmw_leave_critical_section(dev);
 
                 if (authSharing == 1)
                 {
-                    /* AP : response Auth seq=2, status = fail */
+                    
                     retStatus = 1;
                 }
                 else
                 {
-                    /* AP : update STA to preauth */
+                    
                     zfApAddSta(dev, src, ZM_STATE_PREAUTH, apId, 0, 0, 0);
 
-                    /* AP : call zfwAuthNotify() for host to judge */
-                    //zfwAuthNotify(dev, src);
+                    
+                    
 
-                    /* AP : response Auth seq=2 */
+                    
                     retStatus = 0;
                 }
             }
@@ -1114,7 +1100,7 @@ void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 
                 if (wd->ap.authSharing == 1)
                 {
-                    /* check challenge text */
+                    
                     if (zmw_buf_readh(dev, buf, 30+4) == 0x8010)
                     {
                         for (i=0; i<128; i++)
@@ -1133,18 +1119,18 @@ void zfApProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 
                     if (challengePassed == 1)
                     {
-                        /* AP : update STA to auth */
+                        
                         zfApAddSta(dev, src, ZM_STATE_AUTH, apId, 0, 0, 0);
 
-                        /* AP : response Auth seq=2 */
+                        
                         retStatus = 0;
                     }
                     else
                     {
-                        /* AP : response Auth seq=2, challenge failure */
+                        
                         retStatus = 15;
 
-                        /* TODO : delete STA */
+                        
                     }
 
                     wd->ap.authSharing = 0;
@@ -1176,7 +1162,7 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
     u16_t encMode = 0;
 
     zmw_get_wlan_dev(dev);
-    /* AP : check SSID */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_SSID)) != 0xffff)
     {
         k = 0;
@@ -1219,41 +1205,41 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
         }
     }
 
-    /* TODO : check capability */
+    
 
-    /* AP : check support rate */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_RATE)) != 0xffff)
     {
-        /* 11g STA */
+        
         staType = 1;
     }
-    //CWYang(+)
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_HT_CAPABILITY)) != 0xffff)
     {
-        /* 11n STA */
+        
         staType = 2;
     }
 
-    /* TODO : do not allow 11b STA to associated in Pure G mode */
+    
     if (wd->ap.wlanType[apId] == ZM_WLAN_TYPE_PURE_G && staType == 0)
     {
         zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_DEAUTH, src, 3, 0, 0);
         return;
     }
 
-    /* In pure B mode, we set G STA into B mode */
+    
     if (wd->ap.wlanType[apId] == ZM_WLAN_TYPE_PURE_B && staType == 1)
     {
         staType = 0;
     }
 
-    /* AP : check 11i and WPA */
-    /* AP : check 11h */
+    
+    
 
-    /* AP : check WME */
+    
     if ((offset = zfFindWifiElement(dev, buf, 2, 0)) != 0xffff)
     {
-        /* WME STA */
+        
         qosType = 1;
         zm_msg0_mm(ZM_LV_0, "WME STA");
 
@@ -1267,7 +1253,7 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
     {
         if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_WPA_IE)) != 0xffff )
         {
-            /* get WPA IE */
+            
             u8_t length = zmw_rx_buf_readb(dev, buf, offset+1);
             if (length+2 < ZM_MAX_WPAIE_SIZE)
             {
@@ -1278,7 +1264,7 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 
                 zm_msg1_mm(ZM_LV_0, "WPA Mode zfwAsocNotify, apId=", apId);
 
-                /* AP : Call zfwAsocNotify() */
+                
                 if (wd->zfcbAsocNotify != NULL)
                 {
                     wd->zfcbAsocNotify(dev, src, wd->ap.stawpaIe[apId], wd->ap.stawpaLen[apId], apId);
@@ -1291,7 +1277,7 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
         }
         else if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_RSN_IE)) != 0xffff )
         {
-            /* get RSN IE */
+            
             u8_t length = zmw_rx_buf_readb(dev, buf, offset+1);
             if (length+2 < ZM_MAX_WPAIE_SIZE)
             {
@@ -1301,7 +1287,7 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 
                 zm_msg1_mm(ZM_LV_0, "RSN Mode zfwAsocNotify, apId=", apId);
 
-                /* AP : Call zfwAsocNotify() */
+                
                 if (wd->zfcbAsocNotify != NULL)
                 {
                     wd->zfcbAsocNotify(dev, src, wd->ap.stawpaIe[apId], wd->ap.stawpaLen[apId], apId);
@@ -1315,7 +1301,7 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 #ifdef ZM_ENABLE_CENC
         else if ( (offset = zfFindElement(dev, buf, ZM_WLAN_EID_CENC_IE)) != 0xffff )
         {
-            /* get CENC IE */
+            
             u8_t length = zmw_rx_buf_readb(dev, buf, offset+1);
 
             if (length+2 < ZM_MAX_WPAIE_SIZE)
@@ -1326,7 +1312,7 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
 
                 zm_msg1_mm(ZM_LV_0, "CENC Mode zfwAsocNotify, apId=", apId);
 
-                /* AP : Call zfwAsocNotify() */
+                
                 if (wd->zfcbCencAsocNotify != NULL)
                 {
                     wd->zfcbCencAsocNotify(dev, src, wd->ap.stawpaIe[apId],
@@ -1338,27 +1324,27 @@ void zfApProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
                 goto zlDeauth;
             }
         }
-#endif //ZM_ENABLE_CENC
+#endif 
         else
-        {   /* ap is encryption but sta has no wpa/rsn ie */
+        {   
             zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_DEAUTH, src, 6, 0, 0);
             return;
         }
     }
-    /* sta has wpa/rsn ie but ap is no encryption */
+    
     if ((wd->ap.wpaSupport[apId] == 0) && (encMode == 1))
     {
         zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_DEAUTH, src, 6, 0, 0);
         return;
     }
 
-    /* AP : update STA to asoc */
+    
     aid = zfApAddSta(dev, src, ZM_STATE_ASOC, apId, staType, qosType, qosInfo);
 
     zfApStoreAsocReqIe(dev, buf, aid);
 
 zlDeauth:
-    /* AP : send asoc rsp2 */
+    
     if (aid != 0xffff)
     {
         frameType = zmw_rx_buf_readb(dev, buf, 0);
@@ -1374,7 +1360,7 @@ zlDeauth:
     }
     else
     {
-        /* TODO : send deauthentication */
+        
         zfSendMmFrame(dev, ZM_WLAN_FRAME_TYPE_DEAUTH, src, 6, 0, 0);
     }
 
@@ -1383,8 +1369,8 @@ zlDeauth:
 
 void zfApStoreAsocReqIe(zdev_t* dev, zbuf_t* buf, u16_t aid)
 {
-    //struct zsWlanAssoFrameHeader* pAssoFrame;
-    //u8_t  pBuf[sizeof(struct zsWlanAssoFrameHeader)];
+    
+    
     u16_t offset;
     u32_t i;
     u16_t length;
@@ -1396,38 +1382,38 @@ void zfApStoreAsocReqIe(zdev_t* dev, zbuf_t* buf, u16_t aid)
     {
         wd->sta.asocRspFrameBody[i] = zmw_rx_buf_readb(dev, buf, i+24);
     }
-    /* capability: 2 octets */
+    
     offset = 24;
 
-    /* Listen interval: 2 octets */
+    
     offset = 26;
 
-    /* SSID */
+    
     offset = 28;
 
-    /* supported rates */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_SUPPORT_RATE)) == 0xffff)
         return;
     length = zmw_rx_buf_readb(dev, buf, offset + 1);
 
-    /* extended supported rates */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_EXTENDED_RATE)) == 0xffff)
         return;
     length = zmw_rx_buf_readb(dev, buf, offset + 1);
 
-    /* power capability:4 octets */
+    
     offset = offset + 2 + length;
 
-    /* supported channels: 4 octets */
+    
     offset = offset + 2 + 4;
 
-    /* RSN */
+    
 
-    /* QoS */
+    
 
-    /* HT capabilities: 28 octets */
+    
     if ((offset = zfFindElement(dev, buf, ZM_WLAN_EID_HT_CAPABILITY)) != 0xffff) {
-        /* atheros pre n */
+        
         htcap = (u8_t *)&wd->ap.ie[aid].HtCap;
         htcap[0] = zmw_rx_buf_readb(dev, buf, offset);
         htcap[1] = 26;
@@ -1439,7 +1425,7 @@ void zfApStoreAsocReqIe(zdev_t* dev, zbuf_t* buf, u16_t aid)
         return;
     }
     else if ((offset = zfFindElement(dev, buf, ZM_WLAN_PREN2_EID_HTCAPABILITY)) != 0xffff) {
-        /* pre n 2.0 standard */
+        
         htcap = (u8_t *)&wd->ap.ie[aid].HtCap;
         for (i=0; i<28; i++)
         {
@@ -1448,20 +1434,20 @@ void zfApStoreAsocReqIe(zdev_t* dev, zbuf_t* buf, u16_t aid)
         }
     }
     else {
-        /* not 11n AP */
+        
         return;
     }
 
 
-    /* supported regulatory classes */
+    
     offset = offset + length;
-    //length = zmw_rx_buf_readb(dev, buf, offset + 1);
+    
     {
     u8_t *htcap;
     htcap = (u8_t *)&wd->sta.ie.HtInfo;
-    //zm_debug_msg2("ASOC:  HT Capabilities info=", ((u16_t *)htcap)[1]);
-    //zm_debug_msg2("ASOC:  A-MPDU parameters=", htcap[4]);
-    //zm_debug_msg2("ASOC:  Supported MCS set=", ((u32_t *)htcap)[1]>>8);
+    
+    
+    
     }
 
 }
@@ -1478,10 +1464,10 @@ void zfApProcessDeauth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
     zmw_declare_for_critical_section();
 
     zmw_enter_critical_section(dev);
-    /* AP : if SA=associated STA then deauthenticate STA */
+    
     if ((aid = zfApFindSta(dev, src)) != 0xffff)
     {
-        /* Clear STA table */
+        
         wd->ap.staTable[aid].valid = 0;
         if (wd->zfcbDisAsocNotify != NULL)
         {
@@ -1499,10 +1485,10 @@ void zfApProcessDisasoc(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId)
     zmw_declare_for_critical_section();
 
     zmw_enter_critical_section(dev);
-    /* AP : if SA=associated STA then deauthenticate STA */
+    
     if ((aid = zfApFindSta(dev, src)) != 0xffff)
     {
-        /* Clear STA table */
+        
         wd->ap.staTable[aid].valid = 0;
         zmw_leave_critical_section(dev);
         if (wd->zfcbDisAsocNotify != NULL)
@@ -1522,17 +1508,17 @@ void zfApProcessProbeRsp(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInf
 
     zm_msg0_mm(ZM_LV_0, "Rx probersp");
 
-    /* Gather scan result */
+    
 
-    //zm_debug_msg1("bssList Count = ", wd->sta.bssList.bssCount);
-    /* return if not in scanning */
+    
+    
     if ((wd->heartBeatNotification & ZM_BSSID_LIST_SCAN)
             != ZM_BSSID_LIST_SCAN)
     {
         return;
     }
 
-    //if ( wd->sta.pUpdateBssList->bssCount == ZM_MAX_BSS )
+    
     if ( wd->sta.bssList.bssCount == ZM_MAX_BSS )
     {
         return;
@@ -1543,37 +1529,37 @@ void zfApProcessProbeRsp(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInf
 #endif
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApAddIeSsid               */
-/*      Add AP information element SSID to buffer.                      */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*      vap : virtual AP ID                                             */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.11     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfApAddIeSsid(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
 {
     u16_t i;
 
     zmw_get_wlan_dev(dev);
 
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_SSID);
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, wd->ap.ssidLen[vap]);
 
-    /* Information : SSID */
+    
     for (i=0; i<wd->ap.ssidLen[vap]; i++)
     {
         zmw_tx_buf_writeb(dev, buf, offset++, wd->ap.ssid[vap][i]);
@@ -1583,24 +1569,24 @@ u16_t zfApAddIeSsid(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApAddIeTim                */
-/*      Add AP information element TIM to buffer.                       */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*      vap : virtual AP ID                                             */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.11     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
 {
     u8_t uniBitMap[9];
@@ -1620,27 +1606,27 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
 
     zmw_declare_for_critical_section();
 
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_TIM);
 
-    /* offset of Element Length */
+    
     lenOffset = offset++;
 
-    /* Information : TIM */
-    /* DTIM count */
-    /* TODO : Doesn't work for Virtual AP's case */
+    
+    
+    
     wd->CurrentDtimCount++;
     if (wd->CurrentDtimCount >= wd->dtim)
     {
         wd->CurrentDtimCount = 0;
     }
     zmw_tx_buf_writeb(dev, buf, offset++, wd->CurrentDtimCount);
-    /* DTIM period */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, wd->dtim);
-    /* bitmap offset */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0);
 
-    /* Update BCMC bit */
+    
     if (wd->CurrentDtimCount == 0)
     {
         zmw_enter_critical_section(dev);
@@ -1652,8 +1638,8 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
         wd->ap.timBcmcBit[vap] = 0;
     }
 
-    /* Update Unicast bitmap */
-    /* reset bit map */
+    
+    
     for (i=0; i<9; i++)
     {
         uniBitMap[i] = 0;
@@ -1668,9 +1654,9 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
     {
         psBuf = wd->ap.uniArray[id];
 
-        /* TODO : Aging PS frame after queuing for more than 10 seconds */
+        
 
-        /* get destination STA's aid */
+        
         dst[0] = zmw_tx_buf_readh(dev, psBuf, 0);
         dst[1] = zmw_tx_buf_readh(dev, psBuf, 2);
         dst[2] = zmw_tx_buf_readh(dev, psBuf, 4);
@@ -1694,7 +1680,7 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
             else
             {
                 zm_msg0_mm(ZM_LV_0, "Send PS frame which STA no longer in PS mode");
-                /* Send PS frame which STA no longer in PS mode */
+                
                 zfApRemoveFromPsQueue(dev, id, dst);
                 tmpBufArray[tmpBufArraySize++] = psBuf;
             }
@@ -1702,7 +1688,7 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
         else
         {
             zm_msg0_mm(ZM_LV_0, "Free garbage PS frame");
-            /* Free garbage PS frame */
+            
             zfApRemoveFromPsQueue(dev, id, dst);
             zfwBufFree(dev, psBuf, 0);
         }
@@ -1717,7 +1703,7 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
     zm_msg1_mm(ZM_LV_3, "highestByte=",highestByte);
     zm_msg1_mm(ZM_LV_3, "timBcmcBit[]=",wd->ap.timBcmcBit[vap]);
 
-    /* bitmap */
+    
     zmw_tx_buf_writeb(dev, buf, offset++,
                          uniBitMap[0] | wd->ap.timBcmcBit[vap]);
     for (i=0; i<highestByte; i++)
@@ -1725,15 +1711,15 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
         zmw_tx_buf_writeb(dev, buf, offset++, uniBitMap[i+1]);
     }
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, lenOffset, highestByte+4);
 
     for (i=0; i<tmpBufArraySize; i++)
     {
-        /* Put to VTXQ[ac] */
+        
         zfPutVtxq(dev, tmpBufArray[i]);
     }
-    /* Push VTXQ[ac] */
+    
     zfPushVtxq(dev);
 
     return offset;
@@ -1741,22 +1727,22 @@ u16_t zfApAddIeTim(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
 
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApRemoveFromPsQueue       */
-/*      Remove zbuf from PS queue.                                      */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      id : index in ps queue                                          */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      more data bit                                                   */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2007.1      */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u8_t zfApRemoveFromPsQueue(zdev_t* dev, u16_t id, u16_t* addr)
 {
     u16_t dst[3];
@@ -1770,7 +1756,7 @@ u8_t zfApRemoveFromPsQueue(zdev_t* dev, u16_t id, u16_t* addr)
         nid = (id + 1) & (ZM_UNI_ARRAY_SIZE - 1);
         wd->ap.uniArray[id] = wd->ap.uniArray[nid];
 
-        /* Search until tail to config more data bit */
+        
         dst[0] = zmw_buf_readh(dev, wd->ap.uniArray[id], 0);
         dst[1] = zmw_buf_readh(dev, wd->ap.uniArray[id], 2);
         dst[2] = zmw_buf_readh(dev, wd->ap.uniArray[id], 4);
@@ -1785,35 +1771,35 @@ u8_t zfApRemoveFromPsQueue(zdev_t* dev, u16_t id, u16_t* addr)
     return moreData;
 }
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApAddIeWmePara            */
-/*      Add WME Parameter Element to buffer.                            */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer to add information element                         */
-/*      offset : add information element from this offset               */
-/*      vap : virtual AP ID                                             */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      buffer offset after adding information element                  */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2006.1      */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfApAddIeWmePara(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
 {
     zmw_get_wlan_dev(dev);
 
-    /* Element ID */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, ZM_WLAN_EID_WIFI_IE);
 
-    /* Element Length */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 24);
 
-    /* OUI */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x50);
     zmw_tx_buf_writeb(dev, buf, offset++, 0xF2);
@@ -1821,7 +1807,7 @@ u16_t zfApAddIeWmePara(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
     zmw_tx_buf_writeb(dev, buf, offset++, 0x01);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x01);
 
-    /* QoS Info */
+    
     if (wd->ap.uapsdEnabled)
     {
         zmw_tx_buf_writeb(dev, buf, offset++, 0x81);
@@ -1831,25 +1817,25 @@ u16_t zfApAddIeWmePara(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
     zmw_tx_buf_writeb(dev, buf, offset++, 0x01);
     }
 
-    /* Reserved */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
 
-    /* Best Effort AC parameters */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0x03);
     zmw_tx_buf_writeb(dev, buf, offset++, 0xA4);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
-    /* Backfround AC parameters */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0x27);
     zmw_tx_buf_writeb(dev, buf, offset++, 0xA4);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
-    /* Video AC parameters */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0x42);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x43);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x5E);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x00);
-    /* Voice AC parameters */
+    
     zmw_tx_buf_writeb(dev, buf, offset++, 0x62);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x32);
     zmw_tx_buf_writeb(dev, buf, offset++, 0x2F);
@@ -1859,21 +1845,21 @@ u16_t zfApAddIeWmePara(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t vap)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApSendBeacon              */
-/*      Sned AP mode beacon.                                            */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      none                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        ZyDAS Technology Corporation    2005.11     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfApSendBeacon(zdev_t* dev)
 {
     zbuf_t* buf;
@@ -1895,7 +1881,7 @@ void zfApSendBeacon(zdev_t* dev)
 
     zm_msg1_mm(ZM_LV_2, "Send beacon, vap=", vap);
 
-    /* TBD : Maximum size of beacon */
+    
     if ((buf = zfwBufAllocate(dev, 1024)) == NULL)
     {
         zm_msg0_mm(ZM_LV_0, "Alloc beacon buf Fail!");
@@ -1904,66 +1890,66 @@ void zfApSendBeacon(zdev_t* dev)
 
     offset = 0;
 
-    /* wlan header */
-    /* Frame control */
+    
+    
     zmw_tx_buf_writeh(dev, buf, offset, 0x0080);
     offset+=2;
-    /* Duration */
+    
     zmw_tx_buf_writeh(dev, buf, offset, 0x0000);
     offset+=2;
-    /* Address 1 */
+    
     zmw_tx_buf_writeh(dev, buf, offset, 0xffff);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, 0xffff);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, 0xffff);
     offset+=2;
-    /* Address 2 */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[0]);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[1]);
     offset+=2;
 #ifdef ZM_VAPMODE_MULTILE_SSID
-    zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[2]); //Multiple SSID
+    zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[2]); 
 #else
-    zmw_tx_buf_writeh(dev, buf, offset, (wd->macAddr[2]+(vap<<8))); //VAP
+    zmw_tx_buf_writeh(dev, buf, offset, (wd->macAddr[2]+(vap<<8))); 
 #endif
     offset+=2;
-    /* Address 3 */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[0]);
     offset+=2;
     zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[1]);
     offset+=2;
 #ifdef ZM_VAPMODE_MULTILE_SSID
-    zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[2]); //Multiple SSID
+    zmw_tx_buf_writeh(dev, buf, offset, wd->macAddr[2]); 
 #else
-    zmw_tx_buf_writeh(dev, buf, offset, (wd->macAddr[2]+(vap<<8))); //VAP
+    zmw_tx_buf_writeh(dev, buf, offset, (wd->macAddr[2]+(vap<<8))); 
 #endif
     offset+=2;
 
-    /* Sequence number */
+    
     zmw_enter_critical_section(dev);
     seq = ((wd->mmseq++)<<4);
     zmw_leave_critical_section(dev);
     zmw_tx_buf_writeh(dev, buf, offset, seq);
     offset+=2;
 
-    /* 24-31 Time Stamp : hardware will fill this field */
+    
     zmw_tx_buf_writeh(dev, buf, offset, 0);
     zmw_tx_buf_writeh(dev, buf, offset+2, 0);
     zmw_tx_buf_writeh(dev, buf, offset+4, 0);
     zmw_tx_buf_writeh(dev, buf, offset+6, 0);
     offset+=8;
 
-    /* Beacon Interval */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->beaconInterval);
     offset+=2;
 
-    /* Capability */
+    
     zmw_tx_buf_writeh(dev, buf, offset, wd->ap.capab[vap]);
     offset+=2;
 
-    /* SSID */
+    
     if (wd->ap.hideSsid[vap] == 0)
     {
         offset = zfApAddIeSsid(dev, buf, offset, vap);
@@ -1975,7 +1961,7 @@ void zfApSendBeacon(zdev_t* dev)
 
     }
 
-    /* Support Rate */
+    
     if ( wd->frequency < 3000 )
     {
     offset = zfMmAddIeSupportRate(dev, buf, offset,
@@ -1987,76 +1973,74 @@ void zfApSendBeacon(zdev_t* dev)
                                   ZM_WLAN_EID_SUPPORT_RATE, ZM_RATE_SET_OFDM);
     }
 
-    /* DS parameter set */
+    
     offset = zfMmAddIeDs(dev, buf, offset);
 
-    /* TIM */
+    
     offset = zfApAddIeTim(dev, buf, offset, vap);
 
-    /* If WLAN Type is not PURE B */
+    
     if (wd->ap.wlanType[vap] != ZM_WLAN_TYPE_PURE_B)
     {
         if ( wd->frequency < 3000 )
         {
-        /* ERP Information */
+        
         offset = zfMmAddIeErp(dev, buf, offset);
 
-        /* Extended Supported Rates */
+        
         offset = zfMmAddIeSupportRate(dev, buf, offset,
                                       ZM_WLAN_EID_EXTENDED_RATE, ZM_RATE_SET_OFDM);
     }
     }
 
-    /* TODO : country information */
-    /* TODO : RSN */
+    
+    
     if (wd->ap.wpaSupport[vap] == 1)
     {
         offset = zfMmAddIeWpa(dev, buf, offset, vap);
     }
 
-    /* WME Parameters */
+    
     if (wd->ap.qosMode == 1)
     {
         offset = zfApAddIeWmePara(dev, buf, offset, vap);
     }
 
-    /* HT Capabilities Info */
+    
     offset = zfMmAddHTCapability(dev, buf, offset);
 
-    /* Extended HT Capabilities Info */
+    
     offset = zfMmAddExtendedHTCapability(dev, buf, offset);
 
-    /* 1212 : write to beacon fifo */
-    /* 1221 : write to share memory */
+    
+    
     zfHpSendBeacon(dev, buf, offset);
 
-    /* Free beacon buffer */
-    /* TODO: In order to fit the madwifi beacon architecture, we need to
-       free beacon buffer in the HAL layer.
-     */
+    
+    
 
-    //zfwBufFree(dev, buf, 0);
+    
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfIntrabssForward           */
-/*      Called to transmit intra-BSS frame from upper layer.            */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      buf : buffer pointer                                            */
-/*      vap : virtual AP                                                */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      1 : unicast intras-BSS frame                                    */
-/*      0 : other frames                                                */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen             ZyDAS Technology Corporation    2005.11     */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 u16_t zfIntrabssForward(zdev_t* dev, zbuf_t* buf, u8_t srcVap)
 {
     u16_t err;
@@ -2078,9 +2062,9 @@ u16_t zfIntrabssForward(zdev_t* dev, zbuf_t* buf, u8_t srcVap)
     dst[0] = zmw_rx_buf_readh(dev, buf, 0);
     dst[1] = zmw_rx_buf_readh(dev, buf, 2);
     dst[2] = zmw_rx_buf_readh(dev, buf, 4);
-#endif  // ZM_ENABLE_NATIVE_WIFI
+#endif  
 
-    /* Do Intra-BSS forward(data copy) if necessary*/
+    
     if ((dst[0]&0x1) != 0x1)
     {
         aid = zfApGetSTAInfo(dev, dst, &staState, &vap);
@@ -2097,10 +2081,10 @@ u16_t zfIntrabssForward(zdev_t* dev, zbuf_t* buf, u8_t srcVap)
         zm_msg0_rx(ZM_LV_2, "Intra-BSS forward : BCorMC");
     }
 
-    /* destination address = associated STA or BC/MC */
+    
     if ((asocFlag == 1) || ((dst[0]&0x1) == 0x1))
     {
-        /* Allocate frame */
+        
         if ((txBuf = zfwBufAllocate(dev, ZM_RX_FRAME_SIZE))
                 == NULL)
         {
@@ -2108,7 +2092,7 @@ u16_t zfIntrabssForward(zdev_t* dev, zbuf_t* buf, u8_t srcVap)
             goto zlAllocError;
         }
 
-        /* Copy frame */
+        
         len = zfwBufGetSize(dev, buf);
         for (i=0; i<len; i+=2)
         {
@@ -2118,7 +2102,7 @@ u16_t zfIntrabssForward(zdev_t* dev, zbuf_t* buf, u8_t srcVap)
         zfwBufSetSize(dev, txBuf, len);
 
 #ifdef ZM_ENABLE_NATIVE_WIFI
-        /* Tx-A2 = Rx-A1, Tx-A3 = Rx-A2, Tx-A1 = Rx-A3 */
+        
         for (i=0; i<6; i+=2)
         {
             temp = zmw_rx_buf_readh(dev, buf, ZM_WLAN_HEADER_A1_OFFSET+i);
@@ -2131,8 +2115,8 @@ u16_t zfIntrabssForward(zdev_t* dev, zbuf_t* buf, u8_t srcVap)
 
         #endif
 
-        /* Transmit frame */
-        /* Return error if port is disabled */
+        
+        
         if ((err = zfTxPortControl(dev, txBuf, vap)) == ZM_PORT_DISABLED)
         {
             err = ZM_ERR_TX_PORT_DISABLED;
@@ -2140,14 +2124,14 @@ u16_t zfIntrabssForward(zdev_t* dev, zbuf_t* buf, u8_t srcVap)
         }
 
 #if 1
-        /* AP : Buffer frame for power saving STA */
+        
         if ((ret = zfApBufferPsFrame(dev, txBuf, vap)) == 0)
         {
-            /* forward frame if not been buffered */
+            
             #if 1
-            /* Put to VTXQ[ac] */
+            
             ret = zfPutVtxq(dev, txBuf);
-            /* Push VTXQ[ac] */
+            
             zfPushVtxq(dev);
             #else
             zfTxSendEth(dev, txBuf, vap, ZM_INTERNAL_ALLOC_BUF, 0);
@@ -2226,14 +2210,14 @@ u16_t zfApUpdatePsBit(zdev_t* dev, zbuf_t* buf, u8_t* vap, u8_t* uapsdTrig)
 
     if ((zmw_rx_buf_readb(dev, buf, 1) & 0x3) != 3)
     {
-        /* AP */
+        
         dst[0] = zmw_rx_buf_readh(dev, buf, 4);
 
         psBit = (zmw_rx_buf_readb(dev, buf, 1) & 0x10) >> 4;
-        /* Get AID and update STA PS mode */
+        
         aid = zfApGetSTAInfoAndUpdatePs(dev, src, &staState, vap, psBit, uapsdTrig);
 
-        /* if STA not associated, send deauth */
+        
         if ((aid == 0xffff) || (staState != ZM_STATE_ASOC))
         {
             if ((dst[0]&0x1)==0)
@@ -2244,10 +2228,10 @@ u16_t zfApUpdatePsBit(zdev_t* dev, zbuf_t* buf, u8_t* vap, u8_t* uapsdTrig)
 
             return ZM_ERR_STA_NOT_ASSOCIATED;
         }
-    } /* if ((zmw_rx_buf_readb(dev, buf, 1) & 0x3) != 3) */
+    } 
     else
     {
-        /* WDS */
+        
         for (i=0; i<ZM_MAX_WDS_SUPPORT; i++)
         {
             if ((wd->ap.wds.wdsBitmap & (1<<i)) != 0)
@@ -2281,7 +2265,7 @@ void zfApProcessPsPoll(zdev_t* dev, zbuf_t* buf)
     src[1] = zmw_tx_buf_readh(dev, buf, 12);
     src[2] = zmw_tx_buf_readh(dev, buf, 14);
 
-    /* Find ps buffer for PsPoll */
+    
     zmw_enter_critical_section(dev);
     id = wd->ap.uniHead;
     while (id != wd->ap.uniTail)
@@ -2305,10 +2289,10 @@ void zfApProcessPsPoll(zdev_t* dev, zbuf_t* buf)
     }
     zmw_leave_critical_section(dev);
 
-    /* Send ps buffer */
+    
     if (psBuf != NULL)
     {
-        /* Send with more data bit */
+        
         zfTxSendEth(dev, psBuf, 0, ZM_EXTERNAL_ALLOC_BUF, moreData);
     }
 
@@ -2323,7 +2307,7 @@ void zfApSetProtectionMode(zdev_t* dev, u16_t mode)
     {
         if (wd->ap.protectionMode != mode)
         {
-            /* Write MAC&PHY registers to disable protection */
+            
 
             wd->ap.protectionMode = mode;
         }
@@ -2333,7 +2317,7 @@ void zfApSetProtectionMode(zdev_t* dev, u16_t mode)
     {
         if (wd->ap.protectionMode != mode)
         {
-            /* Write MAC&PHY registers to enable protection */
+            
 
             wd->ap.protectionMode = mode;
         }
@@ -2342,22 +2326,22 @@ void zfApSetProtectionMode(zdev_t* dev, u16_t mode)
 }
 
 
-/************************************************************************/
-/*                                                                      */
-/*    FUNCTION DESCRIPTION                  zfApSendFailure             */
-/*      Send failure.                                                   */
-/*                                                                      */
-/*    INPUTS                                                            */
-/*      dev : device pointer                                            */
-/*      addr : receiver address                                         */
-/*                                                                      */
-/*    OUTPUTS                                                           */
-/*      None                                                            */
-/*                                                                      */
-/*    AUTHOR                                                            */
-/*      Stephen Chen        Atheros Communications, INC.    2007.1      */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfApSendFailure(zdev_t* dev, u8_t* addr)
 {
     u16_t id;
@@ -2371,8 +2355,8 @@ void zfApSendFailure(zdev_t* dev, u8_t* addr)
     zmw_enter_critical_section(dev);
     if ((id = zfApFindSta(dev, staAddr)) != 0xffff)
     {
-        /* Send failture : Add 3 minutes to inactive time that will */
-        /*                 will make STA been kicked out soon */
+        
+        
         wd->ap.staTable[id].time -= (3*ZM_TICK_PER_MINUTE);
     }
     zmw_leave_critical_section(dev);
@@ -2383,9 +2367,9 @@ void zfApProcessAction(zdev_t* dev, zbuf_t* buf)
 {
     u8_t category;
 
-    //zmw_get_wlan_dev(dev);
+    
 
-    //zmw_declare_for_critical_section();
+    
 
     category = zmw_rx_buf_readb(dev, buf, 24);
 

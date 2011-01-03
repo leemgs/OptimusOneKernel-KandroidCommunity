@@ -1,6 +1,4 @@
-/*
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- */
+
 
 #ifndef MT9D112_H
 #define MT9D112_H
@@ -33,4 +31,4 @@ struct mt9d112_reg {
 	uint16_t rftbl_size;
 };
 
-#endif /* MT9D112_H */
+#endif 

@@ -1,21 +1,4 @@
-/*
- * Copyright (C) 2003-2008 Takahiro Hirofuchi
- *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
- * USA.
- */
+
 
 #include "usbip_common.h"
 #include "vhci.h"
@@ -88,7 +71,7 @@ static int vhci_send_cmd_submit(struct vhci_device *vdev)
 		usbip_dbg_vhci_tx("setup txdata urb %p\n", urb);
 
 
-		/* 1. setup usbip_header */
+		
 		setup_cmd_submit_pdu(&pdu_header, urb);
 		usbip_header_correct_endian(&pdu_header, 1);
 
@@ -96,14 +79,14 @@ static int vhci_send_cmd_submit(struct vhci_device *vdev)
 		iov[0].iov_len  = sizeof(pdu_header);
 		txsize += sizeof(pdu_header);
 
-		/* 2. setup transfer buffer */
+		
 		if (!usb_pipein(urb->pipe) && urb->transfer_buffer_length > 0) {
 			iov[1].iov_base = urb->transfer_buffer;
 			iov[1].iov_len  = urb->transfer_buffer_length;
 			txsize += urb->transfer_buffer_length;
 		}
 
-		/* 3. setup iso_packet_descriptor */
+		
 		if (usb_pipetype(urb->pipe) == PIPE_ISOCHRONOUS) {
 			ssize_t len = 0;
 
@@ -138,7 +121,7 @@ static int vhci_send_cmd_submit(struct vhci_device *vdev)
 }
 
 
-/*-------------------------------------------------------------------------*/
+
 
 static struct vhci_unlink *dequeue_from_unlink_tx(struct vhci_device *vdev)
 {
@@ -180,7 +163,7 @@ static int vhci_send_cmd_unlink(struct vhci_device *vdev)
 		usbip_dbg_vhci_tx("setup cmd unlink, %lu \n", unlink->seqnum);
 
 
-		/* 1. setup usbip_header */
+		
 		pdu_header.base.command = USBIP_CMD_UNLINK;
 		pdu_header.base.seqnum  = unlink->seqnum;
 		pdu_header.base.devid	= vdev->devid;
@@ -211,7 +194,7 @@ static int vhci_send_cmd_unlink(struct vhci_device *vdev)
 }
 
 
-/*-------------------------------------------------------------------------*/
+
 
 void vhci_tx_loop(struct usbip_task *ut)
 {

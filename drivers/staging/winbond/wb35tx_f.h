@@ -4,9 +4,9 @@
 #include "core.h"
 #include "wbhal_f.h"
 
-//====================================
-// Interface function declare
-//====================================
+
+
+
 unsigned char Wb35Tx_initial(	 struct hw_data * pHwData );
 void Wb35Tx_destroy(  struct hw_data * pHwData );
 unsigned char Wb35Tx_get_tx_buffer(  struct hw_data * pHwData,  u8 **pBuffer );

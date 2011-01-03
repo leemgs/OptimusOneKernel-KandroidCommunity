@@ -1,13 +1,4 @@
-/*
- * Line6 Linux USB driver - 0.8.0
- *
- * Copyright (C) 2004-2009 Markus Grabner (grabner@icg.tugraz.at)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include "driver.h"
 
@@ -43,9 +34,7 @@ static const char variax_request_model2[] = {
 };
 
 
-/*
-	Decode data transmitted by workbench.
-*/
+
 static void variax_decode(const unsigned char *raw_data, unsigned char *data,
 			  int raw_size)
 {
@@ -66,9 +55,7 @@ static void variax_activate_timeout(unsigned long arg)
 				     sizeof(variax_activate));
 }
 
-/*
-	Send an asynchronous activation request after a given interval.
-*/
+
 static void variax_activate_delayed(struct usb_line6_variax *variax,
 				    int seconds)
 {
@@ -90,9 +77,7 @@ static void variax_startup_timeout(unsigned long arg)
 			      variax);
 }
 
-/*
-	Process a completely received message.
-*/
+
 void variax_process_message(struct usb_line6_variax *variax)
 {
 	const unsigned char *buf = variax->line6.buffer_message;
@@ -135,7 +120,7 @@ void variax_process_message(struct usb_line6_variax *variax)
 					break;
 
 				case VARIAX_DUMP_PASS2:
-					/* model name is transmitted twice, so skip it here: */
+					
 					variax_decode(buf + VARIAX_MODEL_HEADER_LENGTH,
 						      (unsigned char *)&variax->model_data.control + sizeof(variax->model_data.control) / 2,
 						      sizeof(variax->model_data.control) / 2 * 2);
@@ -166,9 +151,7 @@ void variax_process_message(struct usb_line6_variax *variax)
 	}
 }
 
-/*
-	"read" request on "volume" special file.
-*/
+
 static ssize_t variax_get_volume(struct device *dev,
 				 struct device_attribute *attr, char *buf)
 {
@@ -176,9 +159,7 @@ static ssize_t variax_get_volume(struct device *dev,
 	return sprintf(buf, "%d\n", variax->volume);
 }
 
-/*
-	"write" request on "volume" special file.
-*/
+
 static ssize_t variax_set_volume(struct device *dev,
 				 struct device_attribute *attr,
 				 const char *buf, size_t count)
@@ -193,9 +174,7 @@ static ssize_t variax_set_volume(struct device *dev,
 	return count;
 }
 
-/*
-	"read" request on "model" special file.
-*/
+
 static ssize_t variax_get_model(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
@@ -203,9 +182,7 @@ static ssize_t variax_get_model(struct device *dev,
 	return sprintf(buf, "%d\n", variax->model);
 }
 
-/*
-	"write" request on "model" special file.
-*/
+
 static ssize_t variax_set_model(struct device *dev,
 				struct device_attribute *attr,
 				const char *buf, size_t count)
@@ -219,9 +196,7 @@ static ssize_t variax_set_model(struct device *dev,
 	return count;
 }
 
-/*
-	"read" request on "active" special file.
-*/
+
 static ssize_t variax_get_active(struct device *dev,
 				 struct device_attribute *attr, char *buf)
 {
@@ -229,9 +204,7 @@ static ssize_t variax_get_active(struct device *dev,
 	return sprintf(buf, "%d\n", variax->buffer_activate[VARIAX_OFFSET_ACTIVATE]);
 }
 
-/*
-	"write" request on "active" special file.
-*/
+
 static ssize_t variax_set_active(struct device *dev,
 				 struct device_attribute *attr,
 				 const char *buf, size_t count)
@@ -244,9 +217,7 @@ static ssize_t variax_set_active(struct device *dev,
 	return count;
 }
 
-/*
-	"read" request on "tone" special file.
-*/
+
 static ssize_t variax_get_tone(struct device *dev,
 			       struct device_attribute *attr, char *buf)
 {
@@ -254,9 +225,7 @@ static ssize_t variax_get_tone(struct device *dev,
 	return sprintf(buf, "%d\n", variax->tone);
 }
 
-/*
-	"write" request on "tone" special file.
-*/
+
 static ssize_t variax_set_tone(struct device *dev,
 			       struct device_attribute *attr,
 			       const char *buf, size_t count)
@@ -287,9 +256,7 @@ static ssize_t get_string(char *buf, const char *data, int length)
 	return i + 2;
 }
 
-/*
-	"read" request on "name" special file.
-*/
+
 static ssize_t variax_get_name(struct device *dev,
 			       struct device_attribute *attr, char *buf)
 {
@@ -299,9 +266,7 @@ static ssize_t variax_get_name(struct device *dev,
 			  sizeof(variax->model_data.name));
 }
 
-/*
-	"read" request on "bank" special file.
-*/
+
 static ssize_t variax_get_bank(struct device *dev,
 			       struct device_attribute *attr, char *buf)
 {
@@ -310,9 +275,7 @@ static ssize_t variax_get_bank(struct device *dev,
 	return get_string(buf, variax->bank, sizeof(variax->bank));
 }
 
-/*
-	"read" request on "dump" special file.
-*/
+
 static ssize_t variax_get_dump(struct device *dev,
 			       struct device_attribute *attr, char *buf)
 {
@@ -328,9 +291,7 @@ static ssize_t variax_get_dump(struct device *dev,
 
 #if CREATE_RAW_FILE
 
-/*
-	"write" request on "raw" special file.
-*/
+
 static ssize_t variax_set_raw2(struct device *dev,
 			       struct device_attribute *attr,
 			       const char *buf, size_t count)
@@ -365,7 +326,7 @@ static ssize_t variax_set_raw2(struct device *dev,
 
 #endif
 
-/* Variax workbench special files: */
+
 static DEVICE_ATTR(model, S_IWUGO | S_IRUGO, variax_get_model, variax_set_model);
 static DEVICE_ATTR(volume, S_IWUGO | S_IRUGO, variax_get_volume, variax_set_volume);
 static DEVICE_ATTR(tone, S_IWUGO | S_IRUGO, variax_get_tone, variax_set_tone);
@@ -380,9 +341,7 @@ static DEVICE_ATTR(raw2, S_IWUGO, line6_nop_read, variax_set_raw2);
 #endif
 
 
-/*
-	Variax destructor.
-*/
+
 static void variax_destruct(struct usb_interface *interface)
 {
 	struct usb_line6_variax *variax = usb_get_intfdata(interface);
@@ -395,7 +354,7 @@ static void variax_destruct(struct usb_interface *interface)
 		return;
 	line6_cleanup_audio(line6);
 
-	/* free dump request data: */
+	
 	line6_dumpreq_destructbuf(&variax->dumpreq, 2);
 	line6_dumpreq_destructbuf(&variax->dumpreq, 1);
 	line6_dumpreq_destruct(&variax->dumpreq);
@@ -404,9 +363,7 @@ static void variax_destruct(struct usb_interface *interface)
 	del_timer_sync(&variax->activate_timer);
 }
 
-/*
-	Create sysfs entries.
-*/
+
 static int variax_create_files2(struct device *dev)
 {
 	int err;
@@ -424,9 +381,7 @@ static int variax_create_files2(struct device *dev)
 	return 0;
 }
 
-/*
-	 Init workbench device.
-*/
+
 int variax_init(struct usb_interface *interface,
 		struct usb_line6_variax *variax)
 {
@@ -435,7 +390,7 @@ int variax_init(struct usb_interface *interface,
 	if ((interface == NULL) || (variax == NULL))
 		return -ENODEV;
 
-	/* initialize USB buffers: */
+	
 	err = line6_dumpreq_init(&variax->dumpreq, variax_request_model1,
 				 sizeof(variax_request_model1));
 
@@ -475,7 +430,7 @@ int variax_init(struct usb_interface *interface,
 	       sizeof(variax_activate));
 	init_timer(&variax->activate_timer);
 
-	/* create sysfs entries: */
+	
 	err = variax_create_files(0, 0, &interface->dev);
 	if (err < 0) {
 		variax_destruct(interface);
@@ -488,21 +443,21 @@ int variax_init(struct usb_interface *interface,
 		return err;
 	}
 
-	/* initialize audio system: */
+	
 	err = line6_init_audio(&variax->line6);
 	if (err < 0) {
 		variax_destruct(interface);
 		return err;
 	}
 
-	/* initialize MIDI subsystem: */
+	
 	err = line6_init_midi(&variax->line6);
 	if (err < 0) {
 		variax_destruct(interface);
 		return err;
 	}
 
-	/* register audio system: */
+	
 	err = line6_register_audio(&variax->line6);
 	if (err < 0) {
 		variax_destruct(interface);
@@ -515,9 +470,7 @@ int variax_init(struct usb_interface *interface,
 	return 0;
 }
 
-/*
-	Workbench device disconnected.
-*/
+
 void variax_disconnect(struct usb_interface *interface)
 {
 	struct device *dev;
@@ -527,7 +480,7 @@ void variax_disconnect(struct usb_interface *interface)
 	dev = &interface->dev;
 
 	if (dev != NULL) {
-		/* remove sysfs entries: */
+		
 		variax_remove_files(0, 0, dev);
 		device_remove_file(dev, &dev_attr_model);
 		device_remove_file(dev, &dev_attr_volume);

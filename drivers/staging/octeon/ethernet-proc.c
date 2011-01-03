@@ -1,29 +1,4 @@
-/**********************************************************************
- * Author: Cavium Networks
- *
- * Contact: support@caviumnetworks.com
- * This file is part of the OCTEON SDK
- *
- * Copyright (c) 2003-2007 Cavium Networks
- *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, Version 2, as
- * published by the Free Software Foundation.
- *
- * This file is distributed in the hope that it will be useful, but
- * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
- * NONINFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this file; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- * or visit http://www.gnu.org/licenses/.
- *
- * This file may also be available under a different license from Cavium.
- * Contact Cavium Networks for more information
-**********************************************************************/
+
 #include <linux/kernel.h>
 #include <linux/mii.h>
 #include <linux/seq_file.h>
@@ -58,7 +33,7 @@ static int cvm_oct_stats_switch_show(struct seq_file *m, void *v)
 
 	while (ports[index] != -1) {
 
-		/* Latch port */
+		
 		struct octeon_ethernet *priv = netdev_priv(dev);
 
 		priv->mii_info.mdio_write(dev, 0x1b, 0x1d,
@@ -144,13 +119,7 @@ static int cvm_oct_stats_switch_show(struct seq_file *m, void *v)
 	return 0;
 }
 
-/**
- * User is reading /proc/octeon_ethernet_stats
- *
- * @m:
- * @v:
- * Returns
- */
+
 static int cvm_oct_stats_show(struct seq_file *m, void *v)
 {
 	struct octeon_ethernet *priv;
@@ -223,13 +192,7 @@ static int cvm_oct_stats_show(struct seq_file *m, void *v)
 	return 0;
 }
 
-/**
- * /proc/octeon_ethernet_stats was openned. Use the single_open iterator
- *
- * @inode:
- * @file:
- * Returns
- */
+
 static int cvm_oct_stats_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, cvm_oct_stats_show, NULL);

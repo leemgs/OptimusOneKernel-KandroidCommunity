@@ -1,25 +1,4 @@
-/*
- *
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- *
- */
+
 
 
 #ifndef __HV_H__
@@ -37,7 +16,7 @@ enum {
 	VMBUS_MESSAGE_SINT		= 2,
 };
 
-/* #defines */
+
 
 #define HV_PRESENT_BIT			0x80000000
 
@@ -61,7 +40,7 @@ enum {
 #define HV_HYPERCALL_PARAM_ALIGN	sizeof(u64)
 
 
-/* Service definitions */
+
 
 #define HV_SERVICE_PARENT_PORT				(0)
 #define HV_SERVICE_PARENT_CONNECTION			(0)
@@ -80,12 +59,12 @@ enum {
 #define HV_SERVICE_PROTOCOL_VERSION (0x0010)
 #define HV_CONNECT_PAYLOAD_BYTE_COUNT 64
 
-/* #define VMBUS_REVISION_NUMBER	6 */
 
-/* Our local vmbus's port and connection id. Anything >0 is fine */
-/* #define VMBUS_PORT_ID		11 */
 
-/* 628180B8-308D-4c5e-B7DB-1BEB62E62EF4 */
+
+
+
+
 static const struct hv_guid VMBUS_SERVICE_ID = {
 	.data = {
 		0xb8, 0x80, 0x81, 0x62, 0x8d, 0x30, 0x5e, 0x4c,
@@ -102,20 +81,16 @@ struct hv_input_signal_event_buffer {
 };
 
 struct hv_context {
-	/* XenLinux or native Linux. If XenLinux, the hypercall and synic pages
-	 * has already been initialized */
+	
 	u64 GuestId;
 
 	void *HypercallPage;
 
 	bool SynICInitialized;
 
-	/*
-	 * This is used as an input param to HvCallSignalEvent hypercall. The
-	 * input param is immutable in our usage and must be dynamic mem (vs
-	 * stack or global). */
+	
 	struct hv_input_signal_event_buffer *SignalEventBuffer;
-	/* 8-bytes aligned of the buffer above */
+	
 	struct hv_input_signal_event *SignalEventParam;
 
 	void *synICMessagePage[MAX_NUM_CPUS];
@@ -125,7 +100,7 @@ struct hv_context {
 extern struct hv_context gHvContext;
 
 
-/* Hv Interface */
+
 
 extern int HvInit(void);
 
@@ -141,4 +116,4 @@ extern void HvSynicInit(void *irqarg);
 
 extern void HvSynicCleanup(void *arg);
 
-#endif /* __HV_H__ */
+#endif 

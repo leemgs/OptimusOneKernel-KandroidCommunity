@@ -1,40 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    ap_apcli.h
-
-    Abstract:
-    Miniport generic portion header file
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-    Shiang, Fonchi    02-13-2007      created
-*/
 
 #ifndef _AP_APCLI_H_
 #define _AP_APCLI_H_
@@ -43,15 +7,15 @@
 
 #include "rtmp.h"
 
-#define AUTH_TIMEOUT	300         // unit: msec
-#define ASSOC_TIMEOUT	300         // unit: msec
-//#define JOIN_TIMEOUT	2000        // unit: msec // not used in Ap-client mode, remove it
-#define PROBE_TIMEOUT	1000        // unit: msec
+#define AUTH_TIMEOUT	300         
+#define ASSOC_TIMEOUT	300         
+
+#define PROBE_TIMEOUT	1000        
 
 #define APCLI_ROOT_BSSID_GET(pAd, wcid) ((pAd)->MacTab.Content[(wcid)].Addr)
 #define APCLI_IF_UP_CHECK(pAd, ifidx) ((pAd)->ApCfg.ApCliTab[(ifidx)].dev->flags & IFF_UP)
 
-/* sanity check for apidx */
+
 #define APCLI_MR_APIDX_SANITY_CHECK(idx) \
 { \
 	if ((idx) >= MAX_APCLI_NUM) \
@@ -74,33 +38,33 @@ typedef struct _STA_CTRL_JOIN_REQ_STRUCT {
 BOOLEAN isValidApCliIf(
 	SHORT ifIndex);
 
-//
-// Private routines in apcli_ctrl.c
-//
+
+
+
 VOID ApCliCtrlStateMachineInit(
 	IN PRTMP_ADAPTER pAd,
 	IN STATE_MACHINE_EX *Sm,
 	OUT STATE_MACHINE_FUNC_EX Trans[]);
 
-//
-// Private routines in apcli_sync.c
-//
+
+
+
 VOID ApCliSyncStateMachineInit(
     IN PRTMP_ADAPTER pAd,
     IN STATE_MACHINE_EX *Sm,
     OUT STATE_MACHINE_FUNC_EX Trans[]);
 
-//
-// Private routines in apcli_auth.c
-//
+
+
+
 VOID ApCliAuthStateMachineInit(
     IN PRTMP_ADAPTER pAd,
     IN STATE_MACHINE_EX *Sm,
     OUT STATE_MACHINE_FUNC_EX Trans[]);
 
-//
-// Private routines in apcli_assoc.c
-//
+
+
+
 VOID ApCliAssocStateMachineInit(
     IN PRTMP_ADAPTER pAd,
     IN STATE_MACHINE_EX *Sm,
@@ -172,7 +136,7 @@ BOOLEAN ApCliCheckHt(
 	IN		USHORT				IfIndex,
 	IN OUT	HT_CAPABILITY_IE	*pHtCapability,
 	IN OUT	ADD_HT_INFO_IE		*pAddHtInfo);
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 BOOLEAN ApCliLinkUp(
 	IN PRTMP_ADAPTER pAd,
@@ -216,7 +180,7 @@ BOOLEAN ApCliPeerAssocRspSanity(
     OUT UCHAR ExtRate[],
     OUT UCHAR *pExtRateLen,
     OUT HT_CAPABILITY_IE *pHtCapability,
-    OUT ADD_HT_INFO_IE *pAddHtInfo,	// AP might use this additional ht info IE
+    OUT ADD_HT_INFO_IE *pAddHtInfo,	
     OUT UCHAR *pHtCapabilityLen,
     OUT UCHAR *pAddHtInfoLen,
     OUT UCHAR *pNewExtChannelOffset,
@@ -271,6 +235,6 @@ BOOLEAN APCliUpdateSharedKeyTable(
 	IN	UCHAR			DefaultKeyIdx,
 	IN  MAC_TABLE_ENTRY *pEntry);
 
-#endif // APCLI_SUPPORT //
+#endif 
 
-#endif /* _AP_APCLI_H_ */
+#endif 

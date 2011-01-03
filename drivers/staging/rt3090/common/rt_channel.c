@@ -1,29 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
-*/
+
 
 #include "../rt_config.h"
 
@@ -45,7 +20,7 @@ CH_FREQ_MAP CH_HZ_ID_MAP[]=
 			{13, 2472},
 			{14, 2484},
 
-			/*  UNII */
+			
 			{36, 5180},
 			{40, 5200},
 			{44, 5220},
@@ -64,7 +39,7 @@ CH_FREQ_MAP CH_HZ_ID_MAP[]=
 			{171, 5855},
 			{173, 5865},
 
-			/* HiperLAN2 */
+			
 			{100, 5500},
 			{104, 5520},
 			{108, 5540},
@@ -77,886 +52,886 @@ CH_FREQ_MAP CH_HZ_ID_MAP[]=
 			{136, 5680},
 			{140, 5700},
 
-			/* Japan MMAC */
+			
 			{34, 5170},
 			{38, 5190},
 			{42, 5210},
 			{46, 5230},
 
-			/*  Japan */
+			
 			{184, 4920},
 			{188, 4940},
 			{192, 4960},
 			{196, 4980},
 
-			{208, 5040},	/* Japan, means J08 */
-			{212, 5060},	/* Japan, means J12 */
-			{216, 5080},	/* Japan, means J16 */
+			{208, 5040},	
+			{212, 5060},	
+			{216, 5080},	
 };
 
 INT	CH_HZ_ID_MAP_NUM = (sizeof(CH_HZ_ID_MAP)/sizeof(CH_FREQ_MAP));
 
 CH_REGION ChRegion[] =
 {
-		{	// Antigua and Berbuda
+		{	
 			"AG",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  23, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  23, BOTH, FALSE},	
+				{ 100, 11, 30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Argentina
+		{	
 			"AR",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149, 4,  30, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 149, 4,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Aruba
+		{	
 			"AW",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  23, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  23, BOTH, FALSE},	
+				{ 100, 11, 30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Australia
+		{	
 			"AU",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149, 5,  30, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 149, 5,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Austria
+		{	
 			"AT",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, IDOR, TRUE},		// 5G, ch 36~48
-				{ 52,  4,  23, IDOR, TRUE},		// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, TRUE},		// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, IDOR, TRUE},		
+				{ 52,  4,  23, IDOR, TRUE},		
+				{ 100, 11, 30, BOTH, TRUE},		
+				{ 0},							
 			}
 		},
 
-		{	// Bahamas
+		{	
 			"BS",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149, 5,  30, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 149, 5,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Barbados
+		{	
 			"BB",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 100, 11, 30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Bermuda
+		{	
 			"BM",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 100, 11, 30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Brazil
+		{	
 			"BR",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11, 24, BOTH, FALSE},	// 5G, ch 100~140
-				{ 149, 5,  30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 100, 11, 24, BOTH, FALSE},	
+				{ 149, 5,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Belgium
+		{	
 			"BE",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  18, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  18, IDOR, FALSE},	// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  18, IDOR, FALSE},	
+				{ 52,  4,  18, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Bulgaria
+		{	
 			"BG",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11, 30, ODOR, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, IDOR, FALSE},	
+				{ 52,  4,  23, IDOR, TRUE},	
+				{ 100, 11, 30, ODOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Canada
+		{	
 			"CA",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  23, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149, 5,  30, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  23, BOTH, FALSE},	
+				{ 149, 5,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Cayman IsLands
+		{	
 			"KY",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 100, 11, 30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Chile
+		{	
 			"CL",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  20, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  20, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149, 5,  20, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  20, BOTH, FALSE},	
+				{ 52,  4,  20, BOTH, FALSE},	
+				{ 149, 5,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// China
+		{	
 			"CN",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 149, 4,  27, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 149, 4,  27, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Colombia
+		{	
 			"CO",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  17, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 149, 5,  30, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  17, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 100, 11, 30, BOTH, FALSE},	
+				{ 149, 5,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Costa Rica
+		{	
 			"CR",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  17, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149, 4,  30, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  17, BOTH, FALSE},	
+				{ 52,  4,  24, BOTH, FALSE},	
+				{ 149, 4,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Cyprus
+		{	
 			"CY",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  24, IDOR, TRUE},		// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, TRUE},		// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, IDOR, FALSE},	
+				{ 52,  4,  24, IDOR, TRUE},		
+				{ 100, 11, 30, BOTH, TRUE},		
+				{ 0},							
 			}
 		},
 
-		{	// Czech_Republic
+		{	
 			"CZ",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  23, IDOR, TRUE},		// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, IDOR, FALSE},	
+				{ 52,  4,  23, IDOR, TRUE},		
+				{ 0},							
 			}
 		},
 
-		{	// Denmark
+		{	
 			"DK",
 			CE,
 			{
-				{ 1,   13, 20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,  23, IDOR, TRUE},		// 5G, ch 52~64
-				{ 100, 11, 30, BOTH, TRUE},		// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13, 20, BOTH, FALSE},	
+				{ 36,  4,  23, IDOR, FALSE},	
+				{ 52,  4,  23, IDOR, TRUE},		
+				{ 100, 11, 30, BOTH, TRUE},		
+				{ 0},							
 			}
 		},
 
-		{	// Dominican Republic
+		{	
 			"DO",
 			CE,
 			{
-				{ 1,   0,  20, BOTH, FALSE},	// 2.4 G, ch 0
-				{ 149, 4,  20, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   0,  20, BOTH, FALSE},	
+				{ 149, 4,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Equador
+		{	
 			"EC",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 100, 11,  27, BOTH, FALSE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 100, 11,  27, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// El Salvador
+		{	
 			"SV",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,   23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   30, BOTH, TRUE},	// 5G, ch 52~64
-				{ 149, 4,   36, BOTH, TRUE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,  4,   23, IDOR, FALSE},	
+				{ 52,  4,   30, BOTH, TRUE},	
+				{ 149, 4,   36, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Finland
+		{	
 			"FI",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,   23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,  4,   23, IDOR, FALSE},	
+				{ 52,  4,   23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// France
+		{	
 			"FR",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,   23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,  4,   23, IDOR, FALSE},	
+				{ 52,  4,   23, IDOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Germany
+		{	
 			"DE",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,   23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,  4,   23, IDOR, FALSE},	
+				{ 52,  4,   23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Greece
+		{	
 			"GR",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,   23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, ODOR, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,  4,   23, IDOR, FALSE},	
+				{ 52,  4,   23, IDOR, TRUE},	
+				{ 100, 11,  30, ODOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Guam
+		{	
 			"GU",
 			CE,
 			{
-				{ 1,   11,  20, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 36,  4,   17, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, FALSE},	// 5G, ch 100~140
-				{ 149,  5,  30, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   11,  20, BOTH, FALSE},	
+				{ 36,  4,   17, BOTH, FALSE},	
+				{ 52,  4,   24, BOTH, FALSE},	
+				{ 100, 11,  30, BOTH, FALSE},	
+				{ 149,  5,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Guatemala
+		{	
 			"GT",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,   17, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149,  4,  30, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,  4,   17, BOTH, FALSE},	
+				{ 52,  4,   24, BOTH, FALSE},	
+				{ 149,  4,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Haiti
+		{	
 			"HT",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,  4,   17, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,  4,   24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149,  4,  30, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,  4,   17, BOTH, FALSE},	
+				{ 52,  4,   24, BOTH, FALSE},	
+				{ 149,  4,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Honduras
+		{	
 			"HN",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 149,  4,  27, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 149,  4,  27, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Hong Kong
+		{	
 			"HK",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, FALSE},	// 5G, ch 52~64
-				{ 149,  4,  30, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, FALSE},	
+				{ 149,  4,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Hungary
+		{	
 			"HU",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Iceland
+		{	
 			"IS",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// India
+		{	
 			"IN",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 149,	4,  24, IDOR, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 149,	4,  24, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Indonesia
+		{	
 			"ID",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 149,	4,  27, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 149,	4,  27, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Ireland
+		{	
 			"IE",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, ODOR, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 52,	4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, ODOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Israel
+		{	
 			"IL",
 			CE,
 			{
-				{ 1,    3,  20, IDOR, FALSE},	// 2.4 G, ch 1~3
-				{ 4,	6,  20, BOTH, FALSE},	// 2.4 G, ch 4~9
-				{ 10,	4,  20, IDOR, FALSE},	// 2.4 G, ch 10~13
-				{ 0},							// end
+				{ 1,    3,  20, IDOR, FALSE},	
+				{ 4,	6,  20, BOTH, FALSE},	
+				{ 10,	4,  20, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Italy
+		{	
 			"IT",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, ODOR, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 52,	4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, ODOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Japan
+		{	
 			"JP",
 			JAP,
 			{
-				{ 1,   14,  20, BOTH, FALSE},	// 2.4 G, ch 1~14
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 0},							// end
+				{ 1,   14,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Jordan
+		{	
 			"JO",
 			CE,
 			{
-				{ 1,   13,  20, IDOR, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 149,	4,  23, IDOR, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, IDOR, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 149,	4,  23, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Latvia
+		{	
 			"LV",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 52,	4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Liechtenstein
+		{	
 			"LI",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 52,	4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 52,	4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Lithuania
+		{	
 			"LT",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 52,	4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Luxemburg
+		{	
 			"LU",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 52,	4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Malaysia
+		{	
 			"MY",
 			CE,
 			{
-				{ 36,	4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  23, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149,  5,  20, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 36,	4,  23, BOTH, FALSE},	
+				{ 52,	4,  23, BOTH, FALSE},	
+				{ 149,  5,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Malta
+		{	
 			"MT",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 52,	4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Marocco
+		{	
 			"MA",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  24, IDOR, FALSE},	// 5G, ch 36~48
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  24, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Mexico
+		{	
 			"MX",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149,  5,  30, IDOR, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, BOTH, FALSE},	
+				{ 52,	4,  24, BOTH, FALSE},	
+				{ 149,  5,  30, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Netherlands
+		{	
 			"NL",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  24, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  23, IDOR, FALSE},	
+				{ 52,	4,  24, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// New Zealand
+		{	
 			"NZ",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  24, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  24, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149,  4,  30, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  24, BOTH, FALSE},	
+				{ 52,	4,  24, BOTH, FALSE},	
+				{ 149,  4,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Norway
+		{	
 			"NO",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,	4,  24, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,	4,  24, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,	4,  24, IDOR, FALSE},	
+				{ 52,	4,  24, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Peru
+		{	
 			"PE",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 149,  4,  27, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 149,  4,  27, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Portugal
+		{	
 			"PT",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Poland
+		{	
 			"PL",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Romania
+		{	
 			"RO",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Russia
+		{	
 			"RU",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 149,  4,  20, IDOR, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 149,  4,  20, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Saudi Arabia
+		{	
 			"SA",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149,  4,  23, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, BOTH, FALSE},	
+				{ 52,   4,  23, BOTH, FALSE},	
+				{ 149,  4,  23, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Serbia_and_Montenegro
+		{	
 			"CS",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Singapore
+		{	
 			"SG",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, BOTH, FALSE},	// 5G, ch 52~64
-				{ 149,  4,  20, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, BOTH, FALSE},	
+				{ 52,   4,  23, BOTH, FALSE},	
+				{ 149,  4,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Slovakia
+		{	
 			"SK",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Slovenia
+		{	
 			"SI",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// South Africa
+		{	
 			"ZA",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, FALSE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 149,  4,  30, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, BOTH, FALSE},	
+				{ 52,   4,  23, IDOR, FALSE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 149,  4,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// South Korea
+		{	
 			"KR",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  20, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  20, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100,  8,  20, BOTH, FALSE},	// 5G, ch 100~128
-				{ 149,  4,  20, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  20, BOTH, FALSE},	
+				{ 52,   4,  20, BOTH, FALSE},	
+				{ 100,  8,  20, BOTH, FALSE},	
+				{ 149,  4,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Spain
+		{	
 			"ES",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  17, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  17, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Sweden
+		{	
 			"SE",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Switzerland
+		{	
 			"CH",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~13
-				{ 36,   4,  23, IDOR, TRUE},	// 5G, ch 36~48
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, TRUE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Taiwan
+		{	
 			"TW",
 			CE,
 			{
-				{ 1,   11,  30, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 52,   4,  23, IDOR, FALSE},	// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   11,  30, BOTH, FALSE},	
+				{ 52,   4,  23, IDOR, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Turkey
+		{	
 			"TR",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 36,   4,  23, BOTH, FALSE},	// 5G, ch 36~48
-				{ 52,   4,  23, BOTH, FALSE},	// 5G, ch 52~64
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, BOTH, FALSE},	
+				{ 52,   4,  23, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// UK
+		{	
 			"GB",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 36,   4,  23, IDOR, FALSE},	// 5G, ch 52~64
-				{ 52,   4,  23, IDOR, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 36,   4,  23, IDOR, FALSE},	
+				{ 52,   4,  23, IDOR, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 0},							
 			}
 		},
 
-		{	// Ukraine
+		{	
 			"UA",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// United_Arab_Emirates
+		{	
 			"AE",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// United_States
+		{	
 			"US",
 			CE,
 			{
-				{ 1,   11,  30, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 36,   4,  17, IDOR, FALSE},	// 5G, ch 52~64
-				{ 52,   4,  24, BOTH, TRUE},	// 5G, ch 52~64
-				{ 100, 11,  30, BOTH, TRUE},	// 5G, ch 100~140
-				{ 149,  5,  30, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   11,  30, BOTH, FALSE},	
+				{ 36,   4,  17, IDOR, FALSE},	
+				{ 52,   4,  24, BOTH, TRUE},	
+				{ 100, 11,  30, BOTH, TRUE},	
+				{ 149,  5,  30, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Venezuela
+		{	
 			"VE",
 			CE,
 			{
-				{ 1,   13,  20, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 149,  4,  27, BOTH, FALSE},	// 5G, ch 149~161
-				{ 0},							// end
+				{ 1,   13,  20, BOTH, FALSE},	
+				{ 149,  4,  27, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 
-		{	// Default
+		{	
 			"",
 			CE,
 			{
-				{ 1,   11,  20, BOTH, FALSE},	// 2.4 G, ch 1~11
-				{ 36,   4,  20, BOTH, FALSE},	// 5G, ch 52~64
-				{ 52,   4,  20, BOTH, FALSE},	// 5G, ch 52~64
-				{ 100, 11,  20, BOTH, FALSE},	// 5G, ch 100~140
-				{ 149,  5,  20, BOTH, FALSE},	// 5G, ch 149~165
-				{ 0},							// end
+				{ 1,   11,  20, BOTH, FALSE},	
+				{ 36,   4,  20, BOTH, FALSE},	
+				{ 52,   4,  20, BOTH, FALSE},	
+				{ 100, 11,  20, BOTH, FALSE},	
+				{ 149,  5,  20, BOTH, FALSE},	
+				{ 0},							
 			}
 		},
 };
@@ -992,14 +967,14 @@ static VOID ChBandCheck(
 		case PHY_11A:
 #ifdef DOT11_N_SUPPORT
 		case PHY_11AN_MIXED:
-#endif // DOT11_N_SUPPORT //
+#endif 
 			*pChType = BAND_5G;
 			break;
 		case PHY_11ABG_MIXED:
 #ifdef DOT11_N_SUPPORT
 		case PHY_11AGN_MIXED:
 		case PHY_11ABGN_MIXED:
-#endif // DOT11_N_SUPPORT //
+#endif 
 			*pChType = BAND_BOTH;
 			break;
 
@@ -1190,7 +1165,7 @@ static UCHAR GetExtCh(
 VOID N_ChannelCheck(
 	IN PRTMP_ADAPTER pAd)
 {
-	//UCHAR ChannelNum = pAd->ChannelListNum;
+	
 	UCHAR Channel = pAd->CommonCfg.Channel;
 
 	if ((pAd->CommonCfg.PhyMode >= PHY_11ABGN_MIXED) && (pAd->CommonCfg.RegTransmitSetting.field.BW  == BW_40))
@@ -1235,7 +1210,7 @@ VOID N_ChannelCheck(
 			if (Channel == 14)
 			{
 				pAd->CommonCfg.RegTransmitSetting.field.BW  = BW_20;
-				//pAd->CommonCfg.RegTransmitSetting.field.EXTCHA = EXTCHA_NONE;	// We didn't set the ExtCh as NONE due to it'll set in RTMPSetHT()
+				
 			}
 		}
 	}
@@ -1266,7 +1241,7 @@ VOID N_SetCenCh(
 		pAd->CommonCfg.CentralChannel = pAd->CommonCfg.Channel;
 	}
 }
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 
 UINT8 GetCuntryMaxTxPwr(

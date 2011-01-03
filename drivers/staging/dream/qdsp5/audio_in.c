@@ -1,20 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/audio_in.c
- *
- * pcm audio input device
- *
- * Copyright (C) 2008 Google, Inc.
- * Copyright (C) 2008 HTC Corporation
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -40,10 +24,10 @@
 #include <mach/qdsp5/qdsp5audreccmdi.h>
 #include <mach/qdsp5/qdsp5audrecmsg.h>
 
-/* for queue ids - should be relative to module number*/
+
 #include "adsp.h"
 
-/* FRAME_NUM must be a power of two */
+
 #define FRAME_NUM		(8)
 #define FRAME_SIZE		(2052 * 2)
 #define MONO_DATA_SIZE		(2048)
@@ -100,30 +84,30 @@ struct audio_in {
 	struct msm_adsp_module *audpre;
 	struct msm_adsp_module *audrec;
 
-	/* configuration to use on next enable */
+	
 	uint32_t samp_rate;
 	uint32_t channel_mode;
-	uint32_t buffer_size; /* 2048 for mono, 4096 for stereo */
-	uint32_t type; /* 0 for PCM ,1 for AAC */
+	uint32_t buffer_size; 
+	uint32_t type; 
 	uint32_t dsp_cnt;
-	uint32_t in_head; /* next buffer dsp will write */
-	uint32_t in_tail; /* next buffer read() will read */
-	uint32_t in_count; /* number of buffers available to read() */
+	uint32_t in_head; 
+	uint32_t in_tail; 
+	uint32_t in_count; 
 
 	unsigned short samp_rate_index;
 
 	struct audmgr audmgr;
 
-	/* data allocated for various buffers */
+	
 	char *data;
 	dma_addr_t phys;
 
 	int opened;
 	int enabled;
 	int running;
-	int stopped; /* set when stopped, cleared on flush */
+	int stopped; 
 
-	/* audpre settings */
+	
 	int agc_enable;
 	struct tx_agc_config agc;
 
@@ -190,7 +174,7 @@ static unsigned convert_samp_index(unsigned index)
 	}
 }
 
-/* must be called with audio->lock held */
+
 static int audio_in_enable(struct audio_in *audio)
 {
 	struct audmgr_config cfg;
@@ -227,7 +211,7 @@ static int audio_in_enable(struct audio_in *audio)
 	return 0;
 }
 
-/* must be called with audio->lock held */
+
 static int audio_in_disable(struct audio_in *audio)
 {
 	if (audio->enabled) {
@@ -244,7 +228,7 @@ static int audio_in_disable(struct audio_in *audio)
 	return 0;
 }
 
-/* ------------------- dsp --------------------- */
+
 static void audpre_dsp_event(void *data, unsigned id, size_t len,
 			    void (*getevent)(void *ptr, size_t len))
 {
@@ -279,7 +263,7 @@ static void audio_in_get_dsp_frames(struct audio_in *audio)
 
 	index = audio->in_head;
 
-	/* XXX check for bogus frame size? */
+	
 
 	frame = (void *) (((char *)audio->in[index].data) - sizeof(*frame));
 
@@ -288,7 +272,7 @@ static void audio_in_get_dsp_frames(struct audio_in *audio)
 
 	audio->in_head = (audio->in_head + 1) & (FRAME_NUM - 1);
 
-	/* If overflow, move the tail index foward. */
+	
 	if (audio->in_head == audio->in_tail)
 		audio->in_tail = (audio->in_tail + 1) & (FRAME_NUM - 1);
 	else
@@ -333,7 +317,7 @@ static void audrec_dsp_event(void *data, unsigned id, size_t len,
 		pr_err("audrec: ERROR %x\n", msg[0]);
 		break;
 	case AUDREC_MSG_PACKET_READY_MSG:
-/* REC_DBG("type %x, count %d", msg[0], (msg[1] | (msg[2] << 16))); */
+
 		audio_in_get_dsp_frames(audio);
 		break;
 	default:
@@ -366,7 +350,7 @@ static int audio_dsp_set_agc(struct audio_in *audio)
 	cmd.cmd_id = AUDPREPROC_CMD_CFG_AGC_PARAMS;
 
 	if (audio->agc_enable) {
-		/* cmd.tx_agc_param_mask = 0xFE00 from sample code */
+		
 		cmd.tx_agc_param_mask =
 		(1 << AUDPREPROC_CMD_TX_AGC_PARAM_MASK_COMP_SLOPE) |
 		(1 << AUDPREPROC_CMD_TX_AGC_PARAM_MASK_COMP_TH) |
@@ -379,7 +363,7 @@ static int audio_dsp_set_agc(struct audio_in *audio)
 			AUDPREPROC_CMD_TX_AGC_ENA_FLAG_ENA;
 		memcpy(&cmd.static_gain, &audio->agc.agc_params[0],
 			sizeof(uint16_t) * 6);
-		/* cmd.param_mask = 0xFFF0 from sample code */
+		
 		cmd.param_mask =
 			(1 << AUDPREPROC_CMD_PARAM_MASK_RMS_TAY) |
 			(1 << AUDPREPROC_CMD_PARAM_MASK_RELEASEK) |
@@ -439,7 +423,7 @@ static int audio_dsp_set_ns(struct audio_in *audio)
 	cmd.cmd_id = AUDPREPROC_CMD_CFG_NS_PARAMS;
 
 	if (audio->ns_enable) {
-		/* cmd.ec_mode_new is fixed as 0x0064 when enable from sample code */
+		
 		cmd.ec_mode_new =
 			AUDPREPROC_CMD_EC_MODE_NEW_NS_ENA |
 			AUDPREPROC_CMD_EC_MODE_NEW_HB_ENA |
@@ -520,21 +504,14 @@ static int audio_in_encoder_config(struct audio_in *audio)
 	cmd.cmd_id = AUDREC_CMD_AREC0PARAM_CFG;
 	cmd.ptr_to_extpkt_buffer_msw = audio->phys >> 16;
 	cmd.ptr_to_extpkt_buffer_lsw = audio->phys;
-	cmd.buf_len = FRAME_NUM; /* Both WAV and AAC use 8 frames */
+	cmd.buf_len = FRAME_NUM; 
 	cmd.samp_rate_index = audio->samp_rate_index;
-	cmd.stereo_mode = audio->channel_mode; /* 0 for mono, 1 for stereo */
+	cmd.stereo_mode = audio->channel_mode; 
 
-	/* FIXME have no idea why cmd.rec_quality is fixed
-	 * as 0x1C00 from sample code
-	 */
+	
 	cmd.rec_quality = 0x1C00;
 
-	/* prepare buffer pointers:
-	 * Mono: 1024 samples + 4 halfword header
-	 * Stereo: 2048 samples + 4 halfword header
-	 * AAC
-	 * Mono/Stere: 768 + 4 halfword header
-	 */
+	
 	for (n = 0; n < FRAME_NUM; n++) {
 		audio->in[n].data = data + 4;
 		if (audio->type == AUDREC_CMD_TYPE_0_INDEX_WAV)
@@ -552,7 +529,7 @@ static int audio_dsp_read_buffer(struct audio_in *audio, uint32_t read_cnt)
 
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.cmd_id = AUDREC_CMD_PACKET_EXT_PTR;
-	/* Both WAV and AAC use AUDREC_CMD_TYPE_0 */
+	
 	cmd.type = AUDREC_CMD_TYPE_0;
 	cmd.curr_rec_count_msw = read_cnt >> 16;
 	cmd.curr_rec_count_lsw = read_cnt;
@@ -560,7 +537,7 @@ static int audio_dsp_read_buffer(struct audio_in *audio, uint32_t read_cnt)
 	return audio_send_queue_recbs(audio, &cmd, sizeof(cmd));
 }
 
-/* ------------------- device --------------------- */
+
 
 static void audio_enable_agc(struct audio_in *audio, int enable)
 {
@@ -628,11 +605,7 @@ static long audio_in_ioctl(struct file *file,
 		break;
 	case AUDIO_FLUSH:
 		if (audio->stopped) {
-			/* Make sure we're stopped and we wake any threads
-			 * that might be blocked holding the read_lock.
-			 * While audio->stopped read threads will always
-			 * exit immediately.
-			 */
+			
 			wake_up(&audio->wait);
 			mutex_lock(&audio->read_lock);
 			audio_flush(audio);
@@ -735,7 +708,7 @@ static ssize_t audio_in_read(struct file *file,
 			}
 			spin_lock_irqsave(&audio->dsp_lock, flags);
 			if (index != audio->in_tail) {
-			/* overrun -- data is invalid and we need to retry */
+			
 				spin_unlock_irqrestore(&audio->dsp_lock, flags);
 				continue;
 			}
@@ -752,7 +725,7 @@ static ssize_t audio_in_read(struct file *file,
 			break;
 		}
 		if (audio->type == AUDREC_CMD_TYPE_0_INDEX_AAC)
-			break; /* AAC only read one frame */
+			break; 
 	}
 	mutex_unlock(&audio->read_lock);
 
@@ -798,9 +771,7 @@ static int audio_in_open(struct inode *inode, struct file *file)
 		goto done;
 	}
 
-	/* Settings will be re-config at AUDIO_SET_CONFIG,
-	 * but at least we need to have initial config
-	 */
+	
 	audio->samp_rate = RPC_AUD_DEF_SAMPLE_RATE_11025;
 	audio->samp_rate_index = AUDREC_CMD_SAMP_RATE_INDX_11025;
 	audio->channel_mode = AUDREC_CMD_STEREO_MODE_MONO;

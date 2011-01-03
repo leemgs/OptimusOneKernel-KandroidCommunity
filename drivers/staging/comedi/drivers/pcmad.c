@@ -1,45 +1,5 @@
-/*
-    comedi/drivers/pcmad.c
-    Hardware driver for Winsystems PCM-A/D12 and PCM-A/D16
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 2000,2001 David A. Schleef <ds@schleef.org>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
-/*
-Driver: pcmad
-Description: Winsystems PCM-A/D12, PCM-A/D16
-Author: ds
-Devices: [Winsystems] PCM-A/D12 (pcmad12), PCM-A/D16 (pcmad16)
-Status: untested
-
-This driver was written on a bet that I couldn't write a driver
-in less than 2 hours.  I won the bet, but never got paid.  =(
-
-Configuration options:
-  [0] - I/O port base
-  [1] - unused
-  [2] - Analog input reference
-          0 = single ended
-          1 = differential
-  [3] - Analog input encoding (must match jumpers)
-          0 = straight binary
-          1 = two's complement
-*/
 
 #include <linux/interrupt.h>
 #include "../comedidev.h"
@@ -121,13 +81,7 @@ static int pcmad_ai_insn_read(struct comedi_device *dev,
 	return n;
 }
 
-/*
- * options:
- * 0	i/o base
- * 1	unused
- * 2	0=single ended 1=differential
- * 3	0=straight binary 1=two's comp
- */
+
 static int pcmad_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 {
 	int ret;
@@ -155,7 +109,7 @@ static int pcmad_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	s = dev->subdevices + 0;
 	s->type = COMEDI_SUBD_AI;
 	s->subdev_flags = SDF_READABLE | AREF_GROUND;
-	s->n_chan = 16;		/* XXX */
+	s->n_chan = 16;		
 	s->len_chanlist = 1;
 	s->insn_read = pcmad_ai_insn_read;
 	s->maxdata = (1 << this_board->n_ai_bits) - 1;

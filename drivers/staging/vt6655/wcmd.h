@@ -1,30 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: wcmd.h
- *
- * Purpose: Handles the management command interface functions
- *
- * Author: Lyndon Chen
- *
- * Date: May 8, 2002
- *
- */
+
 
 #ifndef __WCMD_H__
 #define __WCMD_H__
@@ -33,15 +7,15 @@
 #include "80211hdr.h"
 #include "80211mgr.h"
 
-/*---------------------  Export Definitions -------------------------*/
 
 
 
-#define AUTHENTICATE_TIMEOUT   1000 //ms
-#define ASSOCIATE_TIMEOUT      1000 //ms
+
+#define AUTHENTICATE_TIMEOUT   1000 
+#define ASSOCIATE_TIMEOUT      1000 
 
 
-// Command code
+
 typedef enum tagCMD_CODE {
     WLAN_CMD_BSSID_SCAN,
     WLAN_CMD_SSID,
@@ -82,7 +56,7 @@ typedef struct tagCMD_ITEM {
     BOOL     bForceSCAN;
 } CMD_ITEM, *PCMD_ITEM;
 
-// Command state
+
 typedef enum tagCMD_STATE {
     WLAN_CMD_SCAN_START,
     WLAN_CMD_SCAN_END,
@@ -100,15 +74,15 @@ typedef enum tagCMD_STATE {
 
 
 
-/*---------------------  Export Classes  ----------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
 
 
-/*---------------------  Export Types  ------------------------------*/
 
 
-/*---------------------  Export Functions  --------------------------*/
+
+
+
+
+
 VOID
 vResetCommandTimer(
     IN HANDLE      hDeviceContext
@@ -142,4 +116,4 @@ BSSvSecondTxData(
     );
 #endif
 
-#endif //__WCMD_H__
+#endif 

@@ -1,35 +1,6 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
-*/
 
-/*
-   All functions in this file must be PCI-depended, or you should out your function
-	in other files.
 
-*/
+
 #include "../rt_config.h"
 
 
@@ -47,23 +18,23 @@ USHORT RtmpPCI_WriteTxResource(
 	PRTMP_TX_RING	pTxRing;
 	USHORT			hwHeaderLen;
 
-	//
-	// get Tx Ring Resource
-	//
+	
+	
+	
 	pTxRing = &pAd->TxRing[pTxBlk->QueIdx];
 	TxIdx = pAd->TxRing[pTxBlk->QueIdx].TxCpuIdx;
 	pDMAHeaderBufVA = (PUCHAR) pTxRing->Cell[TxIdx].DmaBuf.AllocVa;
 	BufBasePaLow = RTMP_GetPhysicalAddressLow(pTxRing->Cell[TxIdx].DmaBuf.AllocPa);
 
-	// copy TXINFO + TXWI + WLAN Header + LLC into DMA Header Buffer
+	
 	if (pTxBlk->TxFrameType == TX_AMSDU_FRAME)
 	{
-		//hwHeaderLen = ROUND_UP(pTxBlk->MpduHeaderLen-LENGTH_AMSDU_SUBFRAMEHEAD, 4)+LENGTH_AMSDU_SUBFRAMEHEAD;
+		
 		hwHeaderLen = pTxBlk->MpduHeaderLen - LENGTH_AMSDU_SUBFRAMEHEAD + pTxBlk->HdrPadLen + LENGTH_AMSDU_SUBFRAMEHEAD;
 	}
 	else
 	{
-		//hwHeaderLen = ROUND_UP(pTxBlk->MpduHeaderLen, 4);
+		
 		hwHeaderLen = pTxBlk->MpduHeaderLen + pTxBlk->HdrPadLen;
 	}
 	NdisMoveMemory(pDMAHeaderBufVA, pTxBlk->HeaderBuf, TXINFO_SIZE + TXWI_SIZE + hwHeaderLen);
@@ -71,15 +42,15 @@ USHORT RtmpPCI_WriteTxResource(
 	pTxRing->Cell[TxIdx].pNdisPacket = pTxBlk->pPacket;
 	pTxRing->Cell[TxIdx].pNextNdisPacket = NULL;
 
-	//
-	// build Tx Descriptor
-	//
+	
+	
+	
 
 	pTxD = (PTXD_STRUC) pTxRing->Cell[TxIdx].AllocVa;
 	NdisZeroMemory(pTxD, TXD_SIZE);
 
 	pTxD->SDPtr0 = BufBasePaLow;
-	pTxD->SDLen0 = TXINFO_SIZE + TXWI_SIZE + hwHeaderLen; // include padding
+	pTxD->SDLen0 = TXINFO_SIZE + TXWI_SIZE + hwHeaderLen; 
 	pTxD->SDPtr1 = PCI_MAP_SINGLE(pAd, pTxBlk, 0, 1, PCI_DMA_TODEVICE);
 	pTxD->SDLen1 = pTxBlk->SrcBufLen;
 	pTxD->LastSec0 = 0;
@@ -88,9 +59,9 @@ USHORT RtmpPCI_WriteTxResource(
 	RTMPWriteTxDescriptor(pAd, pTxD, FALSE, FIFO_EDCA);
 
 	RetTxIdx = TxIdx;
-	//
-	// Update Tx index
-	//
+	
+	
+	
 	INC_RING_INDEX(TxIdx, TX_RING_SIZE);
 	pTxRing->TxCpuIdx = TxIdx;
 
@@ -118,16 +89,16 @@ USHORT RtmpPCI_WriteSingleTxResource(
 	PRTMP_TX_RING	pTxRing;
 	USHORT			hwHeaderLen;
 
-	//
-	// get Tx Ring Resource
-	//
+	
+	
+	
 	pTxRing = &pAd->TxRing[pTxBlk->QueIdx];
 	TxIdx = pAd->TxRing[pTxBlk->QueIdx].TxCpuIdx;
 	pDMAHeaderBufVA = (PUCHAR) pTxRing->Cell[TxIdx].DmaBuf.AllocVa;
 	BufBasePaLow = RTMP_GetPhysicalAddressLow(pTxRing->Cell[TxIdx].DmaBuf.AllocPa);
 
-	// copy TXINFO + TXWI + WLAN Header + LLC into DMA Header Buffer
-	//hwHeaderLen = ROUND_UP(pTxBlk->MpduHeaderLen, 4);
+	
+	
 	hwHeaderLen = pTxBlk->MpduHeaderLen + pTxBlk->HdrPadLen;
 
 	NdisMoveMemory(pDMAHeaderBufVA, pTxBlk->HeaderBuf, TXINFO_SIZE + TXWI_SIZE + hwHeaderLen);
@@ -135,9 +106,9 @@ USHORT RtmpPCI_WriteSingleTxResource(
 	pTxRing->Cell[TxIdx].pNdisPacket = pTxBlk->pPacket;
 	pTxRing->Cell[TxIdx].pNextNdisPacket = NULL;
 
-	//
-	// build Tx Descriptor
-	//
+	
+	
+	
 #ifndef RT_BIG_ENDIAN
 	pTxD = (PTXD_STRUC) pTxRing->Cell[TxIdx].AllocVa;
 #else
@@ -148,7 +119,7 @@ USHORT RtmpPCI_WriteSingleTxResource(
 	NdisZeroMemory(pTxD, TXD_SIZE);
 
 	pTxD->SDPtr0 = BufBasePaLow;
-	pTxD->SDLen0 = TXINFO_SIZE + TXWI_SIZE + hwHeaderLen; // include padding
+	pTxD->SDLen0 = TXINFO_SIZE + TXWI_SIZE + hwHeaderLen; 
 	pTxD->SDPtr1 = PCI_MAP_SINGLE(pAd, pTxBlk, 0, 1, PCI_DMA_TODEVICE);;
 	pTxD->SDLen1 = pTxBlk->SrcBufLen;
 	pTxD->LastSec0 = 0;
@@ -160,12 +131,12 @@ USHORT RtmpPCI_WriteSingleTxResource(
 	RTMPFrameEndianChange(pAd, (PUCHAR)(pDMAHeaderBufVA + TXINFO_SIZE + TXWI_SIZE), DIR_WRITE, FALSE);
 	RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 	WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 	RetTxIdx = TxIdx;
-	//
-	// Update Tx index
-	//
+	
+	
+	
 	INC_RING_INDEX(TxIdx, TX_RING_SIZE);
 	pTxRing->TxCpuIdx = TxIdx;
 
@@ -196,9 +167,9 @@ USHORT RtmpPCI_WriteMultiTxResource(
 
 	bIsLast = ((frameNum == (pTxBlk->TotalFrameNum - 1)) ? 1 : 0);
 
-	//
-	// get Tx Ring Resource
-	//
+	
+	
+	
 	pTxRing = &pAd->TxRing[pTxBlk->QueIdx];
 	TxIdx = pAd->TxRing[pTxBlk->QueIdx].TxCpuIdx;
 	pDMAHeaderBufVA = (PUCHAR) pTxRing->Cell[TxIdx].DmaBuf.AllocVa;
@@ -206,15 +177,15 @@ USHORT RtmpPCI_WriteMultiTxResource(
 
 	if (frameNum == 0)
 	{
-		// copy TXINFO + TXWI + WLAN Header + LLC into DMA Header Buffer
+		
 		if (pTxBlk->TxFrameType == TX_AMSDU_FRAME)
-			//hwHdrLen = ROUND_UP(pTxBlk->MpduHeaderLen-LENGTH_AMSDU_SUBFRAMEHEAD, 4)+LENGTH_AMSDU_SUBFRAMEHEAD;
+			
 			hwHdrLen = pTxBlk->MpduHeaderLen - LENGTH_AMSDU_SUBFRAMEHEAD + pTxBlk->HdrPadLen + LENGTH_AMSDU_SUBFRAMEHEAD;
 		else if (pTxBlk->TxFrameType == TX_RALINK_FRAME)
-			//hwHdrLen = ROUND_UP(pTxBlk->MpduHeaderLen-LENGTH_ARALINK_HEADER_FIELD, 4)+LENGTH_ARALINK_HEADER_FIELD;
+			
 			hwHdrLen = pTxBlk->MpduHeaderLen - LENGTH_ARALINK_HEADER_FIELD + pTxBlk->HdrPadLen + LENGTH_ARALINK_HEADER_FIELD;
 		else
-			//hwHdrLen = ROUND_UP(pTxBlk->MpduHeaderLen, 4);
+			
 			hwHdrLen = pTxBlk->MpduHeaderLen + pTxBlk->HdrPadLen;
 
 		firstDMALen = TXINFO_SIZE + TXWI_SIZE + hwHdrLen;
@@ -229,9 +200,9 @@ USHORT RtmpPCI_WriteMultiTxResource(
 	pTxRing->Cell[TxIdx].pNdisPacket = pTxBlk->pPacket;
 	pTxRing->Cell[TxIdx].pNextNdisPacket = NULL;
 
-	//
-	// build Tx Descriptor
-	//
+	
+	
+	
 #ifndef RT_BIG_ENDIAN
 	pTxD = (PTXD_STRUC) pTxRing->Cell[TxIdx].AllocVa;
 #else
@@ -242,7 +213,7 @@ USHORT RtmpPCI_WriteMultiTxResource(
 	NdisZeroMemory(pTxD, TXD_SIZE);
 
 	pTxD->SDPtr0 = BufBasePaLow;
-	pTxD->SDLen0 = firstDMALen; // include padding
+	pTxD->SDLen0 = firstDMALen; 
 	pTxD->SDPtr1 = PCI_MAP_SINGLE(pAd, pTxBlk, 0, 1, PCI_DMA_TODEVICE);;
 	pTxD->SDLen1 = pTxBlk->SrcBufLen;
 	pTxD->LastSec0 = 0;
@@ -259,12 +230,12 @@ USHORT RtmpPCI_WriteMultiTxResource(
 
 	RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 	WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 	RetTxIdx = TxIdx;
-	//
-	// Update Tx index
-	//
+	
+	
+	
 	INC_RING_INDEX(TxIdx, TX_RING_SIZE);
 	pTxRing->TxCpuIdx = TxIdx;
 
@@ -285,15 +256,15 @@ VOID RtmpPCI_FinalWriteTxResource(
 	PTXWI_STRUC		pTxWI;
 	PRTMP_TX_RING	pTxRing;
 
-	//
-	// get Tx Ring Resource
-	//
+	
+	
+	
 	pTxRing = &pAd->TxRing[pTxBlk->QueIdx];
 	pTxWI = (PTXWI_STRUC) pTxRing->Cell[FirstTxIdx].DmaBuf.AllocVa;
 	pTxWI->MPDUtotalByteCount = totalMPDUSize;
 #ifdef RT_BIG_ENDIAN
 	RTMPWIEndianChange((PUCHAR)pTxWI, TYPE_TXWI);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 }
 
@@ -310,14 +281,14 @@ VOID RtmpPCIDataLastTxIdx(
 #endif
 	PRTMP_TX_RING	pTxRing;
 
-	//
-	// get Tx Ring Resource
-	//
+	
+	
+	
 	pTxRing = &pAd->TxRing[QueIdx];
 
-	//
-	// build Tx Descriptor
-	//
+	
+	
+	
 #ifndef RT_BIG_ENDIAN
 	pTxD = (PTXD_STRUC) pTxRing->Cell[LastTxIdx].AllocVa;
 #else
@@ -331,7 +302,7 @@ VOID RtmpPCIDataLastTxIdx(
 #ifdef RT_BIG_ENDIAN
 	RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 	WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 }
 
@@ -354,27 +325,27 @@ USHORT	RtmpPCI_WriteFragTxResource(
 	USHORT			hwHeaderLen;
 	UINT32			firstDMALen;
 
-	//
-	// Get Tx Ring Resource
-	//
+	
+	
+	
 	pTxRing = &pAd->TxRing[pTxBlk->QueIdx];
 	TxIdx = pAd->TxRing[pTxBlk->QueIdx].TxCpuIdx;
 	pDMAHeaderBufVA = (PUCHAR) pTxRing->Cell[TxIdx].DmaBuf.AllocVa;
 	BufBasePaLow = RTMP_GetPhysicalAddressLow(pTxRing->Cell[TxIdx].DmaBuf.AllocPa);
 
-	//
-	// Copy TXINFO + TXWI + WLAN Header + LLC into DMA Header Buffer
-	//
-	//hwHeaderLen = ROUND_UP(pTxBlk->MpduHeaderLen, 4);
+	
+	
+	
+	
 	hwHeaderLen = pTxBlk->MpduHeaderLen + pTxBlk->HdrPadLen;
 
 	firstDMALen = TXINFO_SIZE + TXWI_SIZE + hwHeaderLen;
 	NdisMoveMemory(pDMAHeaderBufVA, pTxBlk->HeaderBuf, firstDMALen);
 
 
-	//
-	// Build Tx Descriptor
-	//
+	
+	
+	
 #ifndef RT_BIG_ENDIAN
 	pTxD = (PTXD_STRUC) pTxRing->Cell[TxIdx].AllocVa;
 #else
@@ -391,7 +362,7 @@ USHORT	RtmpPCI_WriteFragTxResource(
 	}
 
 	pTxD->SDPtr0 = BufBasePaLow;
-	pTxD->SDLen0 = firstDMALen; // include padding
+	pTxD->SDLen0 = firstDMALen; 
 	pTxD->SDPtr1 = PCI_MAP_SINGLE(pAd, pTxBlk, 0, 1, PCI_DMA_TODEVICE);
 	pTxD->SDLen1 = pTxBlk->SrcBufLen;
 	pTxD->LastSec0 = 0;
@@ -404,14 +375,14 @@ USHORT	RtmpPCI_WriteFragTxResource(
 	RTMPFrameEndianChange(pAd, (PUCHAR)(pDMAHeaderBufVA + TXINFO_SIZE + TXWI_SIZE), DIR_WRITE, FALSE);
 	RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
     WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 	RetTxIdx = TxIdx;
 	pTxBlk->Priv += pTxBlk->SrcBufLen;
 
-	//
-	// Update Tx index
-	//
+	
+	
+	
 	INC_RING_INDEX(TxIdx, TX_RING_SIZE);
 	pTxRing->TxCpuIdx = TxIdx;
 
@@ -422,10 +393,7 @@ USHORT	RtmpPCI_WriteFragTxResource(
 }
 
 
-/*
-	Must be run in Interrupt context
-	This function handle PCI specific TxDesc and cpu index update and kick the packet out.
- */
+
 int RtmpPCIMgmtKickOut(
 	IN RTMP_ADAPTER		*pAd,
 	IN UCHAR			QueIdx,
@@ -465,24 +433,14 @@ int RtmpPCIMgmtKickOut(
     WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
 #endif
 
-//==================================================================
-/*	DBGPRINT_RAW(RT_DEBUG_TRACE, ("MLMEHardTransmit\n"));
-	for (i = 0; i < (TXWI_SIZE+24); i++)
-	{
 
-		DBGPRINT_RAW(RT_DEBUG_TRACE, ("%x:", *(pSrcBufVA+i)));
-		if ( i%4 == 3)
-			DBGPRINT_RAW(RT_DEBUG_TRACE, (" :: "));
-		if ( i%16 == 15)
-			DBGPRINT_RAW(RT_DEBUG_TRACE, ("\n      "));
-	}
-	DBGPRINT_RAW(RT_DEBUG_TRACE, ("\n      "));*/
-//=======================================================================
+
+
 
 	pAd->RalinkCounters.KickTxCount++;
 	pAd->RalinkCounters.OneSecTxDoneCount++;
 
-	// Increase TX_CTX_IDX, but write to register later.
+	
 	INC_RING_INDEX(pAd->MgmtRing.TxCpuIdx, MGMT_RING_SIZE);
 
 	RTMP_IO_WRITE32(pAd, TX_MGMTCTX_IDX,  pAd->MgmtRing.TxCpuIdx);
@@ -492,23 +450,7 @@ int RtmpPCIMgmtKickOut(
 
 
 #ifdef CONFIG_STA_SUPPORT
-/*
-	========================================================================
 
-	Routine Description:
-		Check Rx descriptor, return NDIS_STATUS_FAILURE if any error dound
-
-	Arguments:
-		pRxD		Pointer to the Rx descriptor
-
-	Return Value:
-		NDIS_STATUS_SUCCESS	No err
-		NDIS_STATUS_FAILURE	Error
-
-	Note:
-
-	========================================================================
-*/
 NDIS_STATUS RTMPCheckRxError(
 	IN	PRTMP_ADAPTER		pAd,
 	IN	PHEADER_802_11		pHeader,
@@ -518,10 +460,10 @@ NDIS_STATUS RTMPCheckRxError(
 	PCIPHER_KEY pWpaKey;
 	INT dBm;
 
-	// Phy errors & CRC errors
-	if (/*(pRxD->PhyErr) ||*/ (pRxD->Crc))
+	
+	if ( (pRxD->Crc))
 	{
-		// Check RSSI for Noise Hist statistic collection.
+		
 		dBm = (INT) (pRxWI->RSSI0) - pAd->BbpRssiToDbmDelta;
 		if (dBm <= -87)
 			pAd->StaCfg.RPIDensity[0] += 1;
@@ -543,10 +485,10 @@ NDIS_STATUS RTMPCheckRxError(
 		return(NDIS_STATUS_FAILURE);
 	}
 
-	// Add Rx size to channel load counter, we should ignore error counts
+	
 	pAd->StaCfg.CLBusyBytes += (pRxD->SDL0 + 14);
 
-	// Drop ToDs promiscous frame, it is opened due to CCX 2 channel load statistics
+	
 	if (pHeader != NULL)
 	{
 		if (pHeader->FC.ToDs)
@@ -555,12 +497,12 @@ NDIS_STATUS RTMPCheckRxError(
 		}
 	}
 
-	// Drop not U2M frames, cant's drop here because we will drop beacon in this case
-	// I am kind of doubting the U2M bit operation
-	// if (pRxD->U2M == 0)
-	//	return(NDIS_STATUS_FAILURE);
+	
+	
+	
+	
 
-	// drop decyption fail frame
+	
 	if (pRxD->CipherErr)
 	{
 		if (pRxD->CipherErr == 2)
@@ -579,12 +521,12 @@ NDIS_STATUS RTMPCheckRxError(
 			pRxD->Mcast | pRxD->Bcast,
 			pRxD->MyBss,
 			pRxWI->WirelessCliID,
-//			CipherName[pRxD->CipherAlg],
+
 			pRxWI->KeyIndex));
 
-		//
-		// MIC Error
-		//
+		
+		
+		
 		if (pRxD->CipherErr == 2)
 		{
 			pWpaKey = &pAd->SharedKey[BSS0][pRxWI->KeyIndex];
@@ -593,7 +535,7 @@ NDIS_STATUS RTMPCheckRxError(
                 WpaSendMicFailureToWpaSupplicant(pAd,
                                    (pWpaKey->Type == PAIRWISEKEY) ? TRUE:FALSE);
             else
-#endif // WPA_SUPPLICANT_SUPPORT //
+#endif 
 			    RTMPReportMicError(pAd, pWpaKey);
 
             if (((pRxD->CipherErr & 2) == 2) && pAd->CommonCfg.bWirelessEvent && INFRA_ON(pAd))
@@ -604,21 +546,14 @@ NDIS_STATUS RTMPCheckRxError(
 
 		if (pHeader == NULL)
 			return(NDIS_STATUS_SUCCESS);
-		/*if ((pRxD->CipherAlg == CIPHER_AES) &&
-			(pHeader->Sequence == pAd->FragFrame.Sequence))
-		{
-			//
-			// Acceptable since the First FragFrame no CipherErr problem.
-			//
-			return(NDIS_STATUS_SUCCESS);
-		}*/
+		
 
 		return(NDIS_STATUS_FAILURE);
 	}
 
 	return(NDIS_STATUS_SUCCESS);
 }
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
 BOOLEAN  RTMPFreeTXDUponTxDmaDone(
@@ -633,7 +568,7 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 	PNDIS_PACKET  pPacket;
 	UCHAR	FREE = 0;
 	TXD_STRUC	TxD, *pOriTxD;
-	//ULONG		IrqFlags;
+	
 	BOOLEAN			bReschedule = FALSE;
 
 
@@ -643,7 +578,7 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 	RTMP_IO_READ32(pAd, TX_DTX_IDX0 + QueIdx * RINGREG_DIFF, &pTxRing->TxDmaIdx);
 	while (pTxRing->TxSwFreeIdx != pTxRing->TxDmaIdx)
 	{
-//		RTMP_IRQ_LOCK(&pAd->irq_lock, IrqFlags);
+
 #ifdef RALINK_ATE
 #ifdef RALINK_28xx_QA
 		PHEADER_802_11	pHeader80211;
@@ -655,7 +590,7 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 				pAd->ate.TxDoneCount++;
 				pAd->RalinkCounters.KickTxCount++;
 
-				/* always use QID_AC_BE and FIFO_EDCA */
+				
 				ASSERT(pAd->ate.QID == 0);
 				pAd->ate.TxAc0++;
 
@@ -690,20 +625,20 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 					pAd->RalinkCounters.OneSecDmaDoneCount[QueIdx] ++;
 					INC_RING_INDEX(pTxRing->TxSwFreeIdx, TX_RING_SIZE);
 
-					/* get TX_DTX_IDX again */
+					
 					RTMP_IO_READ32(pAd, TX_DTX_IDX0 + QueIdx * RINGREG_DIFF ,  &pTxRing->TxDmaIdx);
 					goto kick_out;
 				}
-				else if ((pAd->ate.TxStatus == 1)/* or (pAd->ate.bQATxStart == TRUE) ??? */ && (pAd->ate.TxDoneCount == pAd->ate.TxCount))
+				else if ((pAd->ate.TxStatus == 1) && (pAd->ate.TxDoneCount == pAd->ate.TxCount))
 				{
 					DBGPRINT(RT_DEBUG_TRACE,("all Tx is done\n"));
 
-					// Tx status enters idle mode.
+					
 					pAd->ate.TxStatus = 0;
 				}
 				else if (!(pAd->ate.Mode & ATE_TXFRAME))
 				{
-					/* not complete sending yet, but someone press the Stop TX botton */
+					
 					DBGPRINT(RT_DEBUG_ERROR,("not complete sending yet, but someone pressed the Stop TX bottom\n"));
 					DBGPRINT(RT_DEBUG_ERROR,("pAd->ate.Mode = 0x%02x\n", pAd->ate.Mode));
 				}
@@ -717,20 +652,20 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 #else
 			RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 			*pDestTxD = TxD;
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 				INC_RING_INDEX(pTxRing->TxSwFreeIdx, TX_RING_SIZE);
 				continue;
 			}
 		}
-#endif // RALINK_28xx_QA //
-#endif // RALINK_ATE //
+#endif 
+#endif 
 
-		// static rate also need NICUpdateFifoStaCounters() function.
-		//if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_TX_RATE_SWITCH_ENABLED))
+		
+		
 			NICUpdateFifoStaCounters(pAd);
 
-		/* Note : If (pAd->ate.bQATxStart == TRUE), we will never reach here. */
+		
 		FREE++;
 #ifndef RT_BIG_ENDIAN
                 pTxD = (PTXD_STRUC) (pTxRing->Cell[pTxRing->TxSwFreeIdx].AllocVa);
@@ -749,9 +684,9 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 
 
 #ifdef RALINK_ATE
-		/* Execution of this block is not allowed when ATE is running. */
+		
 		if (!(ATE_ON(pAd)))
-#endif // RALINK_ATE //
+#endif 
 		{
 			pPacket = pTxRing->Cell[pTxRing->TxSwFreeIdx].pNdisPacket;
 			if (pPacket)
@@ -760,11 +695,11 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 				if (RTMP_GET_PACKET_5VT(pPacket))
 					PCI_UNMAP_SINGLE(pAd, pTxD->SDPtr1, 16, PCI_DMA_TODEVICE);
 				else
-#endif // CONFIG_5VT_ENHANCE //
+#endif 
 					PCI_UNMAP_SINGLE(pAd, pTxD->SDPtr1, pTxD->SDLen1, PCI_DMA_TODEVICE);
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
-			//Always assign pNdisPacket as NULL after clear
+			
 			pTxRing->Cell[pTxRing->TxSwFreeIdx].pNdisPacket = NULL;
 
 			pPacket = pTxRing->Cell[pTxRing->TxSwFreeIdx].pNextNdisPacket;
@@ -776,18 +711,18 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 				if (RTMP_GET_PACKET_5VT(pPacket))
 					PCI_UNMAP_SINGLE(pAd, pTxD->SDPtr1, 16, PCI_DMA_TODEVICE);
 				else
-#endif // CONFIG_5VT_ENHANCE //
+#endif 
 					PCI_UNMAP_SINGLE(pAd, pTxD->SDPtr1, pTxD->SDLen1, PCI_DMA_TODEVICE);
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
-			//Always assign pNextNdisPacket as NULL after clear
+			
 			pTxRing->Cell[pTxRing->TxSwFreeIdx].pNextNdisPacket = NULL;
 		}
 
 		pAd->RalinkCounters.TransmittedByteCount +=  (pTxD->SDLen1 + pTxD->SDLen0);
 		pAd->RalinkCounters.OneSecDmaDoneCount[QueIdx] ++;
 		INC_RING_INDEX(pTxRing->TxSwFreeIdx, TX_RING_SIZE);
-		/* get tx_tdx_idx again */
+		
 		RTMP_IO_READ32(pAd, TX_DTX_IDX0 + QueIdx * RINGREG_DIFF ,  &pTxRing->TxDmaIdx);
 #ifdef RT_BIG_ENDIAN
         RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
@@ -799,23 +734,19 @@ BOOLEAN  RTMPFreeTXDUponTxDmaDone(
 #ifdef RALINK_ATE
 #ifdef RALINK_28xx_QA
 kick_out:
-#endif // RALINK_28xx_QA //
+#endif 
 
-		/*
-			ATE_TXCONT mode also need to send some normal frames, so let it in.
-			ATE_STOP must be changed not to be 0xff
-			to prevent it from running into this block.
-		*/
+		
 		if ((pAd->ate.Mode & ATE_TXFRAME) && (pAd->ate.QID == QueIdx))
 		{
-			// TxDoneCount++ has been done if QA is used.
+			
 			if (pAd->ate.bQATxStart == FALSE)
 			{
 				pAd->ate.TxDoneCount++;
 			}
 			if (((pAd->ate.TxCount - pAd->ate.TxDoneCount + 1) >= TX_RING_SIZE))
 			{
-				/* Note : We increase TxCpuIdx here, not TxSwFreeIdx ! */
+				
 				INC_RING_INDEX(pAd->TxRing[QueIdx].TxCpuIdx, TX_RING_SIZE);
 #ifndef RT_BIG_ENDIAN
 				pTxD = (PTXD_STRUC) (pTxRing->Cell[pAd->TxRing[QueIdx].TxCpuIdx].AllocVa);
@@ -836,13 +767,13 @@ kick_out:
 			RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 			*pDestTxD = TxD;
 #endif
-				// kick Tx-Ring
+				
 				RTMP_IO_WRITE32(pAd, TX_CTX_IDX0 + QueIdx * RINGREG_DIFF, pAd->TxRing[QueIdx].TxCpuIdx);
 				pAd->RalinkCounters.KickTxCount++;
 			}
 		}
-#endif // RALINK_ATE //
-//         RTMP_IRQ_UNLOCK(&pAd->irq_lock, IrqFlags);
+#endif 
+
 	}
 
 
@@ -851,41 +782,23 @@ kick_out:
 }
 
 
-/*
-	========================================================================
 
-	Routine Description:
-		Process TX Rings DMA Done interrupt, running in DPC level
-
-	Arguments:
-		Adapter		Pointer to our adapter
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	========================================================================
-*/
 BOOLEAN	RTMPHandleTxRingDmaDoneInterrupt(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	INT_SOURCE_CSR_STRUC TxRingBitmap)
 {
-//	UCHAR			Count = 0;
+
     unsigned long	IrqFlags;
 	BOOLEAN			bReschedule = FALSE;
 
-	// Make sure Tx ring resource won't be used by other threads
-	//NdisAcquireSpinLock(&pAd->TxRingLock);
+	
+	
 
 	RTMP_IRQ_LOCK(&pAd->irq_lock, IrqFlags);
 
 	if (TxRingBitmap.field.Ac0DmaDone)
 		bReschedule = RTMPFreeTXDUponTxDmaDone(pAd, QID_AC_BE);
-/*
-	if (TxRingBitmap.field.HccaDmaDone)
-		bReschedule |= RTMPFreeTXDUponTxDmaDone(pAd, QID_HCCA);
-*/
+
 
 	if (TxRingBitmap.field.Ac3DmaDone)
 		bReschedule |= RTMPFreeTXDUponTxDmaDone(pAd, QID_AC_VO);
@@ -896,35 +809,18 @@ BOOLEAN	RTMPHandleTxRingDmaDoneInterrupt(
 	if (TxRingBitmap.field.Ac1DmaDone)
 		bReschedule |= RTMPFreeTXDUponTxDmaDone(pAd, QID_AC_BK);
 
-	// Make sure to release Tx ring resource
-	//NdisReleaseSpinLock(&pAd->TxRingLock);
+	
+	
 	RTMP_IRQ_UNLOCK(&pAd->irq_lock, IrqFlags);
 
-	// Dequeue outgoing frames from TxSwQueue[] and process it
+	
 	RTMPDeQueuePacket(pAd, FALSE, NUM_OF_TX_RING, MAX_TX_PROCESS);
 
 	return  bReschedule;
 }
 
 
-/*
-	========================================================================
 
-	Routine Description:
-		Process MGMT ring DMA done interrupt, running in DPC level
-
-	Arguments:
-		pAd	Pointer to our adapter
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPHandleMgmtRingDmaDoneInterrupt(
 	IN	PRTMP_ADAPTER	pAd)
 {
@@ -934,7 +830,7 @@ VOID	RTMPHandleMgmtRingDmaDoneInterrupt(
     TXD_STRUC       TxD;
 #endif
 	PNDIS_PACKET pPacket;
-//	int		 i;
+
 	UCHAR	FREE = 0;
 	PRTMP_MGMT_RING pMgmtRing = &pAd->MgmtRing;
 
@@ -980,21 +876,11 @@ VOID	RTMPHandleMgmtRingDmaDoneInterrupt(
 	NdisReleaseSpinLock(&pAd->MgmtRingLock);
 
 #ifdef CONFIG_STA_SUPPORT
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 }
 
 
-/*
-	========================================================================
 
-	Routine Description:
-	Arguments:
-		Adapter		Pointer to our adapter. Dequeue all power safe delayed braodcast frames after beacon.
-
-	IRQL = DISPATCH_LEVEL
-
-	========================================================================
-*/
 VOID	RTMPHandleTBTTInterrupt(
 	IN PRTMP_ADAPTER pAd)
 {
@@ -1006,17 +892,7 @@ VOID	RTMPHandleTBTTInterrupt(
 }
 
 
-/*
-	========================================================================
 
-	Routine Description:
-	Arguments:
-		pAd		Pointer to our adapter. Rewrite beacon content before next send-out.
-
-	IRQL = DISPATCH_LEVEL
-
-	========================================================================
-*/
 VOID	RTMPHandlePreTBTTInterrupt(
 	IN PRTMP_ADAPTER pAd)
 {
@@ -1054,7 +930,7 @@ VOID	RTMPHandleRxCoherentInterrupt(
 	RTMPRingCleanUp(pAd, QID_AC_BK);
 	RTMPRingCleanUp(pAd, QID_AC_VI);
 	RTMPRingCleanUp(pAd, QID_AC_VO);
-	/*RTMPRingCleanUp(pAd, QID_HCCA);*/
+	
 	RTMPRingCleanUp(pAd, QID_MGMT);
 	RTMPRingCleanUp(pAd, QID_RX);
 
@@ -1073,7 +949,7 @@ VOID DBGPRINT_TX_RING(
 	UINT32		Ac0Base;
 	UINT32		Ac0HwIdx = 0, Ac0SwIdx = 0, AC0freeIdx;
 	int			i;
-//	PULONG		pTxD;
+
 	PULONG	ptemp;
 
 	DBGPRINT_RAW(RT_DEBUG_TRACE, ("=====================================================\n "  ));
@@ -1159,10 +1035,10 @@ VOID DBGPRINT_RX_RING(
 {
 	UINT32		Ac0Base;
 	UINT32		Ac0HwIdx = 0, Ac0SwIdx = 0, AC0freeIdx;
-//	PULONG	 pTxD;
+
 	int			i;
 	UINT32	*ptemp;
-//	PRXD_STRUC		pRxD;
+
 
 	DBGPRINT_RAW(RT_DEBUG_TRACE, ("=====================================================\n "  ));
 	RTMP_IO_READ32(pAd, RX_BASE_PTR, &Ac0Base);
@@ -1203,17 +1079,17 @@ PNDIS_PACKET GetPacketFromRxRing(
 
 	if (*pRxPending == 0)
 	{
-		// Get how may packets had been received
+		
 		RTMP_IO_READ32(pAd, RX_DRX_IDX , &pAd->RxRing.RxDmaIdx);
 
 		if (pAd->RxRing.RxSwReadIdx == pAd->RxRing.RxDmaIdx)
 		{
-			// no more rx packets
+			
 			bReschedule = FALSE;
 			goto done;
 		}
 
-		// get rx pending count
+		
 		if (pAd->RxRing.RxDmaIdx > pAd->RxRing.RxSwReadIdx)
 			*pRxPending = pAd->RxRing.RxDmaIdx - pAd->RxRing.RxSwReadIdx;
 		else
@@ -1227,27 +1103,27 @@ PNDIS_PACKET GetPacketFromRxRing(
 	pRxD = &RxD;
 	RTMPDescriptorEndianChange((PUCHAR)pRxD, TYPE_RXD);
 #else
-	// Point to Rx indexed rx ring descriptor
+	
 	pRxD = (PRXD_STRUC) pAd->RxRing.Cell[pAd->RxRing.RxSwReadIdx].AllocVa;
 #endif
 
 	if (pRxD->DDONE == 0)
 	{
 		*pRxPending = 0;
-		// DMAIndx had done but DDONE bit not ready
+		
 		bReschedule = TRUE;
 		goto done;
 	}
 
 
-	// return rx descriptor
+	
 	NdisMoveMemory(pSaveRxD, pRxD, RXD_SIZE);
 
 	pNewPacket = RTMP_AllocateRxPacketBuffer(pAd, RX_BUFFER_AGGRESIZE, FALSE, &AllocVa, &AllocPa);
 
 	if (pNewPacket)
 	{
-		// unmap the rx buffer
+		
 		PCI_UNMAP_SINGLE(pAd, pAd->RxRing.Cell[pAd->RxRing.RxSwReadIdx].DmaBuf.AllocPa,
 					 pAd->RxRing.Cell[pAd->RxRing.RxSwReadIdx].DmaBuf.AllocSize, PCI_DMA_FROMDEVICE);
 		pRxPacket = pAd->RxRing.Cell[pAd->RxRing.RxSwReadIdx].pNdisPacket;
@@ -1256,22 +1132,22 @@ PNDIS_PACKET GetPacketFromRxRing(
 		pAd->RxRing.Cell[pAd->RxRing.RxSwReadIdx].pNdisPacket		= (PNDIS_PACKET) pNewPacket;
 		pAd->RxRing.Cell[pAd->RxRing.RxSwReadIdx].DmaBuf.AllocVa	= AllocVa;
 		pAd->RxRing.Cell[pAd->RxRing.RxSwReadIdx].DmaBuf.AllocPa	= AllocPa;
-		/* update SDP0 to new buffer of rx packet */
+		
 		pRxD->SDP0 = AllocPa;
 	}
 	else
 	{
-		//DBGPRINT(RT_DEBUG_TRACE,("No Rx Buffer\n"));
+		
 		pRxPacket = NULL;
 		bReschedule = TRUE;
 	}
 
 	pRxD->DDONE = 0;
 
-	// had handled one rx packet
+	
 	*pRxPending = *pRxPending - 1;
 
-	// update rx descriptor and kick rx
+	
 #ifdef RT_BIG_ENDIAN
 	RTMPDescriptorEndianChange((PUCHAR)pRxD, TYPE_RXD);
 	WriteBackToDescriptor((PUCHAR)pDestRxD, (PUCHAR)pRxD, FALSE, TYPE_RXD);
@@ -1304,12 +1180,12 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 	PHEADER_802_11	pHeader_802_11;
 	BOOLEAN			bAckRequired, bInsertTimestamp;
 	ULONG			SrcBufPA;
-	//UCHAR			TxBufIdx;
+	
 	UCHAR			MlmeRate;
 	ULONG			SwIdx = pAd->TxRing[QueIdx].TxCpuIdx;
 	PTXWI_STRUC	pFirstTxWI;
-	//ULONG	i;
-	//HTTRANSMIT_SETTING	MlmeTransmit;   //Rate for this MGMT frame.
+	
+	
 	ULONG	 FreeNum;
 	MAC_TABLE_ENTRY	*pMacEntry = NULL;
 
@@ -1319,18 +1195,18 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 
 	if (pSrcBufVA == NULL)
 	{
-		// The buffer shouldn't be NULL
+		
 		return NDIS_STATUS_FAILURE;
 	}
 
-	// Make sure MGMT ring resource won't be used by other threads
-	//NdisAcquireSpinLock(&pAd->TxRingLock);
+	
+	
 
 	FreeNum = GET_TXRING_FREENO(pAd, QueIdx);
 
 	if (FreeNum == 0)
 	{
-		//NdisReleaseSpinLock(&pAd->TxRingLock);
+		
 		return NDIS_STATUS_FAILURE;
 	}
 
@@ -1348,7 +1224,7 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 	if (pAd->TxRing[QueIdx].Cell[SwIdx].pNdisPacket)
 	{
 		DBGPRINT(RT_DEBUG_OFF, ("MlmeHardTransmit Error\n"));
-		//NdisReleaseSpinLock(&pAd->TxRingLock);
+		
 		return NDIS_STATUS_FAILURE;
 	}
 
@@ -1356,12 +1232,12 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 #ifdef CONFIG_STA_SUPPORT
 	IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
 	{
-		// outgoing frame always wakeup PHY to prevent frame lost
-		// if (pAd->StaCfg.Psm == PWR_SAVE)
+		
+		
 		if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_DOZE))
 			AsicForceWakeup(pAd, TRUE);
 	}
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 	pFirstTxWI	=(PTXWI_STRUC)pSrcBufVA;
 
 	pHeader_802_11 = (PHEADER_802_11) (pSrcBufVA + TXWI_SIZE);
@@ -1380,19 +1256,19 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 		pMacEntry = MacTableLookup(pAd, pHeader_802_11->Addr1);
 	}
 
-	// Verify Mlme rate for a / g bands.
-	if ((pAd->LatchRfRegs.Channel > 14) && (MlmeRate < RATE_6)) // 11A band
+	
+	if ((pAd->LatchRfRegs.Channel > 14) && (MlmeRate < RATE_6)) 
 		MlmeRate = RATE_6;
 
-	//
-	// Should not be hard code to set PwrMgmt to 0 (PWR_ACTIVE)
-	// Snice it's been set to 0 while on MgtMacHeaderInit
-	// By the way this will cause frame to be send on PWR_SAVE failed.
-	//
-	//
-	// In WMM-UAPSD, mlme frame should be set psm as power saving but probe request frame
+	
+	
+	
+	
+	
+	
+	
 #ifdef CONFIG_STA_SUPPORT
-    // Data-Null packets alse pass through MMRequest in RT2860, however, we hope control the psm bit to pass APSD
+    
 	if (pHeader_802_11->FC.Type != BTYPE_DATA)
     {
 	if ((pHeader_802_11->FC.SubType == SUBTYPE_PROBE_REQ) || !(pAd->CommonCfg.bAPSDCapable && pAd->CommonCfg.APEdcaParm.bAPSDCapable))
@@ -1404,16 +1280,16 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 		pHeader_802_11->FC.PwrMgmt = pAd->CommonCfg.bAPSDForcePowerSave;
 	}
     }
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 	bInsertTimestamp = FALSE;
-	if (pHeader_802_11->FC.Type == BTYPE_CNTL) // must be PS-POLL
+	if (pHeader_802_11->FC.Type == BTYPE_CNTL) 
 	{
 		bAckRequired = FALSE;
 	}
-	else // BTYPE_MGMT or BTYPE_DATA(must be NULL frame)
+	else 
 	{
-		if (pHeader_802_11->Addr1[0] & 0x01) // MULTICAST, BROADCAST
+		if (pHeader_802_11->Addr1[0] & 0x01) 
 		{
 			bAckRequired = FALSE;
 			pHeader_802_11->Duration = 0;
@@ -1431,33 +1307,33 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 	pHeader_802_11->Sequence = pAd->Sequence++;
 	if (pAd->Sequence > 0xfff)
 		pAd->Sequence = 0;
-	// Before radar detection done, mgmt frame can not be sent but probe req
-	// Because we need to use probe req to trigger driver to send probe req in passive scan
+	
+	
 	if ((pHeader_802_11->FC.SubType != SUBTYPE_PROBE_REQ)
 		&& (pAd->CommonCfg.bIEEE80211H == 1)
 		&& (pAd->CommonCfg.RadarDetect.RDMode != RD_NORMAL_MODE))
 	{
 		DBGPRINT(RT_DEBUG_ERROR,("MlmeHardTransmit --> radar detect not in normal mode !!!\n"));
-		//NdisReleaseSpinLock(&pAd->TxRingLock);
+		
 		return (NDIS_STATUS_FAILURE);
 	}
 
 #ifdef RT_BIG_ENDIAN
 	RTMPFrameEndianChange(pAd, (PUCHAR)pHeader_802_11, DIR_WRITE, FALSE);
 #endif
-	//
-	// fill scatter-and-gather buffer list into TXD. Internally created NDIS PACKET
-	// should always has only one ohysical buffer, and the whole frame size equals
-	// to the first scatter buffer size
-	//
+	
+	
+	
+	
+	
 
-	// Initialize TX Descriptor
-	// For inter-frame gap, the number is for this frame and next frame
-	// For MLME rate, we will fix as 2Mb to match other vendor's implement
-//	pAd->CommonCfg.MlmeTransmit.field.MODE = 1;
+	
+	
+	
 
-// management frame doesn't need encryption. so use RESERVED_WCID no matter u are sending to specific wcid or not.
-	// Only beacon use Nseq=TRUE. So here we use Nseq=FALSE.
+
+
+	
 	if (pMacEntry == NULL)
 	{
 	RTMPWriteTxWI(pAd, pFirstTxWI, FALSE, FALSE, bInsertTimestamp, FALSE, bAckRequired, FALSE,
@@ -1475,7 +1351,7 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 
 	pAd->TxRing[QueIdx].Cell[SwIdx].pNdisPacket = pPacket;
 	pAd->TxRing[QueIdx].Cell[SwIdx].pNextNdisPacket = NULL;
-//	pFirstTxWI->MPDUtotalByteCount = SrcBufLen - TXWI_SIZE;
+
 #ifdef RT_BIG_ENDIAN
 	RTMPWIEndianChange((PUCHAR)pFirstTxWI, TYPE_TXWI);
 #endif
@@ -1498,13 +1374,13 @@ NDIS_STATUS MlmeHardTransmitTxRing(
 	pAd->RalinkCounters.KickTxCount++;
 	pAd->RalinkCounters.OneSecTxDoneCount++;
 
-	// Increase TX_CTX_IDX, but write to register later.
+	
 	INC_RING_INDEX(pAd->TxRing[QueIdx].TxCpuIdx, TX_RING_SIZE);
 
 	RTMP_IO_WRITE32(pAd, TX_CTX_IDX0 + QueIdx*0x10,  pAd->TxRing[QueIdx].TxCpuIdx);
 
-	// Make sure to release MGMT ring resource
-//	NdisReleaseSpinLock(&pAd->TxRingLock);
+	
+
 
 	return NDIS_STATUS_SUCCESS;
 }
@@ -1525,52 +1401,23 @@ NDIS_STATUS MlmeDataHardTransmit(
 }
 
 
-/*
-	========================================================================
 
-	Routine Description:
-		Calculates the duration which is required to transmit out frames
-	with given size and specified rate.
-
-	Arguments:
-		pTxD		Pointer to transmit descriptor
-		Ack		Setting for Ack requirement bit
-		Fragment	Setting for Fragment bit
-		RetryMode	Setting for retry mode
-		Ifs		Setting for IFS gap
-		Rate		Setting for transmit rate
-		Service		Setting for service
-		Length		Frame length
-		TxPreamble	Short or Long preamble when using CCK rates
-		QueIdx - 0-3, according to 802.11e/d4.4 June/2003
-
-	Return Value:
-		None
-
-	IRQL = PASSIVE_LEVEL
-	IRQL = DISPATCH_LEVEL
-
-	========================================================================
-*/
 VOID RTMPWriteTxDescriptor(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PTXD_STRUC		pTxD,
 	IN	BOOLEAN			bWIV,
 	IN	UCHAR			QueueSEL)
 {
-	//
-	// Always use Long preamble before verifiation short preamble functionality works well.
-	// Todo: remove the following line if short preamble functionality works
-	//
+	
+	
+	
+	
 	OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_SHORT_PREAMBLE_INUSED);
 
 	pTxD->WIV	= (bWIV) ? 1: 0;
 	pTxD->QSEL= (QueueSEL);
-	//RT2860c??  fixed using EDCA queue for test...  We doubt Queue1 has problem.  2006-09-26 Jan
-	//pTxD->QSEL= FIFO_EDCA;
-	/*
-	if (pAd->bGenOneHCCA == TRUE)
-		pTxD->QSEL= FIFO_HCCA;
-	*/
+	
+	
+	
 	pTxD->DMADONE = 0;
 }

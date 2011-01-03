@@ -1,45 +1,6 @@
-/*
- *     comedi/drivers/ni_daq_700.c
- *     Driver for DAQCard-700 DIO only
- *     copied from 8255
- *
- *     COMEDI - Linux Control and Measurement Device Interface
- *     Copyright (C) 1998 David A. Schleef <ds@schleef.org>
- *
- *     This program is free software; you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation; either version 2 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program; if not, write to the Free Software
- *     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
 
-/*
-Driver: ni_daq_700
-Description: National Instruments PCMCIA DAQCard-700 DIO only
-Author: Fred Brooks <nsaspook@nsaspook.com>,
-  based on ni_daq_dio24 by Daniel Vecino Castel <dvecino@able.es>
-Devices: [National Instruments] PCMCIA DAQ-Card-700 (ni_daq_700)
-Status: works
-Updated: Thu, 21 Feb 2008 12:07:20 +0000
 
-The daqcard-700 appears in Comedi as a single digital I/O subdevice with
-16 channels.  The channel 0 corresponds to the daqcard-700's output
-port, bit 0; channel 8 corresponds to the input port, bit 0.
 
-Direction configuration: channels 0-7 output, 8-15 input (8225 device
-emu as port A output, port B input, port C N/A).
-
-IRQ is assigned but not used.
-*/
 
 #include <linux/interrupt.h>
 #include "../comedidev.h"
@@ -54,7 +15,7 @@ IRQ is assigned but not used.
 
 static struct pcmcia_device *pcmcia_cur_dev = NULL;
 
-#define DIO700_SIZE 8		/*  size of io region used by board */
+#define DIO700_SIZE 8		
 
 static int dio700_attach(struct comedi_device *dev,
 			 struct comedi_devconfig *it);
@@ -64,11 +25,11 @@ enum dio700_bustype { pcmcia_bustype };
 
 struct dio700_board {
 	const char *name;
-	int device_id;		/*  device id for pcmcia board */
-	enum dio700_bustype bustype;	/*  PCMCIA */
-	int have_dio;		/*  have daqcard-700 dio */
-	/*  function pointers so we can use inb/outb or readb/writeb */
-	/*  as appropriate */
+	int device_id;		
+	enum dio700_bustype bustype;	
+	int have_dio;		
+	
+	
 	unsigned int (*read_byte) (unsigned int address);
 	void (*write_byte) (unsigned int byte, unsigned int address);
 };
@@ -76,26 +37,24 @@ struct dio700_board {
 static const struct dio700_board dio700_boards[] = {
 	{
 	 .name = "daqcard-700",
-	 .device_id = 0x4743,	/*  0x10b is manufacturer id, 0x4743 is device id */
+	 .device_id = 0x4743,	
 	 .bustype = pcmcia_bustype,
 	 .have_dio = 1,
 	 },
 	{
 	 .name = "ni_daq_700",
-	 .device_id = 0x4743,	/*  0x10b is manufacturer id, 0x4743 is device id */
+	 .device_id = 0x4743,	
 	 .bustype = pcmcia_bustype,
 	 .have_dio = 1,
 	 },
 };
 
-/*
- * Useful for shorthand access to the particular board structure
- */
+
 #define thisboard ((const struct dio700_board *)dev->board_ptr)
 
 struct dio700_private {
 
-	int data;		/* number of data points left to be taken */
+	int data;		
 };
 
 #define devpriv ((struct dio700_private *)dev->private)
@@ -110,7 +69,7 @@ static struct comedi_driver driver_dio700 = {
 	.offset = sizeof(struct dio700_board),
 };
 
-/*	the real driver routines	*/
+
 
 #define _700_SIZE 8
 
@@ -145,7 +104,7 @@ void subdev_700_interrupt(struct comedi_device *dev, struct comedi_subdevice *s)
 
 static int subdev_700_cb(int dir, int port, int data, unsigned long arg)
 {
-	/* port is always A for output and B for input (8255 emu) */
+	
 	unsigned long iobase = arg;
 
 	if (dir) {
@@ -200,7 +159,7 @@ static int subdev_700_insn_config(struct comedi_device *dev,
 }
 
 static void do_config(struct comedi_device *dev, struct comedi_subdevice *s)
-{				/* use powerup defaults */
+{				
 	return;
 }
 
@@ -211,7 +170,7 @@ static int subdev_700_cmdtest(struct comedi_device *dev,
 	int err = 0;
 	unsigned int tmp;
 
-	/* step 1 */
+	
 
 	tmp = cmd->start_src;
 	cmd->start_src &= TRIG_NOW;
@@ -241,12 +200,12 @@ static int subdev_700_cmdtest(struct comedi_device *dev,
 	if (err)
 		return 1;
 
-	/* step 2 */
+	
 
 	if (err)
 		return 2;
 
-	/* step 3 */
+	
 
 	if (cmd->start_arg != 0) {
 		cmd->start_arg = 0;
@@ -272,7 +231,7 @@ static int subdev_700_cmdtest(struct comedi_device *dev,
 	if (err)
 		return 3;
 
-	/* step 4 */
+	
 
 	if (err)
 		return 4;
@@ -282,7 +241,7 @@ static int subdev_700_cmdtest(struct comedi_device *dev,
 
 static int subdev_700_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 {
-	/* FIXME */
+	
 
 	return 0;
 }
@@ -290,7 +249,7 @@ static int subdev_700_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 static int subdev_700_cancel(struct comedi_device *dev,
 			     struct comedi_subdevice *s)
 {
-	/* FIXME */
+	
 
 	return 0;
 }
@@ -367,14 +326,14 @@ static int dio700_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 #endif
 	struct pcmcia_device *link;
 
-	/* allocate and initialize dev->private */
+	
 	if (alloc_private(dev, sizeof(struct dio700_private)) < 0)
 		return -ENOMEM;
 
-	/*  get base address, irq etc. based on bustype */
+	
 	switch (thisboard->bustype) {
 	case pcmcia_bustype:
-		link = pcmcia_cur_dev;	/* XXX hack */
+		link = pcmcia_cur_dev;	
 		if (!link)
 			return -EIO;
 		iobase = link->io.BasePort1;
@@ -405,7 +364,7 @@ static int dio700_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	dev->iobase = iobase;
 
 #ifdef incomplete
-	/* grab our IRQ */
+	
 	dev->irq = irq;
 #endif
 
@@ -414,7 +373,7 @@ static int dio700_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	if (alloc_subdevices(dev, 1) < 0)
 		return -ENOMEM;
 
-	/* DAQCard-700 dio */
+	
 	s = dev->subdevices + 0;
 	subdev_700_init(dev, s, NULL, dev->iobase);
 
@@ -436,15 +395,9 @@ static int dio700_detach(struct comedi_device *dev)
 	return 0;
 };
 
-/* PCMCIA crap */
 
-/*
-   All the PCMCIA modules use PCMCIA_DEBUG to control debugging.  If
-   you do not define PCMCIA_DEBUG at all, all the debug code will be
-   left out.  If you compile with PCMCIA_DEBUG=0, the debug code will
-   be present but disabled -- but it can then be enabled for specific
-   modules at load time with a 'pc_debug=#' option to insmod.
-*/
+
+
 #ifdef PCMCIA_DEBUG
 static int pc_debug = PCMCIA_DEBUG;
 module_param(pc_debug, int, 0644);
@@ -454,34 +407,21 @@ static char *version = "ni_daq_700.c, based on dummy_cs.c";
 #define DEBUG(n, args...)
 #endif
 
-/*====================================================================*/
+
 
 static void dio700_config(struct pcmcia_device *link);
 static void dio700_release(struct pcmcia_device *link);
 static int dio700_cs_suspend(struct pcmcia_device *p_dev);
 static int dio700_cs_resume(struct pcmcia_device *p_dev);
 
-/*
-   The attach() and detach() entry points are used to create and destroy
-   "instances" of the driver, where each instance represents everything
-   needed to manage one actual PCMCIA card.
-*/
+
 
 static int dio700_cs_attach(struct pcmcia_device *);
 static void dio700_cs_detach(struct pcmcia_device *);
 
-/*
-   You'll also need to prototype all the functions that will actually
-   be used to talk to your device.  See 'memory_cs' for a good example
-   of a fully self-sufficient driver; the other drivers rely more or
-   less on other parts of the kernel.
-*/
 
-/*
-   The dev_info variable is the "key" that is used to match up this
-   device driver with appropriate cards, through the card configuration
-   database.
-*/
+
+
 
 static const dev_info_t dev_info = "ni_daq_700";
 
@@ -492,17 +432,7 @@ struct local_info_t {
 	struct bus_operations *bus;
 };
 
-/*======================================================================
 
-    dio700_cs_attach() creates an "instance" of the driver, allocating
-    local data structures for one device.  The device is registered
-    with Card Services.
-
-    The dev_link structure is initialized, but we don't actually
-    configure the card at this point -- we wait until we receive a
-    card insertion event.
-
-======================================================================*/
 
 static int dio700_cs_attach(struct pcmcia_device *link)
 {
@@ -512,25 +442,19 @@ static int dio700_cs_attach(struct pcmcia_device *link)
 
 	DEBUG(0, "dio700_cs_attach()\n");
 
-	/* Allocate space for private device-specific data */
+	
 	local = kzalloc(sizeof(struct local_info_t), GFP_KERNEL);
 	if (!local)
 		return -ENOMEM;
 	local->link = link;
 	link->priv = local;
 
-	/* Interrupt setup */
+	
 	link->irq.Attributes = IRQ_TYPE_DYNAMIC_SHARING;
 	link->irq.IRQInfo1 = IRQ_LEVEL_ID;
 	link->irq.Handler = NULL;
 
-	/*
-	   General socket configuration defaults can go here.  In this
-	   client, we assume very little, and rely on the CIS for almost
-	   everything.  In most clients, many details (i.e., number, sizes,
-	   and attributes of IO windows) are fixed by the nature of the
-	   device, and can be hard-wired here.
-	 */
+	
 	link->conf.Attributes = 0;
 	link->conf.IntType = INT_MEMORY_AND_IO;
 
@@ -539,16 +463,9 @@ static int dio700_cs_attach(struct pcmcia_device *link)
 	dio700_config(link);
 
 	return 0;
-}				/* dio700_cs_attach */
+}				
 
-/*======================================================================
 
-    This deletes a driver "instance".  The device is de-registered
-    with Card Services.  If it has been released, all local data
-    structures are freed.  Otherwise, the structures will be freed
-    when the device is released.
-
-======================================================================*/
 
 static void dio700_cs_detach(struct pcmcia_device *link)
 {
@@ -562,19 +479,13 @@ static void dio700_cs_detach(struct pcmcia_device *link)
 		dio700_release(link);
 	}
 
-	/* This points to the parent struct local_info_t struct */
+	
 	if (link->priv)
 		kfree(link->priv);
 
-}				/* dio700_cs_detach */
+}				
 
-/*======================================================================
 
-    dio700_config() is scheduled to run after a CARD_INSERTION event
-    is received, to configure the PCMCIA socket, and to make the
-    device available to the system.
-
-======================================================================*/
 
 static void dio700_config(struct pcmcia_device *link)
 {
@@ -591,10 +502,7 @@ static void dio700_config(struct pcmcia_device *link)
 
 	DEBUG(0, "dio700_config(0x%p)\n", link);
 
-	/*
-	   This reads the card's CONFIG tuple to find its configuration
-	   registers.
-	 */
+	
 	tuple.DesiredTuple = CISTPL_CONFIG;
 	tuple.Attributes = 0;
 	tuple.TupleData = buf;
@@ -621,18 +529,7 @@ static void dio700_config(struct pcmcia_device *link)
 	link->conf.ConfigBase = parse.config.base;
 	link->conf.Present = parse.config.rmask[0];
 
-	/*
-	   In this loop, we scan the CIS for configuration table entries,
-	   each of which describes a valid card configuration, including
-	   voltage, IO window, memory window, and interrupt settings.
-
-	   We make no assumptions about the card to be configured: we use
-	   just the information available in the CIS.  In an ideal world,
-	   this would work for any PCMCIA card, but it requires a complete
-	   and accurate CIS.  In practice, a driver usually "knows" most of
-	   these things without consulting the CIS, and most client drivers
-	   will only use the CIS to fill in implementation-defined details.
-	 */
+	
 	tuple.DesiredTuple = CISTPL_CFTABLE_ENTRY;
 	last_ret = pcmcia_get_first_tuple(link, &tuple);
 	if (last_ret != 0) {
@@ -652,17 +549,17 @@ static void dio700_config(struct pcmcia_device *link)
 			goto next_entry;
 		link->conf.ConfigIndex = cfg->index;
 
-		/* Does this card need audio output? */
+		
 		if (cfg->flags & CISTPL_CFTABLE_AUDIO) {
 			link->conf.Attributes |= CONF_ENABLE_SPKR;
 			link->conf.Status = CCSR_AUDIO_ENA;
 		}
 
-		/* Do we need to allocate an interrupt? */
+		
 		if (cfg->irq.IRQInfo1 || dflt.irq.IRQInfo1)
 			link->conf.Attributes |= CONF_ENABLE_IRQ;
 
-		/* IO window settings */
+		
 		link->io.NumPorts1 = link->io.NumPorts2 = 0;
 		if ((cfg->io.nwin > 0) || (dflt.io.nwin > 0)) {
 			cistpl_io_t *io = (cfg->io.nwin) ? &cfg->io : &dflt.io;
@@ -679,7 +576,7 @@ static void dio700_config(struct pcmcia_device *link)
 				link->io.BasePort2 = io->win[1].base;
 				link->io.NumPorts2 = io->win[1].len;
 			}
-			/* This reserves IO space but doesn't actually enable it */
+			
 			if (pcmcia_request_io(link, &link->io) != 0)
 				goto next_entry;
 		}
@@ -701,7 +598,7 @@ static void dio700_config(struct pcmcia_device *link)
 			if (pcmcia_map_mem_page(link->win, &map))
 				goto next_entry;
 		}
-		/* If we got this far, we're cool! */
+		
 		break;
 
 next_entry:
@@ -713,11 +610,7 @@ next_entry:
 		}
 	}
 
-	/*
-	   Allocate an interrupt line.  Note that this does not assign a
-	   handler to the interrupt, unless the 'Handler' member of the
-	   irq structure is initialized.
-	 */
+	
 	if (link->conf.Attributes & CONF_ENABLE_IRQ) {
 		last_ret = pcmcia_request_irq(link, &link->irq);
 		if (last_ret) {
@@ -726,26 +619,19 @@ next_entry:
 		}
 	}
 
-	/*
-	   This actually configures the PCMCIA socket -- setting up
-	   the I/O windows and the interrupt mapping, and putting the
-	   card and host interface into "Memory and IO" mode.
-	 */
+	
 	last_ret = pcmcia_request_configuration(link, &link->conf);
 	if (last_ret != 0) {
 		cs_error(link, RequestConfiguration, last_ret);
 		goto cs_failed;
 	}
 
-	/*
-	   At this point, the dev_node_t structure(s) need to be
-	   initialized and arranged in a linked list at link->dev.
-	 */
+	
 	sprintf(dev->node.dev_name, "ni_daq_700");
 	dev->node.major = dev->node.minor = 0;
 	link->dev_node = &dev->node;
 
-	/* Finally, report what we've done */
+	
 	printk(KERN_INFO "%s: index 0x%02x",
 	       dev->node.dev_name, link->conf.ConfigIndex);
 	if (link->conf.Attributes & CONF_ENABLE_IRQ)
@@ -767,35 +653,25 @@ cs_failed:
 	printk(KERN_INFO "ni_daq_700 cs failed");
 	dio700_release(link);
 
-}				/* dio700_config */
+}				
 
 static void dio700_release(struct pcmcia_device *link)
 {
 	DEBUG(0, "dio700_release(0x%p)\n", link);
 
 	pcmcia_disable_device(link);
-}				/* dio700_release */
+}				
 
-/*======================================================================
 
-    The card status event handler.  Mostly, this schedules other
-    stuff to run after an event is received.
-
-    When a CARD_REMOVAL event is received, we immediately set a
-    private flag to block future accesses to this device.  All the
-    functions that actually access the device should check this flag
-    to make sure the card is still present.
-
-======================================================================*/
 
 static int dio700_cs_suspend(struct pcmcia_device *link)
 {
 	struct local_info_t *local = link->priv;
 
-	/* Mark the device as stopped, to block IO until later */
+	
 	local->stop = 1;
 	return 0;
-}				/* dio700_cs_suspend */
+}				
 
 static int dio700_cs_resume(struct pcmcia_device *link)
 {
@@ -803,13 +679,13 @@ static int dio700_cs_resume(struct pcmcia_device *link)
 
 	local->stop = 0;
 	return 0;
-}				/* dio700_cs_resume */
+}				
 
-/*====================================================================*/
+
 
 static struct pcmcia_device_id dio700_cs_ids[] = {
-	/* N.B. These IDs should match those in dio700_boards */
-	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x4743),	/* daqcard-700 */
+	
+	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x4743),	
 	PCMCIA_DEVICE_NULL
 };
 

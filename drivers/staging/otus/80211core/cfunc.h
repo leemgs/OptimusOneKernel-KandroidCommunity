@@ -1,44 +1,30 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : func_extr.c                                           */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains function prototype.                        */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 
 #ifndef _CFUNC_H
 #define _CFUNC_H
 
 #include "queue.h"
 
-/* amsdu.c */
+
 void zfDeAmsdu(zdev_t* dev, zbuf_t* buf, u16_t vap, u8_t encryMode);
 
-/* cscanmgr.c */
+
 void zfScanMgrInit(zdev_t* dev);
 u8_t zfScanMgrScanStart(zdev_t* dev, u8_t scanType);
 void zfScanMgrScanStop(zdev_t* dev, u8_t scanType);
 void zfScanMgrScanAck(zdev_t* dev);
 
-/* cpsmgr.c */
+
 void zfPowerSavingMgrInit(zdev_t* dev);
 void zfPowerSavingMgrSetMode(zdev_t* dev, u8_t mode);
 void zfPowerSavingMgrMain(zdev_t* dev);
@@ -49,10 +35,10 @@ void zfPowerSavingMgrAtimWinExpired(zdev_t* dev);
 void zfPowerSavingMgrConnectNotify(zdev_t *dev);
 void zfPowerSavingMgrPreTBTTInterrupt(zdev_t *dev);
 
-/* ccmd.c */
+
 u16_t zfWlanEnable(zdev_t* dev);
 
-/* cfunc.c */
+
 u8_t zfQueryOppositeRate(zdev_t* dev, u8_t dst_mac[6], u8_t frameType);
 void zfCopyToIntTxBuffer(zdev_t* dev, zbuf_t* buf, u8_t* src,
                          u16_t offset, u16_t length);
@@ -112,14 +98,14 @@ u16_t zfFindCleanFrequency(zdev_t* dev, u32_t adhocMode);
 u16_t zfFindMinimumUtilizationChannelIndex(zdev_t* dev, u16_t* array, u16_t count);
 u8_t zfCompareWithBssid(zdev_t* dev, u16_t* bssid);
 
-/* chb.c */
+
 void zfDumpBssList(zdev_t* dev);
 
 
 u16_t zfIssueCmd(zdev_t* dev, u32_t* cmd, u16_t cmdLen, u16_t src, u8_t* buf);
 
 
-/* cic.c */
+
 void zfUpdateBssid(zdev_t* dev, u8_t* bssid);
 void zfResetSupportRate(zdev_t* dev, u8_t type);
 void zfUpdateSupportRate(zdev_t* dev, u8_t* rateArray);
@@ -131,7 +117,7 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp);
 void zfBeaconCfgInterrupt(zdev_t* dev, u8_t* rsp);
 void zfEndOfAtimWindowInterrupt(zdev_t* dev);
 
-/* cinit.c */
+
 u16_t zfTxGenWlanHeader(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t seq,
                         u8_t flag, u16_t plusLen, u16_t minusLen, u16_t port,
                         u16_t* da, u16_t* sa, u8_t up, u16_t *micLen,
@@ -148,8 +134,8 @@ u16_t zfChGetLast5GhzChannel(zdev_t* dev);
 u16_t zfChNumToFreq(zdev_t* dev, u8_t ch, u8_t freqBand);
 u8_t zfChFreqToNum(u16_t freq, u8_t* bIs5GBand);
 
-/* cmm.c */
-void zfProcessManagement(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo); //CWYang(m)
+
+void zfProcessManagement(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo); 
 void zfSendMmFrame(zdev_t* dev, u8_t frameType, u16_t* dst,
                    u32_t p1, u32_t p2, u32_t p3);
 u16_t zfFindElement(zdev_t* dev, zbuf_t* buf, u8_t eid);
@@ -167,16 +153,16 @@ u16_t zfMmAddIeDs(zdev_t* dev, zbuf_t* buf, u16_t offset);
 u16_t zfMmAddIeErp(zdev_t* dev, zbuf_t* buf, u16_t offset);
 void zfUpdateDefaultQosParameter(zdev_t* dev, u8_t mode);
 u16_t zfMmAddIeWpa(zdev_t* dev, zbuf_t* buf, u16_t offset, u16_t apId);
-u16_t zfMmAddHTCapability(zdev_t* dev, zbuf_t* buf, u16_t offset); //CWYang(+)
+u16_t zfMmAddHTCapability(zdev_t* dev, zbuf_t* buf, u16_t offset); 
 u16_t zfMmAddPreNHTCapability(zdev_t* dev, zbuf_t* buf, u16_t offset);
-u16_t zfMmAddExtendedHTCapability(zdev_t* dev, zbuf_t* buf, u16_t offset); //CWYang(+)
+u16_t zfMmAddExtendedHTCapability(zdev_t* dev, zbuf_t* buf, u16_t offset); 
 u16_t zfFindATHExtCap(zdev_t* dev, zbuf_t* buf, u8_t type, u8_t subtype);
 u16_t zfFindBrdcmMrvlRlnkExtCap(zdev_t* dev, zbuf_t* buf);
 u16_t zfFindMarvelExtCap(zdev_t* dev, zbuf_t* buf);
 u16_t zfFindBroadcomExtCap(zdev_t* dev, zbuf_t* buf);
 u16_t zfFindRlnkExtCap(zdev_t* dev, zbuf_t* buf);
 
-/* cmmap.c */
+
 void zfMmApTimeTick(zdev_t* dev);
 void zfApAgingSta(zdev_t* dev);
 u16_t zfApAddSta(zdev_t* dev, u16_t* addr, u16_t state, u16_t apId, u8_t type,
@@ -214,16 +200,16 @@ void zfApClearStaKey(zdev_t* dev, u16_t* addr);
 void zfApGetStaCencIvAndKeyIdx(zdev_t* dev, u16_t* addr, u32_t *iv,
         u8_t *keyIdx);
 void zfApSetStaCencIv(zdev_t* dev, u16_t* addr, u32_t *iv);
-#endif //ZM_ENABLE_CENC
+#endif 
 void zfApSetProtectionMode(zdev_t* dev, u16_t mode);
 void zfApFlushBufferedPsFrame(zdev_t* dev);
 void zfApSendFailure(zdev_t* dev, u8_t* addr);
 u8_t zfApRemoveFromPsQueue(zdev_t* dev, u16_t id, u16_t* src);
 void zfApProcessAction(zdev_t* dev, zbuf_t* buf);
-/* cmmsta.c */
+
 void zfMmStaTimeTick(zdev_t* dev);
-void zfReWriteBeaconStartAddress(zdev_t* dev);  // Mxzeng
-void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo); //CWYang(m)
+void zfReWriteBeaconStartAddress(zdev_t* dev);  
+void zfStaProcessBeacon(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* AddInfo); 
 void zfStaProcessAuth(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId);
 void zfStaProcessAsocReq(zdev_t* dev, zbuf_t* buf, u16_t* src, u16_t apId);
 void zfStaProcessAsocRsp(zdev_t* dev, zbuf_t* buf);
@@ -275,15 +261,15 @@ void zfStaGetTxRate(zdev_t* dev, u16_t* macAddr, u32_t* phyCtrl,
 u16_t zfStaProcessAction(zdev_t* dev, zbuf_t* buf);
 struct zsTkipSeed* zfStaGetRxSeed(zdev_t* dev, zbuf_t* buf);
 #ifdef ZM_ENABLE_CENC
-/* CENC */
+
 u16_t zfStaAddIeCenc(zdev_t* dev, zbuf_t* buf, u16_t offset);
-#endif //ZM_ENABLE_CENC
+#endif 
 void zfStaEnableSWEncryption(zdev_t *dev, u8_t value);
 void zfStaDisableSWEncryption(zdev_t *dev);
 u16_t zfComputeBssInfoWeightValue(zdev_t *dev, u8_t isBMode, u8_t isHT, u8_t isHT40, u8_t signalStrength);
 u16_t zfStaAddIbssAdditionalIE(zdev_t* dev, zbuf_t* buf, u16_t offset);
 
-/* ctkip.c */
+
 void zfTkipInit(u8_t* key, u8_t* ta, struct zsTkipSeed* pSeed, u8_t* initIv);
 void zfMicSetKey(u8_t* key, struct zsMicVar* pMic);
 void zfMicAppendByte(u8_t b, struct zsMicVar* pMic);
@@ -301,7 +287,7 @@ u8_t zfTkipPhase2KeyMix(u16_t iv16, struct zsTkipSeed* pSeed);
 void zfWEPEncrypt(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t offset, u8_t keyLen, u8_t* WepKey, u8_t *iv);
 u16_t zfWEPDecrypt(zdev_t *dev, zbuf_t *buf, u16_t offset, u8_t keyLen, u8_t* WepKey, u8_t *iv);
 
-/* ctxrx.c */
+
 u16_t zfSend80211Frame(zdev_t* dev, zbuf_t* buf);
 void zfIsrPciTxComp(zdev_t* dev);
 void zfTxPciDmaStart(zdev_t* dev);
@@ -331,7 +317,7 @@ void zf80211FrameSend(zdev_t* dev, zbuf_t* buf, u16_t* header, u16_t snapLen,
                            u8_t ac, u8_t keyIdx);
 void zfCheckIsRIFSFrame(zdev_t* dev, zbuf_t* buf, u16_t frameSubType);
 
-/* queue.c */
+
 struct zsQueue* zfQueueCreate(zdev_t* dev, u16_t size);
 void zfQueueDestroy(zdev_t* dev, struct zsQueue* q);
 u16_t zfQueuePutNcs(zdev_t* dev, struct zsQueue* q, zbuf_t* buf, u32_t tick);
@@ -343,7 +329,7 @@ void zfQueueAge(zdev_t* dev, struct zsQueue* q, u32_t tick, u32_t msAge);
 void zfQueueGenerateUapsdTim(zdev_t* dev, struct zsQueue* q,
         u8_t* uniBitMap, u16_t* highestByte);
 
-/* hpmain.c */
+
 u16_t zfHpInit(zdev_t* dev, u32_t frequency);
 u16_t zfHpRelease(zdev_t* dev);
 void zfHpSetFrequencyEx(zdev_t* dev, u32_t frequency, u8_t bw40,
@@ -369,10 +355,10 @@ void zfHpSetMulticastList(zdev_t* dev, u8_t size, u8_t* pList, u8_t bAllMulticas
 u16_t zfHpRemoveKey(zdev_t* dev, u16_t user);
 u32_t zfHpSetKey(zdev_t* dev, u8_t user, u8_t keyId, u8_t type,
         u16_t* mac, u32_t* key);
-//u32_t zfHpSetStaPairwiseKey(zdev_t* dev, u16_t* apMacAddr, u8_t type,
-//        u32_t* key, u32_t* micKey);
-//u32_t zfHpSetStaGroupKey(zdev_t* dev, u16_t* apMacAddr, u8_t type,
-//        u32_t* key, u32_t* micKey);
+
+
+
+
 u32_t zfHpSetApPairwiseKey(zdev_t* dev, u16_t* staMacAddr, u8_t type,
         u32_t* key, u32_t* micKey, u16_t staAid);
 u32_t zfHpSetApGroupKey(zdev_t* dev, u16_t* apMacAddr, u8_t type,
@@ -446,4 +432,4 @@ void zfHpDisableRifs(zdev_t* dev);
 u16_t zfHpUsbReset(zdev_t* dev);
 
 
-#endif /* #ifndef _CFUNC_H */
+#endif 

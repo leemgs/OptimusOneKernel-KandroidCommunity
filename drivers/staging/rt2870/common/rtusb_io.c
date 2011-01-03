@@ -1,59 +1,9 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
- 	Module Name:
-	rtusb_io.c
-
-	Abstract:
-
-	Revision History:
-	Who			When	    What
-	--------	----------  ----------------------------------------------
-	Name		Date	    Modification logs
-	Paul Lin    06-25-2004  created
-*/
 
 #include "../rt_config.h"
 
 
-/*
-	========================================================================
 
-	Routine Description: NIC initialization complete
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 
 NTSTATUS	RTUSBFirmwareRun(
 	IN	PRTMP_ADAPTER	pAd)
@@ -75,21 +25,7 @@ NTSTATUS	RTUSBFirmwareRun(
 
 
 
-/*
-	========================================================================
 
-	Routine Description: Write Firmware to NIC.
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS RTUSBFirmwareWrite(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR		pFwImage,
@@ -97,7 +33,7 @@ NTSTATUS RTUSBFirmwareWrite(
 {
 	UINT32		MacReg;
 	NTSTATUS 	Status;
-//	ULONG 		i;
+
 	USHORT		writeLen;
 
 	Status = RTUSBReadMACRegister(pAd, MAC_CSR0, &MacReg);
@@ -112,29 +48,13 @@ NTSTATUS RTUSBFirmwareWrite(
 
 	RTMPusecDelay(10000);
 	RTUSBWriteMACRegister(pAd,H2M_MAILBOX_CSR,0);
-	AsicSendCommandToMcu(pAd, 0x72, 0x00, 0x00, 0x00);//reset rf by MCU supported by new firmware
+	AsicSendCommandToMcu(pAd, 0x72, 0x00, 0x00, 0x00);
 
 	return Status;
 }
 
 
-/*
-	========================================================================
 
-	Routine Description: Get current firmware operation mode (Return Value)
-
-	Arguments:
-
-	Return Value:
-		0 or 1 = Downloaded by host driver
-		others = Driver doesn't download firmware
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBFirmwareOpmode(
 	IN	PRTMP_ADAPTER	pAd,
 	OUT	PUINT32			pValue)
@@ -170,21 +90,7 @@ NTSTATUS	RTUSBVenderReset(
 	DBGPRINT_RAW(RT_DEBUG_ERROR, ("<--RTUSBVenderReset\n"));
 	return Status;
 }
-/*
-	========================================================================
 
-	Routine Description: Read various length data from RT2573
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBMultiRead(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	USHORT			Offset,
@@ -206,21 +112,7 @@ NTSTATUS	RTUSBMultiRead(
 	return Status;
 }
 
-/*
-	========================================================================
 
-	Routine Description: Write various length data to RT2573
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBMultiWrite_OneByte(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	USHORT			Offset,
@@ -228,7 +120,7 @@ NTSTATUS	RTUSBMultiWrite_OneByte(
 {
 	NTSTATUS	Status;
 
-	// TODO: In 2870, use this funciton carefully cause it's not stable.
+	
 	Status = RTUSB_VendorRequest(
 		pAd,
 		USBD_TRANSFER_DIRECTION_OUT,
@@ -292,21 +184,7 @@ NTSTATUS RTUSBSingleWrite(
 }
 
 
-/*
-	========================================================================
 
-	Routine Description: Read 32-bit MAC register
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBReadMACRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	USHORT			Offset,
@@ -335,21 +213,7 @@ NTSTATUS	RTUSBReadMACRegister(
 }
 
 
-/*
-	========================================================================
 
-	Routine Description: Write 32-bit MAC register
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBWriteMACRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	USHORT			Offset,
@@ -369,21 +233,7 @@ NTSTATUS	RTUSBWriteMACRegister(
 
 
 #if 1
-/*
-	========================================================================
 
-	Routine Description: Read 8-bit BBP register
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBReadBBPRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			Id,
@@ -393,7 +243,7 @@ NTSTATUS	RTUSBReadBBPRegister(
 	UINT			i = 0;
 	NTSTATUS		status;
 
-	// Verify the busy condition
+	
 	do
 	{
 		status = RTUSBReadMACRegister(pAd, BBP_CSR_CFG, &BbpCsr.word);
@@ -409,16 +259,16 @@ NTSTATUS	RTUSBReadBBPRegister(
 
 	if ((i == RETRY_LIMIT) || (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_NIC_NOT_EXIST)))
 	{
-		//
-		// Read failed then Return Default value.
-		//
+		
+		
+		
 		*pValue = pAd->BbpWriteLatch[Id];
 
 		DBGPRINT_RAW(RT_DEBUG_ERROR, ("Retry count exhausted or device removed!!!\n"));
 		return STATUS_UNSUCCESSFUL;
 	}
 
-	// Prepare for write material
+	
 	BbpCsr.word 				= 0;
 	BbpCsr.field.fRead			= 1;
 	BbpCsr.field.Busy			= 1;
@@ -426,7 +276,7 @@ NTSTATUS	RTUSBReadBBPRegister(
 	RTUSBWriteMACRegister(pAd, BBP_CSR_CFG, BbpCsr.word);
 
 	i = 0;
-	// Verify the busy condition
+	
 	do
 	{
 		status = RTUSBReadMACRegister(pAd, BBP_CSR_CFG, &BbpCsr.word);
@@ -445,9 +295,9 @@ NTSTATUS	RTUSBReadBBPRegister(
 
 	if ((i == RETRY_LIMIT) || (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_NIC_NOT_EXIST)))
 	{
-		//
-		// Read failed then Return Default value.
-		//
+		
+		
+		
 		*pValue = pAd->BbpWriteLatch[Id];
 
 		DBGPRINT_RAW(RT_DEBUG_ERROR, ("Retry count exhausted or device removed!!!\n"));
@@ -457,21 +307,7 @@ NTSTATUS	RTUSBReadBBPRegister(
 	return STATUS_SUCCESS;
 }
 #else
-/*
-	========================================================================
 
-	Routine Description: Read 8-bit BBP register via firmware
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBReadBBPRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			Id,
@@ -517,21 +353,7 @@ NTSTATUS	RTUSBReadBBPRegister(
 #endif
 
 #if 1
-/*
-	========================================================================
 
-	Routine Description: Write 8-bit BBP register
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBWriteBBPRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			Id,
@@ -540,7 +362,7 @@ NTSTATUS	RTUSBWriteBBPRegister(
 	BBP_CSR_CFG_STRUC	BbpCsr;
 	UINT			i = 0;
 	NTSTATUS		status;
-	// Verify the busy condition
+	
 	do
 	{
 		status = RTUSBReadMACRegister(pAd, BBP_CSR_CFG, &BbpCsr.word);
@@ -560,7 +382,7 @@ NTSTATUS	RTUSBWriteBBPRegister(
 		return STATUS_UNSUCCESSFUL;
 	}
 
-	// Prepare for write material
+	
 	BbpCsr.word 				= 0;
 	BbpCsr.field.fRead			= 0;
 	BbpCsr.field.Value			= Value;
@@ -573,21 +395,7 @@ NTSTATUS	RTUSBWriteBBPRegister(
 	return STATUS_SUCCESS;
 }
 #else
-/*
-	========================================================================
 
-	Routine Description: Write 8-bit BBP register via firmware
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 
 NTSTATUS	RTUSBWriteBBPRegister(
 	IN	PRTMP_ADAPTER	pAd,
@@ -621,21 +429,7 @@ NTSTATUS	RTUSBWriteBBPRegister(
 	return STATUS_SUCCESS;
 }
 #endif
-/*
-	========================================================================
 
-	Routine Description: Write RF register through MAC
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBWriteRFRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UINT32			Value)
@@ -669,21 +463,7 @@ NTSTATUS	RTUSBWriteRFRegister(
 	return STATUS_SUCCESS;
 }
 
-/*
-	========================================================================
 
-	Routine Description: Write RT30xx RF register through MAC
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS RT30xxWriteRFRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			RegID,
@@ -719,21 +499,7 @@ NTSTATUS RT30xxWriteRFRegister(
 }
 
 
-/*
-	========================================================================
 
-	Routine Description: Read RT30xx RF register through MAC
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS RT30xxReadRFRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			RegID,
@@ -778,21 +544,7 @@ NTSTATUS RT30xxReadRFRegister(
 	return STATUS_SUCCESS;
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBReadEEPROM(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	USHORT			Offset,
@@ -819,21 +571,7 @@ NTSTATUS	RTUSBReadEEPROM(
 	return Status;
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSBWriteEEPROM(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	USHORT			Offset,
@@ -860,50 +598,22 @@ NTSTATUS	RTUSBWriteEEPROM(
 	return Status;
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 VOID RTUSBPutToSleep(
 	IN	PRTMP_ADAPTER	pAd)
 {
 	UINT32		value;
 
-	// Timeout 0x40 x 50us
+	
 	value = (SLEEPCID<<16)+(OWNERMCU<<24)+ (0x40<<8)+1;
 	RTUSBWriteMACRegister(pAd, 0x7010, value);
 	RTUSBWriteMACRegister(pAd, 0x404, 0x30);
-	//RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS);
+	
 	DBGPRINT_RAW(RT_DEBUG_ERROR, ("Sleep Mailbox testvalue %x\n", value));
 
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS RTUSBWakeUp(
 	IN	PRTMP_ADAPTER	pAd)
 {
@@ -922,21 +632,7 @@ NTSTATUS RTUSBWakeUp(
 	return Status;
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTUSBInitializeCmdQ(
 	IN	PCmdQ	cmdq)
 {
@@ -946,21 +642,7 @@ VOID	RTUSBInitializeCmdQ(
 	cmdq->CmdQState = RT2870_THREAD_INITED;
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NDIS_STATUS	RTUSBEnqueueCmdFromNdis(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	NDIS_OID		Oid,
@@ -1029,21 +711,7 @@ NDIS_STATUS	RTUSBEnqueueCmdFromNdis(
     return(NDIS_STATUS_SUCCESS);
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NDIS_STATUS RTUSBEnqueueInternalCmd(
 	IN PRTMP_ADAPTER	pAd,
 	IN NDIS_OID			Oid,
@@ -1108,21 +776,7 @@ NDIS_STATUS RTUSBEnqueueInternalCmd(
 	return(NDIS_STATUS_SUCCESS);
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTUSBDequeueCmd(
 	IN	PCmdQ		cmdq,
 	OUT	PCmdQElmt	*pcmdqelmt)
@@ -1138,43 +792,7 @@ VOID	RTUSBDequeueCmd(
 	}
 }
 
-/*
-    ========================================================================
-	  usb_control_msg - Builds a control urb, sends it off and waits for completion
-	  @dev: pointer to the usb device to send the message to
-	  @pipe: endpoint "pipe" to send the message to
-	  @request: USB message request value
-	  @requesttype: USB message request type value
-	  @value: USB message value
-	  @index: USB message index value
-	  @data: pointer to the data to send
-	  @size: length in bytes of the data to send
-	  @timeout: time in jiffies to wait for the message to complete before
-			  timing out (if 0 the wait is forever)
-	  Context: !in_interrupt ()
 
-	  This function sends a simple control message to a specified endpoint
-	  and waits for the message to complete, or timeout.
-	  If successful, it returns the number of bytes transferred, otherwise a negative error number.
-
-	 Don't use this function from within an interrupt context, like a
-	  bottom half handler.	If you need an asynchronous message, or need to send
-	  a message from within interrupt context, use usb_submit_urb()
-	  If a thread in your driver uses this call, make sure your disconnect()
-	  method can wait for it to complete.  Since you don't have a handle on
-	  the URB used, you can't cancel the request.
-
-
-	Routine Description:
-
-	Arguments:
-
-	Return Value:
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS    RTUSB_VendorRequest(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UINT32			TransferFlags,
@@ -1206,7 +824,7 @@ NTSTATUS    RTUSB_VendorRequest(
 		int retryCount = 0;
 		void	*tmpBuf = TransferBuffer;
 
-		// Acquire Control token
+		
 		do {
 		if( RequestType == DEVICE_VENDOR_REQUEST_OUT)
 			ret=usb_control_msg(pObj->pUsb_Dev, usb_sndctrlpipe( pObj->pUsb_Dev, 0 ), Request, RequestType, Value,Index, tmpBuf, TransferBufferLength, CONTROL_TIMEOUT_JIFFIES);
@@ -1226,7 +844,7 @@ NTSTATUS    RTUSB_VendorRequest(
 		} while((ret < 0) && (retryCount < MAX_RETRY_COUNT));
 
         if (ret < 0) {
-//			DBGPRINT(RT_DEBUG_ERROR, ("USBVendorRequest failed ret=%d \n",ret));
+
 			DBGPRINT(RT_DEBUG_ERROR, ("RTUSB_VendorRequest failed(%d),TxFlags=0x%x, ReqType=%s, Req=0x%x, Index=0x%x\n",
 						ret, TransferFlags, (RequestType == DEVICE_VENDOR_REQUEST_OUT ? "OUT" : "IN"), Request, Index));
 			if (Request == 0x2)
@@ -1239,29 +857,14 @@ NTSTATUS    RTUSB_VendorRequest(
 	return ret;
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-	  Creates an IRP to submite an IOCTL_INTERNAL_USB_RESET_PORT
-	  synchronously. Callers of this function must be running at
-	  PASSIVE LEVEL.
-
-	Arguments:
-
-	Return Value:
-
-	Note:
-
-	========================================================================
-*/
 NTSTATUS	RTUSB_ResetDevice(
 	IN	PRTMP_ADAPTER	pAd)
 {
 	NTSTATUS		Status = TRUE;
 
 	DBGPRINT_RAW(RT_DEBUG_TRACE, ("--->USB_ResetDevice\n"));
-	//RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_RESET_IN_PROGRESS);
+	
 	return Status;
 }
 
@@ -1271,9 +874,9 @@ VOID CMDHandler(
 	PCmdQElmt		cmdqelmt;
 	PUCHAR			pData;
 	NDIS_STATUS		NdisStatus = NDIS_STATUS_SUCCESS;
-//	ULONG			Now = 0;
+
 	NTSTATUS		ntStatus;
-//	unsigned long	IrqFlags;
+
 
 	while (pAd->CmdQ.size > 0)
 	{
@@ -1297,7 +900,7 @@ VOID CMDHandler(
 						UINT32 data;
 
 						{
-							// Read GPIO pin2 as Hardware controlled radio state
+							
 
 							RTUSBReadMACRegister( pAd, GPIO_CTRL_CFG, &data);
 
@@ -1318,7 +921,7 @@ VOID CMDHandler(
 									DBGPRINT_RAW(RT_DEBUG_ERROR, ("!!! Radio On !!!\n"));
 
 									MlmeRadioOn(pAd);
-									// Update extra information
+									
 									pAd->ExtraInfo = EXTRA_INFO_CLEAR;
 								}
 								else
@@ -1326,7 +929,7 @@ VOID CMDHandler(
 									DBGPRINT_RAW(RT_DEBUG_ERROR, ("!!! Radio Off !!!\n"));
 
 									MlmeRadioOff(pAd);
-									// Update extra information
+									
 									pAd->ExtraInfo = HW_RADIO_OFF;
 								}
 							}
@@ -1346,47 +949,47 @@ VOID CMDHandler(
 						UCHAR		Index;
 						int			ret=0;
 						PHT_TX_CONTEXT	pHTTXContext;
-//						RTMP_TX_RING *pTxRing;
+
 						unsigned long IrqFlags;
 
 						DBGPRINT_RAW(RT_DEBUG_TRACE, ("CmdThread : CMDTHREAD_RESET_BULK_OUT(ResetPipeid=0x%0x)===>\n", pAd->bulkResetPipeid));
-						// All transfers must be aborted or cancelled before attempting to reset the pipe.
-						//RTUSBCancelPendingBulkOutIRP(pAd);
-						// Wait 10ms to let previous packet that are already in HW FIFO to clear. by MAXLEE 12-25-2007
+						
+						
+						
 						Index = 0;
 						do
 						{
 							RTUSBReadMACRegister(pAd, TXRXQ_PCNT, &MACValue);
-							if ((MACValue & 0xf00000/*0x800000*/) == 0)
+							if ((MACValue & 0xf00000) == 0)
 								break;
 							Index++;
 							RTMPusecDelay(10000);
 						}while(Index < 100);
 						MACValue = 0;
 						RTUSBReadMACRegister(pAd, USB_DMA_CFG, &MACValue);
-						// To prevent Read Register error, we 2nd check the validity.
+						
 						if ((MACValue & 0xc00000) == 0)
 							RTUSBReadMACRegister(pAd, USB_DMA_CFG, &MACValue);
-						// To prevent Read Register error, we 3rd check the validity.
+						
 						if ((MACValue & 0xc00000) == 0)
 							RTUSBReadMACRegister(pAd, USB_DMA_CFG, &MACValue);
 						MACValue |= 0x80000;
 						RTUSBWriteMACRegister(pAd, USB_DMA_CFG, MACValue);
 
-						// Wait 1ms to prevent next URB to bulkout before HW reset. by MAXLEE 12-25-2007
+						
 						RTMPusecDelay(1000);
 
 						MACValue &= (~0x80000);
 						RTUSBWriteMACRegister(pAd, USB_DMA_CFG, MACValue);
 						DBGPRINT_RAW(RT_DEBUG_TRACE, ("\tSet 0x2a0 bit19. Clear USB DMA TX path\n"));
 
-						// Wait 5ms to prevent next URB to bulkout before HW reset. by MAXLEE 12-25-2007
-						//RTMPusecDelay(5000);
+						
+						
 
 						if ((pAd->bulkResetPipeid & BULKOUT_MGMT_RESET_FLAG) == BULKOUT_MGMT_RESET_FLAG)
 						{
 							RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_BULKOUT_RESET);
-							if (pAd->MgmtRing.TxSwFreeIdx < MGMT_RING_SIZE /* pMLMEContext->bWaitingBulkOut == TRUE */)
+							if (pAd->MgmtRing.TxSwFreeIdx < MGMT_RING_SIZE )
 							{
 								RTUSB_SET_BULK_FLAG(pAd, fRTUSB_BULK_OUT_MLME);
 							}
@@ -1397,7 +1000,7 @@ VOID CMDHandler(
 						else
 						{
 							pHTTXContext = &(pAd->TxContext[pAd->bulkResetPipeid]);
-							//NdisAcquireSpinLock(&pAd->BulkOutLock[pAd->bulkResetPipeid]);
+							
 							RTMP_INT_LOCK(&pAd->BulkOutLock[pAd->bulkResetPipeid], IrqFlags);
 							if ( pAd->BulkOutPending[pAd->bulkResetPipeid] == FALSE)
 							{
@@ -1405,13 +1008,13 @@ VOID CMDHandler(
 								pHTTXContext->IRPPending = TRUE;
 								pAd->watchDogTxPendingCnt[pAd->bulkResetPipeid] = 1;
 
-								// no matter what, clean the flag
+								
 								RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_BULKOUT_RESET);
 
-								//NdisReleaseSpinLock(&pAd->BulkOutLock[pAd->bulkResetPipeid]);
+								
 								RTMP_INT_UNLOCK(&pAd->BulkOutLock[pAd->bulkResetPipeid], IrqFlags);
-/*-----------------------------------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------------------*/
+
+
 								{
 								RTUSBInitHTTxDesc(pAd, pHTTXContext, pAd->bulkResetPipeid, pHTTXContext->BulkOutSize, (usb_complete_t)RTUSBBulkOutDataPacketComplete);
 
@@ -1441,8 +1044,8 @@ VOID CMDHandler(
 							}
 							else
 							{
-								//NdisReleaseSpinLock(&pAd->BulkOutLock[pAd->bulkResetPipeid]);
-								//RTMP_INT_UNLOCK(&pAd->BulkOutLock[pAd->bulkResetPipeid], IrqFlags);
+								
+								
 
 								DBGPRINT_RAW(RT_DEBUG_ERROR, ("CmdThread : TX DATA RECOVER FAIL for BulkReq(0x%lx) because BulkOutPending[%d] is TRUE!\n", pAd->bulkResetReq[pAd->bulkResetPipeid], pAd->bulkResetPipeid));
 								if (pAd->bulkResetPipeid == 0)
@@ -1467,7 +1070,7 @@ VOID CMDHandler(
 									DBGPRINT_RAW(RT_DEBUG_ERROR, ("\tTX Occupied by %d!\n", pendingContext));
 								}
 
-							// no matter what, clean the flag
+							
 							RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_BULKOUT_RESET);
 
 								RTMP_INT_UNLOCK(&pAd->BulkOutLock[pAd->bulkResetPipeid], IrqFlags);
@@ -1476,56 +1079,24 @@ VOID CMDHandler(
 							}
 
 							RTMPDeQueuePacket(pAd, FALSE, NUM_OF_TX_RING, MAX_TX_PROCESS);
-							//RTUSBKickBulkOut(pAd);
+							
 						}
 
 					}
-					/*
-						// Don't cancel BULKIN.
-						while ((atomic_read(&pAd->PendingRx) > 0) &&
-								(!RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_NIC_NOT_EXIST)))
-						{
-							if (atomic_read(&pAd->PendingRx) > 0)
-							{
-								DBGPRINT_RAW(RT_DEBUG_ERROR, ("BulkIn IRP Pending!!cancel it!\n"));
-								RTUSBCancelPendingBulkInIRP(pAd);
-							}
-							RTMPusecDelay(100000);
-						}
-
-						if ((atomic_read(&pAd->PendingRx) == 0) && (!RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS)))
-						{
-							UCHAR	i;
-							RTUSBRxPacket(pAd);
-							pAd->NextRxBulkInReadIndex = 0;	// Next Rx Read index
-							pAd->NextRxBulkInIndex		= 0;	// Rx Bulk pointer
-							for (i = 0; i < (RX_RING_SIZE); i++)
-							{
-								PRX_CONTEXT  pRxContext = &(pAd->RxContext[i]);
-
-								pRxContext->pAd	= pAd;
-								pRxContext->InUse		= FALSE;
-								pRxContext->IRPPending	= FALSE;
-								pRxContext->Readable	= FALSE;
-								pRxContext->ReorderInUse = FALSE;
-
-							}
-							RTUSBBulkReceive(pAd);
-							DBGPRINT_RAW(RT_DEBUG_ERROR, ("RTUSBBulkReceive\n"));
-						}*/
+					
 					DBGPRINT_RAW(RT_DEBUG_TRACE, ("CmdThread : CMDTHREAD_RESET_BULK_OUT<===\n"));
     	   			break;
 
 				case CMDTHREAD_RESET_BULK_IN:
 					DBGPRINT_RAW(RT_DEBUG_TRACE, ("CmdThread : CMDTHREAD_RESET_BULK_IN === >\n"));
 
-					// All transfers must be aborted or cancelled before attempting to reset the pipe.
+					
 					{
 						UINT32		MACValue;
-/*-----------------------------------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------------------*/
+
+
 						{
-						//while ((atomic_read(&pAd->PendingRx) > 0) && (!RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_NIC_NOT_EXIST)))
+						
 						if((pAd->PendingRx > 0) && (!RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_NIC_NOT_EXIST)))
 						{
 							DBGPRINT_RAW(RT_DEBUG_ERROR, ("BulkIn IRP Pending!!!\n"));
@@ -1535,7 +1106,7 @@ VOID CMDHandler(
 						}
 						}
 
-						// Wait 10ms before reading register.
+						
 						RTMPusecDelay(10000);
 						ntStatus = RTUSBReadMACRegister(pAd, MAC_CSR0, &MACValue);
 
@@ -1556,27 +1127,11 @@ VOID CMDHandler(
  								DBGPRINT(RT_DEBUG_TRACE, ("\tRxContext[%d]: IRPPending=%d, InUse=%d, Readable=%d!\n"
 									, i, pAd->RxContext[i].IRPPending, pAd->RxContext[i].InUse, pAd->RxContext[i].Readable));
 							}
- 							/*
-
-							DBGPRINT_RAW(RT_DEBUG_ERROR, ("==========================================\n"));
-
-							pAd->NextRxBulkInReadIndex = 0;	// Next Rx Read index
-							pAd->NextRxBulkInIndex		= 0;	// Rx Bulk pointer
-							for (i = 0; i < (RX_RING_SIZE); i++)
-							{
-								PRX_CONTEXT  pRxContext = &(pAd->RxContext[i]);
-
-								pRxContext->pAd	= pAd;
-								pRxContext->InUse		= FALSE;
-								pRxContext->IRPPending	= FALSE;
-								pRxContext->Readable	= FALSE;
-								pRxContext->ReorderInUse = FALSE;
-
-							}*/
+ 							
 							RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_BULKIN_RESET);
 							for (i = 0; i < pAd->CommonCfg.NumOfBulkInIRP; i++)
 							{
-								//RTUSBBulkReceive(pAd);
+								
 								PRX_CONTEXT		pRxContext;
 								PURB			pUrb;
 								int				ret = 0;
@@ -1596,11 +1151,11 @@ VOID CMDHandler(
 								pAd->BulkInReq++;
 								RTMP_IRQ_UNLOCK(&pAd->BulkInLock, IrqFlags);
 
-								// Init Rx context descriptor
+								
 								RTUSBInitRxDesc(pAd, pRxContext);
 								pUrb = pRxContext->pUrb;
 								if ((ret = RTUSB_SUBMIT_URB(pUrb))!=0)
-								{	// fail
+								{	
 
 									RTMP_IRQ_LOCK(&pAd->BulkInLock, IrqFlags);
 									pRxContext->InUse = FALSE;
@@ -1611,7 +1166,7 @@ VOID CMDHandler(
 									DBGPRINT(RT_DEBUG_ERROR, ("CMDTHREAD_RESET_BULK_IN: Submit Rx URB failed(%d), status=%d\n", ret, pUrb->status));
 								}
 								else
-								{	// success
+								{	
 									DBGPRINT_RAW(RT_DEBUG_TRACE, ("CMDTHREAD_RESET_BULK_IN: Submit Rx URB Done, status=%d!\n", pUrb->status));
 									ASSERT((pRxContext->InUse == pRxContext->IRPPending));
 								}
@@ -1620,7 +1175,7 @@ VOID CMDHandler(
 						}
 						else
 						{
-							// Card must be removed
+							
 							if (NT_SUCCESS(ntStatus) != TRUE)
 							{
 							RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_NIC_NOT_EXIST);
@@ -1651,7 +1206,7 @@ VOID CMDHandler(
 						MACValue = (pAd->MacTab.Content[SetAsicWcid.WCID].Addr[3]<<24)+(pAd->MacTab.Content[SetAsicWcid.WCID].Addr[2]<<16)+(pAd->MacTab.Content[SetAsicWcid.WCID].Addr[1]<<8)+(pAd->MacTab.Content[SetAsicWcid.WCID].Addr[0]);
 						DBGPRINT_RAW(RT_DEBUG_TRACE, ("1-MACValue= %x,\n", MACValue));
 						RTUSBWriteMACRegister(pAd, offset, MACValue);
-						// Read bitmask
+						
 						RTUSBReadMACRegister(pAd, offset+4, &MACRValue);
 						if ( SetAsicWcid.DeleteTid != 0xffffffff)
 							MACRValue &= (~SetAsicWcid.DeleteTid);
@@ -1681,7 +1236,7 @@ VOID CMDHandler(
 						offset = MAC_WCID_ATTRIBUTE_BASE + ((UCHAR)SetAsicWcidAttri.WCID)*HW_WCID_ATTRI_SIZE;
 
 						DBGPRINT_RAW(RT_DEBUG_TRACE, ("Cmd : CMDTHREAD_SET_ASIC_WCID_CIPHER : WCID = %ld, Cipher = %lx.\n", SetAsicWcidAttri.WCID, SetAsicWcidAttri.Cipher));
-						// Read bitmask
+						
 						RTUSBReadMACRegister(pAd, offset, &MACRValue);
 						MACRValue = 0;
 						MACRValue |= (((UCHAR)SetAsicWcidAttri.Cipher) << 1);
@@ -1698,10 +1253,10 @@ VOID CMDHandler(
 						RTUSBWriteMACRegister(pAd, offset, MACRValue);
 						DBGPRINT_RAW(RT_DEBUG_TRACE, ("2-offset = %x , MACValue= %x,\n", offset, MACRValue));
 
-						//
-						// Update cipher algorithm. WSTA always use BSS0
-						//
-						// for adhoc mode only ,because wep status slow than add key, when use zero config
+						
+						
+						
+						
 						if (pAd->StaCfg.BssType == BSS_ADHOC )
 						{
 							offset = MAC_WCID_ATTRIBUTE_BASE;
@@ -1712,7 +1267,7 @@ VOID CMDHandler(
 
 							RTUSBWriteMACRegister(pAd, offset, MACRValue);
 
-							//Update group key cipher,,because wep status slow than add key, when use zero config
+							
 							RTUSBReadMACRegister(pAd, SHARED_KEY_MODE_BASE+4*(0/2), &csr1.word);
 
 							csr1.field.Bss0Key0CipherAlg = SetAsicWcidAttri.Cipher;
@@ -1751,13 +1306,13 @@ VOID CMDHandler(
 							}
 							else
 							{
-								//
-								// Other case, disable engine.
-								// Don't worry WPA key, we will add WPA Key after 4-Way handshaking.
-								//
+								
+								
+								
+								
 								USHORT   offset;
 								offset = MAC_WCID_ATTRIBUTE_BASE + (pEntry->Aid * HW_WCID_ATTRI_SIZE);
-								// RX_PKEY_MODE:0 for no security; RX_KEY_TAB:0 for shared key table; BSS_IDX:0
+								
 								RTUSBWriteMACRegister(pAd, offset, 0);
 							}
 						}
@@ -1783,7 +1338,7 @@ VOID CMDHandler(
 						pWepKey = (PNDIS_802_11_WEP)pData;
 						KeyIdx = pWepKey->KeyIndex & 0x0fffffff;
 
-						// it is a shared key
+						
 						if ((KeyIdx >= 4) || ((pWepKey->KeyLength != 5) && (pWepKey->KeyLength != 13)))
 						{
 							NdisStatus = NDIS_STATUS_INVALID_DATA;
@@ -1796,10 +1351,10 @@ VOID CMDHandler(
 							NdisMoveMemory(pAd->SharedKey[BSS0][KeyIdx].Key, &pWepKey->KeyMaterial, pWepKey->KeyLength);
 							CipherAlg = (pAd->SharedKey[BSS0][KeyIdx].KeyLen == 5)? CIPHER_WEP64 : CIPHER_WEP128;
 
-							//
-							// Change the WEP cipher to CKIP cipher if CKIP KP on.
-							// Funk UI or Meetinghouse UI will add ckip key from this path.
-							//
+							
+							
+							
+							
 
 							if (pAd->OpMode == OPMODE_STA)
 						 	{
@@ -1809,21 +1364,21 @@ VOID CMDHandler(
 							pAd->SharedKey[BSS0][KeyIdx].CipherAlg = CipherAlg;
 							if (pWepKey->KeyIndex & 0x80000000)
 							{
-								// Default key for tx (shared key)
+								
 								UCHAR	IVEIV[8];
 								UINT32	WCIDAttri, Value;
 								USHORT	offset, offset2;
 								NdisZeroMemory(IVEIV, 8);
 								pAd->StaCfg.DefaultKeyId = (UCHAR) KeyIdx;
-								// Add BSSID to WCTable. because this is Tx wep key.
-								// WCID Attribute UDF:3, BSSIdx:3, Alg:3, Keytable:1=PAIRWISE KEY, BSSIdx is 0
+								
+								
 								WCIDAttri = (CipherAlg<<1)|SHAREDKEYTABLE;
 
 								offset = MAC_WCID_ATTRIBUTE_BASE + (BSSID_WCID* HW_WCID_ATTRI_SIZE);
 								RTUSBWriteMACRegister(pAd, offset, WCIDAttri);
-								// 1. IV/EIV
-								// Specify key index to find shared key.
-								IVEIV[3] = (UCHAR)(KeyIdx<< 6);	//WEP Eiv bit off. groupkey index is not 0
+								
+								
+								IVEIV[3] = (UCHAR)(KeyIdx<< 6);	
 								offset = PAIRWISE_IVEIV_TABLE_BASE + (BSS0Mcast_WCID * HW_IVEIV_ENTRY_SIZE);
 								offset2 = PAIRWISE_IVEIV_TABLE_BASE + (BSSID_WCID* HW_IVEIV_ENTRY_SIZE);
 								for (i=0; i<8;)
@@ -1837,7 +1392,7 @@ VOID CMDHandler(
 									i+=4;
 								}
 
-								// 2. WCID Attribute UDF:3, BSSIdx:3, Alg:3, Keytable:use share key, BSSIdx is 0
+								
 								WCIDAttri = (pAd->SharedKey[BSS0][KeyIdx].CipherAlg<<1)|SHAREDKEYTABLE;
 								offset = MAC_WCID_ATTRIBUTE_BASE + (BSS0Mcast_WCID* HW_WCID_ATTRI_SIZE);
 							        DBGPRINT(RT_DEBUG_TRACE, ("BSS0Mcast_WCID : offset = %x, WCIDAttri = %x\n", offset, WCIDAttri));
@@ -1873,6 +1428,6 @@ VOID CMDHandler(
 				NdisFreeMemory(cmdqelmt, sizeof(CmdQElmt), 0);
 			}
 		}
-	}	/* end of while */
+	}	
 }
 

@@ -1,14 +1,4 @@
-/*
- * sca3000_core.c -- support VTI sca3000 series accelerometers via SPI
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * Copyright (c) 2009 Jonathan Cameron <jic23@cam.ac.uk>
- *
- * See industrialio/accels/sca3000.h for comments.
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/gpio.h>
@@ -33,13 +23,7 @@ enum sca3000_variant {
 	l01,
 };
 
-/* Note where option modes are not defined, the chip simply does not
- * support any.
- * Other chips in the sca3000 series use i2c and are not included here.
- *
- * Some of these devices are only listed in the family data sheet and
- * do not actually appear to be available.
- */
+
 static const struct sca3000_chip_info sca3000_spi_chip_info_tbl[] = {
 	{
 		.name = "sca3000-d01",
@@ -48,7 +32,7 @@ static const struct sca3000_chip_info sca3000_spi_chip_info_tbl[] = {
 		.option_mode_1 = SCA3000_OP_MODE_BYPASS,
 		.option_mode_1_freq = 250,
 	}, {
-		/* No data sheet available - may be the same as the 3100-d03?*/
+		
 		.name = "sca3000-d03",
 		.temp_output = true,
 	}, {
@@ -71,9 +55,7 @@ static const struct sca3000_chip_info sca3000_spi_chip_info_tbl[] = {
 		.option_mode_2 = SCA3000_OP_MODE_WIDE,
 		.option_mode_2_freq = 400,
 	}, {
-		/* No data sheet available.
-		 * Frequencies are unknown.
-		 */
+		
 		.name = "sca3000-l01",
 		.temp_output = true,
 		.option_mode_1 = SCA3000_OP_MODE_BYPASS,
@@ -137,11 +119,7 @@ error_ret:
 	return ret;
 
 }
-/**
- * sca3000_reg_lock_on() test if the ctrl register lock is on
- *
- * Lock must be held.
- **/
+
 static int sca3000_reg_lock_on(struct sca3000_state *st)
 {
 	u8 *rx;
@@ -157,13 +135,7 @@ static int sca3000_reg_lock_on(struct sca3000_state *st)
 	return ret;
 }
 
-/**
- * __sca3000_unlock_reg_lock() unlock the control registers
- *
- * Note the device does not appear to support doing this in a single transfer.
- * This should only ever be used as part of ctrl reg read.
- * Lock must be held before calling this
- **/
+
 static int __sca3000_unlock_reg_lock(struct sca3000_state *st)
 {
 	struct spi_message msg;
@@ -199,16 +171,7 @@ static int __sca3000_unlock_reg_lock(struct sca3000_state *st)
 	return spi_sync(st->us, &msg);
 }
 
-/**
- * sca3000_write_ctrl_reg() write to a lock protect ctrl register
- * @sel: selects which registers we wish to write to
- * @val: the value to be written
- *
- * Certain control registers are protected against overwriting by the lock
- * register and use a shared write address. This function allows writing of
- * these registers.
- * Lock must be held.
- **/
+
 static int sca3000_write_ctrl_reg(struct sca3000_state *st,
 				  uint8_t sel,
 				  uint8_t val)
@@ -225,24 +188,20 @@ static int sca3000_write_ctrl_reg(struct sca3000_state *st,
 			goto error_ret;
 	}
 
-	/* Set the control select register */
+	
 	ret = sca3000_write_reg(st, SCA3000_REG_ADDR_CTRL_SEL, sel);
 	if (ret)
 		goto error_ret;
 
-	/* Write the actual value into the register */
+	
 	ret = sca3000_write_reg(st, SCA3000_REG_ADDR_CTRL_DATA, val);
 
 error_ret:
 	return ret;
 }
 
-/* Crucial that lock is called before calling this */
-/**
- * sca3000_read_ctrl_reg() read from lock protected control register.
- *
- * Lock must be held.
- **/
+
+
 static int sca3000_read_ctrl_reg(struct sca3000_state *st,
 				 u8 ctrl_reg,
 				 u8 **rx_p)
@@ -257,7 +216,7 @@ static int sca3000_read_ctrl_reg(struct sca3000_state *st,
 		if (ret)
 			goto error_ret;
 	}
-	/* Set the control select register */
+	
 	ret = sca3000_write_reg(st, SCA3000_REG_ADDR_CTRL_SEL, ctrl_reg);
 	if (ret)
 		goto error_ret;
@@ -268,11 +227,7 @@ error_ret:
 }
 
 #ifdef SCA3000_DEBUG
-/**
- * sca3000_check_status() check the status register
- *
- * Only used for debugging purposes
- **/
+
 static int sca3000_check_status(struct device *dev)
 {
 	u8 *rx;
@@ -294,14 +249,9 @@ error_ret:
 	mutex_unlock(&st->lock);
 	return ret;
 }
-#endif /* SCA3000_DEBUG */
+#endif 
 
-/**
- * sca3000_read_13bit_signed() sysfs interface to read 13 bit signed registers
- *
- * These are described as signed 12 bit on the data sheet, which appears
- * to be a conventional 2's complement 13 bit.
- **/
+
 static ssize_t sca3000_read_13bit_signed(struct device *dev,
 					 struct device_attribute *attr,
 					 char *buf)
@@ -335,9 +285,7 @@ static ssize_t sca3000_show_name(struct device *dev,
 	struct sca3000_state *st = dev_info->dev_data;
 	return sprintf(buf, "%s\n", st->info->name);
 }
-/**
- * sca3000_show_reg() - sysfs interface to read the chip revision number
- **/
+
 static ssize_t sca3000_show_rev(struct device *dev,
 				struct device_attribute *attr,
 				char *buf)
@@ -364,12 +312,7 @@ error_ret:
 	return ret ? ret : len;
 }
 
-/**
- * sca3000_show_available_measurement_modes() display available modes
- *
- * This is all read from chip specific data in the driver. Not all
- * of the sca3000 series support modes other than normal.
- **/
+
 static ssize_t
 sca3000_show_available_measurement_modes(struct device *dev,
 					 struct device_attribute *attr,
@@ -393,15 +336,13 @@ sca3000_show_available_measurement_modes(struct device *dev,
 		len += sprintf(buf + len, ", 2 - wide mode");
 		break;
 	}
-	/* always supported */
+	
 	len += sprintf(buf + len, " 3 - motion detection \n");
 
 	return len;
 }
 
-/**
- * sca3000_show_measurmenet_mode() sysfs read of current mode
- **/
+
 static ssize_t
 sca3000_show_measurement_mode(struct device *dev,
 			      struct device_attribute *attr,
@@ -416,7 +357,7 @@ sca3000_show_measurement_mode(struct device *dev,
 	ret = sca3000_read_data(st, SCA3000_REG_ADDR_MODE, &rx, 1);
 	if (ret)
 		goto error_ret;
-	/* mask bottom 2 bits - only ones that are relevant */
+	
 	rx[1] &= 0x03;
 	switch (rx[1]) {
 	case SCA3000_MEAS_MODE_NORMAL:
@@ -450,9 +391,7 @@ error_ret:
 	return ret ? ret : len;
 }
 
-/**
- * sca3000_store_measurement_mode() set the current mode
- **/
+
 static ssize_t
 sca3000_store_measurement_mode(struct device *dev,
 			       struct device_attribute *attr,
@@ -491,9 +430,7 @@ error_ret:
 }
 
 
-/* Not even vaguely standard attributes so defined here rather than
- * in the relevant IIO core headers
- */
+
 static IIO_DEVICE_ATTR(available_measurement_modes, S_IRUGO,
 		       sca3000_show_available_measurement_modes,
 		       NULL, 0);
@@ -503,7 +440,7 @@ static IIO_DEVICE_ATTR(measurement_mode, S_IRUGO | S_IWUSR,
 		       sca3000_store_measurement_mode,
 		       0);
 
-/* More standard attributes */
+
 
 static IIO_DEV_ATTR_NAME(sca3000_show_name);
 static IIO_DEV_ATTR_REV(sca3000_show_rev);
@@ -516,14 +453,7 @@ static IIO_DEV_ATTR_ACCEL_Z(sca3000_read_13bit_signed,
 			    SCA3000_REG_ADDR_Z_MSB);
 
 
-/**
- * sca3000_read_av_freq() sysfs function to get available frequencies
- *
- * The later modes are only relevant to the ring buffer - and depend on current
- * mode. Note that data sheet gives rather wide tolerances for these so integer
- * division will give good enough answer and not all chips have them specified
- * at all.
- **/
+
 static ssize_t sca3000_read_av_freq(struct device *dev,
 			     struct device_attribute *attr,
 			     char *buf)
@@ -563,11 +493,7 @@ static ssize_t sca3000_read_av_freq(struct device *dev,
 error_ret:
 	return ret;
 }
-/**
- * __sca3000_get_base_frequency() obtain mode specific base frequency
- *
- * lock must be held
- **/
+
 static inline int __sca3000_get_base_freq(struct sca3000_state *st,
 					  const struct sca3000_chip_info *info,
 					  int *base_freq)
@@ -594,9 +520,7 @@ error_ret:
 	return ret;
 }
 
-/**
- * sca3000_read_frequency() sysfs interface to get the current frequency
- **/
+
 static ssize_t sca3000_read_frequency(struct device *dev,
 			       struct device_attribute *attr,
 			       char *buf)
@@ -634,9 +558,7 @@ error_ret:
 	return ret;
 }
 
-/**
- * sca3000_set_frequency() sysfs interface to set the current frequency
- **/
+
 static ssize_t sca3000_set_frequency(struct device *dev,
 			      struct device_attribute *attr,
 			      const char *buf,
@@ -653,7 +575,7 @@ static ssize_t sca3000_set_frequency(struct device *dev,
 		return ret;
 
 	mutex_lock(&st->lock);
-	/* What mode are we in? */
+	
 	ret = __sca3000_get_base_freq(st, st->info, &base_freq);
 	if (ret)
 		goto error_free_lock;
@@ -661,7 +583,7 @@ static ssize_t sca3000_set_frequency(struct device *dev,
 	ret = sca3000_read_ctrl_reg(st, SCA3000_REG_CTRL_SEL_OUT_CTRL, &rx);
 	if (ret)
 		goto error_free_lock;
-	/* clear the bits */
+	
 	rx[1] &= ~0x03;
 
 	if (val == base_freq/2) {
@@ -679,9 +601,7 @@ error_free_lock:
 	return ret ? ret : len;
 }
 
-/* Should only really be registered if ring buffer support is compiled in.
- * Does no harm however and doing it right would add a fair bit of complexity
- */
+
 static IIO_DEV_ATTR_AVAIL_SAMP_FREQ(sca3000_read_av_freq);
 
 static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
@@ -689,13 +609,7 @@ static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
 			      sca3000_set_frequency);
 
 
-/**
- * sca3000_read_temp() sysfs interface to get the temperature when available
- *
-* The alignment of data in here is downright odd. See data sheet.
-* Converting this into a meaningful value is left to inline functions in
-* userspace part of header.
-**/
+
 static ssize_t sca3000_read_temp(struct device *dev,
 				 struct device_attribute *attr,
 				 char *buf)
@@ -719,9 +633,7 @@ error_ret:
 }
 static IIO_DEV_ATTR_TEMP(sca3000_read_temp);
 
-/**
- * sca3000_show_thresh() sysfs query of a theshold
- **/
+
 static ssize_t sca3000_show_thresh(struct device *dev,
 				   struct device_attribute *attr,
 				   char *buf)
@@ -745,9 +657,7 @@ static ssize_t sca3000_show_thresh(struct device *dev,
 	return len;
 }
 
-/**
- * sca3000_write_thresh() sysfs control of threshold
- **/
+
 static ssize_t sca3000_write_thresh(struct device *dev,
 				    struct device_attribute *attr,
 				    const char *buf,
@@ -811,7 +721,7 @@ static struct attribute *sca3000_attributes_with_temp[] = {
 	&iio_dev_attr_measurement_mode.dev_attr.attr,
 	&iio_dev_attr_available_sampling_frequency.dev_attr.attr,
 	&iio_dev_attr_sampling_frequency.dev_attr.attr,
-	/* Only present if temp sensor is */
+	
 	&iio_dev_attr_temp.dev_attr.attr,
 	NULL,
 };
@@ -824,16 +734,10 @@ static const struct attribute_group sca3000_attribute_group_with_temp = {
 	.attrs = sca3000_attributes_with_temp,
 };
 
-/* RING RELATED interrupt handler */
-/* depending on event, push to the ring buffer event chrdev or the event one */
 
-/**
- * sca3000_interrupt_handler_bh() - handling ring and non ring events
- *
- * This function is complicated by the fact that the devices can signify ring
- * and non ring events via the same interrupt line and they can only
- * be distinguished via a read of the relevant status register.
- **/
+
+
+
 static void sca3000_interrupt_handler_bh(struct work_struct *work_s)
 {
 	struct sca3000_state *st
@@ -842,9 +746,7 @@ static void sca3000_interrupt_handler_bh(struct work_struct *work_s)
 	u8 *rx;
 	int ret;
 
-	/* Could lead if badly timed to an extra read of status reg,
-	 * but ensures no interrupt is missed.
-	 */
+	
 	enable_irq(st->us->irq);
 	mutex_lock(&st->lock);
 	ret = sca3000_read_data(st, SCA3000_REG_ADDR_INT_STATUS,
@@ -880,12 +782,7 @@ done:
 	return;
 }
 
-/**
- * sca3000_handler_th() handles all interrupt events from device
- *
- * These devices deploy unified interrupt status registers meaning
- * all interrupts must be handled together
- **/
+
 static int sca3000_handler_th(struct iio_dev *dev_info,
 			      int index,
 			      s64 timestamp,
@@ -899,12 +796,7 @@ static int sca3000_handler_th(struct iio_dev *dev_info,
 	return 0;
 }
 
-/**
- * sca3000_query_mo_det() is motion detection enabled for this axis
- *
- * First queries if motion detection is enabled and then if this axis is
- * on.
- **/
+
 static ssize_t sca3000_query_mo_det(struct device *dev,
 				    struct device_attribute *attr,
 				    char *buf)
@@ -916,7 +808,7 @@ static ssize_t sca3000_query_mo_det(struct device *dev,
 	u8 *rx;
 	u8 protect_mask = 0x03;
 
-	/* read current value of mode register */
+	
 	mutex_lock(&st->lock);
 	ret = sca3000_read_data(st, SCA3000_REG_ADDR_MODE, &rx, 1);
 	if (ret)
@@ -931,7 +823,7 @@ static ssize_t sca3000_query_mo_det(struct device *dev,
 					    &rx);
 		if (ret)
 			goto error_ret;
-		/* only supporting logical or's for now */
+		
 		len += sprintf(buf + len, "%d\n",
 			       (rx[1] & this_attr->mask) ? 1 : 0);
 	}
@@ -941,9 +833,7 @@ error_ret:
 
 	return ret ? ret : len;
 }
-/**
- * sca3000_query_free_fall_mode() is free fall mode enabled
- **/
+
 static ssize_t sca3000_query_free_fall_mode(struct device *dev,
 					    struct device_attribute *attr,
 					    char *buf)
@@ -964,9 +854,7 @@ static ssize_t sca3000_query_free_fall_mode(struct device *dev,
 
 	return len;
 }
-/**
- * sca3000_query_ring_int() is the hardware ring status interrupt enabled
- **/
+
 static ssize_t sca3000_query_ring_int(struct device *dev,
 				      struct device_attribute *attr,
 				      char *buf)
@@ -986,9 +874,7 @@ static ssize_t sca3000_query_ring_int(struct device *dev,
 
 	return len;
 }
-/**
- * sca3000_set_ring_int() set state of ring status interrupt
- **/
+
 static ssize_t sca3000_set_ring_int(struct device *dev,
 				      struct device_attribute *attr,
 				      const char *buf,
@@ -1024,13 +910,7 @@ error_ret:
 	return ret ? ret : len;
 }
 
-/**
- * sca3000_set_free_fall_mode() simple on off control for free fall int
- *
- * In these chips the free fall detector should send an interrupt if
- * the device falls more than 25cm.  This has not been tested due
- * to fragile wiring.
- **/
+
 
 static ssize_t sca3000_set_free_fall_mode(struct device *dev,
 					  struct device_attribute *attr,
@@ -1049,16 +929,16 @@ static ssize_t sca3000_set_free_fall_mode(struct device *dev,
 	if (ret)
 		goto error_ret;
 
-	/* read current value of mode register */
+	
 	ret = sca3000_read_data(st, SCA3000_REG_ADDR_MODE, &rx, 1);
 	if (ret)
 		goto error_ret;
 
-	/*if off and should be on*/
+	
 	if (val && !(rx[1] & protect_mask))
 		ret = sca3000_write_reg(st, SCA3000_REG_ADDR_MODE,
 					(rx[1] | SCA3000_FREE_FALL_DETECT));
-	/* if on and should be off */
+	
 	else if (!val && (rx[1]&protect_mask))
 		ret = sca3000_write_reg(st, SCA3000_REG_ADDR_MODE,
 					(rx[1] & ~protect_mask));
@@ -1070,15 +950,7 @@ error_ret:
 	return ret ? ret : len;
 }
 
-/**
- * sca3000_set_mo_det() simple on off control for motion detector
- *
- * This is a per axis control, but enabling any will result in the
- * motion detector unit being enabled.
- * N.B. enabling motion detector stops normal data acquisition.
- * There is a complexity in knowing which mode to return to when
- * this mode is disabled.  Currently normal mode is assumed.
- **/
+
 static ssize_t sca3000_set_mo_det(struct device *dev,
 				  struct device_attribute *attr,
 				  const char *buf,
@@ -1096,14 +968,13 @@ static ssize_t sca3000_set_mo_det(struct device *dev,
 		return ret;
 
 	mutex_lock(&st->lock);
-	/* First read the motion detector config to find out if
-	 * this axis is on*/
+	
 	ret = sca3000_read_ctrl_reg(st,
 				    SCA3000_REG_CTRL_SEL_MD_CTRL,
 				    &rx);
 	if (ret)
 		goto exit_point;
-	/* Off and should be on */
+	
 	if (val && !(rx[1] & this_attr->mask)) {
 		ret = sca3000_write_ctrl_reg(st,
 					     SCA3000_REG_CTRL_SEL_MD_CTRL,
@@ -1118,20 +989,20 @@ static ssize_t sca3000_set_mo_det(struct device *dev,
 		if (ret)
 			goto exit_point_free_rx;
 		st->mo_det_use_count--;
-	} else /* relies on clean state for device on boot */
+	} else 
 		goto exit_point_free_rx;
 	kfree(rx);
-	/* read current value of mode register */
+	
 	ret = sca3000_read_data(st, SCA3000_REG_ADDR_MODE, &rx, 1);
 	if (ret)
 		goto exit_point;
-	/*if off and should be on*/
+	
 	if ((st->mo_det_use_count)
 	    && ((rx[1]&protect_mask) != SCA3000_MEAS_MODE_MOT_DET))
 		ret = sca3000_write_reg(st, SCA3000_REG_ADDR_MODE,
 					(rx[1] & ~protect_mask)
 					| SCA3000_MEAS_MODE_MOT_DET);
-	/* if on and should be off */
+	
 	else if (!(st->mo_det_use_count)
 		 && ((rx[1]&protect_mask) == SCA3000_MEAS_MODE_MOT_DET))
 		ret = sca3000_write_reg(st, SCA3000_REG_ADDR_MODE,
@@ -1144,16 +1015,16 @@ exit_point:
 	return ret ? ret : len;
 }
 
-/* Shared event handler for all events as single event status register */
+
 IIO_EVENT_SH(all, &sca3000_handler_th);
 
-/* Free fall detector related event attribute */
+
 IIO_EVENT_ATTR_FREE_FALL_DETECT_SH(iio_event_all,
 				   sca3000_query_free_fall_mode,
 				   sca3000_set_free_fall_mode,
 				   0)
 
-/* Motion detector related event attributes */
+
 IIO_EVENT_ATTR_ACCEL_X_HIGH_SH(iio_event_all,
 			       sca3000_query_mo_det,
 			       sca3000_set_mo_det,
@@ -1169,7 +1040,7 @@ IIO_EVENT_ATTR_ACCEL_Z_HIGH_SH(iio_event_all,
 			       sca3000_set_mo_det,
 			       SCA3000_MD_CTRL_OR_Z);
 
-/* Hardware ring buffer related event attributes */
+
 IIO_EVENT_ATTR_RING_50_FULL_SH(iio_event_all,
 			       sca3000_query_ring_int,
 			       sca3000_set_ring_int,
@@ -1194,26 +1065,20 @@ static struct attribute_group sca3000_event_attribute_group = {
 	.attrs = sca3000_event_attributes,
 };
 
-/**
- * sca3000_clean_setup() get the device into a predictable state
- *
- * Devices use flash memory to store many of the register values
- * and hence can come up in somewhat unpredictable states.
- * Hence reset everything on driver load.
-  **/
+
 static int sca3000_clean_setup(struct sca3000_state *st)
 {
 	int ret;
 	u8 *rx;
 
 	mutex_lock(&st->lock);
-	/* Ensure all interrupts have been acknowledged */
+	
 	ret = sca3000_read_data(st, SCA3000_REG_ADDR_INT_STATUS, &rx, 1);
 	if (ret)
 		goto error_ret;
 	kfree(rx);
 
-	/* Turn off all motion detection channels */
+	
 	ret = sca3000_read_ctrl_reg(st,
 				    SCA3000_REG_CTRL_SEL_MD_CTRL,
 				    &rx);
@@ -1226,12 +1091,11 @@ static int sca3000_clean_setup(struct sca3000_state *st)
 	if (ret)
 		goto error_ret;
 
-	/* Disable ring buffer */
+	
 	sca3000_read_ctrl_reg(st,
 			      SCA3000_REG_CTRL_SEL_OUT_CTRL,
 			      &rx);
-	/* Frequency of ring buffer sampling deliberately restricted to make
-	 * debugging easier - add control of this later */
+	
 	ret = sca3000_write_ctrl_reg(st,
 				     SCA3000_REG_CTRL_SEL_OUT_CTRL,
 				     (rx[1] & SCA3000_OUT_CTRL_PROT_MASK)
@@ -1243,7 +1107,7 @@ static int sca3000_clean_setup(struct sca3000_state *st)
 
 	if (ret)
 		goto error_ret;
-	/* Enable interrupts, relevant to mode and set up as active low */
+	
 	ret = sca3000_read_data(st,
 			  SCA3000_REG_ADDR_INT_MASK,
 			  &rx, 1);
@@ -1256,9 +1120,8 @@ static int sca3000_clean_setup(struct sca3000_state *st)
 	kfree(rx);
 	if (ret)
 		goto error_ret;
-	/* Select normal measurement mode, free fall off, ring off */
-	/* Ring in 12 bit mode - it is fine to overwrite reserved bits 3,5
-	 * as that occurs in one of the example on the datasheet */
+	
+	
 	ret = sca3000_read_data(st,
 			  SCA3000_REG_ADDR_MODE,
 			  &rx, 1);
@@ -1337,12 +1200,7 @@ static int __devinit __sca3000_probe(struct spi_device *spi,
 						  "sca3000");
 		if (ret)
 			goto error_unregister_ring;
-		/* RFC
-		 * Probably a common situation.  All interrupts need an ack
-		 * and there is only one handler so the complicated list system
-		 * is overkill.  At very least a simpler registration method
-		 * might be worthwhile.
-		 */
+		
 		iio_add_event_to_list(iio_event_attr_accel_z_high.listel,
 					    &st->indio_dev
 					    ->interrupts[0]->ev_list);
@@ -1398,7 +1256,7 @@ static int sca3000_remove(struct spi_device *spi)
 	struct sca3000_state *st =  spi_get_drvdata(spi);
 	struct iio_dev *indio_dev = st->indio_dev;
 	int ret;
-	/* Must ensure no interrupts can be generated after this!*/
+	
 	ret = sca3000_stop_all_interrupts(st);
 	if (ret)
 		return ret;
@@ -1415,7 +1273,7 @@ static int sca3000_remove(struct spi_device *spi)
 	return 0;
 }
 
-/* These macros save on an awful lot of repeated code */
+
 #define SCA3000_VARIANT_PROBE(_name)				\
 	static int __devinit					\
 	sca3000_##_name##_probe(struct spi_device *spi)		\

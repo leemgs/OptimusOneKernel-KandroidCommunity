@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : ctkip.c                                               */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains Tx and Rx functions.                       */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 
 u16_t zgTkipSboxLower[256] =
@@ -99,7 +85,7 @@ u16_t zgTkipSboxUpper[256] =
     };
 
 u16_t zfrotr1(u16_t a)
-// rotate right by 1 bit.
+
 {
     u16_t b;
 
@@ -114,11 +100,11 @@ u16_t zfrotr1(u16_t a)
     return b;
 }
 
-/*************************************************************/
-/* zfTkipSbox()                                              */
-/* Returns a 16 bit value from a 64K entry table. The Table  */
-/* is synthesized from two 256 entry byte wide tables.       */
-/*************************************************************/
+
+
+
+
+
 u16_t zfTkipSbox(u16_t index)
 {
     u16_t   low;
@@ -140,23 +126,23 @@ u8_t zfTkipPhase1KeyMix(u32_t iv32, struct zsTkipSeed* pSeed)
     u16_t   tsc1;
     u16_t   i, j;
 #if 0
-    /* Need not proceed this function with the same iv32 */
+    
     if ( iv32 == pSeed->iv32 )
     {
         return 1;
     }
 #endif
-    tsc0 = (u16_t) ((iv32 >> 16) & 0xffff); /* msb */
+    tsc0 = (u16_t) ((iv32 >> 16) & 0xffff); 
     tsc1 = (u16_t) (iv32 & 0xffff);
 
-    /* Phase 1, step 1 */
+    
     pSeed->ttak[0] = tsc1;
     pSeed->ttak[1] = tsc0;
     pSeed->ttak[2] = (u16_t) (pSeed->ta[0] + (pSeed->ta[1] <<8));
     pSeed->ttak[3] = (u16_t) (pSeed->ta[2] + (pSeed->ta[3] <<8));
     pSeed->ttak[4] = (u16_t) (pSeed->ta[4] + (pSeed->ta[5] <<8));
 
-    /* Phase 1, step 2 */
+    
     for (i=0; i<8; i++)
     {
         j = 2*(i & 1);
@@ -193,7 +179,7 @@ u8_t zfTkipPhase2KeyMix(u16_t iv16, struct zsTkipSeed* pSeed)
 
     tsc2 = iv16;
 
-    /* Phase 2, Step 1 */
+    
     pSeed->ppk[0] = pSeed->ttak[0];
     pSeed->ppk[1] = pSeed->ttak[1];
     pSeed->ppk[2] = pSeed->ttak[2];
@@ -201,7 +187,7 @@ u8_t zfTkipPhase2KeyMix(u16_t iv16, struct zsTkipSeed* pSeed)
     pSeed->ppk[4] = pSeed->ttak[4];
     pSeed->ppk[5] = (pSeed->ttak[4] + tsc2) & 0xffff;
 
-    /* Phase2, Step 2 */
+    
     pSeed->ppk[0] = pSeed->ppk[0]
                 + zfTkipSbox(pSeed->ppk[5] ^ ZM_BYTE_TO_WORD(pSeed->tk[1],pSeed->tk[0]));
     pSeed->ppk[1] = pSeed->ppk[1]
@@ -249,9 +235,9 @@ void zfTkipInit(u8_t* key, u8_t* ta, struct zsTkipSeed* pSeed, u8_t* initIv)
     u32_t  iv32;
     u16_t  i;
 
-    /* clear memory */
+    
     zfZeroMemory((u8_t*) pSeed, sizeof(struct zsTkipSeed));
-    /* set key to seed */
+    
     zfMemoryCopy(pSeed->ta, ta, 6);
     zfMemoryCopy(pSeed->tk, key, 16);
 
@@ -261,13 +247,13 @@ void zfTkipInit(u8_t* key, u8_t* ta, struct zsTkipSeed* pSeed, u8_t* initIv)
 
     iv32=0;
 
-    for(i=0; i<4; i++)      // initiv is little endian
+    for(i=0; i<4; i++)      
     {
         iv32 += *initIv<<(i*8);
         *initIv++;
     }
 
-    pSeed->iv32 = iv32+1; // Force Recalculating on Tkip Phase1
+    pSeed->iv32 = iv32+1; 
     zfTkipPhase1KeyMix(iv32, pSeed);
 
     pSeed->iv16 = iv16;
@@ -316,11 +302,11 @@ void zfMicSetKey(u8_t* key, struct zsMicVar* pMic)
 
 void zfMicAppendByte(u8_t b, struct zsMicVar* pMic)
 {
-    // Append the byte to our word-sized buffer
+    
     pMic->m |= b << (8* pMic->nBytes);
     pMic->nBytes++;
 
-    // Process the word if it is full.
+    
     if ( pMic->nBytes >= 4 )
     {
         pMic->left ^= pMic->m;
@@ -333,7 +319,7 @@ void zfMicAppendByte(u8_t b, struct zsMicVar* pMic)
         pMic->left += pMic->right;
         pMic->right ^= ZM_ROR32( pMic->left, 2 );
         pMic->left += pMic->right;
-        // Clear the buffer
+        
         pMic->m = 0;
         pMic->nBytes = 0;
     }
@@ -341,24 +327,24 @@ void zfMicAppendByte(u8_t b, struct zsMicVar* pMic)
 
 void zfMicGetMic(u8_t* dst, struct zsMicVar* pMic)
 {
-    // Append the minimum padding
+    
     zfMicAppendByte(0x5a, pMic);
     zfMicAppendByte(0, pMic);
     zfMicAppendByte(0, pMic);
     zfMicAppendByte(0, pMic);
     zfMicAppendByte(0, pMic);
 
-    // and then zeroes until the length is a multiple of 4
+    
     while( pMic->nBytes != 0 )
     {
         zfMicAppendByte(0, pMic);
     }
 
-    // The appendByte function has already computed the result.
+    
     zfPutU32t(dst, pMic->left);
     zfPutU32t(dst+4, pMic->right);
 
-    // Reset to the empty message.
+    
     zfMicClear(pMic);
 
 }
@@ -375,7 +361,7 @@ u8_t zfMicRxVerify(zdev_t* dev, zbuf_t* buf)
 
     zmw_get_wlan_dev(dev);
 
-    /* need not check MIC if pMicKEy is equal to NULL */
+    
     if ( wd->wlanMode == ZM_MODE_AP )
     {
         pMicKey = zfApGetRxMicKey(dev, buf);
@@ -417,18 +403,18 @@ u8_t zfMicRxVerify(zdev_t* dev, zbuf_t* buf)
     tailOffset = zfwBufGetSize(dev, buf);
     tailOffset -= 8;
 
-    /* append DA */
+    
     for(i=0; i<6; i++)
     {
         zfMicAppendByte(da[i], pMicKey);
     }
-    /* append SA */
+    
     for(i=0; i<6; i++)
     {
         zfMicAppendByte(sa[i], pMicKey);
     }
 
-    /* append for alignment */
+    
     if ((zmw_rx_buf_readb(dev, buf, 0) & 0x80) != 0)
         zfMicAppendByte(zmw_rx_buf_readb(dev, buf,24)&0x7, pMicKey);
     else
@@ -437,17 +423,17 @@ u8_t zfMicRxVerify(zdev_t* dev, zbuf_t* buf)
     zfMicAppendByte(0, pMicKey);
     zfMicAppendByte(0, pMicKey);
 
-    /* append payload */
+    
     payloadOffset = ZM_SIZE_OF_WLAN_DATA_HEADER +
                     ZM_SIZE_OF_IV +
                     ZM_SIZE_OF_EXT_IV;
 
     if ((zmw_rx_buf_readb(dev, buf, 0) & 0x80) != 0)
     {
-        /* Qos Packet, Plcpheader + 2 */
+        
         if (wd->wlanMode == ZM_MODE_AP)
         {
-            /* TODO : Rx Qos element offset in software MIC check */
+            
         }
         else if (wd->wlanMode == ZM_MODE_INFRASTRUCTURE)
         {
@@ -506,7 +492,7 @@ void zfCalTxMic(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t offse
 
     zmw_get_wlan_dev(dev);
 
-    /* need not check MIC if pMicKEy is equal to NULL */
+    
     if ( wd->wlanMode == ZM_MODE_AP )
     {
         pMicKey = zfApGetTxMicKey(dev, buf, &qosType);
@@ -532,13 +518,13 @@ void zfCalTxMic(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t offse
     zfMicClear(pMicKey);
     len = zfwBufGetSize(dev, buf);
 
-    /* append DA */
+    
     for(i = 0; i < 6; i++)
     {
         zfMicAppendByte(pDa[i], pMicKey);
     }
 
-    /* append SA */
+    
     for(i = 0; i < 6; i++)
     {
         zfMicAppendByte(pSa[i], pMicKey);
@@ -553,7 +539,7 @@ void zfCalTxMic(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t offse
     zfMicAppendByte(0, pMicKey);
     zfMicAppendByte(0, pMicKey);
 
-    /* For Snap header */
+    
     for(i = 0; i < snapLen; i++)
     {
         zfMicAppendByte(snap[i], pMicKey);

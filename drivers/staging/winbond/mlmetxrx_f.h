@@ -1,10 +1,10 @@
-//================================================================
-// MLMETxRx.H --
-//
-//   Functions defined in MLMETxRx.c.
-//
-// Copyright (c) 2002 Winbond Electrics Corp. All Rights Reserved.
-//================================================================
+
+
+
+
+
+
+
 #ifndef _MLMETXRX_H
 #define _MLMETXRX_H
 

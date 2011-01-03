@@ -1,11 +1,4 @@
-/*
- * Plan 9 style capability device implementation for the Linux Kernel
- *
- * Copyright 2008, 2009 Ashwin Ganti <ashwin.ganti@gmail.com>
- *
- * Released under the GPLv2
- *
- */
+
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/moduleparam.h>
@@ -29,7 +22,7 @@
 #endif
 
 #ifndef CAP_NR_DEVS
-#define CAP_NR_DEVS 2		/* caphash and capuse */
+#define CAP_NR_DEVS 2		
 #endif
 
 #ifndef CAP_NODE_SIZE
@@ -145,14 +138,14 @@ static int cap_open(struct inode *inode, struct file *filp)
 	dev = container_of(inode->i_cdev, struct cap_dev, cdev);
 	filp->private_data = dev;
 
-	/* trim to 0 the length of the device if open was write-only */
+	
 	if ((filp->f_flags & O_ACCMODE) == O_WRONLY) {
 		if (down_interruptible(&dev->sem))
 			return -ERESTARTSYS;
 		cap_trim(dev);
 		up(&dev->sem);
 	}
-	/* initialise the head if it is NULL */
+	
 	if (dev->head == NULL) {
 		dev->head = kmalloc(sizeof(struct cap_node), GFP_KERNEL);
 		INIT_LIST_HEAD(&(dev->head->list));
@@ -192,10 +185,7 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 		goto out;
 	}
 
-	/*
-	 * If the minor number is 0 ( /dev/caphash ) then simply add the
-	 * hashed capability supplied by the user to the list of hashes
-	 */
+	
 	if (0 == iminor(filp->f_dentry->d_inode)) {
 		if (count > CAP_NODE_SIZE) {
 			retval = -EINVAL;
@@ -213,12 +203,7 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 			retval = -EINVAL;
 			goto out;
 		}
-		/*
-		 * break the supplied string into tokens with @ as the
-		 * delimiter If the string is "user1@user2@randomstring" we
-		 * need to split it and hash 'user1@user2' using 'randomstring'
-		 * as the key.
-		 */
+		
 		tmpu = user_buf_running = kstrdup(user_buf, GFP_KERNEL);
 		source_user = strsep(&tmpu, "@");
 		target_user = strsep(&tmpu, "@");
@@ -228,9 +213,9 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 			goto out;
 		}
 
-		/* hash the string user1@user2 with rand_str as the key */
+		
 		len = strlen(source_user) + strlen(target_user) + 1;
-		/* src, @, len, \0 */
+		
 		hash_str = kzalloc(len+1, GFP_KERNEL);
 		strcat(hash_str, source_user);
 		strcat(hash_str, "@");
@@ -244,15 +229,10 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 			retval = -EFAULT;
 			goto out;
 		}
-		memcpy(node_ptr->data, result, CAP_NODE_SIZE);  /* why? */
-		/* Change the process's uid if the hash is present in the
-		 * list of hashes
-		 */
+		memcpy(node_ptr->data, result, CAP_NODE_SIZE);  
+		
 		list_for_each(pos, &(cap_devices->head->list)) {
-			/*
-			 * Change the user id of the process if the hashes
-			 * match
-			 */
+			
 			if (0 ==
 			    memcmp(result,
 				   list_entry(pos, struct cap_node,
@@ -264,22 +244,14 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 				    simple_strtol(source_user, NULL, 0);
 				flag = 1;
 
-				/*
-				 * Check whether the process writing to capuse
-				 * is actually owned by the source owner
-				 */
+				
 				if (source_int != current_uid()) {
 					printk(KERN_ALERT
 					       "Process is not owned by the source user of the capability.\n");
 					retval = -EFAULT;
 					goto out;
 				}
-				/*
-				 * What all id's need to be changed here? uid,
-				 * euid, fsid, savedids ??  Currently I am
-				 * changing the effective user id since most of
-				 * the authorisation decisions are based on it
-				 */
+				
 				new = prepare_creds();
 				if (!new) {
 					retval = -ENOMEM;
@@ -291,10 +263,7 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 				if (retval)
 					goto out;
 
-				/*
-				 * Remove the capability from the list and
-				 * break
-				 */
+				
 				tmp = list_entry(pos, struct cap_node, list);
 				list_del(pos);
 				kfree(tmp);
@@ -302,10 +271,7 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 			}
 		}
 		if (0 == flag) {
-			/*
-			 * The capability is not present in the list of the
-			 * hashes stored, hence return failure
-			 */
+			
 			printk(KERN_ALERT
 			       "Invalid capabiliy written to /dev/capuse \n");
 			retval = -EFAULT;
@@ -314,7 +280,7 @@ static ssize_t cap_write(struct file *filp, const char __user *buf,
 	}
 	*f_pos += count;
 	retval = count;
-	/* update the size */
+	
 	if (dev->size < *f_pos)
 		dev->size = *f_pos;
 
@@ -387,7 +353,7 @@ static int cap_init_module(void)
 		goto fail;
 	}
 
-	/* Initialize each device. */
+	
 	for (i = 0; i < cap_nr_devs; i++) {
 		cap_devices[i].node_size = cap_node_size;
 		init_MUTEX(&cap_devices[i].sem);

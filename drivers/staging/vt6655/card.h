@@ -1,54 +1,28 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: card.h
- *
- * Purpose: Provide functions to setup NIC operation mode
- *
- * Author: Tevin Chen
- *
- * Date: May 21, 1996
- *
- */
+
 
 #ifndef __CARD_H__
 #define __CARD_H__
 
 #include "ttype.h"
 
-/*---------------------  Export Definitions -------------------------*/
-//
-// Loopback mode
-//
-// LOBYTE is MAC LB mode, HIBYTE is MII LB mode
+
+
+
+
+
 #define CARD_LB_NONE            MAKEWORD(MAC_LB_NONE, 0)
-#define CARD_LB_MAC             MAKEWORD(MAC_LB_INTERNAL, 0)   // PHY must ISO, avoid MAC loopback packet go out
+#define CARD_LB_MAC             MAKEWORD(MAC_LB_INTERNAL, 0)   
 #define CARD_LB_PHY             MAKEWORD(MAC_LB_EXT, 0)
 
 
-#define DEFAULT_MSDU_LIFETIME           512  // ms
-#define DEFAULT_MSDU_LIFETIME_RES_64us  8000 // 64us
+#define DEFAULT_MSDU_LIFETIME           512  
+#define DEFAULT_MSDU_LIFETIME_RES_64us  8000 
 
-#define DEFAULT_MGN_LIFETIME            8    // ms
-#define DEFAULT_MGN_LIFETIME_RES_64us   125  // 64us
+#define DEFAULT_MGN_LIFETIME            8    
+#define DEFAULT_MGN_LIFETIME_RES_64us   125  
 
 #define CB_MAX_CHANNEL_24G      14
-#define CB_MAX_CHANNEL_5G       42 //[20050104] add channel9(5045MHz), 41==>42
+#define CB_MAX_CHANNEL_5G       42 
 #define CB_MAX_CHANNEL          (CB_MAX_CHANNEL_24G+CB_MAX_CHANNEL_5G)
 
 typedef enum _CARD_PHY_TYPE {
@@ -80,11 +54,11 @@ typedef enum _CARD_OP_MODE {
 
 
 
-/*---------------------  Export Classes  ----------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
+
+
+
 
 BOOL ChannelValid(UINT CountryCode, UINT ChannelIndex);
 void CARDvSetRSPINF(PVOID pDeviceHandler, CARD_PHY_TYPE ePHYType);
@@ -104,11 +78,11 @@ BYTE CARDbyGetPktType(PVOID pDeviceHandler);
 VOID CARDvSafeResetTx(PVOID pDeviceHandler);
 VOID CARDvSafeResetRx(PVOID pDeviceHandler);
 
-//xxx
+
 BOOL CARDbRadioPowerOff(PVOID pDeviceHandler);
 BOOL CARDbRadioPowerOn(PVOID pDeviceHandler);
 BOOL CARDbSetChannel(PVOID pDeviceHandler, UINT uConnectionChannel);
-//BOOL CARDbSendPacket(PVOID pDeviceHandler, PVOID pPacket, CARD_PKT_TYPE ePktType, UINT uLength);
+
 BOOL CARDbIsShortPreamble(PVOID pDeviceHandler);
 BOOL CARDbIsShorSlotTime(PVOID pDeviceHandler);
 BOOL CARDbSetPhyParameter(PVOID pDeviceHandler, CARD_PHY_TYPE ePHYType, WORD wCapInfo, BYTE byERPField, PVOID pvSupportRateIEs, PVOID pvExtSupportRateIEs);
@@ -250,7 +224,7 @@ CARDbyAutoChannelSelect(
 
 BYTE CARDbyGetChannelNumber(PVOID pDeviceHandler, BYTE byChannelIndex);
 
-#endif // __CARD_H__
+#endif 
 
 
 

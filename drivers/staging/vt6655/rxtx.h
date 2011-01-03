@@ -1,30 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * File: rxtx.h
- *
- * Purpose:
- *
- * Author: Jerry Chen
- *
- * Date: Jun. 27, 2002
- *
- */
+
 
 #ifndef __RXTX_H__
 #define __RXTX_H__
@@ -33,38 +7,20 @@
 #include "device.h"
 #include "wcmd.h"
 
-/*---------------------  Export Definitions -------------------------*/
 
-/*---------------------  Export Classes  ----------------------------*/
 
-/*---------------------  Export Variables  --------------------------*/
 
-/*---------------------  Export Functions  --------------------------*/
+
+
+
+
 
 
 #ifdef __cplusplus
-extern "C" {                            /* Assume C declarations for C++ */
-#endif /* __cplusplus */
+extern "C" {                            
+#endif 
 
-/*
-VOID vGenerateMACHeader(
-    IN PSDevice pDevice,
-    IN DWORD dwTxBufferAddr,
-    IN PBYTE pbySkbData,
-    IN UINT cbPacketSize,
-    IN BOOL bDMA0Used,
-    OUT PUINT pcbHeadSize,
-    OUT PUINT pcbAppendPayload
-     );
 
-VOID vProcessRxMACHeader (
-    IN  PSDevice pDevice,
-    IN  DWORD dwRxBufferAddr,
-    IN  UINT cbPacketSize,
-    IN  BOOL bIsWEP,
-    OUT PUINT pcbHeadSize
-    );
-*/
 
 
 VOID
@@ -112,13 +68,13 @@ CMD_STATUS csMgmt_xmit(PSDevice pDevice, PSTxMgmtPacket pPacket);
 CMD_STATUS csBeacon_xmit(PSDevice pDevice, PSTxMgmtPacket pPacket);
 
 #ifdef __cplusplus
-}                                       /* End of extern "C" { */
-#endif /* __cplusplus */
+}                                       
+#endif 
 
 
 
 
-#endif // __RXTX_H__
+#endif 
 
 
 

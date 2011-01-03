@@ -1,33 +1,4 @@
-/*
- *  Asus OLED USB driver
- *
- *  Copyright (C) 2007,2008 Jakub Schmidtke (sjakub@gmail.com)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- *
- *  This module is based on usbled and asus-laptop modules.
- *
- *
- *  Asus OLED support is based on asusoled program taken from
- *  https://launchpad.net/asusoled/.
- *
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -75,23 +46,23 @@ enum oled_pack_mode{
 struct oled_dev_desc_str {
 	uint16_t		idVendor;
 	uint16_t		idProduct;
-	/* width of display */
+	
 	uint16_t		devWidth;
-	/* formula to be used while packing the picture */
+	
 	enum oled_pack_mode	packMode;
 	const char		*devDesc;
 };
 
-/* table of devices that work with this driver */
+
 static struct usb_device_id id_table[] = {
-	/* Asus G1/G2 (and variants)*/
+	
 	{ USB_DEVICE(0x0b05, 0x1726) },
-	/* Asus G50V (and possibly others - G70? G71?)*/
+	
 	{ USB_DEVICE(0x0b05, 0x175b) },
 	{ },
 };
 
-/* parameters of specific devices */
+
 static struct oled_dev_desc_str oled_dev_desc_table[] = {
 	{ 0x0b05, 0x1726, 128, PACK_MODE_G1, "G1/G2" },
 	{ 0x0b05, 0x175b, 256, PACK_MODE_G50, "G50" },
@@ -327,14 +298,12 @@ static void send_data(struct asus_oled_dev *odev)
 	}
 
 	if (odev->pack_mode == PACK_MODE_G1) {
-		/* When sending roll-mode data the display updated only
-		   first packet.  I have no idea why, but when static picture
-		   is sent just before rolling picture everything works fine. */
+		
 		if (odev->pic_mode == ASUS_OLED_ROLL)
 			send_packets(odev->udev, packet, odev->buf,
 				     ASUS_OLED_STATIC, 2);
 
-		/* Only ROLL mode can use more than 2 packets.*/
+		
 		if (odev->pic_mode != ASUS_OLED_ROLL && packet_num > 2)
 			packet_num = 2;
 
@@ -359,9 +328,7 @@ static int append_values(struct asus_oled_dev *odev, uint8_t val, size_t count)
 
 		switch (odev->pack_mode) {
 		case PACK_MODE_G1:
-			/* i = (x/128)*640 + 127 - x + (y/8)*128;
-			   This one for 128 is the same, but might be better
-			   for different widths? */
+			
 			i = (x/odev->dev_width)*640 +
 				odev->dev_width - 1 - x +
 				(y/8)*odev->dev_width;
@@ -396,7 +363,7 @@ static int append_values(struct asus_oled_dev *odev, uint8_t val, size_t count)
 			break;
 
 		default:
-			/* cannot get here; stops gcc complaining*/
+			
 			;
 		}
 
@@ -416,7 +383,7 @@ static ssize_t odev_set_picture(struct asus_oled_dev *odev,
 		return 0;
 
 	if (tolower(buf[0]) == 'b') {
-		/* binary mode, set the entire memory*/
+		
 
 		size_t i;
 
@@ -558,9 +525,7 @@ static ssize_t odev_set_picture(struct asus_oled_dev *odev,
 			if (ret < 0)
 				return ret;
 		} else if (buf[offs] == '\n') {
-			/* New line detected. Lets assume, that all characters
-			   till the end of the line were equal to the last
-			   character in this line.*/
+			
 			if (odev->buf_offs % odev->width != 0)
 				ret = append_values(odev, odev->last_val,
 						    odev->width -
@@ -629,7 +594,7 @@ static int asus_oled_probe(struct usb_interface *interface,
 	const char *desc = NULL;
 
 	if (!id) {
-		/* Even possible? Just to make sure...*/
+		
 		dev_err(&interface->dev, "No usb_device_id provided!\n");
 		return -ENODEV;
 	}

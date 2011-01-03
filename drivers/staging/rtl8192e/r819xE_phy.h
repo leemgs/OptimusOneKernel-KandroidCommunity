@@ -1,6 +1,6 @@
 #ifndef _R819XU_PHY_H
 #define _R819XU_PHY_H
-/* Channel switch:The size of command tables for switch channel*/
+
 #define MAX_PRECMD_CNT 16
 #define MAX_RFDEPENDCMD_CNT 16
 #define MAX_POSTCMD_CNT 16
@@ -55,8 +55,8 @@ typedef enum _SwChnlCmdID{
 	CmdID_RF_WriteReg,
 }SwChnlCmdID;
 
-/*--------------------------------Define structure--------------------------------*/
-/* 1. Switch channel related */
+
+
 typedef struct _SwChnlCmd{
 	SwChnlCmdID	CmdID;
 	u32			Para1;
@@ -77,15 +77,15 @@ typedef enum _HW90_BLOCK{
 	HW90_BLOCK_PHY0 = 1,
 	HW90_BLOCK_PHY1 = 2,
 	HW90_BLOCK_RF = 3,
-	HW90_BLOCK_MAXIMUM = 4, // Never use this
+	HW90_BLOCK_MAXIMUM = 4, 
 }HW90_BLOCK_E, *PHW90_BLOCK_E;
 
 typedef enum _RF90_RADIO_PATH{
-	RF90_PATH_A = 0,			//Radio Path A
-	RF90_PATH_B = 1,			//Radio Path B
-	RF90_PATH_C = 2,			//Radio Path C
-	RF90_PATH_D = 3,			//Radio Path D
-	RF90_PATH_MAX				//Max RF number 92 support
+	RF90_PATH_A = 0,			
+	RF90_PATH_B = 1,			
+	RF90_PATH_C = 2,			
+	RF90_PATH_D = 3,			
+	RF90_PATH_MAX				
 }RF90_RADIO_PATH_E, *PRF90_RADIO_PATH_E;
 
 #define bMaskByte0                0xff
@@ -96,19 +96,19 @@ typedef enum _RF90_RADIO_PATH{
 #define bMaskLWord                0x0000ffff
 #define bMaskDWord                0xffffffff
 
-//extern u32 rtl8192_CalculateBitShift(u32 dwBitMask);
+
 extern u8 rtl8192_phy_CheckIsLegalRFPath(struct net_device* dev, u32 eRFPath);
 extern void rtl8192_setBBreg(struct net_device* dev, u32 dwRegAddr, u32 dwBitMask, u32 dwData);
 extern u32 rtl8192_QueryBBReg(struct net_device* dev, u32 dwRegAddr, u32 dwBitMask);
-//extern u32 rtl8192_phy_RFSerialRead(struct net_device* dev, RF90_RADIO_PATH_E eRFPath, u32 Offset);
-//extern void rtl8192_phy_RFSerialWrite(struct net_device* dev, RF90_RADIO_PATH_E eRFPath, u32 Offset, u32 Data);
+
+
 extern void rtl8192_phy_SetRFReg(struct net_device* dev, RF90_RADIO_PATH_E eRFPath, u32 RegAddr, u32 BitMask, u32 Data);
 extern u32 rtl8192_phy_QueryRFReg(struct net_device* dev, RF90_RADIO_PATH_E eRFPath, u32 RegAddr, u32 BitMask);
 extern void rtl8192_phy_configmac(struct net_device* dev);
 extern void rtl8192_phyConfigBB(struct net_device* dev, u8 ConfigType);
-//extern void rtl8192_InitBBRFRegDef(struct net_device* dev);
+
 extern RT_STATUS rtl8192_phy_checkBBAndRF(struct net_device* dev, HW90_BLOCK_E CheckBlock, RF90_RADIO_PATH_E eRFPath);
-//extern RT_STATUS rtl8192_BB_Config_ParaFile(struct net_device* dev);
+
 extern RT_STATUS rtl8192_BBConfig(struct net_device* dev);
 extern void rtl8192_phy_getTxPower(struct net_device* dev);
 extern void rtl8192_phy_setTxPower(struct net_device* dev, u8 channel);

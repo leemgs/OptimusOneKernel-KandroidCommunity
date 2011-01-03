@@ -1,15 +1,15 @@
-//=====================================================================
-// Device related include
-//=====================================================================
+
+
+
 #include "wb35reg_f.h"
 #include "wb35tx_f.h"
 #include "wb35rx_f.h"
 
 #include "core.h"
 
-//====================================================================================
-// Function declaration
-//====================================================================================
+
+
+
 void hal_remove_mapping_key(  struct hw_data * pHwData,  u8 *pmac_addr );
 void hal_remove_default_key(  struct hw_data * pHwData,  u32 index );
 unsigned char hal_set_mapping_key(  struct hw_data * adapter,  u8 *pmac_addr,  u8 null_key,  u8 wep_on,  u8 *ptx_tsc,  u8 *prx_tsc,  u8 key_type,  u8 key_len,  u8 *pkey_data );
@@ -23,7 +23,7 @@ void hal_get_power_save_mode(  struct hw_data * pHwData,   u8 *pin_pwr_save );
 void hal_set_slot_time(  struct hw_data * pHwData,  u8 type );
 #define hal_set_atim_window( _A, _ATM )
 void hal_start_bss(  struct hw_data * pHwData,  u8 mac_op_mode );
-void hal_join_request(  struct hw_data * pHwData,  u8 bss_type ); // 0:BSS STA 1:IBSS STA//
+void hal_join_request(  struct hw_data * pHwData,  u8 bss_type ); 
 void hal_stop_sync_bss(  struct hw_data * pHwData );
 void hal_resume_sync_bss(  struct hw_data * pHwData);
 void hal_set_aid(  struct hw_data * pHwData,  u16 aid );
@@ -52,12 +52,12 @@ u32 hal_get_bss_pk_cnt(  struct hw_data * pHwData );
 
 #define PHY_DEBUG( msg, args... )
 
-#define hal_get_time_count( _P )	(_P->time_count/10)	// return 100ms count
+#define hal_get_time_count( _P )	(_P->time_count/10)	
 #define hal_detect_error( _P )		(_P->WbUsb.DetectCount)
 
-//-------------------------------------------------------------------------
-// The follow function is unused for IS89C35
-//-------------------------------------------------------------------------
+
+
+
 #define hal_disable_interrupt(_A)
 #define hal_enable_interrupt(_A)
 #define hal_get_interrupt_type( _A)

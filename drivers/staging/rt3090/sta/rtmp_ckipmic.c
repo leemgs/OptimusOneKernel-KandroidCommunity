@@ -1,39 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-	Module Name:
-	rtmp_ckipmic.c
-
-	Abstract:
-	Data path subroutines
-
-	Revision History:
-	Who		When			What
-	--------	----------		----------------------------------------------
-*/
 
 #include "../rt_config.h"
 #include "../rtmp_ckipmic.h"
@@ -43,9 +8,9 @@
 #define GB(p,i,s)               ( ((ULONG) *((UCHAR*)(p)+i) ) << (s) )
 #define GETBIG32(p)             GB(p,0,24)|GB(p,1,16)|GB(p,2,8)|GB(p,3,0)
 
-/*****************************/
-/******** SBOX Table *********/
-/*****************************/
+
+
+
 
 UCHAR SboxTable[256] =
 {
@@ -83,11 +48,11 @@ UCHAR SboxTable[256] =
     0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
-/*===========================================================================*/
-/*=================== CKIP KEY PERMUTATION ==================================*/
-/*===========================================================================*/
 
-/* 2-byte by 2-byte subset of the full AES table */
+
+
+
+
 static const USHORT Sbox[256] =
 {
     0xC6A5,0xF884,0xEE99,0xF68D,0xFF0D,0xD6BD,0xDEB1,0x9154,
@@ -132,17 +97,17 @@ static const USHORT Sbox[256] =
 #define rotLeft_1(x) ((((x) << 1) | ((x) >> 15)) & 0xFFFF)
 VOID CKIP_key_permute
     (
-     OUT UCHAR  *PK,           /* output permuted key */
-     IN UCHAR *CK,           /* input CKIP key */
-     IN UCHAR  toDsFromDs,    /* input toDs/FromDs bits */
-     IN UCHAR *piv           /* input pointer to IV */
+     OUT UCHAR  *PK,           
+     IN UCHAR *CK,           
+     IN UCHAR  toDsFromDs,    
+     IN UCHAR *piv           
      )
 {
     int i;
-    USHORT H[2], tmp;          /* H=32-bits of per-packet hash value */
-    USHORT L[8], R[8];         /* L=u16 array of CK, R=u16 array of PK */
+    USHORT H[2], tmp;          
+    USHORT L[8], R[8];         
 
-    /* build L from input key */
+    
     memset(L, 0, sizeof(L));
     for (i=0; i<16; i++) {
         L[i>>1] |= ( ((USHORT)(CK[i])) << ( i & 1 ? 8 : 0) );
@@ -152,42 +117,42 @@ VOID CKIP_key_permute
     H[1] = ( ((USHORT)toDsFromDs) << 8) | piv[2];
 
     for (i=0; i<8; i++) {
-        H[0] ^= L[i];           /* 16-bits of key material */
-        tmp   = _S_(H[0]);      /* 16x16 permutation */
-        H[0]  = tmp ^ H[1];     /* set up for next round */
+        H[0] ^= L[i];           
+        tmp   = _S_(H[0]);      
+        H[0]  = tmp ^ H[1];     
         H[1]  = tmp;
-        R[i]  = H[0];           /* store into key array  */
+        R[i]  = H[0];           
     }
 
-    /* sweep in the other direction */
+    
     tmp=L[0];
     for (i=7; i>0; i--) {
         R[i] = tmp = rotLeft_1(tmp) + R[i];
     }
 
-    /* IV of the permuted key is unchanged */
+    
     PK[0] = piv[0];
     PK[1] = piv[1];
     PK[2] = piv[2];
 
-    /* key portion of the permuted key is changed */
+    
     for (i=3; i<16; i++) {
         PK[i] = (UCHAR) (R[i>>1] >> (i & 1 ? 8 : 0));
     }
 }
 
-/* prepare for calculation of a new mic */
+
 VOID RTMPCkipMicInit(
     IN  PMIC_CONTEXT        pContext,
     IN  PUCHAR              CK)
 {
-    /* prepare for new mic calculation */
+    
     NdisMoveMemory(pContext->CK, CK, sizeof(pContext->CK));
     pContext->accum = 0;
     pContext->position = 0;
 }
 
-/* add some bytes to the mic calculation */
+
 VOID RTMPMicUpdate(
     IN  PMIC_CONTEXT        pContext,
     IN  PUCHAR              pOctets,
@@ -198,14 +163,14 @@ VOID RTMPMicUpdate(
 
     byte_position = (pContext->position & 3);
     while (len > 0) {
-        /* build a 32-bit word for MIC multiply accumulate */
+        
         do {
             if (len == 0) return;
             pContext->part[byte_position++] = *pOctets++;
             pContext->position++;
             len--;
         } while (byte_position < 4);
-        /* have a full 32-bit word to process */
+        
         val = GETBIG32(&pContext->part[0]);
         MIC_ACCUM(val);
         byte_position = 0;
@@ -221,10 +186,10 @@ ULONG RTMPMicGetCoefficient(
 
     coeff_position = (pContext->position - 1) >> 2;
     if ( (coeff_position & 3) == 0) {
-        /* fetching the first coefficient -- get new 16-byte aes counter output */
+        
         u32 counter = (coeff_position >> 2);
 
-        /* new counter value */
+        
         memset(&aes_counter[0], 0, sizeof(aes_counter));
         aes_counter[15] = (UINT8)(counter >> 0);
         aes_counter[14] = (UINT8)(counter >> 8);
@@ -237,11 +202,11 @@ ULONG RTMPMicGetCoefficient(
     return GETBIG32(p);
 }
 
-/****************************************/
-/* aes128k128d()                        */
-/* Performs a 128 bit AES encrypt with  */
-/* 128 bit data.                        */
-/****************************************/
+
+
+
+
+
 VOID xor_128(
     IN  PUCHAR  a,
     IN  PUCHAR  b,
@@ -357,12 +322,12 @@ VOID mix_column(
             add1b[i] = 0x00;
     }
 
-    swap_halfs[0] = in[2];    /* Swap halfs */
+    swap_halfs[0] = in[2];    
     swap_halfs[1] = in[3];
     swap_halfs[2] = in[0];
     swap_halfs[3] = in[1];
 
-    rotl[0] = in[3];        /* Rotate left 8 bits */
+    rotl[0] = in[3];        
     rotl[1] = in[0];
     rotl[2] = in[1];
     rotl[3] = in[2];
@@ -372,7 +337,7 @@ VOID mix_column(
     andf7[2] = in[2] & 0x7f;
     andf7[3] = in[3] & 0x7f;
 
-    for (i = 3; i>0; i--)    /* logical shift left 1 bit */
+    for (i = 3; i>0; i--)    
     {
         andf7[i] = andf7[i] << 1;
         if ((andf7[i-1] & 0x80) == 0x80)
@@ -387,7 +352,7 @@ VOID mix_column(
 
     xor_32(in, add1bf7, rotr);
 
-    temp[0] = rotr[0];         /* Rotate right 8 bits */
+    temp[0] = rotr[0];         
     rotr[0] = rotr[1];
     rotr[1] = rotr[2];
     rotr[2] = rotr[3];
@@ -424,7 +389,7 @@ VOID RTMPAesEncrypt(
             shift_row(intermediatea, intermediateb);
             xor_128(intermediateb, round_key, ciphertext);
         }
-        else    /* 1 - 9 */
+        else    
         {
             byte_sub(ciphertext, intermediatea);
             shift_row(intermediatea, intermediateb);
@@ -439,7 +404,7 @@ VOID RTMPAesEncrypt(
 
 }
 
-/* calculate the mic */
+
 VOID RTMPMicFinal(
     IN  PMIC_CONTEXT    pContext,
     OUT UCHAR           digest[4])
@@ -449,9 +414,9 @@ VOID RTMPMicFinal(
     ULONGLONG       sum, utmp;
     LONGLONG        stmp;
 
-    /* deal with partial 32-bit word left over from last update */
+    
     if ( (byte_position = (pContext->position & 3)) != 0) {
-        /* have a partial word in part to deal with -- zero unused bytes */
+        
         do {
             pContext->part[byte_position++] = 0;
             pContext->position++;
@@ -460,7 +425,7 @@ VOID RTMPMicFinal(
         MIC_ACCUM(val);
     }
 
-    /* reduce the accumulated u64 to a 32-bit MIC */
+    
     sum = pContext->accum;
     stmp = (sum  & 0xffffffffL) - ((sum >> 32)  * 15);
     utmp = (stmp & 0xffffffffL) - ((stmp >> 32) * 15);
@@ -501,19 +466,19 @@ VOID RTMPCkipInsertCMIC(
 
     switch (*(p80211hdr+1) & 3)
     {
-        case 0: /* FromDs=0, ToDs=0 */
+        case 0: 
             pDA = p80211hdr+4;
             pSA = p80211hdr+10;
             break;
-        case 1: /* FromDs=0, ToDs=1 */
+        case 1: 
             pDA = p80211hdr+16;
             pSA = p80211hdr+10;
             break;
-        case 2: /* FromDs=1, ToDs=0 */
+        case 2: 
             pDA = p80211hdr+4;
             pSA = p80211hdr+16;
             break;
-        case 3: /* FromDs=1, ToDs=1 */
+        case 3: 
             pDA = p80211hdr+16;
             pSA = p80211hdr+24;
             break;
@@ -525,14 +490,14 @@ VOID RTMPCkipInsertCMIC(
         return;
 
     pProto = pSrcBufVA + 12;
-    payloadlen = PacketInfo.TotalPacketLength - LENGTH_802_3 + 18; // CKIP_LLC(8)+CMIC(4)+TxSEQ(4)+PROTO(2)=18
+    payloadlen = PacketInfo.TotalPacketLength - LENGTH_802_3 + 18; 
 
     bigethlen[0] = (unsigned char)(payloadlen >> 8);
     bigethlen[1] = (unsigned char)payloadlen;
 
-	//
-	// Encryption Key expansion to form the CKIP Key (CKIP_CK).
-	//
+	
+	
+	
 	if (pKey->KeyLen < 16)
 	{
 		for(i = 0; i < (16 / pKey->KeyLen); i++)
@@ -550,17 +515,17 @@ VOID RTMPCkipInsertCMIC(
 		NdisMoveMemory(ckip_ck, pKey->Key, pKey->KeyLen);
 	}
     RTMPCkipMicInit(&mic_ctx, ckip_ck);
-    RTMPMicUpdate(&mic_ctx, pDA, MAC_ADDR_LEN);            // MIC <-- DA
-    RTMPMicUpdate(&mic_ctx, pSA, MAC_ADDR_LEN);            // MIC <-- SA
-    RTMPMicUpdate(&mic_ctx, bigethlen, 2);                 // MIC <-- payload length starting from CKIP SNAP
-    RTMPMicUpdate(&mic_ctx, mic_snap, 8);                  // MIC <-- snap header
-    RTMPMicUpdate(&mic_ctx, pAd->StaCfg.TxSEQ, 4);   // MIC <-- TxSEQ
-    RTMPMicUpdate(&mic_ctx, pProto, 2);                    // MIC <-- Protocol
+    RTMPMicUpdate(&mic_ctx, pDA, MAC_ADDR_LEN);            
+    RTMPMicUpdate(&mic_ctx, pSA, MAC_ADDR_LEN);            
+    RTMPMicUpdate(&mic_ctx, bigethlen, 2);                 
+    RTMPMicUpdate(&mic_ctx, mic_snap, 8);                  
+    RTMPMicUpdate(&mic_ctx, pAd->StaCfg.TxSEQ, 4);   
+    RTMPMicUpdate(&mic_ctx, pProto, 2);                    
 
     pSrcBufVA += LENGTH_802_3;
     SrcBufLen -= LENGTH_802_3;
 
-    // Mic <-- original payload. loop until all payload processed
+    
     do
     {
         if (SrcBufLen > 0)
@@ -575,5 +540,5 @@ VOID RTMPCkipInsertCMIC(
             break;
     } while (TRUE);
 
-    RTMPMicFinal(&mic_ctx, pMIC);                          // update MIC
+    RTMPMicFinal(&mic_ctx, pMIC);                          
 }

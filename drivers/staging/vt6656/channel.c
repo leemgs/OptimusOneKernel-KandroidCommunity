@@ -1,50 +1,16 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: channel.c
- *
- * Purpose: Channel number maping
- *
- * Author: Lucas Lin
- *
- * Date: Dec 24, 2004
- *
- *
- *
- * Revision History:
- *      01-18-2005      RobertYu:  remove the for loop searching in ChannelValid,
- *                                 change ChannelRuleTab to lookup-type, reorder table items.
- *
- *
- */
+
 
 #include "country.h"
 #include "channel.h"
 #include "rf.h"
 
-/*---------------------  Static Definitions -------------------------*/
+
 static int          msglevel                =MSG_LEVEL_INFO;
-//static int          msglevel                =MSG_LEVEL_DEBUG;
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Export Definitions -------------------------*/
+
+
+
 
 
 static SChannelTblElement sChannelTbl[CB_MAX_CHANNEL+1] =
@@ -64,68 +30,64 @@ static SChannelTblElement sChannelTbl[CB_MAX_CHANNEL+1] =
   {12,  2467, TRUE},
   {13,  2472, TRUE},
   {14,  2484, TRUE},
-  {183, 4915, TRUE}, //15
-  {184, 4920, TRUE}, //16
-  {185, 4925, TRUE}, //17
-  {187, 4935, TRUE}, //18
-  {188, 4940, TRUE}, //19
-  {189, 4945, TRUE}, //20
-  {192, 4960, TRUE}, //21
-  {196, 4980, TRUE}, //22
-  {7,   5035, TRUE}, //23
-  {8,   5040, TRUE}, //24
-  {9,   5045, TRUE}, //25
-  {11,  5055, TRUE}, //26
-  {12,  5060, TRUE}, //27
-  {16,  5080, TRUE}, //28
-  {34,  5170, TRUE}, //29
-  {36,  5180, TRUE}, //30
-  {38,  5190, TRUE}, //31
-  {40,  5200, TRUE}, //32
-  {42,  5210, TRUE}, //33
-  {44,  5220, TRUE}, //34
-  {46,  5230, TRUE}, //35
-  {48,  5240, TRUE}, //36
-  {52,  5260, TRUE}, //37
-  {56,  5280, TRUE}, //38
-  {60,  5300, TRUE}, //39
-  {64,  5320, TRUE}, //40
-  {100, 5500, TRUE}, //41
-  {104, 5520, TRUE}, //42
-  {108, 5540, TRUE}, //43
-  {112, 5560, TRUE}, //44
-  {116, 5580, TRUE}, //45
-  {120, 5600, TRUE}, //46
-  {124, 5620, TRUE}, //47
-  {128, 5640, TRUE}, //48
-  {132, 5660, TRUE}, //49
-  {136, 5680, TRUE}, //50
-  {140, 5700, TRUE}, //51
-  {149, 5745, TRUE}, //52
-  {153, 5765, TRUE}, //53
-  {157, 5785, TRUE}, //54
-  {161, 5805, TRUE}, //55
-  {165, 5825, TRUE}  //56
+  {183, 4915, TRUE}, 
+  {184, 4920, TRUE}, 
+  {185, 4925, TRUE}, 
+  {187, 4935, TRUE}, 
+  {188, 4940, TRUE}, 
+  {189, 4945, TRUE}, 
+  {192, 4960, TRUE}, 
+  {196, 4980, TRUE}, 
+  {7,   5035, TRUE}, 
+  {8,   5040, TRUE}, 
+  {9,   5045, TRUE}, 
+  {11,  5055, TRUE}, 
+  {12,  5060, TRUE}, 
+  {16,  5080, TRUE}, 
+  {34,  5170, TRUE}, 
+  {36,  5180, TRUE}, 
+  {38,  5190, TRUE}, 
+  {40,  5200, TRUE}, 
+  {42,  5210, TRUE}, 
+  {44,  5220, TRUE}, 
+  {46,  5230, TRUE}, 
+  {48,  5240, TRUE}, 
+  {52,  5260, TRUE}, 
+  {56,  5280, TRUE}, 
+  {60,  5300, TRUE}, 
+  {64,  5320, TRUE}, 
+  {100, 5500, TRUE}, 
+  {104, 5520, TRUE}, 
+  {108, 5540, TRUE}, 
+  {112, 5560, TRUE}, 
+  {116, 5580, TRUE}, 
+  {120, 5600, TRUE}, 
+  {124, 5620, TRUE}, 
+  {128, 5640, TRUE}, 
+  {132, 5660, TRUE}, 
+  {136, 5680, TRUE}, 
+  {140, 5700, TRUE}, 
+  {149, 5745, TRUE}, 
+  {153, 5765, TRUE}, 
+  {157, 5785, TRUE}, 
+  {161, 5805, TRUE}, 
+  {165, 5825, TRUE}  
 };
 
 
 
-/************************************************************************
- * The Radar regulation rules for each country
- ************************************************************************/
+
 static  struct
 {
-    BYTE    byChannelCountryCode;             /* The country code         */
+    BYTE    byChannelCountryCode;             
     CHAR    chCountryCode[2];
-    BYTE    bChannelIdxList[CB_MAX_CHANNEL];  /* Available channels Index */
+    BYTE    bChannelIdxList[CB_MAX_CHANNEL];  
     BYTE    byPower[CB_MAX_CHANNEL];
 }   ChannelRuleTab[] =
 {
-/************************************************************************
- * This table is based on Athero driver rules
- ************************************************************************/
-/* Country          Available channels, ended with 0                    */
-/*                                           1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  */
+
+
+
 {CCODE_FCC,                     {'U','S'},  {   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  1,  0,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1}
                                       ,  {  27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 17,  0, 17,  0, 17,  0, 17, 23, 23, 23, 23,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 30, 30, 30, 30, 30}  },
 {CCODE_TELEC,                   {'J','P'},  {   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  1,  0,  0,  1,  0,  1,  1,  0,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}
@@ -364,39 +326,20 @@ static  struct
                                       ,  {   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}  },
 {CCODE_MAX,                     {'U','N'},  {   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1}
                                       ,  {   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}  }
-/*                                           1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  */
+
 };
 
 #define NUM_RULES	(sizeof(ChannelRuleTab) / sizeof(ChannelRuleTab[0]))
 
-/*---------------------  Export function  -------------------------*/
-/************************************************************************
- * Country Channel Valid
- *  Input:  CountryCode, ChannelNum
- *          ChanneIndex is defined as VT3253 MAC channel:
- *              1   = 2.4G channel 1
- *              2   = 2.4G channel 2
- *              ...
- *              14  = 2.4G channel 14
- *              15  = 4.9G channel 183
- *              16  = 4.9G channel 184
- *              .....
- *  Output: TRUE if the specified 5GHz band is allowed to be used.
-            False otherwise.
-// 4.9G => Ch 183, 184, 185, 187, 188, 189, 192, 196 (Value:15 ~ 22)
 
-// 5G => Ch 7, 8, 9, 11, 12, 16, 34, 36, 38, 40, 42, 44, 46, 48, 52, 56, 60, 64,
-// 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 149, 153, 157, 161, 165 (Value 23 ~ 56)
- ************************************************************************/
+
 BOOL
 ChannelValid(UINT CountryCode, UINT ChannelIndex)
 {
     BOOL    bValid;
 
     bValid = FALSE;
-    /*
-     * If Channel Index is invalid, return invalid
-     */
+    
     if ((ChannelIndex > CB_MAX_CHANNEL) ||
         (ChannelIndex == 0))
     {
@@ -409,20 +352,9 @@ ChannelValid(UINT CountryCode, UINT ChannelIndex)
 exit:
     return (bValid);
 
-} /* end ChannelValid */
+} 
 
-/************************************************************************
- * CHvChannelGetList
- * Get Available Channel List for a given country
- * Input:
- *      CountryCode     =   The country code defined in country.h
- * Output:
- *      ChannelBitMask  =   (QWORD *) correspondent bit mask
- *                          of available channels
- *                          0x0000000000000001 means channel 1 is supported
- *                          0x0000000000000003 means channel 1,2 are supported
- *                          0x000000000000000F means channel 1,2,..15 are supported
- ************************************************************************/
+
 BOOL
 CHvChannelGetList (
     IN  UINT       uCountryCodeIdx,
@@ -466,18 +398,18 @@ VOID CHvInitChannelTable (PVOID pDeviceHandler)
         if (bMultiBand == TRUE) {
             for(ii=0;ii<CB_MAX_CHANNEL;ii++) {
                 sChannelTbl[ii+1].bValid = TRUE;
-                //pDevice->abyRegPwr[ii+1] = pDevice->abyOFDMDefaultPwr[ii+1];
-                //pDevice->abyLocalPwr[ii+1] = pDevice->abyOFDMDefaultPwr[ii+1];
+                
+                
             }
             for(ii=0;ii<CB_MAX_CHANNEL_24G;ii++) {
-                //pDevice->abyRegPwr[ii+1] = pDevice->abyCCKDefaultPwr[ii+1];
-                //pDevice->abyLocalPwr[ii+1] = pDevice->abyCCKDefaultPwr[ii+1];
+                
+                
             }
         } else {
             for(ii=0;ii<CB_MAX_CHANNEL_24G;ii++) {
                 sChannelTbl[ii+1].bValid = TRUE;
-                //pDevice->abyRegPwr[ii+1] = pDevice->abyCCKDefaultPwr[ii+1];
-                //pDevice->abyLocalPwr[ii+1] = pDevice->abyCCKDefaultPwr[ii+1];
+                
+                
             }
         }
     } else if (pDevice->byZoneType <= CCODE_MAX) {
@@ -485,16 +417,16 @@ VOID CHvInitChannelTable (PVOID pDeviceHandler)
             for(ii=0;ii<CB_MAX_CHANNEL;ii++) {
                 if (ChannelRuleTab[pDevice->byZoneType].bChannelIdxList[ii] != 0) {
                     sChannelTbl[ii+1].bValid = TRUE;
-                    //pDevice->abyRegPwr[ii+1] = ChannelRuleTab[pDevice->byZoneType].byPower[ii];
-                    //pDevice->abyLocalPwr[ii+1] = ChannelRuleTab[pDevice->byZoneType].byPower[ii];
+                    
+                    
                 }
             }
         } else {
             for(ii=0;ii<CB_MAX_CHANNEL_24G;ii++) {
                 if (ChannelRuleTab[pDevice->byZoneType].bChannelIdxList[ii] != 0) {
                     sChannelTbl[ii+1].bValid = TRUE;
-                    //pDevice->abyRegPwr[ii+1] = ChannelRuleTab[pDevice->byZoneType].byPower[ii];
-                    //pDevice->abyLocalPwr[ii+1] = ChannelRuleTab[pDevice->byZoneType].byPower[ii];
+                    
+                    
                 }
             }
         }
@@ -502,12 +434,7 @@ VOID CHvInitChannelTable (PVOID pDeviceHandler)
     DBG_PRT(MSG_LEVEL_NOTICE, KERN_INFO"Zone=[%d][%c][%c]!!\n",pDevice->byZoneType,ChannelRuleTab[pDevice->byZoneType].chCountryCode[0],ChannelRuleTab[pDevice->byZoneType].chCountryCode[1]);
     for(ii=0;ii<CB_MAX_CHANNEL;ii++) {
         DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"Channel[%d] is [%d]\n",sChannelTbl[ii].byChannelNumber,sChannelTbl[ii+1].bValid);
-        /*if (pDevice->abyRegPwr[ii+1] == 0) {
-            pDevice->abyRegPwr[ii+1] = pDevice->abyOFDMDefaultPwr[ii+1];
-        }
-        if (pDevice->abyLocalPwr[ii+1] == 0) {
-            pDevice->abyLocalPwr[ii+1] = pDevice->abyOFDMDefaultPwr[ii+1];
-        }*/
+        
     }
 }
 

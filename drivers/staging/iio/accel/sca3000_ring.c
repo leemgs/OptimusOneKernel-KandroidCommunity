@@ -1,13 +1,4 @@
-/*
- * sca3000_ring.c -- support VTI sca3000 series accelerometers via SPI
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * Copyright (c) 2009 Jonathan Cameron <jic23@cam.ac.uk>
- *
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/gpio.h>
@@ -24,27 +15,9 @@
 #include "accel.h"
 #include "sca3000.h"
 
-/* RFC / future work
- *
- * The internal ring buffer doesn't actually change what it holds depending
- * on which signals are enabled etc, merely whether you can read them.
- * As such the scan mode selection is somewhat different than for a software
- * ring buffer and changing it actually covers any data already in the buffer.
- * Currently scan elements aren't configured so it doesn't matter.
- */
 
-/**
- * sca3000_rip_hw_rb() - main ring access function, pulls data from ring
- * @r:			the ring
- * @count:		number of samples to try and pull
- * @data:		output the actual samples pulled from the hw ring
- * @dead_offset:	cheating a bit here: Set to 1 so as to allow for the
- *			leading byte used in bus comms.
- *
- * Currently does not provide timestamps.  As the hardware doesn't add them they
- * can only be inferred aproximately from ring buffer events such as 50% full
- * and knowledge of when buffer was last emptied.  This is left to userspace.
- **/
+
+
 static int sca3000_rip_hw_rb(struct iio_ring_buffer *r,
 			     size_t count, u8 **data, int *dead_offset)
 {
@@ -59,12 +32,7 @@ static int sca3000_rip_hw_rb(struct iio_ring_buffer *r,
 		bytes_per_sample = 2;
 
 	mutex_lock(&st->lock);
-	/* Check how much data is available:
-	 * RFC: Implement an ioctl to not bother checking whether there
-	 * is enough data in the ring?  Afterall, if we are responding
-	 * to an interrupt we have a minimum content guaranteed so it
-	 * seems slight silly to waste time checking it is there.
-	 */
+	
 	ret = sca3000_read_data(st,
 				SCA3000_REG_ADDR_BUF_COUNT,
 				&rx, 1);
@@ -72,16 +40,14 @@ static int sca3000_rip_hw_rb(struct iio_ring_buffer *r,
 		goto error_ret;
 	else
 		num_available = rx[1];
-	/* num_available is the total number of samples available
-	 * i.e. number of time points * number of channels.
-	 */
+	
 	kfree(rx);
 	if (count > num_available * bytes_per_sample)
 		num_read = num_available*bytes_per_sample;
 	else
 		num_read = count - (count % (bytes_per_sample));
 
-	/* Avoid the read request byte */
+	
 	*dead_offset = 1;
 	ret = sca3000_read_data(st,
 				SCA3000_REG_ADDR_RING_OUT,
@@ -92,13 +58,13 @@ error_ret:
 	return ret ? ret : num_read;
 }
 
-/* This is only valid with all 3 elements enabled */
+
 static int sca3000_ring_get_length(struct iio_ring_buffer *r)
 {
 	return 64;
 }
 
-/* only valid if resolution is kept at 11bits */
+
 static int sca3000_ring_get_bpd(struct iio_ring_buffer *r)
 {
 	return 6;
@@ -113,12 +79,7 @@ static IIO_RING_ENABLE_ATTR;
 static IIO_RING_BPS_ATTR;
 static IIO_RING_LENGTH_ATTR;
 
-/**
- * sca3000_show_ring_bpse() -sysfs function to query bits per sample from ring
- * @dev: ring buffer device
- * @attr: this device attribute
- * @buf: buffer to write to
- **/
+
 static ssize_t sca3000_show_ring_bpse(struct device *dev,
 				      struct device_attribute *attr,
 				      char *buf)
@@ -140,13 +101,7 @@ error_ret:
 	return ret ? ret : len;
 }
 
-/**
- * sca3000_store_ring_bpse() - bits per scan element
- * @dev: ring buffer device
- * @attr: attribute called from
- * @buf: input from userspace
- * @len: length of input
- **/
+
 static ssize_t sca3000_store_ring_bpse(struct device *dev,
 				      struct device_attribute *attr,
 				      const char *buf,
@@ -191,12 +146,7 @@ static IIO_DEV_ATTR_BPSE(S_IRUGO | S_IWUSR,
 			      sca3000_show_ring_bpse,
 			      sca3000_store_ring_bpse);
 
-/*
- * Ring buffer attributes
- * This device is a bit unusual in that the sampling frequency and bpse
- * only apply to the ring buffer.  At all times full rate and accuracy
- * is available via direct reading from registers.
- */
+
 static struct attribute *iio_ring_attributes[] = {
 	&dev_attr_length.attr,
 	&dev_attr_bps.attr,
@@ -290,13 +240,7 @@ error_ret:
 
 	return ret;
 }
-/**
- * sca3000_hw_ring_preenable() hw ring buffer preenable function
- *
- * Very simple enable function as the chip will allows normal reads
- * during ring buffer operation so as long as it is indeed running
- * before we notify the core, the precise ordering does not matter.
- **/
+
 static int sca3000_hw_ring_preenable(struct iio_dev *indio_dev)
 {
 	return __sca3000_hw_ring_state_set(indio_dev, 1);
@@ -313,12 +257,7 @@ void sca3000_register_ring_funcs(struct iio_dev *indio_dev)
 	indio_dev->ring->postdisable = &sca3000_hw_ring_postdisable;
 }
 
-/**
- * sca3000_ring_int_process() ring specific interrupt handling.
- *
- * This is only split from the main interrupt handler so as to
- * reduce the amount of code if the ring buffer is not enabled.
- **/
+
 void sca3000_ring_int_process(u8 val, struct iio_ring_buffer *ring)
 {
 	if (val & SCA3000_INT_STATUS_THREE_QUARTERS)

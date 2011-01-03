@@ -7,7 +7,7 @@
 #define STD_CHANNEL	"\x57\xCD\xDC\xA7\x1C\x88\x5E\x15"	\
 			"\x60\xFE\xC6\x97\x16\x3D\x47\xF2"
 
-/* as libdlo */
+
 #define BUF_HIGH_WATER_MARK	1024
 #define BUF_SIZE		(64*1024)
 
@@ -62,7 +62,7 @@ static void dlfb_edid(struct dlfb_data *dev_info)
 				    usb_rcvctrlpipe(dev_info->udev, 0), (0x02),
 				    (0x80 | (0x02 << 5)), i << 8, 0xA1, rbuf, 2,
 				    0);
-		/*printk("ret control msg edid %d: %d [%d]\n",i, ret, rbuf[1]); */
+		
 		dev_info->edid[i] = rbuf[1];
 	}
 
@@ -151,12 +151,12 @@ static int dlfb_set_video_mode(struct dlfb_data *dev_info, int width, int height
 			dev_info->base16 = 0;
 			dev_info->base16d = width * height * (FB_BPP / 8);
 
-			//dev_info->base8 = width * height * (FB_BPP / 8);
+			
 
 			dev_info->base8 = dev_info->base16;
 			dev_info->base8d = dev_info->base16d;
 
-			/* set encryption key (null) */
+			
 			memcpy(dev_info->buf, STD_CHANNEL, 16);
 			ret =
 			    usb_control_msg(dev_info->udev,
@@ -165,13 +165,13 @@ static int dlfb_set_video_mode(struct dlfb_data *dev_info, int width, int height
 					    dev_info->buf, 16, 0);
 			printk("ret control msg 1 (STD_CHANNEL): %d\n", ret);
 
-			/* set registers */
+			
 			bufptr = dlfb_set_register(bufptr, 0xFF, 0x00);
 
-			/* set color depth */
+			
 			bufptr = dlfb_set_register(bufptr, 0x00, 0x00);
 
-			/* set addresses */
+			
 			bufptr =
 			    dlfb_set_register(bufptr, 0x20,
 					      (char)(dev_info->base16 >> 16));
@@ -192,23 +192,23 @@ static int dlfb_set_video_mode(struct dlfb_data *dev_info, int width, int height
 			    dlfb_set_register(bufptr, 0x28,
 					      (char)(dev_info->base8));
 
-			/* set video mode */
+			
 			vdata = (uint8_t *)&dlfb_video_modes[i];
 			for (j = 0; j < 29; j++)
 				bufptr = dlfb_set_register(bufptr, j, vdata[j]);
 
-			/* blank */
+			
 			bufptr = dlfb_set_register(bufptr, 0x1F, 0x00);
 
-			/* end registers */
+			
 			bufptr = dlfb_set_register(bufptr, 0xFF, 0xFF);
 
-			/* send */
+			
 			ret = dlfb_bulk_msg(dev_info, bufptr - dev_info->buf);
 			printk("ret bulk 2: %d %td\n", ret,
 			       bufptr - dev_info->buf);
 
-			/* flush */
+			
 			ret = dlfb_bulk_msg(dev_info, 0);
 			printk("ret bulk 3: %d\n", ret);
 

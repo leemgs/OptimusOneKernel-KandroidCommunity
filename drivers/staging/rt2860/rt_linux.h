@@ -1,44 +1,19 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
- */
 
-/***********************************************************************/
-/*                                                                     */
-/*   Program:    rt_linux.c                                            */
-/*   Created:    4/21/2006 1:17:38 PM                                  */
-/*   Author:     Wu Xi-Kun                                             */
-/*   Comments:   `description`                                         */
-/*                                                                     */
-/*---------------------------------------------------------------------*/
-/*                                                                     */
-/* History:                                                            */
-/*    Revision 1.1 4/21/2006 1:17:38 PM  xsikun                        */
-/*    Initial revision                                                 */
-/*                                                                     */
-/***********************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "rtmp_type.h"
 #include <linux/module.h>
@@ -65,29 +40,28 @@
 
 #include <net/iw_handler.h>
 
-// load firmware
+
 #define __KERNEL_SYSCALLS__
 #include <linux/unistd.h>
 #include <asm/uaccess.h>
 
 
-#define MEM_ALLOC_FLAG      (GFP_ATOMIC) //(GFP_DMA | GFP_ATOMIC)
+#define MEM_ALLOC_FLAG      (GFP_ATOMIC) 
 
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 16
 #endif
 
-//#define CONFIG_CKIP_SUPPORT
+
 
 #undef __inline
 #define __inline	   static inline
 
 typedef int (*HARD_START_XMIT_FUNC)(struct sk_buff *skb, struct net_device *net_dev);
 
-// add by kathy
 
-/* order of "if defined()" is important, because for 3070 driver
-   both RT2870 and RT3070 are defined */
+
+
 #if defined(RT2860)
  #define STA_PROFILE_PATH			"/etc/Wireless/RT2860STA/RT2860STA.dat"
  #define STA_RTMP_FIRMWARE_FILE_NAME "/etc/Wireless/RT2860STA/RT2860STA.bin"
@@ -110,7 +84,7 @@ typedef int (*HARD_START_XMIT_FUNC)(struct sk_buff *skb, struct net_device *net_
 #define PCI_DEVICE(vend,dev) \
 	.vendor = (vend), .device = (dev), \
 	.subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID
-#endif // PCI_DEVICE //
+#endif 
 #endif
 
 #define RTMP_TIME_AFTER(a,b)		\
@@ -146,9 +120,9 @@ typedef int (*HARD_START_XMIT_FUNC)(struct sk_buff *skb, struct net_device *net_
 #define NDIS_STATUS_INVALID_DATA				0x02
 #define NDIS_STATUS_RESOURCES                   0x03
 
-#define MIN_NET_DEVICE_FOR_AID			0x00		//0x00~0x3f
-#define MIN_NET_DEVICE_FOR_MBSSID		0x00		//0x00,0x10,0x20,0x30
-#define MIN_NET_DEVICE_FOR_WDS			0x10		//0x40,0x50,0x60,0x70
+#define MIN_NET_DEVICE_FOR_AID			0x00		
+#define MIN_NET_DEVICE_FOR_MBSSID		0x00		
+#define MIN_NET_DEVICE_FOR_WDS			0x10		
 #define MIN_NET_DEVICE_FOR_APCLI		0x20
 #define MIN_NET_DEVICE_FOR_MESH			0x30
 #define MIN_NET_DEVICE_FOR_DLS			0x40
@@ -176,7 +150,7 @@ struct os_cookie {
 	struct pid	*MLMEThr_pid;
 	struct pid	*RTUSBCmdThr_pid;
 	struct pid	*TimerQThr_pid;
-#endif // RT2870 //
+#endif 
 
 	struct tasklet_struct 	rx_done_task;
 	struct tasklet_struct 	mgmt_dma_done_task;
@@ -193,9 +167,9 @@ struct os_cookie {
 	struct tasklet_struct	null_frame_complete_task;
 	struct tasklet_struct	rts_frame_complete_task;
 	struct tasklet_struct	pspoll_frame_complete_task;
-#endif // RT2870 //
+#endif 
 
-	unsigned long			apd_pid; //802.1x daemon pid
+	unsigned long			apd_pid; 
 	INT						ioctl_if_type;
 	INT 					ioctl_if;
 };
@@ -224,9 +198,9 @@ dma_addr_t linux_pci_map_single(void *handle, void *ptr, size_t size, int sd_idx
 void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int direction);
 
 
-////////////////////////////////////////
-// MOVE TO rtmp.h ?
-/////////////////////////////////////////
+
+
+
 #define PKTSRC_NDIS             0x7f
 #define PKTSRC_DRIVER           0x0f
 #define PRINT_MAC(addr)	\
@@ -255,16 +229,16 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 #define PCI_MAP_SINGLE(_handle, _ptr, _size, _dir) (ULONG)0
 
 #define PCI_UNMAP_SINGLE(_handle, _ptr, _size, _dir)
-#endif // RT2870 //
+#endif 
 
 
 #define BEACON_FRAME_DMA_CACHE_WBACK(_ptr, _size)	\
 	dma_cache_wback(_ptr, _size)
 
 
-//////////////////////////////////////////
-//
-//////////////////////////////////////////
+
+
+
 
 
 #define NdisMIndicateStatus(_w, _x, _y, _z)
@@ -272,31 +246,31 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 typedef struct timer_list	RTMP_OS_TIMER;
 
 #ifdef RT2870
-/* ----------------- Timer Related MARCO ---------------*/
-// In RT2870, we have a lot of timer functions and will read/write register, it's
-//	not allowed in Linux USB sub-system to do it ( because of sleep issue when submit
-//  to ctrl pipe). So we need a wrapper function to take care it.
+
+
+
+
 
 typedef VOID (*RT2870_TIMER_HANDLE)(
 	IN  PVOID   SystemSpecific1,
 	IN  PVOID   FunctionContext,
 	IN  PVOID   SystemSpecific2,
 	IN  PVOID   SystemSpecific3);
-#endif // RT2870 //
+#endif 
 
 
 typedef struct  _RALINK_TIMER_STRUCT    {
-    RTMP_OS_TIMER		TimerObj;       // Ndis Timer object
-	BOOLEAN				Valid;			// Set to True when call RTMPInitTimer
-    BOOLEAN             State;          // True if timer cancelled
-    BOOLEAN	      		PeriodicType;	// True if timer is periodic timer
-    BOOLEAN             Repeat;         // True if periodic timer
-    ULONG               TimerValue;     // Timer value in milliseconds
-	ULONG				cookie;			// os specific object
+    RTMP_OS_TIMER		TimerObj;       
+	BOOLEAN				Valid;			
+    BOOLEAN             State;          
+    BOOLEAN	      		PeriodicType;	
+    BOOLEAN             Repeat;         
+    ULONG               TimerValue;     
+	ULONG				cookie;			
 #ifdef RT2870
 	RT2870_TIMER_HANDLE	handle;
 	void				*pAd;
-#endif // RT2870 //
+#endif 
 }   RALINK_TIMER_STRUCT, *PRALINK_TIMER_STRUCT;
 
 
@@ -328,14 +302,14 @@ typedef struct _RT2870_TIMER_QUEUE_
 	RT2870_TIMER_ENTRY 	*pQHead;
 	RT2870_TIMER_ENTRY 	*pQTail;
 }RT2870_TIMER_QUEUE;
-#endif // RT2870 //
+#endif 
 
 
-//#define DBG	1
 
-//
-//  MACRO for debugging information
-//
+
+
+
+
 
 #ifdef DBG
 extern ULONG    RTDebugLevel;
@@ -371,9 +345,9 @@ extern ULONG    RTDebugLevel;
 #endif
 
 
-//
-//  spin_lock enhanced for Nested spin lock
-//
+
+
+
 #define NdisAllocateSpinLock(__lock)      \
 {                                       \
     spin_lock_init((spinlock_t *)(__lock));               \
@@ -394,7 +368,7 @@ extern ULONG    RTDebugLevel;
 	spin_unlock_bh((spinlock_t *)(__lock));				\
 }
 
-// sample, use semaphore lock to replace IRQ lock, 2007/11/15
+
 #define RTMP_IRQ_LOCK(__lock, __irqflags)			\
 {													\
 	__irqflags = 0;									\
@@ -419,7 +393,7 @@ extern ULONG    RTDebugLevel;
 }
 
 #ifdef RT2860
-//Patch for ASIC turst read/write bug, needs to remove after metel fix
+
 #define RTMP_IO_READ32(_A, _R, _pV)								\
 {																\
     if ((_A)->bPCIclkOff == FALSE)                                  \
@@ -461,9 +435,9 @@ extern ULONG    RTDebugLevel;
 	Val = readl((void *)((_A)->CSRBaseAddress + MAC_CSR0));			\
 	writew((_V), (PUSHORT)((_A)->CSRBaseAddress + (_R)));	\
 }
-#endif /* RT2860 */
+#endif 
 #ifdef RT2870
-//Patch for ASIC turst read/write bug, needs to remove after metel fix
+
 #define RTMP_IO_READ32(_A, _R, _pV)								\
 	RTUSBReadMACRegister(_A, _R, _pV)
 
@@ -486,7 +460,7 @@ extern ULONG    RTDebugLevel;
 {																\
 	RTUSBSingleWrite(_A, _R, _V);								\
 }
-#endif // RT2870 //
+#endif 
 
 #ifndef wait_event_interruptible_timeout
 #define __wait_event_interruptible_timeout(wq, condition, ret) \
@@ -561,7 +535,7 @@ void linux_##_func(unsigned long data)												\
 	if ((_pQNode == NULL) && (_pAd->TimerQ.status & RT2870_THREAD_CAN_DO_INSERT))	\
 		RTMP_OS_Add_Timer(&_pTimer->TimerObj, HZ);               					\
 }
-#endif // RT2870 //
+#endif 
 
 
 #define DECLARE_TIMER_FUNCTION(_func)			\
@@ -577,7 +551,7 @@ DECLARE_TIMER_FUNCTION(APSDPeriodicExec);
 DECLARE_TIMER_FUNCTION(AsicRfTuningExec);
 #ifdef RT2870
 DECLARE_TIMER_FUNCTION(BeaconUpdateExec);
-#endif // RT2870 //
+#endif 
 
 DECLARE_TIMER_FUNCTION(BeaconTimeout);
 DECLARE_TIMER_FUNCTION(ScanTimeout);
@@ -594,11 +568,7 @@ DECLARE_TIMER_FUNCTION(RadioOnExec);
 void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 
 
-/*
- * packet helper
- * 	- convert internal rt packet to os packet or
- *             os packet to rt packet
- */
+
 #define RTPKT_TO_OSPKT(_p)		((struct sk_buff *)(_p))
 #define OSPKT_TO_RTPKT(_p)		((PNDIS_PACKET)(_p))
 
@@ -636,7 +606,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 #define OS_HTONL(_Val) \
 		(htonl(_Val))
 
-/* statistics counter */
+
 #define STATS_INC_RX_PACKETS(_pAd, _dev)
 #define STATS_INC_TX_PACKETS(_pAd, _dev)
 
@@ -653,38 +623,38 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 #define CB_OFF  10
 
 
-//   check DDK NDIS_PACKET data structure and find out only MiniportReservedEx[0..7] can be used by our driver without
-//   ambiguity. Fields after pPacket->MiniportReservedEx[8] may be used by other wrapper layer thus crashes the driver
-//
 
-// User Priority
+
+
+
+
 #define RTMP_SET_PACKET_UP(_p, _prio)			(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+0] = _prio)
 #define RTMP_GET_PACKET_UP(_p)					(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+0])
 
-// Fragment #
+
 #define RTMP_SET_PACKET_FRAGMENTS(_p, _num)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+1] = _num)
 #define RTMP_GET_PACKET_FRAGMENTS(_p)			(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+1])
 
-// 0x0 ~0x7f: TX to AP's own BSS which has the specified AID. if AID>127, set bit 7 in RTMP_SET_PACKET_EMACTAB too.
-//(this value also as MAC(on-chip WCID) table index)
-// 0x80~0xff: TX to a WDS link. b0~6: WDS index
+
+
+
 #define RTMP_SET_PACKET_WCID(_p, _wdsidx)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+2] = _wdsidx)
 #define RTMP_GET_PACKET_WCID(_p)          		((UCHAR)(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+2]))
 
-// 0xff: PKTSRC_NDIS, others: local TX buffer index. This value affects how to a packet
+
 #define RTMP_SET_PACKET_SOURCE(_p, _pktsrc)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+3] = _pktsrc)
 #define RTMP_GET_PACKET_SOURCE(_p)       		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+3])
 
-// RTS/CTS-to-self protection method
+
 #define RTMP_SET_PACKET_RTS(_p, _num)      		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+4] = _num)
 #define RTMP_GET_PACKET_RTS(_p)          		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+4])
-// see RTMP_S(G)ET_PACKET_EMACTAB
 
-// TX rate index
+
+
 #define RTMP_SET_PACKET_TXRATE(_p, _rate)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+5] = _rate)
 #define RTMP_GET_PACKET_TXRATE(_p)		  		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+5])
 
-// From which Interface
+
 #define RTMP_SET_PACKET_IF(_p, _ifdx)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+6] = _ifdx)
 #define RTMP_GET_PACKET_IF(_p)		  		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+6])
 #define RTMP_SET_PACKET_NET_DEVICE_MBSSID(_p, _bss)		RTMP_SET_PACKET_IF((_p), (_bss))
@@ -698,9 +668,9 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 #define RTMP_GET_PACKET_MOREDATA(_p)				(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+7])
 
 
-//
-//	Sepcific Pakcet Type definition
-//
+
+
+
 #define RTMP_PACKET_SPECIFIC_CB_OFFSET	11
 
 #define RTMP_PACKET_SPECIFIC_DHCP		0x01
@@ -710,10 +680,10 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 #define RTMP_PACKET_SPECIFIC_VLAN		0x10
 #define RTMP_PACKET_SPECIFIC_LLCSNAP	0x20
 
-//Specific
+
 #define RTMP_SET_PACKET_SPECIFIC(_p, _flg)	   	(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] = _flg)
 
-//DHCP
+
 #define RTMP_SET_PACKET_DHCP(_p, _flg)   													\
 			do{																				\
 				if (_flg)																	\
@@ -723,7 +693,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 			}while(0)
 #define RTMP_GET_PACKET_DHCP(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_DHCP)
 
-//EAPOL
+
 #define RTMP_SET_PACKET_EAPOL(_p, _flg)   													\
 			do{																				\
 				if (_flg)																	\
@@ -733,7 +703,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 			}while(0)
 #define RTMP_GET_PACKET_EAPOL(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_EAPOL)
 
-//WAI
+
 #define RTMP_SET_PACKET_WAI(_p, _flg)   													\
 			do{																				\
 				if (_flg)																	\
@@ -745,7 +715,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 
 #define RTMP_GET_PACKET_LOWRATE(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & (RTMP_PACKET_SPECIFIC_EAPOL | RTMP_PACKET_SPECIFIC_DHCP | RTMP_PACKET_SPECIFIC_WAI))
 
-//VLAN
+
 #define RTMP_SET_PACKET_VLAN(_p, _flg)   													\
 			do{																				\
 				if (_flg)																	\
@@ -755,7 +725,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 			}while(0)
 #define RTMP_GET_PACKET_VLAN(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_VLAN)
 
-//LLC/SNAP
+
 #define RTMP_SET_PACKET_LLCSNAP(_p, _flg)   													\
 			do{																				\
 				if (_flg)																	\
@@ -766,7 +736,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 
 #define RTMP_GET_PACKET_LLCSNAP(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_LLCSNAP)
 
-// IP
+
 #define RTMP_SET_PACKET_IPV4(_p, _flg)														\
 			do{																				\
 				if (_flg)																	\
@@ -778,7 +748,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 #define RTMP_GET_PACKET_IPV4(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_IPV4)
 
 
-// If this flag is set, it indicates that this EAPoL frame MUST be clear.
+
 #define RTMP_SET_PACKET_CLEAR_EAP_FRAME(_p, _flg)   (RTPKT_TO_OSPKT(_p)->cb[CB_OFF+12] = _flg)
 #define RTMP_GET_PACKET_CLEAR_EAP_FRAME(_p)         (RTPKT_TO_OSPKT(_p)->cb[CB_OFF+12])
 
@@ -786,7 +756,7 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 #define RTMP_GET_PACKET_5VT(_p)         (RTPKT_TO_OSPKT(_p)->cb[CB_OFF+22])
 
 #ifdef CONFIG_5VT_ENHANCE
-#define BRIDGE_TAG 0x35564252    // depends on 5VT define in br_input.c
+#define BRIDGE_TAG 0x35564252    
 #endif
 
 
@@ -809,39 +779,21 @@ void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 
 
 
-/*
- * ULONG
- * RTMP_GetPhysicalAddressLow(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress);
- */
+
 #define RTMP_GetPhysicalAddressLow(PhysicalAddress)		(PhysicalAddress)
 
-/*
- * ULONG
- * RTMP_GetPhysicalAddressHigh(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress);
- */
+
 #define RTMP_GetPhysicalAddressHigh(PhysicalAddress)		(0)
 
-/*
- * VOID
- * RTMP_SetPhysicalAddressLow(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress,
- *   IN ULONG  Value);
- */
+
 #define RTMP_SetPhysicalAddressLow(PhysicalAddress, Value)	\
 			PhysicalAddress = Value;
 
-/*
- * VOID
- * RTMP_SetPhysicalAddressHigh(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress,
- *   IN ULONG  Value);
- */
+
 #define RTMP_SetPhysicalAddressHigh(PhysicalAddress, Value)
 
 
-//CONTAINING_RECORD(pEntry, NDIS_PACKET, MiniportReservedEx);
+
 #define QUEUE_ENTRY_TO_PACKET(pEntry) \
 	(PNDIS_PACKET)(pEntry)
 
@@ -890,7 +842,7 @@ static inline void NdisGetSystemUpTime(ULONG *time)
 	*time = jiffies;
 }
 
-//pPacket = CONTAINING_RECORD(pEntry, NDIS_PACKET, MiniportReservedEx);
+
 #define QUEUE_ENTRY_TO_PKT(pEntry) \
 		((PNDIS_PACKET) (pEntry))
 

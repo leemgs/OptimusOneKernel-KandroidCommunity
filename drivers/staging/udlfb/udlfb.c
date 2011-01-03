@@ -1,17 +1,4 @@
-/*****************************************************************************
- *                          DLFB Kernel Driver                               *
- *                            Version 0.2 (udlfb)                            *
- *             (C) 2009 Roberto De Ioris <roberto@unbit.it>                  *
- *                                                                           *
- *     This file is licensed under the GPLv2. See COPYING in the package.    *
- * Based on the amazing work of Florian Echtler and libdlo 0.1               *
- *                                                                           *
- *                                                                           *
- * 10.06.09 release 0.2.3 (edid ioctl, fallback for unsupported modes)       *
- * 05.06.09 release 0.2.2 (real screen blanking, rle compression, double buffer) *
- * 31.05.09 release 0.2                                                      *
- * 22.05.09 First public (ugly) release                                      *
- *****************************************************************************/
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -27,7 +14,7 @@
 
 #define DRIVER_VERSION "DLFB 0.2"
 
-/* memory functions taken from vfb */
+
 
 static void *rvmalloc(unsigned long size)
 {
@@ -39,7 +26,7 @@ static void *rvmalloc(unsigned long size)
 	if (!mem)
 		return NULL;
 
-	memset(mem, 0, size);	/* Clear the ram out, no junk to the user */
+	memset(mem, 0, size);	
 	adr = (unsigned long)mem;
 	while (size > 0) {
 		SetPageReserved(vmalloc_to_page((void *)adr));
@@ -93,24 +80,19 @@ static int dlfb_mmap(struct fb_info *info, struct vm_area_struct *vma)
 			size = 0;
 	}
 
-	vma->vm_flags |= VM_RESERVED;	/* avoid to swap out this VMA */
+	vma->vm_flags |= VM_RESERVED;	
 	return 0;
 
 }
 
-/* ioctl structure */
+
 struct dloarea {
 	int x, y;
 	int w, h;
 	int x2, y2;
 };
 
-/*
-static struct usb_device_id id_table [] = {
-	{ USB_DEVICE(0x17e9, 0x023d) },
-	{ }
-};
-*/
+
 
 static struct usb_device_id id_table[] = {
 	{.idVendor = 0x17e9, .match_flags = USB_DEVICE_ID_MATCH_VENDOR,},
@@ -120,7 +102,7 @@ MODULE_DEVICE_TABLE(usb, id_table);
 
 static struct usb_driver dlfb_driver;
 
-// thanks to Henrik Bjerregaard Pedersen for this function
+
 static char *rle_compress16(uint16_t * src, char *dst, int rem)
 {
 
@@ -128,7 +110,7 @@ static char *rle_compress16(uint16_t * src, char *dst, int rem)
 	uint16_t pix0;
 	char *end_if_raw = dst + 6 + 2 * rem;
 
-	dst += 6;		// header will be filled in if RLE is worth it
+	dst += 6;		
 
 	while (rem && dst < end_if_raw) {
 		char *start = (char *)src;
@@ -146,10 +128,7 @@ static char *rle_compress16(uint16_t * src, char *dst, int rem)
 	return dst;
 }
 
-/*
-Thanks to Henrik Bjerregaard Pedersen for rle implementation and code refactoring.
-Next step is huffman compression.
-*/
+
 
 static int
 image_blit(struct dlfb_data *dev_info, int x, int y, int width, int height,
@@ -177,7 +156,7 @@ image_blit(struct dlfb_data *dev_info, int x, int y, int width, int height,
 
 	data += (dev_info->info->var.xres * 2 * y) + (x * 2);
 
-	/* printk("IMAGE_BLIT\n"); */
+	
 
 	bufptr = dev_info->buf;
 
@@ -190,7 +169,7 @@ image_blit(struct dlfb_data *dev_info, int x, int y, int width, int height,
 
 		rem = width;
 
-		/* printk("WRITING LINE %d\n", i); */
+		
 
 		while (rem) {
 
@@ -200,12 +179,12 @@ image_blit(struct dlfb_data *dev_info, int x, int y, int width, int height,
 						  bufptr - dev_info->buf);
 				bufptr = dev_info->buf;
 			}
-			// number of pixels to consider this time
+			
 			thistime = rem;
 			if (thistime > 255)
 				thistime = 255;
 
-			// find position of first pixel that has changed
+			
 			firstdiff = -1;
 			for (j = 0; j < thistime * 2; j++) {
 				if (dev_info->backing_buffer
@@ -241,7 +220,7 @@ image_blit(struct dlfb_data *dev_info, int x, int y, int width, int height,
 					bufptr = end_of_rle;
 
 				} else {
-					// fallback to raw (or some other encoding?)
+					
 					*bufptr++ = 0xAF;
 					*bufptr++ = 0x68;
 
@@ -253,7 +232,7 @@ image_blit(struct dlfb_data *dev_info, int x, int y, int width, int height,
 					*bufptr++ =
 					    (char)(base + firstdiff * 2);
 					*bufptr++ = thistime - firstdiff;
-					// PUT COMPRESSION HERE
+					
 					for (j = firstdiff * 2;
 					     j < thistime * 2; j += 2) {
 						*bufptr++ = data[j + 1];
@@ -388,7 +367,7 @@ static void swapfb(struct dlfb_data *dev_info)
 
 	bufptr = dlfb_set_register(bufptr, 0xFF, 0x00);
 
-	// set addresses
+	
 	bufptr =
 	    dlfb_set_register(bufptr, 0x20, (char)(dev_info->base16 >> 16));
 	bufptr = dlfb_set_register(bufptr, 0x21, (char)(dev_info->base16 >> 8));
@@ -571,7 +550,7 @@ static void dlfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	copyarea(dev, area->dx, area->dy, area->sx, area->sy, area->width,
 		 area->height);
 
-	/* printk("COPY AREA %d %d %d %d %d %d !!!\n", area->dx, area->dy, area->sx, area->sy, area->width, area->height); */
+	
 
 }
 
@@ -580,12 +559,12 @@ static void dlfb_imageblit(struct fb_info *info, const struct fb_image *image)
 
 	int ret;
 	struct dlfb_data *dev = info->par;
-	/* printk("IMAGE BLIT (1) %d %d %d %d DEPTH %d {%p}!!!\n", image->dx, image->dy, image->width, image->height, image->depth, dev->udev); */
+	
 	cfb_imageblit(info, image);
 	ret =
 	    image_blit(dev, image->dx, image->dy, image->width, image->height,
 		       info->screen_base);
-	/* printk("IMAGE BLIT (2) %d %d %d %d DEPTH %d {%p} %d!!!\n", image->dx, image->dy, image->width, image->height, image->depth, dev->udev, ret); */
+	
 }
 
 static void dlfb_fillrect(struct fb_info *info,
@@ -600,7 +579,7 @@ static void dlfb_fillrect(struct fb_info *info,
 	memcpy(&blue, &region->color + 2, 1);
 	draw_rect(dev, region->dx, region->dy, region->width, region->height,
 		  red, green, blue);
-	/* printk("FILL RECT %d %d !!!\n", region->dx, region->dy); */
+	
 
 }
 
@@ -660,7 +639,7 @@ static int dlfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
 	return 0;
 }
 
-/* taken from vesafb */
+
 
 static int
 dlfb_setcolreg(unsigned regno, unsigned red, unsigned green,
@@ -673,12 +652,12 @@ dlfb_setcolreg(unsigned regno, unsigned red, unsigned green,
 
 	if (regno < 16) {
 		if (info->var.red.offset == 10) {
-			/* 1:5:5:5 */
+			
 			((u32 *) (info->pseudo_palette))[regno] =
 			    ((red & 0xf800) >> 1) |
 			    ((green & 0xf800) >> 6) | ((blue & 0xf800) >> 11);
 		} else {
-			/* 0:5:6:5 */
+			
 			((u32 *) (info->pseudo_palette))[regno] =
 			    ((red & 0xf800)) |
 			    ((green & 0xfc00) >> 5) | ((blue & 0xf800) >> 11);
@@ -747,11 +726,11 @@ dlfb_probe(struct usb_interface *interface, const struct usb_device_id *id)
 
 	printk("DisplayLink device attached\n");
 
-	/* add framebuffer info to usb interface */
+	
 	usb_set_intfdata(interface, dev_info);
 
 	dev_info->buf = kmalloc(BUF_SIZE, GFP_KERNEL);
-	/* usb_buffer_alloc(dev_info->udev, BUF_SIZE , GFP_KERNEL, &dev_info->tx_urb->transfer_dma); */
+	
 
 	if (dev_info->buf == NULL) {
 		printk("unable to allocate memory for dlfb commands\n");
@@ -819,7 +798,7 @@ dlfb_probe(struct usb_interface *interface, const struct usb_device_id *id)
 	if (!dev_info->backing_buffer)
 		printk("non posso allocare il backing buffer\n");
 
-	/* info->var = dev_info->si; */
+	
 
 	info->var.bits_per_pixel = 16;
 	info->var.activate = FB_ACTIVATE_TEST;
@@ -837,7 +816,7 @@ dlfb_probe(struct usb_interface *interface, const struct usb_device_id *id)
 	info->var.blue.length = 5;
 	info->var.blue.msb_right = 0;
 
-	/* info->var.pixclock =  (10000000 / FB_W * 1000 / FB_H)/2 ; */
+	
 
 	info->fix.smem_start = (unsigned long)info->screen_base;
 	info->fix.smem_len = PAGE_ALIGN(dev_info->screen_size);

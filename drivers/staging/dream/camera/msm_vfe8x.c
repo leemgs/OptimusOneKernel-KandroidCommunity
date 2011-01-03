@@ -1,6 +1,4 @@
-/*
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- */
+
 #include <linux/uaccess.h>
 #include <linux/interrupt.h>
 #include <mach/irqs.h>
@@ -65,7 +63,7 @@ static void vfe_config_axi(int mode,
 			}
 			regptr++;
 		}
-	} /* if OUTPUT1 or Both */
+	} 
 
 	if (mode == OUTPUT_2 || mode == OUTPUT_1_AND_2) {
 
@@ -116,7 +114,7 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 			(void __user *) cmd->value, cmd->length))
 			rc = -EFAULT;
 
-		/* msm_camio_camif_pad_reg_reset_2(); */
+		
 		msm_camio_camif_pad_reg_reset();
 		vfe_start(&start);
 	}
@@ -158,7 +156,7 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 			(void __user *) cmd->value, cmd->length))
 			rc = -EFAULT;
 
-		/* demux is always enabled.  */
+		
 		vfe_demux_channel_gain_config(&demuxc);
 	}
 		break;
@@ -321,7 +319,7 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 	}
 		break;
 
-	/* module update commands */
+	
 	case VFE_CMD_ID_BLACK_LEVEL_UPDATE: {
 		struct vfe_cmd_black_level_config blk;
 		if (copy_from_user(&blk,
@@ -412,7 +410,7 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 	}
 		break;
 
-	/* stats update commands */
+	
 	case VFE_CMD_ID_STATS_AUTOFOCUS_UPDATE: {
 		struct vfe_cmd_stats_af_update afup;
 		if (copy_from_user(&afup,
@@ -433,7 +431,7 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 	}
 		break;
 
-	/* control of start, stop, update, etc... */
+	
 	case VFE_CMD_ID_STOP:
 		vfe_stop();
 		break;
@@ -441,7 +439,7 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 	case VFE_CMD_ID_GET_HW_VERSION:
 		break;
 
-	/* stats */
+	
 	case VFE_CMD_ID_STATS_SETTING: {
 		struct vfe_cmd_stats_setting stats;
 		if (copy_from_user(&stats,
@@ -487,31 +485,15 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 		vfe_update();
 		break;
 
-	/* test gen */
+	
 	case VFE_CMD_ID_TEST_GEN_START:
 		break;
 
-/*
-  acknowledge from upper layer
-	these are not in general command.
 
-	case VFE_CMD_ID_OUTPUT1_ACK:
-		break;
-	case VFE_CMD_ID_OUTPUT2_ACK:
-		break;
-	case VFE_CMD_ID_EPOCH1_ACK:
-		break;
-	case VFE_CMD_ID_EPOCH2_ACK:
-		break;
-	case VFE_CMD_ID_STATS_AUTOFOCUS_ACK:
-		break;
-	case VFE_CMD_ID_STATS_WB_EXP_ACK:
-		break;
-*/
 
 	default:
 		break;
-	} /* switch */
+	} 
 
 	return rc;
 }
@@ -593,7 +575,7 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 		break;
 
 	case CMD_FRAME_BUF_RELEASE: {
-		/* preview buffer release */
+		
 		struct msm_frame *b;
 		unsigned long p;
 		struct vfe_cmd_output_ack fack;
@@ -714,20 +696,13 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 
 	default:
 		break;
-	} /* switch */
+	} 
 
 	kfree(scfg);
 
 	kfree(axio);
 
-/*
-	if (cmd->length > 256 &&
-			cmd_data &&
-			(cmd->cmd_type == CMD_GENERAL ||
-			 cmd->cmd_type == CMD_STATS_DISABLE)) {
-		kfree(cmd_data);
-	}
-*/
+
 	return rc;
 }
 
@@ -740,7 +715,7 @@ static int vfe_init(struct msm_vfe_callback *presp,
 	if (rc < 0)
 		return rc;
 
-	/* Bring up all the required GPIOs and Clocks */
+	
 	return msm_camio_enable(dev);
 }
 

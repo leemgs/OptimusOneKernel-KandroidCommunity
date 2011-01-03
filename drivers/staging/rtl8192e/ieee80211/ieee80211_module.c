@@ -1,37 +1,7 @@
-/*******************************************************************************
 
-  Copyright(c) 2004 Intel Corporation. All rights reserved.
-
-  Portions of this file are based on the WEP enablement code provided by the
-  Host AP project hostap-drivers v0.1.3
-  Copyright (c) 2001-2002, SSH Communications Security Corp and Jouni Malinen
-  <jkmaline@cc.hut.fi>
-  Copyright (c) 2002-2003, Jouni Malinen <jkmaline@cc.hut.fi>
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms of version 2 of the GNU General Public License as
-  published by the Free Software Foundation.
-
-  This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc., 59
-  Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-  The full GNU General Public License is included in this distribution in the
-  file called LICENSE.
-
-  Contact Information:
-  James P. Ketrenos <ipw2100-admin@linux.intel.com>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 #include <linux/compiler.h>
-//#include <linux/config.h>
+
 #include <linux/errno.h>
 #include <linux/if_arp.h>
 #include <linux/in6.h>
@@ -134,15 +104,15 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
 	ieee80211_networks_initialize(ieee);
 
 
-	/* Default fragmentation threshold is maximum payload size */
+	
 	ieee->fts = DEFAULT_FTS;
 	ieee->scan_age = DEFAULT_MAX_SCAN_AGE;
 	ieee->open_wep = 1;
 
-	/* Default to enabling full open WEP with host based encrypt/decrypt */
+	
 	ieee->host_encrypt = 1;
 	ieee->host_decrypt = 1;
-	ieee->ieee802_1x = 1; /* Default to supporting 802.1x */
+	ieee->ieee802_1x = 1; 
 
 	INIT_LIST_HEAD(&ieee->crypt_deinit_list);
 	init_timer(&ieee->crypt_deinit_timer);
@@ -153,7 +123,7 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
 	spin_lock_init(&ieee->wpax_suitlist_lock);
 	spin_lock_init(&ieee->bw_spinlock);
 	spin_lock_init(&ieee->reorder_spinlock);
-	//added by WB
+	
 	atomic_set(&(ieee->atm_chnlop), 0);
 	atomic_set(&(ieee->atm_swbw), 0);
 
@@ -164,8 +134,8 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
  	ieee->privacy_invoked = 0;
  	ieee->ieee802_1x = 1;
 	ieee->raw_tx = 0;
-	//ieee->hwsec_support = 1; //defalt support hw security. //use module_param instead.
-	ieee->hwsec_active = 0; //disable hwsec, switch it on when necessary.
+	
+	ieee->hwsec_active = 0; 
 
 	ieee80211_softmac_init(ieee);
 
@@ -181,7 +151,7 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
 		return NULL;
 	}
 	HTUpdateDefaultSetting(ieee);
-	HTInitializeHTInfo(ieee); //may move to other place.
+	HTInitializeHTInfo(ieee); 
 	TSInitialize(ieee);
 #if 0
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,20))
@@ -199,7 +169,7 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
 	  ieee->last_packet_time[i] = 0;
 	}
 
-//These function were added to load crypte module autoly
+
 	ieee80211_tkip_null();
 	ieee80211_wep_null();
 	ieee80211_ccmp_null();
@@ -225,8 +195,8 @@ void free_ieee80211(struct net_device *dev)
 	struct ieee80211_device *ieee = (struct ieee80211_device *)dev->priv;
 #endif
 	int i;
-	//struct list_head *p, *q;
-//	del_timer_sync(&ieee->SwBwTimer);
+	
+
 #if 1
 	if (ieee->pHTInfo != NULL)
 	{
@@ -270,24 +240,24 @@ void free_ieee80211(struct net_device *dev)
 
 u32 ieee80211_debug_level = 0;
 static int debug = \
-	//		    IEEE80211_DL_INFO	|
-	//		    IEEE80211_DL_WX	|
-	//		    IEEE80211_DL_SCAN	|
-	//		    IEEE80211_DL_STATE	|
-	//		    IEEE80211_DL_MGMT	|
-	//		    IEEE80211_DL_FRAG	|
-	//		    IEEE80211_DL_EAP	|
-	//		    IEEE80211_DL_DROP	|
-	//		    IEEE80211_DL_TX	|
-	//		    IEEE80211_DL_RX	|
-			    //IEEE80211_DL_QOS    |
-	//		    IEEE80211_DL_HT 	|
-	//		    IEEE80211_DL_TS	|
-//			    IEEE80211_DL_BA 	|
-	//		    IEEE80211_DL_REORDER|
-//			    IEEE80211_DL_TRACE  |
-			    //IEEE80211_DL_DATA	|
-			    IEEE80211_DL_ERR	  //awayls open this flags to show error out
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+			    
+	
+	
+
+	
+
+			    
+			    IEEE80211_DL_ERR	  
 			    ;
 struct proc_dir_entry *ieee80211_proc = NULL;
 
@@ -412,14 +382,14 @@ module_param(debug, int, 0444);
 MODULE_PARM_DESC(debug, "debug output mask");
 
 
-//module_exit(ieee80211_exit);
-//module_init(ieee80211_init);
+
+
 #endif
 #endif
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-//EXPORT_SYMBOL(alloc_ieee80211);
-//EXPORT_SYMBOL(free_ieee80211);
+
+
 #else
 EXPORT_SYMBOL_NOVERS(alloc_ieee80211);
 EXPORT_SYMBOL_NOVERS(free_ieee80211);

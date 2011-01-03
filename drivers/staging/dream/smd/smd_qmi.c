@@ -1,20 +1,4 @@
-/* arch/arm/mach-msm/smd_qmi.c
- *
- * QMI Control Driver -- Manages network data connections.
- *
- * Copyright (C) 2007 Google, Inc.
- * Author: Brian Swetland <swetland@google.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -102,7 +86,7 @@ static struct workqueue_struct *qmi_wq;
 
 static int verbose = 0;
 
-/* anyone waiting for a state change waits here */
+
 static DECLARE_WAIT_QUEUE_HEAD(qmi_wait_queue);
 
 
@@ -155,9 +139,7 @@ int qmi_add_tlv(struct qmi_msg *msg,
 	return 0;
 }
 
-/* Extract a tagged item from a qmi message buffer,
-** taking care not to overrun the buffer.
-*/
+
 static int qmi_get_tlv(struct qmi_msg *msg,
 		       unsigned type, unsigned size, void *data)
 {
@@ -168,7 +150,7 @@ static int qmi_get_tlv(struct qmi_msg *msg,
 	while (len >= 3) {
 		len -= 3;
 
-		/* size of this item */
+		
 		n = x[1] | (x[2] << 8);
 		if (n > len)
 			break;
@@ -199,10 +181,10 @@ static unsigned qmi_get_status(struct qmi_msg *msg, unsigned *error)
 	}
 }
 
-/* 0x01 <qmux-header> <payload> */
+
 #define QMUX_HEADER    13
 
-/* should be >= HEADER + FOOTER */
+
 #define QMUX_OVERHEAD  16
 
 static int qmi_send(struct qmi_ctxt *ctxt, struct qmi_msg *msg)
@@ -220,25 +202,25 @@ static int qmi_send(struct qmi_ctxt *ctxt, struct qmi_msg *msg)
 		hlen = QMUX_HEADER;
 	}
 
-	/* QMUX length is total header + total payload - IFC selector */
+	
 	len = hlen + msg->size - 1;
 	if (len > 0xffff)
 		return -1;
 
 	data = msg->tlv - hlen;
 
-	/* prepend encap and qmux header */
-	*data++ = 0x01; /* ifc selector */
+	
+	*data++ = 0x01; 
 
-	/* qmux header */
+	
 	*data++ = len;
 	*data++ = len >> 8;
-	*data++ = 0x00; /* flags: client */
+	*data++ = 0x00; 
 	*data++ = msg->service;
 	*data++ = msg->client_id;
 
-	/* qmi header */
-	*data++ = 0x00; /* flags: send */
+	
+	*data++ = 0x00; 
 	*data++ = msg->txn_id;
 	if (msg->service != QMI_CTL)
 		*data++ = msg->txn_id >> 8;
@@ -248,7 +230,7 @@ static int qmi_send(struct qmi_ctxt *ctxt, struct qmi_msg *msg)
 	*data++ = msg->size;
 	*data++ = msg->size >> 8;
 
-	/* len + 1 takes the interface selector into account */
+	
 	r = smd_write(ctxt->ch, msg->tlv - hlen, len + 1);
 
 	if (r != len) {
@@ -396,22 +378,22 @@ static void qmi_process_qmux(struct qmi_ctxt *ctxt,
 {
 	struct qmi_msg msg;
 
-	/* require a full header */
+	
 	if (sz < 5)
 		return;
 
-	/* require a size that matches the buffer size */
+	
 	if (sz != (buf[0] | (buf[1] << 8)))
 		return;
 
-	/* only messages from a service (bit7=1) are allowed */
+	
 	if (buf[2] != 0x80)
 		return;
 
 	msg.service = buf[3];
 	msg.client_id = buf[4];
 
-	/* annoyingly, CTL messages have a shorter TID */
+	
 	if (buf[3] == 0) {
 		if (sz < 7)
 			return;
@@ -426,7 +408,7 @@ static void qmi_process_qmux(struct qmi_ctxt *ctxt,
 		sz -= 8;
 	}
 
-	/* no type and size!? */
+	
 	if (sz < 4)
 		return;
 	sz -= 4;
@@ -482,7 +464,7 @@ static void qmi_read_work(struct work_struct *ws)
 			continue;
 		}
 
-		/* interface selector must be 1 */
+		
 		if (buf[0] != 0x01)
 			continue;
 
@@ -720,7 +702,7 @@ static ssize_t qmi_write(struct file *fp, const char __user *buf,
 
 	cmd[len] = 0;
 
-	/* lazy */
+	
 	if (cmd[len-1] == '\n') {
 		cmd[len-1] = 0;
 		len--;

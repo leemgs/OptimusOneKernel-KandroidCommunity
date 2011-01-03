@@ -1,29 +1,4 @@
-/* linux/arch/arm/mach-msm/qdsp5/audio_amrnb.c
- *
- * amrnb audio decoder device
- *
- * Copyright (c) 2008 QUALCOMM USA, INC.
- *
- * Based on the mp3 native driver in arch/arm/mach-msm/qdsp5/audio_mp3.c
- *
- * Copyright (C) 2008 Google, Inc.
- * Copyright (C) 2008 HTC Corporation
- *
- * All source code in this file is licensed under the following license except
- * where indicated.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
- * See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you can find it at http://www.fsf.org
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -46,7 +21,7 @@
 #include <mach/qdsp5/qdsp5audplaycmdi.h>
 #include <mach/qdsp5/qdsp5audplaymsg.h>
 
-/* for queue ids - should be relative to module number*/
+
 #include "adsp.h"
 
 #define DEBUG
@@ -57,19 +32,18 @@ printk(KERN_DEBUG format, ## arg)
 #define dprintk(format, arg...) do {} while (0)
 #endif
 
-#define BUFSZ 1024 /* Hold minimum 700ms voice data */
+#define BUFSZ 1024 
 #define DMASZ (BUFSZ * 2)
 
 #define AUDPLAY_INVALID_READ_PTR_OFFSET	0xFFFF
 #define AUDDEC_DEC_AMRNB 10
 
-#define PCM_BUFSZ_MIN 1600 /* 100ms worth of data */
-#define AMRNB_DECODED_FRSZ 320 /* AMR-NB 20ms 8KHz mono PCM size */
-#define PCM_BUF_MAX_COUNT 5	/* DSP only accepts 5 buffers at most
-				   but support 2 buffers currently */
+#define PCM_BUFSZ_MIN 1600 
+#define AMRNB_DECODED_FRSZ 320 
+#define PCM_BUF_MAX_COUNT 5	
 #define ROUTING_MODE_FTRT 1
 #define ROUTING_MODE_RT 2
-/* Decoder status received from AUDPPTASK */
+
 #define  AUDPP_DEC_STATUS_SLEEP	0
 #define	 AUDPP_DEC_STATUS_INIT  1
 #define  AUDPP_DEC_STATUS_CFG   2
@@ -78,7 +52,7 @@ printk(KERN_DEBUG format, ## arg)
 struct buffer {
 	void *data;
 	unsigned size;
-	unsigned used;		/* Input usage actual DSP produced PCM size  */
+	unsigned used;		
 	unsigned addr;
 };
 
@@ -89,7 +63,7 @@ struct audio {
 
 	uint8_t out_head;
 	uint8_t out_tail;
-	uint8_t out_needed;	/* number of buffers the dsp is waiting for */
+	uint8_t out_needed;	
 
 	atomic_t out_bytes;
 
@@ -97,29 +71,29 @@ struct audio {
 	struct mutex write_lock;
 	wait_queue_head_t write_wait;
 
-	/* Host PCM section */
+	
 	struct buffer in[PCM_BUF_MAX_COUNT];
 	struct mutex read_lock;
-	wait_queue_head_t read_wait;	/* Wait queue for read */
-	char *read_data;	/* pointer to reader buffer */
-	dma_addr_t read_phys;	/* physical address of reader buffer */
-	uint8_t read_next;	/* index to input buffers to be read next */
-	uint8_t fill_next;	/* index to buffer that DSP should be filling */
-	uint8_t pcm_buf_count;	/* number of pcm buffer allocated */
-	/* ---- End of Host PCM section */
+	wait_queue_head_t read_wait;	
+	char *read_data;	
+	dma_addr_t read_phys;	
+	uint8_t read_next;	
+	uint8_t fill_next;	
+	uint8_t pcm_buf_count;	
+	
 
 	struct msm_adsp_module *audplay;
 
 	struct audmgr audmgr;
 
-	/* data allocated for various buffers */
+	
 	char *data;
 	dma_addr_t phys;
 
 	uint8_t opened:1;
 	uint8_t enabled:1;
 	uint8_t running:1;
-	uint8_t stopped:1;	/* set when stopped, cleared on flush */
+	uint8_t stopped:1;	
 	uint8_t pcm_feedback:1;
 	uint8_t buf_refresh:1;
 
@@ -142,7 +116,7 @@ static void audamrnb_config_hostpcm(struct audio *audio);
 static void audamrnb_buffer_refresh(struct audio *audio);
 static void audamrnb_dsp_event(void *private, unsigned id, uint16_t *msg);
 
-/* must be called with audio->lock held */
+
 static int audamrnb_enable(struct audio *audio)
 {
 	struct audmgr_config cfg;
@@ -182,7 +156,7 @@ static int audamrnb_enable(struct audio *audio)
 	return 0;
 }
 
-/* must be called with audio->lock held */
+
 static int audamrnb_disable(struct audio *audio)
 {
 	dprintk("audamrnb_disable()\n");
@@ -199,7 +173,7 @@ static int audamrnb_disable(struct audio *audio)
 	return 0;
 }
 
-/* ------------------- dsp --------------------- */
+
 static void audamrnb_update_pcm_buf_entry(struct audio *audio,
 		uint32_t *payload)
 {
@@ -426,12 +400,7 @@ static void audamrnb_send_data(struct audio *audio, unsigned needed)
 		goto done;
 
 	if (needed) {
-		/* We were called from the callback because the DSP
-		 * requested more data.  Note that the DSP does want
-		 * more data, and if a buffer was in-flight, mark it
-		 * as available (since the DSP must now be done with
-		 * it).
-		 */
+		
 		audio->out_needed = 1;
 		frame = audio->out + audio->out_tail;
 		if (frame->used == 0xffffffff) {
@@ -442,17 +411,12 @@ static void audamrnb_send_data(struct audio *audio, unsigned needed)
 	}
 
 	if (audio->out_needed) {
-		/* If the DSP currently wants data and we have a
-		 * buffer available, we will send it and reset
-		 * the needed flag.  We'll mark the buffer as in-flight
-		 * so that it won't be recycled until the next buffer
-		 * is requested
-		 */
+		
 
 		frame = audio->out + audio->out_tail;
 		if (frame->used) {
 			BUG_ON(frame->used == 0xffffffff);
-/*                      printk("frame %d busy\n", audio->out_tail); */
+
 			audplay_dsp_send_data_avail(audio, audio->out_tail,
 						    frame->used);
 			frame->used = 0xffffffff;
@@ -463,7 +427,7 @@ static void audamrnb_send_data(struct audio *audio, unsigned needed)
 	spin_unlock_irqrestore(&audio->dsp_lock, flags);
 }
 
-/* ------------------- device --------------------- */
+
 
 static void audamrnb_flush(struct audio *audio)
 {
@@ -522,11 +486,7 @@ static long audamrnb_ioctl(struct file *file, unsigned int cmd,
 		break;
 	case AUDIO_FLUSH:
 		if (audio->stopped) {
-			/* Make sure we're stopped and we wake any threads
-			 * that might be blocked holding the write_lock.
-			 * While audio->stopped write threads will always
-			 * exit immediately.
-			 */
+			
 			wake_up(&audio->write_wait);
 			mutex_lock(&audio->write_lock);
 			audamrnb_flush(audio);
@@ -586,7 +546,7 @@ static long audamrnb_ioctl(struct file *file, unsigned int cmd,
 		if (config.buffer_size < PCM_BUFSZ_MIN)
 			config.buffer_size = PCM_BUFSZ_MIN;
 
-			/* Check if pcm feedback is required */
+			
 		if ((config.pcm_feedback) && (!audio->read_data)) {
 			dprintk("audamrnb_ioctl: allocate PCM buf %d\n",
 					config.buffer_count *
@@ -643,7 +603,7 @@ static ssize_t audamrnb_read(struct file *file, char __user *buf, size_t count,
 	int rc = 0;
 
 	if (!audio->pcm_feedback)
-		return 0; /* PCM feedback is not enabled. Nothing to read */
+		return 0; 
 
 	mutex_lock(&audio->read_lock);
 	dprintk("audamrnb_read() %d \n", count);
@@ -661,10 +621,7 @@ static ssize_t audamrnb_read(struct file *file, char __user *buf, size_t count,
 		}
 
 		if (count < audio->in[audio->read_next].used) {
-			/* Read must happen in frame boundary. Since driver does
-			 * not know frame size, read count must be greater or
-			 * equal to size of PCM samples
-			 */
+			
 			dprintk("audamrnb_read:read stop - partial frame\n");
 			break;
 		} else {
@@ -821,7 +778,7 @@ static int audamrnb_open(struct inode *inode, struct file *file)
 	audio->out[1].addr = audio->phys + BUFSZ;
 	audio->out[1].size = BUFSZ;
 
-	audio->volume = 0x2000;	/* Q13 1.0 */
+	audio->volume = 0x2000;	
 
 	audamrnb_flush(audio);
 

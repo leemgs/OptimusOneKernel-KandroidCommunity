@@ -1,32 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: 80211mgr.h
- *
- * Purpose: 802.11 managment frames pre-defines.
- *
- *
- * Author: Lyndon Chen
- *
- * Date: May 8, 2002
- *
- */
+
 
 #ifndef __80211MGR_H__
 #define __80211MGR_H__
@@ -34,11 +6,11 @@
 #include "ttype.h"
 #include "80211hdr.h"
 
-/*---------------------  Export Definitions -------------------------*/
+
 
 #define WLAN_MIN_ARRAY          1
 
-// Information Element ID value
+
 #define WLAN_EID_SSID           0
 #define WLAN_EID_SUPP_RATES     1
 #define WLAN_EID_FH_PARMS       2
@@ -59,10 +31,10 @@
 #define WLAN_EID_QUIET          40
 #define WLAN_EID_IBSS_DFS       41
 #define WLAN_EID_ERP            42
-// reference 802.11i 7.3.2 table 20
+
 #define WLAN_EID_RSN            48
 #define WLAN_EID_EXTSUPP_RATES  50
-// reference WiFi WPA spec.
+
 #define WLAN_EID_RSN_WPA        221
 
 
@@ -70,7 +42,7 @@
 #define WLAN_EID_ERP_USE_PROTECTION             0x02
 #define WLAN_EID_ERP_BARKER_MODE                0x04
 
-// Reason Codes
+
 #define WLAN_MGMT_REASON_RSVD                       0
 #define WLAN_MGMT_REASON_UNSPEC                     1
 #define WLAN_MGMT_REASON_PRIOR_AUTH_INVALID         2
@@ -95,7 +67,7 @@
 #define WLAN_MGMT_REASON_RSNE_CAP_INVALID           22
 #define WLAN_MGMT_REASON_80211X_AUTH_FAILED         23
 
-// Status Codes
+
 #define WLAN_MGMT_STATUS_SUCCESS                        0
 #define WLAN_MGMT_STATUS_UNSPEC_FAILURE                 1
 #define WLAN_MGMT_STATUS_CAPS_UNSUPPORTED               10
@@ -111,19 +83,19 @@
 #define WLAN_MGMT_STATUS_ASSOC_DENIED_PBCC              20
 #define WLAN_MGMT_STATUS_ASSOC_DENIED_AGILITY           21
 
-// reference 802.11h 7.3.1.9
-//
+
+
 #define WLAN_MGMT_STATUS_ASSOC_REJECT_BCS_SPECTRUM_MNG  22
 #define WLAN_MGMT_STATUS_ASSOC_REJECT_BCS_PWR_CAP       23
 #define WLAN_MGMT_STATUS_ASSOC_REJECT_BCS_SUPP_CH       24
-//
-// reference 802.11g 7.3.1.9
-//
+
+
+
 #define WLAN_MGMT_STATUS_SHORTSLOTTIME_UNSUPPORTED      25
 #define WLAN_MGMT_STATUS_DSSSOFDM_UNSUPPORTED           26
-//
-// reference 802.11i 7.3.1.9 table 19
-//
+
+
+
 #define WLAN_MGMT_STATUS_INVALID_IE                     40
 #define WLAN_MGMT_STATUS_GROUP_CIPHER_INVALID           41
 #define WLAN_MGMT_STATUS_PAIRWISE_CIPHER_INVALID        42
@@ -134,15 +106,15 @@
 
 
 
-// Auth Algorithm
+
 #define WLAN_AUTH_ALG_OPENSYSTEM                0
 #define WLAN_AUTH_ALG_SHAREDKEY                 1
 
 
 
-// Management Frame Field Offsets
-// Note: Not all fields are listed because of variable lengths.
-// Note: These offsets are from the start of the frame data
+
+
+
 
 #define WLAN_BEACON_OFF_TS                  0
 #define WLAN_BEACON_OFF_BCN_INT             8
@@ -185,9 +157,9 @@
 #define WLAN_DEAUTHEN_OFF_REASON            0
 
 
-//
-// Cipher Suite Selectors defiened in 802.11i
-//
+
+
+
 #define WLAN_11i_CSS_USE_GROUP              0
 #define WLAN_11i_CSS_WEP40                  1
 #define WLAN_11i_CSS_TKIP                   2
@@ -195,38 +167,38 @@
 #define WLAN_11i_CSS_WEP104                 5
 #define WLAN_11i_CSS_UNKNOWN                255
 
-//
-// Authentication and Key Management Suite Selectors defined in 802.11i
-//
+
+
+
 #define WLAN_11i_AKMSS_802_1X               1
 #define WLAN_11i_AKMSS_PSK                  2
 #define WLAN_11i_AKMSS_UNKNOWN              255
 
-// Measurement type definitions reference ieee 802.11h Table 20b
+
 #define MEASURE_TYPE_BASIC      0
 #define MEASURE_TYPE_CCA        1
 #define MEASURE_TYPE_RPI        2
 
-// Measurement request mode definitions reference ieee 802.11h Figure 46h
+
 #define MEASURE_MODE_ENABLE     0x02
 #define MEASURE_MODE_REQ        0x04
 #define MEASURE_MODE_REP        0x08
 
-// Measurement report mode definitions reference ieee 802.11h Figure 46m
+
 #define MEASURE_MODE_LATE       0x01
 #define MEASURE_MODE_INCAPABLE  0x02
 #define MEASURE_MODE_REFUSED    0x04
 
 
 
-/*---------------------  Export Classes  ----------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
-
-/*---------------------  Export Types  ------------------------------*/
 
 
-// Information Element Types
+
+
+
+
+
+
 
 #pragma pack(1)
 typedef struct tagWLAN_IE {
@@ -236,7 +208,7 @@ typedef struct tagWLAN_IE {
 WLAN_IE, *PWLAN_IE;
 
 
-// Service Set Identity (SSID)
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_SSID {
     BYTE   byElementID;
@@ -246,7 +218,7 @@ typedef struct tagWLAN_IE_SSID {
 WLAN_IE_SSID, *PWLAN_IE_SSID;
 
 
-// Supported Rates
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_SUPP_RATES {
     BYTE   byElementID;
@@ -257,7 +229,7 @@ WLAN_IE_SUPP_RATES,  *PWLAN_IE_SUPP_RATES;
 
 
 
-// FH Parameter Set
+
 #pragma pack(1)
 typedef struct _WLAN_IE_FH_PARMS {
     BYTE    byElementID;
@@ -268,7 +240,7 @@ typedef struct _WLAN_IE_FH_PARMS {
     BYTE    byHopIndex;
 } WLAN_IE_FH_PARMS,  *PWLAN_IE_FH_PARMS;
 
-// DS Parameter Set
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_DS_PARMS {
     BYTE   byElementID;
@@ -278,7 +250,7 @@ typedef struct tagWLAN_IE_DS_PARMS {
 WLAN_IE_DS_PARMS,  *PWLAN_IE_DS_PARMS;
 
 
-// CF Parameter Set
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_CF_PARMS {
     BYTE   byElementID;
@@ -291,7 +263,7 @@ typedef struct tagWLAN_IE_CF_PARMS {
 WLAN_IE_CF_PARMS,  *PWLAN_IE_CF_PARMS;
 
 
-// TIM
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_TIM {
     BYTE   byElementID;
@@ -304,7 +276,7 @@ typedef struct tagWLAN_IE_TIM {
 WLAN_IE_TIM,  *PWLAN_IE_TIM;
 
 
-// IBSS Parameter Set
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_IBSS_PARMS {
     BYTE   byElementID;
@@ -314,7 +286,7 @@ typedef struct tagWLAN_IE_IBSS_PARMS {
 WLAN_IE_IBSS_PARMS, *PWLAN_IE_IBSS_PARMS;
 
 
-// Challenge Text
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_CHALLENGE {
     BYTE   byElementID;
@@ -334,8 +306,8 @@ typedef struct tagWLAN_IE_RSN_EXT {
     WORD wPKCount;
     struct {
         BYTE abyOUI[4];
-    } PKSList[1]; // the rest is variable so need to
-    // overlay ieauth structure
+    } PKSList[1]; 
+    
 } WLAN_IE_RSN_EXT, *PWLAN_IE_RSN_EXT;
 
 #pragma pack(1)
@@ -346,7 +318,7 @@ typedef struct tagWLAN_IE_RSN_AUTH {
     } AuthKSList[1];
 } WLAN_IE_RSN_AUTH, *PWLAN_IE_RSN_AUTH;
 
-// RSN Identity
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_RSN {
     BYTE   byElementID;
@@ -356,7 +328,7 @@ typedef struct tagWLAN_IE_RSN {
 } WLAN_IE_RSN, *PWLAN_IE_RSN;
 
 
-// ERP
+
 #pragma pack(1)
 typedef struct tagWLAN_IE_ERP {
     BYTE   byElementID;
@@ -491,8 +463,8 @@ typedef struct _WLAN_IE_IBSS_DFS {
 
 
 
-// Frame Types
-// prototype structure, all mgmt frame types will start with these members
+
+
 typedef struct tagWLAN_FR_MGMT {
 
     UINT                  uType;
@@ -502,21 +474,21 @@ typedef struct tagWLAN_FR_MGMT {
 
 } WLAN_FR_MGMT,  *PWLAN_FR_MGMT;
 
-// Beacon frame
+
 typedef struct tagWLAN_FR_BEACON {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    // fixed fields
+    
     PQWORD                  pqwTimestamp;
     PWORD                   pwBeaconInterval;
     PWORD                   pwCapInfo;
-    /*-- info elements ----------*/
+    
     PWLAN_IE_SSID           pSSID;
     PWLAN_IE_SUPP_RATES     pSuppRates;
-//  PWLAN_IE_FH_PARMS       pFHParms;
+
     PWLAN_IE_DS_PARMS       pDSParms;
     PWLAN_IE_CF_PARMS       pCFParms;
     PWLAN_IE_TIM            pTIM;
@@ -534,7 +506,7 @@ typedef struct tagWLAN_FR_BEACON {
 } WLAN_FR_BEACON, *PWLAN_FR_BEACON;
 
 
-// IBSS ATIM frame
+
 typedef struct tagWLAN_FR_IBSSATIM {
 
     UINT                    uType;
@@ -542,36 +514,36 @@ typedef struct tagWLAN_FR_IBSSATIM {
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
 
-    // fixed fields
-    // info elements
-    // this frame type has a null body
+    
+    
+    
 
 } WLAN_FR_IBSSATIM, *PWLAN_FR_IBSSATIM;
 
-// Disassociation
+
 typedef struct tagWLAN_FR_DISASSOC {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
+    
     PWORD                   pwReason;
-    /*-- info elements ----------*/
+    
 
 } WLAN_FR_DISASSOC, *PWLAN_FR_DISASSOC;
 
-// Association Request
+
 typedef struct tagWLAN_FR_ASSOCREQ {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
+    
     PWORD                   pwCapInfo;
     PWORD                   pwListenInterval;
-    /*-- info elements ----------*/
+    
     PWLAN_IE_SSID           pSSID;
     PWLAN_IE_SUPP_RATES     pSuppRates;
     PWLAN_IE_RSN            pRSN;
@@ -582,24 +554,24 @@ typedef struct tagWLAN_FR_ASSOCREQ {
 
 } WLAN_FR_ASSOCREQ, *PWLAN_FR_ASSOCREQ;
 
-// Association Response
+
 typedef struct tagWLAN_FR_ASSOCRESP {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
+    
     PWORD                   pwCapInfo;
     PWORD                   pwStatus;
     PWORD                   pwAid;
-    /*-- info elements ----------*/
+    
     PWLAN_IE_SUPP_RATES     pSuppRates;
     PWLAN_IE_SUPP_RATES     pExtSuppRates;
 
 } WLAN_FR_ASSOCRESP, *PWLAN_FR_ASSOCRESP;
 
-// Reassociation Request
+
 typedef struct tagWLAN_FR_REASSOCREQ {
 
     UINT                    uType;
@@ -607,12 +579,12 @@ typedef struct tagWLAN_FR_REASSOCREQ {
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
 
-    /*-- fixed fields -----------*/
+    
     PWORD                   pwCapInfo;
     PWORD                   pwListenInterval;
     PIEEE_ADDR              pAddrCurrAP;
 
-    /*-- info elements ----------*/
+    
     PWLAN_IE_SSID           pSSID;
     PWLAN_IE_SUPP_RATES     pSuppRates;
     PWLAN_IE_RSN            pRSN;
@@ -621,50 +593,50 @@ typedef struct tagWLAN_FR_REASSOCREQ {
 
 } WLAN_FR_REASSOCREQ, *PWLAN_FR_REASSOCREQ;
 
-// Reassociation Response
+
 typedef struct tagWLAN_FR_REASSOCRESP {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
+    
     PWORD                   pwCapInfo;
     PWORD                   pwStatus;
     PWORD                   pwAid;
-    /*-- info elements ----------*/
+    
     PWLAN_IE_SUPP_RATES     pSuppRates;
     PWLAN_IE_SUPP_RATES     pExtSuppRates;
 
 } WLAN_FR_REASSOCRESP, *PWLAN_FR_REASSOCRESP;
 
-// Probe Request
+
 typedef struct tagWLAN_FR_PROBEREQ {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
-    /*-- info elements ----------*/
+    
+    
     PWLAN_IE_SSID           pSSID;
     PWLAN_IE_SUPP_RATES     pSuppRates;
     PWLAN_IE_SUPP_RATES     pExtSuppRates;
 
 } WLAN_FR_PROBEREQ, *PWLAN_FR_PROBEREQ;
 
-// Probe Response
+
 typedef struct tagWLAN_FR_PROBERESP {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
+    
     PQWORD                  pqwTimestamp;
     PWORD                   pwBeaconInterval;
     PWORD                   pwCapInfo;
-    /*-- info elements ----------*/
+    
     PWLAN_IE_SSID           pSSID;
     PWLAN_IE_SUPP_RATES     pSuppRates;
     PWLAN_IE_DS_PARMS       pDSParms;
@@ -682,37 +654,37 @@ typedef struct tagWLAN_FR_PROBERESP {
 
 } WLAN_FR_PROBERESP, *PWLAN_FR_PROBERESP;
 
-// Authentication
+
 typedef struct tagWLAN_FR_AUTHEN {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
+    
     PWORD                   pwAuthAlgorithm;
     PWORD                   pwAuthSequence;
     PWORD                   pwStatus;
-    /*-- info elements ----------*/
+    
     PWLAN_IE_CHALLENGE      pChallenge;
 
 } WLAN_FR_AUTHEN, *PWLAN_FR_AUTHEN;
 
-// Deauthenication
+
 typedef struct tagWLAN_FR_DEAUTHEN {
 
     UINT                    uType;
     UINT                    len;
     PBYTE                   pBuf;
     PUWLAN_80211HDR         pHdr;
-    /*-- fixed fields -----------*/
+    
     PWORD                   pwReason;
 
-    /*-- info elements ----------*/
+    
 
 } WLAN_FR_DEAUTHEN, *PWLAN_FR_DEAUTHEN;
 
-/*---------------------  Export Functions  --------------------------*/
+
 
 VOID
 vMgrEncodeBeacon(
@@ -824,4 +796,4 @@ vMgrDecodeReassocResponse(
     IN  PWLAN_FR_REASSOCRESP  pFrame
     );
 
-#endif// __80211MGR_H__
+#endif

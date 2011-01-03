@@ -3,7 +3,7 @@
 
 #include "wbhal_f.h"
 
-// 20031229 Turbo add
+
 #define REG_AGC_CTRL1               0x1000
 #define REG_AGC_CTRL2               0x1004
 #define REG_AGC_CTRL3               0x1008
@@ -37,7 +37,7 @@
 
 
 
-//  20031101 Turbo add
+
 #define MASK_AMER_OFF_REG          BIT(31)
 
 #define MASK_BMER_OFF_REG          BIT(31)
@@ -74,34 +74,34 @@
 #define MASK_CANCEL_DC_Q           0x01F
 #define CANCEL_DC_Q_SHIFT          0
 
-// LA20040210 kevin
-//#define MASK_ADC_DC_CAL_I(x)       (((x)&0x1FE00)>>9)
-//#define MASK_ADC_DC_CAL_Q(x)       ((x)&0x1FF)
+
+
+
 #define MASK_ADC_DC_CAL_I(x)       (((x)&0x0003FE00)>>9)
 #define MASK_ADC_DC_CAL_Q(x)       ((x)&0x000001FF)
 
-// LA20040210 kevin (Turbo has wrong definition)
-//#define MASK_IQCAL_TONE_I          0x7FFC000
-//#define SHIFT_IQCAL_TONE_I(x)      ((x)>>13)
-//#define MASK_IQCAL_TONE_Q          0x1FFF
-//#define SHIFT_IQCAL_TONE_Q(x)      ((x)>>0)
+
+
+
+
+
 #define MASK_IQCAL_TONE_I          0x00001FFF
 #define SHIFT_IQCAL_TONE_I(x)      ((x)>>0)
 #define MASK_IQCAL_TONE_Q          0x03FFE000
 #define SHIFT_IQCAL_TONE_Q(x)      ((x)>>13)
 
-// LA20040210 kevin (Turbo has wrong definition)
-//#define MASK_IQCAL_IMAGE_I         0x7FFC000
-//#define SHIFT_IQCAL_IMAGE_I(x)     ((x)>>13)
-//#define MASK_IQCAL_IMAGE_Q         0x1FFF
-//#define SHIFT_IQCAL_IMAGE_Q(x)     ((x)>>0)
 
-//#define MASK_IQCAL_IMAGE_I         0x00001FFF
-//#define SHIFT_IQCAL_IMAGE_I(x)     ((x)>>0)
-//#define MASK_IQCAL_IMAGE_Q         0x03FFE000
-//#define SHIFT_IQCAL_IMAGE_Q(x)     ((x)>>13)
+
+
+
+
+
+
+
+
+
 
 void phy_set_rf_data(  struct hw_data * pHwData,  u32 index,  u32 value );
-#define phy_init_rf( _A )	//RFSynthesizer_initial( _A )
+#define phy_init_rf( _A )	
 
 #endif

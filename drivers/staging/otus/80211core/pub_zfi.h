@@ -1,63 +1,49 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef _PUB_DEFS_H
 #define _PUB_DEFS_H
 
 #include "../oal_dt.h"
 
-/***** Section 1 : Tunable Parameters *****/
-/* The defintions in this section are tunabel parameters */
 
-/* Maximum number of BSS that could be scaned */
+
+
+
 #define ZM_MAX_BSS                          128
 
-/* Maximum number of WPA2 PMKID that supported */
+
 #define ZM_PMKID_MAX_BSS_CNT               8
 
-/* Enable aggregation and deaggregation */
+
 #define ZM_ENABLE_AGGREGATION
 
 #ifdef ZM_ENABLE_AGGREGATION
-    /* Enable BA failed retransmission in firmware */
+    
     #define ZM_ENABLE_FW_BA_RETRANSMISSION
     #define ZM_BYPASS_AGGR_SCHEDULING
-    //#define ZM_AGGR_BIT_ON
+    
 #endif
 
 
 #ifndef ZM_FB50
-//#define ZM_FB50
+
 #endif
 
 #ifndef ZM_AP_DEBUG
-//#define ZM_AP_DEBUG
+
 #endif
 
-//#define ZM_ENABLE_BA_RATECTRL
-
-/***** End of section 1 *****/
 
 
-/***** Section 2 : Public Definitions, data structures and prototypes *****/
-/* function return status */
+
+
+
+
+
 #define ZM_STATUS_SUCCESS                   0
 #define ZM_STATUS_FAILURE                   1
 
-// media connect status
+
 #define ZM_STATUS_MEDIA_CONNECT             0x00
 #define ZM_STATUS_MEDIA_DISCONNECT          0x01
 #define ZM_STATUS_MEDIA_DISCONNECT_NOT_FOUND    0x02
@@ -74,16 +60,16 @@
 #define ZM_STATUS_MEDIA_DISCONNECT_UNREACHABLE 0x0d
 #define ZM_STATUS_MEDIA_DISCONNECT_BEACON_MISS  0x0e
 
-// Packet Filter
+
 #define ZM_PACKET_TYPE_DIRECTED             0x00000001
 #define ZM_PACKET_TYPE_MULTICAST            0x00000002
 #define ZM_PACKET_TYPE_ALL_MULTICAST        0x00000004
 #define ZM_PACKET_TYPE_BROADCAST            0x00000008
 #define ZM_PACKET_TYPE_PROMISCUOUS          0x00000020
 
-/* BSS mode definition */
-/* TODO : The definitions here are coupled with XP's NDIS OID. */
-/*        We can't be changed them freely, need to disarm this mine */
+
+
+
 #define ZM_MODE_IBSS                        0
 #define ZM_MODE_INFRASTRUCTURE              1
 #define ZM_MODE_UNKNOWN                     2
@@ -92,7 +78,7 @@
 #define ZM_MODE_PSEUDO                      5
 
 
-/* Authentication mode */
+
 #define ZM_AUTH_MODE_OPEN                   0
 #define ZM_AUTH_MODE_SHARED_KEY             1
 #define ZM_AUTH_MODE_AUTO                   2
@@ -103,11 +89,11 @@
 #define ZM_AUTH_MODE_WPA2PSK                7
 #ifdef ZM_ENABLE_CENC
 #define ZM_AUTH_MODE_CENC                   8
-#endif //ZM_ENABLE_CENC
+#endif 
 #define ZM_AUTH_MODE_WPA_AUTO               9
 #define ZM_AUTH_MODE_WPAPSK_AUTO            10
 
-// Encryption mode
+
 #define ZM_NO_WEP                           0x0
 #define ZM_AES                              0x4
 #define ZM_TKIP                             0x2
@@ -116,9 +102,9 @@
 #define ZM_WEP256                           0x6
 #ifdef ZM_ENABLE_CENC
 #define ZM_CENC                             0x7
-#endif //ZM_ENABLE_CENC
+#endif 
 
-/* Encryption type for wep status */
+
 #define ZM_ENCRYPTION_WEP_DISABLED          0
 #define ZM_ENCRYPTION_WEP_ENABLED           1
 #define ZM_ENCRYPTION_WEP_KEY_ABSENT        2
@@ -130,73 +116,73 @@
 
 #ifdef ZM_ENABLE_CENC
 #define ZM_ENCRYPTION_CENC                  8
-#endif //ZM_ENABLE_CENC
+#endif 
 
-/* security type */
+
 #define ZM_SECURITY_TYPE_NONE               0
 #define ZM_SECURITY_TYPE_WEP                1
 #define ZM_SECURITY_TYPE_WPA                2
 
 #ifdef ZM_ENABLE_CENC
 #define ZM_SECURITY_TYPE_CENC               3
-#endif //ZM_ENABLE_CENC
+#endif 
 
-/* Encryption Exemption Action Type  */
+
 #define ZM_ENCRYPTION_EXEMPT_NO_EXEMPTION   0
 #define ZM_ENCRYPTION_EXEMPT_ALWAYS         1
 
-/* MIC failure */
+
 #define ZM_MIC_PAIRWISE_ERROR               0x06
 #define ZM_MIC_GROUP_ERROR                  0x0E
 
 
-/* power save mode */
+
 #define ZM_STA_PS_NONE                    0
 #define ZM_STA_PS_MAX                     1
 #define ZM_STA_PS_FAST                    2
 #define ZM_STA_PS_LIGHT                   3
 
-/* WME AC Type */
-#define ZM_WME_AC_BK                        0       /* Background AC */
-#define ZM_WME_AC_BE                        1       /* Best-effort AC */
-#define ZM_WME_AC_VIDEO                     2       /* Video AC */
-#define ZM_WME_AC_VOICE                     3       /* Voice AC */
 
-/* Preamble type */
+#define ZM_WME_AC_BK                        0       
+#define ZM_WME_AC_BE                        1       
+#define ZM_WME_AC_VIDEO                     2       
+#define ZM_WME_AC_VOICE                     3       
+
+
 #define ZM_PREAMBLE_TYPE_AUTO               0
 #define ZM_PREAMBLE_TYPE_LONG               1
 #define ZM_PREAMBLE_TYPE_SHORT              2
 
-/* wireless modes constants */
-#define ZM_WIRELESS_MODE_5_54        0x01   ///< 5 GHz 54 Mbps
-#define ZM_WIRELESS_MODE_5_108       0x02   ///< 5 GHz 108 Mbps
-#define ZM_WIRELESS_MODE_24_11       0x04   ///< 2.4 GHz 11 Mbps
-#define ZM_WIRELESS_MODE_24_54       0x08   ///< 2.4 GHz 54 Mbps
-#define ZM_WIRELESS_MODE_24_108      0x10   ///< 2.4 GHz 108 Mbps
-#define ZM_WIRELESS_MODE_49_13      0x100   ///< 4.9 GHz 13.5 Mbps, quarter rate chn-bandwidth = 5
-#define ZM_WIRELESS_MODE_49_27      0x200   ///< 4.9 GHz 27 Mbps, half rate chn-bandwidth = 10
-#define ZM_WIRELESS_MODE_49_54      0x400   ///< 4.9 GHz 54 Mbps, full rate chn-bandwidth = 20
-#define ZM_WIRELESS_MODE_5_300     0x1000   ///< 5 GHz 300 Mbps
-#define ZM_WIRELESS_MODE_24_300    0x2000   ///< 2.4 GHz 300 Mbps
-#define ZM_WIRELESS_MODE_5_130     0x4000   ///< 5 GHz 130 Mbps
-#define ZM_WIRELESS_MODE_24_130    0x8000   ///< 2.4 GHz 130 Mbps
+
+#define ZM_WIRELESS_MODE_5_54        0x01   
+#define ZM_WIRELESS_MODE_5_108       0x02   
+#define ZM_WIRELESS_MODE_24_11       0x04   
+#define ZM_WIRELESS_MODE_24_54       0x08   
+#define ZM_WIRELESS_MODE_24_108      0x10   
+#define ZM_WIRELESS_MODE_49_13      0x100   
+#define ZM_WIRELESS_MODE_49_27      0x200   
+#define ZM_WIRELESS_MODE_49_54      0x400   
+#define ZM_WIRELESS_MODE_5_300     0x1000   
+#define ZM_WIRELESS_MODE_24_300    0x2000   
+#define ZM_WIRELESS_MODE_5_130     0x4000   
+#define ZM_WIRELESS_MODE_24_130    0x8000   
 
 #define ZM_WIRELESS_MODE_24_N      (ZM_WIRELESS_MODE_24_130|ZM_WIRELESS_MODE_24_300)
 #define ZM_WIRELESS_MODE_5_N       (ZM_WIRELESS_MODE_5_130|ZM_WIRELESS_MODE_5_300)
 #define ZM_WIRELESS_MODE_24        (ZM_WIRELESS_MODE_24_11|ZM_WIRELESS_MODE_24_54|ZM_WIRELESS_MODE_24_N)
 #define ZM_WIRELESS_MODE_5         (ZM_WIRELESS_MODE_5_54|ZM_WIRELESS_MODE_5_N)
 
-/* AdHoc Mode with different band */
+
 #define ZM_ADHOCBAND_A         1
 #define ZM_ADHOCBAND_B         2
 #define ZM_ADHOCBAND_G         3
 #define ZM_ADHOCBAND_BG        4
 #define ZM_ADHOCBAND_ABG       5
 
-/* Authentication algorithm in the field algNo of authentication frames */
-#define ZM_AUTH_ALGO_OPEN_SYSTEM      0x10000    /* Open system */
-#define ZM_AUTH_ALGO_SHARED_KEY       0x10001    /* Shared Key */
-#define ZM_AUTH_ALGO_LEAP             0x10080    /* Leap */
+
+#define ZM_AUTH_ALGO_OPEN_SYSTEM      0x10000    
+#define ZM_AUTH_ALGO_SHARED_KEY       0x10001    
+#define ZM_AUTH_ALGO_LEAP             0x10080    
 
 struct zsScanResult
 {
@@ -210,9 +196,9 @@ struct zsStastics
 };
 
 #define ZM_MAX_SUPP_RATES_IE_SIZE       12
-#define ZM_MAX_IE_SIZE                  50 //100
+#define ZM_MAX_IE_SIZE                  50 
 #define ZM_MAX_WPS_IE_SIZE              150
-#define ZM_MAX_PROBE_FRAME_BODY_SIZE    512//300
+#define ZM_MAX_PROBE_FRAME_BODY_SIZE    512
 #define	ZM_MAX_COUNTRY_INFO_SIZE		20
 
 #define ZM_MAX_SSID_LENGTH          32
@@ -223,19 +209,19 @@ struct zsBssInfo
     u8_t   beaconInterval[2];
     u8_t   capability[2];
     u8_t   timeStamp[8];
-    u8_t   ssid[ZM_MAX_SSID_LENGTH + 2];   // EID(1) + Length(1) + SSID(32)
-    u8_t   supportedRates[ZM_MAX_SUPP_RATES_IE_SIZE + 2]; // EID(1) + Length(1) + supported rates [12]
+    u8_t   ssid[ZM_MAX_SSID_LENGTH + 2];   
+    u8_t   supportedRates[ZM_MAX_SUPP_RATES_IE_SIZE + 2]; 
     u8_t   channel;
     u16_t  frequency;
     u16_t  atimWindow;
     u8_t   erp;
-    u8_t   extSupportedRates[ZM_MAX_SUPP_RATES_IE_SIZE + 2]; // EID(1) + Length(1) + extended supported rates [12]
+    u8_t   extSupportedRates[ZM_MAX_SUPP_RATES_IE_SIZE + 2]; 
     u8_t   wpaIe[ZM_MAX_IE_SIZE + 2];
     u8_t   wscIe[ZM_MAX_WPS_IE_SIZE + 2];
     u8_t   rsnIe[ZM_MAX_IE_SIZE + 2];
 #ifdef ZM_ENABLE_CENC
-    u8_t   cencIe[ZM_MAX_IE_SIZE + 2]; /* CENC */ /* half size because of memory exceed 64k boundary */
-#endif //ZM_ENABLE_CENC
+    u8_t   cencIe[ZM_MAX_IE_SIZE + 2];  
+#endif 
     u8_t   securityType;
     u8_t   signalStrength;
     u8_t   signalQuality;
@@ -246,7 +232,7 @@ struct zsBssInfo
     u8_t   enableHT40;
     u8_t   SG40;
     u8_t   extChOffset;
-    u8_t   apCap; // bit0:11N AP
+    u8_t   apCap; 
     u16_t  frameBodysize;
     u8_t   frameBody[ZM_MAX_PROBE_FRAME_BODY_SIZE];
     u8_t   countryInfo[ZM_MAX_COUNTRY_INFO_SIZE + 2];
@@ -278,11 +264,11 @@ struct zsBssListV1
 
 #ifdef ZM_ENABLE_CENC
 #define ZM_KEY_FLAG_CENC               0x0020
-#endif //ZM_ENABLE_CENC
+#endif 
 
-// Comment: For TKIP, key[0]~key[15]  => TKIP key
-//                    key[16]~key[23] => Tx MIC key
-//                    key[24]~key[31] => Rx MIC key
+
+
+
 struct zsKeyInfo
 {
     u8_t*   key;
@@ -297,16 +283,14 @@ struct zsKeyInfo
 
 
 
-/*
- * Channels are specified by frequency.
- */
+
 typedef struct {
-	u16_t	channel;	/* setting in Mhz */
-	u32_t	channelFlags;	/* see below */
+	u16_t	channel;	
+	u32_t	channelFlags;	
 	u8_t	privFlags;
-	s8_t	maxRegTxPower;	/* max regulatory tx power in dBm */
-	s8_t	maxTxPower;	/* max true tx power in 0.25 dBm */
-	s8_t	minTxPower;	/* min true tx power in 0.25 dBm */
+	s8_t	maxRegTxPower;	
+	s8_t	maxTxPower;	
+	s8_t	minTxPower;	
 } ZM_HAL_CHANNEL;
 
 struct zsRegulationTable
@@ -314,13 +298,13 @@ struct zsRegulationTable
     u16_t   regionCode;
     u16_t   CurChIndex;
     u16_t   allowChannelCnt;
-    ZM_HAL_CHANNEL   allowChannel[60];   /* 2.4GHz: 14 channels, 5 GHz: 31 channels */
+    ZM_HAL_CHANNEL   allowChannel[60];   
 };
 
 struct zsPartnerNotifyEvent
 {
-    u8_t bssid[6];                      // The BSSID of IBSS
-    u8_t peerMacAddr[6];                // The MAC address of peer station
+    u8_t bssid[6];                      
+    u8_t peerMacAddr[6];                
 };
 
 #define ZM_RC_TRAINED_BIT   0x1
@@ -343,12 +327,12 @@ struct zsOppositeInfo
 {
     u8_t            macAddr[6];
     struct zsRcCell rcCell;
-    u8_t            valid;              // This indicate if this opposite is still valid
+    u8_t            valid;              
     u8_t            aliveCounter;
     u8_t            pkInstalled;
 
 #ifdef ZM_ENABLE_IBSS_WPA2PSK
-    /* For WPA2PSK ! */
+    
     u8_t 			wpaState;
     u8_t            camIdx;
     u8_t            encryMode;
@@ -363,101 +347,101 @@ typedef void (*zfpIBSSIteratePeerStationCb)(
 typedef u16_t (*zfpStaRxSecurityCheckCb)(zdev_t* dev, zbuf_t* buf);
 
 
-/* Communication Tally data structure */
+
 struct zsCommTally
 {
-    u32_t txUnicastFrm;		    //  0 txUnicastFrames
-    u32_t txMulticastFrm;		//  1 txMulticastFrames
-    u32_t txUnicastOctets;	    //  2 txUniOctets  byte size
-    u32_t txMulticastOctets;	//  3 txMultiOctets  byte size
-    u32_t txFrmUpperNDIS;       //  4
-    u32_t txFrmDrvMgt;          //  5
-    u32_t RetryFailCnt;		    //  6
-    u32_t Hw_TotalTxFrm;		//  7 Hardware total Tx Frame
-    u32_t Hw_RetryCnt;		    //  8 txMultipleRetriesFrames
-    u32_t Hw_UnderrunCnt;       //  9
+    u32_t txUnicastFrm;		    
+    u32_t txMulticastFrm;		
+    u32_t txUnicastOctets;	    
+    u32_t txMulticastOctets;	
+    u32_t txFrmUpperNDIS;       
+    u32_t txFrmDrvMgt;          
+    u32_t RetryFailCnt;		    
+    u32_t Hw_TotalTxFrm;		
+    u32_t Hw_RetryCnt;		    
+    u32_t Hw_UnderrunCnt;       
 
-    u32_t DriverRxFrmCnt;       // 10
-    u32_t rxUnicastFrm;		    // 11 rxUnicastFrames
-    u32_t rxMulticastFrm;	    // 12rxMulticastFrames
+    u32_t DriverRxFrmCnt;       
+    u32_t rxUnicastFrm;		    
+    u32_t rxMulticastFrm;	    
 
-    u32_t NotifyNDISRxFrmCnt;   // 14
-    u32_t rxUnicastOctets;	// 15 rxUniOctets  byte size
-    u32_t rxMulticastOctets;	    // 16 rxMultiOctets  byte size
-    u32_t DriverDiscardedFrm;       // 17 Discard by ValidateFrame
-    u32_t LessThanDataMinLen;       // 18
-    u32_t GreaterThanMaxLen;        // 19
+    u32_t NotifyNDISRxFrmCnt;   
+    u32_t rxUnicastOctets;	
+    u32_t rxMulticastOctets;	    
+    u32_t DriverDiscardedFrm;       
+    u32_t LessThanDataMinLen;       
+    u32_t GreaterThanMaxLen;        
     u32_t DriverDiscardedFrmCauseByMulticastList;
     u32_t DriverDiscardedFrmCauseByFrmCtrl;
-    u32_t rxNeedFrgFrm;		    // 22 need more frg frm
+    u32_t rxNeedFrgFrm;		    
     u32_t DriverRxMgtFrmCnt;
-    u32_t rxBroadcastFrm;	    // 24 Receive broadcast frame count
-    u32_t rxBroadcastOctets;	// 25 Receive broadcast frame byte size
-    u32_t rx11bDataFrame;		// 26 Measured quality 11b data frame count
-    u32_t rxOFDMDataFrame;	    // 27 Measured quality 11g data frame count
+    u32_t rxBroadcastFrm;	    
+    u32_t rxBroadcastOctets;	
+    u32_t rx11bDataFrame;		
+    u32_t rxOFDMDataFrame;	    
 
 
-    u32_t Hw_TotalRxFrm;        // 28
-    u32_t Hw_CRC16Cnt;		    // 29 rxPLCPCRCErrCnt
-    u32_t Hw_CRC32Cnt;		    // 30 rxCRC32ErrCnt
-    u32_t Hw_DecrypErr_UNI;     // 31
-    u32_t Hw_DecrypErr_Mul;     // 32
+    u32_t Hw_TotalRxFrm;        
+    u32_t Hw_CRC16Cnt;		    
+    u32_t Hw_CRC32Cnt;		    
+    u32_t Hw_DecrypErr_UNI;     
+    u32_t Hw_DecrypErr_Mul;     
 
-    u32_t Hw_RxFIFOOverrun;     // 34
-    u32_t Hw_RxTimeOut;         // 35
-    u32_t LossAP;               // 36
+    u32_t Hw_RxFIFOOverrun;     
+    u32_t Hw_RxTimeOut;         
+    u32_t LossAP;               
 
-    u32_t Tx_MPDU;              // 37
-    u32_t BA_Fail;              // 38
-    u32_t Hw_Tx_AMPDU;          // 39
-    u32_t Hw_Tx_MPDU;           // 40
+    u32_t Tx_MPDU;              
+    u32_t BA_Fail;              
+    u32_t Hw_Tx_AMPDU;          
+    u32_t Hw_Tx_MPDU;           
 
     u32_t RateCtrlTxMPDU;
     u32_t RateCtrlBAFail;
 
-    u32_t txQosDropCount[5];    //41 42 43 44 45
+    u32_t txQosDropCount[5];    
 
-	u32_t Hw_RxMPDU;            // 46
-	u32_t Hw_RxDropMPDU;        // 47
-	u32_t Hw_RxDelMPDU;         // 48
+	u32_t Hw_RxMPDU;            
+	u32_t Hw_RxDropMPDU;        
+	u32_t Hw_RxDelMPDU;         
 
-	u32_t Hw_RxPhyMiscError;    // 49
-	u32_t Hw_RxPhyXRError;      // 50
-    u32_t Hw_RxPhyOFDMError;    // 51
-    u32_t Hw_RxPhyCCKError;     // 52
-    u32_t Hw_RxPhyHTError;      // 53
-    u32_t Hw_RxPhyTotalCount;   // 54
+	u32_t Hw_RxPhyMiscError;    
+	u32_t Hw_RxPhyXRError;      
+    u32_t Hw_RxPhyOFDMError;    
+    u32_t Hw_RxPhyCCKError;     
+    u32_t Hw_RxPhyHTError;      
+    u32_t Hw_RxPhyTotalCount;   
 
-    u32_t swRxFragmentCount;         // 55
-    u32_t swRxUnicastMicFailCount;   // 56
-    u32_t swRxMulticastMicFailCount; // 57
-    u32_t swRxDropUnencryptedCount;  // 58
+    u32_t swRxFragmentCount;         
+    u32_t swRxUnicastMicFailCount;   
+    u32_t swRxMulticastMicFailCount; 
+    u32_t swRxDropUnencryptedCount;  
 
     u32_t txBroadcastFrm;
     u32_t txBroadcastOctets;
 };
 
-/* Traffic Monitor Tally data structure */
+
 struct zsTrafTally
 {
     u32_t rxDuplicate;
     u32_t rxSrcIsOwnMac;
-    //u32_t rxDataFrameCount;
-    //u32_t rxDataByteCount;
-    //u32_t rxDataBytesIn1000ms;
-    //u32_t rxDataTmpFor1000ms;
-    //u32_t rxDataBytesIn2000ms;
-    //u32_t rxDataTmpFor2000ms;
+    
+    
+    
+    
+    
+    
 
-    //u32_t txDataFrameCount;
-    //u32_t txDataByteCount;
-    //u32_t txDataBytesIn1000ms;
-    //u32_t txDataTmpFor1000ms;
+    
+    
+    
+    
     u32_t txDataBytesIn2000ms;
     u32_t txDataTmpFor2000ms;
 };
 
-/* Hal rx packet moniter information */
+
 struct zsMonHalRxInfo
 {
     u32_t currentRSSI[7];
@@ -527,7 +511,7 @@ struct zsCbFuncTbl
 #ifdef ZM_ENABLE_CENC
     u16_t (*zfcbCencAsocNotify)(zdev_t* dev, u16_t* macAddr, u8_t* body,
             u16_t bodySize, u16_t port);
-#endif //ZM_ENABLE_CENC
+#endif 
     u8_t (*zfcbClassifyTxPacket)(zdev_t* dev, zbuf_t* buf);
 
     void (*zfcbHwWatchDogNotify)(zdev_t* dev);
@@ -536,35 +520,35 @@ struct zsCbFuncTbl
 extern void zfZeroMemory(u8_t* va, u16_t length);
 #define ZM_INIT_CB_FUNC_TABLE(p)        zfZeroMemory((u8_t *)p, sizeof(struct zsCbFuncTbl));
 
-//extern struct zsWlanDev zgWlanDev;
 
-/* Initialize WLAN hardware and software, resource will be allocated */
-/* for WLAN operation, must be called first before other function.   */
+
+
+
 extern u16_t zfiWlanOpen(zdev_t* dev, struct zsCbFuncTbl* cbFuncTbl);
 
-/* WLAN hardware will be shutdown and all resource will be release */
+
 extern u16_t zfiWlanClose(zdev_t* dev);
 
-/* Enable/disable Wlan operation */
+
 extern u16_t zfiWlanEnable(zdev_t* dev);
 extern u16_t zfiWlanDisable(zdev_t* dev, u8_t ResetKeyCache);
 extern u16_t zfiWlanResume(zdev_t* dev, u8_t doReconn);
 extern u16_t zfiWlanSuspend(zdev_t* dev);
 
-/* Enable/disable ISR interrupt */
+
 extern u16_t zfiWlanInterruptEnable(zdev_t* dev);
 extern u16_t zfiWlanInterruptDisable(zdev_t* dev);
 
-/* Do WLAN site survey */
+
 extern u16_t zfiWlanScan(zdev_t* dev);
 
-/* Get WLAN stastics */
+
 extern u16_t zfiWlanGetStatistics(zdev_t* dev);
 
-/* Reset WLAN */
+
 extern u16_t zfiWlanReset(zdev_t* dev);
 
-/* Deauthenticate a STA */
+
 extern u16_t zfiWlanDeauth(zdev_t* dev, u16_t* macAddr, u16_t reason);
 
 extern u16_t zfiTxSendEth(zdev_t* dev, zbuf_t* buf, u16_t port);
@@ -577,7 +561,7 @@ extern u8_t zfiWlanIBSSGetPeerStationsCount(zdev_t* dev);
 extern u8_t zfiWlanIBSSIteratePeerStations(zdev_t* dev, u8_t numToIterate, zfpIBSSIteratePeerStationCb callback, void *ctx);
 extern void zfiWlanFlushAllQueuedBuffers(zdev_t* dev);
 
-/* coid.c */
+
 extern void zfiWlanQueryMacAddress(zdev_t* dev, u8_t* addr);
 
 extern u16_t zfiGlobalDataSize(zdev_t* dev);
@@ -708,12 +692,12 @@ extern u8_t zfiWlanQuerywmeEnable(zdev_t* dev);
 extern void zfiWlanShowTally(zdev_t* dev);
 #endif
 #ifdef ZM_ENABLE_CENC
-/* CENC */
+
 extern u8_t zfiWlanSetCencPairwiseKey(zdev_t* dev, u8_t keyid, u32_t *txiv, u32_t *rxiv,
         u8_t *key, u8_t *mic);
 extern u8_t zfiWlanSetCencGroupKey(zdev_t* dev, u8_t keyid, u32_t *rxiv,
         u8_t *key, u8_t *mic);
-#endif //ZM_ENABLE_CENC
+#endif 
 extern void zfiWlanQuerySignalInfo(zdev_t* dev, u8_t *buffer);
 extern void zfiWlanQueryAdHocCreatedBssDesc(zdev_t* dev, struct zsBssInfo *pBssInfo);
 extern u8_t zfiWlanQueryAdHocIsCreator(zdev_t* dev);
@@ -721,7 +705,7 @@ extern u32_t zfiWlanQuerySupportMode(zdev_t* dev);
 extern u32_t zfiWlanQueryTransmitPower(zdev_t* dev);
 extern void zfiWlanEnableLeapConfig(zdev_t* dev, u8_t leapEnabled);
 
-/* returned buffer allocated by driver core */
+
 extern void zfiRecvEthComplete(zdev_t* dev, zbuf_t* buf);
 
 extern void zfiRecv80211(zdev_t* dev, zbuf_t* buf, struct zsAdditionInfo* addInfo);
@@ -751,7 +735,7 @@ extern void zfiWlanSetSafeModeEnabled(zdev_t* dev, u8_t safeMode);
 extern void zfiWlanSetIBSSAdditionalIELength(zdev_t* dev, u32_t ibssAdditionalIESize,  u8_t* ibssAdditionalIE);
 extern void zfiWlanSetXLinkMode(zdev_t* dev, u32_t setValue);
 
-/* hprw.c */
+
 extern u32_t zfiDbgWriteFlash(zdev_t* dev, u32_t addr, u32_t val);
 extern u32_t zfiDbgWriteReg(zdev_t* dev, u32_t addr, u32_t val);
 extern u32_t zfiDbgReadReg(zdev_t* dev, u32_t addr);
@@ -780,9 +764,9 @@ extern u32_t zfiWlanQueryHwCapability(zdev_t* dev);
 
 extern void zfiWlanSetDynamicSIFSParam(zdev_t* dev, u8_t val);
 
-/***** End of section 2 *****/
 
-/***** section 3 performace evaluation *****/
+
+
 #ifdef ZM_ENABLE_PERFORMANCE_EVALUATION
 extern void zfiTxPerformanceMSDU(zdev_t* dev, u32_t tick);
 extern void zfiRxPerformanceMPDU(zdev_t* dev, zbuf_t* buf);
@@ -817,5 +801,5 @@ extern void zfiRxPerformanceReg(zdev_t* dev, u32_t reg, u32_t rsp);
 #define ZM_SEQ_DEBUG
 #define ZM_PERFORMANCE_RX_REORDER(dev)
 #endif
-/***** End of section 3 *****/
+
 #endif

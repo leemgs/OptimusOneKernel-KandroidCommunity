@@ -1,39 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    ap_cfg.h
-
-    Abstract:
-    Miniport generic portion header file
-
-    Revision History:
-    Who         When          What
-    --------    ----------    ----------------------------------------------
-*/
 #ifndef __AP_CFG_H__
 #define __AP_CFG_H__
 
@@ -83,9 +48,9 @@ VOID RTMPAPIoctlE2PROM(
 VOID RTMPAPIoctlRF(
 	IN	PRTMP_ADAPTER	pAdapter,
 	IN	struct iwreq	*wrq);
-#endif // RTMP_RF_RW_SUPPORT //
+#endif 
 
-#endif // DBG //
+#endif 
 
 VOID RT28XX_IOCTL_MaxRateGet(
 	IN	RTMP_ADAPTER			*pAd,
@@ -97,7 +62,7 @@ VOID RT28XX_IOCTL_MaxRateGet(
 VOID RTMPIoctlQueryBaTable(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	struct iwreq	*wrq);
-#endif // DOT11_N_SUPPORT //
+#endif 
 
 VOID RTMPIoctlStaticWepCopy(
 	IN	PRTMP_ADAPTER	pAd,
@@ -115,4 +80,4 @@ VOID RTMPIoctlAddPMKIDCache(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	struct iwreq	*wrq);
 
-#endif // __AP_CFG_H__ //
+#endif 

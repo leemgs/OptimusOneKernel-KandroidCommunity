@@ -1,28 +1,13 @@
-/*
- * Copyright (c) 2000-2005 ZyDAS Technology Corporation
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*  Module Name : ud_defs.h                                             */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains USB data structure definitions.            */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
 
 #ifndef _HPUSB_H
 #define _HPUSB_H
@@ -34,7 +19,7 @@
 #define ZM_HAL_MAX_EEPROM_REQ               510
 #define ZM_HAL_MAX_EEPROM_PRQ               2
 
-/* For USB STREAM mode */
+
 #ifdef ZM_DISABLE_AMSDU8K_SUPPORT
 #define ZM_MAX_USB_IN_TRANSFER_SIZE         4096
 #else
@@ -61,7 +46,7 @@ struct zsCommand
 
 struct zsHalRxInfo
 {
-    u32_t currentRSSI[7];       /* RSSI combined */
+    u32_t currentRSSI[7];       
     u32_t currentRxEVM[14];
     u32_t currentRxDataMT;
     u32_t currentRxDataMCS;
@@ -79,47 +64,38 @@ struct zsHpPriv
 
     u32_t halCapability;
 
-    /* Fortunately the second loop can be disabled with a bit */
-    /* called en_pd_dc_offset_thr                             */
+    
+    
     u8_t hwNotFirstInit;
 
-    /* command queue */
+    
     u16_t               cmdHead;
     u16_t               cmdTail;
 #ifdef ZM_XP_USB_MULTCMD
-    u16_t               cmdSend;  // Used for Mult send USB cmd
+    u16_t               cmdSend;  
 #endif
     struct zsCmdQ       cmdQ[ZM_CMD_QUEUE_SIZE];
     u16_t               cmdPending;
-    struct zsCommand    cmd; /* buffer for delayed commands */
+    struct zsCommand    cmd; 
     u8_t                ledMode[2];
     u32_t               ctlBusy;
     u32_t               extBusy;
 
-    /*
-     * ANI & Radar support.
-     */
-    u32_t   procPhyErr;         /* Process Phy errs */
-    u8_t hasHwPhyCounters;   /* Hardware has phy counters */
-    u32_t   aniPeriod;          /* ani update list period */
-    struct zsAniStats   stats;      /* various statistics */
-    struct zsAniState   *curani;    /* cached last reference */
-    struct zsAniState   ani[50];   /* per-channel state */
+    
+    u32_t   procPhyErr;         
+    u8_t hasHwPhyCounters;   
+    u32_t   aniPeriod;          
+    struct zsAniStats   stats;      
+    struct zsAniState   *curani;    
+    struct zsAniState   ani[50];   
 
-    /*
-     * Ani tables that change between the 5416 and 5312.
-     * These get set at attach time.
-     * XXX don't belong here
-     * XXX need better explanation
-     */
+    
     s32_t     totalSizeDesired[5];
     s32_t     coarseHigh[5];
     s32_t     coarseLow[5];
     s32_t     firpwr[5];
 
-    /*
-     * ANI related PHY register value.
-     */
+    
     u32_t regPHYDesiredSZ;
     u32_t regPHYFindSig;
     u32_t regPHYAgcCtl1;
@@ -145,17 +121,15 @@ struct zsHpPriv
     u8_t tPow2x5gHt20[8];
     u8_t tPow2x5gHt40[8];
 
-    /* hwBBHeavyClip : used compatibility           */
-    /*             0 : dongle not support.          */
-    /*             !0: support heavy clip.          */
+    
+    
+    
     u8_t hwBBHeavyClip;
-    u8_t enableBBHeavyClip; /* 0=>force disable 1=>enable */
-    u8_t doBBHeavyClip;     /* set 1 if heavy clip need by each frequency switch */
-    u32_t setValueHeavyClip; /* save setting value for heavy clip when completed routine */
+    u8_t enableBBHeavyClip; 
+    u8_t doBBHeavyClip;     
+    u32_t setValueHeavyClip; 
 
-    /*
-     * Rxdata RSSI, EVM, Rate etc...
-     */
+    
     struct zsHalRxInfo halRxInfo;
 
     u32_t usbSendBytes;
@@ -170,7 +144,7 @@ struct zsHpPriv
     u8_t  strongRSSI;
     u8_t  rxStrongRSSI;
 
-    u8_t  slotType;  //0->20us, 1=>9us
+    u8_t  slotType;  
 
 #ifdef ZM_OTUS_RX_STREAM_MODE
     u16_t usbRxRemainLen;
@@ -185,7 +159,7 @@ struct zsHpPriv
     u8_t    ibssBcnEnabled;
     u32_t   ibssBcnInterval;
 
-    // For re-issue the frequency change command
+    
     u32_t   latestFrequency;
     u8_t    latestBw40;
     u8_t    latestExtOffset;
@@ -198,8 +172,8 @@ struct zsHpPriv
     u64_t   camRollCallTable;
     u8_t    currentAckRtsTpc;
 
-    /* #1 Save the initial value of the related RIFS register settings */
-    //u32_t   isInitialPhy;
+    
+    
     u32_t   initDesiredSigSize;
     u32_t   initAGC;
     u32_t   initAgcControl;
@@ -207,7 +181,7 @@ struct zsHpPriv
     u32_t   initRIFSSearchParams;
     u32_t   initFastChannelChangeControl;
 
-    /* Dynamic SIFS for retransmission event */
+    
     u8_t    retransmissionEvent;
     u8_t    latestSIFS;
 };
@@ -226,10 +200,10 @@ typedef u32_t A_UINT32;
 #define AR5416_EEP_VER               0xE
 #define AR5416_EEP_VER_MINOR_MASK    0xFFF
 #define AR5416_EEP_NO_BACK_VER       0x1
-#define AR5416_EEP_MINOR_VER_2       0x2  // Adds modal params txFrameToPaOn, txFrametoDataStart, ht40PowerInc
-#define AR5416_EEP_MINOR_VER_3       0x3  // Adds modal params bswAtten, bswMargin, swSettle and base OpFlags for HT20/40 Disable
+#define AR5416_EEP_MINOR_VER_2       0x2  
+#define AR5416_EEP_MINOR_VER_3       0x3  
 
-// 16-bit offset location start of calibration struct
+
 #define AR5416_EEP_START_LOC         256
 #define AR5416_NUM_5G_CAL_PIERS      8
 #define AR5416_NUM_2G_CAL_PIERS      4
@@ -271,7 +245,7 @@ typedef u32_t A_UINT32;
 #define AR5416_CHAIN_2_IDX              2
 
 
-/* Capabilities Enum */
+
 typedef enum {
     EEPCAP_COMPRESS_DIS  = 0x0001,
     EEPCAP_AES_DIS       = 0x0002,
@@ -318,7 +292,7 @@ typedef struct BaseEepHeader {
     A_UINT32  binBuildNumber;
     A_UINT8   deviceType;
     A_UINT8   futureBase[33];
-} __ATTRIB_PACK BASE_EEP_HEADER; // 64 B
+} __ATTRIB_PACK BASE_EEP_HEADER; 
 
 typedef struct spurChanStruct {
     A_UINT16 spurChan;
@@ -327,39 +301,39 @@ typedef struct spurChanStruct {
 } __ATTRIB_PACK SPUR_CHAN;
 
 typedef struct ModalEepHeader {
-    A_UINT32  antCtrlChain[AR5416_MAX_CHAINS];       // 12
-    A_UINT32  antCtrlCommon;                         // 4
-    A_INT8    antennaGainCh[AR5416_MAX_CHAINS];      // 3
-    A_UINT8   switchSettling;                        // 1
-    A_UINT8   txRxAttenCh[AR5416_MAX_CHAINS];        // 3
-    A_UINT8   rxTxMarginCh[AR5416_MAX_CHAINS];       // 3
-    A_INT8    adcDesiredSize;                        // 1
-    A_INT8    pgaDesiredSize;                        // 1
-    A_UINT8   xlnaGainCh[AR5416_MAX_CHAINS];         // 3
-    A_UINT8   txEndToXpaOff;                         // 1
-    A_UINT8   txEndToRxOn;                           // 1
-    A_UINT8   txFrameToXpaOn;                        // 1
-    A_UINT8   thresh62;                              // 1
-    A_INT8    noiseFloorThreshCh[AR5416_MAX_CHAINS]; // 3
-    A_UINT8   xpdGain;                               // 1
-    A_UINT8   xpd;                                   // 1
-    A_INT8    iqCalICh[AR5416_MAX_CHAINS];           // 1
-    A_INT8    iqCalQCh[AR5416_MAX_CHAINS];           // 1
-    A_UINT8   pdGainOverlap;                         // 1
-    A_UINT8   ob;                                    // 1
-    A_UINT8   db;                                    // 1
-    A_UINT8   xpaBiasLvl;                            // 1
-    A_UINT8   pwrDecreaseFor2Chain;                  // 1
-    A_UINT8   pwrDecreaseFor3Chain;                  // 1 -> 48 B
-    A_UINT8   txFrameToDataStart;                    // 1
-    A_UINT8   txFrameToPaOn;                         // 1
-    A_UINT8   ht40PowerIncForPdadc;                  // 1
-    A_UINT8   bswAtten[AR5416_MAX_CHAINS];           // 3
-    A_UINT8   bswMargin[AR5416_MAX_CHAINS];          // 3
-    A_UINT8   swSettleHt40;                          // 1
-    A_UINT8   futureModal[22];                       //
-    SPUR_CHAN spurChans[AR5416_EEPROM_MODAL_SPURS];  // 20 B
-} __ATTRIB_PACK MODAL_EEP_HEADER;                    // == 100 B
+    A_UINT32  antCtrlChain[AR5416_MAX_CHAINS];       
+    A_UINT32  antCtrlCommon;                         
+    A_INT8    antennaGainCh[AR5416_MAX_CHAINS];      
+    A_UINT8   switchSettling;                        
+    A_UINT8   txRxAttenCh[AR5416_MAX_CHAINS];        
+    A_UINT8   rxTxMarginCh[AR5416_MAX_CHAINS];       
+    A_INT8    adcDesiredSize;                        
+    A_INT8    pgaDesiredSize;                        
+    A_UINT8   xlnaGainCh[AR5416_MAX_CHAINS];         
+    A_UINT8   txEndToXpaOff;                         
+    A_UINT8   txEndToRxOn;                           
+    A_UINT8   txFrameToXpaOn;                        
+    A_UINT8   thresh62;                              
+    A_INT8    noiseFloorThreshCh[AR5416_MAX_CHAINS]; 
+    A_UINT8   xpdGain;                               
+    A_UINT8   xpd;                                   
+    A_INT8    iqCalICh[AR5416_MAX_CHAINS];           
+    A_INT8    iqCalQCh[AR5416_MAX_CHAINS];           
+    A_UINT8   pdGainOverlap;                         
+    A_UINT8   ob;                                    
+    A_UINT8   db;                                    
+    A_UINT8   xpaBiasLvl;                            
+    A_UINT8   pwrDecreaseFor2Chain;                  
+    A_UINT8   pwrDecreaseFor3Chain;                  
+    A_UINT8   txFrameToDataStart;                    
+    A_UINT8   txFrameToPaOn;                         
+    A_UINT8   ht40PowerIncForPdadc;                  
+    A_UINT8   bswAtten[AR5416_MAX_CHAINS];           
+    A_UINT8   bswMargin[AR5416_MAX_CHAINS];          
+    A_UINT8   swSettleHt40;                          
+    A_UINT8   futureModal[22];                       
+    SPUR_CHAN spurChans[AR5416_EEPROM_MODAL_SPURS];  
+} __ATTRIB_PACK MODAL_EEP_HEADER;                    
 
 typedef struct calDataPerFreq {
     A_UINT8 pwrPdg[AR5416_NUM_PD_GAINS][AR5416_PD_GAIN_ICEPTS];
@@ -395,9 +369,9 @@ typedef struct CalCtlData {
 } __ATTRIB_PACK CAL_CTL_DATA;
 
 typedef struct ar5416Eeprom {
-    BASE_EEP_HEADER    baseEepHeader;         // 64 B
-    A_UINT8   custData[64];                   // 64 B
-    MODAL_EEP_HEADER   modalHeader[2];        // 200 B
+    BASE_EEP_HEADER    baseEepHeader;         
+    A_UINT8   custData[64];                   
+    MODAL_EEP_HEADER   modalHeader[2];        
     A_UINT8            calFreqPier5G[AR5416_NUM_5G_CAL_PIERS];
     A_UINT8            calFreqPier2G[AR5416_NUM_2G_CAL_PIERS];
     CAL_DATA_PER_FREQ  calPierData5G[AR5416_MAX_CHAINS][AR5416_NUM_5G_CAL_PIERS];
@@ -434,4 +408,4 @@ typedef enum ConformanceTestLimits {
     CTL_5GHT40 = 8,
 } ATH_CTLS;
 
-#endif /* #ifndef _HPUSB_H */
+#endif 

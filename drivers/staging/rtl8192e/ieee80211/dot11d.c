@@ -1,12 +1,12 @@
 #ifdef ENABLE_DOT11D
-//-----------------------------------------------------------------------------
-//	File:
-//		Dot11d.c
-//
-//	Description:
-//		Implement 802.11d.
-//
-//-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
 
 #include "dot11d.h"
 
@@ -26,10 +26,10 @@ Dot11d_Init(struct ieee80211_device *ieee)
 	printk("Dot11d_Init()\n");
 }
 
-//
-//	Description:
-//		Reset to the state as we are just entering a regulatory domain.
-//
+
+
+
+
 void
 Dot11d_Reset(struct ieee80211_device *ieee)
 {
@@ -39,10 +39,10 @@ Dot11d_Reset(struct ieee80211_device *ieee)
 	if(!pDot11dInfo->bEnabled)
 		return;
 #endif
-	// Clear old channel map
+	
 	memset(pDot11dInfo->channel_map, 0, MAX_CHANNEL_NUMBER+1);
 	memset(pDot11dInfo->MaxTxPwrDbmList, 0xFF, MAX_CHANNEL_NUMBER+1);
-	// Set new channel map
+	
 	for (i=1; i<=11; i++) {
 		(pDot11dInfo->channel_map)[i] = 1;
 	}
@@ -54,21 +54,21 @@ Dot11d_Reset(struct ieee80211_device *ieee)
 	pDot11dInfo->CountryIeLen = 0;
 	RESET_CIE_WATCHDOG(ieee);
 
-	//printk("Dot11d_Reset()\n");
+	
 }
 
-//
-//	Description:
-//		Update country IE from Beacon or Probe Resopnse
-//		and configure PHY for operation in the regulatory domain.
-//
-//	TODO:
-//		Configure Tx power.
-//
-//	Assumption:
-//		1. IS_DOT11D_ENABLE() is TRUE.
-//		2. Input IE is an valid one.
-//
+
+
+
+
+
+
+
+
+
+
+
+
 void
 Dot11d_UpdateCountryIe(
 	struct ieee80211_device *dev,
@@ -84,17 +84,17 @@ Dot11d_UpdateCountryIe(
 	memset(pDot11dInfo->channel_map, 0, MAX_CHANNEL_NUMBER+1);
 	memset(pDot11dInfo->MaxTxPwrDbmList, 0xFF, MAX_CHANNEL_NUMBER+1);
 	MaxChnlNum = 0;
-	NumTriples = (CoutryIeLen - 3) / 3; // skip 3-byte country string.
+	NumTriples = (CoutryIeLen - 3) / 3; 
 	pTriple = (PCHNL_TXPOWER_TRIPLE)(pCoutryIe + 3);
 	for(i = 0; i < NumTriples; i++)
 	{
 		if(MaxChnlNum >= pTriple->FirstChnl)
-		{ // It is not in a monotonically increasing order, so stop processing.
+		{ 
 			printk("Dot11d_UpdateCountryIe(): Invalid country IE, skip it........1\n");
 			return;
 		}
 		if(MAX_CHANNEL_NUMBER < (pTriple->FirstChnl + pTriple->NumChnls))
-		{ // It is not a valid set of channel id, so stop processing.
+		{ 
 			printk("Dot11d_UpdateCountryIe(): Invalid country IE, skip it........2\n");
 			return;
 		}
@@ -109,7 +109,7 @@ Dot11d_UpdateCountryIe(
 		pTriple = (PCHNL_TXPOWER_TRIPLE)((u8*)pTriple + 3);
 	}
 #if 1
-	//printk("Dot11d_UpdateCountryIe(): Channel List:\n");
+	
 	printk("Channel List:");
 	for(i=1; i<= MAX_CHANNEL_NUMBER; i++)
 		if(pDot11dInfo->channel_map[i] > 0)
@@ -163,7 +163,7 @@ DOT11D_ScanComplete(
 
 	case DOT11D_STATE_DONE:
 		if( GET_CIE_WATCHDOG(dev) == 0 )
-		{ // Reset country IE if previous one is gone.
+		{ 
 			Dot11d_Reset(dev);
 		}
 		break;
@@ -219,13 +219,13 @@ int ToLegalChannel(
 	return default_chn;
 }
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0))
-//EXPORT_SYMBOL(Dot11d_Init);
-//EXPORT_SYMBOL(Dot11d_Reset);
-//EXPORT_SYMBOL(Dot11d_UpdateCountryIe);
-//EXPORT_SYMBOL(DOT11D_GetMaxTxPwrInDbm);
-//EXPORT_SYMBOL(DOT11D_ScanComplete);
-//EXPORT_SYMBOL(IsLegalChannel);
-//EXPORT_SYMBOL(ToLegalChannel);
+
+
+
+
+
+
+
 #else
 EXPORT_SYMBOL_NOVERS(Dot11d_Init);
 EXPORT_SYMBOL_NOVERS(Dot11d_Reset);

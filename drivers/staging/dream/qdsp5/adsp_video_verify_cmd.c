@@ -1,20 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/adsp_video_verify_cmd.c
- *
- * Verificion code for aDSP VDEC packets from userspace.
- *
- * Copyright (c) 2008 QUALCOMM Incorporated
- * Copyright (C) 2008 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 #include <linux/io.h>
 
 #define ADSP_DEBUG_MSGS 0
@@ -105,14 +89,14 @@ static int verify_vdec_pkt_cmd(struct msm_adsp_module *module,
 				&subframe_pkt_size))
 		return -1;
 
-	/* deref those ptrs and check if they are a frame header packet */
+	
 	frame_header_pkt = (viddec_cmd_frame_header_packet *)subframe_pkt_addr;
 
 	switch (frame_header_pkt->packet_id) {
-	case 0xB201: /* h.264 */
+	case 0xB201: 
 		num_addr = skip = 8;
 		break;
-	case 0x4D01: /* mpeg-4 and h.263 */
+	case 0x4D01: 
 		num_addr = 3;
 		skip = 0;
 		break;
@@ -137,7 +121,7 @@ static int verify_vdec_pkt_cmd(struct msm_adsp_module *module,
 		frame_buffer_high += 2;
 		frame_buffer_low += 2;
 	}
-	/* Patch the output buffer. */
+	
 	frame_buffer_high += 2*skip;
 	frame_buffer_low += 2*skip;
 	if (pmem_fixup_high_low(frame_buffer_high, frame_buffer_low,

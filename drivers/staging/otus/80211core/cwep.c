@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : cwep.c                                                */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains Tx and Rx functions.                       */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 
 u32_t crc32_tab[] =
@@ -98,7 +84,7 @@ void zfWEPEncrypt(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t off
     key[1] = iv[1];
     key[2] = iv[2];
 
-    /* Append Wep Key after IV */
+    
     zfMemoryCopy(&key[3], WepKey, keyLen);
 
     keyLen += 3;
@@ -115,7 +101,7 @@ void zfWEPEncrypt(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t off
         j = (j + S[i] + S2[i]) ;
         j&=255 ;
 
-        // Swap S[i] and S[j]
+        
         temp = S[i];
         S[i] = S[j];
         S[j] = temp;
@@ -124,7 +110,7 @@ void zfWEPEncrypt(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t off
     i = j = 0;
     icv = -1;
 
-    /* For Snap Header */
+    
     for (ui = 0; ui < snapLen; ui++)
     {
         u8_t In;
@@ -134,20 +120,20 @@ void zfWEPEncrypt(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t off
         j += S[i];
         j &= 255;
 
-        // Swap S[i] and S[j]
+        
         temp = S[i];
         S[i] = S[j];
         S[j] = temp;
-//          temp = (S[i] + temp) & 255;
+
         temp += S[i];
         temp &=255;
-        K = S[temp];        // Key used to Xor with input data
+        K = S[temp];        
 
         In = snap[ui];
         icv =  (icv>>8) ^ crc32_tab[(icv^In)&0xff];
 
         snap[ui] = In ^ K;
-        //zmw_tx_buf_writeb(dev, buf, ui, In ^ K);
+        
     }
 
     len = zfwBufGetSize(dev, buf);
@@ -161,20 +147,20 @@ void zfWEPEncrypt(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t off
         j += S[i];
         j &= 255;
 
-        // Swap S[i] and S[j]
+        
         temp = S[i];
         S[i] = S[j];
         S[j] = temp;
-//          temp = (S[i] + temp) & 255;
+
         temp += S[i];
         temp &=255;
-        K = S[temp];        // Key used to Xor with input data
+        K = S[temp];        
 
         In = zmw_tx_buf_readb(dev, buf, ui);
         icv =  (icv>>8) ^ crc32_tab[(icv^In)&0xff];
 
         zmw_tx_buf_writeb(dev, buf, ui, In ^ K);
-    } //End of for (ui = 0; ui < Num_Bytes; ui++)
+    } 
 
     icv = ~(icv);
     ltemp = (u32_t) icv;
@@ -186,15 +172,15 @@ void zfWEPEncrypt(zdev_t *dev, zbuf_t *buf, u8_t *snap, u16_t snapLen, u16_t off
         j += S[i];
         j &= 255;
 
-        // Swap S[i] and S[j]
+        
         temp = S[i];
         S[i] = S[j];
         S[j] = temp;
         temp += S[i];
         temp &= 255;
-        K = S[temp];        // Key used to Xor with input data
+        K = S[temp];        
 
-        //*Out++ = (u8_t)(ltemp ^ K)&0xff;
+        
         zmw_tx_buf_writeb(dev, buf, len+ui, (u8_t)(ltemp ^ K)&0xff);
         ltemp >>= 8;
     }
@@ -217,12 +203,12 @@ u16_t zfWEPDecrypt(zdev_t *dev, zbuf_t *buf, u16_t offset, u8_t keyLen, u8_t* We
     u16_t   len;
     u8_t    key[32];
 
-    /* Retrieve IV */
+    
     key[0] = iv[0];
     key[1] = iv[1];
     key[2] = iv[2];
 
-    /* Append Wep Key after IV */
+    
     zfMemoryCopy(&key[3], WepKey, keyLen);
 
     keyLen += 3;
@@ -239,7 +225,7 @@ u16_t zfWEPDecrypt(zdev_t *dev, zbuf_t *buf, u16_t offset, u8_t keyLen, u8_t* We
         j = (j + S[i] + S2[i]);
         j&=255 ;
 
-        // Swap S[i] and S[j]
+        
         temp = S[i];
         S[i] = S[j];
         S[j] = temp;
@@ -258,19 +244,19 @@ u16_t zfWEPDecrypt(zdev_t *dev, zbuf_t *buf, u16_t offset, u8_t keyLen, u8_t* We
         j += S[i];
         j &= 255;
 
-        // Swap S[i] and S[j]
+        
         temp = S[i];
         S[i] = S[j];
         S[j] = temp;
-//          temp = (S[i] + temp) & 255;
+
         temp += S[i];
         temp &=255;
-        K = S[temp];        // Key used to Xor with input data
+        K = S[temp];        
 
         In = zmw_rx_buf_readb(dev, buf, ui);
 
         zmw_rx_buf_writeb(dev, buf, ui, In ^ K);
-    } //End of for (ui = 0; ui < Num_Bytes; ui++)
+    } 
 
     icv = &icv_tmp;
     *icv = -1;

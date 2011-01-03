@@ -1,18 +1,4 @@
-/* arch/arm/mach-msm/smd.c
- *
- * Copyright (C) 2007 Google, Inc.
- * Author: Brian Swetland <swetland@google.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/module.h>
@@ -77,17 +63,17 @@ static void smd_diag(void)
 	}
 }
 
-/* call when SMSM_RESET flag is set in the A9's smsm_state */
+
 static void handle_modem_crash(void)
 {
 	pr_err("ARM9 has CRASHED\n");
 	smd_diag();
 
-	/* hard reboot if possible */
+	
 	if (msm_hw_reset_hook)
 		msm_hw_reset_hook();
 
-	/* in this case the modem or watchdog should reboot us */
+	
 	for (;;)
 		;
 }
@@ -100,7 +86,7 @@ static int check_for_modem_crash(void)
 
 	smsm = smem_find(ID_SHARED_STATE, 2 * sizeof(struct smsm_shared));
 
-	/* if the modem's not ready yet, we have to hope for the best */
+	
 	if (!smsm)
 		return 0;
 
@@ -126,17 +112,11 @@ static int check_for_modem_crash(void)
 #define SMD_HEADER_SIZE 20
 
 
-/* the spinlock is used to synchronize between the
-** irq handler and code that mutates the channel
-** list or fiddles with channel state
-*/
+
 static DEFINE_SPINLOCK(smd_lock);
 static DEFINE_SPINLOCK(smem_lock);
 
-/* the mutex is used during open() and close()
-** operations to avoid races while creating or
-** destroying smd_channel structures
-*/
+
 static DEFINE_MUTEX(smd_creation_mutex);
 
 static int smd_initialized;
@@ -241,13 +221,13 @@ static char *chstate(unsigned n)
 	}
 }
 
-/* how many bytes are available for reading */
+
 static int smd_stream_read_avail(struct smd_channel *ch)
 {
 	return (ch->recv->head - ch->recv->tail) & (SMD_BUF_SIZE - 1);
 }
 
-/* how many bytes we are free to write */
+
 static int smd_stream_write_avail(struct smd_channel *ch)
 {
 	return (SMD_BUF_SIZE - 1) -
@@ -278,7 +258,7 @@ static int ch_is_open(struct smd_channel *ch)
 		(ch->send->state == SMD_SS_OPENED);
 }
 
-/* provide a pointer and length to readable data in the fifo */
+
 static unsigned ch_read_buffer(struct smd_channel *ch, void **ptr)
 {
 	unsigned head = ch->recv->head;
@@ -291,7 +271,7 @@ static unsigned ch_read_buffer(struct smd_channel *ch, void **ptr)
 		return SMD_BUF_SIZE - tail;
 }
 
-/* advance the fifo read pointer after data from ch_read_buffer is consumed */
+
 static void ch_read_done(struct smd_channel *ch, unsigned count)
 {
 	BUG_ON(count > smd_stream_read_avail(ch));
@@ -299,10 +279,7 @@ static void ch_read_done(struct smd_channel *ch, unsigned count)
 	ch->recv->fTAIL = 1;
 }
 
-/* basic read interface to ch_read_{buffer,done} used
-** by smd_*_read() and update_packet_state()
-** will read-and-discard if the _data pointer is null
-*/
+
 static int ch_read(struct smd_channel *ch, void *_data, int len)
 {
 	void *ptr;
@@ -330,7 +307,7 @@ static int ch_read(struct smd_channel *ch, void *_data, int len)
 
 static void update_stream_state(struct smd_channel *ch)
 {
-	/* streams have no special state requiring updating */
+	
 }
 
 static void update_packet_state(struct smd_channel *ch)
@@ -338,11 +315,11 @@ static void update_packet_state(struct smd_channel *ch)
 	unsigned hdr[5];
 	int r;
 
-	/* can't do anything if we're in the middle of a packet */
+	
 	if (ch->current_packet != 0)
 		return;
 
-	/* don't bother unless we can get the full header */
+	
 	if (smd_stream_read_avail(ch) < SMD_HEADER_SIZE)
 		return;
 
@@ -352,7 +329,7 @@ static void update_packet_state(struct smd_channel *ch)
 	ch->current_packet = hdr[0];
 }
 
-/* provide a pointer and length to next free space in the fifo */
+
 static unsigned ch_write_buffer(struct smd_channel *ch, void **ptr)
 {
 	unsigned head = ch->send->head;
@@ -369,9 +346,7 @@ static unsigned ch_write_buffer(struct smd_channel *ch, void **ptr)
 	}
 }
 
-/* advace the fifo write pointer after freespace
- * from ch_write_buffer is filled
- */
+
 static void ch_write_done(struct smd_channel *ch, unsigned count)
 {
 	BUG_ON(count > smd_stream_write_avail(ch));
@@ -422,7 +397,7 @@ static void smd_state_change(struct smd_channel *ch,
 		break;
 	case SMD_SS_FLUSHING:
 	case SMD_SS_RESET:
-		/* we should force them to close? */
+		
 	default:
 		ch->notify(ch->priv, SMD_EVENT_CLOSE);
 	}
@@ -746,14 +721,7 @@ int smd_open(const char *name, smd_channel_t **_ch,
 	spin_lock_irqsave(&smd_lock, flags);
 	list_add(&ch->ch_list, &smd_ch_list);
 
-	/* If the remote side is CLOSING, we need to get it to
-	 * move to OPENING (which we'll do by moving from CLOSED to
-	 * OPENING) and then get it to move from OPENING to
-	 * OPENED (by doing the same state change ourselves).
-	 *
-	 * Otherwise, it should be OPENING and we can move directly
-	 * to OPENED so that it will follow.
-	 */
+	
 	if (ch->recv->state == SMD_SS_CLOSING) {
 		ch->send->head = 0;
 		hc_set_state(ch->send, SMD_SS_OPENING);
@@ -824,7 +792,7 @@ int smd_cur_packet_size(smd_channel_t *ch)
 }
 
 
-/* ------------------------------------------------------------------------- */
+
 
 void *smem_alloc(unsigned id, unsigned size)
 {
@@ -1084,10 +1052,7 @@ int smd_core_init(void)
 	if (r < 0)
 		pr_err("smd_core_init: enable_irq_wake failed for A9_M2A_5\n");
 
-	/* we may have missed a signal while booting -- fake
-	 * an interrupt to make sure we process any existing
-	 * state
-	 */
+	
 	smsm_irq_handler(0, 0);
 
 	pr_info("smd_core_init() done\n");

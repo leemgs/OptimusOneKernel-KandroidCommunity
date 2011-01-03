@@ -1,35 +1,11 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/dst.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
 
-/*
- * Thread pool abstraction allows to schedule a work to be performed
- * on behalf of kernel thread. One does not operate with threads itself,
- * instead user provides setup and cleanup callbacks for thread pool itself,
- * and action and cleanup callbacks for each submitted work.
- *
- * Each worker has private data initialized at creation time and data,
- * provided by user at scheduling time.
- *
- * When action is being performed, thread can not be used by other users,
- * instead they will sleep until there is free thread to pick their work.
- */
+
 struct thread_pool_worker
 {
 	struct list_head	worker_entry;
@@ -60,9 +36,7 @@ static void thread_pool_exit_worker(struct thread_pool_worker *w)
 	kfree(w);
 }
 
-/*
- * Called to mark thread as ready and allow users to schedule new work.
- */
+
 static void thread_pool_worker_make_ready(struct thread_pool_worker *w)
 {
 	struct thread_pool *p = w->pool;
@@ -84,9 +58,7 @@ static void thread_pool_worker_make_ready(struct thread_pool_worker *w)
 	}
 }
 
-/*
- * Thread action loop: waits until there is new work.
- */
+
 static int thread_pool_worker_func(void *data)
 {
 	struct thread_pool_worker *w = data;
@@ -108,9 +80,7 @@ static int thread_pool_worker_func(void *data)
 	return 0;
 }
 
-/*
- * Remove single worker without specifying which one.
- */
+
 void thread_pool_del_worker(struct thread_pool *p)
 {
 	struct thread_pool_worker *w = NULL;
@@ -143,9 +113,7 @@ void thread_pool_del_worker(struct thread_pool *p)
 			__func__, w, p->thread_num);
 }
 
-/*
- * Remove a worker with given ID.
- */
+
 void thread_pool_del_worker_id(struct thread_pool *p, unsigned int id)
 {
 	struct thread_pool_worker *w;
@@ -175,10 +143,7 @@ void thread_pool_del_worker_id(struct thread_pool *p, unsigned int id)
 		thread_pool_exit_worker(w);
 }
 
-/*
- * Add new worker thread with given parameters.
- * If initialization callback fails, return error.
- */
+
 int thread_pool_add_worker(struct thread_pool *p,
 		char *name,
 		unsigned int id,
@@ -225,9 +190,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Destroy the whole pool.
- */
+
 void thread_pool_destroy(struct thread_pool *p)
 {
 	while (p->thread_num) {
@@ -238,10 +201,7 @@ void thread_pool_destroy(struct thread_pool *p)
 	kfree(p);
 }
 
-/*
- * Create a pool with given number of threads.
- * They will have sequential IDs started from zero.
- */
+
 struct thread_pool *thread_pool_create(int num, char *name,
 		void *(* init)(void *private),
 		void (* cleanup)(void *private),
@@ -281,11 +241,7 @@ err_out_exit:
 	return ERR_PTR(err);
 }
 
-/*
- * Schedule execution of the action on a given thread,
- * provided ID pointer has to match previously stored
- * private data.
- */
+
 int thread_pool_schedule_private(struct thread_pool *p,
 		int (* setup)(void *private, void *data),
 		int (* action)(void *private, void *data),
@@ -332,9 +288,7 @@ int thread_pool_schedule_private(struct thread_pool *p,
 	return err;
 }
 
-/*
- * Schedule execution on arbitrary thread from the pool.
- */
+
 int thread_pool_schedule(struct thread_pool *p,
 		int (* setup)(void *private, void *data),
 		int (* action)(void *private, void *data),

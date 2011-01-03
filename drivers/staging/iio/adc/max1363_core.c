@@ -1,27 +1,4 @@
- /*
- * linux/drivers/industrialio/adc/max1363.c
- * Copyright (C) 2008 Jonathan Cameron
- *
- * based on linux/drivers/i2c/chips/max123x
- * Copyright (C) 2002-2004 Stefan Eletzhofer
- *
- * based on linux/drivers/acron/char/pcf8583.c
- * Copyright (C) 2000 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * max1363.c
- *
- * Partial support for max1363 and similar chips.
- *
- * Not currently implemented.
- *
- * - Monitor interrrupt generation.
- * - Control of internal reference.
- * - Sysfs scan interface currently assumes unipolar mode.
- */
+ 
 
 #include <linux/interrupt.h>
 #include <linux/gpio.h>
@@ -39,10 +16,7 @@
 
 #include "max1363.h"
 
-/* Available scan modes.
- * Awkwardly the associated enum is in the header so it is available to
- * the ring buffer code.
- */
+
 static const struct  max1363_mode max1363_mode_table[] = {
 	MAX1363_MODE_SINGLE(0),
 	MAX1363_MODE_SINGLE(1),
@@ -132,7 +106,7 @@ static const struct  max1363_mode max1363_mode_table[] = {
 	MAX1236_MODE_DIFF_SCAN_MID_TO_CHANNEL_NAMED(7-6...11-10, 11, 3),
 };
 
-/* Applies to max1363 */
+
 static const enum max1363_modes max1363_mode_list[] = {
 	_s0, _s1, _s2, _s3,
 	se0, se1, se2, se3,
@@ -142,7 +116,7 @@ static const enum max1363_modes max1363_mode_list[] = {
 	d0m1to2m3, d1m0to3m2,
 };
 
-/* Appies to max1236, max1237 */
+
 static const enum max1363_modes max1236_mode_list[] = {
 	_s0, _s1, _s2, _s3,
 	se0, se1, se2, se3,
@@ -153,7 +127,7 @@ static const enum max1363_modes max1236_mode_list[] = {
 	s2to3,
 };
 
-/* Applies to max1238, max1239 */
+
 static const enum max1363_modes max1238_mode_list[] = {
 	_s0, _s1, _s2, _s3, _s4, _s5, _s6, _s7, _s8, _s9, _s10, _s11,
 	se0, se1, se2, se3, se4, se5, se6, se7, se8, se9, se10, se11,
@@ -184,7 +158,7 @@ enum { max1361,
        max1239,
 };
 
-/* max1363 and max1368 tested - rest from data sheet */
+
 static const struct max1363_chip_info max1363_chip_info_tbl[] = {
 	{
 		.name = "max1361",
@@ -309,7 +283,7 @@ static int max1363_initial_setup(struct max1363_state *st)
 		| MAX1363_SETUP_UNIPOLAR
 		| MAX1363_SETUP_NORESET;
 
-	/* Set scan mode writes the config anyway so wait until then*/
+	
 	st->setupbyte = MAX1363_SETUP_BYTE(st->setupbyte);
 	st->current_mode = &max1363_mode_table[st->chip_info->default_mode];
 	st->configbyte = MAX1363_CONFIG_BYTE(st->configbyte);
@@ -335,7 +309,7 @@ static ssize_t max1363_show_av_scan_modes(struct device *dev,
 }
 
 
-/* The dev here is the sysfs related one, not the underlying i2c one */
+
 static ssize_t max1363_scan_direct(struct device *dev,
 				   struct device_attribute *attr,
 				   char *buf)
@@ -352,8 +326,8 @@ static ssize_t max1363_scan_direct(struct device *dev,
 	if (rxbuf == NULL)
 		return -ENOMEM;
 
-	/* Interpretation depends on whether these are signed or not!*/
-	/* Assume not for now */
+	
+	
 	ret = i2c_master_recv(client, rxbuf, st->current_mode->numvals*2);
 
 	if (ret < 0)
@@ -385,7 +359,7 @@ static ssize_t max1363_scan(struct device *dev,
 	return ret;
 }
 
-/* Cannot query the device, so use local copy of state */
+
 static ssize_t max1363_show_scan_mode(struct device *dev,
 				      struct device_attribute *attr,
 				      char *buf)
@@ -420,7 +394,7 @@ static ssize_t max1363_store_scan_mode(struct device *dev,
 
 	mutex_lock(&dev_info->mlock);
 	new_mode = NULL;
-	/* Avoid state changes if a ring buffer is enabled */
+	
 	if (!iio_ring_enabled(dev_info)) {
 		new_mode
 			= __max1363_find_mode_in_ci(st->chip_info, buf);
@@ -464,7 +438,7 @@ static ssize_t max1363_show_name(struct device *dev,
 
 IIO_DEVICE_ATTR(name, S_IRUGO, max1363_show_name, NULL, 0);
 
-/*name export */
+
 
 static struct attribute *max1363_attributes[] = {
 	&iio_dev_attr_available_scan_modes.dev_attr.attr,
@@ -488,18 +462,18 @@ static int __devinit max1363_probe(struct i2c_client *client,
 		goto error_ret;
 	}
 
-	/* this is only used for device removal purposes */
+	
 	i2c_set_clientdata(client, st);
 
 	atomic_set(&st->protect_ring, 0);
 
-	/* Find the chip model specific data */
+	
 	for (i = 0; i < ARRAY_SIZE(max1363_chip_info_tbl); i++)
 		if (!strcmp(max1363_chip_info_tbl[i].name, id->name)) {
 			st->chip_info = &max1363_chip_info_tbl[i];
 			break;
 		};
-	/* Unsupported chip */
+	
 	if (!st->chip_info) {
 		dev_err(&client->dev, "%s is not supported\n", id->name);
 		ret = -ENODEV;
@@ -519,7 +493,7 @@ static int __devinit max1363_probe(struct i2c_client *client,
 		goto error_disable_reg;
 	}
 
-	/* Estabilish that the iio_dev is a child of the i2c device */
+	
 	st->indio_dev->dev.parent = &client->dev;
 	st->indio_dev->attrs = &max1363_attribute_group;
 	st->indio_dev->dev_data = (void *)(st);

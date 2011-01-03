@@ -1,38 +1,13 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
- */
+
 
 #ifndef __RT2870_H__
 #define __RT2870_H__
 
-//usb header files
+
 #include <linux/usb.h>
 
-/* rtmp_def.h */
-//
+
+
 #define BULKAGGRE_ZISE          100
 #define RT28XX_DRVDATA_SET(_a)                                             usb_set_intfdata(_a, pAd);
 #define RT28XX_PUT_DEVICE                                                  usb_put_dev
@@ -47,13 +22,13 @@
 #define MAX_RXBULK_SIZE         (LOCAL_TXBUF_SIZE*RXBULKAGGRE_ZISE)
 #define MAX_MLME_HANDLER_MEMORY 20
 #define	RETRY_LIMIT             10
-#define BUFFER_SIZE				2400	//2048
+#define BUFFER_SIZE				2400	
 #define	TX_RING					0xa
 #define	PRIO_RING				0xc
 
 
-// Flags for Bulkflags control for bulk out data
-//
+
+
 #define	fRTUSB_BULK_OUT_DATA_NULL				0x00000001
 #define fRTUSB_BULK_OUT_RTS						0x00000002
 #define	fRTUSB_BULK_OUT_MLME					0x00000004
@@ -76,28 +51,28 @@
 	{																	\
 		(_t)->bRingEmpty = TRUE;			\
 	}																	\
-	/*NdisInterlockedDecrement(&(_p)->TxCount); */\
+	\
 }
 
-//
-// RXINFO appends at the end of each rx packet.
-//
+
+
+
 typedef	struct	PACKED _RXINFO_STRUC {
 	UINT32		BA:1;
 	UINT32		DATA:1;
 	UINT32		NULLDATA:1;
 	UINT32		FRAG:1;
-	UINT32		U2M:1;              // 1: this RX frame is unicast to me
-	UINT32		Mcast:1;            // 1: this is a multicast frame
-	UINT32		Bcast:1;            // 1: this is a broadcast frame
-	UINT32		MyBss:1;  	// 1: this frame belongs to the same BSSID
-	UINT32		Crc:1;              // 1: CRC error
-	UINT32		CipherErr:2;        // 0: decryption okay, 1:ICV error, 2:MIC error, 3:KEY not valid
-	UINT32		AMSDU:1;		// rx with 802.3 header, not 802.11 header.
+	UINT32		U2M:1;              
+	UINT32		Mcast:1;            
+	UINT32		Bcast:1;            
+	UINT32		MyBss:1;  	
+	UINT32		Crc:1;              
+	UINT32		CipherErr:2;        
+	UINT32		AMSDU:1;		
 	UINT32		HTC:1;
 	UINT32		RSSI:1;
 	UINT32		L2PAD:1;
-	UINT32		AMPDU:1;		// To be moved
+	UINT32		AMPDU:1;		
 	UINT32		Decrypted:1;
 	UINT32		PlcpRssil:1;
 	UINT32		CipherAlg:1;
@@ -105,28 +80,28 @@ typedef	struct	PACKED _RXINFO_STRUC {
 	UINT32		PlcpSignal:12;
 }	RXINFO_STRUC, *PRXINFO_STRUC, RT28XX_RXD_STRUC, *PRT28XX_RXD_STRUC;
 
-//
-// TXINFO
-//
+
+
+
 typedef	struct	_TXINFO_STRUC {
-	// Word	0
-	UINT32		USBDMATxPktLen:16;	//used ONLY in USB bulk Aggregation,  Total byte counts of all sub-frame.
+	
+	UINT32		USBDMATxPktLen:16;	
 	UINT32		rsv:8;
-	UINT32		WIV:1;	// Wireless Info Valid. 1 if Driver already fill WI,  o if DMA needs to copy WI to correctposition
-	UINT32		QSEL:2;	// select on-chip FIFO ID for 2nd-stage output scheduler.0:MGMT, 1:HCCA 2:EDCA
-	UINT32		SwUseLastRound:1; // Software use.
-	UINT32		rsv2:2;  // Software use.
-	UINT32		USBDMANextVLD:1;	//used ONLY in USB bulk Aggregation, NextValid
-	UINT32		USBDMATxburst:1;//used ONLY in USB bulk Aggre. Force USB DMA transmit frame from current selected endpoint
+	UINT32		WIV:1;	
+	UINT32		QSEL:2;	
+	UINT32		SwUseLastRound:1; 
+	UINT32		rsv2:2;  
+	UINT32		USBDMANextVLD:1;	
+	UINT32		USBDMATxburst:1;
 }	TXINFO_STRUC, *PTXINFO_STRUC;
 
 #define TXINFO_SIZE				4
 #define RXINFO_SIZE				4
 #define TXPADDING_SIZE			11
 
-//
-// Management ring buffer format
-//
+
+
+
 typedef	struct	_MGMT_STRUC	{
 	BOOLEAN		Valid;
 	PUCHAR		pBuffer;
@@ -134,7 +109,7 @@ typedef	struct	_MGMT_STRUC	{
 }	MGMT_STRUC, *PMGMT_STRUC;
 
 
-/* ----------------- EEPROM Related MACRO ----------------- */
+
 #define RT28xx_EEPROM_READ16(pAd, offset, var)					\
 	do {														\
 		RTUSBReadEEPROM(pAd, offset, (PUCHAR)&(var), 2);		\
@@ -150,16 +125,16 @@ typedef	struct	_MGMT_STRUC	{
 		RTUSBWriteEEPROM(pAd, offset, (PUCHAR)&(_tmpVar), 2);	\
 	}while(0)
 
-/* ----------------- TASK/THREAD Related MACRO ----------------- */
+
 #define RT28XX_TASK_THREAD_INIT(pAd, Status)		\
 	Status = CreateThreads(net_dev);
 
 
-/* ----------------- Frimware Related MACRO ----------------- */
+
 #define RT28XX_WRITE_FIRMWARE(_pAd, _pFwImage, _FwLen)		\
 	RTUSBFirmwareWrite(_pAd, _pFwImage, _FwLen)
 
-/* ----------------- TX Related MACRO ----------------- */
+
 #define RT28XX_START_DEQUEUE(pAd, QueIdx, irqFlags)				\
 			{													\
 				RTMP_IRQ_LOCK(&pAd->DeQueueLock[QueIdx], irqFlags);		\
@@ -216,7 +191,7 @@ typedef	struct	_MGMT_STRUC	{
 			RtmpUSB_FinalWriteTxResource(pAd, pTxBlk, totalMPDUSize, TxIdx)
 
 #define HAL_LastTxIdx(pAd, QueIdx,TxIdx) \
-			/*RtmpUSBDataLastTxIdx(pAd, QueIdx,TxIdx)*/
+			
 
 #define HAL_KickOutTx(pAd, pTxBlk, QueIdx)	\
 			RtmpUSBDataKickOut(pAd, pTxBlk, QueIdx)
@@ -228,29 +203,29 @@ typedef	struct	_MGMT_STRUC	{
 #define HAL_KickOutNullFrameTx(_pAd, _QueIdx, _pNullFrame, _frameLen)	\
 			RtmpUSBNullFrameKickOut(_pAd, _QueIdx, _pNullFrame, _frameLen)
 
-#define RTMP_PKT_TAIL_PADDING 	11 // 3(max 4 byte padding) + 4 (last packet padding) + 4 (MaxBulkOutsize align padding)
+#define RTMP_PKT_TAIL_PADDING 	11 
 
 extern UCHAR EpToQueue[6];
 
 
 #ifdef RT2870
-#define GET_TXRING_FREENO(_pAd, _QueIdx) 	(_QueIdx) //(_pAd->TxRing[_QueIdx].TxSwFreeIdx)
+#define GET_TXRING_FREENO(_pAd, _QueIdx) 	(_QueIdx) 
 #define GET_MGMTRING_FREENO(_pAd) 			(_pAd->MgmtRing.TxSwFreeIdx)
-#endif // RT2870 //
+#endif 
 
 
-/* ----------------- RX Related MACRO ----------------- */
-//#define RT28XX_RX_ERROR_CHECK				RTMPCheckRxWI
+
+
 
 #define RT28XX_RV_ALL_BUF_END(bBulkReceive)		\
-	/* We return STATUS_MORE_PROCESSING_REQUIRED so that the completion */	\
-	/* routine (IofCompleteRequest) will stop working on the irp. */		\
+		\
+			\
 	if (bBulkReceive == TRUE)	RTUSBBulkReceive(pAd);
 
 
-/* ----------------- ASIC Related MACRO ----------------- */
 
-// reset MAC of a station entry to 0xFFFFFFFFFFFF
+
+
 #define RT28XX_STA_ENTRY_MAC_RESET(pAd, Wcid)					\
 	{	RT_SET_ASIC_WCID	SetAsicWcid;						\
 		SetAsicWcid.WCID = Wcid;								\
@@ -259,16 +234,16 @@ extern UCHAR EpToQueue[6];
 		RTUSBEnqueueInternalCmd(pAd, CMDTHREAD_SET_ASIC_WCID, 	\
 				&SetAsicWcid, sizeof(RT_SET_ASIC_WCID));	}
 
-// add this entry into ASIC RX WCID search table
+
 #define RT28XX_STA_ENTRY_ADD(pAd, pEntry)							\
 	RTUSBEnqueueInternalCmd(pAd, CMDTHREAD_SET_CLIENT_MAC_ENTRY, 	\
 							pEntry, sizeof(MAC_TABLE_ENTRY));
 
-// remove Pair-wise key material from ASIC
-// yet implement
+
+
 #define RT28XX_STA_ENTRY_KEY_DEL(pAd, BssIdx, Wcid)
 
-// add Client security information into ASIC WCID table and IVEIV table
+
 #define RT28XX_STA_SECURITY_INFO_ADD(pAd, apidx, KeyID, pEntry)						\
 	{	RT28XX_STA_ENTRY_MAC_RESET(pAd, pEntry->Aid);								\
 		if (pEntry->Aid >= 1) {														\
@@ -288,7 +263,7 @@ extern UCHAR EpToQueue[6];
 			RTUSBEnqueueInternalCmd(pAd, CMDTHREAD_SET_ASIC_WCID_CIPHER, 			\
 							&SetAsicWcidAttri, sizeof(RT_SET_ASIC_WCID_ATTRI)); } }
 
-// Insert the BA bitmap to ASIC for the Wcid entry
+
 #define RT28XX_ADD_BA_SESSION_TO_ASIC(_pAd, _Aid, _TID)					\
 		do{																\
 			RT_SET_ASIC_WCID	SetAsicWcid;							\
@@ -298,7 +273,7 @@ extern UCHAR EpToQueue[6];
 			RTUSBEnqueueInternalCmd((_pAd), CMDTHREAD_SET_ASIC_WCID, &SetAsicWcid, sizeof(RT_SET_ASIC_WCID));	\
 		}while(0)
 
-// Remove the BA bitmap from ASIC for the Wcid entry
+
 #define RT28XX_DEL_BA_SESSION_FROM_ASIC(_pAd, _Wcid, _TID)				\
 		do{																\
 			RT_SET_ASIC_WCID	SetAsicWcid;							\
@@ -309,11 +284,11 @@ extern UCHAR EpToQueue[6];
 		}while(0)
 
 
-/* ----------------- PCI/USB Related MACRO ----------------- */
+
 #define RT28XX_HANDLE_DEV_ASSIGN(handle, dev_p)			\
 	((POS_COOKIE)handle)->pUsb_Dev = dev_p;
 
-// no use
+
 #define RT28XX_UNMAP()
 #define RT28XX_IRQ_REQUEST(net_dev)
 #define RT28XX_IRQ_RELEASE(net_dev)
@@ -321,7 +296,7 @@ extern UCHAR EpToQueue[6];
 #define RT28XX_IRQ_ENABLE(pAd)
 
 
-/* ----------------- MLME Related MACRO ----------------- */
+
 #define RT28XX_MLME_HANDLER(pAd)			RTUSBMlmeUp(pAd)
 
 #define RT28XX_MLME_PRE_SANITY_CHECK(pAd)								\
@@ -344,7 +319,7 @@ extern UCHAR EpToQueue[6];
 	}
 
 
-/* ----------------- Power Save Related MACRO ----------------- */
+
 #define RT28XX_PS_POLL_ENQUEUE(pAd)						\
 	{	RTUSB_SET_BULK_FLAG(pAd, fRTUSB_BULK_OUT_PSPOLL);	\
 		RTUSBKickBulkOut(pAd); }
@@ -360,12 +335,12 @@ extern UCHAR EpToQueue[6];
 #define InterlockedDecrement		atomic_dec
 #define NdisInterlockedDecrement 	atomic_dec
 #define InterlockedExchange			atomic_set
-//#define NdisMSendComplete			RTMP_SendComplete
+
 #define NdisMCancelTimer			RTMPCancelTimer
 #define NdisAllocMemory(_ptr, _size, _flag)	\
 									do{_ptr = kmalloc((_size),(_flag));}while(0)
 #define NdisFreeMemory(a, b, c) 	kfree((a))
-#define NdisMSleep					RTMPusecDelay		/* unit: microsecond */
+#define NdisMSleep					RTMPusecDelay		
 
 
 #define USBD_TRANSFER_DIRECTION_OUT		0
@@ -375,12 +350,12 @@ extern UCHAR EpToQueue[6];
 
 #define RTUSB_FREE_URB(pUrb)	usb_free_urb(pUrb)
 
-//#undef MlmeAllocateMemory
-//#undef MlmeFreeMemory
+
+
 
 typedef struct usb_device	* PUSB_DEV;
 
-/* MACRO for linux usb */
+
 typedef struct urb *purbb_t;
 typedef struct usb_ctrlrequest devctrlrequest;
 #define PIRP		PVOID
@@ -390,14 +365,14 @@ typedef struct usb_ctrlrequest devctrlrequest;
 #define USB_ST_NOERROR     0
 #endif
 
-// vendor-specific control operations
+
 #define CONTROL_TIMEOUT_JIFFIES ( (100 * HZ) / 1000)
 #define UNLINK_TIMEOUT_MS		3
 
-/* unlink urb	*/
+
 #define RTUSB_UNLINK_URB(pUrb)		usb_kill_urb(pUrb)
 
-// Prototypes of completion funuc.
+
 VOID RTUSBBulkOutDataPacketComplete(purbb_t purb, struct pt_regs *pt_regs);
 VOID RTUSBBulkOutMLMEPacketComplete(purbb_t pUrb, struct pt_regs *pt_regs);
 VOID RTUSBBulkOutNullFrameComplete(purbb_t pUrb, struct pt_regs *pt_regs);
@@ -430,13 +405,13 @@ static inline NDIS_STATUS RTMPAllocateMemory(
 		return NDIS_STATUS_RESOURCES;
 }
 
-/* rtmp.h */
+
 #define	BEACON_RING_SIZE                2
 #define DEVICE_VENDOR_REQUEST_OUT       0x40
 #define DEVICE_VENDOR_REQUEST_IN        0xc0
 #define INTERFACE_VENDOR_REQUEST_OUT    0x41
 #define INTERFACE_VENDOR_REQUEST_IN     0xc1
-#define MGMTPIPEIDX						0	// EP6 is highest priority
+#define MGMTPIPEIDX						0	
 
 #define BULKOUT_MGMT_RESET_FLAG				0x80
 
@@ -456,34 +431,34 @@ static inline NDIS_STATUS RTMPAllocateMemory(
 }
 
 typedef struct   _RT_SET_ASIC_WCID {
-	ULONG WCID;          // mechanism for rekeying: 0:disable, 1: time-based, 2: packet-based
-	ULONG SetTid;        // time-based: seconds, packet-based: kilo-packets
-	ULONG DeleteTid;        // time-based: seconds, packet-based: kilo-packets
-	UCHAR Addr[MAC_ADDR_LEN];	// avoid in interrupt when write key
+	ULONG WCID;          
+	ULONG SetTid;        
+	ULONG DeleteTid;        
+	UCHAR Addr[MAC_ADDR_LEN];	
 } RT_SET_ASIC_WCID,*PRT_SET_ASIC_WCID;
 
 typedef struct   _RT_SET_ASIC_WCID_ATTRI {
-	ULONG	WCID;          // mechanism for rekeying: 0:disable, 1: time-based, 2: packet-based
-	ULONG	Cipher;        // ASIC Cipher definition
+	ULONG	WCID;          
+	ULONG	Cipher;        
 	UCHAR	Addr[ETH_LENGTH_OF_ADDRESS];
 } RT_SET_ASIC_WCID_ATTRI,*PRT_SET_ASIC_WCID_ATTRI;
 
 typedef struct _MLME_MEMORY_STRUCT {
-	PVOID                           AllocVa;    //Pointer to the base virtual address of the allocated memory
-	struct _MLME_MEMORY_STRUCT      *Next;      //Pointer to the next virtual address of the allocated memory
+	PVOID                           AllocVa;    
+	struct _MLME_MEMORY_STRUCT      *Next;      
 }   MLME_MEMORY_STRUCT, *PMLME_MEMORY_STRUCT;
 
 typedef struct  _MLME_MEMORY_HANDLER {
-	BOOLEAN                 MemRunning;         //The flag of the Mlme memory handler's status
-	UINT                    MemoryCount;        //Total nonpaged system-space memory not size
-	UINT                    InUseCount;         //Nonpaged system-space memory in used counts
-	UINT                    UnUseCount;         //Nonpaged system-space memory available counts
-	INT                    PendingCount;       //Nonpaged system-space memory for free counts
-	PMLME_MEMORY_STRUCT     pInUseHead;         //Pointer to the first nonpaed memory not used
-	PMLME_MEMORY_STRUCT     pInUseTail;         //Pointer to the last nonpaged memory not used
-	PMLME_MEMORY_STRUCT     pUnUseHead;         //Pointer to the first nonpaged memory in used
-	PMLME_MEMORY_STRUCT     pUnUseTail;         //Pointer to the last nonpaged memory in used
-	PULONG                  MemFreePending[MAX_MLME_HANDLER_MEMORY];   //an array to keep pending free-memory's pointer (32bits)
+	BOOLEAN                 MemRunning;         
+	UINT                    MemoryCount;        
+	UINT                    InUseCount;         
+	UINT                    UnUseCount;         
+	INT                    PendingCount;       
+	PMLME_MEMORY_STRUCT     pInUseHead;         
+	PMLME_MEMORY_STRUCT     pInUseTail;         
+	PMLME_MEMORY_STRUCT     pUnUseHead;         
+	PMLME_MEMORY_STRUCT     pUnUseTail;         
+	PULONG                  MemFreePending[MAX_MLME_HANDLER_MEMORY];   
 }   MLME_MEMORY_HANDLER, *PMLME_MEMORY_HANDLER;
 
 typedef	struct _CmdQElmt	{
@@ -502,8 +477,8 @@ typedef	struct	_CmdQ	{
 	UINT32		CmdQState;
 }CmdQ, *PCmdQ;
 
-/* oid.h */
-// Cipher suite type for mixed mode group cipher, P802.11i-2004
+
+
 typedef enum _RT_802_11_CIPHER_SUITE_TYPE {
 	Cipher_Type_NONE,
 	Cipher_Type_WEP40,
@@ -513,52 +488,52 @@ typedef enum _RT_802_11_CIPHER_SUITE_TYPE {
 	Cipher_Type_WEP104
 } RT_802_11_CIPHER_SUITE_TYPE, *PRT_802_11_CIPHER_SUITE_TYPE;
 
-//CMDTHREAD_MULTI_READ_MAC
-//CMDTHREAD_MULTI_WRITE_MAC
-//CMDTHREAD_VENDOR_EEPROM_READ
-//CMDTHREAD_VENDOR_EEPROM_WRITE
+
+
+
+
 typedef	struct	_CMDHandler_TLV	{
 	USHORT		Offset;
 	USHORT		Length;
 	UCHAR		DataFirst;
 }	CMDHandler_TLV, *PCMDHandler_TLV;
 
-// New for MeetingHouse Api support
-#define CMDTHREAD_VENDOR_RESET                      0x0D730101	// cmd
-#define CMDTHREAD_VENDOR_UNPLUG                     0x0D730102	// cmd
-#define CMDTHREAD_VENDOR_SWITCH_FUNCTION            0x0D730103	// cmd
-#define CMDTHREAD_MULTI_WRITE_MAC                   0x0D730107	// cmd
-#define CMDTHREAD_MULTI_READ_MAC                    0x0D730108	// cmd
-#define CMDTHREAD_VENDOR_EEPROM_WRITE               0x0D73010A	// cmd
-#define CMDTHREAD_VENDOR_EEPROM_READ                0x0D73010B	// cmd
-#define CMDTHREAD_VENDOR_ENTER_TESTMODE             0x0D73010C	// cmd
-#define CMDTHREAD_VENDOR_EXIT_TESTMODE              0x0D73010D	// cmd
-#define CMDTHREAD_VENDOR_WRITE_BBP                  0x0D730119	// cmd
-#define CMDTHREAD_VENDOR_READ_BBP                   0x0D730118	// cmd
-#define CMDTHREAD_VENDOR_WRITE_RF                   0x0D73011A	// cmd
-#define CMDTHREAD_VENDOR_FLIP_IQ                    0x0D73011D	// cmd
-#define CMDTHREAD_RESET_BULK_OUT                    0x0D730210	// cmd
-#define CMDTHREAD_RESET_BULK_IN                     0x0D730211	// cmd
-#define CMDTHREAD_SET_PSM_BIT_SAVE                  0x0D730212	// cmd
-#define CMDTHREAD_SET_RADIO                         0x0D730214	// cmd
-#define CMDTHREAD_UPDATE_TX_RATE                    0x0D730216	// cmd
-#define CMDTHREAD_802_11_ADD_KEY_WEP                0x0D730218	// cmd
-#define CMDTHREAD_RESET_FROM_ERROR                  0x0D73021A	// cmd
-#define CMDTHREAD_LINK_DOWN                         0x0D73021B	// cmd
-#define CMDTHREAD_RESET_FROM_NDIS                   0x0D73021C	// cmd
-#define CMDTHREAD_CHECK_GPIO                        0x0D730215	// cmd
-#define CMDTHREAD_FORCE_WAKE_UP                     0x0D730222	// cmd
-#define CMDTHREAD_SET_BW                            0x0D730225	// cmd
-#define CMDTHREAD_SET_ASIC_WCID                     0x0D730226	// cmd
-#define CMDTHREAD_SET_ASIC_WCID_CIPHER              0x0D730227	// cmd
-#define CMDTHREAD_QKERIODIC_EXECUT                  0x0D73023D	// cmd
-#define CMDTHREAD_SET_CLIENT_MAC_ENTRY              0x0D73023E	// cmd
-#define CMDTHREAD_802_11_QUERY_HARDWARE_REGISTER    0x0D710105	// cmd
-#define CMDTHREAD_802_11_SET_PHY_MODE               0x0D79010C	// cmd
-#define CMDTHREAD_802_11_SET_STA_CONFIG             0x0D790111	// cmd
-#define CMDTHREAD_802_11_SET_PREAMBLE               0x0D790101	// cmd
-#define CMDTHREAD_802_11_COUNTER_MEASURE			0x0D790102	// cmd
-#define CMDTHREAD_UPDATE_PROTECT					0x0D790103	// cmd
+
+#define CMDTHREAD_VENDOR_RESET                      0x0D730101	
+#define CMDTHREAD_VENDOR_UNPLUG                     0x0D730102	
+#define CMDTHREAD_VENDOR_SWITCH_FUNCTION            0x0D730103	
+#define CMDTHREAD_MULTI_WRITE_MAC                   0x0D730107	
+#define CMDTHREAD_MULTI_READ_MAC                    0x0D730108	
+#define CMDTHREAD_VENDOR_EEPROM_WRITE               0x0D73010A	
+#define CMDTHREAD_VENDOR_EEPROM_READ                0x0D73010B	
+#define CMDTHREAD_VENDOR_ENTER_TESTMODE             0x0D73010C	
+#define CMDTHREAD_VENDOR_EXIT_TESTMODE              0x0D73010D	
+#define CMDTHREAD_VENDOR_WRITE_BBP                  0x0D730119	
+#define CMDTHREAD_VENDOR_READ_BBP                   0x0D730118	
+#define CMDTHREAD_VENDOR_WRITE_RF                   0x0D73011A	
+#define CMDTHREAD_VENDOR_FLIP_IQ                    0x0D73011D	
+#define CMDTHREAD_RESET_BULK_OUT                    0x0D730210	
+#define CMDTHREAD_RESET_BULK_IN                     0x0D730211	
+#define CMDTHREAD_SET_PSM_BIT_SAVE                  0x0D730212	
+#define CMDTHREAD_SET_RADIO                         0x0D730214	
+#define CMDTHREAD_UPDATE_TX_RATE                    0x0D730216	
+#define CMDTHREAD_802_11_ADD_KEY_WEP                0x0D730218	
+#define CMDTHREAD_RESET_FROM_ERROR                  0x0D73021A	
+#define CMDTHREAD_LINK_DOWN                         0x0D73021B	
+#define CMDTHREAD_RESET_FROM_NDIS                   0x0D73021C	
+#define CMDTHREAD_CHECK_GPIO                        0x0D730215	
+#define CMDTHREAD_FORCE_WAKE_UP                     0x0D730222	
+#define CMDTHREAD_SET_BW                            0x0D730225	
+#define CMDTHREAD_SET_ASIC_WCID                     0x0D730226	
+#define CMDTHREAD_SET_ASIC_WCID_CIPHER              0x0D730227	
+#define CMDTHREAD_QKERIODIC_EXECUT                  0x0D73023D	
+#define CMDTHREAD_SET_CLIENT_MAC_ENTRY              0x0D73023E	
+#define CMDTHREAD_802_11_QUERY_HARDWARE_REGISTER    0x0D710105	
+#define CMDTHREAD_802_11_SET_PHY_MODE               0x0D79010C	
+#define CMDTHREAD_802_11_SET_STA_CONFIG             0x0D790111	
+#define CMDTHREAD_802_11_SET_PREAMBLE               0x0D790101	
+#define CMDTHREAD_802_11_COUNTER_MEASURE			0x0D790102	
+#define CMDTHREAD_UPDATE_PROTECT					0x0D790103	
 
 #define WPA1AKMBIT	    0x01
 #define WPA2AKMBIT	    0x02
@@ -580,4 +555,4 @@ typedef	struct	_CMDHandler_TLV	{
 #define RT28XX_MLME_RADIO_OFF(pAd) \
     RT28xxUsbMlmeRadioOFF(pAd);
 
-#endif //__RT2870_H__
+#endif 

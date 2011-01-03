@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #ifndef __NETFS_H
 #define __NETFS_H
@@ -27,20 +14,17 @@
 
 #define POHMELFS_NULL_IDX		65535
 
-/*
- * Network command structure.
- * Will be extended.
- */
+
 struct netfs_cmd {
-	__u16			cmd;	/* Command number */
-	__u16			csize;	/* Attached crypto information size */
-	__u16			cpad;	/* Attached padding size */
-	__u16			ext;	/* External flags */
-	__u32			size;	/* Size of the attached data */
-	__u32			trans;	/* Transaction id */
-	__u64			id;	/* Object ID to operate on. Used for feedback.*/
-	__u64			start;	/* Start of the object. */
-	__u64			iv;	/* IV sequence */
+	__u16			cmd;	
+	__u16			csize;	
+	__u16			cpad;	
+	__u16			ext;	
+	__u32			size;	
+	__u32			trans;	
+	__u64			id;	
+	__u64			start;	
+	__u64			iv;	
 	__u8			data[0];
 };
 
@@ -59,43 +43,40 @@ static inline void netfs_convert_cmd(struct netfs_cmd *cmd)
 #define NETFS_TRANS_SINGLE_DST		(1<<0)
 
 enum {
-	NETFS_READDIR	= 1,	/* Read directory for given inode number */
-	NETFS_READ_PAGE,	/* Read data page from the server */
-	NETFS_WRITE_PAGE,	/* Write data page to the server */
-	NETFS_CREATE,		/* Create directory entry */
-	NETFS_REMOVE,		/* Remove directory entry */
+	NETFS_READDIR	= 1,	
+	NETFS_READ_PAGE,	
+	NETFS_WRITE_PAGE,	
+	NETFS_CREATE,		
+	NETFS_REMOVE,		
 
-	NETFS_LOOKUP,		/* Lookup single object */
-	NETFS_LINK,		/* Create a link */
-	NETFS_TRANS,		/* Transaction */
-	NETFS_OPEN,		/* Open intent */
-	NETFS_INODE_INFO,	/* Metadata cache coherency synchronization message */
+	NETFS_LOOKUP,		
+	NETFS_LINK,		
+	NETFS_TRANS,		
+	NETFS_OPEN,		
+	NETFS_INODE_INFO,	
 
-	NETFS_PAGE_CACHE,	/* Page cache invalidation message */
-	NETFS_READ_PAGES,	/* Read multiple contiguous pages in one go */
-	NETFS_RENAME,		/* Rename object */
-	NETFS_CAPABILITIES,	/* Capabilities of the client, for example supported crypto */
-	NETFS_LOCK,		/* Distributed lock message */
+	NETFS_PAGE_CACHE,	
+	NETFS_READ_PAGES,	
+	NETFS_RENAME,		
+	NETFS_CAPABILITIES,	
+	NETFS_LOCK,		
 
-	NETFS_XATTR_SET,	/* Set extended attribute */
-	NETFS_XATTR_GET,	/* Get extended attribute */
+	NETFS_XATTR_SET,	
+	NETFS_XATTR_GET,	
 	NETFS_CMD_MAX
 };
 
 enum {
-	POHMELFS_FLAGS_ADD = 0, /* Network state control message for ADD */
-	POHMELFS_FLAGS_DEL,     /* Network state control message for DEL */
-	POHMELFS_FLAGS_SHOW,    /* Network state control message for SHOW */
-	POHMELFS_FLAGS_CRYPTO,	/* Crypto data control message */
-	POHMELFS_FLAGS_MODIFY,	/* Network state modification message */
-	POHMELFS_FLAGS_DUMP,	/* Network state control message for SHOW ALL */
-	POHMELFS_FLAGS_FLUSH,	/* Network state control message for FLUSH */
+	POHMELFS_FLAGS_ADD = 0, 
+	POHMELFS_FLAGS_DEL,     
+	POHMELFS_FLAGS_SHOW,    
+	POHMELFS_FLAGS_CRYPTO,	
+	POHMELFS_FLAGS_MODIFY,	
+	POHMELFS_FLAGS_DUMP,	
+	POHMELFS_FLAGS_FLUSH,	
 };
 
-/*
- * Always wanted to copy it from socket headers into public one,
- * since they are __KERNEL__ protected there.
- */
+
 #define _K_SS_MAXSIZE	128
 
 struct saddr {
@@ -109,33 +90,28 @@ enum {
 };
 
 struct pohmelfs_crypto {
-	unsigned int		idx;		/* Config index */
-	unsigned short		strlen;		/* Size of the attached crypto string including 0-byte
-						 * "cbc(aes)" for example */
-	unsigned short		type;		/* HMAC, cipher, both */
-	unsigned int		keysize;	/* Key size */
-	unsigned char		data[0];	/* Algorithm string, key and IV */
+	unsigned int		idx;		
+	unsigned short		strlen;		
+	unsigned short		type;		
+	unsigned int		keysize;	
+	unsigned char		data[0];	
 };
 
 #define POHMELFS_IO_PERM_READ		(1<<0)
 #define POHMELFS_IO_PERM_WRITE		(1<<1)
 
-/*
- * Configuration command used to create table of different remote servers.
- */
+
 struct pohmelfs_ctl {
-	__u32			idx;		/* Config index */
-	__u32			type;		/* Socket type */
-	__u32			proto;		/* Socket protocol */
-	__u16			addrlen;	/* Size of the address */
-	__u16			perm;		/* IO permission */
-	__u16			prio;		/* IO priority */
-	struct saddr		addr;		/* Remote server address */
+	__u32			idx;		
+	__u32			type;		
+	__u32			proto;		
+	__u16			addrlen;	
+	__u16			perm;		
+	__u16			prio;		
+	struct saddr		addr;		
 };
 
-/*
- * Ack for userspace about requested command.
- */
+
 struct pohmelfs_cn_ack {
 	struct cn_msg		msg;
 	int			error;
@@ -144,10 +120,7 @@ struct pohmelfs_cn_ack {
 	struct pohmelfs_ctl	ctl;
 };
 
-/*
- * Inode info structure used to sync with server.
- * Check what stat() returns.
- */
+
 struct netfs_inode_info {
 	unsigned int		mode;
 	unsigned int		nlink;
@@ -176,30 +149,24 @@ static inline void netfs_convert_inode_info(struct netfs_inode_info *info)
 	info->ino = __cpu_to_be64(info->ino);
 }
 
-/*
- * Cache state machine.
- */
+
 enum {
-	NETFS_COMMAND_PENDING = 0,	/* Command is being executed */
-	NETFS_INODE_REMOTE_SYNCED,	/* Inode was synced to server */
-	NETFS_INODE_REMOTE_DIR_SYNCED,	/* Inode (directory) was synced from the server */
-	NETFS_INODE_OWNED,		/* Inode is owned by given host */
-	NETFS_INODE_NEED_FLUSH,		/* Inode has to be flushed to the server */
+	NETFS_COMMAND_PENDING = 0,	
+	NETFS_INODE_REMOTE_SYNCED,	
+	NETFS_INODE_REMOTE_DIR_SYNCED,	
+	NETFS_INODE_OWNED,		
+	NETFS_INODE_NEED_FLUSH,		
 };
 
-/*
- * POHMELFS capabilities: information about supported
- * crypto operations (hash/cipher, modes, key sizes and so on),
- * root informaion (used/available size, number of objects, permissions)
- */
+
 enum pohmelfs_capabilities {
 	POHMELFS_CRYPTO_CAPABILITIES = 0,
 	POHMELFS_ROOT_CAPABILITIES,
 };
 
-/* Read-only mount */
+
 #define POHMELFS_FLAGS_RO		(1<<0)
-/* Extended attributes support on/off */
+
 #define POHMELFS_FLAGS_XATTR		(1<<1)
 
 struct netfs_root_capabilities {
@@ -217,9 +184,9 @@ static inline void netfs_convert_root_capabilities(struct netfs_root_capabilitie
 }
 
 struct netfs_crypto_capabilities {
-	unsigned short		hash_strlen;	/* Hash string length, like "hmac(sha1) including 0 byte "*/
-	unsigned short		cipher_strlen;	/* Cipher string length with the same format */
-	unsigned int		cipher_keysize;	/* Cipher key size */
+	unsigned short		hash_strlen;	
+	unsigned short		cipher_strlen;	
+	unsigned int		cipher_keysize;	
 };
 
 static inline void netfs_convert_crypto_capabilities(struct netfs_crypto_capabilities *cap)
@@ -259,9 +226,7 @@ static inline void netfs_convert_lock(struct netfs_lock *lock)
 #include <linux/net.h>
 #include <linux/poll.h>
 
-/*
- * Private POHMELFS cache of objects in directory.
- */
+
 struct pohmelfs_name {
 	struct rb_node		hash_node;
 
@@ -276,29 +241,24 @@ struct pohmelfs_name {
 	char			*data;
 };
 
-/*
- * POHMELFS inode. Main object.
- */
-struct pohmelfs_inode {
-	struct list_head	inode_entry;		/* Entry in superblock list.
-							 * Objects which are not bound to dentry require to be dropped
-							 * in ->put_super()
-							 */
-	struct rb_root		hash_root;		/* The same, but indexed by name hash and len */
-	struct mutex		offset_lock;		/* Protect both above trees */
 
-	struct list_head	sync_create_list;	/* List of created but not yet synced to the server children */
+struct pohmelfs_inode {
+	struct list_head	inode_entry;		
+	struct rb_root		hash_root;		
+	struct mutex		offset_lock;		
+
+	struct list_head	sync_create_list;	
 
 	unsigned int		drop_count;
 
-	int			lock_type;		/* How this inode is locked: read or write */
+	int			lock_type;		
 
-	int			error;			/* Transaction error for given inode */
+	int			error;			
 
-	long			state;			/* State machine above */
+	long			state;			
 
-	u64			ino;			/* Inode number */
-	u64			total_len;		/* Total length of all children names, used to create offsets */
+	u64			ino;			
+	u64			total_len;		
 
 	struct inode		vfs_inode;
 };
@@ -311,88 +271,50 @@ struct netfs_state;
 struct pohmelfs_sb;
 
 struct netfs_trans {
-	/*
-	 * Transaction header and attached contiguous data live here.
-	 */
+	
 	struct iovec			iovec;
 
-	/*
-	 * Pages attached to transaction.
-	 */
+	
 	struct page			**pages;
 
-	/*
-	 * List and protecting lock for transaction destination
-	 * network states.
-	 */
+	
 	spinlock_t			dst_lock;
 	struct list_head		dst_list;
 
-	/*
-	 * Number of users for given transaction.
-	 * For example each network state attached to transaction
-	 * via dst_list increases it.
-	 */
+	
 	atomic_t			refcnt;
 
-	/*
-	 * Number of pages attached to given transaction.
-	 * Some slots in above page array can be NULL, since
-	 * for example page can be under writeback already,
-	 * so we skip it in this transaction.
-	 */
+	
 	unsigned int			page_num;
 
-	/*
-	 * Transaction flags: single dst or broadcast and so on.
-	 */
+	
 	unsigned int			flags;
 
-	/*
-	 * Size of the data, which can be placed into
-	 * iovec.iov_base area.
-	 */
+	
 	unsigned int			total_size;
 
-	/*
-	 * Number of pages to be sent to remote server.
-	 * Usually equal to above page_num, but in case of partial
-	 * writeback it can accumulate only pages already completed
-	 * previous writeback.
-	 */
+	
 	unsigned int			attached_pages;
 
-	/*
-	 * Attached number of bytes in all above pages.
-	 */
+	
 	unsigned int			attached_size;
 
-	/*
-	 * Unique transacton generation number.
-	 * Used as identity in the network state tree of transactions.
-	 */
+	
 	unsigned int			gen;
 
-	/*
-	 * Transaction completion status.
-	 */
+	
 	int				result;
 
-	/*
-	 * Superblock this transaction belongs to
-	 */
+	
 	struct pohmelfs_sb		*psb;
 
-	/*
-	 * Crypto engine, which processed this transaction.
-	 * Can be not NULL only if crypto engine holds encrypted pages.
-	 */
+	
 	struct pohmelfs_crypto_engine	*eng;
 
-	/* Private data */
+	
 	void				*private;
 
-	/* Completion callback, invoked just before transaction is destroyed */
+	
 	netfs_trans_complete_t		complete;
 };
 
@@ -423,12 +345,7 @@ struct netfs_trans_dst {
 
 	unsigned long			send_time;
 
-	/*
-	 * Times this transaction was resent to its old or new,
-	 * depending on flags, destinations. When it reaches maximum
-	 * allowed number, specified in superblock->trans_retries,
-	 * transaction will be freed with ETIMEDOUT error.
-	 */
+	
 	unsigned int			retries;
 
 	struct netfs_trans		*trans;
@@ -447,17 +364,15 @@ int netfs_trans_init(void);
 void netfs_trans_exit(void);
 
 struct pohmelfs_crypto_engine {
-	u64				iv;		/* Crypto IV for current operation */
-	unsigned long			timeout;	/* Crypto waiting timeout */
-	unsigned int			size;		/* Size of crypto scratchpad */
-	void				*data;		/* Temporal crypto scratchpad */
-	/*
-	 * Crypto operations performed on objects.
-	 */
+	u64				iv;		
+	unsigned long			timeout;	
+	unsigned int			size;		
+	void				*data;		
+	
 	struct crypto_hash		*hash;
 	struct crypto_ablkcipher	*cipher;
 
-	struct pohmelfs_crypto_thread	*thread;	/* Crypto thread which hosts this engine */
+	struct pohmelfs_crypto_thread	*thread;	
 
 	struct page			**pages;
 	unsigned int			page_num;
@@ -482,23 +397,21 @@ struct pohmelfs_crypto_thread {
 
 void pohmelfs_crypto_thread_make_ready(struct pohmelfs_crypto_thread *th);
 
-/*
- * Network state, attached to one server.
- */
+
 struct netfs_state {
-	struct mutex		__state_lock;		/* Can not allow to use the same socket simultaneously */
+	struct mutex		__state_lock;		
 	struct mutex		__state_send_lock;
-	struct netfs_cmd 	cmd;			/* Cached command */
-	struct netfs_inode_info	info;			/* Cached inode info */
+	struct netfs_cmd 	cmd;			
+	struct netfs_inode_info	info;			
 
-	void			*data;			/* Cached some data */
-	unsigned int		size;			/* Size of that data */
+	void			*data;			
+	unsigned int		size;			
 
-	struct pohmelfs_sb	*psb;			/* Superblock */
+	struct pohmelfs_sb	*psb;			
 
-	struct task_struct	*thread;		/* Async receiving thread */
+	struct task_struct	*thread;		
 
-	/* Waiting/polling machinery */
+	
 	wait_queue_t 		wait;
 	wait_queue_head_t 	*whead;
 	wait_queue_head_t 	thread_wait;
@@ -506,16 +419,11 @@ struct netfs_state {
 	struct mutex		trans_lock;
 	struct rb_root		trans_root;
 
-	struct pohmelfs_ctl	ctl;			/* Remote peer */
+	struct pohmelfs_ctl	ctl;			
 
-	struct socket		*socket;		/* Socket object */
-	struct socket		*read_socket;		/* Cached pointer to socket object.
-							 * Used to determine if between lock drops socket was changed.
-							 * Never used to read data or any kind of access.
-							 */
-	/*
-	 * Crypto engines to process incoming data.
-	 */
+	struct socket		*socket;		
+	struct socket		*read_socket;		
+	
 	struct pohmelfs_crypto_engine	eng;
 
 	int			need_reset;
@@ -602,65 +510,47 @@ struct pohmelfs_sb {
 	spinlock_t		ino_lock;
 	u64			ino;
 
-	/*
-	 * Remote nodes POHMELFS connected to.
-	 */
+	
 	struct list_head	state_list;
 	struct mutex		state_lock;
 
-	/*
-	 * Currently active state to request data from.
-	 */
+	
 	struct pohmelfs_config	*active_state;
 
 
 	wait_queue_head_t	wait;
 
-	/*
-	 * Timed checks: stale transactions, inodes to be freed and so on.
-	 */
+	
 	struct delayed_work 	dwork;
 	struct delayed_work 	drop_dwork;
 
 	struct super_block	*sb;
 
-	/*
-	 * Algorithm strings.
-	 */
+	
 	char			*hash_string;
 	char			*cipher_string;
 
 	u8			*hash_key;
 	u8			*cipher_key;
 
-	/*
-	 * Algorithm string lengths.
-	 */
+	
 	unsigned int		hash_strlen;
 	unsigned int		cipher_strlen;
 	unsigned int		hash_keysize;
 	unsigned int		cipher_keysize;
 
-	/*
-	 * Controls whether to perfrom crypto processing or not.
-	 */
+	
 	int			perform_crypto;
 
-	/*
-	 * POHMELFS statistics.
-	 */
+	
 	u64			total_size;
 	u64			avail_size;
 	atomic_long_t		total_inodes;
 
-	/*
-	 * Xattr support, read-only and so on.
-	 */
+	
 	u64			state_flags;
 
-	/*
-	 * Temporary storage to detect changes in the wait queue.
-	 */
+	
 	long			flags;
 };
 
@@ -711,42 +601,28 @@ struct pohmelfs_config {
 };
 
 struct pohmelfs_config_group {
-	/*
-	 * Entry in the global config group list.
-	 */
+	
 	struct list_head	group_entry;
 
-	/*
-	 * Index of the current group.
-	 */
+	
 	unsigned int		idx;
-	/*
-	 * Number of config_list entries in this group entry.
-	 */
+	
 	unsigned int		num_entry;
-	/*
-	 * Algorithm strings.
-	 */
+	
 	char			*hash_string;
 	char			*cipher_string;
 
-	/*
-	 * Algorithm string lengths.
-	 */
+	
 	unsigned int		hash_strlen;
 	unsigned int		cipher_strlen;
 
-	/*
-	 * Key and its size.
-	 */
+	
 	unsigned int		hash_keysize;
 	unsigned int		cipher_keysize;
 	u8			*hash_key;
 	u8			*cipher_key;
 
-	/*
-	 * List of config entries (network state info) for given idx.
-	 */
+	
 	struct list_head	config_list;
 };
 
@@ -847,7 +723,7 @@ static inline int pohmelfs_need_lock(struct pohmelfs_inode *pi, int type)
 int __init pohmelfs_mcache_init(void);
 void pohmelfs_mcache_exit(void);
 
-/* #define CONFIG_POHMELFS_DEBUG */
+
 
 #ifdef CONFIG_POHMELFS_DEBUG
 #define dprintka(f, a...) printk(f, ##a)
@@ -908,8 +784,8 @@ static inline void pohmelfs_mcache_put(struct pohmelfs_sb *psb,
 		pohmelfs_mcache_free(psb, m);
 }
 
-//#define POHMELFS_TRUNCATE_ON_INODE_FLUSH
 
-#endif /* __KERNEL__*/
 
-#endif /* __NETFS_H */
+#endif 
+
+#endif 

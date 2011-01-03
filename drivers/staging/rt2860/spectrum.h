@@ -1,29 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
-*/
+
 
 #ifndef __SPECTRUM_H__
 #define __SPECTRUM_H__
@@ -138,18 +113,7 @@ typedef struct PACKED _QUIET_INFO
 	UINT8 QuietOffset;
 } QUIET_INFO, *PQUIET_INFO;
 
-/*
-	==========================================================================
-	Description:
-		Prepare Measurement request action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueMeasurementReq(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -159,18 +123,7 @@ VOID EnqueueMeasurementReq(
 	IN UINT8 MeasureCh,
 	IN UINT16 MeasureDuration);
 
-/*
-	==========================================================================
-	Description:
-		Prepare Measurement report action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueMeasurementRep(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -181,35 +134,13 @@ VOID EnqueueMeasurementRep(
 	IN UINT8 ReportInfoLen,
 	IN PUINT8 pReportInfo);
 
-/*
-	==========================================================================
-	Description:
-		Prepare TPC Request action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueTPCReq(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
 	IN UCHAR DialogToken);
 
-/*
-	==========================================================================
-	Description:
-		Prepare TPC Report action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueTPCRep(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
@@ -217,51 +148,19 @@ VOID EnqueueTPCRep(
 	IN UINT8 TxPwr,
 	IN UINT8 LinkMargin);
 
-/*
-	==========================================================================
-	Description:
-		Prepare Channel Switch Announcement action frame and enqueue it into
-		management queue waiting for transmition.
 
-	Parametrs:
-		1. the destination mac address of the frame.
-		2. Channel switch announcement mode.
-		2. a New selected channel.
-
-	Return	: None.
-	==========================================================================
- */
 VOID EnqueueChSwAnn(
 	IN PRTMP_ADAPTER pAd,
 	IN PUCHAR pDA,
 	IN UINT8 ChSwMode,
 	IN UINT8 NewCh);
 
-/*
-	==========================================================================
-	Description:
-		Spectrun action frames Handler such as channel switch annoucement,
-		measurement report, measurement request actions frames.
 
-	Parametrs:
-		Elme - MLME message containing the received frame
-
-	Return	: None.
-	==========================================================================
- */
 VOID PeerSpectrumAction(
     IN PRTMP_ADAPTER pAd,
     IN MLME_QUEUE_ELEM *Elem);
 
-/*
-	==========================================================================
-	Description:
 
-	Parametrs:
-
-	Return	: None.
-	==========================================================================
- */
 INT Set_MeasureReq_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg);
@@ -288,5 +187,5 @@ VOID NotifyChSwAnnToPeerAPs(
 	IN PUCHAR pTA,
 	IN UINT8 ChSwMode,
 	IN UINT8 Channel);
-#endif // __SPECTRUM_H__ //
+#endif 
 

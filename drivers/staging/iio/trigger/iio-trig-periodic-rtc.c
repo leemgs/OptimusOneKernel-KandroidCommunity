@@ -1,15 +1,4 @@
-/* The industrial I/O periodic RTC trigger driver
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * This is a heavily rewritten version of the periodic timer system in
- * earlier version of industrialio.  It supplies the same functionality
- * but via a trigger rather than a specific periodic timer system.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/kernel.h>
@@ -138,7 +127,7 @@ static int iio_trig_periodic_rtc_probe(struct platform_device *dev)
 			 "periodic%s",
 			 pdata[i]);
 		trig_info->name = (char *)trig->name;
-		/* RTC access */
+		
 		trig_info->rtc
 			= rtc_class_open(pdata[i]);
 		if (trig_info->rtc == NULL) {

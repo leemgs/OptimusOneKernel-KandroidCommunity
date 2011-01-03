@@ -1,6 +1,4 @@
-/*
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- */
+
 #ifndef __MSM_VFE8X_H__
 #define __MSM_VFE8X_H__
 
@@ -14,18 +12,16 @@ enum  VFE_STATE {
 };
 
 enum vfe_cmd_id {
-	/*
-	*Important! Command_ID are arranged in order.
-	*Don't change!*/
+	
 	VFE_CMD_ID_START,
 	VFE_CMD_ID_RESET,
 
-	/* bus and camif config */
+	
 	VFE_CMD_ID_AXI_INPUT_CONFIG,
 	VFE_CMD_ID_CAMIF_CONFIG,
 	VFE_CMD_ID_AXI_OUTPUT_CONFIG,
 
-	/* module config  */
+	
 	VFE_CMD_ID_BLACK_LEVEL_CONFIG,
 	VFE_CMD_ID_ROLL_OFF_CONFIG,
 	VFE_CMD_ID_DEMUX_CHANNEL_GAIN_CONFIG,
@@ -45,12 +41,12 @@ enum vfe_cmd_id {
 	VFE_CMD_ID_FRAME_SKIP_CONFIG,
 	VFE_CMD_ID_OUTPUT_CLAMP_CONFIG,
 
-	/* test gen */
+	
 	VFE_CMD_ID_TEST_GEN_START,
 
 	VFE_CMD_ID_UPDATE,
 
-	/* ackownledge from upper layer */
+	
 	VFE_CMD_ID_OUTPUT1_ACK,
 	VFE_CMD_ID_OUTPUT2_ACK,
 	VFE_CMD_ID_EPOCH1_ACK,
@@ -58,7 +54,7 @@ enum vfe_cmd_id {
 	VFE_CMD_ID_STATS_AUTOFOCUS_ACK,
 	VFE_CMD_ID_STATS_WB_EXP_ACK,
 
-	/* module update commands */
+	
 	VFE_CMD_ID_BLACK_LEVEL_UPDATE,
 	VFE_CMD_ID_DEMUX_CHANNEL_GAIN_UPDATE,
 	VFE_CMD_ID_DEMOSAIC_BPC_UPDATE,
@@ -77,15 +73,15 @@ enum vfe_cmd_id {
 	VFE_CMD_ID_FRAME_SKIP_UPDATE,
 	VFE_CMD_ID_CAMIF_FRAME_UPDATE,
 
-	/* stats update commands */
+	
 	VFE_CMD_ID_STATS_AUTOFOCUS_UPDATE,
 	VFE_CMD_ID_STATS_WB_EXP_UPDATE,
 
-	/* control of start, stop, update, etc... */
+	
   VFE_CMD_ID_STOP,
 	VFE_CMD_ID_GET_HW_VERSION,
 
-	/* stats */
+	
 	VFE_CMD_ID_STATS_SETTING,
 	VFE_CMD_ID_STATS_AUTOFOCUS_START,
 	VFE_CMD_ID_STATS_AUTOFOCUS_STOP,
@@ -94,7 +90,7 @@ enum vfe_cmd_id {
 
 	VFE_CMD_ID_ASYNC_TIMER_SETTING,
 
-	/* max id  */
+	
 	VFE_CMD_ID_MAX
 };
 
@@ -438,9 +434,9 @@ struct vfe_cmd_black_level_config {
 	uint16_t oddOddAdjustment;
 };
 
-/* 13*1  */
+
 #define  VFE_ROLL_OFF_INIT_TABLE_SIZE  13
-/* 13*16 */
+
 #define  VFE_ROLL_OFF_DELTA_TABLE_SIZE 208
 
 struct vfe_cmd_roll_off_config {
@@ -879,7 +875,7 @@ struct vfe_message {
    } _u;
 };
 
-/* New one for 8k */
+
 struct msm_vfe_command_8k {
 	int32_t  id;
 	uint16_t length;
@@ -892,4 +888,4 @@ struct vfe_frame_extra {
 	uint32_t  frameCounter;
 	struct vfe_bus_pm_per_path pmData;
 };
-#endif /* __MSM_VFE8X_H__ */
+#endif 

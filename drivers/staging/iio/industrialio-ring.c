@@ -1,18 +1,4 @@
-/* The industrial I/O core
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * Handling of ring allocation / resizing.
- *
- *
- * Things to look at here.
- * - Better memory allocation techniques?
- * - Alternative access techniques?
- */
+
 #include <linux/kernel.h>
 #include <linux/device.h>
 #include <linux/interrupt.h>
@@ -25,11 +11,11 @@
 #include "iio.h"
 #include "ring_generic.h"
 
-/* IDR for ring buffer identifier */
+
 static DEFINE_IDR(iio_ring_idr);
-/* IDR for ring event identifier */
+
 static DEFINE_IDR(iio_ring_event_idr);
-/* IDR for ring access identifier */
+
 static DEFINE_IDR(iio_ring_access_idr);
 
 int iio_push_ring_event(struct iio_ring_buffer *ring_buf,
@@ -59,12 +45,7 @@ int iio_push_or_escallate_ring_event(struct iio_ring_buffer *ring_buf,
 }
 EXPORT_SYMBOL(iio_push_or_escallate_ring_event);
 
-/**
- * iio_ring_open() chrdev file open for ring buffer access
- *
- * This function relies on all ring buffer implementations having an
- * iio_ring_buffer as their first element.
- **/
+
 int iio_ring_open(struct inode *inode, struct file *filp)
 {
 	struct iio_handler *hand
@@ -78,12 +59,7 @@ int iio_ring_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-/**
- * iio_ring_release() -chrdev file close ring buffer access
- *
- * This function relies on all ring buffer implementations having an
- * iio_ring_buffer as their first element.
- **/
+
 int iio_ring_release(struct inode *inode, struct file *filp)
 {
 	struct cdev *cd = inode->i_cdev;
@@ -97,12 +73,7 @@ int iio_ring_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-/**
- * iio_ring_rip_outer() chrdev read for ring buffer access
- *
- * This function relies on all ring buffer implementations having an
- * iio_ring _bufer as their first element.
- **/
+
 ssize_t iio_ring_rip_outer(struct file *filp,
 			   char *buf,
 			   size_t count,
@@ -111,7 +82,7 @@ ssize_t iio_ring_rip_outer(struct file *filp,
 	struct iio_ring_buffer *rb = filp->private_data;
 	int ret, dead_offset, copied;
 	u8 *data;
-	/* rip lots must exist. */
+	
 	if (!rb->access.rip_lots)
 		return -EINVAL;
 	copied = rb->access.rip_lots(rb, count, &data, &dead_offset);
@@ -124,9 +95,7 @@ ssize_t iio_ring_rip_outer(struct file *filp,
 		ret =  -EFAULT;
 		goto error_free_data_cpy;
 	}
-	/* In clever ring buffer designs this may not need to be freed.
-	 * When such a design exists I'll add this to ring access funcs.
-	 */
+	
 	kfree(data);
 
 	return copied;
@@ -144,12 +113,7 @@ static const struct file_operations iio_ring_fileops = {
 	.owner = THIS_MODULE,
 };
 
-/**
- * __iio_request_ring_buffer_event_chrdev() allocate ring event chrdev
- * @buf:	ring buffer whose event chrdev we are allocating
- * @owner:	the module who owns the ring buffer (for ref counting)
- * @dev:	device with which the chrdev is associated
- **/
+
 static inline int
 __iio_request_ring_buffer_event_chrdev(struct iio_ring_buffer *buf,
 				       int id,
@@ -413,7 +377,7 @@ ssize_t iio_store_ring_enable(struct device *dev,
 		}
 		if (ring->access.mark_in_use)
 			ring->access.mark_in_use(ring);
-		/* Definitely possible for devices to support both of these.*/
+		
 		if (dev_info->modes & INDIO_RING_TRIGGERED) {
 			if (!dev_info->trig) {
 				printk(KERN_INFO
@@ -426,7 +390,7 @@ ssize_t iio_store_ring_enable(struct device *dev,
 			dev_info->currentmode = INDIO_RING_TRIGGERED;
 		} else if (dev_info->modes & INDIO_RING_HARDWARE_BUFFER)
 			dev_info->currentmode = INDIO_RING_HARDWARE_BUFFER;
-		else { /* should never be reached */
+		else { 
 			ret = -EINVAL;
 			goto error_ret;
 		}

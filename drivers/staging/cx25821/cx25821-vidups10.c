@@ -1,25 +1,4 @@
-/*
- *  Driver for the Conexant CX25821 PCIe bridge
- *
- *  Copyright (C) 2009 Conexant Systems Inc.
- *  Authors  <shu.lin@conexant.com>, <hiep.huynh@conexant.com>
- *  Based on Steven Toth <stoth@linuxtv.org> cx23885 driver
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include "cx25821-video.h"
 
@@ -32,10 +11,10 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
 	struct cx25821_dev *dev = fh->dev;
 	struct cx25821_dmaqueue *q = &dev->vidq[SRAM_CH10];
 
-	/* add jump to stopper */
+	
 	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
 	buf->risc.jmp[1] = cpu_to_le32(q->stopper.dma);
-	buf->risc.jmp[2] = cpu_to_le32(0);	/* bits 63-32 */
+	buf->risc.jmp[2] = cpu_to_le32(0);	
 
 	dprintk(2, "jmp to stopper (0x%x)\n", buf->risc.jmp[1]);
 
@@ -66,7 +45,7 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
 			buf->count = q->count++;
 			prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
 
-			/* 64 bit bits 63-32 */
+			
 			prev->risc.jmp[2] = cpu_to_le32(0);
 			dprintk(2,
 				"[%p/%d] buffer_queue - append to active, buf->count=%d\n",
@@ -118,7 +97,7 @@ static int video_open(struct file *file)
 
 	printk("open minor=%d type=%s\n", minor, v4l2_type_names[type]);
 
-	/* allocate + initialize per filehandle data */
+	
 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
 	if (NULL == fh) {
 		unlock_kernel();
@@ -178,13 +157,13 @@ static unsigned int video_poll(struct file *file,
 	struct cx25821_buffer *buf;
 
 	if (res_check(fh, RESOURCE_VIDEO10)) {
-		/* streaming capture */
+		
 		if (list_empty(&fh->vidq.stream))
 			return POLLERR;
 		buf = list_entry(fh->vidq.stream.next,
 				 struct cx25821_buffer, vb.stream);
 	} else {
-		/* read() capture */
+		
 		buf = (struct cx25821_buffer *)fh->vidq.read_buf;
 		if (NULL == buf)
 			return POLLERR;
@@ -201,10 +180,10 @@ static int video_release(struct file *file)
 	struct cx25821_fh *fh = file->private_data;
 	struct cx25821_dev *dev = fh->dev;
 
-	//stop the risc engine and fifo
-	//cx_write(channel10->dma_ctl, 0);
+	
+	
 
-	/* stop video capture */
+	
 	if (res_check(fh, RESOURCE_VIDEO10)) {
 		videobuf_queue_cancel(&fh->vidq);
 		res_free(dev, fh, RESOURCE_VIDEO10);
@@ -371,7 +350,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
 	return 0;
 }
 
-//exported stuff
+
 static const struct v4l2_file_operations video_fops = {
 	.owner = THIS_MODULE,
 	.open = video_open,

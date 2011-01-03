@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/fsnotify.h>
 #include <linux/jhash.h>
@@ -26,26 +13,9 @@
 
 #include "netfs.h"
 
-/*
- * Async machinery lives here.
- * All commands being sent to server do _not_ require sync reply,
- * instead, if it is really needed, like readdir or readpage, caller
- * sleeps waiting for data, which will be placed into provided buffer
- * and caller will be awakened.
- *
- * Every command response can come without some listener. For example
- * readdir response will add new objects into cache without appropriate
- * request from userspace. This is used in cache coherency.
- *
- * If object is not found for given data, it is discarded.
- *
- * All requests are received by dedicated kernel thread.
- */
 
-/*
- * Basic network sending/receiving functions.
- * Blocked mode is used.
- */
+
+
 static int netfs_data_recv(struct netfs_state *st, void *buf, u64 size)
 {
 	struct msghdr msg;
@@ -164,9 +134,7 @@ int pohmelfs_data_recv_and_check(struct netfs_state *st, void *data, unsigned in
 	return pohmelfs_crypto_process_input_data(&st->eng, cmd->iv, data, NULL, size);
 }
 
-/*
- * Polling machinery.
- */
+
 
 struct netfs_poll_helper {
 	poll_table 		pt;
@@ -210,14 +178,7 @@ static int netfs_poll_init(struct netfs_state *st)
 	return 0;
 }
 
-/*
- * Get response for readpage command. We search inode and page in its mapping
- * and copy data into. If it was async request, then we queue page into shared
- * data and wakeup listener, who will copy it to userspace.
- *
- * There is a work in progress of allowing to call copy_to_user() directly from
- * async receiving kernel thread.
- */
+
 static int pohmelfs_read_page_response(struct netfs_state *st)
 {
 	struct pohmelfs_sb *psb = st->psb;
@@ -331,10 +292,7 @@ out:
 	return err;
 }
 
-/*
- * Readdir response from server. If special field is set, we wakeup
- * listener (readdir() call), which will copy data to userspace.
- */
+
 static int pohmelfs_readdir_response(struct netfs_state *st)
 {
 	struct inode *inode;
@@ -438,12 +396,7 @@ err_out_put:
 	return err;
 }
 
-/*
- * Lookup command response.
- * It searches for inode to be looked at (if it exists) and substitutes
- * its inode information (size, permission, mode and so on), if inode does
- * not exist, new one will be created and inserted into caches.
- */
+
 static int pohmelfs_lookup_response(struct netfs_state *st)
 {
 	struct inode *inode = NULL;
@@ -528,10 +481,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Create response, just marks local inode as 'created', so that writeback
- * for any of its children (or own) would not try to sync it again.
- */
+
 static int pohmelfs_create_response(struct netfs_state *st)
 {
 	struct inode *inode;
@@ -547,10 +497,7 @@ static int pohmelfs_create_response(struct netfs_state *st)
 
 	pi = POHMELFS_I(inode);
 
-	/*
-	 * To lock or not to lock?
-	 * We actually do not care if it races...
-	 */
+	
 	if (cmd->start)
 		make_bad_inode(inode);
 	set_bit(NETFS_INODE_REMOTE_SYNCED, &pi->state);
@@ -565,10 +512,7 @@ err_out_exit:
 	return -ENOENT;
 }
 
-/*
- * Object remove response. Just says that remove request has been received.
- * Used in cache coherency protocol.
- */
+
 static int pohmelfs_remove_response(struct netfs_state *st)
 {
 	struct netfs_cmd *cmd = &st->cmd;
@@ -583,15 +527,7 @@ static int pohmelfs_remove_response(struct netfs_state *st)
 	return 0;
 }
 
-/*
- * Transaction reply processing.
- *
- * Find transaction based on its generation number, bump its reference counter,
- * so that none could free it under us, drop from the trees and lists and
- * drop reference counter. When it hits zero (when all destinations replied
- * and all timeout handled by async scanning code), completion will be called
- * and transaction will be freed.
- */
+
 static int pohmelfs_transaction_response(struct netfs_state *st)
 {
 	struct netfs_trans_dst *dst;
@@ -622,9 +558,7 @@ out:
 	return err;
 }
 
-/*
- * Inode metadata cache coherency message.
- */
+
 static int pohmelfs_page_cache_response(struct netfs_state *st)
 {
 	struct netfs_cmd *cmd = &st->cmd;
@@ -644,11 +578,7 @@ static int pohmelfs_page_cache_response(struct netfs_state *st)
 	return 0;
 }
 
-/*
- * Root capabilities response: export statistics
- * like used and available size, number of files and dirs,
- * permissions.
- */
+
 static int pohmelfs_root_cap_response(struct netfs_state *st)
 {
 	struct netfs_cmd *cmd = &st->cmd;
@@ -691,10 +621,7 @@ static int pohmelfs_root_cap_response(struct netfs_state *st)
 	return 0;
 }
 
-/*
- * Crypto capabilities of the server, where it says that
- * it supports or does not requested hash/cipher algorithms.
- */
+
 static int pohmelfs_crypto_cap_response(struct netfs_state *st)
 {
 	struct netfs_cmd *cmd = &st->cmd;
@@ -734,9 +661,7 @@ static int pohmelfs_crypto_cap_response(struct netfs_state *st)
 	return err;
 }
 
-/*
- * Capabilities handshake response.
- */
+
 static int pohmelfs_capabilities_response(struct netfs_state *st)
 {
 	struct netfs_cmd *cmd = &st->cmd;
@@ -757,11 +682,7 @@ static int pohmelfs_capabilities_response(struct netfs_state *st)
 	return -EINVAL;
 }
 
-/*
- * Receiving extended attribute.
- * Does not work properly if received size is more than requested one,
- * it should not happen with current request/reply model though.
- */
+
 static int pohmelfs_getxattr_response(struct netfs_state *st)
 {
 	struct pohmelfs_sb *psb = st->psb;
@@ -849,9 +770,7 @@ static void __inline__ netfs_state_reset(struct netfs_state *st)
 	netfs_state_unlock_send(st);
 }
 
-/*
- * Main receiving function, called from dedicated kernel thread.
- */
+
 static int pohmelfs_recv(void *data)
 {
 	int err = -EINTR;
@@ -859,18 +778,7 @@ static int pohmelfs_recv(void *data)
 	struct netfs_cmd *cmd = &st->cmd;
 
 	while (!kthread_should_stop()) {
-		/*
-		 * If socket will be reset after this statement, then
-		 * pohmelfs_data_recv() will just fail and loop will
-		 * start again, so it can be done without any locks.
-		 *
-		 * st->read_socket is needed to prevents state machine
-		 * breaking between this data reading and subsequent one
-		 * in protocol specific functions during connection reset.
-		 * In case of reset we have to read next command and do
-		 * not expect data for old command to magically appear in
-		 * new connection.
-		 */
+		
 		st->read_socket = st->socket;
 		err = pohmelfs_data_recv(st, cmd, sizeof(struct netfs_cmd));
 		if (err) {
@@ -923,9 +831,7 @@ static int pohmelfs_recv(void *data)
 			cmd->size -= cmd->csize;
 		}
 
-		/*
-		 * This should catch protocol breakage and random garbage instead of commands.
-		 */
+		
 		if (unlikely((cmd->size > st->size) && (cmd->cmd != NETFS_XATTR_GET))) {
 			netfs_state_reset(st);
 			continue;
@@ -1136,11 +1042,7 @@ static void pohmelfs_state_exit_one(struct pohmelfs_config *c)
 	kfree(c);
 }
 
-/*
- * Initialize network stack. It searches for given ID in global
- * configuration table, this contains information of the remote server
- * (address (any supported by socket interface) and port, protocol and so on).
- */
+
 int pohmelfs_state_init(struct pohmelfs_sb *psb)
 {
 	int err = -ENOMEM;

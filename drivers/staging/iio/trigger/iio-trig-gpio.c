@@ -1,20 +1,4 @@
-/*
- * Industrial I/O - gpio based trigger support
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * Currently this is more of a functioning proof of concept that a fully
- * fledged trigger driver.
- *
- * TODO:
- *
- * Add board config elements to allow specification of startup settings.
- * Add configuration settings (irq type etc)
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -32,13 +16,10 @@ struct iio_gpio_trigger_info {
 	struct mutex in_use;
 	int gpio;
 };
-/*
- * Need to reference count these triggers and only enable gpio interrupts
- * as appropriate.
- */
 
-/* So what functionality do we want in here?... */
-/* set high / low as interrupt type? */
+
+
+
 
 static irqreturn_t iio_gpio_trigger_poll(int irq, void *private)
 {
@@ -124,7 +105,7 @@ static int iio_gpio_trigger_probe(struct platform_device *dev)
 	}
 	return 0;
 
-/* First clean up the partly allocated trigger */
+
 error_release_irq:
 	free_irq(irq, trig);
 error_release_gpio:
@@ -136,7 +117,7 @@ error_free_trig_info:
 error_put_trigger:
 	iio_put_trigger(trig);
 error_free_completed_registrations:
-	/* The rest should have been added to the iio_gpio_trigger_list */
+	
 	list_for_each_entry_safe(trig,
 				 trig2,
 				 &iio_gpio_trigger_list,

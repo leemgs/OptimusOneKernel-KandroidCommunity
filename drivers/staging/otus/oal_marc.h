@@ -1,27 +1,13 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*  Module Name : oal_marc.h                                            */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains warpper definitions.                       */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      Platform dependent.                                             */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
 
 #ifndef _OAL_MARC_H
 #define _OAL_MARC_H
@@ -31,36 +17,36 @@
 
 #define ZM_OS_LINUX_FUNC
 
-/***** Critical section *****/
-/* Declare for critical section */
+
+
 #ifndef ZM_HALPLUS_LOCK
 #define zmw_get_wlan_dev(dev)    struct zsWlanDev *wd = (struct zsWlanDev*) ((((struct usbdrv_private*)dev->priv)->wd))
 
 #define zmw_declare_for_critical_section() unsigned long irqFlag;
 
-/* Enter critical section */
+
 #define zmw_enter_critical_section(dev) \
         spin_lock_irqsave(&(((struct usbdrv_private *)(dev->priv))->cs_lock), irqFlag);
 
-/* leave critical section */
+
 #define zmw_leave_critical_section(dev) \
         spin_unlock_irqrestore(&(((struct usbdrv_private *)(dev->priv))->cs_lock), irqFlag);
 #else
 #define zmw_get_wlan_dev(dev)    struct zsWlanDev *wd = zfwGetWlanDev(dev);
 
-/* Declare for critical section */
+
 #define zmw_declare_for_critical_section()
 
-/* Enter critical section */
+
 #define zmw_enter_critical_section(dev) \
         zfwEnterCriticalSection(dev);
 
-/* leave critical section */
+
 #define zmw_leave_critical_section(dev) \
         zfwLeaveCriticalSection(dev);
 #endif
 
-/***** Byte order converting *****/
+
 #ifdef ZM_CONFIG_BIG_ENDIAN
 #define zmw_cpu_to_le32(v)    (((v & 0xff000000) >> 24) | \
                                ((v & 0x00ff0000) >> 8)  | \
@@ -84,8 +70,8 @@
 #define zmw_le16_to_cpu(v)    (v)
 #endif
 
-/***** Buffer access *****/
-/* Called to read/write buffer */
+
+
 #ifndef ZM_HALPLUS_LOCK
 
 #define zmw_buf_readb(dev, buf, offset) *(u8_t*)((u8_t*)buf->data+offset)
@@ -104,7 +90,7 @@
 
 #endif
 
-/***** Debug message *****/
+
 #if 0
 #define zm_debug_msg0(msg) printk("%s:%s\n", __func__, msg);
 #define zm_debug_msg1(msg, val) printk("%s:%s%ld\n", __func__, \
@@ -132,4 +118,4 @@
 
 #define DbgPrint printk
 
-#endif /* #ifndef _OAL_MARC_H */
+#endif 

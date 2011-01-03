@@ -1,19 +1,4 @@
-/*
- * VMEbus User access driver
- *
- * Author: Martyn Welch <martyn.welch@gefanuc.com>
- * Copyright 2008 GE Fanuc Intelligent Platforms Embedded Systems, Inc.
- *
- * Based on work by:
- *   Tom Armistead and Ajit Prem
- *     Copyright 2004 Motorola Inc.
- *
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/cdev.h>
 #include <linux/delay.h>
@@ -44,39 +29,9 @@ static char driver_name[] = "vme_user";
 static int bus[USER_BUS_MAX];
 static int bus_num;
 
-/* Currently Documentation/devices.txt defines the following for VME:
- *
- * 221 char	VME bus
- * 		  0 = /dev/bus/vme/m0		First master image
- * 		  1 = /dev/bus/vme/m1		Second master image
- * 		  2 = /dev/bus/vme/m2		Third master image
- * 		  3 = /dev/bus/vme/m3		Fourth master image
- * 		  4 = /dev/bus/vme/s0		First slave image
- * 		  5 = /dev/bus/vme/s1		Second slave image
- * 		  6 = /dev/bus/vme/s2		Third slave image
- * 		  7 = /dev/bus/vme/s3		Fourth slave image
- * 		  8 = /dev/bus/vme/ctl		Control
- *
- * 		It is expected that all VME bus drivers will use the
- * 		same interface.  For interface documentation see
- * 		http://www.vmelinux.org/.
- *
- * However the VME driver at http://www.vmelinux.org/ is rather old and doesn't
- * even support the tsi148 chipset (which has 8 master and 8 slave windows).
- * We'll run with this or now as far as possible, however it probably makes
- * sense to get rid of the old mappings and just do everything dynamically.
- *
- * So for now, we'll restrict the driver to providing 4 masters and 4 slaves as
- * defined above and try to support at least some of the interface from
- * http://www.vmelinux.org/ as an alternative drive can be written providing a
- * saner interface later.
- *
- * The vmelinux.org driver never supported slave images, the devices reserved
- * for slaves were repurposed to support all 8 master images on the UniverseII!
- * We shall support 4 masters and 4 slaves with this driver.
- */
-#define VME_MAJOR	221	/* VME Major Device Number */
-#define VME_DEVS	9	/* Number of dev entries */
+
+#define VME_MAJOR	221	
+#define VME_DEVS	9	
 
 #define MASTER_MINOR	0
 #define MASTER_MAX	3
@@ -84,19 +39,17 @@ static int bus_num;
 #define SLAVE_MAX	7
 #define CONTROL_MINOR	8
 
-#define PCI_BUF_SIZE  0x20000	/* Size of one slave image buffer */
+#define PCI_BUF_SIZE  0x20000	
 
-/*
- * Structure to handle image related parameters.
- */
+
 typedef struct {
-	void __iomem *kern_buf;	/* Buffer address in kernel space */
-	dma_addr_t pci_buf;	/* Buffer address in PCI address space */
-	unsigned long long size_buf;	/* Buffer size */
-	struct semaphore sem;	/* Semaphore for locking image */
-	struct device *device;	/* Sysfs device */
-	struct vme_resource *resource;	/* VME resource */
-	int users;		/* Number of current users */
+	void __iomem *kern_buf;	
+	dma_addr_t pci_buf;	
+	unsigned long long size_buf;	
+	struct semaphore sem;	
+	struct device *device;	
+	struct vme_resource *resource;	
+	int users;		
 } image_desc_t;
 static image_desc_t image[VME_DEVS];
 
@@ -112,9 +65,9 @@ typedef struct {
 } driver_stats_t;
 static driver_stats_t statistics;
 
-struct cdev *vme_user_cdev;		/* Character device */
-struct class *vme_user_sysfs_class;	/* Sysfs class */
-struct device *vme_user_bridge;		/* Pointer to the bridge device */
+struct cdev *vme_user_cdev;		
+struct class *vme_user_sysfs_class;	
+struct device *vme_user_bridge;		
 
 
 static const int type[VME_DEVS] = {	MASTER_MINOR,	MASTER_MINOR,
@@ -146,9 +99,7 @@ static struct file_operations vme_user_fops = {
 };
 
 
-/*
- * Reset all the statistic counters
- */
+
 static void reset_counters(void)
 {
         statistics.reads = 0;
@@ -166,14 +117,14 @@ static int vme_user_open(struct inode *inode, struct file *file)
 	unsigned int minor = MINOR(inode->i_rdev);
 
 	down(&image[minor].sem);
-	/* Only allow device to be opened if a resource is allocated */
+	
 	if (image[minor].resource == NULL) {
 		printk(KERN_ERR "No resources allocated for device\n");
 		err = -EINVAL;
 		goto err_res;
 	}
 
-	/* Increment user count */
+	
 	image[minor].users++;
 
 	up(&image[minor].sem);
@@ -192,7 +143,7 @@ static int vme_user_release(struct inode *inode, struct file *file)
 
 	down(&image[minor].sem);
 
-	/* Decrement user count */
+	
 	image[minor].users--;
 
 	up(&image[minor].sem);
@@ -200,12 +151,7 @@ static int vme_user_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
- * We are going ot alloc a page during init per window for small transfers.
- * Small transfers will go VME -> buffer -> user space. Larger (more than a
- * page) transfers will lock the user space buffer into memory and then
- * transfer the data directly into the user space buffers.
- */
+
 static ssize_t resource_to_user(int minor, char __user *buf, size_t count,
 	loff_t *ppos)
 {
@@ -213,7 +159,7 @@ static ssize_t resource_to_user(int minor, char __user *buf, size_t count,
 	ssize_t copied = 0;
 
 	if (count <= image[minor].size_buf) {
-		/* We copy to kernel buffer */
+		
 		copied = vme_master_read(image[minor].resource,
 			image[minor].kern_buf, count, *ppos);
 		if (copied < 0) {
@@ -229,23 +175,18 @@ static ssize_t resource_to_user(int minor, char __user *buf, size_t count,
 		}
 
 	} else {
-		/* XXX Need to write this */
+		
 		printk("Currently don't support large transfers\n");
-		/* Map in pages from userspace */
+		
 
-		/* Call vme_master_read to do the transfer */
+		
 		return -EINVAL;
 	}
 
 	return copied;
 }
 
-/*
- * We are going ot alloc a page during init per window for small transfers.
- * Small transfers will go user space -> buffer -> VME. Larger (more than a
- * page) transfers will lock the user space buffer into memory and then
- * transfer the data directly from the user space buffers out to VME.
- */
+
 static ssize_t resource_from_user(unsigned int minor, const char *buf,
 	size_t count, loff_t *ppos)
 {
@@ -263,11 +204,11 @@ static ssize_t resource_from_user(unsigned int minor, const char *buf,
 		copied = vme_master_write(image[minor].resource,
 			image[minor].kern_buf, copied, *ppos);
 	} else {
-		/* XXX Need to write this */
+		
 		printk("Currently don't support large transfers\n");
-		/* Map in pages from userspace */
+		
 
-		/* Call vme_master_write to do the transfer */
+		
 		return -EINVAL;
 	}
 
@@ -289,7 +230,7 @@ static ssize_t buffer_to_user(unsigned int minor, char __user *buf,
 	} else
 		retval = count;
 
-	/* Return number of bytes successfully read */
+	
 	return retval;
 }
 
@@ -308,7 +249,7 @@ static ssize_t buffer_from_user(unsigned int minor, const char *buf,
 	} else
 		retval = count;
 
-	/* Return number of bytes successfully read */
+	
 	return retval;
 }
 
@@ -322,16 +263,16 @@ static ssize_t vme_user_read(struct file *file, char *buf, size_t count,
 
 	down(&image[minor].sem);
 
-	/* XXX Do we *really* want this helper - we can use vme_*_get ? */
+	
 	image_size = vme_get_size(image[minor].resource);
 
-	/* Ensure we are starting at a valid location */
+	
 	if ((*ppos < 0) || (*ppos > (image_size - 1))) {
 		up(&image[minor].sem);
 		return 0;
 	}
 
-	/* Ensure not reading past end of the image */
+	
 	if (*ppos + count > image_size)
 		okcount = image_size - *ppos;
 	else
@@ -368,13 +309,13 @@ static ssize_t vme_user_write(struct file *file, const char *buf, size_t count,
 
 	image_size = vme_get_size(image[minor].resource);
 
-	/* Ensure we are starting at a valid location */
+	
 	if ((*ppos < 0) || (*ppos > (image_size - 1))) {
 		up(&image[minor].sem);
 		return 0;
 	}
 
-	/* Ensure not reading past end of the image */
+	
 	if (*ppos + count > image_size)
 		okcount = image_size - *ppos;
 	else
@@ -405,16 +346,7 @@ static loff_t vme_user_llseek(struct file *file, loff_t off, int whence)
 	return -EINVAL;
 }
 
-/*
- * The ioctls provided by the old VME access method (the one at vmelinux.org)
- * are most certainly wrong as the effectively push the registers layout
- * through to user space. Given that the VME core can handle multiple bridges,
- * with different register layouts this is most certainly not the way to go.
- *
- * We aren't using the structures defined in the Motorola driver either - these
- * are also quite low level, however we should use the definitions that have
- * already been defined.
- */
+
 static int vme_user_ioctl(struct inode *inode, struct file *file,
 	unsigned int cmd, unsigned long arg)
 {
@@ -435,9 +367,7 @@ static int vme_user_ioctl(struct inode *inode, struct file *file,
 		case VME_GET_MASTER:
 			memset(&master, 0, sizeof(struct vme_master));
 
-			/* XXX	We do not want to push aspace, cycle and width
-			 *	to userspace as they are
-			 */
+			
 			retval = vme_master_get(image[minor].resource,
 				&(master.enable), &(master.vme_addr),
 				&(master.size), &(master.aspace),
@@ -464,9 +394,7 @@ static int vme_user_ioctl(struct inode *inode, struct file *file,
 				return -EFAULT;
 			}
 
-			/* XXX	We do not want to push aspace, cycle and width
-			 *	to userspace as they are
-			 */
+			
 			return vme_master_set(image[minor].resource,
 				master.enable, master.vme_addr, master.size,
 				master.aspace, master.cycle, master.dwidth);
@@ -479,9 +407,7 @@ static int vme_user_ioctl(struct inode *inode, struct file *file,
 		case VME_GET_SLAVE:
 			memset(&slave, 0, sizeof(struct vme_slave));
 
-			/* XXX	We do not want to push aspace, cycle and width
-			 *	to userspace as they are
-			 */
+			
 			retval = vme_slave_get(image[minor].resource,
 				&(slave.enable), &(slave.vme_addr),
 				&(slave.size), &pci_addr, &(slave.aspace),
@@ -508,9 +434,7 @@ static int vme_user_ioctl(struct inode *inode, struct file *file,
 				return -EFAULT;
 			}
 
-			/* XXX	We do not want to push aspace, cycle and width
-			 *	to userspace as they are
-			 */
+			
 			return vme_slave_set(image[minor].resource,
 				slave.enable, slave.vme_addr, slave.size,
 				image[minor].pci_buf, slave.aspace,
@@ -525,9 +449,7 @@ static int vme_user_ioctl(struct inode *inode, struct file *file,
 }
 
 
-/*
- * Unallocate a previously allocated buffer
- */
+
 static void buf_unalloc (int num)
 {
 	if (image[num].kern_buf) {
@@ -571,9 +493,7 @@ static int __init vme_user_init(void)
 		goto err_nocard;
 	}
 
-	/* Let's start by supporting one bus, we can support more than one
-	 * in future revisions if that ever becomes necessary.
-	 */
+	
 	if (bus_num > USER_BUS_MAX) {
 		printk(KERN_ERR "%s: Driver only able to handle %d PIO2 "
 			"Cards\n", driver_name, USER_BUS_MAX);
@@ -581,7 +501,7 @@ static int __init vme_user_init(void)
 	}
 
 
-	/* Dynamically create the bind table based on module parameters */
+	
 	ids = kmalloc(sizeof(struct vme_device_id) * (bus_num + 1), GFP_KERNEL);
 	if (ids == NULL) {
 		printk(KERN_ERR "%s: Unable to allocate ID table\n",
@@ -593,11 +513,7 @@ static int __init vme_user_init(void)
 
 	for (i = 0; i < bus_num; i++) {
 		ids[i].bus = bus[i];
-		/*
-		 * We register the driver against the slot occupied by *this*
-		 * card, since it's really a low level way of controlling
-		 * the VME bridge
-		 */
+		
 		ids[i].slot = VME_SLOT_CURRENT;
 	}
 
@@ -617,17 +533,13 @@ err_nocard:
 	return retval;
 }
 
-/*
- * In this simple access driver, the old behaviour is being preserved as much
- * as practical. We will therefore reserve the buffers and request the images
- * here so that we don't have to do it later.
- */
+
 static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 {
 	int i, err;
 	char name[8];
 
-	/* Save pointer to the bridge device */
+	
 	if (vme_user_bridge != NULL) {
 		printk(KERN_ERR "%s: Driver can only be loaded for 1 device\n",
 			driver_name);
@@ -636,7 +548,7 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 	}
 	vme_user_bridge = dev;
 
-	/* Initialise descriptors */
+	
 	for (i = 0; i < VME_DEVS; i++) {
 		image[i].kern_buf = NULL;
 		image[i].pci_buf = 0;
@@ -646,10 +558,10 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 		image[i].users = 0;
 	}
 
-	/* Initialise statistics counters */
+	
 	reset_counters();
 
-	/* Assign major and minor numbers for the driver */
+	
 	err = register_chrdev_region(MKDEV(VME_MAJOR, 0), VME_DEVS,
 		driver_name);
 	if (err) {
@@ -658,7 +570,7 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 		goto err_region;
 	}
 
-	/* Register the driver as a char device */
+	
 	vme_user_cdev = cdev_alloc();
 	vme_user_cdev->ops = &vme_user_fops;
 	vme_user_cdev->owner = THIS_MODULE;
@@ -668,9 +580,9 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 		goto err_char;
 	}
 
-	/* Request slave resources and allocate buffers (128kB wide) */
+	
 	for (i = SLAVE_MINOR; i < (SLAVE_MAX + 1); i++) {
-		/* XXX Need to properly request attributes */
+		
 		image[i].resource = vme_slave_request(vme_user_bridge,
 			VME_A16, VME_SCT);
 		if (image[i].resource == NULL) {
@@ -691,12 +603,9 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 		}
 	}
 
-	/*
-	 * Request master resources allocate page sized buffers for small
-	 * reads and writes
-	 */
+	
 	for (i = MASTER_MINOR; i < (MASTER_MAX + 1); i++) {
-		/* XXX Need to properly request attributes */
+		
 		image[i].resource = vme_master_request(vme_user_bridge,
 			VME_A32, VME_SCT, VME_D32);
 		if (image[i].resource == NULL) {
@@ -706,7 +615,7 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 		}
 	}
 
-	/* Create sysfs entries - on udev systems this creates the dev files */
+	
 	vme_user_sysfs_class = class_create(THIS_MODULE, driver_name);
 	if (IS_ERR(vme_user_sysfs_class)) {
 		printk(KERN_ERR "Error creating vme_user class.\n");
@@ -714,7 +623,7 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 		goto err_class;
 	}
 
-	/* Add sysfs Entries */
+	
 	for (i=0; i<VME_DEVS; i++) {
 		switch (type[i]) {
 		case MASTER_MINOR:
@@ -746,7 +655,7 @@ static int __init vme_user_probe(struct device *dev, int cur_bus, int cur_slot)
 
 	return 0;
 
-	/* Ensure counter set correcty to destroy all sysfs devices */
+	
 	i = VME_DEVS;
 err_sysfs:
 	while (i > 0){
@@ -755,7 +664,7 @@ err_sysfs:
 	}
 	class_destroy(vme_user_sysfs_class);
 
-	/* Ensure counter set correcty to unalloc all master windows */
+	
 	i = MASTER_MAX + 1;
 err_master:
 	while (i > MASTER_MINOR) {
@@ -763,9 +672,7 @@ err_master:
 		vme_master_free(image[i].resource);
 	}
 
-	/*
-	 * Ensure counter set correcty to unalloc all slave windows and buffers
-	 */
+	
 	i = SLAVE_MAX + 1;
 err_slave:
 	while (i > SLAVE_MINOR) {
@@ -786,7 +693,7 @@ static int __exit vme_user_remove(struct device *dev, int cur_bus, int cur_slot)
 {
 	int i;
 
-	/* Remove sysfs Entries */
+	
 	for(i=0; i<VME_DEVS; i++) {
 		device_destroy(vme_user_sysfs_class, MKDEV(VME_MAJOR, i));
 	}
@@ -798,10 +705,10 @@ static int __exit vme_user_remove(struct device *dev, int cur_bus, int cur_slot)
 		buf_unalloc(i);
 	}
 
-	/* Unregister device driver */
+	
 	cdev_del(vme_user_cdev);
 
-	/* Unregiser the major and minor device numbers */
+	
 	unregister_chrdev_region(MKDEV(VME_MAJOR, 0), VME_DEVS);
 
 	return 0;

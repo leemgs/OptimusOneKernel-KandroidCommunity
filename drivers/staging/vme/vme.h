@@ -1,7 +1,7 @@
 #ifndef _VME_H_
 #define _VME_H_
 
-/* Resource Type */
+
 enum vme_resource_type {
 	VME_MASTER,
 	VME_SLAVE,
@@ -9,7 +9,7 @@ enum vme_resource_type {
 	VME_LM
 };
 
-/* VME Address Spaces */
+
 typedef u32 vme_address_t;
 #define VME_A16		0x1
 #define VME_A24		0x2
@@ -28,7 +28,7 @@ typedef u32 vme_address_t;
 #define VME_CRCSR_MAX	0x1000000ULL
 
 
-/* VME Cycle Types */
+
 typedef u32 vme_cycle_t;
 #define VME_SCT		0x1
 #define VME_BLT		0x2
@@ -46,14 +46,14 @@ typedef u32 vme_cycle_t;
 #define	VME_PROG	0x4000
 #define	VME_DATA	0x8000
 
-/* VME Data Widths */
+
 typedef u32 vme_width_t;
 #define VME_D8		0x1
 #define VME_D16		0x2
 #define VME_D32		0x4
 #define VME_D64		0x8
 
-/* Arbitration Scheduling Modes */
+
 typedef u32 vme_arbitration_t;
 #define VME_R_ROBIN_MODE	0x1
 #define VME_PRIORITY_MODE	0x2
@@ -157,5 +157,5 @@ int vme_register_driver (struct vme_driver *);
 void vme_unregister_driver (struct vme_driver *);
 
 
-#endif /* _VME_H_ */
+#endif 
 

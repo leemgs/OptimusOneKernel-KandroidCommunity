@@ -1,25 +1,4 @@
-/*
- *
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- *
- */
+
 
 
 #ifndef _CHANNEL_MGMT_H_
@@ -31,7 +10,7 @@
 #include "VmbusChannelInterface.h"
 #include "VmbusPacketFormat.h"
 
-/* Version 1 messages */
+
 enum vmbus_channel_message_type {
 	ChannelMessageInvalid			=  0,
 	ChannelMessageOfferChannel		=  1,
@@ -62,19 +41,19 @@ struct vmbus_channel_message_header {
 	u32 Padding;
 } __attribute__((packed));
 
-/* Query VMBus Version parameters */
+
 struct vmbus_channel_query_vmbus_version {
 	struct vmbus_channel_message_header Header;
 	u32 Version;
 } __attribute__((packed));
 
-/* VMBus Version Supported parameters */
+
 struct vmbus_channel_version_supported {
 	struct vmbus_channel_message_header Header;
 	bool VersionSupported;
 } __attribute__((packed));
 
-/* Offer Channel parameters */
+
 struct vmbus_channel_offer_channel {
 	struct vmbus_channel_message_header Header;
 	struct vmbus_channel_offer Offer;
@@ -83,49 +62,38 @@ struct vmbus_channel_offer_channel {
 	bool MonitorAllocated;
 } __attribute__((packed));
 
-/* Rescind Offer parameters */
+
 struct vmbus_channel_rescind_offer {
 	struct vmbus_channel_message_header Header;
 	u32 ChildRelId;
 } __attribute__((packed));
 
-/*
- * Request Offer -- no parameters, SynIC message contains the partition ID
- * Set Snoop -- no parameters, SynIC message contains the partition ID
- * Clear Snoop -- no parameters, SynIC message contains the partition ID
- * All Offers Delivered -- no parameters, SynIC message contains the partition
- *		           ID
- * Flush Client -- no parameters, SynIC message contains the partition ID
- */
 
-/* Open Channel parameters */
+
+
 struct vmbus_channel_open_channel {
 	struct vmbus_channel_message_header Header;
 
-	/* Identifies the specific VMBus channel that is being opened. */
+	
 	u32 ChildRelId;
 
-	/* ID making a particular open request at a channel offer unique. */
+	
 	u32 OpenId;
 
-	/* GPADL for the channel's ring buffer. */
+	
 	u32 RingBufferGpadlHandle;
 
-	/* GPADL for the channel's server context save area. */
+	
 	u32 ServerContextAreaGpadlHandle;
 
-	/*
-	* The upstream ring buffer begins at offset zero in the memory
-	* described by RingBufferGpadlHandle. The downstream ring buffer
-	* follows it at this offset (in pages).
-	*/
+	
 	u32 DownstreamRingBufferPageOffset;
 
-	/* User-specific data to be passed along to the server endpoint. */
+	
 	unsigned char UserData[MAX_USER_DEFINED_BYTES];
 } __attribute__((packed));
 
-/* Open Channel Result parameters */
+
 struct vmbus_channel_open_result {
 	struct vmbus_channel_message_header Header;
 	u32 ChildRelId;
@@ -133,23 +101,18 @@ struct vmbus_channel_open_result {
 	u32 Status;
 } __attribute__((packed));
 
-/* Close channel parameters; */
+
 struct vmbus_channel_close_channel {
 	struct vmbus_channel_message_header Header;
 	u32 ChildRelId;
 } __attribute__((packed));
 
-/* Channel Message GPADL */
+
 #define GPADL_TYPE_RING_BUFFER		1
 #define GPADL_TYPE_SERVER_SAVE_AREA	2
 #define GPADL_TYPE_TRANSACTION		8
 
-/*
- * The number of PFNs in a GPADL message is defined by the number of
- * pages that would be spanned by ByteCount and ByteOffset.  If the
- * implied number of PFNs won't fit in this packet, there will be a
- * follow-up packet that contains more.
- */
+
 struct vmbus_channel_gpadl_header {
 	struct vmbus_channel_message_header Header;
 	u32 ChildRelId;
@@ -159,7 +122,7 @@ struct vmbus_channel_gpadl_header {
 	struct gpa_range Range[0];
 } __attribute__((packed));
 
-/* This is the followup packet that contains more PFNs. */
+
 struct vmbus_channel_gpadl_body {
 	struct vmbus_channel_message_header Header;
 	u32 MessageNumber;
@@ -230,30 +193,27 @@ struct vmbus_channel {
 
 	struct hv_device *DeviceObject;
 
-	struct timer_list poll_timer; /* SA-111 workaround */
+	struct timer_list poll_timer; 
 
 	enum vmbus_channel_state State;
 
 	struct vmbus_channel_offer_channel OfferMsg;
-	/*
-	 * These are based on the OfferMsg.MonitorId.
-	 * Save it here for easy access.
-	 */
+	
 	u8 MonitorGroup;
 	u8 MonitorBit;
 
 	u32 RingBufferGpadlHandle;
 
-	/* Allocated memory for ring buffer */
+	
 	void *RingBufferPages;
 	u32 RingBufferPageCount;
-	RING_BUFFER_INFO Outbound;	/* send to parent */
-	RING_BUFFER_INFO Inbound;	/* receive from parent */
+	RING_BUFFER_INFO Outbound;	
+	RING_BUFFER_INFO Inbound;	
 	spinlock_t inbound_lock;
 	struct workqueue_struct *ControlWQ;
 
-	/* Channel callback are invoked in this workqueue context */
-	/* HANDLE dataWorkQueue; */
+	
+	
 
 	void (*OnChannelCallback)(void *context);
 	void *ChannelCallbackContext;
@@ -276,18 +236,15 @@ struct vmbus_channel_debug_info {
 	RING_BUFFER_DEBUG_INFO Outbound;
 };
 
-/*
- * Represents each channel msg on the vmbus connection This is a
- * variable-size data structure depending on the msg type itself
- */
+
 struct vmbus_channel_msginfo {
-	/* Bookkeeping stuff */
+	
 	struct list_head MsgListEntry;
 
-	/* So far, this is only used to handle gpadl body message */
+	
 	struct list_head SubMsgList;
 
-	/* Synchronize the request/response if needed */
+	
 	struct osd_waitevent *WaitEvent;
 
 	union {
@@ -299,10 +256,7 @@ struct vmbus_channel_msginfo {
 	} Response;
 
 	u32 MessageSize;
-	/*
-	 * The channel message that goes out on the "wire".
-	 * It will contain at minimum the VMBUS_CHANNEL_MESSAGE_HEADER header
-	 */
+	
 	unsigned char Msg[0];
 };
 
@@ -317,4 +271,4 @@ int VmbusChannelRequestOffers(void);
 
 void VmbusChannelReleaseUnattachedChannels(void);
 
-#endif /* _CHANNEL_MGMT_H_ */
+#endif 

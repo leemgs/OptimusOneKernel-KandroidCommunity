@@ -1,19 +1,4 @@
-/* arch/arm/mach-msm/qdsp5/adsp.h
- *
- * Copyright (c) 2008 QUALCOMM Incorporated
- * Copyright (C) 2008 Google, Inc.
- * Author: Iliyan Malchev <ibm@android.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #ifndef _ARCH_ARM_MACH_MSM_ADSP_H
 #define _ARCH_ARM_MACH_MSM_ADSP_H
@@ -72,10 +57,10 @@ struct adsp_module_info {
 
 struct adsp_event {
 	struct list_head list;
-	uint32_t size; /* always in bytes */
+	uint32_t size; 
 	uint16_t msg_id;
-	uint16_t type; /* 0 for msgs (from aDSP), -1 for events (from ARM9) */
-	int is16; /* always 0 (msg is 32-bit) when the event type is 1(ARM9) */
+	uint16_t type; 
+	int is16; 
 	union {
 		uint16_t msg16[ADSP_EVENT_MAX_SIZE / 2];
 		uint32_t msg32[ADSP_EVENT_MAX_SIZE / 4];
@@ -95,24 +80,24 @@ struct adsp_info {
 	uint32_t max_queue_id;
 	uint32_t max_image_id;
 
-	/* for each image id, a map of queue id to offset */
+	
 	uint32_t **queue_offset;
 
-	/* for each image id, a map of task id to module id */
+	
 	uint32_t **task_to_module;
 
-	/* for each module id, map of module id to module */
+	
 	struct msm_adsp_module **id_to_module;
 
 	uint32_t module_count;
 	struct adsp_module_info *module;
 
-	/* stats */
+	
 	uint32_t events_received;
 	uint32_t event_backlog_max;
 
 #if CONFIG_MSM_AMSS_VERSION >= 6350
-	/* rpc_client for init_info */
+	
 	struct msm_rpc_endpoint *init_info_rpc_client;
 	struct adsp_rtos_mp_mtoa_init_info_type *init_info_ptr;
 	wait_queue_head_t init_info_wait;
@@ -129,7 +114,7 @@ struct adsp_info {
 
 #if CONFIG_MSM_AMSS_VERSION >= 6350
 #define RPC_ADSP_RTOS_ATOM_VERS MSM_RPC_VERS(1,0)
-#define RPC_ADSP_RTOS_MTOA_VERS MSM_RPC_VERS(2,1) /* must be actual vers */
+#define RPC_ADSP_RTOS_MTOA_VERS MSM_RPC_VERS(2,1) 
 #define MSM_ADSP_DRIVER_NAME "rs3000000a:00010000"
 #elif (CONFIG_MSM_AMSS_VERSION == 6220) || (CONFIG_MSM_AMSS_VERSION == 6225)
 #define RPC_ADSP_RTOS_ATOM_VERS MSM_RPC_VERS(0x71d1094b, 0)
@@ -179,10 +164,10 @@ enum rpc_adsp_rtos_mod_status_type {
 
 struct rpc_adsp_rtos_app_to_modem_args_t {
 	struct rpc_request_hdr hdr;
-	uint32_t gotit; /* if 1, the next elements are present */
-	uint32_t cmd; /* e.g., RPC_ADSP_RTOS_CMD_REGISTER_APP */
-	uint32_t proc_id; /* e.g., RPC_ADSP_RTOS_PROC_APPS */
-	uint32_t module; /* e.g., QDSP_MODULE_AUDPPTASK */
+	uint32_t gotit; 
+	uint32_t cmd; 
+	uint32_t proc_id; 
+	uint32_t module; 
 };
 
 #if CONFIG_MSM_AMSS_VERSION >= 6350
@@ -191,7 +176,7 @@ enum qdsp_image_type {
 	QDSP_IMAGE_GAUDIO,
 	QDSP_IMAGE_QTV_LP,
 	QDSP_IMAGE_MAX,
-	/* DO NOT USE: Force this enum to be a 32bit type to improve speed */
+	
 	QDSP_IMAGE_32BIT_DUMMY = 0x10000
 };
 
@@ -200,14 +185,14 @@ struct adsp_rtos_mp_mtoa_header_type {
 	enum rpc_adsp_rtos_proc_type        proc_id;
 };
 
-/* ADSP RTOS MP Communications - Modem to APP's  Event Info*/
+
 struct adsp_rtos_mp_mtoa_type {
 	uint32_t	module;
 	uint32_t	image;
 	uint32_t	apps_okts;
 };
 
-/* ADSP RTOS MP Communications - Modem to APP's Init Info  */
+
 #define IMG_MAX         8
 #define ENTRIES_MAX     64
 
@@ -225,9 +210,7 @@ struct adsp_rtos_mp_mtoa_init_info_type {
 
 	uint32_t	module_table_size;
 	uint32_t	module_entries[ENTRIES_MAX];
-	/*
-	 * queue_offsets[] is to store only queue_offsets
-	 */
+	
 	uint32_t	queue_offsets[IMG_MAX][ENTRIES_MAX];
 };
 
@@ -243,19 +226,19 @@ struct adsp_rtos_mp_mtoa_s_type {
 
 struct rpc_adsp_rtos_modem_to_app_args_t {
 	struct rpc_request_hdr hdr;
-	uint32_t gotit; /* if 1, the next elements are present */
+	uint32_t gotit; 
 	struct adsp_rtos_mp_mtoa_s_type mtoa_pkt;
 };
 #else
 struct rpc_adsp_rtos_modem_to_app_args_t {
 	struct rpc_request_hdr hdr;
-	uint32_t gotit; /* if 1, the next elements are present */
-	uint32_t event; /* e.g., RPC_ADSP_RTOS_CMD_REGISTER_APP */
-	uint32_t proc_id; /* e.g., RPC_ADSP_RTOS_PROC_APPS */
-	uint32_t module; /* e.g., QDSP_MODULE_AUDPPTASK */
-	uint32_t image; /* RPC_QDSP_IMAGE_GAUDIO */
+	uint32_t gotit; 
+	uint32_t event; 
+	uint32_t proc_id; 
+	uint32_t module; 
+	uint32_t image; 
 };
-#endif /* CONFIG_MSM_AMSS_VERSION >= 6350 */
+#endif 
 
 #define ADSP_STATE_DISABLED   0
 #define ADSP_STATE_ENABLING   1
@@ -275,7 +258,7 @@ struct msm_adsp_module {
 	struct msm_adsp_ops *ops;
 	void *driver_data;
 
-	/* statistics */
+	
 	unsigned num_commands;
 	unsigned num_events;
 
@@ -296,16 +279,14 @@ struct msm_adsp_module {
 extern void msm_adsp_publish_cdevs(struct msm_adsp_module *, unsigned);
 extern int adsp_init_info(struct adsp_info *info);
 
-/* Value to indicate that a queue is not defined for a particular image */
+
 #if CONFIG_MSM_AMSS_VERSION >= 6350
 #define QDSP_RTOS_NO_QUEUE  0xfffffffe
 #else
 #define QDSP_RTOS_NO_QUEUE  0xffffffff
 #endif
 
-/*
- * Constants used to communicate with the ADSP RTOS
- */
+
 #define ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_M            0x80000000U
 #define ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_NAVAIL_V     0x80000000U
 #define ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_AVAIL_V      0x00000000U
@@ -326,11 +307,11 @@ extern int adsp_init_info(struct adsp_info *info);
 #define ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M         0x00FFFFFFU
 #define ADSP_RTOS_WRITE_CTRL_WORD_HTOD_CMD_ID_M      0x00FFFFFFU
 
-/* Combination of MUTEX and CMD bits to check if the DSP is busy */
+
 #define ADSP_RTOS_WRITE_CTRL_WORD_READY_M            0xF0000000U
 #define ADSP_RTOS_WRITE_CTRL_WORD_READY_V            0x70000000U
 
-/* RTOS to Host processor command mask values */
+
 #define ADSP_RTOS_READ_CTRL_WORD_FLAG_M              0x80000000U
 #define ADSP_RTOS_READ_CTRL_WORD_FLAG_UP_WAIT_V      0x00000000U
 #define ADSP_RTOS_READ_CTRL_WORD_FLAG_UP_CONT_V      0x80000000U
@@ -340,7 +321,7 @@ extern int adsp_init_info(struct adsp_info *info);
 #define ADSP_RTOS_READ_CTRL_WORD_READ_REQ_V          0x20000000U
 #define ADSP_RTOS_READ_CTRL_WORD_NO_CMD_V            0x60000000U
 
-/* Combination of FLAG and COMMAND bits to check if MSG ready */
+
 #define ADSP_RTOS_READ_CTRL_WORD_READY_M             0xE0000000U
 #define ADSP_RTOS_READ_CTRL_WORD_READY_V             0xA0000000U
 #define ADSP_RTOS_READ_CTRL_WORD_CONT_V              0xC0000000U
@@ -363,7 +344,7 @@ extern int adsp_init_info(struct adsp_info *info);
 #define ADSP_RTOS_READ_CTRL_WORD_MSG_ID_M            0x000000FFU
 #define ADSP_RTOS_READ_CTRL_WORD_TASK_ID_M           0x0000FF00U
 
-/* Base address of DSP and DSP hardware registers */
+
 #define QDSP_RAMC_OFFSET  0x400000
 
-#endif /* _ARCH_ARM_MACH_MSM_ADSP_H */
+#endif 

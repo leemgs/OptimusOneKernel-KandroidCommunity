@@ -1,37 +1,11 @@
-/*
-    module/proc.c
-    /proc interface for comedi
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 1998 David A. Schleef <ds@schleef.org>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
-
-/*
-	This is some serious bloatware.
-
-	Taken from Dave A.'s PCL-711 driver, 'cuz I thought it
-	was cool.
-*/
 
 #define __NO_VERSION__
 #include "comedidev.h"
 #include <linux/proc_fs.h>
-/* #include <linux/string.h> */
+
 
 int comedi_read_procmem(char *buf, char **start, off_t offset, int len,
 			int *eof, void *data);

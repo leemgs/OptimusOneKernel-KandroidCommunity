@@ -1,43 +1,25 @@
-/*****************************************************************************
- *	Copyright(c) 2008,  RealTEK Technology Inc. All Right Reserved.
- *
- * Module:	__INC_HAL8192SPHYCFG_H
- *
- *
- * Note:
- *
- *
- * Export:	Constants, macro, functions(API), global variables(None).
- *
- * Abbrev:
- *
- * History:
- *		Data		Who		Remark
- *      08/07/2007  MHC    	1. Porting from 9x series PHYCFG.h.
- *							2. Reorganize code architecture.
- *
- *****************************************************************************/
- /* Check to see if the file has been included already.  */
+
+ 
 #ifndef _R8192S_PHY_H
 #define _R8192S_PHY_H
 
 
-/*--------------------------Define Parameters-------------------------------*/
+
 #define LOOP_LIMIT				5
-#define MAX_STALL_TIME			50		//us
-#define AntennaDiversityValue		0x80	//(dev->bSoftwareAntennaDiversity ? 0x00:0x80)
+#define MAX_STALL_TIME			50		
+#define AntennaDiversityValue		0x80	
 #define MAX_TXPWR_IDX_NMODE_92S	63
 
-//#define delay_ms(_t)			PlatformStallExecution(1000*(_t))
-//#define delay_us(_t)			PlatformStallExecution(_t)
 
-/* Channel switch:The size of command tables for switch channel*/
+
+
+
 #define MAX_PRECMD_CNT 			16
 #define MAX_RFDEPENDCMD_CNT 	16
 #define MAX_POSTCMD_CNT 		16
 
 
-/*------------------------------Define structure----------------------------*/
+
 typedef enum _SwChnlCmdID{
 	CmdID_End,
 	CmdID_SetTxPowerLevel,
@@ -49,7 +31,7 @@ typedef enum _SwChnlCmdID{
 }SwChnlCmdID;
 
 
-/* 1. Switch channel related */
+
 typedef struct _SwChnlCmd{
 	SwChnlCmdID	CmdID;
 	u32			Para1;
@@ -70,15 +52,15 @@ typedef enum _HW90_BLOCK{
 	HW90_BLOCK_PHY0 = 1,
 	HW90_BLOCK_PHY1 = 2,
 	HW90_BLOCK_RF = 3,
-	HW90_BLOCK_MAXIMUM = 4, // Never use this
+	HW90_BLOCK_MAXIMUM = 4, 
 }HW90_BLOCK_E, *PHW90_BLOCK_E;
 
 typedef enum _RF90_RADIO_PATH{
-	RF90_PATH_A = 0,			//Radio Path A
-	RF90_PATH_B = 1,			//Radio Path B
-	RF90_PATH_C = 2,			//Radio Path C
-	RF90_PATH_D = 3,			//Radio Path D
-	RF90_PATH_MAX	= 4,			//Max RF number 90 support
+	RF90_PATH_A = 0,			
+	RF90_PATH_B = 1,			
+	RF90_PATH_C = 2,			
+	RF90_PATH_D = 3,			
+	RF90_PATH_MAX	= 4,			
 }RF90_RADIO_PATH_E, *PRF90_RADIO_PATH_E;
 
 #define bMaskByte0                0xff
@@ -90,14 +72,14 @@ typedef enum _RF90_RADIO_PATH{
 #define bMaskDWord                0xffffffff
 
 typedef enum _VERSION_8190{
-	// RTL8190
+	
 	VERSION_8190_BD=0x3,
 	VERSION_8190_BE
 }VERSION_8190,*PVERSION_8190;
 
-//
-// BB and RF register read/write
-//
+
+
+
 
 extern	u32	rtl8192_QueryBBReg(struct net_device* dev,u32 RegAddr, u32 BitMask);
 extern	void	rtl8192_setBBreg(struct net_device* dev,u32 RegAddr, u32 BitMask,u32 Data);
@@ -107,7 +89,7 @@ extern	void	rtl8192_phy_SetRFReg(struct net_device* dev,RF90_RADIO_PATH_E eRFPat
 bool rtl8192_phy_checkBBAndRF(struct net_device* dev, HW90_BLOCK_E CheckBlock, RF90_RADIO_PATH_E eRFPath);
 
 
-/* MAC/BB/RF HAL config */
+
 extern	bool 	PHY_MACConfig8192S(struct net_device* dev);
 extern	bool 	PHY_BBConfig8192S(struct net_device* dev);
 extern	bool 	PHY_RFConfig8192S(struct net_device* dev);
@@ -126,10 +108,10 @@ extern void 	InitialGainOperateWorkItemCallBack(struct work_struct *work);
 void PHY_SetTxPowerLevel8192S(struct net_device* dev, u8  channel);
 void PHY_InitialGain8192S(struct net_device* dev,u8 Operation   );
 
-/*--------------------------Exported Function prototype---------------------*/
+
 bool HalSetFwCmd8192S(struct net_device* dev, FW_CMD_IO_TYPE                FwCmdIO);
 extern void PHY_SetBeaconHwReg( struct net_device* dev, u16 BeaconInterval);
 void ChkFwCmdIoDone(struct net_device* dev);
 
-#endif	// __INC_HAL8192SPHYCFG_H
+#endif	
 

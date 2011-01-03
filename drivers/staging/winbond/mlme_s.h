@@ -7,20 +7,20 @@
 #include "mac_structures.h"
 #include "mds_s.h"
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//	Mlme.h
-//		Define the related definitions of MLME module
-//	history -- 01/14/03' created
-//
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
+
 
 #define AUTH_REJECT_REASON_CHALLENGE_FAIL		1
 
-//====== the state of MLME module
+
 #define INACTIVE			0x0
 #define IDLE_SCAN			0x1
 
-//====== the state of MLME/ESS module
+
 #define STATE_1				0x2
 #define AUTH_REQ			0x3
 #define AUTH_WEP			0x4
@@ -28,7 +28,7 @@
 #define ASSOC_REQ			0x6
 #define STATE_3				0x7
 
-//====== the state of MLME/IBSS module
+
 #define IBSS_JOIN_SYNC		0x8
 #define IBSS_AUTH_REQ		0x9
 #define IBSS_AUTH_CHANLGE	0xa
@@ -38,28 +38,28 @@
 
 
 
-//=========================================
-//depend on D5C(MAC timing control 03 register): MaxTxMSDULifeTime default 0x80000us
+
+
 #define AUTH_FAIL_TIMEOUT		550
 #define ASSOC_FAIL_TIMEOUT		550
 #define REASSOC_FAIL_TIMEOUT	550
 
 
 
-//
-// MLME task global CONSTANTS, STRUCTURE, variables
-//
 
 
-/////////////////////////////////////////////////////////////
-//  enum_ResultCode --
-//  Result code returned from MLME to SME.
-//
-/////////////////////////////////////////////////////////////
-// PD43 20030829 Modifiled
-//#define	SUCCESS								0
-#define MLME_SUCCESS                        0 //follow spec.
-#define	INVALID_PARAMETERS					1 //Not following spec.
+
+
+
+
+
+
+
+
+
+
+#define MLME_SUCCESS                        0 
+#define	INVALID_PARAMETERS					1 
 #define	NOT_SUPPPORTED						2
 #define	TIMEOUT								3
 #define	TOO_MANY_SIMULTANEOUS_REQUESTS		4
@@ -74,20 +74,20 @@
 #define OPEN_AUTH							0
 #define SHARE_AUTH							1
 #define ANY_AUTH							2
-#define WPA_AUTH							3	//for WPA
+#define WPA_AUTH							3	
 #define WPAPSK_AUTH							4
 #define WPANONE_AUTH						5
-///////////////////////////////////////////// added by ws 04/19/04
-#ifdef _WPA2_
-#define WPA2_AUTH                           6//for WPA2
-#define WPA2PSK_AUTH                        7
-#endif //end def _WPA2_
 
-//////////////////////////////////////////////////////////////////
-//define the msg type of MLME module
-//////////////////////////////////////////////////////////////////
-//--------------------------------------------------------
-//from SME
+#ifdef _WPA2_
+#define WPA2_AUTH                           6
+#define WPA2PSK_AUTH                        7
+#endif 
+
+
+
+
+
+
 
 #define MLMEMSG_AUTH_REQ				0x0b
 #define MLMEMSG_DEAUTH_REQ				0x0c
@@ -97,7 +97,7 @@
 #define MLMEMSG_START_IBSS_REQ			0x10
 #define MLMEMSG_IBSS_NET_CFM			0x11
 
-//from RX :
+
 #define MLMEMSG_RCV_MLMEFRAME			0x20
 #define MLMEMSG_RCV_ASSOCRSP			0x22
 #define MLMEMSG_RCV_REASSOCRSP			0x24
@@ -106,7 +106,7 @@
 #define MLMEMSG_RCV_DEAUTH				0x2d
 
 
-//from TX callback
+
 #define MLMEMSG_TX_CALLBACK				0x40
 #define MLMEMSG_ASSOCREQ_CALLBACK		0x41
 #define MLMEMSG_REASSOCREQ_CALLBACK		0x43
@@ -114,26 +114,26 @@
 #define MLMEMSG_AUTH_CALLBACK			0x4c
 #define MLMEMSG_DEAUTH_CALLBACK			0x4d
 
-//#define MLMEMSG_JOIN_FAIL				4
-//#define MLMEMSG_AUTHEN_FAIL			18
+
+
 #define MLMEMSG_TIMEOUT					0x50
 
-///////////////////////////////////////////////////////////////////////////
-//Global data structures
+
+
 #define MAX_NUM_TX_MMPDU	2
 #define MAX_MMPDU_SIZE		1512
 #define MAX_NUM_RX_MMPDU	6
 
 
-///////////////////////////////////////////////////////////////////////////
-//MACRO
+
+
 #define boMLME_InactiveState(_AA_)	(_AA_->wState==INACTIVE)
 #define boMLME_IdleScanState(_BB_)	(_BB_->wState==IDLE_SCAN)
 #define boMLME_FoundSTAinfo(_CC_)	(_CC_->wState>=IDLE_SCAN)
 
 typedef struct _MLME_FRAME
 {
-	//NDIS_PACKET		MLME_Packet;
+	
 	s8 *			pMMPDU;
 	u16			len;
 	u8			DataType;
@@ -153,9 +153,9 @@ typedef struct _MLME_FRAME
 	u16		wNumRxMMPDU;
 	u16		wNumRxMMPDUDiscarded;
 
-	u16		wNumRxMMPDUInMLME; 	// Number of the Rx MMPDU
-	u16		reserved_1;			//  in MLME.
-                    	            //  excluding the discarded
+	u16		wNumRxMMPDUInMLME; 	
+	u16		reserved_1;			
+                    	            
 } MLME_FRAME, *psMLME_FRAME;
 
 typedef struct _AUTHREQ {

@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : wlan_defs.h                                           */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains WLAN definitions.                          */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 
 #ifndef _WLAN_H
 #define _WLAN_H
@@ -39,7 +25,7 @@
 #define ZM_SIZE_OF_WLAN_DATA_HEADER         24
 #define ZM_SIZE_OF_QOS_CTRL                 2
 
-/* Header definition */
+
 #define ZM_SIZE_OF_WLAN_WDS_HEADER          32
 #define ZM_SIZE_OF_SNAP_HEADER              8
 
@@ -50,23 +36,23 @@
 #define ZM_WLAN_HEADER_IV_OFFSET            24
 #define ZM_SIZE_OF_WLAN_DATA_HEADER         24
 
-/* Port definition */
+
 #define ZM_PORT_DISABLED                    0
 #define ZM_PORT_ENABLED                     1
 
-/* Frame Type */
+
 #define ZM_WLAN_MANAGEMENT_FRAME            0x0
 #define ZM_WLAN_CONTROL_FRAME               0x4
 #define ZM_WLAN_DATA_FRAME                  0x8
 
-/* Frame Subtype */
+
 #define ZM_WLAN_FRAME_TYPE_ASOCREQ          0x00
 #define ZM_WLAN_FRAME_TYPE_ASOCRSP          0x10
 #define ZM_WLAN_FRAME_TYPE_REASOCREQ        0x20
 #define ZM_WLAN_FRAME_TYPE_REASOCRSP        0x30
 #define ZM_WLAN_FRAME_TYPE_PROBEREQ         0x40
 #define ZM_WLAN_FRAME_TYPE_PROBERSP         0x50
-/* 0x60, 0x70 => Reserved */
+
 #define ZM_WLAN_FRAME_TYPE_BEACON           0x80
 #define ZM_WLAN_FRAME_TYPE_ATIM             0x90
 #define ZM_WLAN_FRAME_TYPE_DISASOC          0xA0
@@ -74,7 +60,7 @@
 #define ZM_WLAN_FRAME_TYPE_DEAUTH           0xC0
 #define ZM_WLAN_FRAME_TYPE_ACTION			0xD0
 
-/* Frame type and subtype */
+
 #define ZM_WLAN_FRAME_TYPE_NULL             0x48
 #define ZM_WLAN_FRAME_TYPE_BAR              0x84
 #define ZM_WLAN_FRAME_TYPE_BA               0x94
@@ -83,17 +69,17 @@
 #define ZM_WLAN_FRAME_TYPE_CTS              0xC4
 #define ZM_WLAN_FRAME_TYPE_QOS_NULL         0xC8
 
-/* action frame */
+
 #define ZM_WLAN_SPECTRUM_MANAGEMENT_ACTION_FRAME    0
 #define ZM_WLAN_QOS_ACTION_FRAME            1
 #define ZM_WLAN_DLS_ACTION_FRAME            2
 #define ZM_WLAN_BLOCK_ACK_ACTION_FRAME      3
-/* block ack action frame*/
+
 #define ZM_WLAN_ADDBA_REQUEST_FRAME         0
 #define ZM_WLAN_ADDBA_RESPONSE_FRAME        1
 #define ZM_WLAN_DELBA_FRAME                 2
 
-/* Element ID */
+
 #define ZM_WLAN_EID_SSID                    0
 #define ZM_WLAN_EID_SUPPORT_RATE            1
 #define ZM_WLAN_EID_FH                      2
@@ -102,9 +88,9 @@
 #define ZM_WLAN_EID_TIM                     5
 #define ZM_WLAN_EID_IBSS                    6
 #define ZM_WLAN_EID_COUNTRY                 7
-/* reserved 8-15 */
+
 #define ZM_WLAN_EID_CHALLENGE               16
-/* reserved 17-31 */
+
 #define ZM_WLAN_EID_POWER_CONSTRAINT        32
 #define ZM_WLAN_EID_POWER_CAPABILITY        33
 #define ZM_WLAN_EID_TPC_REQUEST             34
@@ -126,18 +112,18 @@
 #define ZM_WLAN_PREN2_EID_SECONDCHOFFSET    62
 #ifdef ZM_ENABLE_CENC
 #define ZM_WLAN_EID_CENC_IE                 68
-#endif //ZM_ENABLE_CENC
-#define ZM_WLAN_EID_VENDOR_PRIVATE          221     /* Vendor private space; must demux OUI */
+#endif 
+#define ZM_WLAN_EID_VENDOR_PRIVATE          221     
 #define ZM_WLAN_EID_WPA_IE                  221
 #define ZM_WLAN_EID_WPS_IE                  221
 #define ZM_WLAN_EID_WIFI_IE                 221
 
-/* ERP information element */
+
 #define ZM_WLAN_NON_ERP_PRESENT_BIT         0x1
 #define ZM_WLAN_USE_PROTECTION_BIT          0x2
 #define ZM_WLAN_BARKER_PREAMBLE_MODE_BIT    0x4
 
-/* Channel frequency, in MHz */
+
 #define ZM_CH_G_1                          2412
 #define ZM_CH_G_2                          2417
 #define ZM_CH_G_3                          2422
@@ -185,19 +171,19 @@
 #define ZM_CH_A_165                        5825
 
 
-/* AP : STA table => STA Type */
+
 #define ZM_11B_STA                          0x0
 #define ZM_11G_STA                          0x2
 #define ZM_11N_STA                          0x4
 
-/* AP : timeout */
+
 #define ZM_MS_PER_TICK                      10
 #define ZM_TICK_PER_SECOND                  (1000/ZM_MS_PER_TICK)
 #define ZM_TICK_PER_MINUTE                  (60*1000/ZM_MS_PER_TICK)
-#define ZM_PREAUTH_TIMEOUT_MS               1000 /* 1 sec */
-#define ZM_AUTH_TIMEOUT_MS                  1000 /* 1 sec */
+#define ZM_PREAUTH_TIMEOUT_MS               1000 
+#define ZM_AUTH_TIMEOUT_MS                  1000 
 
-/* Error code */
+
 #define ZM_SUCCESS                          0
 #define ZM_ERR_TX_PORT_DISABLED             1
 #define ZM_ERR_BUFFER_DMA_ADDR              2
@@ -208,8 +194,8 @@
 #define ZM_ERR_EXCEED_PRIORITY_THRESHOLD    7
 #define ZM_ERR_VMMQ_FULL                    8
 #define ZM_ERR_FLUSH_PS_QUEUE               9
-#define ZM_ERR_CMD_INT_MISSED               15 /* Polling cmd int timeout*/
-/* Rx */
+#define ZM_ERR_CMD_INT_MISSED               15 
+
 #define ZM_ERR_RX_FRAME_TYPE                20
 #define ZM_ERR_MIN_RX_ENCRYPT_FRAME_LENGTH  21
 #define ZM_ERR_MIN_RX_FRAME_LENGTH          22
@@ -225,31 +211,31 @@
 #define ZM_ERR_RX_BAR_FRAME                 32
 #define ZM_ERR_OUT_OF_ORDER_NULL_DATA       33
 
-/* ZFI */
+
 #define ZM_ERR_INVALID_TX_RATE              40
 #define ZM_ERR_WDS_PORT_ID                  41
 
-/* QUEUE */
+
 #define ZM_ERR_QUEUE_FULL                   50
 #define ZM_ERR_STA_UAPSD_QUEUE_FULL         51
 #define ZM_ERR_AP_UAPSD_QUEUE_FULL          52
 
-/* Maximum Rx frame length */
+
 #if ZM_LARGEPAYLOAD_TEST == 1
 #define ZM_WLAN_MAX_RX_SIZE                 16384
 #else
 #define ZM_WLAN_MAX_RX_SIZE                 8192
 #endif
 
-/* PCI DMA test error code */
+
 #define ZM_ERR_INTERRUPT_MISSED             100
 #define ZM_ERR_OWN_BIT_NOT_CLEARED          101
 #define ZM_ERR_RX_SEQ_NUMBER                102
 #define ZM_ERR_RX_LENGTH                    103
 #define ZM_ERR_RX_DATA                      104
 #define ZM_ERR_RX_DESCRIPTOR_NUM            105
-/* Common register test error code */
-#define ZM_ERR_REGISTER_ACCESS              110 /* Register R/W test fail*/
+
+#define ZM_ERR_REGISTER_ACCESS              110 
 #define ZM_ERR_CLEAR_INTERRUPT_FLAG         111
 #define ZM_ERR_COMMAND_RESPONSE             112
 #define ZM_ERR_INTERRUPT_GENERATE           113
@@ -261,24 +247,24 @@
 #define ZM_ERR_SHARE_MEMORY_DISABLE         119
 #define ZM_ERR_SHARE_MEMORY_TEST_RESPONSE   120
 
-/* Firmware Download error code */
+
 #define ZM_ERR_FIRMWARE_DOWNLOAD_TIMEOUT    150
 #define ZM_ERR_FIRMWARE_DOWNLOAD_INT_FLAG   151
 #define ZM_ERR_FIRMWARE_READY_TIMEOUT       152
 #define ZM_ERR_FIRMWARE_WRONG_TYPE          153
 
-/* Debug */
-#define ZM_LV_0     0//Debug level 0, Disable debug message
-#define ZM_LV_1     1//Debug level 1, Show minimum information
-#define ZM_LV_2     2//Debug level 2, Show medium message
-#define ZM_LV_3     3//Debug level 3, Show all
+
+#define ZM_LV_0     0
+#define ZM_LV_1     1
+#define ZM_LV_2     2
+#define ZM_LV_3     3
 
 #define ZM_SCANMSG_LEV  ZM_LV_1
-#define ZM_TXMSG_LEV    ZM_LV_0//ZM_LV_0
+#define ZM_TXMSG_LEV    ZM_LV_0
 #define ZM_RXMSG_LEV    ZM_LV_0
 #define ZM_MMMSG_LEV    ZM_LV_0
-#define ZM_DESMSG_LEV   ZM_LV_0//ZM_LV_0
-#define ZM_BUFMSG_LEV   ZM_LV_0//ZM_LV_1
+#define ZM_DESMSG_LEV   ZM_LV_0
+#define ZM_BUFMSG_LEV   ZM_LV_0
 #define ZM_INITMSG_LEV  ZM_LV_0
 
 #define zm_msg0_scan(lv, msg) if (ZM_SCANMSG_LEV >= lv) \
@@ -330,36 +316,36 @@
 #define zm_msg2_init(lv, msg, val) if (ZM_INITMSG_LEV >= lv) \
         {zm_debug_msg2(msg, val);}
 
-#define ZM_MAX_AP_SUPPORT                   2  /* Must <= 8 */
-#define ZM_MAX_WDS_SUPPORT                  6  /* Must <= 6 */
-#define ZM_MAX_STA_SUPPORT                  16 /* Must <= 64 */
+#define ZM_MAX_AP_SUPPORT                   2  
+#define ZM_MAX_WDS_SUPPORT                  6  
+#define ZM_MAX_STA_SUPPORT                  16 
 
-/* STA table state */
+
 #define ZM_STATE_AUTH                       1
 #define ZM_STATE_PREAUTH                    2
 #define ZM_STATE_ASOC                       3
 
-/* Rate set */
+
 #define ZM_RATE_SET_CCK                     0
 #define ZM_RATE_SET_OFDM                    1
 
-/* HT PT */
+
 #define ZM_PREAMBLE_TYPE_MIXED_MODE         0
 #define ZM_PREAMBLE_TYPE_GREEN_FIELD        1
 
-/* HT bandwidth */
+
 #define ZM_BANDWIDTH_20MHZ                  0
 #define ZM_BANDWIDTH_40MHZ                  1
 
-/* MIC status */
+
 #define ZM_MIC_SUCCESS                      0
 #define ZM_MIC_FAILURE                      1
 
-/* ICV status */
+
 #define ZM_ICV_SUCCESS                      0
 #define ZM_ICV_FAILURE                      1
 
-/* definition check */
+
 #if (ZM_MAX_AP_SUPPORT > 8)
 definition error, ZM_MAX_AP_SUPPORT > 8
 #endif
@@ -367,18 +353,18 @@ definition error, ZM_MAX_AP_SUPPORT > 8
 definition error, ZM_MAX_STA_SUPPORT > 64
 #endif
 
-/*  Transmission Rate information */
 
-/* WLAN frame format */
+
+
 #define ZM_PLCP_HEADER_SIZE          5
 #define ZM_ETHERNET_ADDRESS_LENGTH   6
 #define ZM_TIMESTAMP_OFFSET          0
 #define ZM_BEACON_INTERVAL_OFFSET    8
 #define ZM_CAPABILITY_OFFSET        10
 
-/* Reason Code */
-/* An unsolicited notification management frame of       */
-/* type Disassocation or Deauthentication was generated. */
+
+
+
 #ifdef ZM_REASON_CODE
 #define ZM_WLAN_REASON_CODE_UNSPECIFIED   1
 #define ZM_WLAN_FRAME_DISASOC_DEAUTH_REASON_CODE  24
@@ -386,7 +372,7 @@ definition error, ZM_MAX_STA_SUPPORT > 64
 
 struct zsWlanManagementFrameHeader
 {
-    //u8_t      plcpHdr[ZM_PLCP_HEADER_SIZE];
+    
     u8_t        frameCtrl[2];
     u8_t        duration[2];
     u8_t        da[ZM_ETHERNET_ADDRESS_LENGTH];
@@ -398,7 +384,7 @@ struct zsWlanManagementFrameHeader
 
 struct zsWlanProbeRspFrameHeader
 {
-    //u8_t      plcpHdr[ZM_PLCP_HEADER_SIZE];
+    
     u8_t        frameCtrl[2];
     u8_t        duration[2];
     u8_t        da[ZM_ETHERNET_ADDRESS_LENGTH];
@@ -408,14 +394,14 @@ struct zsWlanProbeRspFrameHeader
     u8_t        timeStamp[8];
     u8_t        beaconInterval[2];
     u8_t        capability[2];
-    u8_t        ssid[ZM_MAX_SSID_LENGTH + 2];   // EID(1) + Length(1) + SSID(32)
+    u8_t        ssid[ZM_MAX_SSID_LENGTH + 2];   
 } ;
 
 #define zsWlanBeaconFrameHeader zsWlanProbeRspFrameHeader
 
 struct zsWlanAuthFrameHeader
 {
-    //u8_t      plcpHdr[ZM_PLCP_HEADER_SIZE];
+    
     u8_t        frameCtrl[2];
     u8_t        duration[2];
     u8_t        address1[ZM_ETHERNET_ADDRESS_LENGTH];
@@ -425,12 +411,12 @@ struct zsWlanAuthFrameHeader
     u16_t       algo;
     u16_t       seq;
     u16_t       status;
-    u8_t        challengeText[255]; // the first 2 bytes are information ID, length
+    u8_t        challengeText[255]; 
 };
 
 struct zsWlanAssoFrameHeader
 {
-    //u8_t      plcpHdr[PLCP_HEADER_SIZE];
+    
     u8_t        frameCtrl[2];
     u8_t        duration[2];
     u8_t        address1[ZM_ETHERNET_ADDRESS_LENGTH];
@@ -440,7 +426,7 @@ struct zsWlanAssoFrameHeader
     u8_t        capability[2];
     u16_t       status;
     u16_t       aid;
-    //u8_t        supportedRates[10];
+    
 };
 
 struct zsFrag
@@ -452,9 +438,9 @@ struct zsFrag
 
 };
 
-//================================
-// Hardware related definitions
-//================================
+
+
+
 #define ZM_MAC_REG_BASE                         0x1c3000
 
 #define ZM_MAC_REG_ATIM_WINDOW                  (ZM_MAC_REG_BASE + 0x51C)
@@ -524,17 +510,17 @@ struct zsFrag
 
 #define ZM_RX_STATUS_IS_MIC_FAIL(rxStatus) rxStatus->Tail.Data.ErrorIndication & ZM_BIT_6
 
-//================================
-//================================
+
+
 
 #ifdef ZM_ENABLE_NATIVE_WIFI
 #define ZM_80211_FRAME_HEADER_LEN           24
-#define ZM_80211_FRAME_TYPE_OFFSET          30    // ZM_80211_FRAME_HEADER_LEN + SNAP
-#define ZM_80211_FRAME_IP_OFFSET            32    // ZM_80211_FRAME_HEADER_LEN + SNAP + TYPE
+#define ZM_80211_FRAME_TYPE_OFFSET          30    
+#define ZM_80211_FRAME_IP_OFFSET            32    
 #else
 #define ZM_80211_FRAME_HEADER_LEN           14
-#define ZM_80211_FRAME_TYPE_OFFSET          12    // ZM_80211_FRAME_HEADER_LEN + SNAP
-#define ZM_80211_FRAME_IP_OFFSET            14    // ZM_80211_FRAME_HEADER_LEN + SNAP + TYPE
+#define ZM_80211_FRAME_TYPE_OFFSET          12    
+#define ZM_80211_FRAME_IP_OFFSET            14    
 #endif
 
 #define ZM_BSS_INFO_VALID_BIT      0x01
@@ -581,15 +567,15 @@ struct zsLedStruct
     u32_t   txTraffic;
     u32_t   rxTraffic;
     u8_t    LEDCtrlType;
-    u8_t    LEDCtrlFlag;         // Control Flag for vendors
-    u8_t    LEDCtrlFlagFromReg;  // Control Flag for vendors in registry
+    u8_t    LEDCtrlFlag;         
+    u8_t    LEDCtrlFlagFromReg;  
 };
 
 
-//HAL+ capability bits definition
+
 #define ZM_HP_CAP_11N                   0x1
 #define ZM_HP_CAP_11N_ONE_TX_STREAM     0x2
 #define ZM_HP_CAP_2G                    0x4
 #define ZM_HP_CAP_5G                    0x8
 
-#endif /* #ifndef _WLAN_H */
+#endif 

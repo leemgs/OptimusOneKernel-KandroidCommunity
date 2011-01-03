@@ -1,18 +1,4 @@
-/* arch/arm/mach-msm/smd_private.h
- *
- * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2007 QUALCOMM Incorporated
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 #ifndef _ARCH_ARM_MACH_MSM_MSM_SMD_PRIVATE_H_
 #define _ARCH_ARM_MACH_MSM_MSM_SMD_PRIVATE_H_
 
@@ -110,7 +96,7 @@ void smsm_print_sleep_info(void);
 
 typedef enum
 {
-	/* fixed items */
+	
 	SMEM_PROC_COMM = 0,
 	SMEM_HEAP_INFO,
 	SMEM_ALLOCATION_TABLE,
@@ -121,7 +107,7 @@ typedef enum
 	SMEM_SPINLOCK_ARRAY,
 	SMEM_MEMORY_BARRIER_LOCATION,
 
-	/* dynamic items */
+	
 	SMEM_AARM_PARTITION_TABLE,
 	SMEM_AARM_BAD_BLOCK_TABLE,
 	SMEM_RESERVE_BAD_BLOCKS,

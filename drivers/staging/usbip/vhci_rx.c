@@ -1,27 +1,10 @@
-/*
- * Copyright (C) 2003-2008 Takahiro Hirofuchi
- *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
- * USA.
- */
+
 
 #include "usbip_common.h"
 #include "vhci.h"
 
 
-/* get URB from transmitted urb queue */
+
 static struct urb *pickup_urb_and_free_priv(struct vhci_device *vdev,
 					    __u32 seqnum)
 {
@@ -39,7 +22,7 @@ static struct urb *pickup_urb_and_free_priv(struct vhci_device *vdev,
 			usbip_dbg_vhci_rx("find urb %p vurb %p seqnum %u\n",
 				    urb, priv, seqnum);
 
-			/* TODO: fix logic here to improve indent situtation */
+			
 			if (status != -EINPROGRESS) {
 				if (status == -ENOENT ||
 				     status == -ECONNRESET)
@@ -86,16 +69,16 @@ static void vhci_recv_ret_submit(struct vhci_device *vdev,
 	}
 
 
-	/* unpack the pdu to a urb */
+	
 	usbip_pack_pdu(pdu, urb, USBIP_RET_SUBMIT, 0);
 
 
-	/* recv transfer buffer */
+	
 	if (usbip_recv_xbuff(ud, urb) < 0)
 		return;
 
 
-	/* recv iso_packet_descriptor */
+	
 	if (usbip_recv_iso(ud, urb) < 0)
 		return;
 
@@ -161,17 +144,13 @@ static void vhci_recv_ret_unlink(struct vhci_device *vdev,
 
 	urb = pickup_urb_and_free_priv(vdev, unlink->unlink_seqnum);
 	if (!urb) {
-		/*
-		 * I get the result of a unlink request. But, it seems that I
-		 * already received the result of its submit result and gave
-		 * back the URB.
-		 */
+		
 		usbip_uinfo("the urb (seqnum %d) was already given backed\n",
 							pdu->base.seqnum);
 	} else {
 		usbip_dbg_vhci_rx("now giveback urb %p\n", urb);
 
-		/* If unlink is succeed, status is -ECONNRESET */
+		
 		urb->status = pdu->u.ret_unlink.status;
 		usbip_uinfo("%d\n", urb->status);
 
@@ -188,7 +167,7 @@ static void vhci_recv_ret_unlink(struct vhci_device *vdev,
 	return;
 }
 
-/* recv a pdu */
+
 static void vhci_rx_pdu(struct usbip_device *ud)
 {
 	int ret;
@@ -201,7 +180,7 @@ static void vhci_rx_pdu(struct usbip_device *ud)
 	memset(&pdu, 0, sizeof(pdu));
 
 
-	/* 1. receive a pdu header */
+	
 	ret = usbip_xmit(0, ud->tcp_socket, (char *) &pdu, sizeof(pdu), 0);
 	if (ret != sizeof(pdu)) {
 		usbip_uerr("receiving pdu failed! size is %d, should be %d\n",
@@ -223,7 +202,7 @@ static void vhci_rx_pdu(struct usbip_device *ud)
 		vhci_recv_ret_unlink(vdev, &pdu);
 		break;
 	default:
-		/* NOTREACHED */
+		
 		usbip_uerr("unknown pdu %u\n", pdu.base.command);
 		usbip_dump_header(&pdu);
 		usbip_event_add(ud, VDEV_EVENT_ERROR_TCP);
@@ -231,7 +210,7 @@ static void vhci_rx_pdu(struct usbip_device *ud)
 }
 
 
-/*-------------------------------------------------------------------------*/
+
 
 void vhci_rx_loop(struct usbip_task *ut)
 {

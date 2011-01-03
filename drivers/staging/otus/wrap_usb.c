@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : wrap_usb.c                                            */
-/*                                                                      */
-/*  Abstract                                                            */
-/*     This module contains wrapper functions for USB management        */
-/*                                                                      */
-/*  NOTES                                                               */
-/*     Platform dependent.                                              */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 
 #include "oal_dt.h"
 #include "usbdrv.h"
@@ -52,14 +38,14 @@ u32_t zfwUsbGetFreeTxQSize(zdev_t* dev)
     struct usbdrv_private *macp = dev->ml_priv;
     u32_t        freeTxQSize;
     unsigned long irqFlag;
-    //zmw_declare_for_critical_section();
+    
 
-    //zmw_enter_critical_section(dev);
+    
     spin_lock_irqsave(&macp->cs_lock, irqFlag);
 
     freeTxQSize = ZM_MAX_TX_BUF_NUM - macp->TxBufCnt;
 
-    //zmw_leave_critical_section(dev);
+    
     spin_unlock_irqrestore(&macp->cs_lock, irqFlag);
 
     return freeTxQSize;
@@ -72,15 +58,15 @@ u32_t zfwUsbGetMaxTxQSize(zdev_t* dev)
 
 u32_t zfwUsbEnableIntEpt(zdev_t *dev, u8_t endpt)
 {
-    /* Initialize USB TxQ */
+    
     zfLnxInitUsbTxQ(dev);
 
-    /* Initialize USB RxQ */
+    
     zfLnxInitUsbRxQ(dev);
 
-    /* Initialize USB Register In URB */
-    //zfwUsbSubmitRegIn(dev);
-    /* Initialize USB Register In URB */
+    
+    
+    
     zfLnxSubmitRegInUrb(dev);
 
     return 0;
@@ -134,10 +120,10 @@ void zfwUsbCmd(zdev_t* dev, u8_t endpt, u32_t* cmd, u16_t cmdLen)
     struct usbdrv_private *macp = dev->ml_priv;
     u32_t ret;
 
-    //MPUsbCommand(dev, endpt, cmd, cmdLen);
+    
     ret = zfLnxUsbWriteReg(dev, cmd, cmdLen);
 
-    /* if zfLnxUsbWriteReg() return error, free and allocate urb, resend again */
+    
     if (ret != 0)
     {
         usb_free_urb(macp->RegOutUrb);
@@ -185,4 +171,4 @@ u32_t zfwUsbSend(zdev_t* dev, u8_t endpt, u8_t *hdr, u16_t hdrlen, u8_t *snap, u
     }
 }
 
-/* Leave an empty line below to remove warning message on some compiler */
+

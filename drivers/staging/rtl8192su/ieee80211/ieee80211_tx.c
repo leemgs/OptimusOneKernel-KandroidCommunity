@@ -1,38 +1,7 @@
-/******************************************************************************
 
-  Copyright(c) 2003 - 2004 Intel Corporation. All rights reserved.
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms of version 2 of the GNU General Public License as
-  published by the Free Software Foundation.
-
-  This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc., 59
-  Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-  The full GNU General Public License is included in this distribution in the
-  file called LICENSE.
-
-  Contact Information:
-  James P. Ketrenos <ipw2100-admin@linux.intel.com>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-******************************************************************************
-
-  Few modifications for Realtek's Wi-Fi drivers by
-  Andrea Merello <andreamrl@tiscali.it>
-
-  A special thanks goes to Realtek for their support !
-
-******************************************************************************/
 
 #include <linux/compiler.h>
-//#include <linux/config.h>
+
 #include <linux/errno.h>
 #include <linux/if_arp.h>
 #include <linux/in6.h>
@@ -56,102 +25,7 @@
 #include "ieee80211.h"
 
 
-/*
 
-
-802.11 Data Frame
-
-
-802.11 frame_contorl for data frames - 2 bytes
-     ,-----------------------------------------------------------------------------------------.
-bits | 0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  a  |  b  |  c  |  d  |  e   |
-     |----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|------|
-val  | 0  |  0  |  0  |  1  |  x  |  0  |  0  |  0  |  1  |  0  |  x  |  x  |  x  |  x  |  x   |
-     |----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|------|
-desc | ^-ver-^  |  ^type-^  |  ^-----subtype-----^  | to  |from |more |retry| pwr |more |wep   |
-     |          |           | x=0 data,x=1 data+ack | DS  | DS  |frag |     | mgm |data |      |
-     '-----------------------------------------------------------------------------------------'
-		                                    /\
-                                                    |
-802.11 Data Frame                                   |
-           ,--------- 'ctrl' expands to >-----------'
-          |
-      ,--'---,-------------------------------------------------------------.
-Bytes |  2   |  2   |    6    |    6    |    6    |  2   | 0..2312 |   4  |
-      |------|------|---------|---------|---------|------|---------|------|
-Desc. | ctrl | dura |  DA/RA  |   TA    |    SA   | Sequ |  Frame  |  fcs |
-      |      | tion | (BSSID) |         |         | ence |  data   |      |
-      `--------------------------------------------------|         |------'
-Total: 28 non-data bytes                                 `----.----'
-                                                              |
-       .- 'Frame data' expands to <---------------------------'
-       |
-       V
-      ,---------------------------------------------------.
-Bytes |  1   |  1   |    1    |    3     |  2   |  0-2304 |
-      |------|------|---------|----------|------|---------|
-Desc. | SNAP | SNAP | Control |Eth Tunnel| Type | IP      |
-      | DSAP | SSAP |         |          |      | Packet  |
-      | 0xAA | 0xAA |0x03 (UI)|0x00-00-F8|      |         |
-      `-----------------------------------------|         |
-Total: 8 non-data bytes                         `----.----'
-                                                     |
-       .- 'IP Packet' expands, if WEP enabled, to <--'
-       |
-       V
-      ,-----------------------.
-Bytes |  4  |   0-2296  |  4  |
-      |-----|-----------|-----|
-Desc. | IV  | Encrypted | ICV |
-      |     | IP Packet |     |
-      `-----------------------'
-Total: 8 non-data bytes
-
-
-802.3 Ethernet Data Frame
-
-      ,-----------------------------------------.
-Bytes |   6   |   6   |  2   |  Variable |   4  |
-      |-------|-------|------|-----------|------|
-Desc. | Dest. | Source| Type | IP Packet |  fcs |
-      |  MAC  |  MAC  |      |           |      |
-      `-----------------------------------------'
-Total: 18 non-data bytes
-
-In the event that fragmentation is required, the incoming payload is split into
-N parts of size ieee->fts.  The first fragment contains the SNAP header and the
-remaining packets are just data.
-
-If encryption is enabled, each fragment payload size is reduced by enough space
-to add the prefix and postfix (IV and ICV totalling 8 bytes in the case of WEP)
-So if you have 1500 bytes of payload with ieee->fts set to 500 without
-encryption it will take 3 frames.  With WEP it will take 4 frames as the
-payload of each frame is reduced to 492 bytes.
-
-* SKB visualization
-*
-*  ,- skb->data
-* |
-* |    ETHERNET HEADER        ,-<-- PAYLOAD
-* |                           |     14 bytes from skb->data
-* |  2 bytes for Type --> ,T. |     (sizeof ethhdr)
-* |                       | | |
-* |,-Dest.--. ,--Src.---. | | |
-* |  6 bytes| | 6 bytes | | | |
-* v         | |         | | | |
-* 0         | v       1 | v | v           2
-* 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
-*     ^     | ^         | ^ |
-*     |     | |         | | |
-*     |     | |         | `T' <---- 2 bytes for Type
-*     |     | |         |
-*     |     | '---SNAP--' <-------- 6 bytes for SNAP
-*     |     |
-*     `-IV--' <-------------------- 4 bytes for IV (WEP)
-*
-*      SNAP HEADER
-*
-*/
 
 static u8 P802_1H_OUI[P80211_OUI_LEN] = { 0x00, 0x00, 0xf8 };
 static u8 RFC1042_OUI[P80211_OUI_LEN] = { 0x00, 0x00, 0x00 };
@@ -206,12 +80,10 @@ int ieee80211_encrypt_fragment(
 		return -1;
 	}
 #endif
-	/* To encrypt, frame format is:
-	 * IV (4 bytes), clear payload (including SNAP), ICV (4 bytes) */
+	
 
-	// PR: FIXME: Copied from hostap. Check fragmentation/MSDU/MPDU encryption.
-	/* Host-based IEEE 802.11 fragmentation for TX is not yet supported, so
-	 * call both MSDU and MPDU encryption functions from here. */
+	
+	
 	atomic_inc(&crypt->refcnt);
 	res = 0;
 	if (crypt->ops->encrypt_msdu)
@@ -232,7 +104,7 @@ int ieee80211_encrypt_fragment(
 
 
 void ieee80211_txb_free(struct ieee80211_txb *txb) {
-	//int i;
+	
 	if (unlikely(!txb))
 		return;
 	kfree(txb);
@@ -270,8 +142,8 @@ struct ieee80211_txb *ieee80211_alloc_txb(int nr_frags, int txb_size,
 	return txb;
 }
 
-// Classify the to-be send data packet
-// Need to acquire the sent queue index.
+
+
 static int
 ieee80211_classify(struct sk_buff *skb, struct ieee80211_network *network)
 {
@@ -281,7 +153,7 @@ ieee80211_classify(struct sk_buff *skb, struct ieee80211_network *network)
 	if (eth->h_proto != htons(ETH_P_IP))
 		return 0;
 
-//	IEEE80211_DEBUG_DATA(IEEE80211_DL_DATA, skb->data, skb->len);
+
 	ip = ip_hdr(skb);
 
 	switch (ip->tos & 0xfc) {
@@ -317,11 +189,11 @@ void ieee80211_tx_query_agg_cap(struct ieee80211_device* ieee, struct sk_buff* s
 
 	if (is_multicast_ether_addr(hdr->addr1) || is_broadcast_ether_addr(hdr->addr1))
 		return;
-	//check packet and mode later
+	
 #ifdef TO_DO_LIST
 	if(pTcb->PacketLength >= 4096)
 		return;
-	// For RTL819X, if pairwisekey = wep/tkip, we don't aggrregation.
+	
 	if(!Adapter->HalFunc.GetNmodeSupportBySecCfgHandler(Adapter))
 		return;
 #endif
@@ -344,7 +216,7 @@ void ieee80211_tx_query_agg_cap(struct ieee80211_device* ieee, struct sk_buff* s
 		}
 		if (pTxTs->TxAdmittedBARecord.bValid == false)
 		{
-			//as some AP will refuse our action frame until key handshake has been finished. WB
+			
 			if (ieee->wpa_ie_len && (ieee->pairwise_key_type == KEY_TYPE_NA))
 			;
 			else
@@ -392,7 +264,7 @@ extern void ieee80211_qurey_ShortPreambleMode(struct ieee80211_device* ieee, cb_
 {
 	tcb_desc->bUseShortPreamble = false;
 	if (tcb_desc->data_rate == 2)
-	{//// 1M can only use Long Preamble. 11B spec
+	{
 		return;
 	}
 	else if (ieee->current_network.capability & WLAN_CAPABILITY_SHORT_PREAMBLE)
@@ -435,9 +307,9 @@ void ieee80211_query_BandwidthMode(struct ieee80211_device* ieee, cb_desc *tcb_d
 	if(tcb_desc->bMulticast || tcb_desc->bBroadcast)
 		return;
 
-	if((tcb_desc->data_rate & 0x80)==0) // If using legacy rate, it shall use 20MHz channel.
+	if((tcb_desc->data_rate & 0x80)==0) 
 		return;
-	//BandWidthAutoSwitch is for auto switch to 20 or 40 in long distance
+	
 	if(pHTInfo->bCurBW40MHz && pHTInfo->bCurTxBW40MHz && !ieee->bandwidth_auto_switch.bforced_tx20Mhz)
 		tcb_desc->bPacketBW = true;
 	return;
@@ -445,25 +317,25 @@ void ieee80211_query_BandwidthMode(struct ieee80211_device* ieee, cb_desc *tcb_d
 
 void ieee80211_query_protectionmode(struct ieee80211_device* ieee, cb_desc* tcb_desc, struct sk_buff* skb)
 {
-	// Common Settings
+	
 	tcb_desc->bRTSSTBC			= false;
-	tcb_desc->bRTSUseShortGI		= false; // Since protection frames are always sent by legacy rate, ShortGI will never be used.
-	tcb_desc->bCTSEnable			= false; // Most of protection using RTS/CTS
-	tcb_desc->RTSSC				= 0;		// 20MHz: Don't care;  40MHz: Duplicate.
-	tcb_desc->bRTSBW			= false; // RTS frame bandwidth is always 20MHz
+	tcb_desc->bRTSUseShortGI		= false; 
+	tcb_desc->bCTSEnable			= false; 
+	tcb_desc->RTSSC				= 0;		
+	tcb_desc->bRTSBW			= false; 
 
-	if(tcb_desc->bBroadcast || tcb_desc->bMulticast)//only unicast frame will use rts/cts
+	if(tcb_desc->bBroadcast || tcb_desc->bMulticast)
 		return;
 
-	if (is_broadcast_ether_addr(skb->data+16))  //check addr3 as infrastructure add3 is DA.
+	if (is_broadcast_ether_addr(skb->data+16))  
 		return;
 
-	if (ieee->mode < IEEE_N_24G) //b, g mode
+	if (ieee->mode < IEEE_N_24G) 
 	{
-			// (1) RTS_Threshold is compared to the MPDU, not MSDU.
-			// (2) If there are more than one frag in  this MSDU, only the first frag uses protection frame.
-			//		Other fragments are protected by previous fragment.
-			//		So we only need to check the length of first fragment.
+			
+			
+			
+			
 		if (skb->len > ieee->rts)
 		{
 			tcb_desc->bRTSEnable = true;
@@ -471,20 +343,20 @@ void ieee80211_query_protectionmode(struct ieee80211_device* ieee, cb_desc* tcb_
 		}
 		else if (ieee->current_network.buseprotection)
 		{
-			// Use CTS-to-SELF in protection mode.
+			
 			tcb_desc->bRTSEnable = true;
 			tcb_desc->bCTSEnable = true;
 			tcb_desc->rts_rate = MGN_24M;
 		}
-		//otherwise return;
+		
 		return;
 	}
 	else
-	{// 11n High throughput case.
+	{
 		PRT_HIGH_THROUGHPUT pHTInfo = ieee->pHTInfo;
 		while (true)
 		{
-			//check IOT action
+			
 			if(pHTInfo->IOTAction & HT_IOT_ACT_FORCED_CTS2SELF)
 			{
 				tcb_desc->bCTSEnable	= true;
@@ -498,48 +370,48 @@ void ieee80211_query_protectionmode(struct ieee80211_device* ieee, cb_desc* tcb_
 				tcb_desc->rts_rate  = 	MGN_24M;
 				break;
 			}
-			//check ERP protection
+			
 			if (ieee->current_network.buseprotection)
-			{// CTS-to-SELF
+			{
 				tcb_desc->bRTSEnable = true;
 				tcb_desc->bCTSEnable = true;
 				tcb_desc->rts_rate = MGN_24M;
 				break;
 			}
-			//check HT op mode
+			
 			if(pHTInfo->bCurrentHTSupport  && pHTInfo->bEnableHT)
 			{
 				u8 HTOpMode = pHTInfo->CurrentOpMode;
 				if((pHTInfo->bCurBW40MHz && (HTOpMode == 2 || HTOpMode == 3)) ||
 							(!pHTInfo->bCurBW40MHz && HTOpMode == 3) )
 				{
-					tcb_desc->rts_rate = MGN_24M; // Rate is 24Mbps.
+					tcb_desc->rts_rate = MGN_24M; 
 					tcb_desc->bRTSEnable = true;
 					break;
 				}
 			}
-			//check rts
+			
 			if (skb->len > ieee->rts)
 			{
-				tcb_desc->rts_rate = MGN_24M; // Rate is 24Mbps.
+				tcb_desc->rts_rate = MGN_24M; 
 				tcb_desc->bRTSEnable = true;
 				break;
 			}
-			//to do list: check MIMO power save condition.
-			//check AMPDU aggregation for TXOP
+			
+			
 			if(tcb_desc->bAMPDUEnable)
 			{
-				tcb_desc->rts_rate = MGN_24M; // Rate is 24Mbps.
-				// According to 8190 design, firmware sends CF-End only if RTS/CTS is enabled. However, it degrads
-				// throughput around 10M, so we disable of this mechanism. 2007.08.03 by Emily
+				tcb_desc->rts_rate = MGN_24M; 
+				
+				
 				tcb_desc->bRTSEnable = false;
 				break;
 			}
-			// Totally no protection case!!
+			
 			goto NO_PROTECTION;
 		}
 		}
-	// For test , CTS replace with RTS
+	
 	if( 0 )
 	{
 		tcb_desc->bCTSEnable	= true;
@@ -594,7 +466,7 @@ void ieee80211_query_seqnum(struct ieee80211_device*ieee, struct sk_buff* skb, u
 {
 	if (is_multicast_ether_addr(dst) || is_broadcast_ether_addr(dst))
 		return;
-	if (IsQoSDataFrame(skb->data)) //we deal qos data only
+	if (IsQoSDataFrame(skb->data)) 
 	{
 		PTX_TS_RECORD pTS = NULL;
 		if (!GetTs(ieee, (PTS_COMMON_INFO*)(&pTS), dst, skb->priority, TX_DIR, true))
@@ -616,7 +488,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 	int ether_type = 0, encrypt;
 	int bytes, fc, qos_ctl = 0, hdr_len;
 	struct sk_buff *skb_frag;
-	struct ieee80211_hdr_3addrqos header = { /* Ensure zero initialized */
+	struct ieee80211_hdr_3addrqos header = { 
 		.duration_id = 0,
 		.seq_ctl = 0,
 		.qos_ctl = 0
@@ -630,8 +502,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	spin_lock_irqsave(&ieee->lock, flags);
 
-	/* If there is no driver handler to take the TXB, dont' bother
-	 * creating it... */
+	
 	if ((!ieee->hard_start_xmit && !(ieee->softmac_features & IEEE_SOFTMAC_TX_QUEUE))||
 	   ((!ieee->softmac_data_hard_start_xmit && (ieee->softmac_features & IEEE_SOFTMAC_TX_QUEUE)))) {
 		printk(KERN_WARNING "%s: No xmit handler.\n",
@@ -669,14 +540,14 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 		}
 	#endif
 
-		/* Save source and destination addresses */
+		
 		memcpy(&dest, skb->data, ETH_ALEN);
 		memcpy(&src, skb->data+ETH_ALEN, ETH_ALEN);
 
-                /* Advance the SKB to the start of the payload */
+                
                 skb_pull(skb, sizeof(struct ethhdr));
 
-                /* Determine total amount of storage required for TXB packets */
+                
                 bytes = skb->len + SNAP_SIZE + sizeof(u16);
 
 		if (encrypt)
@@ -685,7 +556,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 
                         fc = IEEE80211_FTYPE_DATA;
 
-		//if(ieee->current_network.QoS_Enable)
+		
 		if(qos_actived)
 			fc |= IEEE80211_STYPE_QOS_DATA;
 		else
@@ -693,14 +564,12 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 
 		if (ieee->iw_mode == IW_MODE_INFRA) {
 			fc |= IEEE80211_FCTL_TODS;
-			/* To DS: Addr1 = BSSID, Addr2 = SA,
-			Addr3 = DA */
+			
 			memcpy(&header.addr1, ieee->current_network.bssid, ETH_ALEN);
 			memcpy(&header.addr2, &src, ETH_ALEN);
 			memcpy(&header.addr3, &dest, ETH_ALEN);
 		} else if (ieee->iw_mode == IW_MODE_ADHOC) {
-			/* not From/To DS: Addr1 = DA, Addr2 = SA,
-			Addr3 = BSSID */
+			
 			memcpy(&header.addr1, dest, ETH_ALEN);
 			memcpy(&header.addr2, src, ETH_ALEN);
 			memcpy(&header.addr3, ieee->current_network.bssid, ETH_ALEN);
@@ -708,45 +577,40 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 
                 header.frame_ctl = cpu_to_le16(fc);
 
-		/* Determine fragmentation size based on destination (multicast
-		* and broadcast are not fragmented) */
+		
 		if (is_multicast_ether_addr(header.addr1) ||
 		is_broadcast_ether_addr(header.addr1)) {
 			frag_size = MAX_FRAG_THRESHOLD;
 			qos_ctl |= QOS_CTL_NOTCONTAIN_ACK;
 		}
 		else {
-			frag_size = ieee->fts;//default:392
+			frag_size = ieee->fts;
 			qos_ctl = 0;
 		}
 
-		//if (ieee->current_network.QoS_Enable)
+		
 		if(qos_actived)
 		{
 			hdr_len = IEEE80211_3ADDR_LEN + 2;
 
 			skb->priority = ieee80211_classify(skb, &ieee->current_network);
-			qos_ctl |= skb->priority; //set in the ieee80211_classify
+			qos_ctl |= skb->priority; 
 			header.qos_ctl = cpu_to_le16(qos_ctl & IEEE80211_QOS_TID);
 		} else {
 			hdr_len = IEEE80211_3ADDR_LEN;
 		}
-		/* Determine amount of payload per fragment.  Regardless of if
-		* this stack is providing the full 802.11 header, one will
-		* eventually be affixed to this fragment -- so we must account for
-		* it when determining the amount of payload space. */
+		
 		bytes_per_frag = frag_size - hdr_len;
 		if (ieee->config &
 		(CFG_IEEE80211_COMPUTE_FCS | CFG_IEEE80211_RESERVE_FCS))
 			bytes_per_frag -= IEEE80211_FCS_LEN;
 
-		/* Each fragment may need to have room for encryptiong pre/postfix */
+		
 		if (encrypt)
 			bytes_per_frag -= crypt->ops->extra_prefix_len +
 				crypt->ops->extra_postfix_len;
 
-		/* Number of fragments is the total bytes_per_frag /
-		* payload_per_fragment */
+		
 		nr_frags = bytes / bytes_per_frag;
 		bytes_last_frag = bytes % bytes_per_frag;
 		if (bytes_last_frag)
@@ -754,9 +618,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 		else
 			bytes_last_frag = bytes_per_frag;
 
-		/* When we allocate the TXB we allocate enough space for the reserve
-		* and full fragment bytes (bytes_per_frag doesn't include prefix,
-		* postfix, header, FCS, etc.) */
+		
 		txb = ieee80211_alloc_txb(nr_frags, frag_size + ieee->tx_headroom, GFP_ATOMIC);
 		if (unlikely(!txb)) {
 			printk(KERN_WARNING "%s: Could not allocate TXB\n",
@@ -766,7 +628,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 		txb->encrypted = encrypt;
 		txb->payload_size = bytes;
 
-		//if (ieee->current_network.QoS_Enable)
+		
 		if(qos_actived)
 		{
 			txb->queue_index = UP2AC(skb->priority);
@@ -780,7 +642,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 			skb_frag = txb->fragments[i];
 			tcb_desc = (cb_desc *)(skb_frag->cb + MAX_DEV_ADDR_SIZE);
 			if(qos_actived){
-				skb_frag->priority = skb->priority;//UP2AC(skb->priority);
+				skb_frag->priority = skb->priority;
 				tcb_desc->queue_index =  UP2AC(skb->priority);
 			} else {
 				skb_frag->priority = WME_AC_BK;
@@ -802,27 +664,26 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 			frag_hdr = (struct ieee80211_hdr_3addrqos *)skb_put(skb_frag, hdr_len);
 			memcpy(frag_hdr, &header, hdr_len);
 
-			/* If this is not the last fragment, then add the MOREFRAGS
-			* bit to the frame control */
+			
 			if (i != nr_frags - 1) {
 				frag_hdr->frame_ctl = cpu_to_le16(
 					fc | IEEE80211_FCTL_MOREFRAGS);
 				bytes = bytes_per_frag;
 
 			} else {
-				/* The last fragment takes the remaining length */
+				
 				bytes = bytes_last_frag;
 			}
-			//if(ieee->current_network.QoS_Enable)
+			
 			if(qos_actived)
 			{
-				// add 1 only indicate to corresponding seq number control 2006/7/12
+				
 				frag_hdr->seq_ctl = cpu_to_le16(ieee->seq_ctrl[UP2AC(skb->priority)+1]<<4 | i);
 			} else {
 				frag_hdr->seq_ctl = cpu_to_le16(ieee->seq_ctrl[0]<<4 | i);
 			}
 
-			/* Put a SNAP header on the first fragment */
+			
 			if (i == 0) {
 				ieee80211_put_snap(
 					skb_put(skb_frag, SNAP_SIZE + sizeof(u16)),
@@ -832,11 +693,10 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 
 			memcpy(skb_put(skb_frag, bytes), skb->data, bytes);
 
-			/* Advance the SKB... */
+			
 			skb_pull(skb, bytes);
 
-			/* Encryption routine will move the header forward in order
-			* to insert the IV between the header and the payload */
+			
 			if (encrypt)
 				ieee80211_encrypt_fragment(ieee, skb_frag, hdr_len);
 			if (ieee->config &
@@ -876,7 +736,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 	}
 
  success:
-//WB add to fill data tcb_desc here. only first fragment is considered, need to change, and you may remove to other place.
+
 	if (txb)
 	{
 #if 1
@@ -890,7 +750,7 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 		if ( tcb_desc->bMulticast ||  tcb_desc->bBroadcast)
 			tcb_desc->data_rate = ieee->basic_rate;
 		else
-			//tcb_desc->data_rate = CURRENT_RATE(ieee->current_network.mode, ieee->rate, ieee->HTCurrentOperaRate);
+			
 			tcb_desc->data_rate = CURRENT_RATE(ieee->mode, ieee->rate, ieee->HTCurrentOperaRate);
 		ieee80211_qurey_ShortPreambleMode(ieee, tcb_desc);
 		ieee80211_tx_query_agg_cap(ieee, txb->fragments[0], tcb_desc);
@@ -898,8 +758,8 @@ int rtl8192_ieee80211_xmit(struct sk_buff *skb, struct net_device *dev)
 		ieee80211_query_BandwidthMode(ieee, tcb_desc);
 		ieee80211_query_protectionmode(ieee, tcb_desc, txb->fragments[0]);
 		ieee80211_query_seqnum(ieee, txb->fragments[0], header.addr1);
-//		IEEE80211_DEBUG_DATA(IEEE80211_DL_DATA, txb->fragments[0]->data, txb->fragments[0]->len);
-		//IEEE80211_DEBUG_DATA(IEEE80211_DL_DATA, tcb_desc, sizeof(cb_desc));
+
+		
 #endif
 	}
 	spin_unlock_irqrestore(&ieee->lock, flags);

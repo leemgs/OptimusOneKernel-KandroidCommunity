@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2008 Sensoray Company Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License (Version 2) as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -79,7 +64,7 @@ static int s2250loader_probe(struct usb_interface *interface,
 		goto failed;
 	}
 
-	/* Allocate dev data structure */
+	
 	s = kmalloc(sizeof(device_extension_t), GFP_KERNEL);
 	if (s == NULL) {
 		printk(KERN_ERR "Out of memory\n");
@@ -150,7 +135,7 @@ static void s2250loader_disconnect(struct usb_interface *interface)
 
 static struct usb_device_id s2250loader_ids[] = {
 	{USB_DEVICE(0x1943, 0xa250)},
-	{}                          /* Terminating entry */
+	{}                          
 };
 
 MODULE_DEVICE_TABLE(usb, s2250loader_ids);

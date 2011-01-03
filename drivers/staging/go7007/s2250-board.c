@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2008 Sensoray Company Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License (Version 2) as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -98,7 +83,7 @@ static u16 vid_regs_fp[] = {
 	0x000, 0x000
 };
 
-/* PAL specific values */
+
 static u16 vid_regs_fp_pal[] =
 {
 	0x120, 0x017,
@@ -123,7 +108,7 @@ struct s2250 {
 	struct i2c_client *audio;
 };
 
-/* from go7007-usb.c which is Copyright (C) 2005-2006 Micronas USA Inc.*/
+
 static int go7007_usb_vendor_request(struct go7007 *go, u16 request,
 	u16 value, u16 index, void *transfer_buffer, int length, int in)
 {
@@ -142,7 +127,7 @@ static int go7007_usb_vendor_request(struct go7007 *go, u16 request,
 				value, index, transfer_buffer, length, timeout);
 	}
 }
-/* end from go7007-usb.c which is Copyright (C) 2005-2006 Micronas USA Inc.*/
+
 
 static int write_reg(struct i2c_client *client, u8 reg, u8 value)
 {
@@ -233,7 +218,7 @@ static int write_reg_fp(struct i2c_client *client, u16 addr, u16 val)
 		return -EFAULT;
 	}
 
-	/* save last 12b value */
+	
 	if (addr == 0x12b)
 		dec->reg12b_val = val;
 
@@ -319,12 +304,12 @@ static int s2250_command(struct i2c_client *client,
 
 		vidsys = (dec->std == V4L2_STD_NTSC) ? 0x01 : 0x00;
 		if (*input == 0) {
-			/* composite */
+			
 			write_reg_fp(client, 0x20, 0x020 | vidsys);
 			write_reg_fp(client, 0x21, 0x662);
 			write_reg_fp(client, 0x140, 0x060);
 		} else {
-			/* S-Video */
+			
 			write_reg_fp(client, 0x20, 0x040 | vidsys);
 			write_reg_fp(client, 0x21, 0x666);
 			write_reg_fp(client, 0x140, 0x060);
@@ -421,7 +406,7 @@ static int s2250_command(struct i2c_client *client,
 				dec->contrast = ctrl->value;
 			value1 = dec->contrast * 0x40 / 100;
 			if (value1 > 0x3f)
-				value1 = 0x3f; /* max */
+				value1 = 0x3f; 
 			read_reg_fp(client, VPX322_ADDR_CONTRAST0, &oldvalue);
 			write_reg_fp(client, VPX322_ADDR_CONTRAST0,
 				     value1 | (oldvalue & ~0x3f));
@@ -450,7 +435,7 @@ static int s2250_command(struct i2c_client *client,
 				dec->hue = -50;
 			else
 				dec->hue = ctrl->value;
-			/* clamp the hue range */
+			
 			value1 = dec->hue * 280 / 50;
 			write_reg_fp(client, VPX322_ADDR_HUE, value1);
 			break;
@@ -495,7 +480,7 @@ static int s2250_command(struct i2c_client *client,
 
 		memset(audio, 0, sizeof(*audio));
 		audio->index = dec->audio_input;
-		/* fall through */
+		
 	}
 	case VIDIOC_ENUMAUDIO:
 	{
@@ -525,13 +510,13 @@ static int s2250_command(struct i2c_client *client,
 
 		switch (audio->index) {
 		case 0:
-			write_reg(dec->audio, 0x08, 0x02); /* Line In */
+			write_reg(dec->audio, 0x08, 0x02); 
 			break;
 		case 1:
-			write_reg(dec->audio, 0x08, 0x04); /* Mic */
+			write_reg(dec->audio, 0x08, 0x04); 
 			break;
 		case 2:
-			write_reg(dec->audio, 0x08, 0x05); /* Mic Boost */
+			write_reg(dec->audio, 0x08, 0x05); 
 			break;
 		default:
 			return -EINVAL;
@@ -579,7 +564,7 @@ static int s2250_probe(struct i2c_client *client,
 	       "s2250: initializing video decoder on %s\n",
 	       adapter->name);
 
-	/* initialize the audio */
+	
 	if (write_regs(audio, aud_regs) < 0) {
 		printk(KERN_ERR
 		       "s2250: error initializing audio\n");
@@ -602,15 +587,15 @@ static int s2250_probe(struct i2c_client *client,
 		kfree(dec);
 		return 0;
 	}
-	/* set default channel */
-	/* composite */
+	
+	
 	write_reg_fp(client, 0x20, 0x020 | 1);
 	write_reg_fp(client, 0x21, 0x662);
 	write_reg_fp(client, 0x140, 0x060);
 
-	/* set default audio input */
+	
 	dec->audio_input = 0;
-	write_reg(client, 0x08, 0x02); /* Line In */
+	write_reg(client, 0x08, 0x02); 
 
 	if (mutex_lock_interruptible(&usb->i2c_lock) == 0) {
 		data = kzalloc(16, GFP_KERNEL);

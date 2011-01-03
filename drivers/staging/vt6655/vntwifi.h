@@ -1,31 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: vntwifi.h
- *
- * Purpose: export VNT Host WiFi library function
- *
- * Author: Yiching Chen
- *
- * Date: Jan 7, 2004
- *
- */
+
 
 #ifndef __VNTWIFI_H__
 #define __VNTWIFI_H__
@@ -35,7 +8,7 @@
 #include "card.h"
 #include "wpa2.h"
 
-/*---------------------  Export Definitions -------------------------*/
+
 #define RATE_1M         0
 #define RATE_2M         1
 #define RATE_5M         2
@@ -51,7 +24,7 @@
 #define RATE_AUTO      12
 #define MAX_RATE       12
 
-// key CipherSuite
+
 #define KEY_CTL_WEP         0x00
 #define KEY_CTL_NONE        0x01
 #define KEY_CTL_TKIP        0x02
@@ -62,7 +35,7 @@
 
 #define MAX_BSS_NUM             42
 
-// Pre-configured Authenticaiton Mode (from XP)
+
 typedef enum tagWMAC_AUTHENTICATION_MODE {
 
     WMAC_AUTH_OPEN,
@@ -73,7 +46,7 @@ typedef enum tagWMAC_AUTHENTICATION_MODE {
     WMAC_AUTH_WPANONE,
     WMAC_AUTH_WPA2,
     WMAC_AUTH_WPA2PSK,
-    WMAC_AUTH_MAX       // Not a real mode, defined as upper bound
+    WMAC_AUTH_MAX       
 
 } WMAC_AUTHENTICATION_MODE, *PWMAC_AUTHENTICATION_MODE;
 
@@ -90,7 +63,7 @@ typedef enum tagWMAC_ENCRYPTION_MODE {
 
 } WMAC_ENCRYPTION_MODE, *PWMAC_ENCRYPTION_MODE;
 
-// Pre-configured Mode (from XP)
+
 
 typedef enum tagWMAC_CONFIG_MODE {
 
@@ -130,15 +103,15 @@ typedef enum tagWMAC_POWER_MODE {
         WLAN_GET_CAP_INFO_ESS(wCapInfo)                 \
 
 
-/*---------------------  Export Classes  ----------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
 
 
-/*---------------------  Export Types  ------------------------------*/
 
 
-/*---------------------  Export Functions  --------------------------*/
+
+
+
+
+
 
 VOID
 VNTWIFIvSetIBSSParameter (
@@ -245,13 +218,7 @@ VNTWIFIvGetTxRate(
     OUT PBYTE   pbyCCKBasicRate,
     OUT PBYTE   pbyOFDMBasicRate
     );
-/*
-BOOL
-VNTWIFIbInit(
-    IN PVOID    pAdapterHandler,
-    OUT PVOID   *pMgmtHandler
-    );
-*/
+
 
 BYTE
 VNTWIFIbyGetKeyCypher(
@@ -279,7 +246,7 @@ VNTWIFIwGetMaxSupportRate(
     IN PVOID pMgmtObject
     );
 
-// for 802.11h
+
 VOID
 VNTWIFIvSet11h (
     IN PVOID pMgmtObject,
@@ -302,12 +269,6 @@ VNTWIFIbChannelSwitch(
     IN PVOID pMgmtObject,
     IN BYTE  byNewChannel
     );
-/*
-BOOL
-VNTWIFIbRadarPresent(
-    IN PVOID pMgmtObject,
-    IN BYTE  byChannel
-    );
-*/
 
-#endif //__VNTWIFI_H__
+
+#endif 

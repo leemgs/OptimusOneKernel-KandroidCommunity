@@ -1,25 +1,4 @@
-/*
- *  Driver for the Conexant CX25821 PCIe bridge
- *
- *  Copyright (C) 2009 Conexant Systems Inc.
- *  Authors  <shu.lin@conexant.com>, <hiep.huynh@conexant.com>
- *  Based on Steven Toth <stoth@linuxtv.org> cx23885 driver
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef CX25821_VIDEO_H_
 #define CX25821_VIDEO_H_
@@ -41,7 +20,7 @@
 #include <media/v4l2-ioctl.h>
 
 #ifdef CONFIG_VIDEO_V4L1_COMPAT
-/* Include V4L1 specific functions. Should be removed soon */
+
 #include <linux/videodev.h>
 #endif
 
@@ -54,7 +33,7 @@
 	printk(KERN_DEBUG "%s/0: " fmt, dev->name, ## arg);\
     } while (0)
 
-//For IOCTL to identify running upstream
+
 #define UPSTREAM_START_VIDEO        700
 #define UPSTREAM_STOP_VIDEO         701
 #define UPSTREAM_START_AUDIO        702
@@ -92,7 +71,7 @@ extern struct video_device cx25821_video_template9;
 extern struct video_device cx25821_video_template10;
 extern struct video_device cx25821_video_template11;
 extern struct video_device cx25821_videoioctl_template;
-//extern const u32 *ctrl_classes[];
+
 
 extern unsigned int vid_limit;
 

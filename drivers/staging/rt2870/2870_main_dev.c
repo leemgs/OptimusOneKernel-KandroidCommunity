@@ -1,49 +1,11 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    rtmp_main.c
-
-    Abstract:
-    main initialization routines
-
-    Revision History:
-    Who         When            What
-    --------    ----------      ----------------------------------------------
-    Name        Date            Modification logs
-    Jan Lee		01-10-2005	    modified
-	Sample		Jun/01/07		Merge RT2870 and RT2860 drivers.
-*/
 
 #include "rt_config.h"
 
 
-// Following information will be show when you run 'modinfo'
-// *** If you have a solution for the bug in current version of driver, please mail to me.
-// Otherwise post to forum in ralinktech's web site(www.ralinktech.com) and let all users help you. ***
+
+
+
 MODULE_AUTHOR("Paul Lin <paul_lin@ralinktech.com>");
 MODULE_DESCRIPTION(RT28xx_CHIP_NAME " Wireless LAN Linux Driver");
 MODULE_LICENSE("GPL");
@@ -52,97 +14,94 @@ MODULE_VERSION(STA_DRIVER_VERSION);
 #endif
 MODULE_ALIAS("rt3070sta");
 
-/* Kernel thread and vars, which handles packets that are completed. Only
- * packets that have a "complete" function are sent here. This way, the
- * completion is run out of kernel context, and doesn't block the rest of
- * the stack. */
+
 
 extern INT __devinit rt28xx_probe(IN void *_dev_p, IN void *_dev_id_p,
 									IN UINT argc, OUT PRTMP_ADAPTER *ppAd);
 
 struct usb_device_id rtusb_usb_id[] = {
-	{ USB_DEVICE(0x148F, 0x2770) }, /* Ralink */
-	{ USB_DEVICE(0x1737, 0x0071) }, /* Linksys WUSB600N */
-	{ USB_DEVICE(0x1737, 0x0070) }, /* Linksys */
-	{ USB_DEVICE(0x148F, 0x2870) }, /* Ralink */
-	{ USB_DEVICE(0x148F, 0x3070) }, /* Ralink 3070 */
-	{ USB_DEVICE(0x148F, 0x3071) }, /* Ralink 3071 */
-	{ USB_DEVICE(0x148F, 0x3072) }, /* Ralink 3072 */
-	{ USB_DEVICE(0x0B05, 0x1731) }, /* Asus */
-	{ USB_DEVICE(0x0B05, 0x1732) }, /* Asus */
-	{ USB_DEVICE(0x0B05, 0x1742) }, /* Asus */
-	{ USB_DEVICE(0x0DF6, 0x0017) }, /* Sitecom */
-	{ USB_DEVICE(0x0DF6, 0x002B) }, /* Sitecom */
-	{ USB_DEVICE(0x0DF6, 0x002C) }, /* Sitecom */
-	{ USB_DEVICE(0x0DF6, 0x003E) }, /* Sitecom 3070 */
-	{ USB_DEVICE(0x0DF6, 0x002D) }, /* Sitecom */
-	{ USB_DEVICE(0x0DF6, 0x0039) }, /* Sitecom 2770 */
-	{ USB_DEVICE(0x0DF6, 0x003F) }, /* Sitecom WL-608 */
-	{ USB_DEVICE(0x14B2, 0x3C06) }, /* Conceptronic */
-	{ USB_DEVICE(0x14B2, 0x3C28) }, /* Conceptronic */
-	{ USB_DEVICE(0x2019, 0xED06) }, /* Planex Communications, Inc. */
-	{ USB_DEVICE(0x2019, 0xED14) }, /* Planex Communications, Inc. */
-	{ USB_DEVICE(0x2019, 0xAB25) }, /* Planex Communications, Inc. RT3070 */
-	{ USB_DEVICE(0x07D1, 0x3C09) }, /* D-Link */
-	{ USB_DEVICE(0x07D1, 0x3C11) }, /* D-Link */
-	{ USB_DEVICE(0x2001, 0x3C09) }, /* D-Link */
-	{ USB_DEVICE(0x2001, 0x3C0A) }, /* D-Link 3072*/
-	{ USB_DEVICE(0x14B2, 0x3C07) }, /* AL */
-	{ USB_DEVICE(0x14B2, 0x3C12) }, /* AL 3070 */
-	{ USB_DEVICE(0x050D, 0x8053) }, /* Belkin */
-	{ USB_DEVICE(0x050D, 0x815C) }, /* Belkin */
-	{ USB_DEVICE(0x050D, 0x825a) }, /* Belkin */
-	{ USB_DEVICE(0x14B2, 0x3C23) }, /* Airlink */
-	{ USB_DEVICE(0x14B2, 0x3C27) }, /* Airlink */
-	{ USB_DEVICE(0x07AA, 0x002F) }, /* Corega */
-	{ USB_DEVICE(0x07AA, 0x003C) }, /* Corega */
-	{ USB_DEVICE(0x07AA, 0x003F) }, /* Corega */
-	{ USB_DEVICE(0x18C5, 0x0012) }, /* Corega 3070 */
-	{ USB_DEVICE(0x1044, 0x800B) }, /* Gigabyte */
-	{ USB_DEVICE(0x1044, 0x800D) }, /* Gigabyte GN-WB32L 3070 */
-	{ USB_DEVICE(0x15A9, 0x0006) }, /* Sparklan */
-	{ USB_DEVICE(0x083A, 0xB522) }, /* SMC */
-	{ USB_DEVICE(0x083A, 0xA618) }, /* SMC */
-	{ USB_DEVICE(0x083A, 0x8522) }, /* Arcadyan */
-	{ USB_DEVICE(0x083A, 0x7512) }, /* Arcadyan 2770 */
-	{ USB_DEVICE(0x083A, 0x7522) }, /* Arcadyan */
-	{ USB_DEVICE(0x083A, 0x7511) }, /* Arcadyan 3070 */
-	{ USB_DEVICE(0x0CDE, 0x0022) }, /* ZCOM */
-	{ USB_DEVICE(0x0586, 0x3416) }, /* Zyxel */
-	{ USB_DEVICE(0x0CDE, 0x0025) }, /* Zyxel */
-	{ USB_DEVICE(0x1740, 0x9701) }, /* EnGenius */
-	{ USB_DEVICE(0x1740, 0x9702) }, /* EnGenius */
-	{ USB_DEVICE(0x1740, 0x9703) }, /* EnGenius 3070 */
-	{ USB_DEVICE(0x0471, 0x200f) }, /* Philips */
-	{ USB_DEVICE(0x14B2, 0x3C25) }, /* Draytek */
-	{ USB_DEVICE(0x13D3, 0x3247) }, /* AzureWave */
-	{ USB_DEVICE(0x13D3, 0x3273) }, /* AzureWave 3070*/
-	{ USB_DEVICE(0x083A, 0x6618) }, /* Accton */
-	{ USB_DEVICE(0x15c5, 0x0008) }, /* Amit */
-	{ USB_DEVICE(0x0E66, 0x0001) }, /* Hawking */
-	{ USB_DEVICE(0x0E66, 0x0003) }, /* Hawking */
-	{ USB_DEVICE(0x129B, 0x1828) }, /* Siemens */
-	{ USB_DEVICE(0x157E, 0x300E) }, /* U-Media */
+	{ USB_DEVICE(0x148F, 0x2770) }, 
+	{ USB_DEVICE(0x1737, 0x0071) }, 
+	{ USB_DEVICE(0x1737, 0x0070) }, 
+	{ USB_DEVICE(0x148F, 0x2870) }, 
+	{ USB_DEVICE(0x148F, 0x3070) }, 
+	{ USB_DEVICE(0x148F, 0x3071) }, 
+	{ USB_DEVICE(0x148F, 0x3072) }, 
+	{ USB_DEVICE(0x0B05, 0x1731) }, 
+	{ USB_DEVICE(0x0B05, 0x1732) }, 
+	{ USB_DEVICE(0x0B05, 0x1742) }, 
+	{ USB_DEVICE(0x0DF6, 0x0017) }, 
+	{ USB_DEVICE(0x0DF6, 0x002B) }, 
+	{ USB_DEVICE(0x0DF6, 0x002C) }, 
+	{ USB_DEVICE(0x0DF6, 0x003E) }, 
+	{ USB_DEVICE(0x0DF6, 0x002D) }, 
+	{ USB_DEVICE(0x0DF6, 0x0039) }, 
+	{ USB_DEVICE(0x0DF6, 0x003F) }, 
+	{ USB_DEVICE(0x14B2, 0x3C06) }, 
+	{ USB_DEVICE(0x14B2, 0x3C28) }, 
+	{ USB_DEVICE(0x2019, 0xED06) }, 
+	{ USB_DEVICE(0x2019, 0xED14) }, 
+	{ USB_DEVICE(0x2019, 0xAB25) }, 
+	{ USB_DEVICE(0x07D1, 0x3C09) }, 
+	{ USB_DEVICE(0x07D1, 0x3C11) }, 
+	{ USB_DEVICE(0x2001, 0x3C09) }, 
+	{ USB_DEVICE(0x2001, 0x3C0A) }, 
+	{ USB_DEVICE(0x14B2, 0x3C07) }, 
+	{ USB_DEVICE(0x14B2, 0x3C12) }, 
+	{ USB_DEVICE(0x050D, 0x8053) }, 
+	{ USB_DEVICE(0x050D, 0x815C) }, 
+	{ USB_DEVICE(0x050D, 0x825a) }, 
+	{ USB_DEVICE(0x14B2, 0x3C23) }, 
+	{ USB_DEVICE(0x14B2, 0x3C27) }, 
+	{ USB_DEVICE(0x07AA, 0x002F) }, 
+	{ USB_DEVICE(0x07AA, 0x003C) }, 
+	{ USB_DEVICE(0x07AA, 0x003F) }, 
+	{ USB_DEVICE(0x18C5, 0x0012) }, 
+	{ USB_DEVICE(0x1044, 0x800B) }, 
+	{ USB_DEVICE(0x1044, 0x800D) }, 
+	{ USB_DEVICE(0x15A9, 0x0006) }, 
+	{ USB_DEVICE(0x083A, 0xB522) }, 
+	{ USB_DEVICE(0x083A, 0xA618) }, 
+	{ USB_DEVICE(0x083A, 0x8522) }, 
+	{ USB_DEVICE(0x083A, 0x7512) }, 
+	{ USB_DEVICE(0x083A, 0x7522) }, 
+	{ USB_DEVICE(0x083A, 0x7511) }, 
+	{ USB_DEVICE(0x0CDE, 0x0022) }, 
+	{ USB_DEVICE(0x0586, 0x3416) }, 
+	{ USB_DEVICE(0x0CDE, 0x0025) }, 
+	{ USB_DEVICE(0x1740, 0x9701) }, 
+	{ USB_DEVICE(0x1740, 0x9702) }, 
+	{ USB_DEVICE(0x1740, 0x9703) }, 
+	{ USB_DEVICE(0x0471, 0x200f) }, 
+	{ USB_DEVICE(0x14B2, 0x3C25) }, 
+	{ USB_DEVICE(0x13D3, 0x3247) }, 
+	{ USB_DEVICE(0x13D3, 0x3273) }, 
+	{ USB_DEVICE(0x083A, 0x6618) }, 
+	{ USB_DEVICE(0x15c5, 0x0008) }, 
+	{ USB_DEVICE(0x0E66, 0x0001) }, 
+	{ USB_DEVICE(0x0E66, 0x0003) }, 
+	{ USB_DEVICE(0x129B, 0x1828) }, 
+	{ USB_DEVICE(0x157E, 0x300E) }, 
 	{ USB_DEVICE(0x050d, 0x805c) },
-	{ USB_DEVICE(0x1482, 0x3C09) }, /* Abocom*/
-	{ USB_DEVICE(0x14B2, 0x3C09) }, /* Alpha */
-	{ USB_DEVICE(0x04E8, 0x2018) }, /* samsung */
-	{ USB_DEVICE(0x07B8, 0x3070) }, /* AboCom 3070 */
-	{ USB_DEVICE(0x07B8, 0x3071) }, /* AboCom 3071 */
-	{ USB_DEVICE(0x07B8, 0x2870) }, /* AboCom */
-	{ USB_DEVICE(0x07B8, 0x2770) }, /* AboCom */
-	{ USB_DEVICE(0x07B8, 0x3072) }, /* Abocom 3072 */
-	{ USB_DEVICE(0x7392, 0x7711) }, /* Edimax 3070 */
-	{ USB_DEVICE(0x5A57, 0x0280) }, /* Zinwell */
-	{ USB_DEVICE(0x5A57, 0x0282) }, /* Zinwell */
-	{ USB_DEVICE(0x1A32, 0x0304) }, /* Quanta 3070 */
-	{ USB_DEVICE(0x0789, 0x0162) }, /* Logitec 2870 */
-	{ USB_DEVICE(0x0789, 0x0163) }, /* Logitec 2870 */
-	{ USB_DEVICE(0x0789, 0x0164) }, /* Logitec 2870 */
-	{ USB_DEVICE(0x7392, 0x7717) }, /* Edimax */
-	{ USB_DEVICE(0x1EDA, 0x2310) }, /* AirTies 3070 */
-	{ USB_DEVICE(0x1737, 0x0077) }, /* Linksys WUSB54GC-EU v3 */
-	{ } /* Terminating entry */
+	{ USB_DEVICE(0x1482, 0x3C09) }, 
+	{ USB_DEVICE(0x14B2, 0x3C09) }, 
+	{ USB_DEVICE(0x04E8, 0x2018) }, 
+	{ USB_DEVICE(0x07B8, 0x3070) }, 
+	{ USB_DEVICE(0x07B8, 0x3071) }, 
+	{ USB_DEVICE(0x07B8, 0x2870) }, 
+	{ USB_DEVICE(0x07B8, 0x2770) }, 
+	{ USB_DEVICE(0x07B8, 0x3072) }, 
+	{ USB_DEVICE(0x7392, 0x7711) }, 
+	{ USB_DEVICE(0x5A57, 0x0280) }, 
+	{ USB_DEVICE(0x5A57, 0x0282) }, 
+	{ USB_DEVICE(0x1A32, 0x0304) }, 
+	{ USB_DEVICE(0x0789, 0x0162) }, 
+	{ USB_DEVICE(0x0789, 0x0163) }, 
+	{ USB_DEVICE(0x0789, 0x0164) }, 
+	{ USB_DEVICE(0x7392, 0x7717) }, 
+	{ USB_DEVICE(0x1EDA, 0x2310) }, 
+	{ USB_DEVICE(0x1737, 0x0077) }, 
+	{ } 
 };
 
 INT const               rtusb_usb_id_len = sizeof(rtusb_usb_id) / sizeof(struct usb_device_id);
@@ -156,13 +115,13 @@ MODULE_DEVICE_TABLE(usb, rtusb_usb_id);
 #ifdef CONFIG_PM
 static int rt2870_suspend(struct usb_interface *intf, pm_message_t state);
 static int rt2870_resume(struct usb_interface *intf);
-#endif // CONFIG_PM //
+#endif 
 
-/**************************************************************************/
-/**************************************************************************/
-//tested for kernel 2.6series
-/**************************************************************************/
-/**************************************************************************/
+
+
+
+
+
 static int rtusb_probe (struct usb_interface *intf,
 						const struct usb_device_id *id);
 static void rtusb_disconnect(struct usb_interface *intf);
@@ -184,8 +143,8 @@ struct usb_driver rtusb_driver = {
 VOID RT2860RejectPendingPackets(
 	IN	PRTMP_ADAPTER	pAd)
 {
-	// clear PS packets
-	// clear TxSw packets
+	
+	
 }
 
 static int rt2870_suspend(
@@ -228,17 +187,17 @@ static int rt2870_resume(
 	DBGPRINT(RT_DEBUG_TRACE, ("<=== rt2870_resume()\n"));
 	return 0;
 }
-#endif // CONFIG_PM //
+#endif 
 
 
-// Init driver module
+
 INT __init rtusb_init(void)
 {
 	printk("rtusb init --->\n");
 	return usb_register(&rtusb_driver);
 }
 
-// Deinit driver module
+
 VOID __exit rtusb_exit(void)
 {
 	usb_deregister(&rtusb_driver);
@@ -251,24 +210,11 @@ module_exit(rtusb_exit);
 
 
 
-/*---------------------------------------------------------------------	*/
-/* function declarations												*/
-/*---------------------------------------------------------------------	*/
 
-/*
-========================================================================
-Routine Description:
-    MLME kernel thread.
 
-Arguments:
-	*Context			the pAd, driver control block pointer
 
-Return Value:
-    0					close the thread
 
-Note:
-========================================================================
-*/
+
 INT MlmeThread(
 	IN void *Context)
 {
@@ -282,18 +228,18 @@ INT MlmeThread(
 
 	while (pAd->mlme_kill == 0)
 	{
-		/* lock the device pointers */
-		//down(&(pAd->mlme_semaphore));
+		
+		
 		status = down_interruptible(&(pAd->mlme_semaphore));
 
-		/* lock the device pointers , need to check if required*/
-		//down(&(pAd->usbdev_semaphore));
+		
+		
 
 		if (!pAd->PM_FlgSuspend)
 		MlmeHandler(pAd);
 
-		/* unlock the device pointers */
-		//up(&(pAd->usbdev_semaphore));
+		
+		
 		if (status != 0)
 		{
 			RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS);
@@ -301,20 +247,7 @@ INT MlmeThread(
 		}
 	}
 
-	/* notify the exit routine that we're actually exiting now
-	 *
-	 * complete()/wait_for_completion() is similar to up()/down(),
-	 * except that complete() is safe in the case where the structure
-	 * is getting deleted in a parallel mode of execution (i.e. just
-	 * after the down() -- that's necessary for the thread-shutdown
-	 * case.
-	 *
-	 * complete_and_exit() goes even further than this -- it is safe in
-	 * the case that the thread of the caller is going away (not just
-	 * the structure) -- this is necessary for the module-remove case.
-	 * This is important in preemption kernels, which transfer the flow
-	 * of execution immediately upon a complete().
-	 */
+	
 	DBGPRINT(RT_DEBUG_TRACE,( "<---%s\n",__func__));
 
 	pObj->MLMEThr_pid = NULL;
@@ -325,20 +258,7 @@ INT MlmeThread(
 }
 
 
-/*
-========================================================================
-Routine Description:
-    USB command kernel thread.
 
-Arguments:
-	*Context			the pAd, driver control block pointer
-
-Return Value:
-    0					close the thread
-
-Note:
-========================================================================
-*/
 INT RTUSBCmdThread(
 	IN void * Context)
 {
@@ -356,8 +276,8 @@ INT RTUSBCmdThread(
 
 	while (pAd->CmdQ.CmdQState == RT2870_THREAD_RUNNING)
 	{
-		/* lock the device pointers */
-		//down(&(pAd->RTUSBCmd_semaphore));
+		
+		
 		status = down_interruptible(&(pAd->RTUSBCmd_semaphore));
 
 		if (pAd->CmdQ.CmdQState == RT2870_THREAD_STOPED)
@@ -368,18 +288,18 @@ INT RTUSBCmdThread(
 			RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS);
 			break;
 		}
-		/* lock the device pointers , need to check if required*/
-		//down(&(pAd->usbdev_semaphore));
+		
+		
 
 		if (!pAd->PM_FlgSuspend)
 		CMDHandler(pAd);
 
-		/* unlock the device pointers */
-		//up(&(pAd->usbdev_semaphore));
+		
+		
 	}
 
 	if (!pAd->PM_FlgSuspend)
-	{	// Clear the CmdQElements.
+	{	
 		CmdQElmt	*pCmdQElmt = NULL;
 
 		NdisAcquireSpinLock(&pAd->CmdQLock);
@@ -409,20 +329,7 @@ INT RTUSBCmdThread(
 
 		NdisReleaseSpinLock(&pAd->CmdQLock);
 	}
-	/* notify the exit routine that we're actually exiting now
-	 *
-	 * complete()/wait_for_completion() is similar to up()/down(),
-	 * except that complete() is safe in the case where the structure
-	 * is getting deleted in a parallel mode of execution (i.e. just
-	 * after the down() -- that's necessary for the thread-shutdown
-	 * case.
-	 *
-	 * complete_and_exit() goes even further than this -- it is safe in
-	 * the case that the thread of the caller is going away (not just
-	 * the structure) -- this is necessary for the module-remove case.
-	 * This is important in preemption kernels, which transfer the flow
-	 * of execution immediately upon a complete().
-	 */
+	
 	DBGPRINT(RT_DEBUG_TRACE,( "<---RTUSBCmdThread\n"));
 
 	pObj->RTUSBCmdThr_pid = NULL;
@@ -442,7 +349,7 @@ static void RT2870_TimerQ_Handle(RTMP_ADAPTER *pAd)
 
 	while(!pAd->TimerFunc_kill)
 	{
-//		printk("waiting for event!\n");
+
 		pTimer = NULL;
 
 		status = down_interruptible(&(pAd->RTUSBTimer_semaphore));
@@ -450,7 +357,7 @@ static void RT2870_TimerQ_Handle(RTMP_ADAPTER *pAd)
 		if (pAd->TimerQ.status == RT2870_THREAD_STOPED)
 			break;
 
-		// event happened.
+		
 		while(pAd->TimerQ.pQHead)
 		{
 			RTMP_IRQ_LOCK(&pAd->TimerQLock, irqFlag);
@@ -459,12 +366,12 @@ static void RT2870_TimerQ_Handle(RTMP_ADAPTER *pAd)
 			{
 				pTimer = pEntry->pRaTimer;
 
-				// update pQHead
+				
 				pAd->TimerQ.pQHead = pEntry->pNext;
 				if (pEntry == pAd->TimerQ.pQTail)
 					pAd->TimerQ.pQTail = NULL;
 
-				// return this queue entry to timerQFreeList.
+				
 				pEntry->pNext = pAd->TimerQ.pQPollFreeList;
 				pAd->TimerQ.pQPollFreeList = pEntry;
 			}
@@ -503,20 +410,7 @@ INT TimerQThread(
 
 	RT2870_TimerQ_Handle(pAd);
 
-	/* notify the exit routine that we're actually exiting now
-	 *
-	 * complete()/wait_for_completion() is similar to up()/down(),
-	 * except that complete() is safe in the case where the structure
-	 * is getting deleted in a parallel mode of execution (i.e. just
-	 * after the down() -- that's necessary for the thread-shutdown
-	 * case.
-	 *
-	 * complete_and_exit() goes even further than this -- it is safe in
-	 * the case that the thread of the caller is going away (not just
-	 * the structure) -- this is necessary for the module-remove case.
-	 * This is important in preemption kernels, which transfer the flow
-	 * of execution immediately upon a complete().
-	 */
+	
 	DBGPRINT(RT_DEBUG_TRACE,( "<---%s\n",__func__));
 
 	pObj->TimerQThr_pid = NULL;
@@ -557,7 +451,7 @@ RT2870_TIMER_ENTRY *RT2870_TimerQ_Insert(
 
 		if (pQNode)
 			up(&pAd->RTUSBTimer_semaphore);
-			//wake_up(&timerWaitQ);
+			
 	}
 	else
 	{
@@ -586,7 +480,7 @@ BOOLEAN RT2870_TimerQ_Remove(
 			pNode = pNode->pNext;
 		}
 
-		// Now move it to freeList queue.
+		
 		if (pNode)
 		{
 			if (pNode == pAd->TimerQ.pQHead)
@@ -596,7 +490,7 @@ BOOLEAN RT2870_TimerQ_Remove(
 			if (pPrev != NULL)
 				pPrev->pNext = pNode->pNext;
 
-			// return this queue entry to timerQFreeList.
+			
 			pNode->pNext = pAd->TimerQ.pQPollFreeList;
 			pAd->TimerQ.pQPollFreeList = pNode;
 		}
@@ -617,7 +511,7 @@ void RT2870_TimerQ_Exit(RTMP_ADAPTER *pAd)
 	{
 		pTimerQ = pAd->TimerQ.pQHead;
 		pAd->TimerQ.pQHead = pTimerQ->pNext;
-		// remove the timeQ
+		
 	}
 	pAd->TimerQ.pQPollFreeList = NULL;
 	os_free_mem(pAd, pAd->TimerQ.pTimerQPoll);
@@ -639,10 +533,10 @@ void RT2870_TimerQ_Init(RTMP_ADAPTER *pAd)
 
 	RTMP_IRQ_LOCK(&pAd->TimerQLock, irqFlags);
 	NdisZeroMemory(&pAd->TimerQ, sizeof(pAd->TimerQ));
-	//InterlockedExchange(&pAd->TimerQ.count, 0);
+	
 
-	/* Initialise the wait q head */
-	//init_waitqueue_head(&timerWaitQ);
+	
+	
 
 	os_alloc_mem(pAd, &pAd->TimerQ.pTimerQPoll, sizeof(RT2870_TIMER_ENTRY) * TIMER_QUEUE_SIZE_MAX);
 	if (pAd->TimerQ.pTimerQPoll)
@@ -688,7 +582,7 @@ VOID RT2870_WatchDog(IN RTMP_ADAPTER *pAd)
 		RTMP_IO_WRITE32(pAd, PBF_CFG, 0xf40006);
 	}
 
-//PS packets use HCCA queue when dequeue from PS unicast queue (WiFi WPA2 MA9_DT1 for Marvell B STA)
+
 	idx = 0;
 	if ((MACValue & 0xff00) !=0 )
 	{
@@ -732,17 +626,17 @@ VOID RT2870_WatchDog(IN RTMP_ADAPTER *pAd)
 				 (!RTMP_TEST_FLAG(pAd, (fRTMP_ADAPTER_RESET_IN_PROGRESS | fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST | fRTMP_ADAPTER_BULKOUT_RESET)))
 				)
 			{
-				// FIXME: Following code just support single bulk out. If you wanna support multiple bulk out. Modify it!
+				
 				pHTTXContext = (PHT_TX_CONTEXT)(&pAd->TxContext[idx]);
 				if (pHTTXContext->IRPPending)
-				{	// Check TxContext.
+				{	
 					pUrb = pHTTXContext->pUrb;
 				}
 				else if (idx == MGMTPIPEIDX)
 				{
 					PTX_CONTEXT pMLMEContext, pNULLContext, pPsPollContext;
 
-					//Check MgmtContext.
+					
 					pMLMEContext = (PTX_CONTEXT)(pAd->MgmtRing.Cell[pAd->MgmtRing.TxDmaIdx].AllocVa);
 					pPsPollContext = (PTX_CONTEXT)(&pAd->PsPollContext);
 					pNULLContext = (PTX_CONTEXT)(&pAd->NullContext);
@@ -770,9 +664,9 @@ VOID RT2870_WatchDog(IN RTMP_ADAPTER *pAd)
 				if (pUrb)
 				{
 					DBGPRINT(RT_DEBUG_TRACE, ("Unlink the pending URB!\n"));
-					// unlink it now
+					
 					RTUSB_UNLINK_URB(pUrb);
-					// Sleep 200 microseconds to give cancellation time to work
+					
 					RTMPusecDelay(200);
 					needDumpSeq = TRUE;
 				}
@@ -792,7 +686,7 @@ VOID RT2870_WatchDog(IN RTMP_ADAPTER *pAd)
 		}
 	}
 
-	// For Sigma debug, dump the ba_reordering sequence.
+	
 	if((needDumpSeq == TRUE) && (pAd->CommonCfg.bDisableReordering == 0))
 	{
 		USHORT				Idx;
@@ -821,21 +715,7 @@ VOID RT2870_WatchDog(IN RTMP_ADAPTER *pAd)
 	}
 }
 
-/*
-========================================================================
-Routine Description:
-    Release allocated resources.
 
-Arguments:
-    *dev				Point to the PCI or USB device
-	pAd					driver control block pointer
-
-Return Value:
-    None
-
-Note:
-========================================================================
-*/
 static void _rtusb_disconnect(struct usb_device *dev, PRTMP_ADAPTER pAd)
 {
 	struct net_device	*net_dev = NULL;
@@ -854,7 +734,7 @@ static void _rtusb_disconnect(struct usb_device *dev, PRTMP_ADAPTER pAd)
 
 
 
-	// for debug, wait to show some messages to /proc system
+	
 	udelay(1);
 
 
@@ -870,13 +750,13 @@ static void _rtusb_disconnect(struct usb_device *dev, PRTMP_ADAPTER pAd)
 	flush_scheduled_work();
 	udelay(1);
 
-	// free net_device memory
+	
 	free_netdev(net_dev);
 
-	// free adapter memory
+	
 	RTMPFreeAdapter(pAd);
 
-	// release a use of the usb device structure
+	
 	usb_put_dev(dev);
 	udelay(1);
 
@@ -884,22 +764,7 @@ static void _rtusb_disconnect(struct usb_device *dev, PRTMP_ADAPTER pAd)
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Probe RT28XX chipset.
 
-Arguments:
-    *dev				Point to the PCI or USB device
-	interface
-	*id_table			Point to the PCI or USB device ID
-
-Return Value:
-    None
-
-Note:
-========================================================================
-*/
 static int rtusb_probe (struct usb_interface *intf,
 						const struct usb_device_id *id)
 {
@@ -921,20 +786,7 @@ static void rtusb_disconnect(struct usb_interface *intf)
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Close kernel threads.
 
-Arguments:
-	*pAd				the raxx interface data pointer
-
-Return Value:
-    NONE
-
-Note:
-========================================================================
-*/
 VOID RT28xxThreadTerminate(
 	IN RTMP_ADAPTER *pAd)
 {
@@ -942,15 +794,15 @@ VOID RT28xxThreadTerminate(
 	INT			ret;
 
 
-	// Sleep 50 milliseconds so pending io might finish normally
+	
 	RTMPusecDelay(50000);
 
-	// We want to wait until all pending receives and sends to the
-	// device object. We cancel any
-	// irps. Wait until sends and receives have stopped.
+	
+	
+	
 	RTUSBCancelPendingIRPs(pAd);
 
-	// Terminate Threads
+	
 
 	if (pid_nr(pObj->TimerQThr_pid) > 0)
 	{
@@ -978,7 +830,7 @@ VOID RT28xxThreadTerminate(
 		printk("Terminate the MLMEThr_pid=%d!\n", pid_nr(pObj->MLMEThr_pid));
 		mb();
 		pAd->mlme_kill = 1;
-		//RT28XX_MLME_HANDLER(pAd);
+		
 		mb();
 		ret = kill_pid(pObj->MLMEThr_pid, SIGTERM, 1);
 		if (ret)
@@ -988,7 +840,7 @@ VOID RT28xxThreadTerminate(
 		}
 		else
 		{
-			//wait_for_completion (&pAd->notify);
+			
 			wait_for_completion (&pAd->mlmeComplete);
 			pObj->MLMEThr_pid = NULL;
 		}
@@ -1002,7 +854,7 @@ VOID RT28xxThreadTerminate(
 		pAd->CmdQ.CmdQState = RT2870_THREAD_STOPED;
 		NdisReleaseSpinLock(&pAd->CmdQLock);
 		mb();
-		//RTUSBCMDUp(pAd);
+		
 		ret = kill_pid(pObj->RTUSBCmdThr_pid, SIGTERM, 1);
 		if (ret)
 		{
@@ -1011,13 +863,13 @@ VOID RT28xxThreadTerminate(
 		}
 		else
 		{
-			//wait_for_completion (&pAd->notify);
+			
 			wait_for_completion (&pAd->CmdQComplete);
 			pObj->RTUSBCmdThr_pid = NULL;
 		}
 	}
 
-	// Kill tasklets
+	
 	pAd->mlme_kill = 0;
 	pAd->CmdQ.CmdQState = RT2870_THREAD_UNKNOWN;
 	pAd->TimerFunc_kill = 0;
@@ -1042,21 +894,7 @@ void kill_thread_task(IN PRTMP_ADAPTER pAd)
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Check the chipset vendor/product ID.
 
-Arguments:
-    _dev_p				Point to the PCI or USB device
-
-Return Value:
-    TRUE				Check ok
-	FALSE				Check fail
-
-Note:
-========================================================================
-*/
 BOOLEAN RT28XXChipsetCheck(
 	IN void *_dev_p)
 {
@@ -1086,23 +924,7 @@ BOOLEAN RT28XXChipsetCheck(
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Init net device structure.
 
-Arguments:
-    _dev_p				Point to the PCI or USB device
-    *net_dev			Point to the net device
-	*pAd				the raxx interface data pointer
-
-Return Value:
-    TRUE				Init ok
-	FALSE				Init fail
-
-Note:
-========================================================================
-*/
 BOOLEAN RT28XXNetDevInit(
 	IN void 				*_dev_p,
 	IN struct  net_device	*net_dev,
@@ -1117,22 +939,7 @@ BOOLEAN RT28XXNetDevInit(
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Init net device structure.
 
-Arguments:
-    _dev_p				Point to the PCI or USB device
-	*pAd				the raxx interface data pointer
-
-Return Value:
-    TRUE				Config ok
-	FALSE				Config fail
-
-Note:
-========================================================================
-*/
 BOOLEAN RT28XXProbePostConfig(
 	IN void 				*_dev_p,
 	IN RTMP_ADAPTER 		*pAd,
@@ -1144,15 +951,15 @@ BOOLEAN RT28XXProbePostConfig(
 	UINT32 i;
 
 
-	/* get the active interface descriptor */
+	
 	iface_desc = intf->cur_altsetting;
 
-	/* get # of enpoints  */
+	
 	pAd->NumberOfPipes = iface_desc->desc.bNumEndpoints;
 	DBGPRINT(RT_DEBUG_TRACE,
 			("NumEndpoints=%d\n", iface_desc->desc.bNumEndpoints));
 
-	/* Configure Pipes */
+	
 	BulkOutIdx = 0;
 
 	for(i=0; i<pAd->NumberOfPipes; i++)
@@ -1175,8 +982,8 @@ BOOLEAN RT28XXProbePostConfig(
 				((iface_desc->endpoint[i].desc.bEndpointAddress &
 					USB_ENDPOINT_DIR_MASK) == USB_DIR_OUT))
 		{
-			// there are 6 bulk out EP. EP6 highest priority.
-			// EP1-4 is EDCA.  EP5 is HCCA.
+			
+			
 			pAd->BulkOutEpAddr[BulkOutIdx++] = iface_desc->endpoint[i].desc.bEndpointAddress;
 			pAd->BulkOutMaxPacketSize = iface_desc->endpoint[i].desc.wMaxPacketSize;
 
@@ -1197,42 +1004,16 @@ BOOLEAN RT28XXProbePostConfig(
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Disable DMA.
 
-Arguments:
-	*pAd				the raxx interface data pointer
-
-Return Value:
-	None
-
-Note:
-========================================================================
-*/
 VOID RT28XXDMADisable(
 	IN RTMP_ADAPTER 		*pAd)
 {
-	// no use
+	
 }
 
 
 
-/*
-========================================================================
-Routine Description:
-    Enable DMA.
 
-Arguments:
-	*pAd				the raxx interface data pointer
-
-Return Value:
-	None
-
-Note:
-========================================================================
-*/
 VOID RT28XXDMAEnable(
 	IN RTMP_ADAPTER 		*pAd)
 {
@@ -1263,12 +1044,12 @@ VOID RT28XXDMAEnable(
 
 	UsbCfg.word = 0;
 	UsbCfg.field.phyclear = 0;
-	/* usb version is 1.1,do not use bulk in aggregation */
+	
 	if (pAd->BulkInMaxPacketSize == 512)
 			UsbCfg.field.RxBulkAggEn = 1;
-	/* for last packet, PBF might use more than limited, so minus 2 to prevent from error */
+	
 	UsbCfg.field.RxBulkAggLmt = (MAX_RXBULK_SIZE /1024)-3;
-	UsbCfg.field.RxBulkAggTOut = 0x80; /* 2006-10-18 */
+	UsbCfg.field.RxBulkAggTOut = 0x80; 
 	UsbCfg.field.RxBulkEn = 1;
 	UsbCfg.field.TxBulkEn = 1;
 
@@ -1276,20 +1057,7 @@ VOID RT28XXDMAEnable(
 
 }
 
-/*
-========================================================================
-Routine Description:
-    Write Beacon buffer to Asic.
 
-Arguments:
-	*pAd				the raxx interface data pointer
-
-Return Value:
-	None
-
-Note:
-========================================================================
-*/
 VOID RT28xx_UpdateBeaconToAsic(
 	IN RTMP_ADAPTER		*pAd,
 	IN INT				apidx,
@@ -1317,13 +1085,13 @@ VOID RT28xx_UpdateBeaconToAsic(
 		return;
 	}
 
-	//if ((pAd->WdsTab.Mode == WDS_BRIDGE_MODE) ||
-	//	((pAd->ApCfg.MBSSID[apidx].MSSIDDev == NULL) || !(pAd->ApCfg.MBSSID[apidx].MSSIDDev->flags & IFF_UP))
-	//	)
+	
+	
+	
 	if (bBcnReq == FALSE)
 	{
-		/* when the ra interface is down, do not send its beacon frame */
-		/* clear all zero */
+		
+		
 		for(i=0; i<TXWI_SIZE; i+=4) {
 			RTMP_IO_WRITE32(pAd, pAd->BeaconOffset[bcn_idx] + i, 0x00);
 		}
@@ -1335,14 +1103,14 @@ VOID RT28xx_UpdateBeaconToAsic(
 		ptr = (PUCHAR)&pAd->BeaconTxWI;
 
 		if (NdisEqualMemory(pBeaconSync->BeaconTxWI[bcn_idx], &pAd->BeaconTxWI, TXWI_SIZE) == FALSE)
-		{	// If BeaconTxWI changed, we need to rewrite the TxWI for the Beacon frames.
+		{	
 			pBeaconSync->BeaconBitMap &= (~(BEACON_BITMAP_MASK & (1 << bcn_idx)));
 			NdisMoveMemory(pBeaconSync->BeaconTxWI[bcn_idx], &pAd->BeaconTxWI, TXWI_SIZE);
 		}
 
 		if ((pBeaconSync->BeaconBitMap & (1 << bcn_idx)) != (1 << bcn_idx))
 		{
-			for (i=0; i<TXWI_SIZE; i+=4)  // 16-byte TXWI field
+			for (i=0; i<TXWI_SIZE; i+=4)  
 			{
 				longValue =  *ptr + (*(ptr+1)<<8) + (*(ptr+2)<<16) + (*(ptr+3)<<24);
 				RTMP_IO_WRITE32(pAd, pAd->BeaconOffset[bcn_idx] + i, longValue);
@@ -1354,13 +1122,13 @@ VOID RT28xx_UpdateBeaconToAsic(
 		padding = (FrameLen & 0x01);
 		NdisZeroMemory((PUCHAR)(pBeaconFrame + FrameLen), padding);
 		FrameLen += padding;
-		for (i = 0 ; i < FrameLen /*HW_BEACON_OFFSET*/; i += 2)
+		for (i = 0 ; i < FrameLen ; i += 2)
 		{
 			if (NdisEqualMemory(ptr, pBeaconFrame, 2) == FALSE)
 			{
 				NdisMoveMemory(ptr, pBeaconFrame, 2);
-				//shortValue = *ptr + (*(ptr+1)<<8);
-				//RTMP_IO_WRITE8(pAd, pAd->BeaconOffset[bcn_idx] + TXWI_SIZE + i, shortValue);
+				
+				
 				RTUSBMultiWrite(pAd, pAd->BeaconOffset[bcn_idx] + TXWI_SIZE + i, ptr, 2);
 			}
 			ptr +=2;
@@ -1369,7 +1137,7 @@ VOID RT28xx_UpdateBeaconToAsic(
 
 		pBeaconSync->BeaconBitMap |= (1 << bcn_idx);
 
-		// For AP interface, set the DtimBitOn so that we can send Bcast/Mcast frame out after this beacon frame.
+		
 	}
 
 }
@@ -1413,7 +1181,7 @@ VOID RT2870_BssBeaconStart(
 {
 	int apidx;
 	BEACON_SYNC_STRUCT	*pBeaconSync;
-//	LARGE_INTEGER 	tsfTime, deltaTime;
+
 
 	pBeaconSync = pAd->CommonCfg.pBeaconSync;
 	if (pBeaconSync && pBeaconSync->EnableBeacon)
@@ -1466,7 +1234,7 @@ VOID RT2870_BssBeaconInit(
 		}
 		pBeaconSync->BeaconBitMap = 0;
 
-		//RTMPInitTimer(pAd, &pAd->CommonCfg.BeaconUpdateTimer, GET_TIMER_FUNCTION(BeaconUpdateExec), pAd, TRUE);
+		
 		pBeaconSync->EnableBeacon = TRUE;
 	}
 }
@@ -1506,9 +1274,9 @@ VOID BeaconUpdateExec(
     IN PVOID SystemSpecific3)
 {
 	PRTMP_ADAPTER	pAd = (PRTMP_ADAPTER)FunctionContext;
-	LARGE_INTEGER	tsfTime_a;//, tsfTime_b, deltaTime_exp, deltaTime_ab;
+	LARGE_INTEGER	tsfTime_a;
 	UINT32			delta, remain, remain_low, remain_high;
-//	BOOLEAN			positive;
+
 
 	ReSyncBeaconTime(pAd);
 
@@ -1518,7 +1286,7 @@ VOID BeaconUpdateExec(
 	RTMP_IO_READ32(pAd, TSF_TIMER_DW1, &tsfTime_a.u.HighPart);
 
 
-	//positive=getDeltaTime(tsfTime_a, expectedTime, &deltaTime_exp);
+	
 	remain_high = pAd->CommonCfg.BeaconRemain * tsfTime_a.u.HighPart;
 	remain_low = tsfTime_a.u.LowPart % (pAd->CommonCfg.BeaconPeriod << 10);
 	remain = (remain_high + remain_low)%(pAd->CommonCfg.BeaconPeriod << 10);

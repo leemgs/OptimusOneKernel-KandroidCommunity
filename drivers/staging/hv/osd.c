@@ -1,25 +1,4 @@
-/*
- *
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -67,21 +46,20 @@ void *osd_PageAlloc(unsigned int count)
 		memset(p, 0, count * PAGE_SIZE);
 	return p;
 
-	/* struct page* page = alloc_page(GFP_KERNEL|__GFP_ZERO); */
-	/* void *p; */
+	
+	
 
-	/* BUGBUG: We need to use kmap in case we are in HIMEM region */
-	/* p = page_address(page); */
-	/* if (p) memset(p, 0, PAGE_SIZE); */
-	/* return p; */
+	
+	
+	
+	
 }
 EXPORT_SYMBOL_GPL(osd_PageAlloc);
 
 void osd_PageFree(void *page, unsigned int count)
 {
 	free_pages((unsigned long)page, get_order(count * PAGE_SIZE));
-	/*struct page* p = virt_to_page(page);
-	__free_page(p);*/
+	
 }
 EXPORT_SYMBOL_GPL(osd_PageFree);
 

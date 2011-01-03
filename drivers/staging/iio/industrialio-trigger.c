@@ -1,11 +1,4 @@
-/* The industrial I/O core, trigger handling functions
- *
- * Copyright (c) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -18,31 +11,17 @@
 #include "iio.h"
 #include "trigger.h"
 
-/* RFC - Question of approach
- * Make the common case (single sensor single trigger)
- * simple by starting trigger capture from when first sensors
- * is added.
- *
- * Complex simultaneous start requires use of 'hold' functionality
- * of the trigger. (not implemented)
- *
- * Any other suggestions?
- */
+
 
 
 static DEFINE_IDR(iio_trigger_idr);
 static DEFINE_SPINLOCK(iio_trigger_idr_lock);
 
-/* Single list of all available triggers */
+
 static LIST_HEAD(iio_trigger_list);
 static DEFINE_MUTEX(iio_trigger_list_lock);
 
-/**
- * iio_trigger_register_sysfs() - create a device for this trigger
- * @trig_info:	the trigger
- *
- * Also adds any control attribute registered by the trigger driver
- **/
+
 static int iio_trigger_register_sysfs(struct iio_trigger *trig_info)
 {
 	int ret = 0;
@@ -62,10 +41,7 @@ static void iio_trigger_unregister_sysfs(struct iio_trigger *trig_info)
 }
 
 
-/**
- * iio_trigger_register_id() - get a unique id for this trigger
- * @trig_info:	the trigger
- **/
+
 static int iio_trigger_register_id(struct iio_trigger *trig_info)
 {
 	int ret = 0;
@@ -85,10 +61,7 @@ idr_again:
 	return ret;
 }
 
-/**
- * iio_trigger_unregister_id() - free up unique id for use by another trigger
- * @trig_info: the trigger
- **/
+
 static void iio_trigger_unregister_id(struct iio_trigger *trig_info)
 {
 		spin_lock(&iio_trigger_idr_lock);
@@ -103,7 +76,7 @@ int iio_trigger_register(struct iio_trigger *trig_info)
 	ret = iio_trigger_register_id(trig_info);
 	if (ret)
 		goto error_ret;
-	/* Set the name used for the sysfs directory etc */
+	
 	dev_set_name(&trig_info->dev, "trigger%ld",
 		     (unsigned long) trig_info->id);
 
@@ -115,7 +88,7 @@ int iio_trigger_register(struct iio_trigger *trig_info)
 	if (ret)
 		goto error_device_del;
 
-	/* Add to list of available triggers held by the IIO core */
+	
 	mutex_lock(&iio_trigger_list_lock);
 	list_add_tail(&trig_info->list, &iio_trigger_list);
 	mutex_unlock(&iio_trigger_list_lock);
@@ -145,7 +118,7 @@ void iio_trigger_unregister(struct iio_trigger *trig_info)
 
 	iio_trigger_unregister_sysfs(trig_info);
 	iio_trigger_unregister_id(trig_info);
-	/* Possible issue in here */
+	
 	device_unregister(&trig_info->dev);
 }
 EXPORT_SYMBOL(iio_trigger_unregister);
@@ -192,16 +165,14 @@ void iio_trigger_notify_done(struct iio_trigger *trig)
 	trig->use_count--;
 	if (trig->use_count == 0 && trig->try_reenable)
 		if (trig->try_reenable(trig)) {
-			/* Missed and interrupt so launch new poll now */
+			
 			trig->timestamp = 0;
 			iio_trigger_poll(trig);
 		}
 }
 EXPORT_SYMBOL(iio_trigger_notify_done);
 
-/**
- * iio_trigger_read_name() - retrieve useful identifying name
- **/
+
 ssize_t iio_trigger_read_name(struct device *dev,
 			      struct device_attribute *attr,
 			      char *buf)
@@ -211,15 +182,10 @@ ssize_t iio_trigger_read_name(struct device *dev,
 }
 EXPORT_SYMBOL(iio_trigger_read_name);
 
-/* Trigger Consumer related functions */
 
-/* Complexity in here.  With certain triggers (datardy) an acknowledgement
- * may be needed if the pollfuncs do not include the data read for the
- * triggering device.
- * This is not currently handled.  Alternative of not enabling trigger unless
- * the relevant function is in there may be the best option.
- */
-/* Worth protecting against double additions?*/
+
+
+
 int iio_trigger_attach_poll_func(struct iio_trigger *trig,
 				 struct iio_poll_func *pf)
 {
@@ -258,17 +224,13 @@ int iio_trigger_dettach_poll_func(struct iio_trigger *trig,
 		    && trig->set_trigger_state) {
 			spin_unlock_irqrestore(&trig->pollfunc_list_lock,
 					       flags);
-			/* May sleep hence cannot hold the spin lock */
+			
 			ret = trig->set_trigger_state(trig, false);
 			if (ret)
 				goto error_ret;
 			spin_lock_irqsave(&trig->pollfunc_list_lock, flags);
 		}
-		/*
-		 * Now we can delete safe in the knowledge that, if this is
-		 * the last pollfunc then we have disabled the trigger anyway
-		 * and so nothing should be able to call the pollfunc.
-		 */
+		
 		list_del(&pf_cursor->list);
 	}
 	spin_unlock_irqrestore(&trig->pollfunc_list_lock, flags);
@@ -278,12 +240,7 @@ error_ret:
 }
 EXPORT_SYMBOL(iio_trigger_dettach_poll_func);
 
-/**
- * iio_trigger_read_currrent() trigger consumer sysfs query which trigger
- *
- * For trigger consumers the current_trigger interface allows the trigger
- * used by the device to be queried.
- **/
+
 static ssize_t iio_trigger_read_current(struct device *dev,
 					struct device_attribute *attr,
 					char *buf)
@@ -298,13 +255,7 @@ static ssize_t iio_trigger_read_current(struct device *dev,
 	return len;
 }
 
-/**
- * iio_trigger_write_current() trigger consumer sysfs set current trigger
- *
- * For trigger consumers the current_trigger interface allows the trigger
- * used for this device to be specified at run time based on the triggers
- * name.
- **/
+
 static ssize_t iio_trigger_write_current(struct device *dev,
 					 struct device_attribute *attr,
 					 const char *buf,

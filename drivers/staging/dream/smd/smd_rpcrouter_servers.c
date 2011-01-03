@@ -1,18 +1,4 @@
-/* arch/arm/mach-msm/rpc_servers.c
- *
- * Copyright (C) 2007 Google, Inc.
- * Author: Iliyan Malchev <ibm@android.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -88,7 +74,7 @@ static void rpc_server_register_all(void)
 
 int msm_rpc_create_server(struct msm_rpc_server *server)
 {
-	/* make sure we're in a sane state first */
+	
 	server->flags = 0;
 	INIT_LIST_HEAD(&server->list);
 
@@ -111,7 +97,7 @@ static int rpc_send_accepted_void_reply(struct msm_rpc_endpoint *client,
 	struct rpc_reply_hdr *reply = (struct rpc_reply_hdr *)reply_buf;
 
 	reply->xid = cpu_to_be32(xid);
-	reply->type = cpu_to_be32(1); /* reply */
+	reply->type = cpu_to_be32(1); 
 	reply->reply_stat = cpu_to_be32(RPCMSG_REPLYSTAT_ACCEPTED);
 
 	reply->data.acc_hdr.accept_stat = cpu_to_be32(accept_status);
@@ -196,11 +182,11 @@ static int rpcservers_probe(struct platform_device *pdev)
 	if (IS_ERR(endpoint))
 		return PTR_ERR(endpoint);
 
-	/* we're online -- register any servers installed beforehand */
+	
 	rpc_servers_active = 1;
 	rpc_server_register_all();
 
-	/* start the kernel thread */
+	
 	server_thread = kthread_run(rpc_servers_thread, NULL, "krpcserversd");
 	if (IS_ERR(server_thread))
 		return PTR_ERR(server_thread);

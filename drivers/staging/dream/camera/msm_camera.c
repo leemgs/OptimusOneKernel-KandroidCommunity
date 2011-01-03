@@ -1,14 +1,12 @@
-/*
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- */
 
-//FIXME: most allocations need not be GFP_ATOMIC
-/* FIXME: management of mutexes */
-/* FIXME: msm_pmem_region_lookup return values */
-/* FIXME: way too many copy to/from user */
-/* FIXME: does region->active mean free */
-/* FIXME: check limits on command lenghts passed from userspace */
-/* FIXME: __msm_release: which queues should we flush when opencnt != 0 */
+
+
+
+
+
+
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -154,7 +152,7 @@ static int msm_pmem_table_add(struct hlist_head *ptype,
 	return 0;
 }
 
-/* return of 0 means failure */
+
 static uint8_t msm_pmem_region_lookup(struct hlist_head *ptype,
 	int pmem_type, struct msm_pmem_region *reg, uint8_t maxcount)
 {
@@ -192,9 +190,7 @@ static unsigned long msm_pmem_frame_ptov_lookup(struct msm_sync *sync,
 				pcbcraddr == (region->paddr +
 						region->cbcr_off) &&
 				region->active) {
-			/* offset since we could pass vaddr inside
-			 * a registerd pmem buffer
-			 */
+			
 			*yoff = region->y_off;
 			*cbcroff = region->cbcr_off;
 			*fd = region->fd;
@@ -214,8 +210,7 @@ static unsigned long msm_pmem_stats_ptov_lookup(struct msm_sync *sync,
 
 	hlist_for_each_entry_safe(region, node, n, &sync->stats, list) {
 		if (addr == region->paddr && region->active) {
-			/* offset since we could pass vaddr inside a
-			 * registered pmem buffer */
+			
 			*fd = region->fd;
 			region->active = 0;
 			return (unsigned long)(region->vaddr);
@@ -464,14 +459,14 @@ static struct msm_queue_cmd* __msm_control(struct msm_sync *sync,
 
 	spin_lock_irqsave(&sync->msg_event_q_lock, flags);
 	list_add_tail(&qcmd->list, &sync->msg_event_q);
-	/* wake up config thread */
+	
 	wake_up(&sync->msg_event_wait);
 	spin_unlock_irqrestore(&sync->msg_event_q_lock, flags);
 
 	if (!queue)
 		return NULL;
 
-	/* wait for config status */
+	
 	rc = wait_event_interruptible_timeout(
 			queue->ctrl_status_wait,
 			!list_empty_careful(&queue->ctrl_status_q),
@@ -482,11 +477,7 @@ static struct msm_queue_cmd* __msm_control(struct msm_sync *sync,
 		if (rc < 0) {
 			pr_err("msm_control: wait_event error %d\n", rc);
 #if 0
-			/* This is a bit scary.  If we time out too early, we
-			 * will free qcmd at the end of this function, and the
-			 * dsp may do the same when it does respond, so we
-			 * remove the message from the source queue.
-			 */
+			
 			pr_err("%s: error waiting for ctrl_status_q: %d\n",
 				__func__, rc);
 			spin_lock_irqsave(&sync->msg_event_q_lock, flags);
@@ -497,7 +488,7 @@ static struct msm_queue_cmd* __msm_control(struct msm_sync *sync,
 		}
 	}
 
-	/* control command status is ready */
+	
 	spin_lock_irqsave(&queue->ctrl_status_q_lock, flags);
 	BUG_ON(list_empty(&queue->ctrl_status_q));
 	qcmd = list_first_entry(&queue->ctrl_status_q,
@@ -548,7 +539,7 @@ static int msm_control(struct msm_control_device *ctrl_pmsm,
 	}
 
 	if (!block) {
-		/* qcmd will be set to NULL */
+		
 		qcmd = __msm_control(sync, NULL, qcmd, 0);
 		goto end;
 	}
@@ -586,11 +577,7 @@ static int msm_control(struct msm_control_device *ctrl_pmsm,
 	}
 
 end:
-	/* Note: if we get here as a result of an error, we will free the
-	 * qcmd that we kmalloc() in this function.  When we come here as
-	 * a result of a successful completion, we are freeing the qcmd that
-	 * we dequeued from queue->ctrl_status_q.
-	 */
+	
 	if (qcmd)
 		kfree(qcmd);
 
@@ -648,10 +635,10 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 	case MSM_CAM_Q_VFE_MSG:
 		data = (struct msm_vfe_resp *)(qcmd->command);
 
-		/* adsp event and message */
+		
 		se.resptype = MSM_CAM_RESP_STAT_EVT_MSG;
 
-		/* 0 - msg from aDSP, 1 - event from mARM */
+		
 		se.stats_event.type   = data->evt_msg.type;
 		se.stats_event.msg_id = data->evt_msg.msg_id;
 		se.stats_event.len    = data->evt_msg.len;
@@ -736,7 +723,7 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 		break;
 
 	case MSM_CAM_Q_CTRL:
-		/* control command from control thread */
+		
 		ctrl = (struct msm_ctrl_cmd *)(qcmd->command);
 
 		CDBG("msm_get_stats, qcmd->type = %d\n", qcmd->type);
@@ -754,14 +741,14 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 
 		se.resptype = MSM_CAM_RESP_CTRL;
 
-		/* what to control */
+		
 		se.ctrl_cmd.type = ctrl->type;
 		se.ctrl_cmd.length = ctrl->length;
 		se.ctrl_cmd.resp_fd = ctrl->resp_fd;
 		break;
 
 	case MSM_CAM_Q_V4L2_REQ:
-		/* control command from v4l2 client */
+		
 		ctrl = (struct msm_ctrl_cmd *)(qcmd->command);
 
 		CDBG("msm_get_stats, qcmd->type = %d\n", qcmd->type);
@@ -776,10 +763,10 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 			}
 		}
 
-		/* 2 tells config thread this is v4l2 request */
+		
 		se.resptype = MSM_CAM_RESP_V4L2;
 
-		/* what to control */
+		
 		se.ctrl_cmd.type   = ctrl->type;
 		se.ctrl_cmd.length = ctrl->length;
 		break;
@@ -787,7 +774,7 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 	default:
 		rc = -EFAULT;
 		goto failure;
-	} /* switch qcmd->type */
+	} 
 
 	if (copy_to_user((void *)arg, &se, sizeof(se))) {
 		ERR_COPY_TO_USER();
@@ -843,7 +830,7 @@ static int msm_ctrl_cmd_done(struct msm_control_device *ctrl_pmsm,
 end:
 	CDBG("msm_ctrl_cmd_done: end rc = %d\n", rc);
 	if (rc == 0) {
-		/* wake up control thread */
+		
 		spin_lock_irqsave(&ctrl_pmsm->ctrl_q.ctrl_status_q_lock, flags);
 		list_add_tail(&qcmd->list, &ctrl_pmsm->ctrl_q.ctrl_status_q);
 		wake_up(&ctrl_pmsm->ctrl_q.ctrl_status_wait);
@@ -986,7 +973,7 @@ static int msm_frame_axi_cfg(struct msm_sync *sync,
 
 	axi_data.region = &region[0];
 
-	/* send the AXI configuration command to driver */
+	
 	if (sync->vfefn.vfe_config)
 		rc = sync->vfefn.vfe_config(cfgcmd, data);
 
@@ -1014,7 +1001,7 @@ static int msm_get_sensor_info(struct msm_sync *sync, void __user *arg)
 		MAX_SENSOR_NAME);
 	info.flash_enabled = sdata->flash_type != MSM_CAMERA_FLASH_NONE;
 
-	/* copy back to user space */
+	
 	if (copy_to_user((void *)arg,
 			&info,
 			sizeof(struct msm_camsensor_info))) {
@@ -1145,7 +1132,7 @@ static int msm_stats_axi_cfg(struct msm_sync *sync,
 		axi_data.region = &region[0];
 	}
 
-	/* send the AEC/AWB STATS configuration command to driver */
+	
 	if (sync->vfefn.vfe_config)
 		rc = sync->vfefn.vfe_config(cfgcmd, &axi_data);
 
@@ -1414,25 +1401,22 @@ static long msm_ioctl_config(struct file *filep, unsigned int cmd,
 		break;
 
 	case MSM_CAM_IOCTL_CONFIG_VFE:
-		/* Coming from config thread for update */
+		
 		rc = msm_config_vfe(pmsm->sync, argp);
 		break;
 
 	case MSM_CAM_IOCTL_GET_STATS:
-		/* Coming from config thread wait
-		 * for vfe statistics and control requests */
+		
 		rc = msm_get_stats(pmsm->sync, argp);
 		break;
 
 	case MSM_CAM_IOCTL_ENABLE_VFE:
-		/* This request comes from control thread:
-		 * enable either QCAMTASK or VFETASK */
+		
 		rc = msm_enable_vfe(pmsm->sync, argp);
 		break;
 
 	case MSM_CAM_IOCTL_DISABLE_VFE:
-		/* This request comes from control thread:
-		 * disable either QCAMTASK or VFETASK */
+		
 		rc = msm_disable_vfe(pmsm->sync, argp);
 		break;
 
@@ -1504,8 +1488,7 @@ static long msm_ioctl_frame(struct file *filep, unsigned int cmd,
 
 	switch (cmd) {
 	case MSM_CAM_IOCTL_GETFRAME:
-		/* Coming from frame thread to get frame
-		 * after SELECT is done */
+		
 		rc = msm_get_frame(pmsm->sync, argp);
 		break;
 	case MSM_CAM_IOCTL_RELEASE_FRAME_BUFFER:
@@ -1532,18 +1515,15 @@ static long msm_ioctl_control(struct file *filep, unsigned int cmd,
 
 	switch (cmd) {
 	case MSM_CAM_IOCTL_CTRL_COMMAND:
-		/* Coming from control thread, may need to wait for
-		 * command status */
+		
 		rc = msm_control(ctrl_pmsm, 1, argp);
 		break;
 	case MSM_CAM_IOCTL_CTRL_COMMAND_2:
-		/* Sends a message, returns immediately */
+		
 		rc = msm_control(ctrl_pmsm, 0, argp);
 		break;
 	case MSM_CAM_IOCTL_CTRL_CMD_DONE:
-		/* Config thread calls the control thread to notify it
-		 * of the result of a MSM_CAM_IOCTL_CTRL_COMMAND.
-		 */
+		
 		rc = msm_ctrl_cmd_done(ctrl_pmsm, argp);
 		break;
 	case MSM_CAM_IOCTL_GET_PICTURE:
@@ -1568,7 +1548,7 @@ static int __msm_release(struct msm_sync *sync)
 		sync->opencnt--;
 
 	if (!sync->opencnt) {
-		/* need to clean up system resource */
+		
 		if (sync->vfefn.vfe_release)
 			sync->vfefn.vfe_release(sync->pdev);
 
@@ -1667,7 +1647,7 @@ static unsigned int __msm_poll_frame(struct msm_sync *sync,
 
 	spin_lock_irqsave(&sync->prev_frame_q_lock, flags);
 	if (!list_empty_careful(&sync->prev_frame_q))
-		/* frame ready */
+		
 		rc = POLLIN | POLLRDNORM;
 	if (sync->unblock_poll_frame) {
 		CDBG("%s: sync->unblock_poll_frame is true\n", __func__);
@@ -1686,9 +1666,7 @@ static unsigned int msm_poll_frame(struct file *filep,
 	return __msm_poll_frame(pmsm->sync, filep, pll_table);
 }
 
-/*
- * This function executes in interrupt context.
- */
+
 
 static void *msm_vfe_sync_alloc(int size,
 			void *syncdata __attribute__((unused)))
@@ -1698,9 +1676,7 @@ static void *msm_vfe_sync_alloc(int size,
 	return qcmd ? qcmd + 1 : NULL;
 }
 
-/*
- * This function executes in interrupt context.
- */
+
 
 static void msm_vfe_sync(struct msm_vfe_resp *vdata,
 		enum msm_queue qtype, void *syncdata)
@@ -1908,7 +1884,7 @@ static int __msm_v4l2_control(struct msm_sync *sync,
 	struct msm_ctrl_cmd *ctrl;
 	struct msm_control_device_queue FIXME;
 
-	/* wake up config thread, 4 is for V4L2 application */
+	
 	qcmd = kmalloc(sizeof(struct msm_queue_cmd), GFP_KERNEL);
 	if (!qcmd) {
 		pr_err("msm_control: cannot allocate buffer\n");
@@ -1925,7 +1901,7 @@ static int __msm_v4l2_control(struct msm_sync *sync,
 	}
 
 	ctrl = (struct msm_ctrl_cmd *)(rcmd->command);
-	/* FIXME: we should just set out->length = ctrl->length; */
+	
 	BUG_ON(out->length < ctrl->length);
 	memcpy(out->value, ctrl->value, ctrl->length);
 
@@ -1998,7 +1974,7 @@ static int msm_tear_down_cdev(struct msm_device *msm, dev_t devno)
 
 int msm_v4l2_register(struct msm_v4l2_driver *drv)
 {
-	/* FIXME: support multiple sensors */
+	
 	if (list_empty(&msm_sensors))
 		return -ENODEV;
 
@@ -2135,7 +2111,7 @@ int msm_camera_drv_start(struct platform_device *dev,
 	}
 
 	if (!msm_class) {
-		/* There are three device nodes per sensor */
+		
 		rc = alloc_chrdev_region(&msm_devno, 0,
 				3 * MSM_MAX_CAMERA_SENSORS,
 				"msm_camera");

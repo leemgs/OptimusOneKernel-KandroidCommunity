@@ -1,13 +1,4 @@
-/*
- * Copyright (C) 2006		Red Hat <evan_ko@phison.com>
- *
- *  May be copied or modified under the terms of the GNU General Public License
- *
- *  [Modify History]
- *   #0001, Evan, 2008.10.22, V0.00, New release.
- *   #0002, Evan, 2008.11.01, V0.90, Test Work In Ubuntu Linux 8.04.
- *   #0003, Evan, 2008.01.08, V0.91, Change Name "PCIE-SSD" to "E-BOX".
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -22,8 +13,8 @@
 
 #define PHISON_DEBUG
 
-#define DRV_NAME		"phison_e-box"	/* #0003 */
-#define DRV_VERSION 		"0.91"		/* #0003 */
+#define DRV_NAME		"phison_e-box"	
+#define DRV_VERSION 		"0.91"		
 
 #define PCI_VENDOR_ID_PHISON	0x1987
 #define PCI_DEVICE_ID_PS5000	0x5000
@@ -81,7 +72,7 @@ static struct pci_driver phison_pci_driver = {
 	.id_table	= phison_pci_tbl,
 	.probe		= phison_init_one,
 	.remove		= ata_pci_remove_one,
-#ifdef CONFIG_PM	/* haven't tested it. */
+#ifdef CONFIG_PM	
 	.suspend	= ata_pci_device_suspend,
 	.resume		= ata_pci_device_resume,
 #endif

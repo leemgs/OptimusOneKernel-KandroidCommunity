@@ -1,12 +1,4 @@
-/*
- * Copyright (C) 2008 Jonathan Cameron
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * max1363_ring.c
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/gpio.h>
@@ -58,13 +50,7 @@ error_ret:
 	return ret;
 }
 
-/**
- * max1363_ring_preenable() setup the parameters of the ring before enabling
- *
- * The complex nature of the setting of the nuber of bytes per datum is due
- * to this driver currently ensuring that the timestamp is stored at an 8
- * byte boundary.
- **/
+
 static int max1363_ring_preenable(struct iio_dev *indio_dev)
 {
 	struct max1363_state *st = indio_dev->dev_data;
@@ -80,12 +66,7 @@ static int max1363_ring_preenable(struct iio_dev *indio_dev)
 	return 0;
 }
 
-/**
- * max1363_ring_postenable() typical ring post enable
- *
- * Only not moved into the core for the hardware ring buffer cases
- * that are more sophisticated.
- **/
+
 static int max1363_ring_postenable(struct iio_dev *indio_dev)
 {
 	if (indio_dev->trig == NULL)
@@ -94,13 +75,7 @@ static int max1363_ring_postenable(struct iio_dev *indio_dev)
 					    indio_dev->pollfunc);
 }
 
-/**
- * max1363_ring_predisable() runs just prior to ring buffer being disabled
- *
- * Typical predisable function which ensures that no trigger events can
- * occur before we disable the ring buffer (and hence would have no idea
- * what to do with them)
- **/
+
 static int max1363_ring_predisable(struct iio_dev *indio_dev)
 {
 	if (indio_dev->trig)
@@ -110,13 +85,7 @@ static int max1363_ring_predisable(struct iio_dev *indio_dev)
 		return 0;
 }
 
-/**
- * max1363_poll_func_th() th of trigger launched polling to ring buffer
- *
- * As sampling only occurs on i2c comms occuring, leave timestamping until
- * then.  Some triggers will generate their own time stamp.  Currently
- * there is no way of notifying them when no one cares.
- **/
+
 void max1363_poll_func_th(struct iio_dev *indio_dev)
 {
 	struct max1363_state *st = indio_dev->dev_data;
@@ -125,15 +94,7 @@ void max1363_poll_func_th(struct iio_dev *indio_dev)
 
 	return;
 }
-/**
- * max1363_poll_bh_to_ring() bh of trigger launched polling to ring buffer
- * @work_s:	the work struct through which this was scheduled
- *
- * Currently there is no option in this driver to disable the saving of
- * timestamps within the ring.
- * I think the one copy of this at a time was to avoid problems if the
- * trigger was set far too high and the reads then locked up the computer.
- **/
+
 static void max1363_poll_bh_to_ring(struct work_struct *work_s)
 {
 	struct max1363_state *st = container_of(work_s, struct max1363_state,
@@ -145,19 +106,16 @@ static void max1363_poll_bh_to_ring(struct work_struct *work_s)
 	int b_sent;
 	size_t d_size;
 
-	/* Ensure the timestamp is 8 byte aligned */
+	
 	d_size = st->current_mode->numvals*2 + sizeof(s64);
 	if (d_size % sizeof(s64))
 		d_size += sizeof(s64) - (d_size % sizeof(s64));
 
-	/* Ensure only one copy of this function running at a time */
+	
 	if (atomic_inc_return(&st->protect_ring) > 1)
 		return;
 
-	/* Monitor mode prevents reading. Whilst not currently implemented
-	 * might as well have this test in here in the meantime as it does
-	 * no harm.
-	 */
+	
 	if (st->current_mode->numvals == 0)
 		return;
 
@@ -192,24 +150,24 @@ int max1363_register_ring_funcs_and_init(struct iio_dev *indio_dev)
 		ret = -ENOMEM;
 		goto error_ret;
 	}
-	/* Effectively select the ring buffer implementation */
+	
 	iio_ring_sw_register_funcs(&st->indio_dev->ring->access);
 	indio_dev->pollfunc = kzalloc(sizeof(*indio_dev->pollfunc), GFP_KERNEL);
 	if (indio_dev->pollfunc == NULL) {
 		ret = -ENOMEM;
 		goto error_deallocate_sw_rb;
 	}
-	/* Configure the polling function called on trigger interrupts */
+	
 	indio_dev->pollfunc->poll_func_main = &max1363_poll_func_th;
 	indio_dev->pollfunc->private_data = indio_dev;
 
-	/* Ring buffer functions - here trigger setup related */
+	
 	indio_dev->ring->postenable = &max1363_ring_postenable;
 	indio_dev->ring->preenable = &max1363_ring_preenable;
 	indio_dev->ring->predisable = &max1363_ring_predisable;
 	INIT_WORK(&st->poll_work, &max1363_poll_bh_to_ring);
 
-	/* Flag that polled ring buffering is possible */
+	
 	indio_dev->modes |= INDIO_RING_TRIGGERED;
 	return 0;
 error_deallocate_sw_rb:
@@ -220,7 +178,7 @@ error_ret:
 
 void max1363_ring_cleanup(struct iio_dev *indio_dev)
 {
-	/* ensure that the trigger has been detached */
+	
 	if (indio_dev->trig) {
 		iio_put_trigger(indio_dev->trig);
 		iio_trigger_dettach_poll_func(indio_dev->trig,

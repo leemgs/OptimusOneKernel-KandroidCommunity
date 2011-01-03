@@ -1,4 +1,4 @@
-/*Created on  2009/ 1/15,  3:10*/
+
 
 #include "r8192SU_HWImg.h"
 

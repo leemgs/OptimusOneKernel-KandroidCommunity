@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/bio.h>
 #include <linux/crypto.h>
@@ -20,17 +7,13 @@
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 
-/*
- * Tricky bastard, but IV can be more complex with time...
- */
+
 static inline u64 dst_gen_iv(struct dst_trans *t)
 {
 	return t->gen;
 }
 
-/*
- * Crypto machinery: hash/cipher support for the given crypto controls.
- */
+
 static struct crypto_hash *dst_init_hash(struct dst_crypto_ctl *ctl, u8 *key)
 {
 	int err;
@@ -97,10 +80,7 @@ err_out_exit:
 	return ERR_PTR(err);
 }
 
-/*
- * Crypto engine has a pool of pages to encrypt data into before sending
- * it over the network. This pool is freed/allocated here.
- */
+
 static void dst_crypto_pages_free(struct dst_crypto_engine *e)
 {
 	unsigned int i;
@@ -135,10 +115,7 @@ err_out_free_pages:
 	return -ENOMEM;
 }
 
-/*
- * Initialize crypto engine for given node.
- * Setup cipher/hash, keys, pool of threads and private data.
- */
+
 static int dst_crypto_engine_init(struct dst_crypto_engine *e, struct dst_node *n)
 {
 	int err;
@@ -195,9 +172,7 @@ static void dst_crypto_engine_exit(struct dst_crypto_engine *e)
 	kfree(e->data);
 }
 
-/*
- * Waiting for cipher processing to be completed.
- */
+
 struct dst_crypto_completion
 {
 	struct completion		complete;
@@ -253,15 +228,7 @@ static int dst_crypto_process(struct ablkcipher_request *req,
 	return err;
 }
 
-/*
- * DST uses generic iteration approach for data crypto processing.
- * Single block IO request is switched into array of scatterlists,
- * which are submitted to the crypto processing iterator.
- *
- * Input and output iterator initialization are different, since
- * in output case we can not encrypt data in-place and need a
- * temporary storage, which is then being sent to the remote peer.
- */
+
 static int dst_trans_iter_out(struct bio *bio, struct dst_crypto_engine *e,
 		int (* iterator) (struct dst_crypto_engine *e,
 				  struct scatterlist *dst,
@@ -363,11 +330,7 @@ static int dst_hash(struct dst_crypto_engine *e, struct bio *bio, void *dst)
 	return 0;
 }
 
-/*
- * Initialize/cleanup a crypto thread. The only thing it should
- * do is to allocate a pool of pages as temporary storage.
- * And to setup cipher and/or hash.
- */
+
 static void *dst_crypto_thread_init(void *data)
 {
 	struct dst_node *n = data;
@@ -407,14 +370,7 @@ static void dst_crypto_thread_cleanup(void *private)
 	kfree(e);
 }
 
-/*
- * Initialize crypto engine for given node: store keys, create pool
- * of threads, initialize each one.
- *
- * Each thread has unique ID, but 0 and 1 are reserved for receiving and accepting
- * threads (if export node), so IDs could start from 2, but starting them
- * from 10 allows easily understand what this thread is for.
- */
+
 int dst_node_crypto_init(struct dst_node *n, struct dst_crypto_ctl *ctl)
 {
 	void *key = (ctl + 1);
@@ -438,7 +394,7 @@ int dst_node_crypto_init(struct dst_node *n, struct dst_crypto_ctl *ctl)
 
 	for (i=0; i<ctl->thread_num; ++i) {
 		snprintf(name, sizeof(name), "%s-crypto-%d", n->name, i);
-		/* Unique ids... */
+		
 		err = thread_pool_add_worker(n->pool, name, i+10,
 			dst_crypto_thread_init, dst_crypto_thread_cleanup, n);
 		if (err)
@@ -472,9 +428,7 @@ void dst_node_crypto_exit(struct dst_node *n)
 	}
 }
 
-/*
- * Thrad pool setup callback. Just stores a transaction in private data.
- */
+
 static int dst_trans_crypto_setup(void *crypto_engine, void *trans)
 {
 	struct dst_crypto_engine *e = crypto_engine;
@@ -504,9 +458,7 @@ static void dst_dump_bio(struct bio *bio)
 }
 #endif
 
-/*
- * Encrypt/hash data and send it to the network.
- */
+
 static int dst_crypto_process_sending(struct dst_crypto_engine *e,
 		struct bio *bio, u8 *hash)
 {
@@ -527,7 +479,7 @@ static int dst_crypto_process_sending(struct dst_crypto_engine *e,
 		{
 			unsigned int i;
 
-			/* dst_dump_bio(bio); */
+			
 
 			printk(KERN_DEBUG "%s: bio: %llu/%u, rw: %lu, hash: ",
 				__func__, (u64)bio->bi_sector,
@@ -545,9 +497,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Check if received data is valid. Decipher if it is.
- */
+
 static int dst_crypto_process_receiving(struct dst_crypto_engine *e,
 		struct bio *bio, u8 *hash, u8 *recv_hash)
 {
@@ -563,7 +513,7 @@ static int dst_crypto_process_receiving(struct dst_crypto_engine *e,
 		mismatch = !!memcmp(recv_hash, hash,
 				crypto_hash_digestsize(e->hash));
 #ifdef CONFIG_DST_DEBUG
-		/* dst_dump_bio(bio); */
+		
 
 		printk(KERN_DEBUG "%s: bio: %llu/%u, rw: %lu, hash mismatch: %d",
 			__func__, (u64)bio->bi_sector, bio->bi_size,
@@ -595,9 +545,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Thread pool callback to encrypt data and send it to the netowork.
- */
+
 static int dst_trans_crypto_action(void *crypto_engine, void *schedule_data)
 {
 	struct dst_crypto_engine *e = crypto_engine;
@@ -641,9 +589,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Schedule crypto processing for given transaction.
- */
+
 int dst_trans_crypto(struct dst_trans *t)
 {
 	struct dst_node *n = t->n;
@@ -662,9 +608,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Crypto machinery for the export node.
- */
+
 static int dst_export_crypto_setup(void *crypto_engine, void *bio)
 {
 	struct dst_crypto_engine *e = crypto_engine;

@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/buffer_head.h>
 #include <linux/blkdev.h>
@@ -26,9 +13,7 @@
 
 #include <net/sock.h>
 
-/*
- * Polling machinery.
- */
+
 
 struct dst_poll_helper
 {
@@ -73,9 +58,7 @@ int dst_poll_init(struct dst_state *st)
 	return 0;
 }
 
-/*
- * Header receiving function - may block.
- */
+
 static int dst_data_recv_header(struct socket *sock,
 		void *data, unsigned int size, int block)
 {
@@ -102,9 +85,7 @@ static int dst_data_recv_header(struct socket *sock,
 	return 0;
 }
 
-/*
- * Header sending function - may block.
- */
+
 int dst_data_send_header(struct socket *sock,
 		void *data, unsigned int size, int more)
 {
@@ -133,9 +114,7 @@ int dst_data_send_header(struct socket *sock,
 	return 0;
 }
 
-/*
- * Block autoconfiguration: request size of the storage and permissions.
- */
+
 static int dst_request_remote_config(struct dst_state *st)
 {
 	struct dst_node *n = st->node;
@@ -178,9 +157,7 @@ out:
 	return err;
 }
 
-/*
- * Socket machinery.
- */
+
 
 #define DST_DEFAULT_TIMEO	20000
 
@@ -267,10 +244,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * State reset is used to reconnect to the remote peer.
- * May fail, but who cares, we will try again later.
- */
+
 static void inline dst_state_reset_nolock(struct dst_state *st)
 {
 	dst_state_exit_connected(st);
@@ -284,10 +258,7 @@ static void inline dst_state_reset(struct dst_state *st)
 	dst_state_unlock(st);
 }
 
-/*
- * Basic network sending/receiving functions.
- * Blocked mode is used.
- */
+
 static int dst_data_recv_raw(struct dst_state *st, void *buf, u64 size)
 {
 	struct msghdr msg;
@@ -321,9 +292,7 @@ static int dst_data_recv_raw(struct dst_state *st, void *buf, u64 size)
 	return err;
 }
 
-/*
- * Ping command to early detect failed nodes.
- */
+
 static int dst_send_ping(struct dst_state *st)
 {
 	struct dst_cmd *cmd = st->data;
@@ -343,11 +312,7 @@ static int dst_send_ping(struct dst_state *st)
 	return err;
 }
 
-/*
- * Receiving function, which should either return error or read
- * whole block request. If there was no traffic for a one second,
- * send a ping, since remote node may die.
- */
+
 int dst_data_recv(struct dst_state *st, void *data, unsigned int size)
 {
 	unsigned int revents = 0;
@@ -416,9 +381,7 @@ int dst_data_recv(struct dst_state *st, void *data, unsigned int size)
 	return err;
 }
 
-/*
- * Send block autoconf reply.
- */
+
 static int dst_process_cfg(struct dst_state *st)
 {
 	struct dst_node *n = st->node;
@@ -437,9 +400,7 @@ static int dst_process_cfg(struct dst_state *st)
 	return err;
 }
 
-/*
- * Receive block IO from the network.
- */
+
 static int dst_recv_bio(struct dst_state *st, struct bio *bio, unsigned int total_size)
 {
 	struct bio_vec *bv;
@@ -471,9 +432,7 @@ static int dst_recv_bio(struct dst_state *st, struct bio *bio, unsigned int tota
 	return 0;
 }
 
-/*
- * Our block IO has just completed and arrived: get it.
- */
+
 static int dst_process_io_response(struct dst_state *st)
 {
 	struct dst_node *n = st->node;
@@ -526,9 +485,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Receive crypto data.
- */
+
 int dst_recv_cdata(struct dst_state *st, void *cdata)
 {
 	struct dst_cmd *cmd = st->data;
@@ -556,26 +513,13 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Receive the command and start its processing.
- */
+
 static int dst_recv_processing(struct dst_state *st)
 {
 	int err = -EINTR;
 	struct dst_cmd *cmd = st->data;
 
-	/*
-	 * If socket will be reset after this statement, then
-	 * dst_data_recv() will just fail and loop will
-	 * start again, so it can be done without any locks.
-	 *
-	 * st->read_socket is needed to prevents state machine
-	 * breaking between this data reading and subsequent one
-	 * in protocol specific functions during connection reset.
-	 * In case of reset we have to read next command and do
-	 * not expect data for old command to magically appear in
-	 * new connection.
-	 */
+	
 	st->read_socket = st->socket;
 	err = dst_data_recv(st, cmd, sizeof(struct dst_cmd));
 	if (err)
@@ -589,9 +533,7 @@ static int dst_recv_processing(struct dst_state *st)
 			cmd->csize, cmd->id, cmd->sector,
 			cmd->flags, cmd->rw);
 
-	/*
-	 * This should catch protocol breakage and random garbage instead of commands.
-	 */
+	
 	if (unlikely(cmd->csize > st->size - sizeof(struct dst_cmd))) {
 		err = -EBADMSG;
 		goto out_exit;
@@ -619,10 +561,7 @@ out_exit:
 	return err;
 }
 
-/*
- * Receiving thread. For the client node we should try to reconnect,
- * for accepted client we just drop the state and expect it to reconnect.
- */
+
 static int dst_recv(void *init_data, void *schedule_data)
 {
 	struct dst_state *st = schedule_data;
@@ -660,12 +599,7 @@ static int dst_recv(void *init_data, void *schedule_data)
 	return err;
 }
 
-/*
- * Network state dies here and borns couple of lines below.
- * This object is the main network state processing engine:
- * sending, receiving, reconnections, all network related
- * tasks are handled on behalf of the state.
- */
+
 static void dst_state_free(struct dst_state *st)
 {
 	dprintk("%s: st: %p.\n", __func__, st);
@@ -698,9 +632,7 @@ struct dst_state *dst_state_alloc(struct dst_node *n)
 	mutex_init(&st->state_lock);
 	init_waitqueue_head(&st->thread_wait);
 
-	/*
-	 * One for processing thread, another one for node itself.
-	 */
+	
 	atomic_set(&st->refcnt, 2);
 
 	dprintk("%s: st: %p, n: %p.\n", __func__, st, st->node);
@@ -719,10 +651,7 @@ int dst_state_schedule_receiver(struct dst_state *st)
 			dst_recv, st, MAX_SCHEDULE_TIMEOUT, st->node);
 }
 
-/*
- * Initialize client's connection to the remote peer: allocate state,
- * connect and perform block IO autoconfiguration.
- */
+
 int dst_node_init_connected(struct dst_node *n, struct dst_network_ctl *r)
 {
 	struct dst_state *st;
@@ -767,9 +696,7 @@ void dst_state_put(struct dst_state *st)
 		dst_state_free(st);
 }
 
-/*
- * Send block IO to the network one by one using zero-copy ->sendpage().
- */
+
 int dst_send_bio(struct dst_state *st, struct dst_cmd *cmd, struct bio *bio)
 {
 	struct bio_vec *bv;
@@ -800,9 +727,7 @@ err_out_exit:
 	return err;
 }
 
-/*
- * Send transaction to the remote peer.
- */
+
 int dst_trans_send(struct dst_trans *t)
 {
 	int err;

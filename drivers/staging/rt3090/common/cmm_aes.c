@@ -1,54 +1,19 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-	Module Name:
-	cmm_aes.c
-
-	Abstract:
-
-	Revision History:
-	Who			When			What
-	--------	----------		----------------------------------------------
-	Paul Wu		02-25-02		Initial
-*/
 
 #include "../rt_config.h"
 
 
 typedef	struct
 {
-    UINT32 erk[64];     /* encryption round keys */
-    UINT32 drk[64];     /* decryption round keys */
-    int nr;             /* number of rounds */
+    UINT32 erk[64];     
+    UINT32 drk[64];     
+    int nr;             
 }
 aes_context;
 
-/*****************************/
-/******** SBOX Table *********/
-/*****************************/
+
+
+
 
 UCHAR SboxTable[256] =
 {
@@ -157,10 +122,10 @@ VOID byte_sub(
 	}
 }
 
-/************************************/
-/* bitwise_xor()                    */
-/* A 128 bit, bitwise exclusive or  */
-/************************************/
+
+
+
+
 
 void bitwise_xor(unsigned char *ina, unsigned char *inb, unsigned char *out)
 {
@@ -215,12 +180,12 @@ VOID mix_column(
 			add1b[i] = 0x00;
 	}
 
-	swap_halfs[0] = in[2];    /* Swap halfs */
+	swap_halfs[0] = in[2];    
 	swap_halfs[1] = in[3];
 	swap_halfs[2] = in[0];
 	swap_halfs[3] = in[1];
 
-	rotl[0] = in[3];        /* Rotate left 8 bits */
+	rotl[0] = in[3];        
 	rotl[1] = in[0];
 	rotl[2] = in[1];
 	rotl[3] = in[2];
@@ -230,7 +195,7 @@ VOID mix_column(
 	andf7[2] = in[2] & 0x7f;
 	andf7[3] = in[3] & 0x7f;
 
-	for (i = 3; i>0; i--)    /* logical shift left 1 bit */
+	for (i = 3; i>0; i--)    
 	{
 		andf7[i] = andf7[i] << 1;
 		if ((andf7[i-1] & 0x80) == 0x80)
@@ -245,7 +210,7 @@ VOID mix_column(
 
 	xor_32(in, add1bf7, rotr);
 
-	temp[0] = rotr[0];         /* Rotate right 8 bits */
+	temp[0] = rotr[0];         
 	rotr[0] = rotr[1];
 	rotr[1] = rotr[2];
 	rotr[2] = rotr[3];
@@ -257,11 +222,11 @@ VOID mix_column(
 }
 
 
-/************************************************/
-/* construct_mic_header1()                      */
-/* Builds the first MIC header block from       */
-/* header fields.                               */
-/************************************************/
+
+
+
+
+
 
 void construct_mic_header1(
 	unsigned char *mic_header1,
@@ -270,15 +235,15 @@ void construct_mic_header1(
 {
 	mic_header1[0] = (unsigned char)((header_length - 2) / 256);
 	mic_header1[1] = (unsigned char)((header_length - 2) % 256);
-	mic_header1[2] = mpdu[0] & 0xcf;    /* Mute CF poll & CF ack bits */
-	mic_header1[3] = mpdu[1] & 0xc7;    /* Mute retry, more data and pwr mgt bits */
-	mic_header1[4] = mpdu[4];       /* A1 */
+	mic_header1[2] = mpdu[0] & 0xcf;    
+	mic_header1[3] = mpdu[1] & 0xc7;    
+	mic_header1[4] = mpdu[4];       
 	mic_header1[5] = mpdu[5];
 	mic_header1[6] = mpdu[6];
 	mic_header1[7] = mpdu[7];
 	mic_header1[8] = mpdu[8];
 	mic_header1[9] = mpdu[9];
-	mic_header1[10] = mpdu[10];     /* A2 */
+	mic_header1[10] = mpdu[10];     
 	mic_header1[11] = mpdu[11];
 	mic_header1[12] = mpdu[12];
 	mic_header1[13] = mpdu[13];
@@ -286,11 +251,11 @@ void construct_mic_header1(
 	mic_header1[15] = mpdu[15];
 }
 
-/************************************************/
-/* construct_mic_header2()                      */
-/* Builds the last MIC header block from        */
-/* header fields.                               */
-/************************************************/
+
+
+
+
+
 
 void construct_mic_header2(
 	unsigned char *mic_header2,
@@ -302,32 +267,32 @@ void construct_mic_header2(
 
 	for (i = 0; i<16; i++) mic_header2[i]=0x00;
 
-	mic_header2[0] = mpdu[16];    /* A3 */
+	mic_header2[0] = mpdu[16];    
 	mic_header2[1] = mpdu[17];
 	mic_header2[2] = mpdu[18];
 	mic_header2[3] = mpdu[19];
 	mic_header2[4] = mpdu[20];
 	mic_header2[5] = mpdu[21];
 
-	// In Sequence Control field, mute sequence numer bits (12-bit)
-	mic_header2[6] = mpdu[22] & 0x0f;   /* SC */
-	mic_header2[7] = 0x00; /* mpdu[23]; */
+	
+	mic_header2[6] = mpdu[22] & 0x0f;   
+	mic_header2[7] = 0x00; 
 
 	if ((!qc_exists) & a4_exists)
 	{
-		for (i=0;i<6;i++) mic_header2[8+i] = mpdu[24+i];   /* A4 */
+		for (i=0;i<6;i++) mic_header2[8+i] = mpdu[24+i];   
 
 	}
 
 	if (qc_exists && (!a4_exists))
 	{
-		mic_header2[8] = mpdu[24] & 0x0f; /* mute bits 15 - 4 */
+		mic_header2[8] = mpdu[24] & 0x0f; 
 		mic_header2[9] = mpdu[25] & 0x00;
 	}
 
 	if (qc_exists && a4_exists)
 	{
-		for (i=0;i<6;i++) mic_header2[8+i] = mpdu[24+i];   /* A4 */
+		for (i=0;i<6;i++) mic_header2[8+i] = mpdu[24+i];   
 
 		mic_header2[14] = mpdu[30] & 0x0f;
 		mic_header2[15] = mpdu[31] & 0x00;
@@ -335,10 +300,10 @@ void construct_mic_header2(
 }
 
 
-/************************************************/
-/* construct_mic_iv()                           */
-/* Builds the MIC IV from header fields and PN  */
-/************************************************/
+
+
+
+
 
 void construct_mic_iv(
 	unsigned char *mic_iv,
@@ -352,19 +317,19 @@ void construct_mic_iv(
 
 	mic_iv[0] = 0x59;
 	if (qc_exists && a4_exists)
-		mic_iv[1] = mpdu[30] & 0x0f;    /* QoS_TC           */
+		mic_iv[1] = mpdu[30] & 0x0f;    
 	if (qc_exists && !a4_exists)
-		mic_iv[1] = mpdu[24] & 0x0f;   /* mute bits 7-4    */
+		mic_iv[1] = mpdu[24] & 0x0f;   
 	if (!qc_exists)
 		mic_iv[1] = 0x00;
 	for (i = 2; i < 8; i++)
-		mic_iv[i] = mpdu[i + 8];                    /* mic_iv[2:7] = A2[0:5] = mpdu[10:15] */
+		mic_iv[i] = mpdu[i + 8];                    
 #ifdef CONSISTENT_PN_ORDER
 		for (i = 8; i < 14; i++)
-			mic_iv[i] = pn_vector[i - 8];           /* mic_iv[8:13] = PN[0:5] */
+			mic_iv[i] = pn_vector[i - 8];           
 #else
 		for (i = 8; i < 14; i++)
-			mic_iv[i] = pn_vector[13 - i];          /* mic_iv[8:13] = PN[5:0] */
+			mic_iv[i] = pn_vector[13 - i];          
 #endif
 	i = (payload_length / 256);
 	i = (payload_length % 256);
@@ -373,11 +338,11 @@ void construct_mic_iv(
 
 }
 
-/****************************************/
-/* aes128k128d()                        */
-/* Performs a 128 bit AES encrypt with  */
-/* 128 bit data.                        */
-/****************************************/
+
+
+
+
+
 void aes128k128d(unsigned char *key, unsigned char *data, unsigned char *ciphertext)
 {
 	int round;
@@ -401,7 +366,7 @@ void aes128k128d(unsigned char *key, unsigned char *data, unsigned char *ciphert
 			shift_row(intermediatea, intermediateb);
 			xor_128(intermediateb, round_key, ciphertext);
 		}
-		else    /* 1 - 9 */
+		else    
 		{
 			byte_sub(ciphertext, intermediatea);
 			shift_row(intermediatea, intermediateb);
@@ -429,20 +394,20 @@ void construct_ctr_preload(
 	for (i=0; i<16; i++) ctr_preload[i] = 0x00;
 	i = 0;
 
-	ctr_preload[0] = 0x01;                                  /* flag */
-	if (qc_exists && a4_exists) ctr_preload[1] = mpdu[30] & 0x0f;   /* QoC_Control  */
+	ctr_preload[0] = 0x01;                                  
+	if (qc_exists && a4_exists) ctr_preload[1] = mpdu[30] & 0x0f;   
 	if (qc_exists && !a4_exists) ctr_preload[1] = mpdu[24] & 0x0f;
 
 	for (i = 2; i < 8; i++)
-		ctr_preload[i] = mpdu[i + 8];                       /* ctr_preload[2:7] = A2[0:5] = mpdu[10:15] */
+		ctr_preload[i] = mpdu[i + 8];                       
 #ifdef CONSISTENT_PN_ORDER
 	  for (i = 8; i < 14; i++)
-			ctr_preload[i] =    pn_vector[i - 8];           /* ctr_preload[8:13] = PN[0:5] */
+			ctr_preload[i] =    pn_vector[i - 8];           
 #else
 	  for (i = 8; i < 14; i++)
-			ctr_preload[i] =    pn_vector[13 - i];          /* ctr_preload[8:13] = PN[5:0] */
+			ctr_preload[i] =    pn_vector[13 - i];          
 #endif
-	ctr_preload[14] =  (unsigned char) (c / 256); // Ctr
+	ctr_preload[14] =  (unsigned char) (c / 256); 
 	ctr_preload[15] =  (unsigned char) (c % 256);
 
 }
@@ -496,8 +461,8 @@ BOOLEAN RTMPSoftDecryptAES(
 	to_ds = (fc1 & 0x1);
 
 	a4_exists = (from_ds & to_ds);
-	qc_exists = ((frame_subtype == 0x08) ||    /* Assumed QoS subtypes */
-				  (frame_subtype == 0x09) ||   /* Likely to change.    */
+	qc_exists = ((frame_subtype == 0x08) ||    
+				  (frame_subtype == 0x09) ||   
 				  (frame_subtype == 0x0a) ||
 				  (frame_subtype == 0x0b)
 				 );
@@ -522,14 +487,14 @@ BOOLEAN RTMPSoftDecryptAES(
 	PN[4] = *(pData+ HeaderLen + 6);
 	PN[5] = *(pData+ HeaderLen + 7);
 
-	payload_len = DataByteCnt - HeaderLen - 8 - 8;	// 8 bytes for CCMP header , 8 bytes for MIC
+	payload_len = DataByteCnt - HeaderLen - 8 - 8;	
 	payload_remainder = (payload_len) % 16;
 	num_blocks = (payload_len) / 16;
 
 
 
-	// Find start of payload
-	payload_index = HeaderLen + 8; //IV+EIV
+	
+	payload_index = HeaderLen + 8; 
 
 	for (i=0; i< num_blocks; i++)
 	{
@@ -547,10 +512,10 @@ BOOLEAN RTMPSoftDecryptAES(
 		payload_index += 16;
 	}
 
-	//
-	// If there is a short final block, then pad it
-	// encrypt it and copy the unpadded part back
-	//
+	
+	
+	
+	
 	if (payload_remainder > 0)
 	{
 		construct_ctr_preload(ctr_preload,
@@ -570,9 +535,9 @@ BOOLEAN RTMPSoftDecryptAES(
 		payload_index += payload_remainder;
 	}
 
-	//
-	// Descrypt the MIC
-	//
+	
+	
+	
 	construct_ctr_preload(ctr_preload,
 							a4_exists,
 							qc_exists,
@@ -589,15 +554,15 @@ BOOLEAN RTMPSoftDecryptAES(
 	NdisMoveMemory(TrailMIC, chain_buffer, 8);
 
 
-	//
-	// Calculate MIC
-	//
+	
+	
+	
 
-	//Force the protected frame bit on
+	
 	*(pData + 1) = *(pData + 1) | 0x40;
 
-	// Find start of payload
-	// Because the CCMP header has been removed
+	
+	
 	payload_index = HeaderLen;
 
 	construct_mic_iv(
@@ -625,7 +590,7 @@ BOOLEAN RTMPSoftDecryptAES(
 	bitwise_xor(aes_out, mic_header2, chain_buffer);
 	aes128k128d(pWpaKey[KeyID].Key, chain_buffer, aes_out);
 
-	// iterate through each 16 byte payload block
+	
 	for (i = 0; i < num_blocks; i++)
 	{
 		bitwise_xor(aes_out, pData + payload_index, chain_buffer);
@@ -633,7 +598,7 @@ BOOLEAN RTMPSoftDecryptAES(
 		aes128k128d(pWpaKey[KeyID].Key, chain_buffer, aes_out);
 	}
 
-	// Add on the final payload block if it needs padding
+	
 	if (payload_remainder > 0)
 	{
 		NdisZeroMemory(padded_buffer, 16);
@@ -643,13 +608,13 @@ BOOLEAN RTMPSoftDecryptAES(
 		aes128k128d(pWpaKey[KeyID].Key, chain_buffer, aes_out);
 	}
 
-	// aes_out contains padded mic, discard most significant
-	// 8 bytes to generate 64 bit MIC
+	
+	
 	for (i = 0 ; i < 8; i++) MIC[i] = aes_out[i];
 
 	if (!NdisEqualMemory(MIC, TrailMIC, 8))
 	{
-		DBGPRINT(RT_DEBUG_ERROR, ("RTMPSoftDecryptAES, MIC Error !\n"));	 //MIC error.
+		DBGPRINT(RT_DEBUG_ERROR, ("RTMPSoftDecryptAES, MIC Error !\n"));	 
 		return FALSE;
 	}
 
@@ -660,7 +625,7 @@ BOOLEAN RTMPSoftDecryptAES(
 	return TRUE;
 }
 
-/* =========================  AES En/Decryption ========================== */
+
 #ifndef	uint8
 #define	uint8  unsigned	char
 #endif
@@ -669,7 +634,7 @@ BOOLEAN RTMPSoftDecryptAES(
 #define	uint32 unsigned	int
 #endif
 
-/* forward S-box */
+
 static uint32 FSb[256] =
 {
 	0x63, 0x7C,	0x77, 0x7B,	0xF2, 0x6B,	0x6F, 0xC5,
@@ -706,7 +671,7 @@ static uint32 FSb[256] =
 	0x41, 0x99,	0x2D, 0x0F,	0xB0, 0x54,	0xBB, 0x16
 };
 
-/* forward table */
+
 #define	FT \
 \
 	V(C6,63,63,A5),	V(F8,7C,7C,84),	V(EE,77,77,99),	V(F6,7B,7B,8D),	\
@@ -792,7 +757,7 @@ static uint32 FT3[256] = { FT };
 
 #undef FT
 
-/* reverse S-box */
+
 
 static uint32 RSb[256] =
 {
@@ -830,7 +795,7 @@ static uint32 RSb[256] =
 	0xE1, 0x69,	0x14, 0x63,	0x55, 0x21,	0x0C, 0x7D
 };
 
-/* reverse table */
+
 
 #define	RT \
 \
@@ -917,7 +882,7 @@ static uint32 RT3[256] = { RT };
 
 #undef RT
 
-/* round constants */
+
 
 static uint32 RCON[10] =
 {
@@ -926,7 +891,7 @@ static uint32 RCON[10] =
 	0x1B000000,	0x36000000
 };
 
-/* key schedule	tables */
+
 
 static int KT_init = 1;
 
@@ -935,7 +900,7 @@ static uint32 KT1[256];
 static uint32 KT2[256];
 static uint32 KT3[256];
 
-/* platform-independant	32-bit integer manipulation	macros */
+
 
 #define	GET_UINT32(n,b,i)						\
 {												\
@@ -974,7 +939,7 @@ int	rt_aes_set_key( aes_context *ctx, uint8 *key, int nbits )
 		GET_UINT32(	RK[i], key,	i *	4 );
 	}
 
-	/* setup encryption	round keys */
+	
 
 	switch(	nbits )
 	{
@@ -1039,7 +1004,7 @@ int	rt_aes_set_key( aes_context *ctx, uint8 *key, int nbits )
 		break;
 	}
 
-	/* setup decryption	round keys */
+	
 
 	if(	KT_init	)
 	{
@@ -1096,7 +1061,7 @@ int	rt_aes_set_key( aes_context *ctx, uint8 *key, int nbits )
 	return(	0 );
 }
 
-/* AES 128-bit block encryption	routine	*/
+
 
 void rt_aes_encrypt(aes_context *ctx, uint8 input[16],	uint8 output[16] )
 {
@@ -1133,29 +1098,29 @@ void rt_aes_encrypt(aes_context *ctx, uint8 input[16],	uint8 output[16] )
 				 FT3[ (uint8) (	Y2		 ) ];	\
 }
 
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 1 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 2 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 3 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 4 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 5 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 6 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 7 */
-	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 8 */
-	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 9 */
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
 
 	if(	ctx->nr	> 10 )
 	{
-		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 10	*/
-		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 11	*/
+		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
 	if(	ctx->nr	> 12 )
 	{
-		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 12	*/
-		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 13	*/
+		AES_FROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_FROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
-	/* last	round */
+	
 
 	RK += 4;
 
@@ -1185,7 +1150,7 @@ void rt_aes_encrypt(aes_context *ctx, uint8 input[16],	uint8 output[16] )
 	PUT_UINT32(	X3,	output,	12 );
 }
 
-/* AES 128-bit block decryption	routine	*/
+
 
 void rt_aes_decrypt( aes_context *ctx,	uint8 input[16], uint8 output[16] )
 {
@@ -1223,29 +1188,29 @@ void rt_aes_decrypt( aes_context *ctx,	uint8 input[16], uint8 output[16] )
 				 RT3[ (uint8) (	Y0		 ) ];	\
 }
 
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 1 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 2 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 3 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 4 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 5 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 6 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 7 */
-	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		/* round 8 */
-	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		/* round 9 */
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
+	AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );		
+	AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );		
 
 	if(	ctx->nr	> 10 )
 	{
-		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 10	*/
-		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 11	*/
+		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
 	if(	ctx->nr	> 12 )
 	{
-		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	/* round 12	*/
-		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	/* round 13	*/
+		AES_RROUND(	X0,	X1,	X2,	X3,	Y0,	Y1,	Y2,	Y3 );	
+		AES_RROUND(	Y0,	Y1,	Y2,	Y3,	X0,	X1,	X2,	X3 );	
 	}
 
-	/* last	round */
+	
 
 	RK += 4;
 
@@ -1275,15 +1240,7 @@ void rt_aes_decrypt( aes_context *ctx,	uint8 input[16], uint8 output[16] )
 	PUT_UINT32(	X3,	output,	12 );
 }
 
-/*
-    ==========================================================================
-    Description:
-        ENCRYPT AES GTK before sending in EAPOL frame.
-        AES GTK length = 128 bit,  so fix blocks for aes-key-wrap as 2 in this function.
-        This function references to RFC 3394 for aes key wrap algorithm.
-    Return:
-    ==========================================================================
-*/
+
 VOID AES_GTK_KEY_WRAP(
     IN UCHAR    *key,
     IN UCHAR    *plaintext,
@@ -1292,30 +1249,30 @@ VOID AES_GTK_KEY_WRAP(
 {
     UCHAR       A[8], BIN[16], BOUT[16];
     UCHAR       R[512];
-    INT         num_blocks = p_len/8;   // unit:64bits
+    INT         num_blocks = p_len/8;   
     INT         i, j;
     aes_context aesctx;
     UCHAR       xor;
 
     rt_aes_set_key(&aesctx, key, 128);
 
-    // Init IA
+    
     for (i = 0; i < 8; i++)
         A[i] = 0xa6;
 
-    //Input plaintext
+    
     for (i = 0; i < num_blocks; i++)
     {
         for (j = 0 ; j < 8; j++)
             R[8 * (i + 1) + j] = plaintext[8 * i + j];
     }
 
-    // Key Mix
+    
     for (j = 0; j < 6; j++)
     {
         for(i = 1; i <= num_blocks; i++)
         {
-            //phase 1
+            
             NdisMoveMemory(BIN, A, 8);
             NdisMoveMemory(&BIN[8], &R[8 * i], 8);
             rt_aes_encrypt(&aesctx, BIN, BOUT);
@@ -1327,7 +1284,7 @@ VOID AES_GTK_KEY_WRAP(
         }
     }
 
-    // Output ciphertext
+    
     NdisMoveMemory(ciphertext, A, 8);
 
     for (i = 1; i <= num_blocks; i++)
@@ -1337,21 +1294,7 @@ VOID AES_GTK_KEY_WRAP(
     }
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-		Misc function to decrypt AES body
-
-	Arguments:
-
-	Return Value:
-
-	Note:
-		This function references to	RFC	3394 for aes key unwrap algorithm.
-
-	========================================================================
-*/
 VOID	AES_GTK_KEY_UNWRAP(
 	IN	UCHAR	*key,
 	OUT	UCHAR	*plaintext,
@@ -1364,7 +1307,7 @@ VOID	AES_GTK_KEY_UNWRAP(
 	INT         i, j;
 	aes_context aesctx;
 	UCHAR       *R;
-	INT         num_blocks = c_len/8;	// unit:64bits
+	INT         num_blocks = c_len/8;	
 
 
 	os_alloc_mem(NULL, (PUCHAR *)&R, 512);
@@ -1373,11 +1316,11 @@ VOID	AES_GTK_KEY_UNWRAP(
     {
         DBGPRINT(RT_DEBUG_ERROR, ("!!!AES_GTK_KEY_UNWRAP: no memory!!!\n"));
         return;
-    } /* End of if */
+    } 
 
-	// Initialize
+	
 	NdisMoveMemory(A, ciphertext, 8);
-	//Input plaintext
+	
 	for(i = 0; i < (c_len-8); i++)
 	{
 		R[ i] = ciphertext[i + 8];
@@ -1399,7 +1342,7 @@ VOID	AES_GTK_KEY_UNWRAP(
 		}
 	}
 
-	// OUTPUT
+	
 	for(i = 0; i < c_len; i++)
 	{
 		plaintext[i] = R[i];
@@ -1410,7 +1353,7 @@ VOID	AES_GTK_KEY_UNWRAP(
 }
 
 
-/* =======  The related function of AES-128-CMAC  ======= */
+
 VOID leftshift_onebit(
 	IN  PUCHAR	input,
 	OUT PUCHAR	output)
@@ -1446,9 +1389,7 @@ VOID do_padding(
 
 }
 
-/*
- *	The Subkey Generation Algorithm
- */
+
 VOID generate_subkey(
 	IN	PUCHAR key,
 	OUT	PUCHAR K1,
@@ -1461,15 +1402,15 @@ VOID generate_subkey(
 	UCHAR const_Rb[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x87};
 
-	// initial the key material
+	
 	memset(const_Zero, 0, 16);
 	memset(aes_128_key, 0, 16);
 
-	// AES-128 with key is applied to an all-zero input block
+	
 	rt_aes_set_key(&aesctx, key, 128);
 	rt_aes_encrypt(&aesctx, const_Zero, aes_128_key);
 
-	// derive K1(128-bit first subkey) and K2(128-bit second subkey), refer to rfc-4493 ch 2.3
+	
 	if ((aes_128_key[0] & 0x80) == 0)
 	{
 		leftshift_onebit(aes_128_key, K1);
@@ -1492,15 +1433,7 @@ VOID generate_subkey(
 
 }
 
-/*
- *	AES-CMAC Algorithm. (refer to rfc-4493 and SP800-38B)
- *
- *	Input : key		(128-bit key)
- *			input		(message to be authenticated)
- *			len			(length of the message in octets)
- *
- *	output: mac			(message authentication code)
- */
+
 VOID AES_128_CMAC(
 	IN	PUCHAR	key,
 	IN	PUCHAR	input,
@@ -1514,7 +1447,7 @@ VOID AES_128_CMAC(
 
 	generate_subkey(key, K1, K2);
 
-	n = (len+15) / 16;		// n is number of rounds
+	n = (len+15) / 16;		
 
 	if (n == 0)
 	{
@@ -1524,9 +1457,9 @@ VOID AES_128_CMAC(
 	else
 	{
 		if ((len%16) == 0)
-			flag = 1;			// indicate that last block is a complete block
+			flag = 1;			
 		else
-			flag = 0;			// indicate that last block is not a complete block
+			flag = 0;			
 	}
 
 	if (flag)
@@ -1557,4 +1490,4 @@ VOID AES_128_CMAC(
 	}
 
 }
-/* =======  The related function of AES-128-CMAC  ======= */
+

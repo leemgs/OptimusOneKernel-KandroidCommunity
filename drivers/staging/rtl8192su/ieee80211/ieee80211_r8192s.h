@@ -1,10 +1,10 @@
 #ifndef __IEEE80211_R8192S_H
 #define __IEEE80211_R8192S_H
 
-/* added for rtl819x tx procedure */
+
 #define MAX_QUEUE_SIZE		0x10
 
-/* 8190 queue mapping */
+
 enum {
 	BK_QUEUE	= 0,
 	BE_QUEUE	= 1,
@@ -22,15 +22,15 @@ enum {
 
 #define SWRF_TIMEOUT		50
 
-/* LEAP related */
-/* Flag byte: byte 8, numbered from 0. */
-#define IE_CISCO_FLAG_POSITION		0x08
-#define SUPPORT_CKIP_MIC		0x08	/* bit3 */
-#define SUPPORT_CKIP_PK			0x10	/* bit4 */
 
-/* defined for skb cb field, at most 28 byte */
+
+#define IE_CISCO_FLAG_POSITION		0x08
+#define SUPPORT_CKIP_MIC		0x08	
+#define SUPPORT_CKIP_PK			0x10	
+
+
 typedef struct cb_desc {
-	/* Tx Desc Related flags (8-9) */
+	
 	u8 bLastIniPkt:1;
 	u8 bCmdOrInit:1;
 	u8 bFirstSeg:1;
@@ -38,11 +38,11 @@ typedef struct cb_desc {
 	u8 bEncrypt:1;
 	u8 bTxDisableRateFallBack:1;
 	u8 bTxUseDriverAssingedRate:1;
-	u8 bHwSec:1; /* indicate whether use Hw security */
+	u8 bHwSec:1; 
 
 	u8 reserved1;
 
-	/* Tx Firmware Relaged flags (10-11) */
+	
 	u8 bCTSEnable:1;
 	u8 bRTSEnable:1;
 	u8 bUseShortGI:1;
@@ -61,7 +61,7 @@ typedef struct cb_desc {
 	u8 drv_agg_enable:1;
 	u8 reserved2:1;
 
-	/* Tx Desc related element(12-19) */
+	
 	u8 rata_index;
 	u8 queue_index;
 	u16 txbuf_size;
@@ -70,7 +70,7 @@ typedef struct cb_desc {
 	u8 reserved7;
 	u8 reserved8;
 
-	/* Tx firmware related element(20-27) */
+	
 	u8 data_rate;
 	u8 rts_rate;
 	u8 ampdu_factor;
@@ -146,26 +146,26 @@ enum {
 #define MAX_DEV_ADDR_SIZE 8
 
 enum {
-	/* ACT_CATEGORY */
+	
 	ACT_CAT_QOS	= 1,
 	ACT_CAT_DLS	= 2,
 	ACT_CAT_BA	= 3,
 	ACT_CAT_HT	= 7,
 	ACT_CAT_WMM	= 17,
 
-	/* TS_ACTION */
+	
 	ACT_ADDTSREQ	= 0,
 	ACT_ADDTSRSP	= 1,
 	ACT_DELTS	= 2,
 	ACT_SCHEDULE	= 3,
 
-	/* BA_ACTION */
+	
 	ACT_ADDBAREQ	= 0,
 	ACT_ADDBARSP	= 1,
 	ACT_DELBA	= 2,
 };
 
-/* InitialGainOpType */
+
 enum {
 	IG_Backup = 0,
 	IG_Restore,
@@ -235,11 +235,11 @@ typedef enum _Fsync_State{
 	SW_Fsync
 } Fsync_State;
 
-/* Power save mode configured. */
+
 typedef enum _RT_PS_MODE {
-	eActive,	/* Active/Continuous access. */
-	eMaxPs,		/* Max power save mode. */
-	eFastPs		/* Fast power save mode. */
+	eActive,	
+	eMaxPs,		
+	eFastPs		
 } RT_PS_MODE;
 
 typedef enum _IPS_CALLBACK_FUNCION {
@@ -259,7 +259,7 @@ struct ibss_parms {
 	u16 atimWin;
 };
 
-/* Max num of support rates element: 8,  Max num of ext. support rate: 255. */
+
 #define MAX_NUM_RATES	264
 
 typedef enum _RT_RF_POWER_STATE {
@@ -269,7 +269,7 @@ typedef enum _RT_RF_POWER_STATE {
 } RT_RF_POWER_STATE;
 
 struct rt_power_save_control {
-	/* Inactive Power Save (IPS): disable RF when disconnected */
+	
 	bool			bInactivePs;
 	bool			bIPSModeBackup;
 	bool			bHaltAdapterClkRQ;
@@ -278,15 +278,15 @@ struct rt_power_save_control {
 	struct work_struct 	InactivePsWorkItem;
 	struct timer_list	InactivePsTimer;
 
-	/* return point for join action */
+	
 	IPS_CALLBACK_FUNCION	ReturnPoint;
 
-	/* Recored Parameters for rescheduled JoinRequest */
+	
 	bool			bTmpBssDesc;
 	RT_JOIN_ACTION		tmpJoinAction;
 	struct ieee80211_network tmpBssDesc;
 
-	/* Recored Parameters for rescheduled MgntLinkRequest */
+	
 	bool			bTmpScanOnly;
 	bool			bTmpActiveScan;
 	bool			bTmpFilterHiddenAP;
@@ -305,27 +305,24 @@ struct rt_power_save_control {
 	struct ibss_parms	tmpIbpm;
 	bool			bTmpIbpm;
 
-	/* Leisre Poswer Save: disable RF if connected but traffic isn't busy */
+	
 	bool			bLeisurePs;
 	u32			PowerProfile;
 	u8			LpsIdleCount;
 	u8			RegMaxLPSAwakeIntvl;
 	u8			LPSAwakeIntvl;
 
-	/* RF OFF Level */
+	
 	u32			CurPsLevel;
 	u32			RegRfPsLevel;
 
-	/* Fw Control LPS */
+	
 	bool			bFwCtrlLPS;
 	u8			FWCtrlPSMode;
 
-	/* Record if there is a link request in IPS RF off progress. */
+	
 	bool			LinkReqInIPSRFOffPgs;
-	/*
-	 * To make sure that connect info should be executed, so we set the
-	 * bit to filter the link info which comes after the connect info.
-	 */
+	
 	bool			BufConnectinfoBefore;
 };
 
@@ -336,27 +333,27 @@ enum {
 	RF_CHANGE_BY_IPS	= BIT28,
 };
 
-/* Firmware related CMD IO. */
+
 typedef enum _FW_CMD_IO_TYPE {
-	FW_CMD_DIG_ENABLE = 0,		/* for DIG DM */
+	FW_CMD_DIG_ENABLE = 0,		
 	FW_CMD_DIG_DISABLE = 1,
 	FW_CMD_DIG_HALT = 2,
 	FW_CMD_DIG_RESUME = 3,
-	FW_CMD_HIGH_PWR_ENABLE = 4,	/* for High Power DM */
+	FW_CMD_HIGH_PWR_ENABLE = 4,	
 	FW_CMD_HIGH_PWR_DISABLE = 5,
-	FW_CMD_RA_RESET = 6,		/* for Rate adaptive DM */
+	FW_CMD_RA_RESET = 6,		
 	FW_CMD_RA_ACTIVE = 7,
 	FW_CMD_RA_REFRESH_N = 8,
 	FW_CMD_RA_REFRESH_BG = 9,
-	FW_CMD_IQK_ENABLE = 10,		/* for FW supported IQK */
-	FW_CMD_TXPWR_TRACK_ENABLE = 11,	/* Tx power tracking switch */
-	FW_CMD_TXPWR_TRACK_DISABLE = 12,/* Tx power tracking switch */
+	FW_CMD_IQK_ENABLE = 10,		
+	FW_CMD_TXPWR_TRACK_ENABLE = 11,	
+	FW_CMD_TXPWR_TRACK_DISABLE = 12,
 	FW_CMD_PAUSE_DM_BY_SCAN = 13,
 	FW_CMD_RESUME_DM_BY_SCAN = 14,
 	FW_CMD_MID_HIGH_PWR_ENABLE = 15,
-	/* indicate firmware that driver enters LPS, for PS-Poll hardware bug */
+	
 	FW_CMD_LPS_ENTER = 16,
-	/* indicate firmware that driver leave LPS */
+	
 	FW_CMD_LPS_LEAVE = 17,
 } FW_CMD_IO_TYPE;
 
@@ -365,11 +362,11 @@ struct rt_link_detect {
 	u32	NumRecvBcnInPeriod;
 	u32	NumRecvDataInPeriod;
 
-	/* number of Rx beacon / CheckForHang_period to determine link status */
+	
 	u32	RxBcnNum[RT_MAX_LD_SLOT_NUM];
-	/* number of Rx data / CheckForHang_period to determine link status */
+	
 	u32	RxDataNum[RT_MAX_LD_SLOT_NUM];
-	/* number of CheckForHang period to determine link status */
+	
 	u16	SlotNum;
 	u16	SlotIndex;
 
@@ -378,7 +375,7 @@ struct rt_link_detect {
 	bool	bBusyTraffic;
 };
 
-/* HT */
+
 #define MAX_RECEIVE_BUFFER_SIZE 9100
 extern void HTDebugHTCapability(u8 *CapIE, u8 *TitleString);
 extern void HTDebugHTInfo(u8 *InfoIE, u8 *TitleString);
@@ -425,7 +422,7 @@ extern void TxBaInactTimeout(unsigned long data);
 extern void RxBaInactTimeout(unsigned long data);
 extern void ResetBaEntry(PBA_RECORD pBA);
 extern bool GetTs(struct ieee80211_device *ieee, PTS_COMMON_INFO *ppTS,
-		  u8 *Addr, u8 TID, TR_SELECT TxRxSelect,  /* Rx:1, Tx:0 */
+		  u8 *Addr, u8 TID, TR_SELECT TxRxSelect,  
 		  bool bAddNewTs);
 extern void TSInitialize(struct ieee80211_device *ieee);
 extern void TsStartAddBaProcess(struct ieee80211_device *ieee,
@@ -433,4 +430,4 @@ extern void TsStartAddBaProcess(struct ieee80211_device *ieee,
 extern void RemovePeerTS(struct ieee80211_device *ieee, u8 *Addr);
 extern void RemoveAllTS(struct ieee80211_device *ieee);
 
-#endif /* __IEEE80211_R8192S_H */
+#endif 

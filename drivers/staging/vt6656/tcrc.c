@@ -1,47 +1,14 @@
-/*
- * Copyright (c) 2003 VIA Networking, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: tcrc.c
- *
- * Purpose: Implement functions to caculate CRC
- *
- * Author: Tevin Chen
- *
- * Date: May 21, 1996
- *
- * Functions:
- *      CRCdwCrc32 -
- *      CRCdwGetCrc32 -
- *      CRCdwGetCrc32Ex -
- *
- * Revision History:
- *
- */
+
 
 #include "tcrc.h"
 
-/*---------------------  Static Definitions -------------------------*/
 
-/*---------------------  Static Classes  ----------------------------*/
 
-/*---------------------  Static Variables  --------------------------*/
 
-// 32-bit CRC table
+
+
+
+
 static const DWORD s_adwCrc32Table[256] = {
     0x00000000L, 0x77073096L, 0xEE0E612CL, 0x990951BAL,
     0x076DC419L, 0x706AF48FL, 0xE963A535L, 0x9E6495A3L,
@@ -109,29 +76,14 @@ static const DWORD s_adwCrc32Table[256] = {
     0xB40BBE37L, 0xC30C8EA1L, 0x5A05DF1BL, 0x2D02EF8DL
 };
 
-/*---------------------  Static Functions  --------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
 
 
 
 
-/*+
- *
- * Description:
- *    Generate a CRC-32 from the data stream
- *
- * Parameters:
- *  In:
- *      pbyData     - the data stream
- *      cbByte      - the length of the stream
- *      dwCrcSeed   - Seed for CRC32
- *  Out:
- *      none
- *
- * Return Value: CRC-32
- *
--*/
+
+
+
+
 DWORD CRCdwCrc32 (PBYTE pbyData, UINT cbByte, DWORD dwCrcSeed)
 {
     DWORD dwCrc;
@@ -146,50 +98,14 @@ DWORD CRCdwCrc32 (PBYTE pbyData, UINT cbByte, DWORD dwCrcSeed)
 }
 
 
-/*+
- *
- * Description:
- * To test CRC generator, input 8 bytes packet
- *      -- 0xff 0xff 0xff 0xff 0x00 0x00 0x00 0x00
- * the generated CRC should be
- *      -- 0xff 0xff 0xff 0xff
- *
- * Parameters:
- *  In:
- *      pbyData     - the data stream
- *      cbByte      - the length of the stream
- *  Out:
- *      none
- *
- * Return Value: CRC-32
- *
--*/
+
 DWORD CRCdwGetCrc32 (PBYTE pbyData, UINT cbByte)
 {
     return ~CRCdwCrc32(pbyData, cbByte, 0xFFFFFFFFL);
 }
 
 
-/*+
- *
- * Description:
- *
- * NOTE.... Because CRCdwGetCrc32Ex() is an iteration function,
- *          this means we will use the output of CRCdwGetCrc32Ex()
- *          to be a new argument to do next CRCdwGetCrc32Ex() calculation.
- *          Thus, the final result must be inverted to be the
- *          correct answer.
- *
- * Parameters:
- *  In:
- *      pbyData     - the data stream
- *      cbByte      - the length of the stream
- *  Out:
- *      none
- *
- * Return Value: CRC-32
- *
--*/
+
 DWORD CRCdwGetCrc32Ex(PBYTE pbyData, UINT cbByte, DWORD dwPreCRC)
 {
     return CRCdwCrc32(pbyData, cbByte, dwPreCRC);

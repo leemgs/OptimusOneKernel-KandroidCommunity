@@ -1,51 +1,6 @@
-/*======================================================================
 
-    comedi/drivers/quatech_daqp_cs.c
 
-    Quatech DAQP PCMCIA data capture cards COMEDI client driver
-    Copyright (C) 2000, 2003 Brent Baccala <baccala@freesoft.org>
-    The DAQP interface code in this file is released into the public domain.
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 1998 David A. Schleef <ds@schleef.org>
-    http://www.comedi.org/
-
-    quatech_daqp_cs.c 1.10
-
-    Documentation for the DAQP PCMCIA cards can be found on Quatech's site:
-
-                ftp://ftp.quatech.com/Manuals/daqp-208.pdf
-
-    This manual is for both the DAQP-208 and the DAQP-308.
-
-    What works:
-
-	- A/D conversion
-	    - 8 channels
-	    - 4 gain ranges
-	    - ground ref or differential
-	    - single-shot and timed both supported
-	- D/A conversion, single-shot
-	- digital I/O
-
-    What doesn't:
-
-	- any kind of triggering - external or D/A channel 1
-	- the card's optional expansion board
-	- the card's timer (for anything other than A/D conversion)
-	- D/A update modes other than immediate (i.e, timed)
-	- fancier timing modes
-	- setting card's FIFO buffer thresholds to anything but default
-
-======================================================================*/
-
-/*
-Driver: quatech_daqp_cs
-Description: Quatech DAQP PCMCIA data capture cards
-Author: Brent Baccala <baccala@freesoft.org>
-Status: works
-Devices: [Quatech] DAQP-208 (daqp), DAQP-308
-*/
 
 #include "../comedidev.h"
 
@@ -55,13 +10,7 @@ Devices: [Quatech] DAQP-208 (daqp), DAQP-308
 #include <pcmcia/cisreg.h>
 #include <pcmcia/ds.h>
 
-/*
-   All the PCMCIA modules use PCMCIA_DEBUG to control debugging.  If
-   you do not define PCMCIA_DEBUG at all, all the debug code will be
-   left out.  If you compile with PCMCIA_DEBUG=0, the debug code will
-   be present but disabled -- but it can then be enabled for specific
-   modules at load time with a 'pc_debug=#' option to insmod.
-*/
+
 
 #ifdef PCMCIA_DEBUG
 static int pc_debug = PCMCIA_DEBUG;
@@ -72,7 +21,7 @@ static char *version = "quatech_daqp_cs.c 1.10 2003/04/21 (Brent Baccala)";
 #define DEBUG(n, args...)
 #endif
 
-/* Maximum number of separate DAQP devices we'll allow */
+
 #define MAX_DEV         4
 
 struct local_info_t {
@@ -91,11 +40,11 @@ struct local_info_t {
 	int count;
 };
 
-/* A list of "instances" of the device. */
 
-static struct local_info_t *dev_table[MAX_DEV] = { NULL, /* ... */  };
 
-/* The DAQP communicates with the system through a 16 byte I/O window. */
+static struct local_info_t *dev_table[MAX_DEV] = { NULL,   };
+
+
 
 #define DAQP_FIFO_SIZE		4096
 
@@ -178,10 +127,7 @@ static struct local_info_t *dev_table[MAX_DEV] = { NULL, /* ... */  };
 #define DAQP_AUX_FIFO_NEARFULL		0x02
 #define DAQP_AUX_FIFO_EMPTY		0x01
 
-/* These range structures tell COMEDI how the sample values map to
- * voltages.  The A/D converter has four	.ranges = +/- 10V through
- * +/- 1.25V, and the D/A converter has only	.one = +/- 5V.
- */
+
 
 static const struct comedi_lrange range_daqp_ai = { 4, {
 							BIP_RANGE(10),
@@ -193,9 +139,9 @@ static const struct comedi_lrange range_daqp_ai = { 4, {
 
 static const struct comedi_lrange range_daqp_ao = { 1, {BIP_RANGE(5)} };
 
-/*====================================================================*/
 
-/* comedi interface code */
+
+
 
 static int daqp_attach(struct comedi_device *dev, struct comedi_devconfig *it);
 static int daqp_detach(struct comedi_device *dev);
@@ -232,7 +178,7 @@ static void hex_dump(char *str, void *ptr, int len)
 
 #endif
 
-/* Cancel a running acquisition */
+
 
 static int daqp_ai_cancel(struct comedi_device *dev, struct comedi_subdevice *s)
 {
@@ -244,23 +190,15 @@ static int daqp_ai_cancel(struct comedi_device *dev, struct comedi_subdevice *s)
 
 	outb(DAQP_COMMAND_STOP, dev->iobase + DAQP_COMMAND);
 
-	/* flush any linguring data in FIFO - superfluous here */
-	/* outb(DAQP_COMMAND_RSTF, dev->iobase+DAQP_COMMAND); */
+	
+	
 
 	local->interrupt_mode = semaphore;
 
 	return 0;
 }
 
-/* Interrupt handler
- *
- * Operates in one of two modes.  If local->interrupt_mode is
- * 'semaphore', just signal the local->eos semaphore and return
- * (one-shot mode).  Otherwise (continuous mode), read data in from
- * the card, transfer it to the buffer provided by the higher-level
- * comedi kernel module, and signal various comedi callback routines,
- * which run pretty quick.
- */
+
 
 static void daqp_interrupt(int irq, void *dev_id)
 {
@@ -329,9 +267,7 @@ static void daqp_interrupt(int irq, void *dev_id)
 
 			comedi_buf_put(s->async, data);
 
-			/* If there's a limit, decrement it
-			 * and stop conversion if zero
-			 */
+			
 
 			if (local->count > 0) {
 				local->count--;
@@ -359,7 +295,7 @@ static void daqp_interrupt(int irq, void *dev_id)
 	}
 }
 
-/* One-shot analog data acquisition routine */
+
 
 static int daqp_ai_insn_read(struct comedi_device *dev,
 			     struct comedi_subdevice *s,
@@ -374,15 +310,15 @@ static int daqp_ai_insn_read(struct comedi_device *dev,
 		return -EIO;
 	}
 
-	/* Stop any running conversion */
+	
 	daqp_ai_cancel(dev, s);
 
 	outb(0, dev->iobase + DAQP_AUX);
 
-	/* Reset scan list queue */
+	
 	outb(DAQP_COMMAND_RSTQ, dev->iobase + DAQP_COMMAND);
 
-	/* Program one scan list entry */
+	
 
 	v = DAQP_SCANLIST_CHANNEL(CR_CHAN(insn->chanspec))
 	    | DAQP_SCANLIST_GAIN(CR_RANGE(insn->chanspec));
@@ -396,20 +332,18 @@ static int daqp_ai_insn_read(struct comedi_device *dev,
 	outb(v & 0xff, dev->iobase + DAQP_SCANLIST);
 	outb(v >> 8, dev->iobase + DAQP_SCANLIST);
 
-	/* Reset data FIFO (see page 28 of DAQP User's Manual) */
+	
 
 	outb(DAQP_COMMAND_RSTF, dev->iobase + DAQP_COMMAND);
 
-	/* Set trigger */
+	
 
 	v = DAQP_CONTROL_TRIGGER_ONESHOT | DAQP_CONTROL_TRIGGER_INTERNAL
 	    | DAQP_CONTROL_PACER_100kHz | DAQP_CONTROL_EOS_INT_ENABLE;
 
 	outb(v, dev->iobase + DAQP_CONTROL);
 
-	/* Reset any pending interrupts (my card has a tendancy to require
-	 * require multiple reads on the status register to achieve this)
-	 */
+	
 
 	while (--counter
 	       && (inb(dev->iobase + DAQP_STATUS) & DAQP_STATUS_EVENTS)) ;
@@ -418,7 +352,7 @@ static int daqp_ai_insn_read(struct comedi_device *dev,
 		return -1;
 	}
 
-	/* Make sure semaphore is blocked */
+	
 	sema_init(&local->eos, 0);
 	local->interrupt_mode = semaphore;
 	local->dev = dev;
@@ -426,12 +360,12 @@ static int daqp_ai_insn_read(struct comedi_device *dev,
 
 	for (i = 0; i < insn->n; i++) {
 
-		/* Start conversion */
+		
 		outb(DAQP_COMMAND_ARM | DAQP_COMMAND_FIFO_DATA,
 		     dev->iobase + DAQP_COMMAND);
 
-		/* Wait for interrupt service routine to unblock semaphore */
-		/* Maybe could use a timeout here, but it's interruptible */
+		
+		
 		if (down_interruptible(&local->eos))
 			return -EINTR;
 
@@ -443,12 +377,7 @@ static int daqp_ai_insn_read(struct comedi_device *dev,
 	return insn->n;
 }
 
-/* This function converts ns nanoseconds to a counter value suitable
- * for programming the device.  We always use the DAQP's 5 MHz clock,
- * which with its 24-bit counter, allows values up to 84 seconds.
- * Also, the function adjusts ns so that it cooresponds to the actual
- * time that the device will use.
- */
+
 
 static int daqp_ns_to_timer(unsigned int *ns, int round)
 {
@@ -460,13 +389,7 @@ static int daqp_ns_to_timer(unsigned int *ns, int round)
 	return timer;
 }
 
-/* cmdtest tests a particular command to see if it is valid.
- * Using the cmdtest ioctl, a user can create a valid cmd
- * and then have it executed by the cmd ioctl.
- *
- * cmdtest returns 1,2,3,4 or 0, depending on which tests
- * the command passes.
- */
+
 
 static int daqp_ai_cmdtest(struct comedi_device *dev,
 			   struct comedi_subdevice *s, struct comedi_cmd *cmd)
@@ -474,7 +397,7 @@ static int daqp_ai_cmdtest(struct comedi_device *dev,
 	int err = 0;
 	int tmp;
 
-	/* step 1: make sure trigger sources are trivially valid */
+	
 
 	tmp = cmd->start_src;
 	cmd->start_src &= TRIG_NOW;
@@ -504,9 +427,9 @@ static int daqp_ai_cmdtest(struct comedi_device *dev,
 	if (err)
 		return 1;
 
-	/* step 2: make sure trigger sources are unique and mutually compatible */
+	
 
-	/* note that mutual compatiblity is not an issue here */
+	
 	if (cmd->scan_begin_src != TRIG_TIMER &&
 	    cmd->scan_begin_src != TRIG_FOLLOW)
 		err++;
@@ -520,13 +443,13 @@ static int daqp_ai_cmdtest(struct comedi_device *dev,
 	if (err)
 		return 2;
 
-	/* step 3: make sure arguments are trivially compatible */
+	
 
 	if (cmd->start_arg != 0) {
 		cmd->start_arg = 0;
 		err++;
 	}
-#define MAX_SPEED	10000	/* 100 kHz - in nanoseconds */
+#define MAX_SPEED	10000	
 
 	if (cmd->scan_begin_src == TRIG_TIMER
 	    && cmd->scan_begin_arg < MAX_SPEED) {
@@ -534,10 +457,7 @@ static int daqp_ai_cmdtest(struct comedi_device *dev,
 		err++;
 	}
 
-	/* If both scan_begin and convert are both timer values, the only
-	 * way that can make sense is if the scan time is the number of
-	 * conversions times the convert time
-	 */
+	
 
 	if (cmd->scan_begin_src == TRIG_TIMER && cmd->convert_src == TRIG_TIMER
 	    && cmd->scan_begin_arg != cmd->convert_arg * cmd->scan_end_arg) {
@@ -559,7 +479,7 @@ static int daqp_ai_cmdtest(struct comedi_device *dev,
 			err++;
 		}
 	} else {
-		/* TRIG_NONE */
+		
 		if (cmd->stop_arg != 0) {
 			cmd->stop_arg = 0;
 			err++;
@@ -569,7 +489,7 @@ static int daqp_ai_cmdtest(struct comedi_device *dev,
 	if (err)
 		return 3;
 
-	/* step 4: fix up any arguments */
+	
 
 	if (cmd->scan_begin_src == TRIG_TIMER) {
 		tmp = cmd->scan_begin_arg;
@@ -608,26 +528,15 @@ static int daqp_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 		return -EIO;
 	}
 
-	/* Stop any running conversion */
+	
 	daqp_ai_cancel(dev, s);
 
 	outb(0, dev->iobase + DAQP_AUX);
 
-	/* Reset scan list queue */
+	
 	outb(DAQP_COMMAND_RSTQ, dev->iobase + DAQP_COMMAND);
 
-	/* Program pacer clock
-	 *
-	 * There's two modes we can operate in.  If convert_src is
-	 * TRIG_TIMER, then convert_arg specifies the time between
-	 * each conversion, so we program the pacer clock to that
-	 * frequency and set the SCANLIST_START bit on every scanlist
-	 * entry.  Otherwise, convert_src is TRIG_NOW, which means
-	 * we want the fastest possible conversions, scan_begin_src
-	 * is TRIG_TIMER, and scan_begin_arg specifies the time between
-	 * each scan, so we program the pacer clock to this frequency
-	 * and only set the SCANLIST_START bit on the first entry.
-	 */
+	
 
 	if (cmd->convert_src == TRIG_TIMER) {
 		int counter = daqp_ns_to_timer(&cmd->convert_arg,
@@ -645,13 +554,13 @@ static int daqp_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 		scanlist_start_on_every_entry = 0;
 	}
 
-	/* Program scan list */
+	
 
 	for (i = 0; i < cmd->chanlist_len; i++) {
 
 		int chanspec = cmd->chanlist[i];
 
-		/* Program one scan list entry */
+		
 
 		v = DAQP_SCANLIST_CHANNEL(CR_CHAN(chanspec))
 		    | DAQP_SCANLIST_GAIN(CR_RANGE(chanspec));
@@ -668,71 +577,9 @@ static int daqp_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 		outb(v >> 8, dev->iobase + DAQP_SCANLIST);
 	}
 
-	/* Now it's time to program the FIFO threshold, basically the
-	 * number of samples the card will buffer before it interrupts
-	 * the CPU.
-	 *
-	 * If we don't have a stop count, then use half the size of
-	 * the FIFO (the manufacturer's recommendation).  Consider
-	 * that the FIFO can hold 2K samples (4K bytes).  With the
-	 * threshold set at half the FIFO size, we have a margin of
-	 * error of 1024 samples.  At the chip's maximum sample rate
-	 * of 100,000 Hz, the CPU would have to delay interrupt
-	 * service for a full 10 milliseconds in order to lose data
-	 * here (as opposed to higher up in the kernel).  I've never
-	 * seen it happen.  However, for slow sample rates it may
-	 * buffer too much data and introduce too much delay for the
-	 * user application.
-	 *
-	 * If we have a stop count, then things get more interesting.
-	 * If the stop count is less than the FIFO size (actually
-	 * three-quarters of the FIFO size - see below), we just use
-	 * the stop count itself as the threshold, the card interrupts
-	 * us when that many samples have been taken, and we kill the
-	 * acquisition at that point and are done.  If the stop count
-	 * is larger than that, then we divide it by 2 until it's less
-	 * than three quarters of the FIFO size (we always leave the
-	 * top quarter of the FIFO as protection against sluggish CPU
-	 * interrupt response) and use that as the threshold.  So, if
-	 * the stop count is 4000 samples, we divide by two twice to
-	 * get 1000 samples, use that as the threshold, take four
-	 * interrupts to get our 4000 samples and are done.
-	 *
-	 * The algorithm could be more clever.  For example, if 81000
-	 * samples are requested, we could set the threshold to 1500
-	 * samples and take 54 interrupts to get 81000.  But 54 isn't
-	 * a power of two, so this algorithm won't find that option.
-	 * Instead, it'll set the threshold at 1266 and take 64
-	 * interrupts to get 81024 samples, of which the last 24 will
-	 * be discarded... but we won't get the last interrupt until
-	 * they've been collected.  To find the first option, the
-	 * computer could look at the prime decomposition of the
-	 * sample count (81000 = 3^4 * 5^3 * 2^3) and factor it into a
-	 * threshold (1500 = 3 * 5^3 * 2^2) and an interrupt count (54
-	 * = 3^3 * 2).  Hmmm... a one-line while loop or prime
-	 * decomposition of integers... I'll leave it the way it is.
-	 *
-	 * I'll also note a mini-race condition before ignoring it in
-	 * the code.  Let's say we're taking 4000 samples, as before.
-	 * After 1000 samples, we get an interrupt.  But before that
-	 * interrupt is completely serviced, another sample is taken
-	 * and loaded into the FIFO.  Since the interrupt handler
-	 * empties the FIFO before returning, it will read 1001 samples.
-	 * If that happens four times, we'll end up taking 4004 samples,
-	 * not 4000.  The interrupt handler will discard the extra four
-	 * samples (by halting the acquisition with four samples still
-	 * in the FIFO), but we will have to wait for them.
-	 *
-	 * In short, this code works pretty well, but for either of
-	 * the two reasons noted, might end up waiting for a few more
-	 * samples than actually requested.  Shouldn't make too much
-	 * of a difference.
-	 */
+	
 
-	/* Save away the number of conversions we should perform, and
-	 * compute the FIFO threshold (in bytes, not samples - that's
-	 * why we multiple local->count by 2 = sizeof(sample))
-	 */
+	
 
 	if (cmd->stop_src == TRIG_COUNT) {
 		local->count = cmd->stop_arg * cmd->scan_end_arg;
@@ -744,17 +591,11 @@ static int daqp_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 		threshold = DAQP_FIFO_SIZE / 2;
 	}
 
-	/* Reset data FIFO (see page 28 of DAQP User's Manual) */
+	
 
 	outb(DAQP_COMMAND_RSTF, dev->iobase + DAQP_COMMAND);
 
-	/* Set FIFO threshold.  First two bytes are near-empty
-	 * threshold, which is unused; next two bytes are near-full
-	 * threshold.  We computed the number of bytes we want in the
-	 * FIFO when the interrupt is generated, what the card wants
-	 * is actually the number of available bytes left in the FIFO
-	 * when the interrupt is to happen.
-	 */
+	
 
 	outb(0x00, dev->iobase + DAQP_FIFO);
 	outb(0x00, dev->iobase + DAQP_FIFO);
@@ -762,16 +603,14 @@ static int daqp_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	outb((DAQP_FIFO_SIZE - threshold) & 0xff, dev->iobase + DAQP_FIFO);
 	outb((DAQP_FIFO_SIZE - threshold) >> 8, dev->iobase + DAQP_FIFO);
 
-	/* Set trigger */
+	
 
 	v = DAQP_CONTROL_TRIGGER_CONTINUOUS | DAQP_CONTROL_TRIGGER_INTERNAL
 	    | DAQP_CONTROL_PACER_5MHz | DAQP_CONTROL_FIFO_INT_ENABLE;
 
 	outb(v, dev->iobase + DAQP_CONTROL);
 
-	/* Reset any pending interrupts (my card has a tendancy to require
-	 * require multiple reads on the status register to achieve this)
-	 */
+	
 
 	while (--counter
 	       && (inb(dev->iobase + DAQP_STATUS) & DAQP_STATUS_EVENTS)) ;
@@ -784,14 +623,14 @@ static int daqp_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	local->dev = dev;
 	local->s = s;
 
-	/* Start conversion */
+	
 	outb(DAQP_COMMAND_ARM | DAQP_COMMAND_FIFO_DATA,
 	     dev->iobase + DAQP_COMMAND);
 
 	return 0;
 }
 
-/* Single-shot analog output routine */
+
 
 static int daqp_ao_insn_write(struct comedi_device *dev,
 			      struct comedi_subdevice *s,
@@ -808,10 +647,10 @@ static int daqp_ao_insn_write(struct comedi_device *dev,
 	chan = CR_CHAN(insn->chanspec);
 	d = data[0];
 	d &= 0x0fff;
-	d ^= 0x0800;		/* Flip the sign */
+	d ^= 0x0800;		
 	d |= chan << 12;
 
-	/* Make sure D/A update mode is direct update */
+	
 	outb(0, dev->iobase + DAQP_AUX);
 
 	outw(d, dev->iobase + DAQP_DA);
@@ -819,7 +658,7 @@ static int daqp_ao_insn_write(struct comedi_device *dev,
 	return 1;
 }
 
-/* Digital input routine */
+
 
 static int daqp_di_insn_read(struct comedi_device *dev,
 			     struct comedi_subdevice *s,
@@ -836,7 +675,7 @@ static int daqp_di_insn_read(struct comedi_device *dev,
 	return 1;
 }
 
-/* Digital output routine */
+
 
 static int daqp_do_insn_write(struct comedi_device *dev,
 			      struct comedi_subdevice *s,
@@ -853,11 +692,7 @@ static int daqp_do_insn_write(struct comedi_device *dev,
 	return 1;
 }
 
-/* daqp_attach is called via comedi_config to attach a comedi device
- * to a /dev/comedi*.  Note that this is different from daqp_cs_attach()
- * which is called by the pcmcia subsystem to attach the PCMCIA card
- * when it is inserted.
- */
+
 
 static int daqp_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 {
@@ -873,13 +708,7 @@ static int daqp_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 		return -EIO;
 	}
 
-	/* Typically brittle code that I don't completely understand,
-	 * but "it works on my card".  The intent is to pull the model
-	 * number of the card out the PCMCIA CIS and stash it away as
-	 * the COMEDI board_name.  Looks like the third field in
-	 * CISTPL_VERS_1 (offset 2) holds what we're looking for.  If
-	 * it doesn't work, who cares, just leave it as "DAQP".
-	 */
+	
 
 	strcpy(local->board_name, "DAQP");
 	dev->board_name = local->board_name;
@@ -962,9 +791,7 @@ static int daqp_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	return 1;
 }
 
-/* daqp_detach (called from comedi_comdig) does nothing. If the PCMCIA
- * card is removed, daqp_cs_detach() is called by the pcmcia subsystem.
- */
+
 
 static int daqp_detach(struct comedi_device *dev)
 {
@@ -973,85 +800,25 @@ static int daqp_detach(struct comedi_device *dev)
 	return 0;
 }
 
-/*====================================================================
 
-    PCMCIA interface code
 
-    The rest of the code in this file is based on dummy_cs.c v1.24
-    from the Linux pcmcia_cs distribution v3.1.8 and is subject
-    to the following license agreement.
 
-    The remaining contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is David A. Hinds
-    <dhinds@pcmcia.sourceforge.org>.  Portions created by David A. Hinds
-    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU Public License version 2 (the "GPL"), in which
-    case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-
-======================================================================*/
-
-/*
-   The event() function is this driver's Card Services event handler.
-   It will be called by Card Services when an appropriate card status
-   event is received.  The config() and release() entry points are
-   used to configure or release a socket, in response to card
-   insertion and ejection events.
-
-   Kernel version 2.6.16 upwards uses suspend() and resume() functions
-   instead of an event() function.
-*/
 
 static void daqp_cs_config(struct pcmcia_device *link);
 static void daqp_cs_release(struct pcmcia_device *link);
 static int daqp_cs_suspend(struct pcmcia_device *p_dev);
 static int daqp_cs_resume(struct pcmcia_device *p_dev);
 
-/*
-   The attach() and detach() entry points are used to create and destroy
-   "instances" of the driver, where each instance represents everything
-   needed to manage one actual PCMCIA card.
-*/
+
 
 static int daqp_cs_attach(struct pcmcia_device *);
 static void daqp_cs_detach(struct pcmcia_device *);
 
-/*
-   The dev_info variable is the "key" that is used to match up this
-   device driver with appropriate cards, through the card configuration
-   database.
-*/
+
 
 static const dev_info_t dev_info = "quatech_daqp_cs";
 
-/*======================================================================
 
-    daqp_cs_attach() creates an "instance" of the driver, allocating
-    local data structures for one device.  The device is registered
-    with Card Services.
-
-    The dev_link structure is initialized, but we don't actually
-    configure the card at this point -- we wait until we receive a
-    card insertion event.
-
-======================================================================*/
 
 static int daqp_cs_attach(struct pcmcia_device *link)
 {
@@ -1068,7 +835,7 @@ static int daqp_cs_attach(struct pcmcia_device *link)
 		return -ENODEV;
 	}
 
-	/* Allocate space for private device-specific data */
+	
 	local = kzalloc(sizeof(struct local_info_t), GFP_KERNEL);
 	if (!local)
 		return -ENOMEM;
@@ -1078,35 +845,22 @@ static int daqp_cs_attach(struct pcmcia_device *link)
 	local->link = link;
 	link->priv = local;
 
-	/* Interrupt setup */
+	
 	link->irq.Attributes = IRQ_TYPE_DYNAMIC_SHARING | IRQ_HANDLE_PRESENT;
 	link->irq.IRQInfo1 = IRQ_LEVEL_ID;
 	link->irq.Handler = daqp_interrupt;
 	link->irq.Instance = local;
 
-	/*
-	   General socket configuration defaults can go here.  In this
-	   client, we assume very little, and rely on the CIS for almost
-	   everything.  In most clients, many details (i.e., number, sizes,
-	   and attributes of IO windows) are fixed by the nature of the
-	   device, and can be hard-wired here.
-	 */
+	
 	link->conf.Attributes = 0;
 	link->conf.IntType = INT_MEMORY_AND_IO;
 
 	daqp_cs_config(link);
 
 	return 0;
-}				/* daqp_cs_attach */
+}				
 
-/*======================================================================
 
-    This deletes a driver "instance".  The device is de-registered
-    with Card Services.  If it has been released, all local data
-    structures are freed.  Otherwise, the structures will be freed
-    when the device is released.
-
-======================================================================*/
 
 static void daqp_cs_detach(struct pcmcia_device *link)
 {
@@ -1119,20 +873,14 @@ static void daqp_cs_detach(struct pcmcia_device *link)
 		daqp_cs_release(link);
 	}
 
-	/* Unlink device structure, and free it */
+	
 	dev_table[dev->table_index] = NULL;
 	if (dev)
 		kfree(dev);
 
-}				/* daqp_cs_detach */
+}				
 
-/*======================================================================
 
-    daqp_cs_config() is scheduled to run after a CARD_INSERTION event
-    is received, to configure the PCMCIA socket, and to make the
-    device available to the system.
-
-======================================================================*/
 
 static void daqp_cs_config(struct pcmcia_device *link)
 {
@@ -1144,10 +892,7 @@ static void daqp_cs_config(struct pcmcia_device *link)
 
 	DEBUG(0, "daqp_cs_config(0x%p)\n", link);
 
-	/*
-	   This reads the card's CONFIG tuple to find its configuration
-	   registers.
-	 */
+	
 	tuple.DesiredTuple = CISTPL_CONFIG;
 	tuple.Attributes = 0;
 	tuple.TupleData = buf;
@@ -1174,18 +919,7 @@ static void daqp_cs_config(struct pcmcia_device *link)
 	link->conf.ConfigBase = parse.config.base;
 	link->conf.Present = parse.config.rmask[0];
 
-	/*
-	   In this loop, we scan the CIS for configuration table entries,
-	   each of which describes a valid card configuration, including
-	   voltage, IO window, memory window, and interrupt settings.
-
-	   We make no assumptions about the card to be configured: we use
-	   just the information available in the CIS.  In an ideal world,
-	   this would work for any PCMCIA card, but it requires a complete
-	   and accurate CIS.  In practice, a driver usually "knows" most of
-	   these things without consulting the CIS, and most client drivers
-	   will only use the CIS to fill in implementation-defined details.
-	 */
+	
 	tuple.DesiredTuple = CISTPL_CFTABLE_ENTRY;
 	last_ret = pcmcia_get_first_tuple(link, &tuple);
 	if (last_ret) {
@@ -1207,11 +941,11 @@ static void daqp_cs_config(struct pcmcia_device *link)
 			goto next_entry;
 		link->conf.ConfigIndex = cfg->index;
 
-		/* Do we need to allocate an interrupt? */
+		
 		if (cfg->irq.IRQInfo1 || dflt.irq.IRQInfo1)
 			link->conf.Attributes |= CONF_ENABLE_IRQ;
 
-		/* IO window settings */
+		
 		link->io.NumPorts1 = link->io.NumPorts2 = 0;
 		if ((cfg->io.nwin > 0) || (dflt.io.nwin > 0)) {
 			cistpl_io_t *io = (cfg->io.nwin) ? &cfg->io : &dflt.io;
@@ -1230,11 +964,11 @@ static void daqp_cs_config(struct pcmcia_device *link)
 			}
 		}
 
-		/* This reserves IO space but doesn't actually enable it */
+		
 		if (pcmcia_request_io(link, &link->io))
 			goto next_entry;
 
-		/* If we got this far, we're cool! */
+		
 		break;
 
 next_entry:
@@ -1245,11 +979,7 @@ next_entry:
 		}
 	}
 
-	/*
-	   Allocate an interrupt line.  Note that this does not assign a
-	   handler to the interrupt, unless the 'Handler' member of the
-	   irq structure is initialized.
-	 */
+	
 	if (link->conf.Attributes & CONF_ENABLE_IRQ) {
 		last_ret = pcmcia_request_irq(link, &link->irq);
 		if (last_ret) {
@@ -1258,30 +988,21 @@ next_entry:
 		}
 	}
 
-	/*
-	   This actually configures the PCMCIA socket -- setting up
-	   the I/O windows and the interrupt mapping, and putting the
-	   card and host interface into "Memory and IO" mode.
-	 */
+	
 	last_ret = pcmcia_request_configuration(link, &link->conf);
 	if (last_ret) {
 		cs_error(link, RequestConfiguration, last_ret);
 		goto cs_failed;
 	}
 
-	/*
-	   At this point, the dev_node_t structure(s) need to be
-	   initialized and arranged in a linked list at link->dev.
-	 */
-	/* Comedi's PCMCIA script uses this device name (extracted
-	 * from /var/lib/pcmcia/stab) to pass to comedi_config
-	 */
-	/* sprintf(dev->node.dev_name, "daqp%d", dev->table_index); */
+	
+	
+	
 	sprintf(dev->node.dev_name, "quatech_daqp_cs");
 	dev->node.major = dev->node.minor = 0;
 	link->dev_node = &dev->node;
 
-	/* Finally, report what we've done */
+	
 	printk(KERN_INFO "%s: index 0x%02x",
 	       dev->node.dev_name, link->conf.ConfigIndex);
 	if (link->conf.Attributes & CONF_ENABLE_IRQ)
@@ -1299,32 +1020,22 @@ next_entry:
 cs_failed:
 	daqp_cs_release(link);
 
-}				/* daqp_cs_config */
+}				
 
 static void daqp_cs_release(struct pcmcia_device *link)
 {
 	DEBUG(0, "daqp_cs_release(0x%p)\n", link);
 
 	pcmcia_disable_device(link);
-}				/* daqp_cs_release */
+}				
 
-/*======================================================================
 
-    The card status event handler.  Mostly, this schedules other
-    stuff to run after an event is received.
-
-    When a CARD_REMOVAL event is received, we immediately set a
-    private flag to block future accesses to this device.  All the
-    functions that actually access the device should check this flag
-    to make sure the card is still present.
-
-======================================================================*/
 
 static int daqp_cs_suspend(struct pcmcia_device *link)
 {
 	struct local_info_t *local = link->priv;
 
-	/* Mark the device as stopped, to block IO until later */
+	
 	local->stop = 1;
 	return 0;
 }
@@ -1338,7 +1049,7 @@ static int daqp_cs_resume(struct pcmcia_device *link)
 	return 0;
 }
 
-/*====================================================================*/
+
 
 #ifdef MODULE
 

@@ -1,20 +1,4 @@
-/*
- * kxsd9.c	simple support for the Kionix KXSD9 3D
- *		accelerometer.
- *
- * Copyright (c) 2008-2009 Jonathan Cameron <jic23@cam.ac.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * The i2c interface is very similar, so shouldn't be a problem once
- * I have a suitable wire made up.
- *
- * TODO:	Support the motion detector
- *		Uses register address incrementing so could have a
- *		heavily optimized ring buffer access function.
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/gpio.h>
@@ -55,14 +39,7 @@
 
 #define KXSD9_STATE_RX_SIZE 2
 #define KXSD9_STATE_TX_SIZE 4
-/**
- * struct kxsd9_state - device related storage
- * @buf_lock:	protect the rx and tx buffers.
- * @indio_dev:	associated industrial IO device
- * @us:		spi device
- * @rx:		single rx buffer storage
- * @tx:		single tx buffer storage
- **/
+
 struct kxsd9_state {
 	struct mutex buf_lock;
 	struct iio_dev *indio_dev;
@@ -71,7 +48,7 @@ struct kxsd9_state {
 	u8 *tx;
 };
 
-/* This may want to move to mili g to allow for non integer ranges */
+
 static ssize_t kxsd9_read_accel_range(struct device *dev,
 				      struct device_attribute *attr,
 				      char *buf)
@@ -326,7 +303,7 @@ static int __devinit kxsd9_probe(struct spi_device *spi)
 		goto error_free_tx;
 	}
 	st->indio_dev->dev.parent = &spi->dev;
-	/* for now */
+	
 	st->indio_dev->num_interrupt_lines = 0;
 	st->indio_dev->event_attrs = NULL;
 

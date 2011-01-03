@@ -1,38 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-	rt_linux.h
-
-    Abstract:
-
-    Revision History:
-    Who          When          What
-    ---------    ----------    ----------------------------------------------
-*/
 
 #ifndef __RT_LINUX_H__
 #define __RT_LINUX_H__
@@ -64,19 +30,19 @@
 #ifdef INF_AMAZON_PPA
 #include <asm/amazon_se/ifx_ppa_interface.h>
 #include <asm/amazon_se/ifx_ppa_hook.h>
-#endif // INF_AMAZON_PPA //
+#endif 
 
-// load firmware
+
 #define __KERNEL_SYSCALLS__
 #include <linux/unistd.h>
 #include <asm/uaccess.h>
 #include <asm/types.h>
-#include <asm/unaligned.h>	// for get_unaligned()
+#include <asm/unaligned.h>	
 
 #ifdef KTHREAD_SUPPORT
 #include <linux/err.h>
 #include <linux/kthread.h>
-#endif // KTHREAD_SUPPORT //
+#endif 
 
 #undef AP_WSC_INCLUDED
 #undef STA_WSC_INCLUDED
@@ -84,18 +50,16 @@
 
 
 #ifdef CONFIG_STA_SUPPORT
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
 #ifdef KTHREAD_SUPPORT
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,4)
 #error "This kerne version doesn't support kthread!!"
 #endif
-#endif // KTHREAD_SUPPORT //
+#endif 
 
-/***********************************************************************************
- *	Profile related sections
- ***********************************************************************************/
+
 
 
 #ifdef CONFIG_STA_SUPPORT
@@ -104,21 +68,19 @@
 #define STA_DRIVER_VERSION			"2.1.0.0"
 #ifdef MULTIPLE_CARD_SUPPORT
 #define CARD_INFO_PATH			"/etc/Wireless/RT2860STA/RT2860STACard.dat"
-#endif // MULTIPLE_CARD_SUPPORT //
-#endif // RTMP_MAC_PCI //
+#endif 
+#endif 
 
 
 
 extern	const struct iw_handler_def rt28xx_iw_handler_def;
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 #ifdef CONFIG_APSTA_MIXED_SUPPORT
 extern	const struct iw_handler_def rt28xx_ap_iw_handler_def;
-#endif // CONFIG_APSTA_MIXED_SUPPORT //
+#endif 
 
-/***********************************************************************************
- *	Compiler related definitions
- ***********************************************************************************/
+
 #undef __inline
 #define __inline		static inline
 #define IN
@@ -127,9 +89,7 @@ extern	const struct iw_handler_def rt28xx_ap_iw_handler_def;
 #define NDIS_STATUS		INT
 
 
-/***********************************************************************************
- *	OS Specific definitions and data structures
- ***********************************************************************************/
+
 typedef struct pci_dev		* PPCI_DEV;
 typedef struct net_device	* PNET_DEV;
 typedef void				* PNDIS_PACKET;
@@ -153,8 +113,8 @@ typedef struct semaphore	RTMP_OS_SEM;
 #define PCI_DEVICE(vend,dev) \
 	.vendor = (vend), .device = (dev), \
 	.subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID
-#endif // PCI_DEVICE //
-#endif // RTMP_MAC_PCI //
+#endif 
+#endif 
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,0)
 #define RT_MOD_INC_USE_COUNT() \
@@ -176,15 +136,13 @@ typedef struct semaphore	RTMP_OS_SEM;
 
 
 #if WIRELESS_EXT >= 12
-// This function will be called when query /proc
+
 struct iw_statistics *rt28xx_get_wireless_stats(
     IN struct net_device *net_dev);
 #endif
 
 
-/***********************************************************************************
- *	Network related constant definitions
- ***********************************************************************************/
+
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 16
 #endif
@@ -199,7 +157,7 @@ struct iw_statistics *rt28xx_get_wireless_stats(
 #define NDIS_SET_PACKET_STATUS(_p, _status)			do{} while(0)
 #define NdisWriteErrorLogEntry(_a, _b, _c, _d)		do{} while(0)
 
-/* statistics counter */
+
 #define STATS_INC_RX_PACKETS(_pAd, _dev)
 #define STATS_INC_TX_PACKETS(_pAd, _dev)
 
@@ -213,18 +171,16 @@ struct iw_statistics *rt28xx_get_wireless_stats(
 #define STATS_INC_TX_DROPPED(_pAd, _dev)
 
 
-/***********************************************************************************
- *	Ralink Specific network related constant definitions
- ***********************************************************************************/
-#define MIN_NET_DEVICE_FOR_AID			0x00		//0x00~0x3f
-#define MIN_NET_DEVICE_FOR_MBSSID		0x00		//0x00,0x10,0x20,0x30
-#define MIN_NET_DEVICE_FOR_WDS			0x10		//0x40,0x50,0x60,0x70
+
+#define MIN_NET_DEVICE_FOR_AID			0x00		
+#define MIN_NET_DEVICE_FOR_MBSSID		0x00		
+#define MIN_NET_DEVICE_FOR_WDS			0x10		
 #define MIN_NET_DEVICE_FOR_APCLI		0x20
 #define MIN_NET_DEVICE_FOR_MESH			0x30
 #ifdef CONFIG_STA_SUPPORT
 #define MIN_NET_DEVICE_FOR_DLS			0x40
-#endif // CONFIG_STA_SUPPORT //
-#define NET_DEVICE_REAL_IDX_MASK		0x0f		// for each operation mode, we maximum support 15 entities.
+#endif 
+#define NET_DEVICE_REAL_IDX_MASK		0x0f		
 
 
 #ifdef CONFIG_STA_SUPPORT
@@ -233,17 +189,13 @@ struct iw_statistics *rt28xx_get_wireless_stats(
 #define NDIS_PACKET_TYPE_BROADCAST		2
 #define NDIS_PACKET_TYPE_ALL_MULTICAST	3
 #define NDIS_PACKET_TYPE_PROMISCUOUS	4
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
-/***********************************************************************************
- *	OS signaling related constant definitions
- ***********************************************************************************/
 
 
-/***********************************************************************************
- *	OS file operation related data structure definitions
- ***********************************************************************************/
+
+
 typedef struct file* RTMP_OS_FD;
 
 typedef struct _RTMP_OS_FS_INFO_
@@ -256,9 +208,7 @@ typedef struct _RTMP_OS_FS_INFO_
 #define IS_FILE_OPEN_ERR(_fd)	IS_ERR((_fd))
 
 
-/***********************************************************************************
- *	OS semaphore related data structure and definitions
- ***********************************************************************************/
+
 struct os_lock  {
 	spinlock_t		lock;
 	unsigned long	flags;
@@ -266,9 +216,9 @@ struct os_lock  {
 
 typedef spinlock_t			NDIS_SPIN_LOCK;
 
-//
-//  spin_lock enhanced for Nested spin lock
-//
+
+
+
 #define NdisAllocateSpinLock(__lock)      \
 {                                       \
     spin_lock_init((spinlock_t *)(__lock));               \
@@ -289,7 +239,7 @@ typedef spinlock_t			NDIS_SPIN_LOCK;
 }
 
 
-// sample, use semaphore lock to replace IRQ lock, 2007/11/15
+
 #define RTMP_IRQ_LOCK(__lock, __irqflags)			\
 {													\
 	__irqflags = 0;									\
@@ -378,10 +328,8 @@ do { \
 	}while(0)
 #endif
 
-/***********************************************************************************
- *	OS Memory Access related data structure and definitions
- ***********************************************************************************/
-#define MEM_ALLOC_FLAG      (GFP_ATOMIC) //(GFP_DMA | GFP_ATOMIC)
+
+#define MEM_ALLOC_FLAG      (GFP_ATOMIC) 
 
 #define NdisMoveMemory(Destination, Source, Length) memmove(Destination, Source, Length)
 #define NdisCopyMemory(Destination, Source, Length) memcpy(Destination, Source, Length)
@@ -397,9 +345,7 @@ do { \
 #define COPY_MAC_ADDR(Addr1, Addr2)             memcpy((Addr1), (Addr2), MAC_ADDR_LEN)
 
 
-/***********************************************************************************
- *	OS task related data structure and definitions
- ***********************************************************************************/
+
 #define RTMP_OS_MGMT_TASK_FLAGS	CLONE_VM
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,27)
@@ -422,9 +368,7 @@ typedef struct tasklet_struct  RTMP_NET_TASK_STRUCT;
 typedef struct tasklet_struct  *PRTMP_NET_TASK_STRUCT;
 
 
-/***********************************************************************************
- * Timer related definitions and data structures.
- **********************************************************************************/
+
 #define OS_HZ			HZ
 
 typedef struct timer_list	NDIS_MINIPORT_TIMER;
@@ -474,9 +418,7 @@ static inline void NdisGetSystemUpTime(ULONG *time)
 }
 
 
-/***********************************************************************************
- *	OS specific cookie data structure binding to RTMP_ADAPTER
- ***********************************************************************************/
+
 
 struct os_cookie {
 #ifdef RTMP_MAC_PCI
@@ -484,7 +426,7 @@ struct os_cookie {
 	struct pci_dev			*parent_pci_dev;
 	USHORT                  DeviceID;
 	dma_addr_t				pAd_pa;
-#endif // RTMP_MAC_PCI //
+#endif 
 
 
 	RTMP_NET_TASK_STRUCT rx_done_task;
@@ -493,15 +435,15 @@ struct os_cookie {
 	RTMP_NET_TASK_STRUCT ac1_dma_done_task;
 	RTMP_NET_TASK_STRUCT ac2_dma_done_task;
 	RTMP_NET_TASK_STRUCT ac3_dma_done_task;
-	/*RTMP_NET_TASK_STRUCT hcca_dma_done_task;*/
+	
 	RTMP_NET_TASK_STRUCT tbtt_task;
 #ifdef RTMP_MAC_PCI
 	RTMP_NET_TASK_STRUCT fifo_statistic_full_task;
-#endif // RTMP_MAC_PCI //
+#endif 
 
 
 
-	unsigned long			apd_pid; //802.1x daemon pid
+	unsigned long			apd_pid; 
 	INT						ioctl_if_type;
 	INT					ioctl_if;
 };
@@ -510,9 +452,7 @@ typedef struct os_cookie	* POS_COOKIE;
 
 
 
-/***********************************************************************************
- *	OS debugging and printing related definitions and data structure
- ***********************************************************************************/
+
 #define PRINT_MAC(addr)	\
 	addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]
 
@@ -559,14 +499,10 @@ do{                                   \
 void hex_dump(char *str, unsigned char *pSrcBufVA, unsigned int SrcBufLen);
 
 
-/*********************************************************************************************************
-	The following code are not revised, temporary put it here.
-  *********************************************************************************************************/
 
 
-/***********************************************************************************
- * Device DMA Access related definitions and data structures.
- **********************************************************************************/
+
+
 #ifdef RTMP_MAC_PCI
 dma_addr_t linux_pci_map_single(void *handle, void *ptr, size_t size, int sd_idx, int direction);
 void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int direction);
@@ -585,51 +521,31 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 
 #define DEV_ALLOC_SKB(_length) \
 	dev_alloc_skb(_length)
-#endif // RTMP_MAC_PCI //
+#endif 
 
 
 
-/*
- * ULONG
- * RTMP_GetPhysicalAddressLow(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress);
- */
+
 #define RTMP_GetPhysicalAddressLow(PhysicalAddress)		(PhysicalAddress)
 
-/*
- * ULONG
- * RTMP_GetPhysicalAddressHigh(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress);
- */
+
 #define RTMP_GetPhysicalAddressHigh(PhysicalAddress)		(0)
 
-/*
- * VOID
- * RTMP_SetPhysicalAddressLow(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress,
- *   IN ULONG  Value);
- */
+
 #define RTMP_SetPhysicalAddressLow(PhysicalAddress, Value)	\
 			PhysicalAddress = Value;
 
-/*
- * VOID
- * RTMP_SetPhysicalAddressHigh(
- *   IN NDIS_PHYSICAL_ADDRESS  PhysicalAddress,
- *   IN ULONG  Value);
- */
+
 #define RTMP_SetPhysicalAddressHigh(PhysicalAddress, Value)
 
 #define NdisMIndicateStatus(_w, _x, _y, _z)
 
 
 
-/***********************************************************************************
- * Device Register I/O Access related definitions and data structures.
- **********************************************************************************/
+
 #ifdef RTMP_MAC_PCI
 #if defined(INF_TWINPASS) || defined(INF_DANUBE) || defined(IKANOS_VX_1X0)
-//Patch for ASIC turst read/write bug, needs to remove after metel fix
+
 #define RTMP_IO_READ32(_A, _R, _pV)									\
 {																	\
     if ((_A)->bPCIclkOff == FALSE)                                      \
@@ -671,7 +587,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 	writew(SWAP16((_V)), (PUSHORT)((_A)->CSRBaseAddress + (_R)));	\
 }
 #else
-//Patch for ASIC turst read/write bug, needs to remove after metel fix
+
 #define RTMP_IO_READ32(_A, _R, _pV)								\
 {																\
     if ((_A)->bPCIclkOff == FALSE)                                  \
@@ -732,7 +648,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 	Val = readl((void *)((_A)->CSRBaseAddress + MAC_CSR0));	\
 	writeb((_V), (PUCHAR)((_A)->CSRBaseAddress + (_R)));		\
 }
-#endif // #if defined(BRCM_6358) || defined(RALINK_2880) //
+#endif 
 
 #define RTMP_IO_WRITE16(_A, _R, _V)							\
 {															\
@@ -740,14 +656,12 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 	Val = readl((void *)((_A)->CSRBaseAddress + MAC_CSR0));	\
 	writew((_V), (PUSHORT)((_A)->CSRBaseAddress + (_R)));	\
 }
-#endif // #if defined(INF_TWINPASS) || defined(INF_DANUBE) || defined(IKANOS_VX_1X0) //
-#endif // RTMP_MAC_PCI //
+#endif 
+#endif 
 
 
 
-/***********************************************************************************
- *	Network Related data structure and marco definitions
- ***********************************************************************************/
+
 #define PKTSRC_NDIS             0x7f
 #define PKTSRC_DRIVER           0x0f
 
@@ -774,7 +688,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 	(PQUEUE_ENTRY)(pPacket)
 
 #ifdef CONFIG_5VT_ENHANCE
-#define BRIDGE_TAG 0x35564252    // depends on 5VT define in br_input.c
+#define BRIDGE_TAG 0x35564252    
 #endif
 
 #define GET_SG_LIST_FROM_PACKET(_p, _sc)	\
@@ -785,11 +699,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
         RTMPFreeNdisPacket(_pAd, _pPacket);                             \
 }
 
-/*
- * packet helper
- *	- convert internal rt packet to os packet or
- *             os packet to rt packet
- */
+
 #define RTPKT_TO_OSPKT(_p)		((struct sk_buff *)(_p))
 #define OSPKT_TO_RTPKT(_p)		((PNDIS_PACKET)(_p))
 
@@ -839,34 +749,34 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 
 #define CB_OFF  10
 
-// User Priority
+
 #define RTMP_SET_PACKET_UP(_p, _prio)			(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+0] = _prio)
 #define RTMP_GET_PACKET_UP(_p)					(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+0])
 
-// Fragment #
+
 #define RTMP_SET_PACKET_FRAGMENTS(_p, _num)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+1] = _num)
 #define RTMP_GET_PACKET_FRAGMENTS(_p)			(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+1])
 
-// 0x0 ~0x7f: TX to AP's own BSS which has the specified AID. if AID>127, set bit 7 in RTMP_SET_PACKET_EMACTAB too.
-//(this value also as MAC(on-chip WCID) table index)
-// 0x80~0xff: TX to a WDS link. b0~6: WDS index
+
+
+
 #define RTMP_SET_PACKET_WCID(_p, _wdsidx)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+2] = _wdsidx)
 #define RTMP_GET_PACKET_WCID(_p)			((UCHAR)(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+2]))
 
-// 0xff: PKTSRC_NDIS, others: local TX buffer index. This value affects how to a packet
+
 #define RTMP_SET_PACKET_SOURCE(_p, _pktsrc)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+3] = _pktsrc)
 #define RTMP_GET_PACKET_SOURCE(_p)			(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+3])
 
-// RTS/CTS-to-self protection method
+
 #define RTMP_SET_PACKET_RTS(_p, _num)			(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+4] = _num)
 #define RTMP_GET_PACKET_RTS(_p)				(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+4])
-// see RTMP_S(G)ET_PACKET_EMACTAB
 
-// TX rate index
+
+
 #define RTMP_SET_PACKET_TXRATE(_p, _rate)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+5] = _rate)
 #define RTMP_GET_PACKET_TXRATE(_p)				(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+5])
 
-// From which Interface
+
 #define RTMP_SET_PACKET_IF(_p, _ifdx)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+6] = _ifdx)
 #define RTMP_GET_PACKET_IF(_p)				(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+6])
 #define RTMP_SET_PACKET_NET_DEVICE_MBSSID(_p, _bss)		RTMP_SET_PACKET_IF((_p), (_bss))
@@ -883,9 +793,9 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 
 
 
-//
-//	Sepcific Pakcet Type definition
-//
+
+
+
 #define RTMP_PACKET_SPECIFIC_CB_OFFSET	11
 
 #define RTMP_PACKET_SPECIFIC_DHCP		0x01
@@ -895,10 +805,10 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 #define RTMP_PACKET_SPECIFIC_VLAN		0x10
 #define RTMP_PACKET_SPECIFIC_LLCSNAP	0x20
 
-//Specific
+
 #define RTMP_SET_PACKET_SPECIFIC(_p, _flg)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] = _flg)
 
-//DHCP
+
 #define RTMP_SET_PACKET_DHCP(_p, _flg)														\
 			do{																				\
 				if (_flg)																	\
@@ -908,7 +818,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 			}while(0)
 #define RTMP_GET_PACKET_DHCP(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_DHCP)
 
-//EAPOL
+
 #define RTMP_SET_PACKET_EAPOL(_p, _flg)														\
 			do{																				\
 				if (_flg)																	\
@@ -918,7 +828,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 			}while(0)
 #define RTMP_GET_PACKET_EAPOL(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_EAPOL)
 
-//WAI
+
 #define RTMP_SET_PACKET_WAI(_p, _flg)														\
 			do{																				\
 				if (_flg)																	\
@@ -930,7 +840,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 
 #define RTMP_GET_PACKET_LOWRATE(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & (RTMP_PACKET_SPECIFIC_EAPOL | RTMP_PACKET_SPECIFIC_DHCP | RTMP_PACKET_SPECIFIC_WAI))
 
-//VLAN
+
 #define RTMP_SET_PACKET_VLAN(_p, _flg)														\
 			do{																				\
 				if (_flg)																	\
@@ -940,7 +850,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 			}while(0)
 #define RTMP_GET_PACKET_VLAN(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_VLAN)
 
-//LLC/SNAP
+
 #define RTMP_SET_PACKET_LLCSNAP(_p, _flg)													\
 			do{																				\
 				if (_flg)																	\
@@ -951,7 +861,7 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 
 #define RTMP_GET_PACKET_LLCSNAP(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_LLCSNAP)
 
-// IP
+
 #define RTMP_SET_PACKET_IPV4(_p, _flg)														\
 			do{																				\
 				if (_flg)																	\
@@ -963,29 +873,27 @@ void linux_pci_unmap_single(void *handle, dma_addr_t dma_addr, size_t size, int 
 #define RTMP_GET_PACKET_IPV4(_p)		(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+11] & RTMP_PACKET_SPECIFIC_IPV4)
 
 
-// If this flag is set, it indicates that this EAPoL frame MUST be clear.
+
 #define RTMP_SET_PACKET_CLEAR_EAP_FRAME(_p, _flg)   (RTPKT_TO_OSPKT(_p)->cb[CB_OFF+12] = _flg)
 #define RTMP_GET_PACKET_CLEAR_EAP_FRAME(_p)         (RTPKT_TO_OSPKT(_p)->cb[CB_OFF+12])
 
 
 
-/* use bit3 of cb[CB_OFF+16] */
+
 
 #define RTMP_SET_PACKET_5VT(_p, _flg)   (RTPKT_TO_OSPKT(_p)->cb[CB_OFF+22] = _flg)
 #define RTMP_GET_PACKET_5VT(_p)         (RTPKT_TO_OSPKT(_p)->cb[CB_OFF+22])
 
 #ifdef INF_AMAZON_SE
-/* [CB_OFF+28], 1B, Iverson patch for WMM A5-T07 ,WirelessStaToWirelessSta do not bulk out aggregate */
+
 #define RTMP_SET_PACKET_NOBULKOUT(_p, _morebit)			(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+28] = _morebit)
 #define RTMP_GET_PACKET_NOBULKOUT(_p)					(RTPKT_TO_OSPKT(_p)->cb[CB_OFF+28])
-#endif // INF_AMAZON_SE //
-/* Max skb->cb = 48B = [CB_OFF+38] */
+#endif 
 
 
 
-/***********************************************************************************
- *	Other function prototypes definitions
- ***********************************************************************************/
+
+
 void RTMP_GetCurrentSystemTime(LARGE_INTEGER *time);
 int rt28xx_packet_xmit(struct sk_buff *skb);
 
@@ -993,13 +901,13 @@ int rt28xx_packet_xmit(struct sk_buff *skb);
 void FlashWrite(UCHAR * p, ULONG a, ULONG b);
 void FlashRead(UCHAR * p, ULONG a, ULONG b);
 
-#if LINUX_VERSION_CODE <= 0x20402	// Red Hat 7.1
+#if LINUX_VERSION_CODE <= 0x20402	
 struct net_device *alloc_netdev(int sizeof_priv, const char *mask, void (*setup)(struct net_device *));
-#endif // LINUX_VERSION_CODE //
+#endif 
 
 
 #ifdef RTMP_MAC_PCI
-/* function declarations */
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,0)
 #define IRQ_HANDLE_TYPE  irqreturn_t
 #else
@@ -1013,7 +921,7 @@ rt2860_interrupt(int irq, void *dev_instance);
 rt2860_interrupt(int irq, void *dev_instance, struct pt_regs *regs);
 #endif
 
-#endif // RTMP_MAC_PCI //
+#endif 
 
 INT rt28xx_ioctl(
 	IN	PNET_DEV		net_dev,
@@ -1026,9 +934,9 @@ INT rt28xx_sta_ioctl(
 	IN	PNET_DEV		net_dev,
 	IN	OUT	struct ifreq	*rq,
 	IN	INT			cmd);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 extern int ra_mtd_write(int num, loff_t to, size_t len, const u_char *buf);
 extern int ra_mtd_read(int num, loff_t from, size_t len, u_char *buf);
 
-#endif // __RT_LINUX_H__ //
+#endif 

@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "cprecomp.h"
 #include "ratectrl.h"
@@ -23,31 +9,31 @@ void zfUpdateBssid(zdev_t* dev, u8_t* bssid)
 
     zmw_get_wlan_dev(dev);
 
-    //zmw_declare_for_critical_section();
+    
 
-    //zmw_enter_critical_section(dev);
+    
     wd->sta.bssid[0] = bssid[0] + (((u16_t) bssid[1]) << 8);
     wd->sta.bssid[1] = bssid[2] + (((u16_t) bssid[3]) << 8);
     wd->sta.bssid[2] = bssid[4] + (((u16_t) bssid[5]) << 8);
-    //zmw_leave_critical_section(dev);
+    
 
     zfHpSetBssid(dev, bssid);
 
 }
 
-/************************************************************************************/
-/*                                                                                  */
-/*    FUNCTION DESCRIPTION                  zfResetSupportRate                      */
-/*      Reset support rate to default value.                                        */
-/*                                                                                  */
-/*    INPUTS                                                                        */
-/*      dev : device pointer                                                        */
-/*      type: ZM_DEFAULT_SUPPORT_RATE_ZERO       => reset to zero                   */
-/*            ZM_DEFAULT_SUPPORT_RATE_DISCONNECT => reset to disconnect status      */
-/*            ZM_DEFAULT_SUPPORT_RATE_IBSS_B     => reset to IBSS creator(b mode)   */
-/*            ZM_DEFAULT_SUPPORT_RATE_IBSS_AG    => reset to IBSS creator(a/g mode) */
-/*                                                                                  */
-/************************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
 void zfResetSupportRate(zdev_t* dev, u8_t type)
 {
     zmw_get_wlan_dev(dev);
@@ -185,7 +171,7 @@ void zfGatherBMode(zdev_t* dev, u8_t* rateArray, u8_t* extrateArray)
 u16_t zfGetRandomNumber(zdev_t* dev, u16_t initValue)
 {
 #if 0
-    /* Compiler/Linker error on Linux */
+    
     if ( initValue )
     {
         srand(initValue);
@@ -198,16 +184,16 @@ u16_t zfGetRandomNumber(zdev_t* dev, u16_t initValue)
 
 u8_t zfPSDeviceSleep(zdev_t* dev)
 {
-    //zmw_get_wlan_dev(dev);
+    
 
-    /* enter PS mode */
+    
 
     return 0;
 }
 
 u8_t zcOfdmPhyCrtlToRate[] =
 {
-    /* 0x8=48M, 0x9=24M, 0xa=12M, 0xb=6M, 0xc=54M, 0xd=36M, 0xe=18M, 0xf=9M */
+    
             10,       8,       6,      4,      11,       9,       7,      5
 };
 
@@ -236,7 +222,7 @@ u8_t zfPhyCtrlToRate(u32_t phyCtrl)
             {
                 rate = (u8_t)mcs + 12 + 2;
             }
-            else //MCS7-SG
+            else 
             {
                 rate = (u8_t)30;
             }
@@ -259,7 +245,7 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
     zmw_declare_for_critical_section();
 
 
-    if (event == 0) //Beacon Event
+    if (event == 0) 
     {
         if ( wd->wlanMode == ZM_MODE_AP )
         {
@@ -267,7 +253,7 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
 
             if (wd->CurrentDtimCount == 0)
             {
-                /* TODO : Send queued broadcast frames at BC/MC event */
+                
                 do
                 {
                     psBuf = NULL;
@@ -275,7 +261,7 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
                     zmw_enter_critical_section(dev);
                     if (wd->ap.bcmcTail[vap] != wd->ap.bcmcHead[vap])
                     {
-                        //zm_msg0_mm(ZM_LV_0, "Send BCMC frames");
+                        
                         psBuf = wd->ap.bcmcArray[vap][wd->ap.bcmcHead[vap]];
                         wd->ap.bcmcHead[vap] = (wd->ap.bcmcHead[vap] + 1)
                                 & (ZM_BCMC_ARRAY_SIZE - 1);
@@ -287,7 +273,7 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
                     zmw_leave_critical_section(dev);
                     if (psBuf != NULL)
                     {
-                        /* TODO : config moreData bit */
+                        
                         zfTxSendEth(dev, psBuf, 0, ZM_EXTERNAL_ALLOC_BUF,
                                 moreData);
                     }
@@ -297,10 +283,10 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
         }
         else
         {
-            /* STA mode */
+            
             if ( wd->sta.powerSaveMode > ZM_STA_PS_NONE )
             {
-                /* send queued packets */
+                
                 for(i=0; i<wd->sta.staPSDataCount; i++)
                 {
                     zfTxSendEth(dev, wd->sta.staPSDataQueue[i], 0,
@@ -318,14 +304,14 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
 
             zfPowerSavingMgrPreTBTTInterrupt(dev);
         }
-    } //if (event == 0) //Beacon Event
-    else if (event == 1) //Retry completed event
+    } 
+    else if (event == 1) 
     {
         u32_t retryRate;
 
         retryRate = (u32_t)(rsp[6]) + (((u32_t)(rsp[7]))<<8)
                 + (((u32_t)(rsp[8]))<<16) + (((u32_t)(rsp[9]))<<24);
-        /* Degrade Tx Rate */
+        
         if (wd->wlanMode == ZM_MODE_AP)
         {
             zmw_enter_critical_section(dev);
@@ -345,15 +331,15 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
             }
             zmw_leave_critical_section(dev);
         }
-    } //else if (event == 1) //Retry completed event
-    else if (event == 2) //Tx Fail event
+    } 
+    else if (event == 2) 
     {
         u32_t retryRate;
 
         retryRate = (u32_t)(rsp[6]) + (((u32_t)(rsp[7]))<<8)
                 + (((u32_t)(rsp[8]))<<16) + (((u32_t)(rsp[9]))<<24);
 
-        /* Degrade Tx Rate */
+        
         if (wd->wlanMode == ZM_MODE_AP)
         {
             zmw_enter_critical_section(dev);
@@ -375,15 +361,15 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
             }
             zmw_leave_critical_section(dev);
         }
-    } //else if (event == 2) //Tx Fail event
-    else if (event == 3) //Tx Comp event
+    } 
+    else if (event == 3) 
     {
         u32_t retryRate;
 
         retryRate = (u32_t)(rsp[6]) + (((u32_t)(rsp[7]))<<8)
                 + (((u32_t)(rsp[8]))<<16) + (((u32_t)(rsp[9]))<<24);
 
-        /* TODO : Tx completed, used for rate control probing */
+        
         if (wd->wlanMode == ZM_MODE_AP)
         {
             zmw_enter_critical_section(dev);
@@ -403,8 +389,8 @@ void zfCoreEvent(zdev_t* dev, u16_t event, u8_t* rsp)
             }
             zmw_leave_critical_section(dev);
         }
-    } //else if (event == 3) //Tx Comp event
-    else if (event == 4) //BA failed count
+    } 
+    else if (event == 4) 
     {
         u32_t fail;
         u32_t rate;
@@ -464,18 +450,18 @@ void zfBeaconCfgInterrupt(zdev_t* dev, u8_t* rsp)
 
         wd->sta.beaconTxCnt = txBeaconCounter;
 
-        // Need to check if the time is expired after ATIM window??
+        
 
-        // Check if we have buffered any data for those stations that are sleeping
-        // If it's true, then transmitting ATIM pkt to notify them
+        
+        
 
 #ifdef ZM_ENABLE_IBSS_PS
-        // TODO: Need to check if the station receive our ATIM pkt???
+        
         zfStaIbssPSSend(dev);
 
         if ( wd->sta.atimWindow == 0 )
         {
-            // We won't receive the end of ATIM isr so we fake it
+            
             zfPowerSavingMgrAtimWinExpired(dev);
         }
 #endif
@@ -489,7 +475,7 @@ void zfEndOfAtimWindowInterrupt(zdev_t* dev)
 
     if ( wd->wlanMode == ZM_MODE_IBSS )
     {
-        // Transmit any queued pkt for the stations!!
+        
         zfPowerSavingMgrAtimWinExpired(dev);
     }
 #endif

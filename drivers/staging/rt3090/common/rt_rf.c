@@ -1,59 +1,10 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-	Module Name:
-	rt_rf.c
-
-	Abstract:
-	Ralink Wireless driver RF related functions
-
-	Revision History:
-	Who         When          What
-	--------    ----------    ----------------------------------------------
-*/
 
 #include "../rt_config.h"
 
 
 #ifdef RTMP_RF_RW_SUPPORT
-/*
-	========================================================================
 
-	Routine Description: Write RT30xx RF register through MAC
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NDIS_STATUS RT30xxWriteRFRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			regID,
@@ -89,21 +40,7 @@ NDIS_STATUS RT30xxWriteRFRegister(
 }
 
 
-/*
-	========================================================================
 
-	Routine Description: Read RT30xx RF register through MAC
-
-	Arguments:
-
-	Return Value:
-
-	IRQL =
-
-	Note:
-
-	========================================================================
-*/
 NDIS_STATUS RT30xxReadRFRegister(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			regID,
@@ -177,8 +114,8 @@ if (IS_RT3390(pAd) && (pAd->infType == RTMP_DEV_INF_PCI))
 			pChipOps->AsicRfInit = NICInitRT3390RFRegisters;
 			pChipOps->AsicReverseRfFromSleepMode = RT33xxReverseRFSleepModeSetup;
 		}
-#else // RT33xx //
-	/* We depends on RfICType and MACVersion to assign the corresponding operation callbacks. */
+#else 
+	
 
 #ifdef RT30xx
 	if (IS_RT30xx(pAd))
@@ -192,10 +129,10 @@ if (IS_RT3390(pAd) && (pAd->infType == RTMP_DEV_INF_PCI))
 			pChipOps->AsicRfInit = NICInitRT3090RFRegisters;
 			pChipOps->AsicReverseRfFromSleepMode = RT30xxReverseRFSleepModeSetup;
 		}
-#endif // RT3090 //
+#endif 
 	}
-#endif // RT30xx //
-#endif // RT33xx //
+#endif 
+#endif 
 }
 
-#endif // RTMP_RF_RW_SUPPORT //
+#endif 

@@ -1,29 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
-*/
+
 
 #include <linux/sched.h>
 #include "../rt_config.h"
@@ -120,13 +95,13 @@ INT	Show_CountryCode_Proc(
 INT	Show_PktAggregate_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	OUT	PUCHAR			pBuf);
-#endif // AGGREGATION_SUPPORT //
+#endif 
 
 #ifdef WMM_SUPPORT
 INT	Show_WmmCapable_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	OUT	PUCHAR			pBuf);
-#endif // WMM_SUPPORT //
+#endif 
 
 INT	Show_IEEE80211H_Proc(
 	IN	PRTMP_ADAPTER	pAd,
@@ -214,14 +189,7 @@ static struct {
 	{NULL, NULL}
 };
 
-/*
-    ==========================================================================
-    Description:
-        Get Driver version.
 
-    Return:
-    ==========================================================================
-*/
 INT Set_DriverVersion_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -231,15 +199,7 @@ INT Set_DriverVersion_Proc(
     return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set Country Region.
-        This command will not work, if the field of CountryRegion in eeprom is programmed.
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT Set_CountryRegion_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -248,7 +208,7 @@ INT Set_CountryRegion_Proc(
 
 	region = simple_strtol(arg, 0, 10);
 
-	// Country can be set only when EEPROM not programmed
+	
 	if (pAd->CommonCfg.CountryRegion & 0x80)
 	{
 		DBGPRINT(RT_DEBUG_ERROR, ("Set_CountryRegion_Proc::parameter of CountryRegion in eeprom is programmed \n"));
@@ -269,7 +229,7 @@ INT Set_CountryRegion_Proc(
 		return FALSE;
 	}
 
-	// if set country region, driver needs to be reset
+	
 	BuildChannelList(pAd);
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_CountryRegion_Proc::(CountryRegion=%d)\n", pAd->CommonCfg.CountryRegion));
@@ -277,15 +237,7 @@ INT Set_CountryRegion_Proc(
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set Country Region for A band.
-        This command will not work, if the field of CountryRegion in eeprom is programmed.
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT Set_CountryRegionABand_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -294,7 +246,7 @@ INT Set_CountryRegionABand_Proc(
 
 	region = simple_strtol(arg, 0, 10);
 
-	// Country can be set only when EEPROM not programmed
+	
 	if (pAd->CommonCfg.CountryRegionForABand & 0x80)
 	{
 		DBGPRINT(RT_DEBUG_ERROR, ("Set_CountryRegionABand_Proc::parameter of CountryRegion in eeprom is programmed \n"));
@@ -311,7 +263,7 @@ INT Set_CountryRegionABand_Proc(
 		return FALSE;
 	}
 
-	// if set country region, driver needs to be reset
+	
 	BuildChannelList(pAd);
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_CountryRegionABand_Proc::(CountryRegion=%d)\n", pAd->CommonCfg.CountryRegionForABand));
@@ -319,14 +271,7 @@ INT Set_CountryRegionABand_Proc(
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set Wireless Mode
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_WirelessMode_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -356,12 +301,12 @@ INT	Set_WirelessMode_Proc(
 				pAd->CommonCfg.REGBACapability.field.AutoBA = FALSE;
 			}
 
-			// Set AdhocMode rates
+			
 			if (pAd->StaCfg.BssType == BSS_ADHOC)
 			{
 				MlmeUpdateTxRates(pAd, FALSE, 0);
-				MakeIbssBeacon(pAd);           // re-build BEACON frame
-				AsicEnableIbssSync(pAd);       // copy to on-chip memory
+				MakeIbssBeacon(pAd);           
+				AsicEnableIbssSync(pAd);       
 			}
 		}
 		else
@@ -370,7 +315,7 @@ INT	Set_WirelessMode_Proc(
 		}
 	}
 
-	// it is needed to set SSID to take effect
+	
 	if (success == TRUE)
 	{
 		SetCommonHT(pAd);
@@ -384,14 +329,7 @@ INT	Set_WirelessMode_Proc(
 	return success;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set Channel
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_Channel_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -401,7 +339,7 @@ INT	Set_Channel_Proc(
 
 	Channel = (UCHAR) simple_strtol(arg, 0, 10);
 
-	// check if this channel is valid
+	
 	if (ChannelSanity(pAd, Channel) == TRUE)
 	{
 		{
@@ -441,14 +379,7 @@ INT	Set_Channel_Proc(
 	return success;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set Short Slot Time Enable or Disable
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_ShortSlot_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -462,21 +393,14 @@ INT	Set_ShortSlot_Proc(
 	else if (ShortSlot == 0)
 		pAd->CommonCfg.bUseShortSlotTime = FALSE;
 	else
-		return FALSE;  //Invalid argument
+		return FALSE;  
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_ShortSlot_Proc::(ShortSlot=%d)\n", pAd->CommonCfg.bUseShortSlotTime));
 
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set Tx power
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_TxPower_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -501,30 +425,23 @@ INT	Set_TxPower_Proc(
 	return success;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set 11B/11G Protection
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_BGProtection_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
 {
 	switch (simple_strtol(arg, 0, 10))
 	{
-		case 0: //AUTO
+		case 0: 
 			pAd->CommonCfg.UseBGProtection = 0;
 			break;
-		case 1: //Always On
+		case 1: 
 			pAd->CommonCfg.UseBGProtection = 1;
 			break;
-		case 2: //Always OFF
+		case 2: 
 			pAd->CommonCfg.UseBGProtection = 2;
 			break;
-		default:  //Invalid argument
+		default:  
 			return FALSE;
 	}
 
@@ -534,14 +451,7 @@ INT	Set_BGProtection_Proc(
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set TxPreamble
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_TxPreamble_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -560,13 +470,13 @@ INT	Set_TxPreamble_Proc(
 			break;
 		case Rt802_11PreambleLong:
 		case Rt802_11PreambleAuto:
-			// if user wants AUTO, initialize to LONG here, then change according to AP's
-			// capability upon association.
+			
+			
 			pAd->CommonCfg.TxPreamble = Preamble;
 
 			MlmeSetTxPreamble(pAd, Rt802_11PreambleLong);
 			break;
-		default: //Invalid argument
+		default: 
 			return FALSE;
 	}
 
@@ -575,14 +485,7 @@ INT	Set_TxPreamble_Proc(
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set RTS Threshold
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_RTSThreshold_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -596,21 +499,14 @@ INT	Set_RTSThreshold_Proc(
 	else if (RtsThresh == 0)
 		pAd->CommonCfg.RtsThreshold = MAX_RTS_THRESHOLD;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_RTSThreshold_Proc::(RTSThreshold=%d)\n", pAd->CommonCfg.RtsThreshold));
 
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set Fragment Threshold
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_FragThreshold_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -621,13 +517,13 @@ INT	Set_FragThreshold_Proc(
 
 	if (FragThresh > MAX_FRAG_THRESHOLD || FragThresh < MIN_FRAG_THRESHOLD)
 	{
-		//Illegal FragThresh so we set it to default
+		
 		pAd->CommonCfg.FragmentThreshold = MAX_FRAG_THRESHOLD;
 	}
 	else if (FragThresh % 2 == 1)
 	{
-		// The length of each fragment shall always be an even number of octets, except for the last fragment
-		// of an MSDU or MMPDU, which may be either an even or an odd number of octets.
+		
+		
 		pAd->CommonCfg.FragmentThreshold = (USHORT)(FragThresh - 1);
 	}
 	else
@@ -647,14 +543,7 @@ INT	Set_FragThreshold_Proc(
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Set TxBurst
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_TxBurst_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -667,7 +556,7 @@ INT	Set_TxBurst_Proc(
 	else if (TxBurst == 0)
 		pAd->CommonCfg.bEnableTxBurst = FALSE;
 	else
-		return FALSE;  //Invalid argument
+		return FALSE;  
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_TxBurst_Proc::(TxBurst=%d)\n", pAd->CommonCfg.bEnableTxBurst));
 
@@ -675,14 +564,7 @@ INT	Set_TxBurst_Proc(
 }
 
 #ifdef AGGREGATION_SUPPORT
-/*
-    ==========================================================================
-    Description:
-        Set TxBurst
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_PktAggregate_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -696,7 +578,7 @@ INT	Set_PktAggregate_Proc(
 	else if (aggre == 0)
 		pAd->CommonCfg.bAggregationCapable = FALSE;
 	else
-		return FALSE;  //Invalid argument
+		return FALSE;  
 
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_PktAggregate_Proc::(AGGRE=%d)\n", pAd->CommonCfg.bAggregationCapable));
@@ -705,15 +587,7 @@ INT	Set_PktAggregate_Proc(
 }
 #endif
 
-/*
-    ==========================================================================
-    Description:
-        Set IEEE80211H.
-        This parameter is 1 when needs radar detection, otherwise 0
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_IEEE80211H_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -727,7 +601,7 @@ INT	Set_IEEE80211H_Proc(
 	else if (ieee80211h == 0)
 		pAd->CommonCfg.bIEEE80211H = FALSE;
 	else
-		return FALSE;  //Invalid argument
+		return FALSE;  
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_IEEE80211H_Proc::(IEEE80211H=%d)\n", pAd->CommonCfg.bIEEE80211H));
 
@@ -736,14 +610,7 @@ INT	Set_IEEE80211H_Proc(
 
 
 #ifdef DBG
-/*
-    ==========================================================================
-    Description:
-        For Debug information
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
+
 INT	Set_Debug_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
@@ -794,30 +661,18 @@ INT	Show_DescInfo_Proc(
 	    hex_dump("Rx Descriptor", (char *)pRxD, 16);
 		printk("pRxD->DDONE = %x\n", pRxD->DDONE);
 	}
-#endif /* RT2860 */
+#endif 
 	return TRUE;
 }
 
-/*
-    ==========================================================================
-    Description:
-        Reset statistics counter
 
-    Arguments:
-        pAdapter            Pointer to our adapter
-        arg
-
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
 INT	Set_ResetStatCounter_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PUCHAR			arg)
 {
 	DBGPRINT(RT_DEBUG_TRACE, ("==>Set_ResetStatCounter_Proc\n"));
 
-	// add the most up-to-date h/w raw counters into software counters
+	
 	NICUpdateRawCounters(pAd);
 
 	NdisZeroMemory(&pAd->WlanCounters, sizeof(COUNTER_802_11));
@@ -843,25 +698,7 @@ BOOLEAN RTMPCheckStrPrintAble(
     return TRUE;
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-		Remove WPA Key process
-
-	Arguments:
-		pAd 					Pointer to our adapter
-		pBuf							Pointer to the where the key stored
-
-	Return Value:
-		NDIS_SUCCESS					Add key successfully
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID    RTMPSetDesiredRates(
     IN  PRTMP_ADAPTER   pAdapter,
     IN  LONG            Rates)
@@ -871,128 +708,128 @@ VOID    RTMPSetDesiredRates(
     memset(&aryRates, 0x00, sizeof(NDIS_802_11_RATES));
     switch (pAdapter->CommonCfg.PhyMode)
     {
-        case PHY_11A: // A only
+        case PHY_11A: 
             switch (Rates)
             {
-                case 6000000: //6M
-                    aryRates[0] = 0x0c; // 6M
+                case 6000000: 
+                    aryRates[0] = 0x0c; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_0;
                     break;
-                case 9000000: //9M
-                    aryRates[0] = 0x12; // 9M
+                case 9000000: 
+                    aryRates[0] = 0x12; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_1;
                     break;
-                case 12000000: //12M
-                    aryRates[0] = 0x18; // 12M
+                case 12000000: 
+                    aryRates[0] = 0x18; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_2;
                     break;
-                case 18000000: //18M
-                    aryRates[0] = 0x24; // 18M
+                case 18000000: 
+                    aryRates[0] = 0x24; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_3;
                     break;
-                case 24000000: //24M
-                    aryRates[0] = 0x30; // 24M
+                case 24000000: 
+                    aryRates[0] = 0x30; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_4;
                     break;
-                case 36000000: //36M
-                    aryRates[0] = 0x48; // 36M
+                case 36000000: 
+                    aryRates[0] = 0x48; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_5;
                     break;
-                case 48000000: //48M
-                    aryRates[0] = 0x60; // 48M
+                case 48000000: 
+                    aryRates[0] = 0x60; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_6;
                     break;
-                case 54000000: //54M
-                    aryRates[0] = 0x6c; // 54M
+                case 54000000: 
+                    aryRates[0] = 0x6c; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_7;
                     break;
-                case -1: //Auto
+                case -1: 
                 default:
-                    aryRates[0] = 0x6c; // 54Mbps
-                    aryRates[1] = 0x60; // 48Mbps
-                    aryRates[2] = 0x48; // 36Mbps
-                    aryRates[3] = 0x30; // 24Mbps
-                    aryRates[4] = 0x24; // 18M
-                    aryRates[5] = 0x18; // 12M
-                    aryRates[6] = 0x12; // 9M
-                    aryRates[7] = 0x0c; // 6M
+                    aryRates[0] = 0x6c; 
+                    aryRates[1] = 0x60; 
+                    aryRates[2] = 0x48; 
+                    aryRates[3] = 0x30; 
+                    aryRates[4] = 0x24; 
+                    aryRates[5] = 0x18; 
+                    aryRates[6] = 0x12; 
+                    aryRates[7] = 0x0c; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_AUTO;
                     break;
             }
             break;
-        case PHY_11BG_MIXED: // B/G Mixed
-        case PHY_11B: // B only
-        case PHY_11ABG_MIXED: // A/B/G Mixed
+        case PHY_11BG_MIXED: 
+        case PHY_11B: 
+        case PHY_11ABG_MIXED: 
         default:
             switch (Rates)
             {
-                case 1000000: //1M
+                case 1000000: 
                     aryRates[0] = 0x02;
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_0;
                     break;
-                case 2000000: //2M
+                case 2000000: 
                     aryRates[0] = 0x04;
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_1;
                     break;
-                case 5000000: //5.5M
-                    aryRates[0] = 0x0b; // 5.5M
+                case 5000000: 
+                    aryRates[0] = 0x0b; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_2;
                     break;
-                case 11000000: //11M
-                    aryRates[0] = 0x16; // 11M
+                case 11000000: 
+                    aryRates[0] = 0x16; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_3;
                     break;
-                case 6000000: //6M
-                    aryRates[0] = 0x0c; // 6M
+                case 6000000: 
+                    aryRates[0] = 0x0c; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_0;
                     break;
-                case 9000000: //9M
-                    aryRates[0] = 0x12; // 9M
+                case 9000000: 
+                    aryRates[0] = 0x12; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_1;
                     break;
-                case 12000000: //12M
-                    aryRates[0] = 0x18; // 12M
+                case 12000000: 
+                    aryRates[0] = 0x18; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_2;
                     break;
-                case 18000000: //18M
-                    aryRates[0] = 0x24; // 18M
+                case 18000000: 
+                    aryRates[0] = 0x24; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_3;
                     break;
-                case 24000000: //24M
-                    aryRates[0] = 0x30; // 24M
+                case 24000000: 
+                    aryRates[0] = 0x30; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_4;
                     break;
-                case 36000000: //36M
-                    aryRates[0] = 0x48; // 36M
+                case 36000000: 
+                    aryRates[0] = 0x48; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_5;
                     break;
-                case 48000000: //48M
-                    aryRates[0] = 0x60; // 48M
+                case 48000000: 
+                    aryRates[0] = 0x60; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_6;
                     break;
-                case 54000000: //54M
-                    aryRates[0] = 0x6c; // 54M
+                case 54000000: 
+                    aryRates[0] = 0x6c; 
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_7;
                     break;
-                case -1: //Auto
+                case -1: 
                 default:
                     if (pAdapter->CommonCfg.PhyMode == PHY_11B)
-                    { //B Only
-                        aryRates[0] = 0x16; // 11Mbps
-                        aryRates[1] = 0x0b; // 5.5Mbps
-                        aryRates[2] = 0x04; // 2Mbps
-                        aryRates[3] = 0x02; // 1Mbps
+                    { 
+                        aryRates[0] = 0x16; 
+                        aryRates[1] = 0x0b; 
+                        aryRates[2] = 0x04; 
+                        aryRates[3] = 0x02; 
                     }
                     else
-                    { //(B/G) Mixed or (A/B/G) Mixed
-                        aryRates[0] = 0x6c; // 54Mbps
-                        aryRates[1] = 0x60; // 48Mbps
-                        aryRates[2] = 0x48; // 36Mbps
-                        aryRates[3] = 0x30; // 24Mbps
-                        aryRates[4] = 0x16; // 11Mbps
-                        aryRates[5] = 0x0b; // 5.5Mbps
-                        aryRates[6] = 0x04; // 2Mbps
-                        aryRates[7] = 0x02; // 1Mbps
+                    { 
+                        aryRates[0] = 0x6c; 
+                        aryRates[1] = 0x60; 
+                        aryRates[2] = 0x48; 
+                        aryRates[3] = 0x30; 
+                        aryRates[4] = 0x16; 
+                        aryRates[5] = 0x0b; 
+                        aryRates[6] = 0x04; 
+                        aryRates[7] = 0x02; 
                     }
                     pAdapter->StaCfg.DesiredTransmitSetting.field.MCS = MCS_AUTO;
                     break;
@@ -1007,7 +844,7 @@ VOID    RTMPSetDesiredRates(
         pAdapter->CommonCfg.DesireRate[2],pAdapter->CommonCfg.DesireRate[3],
         pAdapter->CommonCfg.DesireRate[4],pAdapter->CommonCfg.DesireRate[5],
         pAdapter->CommonCfg.DesireRate[6],pAdapter->CommonCfg.DesireRate[7] ));
-    // Changing DesiredRate may affect the MAX TX rate we used to TX frames out
+    
     MlmeUpdateTxRates(pAdapter, FALSE, 0);
 }
 
@@ -1018,35 +855,35 @@ NDIS_STATUS RTMPWPARemoveKeyProc(
 	PNDIS_802_11_REMOVE_KEY pKey;
 	ULONG					KeyIdx;
 	NDIS_STATUS 			Status = NDIS_STATUS_FAILURE;
-	BOOLEAN 	bTxKey; 		// Set the key as transmit key
-	BOOLEAN 	bPairwise;		// Indicate the key is pairwise key
-	BOOLEAN 	bKeyRSC;		// indicate the receive  SC set by KeyRSC value.
-								// Otherwise, it will set by the NIC.
-	BOOLEAN 	bAuthenticator; // indicate key is set by authenticator.
+	BOOLEAN 	bTxKey; 		
+	BOOLEAN 	bPairwise;		
+	BOOLEAN 	bKeyRSC;		
+								
+	BOOLEAN 	bAuthenticator; 
 	INT 		i;
 
 	DBGPRINT(RT_DEBUG_TRACE,("---> RTMPWPARemoveKeyProc\n"));
 
 	pKey = (PNDIS_802_11_REMOVE_KEY) pBuf;
 	KeyIdx = pKey->KeyIndex & 0xff;
-	// Bit 31 of Add-key, Tx Key
+	
 	bTxKey		   = (pKey->KeyIndex & 0x80000000) ? TRUE : FALSE;
-	// Bit 30 of Add-key PairwiseKey
+	
 	bPairwise	   = (pKey->KeyIndex & 0x40000000) ? TRUE : FALSE;
-	// Bit 29 of Add-key KeyRSC
+	
 	bKeyRSC 	   = (pKey->KeyIndex & 0x20000000) ? TRUE : FALSE;
-	// Bit 28 of Add-key Authenticator
+	
 	bAuthenticator = (pKey->KeyIndex & 0x10000000) ? TRUE : FALSE;
 
-	// 1. If bTx is TRUE, return failure information
+	
 	if (bTxKey == TRUE)
 		return(NDIS_STATUS_INVALID_DATA);
 
-	// 2. Check Pairwise Key
+	
 	if (bPairwise)
 	{
-		// a. If BSSID is broadcast, remove all pairwise keys.
-		// b. If not broadcast, remove the pairwise specified by BSSID
+		
+		
 		for (i = 0; i < SHARE_KEY_NUM; i++)
 		{
 			if (MAC_ADDR_EQUAL(pAd->SharedKey[BSS0][i].BssId, pKey->BSSID))
@@ -1060,11 +897,11 @@ NDIS_STATUS RTMPWPARemoveKeyProc(
 			}
 		}
 	}
-	// 3. Group Key
+	
 	else
 	{
-		// a. If BSSID is broadcast, remove all group keys indexed
-		// b. If BSSID matched, delete the group key indexed.
+		
+		
 		DBGPRINT(RT_DEBUG_TRACE,("RTMPWPARemoveKeyProc(KeyIdx=%ld)\n", KeyIdx));
 		pAd->SharedKey[BSS0][KeyIdx].KeyLen = 0;
 		pAd->SharedKey[BSS0][KeyIdx].CipherAlg = CIPHER_NONE;
@@ -1075,24 +912,7 @@ NDIS_STATUS RTMPWPARemoveKeyProc(
 	return (Status);
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-		Remove All WPA Keys
-
-	Arguments:
-		pAd 					Pointer to our adapter
-
-	Return Value:
-		None
-
-	IRQL = DISPATCH_LEVEL
-
-	Note:
-
-	========================================================================
-*/
 VOID	RTMPWPARemoveAllKeys(
 	IN	PRTMP_ADAPTER	pAd)
 {
@@ -1101,20 +921,20 @@ VOID	RTMPWPARemoveAllKeys(
 
 	DBGPRINT(RT_DEBUG_TRACE,("RTMPWPARemoveAllKeys(AuthMode=%d, WepStatus=%d)\n", pAd->StaCfg.AuthMode, pAd->StaCfg.WepStatus));
 
-	// For WEP/CKIP, there is no need to remove it, since WinXP won't set it again after
-	// Link up. And it will be replaced if user changed it.
+	
+	
 	if (pAd->StaCfg.AuthMode < Ndis802_11AuthModeWPA)
 		return;
 
-	// For WPA-None, there is no need to remove it, since WinXP won't set it again after
-	// Link up. And it will be replaced if user changed it.
+	
+	
 	if (pAd->StaCfg.AuthMode == Ndis802_11AuthModeWPANone)
 		return;
 
-	// set BSSID wcid entry of the Pair-wise Key table as no-security mode
+	
 	AsicRemovePairwiseKeyEntry(pAd, BSS0, BSSID_WCID);
 
-	// set all shared key mode as no-security.
+	
 	for (i = 0; i < SHARE_KEY_NUM; i++)
     {
 		DBGPRINT(RT_DEBUG_TRACE,("remove %s key #%d\n", CipherName[pAd->SharedKey[BSS0][i].CipherAlg], i));
@@ -1125,27 +945,13 @@ VOID	RTMPWPARemoveAllKeys(
 
 }
 
-/*
-	========================================================================
-	Routine Description:
-		Change NIC PHY mode. Re-association may be necessary. possible settings
-		include - PHY_11B, PHY_11BG_MIXED, PHY_11A, and PHY_11ABG_MIXED
 
-	Arguments:
-		pAd - Pointer to our adapter
-		phymode  -
-
-	IRQL = PASSIVE_LEVEL
-	IRQL = DISPATCH_LEVEL
-
-	========================================================================
-*/
 VOID	RTMPSetPhyMode(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	ULONG phymode)
 {
 	INT i;
-	// the selected phymode must be supported by the RF IC encoded in E2PROM
+	
 
 	pAd->CommonCfg.PhyMode = (UCHAR)phymode;
 
@@ -1153,7 +959,7 @@ VOID	RTMPSetPhyMode(
 
 	BuildChannelList(pAd);
 
-	// sanity check user setting
+	
 	for (i = 0; i < pAd->ChannelListNum; i++)
 	{
 		if (pAd->CommonCfg.Channel == pAd->ChannelList[i].Channel)
@@ -1171,17 +977,17 @@ VOID	RTMPSetPhyMode(
 	NdisZeroMemory(pAd->CommonCfg.DesireRate, MAX_LEN_OF_SUPPORTED_RATES);
 	switch (phymode) {
 		case PHY_11B:
-			pAd->CommonCfg.SupRate[0]  = 0x82;	  // 1 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[1]  = 0x84;	  // 2 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[2]  = 0x8B;	  // 5.5 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[3]  = 0x96;	  // 11 mbps, in units of 0.5 Mbps, basic rate
+			pAd->CommonCfg.SupRate[0]  = 0x82;	  
+			pAd->CommonCfg.SupRate[1]  = 0x84;	  
+			pAd->CommonCfg.SupRate[2]  = 0x8B;	  
+			pAd->CommonCfg.SupRate[3]  = 0x96;	  
 			pAd->CommonCfg.SupRateLen  = 4;
 			pAd->CommonCfg.ExtRateLen  = 0;
-			pAd->CommonCfg.DesireRate[0]  = 2;	   // 1 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[1]  = 4;	   // 2 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[2]  = 11;    // 5.5 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[3]  = 22;    // 11 mbps, in units of 0.5 Mbps
-			//pAd->CommonCfg.HTPhyMode.field.MODE = MODE_CCK; // This MODE is only FYI. not use
+			pAd->CommonCfg.DesireRate[0]  = 2;	   
+			pAd->CommonCfg.DesireRate[1]  = 4;	   
+			pAd->CommonCfg.DesireRate[2]  = 11;    
+			pAd->CommonCfg.DesireRate[3]  = 22;    
+			
 			break;
 
 		case PHY_11G:
@@ -1191,57 +997,57 @@ VOID	RTMPSetPhyMode(
 		case PHY_11ABGN_MIXED:
 		case PHY_11BGN_MIXED:
 		case PHY_11GN_MIXED:
-			pAd->CommonCfg.SupRate[0]  = 0x82;	  // 1 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[1]  = 0x84;	  // 2 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[2]  = 0x8B;	  // 5.5 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[3]  = 0x96;	  // 11 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[4]  = 0x12;	  // 9 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.SupRate[5]  = 0x24;	  // 18 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.SupRate[6]  = 0x48;	  // 36 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.SupRate[7]  = 0x6c;	  // 54 mbps, in units of 0.5 Mbps
+			pAd->CommonCfg.SupRate[0]  = 0x82;	  
+			pAd->CommonCfg.SupRate[1]  = 0x84;	  
+			pAd->CommonCfg.SupRate[2]  = 0x8B;	  
+			pAd->CommonCfg.SupRate[3]  = 0x96;	  
+			pAd->CommonCfg.SupRate[4]  = 0x12;	  
+			pAd->CommonCfg.SupRate[5]  = 0x24;	  
+			pAd->CommonCfg.SupRate[6]  = 0x48;	  
+			pAd->CommonCfg.SupRate[7]  = 0x6c;	  
 			pAd->CommonCfg.SupRateLen  = 8;
-			pAd->CommonCfg.ExtRate[0]  = 0x0C;	  // 6 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.ExtRate[1]  = 0x18;	  // 12 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.ExtRate[2]  = 0x30;	  // 24 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.ExtRate[3]  = 0x60;	  // 48 mbps, in units of 0.5 Mbps
+			pAd->CommonCfg.ExtRate[0]  = 0x0C;	  
+			pAd->CommonCfg.ExtRate[1]  = 0x18;	  
+			pAd->CommonCfg.ExtRate[2]  = 0x30;	  
+			pAd->CommonCfg.ExtRate[3]  = 0x60;	  
 			pAd->CommonCfg.ExtRateLen  = 4;
-			pAd->CommonCfg.DesireRate[0]  = 2;	   // 1 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[1]  = 4;	   // 2 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[2]  = 11;    // 5.5 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[3]  = 22;    // 11 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[4]  = 12;    // 6 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[5]  = 18;    // 9 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[6]  = 24;    // 12 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[7]  = 36;    // 18 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[8]  = 48;    // 24 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[9]  = 72;    // 36 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[10] = 96;    // 48 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[11] = 108;   // 54 mbps, in units of 0.5 Mbps
+			pAd->CommonCfg.DesireRate[0]  = 2;	   
+			pAd->CommonCfg.DesireRate[1]  = 4;	   
+			pAd->CommonCfg.DesireRate[2]  = 11;    
+			pAd->CommonCfg.DesireRate[3]  = 22;    
+			pAd->CommonCfg.DesireRate[4]  = 12;    
+			pAd->CommonCfg.DesireRate[5]  = 18;    
+			pAd->CommonCfg.DesireRate[6]  = 24;    
+			pAd->CommonCfg.DesireRate[7]  = 36;    
+			pAd->CommonCfg.DesireRate[8]  = 48;    
+			pAd->CommonCfg.DesireRate[9]  = 72;    
+			pAd->CommonCfg.DesireRate[10] = 96;    
+			pAd->CommonCfg.DesireRate[11] = 108;   
 			break;
 
 		case PHY_11A:
 		case PHY_11AN_MIXED:
 		case PHY_11AGN_MIXED:
 		case PHY_11N_5G:
-			pAd->CommonCfg.SupRate[0]  = 0x8C;	  // 6 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[1]  = 0x12;	  // 9 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.SupRate[2]  = 0x98;	  // 12 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[3]  = 0x24;	  // 18 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.SupRate[4]  = 0xb0;	  // 24 mbps, in units of 0.5 Mbps, basic rate
-			pAd->CommonCfg.SupRate[5]  = 0x48;	  // 36 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.SupRate[6]  = 0x60;	  // 48 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.SupRate[7]  = 0x6c;	  // 54 mbps, in units of 0.5 Mbps
+			pAd->CommonCfg.SupRate[0]  = 0x8C;	  
+			pAd->CommonCfg.SupRate[1]  = 0x12;	  
+			pAd->CommonCfg.SupRate[2]  = 0x98;	  
+			pAd->CommonCfg.SupRate[3]  = 0x24;	  
+			pAd->CommonCfg.SupRate[4]  = 0xb0;	  
+			pAd->CommonCfg.SupRate[5]  = 0x48;	  
+			pAd->CommonCfg.SupRate[6]  = 0x60;	  
+			pAd->CommonCfg.SupRate[7]  = 0x6c;	  
 			pAd->CommonCfg.SupRateLen  = 8;
 			pAd->CommonCfg.ExtRateLen  = 0;
-			pAd->CommonCfg.DesireRate[0]  = 12;    // 6 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[1]  = 18;    // 9 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[2]  = 24;    // 12 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[3]  = 36;    // 18 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[4]  = 48;    // 24 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[5]  = 72;    // 36 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[6]  = 96;    // 48 mbps, in units of 0.5 Mbps
-			pAd->CommonCfg.DesireRate[7]  = 108;   // 54 mbps, in units of 0.5 Mbps
-			//pAd->CommonCfg.HTPhyMode.field.MODE = MODE_OFDM; // This MODE is only FYI. not use
+			pAd->CommonCfg.DesireRate[0]  = 12;    
+			pAd->CommonCfg.DesireRate[1]  = 18;    
+			pAd->CommonCfg.DesireRate[2]  = 24;    
+			pAd->CommonCfg.DesireRate[3]  = 36;    
+			pAd->CommonCfg.DesireRate[4]  = 48;    
+			pAd->CommonCfg.DesireRate[5]  = 72;    
+			pAd->CommonCfg.DesireRate[6]  = 96;    
+			pAd->CommonCfg.DesireRate[7]  = 108;   
+			
 			break;
 
 		default:
@@ -1252,23 +1058,12 @@ VOID	RTMPSetPhyMode(
 	pAd->CommonCfg.BandState = UNKNOWN_BAND;
 }
 
-/*
-	========================================================================
-	Routine Description:
-		Caller ensures we has 802.11n support.
-		Calls at setting HT from AP/STASetinformation
 
-	Arguments:
-		pAd - Pointer to our adapter
-		phymode  -
-
-	========================================================================
-*/
 VOID	RTMPSetHT(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	OID_SET_HT_PHYMODE *pHTPhyMode)
 {
-	//ULONG	*pmcs;
+	
 	UINT32	Value = 0;
 	UCHAR	BBPValue = 0;
 	UCHAR	BBP3Value = 0;
@@ -1279,7 +1074,7 @@ VOID	RTMPSetHT(
 										pHTPhyMode->MCS, pHTPhyMode->BW,
 										pHTPhyMode->STBC, pHTPhyMode->SHORTGI));
 
-	// Don't zero supportedHyPhy structure.
+	
 	RTMPZeroMemory(&pAd->CommonCfg.HtCapability, sizeof(pAd->CommonCfg.HtCapability));
 	RTMPZeroMemory(&pAd->CommonCfg.AddHTInfo, sizeof(pAd->CommonCfg.AddHTInfo));
 	RTMPZeroMemory(&pAd->CommonCfg.NewExtChanOffset, sizeof(pAd->CommonCfg.NewExtChanOffset));
@@ -1301,7 +1096,7 @@ VOID	RTMPSetHT(
 
 	DBGPRINT(RT_DEBUG_TRACE, ("RTMPSetHT : RxBAWinLimit = %d\n", pAd->CommonCfg.BACapability.field.RxBAWinLimit));
 
-	// Mimo power save, A-MSDU size,
+	
 	pAd->CommonCfg.DesiredHtPhy.AmsduEnable = (USHORT)pAd->CommonCfg.BACapability.field.AmsduEnable;
 	pAd->CommonCfg.DesiredHtPhy.AmsduSize = (UCHAR)pAd->CommonCfg.BACapability.field.AmsduSize;
 	pAd->CommonCfg.DesiredHtPhy.MimoPs = (UCHAR)pAd->CommonCfg.BACapability.field.MMPSmode;
@@ -1325,7 +1120,7 @@ VOID	RTMPSetHT(
 	else
 		pAd->CommonCfg.DesiredHtPhy.GF = 0;
 
-	// Decide Rx MCSSet
+	
 	switch (RxStream)
 	{
 		case 1:
@@ -1338,7 +1133,7 @@ VOID	RTMPSetHT(
 			pAd->CommonCfg.HtCapability.MCSSet[1] =  0xff;
 			break;
 
-		case 3: // 3*3
+		case 3: 
 			pAd->CommonCfg.HtCapability.MCSSet[0] =  0xff;
 			pAd->CommonCfg.HtCapability.MCSSet[1] =  0xff;
 			pAd->CommonCfg.HtCapability.MCSSet[2] =  0xff;
@@ -1353,7 +1148,7 @@ VOID	RTMPSetHT(
 
 	if(pHTPhyMode->BW == BW_40)
 	{
-		pAd->CommonCfg.HtCapability.MCSSet[4] = 0x1; // MCS 32
+		pAd->CommonCfg.HtCapability.MCSSet[4] = 0x1; 
 		pAd->CommonCfg.HtCapability.HtCapInfo.ChannelWidth = 1;
 		if (pAd->CommonCfg.Channel <= 14)
 			pAd->CommonCfg.HtCapability.HtCapInfo.CCKmodein40 = 1;
@@ -1361,7 +1156,7 @@ VOID	RTMPSetHT(
 		pAd->CommonCfg.DesiredHtPhy.ChannelWidth = 1;
 		pAd->CommonCfg.AddHTInfo.AddHtInfo.RecomWidth = 1;
 		pAd->CommonCfg.AddHTInfo.AddHtInfo.ExtChanOffset = (pHTPhyMode->ExtOffset == EXTCHA_BELOW)? (EXTCHA_BELOW): EXTCHA_ABOVE;
-		// Set Regsiter for extension channel position.
+		
 		RTMP_IO_READ32(pAd, TX_BAND_CFG, &Value);
 		RTMP_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R3, &BBP3Value);
 		if ((pHTPhyMode->ExtOffset == EXTCHA_BELOW))
@@ -1377,8 +1172,8 @@ VOID	RTMPSetHT(
 			RTMP_IO_WRITE32(pAd, TX_BAND_CFG, Value);
 		}
 
-		// Turn on BBP 40MHz mode now only as AP .
-		// Sta can turn on BBP 40MHz after connection with 40MHz AP. Sta only broadcast 40MHz capability before connection.
+		
+		
 		if ((pAd->OpMode == OPMODE_AP) || INFRA_ON(pAd) || ADHOC_ON(pAd)
 			)
 		{
@@ -1398,7 +1193,7 @@ VOID	RTMPSetHT(
 		pAd->CommonCfg.AddHTInfo.AddHtInfo.RecomWidth = 0;
 		pAd->CommonCfg.AddHTInfo.AddHtInfo.ExtChanOffset = EXTCHA_NONE;
 		pAd->CommonCfg.CentralChannel = pAd->CommonCfg.Channel;
-		// Turn on BBP 20MHz mode by request here.
+		
 		{
 			RTMP_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R4, &BBPValue);
 			BBPValue &= (~0x18);
@@ -1435,12 +1230,12 @@ VOID	RTMPSetHT(
 		pAd->CommonCfg.DesiredHtPhy.ShortGIfor40 = 0;
 	}
 
-	// We support link adaptation for unsolicit MCS feedback, set to 2.
-	pAd->CommonCfg.HtCapability.ExtHtCapInfo.MCSFeedback = MCSFBK_NONE; //MCSFBK_UNSOLICIT;
+	
+	pAd->CommonCfg.HtCapability.ExtHtCapInfo.MCSFeedback = MCSFBK_NONE; 
 	pAd->CommonCfg.AddHTInfo.ControlChan = pAd->CommonCfg.Channel;
-	// 1, the extension channel above the control channel.
+	
 
-	// EDCA parameters used for AP's own transmission
+	
 	if (pAd->CommonCfg.APEdcaParm.bValid == FALSE)
 	{
 		pAd->CommonCfg.APEdcaParm.bValid = TRUE;
@@ -1469,18 +1264,7 @@ VOID	RTMPSetHT(
 	RTMPSetIndividualHT(pAd, 0);
 }
 
-/*
-	========================================================================
-	Routine Description:
-		Caller ensures we has 802.11n support.
-		Calls at setting HT from AP/STASetinformation
 
-	Arguments:
-		pAd - Pointer to our adapter
-		phymode  -
-
-	========================================================================
-*/
 VOID	RTMPSetIndividualHT(
 	IN	PRTMP_ADAPTER		pAd,
 	IN	UCHAR				apidx)
@@ -1494,7 +1278,7 @@ VOID	RTMPSetIndividualHT(
 		{
 			pDesired_ht_phy = &pAd->StaCfg.DesiredHtPhyInfo;
 			DesiredMcs = pAd->StaCfg.DesiredTransmitSetting.field.MCS;
-			//pAd->StaCfg.bAutoTxRateSwitch = (DesiredMcs == MCS_AUTO) ? TRUE : FALSE;
+			
 				break;
 		}
 	} while (FALSE);
@@ -1507,7 +1291,7 @@ VOID	RTMPSetIndividualHT(
 	RTMPZeroMemory(pDesired_ht_phy, sizeof(RT_HT_PHY_INFO));
 
 	DBGPRINT(RT_DEBUG_TRACE, ("RTMPSetIndividualHT : Desired MCS = %d\n", DesiredMcs));
-	// Check the validity of MCS
+	
 	if ((TxStream == 1) && ((DesiredMcs >= MCS_8) && (DesiredMcs <= MCS_15)))
 	{
 		DBGPRINT(RT_DEBUG_WARN, ("RTMPSetIndividualHT: MCS(%d) is invalid in 1S, reset it as MCS_7\n", DesiredMcs));
@@ -1522,7 +1306,7 @@ VOID	RTMPSetIndividualHT(
 
 	pDesired_ht_phy->bHtEnable = TRUE;
 
-	// Decide desired Tx MCS
+	
 	switch (TxStream)
 	{
 		case 1:
@@ -1554,10 +1338,10 @@ VOID	RTMPSetIndividualHT(
 			}
 			break;
 
-		case 3: // 3*3
+		case 3: 
 			if (DesiredMcs == MCS_AUTO)
 			{
-				/* MCS0 ~ MCS23, 3 bytes */
+				
 				pDesired_ht_phy->MCSSet[0]= 0xff;
 				pDesired_ht_phy->MCSSet[1]= 0xff;
 				pDesired_ht_phy->MCSSet[2]= 0xff;
@@ -1579,7 +1363,7 @@ VOID	RTMPSetIndividualHT(
 			pDesired_ht_phy->MCSSet[4] = 0x1;
 	}
 
-	// update HT Rate setting
+	
     if (pAd->OpMode == OPMODE_STA)
         MlmeUpdateHtTxRates(pAd, BSS0);
     else
@@ -1587,17 +1371,7 @@ VOID	RTMPSetIndividualHT(
 }
 
 
-/*
-	========================================================================
-	Routine Description:
-		Update HT IE from our capability.
 
-	Arguments:
-		Send all HT IE in beacon/probe rsp/assoc rsp/action frame.
-
-
-	========================================================================
-*/
 VOID	RTMPUpdateHTIE(
 	IN	RT_HT_CAPABILITY	*pRtHt,
 	IN		UCHAR				*pMcsSet,
@@ -1622,18 +1396,12 @@ VOID	RTMPUpdateHTIE(
 		pAddHtInfo->AddHtInfo.RecomWidth = pRtHt->RecomWidth;
 		pAddHtInfo->AddHtInfo2.OperaionMode = pRtHt->OperaionMode;
 		pAddHtInfo->AddHtInfo2.NonGfPresent = pRtHt->NonGfPresent;
-		RTMPMoveMemory(pAddHtInfo->MCSSet, /*pRtHt->MCSSet*/pMcsSet, 4); // rt2860 only support MCS max=32, no need to copy all 16 uchar.
+		RTMPMoveMemory(pAddHtInfo->MCSSet, pMcsSet, 4); 
 
         DBGPRINT(RT_DEBUG_TRACE,("RTMPUpdateHTIE <== \n"));
 }
 
-/*
-	========================================================================
-	Description:
-		Add Client security information into ASIC WCID table and IVEIV table.
-    Return:
-	========================================================================
-*/
+
 VOID	RTMPAddWcidAttributeEntry(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	UCHAR			BssIdx,
@@ -1654,9 +1422,9 @@ VOID	RTMPAddWcidAttributeEntry(
 				return;
 			}
 
-			// 1.	In ADHOC mode, the AID is wcid number. And NO mesh link exists.
-			// 2.	In Infra mode, the AID:1 MUST be wcid of infra STA.
-			//					   the AID:2~ assign to mesh link entry.
+			
+			
+			
 			if (pEntry && ADHOC_ON(pAd))
 				Wcid = pEntry->Aid;
 			else if (pEntry && INFRA_ON(pAd))
@@ -1668,7 +1436,7 @@ VOID	RTMPAddWcidAttributeEntry(
 		}
 	}
 
-	// Update WCID attribute table
+	
 	offset = MAC_WCID_ATTRIBUTE_BASE + (Wcid * HW_WCID_ATTRI_SIZE);
 
 	{
@@ -1681,48 +1449,35 @@ VOID	RTMPAddWcidAttributeEntry(
 	RTMP_IO_WRITE32(pAd, offset, WCIDAttri);
 
 
-	// Update IV/EIV table
+	
 	offset = MAC_IVEIV_TABLE_BASE + (Wcid * HW_IVEIV_ENTRY_SIZE);
 
-	// WPA mode
+	
 	if ((CipherAlg == CIPHER_TKIP) || (CipherAlg == CIPHER_TKIP_NO_MIC) || (CipherAlg == CIPHER_AES))
 	{
-		// Eiv bit on. keyid always is 0 for pairwise key
+		
 		IVEIV = (KeyIdx <<6) | 0x20;
 	}
 	else
 	{
-		// WEP KeyIdx is default tx key.
+		
 		IVEIV = (KeyIdx << 6);
 	}
 
-	// For key index and ext IV bit, so only need to update the position(offset+3).
+	
 #ifdef RT2860
 	RTMP_IO_WRITE8(pAd, offset+3, IVEIV);
 #endif
 #ifdef RT2870
 	RTUSBMultiWrite_OneByte(pAd, offset+3, &IVEIV);
-#endif // RT2870 //
+#endif 
 
 	DBGPRINT(RT_DEBUG_TRACE,("RTMPAddWcidAttributeEntry: WCID #%d, KeyIndex #%d, Alg=%s\n",Wcid, KeyIdx, CipherName[CipherAlg]));
 	DBGPRINT(RT_DEBUG_TRACE,("	WCIDAttri = 0x%x \n",  WCIDAttri));
 
 }
 
-/*
-    ==========================================================================
-    Description:
-        Parse encryption type
-Arguments:
-    pAdapter                    Pointer to our adapter
-    wrq                         Pointer to the ioctl argument
 
-    Return Value:
-        None
-
-    Note:
-    ==========================================================================
-*/
 CHAR *GetEncryptType(CHAR enc)
 {
     if(enc == Ndis802_11WEPDisabled)
@@ -1765,25 +1520,8 @@ CHAR *GetAuthMode(CHAR auth)
     	return "UNKNOW";
 }
 
-/*
-    ==========================================================================
-    Description:
-        Get site survey results
-	Arguments:
-	    pAdapter                    Pointer to our adapter
-	    wrq                         Pointer to the ioctl argument
 
-    Return Value:
-        None
-
-    Note:
-        Usage:
-        		1.) UI needs to wait 4 seconds after issue a site survey command
-        		2.) iwpriv ra0 get_site_survey
-        		3.) UI needs to prepare at least 4096bytes to get the results
-    ==========================================================================
-*/
-#define	LINE_LEN	(4+33+20+8+10+9+7+3)	// Channel+SSID+Bssid+WepStatus+AuthMode+Signal+WiressMode+NetworkType
+#define	LINE_LEN	(4+33+20+8+10+9+7+3)	
 VOID RTMPIoctlGetSiteSurvey(
 	IN	PRTMP_ADAPTER	pAdapter,
 	IN	struct iwreq	*wrq)
@@ -1825,13 +1563,13 @@ VOID RTMPIoctlGetSiteSurvey(
 		if((strlen(msg)+max_len ) >= IW_SCAN_MAX_DATA)
 			break;
 
-		//Channel
+		
 		sprintf(msg+strlen(msg),"%-4d", pAdapter->ScanTab.BssEntry[i].Channel);
-		//SSID
+		
 		memcpy(Ssid, pAdapter->ScanTab.BssEntry[i].Ssid, pAdapter->ScanTab.BssEntry[i].SsidLen);
 		Ssid[pAdapter->ScanTab.BssEntry[i].SsidLen] = '\0';
 		sprintf(msg+strlen(msg),"%-33s", Ssid);
-		//BSSID
+		
 		sprintf(msg+strlen(msg),"%02x:%02x:%02x:%02x:%02x:%02x   ",
 			pAdapter->ScanTab.BssEntry[i].Bssid[0],
 			pAdapter->ScanTab.BssEntry[i].Bssid[1],
@@ -1839,25 +1577,25 @@ VOID RTMPIoctlGetSiteSurvey(
 			pAdapter->ScanTab.BssEntry[i].Bssid[3],
 			pAdapter->ScanTab.BssEntry[i].Bssid[4],
 			pAdapter->ScanTab.BssEntry[i].Bssid[5]);
-		//Encryption Type
+		
 		sprintf(msg+strlen(msg),"%-8s",GetEncryptType(pAdapter->ScanTab.BssEntry[i].WepStatus));
-		//Authentication Mode
+		
 		if (pAdapter->ScanTab.BssEntry[i].WepStatus == Ndis802_11WEPEnabled)
 			sprintf(msg+strlen(msg),"%-10s", "UNKNOW");
 		else
 			sprintf(msg+strlen(msg),"%-10s",GetAuthMode(pAdapter->ScanTab.BssEntry[i].AuthMode));
-		// Rssi
+		
 		Rssi = (INT)pAdapter->ScanTab.BssEntry[i].Rssi;
 		if (Rssi >= -50)
 			Rssi_Quality = 100;
-		else if (Rssi >= -80)    // between -50 ~ -80dbm
+		else if (Rssi >= -80)    
 			Rssi_Quality = (UINT)(24 + ((Rssi + 80) * 26)/10);
-		else if (Rssi >= -90)   // between -80 ~ -90dbm
+		else if (Rssi >= -90)   
 			Rssi_Quality = (UINT)(((Rssi + 90) * 26)/10);
-		else    // < -84 dbm
+		else    
 			Rssi_Quality = 0;
 		sprintf(msg+strlen(msg),"%-9d", Rssi_Quality);
-		// Wireless Mode
+		
 		wireless_mode = NetworkTypeInUseSanity(&pAdapter->ScanTab.BssEntry[i]);
 		if (wireless_mode == Ndis802_11FH ||
 			wireless_mode == Ndis802_11DS)
@@ -1872,7 +1610,7 @@ VOID RTMPIoctlGetSiteSurvey(
 			sprintf(msg+strlen(msg),"%-7s", "11b/g/n");
 		else
 			sprintf(msg+strlen(msg),"%-7s", "unknow");
-		//Network Type
+		
 		if (pAdapter->ScanTab.BssEntry[i].BssType == BSS_ADHOC)
 			sprintf(msg+strlen(msg),"%-3s", " Ad");
 		else
@@ -1890,7 +1628,7 @@ VOID RTMPIoctlGetSiteSurvey(
 }
 
 
-#define	MAC_LINE_LEN	(14+4+4+10+10+10+6+6)	// Addr+aid+psm+datatime+rxbyte+txbyte+current tx rate+last tx rate
+#define	MAC_LINE_LEN	(14+4+4+10+10+10+6+6)	
 VOID RTMPIoctlGetMacTable(
 	IN PRTMP_ADAPTER pAd,
 	IN struct iwreq *wrq)
@@ -1909,12 +1647,12 @@ VOID RTMPIoctlGetMacTable(
 			MacTab.Entry[MacTab.Num].Psm = pAd->MacTab.Content[i].PsMode;
 			MacTab.Entry[MacTab.Num].MimoPs = pAd->MacTab.Content[i].MmpsMode;
 
-			// Fill in RSSI per entry
+			
 			MacTab.Entry[MacTab.Num].AvgRssi0 = pAd->MacTab.Content[i].RssiSample.AvgRssi0;
 			MacTab.Entry[MacTab.Num].AvgRssi1 = pAd->MacTab.Content[i].RssiSample.AvgRssi1;
 			MacTab.Entry[MacTab.Num].AvgRssi2 = pAd->MacTab.Content[i].RssiSample.AvgRssi2;
 
-			// the connected time per entry
+			
 			MacTab.Entry[MacTab.Num].ConnectedTime = pAd->MacTab.Content[i].StaConnectTime;
 			MacTab.Entry[MacTab.Num].TxRate.field.MCS = pAd->MacTab.Content[i].HTPhyMode.field.MCS;
 			MacTab.Entry[MacTab.Num].TxRate.field.BW = pAd->MacTab.Content[i].HTPhyMode.field.BW;
@@ -1951,16 +1689,16 @@ VOID RTMPIoctlGetMacTable(
 				pEntry->Addr[3], pEntry->Addr[4], pEntry->Addr[5]);
 			sprintf(msg+strlen(msg),"%-4d", (int)pEntry->Aid);
 			sprintf(msg+strlen(msg),"%-4d", (int)pEntry->PsMode);
-			sprintf(msg+strlen(msg),"%-10d",0/*pAd->MacTab.Content[i].HSCounter.LastDataPacketTime*/); // ToDo
-			sprintf(msg+strlen(msg),"%-10d",0/*pAd->MacTab.Content[i].HSCounter.TotalRxByteCount*/); // ToDo
-			sprintf(msg+strlen(msg),"%-10d",0/*pAd->MacTab.Content[i].HSCounter.TotalTxByteCount*/); // ToDo
+			sprintf(msg+strlen(msg),"%-10d",0); 
+			sprintf(msg+strlen(msg),"%-10d",0); 
+			sprintf(msg+strlen(msg),"%-10d",0); 
 			sprintf(msg+strlen(msg),"%-6d",RateIdToMbps[pAd->MacTab.Content[i].CurrTxRate]);
-			sprintf(msg+strlen(msg),"%-6d\n",0/*RateIdToMbps[pAd->MacTab.Content[i].LastTxRate]*/); // ToDo
+			sprintf(msg+strlen(msg),"%-6d\n",0); 
 		}
 	}
-	// for compatible with old API just do the printk to console
-	//wrq->u.data.length = strlen(msg);
-	//if (copy_to_user(wrq->u.data.pointer, msg, wrq->u.data.length))
+	
+	
+	
 	{
 		DBGPRINT(RT_DEBUG_TRACE, ("%s", msg));
 	}
@@ -1977,13 +1715,9 @@ INT	Set_BASetup_Proc(
 	INT i;
     MAC_TABLE_ENTRY *pEntry;
 
-/*
-	The BASetup inupt string format should be xx:xx:xx:xx:xx:xx-d,
-		=>The six 2 digit hex-decimal number previous are the Mac address,
-		=>The seventh decimal number is the tid value.
-*/
 
-	if(strlen(arg) < 19)  //Mac address acceptable format 01:02:03:04:05:06 length 17 plus the "-" and tid value in decimal format.
+
+	if(strlen(arg) < 19)  
 		return FALSE;
 
 	token = strchr(arg, DASH);
@@ -2038,7 +1772,7 @@ INT	Set_BADecline_Proc(
 	}
 	else
 	{
-		return FALSE; //Invalid argument
+		return FALSE; 
 	}
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_BADecline_Proc::(BADecline=%d)\n", pAd->CommonCfg.bBADecline));
@@ -2055,12 +1789,8 @@ INT	Set_BAOriTearDown_Proc(
 	INT i;
     MAC_TABLE_ENTRY *pEntry;
 
-/*
-	The BAOriTearDown inupt string format should be xx:xx:xx:xx:xx:xx-d,
-		=>The six 2 digit hex-decimal number previous are the Mac address,
-		=>The seventh decimal number is the tid value.
-*/
-    if(strlen(arg) < 19)  //Mac address acceptable format 01:02:03:04:05:06 length 17 plus the "-" and tid value in decimal format.
+
+    if(strlen(arg) < 19)  
 		return FALSE;
 
 	token = strchr(arg, DASH);
@@ -2106,13 +1836,9 @@ INT	Set_BARecTearDown_Proc(
 	INT i;
     MAC_TABLE_ENTRY *pEntry;
 
-    //printk("\n%s\n", arg);
-/*
-	The BARecTearDown inupt string format should be xx:xx:xx:xx:xx:xx-d,
-		=>The six 2 digit hex-decimal number previous are the Mac address,
-		=>The seventh decimal number is the tid value.
-*/
-    if(strlen(arg) < 19)  //Mac address acceptable format 01:02:03:04:05:06 length 17 plus the "-" and tid value in decimal format.
+    
+
+    if(strlen(arg) < 19)  
 		return FALSE;
 
 	token = strchr(arg, DASH);
@@ -2161,7 +1887,7 @@ INT	Set_HtBw_Proc(
 	else if (HtBw == BW_20)
 		pAd->CommonCfg.RegTransmitSetting.field.BW  = BW_20;
 	else
-		return FALSE;  //Invalid argument
+		return FALSE;  
 
 	SetCommonHT(pAd);
 
@@ -2237,7 +1963,7 @@ INT	Set_HtGi_Proc(
 	else if ( HtGi == GI_800 )
 		pAd->CommonCfg.RegTransmitSetting.field.ShortGI = GI_800;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2280,7 +2006,7 @@ INT	Set_HtOpMode_Proc(
 	else if ( Value == HTMODE_MM )
 		pAd->CommonCfg.RegTransmitSetting.field.HTMODE  = HTMODE_MM;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2304,7 +2030,7 @@ INT	Set_HtStbc_Proc(
 	else if ( Value == STBC_NONE )
 		pAd->CommonCfg.RegTransmitSetting.field.STBC = STBC_NONE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2326,7 +2052,7 @@ INT	Set_HtHtc_Proc(
 	else if ( Value ==1 )
         	pAd->HTCEnable = TRUE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_HtHtc_Proc::(HtHtc=%d)\n",pAd->HTCEnable));
 
@@ -2347,7 +2073,7 @@ INT	Set_HtExtcha_Proc(
 	else if ( Value ==1 )
         pAd->CommonCfg.RegTransmitSetting.field.EXTCHA = EXTCHA_ABOVE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2419,7 +2145,7 @@ INT	Set_HtRdg_Proc(
         	pAd->CommonCfg.bRdg = TRUE;
 	}
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2443,7 +2169,7 @@ INT	Set_HtLinkAdapt_Proc(
 			pAd->bLinkAdapt = TRUE;
 	}
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_HtLinkAdapt_Proc::(HtLinkAdapt=%d)\n",pAd->bLinkAdapt));
 
@@ -2462,7 +2188,7 @@ INT	Set_HtAmsdu_Proc(
 	else if ( Value == 1 )
         pAd->CommonCfg.BACapability.field.AmsduEnable = TRUE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2489,7 +2215,7 @@ INT	Set_HtAutoBa_Proc(
 		pAd->CommonCfg.BACapability.field.Policy = IMMED_BA;
 	}
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
     pAd->CommonCfg.REGBACapability.field.AutoBA = pAd->CommonCfg.BACapability.field.AutoBA;
     pAd->CommonCfg.REGBACapability.field.Policy = pAd->CommonCfg.BACapability.field.Policy;
@@ -2514,7 +2240,7 @@ INT	Set_HtProtect_Proc(
     else if (Value == 1)
 		pAd->CommonCfg.bHTProtect = TRUE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_HtProtect_Proc::(HtProtect=%d)\n",pAd->CommonCfg.bHTProtect));
 
@@ -2530,13 +2256,9 @@ INT	Set_SendPSMPAction_Proc(
 	INT i;
     MAC_TABLE_ENTRY *pEntry;
 
-    //printk("\n%s\n", arg);
-/*
-	The BARecTearDown inupt string format should be xx:xx:xx:xx:xx:xx-d,
-		=>The six 2 digit hex-decimal number previous are the Mac address,
-		=>The seventh decimal number is the mode value.
-*/
-    if(strlen(arg) < 19)  //Mac address acceptable format 01:02:03:04:05:06 length 17 plus the "-" and mode value in decimal format.
+    
+
+    if(strlen(arg) < 19)  
 		return FALSE;
 
    	token = strchr(arg, DASH);
@@ -2607,7 +2329,7 @@ INT	Set_ForceShortGI_Proc(
 	else if (Value == 1)
 		pAd->WIFItestbed.bShortGI = TRUE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2630,7 +2352,7 @@ INT	Set_ForceGF_Proc(
 	else if (Value == 1)
 		pAd->WIFItestbed.bGreenField = TRUE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	SetCommonHT(pAd);
 
@@ -2651,7 +2373,7 @@ INT	Set_HtMimoPs_Proc(
 	else if (Value == 1)
 		pAd->CommonCfg.bMIMOPSEnable = TRUE;
 	else
-		return FALSE; //Invalid argument
+		return FALSE; 
 
 	DBGPRINT(RT_DEBUG_TRACE, ("Set_HtMimoPs_Proc::(HtMimoPs=%d)\n",pAd->CommonCfg.bMIMOPSEnable));
 
@@ -2702,7 +2424,7 @@ INT	Set_FixedTxMode_Proc(
 	return TRUE;
 }
 
-/////////////////////////////////////////////////////////////////////////
+
 PCHAR   RTMPGetRalinkAuthModeStr(
     IN  NDIS_802_11_AUTHENTICATION_MODE authMode)
 {
@@ -2769,7 +2491,7 @@ INT RTMPShowCfgValue(
 		{
 			if(PRTMP_PRIVATE_STA_SHOW_CFG_VALUE_PROC->show_proc(pAd, pBuf))
 				Status = -EINVAL;
-			break;  //Exit for loop.
+			break;  
 		}
 	}
 
@@ -2894,13 +2616,13 @@ INT	Show_BGProtection_Proc(
 {
 	switch(pAd->CommonCfg.UseBGProtection)
 	{
-		case 1: //Always On
+		case 1: 
 			sprintf(pBuf, "\tON");
 			break;
-		case 2: //Always OFF
+		case 2: 
 			sprintf(pBuf, "\tOFF");
 			break;
-		case 0: //AUTO
+		case 0: 
 			sprintf(pBuf, "\tAuto");
 			break;
 		default:
@@ -3079,7 +2801,7 @@ INT	Show_PktAggregate_Proc(
 	sprintf(pBuf, "\t%s", pAd->CommonCfg.bAggregationCapable ? "TRUE":"FALSE");
 	return 0;
 }
-#endif // AGGREGATION_SUPPORT //
+#endif 
 
 #ifdef WMM_SUPPORT
 INT	Show_WmmCapable_Proc(
@@ -3090,7 +2812,7 @@ INT	Show_WmmCapable_Proc(
 
 	return 0;
 }
-#endif // WMM_SUPPORT //
+#endif 
 
 INT	Show_IEEE80211H_Proc(
 	IN	PRTMP_ADAPTER	pAd,
@@ -3183,7 +2905,7 @@ INT	Show_WepKey_Proc(
 	KeyLength = pAd->SharedKey[index][KeyIdx].KeyLen;
 	NdisMoveMemory(Key, pAd->SharedKey[index][KeyIdx].Key, KeyLength);
 
-	//check key string is ASCII or not
+	
     if (RTMPCheckStrPrintAble(Key, KeyLength))
         sprintf(pBuf, "\t%s", Key);
     else

@@ -1,20 +1,5 @@
 
-/* arch/arm/mach-msm/qdsp5/audpp.c
- *
- * common code to deal with the AUDPP dsp task (audio postproc)
- *
- * Copyright (C) 2008 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -30,7 +15,7 @@
 #include <mach/qdsp5/qdsp5audppcmdi.h>
 #include <mach/qdsp5/qdsp5audppmsg.h>
 
-/* for queue ids - should be relative to module number*/
+
 #include "adsp.h"
 
 #include "evlog.h"
@@ -75,10 +60,10 @@ struct audpp_state {
 	unsigned open_count;
 	unsigned enabled;
 
-	/* which channels are actually enabled */
+	
 	unsigned avsync_mask;
 
-	/* flags, 48 bits sample/bytes counter per channel */
+	
 	uint16_t avsync[CH_COUNT * AUDPP_CLNT_MAX_COUNT + 1];
 };
 
@@ -143,11 +128,7 @@ static void audpp_dsp_event(void *data, unsigned id, size_t len,
 	if (id == AUDPP_MSG_AVSYNC_MSG) {
 		getevent(audpp->avsync, sizeof(audpp->avsync));
 
-		/* mask off any channels we're not watching to avoid
-		 * cases where we might get one last update after
-		 * disabling avsync and end up in an odd state when
-		 * we next read...
-		 */
+		
 		audpp->avsync[0] &= audpp->avsync_mask;
 		return;
 	}
@@ -373,7 +354,7 @@ EXPORT_SYMBOL(audpp_avsync_byte_count);
 
 int audpp_set_volume_and_pan(unsigned id, unsigned volume, int pan)
 {
-	/* cmd, obj_cfg[7], cmd_type, volume, pan */
+	
 	uint16_t cmd[11];
 
 	if (id > 6)
@@ -392,7 +373,7 @@ EXPORT_SYMBOL(audpp_set_volume_and_pan);
 
 int audpp_pause(unsigned id, int pause)
 {
-	/* pause 1 = pause 0 = resume */
+	
 	u16 pause_cmd[AUDPP_CMD_DEC_CTRL_LEN / sizeof(unsigned short)];
 
 	if (id >= CH_COUNT)

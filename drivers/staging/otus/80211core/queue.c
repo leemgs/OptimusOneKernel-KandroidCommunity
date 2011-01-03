@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : queue.c                                               */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module contains queue management functions.                */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 #include "queue.h"
 
@@ -138,11 +124,11 @@ zbuf_t* zfQueueGetWithMac(zdev_t* dev, struct zsQueue* q, u8_t* addr, u8_t* mb)
         {
             buf = q->cell[index].buf;
 
-            //if buf's detination address == input addr
+            
             if (zfCompareDstwithBuf(dev, buf, addr) == 0)
             {
                 retBuf = buf;
-                //Get it, and trace the whole queue to calculate more bit
+                
                 while ((next =((index+1)&q->sizeMask)) != q->tail)
                 {
                     q->cell[index].buf = q->cell[next].buf;
@@ -162,7 +148,7 @@ zbuf_t* zfQueueGetWithMac(zdev_t* dev, struct zsQueue* q, u8_t* addr, u8_t* mb)
                 return retBuf;
             }
             index = (index + 1) & q->sizeMask;
-        } //if (index != q->tail)
+        } 
         else
         {
             break;
@@ -229,7 +215,7 @@ u8_t zfQueueRemovewithIndex(zdev_t* dev, struct zsQueue* q, u16_t index, u8_t* a
     u16_t next;
     u8_t mb = 0;
 
-    //trace the whole queue to calculate more bit
+    
     while ((next =((index+1)&q->sizeMask)) != q->tail)
     {
         q->cell[index].buf = q->cell[next].buf;
@@ -271,11 +257,11 @@ void zfQueueGenerateUapsdTim(zdev_t* dev, struct zsQueue* q,
         {
             dst[i] = zmw_buf_readb(dev, psBuf, i);
         }
-        /* TODO : use u8_t* fot MAC address */
+        
         if (((id = zfApFindSta(dev, (u16_t*)dst)) != 0xffff)
                 && (wd->ap.staTable[id].psMode != 0))
         {
-            /* Calculate PVB only when all AC are delivery-enabled */
+            
             if ((wd->ap.staTable[id].qosInfo & 0xf) == 0xf)
             {
                 aid = id + 1;
@@ -292,7 +278,7 @@ void zfQueueGenerateUapsdTim(zdev_t* dev, struct zsQueue* q,
         }
         else
         {
-            /* Free garbage UAPSD frame */
+            
             zfQueueRemovewithIndex(dev, q, index, dst);
             zfwBufFree(dev, psBuf, 0);
         }

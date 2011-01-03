@@ -1,38 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-	rtmp_os.h
-
-    Abstract:
-
-    Revision History:
-    Who          When          What
-    ---------    ----------    ----------------------------------------------
- */
 
 
 #ifndef __RTMP_OS_H__
@@ -40,16 +6,10 @@
 
 #ifdef LINUX
 #include "rt_linux.h"
-#endif // LINUX //
+#endif 
 
 
-/*
-	This data structure mainly strip some callback function defined in
-	"struct net_device" in kernel source "include/linux/netdevice.h".
 
-	The definition of this data structure may various depends on different
-	OS. Use it carefully.
-*/
 typedef struct _RTMP_OS_NETDEV_OP_HOOK_
 {
 	const struct net_device_ops *netdev_ops;
@@ -75,7 +35,7 @@ typedef struct _RTMP_OS_TASK_
 {
 	char					taskName[RTMP_OS_TASK_NAME_LEN];
 	void					*priv;
-	//unsigned long		taskFlags;
+	
 	RTMP_TASK_STATUS	taskStatus;
 #ifndef KTHREAD_SUPPORT
 	RTMP_OS_SEM			taskSema;
@@ -90,4 +50,4 @@ typedef struct _RTMP_OS_TASK_
 #endif
 }RTMP_OS_TASK;
 
-#endif // __RMTP_OS_H__ //
+#endif 

@@ -1,6 +1,4 @@
-/*
- * Copyright (C) 2008-2009 QUALCOMM Incorporated.
- */
+
 
 #include <linux/msm_adsp.h>
 #include <linux/uaccess.h>
@@ -77,7 +75,7 @@ static void vfe_7x_convert(struct msm_vfe_phy_info *pinfo,
 
 	default:
 		break;
-	} /* switch */
+	} 
 }
 
 static void vfe_7x_ops(void *driver_data, unsigned id, size_t len,
@@ -98,14 +96,14 @@ static void vfe_7x_ops(void *driver_data, unsigned id, size_t len,
 	rp->evt_msg.len = len;
 
 	if (id == ((uint16_t)-1)) {
-		/* event */
+		
 		rp->type           = VFE_EVENT;
 		rp->evt_msg.type   = MSM_CAMERA_EVT;
 		getevent(evt_buf, sizeof(evt_buf));
 		rp->evt_msg.msg_id = evt_buf[0];
 		resp->vfe_resp(rp, MSM_CAM_Q_VFE_EVT, vfe_syncdata);
 	} else {
-		/* messages */
+		
 		rp->evt_msg.type   = MSM_CAMERA_MSG;
 		rp->evt_msg.msg_id = id;
 		rp->evt_msg.data = rp + 1;
@@ -245,7 +243,7 @@ static int vfe_7x_init(struct msm_vfe_callback *presp,
 	else
 		return -EFAULT;
 
-	/* Bring up all the required GPIOs and Clocks */
+	
 	rc = msm_camio_enable(dev);
 	if (rc < 0)
 		return rc;
@@ -317,7 +315,7 @@ static int vfe_7x_config_axi(int mode,
 			*bptr = regptr->paddr + regptr->cbcr_off;
 			bptr++;
 		}
-	} /* if OUTPUT1 or Both */
+	} 
 
 	if (mode == OUTPUT_2 || mode == OUTPUT_1_AND_2) {
 		regptr = &(ad->region[ad->bufnum1]);
@@ -587,7 +585,7 @@ static int vfe_7x_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 			default:
 				break;
 			}
-		} /* QDSP_CMDQUEUE */
+		} 
 	}
 		break;
 
@@ -668,7 +666,7 @@ static int vfe_7x_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 
 	default:
 		break;
-	} /* switch */
+	} 
 
 	if (vfestopped)
 		goto config_done;

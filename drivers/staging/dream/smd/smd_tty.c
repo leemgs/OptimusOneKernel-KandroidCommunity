@@ -1,18 +1,4 @@
-/* arch/arm/mach-msm/smd_tty.c
- *
- * Copyright (C) 2007 Google, Inc.
- * Author: Brian Swetland <swetland@google.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -62,10 +48,7 @@ static void smd_tty_notify(void *priv, unsigned event)
 		avail = tty_prepare_flip_string(tty, &ptr, avail);
 
 		if (smd_read(info->ch, ptr, avail) != avail) {
-			/* shouldn't be possible since we're in interrupt
-			** context here and nobody else could 'steal' our
-			** characters.
-			*/
+			
 			printk(KERN_ERR "OOPS - smd_tty_buffer mismatch?!");
 		}
 
@@ -73,7 +56,7 @@ static void smd_tty_notify(void *priv, unsigned event)
 		tty_flip_buffer_push(tty);
 	}
 
-	/* XXX only when writable and necessary */
+	
 	tty_wakeup(tty);
 }
 
@@ -136,10 +119,7 @@ static int smd_tty_write(struct tty_struct *tty, const unsigned char *buf, int l
 	struct smd_tty_info *info = tty->driver_data;
 	int avail;
 
-	/* if we're writing to a packet channel we will
-	** never be able to write more data than there
-	** is currently space for
-	*/
+	
 	avail = smd_write_avail(info->ch);
 	if (len > avail)
 		len = avail;
@@ -203,7 +183,7 @@ static int __init smd_tty_init(void)
 	ret = tty_register_driver(smd_tty_driver);
 	if (ret) return ret;
 
-	/* this should be dynamic */
+	
 	tty_register_device(smd_tty_driver, 0, 0);
 	tty_register_device(smd_tty_driver, 27, 0);
 

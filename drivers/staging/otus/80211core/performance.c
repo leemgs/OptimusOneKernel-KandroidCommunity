@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : performance.c                                         */
-/*                                                                      */
-/*  Abstract                                                            */
-/*      This module performance evaluation functions.                   */
-/*                                                                      */
-/*  NOTES                                                               */
-/*      None                                                            */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 #include "cprecomp.h"
 #ifdef ZM_ENABLE_PERFORMANCE_EVALUATION
 
@@ -182,7 +168,7 @@ void zfiPerformanceRefresh(zdev_t* dev)
     DbgPrint("* Firmware reset=%3d, reset sum=%4d\n", zm_summary.reset_count,
         zm_summary.reset_sum);
     DbgPrint("******************************************************\n\n");
-    //reset count 11772c
+    
     zm_summary.tx_msdu_count = 0;
     zm_summary.tx_mpdu_count = 0;
     zm_summary.rx_msdu_count = 0;
@@ -216,7 +202,7 @@ void zfiTxPerformanceMSDU(zdev_t* dev, u32_t tick)
     }
     else
     {
-        //DbgPrint("wd->tick exceeded tick_base+100!\n");
+        
     }
 }
 
@@ -233,7 +219,7 @@ void zfiRxPerformanceMSDU(zdev_t* dev, u32_t tick)
     }
     else
     {
-        //DbgPrint("wd->tick exceeded tick_base+100!\n");
+        
     }
 }
 
@@ -250,7 +236,7 @@ void zfiTxPerformanceMPDU(zdev_t* dev, u32_t tick)
     }
     else
     {
-        //DbgPrint("wd->tick exceeded tick_base+100!\n");
+        
     }
 }
 
@@ -270,11 +256,11 @@ void zfiRxPerformanceMPDU(zdev_t* dev, zbuf_t* buf)
 
     len = zfwBufGetSize(dev, buf);
     mpduInd = zmw_rx_buf_readb(dev, buf, len-1);
-    /* First MPDU or Single MPDU */
+    
     if(((mpduInd & 0x30) == 0x00) || ((mpduInd & 0x30) == 0x20))
-    //if ((mpduInd & 0x10) == 0x00)
+    
     {
-        plcpHdrLen = 12;        // PLCP header length
+        plcpHdrLen = 12;        
     }
     else
     {
@@ -311,7 +297,7 @@ void zfiRxPerformanceMPDU(zdev_t* dev, zbuf_t* buf)
     }
     else
     {
-        //DbgPrint("wd->tick exceeded tick_base+100!\n");
+        
     }
 }
 
@@ -320,7 +306,7 @@ void zfiRxPerformanceSeq(zdev_t* dev, zbuf_t* buf)
     u16_t   seq_no;
     u16_t   offset = 0;
     u16_t   old_dis = zm_summary.rx_broken_seq_dis;
-    //sys_time = KeQueryPerformanceCounter(&freq);
+    
 
     seq_no = zmw_rx_buf_readh(dev, buf, offset+22) >> 4;
 
@@ -428,4 +414,4 @@ void zfiRxPerformanceReorder(zdev_t* dev)
 {
     zm_summary.rx_reorder++;
 }
-#endif /* end of ZM_ENABLE_PERFORMANCE_EVALUATION */
+#endif 

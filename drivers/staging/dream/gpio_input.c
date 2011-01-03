@@ -1,17 +1,4 @@
-/* drivers/input/misc/gpio_input.c
- *
- * Copyright (C) 2007 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/gpio.h>
@@ -22,11 +9,11 @@
 #include <linux/wakelock.h>
 
 enum {
-	DEBOUNCE_UNSTABLE     = BIT(0),	/* Got irq, while debouncing */
+	DEBOUNCE_UNSTABLE     = BIT(0),	
 	DEBOUNCE_PRESSED      = BIT(1),
 	DEBOUNCE_NOTPRESSED   = BIT(2),
-	DEBOUNCE_WAIT_IRQ     = BIT(3),	/* Stable irq state */
-	DEBOUNCE_POLL         = BIT(4),	/* Stable polling state */
+	DEBOUNCE_WAIT_IRQ     = BIT(3),	
+	DEBOUNCE_POLL         = BIT(4),	
 
 	DEBOUNCE_UNKNOWN =
 		DEBOUNCE_PRESSED | DEBOUNCE_NOTPRESSED,
@@ -116,7 +103,7 @@ static enum hrtimer_restart gpio_event_input_timer_func(struct hrtimer *timer)
 			key_state->debounce = DEBOUNCE_NOTPRESSED;
 			continue;
 		}
-		/* key is stable */
+		
 		ds->debounce_count--;
 		if (ds->use_irq)
 			key_state->debounce |= DEBOUNCE_WAIT_IRQ;

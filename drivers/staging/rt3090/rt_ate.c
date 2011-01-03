@@ -1,29 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
- */
+
 
 #include "rt_config.h"
 
@@ -32,9 +7,9 @@
 #ifdef RT30xx
 #define ATE_BBP_REG_NUM	168
 UCHAR restore_BBP[ATE_BBP_REG_NUM]={0};
-#endif // RT30xx //
+#endif 
 
-// 802.11 MAC Header, Type:Data, Length:24bytes
+
 UCHAR TemplateFrame[24] = {0x08,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
 		0x00,0xAA,0xBB,0x12,0x34,0x56,0x00,0x11,0x22,0xAA,0xBB,0xCC,0x00,0x00};
 
@@ -47,9 +22,9 @@ extern UCHAR NUM_OF_3020_CHNL;
 
 
 
-static CHAR CCKRateTable[] = {0, 1, 2, 3, 8, 9, 10, 11, -1}; /* CCK Mode. */
-static CHAR OFDMRateTable[] = {0, 1, 2, 3, 4, 5, 6, 7, -1}; /* OFDM Mode. */
-static CHAR HTMIXRateTable[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, -1}; /* HT Mix Mode. */
+static CHAR CCKRateTable[] = {0, 1, 2, 3, 8, 9, 10, 11, -1}; 
+static CHAR OFDMRateTable[] = {0, 1, 2, 3, 4, 5, 6, 7, -1}; 
+static CHAR HTMIXRateTable[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, -1}; 
 
 static INT TxDmaBusy(
 	IN PRTMP_ADAPTER pAd);
@@ -83,14 +58,14 @@ static INT ATECmdHandler(
 static int CheckMCSValid(
 	IN UCHAR Mode,
 	IN UCHAR Mcs);
-#endif // RT30xx //
+#endif 
 
 #ifdef RT30xx
 static int CheckMCSValid(
 	IN UCHAR Mode,
 	IN UCHAR Mcs,
 	IN BOOLEAN bRT2070);
-#endif // RT30xx //
+#endif 
 
 #ifdef RTMP_MAC_PCI
 static VOID ATEWriteTxWI(
@@ -101,7 +76,7 @@ static VOID ATEWriteTxWI(
 	IN	BOOLEAN			InsTimestamp,
 	IN	BOOLEAN			AMPDU,
 	IN	BOOLEAN			Ack,
-	IN	BOOLEAN			NSeq,		// HW new a sequence.
+	IN	BOOLEAN			NSeq,		
 	IN	UCHAR			BASize,
 	IN	UCHAR			WCID,
 	IN	ULONG			Length,
@@ -111,7 +86,7 @@ static VOID ATEWriteTxWI(
 	IN	UCHAR			Txopmode,
 	IN	BOOLEAN			CfAck,
 	IN	HTTRANSMIT_SETTING	*pTransmit);
-#endif // RTMP_MAC_PCI //
+#endif 
 
 
 static VOID SetJapanFilter(
@@ -402,7 +377,7 @@ static inline INT DO_RACFG_CMD_ATE_BBP_WRITE_BULK(
 	IN struct ate_racfghdr *pRaCfg
 );
 
-#endif // RALINK_28xx_QA //
+#endif 
 
 
 #ifdef RTMP_MAC_PCI
@@ -412,7 +387,7 @@ static INT TxDmaBusy(
 	INT result;
 	WPDMA_GLO_CFG_STRUC GloCfg;
 
-	RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &GloCfg.word);	// disable DMA
+	RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &GloCfg.word);	
 	if (GloCfg.field.TxDMABusy)
 		result = 1;
 	else
@@ -428,7 +403,7 @@ static INT RxDmaBusy(
 	INT result;
 	WPDMA_GLO_CFG_STRUC GloCfg;
 
-	RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &GloCfg.word);	// disable DMA
+	RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &GloCfg.word);	
 	if (GloCfg.field.RxDMABusy)
 		result = 1;
 	else
@@ -448,7 +423,7 @@ static VOID RtmpDmaEnable(
 
 	value = Enable > 0 ? 1 : 0;
 
-	// check DMA is in busy mode.
+	
 	WaitCnt = 0;
 
 	while (TxDmaBusy(pAd) || RxDmaBusy(pAd))
@@ -458,15 +433,15 @@ static VOID RtmpDmaEnable(
 			break;
 	}
 
-	RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &GloCfg.word);	// disable DMA
+	RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &GloCfg.word);	
 	GloCfg.field.EnableTxDMA = value;
 	GloCfg.field.EnableRxDMA = value;
-	RTMP_IO_WRITE32(pAd, WPDMA_GLO_CFG, GloCfg.word);	// abort all TX rings
+	RTMP_IO_WRITE32(pAd, WPDMA_GLO_CFG, GloCfg.word);	
 	RTMPusecDelay(5000);
 
 	return;
 }
-#endif // RTMP_MAC_PCI //
+#endif 
 
 
 
@@ -476,13 +451,13 @@ static VOID BbpSoftReset(
 {
 	UCHAR BbpData = 0;
 
-	// Soft reset, set BBP R21 bit0=1->0
+	
 	ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R21, &BbpData);
-	BbpData |= 0x00000001; //set bit0=1
+	BbpData |= 0x00000001; 
 	ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R21, BbpData);
 
 	ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R21, &BbpData);
-	BbpData &= ~(0x00000001); //set bit0=0
+	BbpData &= ~(0x00000001); 
 	ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R21, BbpData);
 
 	return;
@@ -492,7 +467,7 @@ static VOID BbpSoftReset(
 static VOID RtmpRfIoWrite(
 	IN PRTMP_ADAPTER pAd)
 {
-	// Set RF value 1's set R3[bit2] = [0]
+	
 	RTMP_RF_IO_WRITE32(pAd, pAd->LatchRfRegs.R1);
 	RTMP_RF_IO_WRITE32(pAd, pAd->LatchRfRegs.R2);
 	RTMP_RF_IO_WRITE32(pAd, (pAd->LatchRfRegs.R3 & (~0x04)));
@@ -500,7 +475,7 @@ static VOID RtmpRfIoWrite(
 
 	RTMPusecDelay(200);
 
-	// Set RF value 2's set R3[bit2] = [1]
+	
 	RTMP_RF_IO_WRITE32(pAd, pAd->LatchRfRegs.R1);
 	RTMP_RF_IO_WRITE32(pAd, pAd->LatchRfRegs.R2);
 	RTMP_RF_IO_WRITE32(pAd, (pAd->LatchRfRegs.R3 | 0x04));
@@ -508,7 +483,7 @@ static VOID RtmpRfIoWrite(
 
 	RTMPusecDelay(200);
 
-	// Set RF value 3's set R3[bit2] = [0]
+	
 	RTMP_RF_IO_WRITE32(pAd, pAd->LatchRfRegs.R1);
 	RTMP_RF_IO_WRITE32(pAd, pAd->LatchRfRegs.R2);
 	RTMP_RF_IO_WRITE32(pAd, (pAd->LatchRfRegs.R3 & (~0x04)));
@@ -523,12 +498,12 @@ static int CheckMCSValid(
 	UCHAR Mode,
 	UCHAR Mcs,
 	BOOLEAN bRT2070)
-#endif // RT30xx //
+#endif 
 #ifndef RT30xx
 static int CheckMCSValid(
 	IN UCHAR Mode,
 	IN UCHAR Mcs)
-#endif // RT30xx //
+#endif 
 {
 	INT i;
 	PCHAR pRateTab;
@@ -547,7 +522,7 @@ static int CheckMCSValid(
 			if (bRT2070)
 				pRateTab = OFDMRateTable;
 			else
-#endif // RT30xx //
+#endif 
 			pRateTab = HTMIXRateTable;
 			break;
 		default:
@@ -578,18 +553,15 @@ static INT ATETxPwrHandler(
 	BOOLEAN bPowerReduce = FALSE;
 #ifdef RTMP_RF_RW_SUPPORT
 	UCHAR RFValue;
-#endif // RTMP_RF_RW_SUPPORT //
+#endif 
 #ifdef RALINK_28xx_QA
 	if ((pAd->ate.bQATxStart == TRUE) || (pAd->ate.bQARxStart == TRUE))
 	{
-		/*
-			When QA is used for Tx, pAd->ate.TxPower0/1 and real tx power
-			are not synchronized.
-		*/
+		
 		return 0;
 	}
 	else
-#endif // RALINK_28xx_QA //
+#endif 
 	{
 		TxPower = index == 0 ? pAd->ate.TxPower0 : pAd->ate.TxPower1;
 
@@ -598,7 +570,7 @@ static INT ATETxPwrHandler(
 			if (TxPower > 31)
 			{
 
-				// R3, R4 can't large than 31 (0x24), 31 ~ 36 used by BBP 94
+				
 				R = 31;
 				if (TxPower <= 36)
 					Bbp94 = BBPR94_DEFAULT + (UCHAR)(TxPower - 31);
@@ -606,89 +578,89 @@ static INT ATETxPwrHandler(
 			else if (TxPower < 0)
 			{
 
-				// R3, R4 can't less than 0, -1 ~ -6 used by BBP 94
+				
 				R = 0;
 				if (TxPower >= -6)
 					Bbp94 = BBPR94_DEFAULT + TxPower;
 			}
 			else
 			{
-				// 0 ~ 31
+				
 				R = (ULONG) TxPower;
 				Bbp94 = BBPR94_DEFAULT;
 			}
 
 			ATEDBGPRINT(RT_DEBUG_TRACE, ("%s (TxPower=%d, R=%ld, BBP_R94=%d)\n", __FUNCTION__, TxPower, R, Bbp94));
 		}
-		else /* 5.5 GHz */
+		else 
 		{
 			if (TxPower > 15)
 			{
 
-				// R3, R4 can't large than 15 (0x0F)
+				
 				R = 15;
 			}
 			else if (TxPower < 0)
 			{
 
-				// R3, R4 can't less than 0
-				// -1 ~ -7
+				
+				
 				ASSERT((TxPower >= -7));
 				R = (ULONG)(TxPower + 7);
 				bPowerReduce = TRUE;
 			}
 			else
 			{
-				// 0 ~ 15
+				
 				R = (ULONG) TxPower;
 			}
 
 			ATEDBGPRINT(RT_DEBUG_TRACE, ("%s (TxPower=%d, R=%lu)\n", __FUNCTION__, TxPower, R));
 		}
-//2008/09/10:KH adds to support 3070 ATE TX Power tunning real time<--
+
 #ifdef RTMP_RF_RW_SUPPORT
 		if (IS_RT30xx(pAd))
 		{
-			// Set Tx Power
+			
 			ATE_RF_IO_READ8_BY_REG_ID(pAd, RF_R12, (PUCHAR)&RFValue);
 			RFValue = (RFValue & 0xE0) | TxPower;
 			ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R12, (UCHAR)RFValue);
 			ATEDBGPRINT(RT_DEBUG_TRACE, ("3070 or 2070:%s (TxPower=%d, RFValue=%x)\n", __FUNCTION__, TxPower, RFValue));
 		}
 		else
-#endif // RTMP_RF_RW_SUPPORT //
+#endif 
 		{
 		if (pAd->ate.Channel <= 14)
 		{
 			if (index == 0)
 			{
-				// shift TX power control to correct RF(R3) register bit position
+				
 				R = R << 9;
 				R |= (pAd->LatchRfRegs.R3 & 0xffffc1ff);
 				pAd->LatchRfRegs.R3 = R;
 			}
 			else
 			{
-				// shift TX power control to correct RF(R4) register bit position
+				
 				R = R << 6;
 				R |= (pAd->LatchRfRegs.R4 & 0xfffff83f);
 				pAd->LatchRfRegs.R4 = R;
 			}
 		}
-		else /* 5.5GHz */
+		else 
 		{
 			if (bPowerReduce == FALSE)
 			{
 				if (index == 0)
 				{
-					// shift TX power control to correct RF(R3) register bit position
+					
 					R = (R << 10) | (1 << 9);
 					R |= (pAd->LatchRfRegs.R3 & 0xffffc1ff);
 					pAd->LatchRfRegs.R3 = R;
 				}
 				else
 				{
-					// shift TX power control to correct RF(R4) register bit position
+					
 					R = (R << 7) | (1 << 6);
 					R |= (pAd->LatchRfRegs.R4 & 0xfffff83f);
 					pAd->LatchRfRegs.R4 = R;
@@ -698,51 +670,34 @@ static INT ATETxPwrHandler(
 			{
 				if (index == 0)
 				{
-					// shift TX power control to correct RF(R3) register bit position
+					
 					R = (R << 10);
 					R |= (pAd->LatchRfRegs.R3 & 0xffffc1ff);
 
-					/* Clear bit 9 of R3 to reduce 7dB. */
+					
 					pAd->LatchRfRegs.R3 = (R & (~(1 << 9)));
 				}
 				else
 				{
-					// shift TX power control to correct RF(R4) register bit position
+					
 					R = (R << 7);
 					R |= (pAd->LatchRfRegs.R4 & 0xfffff83f);
 
-					/* Clear bit 6 of R4 to reduce 7dB. */
+					
 					pAd->LatchRfRegs.R4 = (R & (~(1 << 6)));
 				}
 			}
 		}
 		RtmpRfIoWrite(pAd);
 	}
-//2008/09/10:KH adds to support 3070 ATE TX Power tunning real time-->
+
 
 		return 0;
 	}
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE operation mode to
-        0. ATESTART  = Start ATE Mode
-        1. ATESTOP   = Stop ATE Mode
-        2. TXCONT    = Continuous Transmit
-        3. TXCARR    = Transmit Carrier
-        4. TXFRAME   = Transmit Frames
-        5. RXFRAME   = Receive Frames
-#ifdef RALINK_28xx_QA
-        6. TXSTOP    = Stop Any Type of Transmition
-        7. RXSTOP    = Stop Receiving Frames
-#endif // RALINK_28xx_QA //
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
+
 #ifdef RTMP_MAC_PCI
 static INT	ATECmdHandler(
 	IN	PRTMP_ADAPTER	pAd,
@@ -766,32 +721,32 @@ static INT	ATECmdHandler(
 
 	ATEAsicSwitchChannel(pAd);
 
-	/* empty function */
+	
 	AsicLockChannel(pAd, pAd->ate.Channel);
 
 	RTMPusecDelay(5000);
 
-	// read MAC_SYS_CTRL and backup MAC_SYS_CTRL value.
+	
 	RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &MacData);
 
-	// Default value in BBP R22 is 0x0.
+	
 	BbpData = 0;
 
-	// clean bit4 to stop continuous Tx production test.
+	
 	MacData &= 0xFFFFFFEF;
 
-	// Enter ATE mode and set Tx/Rx Idle
+	
 	if (!strcmp(arg, "ATESTART"))
 	{
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("ATE: ATESTART\n"));
 
 #if defined(LINUX) || defined(VXWORKS)
-		// check if we have removed the firmware
+		
 		if (!(ATE_ON(pAd)))
 		{
 			NICEraseFirmware(pAd);
 		}
-#endif // defined(LINUX) || defined(VXWORKS) //
+#endif 
 
 		atemode = pAd->ate.Mode;
 		pAd->ate.Mode = ATE_START;
@@ -799,41 +754,38 @@ static INT	ATECmdHandler(
 
 		if (atemode == ATE_TXCARR)
 		{
-			// No Carrier Test set BBP R22 bit7=0, bit6=0, bit[5~0]=0x0
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-			BbpData &= 0xFFFFFF00; // clear bit7, bit6, bit[5~0]
+			BbpData &= 0xFFFFFF00; 
 		    ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 		}
 		else if (atemode == ATE_TXCARRSUPP)
 		{
-			// No Cont. TX set BBP R22 bit7=0
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-			BbpData &= ~(1 << 7); // set bit7=0
+			BbpData &= ~(1 << 7); 
 			ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 
-			// No Carrier Suppression set BBP R24 bit0=0
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R24, &BbpData);
-			BbpData &= 0xFFFFFFFE; // clear bit0
+			BbpData &= 0xFFFFFFFE; 
 		    ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R24, BbpData);
 		}
 
-		/*
-			We should free some resource which was allocated
-			when ATE_TXFRAME , ATE_STOP, and ATE_TXCONT.
-		*/
+		
 		else if ((atemode & ATE_TXFRAME) || (atemode == ATE_STOP))
 		{
 			PRTMP_TX_RING pTxRing = &pAd->TxRing[QID_AC_BE];
 
 			if (atemode == ATE_TXCONT)
 			{
-				// No Cont. TX set BBP R22 bit7=0
+				
 				ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-				BbpData &= ~(1 << 7); // set bit7=0
+				BbpData &= ~(1 << 7); 
 				ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 			}
 
-			// Abort Tx, Rx DMA.
+			
 			RtmpDmaEnable(pAd, 0);
 			for (i=0; i<TX_RING_SIZE; i++)
 			{
@@ -856,7 +808,7 @@ static INT	ATECmdHandler(
 					RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 				}
 
-				// Always assign pNdisPacket as NULL after clear
+				
 				pTxRing->Cell[i].pNdisPacket = NULL;
 
 				pPacket = pTxRing->Cell[i].pNextNdisPacket;
@@ -867,7 +819,7 @@ static INT	ATECmdHandler(
 					RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 				}
 
-				// Always assign pNextNdisPacket as NULL after clear
+				
 				pTxRing->Cell[i].pNextNdisPacket = NULL;
 #ifdef RT_BIG_ENDIAN
 				RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
@@ -875,11 +827,11 @@ static INT	ATECmdHandler(
 #endif
 			}
 
-			// Start Tx, RX DMA
+			
 			RtmpDmaEnable(pAd, 1);
 		}
 
-		// reset Rx statistics.
+		
 		pAd->ate.LastSNR0 = 0;
 		pAd->ate.LastSNR1 = 0;
 		pAd->ate.LastRssi0 = 0;
@@ -894,12 +846,12 @@ static INT	ATECmdHandler(
 		pAd->ate.NumOfAvgRssiSample = 0;
 
 #ifdef RALINK_28xx_QA
-		// Tx frame
+		
 		pAd->ate.bQATxStart = FALSE;
 		pAd->ate.bQARxStart = FALSE;
 		pAd->ate.seq = 0;
 
-		// counters
+		
 		pAd->ate.U2M = 0;
 		pAd->ate.OtherData = 0;
 		pAd->ate.Beacon = 0;
@@ -908,7 +860,7 @@ static INT	ATECmdHandler(
 		pAd->ate.TxAc1 = 0;
 		pAd->ate.TxAc2 = 0;
 		pAd->ate.TxAc3 = 0;
-		/*pAd->ate.TxHCCA = 0;*/
+		
 		pAd->ate.TxMgmt = 0;
 		pAd->ate.RSSI0 = 0;
 		pAd->ate.RSSI1 = 0;
@@ -916,39 +868,36 @@ static INT	ATECmdHandler(
 		pAd->ate.SNR0 = 0;
 		pAd->ate.SNR1 = 0;
 
-		// control
+		
 		pAd->ate.TxDoneCount = 0;
-		// TxStatus : 0 --> task is idle, 1 --> task is running
+		
 		pAd->ate.TxStatus = 0;
-#endif // RALINK_28xx_QA //
+#endif 
 
-		// Soft reset BBP.
+		
 		BbpSoftReset(pAd);
 
 
 #ifdef CONFIG_STA_SUPPORT
-		/* LinkDown() has "AsicDisableSync();" and "RTMP_BBP_IO_R/W8_BY_REG_ID();" inside. */
-//      LinkDown(pAd, FALSE);
-//		AsicEnableBssSync(pAd);
+		
+
+
 
 #if defined(LINUX) || defined(VXWORKS)
 		RTMP_OS_NETDEV_STOP_QUEUE(pAd->net_dev);
-#endif // defined(LINUX) || defined(VXWORKS) //
+#endif 
 
-		/*
-			If we skip "LinkDown()", we should disable protection
-			to prevent from sending out RTS or CTS-to-self.
-		*/
+		
 		ATEDisableAsicProtect(pAd);
 		RTMPStationStop(pAd);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
-		/* Disable Tx */
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 2);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 
-		/* Disable Rx */
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -959,15 +908,15 @@ static INT	ATECmdHandler(
 
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 
-		// recover the MAC_SYS_CTRL register back
+		
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, MacData);
 
-		// disable Tx, Rx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= (0xfffffff3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 
-		// abort Tx, RX DMA
+		
 		RtmpDmaEnable(pAd, 0);
 
 #ifdef LINUX
@@ -980,60 +929,53 @@ static INT	ATECmdHandler(
 			ATEDBGPRINT(RT_DEBUG_ERROR, ("NICLoadFirmware failed, Status[=0x%08x]\n", Status));
 			return FALSE;
 		}
-#endif // LINUX //
+#endif 
 		pAd->ate.Mode = ATE_STOP;
 
-		/*
-			Even the firmware has been loaded,
-			we still could use ATE_BBP_IO_READ8_BY_REG_ID().
-			But this is not suggested.
-		*/
+		
 		BbpSoftReset(pAd);
 
 		RTMP_ASIC_INTERRUPT_DISABLE(pAd);
 
 		NICInitializeAdapter(pAd, TRUE);
 
-		/*
-			Reinitialize Rx Ring before Rx DMA is enabled.
-			>>>RxCoherent<<< was gone !
-		*/
+		
 		for (index = 0; index < RX_RING_SIZE; index++)
 		{
 			pRxD = (PRXD_STRUC) pAd->RxRing.Cell[index].AllocVa;
 			pRxD->DDONE = 0;
 		}
 
-		// We should read EEPROM for all cases.
+		
 		NICReadEEPROMParameters(pAd, NULL);
 		NICInitAsicFromEEPROM(pAd);
 
 		AsicSwitchChannel(pAd, pAd->CommonCfg.Channel, FALSE);
 
-		/* empty function */
+		
 		AsicLockChannel(pAd, pAd->CommonCfg.Channel);
 
-		/* clear garbage interrupts */
+		
 		RTMP_IO_WRITE32(pAd, INT_SOURCE_CSR, 0xffffffff);
-		/* Enable Interrupt */
+		
 		RTMP_ASIC_INTERRUPT_ENABLE(pAd);
 
-		/* restore RX_FILTR_CFG */
+		
 
 #ifdef CONFIG_STA_SUPPORT
-		/* restore RX_FILTR_CFG due to that QA maybe set it to 0x3 */
+		
 		RTMP_IO_WRITE32(pAd, RX_FILTR_CFG, STANORMAL);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
-		// Enable Tx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value |= (1 << 2);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 
-		// Enable Tx, Rx DMA.
+		
 		RtmpDmaEnable(pAd, 1);
 
-		// Enable Rx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value |= (1 << 3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -1041,30 +983,30 @@ static INT	ATECmdHandler(
 
 #ifdef CONFIG_STA_SUPPORT
 		RTMPStationStart(pAd);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 #if defined(LINUX) || defined(VXWORKS)
 		RTMP_OS_NETDEV_START_QUEUE(pAd->net_dev);
-#endif // defined(LINUX) || defined(VXWORKS) //
+#endif 
 	}
 	else if (!strcmp(arg, "TXCARR"))
 	{
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("ATE: TXCARR\n"));
 		pAd->ate.Mode = ATE_TXCARR;
 
-		// QA has done the following steps if it is used.
+		
 		if (pAd->ate.bQATxStart == FALSE)
 		{
-			// Soft reset BBP.
+			
 			BbpSoftReset(pAd);
 
-			// Carrier Test set BBP R22 bit7=1, bit6=1, bit[5~0]=0x01
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-			BbpData &= 0xFFFFFF00; //clear bit7, bit6, bit[5~0]
-			BbpData |= 0x000000C1; //set bit7=1, bit6=1, bit[5~0]=0x01
+			BbpData &= 0xFFFFFF00; 
+			BbpData |= 0x000000C1; 
 			ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 
-			// set MAC_SYS_CTRL(0x1004) Continuous Tx Production Test (bit4) = 1
+			
 			RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 			Value = Value | 0x00000010;
 			RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -1074,41 +1016,34 @@ static INT	ATECmdHandler(
 	{
 		if (pAd->ate.bQATxStart == TRUE)
 		{
-			/*
-				set MAC_SYS_CTRL(0x1004) bit4(Continuous Tx Production Test)
-				and bit2(MAC TX enable) back to zero.
-			*/
+			
 			RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &MacData);
 			MacData &= 0xFFFFFFEB;
 			RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, MacData);
 
-			// set BBP R22 bit7=0
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-			BbpData &= 0xFFFFFF7F; //set bit7=0
+			BbpData &= 0xFFFFFF7F; 
 			ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 		}
 
-		/*
-			for TxCont mode.
-			Step 1: Send 50 packets first then wait for a moment.
-			Step 2: Send more 50 packet then start continue mode.
-		*/
+		
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("ATE: TXCONT\n"));
 
-		// Step 1: send 50 packets first.
+		
 		pAd->ate.Mode = ATE_TXCONT;
 		pAd->ate.TxCount = 50;
 
-		/* Do it after Tx/Rx DMA is aborted. */
-//		pAd->ate.TxDoneCount = 0;
+		
 
-		// Soft reset BBP.
+
+		
 		BbpSoftReset(pAd);
 
-		// Abort Tx, RX DMA.
+		
 		RtmpDmaEnable(pAd, 0);
 
-		// Fix can't smooth kick
+		
 		{
 			RTMP_IO_READ32(pAd, TX_DTX_IDX0 + QID_AC_BE * 0x10,  &pTxRing->TxDmaIdx);
 			pTxRing->TxSwFreeIdx = pTxRing->TxDmaIdx;
@@ -1118,7 +1053,7 @@ static INT	ATECmdHandler(
 
 		pAd->ate.TxDoneCount = 0;
 
-		/* Only needed if we have to send some normal frames. */
+		
 		SetJapanFilter(pAd);
 
 		for (i = 0; (i < TX_RING_SIZE-1) && (i < pAd->ate.TxCount); i++)
@@ -1134,7 +1069,7 @@ static INT	ATECmdHandler(
 			pTxD = &TxD;
 			RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 #endif
-			// Clean current cell.
+			
 			pPacket = pTxRing->Cell[TxIdx].pNdisPacket;
 
 			if (pPacket)
@@ -1143,7 +1078,7 @@ static INT	ATECmdHandler(
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
 
-			// Always assign pNdisPacket as NULL after clear
+			
 			pTxRing->Cell[TxIdx].pNdisPacket = NULL;
 
 			pPacket = pTxRing->Cell[TxIdx].pNextNdisPacket;
@@ -1154,7 +1089,7 @@ static INT	ATECmdHandler(
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
 
-			// Always assign pNextNdisPacket as NULL after clear
+			
 			pTxRing->Cell[TxIdx].pNextNdisPacket = NULL;
 
 #ifdef RT_BIG_ENDIAN
@@ -1168,18 +1103,18 @@ static INT	ATECmdHandler(
 			INC_RING_INDEX(pTxRing->TxCpuIdx, TX_RING_SIZE);
 		}
 
-		// Setup frame format.
+		
 		ATESetUpFrame(pAd, pTxRing->TxCpuIdx);
 
-		// Start Tx, RX DMA.
+		
 		RtmpDmaEnable(pAd, 1);
 
-		// Enable Tx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value |= (1 << 2);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 
-		// Disable Rx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -1189,26 +1124,26 @@ static INT	ATECmdHandler(
 		{
 			pAd->ate.TxStatus = 1;
 		}
-#endif // RALINK_28xx_QA //
+#endif 
 
-		// kick Tx-Ring
+		
 		RTMP_IO_WRITE32(pAd, TX_CTX_IDX0 + QID_AC_BE * RINGREG_DIFF, pAd->TxRing[QID_AC_BE].TxCpuIdx);
 
 		RTMPusecDelay(5000);
 
 
-		// Step 2: send more 50 packets then start continue mode.
-		// Abort Tx, RX DMA.
+		
+		
 		RtmpDmaEnable(pAd, 0);
 
-		// Cont. TX set BBP R22 bit7=1
+		
 		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-		BbpData |= 0x00000080; //set bit7=1
+		BbpData |= 0x00000080; 
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 
 		pAd->ate.TxCount = 50;
 
-		// Fix can't smooth kick
+		
 		{
 			RTMP_IO_READ32(pAd, TX_DTX_IDX0 + QID_AC_BE * 0x10,  &pTxRing->TxDmaIdx);
 			pTxRing->TxSwFreeIdx = pTxRing->TxDmaIdx;
@@ -1233,7 +1168,7 @@ static INT	ATECmdHandler(
 			pTxD = &TxD;
 			RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 #endif
-			// clean current cell.
+			
 			pPacket = pTxRing->Cell[TxIdx].pNdisPacket;
 
 			if (pPacket)
@@ -1242,7 +1177,7 @@ static INT	ATECmdHandler(
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
 
-			// Always assign pNdisPacket as NULL after clear
+			
 			pTxRing->Cell[TxIdx].pNdisPacket = NULL;
 
 			pPacket = pTxRing->Cell[TxIdx].pNextNdisPacket;
@@ -1253,7 +1188,7 @@ static INT	ATECmdHandler(
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
 
-			// Always assign pNextNdisPacket as NULL after clear
+			
 			pTxRing->Cell[TxIdx].pNextNdisPacket = NULL;
 
 #ifdef RT_BIG_ENDIAN
@@ -1269,15 +1204,15 @@ static INT	ATECmdHandler(
 
 		ATESetUpFrame(pAd, pTxRing->TxCpuIdx);
 
-		// Start Tx, RX DMA.
+		
 		RtmpDmaEnable(pAd, 1);
 
-		// Enable Tx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value |= (1 << 2);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 
-		// Disable Rx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -1287,9 +1222,9 @@ static INT	ATECmdHandler(
 		{
 			pAd->ate.TxStatus = 1;
 		}
-#endif // RALINK_28xx_QA //
+#endif 
 
-		// kick Tx-Ring.
+		
 		RTMP_IO_WRITE32(pAd, TX_CTX_IDX0 + QID_AC_BE * RINGREG_DIFF, pAd->TxRing[QID_AC_BE].TxCpuIdx);
 
 		RTMPusecDelay(500);
@@ -1304,14 +1239,14 @@ static INT	ATECmdHandler(
 		pAd->ate.Mode |= ATE_TXFRAME;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 
-		// Soft reset BBP.
+		
 		BbpSoftReset(pAd);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, MacData);
 
-		// Abort Tx, RX DMA.
+		
 		RtmpDmaEnable(pAd, 0);
 
-		// Fix can't smooth kick
+		
 		{
 			RTMP_IO_READ32(pAd, TX_DTX_IDX0 + QID_AC_BE * 0x10,  &pTxRing->TxDmaIdx);
 			pTxRing->TxSwFreeIdx = pTxRing->TxDmaIdx;
@@ -1336,7 +1271,7 @@ static INT	ATECmdHandler(
 			pTxD = &TxD;
 			RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 #endif
-			// Clean current cell.
+			
 			pPacket = pTxRing->Cell[TxIdx].pNdisPacket;
 
 			if (pPacket)
@@ -1345,7 +1280,7 @@ static INT	ATECmdHandler(
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
 
-			// Always assign pNdisPacket as NULL after clear
+			
 			pTxRing->Cell[TxIdx].pNdisPacket = NULL;
 
 			pPacket = pTxRing->Cell[TxIdx].pNextNdisPacket;
@@ -1356,7 +1291,7 @@ static INT	ATECmdHandler(
 				RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 			}
 
-			// Always assign pNextNdisPacket as NULL after clear
+			
 			pTxRing->Cell[TxIdx].pNextNdisPacket = NULL;
 
 #ifdef RT_BIG_ENDIAN
@@ -1373,19 +1308,19 @@ static INT	ATECmdHandler(
 
 		ATESetUpFrame(pAd, pTxRing->TxCpuIdx);
 
-		// Start Tx, Rx DMA.
+		
 		RtmpDmaEnable(pAd, 1);
 
-		// Enable Tx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value |= (1 << 2);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 
 #ifdef RALINK_28xx_QA
-		// add this for LoopBack mode
+		
 		if (pAd->ate.bQARxStart == FALSE)
 		{
-			// Disable Rx
+			
 			RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 			Value &= ~(1 << 3);
 			RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -1396,14 +1331,14 @@ static INT	ATECmdHandler(
 			pAd->ate.TxStatus = 1;
 		}
 #else
-		// Disable Rx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
-#endif // RALINK_28xx_QA //
+#endif 
 
 		RTMP_IO_READ32(pAd, TX_DTX_IDX0 + QID_AC_BE * RINGREG_DIFF, &pAd->TxRing[QID_AC_BE].TxDmaIdx);
-		// kick Tx-Ring.
+		
 		RTMP_IO_WRITE32(pAd, TX_CTX_IDX0 + QID_AC_BE * RINGREG_DIFF, pAd->TxRing[QID_AC_BE].TxCpuIdx);
 
 		pAd->RalinkCounters.KickTxCount++;
@@ -1415,45 +1350,42 @@ static INT	ATECmdHandler(
 		atemode = pAd->ate.Mode;
 		pAd->ate.Mode &= ATE_TXSTOP;
 		pAd->ate.bQATxStart = FALSE;
-//		pAd->ate.TxDoneCount = pAd->ate.TxCount;
+
 
 		if (atemode == ATE_TXCARR)
 		{
-			// No Carrier Test set BBP R22 bit7=0, bit6=0, bit[5~0]=0x0
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-			BbpData &= 0xFFFFFF00; //clear bit7, bit6, bit[5~0]
+			BbpData &= 0xFFFFFF00; 
 		    ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 		}
 		else if (atemode == ATE_TXCARRSUPP)
 		{
-			// No Cont. TX set BBP R22 bit7=0
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-			BbpData &= ~(1 << 7); //set bit7=0
+			BbpData &= ~(1 << 7); 
 			ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 
-			// No Carrier Suppression set BBP R24 bit0=0
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R24, &BbpData);
-			BbpData &= 0xFFFFFFFE; //clear bit0
+			BbpData &= 0xFFFFFFFE; 
 		    ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R24, BbpData);
 		}
 
-		/*
-			We should free some resource which was allocated
-			when ATE_TXFRAME, ATE_STOP, and ATE_TXCONT.
-		*/
+		
 		else if ((atemode & ATE_TXFRAME) || (atemode == ATE_STOP))
 		{
 			PRTMP_TX_RING pTxRing = &pAd->TxRing[QID_AC_BE];
 
 			if (atemode == ATE_TXCONT)
 			{
-				// No Cont. TX set BBP R22 bit7=0
+				
 				ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R22, &BbpData);
-				BbpData &= ~(1 << 7); //set bit7=0
+				BbpData &= ~(1 << 7); 
 				ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R22, BbpData);
 			}
 
-			// Abort Tx, Rx DMA.
+			
 			RtmpDmaEnable(pAd, 0);
 
 			for (i=0; i<TX_RING_SIZE; i++)
@@ -1477,7 +1409,7 @@ static INT	ATECmdHandler(
 					RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 				}
 
-				// Always assign pNdisPacket as NULL after clear
+				
 				pTxRing->Cell[i].pNdisPacket = NULL;
 
 				pPacket = pTxRing->Cell[i].pNextNdisPacket;
@@ -1488,25 +1420,25 @@ static INT	ATECmdHandler(
 					RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_SUCCESS);
 				}
 
-				// Always assign pNextNdisPacket as NULL after clear
+				
 				pTxRing->Cell[i].pNextNdisPacket = NULL;
 #ifdef RT_BIG_ENDIAN
 				RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 				WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
 #endif
 			}
-			// Enable Tx, Rx DMA
+			
 			RtmpDmaEnable(pAd, 1);
 
 		}
 
-		// TxStatus : 0 --> task is idle, 1 --> task is running
+		
 		pAd->ate.TxStatus = 0;
 
-		// Soft reset BBP.
+		
 		BbpSoftReset(pAd);
 
-		// Disable Tx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 2);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -1517,7 +1449,7 @@ static INT	ATECmdHandler(
 		atemode = pAd->ate.Mode;
 		pAd->ate.Mode &= ATE_RXSTOP;
 		pAd->ate.bQARxStart = FALSE;
-//		pAd->ate.TxDoneCount = pAd->ate.TxCount;
+
 
 		if (atemode == ATE_TXCARR)
 		{
@@ -1528,10 +1460,7 @@ static INT	ATECmdHandler(
 			;
 		}
 
-		/*
-			We should free some resource which was allocated
-			when ATE_TXFRAME, ATE_STOP, and ATE_TXCONT.
-		*/
+		
 		else if ((atemode & ATE_TXFRAME) || (atemode == ATE_STOP))
 		{
 			if (atemode == ATE_TXCONT)
@@ -1540,15 +1469,15 @@ static INT	ATECmdHandler(
 			}
 		}
 
-		// Soft reset BBP.
+		
 		BbpSoftReset(pAd);
 
-		// Disable Rx
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 	}
-#endif // RALINK_28xx_QA //
+#endif 
 	else if (!strcmp(arg, "RXFRAME"))
 	{
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("ATE: RXFRAME\n"));
@@ -1558,12 +1487,12 @@ static INT	ATECmdHandler(
 
 		pAd->ate.Mode |= ATE_RXFRAME;
 
-		// Disable Tx of MAC block.
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value &= ~(1 << 2);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
 
-		// Enable Rx of MAC block.
+		
 		RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &Value);
 		Value |= (1 << 3);
 		RTMP_IO_WRITE32(pAd, MAC_SYS_CTRL, Value);
@@ -1579,8 +1508,8 @@ static INT	ATECmdHandler(
 
 	return TRUE;
 }
-/*=======================End of RTMP_MAC_PCI =======================*/
-#endif // RTMP_MAC_PCI //
+
+#endif 
 
 
 
@@ -1604,17 +1533,7 @@ INT	Set_ATE_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE ADDR1=DA for TxFrame(AP  : To DS = 0 ; From DS = 1)
-        or
-        Set ATE ADDR3=DA for TxFrame(STA : To DS = 1 ; From DS = 0)
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_DA_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1622,13 +1541,13 @@ INT	Set_ATE_DA_Proc(
 	PSTRING				value;
 	INT					i;
 
-	// Mac address acceptable format 01:02:03:04:05:06 length 17
+	
 	if (strlen(arg) != 17)
 		return FALSE;
 
     for (i = 0, value = rstrtok(arg, ":"); value; value = rstrtok(NULL, ":"))
 	{
-		/* sanity check */
+		
 		if ((strlen(value) != 2) || (!isxdigit(*value)) || (!isxdigit(*(value+1))))
 		{
 			return FALSE;
@@ -1636,10 +1555,10 @@ INT	Set_ATE_DA_Proc(
 
 #ifdef CONFIG_STA_SUPPORT
 		AtoH(value, &pAd->ate.Addr3[i++], 1);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 	}
 
-	/* sanity check */
+	
 	if (i != 6)
 	{
 		return FALSE;
@@ -1648,7 +1567,7 @@ INT	Set_ATE_DA_Proc(
 #ifdef CONFIG_STA_SUPPORT
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Set_ATE_DA_Proc (DA = %2X:%2X:%2X:%2X:%2X:%2X)\n", pAd->ate.Addr3[0],
 		pAd->ate.Addr3[1], pAd->ate.Addr3[2], pAd->ate.Addr3[3], pAd->ate.Addr3[4], pAd->ate.Addr3[5]));
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Ralink: Set_ATE_DA_Proc Success\n"));
 
@@ -1656,17 +1575,7 @@ INT	Set_ATE_DA_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE ADDR3=SA for TxFrame(AP  : To DS = 0 ; From DS = 1)
-        or
-        Set ATE ADDR2=SA for TxFrame(STA : To DS = 1 ; From DS = 0)
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_SA_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1674,13 +1583,13 @@ INT	Set_ATE_SA_Proc(
 	PSTRING				value;
 	INT					i;
 
-	// Mac address acceptable format 01:02:03:04:05:06 length 17
+	
 	if (strlen(arg) != 17)
 		return FALSE;
 
     for (i=0, value = rstrtok(arg, ":"); value; value = rstrtok(NULL, ":"))
 	{
-		/* sanity check */
+		
 		if ((strlen(value) != 2) || (!isxdigit(*value)) || (!isxdigit(*(value+1))))
 		{
 			return FALSE;
@@ -1688,10 +1597,10 @@ INT	Set_ATE_SA_Proc(
 
 #ifdef CONFIG_STA_SUPPORT
 		AtoH(value, &pAd->ate.Addr2[i++], 1);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 	}
 
-	/* sanity check */
+	
 	if (i != 6)
 	{
 		return FALSE;
@@ -1700,7 +1609,7 @@ INT	Set_ATE_SA_Proc(
 #ifdef CONFIG_STA_SUPPORT
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Set_ATE_SA_Proc (SA = %2X:%2X:%2X:%2X:%2X:%2X)\n", pAd->ate.Addr2[0],
 		pAd->ate.Addr2[1], pAd->ate.Addr2[2], pAd->ate.Addr2[3], pAd->ate.Addr2[4], pAd->ate.Addr2[5]));
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Ralink: Set_ATE_SA_Proc Success\n"));
 
@@ -1708,17 +1617,7 @@ INT	Set_ATE_SA_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE ADDR2=BSSID for TxFrame(AP  : To DS = 0 ; From DS = 1)
-        or
-        Set ATE ADDR1=BSSID for TxFrame(STA : To DS = 1 ; From DS = 0)
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_BSSID_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1726,13 +1625,13 @@ INT	Set_ATE_BSSID_Proc(
 	PSTRING				value;
 	INT					i;
 
-	// Mac address acceptable format 01:02:03:04:05:06 length 17
+	
 	if (strlen(arg) != 17)
 		return FALSE;
 
     for (i=0, value = rstrtok(arg, ":"); value; value = rstrtok(NULL, ":"))
 	{
-		/* sanity check */
+		
 		if ((strlen(value) != 2) || (!isxdigit(*value)) || (!isxdigit(*(value+1))))
 		{
 			return FALSE;
@@ -1740,10 +1639,10 @@ INT	Set_ATE_BSSID_Proc(
 
 #ifdef CONFIG_STA_SUPPORT
 		AtoH(value, &pAd->ate.Addr1[i++], 1);
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 	}
 
-	/* sanity check */
+	
 	if(i != 6)
 	{
 		return FALSE;
@@ -1752,7 +1651,7 @@ INT	Set_ATE_BSSID_Proc(
 #ifdef CONFIG_STA_SUPPORT
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Set_ATE_BSSID_Proc (BSSID = %2X:%2X:%2X:%2X:%2X:%2X)\n",	pAd->ate.Addr1[0],
 		pAd->ate.Addr1[1], pAd->ate.Addr1[2], pAd->ate.Addr1[3], pAd->ate.Addr1[4], pAd->ate.Addr1[5]));
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Ralink: Set_ATE_BSSID_Proc Success\n"));
 
@@ -1760,15 +1659,7 @@ INT	Set_ATE_BSSID_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx Channel
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_CHANNEL_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1777,7 +1668,7 @@ INT	Set_ATE_CHANNEL_Proc(
 
 	channel = simple_strtol(arg, 0, 10);
 
-	// to allow A band channel : ((channel < 1) || (channel > 14))
+	
 	if ((channel < 1) || (channel > 216))
 	{
 		ATEDBGPRINT(RT_DEBUG_ERROR, ("Set_ATE_CHANNEL_Proc::Out of range, it should be in range of 1~14.\n"));
@@ -1793,15 +1684,7 @@ INT	Set_ATE_CHANNEL_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx Power0
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_POWER0_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1818,7 +1701,7 @@ INT	Set_ATE_TX_POWER0_Proc(
 			return FALSE;
 		}
 	}
-	else/* 5.5 GHz */
+	else
 	{
 		if ((TxPower > 15) || (TxPower < -7))
 		{
@@ -1836,15 +1719,7 @@ INT	Set_ATE_TX_POWER0_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx Power1
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_POWER1_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1879,15 +1754,7 @@ INT	Set_ATE_TX_POWER1_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx Antenna
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_Antenna_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1907,7 +1774,7 @@ INT	Set_ATE_TX_Antenna_Proc(
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Set_ATE_TX_Antenna_Proc (Antenna = %d)\n", pAd->ate.TxAntennaSel));
 	ATEDBGPRINT(RT_DEBUG_TRACE,("Ralink: Set_ATE_TX_Antenna_Proc Success\n"));
 
-	// calibration power unbalance issues, merged from Arch Team
+	
 	ATEAsicSwitchChannel(pAd);
 
 
@@ -1915,15 +1782,7 @@ INT	Set_ATE_TX_Antenna_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Rx Antenna
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_RX_Antenna_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1943,7 +1802,7 @@ INT	Set_ATE_RX_Antenna_Proc(
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Set_ATE_RX_Antenna_Proc (Antenna = %d)\n", pAd->ate.RxAntennaSel));
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("Ralink: Set_ATE_RX_Antenna_Proc Success\n"));
 
-	// calibration power unbalance issues, merged from Arch Team
+	
 	ATEAsicSwitchChannel(pAd);
 
 
@@ -1951,15 +1810,7 @@ INT	Set_ATE_RX_Antenna_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE RF frequence offset
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_FREQOFFSET_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -1970,12 +1821,12 @@ INT	Set_ATE_TX_FREQOFFSET_Proc(
 	RFFreqOffset = simple_strtol(arg, 0, 10);
 #ifndef RTMP_RF_RW_SUPPORT
 	if (RFFreqOffset >= 64)
-#endif // RTMP_RF_RW_SUPPORT //
-	/* RT35xx ATE will reuse this code segment. */
+#endif 
+	
 #ifdef RTMP_RF_RW_SUPPORT
-//2008/08/06: KH modified the limit of offset value from 65 to 95(0x5F)
+
 	if (RFFreqOffset >= 95)
-#endif // RTMP_RF_RW_SUPPORT //
+#endif 
 	{
 		ATEDBGPRINT(RT_DEBUG_ERROR, ("Set_ATE_TX_FREQOFFSET_Proc::Out of range, it should be in range of 0~63.\n"));
 		return FALSE;
@@ -1985,18 +1836,18 @@ INT	Set_ATE_TX_FREQOFFSET_Proc(
 #ifdef RTMP_RF_RW_SUPPORT
 	if (IS_RT30xx(pAd) || IS_RT3572(pAd))
 	{
-		// Set RF offset
+		
 		UCHAR RFValue;
 		ATE_RF_IO_READ8_BY_REG_ID(pAd, RF_R23, (PUCHAR)&RFValue);
-//2008/08/06: KH modified "pAd->RFFreqOffset" to "pAd->ate.RFFreqOffset"
+
 		RFValue = ((RFValue & 0x80) | pAd->ate.RFFreqOffset);
 		ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R23, (UCHAR)RFValue);
 	}
 	else
-#endif // RTMP_RF_RW_SUPPORT //
+#endif 
 	{
-		// RT28xx
-		// shift TX power control to correct RF register bit position
+		
+		
 		R4 = pAd->ate.RFFreqOffset << 15;
 		R4 |= (pAd->LatchRfRegs.R4 & ((~0x001f8000)));
 		pAd->LatchRfRegs.R4 = R4;
@@ -2011,15 +1862,7 @@ INT	Set_ATE_TX_FREQOFFSET_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE RF BW
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_BW_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -2033,7 +1876,7 @@ INT	Set_ATE_TX_BW_Proc(
 	if ((BBPCurrentBW == 0)
 #ifdef RT30xx
 		|| IS_RT2070(pAd)
-#endif // RT30xx //
+#endif 
 		)
 	{
 		pAd->ate.TxWI.BW = BW_20;
@@ -2043,9 +1886,9 @@ INT	Set_ATE_TX_BW_Proc(
 		pAd->ate.TxWI.BW = BW_40;
 	}
 
-	/* RT35xx ATE will reuse this code segment. */
-	// Fix the error spectrum of CCK-40MHZ
-	// Turn on BBP 20MHz mode by request here.
+	
+	
+	
 	if ((pAd->ate.TxWI.PHYMODE == MODE_CCK) && (pAd->ate.TxWI.BW == BW_40))
 	{
 		ATEDBGPRINT(RT_DEBUG_ERROR, ("Set_ATE_TX_BW_Proc!! Warning!! CCK only supports 20MHZ!!\nBandwidth switch to 20\n"));
@@ -2077,63 +1920,58 @@ INT	Set_ATE_TX_BW_Proc(
 			}
 		}
 
-		// Set BBP R4 bit[4:3]=0:0
+		
 		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R4, &value);
 		value &= (~0x18);
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R4, value);
 
 
-		// Set BBP R66=0x3C
+		
 		value = 0x3C;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R66, value);
 
-		// Set BBP R68=0x0B
-		// to improve Rx sensitivity.
+		
+		
 		value = 0x0B;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R68, value);
-		// Set BBP R69=0x16
+		
 		value = 0x16;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R69, value);
-		// Set BBP R70=0x08
+		
 		value = 0x08;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R70, value);
-		// Set BBP R73=0x11
+		
 		value = 0x11;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R73, value);
 
-	    /*
-			If Channel=14, Bandwidth=20M and Mode=CCK, Set BBP R4 bit5=1
-			(to set Japan filter coefficients).
-			This segment of code will only works when ATETXMODE and ATECHANNEL
-			were set to MODE_CCK and 14 respectively before ATETXBW is set to 0.
-	    */
+	    
 		if (pAd->ate.Channel == 14)
 		{
 			INT TxMode = pAd->ate.TxWI.PHYMODE;
 
 			if (TxMode == MODE_CCK)
 			{
-				// when Channel==14 && Mode==CCK && BandWidth==20M, BBP R4 bit5=1
+				
 				ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R4, &value);
-				value |= 0x20; //set bit5=1
+				value |= 0x20; 
 				ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R4, value);
 			}
 		}
 
 #ifdef RT30xx
-		// set BW = 20 MHz
+		
 		if (IS_RT30xx(pAd))
 			ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R24, (UCHAR) pAd->Mlme.CaliBW20RfR24);
 		else
-#endif // RT30xx //
-		// set BW = 20 MHz
+#endif 
+		
 		{
 			pAd->LatchRfRegs.R4 &= ~0x00200000;
 			RtmpRfIoWrite(pAd);
 		}
 
 	}
-	// If bandwidth = 40M, set RF Reg4 bit 21 = 0.
+	
 	else if (pAd->ate.TxWI.BW == BW_40)
 	{
 		if (pAd->ate.Channel <= 14)
@@ -2163,42 +2001,42 @@ INT	Set_ATE_TX_BW_Proc(
 			value = 0x28;
 			ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R67, value);
 			}
-#endif // DOT11_N_SUPPORT //
+#endif 
 		}
 
-		// Set BBP R4 bit[4:3]=1:0
+		
 		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R4, &value);
 		value &= (~0x18);
 		value |= 0x10;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R4, value);
 
 
-		// Set BBP R66=0x3C
+		
 		value = 0x3C;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R66, value);
 
-		// Set BBP R68=0x0C
-		// to improve Rx sensitivity
+		
+		
 		value = 0x0C;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R68, value);
-		// Set BBP R69=0x1A
+		
 		value = 0x1A;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R69, value);
-		// Set BBP R70=0x0A
+		
 		value = 0x0A;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R70, value);
-		// Set BBP R73=0x16
+		
 		value = 0x16;
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R73, value);
 
-		// If bandwidth = 40M, set RF Reg4 bit 21 = 1.
+		
 #ifdef RT30xx
-		// set BW = 40 MHz
+		
 		if(IS_RT30xx(pAd))
 			ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R24, (UCHAR) pAd->Mlme.CaliBW40RfR24);
 		else
-#endif // RT30xx //
-		// set BW = 40 MHz
+#endif 
+		
 		{
 		pAd->LatchRfRegs.R4 |= 0x00200000;
 		RtmpRfIoWrite(pAd);
@@ -2213,25 +2051,17 @@ INT	Set_ATE_TX_BW_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx frame length
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_LENGTH_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
 {
 	pAd->ate.TxLength = simple_strtol(arg, 0, 10);
 
-	if ((pAd->ate.TxLength < 24) || (pAd->ate.TxLength > (MAX_FRAME_SIZE - 34/* == 2312 */)))
+	if ((pAd->ate.TxLength < 24) || (pAd->ate.TxLength > (MAX_FRAME_SIZE - 34)))
 	{
-		pAd->ate.TxLength = (MAX_FRAME_SIZE - 34/* == 2312 */);
-		ATEDBGPRINT(RT_DEBUG_ERROR, ("Set_ATE_TX_LENGTH_Proc::Out of range, it should be in range of 24~%d.\n", (MAX_FRAME_SIZE - 34/* == 2312 */)));
+		pAd->ate.TxLength = (MAX_FRAME_SIZE - 34);
+		ATEDBGPRINT(RT_DEBUG_ERROR, ("Set_ATE_TX_LENGTH_Proc::Out of range, it should be in range of 24~%d.\n", (MAX_FRAME_SIZE - 34)));
 		return FALSE;
 	}
 
@@ -2243,15 +2073,7 @@ INT	Set_ATE_TX_LENGTH_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx frame count
 
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_COUNT_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -2266,15 +2088,7 @@ INT	Set_ATE_TX_COUNT_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx frame MCS
 
-        Return:
-		TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_MCS_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -2285,12 +2099,12 @@ INT	Set_ATE_TX_MCS_Proc(
 	MCS = simple_strtol(arg, 0, 10);
 #ifndef RT30xx
 	result = CheckMCSValid(pAd->ate.TxWI.PHYMODE, MCS);
-#endif // RT30xx //
+#endif 
 
-	/* RT35xx ATE will reuse this code segment. */
+	
 #ifdef RT30xx
 	result = CheckMCSValid(pAd->ate.TxWI.PHYMODE, MCS, IS_RT2070(pAd));
-#endif // RT30xx //
+#endif 
 
 
 	if (result != -1)
@@ -2311,19 +2125,7 @@ INT	Set_ATE_TX_MCS_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx frame Mode
-        0: MODE_CCK
-        1: MODE_OFDM
-        2: MODE_HTMIX
-        3: MODE_HTGREENFIELD
 
-        Return:
-		TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_MODE_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -2340,7 +2142,7 @@ INT	Set_ATE_TX_MODE_Proc(
 		return FALSE;
 	}
 
-	// Turn on BBP 20MHz mode by request here.
+	
 	if (pAd->ate.TxWI.PHYMODE == MODE_CCK)
 	{
 		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R4, &BbpData);
@@ -2358,15 +2160,7 @@ INT	Set_ATE_TX_MODE_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Set ATE Tx frame GI
 
-        Return:
-		TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 INT	Set_ATE_TX_GI_Proc(
 	IN	PRTMP_ADAPTER	pAd,
 	IN	PSTRING			arg)
@@ -2413,10 +2207,10 @@ INT Set_ATE_Read_RF_Proc(
 	IN	PSTRING			arg)
 {
 #ifdef RTMP_RF_RW_SUPPORT
-//2008/07/10:KH add to support RT30xx ATE<--
+
 	if (IS_RT30xx(pAd) || IS_RT3572(pAd))
 	{
-		/* modify by WY for Read RF Reg. error */
+		
 		UCHAR RFValue;
 		INT index=0;
 
@@ -2427,8 +2221,8 @@ INT Set_ATE_Read_RF_Proc(
 		}
 	}
 	else
-//2008/07/10:KH add to support RT30xx ATE-->
-#endif // RTMP_RF_RW_SUPPORT //
+
+#endif 
 	{
 		ate_print(KERN_EMERG "R1 = %lx\n", pAd->LatchRfRegs.R1);
 		ate_print(KERN_EMERG "R2 = %lx\n", pAd->LatchRfRegs.R2);
@@ -2446,7 +2240,7 @@ INT Set_ATE_Write_RF1_Proc(
 	UINT32 value = (UINT32) simple_strtol(arg, 0, 16);
 
 #ifdef RTMP_RF_RW_SUPPORT
-//2008/07/10:KH add to support 3070 ATE<--
+
 	if (IS_RT30xx(pAd) || IS_RT3572(pAd))
 	{
 		ate_print("Warning!! RT3xxx Don't Support !\n");
@@ -2454,8 +2248,8 @@ INT Set_ATE_Write_RF1_Proc(
 
 	}
 	else
-//2008/07/10:KH add to support 3070 ATE-->
-#endif // RTMP_RF_RW_SUPPORT //
+
+#endif 
 	{
 		pAd->LatchRfRegs.R1 = value;
 		RtmpRfIoWrite(pAd);
@@ -2471,7 +2265,7 @@ INT Set_ATE_Write_RF2_Proc(
 	UINT32 value = (UINT32) simple_strtol(arg, 0, 16);
 
 #ifdef RTMP_RF_RW_SUPPORT
-//2008/07/10:KH add to support 3070 ATE<--
+
 	if (IS_RT30xx(pAd) || IS_RT3572(pAd))
 	{
 		ate_print("Warning!! RT3xxx Don't Support !\n");
@@ -2479,8 +2273,8 @@ INT Set_ATE_Write_RF2_Proc(
 
 	}
 	else
-//2008/07/10:KH add to support 3070 ATE-->
-#endif // RTMP_RF_RW_SUPPORT //
+
+#endif 
 	{
 		pAd->LatchRfRegs.R2 = value;
 		RtmpRfIoWrite(pAd);
@@ -2496,7 +2290,7 @@ INT Set_ATE_Write_RF3_Proc(
 	UINT32 value = simple_strtol(arg, 0, 16);
 
 #ifdef RTMP_RF_RW_SUPPORT
-//2008/07/10:KH add to support 3070 ATE<--
+
 	if (IS_RT30xx(pAd) || IS_RT3572(pAd))
 	{
 		ate_print("Warning!! RT3xxx Don't Support !\n");
@@ -2504,8 +2298,8 @@ INT Set_ATE_Write_RF3_Proc(
 
 	}
 	else
-//2008/07/10:KH add to support 3070 ATE-->
-#endif // RTMP_RF_RW_SUPPORT //
+
+#endif 
 	{
 		pAd->LatchRfRegs.R3 = value;
 		RtmpRfIoWrite(pAd);
@@ -2521,7 +2315,7 @@ INT Set_ATE_Write_RF4_Proc(
 	UINT32 value = (UINT32) simple_strtol(arg, 0, 16);
 
 #ifdef RTMP_RF_RW_SUPPORT
-//2008/07/10:KH add to support 3070 ATE<--
+
 	if (IS_RT30xx(pAd) || IS_RT3572(pAd))
 	{
 		ate_print("Warning!! RT3xxx Don't Support !\n");
@@ -2529,8 +2323,8 @@ INT Set_ATE_Write_RF4_Proc(
 
 	}
 	else
-//2008/07/10:KH add to support 3070 ATE-->
-#endif // RTMP_RF_RW_SUPPORT //
+
+#endif 
 	{
 		pAd->LatchRfRegs.R4 = value;
 		RtmpRfIoWrite(pAd);
@@ -2539,15 +2333,7 @@ INT Set_ATE_Write_RF4_Proc(
 }
 
 
-/*
-==========================================================================
-    Description:
-        Load and Write EEPROM from a binary file prepared in advance.
 
-        Return:
-		TRUE if all parameters are OK, FALSE otherwise
-==========================================================================
-*/
 #if defined(LINUX) || defined(VXWORKS)
 INT Set_ATE_Load_E2P_Proc(
 	IN	PRTMP_ADAPTER	pAd,
@@ -2566,14 +2352,14 @@ INT Set_ATE_Load_E2P_Proc(
 
 	if (value > 0)
 	{
-		/* zero the e2p buffer */
+		
 		NdisZeroMemory((PUCHAR)WriteEEPROM, EEPROM_SIZE);
 
 		RtmpOSFSInfoChange(&osFSInfo, TRUE);
 
 		do
 		{
-			/* open the bin file */
+			
 			srcf = RtmpOSFileOpen(src, O_RDONLY, 0);
 
 			if (IS_FILE_OPEN_ERR(srcf))
@@ -2582,7 +2368,7 @@ INT Set_ATE_Load_E2P_Proc(
 				break;
 			}
 
-			/* read the firmware from the file *.bin */
+			
 			FileLength = RtmpOSFileRead(srcf, (PSTRING)WriteEEPROM, EEPROM_SIZE);
 
 			if (FileLength != EEPROM_SIZE)
@@ -2593,14 +2379,14 @@ INT Set_ATE_Load_E2P_Proc(
 			}
 			else
 			{
-				/* write the content of .bin file to EEPROM */
+				
 				rt_ee_write_all(pAd, WriteEEPROM);
 				ret = TRUE;
 			}
 			break;
 		} while(TRUE);
 
-		/* close firmware file */
+		
 		if (IS_FILE_OPEN_ERR(srcf))
 		{
 				;
@@ -2616,7 +2402,7 @@ INT Set_ATE_Load_E2P_Proc(
 			}
 		}
 
-		/* restore */
+		
 		RtmpOSFSInfoChange(&osFSInfo, FALSE);
 	}
 
@@ -2625,7 +2411,7 @@ INT Set_ATE_Load_E2P_Proc(
     return ret;
 
 }
-#endif // defined(LINUX) || defined(VXWORKS) //
+#endif 
 
 
 
@@ -2696,7 +2482,7 @@ INT	Set_ATE_Help_Proc(
 	ate_print("ATERXANT, set RX antenna.0:all, 1:antenna one, 2:antenna two, 3:antenna three.\n");
 	ate_print("ATETXFREQOFFSET, set frequency offset, range 0~63\n");
 	ate_print("ATETXBW, set BandWidth, 0:20MHz, 1:40MHz.\n");
-	ate_print("ATETXLEN, set Frame length, range 24~%d\n", (MAX_FRAME_SIZE - 34/* == 2312 */));
+	ate_print("ATETXLEN, set Frame length, range 24~%d\n", (MAX_FRAME_SIZE - 34));
 	ate_print("ATETXCNT, set how many frame going to transmit.\n");
 	ate_print("ATETXMCS, set MCS, reference to rate table.\n");
 	ate_print("ATETXMODE, set Mode 0:CCK, 1:OFDM, 2:HT-Mix, 3:GreenField, reference to rate table.\n");
@@ -2718,14 +2504,7 @@ INT	Set_ATE_Help_Proc(
 
 
 
-/*
-==========================================================================
-    Description:
 
-	AsicSwitchChannel() dedicated for ATE.
-
-==========================================================================
-*/
 VOID ATEAsicSwitchChannel(
     IN PRTMP_ADAPTER pAd)
 {
@@ -2738,7 +2517,7 @@ VOID ATEAsicSwitchChannel(
 	RFRegTable = NULL;
 
 #ifdef RALINK_28xx_QA
-	// for QA mode, TX power values are passed from UI
+	
 	if ((pAd->ate.bQATxStart == TRUE) || (pAd->ate.bQARxStart == TRUE))
 	{
 		if (pAd->ate.Channel != pAd->LatchRfRegs.Channel)
@@ -2748,35 +2527,31 @@ VOID ATEAsicSwitchChannel(
 		return;
 	}
 	else
-#endif // RALINK_28xx_QA //
+#endif 
 	Channel = pAd->ate.Channel;
 
-	// select antenna for RT3090
+	
 	AsicAntennaSelect(pAd, Channel);
 
-	// fill Tx power value
+	
 	TxPwer = pAd->ate.TxPower0;
 	TxPwer2 = pAd->ate.TxPower1;
 #ifdef RT30xx
-//2008/07/10:KH add to support 3070 ATE<--
 
-	/*
-		The RF programming sequence is difference between 3xxx and 2xxx.
-		The 3070 is 1T1R. Therefore, we don't need to set the number of Tx/Rx path
-		and the only job is to set the parameters of channels.
-	*/
+
+	
 	if (IS_RT30xx(pAd) && ((pAd->RfIcType == RFIC_3020) ||
 			(pAd->RfIcType == RFIC_3021) || (pAd->RfIcType == RFIC_3022) ||
 			(pAd->RfIcType == RFIC_2020)))
 	{
-		/* modify by WY for Read RF Reg. error */
+		
 		UCHAR RFValue = 0;
 
 		for (index = 0; index < NUM_OF_3020_CHNL; index++)
 		{
 			if (Channel == FreqItems3020[index].Channel)
 			{
-				// Programming channel parameters.
+				
 				ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R02, FreqItems3020[index].N);
 				ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R03, FreqItems3020[index].K);
 
@@ -2784,22 +2559,22 @@ VOID ATEAsicSwitchChannel(
 				RFValue = (RFValue & 0xFC) | FreqItems3020[index].R;
 				ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R06, (UCHAR)RFValue);
 
-				// Set Tx Power.
+				
 				ATE_RF_IO_READ8_BY_REG_ID(pAd, RF_R12, (PUCHAR)&RFValue);
 				RFValue = (RFValue & 0xE0) | TxPwer;
 				ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R12, (UCHAR)RFValue);
 
-				// Set RF offset.
+				
 				ATE_RF_IO_READ8_BY_REG_ID(pAd, RF_R23, (PUCHAR)&RFValue);
-				//2008/08/06: KH modified "pAd->RFFreqOffset" to "pAd->ate.RFFreqOffset"
+				
 				RFValue = (RFValue & 0x80) | pAd->ate.RFFreqOffset;
 				ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R23, (UCHAR)RFValue);
 
-				// Set BW.
+				
 				if (pAd->ate.TxWI.BW == BW_40)
 				{
 					RFValue = pAd->Mlme.CaliBW40RfR24;
-//					DISABLE_11N_CHECK(pAd);
+
 				}
 				else
 				{
@@ -2807,12 +2582,12 @@ VOID ATEAsicSwitchChannel(
 				}
 				ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R24, (UCHAR)RFValue);
 
-				// Enable RF tuning
+				
 				ATE_RF_IO_READ8_BY_REG_ID(pAd, RF_R07, (PUCHAR)&RFValue);
 				RFValue = RFValue | 0x1;
 				ATE_RF_IO_WRITE8_BY_REG_ID(pAd, RF_R07, (UCHAR)RFValue);
 
-				// latch channel for future usage
+				
 				pAd->LatchRfRegs.Channel = Channel;
 
 				break;
@@ -2830,15 +2605,15 @@ VOID ATEAsicSwitchChannel(
 			FreqItems3020[index].R));
 	}
 	else
-//2008/07/10:KH add to support 3070 ATE-->
-#endif // RT30xx //
+
+#endif 
 	{
-		/* RT28xx */
+		
 		RFRegTable = RF2850RegTable;
 
 		switch (pAd->RfIcType)
 		{
-			/* But only 2850 and 2750 support 5.5GHz band... */
+			
 			case RFIC_2820:
 			case RFIC_2850:
 			case RFIC_2720:
@@ -2850,7 +2625,7 @@ VOID ATEAsicSwitchChannel(
 					{
 						R2 = RFRegTable[index].R2;
 
-						// If TX path is 1, bit 14 = 1;
+						
 						if (pAd->Antenna.field.TxPath == 1)
 						{
 							R2 |= 0x4000;
@@ -2878,7 +2653,7 @@ VOID ATEAsicSwitchChannel(
 									R2 |= 0x40;
 									ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R3, &BbpValue);
 									BbpValue &= 0xE4;
-									/* Only enable two Antenna to receive. */
+									
 									BbpValue |= 0x08;
 									ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R3, BbpValue);
 									break;
@@ -2886,7 +2661,7 @@ VOID ATEAsicSwitchChannel(
 						}
 						else if (pAd->Antenna.field.RxPath == 1)
 						{
-							// write 1 to off RxPath
+							
 							R2 |= 0x20040;
 						}
 
@@ -2894,15 +2669,15 @@ VOID ATEAsicSwitchChannel(
 						{
 							if (pAd->ate.TxAntennaSel == 1)
 							{
-								// If TX Antenna select is 1 , bit 14 = 1; Disable Ant 2
+								
 								R2 |= 0x4000;
 								ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R1, &BbpValue);
-								BbpValue &= 0xE7;		// 11100111B
+								BbpValue &= 0xE7;		
 								ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R1, BbpValue);
 							}
 							else if (pAd->ate.TxAntennaSel == 2)
 							{
-								// If TX Antenna select is 2 , bit 15 = 1; Disable Ant 1
+								
 								R2 |= 0x8000;
 								ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R1, &BbpValue);
 								BbpValue &= 0xE7;
@@ -2953,17 +2728,12 @@ VOID ATEAsicSwitchChannel(
 
 						if (Channel > 14)
 						{
-							// initialize R3, R4
+							
 							R3 = (RFRegTable[index].R3 & 0xffffc1ff);
 							R4 = (RFRegTable[index].R4 & (~0x001f87c0)) | (pAd->ate.RFFreqOffset << 15);
 
-		                    /*
-			                    According the Rory's suggestion to solve the middle range issue.
-
-								5.5G band power range : 0xF9~0X0F, TX0 Reg3 bit9/TX1 Reg4 bit6="0"
-														means the TX power reduce 7dB.
-							*/
-							// R3
+		                    
+							
 							if ((TxPwer >= -7) && (TxPwer < 0))
 							{
 								TxPwer = (7+TxPwer);
@@ -2977,7 +2747,7 @@ VOID ATEAsicSwitchChannel(
 								R3 |= (TxPwer << 10) | (1 << 9);
 							}
 
-							// R4
+							
 							if ((TxPwer2 >= -7) && (TxPwer2 < 0))
 							{
 								TxPwer2 = (7+TxPwer2);
@@ -2993,19 +2763,19 @@ VOID ATEAsicSwitchChannel(
 						}
 						else
 						{
-							// Set TX power0.
+							
 							R3 = (RFRegTable[index].R3 & 0xffffc1ff) | (TxPwer << 9);
-							// Set frequency offset and TX power1.
+							
 							R4 = (RFRegTable[index].R4 & (~0x001f87c0)) | (pAd->ate.RFFreqOffset << 15) | (TxPwer2 <<6);
 						}
 
-						// based on BBP current mode before changing RF channel
+						
 						if (pAd->ate.TxWI.BW == BW_40)
 						{
 							R4 |=0x200000;
 						}
 
-						// Update variables.
+						
 						pAd->LatchRfRegs.Channel = Channel;
 						pAd->LatchRfRegs.R1 = RFRegTable[index].R1;
 						pAd->LatchRfRegs.R2 = R2;
@@ -3024,16 +2794,16 @@ VOID ATEAsicSwitchChannel(
 		}
 	}
 
-	// Change BBP setting during switch from a->g, g->a
+	
 	if (Channel <= 14)
 	{
-	    UINT32 TxPinCfg = 0x00050F0A;// 2007.10.09 by Brian : 0x0005050A ==> 0x00050F0A
+	    UINT32 TxPinCfg = 0x00050F0A;
 
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R62, (0x37 - GET_LNA_GAIN(pAd)));
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R63, (0x37 - GET_LNA_GAIN(pAd)));
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R64, (0x37 - GET_LNA_GAIN(pAd)));
 
-		/* For 1T/2R chip only... */
+		
 	    if (pAd->NicConfig2.field.ExternalLNAForG)
 	    {
 	        ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R82, 0x62);
@@ -3043,22 +2813,22 @@ VOID ATEAsicSwitchChannel(
 	        ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R82, 0x84);
 	    }
 
-        // According the Rory's suggestion to solve the middle range issue.
-		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R86, &BbpValue);// may be removed for RT35xx ++
+        
+		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R86, &BbpValue);
 
 		ASSERT((BbpValue == 0x00));
 		if ((BbpValue != 0x00))
 		{
 			ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R86, 0x00);
-		}// may be removed for RT35xx --
+		}
 
-		// 5.5 GHz band selection PIN, bit1 and bit2 are complement
+		
 		RTMP_IO_READ32(pAd, TX_BAND_CFG, &Value);
 		Value &= (~0x6);
 		Value |= (0x04);
 		RTMP_IO_WRITE32(pAd, TX_BAND_CFG, Value);
 
-        // Turn off unused PA or LNA when only 1T or 1R.
+        
 		if (pAd->Antenna.field.TxPath == 1)
 		{
 			TxPinCfg &= 0xFFFFFFF3;
@@ -3068,7 +2838,7 @@ VOID ATEAsicSwitchChannel(
 			TxPinCfg &= 0xFFFFF3FF;
 		}
 
-		// calibration power unbalance issues
+		
 		if (pAd->Antenna.field.TxPath == 2)
 		{
 			if (pAd->ate.TxAntennaSel == 1)
@@ -3085,15 +2855,15 @@ VOID ATEAsicSwitchChannel(
 	}
 	else
 	{
-	    UINT32	TxPinCfg = 0x00050F05;// 2007.10.09 by Brian : 0x00050505 ==> 0x00050F05
+	    UINT32	TxPinCfg = 0x00050F05;
 
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R62, (0x37 - GET_LNA_GAIN(pAd)));
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R63, (0x37 - GET_LNA_GAIN(pAd)));
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R64, (0x37 - GET_LNA_GAIN(pAd)));
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R82, 0xF2);
 
-        // According the Rory's suggestion to solve the middle range issue.
-		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R86, &BbpValue);// may be removed for RT35xx ++
+        
+		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R86, &BbpValue);
 
 		ASSERT((BbpValue == 0x00));
 		if ((BbpValue != 0x00))
@@ -3105,15 +2875,15 @@ VOID ATEAsicSwitchChannel(
 		ASSERT((BbpValue == 0x04));
 
 		ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R92, &BbpValue);
-		ASSERT((BbpValue == 0x00));// may be removed for RT35xx --
+		ASSERT((BbpValue == 0x00));
 
-		// 5.5 GHz band selection PIN, bit1 and bit2 are complement
+		
 		RTMP_IO_READ32(pAd, TX_BAND_CFG, &Value);
 		Value &= (~0x6);
 		Value |= (0x02);
 		RTMP_IO_WRITE32(pAd, TX_BAND_CFG, Value);
 
-		// Turn off unused PA or LNA when only 1T or 1R.
+		
 		if (pAd->Antenna.field.TxPath == 1)
 		{
 			TxPinCfg &= 0xFFFFFFF3;
@@ -3127,16 +2897,16 @@ VOID ATEAsicSwitchChannel(
 	}
 
 
-    // R66 should be set according to Channel and use 20MHz when scanning
+    
 	if (Channel <= 14)
 	{
-		// BG band
+		
 		R66 = 0x2E + GET_LNA_GAIN(pAd);
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R66, R66);
 	}
 	else
 	{
-		// 5.5 GHz band
+		
 		if (pAd->ate.TxWI.BW == BW_20)
 		{
 			R66 = (UCHAR)(0x32 + (GET_LNA_GAIN(pAd)*5)/3);
@@ -3149,18 +2919,13 @@ VOID ATEAsicSwitchChannel(
 		}
 	}
 
-	/*
-		On 11A, We should delay and wait RF/BBP to be stable
-		and the appropriate time should be 1000 micro seconds.
-
-		2005/06/05 - On 11G, We also need this delay time. Otherwise it's difficult to pass the WHQL.
-	*/
+	
 	RTMPusecDelay(1000);
 
 #ifndef RTMP_RF_RW_SUPPORT
 	if (Channel > 14)
 	{
-		// When 5.5GHz band the LSB of TxPwr will be used to reduced 7dB or not.
+		
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("SwitchChannel#%d(RF=%d, %dT) to , R1=0x%08lx, R2=0x%08lx, R3=0x%08lx, R4=0x%08lx\n",
 								  Channel,
 								  pAd->RfIcType,
@@ -3183,30 +2948,14 @@ VOID ATEAsicSwitchChannel(
 								  pAd->LatchRfRegs.R3,
 								  pAd->LatchRfRegs.R4));
     }
-#endif // RTMP_RF_RW_SUPPORT //
+#endif 
 }
 
 
 
-/* In fact, no one will call this routine so far ! */
 
-/*
-==========================================================================
-	Description:
-		Gives CCK TX rate 2 more dB TX power.
-		This routine works only in ATE mode.
 
-		calculate desired Tx power in RF R3.Tx0~5,	should consider -
-		0. if current radio is a noisy environment (pAd->DrsCounters.fNoisyEnvironment)
-		1. TxPowerPercentage
-		2. auto calibration based on TSSI feedback
-		3. extra 2 db for CCK
-		4. -10 db upon very-short distance (AvgRSSI >= -40db) to AP
 
-	NOTE: Since this routine requires the value of (pAd->DrsCounters.fNoisyEnvironment),
-		it should be called AFTER MlmeDynamicTxRateSwitching()
-==========================================================================
-*/
 VOID ATEAsicAdjustTxPower(
 	IN PRTMP_ADAPTER pAd)
 {
@@ -3219,7 +2968,7 @@ VOID ATEAsicAdjustTxPower(
 	ULONG		TxPwr[5];
 	CHAR		Value;
 
-	/* no one calls this procedure so far */
+	
 	if (pAd->ate.TxWI.BW == BW_40)
 	{
 		if (pAd->ate.Channel > 14)
@@ -3259,13 +3008,13 @@ VOID ATEAsicAdjustTxPower(
 		}
 	}
 
-	// TX power compensation for temperature variation based on TSSI.
-	// Do it per 4 seconds.
+	
+	
 	if (pAd->Mlme.OneSecPeriodicRound % 4 == 0)
 	{
 		if (pAd->ate.Channel <= 14)
 		{
-			/* bg channel */
+			
 			bAutoTxAgc         = pAd->bAutoTxAgcG;
 			TssiRef            = pAd->TssiRefG;
 			pTssiMinusBoundary = &pAd->TssiMinusBoundaryG[0];
@@ -3275,7 +3024,7 @@ VOID ATEAsicAdjustTxPower(
 		}
 		else
 		{
-			/* a channel */
+			
 			bAutoTxAgc         = pAd->bAutoTxAgcA;
 			TssiRef            = pAd->TssiRefA;
 			pTssiMinusBoundary = &pAd->TssiMinusBoundaryA[0];
@@ -3286,38 +3035,37 @@ VOID ATEAsicAdjustTxPower(
 
 		if (bAutoTxAgc)
 		{
-			/* BbpR49 is unsigned char. */
+			
 			ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R49, &BbpR49);
 
-			/* (p) TssiPlusBoundaryG[0] = 0 = (m) TssiMinusBoundaryG[0] */
-			/* compensate: +4     +3   +2   +1    0   -1   -2   -3   -4 * steps */
-			/* step value is defined in pAd->TxAgcStepG for tx power value */
+			
+			
+			
 
-			/* [4]+1+[4]   p4     p3   p2   p1   o1   m1   m2   m3   m4 */
-			/* ex:         0x00 0x15 0x25 0x45 0x88 0xA0 0xB5 0xD0 0xF0
-			   above value are examined in mass factory production */
-			/*             [4]    [3]  [2]  [1]  [0]  [1]  [2]  [3]  [4] */
+			
+			
+			
 
-			/* plus is 0x10 ~ 0x40, minus is 0x60 ~ 0x90 */
-			/* if value is between p1 ~ o1 or o1 ~ s1, no need to adjust tx power */
-			/* if value is 0x65, tx power will be -= TxAgcStep*(2-1) */
+			
+			
+			
 
 			if (BbpR49 > pTssiMinusBoundary[1])
 			{
-				// Reading is larger than the reference value.
-				// Check for how large we need to decrease the Tx power.
+				
+				
 				for (idx = 1; idx < 5; idx++)
 				{
-					// Found the range.
+					
 					if (BbpR49 <= pTssiMinusBoundary[idx])
 						break;
 				}
 
-				// The index is the step we should decrease, idx = 0 means there is nothing to compensate.
-//				if (R3 > (ULONG) (TxAgcStep * (idx-1)))
+				
+
 					*pTxAgcCompensate = -(TxAgcStep * (idx-1));
-//				else
-//					*pTxAgcCompensate = -((UCHAR)R3);
+
+
 
 				DeltaPwr += (*pTxAgcCompensate);
 				ATEDBGPRINT(RT_DEBUG_TRACE, ("-- Tx Power, BBP R1=%x, TssiRef=%x, TxAgcStep=%x, step = -%d\n",
@@ -3325,16 +3073,16 @@ VOID ATEAsicAdjustTxPower(
 			}
 			else if (BbpR49 < pTssiPlusBoundary[1])
 			{
-				// Reading is smaller than the reference value.
-				// Check for how large we need to increase the Tx power.
+				
+				
 				for (idx = 1; idx < 5; idx++)
 				{
-					// Found the range.
+					
 					if (BbpR49 >= pTssiPlusBoundary[idx])
 						break;
 				}
 
-				// The index is the step we should increase, idx = 0 means there is nothing to compensate.
+				
 				*pTxAgcCompensate = TxAgcStep * (idx-1);
 				DeltaPwr += (*pTxAgcCompensate);
 				ATEDBGPRINT(RT_DEBUG_TRACE, ("++ Tx Power, BBP R1=%x, TssiRef=%x, TxAgcStep=%x, step = +%d\n",
@@ -3365,66 +3113,63 @@ VOID ATEAsicAdjustTxPower(
 			DeltaPwr += (*pTxAgcCompensate);
 	}
 
-	/* Calculate delta power based on the percentage specified from UI. */
-	// E2PROM setting is calibrated for maximum TX power (i.e. 100%)
-	// We lower TX power here according to the percentage specified from UI.
-	if (pAd->CommonCfg.TxPowerPercentage == 0xffffffff)       // AUTO TX POWER control
+	
+	
+	
+	if (pAd->CommonCfg.TxPowerPercentage == 0xffffffff)       
 		;
-	else if (pAd->CommonCfg.TxPowerPercentage > 90)  // 91 ~ 100% & AUTO, treat as 100% in terms of mW
+	else if (pAd->CommonCfg.TxPowerPercentage > 90)  
 		;
-	else if (pAd->CommonCfg.TxPowerPercentage > 60)  // 61 ~ 90%, treat as 75% in terms of mW
+	else if (pAd->CommonCfg.TxPowerPercentage > 60)  
 	{
 		DeltaPwr -= 1;
 	}
-	else if (pAd->CommonCfg.TxPowerPercentage > 30)  // 31 ~ 60%, treat as 50% in terms of mW
+	else if (pAd->CommonCfg.TxPowerPercentage > 30)  
 	{
 		DeltaPwr -= 3;
 	}
-	else if (pAd->CommonCfg.TxPowerPercentage > 15)  // 16 ~ 30%, treat as 25% in terms of mW
+	else if (pAd->CommonCfg.TxPowerPercentage > 15)  
 	{
 		DeltaPwr -= 6;
 	}
-	else if (pAd->CommonCfg.TxPowerPercentage > 9)   // 10 ~ 15%, treat as 12.5% in terms of mW
+	else if (pAd->CommonCfg.TxPowerPercentage > 9)   
 	{
 		DeltaPwr -= 9;
 	}
-	else                                           // 0 ~ 9 %, treat as MIN(~3%) in terms of mW
+	else                                           
 	{
 		DeltaPwr -= 12;
 	}
 
-	/* Reset different new tx power for different TX rate. */
+	
 	for (i=0; i<5; i++)
 	{
 		if (TxPwr[i] != 0xffffffff)
 		{
 			for (j=0; j<8; j++)
 			{
-				Value = (CHAR)((TxPwr[i] >> j*4) & 0x0F); /* 0 ~ 15 */
+				Value = (CHAR)((TxPwr[i] >> j*4) & 0x0F); 
 
 				if ((Value + DeltaPwr) < 0)
 				{
-					Value = 0; /* min */
+					Value = 0; 
 				}
 				else if ((Value + DeltaPwr) > 0xF)
 				{
-					Value = 0xF; /* max */
+					Value = 0xF; 
 				}
 				else
 				{
-					Value += DeltaPwr; /* temperature compensation */
+					Value += DeltaPwr; 
 				}
 
-				/* fill new value to CSR offset */
+				
 				TxPwr[i] = (TxPwr[i] & ~(0x0000000F << j*4)) | (Value << j*4);
 			}
 
-			/* write tx power value to CSR */
-			/* TX_PWR_CFG_0 (8 tx rate) for	TX power for OFDM 12M/18M
-											TX power for OFDM 6M/9M
-											TX power for CCK5.5M/11M
-											TX power for CCK1M/2M */
-			/* TX_PWR_CFG_1 ~ TX_PWR_CFG_4 */
+			
+			
+			
 			RTMP_IO_WRITE32(pAd, TX_PWR_CFG_0 + i*4, TxPwr[i]);
 
 
@@ -3434,15 +3179,7 @@ VOID ATEAsicAdjustTxPower(
 }
 
 
-/*
-========================================================================
-	Routine Description:
-		Write TxWI for ATE mode.
 
-	Return Value:
-		None
-========================================================================
-*/
 #ifdef RTMP_MAC_PCI
 static VOID ATEWriteTxWI(
 	IN	PRTMP_ADAPTER	pAd,
@@ -3452,7 +3189,7 @@ static VOID ATEWriteTxWI(
 	IN	BOOLEAN			InsTimestamp,
 	IN	BOOLEAN			AMPDU,
 	IN	BOOLEAN			Ack,
-	IN	BOOLEAN			NSeq,		// HW new a sequence.
+	IN	BOOLEAN			NSeq,		
 	IN	UCHAR			BASize,
 	IN	UCHAR			WCID,
 	IN	ULONG			Length,
@@ -3466,10 +3203,10 @@ static VOID ATEWriteTxWI(
 	TXWI_STRUC		TxWI;
 	PTXWI_STRUC	pTxWI;
 
-	//
-	// Always use Long preamble before verifiation short preamble functionality works well.
-	// Todo: remove the following line if short preamble functionality works
-	//
+	
+	
+	
+	
 	OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_SHORT_PREAMBLE_INUSED);
 	NdisZeroMemory(&TxWI, TXWI_SIZE);
 	pTxWI = &TxWI;
@@ -3484,7 +3221,7 @@ static VOID ATEWriteTxWI(
 
 	pTxWI->NSEQ = NSeq;
 
-	// John tune the performace with Intel Client in 20 MHz performance
+	
 	if ( BASize >7 )
 		BASize =7;
 
@@ -3493,7 +3230,7 @@ static VOID ATEWriteTxWI(
 	pTxWI->MPDUtotalByteCount = Length;
 	pTxWI->PacketId = PID;
 
-	// If CCK or OFDM, BW must be 20
+	
 	pTxWI->BW = (pTransmit->field.MODE <= MODE_OFDM) ? (BW_20) : (pTransmit->field.BW);
 	pTxWI->ShortGI = pTransmit->field.ShortGI;
 	pTxWI->STBC = pTransmit->field.STBC;
@@ -3509,18 +3246,12 @@ static VOID ATEWriteTxWI(
 
     return;
 }
-#endif // RTMP_MAC_PCI //
+#endif 
 
 
 
 
-/*
-========================================================================
 
-	Routine Description:
-		Disable protection for ATE.
-========================================================================
-*/
 VOID ATEDisableAsicProtect(
 	IN		PRTMP_ADAPTER	pAd)
 {
@@ -3530,13 +3261,13 @@ VOID ATEDisableAsicProtect(
 	UCHAR			i;
 	UINT32 MacReg = 0;
 
-	// Config ASIC RTS threshold register
+	
 	RTMP_IO_READ32(pAd, TX_RTS_CFG, &MacReg);
 	MacReg &= 0xFF0000FF;
 	MacReg |= (pAd->CommonCfg.RtsThreshold << 8);
 	RTMP_IO_WRITE32(pAd, TX_RTS_CFG, MacReg);
 
-	// Initial common protection settings
+	
 	RTMPZeroMemory(Protect, sizeof(Protect));
 	ProtCfg4.word = 0;
 	ProtCfg.word = 0;
@@ -3549,48 +3280,48 @@ VOID ATEDisableAsicProtect(
 	ProtCfg.field.RTSThEn = 1;
 	ProtCfg.field.ProtectNav = ASIC_SHORTNAV;
 
-	// Handle legacy(B/G) protection
+	
 	ProtCfg.field.ProtectRate = pAd->CommonCfg.RtsRate;
 	ProtCfg.field.ProtectCtrl = 0;
 	Protect[0] = ProtCfg.word;
 	Protect[1] = ProtCfg.word;
 
-	// NO PROTECT
-	// 1.All STAs in the BSS are 20/40 MHz HT
-	// 2. in ai 20/40MHz BSS
-	// 3. all STAs are 20MHz in a 20MHz BSS
-	// Pure HT. no protection.
+	
+	
+	
+	
+	
 
-	// MM20_PROT_CFG
-	//	Reserved (31:27)
-	//	PROT_TXOP(25:20) -- 010111
-	//	PROT_NAV(19:18)  -- 01 (Short NAV protection)
-	//  PROT_CTRL(17:16) -- 00 (None)
-	//	PROT_RATE(15:0)  -- 0x4004 (OFDM 24M)
+	
+	
+	
+	
+	
+	
 	Protect[2] = 0x01744004;
 
-	// MM40_PROT_CFG
-	//	Reserved (31:27)
-	//	PROT_TXOP(25:20) -- 111111
-	//	PROT_NAV(19:18)  -- 01 (Short NAV protection)
-	//  PROT_CTRL(17:16) -- 00 (None)
-	//	PROT_RATE(15:0)  -- 0x4084 (duplicate OFDM 24M)
+	
+	
+	
+	
+	
+	
 	Protect[3] = 0x03f44084;
 
-	// CF20_PROT_CFG
-	//	Reserved (31:27)
-	//	PROT_TXOP(25:20) -- 010111
-	//	PROT_NAV(19:18)  -- 01 (Short NAV protection)
-	//  PROT_CTRL(17:16) -- 00 (None)
-	//	PROT_RATE(15:0)  -- 0x4004 (OFDM 24M)
+	
+	
+	
+	
+	
+	
 	Protect[4] = 0x01744004;
 
-	// CF40_PROT_CFG
-	//	Reserved (31:27)
-	//	PROT_TXOP(25:20) -- 111111
-	//	PROT_NAV(19:18)  -- 01 (Short NAV protection)
-	//  PROT_CTRL(17:16) -- 00 (None)
-	//	PROT_RATE(15:0)  -- 0x4084 (duplicate OFDM 24M)
+	
+	
+	
+	
+	
+	
 	Protect[5] = 0x03f44084;
 
 	pAd->CommonCfg.IOTestParm.bRTSLongProtOn = FALSE;
@@ -3604,8 +3335,8 @@ VOID ATEDisableAsicProtect(
 
 
 
-/* There are two ways to convert Rssi */
-/* the way used with GET_LNA_GAIN() */
+
+
 CHAR ATEConvertToRssi(
 	IN PRTMP_ADAPTER pAd,
 	IN	CHAR	Rssi,
@@ -3613,7 +3344,7 @@ CHAR ATEConvertToRssi(
 {
 	UCHAR	RssiOffset, LNAGain;
 
-	// Rssi equals to zero should be an invalid value
+	
 	if (Rssi == 0)
 		return -99;
 
@@ -3641,36 +3372,26 @@ CHAR ATEConvertToRssi(
 }
 
 
-/*
-========================================================================
 
-	Routine Description:
-		Set Japan filter coefficients if needed.
-	Note:
-		This routine should only be called when
-		entering TXFRAME mode or TXCONT mode.
-
-========================================================================
-*/
 static VOID SetJapanFilter(
 	IN		PRTMP_ADAPTER	pAd)
 {
 	UCHAR			BbpData = 0;
 
-	//
-	// If Channel=14 and Bandwidth=20M and Mode=CCK, set BBP R4 bit5=1
-	// (Japan Tx filter coefficients)when (TXFRAME or TXCONT).
-	//
+	
+	
+	
+	
 	ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R4, &BbpData);
 
     if ((pAd->ate.TxWI.PHYMODE == MODE_CCK) && (pAd->ate.Channel == 14) && (pAd->ate.TxWI.BW == BW_20))
     {
-        BbpData |= 0x20;    // turn on
+        BbpData |= 0x20;    
         ATEDBGPRINT(RT_DEBUG_TRACE, ("SetJapanFilter!!!\n"));
     }
     else
     {
-		BbpData &= 0xdf;    // turn off
+		BbpData &= 0xdf;    
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("ClearJapanFilter!!!\n"));
     }
 
@@ -3682,8 +3403,8 @@ VOID ATESampleRssi(
 	IN PRTMP_ADAPTER	pAd,
 	IN PRXWI_STRUC		pRxWI)
 {
-	/* There are two ways to collect RSSI. */
-//	pAd->LastRxRate = (USHORT)((pRxWI->MCS) + (pRxWI->BW <<7) + (pRxWI->ShortGI <<8)+ (pRxWI->PHYMODE <<14)) ;
+	
+
 	if (pRxWI->RSSI0 != 0)
 	{
 		pAd->ate.LastRssi0	= ATEConvertToRssi(pAd, (CHAR) pRxWI->RSSI0, RSSI_0);
@@ -3703,8 +3424,8 @@ VOID ATESampleRssi(
 		pAd->ate.AvgRssi2	= pAd->ate.AvgRssi2X8 >> 3;
 	}
 
-	pAd->ate.LastSNR0 = (CHAR)(pRxWI->SNR0);// CHAR ==> UCHAR ?
-	pAd->ate.LastSNR1 = (CHAR)(pRxWI->SNR1);// CHAR ==> UCHAR ?
+	pAd->ate.LastSNR0 = (CHAR)(pRxWI->SNR0);
+	pAd->ate.LastSNR1 = (CHAR)(pRxWI->SNR1);
 
 	pAd->ate.NumOfAvgRssiSample ++;
 }
@@ -3714,12 +3435,12 @@ VOID ATESampleRssi(
 VOID RTMPStationStop(
     IN  PRTMP_ADAPTER   pAd)
 {
-//	BOOLEAN       Cancelled;
+
 
     ATEDBGPRINT(RT_DEBUG_TRACE, ("==> RTMPStationStop\n"));
 
-	// For rx statistics, we need to keep this timer running.
-//	RTMPCancelTimer(&pAd->Mlme.PeriodicTimer,      &Cancelled);
+	
+
 
     ATEDBGPRINT(RT_DEBUG_TRACE, ("<== RTMPStationStop\n"));
 }
@@ -3733,23 +3454,16 @@ VOID RTMPStationStart(
 #ifdef RTMP_MAC_PCI
 	pAd->Mlme.CntlMachine.CurrState = CNTL_IDLE;
 
-	/* We did not cancel this timer when entering ATE mode. */
-//	RTMPSetTimer(&pAd->Mlme.PeriodicTimer, MLME_TASK_EXEC_INTV);
-#endif // RTMP_MAC_PCI //
+	
+
+#endif 
 
 	ATEDBGPRINT(RT_DEBUG_TRACE, ("<== RTMPStationStart\n"));
 }
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
-/*
-==========================================================================
-	Description:
-		Setup Frame format.
-	NOTE:
-		This routine should only be used in ATE mode.
-==========================================================================
-*/
+
 #ifdef RTMP_MAC_PCI
 static INT ATESetUpFrame(
 	IN PRTMP_ADAPTER pAd,
@@ -3773,13 +3487,13 @@ static INT ATESetUpFrame(
 
 #ifdef RALINK_28xx_QA
 	PHEADER_802_11	pHeader80211;
-#endif // RALINK_28xx_QA //
+#endif 
 
 	if (pAd->ate.bQATxStart == TRUE)
 	{
-		// always use QID_AC_BE and FIFO_EDCA
+		
 
-		// fill TxWI
+		
 		TxHTPhyMode.field.BW = pAd->ate.TxWI.BW;
 		TxHTPhyMode.field.ShortGI = pAd->ate.TxWI.ShortGI;
 		TxHTPhyMode.field.STBC = 0;
@@ -3789,7 +3503,7 @@ static INT ATESetUpFrame(
 		ATEWriteTxWI(pAd, pTxWI, pAd->ate.TxWI.FRAG, pAd->ate.TxWI.CFACK,
 			pAd->ate.TxWI.TS,  pAd->ate.TxWI.AMPDU, pAd->ate.TxWI.ACK, pAd->ate.TxWI.NSEQ,
 			pAd->ate.TxWI.BAWinSize, 0, pAd->ate.TxWI.MPDUtotalByteCount, pAd->ate.TxWI.PacketId, 0, 0,
-			pAd->ate.TxWI.txop/*IFS_HTTXOP*/, pAd->ate.TxWI.CFACK/*FALSE*/, &TxHTPhyMode);
+			pAd->ate.TxWI.txop, pAd->ate.TxWI.CFACK, &TxHTPhyMode);
 	}
 	else
 	{
@@ -3802,14 +3516,14 @@ static INT ATESetUpFrame(
 			4, 0, pAd->ate.TxLength, 0, 0, 0, IFS_HTTXOP, FALSE, &TxHTPhyMode);
 	}
 
-	// fill 802.11 header
+	
 #ifdef RALINK_28xx_QA
 	if (pAd->ate.bQATxStart == TRUE)
 	{
 		NdisMoveMemory(pDMAHeaderBufVA+TXWI_SIZE, pAd->ate.Header, pAd->ate.HLen);
 	}
 	else
-#endif // RALINK_28xx_QA //
+#endif 
 	{
 		NdisMoveMemory(pDMAHeaderBufVA+TXWI_SIZE, TemplateFrame, LENGTH_802_11);
 		NdisMoveMemory(pDMAHeaderBufVA+TXWI_SIZE+4, pAd->ate.Addr1, ETH_LENGTH_OF_ADDRESS);
@@ -3819,16 +3533,16 @@ static INT ATESetUpFrame(
 
 #ifdef RT_BIG_ENDIAN
 	RTMPFrameEndianChange(pAd, (((PUCHAR)pDMAHeaderBufVA)+TXWI_SIZE), DIR_READ, FALSE);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
-	/* alloc buffer for payload */
+	
 #ifdef RALINK_28xx_QA
 	if (pAd->ate.bQATxStart == TRUE)
 	{
 		pPacket = RTMP_AllocateRxPacketBuffer(pAd, pAd->ate.DLen + 0x100, FALSE, &AllocVa, &AllocPa);
 	}
 	else
-#endif // RALINK_28xx_QA //
+#endif 
 	{
 		pPacket = RTMP_AllocateRxPacketBuffer(pAd, pAd->ate.TxLength, FALSE, &AllocVa, &AllocPa);
 	}
@@ -3849,16 +3563,16 @@ static INT ATESetUpFrame(
 		RTPKT_TO_OSPKT(pPacket)->len = pAd->ate.DLen;
 	}
 	else
-#endif // RALINK_28xx_QA //
+#endif 
 	{
 		RTPKT_TO_OSPKT(pPacket)->len = pAd->ate.TxLength - LENGTH_802_11;
 	}
 
-	// prepare frame payload
+	
 #ifdef RALINK_28xx_QA
 	if (pAd->ate.bQATxStart == TRUE)
 	{
-		// copy pattern
+		
 		if ((pAd->ate.PLen != 0))
 		{
 			int j;
@@ -3870,7 +3584,7 @@ static INT ATESetUpFrame(
 		}
 	}
 	else
-#endif // RALINK_28xx_QA //
+#endif 
 	{
 		for (j = 0; j < RTPKT_TO_OSPKT(pPacket)->len; j++)
 		{
@@ -3878,22 +3592,22 @@ static INT ATESetUpFrame(
 		}
 	}
 
-	/* build Tx Descriptor */
+	
 #ifndef RT_BIG_ENDIAN
 	pTxD = (PTXD_STRUC) pTxRing->Cell[TxIdx].AllocVa;
 #else
     pDestTxD  = (PTXD_STRUC)pTxRing->Cell[TxIdx].AllocVa;
     TxD = *pDestTxD;
     pTxD = &TxD;
-#endif // !RT_BIG_ENDIAN //
+#endif 
 
 #ifdef RALINK_28xx_QA
 	if (pAd->ate.bQATxStart == TRUE)
 	{
-		// prepare TxD
+		
 		NdisZeroMemory(pTxD, TXD_SIZE);
 		RTMPWriteTxDescriptor(pAd, pTxD, FALSE, FIFO_EDCA);
-		// build TX DESC
+		
 		pTxD->SDPtr0 = RTMP_GetPhysicalAddressLow(pTxRing->Cell[TxIdx].DmaBuf.AllocPa);
 		pTxD->SDLen0 = TXWI_SIZE + pAd->ate.HLen;
 		pTxD->LastSec0 = 0;
@@ -3905,7 +3619,7 @@ static INT ATESetUpFrame(
 		pDest += TXWI_SIZE;
 		pHeader80211 = (PHEADER_802_11)pDest;
 
-		// modify sequence number...
+		
 		if (pAd->ate.TxDoneCount == 0)
 		{
 			pAd->ate.seq = pHeader80211->Sequence;
@@ -3914,11 +3628,11 @@ static INT ATESetUpFrame(
 			pHeader80211->Sequence = ++pAd->ate.seq;
 	}
 	else
-#endif // RALINK_28xx_QA //
+#endif 
 	{
 		NdisZeroMemory(pTxD, TXD_SIZE);
 		RTMPWriteTxDescriptor(pAd, pTxD, FALSE, FIFO_EDCA);
-		// build TX DESC
+		
 		pTxD->SDPtr0 = RTMP_GetPhysicalAddressLow (pTxRing->Cell[TxIdx].DmaBuf.AllocPa);
 		pTxD->SDLen0 = TXWI_SIZE + LENGTH_802_11;
 		pTxD->LastSec0 = 0;
@@ -3932,12 +3646,12 @@ static INT ATESetUpFrame(
 	RTMPFrameEndianChange(pAd, (((PUCHAR)pDMAHeaderBufVA)+TXWI_SIZE), DIR_WRITE, FALSE);
     RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
     WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 	return 0;
 }
-/*=======================End of RTMP_MAC_PCI =======================*/
-#endif // RTMP_MAC_PCI //
+
+#endif 
 
 
 
@@ -3950,7 +3664,7 @@ VOID rt_ee_read_all(PRTMP_ADAPTER pAd, USHORT *Data)
 
 	for (i = 0 ; i < EEPROM_SIZE/2 ; )
 	{
-		/* "value" is especially for some compilers... */
+		
 		RT28xx_EEPROM_READ16(pAd, i*2, value);
 		Data[i] = value;
 		i++;
@@ -3966,7 +3680,7 @@ VOID rt_ee_write_all(PRTMP_ADAPTER pAd, USHORT *Data)
 
 	for (i = 0 ; i < EEPROM_SIZE/2 ; )
 	{
-		/* "value" is especially for some compilers... */
+		
 		value = Data[i];
 		RT28xx_EEPROM_WRITE16(pAd, i*2, value);
 		i++;
@@ -3981,7 +3695,7 @@ VOID ATE_QA_Statistics(
 	IN PRT28XX_RXD_STRUC		pRxD,
 	IN PHEADER_802_11			pHeader)
 {
-	// update counter first
+	
 	if (pHeader != NULL)
 	{
 		if (pHeader->FC.Type == BTYPE_DATA)
@@ -4011,7 +3725,7 @@ VOID ATE_QA_Statistics(
 }
 
 
-/* command id with Cmd Type == 0x0008(for 28xx)/0x0005(for iNIC) */
+
 #define RACFG_CMD_RF_WRITE_ALL		0x0000
 #define RACFG_CMD_E2PROM_READ16		0x0001
 #define RACFG_CMD_E2PROM_WRITE16	0x0002
@@ -4105,12 +3819,12 @@ VOID RtmpDoAte(
 
 	switch (Command_Id)
 	{
-		/* We will get this command when QA starts. */
+		
 		case RACFG_CMD_ATE_START:
 			Status=DO_RACFG_CMD_ATE_START(pAdapter,wrq,pRaCfg);
 			break;
 
-		/* We will get this command either QA is closed or ated is killed by user. */
+		
 		case RACFG_CMD_ATE_STOP:
 			Status=DO_RACFG_CMD_ATE_STOP(pAdapter,wrq,pRaCfg);
 			break;
@@ -4211,8 +3925,8 @@ VOID RtmpDoAte(
 			Status=DO_RACFG_CMD_RX_STOP(pAdapter,wrq,pRaCfg);
 			break;
 
-		/* The following cases are for new ATE GUI(not QA). */
-		/*==================================================*/
+		
+		
 		case RACFG_CMD_ATE_START_TX_CARRIER:
 			Status=DO_RACFG_CMD_ATE_START_TX_CARRIER(pAdapter,wrq,pRaCfg);
 			break;
@@ -4339,12 +4053,12 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 	ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R69, &Org_BBP69value);
 	ATE_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R70, &Org_BBP70value);
 
-	//**********************************************************************
-	// Read the value of LNA gain and Rssi offset
-	//**********************************************************************
+	
+	
+	
 	RT28xx_EEPROM_READ16(pAd, EEPROM_LNA_OFFSET, GainValue);
 
-	// for Noise Level
+	
 	if (channel <= 14)
 	{
 		LNA_Gain = GainValue & 0x00FF;
@@ -4352,7 +4066,7 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 		RT28xx_EEPROM_READ16(pAd, EEPROM_RSSI_BG_OFFSET, OffsetValue);
 		Rssi0Offset = OffsetValue & 0x00FF;
 		Rssi1Offset = (OffsetValue & 0xFF00) >> 8;
-		RT28xx_EEPROM_READ16(pAd, (EEPROM_RSSI_BG_OFFSET + 2)/* 0x48 */, OffsetValue);
+		RT28xx_EEPROM_READ16(pAd, (EEPROM_RSSI_BG_OFFSET + 2), OffsetValue);
 		Rssi2Offset = OffsetValue & 0x00FF;
 	}
 	else
@@ -4362,10 +4076,10 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 		RT28xx_EEPROM_READ16(pAd, EEPROM_RSSI_A_OFFSET, OffsetValue);
 		Rssi0Offset = OffsetValue & 0x00FF;
 		Rssi1Offset = (OffsetValue & 0xFF00) >> 8;
-		RT28xx_EEPROM_READ16(pAd, (EEPROM_RSSI_A_OFFSET + 2)/* 0x4C */, OffsetValue);
+		RT28xx_EEPROM_READ16(pAd, (EEPROM_RSSI_A_OFFSET + 2), OffsetValue);
 		Rssi2Offset = OffsetValue & 0x00FF;
 	}
-	//**********************************************************************
+	
 	{
 		pAd->ate.Channel = channel;
 		ATEAsicSwitchChannel(pAd);
@@ -4379,7 +4093,7 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R70, data);
 		mdelay(5);
 
-		// start Rx
+		
 		pAd->ate.bQARxStart = TRUE;
 		Set_ATE_Proc(pAd, "RXFRAME");
 
@@ -4393,7 +4107,7 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 
 			mdelay(10);
 
-			// calculate RSSI 0
+			
 			if (BbpR50Rssi0 == 0)
 			{
 				RSSI0 = -100;
@@ -4404,9 +4118,9 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 			}
 			RSSI[0][j] = RSSI0;
 
-			if ( pAd->Antenna.field.RxPath >= 2 ) // 2R
+			if ( pAd->Antenna.field.RxPath >= 2 ) 
 			{
-				// calculate RSSI 1
+				
 				if (BbpR51Rssi1 == 0)
 				{
 					RSSI1 = -100;
@@ -4418,9 +4132,9 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 				RSSI[1][j] = RSSI1;
 			}
 
-			if ( pAd->Antenna.field.RxPath >= 3 ) // 3R
+			if ( pAd->Antenna.field.RxPath >= 3 ) 
 			{
-				// calculate RSSI 2
+				
 				if (BbpR52Rssi2 == 0)
 					RSSI2 = -100;
 				else
@@ -4430,19 +4144,19 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 			}
 		}
 
-		// stop Rx
+		
 		Set_ATE_Proc(pAd, "RXSTOP");
 
 		mdelay(5);
 
-		BubbleSort(10, RSSI[0]);	// 1R
+		BubbleSort(10, RSSI[0]);	
 
-		if ( pAd->Antenna.field.RxPath >= 2 ) // 2R
+		if ( pAd->Antenna.field.RxPath >= 2 ) 
 		{
 			BubbleSort(10, RSSI[1]);
 		}
 
-		if ( pAd->Antenna.field.RxPath >= 3 ) // 3R
+		if ( pAd->Antenna.field.RxPath >= 3 ) 
 		{
 			BubbleSort(10, RSSI[2]);
 		}
@@ -4451,7 +4165,7 @@ VOID CalNoiseLevel(PRTMP_ADAPTER pAd, UCHAR channel, INT32 RSSI[3][10])
 	pAd->ate.Channel = Org_Channel;
 	ATEAsicSwitchChannel(pAd);
 
-	// restore original value
+	
     ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R66, Org_BBP66value);
     ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R69, Org_BBP69value);
     ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R70, Org_BBP70value);
@@ -4473,76 +4187,73 @@ BOOLEAN SyncTxRxConfig(PRTMP_ADAPTER pAd, USHORT offset, UCHAR value)
 		RTMP_BBP_IO_READ8_BY_REG_ID(pAd, offset, &bbp_data);
 	}
 
-	/* confirm again */
+	
 	ASSERT(bbp_data == value);
 
 	switch (offset)
 	{
 		case BBP_R1:
-			/* Need to synchronize tx configuration with legacy ATE. */
-			tmp = (bbp_data & ((1 << 4) | (1 << 3))/* 0x18 */) >> 3;
+			
+			tmp = (bbp_data & ((1 << 4) | (1 << 3))) >> 3;
 		    switch (tmp)
 		    {
-				/* The BBP R1 bit[4:3] = 2 :: Both DACs will be used by QA. */
+				
 		        case 2:
-					/* All */
+					
 					pAd->ate.TxAntennaSel = 0;
 		            break;
-				/* The BBP R1 bit[4:3] = 0 :: DAC 0 will be used by QA. */
+				
 		        case 0:
-					/* Antenna one */
+					
 					pAd->ate.TxAntennaSel = 1;
 		            break;
-				/* The BBP R1 bit[4:3] = 1 :: DAC 1 will be used by QA. */
+				
 		        case 1:
-					/* Antenna two */
+					
 					pAd->ate.TxAntennaSel = 2;
 		            break;
 		        default:
 		            DBGPRINT(RT_DEBUG_TRACE, ("%s -- Sth. wrong!  : return FALSE; \n", __FUNCTION__));
 		            return FALSE;
 		    }
-			break;/* case BBP_R1 */
+			break;
 
 		case BBP_R3:
-			/* Need to synchronize rx configuration with legacy ATE. */
-			tmp = (bbp_data & ((1 << 1) | (1 << 0))/* 0x03 */);
+			
+			tmp = (bbp_data & ((1 << 1) | (1 << 0)));
 		    switch(tmp)
 		    {
-				/* The BBP R3 bit[1:0] = 3 :: All ADCs will be used by QA. */
+				
 		        case 3:
-					/* All */
+					
 					pAd->ate.RxAntennaSel = 0;
 		            break;
-				/*
-					The BBP R3 bit[1:0] = 0 :: ADC 0 will be used by QA,
-					unless the BBP R3 bit[4:3] = 2
-				*/
+				
 		        case 0:
-					/* Antenna one */
+					
 					pAd->ate.RxAntennaSel = 1;
-					tmp = ((bbp_data & ((1 << 4) | (1 << 3))/* 0x03 */) >> 3);
-					if (tmp == 2)// 3R
+					tmp = ((bbp_data & ((1 << 4) | (1 << 3))) >> 3);
+					if (tmp == 2)
 					{
-						/* Default : All ADCs will be used by QA */
+						
 						pAd->ate.RxAntennaSel = 0;
 					}
 		            break;
-				/* The BBP R3 bit[1:0] = 1 :: ADC 1 will be used by QA. */
+				
 		        case 1:
-					/* Antenna two */
+					
 					pAd->ate.RxAntennaSel = 2;
 		            break;
-				/* The BBP R3 bit[1:0] = 2 :: ADC 2 will be used by QA. */
+				
 		        case 2:
-					/* Antenna three */
+					
 					pAd->ate.RxAntennaSel = 3;
 		            break;
 		        default:
 		            DBGPRINT(RT_DEBUG_ERROR, ("%s -- Impossible!  : return FALSE; \n", __FUNCTION__));
 		            return FALSE;
 		    }
-			break;/* case BBP_R3 */
+			break;
 
         default:
             DBGPRINT(RT_DEBUG_ERROR, ("%s -- Sth. wrong!  : return FALSE; \n", __FUNCTION__));
@@ -4565,7 +4276,7 @@ static VOID memcpy_exl(PRTMP_ADAPTER pAd, UCHAR *dst, UCHAR *src, ULONG len)
 
 	for (i = 0 ; i < (len/4); i++)
 	{
-		/* For alignment issue, we need a variable "Value". */
+		
 		memmove(&Value, pSrc, 4);
 		Value = htonl(Value);
 		memmove(pDst, &Value, 4);
@@ -4574,7 +4285,7 @@ static VOID memcpy_exl(PRTMP_ADAPTER pAd, UCHAR *dst, UCHAR *src, ULONG len)
 	}
 	if ((len % 4) != 0)
 	{
-		/* wish that it will never reach here */
+		
 		memmove(&Value, pSrc, (len % 4));
 		Value = htonl(Value);
 		memmove(pDst, &Value, (len % 4));
@@ -4826,8 +4537,8 @@ INT Set_RFWrite_Proc(
 
 	return TRUE;
 }
-#endif // DBG //
-#endif // RALINK_28xx_QA //
+#endif 
+#endif 
 
 
 
@@ -4859,7 +4570,7 @@ static inline INT	DO_RACFG_CMD_ATE_START(
 {
 	ATEDBGPRINT(RT_DEBUG_TRACE,("RACFG_CMD_ATE_START\n"));
 
-	/* Prepare feedback as soon as we can to avoid QA timeout. */
+	
 	RESPONSE_TO_GUI(pRaCfg, wrq, sizeof(pRaCfg->status), NDIS_STATUS_SUCCESS);
 	Set_ATE_Proc(pAdapter, "ATESTART");
 
@@ -4876,34 +4587,20 @@ static inline INT DO_RACFG_CMD_ATE_STOP(
 
 	ATEDBGPRINT(RT_DEBUG_TRACE,("RACFG_CMD_ATE_STOP\n"));
 
-	/*
-		Distinguish this command came from QA(via ate agent)
-		or ate agent according to the existence of pid in payload.
-
-		No need to prepare feedback if this cmd came directly from ate agent,
-		not from QA.
-	*/
+	
 	pRaCfg->length = ntohs(pRaCfg->length);
 
 	if (pRaCfg->length == sizeof(pAdapter->ate.AtePid))
 	{
-		/*
-			This command came from QA.
-			Get the pid of ATE agent.
-		*/
+		
 		memcpy((UCHAR *)&pAdapter->ate.AtePid,
-						(&pRaCfg->data[0]) - 2/* == sizeof(pRaCfg->status) */,
+						(&pRaCfg->data[0]) - 2,
 						sizeof(pAdapter->ate.AtePid));
 
-		/* Prepare feedback as soon as we can to avoid QA timeout. */
+		
 		RESPONSE_TO_GUI(pRaCfg, wrq, sizeof(pRaCfg->status), NDIS_STATUS_SUCCESS);
 
-		/*
-			Kill ATE agent when leaving ATE mode.
-
-			We must kill ATE agent first before setting ATESTOP,
-			or Microsoft will report sth. wrong.
-		*/
+		
 		ret = KILL_THREAD_PID(pAdapter->ate.AtePid, SIGTERM, 1);
 
 		if (ret)
@@ -4913,10 +4610,10 @@ static inline INT DO_RACFG_CMD_ATE_STOP(
 	}
 
 
-	/* AP/STA might have in ATE_STOP mode due to cmd from QA. */
+	
 	if (ATE_ON(pAdapter))
 	{
-		/* Someone has killed ate agent while QA GUI is still open. */
+		
 		Set_ATE_Proc(pAdapter, "ATESTOP");
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("RACFG_CMD_AP_START is done !\n"));
 	}
@@ -4966,7 +4663,7 @@ static inline INT DO_RACFG_CMD_E2PROM_READ16(
 
 	offset = ntohs(pRaCfg->status);
 
-	/* "tmp" is especially for some compilers... */
+	
 	RT28xx_EEPROM_READ16(pAdapter, offset, tmp);
 	value = tmp;
 	value = htons(value);
@@ -5042,10 +4739,7 @@ static inline INT DO_RACFG_CMD_IO_READ(
 	memcpy(&offset, &pRaCfg->status, 4);
 	offset = ntohl(offset);
 
-	/*
-		We do not need the base address.
-		So just extract the offset out.
-	*/
+	
 	offset &= 0x0000FFFF;
 	RTMP_IO_READ32(pAdapter, offset, &value);
 	value = htonl(value);
@@ -5069,10 +4763,7 @@ static inline INT DO_RACFG_CMD_IO_WRITE(
 
 	offset = ntohl(offset);
 
-	/*
-		We do not need the base address.
-		So just extract the offset out.
-	*/
+	
 	offset &= 0x0000FFFF;
 	value = ntohl(value);
 	ATEDBGPRINT(RT_DEBUG_TRACE,("RACFG_CMD_IO_WRITE: offset = %x, value = %x\n", offset, value));
@@ -5095,10 +4786,7 @@ static inline INT DO_RACFG_CMD_IO_READ_BULK(
 	memcpy(&offset, &pRaCfg->status, 4);
 	offset = ntohl(offset);
 
-	/*
-		We do not need the base address.
-		So just extract the offset out.
-	*/
+	
 	offset &= 0x0000FFFF;
 	memcpy(&len, pRaCfg->data+2, 2);
 	len = ntohs(len);
@@ -5111,7 +4799,7 @@ static inline INT DO_RACFG_CMD_IO_READ_BULK(
 		return -EFAULT;
 	}
 
-	RTMP_IO_READ_BULK(pAdapter, pRaCfg->data, (UCHAR *)offset, len*4);// unit in four bytes
+	RTMP_IO_READ_BULK(pAdapter, pRaCfg->data, (UCHAR *)offset, len*4);
 
 	RESPONSE_TO_GUI(pRaCfg, wrq, sizeof(pRaCfg->status)+(len*4), NDIS_STATUS_SUCCESS);
 
@@ -5211,7 +4899,7 @@ static inline INT DO_RACFG_CMD_GET_NOISE_LEVEL(
 	IN  struct ate_racfghdr *pRaCfg)
 {
 	UCHAR	channel;
-	INT32   buffer[3][10];/* 3 : RxPath ; 10 : no. of per rssi samples */
+	INT32   buffer[3][10];
 
 	channel = (ntohs(pRaCfg->status) & 0x00FF);
 	CalNoiseLevel(pAdapter, channel, buffer);
@@ -5236,7 +4924,7 @@ static inline INT DO_RACFG_CMD_GET_COUNTER(
 	memcpy_exl(pAdapter, &pRaCfg->data[20], (UCHAR *)&pAdapter->ate.TxAc1, 4);
 	memcpy_exl(pAdapter, &pRaCfg->data[24], (UCHAR *)&pAdapter->ate.TxAc2, 4);
 	memcpy_exl(pAdapter, &pRaCfg->data[28], (UCHAR *)&pAdapter->ate.TxAc3, 4);
-	/*memcpy_exl(pAdapter, &pRaCfg->data[32], (UCHAR *)&pAdapter->ate.TxHCCA, 4);*/
+	
 	memcpy_exl(pAdapter, &pRaCfg->data[36], (UCHAR *)&pAdapter->ate.TxMgmt, 4);
 	memcpy_exl(pAdapter, &pRaCfg->data[40], (UCHAR *)&pAdapter->ate.RSSI0, 4);
 	memcpy_exl(pAdapter, &pRaCfg->data[44], (UCHAR *)&pAdapter->ate.RSSI1, 4);
@@ -5263,7 +4951,7 @@ static inline INT DO_RACFG_CMD_CLEAR_COUNTER(
 	pAdapter->ate.TxAc1 = 0;
 	pAdapter->ate.TxAc2 = 0;
 	pAdapter->ate.TxAc3 = 0;
-	/*pAdapter->ate.TxHCCA = 0;*/
+	
 	pAdapter->ate.TxMgmt = 0;
 	pAdapter->ate.TxDoneCount = 0;
 
@@ -5297,31 +4985,28 @@ static inline INT DO_RACFG_CMD_TX_START(
 			RTMPusecDelay(5000);
 		}
 
-		/* force it to stop */
+		
 		pAdapter->ate.TxStatus = 0;
 		pAdapter->ate.TxDoneCount = 0;
 		pAdapter->ate.bQATxStart = FALSE;
 	}
 
-	/*
-		If pRaCfg->length == 0, this "RACFG_CMD_TX_START"
-		is for Carrier test or Carrier Suppression.
-	*/
+	
 	if (ntohs(pRaCfg->length) != 0)
 	{
-		/* get frame info */
+		
 
 		NdisMoveMemory(&pAdapter->ate.TxWI, pRaCfg->data + 2, 16);
 #ifdef RT_BIG_ENDIAN
 		RTMPWIEndianChange((PUCHAR)&pAdapter->ate.TxWI, TYPE_TXWI);
-#endif // RT_BIG_ENDIAN //
+#endif 
 
 		NdisMoveMemory(&pAdapter->ate.TxCount, pRaCfg->data + 18, 4);
 		pAdapter->ate.TxCount = ntohl(pAdapter->ate.TxCount);
 
 		p = (USHORT *)(&pRaCfg->data[22]);
 
-		/* always use QID_AC_BE */
+		
 		pAdapter->ate.QID = 0;
 
 		p = (USHORT *)(&pRaCfg->data[24]);
@@ -5359,7 +5044,7 @@ static inline INT DO_RACFG_CMD_TX_START(
 				{
 #ifdef RTMP_MAC_PCI
 					pAdapter->ate.TxCount = 0xFFFFFFFF;
-#endif // RTMP_MAC_PCI //
+#endif 
 				}
 				ATEDBGPRINT(RT_DEBUG_TRACE,("START TXFRAME\n"));
 				pAdapter->ate.bQATxStart = TRUE;
@@ -5794,10 +5479,7 @@ static inline INT DO_RACFG_CMD_ATE_SET_ADDR1(
 {
 	ATEDBGPRINT(RT_DEBUG_TRACE,("RACFG_CMD_ATE_SET_ADDR1\n"));
 
-	/*
-		Addr is an array of UCHAR,
-		so no need to perform endian swap.
-	*/
+	
 	memcpy(pAdapter->ate.Addr1, (PUCHAR)(pRaCfg->data - 2), MAC_ADDR_LEN);
 
 	RESPONSE_TO_GUI(pRaCfg, wrq, sizeof(pRaCfg->status), NDIS_STATUS_SUCCESS);
@@ -5813,10 +5495,7 @@ static inline INT DO_RACFG_CMD_ATE_SET_ADDR2(
 {
 	ATEDBGPRINT(RT_DEBUG_TRACE,("RACFG_CMD_ATE_SET_ADDR2\n"));
 
-	/*
-		Addr is an array of UCHAR,
-		so no need to perform endian swap.
-	*/
+	
 	memcpy(pAdapter->ate.Addr2, (PUCHAR)(pRaCfg->data - 2), MAC_ADDR_LEN);
 
 	RESPONSE_TO_GUI(pRaCfg, wrq, sizeof(pRaCfg->status), NDIS_STATUS_SUCCESS);
@@ -5832,10 +5511,7 @@ static inline INT DO_RACFG_CMD_ATE_SET_ADDR3(
 {
 	ATEDBGPRINT(RT_DEBUG_TRACE,("RACFG_CMD_ATE_SET_ADDR3\n"));
 
-	/*
-		Addr is an array of UCHAR,
-		so no need to perform endian swap.
-	*/
+	
 	memcpy(pAdapter->ate.Addr3, (PUCHAR)(pRaCfg->data - 2), MAC_ADDR_LEN);
 
 	RESPONSE_TO_GUI(pRaCfg, wrq, sizeof(pRaCfg->status), NDIS_STATUS_SUCCESS);
@@ -5906,10 +5582,10 @@ static inline INT DO_RACFG_CMD_ATE_SET_TX_FRAME_COUNT(
 	value = ntohs(value);
 
 #ifdef RTMP_MAC_PCI
-	/* TX_FRAME_COUNT == 0 means tx infinitely */
+	
 	if (value == 0)
 	{
-		/* Use TxCount = 0xFFFFFFFF to approximate the infinity. */
+		
 		pAdapter->ate.TxCount = 0xFFFFFFFF;
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("Set_ATE_TX_COUNT_Proc (TxCount = %d)\n", pAdapter->ate.TxCount));
 		ATEDBGPRINT(RT_DEBUG_TRACE, ("Ralink: Set_ATE_TX_COUNT_Proc Success\n"));
@@ -5917,7 +5593,7 @@ static inline INT DO_RACFG_CMD_ATE_SET_TX_FRAME_COUNT(
 
 	}
 	else
-#endif // RTMP_MAC_PCI //
+#endif 
 	{
 		sprintf((char *)str, "%d", value);
 		Set_ATE_TX_COUNT_Proc(pAdapter, str);
@@ -6085,5 +5761,5 @@ static inline INT DO_RACFG_CMD_ATE_BBP_WRITE_BULK(
 }
 
 
-#endif // RALINK_28xx_QA //
-#endif	// RALINK_ATE //
+#endif 
+#endif	

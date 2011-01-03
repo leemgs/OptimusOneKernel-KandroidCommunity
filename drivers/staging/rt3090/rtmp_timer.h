@@ -1,42 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-	rtmp_timer.h
-
-    Abstract:
-	Ralink Wireless Driver timer related data structures and delcarations
-
-    Revision History:
-	Who           When                What
-	--------    ----------      ----------------------------------------------
-	Name          Date                 Modification logs
-	Shiang Tu    Aug-28-2008	init version
-
-*/
 
 #ifndef __RTMP_TIMER_H__
 #define  __RTMP_TIMER_H__
@@ -51,10 +13,10 @@
 	rtmp_timer_##_func
 
 
-/* ----------------- Timer Related MARCO ---------------*/
-// In some os or chipset, we have a lot of timer functions and will read/write register,
-//   it's not allowed in Linux USB sub-system to do it ( because of sleep issue when
-//  submit to ctrl pipe). So we need a wrapper function to take care it.
+
+
+
+
 
 #ifdef RTMP_TIMER_TASK_SUPPORT
 typedef VOID (*RTMP_TIMER_TASK_HANDLE)(
@@ -62,20 +24,20 @@ typedef VOID (*RTMP_TIMER_TASK_HANDLE)(
 	IN  PVOID   FunctionContext,
 	IN  PVOID   SystemSpecific2,
 	IN  PVOID   SystemSpecific3);
-#endif // RTMP_TIMER_TASK_SUPPORT //
+#endif 
 
 typedef struct  _RALINK_TIMER_STRUCT    {
-	RTMP_OS_TIMER		TimerObj;       // Ndis Timer object
-	BOOLEAN				Valid;			// Set to True when call RTMPInitTimer
-	BOOLEAN				State;          // True if timer cancelled
-	BOOLEAN				PeriodicType;	// True if timer is periodic timer
-	BOOLEAN				Repeat;         // True if periodic timer
-	ULONG				TimerValue;     // Timer value in milliseconds
-	ULONG				cookie;			// os specific object
+	RTMP_OS_TIMER		TimerObj;       
+	BOOLEAN				Valid;			
+	BOOLEAN				State;          
+	BOOLEAN				PeriodicType;	
+	BOOLEAN				Repeat;         
+	ULONG				TimerValue;     
+	ULONG				cookie;			
 #ifdef RTMP_TIMER_TASK_SUPPORT
 	RTMP_TIMER_TASK_HANDLE	handle;
 	void					*pAd;
-#endif // RTMP_TIMER_TASK_SUPPORT //
+#endif 
 }RALINK_TIMER_STRUCT, *PRALINK_TIMER_STRUCT;
 
 
@@ -120,7 +82,7 @@ void rtmp_timer_##_func(unsigned long data)										\
 	if (pTimer->Repeat)														\
 		RTMP_OS_Add_Timer(&pTimer->TimerObj, pTimer->TimerValue);			\
 }
-#endif // RTMP_TIMER_TASK_SUPPORT //
+#endif 
 
 
 DECLARE_TIMER_FUNCTION(MlmePeriodicExec);
@@ -145,10 +107,10 @@ DECLARE_TIMER_FUNCTION(RadioOnExec);
 
 #ifdef QOS_DLS_SUPPORT
 DECLARE_TIMER_FUNCTION(DlsTimeoutAction);
-#endif // QOS_DLS_SUPPORT //
+#endif 
 
 
-#endif // CONFIG_STA_SUPPORT //
+#endif 
 
 
 
@@ -159,4 +121,4 @@ DECLARE_TIMER_FUNCTION(LedCtrlMain);
 
 
 
-#endif // __RTMP_TIMER_H__ //
+#endif 

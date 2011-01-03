@@ -1,25 +1,4 @@
-/*
-    comedi/drivers/8253.h
-    Header file for 8253
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 2000 David A. Schleef <ds@schleef.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #ifndef _8253_H
 #define _8253_H
@@ -42,8 +21,7 @@ static inline void i8253_cascade_ns_to_timer_2div_old(int i8253_osc_base,
 
 	divider = (*nanosec + i8253_osc_base / 2) / i8253_osc_base;
 
-	/* find 2 integers 1<={x,y}<=65536 such that x*y is
-	   close to divider */
+	
 
 	div1_lub = div2_lub = 0;
 	div1_glb = div2_glb = 0;
@@ -113,7 +91,7 @@ static inline void i8253_cascade_ns_to_timer_power(int i8253_osc_base,
 		}
 	}
 
-	/* shouldn't get here */
+	
 	div1 = 0x10000;
 	div2 = 0x10000;
 	*nanosec = div1 * div2 * i8253_osc_base;
@@ -135,15 +113,13 @@ static inline void i8253_cascade_ns_to_timer_2div(int i8253_osc_base,
 	unsigned int start;
 	unsigned int ns_low, ns_high;
 	static const unsigned int max_count = 0x10000;
-	/* exit early if everything is already correct (this can save time
-	 * since this function may be called repeatedly during command tests
-	 * and execution) */
+	
 	div1 = *d1 ? *d1 : max_count;
 	div2 = *d2 ? *d2 : max_count;
 	divider = div1 * div2;
 	if (div1 * div2 * i8253_osc_base == *nanosec &&
 	    div1 > 1 && div1 <= max_count && div2 > 1 && div2 <= max_count &&
-	    /* check for overflow */
+	    
 	    divider > div1 && divider > div2 &&
 	    divider * i8253_osc_base > divider &&
 	    divider * i8253_osc_base > i8253_osc_base) {
@@ -206,30 +182,13 @@ static inline void i8253_cascade_ns_to_timer_2div(int i8253_osc_base,
 	}
 
 	*nanosec = div1 * div2 * i8253_osc_base;
-	*d1 = div1 & 0xffff;	/*  masking is done since counter maps zero to 0x10000 */
+	*d1 = div1 & 0xffff;	
 	*d2 = div2 & 0xffff;
 	return;
 }
 
 #ifndef CMDTEST
-/* i8254_load programs 8254 counter chip.  It should also work for the 8253.
- * base_address is the lowest io address for the chip (the address of counter 0).
- * counter_number is the counter you want to load (0,1 or 2)
- * count is the number to load into the counter.
- *
- * You probably want to use mode 2.
- *
- * Use i8254_mm_load() if you board uses memory-mapped io, it is
- * the same as i8254_load() except it uses writeb() instead of outb().
- *
- * Neither i8254_load() or i8254_read() do their loading/reading
- * atomically.  The 16 bit read/writes are performed with two successive
- * 8 bit read/writes.  So if two parts of your driver do a load/read on
- * the same counter, it may be necessary to protect these functions
- * with a spinlock.
- *
- * FMH
- */
+
 
 #define i8254_control_reg	3
 
@@ -249,12 +208,12 @@ static inline int i8254_load(unsigned long base_address, unsigned int regshift,
 		return -1;
 
 	byte = counter_number << 6;
-	byte |= 0x30;		/*  load low then high byte */
-	byte |= (mode << 1);	/*  set counter mode */
+	byte |= 0x30;		
+	byte |= (mode << 1);	
 	outb(byte, base_address + (i8254_control_reg << regshift));
-	byte = count & 0xff;	/*  lsb of counter value */
+	byte = count & 0xff;	
 	outb(byte, base_address + (counter_number << regshift));
-	byte = (count >> 8) & 0xff;	/*  msb of counter value */
+	byte = (count >> 8) & 0xff;	
 	outb(byte, base_address + (counter_number << regshift));
 
 	return 0;
@@ -276,18 +235,18 @@ static inline int i8254_mm_load(void *base_address, unsigned int regshift,
 		return -1;
 
 	byte = counter_number << 6;
-	byte |= 0x30;		/*  load low then high byte */
-	byte |= (mode << 1);	/*  set counter mode */
+	byte |= 0x30;		
+	byte |= (mode << 1);	
 	writeb(byte, base_address + (i8254_control_reg << regshift));
-	byte = count & 0xff;	/*  lsb of counter value */
+	byte = count & 0xff;	
 	writeb(byte, base_address + (counter_number << regshift));
-	byte = (count >> 8) & 0xff;	/*  msb of counter value */
+	byte = (count >> 8) & 0xff;	
 	writeb(byte, base_address + (counter_number << regshift));
 
 	return 0;
 }
 
-/* Returns 16 bit counter value, should work for 8253 also.*/
+
 static inline int i8254_read(unsigned long base_address, unsigned int regshift,
 			     unsigned int counter_number)
 {
@@ -297,13 +256,13 @@ static inline int i8254_read(unsigned long base_address, unsigned int regshift,
 	if (counter_number > 2)
 		return -1;
 
-	/*  latch counter */
+	
 	byte = counter_number << 6;
 	outb(byte, base_address + (i8254_control_reg << regshift));
 
-	/*  read lsb */
+	
 	ret = inb(base_address + (counter_number << regshift));
-	/*  read msb */
+	
 	ret += inb(base_address + (counter_number << regshift)) << 8;
 
 	return ret;
@@ -318,19 +277,19 @@ static inline int i8254_mm_read(void *base_address, unsigned int regshift,
 	if (counter_number > 2)
 		return -1;
 
-	/*  latch counter */
+	
 	byte = counter_number << 6;
 	writeb(byte, base_address + (i8254_control_reg << regshift));
 
-	/*  read lsb */
+	
 	ret = readb(base_address + (counter_number << regshift));
-	/*  read msb */
+	
 	ret += readb(base_address + (counter_number << regshift)) << 8;
 
 	return ret;
 }
 
-/* Loads 16 bit initial counter value, should work for 8253 also. */
+
 static inline void i8254_write(unsigned long base_address,
 			       unsigned int regshift,
 			       unsigned int counter_number, unsigned int count)
@@ -340,9 +299,9 @@ static inline void i8254_write(unsigned long base_address,
 	if (counter_number > 2)
 		return;
 
-	byte = count & 0xff;	/*  lsb of counter value */
+	byte = count & 0xff;	
 	outb(byte, base_address + (counter_number << regshift));
-	byte = (count >> 8) & 0xff;	/*  msb of counter value */
+	byte = (count >> 8) & 0xff;	
 	outb(byte, base_address + (counter_number << regshift));
 }
 
@@ -356,19 +315,13 @@ static inline void i8254_mm_write(void *base_address,
 	if (counter_number > 2)
 		return;
 
-	byte = count & 0xff;	/*  lsb of counter value */
+	byte = count & 0xff;	
 	writeb(byte, base_address + (counter_number << regshift));
-	byte = (count >> 8) & 0xff;	/*  msb of counter value */
+	byte = (count >> 8) & 0xff;	
 	writeb(byte, base_address + (counter_number << regshift));
 }
 
-/* Set counter mode, should work for 8253 also.
- * Note: the 'mode' value is different to that for i8254_load() and comes
- * from the INSN_CONFIG_8254_SET_MODE command:
- *   I8254_MODE0, I8254_MODE1, ..., I8254_MODE5
- * OR'ed with:
- *   I8254_BCD, I8254_BINARY
- */
+
 static inline int i8254_set_mode(unsigned long base_address,
 				 unsigned int regshift,
 				 unsigned int counter_number, unsigned int mode)
@@ -381,8 +334,8 @@ static inline int i8254_set_mode(unsigned long base_address,
 		return -1;
 
 	byte = counter_number << 6;
-	byte |= 0x30;		/*  load low then high byte */
-	byte |= mode;		/*  set counter mode and BCD|binary */
+	byte |= 0x30;		
+	byte |= mode;		
 	outb(byte, base_address + (i8254_control_reg << regshift));
 
 	return 0;
@@ -401,8 +354,8 @@ static inline int i8254_mm_set_mode(void *base_address,
 		return -1;
 
 	byte = counter_number << 6;
-	byte |= 0x30;		/*  load low then high byte */
-	byte |= mode;		/*  set counter mode and BCD|binary */
+	byte |= 0x30;		
+	byte |= mode;		
 	writeb(byte, base_address + (i8254_control_reg << regshift));
 
 	return 0;

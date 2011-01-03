@@ -1,39 +1,4 @@
-/*
- *************************************************************************
- * Ralink Tech Inc.
- * 5F., No.36, Taiyuan St., Jhubei City,
- * Hsinchu County 302,
- * Taiwan, R.O.C.
- *
- * (c) Copyright 2002-2007, Ralink Technology, Inc.
- *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation; either version 2 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program; if not, write to the                         *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                       *
- *************************************************************************
 
-    Module Name:
-    2870_main_dev.c
-
-    Abstract:
-    Create and register network interface.
-
-    Revision History:
-    Who         When            What
-    --------    ----------      ----------------------------------------------
-*/
 
 #include "rt_config.h"
 
@@ -50,32 +15,32 @@ static void hcca_dma_done_tasklet(unsigned long data);
 static void fifo_statistic_full_tasklet(unsigned long data);
 
 
-/*---------------------------------------------------------------------*/
-/* Symbol & Macro Definitions                                          */
-/*---------------------------------------------------------------------*/
-#define RT2860_INT_RX_DLY				(1<<0)		// bit 0
-#define RT2860_INT_TX_DLY				(1<<1)		// bit 1
-#define RT2860_INT_RX_DONE				(1<<2)		// bit 2
-#define RT2860_INT_AC0_DMA_DONE			(1<<3)		// bit 3
-#define RT2860_INT_AC1_DMA_DONE			(1<<4)		// bit 4
-#define RT2860_INT_AC2_DMA_DONE			(1<<5)		// bit 5
-#define RT2860_INT_AC3_DMA_DONE			(1<<6)		// bit 6
-#define RT2860_INT_HCCA_DMA_DONE		(1<<7)		// bit 7
-#define RT2860_INT_MGMT_DONE			(1<<8)		// bit 8
+
+
+
+#define RT2860_INT_RX_DLY				(1<<0)		
+#define RT2860_INT_TX_DLY				(1<<1)		
+#define RT2860_INT_RX_DONE				(1<<2)		
+#define RT2860_INT_AC0_DMA_DONE			(1<<3)		
+#define RT2860_INT_AC1_DMA_DONE			(1<<4)		
+#define RT2860_INT_AC2_DMA_DONE			(1<<5)		
+#define RT2860_INT_AC3_DMA_DONE			(1<<6)		
+#define RT2860_INT_HCCA_DMA_DONE		(1<<7)		
+#define RT2860_INT_MGMT_DONE			(1<<8)		
 
 #define INT_RX			RT2860_INT_RX_DONE
 
-#define INT_AC0_DLY		(RT2860_INT_AC0_DMA_DONE) //| RT2860_INT_TX_DLY)
-#define INT_AC1_DLY		(RT2860_INT_AC1_DMA_DONE) //| RT2860_INT_TX_DLY)
-#define INT_AC2_DLY		(RT2860_INT_AC2_DMA_DONE) //| RT2860_INT_TX_DLY)
-#define INT_AC3_DLY		(RT2860_INT_AC3_DMA_DONE) //| RT2860_INT_TX_DLY)
-#define INT_HCCA_DLY 	(RT2860_INT_HCCA_DMA_DONE) //| RT2860_INT_TX_DLY)
+#define INT_AC0_DLY		(RT2860_INT_AC0_DMA_DONE) 
+#define INT_AC1_DLY		(RT2860_INT_AC1_DMA_DONE) 
+#define INT_AC2_DLY		(RT2860_INT_AC2_DMA_DONE) 
+#define INT_AC3_DLY		(RT2860_INT_AC3_DMA_DONE) 
+#define INT_HCCA_DLY 	(RT2860_INT_HCCA_DMA_DONE) 
 #define INT_MGMT_DLY	RT2860_INT_MGMT_DONE
 
-/*---------------------------------------------------------------------*/
-/* Prototypes of Functions Used                                        */
-/*---------------------------------------------------------------------*/
-/* function declarations */
+
+
+
+
 static INT __devinit rt2860_init_one (struct pci_dev *pci_dev, const struct pci_device_id  *ent);
 static VOID __devexit rt2860_remove_one(struct pci_dev *pci_dev);
 static INT __devinit rt2860_probe(struct pci_dev *pci_dev, const struct pci_device_id  *ent);
@@ -86,15 +51,15 @@ static int __init rt2860_init_module(void);
 #ifdef CONFIG_PM
 static int rt2860_suspend(struct pci_dev *pci_dev, pm_message_t state);
 static int rt2860_resume(struct pci_dev *pci_dev);
-#endif // CONFIG_PM //
+#endif 
 
 
-//
-// Ralink PCI device table, include all supported chipsets
-//
+
+
+
 static struct pci_device_id rt2860_pci_tbl[] __devinitdata =
 {
-	{PCI_DEVICE(NIC_PCI_VENDOR_ID, NIC2860_PCI_DEVICE_ID)},		//RT28602.4G
+	{PCI_DEVICE(NIC_PCI_VENDOR_ID, NIC2860_PCI_DEVICE_ID)},		
 	{PCI_DEVICE(NIC_PCI_VENDOR_ID, NIC2860_PCIe_DEVICE_ID)},
 	{PCI_DEVICE(NIC_PCI_VENDOR_ID, NIC2760_PCI_DEVICE_ID)},
 	{PCI_DEVICE(NIC_PCI_VENDOR_ID, NIC2790_PCIe_DEVICE_ID)},
@@ -106,7 +71,7 @@ static struct pci_device_id rt2860_pci_tbl[] __devinitdata =
 	{PCI_DEVICE(EDIMAX_PCI_VENDOR_ID, 0x7738)},
 	{PCI_DEVICE(EDIMAX_PCI_VENDOR_ID, 0x7748)},
 	{PCI_DEVICE(EDIMAX_PCI_VENDOR_ID, 0x7768)},
-    {0,}		// terminate list
+    {0,}		
 };
 
 MODULE_DEVICE_TABLE(pci, rt2860_pci_tbl);
@@ -115,9 +80,9 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION(STA_DRIVER_VERSION);
 #endif
 
-//
-// Our PCI driver structure
-//
+
+
+
 static struct pci_driver rt2860_driver =
 {
     name:       "rt2860",
@@ -137,8 +102,8 @@ static struct pci_driver rt2860_driver =
 VOID RT2860RejectPendingPackets(
 	IN	PRTMP_ADAPTER	pAd)
 {
-	// clear PS packets
-	// clear TxSw packets
+	
+	
 }
 
 static int rt2860_suspend(
@@ -160,38 +125,38 @@ static int rt2860_suspend(
 	{
 		pAd = net_dev->ml_priv;
 
-		/* we can not use IFF_UP because ra0 down but ra1 up */
-		/* and 1 suspend/resume function for 1 module, not for each interface */
-		/* so Linux will call suspend/resume function once */
+		
+		
+		
 		if (VIRTUAL_IF_NUM(pAd) > 0)
 		{
-			// avoid users do suspend after interface is down
+			
 
-			// stop interface
+			
 			netif_carrier_off(net_dev);
 			netif_stop_queue(net_dev);
 
-			// mark device as removed from system and therefore no longer available
+			
 			netif_device_detach(net_dev);
 
-			// mark halt flag
+			
 			RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS);
 			RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_RADIO_OFF);
 
-			// take down the device
+			
 			rt28xx_close((PNET_DEV)net_dev);
 
 			RT_MOD_DEC_USE_COUNT();
 		}
 	}
 
-	// reference to http://vovo2000.com/type-lab/linux/kernel-api/linux-kernel-api.html
-	// enable device to generate PME# when suspended
-	// pci_choose_state(): Choose the power state of a PCI device to be suspended
+	
+	
+	
 	retval = pci_enable_wake(pci_dev, pci_choose_state(pci_dev, state), 1);
-	// save the PCI configuration space of a device before suspending
+	
 	pci_save_state(pci_dev);
-	// disable PCI device after use
+	
 	pci_disable_device(pci_dev);
 
 	retval = pci_set_power_state(pci_dev, pci_choose_state(pci_dev, state));
@@ -208,22 +173,22 @@ static int rt2860_resume(
 	INT32 retval;
 
 
-	// set the power state of a PCI device
-	// PCI has 4 power states, DO (normal) ~ D3(less power)
-	// in include/linux/pci.h, you can find that
-	// #define PCI_D0          ((pci_power_t __force) 0)
-	// #define PCI_D1          ((pci_power_t __force) 1)
-	// #define PCI_D2          ((pci_power_t __force) 2)
-	// #define PCI_D3hot       ((pci_power_t __force) 3)
-	// #define PCI_D3cold      ((pci_power_t __force) 4)
-	// #define PCI_UNKNOWN     ((pci_power_t __force) 5)
-	// #define PCI_POWER_ERROR ((pci_power_t __force) -1)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	retval = pci_set_power_state(pci_dev, PCI_D0);
 
-	// restore the saved state of a PCI device
+	
 	pci_restore_state(pci_dev);
 
-	// initialize device before it's used by a driver
+	
 	if (pci_enable_device(pci_dev))
 	{
 		printk("pci enable fail!\n");
@@ -241,22 +206,22 @@ static int rt2860_resume(
 
 	if (pAd != NULL)
 	{
-		/* we can not use IFF_UP because ra0 down but ra1 up */
-		/* and 1 suspend/resume function for 1 module, not for each interface */
-		/* so Linux will call suspend/resume function once */
+		
+		
+		
 		if (VIRTUAL_IF_NUM(pAd) > 0)
 		{
-			// mark device as attached from system and restart if needed
+			
 			netif_device_attach(net_dev);
 
 			if (rt28xx_open((PNET_DEV)net_dev) != 0)
 			{
-				// open fail
+				
 				DBGPRINT(RT_DEBUG_TRACE, ("<=== rt2860_resume()\n"));
 				return 0;
 			}
 
-			// increase MODULE use count
+			
 			RT_MOD_INC_USE_COUNT();
 
 			RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS);
@@ -271,7 +236,7 @@ static int rt2860_resume(
 	DBGPRINT(RT_DEBUG_TRACE, ("<=== rt2860_resume()\n"));
 	return 0;
 }
-#endif // CONFIG_PM //
+#endif 
 
 
 static INT __init rt2860_init_module(VOID)
@@ -280,9 +245,9 @@ static INT __init rt2860_init_module(VOID)
 }
 
 
-//
-// Driver module unload function
-//
+
+
+
 static VOID __exit rt2860_cleanup_module(VOID)
 {
     pci_unregister_driver(&rt2860_driver);
@@ -300,7 +265,7 @@ static INT __devinit rt2860_init_one (
 
     DBGPRINT(RT_DEBUG_TRACE, ("===> rt2860_init_one\n"));
 
-    // wake up and enable device
+    
     if (pci_enable_device (pci_dev))
     {
         rc = -EIO;
@@ -325,36 +290,36 @@ static VOID __devexit rt2860_remove_one(
 
 	if (pAd != NULL)
 	{
-		// Unregister network device
+		
 		unregister_netdev(net_dev);
 
-		// Unmap CSR base address
+		
 		iounmap((char *)(net_dev->base_addr));
 
 		RTMPFreeAdapter(pAd);
 
-		// release memory region
+		
 		release_mem_region(pci_resource_start(pci_dev, 0), pci_resource_len(pci_dev, 0));
 	}
 	else
 	{
-		// Unregister network device
+		
 		unregister_netdev(net_dev);
 
-		// Unmap CSR base address
+		
 		iounmap((char *)(net_dev->base_addr));
 
-		// release memory region
+		
 		release_mem_region(pci_resource_start(pci_dev, 0), pci_resource_len(pci_dev, 0));
 	}
 
-	// Free pre-allocated net_device memory
+	
 	free_netdev(net_dev);
 }
 
-//
-// PCI device probe & initialization function
-//
+
+
+
 static INT __devinit   rt2860_probe(
     IN  struct pci_dev              *pci_dev,
     IN  const struct pci_device_id  *ent)
@@ -409,7 +374,7 @@ static void rt2860_int_enable(PRTMP_ADAPTER pAd, unsigned int mode)
 
 	pAd->int_disable_mask &= ~(mode);
 	regValue = pAd->int_enable_reg & ~(pAd->int_disable_mask);
-	RTMP_IO_WRITE32(pAd, INT_MASK_CSR, regValue);     // 1:enable
+	RTMP_IO_WRITE32(pAd, INT_MASK_CSR, regValue);     
 
 	if (regValue != 0)
 		RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_INTERRUPT_ACTIVE);
@@ -422,7 +387,7 @@ static void rt2860_int_disable(PRTMP_ADAPTER pAd, unsigned int mode)
 
 	pAd->int_disable_mask |= mode;
 	regValue = 	pAd->int_enable_reg & ~(pAd->int_disable_mask);
-	RTMP_IO_WRITE32(pAd, INT_MASK_CSR, regValue);     // 0: disable
+	RTMP_IO_WRITE32(pAd, INT_MASK_CSR, regValue);     
 
 	if (regValue == 0)
 	{
@@ -437,8 +402,8 @@ static void mgmt_dma_done_tasklet(unsigned long data)
     INT_SOURCE_CSR_STRUC	IntSource;
 	POS_COOKIE pObj;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -450,12 +415,10 @@ static void mgmt_dma_done_tasklet(unsigned long data)
 
 	RTMPHandleMgmtRingDmaDoneInterrupt(pAd);
 
-	// if you use RTMP_SEM_LOCK, sometimes kernel will hang up, no any
-	// bug report output
+	
+	
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-	/*
-	 * double check to avoid lose of interrupts
-	 */
+	
 	if (pAd->int_pending & INT_MGMT_DLY)
 	{
 		tasklet_hi_schedule(&pObj->mgmt_dma_done_task);
@@ -463,7 +426,7 @@ static void mgmt_dma_done_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable TxDataInt again */
+	
 	rt2860_int_enable(pAd, INT_MGMT_DLY);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
 }
@@ -475,8 +438,8 @@ static void rx_done_tasklet(unsigned long data)
 	BOOLEAN	bReschedule = 0;
 	POS_COOKIE pObj;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -487,9 +450,7 @@ static void rx_done_tasklet(unsigned long data)
 	bReschedule = STARxDoneInterruptHandle(pAd, 0);
 
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-	/*
-	 * double check to avoid rotting packet
-	 */
+	
 	if (pAd->int_pending & INT_RX || bReschedule)
 	{
 		tasklet_hi_schedule(&pObj->rx_done_task);
@@ -497,7 +458,7 @@ static void rx_done_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable RxINT again */
+	
 	rt2860_int_enable(pAd, INT_RX);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
 
@@ -509,8 +470,8 @@ void fifo_statistic_full_tasklet(unsigned long data)
 	PRTMP_ADAPTER pAd = (PRTMP_ADAPTER) data;
 	POS_COOKIE pObj;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -520,9 +481,7 @@ void fifo_statistic_full_tasklet(unsigned long data)
 	NICUpdateFifoStaCounters(pAd);
 
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-	/*
-	 * double check to avoid rotting packet
-	 */
+	
 	if (pAd->int_pending & FifoStaFullInt)
 	{
 		tasklet_hi_schedule(&pObj->fifo_statistic_full_task);
@@ -530,7 +489,7 @@ void fifo_statistic_full_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable RxINT again */
+	
 
 	rt2860_int_enable(pAd, FifoStaFullInt);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
@@ -544,8 +503,8 @@ static void hcca_dma_done_tasklet(unsigned long data)
     INT_SOURCE_CSR_STRUC	IntSource;
 	POS_COOKIE pObj;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -559,9 +518,7 @@ static void hcca_dma_done_tasklet(unsigned long data)
 	RTMPHandleTxRingDmaDoneInterrupt(pAd, IntSource);
 
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-	/*
-	 * double check to avoid lose of interrupts
-	 */
+	
 	if (pAd->int_pending & INT_HCCA_DLY)
 	{
 		tasklet_hi_schedule(&pObj->hcca_dma_done_task);
@@ -569,7 +526,7 @@ static void hcca_dma_done_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable TxDataInt again */
+	
 	rt2860_int_enable(pAd, INT_HCCA_DLY);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
 }
@@ -582,8 +539,8 @@ static void ac3_dma_done_tasklet(unsigned long data)
 	POS_COOKIE pObj;
 	BOOLEAN bReschedule = 0;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -596,9 +553,7 @@ static void ac3_dma_done_tasklet(unsigned long data)
 	bReschedule = RTMPHandleTxRingDmaDoneInterrupt(pAd, IntSource);
 
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-	/*
-	 * double check to avoid lose of interrupts
-	 */
+	
 	if ((pAd->int_pending & INT_AC3_DLY) || bReschedule)
 	{
 		tasklet_hi_schedule(&pObj->ac3_dma_done_task);
@@ -606,7 +561,7 @@ static void ac3_dma_done_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable TxDataInt again */
+	
 	rt2860_int_enable(pAd, INT_AC3_DLY);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
 }
@@ -619,8 +574,8 @@ static void ac2_dma_done_tasklet(unsigned long data)
 	POS_COOKIE pObj;
 	BOOLEAN bReschedule = 0;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -634,9 +589,7 @@ static void ac2_dma_done_tasklet(unsigned long data)
 
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
 
-	/*
-	 * double check to avoid lose of interrupts
-	 */
+	
 	if ((pAd->int_pending & INT_AC2_DLY) || bReschedule)
 	{
 		tasklet_hi_schedule(&pObj->ac2_dma_done_task);
@@ -644,7 +597,7 @@ static void ac2_dma_done_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable TxDataInt again */
+	
 	rt2860_int_enable(pAd, INT_AC2_DLY);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
 }
@@ -657,8 +610,8 @@ static void ac1_dma_done_tasklet(unsigned long data)
 	POS_COOKIE pObj;
 	BOOLEAN bReschedule = 0;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -671,9 +624,7 @@ static void ac1_dma_done_tasklet(unsigned long data)
 	bReschedule = RTMPHandleTxRingDmaDoneInterrupt(pAd, IntSource);
 
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-	/*
-	 * double check to avoid lose of interrupts
-	 */
+	
 	if ((pAd->int_pending & INT_AC1_DLY) || bReschedule)
 	{
 		tasklet_hi_schedule(&pObj->ac1_dma_done_task);
@@ -681,7 +632,7 @@ static void ac1_dma_done_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable TxDataInt again */
+	
 	rt2860_int_enable(pAd, INT_AC1_DLY);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
 }
@@ -694,8 +645,8 @@ static void ac0_dma_done_tasklet(unsigned long data)
 	POS_COOKIE pObj;
 	BOOLEAN bReschedule = 0;
 
-	// Do nothing if the driver is starting halt state.
-	// This might happen when timer already been fired before cancel timer with mlmehalt
+	
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST))
 		return;
 
@@ -708,9 +659,7 @@ static void ac0_dma_done_tasklet(unsigned long data)
 	bReschedule = RTMPHandleTxRingDmaDoneInterrupt(pAd, IntSource);
 
 	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-	/*
-	 * double check to avoid lose of interrupts
-	 */
+	
 	if ((pAd->int_pending & INT_AC0_DLY) || bReschedule)
 	{
 		tasklet_hi_schedule(&pObj->ac0_dma_done_task);
@@ -718,7 +667,7 @@ static void ac0_dma_done_tasklet(unsigned long data)
 		return;
 	}
 
-	/* enable TxDataInt again */
+	
 	rt2860_int_enable(pAd, INT_AC0_DLY);
 	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
 }
@@ -738,60 +687,57 @@ rt2860_interrupt(int irq, void *dev_instance)
 	pObj = (POS_COOKIE) pAd->OS_Cookie;
 
 
-	/* Note 03312008: we can not return here before
-		RTMP_IO_READ32(pAd, INT_SOURCE_CSR, &IntSource.word);
-		RTMP_IO_WRITE32(pAd, INT_SOURCE_CSR, IntSource.word);
-		Or kernel will panic after ifconfig ra0 down sometimes */
+	
 
 
-	//
-	// Inital the Interrupt source.
-	//
+	
+	
+	
 	IntSource.word = 0x00000000L;
-//	McuIntSource.word = 0x00000000L;
 
-	//
-	// Get the interrupt sources & saved to local variable
-	//
-	//RTMP_IO_READ32(pAd, where, &McuIntSource.word);
-	//RTMP_IO_WRITE32(pAd, , McuIntSource.word);
 
-	//
-	// Flag fOP_STATUS_DOZE On, means ASIC put to sleep, elase means ASICK WakeUp
-	// And at the same time, clock maybe turned off that say there is no DMA service.
-	// when ASIC get to sleep.
-	// To prevent system hang on power saving.
-	// We need to check it before handle the INT_SOURCE_CSR, ASIC must be wake up.
-	//
-	// RT2661 => when ASIC is sleeping, MAC register cannot be read and written.
-	// RT2860 => when ASIC is sleeping, MAC register can be read and written.
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	bOldValue = pAd->bPCIclkOff;
 	pAd->bPCIclkOff = FALSE;
 	{
 		RTMP_IO_READ32(pAd, INT_SOURCE_CSR, &IntSource.word);
-		RTMP_IO_WRITE32(pAd, INT_SOURCE_CSR, IntSource.word); // write 1 to clear
+		RTMP_IO_WRITE32(pAd, INT_SOURCE_CSR, IntSource.word); 
 	}
 	pAd->bPCIclkOff = bOldValue;
 
-	// Do nothing if Reset in progress
+	
 	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_RESET_IN_PROGRESS) ||
 		RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS))
 	{
 		return IRQ_HANDLED;
 	}
 
-	//
-	// Handle interrupt, walk through all bits
-	// Should start from highest priority interrupt
-	// The priority can be adjust by altering processing if statement
-	//
+	
+	
+	
+	
+	
 
-	// If required spinlock, each interrupt service routine has to acquire
-	// and release itself.
-	//
+	
+	
+	
 
-	// Do nothing if NIC doesn't exist
+	
 	if (IntSource.word == 0xffffffff)
 	{
 		RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_NIC_NOT_EXIST | fRTMP_ADAPTER_HALT_IN_PROGRESS);
@@ -816,7 +762,7 @@ rt2860_interrupt(int irq, void *dev_instance)
 #if 1
 		if ((pAd->int_disable_mask & FifoStaFullInt) == 0)
 		{
-			/* mask FifoStaFullInt */
+			
 			rt2860_int_disable(pAd, FifoStaFullInt);
 			tasklet_hi_schedule(&pObj->fifo_statistic_full_task);
 		}
@@ -840,7 +786,7 @@ rt2860_interrupt(int irq, void *dev_instance)
 	{
 		if ((pAd->int_disable_mask & INT_RX) == 0)
 		{
-			/* mask RxINT */
+			
 			rt2860_int_disable(pAd, INT_RX);
 			tasklet_hi_schedule(&pObj->rx_done_task);
 		}
@@ -852,7 +798,7 @@ rt2860_interrupt(int irq, void *dev_instance)
 
 		if ((pAd->int_disable_mask & INT_HCCA_DLY) == 0)
 		{
-			/* mask TxDataInt */
+			
 			rt2860_int_disable(pAd, INT_HCCA_DLY);
 			tasklet_hi_schedule(&pObj->hcca_dma_done_task);
 		}
@@ -864,7 +810,7 @@ rt2860_interrupt(int irq, void *dev_instance)
 
 		if ((pAd->int_disable_mask & INT_AC3_DLY) == 0)
 		{
-			/* mask TxDataInt */
+			
 			rt2860_int_disable(pAd, INT_AC3_DLY);
 			tasklet_hi_schedule(&pObj->ac3_dma_done_task);
 		}
@@ -876,7 +822,7 @@ rt2860_interrupt(int irq, void *dev_instance)
 
 		if ((pAd->int_disable_mask & INT_AC2_DLY) == 0)
 		{
-			/* mask TxDataInt */
+			
 			rt2860_int_disable(pAd, INT_AC2_DLY);
 			tasklet_hi_schedule(&pObj->ac2_dma_done_task);
 		}
@@ -890,7 +836,7 @@ rt2860_interrupt(int irq, void *dev_instance)
 
 		if ((pAd->int_disable_mask & INT_AC1_DLY) == 0)
 		{
-			/* mask TxDataInt */
+			
 			rt2860_int_disable(pAd, INT_AC1_DLY);
 			tasklet_hi_schedule(&pObj->ac1_dma_done_task);
 		}
@@ -903,7 +849,7 @@ rt2860_interrupt(int irq, void *dev_instance)
 
 		if ((pAd->int_disable_mask & INT_AC0_DLY) == 0)
 		{
-			/* mask TxDataInt */
+			
 			rt2860_int_disable(pAd, INT_AC0_DLY);
 			tasklet_hi_schedule(&pObj->ac0_dma_done_task);
 		}
@@ -926,46 +872,16 @@ rt2860_interrupt(int irq, void *dev_instance)
     return  IRQ_HANDLED;
 }
 
-/*
-========================================================================
-Routine Description:
-    Check the chipset vendor/product ID.
 
-Arguments:
-    _dev_p				Point to the PCI or USB device
-
-Return Value:
-    TRUE				Check ok
-	FALSE				Check fail
-
-Note:
-========================================================================
-*/
 BOOLEAN RT28XXChipsetCheck(
 	IN void *_dev_p)
 {
-	/* always TRUE */
+	
 	return TRUE;
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Init net device structure.
 
-Arguments:
-    _dev_p				Point to the PCI or USB device
-    *net_dev			Point to the net device
-	*pAd				the raxx interface data pointer
-
-Return Value:
-    TRUE				Init ok
-	FALSE				Init fail
-
-Note:
-========================================================================
-*/
 BOOLEAN RT28XXNetDevInit(
 	IN void 				*_dev_p,
 	IN struct  net_device	*net_dev,
@@ -984,10 +900,10 @@ BOOLEAN RT28XXNetDevInit(
     if (pci_request_regions(pci_dev, print_name))
         goto err_out_free_netdev;
 
-    // interrupt IRQ number
+    
     net_dev->irq = pci_dev->irq;
 
-    // map physical address to virtual address for accessing register
+    
     csr_addr = (unsigned long) ioremap(pci_resource_start(pci_dev, 0),
 										pci_resource_len(pci_dev, 0));
 
@@ -1000,11 +916,11 @@ BOOLEAN RT28XXNetDevInit(
         goto err_out_free_res;
     }
 
-    // Save CSR virtual address and irq to device structure
+    
     net_dev->base_addr = csr_addr;
     pAd->CSRBaseAddress = (PUCHAR)net_dev->base_addr;
 
-    // Set DMA master
+    
     pci_set_master(pci_dev);
 
     net_dev->priv_flags = INT_MAIN;
@@ -1015,55 +931,27 @@ BOOLEAN RT28XXNetDevInit(
 	return TRUE;
 
 
-	/* --------------------------- ERROR HANDLE --------------------------- */
+	
 err_out_free_res:
     pci_release_regions(pci_dev);
 err_out_free_netdev:
-	/* free netdev in caller, not here */
+	
 	return FALSE;
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Init net device structure.
 
-Arguments:
-    _dev_p				Point to the PCI or USB device
-	*pAd				the raxx interface data pointer
-
-Return Value:
-    TRUE				Config ok
-	FALSE				Config fail
-
-Note:
-========================================================================
-*/
 BOOLEAN RT28XXProbePostConfig(
 	IN void 				*_dev_p,
 	IN RTMP_ADAPTER 		*pAd,
 	IN INT32				argc)
 {
-	/* no use */
+	
 	return TRUE;
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Disable DMA.
 
-Arguments:
-	*pAd				the raxx interface data pointer
-
-Return Value:
-	None
-
-Note:
-========================================================================
-*/
 VOID RT28XXDMADisable(
 	IN RTMP_ADAPTER 		*pAd)
 {
@@ -1077,20 +965,7 @@ VOID RT28XXDMADisable(
 }
 
 
-/*
-========================================================================
-Routine Description:
-    Enable DMA.
 
-Arguments:
-	*pAd				the raxx interface data pointer
-
-Return Value:
-	None
-
-Note:
-========================================================================
-*/
 VOID RT28XXDMAEnable(
 	IN RTMP_ADAPTER 		*pAd)
 {
@@ -1121,20 +996,7 @@ VOID RT28XXDMAEnable(
 
 }
 
-/*
-========================================================================
-Routine Description:
-    Write Beacon buffer to Asic.
 
-Arguments:
-	*pAd				the raxx interface data pointer
-
-Return Value:
-	None
-
-Note:
-========================================================================
-*/
 VOID RT28xx_UpdateBeaconToAsic(
 	IN RTMP_ADAPTER		*pAd,
 	IN INT				apidx,
@@ -1154,8 +1016,8 @@ VOID RT28xx_UpdateBeaconToAsic(
 
 	if (bBcnReq == FALSE)
 	{
-		/* when the ra interface is down, do not send its beacon frame */
-		/* clear all zero */
+		
+		
 		for(i=0; i<TXWI_SIZE; i+=4)
 			RTMP_IO_WRITE32(pAd, pAd->BeaconOffset[bcn_idx] + i, 0x00);
 	}
@@ -1163,14 +1025,14 @@ VOID RT28xx_UpdateBeaconToAsic(
 	{
 		ptr = (PUCHAR)&pAd->BeaconTxWI;
 
-		for (i=0; i<TXWI_SIZE; i+=4)  // 16-byte TXWI field
+		for (i=0; i<TXWI_SIZE; i+=4)  
 		{
 			UINT32 longptr =  *ptr + (*(ptr+1)<<8) + (*(ptr+2)<<16) + (*(ptr+3)<<24);
 			RTMP_IO_WRITE32(pAd, pAd->BeaconOffset[bcn_idx] + i, longptr);
 			ptr += 4;
 		}
 
-		// Update CapabilityInfo in Beacon
+		
 		for (i = CapInfoPos; i < (CapInfoPos+2); i++)
 		{
 			RTMP_IO_WRITE8(pAd, pAd->BeaconOffset[bcn_idx] + TXWI_SIZE + i, *ptr_capinfo);
@@ -1200,34 +1062,14 @@ VOID RTMPFindHostPCIDev(
 {
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-		Level = RESTORE_HALT : Restore PCI host and Ralink PCIe Link Control field to its default value.
-		Level = Other Value : Restore from dot11 power save or radio off status. And force PCI host Link Control fields to 0x1
-
-	========================================================================
-*/
 VOID RTMPPCIeLinkCtrlValueRestore(
 	IN	PRTMP_ADAPTER	pAd,
 	IN   UCHAR		Level)
 {
 }
 
-/*
-	========================================================================
 
-	Routine Description:
-
-	Arguments:
-		Max : limit Host PCI and Ralink PCIe device's LINK CONTROL field's value.
-		Because now frequently set our device to mode 1 or mode 3 will cause problem.
-
-	========================================================================
-*/
 VOID RTMPPCIeLinkCtrlSetting(
 	IN	PRTMP_ADAPTER	pAd,
 	IN 	USHORT		Max)
@@ -1246,48 +1088,31 @@ VOID rt2860_stop(struct net_device *net_dev)
 
 	if (pAd != NULL)
 	{
-	    // stop interface
+	    
 		netif_carrier_off(net_dev);
 		netif_stop_queue(net_dev);
 
-		// mark device as removed from system and therefore no longer available
+		
 		netif_device_detach(net_dev);
 
-		// mark halt flag
+		
 		RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS);
 		RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_RADIO_OFF);
 
-		// take down the device
+		
 		rt28xx_close((PNET_DEV)net_dev);
 		RT_MOD_DEC_USE_COUNT();
 	}
     return;
 }
 
-/*
- * invaild or writeback cache
- * and convert virtual address to physical address
- */
+
 dma_addr_t linux_pci_map_single(void *handle, void *ptr, size_t size, int sd_idx, int direction)
 {
 	PRTMP_ADAPTER pAd;
 	POS_COOKIE pObj;
 
-	/*
-		------ Porting Information ------
-		> For Tx Alloc:
-			mgmt packets => sd_idx = 0
-			SwIdx: pAd->MgmtRing.TxCpuIdx
-			pTxD : pAd->MgmtRing.Cell[SwIdx].AllocVa;
-
-			data packets => sd_idx = 1
-	 		TxIdx : pAd->TxRing[pTxBlk->QueIdx].TxCpuIdx
-	 		QueIdx: pTxBlk->QueIdx
-	 		pTxD  : pAd->TxRing[pTxBlk->QueIdx].Cell[TxIdx].AllocVa;
-
-	 	> For Rx Alloc:
-	 		sd_idx = -1
-	*/
+	
 
 	pAd = (PRTMP_ADAPTER)handle;
 	pObj = (POS_COOKIE)pAd->OS_Cookie;

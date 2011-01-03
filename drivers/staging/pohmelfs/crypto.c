@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/crypto.h>
 #include <linux/highmem.h>
@@ -693,7 +680,7 @@ static int pohmelfs_crypto_init_handshake(struct pohmelfs_sb *psb)
 	int err = -ENOMEM, size;
 
 	size = sizeof(struct netfs_crypto_capabilities) +
-		psb->cipher_strlen + psb->hash_strlen + 2; /* 0 bytes */
+		psb->cipher_strlen + psb->hash_strlen + 2; 
 
 	t = netfs_trans_alloc(psb, size, 0, 0);
 	if (!t)
@@ -745,12 +732,7 @@ static int pohmelfs_crypto_init_handshake(struct pohmelfs_sb *psb)
 		psb->perform_crypto = 1;
 	psb->flags = 0;
 
-	/*
-	 * At this point NETFS_CAPABILITIES response command
-	 * should setup superblock in a way, which is acceptible
-	 * for both client and server, so if server refuses connection,
-	 * it will send error in transaction response.
-	 */
+	
 
 	if (err)
 		goto err_out_exit;

@@ -1,28 +1,14 @@
-/*
- * Copyright (c) 2007-2008 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/*                                                                      */
-/*  Module Name : zdusb.c                                               */
-/*                                                                      */
-/*  Abstract                                                            */
-/*     This module contains plug and play handling for USB device driver*/
-/*                                                                      */
-/*  NOTES                                                               */
-/*     Platform dependent.                                              */
-/*                                                                      */
-/************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 
 #ifdef MODVERSIONS
 #include <linux/modversions.h>
@@ -44,13 +30,13 @@ MODULE_LICENSE("Dual BSD/GPL");
 
 static const char driver_name[] = "Otus";
 
-/* table of devices that work with this driver */
+
 static struct usb_device_id zd1221_ids [] = {
 	{ USB_DEVICE(VENDOR_ATHR, PRODUCT_AR9170) },
         { USB_DEVICE(VENDOR_DLINK, PRODUCT_DWA160A) },
 	{ USB_DEVICE(VENDOR_NETGEAR, PRODUCT_WNDA3100) },
 	{ USB_DEVICE(VENDOR_NETGEAR, PRODUCT_WN111v2) },
-	{ }					/* Terminating entry */
+	{ }					
 };
 
 MODULE_DEVICE_TABLE(usb, zd1221_ids);
@@ -63,10 +49,10 @@ extern int zfUnregisterWdsDev(struct net_device* parentDev, u16_t wdsId);
 extern int zfLnxVapClose(struct net_device *dev);
 extern int zfLnxUnregisterVapDev(struct net_device* parentDev, u16_t vapId);
 
-/* WDS */
+
 extern struct zsWdsStruct wds[ZM_WDS_PORT_NUMBER];
 
-/* VAP */
+
 extern struct zsVapStruct vap[ZM_VAP_PORT_NUMBER];
 
 static int zfLnxProbe(struct usb_interface *interface,
@@ -101,7 +87,7 @@ static int zfLnxProbe(struct usb_interface *interface,
         goto fail;
     }
 
-    /* Zero the memory */
+    
     memset(macp, 0, sizeof(struct usbdrv_private));
 
     net = alloc_etherdev(0);
@@ -115,17 +101,17 @@ static int zfLnxProbe(struct usb_interface *interface,
 
     strcpy(net->name, "ath%d");
 
-    net->ml_priv = macp;   //kernel 2.6
+    net->ml_priv = macp;   
     macp->udev = dev;
     macp->device = net;
 
-    /* set up the endpoint information */
-    /* check out the endpoints */
+    
+    
     macp->interface = interface;
 
-    //init_waitqueue_head(&macp->regSet_wait);
-    //init_waitqueue_head(&macp->iorwRsp_wait);
-    //init_waitqueue_head(&macp->term_wait);
+    
+    
+    
 
     if (!zfLnxAllocAllUrbs(macp))
     {
@@ -156,7 +142,7 @@ static int zfLnxProbe(struct usb_interface *interface,
 fail3:
     zfLnxFreeAllUrbs(macp);
 fail2:
-    free_netdev(net);  //kernel 2.6
+    free_netdev(net);  
 fail1:
     kfree(macp);
 
@@ -187,14 +173,14 @@ static void zfLnxDisconnect(struct usb_interface *interface)
     }
 
 #if 0
-    /* Close WDS */
-    //zfWdsClose(wds[0].dev);
-    /* Unregister WDS */
-    //zfUnregisterWdsDev(macp->device, 0);
+    
+    
+    
+    
 
-    /* Close VAP */
+    
     zfLnxVapClose(vap[0].dev);
-    /* Unregister VAP */
+    
     zfLnxUnregisterVapDev(macp->device, 0);
 #endif
 
@@ -204,14 +190,14 @@ static void zfLnxDisconnect(struct usb_interface *interface)
 
     usb_put_dev(interface_to_usbdev(interface));
 
-    //printk(KERN_ERR "3. zfLnxUnlinkAllUrbs\n");
-    //zfLnxUnlinkAllUrbs(macp);
+    
+    
 
-    /* Free network interface */
+    
     free_netdev(macp->device);
 
     zfLnxFreeAllUrbs(macp);
-    //zfLnxClearStructs(macp->device);
+    
     kfree(macp);
     macp = NULL;
 

@@ -1,19 +1,4 @@
-/* arch/arm/mach-msm/smd_rpcrouter_device.c
- *
- * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2007-2009 QUALCOMM Incorporated.
- * Author: San Mehat <san@android.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -37,7 +22,7 @@
 
 #define SAFETY_MEM_SIZE 65536
 
-/* Next minor # available for a remote server */
+
 static int next_minor = 1;
 
 struct class *msm_rpcrouter_class;
@@ -110,7 +95,7 @@ static ssize_t rpcrouter_write(struct file *filp, const char __user *buf,
 
 	ept = (struct msm_rpc_endpoint *) filp->private_data;
 
-	/* A check for safety, this seems non-standard */
+	
 	if (count > SAFETY_MEM_SIZE)
 		return -EINVAL;
 
@@ -140,9 +125,7 @@ static unsigned int rpcrouter_poll(struct file *filp,
 	unsigned mask = 0;
 	ept = (struct msm_rpc_endpoint *) filp->private_data;
 
-	/* If there's data already in the read queue, return POLLIN.
-	 * Else, wait for the requested amount of time, and check again.
-	 */
+	
 
 	if (!list_empty(&ept->read_q))
 		mask |= POLLIN;
@@ -173,9 +156,7 @@ static long rpcrouter_ioctl(struct file *filp, unsigned int cmd,
 		break;
 
 	case RPC_ROUTER_IOCTL_GET_MTU:
-		/* the pacmark word reduces the actual payload
-		 * possible per message
-		 */
+		
 		n = RPCROUTER_MSGSIZE_MAX - sizeof(uint32_t);
 		rc = put_user(n, (unsigned int *) arg);
 		break;
@@ -247,12 +228,7 @@ int msm_rpcrouter_create_server_cdev(struct rr_server *server)
 	}
 
 #if CONFIG_MSM_AMSS_VERSION >= 6350
-	/* Servers with bit 31 set are remote msm servers with hashkey version.
-	 * Servers with bit 31 not set are remote msm servers with
-	 * backwards compatible version type in which case the minor number
-	 * (lower 16 bits) is set to zero.
-	 *
-	 */
+	
 	if ((server->vers & RPC_VERSION_MODE_MASK))
 		dev_vers = server->vers;
 	else
@@ -288,10 +264,7 @@ int msm_rpcrouter_create_server_cdev(struct rr_server *server)
 	return 0;
 }
 
-/* for backward compatible version type (31st bit cleared)
- * clearing minor number (lower 16 bits) in device name
- * is neccessary for driver binding
- */
+
 int msm_rpcrouter_create_server_pdev(struct rr_server *server)
 {
 	sprintf(server->pdev_name, "rs%.8x:%.8x",
@@ -318,7 +291,7 @@ int msm_rpcrouter_init_devices(void)
 	int rc;
 	int major;
 
-	/* Create the device nodes */
+	
 	msm_rpcrouter_class = class_create(THIS_MODULE, "oncrpc");
 	if (IS_ERR(msm_rpcrouter_class)) {
 		rc = -ENOMEM;

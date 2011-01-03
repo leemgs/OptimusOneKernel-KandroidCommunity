@@ -3,7 +3,7 @@
 
 #include <linux/types.h>
 
-/*Created on  2009/ 3/ 6,  5:29*/
+
 
 #define ImgArrayLength 68368
 extern u8 Rtl8192SUFwImgArray[ImgArrayLength];
@@ -40,5 +40,5 @@ extern u32 Rtl8192SUMACPHY_Array_PG[MACPHY_Array_PGLength];
 #define AGCTAB_ArrayLength 320
 extern u32 Rtl8192SUAGCTAB_Array[AGCTAB_ArrayLength];
 
-#endif //__INC_HAL8192SU_FW_IMG_H
+#endif 
 

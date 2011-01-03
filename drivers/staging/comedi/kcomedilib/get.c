@@ -1,25 +1,4 @@
-/*
-    kcomedilib/get.c
-    a comedlib interface for kernel modules
 
-    COMEDI - Linux Control and Measurement Device Interface
-    Copyright (C) 1997-2000 David A. Schleef <ds@schleef.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #define __NO_VERSION__
 #include "../comedi.h"
@@ -144,9 +123,7 @@ int comedi_get_n_ranges(void *d, unsigned int subdevice, unsigned int chan)
 	return ret;
 }
 
-/*
- * ALPHA (non-portable)
-*/
+
 int comedi_get_krange(void *d, unsigned int subdevice, unsigned int chan,
 		      unsigned int range, struct comedi_krange *krange)
 {
@@ -167,9 +144,7 @@ int comedi_get_krange(void *d, unsigned int subdevice, unsigned int chan,
 	return 0;
 }
 
-/*
- * ALPHA (may be renamed)
-*/
+
 unsigned int comedi_get_buf_head_pos(void *d, unsigned int subdevice)
 {
 	struct comedi_device *dev = (struct comedi_device *)d;
@@ -199,9 +174,7 @@ int comedi_get_buffer_contents(void *d, unsigned int subdevice)
 	return num_bytes;
 }
 
-/*
- * ALPHA
-*/
+
 int comedi_set_user_int_count(void *d, unsigned int subdevice,
 			      unsigned int buf_user_count)
 {

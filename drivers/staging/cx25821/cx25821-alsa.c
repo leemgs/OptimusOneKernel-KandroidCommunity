@@ -1,24 +1,4 @@
-/*
- *  Driver for the Conexant CX25821 PCIe bridge
- *
- *  Copyright (C) 2009 Conexant Systems Inc.
- *  Authors  <shu.lin@conexant.com>, <hiep.huynh@conexant.com>
- *	Based on SAA713x ALSA driver and CX88 driver
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, version 2
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -47,9 +27,7 @@
 #define dprintk_core(level,fmt, arg...)	if (debug >= level) \
 	printk(KERN_DEBUG "%s/1: " fmt, chip->dev->name , ## arg)
 
-/****************************************************************************
-	Data type declarations - Can be moded to a header file later
- ****************************************************************************/
+
 
 static struct snd_card *snd_cx25821_cards[SNDRV_CARDS];
 static int devno;
@@ -58,10 +36,10 @@ struct cx25821_audio_dev {
 	struct cx25821_dev *dev;
 	struct cx25821_dmaqueue q;
 
-	/* pci i/o */
+	
 	struct pci_dev *pci;
 
-	/* audio controls */
+	
 	int irq;
 
 	struct snd_card *card;
@@ -83,12 +61,10 @@ struct cx25821_audio_dev {
 typedef struct cx25821_audio_dev snd_cx25821_card_t;
 
 
-/****************************************************************************
-			Module global static vars
- ****************************************************************************/
 
-static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
-static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
+
+static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	
+static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	
 static int enable[SNDRV_CARDS] = { 1,[1 ... (SNDRV_CARDS - 1)] = 1 };
 
 module_param_array(enable, bool, NULL, 0444);
@@ -97,27 +73,23 @@ MODULE_PARM_DESC(enable, "Enable cx25821 soundcard. default enabled.");
 module_param_array(index, int, NULL, 0444);
 MODULE_PARM_DESC(index, "Index value for cx25821 capture interface(s).");
 
-/****************************************************************************
-				Module macros
- ****************************************************************************/
+
 
 MODULE_DESCRIPTION("ALSA driver module for cx25821 based capture cards");
 MODULE_AUTHOR("Hiep Huynh");
 MODULE_LICENSE("GPL");
-MODULE_SUPPORTED_DEVICE("{{Conexant,25821}");	//"{{Conexant,23881},"
+MODULE_SUPPORTED_DEVICE("{{Conexant,25821}");	
 
 static unsigned int debug;
 module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "enable debug messages");
 
-/****************************************************************************
-			Module specific funtions
- ****************************************************************************/
-/* Constants taken from cx88-reg.h */
+
+
 #define AUD_INT_DN_RISCI1       (1 <<  0)
 #define AUD_INT_UP_RISCI1       (1 <<  1)
 #define AUD_INT_RDS_DN_RISCI1   (1 <<  2)
-#define AUD_INT_DN_RISCI2       (1 <<  4)	/* yes, 3 is skipped */
+#define AUD_INT_DN_RISCI2       (1 <<  4)	
 #define AUD_INT_UP_RISCI2       (1 <<  5)
 #define AUD_INT_RDS_DN_RISCI2   (1 <<  6)
 #define AUD_INT_DN_SYNC         (1 << 12)
@@ -130,9 +102,7 @@ MODULE_PARM_DESC(debug, "enable debug messages");
 
 #define PCI_MSK_AUD_EXT   (1 <<  4)
 #define PCI_MSK_AUD_INT   (1 <<  3)
-/*
- * BOARD Specific: Sets audio DMA
- */
+
 
 static int _cx25821_start_audio_dma(snd_cx25821_card_t * chip)
 {
@@ -142,46 +112,46 @@ static int _cx25821_start_audio_dma(snd_cx25821_card_t * chip)
 	    &cx25821_sram_channels[AUDIO_SRAM_CHANNEL];
 	u32 tmp = 0;
 
-	// enable output on the GPIO 0 for the MCLK ADC (Audio)
+	
 	cx25821_set_gpiopin_direction(chip->dev, 0, 0);
 
-	/* Make sure RISC/FIFO are off before changing FIFO/RISC settings */
+	
 	cx_clear(AUD_INT_DMA_CTL,
 		 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
 
-	/* setup fifo + format - out channel */
+	
 	cx25821_sram_channel_setup_audio(chip->dev, audio_ch, buf->bpl,
 					 buf->risc.dma);
 
-	/* sets bpl size */
+	
 	cx_write(AUD_A_LNGTH, buf->bpl);
 
-	/* reset counter */
-	cx_write(AUD_A_GPCNT_CTL, GP_COUNT_CONTROL_RESET);	//GP_COUNT_CONTROL_RESET = 0x3
+	
+	cx_write(AUD_A_GPCNT_CTL, GP_COUNT_CONTROL_RESET);	
 	atomic_set(&chip->count, 0);
 
-	//Set the input mode to 16-bit
+	
 	tmp = cx_read(AUD_A_CFG);
 	cx_write(AUD_A_CFG,
 		 tmp | FLD_AUD_DST_PK_MODE | FLD_AUD_DST_ENABLE |
 		 FLD_AUD_CLK_ENABLE);
 
-	//printk(KERN_INFO "DEBUG: Start audio DMA, %d B/line, cmds_start(0x%x)= %d lines/FIFO, %d periods, %d "
-	//      "byte buffer\n", buf->bpl, audio_ch->cmds_start, cx_read(audio_ch->cmds_start + 12)>>1,
-	//      chip->num_periods, buf->bpl * chip->num_periods);
+	
+	
+	
 
-	/* Enables corresponding bits at AUD_INT_STAT */
+	
 	cx_write(AUD_A_INT_MSK,
 		 FLD_AUD_DST_RISCI1 | FLD_AUD_DST_OF | FLD_AUD_DST_SYNC |
 		 FLD_AUD_DST_OPC_ERR);
 
-	/* Clean any pending interrupt bits already set */
+	
 	cx_write(AUD_A_INT_STAT, ~0);
 
-	/* enable audio irqs */
+	
 	cx_set(PCI_INT_MSK, chip->dev->pci_irqmask | PCI_MSK_AUD_INT);
 
-	// Turn on audio downstream fifo and risc enable 0x101
+	
 	tmp = cx_read(AUD_INT_DMA_CTL);
 	cx_set(AUD_INT_DMA_CTL,
 	       tmp | (FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN));
@@ -190,18 +160,16 @@ static int _cx25821_start_audio_dma(snd_cx25821_card_t * chip)
 	return 0;
 }
 
-/*
- * BOARD Specific: Resets audio DMA
- */
+
 static int _cx25821_stop_audio_dma(snd_cx25821_card_t * chip)
 {
 	struct cx25821_dev *dev = chip->dev;
 
-	/* stop dma */
+	
 	cx_clear(AUD_INT_DMA_CTL,
 		 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
 
-	/* disable irqs */
+	
 	cx_clear(PCI_INT_MSK, PCI_MSK_AUD_INT);
 	cx_clear(AUD_A_INT_MSK,
 		 AUD_INT_OPC_ERR | AUD_INT_DN_SYNC | AUD_INT_DN_RISCI2 |
@@ -212,25 +180,21 @@ static int _cx25821_stop_audio_dma(snd_cx25821_card_t * chip)
 
 #define MAX_IRQ_LOOP 50
 
-/*
- * BOARD Specific: IRQ dma bits
- */
+
 static char *cx25821_aud_irqs[32] = {
-	"dn_risci1", "up_risci1", "rds_dn_risc1",	/* 0-2 */
-	NULL,			/* reserved */
-	"dn_risci2", "up_risci2", "rds_dn_risc2",	/* 4-6 */
-	NULL,			/* reserved */
-	"dnf_of", "upf_uf", "rds_dnf_uf",	/* 8-10 */
-	NULL,			/* reserved */
-	"dn_sync", "up_sync", "rds_dn_sync",	/* 12-14 */
-	NULL,			/* reserved */
-	"opc_err", "par_err", "rip_err",	/* 16-18 */
-	"pci_abort", "ber_irq", "mchg_irq"	/* 19-21 */
+	"dn_risci1", "up_risci1", "rds_dn_risc1",	
+	NULL,			
+	"dn_risci2", "up_risci2", "rds_dn_risc2",	
+	NULL,			
+	"dnf_of", "upf_uf", "rds_dnf_uf",	
+	NULL,			
+	"dn_sync", "up_sync", "rds_dn_sync",	
+	NULL,			
+	"opc_err", "par_err", "rip_err",	
+	"pci_abort", "ber_irq", "mchg_irq"	
 };
 
-/*
- * BOARD Specific: Threats IRQ audio specific calls
- */
+
 static void cx25821_aud_irq(snd_cx25821_card_t * chip, u32 status, u32 mask)
 {
 	struct cx25821_dev *dev = chip->dev;
@@ -246,7 +210,7 @@ static void cx25821_aud_irq(snd_cx25821_card_t * chip, u32 status, u32 mask)
 				      ARRAY_SIZE(cx25821_aud_irqs), status,
 				      mask);
 
-	/* risc op code error */
+	
 	if (status & AUD_INT_OPC_ERR) {
 		printk(KERN_WARNING "WARNING %s/1: Audio risc op code error\n",
 		       dev->name);
@@ -264,16 +228,14 @@ static void cx25821_aud_irq(snd_cx25821_card_t * chip, u32 status, u32 mask)
 		return;
 	}
 
-	/* risc1 downstream */
+	
 	if (status & AUD_INT_DN_RISCI1) {
 		atomic_set(&chip->count, cx_read(AUD_A_GPCNT));
 		snd_pcm_period_elapsed(chip->substream);
 	}
 }
 
-/*
- * BOARD Specific: Handles IRQ calls
- */
+
 static irqreturn_t cx25821_irq(int irq, void *dev_id)
 {
 	snd_cx25821_card_t *chip = dev_id;
@@ -337,13 +299,9 @@ static int dsp_buffer_free(snd_cx25821_card_t * chip)
 	return 0;
 }
 
-/****************************************************************************
-				ALSA PCM Interface
- ****************************************************************************/
 
-/*
- * Digital hardware definition
- */
+
+
 #define DEFAULT_FIFO_SIZE	384
 static struct snd_pcm_hardware snd_cx25821_digital_hw = {
 	.info = SNDRV_PCM_INFO_MMAP |
@@ -356,18 +314,15 @@ static struct snd_pcm_hardware snd_cx25821_digital_hw = {
 	.rate_max = 48000,
 	.channels_min = 2,
 	.channels_max = 2,
-	/* Analog audio output will be full of clicks and pops if there
-	   are not exactly four lines in the SRAM FIFO buffer.  */
+	
 	.period_bytes_min = DEFAULT_FIFO_SIZE / 3,
 	.period_bytes_max = DEFAULT_FIFO_SIZE / 3,
 	.periods_min = 1,
 	.periods_max = AUDIO_LINE_SIZE,
-	.buffer_bytes_max = (AUDIO_LINE_SIZE * AUDIO_LINE_SIZE),	//128*128 = 16384 = 1024 * 16
+	.buffer_bytes_max = (AUDIO_LINE_SIZE * AUDIO_LINE_SIZE),	
 };
 
-/*
- * audio pcm capture open callback
- */
+
 static int snd_cx25821_pcm_open(struct snd_pcm_substream *substream)
 {
 	snd_cx25821_card_t *chip = snd_pcm_substream_chip(substream);
@@ -392,8 +347,8 @@ static int snd_cx25821_pcm_open(struct snd_pcm_substream *substream)
 
 	if (cx25821_sram_channels[AUDIO_SRAM_CHANNEL].fifo_size !=
 	    DEFAULT_FIFO_SIZE) {
-		bpl = cx25821_sram_channels[AUDIO_SRAM_CHANNEL].fifo_size / 3;	//since there are 3 audio Clusters
-		bpl &= ~7;	/* must be multiple of 8 */
+		bpl = cx25821_sram_channels[AUDIO_SRAM_CHANNEL].fifo_size / 3;	
+		bpl &= ~7;	
 
 		if (bpl > AUDIO_LINE_SIZE) {
 			bpl = AUDIO_LINE_SIZE;
@@ -408,17 +363,13 @@ static int snd_cx25821_pcm_open(struct snd_pcm_substream *substream)
 	return err;
 }
 
-/*
- * audio close callback
- */
+
 static int snd_cx25821_close(struct snd_pcm_substream *substream)
 {
 	return 0;
 }
 
-/*
- * hw_params callback
- */
+
 static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_pcm_hw_params *hw_params)
 {
@@ -477,10 +428,10 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
 		goto error;
 	}
 
-	/* Loop back to start of program */
+	
 	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
 	buf->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
-	buf->risc.jmp[2] = cpu_to_le32(0);	/* bits 63-32 */
+	buf->risc.jmp[2] = cpu_to_le32(0);	
 
 	buf->vb.state = VIDEOBUF_PREPARED;
 
@@ -498,9 +449,7 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
 	return ret;
 }
 
-/*
- * hw free callback
- */
+
 static int snd_cx25821_hw_free(struct snd_pcm_substream *substream)
 {
 	snd_cx25821_card_t *chip = snd_pcm_substream_chip(substream);
@@ -513,24 +462,20 @@ static int snd_cx25821_hw_free(struct snd_pcm_substream *substream)
 	return 0;
 }
 
-/*
- * prepare callback
- */
+
 static int snd_cx25821_prepare(struct snd_pcm_substream *substream)
 {
 	return 0;
 }
 
-/*
- * trigger callback
- */
+
 static int snd_cx25821_card_trigger(struct snd_pcm_substream *substream,
 				    int cmd)
 {
 	snd_cx25821_card_t *chip = snd_pcm_substream_chip(substream);
 	int err = 0;
 
-	/* Local interrupts are already disabled by ALSA */
+	
 	spin_lock(&chip->reg_lock);
 
 	switch (cmd) {
@@ -550,9 +495,7 @@ static int snd_cx25821_card_trigger(struct snd_pcm_substream *substream,
 	return err;
 }
 
-/*
- * pointer callback
- */
+
 static snd_pcm_uframes_t snd_cx25821_pointer(struct snd_pcm_substream
 					     *substream)
 {
@@ -565,9 +508,7 @@ static snd_pcm_uframes_t snd_cx25821_pointer(struct snd_pcm_substream
 	return runtime->period_size * (count & (runtime->periods - 1));
 }
 
-/*
- * page callback (needed for mmap)
- */
+
 static struct page *snd_cx25821_page(struct snd_pcm_substream *substream,
 				     unsigned long offset)
 {
@@ -576,9 +517,7 @@ static struct page *snd_cx25821_page(struct snd_pcm_substream *substream,
 	return vmalloc_to_page(pageptr);
 }
 
-/*
- * operators
- */
+
 static struct snd_pcm_ops snd_cx25821_pcm_ops = {
 	.open = snd_cx25821_pcm_open,
 	.close = snd_cx25821_close,
@@ -591,10 +530,7 @@ static struct snd_pcm_ops snd_cx25821_pcm_ops = {
 	.page = snd_cx25821_page,
 };
 
-/*
- * ALSA create a PCM device:  Called when initializing the board. Sets up the name and hooks up
- *  the callbacks
- */
+
 static int snd_cx25821_pcm(snd_cx25821_card_t * chip, int device, char *name)
 {
 	struct snd_pcm *pcm;
@@ -614,14 +550,9 @@ static int snd_cx25821_pcm(snd_cx25821_card_t * chip, int device, char *name)
 	return 0;
 }
 
-/****************************************************************************
-			Basic Flow for Sound Devices
- ****************************************************************************/
 
-/*
- * PCI ID Table - 14f1:8801 and 14f1:8811 means function 1: Audio
- * Only boards with eeprom and byte 1 at eeprom=1 have it
- */
+
+
 
 static struct pci_device_id cx25821_audio_pci_tbl[] __devinitdata = {
 	{0x14f1, 0x0920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
@@ -630,37 +561,19 @@ static struct pci_device_id cx25821_audio_pci_tbl[] __devinitdata = {
 
 MODULE_DEVICE_TABLE(pci, cx25821_audio_pci_tbl);
 
-/*
- * Not used in the function snd_cx25821_dev_free so removing
- * from the file.
- */
-/*
-static int snd_cx25821_free(snd_cx25821_card_t *chip)
-{
-	if (chip->irq >= 0)
-		free_irq(chip->irq, chip);
 
-	cx25821_dev_unregister(chip->dev);
-	pci_disable_device(chip->pci);
 
-	return 0;
-}
-*/
 
-/*
- * Component Destructor
- */
+
 static void snd_cx25821_dev_free(struct snd_card *card)
 {
 	snd_cx25821_card_t *chip = card->private_data;
 
-	//snd_cx25821_free(chip);
+	
 	snd_card_free(chip->card);
 }
 
-/*
- * Alsa Constructor - Component probe
- */
+
 static int cx25821_audio_initdev(struct cx25821_dev *dev)
 {
 	struct snd_card *card;
@@ -690,7 +603,7 @@ static int cx25821_audio_initdev(struct cx25821_dev *dev)
 
 	strcpy(card->driver, "cx25821");
 
-	/* Card "creation" */
+	
 	card->private_free = snd_cx25821_dev_free;
 	chip = (snd_cx25821_card_t *) card->private_data;
 	spin_lock_init(&chip->reg_lock);
@@ -745,21 +658,13 @@ static int cx25821_audio_initdev(struct cx25821_dev *dev)
 	return err;
 }
 
-/****************************************************************************
-				LINUX MODULE INIT
- ****************************************************************************/
+
 static void cx25821_audio_fini(void)
 {
 	snd_card_free(snd_cx25821_cards[0]);
 }
 
-/*
- * Module initializer
- *
- * Loops through present saa7134 cards, and assigns an ALSA device
- * to each one
- *
- */
+
 static int cx25821_alsa_init(void)
 {
 	struct cx25821_dev *dev = NULL;
@@ -781,9 +686,5 @@ static int cx25821_alsa_init(void)
 late_initcall(cx25821_alsa_init);
 module_exit(cx25821_audio_fini);
 
-/* ----------------------------------------------------------- */
-/*
- * Local variables:
- * c-basic-offset: 8
- * End:
- */
+
+

@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 1996, 2003 VIA Networking Technologies, Inc.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
- * File: mac.c
- *
- * Purpose:  MAC routines
- *
- * Author: Tevin Chen
- *
- * Date: May 21, 1996
- *
- * Functions:
- *
- * Revision History:
- */
+
 
 #include "tmacro.h"
 #include "tether.h"
@@ -38,36 +8,24 @@
 #include "rndis.h"
 #include "control.h"
 
-/*---------------------  Static Definitions -------------------------*/
-//static int          msglevel                =MSG_LEVEL_DEBUG;
+
+
 static int          msglevel                =MSG_LEVEL_INFO;
-/*---------------------  Static Classes  ----------------------------*/
-
-/*---------------------  Static Variables  --------------------------*/
-
-/*---------------------  Static Functions  --------------------------*/
-
-/*---------------------  Export Variables  --------------------------*/
-
-/*---------------------  Export Functions  --------------------------*/
 
 
 
 
 
-/*
- * Description:
- *      Set this hash index into multicast address register bit
- *
- * Parameters:
- *  In:
- *      byHashIdx   - Hash index to set
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
+
+
+
+
+
+
+
+
+
+
 void MACvSetMultiAddrByHash (PSDevice pDevice, BYTE byHashIdx)
 {
     UINT            uByteIdx;
@@ -75,13 +33,13 @@ void MACvSetMultiAddrByHash (PSDevice pDevice, BYTE byHashIdx)
     BYTE            pbyData[2];
 
 
-    // calculate byte position
+    
     uByteIdx = byHashIdx / 8;
 
-    // calculate bit position
+    
     byBitMask = 1;
     byBitMask <<= (byHashIdx % 8);
-    // turn on the bit
+    
 
     pbyData[0] = byBitMask;
     pbyData[1] = byBitMask;
@@ -96,20 +54,7 @@ void MACvSetMultiAddrByHash (PSDevice pDevice, BYTE byHashIdx)
 
 
 
-/*
- * Description:
- *      Write MAC Multicast Address Mask
- *
- * Parameters:
- *  In:
- *      uByteidx    - Index of Mask
- *      byData      - Mask Value to write
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
+
 VOID MACvWriteMultiAddr (PSDevice pDevice, UINT uByteIdx, BYTE byData)
 {
     BYTE            byData1;
@@ -124,18 +69,7 @@ VOID MACvWriteMultiAddr (PSDevice pDevice, UINT uByteIdx, BYTE byData)
 }
 
 
-/*
- * Description:
- *      Shut Down MAC
- *
- * Parameters:
- *  In:
- *  Out:
- *      none
- *
- * Return Value: TRUE if success; otherwise FALSE
- *
- */
+
 BOOL MACbShutdown (PSDevice pDevice)
 {
     CONTROLnsRequestOutAsyn(pDevice,
@@ -185,20 +119,7 @@ BYTE    pbyData[4];
                         );
 }
 
-/*
- * Description:
- *      Disable the Key Entry by MISCFIFO
- *
- * Parameters:
- *  In:
- *      dwIoBase        - Base Address for MAC
- *
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
+
 void MACvDisableKeyEntry (PSDevice pDevice, UINT uEntryIdx)
 {
 WORD    wOffset;
@@ -210,11 +131,11 @@ BYTE            byData;
     wOffset = MISCFIFO_KEYETRY0;
     wOffset += (uEntryIdx * MISCFIFO_KEYENTRYSIZE);
 
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFNDEX, wOffset);
-    //VNSvOutPortD(dwIoBase + MAC_REG_MISCFFDATA, 0);
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFCTL, MISCFFCTL_WRITE);
+    
+    
+    
 
-    //issue write misc fifo command to device
+    
     CONTROLnsRequestOut(pDevice,
                         MESSAGE_TYPE_CLRKEYENTRY,
                         0,
@@ -225,20 +146,7 @@ BYTE            byData;
 }
 
 
-/*
- * Description:
- *      Set the Key by MISCFIFO
- *
- * Parameters:
- *  In:
- *      dwIoBase        - Base Address for MAC
- *
- *  Out:
- *      none
- *
- * Return Value: none
- *
- */
+
 void MACvSetKeyEntry (PSDevice pDevice, WORD wKeyCtl, UINT uEntryIdx, UINT uKeyIdx, PBYTE pbyAddr, PDWORD pdwKey)
 {
 PBYTE           pbyKey;
@@ -266,11 +174,11 @@ BYTE            pbyData[24];
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"1. wOffset: %d, Data: %lX, KeyCtl:%X\n", wOffset, dwData1, wKeyCtl);
 
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFNDEX, wOffset);
-    //VNSvOutPortD(dwIoBase + MAC_REG_MISCFFDATA, dwData);
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFCTL, MISCFFCTL_WRITE);
+    
+    
+    
 
-    //wOffset++;
+    
 
     dwData2 = 0;
     dwData2 |= *(pbyAddr+3);
@@ -283,21 +191,14 @@ BYTE            pbyData[24];
 
     DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"2. wOffset: %d, Data: %lX\n", wOffset, dwData2);
 
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFNDEX, wOffset);
-    //VNSvOutPortD(dwIoBase + MAC_REG_MISCFFDATA, dwData);
-    //VNSvOutPortW(dwIoBase + MAC_REG_MISCFFCTL, MISCFFCTL_WRITE);
+    
+    
+    
 
-    //wOffset++;
+    
 
-    //wOffset += (uKeyIdx * 4);
-/*    for (ii=0;ii<4;ii++) {
-        // alway push 128 bits
-        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO"3.(%d) wOffset: %d, Data: %lX\n", ii, wOffset+ii, *pdwKey);
-        VNSvOutPortW(dwIoBase + MAC_REG_MISCFFNDEX, wOffset+ii);
-        VNSvOutPortD(dwIoBase + MAC_REG_MISCFFDATA, *pdwKey++);
-        VNSvOutPortW(dwIoBase + MAC_REG_MISCFFCTL, MISCFFCTL_WRITE);
-    }
-*/
+    
+
     pbyKey = (PBYTE)pdwKey;
 
     pbyData[0] = (BYTE)dwData1;

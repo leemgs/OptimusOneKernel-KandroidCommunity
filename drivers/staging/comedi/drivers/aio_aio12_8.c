@@ -1,42 +1,6 @@
-/*
 
-    comedi/drivers/aio_aio12_8.c
 
-    Driver for Acces I/O Products PC-104 AIO12-8 Analog I/O Board
-    Copyright (C) 2006 C&C Technologies, Inc.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
-
-/*
-
-Driver: aio_aio12_8
-Description: Acces I/O Products PC-104 AIO12-8 Analog I/O Board
-Author: Pablo Mejia <pablo.mejia@cctechnol.com>
-Devices:
- [Acces I/O] PC-104 AIO12-8
-Status: experimental
-
-Configuration Options:
-  [0] - I/O port base address
-
-Notes:
-
-  Only synchronous operations are supported.
-
-*/
 
 #include "../comedidev.h"
 #include <linux/ioport.h>
@@ -97,16 +61,16 @@ static int aio_aio12_8_ai_read(struct comedi_device *dev,
 	    ADC_MODE_NORMAL |
 	    (CR_RANGE(insn->chanspec) << 3) | CR_CHAN(insn->chanspec);
 
-	/* read status to clear EOC latch */
+	
 	inb(dev->iobase + AIO12_8_STATUS);
 
 	for (n = 0; n < insn->n; n++) {
 		int timeout = 5;
 
-		/*  Setup and start conversion */
+		
 		outb(control, dev->iobase + AIO12_8_ADC);
 
-		/*  Wait for conversion to complete */
+		
 		while (timeout &&
 		       !(inb(dev->iobase + AIO12_8_STATUS) & STATUS_ADC_EOC)) {
 			timeout--;
@@ -143,12 +107,12 @@ static int aio_aio12_8_ao_write(struct comedi_device *dev,
 	int chan = CR_CHAN(insn->chanspec);
 	unsigned long port = dev->iobase + AIO12_8_DAC_0 + (2 * chan);
 
-	/* enable DACs */
+	
 	outb(0x01, dev->iobase + DAC_ENABLE);
 
 	for (i = 0; i < insn->n; i++) {
-		outb(data[i] & 0xFF, port);	/*  LSB */
-		outb((data[i] >> 8) & 0x0F, port + 1);	/*  MSB */
+		outb(data[i] & 0xFF, port);	
+		outb((data[i] >> 8) & 0x0F, port + 1);	
 		devpriv->ao_readback[chan] = data[i];
 	}
 	return insn->n;

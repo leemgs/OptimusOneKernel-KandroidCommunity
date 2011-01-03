@@ -1,23 +1,4 @@
-/*
- * Copyright (c) 2009, Microsoft Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Authors:
- *   Haiyang Zhang <haiyangz@microsoft.com>
- *   Hank Janssen  <hjanssen@microsoft.com>
- */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/highmem.h>
@@ -41,21 +22,21 @@
 MODULE_LICENSE("GPL");
 
 struct net_device_context {
-	/* point back to our device context */
+	
 	struct device_context *device_ctx;
 	struct net_device_stats stats;
 };
 
 struct netvsc_driver_context {
-	/* !! These must be the first 2 fields !! */
-	/* Which is a bug FIXME! */
+	
+	
 	struct driver_context drv_ctx;
 	struct netvsc_driver drv_obj;
 };
 
 static int netvsc_ringbuffer_size = NETVSC_DEVICE_RING_BUFFER_SIZE;
 
-/* The one and only one */
+
 static struct netvsc_driver_context g_netvsc_drv;
 
 static struct net_device_stats *netvsc_get_stats(struct net_device *net)
@@ -86,7 +67,7 @@ static int netvsc_open(struct net_device *net)
 		memset(&net_device_ctx->stats, 0,
 		       sizeof(struct net_device_stats));
 
-		/* Open up the device */
+		
 		ret = net_drv_obj->OnOpen(device_obj);
 		if (ret != 0) {
 			DPRINT_ERR(NETVSC_DRV,
@@ -169,18 +150,18 @@ static int netvsc_start_xmit(struct sk_buff *skb, struct net_device *net)
 
 	DPRINT_ENTER(NETVSC_DRV);
 
-	/* Support only 1 chain of frags */
+	
 	ASSERT(skb_shinfo(skb)->frag_list == NULL);
 	ASSERT(skb->dev == net);
 
 	DPRINT_DBG(NETVSC_DRV, "xmit packet - len %d data_len %d",
 		   skb->len, skb->data_len);
 
-	/* Add 1 for skb->data and any additional ones requested */
+	
 	num_frags = skb_shinfo(skb)->nr_frags + 1 +
 		    net_drv_obj->AdditionalRequestPageBufferCount;
 
-	/* Allocate a netvsc packet based on # of frags. */
+	
 	packet = kzalloc(sizeof(struct hv_netvsc_packet) +
 			 (num_frags * sizeof(struct hv_page_buffer)) +
 			 net_drv_obj->RequestExtSize, GFP_ATOMIC);
@@ -193,20 +174,17 @@ static int netvsc_start_xmit(struct sk_buff *skb, struct net_device *net)
 				sizeof(struct hv_netvsc_packet) +
 				    (num_frags * sizeof(struct hv_page_buffer));
 
-	/* Setup the rndis header */
+	
 	packet->PageBufferCount = num_frags;
 
-	/* TODO: Flush all write buffers/ memory fence ??? */
-	/* wmb(); */
+	
+	
 
-	/* Initialize it from the skb */
+	
 	ASSERT(skb->data);
 	packet->TotalDataBufferLength	= skb->len;
 
-	/*
-	 * Start filling in the page buffers starting at
-	 * AdditionalRequestPageBufferCount offset
-	 */
+	
 	packet->PageBuffers[net_drv_obj->AdditionalRequestPageBufferCount].Pfn = virt_to_phys(skb->data) >> PAGE_SHIFT;
 	packet->PageBuffers[net_drv_obj->AdditionalRequestPageBufferCount].Offset = (unsigned long)skb->data & (PAGE_SIZE - 1);
 	packet->PageBuffers[net_drv_obj->AdditionalRequestPageBufferCount].Length = skb->len - skb->data_len;
@@ -223,7 +201,7 @@ static int netvsc_start_xmit(struct sk_buff *skb, struct net_device *net)
 			skb_shinfo(skb)->frags[i-(net_drv_obj->AdditionalRequestPageBufferCount+1)].size;
 	}
 
-	/* Set the completion routine */
+	
 	packet->Completion.Send.OnSendCompletion = netvsc_xmit_completion;
 	packet->Completion.Send.SendCompletionContext = packet;
 	packet->Completion.Send.SendCompletionTid = (unsigned long)skb;
@@ -245,7 +223,7 @@ retry_send:
 			goto retry_send;
 		}
 
-		/* no more room or we are shutting down */
+		
 		DPRINT_ERR(NETVSC_DRV, "unable to send (%d)..."
 			   "marking net device (%p) busy", ret, net);
 		DPRINT_INFO(NETVSC_DRV, "net device (%p) stopping", net);
@@ -255,16 +233,10 @@ retry_send:
 
 		netif_stop_queue(net);
 
-		/*
-		 * Null it since the caller will free it instead of the
-		 * completion routine
-		 */
+		
 		packet->Completion.Send.SendCompletionTid = 0;
 
-		/*
-		 * Release the resources since we will not get any send
-		 * completion
-		 */
+		
 		netvsc_xmit_completion((void *)packet);
 	}
 
@@ -276,9 +248,7 @@ retry_send:
 	return ret;
 }
 
-/**
- * netvsc_linkstatus_callback - Link up/down notification
- */
+
 static void netvsc_linkstatus_callback(struct hv_device *device_obj,
 				       unsigned int status)
 {
@@ -303,9 +273,7 @@ static void netvsc_linkstatus_callback(struct hv_device *device_obj,
 	DPRINT_EXIT(NETVSC_DRV);
 }
 
-/**
- * netvsc_recv_callback -  Callback when we receive a packet from the "wire" on the specified device.
- */
+
 static int netvsc_recv_callback(struct hv_device *device_obj,
 				struct hv_netvsc_packet *packet)
 {
@@ -328,20 +296,17 @@ static int netvsc_recv_callback(struct hv_device *device_obj,
 
 	net_device_ctx = netdev_priv(net);
 
-	/* Allocate a skb - TODO preallocate this */
-	/* Pad 2-bytes to align IP header to 16 bytes */
+	
+	
 	skb = dev_alloc_skb(packet->TotalDataBufferLength + 2);
 	ASSERT(skb);
 	skb_reserve(skb, 2);
 	skb->dev = net;
 
-	/* for kmap_atomic */
+	
 	local_irq_save(flags);
 
-	/*
-	 * Copy to skb. This copy is needed here since the memory pointed by
-	 * hv_netvsc_packet cannot be deallocated
-	 */
+	
 	for (i = 0; i < packet->PageBufferCount; i++) {
 		data = kmap_atomic(pfn_to_page(packet->PageBuffers[i].Pfn),
 					       KM_IRQ1);
@@ -361,10 +326,7 @@ static int netvsc_recv_callback(struct hv_device *device_obj,
 
 	skb->ip_summed = CHECKSUM_NONE;
 
-	/*
-	 * Pass the skb back up. Network stack will deallocate the skb when it
-	 * is done
-	 */
+	
 	ret = netif_rx(skb);
 
 	switch (ret) {
@@ -418,7 +380,7 @@ static int netvsc_probe(struct device *device)
 	if (!net)
 		return -1;
 
-	/* Set initial state */
+	
 	netif_carrier_off(net);
 	netif_stop_queue(net);
 
@@ -426,7 +388,7 @@ static int netvsc_probe(struct device *device)
 	net_device_ctx->device_ctx = device_ctx;
 	dev_set_drvdata(device, net);
 
-	/* Notify the netvsc driver of the new device */
+	
 	ret = net_drv_obj->Base.OnDeviceAdd(device_obj, &device_info);
 	if (ret != 0) {
 		free_netdev(net);
@@ -437,14 +399,8 @@ static int netvsc_probe(struct device *device)
 		return ret;
 	}
 
-	/*
-	 * If carrier is still off ie we did not get a link status callback,
-	 * update it if necessary
-	 */
-	/*
-	 * FIXME: We should use a atomic or test/set instead to avoid getting
-	 * out of sync with the device's link status
-	 */
+	
+	
 	if (!netif_carrier_ok(net))
 		if (!device_info.LinkState)
 			netif_carrier_on(net);
@@ -457,7 +413,7 @@ static int netvsc_probe(struct device *device)
 
 	ret = register_netdev(net);
 	if (ret != 0) {
-		/* Remove the device and release the resource */
+		
 		net_drv_obj->Base.OnDeviceRemove(device_obj);
 		free_netdev(net);
 	}
@@ -491,19 +447,16 @@ static int netvsc_remove(struct device *device)
 		return -1;
 	}
 
-	/* Stop outbound asap */
+	
 	netif_stop_queue(net);
-	/* netif_carrier_off(net); */
+	
 
 	unregister_netdev(net);
 
-	/*
-	 * Call to the vsc driver to let it know that the device is being
-	 * removed
-	 */
+	
 	ret = net_drv_obj->Base.OnDeviceRemove(device_obj);
 	if (ret != 0) {
-		/* TODO: */
+		
 		DPRINT_ERR(NETVSC, "unable to remove vsc device (ret %d)", ret);
 	}
 
@@ -517,7 +470,7 @@ static int netvsc_drv_exit_cb(struct device *dev, void *data)
 	struct device **curr = (struct device **)data;
 
 	*curr = dev;
-	/* stop iterating */
+	
 	return 1;
 }
 
@@ -533,7 +486,7 @@ static void netvsc_drv_exit(void)
 	while (1) {
 		current_dev = NULL;
 
-		/* Get the device */
+		
 		ret = driver_for_each_device(&drv_ctx->driver, NULL,
 					     &current_dev, netvsc_drv_exit_cb);
 		if (ret)
@@ -543,7 +496,7 @@ static void netvsc_drv_exit(void)
 		if (current_dev == NULL)
 			break;
 
-		/* Initiate removal from the top-down */
+		
 		DPRINT_INFO(NETVSC_DRV, "unregistering device (%p)...",
 			    current_dev);
 
@@ -574,7 +527,7 @@ static int netvsc_drv_init(int (*drv_init)(struct hv_driver *drv))
 	net_drv_obj->OnReceiveCallback = netvsc_recv_callback;
 	net_drv_obj->OnLinkStatusChanged = netvsc_linkstatus_callback;
 
-	/* Callback to client driver to complete the initialization */
+	
 	drv_init(&net_drv_obj->Base);
 
 	drv_ctx->driver.name = net_drv_obj->Base.name;
@@ -584,7 +537,7 @@ static int netvsc_drv_init(int (*drv_init)(struct hv_driver *drv))
 	drv_ctx->probe = netvsc_probe;
 	drv_ctx->remove = netvsc_remove;
 
-	/* The driver belongs to vmbus */
+	
 	ret = vmbus_child_driver_register(drv_ctx);
 
 	DPRINT_EXIT(NETVSC_DRV);

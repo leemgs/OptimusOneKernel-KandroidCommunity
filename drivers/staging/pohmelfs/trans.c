@@ -1,17 +1,4 @@
-/*
- * 2007+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/crypto.h>
@@ -287,12 +274,7 @@ static int netfs_trans_remove_state(struct netfs_trans_dst *dst)
 	return ret;
 }
 
-/*
- * Create new destination for given transaction associated with given network state.
- * Transaction's reference counter is bumped and will be dropped when either
- * reply is received or when async timeout detection task will fail resending
- * and drop transaction.
- */
+
 static int netfs_trans_push_dst(struct netfs_trans *t, struct netfs_state *st)
 {
 	struct netfs_trans_dst *dst;
@@ -340,9 +322,7 @@ static void netfs_trans_remove_dst(struct netfs_trans_dst *dst)
 		netfs_trans_free_dst(dst);
 }
 
-/*
- * Drop destination transaction entry when we know it.
- */
+
 void netfs_trans_drop_dst(struct netfs_trans_dst *dst)
 {
 	struct netfs_trans *t = dst->trans;
@@ -354,10 +334,7 @@ void netfs_trans_drop_dst(struct netfs_trans_dst *dst)
 	netfs_trans_remove_dst(dst);
 }
 
-/*
- * Drop destination transaction entry when we know it and when we
- * already removed dst from state tree.
- */
+
 void netfs_trans_drop_dst_nostate(struct netfs_trans_dst *dst)
 {
 	struct netfs_trans *t = dst->trans;
@@ -369,12 +346,7 @@ void netfs_trans_drop_dst_nostate(struct netfs_trans_dst *dst)
 	netfs_trans_free_dst(dst);
 }
 
-/*
- * This drops destination transaction entry from appropriate network state
- * tree and drops related reference counter. It is possible that transaction
- * will be freed here if its reference counter hits zero.
- * Destination transaction entry will be freed.
- */
+
 void netfs_trans_drop_trans(struct netfs_trans *t, struct netfs_state *st)
 {
 	struct netfs_trans_dst *dst, *tmp, *ret = NULL;
@@ -393,12 +365,7 @@ void netfs_trans_drop_trans(struct netfs_trans *t, struct netfs_state *st)
 		netfs_trans_remove_dst(ret);
 }
 
-/*
- * This drops destination transaction entry from appropriate network state
- * tree and drops related reference counter. It is possible that transaction
- * will be freed here if its reference counter hits zero.
- * Destination transaction entry will be freed.
- */
+
 void netfs_trans_drop_last(struct netfs_trans *t, struct netfs_state *st)
 {
 	struct netfs_trans_dst *dst, *tmp, *ret;
@@ -518,19 +485,7 @@ int netfs_trans_finish(struct netfs_trans *t, struct pohmelfs_sb *psb)
 	return err;
 }
 
-/*
- * Resend transaction to remote server(s).
- * If new servers were added into superblock, we can try to send data
- * to them too.
- *
- * It is called under superblock's state_lock, so we can safely
- * dereference psb->state_list. Also, transaction's reference counter is
- * bumped, so it can not go away under us, thus we can safely access all
- * its members. State is locked.
- *
- * This function returns 0 if transaction was successfully sent to at
- * least one destination target.
- */
+
 int netfs_trans_resend(struct netfs_trans *t, struct pohmelfs_sb *psb)
 {
 	struct netfs_trans_dst *dst;
@@ -621,15 +576,7 @@ struct netfs_trans *netfs_trans_alloc(struct pohmelfs_sb *psb, unsigned int size
 	if (psb->perform_crypto)
 		crypto_added = psb->crypto_attached_size;
 
-	/*
-	 * |sizeof(struct netfs_trans)|
-	 * |sizeof(struct netfs_cmd)| - transaction header
-	 * |size| - buffer with requested size
-	 * |padding| - crypto padding, zero bytes
-	 * |nr * sizeof(struct page *)| - array of page pointers
-	 *
-	 * Overall size should be less than PAGE_SIZE for guaranteed allocation.
-	 */
+	
 
 	cont = size;
 	size = ALIGN(size, psb->crypto_align_size);
@@ -651,9 +598,7 @@ struct netfs_trans *netfs_trans_alloc(struct pohmelfs_sb *psb, unsigned int size
 	t->iovec.iov_base = (void *)(t + 1);
 	t->pages = (struct page **)(t->iovec.iov_base + size_no_trans);
 
-	/*
-	 * Reserving space for transaction header.
-	 */
+	
 	t->iovec.iov_len = sizeof(struct netfs_cmd) + crypto_added;
 
 	netfs_trans_init_static(t, nr, size_no_trans);

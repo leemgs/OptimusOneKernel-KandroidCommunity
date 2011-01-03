@@ -1,13 +1,4 @@
-/*
- * Line6 Linux USB driver - 0.8.0
- *
- * Copyright (C) 2004-2009 Markus Grabner (grabner@icg.tugraz.at)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #ifndef TONEPORT_H
 #define TONEPORT_H
@@ -20,19 +11,13 @@
 
 
 struct usb_line6_toneport {
-	/**
-		 Generic Line6 USB data.
-	*/
+	
 	struct usb_line6 line6;
 
-	/**
-		 Serial number of device.
-	*/
+	
 	int serial_number;
 
-	/**
-		 Firmware version (x 100).
-	*/
+	
 	int firmware_version;
 };
 

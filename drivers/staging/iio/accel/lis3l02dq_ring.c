@@ -16,9 +16,7 @@
 #include "../trigger.h"
 #include "lis3l02dq.h"
 
-/**
- * combine_8_to_16() utility function to munge to u8s into u16
- **/
+
 static inline u16 combine_8_to_16(u8 lower, u8 upper)
 {
 	u16 _lower = lower;
@@ -26,14 +24,7 @@ static inline u16 combine_8_to_16(u8 lower, u8 upper)
 	return _lower | (_upper << 8);
 }
 
-/**
- * lis3l02dq_scan_el_set_state() set whether a scan contains a given channel
- * @scan_el:	associtate iio scan element attribute
- * @indio_dev:	the device structure
- * @bool:	desired state
- *
- * mlock already held when this is called.
- **/
+
 static int lis3l02dq_scan_el_set_state(struct iio_scan_el *scan_el,
 				       struct iio_dev *indio_dev,
 				       bool state)
@@ -98,27 +89,19 @@ static struct attribute_group lis3l02dq_scan_el_group = {
 	.name = "scan_elements",
 };
 
-/**
- * lis3l02dq_poll_func_th() top half interrupt handler called by trigger
- * @private_data:	iio_dev
- **/
+
 static void lis3l02dq_poll_func_th(struct iio_dev *indio_dev)
 {
   struct lis3l02dq_state *st = iio_dev_get_devdata(indio_dev);
 	st->last_timestamp = indio_dev->trig->timestamp;
 	schedule_work(&st->work_trigger_to_ring);
-	/* Indicate that this interrupt is being handled */
+	
 
-	/* Technically this is trigger related, but without this
-	 * handler running there is currently now way for the interrupt
-	 * to clear.
-	 */
+	
 	st->inter = 1;
 }
 
-/**
- * lis3l02dq_data_rdy_trig_poll() the event handler for the data rdy trig
- **/
+
 static int lis3l02dq_data_rdy_trig_poll(struct iio_dev *dev_info,
 				       int index,
 				       s64 timestamp,
@@ -133,12 +116,10 @@ static int lis3l02dq_data_rdy_trig_poll(struct iio_dev *dev_info,
 	return IRQ_HANDLED;
 }
 
-/* This is an event as it is a response to a physical interrupt */
+
 IIO_EVENT_SH(data_rdy_trig, &lis3l02dq_data_rdy_trig_poll);
 
-/**
- * lis3l02dq_read_accel_from_ring() individual acceleration read from ring
- **/
+
 ssize_t lis3l02dq_read_accel_from_ring(struct device *dev,
 				       struct device_attribute *attr,
 				       char *buf)
@@ -152,7 +133,7 @@ ssize_t lis3l02dq_read_accel_from_ring(struct device *dev,
 	while (dev_info->scan_el_attrs->attrs[i]) {
 		el = to_iio_scan_el((struct device_attribute *)
 				    (dev_info->scan_el_attrs->attrs[i]));
-		/* label is in fact the address */
+		
 		if (el->label == this_attr->address)
 			break;
 		i++;
@@ -161,7 +142,7 @@ ssize_t lis3l02dq_read_accel_from_ring(struct device *dev,
 		ret = -EINVAL;
 		goto error_ret;
 	}
-	/* If this element is in the scan mask */
+	
 	ret = iio_scan_mask_query(dev_info, el->number);
 	if (ret < 0)
 		goto error_ret;
@@ -201,12 +182,7 @@ static const u8 read_all_tx_array[] =
 	LIS3L02DQ_READ_REG(LIS3L02DQ_REG_OUT_Z_H_ADDR), 0,
 };
 
-/**
- * lis3l02dq_read_all() Reads all channels currently selected
- * @st:		device specific state
- * @rx_array:	(dma capable) recieve array, must be at least
- *		4*number of channels
- **/
+
 int lis3l02dq_read_all(struct lis3l02dq_state *st, u8 *rx_array)
 {
 	struct spi_transfer *xfers;
@@ -222,7 +198,7 @@ int lis3l02dq_read_all(struct lis3l02dq_state *st, u8 *rx_array)
 
 	for (i = 0; i < ARRAY_SIZE(read_all_tx_array)/4; i++) {
 		if (st->indio_dev->scan_mask & (1 << i)) {
-			/* lower byte */
+			
 			xfers[j].tx_buf = st->tx + 2*j;
 			st->tx[2*j] = read_all_tx_array[i*4];
 			st->tx[2*j + 1] = 0;
@@ -233,7 +209,7 @@ int lis3l02dq_read_all(struct lis3l02dq_state *st, u8 *rx_array)
 			xfers[j].cs_change = 1;
 			j++;
 
-			/* upper byte */
+			
 			xfers[j].tx_buf = st->tx + 2*j;
 			st->tx[2*j] = read_all_tx_array[i*4 + 2];
 			st->tx[2*j + 1] = 0;
@@ -245,9 +221,7 @@ int lis3l02dq_read_all(struct lis3l02dq_state *st, u8 *rx_array)
 			j++;
 		}
 	}
-	/* After these are transmitted, the rx_buff should have
-	 * values in alternate bytes
-	 */
+	
 	spi_message_init(&msg);
 	for (j = 0; j < st->indio_dev->scan_count * 2; j++)
 		spi_message_add_tail(&xfers[j], &msg);
@@ -260,9 +234,7 @@ int lis3l02dq_read_all(struct lis3l02dq_state *st, u8 *rx_array)
 }
 
 
-/* Whilst this makes a lot of calls to iio_sw_ring functions - it is to device
- * specific to be rolled into the core.
- */
+
 static void lis3l02dq_trigger_bh_to_ring(struct work_struct *work_s)
 {
 	struct lis3l02dq_state *st
@@ -280,9 +252,7 @@ static void lis3l02dq_trigger_bh_to_ring(struct work_struct *work_s)
 		dev_err(&st->us->dev, "memory alloc failed in ring bh");
 		return;
 	}
-	/* Due to interleaved nature of transmission this buffer must be
-	 * twice the number of bytes, or 4 times the number of channels
-	 */
+	
 	rx_array = kmalloc(4 * (st->indio_dev->scan_count), GFP_KERNEL);
 	if (rx_array == NULL) {
 		dev_err(&st->us->dev, "memory alloc failed in ring bh");
@@ -290,11 +260,7 @@ static void lis3l02dq_trigger_bh_to_ring(struct work_struct *work_s)
 		return;
 	}
 
-	/* whilst trigger specific, if this read does nto occur the data
-	   ready interrupt will not be cleared.  Need to add a mechanism
-	   to provide a dummy read function if this is not triggering on
-	   the data ready function but something else is.
-	*/
+	
 	st->inter = 0;
 
 	if (st->indio_dev->scan_count)
@@ -302,7 +268,7 @@ static void lis3l02dq_trigger_bh_to_ring(struct work_struct *work_s)
 			for (; i < st->indio_dev->scan_count; i++)
 				data[i] = combine_8_to_16(rx_array[i*4+1],
 							  rx_array[i*4+3]);
-	/* Guaranteed to be aligned with 8 byte boundary */
+	
 	if (st->indio_dev->scan_timestamp)
 		*((s64 *)(data + ((i + 3)/4)*4)) = st->last_timestamp;
 
@@ -316,22 +282,21 @@ static void lis3l02dq_trigger_bh_to_ring(struct work_struct *work_s)
 
 	return;
 }
-/* in these circumstances is it better to go with unaligned packing and
- * deal with the cost?*/
+
 static int lis3l02dq_data_rdy_ring_preenable(struct iio_dev *indio_dev)
 {
 	size_t size;
-	/* Check if there are any scan elements enabled, if not fail*/
+	
 	if (!(indio_dev->scan_count || indio_dev->scan_timestamp))
 		return -EINVAL;
 
 	if (indio_dev->ring->access.set_bpd) {
 		if (indio_dev->scan_timestamp)
-			if (indio_dev->scan_count) /* Timestamp and data */
+			if (indio_dev->scan_count) 
 				size = 2*sizeof(s64);
-			else /* Timestamp only  */
+			else 
 				size = sizeof(s64);
-		else /* Data only */
+		else 
 			size = indio_dev->scan_count*sizeof(s16);
 		indio_dev->ring->access.set_bpd(indio_dev->ring, size);
 	}
@@ -356,7 +321,7 @@ static int lis3l02dq_data_rdy_ring_predisable(struct iio_dev *indio_dev)
 }
 
 
-/* Caller responsible for locking as necessary. */
+
 static int __lis3l02dq_write_data_ready_config(struct device *dev,
 					       struct
 					       iio_event_handler_list *list,
@@ -367,21 +332,21 @@ static int __lis3l02dq_write_data_ready_config(struct device *dev,
 	bool currentlyset;
 	struct iio_dev *indio_dev = dev_get_drvdata(dev);
 
-/* Get the current event mask register */
+
 	ret = lis3l02dq_spi_read_reg_8(dev,
 				       LIS3L02DQ_REG_CTRL_2_ADDR,
 				       &valold);
 	if (ret)
 		goto error_ret;
-/* Find out if data ready is already on */
+
 	currentlyset
 		= valold & LIS3L02DQ_REG_CTRL_2_ENABLE_DATA_READY_GENERATION;
 
-/* Disable requested */
+
 	if (!state && currentlyset) {
 
 		valold &= ~LIS3L02DQ_REG_CTRL_2_ENABLE_DATA_READY_GENERATION;
-		/* The double write is to overcome a hardware bug?*/
+		
 		ret = lis3l02dq_spi_write_reg_8(dev,
 						LIS3L02DQ_REG_CTRL_2_ADDR,
 						&valold);
@@ -397,9 +362,9 @@ static int __lis3l02dq_write_data_ready_config(struct device *dev,
 					   &indio_dev->interrupts[0]
 					   ->ev_list);
 
-/* Enable requested */
+
 	} else if (state && !currentlyset) {
-		/* if not set, enable requested */
+		
 		valold |= LIS3L02DQ_REG_CTRL_2_ENABLE_DATA_READY_GENERATION;
 		iio_add_event_to_list(list, &indio_dev->interrupts[0]->ev_list);
 		ret = lis3l02dq_spi_write_reg_8(dev,
@@ -414,13 +379,7 @@ error_ret:
 	return ret;
 }
 
-/**
- * lis3l02dq_data_rdy_trigger_set_state() set datardy interrupt state
- *
- * If disabling the interrupt also does a final read to ensure it is clear.
- * This is only important in some cases where the scan enable elements are
- * switched before the ring is reenabled.
- **/
+
 static int lis3l02dq_data_rdy_trigger_set_state(struct iio_trigger *trig,
 						bool state)
 {
@@ -431,10 +390,9 @@ static int lis3l02dq_data_rdy_trigger_set_state(struct iio_trigger *trig,
 					    &iio_event_data_rdy_trig,
 					    state);
 	if (state == false) {
-		/* possible quirk with handler currently worked around
-		   by ensuring the work queue is empty */
+		
 		flush_scheduled_work();
-		/* Clear any outstanding ready events */
+		
 		ret = lis3l02dq_read_all(st, NULL);
 	}
 	lis3l02dq_spi_read_reg_8(&st->indio_dev->dev,
@@ -453,36 +411,24 @@ static const struct attribute_group lis3l02dq_trigger_attr_group = {
 	.attrs = lis3l02dq_trigger_attrs,
 };
 
-/**
- * lis3l02dq_trig_try_reen() try renabling irq for data rdy trigger
- * @trig:	the datardy trigger
- *
- * As the trigger may occur on any data element being updated it is
- * really rather likely to occur during the read from the previous
- * trigger event.  The only way to discover if this has occured on
- * boards not supporting level interrupts is to take a look at the line.
- * If it is indicating another interrupt and we don't seem to have a
- * handler looking at it, then we need to notify the core that we need
- * to tell the triggering core to try reading all these again.
- **/
+
 static int lis3l02dq_trig_try_reen(struct iio_trigger *trig)
 {
 	struct lis3l02dq_state *st = trig->private_data;
 	enable_irq(st->us->irq);
-	/* If gpio still high (or high again) */
+	
 	if (gpio_get_value(irq_to_gpio(st->us->irq)))
 		if (st->inter == 0) {
-			/* already interrupt handler dealing with it */
+			
 			disable_irq_nosync(st->us->irq);
 			if (st->inter == 1) {
-				/* interrupt handler snuck in between test
-				 * and disable */
+				
 				enable_irq(st->us->irq);
 				return 0;
 			}
 			return -EAGAIN;
 		}
-	/* irq reenabled so success! */
+	
 	return 0;
 }
 
@@ -541,7 +487,7 @@ int lis3l02dq_configure_ring(struct iio_dev *indio_dev)
 	struct lis3l02dq_state *st = indio_dev->dev_data;
 	struct iio_ring_buffer *ring;
 	INIT_WORK(&st->work_trigger_to_ring, lis3l02dq_trigger_bh_to_ring);
-	/* Set default scan mode */
+	
 
 	iio_scan_mask_set(indio_dev, iio_scan_el_accel_x.number);
 	iio_scan_mask_set(indio_dev, iio_scan_el_accel_y.number);
@@ -556,7 +502,7 @@ int lis3l02dq_configure_ring(struct iio_dev *indio_dev)
 		return ret;
 	}
 	indio_dev->ring = ring;
-	/* Effectively select the ring buffer implementation */
+	
 	iio_ring_sw_register_funcs(&ring->access);
 	ring->preenable = &lis3l02dq_data_rdy_ring_preenable;
 	ring->postenable = &lis3l02dq_data_rdy_ring_postenable;
@@ -591,7 +537,7 @@ void lis3l02dq_uninitialize_ring(struct iio_ring_buffer *ring)
 
 int lis3l02dq_set_ring_length(struct iio_dev *indio_dev, int length)
 {
-	/* Set sensible defaults for the ring buffer */
+	
 	if (indio_dev->ring->access.set_length)
 		return indio_dev->ring->access.set_length(indio_dev->ring, 500);
 	return 0;
