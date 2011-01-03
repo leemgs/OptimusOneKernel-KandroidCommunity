@@ -1,15 +1,4 @@
-/*
- * Generic library functions for the microengines found on the Intel
- * IXP2000 series of network processors.
- *
- * Copyright (C) 2004, 2005 Lennert Buytenhek <buytenh@wantstofly.org>
- * Dedicated to Marija Kulikova.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of the
- * License, or (at your option) any later version.
- */
+
 
 #ifndef __IXP2000_UENGINE_H
 #define __IXP2000_UENGINE_H

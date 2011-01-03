@@ -1,6 +1,4 @@
-/*
- * Nothing to see here yet
- */
+
 #ifndef _ARCH_ARM_HW_IRQ_H
 #define _ARCH_ARM_HW_IRQ_H
 
@@ -10,9 +8,7 @@ static inline void ack_bad_irq(int irq)
 	irq_err_count++;
 }
 
-/*
- * Obsolete inline function for calling irq descriptor handlers.
- */
+
 static inline void desc_handle_irq(unsigned int irq, struct irq_desc *desc)
 {
 	desc->handle_irq(irq, desc);

@@ -1,26 +1,14 @@
-/*
- *  arch/arm/include/asm/hardware/icst525.h
- *
- *  Copyright (C) 2003 Deep Blue Solutions, Ltd, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Support functions for calculating clocks/divisors for the ICST525
- *  clock generators.  See http://www.icst.com/ for more information
- *  on these devices.
- */
+
 #ifndef ASMARM_HARDWARE_ICST525_H
 #define ASMARM_HARDWARE_ICST525_H
 
 struct icst525_params {
 	unsigned long	ref;
-	unsigned long	vco_max;	/* inclusive */
-	unsigned short	vd_min;		/* inclusive */
-	unsigned short	vd_max;		/* inclusive */
-	unsigned char	rd_min;		/* inclusive */
-	unsigned char	rd_max;		/* inclusive */
+	unsigned long	vco_max;	
+	unsigned short	vd_min;		
+	unsigned short	vd_max;		
+	unsigned char	rd_min;		
+	unsigned char	rd_max;		
 };
 
 struct icst525_vco {

@@ -5,17 +5,7 @@
 #error SMP not supported on pre-ARMv6 CPUs
 #endif
 
-/*
- * ARMv6 Spin-locking.
- *
- * We exclusively read the old value.  If it is zero, we may have
- * won the lock, so we try exclusively storing it.  A memory barrier
- * is required after we get a lock, and before we release it, because
- * V6 CPUs are assumed to have weakly ordered memory.
- *
- * Unlocked value: 0
- * Locked value: 1
- */
+
 
 #define __raw_spin_is_locked(x)		((x)->lock != 0)
 #define __raw_spin_unlock_wait(lock) \
@@ -70,7 +60,7 @@ static inline void __raw_spin_unlock(raw_spinlock_t *lock)
 	__asm__ __volatile__(
 "	str	%1, [%0]\n"
 #ifdef CONFIG_CPU_32v6K
-"	mcr	p15, 0, %1, c7, c10, 4\n" /* DSB */
+"	mcr	p15, 0, %1, c7, c10, 4\n" 
 "	sev"
 #endif
 	:
@@ -78,13 +68,7 @@ static inline void __raw_spin_unlock(raw_spinlock_t *lock)
 	: "cc");
 }
 
-/*
- * RWLOCKS
- *
- *
- * Write locks are easy - we just set bit 31.  When unlocking, we can
- * just write zero since the lock is exclusively held.
- */
+
 
 static inline void __raw_write_lock(raw_rwlock_t *rw)
 {
@@ -133,7 +117,7 @@ static inline void __raw_write_unlock(raw_rwlock_t *rw)
 	__asm__ __volatile__(
 	"str	%1, [%0]\n"
 #ifdef CONFIG_CPU_32v6K
-"	mcr	p15, 0, %1, c7, c10, 4\n" /* DSB */
+"	mcr	p15, 0, %1, c7, c10, 4\n" 
 "	sev\n"
 #endif
 	:
@@ -141,21 +125,10 @@ static inline void __raw_write_unlock(raw_rwlock_t *rw)
 	: "cc");
 }
 
-/* write_can_lock - would write_trylock() succeed? */
+
 #define __raw_write_can_lock(x)		((x)->lock == 0)
 
-/*
- * Read locks are a bit more hairy:
- *  - Exclusively load the lock value.
- *  - Increment it.
- *  - Store new lock value if positive, and we still own this location.
- *    If the value is negative, we've already failed.
- *  - If we failed to store the value, we want a negative result.
- *  - If we failed, try again.
- * Unlocking is similarly hairy.  We may have multiple read locks
- * currently active.  However, we know we won't have any write
- * locks.
- */
+
 static inline void __raw_read_lock(raw_rwlock_t *rw)
 {
 	unsigned long tmp, tmp2;
@@ -214,7 +187,7 @@ static inline int __raw_read_trylock(raw_rwlock_t *rw)
 	return tmp2 == 0;
 }
 
-/* read_can_lock - would read_trylock() succeed? */
+
 #define __raw_read_can_lock(x)		((x)->lock < 0x80000000)
 
 #define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
@@ -224,4 +197,4 @@ static inline int __raw_read_trylock(raw_rwlock_t *rw)
 #define _raw_read_relax(lock)	cpu_relax()
 #define _raw_write_relax(lock)	cpu_relax()
 
-#endif /* __ASM_SPINLOCK_H */
+#endif 

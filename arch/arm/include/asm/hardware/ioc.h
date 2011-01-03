@@ -1,24 +1,10 @@
-/*
- *  arch/arm/include/asm/hardware/ioc.h
- *
- *  Copyright (C) Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Use these macros to read/write the IOC.  All it does is perform the actual
- *  read/write.
- */
+
 #ifndef __ASMARM_HARDWARE_IOC_H
 #define __ASMARM_HARDWARE_IOC_H
 
 #ifndef __ASSEMBLY__
 
-/*
- * We use __raw_base variants here so that we give the compiler the
- * chance to keep IOC_BASE in a register.
- */
+
 #define ioc_readb(off)		__raw_readb(IOC_BASE + (off))
 #define ioc_writeb(val,off)	__raw_writeb(val, IOC_BASE + (off))
 

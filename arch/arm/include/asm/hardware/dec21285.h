@@ -1,14 +1,4 @@
-/*
- *  arch/arm/include/asm/hardware/dec21285.h
- *
- *  Copyright (C) 1998 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  DC21285 registers
- */
+
 #define DC21285_PCI_IACK		0x79000000
 #define DC21285_ARMCSR_BASE		0x42000000
 #define DC21285_PCI_TYPE_0_CONFIG	0x7b000000
@@ -84,10 +74,7 @@
 #define SA110_CNTL_XCSDIR(x)		((x)<<28)
 #define SA110_CNTL_PCICFN		(1 << 31)
 
-/*
- * footbridge_cfn_mode() is used when we want
- * to check whether we are the central function
- */
+
 #define __footbridge_cfn_mode() (*CSR_SA110_CNTL & SA110_CNTL_PCICFN)
 #if defined(CONFIG_FOOTBRIDGE_HOST) && defined(CONFIG_FOOTBRIDGE_ADDIN)
 #define footbridge_cfn_mode() __footbridge_cfn_mode()

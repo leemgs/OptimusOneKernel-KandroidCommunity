@@ -1,32 +1,8 @@
-/*
- *  arch/arm/include/asm/hardware/ep7212.h
- *
- *  This file contains the hardware definitions of the EP7212 internal
- *  registers.
- *
- *  Copyright (C) 2000 Deep Blue Solutions Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #ifndef __ASM_HARDWARE_EP7212_H
 #define __ASM_HARDWARE_EP7212_H
 
-/*
- * define EP7212_BASE to be the base address of the region
- * you want to access.
- */
+
 
 #define EP7212_PHYS_BASE	(0x80000000)
 
@@ -35,9 +11,7 @@
 #define ep_writel(val,off)	__raw_writel(val, EP7212_BASE + (off))
 #endif
 
-/*
- * These registers are specific to the EP7212 only
- */
+
 #define DAIR			0x2000
 #define DAIR0			0x2040
 #define DAIDR1			0x2080
@@ -80,4 +54,4 @@
 #define SYSCON3_FASTWAKE	(1 << 8)
 #define SYSCON3_DAIEN		(1 << 9)
 
-#endif /* __ASM_HARDWARE_EP7212_H */
+#endif 

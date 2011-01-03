@@ -7,7 +7,7 @@
 
 #include <asm-generic/futex.h>
 
-#else /* !SMP, we can work around lack of atomic ops by disabling preemption */
+#else 
 
 #include <linux/futex.h>
 #include <linux/preempt.h>
@@ -48,7 +48,7 @@ futex_atomic_op_inuser (int encoded_op, int __user *uaddr)
 	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
 		return -EFAULT;
 
-	pagefault_disable();	/* implies preempt_disable() */
+	pagefault_disable();	
 
 	switch (op) {
 	case FUTEX_OP_SET:
@@ -70,7 +70,7 @@ futex_atomic_op_inuser (int encoded_op, int __user *uaddr)
 		ret = -ENOSYS;
 	}
 
-	pagefault_enable();	/* subsumes preempt_enable() */
+	pagefault_enable();	
 
 	if (!ret) {
 		switch (cmp) {
@@ -94,7 +94,7 @@ futex_atomic_cmpxchg_inatomic(int __user *uaddr, int oldval, int newval)
 	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
 		return -EFAULT;
 
-	pagefault_disable();	/* implies preempt_disable() */
+	pagefault_disable();	
 
 	__asm__ __volatile__("@futex_atomic_cmpxchg_inatomic\n"
 	"1:	ldrt	%0, [%3]\n"
@@ -114,12 +114,12 @@ futex_atomic_cmpxchg_inatomic(int __user *uaddr, int oldval, int newval)
 	: "r" (oldval), "r" (newval), "r" (uaddr), "Ir" (-EFAULT)
 	: "cc", "memory");
 
-	pagefault_enable();	/* subsumes preempt_enable() */
+	pagefault_enable();	
 
 	return val;
 }
 
-#endif /* !SMP */
+#endif 
 
-#endif /* __KERNEL__ */
-#endif /* _ASM_ARM_FUTEX_H */
+#endif 
+#endif 

@@ -1,15 +1,4 @@
-/*
- * Hardware parameter area specific to Sharp SL series devices
- *
- * Copyright (c) 2005 Richard Purdie
- *
- * Based on Sharp's 2.4 kernel patches
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 struct sharpsl_param_info {
   unsigned int comadj_keyword;

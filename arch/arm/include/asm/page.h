@@ -1,16 +1,8 @@
-/*
- *  arch/arm/include/asm/page.h
- *
- *  Copyright (C) 1995-2003 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #ifndef _ASMARM_PAGE_H
 #define _ASMARM_PAGE_H
 
-/* PAGE_SHIFT determines the page size */
+
 #define PAGE_SHIFT		12
 #define PAGE_SIZE		(_AC(1,UL) << PAGE_SHIFT)
 #define PAGE_MASK		(~(PAGE_SIZE-1))
@@ -25,22 +17,7 @@
 
 #include <asm/glue.h>
 
-/*
- *	User Space Model
- *	================
- *
- *	This section selects the correct set of functions for dealing with
- *	page-based copying and clearing for user space for the particular
- *	processor(s) we're building for.
- *
- *	We have the following to choose from:
- *	  v3		- ARMv3
- *	  v4wt		- ARMv4 with writethrough cache, without minicache
- *	  v4wb		- ARMv4 with writeback cache, without minicache
- *	  v4_mc		- ARMv4 with minicache
- *	  xscale	- Xscale
- *	  xsc3		- XScalev3
- */
+
 #undef _USER
 #undef MULTI_USER
 
@@ -153,9 +130,7 @@ extern void copy_page(void *to, const void *from);
 #undef STRICT_MM_TYPECHECKS
 
 #ifdef STRICT_MM_TYPECHECKS
-/*
- * These are used to make use of C type-checking..
- */
+
 typedef struct { unsigned long pte; } pte_t;
 typedef struct { unsigned long pmd; } pmd_t;
 typedef struct { unsigned long pgd[2]; } pgd_t;
@@ -171,9 +146,7 @@ typedef struct { unsigned long pgprot; } pgprot_t;
 #define __pgprot(x)     ((pgprot_t) { (x) } )
 
 #else
-/*
- * .. while these make it easier on the compiler
- */
+
 typedef unsigned long pte_t;
 typedef unsigned long pmd_t;
 typedef unsigned long pgd_t[2];
@@ -188,9 +161,9 @@ typedef unsigned long pgprot_t;
 #define __pmd(x)        (x)
 #define __pgprot(x)     (x)
 
-#endif /* STRICT_MM_TYPECHECKS */
+#endif 
 
-#endif /* CONFIG_MMU */
+#endif 
 
 typedef struct page *pgtable_t;
 
@@ -200,7 +173,7 @@ extern int pfn_valid(unsigned long);
 
 #include <asm/memory.h>
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
 #define VM_DATA_DEFAULT_FLAGS \
 	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \

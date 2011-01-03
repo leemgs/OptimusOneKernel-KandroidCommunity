@@ -1,25 +1,6 @@
-/* arch/arm/include/asm/hardware/pl080.h
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      http://armlinux.simtec.co.uk/
- *      Ben Dooks <ben@simtec.co.uk>
- *
- * ARM PrimeCell PL080 DMA controller
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
 
-/* Note, there are some Samsung updates to this controller block which
- * make it not entierly compatible with the PL080 specification from
- * ARM. When in doubt, check the Samsung documentation first.
- *
- * The Samsung defines are PL080S, and add an extra controll register,
- * the ability to move more than 2^11 counts of data and some extra
- * OneNAND features.
-*/
+
+
 
 #define PL080_INT_STATUS			(0x00)
 #define PL080_TC_STATUS				(0x04)
@@ -41,7 +22,7 @@
 
 #define PL080_SYNC				(0x34)
 
-/* Per channel configuration registers */
+
 
 #define PL008_Cx_STRIDE				(0x20)
 #define PL080_Cx_BASE(x)			((0x100 + (x * 0x20)))
@@ -98,7 +79,7 @@
 #define PL080_WIDTH_32BIT			(0x2)
 
 #define PL080_CONFIG_HALT			(1 << 18)
-#define PL080_CONFIG_ACTIVE			(1 << 17)  /* RO */
+#define PL080_CONFIG_ACTIVE			(1 << 17)  
 #define PL080_CONFIG_LOCK			(1 << 16)
 #define PL080_CONFIG_TC_IRQ_MASK		(1 << 15)
 #define PL080_CONFIG_ERR_IRQ_MASK		(1 << 14)
@@ -119,7 +100,7 @@
 #define PL080_FLOW_PER2MEM_PER			(0x6)
 #define PL080_FLOW_SRC2DST_SRC			(0x7)
 
-/* DMA linked list chain structure */
+
 
 struct pl080_lli {
 	u32	src_addr;

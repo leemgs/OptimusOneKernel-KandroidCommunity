@@ -1,19 +1,4 @@
-/*
- *  arch/arm/include/asm/tlb.h
- *
- *  Copyright (C) 2002 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Experimentation shows that on a StrongARM, it appears to be faster
- *  to use the "invalidate whole tlb" rather than "invalidate single
- *  tlb" for this.
- *
- *  This appears true for both the process fork+exit case, as well as
- *  the munmap-large-area case.
- */
+
 #ifndef __ASMARM_TLB_H
 #define __ASMARM_TLB_H
 
@@ -25,14 +10,11 @@
 #include <linux/pagemap.h>
 #include <asm-generic/tlb.h>
 
-#else /* !CONFIG_MMU */
+#else 
 
 #include <asm/pgalloc.h>
 
-/*
- * TLB handling.  This allows us to remove pages from the page
- * tables, and efficiently handle the TLB issues.
- */
+
 struct mmu_gather {
 	struct mm_struct	*mm;
 	unsigned int		fullmm;
@@ -59,15 +41,13 @@ tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
 	if (tlb->fullmm)
 		flush_tlb_mm(tlb->mm);
 
-	/* keep the page table cache within bounds */
+	
 	check_pgt_cache();
 
 	put_cpu_var(mmu_gathers);
 }
 
-/*
- * Memorize the range for the TLB flush.
- */
+
 static inline void
 tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep, unsigned long addr)
 {
@@ -79,11 +59,7 @@ tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep, unsigned long addr)
 	}
 }
 
-/*
- * In the case of tlb vma handling, we can optimise these away in the
- * case where we're doing a full MM flush.  When we're doing a munmap,
- * the vmas are adjusted to only cover the region to be torn down.
- */
+
 static inline void
 tlb_start_vma(struct mmu_gather *tlb, struct vm_area_struct *vma)
 {
@@ -107,5 +83,5 @@ tlb_end_vma(struct mmu_gather *tlb, struct vm_area_struct *vma)
 
 #define tlb_migrate_finish(mm)		do { } while (0)
 
-#endif /* CONFIG_MMU */
+#endif 
 #endif

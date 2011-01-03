@@ -1,12 +1,4 @@
-/*
- *  arch/arm/include/asm/ptrace.h
- *
- *  Copyright (C) 1996-2003 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #ifndef __ASM_ARM_PTRACE_H
 #define __ASM_ARM_PTRACE_H
 
@@ -16,23 +8,21 @@
 #define PTRACE_SETREGS		13
 #define PTRACE_GETFPREGS	14
 #define PTRACE_SETFPREGS	15
-/* PTRACE_ATTACH is 16 */
-/* PTRACE_DETACH is 17 */
+
+
 #define PTRACE_GETWMMXREGS	18
 #define PTRACE_SETWMMXREGS	19
-/* 20 is unused */
+
 #define PTRACE_OLDSETOPTIONS	21
 #define PTRACE_GET_THREAD_AREA	22
 #define PTRACE_SET_SYSCALL	23
-/* PTRACE_SYSCALL is 24 */
+
 #define PTRACE_GETCRUNCHREGS	25
 #define PTRACE_SETCRUNCHREGS	26
 #define PTRACE_GETVFPREGS	27
 #define PTRACE_SETVFPREGS	28
 
-/*
- * PSR bits
- */
+
 #define USR26_MODE	0x00000000
 #define FIQ26_MODE	0x00000001
 #define IRQ26_MODE	0x00000002
@@ -58,45 +48,32 @@
 #define PSR_Z_BIT	0x40000000
 #define PSR_N_BIT	0x80000000
 
-/*
- * Groups of PSR bits
- */
-#define PSR_f		0xff000000	/* Flags		*/
-#define PSR_s		0x00ff0000	/* Status		*/
-#define PSR_x		0x0000ff00	/* Extension		*/
-#define PSR_c		0x000000ff	/* Control		*/
 
-/*
- * ARMv7 groups of APSR bits
- */
-#define PSR_ISET_MASK	0x01000010	/* ISA state (J, T) mask */
-#define PSR_IT_MASK	0x0600fc00	/* If-Then execution state mask */
-#define PSR_ENDIAN_MASK	0x00000200	/* Endianness state mask */
+#define PSR_f		0xff000000	
+#define PSR_s		0x00ff0000	
+#define PSR_x		0x0000ff00	
+#define PSR_c		0x000000ff	
 
-/*
- * Default endianness state
- */
+
+#define PSR_ISET_MASK	0x01000010	
+#define PSR_IT_MASK	0x0600fc00	
+#define PSR_ENDIAN_MASK	0x00000200	
+
+
 #ifdef CONFIG_CPU_ENDIAN_BE8
 #define PSR_ENDSTATE	PSR_E_BIT
 #else
 #define PSR_ENDSTATE	0
 #endif
 
-/* 
- * These are 'magic' values for PTRACE_PEEKUSR that return info about where a
- * process is located in memory.
- */
+
 #define PT_TEXT_ADDR		0x10000
 #define PT_DATA_ADDR		0x10004
 #define PT_TEXT_END_ADDR	0x10008
 
 #ifndef __ASSEMBLY__
 
-/*
- * This struct defines the way the registers are stored on the
- * stack during a system call.  Note that sizeof(struct pt_regs)
- * has to be a multiple of 8.
- */
+
 struct pt_regs {
 	long uregs[18];
 };
@@ -145,9 +122,7 @@ struct pt_regs {
 #define fast_interrupts_enabled(regs) \
 	(!((regs)->ARM_cpsr & PSR_F_BIT))
 
-/* Are the current registers suitable for user mode?
- * (used to maintain security in signal handlers)
- */
+
 static inline int valid_user_regs(struct pt_regs *regs)
 {
 	if (user_mode(regs) && (regs->ARM_cpsr & PSR_I_BIT) == 0) {
@@ -155,9 +130,7 @@ static inline int valid_user_regs(struct pt_regs *regs)
 		return 1;
 	}
 
-	/*
-	 * Force CPSR to something logical...
-	 */
+	
 	regs->ARM_cpsr &= PSR_f | PSR_s | (PSR_x & ~PSR_A_BIT) | PSR_T_BIT | MODE32_BIT;
 	if (!(elf_hwcap & HWCAP_26BIT))
 		regs->ARM_cpsr |= USR_MODE;
@@ -176,9 +149,9 @@ extern unsigned long profile_pc(struct pt_regs *regs);
 #define predicate(x)		((x) & 0xf0000000)
 #define PREDICATE_ALWAYS	0xe0000000
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
 #endif
 

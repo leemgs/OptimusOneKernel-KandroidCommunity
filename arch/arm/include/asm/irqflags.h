@@ -5,9 +5,7 @@
 
 #include <asm/ptrace.h>
 
-/*
- * CPU interrupt mask handling.
- */
+
 #if __LINUX_ARM_ARCH__ >= 6
 
 #define raw_local_irq_save(x)					\
@@ -25,9 +23,7 @@
 
 #else
 
-/*
- * Save the current interrupt enable state & disable IRQs
- */
+
 #define raw_local_irq_save(x)					\
 	({							\
 		unsigned long temp;				\
@@ -41,9 +37,7 @@
 	: "memory", "cc");					\
 	})
 	
-/*
- * Enable IRQs
- */
+
 #define raw_local_irq_enable()					\
 	({							\
 		unsigned long temp;				\
@@ -56,9 +50,7 @@
 	: "memory", "cc");					\
 	})
 
-/*
- * Disable IRQs
- */
+
 #define raw_local_irq_disable()					\
 	({							\
 		unsigned long temp;				\
@@ -71,9 +63,7 @@
 	: "memory", "cc");					\
 	})
 
-/*
- * Enable FIQs
- */
+
 #define local_fiq_enable()					\
 	({							\
 		unsigned long temp;				\
@@ -86,9 +76,7 @@
 	: "memory", "cc");					\
 	})
 
-/*
- * Disable FIQs
- */
+
 #define local_fiq_disable()					\
 	({							\
 		unsigned long temp;				\
@@ -103,9 +91,7 @@
 
 #endif
 
-/*
- * Save the current interrupt enable state.
- */
+
 #define raw_local_save_flags(x)					\
 	({							\
 	__asm__ __volatile__(					\
@@ -113,9 +99,7 @@
 	: "=r" (x) : : "memory", "cc");				\
 	})
 
-/*
- * restore saved IRQ & FIQ state
- */
+
 #define raw_local_irq_restore(x)				\
 	__asm__ __volatile__(					\
 	"msr	cpsr_c, %0		@ local_irq_restore\n"	\

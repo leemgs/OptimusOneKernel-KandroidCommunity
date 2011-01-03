@@ -1,25 +1,11 @@
-/*
- *  arch/arm/include/asm/hardware/iomd.h
- *
- *  Copyright (C) 1999 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  This file contains information out the IOMD ASIC used in the
- *  Acorn RiscPC and subsequently integrated into the CLPS7500 chips.
- */
+
 #ifndef __ASMARM_HARDWARE_IOMD_H
 #define __ASMARM_HARDWARE_IOMD_H
 
 
 #ifndef __ASSEMBLY__
 
-/*
- * We use __raw_base variants here so that we give the compiler the
- * chance to keep IOC_BASE in a register.
- */
+
 #define iomd_readb(off)		__raw_readb(IOMD_BASE + (off))
 #define iomd_readl(off)		__raw_readl(IOMD_BASE + (off))
 #define iomd_writeb(val,off)	__raw_writeb(val, IOMD_BASE + (off))
@@ -160,9 +146,7 @@
 #define DMA_ST_INT	2
 #define DMA_ST_AB	1
 
-/*
- * DMA (MEMC) compatibility
- */
+
 #define HALF_SAM	vram_half_sam
 #define VDMA_ALIGNMENT	(HALF_SAM * 2)
 #define VDMA_XFERSIZE	(HALF_SAM)

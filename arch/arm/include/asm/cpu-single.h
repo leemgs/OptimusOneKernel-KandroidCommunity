@@ -1,27 +1,13 @@
-/*
- *  arch/arm/include/asm/cpu-single.h
- *
- *  Copyright (C) 2000 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
-/*
- * Single CPU
- */
+
+
 #ifdef __STDC__
 #define __catify_fn(name,x)	name##x
 #else
-#define __catify_fn(name,x)	name/**/x
+#define __catify_fn(name,x)	namex
 #endif
 #define __cpu_fn(name,x)	__catify_fn(name,x)
 
-/*
- * If we are supporting multiple CPUs, then we must use a table of
- * function pointers for this lot.  Otherwise, we can optimise the
- * table away.
- */
+
 #define cpu_proc_init			__cpu_fn(CPU_NAME,_proc_init)
 #define cpu_proc_fin			__cpu_fn(CPU_NAME,_proc_fin)
 #define cpu_reset			__cpu_fn(CPU_NAME,_reset)
@@ -34,7 +20,7 @@
 
 struct mm_struct;
 
-/* declare all the functions as extern */
+
 extern void cpu_proc_init(void);
 extern void cpu_proc_fin(void);
 extern int cpu_do_idle(void);

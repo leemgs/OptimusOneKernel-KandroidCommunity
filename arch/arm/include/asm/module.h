@@ -22,9 +22,7 @@ struct mod_arch_specific
 #endif
 };
 
-/*
- * Include the ARM architecture version.
- */
+
 #define MODULE_ARCH_VERMAGIC	"ARMv" __stringify(__LINUX_ARM_ARCH__) " "
 
-#endif /* _ASM_ARM_MODULE_H */
+#endif 

@@ -9,7 +9,7 @@
 #define TIMER_CTRL_DIV1		(0 << 2)
 #define TIMER_CTRL_DIV16	(1 << 2)
 #define TIMER_CTRL_DIV256	(2 << 2)
-#define TIMER_CTRL_IE		(1 << 5)	/* Interrupt Enable (versatile only) */
+#define TIMER_CTRL_IE		(1 << 5)	
 #define TIMER_CTRL_PERIODIC	(1 << 6)
 #define TIMER_CTRL_ENABLE	(1 << 7)
 

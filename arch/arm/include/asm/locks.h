@@ -1,14 +1,4 @@
-/*
- *  arch/arm/include/asm/locks.h
- *
- *  Copyright (C) 2000 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Interrupt safe locking assembler. 
- */
+
 #ifndef __ASM_PROC_LOCKS_H
 #define __ASM_PROC_LOCKS_H
 
@@ -72,12 +62,7 @@
 	: "ip", "lr", "cc");			\
 	})
 
-/*
- * The value 0x01000000 supports up to 128 processors and
- * lots of processes.  BIAS must be chosen such that sub'ing
- * BIAS once per CPU will result in the long remaining
- * negative.
- */
+
 #define RW_LOCK_BIAS      0x01000000
 #define RW_LOCK_BIAS_STR "0x01000000"
 
@@ -200,12 +185,7 @@
 	: "ip", "lr", "cc");			\
 	})
 
-/*
- * The value 0x01000000 supports up to 128 processors and
- * lots of processes.  BIAS must be chosen such that sub'ing
- * BIAS once per CPU will result in the long remaining
- * negative.
- */
+
 #define RW_LOCK_BIAS      0x01000000
 #define RW_LOCK_BIAS_STR "0x01000000"
 

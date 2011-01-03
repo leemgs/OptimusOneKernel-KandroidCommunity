@@ -1,13 +1,4 @@
-/*
- *  Definitions for the SCOOP interface found on various Sharp PDAs
- *
- *  Copyright (c) 2004 Richard Purdie
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #define SCOOP_MCR  0x00
 #define SCOOP_CDR  0x04
@@ -43,10 +34,10 @@ struct scoop_config {
 	int gpio_base;
 };
 
-/* Structure for linking scoop devices to PCMCIA sockets */
+
 struct scoop_pcmcia_dev {
-	struct device *dev;     /* Pointer to this socket's scoop device */
-	int	irq;                /* irq for socket */
+	struct device *dev;     
+	int	irq;                
 	int cd_irq;
 	const char *cd_irq_str;
 	unsigned char keep_vs;

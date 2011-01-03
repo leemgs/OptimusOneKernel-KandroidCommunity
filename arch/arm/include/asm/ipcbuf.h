@@ -1,15 +1,7 @@
 #ifndef __ASMARM_IPCBUF_H
 #define __ASMARM_IPCBUF_H
 
-/*
- * The ipc64_perm structure for arm architecture.
- * Note extra padding because this structure is passed back and forth
- * between kernel and user space.
- *
- * Pad space is left for:
- * - 32-bit mode_t and seq
- * - 2 miscellaneous 32-bit values
- */
+
 
 struct ipc64_perm
 {
@@ -26,4 +18,4 @@ struct ipc64_perm
 	unsigned long		__unused2;
 };
 
-#endif /* __ASMARM_IPCBUF_H */
+#endif 

@@ -1,21 +1,4 @@
-/*
- * include/asm-arm/unified.h - Unified Assembler Syntax helper macros
- *
- * Copyright (C) 2008 ARM Limited
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #ifndef __ASM_UNIFIED_H
 #define __ASM_UNIFIED_H
@@ -30,7 +13,7 @@
 #error Thumb-2 kernel requires gcc >= 4
 #endif
 
-/* The CPSR bit describing the instruction set (Thumb) */
+
 #define PSR_ISETSTATE	PSR_T_BIT
 
 #define ARM(x...)
@@ -40,9 +23,9 @@
 #endif
 #define BSYM(sym)	sym + 1
 
-#else	/* !CONFIG_THUMB2_KERNEL */
+#else	
 
-/* The CPSR bit describing the instruction set (ARM) */
+
 #define PSR_ISETSTATE	0
 
 #define ARM(x...)	x
@@ -52,14 +35,11 @@
 #endif
 #define BSYM(sym)	sym
 
-#endif	/* CONFIG_THUMB2_KERNEL */
+#endif	
 
 #ifndef CONFIG_ARM_ASM_UNIFIED
 
-/*
- * If the unified assembly syntax isn't used (in ARM mode), these
- * macros expand to an empty string
- */
+
 #ifdef __ASSEMBLY__
 	.macro	it, cond
 	.endm
@@ -91,7 +71,7 @@
 	.endm
 	.macro	iteee, cond
 	.endm
-#else	/* !__ASSEMBLY__ */
+#else	
 __asm__(
 "	.macro	it, cond\n"
 "	.endm\n"
@@ -123,8 +103,8 @@ __asm__(
 "	.endm\n"
 "	.macro	iteee, cond\n"
 "	.endm\n");
-#endif	/* __ASSEMBLY__ */
+#endif	
 
-#endif	/* CONFIG_ARM_ASM_UNIFIED */
+#endif	
 
-#endif	/* !__ASM_UNIFIED_H */
+#endif	

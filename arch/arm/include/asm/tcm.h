@@ -1,12 +1,4 @@
-/*
- *
- * Copyright (C) 2008-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- *
- * Author: Rickard Andersson <rickard.andersson@stericsson.com>
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- *
- */
+
 #ifndef __ASMARM_TCM_H
 #define __ASMARM_TCM_H
 
@@ -16,13 +8,13 @@
 
 #include <linux/compiler.h>
 
-/* Tag variables with this */
+
 #define __tcmdata __section(.tcm.data)
-/* Tag constants with this */
+
 #define __tcmconst __section(.tcm.rodata)
-/* Tag functions inside TCM called from outside TCM with this */
+
 #define __tcmfunc __attribute__((long_call)) __section(.tcm.text) noinline
-/* Tag function inside TCM called from inside TCM  with this */
+
 #define __tcmlocalfunc __section(.tcm.text)
 
 void *tcm_alloc(size_t len);

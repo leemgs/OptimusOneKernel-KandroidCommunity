@@ -1,45 +1,17 @@
-/*
- *  arch/arm/include/asm/glue.h
- *
- *  Copyright (C) 1997-1999 Russell King
- *  Copyright (C) 2000-2002 Deep Blue Solutions Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  This file provides the glue to stick the processor-specific bits
- *  into the kernel in an efficient manner.  The idea is to use branches
- *  when we're only targetting one class of TLB, or indirect calls
- *  when we're targetting multiple classes of TLBs.
- */
+
 #ifdef __KERNEL__
 
 
 #ifdef __STDC__
 #define ____glue(name,fn)	name##fn
 #else
-#define ____glue(name,fn)	name/**/fn
+#define ____glue(name,fn)	namefn
 #endif
 #define __glue(name,fn)		____glue(name,fn)
 
 
 
-/*
- *	Data Abort Model
- *	================
- *
- *	We have the following to choose from:
- *	  arm6          - ARM6 style
- *	  arm7		- ARM7 style
- *	  v4_early	- ARMv4 without Thumb early abort handler
- *	  v4t_late	- ARMv4 with Thumb late abort handler
- *	  v4t_early	- ARMv4 with Thumb early abort handler
- *	  v5tej_early	- ARMv5 with Thumb and Java early abort handler
- *	  xscale	- ARMv5 with Thumb with Xscale extensions
- *	  v6_early	- ARMv6 generic early abort handler
- *	  v7_early	- ARMv7 generic early abort handler
- */
+
 #undef CPU_DABORT_HANDLER
 #undef MULTI_DABORT
 
@@ -119,15 +91,7 @@
 #error Unknown data abort handler type
 #endif
 
-/*
- *	Prefetch Abort Model
- *	================
- *
- *	We have the following to choose from:
- *	  legacy	- no IFSR, no IFAR
- *	  v6		- ARMv6: IFSR, no IFAR
- *	  v7		- ARMv7: IFSR and IFAR
- */
+
 
 #undef CPU_PABORT_HANDLER
 #undef MULTI_PABORT
