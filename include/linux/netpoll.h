@@ -1,8 +1,4 @@
-/*
- * Common code for low-level network console, dump, and debugger code
- *
- * Derived from netconsole, kgdb-over-ethernet, and netdump patches
- */
+
 
 #ifndef _LINUX_NETPOLL_H
 #define _LINUX_NETPOLL_H
@@ -27,8 +23,8 @@ struct netpoll_info {
 	atomic_t refcnt;
 	int rx_flags;
 	spinlock_t rx_lock;
-	struct netpoll *rx_np; /* netpoll that registered an rx_hook */
-	struct sk_buff_head arp_tx; /* list of arp requests to reply to */
+	struct netpoll *rx_np; 
+	struct sk_buff_head arp_tx; 
 	struct sk_buff_head txq;
 	struct delayed_work tx_work;
 };
@@ -55,7 +51,7 @@ static inline int netpoll_rx(struct sk_buff *skb)
 		return 0;
 
 	spin_lock_irqsave(&npinfo->rx_lock, flags);
-	/* check rx_flags again with the lock held */
+	
 	if (npinfo->rx_flags && __netpoll_rx(skb))
 		ret = 1;
 	spin_unlock_irqrestore(&npinfo->rx_lock, flags);
@@ -81,7 +77,7 @@ static inline void *netpoll_poll_lock(struct napi_struct *napi)
 {
 	struct net_device *dev = napi->dev;
 
-	rcu_read_lock(); /* deal with race on ->npinfo */
+	rcu_read_lock(); 
 	if (dev && dev->npinfo) {
 		spin_lock(&napi->poll_lock);
 		napi->poll_owner = smp_processor_id();

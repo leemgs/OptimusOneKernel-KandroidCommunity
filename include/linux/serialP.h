@@ -1,23 +1,9 @@
-/*
- * Private header file for the (dumb) serial driver
- *
- * Copyright (C) 1997 by Theodore Ts'o.
- * 
- * Redistribution of this file is permitted under the terms of the GNU 
- * Public License (GPL)
- */
+
 
 #ifndef _LINUX_SERIALP_H
 #define _LINUX_SERIALP_H
 
-/*
- * This is our internal structure for each serial port's state.
- * 
- * Many fields are paralleled by the structure used by the serial_struct
- * structure.
- *
- * For definitions of the flags field, see tty.h
- */
+
 
 #include <linux/termios.h>
 #include <linux/workqueue.h>
@@ -34,14 +20,14 @@ struct serial_state {
 	int	hub6;
 	int	type;
 	int	line;
-	int	revision;	/* Chip revision (950) */
+	int	revision;	
 	int	xmit_fifo_size;
 	int	custom_divisor;
 	int	count;
 	u8	*iomem_base;
 	u16	iomem_reg_shift;
 	unsigned short	close_delay;
-	unsigned short	closing_wait; /* time to wait before closing */
+	unsigned short	closing_wait; 
 	struct async_icount	icount;	
 	int	io_type;
 	struct async_struct *info;
@@ -60,18 +46,18 @@ struct async_struct {
 	int			ignore_status_mask;
 	int			timeout;
 	int			quot;
-	int			x_char;	/* xon/xoff character */
+	int			x_char;	
 	int			close_delay;
 	unsigned short		closing_wait;
-	unsigned short		closing_wait2; /* obsolete */
-	int			IER; 	/* Interrupt Enable Register */
-	int			MCR; 	/* Modem control register */
-	int			LCR; 	/* Line control register */
-	int			ACR;	 /* 16950 Additional Control Reg. */
+	unsigned short		closing_wait2; 
+	int			IER; 	
+	int			MCR; 	
+	int			LCR; 	
+	int			ACR;	 
 	unsigned long		event;
 	unsigned long		last_active;
 	int			line;
-	int			blocked_open; /* # of blocked opens */
+	int			blocked_open; 
  	struct circ_buf		xmit;
  	spinlock_t		xmit_lock;
 	u8			*iomem_base;
@@ -88,7 +74,7 @@ struct async_struct {
 	struct wait_queue	*close_wait;
 	struct wait_queue	*delta_msr_wait;
 #endif	
-	struct async_struct	*next_port; /* For the linked list */
+	struct async_struct	*next_port; 
 	struct async_struct	*prev_port;
 };
 
@@ -97,15 +83,10 @@ struct async_struct {
 #define SERIAL_MAGIC 0x5301
 #define SSTATE_MAGIC 0x5302
 
-/*
- * Events are used to schedule things to happen at timer-interrupt
- * time, instead of at rs interrupt time.
- */
+
 #define RS_EVENT_WRITE_WAKEUP	0
 
-/*
- * Multiport serial configuration structure --- internal structure
- */
+
 struct rs_multiport_struct {
 	int		port1;
 	unsigned char	mask1, match1;
@@ -119,24 +100,13 @@ struct rs_multiport_struct {
 };
 
 #if defined(__alpha__) && !defined(CONFIG_PCI)
-/*
- * Digital did something really horribly wrong with the OUT1 and OUT2
- * lines on at least some ALPHA's.  The failure mode is that if either
- * is cleared, the machine locks up with endless interrupts.
- *
- * This is still used by arch/mips/au1000/common/serial.c for some weird
- * reason (mips != alpha!)
- */
+
 #define ALPHA_KLUDGE_MCR  (UART_MCR_OUT2 | UART_MCR_OUT1)
 #elif defined(CONFIG_SBC8560)
-/*
- * WindRiver did something similarly broken on their SBC8560 board. The
- * UART tristates its IRQ output while OUT2 is clear, but they pulled
- * the interrupt line _up_ instead of down, so if we register the IRQ
- * while the UART is in that state, we die in an IRQ storm. */
+
 #define ALPHA_KLUDGE_MCR (UART_MCR_OUT2)
 #else
 #define ALPHA_KLUDGE_MCR 0
 #endif
 
-#endif /* _LINUX_SERIAL_H */
+#endif 

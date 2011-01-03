@@ -47,7 +47,7 @@ extern const unsigned long hugetlb_zero, hugetlb_infinity;
 extern int sysctl_hugetlb_shm_group;
 extern struct list_head huge_boot_pages;
 
-/* arch callbacks */
+
 
 pte_t *huge_pte_alloc(struct mm_struct *mm,
 			unsigned long addr, unsigned long sz);
@@ -64,7 +64,7 @@ int pud_huge(pud_t pmd);
 void hugetlb_change_protection(struct vm_area_struct *vma,
 		unsigned long address, unsigned long end, pgprot_t newprot);
 
-#else /* !CONFIG_HUGETLB_PAGE */
+#else 
 
 static inline int PageHuge(struct page *page)
 {
@@ -106,24 +106,18 @@ static inline void hugetlb_report_meminfo(struct seq_file *m)
 #define hugetlb_change_protection(vma, address, end, newprot)
 
 #ifndef HPAGE_MASK
-#define HPAGE_MASK	PAGE_MASK		/* Keep the compiler happy */
+#define HPAGE_MASK	PAGE_MASK		
 #define HPAGE_SIZE	PAGE_SIZE
 #endif
 
-#endif /* !CONFIG_HUGETLB_PAGE */
+#endif 
 
 #define HUGETLB_ANON_FILE "anon_hugepage"
 
 enum {
-	/*
-	 * The file will be used as an shm file so shmfs accounting rules
-	 * apply
-	 */
+	
 	HUGETLB_SHMFS_INODE     = 1,
-	/*
-	 * The file is being created on the internal vfs mount and shmfs
-	 * accounting rules do not apply
-	 */
+	
 	HUGETLB_ANONHUGE_INODE  = 2,
 };
 
@@ -138,10 +132,10 @@ struct hugetlbfs_config {
 };
 
 struct hugetlbfs_sb_info {
-	long	max_blocks;   /* blocks allowed */
-	long	free_blocks;  /* blocks free */
-	long	max_inodes;   /* inodes allowed */
-	long	free_inodes;  /* inodes free */
+	long	max_blocks;   
+	long	free_blocks;  
+	long	max_inodes;   
+	long	free_inodes;  
 	spinlock_t	stat_lock;
 	struct hstate *hstate;
 };
@@ -183,7 +177,7 @@ static inline void set_file_hugepages(struct file *file)
 {
 	file->f_op = &hugetlbfs_file_operations;
 }
-#else /* !CONFIG_HUGETLBFS */
+#else 
 
 #define is_file_hugepages(file)			0
 #define set_file_hugepages(file)		BUG()
@@ -193,18 +187,18 @@ static inline struct file *hugetlb_file_setup(const char *name, size_t size,
 	return ERR_PTR(-ENOSYS);
 }
 
-#endif /* !CONFIG_HUGETLBFS */
+#endif 
 
 #ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
 unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
 					unsigned long len, unsigned long pgoff,
 					unsigned long flags);
-#endif /* HAVE_ARCH_HUGETLB_UNMAPPED_AREA */
+#endif 
 
 #ifdef CONFIG_HUGETLB_PAGE
 
 #define HSTATE_NAME_LEN 32
-/* Defines one hugetlb page size */
+
 struct hstate {
 	int next_nid_to_alloc;
 	int next_nid_to_free;
@@ -228,7 +222,7 @@ struct huge_bootmem_page {
 	struct hstate *hstate;
 };
 
-/* arch callback */
+
 int __init alloc_bootmem_huge_page(struct hstate *h);
 
 void __init hugetlb_add_hstate(unsigned order);
@@ -319,4 +313,4 @@ static inline unsigned int pages_per_huge_page(struct hstate *h)
 }
 #endif
 
-#endif /* _LINUX_HUGETLB_H */
+#endif 

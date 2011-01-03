@@ -25,4 +25,4 @@ struct xt_recent_mtinfo {
 	__u8 side;
 };
 
-#endif /* _LINUX_NETFILTER_XT_RECENT_H */
+#endif 

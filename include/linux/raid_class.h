@@ -1,10 +1,4 @@
-/*
- * raid_class.h - a generic raid visualisation class
- *
- * Copyright (c) 2005 - James Bottomley <James.Bottomley@steeleye.com>
- *
- * This file is licensed under GPLv2
- */
+
 #include <linux/transport_class.h>
 
 struct raid_template {
@@ -47,7 +41,7 @@ struct raid_data {
 	int resync;
 };
 
-/* resync complete goes from 0 to this */
+
 #define RAID_MAX_RESYNC		(10000)
 
 #define DEFINE_RAID_ATTRIBUTE(type, attr)				      \

@@ -1,9 +1,4 @@
-/* rwsem-spinlock.h: fallback C implementation
- *
- * Copyright (c) 2001   David Howells (dhowells@redhat.com).
- * - Derived partially from ideas by Andrea Arcangeli <andrea@suse.de>
- * - Derived also from comments by Linus
- */
+
 
 #ifndef _LINUX_RWSEM_SPINLOCK_H
 #define _LINUX_RWSEM_SPINLOCK_H
@@ -21,13 +16,7 @@
 
 struct rwsem_waiter;
 
-/*
- * the rw-semaphore definition
- * - if activity is 0 then there are no active readers or writers
- * - if activity is +ve then that is the number of active readers
- * - if activity is -1 then there is one active writer
- * - if wait_list is not empty, then there are processes waiting for the semaphore
- */
+
 struct rw_semaphore {
 	__s32			activity;
 	spinlock_t		wait_lock;
@@ -74,5 +63,5 @@ static inline int rwsem_is_locked(struct rw_semaphore *sem)
 	return (sem->activity != 0);
 }
 
-#endif /* __KERNEL__ */
-#endif /* _LINUX_RWSEM_SPINLOCK_H */
+#endif 
+#endif 

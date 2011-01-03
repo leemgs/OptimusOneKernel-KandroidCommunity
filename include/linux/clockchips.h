@@ -1,10 +1,4 @@
-/*  linux/include/linux/clockchips.h
- *
- *  This file contains the structure definitions for clockchips.
- *
- *  If you are not a clockchip, or the time of day code, you should
- *  not be including this file!
- */
+
 #ifndef _LINUX_CLOCKCHIPS_H
 #define _LINUX_CLOCKCHIPS_H
 
@@ -17,7 +11,7 @@
 
 struct clock_event_device;
 
-/* Clock event mode commands */
+
 enum clock_event_mode {
 	CLOCK_EVT_MODE_UNUSED = 0,
 	CLOCK_EVT_MODE_SHUTDOWN,
@@ -26,7 +20,7 @@ enum clock_event_mode {
 	CLOCK_EVT_MODE_RESUME,
 };
 
-/* Clock event notification values */
+
 enum clock_event_nofitiers {
 	CLOCK_EVT_NOTIFY_ADD,
 	CLOCK_EVT_NOTIFY_BROADCAST_ON,
@@ -40,40 +34,14 @@ enum clock_event_nofitiers {
 	CLOCK_EVT_NOTIFY_CPU_DEAD,
 };
 
-/*
- * Clock event features
- */
+
 #define CLOCK_EVT_FEAT_PERIODIC		0x000001
 #define CLOCK_EVT_FEAT_ONESHOT		0x000002
-/*
- * x86(64) specific misfeatures:
- *
- * - Clockevent source stops in C3 State and needs broadcast support.
- * - Local APIC timer is used as a dummy device.
- */
+
 #define CLOCK_EVT_FEAT_C3STOP		0x000004
 #define CLOCK_EVT_FEAT_DUMMY		0x000008
 
-/**
- * struct clock_event_device - clock event device descriptor
- * @name:		ptr to clock event name
- * @features:		features
- * @max_delta_ns:	maximum delta value in ns
- * @min_delta_ns:	minimum delta value in ns
- * @mult:		nanosecond to cycles multiplier
- * @shift:		nanoseconds to cycles divisor (power of two)
- * @rating:		variable to rate clock event devices
- * @irq:		IRQ number (only for non CPU local devices)
- * @cpumask:		cpumask to indicate for which CPUs this device works
- * @set_next_event:	set next event function
- * @set_mode:		set mode function
- * @event_handler:	Assigned by the framework to be called by the low
- *			level handler of the event source
- * @broadcast:		function to broadcast events
- * @list:		list head for the management code
- * @mode:		operating mode assigned by the management code
- * @next_event:		local storage for the next event in oneshot mode
- */
+
 struct clock_event_device {
 	const char		*name;
 	unsigned int		features;
@@ -95,17 +63,7 @@ struct clock_event_device {
 	ktime_t			next_event;
 };
 
-/*
- * Calculate a multiplication factor for scaled math, which is used to convert
- * nanoseconds based values to clock ticks:
- *
- * clock_ticks = (nanoseconds * factor) >> shift.
- *
- * div_sc is the rearranged equation to calculate a factor from a given clock
- * ticks / nanoseconds ratio:
- *
- * factor = (clock_ticks << shift) / nanoseconds
- */
+
 static inline unsigned long div_sc(unsigned long ticks, unsigned long nsec,
 				   int shift)
 {
@@ -115,7 +73,7 @@ static inline unsigned long div_sc(unsigned long ticks, unsigned long nsec,
 	return (unsigned long) tmp;
 }
 
-/* Clock event layer functions */
+
 extern unsigned long clockevent_delta2ns(unsigned long latch,
 					 struct clock_event_device *evt);
 extern void clockevents_register_device(struct clock_event_device *dev);
@@ -136,7 +94,7 @@ extern void clockevents_notify(unsigned long reason, void *arg);
 # define clockevents_notify(reason, arg) do { } while (0)
 #endif
 
-#else /* CONFIG_GENERIC_CLOCKEVENTS_BUILD */
+#else 
 
 #define clockevents_notify(reason, arg) do { } while (0)
 

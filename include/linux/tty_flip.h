@@ -20,4 +20,4 @@ static inline int tty_insert_flip_char(struct tty_struct *tty,
 	return tty_insert_flip_string_flags(tty, &ch, &flag, 1);
 }
 
-#endif /* _LINUX_TTY_FLIP_H */
+#endif 

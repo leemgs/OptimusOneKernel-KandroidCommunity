@@ -1,17 +1,4 @@
-/***************************************************************************
- * Linux PPP over X - Generic PPP transport layer sockets
- * Linux PPP over Ethernet (PPPoE) Socket Implementation (RFC 2516) 
- *
- * This file supplies definitions required by the PPP over Ethernet driver
- * (pppox.c).  All version information wrt this file is located in pppox.c
- *
- * License:
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- *
- */
+
 
 #ifndef __LINUX_IF_PPPOX_H
 #define __LINUX_IF_PPPOX_H
@@ -25,64 +12,54 @@
 #include <linux/if.h>
 #include <linux/netdevice.h>
 #include <linux/ppp_channel.h>
-#endif /* __KERNEL__ */
+#endif 
 #include <linux/if_pppol2tp.h>
+#include <linux/if_pppolac.h>
+#include <linux/if_pppopns.h>
 
-/* For user-space programs to pick up these definitions
- * which they wouldn't get otherwise without defining __KERNEL__
- */
+
 #ifndef AF_PPPOX
 #define AF_PPPOX	24
 #define PF_PPPOX	AF_PPPOX
-#endif /* !(AF_PPPOX) */
+#endif 
 
-/************************************************************************ 
- * PPPoE addressing definition 
- */ 
+ 
 typedef __be16 sid_t;
 struct pppoe_addr{ 
-       sid_t           sid;                    /* Session identifier */ 
-       unsigned char   remote[ETH_ALEN];       /* Remote address */ 
-       char            dev[IFNAMSIZ];          /* Local device to use */ 
+       sid_t           sid;                     
+       unsigned char   remote[ETH_ALEN];        
+       char            dev[IFNAMSIZ];           
 }; 
  
-/************************************************************************ 
- * Protocols supported by AF_PPPOX 
- */ 
-#define PX_PROTO_OE    0 /* Currently just PPPoE */
-#define PX_PROTO_OL2TP 1 /* Now L2TP also */
-#define PX_MAX_PROTO   2
+ 
+#define PX_PROTO_OE    0 
+#define PX_PROTO_OL2TP 1 
+#define PX_PROTO_OLAC  2
+#define PX_PROTO_OPNS  3
+#define PX_MAX_PROTO   4
 
 struct sockaddr_pppox { 
-       sa_family_t     sa_family;            /* address family, AF_PPPOX */ 
-       unsigned int    sa_protocol;          /* protocol identifier */ 
+       sa_family_t     sa_family;             
+       unsigned int    sa_protocol;           
        union{ 
                struct pppoe_addr       pppoe; 
        }sa_addr; 
 }__attribute__ ((packed)); 
 
-/* The use of the above union isn't viable because the size of this
- * struct must stay fixed over time -- applications use sizeof(struct
- * sockaddr_pppox) to fill it. We use a protocol specific sockaddr
- * type instead.
- */
+
 struct sockaddr_pppol2tp {
-	sa_family_t     sa_family;      /* address family, AF_PPPOX */
-	unsigned int    sa_protocol;    /* protocol identifier */
+	sa_family_t     sa_family;      
+	unsigned int    sa_protocol;    
 	struct pppol2tp_addr pppol2tp;
 }__attribute__ ((packed));
 
-/*********************************************************************
- *
- * ioctl interface for defining forwarding of connections
- *
- ********************************************************************/
+
 
 #define PPPOEIOCSFWD	_IOW(0xB1 ,0, size_t)
 #define PPPOEIOCDFWD	_IO(0xB1 ,1)
-/*#define PPPOEIOCGFWD	_IOWR(0xB1,2, size_t)*/
 
-/* Codes to identify message types */
+
+
 #define PADI_CODE	0x09
 #define PADO_CODE	0x07
 #define PADR_CODE	0x19
@@ -94,7 +71,7 @@ struct pppoe_tag {
 	char tag_data[0];
 } __attribute ((packed));
 
-/* Tag identifiers */
+
 #define PTT_EOL		__cpu_to_be16(0x0000)
 #define PTT_SRV_NAME	__cpu_to_be16(0x0101)
 #define PTT_AC_NAME	__cpu_to_be16(0x0102)
@@ -122,7 +99,7 @@ struct pppoe_hdr {
 	struct pppoe_tag tag[0];
 } __attribute__ ((packed));
 
-/* Length of entire PPPoE + PPP header */
+
 #define PPPOE_SES_HLEN	8
 
 #ifdef __KERNEL__
@@ -134,22 +111,39 @@ static inline struct pppoe_hdr *pppoe_hdr(const struct sk_buff *skb)
 }
 
 struct pppoe_opt {
-	struct net_device      *dev;	  /* device associated with socket*/
-	int			ifindex;  /* ifindex of device associated with socket */
-	struct pppoe_addr	pa;	  /* what this socket is bound to*/
-	struct sockaddr_pppox	relay;	  /* what socket data will be
-					     relayed to (PPPoE relaying) */
+	struct net_device      *dev;	  
+	int			ifindex;  
+	struct pppoe_addr	pa;	  
+	struct sockaddr_pppox	relay;	  
+};
+
+struct pppolac_opt {
+	__u32	local;
+	__u32	remote;
+	__u16	sequence;
+	__u8	sequencing;
+	int	(*backlog_rcv)(struct sock *sk_udp, struct sk_buff *skb);
+};
+
+struct pppopns_opt {
+	__u16	local;
+	__u16	remote;
+	__u32	sequence;
+	void	(*data_ready)(struct sock *sk_raw, int length);
+	int	(*backlog_rcv)(struct sock *sk_raw, struct sk_buff *skb);
 };
 
 #include <net/sock.h>
 
 struct pppox_sock {
-	/* struct sock must be the first member of pppox_sock */
+	
 	struct sock		sk;
 	struct ppp_channel	chan;
-	struct pppox_sock	*next;	  /* for hash table */
+	struct pppox_sock	*next;	  
 	union {
 		struct pppoe_opt pppoe;
+		struct pppolac_opt lac;
+		struct pppopns_opt pns;
 	} proto;
 	__be16			num;
 };
@@ -179,19 +173,19 @@ struct pppox_proto {
 
 extern int register_pppox_proto(int proto_num, struct pppox_proto *pp);
 extern void unregister_pppox_proto(int proto_num);
-extern void pppox_unbind_sock(struct sock *sk);/* delete ppp-channel binding */
+extern void pppox_unbind_sock(struct sock *sk);
 extern int pppox_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);
 
-/* PPPoX socket states */
+
 enum {
-    PPPOX_NONE		= 0,  /* initial state */
-    PPPOX_CONNECTED	= 1,  /* connection established ==TCP_ESTABLISHED */
-    PPPOX_BOUND		= 2,  /* bound to ppp device */
-    PPPOX_RELAY		= 4,  /* forwarding is enabled */
-    PPPOX_ZOMBIE	= 8,  /* dead, but still bound to ppp device */
-    PPPOX_DEAD		= 16  /* dead, useless, please clean me up!*/
+    PPPOX_NONE		= 0,  
+    PPPOX_CONNECTED	= 1,  
+    PPPOX_BOUND		= 2,  
+    PPPOX_RELAY		= 4,  
+    PPPOX_ZOMBIE	= 8,  
+    PPPOX_DEAD		= 16  
 };
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* !(__LINUX_IF_PPPOX_H) */
+#endif 

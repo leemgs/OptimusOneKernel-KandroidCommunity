@@ -12,8 +12,8 @@ struct ipt_same_info
 	u_int32_t ipnum;
 	u_int32_t *iparray;
 
-	/* hangs off end. */
+	
 	struct nf_nat_range range[IPT_SAME_MAX_RANGE];
 };
 
-#endif /*_IPT_SAME_H*/
+#endif 

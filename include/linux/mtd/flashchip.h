@@ -1,19 +1,10 @@
 
-/*
- * struct flchip definition
- *
- * Contains information about the location and state of a given flash device
- *
- * (C) 2000 Red Hat. GPLd.
- */
+
 
 #ifndef __MTD_FLASHCHIP_H__
 #define __MTD_FLASHCHIP_H__
 
-/* For spinlocks. sched.h includes spinlock.h from whichever directory it
- * happens to be in - so we don't have to care whether we're on 2.2, which
- * has asm/spinlock.h, or 2.4, which has linux/spinlock.h
- */
+
 #include <linux/sched.h>
 
 typedef enum {
@@ -43,20 +34,12 @@ typedef enum {
 
 
 
-/* NOTE: confusingly, this can be used to refer to more than one chip at a time,
-   if they're interleaved.  This can even refer to individual partitions on
-   the same physical chip when present. */
+
 
 struct flchip {
-	unsigned long start; /* Offset within the map */
-	//	unsigned long len;
-	/* We omit len for now, because when we group them together
-	   we insist that they're all of the same size, and the chip size
-	   is held in the next level up. If we get more versatile later,
-	   it'll make it a damn sight harder to find which chip we want from
-	   a given offset, and we'll want to add the per-chip length field
-	   back in.
-	*/
+	unsigned long start; 
+	
+	
 	int ref_point_counter;
 	flstate_t state;
 	flstate_t oldstate;
@@ -66,9 +49,8 @@ struct flchip {
 	unsigned long in_progress_block_addr;
 
 	spinlock_t *mutex;
-	spinlock_t _spinlock; /* We do it like this because sometimes they'll be shared. */
-	wait_queue_head_t wq; /* Wait on here when we're waiting for the chip
-			     to be ready */
+	spinlock_t _spinlock; 
+	wait_queue_head_t wq; 
 	int word_write_time;
 	int buffer_write_time;
 	int erase_time;
@@ -80,8 +62,7 @@ struct flchip {
 	void *priv;
 };
 
-/* This is used to handle contention on write/erase operations
-   between partitions of the same physical chip. */
+
 struct flchip_shared {
 	spinlock_t lock;
 	struct flchip *writing;
@@ -89,4 +70,4 @@ struct flchip_shared {
 };
 
 
-#endif /* __MTD_FLASHCHIP_H__ */
+#endif 

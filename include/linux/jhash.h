@@ -1,26 +1,9 @@
 #ifndef _LINUX_JHASH_H
 #define _LINUX_JHASH_H
 
-/* jhash.h: Jenkins hash support.
- *
- * Copyright (C) 1996 Bob Jenkins (bob_jenkins@burtleburtle.net)
- *
- * http://burtleburtle.net/bob/hash/
- *
- * These are the credits from Bob's sources:
- *
- * lookup2.c, by Bob Jenkins, December 1996, Public Domain.
- * hash(), hash2(), hash3, and mix() are externally useful functions.
- * Routines to test the hash are included if SELF_TEST is defined.
- * You can use this free for any purpose.  It has no warranty.
- *
- * Copyright (C) 2003 David S. Miller (davem@redhat.com)
- *
- * I've modified Bob's hash to be useful in the Linux kernel, and
- * any bugs present are surely my fault.  -DaveM
- */
 
-/* NOTE: Arguments are modified. */
+
+
 #define __jhash_mix(a, b, c) \
 { \
   a -= b; a -= c; a ^= (c>>13); \
@@ -34,13 +17,10 @@
   c -= a; c -= b; c ^= (b>>15); \
 }
 
-/* The golden ration: an arbitrary value */
+
 #define JHASH_GOLDEN_RATIO	0x9e3779b9
 
-/* The most generic version, hashes an arbitrary sequence
- * of bytes.  No alignment or length assumptions are made about
- * the input key.
- */
+
 static inline u32 jhash(const void *key, u32 length, u32 initval)
 {
 	u32 a, b, c, len;
@@ -81,9 +61,7 @@ static inline u32 jhash(const void *key, u32 length, u32 initval)
 	return c;
 }
 
-/* A special optimized version that handles 1 or more of u32s.
- * The length parameter here is the number of u32s in the key.
- */
+
 static inline u32 jhash2(const u32 *k, u32 length, u32 initval)
 {
 	u32 a, b, c, len;
@@ -113,12 +91,7 @@ static inline u32 jhash2(const u32 *k, u32 length, u32 initval)
 }
 
 
-/* A special ultra-optimized versions that knows they are hashing exactly
- * 3, 2 or 1 word(s).
- *
- * NOTE: In partilar the "c += length; __jhash_mix(a,b,c);" normally
- *       done at the end is not done here.
- */
+
 static inline u32 jhash_3words(u32 a, u32 b, u32 c, u32 initval)
 {
 	a += JHASH_GOLDEN_RATIO;
@@ -140,4 +113,4 @@ static inline u32 jhash_1word(u32 a, u32 initval)
 	return jhash_3words(a, 0, 0, initval);
 }
 
-#endif /* _LINUX_JHASH_H */
+#endif 

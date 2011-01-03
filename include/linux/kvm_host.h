@@ -1,10 +1,7 @@
 #ifndef __KVM_HOST_H
 #define __KVM_HOST_H
 
-/*
- * This work is licensed under the terms of the GNU GPL, version 2.  See
- * the COPYING file in the top-level directory.
- */
+
 
 #include <linux/types.h>
 #include <linux/hardirq.h>
@@ -25,9 +22,7 @@
 
 #include <asm/kvm_host.h>
 
-/*
- * vcpu->requests bit members
- */
+
 #define KVM_REQ_TLB_FLUSH          0
 #define KVM_REQ_MIGRATE_TIMER      1
 #define KVM_REQ_REPORT_TPR_ACCESS  2
@@ -45,12 +40,7 @@ struct kvm;
 struct kvm_vcpu;
 extern struct kmem_cache *kvm_vcpu_cache;
 
-/*
- * It would be nice to use something smarter than a linear search, TBD...
- * Thankfully we dont expect many devices to register (famous last words :),
- * so until then it will suffice.  At least its abstracted so we can change
- * in one place.
- */
+
 struct kvm_io_bus {
 	int                   dev_count;
 #define NR_IOBUS_DEVS 6
@@ -135,7 +125,7 @@ struct kvm {
 	spinlock_t mmu_lock;
 	spinlock_t requests_lock;
 	struct rw_semaphore slots_lock;
-	struct mm_struct *mm; /* userspace tied to this vm */
+	struct mm_struct *mm; 
 	int nmemslots;
 	struct kvm_memory_slot memslots[KVM_MEMORY_SLOTS +
 					KVM_PRIVATE_MEM_SLOTS];
@@ -166,7 +156,7 @@ struct kvm {
 
 	struct mutex irq_lock;
 #ifdef CONFIG_HAVE_KVM_IRQCHIP
-	struct list_head irq_routing; /* of kvm_kernel_irq_routing_entry */
+	struct list_head irq_routing; 
 	struct hlist_head mask_notifier_list;
 #endif
 
@@ -177,7 +167,7 @@ struct kvm {
 #endif
 };
 
-/* The guest did something we don't support. */
+
 #define pr_unimpl(vcpu, fmt, ...)					\
  do {									\
 	if (printk_ratelimit())						\
@@ -399,7 +389,7 @@ void kvm_unregister_irq_ack_notifier(struct kvm *kvm,
 int kvm_request_irq_source_id(struct kvm *kvm);
 void kvm_free_irq_source_id(struct kvm *kvm, int irq_source_id);
 
-/* For vcpu->arch.iommu_flags */
+
 #define KVM_IOMMU_CACHE_COHERENCY	0x1
 
 #ifdef CONFIG_IOMMU_API
@@ -411,7 +401,7 @@ int kvm_assign_device(struct kvm *kvm,
 		      struct kvm_assigned_dev_kernel *assigned_dev);
 int kvm_deassign_device(struct kvm *kvm,
 			struct kvm_assigned_dev_kernel *assigned_dev);
-#else /* CONFIG_IOMMU_API */
+#else 
 static inline int kvm_iommu_map_pages(struct kvm *kvm,
 				      gfn_t base_gfn,
 				      unsigned long npages)
@@ -440,7 +430,7 @@ static inline int kvm_deassign_device(struct kvm *kvm,
 {
 	return 0;
 }
-#endif /* CONFIG_IOMMU_API */
+#endif 
 
 static inline void kvm_guest_enter(void)
 {
@@ -493,13 +483,7 @@ static inline int mmu_notifier_retry(struct kvm_vcpu *vcpu, unsigned long mmu_se
 {
 	if (unlikely(vcpu->kvm->mmu_notifier_count))
 		return 1;
-	/*
-	 * Both reads happen under the mmu_lock and both values are
-	 * modified under mmu_lock, so there's no need of smb_rmb()
-	 * here in between, otherwise mmu_notifier_count should be
-	 * read before mmu_notifier_seq, see
-	 * mmu_notifier_invalidate_range_end write side.
-	 */
+	
 	if (vcpu->kvm->mmu_notifier_seq != mmu_seq)
 		return 1;
 	return 0;
@@ -544,7 +528,7 @@ static inline int kvm_ioeventfd(struct kvm *kvm, struct kvm_ioeventfd *args)
 	return -ENOSYS;
 }
 
-#endif /* CONFIG_HAVE_KVM_EVENTFD */
+#endif 
 
 #ifdef CONFIG_KVM_APIC_ARCHITECTURE
 static inline bool kvm_vcpu_is_bsp(struct kvm_vcpu *vcpu)

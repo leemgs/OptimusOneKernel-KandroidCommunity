@@ -41,19 +41,16 @@ typedef __kernel_gid16_t        gid16_t;
 typedef unsigned long		uintptr_t;
 
 #ifdef CONFIG_UID16
-/* This is defined by include/asm-{arch}/posix_types.h */
+
 typedef __kernel_old_uid_t	old_uid_t;
 typedef __kernel_old_gid_t	old_gid_t;
-#endif /* CONFIG_UID16 */
+#endif 
 
 #if defined(__GNUC__)
 typedef __kernel_loff_t		loff_t;
 #endif
 
-/*
- * The following typedefs are also protected by individual ifdefs for
- * historical reasons:
- */
+
 #ifndef _SIZE_T
 #define _SIZE_T
 typedef __kernel_size_t		size_t;
@@ -84,13 +81,13 @@ typedef __kernel_clock_t	clock_t;
 typedef __kernel_caddr_t	caddr_t;
 #endif
 
-/* bsd */
+
 typedef unsigned char		u_char;
 typedef unsigned short		u_short;
 typedef unsigned int		u_int;
 typedef unsigned long		u_long;
 
-/* sysv */
+
 typedef unsigned char		unchar;
 typedef unsigned short		ushort;
 typedef unsigned int		uint;
@@ -106,7 +103,7 @@ typedef		__s16		int16_t;
 typedef		__u32		u_int32_t;
 typedef		__s32		int32_t;
 
-#endif /* !(__BIT_TYPES_DEFINED__) */
+#endif 
 
 typedef		__u8		uint8_t;
 typedef		__u16		uint16_t;
@@ -118,19 +115,12 @@ typedef		__u64		u_int64_t;
 typedef		__s64		int64_t;
 #endif
 
-/* this is a special 64bit data type that is 8-byte aligned */
+
 #define aligned_u64 __u64 __attribute__((aligned(8)))
 #define aligned_be64 __be64 __attribute__((aligned(8)))
 #define aligned_le64 __le64 __attribute__((aligned(8)))
 
-/**
- * The type used for indexing onto a disc or disc partition.
- *
- * Linux always considers sectors to be 512 bytes long independently
- * of the devices real block size.
- *
- * blkcnt_t is the type of the inode's block count.
- */
+
 #ifdef CONFIG_LBDAF
 typedef u64 sector_t;
 typedef u64 blkcnt_t;
@@ -139,20 +129,14 @@ typedef unsigned long sector_t;
 typedef unsigned long blkcnt_t;
 #endif
 
-/*
- * The type of an index into the pagecache.  Use a #define so asm/types.h
- * can override it.
- */
+
 #ifndef pgoff_t
 #define pgoff_t unsigned long
 #endif
 
-#endif /* __KERNEL__ */
+#endif 
 
-/*
- * Below are truly Linux-specific types that should never collide with
- * any application/library that wants linux/types.h.
- */
+
 
 #ifdef __CHECKER__
 #define __bitwise__ __attribute__((bitwise))
@@ -204,6 +188,6 @@ struct ustat {
 	char			f_fpack[6];
 };
 
-#endif	/* __KERNEL__ */
-#endif /*  __ASSEMBLY__ */
-#endif /* _LINUX_TYPES_H */
+#endif	
+#endif 
+#endif 

@@ -1,22 +1,4 @@
-/*
- * include/linux/kmemleak.h
- *
- * Copyright (C) 2008 ARM Limited
- * Written by Catalin Marinas <catalin.marinas@arm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #ifndef __KMEMLEAK_H
 #define __KMEMLEAK_H
@@ -95,6 +77,6 @@ static inline void kmemleak_no_scan(const void *ptr)
 {
 }
 
-#endif	/* CONFIG_DEBUG_KMEMLEAK */
+#endif	
 
-#endif	/* __KMEMLEAK_H */
+#endif	

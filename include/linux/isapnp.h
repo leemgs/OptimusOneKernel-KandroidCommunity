@@ -1,23 +1,4 @@
-/*
- *  ISA Plug & Play support
- *  Copyright (c) by Jaroslav Kysela <perex@suse.cz>
- *
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #ifndef LINUX_ISAPNP_H
 #define LINUX_ISAPNP_H
@@ -25,9 +6,7 @@
 #include <linux/errno.h>
 #include <linux/pnp.h>
 
-/*
- *
- */
+
 
 #define ISAPNP_VENDOR(a,b,c)	(((((a)-'A'+1)&0x3f)<<2)|\
 				((((b)-'A'+1)&0x18)>>3)|((((b)-'A'+1)&7)<<13)|\
@@ -38,9 +17,7 @@
 				 (((x)&0x000f)<<8))
 #define ISAPNP_FUNCTION(x)	ISAPNP_DEVICE(x)
 
-/*
- *
- */
+
 
 #ifdef __KERNEL__
 
@@ -56,16 +33,16 @@
 #define ISAPNP_DEVICE_ID(_va, _vb, _vc, _function) \
 		{ .vendor = ISAPNP_VENDOR(_va, _vb, _vc), .function = ISAPNP_FUNCTION(_function) }
 
-/* export used IDs outside module */
+
 #define ISAPNP_CARD_TABLE(name) \
 		MODULE_GENERIC_TABLE(isapnp_card, name)
 
 struct isapnp_card_id {
-	unsigned long driver_data;	/* data private to the driver */
+	unsigned long driver_data;	
 	unsigned short card_vendor, card_device;
 	struct {
 		unsigned short vendor, function;
-	} devs[ISAPNP_CARD_DEVS];	/* logical devices */
+	} devs[ISAPNP_CARD_DEVS];	
 };
 
 #define ISAPNP_DEVICE_SINGLE(_cva, _cvb, _cvc, _cdevice, _dva, _dvb, _dvc, _dfunction) \
@@ -77,14 +54,14 @@ struct isapnp_card_id {
 struct isapnp_device_id {
 	unsigned short card_vendor, card_device;
 	unsigned short vendor, function;
-	unsigned long driver_data;	/* data private to the driver */
+	unsigned long driver_data;	
 };
 
 #if defined(CONFIG_ISAPNP) || (defined(CONFIG_ISAPNP_MODULE) && defined(MODULE))
 
 #define __ISAPNP__
 
-/* lowlevel configuration */
+
 int isapnp_present(void);
 int isapnp_cfg_begin(int csn, int device);
 int isapnp_cfg_end(void);
@@ -99,7 +76,7 @@ static inline int isapnp_proc_init(void) { return 0; }
 static inline int isapnp_proc_done(void) { return 0; }
 #endif
 
-/* compat */
+
 struct pnp_card *pnp_find_card(unsigned short vendor,
 			       unsigned short device,
 			       struct pnp_card *from);
@@ -108,9 +85,9 @@ struct pnp_dev *pnp_find_dev(struct pnp_card *card,
 			     unsigned short function,
 			     struct pnp_dev *from);
 
-#else /* !CONFIG_ISAPNP */
+#else 
 
-/* lowlevel configuration */
+
 static inline int isapnp_present(void) { return 0; }
 static inline int isapnp_cfg_begin(int csn, int device) { return -ENODEV; }
 static inline int isapnp_cfg_end(void) { return -ENODEV; }
@@ -125,7 +102,7 @@ static inline struct pnp_dev *pnp_find_dev(struct pnp_card *card,
 					   unsigned short function,
 					   struct pnp_dev *from) { return NULL; }
 
-#endif /* CONFIG_ISAPNP */
+#endif 
 
-#endif /* __KERNEL__ */
-#endif /* LINUX_ISAPNP_H */
+#endif 
+#endif 

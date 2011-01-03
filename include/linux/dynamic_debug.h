@@ -1,23 +1,13 @@
 #ifndef _DYNAMIC_DEBUG_H
 #define _DYNAMIC_DEBUG_H
 
-/* dynamic_printk_enabled, and dynamic_printk_enabled2 are bitmasks in which
- * bit n is set to 1 if any modname hashes into the bucket n, 0 otherwise. They
- * use independent hash functions, to reduce the chance of false positives.
- */
+
 extern long long dynamic_debug_enabled;
 extern long long dynamic_debug_enabled2;
 
-/*
- * An instance of this structure is created in a special
- * ELF section at every dynamic debug callsite.  At runtime,
- * the special section is treated as an array of these.
- */
+
 struct _ddebug {
-	/*
-	 * These fields are used to drive the user interface
-	 * for selecting and displaying debug callsites.
-	 */
+	
 	const char *modname;
 	const char *function;
 	const char *filename;
@@ -25,12 +15,8 @@ struct _ddebug {
 	char primary_hash;
 	char secondary_hash;
 	unsigned int lineno:24;
-	/*
- 	 * The flags field controls the behaviour at the callsite.
- 	 * The bits here are changed dynamically when the user
- 	 * writes commands to <debugfs>/dynamic_debug/ddebug
-	 */
-#define _DPRINTK_FLAGS_PRINT   (1<<0)  /* printk() a message using the format */
+	
+#define _DPRINTK_FLAGS_PRINT   (1<<0)  
 #define _DPRINTK_FLAGS_DEFAULT 0
 	unsigned int flags:8;
 } __attribute__((aligned(8)));

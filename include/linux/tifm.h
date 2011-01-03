@@ -1,13 +1,4 @@
-/*
- *  tifm.h - TI FlashMedia driver
- *
- *  Copyright (C) 2006 Alex Dubov <oakad@yahoo.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #ifndef _TIFM_H
 #define _TIFM_H
@@ -18,14 +9,14 @@
 #include <linux/pci.h>
 #include <linux/workqueue.h>
 
-/* Host registers (relative to pci base address): */
+
 enum {
 	FM_SET_INTERRUPT_ENABLE   = 0x008,
 	FM_CLEAR_INTERRUPT_ENABLE = 0x00c,
 	FM_INTERRUPT_STATUS       = 0x014
 };
 
-/* Socket registers (relative to socket base address): */
+
 enum {
 	SOCK_CONTROL                   = 0x004,
 	SOCK_PRESENT_STATE             = 0x008,

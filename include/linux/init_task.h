@@ -84,11 +84,7 @@ extern struct group_info init_groups;
 #endif
 
 #ifdef CONFIG_SECURITY_FILE_CAPABILITIES
-/*
- * Because of the reduced scope of CAP_SETPCAP when filesystem
- * capabilities are in effect, it is safe to allow CAP_SETPCAP to
- * be available in the default configuration.
- */
+
 # define CAP_INIT_BSET  CAP_FULL_SET
 #else
 # define CAP_INIT_BSET  CAP_INIT_EFF_SET
@@ -115,10 +111,7 @@ extern struct cred init_cred;
 # define INIT_PERF_EVENTS(tsk)
 #endif
 
-/*
- *  INIT_TASK is used to set up the first task table, touch at
- * your own risk!. Base=0, limit=0x1fffff (=2MB)
- */
+
 #define INIT_TASK(tsk)	\
 {									\
 	.state		= 0,						\
@@ -170,7 +163,7 @@ extern struct cred init_cred;
 	.cpu_timers	= INIT_CPU_TIMERS(tsk.cpu_timers),		\
 	.fs_excl	= ATOMIC_INIT(0),				\
 	.pi_lock	= __SPIN_LOCK_UNLOCKED(tsk.pi_lock),		\
-	.timer_slack_ns = 50000, /* 50 usec default slack */		\
+	.timer_slack_ns = 50000, 		\
 	.pids = {							\
 		[PIDTYPE_PID]  = INIT_PID_LINK(PIDTYPE_PID),		\
 		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),		\
@@ -194,7 +187,7 @@ extern struct cred init_cred;
 	LIST_HEAD_INIT(cpu_timers[2]),					\
 }
 
-/* Attach to the init_task data structure for proper alignment */
+
 #define __init_task_data __attribute__((__section__(".data.init_task")))
 
 

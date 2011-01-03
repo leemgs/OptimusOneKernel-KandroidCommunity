@@ -10,4 +10,4 @@ struct sh_timer_config {
 	unsigned long clocksource_rating;
 };
 
-#endif /* __SH_TIMER_H__ */
+#endif 

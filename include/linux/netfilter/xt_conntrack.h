@@ -1,6 +1,4 @@
-/* Header file for kernel module to match connection tracking information.
- * GPL (C) 2001  Marc Boucher (marc@mbsi.ca).
- */
+
 
 #ifndef _XT_CONNTRACK_H
 #define _XT_CONNTRACK_H
@@ -15,7 +13,7 @@
 #define XT_CONNTRACK_STATE_DNAT (1 << (IP_CT_NUMBER + 2))
 #define XT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
 
-/* flags, invflags: */
+
 enum {
 	XT_CONNTRACK_STATE        = 1 << 0,
 	XT_CONNTRACK_PROTO        = 1 << 1,
@@ -58,4 +56,4 @@ struct xt_conntrack_mtinfo2 {
 	__u16 state_mask, status_mask;
 };
 
-#endif /*_XT_CONNTRACK_H*/
+#endif 

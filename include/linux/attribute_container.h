@@ -1,10 +1,4 @@
-/*
- * attribute_container.h - a generic container for all classes
- *
- * Copyright (c) 2005 - James Bottomley <James.Bottomley@steeleye.com>
- *
- * This file is licensed under GPLv2
- */
+
 
 #ifndef _ATTRIBUTE_CONTAINER_H_
 #define _ATTRIBUTE_CONTAINER_H_

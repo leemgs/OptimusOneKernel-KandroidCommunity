@@ -21,8 +21,8 @@ struct hayes_esp_config {
 #define ESP_RX_TMOUT      128
 #define ESP_PIO_THRESHOLD 32
 
-#define ESP_IN_MAJOR	57	/* major dev # for dial in */
-#define ESP_OUT_MAJOR	58	/* major dev # for dial out */
+#define ESP_IN_MAJOR	57	
+#define ESP_OUT_MAJOR	58	
 #define ESPC_SCALE 	3
 #define UART_ESI_BASE	0x00
 #define UART_ESI_SID	0x01
@@ -88,8 +88,8 @@ struct esp_struct {
 	int			close_delay;
 	unsigned short		closing_wait;
 	unsigned short		closing_wait2;
-	int			IER; 	/* Interrupt Enable Register */
-	int			MCR; 	/* Modem control register */
+	int			IER; 	
+	int			MCR; 	
 	unsigned long		last_active;
 	int			line;
 	unsigned char 		*xmit_buf;
@@ -97,9 +97,9 @@ struct esp_struct {
 	int			xmit_tail;
 	int			xmit_cnt;
 	wait_queue_head_t	break_wait;
-	struct async_icount	icount;	/* kernel counters for the 4 input interrupts */
-	struct hayes_esp_config config; /* port configuration */
-	struct esp_struct	*next_port; /* For the linked list */
+	struct async_icount	icount;	
+	struct hayes_esp_config config; 
+	struct esp_struct	*next_port; 
 };
 
 struct esp_pio_buffer {
@@ -107,8 +107,8 @@ struct esp_pio_buffer {
 	struct esp_pio_buffer *next;
 };
 
-#endif /* __KERNEL__ */
+#endif 
 
 
-#endif /* ESP_H */
+#endif 
 

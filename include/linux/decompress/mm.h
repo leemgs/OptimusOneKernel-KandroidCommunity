@@ -1,22 +1,13 @@
-/*
- * linux/compr_mm.h
- *
- * Memory management for pre-boot and ramdisk uncompressors
- *
- * Authors: Alain Knaff <alain@knaff.lu>
- *
- */
+
 
 #ifndef DECOMPR_MM_H
 #define DECOMPR_MM_H
 
 #ifdef STATIC
 
-/* Code active when included from pre-boot environment: */
 
-/* A trivial malloc implementation, adapted from
- *  malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
- */
+
+
 static unsigned long malloc_ptr;
 static int malloc_count;
 
@@ -29,7 +20,7 @@ static void *malloc(int size)
 	if (!malloc_ptr)
 		malloc_ptr = free_mem_ptr;
 
-	malloc_ptr = (malloc_ptr + 3) & ~3;     /* Align */
+	malloc_ptr = (malloc_ptr + 3) & ~3;     
 
 	p = (void *)malloc_ptr;
 	malloc_ptr += size;
@@ -55,18 +46,16 @@ static void free(void *where)
 
 #define INIT
 
-#else /* STATIC */
+#else 
 
-/* Code active when compiled standalone for use when loading ramdisk: */
+
 
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/string.h>
 #include <linux/vmalloc.h>
 
-/* Use defines rather than static inline in order to avoid spurious
- * warnings when not needed (indeed large_malloc / large_free are not
- * needed by inflate */
+
 
 #define malloc(a) kmalloc(a, GFP_KERNEL)
 #define free(a) kfree(a)
@@ -82,6 +71,6 @@ static void(*error)(char *m);
 
 #include <linux/init.h>
 
-#endif /* STATIC */
+#endif 
 
-#endif /* DECOMPR_MM_H */
+#endif 

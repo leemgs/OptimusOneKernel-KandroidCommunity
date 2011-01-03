@@ -1,10 +1,4 @@
-/*
- *  smb_fs_sb.h
- *
- *  Copyright (C) 1995 by Paal-Kr. Engstad and Volker Lendecke
- *  Copyright (C) 1997 by Volker Lendecke
- *
- */
+
 
 #ifndef _SMB_FS_SB
 #define _SMB_FS_SB
@@ -12,29 +6,27 @@
 #include <linux/types.h>
 #include <linux/smb.h>
 
-/*
- * Upper limit on the total number of active smb_request structs.
- */
+
 #define MAX_REQUEST_HARD       256
 
 enum smb_receive_state {
-	SMB_RECV_START,		/* No data read, looking for length + sig */
-	SMB_RECV_HEADER,	/* Reading the header data */
-	SMB_RECV_HCOMPLETE,	/* Done with the header */
-	SMB_RECV_PARAM,		/* Reading parameter words */
-	SMB_RECV_DATA,		/* Reading data bytes */
-	SMB_RECV_END,		/* End of request */
-	SMB_RECV_DROP,		/* Dropping this SMB */
-	SMB_RECV_REQUEST,	/* Received a request and not a reply */
+	SMB_RECV_START,		
+	SMB_RECV_HEADER,	
+	SMB_RECV_HCOMPLETE,	
+	SMB_RECV_PARAM,		
+	SMB_RECV_DATA,		
+	SMB_RECV_END,		
+	SMB_RECV_DROP,		
+	SMB_RECV_REQUEST,	
 };
 
-/* structure access macros */
+
 #define server_from_inode(inode) SMB_SB((inode)->i_sb)
 #define server_from_dentry(dentry) SMB_SB((dentry)->d_sb)
 #define SB_of(server) ((server)->super_block)
 
 struct smb_sb_info {
-	/* List of all smbfs superblocks */
+	
 	struct list_head entry;
 
         enum smb_conn_state state;
@@ -49,9 +41,7 @@ struct smb_sb_info {
 
         struct smb_mount_data_kernel *mnt;
 
-	/* Connections are counted. Each time a new socket arrives,
-	 * generation is incremented.
-	 */
+	
 	unsigned int generation;
 	struct pid *conn_pid;
 	struct smb_conn_opt opt;
@@ -64,10 +54,10 @@ struct smb_sb_info {
 	u32                smb_len;
 	u32                smb_read;
 
-        /* We use our own data_ready callback, but need the original one */
+        
         void *data_ready;
 
-	/* nls pointers for codepage conversions */
+	
 	struct nls_table *remote_nls;
 	struct nls_table *local_nls;
 

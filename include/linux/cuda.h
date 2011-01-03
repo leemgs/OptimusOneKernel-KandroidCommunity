@@ -1,11 +1,6 @@
-/*
- * Definitions for talking to the CUDA.  The CUDA is a microcontroller
- * which controls the ADB, system power, RTC, and various other things.
- *
- * Copyright (C) 1996 Paul Mackerras.
- */
 
-/* CUDA commands (2nd byte) */
+
+
 #define CUDA_WARM_START		0
 #define CUDA_AUTOPOLL		1
 #define CUDA_GET_6805_ADDR	2
@@ -33,4 +28,4 @@ extern int cuda_request(struct adb_request *req,
 			void (*done)(struct adb_request *), int nbytes, ...);
 extern void cuda_poll(void);
 
-#endif	/* __KERNEL */
+#endif	

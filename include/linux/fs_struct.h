@@ -21,4 +21,4 @@ extern void free_fs_struct(struct fs_struct *);
 extern void daemonize_fs_struct(void);
 extern int unshare_fs_struct(void);
 
-#endif /* _LINUX_FS_STRUCT_H */
+#endif 

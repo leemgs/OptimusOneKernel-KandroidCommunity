@@ -18,10 +18,10 @@ enum xt_connbytes_direction {
 struct xt_connbytes_info
 {
 	struct {
-		aligned_u64 from;	/* count to be matched */
-		aligned_u64 to;		/* count to be matched */
+		aligned_u64 from;	
+		aligned_u64 to;		
 	} count;
-	__u8 what;		/* ipt_connbytes_what */
-	__u8 direction;	/* ipt_connbytes_direction */
+	__u8 what;		
+	__u8 direction;	
 };
 #endif

@@ -1,17 +1,4 @@
-/*
- *	aspm.h
- *
- *	PCI Express ASPM defines and function prototypes
- *
- *	Copyright (C) 2007 Intel Corp.
- *		Zhang Yanmin (yanmin.zhang@intel.com)
- *		Shaohua Li (shaohua.li@intel.com)
- *
- *	For more information, please consult the following manuals (look at
- *	http://www.pcisig.com/ for how to get them):
- *
- *	PCI Express Specification
- */
+
 
 #ifndef LINUX_ASPM_H
 #define LINUX_ASPM_H
@@ -47,7 +34,7 @@ static inline void pcie_no_aspm(void)
 }
 #endif
 
-#ifdef CONFIG_PCIEASPM_DEBUG /* this depends on CONFIG_PCIEASPM */
+#ifdef CONFIG_PCIEASPM_DEBUG 
 extern void pcie_aspm_create_sysfs_dev_files(struct pci_dev *pdev);
 extern void pcie_aspm_remove_sysfs_dev_files(struct pci_dev *pdev);
 #else
@@ -58,4 +45,4 @@ static inline void pcie_aspm_remove_sysfs_dev_files(struct pci_dev *pdev)
 {
 }
 #endif
-#endif /* LINUX_ASPM_H */
+#endif 

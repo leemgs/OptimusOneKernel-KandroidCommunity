@@ -1,12 +1,4 @@
-/*
- * syscalls.h - Linux syscall interfaces (non-arch-specific)
- *
- * Copyright (c) 2004 Randy Dunlap
- * Copyright (c) 2004 Open Source Development Labs
- *
- * This file is released under the GPLv2.
- * See the file COPYING for more details.
- */
+
 
 #ifndef _LINUX_SYSCALLS_H
 #define _LINUX_SYSCALLS_H
@@ -307,13 +299,13 @@ static void prof_sysexit_disable_##sname(void)				       \
 	SYSCALL_ALIAS(sys##name, SyS##name);				\
 	static inline long SYSC##name(__SC_DECL##x(__VA_ARGS__))
 
-#else /* CONFIG_HAVE_SYSCALL_WRAPPERS */
+#else 
 
 #define SYSCALL_DEFINE(name) asmlinkage long sys_##name
 #define __SYSCALL_DEFINEx(x, name, ...)					\
 	asmlinkage long sys##name(__SC_DECL##x(__VA_ARGS__))
 
-#endif /* CONFIG_HAVE_SYSCALL_WRAPPERS */
+#endif 
 
 asmlinkage long sys_time(time_t __user *tloc);
 asmlinkage long sys_stime(time_t __user *tptr);

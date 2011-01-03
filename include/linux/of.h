@@ -1,29 +1,15 @@
 #ifndef _LINUX_OF_H
 #define _LINUX_OF_H
-/*
- * Definitions for talking to the Open Firmware PROM on
- * Power Macintosh and other computers.
- *
- * Copyright (C) 1996-2005 Paul Mackerras.
- *
- * Updates for PPC64 by Peter Bergner & David Engebretsen, IBM Corp.
- * Updates for SPARC64 by David S. Miller
- * Derived from PowerPC and Sparc prom.h files by Stephen Rothwell, IBM Corp.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 #include <linux/types.h>
 #include <linux/bitops.h>
 #include <linux/mod_devicetable.h>
 
 #include <asm/prom.h>
 
-/* flag descriptions */
-#define OF_DYNAMIC	1 /* node and properties were allocated via kmalloc */
-#define OF_DETACHED	2 /* node has been detached from the device tree */
+
+#define OF_DYNAMIC	1 
+#define OF_DETACHED	2 
 
 #define OF_BAD_ADDR	((u64)-1)
 
@@ -84,4 +70,4 @@ extern int of_parse_phandles_with_args(struct device_node *np,
 	const char *list_name, const char *cells_name, int index,
 	struct device_node **out_node, const void **out_args);
 
-#endif /* _LINUX_OF_H */
+#endif 

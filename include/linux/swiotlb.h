@@ -7,17 +7,10 @@ struct device;
 struct dma_attrs;
 struct scatterlist;
 
-/*
- * Maximum allowable number of contiguous slabs to map,
- * must be a power of 2.  What is the appropriate value ?
- * The complexity of {map,unmap}_single is linearly dependent on this value.
- */
+
 #define IO_TLB_SEGSIZE	128
 
-/*
- * log of the size of each IO TLB slab.  The number of slabs is command line
- * controllable.
- */
+
 #define IO_TLB_SHIFT 11
 
 extern void
@@ -88,4 +81,4 @@ swiotlb_dma_mapping_error(struct device *hwdev, dma_addr_t dma_addr);
 extern int
 swiotlb_dma_supported(struct device *hwdev, u64 mask);
 
-#endif /* __LINUX_SWIOTLB_H */
+#endif 

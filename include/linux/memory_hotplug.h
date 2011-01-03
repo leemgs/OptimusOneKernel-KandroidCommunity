@@ -12,17 +12,12 @@ struct mem_section;
 
 #ifdef CONFIG_MEMORY_HOTPLUG
 
-/*
- * Types for free bootmem.
- * The normal smallest mapcount is -1. Here is smaller value than it.
- */
+
 #define SECTION_INFO		(-1 - 1)
 #define MIX_SECTION_INFO	(-1 - 2)
 #define NODE_INFO		(-1 - 3)
 
-/*
- * pgdat resizing functions
- */
+
 static inline
 void pgdat_resize_lock(struct pglist_data *pgdat, unsigned long *flags)
 {
@@ -38,9 +33,7 @@ void pgdat_resize_init(struct pglist_data *pgdat)
 {
 	spin_lock_init(&pgdat->node_size_lock);
 }
-/*
- * Zone resizing functions
- */
+
 static inline unsigned zone_span_seqbegin(struct zone *zone)
 {
 	return read_seqbegin(&zone->span_seqlock);
@@ -64,14 +57,14 @@ static inline void zone_seqlock_init(struct zone *zone)
 extern int zone_grow_free_lists(struct zone *zone, unsigned long new_nr_pages);
 extern int zone_grow_waitqueues(struct zone *zone, unsigned long nr_pages);
 extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
-/* need some defines for these for archs that don't support it */
+
 extern void online_page(struct page *page);
-/* VM interface that may be used by firmware interface */
+
 extern int online_pages(unsigned long, unsigned long);
 extern void __offline_isolated_pages(unsigned long, unsigned long);
 extern int offline_pages(unsigned long, unsigned long, unsigned long);
 
-/* reasonably generic interface to expand the physical pages in a zone  */
+
 extern int __add_pages(int nid, struct zone *zone, unsigned long start_pfn,
 	unsigned long nr_pages);
 extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
@@ -87,40 +80,23 @@ static inline int memory_add_physaddr_to_nid(u64 start)
 #endif
 
 #ifdef CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
-/*
- * For supporting node-hotadd, we have to allocate a new pgdat.
- *
- * If an arch has generic style NODE_DATA(),
- * node_data[nid] = kzalloc() works well. But it depends on the architecture.
- *
- * In general, generic_alloc_nodedata() is used.
- * Now, arch_free_nodedata() is just defined for error path of node_hot_add.
- *
- */
+
 extern pg_data_t *arch_alloc_nodedata(int nid);
 extern void arch_free_nodedata(pg_data_t *pgdat);
 extern void arch_refresh_nodedata(int nid, pg_data_t *pgdat);
 
-#else /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+#else 
 
 #define arch_alloc_nodedata(nid)	generic_alloc_nodedata(nid)
 #define arch_free_nodedata(pgdat)	generic_free_nodedata(pgdat)
 
 #ifdef CONFIG_NUMA
-/*
- * If ARCH_HAS_NODEDATA_EXTENSION=n, this func is used to allocate pgdat.
- * XXX: kmalloc_node() can't work well to get new node's memory at this time.
- *	Because, pgdat for the new node is not allocated/initialized yet itself.
- *	To use new node's memory, more consideration will be necessary.
- */
+
 #define generic_alloc_nodedata(nid)				\
 ({								\
 	kzalloc(sizeof(pg_data_t), GFP_KERNEL);			\
 })
-/*
- * This definition is just for error path in node hotadd.
- * For node hotremove, we have to replace this.
- */
+
 #define generic_free_nodedata(pgdat)	kfree(pgdat)
 
 extern pg_data_t *node_data[];
@@ -129,9 +105,9 @@ static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
 	node_data[nid] = pgdat;
 }
 
-#else /* !CONFIG_NUMA */
+#else 
 
-/* never called */
+
 static inline pg_data_t *generic_alloc_nodedata(int nid)
 {
 	BUG();
@@ -143,8 +119,8 @@ static inline void generic_free_nodedata(pg_data_t *pgdat)
 static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
 {
 }
-#endif /* CONFIG_NUMA */
-#endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+#endif 
+#endif 
 
 #ifdef CONFIG_SPARSEMEM_VMEMMAP
 static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
@@ -158,10 +134,8 @@ extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
 extern void put_page_bootmem(struct page *page);
 #endif
 
-#else /* ! CONFIG_MEMORY_HOTPLUG */
-/*
- * Stub functions for when hotplug is off
- */
+#else 
+
 static inline void pgdat_resize_lock(struct pglist_data *p, unsigned long *f) {}
 static inline void pgdat_resize_unlock(struct pglist_data *p, unsigned long *f) {}
 static inline void pgdat_resize_init(struct pglist_data *pgdat) {}
@@ -189,7 +163,7 @@ static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
 {
 }
 
-#endif /* ! CONFIG_MEMORY_HOTPLUG */
+#endif 
 
 #ifdef CONFIG_MEMORY_HOTREMOVE
 
@@ -201,7 +175,7 @@ static inline int is_mem_section_removable(unsigned long pfn,
 {
 	return 0;
 }
-#endif /* CONFIG_MEMORY_HOTREMOVE */
+#endif 
 
 extern int add_memory(int nid, u64 start, u64 size);
 extern int arch_add_memory(int nid, u64 start, u64 size);
@@ -212,4 +186,4 @@ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
 extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
 					  unsigned long pnum);
 
-#endif /* __LINUX_MEMORY_HOTPLUG_H */
+#endif 

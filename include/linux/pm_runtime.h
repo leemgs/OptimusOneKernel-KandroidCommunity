@@ -1,10 +1,4 @@
-/*
- * pm_runtime.h - Device run-time power management helper functions.
- *
- * Copyright (C) 2009 Rafael J. Wysocki <rjw@sisk.pl>
- *
- * This file is released under the GPLv2.
- */
+
 
 #ifndef _LINUX_PM_RUNTIME_H
 #define _LINUX_PM_RUNTIME_H
@@ -50,7 +44,7 @@ static inline void pm_runtime_put_noidle(struct device *dev)
 	atomic_add_unless(&dev->power.usage_count, -1, 0);
 }
 
-#else /* !CONFIG_PM_RUNTIME */
+#else 
 
 static inline int pm_runtime_idle(struct device *dev) { return -ENOSYS; }
 static inline int pm_runtime_suspend(struct device *dev) { return -ENOSYS; }
@@ -74,7 +68,7 @@ static inline void pm_suspend_ignore_children(struct device *dev, bool en) {}
 static inline void pm_runtime_get_noresume(struct device *dev) {}
 static inline void pm_runtime_put_noidle(struct device *dev) {}
 
-#endif /* !CONFIG_PM_RUNTIME */
+#endif 
 
 static inline int pm_runtime_get(struct device *dev)
 {

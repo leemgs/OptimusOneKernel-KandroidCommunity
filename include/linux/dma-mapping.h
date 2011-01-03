@@ -6,8 +6,7 @@
 #include <linux/dma-attrs.h>
 #include <linux/scatterlist.h>
 
-/* These definitions mirror those in pci.h, so they can be used
- * interchangeably with their PCI_ counterparts */
+
 enum dma_data_direction {
 	DMA_BIDIRECTIONAL = 0,
 	DMA_TO_DEVICE = 1,
@@ -66,12 +65,7 @@ struct dma_map_ops {
 
 typedef u64 DMA_nnBIT_MASK __deprecated;
 
-/*
- * NOTE: do not use the below macros in new code and do not add new definitions
- * here.
- *
- * Instead, just open-code DMA_BIT_MASK(n) within your driver
- */
+
 #define DMA_64BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(64)
 #define DMA_48BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(48)
 #define DMA_47BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(47)
@@ -105,7 +99,7 @@ static inline int is_device_dma_capable(struct device *dev)
 #include <asm-generic/dma-mapping-broken.h>
 #endif
 
-/* for backwards compatibility, removed soon */
+
 static inline void __deprecated dma_sync_single(struct device *dev,
 						dma_addr_t addr, size_t size,
 						enum dma_data_direction dir)
@@ -159,7 +153,7 @@ static inline int dma_set_seg_boundary(struct device *dev, unsigned long mask)
 		return -EIO;
 }
 
-/* flags for the coherent memory api */
+
 #define	DMA_MEMORY_MAP			0x01
 #define DMA_MEMORY_IO			0x02
 #define DMA_MEMORY_INCLUDES_CHILDREN	0x04
@@ -186,9 +180,7 @@ dma_mark_declared_memory_occupied(struct device *dev,
 }
 #endif
 
-/*
- * Managed DMA API
- */
+
 extern void *dmam_alloc_coherent(struct device *dev, size_t size,
 				 dma_addr_t *dma_handle, gfp_t gfp);
 extern void dmam_free_coherent(struct device *dev, size_t size, void *vaddr,
@@ -202,7 +194,7 @@ extern int dmam_declare_coherent_memory(struct device *dev, dma_addr_t bus_addr,
 					dma_addr_t device_addr, size_t size,
 					int flags);
 extern void dmam_release_declared_memory(struct device *dev);
-#else /* ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY */
+#else 
 static inline int dmam_declare_coherent_memory(struct device *dev,
 				dma_addr_t bus_addr, dma_addr_t device_addr,
 				size_t size, gfp_t gfp)
@@ -213,7 +205,7 @@ static inline int dmam_declare_coherent_memory(struct device *dev,
 static inline void dmam_release_declared_memory(struct device *dev)
 {
 }
-#endif /* ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY */
+#endif 
 
 #ifndef CONFIG_HAVE_DMA_ATTRS
 struct dma_attrs;
@@ -230,6 +222,6 @@ struct dma_attrs;
 #define dma_unmap_sg_attrs(dev, sgl, nents, dir, attrs) \
 	dma_unmap_sg(dev, sgl, nents, dir)
 
-#endif /* CONFIG_HAVE_DMA_ATTRS */
+#endif 
 
 #endif

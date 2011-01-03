@@ -1,77 +1,24 @@
-/*
-    FUSE: Filesystem in Userspace
-    Copyright (C) 2001-2008  Miklos Szeredi <miklos@szeredi.hu>
 
-    This program can be distributed under the terms of the GNU GPL.
-    See the file COPYING.
-*/
 
-/*
- * This file defines the kernel interface of FUSE
- *
- * Protocol changelog:
- *
- * 7.9:
- *  - new fuse_getattr_in input argument of GETATTR
- *  - add lk_flags in fuse_lk_in
- *  - add lock_owner field to fuse_setattr_in, fuse_read_in and fuse_write_in
- *  - add blksize field to fuse_attr
- *  - add file flags field to fuse_read_in and fuse_write_in
- *
- * 7.10
- *  - add nonseekable open flag
- *
- * 7.11
- *  - add IOCTL message
- *  - add unsolicited notification support
- *  - add POLL message and NOTIFY_POLL notification
- *
- * 7.12
- *  - add umask flag to input argument of open, mknod and mkdir
- *  - add notification messages for invalidation of inodes and
- *    directory entries
- *
- * 7.13
- *  - make max number of background requests and congestion threshold
- *    tunables
- */
+
 
 #ifndef _LINUX_FUSE_H
 #define _LINUX_FUSE_H
 
 #include <linux/types.h>
 
-/*
- * Version negotiation:
- *
- * Both the kernel and userspace send the version they support in the
- * INIT request and reply respectively.
- *
- * If the major versions match then both shall use the smallest
- * of the two minor versions for communication.
- *
- * If the kernel supports a larger major version, then userspace shall
- * reply with the major version it supports, ignore the rest of the
- * INIT message and expect a new INIT message from the kernel with a
- * matching major version.
- *
- * If the library supports a larger major version, then it shall fall
- * back to the major protocol version sent by the kernel for
- * communication and reply with that major version (and an arbitrary
- * supported minor version).
- */
 
-/** Version number of this interface */
+
+
 #define FUSE_KERNEL_VERSION 7
 
-/** Minor version number of this interface */
+
 #define FUSE_KERNEL_MINOR_VERSION 13
 
-/** The node ID of the root inode */
+
 #define FUSE_ROOT_ID 1
 
-/* Make sure all structures are padded to 64bit boundary, so 32bit
-   userspace works under 64bit kernels */
+
 
 struct fuse_attr {
 	__u64	ino;
@@ -109,12 +56,10 @@ struct fuse_file_lock {
 	__u64	start;
 	__u64	end;
 	__u32	type;
-	__u32	pid; /* tgid */
+	__u32	pid; 
 };
 
-/**
- * Bitmasks for fuse_setattr_in.valid
- */
+
 #define FATTR_MODE	(1 << 0)
 #define FATTR_UID	(1 << 1)
 #define FATTR_GID	(1 << 2)
@@ -126,23 +71,12 @@ struct fuse_file_lock {
 #define FATTR_MTIME_NOW	(1 << 8)
 #define FATTR_LOCKOWNER	(1 << 9)
 
-/**
- * Flags returned by the OPEN request
- *
- * FOPEN_DIRECT_IO: bypass page cache for this open file
- * FOPEN_KEEP_CACHE: don't invalidate the data cache on open
- * FOPEN_NONSEEKABLE: the file is not seekable
- */
+
 #define FOPEN_DIRECT_IO		(1 << 0)
 #define FOPEN_KEEP_CACHE	(1 << 1)
 #define FOPEN_NONSEEKABLE	(1 << 2)
 
-/**
- * INIT request/reply flags
- *
- * FUSE_EXPORT_SUPPORT: filesystem handles lookups of "." and ".."
- * FUSE_DONT_MASK: don't apply umask to file mode on create operations
- */
+
 #define FUSE_ASYNC_READ		(1 << 0)
 #define FUSE_POSIX_LOCKS	(1 << 1)
 #define FUSE_FILE_OPS		(1 << 2)
@@ -151,67 +85,38 @@ struct fuse_file_lock {
 #define FUSE_BIG_WRITES		(1 << 5)
 #define FUSE_DONT_MASK		(1 << 6)
 
-/**
- * CUSE INIT request/reply flags
- *
- * CUSE_UNRESTRICTED_IOCTL:  use unrestricted ioctl
- */
+
 #define CUSE_UNRESTRICTED_IOCTL	(1 << 0)
 
-/**
- * Release flags
- */
+
 #define FUSE_RELEASE_FLUSH	(1 << 0)
 
-/**
- * Getattr flags
- */
+
 #define FUSE_GETATTR_FH		(1 << 0)
 
-/**
- * Lock flags
- */
+
 #define FUSE_LK_FLOCK		(1 << 0)
 
-/**
- * WRITE flags
- *
- * FUSE_WRITE_CACHE: delayed write from page cache, file handle is guessed
- * FUSE_WRITE_LOCKOWNER: lock_owner field is valid
- */
+
 #define FUSE_WRITE_CACHE	(1 << 0)
 #define FUSE_WRITE_LOCKOWNER	(1 << 1)
 
-/**
- * Read flags
- */
+
 #define FUSE_READ_LOCKOWNER	(1 << 1)
 
-/**
- * Ioctl flags
- *
- * FUSE_IOCTL_COMPAT: 32bit compat ioctl on 64bit machine
- * FUSE_IOCTL_UNRESTRICTED: not restricted to well-formed ioctls, retry allowed
- * FUSE_IOCTL_RETRY: retry with new iovecs
- *
- * FUSE_IOCTL_MAX_IOV: maximum of in_iovecs + out_iovecs
- */
+
 #define FUSE_IOCTL_COMPAT	(1 << 0)
 #define FUSE_IOCTL_UNRESTRICTED	(1 << 1)
 #define FUSE_IOCTL_RETRY	(1 << 2)
 
 #define FUSE_IOCTL_MAX_IOV	256
 
-/**
- * Poll flags
- *
- * FUSE_POLL_SCHEDULE_NOTIFY: request poll notify
- */
+
 #define FUSE_POLL_SCHEDULE_NOTIFY (1 << 0)
 
 enum fuse_opcode {
 	FUSE_LOOKUP	   = 1,
-	FUSE_FORGET	   = 2,  /* no reply */
+	FUSE_FORGET	   = 2,  
 	FUSE_GETATTR	   = 3,
 	FUSE_SETATTR	   = 4,
 	FUSE_READLINK	   = 5,
@@ -249,7 +154,7 @@ enum fuse_opcode {
 	FUSE_IOCTL         = 39,
 	FUSE_POLL          = 40,
 
-	/* CUSE specific operations */
+	
 	CUSE_INIT          = 4096,
 };
 
@@ -260,17 +165,16 @@ enum fuse_notify_code {
 	FUSE_NOTIFY_CODE_MAX,
 };
 
-/* The read buffer is required to be at least 8k, but may be much larger */
+
 #define FUSE_MIN_READ_BUFFER 8192
 
 #define FUSE_COMPAT_ENTRY_OUT_SIZE 120
 
 struct fuse_entry_out {
-	__u64	nodeid;		/* Inode ID */
-	__u64	generation;	/* Inode generation: nodeid:gen must
-				   be unique for the fs's lifetime */
-	__u64	entry_valid;	/* Cache timeout for the name */
-	__u64	attr_valid;	/* Cache timeout for the attributes */
+	__u64	nodeid;		
+	__u64	generation;	
+	__u64	entry_valid;	
+	__u64	attr_valid;	
 	__u32	entry_valid_nsec;
 	__u32	attr_valid_nsec;
 	struct fuse_attr attr;
@@ -289,7 +193,7 @@ struct fuse_getattr_in {
 #define FUSE_COMPAT_ATTR_OUT_SIZE 96
 
 struct fuse_attr_out {
-	__u64	attr_valid;	/* Cache timeout for the attributes */
+	__u64	attr_valid;	
 	__u32	attr_valid_nsec;
 	__u32	dummy;
 	struct fuse_attr attr;
@@ -472,8 +376,8 @@ struct cuse_init_out {
 	__u32	flags;
 	__u32	max_read;
 	__u32	max_write;
-	__u32	dev_major;		/* chardev major */
-	__u32	dev_minor;		/* chardev minor */
+	__u32	dev_major;		
+	__u32	dev_minor;		
 	__u32	spare[10];
 };
 
@@ -565,4 +469,4 @@ struct fuse_notify_inval_entry_out {
 	__u32	padding;
 };
 
-#endif /* _LINUX_FUSE_H */
+#endif 

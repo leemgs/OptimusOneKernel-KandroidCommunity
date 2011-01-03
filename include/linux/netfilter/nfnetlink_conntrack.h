@@ -28,7 +28,7 @@ enum ctattr_type {
 	CTA_PROTOINFO,
 	CTA_HELP,
 	CTA_NAT_SRC,
-#define CTA_NAT	CTA_NAT_SRC	/* backwards compatibility */
+#define CTA_NAT	CTA_NAT_SRC	
 	CTA_TIMEOUT,
 	CTA_MARK,
 	CTA_COUNTERS_ORIG,
@@ -117,10 +117,10 @@ enum ctattr_protoinfo_sctp {
 
 enum ctattr_counters {
 	CTA_COUNTERS_UNSPEC,
-	CTA_COUNTERS_PACKETS,		/* 64bit counters */
-	CTA_COUNTERS_BYTES,		/* 64bit counters */
-	CTA_COUNTERS32_PACKETS,		/* old 32bit counters, unused */
-	CTA_COUNTERS32_BYTES,		/* old 32bit counters, unused */
+	CTA_COUNTERS_PACKETS,		
+	CTA_COUNTERS_BYTES,		
+	CTA_COUNTERS32_PACKETS,		
+	CTA_COUNTERS32_BYTES,		
 	__CTA_COUNTERS_MAX
 };
 #define CTA_COUNTERS_MAX (__CTA_COUNTERS_MAX - 1)
@@ -170,4 +170,4 @@ enum ctattr_help {
 };
 #define CTA_HELP_MAX (__CTA_HELP_MAX - 1)
 
-#endif /* _IPCONNTRACK_NETLINK_H */
+#endif 

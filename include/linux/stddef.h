@@ -23,6 +23,6 @@ enum {
 #else
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
-#endif /* __KERNEL__ */
+#endif 
 
 #endif

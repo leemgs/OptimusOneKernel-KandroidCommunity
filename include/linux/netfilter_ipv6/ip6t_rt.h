@@ -1,19 +1,19 @@
 #ifndef _IP6T_RT_H
 #define _IP6T_RT_H
 
-/*#include <linux/in6.h>*/
+
 
 #define IP6T_RT_HOPS 16
 
 struct ip6t_rt
 {
-	u_int32_t rt_type;			/* Routing Type */
-	u_int32_t segsleft[2];			/* Segments Left */
-	u_int32_t hdrlen;			/* Header Length */
-	u_int8_t  flags;			/*  */
-	u_int8_t  invflags;			/* Inverse flags */
-	struct in6_addr addrs[IP6T_RT_HOPS];	/* Hops */
-	u_int8_t addrnr;			/* Nr of Addresses */
+	u_int32_t rt_type;			
+	u_int32_t segsleft[2];			
+	u_int32_t hdrlen;			
+	u_int8_t  flags;			
+	u_int8_t  invflags;			
+	struct in6_addr addrs[IP6T_RT_HOPS];	
+	u_int8_t addrnr;			
 };
 
 #define IP6T_RT_TYP 		0x01
@@ -24,10 +24,10 @@ struct ip6t_rt
 #define IP6T_RT_FST 		0x10
 #define IP6T_RT_FST_NSTRICT	0x20
 
-/* Values for "invflags" field in struct ip6t_rt. */
-#define IP6T_RT_INV_TYP		0x01	/* Invert the sense of type. */
-#define IP6T_RT_INV_SGS		0x02	/* Invert the sense of Segments. */
-#define IP6T_RT_INV_LEN		0x04	/* Invert the sense of length. */
-#define IP6T_RT_INV_MASK	0x07	/* All possible flags. */
 
-#endif /*_IP6T_RT_H*/
+#define IP6T_RT_INV_TYP		0x01	
+#define IP6T_RT_INV_SGS		0x02	
+#define IP6T_RT_INV_LEN		0x04	
+#define IP6T_RT_INV_MASK	0x07	
+
+#endif 

@@ -6,12 +6,10 @@
 #include <linux/rwsem.h>
 #include <linux/notifier.h>
 
-/*
- * ipc namespace events
- */
-#define IPCNS_MEMCHANGED   0x00000001   /* Notify lowmem size changed */
-#define IPCNS_CREATED  0x00000002   /* Notify new ipc namespace created */
-#define IPCNS_REMOVED  0x00000003   /* Notify ipc namespace removed */
+
+#define IPCNS_MEMCHANGED   0x00000001   
+#define IPCNS_CREATED  0x00000002   
+#define IPCNS_REMOVED  0x00000003   
 
 #define IPCNS_CALLBACK_PRI 0
 
@@ -45,16 +43,16 @@ struct ipc_namespace {
 
 	struct notifier_block ipcns_nb;
 
-	/* The kern_mount of the mqueuefs sb.  We take a ref on it */
+	
 	struct vfsmount	*mq_mnt;
 
-	/* # queues in this ns, protected by mq_lock */
+	
 	unsigned int    mq_queues_count;
 
-	/* next fields are set through sysctl */
-	unsigned int    mq_queues_max;   /* initialized to DFLT_QUEUESMAX */
-	unsigned int    mq_msg_max;      /* initialized to DFLT_MSGMAX */
-	unsigned int    mq_msgsize_max;  /* initialized to DFLT_MSGSIZEMAX */
+	
+	unsigned int    mq_queues_max;   
+	unsigned int    mq_msg_max;      
+	unsigned int    mq_msgsize_max;  
 
 };
 
@@ -73,22 +71,22 @@ extern int register_ipcns_notifier(struct ipc_namespace *);
 extern int cond_register_ipcns_notifier(struct ipc_namespace *);
 extern void unregister_ipcns_notifier(struct ipc_namespace *);
 extern int ipcns_notify(unsigned long);
-#else /* CONFIG_SYSVIPC */
+#else 
 static inline int register_ipcns_notifier(struct ipc_namespace *ns)
 { return 0; }
 static inline int cond_register_ipcns_notifier(struct ipc_namespace *ns)
 { return 0; }
 static inline void unregister_ipcns_notifier(struct ipc_namespace *ns) { }
 static inline int ipcns_notify(unsigned long l) { return 0; }
-#endif /* CONFIG_SYSVIPC */
+#endif 
 
 #ifdef CONFIG_POSIX_MQUEUE
 extern int mq_init_ns(struct ipc_namespace *ns);
-/* default values */
-#define DFLT_QUEUESMAX 256     /* max number of message queues */
-#define DFLT_MSGMAX    10      /* max number of messages in each queue */
+
+#define DFLT_QUEUESMAX 256     
+#define DFLT_MSGMAX    10      
 #define HARD_MSGMAX    (131072/sizeof(void *))
-#define DFLT_MSGSIZEMAX 8192   /* max message size */
+#define DFLT_MSGSIZEMAX 8192   
 #else
 static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
 #endif
@@ -129,12 +127,12 @@ static inline void put_ipc_ns(struct ipc_namespace *ns)
 struct ctl_table_header;
 extern struct ctl_table_header *mq_register_sysctl_table(void);
 
-#else /* CONFIG_POSIX_MQUEUE_SYSCTL */
+#else 
 
 static inline struct ctl_table_header *mq_register_sysctl_table(void)
 {
 	return NULL;
 }
 
-#endif /* CONFIG_POSIX_MQUEUE_SYSCTL */
+#endif 
 #endif

@@ -1,10 +1,4 @@
-/*
- * linux/include/linux/lockd/debug.h
- *
- * Debugging stuff.
- *
- * Copyright (C) 1996 Olaf Kirch <okir@monad.swb.de>
- */
+
 
 #ifndef LINUX_LOCKD_DEBUG_H
 #define LINUX_LOCKD_DEBUG_H
@@ -13,10 +7,7 @@
 
 #include <linux/sunrpc/debug.h>
 
-/*
- * Enable lockd debugging.
- * Requires RPC_DEBUG.
- */
+
 #ifdef RPC_DEBUG
 # define LOCKD_DEBUG		1
 #endif
@@ -28,11 +19,9 @@
 # define ifdebug(flag)		if (0)
 #endif
 
-#endif /* __KERNEL__ */
+#endif 
 
-/*
- * Debug flags
- */
+
 #define NLMDBG_SVC		0x0001
 #define NLMDBG_CLIENT		0x0002
 #define NLMDBG_CLNTLOCK		0x0004
@@ -45,13 +34,11 @@
 #define NLMDBG_ALL		0x7fff
 
 
-/*
- * Support for printing NLM cookies in dprintk()
- */
+
 #ifdef RPC_DEBUG
 struct nlm_cookie;
-/* Call this function with the BKL held (it uses a static buffer) */
+
 extern const char *nlmdbg_cookie2a(const struct nlm_cookie *);
 #endif
 
-#endif /* LINUX_LOCKD_DEBUG_H */
+#endif 

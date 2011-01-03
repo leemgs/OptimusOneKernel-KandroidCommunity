@@ -2,9 +2,7 @@
 #define __LIS3LV02D_H_
 
 struct lis3lv02d_platform_data {
-	/* please note: the 'click' feature is only supported for
-	 * LIS[32]02DL variants of the chip and will be ignored for
-	 * others */
+	
 #define LIS3_CLICK_SINGLE_X	(1 << 0)
 #define LIS3_CLICK_DOUBLE_X	(1 << 1)
 #define LIS3_CLICK_SINGLE_Y	(1 << 2)
@@ -45,4 +43,4 @@ struct lis3lv02d_platform_data {
 	unsigned char wakeup_thresh;
 };
 
-#endif /* __LIS3LV02D_H_ */
+#endif 

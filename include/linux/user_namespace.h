@@ -54,4 +54,4 @@ static inline void put_user_ns(struct user_namespace *ns)
 
 #endif
 
-#endif /* _LINUX_USER_H */
+#endif 

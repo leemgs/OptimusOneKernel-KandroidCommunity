@@ -1,30 +1,27 @@
-/*
- * Copyright (c) 2008 Intel Corporation
- * Author: Matthew Wilcox <willy@linux.intel.com>
- *
- * Distributed under the terms of the GNU GPL, version 2
- *
- * Please see kernel/semaphore.c for documentation of these functions
- */
+
 #ifndef __LINUX_SEMAPHORE_H
 #define __LINUX_SEMAPHORE_H
 
 #include <linux/list.h>
 #include <linux/spinlock.h>
 
-/* Please don't access any members of this structure directly */
+
 struct semaphore {
 	spinlock_t		lock;
 	unsigned int		count;
 	struct list_head	wait_list;
 };
 
+#ifdef __SPLINT__
+#define __SEMAPHORE_INITIALIZER(name, n)	NULL				
+#else
 #define __SEMAPHORE_INITIALIZER(name, n)				\
 {									\
 	.lock		= __SPIN_LOCK_UNLOCKED((name).lock),		\
 	.count		= n,						\
 	.wait_list	= LIST_HEAD_INIT((name).wait_list),		\
 }
+#endif
 
 #define DECLARE_MUTEX(name)	\
 	struct semaphore name = __SEMAPHORE_INITIALIZER(name, 1)
@@ -46,4 +43,4 @@ extern int __must_check down_trylock(struct semaphore *sem);
 extern int __must_check down_timeout(struct semaphore *sem, long jiffies);
 extern void up(struct semaphore *sem);
 
-#endif /* __LINUX_SEMAPHORE_H */
+#endif 

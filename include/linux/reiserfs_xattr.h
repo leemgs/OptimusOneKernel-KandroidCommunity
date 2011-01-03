@@ -1,18 +1,16 @@
-/*
-  File: linux/reiserfs_xattr.h
-*/
+
 
 #ifndef _LINUX_REISERFS_XATTR_H
 #define _LINUX_REISERFS_XATTR_H
 
 #include <linux/types.h>
 
-/* Magic value in header */
-#define REISERFS_XATTR_MAGIC 0x52465841	/* "RFXA" */
+
+#define REISERFS_XATTR_MAGIC 0x52465841	
 
 struct reiserfs_xattr_header {
-	__le32 h_magic;		/* magic number for identification */
-	__le32 h_hash;		/* hash of the value */
+	__le32 h_magic;		
+	__le32 h_hash;		
 };
 
 struct reiserfs_security_handle {
@@ -81,17 +79,7 @@ static inline loff_t reiserfs_xattr_nblocks(struct inode *inode, loff_t size)
 	return ret;
 }
 
-/* We may have to create up to 3 objects: xattr root, xattr dir, xattr file.
- * Let's try to be smart about it.
- * xattr root: We cache it. If it's not cached, we may need to create it.
- * xattr dir: If anything has been loaded for this inode, we can set a flag
- *            saying so.
- * xattr file: Since we don't cache xattrs, we can't tell. We always include
- *             blocks for it.
- *
- * However, since root and dir can be created between calls - YOU MUST SAVE
- * THIS VALUE.
- */
+
 static inline size_t reiserfs_xattr_jcreate_nblocks(struct inode *inode)
 {
 	size_t nblocks = JOURNAL_BLOCKS_PER_OBJECT(inode->i_sb);
@@ -120,7 +108,7 @@ static inline void reiserfs_init_xattr_rwsem(struct inode *inode)
 static inline void reiserfs_init_xattr_rwsem(struct inode *inode)
 {
 }
-#endif  /*  CONFIG_REISERFS_FS_XATTR  */
+#endif  
 
 #ifndef CONFIG_REISERFS_FS_SECURITY
 static inline int reiserfs_security_init(struct inode *dir,
@@ -140,6 +128,6 @@ static inline void reiserfs_security_free(struct reiserfs_security_handle *sec)
 {}
 #endif
 
-#endif  /*  __KERNEL__  */
+#endif  
 
-#endif  /*  _LINUX_REISERFS_XATTR_H  */
+#endif  

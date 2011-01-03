@@ -1,8 +1,4 @@
-/*
- * Copyright (C) 2008 Eduard - Gabriel Munteanu
- *
- * This file is released under GPL version 2.
- */
+
 
 #ifndef _LINUX_KMEMTRACE_H
 #define _LINUX_KMEMTRACE_H
@@ -19,7 +15,7 @@ static inline void kmemtrace_init(void)
 }
 #endif
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _LINUX_KMEMTRACE_H */
+#endif 
 

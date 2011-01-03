@@ -1,14 +1,4 @@
-/*
- * USB Serial Converter stuff
- *
- *	Copyright (C) 1999 - 2005
- *	    Greg Kroah-Hartman (greg@kroah.com)
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation; version 2 of the License.
- *
- */
+
 
 #ifndef __LINUX_USB_SERIAL_H
 #define __LINUX_USB_SERIAL_H
@@ -17,14 +7,14 @@
 #include <linux/mutex.h>
 #include <linux/sysrq.h>
 
-#define SERIAL_TTY_MAJOR	188	/* Nice legal number now */
-#define SERIAL_TTY_MINORS	254	/* loads of devices :) */
-#define SERIAL_TTY_NO_MINOR	255	/* No minor was assigned */
+#define SERIAL_TTY_MAJOR	188	
+#define SERIAL_TTY_MINORS	254	
+#define SERIAL_TTY_NO_MINOR	255	
 
-/* The maximum number of ports one device can grab at once */
+
 #define MAX_NUM_PORTS		8
 
-/* parity check flag */
+
 #define RELEVANT_IFLAG(iflag)	(iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
 
 enum port_dev_state {
@@ -34,45 +24,7 @@ enum port_dev_state {
 	PORT_UNREGISTERING,
 };
 
-/**
- * usb_serial_port: structure for the specific ports of a device.
- * @serial: pointer back to the struct usb_serial owner of this port.
- * @port: pointer to the corresponding tty_port for this port.
- * @lock: spinlock to grab when updating portions of this structure.
- * @mutex: mutex used to synchronize serial_open() and serial_close()
- *	access for this port.
- * @number: the number of the port (the minor number).
- * @interrupt_in_buffer: pointer to the interrupt in buffer for this port.
- * @interrupt_in_urb: pointer to the interrupt in struct urb for this port.
- * @interrupt_in_endpointAddress: endpoint address for the interrupt in pipe
- *	for this port.
- * @interrupt_out_buffer: pointer to the interrupt out buffer for this port.
- * @interrupt_out_size: the size of the interrupt_out_buffer, in bytes.
- * @interrupt_out_urb: pointer to the interrupt out struct urb for this port.
- * @interrupt_out_endpointAddress: endpoint address for the interrupt out pipe
- * 	for this port.
- * @bulk_in_buffer: pointer to the bulk in buffer for this port.
- * @bulk_in_size: the size of the bulk_in_buffer, in bytes.
- * @read_urb: pointer to the bulk in struct urb for this port.
- * @bulk_in_endpointAddress: endpoint address for the bulk in pipe for this
- *	port.
- * @bulk_out_buffer: pointer to the bulk out buffer for this port.
- * @bulk_out_size: the size of the bulk_out_buffer, in bytes.
- * @write_urb: pointer to the bulk out struct urb for this port.
- * @write_fifo: kfifo used to buffer outgoing data
- * @write_urb_busy: port`s writing status
- * @bulk_out_endpointAddress: endpoint address for the bulk out pipe for this
- *	port.
- * @write_wait: a wait_queue_head_t used by the port.
- * @work: work queue entry for the line discipline waking up.
- * @throttled: nonzero if the read urb is inactive to throttle the device
- * @throttle_req: nonzero if the tty wants to throttle us
- * @console: attached usb serial console
- * @dev: pointer to the serial device
- *
- * This structure is used by the usb-serial core and drivers for the specific
- * ports of a device.
- */
+
 struct usb_serial_port {
 	struct usb_serial	*serial;
 	struct tty_port		port;
@@ -109,13 +61,13 @@ struct usb_serial_port {
 	char			throttled;
 	char			throttle_req;
 	char			console;
-	unsigned long		sysrq; /* sysrq timeout */
+	unsigned long		sysrq; 
 	struct device		dev;
 	enum port_dev_state	dev_state;
 };
 #define to_usb_serial_port(d) container_of(d, struct usb_serial_port, dev)
 
-/* get and set the port private data pointer helper functions */
+
 static inline void *usb_get_serial_port_data(struct usb_serial_port *port)
 {
 	return dev_get_drvdata(&port->dev);
@@ -127,23 +79,7 @@ static inline void usb_set_serial_port_data(struct usb_serial_port *port,
 	dev_set_drvdata(&port->dev, data);
 }
 
-/**
- * usb_serial - structure used by the usb-serial core for a device
- * @dev: pointer to the struct usb_device for this device
- * @type: pointer to the struct usb_serial_driver for this device
- * @interface: pointer to the struct usb_interface for this device
- * @minor: the starting minor number for this device
- * @num_ports: the number of ports this device has
- * @num_interrupt_in: number of interrupt in endpoints we have
- * @num_interrupt_out: number of interrupt out endpoints we have
- * @num_bulk_in: number of bulk in endpoints we have
- * @num_bulk_out: number of bulk out endpoints we have
- * @port: array of struct usb_serial_port structures for the different ports.
- * @private: place to put any driver specific information that is needed.  The
- *	usb-serial driver is required to manage this data, the usb-serial core
- *	will not touch this.  Use usb_get_serial_data() and
- *	usb_set_serial_data() to access this.
- */
+
 struct usb_serial {
 	struct usb_device		*dev;
 	struct usb_serial_driver	*type;
@@ -165,7 +101,7 @@ struct usb_serial {
 };
 #define to_usb_serial(d) container_of(d, struct usb_serial, kref)
 
-/* get and set the serial private data pointer helper functions */
+
 static inline void *usb_get_serial_data(struct usb_serial *serial)
 {
 	return serial->private;
@@ -176,46 +112,7 @@ static inline void usb_set_serial_data(struct usb_serial *serial, void *data)
 	serial->private = data;
 }
 
-/**
- * usb_serial_driver - describes a usb serial driver
- * @description: pointer to a string that describes this driver.  This string
- *	used in the syslog messages when a device is inserted or removed.
- * @id_table: pointer to a list of usb_device_id structures that define all
- *	of the devices this structure can support.
- * @num_ports: the number of different ports this device will have.
- * @calc_num_ports: pointer to a function to determine how many ports this
- *	device has dynamically.  It will be called after the probe()
- *	callback is called, but before attach()
- * @probe: pointer to the driver's probe function.
- *	This will be called when the device is inserted into the system,
- *	but before the device has been fully initialized by the usb_serial
- *	subsystem.  Use this function to download any firmware to the device,
- *	or any other early initialization that might be needed.
- *	Return 0 to continue on with the initialization sequence.  Anything
- *	else will abort it.
- * @attach: pointer to the driver's attach function.
- *	This will be called when the struct usb_serial structure is fully set
- *	set up.  Do any local initialization of the device, or any private
- *	memory structure allocation at this point in time.
- * @disconnect: pointer to the driver's disconnect function.  This will be
- *	called when the device is unplugged or unbound from the driver.
- * @release: pointer to the driver's release function.  This will be called
- *	when the usb_serial data structure is about to be destroyed.
- * @usb_driver: pointer to the struct usb_driver that controls this
- *	device.  This is necessary to allow dynamic ids to be added to
- *	the driver from sysfs.
- *
- * This structure is defines a USB Serial driver.  It provides all of
- * the information that the USB serial core code needs.  If the function
- * pointers are defined, then the USB serial core code will call them when
- * the corresponding tty port functions are called.  If they are not
- * called, the generic serial function will be used instead.
- *
- * The driver.owner field should be set to the module owner of this driver.
- * The driver.name field should be set to the name of this driver (remember
- * it will show up in sysfs, so it needs to be short and to the point.
- * Using the module name is a good idea.)
- */
+
 struct usb_serial_driver {
 	const char *description;
 	const struct usb_device_id *id_table;
@@ -240,13 +137,13 @@ struct usb_serial_driver {
 	int (*suspend)(struct usb_serial *serial, pm_message_t message);
 	int (*resume)(struct usb_serial *serial);
 
-	/* serial function calls */
-	/* Called by console and by the tty layer */
+	
+	
 	int  (*open)(struct tty_struct *tty, struct usb_serial_port *port);
 	void (*close)(struct usb_serial_port *port);
 	int  (*write)(struct tty_struct *tty, struct usb_serial_port *port,
 			const unsigned char *buf, int count);
-	/* Called only by the tty layer */
+	
 	int  (*write_room)(struct tty_struct *tty);
 	int  (*ioctl)(struct tty_struct *tty, struct file *file,
 		      unsigned int cmd, unsigned long arg);
@@ -259,14 +156,12 @@ struct usb_serial_driver {
 	int  (*tiocmget)(struct tty_struct *tty, struct file *file);
 	int  (*tiocmset)(struct tty_struct *tty, struct file *file,
 			 unsigned int set, unsigned int clear);
-	/* Called by the tty layer for port level work. There may or may not
-	   be an attached tty at this point */
+	
 	void (*dtr_rts)(struct usb_serial_port *port, int on);
 	int  (*carrier_raised)(struct usb_serial_port *port);
-	/* Called by the usb serial hooks to allow the user to rework the
-	   termios state */
+	
 	void (*init_termios)(struct tty_struct *tty);
-	/* USB events */
+	
 	void (*read_int_callback)(struct urb *urb);
 	void (*write_int_callback)(struct urb *urb);
 	void (*read_bulk_callback)(struct urb *urb);
@@ -290,7 +185,7 @@ extern int ezusb_writememory(struct usb_serial *serial, int address,
 			     unsigned char *data, int length, __u8 bRequest);
 extern int ezusb_set_reset(struct usb_serial *serial, unsigned char reset_bit);
 
-/* USB Serial console functions */
+
 #ifdef CONFIG_USB_SERIAL_CONSOLE
 extern void usb_serial_console_init(int debug, int minor);
 extern void usb_serial_console_exit(void);
@@ -301,7 +196,7 @@ static inline void usb_serial_console_exit(void) { }
 static inline void usb_serial_console_disconnect(struct usb_serial *serial) {}
 #endif
 
-/* Functions needed by other parts of the usbserial core */
+
 extern struct usb_serial *usb_serial_get_by_index(unsigned int minor);
 extern void usb_serial_put(struct usb_serial *serial);
 extern int usb_serial_generic_open(struct tty_struct *tty,
@@ -351,7 +246,7 @@ static inline void usb_serial_debug_data(int debug,
 	}
 }
 
-/* Use our own dbg macro */
+
 #undef dbg
 #define dbg(format, arg...) \
 	do { \
@@ -362,5 +257,5 @@ static inline void usb_serial_debug_data(int debug,
 
 
 
-#endif /* __LINUX_USB_SERIAL_H */
+#endif 
 

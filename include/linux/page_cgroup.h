@@ -3,18 +3,12 @@
 
 #ifdef CONFIG_CGROUP_MEM_RES_CTLR
 #include <linux/bit_spinlock.h>
-/*
- * Page Cgroup can be considered as an extended mem_map.
- * A page_cgroup page is associated with every page descriptor. The
- * page_cgroup helps us identify information about the cgroup
- * All page cgroups are allocated at boot or memory hotplug event,
- * then the page cgroup for pfn always exists.
- */
+
 struct page_cgroup {
 	unsigned long flags;
 	struct mem_cgroup *mem_cgroup;
 	struct page *page;
-	struct list_head lru;		/* per cgroup LRU list */
+	struct list_head lru;		
 };
 
 void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat);
@@ -34,11 +28,11 @@ static inline void __init page_cgroup_init(void)
 struct page_cgroup *lookup_page_cgroup(struct page *page);
 
 enum {
-	/* flags for mem_cgroup */
-	PCG_LOCK,  /* page cgroup is locked */
-	PCG_CACHE, /* charged as cache */
-	PCG_USED, /* this object is in use. */
-	PCG_ACCT_LRU, /* page has been accounted for */
+	
+	PCG_LOCK,  
+	PCG_CACHE, 
+	PCG_USED, 
+	PCG_ACCT_LRU, 
 };
 
 #define TESTPCGFLAG(uname, lname)			\
@@ -57,7 +51,7 @@ static inline void ClearPageCgroup##uname(struct page_cgroup *pc)	\
 static inline int TestClearPageCgroup##uname(struct page_cgroup *pc)	\
 	{ return test_and_clear_bit(PCG_##lname, &pc->flags);  }
 
-/* Cache flag is set only once (at allocation) */
+
 TESTPCGFLAG(Cache, CACHE)
 CLEARPCGFLAG(Cache, CACHE)
 SETPCGFLAG(Cache, CACHE)
@@ -96,7 +90,7 @@ static inline void unlock_page_cgroup(struct page_cgroup *pc)
 	bit_spin_unlock(PCG_LOCK, &pc->flags);
 }
 
-#else /* CONFIG_CGROUP_MEM_RES_CTLR */
+#else 
 struct page_cgroup;
 
 static inline void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat)

@@ -1,13 +1,4 @@
-/*
- * include/linux/irqflags.h
- *
- * IRQ flags tracing: follow the state of the hardirq and softirq flags and
- * provide callbacks for transitions between ON and OFF states.
- *
- * This file gets included from lowlevel asm headers too, to provide
- * wrapped versions of the local_irq_*() APIs, based on the
- * raw_local_irq_*() macros from the lowlevel headers.
- */
+
 #ifndef _LINUX_TRACE_IRQFLAGS_H
 #define _LINUX_TRACE_IRQFLAGS_H
 
@@ -79,11 +70,8 @@
 			raw_local_irq_restore(flags);	\
 		}					\
 	} while (0)
-#else /* !CONFIG_TRACE_IRQFLAGS_SUPPORT */
-/*
- * The local_irq_*() APIs are equal to the raw_local_irq*()
- * if !TRACE_IRQFLAGS.
- */
+#else 
+
 # define raw_local_irq_disable()	local_irq_disable()
 # define raw_local_irq_enable()		local_irq_enable()
 # define raw_local_irq_save(flags)			\
@@ -96,7 +84,7 @@
 		typecheck(unsigned long, flags);	\
 		local_irq_restore(flags);		\
 	} while (0)
-#endif /* CONFIG_TRACE_IRQFLAGS_SUPPORT */
+#endif 
 
 #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
 #define safe_halt()						\
@@ -124,6 +112,6 @@
 	typecheck(unsigned long, flags);	\
 	raw_irqs_disabled_flags(flags);		\
 })
-#endif		/* CONFIG_X86 */
+#endif		
 
 #endif

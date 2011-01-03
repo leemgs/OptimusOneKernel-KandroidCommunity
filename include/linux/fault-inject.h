@@ -7,10 +7,7 @@
 #include <linux/debugfs.h>
 #include <asm/atomic.h>
 
-/*
- * For explanation of the elements of this struct, see
- * Documentation/fault-injection/fault-injection.txt
- */
+
 struct fault_attr {
 	unsigned long probability;
 	unsigned long interval;
@@ -65,7 +62,7 @@ bool should_fail(struct fault_attr *attr, ssize_t size);
 int init_fault_attr_dentries(struct fault_attr *attr, const char *name);
 void cleanup_fault_attr_dentries(struct fault_attr *attr);
 
-#else /* CONFIG_FAULT_INJECTION_DEBUG_FS */
+#else 
 
 static inline int init_fault_attr_dentries(struct fault_attr *attr,
 					  const char *name)
@@ -77,9 +74,9 @@ static inline void cleanup_fault_attr_dentries(struct fault_attr *attr)
 {
 }
 
-#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
+#endif 
 
-#endif /* CONFIG_FAULT_INJECTION */
+#endif 
 
 #ifdef CONFIG_FAILSLAB
 extern bool should_failslab(size_t size, gfp_t gfpflags);
@@ -88,6 +85,6 @@ static inline bool should_failslab(size_t size, gfp_t gfpflags)
 {
 	return false;
 }
-#endif /* CONFIG_FAILSLAB */
+#endif 
 
-#endif /* _LINUX_FAULT_INJECT_H */
+#endif 

@@ -1,12 +1,6 @@
 #ifndef _LINUX_CPUSET_H
 #define _LINUX_CPUSET_H
-/*
- *  cpuset interface
- *
- *  Copyright (C) 2003 BULL SA
- *  Copyright (C) 2004-2006 Silicon Graphics, Inc.
- *
- */
+
 
 #include <linux/sched.h>
 #include <linux/cpumask.h>
@@ -16,7 +10,7 @@
 
 #ifdef CONFIG_CPUSETS
 
-extern int number_of_cpusets;	/* How many cpusets are defined in system? */
+extern int number_of_cpusets;	
 
 extern int cpuset_init(void);
 extern void cpuset_init_smp(void);
@@ -95,7 +89,7 @@ static inline void set_mems_allowed(nodemask_t nodemask)
 	current->mems_allowed = nodemask;
 }
 
-#else /* !CONFIG_CPUSETS */
+#else 
 
 static inline int cpuset_init(void) { return 0; }
 static inline void cpuset_init_smp(void) {}
@@ -193,6 +187,6 @@ static inline void set_mems_allowed(nodemask_t nodemask)
 {
 }
 
-#endif /* !CONFIG_CPUSETS */
+#endif 
 
-#endif /* _LINUX_CPUSET_H */
+#endif 

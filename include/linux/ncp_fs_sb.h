@@ -1,9 +1,4 @@
-/*
- *  ncp_fs_sb.h
- *
- *  Copyright (C) 1995, 1996 by Volker Lendecke
- *
- */
+
 
 #ifndef _NCP_FS_SB
 #define _NCP_FS_SB
@@ -17,91 +12,86 @@
 
 #include <linux/workqueue.h>
 
-#define NCP_DEFAULT_OPTIONS 0		/* 2 for packet signatures */
+#define NCP_DEFAULT_OPTIONS 0		
 
 struct sock;
 
 struct ncp_server {
 
-	struct ncp_mount_data_kernel m;	/* Nearly all of the mount data is of
-					   interest for us later, so we store
-					   it completely. */
+	struct ncp_mount_data_kernel m;	
 
 	__u8 name_space[NCP_NUMBER_OF_VOLUMES + 2];
 
-	struct file *ncp_filp;	/* File pointer to ncp socket */
-	struct socket *ncp_sock;/* ncp socket */
+	struct file *ncp_filp;	
+	struct socket *ncp_sock;
 	struct file *info_filp;
 	struct socket *info_sock;
 
 	u8 sequence;
 	u8 task;
-	u16 connection;		/* Remote connection number */
+	u16 connection;		
 
-	u8 completion;		/* Status message from server */
-	u8 conn_status;		/* Bit 4 = 1 ==> Server going down, no
-				   requests allowed anymore.
-				   Bit 0 = 1 ==> Server is down. */
+	u8 completion;		
+	u8 conn_status;		
 
-	int buffer_size;	/* Negotiated bufsize */
+	int buffer_size;	
 
-	int reply_size;		/* Size of last reply */
+	int reply_size;		
 
 	int packet_size;
-	unsigned char *packet;	/* Here we prepare requests and
-				   receive replies */
-	unsigned char *txbuf;	/* Storage for current request */
-	unsigned char *rxbuf;	/* Storage for reply to current request */
+	unsigned char *packet;	
+	unsigned char *txbuf;	
+	unsigned char *rxbuf;	
 
-	int lock;		/* To prevent mismatch in protocols. */
+	int lock;		
 	struct mutex mutex;
 
-	int current_size;	/* for packet preparation */
+	int current_size;	
 	int has_subfunction;
 	int ncp_reply_size;
 
 	int root_setuped;
 
-	/* info for packet signing */
-	int sign_wanted;	/* 1=Server needs signed packets */
-	int sign_active;	/* 0=don't do signing, 1=do */
-	char sign_root[8];	/* generated from password and encr. key */
+	
+	int sign_wanted;	
+	int sign_active;	
+	char sign_root[8];	
 	char sign_last[16];	
 
-	/* Authentication info: NDS or BINDERY, username */
+	
 	struct {
 		int	auth_type;
 		size_t	object_name_len;
 		void*	object_name;
 		int	object_type;
 	} auth;
-	/* Password info */
+	
 	struct {
 		size_t	len;
 		void*	data;
 	} priv;
 
-	/* nls info: codepage for volume and charset for I/O */
+	
 	struct nls_table *nls_vol;
 	struct nls_table *nls_io;
 
-	/* maximum age in jiffies */
+	
 	int dentry_ttl;
 
-	/* miscellaneous */
+	
 	unsigned int flags;
 
-	spinlock_t requests_lock;	/* Lock accesses to tx.requests, tx.creq and rcv.creq when STREAM mode */
+	spinlock_t requests_lock;	
 
 	void (*data_ready)(struct sock* sk, int len);
 	void (*error_report)(struct sock* sk);
-	void (*write_space)(struct sock* sk);	/* STREAM mode only */
+	void (*write_space)(struct sock* sk);	
 	struct {
-		struct work_struct tq;		/* STREAM/DGRAM: data/error ready */
-		struct ncp_request_reply* creq;	/* STREAM/DGRAM: awaiting reply from this request */
-		struct mutex creq_mutex;	/* DGRAM only: lock accesses to rcv.creq */
+		struct work_struct tq;		
+		struct ncp_request_reply* creq;	
+		struct mutex creq_mutex;	
 
-		unsigned int state;		/* STREAM only: receiver state */
+		unsigned int state;		
 		struct {
 			__u32 magic __attribute__((packed));
 			__u32 len __attribute__((packed));
@@ -110,19 +100,19 @@ struct ncp_server {
 			__u16 p2 __attribute__((packed));
 			__u16 p3 __attribute__((packed));
 			__u16 type2 __attribute__((packed));
-		} buf;				/* STREAM only: temporary buffer */
-		unsigned char* ptr;		/* STREAM only: pointer to data */
-		size_t len;			/* STREAM only: length of data to receive */
+		} buf;				
+		unsigned char* ptr;		
+		size_t len;			
 	} rcv;
 	struct {
-		struct list_head requests;	/* STREAM only: queued requests */
-		struct work_struct tq;		/* STREAM only: transmitter ready */
-		struct ncp_request_reply* creq;	/* STREAM only: currently transmitted entry */
+		struct list_head requests;	
+		struct work_struct tq;		
+		struct ncp_request_reply* creq;	
 	} tx;
-	struct timer_list timeout_tm;		/* DGRAM only: timeout timer */
-	struct work_struct timeout_tq;		/* DGRAM only: associated queue, we run timers from process context */
-	int timeout_last;			/* DGRAM only: current timeout length */
-	int timeout_retries;			/* DGRAM only: retries left */
+	struct timer_list timeout_tm;		
+	struct work_struct timeout_tq;		
+	int timeout_last;			
+	int timeout_retries;			
 	struct {
 		size_t len;
 		__u8 data[128];
@@ -154,7 +144,7 @@ static inline void ncp_invalidate_conn(struct ncp_server *server)
 	server->conn_status |= 0x01;
 }
 
-#endif				/* __KERNEL__ */
+#endif				
 
 #endif
  

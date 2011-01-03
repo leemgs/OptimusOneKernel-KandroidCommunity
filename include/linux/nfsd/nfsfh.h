@@ -1,15 +1,4 @@
-/*
- * include/linux/nfsd/nfsfh.h
- *
- * This file describes the layout of the file handles as passed
- * over the wire.
- *
- * Earlier versions of knfsd used to sign file handles using keyed MD5
- * or SHA. I've removed this code, because it doesn't give you more
- * security than blocking external access to port 2049 on your firewall.
- *
- * Copyright (C) 1995, 1996, 1997 Olaf Kirch <okir@monad.swb.de>
- */
+
 
 #ifndef _LINUX_NFSD_FH_H
 #define _LINUX_NFSD_FH_H
@@ -22,81 +11,30 @@
 #include <linux/nfsd/const.h>
 #include <linux/nfsd/debug.h>
 
-/*
- * This is the old "dentry style" Linux NFSv2 file handle.
- *
- * The xino and xdev fields are currently used to transport the
- * ino/dev of the exported inode.
- */
+
 struct nfs_fhbase_old {
-	__u32		fb_dcookie;	/* dentry cookie - always 0xfeebbaca */
-	__u32		fb_ino;		/* our inode number */
-	__u32		fb_dirino;	/* dir inode number, 0 for directories */
-	__u32		fb_dev;		/* our device */
+	__u32		fb_dcookie;	
+	__u32		fb_ino;		
+	__u32		fb_dirino;	
+	__u32		fb_dev;		
 	__u32		fb_xdev;
 	__u32		fb_xino;
 	__u32		fb_generation;
 };
 
-/*
- * This is the new flexible, extensible style NFSv2/v3 file handle.
- * by Neil Brown <neilb@cse.unsw.edu.au> - March 2000
- *
- * The file handle is seens as a list of 4byte words.
- * The first word contains a version number (1) and four descriptor bytes
- * that tell how the remaining 3 variable length fields should be handled.
- * These three bytes are auth_type, fsid_type and fileid_type.
- *
- * All 4byte values are in host-byte-order.
- *
- * The auth_type field specifies how the filehandle can be authenticated
- * This might allow a file to be confirmed to be in a writable part of a
- * filetree without checking the path from it upto the root.
- * Current values:
- *     0  - No authentication.  fb_auth is 0 bytes long
- * Possible future values:
- *     1  - 4 bytes taken from MD5 hash of the remainer of the file handle
- *          prefixed by a secret and with the important export flags.
- *
- * The fsid_type identifies how the filesystem (or export point) is
- *    encoded.
- *  Current values:
- *     0  - 4 byte device id (ms-2-bytes major, ls-2-bytes minor), 4byte inode number
- *        NOTE: we cannot use the kdev_t device id value, because kdev_t.h
- *              says we mustn't.  We must break it up and reassemble.
- *     1  - 4 byte user specified identifier
- *     2  - 4 byte major, 4 byte minor, 4 byte inode number - DEPRECATED
- *     3  - 4 byte device id, encoded for user-space, 4 byte inode number
- *     4  - 4 byte inode number and 4 byte uuid
- *     5  - 8 byte uuid
- *     6  - 16 byte uuid
- *     7  - 8 byte inode number and 16 byte uuid
- *
- * The fileid_type identified how the file within the filesystem is encoded.
- * This is (will be) passed to, and set by, the underlying filesystem if it supports
- * filehandle operations.  The filesystem must not use the value '0' or '0xff' and may
- * only use the values 1 and 2 as defined below:
- *  Current values:
- *    0   - The root, or export point, of the filesystem.  fb_fileid is 0 bytes.
- *    1   - 32bit inode number, 32 bit generation number.
- *    2   - 32bit inode number, 32 bit generation number, 32 bit parent directory inode number.
- *
- */
+
 struct nfs_fhbase_new {
-	__u8		fb_version;	/* == 1, even => nfs_fhbase_old */
+	__u8		fb_version;	
 	__u8		fb_auth_type;
 	__u8		fb_fsid_type;
 	__u8		fb_fileid_type;
 	__u32		fb_auth[1];
-/*	__u32		fb_fsid[0]; floating */
-/*	__u32		fb_fileid[0]; floating */
+
+
 };
 
 struct knfsd_fh {
-	unsigned int	fh_size;	/* significant for NFSv3.
-					 * Points to the current size while building
-					 * a new file handle
-					 */
+	unsigned int	fh_size;	
 	union {
 		struct nfs_fhbase_old	fh_old;
 		__u32			fh_pad[NFS4_FHSIZE/4];
@@ -131,36 +69,30 @@ static inline ino_t u32_to_ino_t(__u32 uino)
 	return (ino_t) uino;
 }
 
-/*
- * This is the internal representation of an NFS handle used in knfsd.
- * pre_mtime/post_version will be used to support wcc_attr's in NFSv3.
- */
-typedef struct svc_fh {
-	struct knfsd_fh		fh_handle;	/* FH data */
-	struct dentry *		fh_dentry;	/* validated dentry */
-	struct svc_export *	fh_export;	/* export pointer */
-	int			fh_maxsize;	/* max size for fh_handle */
 
-	unsigned char		fh_locked;	/* inode locked by us */
+typedef struct svc_fh {
+	struct knfsd_fh		fh_handle;	
+	struct dentry *		fh_dentry;	
+	struct svc_export *	fh_export;	
+	int			fh_maxsize;	
+
+	unsigned char		fh_locked;	
 
 #ifdef CONFIG_NFSD_V3
-	unsigned char		fh_post_saved;	/* post-op attrs saved */
-	unsigned char		fh_pre_saved;	/* pre-op attrs saved */
+	unsigned char		fh_post_saved;	
+	unsigned char		fh_pre_saved;	
 
-	/* Pre-op attributes saved during fh_lock */
-	__u64			fh_pre_size;	/* size before operation */
-	struct timespec		fh_pre_mtime;	/* mtime before oper */
-	struct timespec		fh_pre_ctime;	/* ctime before oper */
-	/*
-	 * pre-op nfsv4 change attr: note must check IS_I_VERSION(inode)
-	 *  to find out if it is valid.
-	 */
+	
+	__u64			fh_pre_size;	
+	struct timespec		fh_pre_mtime;	
+	struct timespec		fh_pre_ctime;	
+	
 	u64			fh_pre_change;
 
-	/* Post-op attributes saved in fh_unlock */
-	struct kstat		fh_post_attr;	/* full attrs after operation */
-	u64			fh_post_change; /* nfsv4 change; see above */
-#endif /* CONFIG_NFSD_V3 */
+	
+	struct kstat		fh_post_attr;	
+	u64			fh_post_change; 
+#endif 
 
 } svc_fh;
 
@@ -183,9 +115,7 @@ enum fsid_source {
 extern enum fsid_source fsid_source(struct svc_fh *fhp);
 
 
-/* This might look a little large to "inline" but in all calls except
- * one, 'vers' is constant so moste of the function disappears.
- */
+
 static inline void mk_fsid(int vers, u32 *fsidv, dev_t dev, ino_t ino,
 			   u32 fsid, unsigned char *uuid)
 {
@@ -211,26 +141,26 @@ static inline void mk_fsid(int vers, u32 *fsidv, dev_t dev, ino_t ino,
 		break;
 
 	case FSID_UUID4_INUM:
-		/* 4 byte fsid and inode number */
+		
 		up = (u32*)uuid;
 		fsidv[0] = ino_t_to_u32(ino);
 		fsidv[1] = up[0] ^ up[1] ^ up[2] ^ up[3];
 		break;
 
 	case FSID_UUID8:
-		/* 8 byte fsid  */
+		
 		up = (u32*)uuid;
 		fsidv[0] = up[0] ^ up[2];
 		fsidv[1] = up[1] ^ up[3];
 		break;
 
 	case FSID_UUID16:
-		/* 16 byte fsid - NFSv3+ only */
+		
 		memcpy(fsidv, uuid, 16);
 		break;
 
 	case FSID_UUID16_INUM:
-		/* 8 byte inode and 16 byte fsid */
+		
 		*(u64*)fsidv = (u64)ino;
 		memcpy(fsidv+2, uuid, 16);
 		break;
@@ -253,14 +183,10 @@ static inline int key_len(int type)
 	}
 }
 
-/*
- * Shorthand for dprintk()'s
- */
+
 extern char * SVCFH_fmt(struct svc_fh *fhp);
 
-/*
- * Function prototypes
- */
+
 __be32	fh_verify(struct svc_rqst *, struct svc_fh *, int, int);
 __be32	fh_compose(struct svc_fh *, struct svc_export *, struct dentry *, struct svc_fh *);
 __be32	fh_update(struct svc_fh *);
@@ -291,9 +217,7 @@ fh_init(struct svc_fh *fhp, int maxsize)
 }
 
 #ifdef CONFIG_NFSD_V3
-/*
- * Fill in the pre_op attr for the wcc data
- */
+
 static inline void
 fill_pre_wcc(struct svc_fh *fhp)
 {
@@ -313,15 +237,10 @@ extern void fill_post_wcc(struct svc_fh *);
 #else
 #define	fill_pre_wcc(ignored)
 #define fill_post_wcc(notused)
-#endif /* CONFIG_NFSD_V3 */
+#endif 
 
 
-/*
- * Lock a file handle/inode
- * NOTE: both fh_lock and fh_unlock are done "by hand" in
- * vfs.c:nfsd_rename as it needs to grab 2 i_mutex's at once
- * so, any changes here should be reflected there.
- */
+
 
 static inline void
 fh_lock_nested(struct svc_fh *fhp, unsigned int subclass)
@@ -352,9 +271,7 @@ fh_lock(struct svc_fh *fhp)
 	fh_lock_nested(fhp, I_MUTEX_NORMAL);
 }
 
-/*
- * Unlock a file handle/inode
- */
+
 static inline void
 fh_unlock(struct svc_fh *fhp)
 {
@@ -366,7 +283,7 @@ fh_unlock(struct svc_fh *fhp)
 		fhp->fh_locked = 0;
 	}
 }
-#endif /* __KERNEL__ */
+#endif 
 
 
-#endif /* _LINUX_NFSD_FH_H */
+#endif 

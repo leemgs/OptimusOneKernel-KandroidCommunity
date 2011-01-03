@@ -1,15 +1,4 @@
-/*
- * include/linux/uio_driver.h
- *
- * Copyright(C) 2005, Benedikt Spranger <b.spranger@linutronix.de>
- * Copyright(C) 2005, Thomas Gleixner <tglx@linutronix.de>
- * Copyright(C) 2006, Hans J. Koch <hjk@linutronix.de>
- * Copyright(C) 2006, Greg Kroah-Hartman <greg@kroah.com>
- *
- * Userspace IO driver.
- *
- * Licensed under the GPLv2 only.
- */
+
 
 #ifndef _UIO_DRIVER_H_
 #define _UIO_DRIVER_H_
@@ -20,15 +9,7 @@
 
 struct uio_map;
 
-/**
- * struct uio_mem - description of a UIO memory region
- * @name:		name of the memory region for identification
- * @addr:		address of the device's memory
- * @size:		size of IO
- * @memtype:		type of memory addr points to
- * @internal_addr:	ioremap-ped version of addr, for driver internal use
- * @map:		for use by the UIO core only.
- */
+
 struct uio_mem {
 	const char		*name;
 	unsigned long		addr;
@@ -42,14 +23,7 @@ struct uio_mem {
 
 struct uio_portio;
 
-/**
- * struct uio_port - description of a UIO port region
- * @name:		name of the port region for identification
- * @start:		start of port region
- * @size:		size of port region
- * @porttype:		type of port (see UIO_PORT_* below)
- * @portio:		for use by the UIO core only.
- */
+
 struct uio_port {
 	const char		*name;
 	unsigned long		start;
@@ -62,22 +36,7 @@ struct uio_port {
 
 struct uio_device;
 
-/**
- * struct uio_info - UIO device capabilities
- * @uio_dev:		the UIO device this info belongs to
- * @name:		device name
- * @version:		device driver version
- * @mem:		list of mappable memory regions, size==0 for end of list
- * @port:		list of port regions, size==0 for end of list
- * @irq:		interrupt number or UIO_IRQ_CUSTOM
- * @irq_flags:		flags for request_irq()
- * @priv:		optional private data
- * @handler:		the device's irq handler
- * @mmap:		mmap operation for this uio device
- * @open:		open operation for this uio device
- * @release:		release operation for this uio device
- * @irqcontrol:		disable/enable irqs when 0/1 is written to /dev/uioX
- */
+
 struct uio_info {
 	struct uio_device	*uio_dev;
 	const char		*name;
@@ -106,20 +65,20 @@ static inline int __must_check
 extern void uio_unregister_device(struct uio_info *info);
 extern void uio_event_notify(struct uio_info *info);
 
-/* defines for uio_info->irq */
+
 #define UIO_IRQ_CUSTOM	-1
 #define UIO_IRQ_NONE	-2
 
-/* defines for uio_mem->memtype */
+
 #define UIO_MEM_NONE	0
 #define UIO_MEM_PHYS	1
 #define UIO_MEM_LOGICAL	2
 #define UIO_MEM_VIRTUAL 3
 
-/* defines for uio_port->porttype */
+
 #define UIO_PORT_NONE	0
 #define UIO_PORT_X86	1
 #define UIO_PORT_GPIO	2
 #define UIO_PORT_OTHER	3
 
-#endif /* _LINUX_UIO_DRIVER_H_ */
+#endif 

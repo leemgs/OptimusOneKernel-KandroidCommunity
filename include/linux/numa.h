@@ -10,4 +10,4 @@
 
 #define MAX_NUMNODES    (1 << NODES_SHIFT)
 
-#endif /* _LINUX_NUMA_H */
+#endif 

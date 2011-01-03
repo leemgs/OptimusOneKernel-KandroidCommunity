@@ -1,23 +1,15 @@
-/*
- *  smb_fs.h
- *
- *  Copyright (C) 1995 by Paal-Kr. Engstad and Volker Lendecke
- *  Copyright (C) 1997 by Volker Lendecke
- *
- */
+
 
 #ifndef _LINUX_SMB_FS_H
 #define _LINUX_SMB_FS_H
 
 #include <linux/smb.h>
 
-/*
- * ioctl commands
- */
+
 #define	SMB_IOC_GETMOUNTUID		_IOR('u', 1, __kernel_old_uid_t)
 #define SMB_IOC_NEWCONN                 _IOW('u', 2, struct smb_conn_opt)
 
-/* __kernel_uid_t can never change, so we have to use __kernel_uid32_t */
+
 #define	SMB_IOC_GETMOUNTUID32		_IOR('u', 3, __kernel_uid32_t)
 
 
@@ -42,7 +34,7 @@ static inline struct smb_inode_info *SMB_I(struct inode *inode)
 	return container_of(inode, struct smb_inode_info, vfs_inode);
 }
 
-/* macro names are short for word, double-word, long value (?) */
+
 #define WVAL(buf, pos) (get_unaligned_le16((u8 *)(buf) + (pos)))
 #define DVAL(buf, pos) (get_unaligned_le32((u8 *)(buf) + (pos)))
 #define LVAL(buf, pos) (get_unaligned_le64((u8 *)(buf) + (pos)))
@@ -51,16 +43,14 @@ static inline struct smb_inode_info *SMB_I(struct inode *inode)
 #define DSET(buf, pos, val) put_unaligned_le32((val), (u8 *)(buf) + (pos))
 #define LSET(buf, pos, val) put_unaligned_le64((val), (u8 *)(buf) + (pos))
 
-/* where to find the base of the SMB packet proper */
+
 #define smb_base(buf) ((u8 *)(((u8 *)(buf))+4))
 
-/*
- * Flags for the in-memory inode
- */
-#define SMB_F_LOCALWRITE	0x02	/* file modified locally */
+
+#define SMB_F_LOCALWRITE	0x02	
 
 
-/* NT1 protocol capability bits */
+
 #define SMB_CAP_RAW_MODE         0x00000001
 #define SMB_CAP_MPX_MODE         0x00000002
 #define SMB_CAP_UNICODE          0x00000004
@@ -74,14 +64,10 @@ static inline struct smb_inode_info *SMB_I(struct inode *inode)
 #define SMB_CAP_DFS              0x00001000
 #define SMB_CAP_LARGE_READX      0x00004000
 #define SMB_CAP_LARGE_WRITEX     0x00008000
-#define SMB_CAP_UNIX             0x00800000	/* unofficial ... */
+#define SMB_CAP_UNIX             0x00800000	
 
 
-/*
- * This is the time we allow an inode, dentry or dir cache to live. It is bad
- * for performance to have shorter ttl on an inode than on the cache. It can
- * cause refresh on each inode for a dir listing ... one-by-one
- */
+
 #define SMB_MAX_AGE(server) (((server)->mnt->ttl * HZ) / 1000)
 
 static inline void
@@ -91,9 +77,9 @@ smb_age_dentry(struct smb_sb_info *server, struct dentry *dentry)
 }
 
 struct smb_cache_head {
-	time_t		mtime;	/* unused */
-	unsigned long	time;	/* cache age */
-	unsigned long	end;	/* last valid fpos in cache */
+	time_t		mtime;	
+	unsigned long	time;	
+	unsigned long	end;	
 	int		eof;
 };
 
@@ -128,12 +114,12 @@ struct smb_ops {
 
 	int (*getattr)(struct smb_sb_info *server, struct dentry *dir,
 		       struct smb_fattr *fattr);
-	/* int (*setattr)(...); */      /* setattr is really icky! */
+	      
 
 	int (*truncate)(struct inode *inode, loff_t length);
 
 
-	/* --- --- --- end of "static" entries --- --- --- */
+	
 
 	int (*convert)(unsigned char *output, int olen,
 		       const unsigned char *input, int ilen,
@@ -148,6 +134,6 @@ smb_is_open(struct inode *i)
 }
 
 extern void smb_install_null_ops(struct smb_ops *);
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _LINUX_SMB_FS_H */
+#endif 

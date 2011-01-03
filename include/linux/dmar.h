@@ -1,22 +1,4 @@
-/*
- * Copyright (c) 2006, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- *
- * Copyright (C) Ashok Raj <ashok.raj@intel.com>
- * Copyright (C) Shaohua Li <shaohua.li@intel.com>
- */
+
 
 #ifndef __DMAR_H__
 #define __DMAR_H__
@@ -29,13 +11,13 @@
 struct intel_iommu;
 #if defined(CONFIG_DMAR) || defined(CONFIG_INTR_REMAP)
 struct dmar_drhd_unit {
-	struct list_head list;		/* list of drhd units	*/
-	struct  acpi_dmar_header *hdr;	/* ACPI header		*/
-	u64	reg_base_addr;		/* register base address*/
-	struct	pci_dev **devices; 	/* target device array	*/
-	int	devices_cnt;		/* target device count	*/
-	u16	segment;		/* PCI domain		*/
-	u8	ignored:1; 		/* ignore drhd		*/
+	struct list_head list;		
+	struct  acpi_dmar_header *hdr;	
+	u64	reg_base_addr;		
+	struct	pci_dev **devices; 	
+	int	devices_cnt;		
+	u16	segment;		
+	u8	ignored:1; 		
 	u8	include_all:1;
 	struct intel_iommu *iommu;
 };
@@ -56,7 +38,7 @@ extern struct list_head dmar_drhd_units;
 extern int dmar_table_init(void);
 extern int dmar_dev_scope_init(void);
 
-/* Intel IOMMU detection */
+
 extern void detect_intel_iommu(void);
 extern int enable_drhd_fault_handling(void);
 
@@ -76,7 +58,7 @@ static inline int enable_drhd_fault_handling(void)
 {
 	return -1;
 }
-#endif /* !CONFIG_DMAR && !CONFIG_INTR_REMAP */
+#endif 
 
 struct irte {
 	union {
@@ -174,9 +156,7 @@ static inline int set_msi_sid(struct irte *irte, struct pci_dev *dev)
 #define intr_remapping_enabled		(0)
 #endif
 
-/* Can't use the common MSI interrupt functions
- * since DMAR is not a pci device
- */
+
 extern void dmar_msi_unmask(unsigned int irq);
 extern void dmar_msi_mask(unsigned int irq);
 extern void dmar_msi_read(int irq, struct msi_msg *msg);
@@ -189,26 +169,26 @@ extern int arch_setup_dmar_msi(unsigned int irq);
 extern int iommu_detected, no_iommu;
 extern struct list_head dmar_rmrr_units;
 struct dmar_rmrr_unit {
-	struct list_head list;		/* list of rmrr units	*/
-	struct acpi_dmar_header *hdr;	/* ACPI header		*/
-	u64	base_address;		/* reserved base address*/
-	u64	end_address;		/* reserved end address */
-	struct pci_dev **devices;	/* target devices */
-	int	devices_cnt;		/* target device count */
+	struct list_head list;		
+	struct acpi_dmar_header *hdr;	
+	u64	base_address;		
+	u64	end_address;		
+	struct pci_dev **devices;	
+	int	devices_cnt;		
 };
 
 #define for_each_rmrr_units(rmrr) \
 	list_for_each_entry(rmrr, &dmar_rmrr_units, list)
 
 struct dmar_atsr_unit {
-	struct list_head list;		/* list of ATSR units */
-	struct acpi_dmar_header *hdr;	/* ACPI header */
-	struct pci_dev **devices;	/* target devices */
-	int devices_cnt;		/* target device count */
-	u8 include_all:1;		/* include all ports */
+	struct list_head list;		
+	struct acpi_dmar_header *hdr;	
+	struct pci_dev **devices;	
+	int devices_cnt;		
+	u8 include_all:1;		
 };
 
-/* Intel DMAR  initialization functions */
+
 extern int intel_iommu_init(void);
 #else
 static inline int intel_iommu_init(void)
@@ -219,5 +199,5 @@ static inline int intel_iommu_init(void)
 	return -ENODEV;
 #endif
 }
-#endif /* !CONFIG_DMAR */
-#endif /* __DMAR_H__ */
+#endif 
+#endif 

@@ -34,23 +34,23 @@ struct cpu_timer_list {
 #define MAKE_THREAD_CPUCLOCK(tid, clock) \
 	MAKE_PROCESS_CPUCLOCK((tid), (clock) | CPUCLOCK_PERTHREAD_MASK)
 
-/* POSIX.1b interval timer structure. */
+
 struct k_itimer {
-	struct list_head list;		/* free/ allocate list */
+	struct list_head list;		
 	spinlock_t it_lock;
-	clockid_t it_clock;		/* which timer type */
-	timer_t it_id;			/* timer id */
-	int it_overrun;			/* overrun on pending signal  */
-	int it_overrun_last;		/* overrun on last delivered signal */
-	int it_requeue_pending;		/* waiting to requeue this timer */
+	clockid_t it_clock;		
+	timer_t it_id;			
+	int it_overrun;			
+	int it_overrun_last;		
+	int it_requeue_pending;		
 #define REQUEUE_PENDING 1
-	int it_sigev_notify;		/* notify word of sigevent struct */
+	int it_sigev_notify;		
 	struct signal_struct *it_signal;
 	union {
-		struct pid *it_pid;	/* pid of process to send signal to */
-		struct task_struct *it_process;	/* for clock_nanosleep */
+		struct pid *it_pid;	
+		struct task_struct *it_process;	
 	};
-	struct sigqueue *sigq;		/* signal queue entry. */
+	struct sigqueue *sigq;		
 	union {
 		struct {
 			struct hrtimer timer;
@@ -67,7 +67,7 @@ struct k_itimer {
 };
 
 struct k_clock {
-	int res;		/* in nanoseconds */
+	int res;		
 	int (*clock_getres) (const clockid_t which_clock, struct timespec *tp);
 	int (*clock_set) (const clockid_t which_clock, struct timespec * tp);
 	int (*clock_get) (const clockid_t which_clock, struct timespec * tp);
@@ -86,12 +86,12 @@ struct k_clock {
 
 void register_posix_clock(const clockid_t clock_id, struct k_clock *new_clock);
 
-/* error handlers for timer_create, nanosleep and settime */
+
 int do_posix_clock_nonanosleep(const clockid_t, int flags, struct timespec *,
 			       struct timespec __user *);
 int do_posix_clock_nosettime(const clockid_t, struct timespec *tp);
 
-/* function to call to trigger timer event */
+
 int posix_timer_event(struct k_itimer *timr, int si_private);
 
 int posix_cpu_clock_getres(const clockid_t which_clock, struct timespec *ts);

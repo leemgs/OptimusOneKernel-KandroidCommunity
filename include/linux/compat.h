@@ -1,14 +1,11 @@
 #ifndef _LINUX_COMPAT_H
 #define _LINUX_COMPAT_H
-/*
- * These are the type definitions for the architecture specific
- * syscall compatibility layer.
- */
+
 
 #ifdef CONFIG_COMPAT
 
 #include <linux/stat.h>
-#include <linux/param.h>	/* for HZ */
+#include <linux/param.h>	
 #include <linux/sem.h>
 
 #include <asm/compat.h>
@@ -273,9 +270,7 @@ extern long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
 asmlinkage long compat_sys_ptrace(compat_long_t request, compat_long_t pid,
 				  compat_long_t addr, compat_long_t data);
 
-/*
- * epoll (fs/eventpoll.c) compat bits follow ...
- */
+
 struct epoll_event;
 #define compat_epoll_event	epoll_event
 asmlinkage long compat_sys_epoll_pwait(int epfd,
@@ -309,5 +304,5 @@ asmlinkage long compat_sys_newfstatat(unsigned int dfd, char __user * filename,
 asmlinkage long compat_sys_openat(unsigned int dfd, const char __user *filename,
 				  int flags, int mode);
 
-#endif /* CONFIG_COMPAT */
-#endif /* _LINUX_COMPAT_H */
+#endif 
+#endif 

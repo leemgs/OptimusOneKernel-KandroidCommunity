@@ -1,14 +1,4 @@
-/*
- * PMC551 PCI Mezzanine Ram Device
- *
- * Author:
- *       Mark Ferrell
- *       Copyright 1999,2000 Nortel Networks
- *
- * License:
- *	 As part of this driver was derrived from the slram.c driver it falls
- *	 under the same license, which is GNU General Public License v2
- */
+
 
 #ifndef __MTD_PMC551_H__
 #define __MTD_PMC551_H__
@@ -18,9 +8,7 @@
 #define PMC551_VERSION \
        "Ramix PMC551 PCI Mezzanine Ram Driver. (C) 1999,2000 Nortel Networks.\n"
 
-/*
- * Our personal and private information
- */
+
 struct mypriv {
         struct pci_dev *dev;
         u_char *start;
@@ -30,9 +18,7 @@ struct mypriv {
 	struct mtd_info *nextpmc551;
 };
 
-/*
- * Function Prototypes
- */
+
 static int pmc551_erase(struct mtd_info *, struct erase_info *);
 static void pmc551_unpoint(struct mtd_info *, loff_t, size_t);
 static int pmc551_point(struct mtd_info *mtd, loff_t from, size_t len,
@@ -41,9 +27,7 @@ static int pmc551_read(struct mtd_info *, loff_t, size_t, size_t *, u_char *);
 static int pmc551_write(struct mtd_info *, loff_t, size_t, size_t *, const u_char *);
 
 
-/*
- * Define the PCI ID's if the kernel doesn't define them for us
- */
+
 #ifndef PCI_VENDOR_ID_V3_SEMI
 #define PCI_VENDOR_ID_V3_SEMI             0x11b0
 #endif
@@ -74,5 +58,5 @@ static int pmc551_write(struct mtd_info *, loff_t, size_t, size_t *, const u_cha
 #define PMC551_DRAM_BLK_SET_ROW_MUX(x,v) (((x) & ~0x00000f00) | (((v) & 0xf) << 8))
 
 
-#endif /* __MTD_PMC551_H__ */
+#endif 
 

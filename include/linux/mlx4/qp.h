@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2007 Cisco Systems, Inc.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *	- Redistributions of source code must retain the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer.
- *
- *	- Redistributions in binary form must reproduce the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer in the documentation and/or other materials
- *	  provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #ifndef MLX4_QP_H
 #define MLX4_QP_H
@@ -84,11 +54,11 @@ enum {
 };
 
 enum {
-	/* params1 */
+	
 	MLX4_QP_BIT_SRE				= 1 << 15,
 	MLX4_QP_BIT_SWE				= 1 << 14,
 	MLX4_QP_BIT_SAE				= 1 << 13,
-	/* params2 */
+	
 	MLX4_QP_BIT_RRE				= 1 << 15,
 	MLX4_QP_BIT_RWE				= 1 << 14,
 	MLX4_QP_BIT_RAE				= 1 << 13,
@@ -154,7 +124,7 @@ struct mlx4_qp_context {
 	u32			reserved5[10];
 };
 
-/* Which firmware version adds support for NEC (NoErrorCompletion) bit */
+
 #define MLX4_FW_VER_WQE_CTRL_NEC mlx4_fw_ver(2, 2, 232)
 
 enum {
@@ -173,20 +143,9 @@ struct mlx4_wqe_ctrl_seg {
 	__be16			vlan_tag;
 	u8			ins_vlan;
 	u8			fence_size;
-	/*
-	 * High 24 bits are SRC remote buffer; low 8 bits are flags:
-	 * [7]   SO (strong ordering)
-	 * [5]   TCP/UDP checksum
-	 * [4]   IP checksum
-	 * [3:2] C (generate completion queue entry)
-	 * [1]   SE (solicited event)
-	 */
+	
 	__be32			srcrb_flags;
-	/*
-	 * imm is immediate data for send/RDMA write w/ immediate;
-	 * also invalidation key for send with invalidate; input
-	 * modifier for WQEs on CCQs.
-	 */
+	
 	__be32			imm;
 };
 
@@ -201,15 +160,7 @@ struct mlx4_wqe_mlx_seg {
 	u8			opcode;
 	u8			reserved2[3];
 	u8			size;
-	/*
-	 * [17]    VL15
-	 * [16]    SLR
-	 * [15:12] static rate
-	 * [11:8]  SL
-	 * [4]     ICRC
-	 * [3:2]   C
-	 * [0]     FL (force loopback)
-	 */
+	
 	__be32			flags;
 	__be16			rlid;
 	u16			reserved3;
@@ -318,4 +269,4 @@ static inline struct mlx4_qp *__mlx4_qp_lookup(struct mlx4_dev *dev, u32 qpn)
 
 void mlx4_qp_remove(struct mlx4_dev *dev, struct mlx4_qp *qp);
 
-#endif /* MLX4_QP_H */
+#endif 

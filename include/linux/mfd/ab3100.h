@@ -1,9 +1,4 @@
-/*
- * Copyright (C) 2007-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * AB3100 core access functions
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 
 #include <linux/device.h>
 #include <linux/workqueue.h>
@@ -16,11 +11,7 @@
 #define	AB3000		1
 #define	AB3100		2
 
-/*
- * AB3100, EVENTA1, A2 and A3 event register flags
- * these are catenated into a single 32-bit flag in the code
- * for event notification broadcasts.
- */
+
 #define AB3100_EVENTA1_ONSWA				(0x01<<16)
 #define AB3100_EVENTA1_ONSWB				(0x02<<16)
 #define AB3100_EVENTA1_ONSWC				(0x04<<16)
@@ -48,7 +39,7 @@
 #define AB3100_EVENTA3_ADC_TRIG1			(0x40)
 #define AB3100_EVENTA3_ADC_TRIG0			(0x80)
 
-/* AB3100, STR register flags */
+
 #define AB3100_STR_ONSWA				(0x01)
 #define AB3100_STR_ONSWB				(0x02)
 #define AB3100_STR_ONSWC				(0x04)
@@ -58,31 +49,10 @@
 #define AB3100_STR_BATT_REMOVAL				(0x40)
 #define AB3100_STR_VBUS					(0x80)
 
-/*
- * AB3100 contains 8 regulators, one external regulator controller
- * and a buck converter, further the LDO E and buck converter can
- * have separate settings if they are in sleep mode, this is
- * modeled as a separate regulator.
- */
+
 #define AB3100_NUM_REGULATORS				10
 
-/**
- * struct ab3100
- * @access_mutex: lock out concurrent accesses to the AB3100 registers
- * @dev: pointer to the containing device
- * @i2c_client: I2C client for this chip
- * @testreg_client: secondary client for test registers
- * @chip_name: name of this chip variant
- * @chip_id: 8 bit chip ID for this chip variant
- * @work: an event handling worker
- * @event_subscribers: event subscribers are listed here
- * @startup_events: a copy of the first reading of the event registers
- * @startup_events_read: whether the first events have been read
- *
- * This struct is PRIVATE and devices using it should NOT
- * access ANY fields. It is used as a token for calling the
- * AB3100 functions.
- */
+
 struct ab3100 {
 	struct mutex access_mutex;
 	struct device *dev;
@@ -96,19 +66,7 @@ struct ab3100 {
 	bool startup_events_read;
 };
 
-/**
- * struct ab3100_platform_data
- * Data supplied to initialize board connections to the AB3100
- * @reg_constraints: regulator constraints for target board
- *     the order of these constraints are: LDO A, C, D, E,
- *     F, G, H, K, EXT and BUCK.
- * @reg_initvals: initial values for the regulator registers
- *     plus two sleep settings for LDO E and the BUCK converter.
- *     exactly AB3100_NUM_REGULATORS+2 values must be sent in.
- *     Order: LDO A, C, E, E sleep, F, G, H, K, EXT, BUCK,
- *     BUCK sleep, LDO D. (LDO D need to be initialized last.)
- * @external_voltage: voltage level of the external regulator.
- */
+
 struct ab3100_platform_data {
 	struct regulator_init_data reg_constraints[AB3100_NUM_REGULATORS];
 	u8 reg_initvals[AB3100_NUM_REGULATORS+2];

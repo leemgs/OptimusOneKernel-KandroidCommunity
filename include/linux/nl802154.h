@@ -1,22 +1,4 @@
-/*
- * nl802154.h
- *
- * Copyright (C) 2007, 2008, 2009 Siemens AG
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
+
 
 #ifndef NL802154_H
 #define NL802154_H
@@ -73,10 +55,8 @@ enum {
 
 extern const struct nla_policy ieee802154_policy[];
 
-/* commands */
-/* REQ should be responded with CONF
- * and INDIC with RESP
- */
+
+
 enum {
 	__IEEE802154_COMMAND_INVALID,
 
@@ -107,11 +87,11 @@ enum {
 	IEEE802154_COMM_STATUS_INDIC,
 	IEEE802154_SYNC_LOSS_INDIC,
 
-	IEEE802154_GTS_REQ, /* Not supported yet */
-	IEEE802154_GTS_INDIC, /* Not supported yet */
-	IEEE802154_GTS_CONF, /* Not supported yet */
-	IEEE802154_RX_ENABLE_REQ, /* Not supported yet */
-	IEEE802154_RX_ENABLE_CONF, /* Not supported yet */
+	IEEE802154_GTS_REQ, 
+	IEEE802154_GTS_INDIC, 
+	IEEE802154_GTS_CONF, 
+	IEEE802154_RX_ENABLE_REQ, 
+	IEEE802154_RX_ENABLE_CONF, 
 
 	IEEE802154_LIST_IFACE,
 

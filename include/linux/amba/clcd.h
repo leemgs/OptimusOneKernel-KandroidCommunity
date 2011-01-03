@@ -1,19 +1,7 @@
-/*
- * linux/include/asm-arm/hardware/amba_clcd.h -- Integrator LCD panel.
- *
- * David A Rusling
- *
- * Copyright (C) 2001 ARM Limited
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive
- * for more details.
- */
+
 #include <linux/fb.h>
 
-/*
- * CLCD Controller Internal Register addresses
- */
+
 #define CLCD_TIM0		0x00000000
 #define CLCD_TIM1 		0x00000004
 #define CLCD_TIM2 		0x00000008
@@ -25,10 +13,7 @@
 #define CLCD_IENB 		0x00000018
 #define CLCD_CNTL 		0x0000001c
 #else
-/*
- * Someone rearranged these two registers on the Versatile
- * platform...
- */
+
 #define CLCD_IENB 		0x0000001c
 #define CLCD_CNTL 		0x00000018
 #endif
@@ -69,8 +54,8 @@
 
 struct clcd_panel {
 	struct fb_videomode	mode;
-	signed short		width;	/* width in mm */
-	signed short		height;	/* height in mm */
+	signed short		width;	
+	signed short		height;	
 	u32			tim2;
 	u32			tim3;
 	u32			cntl;
@@ -91,54 +76,36 @@ struct clcd_regs {
 
 struct clcd_fb;
 
-/*
- * the board-type specific routines
- */
+
 struct clcd_board {
 	const char *name;
 
-	/*
-	 * Optional.  Check whether the var structure is acceptable
-	 * for this display.
-	 */
+	
 	int	(*check)(struct clcd_fb *fb, struct fb_var_screeninfo *var);
 
-	/*
-	 * Compulsary.  Decode fb->fb.var into regs->*.  In the case of
-	 * fixed timing, set regs->* to the register values required.
-	 */
+	
 	void	(*decode)(struct clcd_fb *fb, struct clcd_regs *regs);
 
-	/*
-	 * Optional.  Disable any extra display hardware.
-	 */
+	
 	void	(*disable)(struct clcd_fb *);
 
-	/*
-	 * Optional.  Enable any extra display hardware.
-	 */
+	
 	void	(*enable)(struct clcd_fb *);
 
-	/*
-	 * Setup platform specific parts of CLCD driver
-	 */
+	
 	int	(*setup)(struct clcd_fb *);
 
-	/*
-	 * mmap the framebuffer memory
-	 */
+	
 	int	(*mmap)(struct clcd_fb *, struct vm_area_struct *);
 
-	/*
-	 * Remove platform specific parts of CLCD driver
-	 */
+	
 	void	(*remove)(struct clcd_fb *);
 };
 
 struct amba_device;
 struct clk;
 
-/* this data structure describes each frame buffer device we find */
+
 struct clcd_fb {
 	struct fb_info		fb;
 	struct amba_device	*dev;
@@ -155,9 +122,7 @@ static inline void clcdfb_decode(struct clcd_fb *fb, struct clcd_regs *regs)
 {
 	u32 val, cpl;
 
-	/*
-	 * Program the CLCD controller registers and start the CLCD
-	 */
+	
 	val = ((fb->fb.var.xres / 16) - 1) << 2;
 	val |= (fb->fb.var.hsync_len - 1) << 8;
 	val |= (fb->fb.var.right_margin - 1) << 16;
@@ -178,13 +143,13 @@ static inline void clcdfb_decode(struct clcd_fb *fb, struct clcd_regs *regs)
 	val |= fb->fb.var.sync & FB_SYNC_VERT_HIGH_ACT ? 0 : TIM2_IVS;
 
 	cpl = fb->fb.var.xres_virtual;
-	if (fb->panel->cntl & CNTL_LCDTFT)	  /* TFT */
-		/* / 1 */;
-	else if (!fb->fb.var.grayscale)		  /* STN color */
+	if (fb->panel->cntl & CNTL_LCDTFT)	  
+		;
+	else if (!fb->fb.var.grayscale)		  
 		cpl = cpl * 8 / 3;
-	else if (fb->panel->cntl & CNTL_LCDMONO8) /* STN monochrome, 8bit */
+	else if (fb->panel->cntl & CNTL_LCDMONO8) 
 		cpl /= 8;
-	else					  /* STN monochrome, 4bit */
+	else					  
 		cpl /= 4;
 
 	regs->tim2 = val | ((cpl - 1) << 16);
@@ -209,10 +174,7 @@ static inline void clcdfb_decode(struct clcd_fb *fb, struct clcd_regs *regs)
 		val |= CNTL_LCDBPP8;
 		break;
 	case 16:
-		/*
-		 * PL110 cannot choose between 5551 and 565 modes in
-		 * its control register
-		 */
+		
 		if ((fb->dev->periphid & 0x000fffff) == 0x00041110)
 			val |= CNTL_LCDBPP16;
 		else if (fb->fb.var.green.length == 5)
@@ -235,24 +197,21 @@ static inline int clcdfb_check(struct clcd_fb *fb, struct fb_var_screeninfo *var
 	var->yres_virtual = var->yres = (var->yres + 1) & ~1;
 
 #define CHECK(e,l,h) (var->e < l || var->e > h)
-	if (CHECK(right_margin, (5+1), 256) ||	/* back porch */
-	    CHECK(left_margin, (5+1), 256) ||	/* front porch */
+	if (CHECK(right_margin, (5+1), 256) ||	
+	    CHECK(left_margin, (5+1), 256) ||	
 	    CHECK(hsync_len, (5+1), 256) ||
 	    var->xres > 4096 ||
-	    var->lower_margin > 255 ||		/* back porch */
-	    var->upper_margin > 255 ||		/* front porch */
+	    var->lower_margin > 255 ||		
+	    var->upper_margin > 255 ||		
 	    var->vsync_len > 32 ||
 	    var->yres > 1024)
 		return -EINVAL;
 #undef CHECK
 
-	/* single panel mode: PCD = max(PCD, 1) */
-	/* dual panel mode: PCD = max(PCD, 5) */
+	
+	
 
-	/*
-	 * You can't change the grayscale setting, and
-	 * we can only do non-interlaced video.
-	 */
+	
 	if (var->grayscale != fb->fb.var.grayscale ||
 	    (var->vmode & FB_VMODE_MASK) != FB_VMODE_NONINTERLACED)
 		return -EINVAL;

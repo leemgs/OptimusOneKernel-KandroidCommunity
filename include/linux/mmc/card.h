@@ -1,12 +1,4 @@
-/*
- *  linux/include/linux/mmc/card.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *  Card driver specific definitions.
- */
+
 #ifndef LINUX_MMC_CARD_H
 #define LINUX_MMC_CARD_H
 
@@ -41,7 +33,7 @@ struct mmc_csd {
 
 struct mmc_ext_csd {
 	u8			rev;
-	unsigned int		sa_timeout;		/* Units: 100ns */
+	unsigned int		sa_timeout;		
 	unsigned int		hs_max_dtr;
 	unsigned int		sectors;
 };
@@ -81,41 +73,39 @@ struct sdio_func_tuple;
 
 #define SDIO_MAX_FUNCS		7
 
-/*
- * MMC device
- */
+
 struct mmc_card {
-	struct mmc_host		*host;		/* the host this device belongs to */
-	struct device		dev;		/* the device */
-	unsigned int		rca;		/* relative card address of device */
-	unsigned int		type;		/* card type */
-#define MMC_TYPE_MMC		0		/* MMC card */
-#define MMC_TYPE_SD		1		/* SD card */
-#define MMC_TYPE_SDIO		2		/* SDIO card */
-	unsigned int		state;		/* (our) card state */
-#define MMC_STATE_PRESENT	(1<<0)		/* present in sysfs */
-#define MMC_STATE_READONLY	(1<<1)		/* card is read-only */
-#define MMC_STATE_HIGHSPEED	(1<<2)		/* card is in high speed mode */
-#define MMC_STATE_BLOCKADDR	(1<<3)		/* card uses block-addressing */
-	unsigned int		quirks; 	/* card quirks */
-#define MMC_QUIRK_LENIENT_FN0	(1<<0)		/* allow SDIO FN0 writes outside of the VS CCCR range */
+	struct mmc_host		*host;		
+	struct device		dev;		
+	unsigned int		rca;		
+	unsigned int		type;		
+#define MMC_TYPE_MMC		0		
+#define MMC_TYPE_SD		1		
+#define MMC_TYPE_SDIO		2		
+	unsigned int		state;		
+#define MMC_STATE_PRESENT	(1<<0)		
+#define MMC_STATE_READONLY	(1<<1)		
+#define MMC_STATE_HIGHSPEED	(1<<2)		
+#define MMC_STATE_BLOCKADDR	(1<<3)		
+	unsigned int		quirks; 	
+#define MMC_QUIRK_LENIENT_FN0	(1<<0)		
 
-	u32			raw_cid[4];	/* raw card CID */
-	u32			raw_csd[4];	/* raw card CSD */
-	u32			raw_scr[2];	/* raw card SCR */
-	struct mmc_cid		cid;		/* card identification */
-	struct mmc_csd		csd;		/* card specific */
-	struct mmc_ext_csd	ext_csd;	/* mmc v4 extended card specific */
-	struct sd_scr		scr;		/* extra SD information */
-	struct sd_switch_caps	sw_caps;	/* switch (CMD6) caps */
+	u32			raw_cid[4];	
+	u32			raw_csd[4];	
+	u32			raw_scr[2];	
+	struct mmc_cid		cid;		
+	struct mmc_csd		csd;		
+	struct mmc_ext_csd	ext_csd;	
+	struct sd_scr		scr;		
+	struct sd_switch_caps	sw_caps;	
 
-	unsigned int		sdio_funcs;	/* number of SDIO functions */
-	struct sdio_cccr	cccr;		/* common card info */
-	struct sdio_cis		cis;		/* common tuple info */
-	struct sdio_func	*sdio_func[SDIO_MAX_FUNCS]; /* SDIO functions (devices) */
-	unsigned		num_info;	/* number of info strings */
-	const char		**info;		/* info strings */
-	struct sdio_func_tuple	*tuples;	/* unknown common tuples */
+	unsigned int		sdio_funcs;	
+	struct sdio_cccr	cccr;		
+	struct sdio_cis		cis;		
+	struct sdio_func	*sdio_func[SDIO_MAX_FUNCS]; 
+	unsigned		num_info;	
+	const char		**info;		
+	struct sdio_func_tuple	*tuples;	
 
 	struct dentry		*debugfs_root;
 };
@@ -146,9 +136,7 @@ static inline int mmc_card_lenient_fn0(const struct mmc_card *c)
 #define mmc_get_drvdata(c)	dev_get_drvdata(&(c)->dev)
 #define mmc_set_drvdata(c,d)	dev_set_drvdata(&(c)->dev, d)
 
-/*
- * MMC device driver (e.g., Flash card, I/O card...)
- */
+
 struct mmc_driver {
 	struct device_driver drv;
 	int (*probe)(struct mmc_card *);

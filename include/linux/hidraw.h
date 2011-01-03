@@ -1,19 +1,9 @@
 #ifndef _HIDRAW_H
 #define _HIDRAW_H
 
-/*
- *  Copyright (c) 2007 Jiri Kosina
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- */
+
+
 
 #include <linux/hid.h>
 #include <linux/types.h>
@@ -29,7 +19,7 @@ struct hidraw_devinfo {
 	__s16 product;
 };
 
-/* ioctl interface */
+
 #define HIDIOCGRDESCSIZE	_IOR('H', 0x01, int)
 #define HIDIOCGRDESC		_IOR('H', 0x02, struct hidraw_report_descriptor)
 #define HIDIOCGRAWINFO		_IOR('H', 0x03, struct hidraw_devinfo)
@@ -38,11 +28,11 @@ struct hidraw_devinfo {
 
 #define HIDRAW_FIRST_MINOR 0
 #define HIDRAW_MAX_DEVICES 64
-/* number of reports to buffer */
+
 #define HIDRAW_BUFFER_SIZE 64
 
 
-/* kernel-only API declarations */
+
 #ifdef __KERNEL__
 
 struct hidraw {

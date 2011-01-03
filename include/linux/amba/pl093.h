@@ -1,20 +1,8 @@
-/* linux/amba/pl093.h
- *
- * Copyright (c) 2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * AMBA PL093 SSMC (synchronous static memory controller)
- *  See DDI0236.pdf (r0p4) for more details
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
 
-#define SMB_BANK(x)	((x) * 0x20) /* each bank control set is 0x20 apart */
 
-/* Offsets for SMBxxxxRy registers */
+#define SMB_BANK(x)	((x) * 0x20) 
+
+
 
 #define SMBIDCYR	(0x00)
 #define SMBWSTRDR	(0x04)
@@ -25,21 +13,16 @@
 #define SMBSR		(0x18)
 #define SMBWSTBRDR	(0x1C)
 
-/* Masks for SMB registers */
+
 #define IDCY_MASK	(0xf)
 #define WSTRD_MASK	(0xf)
 #define WSTWR_MASK	(0xf)
 #define WSTOEN_MASK	(0xf)
 #define WSTWEN_MASK	(0xf)
 
-/* Notes from datasheet:
- *	WSTOEN <= WSTRD
- *	WSTWEN <= WSTWR
- *
- * WSTOEN is not used with nWAIT
- */
 
-/* SMBCR bit definitions */
+
+
 #define SMBCR_BIWRITEEN		(1 << 21)
 #define SMBCR_ADDRVALIDWRITEEN	(1 << 20)
 #define SMBCR_SYNCWRITE		(1 << 17)
@@ -72,7 +55,7 @@
 #define SMBCR_MW_16BIT			(1 << 4)
 #define SMBCR_MW_M32BIT			(2 << 4)
 
-/* SSMC status registers */
+
 #define SSMCCSR		(0x200)
 #define SSMCCR		(0x204)
 #define SSMCITCR	(0x208)

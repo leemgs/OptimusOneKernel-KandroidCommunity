@@ -1,8 +1,4 @@
-/*
- * linux/include/linux/sunrpc/svc_xprt.h
- *
- * RPC server transport I/O
- */
+
 
 #ifndef SUNRPC_SVC_XPRT_H
 #define SUNRPC_SVC_XPRT_H
@@ -39,33 +35,31 @@ struct svc_xprt {
 	struct list_head	xpt_list;
 	struct list_head	xpt_ready;
 	unsigned long		xpt_flags;
-#define	XPT_BUSY	0		/* enqueued/receiving */
-#define	XPT_CONN	1		/* conn pending */
-#define	XPT_CLOSE	2		/* dead or dying */
-#define	XPT_DATA	3		/* data pending */
-#define	XPT_TEMP	4		/* connected transport */
-#define	XPT_DEAD	6		/* transport closed */
-#define	XPT_CHNGBUF	7		/* need to change snd/rcv buf sizes */
-#define	XPT_DEFERRED	8		/* deferred request pending */
-#define	XPT_OLD		9		/* used for xprt aging mark+sweep */
-#define	XPT_DETACHED	10		/* detached from tempsocks list */
-#define XPT_LISTENER	11		/* listening endpoint */
-#define XPT_CACHE_AUTH	12		/* cache auth info */
+#define	XPT_BUSY	0		
+#define	XPT_CONN	1		
+#define	XPT_CLOSE	2		
+#define	XPT_DATA	3		
+#define	XPT_TEMP	4		
+#define	XPT_DEAD	6		
+#define	XPT_CHNGBUF	7		
+#define	XPT_DEFERRED	8		
+#define	XPT_OLD		9		
+#define	XPT_DETACHED	10		
+#define XPT_LISTENER	11		
+#define XPT_CACHE_AUTH	12		
 
-	struct svc_pool		*xpt_pool;	/* current pool iff queued */
-	struct svc_serv		*xpt_server;	/* service for transport */
-	atomic_t    	    	xpt_reserved;	/* space on outq that is rsvd */
-	struct mutex		xpt_mutex;	/* to serialize sending data */
-	spinlock_t		xpt_lock;	/* protects sk_deferred
-						 * and xpt_auth_cache */
-	void			*xpt_auth_cache;/* auth cache */
-	struct list_head	xpt_deferred;	/* deferred requests that need
-						 * to be revisted */
-	struct sockaddr_storage	xpt_local;	/* local address */
-	size_t			xpt_locallen;	/* length of address */
-	struct sockaddr_storage	xpt_remote;	/* remote peer's address */
-	size_t			xpt_remotelen;	/* length of address */
-	struct rpc_wait_queue	xpt_bc_pending;	/* backchannel wait queue */
+	struct svc_pool		*xpt_pool;	
+	struct svc_serv		*xpt_server;	
+	atomic_t    	    	xpt_reserved;	
+	struct mutex		xpt_mutex;	
+	spinlock_t		xpt_lock;	
+	void			*xpt_auth_cache;
+	struct list_head	xpt_deferred;	
+	struct sockaddr_storage	xpt_local;	
+	size_t			xpt_locallen;	
+	struct sockaddr_storage	xpt_remote;	
+	size_t			xpt_remotelen;	
+	struct rpc_wait_queue	xpt_bc_pending;	
 };
 
 int	svc_reg_xprt_class(struct svc_xprt_class *);
@@ -166,4 +160,4 @@ static inline char *__svc_print_addr(const struct sockaddr *addr,
 
 	return buf;
 }
-#endif /* SUNRPC_SVC_XPRT_H */
+#endif 

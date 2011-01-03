@@ -10,29 +10,7 @@
 #include <asm/hardirq.h>
 #include <asm/system.h>
 
-/*
- * We put the hardirq and softirq counter into the preemption
- * counter. The bitmask has the following meaning:
- *
- * - bits 0-7 are the preemption count (max preemption depth: 256)
- * - bits 8-15 are the softirq count (max # of softirqs: 256)
- *
- * The hardirq count can in theory reach the same as NR_IRQS.
- * In reality, the number of nested IRQS is limited to the stack
- * size as well. For archs with over 1000 IRQS it is not practical
- * to expect that they will all nest. We give a max of 10 bits for
- * hardirq nesting. An arch may choose to give less than 10 bits.
- * m68k expects it to be 8.
- *
- * - bits 16-25 are the hardirq count (max # of nested hardirqs: 1024)
- * - bit 26 is the NMI_MASK
- * - bit 28 is the PREEMPT_ACTIVE flag
- *
- * PREEMPT_MASK: 0x000000ff
- * SOFTIRQ_MASK: 0x0000ff00
- * HARDIRQ_MASK: 0x03ff0000
- *     NMI_MASK: 0x04000000
- */
+
 #define PREEMPT_BITS	8
 #define SOFTIRQ_BITS	8
 #define NMI_BITS	1
@@ -79,17 +57,12 @@
 #define irq_count()	(preempt_count() & (HARDIRQ_MASK | SOFTIRQ_MASK \
 				 | NMI_MASK))
 
-/*
- * Are we doing bottom half or hardware interrupt processing?
- * Are we in a softirq context? Interrupt context?
- */
+
 #define in_irq()		(hardirq_count())
 #define in_softirq()		(softirq_count())
 #define in_interrupt()		(irq_count())
 
-/*
- * Are we in NMI context?
- */
+
 #define in_nmi()	(preempt_count() & NMI_MASK)
 
 #if defined(CONFIG_PREEMPT)
@@ -100,19 +73,10 @@
 # define PREEMPT_CHECK_OFFSET 0
 #endif
 
-/*
- * Are we running in atomic context?  WARNING: this macro cannot
- * always detect atomic context; in particular, it cannot know about
- * held spinlocks in non-preemptible kernels.  Thus it should not be
- * used in the general case to determine whether sleeping is possible.
- * Do not use in_atomic() in driver code.
- */
+
 #define in_atomic()	((preempt_count() & ~PREEMPT_ACTIVE) != PREEMPT_INATOMIC_BASE)
 
-/*
- * Check whether we were atomic before we did preempt_disable():
- * (used by the scheduler, *after* releasing the kernel lock)
- */
+
 #define in_atomic_preempt_off() \
 		((preempt_count() & ~PREEMPT_ACTIVE) != PREEMPT_CHECK_OFFSET)
 
@@ -148,14 +112,9 @@ extern void rcu_nmi_exit(void);
 # define rcu_irq_exit() do { } while (0)
 # define rcu_nmi_enter() do { } while (0)
 # define rcu_nmi_exit() do { } while (0)
-#endif /* #if defined(CONFIG_NO_HZ) */
+#endif 
 
-/*
- * It is safe to do non-atomic ops on ->hardirq_context,
- * because NMI handlers may not preempt and the ops are
- * always balanced, so the interrupted value of ->hardirq_context
- * will always be restored.
- */
+
 #define __irq_enter()					\
 	do {						\
 		account_system_vtime(current);		\
@@ -163,14 +122,10 @@ extern void rcu_nmi_exit(void);
 		trace_hardirq_enter();			\
 	} while (0)
 
-/*
- * Enter irq context (on NO_HZ, update jiffies):
- */
+
 extern void irq_enter(void);
 
-/*
- * Exit irq context without processing softirqs:
- */
+
 #define __irq_exit()					\
 	do {						\
 		trace_hardirq_exit();			\
@@ -178,9 +133,7 @@ extern void irq_enter(void);
 		sub_preempt_count(HARDIRQ_OFFSET);	\
 	} while (0)
 
-/*
- * Exit irq context and process softirqs if needed:
- */
+
 extern void irq_exit(void);
 
 #define nmi_enter()						\
@@ -203,4 +156,4 @@ extern void irq_exit(void);
 		ftrace_nmi_exit();				\
 	} while (0)
 
-#endif /* LINUX_HARDIRQ_H */
+#endif 

@@ -1,11 +1,4 @@
-/*
- *
- * Definitions for mount interface. This describes the in the kernel build 
- * linkedlist with mounted filesystems.
- *
- * Author:  Marco van Wieringen <mvw@planets.elm.net>
- *
- */
+
 #ifndef _LINUX_MOUNT_H
 #define _LINUX_MOUNT_H
 
@@ -26,43 +19,39 @@ struct mnt_namespace;
 #define MNT_NOATIME	0x08
 #define MNT_NODIRATIME	0x10
 #define MNT_RELATIME	0x20
-#define MNT_READONLY	0x40	/* does the user want this to be r/o? */
+#define MNT_READONLY	0x40	
 #define MNT_STRICTATIME 0x80
 
 #define MNT_SHRINKABLE	0x100
 #define MNT_WRITE_HOLD	0x200
 
-#define MNT_SHARED	0x1000	/* if the vfsmount is a shared mount */
-#define MNT_UNBINDABLE	0x2000	/* if the vfsmount is a unbindable mount */
-#define MNT_PNODE_MASK	0x3000	/* propagation flag mask */
+#define MNT_SHARED	0x1000	
+#define MNT_UNBINDABLE	0x2000	
+#define MNT_PNODE_MASK	0x3000	
 
 struct vfsmount {
 	struct list_head mnt_hash;
-	struct vfsmount *mnt_parent;	/* fs we are mounted on */
-	struct dentry *mnt_mountpoint;	/* dentry of mountpoint */
-	struct dentry *mnt_root;	/* root of the mounted tree */
-	struct super_block *mnt_sb;	/* pointer to superblock */
-	struct list_head mnt_mounts;	/* list of children, anchored here */
-	struct list_head mnt_child;	/* and going through their mnt_child */
+	struct vfsmount *mnt_parent;	
+	struct dentry *mnt_mountpoint;	
+	struct dentry *mnt_root;	
+	struct super_block *mnt_sb;	
+	struct list_head mnt_mounts;	
+	struct list_head mnt_child;	
 	int mnt_flags;
-	/* 4 bytes hole on 64bits arches */
-	const char *mnt_devname;	/* Name of device e.g. /dev/dsk/hda1 */
+	
+	const char *mnt_devname;	
 	struct list_head mnt_list;
-	struct list_head mnt_expire;	/* link in fs-specific expiry list */
-	struct list_head mnt_share;	/* circular list of shared mounts */
-	struct list_head mnt_slave_list;/* list of slave mounts */
-	struct list_head mnt_slave;	/* slave list entry */
-	struct vfsmount *mnt_master;	/* slave is on master->mnt_slave_list */
-	struct mnt_namespace *mnt_ns;	/* containing namespace */
-	int mnt_id;			/* mount identifier */
-	int mnt_group_id;		/* peer group identifier */
-	/*
-	 * We put mnt_count & mnt_expiry_mark at the end of struct vfsmount
-	 * to let these frequently modified fields in a separate cache line
-	 * (so that reads of mnt_flags wont ping-pong on SMP machines)
-	 */
+	struct list_head mnt_expire;	
+	struct list_head mnt_share;	
+	struct list_head mnt_slave_list;
+	struct list_head mnt_slave;	
+	struct vfsmount *mnt_master;	
+	struct mnt_namespace *mnt_ns;	
+	int mnt_id;			
+	int mnt_group_id;		
+	
 	atomic_t mnt_count;
-	int mnt_expiry_mark;		/* true if marked for expiry */
+	int mnt_expiry_mark;		
 	int mnt_pinned;
 	int mnt_ghosts;
 #ifdef CONFIG_SMP
@@ -88,7 +77,7 @@ static inline struct vfsmount *mntget(struct vfsmount *mnt)
 	return mnt;
 }
 
-struct file; /* forward dec */
+struct file; 
 
 extern int mnt_want_write(struct vfsmount *mnt);
 extern int mnt_want_write_file(struct file *file);
@@ -126,4 +115,4 @@ extern void mark_mounts_for_expiry(struct list_head *mounts);
 extern spinlock_t vfsmount_lock;
 extern dev_t name_to_dev_t(char *name);
 
-#endif /* _LINUX_MOUNT_H */
+#endif 

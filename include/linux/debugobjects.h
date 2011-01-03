@@ -16,13 +16,7 @@ enum debug_obj_state {
 
 struct debug_obj_descr;
 
-/**
- * struct debug_obj - representaion of an tracked object
- * @node:	hlist node to link the object into the tracker list
- * @state:	tracked object state
- * @object:	pointer to the real object
- * @descr:	pointer to an object type specific debug description structure
- */
+
 struct debug_obj {
 	struct hlist_node	node;
 	enum debug_obj_state	state;
@@ -30,18 +24,7 @@ struct debug_obj {
 	struct debug_obj_descr	*descr;
 };
 
-/**
- * struct debug_obj_descr - object type specific debug description structure
- * @name:		name of the object typee
- * @fixup_init:		fixup function, which is called when the init check
- *			fails
- * @fixup_activate:	fixup function, which is called when the activate check
- *			fails
- * @fixup_destroy:	fixup function, which is called when the destroy check
- *			fails
- * @fixup_free:		fixup function, which is called when the free check
- *			fails
- */
+
 struct debug_obj_descr {
 	const char		*name;
 

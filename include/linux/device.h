@@ -1,14 +1,4 @@
-/*
- * device.h - generic, centralized driver model
- *
- * Copyright (c) 2001-2003 Patrick Mochel <mochel@osdl.org>
- * Copyright (c) 2004-2009 Greg Kroah-Hartman <gregkh@suse.de>
- * Copyright (c) 2008-2009 Novell Inc.
- *
- * This file is released under the GPLv2
- *
- * See Documentation/driver-model/ for more information.
- */
+
 
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
@@ -73,7 +63,7 @@ extern void bus_unregister(struct bus_type *bus);
 
 extern int __must_check bus_rescan_devices(struct bus_type *bus);
 
-/* iterator helpers for buses */
+
 
 int bus_for_each_dev(struct bus_type *bus, struct device *start, void *data,
 		     int (*fn)(struct device *dev, void *data));
@@ -91,12 +81,7 @@ int __must_check bus_for_each_drv(struct bus_type *bus,
 void bus_sort_breadthfirst(struct bus_type *bus,
 			   int (*compare)(const struct device *a,
 					  const struct device *b));
-/*
- * Bus notifiers: Get notified of addition/removal of devices
- * and binding/unbinding of drivers to devices.
- * In the long run, it should be a replacement for the platform
- * notify hooks.
- */
+
 struct notifier_block;
 
 extern int bus_register_notifier(struct bus_type *bus,
@@ -104,17 +89,12 @@ extern int bus_register_notifier(struct bus_type *bus,
 extern int bus_unregister_notifier(struct bus_type *bus,
 				   struct notifier_block *nb);
 
-/* All 4 notifers below get called with the target struct device *
- * as an argument. Note that those functions are likely to be called
- * with the device semaphore held in the core, so be careful.
- */
-#define BUS_NOTIFY_ADD_DEVICE		0x00000001 /* device added */
-#define BUS_NOTIFY_DEL_DEVICE		0x00000002 /* device removed */
-#define BUS_NOTIFY_BOUND_DRIVER		0x00000003 /* driver bound to device */
-#define BUS_NOTIFY_UNBIND_DRIVER	0x00000004 /* driver about to be
-						      unbound */
-#define BUS_NOTIFY_UNBOUND_DRIVER	0x00000005 /* driver is unbound
-						      from the device */
+
+#define BUS_NOTIFY_ADD_DEVICE		0x00000001 
+#define BUS_NOTIFY_DEL_DEVICE		0x00000002 
+#define BUS_NOTIFY_BOUND_DRIVER		0x00000003 
+#define BUS_NOTIFY_UNBIND_DRIVER	0x00000004 
+#define BUS_NOTIFY_UNBOUND_DRIVER	0x00000005 
 
 extern struct kset *bus_get_kset(struct bus_type *bus);
 extern struct klist *bus_get_device_klist(struct bus_type *bus);
@@ -124,9 +104,9 @@ struct device_driver {
 	struct bus_type		*bus;
 
 	struct module		*owner;
-	const char		*mod_name;	/* used for built-in modules */
+	const char		*mod_name;	
 
-	bool suppress_bind_attrs;	/* disables bind/unbind via sysfs */
+	bool suppress_bind_attrs;	
 
 	int (*probe) (struct device *dev);
 	int (*remove) (struct device *dev);
@@ -152,7 +132,7 @@ extern int driver_probe_done(void);
 extern void wait_for_device_probe(void);
 
 
-/* sysfs interface for exporting driver attributes */
+
 
 struct driver_attribute {
 	struct attribute attr;
@@ -183,9 +163,7 @@ struct device *driver_find_device(struct device_driver *drv,
 				  struct device *start, void *data,
 				  int (*match)(struct device *dev, void *data));
 
-/*
- * device classes
- */
+
 struct class {
 	const char		*name;
 	struct module		*owner;
@@ -219,8 +197,7 @@ extern int __must_check __class_register(struct class *class,
 					 struct lock_class_key *key);
 extern void class_unregister(struct class *class);
 
-/* This is a #define to keep the compiler from merging different
- * instances of the __key variable */
+
 #define class_register(class)			\
 ({						\
 	static struct lock_class_key __key;	\
@@ -279,23 +256,14 @@ extern struct class * __must_check __class_create(struct module *owner,
 						  struct lock_class_key *key);
 extern void class_destroy(struct class *cls);
 
-/* This is a #define to keep the compiler from merging different
- * instances of the __key variable */
+
 #define class_create(owner, name)		\
 ({						\
 	static struct lock_class_key __key;	\
 	__class_create(owner, name, &__key);	\
 })
 
-/*
- * The type of device, "struct device" is embedded in. A class
- * or bus can contain devices of different types
- * like "partitions" and "disks", "mouse" and "event".
- * This identifies the device type and carries type-specific
- * information, equivalent to the kobj_type of a kobject.
- * If "name" is specified, the uevent will contain it in
- * the DEVTYPE variable.
- */
+
 struct device_type {
 	const char *name;
 	const struct attribute_group **groups;
@@ -306,7 +274,7 @@ struct device_type {
 	const struct dev_pm_ops *pm;
 };
 
-/* interface for exporting device attributes */
+
 struct device_attribute {
 	struct attribute	attr;
 	ssize_t (*show)(struct device *dev, struct device_attribute *attr,
@@ -329,11 +297,11 @@ extern void device_remove_bin_file(struct device *dev,
 extern int device_schedule_callback_owner(struct device *dev,
 		void (*func)(struct device *dev), struct module *owner);
 
-/* This is a macro to avoid include problems with THIS_MODULE */
+
 #define device_schedule_callback(dev, func)			\
 	device_schedule_callback_owner(dev, func, THIS_MODULE)
 
-/* device resource management */
+
 typedef void (*dr_release_t)(struct device *dev, void *res);
 typedef int (*dr_match_t)(struct device *dev, void *res, void *match_data);
 
@@ -356,22 +324,19 @@ extern void *devres_remove(struct device *dev, dr_release_t release,
 extern int devres_destroy(struct device *dev, dr_release_t release,
 			  dr_match_t match, void *match_data);
 
-/* devres group */
+
 extern void * __must_check devres_open_group(struct device *dev, void *id,
 					     gfp_t gfp);
 extern void devres_close_group(struct device *dev, void *id);
 extern void devres_remove_group(struct device *dev, void *id);
 extern int devres_release_group(struct device *dev, void *id);
 
-/* managed kzalloc/kfree for device drivers, no kmalloc, always use kzalloc */
+
 extern void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp);
 extern void devm_kfree(struct device *dev, void *p);
 
 struct device_dma_parameters {
-	/*
-	 * a low level driver may set these to teach IOMMU code about
-	 * sg limitations.
-	 */
+	
 	unsigned int max_segment_size;
 	unsigned long segment_boundary_mask;
 };
@@ -382,52 +347,43 @@ struct device {
 	struct device_private	*p;
 
 	struct kobject kobj;
-	const char		*init_name; /* initial name of the device */
+	const char		*init_name; 
 	struct device_type	*type;
 
-	struct semaphore	sem;	/* semaphore to synchronize calls to
-					 * its driver.
-					 */
+	struct semaphore	sem;	
 
-	struct bus_type	*bus;		/* type of bus device is on */
-	struct device_driver *driver;	/* which driver has allocated this
-					   device */
-	void		*platform_data;	/* Platform specific data, device
-					   core doesn't touch it */
+	struct bus_type	*bus;		
+	struct device_driver *driver;	
+	void		*platform_data;	
 	struct dev_pm_info	power;
 
 #ifdef CONFIG_NUMA
-	int		numa_node;	/* NUMA node this device is close to */
+	int		numa_node;	
 #endif
-	u64		*dma_mask;	/* dma mask (if dma'able device) */
-	u64		coherent_dma_mask;/* Like dma_mask, but for
-					     alloc_coherent mappings as
-					     not all hardware supports
-					     64 bit addresses for consistent
-					     allocations such descriptors. */
+	u64		*dma_mask;	
+	u64		coherent_dma_mask;
 
 	struct device_dma_parameters *dma_parms;
 
-	struct list_head	dma_pools;	/* dma pools (if dma'ble) */
+	struct list_head	dma_pools;	
 
-	struct dma_coherent_mem	*dma_mem; /* internal for coherent mem
-					     override */
-	/* arch specific additions */
+	struct dma_coherent_mem	*dma_mem; 
+	
 	struct dev_archdata	archdata;
 
-	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+	dev_t			devt;	
 
 	spinlock_t		devres_lock;
 	struct list_head	devres_head;
 
 	struct klist_node	knode_class;
 	struct class		*class;
-	const struct attribute_group **groups;	/* optional groups */
+	const struct attribute_group **groups;	
 
 	void	(*release)(struct device *dev);
 };
 
-/* Get the wakeup routines, which depend on struct device */
+
 #include <linux/pm_wakeup.h>
 
 static inline const char *dev_name(const struct device *dev)
@@ -474,9 +430,7 @@ static inline int device_is_registered(struct device *dev)
 
 void driver_init(void);
 
-/*
- * High level routines for use by the bus drivers
- */
+
 extern int __must_check device_register(struct device *dev);
 extern void device_unregister(struct device *dev);
 extern void device_initialize(struct device *dev);
@@ -494,9 +448,7 @@ extern const char *device_get_devnode(struct device *dev,
 extern void *dev_get_drvdata(const struct device *dev);
 extern void dev_set_drvdata(struct device *dev, void *data);
 
-/*
- * Root device objects for grouping under /sys/devices
- */
+
 extern struct device *__root_device_register(const char *name,
 					     struct module *owner);
 static inline struct device *root_device_register(const char *name)
@@ -510,19 +462,14 @@ static inline void *dev_get_platdata(const struct device *dev)
 	return dev->platform_data;
 }
 
-/*
- * Manual binding of a device to driver. See drivers/base/bus.c
- * for information on use.
- */
+
 extern int __must_check device_bind_driver(struct device *dev);
 extern void device_release_driver(struct device *dev);
 extern int  __must_check device_attach(struct device *dev);
 extern int __must_check driver_attach(struct device_driver *drv);
 extern int __must_check device_reprobe(struct device *dev);
 
-/*
- * Easy functions for dynamically creating devices on the fly
- */
+
 extern struct device *device_create_vargs(struct class *cls,
 					  struct device *parent,
 					  dev_t devt,
@@ -535,21 +482,14 @@ extern struct device *device_create(struct class *cls, struct device *parent,
 				    __attribute__((format(printf, 5, 6)));
 extern void device_destroy(struct class *cls, dev_t devt);
 
-/*
- * Platform "fixup" functions - allow the platform to have their say
- * about devices and actions that the general device layer doesn't
- * know about.
- */
-/* Notify platform of device discovery */
+
+
 extern int (*platform_notify)(struct device *dev);
 
 extern int (*platform_notify_remove)(struct device *dev);
 
 
-/**
- * get_device - atomically increment the reference count for the device.
- *
- */
+
 extern struct device *get_device(struct device *dev);
 extern void put_device(struct device *dev);
 
@@ -565,13 +505,13 @@ static inline int devtmpfs_delete_node(struct device *dev) { return 0; }
 static inline int devtmpfs_mount(const char *mountpoint) { return 0; }
 #endif
 
-/* drivers/base/power/shutdown.c */
+
 extern void device_shutdown(void);
 
-/* drivers/base/sys.c */
+
 extern void sysdev_shutdown(void);
 
-/* debugging and troubleshooting/diagnostic helpers. */
+
 extern const char *dev_driver_string(const struct device *dev);
 #define dev_printk(level, dev, format, arg...)	\
 	printk(level "%s %s: " format , dev_driver_string(dev) , \
@@ -612,17 +552,13 @@ extern const char *dev_driver_string(const struct device *dev);
 	({ if (0) dev_printk(KERN_DEBUG, dev, format, ##arg); 0; })
 #endif
 
-/*
- * dev_WARN() acts like dev_printk(), but with the key difference
- * of using a WARN/WARN_ON to get the message out, including the
- * file/line information and a backtrace.
- */
+
 #define dev_WARN(dev, format, arg...) \
 	WARN(1, "Device: %s\n" format, dev_driver_string(dev), ## arg);
 
-/* Create alias, so I can be autoloaded. */
+
 #define MODULE_ALIAS_CHARDEV(major,minor) \
 	MODULE_ALIAS("char-major-" __stringify(major) "-" __stringify(minor))
 #define MODULE_ALIAS_CHARDEV_MAJOR(major) \
 	MODULE_ALIAS("char-major-" __stringify(major) "-*")
-#endif /* _DEVICE_H_ */
+#endif 

@@ -1,13 +1,7 @@
 #ifndef _GAMEPORT_H
 #define _GAMEPORT_H
 
-/*
- *  Copyright (c) 1999-2002 Vojtech Pavlik
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #ifdef __KERNEL__
 #include <asm/io.h>
@@ -19,7 +13,7 @@
 
 struct gameport {
 
-	void *port_data;	/* Private pointer for gameport drivers */
+	void *port_data;	
 	char name[32];
 	char phys[32];
 
@@ -35,7 +29,7 @@ struct gameport {
 	void (*close)(struct gameport *);
 
 	struct timer_list poll_timer;
-	unsigned int poll_interval;	/* in msecs */
+	unsigned int poll_interval;	
 	spinlock_t timer_lock;
 	unsigned int poll_cnt;
 	void (*poll_handler)(struct gameport *);
@@ -43,10 +37,10 @@ struct gameport {
 	struct gameport *parent, *child;
 
 	struct gameport_driver *drv;
-	struct mutex drv_mutex;		/* protects serio->drv so attributes can pin driver */
+	struct mutex drv_mutex;		
 
 	struct device dev;
-	unsigned int registered;	/* port has been fully registered with driver core */
+	unsigned int registered;	
 
 	struct list_head node;
 };
@@ -120,10 +114,7 @@ static inline void gameport_set_name(struct gameport *gameport, const char *name
 	strlcpy(gameport->name, name, sizeof(gameport->name));
 }
 
-/*
- * Use the following functions to manipulate gameport's per-port
- * driver-specific data.
- */
+
 static inline void *gameport_get_drvdata(struct gameport *gameport)
 {
 	return dev_get_drvdata(&gameport->dev);
@@ -134,9 +125,7 @@ static inline void gameport_set_drvdata(struct gameport *gameport, void *data)
 	dev_set_drvdata(&gameport->dev, data);
 }
 
-/*
- * Use the following functions to pin gameport's driver in process context
- */
+
 static inline int gameport_pin_driver(struct gameport *gameport)
 {
 	return mutex_lock_interruptible(&gameport->drv_mutex);
@@ -156,7 +145,7 @@ static inline int __must_check gameport_register_driver(struct gameport_driver *
 
 void gameport_unregister_driver(struct gameport_driver *drv);
 
-#endif /* __KERNEL__ */
+#endif 
 
 #define GAMEPORT_MODE_DISABLED		0
 #define GAMEPORT_MODE_RAW		1
@@ -225,5 +214,5 @@ static inline void gameport_set_poll_interval(struct gameport *gameport, unsigne
 void gameport_start_polling(struct gameport *gameport);
 void gameport_stop_polling(struct gameport *gameport);
 
-#endif /* __KERNEL__ */
+#endif 
 #endif

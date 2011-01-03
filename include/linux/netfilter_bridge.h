@@ -1,26 +1,25 @@
 #ifndef __LINUX_BRIDGE_NETFILTER_H
 #define __LINUX_BRIDGE_NETFILTER_H
 
-/* bridge-specific defines for netfilter. 
- */
+
 
 #include <linux/netfilter.h>
 #include <linux/if_ether.h>
 #include <linux/if_vlan.h>
 #include <linux/if_pppox.h>
 
-/* Bridge Hooks */
-/* After promisc drops, checksum checks. */
+
+
 #define NF_BR_PRE_ROUTING	0
-/* If the packet is destined for this box. */
+
 #define NF_BR_LOCAL_IN		1
-/* If the packet is destined for another interface. */
+
 #define NF_BR_FORWARD		2
-/* Packets coming from a local process. */
+
 #define NF_BR_LOCAL_OUT		3
-/* Packets about to hit the wire. */
+
 #define NF_BR_POST_ROUTING	4
-/* Not really a hook, but used for the ebtables broute table */
+
 #define NF_BR_BROUTING		5
 #define NF_BR_NUMHOOKS		6
 
@@ -46,7 +45,7 @@ enum nf_br_hook_priorities {
 #define BRNF_NF_BRIDGE_PREROUTING	0x10
 
 
-/* Only used in br_forward.c */
+
 extern int nf_bridge_copy_header(struct sk_buff *skb);
 static inline int nf_bridge_maybe_copy_header(struct sk_buff *skb)
 {
@@ -68,8 +67,7 @@ static inline unsigned int nf_bridge_encap_header_len(const struct sk_buff *skb)
 	}
 }
 
-/* This is called by the IP fragmenting code and it ensures there is
- * enough room for the encapsulating header (if there is one). */
+
 static inline unsigned int nf_bridge_pad(const struct sk_buff *skb)
 {
 	if (skb->nf_bridge)
@@ -86,7 +84,7 @@ struct bridge_skb_cb {
 #else
 #define nf_bridge_maybe_copy_header(skb)	(0)
 #define nf_bridge_pad(skb)			(0)
-#endif /* CONFIG_BRIDGE_NETFILTER */
+#endif 
 
-#endif /* __KERNEL__ */
+#endif 
 #endif

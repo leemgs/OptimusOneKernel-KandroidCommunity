@@ -1,17 +1,11 @@
 #ifndef _LINUX_I8042_H
 #define _LINUX_I8042_H
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #include <linux/types.h>
 
-/*
- * Standard commands.
- */
+
 
 #define I8042_CMD_CTL_RCTR	0x0120
 #define I8042_CMD_CTL_WCTR	0x1060

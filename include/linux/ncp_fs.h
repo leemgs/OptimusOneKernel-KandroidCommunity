@@ -1,9 +1,4 @@
-/*
- *  ncp_fs.h
- *
- *  Copyright (C) 1995, 1996 by Volker Lendecke
- *
- */
+
 
 #ifndef _LINUX_NCP_FS_H
 #define _LINUX_NCP_FS_H
@@ -16,9 +11,7 @@
 #include <linux/ipx.h>
 #include <linux/ncp_no.h>
 
-/*
- * ioctl commands
- */
+
 
 struct ncp_ioctl_request {
 	unsigned int function;
@@ -30,9 +23,8 @@ struct ncp_fs_info {
 	int version;
 	struct sockaddr_ipx addr;
 	__kernel_uid_t mounted_uid;
-	int connection;		/* Connection number the server assigned us */
-	int buffer_size;	/* The negotiated buffer size, to be
-				   used for read/write requests! */
+	int connection;		
+	int buffer_size;	
 
 	int volume_number;
 	__le32 directory_id;
@@ -87,16 +79,16 @@ struct ncp_objectname_ioctl
 #define NCP_AUTH_NDS	0x32
 	int		auth_type;
 	size_t		object_name_len;
-	void __user *	object_name;	/* a userspace data, in most cases user name */
+	void __user *	object_name;	
 };
 
 struct ncp_privatedata_ioctl
 {
 	size_t		len;
-	void __user *	data;		/* ~1000 for NDS */
+	void __user *	data;		
 };
 
-/* NLS charsets by ioctl */
+
 #define NCP_IOCSNAME_LEN 20
 struct ncp_nls_ioctl
 {
@@ -135,9 +127,7 @@ struct ncp_nls_ioctl
 #define NCP_IOC_GETDENTRYTTL		_IOW('n', 12, __u32)
 #define NCP_IOC_SETDENTRYTTL		_IOR('n', 12, __u32)
 
-/*
- * The packet size to allocate. One page should be enough.
- */
+
 #define NCP_PACKET_SIZE 4070
 
 #define NCP_MAXPATHLEN 255
@@ -148,7 +138,7 @@ struct ncp_nls_ioctl
 #include <linux/ncp_fs_i.h>
 #include <linux/ncp_fs_sb.h>
 
-/* define because it is easy to change PRINTK to {*}PRINTK */
+
 #define PRINTK(format, args...) printk(KERN_DEBUG format , ## args)
 
 #undef NCPFS_PARANOIA
@@ -195,13 +185,13 @@ static inline struct ncp_inode_info *NCP_FINFO(struct inode *inode)
 	return container_of(inode, struct ncp_inode_info, vfs_inode);
 }
 
-/* linux/fs/ncpfs/inode.c */
+
 int ncp_notify_change(struct dentry *, struct iattr *);
 struct inode *ncp_iget(struct super_block *, struct ncp_entry_info *);
 void ncp_update_inode(struct inode *, struct ncp_entry_info *);
 void ncp_update_inode2(struct inode *, struct ncp_entry_info *);
 
-/* linux/fs/ncpfs/dir.c */
+
 extern const struct inode_operations ncp_dir_inode_operations;
 extern const struct file_operations ncp_dir_operations;
 extern const struct dentry_operations ncp_root_dentry_operations;
@@ -209,11 +199,11 @@ int ncp_conn_logged_in(struct super_block *);
 int ncp_date_dos2unix(__le16 time, __le16 date);
 void ncp_date_unix2dos(int unix_date, __le16 * time, __le16 * date);
 
-/* linux/fs/ncpfs/ioctl.c */
+
 int ncp_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
 long ncp_compat_ioctl(struct file *, unsigned int, unsigned long);
 
-/* linux/fs/ncpfs/sock.c */
+
 int ncp_request2(struct ncp_server *server, int function,
 	void* reply, int max_reply_size);
 static inline int ncp_request(struct ncp_server *server, int function) {
@@ -224,21 +214,21 @@ int ncp_disconnect(struct ncp_server *server);
 void ncp_lock_server(struct ncp_server *server);
 void ncp_unlock_server(struct ncp_server *server);
 
-/* linux/fs/ncpfs/symlink.c */
+
 #if defined(CONFIG_NCPFS_EXTRAS) || defined(CONFIG_NCPFS_NFS_NS)
 extern const struct address_space_operations ncp_symlink_aops;
 int ncp_symlink(struct inode*, struct dentry*, const char*);
 #endif
 
-/* linux/fs/ncpfs/file.c */
+
 extern const struct inode_operations ncp_file_inode_operations;
 extern const struct file_operations ncp_file_operations;
 int ncp_make_open(struct inode *, int);
 
-/* linux/fs/ncpfs/mmap.c */
+
 int ncp_mmap(struct file *, struct vm_area_struct *);
 
-/* linux/fs/ncpfs/ncplib_kernel.c */
+
 int ncp_make_closed(struct inode *);
 
 #define ncp_namespace(i)	(NCP_SERVER(i)->name_space[NCP_FINFO(i)->volNumber])
@@ -251,10 +241,10 @@ static inline int ncp_preserve_entry_case(struct inode *i, __u32 nscreator)
 	if ((ns == NW_NS_DOS)
 #ifdef CONFIG_NCPFS_OS2_NS
 		|| ((ns == NW_NS_OS2) && (nscreator == NW_NS_DOS))
-#endif /* CONFIG_NCPFS_OS2_NS */
+#endif 
 				)
 		return 0;
-#endif /* CONFIG_NCPFS_SMALLDOS */
+#endif 
 	return 1;
 }
 
@@ -266,9 +256,9 @@ static inline int ncp_case_sensitive(struct inode *i)
 	return ncp_namespace(i) == NW_NS_NFS;
 #else
 	return 0;
-#endif	/* CONFIG_NCPFS_NFS_NS */
+#endif	
 } 
 
-#endif				/* __KERNEL__ */
+#endif				
 
-#endif				/* _LINUX_NCP_FS_H */
+#endif				

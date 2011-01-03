@@ -18,16 +18,12 @@
 	writew((val) >> 16, (addr) + 2); \
 	} while (0)
 
-/*
- * data for the MMC controller
- */
+
 struct tmio_mmc_data {
 	const unsigned int		hclk;
 };
 
-/*
- * data for the NAND controller
- */
+
 struct tmio_nand_data {
 	struct nand_bbt_descr	*badblock_pattern;
 	struct mtd_partition	*partition;
@@ -45,7 +41,7 @@ struct tmio_fb_data {
 	int			num_modes;
 	struct fb_videomode	*modes;
 
-	/* in mm: size of screen */
+	
 	int			height;
 	int			width;
 };

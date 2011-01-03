@@ -5,15 +5,7 @@
 # error "please don't include this file directly"
 #endif
 
-/*
- * include/linux/spinlock_api_smp.h
- *
- * spinlock API declarations on SMP (and debug)
- * (implemented in kernel/spinlock.c)
- *
- * portions Copyright 2005, Red Hat, Inc., Ingo Molnar
- * Released under the General Public License (GPL).
- */
+
 
 int in_lock_functions(unsigned long addr);
 
@@ -60,9 +52,7 @@ void __lockfunc _read_unlock_irqrestore(rwlock_t *lock, unsigned long flags)
 void __lockfunc _write_unlock_irqrestore(rwlock_t *lock, unsigned long flags)
 							__releases(lock);
 
-/*
- * We inline the unlock functions in the nondebug case:
- */
+
 #if !defined(CONFIG_DEBUG_SPINLOCK) && !defined(CONFIG_PREEMPT)
 #define __always_inline__spin_unlock
 #define __always_inline__read_unlock
@@ -123,7 +113,7 @@ void __lockfunc _write_unlock_irqrestore(rwlock_t *lock, unsigned long flags)
 #define _write_lock_irqsave(lock) __write_lock_irqsave(lock)
 #endif
 
-#endif /* !CONFIG_GENERIC_LOCKBREAK */
+#endif 
 
 #ifdef __always_inline__spin_trylock
 #define _spin_trylock(lock) __spin_trylock(lock)
@@ -189,7 +179,7 @@ void __lockfunc _write_unlock_irqrestore(rwlock_t *lock, unsigned long flags)
 #define _write_unlock_irqrestore(lock, flags) __write_unlock_irqrestore(lock, flags)
 #endif
 
-#endif /* CONFIG_DEBUG_SPINLOCK */
+#endif 
 
 static inline int __spin_trylock(spinlock_t *lock)
 {
@@ -224,11 +214,7 @@ static inline int __write_trylock(rwlock_t *lock)
 	return 0;
 }
 
-/*
- * If lockdep is enabled then we use the non-preemption spin-ops
- * even on CONFIG_PREEMPT, because lockdep assumes that interrupts are
- * not re-enabled during lock-acquire (which the preempt-spin-ops do):
- */
+
 #if !defined(CONFIG_GENERIC_LOCKBREAK) || defined(CONFIG_DEBUG_LOCK_ALLOC)
 
 static inline void __read_lock(rwlock_t *lock)
@@ -245,11 +231,7 @@ static inline unsigned long __spin_lock_irqsave(spinlock_t *lock)
 	local_irq_save(flags);
 	preempt_disable();
 	spin_acquire(&lock->dep_map, 0, 0, _RET_IP_);
-	/*
-	 * On lockdep we dont want the hand-coded irq-enable of
-	 * _raw_spin_lock_flags() code, because lockdep assumes
-	 * that interrupts are not re-enabled during lock-acquire:
-	 */
+	
 #ifdef CONFIG_LOCKDEP
 	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
 #else
@@ -344,7 +326,7 @@ static inline void __write_lock(rwlock_t *lock)
 	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
 }
 
-#endif /* CONFIG_PREEMPT */
+#endif 
 
 static inline void __spin_unlock(spinlock_t *lock)
 {
@@ -454,4 +436,4 @@ static inline int __spin_trylock_bh(spinlock_t *lock)
 	return 0;
 }
 
-#endif /* __LINUX_SPINLOCK_API_SMP_H */
+#endif 

@@ -1,9 +1,4 @@
-/*
- * (C) 2003 David Woodhouse <dwmw2@infradead.org>
- *
- * Interface to Linux block layer for MTD 'translation layers'.
- *
- */
+
 
 #ifndef __MTD_TRANS_H__
 #define __MTD_TRANS_H__
@@ -24,10 +19,10 @@ struct mtd_blktrans_dev {
 	int devnum;
 	unsigned long size;
 	int readonly;
-	void *blkcore_priv; /* gendisk in 2.5, devfs_handle in 2.4 */
+	void *blkcore_priv; 
 };
 
-struct blkcore_priv; /* Differs for 2.4 and 2.5 kernels; private */
+struct blkcore_priv; 
 
 struct mtd_blktrans_ops {
 	char *name;
@@ -36,7 +31,7 @@ struct mtd_blktrans_ops {
 	int blksize;
 	int blkshift;
 
-	/* Access functions */
+	
 	int (*readsect)(struct mtd_blktrans_dev *dev,
 		    unsigned long block, char *buffer);
 	int (*writesect)(struct mtd_blktrans_dev *dev,
@@ -44,16 +39,15 @@ struct mtd_blktrans_ops {
 	int (*discard)(struct mtd_blktrans_dev *dev,
 		       unsigned long block, unsigned nr_blocks);
 
-	/* Block layer ioctls */
+	
 	int (*getgeo)(struct mtd_blktrans_dev *dev, struct hd_geometry *geo);
 	int (*flush)(struct mtd_blktrans_dev *dev);
 
-	/* Called with mtd_table_mutex held; no race with add/remove */
+	
 	int (*open)(struct mtd_blktrans_dev *dev);
 	int (*release)(struct mtd_blktrans_dev *dev);
 
-	/* Called on {de,}registration and on subsequent addition/removal
-	   of devices, with mtd_table_mutex held. */
+	
 	void (*add_mtd)(struct mtd_blktrans_ops *tr, struct mtd_info *mtd);
 	void (*remove_dev)(struct mtd_blktrans_dev *dev);
 
@@ -70,4 +64,4 @@ extern int add_mtd_blktrans_dev(struct mtd_blktrans_dev *dev);
 extern int del_mtd_blktrans_dev(struct mtd_blktrans_dev *dev);
 
 
-#endif /* __MTD_TRANS_H__ */
+#endif 

@@ -1,13 +1,4 @@
-/*
- * sysfs.h - definitions for the device driver filesystem
- *
- * Copyright (c) 2001,2002 Patrick Mochel
- * Copyright (c) 2004 Silicon Graphics, Inc.
- * Copyright (c) 2007 SUSE Linux Products GmbH
- * Copyright (c) 2007 Tejun Heo <teheo@suse.de>
- *
- * Please see Documentation/filesystems/sysfs.txt for more information.
- */
+
 
 #ifndef _SYSFS_H_
 #define _SYSFS_H_
@@ -20,11 +11,7 @@
 struct kobject;
 struct module;
 
-/* FIXME
- * The *owner field is no longer used.
- * x86 tree has been cleaned up. The owner
- * attribute is still left for other arches.
- */
+
 struct attribute {
 	const char		*name;
 	struct module		*owner;
@@ -40,10 +27,7 @@ struct attribute_group {
 
 
 
-/**
- * Use these macros to make defining attributes easier. See include/linux/device.h
- * for examples..
- */
+
 
 #define __ATTR(_name,_mode,_show,_store) { \
 	.attr = {.name = __stringify(_name), .mode = _mode },	\
@@ -129,7 +113,7 @@ void sysfs_put(struct sysfs_dirent *sd);
 void sysfs_printk_last_file(void);
 int __must_check sysfs_init(void);
 
-#else /* CONFIG_SYSFS */
+#else 
 
 static inline int sysfs_schedule_callback(struct kobject *kobj,
 		void (*func)(void *), void *data, struct module *owner)
@@ -260,6 +244,6 @@ static inline void sysfs_printk_last_file(void)
 {
 }
 
-#endif /* CONFIG_SYSFS */
+#endif 
 
-#endif /* _SYSFS_H_ */
+#endif 

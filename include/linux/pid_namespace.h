@@ -52,7 +52,7 @@ static inline void put_pid_ns(struct pid_namespace *ns)
 		kref_put(&ns->kref, free_pid_ns);
 }
 
-#else /* !CONFIG_PID_NS */
+#else 
 #include <linux/err.h>
 
 static inline struct pid_namespace *get_pid_ns(struct pid_namespace *ns)
@@ -77,10 +77,10 @@ static inline void zap_pid_ns_processes(struct pid_namespace *ns)
 {
 	BUG();
 }
-#endif /* CONFIG_PID_NS */
+#endif 
 
 extern struct pid_namespace *task_active_pid_ns(struct task_struct *tsk);
 void pidhash_init(void);
 void pidmap_init(void);
 
-#endif /* _LINUX_PID_NS_H */
+#endif 

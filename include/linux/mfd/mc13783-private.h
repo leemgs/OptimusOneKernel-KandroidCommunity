@@ -1,23 +1,4 @@
-/*
- * Copyright 2009 Pengutronix, Sascha Hauer <s.hauer@pengutronix.de>
- *
- * Initial development of this code was funded by
- * Phytec Messtechnik GmbH, http://www.phytec.de
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef __LINUX_MFD_MC13783_PRIV_H
 #define __LINUX_MFD_MC13783_PRIV_H
@@ -137,9 +118,7 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_REG_NB				64
 
 
-/*
- * Interrupt Status
- */
+
 #define MC13783_INT_STAT_ADCDONEI	(1 << 0)
 #define MC13783_INT_STAT_ADCBISDONEI	(1 << 1)
 #define MC13783_INT_STAT_TSI		(1 << 2)
@@ -162,9 +141,7 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_INT_STAT_CKDETI		(1 << 22)
 #define MC13783_INT_STAT_UDMI		(1 << 23)
 
-/*
- * Interrupt Mask
- */
+
 #define MC13783_INT_MASK_ADCDONEM	(1 << 0)
 #define MC13783_INT_MASK_ADCBISDONEM	(1 << 1)
 #define MC13783_INT_MASK_TSM		(1 << 2)
@@ -185,9 +162,7 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_INT_MASK_SE1M		(1 << 21)
 #define MC13783_INT_MASK_CKDETM		(1 << 22)
 
-/*
- * Reg Regulator Mode 0
- */
+
 #define MC13783_REGCTRL_VAUDIO_EN	(1 << 0)
 #define MC13783_REGCTRL_VAUDIO_STBY	(1 << 1)
 #define MC13783_REGCTRL_VAUDIO_MODE	(1 << 2)
@@ -213,9 +188,7 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_REGCTRL_VRFCP_STBY	(1 << 22)
 #define MC13783_REGCTRL_VRFCP_MODE	(1 << 23)
 
-/*
- * Reg Regulator Mode 1
- */
+
 #define MC13783_REGCTRL_VSIM_EN		(1 << 0)
 #define MC13783_REGCTRL_VSIM_STBY	(1 << 1)
 #define MC13783_REGCTRL_VSIM_MODE	(1 << 2)
@@ -241,18 +214,14 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_REGCTRL_VMMC2_STBY	(1 << 22)
 #define MC13783_REGCTRL_VMMC2_MODE	(1 << 23)
 
-/*
- * Reg Regulator Misc.
- */
+
 #define MC13783_REGCTRL_GPO1_EN		(1 << 6)
 #define MC13783_REGCTRL_GPO2_EN		(1 << 8)
 #define MC13783_REGCTRL_GPO3_EN		(1 << 10)
 #define MC13783_REGCTRL_GPO4_EN		(1 << 12)
 #define MC13783_REGCTRL_VIBPINCTRL	(1 << 14)
 
-/*
- * Reg Switcher 4
- */
+
 #define MC13783_SWCTRL_SW1A_MODE	(1 << 0)
 #define MC13783_SWCTRL_SW1A_STBY_MODE	(1 << 2)
 #define MC13783_SWCTRL_SW1A_DVS_SPEED	(1 << 6)
@@ -266,9 +235,7 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_SWCTRL_PLL_EN		(1 << 18)
 #define MC13783_SWCTRL_PLL_FACTOR	(1 << 19)
 
-/*
- * Reg Switcher 5
- */
+
 #define MC13783_SWCTRL_SW2A_MODE	(1 << 0)
 #define MC13783_SWCTRL_SW2A_STBY_MODE	(1 << 2)
 #define MC13783_SWCTRL_SW2A_DVS_SPEED	(1 << 6)
@@ -284,9 +251,7 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_SWCTRL_SW3_STBY		(1 << 21)
 #define MC13783_SWCTRL_SW3_MODE		(1 << 22)
 
-/*
- * ADC/Touch
- */
+
 #define MC13783_ADC0_LICELLCON		(1 << 0)
 #define MC13783_ADC0_CHRGICON		(1 << 1)
 #define MC13783_ADC0_BATICON		(1 << 2)
@@ -392,5 +357,5 @@ int mc13783_register_irq(struct mc13783 *mc13783, int irq,
 #define MC13783_ADC4_ADDBIS28		(1 << 22)
 #define MC13783_ADC4_ADDBIS29		(1 << 23)
 
-#endif /* __LINUX_MFD_MC13783_PRIV_H */
+#endif 
 

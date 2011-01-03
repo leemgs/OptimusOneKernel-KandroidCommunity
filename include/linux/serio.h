@@ -1,13 +1,7 @@
 #ifndef _SERIO_H
 #define _SERIO_H
 
-/*
- * Copyright (C) 1999-2002 Vojtech Pavlik
-*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #include <linux/ioctl.h>
 
@@ -30,11 +24,11 @@ struct serio {
 	char phys[32];
 
 	bool manual_bind;
-	bool registered;	/* port has been fully registered with driver core */
+	bool registered;	
 
 	struct serio_device_id id;
 
-	spinlock_t lock;		/* protects critical sections from port's interrupt handler */
+	spinlock_t lock;		
 
 	int (*write)(struct serio *, unsigned char);
 	int (*open)(struct serio *);
@@ -43,10 +37,10 @@ struct serio {
 	void (*stop)(struct serio *);
 
 	struct serio *parent, *child;
-	unsigned int depth;		/* level of nesting in serio hierarchy */
+	unsigned int depth;		
 
-	struct serio_driver *drv;	/* accessed from interrupt, must be protected by serio->lock and serio->sem */
-	struct mutex drv_mutex;		/* protects serio->drv so attributes can pin driver */
+	struct serio_driver *drv;	
+	struct mutex drv_mutex;		
 
 	struct device dev;
 
@@ -108,10 +102,7 @@ static inline void serio_drv_write_wakeup(struct serio *serio)
 		serio->drv->write_wakeup(serio);
 }
 
-/*
- * Use the following functions to manipulate serio's per-port
- * driver-specific data.
- */
+
 static inline void *serio_get_drvdata(struct serio *serio)
 {
 	return dev_get_drvdata(&serio->dev);
@@ -122,10 +113,7 @@ static inline void serio_set_drvdata(struct serio *serio, void *data)
 	dev_set_drvdata(&serio->dev, data);
 }
 
-/*
- * Use the following functions to protect critical sections in
- * driver code from port's interrupt handler
- */
+
 static inline void serio_pause_rx(struct serio *serio)
 {
 	spin_lock_irq(&serio->lock);
@@ -136,9 +124,7 @@ static inline void serio_continue_rx(struct serio *serio)
 	spin_unlock_irq(&serio->lock);
 }
 
-/*
- * Use the following functions to pin serio's driver in process context
- */
+
 static inline int serio_pin_driver(struct serio *serio)
 {
 	return mutex_lock_interruptible(&serio->drv_mutex);
@@ -157,16 +143,12 @@ static inline void serio_unpin_driver(struct serio *serio)
 
 #endif
 
-/*
- * bit masks for use in "interrupt" flags (3rd argument)
- */
+
 #define SERIO_TIMEOUT	1
 #define SERIO_PARITY	2
 #define SERIO_FRAME	4
 
-/*
- * Serio types
- */
+
 #define SERIO_XT	0x00
 #define SERIO_8042	0x01
 #define SERIO_RS232	0x02
@@ -174,9 +156,7 @@ static inline void serio_unpin_driver(struct serio *serio)
 #define SERIO_PS_PSTHRU	0x05
 #define SERIO_8042_XL	0x06
 
-/*
- * Serio protocols
- */
+
 #define SERIO_UNKNOWN	0x00
 #define SERIO_MSC	0x01
 #define SERIO_SUN	0x02

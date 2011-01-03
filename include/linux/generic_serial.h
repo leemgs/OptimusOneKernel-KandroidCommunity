@@ -1,13 +1,4 @@
-/*
- *  generic_serial.h
- *
- *  Copyright (C) 1998 R.E.Wolff@BitWizard.nl
- *
- *  written for the SX serial driver.
- *     Contains the code that should be shared over all the serial drivers.
- *
- *  Version 0.1 -- December, 1998.
- */
+
 
 #ifndef GENERIC_SERIAL_H
 #define GENERIC_SERIAL_H
@@ -50,12 +41,10 @@ struct gs_port {
   spinlock_t              driver_lock;
 };
 
-#endif /* __KERNEL__ */
+#endif 
 
-/* Flags */
-/* Warning: serial.h defines some ASYNC_ flags, they say they are "only"
-   used in serial.c, but they are also used in all other serial drivers. 
-   Make sure they don't clash with these here... */
+
+
 #define GS_TX_INTEN      0x00800000
 #define GS_RX_INTEN      0x00400000
 #define GS_ACTIVE        0x00200000
@@ -91,5 +80,5 @@ int  gs_init_port(struct gs_port *port);
 int  gs_setserial(struct gs_port *port, struct serial_struct __user *sp);
 int  gs_getserial(struct gs_port *port, struct serial_struct __user *sp);
 void gs_got_break(struct gs_port *port);
-#endif /* __KERNEL__ */
+#endif 
 #endif

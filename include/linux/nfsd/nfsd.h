@@ -1,11 +1,4 @@
-/*
- * linux/include/linux/nfsd/nfsd.h
- *
- * Hodge-podge collection of knfsd-related stuff.
- * I will sort this out later.
- *
- * Copyright (C) 1995-1997 Olaf Kirch <okir@monad.swb.de>
- */
+
 
 #ifndef LINUX_NFSD_NFSD_H
 #define LINUX_NFSD_NFSD_H
@@ -20,33 +13,27 @@
 #include <linux/nfsd/nfsfh.h>
 #include <linux/nfsd/export.h>
 #include <linux/nfsd/stats.h>
-/*
- * nfsd version
- */
+
 #define NFSD_SUPPORTED_MINOR_VERSION	1
 
-/*
- * Flags for nfsd_permission
- */
+
 #define NFSD_MAY_NOP		0
-#define NFSD_MAY_EXEC		1 /* == MAY_EXEC */
-#define NFSD_MAY_WRITE		2 /* == MAY_WRITE */
-#define NFSD_MAY_READ		4 /* == MAY_READ */
+#define NFSD_MAY_EXEC		1 
+#define NFSD_MAY_WRITE		2 
+#define NFSD_MAY_READ		4 
 #define NFSD_MAY_SATTR		8
 #define NFSD_MAY_TRUNC		16
 #define NFSD_MAY_LOCK		32
 #define NFSD_MAY_OWNER_OVERRIDE	64
-#define NFSD_MAY_LOCAL_ACCESS	128 /* IRIX doing local access check on device special file*/
+#define NFSD_MAY_LOCAL_ACCESS	128 
 #define NFSD_MAY_BYPASS_GSS_ON_ROOT 256
 
 #define NFSD_MAY_CREATE		(NFSD_MAY_EXEC|NFSD_MAY_WRITE)
 #define NFSD_MAY_REMOVE		(NFSD_MAY_EXEC|NFSD_MAY_WRITE|NFSD_MAY_TRUNC)
 
-/*
- * Callback function for readdir
- */
+
 struct readdir_cd {
-	__be32			err;	/* 0, nfserr, or nfserr_eof */
+	__be32			err;	
 };
 typedef int (*nfsd_dirop_t)(struct inode *, struct dentry *, int, int);
 
@@ -62,9 +49,7 @@ extern unsigned int		nfsd_drc_mem_used;
 
 extern const struct seq_operations nfs_exports_op;
 
-/*
- * Function prototypes.
- */
+
 int		nfsd_svc(unsigned short port, int nrservs);
 int		nfsd_dispatch(struct svc_rqst *rqstp, __be32 *statp);
 
@@ -73,7 +58,7 @@ int		nfsd_nrpools(void);
 int		nfsd_get_nrthreads(int n, int *);
 int		nfsd_set_nrthreads(int n, int *);
 
-/* nfsd/vfs.c */
+
 int		fh_lock_parent(struct svc_fh *, struct dentry *);
 int		nfsd_racache_init(int);
 void		nfsd_racache_shutdown(void);
@@ -90,7 +75,7 @@ __be32		nfsd_setattr(struct svc_rqst *, struct svc_fh *,
 __be32          nfsd4_set_nfs4_acl(struct svc_rqst *, struct svc_fh *,
                     struct nfs4_acl *);
 int             nfsd4_get_nfs4_acl(struct svc_rqst *, struct dentry *, struct nfs4_acl **);
-#endif /* CONFIG_NFSD_V4 */
+#endif 
 __be32		nfsd_create(struct svc_rqst *, struct svc_fh *,
 				char *name, int len, struct iattr *attrs,
 				int type, dev_t rdev, struct svc_fh *res);
@@ -102,7 +87,7 @@ __be32		nfsd_create_v3(struct svc_rqst *, struct svc_fh *,
 				u32 *verifier, int *truncp, int *created);
 __be32		nfsd_commit(struct svc_rqst *, struct svc_fh *,
 				loff_t, unsigned long);
-#endif /* CONFIG_NFSD_V3 */
+#endif 
 __be32		nfsd_open(struct svc_rqst *, struct svc_fh *, int,
 				int, struct file **);
 void		nfsd_close(struct file *);
@@ -159,9 +144,7 @@ int nfsd_create_serv(void);
 
 extern int nfsd_max_blksize;
 
-/* 
- * NFSv4 State
- */
+
 #ifdef CONFIG_NFSD_V4
 extern unsigned int max_delegations;
 int nfs4_state_init(void);
@@ -181,16 +164,12 @@ static inline void nfs4_reset_lease(time_t leasetime) { }
 static inline int nfs4_reset_recoverydir(char *recdir) { return 0; }
 #endif
 
-/*
- * lockd binding
- */
+
 void		nfsd_lockd_init(void);
 void		nfsd_lockd_shutdown(void);
 
 
-/*
- * These macros provide pre-xdr'ed values for faster operation.
- */
+
 #define	nfs_ok			cpu_to_be32(NFS_OK)
 #define	nfserr_perm		cpu_to_be32(NFSERR_PERM)
 #define	nfserr_noent		cpu_to_be32(NFSERR_NOENT)
@@ -293,59 +272,32 @@ void		nfsd_lockd_shutdown(void);
 #define nfserr_returnconflict		cpu_to_be32(NFS4ERR_RETURNCONFLICT)
 #define nfserr_deleg_revoked		cpu_to_be32(NFS4ERR_DELEG_REVOKED)
 
-/* error codes for internal use */
-/* if a request fails due to kmalloc failure, it gets dropped.
- *  Client should resend eventually
- */
+
+
 #define	nfserr_dropit		cpu_to_be32(30000)
-/* end-of-file indicator in readdir */
+
 #define	nfserr_eof		cpu_to_be32(30001)
-/* replay detected */
+
 #define	nfserr_replay_me	cpu_to_be32(11001)
-/* nfs41 replay detected */
+
 #define	nfserr_replay_cache	cpu_to_be32(11002)
 
-/* Check for dir entries '.' and '..' */
+
 #define isdotent(n, l)	(l < 3 && n[0] == '.' && (l == 1 || n[1] == '.'))
 
-/*
- * Time of server startup
- */
+
 extern struct timeval	nfssvc_boot;
 
 #ifdef CONFIG_NFSD_V4
 
-/* before processing a COMPOUND operation, we have to check that there
- * is enough space in the buffer for XDR encode to succeed.  otherwise,
- * we might process an operation with side effects, and be unable to
- * tell the client that the operation succeeded.
- *
- * COMPOUND_SLACK_SPACE - this is the minimum bytes of buffer space
- * needed to encode an "ordinary" _successful_ operation.  (GETATTR,
- * READ, READDIR, and READLINK have their own buffer checks.)  if we
- * fall below this level, we fail the next operation with NFS4ERR_RESOURCE.
- *
- * COMPOUND_ERR_SLACK_SPACE - this is the minimum bytes of buffer space
- * needed to encode an operation which has failed with NFS4ERR_RESOURCE.
- * care is taken to ensure that we never fall below this level for any
- * reason.
- */
-#define	COMPOUND_SLACK_SPACE		140    /* OP_GETFH */
-#define COMPOUND_ERR_SLACK_SPACE	12     /* OP_SETATTR */
+
+#define	COMPOUND_SLACK_SPACE		140    
+#define COMPOUND_ERR_SLACK_SPACE	12     
 
 #define NFSD_LEASE_TIME                 (nfs4_lease_time())
-#define NFSD_LAUNDROMAT_MINTIMEOUT      10   /* seconds */
+#define NFSD_LAUNDROMAT_MINTIMEOUT      10   
 
-/*
- * The following attributes are currently not supported by the NFSv4 server:
- *    ARCHIVE       (deprecated anyway)
- *    HIDDEN        (unlikely to be supported any time soon)
- *    MIMETYPE      (unlikely to be supported any time soon)
- *    QUOTA_*       (will be supported in a forthcoming patch)
- *    SYSTEM        (unlikely to be supported any time soon)
- *    TIME_BACKUP   (unlikely to be supported any time soon)
- *    TIME_CREATE   (unlikely to be supported any time soon)
- */
+
 #define NFSD4_SUPPORTED_ATTRS_WORD0                                                         \
 (FATTR4_WORD0_SUPPORTED_ATTRS   | FATTR4_WORD0_TYPE         | FATTR4_WORD0_FH_EXPIRE_TYPE   \
  | FATTR4_WORD0_CHANGE          | FATTR4_WORD0_SIZE         | FATTR4_WORD0_LINK_SUPPORT     \
@@ -395,11 +347,11 @@ static inline u32 nfsd_suppattrs2(u32 minorversion)
 			    : NFSD4_SUPPORTED_ATTRS_WORD2;
 }
 
-/* These will return ERR_INVAL if specified in GETATTR or READDIR. */
+
 #define NFSD_WRITEONLY_ATTRS_WORD1							    \
 (FATTR4_WORD1_TIME_ACCESS_SET   | FATTR4_WORD1_TIME_MODIFY_SET)
 
-/* These are the only attrs allowed in CREATE/OPEN/SETATTR. */
+
 #define NFSD_WRITEABLE_ATTRS_WORD0                                                          \
 (FATTR4_WORD0_SIZE              | FATTR4_WORD0_ACL                                         )
 #define NFSD_WRITEABLE_ATTRS_WORD1                                                          \
@@ -409,16 +361,13 @@ static inline u32 nfsd_suppattrs2(u32 minorversion)
 
 #define NFSD_SUPPATTR_EXCLCREAT_WORD0 \
 	NFSD_WRITEABLE_ATTRS_WORD0
-/*
- * we currently store the exclusive create verifier in the v_{a,m}time
- * attributes so the client can't set these at create time using EXCLUSIVE4_1
- */
+
 #define NFSD_SUPPATTR_EXCLCREAT_WORD1 \
 	(NFSD_WRITEABLE_ATTRS_WORD1 & \
 	 ~(FATTR4_WORD1_TIME_ACCESS_SET | FATTR4_WORD1_TIME_MODIFY_SET))
 #define NFSD_SUPPATTR_EXCLCREAT_WORD2 \
 	NFSD_WRITEABLE_ATTRS_WORD2
 
-#endif /* CONFIG_NFSD_V4 */
+#endif 
 
-#endif /* LINUX_NFSD_NFSD_H */
+#endif 

@@ -22,10 +22,10 @@ struct in_device
 	struct net_device	*dev;
 	atomic_t		refcnt;
 	int			dead;
-	struct in_ifaddr	*ifa_list;	/* IP ifaddr chain		*/
+	struct in_ifaddr	*ifa_list;	
 	rwlock_t		mc_list_lock;
-	struct ip_mc_list	*mc_list;	/* IP multicast filter chain    */
-	int			mc_count;	          /* Number of installed mcasts	*/
+	struct ip_mc_list	*mc_list;	
+	int			mc_count;	          
 	spinlock_t		mc_tomb_lock;
 	struct ip_mc_list	*mc_tomb;
 	unsigned long		mr_v1_seen;
@@ -34,8 +34,8 @@ struct in_device
 	unsigned char		mr_qrv;
 	unsigned char		mr_gq_running;
 	unsigned char		mr_ifc_count;
-	struct timer_list	mr_gq_timer;	/* general query timer */
-	struct timer_list	mr_ifc_timer;	/* interface change timer */
+	struct timer_list	mr_gq_timer;	
+	struct timer_list	mr_ifc_timer;	
 
 	struct neigh_parms	*arp_parms;
 	struct ipv4_devconf	cnf;
@@ -143,9 +143,7 @@ static __inline__ int inet_ifa_match(__be32 addr, struct in_ifaddr *ifa)
 	return !((addr^ifa->ifa_address)&ifa->ifa_mask);
 }
 
-/*
- *	Check if a mask is acceptable.
- */
+
  
 static __inline__ int bad_mask(__be32 mask, __be32 addr)
 {
@@ -205,7 +203,7 @@ static inline void in_dev_put(struct in_device *idev)
 #define __in_dev_put(idev)  atomic_dec(&(idev)->refcnt)
 #define in_dev_hold(idev)   atomic_inc(&(idev)->refcnt)
 
-#endif /* __KERNEL__ */
+#endif 
 
 static __inline__ __be32 inet_make_mask(int logmask)
 {
@@ -223,4 +221,4 @@ static __inline__ int inet_mask_len(__be32 mask)
 }
 
 
-#endif /* _LINUX_INETDEVICE_H */
+#endif 

@@ -1,6 +1,4 @@
-/*
- * workqueue.h --- work queue handling for Linux.
- */
+
 
 #ifndef _LINUX_WORKQUEUE_H
 #define _LINUX_WORKQUEUE_H
@@ -16,15 +14,12 @@ struct workqueue_struct;
 struct work_struct;
 typedef void (*work_func_t)(struct work_struct *work);
 
-/*
- * The first word is the work queue pointer and the flags rolled into
- * one
- */
+
 #define work_data_bits(work) ((unsigned long *)(&(work)->data))
 
 struct work_struct {
 	atomic_long_t data;
-#define WORK_STRUCT_PENDING 0		/* T if work item pending execution */
+#define WORK_STRUCT_PENDING 0		
 #define WORK_STRUCT_FLAG_MASK (3UL)
 #define WORK_STRUCT_WQ_DATA_MASK (~WORK_STRUCT_FLAG_MASK)
 	struct list_head entry;
@@ -51,11 +46,7 @@ struct execute_work {
 };
 
 #ifdef CONFIG_LOCKDEP
-/*
- * NB: because we have to copy the lockdep_map, setting _key
- * here is required, otherwise it could get initialised to the
- * copy of the lockdep_map!
- */
+
 #define __WORK_INIT_LOCKDEP_MAP(n, k) \
 	.lockdep_map = STATIC_LOCKDEP_MAP_INIT(n, k),
 #else
@@ -80,9 +71,7 @@ struct execute_work {
 #define DECLARE_DELAYED_WORK(n, f)				\
 	struct delayed_work n = __DELAYED_WORK_INITIALIZER(n, f)
 
-/*
- * initialize a work item's function pointer
- */
+
 #define PREPARE_WORK(_work, _func)				\
 	do {							\
 		(_work)->func = (_func);			\
@@ -91,13 +80,7 @@ struct execute_work {
 #define PREPARE_DELAYED_WORK(_work, _func)			\
 	PREPARE_WORK(&(_work)->work, (_func))
 
-/*
- * initialize all of a work item in one go
- *
- * NOTE! No point in using "atomic_long_set()": using a direct
- * assignment of the work data initializer allows the compiler
- * to generate better code.
- */
+
 #ifdef CONFIG_LOCKDEP
 #define INIT_WORK(_work, _func)						\
 	do {								\
@@ -141,25 +124,15 @@ struct execute_work {
 		init_timer_on_stack(&(_work)->timer);		\
 	} while (0)
 
-/**
- * work_pending - Find out whether a work item is currently pending
- * @work: The work item in question
- */
+
 #define work_pending(work) \
 	test_bit(WORK_STRUCT_PENDING, work_data_bits(work))
 
-/**
- * delayed_work_pending - Find out whether a delayable work item is currently
- * pending
- * @work: The work item in question
- */
+
 #define delayed_work_pending(w) \
 	work_pending(&(w)->work)
 
-/**
- * work_clear_pending - for internal use only, mark a work item as not pending
- * @work: The work item in question
- */
+
 #define work_clear_pending(work) \
 	clear_bit(WORK_STRUCT_PENDING, work_data_bits(work))
 
@@ -225,12 +198,7 @@ extern int flush_work(struct work_struct *work);
 
 extern int cancel_work_sync(struct work_struct *work);
 
-/*
- * Kill off a pending schedule_delayed_work().  Note that the work callback
- * function may still be running on return from cancel_delayed_work(), unless
- * it returns 1 and the work doesn't re-arm itself. Run flush_workqueue() or
- * cancel_work_sync() to wait on it.
- */
+
 static inline int cancel_delayed_work(struct delayed_work *work)
 {
 	int ret;
@@ -241,11 +209,7 @@ static inline int cancel_delayed_work(struct delayed_work *work)
 	return ret;
 }
 
-/*
- * Like above, but uses del_timer() instead of del_timer_sync(). This means,
- * if it returns 0 the timer function may be running and the queueing is in
- * progress.
- */
+
 static inline int __cancel_delayed_work(struct delayed_work *work)
 {
 	int ret;
@@ -258,7 +222,7 @@ static inline int __cancel_delayed_work(struct delayed_work *work)
 
 extern int cancel_delayed_work_sync(struct delayed_work *work);
 
-/* Obsolete. use cancel_delayed_work_sync() */
+
 static inline
 void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
 					struct delayed_work *work)
@@ -266,7 +230,7 @@ void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
 	cancel_delayed_work_sync(work);
 }
 
-/* Obsolete. use cancel_delayed_work_sync() */
+
 static inline
 void cancel_rearming_delayed_work(struct delayed_work *work)
 {
@@ -280,5 +244,5 @@ static inline long work_on_cpu(unsigned int cpu, long (*fn)(void *), void *arg)
 }
 #else
 long work_on_cpu(unsigned int cpu, long (*fn)(void *), void *arg);
-#endif /* CONFIG_SMP */
+#endif 
 #endif

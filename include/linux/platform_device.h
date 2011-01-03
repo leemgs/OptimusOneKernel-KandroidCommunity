@@ -1,12 +1,4 @@
-/*
- * platform_device.h - generic, centralized driver model
- *
- * Copyright (c) 2001-2003 Patrick Mochel <mochel@osdl.org>
- *
- * This file is released under the GPLv2
- *
- * See Documentation/driver-model/ for more information.
- */
+
 
 #ifndef _PLATFORM_DEVICE_H_
 #define _PLATFORM_DEVICE_H_
@@ -23,7 +15,7 @@ struct platform_device {
 
 	struct platform_device_id	*id_entry;
 
-	/* arch specific additions */
+	
 	struct pdev_archdata	archdata;
 };
 
@@ -68,16 +60,14 @@ struct platform_driver {
 extern int platform_driver_register(struct platform_driver *);
 extern void platform_driver_unregister(struct platform_driver *);
 
-/* non-hotpluggable platform devices may use this so that probe() and
- * its support may live in __init sections, conserving runtime memory.
- */
+
 extern int platform_driver_probe(struct platform_driver *driver,
 		int (*probe)(struct platform_device *));
 
 #define platform_get_drvdata(_dev)	dev_get_drvdata(&(_dev)->dev)
 #define platform_set_drvdata(_dev,data)	dev_set_drvdata(&(_dev)->dev, (data))
 
-/* early platform driver interface */
+
 struct early_platform_driver {
 	const char *class_str;
 	struct platform_driver *pdrv;
@@ -115,8 +105,8 @@ static int __init early_platform_driver_setup_func(char *buf)		\
 	return early_platform_driver_register(&early_driver, buf);	\
 }									\
 early_param(class_string, early_platform_driver_setup_func)
-#else /* MODULE */
+#else 
 #define early_platform_init(class_string, platform_driver)
-#endif /* MODULE */
+#endif 
 
-#endif /* _PLATFORM_DEVICE_H_ */
+#endif 

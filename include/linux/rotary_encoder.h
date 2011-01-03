@@ -12,4 +12,4 @@ struct rotary_encoder_platform_data {
 	bool rollover;
 };
 
-#endif /* __ROTARY_ENCODER_H__ */
+#endif 

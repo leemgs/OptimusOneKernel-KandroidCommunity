@@ -24,12 +24,7 @@ const char *ftrace_print_flags_seq(struct trace_seq *p, const char *delim,
 const char *ftrace_print_symbols_seq(struct trace_seq *p, unsigned long val,
 				     const struct trace_print_flags *symbol_array);
 
-/*
- * The trace entry - the most basic unit of tracing. This is what
- * is printed in the end as a single line in the trace output, such as:
- *
- *     bash-15816 [01]   235.197585: idle_cpu <- irq_enter
- */
+
 struct trace_entry {
 	unsigned short		type;
 	unsigned char		flags;
@@ -41,10 +36,7 @@ struct trace_entry {
 #define FTRACE_MAX_EVENT						\
 	((1 << (sizeof(((struct trace_entry *)0)->type) * 8)) - 1)
 
-/*
- * Trace iterator - used by printout routines who present trace
- * results to users and which routines might sleep, etc:
- */
+
 struct trace_iterator {
 	struct trace_array	*tr;
 	struct tracer		*trace;
@@ -54,7 +46,7 @@ struct trace_iterator {
 	struct ring_buffer_iter	*buffer_iter[NR_CPUS];
 	unsigned long		iter_flags;
 
-	/* The below is zeroed out in pipe_read */
+	
 	struct trace_seq	seq;
 	struct trace_entry	*ent;
 	int			cpu;
@@ -82,12 +74,12 @@ struct trace_event {
 extern int register_ftrace_event(struct trace_event *event);
 extern int unregister_ftrace_event(struct trace_event *event);
 
-/* Return values for print_line callback */
+
 enum print_line_t {
-	TRACE_TYPE_PARTIAL_LINE	= 0,	/* Retry after flushing the seq */
+	TRACE_TYPE_PARTIAL_LINE	= 0,	
 	TRACE_TYPE_HANDLED	= 1,
-	TRACE_TYPE_UNHANDLED	= 2,	/* Relay to other output functions */
-	TRACE_TYPE_NO_CONSUME	= 3	/* Handled but ask to not consume */
+	TRACE_TYPE_UNHANDLED	= 2,	
+	TRACE_TYPE_NO_CONSUME	= 3	
 };
 
 void tracing_generic_entry_update(struct trace_entry *entry,
@@ -141,7 +133,7 @@ extern char			*trace_profile_buf;
 extern char			*trace_profile_buf_nmi;
 
 #define MAX_FILTER_PRED		32
-#define MAX_FILTER_STR_VAL	256	/* Should handle KSYM_SYMBOL_LEN */
+#define MAX_FILTER_STR_VAL	256	
 
 extern void destroy_preds(struct ftrace_event_call *call);
 extern int filter_match_preds(struct ftrace_event_call *call, void *rec);
@@ -167,11 +159,7 @@ extern int trace_define_common_fields(struct ftrace_event_call *call);
 
 int trace_set_clr_event(const char *system, const char *event, int set);
 
-/*
- * The double __builtin_constant_p is because gcc will give us an error
- * if we try to allocate the static variable to fmt if it is not a
- * constant. Even with the outer if statement optimizing out.
- */
+
 #define event_trace_printk(ip, fmt, args...)				\
 do {									\
 	__trace_printk_check_format(fmt, ##args);			\
@@ -186,4 +174,4 @@ do {									\
 		__trace_printk(ip, fmt, ##args);			\
 } while (0)
 
-#endif /* _LINUX_FTRACE_EVENT_H */
+#endif 

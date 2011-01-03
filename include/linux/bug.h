@@ -23,10 +23,10 @@ const struct bug_entry *find_bug(unsigned long bugaddr);
 
 enum bug_trap_type report_bug(unsigned long bug_addr, struct pt_regs *regs);
 
-/* These are defined by the architecture */
+
 int is_valid_bugaddr(unsigned long addr);
 
-#else	/* !CONFIG_GENERIC_BUG */
+#else	
 
 static inline enum bug_trap_type report_bug(unsigned long bug_addr,
 					    struct pt_regs *regs)
@@ -34,5 +34,5 @@ static inline enum bug_trap_type report_bug(unsigned long bug_addr,
 	return BUG_TRAP_TYPE_BUG;
 }
 
-#endif	/* CONFIG_GENERIC_BUG */
-#endif	/* _LINUX_BUG_H */
+#endif	
+#endif	

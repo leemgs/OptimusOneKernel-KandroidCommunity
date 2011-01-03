@@ -1,10 +1,4 @@
-/*
- * linux/include/linux/sunrpc/stats.h
- *
- * Client statistics collection for SUN RPC
- *
- * Copyright (C) 1996 Olaf Kirch <okir@monad.swb.de>
- */
+
 
 #ifndef _LINUX_SUNRPC_STATS_H
 #define _LINUX_SUNRPC_STATS_H
@@ -74,4 +68,4 @@ static inline void svc_seq_show(struct seq_file *seq,
 
 #endif
 
-#endif /* _LINUX_SUNRPC_STATS_H */
+#endif 

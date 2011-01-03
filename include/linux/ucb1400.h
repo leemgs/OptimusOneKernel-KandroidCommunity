@@ -1,24 +1,4 @@
-/*
- * Register definitions and functions for:
- *  Philips UCB1400 driver
- *
- * Based on ucb1400_ts:
- *  Author:	Nicolas Pitre
- *  Created:	September 25, 2006
- *  Copyright:	MontaVista Software, Inc.
- *
- * Spliting done by: Marek Vasut <marek.vasut@gmail.com>
- * If something doesnt work and it worked before spliting, e-mail me,
- * dont bother Nicolas please ;-)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This code is heavily based on ucb1x00-*.c copyrighted by Russell King
- * covering the UCB1100, UCB1200 and UCB1300..  Support for the UCB1400 has
- * been made separate from ucb1x00-core/ucb1x00-ts on Russell's request.
- */
+
 
 #ifndef _LINUX__UCB1400_H
 #define _LINUX__UCB1400_H
@@ -28,9 +8,7 @@
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 
-/*
- * UCB1400 AC-link registers
- */
+
 
 #define UCB_IO_DATA		0x5a
 #define UCB_IO_DIR		0x5c
@@ -101,7 +79,7 @@ struct ucb1400_ts {
 	wait_queue_head_t	ts_wait;
 	unsigned int		ts_restart:1;
 	int			irq;
-	unsigned int		irq_pending;	/* not bit field shared */
+	unsigned int		irq_pending;	
 	struct snd_ac97		*ac97;
 };
 

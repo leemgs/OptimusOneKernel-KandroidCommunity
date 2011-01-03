@@ -40,9 +40,9 @@ static inline int migrate_vmas(struct mm_struct *mm,
 	return -ENOSYS;
 }
 
-/* Possible settings for the migrate_page() method in address_operations */
+
 #define migrate_page NULL
 #define fail_migrate_page NULL
 
-#endif /* CONFIG_MIGRATION */
-#endif /* _LINUX_MIGRATE_H */
+#endif 
+#endif 

@@ -1,6 +1,4 @@
-/*
- * ISA bus.
- */
+
 
 #ifndef __LINUX_ISA_H
 #define __LINUX_ISA_H
@@ -36,4 +34,4 @@ static inline void isa_unregister_driver(struct isa_driver *d)
 }
 #endif
 
-#endif /* __LINUX_ISA_H */
+#endif 

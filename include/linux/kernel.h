@@ -1,9 +1,7 @@
 #ifndef _LINUX_KERNEL_H
 #define _LINUX_KERNEL_H
 
-/*
- * 'kernel.h' contains some often-used function prototypes etc
- */
+
 
 #ifdef __KERNEL__
 
@@ -72,38 +70,24 @@ extern const char linux_proc_banner[];
 )
 #endif
 
-/**
- * upper_32_bits - return bits 32-63 of a number
- * @n: the number we're accessing
- *
- * A basic shift-right of a 64- or 32-bit quantity.  Use this to suppress
- * the "right shift count >= width of type" warning when that quantity is
- * 32-bits.
- */
+
 #define upper_32_bits(n) ((u32)(((n) >> 16) >> 16))
 
-/**
- * lower_32_bits - return bits 0-31 of a number
- * @n: the number we're accessing
- */
+
 #define lower_32_bits(n) ((u32)(n))
 
-#define	KERN_EMERG	"<0>"	/* system is unusable			*/
-#define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
-#define	KERN_CRIT	"<2>"	/* critical conditions			*/
-#define	KERN_ERR	"<3>"	/* error conditions			*/
-#define	KERN_WARNING	"<4>"	/* warning conditions			*/
-#define	KERN_NOTICE	"<5>"	/* normal but significant condition	*/
-#define	KERN_INFO	"<6>"	/* informational			*/
-#define	KERN_DEBUG	"<7>"	/* debug-level messages			*/
+#define	KERN_EMERG	"<0>"	
+#define	KERN_ALERT	"<1>"	
+#define	KERN_CRIT	"<2>"	
+#define	KERN_ERR	"<3>"	
+#define	KERN_WARNING	"<4>"	
+#define	KERN_NOTICE	"<5>"	
+#define	KERN_INFO	"<6>"	
+#define	KERN_DEBUG	"<7>"	
 
-/* Use the default kernel loglevel */
+
 #define KERN_DEFAULT	"<d>"
-/*
- * Annotation for a "continued" line of log printout (only done after a
- * line that had no enclosing \n). Only to be used by core/arch code
- * during early bootup (a continued line is not SMP-safe otherwise).
- */
+
 #define	KERN_CONT	"<c>"
 
 extern int console_printk[];
@@ -126,16 +110,7 @@ extern int _cond_resched(void);
 
 #ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
   void __might_sleep(char *file, int line, int preempt_offset);
-/**
- * might_sleep - annotation for functions that can sleep
- *
- * this macro will print a stack trace if it is executed in an atomic
- * context (spinlock, irq-handler, ...).
- *
- * This is a useful debugging help to be able to catch problems early and not
- * be bitten later when the calling function happens to sleep when it is not
- * supposed to.
- */
+
 # define might_sleep() \
 	do { __might_sleep(__FILE__, __LINE__, 0); might_resched(); } while (0)
 #else
@@ -211,26 +186,7 @@ extern int func_ptr_is_kernel_text(void *ptr);
 struct pid;
 extern struct pid *session_of_pgrp(struct pid *pgrp);
 
-/*
- * FW_BUG
- * Add this to a message where you are sure the firmware is buggy or behaves
- * really stupid or out of spec. Be aware that the responsible BIOS developer
- * should be able to fix this issue or at least get a concrete idea of the
- * problem by reading your message without the need of looking at the kernel
- * code.
- * 
- * Use it for definite and high priority BIOS bugs.
- *
- * FW_WARN
- * Use it for not that clear (e.g. could the kernel messed up things already?)
- * and medium priority BIOS bugs.
- *
- * FW_INFO
- * Use this one if you want to tell the user or vendor about something
- * suspicious, but generally harmless related to the firmware.
- *
- * Use it for information or very low priority BIOS bugs.
- */
+
 #define FW_BUG		"[Firmware Bug]: "
 #define FW_WARN		"[Firmware Warn]: "
 #define FW_INFO		"[Firmware Info]: "
@@ -248,9 +204,7 @@ extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
 
 extern int printk_delay_msec;
 
-/*
- * Print a one-time message (analogous to WARN_ONCE() et al):
- */
+
 #define printk_once(x...) ({			\
 	static bool __print_once = true;	\
 						\
@@ -273,7 +227,7 @@ static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies, \
 					  unsigned int interval_msec)	\
 		{ return false; }
 
-/* No effect, but we still get type checking even in the !PRINTK case: */
+
 #define printk_once(x...) printk(x)
 
 static inline void log_buf_kexec_setup(void)
@@ -302,7 +256,7 @@ static inline void console_verbose(void)
 
 extern void bust_spinlocks(int yes);
 extern void wake_up_klogd(void);
-extern int oops_in_progress;		/* If set, an oops, panic(), BUG() or die() is in progress */
+extern int oops_in_progress;		
 extern int panic_timeout;
 extern int panic_on_oops;
 extern int panic_on_unrecovered_nmi;
@@ -313,7 +267,7 @@ extern int test_taint(unsigned flag);
 extern unsigned long get_taint(void);
 extern int root_mountflags;
 
-/* Values used for system_state */
+
 extern enum system_states {
 	SYSTEM_BOOTING,
 	SYSTEM_RUNNING,
@@ -383,7 +337,7 @@ static inline char *pack_hex_byte(char *buf, u8 byte)
 #define pr_cont(fmt, ...) \
 	printk(KERN_CONT fmt, ##__VA_ARGS__)
 
-/* pr_devel() should produce zero code unless DEBUG is defined */
+
 #ifdef DEBUG
 #define pr_devel(fmt, ...) \
 	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
@@ -392,12 +346,12 @@ static inline char *pack_hex_byte(char *buf, u8 byte)
 	({ if (0) printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__); 0; })
 #endif
 
-/* If you are writing a driver, please use dev_dbg instead */
+
 #if defined(DEBUG)
 #define pr_debug(fmt, ...) \
 	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
 #elif defined(CONFIG_DYNAMIC_DEBUG)
-/* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
+
 #define pr_debug(fmt, ...) do { \
 	dynamic_pr_debug(fmt, ##__VA_ARGS__); \
 	} while (0)
@@ -406,29 +360,11 @@ static inline char *pack_hex_byte(char *buf, u8 byte)
 	({ if (0) printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__); 0; })
 #endif
 
-/*
- * General tracing related utility functions - trace_printk(),
- * tracing_on/tracing_off and tracing_start()/tracing_stop
- *
- * Use tracing_on/tracing_off when you want to quickly turn on or off
- * tracing. It simply enables or disables the recording of the trace events.
- * This also corresponds to the user space /sys/kernel/debug/tracing/tracing_on
- * file, which gives a means for the kernel and userspace to interact.
- * Place a tracing_off() in the kernel where you want tracing to end.
- * From user space, examine the trace, and then echo 1 > tracing_on
- * to continue tracing.
- *
- * tracing_stop/tracing_start has slightly more overhead. It is used
- * by things like suspend to ram where disabling the recording of the
- * trace is not enough, but tracing must actually stop because things
- * like calling smp_processor_id() may crash the system.
- *
- * Most likely, you want to use tracing_on/tracing_off.
- */
+
 #ifdef CONFIG_RING_BUFFER
 void tracing_on(void);
 void tracing_off(void);
-/* trace_off_permanent stops recording with no way to bring it back */
+
 void tracing_off_permanent(void);
 int tracing_is_on(void);
 #else
@@ -455,22 +391,7 @@ do {									\
 		____trace_printk_check_format(fmt, ##args);		\
 } while (0)
 
-/**
- * trace_printk - printf formatting in the ftrace buffer
- * @fmt: the printf format for printing
- *
- * Note: __trace_printk is an internal function for trace_printk and
- *       the @ip is passed in via the trace_printk macro.
- *
- * This function allows a kernel developer to debug fast path sections
- * that printk is not appropriate for. By scattering in various
- * printk like tracing in the code, a developer can quickly see
- * where problems are occurring.
- *
- * This is intended as a debugging tool for the developer only.
- * Please refrain from leaving trace_printks scattered around in
- * your code.
- */
+
 
 #define trace_printk(fmt, args...)					\
 do {									\
@@ -493,11 +414,7 @@ extern int
 __trace_printk(unsigned long ip, const char *fmt, ...)
 	__attribute__ ((format (printf, 2, 3)));
 
-/*
- * The double __builtin_constant_p is because gcc will give us an error
- * if we try to allocate the static variable to fmt if it is not a
- * constant. Even with the outer if statement.
- */
+
 #define ftrace_vprintk(fmt, vargs)					\
 do {									\
 	if (__builtin_constant_p(fmt)) {				\
@@ -537,11 +454,9 @@ ftrace_vprintk(const char *fmt, va_list ap)
 	return 0;
 }
 static inline void ftrace_dump(void) { }
-#endif /* CONFIG_TRACING */
+#endif 
 
-/*
- *      Display an IP address in readable format.
- */
+
 
 #define NIPQUAD(addr) \
 	((unsigned char *)&addr)[0], \
@@ -550,11 +465,7 @@ static inline void ftrace_dump(void) { }
 	((unsigned char *)&addr)[3]
 #define NIPQUAD_FMT "%u.%u.%u.%u"
 
-/*
- * min()/max()/clamp() macros that also do
- * strict type-checking.. See the
- * "unnecessary" pointer comparison.
- */
+
 #define min(x, y) ({				\
 	typeof(x) _min1 = (x);			\
 	typeof(y) _min2 = (y);			\
@@ -567,15 +478,7 @@ static inline void ftrace_dump(void) { }
 	(void) (&_max1 == &_max2);		\
 	_max1 > _max2 ? _max1 : _max2; })
 
-/**
- * clamp - return a value clamped to a given range with strict typechecking
- * @val: current value
- * @min: minimum allowable value
- * @max: maximum allowable value
- *
- * This macro does strict typechecking of min/max to make sure they are of the
- * same type as val.  See the unnecessary pointer comparisons.
- */
+
 #define clamp(val, min, max) ({			\
 	typeof(val) __val = (val);		\
 	typeof(min) __min = (min);		\
@@ -585,12 +488,7 @@ static inline void ftrace_dump(void) { }
 	__val = __val < __min ? __min: __val;	\
 	__val > __max ? __max: __val; })
 
-/*
- * ..and if you can't take the strict
- * types, you can specify one yourself.
- *
- * Or not use min/max/clamp at all, of course.
- */
+
 #define min_t(type, x, y) ({			\
 	type __min1 = (x);			\
 	type __min2 = (y);			\
@@ -601,16 +499,7 @@ static inline void ftrace_dump(void) { }
 	type __max2 = (y);			\
 	__max1 > __max2 ? __max1: __max2; })
 
-/**
- * clamp_t - return a value clamped to a given range using a given type
- * @type: the type of variable to use
- * @val: current value
- * @min: minimum allowable value
- * @max: maximum allowable value
- *
- * This macro does no typechecking and uses temporary variables of type
- * 'type' to make all the comparisons.
- */
+
 #define clamp_t(type, val, min, max) ({		\
 	type __val = (val);			\
 	type __min = (min);			\
@@ -618,17 +507,7 @@ static inline void ftrace_dump(void) { }
 	__val = __val < __min ? __min: __val;	\
 	__val > __max ? __max: __val; })
 
-/**
- * clamp_val - return a value clamped to a given range using val's type
- * @val: current value
- * @min: minimum allowable value
- * @max: maximum allowable value
- *
- * This macro does no typechecking and uses temporary variables of whatever
- * type the input argument 'val' is.  This is useful when val is an unsigned
- * type and min and max are literals that will otherwise be assigned a signed
- * integer type.
- */
+
 #define clamp_val(val, min, max) ({		\
 	typeof(val) __val = (val);		\
 	typeof(val) __min = (min);		\
@@ -637,19 +516,11 @@ static inline void ftrace_dump(void) { }
 	__val > __max ? __max: __val; })
 
 
-/*
- * swap - swap value of @a and @b
- */
+
 #define swap(a, b) \
 	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
-/**
- * container_of - cast a member of a structure out to the containing structure
- * @ptr:	the pointer to the member.
- * @type:	the type of the container struct this is embedded in.
- * @member:	the name of the member within the struct.
- *
- */
+
 #define container_of(ptr, type, member) ({			\
 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
 	(type *)( (char *)__mptr - offsetof(type,member) );})
@@ -657,56 +528,53 @@ static inline void ftrace_dump(void) { }
 struct sysinfo;
 extern int do_sysinfo(struct sysinfo *info);
 
-#endif /* __KERNEL__ */
+#endif 
 
 #ifndef __EXPORTED_HEADERS__
 #ifndef __KERNEL__
-#warning Attempt to use kernel headers from user space, see http://kernelnewbies.org/KernelHeaders
-#endif /* __KERNEL__ */
-#endif /* __EXPORTED_HEADERS__ */
+#warning Attempt to use kernel headers from user space, see http:
+#endif 
+#endif 
 
 #define SI_LOAD_SHIFT	16
 struct sysinfo {
-	long uptime;			/* Seconds since boot */
-	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
-	unsigned long totalram;		/* Total usable main memory size */
-	unsigned long freeram;		/* Available memory size */
-	unsigned long sharedram;	/* Amount of shared memory */
-	unsigned long bufferram;	/* Memory used by buffers */
-	unsigned long totalswap;	/* Total swap space size */
-	unsigned long freeswap;		/* swap space still available */
-	unsigned short procs;		/* Number of current processes */
-	unsigned short pad;		/* explicit padding for m68k */
-	unsigned long totalhigh;	/* Total high memory size */
-	unsigned long freehigh;		/* Available high memory size */
-	unsigned int mem_unit;		/* Memory unit size in bytes */
-	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
+	long uptime;			
+	unsigned long loads[3];		
+	unsigned long totalram;		
+	unsigned long freeram;		
+	unsigned long sharedram;	
+	unsigned long bufferram;	
+	unsigned long totalswap;	
+	unsigned long freeswap;		
+	unsigned short procs;		
+	unsigned short pad;		
+	unsigned long totalhigh;	
+	unsigned long freehigh;		
+	unsigned int mem_unit;		
+	char _f[20-2*sizeof(long)-sizeof(int)];	
 };
 
-/* Force a compilation error if condition is true */
+
 #define BUILD_BUG_ON(condition) ((void)BUILD_BUG_ON_ZERO(condition))
 
-/* Force a compilation error if condition is constant and true */
+
 #define MAYBE_BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2 * !!(cond)]))
 
-/* Force a compilation error if condition is true, but also produce a
-   result (of value 0 and type size_t), so the expression can be used
-   e.g. in a structure initializer (or where-ever else comma expressions
-   aren't permitted). */
+
 #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
 #define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
 
-/* Trap pasters of __FUNCTION__ at compile-time */
+
 #define __FUNCTION__ (__func__)
 
-/* This helps us to avoid #ifdef CONFIG_NUMA */
+
 #ifdef CONFIG_NUMA
 #define NUMA_BUILD 1
 #else
 #define NUMA_BUILD 0
 #endif
 
-/* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
+
 #ifdef CONFIG_FTRACE_MCOUNT_RECORD
 # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
 #endif

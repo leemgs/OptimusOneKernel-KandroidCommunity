@@ -1,10 +1,4 @@
-/*
- *  smb.h
- *
- *  Copyright (C) 1995, 1996 by Paal-Kr. Engstad and Volker Lendecke
- *  Copyright (C) 1997 by Volker Lendecke
- *
- */
+
 
 #ifndef _LINUX_SMB_H
 #define _LINUX_SMB_H
@@ -39,26 +33,26 @@ struct smb_dskattr {
 
 struct smb_conn_opt {
 
-        /* The socket */
+        
 	unsigned int fd;
 
 	enum smb_protocol protocol;
 	enum smb_case_hndl case_handling;
 
-	/* Connection-Options */
+	
 
 	__u32              max_xmit;
 	__u16              server_uid;
 	__u16              tid;
 
-        /* The following are LANMAN 1.0 options */
+        
         __u16              secmode;
         __u16              maxmux;
         __u16              maxvcs;
         __u16              rawmode;
         __u32              sesskey;
 
-	/* The following are NT LM 0.12 options */
+	
 	__u32              maxraw;
 	__u32              capabilities;
 	__s16              serverzone;
@@ -76,9 +70,7 @@ struct smb_nls_codepage {
 #define SMB_MAXNAMELEN 255
 #define SMB_MAXPATHLEN 1024
 
-/*
- * Contains all relevant data on a SMB networked file.
- */
+
 struct smb_fattr {
 	__u16 attr;
 
@@ -97,21 +89,18 @@ struct smb_fattr {
 };
 
 enum smb_conn_state {
-	CONN_VALID,		/* everything's fine */
-	CONN_INVALID,		/* Something went wrong, but did not
-				   try to reconnect yet. */
-	CONN_RETRIED,		/* Tried a reconnection, but was refused */
-	CONN_RETRYING		/* Currently trying to reconnect */
+	CONN_VALID,		
+	CONN_INVALID,		
+	CONN_RETRIED,		
+	CONN_RETRYING		
 };
 
-#define SMB_HEADER_LEN   37     /* includes everything up to, but not
-                                 * including smb_bcc */
+#define SMB_HEADER_LEN   37     
 
 #define SMB_INITIAL_PACKET_SIZE		4000
 #define SMB_MAX_PACKET_SIZE		32768
 
-/* reserve this much space for trans2 parameters. Shouldn't have to be more
-   than 10 or so, but OS/2 seems happier like this. */
+
 #define SMB_TRANS2_MAX_PARAM 64
 
 #endif

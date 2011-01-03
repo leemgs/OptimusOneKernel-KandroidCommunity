@@ -1,13 +1,4 @@
-/* MTD-based superblock handling
- *
- * Copyright © 2006 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 
 #ifndef __MTD_SUPER_H__
 #define __MTD_SUPER_H__
@@ -25,6 +16,6 @@ extern int get_sb_mtd(struct file_system_type *fs_type, int flags,
 extern void kill_mtd_super(struct super_block *sb);
 
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* __MTD_SUPER_H__ */
+#endif 

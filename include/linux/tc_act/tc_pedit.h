@@ -17,9 +17,9 @@ enum
                                                                                 
 struct tc_pedit_key
 {
-	__u32           mask;  /* AND */
-	__u32           val;   /*XOR */
-	__u32           off;  /*offset */
+	__u32           mask;  
+	__u32           val;   
+	__u32           off;  
 	__u32           at;
 	__u32           offmask;
 	__u32           shift;

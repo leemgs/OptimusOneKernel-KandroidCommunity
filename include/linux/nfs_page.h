@@ -1,10 +1,4 @@
-/*
- * linux/include/linux/nfs_page.h
- *
- * Copyright (C) 2000 Trond Myklebust
- *
- * NFS page cache wrapper.
- */
+
 
 #ifndef _LINUX_NFS_PAGE_H
 #define _LINUX_NFS_PAGE_H
@@ -18,15 +12,11 @@
 
 #include <linux/kref.h>
 
-/*
- * Valid flags for the radix tree
- */
+
 #define NFS_PAGE_TAG_LOCKED	0
 #define NFS_PAGE_TAG_COMMIT	1
 
-/*
- * Valid flags for a dirty buffer
- */
+
 enum {
 	PG_BUSY = 0,
 	PG_CLEAN,
@@ -36,17 +26,17 @@ enum {
 
 struct nfs_inode;
 struct nfs_page {
-	struct list_head	wb_list;	/* Defines state of page: */
-	struct page		*wb_page;	/* page to read in/write out */
-	struct nfs_open_context	*wb_context;	/* File state context info */
-	atomic_t		wb_complete;	/* i/os we're waiting for */
-	pgoff_t			wb_index;	/* Offset >> PAGE_CACHE_SHIFT */
-	unsigned int		wb_offset,	/* Offset & ~PAGE_CACHE_MASK */
-				wb_pgbase,	/* Start of page data */
-				wb_bytes;	/* Length of request */
-	struct kref		wb_kref;	/* reference count */
+	struct list_head	wb_list;	
+	struct page		*wb_page;	
+	struct nfs_open_context	*wb_context;	
+	atomic_t		wb_complete;	
+	pgoff_t			wb_index;	
+	unsigned int		wb_offset,	
+				wb_pgbase,	
+				wb_bytes;	
+	struct kref		wb_kref;	
 	unsigned long		wb_flags;
-	struct nfs_writeverf	wb_verf;	/* Commit cookie */
+	struct nfs_writeverf	wb_verf;	
 };
 
 struct nfs_pageio_descriptor {
@@ -90,20 +80,14 @@ extern	int nfs_set_page_tag_locked(struct nfs_page *req);
 extern  void nfs_clear_page_tag_locked(struct nfs_page *req);
 
 
-/*
- * Lock the page of an asynchronous request without getting a new reference
- */
+
 static inline int
 nfs_lock_request_dontget(struct nfs_page *req)
 {
 	return !test_and_set_bit(PG_BUSY, &req->wb_flags);
 }
 
-/**
- * nfs_list_add_request - Insert a request into a list
- * @req: request
- * @head: head of list into which to insert the request.
- */
+
 static inline void
 nfs_list_add_request(struct nfs_page *req, struct list_head *head)
 {
@@ -111,10 +95,7 @@ nfs_list_add_request(struct nfs_page *req, struct list_head *head)
 }
 
 
-/**
- * nfs_list_remove_request - Remove a request from its wb_list
- * @req: request
- */
+
 static inline void
 nfs_list_remove_request(struct nfs_page *req)
 {
@@ -135,4 +116,4 @@ loff_t req_offset(struct nfs_page *req)
 	return (((loff_t)req->wb_index) << PAGE_CACHE_SHIFT) + req->wb_offset;
 }
 
-#endif /* _LINUX_NFS_PAGE_H */
+#endif 

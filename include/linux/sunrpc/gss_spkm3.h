@@ -1,19 +1,12 @@
-/*
- *  linux/include/linux/sunrpc/gss_spkm3.h
- *
- *  Copyright (c) 2000 The Regents of the University of Michigan.
- *  All rights reserved.
- *
- *  Andy Adamson   <andros@umich.edu>
- */
+
 
 #include <linux/sunrpc/auth_gss.h>
 #include <linux/sunrpc/gss_err.h>
 #include <linux/sunrpc/gss_asn1.h>
 
 struct spkm3_ctx {
-	struct xdr_netobj	ctx_id;  /* per message context id */
-	int			endtime; /* endtime of the context */
+	struct xdr_netobj	ctx_id;  
+	int			endtime; 
 	struct xdr_netobj	mech_used;
 	unsigned int		ret_flags ;
 	struct xdr_netobj	conf_alg;
@@ -22,11 +15,11 @@ struct spkm3_ctx {
 	struct xdr_netobj 	derived_integ_key;
 };
 
-/* OIDs declarations for K-ALG, I-ALG, C-ALG, and OWF-ALG */
+
 extern const struct xdr_netobj hmac_md5_oid;
 extern const struct xdr_netobj cast5_cbc_oid;
 
-/* SPKM InnerContext Token types */
+
 
 #define SPKM_ERROR_TOK	3
 #define SPKM_MIC_TOK	4

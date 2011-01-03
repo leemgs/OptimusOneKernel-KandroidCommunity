@@ -1,32 +1,23 @@
-/*
- * Discontiguous memory support, Kanoj Sarcar, SGI, Nov 1999
- */
+
 #ifndef _LINUX_BOOTMEM_H
 #define _LINUX_BOOTMEM_H
 
 #include <linux/mmzone.h>
 #include <asm/dma.h>
 
-/*
- *  simple boot-time physical memory area allocator.
- */
+
 
 extern unsigned long max_low_pfn;
 extern unsigned long min_low_pfn;
 
-/*
- * highest page
- */
+
 extern unsigned long max_pfn;
 
 #ifdef CONFIG_CRASH_DUMP
 extern unsigned long saved_max_pfn;
 #endif
 
-/*
- * node_bootmem_map is a map pointer - the bits represent all physical 
- * memory pages (including holes) on the node.
- */
+
 typedef struct bootmem_data {
 	unsigned long node_min_pfn;
 	unsigned long node_low_pfn;
@@ -54,14 +45,7 @@ extern void free_bootmem_node(pg_data_t *pgdat,
 			      unsigned long size);
 extern void free_bootmem(unsigned long addr, unsigned long size);
 
-/*
- * Flags for reserve_bootmem (also if CONFIG_HAVE_ARCH_BOOTMEM_NODE,
- * the architecture-specific code should honor this).
- *
- * If flags is 0, then the return value is always 0 (success). If
- * flags contains BOOTMEM_EXCLUSIVE, then -EBUSY is returned if the
- * memory already was reserved.
- */
+
 #define BOOTMEM_DEFAULT		0
 #define BOOTMEM_EXCLUSIVE	(1<<0)
 
@@ -130,7 +114,7 @@ static inline void *alloc_remap(int nid, unsigned long size)
 {
 	return NULL;
 }
-#endif /* CONFIG_HAVE_ARCH_ALLOC_REMAP */
+#endif 
 
 extern void *alloc_large_system_hash(const char *tablename,
 				     unsigned long bucketsize,
@@ -141,19 +125,16 @@ extern void *alloc_large_system_hash(const char *tablename,
 				     unsigned int *_hash_mask,
 				     unsigned long limit);
 
-#define HASH_EARLY	0x00000001	/* Allocating during early boot? */
-#define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
-					 * shift passed via *_hash_shift */
+#define HASH_EARLY	0x00000001	
+#define HASH_SMALL	0x00000002	
 
-/* Only NUMA needs hash distribution. 64bit NUMA architectures have
- * sufficient vmalloc space.
- */
+
 #if defined(CONFIG_NUMA) && defined(CONFIG_64BIT)
 #define HASHDIST_DEFAULT 1
 #else
 #define HASHDIST_DEFAULT 0
 #endif
-extern int hashdist;		/* Distribute hashes across NUMA nodes? */
+extern int hashdist;		
 
 
-#endif /* _LINUX_BOOTMEM_H */
+#endif 

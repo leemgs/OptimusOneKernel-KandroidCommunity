@@ -1,27 +1,16 @@
-/*
- * linux/include/linux/nfsd/debug.h
- *
- * Debugging-related stuff for nfsd
- *
- * Copyright (C) 1995 Olaf Kirch <okir@monad.swb.de>
- */
+
 
 #ifndef LINUX_NFSD_DEBUG_H
 #define LINUX_NFSD_DEBUG_H
 
 #include <linux/sunrpc/debug.h>
 
-/*
- * Enable debugging for nfsd.
- * Requires RPC_DEBUG.
- */
+
 #ifdef RPC_DEBUG
 # define NFSD_DEBUG		1
 #endif
 
-/*
- * knfsd debug flags
- */
+
 #define NFSDDBG_SOCK		0x0001
 #define NFSDDBG_FH		0x0002
 #define NFSDDBG_EXPORT		0x0004
@@ -43,6 +32,6 @@
 # else
 #  define ifdebug(flag)		if (0)
 # endif
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* LINUX_NFSD_DEBUG_H */
+#endif 

@@ -1,19 +1,4 @@
-/*
- * Scatterlist Cryptographic API.
- *
- * Copyright (c) 2002 James Morris <jmorris@intercode.com.au>
- * Copyright (c) 2002 David S. Miller (davem@redhat.com)
- * Copyright (c) 2005 Herbert Xu <herbert@gondor.apana.org.au>
- *
- * Portions derived from Cryptoapi, by Alexander Kjeldaas <astor@fast.no>
- * and Nettle, by Niels Möller.
- * 
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
- * any later version.
- *
- */
+
 #ifndef _LINUX_CRYPTO_H
 #define _LINUX_CRYPTO_H
 
@@ -25,9 +10,7 @@
 #include <linux/string.h>
 #include <linux/uaccess.h>
 
-/*
- * Algorithm masks and types.
- */
+
 #define CRYPTO_ALG_TYPE_MASK		0x0000000f
 #define CRYPTO_ALG_TYPE_CIPHER		0x00000001
 #define CRYPTO_ALG_TYPE_COMPRESS	0x00000002
@@ -51,29 +34,17 @@
 #define CRYPTO_ALG_DYING		0x00000040
 #define CRYPTO_ALG_ASYNC		0x00000080
 
-/*
- * Set this bit if and only if the algorithm requires another algorithm of
- * the same type to handle corner cases.
- */
+
 #define CRYPTO_ALG_NEED_FALLBACK	0x00000100
 
-/*
- * This bit is set for symmetric key ciphers that have already been wrapped
- * with a generic IV generator to prevent them from being wrapped again.
- */
+
 #define CRYPTO_ALG_GENIV		0x00000200
 
-/*
- * Set if the algorithm has passed automated run-time testing.  Note that
- * if there is no run-time testing for a given algorithm it is considered
- * to have passed.
- */
+
 
 #define CRYPTO_ALG_TESTED		0x00000400
 
-/*
- * Transform masks and values (for crt_flags).
- */
+
 #define CRYPTO_TFM_REQ_MASK		0x000fff00
 #define CRYPTO_TFM_RES_MASK		0xfff00000
 
@@ -86,19 +57,10 @@
 #define CRYPTO_TFM_RES_BAD_BLOCK_LEN 	0x00800000
 #define CRYPTO_TFM_RES_BAD_FLAGS 	0x01000000
 
-/*
- * Miscellaneous stuff.
- */
+
 #define CRYPTO_MAX_ALG_NAME		64
 
-/*
- * The macro CRYPTO_MINALIGN_ATTR (along with the void * type in the actual
- * declaration) is used to ensure that the crypto_tfm context structure is
- * aligned correctly for the given architecture so that there are no alignment
- * faults for C data types.  In particular, this is required on platforms such
- * as arm where pointers are 32-bit aligned but there are data types such as
- * u64 which require 64-bit alignment.
- */
+
 #if defined(ARCH_KMALLOC_MINALIGN)
 #define CRYPTO_MINALIGN ARCH_KMALLOC_MINALIGN
 #elif defined(ARCH_SLAB_MINALIGN)
@@ -145,17 +107,7 @@ struct ablkcipher_request {
 	void *__ctx[] CRYPTO_MINALIGN_ATTR;
 };
 
-/**
- *	struct aead_request - AEAD request
- *	@base: Common attributes for async crypto requests
- *	@assoclen: Length in bytes of associated data for authentication
- *	@cryptlen: Length of data to be encrypted or decrypted
- *	@iv: Initialisation vector
- *	@assoc: Associated data
- *	@src: Source data
- *	@dst: Destination data
- *	@__ctx: Start of private context data
- */
+
 struct aead_request {
 	struct crypto_async_request base;
 
@@ -190,10 +142,7 @@ struct hash_desc {
 	u32 flags;
 };
 
-/*
- * Algorithms: modular crypto algorithm implementations, managed
- * via crypto_register_alg() and crypto_unregister_alg().
- */
+
 struct ablkcipher_alg {
 	int (*setkey)(struct crypto_ablkcipher *tfm, const u8 *key,
 	              unsigned int keylen);
@@ -333,22 +282,14 @@ struct crypto_alg {
 	struct module *cra_module;
 };
 
-/*
- * Algorithm registration interface.
- */
+
 int crypto_register_alg(struct crypto_alg *alg);
 int crypto_unregister_alg(struct crypto_alg *alg);
 
-/*
- * Algorithm query interface.
- */
+
 int crypto_has_alg(const char *name, u32 type, u32 mask);
 
-/*
- * Transforms: user-instantiated objects which encapsulate algorithms
- * and core processing logic.  Managed via crypto_alloc_*() and
- * crypto_free_*(), as well as the various helpers below.
- */
+
 
 struct ablkcipher_tfm {
 	int (*setkey)(struct crypto_ablkcipher *tfm, const u8 *key,
@@ -490,7 +431,7 @@ enum {
 
 #define CRYPTOA_MAX (__CRYPTOA_MAX - 1)
 
-/* Maximum number of (rtattr) parameters for each template. */
+
 #define CRYPTO_MAX_ATTRS 32
 
 struct crypto_attr_alg {
@@ -506,9 +447,7 @@ struct crypto_attr_u32 {
 	u32 num;
 };
 
-/* 
- * Transform user interface.
- */
+
  
 struct crypto_tfm *crypto_alloc_base(const char *alg_name, u32 type, u32 mask);
 void crypto_destroy_tfm(void *mem, struct crypto_tfm *tfm);
@@ -520,9 +459,7 @@ static inline void crypto_free_tfm(struct crypto_tfm *tfm)
 
 int alg_test(const char *driver, const char *alg, u32 type, u32 mask);
 
-/*
- * Transform helpers which query the underlying algorithm.
- */
+
 static inline const char *crypto_tfm_alg_name(struct crypto_tfm *tfm)
 {
 	return tfm->__crt_alg->cra_name;
@@ -584,9 +521,7 @@ static inline unsigned int crypto_tfm_ctx_alignment(void)
 	return __alignof__(tfm->__crt_ctx);
 }
 
-/*
- * API wrappers.
- */
+
 static inline struct crypto_ablkcipher *__crypto_ablkcipher_cast(
 	struct crypto_tfm *tfm)
 {
@@ -1309,5 +1244,5 @@ static inline int crypto_comp_decompress(struct crypto_comp *tfm,
 						    src, slen, dst, dlen);
 }
 
-#endif	/* _LINUX_CRYPTO_H */
+#endif	
 

@@ -1,13 +1,4 @@
-/*
- * Platform information definitions for the CPM Uart driver.
- *
- * 2006 (c) MontaVista Software, Inc.
- * Vitaly Bordug <vbordug@ru.mvista.com>
- *
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- */
+
 
 #ifndef FS_UART_PD_H
 #define FS_UART_PD_H
@@ -46,9 +37,9 @@ static inline int fs_uart_id_fsid2smc(int id)
 
 struct fs_uart_platform_info {
         void(*init_ioports)(struct fs_uart_platform_info *);
-	/* device specific information */
-	int fs_no;		/* controller index */
-	char fs_type[4];        /* controller type  */
+	
+	int fs_no;		
+	char fs_type[4];        
 	u32 uart_clk;
 	u8 tx_num_fifo;
 	u8 tx_buf_size;

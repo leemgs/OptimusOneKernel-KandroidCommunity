@@ -1,47 +1,13 @@
-/*
- *  linux/include/linux/sunrpc/gss_krb5_types.h
- *
- *  Adapted from MIT Kerberos 5-1.2.1 lib/include/krb5.h,
- *  lib/gssapi/krb5/gssapiP_krb5.h, and others
- *
- *  Copyright (c) 2000 The Regents of the University of Michigan.
- *  All rights reserved.
- *
- *  Andy Adamson   <andros@umich.edu>
- *  Bruce Fields   <bfields@umich.edu>
- */
 
-/*
- * Copyright 1995 by the Massachusetts Institute of Technology.
- * All Rights Reserved.
- *
- * Export of this software from the United States of America may
- *   require a specific license from the United States Government.
- *   It is the responsibility of any person or organization contemplating
- *   export to obtain such a license before exporting.
- *
- * WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
- * distribute this software and its documentation for any purpose and
- * without fee is hereby granted, provided that the above copyright
- * notice appear in all copies and that both that copyright notice and
- * this permission notice appear in supporting documentation, and that
- * the name of M.I.T. not be used in advertising or publicity pertaining
- * to distribution of the software without specific, written prior
- * permission.  Furthermore if you modify this software you must label
- * your software as modified software and not distribute it in such a
- * fashion that it might be confused with the original M.I.T. software.
- * M.I.T. makes no representations about the suitability of
- * this software for any purpose.  It is provided "as is" without express
- * or implied warranty.
- *
- */
+
+
 
 #include <linux/sunrpc/auth_gss.h>
 #include <linux/sunrpc/gss_err.h>
 #include <linux/sunrpc/gss_asn1.h>
 
 struct krb5_ctx {
-	int			initiate; /* 1 = initiating, 0 = accepting */
+	int			initiate; 
 	struct crypto_blkcipher	*enc;
 	struct crypto_blkcipher	*seq;
 	s32			endtime;
@@ -51,7 +17,7 @@ struct krb5_ctx {
 
 extern spinlock_t krb5_seq_lock;
 
-/* The length of the Kerberos GSS token header */
+
 #define GSS_KRB5_TOK_HDR_LEN	(16)
 
 #define KG_TOK_MIC_MSG    0x0101
@@ -61,15 +27,15 @@ enum sgn_alg {
 	SGN_ALG_DES_MAC_MD5 = 0x0000,
 	SGN_ALG_MD2_5 = 0x0001,
 	SGN_ALG_DES_MAC = 0x0002,
-	SGN_ALG_3 = 0x0003,		/* not published */
-	SGN_ALG_HMAC_MD5 = 0x0011,	/* microsoft w2k; no support */
+	SGN_ALG_3 = 0x0003,		
+	SGN_ALG_HMAC_MD5 = 0x0011,	
 	SGN_ALG_HMAC_SHA1_DES3_KD = 0x0004
 };
 enum seal_alg {
 	SEAL_ALG_NONE = 0xffff,
 	SEAL_ALG_DES = 0x0000,
-	SEAL_ALG_1 = 0x0001,		/* not published */
-	SEAL_ALG_MICROSOFT_RC4 = 0x0010,/* microsoft w2k; no support */
+	SEAL_ALG_1 = 0x0001,		
+	SEAL_ALG_MICROSOFT_RC4 = 0x0010,
 	SEAL_ALG_DES3KD = 0x0002
 };
 
@@ -82,7 +48,7 @@ enum seal_alg {
 #define CKSUMTYPE_NIST_SHA		0x0009
 #define CKSUMTYPE_HMAC_SHA1_DES3	0x000c
 
-/* from gssapi_err_krb5.h */
+
 #define KG_CCACHE_NOMATCH                        (39756032L)
 #define KG_KEYTAB_NOMATCH                        (39756033L)
 #define KG_TGT_MISSING                           (39756034L)
@@ -98,17 +64,15 @@ enum seal_alg {
 #define KG_EMPTY_CCACHE                          (39756044L)
 #define KG_NO_CTYPES                             (39756045L)
 
-/* per Kerberos v5 protocol spec crypto types from the wire. 
- * these get mapped to linux kernel crypto routines.  
- */
+
 #define ENCTYPE_NULL            0x0000
-#define ENCTYPE_DES_CBC_CRC     0x0001	/* DES cbc mode with CRC-32 */
-#define ENCTYPE_DES_CBC_MD4     0x0002	/* DES cbc mode with RSA-MD4 */
-#define ENCTYPE_DES_CBC_MD5     0x0003	/* DES cbc mode with RSA-MD5 */
-#define ENCTYPE_DES_CBC_RAW     0x0004	/* DES cbc mode raw */
-/* XXX deprecated? */
-#define ENCTYPE_DES3_CBC_SHA    0x0005	/* DES-3 cbc mode with NIST-SHA */
-#define ENCTYPE_DES3_CBC_RAW    0x0006	/* DES-3 cbc mode raw */
+#define ENCTYPE_DES_CBC_CRC     0x0001	
+#define ENCTYPE_DES_CBC_MD4     0x0002	
+#define ENCTYPE_DES_CBC_MD5     0x0003	
+#define ENCTYPE_DES_CBC_RAW     0x0004	
+
+#define ENCTYPE_DES3_CBC_SHA    0x0005	
+#define ENCTYPE_DES3_CBC_RAW    0x0006	
 #define ENCTYPE_DES_HMAC_SHA1   0x0008
 #define ENCTYPE_DES3_CBC_SHA1   0x0010
 #define ENCTYPE_UNKNOWN         0x01ff

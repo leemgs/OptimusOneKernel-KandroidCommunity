@@ -4,7 +4,7 @@
 #include <linux/list.h>
 #include <linux/mod_devicetable.h>
 
-/* enum dmi_field is in mod_devicetable.h */
+
 
 enum dmi_device_type {
 	DMI_DEV_TYPE_ANY = 0,
@@ -32,7 +32,7 @@ struct dmi_device {
 	struct list_head list;
 	int type;
 	const char *name;
-	void *device_data;	/* Type specific data */
+	void *device_data;	
 };
 
 #ifdef CONFIG_DMI
@@ -80,4 +80,4 @@ static inline const struct dmi_system_id *
 
 #endif
 
-#endif	/* __DMI_H__ */
+#endif	

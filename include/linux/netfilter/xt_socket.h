@@ -9,4 +9,4 @@ struct xt_socket_mtinfo1 {
 	__u8 flags;
 };
 
-#endif /* _XT_SOCKET_H */
+#endif 

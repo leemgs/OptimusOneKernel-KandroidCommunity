@@ -1,35 +1,24 @@
-/*
- *	Linux INET6 implementation 
- *
- *	Authors:
- *	Pedro Roque		<roque@di.fc.ul.pt>	
- *
- *	This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License
- *      as published by the Free Software Foundation; either version
- *      2 of the License, or (at your option) any later version.
- */
+
 
 #ifndef _LINUX_IPV6_ROUTE_H
 #define _LINUX_IPV6_ROUTE_H
 
 #include <linux/types.h>
 
-#define RTF_DEFAULT	0x00010000	/* default - learned via ND	*/
-#define RTF_ALLONLINK	0x00020000	/* (deprecated and will be removed)
-					   fallback, no routers on link */
-#define RTF_ADDRCONF	0x00040000	/* addrconf route - RA		*/
-#define RTF_PREFIX_RT	0x00080000	/* A prefix only route - RA	*/
-#define RTF_ANYCAST	0x00100000	/* Anycast			*/
+#define RTF_DEFAULT	0x00010000	
+#define RTF_ALLONLINK	0x00020000	
+#define RTF_ADDRCONF	0x00040000	
+#define RTF_PREFIX_RT	0x00080000	
+#define RTF_ANYCAST	0x00100000	
 
-#define RTF_NONEXTHOP	0x00200000	/* route with no nexthop	*/
+#define RTF_NONEXTHOP	0x00200000	
 #define RTF_EXPIRES	0x00400000
 
-#define RTF_ROUTEINFO	0x00800000	/* route information - RA	*/
+#define RTF_ROUTEINFO	0x00800000	
 
-#define RTF_CACHE	0x01000000	/* cache entry			*/
-#define RTF_FLOW	0x02000000	/* flow significant route	*/
-#define RTF_POLICY	0x04000000	/* policy route			*/
+#define RTF_CACHE	0x01000000	
+#define RTF_FLOW	0x02000000	
+#define RTF_POLICY	0x04000000	
 
 #define RTF_PREF(pref)	((pref) << 27)
 #define RTF_PREF_MASK	0x18000000
@@ -38,7 +27,7 @@
 
 #ifdef __KERNEL__
 #define IPV6_EXTRACT_PREF(flag)	(((flag) & RTF_PREF_MASK) >> 27)
-#define IPV6_DECODE_PREF(pref)	((pref) ^ 2)	/* 1:low,2:med,3:high */
+#define IPV6_DECODE_PREF(pref)	((pref) ^ 2)	
 #endif
 
 struct in6_rtmsg {

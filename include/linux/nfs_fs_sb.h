@@ -16,34 +16,32 @@ struct nfs4_sequence_args;
 struct nfs4_sequence_res;
 struct nfs_server;
 
-/*
- * The nfs_client identifies our client state to the server.
- */
+
 struct nfs_client {
 	atomic_t		cl_count;
-	int			cl_cons_state;	/* current construction state (-ve: init error) */
-#define NFS_CS_READY		0		/* ready to be used */
-#define NFS_CS_INITING		1		/* busy initialising */
-#define NFS_CS_SESSION_INITING	2		/* busy initialising  session */
-	unsigned long		cl_res_state;	/* NFS resources state */
-#define NFS_CS_CALLBACK		1		/* - callback started */
-#define NFS_CS_IDMAP		2		/* - idmap started */
-#define NFS_CS_RENEWD		3		/* - renewd started */
-	struct sockaddr_storage	cl_addr;	/* server identifier */
+	int			cl_cons_state;	
+#define NFS_CS_READY		0		
+#define NFS_CS_INITING		1		
+#define NFS_CS_SESSION_INITING	2		
+	unsigned long		cl_res_state;	
+#define NFS_CS_CALLBACK		1		
+#define NFS_CS_IDMAP		2		
+#define NFS_CS_RENEWD		3		
+	struct sockaddr_storage	cl_addr;	
 	size_t			cl_addrlen;
-	char *			cl_hostname;	/* hostname of server */
-	struct list_head	cl_share_link;	/* link in global client list */
-	struct list_head	cl_superblocks;	/* List of nfs_server structs */
+	char *			cl_hostname;	
+	struct list_head	cl_share_link;	
+	struct list_head	cl_superblocks;	
 
 	struct rpc_clnt *	cl_rpcclient;
-	const struct nfs_rpc_ops *rpc_ops;	/* NFS protocol vector */
-	int			cl_proto;	/* Network transport protocol */
+	const struct nfs_rpc_ops *rpc_ops;	
+	int			cl_proto;	
 
-	u32			cl_minorversion;/* NFSv4 minorversion */
+	u32			cl_minorversion;
 	struct rpc_cred		*cl_machine_cred;
 
 #ifdef CONFIG_NFS_V4
-	u64			cl_clientid;	/* constant */
+	u64			cl_clientid;	
 	nfs4_verifier		cl_confirm;
 	unsigned long		cl_state;
 
@@ -60,15 +58,13 @@ struct nfs_client {
 
 	struct rpc_wait_queue	cl_rpcwaitq;
 
-	/* used for the setclientid verifier */
+	
 	struct timespec		cl_boot_time;
 
-	/* idmapper */
+	
 	struct idmap *		cl_idmap;
 
-	/* Our own IP address, as a null-terminated string.
-	 * This is used to generate the clientid, and the callback address.
-	 */
+	
 	char			cl_ipaddr[48];
 	unsigned char		cl_id_uniquifier;
 	int		     (* cl_call_sync)(struct nfs_server *server,
@@ -76,84 +72,73 @@ struct nfs_client {
 					      struct nfs4_sequence_args *args,
 					      struct nfs4_sequence_res *res,
 					      int cache_reply);
-#endif /* CONFIG_NFS_V4 */
+#endif 
 
 #ifdef CONFIG_NFS_V4_1
-	/* clientid returned from EXCHANGE_ID, used by session operations */
+	
 	u64			cl_ex_clid;
-	/* The sequence id to use for the next CREATE_SESSION */
+	
 	u32			cl_seqid;
-	/* The flags used for obtaining the clientid during EXCHANGE_ID */
+	
 	u32			cl_exchange_flags;
-	struct nfs4_session	*cl_session; 	/* sharred session */
-#endif /* CONFIG_NFS_V4_1 */
+	struct nfs4_session	*cl_session; 	
+#endif 
 
 #ifdef CONFIG_NFS_FSCACHE
-	struct fscache_cookie	*fscache;	/* client index cache cookie */
+	struct fscache_cookie	*fscache;	
 #endif
 };
 
-/*
- * NFS client parameters stored in the superblock.
- */
+
 struct nfs_server {
-	struct nfs_client *	nfs_client;	/* shared client and NFS4 state */
-	struct list_head	client_link;	/* List of other nfs_server structs
-						 * that share the same client
-						 */
-	struct list_head	master_link;	/* link in master servers list */
-	struct rpc_clnt *	client;		/* RPC client handle */
-	struct rpc_clnt *	client_acl;	/* ACL RPC client handle */
-	struct nlm_host		*nlm_host;	/* NLM client handle */
-	struct nfs_iostats *	io_stats;	/* I/O statistics */
+	struct nfs_client *	nfs_client;	
+	struct list_head	client_link;	
+	struct list_head	master_link;	
+	struct rpc_clnt *	client;		
+	struct rpc_clnt *	client_acl;	
+	struct nlm_host		*nlm_host;	
+	struct nfs_iostats *	io_stats;	
 	struct backing_dev_info	backing_dev_info;
-	atomic_long_t		writeback;	/* number of writeback pages */
-	int			flags;		/* various flags */
-	unsigned int		caps;		/* server capabilities */
-	unsigned int		rsize;		/* read size */
-	unsigned int		rpages;		/* read size (in pages) */
-	unsigned int		wsize;		/* write size */
-	unsigned int		wpages;		/* write size (in pages) */
-	unsigned int		wtmult;		/* server disk block size */
-	unsigned int		dtsize;		/* readdir size */
-	unsigned short		port;		/* "port=" setting */
-	unsigned int		bsize;		/* server block size */
-	unsigned int		acregmin;	/* attr cache timeouts */
+	atomic_long_t		writeback;	
+	int			flags;		
+	unsigned int		caps;		
+	unsigned int		rsize;		
+	unsigned int		rpages;		
+	unsigned int		wsize;		
+	unsigned int		wpages;		
+	unsigned int		wtmult;		
+	unsigned int		dtsize;		
+	unsigned short		port;		
+	unsigned int		bsize;		
+	unsigned int		acregmin;	
 	unsigned int		acregmax;
 	unsigned int		acdirmin;
 	unsigned int		acdirmax;
 	unsigned int		namelen;
-	unsigned int		options;	/* extra options enabled by mount */
-#define NFS_OPTION_FSCACHE	0x00000001	/* - local caching enabled */
+	unsigned int		options;	
+#define NFS_OPTION_FSCACHE	0x00000001	
 
 	struct nfs_fsid		fsid;
-	__u64			maxfilesize;	/* maximum file size */
-	unsigned long		mount_time;	/* when this fs was mounted */
-	dev_t			s_dev;		/* superblock dev numbers */
+	__u64			maxfilesize;	
+	unsigned long		mount_time;	
+	dev_t			s_dev;		
 
 #ifdef CONFIG_NFS_FSCACHE
-	struct nfs_fscache_key	*fscache_key;	/* unique key for superblock */
-	struct fscache_cookie	*fscache;	/* superblock cookie */
+	struct nfs_fscache_key	*fscache_key;	
+	struct fscache_cookie	*fscache;	
 #endif
 
 #ifdef CONFIG_NFS_V4
-	u32			attr_bitmask[2];/* V4 bitmask representing the set
-						   of attributes supported on this
-						   filesystem */
+	u32			attr_bitmask[2];
 	u32			cache_consistency_bitmask[2];
-						/* V4 bitmask representing the subset
-						   of change attribute, size, ctime
-						   and mtime attributes supported by
-						   the server */
-	u32			acl_bitmask;	/* V4 bitmask representing the ACEs
-						   that are supported on this
-						   filesystem */
+						
+	u32			acl_bitmask;	
 #endif
 	void (*destroy)(struct nfs_server *);
 
-	atomic_t active; /* Keep trace of any activity to this server */
+	atomic_t active; 
 
-	/* mountd-related mount options */
+	
 	struct sockaddr_storage	mountd_address;
 	size_t			mountd_addrlen;
 	u32			mountd_version;
@@ -161,7 +146,7 @@ struct nfs_server {
 	unsigned short		mountd_protocol;
 };
 
-/* Server capabilities */
+
 #define NFS_CAP_READDIRPLUS	(1U << 0)
 #define NFS_CAP_HARDLINKS	(1U << 1)
 #define NFS_CAP_SYMLINKS	(1U << 2)
@@ -178,21 +163,20 @@ struct nfs_server {
 #define NFS_CAP_MTIME		(1U << 13)
 
 
-/* maximum number of slots to use */
+
 #define NFS4_MAX_SLOT_TABLE RPC_MAX_SLOT_TABLE
 
 #if defined(CONFIG_NFS_V4_1)
 
-/* Sessions */
+
 #define SLOT_TABLE_SZ (NFS4_MAX_SLOT_TABLE/(8*sizeof(long)))
 struct nfs4_slot_table {
-	struct nfs4_slot *slots;		/* seqid per slot */
-	unsigned long   used_slots[SLOT_TABLE_SZ]; /* used/unused bitmap */
+	struct nfs4_slot *slots;		
+	unsigned long   used_slots[SLOT_TABLE_SZ]; 
 	spinlock_t	slot_tbl_lock;
-	struct rpc_wait_queue	slot_tbl_waitq;	/* allocators may wait here */
-	int		max_slots;		/* # slots in table */
-	int		highest_used_slotid;	/* sent to server on each SEQ.
-						 * op for dynamic resizing */
+	struct rpc_wait_queue	slot_tbl_waitq;	
+	int		max_slots;		
+	int		highest_used_slotid;	
 };
 
 static inline int slot_idx(struct nfs4_slot_table *tbl, struct nfs4_slot *sp)
@@ -200,9 +184,7 @@ static inline int slot_idx(struct nfs4_slot_table *tbl, struct nfs4_slot *sp)
 	return sp - tbl->slots;
 }
 
-/*
- * Session related parameters
- */
+
 struct nfs4_session {
 	struct nfs4_sessionid		sess_id;
 	u32				flags;
@@ -210,7 +192,7 @@ struct nfs4_session {
 	u32				hash_alg;
 	u32				ssv_len;
 
-	/* The fore and back channel */
+	
 	struct nfs4_channel_attrs	fc_attrs;
 	struct nfs4_slot_table		fc_slot_table;
 	struct nfs4_channel_attrs	bc_attrs;
@@ -218,5 +200,5 @@ struct nfs4_session {
 	struct nfs_client		*clp;
 };
 
-#endif /* CONFIG_NFS_V4_1 */
+#endif 
 #endif

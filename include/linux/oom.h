@@ -1,9 +1,9 @@
 #ifndef __INCLUDE_LINUX_OOM_H
 #define __INCLUDE_LINUX_OOM_H
 
-/* /proc/<pid>/oom_adj set to -17 protects from the oom-killer */
+
 #define OOM_DISABLE (-17)
-/* inclusive */
+
 #define OOM_ADJUST_MIN (-16)
 #define OOM_ADJUST_MAX 15
 
@@ -14,9 +14,7 @@
 struct zonelist;
 struct notifier_block;
 
-/*
- * Types of limitations to the nodes from which allocations may occur
- */
+
 enum oom_constraint {
 	CONSTRAINT_NONE,
 	CONSTRAINT_CPUSET,
@@ -41,5 +39,5 @@ static inline void oom_killer_enable(void)
 {
 	oom_killer_disabled = false;
 }
-#endif /* __KERNEL__*/
-#endif /* _INCLUDE_LINUX_OOM_H */
+#endif 
+#endif 

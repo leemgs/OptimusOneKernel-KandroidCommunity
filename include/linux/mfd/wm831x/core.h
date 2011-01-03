@@ -1,16 +1,4 @@
-/*
- * include/linux/mfd/wm831x/core.h -- Core interface for WM831x
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #ifndef __MFD_WM831X_CORE_H__
 #define __MFD_WM831X_CORE_H__
@@ -18,9 +6,7 @@
 #include <linux/interrupt.h>
 #include <linux/workqueue.h>
 
-/*
- * Register values.
- */
+
 #define WM831X_RESET_ID                         0x00
 #define WM831X_REVISION                         0x01
 #define WM831X_PARENT_ID                        0x4000
@@ -192,46 +178,38 @@
 #define WM831X_GPIO6_OTP_CONTROL                0x781F
 #define WM831X_DBE_CHECK_DATA                   0x7827
 
-/*
- * R0 (0x00) - Reset ID
- */
-#define WM831X_CHIP_ID_MASK                     0xFFFF  /* CHIP_ID - [15:0] */
-#define WM831X_CHIP_ID_SHIFT                         0  /* CHIP_ID - [15:0] */
-#define WM831X_CHIP_ID_WIDTH                        16  /* CHIP_ID - [15:0] */
 
-/*
- * R1 (0x01) - Revision
- */
-#define WM831X_PARENT_REV_MASK                  0xFF00  /* PARENT_REV - [15:8] */
-#define WM831X_PARENT_REV_SHIFT                      8  /* PARENT_REV - [15:8] */
-#define WM831X_PARENT_REV_WIDTH                      8  /* PARENT_REV - [15:8] */
-#define WM831X_CHILD_REV_MASK                   0x00FF  /* CHILD_REV - [7:0] */
-#define WM831X_CHILD_REV_SHIFT                       0  /* CHILD_REV - [7:0] */
-#define WM831X_CHILD_REV_WIDTH                       8  /* CHILD_REV - [7:0] */
+#define WM831X_CHIP_ID_MASK                     0xFFFF  
+#define WM831X_CHIP_ID_SHIFT                         0  
+#define WM831X_CHIP_ID_WIDTH                        16  
 
-/*
- * R16384 (0x4000) - Parent ID
- */
-#define WM831X_PARENT_ID_MASK                   0xFFFF  /* PARENT_ID - [15:0] */
-#define WM831X_PARENT_ID_SHIFT                       0  /* PARENT_ID - [15:0] */
-#define WM831X_PARENT_ID_WIDTH                      16  /* PARENT_ID - [15:0] */
 
-/*
- * R16389 (0x4005) - ON Pin Control
- */
-#define WM831X_ON_PIN_SECACT_MASK               0x0300  /* ON_PIN_SECACT - [9:8] */
-#define WM831X_ON_PIN_SECACT_SHIFT                   8  /* ON_PIN_SECACT - [9:8] */
-#define WM831X_ON_PIN_SECACT_WIDTH                   2  /* ON_PIN_SECACT - [9:8] */
-#define WM831X_ON_PIN_PRIMACT_MASK              0x0030  /* ON_PIN_PRIMACT - [5:4] */
-#define WM831X_ON_PIN_PRIMACT_SHIFT                  4  /* ON_PIN_PRIMACT - [5:4] */
-#define WM831X_ON_PIN_PRIMACT_WIDTH                  2  /* ON_PIN_PRIMACT - [5:4] */
-#define WM831X_ON_PIN_STS                       0x0008  /* ON_PIN_STS */
-#define WM831X_ON_PIN_STS_MASK                  0x0008  /* ON_PIN_STS */
-#define WM831X_ON_PIN_STS_SHIFT                      3  /* ON_PIN_STS */
-#define WM831X_ON_PIN_STS_WIDTH                      1  /* ON_PIN_STS */
-#define WM831X_ON_PIN_TO_MASK                   0x0003  /* ON_PIN_TO - [1:0] */
-#define WM831X_ON_PIN_TO_SHIFT                       0  /* ON_PIN_TO - [1:0] */
-#define WM831X_ON_PIN_TO_WIDTH                       2  /* ON_PIN_TO - [1:0] */
+#define WM831X_PARENT_REV_MASK                  0xFF00  
+#define WM831X_PARENT_REV_SHIFT                      8  
+#define WM831X_PARENT_REV_WIDTH                      8  
+#define WM831X_CHILD_REV_MASK                   0x00FF  
+#define WM831X_CHILD_REV_SHIFT                       0  
+#define WM831X_CHILD_REV_WIDTH                       8  
+
+
+#define WM831X_PARENT_ID_MASK                   0xFFFF  
+#define WM831X_PARENT_ID_SHIFT                       0  
+#define WM831X_PARENT_ID_WIDTH                      16  
+
+
+#define WM831X_ON_PIN_SECACT_MASK               0x0300  
+#define WM831X_ON_PIN_SECACT_SHIFT                   8  
+#define WM831X_ON_PIN_SECACT_WIDTH                   2  
+#define WM831X_ON_PIN_PRIMACT_MASK              0x0030  
+#define WM831X_ON_PIN_PRIMACT_SHIFT                  4  
+#define WM831X_ON_PIN_PRIMACT_WIDTH                  2  
+#define WM831X_ON_PIN_STS                       0x0008  
+#define WM831X_ON_PIN_STS_MASK                  0x0008  
+#define WM831X_ON_PIN_STS_SHIFT                      3  
+#define WM831X_ON_PIN_STS_WIDTH                      1  
+#define WM831X_ON_PIN_TO_MASK                   0x0003  
+#define WM831X_ON_PIN_TO_SHIFT                       0  
+#define WM831X_ON_PIN_TO_WIDTH                       2  
 
 struct regulator_dev;
 
@@ -246,7 +224,7 @@ struct wm831x {
 
 	void *control_data;
 
-	int irq;  /* Our chip IRQ */
+	int irq;  
 	struct mutex irq_lock;
 	struct workqueue_struct *irq_wq;
 	struct work_struct irq_work;
@@ -255,16 +233,12 @@ struct wm831x {
 
 	struct mutex auxadc_lock;
 
-	/* The WM831x has a security key blocking access to certain
-	 * registers.  The mutex is taken by the accessors for locking
-	 * and unlocking the security key, locked is used to fail
-	 * writes if the lock is held.
-	 */
+	
 	struct mutex key_lock;
 	unsigned int locked:1;
 };
 
-/* Device I/O API */
+
 int wm831x_reg_read(struct wm831x *wm831x, unsigned short reg);
 int wm831x_reg_write(struct wm831x *wm831x, unsigned short reg,
 		 unsigned short val);

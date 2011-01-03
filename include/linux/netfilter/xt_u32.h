@@ -18,10 +18,7 @@ struct xt_u32_value_element {
 	u_int32_t max;
 };
 
-/*
- * Any way to allow for an arbitrary number of elements?
- * For now, I settle with a limit of 10 each.
- */
+
 #define XT_U32_MAXSIZE 10
 
 struct xt_u32_test {
@@ -37,4 +34,4 @@ struct xt_u32 {
 	u_int8_t invert;
 };
 
-#endif /* _XT_U32_H */
+#endif 

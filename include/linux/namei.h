@@ -24,34 +24,22 @@ struct nameidata {
 	unsigned	depth;
 	char *saved_names[MAX_NESTED_LINKS + 1];
 
-	/* Intent data */
+	
 	union {
 		struct open_intent open;
 	} intent;
 };
 
-/*
- * Type of the last component on LOOKUP_PARENT
- */
+
 enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
 
-/*
- * The bitmask for a lookup event:
- *  - follow links at the end
- *  - require a directory
- *  - ending slashes ok even for nonexistent files
- *  - internal "there are more path components" flag
- *  - locked when lookup done with dcache_lock held
- *  - dentry cache is untrusted; force a real lookup
- */
+
 #define LOOKUP_FOLLOW		 1
 #define LOOKUP_DIRECTORY	 2
 #define LOOKUP_CONTINUE		 4
 #define LOOKUP_PARENT		16
 #define LOOKUP_REVAL		64
-/*
- * Intent data
- */
+
 #define LOOKUP_OPEN		0x0100
 #define LOOKUP_CREATE		0x0200
 #define LOOKUP_EXCL		0x0400
@@ -99,4 +87,4 @@ static inline void nd_terminate_link(void *name, size_t len, size_t maxlen)
 	((char *) name)[min(len, maxlen)] = '\0';
 }
 
-#endif /* _LINUX_NAMEI_H */
+#endif 
