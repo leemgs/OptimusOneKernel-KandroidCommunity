@@ -1,12 +1,4 @@
-/*
- * LEDs driver for Amstrad Delta (E3)
- *
- * Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -14,9 +6,7 @@
 #include <linux/leds.h>
 #include <mach/board-ams-delta.h>
 
-/*
- * Our context
- */
+
 struct ams_delta_led {
 	struct led_classdev	cdev;
 	u8			bitmask;

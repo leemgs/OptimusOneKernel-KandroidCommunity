@@ -1,13 +1,4 @@
-/*
- * LED driver for WM831x status LEDs
- *
- * Copyright(C) 2009 Wolfson Microelectronics PLC.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -26,8 +17,8 @@ struct wm831x_status {
 	struct mutex mutex;
 
 	spinlock_t value_lock;
-	int reg;     /* Control register */
-	int reg_val; /* Control register value */
+	int reg;     
+	int reg_val; 
 
 	int blink;
 	int blink_time;
@@ -91,7 +82,7 @@ static int wm831x_status_blink_set(struct led_classdev *led_cdev,
 	unsigned long flags;
 	int ret = 0;
 
-	/* Pick some defaults if we've not been given times */
+	
 	if (*delay_on == 0 && *delay_off == 0) {
 		*delay_on = 250;
 		*delay_off = 250;
@@ -99,8 +90,7 @@ static int wm831x_status_blink_set(struct led_classdev *led_cdev,
 
 	spin_lock_irqsave(&led->value_lock, flags);
 
-	/* We only have a limited selection of settings, see if we can
-	 * support the configuration we're being given */
+	
 	switch (*delay_on) {
 	case 1000:
 		led->blink_time = 0;
@@ -113,7 +103,7 @@ static int wm831x_status_blink_set(struct led_classdev *led_cdev,
 		break;
 	case 62:
 	case 63:
-		/* Actually 62.5ms */
+		
 		led->blink_time = 3;
 		break;
 	default:
@@ -146,8 +136,7 @@ static int wm831x_status_blink_set(struct led_classdev *led_cdev,
 	else
 		led->blink = 0;
 
-	/* Always update; if we fail turn off blinking since we expect
-	 * a software fallback. */
+	
 	schedule_work(&led->work);
 
 	spin_unlock_irqrestore(&led->value_lock, flags);
@@ -258,8 +247,7 @@ static int wm831x_status_probe(struct platform_device *pdev)
 	INIT_WORK(&drvdata->work, wm831x_status_work);
 	spin_lock_init(&drvdata->value_lock);
 
-	/* We cache the configuration register and read startup values
-	 * from it. */
+	
 	drvdata->reg_val = wm831x_reg_read(wm831x, drvdata->reg);
 
 	if (drvdata->reg_val & WM831X_LED_MODE_MASK)
@@ -267,9 +255,7 @@ static int wm831x_status_probe(struct platform_device *pdev)
 	else
 		drvdata->brightness = LED_OFF;
 
-	/* Set a default source if configured, otherwise leave the
-	 * current hardware setting.
-	 */
+	
 	if (pdata.default_src == WM831X_STATUS_PRESERVE) {
 		drvdata->src = drvdata->reg_val;
 		drvdata->src &= WM831X_LED_SRC_MASK;

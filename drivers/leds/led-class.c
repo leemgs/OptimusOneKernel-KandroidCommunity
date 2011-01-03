@@ -1,13 +1,4 @@
-/*
- * LED Class Core
- *
- * Copyright (C) 2005 John Lenz <lenz@cs.wisc.edu>
- * Copyright (C) 2005-2007 Richard Purdie <rpurdie@openedhand.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -35,7 +26,7 @@ static ssize_t led_brightness_show(struct device *dev,
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 
-	/* no lock needed for this */
+	
 	led_update_brightness(led_cdev);
 
 	return sprintf(buf, "%u\n", led_cdev->brightness);
@@ -78,10 +69,7 @@ static DEVICE_ATTR(max_brightness, 0444, led_max_brightness_show, NULL);
 static DEVICE_ATTR(trigger, 0644, led_trigger_show, led_trigger_store);
 #endif
 
-/**
- * led_classdev_suspend - suspend an led_classdev.
- * @led_cdev: the led_classdev to suspend.
- */
+
 void led_classdev_suspend(struct led_classdev *led_cdev)
 {
 	led_cdev->flags |= LED_SUSPENDED;
@@ -89,10 +77,7 @@ void led_classdev_suspend(struct led_classdev *led_cdev)
 }
 EXPORT_SYMBOL_GPL(led_classdev_suspend);
 
-/**
- * led_classdev_resume - resume an led_classdev.
- * @led_cdev: the led_classdev to resume.
- */
+
 void led_classdev_resume(struct led_classdev *led_cdev)
 {
 	led_cdev->brightness_set(led_cdev, led_cdev->brightness);
@@ -120,11 +105,7 @@ static int led_resume(struct device *dev)
 	return 0;
 }
 
-/**
- * led_classdev_register - register a new object of led_classdev class.
- * @parent: The device to register.
- * @led_cdev: the led_classdev structure for this device.
- */
+
 int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
 {
 	int rc;
@@ -134,7 +115,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
 	if (IS_ERR(led_cdev->dev))
 		return PTR_ERR(led_cdev->dev);
 
-	/* register the attributes */
+	
 	rc = device_create_file(led_cdev->dev, &dev_attr_brightness);
 	if (rc)
 		goto err_out;
@@ -142,7 +123,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
 #ifdef CONFIG_LEDS_TRIGGERS
 	init_rwsem(&led_cdev->trigger_lock);
 #endif
-	/* add to the list of leds */
+	
 	down_write(&leds_list_lock);
 	list_add_tail(&led_cdev->node, &leds_list);
 	up_write(&leds_list_lock);
@@ -182,12 +163,7 @@ err_out:
 }
 EXPORT_SYMBOL_GPL(led_classdev_register);
 
-/**
- * led_classdev_unregister - unregisters a object of led_properties class.
- * @led_cdev: the led device to unregister
- *
- * Unregisters a previously registered via led_classdev_register object.
- */
+
 void led_classdev_unregister(struct led_classdev *led_cdev)
 {
 	device_remove_file(led_cdev->dev, &dev_attr_max_brightness);

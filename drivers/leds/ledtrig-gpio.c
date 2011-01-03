@@ -1,13 +1,4 @@
-/*
- * ledtrig-gio.c - LED Trigger Based on GPIO events
- *
- * Copyright 2009 Felipe Balbi <me@felipebalbi.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -22,9 +13,9 @@ struct gpio_trig_data {
 	struct led_classdev *led;
 	struct work_struct work;
 
-	unsigned desired_brightness;	/* desired brightness when led is on */
-	unsigned inverted;		/* true when gpio is inverted */
-	unsigned gpio;			/* gpio that triggers the leds */
+	unsigned desired_brightness;	
+	unsigned inverted;		
+	unsigned gpio;			
 };
 
 static irqreturn_t gpio_trig_irq(int irq, void *_led)
@@ -32,7 +23,7 @@ static irqreturn_t gpio_trig_irq(int irq, void *_led)
 	struct led_classdev *led = _led;
 	struct gpio_trig_data *gpio_data = led->trigger_data;
 
-	/* just schedule_work since gpio_get_value can sleep */
+	
 	schedule_work(&gpio_data->work);
 
 	return IRQ_HANDLED;
@@ -117,7 +108,7 @@ static ssize_t gpio_trig_inverted_store(struct device *dev,
 
 	gpio_data->inverted = !!inverted;
 
-	/* After inverting, we need to update the LED. */
+	
 	schedule_work(&gpio_data->work);
 
 	return n;

@@ -1,14 +1,4 @@
-/*
- * drivers/leds/leds-h1940.c
- * Copyright (c) Arnaud Patard <arnaud.patard@rtp-net.org>
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive for
- * more details.
- *
- * H1940 leds driver
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -22,9 +12,7 @@
 #include <mach/hardware.h>
 #include <mach/h1940-latch.h>
 
-/*
- * Green led.
- */
+
 static void h1940_greenled_set(struct led_classdev *led_dev,
 			       enum led_brightness value)
 {
@@ -52,9 +40,7 @@ static struct led_classdev h1940_greenled = {
 	.default_trigger	= "h1940-charger",
 };
 
-/*
- * Red led.
- */
+
 static void h1940_redled_set(struct led_classdev *led_dev,
 			     enum led_brightness value)
 {
@@ -82,15 +68,12 @@ static struct led_classdev h1940_redled = {
 	.default_trigger	= "h1940-charger",
 };
 
-/*
- * Blue led.
- * (it can only be blue flashing led)
- */
+
 static void h1940_blueled_set(struct led_classdev *led_dev,
 			      enum led_brightness value)
 {
 	if (value) {
-		/* flashing Blue */
+		
 		h1940_latch_control(0, H1940_LATCH_LED_FLASH);
 		s3c2410_gpio_setpin(S3C2410_GPA3, 1);
 	} else {

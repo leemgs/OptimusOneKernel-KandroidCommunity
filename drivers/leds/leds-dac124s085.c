@@ -1,13 +1,4 @@
-/*
- * Copyright 2008
- * Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
- *
- * This file is subject to the terms and conditions of version 2 of
- * the GNU General Public License.  See the file COPYING in the main
- * directory of this archive for more details.
- *
- * LED driver for the DAC124S085 SPI DAC
- */
+
 
 #include <linux/gfp.h>
 #include <linux/leds.h>

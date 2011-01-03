@@ -1,19 +1,4 @@
-/*
- * LED Driver for the Freecom FSG-3
- *
- * Copyright (c) 2008 Rod Whitby <rod@whitby.id.au>
- *
- * Author: Rod Whitby <rod@whitby.id.au>
- *
- * Based on leds-spitz.c
- * Copyright 2005-2006 Openedhand Ltd.
- * Author: Richard Purdie <rpurdie@openedhand.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -140,7 +125,7 @@ static int fsg_led_probe(struct platform_device *pdev)
 {
 	int ret;
 
-	/* Map the LED chip select address space */
+	
 	latch_address = (unsigned short *) ioremap(IXP4XX_EXP_BUS_BASE(2), 512);
 	if (!latch_address) {
 		ret = -ENOMEM;

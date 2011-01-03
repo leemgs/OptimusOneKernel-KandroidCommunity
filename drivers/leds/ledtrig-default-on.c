@@ -1,15 +1,4 @@
-/*
- * LED Kernel Default ON Trigger
- *
- * Copyright 2008 Nick Forbes <nick.forbes@incepta.com>
- *
- * Based on Richard Purdie's ledtrig-timer.c.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>

@@ -1,15 +1,4 @@
-/*
- * LED IDE-Disk Activity Trigger
- *
- * Copyright 2006 Openedhand Ltd.
- *
- * Author: Richard Purdie <rpurdie@openedhand.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/jiffies.h>
@@ -37,7 +26,7 @@ static void ledtrig_ide_timerfunc(unsigned long data)
 {
 	if (ide_lastactivity != ide_activity) {
 		ide_lastactivity = ide_activity;
-		/* INT_MAX will set each LED to its maximum brightness */
+		
 		led_trigger_event(ledtrig_ide, INT_MAX);
 		mod_timer(&ledtrig_ide_timer, jiffies + msecs_to_jiffies(10));
 	} else {

@@ -1,16 +1,4 @@
-/*
- * leds-bd2802.c - RGB LED Driver
- *
- * Copyright (C) 2009 Samsung Electronics
- * Kim Kyuwon <q1.kim@samsung.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Datasheet: http://www.rohm.com/products/databook/driver/pdf/bd2802gu-e.pdf
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/i2c.h>
@@ -32,8 +20,8 @@
 #define BD2802_REG_CURRENT2SETUP	0x04
 #define BD2802_REG_WAVEPATTERN		0x05
 
-#define BD2802_CURRENT_032		0x10 /* 3.2mA */
-#define BD2802_CURRENT_000		0x00 /* 0.0mA */
+#define BD2802_CURRENT_032		0x10 
+#define BD2802_CURRENT_000		0x00 
 
 #define BD2802_PATTERN_FULL		0x07
 #define BD2802_PATTERN_HALF		0x03
@@ -56,11 +44,7 @@ enum led_bits {
 	BD2802_ON,
 };
 
-/*
- * State '0' : 'off'
- * State '1' : 'blink'
- * State '2' : 'on'.
- */
+
 struct led_state {
 	unsigned r:2;
 	unsigned g:2;
@@ -75,11 +59,7 @@ struct bd2802_led {
 
 	struct led_state		led[2];
 
-	/*
-	 * Making led_classdev as array is not recommended, because array
-	 * members prevent using 'container_of' macro. So repetitive works
-	 * are needed.
-	 */
+	
 	struct led_classdev		cdev_led1r;
 	struct led_classdev		cdev_led1g;
 	struct led_classdev		cdev_led1b;
@@ -87,26 +67,22 @@ struct bd2802_led {
 	struct led_classdev		cdev_led2g;
 	struct led_classdev		cdev_led2b;
 
-	/*
-	 * Advanced Configuration Function(ADF) mode:
-	 * In ADF mode, user can set registers of BD2802GU directly,
-	 * therefore BD2802GU doesn't enter reset state.
-	 */
+	
 	int 				adf_on;
 
 	enum led_ids			led_id;
 	enum led_colors			color;
 	enum led_bits			state;
 
-	/* General attributes of RGB LEDs */
+	
 	int				wave_pattern;
 	int				rgb_current;
 };
 
 
-/*--------------------------------------------------------------*/
-/*	BD2802GU helper functions					*/
-/*--------------------------------------------------------------*/
+
+
+
 
 static inline int bd2802_is_rgb_off(struct bd2802_led *led, enum led_ids id,
 							enum led_colors color)
@@ -155,9 +131,9 @@ static inline u8 bd2802_get_reg_addr(enum led_ids id, enum led_colors color,
 }
 
 
-/*--------------------------------------------------------------*/
-/*	BD2802GU core functions					*/
-/*--------------------------------------------------------------*/
+
+
+
 
 static int bd2802_write_byte(struct i2c_client *client, u8 reg, u8 val)
 {
@@ -208,10 +184,7 @@ static void bd2802_update_state(struct bd2802_led *led, enum led_ids id,
 		return;
 	}
 
-	/*
-	 * In this case, other led is turned on, and current led is turned
-	 * off. So set RGB LED Control register to stop the current RGB LED
-	 */
+	
 	value = (id == LED1) ? LED_CTL(1, 0) : LED_CTL(0, 1);
 	bd2802_write_byte(led->client, BD2802_REG_CONTROL, value);
 }
@@ -697,14 +670,14 @@ static int __devinit bd2802_probe(struct i2c_client *client,
 	pdata = led->pdata = client->dev.platform_data;
 	i2c_set_clientdata(client, led);
 
-	/* Configure RESET GPIO (L: RESET, H: RESET cancel) */
+	
 	gpio_request(pdata->reset_gpio, "RGB_RESETB");
 	gpio_direction_output(pdata->reset_gpio, 1);
 
-	/* Tacss = min 0.1ms */
+	
 	udelay(100);
 
-	/* Detect BD2802GU */
+	
 	ret = bd2802_write_byte(client, BD2802_REG_CLKSETUP, 0x00);
 	if (ret < 0) {
 		dev_err(&client->dev, "failed to detect device\n");
@@ -712,10 +685,10 @@ static int __devinit bd2802_probe(struct i2c_client *client,
 	} else
 		dev_info(&client->dev, "return 0x%02x\n", ret);
 
-	/* To save the power, reset BD2802 after detecting */
+	
 	gpio_set_value(led->pdata->reset_gpio, 0);
 
-	/* Default attributes */
+	
 	led->wave_pattern = BD2802_PATTERN_HALF;
 	led->rgb_current = BD2802_CURRENT_032;
 

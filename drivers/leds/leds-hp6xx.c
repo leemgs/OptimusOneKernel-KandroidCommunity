@@ -1,14 +1,4 @@
-/*
- * LED Triggers Core
- * For the HP Jornada 620/660/680/690 handhelds
- *
- * Copyright 2008 Kristoffer Ericson <kristoffer.ericson@gmail.com>
- *     this driver is based on leds-spitz.c by Richard Purdie.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -78,7 +68,7 @@ static int hp6xxled_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:hp6xx-led");
 
 static struct platform_driver hp6xxled_driver = {

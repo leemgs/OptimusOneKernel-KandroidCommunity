@@ -1,15 +1,4 @@
-/*
- * LEDs driver for GPIOs
- *
- * Copyright (C) 2007 8D Technologies inc.
- * Raphael Assenat <raph@8d.com>
- * Copyright (C) 2008 Freescale Semiconductor, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -52,10 +41,7 @@ static void gpio_led_set(struct led_classdev *led_cdev,
 	if (led_dat->active_low)
 		level = !level;
 
-	/* Setting GPIOs with I2C/etc requires a task context, and we don't
-	 * seem to have a reliable way to know if we're already in one; so
-	 * let's just assume the worst.
-	 */
+	
 	if (led_dat->can_sleep) {
 		led_dat->new_level = level;
 		schedule_work(&led_dat->work);
@@ -80,7 +66,7 @@ static int __devinit create_gpio_led(const struct gpio_led *template,
 
 	led_dat->gpio = -1;
 
-	/* skip leds that aren't available */
+	
 	if (!gpio_is_valid(template->gpio)) {
 		printk(KERN_INFO "Skipping unavailable LED gpio %d (%s)\n",
 				template->gpio, template->name);
@@ -195,9 +181,9 @@ static struct platform_driver gpio_led_driver = {
 };
 
 MODULE_ALIAS("platform:leds-gpio");
-#endif /* CONFIG_LEDS_GPIO_PLATFORM */
+#endif 
 
-/* Code to create from OpenFirmware platform devices */
+
 #ifdef CONFIG_LEDS_GPIO_OF
 #include <linux/of_platform.h>
 #include <linux/of_gpio.h>
@@ -215,11 +201,11 @@ static int __devinit of_gpio_leds_probe(struct of_device *ofdev,
 	struct gpio_led_of_platform_data *pdata;
 	int count = 0, ret;
 
-	/* count LEDs defined by this device, so we know how much to allocate */
+	
 	for_each_child_of_node(np, child)
 		count++;
 	if (!count)
-		return 0; /* or ENODEV? */
+		return 0; 
 
 	pdata = kzalloc(sizeof(*pdata) + sizeof(struct gpio_led_data) * count,
 			GFP_KERNEL);

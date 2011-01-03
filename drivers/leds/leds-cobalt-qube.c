@@ -1,8 +1,4 @@
-/*
- * Copyright 2006 - Florian Fainelli <florian@openwrt.org>
- *
- * Control the Cobalt Qube/RaQ front LED
- */
+
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/ioport.h>
@@ -75,7 +71,7 @@ static int __devexit cobalt_qube_led_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:cobalt-qube-leds");
 
 static struct platform_driver cobalt_qube_led_driver = {

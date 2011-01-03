@@ -1,15 +1,4 @@
-/*
- * LED Core
- *
- * Copyright 2005 Openedhand Ltd.
- *
- * Author: Richard Purdie <rpurdie@openedhand.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 #ifndef __LEDS_H_INCLUDED
 #define __LEDS_H_INCLUDED
 
@@ -51,4 +40,4 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
 ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
 			char *buf);
 
-#endif	/* __LEDS_H_INCLUDED */
+#endif	

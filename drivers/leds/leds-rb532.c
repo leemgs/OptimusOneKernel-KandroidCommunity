@@ -1,12 +1,4 @@
-/*
- * LEDs driver for the "User LED" on Routerboard532
- *
- * Copyright (C) 2009 Phil Sutter <n0-1@freewrt.org>
- *
- * Based on leds-cobalt-qube.c by Florian Fainelly and
- * rb-diag.c (my own standalone driver for both LED and
- * button of Routerboard532).
- */
+
 
 #include <linux/leds.h>
 #include <linux/module.h>

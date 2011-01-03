@@ -1,14 +1,4 @@
-/*
- * LEDs driver for Soekris net48xx
- *
- * Copyright (C) 2006 Chris Boot <bootc@bootc.net>
- *
- * Based on leds-ams-delta.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -60,7 +50,7 @@ static int __init net48xx_led_init(void)
 {
 	int ret;
 
-	/* small hack, but scx200_gpio doesn't set .dev if the probe fails */
+	
 	if (!scx200_gpio_ops.dev) {
 		ret = -ENODEV;
 		goto out;

@@ -1,16 +1,4 @@
-/*
- * linux/drivers/leds-pwm.c
- *
- * simple PWM based LED control
- *
- * Copyright 2009 Luotao Fu @ Pengutronix (l.fu@pengutronix.de)
- *
- * based on leds-gpio.c by Raphael Assenat <raph@8d.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>

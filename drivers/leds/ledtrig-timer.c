@@ -1,15 +1,4 @@
-/*
- * LED Kernel Timer Trigger
- *
- * Copyright 2005-2006 Openedhand Ltd.
- *
- * Author: Richard Purdie <rpurdie@openedhand.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/jiffies.h>
@@ -25,11 +14,9 @@
 #include "leds.h"
 
 struct timer_trig_data {
-	int brightness_on;		/* LED brightness during "on" period.
-					 * (LED_OFF < brightness_on <= LED_FULL)
-					 */
-	unsigned long delay_on;		/* milliseconds on */
-	unsigned long delay_off;	/* milliseconds off */
+	int brightness_on;		
+	unsigned long delay_on;		
+	unsigned long delay_off;	
 	struct timer_list timer;
 };
 
@@ -47,13 +34,11 @@ static void led_timer_function(unsigned long data)
 
 	brightness = led_get_brightness(led_cdev);
 	if (!brightness) {
-		/* Time to switch the LED on. */
+		
 		brightness = timer_data->brightness_on;
 		delay = timer_data->delay_on;
 	} else {
-		/* Store the current brightness value to be able
-		 * to restore it when the delay_off period is over.
-		 */
+		
 		timer_data->brightness_on = brightness;
 		brightness = LED_OFF;
 		delay = timer_data->delay_off;
@@ -88,17 +73,17 @@ static ssize_t led_delay_on_store(struct device *dev,
 
 	if (count == size) {
 		if (timer_data->delay_on != state) {
-			/* the new value differs from the previous */
+			
 			timer_data->delay_on = state;
 
-			/* deactivate previous settings */
+			
 			del_timer_sync(&timer_data->timer);
 
-			/* try to activate hardware acceleration, if any */
+			
 			if (!led_cdev->blink_set ||
 			    led_cdev->blink_set(led_cdev,
 			      &timer_data->delay_on, &timer_data->delay_off)) {
-				/* no hardware acceleration, blink via timer */
+				
 				mod_timer(&timer_data->timer, jiffies + 1);
 			}
 		}
@@ -132,17 +117,17 @@ static ssize_t led_delay_off_store(struct device *dev,
 
 	if (count == size) {
 		if (timer_data->delay_off != state) {
-			/* the new value differs from the previous */
+			
 			timer_data->delay_off = state;
 
-			/* deactivate previous settings */
+			
 			del_timer_sync(&timer_data->timer);
 
-			/* try to activate hardware acceleration, if any */
+			
 			if (!led_cdev->blink_set ||
 			    led_cdev->blink_set(led_cdev,
 			      &timer_data->delay_on, &timer_data->delay_off)) {
-				/* no hardware acceleration, blink via timer */
+				
 				mod_timer(&timer_data->timer, jiffies + 1);
 			}
 		}
@@ -180,9 +165,7 @@ static void timer_trig_activate(struct led_classdev *led_cdev)
 	if (rc)
 		goto err_out_delayon;
 
-	/* If there is hardware support for blinking, start one
-	 * user friendly blink rate chosen by the driver.
-	 */
+	
 	if (led_cdev->blink_set)
 		led_cdev->blink_set(led_cdev,
 			&timer_data->delay_on, &timer_data->delay_off);
@@ -208,7 +191,7 @@ static void timer_trig_deactivate(struct led_classdev *led_cdev)
 		kfree(timer_data);
 	}
 
-	/* If there is hardware support for blinking, stop it */
+	
 	if (led_cdev->blink_set)
 		led_cdev->blink_set(led_cdev, &on, &off);
 }

@@ -1,13 +1,4 @@
-/*
- * LED driver for WM8350 driven LEDS.
- *
- * Copyright(C) 2007, 2008 Wolfson Microelectronics PLC.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -17,7 +8,7 @@
 #include <linux/mfd/wm8350/pmic.h>
 #include <linux/regulator/consumer.h>
 
-/* Microamps */
+
 static const int isink_cur[] = {
 	4,
 	5,
@@ -151,11 +142,7 @@ static void led_work(struct work_struct *work)
 		goto out;
 	}
 
-	/* This scales linearly into the index of valid current
-	 * settings which results in a linear scaling of perceived
-	 * brightness due to the non-linear current settings provided
-	 * by the hardware.
-	 */
+	
 	uA = (led->max_uA_index * led->value) / LED_FULL;
 	spin_unlock_irqrestore(&led->value_lock, flags);
 	BUG_ON(uA >= ARRAY_SIZE(isink_cur));

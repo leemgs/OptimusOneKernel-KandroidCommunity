@@ -1,8 +1,4 @@
-/*
- * LEDs driver for PCEngines ALIX.2 and ALIX.3
- *
- * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
- */
+
 
 #include <linux/err.h>
 #include <linux/io.h>
@@ -155,7 +151,7 @@ static int __init alix_led_init(void)
 		goto out;
 	}
 
-	/* enable output on GPIO for LED 1,2,3 */
+	
 	outl(1 << 6, 0x6104);
 	outl(1 << 9, 0x6184);
 	outl(1 << 11, 0x6184);

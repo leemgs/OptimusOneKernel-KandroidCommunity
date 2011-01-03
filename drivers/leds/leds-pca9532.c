@@ -1,15 +1,4 @@
-/*
- * pca9532.c - 16-bit Led dimmer
- *
- * Copyright (C) 2008 Riku Voipio
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * Datasheet: http://www.nxp.com/acrobat/datasheets/PCA9532_3.pdf
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/i2c.h>
@@ -57,11 +46,7 @@ static struct i2c_driver pca9532_driver = {
 	.id_table = pca9532_id,
 };
 
-/* We have two pwm/blinkers, but 16 possible leds to drive. Additionaly,
- * the clever Thecus people are using one pwm to drive the beeper. So,
- * as a compromise we average one pwm to the values requested by all
- * leds that are not ON/OFF.
- * */
+
 static int pca9532_calcpwm(struct i2c_client *client, int pwm, int blink,
 	enum led_brightness value)
 {
@@ -100,7 +85,7 @@ static int pca9532_setpwm(struct i2c_client *client, int pwm)
 	return 0;
 }
 
-/* Set LED routing */
+
 static void pca9532_setled(struct pca9532_led *led)
 {
 	struct i2c_client *client = led->client;
@@ -109,9 +94,9 @@ static void pca9532_setled(struct pca9532_led *led)
 
 	mutex_lock(&data->update_lock);
 	reg = i2c_smbus_read_byte_data(client, LED_REG(led->id));
-	/* zero led bits */
+	
 	reg = reg & ~(0x3<<LED_NUM(led->id)*2);
-	/* set the new value */
+	
 	reg = reg | (led->state << LED_NUM(led->id)*2);
 	i2c_smbus_write_byte_data(client, LED_REG(led->id), reg);
 	mutex_unlock(&data->update_lock);
@@ -128,10 +113,10 @@ static void pca9532_set_brightness(struct led_classdev *led_cdev,
 	else if (value == LED_FULL)
 		led->state = PCA9532_ON;
 	else {
-		led->state = PCA9532_PWM0; /* Thecus: hardcode one pwm */
+		led->state = PCA9532_PWM0; 
 		err = pca9532_calcpwm(led->client, 0, 0, value);
 		if (err)
-			return; /* XXX: led api doesn't allow error code? */
+			return; 
 	}
 	schedule_work(&led->work);
 }
@@ -145,14 +130,14 @@ static int pca9532_set_blink(struct led_classdev *led_cdev,
 	int err = 0;
 
 	if (*delay_on == 0 && *delay_off == 0) {
-	/* led subsystem ask us for a blink rate */
+	
 		*delay_on = 1000;
 		*delay_off = 1000;
 	}
 	if (*delay_on != *delay_off || *delay_on > 1690 || *delay_on < 6)
 		return -EINVAL;
 
-	/* Thecus specific: only use PSC/PWM 0 */
+	
 	psc = (*delay_on * 152-1)/1000;
 	err = pca9532_calcpwm(client, 0, psc, led_cdev->brightness);
 	if (err)
@@ -169,7 +154,7 @@ static int pca9532_event(struct input_dev *dev, unsigned int type,
 	if (!(type == EV_SND && (code == SND_BELL || code == SND_TONE)))
 		return -1;
 
-	/* XXX: allow different kind of beeps with psc/pwm modifications */
+	
 	if (value > 1 && value < 32767)
 		data->pwm[1] = 127;
 	else
