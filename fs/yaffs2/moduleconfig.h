@@ -1,0 +1,43 @@
+
+
+#ifndef __YAFFS_CONFIG_H__
+#define __YAFFS_CONFIG_H__
+
+#ifdef YAFFS_OUT_OF_TREE
+
+
+#define CONFIG_YAFFS_FS
+#define CONFIG_YAFFS_YAFFS1
+#define CONFIG_YAFFS_YAFFS2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#define CONFIG_YAFFS_DISABLE_CHUNK_ERASED_CHECK
+
+
+
+#define CONFIG_YAFFS_SHORT_NAMES_IN_RAM
+
+
+
+#define CONFIG_YAFFS_CHECKPOINT_RESERVED_BLOCKS 10
+
+
+
+
+
+
+#endif 
+
+#endif 
